@@ -2,6 +2,7 @@
 
 import { For, Show, createEffect, onCleanup } from 'solid-js'
 import type { JSX } from 'solid-js'
+import { anchoredMenuStyle } from './anchored-menu-style'
 
 /**
  * Font sizes (in px) offered by the toolbar font-size dropdown. The toolbar
@@ -59,16 +60,11 @@ export function FontSizeDropdown(props: FontSizeDropdownProps): JSX.Element {
       return { display: 'none' }
     }
     return {
-      position: 'fixed',
-      top: `${rect.bottom + 2}px`,
-      left: `${rect.left}px`,
-      'z-index': '500',
+      ...anchoredMenuStyle({ anchor: rect, zIndex: 500 }),
       background: '#fff',
       border: '1px solid #d0d0d0',
       'box-shadow': '0 4px 12px rgba(0,0,0,0.12)',
       'min-width': '80px',
-      'max-height': '320px',
-      'overflow-y': 'auto',
       padding: '4px 0',
     }
   }

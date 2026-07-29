@@ -1,4 +1,6 @@
 import { For, Show, createEffect, createSignal, onCleanup } from 'solid-js'
+import type { JSX } from 'solid-js'
+import { anchoredMenuStyle } from './anchored-menu-style'
 
 import { useT } from '../../src/i18n'
 
@@ -90,14 +92,11 @@ export function FillColorPopover(props: FillColorPopoverProps) {
     })
   })
 
-  const positionStyle = (): Record<string, string> => {
+  const positionStyle = (): JSX.CSSProperties => {
     const rect = props.anchorRect()
     if (!rect) return { display: 'none' }
     return {
-      position: 'fixed',
-      top: `${rect.bottom + 2}px`,
-      left: `${rect.left}px`,
-      'z-index': '5000',
+      ...anchoredMenuStyle({ anchor: rect, zIndex: 5000 }),
     }
   }
 

@@ -3,6 +3,7 @@
 import { For, Show, createEffect, onCleanup } from 'solid-js'
 import type { JSX } from 'solid-js'
 import { useT } from '../../src/i18n'
+import { anchoredMenuStyle } from './anchored-menu-style'
 
 /**
  * Stable identifier for each row in the number-format dropdown. The toolbar's
@@ -157,10 +158,7 @@ export function NumberFormatDropdown(props: NumberFormatDropdownProps): JSX.Elem
       return { display: 'none' }
     }
     return {
-      position: 'fixed',
-      top: `${rect.bottom + 2}px`,
-      left: `${rect.left}px`,
-      'z-index': '500',
+      ...anchoredMenuStyle({ anchor: rect, zIndex: 500 }),
     }
   }
 

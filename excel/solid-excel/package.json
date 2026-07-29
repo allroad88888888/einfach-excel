@@ -31,14 +31,14 @@
   "scripts": {
     "dev": "vite",
     "build": "npm run build:wasm && vite build",
-    "build:wasm": "wasm-pack build --target web --out-dir ../../excel/solid-excel/wasm-pkg ../../excel/rust/wasm",
+    "build:wasm": "wasm-pack build --target web --out-dir ../../solid-excel/wasm-pkg ../../excel/rust/wasm",
     "e2e": "playwright test"
   },
   "sideEffects": false,
   "dependencies": {
-    "@einfach/core": "workspace:*",
+    "@einfach/core": "^0.2.19",
     "@einfach/excel-core-ts": "workspace:*",
-    "@einfach/solid": "workspace:*",
+    "@einfach/solid": "^0.2.20",
     "@einfach/spreadsheet-ui-core": "workspace:*",
     "@lingui/core": "^6.0.1",
     "solid-js": "^1.9.12"

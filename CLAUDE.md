@@ -24,29 +24,30 @@ npm run eslint
 
 ## Monorepo Structure (pnpm workspaces)
 
-顶层只有两个分组：`core/` 是与表格无关的库，`excel/` 是整个表格栈。这个边界就是仓库拆分的边界
-（见 `docs/REPO_SPLIT_PLAN_2026-07-28.md`）—— 新代码放哪一组，等于在声明它将来归哪个仓。
+本仓是表格栈，2026-07-29 从 `allroad88888888/einfach` 拆出。库侧（`@einfach/core`、`@einfach/solid`
+等）留在原仓，本仓通过 **npm** 消费它们，不再是 workspace 依赖 —— 拆分口径见
+`docs/REPO_SPLIT_PLAN_2026-07-28.md`。
 
 ```
-core/core/                → @einfach/core                 # Core atom engine (framework-agnostic)
-core/utils/               → @einfach/utils                # Utility functions (easyGet/Set, memoize, LRU cache)
-core/react/               → @einfach/react                # React hooks (useAtomValue, useSetAtom, useAtom)
-core/react-utils/         → @einfach/react-utils          # React utility hooks
-core/react-form/          → @einfach/react-form           # React form handling with validation
-core/solid/               → @einfach/solid                # Solid.js integration
-core/solid-form/          → @einfach/solid-form           # Solid.js form handling
-
 excel/spreadsheet-ui-core/ → @einfach/spreadsheet-ui-core # Framework-agnostic spreadsheet UI atoms + types (vnext)
 excel/excel-core-ts/       → @einfach/excel-core-ts       # TS formula engine (private, parity reference)
 excel/solid-excel/         → @einfach/solid-excel         # Solid.js spreadsheet surface (legacy + vnext)
 excel/showcase/            → @einfach/excel-showcase      # Demo app (private, vite)
-excel/rust/core/           → einfach-core (Rust)          # Rust atom store + twin tests vs core/core
+excel/rust/core/           → einfach-core (Rust)          # Rust atom store（TS 版 core 的孪生实现）
 excel/rust/excel-core/     → einfach-excel-core           # Rust formula / workbook engine
 excel/rust/wasm/           → einfach-wasm                 # WASM bindings exposed to excel/solid-excel
 ```
 
-pnpm workspace 的 glob 是 `core/*` 与 `excel/*`；`excel/rust/` 不是 npm 包，靠 `build:wasm` 接入。
-目录叶子名与包名对齐（`core/react-utils` ↔ `@einfach/react-utils`），唯一例外是 `excel/showcase`。
+pnpm workspace 的 glob 是 `excel/*`；`excel/rust/` 不是 npm 包，靠 `build:wasm` 接入
+（`wasm-pack` 的 `--out-dir` 相对 crate 目录而非 cwd，改动那条 script 时注意）。
+
+**上游依赖**：`@einfach/core` 与 `@einfach/solid` 从 npm 安装，jest 不再对它们做 `moduleNameMapper`
+映射，走 node_modules 解析。这是刻意的 —— 本仓必须能跑在**已发布**的 core 上，而不是某个只存在于
+工作区的版本。当前基线 `@einfach/core@^0.2.19` + `@einfach/solid@^0.2.20`，全套测试在其上通过。
+
+**solid-js 单实例不变式**：根 `pnpm.overrides` 钉死 `solid-js: 1.9.12`，lockfile 里只能有一条
+`solid-js@` 解析。出现第二条就会复发 Provider 重挂 bug（契约测试
+`excel/solid-excel/test/provider-remount-1912.test.tsx`）。
 
 ## Architecture
 

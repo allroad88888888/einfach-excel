@@ -127,128 +127,11 @@ importers:
         specifier: 1.9.12
         version: 1.9.12
 
-  core/core:
-    devDependencies:
-      '@types/node':
-        specifier: ^20.11.30
-        version: 20.17.30
-
-  core/react:
-    dependencies:
-      '@einfach/core':
-        specifier: workspace:*
-        version: link:../core
-      react:
-        specifier: '>=16.8 <20'
-        version: 18.3.1
-    devDependencies:
-      '@types/node':
-        specifier: ^20.11.30
-        version: 20.17.30
-      '@types/react':
-        specifier: ^18.3.3
-        version: 18.3.20
-
-  core/react-form:
-    dependencies:
-      '@einfach/core':
-        specifier: workspace:*
-        version: link:../core
-      '@einfach/react':
-        specifier: workspace:*
-        version: link:../react
-      '@einfach/react-utils':
-        specifier: workspace:*
-        version: link:../react-utils
-      '@einfach/utils':
-        specifier: workspace:*
-        version: link:../utils
-      react:
-        specifier: '>=16.8 <20'
-        version: 18.3.1
-    devDependencies:
-      '@types/node':
-        specifier: ^20.11.30
-        version: 20.17.30
-      '@types/react':
-        specifier: '>=16.8 <20'
-        version: 18.3.20
-
-  core/react-utils:
-    dependencies:
-      '@einfach/core':
-        specifier: workspace:*
-        version: link:../core
-      '@einfach/react':
-        specifier: workspace:*
-        version: link:../react
-      '@einfach/utils':
-        specifier: workspace:*
-        version: link:../utils
-      react:
-        specifier: '>=16.8 <20'
-        version: 18.3.1
-      react-dom:
-        specifier: '>=16.8 <20'
-        version: 18.3.1(react@18.3.1)
-    devDependencies:
-      '@types/node':
-        specifier: ^20.11.30
-        version: 20.17.30
-      '@types/react':
-        specifier: ^18.3.3
-        version: 18.3.20
-      '@types/react-dom':
-        specifier: ^18.3.0
-        version: 18.3.6(@types/react@18.3.20)
-
-  core/solid:
-    dependencies:
-      '@einfach/core':
-        specifier: workspace:*
-        version: link:../core
-      solid-js:
-        specifier: 1.9.12
-        version: 1.9.12
-    devDependencies:
-      '@types/node':
-        specifier: ^20.11.30
-        version: 20.17.30
-
-  core/solid-form:
-    dependencies:
-      '@einfach/core':
-        specifier: workspace:*
-        version: link:../core
-      '@einfach/solid':
-        specifier: workspace:*
-        version: link:../solid
-      '@einfach/utils':
-        specifier: workspace:*
-        version: link:../utils
-      solid-js:
-        specifier: 1.9.12
-        version: 1.9.12
-    devDependencies:
-      '@types/node':
-        specifier: ^20.11.30
-        version: 20.17.30
-
-  core/utils:
-    dependencies:
-      '@einfach/core':
-        specifier: workspace:*
-        version: link:../core
-    devDependencies:
-      '@types/node':
-        specifier: ^20.11.30
-        version: 20.17.30
-
   excel/excel-core-ts:
     dependencies:
       '@einfach/core':
-        specifier: workspace:*
-        version: link:../../core/core
+        specifier: ^0.2.19
+        version: 0.2.19
     devDependencies:
       '@types/node':
         specifier: ^20.11.30
@@ -257,11 +140,11 @@ importers:
   excel/showcase:
     dependencies:
       '@einfach/core':
-        specifier: workspace:*
-        version: link:../../core/core
+        specifier: ^0.2.19
+        version: 0.2.19
       '@einfach/solid':
-        specifier: workspace:*
-        version: link:../../core/solid
+        specifier: ^0.2.20
+        version: 0.2.20(solid-js@1.9.12)
       '@einfach/solid-excel':
         specifier: workspace:*
         version: link:../solid-excel
@@ -291,14 +174,14 @@ importers:
   excel/solid-excel:
     dependencies:
       '@einfach/core':
-        specifier: workspace:*
-        version: link:../../core/core
+        specifier: ^0.2.19
+        version: 0.2.19
       '@einfach/excel-core-ts':
         specifier: workspace:*
         version: link:../excel-core-ts
       '@einfach/solid':
-        specifier: workspace:*
-        version: link:../../core/solid
+        specifier: ^0.2.20
+        version: 0.2.20(solid-js@1.9.12)
       '@einfach/spreadsheet-ui-core':
         specifier: workspace:*
         version: link:../spreadsheet-ui-core
@@ -334,8 +217,8 @@ importers:
   excel/spreadsheet-ui-core:
     dependencies:
       '@einfach/core':
-        specifier: workspace:*
-        version: link:../../core/core
+        specifier: ^0.2.19
+        version: 0.2.19
     devDependencies:
       '@types/node':
         specifier: ^20.11.30
@@ -998,6 +881,16 @@ packages:
 
   '@changesets/write@0.4.0':
     resolution: {integrity: sha512-CdTLvIOPiCNuH71pyDu3rA+Q0n65cmAbXnwWH84rKGiFumFzkmHNT8KHTMEchcxN+Kl8I54xGUhJ7l3E7X396Q==}
+
+  '@einfach/core@0.2.19':
+    resolution: {integrity: sha512-6AYuHYDUCCWd3/Feo7uBqrVNgjOB7XGKVfvefCsF03OBZiZQUA5Wlp41Pr2hxM7Mb1OVknK7o4CVnjzh6YdI9w==}
+    engines: {node: '>=14.18.0'}
+
+  '@einfach/solid@0.2.20':
+    resolution: {integrity: sha512-iPLi8JgbId8i4IWF8zhmTHFNnclCD1ih5YRhPVa9RgnVYmYS3ZZkzMtxgKKiAtnElR0rVblo3zQik5Q3HoZZRQ==}
+    engines: {node: '>=14.18.0'}
+    peerDependencies:
+      solid-js: 1.9.12
 
   '@esbuild/aix-ppc64@0.21.5':
     resolution: {integrity: sha512-1SDgH6ZSPTlggy1yI6+Dbkiz8xzpHJEVAlF/AM1tHPLsf5STom9rwtjE4hKAF20FfXXNTFqEYXyJNWh1GiZedQ==}
@@ -5077,6 +4970,13 @@ snapshots:
       human-id: 4.1.1
       prettier: 2.8.8
 
+  '@einfach/core@0.2.19': {}
+
+  '@einfach/solid@0.2.20(solid-js@1.9.12)':
+    dependencies:
+      '@einfach/core': 0.2.19
+      solid-js: 1.9.12
+
   '@esbuild/aix-ppc64@0.21.5':
     optional: true
 
@@ -5802,16 +5702,19 @@ snapshots:
     dependencies:
       undici-types: 6.19.8
 
-  '@types/prop-types@15.7.14': {}
+  '@types/prop-types@15.7.14':
+    optional: true
 
   '@types/react-dom@18.3.6(@types/react@18.3.20)':
     dependencies:
       '@types/react': 18.3.20
+    optional: true
 
   '@types/react@18.3.20':
     dependencies:
       '@types/prop-types': 15.7.14
       csstype: 3.2.3
+    optional: true
 
   '@types/resolve@1.20.2': {}
 

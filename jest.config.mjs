@@ -9,12 +9,11 @@ const jestConfig = {
   transform: {
     // 为 Solid.js 的 TSX 文件使用特定的 Babel 配置。
     //
-    // 匹配的是绝对路径,所以必须逐个列出 Solid 包所在的目录段:目录扁平化到
-    // core/ 与 excel/ 之后,`solid-form` / `solid-excel` 不再含有 `solid/`
-    // 这个片段,只写 `solid/` 会让它们漏到下面的 SWC 分支,Solid 的 JSX 就
-    // 会被当成 React JSX 编译。前后的 `/` 保证按目录段匹配,不会命中
-    // node_modules/solid-js。
-    '/(solid|solid-form|solid-excel)/.*\\.tsx?$': ['babel-jest'],
+    // 匹配的是绝对路径,按目录段匹配(前后都带 `/`),不会命中
+    // node_modules/solid-js。本仓只有 excel/solid-excel 一个 Solid 包 ——
+    // @einfach/solid 从 npm 装,发布产物里的 JSX 已由 jsx-dom-expressions
+    // 编译过,不需要再过 babel。
+    '/solid-excel/.*\\.tsx?$': ['babel-jest'],
     // 其他文件保持现有的 SWC 配置(上面的规则先匹配先生效)。Includes
     // `.mjs` / `.cjs` so ESM-only dependencies (e.g. @lingui/core 6.x and
     // its message-utils helper) get re-emitted as CJS once they're
@@ -53,15 +52,11 @@ const jestConfig = {
    * 模块名称映射，用于解析 @einfach/core 和 @einfach/react 包
    */
   moduleNameMapper: {
-    '^@einfach/core$': '<rootDir>/core/core/src',
+    // 只映射本仓自己的包。@einfach/core 与 @einfach/solid 现在从 npm 安装,
+    // 走 node_modules 解析 —— 这正是要验证的:excel 必须能跑在已发布的 core
+    // 上,而不是某个只存在于工作区的版本。
     '^@einfach/spreadsheet-ui-core$': '<rootDir>/excel/spreadsheet-ui-core/src',
     '^@einfach/excel-core-ts$': '<rootDir>/excel/excel-core-ts/src',
-    '^@einfach/utils$': '<rootDir>/core/utils/src',
-    '^@einfach/react$': '<rootDir>/core/react/src',
-    '^@einfach/react-utils$': '<rootDir>/core/react-utils/src',
-    '^@einfach/react-form$': '<rootDir>/core/react-form/src',
-    '^@einfach/solid$': '<rootDir>/core/solid/src',
-    '^@einfach/solid-form$': '<rootDir>/core/solid-form/src',
     // CSS / asset imports become an inert object during jest runs so test
     // files that touch a component which `import './foo.css'` still load
     // without a parse error. Solid dialogs co-locate their styles next to

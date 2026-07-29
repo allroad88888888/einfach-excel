@@ -14,7 +14,7 @@
   },
   "scripts": {
     "eslint": "npx eslint --config rules/.eslintrc --ext=.tsx,.ts --ignore-path ./rules/.eslintignore ./ --fix ",
-    "lint:check": "npx eslint --config rules/.eslintrc --ext=.ts,.tsx --ignore-path ./rules/.eslintignore core/*/src core/*/test excel/*/src excel/*/test excel/solid-excel/src-vnext",
+    "lint:check": "npx eslint --config rules/.eslintrc --ext=.ts,.tsx --ignore-path ./rules/.eslintignore excel/*/src excel/*/test excel/solid-excel/src-vnext",
     "typecheck:apps": "npx tsc --noEmit -p excel/showcase/tsconfig.json",
     "test": "jest --collect-coverage",
     "clearTypes": "node clean.js",
@@ -26,7 +26,6 @@
   "author": "dol",
   "license": "MIT",
   "workspaces": [
-    "core/*",
     "excel/*"
   ],
   "pnpm": {

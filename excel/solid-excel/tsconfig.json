@@ -9,12 +9,6 @@
   "include": ["src/**/*", "src-vnext/**/*", "test/**/*"],
   "references": [
     {
-      "path": "../../core/core"
-    },
-    {
-      "path": "../../core/solid"
-    },
-    {
       "path": "../../excel/spreadsheet-ui-core"
     },
     {

@@ -12,9 +12,5 @@
     "./src/**/*.test.ts",
     "./test/**/*"
   ],
-  "references": [
-    {
-      "path": "../../core/core"
-    }
-  ]
+  "references": []
 }

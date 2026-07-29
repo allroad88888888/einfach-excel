@@ -8,7 +8,6 @@
     "sourceType": "module",
     "project": [
       "./tsconfig.json",
-      "./core/*/tsconfig.json",
       "./excel/*/tsconfig.json"
     ]
   },
@@ -292,8 +291,6 @@
     },
     {
       "files": [
-        "core/solid/**",
-        "core/solid-form/**",
         "excel/solid-excel/**"
       ],
       "rules": {

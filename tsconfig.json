@@ -46,27 +46,6 @@
   ],
   "references": [
     {
-      "path": "./core/core/tsconfig.json"
-    },
-    {
-      "path": "./core/utils/tsconfig.json"
-    },
-    {
-      "path": "./core/react/tsconfig.json"
-    },
-    {
-      "path": "./core/react-utils/tsconfig.json"
-    },
-    {
-      "path": "./core/react-form/tsconfig.json"
-    },
-    {
-      "path": "./core/solid/tsconfig.json"
-    },
-    {
-      "path": "./core/solid-form/tsconfig.json"
-    },
-    {
       "path": "./excel/spreadsheet-ui-core/tsconfig.json"
     },
     {

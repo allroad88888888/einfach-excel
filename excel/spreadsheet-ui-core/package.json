@@ -39,7 +39,7 @@
     "atom"
   ],
   "dependencies": {
-    "@einfach/core": "workspace:*"
+    "@einfach/core": "^0.2.19"
   },
   "devDependencies": {
     "@types/node": "^20.11.30"

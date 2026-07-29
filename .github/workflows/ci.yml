@@ -21,6 +21,33 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: pnpm
+
+      # `npm run build` 的链条里有 ensureWasm,缺 wasm-pkg 时会调
+      # `build:wasm` 去跑 wasm-pack。本仓的 tsc/rollup 产物依赖 WASM 侧
+      # 的类型与产物,所以 CI 必须具备 Rust 工具链 —— 否则 build 直接
+      # exit 127 (wasm-pack: not found)。步骤与 e2e.yml 保持一致。
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Cache cargo registry + build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            excel/rust/target
+          key: ${{ runner.os }}-cargo-ci-${{ hashFiles('excel/rust/**/Cargo.lock', 'excel/rust/**/Cargo.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-ci-
+
+      - name: Install wasm-pack
+        run: |
+          if ! command -v wasm-pack >/dev/null; then
+            curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+          fi
+          wasm-pack --version
+
       - run: pnpm install --frozen-lockfile
       - run: npm run build
       - run: npm test

@@ -32,7 +32,8 @@
     "dev": "vite",
     "build": "npm run build:wasm && vite build",
     "build:wasm": "wasm-pack build --target web --out-dir ../../solid-excel/wasm-pkg ../../excel/rust/wasm",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "e2e:install": "playwright install --with-deps chromium"
   },
   "sideEffects": false,
   "dependencies": {

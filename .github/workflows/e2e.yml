@@ -67,8 +67,11 @@ jobs:
       - name: Build WASM bundle
         run: npm run build:wasm -w @einfach/solid-excel
 
+      # 必须经 workspace 调用:@playwright/test 是 excel/solid-excel 的
+      # devDependency,不在根上。pnpm 不做提升,根目录的 npx 找不到它
+      # (sh: 1: playwright: not found,exit 127)。
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+        run: npm run e2e:install -w @einfach/solid-excel
 
       - name: Run e2e
         run: npm run e2e -w @einfach/solid-excel

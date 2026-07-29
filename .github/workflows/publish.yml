@@ -1,8 +1,18 @@
 name: Publish
 
+# 暂时只允许手动触发。
+#
+# 本仓刚从 einfach 拆出,尚未配置 NPM_TOKEN,而 @einfach/spreadsheet-ui-core
+# 与 @einfach/solid-excel 在 npm 上都还不存在(404)。仓内也没有待处理的
+# changeset,所以 `changeset publish` 会直接尝试首发这两个包 —— 在没有
+# token 的情况下必然失败,每次 push 都留一条红。
+#
+# 配好 NPM_TOKEN 并确认要首发之后,把下面的 push 触发放回来:
+#   on:
+#     push:
+#       branches: [main]
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 

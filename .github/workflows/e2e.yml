@@ -26,14 +26,20 @@ concurrency:
 jobs:
   playwright:
     runs-on: ubuntu-latest
-    # 1174 个用例,playwright.config 是 workers: 1 + fullyParallel: false
-    # (共享一个 dev server,用例间有状态耦合,不能靠提并发压缩)。CI 上实测
-    # 18.5 分钟只跑到第 636 个,加上 retries: 1 的重试,全量约需 35-40 分钟。
-    # 原来的 20 分钟会在中途把 job 掐掉,结论显示为 cancelled —— 看不出
-    # 到底是超时还是真失败。
+    # 分片执行。playwright.config 是 workers: 1 + fullyParallel: false
+    # (共享一个 dev server、用例间有状态耦合),不能靠提并发压缩,只能横向切。
+    # 实测全量 1174 个用例串行需 30 分 41 秒;切 4 片后每片约 8 分钟,
+    # 20 分钟的上限留足了余量(含 retries: 1 的重试开销)。
     #
-    # 后续应改为矩阵分片(--shard=i/N):每片仍是串行,但墙钟能压到 10 分钟内。
-    timeout-minutes: 60
+    # 每片是独立 job:各自起自己的 dev server,分片之间不共享状态,
+    # 因此 workers: 1 提供的隔离保证不受影响。
+    timeout-minutes: 20
+
+    strategy:
+      # 一片失败不影响其他片跑完 —— 要的是完整的失败清单,不是最快熔断。
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
 
     steps:
       - uses: actions/checkout@v4
@@ -80,18 +86,19 @@ jobs:
       - name: Install Playwright browsers
         run: npm run e2e:install -w @einfach/solid-excel
 
-      - name: Run e2e
-        run: npm run e2e -w @einfach/solid-excel
+      - name: Run e2e (shard ${{ matrix.shard }}/4)
+        run: npm run e2e -w @einfach/solid-excel -- --shard=${{ matrix.shard }}/4
         # Advisory mode for the first 2 weeks. Flip `continue-on-error` to
         # false (or just delete the line) once the suite is stable to make
         # this a PR-blocking gate.
         continue-on-error: true
 
+      # 产物名必须带分片号:同名 artifact 在并行 job 之间会互相冲突。
       - name: Upload Playwright report on failure
         if: failure() || always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: playwright-report-shard-${{ matrix.shard }}
           path: |
             excel/solid-excel/playwright-report/
             excel/solid-excel/test-results/

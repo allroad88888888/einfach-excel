@@ -11,8 +11,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@einfach/spreadsheet-ui-core': path.resolve(repoRoot, 'excel/spreadsheet-ui-core/src'),
-      '@einfach/core': path.resolve(repoRoot, 'core/core/src'),
-      '@einfach/solid': path.resolve(repoRoot, 'core/solid/src'),
+      // @einfach/core 与 @einfach/solid 走 node_modules(npm 依赖),不再
+      // alias 到源码 —— 拆仓后 core/ 不在本仓,原 alias 是死路径。
       '@lingui/core': path.resolve(dirName, 'node_modules/@lingui/core'),
     },
   },

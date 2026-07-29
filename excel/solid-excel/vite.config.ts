@@ -24,12 +24,10 @@ export default defineConfig({
       // stale published esm/cjs outputs and ?backend=ts would crash when the
       // worker calls debug RPCs added in Phase 1.
       '@einfach/excel-core-ts': path.resolve(repoRoot, 'excel/excel-core-ts/src'),
-      // Same source-alias treatment for the remaining workspace deps so the
-      // dev server never depends on built esm/cjs artifacts (a failed
-      // `npm run build` deletes them via clearTypes and would 500 every
-      // module until the next successful build).
-      '@einfach/core': path.resolve(repoRoot, 'core/core/src'),
-      '@einfach/solid': path.resolve(repoRoot, 'core/solid/src'),
+      // @einfach/core 与 @einfach/solid 不再 alias 到源码:拆仓后它们是
+      // npm 依赖,由 node_modules 解析已发布的产物。原先指向 core/core/src
+      // 与 core/solid/src 的 alias 在本仓是死路径,会让 dev server 报
+      // "Failed to resolve import" 并且永远起不来。
     },
   },
   build: {

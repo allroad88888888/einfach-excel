@@ -26,7 +26,14 @@ concurrency:
 jobs:
   playwright:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # 1174 个用例,playwright.config 是 workers: 1 + fullyParallel: false
+    # (共享一个 dev server,用例间有状态耦合,不能靠提并发压缩)。CI 上实测
+    # 18.5 分钟只跑到第 636 个,加上 retries: 1 的重试,全量约需 35-40 分钟。
+    # 原来的 20 分钟会在中途把 job 掐掉,结论显示为 cancelled —— 看不出
+    # 到底是超时还是真失败。
+    #
+    # 后续应改为矩阵分片(--shard=i/N):每片仍是串行,但墙钟能压到 10 分钟内。
+    timeout-minutes: 60
 
     steps:
       - uses: actions/checkout@v4

@@ -38,7 +38,7 @@
     "einfach"
   ],
   "dependencies": {
-    "@einfach/core": "^0.2.19"
+    "@einfach/core": "^0.4.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.30"

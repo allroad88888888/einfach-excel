@@ -130,8 +130,8 @@ importers:
   excel/excel-core-ts:
     dependencies:
       '@einfach/core':
-        specifier: ^0.2.19
-        version: 0.2.19
+        specifier: ^0.4.0
+        version: 0.4.0
     devDependencies:
       '@types/node':
         specifier: ^20.11.30
@@ -140,11 +140,11 @@ importers:
   excel/showcase:
     dependencies:
       '@einfach/core':
-        specifier: ^0.2.19
-        version: 0.2.19
+        specifier: ^0.4.0
+        version: 0.4.0
       '@einfach/solid':
-        specifier: ^0.2.20
-        version: 0.2.20(solid-js@1.9.12)
+        specifier: ^0.4.0
+        version: 0.4.0(solid-js@1.9.12)
       '@einfach/solid-excel':
         specifier: workspace:*
         version: link:../solid-excel
@@ -174,14 +174,14 @@ importers:
   excel/solid-excel:
     dependencies:
       '@einfach/core':
-        specifier: ^0.2.19
-        version: 0.2.19
+        specifier: ^0.4.0
+        version: 0.4.0
       '@einfach/excel-core-ts':
         specifier: workspace:*
         version: link:../excel-core-ts
       '@einfach/solid':
-        specifier: ^0.2.20
-        version: 0.2.20(solid-js@1.9.12)
+        specifier: ^0.4.0
+        version: 0.4.0(solid-js@1.9.12)
       '@einfach/spreadsheet-ui-core':
         specifier: workspace:*
         version: link:../spreadsheet-ui-core
@@ -217,8 +217,8 @@ importers:
   excel/spreadsheet-ui-core:
     dependencies:
       '@einfach/core':
-        specifier: ^0.2.19
-        version: 0.2.19
+        specifier: ^0.4.0
+        version: 0.4.0
     devDependencies:
       '@types/node':
         specifier: ^20.11.30
@@ -882,12 +882,12 @@ packages:
   '@changesets/write@0.4.0':
     resolution: {integrity: sha512-CdTLvIOPiCNuH71pyDu3rA+Q0n65cmAbXnwWH84rKGiFumFzkmHNT8KHTMEchcxN+Kl8I54xGUhJ7l3E7X396Q==}
 
-  '@einfach/core@0.2.19':
-    resolution: {integrity: sha512-6AYuHYDUCCWd3/Feo7uBqrVNgjOB7XGKVfvefCsF03OBZiZQUA5Wlp41Pr2hxM7Mb1OVknK7o4CVnjzh6YdI9w==}
+  '@einfach/core@0.4.0':
+    resolution: {integrity: sha512-6e01mejaOY/EsIJSbu7e7zzBaF5oBpl5o7Zzx8TVMsRwKWqrMkj1bnVXg/8gdBCVgeekeQphl3Wpd3snfY7lCw==}
     engines: {node: '>=14.18.0'}
 
-  '@einfach/solid@0.2.20':
-    resolution: {integrity: sha512-iPLi8JgbId8i4IWF8zhmTHFNnclCD1ih5YRhPVa9RgnVYmYS3ZZkzMtxgKKiAtnElR0rVblo3zQik5Q3HoZZRQ==}
+  '@einfach/solid@0.4.0':
+    resolution: {integrity: sha512-nLQzwOyorM90zkudMvOo+U3iCBcFbm5mdLo31gGYt9MXGIt+hvJq6sbudz2TmNJ5rovKuzxzFSNLOdwtdhhCXQ==}
     engines: {node: '>=14.18.0'}
     peerDependencies:
       solid-js: 1.9.12
@@ -4970,11 +4970,11 @@ snapshots:
       human-id: 4.1.1
       prettier: 2.8.8
 
-  '@einfach/core@0.2.19': {}
+  '@einfach/core@0.4.0': {}
 
-  '@einfach/solid@0.2.20(solid-js@1.9.12)':
+  '@einfach/solid@0.4.0(solid-js@1.9.12)':
     dependencies:
-      '@einfach/core': 0.2.19
+      '@einfach/core': 0.4.0
       solid-js: 1.9.12
 
   '@esbuild/aix-ppc64@0.21.5':

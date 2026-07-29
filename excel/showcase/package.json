@@ -10,8 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@einfach/core": "^0.2.19",
-    "@einfach/solid": "^0.2.20",
+    "@einfach/core": "^0.4.0",
+    "@einfach/solid": "^0.4.0",
     "@einfach/solid-excel": "workspace:*",
     "@einfach/spreadsheet-ui-core": "workspace:*",
     "@lingui/core": "6.0.1",

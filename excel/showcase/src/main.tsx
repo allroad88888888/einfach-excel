@@ -1,6 +1,7 @@
 import { render } from 'solid-js/web'
 import { App } from './App'
 import '../../solid-excel/src/styles.css'
+import '../../solid-excel/src-vnext/styles/index.css'
 import './styles.css'
 
 const root = document.getElementById('app')

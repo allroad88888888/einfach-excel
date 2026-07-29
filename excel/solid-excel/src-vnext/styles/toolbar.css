@@ -1,0 +1,172 @@
+/* A.2 Toolbar — button groups separated by thin dividers, icon-like look.
+   The Univer slim layout wraps to a second row when the viewport narrows
+   instead of showing an overflow chevron, so flex-wrap drives the reflow
+   and overflow-x stays visible. */
+.spreadsheet-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px;
+  min-height: 40px;
+  padding: 4px 10px;
+  background: var(--bg-chrome-light);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--excel-font);
+  font-size: 13px;
+  overflow-x: visible;
+  white-space: nowrap;
+  color: #444;
+}
+
+.spreadsheet-toolbar .spreadsheet-toolbar-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 6px;
+  margin: 0;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: background 100ms ease-out, border-color 100ms ease-out;
+}
+
+/* Toolbar SVG glyphs — 16px keeps the visual mass comparable to Univer's
+   slim toolbar without crowding the 28px hit target. */
+.spreadsheet-toolbar .spreadsheet-toolbar-button > svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* Faint vertical separator between toolbar button groups. The JSX places an
+   explicit <span class="spreadsheet-toolbar-separator"> between groups,
+   matching Univer's slim layout:
+     [history] | [font] | [textStyle] | [color] | [align] | [merge] | [number] */
+.spreadsheet-toolbar > .spreadsheet-toolbar-separator {
+  display: inline-block;
+  width: 1px;
+  height: 20px;
+  background: #d8d8d8;
+  margin: 0 6px;
+  flex-shrink: 0;
+}
+
+/* Currency-dropdown opener: text + chevron (no icon). The button reads
+   wider than a 24x24 hit target so it gets explicit padding. */
+.spreadsheet-toolbar .spreadsheet-toolbar-currency-opener {
+  min-width: 80px;
+  padding: 0 8px;
+  gap: 4px;
+  font-weight: 500;
+}
+
+.spreadsheet-toolbar .spreadsheet-toolbar-currency-opener > .toolbar-chevron {
+  margin-left: 2px;
+  opacity: 0.65;
+}
+
+.spreadsheet-toolbar .spreadsheet-toolbar-button:hover:not(:disabled) {
+  background: var(--hover);
+  border-color: var(--border);
+}
+
+.spreadsheet-toolbar .spreadsheet-toolbar-button[aria-pressed='true'] {
+  background: var(--active-bg);
+  border-color: var(--border-strong);
+}
+
+.spreadsheet-toolbar .spreadsheet-toolbar-button:disabled {
+  color: #b0b0b0;
+  cursor: default;
+}
+
+/* Format Painter state colors — armed / sticky */
+.spreadsheet-toolbar
+  .spreadsheet-toolbar-button[data-format-painter-state='armed'],
+.spreadsheet-toolbar
+  .spreadsheet-toolbar-button[data-format-painter-state='sticky'] {
+  background: var(--select-bg);
+  border-color: var(--excel-green);
+  color: var(--excel-green);
+}
+
+/*
+ * Custom hover tooltips for toolbar buttons. Replaces the native
+ * title="..." pop-up (which has a multi-second OS delay and OS styling)
+ * with a dark-bubble tip that animates in after 500 ms — matches Univer /
+ * MS Office conventions.
+ *
+ * Accessibility note: each button still carries aria-label, so screen
+ * readers pick up the label even though we dropped title=.
+ *
+ * Suppressed when an associated menu/dialog is open (aria-expanded=true)
+ * so the tooltip does not stack on top of the dropdown panel.
+ */
+.spreadsheet-toolbar [data-tooltip] {
+  position: relative;
+}
+
+.spreadsheet-toolbar [data-tooltip]:hover::after,
+.spreadsheet-toolbar [data-tooltip]:focus-visible::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(34, 34, 34, 0.92);
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1.3;
+  font-weight: 400;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 10000;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  animation: spreadsheet-toolbar-tooltip-fade-in 140ms 500ms both;
+}
+
+/* Little arrow above the bubble pointing at the button. */
+.spreadsheet-toolbar [data-tooltip]:hover::before,
+.spreadsheet-toolbar [data-tooltip]:focus-visible::before {
+  content: '';
+  position: absolute;
+  top: calc(100% + 1px);
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-bottom: 5px solid rgba(34, 34, 34, 0.92);
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 10000;
+  animation: spreadsheet-toolbar-tooltip-fade-in 140ms 500ms both;
+}
+
+/* Suppress while the button has an open menu/dialog so the tooltip
+   doesn't sit on top of the popover. */
+.spreadsheet-toolbar [data-tooltip][aria-expanded='true']:hover::after,
+.spreadsheet-toolbar [data-tooltip][aria-expanded='true']:hover::before,
+.spreadsheet-toolbar [data-tooltip]:disabled:hover::after,
+.spreadsheet-toolbar [data-tooltip]:disabled:hover::before {
+  display: none;
+}
+
+@keyframes spreadsheet-toolbar-tooltip-fade-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+

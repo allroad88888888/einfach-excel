@@ -25,6 +25,12 @@
       "import": "./src/demos/index.ts",
       "default": "./src/demos/index.ts"
     },
+    "./i18n": {
+      "types": "./src/i18n/index.ts",
+      "import": "./src/i18n/index.ts",
+      "default": "./src/i18n/index.ts"
+    },
+    "./vnext-styles.css": "./src-vnext/styles/index.css",
     "./package.json": "./package.json"
   },
   "license": "MIT",
@@ -35,7 +41,9 @@
     "e2e": "playwright test",
     "e2e:install": "playwright install --with-deps chromium"
   },
-  "sideEffects": false,
+  "sideEffects": [
+    "**/*.css"
+  ],
   "dependencies": {
     "@einfach/core": "^0.4.0",
     "@einfach/excel-core-ts": "workspace:*",

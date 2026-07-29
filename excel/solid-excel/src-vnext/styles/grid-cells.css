@@ -1,0 +1,249 @@
+/* Cell baseline */
+.spreadsheet-grid .spreadsheet-grid-cell {
+  height: 22px;
+  padding: 0 4px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: #ffffff;
+  font-variant-numeric: tabular-nums;
+  vertical-align: middle;
+}
+
+.spreadsheet-grid .spreadsheet-grid-cell.cell-in-range {
+  background: #f1f6ff;
+}
+
+.spreadsheet-grid .spreadsheet-grid-cell.cell-in-range:hover {
+  background: #e8f0fe;
+}
+
+.spreadsheet-grid .spreadsheet-grid-cell.cell-active {
+  background: #e8f0fe;
+}
+
+/* Numeric cells right-align by default (Excel convention) */
+.spreadsheet-grid .spreadsheet-grid-cell.kind-number {
+  text-align: right;
+}
+
+/* Resize handles — show on hover for usability */
+.spreadsheet-grid .spreadsheet-grid-col-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  width: 4px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 2;
+}
+
+.spreadsheet-grid .spreadsheet-grid-col-resize-handle:hover {
+  background: var(--office-blue);
+}
+
+/* Filter chevron — small triangle on the right when a column has a filter */
+.spreadsheet-grid .spreadsheet-grid-filter-chevron {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--excel-green);
+  cursor: pointer;
+}
+
+.spreadsheet-filter-dropdown {
+  position: fixed;
+  top: 300px;
+  right: max(24px, calc((100vw - 1280px) / 2 + 40px));
+  left: auto;
+  transform: none;
+  z-index: 500;
+  display: block;
+  width: 320px;
+  min-width: 0;
+  max-width: calc(100vw - 48px);
+  max-height: min(520px, calc(100vh - 120px));
+  overflow: auto;
+  padding: 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+  color: var(--text-default);
+  font-size: 12px;
+}
+
+.filter-dropdown-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.filter-dropdown-title {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.filter-dropdown-subtitle {
+  margin-top: 2px;
+  color: var(--text-muted);
+}
+
+.filter-dropdown-rules {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 8px 0 0;
+}
+
+.filter-rule {
+  max-width: 100%;
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--select-bg);
+  color: var(--excel-green);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filter-section {
+  padding-top: 10px;
+}
+
+.filter-section-title {
+  margin-bottom: 6px;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.filter-action-row,
+.filter-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter-btn {
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: #ffffff;
+  color: var(--text-default);
+  font: inherit;
+  cursor: pointer;
+}
+
+.filter-btn:hover {
+  background: var(--bg-chrome);
+}
+
+.filter-btn-primary {
+  border-color: var(--excel-green);
+  background: var(--excel-green);
+  color: #ffffff;
+}
+
+.filter-btn-secondary {
+  color: var(--text-muted);
+}
+
+.filter-search-input,
+.filter-condition-input,
+.filter-condition-select {
+  width: 100%;
+  height: 28px;
+  box-sizing: border-box;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 0 8px;
+  color: var(--text-default);
+  font: inherit;
+}
+
+.filter-values-list {
+  max-height: 148px;
+  margin-top: 6px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+
+.filter-value-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 26px;
+  padding: 0 8px;
+}
+
+.filter-value-option:hover {
+  background: var(--bg-chrome);
+}
+
+.filter-value-option-all {
+  margin-top: 6px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+
+.filter-empty-values,
+.filter-values-count,
+.filter-error {
+  padding: 6px 0;
+  color: var(--text-muted);
+}
+
+.filter-error {
+  color: #b42318;
+}
+
+.filter-range-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.filter-section .filter-condition-input {
+  margin-top: 6px;
+}
+
+.filter-range-row .filter-condition-input {
+  margin-top: 0;
+}
+
+.filter-footer {
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 12px;
+  margin-top: 2px;
+  border-top: 1px solid var(--border);
+}
+
+.filter-footer-group {
+  display: flex;
+  gap: 6px;
+}
+
+.vnext-demo [role='dialog'].spreadsheet-filter-dropdown,
+.demo-page [role='dialog'].spreadsheet-filter-dropdown {
+  position: fixed;
+  top: 220px;
+  right: max(24px, calc((100vw - 1280px) / 2 + 40px));
+  left: auto;
+  transform: none;
+  display: block;
+  width: 320px;
+  min-width: 0;
+  max-width: calc(100vw - 48px);
+  max-height: calc(100vh - 260px);
+  overflow: auto;
+  padding: 12px;
+}
+

@@ -1,7 +1,7 @@
 /* Paste Special dialog — Wave 7.3.
  *
  * Scoping rule: every selector below is nested under .paste-special-dialog so
- * the shared dialog skin in excel/solid-excel/src/styles.css still provides the
+ * the shared dialog skin in src-vnext/styles/dialog-skin.css still provides the
  * centered card + backdrop, but the interior follows the Univer "选择性粘贴"
  * modal:
  *

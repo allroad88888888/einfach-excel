@@ -1,0 +1,83 @@
+/* === B. Grid headers + selection chrome ============================== */
+
+.spreadsheet-grid {
+  font-family: var(--excel-font);
+  font-size: 13px;
+}
+
+.spreadsheet-grid .spreadsheet-grid-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #ffffff;
+}
+
+/* Top-left empty corner — pinned, slightly darker chrome */
+.spreadsheet-grid .spreadsheet-grid-corner {
+  background: var(--bg-chrome);
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Column letters */
+.spreadsheet-grid .spreadsheet-grid-col-header {
+  position: relative;
+  height: 22px;
+  padding: 0 4px;
+  background: var(--bg-chrome);
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  color: var(--text-default);
+  font-weight: 500;
+  text-align: center;
+  user-select: none;
+}
+
+.spreadsheet-grid .spreadsheet-grid-col-header.is-selected {
+  background: var(--select-bg);
+  color: var(--excel-green);
+  font-weight: 700;
+  border-bottom: 2px solid var(--excel-green);
+}
+
+.spreadsheet-grid .spreadsheet-grid-col-header .spreadsheet-grid-header-label {
+  display: inline-block;
+}
+
+/* Row numbers */
+.spreadsheet-grid .spreadsheet-grid-row-header {
+  width: 36px;
+  padding: 0 6px;
+  background: var(--bg-chrome);
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  color: var(--text-default);
+  font-weight: 500;
+  text-align: right;
+  user-select: none;
+}
+
+.spreadsheet-grid .spreadsheet-grid-corner,
+.spreadsheet-grid .spreadsheet-grid-col-header {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+}
+
+.spreadsheet-grid .spreadsheet-grid-corner,
+.spreadsheet-grid .spreadsheet-grid-row-header {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+}
+
+.spreadsheet-grid .spreadsheet-grid-corner {
+  z-index: 4;
+}
+
+.spreadsheet-grid .spreadsheet-grid-row-header.is-selected {
+  background: var(--select-bg);
+  color: var(--excel-green);
+  font-weight: 700;
+  border-right: 2px solid var(--excel-green);
+}
+

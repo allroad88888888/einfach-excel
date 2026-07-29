@@ -1,0 +1,67 @@
+/* Help overlay (Keyboard Shortcuts / About) — centered card. */
+.spreadsheet-help-overlay {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  min-width: 320px;
+  max-width: 480px;
+  background: var(--bg, #fff);
+  border: 1px solid var(--border, #d0d0d0);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  padding: 16px 20px;
+  font-size: 13px;
+}
+
+.spreadsheet-help-overlay-title {
+  margin: 0 0 12px 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.spreadsheet-help-overlay-body {
+  margin: 0 0 12px 0;
+  line-height: 1.5;
+}
+
+.spreadsheet-help-overlay-shortcut-list {
+  list-style: none;
+  margin: 0 0 12px 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 6px 16px;
+}
+
+.spreadsheet-help-overlay-shortcut-item {
+  display: contents;
+}
+
+.spreadsheet-help-overlay-keys {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  background: var(--bg-muted, #f1f1f1);
+  border: 1px solid var(--border, #d0d0d0);
+  border-radius: 3px;
+  padding: 1px 6px;
+  font-size: 12px;
+}
+
+.spreadsheet-help-overlay-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.spreadsheet-help-overlay-close {
+  padding: 4px 12px;
+  border: 1px solid var(--border, #d0d0d0);
+  background: var(--bg-muted, #f7f7f7);
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.spreadsheet-help-overlay-close:hover {
+  background: var(--bg-hover, #ececec);
+}
+

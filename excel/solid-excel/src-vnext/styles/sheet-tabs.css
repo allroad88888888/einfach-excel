@@ -1,0 +1,96 @@
+/* C.2 Sheet tabs — Excel-like rounded card with active raised */
+.spreadsheet-sheet-tabs {
+  display: flex;
+  align-items: stretch;
+  height: 28px;
+  padding: 0 4px;
+  background: var(--bg-chrome);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--excel-font);
+  font-size: 12px;
+}
+
+.spreadsheet-sheet-tabs .spreadsheet-sheet-tab-item {
+  display: inline-flex;
+  align-items: stretch;
+}
+
+.spreadsheet-sheet-tabs .spreadsheet-sheet-tab {
+  display: inline-flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+  background: transparent;
+  color: var(--text-default);
+  font: inherit;
+  cursor: pointer;
+  transition: background 100ms ease-out;
+}
+
+.spreadsheet-sheet-tabs .spreadsheet-sheet-tab:hover {
+  background: var(--hover);
+}
+
+.spreadsheet-sheet-tabs .spreadsheet-sheet-tab[data-active='true'],
+.spreadsheet-sheet-tabs .spreadsheet-sheet-tab.is-active {
+  background: #ffffff;
+  border-color: var(--border);
+  color: var(--excel-green);
+  font-weight: 600;
+}
+
+.spreadsheet-sheet-tabs .spreadsheet-sheet-tab-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 100%;
+  margin-left: 4px;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.spreadsheet-sheet-tabs .spreadsheet-sheet-tab-add:hover {
+  background: var(--hover);
+  border-color: var(--border);
+  color: var(--text-default);
+}
+
+.spreadsheet-sheet-tabs .spreadsheet-sheet-tab-reorder {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 3px;
+  border: 1px solid transparent;
+  border-bottom: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: grab;
+  user-select: none;
+  line-height: 1;
+}
+
+.spreadsheet-sheet-tabs .spreadsheet-sheet-tab-reorder:not(:disabled):hover {
+  background: var(--hover);
+  color: var(--text-default);
+}
+
+.spreadsheet-sheet-tabs .spreadsheet-sheet-tab-reorder:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.spreadsheet-sheet-tab-reorder-grip {
+  font-size: 13px;
+  letter-spacing: -2px;
+  pointer-events: none;
+}
+

@@ -1,6 +1,6 @@
 /* Format Cells dialog — Univer / Excel parity skin.
  *
- * The base `[role='dialog']` skin in `excel/solid-excel/src/styles.css` provides the
+ * The base `[role='dialog']` skin in `src-vnext/styles/dialog-skin.css` provides the
  * centered, white, rounded, shadowed container plus the close-X button. Every
  * direct child of `[role='dialog']` in that base gets `padding: 12px 16px`,
  * which we override here per-section so the header / tabs / body / footer

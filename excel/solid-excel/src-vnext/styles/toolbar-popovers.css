@@ -1,0 +1,256 @@
+/* Number-format dropdown — anchored beneath the toolbar's number-format
+   button. Two-column rows (label left, preview right) mirroring Excel. */
+.number-format-dropdown {
+  min-width: 240px;
+  padding: 4px 0;
+  background: #ffffff;
+  border: 1px solid var(--border-strong);
+  border-radius: 2px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-family: var(--excel-font);
+  font-size: 12px;
+}
+
+.number-format-dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 4px 12px;
+  border: none;
+  background: transparent;
+  color: var(--text-default);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.number-format-dropdown-item:hover:not(:disabled) {
+  background: var(--select-bg);
+}
+
+.number-format-dropdown-custom {
+  position: relative;
+}
+
+.number-format-dropdown-custom-open > .number-format-dropdown-item,
+.number-format-dropdown-item-with-submenu[aria-expanded='true'] {
+  background: var(--select-bg);
+}
+
+.number-format-dropdown-item-with-submenu {
+  padding-right: 10px;
+}
+
+.number-format-dropdown-submenu-arrow {
+  width: 0;
+  height: 0;
+  margin-left: 12px;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 5px solid var(--text-muted);
+  flex: 0 0 auto;
+}
+
+.number-format-dropdown-submenu {
+  position: absolute;
+  top: -5px;
+  left: calc(100% - 2px);
+  z-index: 501;
+  min-width: 196px;
+  padding: 4px 0;
+  background: #ffffff;
+  border: 1px solid var(--border-strong);
+  border-radius: 2px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.number-format-dropdown-submenu-item {
+  display: block;
+  width: 100%;
+  padding: 5px 12px;
+  border: none;
+  background: transparent;
+  color: var(--text-default);
+  font: inherit;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.number-format-dropdown-submenu-item:hover {
+  background: var(--select-bg);
+}
+
+.number-format-dropdown-item-disabled,
+.number-format-dropdown-item:disabled {
+  color: #b0b0b0;
+  cursor: default;
+}
+
+.number-format-dropdown-label {
+  flex: 1;
+  margin-right: 16px;
+}
+
+.number-format-dropdown-preview {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Toolbar fill/text color popover */
+.spreadsheet-color-popover {
+  background: #ffffff;
+  border: 1px solid #d1d1d1;
+  border-radius: 6px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18), 0 1px 3px rgba(0, 0, 0, 0.08);
+  padding: 8px 8px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 196px;
+  user-select: none;
+  font-family: var(--excel-font);
+  color: #1f1f1f;
+}
+
+.spreadsheet-color-popover-no-fill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  padding: 5px 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  color: #1f1f1f;
+  cursor: pointer;
+  border-radius: 4px;
+  line-height: 1.2;
+}
+
+.spreadsheet-color-popover-no-fill:hover,
+.spreadsheet-color-popover-no-fill:focus-visible {
+  background: #f3f3f3;
+  border-color: #d1d1d1;
+  outline: none;
+}
+
+.spreadsheet-color-popover-no-fill-icon {
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.spreadsheet-color-popover-no-fill-label {
+  flex: 1;
+}
+
+.spreadsheet-color-popover-section-title {
+  font-size: 11px;
+  color: #757575;
+  padding: 0 4px;
+  margin-top: 2px;
+  letter-spacing: 0.02em;
+}
+
+.spreadsheet-color-popover-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 2px 4px 4px;
+}
+
+.spreadsheet-color-popover-row {
+  display: flex;
+  gap: 3px;
+}
+
+.spreadsheet-color-popover-swatch {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  cursor: pointer;
+  border-radius: 2px;
+  box-sizing: border-box;
+  transition: transform 80ms ease, box-shadow 80ms ease;
+}
+
+.spreadsheet-color-popover-swatch:hover,
+.spreadsheet-color-popover-swatch:focus-visible {
+  outline: 1px solid #1f1f1f;
+  outline-offset: 1px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
+  transform: translateY(-1px);
+}
+
+.spreadsheet-color-popover-swatch:focus-visible {
+  outline-color: var(--excel-green, #217346);
+}
+
+.spreadsheet-color-popover-more {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  padding: 6px 8px 5px;
+  border: none;
+  border-top: 1px solid #ebebeb;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  color: #1f1f1f;
+  cursor: pointer;
+  border-radius: 0;
+  margin: 2px -2px 0;
+  padding-left: 10px;
+}
+
+.spreadsheet-color-popover-more:hover:not(:disabled),
+.spreadsheet-color-popover-more:focus-visible:not(:disabled) {
+  background: #f3f3f3;
+  outline: none;
+}
+
+.spreadsheet-color-popover-more:disabled {
+  color: #a6a6a6;
+  cursor: not-allowed;
+}
+
+.spreadsheet-color-popover-more-icon {
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.spreadsheet-color-popover-more:disabled .spreadsheet-color-popover-more-icon {
+  opacity: 0.5;
+}
+
+.spreadsheet-color-popover-more-label {
+  flex: 1;
+}
+
+.spreadsheet-color-popover-hint {
+  min-height: 16px;
+  font-size: 11px;
+  color: #757575;
+  padding: 2px 4px 0;
+  font-family: var(--excel-font);
+  font-variant-numeric: tabular-nums;
+  border-top: 1px solid #f0f0f0;
+  margin-top: 2px;
+  padding-top: 4px;
+}
+

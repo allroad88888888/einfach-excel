@@ -11,7 +11,7 @@ import {
 /**
  * Regression spec — pins bugs that already have a fix in the tree but no
  * browser-level guard. Each entry maps to a numbered item in
- * `excel/solid-excel/docs/E2E_TEST_PLAN.md::Regression Spec Scope`.
+ * `excel/solid-excel/docs/archive/E2E_TEST_PLAN.md::Regression Spec Scope`.
  *
  * Current policy: regression entries stay active. Debug shims and browser
  * panic probes now exist, so this file should not add `test.skip` without

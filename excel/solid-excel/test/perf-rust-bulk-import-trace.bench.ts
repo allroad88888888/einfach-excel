@@ -32,7 +32,7 @@
  * Same 90% literal / 9% binop / 1% SUM mix as `perf-ts-vs-wasm.bench.ts`
  * keeps the numbers directly comparable to that bench's WASM column.
  *
- * Output: writes `perf-rust-bulk-import-trace-report.md` with the
+ * Output: writes `test/perf-reports/perf-rust-bulk-import-trace-report.md` with the
  * per-phase breakdown for each tier + a super-linearity column
  * (ratio of phase_ms between 100k and 1M, with 10× = linear).
  *
@@ -520,7 +520,7 @@ describePerf('Rust bulk-import phase-decomp bench (EINFACH_PERF=1)', () => {
 // ---------------------------------------------------------------------
 function writeReport() {
   if (!PERF_ENABLED) return
-  const reportPath = path.join(__dirname, 'perf-rust-bulk-import-trace-report.md')
+  const reportPath = path.join(__dirname, 'perf-reports', 'perf-rust-bulk-import-trace-report.md')
   const lines: string[] = []
   lines.push('# Rust bulk-import phase-decomposition')
   lines.push('')

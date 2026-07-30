@@ -38,7 +38,7 @@ export interface CopyAsInput {
    * copy a filtered region but copies manually hidden rows normally; passing
    * the union here would drop manually hidden rows out of the clipboard and
    * diverge from Excel. See `copy-as/visible-rows.ts` and §8.2 of
-   * `excel/solid-excel/docs/online-excel-parity/design-filter-hidden-rows.md`.
+   * `excel/solid-excel/docs/archive/online-excel-parity/design-filter-hidden-rows.md`.
    *
    * Omitted / empty means "emit every row in the rect", which is both the
    * pre-hardening behaviour and the only behaviour reachable until the S5

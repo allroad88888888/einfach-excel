@@ -435,7 +435,7 @@ export interface RangeTsvExportRequest extends SheetRef {
   rowsPerChunk?: number
   /**
    * FILTER-hidden source rows the export must NOT emit (§8.2 of
-   * `excel/solid-excel/docs/online-excel-parity/design-filter-hidden-rows.md`).
+   * `excel/solid-excel/docs/archive/online-excel-parity/design-filter-hidden-rows.md`).
    *
    * Why this is an INPUT rather than something the adapter looks up:
    * filter visibility is a UI-core view fact (CANONICAL_OWNERSHIP §2 —

@@ -192,7 +192,7 @@ function dataRangeFromOrigin(origin: CellCoord, rowCount: number, colCount: numb
  * copied like any other row unless the user goes through
  * `Go To Special → Visible cells only`, which this codebase does not
  * implement. See §8.2 of
- * `excel/solid-excel/docs/online-excel-parity/design-filter-hidden-rows.md`.
+ * `excel/solid-excel/docs/archive/online-excel-parity/design-filter-hidden-rows.md`.
  *
  * The walk below is dense over `[rowStart..rowEnd]` while the projection is
  * sparse. Today a filtered-out row has no display slot and never lands in

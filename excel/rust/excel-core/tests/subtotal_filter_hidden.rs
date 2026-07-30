@@ -1,5 +1,5 @@
 //! Filter redo S1 — SUBTOTAL's two-layer hidden-row rule
-//! (`excel/solid-excel/docs/online-excel-parity/design-filter-hidden-rows.md` §6.2-6.4).
+//! (`excel/solid-excel/docs/archive/online-excel-parity/design-filter-hidden-rows.md` §6.2-6.4).
 //!
 //! The host now pushes TWO independent per-sheet row sets into the engine as
 //! read-only evaluation input:

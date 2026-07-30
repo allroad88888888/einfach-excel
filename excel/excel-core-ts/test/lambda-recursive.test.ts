@@ -16,8 +16,8 @@
  * Plus a `#CALC!` check for bare-LAMBDA-no-call — paired with this work
  * because both turn on real Excel parity for the LAMBDA story.
  *
- * Fixtures match the AGENT_COLLABORATION acceptance list (FACT, FIB,
- * mutual recursion EVEN/ODD, runaway recursion, bare-LAMBDA `#CALC!`).
+ * Acceptance fixtures: FACT, FIB, mutual recursion EVEN/ODD, runaway
+ * recursion, and bare-LAMBDA `#CALC!`.
  */
 
 import { describe, expect, test } from '@jest/globals'

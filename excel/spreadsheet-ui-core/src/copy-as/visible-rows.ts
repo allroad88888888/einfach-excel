@@ -1,7 +1,7 @@
 import type { CopyAsRect } from './types'
 
 // Filter-hidden rows are excluded from every clipboard flavour (§8.2 of
-// excel/solid-excel/docs/online-excel-parity/design-filter-hidden-rows.md).
+// excel/solid-excel/docs/archive/online-excel-parity/design-filter-hidden-rows.md).
 //
 // Excel's copy semantics are ASYMMETRIC and that asymmetry is the whole
 // reason the design keeps two hidden-row sets instead of one:

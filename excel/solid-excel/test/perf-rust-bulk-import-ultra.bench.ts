@@ -17,7 +17,7 @@
  *   2. Run `npm --prefix excel/solid-excel run build:wasm`.
  *   3. EINFACH_PERF=1 npx jest perf-rust-bulk-import-ultra.bench.ts \
  *        --no-coverage --testTimeout=1800000
- *   4. Inspect `excel/solid-excel/test/perf-rust-bulk-import-ultra-report.md`.
+ *   4. Inspect `excel/solid-excel/test/perf-reports/perf-rust-bulk-import-ultra-report.md`.
  *
  * Tiers:
  *   - 1M  (500k seeds + 500k formulas) — the headline "does it panic?"
@@ -310,7 +310,7 @@ describePerf('Rust bulk_import_cells Ultra single-call bench (EINFACH_PERF=1)', 
 
 function writeReport() {
   if (!PERF_ENABLED) return
-  const reportPath = path.join(__dirname, 'perf-rust-bulk-import-ultra-report.md')
+  const reportPath = path.join(__dirname, 'perf-reports', 'perf-rust-bulk-import-ultra-report.md')
   const lines: string[] = []
   lines.push('# Rust bulk_import_cells — Ultra single-call bench')
   lines.push('')

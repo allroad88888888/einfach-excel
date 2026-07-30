@@ -17,7 +17,7 @@
  * `getCellDisplay` and cross-checked between the two paths, so a
  * "fast but wrong" regression cannot slip through the bench.
  *
- * Output: `perf-rust-storage-primary-report.md` next to this file.
+ * Output: `test/perf-reports/perf-rust-storage-primary-report.md`.
  *
  * Invocation:
  *   EINFACH_PERF=1 npx jest perf-rust-storage-primary --no-coverage \
@@ -320,7 +320,7 @@ describePerf('Rust storage-primary vs legacy bulk import (EINFACH_PERF=1)', () =
 // ---------------------------------------------------------------------
 function writeReport() {
   if (!PERF_ENABLED) return
-  const reportPath = path.join(__dirname, 'perf-rust-storage-primary-report.md')
+  const reportPath = path.join(__dirname, 'perf-reports', 'perf-rust-storage-primary-report.md')
   const lines: string[] = []
   lines.push('# Storage-primary vs legacy bulk import (Phase 6.1/6.2)')
   lines.push('')

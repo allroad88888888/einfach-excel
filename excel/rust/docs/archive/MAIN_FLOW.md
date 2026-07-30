@@ -1,3 +1,18 @@
+> ⚠️ **冻结记录，且部分内容已被证伪。** 归档于 2026-07-30。三条理由：
+>
+> 1. **数据流已被取代。** 文中「`set_formula` → 创建派生 atom」的每格模型，在 atom-delegation
+>    改造（P1-P7）后不再成立 —— 现在每张表的公式单元格都经**一个 workbook 级** Store 图派生。
+>    现行流程见 `../ATOM_DELEGATION_MAINLINE.md`。
+> 2. **⚠️ 缺陷标注不可信。** 那些标注指向 `ISSUES.md`（已同批归档），其中多条在 ISSUES 自己那边
+>    已标 ✅ 修复，两份文档互相矛盾。不要据此判断当前有哪些已知缺陷。
+> 3. **「状态归属约束」表已被现行架构推翻。** 该表把 selection 与 activeCell 判给 Rust `Sheet`；
+>    实际它们是 UI core 的 atom（`excel/spreadsheet-ui-core/src/selection/`）。现行判据是
+>    「影响计算的状态归引擎，不影响计算的归视图」—— 见
+>    `../../../docs/decisions/0003-engine-owns-filter-sort.md` 与
+>    `excel/solid-excel/docs/CANONICAL_OWNERSHIP.md`。
+>
+> 保留本文只为追溯当时的设计意图。
+
 # 核心主流程
 
 > 已知缺陷标 ⚠️，详见 [ISSUES.md](./ISSUES.md)

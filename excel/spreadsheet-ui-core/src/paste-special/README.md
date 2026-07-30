@@ -46,7 +46,8 @@ pre-dispatch with `pasteSpecialBackendKindError(kind)` and
 - Backend port: optional `pasteRange(PasteRangeRequest)`. Absence is
   unsupported; Core never falls back to a different write transport.
 - Per-cell atom risk: none — the dialog edits a single options object.
-- Tests: `test/paste-special.test.ts` (core), `test/vnext-paste-special.test.tsx` (host).
+- Tests: `test/paste-special.test.ts` + `test/paste-special-keyboard.test.ts`（本包），
+  `excel/solid-excel/test/vnext-paste-special*.test.{ts,tsx}`（宿主侧，含上下文菜单与键盘门控）。
 
 `SpreadsheetUiProvider` captures method presence when it binds the backend.
 Mounting or unmounting `SpreadsheetPasteSpecialDialog` cannot change the

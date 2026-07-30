@@ -1,7 +1,7 @@
 # Performance Benchmarks
 
 Criterion-based benchmarks for the Rust core. They exist so the LAZY refactor
-(`docs/LAZY_FORMULA_EVAL.md`, Steps 1–5) has a stable baseline to measure
+(`docs/archive/LAZY_FORMULA_EVAL.md`, Steps 1–5 —— 已归档) has a stable baseline to measure
 against — not to prove absolute thresholds, which vary by machine.
 
 ## Running
@@ -64,6 +64,26 @@ significant regressions. Use this for any LAZY step that claims a perf win.
 | `sheet/range_dep_registration/{10,100,1000}` | `set_formula(=SUM(A1:A1000))` N times, measure time. Each call expands the range into 1000 `cell_dependents` entries; total work is O(N × range size). | LAZY Step 5 (range dependency interval index). Today registration is roughly constant per-formula (~100 µs) since each expansion is 1000 HashMap inserts; Step 5 should make this O(1) per formula and rely on interval lookup at dirty time. |
 | `sheet/range_dirty_lookup/{10,100,1000}` | After registering N range formulas that all contain A1, time `set_cell("A1", …)`. Measures the fan-out cost when a hotspot cell wakes many range deps. | Same Step 5 gate. Today this scales linearly with N (≈ 50 µs at N = 1000); Step 5's interval tree should keep cost bounded by *intervals-containing-A1*, not total range-formula count. |
 
+### `excel/rust/excel-core/benches/scale_bench.rs`
+
+规模验收套件，与上面两份的定位不同：**它不守某个性能数字**，而是在数量级规模上证明
+lazy / sparse 契约成立 —— 如果实现退化成 eager 或 O(总坐标空间)，这些 bench 会跑到
+明显超出任何合理预算，从而暴露问题。
+
+| Bench | What it measures | Gates / motivation |
+|---|---|---|
+| `bulk_load_100k_formulas` | 经 `bulk_load` 导入 10 万条公式，须在有界时间内完成 | 导入路径的隐式惰性检查：eager 求值会让耗时爆掉 |
+| `sparse_1m_grid_read_window` | 100 万单元格坐标空间、仅 1 万个已物化，读一个 50×27 视口矩形 | 必须是 O(可见)，不是 O(坐标空间总量) |
+| `dirty_lookup_100k_ranges` | 10 万区间公式下的脏查找 fan-out | 区间依赖查找的规模行为 |
+| `cross_sheet_store_propagation_10k` | 万级跨表传播 | 跨表依赖走同一个 workbook 级 Store 图后的传播成本 |
+
+```bash
+cd excel/rust/excel-core && cargo bench --bench scale_bench
+cd excel/rust/excel-core && cargo bench --bench scale_bench --no-run   # 只验编译
+```
+
+完整执行是**分钟级**，不适合放进 pre-commit；`--no-run` 适合。
+
 #### Step 5 deferral note
 
 The two `range_*` benches above are the empirical justification for *not*
@@ -75,7 +95,7 @@ landing Step 5 yet:
   interactive editing.
 
 Step 5 becomes urgent if a future workload pushes N range formulas past
-~10k (the doc's stated "10 万" gate from `LAZY_FORMULA_EVAL.md` Step 5).
+~10k (the "10 万" gate from `docs/archive/LAZY_FORMULA_EVAL.md` Step 5).
 The benches will catch the regression — re-run them when adding any
 demo or feature that bulk-creates range formulas.
 

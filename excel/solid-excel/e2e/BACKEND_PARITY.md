@@ -1,11 +1,19 @@
 # vNext e2e — Backend Parity Matrix
 
-Last full audited: 2026-06-05 (after Wave 5/6/7 UI cluster fixes;
-full 59-spec audit, dual project run)
-Prior full audit: 2026-05-28; targeted 2026-05-29 fix landed
-`snapshotPersistenceV1.sizes` on TS.
+双后端（`wasm` / `ts`）跑同一批 e2e 用例，用来钉住两个引擎的行为一致性。
+本文的**价值在于下面逐条的差异规则与已知例外**，不在于汇总数字。
 
-## Summary (full run, both projects)
+> ⚠️ **下面的 Summary 是 2026-06-05 那次全量审计的快照**（当时 59 个 spec）。
+> e2e 已按功能点重组为 27 个目录、spec 数量持续增长（见
+> [ADR 0005](../../../docs/decisions/0005-e2e-feature-folders.md) 与 `../e2e/README.md`），
+> 因此这组数字**不代表当前**。要当前的 parity 结论请自己跑：
+>
+> ```bash
+> NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach/solid-excel -- --project=wasm
+> NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach/solid-excel -- --project=ts
+> ```
+
+## Summary（2026-06-05 快照，非当前）
 
 | Project | Passed | Failed | Skipped (in spec) | Total |
 |---------|-------:|-------:|------------------:|------:|
@@ -280,7 +288,7 @@ specs listed under "Static `VNextWave5Demo`" above and include:
   ```bash
   unset http_proxy https_proxy all_proxy HTTP_PROXY HTTPS_PROXY ALL_PROXY \
     && NO_PROXY=localhost,127.0.0.1 \
-    npx playwright test e2e/formulas-wasm.spec.ts:63 --project=ts --retries=0
+    npx playwright test e2e/formula/formulas-wasm.spec.ts --project=ts --retries=0
   ```
 
   Mid-run `smoke.spec.ts:55` (`formula commit evaluates and displays
@@ -299,7 +307,7 @@ debug RPCs the WASM worker has:
   `formulaCount` / `formulaEvalCount`.
 
 The probe semantics differ between backends because of the underlying
-engine: Rust is purely lazy on mutation, TS-core (core/core) is eager —
+engine: Rust is purely lazy on mutation, TS-core (`@einfach/excel-core-ts`) is eager —
 a mutation immediately re-derives every cached formula. See the file-level
 comment in `excel/solid-excel/test/excel-core-ts-debug-probes.test.ts` for the
 exact divergence rules. The `observability.spec.ts` lazy-import test only

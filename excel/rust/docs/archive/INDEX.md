@@ -32,3 +32,4 @@
 - [ROADMAP.md](ROADMAP.md) — Rust 侧路线图，停在「第七期 7C」；不覆盖 Wave 1-6、atom-delegation P1-P7、excel-core-ts
 - [TODO.md](TODO.md) — 待办清单，基准是 2026-05 惰性公式批次；多数条目已完成
 - [ISSUES.md](ISSUES.md) — 针对某个 review 分支的问题清单（2026-05）；勾选框状态多已与代码不符
+- [MAIN_FLOW.md](MAIN_FLOW.md) — 早期全链路数据流图 + 缺陷标注 + 状态归属表；三部分分别被 ATOM_DELEGATION_MAINLINE.md、已归档的 ISSUES.md、ADR 0003 取代或证伪

@@ -221,7 +221,7 @@ canonical adjacency/halo and ownership rules; the renderer must not fill the
 gap from DOM order.
 
 The state flow and decision gate are documented in
-[`04-cell-formatting.md`](../../solid-excel/docs/online-excel-parity/04-cell-formatting.md#72-边框绘制原则):
+[`04-cell-formatting.md`](../../solid-excel/docs/archive/online-excel-parity/04-cell-formatting.md#72-边框绘制原则)（已归档）:
 canonical projection enters the Einfach projection lifecycle, only a current
 `ready` result builds the bounded derived index, stale results are ignored, and
 errors retain the last authoritative projection without speculative resolving.

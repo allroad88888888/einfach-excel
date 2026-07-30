@@ -2,7 +2,8 @@
 //!
 //! These benches do NOT gate a perf number; they prove the lazy / sparse
 //! contracts at the order-of-magnitude scale called out in
-//! `excel/rust/docs/ONLINE_SPREADSHEET_PLAN.md` Phase 1:
+//! `excel/rust/docs/archive/ONLINE_SPREADSHEET_PLAN.md` Phase 1 (归档；
+//! 这两条契约本身仍然生效，运行说明见 `excel/rust/docs/PERF.md`):
 //!
 //! 1. `bulk_load_100k_formulas` — 100 000 formulas imported via `bulk_load`
 //!    must complete in bounded wall time. If import were eager, runtime

@@ -1,6 +1,7 @@
 # Architecture — Excel Core (TS)
 
-> Companion doc to [PLAN.md](./PLAN.md). This file is the design rationale and dataflow reference.
+> 本文是本包的设计理由与数据流参考。建包期的 `PLAN.md` 已归档到
+> [`archive/PLAN.md`](./archive/PLAN.md)（其中「TS 比 Rust 慢」的前提已被后续基准反转）。
 
 ## 1. Layer cake
 
@@ -34,7 +35,7 @@
                   │ store getter/setter/sub
                   ▼
 ┌──────────────────────────────────────────────────────────────┐
-│ @einfach/core (core/core)                                 │
+│ @einfach/core (npm 上游包，源码不在本仓)                   │
 │  - createStore, atom, sub                                    │
 │  - WeakMap-based dep tracking + lazy invalidation            │
 └──────────────────────────────────────────────────────────────┘
@@ -82,9 +83,9 @@ type SheetState = ReadonlyMap<CellKey, Cell>
 export const sheetAtom: WritableAtom<SheetState, [SheetMutation], void>
 ```
 
-The atom is **the entire sheet's cell map**. Writes go through a setter that takes a structured mutation (`SetCell`, `ClearCell`, `BulkApply`, etc.), applies it immutably, and produces a new `Map` reference. `core/core`'s `Object.is` cache check then invalidates every formula derive in one stroke.
+The atom is **the entire sheet's cell map**. Writes go through a setter that takes a structured mutation (`SetCell`, `ClearCell`, `BulkApply`, etc.), applies it immutably, and produces a new `Map` reference. `@einfach/core`'s `Object.is` cache check then invalidates every formula derive in one stroke.
 
-Why immutable? `dep-equality` in `core/core` is reference equality. If we mutated the existing Map, derives wouldn't see a change. The new-Map allocation is cheap (~50 ns/op even for 10k-cell sheets).
+Why immutable? `dep-equality` in `@einfach/core` is reference equality. If we mutated the existing Map, derives wouldn't see a change. The new-Map allocation is cheap (~50 ns/op even for 10k-cell sheets).
 
 ### 2.4 Formula derives
 
@@ -121,7 +122,7 @@ workbook.setCell(sheetId, key, input)
      │  - immutably update Map<CellKey, Cell>
      │  - store.setter(sheet.sheetAtom, newMap)
      ▼
-core/core: marks every back-dep of sheetAtom dirty
+@einfach/core: marks every back-dep of sheetAtom dirty
      │
      ▼
 flushPending walks pending — only currently-subscribed derives recompute
@@ -133,7 +134,7 @@ Subscribers (worker projection responder) read the visible window
 postMessage back to UI: VisibleProjectionResult
 ```
 
-**No explicit recalc loop in the core.** core/core's `flushPending` does the work. Mutation = single setter call. Evaluation = whatever happens when subscribers read.
+**No explicit recalc loop in the core.** `@einfach/core`'s `flushPending` does the work. Mutation = single setter call. Evaluation = whatever happens when subscribers read.
 
 ## 4. Evaluation flow
 
@@ -157,7 +158,7 @@ evaluate(ast, ctx)
 
 Every `ctx.refLookup` hits `cells.get`, which is **the same Map** referenced once at the start of `evaluate` via `get(sheetAtom)`. One dep registered (`sheetAtom`), arbitrarily many refs resolved.
 
-This is the key insight from §4.1 of PLAN.md realized in code: **broad dep, fine-grained lookup**. No range-dep index, no per-cell atom — but full granularity inside the evaluator.
+This is the key insight from §4.1 of `archive/PLAN.md` realized in code: **broad dep, fine-grained lookup**. No range-dep index, no per-cell atom — but full granularity inside the evaluator.
 
 ## 5. Cycle detection
 
@@ -179,7 +180,7 @@ function refLookup(refKey: CellKey, ctx: EvalContext): Value {
 }
 ```
 
-The set is scoped to a **single top-level `evaluate()` call chain**, not global. Recursive `refLookup` within the same evaluation share the set; once the chain unwinds, the set is empty. Concurrent evaluations from different `get` paths get fresh sets — core/core serializes derive execution so concurrency isn't a worry.
+The set is scoped to a **single top-level `evaluate()` call chain**, not global. Recursive `refLookup` within the same evaluation share the set; once the chain unwinds, the set is empty. Concurrent evaluations from different `get` paths get fresh sets — `@einfach/core` serializes derive execution so concurrency isn't a worry.
 
 ## 6. Spill arrays
 
@@ -244,7 +245,7 @@ function crossRefLookup(node, ctx) {
 }
 ```
 
-This registers a dep on the **other sheet's atom** — core/core handles cross-atom propagation natively. When Sheet2 changes, formulas on Sheet1 referencing Sheet2 invalidate. No special cross-sheet bookkeeping.
+This registers a dep on the **other sheet's atom** — `@einfach/core` handles cross-atom propagation natively. When Sheet2 changes, formulas on Sheet1 referencing Sheet2 invalidate. No special cross-sheet bookkeeping.
 
 3D refs (`Sheet1:Sheet3!A1`) — phase 5+. Same mechanism, just iterating multiple sheet atoms.
 
@@ -288,7 +289,7 @@ function dispatchCall(name, args, ctx) {
 }
 ```
 
-Async custom formulas (returning a Promise) integrate via `core/core`'s built-in promise support — the derive returns a `StatesWithPromise<Value>` and subscribers see the placeholder, then the resolved value.
+Async custom formulas (returning a Promise) integrate via `@einfach/core`'s built-in promise support — the derive returns a `StatesWithPromise<Value>` and subscribers see the placeholder, then the resolved value.
 
 No re-entrancy guard needed (cycle detection in §5 already covers calling-back-into-yourself). No source-string `new Function` evaluation — host passes real closures.
 

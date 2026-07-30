@@ -1,7 +1,7 @@
 /* Find & Replace dialog — Univer / Excel parity restyle.
  *
  * Scoping rule: every rule is namespaced under .find-replace-dialog (the root
- * data-testid'd shell). The shared dialog skin in excel/solid-excel/src/styles.css
+ * data-testid'd shell). The shared dialog skin in src-vnext/styles/dialog-skin.css
  * still applies the centered card + backdrop, but everything below repaints
  * the interior so the dialog looks like Univer's 查找和替换 modal:
  *

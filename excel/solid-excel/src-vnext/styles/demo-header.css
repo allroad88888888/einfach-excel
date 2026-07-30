@@ -1,0 +1,23 @@
+/* Demo header — compress so the grid gets more vertical real estate */
+.vnext-demo .demo-header {
+  padding: 6px 12px;
+  margin-bottom: 4px;
+}
+
+.vnext-demo .demo-header h3 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.vnext-demo .demo-header .demo-desc {
+  margin: 2px 0 0 0;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* View > Show Gridlines: remove borders between cells. */
+.spreadsheet-grid.spreadsheet-grid--no-gridlines .spreadsheet-grid-cell {
+  border-right: none;
+  border-bottom: none;
+}
+

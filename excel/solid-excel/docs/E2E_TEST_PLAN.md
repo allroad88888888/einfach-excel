@@ -1,5 +1,9 @@
 # Solid Excel E2E Test Plan
 
+> **⚠️ 历史快照（2026-05-14 时点，23 spec / 162 用例时代）。**
+> 当前规划见 [`E2E_FEATURE_FOLDER_PLAN_2026-07-29.md`](./E2E_FEATURE_FOLDER_PLAN_2026-07-29.md)
+> —— e2e 已按功能点分目录重组，本文不再更新。
+
 > Scope: browser-level Playwright coverage for `excel/solid-excel`.
 > This plan folds in two parallel read-only reviews: one focused on current
 > Playwright infrastructure, one focused on feature-to-e2e coverage mapping.

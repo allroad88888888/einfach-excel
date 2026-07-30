@@ -25,14 +25,16 @@ npm run eslint
 ## Monorepo Structure (pnpm workspaces)
 
 本仓是表格栈，2026-07-29 从 `allroad88888888/einfach` 拆出。库侧（`@einfach/core`、`@einfach/solid`
-等）留在原仓，本仓通过 **npm** 消费它们，不再是 workspace 依赖 —— 拆分口径见
-`docs/REPO_SPLIT_PLAN_2026-07-28.md`。
+等）留在原仓，本仓通过 **npm** 消费它们，不再是 workspace 依赖 —— 拆分口径见**原仓**的
+`docs/REPO_SPLIT_PLAN_2026-07-28.md`（本仓不留副本，避免两处漂移）。该计划的 P5「原仓收口」
+尚未执行，因此原仓仍保留一份 `excel/` 的历史副本 —— 它冻结在拆分时点，**不是**本仓的镜像，
+不要在那边改表格栈代码。
 
 ```
 excel/spreadsheet-ui-core/ → @einfach/spreadsheet-ui-core # Framework-agnostic spreadsheet UI atoms + types (vnext)
 excel/excel-core-ts/       → @einfach/excel-core-ts       # TS formula engine (private, parity reference)
 excel/solid-excel/         → @einfach/solid-excel         # Solid.js spreadsheet surface (legacy + vnext)
-excel/showcase/            → @einfach/excel-showcase      # Demo app (private, vite)
+excel/excel-site/          → @einfach/excel-site           # Demo/marketing site (private, vite)
 excel/rust/core/           → einfach-core (Rust)          # Rust atom store（TS 版 core 的孪生实现）
 excel/rust/excel-core/     → einfach-excel-core           # Rust formula / workbook engine
 excel/rust/wasm/           → einfach-wasm                 # WASM bindings exposed to excel/solid-excel

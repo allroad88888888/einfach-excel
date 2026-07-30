@@ -1,6 +1,6 @@
 /* Conditional Format dialog — Univer-style restyle.
  *
- * Layered on top of the global vnext dialog skin in excel/solid-excel/src/styles.css.
+ * Layered on top of the global vnext dialog skin in src-vnext/styles/dialog-skin.css.
  * Scoped via [role='dialog'].conditional-format-dialog to win over the generic
  * dialog rules without raising !important. */
 

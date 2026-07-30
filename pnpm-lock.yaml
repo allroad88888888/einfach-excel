@@ -80,7 +80,7 @@ importers:
         version: 0.4.4(rollup@4.40.0)
       '@solidjs/testing-library':
         specifier: ^0.8.10
-        version: 0.8.10(solid-js@1.9.12)
+        version: 0.8.10(@solidjs/router@0.15.4(solid-js@1.9.12))(solid-js@1.9.12)
       '@swc/core':
         specifier: ^1.5.0
         version: 1.11.21
@@ -137,11 +137,14 @@ importers:
         specifier: ^20.11.30
         version: 20.17.30
 
-  excel/showcase:
+  excel/excel-site:
     dependencies:
       '@einfach/core':
         specifier: ^0.4.0
         version: 0.4.0
+      '@einfach/excel-core-ts':
+        specifier: workspace:*
+        version: link:../excel-core-ts
       '@einfach/solid':
         specifier: ^0.4.0
         version: 0.4.0(solid-js@1.9.12)
@@ -154,6 +157,9 @@ importers:
       '@lingui/core':
         specifier: 6.0.1
         version: 6.0.1
+      '@solidjs/router':
+        specifier: ^0.15.3
+        version: 0.15.4(solid-js@1.9.12)
       solid-js:
         specifier: 1.9.12
         version: 1.9.12
@@ -170,6 +176,12 @@ importers:
       vite-plugin-solid:
         specifier: ^2.8.0
         version: 2.11.11(@testing-library/jest-dom@6.6.3)(solid-js@1.9.12)(vite@5.4.21(@types/node@20.17.30)(terser@5.39.0))
+      vite-plugin-top-level-await:
+        specifier: ^1.4.4
+        version: 1.6.0(rollup@4.40.0)(vite@5.4.21(@types/node@20.17.30)(terser@5.39.0))
+      vite-plugin-wasm:
+        specifier: ^3.3.0
+        version: 3.6.0(vite@5.4.21(@types/node@20.17.30)(terser@5.39.0))
 
   excel/solid-excel:
     dependencies:
@@ -1395,6 +1407,11 @@ packages:
 
   '@sinonjs/fake-timers@10.3.0':
     resolution: {integrity: sha512-V4BG07kuYSUkTCSBHG8G8TNhM+F19jXFWnQtzj+we8DrkpSBCee9Z3Ms8yiGer/dlmhe35/Xdgyo3/0rQKg7YA==}
+
+  '@solidjs/router@0.15.4':
+    resolution: {integrity: sha512-WOpgg9a9T638cR+5FGbFi/IV4l2FpmBs1GpIMSPa0Ce9vyJN7Wts+X2PqMf9IYn0zUj2MlSJtm1gp7/HI/n5TQ==}
+    peerDependencies:
+      solid-js: 1.9.12
 
   '@solidjs/testing-library@0.8.10':
     resolution: {integrity: sha512-qdeuIerwyq7oQTIrrKvV0aL9aFeuwTd86VYD3afdq5HYEwoox1OBTJy4y8A3TFZr8oAR0nujYgCzY/8wgHGfeQ==}
@@ -5476,10 +5493,16 @@ snapshots:
     dependencies:
       '@sinonjs/commons': 3.0.1
 
-  '@solidjs/testing-library@0.8.10(solid-js@1.9.12)':
+  '@solidjs/router@0.15.4(solid-js@1.9.12)':
+    dependencies:
+      solid-js: 1.9.12
+
+  '@solidjs/testing-library@0.8.10(@solidjs/router@0.15.4(solid-js@1.9.12))(solid-js@1.9.12)':
     dependencies:
       '@testing-library/dom': 10.4.0
       solid-js: 1.9.12
+    optionalDependencies:
+      '@solidjs/router': 0.15.4(solid-js@1.9.12)
 
   '@stylistic/eslint-plugin@2.13.0(eslint@8.57.1)(typescript@5.8.3)':
     dependencies:

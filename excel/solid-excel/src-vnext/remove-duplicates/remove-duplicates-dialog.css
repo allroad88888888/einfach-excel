@@ -1,7 +1,7 @@
 /* Remove Duplicates dialog — Wave 7/8.
  *
  * Scoped under `.remove-duplicates-dialog` so the shared dialog skin
- * (centered card + backdrop) from excel/solid-excel/src/styles.css still wraps
+ * (centered card + backdrop) from src-vnext/styles/dialog-skin.css still wraps
  * us, but the interior matches the Paste Special / Text to Columns
  * baselines. Layout:
  *

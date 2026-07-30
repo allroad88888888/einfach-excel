@@ -1,0 +1,97 @@
+/* === A. Top chrome ====================================================== */
+
+/* A.1 Menu bar — horizontal row, hover/open states, dropdown panel */
+.spreadsheet-menu-bar {
+  display: flex;
+  align-items: stretch;
+  height: 26px;
+  background: var(--bg-chrome);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--excel-font);
+  font-size: 12px;
+  user-select: none;
+  position: relative;
+  z-index: 100;
+}
+
+.spreadsheet-menu-bar .menu-bar-top {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+}
+
+.spreadsheet-menu-bar .menu-bar-button {
+  display: inline-flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 10px;
+  border: none;
+  background: transparent;
+  color: var(--text-default);
+  font: inherit;
+  cursor: pointer;
+  transition: background 100ms ease-out;
+}
+
+.spreadsheet-menu-bar .menu-bar-button:hover {
+  background: var(--hover);
+}
+
+.spreadsheet-menu-bar .menu-bar-button-open {
+  background: var(--active-bg);
+}
+
+.spreadsheet-menu-bar .menu-bar-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 200px;
+  padding: 4px 0;
+  background: #ffffff;
+  border: 1px solid var(--border-strong);
+  border-radius: 2px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 200;
+}
+
+.spreadsheet-menu-bar .menu-bar-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 4px 14px;
+  border: none;
+  background: transparent;
+  color: var(--text-default);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.spreadsheet-menu-bar .menu-bar-item:hover {
+  background: var(--select-bg);
+}
+
+.spreadsheet-menu-bar .menu-bar-item-disabled,
+.spreadsheet-menu-bar .menu-bar-item-disabled:hover {
+  color: #b0b0b0;
+  background: transparent;
+  cursor: default;
+}
+
+.spreadsheet-menu-bar .menu-bar-item-label {
+  flex: 1;
+}
+
+.spreadsheet-menu-bar .menu-bar-item-shortcut {
+  margin-left: 16px;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.spreadsheet-menu-bar .menu-bar-separator {
+  height: 1px;
+  margin: 4px 0;
+  background: var(--border);
+}
+

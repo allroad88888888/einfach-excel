@@ -21,6 +21,7 @@ export * from './text-to-columns'
 // into deep-importing `src-vnext/<feature>` and binding themselves to this
 // package's internal file layout.
 export * from './comments'
+export * from './history'
 export * from './conditional-formatting'
 export * from './data-validation'
 export * from './filter-sort'

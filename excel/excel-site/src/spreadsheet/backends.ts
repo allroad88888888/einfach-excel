@@ -13,9 +13,14 @@ import type {
 import {
   createStaticSpreadsheetBackend,
   createWorkerWorkbookSpreadsheetBackend,
+} from '@einfach/solid-excel/vnext'
+// Separate subpath on purpose: the worker factories resolve their bundles via
+// `import.meta.url`, so they stay off the `/vnext` barrel (see that barrel's
+// note in `adapter/index.ts`).
+import {
   defaultExcelCoreTsWorkerFactory,
   defaultVNextWorkbookWorkerFactory,
-} from '@einfach/solid-excel/vnext'
+} from '@einfach/solid-excel/vnext-worker-factory'
 
 /** In-memory backend for demos that need no worker/WASM round trip. */
 export function makeStaticBackend(seed?: StaticSpreadsheetSeedInput): StaticSpreadsheetBackend {

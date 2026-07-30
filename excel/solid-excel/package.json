@@ -15,6 +15,11 @@
       "import": "./src-vnext/public.ts",
       "default": "./src-vnext/public.ts"
     },
+    "./vnext-worker-factory": {
+      "types": "./src-vnext/adapter/worker-factory.ts",
+      "import": "./src-vnext/adapter/worker-factory.ts",
+      "default": "./src-vnext/adapter/worker-factory.ts"
+    },
     "./legacy": {
       "types": "./src/index.tsx",
       "import": "./src/index.tsx",

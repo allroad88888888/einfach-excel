@@ -1,7 +1,18 @@
+> ✅ **已执行完毕，归档留档。** 本文是 2026-07-30 那次文档整理的提案与盘点依据，
+> 按它自己第 3 节定的规则（提案落地即归档）存于此。
+>
+> 执行结果的现行入口：`docs/ARCHITECTURE.md`、`docs/decisions/`、各包 `docs/archive/INDEX.md`。
+>
+> 与提案的两处偏离：① `MAIN_FLOW.md` 改为归档而非重写（重写等于重新推导整个引擎流程，
+> 超出文档整理范围且有编造风险，理由见其横幅）；② perf 报告落 `test/perf-reports/` 而非
+> archive —— 它们的输出路径硬编码在 bench 里，且是可重新生成的产物，不是归档材料。
+
 # 文档整理规划（对标主流开源实践）
 
+<!-- doc-check: allow-stale-paths -->
+
 - 日期：2026-07-30
-- 状态：**proposed**（待拍板执行；本文件按第 3 节约定属「提案」，落地后归档）
+- 状态：**executed**（2026-07-30 全部执行完毕，本文按第 3 节自己定的规则归档）
 - 盘点方式：三路并行代码核验（solid-excel / spreadsheet-ui-core / rust + excel-core-ts），所有失效引用均经 ls/grep 实证，非目测。
 
 ## 1. 现状盘点

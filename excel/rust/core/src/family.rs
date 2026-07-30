@@ -1,5 +1,5 @@
 //! AtomFamily — the Rust port of the owner's getAtomFamily pattern
-//! (`core/core/src/utils/createFamilyAtomById.ts` over `createCacheStom`):
+//! (上游 `@einfach/core` 的 `createFamilyAtomById` over `createCacheStom`):
 //! a keyed cache of atoms, created on first use (lazy), evictable.
 //!
 //! This is the load-bearing primitive of the atom-delegation rewrite

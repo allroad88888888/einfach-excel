@@ -25,6 +25,7 @@ export default defineConfig({
       // worker calls debug RPCs added in Phase 1.
       '@einfach/excel-core-ts': path.resolve(repoRoot, 'excel/excel-core-ts/src'),
       // @einfach/core 与 @einfach/solid 不再 alias 到源码:拆仓后它们是
+      // doc-check: allow-stale-paths —— 下面两行说明的正是被移除的旧路径
       // npm 依赖,由 node_modules 解析已发布的产物。原先指向 core/core/src
       // 与 core/solid/src 的 alias 在本仓是死路径,会让 dev server 报
       // "Failed to resolve import" 并且永远起不来。

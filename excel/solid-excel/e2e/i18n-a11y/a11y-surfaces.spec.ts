@@ -24,7 +24,7 @@ import { cellDisplay, gotoRoot, typeIntoCell, withEnglishLocale } from '../helpe
  *
  * Run:
  *   NO_PROXY=localhost,127.0.0.1 EINFACH_E2E_PORT=5174 \
- *     npx playwright test e2e/a11y-surfaces.spec.ts --project=wasm
+ *     npx playwright test e2e/i18n-a11y/a11y-surfaces.spec.ts --project=wasm
  */
 
 const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']

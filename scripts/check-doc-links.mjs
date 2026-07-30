@@ -46,12 +46,20 @@ const LINK = /\[[^\]]*\]\(([^)\s]+?)(?:#[^)]*)?\)/g
 
 // 讲迁移本身的文档（提案、ADR、迁移说明）需要引用旧路径作为「被替换掉的东西」。
 // 在文件任意位置写下这行标记即可豁免失效路径检查（死链检查仍然生效）。
-const STALE_OPT_OUT = '<!-- doc-check: allow-stale-paths -->'
+// markdown 写 `<!-- doc-check: allow-stale-paths -->`，源码写 `// doc-check: allow-stale-paths`
+const STALE_OPT_OUT = 'doc-check: allow-stale-paths'
 
-const tracked = execFileSync('git', ['ls-files', '*.md'], { encoding: 'utf8' })
-  .split('\n')
-  .filter(Boolean)
-  .filter((f) => !EXEMPT.some((e) => f.includes(e)))
+const ls = (...globs) =>
+  execFileSync('git', ['ls-files', ...globs], { encoding: 'utf8' })
+    .split('\n')
+    .filter(Boolean)
+    .filter((f) => !EXEMPT.some((e) => f.includes(e)))
+
+// 链接检查只对 markdown；失效路径检查连源码注释一起查 —— 上一轮
+// 就是源码注释里的 6 处悬空引用逃过了纯 markdown 的检查。
+const docs = ls('*.md')
+const sources = ls('*.ts', '*.tsx', '*.rs', '*.yml', '*.mjs', '*.cjs')
+const tracked = [...new Set([...docs, ...sources])]
 
 const brokenLinks = []
 const stalePaths = []
@@ -60,7 +68,7 @@ for (const file of tracked) {
   const text = readFileSync(file, 'utf8')
   const base = dirname(file)
 
-  for (const m of text.matchAll(LINK)) {
+  if (file.endsWith('.md')) for (const m of text.matchAll(LINK)) {
     const target = m[1]
     // 纯页内锚点，以及被误当成链接的内容（如数字格式串 `[Red](#,##0.00)`）
     if (target.startsWith('#')) continue
@@ -71,6 +79,7 @@ for (const file of tracked) {
   }
 
   if (text.includes(STALE_OPT_OUT)) continue
+  if (file === 'scripts/check-doc-links.mjs') continue // 自身定义这些模式
 
   for (const { re, why } of STALE_PATTERNS) {
     for (const m of text.matchAll(re)) {
@@ -107,4 +116,6 @@ if (failed) {
   process.exit(1)
 }
 
-console.log(`✅ ${tracked.length} 份活文档：零死链、无失效路径`)
+console.log(
+  `✅ ${docs.length} 份活文档零死链；${tracked.length} 份文件（含源码注释）无失效路径`,
+)

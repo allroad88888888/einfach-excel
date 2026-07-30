@@ -9,7 +9,7 @@ import { test, expect, type Page } from '@playwright/test'
  * regression net once the fix lands. NO production code is modified
  * by this commit — only the new spec is added.
  *
- * Reference scaffold: excel/solid-excel/e2e/vnext-wave5.spec.ts
+ * Reference scaffold: excel/solid-excel/e2e/toolbar-shell/vnext-wave5.spec.ts
  *
  * Headline bug under test:
  *   - Click B2 → type "9" → Enter → cell shows "9".

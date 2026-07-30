@@ -1,5 +1,7 @@
 # ADR 0002：上游 `@einfach/core` 走 npm，不做 workspace 依赖
 
+<!-- doc-check: allow-stale-paths -->
+
 - 状态：accepted
 - 日期：2026-07-29（`66e0782` 独立成仓）
 - 相关：[ADR 0001](0001-solid-js-single-instance.md)

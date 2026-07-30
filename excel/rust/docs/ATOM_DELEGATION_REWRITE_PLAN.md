@@ -24,7 +24,7 @@
 
 ## 1. North star (owner's ruling — NOT open for re-litigation)
 
-The einfach state mechanism is the owner's hand-written `core/core` store
+The einfach state mechanism is the owner's hand-written `@einfach/core` store（上游主仓）
 (pull-validate + dep-value-snapshot invalidation + pendingMap/flushPending
 change-pruned re-derive). The Rust side was always meant to be a faithful copy
 of THIS mechanism. It drifted: `excel/rust/core` became eager-push + topo-sort;
@@ -33,7 +33,8 @@ of THIS mechanism. It drifted: `excel/rust/core` became eager-push + topo-sort;
 
 The fixed direction:
 
-1. **`excel/rust/core` Store = function-per-function port of `core/core/src/store.ts`.**
+1. **`excel/rust/core` Store = function-per-function port of 上游 `@einfach/core` 的 `store.ts`。**
+   （源码在 [einfach 主仓](https://github.com/allroad88888888/einfach)，不在本仓 —— 见 ADR 0002。）
    Iterative implementations of the recursive semantics are allowed (work
    stacks, NeedsDep faulting, settled-memo); semantic deviation is not.
 2. **`excel/rust/excel-core` = pure atom delegation.** Formula cells are derived
@@ -43,8 +44,8 @@ The fixed direction:
 3. The historical "pure delegation failed at scale" evidence (TS C-1/C-2)
    was an artifact of the one-big-sheetAtom design mistake, not of atom
    delegation. Per-cell family + laziness is the corrective. **Empirically
-   confirmed** (`core/core/test/atom-family-spike.test.ts`, on the real
-   core/core store, 2026-07-08): C-1 — family single-cell write is flat
+   confirmed**（上游主仓的 `atom-family-spike.test.ts`，跑在真实的
+   `@einfach/core` store 上，2026-07-08）: C-1 — family single-cell write is flat
    1.2→1.8 µs at 10k→1M cells vs sheetAtom's O(N) 394 µs→118 ms (~65,000× at
    1M); C-2 — one unrelated write re-evaluates exactly 1 derive (84.7 µs) vs
    exactly 100,000 (297.5 ms) with 100k mounted derives (count-asserted).
@@ -68,7 +69,7 @@ Full approved plan: `/Users/dol/.claude/plans/federated-mapping-crab.md`
 
 | ID | Invariant |
 |---|---|
-| INV-1 | `excel/rust/core/src/store.rs` is function-per-function isomorphic to `core/core/src/store.ts` (`read_atom`↔`readAtom`, `set_atom`, `write_atom_state`, `set_atom_state`, `dependencies_change`, `flush_pending`, `publish_atom`, `subscribe_atom`, `clear_dependencies`, `clear`). Permitted mechanical deviations ONLY: iterative work stacks, NeedsDep scratch-commit, settled-memo, ownership plumbing, no async values. Everything else carries `// DIVERGENCE(store.ts): <reason>` and a row in §5. |
+| INV-1 | `excel/rust/core/src/store.rs` is function-per-function isomorphic to 上游 `@einfach/core` 的 `store.ts`（源码在主仓，不在本仓）(`read_atom`↔`readAtom`, `set_atom`, `write_atom_state`, `set_atom_state`, `dependencies_change`, `flush_pending`, `publish_atom`, `subscribe_atom`, `clear_dependencies`, `clear`). Permitted mechanical deviations ONLY: iterative work stacks, NeedsDep scratch-commit, settled-memo, ownership plumbing, no async values. Everything else carries `// DIVERGENCE(store.ts): <reason>` and a row in §5. |
 | INV-2 | The only edges that decide *what recomputes when something changes* are the Store's dependency maps. In `excel/rust/excel-core`, no map keyed by cell address whose values name dependent formula cells may exist. Allowlist: range-family-internal geometric coverage (addr → range key / band atom only), spill `claims` (addr → anchor ownership, not a dep), `cell_subscriptions`, `formula_source`/`needs_parse` (parse laziness, not deps). |
 | INV-3 | Bulk import materializes 0 atoms and evaluates 0 formulas, at any size. |
 | INV-4 | `WasmSheet`/`WasmWorkbook` exported names + signatures frozen (additive debug probes allowed). `worker-protocol.ts` wire shapes frozen. |
@@ -255,7 +256,7 @@ introduced.
 ## 8. Quick-verify block
 
 ```bash
-cd /Volumes/work/self/einfach
+cd "$(git rev-parse --show-toplevel)"
 # tier greens (baseline counts recorded at P0 exit — see below)
 cd excel/rust/core && cargo test
 cd ../excel-core && cargo test --lib

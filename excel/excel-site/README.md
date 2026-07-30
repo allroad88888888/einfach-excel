@@ -1,5 +1,7 @@
 # @einfach/excel-site
 
+<!-- doc-check: allow-stale-paths -->
+
 Demo / marketing site for the einfach spreadsheet stack. It showcases the real
 `@einfach/solid-excel` + `@einfach/spreadsheet-ui-core` components on top of the
 Rust/WASM formula engine, and replaces `excel/showcase`.

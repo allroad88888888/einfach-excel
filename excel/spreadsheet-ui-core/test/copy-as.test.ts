@@ -679,7 +679,7 @@ describe('copy-as / decoration hints', () => {
 // ---------------------------------------------------------------------------
 // §8.2 — copy skips FILTER-hidden rows
 //
-// See excel/solid-excel/docs/online-excel-parity/design-filter-hidden-rows.md §8.2.
+// See excel/solid-excel/docs/archive/online-excel-parity/design-filter-hidden-rows.md §8.2.
 // Every test below first drives the UNGUARDED path (no `hiddenRows`) and
 // asserts the WRONG output the encoders produce once filter-hidden rows sit
 // inside the rect, then shows the guard removing it. Without the first half

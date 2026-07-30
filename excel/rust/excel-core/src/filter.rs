@@ -1,5 +1,5 @@
 //! Engine-owned column filter — E3 of
-//! `excel/solid-excel/docs/online-excel-parity/design-engine-hidden-rows.md`.
+//! `excel/solid-excel/docs/archive/online-excel-parity/design-engine-hidden-rows.md`.
 //!
 //! This module is the Rust half of a CROSS-LANGUAGE PORT, not a fresh
 //! design. Every function here has a named TypeScript original in

@@ -6,9 +6,9 @@
  * type, function signature, sheet mutation shape — lives here.
  *
  * Adding a field is forwards-compatible (only the producer cares).
- * Renaming / removing a field is **breaking** and must be flagged in
- * `docs/AGENT_COLLABORATION.md` before landing, so in-flight tracks
- * can rebase.
+ * Renaming / removing a field is **breaking** — call it out in the PR
+ * description, since both the Rust engine's parity tests and the
+ * `worker-runtime-ts` adapter consume these shapes.
  *
  * Discipline:
  * - No runtime code in this file. Types and `as const` arrays only.
@@ -19,9 +19,8 @@
  *   kebab-case strings so we can `JSON.stringify` for diagnostics.
  *
  * Cross-reference:
- *   docs/PLAN.md          — scope + phasing
  *   docs/ARCHITECTURE.md  — dataflow + design rationale
- *   docs/AGENT_COLLABORATION.md — multi-agent kanban
+ *   ../../docs/ARCHITECTURE.md — 仓库级三层架构与本包的定位
  */
 
 // =============================================================================

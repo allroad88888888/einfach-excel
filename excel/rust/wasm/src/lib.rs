@@ -1387,7 +1387,7 @@ struct WorkbookPersistenceRestoreStatsJSON {
 }
 
 // === Engine physical sort (`sortRange`) wire — S2 of
-// `excel/solid-excel/docs/online-excel-parity/design-engine-sort.md` ===
+// `excel/solid-excel/docs/archive/online-excel-parity/design-engine-sort.md` ===
 //
 // Payload `{ range, keys: [{ col, direction, caseSensitive }], excludedRows }`.
 // `range` is either an A1 string (`"A1:B3"`, or `"A1"` for a single cell) or a

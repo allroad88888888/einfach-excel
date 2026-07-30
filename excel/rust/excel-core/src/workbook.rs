@@ -2670,7 +2670,7 @@ impl Workbook {
 
     // === Engine-owned MANUAL hidden rows ================================
     //
-    // E2 of `excel/solid-excel/docs/online-excel-parity/design-engine-hidden-rows.md`.
+    // E2 of `excel/solid-excel/docs/archive/online-excel-parity/design-engine-hidden-rows.md`.
     //
     // Storage moved from "host-pushed evaluation input the engine keeps in a
     // side map" to "a `Sheet` field the engine owns", with
@@ -2924,7 +2924,7 @@ impl Workbook {
 
     // === Engine-owned FILTER (E3) =======================================
     //
-    // E3 of `excel/solid-excel/docs/online-excel-parity/design-engine-hidden-rows.md`.
+    // E3 of `excel/solid-excel/docs/archive/online-excel-parity/design-engine-hidden-rows.md`.
     //
     // The engine now owns the RULES and evaluates the PREDICATE itself,
     // instead of receiving a row set the host derived. Same staging as E2:

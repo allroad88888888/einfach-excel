@@ -5,7 +5,7 @@
  * SUM, AVERAGE, COUNT, COUNTA, MIN, MAX, ROUND, ROUNDUP, ROUNDDOWN,
  * INT, MOD, ABS, POWER, SQRT, SIGN.
  *
- * Discipline (from `docs/AGENT_COLLABORATION.md` Wave C):
+ * Discipline (applies to every function module in this directory):
  *  - Pure: never mutate args/ctx/captured state.
  *  - Total: every input returns a Value (errors are encoded, not thrown).
  *  - Coerce only via `../coerce`; never re-derive number/boolean casts.

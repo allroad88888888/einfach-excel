@@ -27,7 +27,7 @@
  *   - Skips WASM gracefully if `wasm-pkg/` is missing or the .wasm
  *     fails to instantiate.
  *
- * Output: this bench writes `perf-ts-vs-wasm-report.md` with the
+ * Output: this bench writes `test/perf-reports/perf-ts-vs-wasm-report.md` with the
  * numbers, ratios, and a verdict per row. Set
  * `EINFACH_PERF_WRITE_REPORT=0` for an observation-only run that prints
  * results without modifying the historical report.
@@ -2015,7 +2015,7 @@ function replaceBlock(template: string, name: string, body: string): string {
 function writeReport() {
   if (!PERF_ENABLED || !PERF_WRITE_REPORT) return
 
-  const reportPath = path.join(__dirname, 'perf-ts-vs-wasm-report.md')
+  const reportPath = path.join(__dirname, 'perf-reports', 'perf-ts-vs-wasm-report.md')
   let template: string
   try {
     template = readFileSync(reportPath, 'utf8')

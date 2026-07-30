@@ -1107,7 +1107,7 @@ describe('structural shift → local view facts + history side payloads', () => 
 // ---------------------------------------------------------------------------
 // §8.3 — deleting a row span skips FILTER-hidden rows
 //
-// See excel/solid-excel/docs/online-excel-parity/design-filter-hidden-rows.md §8.3.
+// See excel/solid-excel/docs/archive/online-excel-parity/design-filter-hidden-rows.md §8.3.
 // Excel deletes only the visible rows of a selection spanning a filtered
 // region; manually hidden rows inside the span are deleted normally. The
 // COUNTER-EXAMPLE tests drive the unguarded single-span delete and assert the

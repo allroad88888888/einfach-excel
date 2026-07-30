@@ -1,5 +1,5 @@
 //! Engine physical sort (`sort_range`) — S1 slice of
-//! `excel/solid-excel/docs/online-excel-parity/design-engine-sort.md`.
+//! `excel/solid-excel/docs/archive/online-excel-parity/design-engine-sort.md`.
 //!
 //! Semantics (normative, per the design adjudications):
 //!

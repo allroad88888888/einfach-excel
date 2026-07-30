@@ -3,10 +3,12 @@ name: e2e
 # Solid Excel browser tests. Separate from `ci.yml` (jest + build) so
 # e2e flake doesn't block the unit-test signal while the suite settles in.
 #
-# Policy (per `excel/solid-excel/docs/E2E_TEST_PLAN.md` "CI Gate Policy"):
-#   - Advisory for the first 2 weeks of green runs (no PR merge gate).
+# Gate policy (advisory — this workflow does NOT block PR merge yet):
+#   - Advisory for the first 2 weeks of green runs.
 #   - Failures upload `playwright-report/` + `test-results/` for triage.
 #   - Promote to PR-blocking once stable.
+#
+# 套件结构（按功能点分目录）见 `excel/solid-excel/e2e/README.md`。
 #
 # Local equivalent:
 #   NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach/solid-excel
@@ -28,8 +30,9 @@ jobs:
     runs-on: ubuntu-latest
     # 分片执行。playwright.config 是 workers: 1 + fullyParallel: false
     # (共享一个 dev server、用例间有状态耦合),不能靠提并发压缩,只能横向切。
-    # 实测全量 1174 个用例串行需 30 分 41 秒;切 4 片后每片约 8 分钟,
-    # 20 分钟的上限留足了余量(含 retries: 1 的重试开销)。
+    # 定分片数那次实测:全量串行 30 分 41 秒,切 4 片后每片约 8 分钟,
+    # 20 分钟的上限留足了余量(含 retries: 1 的重试开销)。用例数一直在涨,
+    # 这里不记数字 —— 要当前规模用 `npx playwright test --list`。
     #
     # 每片是独立 job:各自起自己的 dev server,分片之间不共享状态,
     # 因此 workers: 1 提供的隔离保证不受影响。

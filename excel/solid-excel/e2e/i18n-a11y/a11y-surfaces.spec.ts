@@ -10,7 +10,7 @@ import { cellDisplay, gotoRoot, typeIntoCell, withEnglishLocale } from '../helpe
  * Scans every interactive surface with axe-core against WCAG 2.0/2.1 A + AA
  * and fails on any `critical` or `serious` violation. `moderate` / `minor`
  * findings are reported in the failure message but do not fail the run — see
- * `docs/online-excel-parity/A11Y_BASELINE.md` for the baseline numbers and the
+ * `docs/archive/online-excel-parity/A11Y_BASELINE.md` for the baseline numbers and the
  * rationale behind every entry in `KNOWN_ISSUES` below.
  *
  * Deliberate non-goals:

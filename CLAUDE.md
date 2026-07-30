@@ -25,8 +25,10 @@ npm run eslint
 ## Monorepo Structure (pnpm workspaces)
 
 本仓是表格栈，2026-07-29 从 `allroad88888888/einfach` 拆出。库侧（`@einfach/core`、`@einfach/solid`
-等）留在原仓，本仓通过 **npm** 消费它们，不再是 workspace 依赖 —— 拆分口径见
-`docs/REPO_SPLIT_PLAN_2026-07-28.md`。
+等）留在原仓，本仓通过 **npm** 消费它们，不再是 workspace 依赖 —— 拆分口径见**原仓**的
+`docs/REPO_SPLIT_PLAN_2026-07-28.md`（本仓不留副本，避免两处漂移）。该计划的 P5「原仓收口」
+尚未执行，因此原仓仍保留一份 `excel/` 的历史副本 —— 它冻结在拆分时点，**不是**本仓的镜像，
+不要在那边改表格栈代码。
 
 ```
 excel/spreadsheet-ui-core/ → @einfach/spreadsheet-ui-core # Framework-agnostic spreadsheet UI atoms + types (vnext)

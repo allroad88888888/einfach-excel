@@ -1,16 +1,16 @@
 {
-  "name": "einfach",
+  "name": "einfach-excel",
   "private": true,
   "version": "1.0.0",
-  "description": "轻量级 atom 状态管理库，支持 React 和 Solid.js",
+  "description": "在线表格栈：框架无关的表格 UI 核心 + Rust/WASM 公式引擎 + Solid.js 表格界面",
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "https://github.com/allroad88888888/einfach.git"
+    "url": "https://github.com/allroad88888888/einfach-excel.git"
   },
-  "homepage": "https://github.com/allroad88888888/einfach",
+  "homepage": "https://github.com/allroad88888888/einfach-excel",
   "bugs": {
-    "url": "https://github.com/allroad88888888/einfach/issues"
+    "url": "https://github.com/allroad88888888/einfach-excel/issues"
   },
   "scripts": {
     "eslint": "npx eslint --config rules/.eslintrc --ext=.tsx,.ts --ignore-path ./rules/.eslintignore ./ --fix ",

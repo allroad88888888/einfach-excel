@@ -45,25 +45,35 @@ pnpm workspace 的 glob 是 `excel/*`；`excel/rust/` 不是 npm 包，靠 `buil
 
 **上游依赖**：`@einfach/core` 与 `@einfach/solid` 从 npm 安装，jest 不再对它们做 `moduleNameMapper`
 映射，走 node_modules 解析。这是刻意的 —— 本仓必须能跑在**已发布**的 core 上，而不是某个只存在于
-工作区的版本。当前基线 `@einfach/core@^0.2.19` + `@einfach/solid@^0.2.20`，全套测试在其上通过。
+工作区的版本。当前基线 `@einfach/core@^0.4.0` + `@einfach/solid@^0.4.0`，全套测试在其上通过。
 
-**solid-js 单实例不变式**：根 `pnpm.overrides` 钉死 `solid-js: 1.9.12`，lockfile 里只能有一条
-`solid-js@` 解析。出现第二条就会复发 Provider 重挂 bug（契约测试
-`excel/solid-excel/test/provider-remount-1912.test.tsx`）。
+**solid-js 单实例不变式**：根 `pnpm.overrides` 钉死 `solid-js: 1.9.12`，lockfile 里**只能有一个
+`solid-js@` 版本**（`grep -oE 'solid-js@[0-9.]+' pnpm-lock.yaml | sort -u` 必须只回一行；
+`packages:` 与 `snapshots:` 两节各出现一次是正常的）。出现第二个版本就会复发 Provider 重挂 bug
+—— 见 [ADR 0001](docs/decisions/0001-solid-js-single-instance.md)，契约测试
+`excel/solid-excel/test/provider-remount-1912.test.tsx`。
+
+## 文档规则
+
+本仓文档分四类，生命周期不同：**契约**（贴码，随 PR 更新）、**决策**（`docs/decisions/` 下的 ADR，
+接受后不改）、**提案**（文件名带日期，落地后归档）、**记录**（handoff/audit/perf，生成即冻结，
+住 `<pkg>/docs/archive/`）。判定规则与硬约束（禁写会腐坏的全局计数、归档须清扫反向引用等）见
+`CONTRIBUTING.md` §「文档规则」。仓库级架构地图在 `docs/ARCHITECTURE.md`。
 
 ## Architecture
 
 ### Core Concepts
 
-**Atoms** (`core/core/src/atom.ts`): Fundamental state units. Two types:
+上游 atom 引擎（`@einfach/core`）的源码不在本仓，走 npm 安装；概念如下，细节见
+[einfach 主仓](https://github.com/allroad88888888/einfach)。
+
+**Atoms**: Fundamental state units. Two types:
 - Primitive atoms: `atom(initialValue)` — writable state
 - Derived atoms: `atom(get => get(otherAtom) * 2)` — computed from other atoms
 
-**Store** (`core/core/src/store.ts`): Manages atom state with automatic dependency tracking via WeakMaps (`atomStateMap`, `backDependenciesMap`, `dependenciesMap`). Key API: `getter(atom)`, `setter(atom, ...args)`, `sub(atom, listener)`.
+**Store**: Manages atom state with automatic dependency tracking via WeakMaps. Key API: `getter(atom)`, `setter(atom, ...args)`, `sub(atom, listener)`.
 
-**Framework bindings** are thin layers over the core. React uses Context for store management; Solid.js uses its reactive primitives.
-
-**Form system** (`core/react-form/src/core/`, `core/solid-form/src/core/`): Backs form state (values, errors, validation rules) with atoms via `useForm()`.
+**Framework bindings** are thin layers over the core. Solid.js (`@einfach/solid`) uses its reactive primitives; 本仓只消费 Solid 绑定。
 
 **Spill-derived atoms** (`excel/rust/excel-core/src/sheet.rs` § "Spill (dynamic-array) infrastructure"): when a formula evaluates to `Value::Array`, the anchor cell's atom holds the array and each non-(0,0) target gets a derived atom that reads the anchor and indexes into it. Reads, dependency tracking, and subscription propagation reuse the existing atom framework — no parallel spill index — and the WASM boundary collapses `Value::Array` to its top-left scalar for cell-projection reads. **Exception:** custom-formula callbacks (Wave 8.1) DO receive `Value::Array` as a 2-D JS array when a range arg is passed (`=MYFN(A1:A10)`), because the engine forwards array args directly to the JS callback — see `excel/rust/excel-core/src/CUSTOM_FORMULAS.md` "Marshaling".
 
@@ -89,7 +99,7 @@ See `excel/spreadsheet-ui-core/docs/ROADMAP.md` for the four-wave feature breakd
 
 ### Backend port (`SpreadsheetBackend`)
 
-The contract between UI core and any data source lives in `excel/spreadsheet-ui-core/src/backend/types.ts`. Two methods are required (`readVisibleProjection`, `readRangeProjection`, `setCellInput`); 45+ feature methods are optional. UI core hides a toolbar item, menu entry, or keyboard intent when the host backend omits the relevant port — features degrade without UI core knowing the difference between "host does not implement it" and "feature does not exist".
+The contract between UI core and any data source lives in `excel/spreadsheet-ui-core/src/backend/types.ts`. Exactly three methods are required — `readVisibleProjection`, `readRangeProjection`, `setCellInput` — every other member is optional (count them with `grep -cE '^\s+[a-zA-Z][a-zA-Z0-9]*\?[(:]' excel/spreadsheet-ui-core/src/backend/types.ts`). UI core hides a toolbar item, menu entry, or keyboard intent when the host backend omits the relevant port — features degrade without UI core knowing the difference between "host does not implement it" and "feature does not exist".
 
 Two reference implementations ship under `excel/solid-excel/src-vnext/adapter/`:
 
@@ -117,9 +127,11 @@ Every modal under `excel/solid-excel/src-vnext/*/Spreadsheet*Dialog.tsx` follows
 
 ### Resolved: solid-js single-instance requirement (was "1.9.12 Provider interaction")
 
-Root cause (investigated 2026-06-13): the consumer-body re-execution under `Provider` was never a solid-js version bug — it was **two physical copies of solid-js in one process** (historically `core/solid` → 1.9.5, `excel/solid-excel` → 1.9.12). Copy A's `createProvider` wraps children in copy A's `children()` memo; the consumer instantiated by copy B can't untrack copy A's module-scoped `Listener`, so the children memo subscribes to consumer signals and re-runs on every atom mutation. Either version alone is fine; the split is the bug.
-
-Fixed by `2b7d65e`: root `pnpm.overrides` pins `solid-js: 1.9.12` — the lockfile must only ever contain ONE `solid-js@` resolution. Contract tests: `core/solid/test/provider-remount.test.tsx` + `excel/solid-excel/test/provider-remount-1912.test.tsx` (consumer body runs once per mount). If either fails or a second solid-js resolution appears in `pnpm-lock.yaml`, fix the dependency graph — do not work around it in components. Keeping per-instance dialog state in atoms is now a convention, not a requirement.
+消费者函数体在 `Provider` 下反复重执行，根因是**一个进程里有两份物理 solid-js**，不是版本 bug。
+完整根因分析、修复与不变式见 [ADR 0001](docs/decisions/0001-solid-js-single-instance.md)。
+本仓的契约测试是 `excel/solid-excel/test/provider-remount-1912.test.tsx`（消费者函数体每次挂载
+只跑一次）。它失败、或 lockfile 出现第二个 solid-js 版本时，去修依赖图 —— 不要在组件里绕。
+把每实例的对话框状态放 atom 现在是约定，不是硬要求。
 
 ## Build Pipeline
 

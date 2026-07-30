@@ -1,5 +1,5 @@
-//! Faithful Rust port of `core/core/src/store.ts` (299 lines, the owner's
-//! hand-written atom store). Function-per-function isomorphism is INV-1 of
+//! Faithful Rust port of `@einfach/core` 的 `store.ts`（上游主仓的手写 atom store，
+//! 源码不在本仓 —— 见 `docs/decisions/0002-upstream-core-via-npm.md`）。 Function-per-function isomorphism is INV-1 of
 //! `excel/rust/docs/ATOM_DELEGATION_REWRITE_PLAN.md`:
 //!
 //! | store.ts            | store.rs                    |

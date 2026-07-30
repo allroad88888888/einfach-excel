@@ -3,6 +3,7 @@ name: docs
 # 文档门禁。独立于 ci.yml —— 它只跑一个零依赖的 node 脚本，几秒结束，
 # 不需要 Rust 工具链 / wasm-pack / pnpm install 那一整套。
 #
+# doc-check: allow-stale-paths —— 下面列举的正是被检查的失效形态本身
 # 检查：活文档的相对链接是否存在，以及是否出现已知的失效路径形态
 # （拆仓迁出的 core/*、退役的 excel/showcase、平铺时代的 e2e 路径、老仓绝对路径）。
 # 归档区 archive/ 豁免：冻结记录里的死链是史实的一部分。

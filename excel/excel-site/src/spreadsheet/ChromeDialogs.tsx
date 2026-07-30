@@ -1,6 +1,6 @@
 /**
  * Every dialog/overlay surface `@einfach/solid-excel/vnext` ships, mounted
- * unconditionally — the same set `excel/showcase/src/App.tsx` mounts. None
+ * unconditionally. None
  * of these components take required props; each one reads its own
  * open/closed state from the spreadsheet store, so mounting is a no-op
  * until something (menu, toolbar, keyboard shortcut, context menu) opens it.

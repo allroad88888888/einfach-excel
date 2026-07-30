@@ -2,8 +2,8 @@
  * Full Excel-style chrome around a spreadsheet grid: menu bar, toolbar,
  * name box + formula bar, sheet tabs, status bar, context menu, format
  * painter, formula autocomplete, and every dialog/overlay (via
- * `ChromeDialogs`). Composition mirrors `excel/showcase/src/App.tsx` and
- * `VNextWave5Demo.tsx` — a `SpreadsheetUiProvider` wrapping the chrome
+ * `ChromeDialogs`). Composition mirrors `VNextWave5Demo.tsx` — a
+ * `SpreadsheetUiProvider` wrapping the chrome
  * pieces, with the grid itself supplied by the caller as `children` (a demo
  * page mounts its own `SpreadsheetGrid` with its own `sheetId`/`viewport`).
  */
@@ -52,7 +52,7 @@ export interface SpreadsheetChromeProps {
    * resolves and the registry read never fires, so the name box dropdown and
    * Name Manager stay empty even when the backend already holds names.
    * Optional and forwarded as-is — omit it for demos that do not need the
-   * named-range feature, exactly like `excel/showcase/src/App.tsx` wires it.
+   * named-range feature.
    */
   namedRangeCapabilityPort?: SpreadsheetUiProviderProps['namedRangeCapabilityPort']
   chrome?: ChromeConfig

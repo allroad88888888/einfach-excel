@@ -2,7 +2,7 @@
  * Workbench tour choreography — four steps, each a `run(store)` that drives
  * the exact public `@einfach/spreadsheet-ui-core` atoms the real chrome
  * already reads reactively (selection, editing, sheet activation). No DOM
- * events, no synthetic keyboard dispatch (unlike the old `excel/showcase`
+ * events, no synthetic keyboard dispatch (unlike the retired showcase app's
  * F2 hack this replaces): every write here lands on an atom the grid,
  * formula bar, status bar, and sheet tabs already subscribe to, so their UI
  * catches up on its own — including across the async sheet-tab / projection

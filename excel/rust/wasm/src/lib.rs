@@ -1885,7 +1885,7 @@ fn install_panic_hook() {
 thread_local! {
     /// One-shot debug knob: when true, the next `JsCallbackListener::on_change`
     /// fires panic!() inside its microtask. Used by the regression e2e
-    /// (`excel/solid-excel/e2e/regression.spec.ts`) to verify two things in the
+    /// (`excel/solid-excel/e2e/smoke/regression.spec.ts`) to verify two things in the
     /// real browser:
     ///   1. `console_error_panic_hook` actually surfaces the panic to
     ///      `console.error` (C.10).

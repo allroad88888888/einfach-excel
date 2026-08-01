@@ -9,7 +9,10 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 einfach-core = { path = "../core" }
-einfach-excel-core = { path = "../excel-core" }
+# `default-features = false` drops `regex-formulas`, so a plain
+# `wasm-pack build` (no cargo args) emits the LITE artifact. See
+# `[features]` below and `README.md` § "两份产物".
+einfach-excel-core = { path = "../excel-core", default-features = false }
 wasm-bindgen = "0.2"
 js-sys = "0.3"
 serde = { version = "1", features = ["derive"] }
@@ -29,6 +32,21 @@ getrandom = { version = "0.2", features = ["js"] }
 # Only used on wasm; native build path drops the log via cfg.
 web-sys = { version = "0.3", features = ["console"] }
 
+[features]
+# Deliberately NOT in a `default` list — the opposite polarity from
+# `einfach-excel-core`, where `regex-formulas` IS default-on so no Rust
+# consumer silently loses builtins. Here the default is what ships to the
+# browser, and REGEX* costs ~330 KB of Unicode property tables in the
+# `data` section, so the browser default is lite and full is opt-in:
+#
+#   wasm-pack build --target web ...                             # lite
+#   wasm-pack build --target web ... -- --features regex-formulas  # full
+#
+# The wasm crate's own `cargo test` needs no gating — nothing under
+# `src/lib.rs` or `tests/web.rs` references REGEXTEST / REGEXEXTRACT /
+# REGEXREPLACE, so the 68 native tests pass identically either way.
+regex-formulas = ["einfach-excel-core/regex-formulas"]
+
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
 # Wire-contract tests only (never in the shipped bundle): the persistence-v1
@@ -47,7 +65,18 @@ lto = true
 
 # wasm-pack metadata: skip the wasm-opt post-processing step. wasm-opt
 # requires a binaryen binary that wasm-pack tries to download from GitHub
-# at build time, which fails in restricted networks. opt-level = "s" + lto
-# already give us most of the size win; wasm-opt is a marginal extra pass.
+# at build time, which fails in restricted networks.
+#
+# Turning it off is NOT free, and the size cost is not where you would guess:
+# `wasm-opt -O` is also what drops the `name` custom section, i.e. the 558 KB
+# function-symbol table (18% of the artifact). `opt-level = "s"` + `lto` do
+# nothing about that section. So the strip is done explicitly instead, by
+# `scripts/strip-wasm-names.mjs` in solid-excel's `build:wasm` — zero deps, no
+# network. Use `build:wasm:keep-names` when you need demangled panic stacks.
+#
+# What stays on the table by not running wasm-opt: another ~240 KB of raw code
+# size (2.60 MB -> 2.36 MB with `-Oz`). Note that win is raw-only — measured
+# gzip goes the wrong way (833 KB -> 864 KB), so re-enabling wasm-opt buys
+# parse time and memory, not bandwidth.
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = false

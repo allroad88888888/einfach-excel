@@ -20,6 +20,21 @@
       "import": "./src-vnext/adapter/worker-factory.ts",
       "default": "./src-vnext/adapter/worker-factory.ts"
     },
+    "./vnext-worker-runtime": {
+      "types": "./src-vnext/adapter/worker-runtime.ts",
+      "import": "./src-vnext/adapter/worker-runtime.ts",
+      "default": "./src-vnext/adapter/worker-runtime.ts"
+    },
+    "./vnext-worker-runtime-full": {
+      "types": "./src-vnext/adapter/worker-runtime-full.ts",
+      "import": "./src-vnext/adapter/worker-runtime-full.ts",
+      "default": "./src-vnext/adapter/worker-runtime-full.ts"
+    },
+    "./vnext-worker-runtime-core": {
+      "types": "./src-vnext/adapter/worker-runtime-core.ts",
+      "import": "./src-vnext/adapter/worker-runtime-core.ts",
+      "default": "./src-vnext/adapter/worker-runtime-core.ts"
+    },
     "./legacy": {
       "types": "./src/index.tsx",
       "import": "./src/index.tsx",
@@ -42,7 +57,13 @@
   "scripts": {
     "dev": "vite",
     "build": "npm run build:wasm && vite build",
-    "build:wasm": "wasm-pack build --target web --out-dir ../../solid-excel/wasm-pkg ../../excel/rust/wasm",
+    "build:wasm": "npm run build:wasm:keep-names && npm run wasm:strip",
+    "build:wasm:keep-names": "wasm-pack build --target web --out-dir ../../solid-excel/wasm-pkg ../../excel/rust/wasm",
+    "wasm:strip": "node ../../scripts/strip-wasm-names.mjs wasm-pkg/einfach_wasm_bg.wasm",
+    "build:wasm:full": "npm run build:wasm:full:keep-names && npm run wasm:strip:full",
+    "build:wasm:full:keep-names": "wasm-pack build --target web --out-dir ../../solid-excel/wasm-pkg-full ../../excel/rust/wasm -- --features regex-formulas",
+    "wasm:strip:full": "node ../../scripts/strip-wasm-names.mjs wasm-pkg-full/einfach_wasm_bg.wasm",
+    "build:wasm:both": "npm run build:wasm && npm run build:wasm:full",
     "e2e": "playwright test",
     "e2e:install": "playwright install --with-deps chromium"
   },

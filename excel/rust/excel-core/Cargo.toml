@@ -11,12 +11,32 @@ einfach-core = { path = "../core" }
 chrono = { version = "0.4", default-features = false, features = ["wasmbind", "clock"] }
 # Statistical distributions (NORM/T/F/CHISQ/...), gamma/erf special functions.
 statrs = "0.16"
-regex = "1.12.3"
+# Backs REGEXTEST / REGEXEXTRACT / REGEXREPLACE only. Optional because
+# `regex` plus its transitive deps (regex-automata, regex-syntax,
+# aho-corasick, memchr) are ~740 KB of the shipped wasm artifact — an
+# unacceptable tax on hosts that never write a regex formula. See the
+# `regex-formulas` feature below.
+regex = { version = "1.12.3", optional = true }
 unicode-normalization = "0.1.25"
 # `rand` powers RAND() / RANDBETWEEN() volatile draws. The thread RNG is
 # good enough for spreadsheet RNG and matches Excel's "fresh draw per
 # evaluation" volatility model.
 rand = "0.8"
+
+[features]
+# ON by default so `cargo test` and every Rust consumer keep the full
+# function set — dropping a builtin must be an explicit opt-out, never a
+# silent consequence of adding a feature. The wasm crate builds the "lite"
+# artifact with `default-features = false`; the "full" artifact keeps the
+# default on. The feature name is load-bearing: the wasm build scripts
+# forward it verbatim.
+default = ["regex-formulas"]
+
+# REGEXTEST / REGEXEXTRACT / REGEXREPLACE. With the feature off those three
+# names are simply not in `eval_func`'s dispatch table, so they fall through
+# to the defined-name / custom-formula resolver and ultimately `#NAME?` —
+# the same answer any unknown function gets.
+regex-formulas = ["dep:regex"]
 
 [dev-dependencies]
 criterion = "0.5"

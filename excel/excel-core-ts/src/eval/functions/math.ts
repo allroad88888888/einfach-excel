@@ -1374,9 +1374,21 @@ export const SERIESSUM: FunctionImpl = (args) => {
   return NUM(total)
 }
 
+/**
+ * What the flattener does with an error VALUE it meets inside a reference.
+ *
+ *  - `propagate` — the whole aggregation answers that error. The default for
+ *    the value-consuming function numbers (SUM, AVERAGE, MIN, ...).
+ *  - `drop` — the error is skipped, as if the cell held nothing. Used by
+ *    AGGREGATE's ignore-errors bit, and unconditionally by COUNT.
+ *  - `keep` — the error is emitted as a value. Only COUNTA needs this: an
+ *    error cell is not blank, so Excel tallies it.
+ */
+export type SubtotalErrorMode = 'propagate' | 'drop' | 'keep'
+
 function flattenSubtotalValues(
   args: ReadonlyArray<Value>,
-  ignoreErrors: boolean,
+  errors: SubtotalErrorMode,
 ): { ok: true; values: Value[] } | { ok: false; error: Value & { kind: 'error' } } {
   const values: Value[] = []
   const visit = (value: Value): Value & { kind: 'error' } | undefined => {
@@ -1390,8 +1402,9 @@ function flattenSubtotalValues(
       return undefined
     }
     if (value.kind === 'error') {
-      if (ignoreErrors) return undefined
-      return value
+      if (errors === 'propagate') return value
+      if (errors === 'keep') values.push(value)
+      return undefined
     }
     values.push(value)
     return undefined
@@ -1407,7 +1420,7 @@ function numericSubtotalValues(
   args: ReadonlyArray<Value>,
   ignoreErrors: boolean,
 ): { ok: true; nums: number[] } | { ok: false; error: Value & { kind: 'error' } } {
-  const flat = flattenSubtotalValues(args, ignoreErrors)
+  const flat = flattenSubtotalValues(args, ignoreErrors ? 'drop' : 'propagate')
   if (!flat.ok) return flat
   return {
     ok: true,
@@ -1449,6 +1462,31 @@ function runSubtotalFunction(
   ignoreErrors: boolean,
   k?: number,
 ): Value {
+  // COUNT (2) and COUNTA (3) are error-TRANSPARENT in Excel and must be
+  // handled before the propagating flatten below: an error cell inside a
+  // reference is simply "not a number" to COUNT and simply "not blank" to
+  // COUNTA, so neither ever answers the error. `=SUBTOTAL(2, A1:B3)` over
+  // {1,2,3,"txt",TRUE,#DIV/0!} is 3 and `=SUBTOTAL(3, ...)` is 6 — the Rust
+  // engine has always answered that; this engine used to answer `#DIV/0!` for
+  // both, which is the divergence pinned in
+  // `solid-excel/test/cross-engine-parity-smoke.test.ts`.
+  //
+  // COUNT drops errors unconditionally (they are not numbers either way);
+  // COUNTA keeps them unless AGGREGATE's ignore-errors bit is set, which is
+  // what makes `=AGGREGATE(3, 6, ...)` one less than `=AGGREGATE(3, 0, ...)`.
+  if (fnNum === 2 || fnNum === 3) {
+    const counted = flattenSubtotalValues(
+      dataArgs,
+      fnNum === 2 || ignoreErrors ? 'drop' : 'keep',
+    )
+    if (!counted.ok) return counted.error
+    return NUM(
+      fnNum === 2
+        ? counted.values.filter((value) => value.kind === 'number').length
+        : counted.values.filter((value) => value.kind !== 'blank').length,
+    )
+  }
+
   const numsResult = numericSubtotalValues(dataArgs, ignoreErrors)
   if (!numsResult.ok) return numsResult.error
   const nums = numsResult.nums
@@ -1457,13 +1495,8 @@ function runSubtotalFunction(
     case 1:
       if (nums.length === 0) return ERR('#DIV/0!')
       return NUM(nums.reduce((a, b) => a + b, 0) / nums.length)
-    case 2:
-      return NUM(nums.length)
-    case 3: {
-      const flat = flattenSubtotalValues(dataArgs, ignoreErrors)
-      if (!flat.ok) return flat.error
-      return NUM(flat.values.filter((value) => value.kind !== 'blank').length)
-    }
+    // 2 (COUNT) / 3 (COUNTA) returned above — they must not see the
+    // error-propagating flatten.
     case 4:
       return nums.length === 0 ? NUM(0) : NUM(Math.max(...nums))
     case 5:
@@ -1534,7 +1567,13 @@ function runSubtotalFunction(
 
 /** SUBTOTAL(function_num, ref1, ...) — ordinary range aggregation subset. */
 export const SUBTOTAL: FunctionImpl = (args) => {
-  const propagated = propagateError(args)
+  // Only the FUNCTION-NUMBER argument short-circuits on an error; the data
+  // args are the aggregation's own business and each function number decides
+  // for itself (SUM propagates, COUNT/COUNTA do not). Propagating them here
+  // made `=SUBTOTAL(2, B3, B3)` answer `#DIV/0!` where Excel and the Rust
+  // engine answer 0. AGGREGATE next door already scopes this the same way
+  // (`args.slice(0, 2)`), as does the sparse twin `evaluateSparseSubtotal`.
+  const propagated = propagateError(args.slice(0, 1))
   if (propagated) return propagated
   if (args.length < 2) return ERR('#VALUE!')
   const fnValue = toNumber(args[0])

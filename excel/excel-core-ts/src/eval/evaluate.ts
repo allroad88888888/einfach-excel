@@ -30,6 +30,7 @@ import type {
 } from '../types'
 import { getBuiltinFunction } from './functions'
 import { excelEquals } from './functions/logical'
+import type { SubtotalErrorMode } from './functions/math'
 import { resolveXLookupValue, type XLookupCoreResult } from './functions/lookup'
 import { makeCriterionMatcher } from './functions/stats'
 import { BLANK, MAX_LAMBDA_CALL_DEPTH } from '../types'
@@ -1294,7 +1295,7 @@ function subtotalHasSparseRef(args: ReadonlyArray<Expr>, ctx: EvalContext): bool
 function flattenSparseSubtotalValues(
   args: ReadonlyArray<Expr>,
   ctx: EvalContext,
-  ignoreErrors: boolean,
+  errors: SubtotalErrorMode,
 ): { readonly ok: true; readonly values: Value[] } | {
   readonly ok: false
   readonly error: Value
@@ -1311,7 +1312,11 @@ function flattenSparseSubtotalValues(
       }
       return undefined
     }
-    if (value.kind === 'error') return ignoreErrors ? undefined : value
+    if (value.kind === 'error') {
+      if (errors === 'propagate') return value
+      if (errors === 'keep') values.push(value)
+      return undefined
+    }
     values.push(value)
     return undefined
   }
@@ -1342,7 +1347,26 @@ function runSparseSubtotalFunction(
   ignoreErrors: boolean,
   k?: number,
 ): Value {
-  const flat = flattenSparseSubtotalValues(dataArgs, ctx, ignoreErrors)
+  // COUNT / COUNTA are error-transparent — see the same guard in
+  // `runSubtotalFunction` (`functions/math.ts`), which this streaming twin
+  // must answer identically or the sparse fast path becomes observable.
+  if (fnNum === 2 || fnNum === 3) {
+    const counted = flattenSparseSubtotalValues(
+      dataArgs,
+      ctx,
+      fnNum === 2 || ignoreErrors ? 'drop' : 'keep',
+    )
+    if (!counted.ok) return counted.error
+    return {
+      kind: 'number',
+      value:
+        fnNum === 2
+          ? counted.values.filter((value) => value.kind === 'number').length
+          : counted.values.filter((value) => value.kind !== 'blank').length,
+    }
+  }
+
+  const flat = flattenSparseSubtotalValues(dataArgs, ctx, ignoreErrors ? 'drop' : 'propagate')
   if (!flat.ok) return flat.error
   const nums = flat.values.flatMap((value) => (value.kind === 'number' ? [value.value] : []))
 
@@ -1351,13 +1375,7 @@ function runSparseSubtotalFunction(
       return nums.length === 0
         ? ERR('#DIV/0!')
         : { kind: 'number', value: nums.reduce((a, b) => a + b, 0) / nums.length }
-    case 2:
-      return { kind: 'number', value: nums.length }
-    case 3:
-      return {
-        kind: 'number',
-        value: flat.values.filter((value) => value.kind !== 'blank').length,
-      }
+    // 2 (COUNT) / 3 (COUNTA) returned above, before the propagating flatten.
     case 4:
       return {
         kind: 'number',

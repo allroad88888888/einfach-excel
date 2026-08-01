@@ -183,8 +183,41 @@ describe('COUNT', () => {
     expect(call(COUNT, [NUM(1), ERR('#REF!')])).toEqual(ERR('#REF!'))
   })
 
-  test('error inside array propagates (does not silently count as nothing)', () => {
-    expect(call(COUNT, [ARR([[NUM(1), ERR('#VALUE!')]])])).toEqual(ERR('#VALUE!'))
+  // The shape a real sheet produces: `=COUNT(A1:B3)` over
+  // {1, 2, 3, "txt", TRUE, #DIV/0!} — the fixture the SUBTOTAL counting codes
+  // use (`phase8-math.test.ts`) and the one pinned across engines in
+  // `solid-excel/test/cross-engine-parity-cases.ts`. Excel and the Rust
+  // engine answer 3; this engine used to answer `#DIV/0!`.
+  test('an error cell inside a range is skipped, not answered', () => {
+    const mixed = ARR([
+      [NUM(1), NUM(2)],
+      [NUM(3), STR('txt')],
+      [BOOL(true), ERR('#DIV/0!')],
+    ])
+    expect(call(COUNT, [mixed])).toEqual(NUM(3))
+  })
+
+  // This test used to be called `error inside array propagates (does not
+  // silently count as nothing)` and asserted `#VALUE!` — it pinned the bug as
+  // if it were the contract. Excel's rule is per FUNCTION, not per data: an
+  // error cell is not a NUMBER so COUNT skips it, and is not BLANK so COUNTA
+  // (below) tallies it; neither ever hands the error back. Only the SUM tier
+  // propagates. Same rule the SUBTOTAL counting codes were pulled onto.
+  //
+  // Why this differs in shape from the scalar test above: a LITERAL error
+  // argument is something the user typed into the formula, while an error
+  // inside a range/array is merely a cell that was referenced. At the
+  // `FunctionImpl` boundary both arrive as a `Value` with no provenance
+  // attached, so the line has to be drawn by SHAPE — scalar arg propagates,
+  // array element is skipped. That is exactly where the third implementation
+  // (`solid-excel/src-vnext/adapter/static-formula-eval.ts` `aggregateNumeric`)
+  // already draws it: `if (name === 'COUNT') continue` on the range branch,
+  // `if (isErrLocal(arg)) return arg` on the scalar branch.
+  test('an error inside an array is skipped — it is simply not a number', () => {
+    expect(call(COUNT, [ARR([[NUM(1), ERR('#VALUE!')]])])).toEqual(NUM(1))
+    // Control on the SAME data: the value tier still propagates, so the split
+    // is per function, not per fixture.
+    expect(call(SUM, [ARR([[NUM(1), ERR('#VALUE!')]])])).toEqual(ERR('#VALUE!'))
   })
 
   test('no args → 0', () => {

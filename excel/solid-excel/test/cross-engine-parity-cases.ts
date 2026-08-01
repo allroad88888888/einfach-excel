@@ -135,6 +135,27 @@ export const SUBTOTAL_CASES: ReadonlyArray<readonly [formula: string, displayed:
 export const SUBTOTAL_ADDRS = SUBTOTAL_CASES.map((_, i) => a1(i, 20))
 export const EXPECTED_SUBTOTAL_DISPLAYS = SUBTOTAL_CASES.map(([, displayed]) => displayed)
 
+/**
+ * Column V — the same transparency rule reached WITHOUT `SUBTOTAL`. Bare
+ * `COUNT` is a separate code path from `SUBTOTAL(2, ...)` on both engines
+ * (`forEachCountNumber` vs `runSubtotalFunction` in TS, the `"COUNT"` arm of
+ * `eval_call` vs `run_subtotal` in Rust), so pinning one says nothing about
+ * the other — the TS `COUNT` went on short-circuiting on the first error cell
+ * after the SUBTOTAL codes had already been fixed.
+ *
+ * `COUNTA` and `SUM` ride the identical fixture as controls. The three
+ * answers (skip / tally / propagate) are what "the rule is per function, not
+ * per data" means; a scenario that asserted only `COUNT` could not tell a
+ * real fix from an engine that had simply stopped propagating everywhere.
+ */
+export const COUNT_CASES: ReadonlyArray<readonly [formula: string, displayed: string]> = [
+  ['=COUNT(T1:T6)', '3'], // an error cell is not a NUMBER → skipped
+  ['=COUNTA(T1:T6)', '6'], // ...but it is not BLANK either → tallied
+  ['=SUM(T1:T6)', '#DIV/0!'], // control: the value tier still propagates
+]
+export const COUNT_ADDRS = COUNT_CASES.map((_, i) => a1(i, 21))
+export const EXPECTED_COUNT_DISPLAYS = COUNT_CASES.map(([, displayed]) => displayed)
+
 export const WORKLOAD: WorkloadCell[] = [
   { row: 0, col: 0, kind: 'number', value: 5 }, // A1 — a plain literal
   { row: 0, col: 7, kind: 'formula', value: '=SEQUENCE(10)' }, // H1 → H1:H10
@@ -151,6 +172,10 @@ export const WORKLOAD: WorkloadCell[] = [
   ),
   ...SUBTOTAL_CASES.map(
     ([formula], row): WorkloadCell => ({ row, col: 20, kind: 'formula', value: formula }),
+  ),
+  // Column V — bare COUNT / COUNTA / SUM over the same column, see COUNT_CASES.
+  ...COUNT_CASES.map(
+    ([formula], row): WorkloadCell => ({ row, col: 21, kind: 'formula', value: formula }),
   ),
   // Column R — arithmetic operand coercion + `^` binding, see COERCION_CASES.
   ...COERCION_CASES.map(
@@ -181,6 +206,7 @@ export const PROBE_ADDRS = [
   ...PROPAGATED_ADDRS,
   ...COERCION_ADDRS,
   ...SUBTOTAL_ADDRS,
+  ...COUNT_ADDRS,
 ]
 
 export const SEQ_10 = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']

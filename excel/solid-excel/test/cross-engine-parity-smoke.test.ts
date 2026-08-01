@@ -68,8 +68,10 @@ import {
 import {
   BLOCKED_1D,
   COERCION_ADDRS,
+  COUNT_ADDRS,
   ERROR_ADDRS,
   EXPECTED_COERCION_DISPLAYS,
+  EXPECTED_COUNT_DISPLAYS,
   EXPECTED_LITERAL_DISPLAYS,
   EXPECTED_SUBTOTAL_DISPLAYS,
   LITERAL_ADDRS,
@@ -188,6 +190,20 @@ describe('cross-engine parity smoke — TS runtime vs WASM engine', () => {
     // exactly the state this scenario was added to end.
     for (const read of [tsRead, wasmRead]) {
       expect(displaysOf(read, SUBTOTAL_ADDRS)).toEqual(EXPECTED_SUBTOTAL_DISPLAYS)
+    }
+  })
+
+  test('bare COUNT / COUNTA obey the same rule as SUBTOTAL\'s counting codes', async () => {
+    const tsRead = await ts.read(COUNT_ADDRS)
+    const wasmRead = await wasm.read(COUNT_ADDRS)
+    expect(flatten(wasmRead)).toEqual(flatten(tsRead))
+
+    // Closed form on BOTH readings: `=COUNT(T1:T6)` read `3` on the Rust
+    // engine and `#DIV/0!` on the TS reference engine, and the paired
+    // `=COUNTA` / `=SUM` rows are what keeps "3" from being satisfied by an
+    // engine that stopped propagating for every function at once.
+    for (const read of [tsRead, wasmRead]) {
+      expect(displaysOf(read, COUNT_ADDRS)).toEqual(EXPECTED_COUNT_DISPLAYS)
     }
   })
 

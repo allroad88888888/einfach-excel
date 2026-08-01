@@ -786,8 +786,13 @@ function evaluateSparseNumericAggregate(
     if (value > max) max = value
   }
 
+  // COUNT is error-TRANSPARENT inside a reference or an array — an error cell
+  // is simply not a number — while AVERAGE / MIN / MAX still propagate. Same
+  // split as `forEachCountNumber` in `functions/math.ts`, which this streaming
+  // twin must answer identically or the sparse fast path becomes observable.
+  // A SCALAR arg still propagates for every kind (see `addScalar`).
   const addRangeCell = (cell: Value): Value | undefined => {
-    if (cell.kind === 'error') return cell
+    if (cell.kind === 'error') return kind === 'count' ? undefined : cell
     if (cell.kind === 'number') visitNumber(cell.value)
     if (cell.kind === 'array') return addArray(cell)
     return undefined

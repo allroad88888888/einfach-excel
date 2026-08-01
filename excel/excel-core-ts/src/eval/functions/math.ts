@@ -107,8 +107,20 @@ function forEachNumericInArray(
  * COUNT-style iterator: only `number` cells count, regardless of
  * whether they came from a scalar arg or an array. Strings (even
  * numeric-looking ones), booleans, blanks are all skipped.
- * Errors inside an array propagate; errors in a scalar arg propagate
- * too (handled by the caller's `propagateError`).
+ *
+ * Errors are split by SHAPE, which is the only signal available here:
+ *
+ *  - inside an array/range → SKIPPED, exactly like a string or a boolean.
+ *    An error cell is not a number, so COUNT has no opinion about it and
+ *    never hands it back. Same rule the SUBTOTAL/AGGREGATE counting codes
+ *    run on (`SubtotalErrorMode` = `'drop'` below), and the same split the
+ *    third implementation already made (`static-formula-eval.ts`
+ *    `aggregateNumeric`: `if (name === 'COUNT') continue`).
+ *  - a scalar arg → propagates, via the caller's `propagateError`. A bare
+ *    error `Value` is what BOTH a literal `=COUNT(#REF!)` and a single-cell
+ *    reference to an error cell look like by the time they reach a
+ *    `FunctionImpl`, so this boundary cannot tell them apart; the scalar arm
+ *    below is kept only as a guard for callers that skip `propagateError`.
  */
 function forEachCountNumber(
   args: ReadonlyArray<Value>,
@@ -119,8 +131,8 @@ function forEachCountNumber(
     if (arg.kind === 'array') {
       for (const row of arg.value) {
         for (const cell of row) {
-          if (cell.kind === 'error') return { ok: false, error: cell }
           if (cell.kind === 'number') visit()
+          // error / string / boolean / blank inside an array → not a number.
         }
       }
       continue

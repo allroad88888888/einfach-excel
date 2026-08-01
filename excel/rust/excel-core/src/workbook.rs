@@ -14,8 +14,8 @@ use crate::filter::{ColumnFilterRule, FilterApplyReport, FilterError};
 use crate::formula::{parse_formula, Expr, RangeBounds, TableArea};
 use crate::range::CellRange;
 use crate::sheet::{
-    BulkInstallCleanup, PendingAsyncCustomCall, ProjectedTable, Sheet, SheetError,
-    WorkbookAtomContext,
+    expr_may_produce_array, BulkInstallCleanup, PendingAsyncCustomCall, ProjectedTable, Sheet,
+    SheetError, WorkbookAtomContext,
 };
 
 type FormulaOverlay<'a> = HashMap<(usize, CellAddress), Option<&'a Expr>>;
@@ -1417,13 +1417,11 @@ impl Workbook {
     }
 
     /// Fallible variant of `set_cell`. Mirrors `Sheet::try_set_cell`.
-    /// returns `Err(SpillCellWrite { anchor })` when the target address
-    /// is a non-anchor target of an active spill range. Successful writes
-    /// propagate through the same workbook Store as `set_cell`.
+    /// Writes propagate through the same workbook Store as `set_cell`.
     ///
-    /// Used by the WASM boundary so JS-side hosts can surface a
-    /// "cannot edit spill range" toast instead of silently swallowing
-    /// the rejection.
+    /// ADR 0006 stage 1: a write into a spill region no longer fails — it
+    /// lands and withdraws the array. What remains fallible here is
+    /// `InvalidAddress` and `MutationDuringCustomCall`.
     pub fn try_set_cell(
         &mut self,
         sheet_idx: usize,
@@ -1444,9 +1442,9 @@ impl Workbook {
     }
 
     /// Fallible variant of `clear_cell`. Mirrors `Sheet::try_clear_cell`.
-    /// Returns `Err(SpillCellWrite { anchor })` when the target is
-    /// inside an active spill range and `clear` was attempted on a
-    /// non-anchor target.
+    ///
+    /// ADR 0006 stage 1: clearing a spill projection cell is inert (Excel
+    /// treats Delete over ghost cells as a no-op) and reports `Ok`.
     pub fn try_clear_cell(&mut self, sheet_idx: usize, addr_str: &str) -> Result<(), SheetError> {
         if self.is_inside_custom_call() {
             return Err(SheetError::MutationDuringCustomCall);
@@ -1465,8 +1463,14 @@ impl Workbook {
     /// and routes through workbook-wide cycle validation. Returns:
     ///   - `Ok(true)`  — formula parsed and installed.
     ///   - `Ok(false)` — formula parse failed (`#VALUE!`) or cycle (`#CYCLE!`).
-    ///   - `Err(SpillCellWrite { anchor })` — target inside a spill range.
     ///   - `Err(InvalidAddress)` — address parse or out-of-range sheet index.
+    ///
+    /// ADR 0006 stage 1: the up-front `is_spilled` pre-check this used to run
+    /// is gone. It existed to surface `SpillCellWrite` before the write, and
+    /// it did so by delegating to `Sheet::try_set_formula` DIRECTLY — bypassing
+    /// the workbook-wide cycle validation that the normal path applies. With
+    /// the rejection retired, both problems go away together: every formula
+    /// now takes the one validated route.
     pub fn try_set_formula(
         &mut self,
         sheet_idx: usize,
@@ -1479,24 +1483,7 @@ impl Workbook {
         if sheet_idx >= self.sheets.len() {
             return Err(SheetError::InvalidAddress);
         }
-        let addr = CellAddress::parse(addr_str).ok_or(SheetError::InvalidAddress)?;
-        // Reject up-front so a spill target cannot be replaced accidentally.
-        if self.sheets[sheet_idx].is_spilled(addr) {
-            // Re-derive anchor through the sheet-level fallible path so the
-            // error carries the same anchor the per-sheet write would have
-            // reported.
-            return match self.sheets[sheet_idx].try_set_formula(addr_str, formula_text) {
-                Err(err) => Err(err),
-                // is_spilled() said yes but try_set_formula returned Ok — race
-                // against a teardown elsewhere. Treat as a no-op success so
-                // the user's keystroke is not lost on the rare race.
-                Ok(ok) => Ok(ok),
-            };
-        }
-        // Standard path: delegate to the existing infallible-on-spill
-        // workbook variant; the sheet rejection turns into `Ok(false)` per
-        // the legacy contract, which is fine since we've already proven the
-        // address is not spilled.
+        CellAddress::parse(addr_str).ok_or(SheetError::InvalidAddress)?;
         Ok(self.set_formula(sheet_idx, addr_str, formula_text))
     }
 
@@ -1723,7 +1710,7 @@ impl Workbook {
                     return true;
                 }
             }
-            Expr::Negate(inner) | Expr::SpillRef(inner) => {
+            Expr::Negate(inner) | Expr::Percent(inner) | Expr::SpillRef(inner) => {
                 if self.collect_workbook_cycle_refs(
                     inner,
                     current_idx,
@@ -2030,9 +2017,17 @@ impl Workbook {
         let store = self.store.clone();
         let mut result = None;
         store.batch(|_| {
-            result = Some(self.install_sheet_bulk_inner(sheet_idx, primitives, formulas));
+            result = Some(
+                self.install_sheet_bulk_inner(sheet_idx, primitives, formulas)
+                    .map(|(stats, cleanup)| {
+                        // 单表：存储落地后紧接着投影 + 通知，与拆分前等价。
+                        self.sheets[sheet_idx].finish_bulk_spill_projection(&cleanup);
+                        (stats, cleanup)
+                    }),
+            );
         });
         let (stats, cleanup) = result.expect("sheet install batch closure did not run")?;
+        self.reproject_cross_sheet_arrays_after_install(&[sheet_idx]);
         self.sheets[sheet_idx].finish_bulk_install(cleanup);
         Ok(stats)
     }
@@ -2068,12 +2063,60 @@ impl Workbook {
         ))
     }
 
+    /// 全表替换之后，把**别的表**上依赖这些表的动态数组公式重投一遍。
+    ///
+    /// 用的是 `set_cell` / `set_formula` 已有的那条机制 —— Store 反向依赖
+    /// → `array_formula_addrs_for_store_atoms` → `recompute_array_formulas_in`
+    /// —— 只是根集合从"一个写入地址"放大成"整表替换后仍活着的 Store 根原子"
+    /// （`store_root_atoms_after_bulk_install`）。
+    ///
+    /// 没有这一步，`Sheet2!A1 = =SEQUENCE(3)` 被批量重装成 `=SEQUENCE(5)` 之后，
+    /// `Sheet1!B1 = =Sheet2!A1#` 的溢出矩形会永远停在旧形状：安装路径此前
+    /// 从不做逐格写入路径每次都做的跨表重投影。
+    ///
+    /// 已安装的表自己不在重投范围内 —— 它们刚在
+    /// `finish_bulk_spill_projection` 里对着最终世界投影过。
+    ///
+    /// 调用时机铁律：**必须在安装的 Store 批次关闭之后**。`bulk_install_storage`
+    /// 的失效（`invalidate_formula_inner` / `bump_facade_epoch`）是在一个嵌套
+    /// `store_batch` 里发出的，要等最外层批次冲刷才会传到跨表读者身上；批次内
+    /// 调用本方法，`recompute_array_formula` 读到的仍是**旧**的 formula-inner，
+    /// 于是原样重装旧几何 —— 症状与完全不修一模一样（实测：`=Sheet2!A1#` 停在
+    /// 3 行，而同一张表上 `=Sheet2!A1*100` 已经拿到新值）。表自身的投影
+    /// （`finish_bulk_spill_projection`）没有这个问题，它面对的是刚停放、
+    /// 没有任何缓存值的新公式，所以留在批次内以保证订阅者的原子性。
+    fn reproject_cross_sheet_arrays_after_install(&mut self, installed: &[usize]) {
+        let mut groups: Vec<(usize, HashSet<CellAddress>)> = Vec::new();
+        for &source_sheet in installed {
+            let roots = self.sheets[source_sheet].store_root_atoms_after_bulk_install();
+            if roots.is_empty() {
+                continue;
+            }
+            let dependent_atoms = self.store.reverse_dependents(&roots);
+            for (sheet_idx, sheet) in self.sheets.iter().enumerate() {
+                if installed.contains(&sheet_idx) {
+                    continue;
+                }
+                let addrs = sheet.array_formula_addrs_for_store_atoms(&dependent_atoms);
+                if !addrs.is_empty() {
+                    groups.push((sheet_idx, addrs));
+                }
+            }
+        }
+        self.recompute_array_formula_groups(groups);
+    }
+
     /// Whole-workbook variant of [`Self::install_sheet_bulk`] (OD2):
     /// one call installs every sheet's pre-built maps. Sheet indexes
     /// are validated up front so the call is all-or-nothing — no
     /// partial install when a later entry is out of range. The
     /// per-SHEET loop here is fine (sheet counts are small); the
     /// per-CELL loop is what the storage-primary refactor kills.
+    ///
+    /// 两阶段：**先**把每张表的存储全部落地，**再**逐表投影动态数组。合并成
+    /// 一步时，一条读别的表的数组公式（`=Sheet2!A1#`、
+    /// `=SORT(Sheet2!A1:A3)`）会对着尚未安装的旧世界投影 —— 载荷里表的先后
+    /// 顺序决定它是对是错，而且此后没有任何东西会来纠正它。
     pub fn install_workbook_bulk(
         &mut self,
         payload: Vec<(
@@ -2093,17 +2136,25 @@ impl Workbook {
         let store = self.store.clone();
         let mut result = None;
         store.batch(|_| {
-            result = Some(
-                payload
-                    .into_iter()
-                    .map(|(sheet_idx, primitives, formulas)| {
-                        self.install_sheet_bulk_inner(sheet_idx, primitives, formulas)
-                            .map(|(stats, cleanup)| (sheet_idx, stats, cleanup))
-                    })
-                    .collect::<Result<Vec<_>, InstallError>>(),
-            );
+            // 阶段 1 —— 所有表的存储先落地，一格投影都不做。
+            let landed = payload
+                .into_iter()
+                .map(|(sheet_idx, primitives, formulas)| {
+                    self.install_sheet_bulk_inner(sheet_idx, primitives, formulas)
+                        .map(|(stats, cleanup)| (sheet_idx, stats, cleanup))
+                })
+                .collect::<Result<Vec<_>, InstallError>>();
+            result = Some(landed.inspect(|landed| {
+                // 阶段 2 —— 世界已是最终态，这时才投影。跨表数组公式在这里
+                // 读到的是新装好的源表，而不是安装到一半的旧世界。
+                for (sheet_idx, _, cleanup) in landed {
+                    self.sheets[*sheet_idx].finish_bulk_spill_projection(cleanup);
+                }
+            }));
         });
         let installed = result.expect("workbook install batch closure did not run")?;
+        let installed_idxs: Vec<usize> = installed.iter().map(|(idx, _, _)| *idx).collect();
+        self.reproject_cross_sheet_arrays_after_install(&installed_idxs);
         let mut stats = Vec::with_capacity(installed.len());
         for (sheet_idx, sheet_stats, cleanup) in installed {
             self.sheets[sheet_idx].finish_bulk_install(cleanup);
@@ -3852,6 +3903,23 @@ impl<'a> WorkbookLoader<'a> {
     }
 
     /// Replay queued ops sheet-by-sheet inside each sheet's Store batch.
+    ///
+    /// 每张表回放完还要补一条**投影尾**。`Sheet::bulk_load` 走的是懒加载：
+    /// 公式只把源码停进 `formula_source`，既不解析也不求值，于是新落地的
+    /// 动态数组公式**没有任何 Store 边**能被 `BulkLoader::flush` 的反向依赖
+    /// 扫描选中（那条扫描找的是"依赖被写地址的公式"，公式自己不是自己的
+    /// 依赖方）。结果就是数组只剩 anchor 一个值，其余目标格空着 —— 而这条
+    /// 路正是粘贴（`bulk_import_cells`）与 undo（`restore_sparse`）走的路。
+    ///
+    /// 补法与全表替换那条路（`bulk_install_storage` 尾部的
+    /// `install_bulk_spill_projections`）收敛到同一个
+    /// `Sheet::project_bulk_spill_anchors`。差别只在候选怎么选：那边扫停放
+    /// 源码做字节筛，这边不必 —— workbook 侧为跨表环检查**已经**解析过每条
+    /// 排队公式，直接拿 AST 问 `expr_may_produce_array`，零重复解析。
+    /// `expr` 为 `None` 的是解析失败分支，不可能产出数组。
+    ///
+    /// 顺序：投影必须在整批回放**之后**。同一批里的一个字面量可能正好落在
+    /// 另一条公式的溢出矩形里，先投影会让碰撞判定看到半个世界。
     fn flush(self) {
         let WorkbookLoader { wb, ops_by_sheet } = self;
 
@@ -3859,6 +3927,7 @@ impl<'a> WorkbookLoader<'a> {
             let Some(sheet) = wb.sheets.get_mut(sheet_idx) else {
                 continue;
             };
+            let mut spill_anchors: Vec<CellAddress> = Vec::new();
             // Pre-grow the per-sheet formula HashMaps to the known
             // batch size. Saves ~log2(N) rehashes during the replay
             // loop below (each rehash is O(current entries), so they
@@ -3891,6 +3960,11 @@ impl<'a> WorkbookLoader<'a> {
                             // `Value::Error(CyclicRef)`.
                             match expr {
                                 Some(expr) => {
+                                    // 投影候选就在这里挑：AST 已在手，
+                                    // 问一次就够，不用回头扫源码。
+                                    if expr_may_produce_array(&expr) {
+                                        spill_anchors.push(addr);
+                                    }
                                     // Move `source` so the sheet loader
                                     // stores the original allocation
                                     // instead of cloning.
@@ -3907,6 +3981,7 @@ impl<'a> WorkbookLoader<'a> {
                     }
                 }
             });
+            sheet.project_bulk_spill_anchors(spill_anchors);
         }
     }
 }

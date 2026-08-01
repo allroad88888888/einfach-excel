@@ -17,3 +17,4 @@
 | [0003](0003-engine-owns-filter-sort.md) | 影响计算的状态归引擎：隐藏行与筛选可见性下沉 | accepted |
 | [0004](0004-worker-factory-out-of-barrel.md) | worker 工厂不进 vnext barrel，走独立子路径导出 | accepted |
 | [0005](0005-e2e-feature-folders.md) | e2e 按功能点分目录，每目录一份 CASES.md | accepted |
+| [0006](0006-spill-region-write-semantics.md) | 溢出区的写入语义以 Excel 为准 | accepted |

@@ -32,6 +32,15 @@ fn workbook_rs() -> String {
     read(&manifest_dir().join("src/workbook.rs"))
 }
 
+/// ADR 0006 stage 2 put an INV-2-allowlisted `addr → anchor` index (spill
+/// `claims`) in its own module, following the rule stated on
+/// `FORBIDDEN_SHAPES`. Scanning it here is what keeps that from being a way
+/// AROUND the shape ban rather than a way to honour it: the allowlisted index
+/// must still avoid every banned shape, it just gets to exist.
+fn spill_claims_rs() -> String {
+    read(&manifest_dir().join("src/sheet_spill_claims.rs"))
+}
+
 fn store_rs() -> String {
     read(&manifest_dir().join("../core/src/store.rs"))
 }
@@ -83,7 +92,9 @@ const FORBIDDEN: &[(&str, u8, &[&str])] = &[
 /// are named. Checked whitespace-insensitively from P4 on. INV-2 allowlist
 /// lives in dedicated modules (range family geometry, spill claims) — those
 /// map addresses to range keys / anchors, never to dependent formula cells,
-/// and they must not use these shapes.
+/// and they must not use these shapes. `sheet_spill_claims.rs` is scanned
+/// alongside `sheet.rs` / `workbook.rs` so "moved to its own module" can never
+/// become a way to smuggle one of these shapes in.
 const FORBIDDEN_SHAPES: &[(&str, u8)] = &[
     ("HashMap<CellAddress,HashSet<CellAddress", 4),
     ("HashMap<CellAddress,Vec<CellAddress", 4),
@@ -199,6 +210,7 @@ fn forbidden_type_shapes_absent_for_current_phase() {
     let sources = [
         ("sheet", strip(&sheet_rs())),
         ("workbook", strip(&workbook_rs())),
+        ("sheet_spill_claims", strip(&spill_claims_rs())),
     ];
     let mut violations = Vec::new();
     for (shape, from_phase) in FORBIDDEN_SHAPES {

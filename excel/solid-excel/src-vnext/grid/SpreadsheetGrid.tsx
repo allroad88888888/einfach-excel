@@ -125,6 +125,7 @@ import {
   notifyDraftTypedChar,
   readActiveFormulaSuggestion,
   refreshVisibleProjection,
+  reportCommandFailure,
   runVisibleProjectionTransport,
   spreadsheetProjectionSnapshotAtom,
   syncFormulaReferenceCaret,
@@ -1306,13 +1307,23 @@ export function SpreadsheetGrid(props: SpreadsheetGridProps) {
       const isSingleCell = range.rowStart === range.rowEnd && range.colStart === range.colEnd
       if (isSingleCell) {
         const sourceRange = resolvedRanges[0][0]
-        const result = await backend.setCellInput({
-          kind: 'set-cell-input',
-          sheetId: props.sheetId,
-          row: sourceRange.rowStart,
-          col: sourceRange.colStart,
-          input: '',
-        })
+        // A rejection here is a KNOWN failure: the engine refused the write
+        // and nothing landed (`recordCellMutation` records no undo entry
+        // either). Report it and abort WITHOUT pushing a history entry —
+        // one would desync the UI stack from the adapter's.
+        let result: Awaited<ReturnType<typeof backend.setCellInput>>
+        try {
+          result = await backend.setCellInput({
+            kind: 'set-cell-input',
+            sheetId: props.sheetId,
+            row: sourceRange.rowStart,
+            col: sourceRange.colStart,
+            input: '',
+          })
+        } catch (error) {
+          reportCommandFailure(store, error, 'Clearing the selected cell failed.')
+          return
+        }
         const rev =
           typeof result?.revision === 'number'
             ? result.revision
@@ -2399,13 +2410,27 @@ export function SpreadsheetGrid(props: SpreadsheetGridProps) {
       // 'cells.import' entry over N per-cell mutations would leave the
       // adapter transaction stack N-1 records deeper than the UI stack.
       for (const write of writes) {
-        const r = await backend.setCellInput({
-          kind: 'set-cell-input',
-          sheetId: props.sheetId,
-          row: write.row,
-          col: write.col,
-          input: write.input,
-        })
+        let r: Awaited<ReturnType<typeof backend.setCellInput>>
+        try {
+          r = await backend.setCellInput({
+            kind: 'set-cell-input',
+            sheetId: props.sheetId,
+            row: write.row,
+            col: write.col,
+            input: write.input,
+          })
+        } catch (error) {
+          // Partial paste: every earlier write landed and already carries its
+          // own history entry, so stop at the refused cell rather than
+          // pushing through the rest. The projection still has to refresh —
+          // otherwise the cells that DID land stay invisible, which is the
+          // silent-loss shape this whole lane exists to prevent. No
+          // `markClipboardReadyAtom`: the paste did not complete.
+          const failure = reportCommandFailure(store, error, 'Paste into the selection failed.')
+          store.setter(setClipboardErrorAtom, failure)
+          await loadProjection(requestProjection())
+          return
+        }
         const rev = typeof r?.revision === 'number' ? r.revision : Number(r?.revision ?? 0) || 0
         store.setter(pushHistoryAtom, {
           transactionId: nextHistoryTransactionId(),
@@ -3449,7 +3474,13 @@ export function SpreadsheetGrid(props: SpreadsheetGridProps) {
       tabIndex={0}
       style={{ position: 'relative' }}
       onKeyDown={(event) => {
-        void handleGridKeyDown(event)
+        // Terminal sink for every keyboard-dispatched command: the awaited
+        // backend ports may reject (`setCellInput` refuses a write with
+        // `CELL_WRITE_REJECTED`), and without this catch the refusal escapes
+        // as an unhandled rejection. Mirrors the context menu's dispatcher.
+        void handleGridKeyDown(event).catch((error: unknown) => {
+          reportCommandFailure(store, error)
+        })
       }}
     >
       <div

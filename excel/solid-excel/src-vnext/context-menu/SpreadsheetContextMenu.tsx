@@ -21,7 +21,6 @@ import {
   issueProjectionRequestIdAtom,
   isViewportHiddenContextMenuCommand,
   rejectProjectionAtom,
-  reportProjectionErrorAtom,
   resolveContentMutationAtom,
   resolveProjectionAtom,
   runViewportHiddenContextMenuCommandAtom,
@@ -50,7 +49,12 @@ import {
 } from '@einfach/spreadsheet-ui-core'
 import { useT } from '../../src/i18n'
 
-import { refreshVisibleProjection, useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider'
+import {
+  refreshVisibleProjection,
+  reportCommandFailure,
+  useSpreadsheetBackend,
+  useSpreadsheetUiStore,
+} from '../provider'
 
 export interface SpreadsheetContextMenuProps {
   class?: string
@@ -511,13 +515,25 @@ export function SpreadsheetContextMenu(props: SpreadsheetContextMenuProps) {
     } else {
       for (const chunk of plan.chunks()) {
         for (const cell of chunk.cells) {
-          await backend.setCellInput({
-            kind: 'set-cell-input',
-            sheetId,
-            row: cell.row,
-            col: cell.col,
-            input: cell.input,
-          })
+          try {
+            await backend.setCellInput({
+              kind: 'set-cell-input',
+              sheetId,
+              row: cell.row,
+              col: cell.col,
+              input: cell.input,
+            })
+          } catch (error) {
+            // Partial paste: earlier cells landed. Stop at the refused one,
+            // but still refresh — leaving the applied writes invisible is
+            // the silent-loss shape this lane exists to prevent. Reported
+            // here rather than rethrown so the refresh cannot be skipped;
+            // no `markClipboardReadyAtom`, the paste did not complete.
+            const failure = reportCommandFailure(store, error, 'Paste into the selection failed.')
+            store.setter(setClipboardErrorAtom, failure)
+            await refreshVisibleProjection(store, backend, sheetId, 'selection')
+            return
+          }
         }
       }
     }
@@ -706,12 +722,15 @@ export function SpreadsheetContextMenu(props: SpreadsheetContextMenuProps) {
     await refreshVisibleProjection(store, backend, target.sheetId, 'selection')
   }
 
+  /**
+   * Terminal sink for every menu-dispatched command. Backend mutation ports
+   * reject (`setCellInput` refuses a write with `CELL_WRITE_REJECTED`), and
+   * a command that only awaits them would otherwise leak an unhandled
+   * rejection. Commands that must clean up local state before reporting —
+   * `pasteClipboardText` — catch first and never reach here.
+   */
   function reportCommandError(error: unknown) {
-    store.setter(reportProjectionErrorAtom, {
-      error,
-      fallbackMessage: 'Spreadsheet command failed.',
-      code: 'BACKEND_ERROR',
-    })
+    reportCommandFailure(store, error)
   }
 
   function dispatchCommand(command: ContextMenuCommandKind) {

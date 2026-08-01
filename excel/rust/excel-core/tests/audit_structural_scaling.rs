@@ -167,12 +167,12 @@ fn bench_clear_range_one_cell_scales_with_sheet_size() {
 
 // =====================================================================
 // Finding A4 (P-D, P1) — FIXED. clear_range routes through
-// BulkLoader::set_cell, which is now spill-aware: a non-anchor spill
-// TARGET write is skipped (array intact, single-cell parity with
-// try_set_cell's SpillCellWrite rejection) and an ANCHOR write tears
-// the spill down first. Pin flipped from the panic to the fixed
-// behavior; the full semantics matrix lives in
-// tests/spill_structural.rs.
+// BulkLoader::set_cell, which is now spill-aware: an ANCHOR write tears
+// the spill down first, and a non-anchor spill TARGET write reaches a
+// fresh primitive atom instead of the projection cell's read-only derived
+// one. Pin flipped from the panic to the fixed behavior; the full
+// semantics matrix lives in tests/spill_structural.rs and (for what a
+// target write MEANS, ADR 0006) tests/spill_write_collapse.rs.
 // =====================================================================
 
 #[test]
@@ -209,26 +209,29 @@ fn audit_insert_row_relocates_spill_targets() {
 
     sheet.insert_row(0, 1); // spill now occupies A2:A4 (anchor A2)
 
-    // Write to the real (shifted) bottom target: clean SpillCellWrite
-    // rejection at the NEW anchor address — pre-fix this panicked on
-    // the read-only derived atom.
-    let target_write = sheet.try_set_cell("A4", Value::Number(7.0));
-    assert!(
-        matches!(
-            target_write,
-            Err(einfach_excel_core::SheetError::SpillCellWrite { anchor })
-                if anchor == addr("A2")
-        ),
-        "target write must be rejected against the shifted anchor, got {target_write:?}"
+    // Write to the real (shifted) bottom target — pre-fix this panicked on
+    // the read-only derived atom. ADR 0006 stage 1 turned the interim
+    // `SpillCellWrite` rejection into an accepted write that withdraws the
+    // array; the audit's point survives intact, because what it proves is
+    // that the bookkeeping named the SHIFTED anchor (A2, not A1), and the
+    // collapse lands `#SPILL!` exactly there.
+    sheet
+        .try_set_cell("A4", Value::Number(7.0))
+        .expect("target write is accepted (ADR 0006), and must not panic");
+    assert_eq!(sheet.get_cell("A4"), Value::Number(7.0));
+    assert_eq!(
+        sheet.get_cell(&addr("A2").to_string_repr()),
+        Value::Error(einfach_core::ValueError::Spill),
+        "the shifted anchor is the one that collapsed"
     );
+    assert_eq!(sheet.get_cell("A3"), Value::Null);
 
-    // Overwriting the shifted anchor is legal — replaces the array.
+    // Overwriting the (shifted) anchor is legal — replaces whatever is there.
     // Pre-fix this was wrongly rejected (stale target list named A2 a
     // target).
     assert!(sheet.try_set_cell("A2", Value::Number(9.0)).is_ok());
     assert_eq!(sheet.get_cell("A2"), Value::Number(9.0));
     assert_eq!(sheet.get_cell("A3"), Value::Null);
-    assert_eq!(sheet.get_cell("A4"), Value::Null);
 }
 
 // =====================================================================

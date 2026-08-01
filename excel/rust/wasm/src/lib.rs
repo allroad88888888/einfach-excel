@@ -1313,14 +1313,20 @@ struct CellSnapshotJSON {
     formula: String,
 }
 
+/// 表元数据 = 表身份，**仅此而已**：`{ idx, name }` 就是 `restore_persistence_v1`
+/// 会读的全部内容（它按 idx 校验连续、按 name 建表）。
+///
+/// 曾经这里还有 `rowCount` / `colCount`（由 `sheet_sparse_bounds` 扫全表填出）。
+/// 它们是**纯写不读**的：restore 侧一行都没碰过，TS 引擎压根不填，整个 TS 代码库
+/// 零消费者。代价却是实打实的 —— 它是两个引擎的持久化快照永远无法逐字相等的唯一
+/// 原因，把 scale-parity P5 的形状断言逼成了子集比对。2026-08-01 删除。
+///
+/// 想加回类似字段前先回答：谁读它？读不到会怎样？答不上来就别加 —— 只写不读的
+/// 字段不会报错，只会静静腐坏。
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct WorkbookPersistenceSheetMetaJSON {
     idx: u32,
     name: String,
-    #[serde(rename = "rowCount", default, skip_serializing_if = "Option::is_none")]
-    row_count: Option<u32>,
-    #[serde(rename = "colCount", default, skip_serializing_if = "Option::is_none")]
-    col_count: Option<u32>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -2242,7 +2248,26 @@ impl WasmSheet {
     /// Format a cell's value using its effective format. Numeric cells go
     /// through `CellFormat::format_number`; non-numeric cells fall back to
     /// the default display path.
+    ///
+    /// The error case is intercepted here rather than delegated.
+    /// `Sheet::formatted_display` re-implements the display match instead of
+    /// calling `value_to_display`, so it renders `Value::Error` through the
+    /// engine-internal `Display` and would leak `#TYPE!` / `#ARGS!` — codes
+    /// Excel does not have — into this legacy shell's cell text. A number
+    /// format can never apply to an error, so short-circuiting the error arm is
+    /// behaviour-identical apart from the token map. This is a bridge, not
+    /// the fix: the durable one is for `Sheet::formatted_display` to route
+    /// its `Value::Error` arm through `error_display_token` too, at which
+    /// point this arm becomes redundant (and harmless).
     pub fn formatted_display(&self, addr: &str) -> String {
+        if let Some(parsed) = CellAddress::parse(addr) {
+            // Collapse first: a spill anchor holds the whole `Value::Array`,
+            // and the erroring element we care about is the top-left one
+            // that the display boundary would show.
+            if let Value::Error(err) = &*collapse_array_for_js(&self.sheet.peek_value(parsed)) {
+                return einfach_excel_core::error_display_token(err).into_owned();
+            }
+        }
         self.sheet.formatted_display(addr)
     }
 
@@ -2538,7 +2563,15 @@ fn value_to_js(value: &Value) -> JsValue {
 ///   - `null` / `undefined` → `Value::Null`.
 ///   - `{ error: string }` → `Value::Error(_)` parsed from the string
 ///     (same token map as above; unknown strings → `#VALUE!`).
-///   - Anything else (Date, function, opaque object) → `#TYPE!`.
+///   - Anything else (Date, function, opaque object) →
+///     `ValueError::WrongType`, which RENDERS as `#VALUE!`. Excel has no
+///     `#TYPE!` code; the variant survives as an internal diagnostic and
+///     `format::error_display_token` collapses it at every display
+///     boundary. Same for a returned `"#TYPE!"` / `{ error: "#TYPE!" }`:
+///     accepted by the token map, shown as `#VALUE!`. `"#ARGS!"` behaves
+///     identically — accepted inbound, displayed as `#VALUE!`, because
+///     Excel rejects a bad argument count at entry time and so has no cell
+///     code for it either. `error_display_token` carries the registry.
 fn js_to_value(js: &JsValue) -> Value {
     if js.is_null() || js.is_undefined() {
         return Value::Null;
@@ -2593,8 +2626,12 @@ fn js_to_value(js: &JsValue) -> Value {
             }
         }
         // Plain object with no `error` key, or any other non-scalar JS
-        // shape (Date, function, Promise) — surface `#TYPE!`. Custom
-        // formulas are scalar-in / scalar-out in this initial cut.
+        // shape (Date, function, Promise) — surface `WrongType`, which the
+        // cell renders as `#VALUE!`. The finer variant is kept so a
+        // marshaling rejection stays distinguishable from a callback that
+        // deliberately returned `#VALUE!` when you are reading engine
+        // state. Custom formulas are scalar-in / scalar-out in this
+        // initial cut.
         return Value::Error(ValueError::WrongType);
     }
     Value::Error(ValueError::WrongType)
@@ -3599,8 +3636,10 @@ impl WasmWorkbook {
     ///   `(args: Array<number|string|boolean|null>) => number | string |`
     ///   `  boolean | null | { error: "#DIV/0!" | ... }`
     /// If the callback throws, the cell surfaces `#VALUE!`. If it returns
-    /// a Date, function, or other non-scalar object, the cell surfaces
-    /// `#TYPE!`. NaN / Infinity return values are folded to `#NUM!`.
+    /// a Date, function, or other non-scalar object, the cell also surfaces
+    /// `#VALUE!` (internally `ValueError::WrongType`; Excel has no `#TYPE!`
+    /// code, so the display boundary collapses it). NaN / Infinity return
+    /// values are folded to `#NUM!`.
     ///
     /// Registering over an existing name silently replaces the callback and
     /// publishes the custom-registry Store root. Materialized formulas that
@@ -4536,7 +4575,6 @@ impl WasmWorkbook {
                 continue;
             };
 
-            let (row_count, col_count) = self.sheet_sparse_bounds(sheet_idx);
             let name = self
                 .workbook
                 .name(sheet_idx)
@@ -4545,8 +4583,6 @@ impl WasmWorkbook {
             sheets.push(WorkbookPersistenceSheetMetaJSON {
                 idx: sheet_idx as u32,
                 name,
-                row_count,
-                col_count,
             });
 
             let snapshot = sheet.snapshot_format_range(Self::full_sheet_range());
@@ -4851,28 +4887,6 @@ impl WasmWorkbook {
             });
         }
         out
-    }
-
-    fn sheet_sparse_bounds(&self, sheet_idx: usize) -> (Option<u32>, Option<u32>) {
-        let mut max_row = 0u32;
-        let mut max_col = 0u32;
-        let mut found = false;
-
-        let Some(sheet) = self.workbook.sheet(sheet_idx) else {
-            return (None, None);
-        };
-        sheet.for_each_non_empty(|addr| {
-            found = true;
-            max_row = max_row.max(addr.row);
-            max_col = max_col.max(addr.col);
-        });
-        if !found {
-            return (None, None);
-        }
-        (
-            Some(max_row.saturating_add(1)),
-            Some(max_col.saturating_add(1)),
-        )
     }
 
     fn full_sheet_range() -> CellRange {
@@ -5200,6 +5214,11 @@ fn sparse_cell_from_value(sheet: usize, addr: CellAddress, val: &Value) -> Optio
         Value::Number(n) => ("number", Some(ImportValueJSON::Number(*n))),
         Value::Text(s) => ("text", Some(ImportValueJSON::Text(s.clone()))),
         Value::Boolean(b) => ("boolean", Some(ImportValueJSON::Boolean(*b))),
+        // `Display`, NOT `error_display_token`. This record is the
+        // persistence / clipboard WIRE, and `value_error_from_display` is its
+        // exact inverse — a snapshot must restore the variant it captured, so
+        // it has to speak the serialization vocabulary (where `WrongType` is
+        // still `#TYPE!`), not the narrower Excel-facing display one.
         Value::Error(e) => ("error", Some(ImportValueJSON::Text(format!("{}", e)))),
         Value::Null => return None,
         // Unreachable: collapsed above.
@@ -5232,6 +5251,34 @@ fn sparse_cell_from_sheet_no_eval(
             kind: "formula".into(),
             value: Some(ImportValueJSON::Text(formula)),
         });
+    }
+
+    // A non-anchor spill target is a VIEW of its anchor's array, not
+    // worksheet content: `cells` parks a derived atom there whose value
+    // reads the anchor and indexes into it (see `Sheet::register_spill`).
+    // Serializing that view as a `kind:"number"` literal turns it into a
+    // fact, and every consumer of these records re-materializes it as a
+    // real cell — which then OCCUPIES the address the anchor needs, so the
+    // anchor's next spill attempt answers `Err(ValueError::Spill)` and the
+    // formula's own value is replaced by `#SPILL!`. That is the whole of
+    // the `snapshot_persistence_v1` → `restore_persistence_v1` regression:
+    // ten records went out for `=SEQUENCE(10)`, nine literals landed
+    // first, and the anchor could no longer spill into its own region.
+    //
+    // The anchor needs no special case — it is a formula cell and returned
+    // above — and it is the only record a restore needs, because the
+    // projection is re-derived from it (eagerly by
+    // `install_bulk_spill_projections` on a bulk install, by
+    // `recompute_array_formula` on a write). Skipping the targets is also
+    // what makes the restored region a LIVE projection instead of a frozen
+    // copy: literals would keep displaying the right numbers until the
+    // next anchor edit, which is exactly why this defect stayed latent.
+    //
+    // The TS reference runtime has always excluded them
+    // (`worker-runtime-ts.ts` § `snapshotRangeSparse`); this closes the
+    // asymmetry rather than inventing a new rule.
+    if sheet.is_spilled(addr) {
+        return None;
     }
 
     sparse_cell_from_value(sheet_idx, addr, &sheet.peek_value(addr))
@@ -6276,6 +6323,50 @@ mod tests {
         assert_eq!(sheet.get_display("C1"), "#DIV/0!");
     }
 
+    /// `#TYPE!` and `#ARGS!` are tokens the WIRE accepts but the UI never
+    /// emits. Both display entry points on `WasmSheet` have to agree on that,
+    /// including `formatted_display`, which reaches a different formatter in
+    /// the engine (`Sheet::formatted_display`) than `get_display` does.
+    #[test]
+    fn wasm_wrong_type_never_reaches_a_cell_display() {
+        for (token, variant) in [
+            ("#TYPE!", ValueError::WrongType),
+            ("#ARGS!", ValueError::WrongArgCount),
+        ] {
+            let mut sheet = WasmSheet::new();
+            // Accepted on the way in — old snapshots and old formula text
+            // must keep parsing.
+            sheet.set_error("A1", token);
+            assert!(sheet.is_error("A1"));
+            assert_eq!(
+                sheet.sheet.peek_value(CellAddress::parse("A1").unwrap()),
+                Value::Error(variant),
+                "the diagnostic variant must survive the round trip ({token})"
+            );
+            // Never shown on the way out, through either formatter.
+            assert_eq!(sheet.get_display("A1"), "#VALUE!", "{token}");
+            assert_eq!(sheet.formatted_display("A1"), "#VALUE!", "{token}");
+        }
+
+        // A real argument-type rejection takes the same path.
+        let mut sheet = WasmSheet::new();
+        sheet.set_text("A1", "four");
+        sheet.set_formula("B1", "=SQRT(A1)");
+        assert_eq!(sheet.get_display("B1"), "#VALUE!");
+        assert_eq!(sheet.formatted_display("B1"), "#VALUE!");
+
+        // So does a real argument-COUNT rejection.
+        sheet.set_formula("C1", "=LEN()");
+        assert_eq!(sheet.get_display("C1"), "#VALUE!");
+        assert_eq!(sheet.formatted_display("C1"), "#VALUE!");
+
+        // `#CYCLE!` is the non-Excel code this repo deliberately KEEPS —
+        // see the registry on `format::error_display_token`.
+        sheet.set_formula("D1", "=D1+1");
+        assert_eq!(sheet.get_display("D1"), "#CYCLE!");
+        assert_eq!(sheet.formatted_display("D1"), "#CYCLE!");
+    }
+
     #[test]
     fn wasm_calc_error_token_round_trips() {
         assert_eq!(error_token_to_value_error("#NULL!"), Some(ValueError::Null));
@@ -6446,6 +6537,87 @@ mod tests {
         assert_eq!(wb.debug_formula_eval_count(0), 1);
     }
 
+    /// A dynamic-array region contributes exactly ONE sparse record: its
+    /// anchor's formula source. The nine projected targets of
+    /// `=SEQUENCE(10)` are derived views of the anchor's array, and a
+    /// snapshot that emitted them as `kind:"number"` literals would make
+    /// every restore path re-materialize them as real cells that occupy the
+    /// anchor's own spill region.
+    #[test]
+    fn wasm_workbook_snapshot_range_sparse_omits_spill_projections() {
+        let mut wb = WasmWorkbook::new();
+        assert!(wb.set_formula(0, "H1", "=SEQUENCE(10)"));
+        // Force the spill to exist before snapshotting.
+        assert_eq!(wb.get_display(0, "H10"), "10");
+        let sheet = wb.workbook.sheet(0).unwrap();
+        assert!(
+            !sheet.is_spilled(CellAddress::new(0, 7)),
+            "anchor is not a target"
+        );
+        assert!(
+            sheet.is_spilled(CellAddress::new(9, 7)),
+            "H10 is a spill target"
+        );
+
+        // H1:H10.
+        let cells = wb.snapshot_range_sparse_cells(0, 0, 7, 9, 7);
+
+        assert_eq!(cells.len(), 1, "unexpected sparse records: {cells:?}");
+        assert_eq!(cells[0].addr, "H1");
+        assert_eq!(cells[0].kind, "formula");
+        // Full-workbook snapshot agrees — both walk the same helper.
+        assert_eq!(wb.snapshot_sparse_cells().len(), 1);
+    }
+
+    /// Persistence roundtrip of a spilled workbook. Two distinct facts are
+    /// asserted, because the pre-fix bug passed the first one by accident:
+    /// the displays come back right, AND the restored region is a LIVE
+    /// projection (re-pointing the anchor moves the whole region) rather
+    /// than a frozen copy of literals.
+    #[test]
+    fn wasm_workbook_persistence_v1_roundtrip_keeps_spill_a_live_projection() {
+        let mut source = WasmWorkbook::new();
+        assert!(source.set_formula(0, "H1", "=SEQUENCE(10)"));
+        assert_eq!(source.get_display(0, "H1"), "1");
+        assert_eq!(source.get_display(0, "H10"), "10");
+
+        let envelope = source.snapshot_persistence_v1_json();
+        assert_eq!(
+            envelope.cells.len(),
+            1,
+            "unexpected cells: {:?}",
+            envelope.cells
+        );
+
+        let mut restored = WasmWorkbook::new();
+        let stats = restored.restore_persistence_v1_json(envelope).unwrap();
+        assert_eq!(stats.restored_cells, 1);
+
+        // (1) The anchor still spills — pre-fix it read back `#SPILL!`
+        // because the nine restored literals occupied its own region.
+        assert_eq!(restored.get_display(0, "H1"), "1");
+        assert_eq!(restored.get_display(0, "H2"), "2");
+        assert_eq!(restored.get_display(0, "H10"), "10");
+
+        // (2) The targets are projections, not literals: they carry no
+        // formula of their own, the engine indexes them, and re-pointing
+        // the anchor at a shorter array moves the region and CLEARS the
+        // rows the new array no longer covers. Frozen literals would keep
+        // showing 4..10 and would flip the anchor to `#SPILL!`.
+        assert_eq!(restored.get_formula(0, "H2"), "");
+        {
+            let sheet = restored.workbook.sheet(0).unwrap();
+            assert!(sheet.is_spilled(CellAddress::new(1, 7)));
+            assert!(sheet.is_spilled(CellAddress::new(9, 7)));
+        }
+        assert!(restored.set_formula(0, "H1", "=SEQUENCE(3,1,100,1)"));
+        assert_eq!(restored.get_display(0, "H1"), "100");
+        assert_eq!(restored.get_display(0, "H2"), "101");
+        assert_eq!(restored.get_display(0, "H3"), "102");
+        assert_eq!(restored.get_type(0, "H4"), "null");
+        assert_eq!(restored.get_type(0, "H10"), "null");
+    }
+
     #[test]
     fn wasm_workbook_snapshot_persistence_v1_roundtrip_sparse_formula_and_formats() {
         let mut source = WasmWorkbook::new();
@@ -6495,11 +6667,8 @@ mod tests {
         assert_eq!(envelope.sheets.len(), 2);
         assert_eq!(envelope.sheets[0].idx, 0);
         assert_eq!(envelope.sheets[0].name, "Data");
-        assert_eq!(envelope.sheets[0].row_count, Some(3));
-        assert_eq!(envelope.sheets[0].col_count, Some(3));
+        assert_eq!(envelope.sheets[1].idx, 1);
         assert_eq!(envelope.sheets[1].name, "Calc");
-        assert_eq!(envelope.sheets[1].row_count, Some(1));
-        assert_eq!(envelope.sheets[1].col_count, Some(1));
 
         let formula_cell = envelope
             .cells
@@ -6571,7 +6740,7 @@ mod tests {
     }
 
     #[test]
-    fn wasm_workbook_snapshot_persistence_v1_uses_sparse_dimensions_only() {
+    fn wasm_workbook_snapshot_persistence_v1_keeps_format_only_sheet() {
         let mut wb = WasmWorkbook::new();
         let _ = wb.add_sheet("FormatOnly");
         let fmt = CellFormatJSON {
@@ -6589,12 +6758,11 @@ mod tests {
             fmt.into_format(),
         );
 
+        // 一张只有格式、没有任何单元格的表：cells 为空，但 formats 必须带上它 ——
+        // 否则 restore 出来的表会丢掉全部格式。
         let envelope = wb.snapshot_persistence_v1_json();
         assert_eq!(envelope.sheets.len(), 2);
-        assert_eq!(envelope.sheets[0].row_count, None);
-        assert_eq!(envelope.sheets[0].col_count, None);
-        assert_eq!(envelope.sheets[1].row_count, None);
-        assert_eq!(envelope.sheets[1].col_count, None);
+        assert_eq!(envelope.cells.len(), 0);
         assert_eq!(envelope.formats[1].range_formats.len(), 1);
     }
 
@@ -6606,8 +6774,6 @@ mod tests {
 
         let envelope = source.snapshot_persistence_v1_json();
         assert_eq!(envelope.cells.len(), 0);
-        assert_eq!(envelope.sheets[0].row_count, None);
-        assert_eq!(envelope.sheets[0].col_count, None);
         assert_eq!(envelope.sizes.len(), 1);
         assert_eq!(envelope.sizes[0].row_heights[0].row_index, 3);
         assert_eq!(envelope.sizes[0].row_heights[0].height_px, 44);
@@ -6663,8 +6829,6 @@ mod tests {
             sheets: vec![WorkbookPersistenceSheetMetaJSON {
                 idx: 0,
                 name: "Loaded".into(),
-                row_count: None,
-                col_count: None,
             }],
             cells: vec![SparseCellJSON {
                 sheet: 0,
@@ -6705,8 +6869,6 @@ mod tests {
             sheets: vec![WorkbookPersistenceSheetMetaJSON {
                 idx: 0,
                 name: "Sheet1".into(),
-                row_count: None,
-                col_count: None,
             }],
             cells: vec![],
             formats: vec![],
@@ -6728,8 +6890,6 @@ mod tests {
             sheets: vec![WorkbookPersistenceSheetMetaJSON {
                 idx: 0,
                 name: "Sheet1".into(),
-                row_count: None,
-                col_count: None,
             }],
             cells: vec![SparseCellJSON {
                 sheet: 0,
@@ -6763,8 +6923,6 @@ mod tests {
             sheets: vec![WorkbookPersistenceSheetMetaJSON {
                 idx: 0,
                 name: "Loaded".into(),
-                row_count: None,
-                col_count: None,
             }],
             cells: vec![SparseCellJSON {
                 sheet: 0,
@@ -6804,8 +6962,6 @@ mod tests {
             sheets: vec![WorkbookPersistenceSheetMetaJSON {
                 idx: 0,
                 name: "Loaded".into(),
-                row_count: None,
-                col_count: None,
             }],
             cells: vec![],
             formats: vec![],
@@ -6849,8 +7005,6 @@ mod tests {
             sheets: vec![WorkbookPersistenceSheetMetaJSON {
                 idx: 0,
                 name: "Data".into(),
-                row_count: Some(n),
-                col_count: Some(2),
             }],
             cells,
             formats: vec![],

@@ -152,6 +152,16 @@ export const COUNT_CASES: ReadonlyArray<readonly [formula: string, displayed: st
   ['=COUNT(T1:T6)', '3'], // an error cell is not a NUMBER → skipped
   ['=COUNTA(T1:T6)', '6'], // ...but it is not BLANK either → tallied
   ['=SUM(T1:T6)', '#DIV/0!'], // control: the value tier still propagates
+  // The same three answers when the error is written STRAIGHT INTO the
+  // argument list rather than reached through a range. This half outlived the
+  // range half by one release: the TS engine still answered `#REF!` here after
+  // the range short-circuit was gone, so `=COUNT(A1:A3)` and `=COUNT(#REF!)`
+  // contradicted each other on the same engine. There is only one rule — an
+  // error is not a number and is not blank — and it does not care how the
+  // value arrived.
+  ['=COUNT(1,#REF!)', '1'],
+  ['=COUNTA(1,#REF!)', '2'],
+  ['=SUM(1,#REF!)', '#REF!'], // control again: still propagates
 ]
 export const COUNT_ADDRS = COUNT_CASES.map((_, i) => a1(i, 21))
 export const EXPECTED_COUNT_DISPLAYS = COUNT_CASES.map(([, displayed]) => displayed)

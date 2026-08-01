@@ -179,8 +179,17 @@ describe('COUNT', () => {
     expect(call(COUNT, [NUM(1), BOOL(true), BOOL(false)])).toEqual(NUM(1))
   })
 
-  test('error in scalar arg propagates', () => {
-    expect(call(COUNT, [NUM(1), ERR('#REF!')])).toEqual(ERR('#REF!'))
+  test('an error written straight into the argument list is skipped too', () => {
+    // 这条曾经断言 `ERR('#REF!')`，注释还写着 "matches Excel"。那是错的：
+    // MS 文档 COUNT § Remarks —— "Arguments that are error values or text
+    // that cannot be translated into numbers are **not counted**"，讲的正是
+    // 直接实参。Rust 引擎的 `"COUNT"` 臂也只数 Value::Number、零短路。
+    // 也就是说 COUNT 对错误值的态度只有一条：它不是数字，跳过。区域里的
+    // 格子如此，写在参数表里的也如此 —— 这里不存在两种形状。
+    expect(call(COUNT, [NUM(1), ERR('#REF!')])).toEqual(NUM(1))
+    expect(call(COUNT, [ERR('#REF!')])).toEqual(NUM(0))
+    // 对照：值档仍然传播，分界是**按函数**不是按数据。
+    expect(call(SUM, [NUM(1), ERR('#REF!')])).toEqual(ERR('#REF!'))
   })
 
   // The shape a real sheet produces: `=COUNT(A1:B3)` over
@@ -251,8 +260,12 @@ describe('COUNTA', () => {
     ).toEqual(NUM(3))
   })
 
-  test('scalar error propagates', () => {
-    expect(call(COUNTA, [NUM(1), ERR('#REF!')])).toEqual(ERR('#REF!'))
+  test('an error counts — it is emphatically not blank', () => {
+    // COUNTA 数的是「非空」，而错误值当然不空。同 Rust 的 `"COUNTA"` 臂：
+    // `if !matches!(v, Value::Null) { count += 1 }` —— 一行，没有短路。
+    // 注意方向与 COUNT 相反：COUNT 跳过它，COUNTA 计数它。
+    expect(call(COUNTA, [NUM(1), ERR('#REF!')])).toEqual(NUM(2))
+    expect(call(COUNTA, [ERR('#REF!')])).toEqual(NUM(1))
   })
 
   test('all blanks → 0', () => {
@@ -774,14 +787,28 @@ describe('FUNCTIONS registry', () => {
     // including a leading error — they fail the arity gate before
     // looking at args. Exclude from the propagation spot check.
     const zeroArityOnly = new Set(['PI', 'RAND'])
+    // The COUNT family is the documented exception to "errors propagate":
+    // an error is simply not a number (COUNT), not blank (COUNTA,
+    // COUNTBLANK), so it is skipped/counted rather than answered. MS docs,
+    // COUNT § Remarks: "Arguments that are error values or text that cannot
+    // be translated into numbers are not counted." The Rust engine agrees —
+    // its `"COUNT"` / `"COUNTA"` / `"COUNTBLANK"` arms have no short-circuit
+    // at all. This set is the ONLY licence to not propagate; adding a name
+    // to it is a semantic claim that needs the same kind of evidence.
+    const countsInsteadOfPropagating = new Set(['COUNT', 'COUNTA', 'COUNTBLANK'])
     for (const [name, fn] of Object.entries(FUNCTIONS)) {
       expect(typeof fn).toBe('function')
       // Spot check: every fn should accept an empty args array without
       // throwing — it may return an error Value, but never throw.
       expect(() => fn([], ctx)).not.toThrow()
-      // And every fn (except zero-arity) should propagate a leading
-      // scalar error.
-      if (!zeroArityOnly.has(name)) {
+      if (countsInsteadOfPropagating.has(name)) {
+        // Pin the exception rather than merely skipping it: a leading
+        // scalar error must produce a NUMBER, and specifically must not
+        // quietly become an error again.
+        const result = fn([{ kind: 'error', code: '#REF!' }], ctx)
+        expect(result.kind).toBe('number')
+      } else if (!zeroArityOnly.has(name)) {
+        // Every other fn propagates a leading scalar error.
         const result = fn([{ kind: 'error', code: '#REF!' }], ctx)
         expect(result.kind === 'error' && result.code).toBe('#REF!')
       }

@@ -122,12 +122,24 @@ function forEachNumericInArray(
  *    `FunctionImpl`, so this boundary cannot tell them apart; the scalar arm
  *    below is kept only as a guard for callers that skip `propagateError`.
  */
-function forEachCountNumber(
-  args: ReadonlyArray<Value>,
-  visit: () => void,
-): WalkResult {
+/**
+ * COUNT: count numbers, skip everything else — **including errors, and
+ * including an error written directly into the argument list**.
+ *
+ * 这里刻意不做错误传播，两条依据：
+ *
+ * 1. MS 文档 COUNT 的 Remarks: "Arguments that are error values or text
+ *    that cannot be translated into numbers are not counted." 那句讲的正是
+ *    直接写进参数表的实参，不只是区域里的格子。
+ * 2. Rust 引擎（`excel/rust/excel-core/src/eval.rs` 的 `"COUNT"` 臂）只数
+ *    `Value::Number`，全程没有任何短路 —— `=COUNT(#REF!)` 在那边是 0。
+ *
+ * 这个函数曾经在这里 propagate，注释还写着 "matches Excel"。那是错的，并且
+ * 是一条活的跨引擎分歧：同一个 `=COUNT(#REF!)` 在 TS 上是 `#REF!`、在 WASM 上
+ * 是 0。别把它加回来。
+ */
+function forEachCountNumber(args: ReadonlyArray<Value>, visit: () => void): void {
   for (const arg of args) {
-    if (arg.kind === 'error') return { ok: false, error: arg }
     if (arg.kind === 'array') {
       for (const row of arg.value) {
         for (const cell of row) {
@@ -138,14 +150,15 @@ function forEachCountNumber(
       continue
     }
     if (arg.kind === 'number') visit()
-    // string / boolean / blank scalar → skipped by COUNT.
+    // error / string / boolean / blank scalar → skipped by COUNT.
   }
-  return { ok: true }
 }
 
 /**
- * COUNTA: count every non-blank. Errors in arrays count too (they are
- * not blank). Scalar errors still propagate via `propagateError`.
+ * COUNTA: count every non-blank — **errors included**, in arrays and as
+ * direct arguments alike. An error is emphatically not blank; Rust's
+ * `"COUNTA"` arm says the same thing in one line
+ * (`if !matches!(v, Value::Null)`).
  */
 function forEachCountANonBlank(
   args: ReadonlyArray<Value>,
@@ -190,21 +203,14 @@ export const AVERAGE: FunctionImpl = (args) => {
 }
 
 export const COUNT: FunctionImpl = (args) => {
-  // Scalar errors propagate (matches Excel — `=COUNT(#REF!)` returns
-  // `#REF!`, not 0).
-  const propagated = propagateError(args)
-  if (propagated) return propagated
   let count = 0
-  const walk = forEachCountNumber(args, () => {
+  forEachCountNumber(args, () => {
     count += 1
   })
-  if (!walk.ok) return walk.error
   return NUM(count)
 }
 
 export const COUNTA: FunctionImpl = (args) => {
-  const propagated = propagateError(args)
-  if (propagated) return propagated
   let count = 0
   forEachCountANonBlank(args, () => {
     count += 1
@@ -1300,12 +1306,17 @@ export const LCM: FunctionImpl = (args) => {
   return NUM(l)
 }
 
-/** COUNTBLANK(range) — count blank cells in a range. */
+/**
+ * COUNTBLANK(range) — count blank cells in a range.
+ *
+ * An error is not blank, so it contributes 0 and is NOT propagated — same
+ * rule as COUNT / COUNTA, same as Rust's `"COUNTBLANK"` arm
+ * (`if matches!(v, Value::Null)`).
+ */
 export const COUNTBLANK: FunctionImpl = (args) => {
   if (args.length !== 1) return ERR('#VALUE!')
   const arg = args[0]
   let count = 0
-  if (arg.kind === 'error') return arg
   if (arg.kind === 'array') {
     for (const row of arg.value) {
       for (const cell of row) {

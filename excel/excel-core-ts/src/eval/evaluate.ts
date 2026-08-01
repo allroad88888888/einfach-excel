@@ -809,7 +809,14 @@ function evaluateSparseNumericAggregate(
   }
 
   const addScalar = (value: Value): Value | undefined => {
-    if (value.kind === 'error') return value
+    // `count` skips errors here for the same reason `addRangeCell` does: an
+    // error is not a number, and COUNT does not care whether it arrived
+    // through a range or was written straight into the argument list. This
+    // branch is the one the REAL formula path uses — `evaluate` intercepts
+    // COUNT before `FUNCTIONS.COUNT` is ever reached (see the `'count'`
+    // call site above), so a unit test that calls the FunctionImpl directly
+    // cannot see it. The always-on cross-engine smoke is what caught it.
+    if (value.kind === 'error') return kind === 'count' ? undefined : value
     if (value.kind === 'array') return addArray(value)
     if (kind === 'count') {
       if (value.kind === 'number') visitNumber(value.value)
@@ -865,7 +872,11 @@ function evaluateSparseCountA(rawArgs: ReadonlyArray<Expr>, ctx: EvalContext): V
   }
 
   const addScalar = (value: Value): Value | undefined => {
-    if (value.kind === 'error') return value
+    // An error is not blank, so COUNTA tallies it — direct argument or range
+    // cell alike (the range walk above already says so with the same
+    // `!== 'blank'` test). This is the sparse twin of `FUNCTIONS.COUNTA`
+    // and it is what the real formula path reaches; keeping a propagation
+    // here while the FunctionImpl skipped it is how the two halves drifted.
     if (value.kind === 'array') {
       addArray(value)
     } else if (value.kind !== 'blank') {

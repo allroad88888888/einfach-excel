@@ -1160,7 +1160,14 @@ function aggregateNumeric(
       }
       continue
     }
-    if (isErrLocal(arg)) return arg
+    // COUNT 对错误值的态度只有一条：它不是数字，跳过 —— 区域里的格子（上面
+    // 那个 `name === 'COUNT'` 分支）如此，直接写进参数表的也如此。这两处必须
+    // 对称，否则 `=COUNT(A1:A3)` 与 `=COUNT(#REF!)` 会给出互相矛盾的答案。
+    // 依据见 MS 文档 COUNT § Remarks 与 Rust 引擎的 `"COUNT"` 臂（零短路）。
+    if (isErrLocal(arg)) {
+      if (name === 'COUNT') continue
+      return arg
+    }
     if (typeof arg === 'number') numbers.push(arg)
   }
   switch (name) {

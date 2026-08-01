@@ -28,11 +28,19 @@ pub enum ValueError {
     /// required a specific type (e.g., text passed to an arithmetic operator
     /// that has no numeric coercion path). Distinct from `InvalidValue` which
     /// is a catch-all; `WrongType` signals specifically a type mismatch.
-    WrongType, // #TYPE!
+    ///
+    /// Same split as `WrongArgCount` below: `#TYPE!` is the ENGINE-INTERNAL
+    /// spelling and never reaches a cell — see `error_display_token`.
+    WrongType, // #TYPE! — internal; DISPLAYS as #VALUE!
     /// A function was called with the wrong number of arguments. Excel shows
     /// this as a parse/compile error; we surface it at eval time as a
     /// distinct code so tests can assert precise argument-count checking.
-    WrongArgCount, // #ARGS!
+    ///
+    /// `#ARGS!` is the ENGINE-INTERNAL spelling only — like `WrongType`, this
+    /// variant never reaches a cell. Every rendering boundary collapses it to
+    /// `#VALUE!` via `einfach_excel_core::format::error_display_token`, which
+    /// carries the registry of non-Excel codes.
+    WrongArgCount, // #ARGS! — internal; DISPLAYS as #VALUE!
     /// A dynamic-array formula attempted to spill into a cell that already
     /// holds a non-empty value (primitive, formula, or another spill range).
     /// Excel shows this as `#SPILL!`. The anchor cell holds this error and

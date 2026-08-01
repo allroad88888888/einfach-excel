@@ -148,14 +148,70 @@ type CustomFormulaFn = (args: CustomFormulaArg[]) => CustomFormulaReturn
 - `null` / `undefined` → `Null`
 - `{ error: "TOKEN" }` → `Error(_)` parsed from `TOKEN`. Unknown tokens
                           → `Error(InvalidValue)` (`#VALUE!`).
-- anything else        → `Error(WrongType)` (`#TYPE!`)
+- anything else        → `Error(WrongType)`. **Cell shows `#VALUE!`** —
+                          `WrongType` is an internal diagnostic variant, not
+                          a displayable code (see "Internal vs displayed
+                          codes" below).
 - throwing             → `Error(InvalidValue)` (`#VALUE!`). Cell shows
                           `#VALUE!`; wasm instance survives.
 
-### Error tokens that round-trip
+### Error tokens accepted from a callback
 
 `#NULL!`, `#DIV/0!`, `#N/A`, `#REF!`, `#VALUE!`, `#NAME?`, `#NUM!`,
 `#CYCLE!`, `#TYPE!`, `#ARGS!`, `#SPILL!`, `#CALC!`.
+
+These are the tokens `error_token_to_value_error` accepts, i.e. what a
+callback may RETURN. It is not the list of what a cell can SHOW — see
+below. (`#BUSY!` is accepted by the token parser but demoted to `#VALUE!`
+on the custom-return path; it is reserved for the async pending state.)
+
+### Internal vs displayed codes
+
+Three codes in the engine's vocabulary have no Excel counterpart. The
+normative registry — which of them collapse at the rendering boundary, and
+why — is the doc comment on `format::error_display_token`
+(`excel/rust/excel-core/src/format.rs`), because that function *is* the
+boundary. Its TypeScript twin is
+`excel/solid-excel/src-vnext/adapter/error-display-token.ts`. Summary:
+
+| internal code | shown in a cell | disposition |
+| --- | --- | --- |
+| `#TYPE!` (`WrongType`) | `#VALUE!` | collapsed |
+| `#ARGS!` (`WrongArgCount`) | `#VALUE!` | collapsed |
+| `#CYCLE!` (`CyclicRef`) | `#CYCLE!` | **deliberate extension — kept** |
+
+Returning `{ error: "#TYPE!" }` therefore does NOT put `#TYPE!` in the cell,
+and `{ error: "#ARGS!" }` does not put `#ARGS!` in one. Both variants are
+kept internally because they say *which* check rejected the call — the ~350
+built-in argument-type guards and the marshaling fallback above raise
+`WrongType`, the arity guards raise `WrongArgCount` — but every rendering
+boundary maps them through `format::error_display_token`, which answers
+`#VALUE!`. For `#ARGS!` that is also the closest honest answer: Excel
+rejects a wrong argument count at *entry time* with a dialog, so it has no
+cell error code for the case at all.
+
+`#CYCLE!` goes the other way and is **intentionally not aligned with Excel**.
+Excel displays `0` plus a status-bar warning for a circular reference, which
+buries a real bug inside a plausible number; a distinct searchable code is
+more useful, and this is the one place the engine takes that trade. Treat it
+as a decision, not a gap.
+
+Consequence for hosts:
+
+- `{ error: "#TYPE!" }`, `{ error: "#ARGS!" }` and `{ error: "#VALUE!" }`
+  are **indistinguishable in the UI**. All three cells read `#VALUE!`.
+  Prefer `#VALUE!` in new host code; the other two are accepted only so old
+  formula text and old snapshots keep parsing.
+- A host asserting on cell text must expect `#VALUE!`, never `#TYPE!` or
+  `#ARGS!`. It must still expect `#CYCLE!` for circular references.
+- A host round-tripping a cell through `snapshotRangeSparse` /
+  `snapshot_persistence_v1` still sees the tokens `#TYPE!` / `#ARGS!` on the
+  wire: those are serialization channels and speak the internal vocabulary so
+  a restore reproduces the exact variant it captured. Display and
+  serialization are deliberately different vocabularies; do not "unify" them
+  by widening the display side.
+- `ERROR.TYPE` grades both `#TYPE!` and `#ARGS!` as `3`, i.e. `#VALUE!`'s
+  number, so the collapse leaks no information the host could otherwise see.
 
 ### Registry invalidation
 
@@ -301,11 +357,11 @@ frames.
 ## Security model
 
 The WASM bridge compiles host-supplied JS source via `new Function('args',
-source)` (see `excel/solid-excel/src-vnext/adapter/worker-runtime.ts`). This
-boundary is **NOT a privilege sandbox**:
+source)` (see `excel/solid-excel/src-vnext/adapter/worker-custom-formulas.ts`).
+This boundary is **NOT a privilege sandbox**:
 
 - `new Function` sandboxes only the *lexical closure*. The compiled
-  function cannot reach `worker-runtime.ts`'s local variables, but it
+  function cannot reach that module's local variables, but it
   has full access to the worker's global scope: `self`, `postMessage`,
   `fetch`, `importScripts`, `indexedDB`, the WASM workbook handle, etc.
 - Source registered through this path is therefore **host-trusted

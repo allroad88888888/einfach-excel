@@ -3,9 +3,7 @@ use crate::sheet::{EXCEL_MAX_COLS, EXCEL_MAX_ROWS};
 use crate::{parse_formula, render_formula, CellAddress, CellFormat, CellRange, Workbook};
 use chrono::{Datelike, Duration, NaiveDate};
 use einfach_core::Value;
-use regex::Regex;
 use std::fmt;
-use std::sync::OnceLock;
 use unicode_normalization::char::canonical_combining_class;
 
 const NUMBER_EPSILON: f64 = 1e-10;
@@ -899,24 +897,65 @@ struct ParsedTextNumber {
     value: i64,
 }
 
+/// Split a label such as `Item01-final` into prefix / signed number / suffix.
+///
+/// Hand-rolled replacement for `^(.*?)(-?\d+)(\D*)$`. Two properties of that
+/// pattern are load-bearing and are reproduced exactly:
+///
+/// * The lazy prefix plus the `\D*$` tail pin the number to the **last**
+///   maximal digit run, swallowing one immediately preceding `-`. So `a1b2`
+///   splits as `a1b`/`2` and `a1-2` as `a1`/`-2`.
+/// * `.` does not cross a newline but `\D` does. A newline ahead of the number
+///   therefore rejects the whole label (`a\nb1` -> None) while one after it is
+///   ordinary suffix text (`a1\n` -> Some). Cells can hold newlines
+///   (Alt+Enter), so the asymmetry is reachable and is kept deliberately.
+///
+/// Deliberate behavior change: digits are now ASCII-only, where the `regex`
+/// crate expanded `\d` to all 660 `\p{Nd}` code points. The JS detector
+/// (`parseFillSeriesTextNumber` in
+/// `spreadsheet-ui-core/src/auto-fill/detector.ts`) spells the same literal,
+/// but JS `\d` is always `[0-9]`, so the two layers used to disagree: for
+/// `item5\u{0663}` the detector offered a fill to the user and this parser then
+/// rejected it, because `\d+` captured `5\u{0663}` and `parse::<i64>` failed.
+/// ASCII-only closes that gap. It can only widen acceptance, never narrow it:
+/// whenever the old pattern returned `Some` its captured run was necessarily
+/// all-ASCII (otherwise the parse failed), and a maximal `\p{Nd}` run that is
+/// all-ASCII is also a maximal ASCII-digit run with the same bounds.
 fn parse_text_number(value: &str) -> Option<ParsedTextNumber> {
-    static RE: OnceLock<Regex> = OnceLock::new();
-    let captures = RE
-        .get_or_init(|| Regex::new(r"^(.*?)(-?\d+)(\D*)$").expect("valid text-number regex"))
-        .captures(value)?;
-    let prefix = captures.get(1)?.as_str();
-    if prefix.is_empty() {
+    // Walk backwards to the last maximal ASCII-digit run, then look at the one
+    // character in front of it for the optional sign.
+    let mut digits_start = None;
+    let mut digits_end = None;
+    let mut sign_start = None;
+    for (offset, character) in value.char_indices().rev() {
+        if character.is_ascii_digit() {
+            digits_end = digits_end.or(Some(offset + 1));
+            digits_start = Some(offset);
+        } else if digits_end.is_some() {
+            if character == '-' {
+                sign_start = Some(offset);
+            }
+            break;
+        }
+    }
+    let digits_start = digits_start?;
+    let digits_end = digits_end?;
+    let numeric_start = sign_start.unwrap_or(digits_start);
+
+    let prefix = &value[..numeric_start];
+    // A bare number has no prefix to extend, and `.*?` cannot span a newline.
+    if prefix.is_empty() || prefix.contains('\n') {
         return None;
     }
-    let numeric = captures.get(2)?.as_str();
-    let parsed = numeric.parse::<i64>().ok()?;
+    let parsed = value[numeric_start..digits_end].parse::<i64>().ok()?;
     if (parsed as f64).abs() > MAX_SAFE_INTEGER {
         return None;
     }
     Some(ParsedTextNumber {
         prefix: prefix.to_string(),
-        suffix: captures.get(3)?.as_str().to_string(),
-        width: numeric.trim_start_matches('-').len() as u32,
+        suffix: value[digits_end..].to_string(),
+        // ASCII digits are one byte each, so the byte span is the digit count.
+        width: (digits_end - digits_start) as u32,
         value: parsed,
     })
 }
@@ -1067,37 +1106,6 @@ fn supported_locale_language(locale: &str) -> Option<&str> {
     canonical.then_some(language)
 }
 
-fn is_unicode_cased(character: char) -> bool {
-    static CASED: OnceLock<Regex> = OnceLock::new();
-    let mut encoded = [0_u8; 4];
-    CASED
-        .get_or_init(|| Regex::new(r"^\p{Cased}$").expect("valid Unicode Cased property"))
-        .is_match(character.encode_utf8(&mut encoded))
-}
-
-fn is_unicode_case_ignorable(character: char) -> bool {
-    static CASE_IGNORABLE: OnceLock<Regex> = OnceLock::new();
-    let mut encoded = [0_u8; 4];
-    CASE_IGNORABLE
-        .get_or_init(|| {
-            Regex::new(r"^\p{Case_Ignorable}$").expect("valid Unicode Case_Ignorable property")
-        })
-        .is_match(character.encode_utf8(&mut encoded))
-}
-
-fn is_final_sigma(chars: &[char], index: usize) -> bool {
-    let preceded_by_cased = chars[..index]
-        .iter()
-        .rev()
-        .find(|character| !is_unicode_case_ignorable(**character))
-        .is_some_and(|character| is_unicode_cased(*character));
-    let followed_by_cased = chars[index + 1..]
-        .iter()
-        .find(|character| !is_unicode_case_ignorable(**character))
-        .is_some_and(|character| is_unicode_cased(*character));
-    preceded_by_cased && !followed_by_cased
-}
-
 fn turkic_before_dot(chars: &[char], index: usize) -> bool {
     chars[index + 1..]
         .iter()
@@ -1113,21 +1121,48 @@ fn turkic_after_i(chars: &[char], index: usize) -> bool {
         .is_some_and(|character| *character == 'I')
 }
 
+/// Case-fold a custom-list label so matching is case-insensitive, mirroring
+/// ECMA-402 `String.prototype.toLocaleLowerCase` for the supported locale
+/// families (JS side: `foldFillSeriesText` in
+/// `spreadsheet-ui-core/src/auto-fill/detector.ts`).
+///
+/// Two passes, because the two contextual rules live in different places.
+/// `str::to_lowercase` is locale-independent by contract, so it never applies
+/// the Turkic `I` rules and we have to; but it *does* already implement the
+/// Final_Sigma rule, driven by the `Cased` / `Case_Ignorable` skiplists that
+/// `LOWER()` links into this binary anyway. Delegating to it keeps those two
+/// Unicode property tables out of this file — reaching them by hand used to
+/// cost a `regex` dependency (~740 KB of wasm with its transitive deps) for
+/// nothing.
+///
+/// The split is safe because of three properties, each pinned by a test in
+/// `named_list_fold_matches_ecma_402_*`:
+///
+/// 1. Pass 1 cannot disturb pass 2's Final_Sigma scan. `I` -> `ı` and
+///    `İ` -> `i` both stay Cased and non-Case_Ignorable, so the scan still
+///    sees a word character there; `U+0307` is Case_Ignorable, so dropping it
+///    only removes a character the scan was going to skip anyway.
+/// 2. Pass 2 cannot re-touch pass 1's output: `ı` and `i` are already
+///    lowercase, so `to_lowercase` is the identity on them.
+/// 3. `Σ` is deliberately left untouched by pass 1. The original single-pass
+///    version tested the `Σ` arms before the Turkic arms, but `Σ`, `I`, `İ`
+///    and `U+0307` are four distinct characters, so the arm order never
+///    mattered and moving the sigma handling to a later pass is order-neutral.
 fn fold_named_value(value: &str, language: &str) -> String {
     let chars: Vec<char> = value.chars().collect();
     let turkic = matches!(language, "tr" | "az");
-    let mut folded = String::with_capacity(value.len());
+    // Pass 1: the locale-sensitive Turkic dotted/dotless `I` substitutions.
+    let mut staged = String::with_capacity(value.len());
     for (index, character) in chars.iter().copied().enumerate() {
         match character {
-            'Σ' if is_final_sigma(&chars, index) => folded.push('ς'),
-            'Σ' => folded.push('σ'),
-            'I' if turkic && !turkic_before_dot(&chars, index) => folded.push('ı'),
-            'İ' if turkic => folded.push('i'),
+            'I' if turkic && !turkic_before_dot(&chars, index) => staged.push('ı'),
+            'İ' if turkic => staged.push('i'),
             '\u{0307}' if turkic && turkic_after_i(&chars, index) => {}
-            _ => folded.extend(character.to_lowercase()),
+            _ => staged.push(character),
         }
     }
-    folded
+    // Pass 2: plain mappings plus the Final_Sigma context rule.
+    staged.to_lowercase()
 }
 
 fn plan_named_series(
@@ -1376,6 +1411,7 @@ fn shift_fill_formula(expr: &Expr, drow: i64, dcol: i64) -> Result<Expr, AutoFil
             })
             .unwrap_or_else(|| Expr::Error(einfach_core::ValueError::InvalidRef)),
         Expr::Negate(inner) => Expr::Negate(Box::new(shift_fill_formula(inner, drow, dcol)?)),
+        Expr::Percent(inner) => Expr::Percent(Box::new(shift_fill_formula(inner, drow, dcol)?)),
         Expr::BinOp { op, left, right } => Expr::BinOp {
             op: *op,
             left: Box::new(shift_fill_formula(left, drow, dcol)?),
@@ -1417,6 +1453,8 @@ fn shift_fill_formula(expr: &Expr, drow: i64, dcol: i64) -> Result<Expr, AutoFil
 mod tests {
     use super::*;
     use crate::{Align, NumberFormat};
+    use einfach_core::ArrayData;
+    use std::sync::Arc;
 
     fn addr(value: &str) -> CellAddress {
         CellAddress::parse(value).unwrap()
@@ -2201,6 +2239,78 @@ mod tests {
     }
 
     #[test]
+    fn named_list_fold_matches_ecma_402_when_turkic_i_feeds_the_final_sigma_scan() {
+        // Golden outputs from String.prototype.toLocaleLowerCase('tr'/'az').
+        // These are the cases where the two folding passes interact: pass 1
+        // rewrites the `I` family, then pass 2 decides sigma finality from
+        // whatever pass 1 left behind. They fail if a substitution stops
+        // reading as Cased, or if dropping U+0307 changes the scan's verdict.
+        for language in ["tr", "az"] {
+            for (source, expected) in [
+                // `I` -> `ı` must still count as the Cased character that
+                // makes the following sigma word-final.
+                ("IΣ", "ıς"),
+                // `İ` -> `i` likewise.
+                ("İΣ", "iς"),
+                // U+0307 is dropped by pass 1; it was Case_Ignorable, so the
+                // scan skipped it anyway and still finds `I` in front.
+                ("I\u{0307}Σ", "iς"),
+                // Trailing cased letter: not word-final, so plain sigma. Pins
+                // that the substitution does not fake a word boundary.
+                ("IΣA", "ıσa"),
+            ] {
+                assert_eq!(fold_named_value(source, language), expected);
+            }
+        }
+    }
+
+    #[test]
+    fn text_number_digits_are_ascii_only_like_the_js_detector() {
+        // JS `\d` is always [0-9]; the `regex` crate expanded it to `\p{Nd}`.
+        // Both labels below used to capture a run containing U+0663 ARABIC-
+        // INDIC DIGIT THREE, fail `parse::<i64>` and return None -- after the
+        // JS detector had already offered the fill to the user.
+        assert_eq!(
+            parse_text_number("item5\u{0663}"),
+            Some(ParsedTextNumber {
+                prefix: "item".to_string(),
+                suffix: "\u{0663}".to_string(),
+                width: 1,
+                value: 5,
+            })
+        );
+        assert_eq!(
+            parse_text_number("item\u{0663}5"),
+            Some(ParsedTextNumber {
+                prefix: "item\u{0663}".to_string(),
+                suffix: String::new(),
+                width: 1,
+                value: 5,
+            })
+        );
+        // Unchanged: without an ASCII digit there is still no series.
+        assert_eq!(parse_text_number("item\u{0663}"), None);
+
+        // Unchanged regex shape: last maximal run, one swallowed '-', bare
+        // numbers rejected, and the newline asymmetry between `.` and `\D`.
+        let split = |value: &str| {
+            parse_text_number(value).map(|parsed| (parsed.prefix, parsed.value, parsed.suffix))
+        };
+        assert_eq!(split("a1b2"), Some(("a1b".to_string(), 2, String::new())));
+        assert_eq!(split("a-1"), Some(("a".to_string(), -1, String::new())));
+        assert_eq!(split("a1-2"), Some(("a1".to_string(), -2, String::new())));
+        assert_eq!(split("--1"), Some(("-".to_string(), -1, String::new())));
+        assert_eq!(split("123"), None);
+        assert_eq!(split("-1"), None);
+        assert_eq!(split("a\nb1"), None);
+        assert_eq!(split("a1\n"), Some(("a".to_string(), 1, "\n".to_string())));
+        assert_eq!(
+            split("Item01-final"),
+            Some(("Item".to_string(), 1, "-final".to_string()))
+        );
+    }
+
+    #[test]
     fn named_list_fold_matches_ecma_402_for_sigma_and_turkic_i_contexts() {
         // Golden outputs from String.prototype.toLocaleLowerCase for the
         // supported locale families. The contextual cases are where Rust's
@@ -2346,5 +2456,307 @@ mod tests {
             None,
         );
         assert_eq!(validate_geometry(&at_cap), Ok(()));
+    }
+
+    // === Spill gates ===
+    //
+    // `AutoFillError::SpillTarget` has exactly three raise sites, one per
+    // planner shape: `plan_copy`, `plan_numeric_series`, and the shared
+    // `plan_generated` (behind linear-trend, calendar, text-number, and
+    // named-list series). All three run the same probe — `sheet.is_spilled`
+    // over `write_range`, the target-minus-source rectangle — during
+    // preflight, so a rejected fill leaves the workbook untouched.
+    //
+    // These tests are the safety net for ADR 0006 (spill-region write
+    // semantics). That ADR relaxes the *single-cell* write path to Excel's
+    // "the write lands, the anchor turns `#SPILL!`", but explicitly keeps
+    // whole-request rejection for sort and auto-fill: Excel likewise refuses
+    // a drag that would rewrite part of an array ("You can't change part of
+    // an array"). Phases 1/2 must leave the gates below exactly as they are.
+
+    /// Install a `rows x 1` array anchored at `anchor`, so `anchor` is a spill
+    /// anchor and the rows below it are spilled (non-anchor) targets.
+    fn spill_column(wb: &mut Workbook, anchor: &str, values: &[f64]) {
+        let data: Vec<Value> = values.iter().copied().map(Value::Number).collect();
+        wb.sheet_mut(0)
+            .unwrap()
+            .set_array(
+                anchor,
+                Arc::new(ArrayData::new(values.len() as u32, 1, data)),
+            )
+            .unwrap();
+    }
+
+    /// `plan_copy` gate. The drag crosses a foreign spill range, so the whole
+    /// request fails and reports the first spilled address the planner met.
+    #[test]
+    fn copy_fill_into_a_foreign_spill_range_is_rejected_with_that_address() {
+        let mut wb = Workbook::new();
+        wb.set_cell(0, "A1", Value::Number(7.0));
+        // Anchor A4, spilled targets A5 / A6.
+        spill_column(&mut wb, "A4", &[10.0, 20.0, 30.0]);
+
+        let error = wb
+            .apply_auto_fill(&request(
+                range("A1", "A1"),
+                range("A1", "A6"),
+                AutoFillDirection::Down,
+                AutoFillSeries::Copy,
+                None,
+            ))
+            .unwrap_err();
+
+        // `write_range` is A2:A6 and iterates row-major, so A5 is the first
+        // spilled cell reached — A4 is the anchor and `is_spilled` excludes it.
+        assert_eq!(error, AutoFillError::SpillTarget(addr("A5")));
+        assert_eq!(
+            error.to_string(),
+            "auto-fill target A5 belongs to a spilled array"
+        );
+        let sheet = wb.sheet(0).unwrap();
+        // Whole request rejected: cells the planner walked past before the
+        // gate fired were never written.
+        assert_eq!(sheet.peek_value(addr("A2")), Value::Null);
+        assert_eq!(sheet.peek_value(addr("A3")), Value::Null);
+        // Spill intact.
+        assert_eq!(sheet.peek_value(addr("A6")), Value::Number(30.0));
+    }
+
+    /// `plan_numeric_series` gate. It sits after source validation, so the
+    /// source must be a canonical series for the request to reach it at all.
+    #[test]
+    fn numeric_series_fill_into_a_foreign_spill_range_is_rejected_with_that_address() {
+        for (series, step) in [
+            (AutoFillSeries::IntegerStep, 1.0),
+            (AutoFillSeries::DecimalStep, 0.5),
+        ] {
+            let mut wb = Workbook::new();
+            wb.set_cell(0, "A1", Value::Number(step));
+            wb.set_cell(0, "A2", Value::Number(step * 2.0));
+            // Anchor A5, spilled target A6.
+            spill_column(&mut wb, "A5", &[10.0, 20.0]);
+
+            let error = wb
+                .apply_auto_fill(&request(
+                    range("A1", "A2"),
+                    range("A1", "A6"),
+                    AutoFillDirection::Down,
+                    series,
+                    Some(step),
+                ))
+                .unwrap_err();
+
+            assert_eq!(error, AutoFillError::SpillTarget(addr("A6")));
+            let sheet = wb.sheet(0).unwrap();
+            assert_eq!(sheet.peek_value(addr("A3")), Value::Null);
+            assert_eq!(sheet.peek_value(addr("A4")), Value::Null);
+            assert_eq!(sheet.peek_value(addr("A6")), Value::Number(20.0));
+        }
+    }
+
+    /// `plan_generated` gate — the single raise site shared by every
+    /// generated series. Each family is exercised so a future refactor that
+    /// gives one of them its own loop cannot silently lose the gate.
+    #[test]
+    fn generated_series_fill_into_a_foreign_spill_range_is_rejected_with_that_address() {
+        // Linear trend: three canonical sources, then anchor D4 / target D5.
+        let mut wb = Workbook::new();
+        for (cell, value) in [("D1", 1.0), ("D2", 2.0), ("D3", 3.0)] {
+            wb.set_cell(0, cell, Value::Number(value));
+        }
+        spill_column(&mut wb, "D4", &[10.0, 20.0]);
+        let error = wb
+            .apply_auto_fill(&request(
+                range("D1", "D3"),
+                range("D1", "D5"),
+                AutoFillDirection::Down,
+                AutoFillSeries::LinearTrend,
+                Some(1.0),
+            ))
+            .unwrap_err();
+        assert_eq!(error, AutoFillError::SpillTarget(addr("D5")));
+        assert_eq!(
+            wb.sheet(0).unwrap().peek_value(addr("D5")),
+            Value::Number(20.0)
+        );
+
+        // Calendar series: two consecutive date serials, anchor E3 / target E4.
+        let mut wb = Workbook::new();
+        wb.set_cell(0, "E1", Value::Number(45000.0));
+        wb.set_cell(0, "E2", Value::Number(45001.0));
+        spill_column(&mut wb, "E3", &[10.0, 20.0]);
+        let error = wb
+            .apply_auto_fill(&request(
+                range("E1", "E2"),
+                range("E1", "E4"),
+                AutoFillDirection::Down,
+                AutoFillSeries::DateDay,
+                Some(1.0),
+            ))
+            .unwrap_err();
+        assert_eq!(error, AutoFillError::SpillTarget(addr("E4")));
+
+        // Text-number series: witness must match the sources to reach the gate.
+        let mut wb = Workbook::new();
+        wb.set_cell(0, "F1", Value::Text("Item01".to_string()));
+        wb.set_cell(0, "F2", Value::Text("Item02".to_string()));
+        spill_column(&mut wb, "F3", &[10.0, 20.0]);
+        let mut text_request = request(
+            range("F1", "F2"),
+            range("F1", "F4"),
+            AutoFillDirection::Down,
+            AutoFillSeries::TextNumber,
+            Some(1.0),
+        );
+        text_request.text_pattern = Some(AutoFillTextPattern {
+            prefix: "Item".to_string(),
+            suffix: String::new(),
+            width: 2,
+        });
+        assert_eq!(
+            wb.apply_auto_fill(&text_request).unwrap_err(),
+            AutoFillError::SpillTarget(addr("F4"))
+        );
+
+        // Named list (custom list and both built-in list flavours share the
+        // planner). Anchor G2 / target G3.
+        let mut wb = Workbook::new();
+        wb.set_cell(0, "G1", Value::Text("small".to_string()));
+        spill_column(&mut wb, "G2", &[10.0, 20.0]);
+        let mut list_request = request(
+            range("G1", "G1"),
+            range("G1", "G3"),
+            AutoFillDirection::Down,
+            AutoFillSeries::CustomList,
+            Some(1.0),
+        );
+        list_request.list = Some(AutoFillListWitness {
+            list_name: "sizes".to_string(),
+            values: ["small", "medium", "large"]
+                .iter()
+                .map(|value| (*value).to_string())
+                .collect(),
+            locale: "en".to_string(),
+        });
+        assert_eq!(
+            wb.apply_auto_fill(&list_request).unwrap_err(),
+            AutoFillError::SpillTarget(addr("G3"))
+        );
+    }
+
+    /// Negative control for all three gates: a spill that does not overlap the
+    /// write rectangle must not block anything. Guards this family against
+    /// being widened to "any spill on the sheet" or "anywhere in the target
+    /// range" — an over-broad gate would reject every fill on a sheet that
+    /// happens to hold a dynamic array.
+    #[test]
+    fn a_spill_outside_the_write_range_does_not_block_auto_fill() {
+        let mut wb = Workbook::new();
+        // Anchor Z1, spilled targets Z2 / Z3 — a different column entirely.
+        spill_column(&mut wb, "Z1", &[10.0, 20.0, 30.0]);
+
+        wb.set_cell(0, "A1", Value::Number(7.0));
+        wb.apply_auto_fill(&request(
+            range("A1", "A1"),
+            range("A1", "A3"),
+            AutoFillDirection::Down,
+            AutoFillSeries::Copy,
+            None,
+        ))
+        .unwrap();
+
+        wb.set_cell(0, "B1", Value::Number(1.0));
+        wb.set_cell(0, "B2", Value::Number(2.0));
+        wb.apply_auto_fill(&request(
+            range("B1", "B2"),
+            range("B1", "B4"),
+            AutoFillDirection::Down,
+            AutoFillSeries::IntegerStep,
+            Some(1.0),
+        ))
+        .unwrap();
+
+        for (cell, value) in [("C1", 2.0), ("C2", 4.0), ("C3", 6.0)] {
+            wb.set_cell(0, cell, Value::Number(value));
+        }
+        wb.apply_auto_fill(&request(
+            range("C1", "C3"),
+            range("C1", "C4"),
+            AutoFillDirection::Down,
+            AutoFillSeries::LinearTrend,
+            Some(2.0),
+        ))
+        .unwrap();
+
+        let sheet = wb.sheet(0).unwrap();
+        assert_eq!(sheet.peek_value(addr("A3")), Value::Number(7.0));
+        assert_eq!(sheet.peek_value(addr("B4")), Value::Number(4.0));
+        assert_eq!(sheet.peek_value(addr("C4")), Value::Number(8.0));
+        // Spill untouched.
+        assert_eq!(sheet.peek_value(addr("Z3")), Value::Number(30.0));
+        assert!(sheet.is_spilled(addr("Z3")));
+    }
+
+    /// Second negative control: the gate covers `write_range` only, never the
+    /// source. A drag whose *source* sits inside somebody else's spill is
+    /// legal — auto-fill only reads there — and the projected element values
+    /// are what get copied out.
+    #[test]
+    fn a_source_inside_a_spill_range_is_read_not_gated() {
+        let mut wb = Workbook::new();
+        // Anchor A1, spilled targets A2 / A3.
+        spill_column(&mut wb, "A1", &[10.0, 20.0, 30.0]);
+
+        // Source A2:A3 is entirely spilled; write_range is A4:A5.
+        wb.apply_auto_fill(&request(
+            range("A2", "A3"),
+            range("A2", "A5"),
+            AutoFillDirection::Down,
+            AutoFillSeries::Copy,
+            None,
+        ))
+        .unwrap();
+
+        let sheet = wb.sheet(0).unwrap();
+        assert_eq!(sheet.peek_value(addr("A4")), Value::Number(20.0));
+        assert_eq!(sheet.peek_value(addr("A5")), Value::Number(30.0));
+        // Read-only: the spill itself is unchanged.
+        assert!(sheet.is_spilled(addr("A3")));
+        assert_eq!(sheet.peek_value(addr("A3")), Value::Number(30.0));
+    }
+
+    /// Characterization, NOT an endorsement: `is_spilled` is false for a spill
+    /// *anchor*, so a fill whose write rectangle covers the anchor but not the
+    /// whole spill passes the gate, overwrites the anchor, and tears the array
+    /// down. Excel refuses this ("You can't change part of an array") and
+    /// `sort.rs` refuses it too — `SortRangeError::SpillIntersectsRange` fires
+    /// on anchor intersection (`spill_anchor_inside_range_rejects`). The
+    /// asymmetry is recorded here so any future change to it is visible;
+    /// adjudicating it is out of scope for this test pass.
+    #[test]
+    fn a_fill_over_a_spill_anchor_alone_is_not_gated_and_tears_the_array_down() {
+        let mut wb = Workbook::new();
+        wb.set_cell(0, "A1", Value::Number(1.0));
+        // Anchor A3, spilled target A4.
+        spill_column(&mut wb, "A3", &[7.0, 8.0]);
+
+        // write_range is A2:A3 — it covers the anchor but not A4.
+        let report = wb
+            .apply_auto_fill(&request(
+                range("A1", "A1"),
+                range("A1", "A3"),
+                AutoFillDirection::Down,
+                AutoFillSeries::Copy,
+                None,
+            ))
+            .unwrap();
+        assert_eq!(report.written, 2);
+
+        let sheet = wb.sheet(0).unwrap();
+        assert_eq!(sheet.peek_value(addr("A3")), Value::Number(1.0));
+        // The array is gone rather than orphaned: A4 is cleared and no longer
+        // reports as spilled.
+        assert_eq!(sheet.peek_value(addr("A4")), Value::Null);
+        assert!(!sheet.is_spilled(addr("A4")));
     }
 }

@@ -21,8 +21,12 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const here = dirname(fileURLToPath(import.meta.url))
-const repoRoot = resolve(here, '..', '..', '..')
-const evalRsPath = resolve(repoRoot, 'rust', 'excel-core', 'src', 'eval.rs')
+// `<repo>/excel/` — the pnpm workspace root that holds every package plus
+// `rust/`. NOT the git root: it was mislabeled `repoRoot` and resolved one
+// level too high, so this script crashed with ENOENT on every invocation
+// and the "just re-run the generator" maintenance story never worked.
+const workspaceRoot = resolve(here, '..', '..')
+const evalRsPath = resolve(workspaceRoot, 'rust', 'excel-core', 'src', 'eval.rs')
 const outPath = resolve(here, '..', 'src', 'custom-formulas', 'engine-builtin-names.ts')
 
 const src = readFileSync(evalRsPath, 'utf8')

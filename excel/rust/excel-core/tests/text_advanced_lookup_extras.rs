@@ -80,6 +80,10 @@ fn text_before_after_empty_delimiter_and_match_end() {
     );
 }
 
+/// Gated per-test rather than per-file: the rest of this file (TEXTSPLIT /
+/// LOOKUP / FORMULATEXT / AREAS / ENCODEURL) is feature-independent and
+/// must keep running in the lite build.
+#[cfg(feature = "regex-formulas")]
 #[test]
 fn regex_extract_and_replace_excel_edges() {
     let mut wb = Workbook::new();

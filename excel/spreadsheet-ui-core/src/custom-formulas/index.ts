@@ -32,16 +32,32 @@ export const MAX_CUSTOM_FORMULA_REGISTRY_ENTRIES = 10_000
  * Set of built-in formula names that user code cannot redefine.
  *
  * Built from the union of:
- *   1. `ENGINE_BUILTIN_FORMULA_NAMES` — the authoritative mirror of the
- *      Rust engine's `is_builtin_function_name` arms (see
- *      `scripts/extract-builtin-names.mjs`). Covers every name the
- *      WASM evaluator would dispatch to a built-in arm, including
- *      `LAMBDA`, `LET`, `IFERROR`, `XLOOKUP`, `MAP`, `REDUCE`, etc.
- *      that the IntelliSense seed registry does not surface.
+ *   1. `ENGINE_BUILTIN_FORMULA_NAMES` — an exact mirror of the Rust
+ *      engine's `is_builtin_function_name` arms (see
+ *      `scripts/extract-builtin-names.mjs`; drift is caught by
+ *      `test/engine-builtin-mirror.test.ts`). Includes `LAMBDA`, `LET`,
+ *      `IFERROR`, `XLOOKUP`, `MAP`, `REDUCE`, etc. that the
+ *      IntelliSense seed registry does not surface.
  *   2. `FORMULA_FUNCTION_SPECS` — the IntelliSense seed registry. The
  *      Rust mirror should already include every name here, but we
  *      union both so a forgotten extraction never reopens a shadowing
  *      hole.
+ *
+ * Remaining gap: the `REGEX*` trio (`REGEXTEST` / `REGEXEXTRACT` /
+ * `REGEXREPLACE`) is dispatched by the engine but deliberately NOT
+ * reserved, so a host can still register those names and the full
+ * build will shadow the registration (precedence is built-in →
+ * defined-name LAMBDA → custom formula → `#NAME?`). They are the only
+ * `#[cfg(feature = "regex-formulas")]`-gated built-ins — under a lite
+ * build they do not exist and polyfilling them here is legitimate, so
+ * the trade-off is an open owner decision, registered explicitly in
+ * `RESERVED_NAME_WHITELIST` in
+ * `excel/rust/excel-core/tests/reserved_name_parity.rs`. The other 71
+ * names that used to leak (the `IM*` complex family, the extended
+ * finance batch, the text/info batch, the `RANKEQ` / `RANKAVG`
+ * aliases) are now reserved, and that gate asserts the set stays
+ * closed. Closing the rest means adding arms on the Rust side, not
+ * widening this set.
  *
  * Normalizes to upper-case so callers can use either case in lookups.
  */

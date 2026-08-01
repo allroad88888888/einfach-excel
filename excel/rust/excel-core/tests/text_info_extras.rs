@@ -4,7 +4,8 @@
 //!   - UNICHAR / UNICODE
 //!   - NUMBERVALUE
 //!   - ARRAYTOTEXT / VALUETOTEXT
-//!   - REGEXTEST / REGEXEXTRACT / REGEXREPLACE
+//!   - REGEXTEST / REGEXEXTRACT / REGEXREPLACE (only under the
+//!     `regex-formulas` feature — see the gated test below)
 //!   - ISFORMULA / SHEET / SHEETS / INFO
 //!
 //! These round-trip through a real `Workbook` so the workbook-context
@@ -115,6 +116,10 @@ fn numbervalue_valuetotext_round_trip() {
 
 /// REGEXREPLACE in the workbook context. Picks the 2nd `\d` occurrence
 /// and replaces it with `Z`; everything else stays intact.
+///
+/// Gated per-test rather than per-file: everything else in this file is
+/// feature-independent and must keep running in the lite build.
+#[cfg(feature = "regex-formulas")]
 #[test]
 fn regexreplace_nth_occurrence_in_cell() {
     let mut wb = Workbook::new();

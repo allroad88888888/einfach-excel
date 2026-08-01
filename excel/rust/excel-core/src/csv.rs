@@ -145,7 +145,18 @@ fn value_to_csv_field(v: &Value) -> String {
         Value::Boolean(true) => "TRUE".into(),
         Value::Boolean(false) => "FALSE".into(),
         Value::Null => String::new(),
-        Value::Error(e) => format!("{}", e),
+        // NOT `format!("{}", e)`: CSV export is a RENDERING boundary — the
+        // field is what a user opens in a spreadsheet — so it speaks Excel's
+        // error vocabulary, not the engine's diagnostic one. `Display` would
+        // leak `#TYPE!` / `#ARGS!`, codes Excel does not have. See
+        // `format::error_display_token`.
+        //
+        // This is a one-way channel: `import_csv` never re-parses an error
+        // token (only `=`-prefixed fields reach the formula parser, and
+        // `parse_error_literal` is only reachable from there), so a
+        // round-tripped error field comes back as `Value::Text` either way
+        // and collapsing the token here costs no fidelity.
+        Value::Error(e) => crate::error_display_token(e).into_owned(),
         // Phase 1 spill plumbing: CSV export of an anchor cell collapses
         // to the top-left element. Spilled cells already render their
         // own scalar via the derived atom, so they hit one of the scalar
@@ -166,6 +177,7 @@ fn value_to_csv_field(v: &Value) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use einfach_core::ValueError;
 
     #[test]
     fn parse_simple() {
@@ -218,5 +230,36 @@ mod tests {
         let mut sheet = Sheet::new();
         import_csv(&mut sheet, "10,20,=A1+B1", CellAddress::new(0, 0));
         assert_eq!(sheet.get_cell("C1"), Value::Number(30.0));
+    }
+
+    /// CSV export goes through the display boundary, so the engine-internal
+    /// `WrongType` variant renders as Excel's `#VALUE!` — never `#TYPE!`,
+    /// a code Excel does not have.
+    #[test]
+    fn export_renders_wrong_type_as_value_token() {
+        let mut sheet = Sheet::new();
+        sheet.set_cell("A1", Value::Text("yes".into()));
+        sheet.set_formula("B1", "=NOT(A1)");
+        assert_eq!(
+            sheet.get_cell("B1"),
+            Value::Error(ValueError::WrongType),
+            "precondition: NOT(text) must grade as the internal WrongType variant"
+        );
+
+        let exported = export_csv(&mut sheet, CellAddress::new(0, 1), CellAddress::new(0, 1));
+        assert_eq!(exported, "#VALUE!");
+    }
+
+    /// Import never re-parses an error token, so the export-side collapse of
+    /// `#TYPE!` -> `#VALUE!` costs no round-trip fidelity: both tokens land
+    /// as `Value::Text`, neither becomes a `Value::Error`. This is what makes
+    /// the display boundary safe to apply in `value_to_csv_field`.
+    #[test]
+    fn import_does_not_revive_error_tokens() {
+        let mut sheet = Sheet::new();
+        import_csv(&mut sheet, "#VALUE!,#TYPE!,#DIV/0!", CellAddress::new(0, 0));
+        assert_eq!(sheet.get_cell("A1"), Value::Text("#VALUE!".into()));
+        assert_eq!(sheet.get_cell("B1"), Value::Text("#TYPE!".into()));
+        assert_eq!(sheet.get_cell("C1"), Value::Text("#DIV/0!".into()));
     }
 }

@@ -108,16 +108,26 @@ are owned; it is a separate follow-up rather than an implied core guarantee.
   1. `ENGINE_BUILTIN_FORMULA_NAMES` — the authoritative mirror of the
      Rust evaluator's `is_builtin_function_name` arms, auto-generated
      by `scripts/extract-builtin-names.mjs` from
-     `excel/rust/excel-core/src/eval.rs` (currently 426 names including
-     `LAMBDA`, `LET`, `IFERROR`, `XLOOKUP`, `MAP`, `REDUCE`, …).
+     `excel/rust/excel-core/src/eval.rs` (includes `LAMBDA`, `LET`,
+     `IFERROR`, `XLOOKUP`, `MAP`, `REDUCE`, the `IM*` complex family,
+     the finance batch, …).
   2. `FORMULA_FUNCTION_SPECS` — the IntelliSense seed registry under
      `formula-functions/registry.ts`.
 - Re-registering an existing custom name silently replaces the previous
   source / metadata (Excel semantics).
+- **One deliberate hole**: `REGEXTEST` / `REGEXEXTRACT` / `REGEXREPLACE`
+  are dispatched by the engine but not reserved, so registering them is
+  accepted and a full (non-lite) build shadows the registration. They
+  are the only `regex-formulas`-gated built-ins; the trade-off is an
+  open owner decision recorded in `RESERVED_NAME_WHITELIST` in
+  `excel/rust/excel-core/tests/reserved_name_parity.rs`.
 
 If the Rust engine adds a new built-in arm, re-run
 `node excel/spreadsheet-ui-core/scripts/extract-builtin-names.mjs`
-to refresh `engine-builtin-names.ts`.
+to refresh `engine-builtin-names.ts`. Forgetting the arm itself is
+caught by `excel/rust/excel-core/tests/reserved_name_parity.rs`;
+forgetting the regeneration is caught by
+`excel/spreadsheet-ui-core/test/engine-builtin-mirror.test.ts`.
 
 ## JS callback signature
 
@@ -198,8 +208,25 @@ Plain-value contract (see `CustomFormulaArg` / `CustomFormulaReturn`):
 where `CustomFormulaScalar = number | string | boolean | null`. See
 `excel/rust/excel-core/src/CUSTOM_FORMULAS.md` "Marshaling" for the full
 JsValue ↔ Value mapping, including the structured-error return form
-(`{ error: '#DIV/0!' }`) and the Excel error tokens that round-trip
-back to `Value::Error`.
+(`{ error: '#DIV/0!' }`) and the error tokens a callback may return.
+
+**Returned token ≠ displayed token.** The token list a callback may return
+is wider than the set of codes a cell can show. Two tokens differ today,
+both because Excel has no code for them:
+
+- `#TYPE!` — the engine keeps `WrongType` internally (it is what the
+  built-in argument-type guards and the "returned a Date/function/object"
+  marshaling fallback produce).
+- `#ARGS!` — the engine keeps `WrongArgCount` internally (the arity
+  guards). Excel rejects a wrong argument count at *entry time* with a
+  dialog, so it never becomes a cell error there at all.
+
+Every rendering boundary maps both to `#VALUE!`. So returning
+`{ error: '#TYPE!' }`, `{ error: '#ARGS!' }` and `{ error: '#VALUE!' }`
+produce identical cell text, and a test asserting on cell text must expect
+`#VALUE!`. Prefer `#VALUE!` in new host code. `#CYCLE!` is non-Excel too
+but is deliberately shown as-is. Full rationale in `CUSTOM_FORMULAS.md`
+§ "Internal vs displayed codes".
 
 ## Dependency tracking
 

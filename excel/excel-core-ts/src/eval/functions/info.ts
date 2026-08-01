@@ -337,6 +337,10 @@ const ERROR_TYPE_CODES: Partial<Record<ErrorCode, number>> = {
   '#SPILL!': 9,
   '#CALC!': 14,
   '#CYCLE!': 4,
+  // Both grade as 3 — `#VALUE!`'s number — which is exactly what a cell
+  // holding either one DISPLAYS (`errorDisplayToken` collapses them; Excel
+  // has neither code). Keeping the rows means a value that arrived over the
+  // wire still grades correctly; the numbers already agree with the collapse.
   '#TYPE!': 3,
   '#ARGS!': 3,
   '#CIRCULAR!': 4,

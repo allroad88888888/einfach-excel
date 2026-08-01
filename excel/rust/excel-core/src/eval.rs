@@ -1,3 +1,14 @@
+// The REGEX* built-ins (REGEXTEST / REGEXEXTRACT / REGEXREPLACE) and the
+// compiled-regex cache they share. Gating the whole module here is what keeps
+// the `regex` crate out of the lite wasm build — see the `regex-formulas`
+// feature in `Cargo.toml`. The only other `#[cfg]`s the feature needs are the
+// three dispatch arms in `eval_func`. `#[path]` keeps the file flat in `src/`
+// alongside the crate's other modules while leaving it a child of `eval`, so
+// it can use this module's private helpers without widening their visibility.
+#[cfg(feature = "regex-formulas")]
+#[path = "eval_regex.rs"]
+mod eval_regex;
+
 use std::cell::{Cell, RefCell};
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
@@ -6,6 +17,7 @@ use std::sync::Arc;
 use einfach_core::{ArrayData, AtomId, LambdaValue, Value, ValueError};
 
 use crate::cell::CellAddress;
+use crate::filter::{js_numeric_value, js_trim};
 use crate::formula::{BinOperator, Expr, TableArea};
 use crate::range::CellRange;
 use crate::shift::{REF_INVALID_COL, REF_INVALID_ROW};
@@ -91,21 +103,49 @@ thread_local! {
 /// limit of 8191.
 pub(crate) const MAX_NAMED_CALL_DEPTH: usize = 32;
 
-/// True iff `name` (already uppercased per Excel name conventions) is a
-/// dispatched built-in function in `eval_func`. Used by the workbook
-/// defined-name registry to reject `define_name("SUM", ...)`-style
-/// shadowing — the dispatch table would beat the registry anyway, so
-/// forbidding the registration avoids a silently-ignored entry.
+/// True iff `name` (already uppercased per Excel name conventions) is
+/// on the reserved-name list. Used by the workbook defined-name
+/// registry to reject `define_name("SUM", ...)`-style shadowing — the
+/// dispatch table would beat the registry anyway, so forbidding the
+/// registration avoids a silently-ignored entry.
 ///
-/// **Maintenance**: this list mirrors the top-level `match` arms in
-/// `eval_func` and must be updated together with them. Drift is
-/// caught by `tests::reserved_name_list_mirrors_eval_func_dispatch` —
-/// any newly-added builtin without a matching entry here will fail
-/// that assertion.
+/// **This list must cover every name `eval_func` dispatches, minus an
+/// explicit whitelist.** It used to be a silent strict subset: 74 of
+/// the 500 dispatched names were missing (the whole `IM*` complex
+/// family, the extended finance batch — `ACCRINT` / `PRICE` / `YIELD` /
+/// `DB` / `SLN` / `XIRR` / … — the `ARRAYTOTEXT` / `UNICHAR` / `SHEET`
+/// text-info batch, and the undotted `RANKEQ` / `RANKAVG` aliases), so
+/// registering any of them was accepted and evaluation then shadowed
+/// it — exactly the silently-ignored entry this function exists to
+/// prevent. 71 of the 74 were added; the parity is now asserted, see
+/// below.
+///
+/// **The one deliberate exception** is the `REGEX*` trio
+/// (`REGEXTEST` / `REGEXEXTRACT` / `REGEXREPLACE`). They are the only
+/// dispatch arms behind `#[cfg(feature = "regex-formulas")]`, so under
+/// a lite build they are not built-ins at all and a host polyfilling
+/// them with a JS custom formula is a legitimate use. Reserving them
+/// unconditionally would kill that; not reserving them means the same
+/// workbook can compute different values under lite vs full. Both
+/// sides cost something and the call is the owner's, so they stay off
+/// the list and are registered in the gate's whitelist rather than
+/// merely forgotten. TODO(owner): decide.
+///
+/// **Maintenance**: the JS mirror
+/// `excel/spreadsheet-ui-core/src/custom-formulas/engine-builtin-names.ts`
+/// is generated from these arms — regenerate it with
+/// `node excel/spreadsheet-ui-core/scripts/extract-builtin-names.mjs`
+/// whenever an arm is added or removed. Drift between the two lists is
+/// caught by `excel/spreadsheet-ui-core/test/engine-builtin-mirror.test.ts`,
+/// which ALSO asserts `eval_func` dispatch ⊇ this list with the diff
+/// pinned to the `REGEX*` whitelist above. Add a built-in without
+/// adding it here and that suite fails.
 pub fn is_builtin_function_name(name: &str) -> bool {
     matches!(
         name,
         "ABS"
+            | "ACCRINT"
+            | "ACCRINTM"
             | "ACOS"
             | "ACOSH"
             | "ACOT"
@@ -113,9 +153,12 @@ pub fn is_builtin_function_name(name: &str) -> bool {
             | "ACSC"
             | "ADDRESS"
             | "AGGREGATE"
+            | "AMORDEGRC"
+            | "AMORLINC"
             | "AND"
             | "ARABIC"
             | "AREAS"
+            | "ARRAYTOTEXT"
             | "ASC"
             | "ASEC"
             | "ASIN"
@@ -173,6 +216,7 @@ pub fn is_builtin_function_name(name: &str) -> bool {
             | "COLUMNS"
             | "COMBIN"
             | "COMBINA"
+            | "COMPLEX"
             | "CONCAT"
             | "CONCATENATE"
             | "CONFIDENCE"
@@ -189,8 +233,11 @@ pub fn is_builtin_function_name(name: &str) -> bool {
             | "COUNTBLANK"
             | "COUNTIF"
             | "COUNTIFS"
+            | "COUPDAYBS"
+            | "COUPDAYS"
             | "COUPDAYSNC"
             | "COUPNCD"
+            | "COUPNUM"
             | "COUPPCD"
             | "COVAR"
             | "COVAR.P"
@@ -200,6 +247,8 @@ pub fn is_builtin_function_name(name: &str) -> bool {
             | "CRITBINOM"
             | "CSC"
             | "CSCH"
+            | "CUMIPMT"
+            | "CUMPRINC"
             | "DATE"
             | "DATEDIF"
             | "DATEVALUE"
@@ -207,9 +256,11 @@ pub fn is_builtin_function_name(name: &str) -> bool {
             | "DAY"
             | "DAYS"
             | "DAYS360"
+            | "DB"
             | "DBCS"
             | "DCOUNT"
             | "DCOUNTA"
+            | "DDB"
             | "DEC2BIN"
             | "DEC2HEX"
             | "DEC2OCT"
@@ -218,17 +269,22 @@ pub fn is_builtin_function_name(name: &str) -> bool {
             | "DELTA"
             | "DEVSQ"
             | "DGET"
+            | "DISC"
             | "DMAX"
             | "DMIN"
             | "DOLLAR"
+            | "DOLLARDE"
+            | "DOLLARFR"
             | "DPRODUCT"
             | "DROP"
             | "DSTDEV"
             | "DSTDEVP"
             | "DSUM"
+            | "DURATION"
             | "DVAR"
             | "DVARP"
             | "EDATE"
+            | "EFFECT"
             | "ENCODEURL"
             | "EOMONTH"
             | "ERF"
@@ -294,19 +350,45 @@ pub fn is_builtin_function_name(name: &str) -> bool {
             | "IFERROR"
             | "IFNA"
             | "IFS"
+            | "IMABS"
             | "IMAGE"
+            | "IMAGINARY"
+            | "IMARGUMENT"
+            | "IMCONJUGATE"
+            | "IMCOS"
+            | "IMCOSH"
+            | "IMCOT"
+            | "IMCSC"
             | "IMCSCH"
+            | "IMDIV"
+            | "IMEXP"
+            | "IMLN"
+            | "IMLOG10"
+            | "IMLOG2"
+            | "IMPOWER"
+            | "IMPRODUCT"
+            | "IMREAL"
+            | "IMSEC"
             | "IMSECH"
+            | "IMSIN"
+            | "IMSINH"
+            | "IMSQRT"
+            | "IMSUB"
+            | "IMSUM"
+            | "IMTAN"
             | "INDEX"
             | "INDIRECT"
+            | "INFO"
             | "INT"
             | "INTERCEPT"
+            | "INTRATE"
             | "IPMT"
             | "IRR"
             | "ISBLANK"
             | "ISERR"
             | "ISERROR"
             | "ISEVEN"
+            | "ISFORMULA"
             | "ISLOGICAL"
             | "ISNA"
             | "ISNONTEXT"
@@ -315,6 +397,7 @@ pub fn is_builtin_function_name(name: &str) -> bool {
             | "ISODD"
             | "ISOMITTED"
             | "ISOWEEKNUM"
+            | "ISPMT"
             | "ISREF"
             | "ISTEXT"
             | "JIS"
@@ -345,6 +428,7 @@ pub fn is_builtin_function_name(name: &str) -> bool {
             | "MAXA"
             | "MAXIFS"
             | "MDETERM"
+            | "MDURATION"
             | "MEDIAN"
             | "MID"
             | "MIDB"
@@ -353,6 +437,7 @@ pub fn is_builtin_function_name(name: &str) -> bool {
             | "MINIFS"
             | "MINUTE"
             | "MINVERSE"
+            | "MIRR"
             | "MMULT"
             | "MOD"
             | "MODE"
@@ -368,6 +453,7 @@ pub fn is_builtin_function_name(name: &str) -> bool {
             | "NEGBINOMDIST"
             | "NETWORKDAYS"
             | "NETWORKDAYS.INTL"
+            | "NOMINAL"
             | "NORM.DIST"
             | "NORM.INV"
             | "NORM.S.DIST"
@@ -380,6 +466,7 @@ pub fn is_builtin_function_name(name: &str) -> bool {
             | "NOW"
             | "NPER"
             | "NPV"
+            | "NUMBERVALUE"
             | "OCT2BIN"
             | "OCT2DEC"
             | "OCT2HEX"
@@ -408,6 +495,9 @@ pub fn is_builtin_function_name(name: &str) -> bool {
             | "POISSON.DIST"
             | "POWER"
             | "PPMT"
+            | "PRICE"
+            | "PRICEDISC"
+            | "PRICEMAT"
             | "PROB"
             | "PRODUCT"
             | "PROPER"
@@ -423,7 +513,10 @@ pub fn is_builtin_function_name(name: &str) -> bool {
             | "RANK"
             | "RANK.AVG"
             | "RANK.EQ"
+            | "RANKAVG"
+            | "RANKEQ"
             | "RATE"
+            | "RECEIVED"
             | "REDUCE"
             | "REPLACE"
             | "REPLACEB"
@@ -446,11 +539,14 @@ pub fn is_builtin_function_name(name: &str) -> bool {
             | "SECOND"
             | "SEQUENCE"
             | "SERIESSUM"
+            | "SHEET"
+            | "SHEETS"
             | "SIGN"
             | "SIN"
             | "SINH"
             | "SKEW"
             | "SKEW.P"
+            | "SLN"
             | "SLOPE"
             | "SMALL"
             | "SORT"
@@ -476,6 +572,7 @@ pub fn is_builtin_function_name(name: &str) -> bool {
             | "SUMX2PY2"
             | "SUMXMY2"
             | "SWITCH"
+            | "SYD"
             | "T"
             | "T.DIST"
             | "T.DIST.2T"
@@ -486,6 +583,9 @@ pub fn is_builtin_function_name(name: &str) -> bool {
             | "TAKE"
             | "TAN"
             | "TANH"
+            | "TBILLEQ"
+            | "TBILLPRICE"
+            | "TBILLYIELD"
             | "TDIST"
             | "TEXT"
             | "TEXTAFTER"
@@ -507,15 +607,19 @@ pub fn is_builtin_function_name(name: &str) -> bool {
             | "TRUNC"
             | "TTEST"
             | "TYPE"
+            | "UNICHAR"
+            | "UNICODE"
             | "UNIQUE"
             | "UPPER"
             | "VALUE"
+            | "VALUETOTEXT"
             | "VAR"
             | "VAR.P"
             | "VAR.S"
             | "VARA"
             | "VARP"
             | "VARPA"
+            | "VDB"
             | "VLOOKUP"
             | "VSTACK"
             | "WEEKDAY"
@@ -524,11 +628,16 @@ pub fn is_builtin_function_name(name: &str) -> bool {
             | "WEIBULL.DIST"
             | "WORKDAY"
             | "WORKDAY.INTL"
+            | "XIRR"
             | "XLOOKUP"
             | "XMATCH"
+            | "XNPV"
             | "XOR"
             | "YEAR"
             | "YEARFRAC"
+            | "YIELD"
+            | "YIELDDISC"
+            | "YIELDMAT"
             | "Z.TEST"
             | "ZTEST"
     )
@@ -1075,10 +1184,31 @@ pub fn eval_expr_with_provider(expr: &Expr, provider: &dyn EvalProvider) -> Valu
 
         Expr::Negate(inner) => {
             let v = eval_expr_with_provider(inner, provider);
-            match v {
-                Value::Number(n) => Value::Number(-n),
-                Value::Error(e) => Value::Error(e),
-                _ => Value::Error(ValueError::WrongType),
+            if let Value::Error(e) = v {
+                return Value::Error(e);
+            }
+            // 一元负号走的是和二元算术运算符**同一套**强制转换，所以
+            // `=-"5"` 是 `-5`、`=-TRUE` 是 `-1`、`=-A1`（A1 空）是 `0`。
+            match coerce_to_number_arith(&v) {
+                Some(n) => Value::Number(-n),
+                // Same Excel rule as the binary arithmetic operators: a
+                // failed numeric coercion under an arithmetic operator is
+                // `#VALUE!`, never `#TYPE!` (a code Excel does not have).
+                // `=-"abc"` 仍然落在这里。
+                None => Value::Error(ValueError::InvalidValue),
+            }
+        }
+
+        Expr::Percent(inner) => {
+            // 后缀 `%`：`=50%` → 0.5。与一元负号共用强制转换，所以
+            // `="50"%` 是 0.5 而 `="abc"%` 是 `#VALUE!`。
+            let v = eval_expr_with_provider(inner, provider);
+            if let Value::Error(e) = v {
+                return Value::Error(e);
+            }
+            match coerce_to_number_arith(&v) {
+                Some(n) => Value::Number(n / 100.0),
+                None => Value::Error(ValueError::InvalidValue),
             }
         }
 
@@ -1222,8 +1352,9 @@ fn eval_binop(op: BinOperator, left: &Value, right: &Value) -> Value {
         return Value::Boolean(eval_compare(op, left, right));
     }
 
-    let ln = coerce_to_number(left);
-    let rn = coerce_to_number(right);
+    // 算术专用的转换：比 `coerce_to_number` 多认数值字符串（`=1+"5"` → 6）。
+    let ln = coerce_to_number_arith(left);
+    let rn = coerce_to_number_arith(right);
 
     match (ln, rn) {
         (Some(l), Some(r)) => match op {
@@ -1251,7 +1382,15 @@ fn eval_binop(op: BinOperator, left: &Value, right: &Value) -> Value {
             _ => Value::Error(ValueError::InvalidValue),
         },
         // Arithmetic op with a non-numeric (non-coercible) operand.
-        _ => Value::Error(ValueError::WrongType),
+        //
+        // Excel reports this as `#VALUE!` (`=1+"x"`, `="x"+"y"`), and there
+        // is no `#TYPE!` code in Excel at all. `WrongType` stays reserved
+        // for the non-Excel diagnostics the engine deliberately keeps
+        // (built-in argument-type validation, custom-formula marshaling —
+        // see `CUSTOM_FORMULAS.md`); leaking it out of the arithmetic
+        // operators made every cross-engine parity check against the TS
+        // reference engine diverge on a plain `=1+"x"`.
+        _ => Value::Error(ValueError::InvalidValue),
     }
 }
 
@@ -1463,8 +1602,10 @@ fn broadcast_binop(op: BinOperator, l: Value, r: Value) -> Value {
     Value::Array(Arc::new(ArrayData::new(rows, cols, out)))
 }
 
-/// Coerce a value to a number for arithmetic.
-/// Null → 0, Boolean true → 1, false → 0, Number → itself.
+/// Coerce a value to a number. Null → 0, Boolean true → 1, false → 0,
+/// Number → itself. **Text is NOT accepted here** — see
+/// [`coerce_to_number_arith`] for the arithmetic-operator rule and the
+/// reason the two are separate.
 fn coerce_to_number(v: &Value) -> Option<f64> {
     match v {
         Value::Number(n) => Some(*n),
@@ -1473,6 +1614,70 @@ fn coerce_to_number(v: &Value) -> Option<f64> {
         Value::Boolean(false) => Some(0.0),
         _ => None,
     }
+}
+
+/// 算术运算符（`+ - * / ^`、一元负号、后缀 `%`）专用的数字强制转换。
+///
+/// 与 [`coerce_to_number`] 的**唯一**差别：接受「看起来是数字的文本」。
+/// Excel 里 `=1+"5"` 是 `6`、`="5"*"3"` 是 `15`，本仓的 TS 参考引擎
+/// （`excel-core-ts/src/eval/coerce.ts` 的 `toNumber`）也是；Rust 侧过去
+/// 一律 `#VALUE!`，是一条活的跨引擎分歧。
+///
+/// 为什么**不**直接放宽 `coerce_to_number`：它还喂着 [`eval_compare`] 和
+/// 两百多个内建函数。比较那条是硬伤 —— Excel 里文本永远大于任何数字，
+/// `="5"<10` 是 `FALSE`；`eval_compare` 今天靠「文本不可转数字 ⇒ 退化成
+/// 文本比较」拿到这个 Excel 正确答案，一旦文本能转数字就会变成 `TRUE`。
+/// 所以放宽只落在算术运算符上，比较与函数实参维持原样。
+fn coerce_to_number_arith(v: &Value) -> Option<f64> {
+    match v {
+        Value::Text(s) => coerce_text_to_number(s),
+        _ => coerce_to_number(v),
+    }
+}
+
+/// 文本 → 数字，逐字节对齐 TS 侧 `toNumber` 的 string 分支：
+///
+/// ```ts
+/// const trimmed = v.value.trim()
+/// if (trimmed.length === 0) return #VALUE!
+/// const n = Number(trimmed)
+/// if (!Number.isFinite(n)) return #VALUE!
+/// ```
+///
+/// 坑在于 **JS `Number()` 不是 Rust `str::parse::<f64>()`**。实测差异
+/// （trim 之后）：
+///
+/// | 输入 | `Number(x)` | `x.parse::<f64>()` | 本函数 |
+/// |------|-------------|--------------------|--------|
+/// | `""` | `0` | `Err` | `None`（TS 有显式空串守卫，先于 `Number`） |
+/// | `"0x10"` | `16` | `Err` | `Some(16.0)` |
+/// | `"0b101"` / `"0o17"` | `5` / `15` | `Err` | `Some(5.0)` / `Some(15.0)` |
+/// | `"inf"` / `"nan"` | `NaN` | `Ok(inf)` / `Ok(NaN)` | `None` |
+/// | `"Infinity"` | `∞` | `Ok(inf)` | `None`（非有限） |
+/// | `"1e999"` | `∞` | `Ok(inf)` | `None`（非有限） |
+/// | `"1_000"` | `NaN` | `Err` | `None` |
+/// | `"\u{feff}5"` | `5`（JS trim 吃 BOM） | `Err` | `Some(5.0)` |
+/// | `"\u{85}5"` | `NaN`（NEL 不是 JS 空白） | `Err` | `None` |
+///
+/// 所以这里复用 [`js_trim`] / [`js_numeric_value`] —— filter.rs 里那份
+/// 手写的 `StringNumericLiteral` 文法移植，不是 `parse::<f64>()`。
+///
+/// ⚠️ `0x` / `0b` / `0o` 三行是 **oracle 与 Excel 不一致**的地方：Excel
+/// 的 `=1+"0x10"` 是 `#VALUE!`，JS/TS 是 `17`。这里按「与 TS 引擎逐格
+/// 一致」取舍（跨引擎 parity 网的价值高于单侧的 Excel 保真度），要改就
+/// 两个引擎同批改。
+///
+/// 顺带一提：`"5%"` / `"1,000"` / `"$5"` / `"TRUE"` 两边都是 `#VALUE!`，
+/// 而 Excel 会认前三个（百分号、千分位、货币符号）。那是两个引擎共同
+/// 欠 Excel 的，不在本次范围。
+fn coerce_text_to_number(s: &str) -> Option<f64> {
+    let trimmed = js_trim(s);
+    // `Number("")` 是 `0` 而不是 NaN，TS 侧靠这道守卫把空串挡在外面。
+    // 少了它 `=1+""` 会答 1，而 Excel / TS 都是 `#VALUE!`。
+    if trimmed.is_empty() {
+        return None;
+    }
+    js_numeric_value(trimmed)
 }
 
 /// Stream a range through `provider.for_each_range_cell`. Used by the
@@ -8597,9 +8802,15 @@ fn eval_func(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
         "NUMBERVALUE" => fn_numbervalue(args, provider),
         "ARRAYTOTEXT" => fn_arraytotext(args, provider),
         "VALUETOTEXT" => fn_valuetotext(args, provider),
-        "REGEXTEST" => fn_regextest(args, provider),
-        "REGEXEXTRACT" => fn_regexextract(args, provider),
-        "REGEXREPLACE" => fn_regexreplace(args, provider),
+        // Gated on `regex-formulas`. With the feature off these three names
+        // are absent from the dispatch table, so they take the `_` arm into
+        // `eval_named_call` and end at `#NAME?` — no special-casing needed.
+        #[cfg(feature = "regex-formulas")]
+        "REGEXTEST" => eval_regex::fn_regextest(args, provider),
+        #[cfg(feature = "regex-formulas")]
+        "REGEXEXTRACT" => eval_regex::fn_regexextract(args, provider),
+        #[cfg(feature = "regex-formulas")]
+        "REGEXREPLACE" => eval_regex::fn_regexreplace(args, provider),
         "ISFORMULA" => fn_isformula(args, provider),
         "SHEET" => fn_sheet(args, provider),
         "SHEETS" => fn_sheets(args, provider),
@@ -15343,261 +15554,6 @@ fn render_array_to_text(arr: &Arc<ArrayData>, strict: bool) -> Value {
         }
     }
     Value::Text(format_grid(&grid, strict))
-}
-
-fn compile_regex(pattern: &str, case_insensitive: bool) -> Result<regex::Regex, regex::Error> {
-    if case_insensitive {
-        regex::Regex::new(&format!("(?i){}", pattern))
-    } else {
-        regex::Regex::new(pattern)
-    }
-}
-
-fn read_case_arg(arg: &Expr, provider: &dyn EvalProvider) -> Result<bool, Value> {
-    let v = eval_expr_with_provider(arg, provider);
-    if let Value::Error(e) = v {
-        return Err(Value::Error(e));
-    }
-    match coerce_to_number(&v) {
-        Some(n) => Ok(n.trunc() != 0.0),
-        None => Err(Value::Error(ValueError::WrongType)),
-    }
-}
-
-fn expand_regex_replacement(
-    replacement: &str,
-    caps: &regex::Captures<'_>,
-    full_text: &str,
-) -> String {
-    let Some(full) = caps.get(0) else {
-        return replacement.to_string();
-    };
-    let mut out = String::new();
-    let mut chars = replacement.chars().peekable();
-    while let Some(ch) = chars.next() {
-        if ch != '$' {
-            out.push(ch);
-            continue;
-        }
-        let Some(marker) = chars.next() else {
-            out.push('$');
-            break;
-        };
-        match marker {
-            '$' => out.push('$'),
-            '&' => out.push_str(full.as_str()),
-            '`' => out.push_str(&full_text[..full.start()]),
-            '\'' => out.push_str(&full_text[full.end()..]),
-            d if d.is_ascii_digit() => {
-                let mut token = String::from("$");
-                token.push(d);
-                let mut digits = String::new();
-                digits.push(d);
-                if let Some(next) = chars.peek().copied() {
-                    if next.is_ascii_digit() {
-                        chars.next();
-                        token.push(next);
-                        digits.push(next);
-                    }
-                }
-                let idx = digits.parse::<usize>().ok();
-                if let Some(i) = idx {
-                    if i > 0 && i < caps.len() {
-                        out.push_str(caps.get(i).map(|m| m.as_str()).unwrap_or(""));
-                    } else {
-                        out.push_str(&token);
-                    }
-                } else {
-                    out.push_str(&token);
-                }
-            }
-            other => {
-                out.push('$');
-                out.push(other);
-            }
-        }
-    }
-    out
-}
-
-fn fn_regextest(args: &[Expr], provider: &dyn EvalProvider) -> Value {
-    if args.len() < 2 || args.len() > 3 {
-        return Value::Error(ValueError::WrongArgCount);
-    }
-    let text_v = eval_expr_with_provider(&args[0], provider);
-    if let Value::Error(e) = text_v {
-        return Value::Error(e);
-    }
-    let pat_v = eval_expr_with_provider(&args[1], provider);
-    if let Value::Error(e) = pat_v {
-        return Value::Error(e);
-    }
-    let case_insensitive = if args.len() == 3 {
-        match read_case_arg(&args[2], provider) {
-            Ok(b) => b,
-            Err(v) => return v,
-        }
-    } else {
-        false
-    };
-    let text = coerce_to_text(&text_v);
-    let pattern = coerce_to_text(&pat_v);
-    match compile_regex(&pattern, case_insensitive) {
-        Ok(re) => Value::Boolean(re.is_match(&text)),
-        Err(_) => Value::Error(ValueError::InvalidValue),
-    }
-}
-
-fn fn_regexextract(args: &[Expr], provider: &dyn EvalProvider) -> Value {
-    if args.len() < 2 || args.len() > 4 {
-        return Value::Error(ValueError::WrongArgCount);
-    }
-    let text_v = eval_expr_with_provider(&args[0], provider);
-    if let Value::Error(e) = text_v {
-        return Value::Error(e);
-    }
-    let pat_v = eval_expr_with_provider(&args[1], provider);
-    if let Value::Error(e) = pat_v {
-        return Value::Error(e);
-    }
-    let mode = if args.len() >= 3 {
-        let mv = eval_expr_with_provider(&args[2], provider);
-        if let Value::Error(e) = mv {
-            return Value::Error(e);
-        }
-        match coerce_to_number(&mv) {
-            Some(n) => n.trunc() as i64,
-            None => return Value::Error(ValueError::WrongType),
-        }
-    } else {
-        0
-    };
-    let case_insensitive = if args.len() == 4 {
-        match read_case_arg(&args[3], provider) {
-            Ok(b) => b,
-            Err(v) => return v,
-        }
-    } else {
-        false
-    };
-    let text = coerce_to_text(&text_v);
-    let pattern = coerce_to_text(&pat_v);
-    let re = match compile_regex(&pattern, case_insensitive) {
-        Ok(r) => r,
-        Err(_) => return Value::Error(ValueError::InvalidValue),
-    };
-    match mode {
-        0 => {
-            match re.find(&text) {
-                Some(m) => Value::Text(m.as_str().to_string()),
-                // Excel surfaces `#N/A` for "no match"; we don't have a
-                // distinct N/A enum yet, so InvalidValue is the closest.
-                None => Value::Error(ValueError::InvalidValue),
-            }
-        }
-        1 => {
-            let matches: Vec<Value> = re
-                .find_iter(&text)
-                .map(|m| Value::Text(m.as_str().to_string()))
-                .collect();
-            if matches.is_empty() {
-                return Value::Error(ValueError::InvalidValue);
-            }
-            let n = matches.len() as u32;
-            // 1-column array (one match per row) is how Excel returns this
-            // when the pattern has no capture groups in mode 1.
-            Value::Array(Arc::new(ArrayData::new(n, 1, matches)))
-        }
-        2 => {
-            let Some(caps) = re.captures(&text) else {
-                return Value::Error(ValueError::InvalidValue);
-            };
-            if caps.len() <= 1 {
-                return Value::Error(ValueError::InvalidValue);
-            }
-            let data: Vec<Value> = (1..caps.len())
-                .map(|i| Value::Text(caps.get(i).map(|m| m.as_str()).unwrap_or("").to_string()))
-                .collect();
-            Value::Array(Arc::new(ArrayData::new(1, data.len() as u32, data)))
-        }
-        _ => Value::Error(ValueError::InvalidValue),
-    }
-}
-
-fn fn_regexreplace(args: &[Expr], provider: &dyn EvalProvider) -> Value {
-    if args.len() < 3 || args.len() > 5 {
-        return Value::Error(ValueError::WrongArgCount);
-    }
-    let text_v = eval_expr_with_provider(&args[0], provider);
-    if let Value::Error(e) = text_v {
-        return Value::Error(e);
-    }
-    let pat_v = eval_expr_with_provider(&args[1], provider);
-    if let Value::Error(e) = pat_v {
-        return Value::Error(e);
-    }
-    let rep_v = eval_expr_with_provider(&args[2], provider);
-    if let Value::Error(e) = rep_v {
-        return Value::Error(e);
-    }
-    let occurrence: i64 = if args.len() >= 4 {
-        let ov = eval_expr_with_provider(&args[3], provider);
-        if let Value::Error(e) = ov {
-            return Value::Error(e);
-        }
-        match coerce_to_number(&ov) {
-            Some(n) => n.trunc() as i64,
-            None => return Value::Error(ValueError::WrongType),
-        }
-    } else {
-        0
-    };
-    let case_insensitive = if args.len() == 5 {
-        match read_case_arg(&args[4], provider) {
-            Ok(b) => b,
-            Err(v) => return v,
-        }
-    } else {
-        false
-    };
-    let text = coerce_to_text(&text_v);
-    let pattern = coerce_to_text(&pat_v);
-    let replacement = coerce_to_text(&rep_v);
-    let re = match compile_regex(&pattern, case_insensitive) {
-        Ok(r) => r,
-        Err(_) => return Value::Error(ValueError::InvalidValue),
-    };
-    if occurrence == 0 {
-        Value::Text(
-            re.replace_all(&text, |caps: &regex::Captures<'_>| {
-                expand_regex_replacement(&replacement, caps, &text)
-            })
-            .into_owned(),
-        )
-    } else {
-        let matches: Vec<regex::Captures<'_>> = re.captures_iter(&text).collect();
-        let idx = if occurrence > 0 {
-            occurrence - 1
-        } else {
-            matches.len() as i64 + occurrence
-        };
-        if idx < 0 || idx >= matches.len() as i64 {
-            // Occurrence not reached → return original text untouched
-            // (Excel returns the original string when the nth match
-            // doesn't exist; the formula isn't an error).
-            return Value::Text(text.clone());
-        }
-        let caps = &matches[idx as usize];
-        let Some(m) = caps.get(0) else {
-            return Value::Text(text.clone());
-        };
-        Value::Text(format!(
-            "{}{}{}",
-            &text[..m.start()],
-            expand_regex_replacement(&replacement, caps, &text),
-            &text[m.end()..]
-        ))
-    }
 }
 
 fn fn_isformula(args: &[Expr], provider: &dyn EvalProvider) -> Value {
@@ -22394,11 +22350,13 @@ mod tests {
     #[test]
     fn eval_text_arithmetic_is_error() {
         let (cm, vs) = make_test_env();
-        // B2 holds a text value; adding 1 to it cannot coerce → WrongType
-        // (previously InvalidValue, now finer-grained).
+        // B2 holds a text value; adding 1 to it cannot coerce → `#VALUE!`,
+        // which is what Excel reports for `=1+"x"`. It must NOT be the
+        // engine-private `#TYPE!`: that code has no Excel counterpart, so
+        // emitting it here broke cross-engine parity.
         assert_eq!(
             eval_str("=B2+1", &cm, &vs),
-            Value::Error(ValueError::WrongType)
+            Value::Error(ValueError::InvalidValue)
         );
     }
 
@@ -34148,109 +34106,6 @@ mod tests {
         );
     }
     #[test]
-    fn eval_regextest_happy() {
-        assert_eq!(ev("=REGEXTEST(\"hello\", \"ell\")"), Value::Boolean(true));
-        assert_eq!(ev("=REGEXTEST(\"hello\", \"xyz\")"), Value::Boolean(false));
-    }
-    #[test]
-    fn eval_regextest_case_insensitive() {
-        assert_eq!(
-            ev("=REGEXTEST(\"Hello\", \"hello\")"),
-            Value::Boolean(false)
-        );
-        assert_eq!(
-            ev("=REGEXTEST(\"Hello\", \"hello\", 1)"),
-            Value::Boolean(true)
-        );
-    }
-    #[test]
-    fn eval_regextest_invalid_pattern() {
-        assert_eq!(
-            ev("=REGEXTEST(\"hello\", \"[\")"),
-            Value::Error(ValueError::InvalidValue)
-        );
-    }
-    #[test]
-    fn eval_regextest_arg_count() {
-        assert_eq!(
-            ev("=REGEXTEST(\"a\")"),
-            Value::Error(ValueError::WrongArgCount)
-        );
-        assert_eq!(
-            ev("=REGEXTEST(\"a\", \"b\", 1, 2)"),
-            Value::Error(ValueError::WrongArgCount)
-        );
-    }
-    #[test]
-    fn eval_regexextract_first_match() {
-        assert_eq!(
-            ev("=REGEXEXTRACT(\"abc123def\", \"[0-9]+\")"),
-            Value::Text("123".into())
-        );
-    }
-    #[test]
-    fn eval_regexextract_all_matches_as_array() {
-        let v = ev("=REGEXEXTRACT(\"a1 b2 c3\", \"[a-z][0-9]\", 1)");
-        match v {
-            Value::Array(arr) => {
-                assert_eq!(arr.shape(), (3, 1));
-                assert_eq!(arr.get(0, 0), Some(&Value::Text("a1".into())));
-                assert_eq!(arr.get(1, 0), Some(&Value::Text("b2".into())));
-                assert_eq!(arr.get(2, 0), Some(&Value::Text("c3".into())));
-            }
-            other => panic!("expected Value::Array, got {:?}", other),
-        }
-    }
-    #[test]
-    fn eval_regexextract_no_match_is_error() {
-        assert_eq!(
-            ev("=REGEXEXTRACT(\"abc\", \"[0-9]+\")"),
-            Value::Error(ValueError::InvalidValue)
-        );
-    }
-    #[test]
-    fn eval_regexextract_arg_count() {
-        assert_eq!(
-            ev("=REGEXEXTRACT(\"a\")"),
-            Value::Error(ValueError::WrongArgCount)
-        );
-    }
-    #[test]
-    fn eval_regexreplace_replace_all() {
-        assert_eq!(
-            ev("=REGEXREPLACE(\"a1 b2 c3\", \"[0-9]\", \"X\")"),
-            Value::Text("aX bX cX".into())
-        );
-    }
-    #[test]
-    fn eval_regexreplace_nth_occurrence() {
-        assert_eq!(
-            ev("=REGEXREPLACE(\"a1 b2 c3\", \"[0-9]\", \"X\", 2)"),
-            Value::Text("a1 bX c3".into())
-        );
-    }
-    #[test]
-    fn eval_regexreplace_case_insensitive() {
-        assert_eq!(
-            ev("=REGEXREPLACE(\"HELLO hello\", \"hello\", \"X\", 0, 1)"),
-            Value::Text("X X".into())
-        );
-    }
-    #[test]
-    fn eval_regexreplace_arg_count() {
-        assert_eq!(
-            ev("=REGEXREPLACE(\"a\")"),
-            Value::Error(ValueError::WrongArgCount)
-        );
-    }
-    #[test]
-    fn eval_regexreplace_invalid_pattern() {
-        assert_eq!(
-            ev("=REGEXREPLACE(\"a\", \"[\", \"x\")"),
-            Value::Error(ValueError::InvalidValue)
-        );
-    }
-    #[test]
     fn eval_isformula_non_ref_is_error() {
         // The legacy in-file AtomEvalProvider can't model formula cells —
         // but ISFORMULA still distinguishes "ref vs not-a-ref".
@@ -36090,7 +35945,7 @@ mod tests {
     #[test]
     fn broadcast_per_cell_error_stays_in_array() {
         // Build an env where A2 is text; A1=10, A3=30. `=A1:A3*2` should
-        // produce [20, WrongType, 60] — the error sits in cell index 1
+        // produce [20, #VALUE!, 60] — the error sits in cell index 1
         // without poisoning the rest of the spill.
         let mut cm = HashMap::new();
         let mut vs = HashMap::new();
@@ -36107,7 +35962,7 @@ mod tests {
         let (rows, cols, data) = broadcast_unwrap_array(v);
         assert_eq!((rows, cols), (3, 1));
         assert_eq!(data[0], Value::Number(20.0));
-        assert_eq!(data[1], Value::Error(ValueError::WrongType));
+        assert_eq!(data[1], Value::Error(ValueError::InvalidValue));
         assert_eq!(data[2], Value::Number(60.0));
     }
 
@@ -38127,6 +37982,7 @@ mod tests {
         );
     }
 
+    #[test]
     fn eval_confidence_known_value() {
         // CONFIDENCE(0.05, 2.5, 50) = NORM.S.INV(0.975) * 2.5 / sqrt(50)
         //                          ≈ 1.959964 * 2.5 / 7.0711 ≈ 0.692952.
@@ -39133,6 +38989,7 @@ mod tests {
         }
     }
 
+    #[test]
     fn phi_arg_count() {
         let (cm, vs) = make_test_env();
         assert_eq!(
@@ -39622,6 +39479,26 @@ mod tests {
                 name
             );
         }
+    }
+
+    /// With `regex-formulas` off the three names are not built-ins at all.
+    /// They take `eval_func`'s `_` arm into `eval_named_call`, find neither
+    /// a defined LAMBDA nor a host custom formula, and land on `#NAME?` —
+    /// exactly what `=NOSUCHFUNC(1)` returns. This test pins that
+    /// degradation so the lite wasm build's contract is asserted, not
+    /// assumed.
+    #[cfg(not(feature = "regex-formulas"))]
+    #[test]
+    fn regex_builtins_degrade_to_name_error_without_the_feature() {
+        for f in [
+            "=REGEXTEST(\"hello\", \"ell\")",
+            "=REGEXEXTRACT(\"abc123\", \"[0-9]+\")",
+            "=REGEXREPLACE(\"a1\", \"[0-9]\", \"X\")",
+        ] {
+            assert_eq!(ev(f), Value::Error(ValueError::InvalidName), "{}", f);
+        }
+        // Same answer a genuinely unknown function gets.
+        assert_eq!(ev("=NOSUCHFUNC(1)"), Value::Error(ValueError::InvalidName));
     }
 
     // ===== TESTS REGISTRY: ADD NEW #[test] FNS / HELPERS BEFORE THIS LINE =====

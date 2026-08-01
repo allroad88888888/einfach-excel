@@ -97,6 +97,45 @@ describe('excel-core-ts worker runtime — SUM round-trip', () => {
     expect(b1.type).toBe('text')
   })
 
+  /**
+   * The runtime carries TWO error vocabularies and they must not be merged.
+   * `readCells` / `readSparseRange` render (Excel's, narrower — no `#TYPE!`);
+   * `snapshotRangeSparse` and the TSV export serialize (the engine's, wider —
+   * `#TYPE!` survives so a restore reproduces the captured variant). Twin of
+   * `format::error_display_token` vs `sparse_cell_from_value` on the Rust
+   * side; cross-engine coverage lives in cross-engine-parity-smoke.
+   */
+  test('#TYPE! renders as #VALUE! but serializes verbatim', async () => {
+    const { rpc } = makeRpc()
+    await rpc({ cmd: 'initWorkbook', sheets: ['Sheet1'] })
+    await rpc({ cmd: 'setFormulaDetailed', sheet: 0, addr: 'A1', formula: '=#TYPE!' })
+    await rpc({ cmd: 'setCell', sheet: 0, addr: 'A2', value: { type: 'error', value: '#TYPE!' } })
+
+    // DISPLAY — both the formula-literal cell and the stored error value.
+    const read = (await rpc({
+      cmd: 'readCells',
+      cells: [
+        { sheet: 0, addr: 'A1' },
+        { sheet: 0, addr: 'A2' },
+      ],
+    })) as Array<{ display: string; isError: boolean; formula: string }>
+    expect(read.map((c) => c.display)).toEqual(['#VALUE!', '#VALUE!'])
+    expect(read.every((c) => c.isError)).toBe(true)
+    // The formula SOURCE is untouched by the display map — the user typed
+    // `=#TYPE!` and the formula bar must still say so.
+    expect(read[0].formula).toBe('=#TYPE!')
+
+    // WIRE — internal spelling, so `setCellFromWire` can restore the variant.
+    const sparse = (await rpc({
+      cmd: 'snapshotRangeSparse',
+      range: { sheet: 0, startRow: 0, startCol: 0, endRow: 1, endCol: 0 },
+    })) as Array<{ addr: string; kind: string; value: unknown }>
+    expect(sparse.map((c) => [c.addr, c.kind, c.value])).toEqual([
+      ['A1', 'formula', '=#TYPE!'],
+      ['A2', 'error', '#TYPE!'],
+    ])
+  })
+
   test('tracks viewport row heights and column widths', async () => {
     const { rpc } = makeRpc()
     await rpc({ cmd: 'initWorkbook', sheets: ['Sheet1'] })

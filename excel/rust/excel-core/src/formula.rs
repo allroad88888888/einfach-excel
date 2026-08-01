@@ -145,6 +145,11 @@ pub enum Expr {
     },
     /// Unary negation: -expr
     Negate(Box<Expr>),
+    /// 后缀百分号：`50%` → `Percent(Number(50))`，求值时除以 100。
+    ///
+    /// Excel 里 `%` 是**后缀一元**运算符，不是取模 —— Excel 根本没有取模
+    /// 运算符（要取模用 `MOD()`）。优先级见 [`Parser::parse_percent`]。
+    Percent(Box<Expr>),
     /// Function call: name(arg1, arg2, ...)
     FuncCall { name: String, args: Vec<Expr> },
     /// Cell range: `A1:B3` (bounded), `A:A` / `A:C` (whole columns),
@@ -494,10 +499,10 @@ impl Parser {
         Some(left)
     }
 
-    /// pow = unary ('^' pow)? — right-associative
+    /// pow = percent ('^' pow)? — right-associative
     fn parse_pow(&mut self) -> Option<Expr> {
         self.skip_whitespace();
-        let left = self.parse_unary()?;
+        let left = self.parse_percent()?;
         self.skip_whitespace();
         if self.peek() == Some('^') {
             self.advance();
@@ -509,6 +514,30 @@ impl Parser {
             })
         } else {
             Some(left)
+        }
+    }
+
+    /// percent = unary '%'* — 后缀，可叠加。
+    ///
+    /// 位置依据是 Excel 文档的运算符优先级表（由高到低）：引用运算符
+    /// (`:` `,` 空格) > 一元负号 > `%` > `^` > `*` `/` > `+` `-` > `&` >
+    /// 比较。所以 `%` 恰好夹在 `parse_pow` 与 `parse_unary` 之间：
+    ///
+    /// * `=50%` → `Percent(50)` = 0.5
+    /// * `=-50%` → `Percent(Negate(50))` = -0.5（负号在里层，因为它优先级
+    ///   更高；这里两种结合方式数值相同，取 Excel 文档的那一种）
+    /// * `=2^2%` → `Pow(2, Percent(2))` = 2^0.02，**不是** `(2^2)%`
+    /// * `=50%%` → `Percent(Percent(50))` = 0.005（Excel 允许叠加）
+    /// * `=1+2%` → `Add(1, Percent(2))` = 1.02
+    fn parse_percent(&mut self) -> Option<Expr> {
+        let mut expr = self.parse_unary()?;
+        loop {
+            self.skip_whitespace();
+            if self.peek() != Some('%') {
+                return Some(expr);
+            }
+            self.advance();
+            expr = Expr::Percent(Box::new(expr));
         }
     }
 
@@ -853,6 +882,23 @@ impl Parser {
         true
     }
 
+    /// Error literals accepted inside formula text (`=IF(A1,#N/A,1)`).
+    ///
+    /// This table is the INVERSE OF `Display`, not of `format::
+    /// error_display_token`. Those two diverge on exactly two tokens:
+    /// `WrongType` and `WrongArgCount` render to users as `#VALUE!` (Excel
+    /// has neither `#TYPE!` nor `#ARGS!`) while they still *serialize* as
+    /// `#TYPE!` / `#ARGS!`, because `shift::render_formula` writes
+    /// `Expr::Error` out via `to_string` whenever a structural edit rewrites
+    /// a formula. Drop either row and that rewrite stops round-tripping: a
+    /// stored `=IF(A1,#TYPE!,1)` would come back as a `#NAME?` fragment after
+    /// the next row insert. Persisted workbooks and `set_error("#ARGS!")`
+    /// hosts have the same requirement.
+    ///
+    /// So both rows stay. They are parse-only aliases now — nothing in the
+    /// engine ever asks the user to type them, and nothing shows them back
+    /// to them — and that asymmetry is deliberate: a serialization format
+    /// may be wider than the display vocabulary, never narrower.
     fn parse_error_literal(&mut self) -> Option<Expr> {
         let tokens = [
             ("#DIV/0!", ValueError::DivisionByZero),
@@ -862,6 +908,8 @@ impl Parser {
             ("#CALC!", ValueError::Calc),
             ("#NULL!", ValueError::Null),
             ("#CYCLE!", ValueError::CyclicRef),
+            // Parse-only aliases; both render back to users as `#VALUE!`.
+            // See the doc comment above before touching these two rows.
             ("#TYPE!", ValueError::WrongType),
             ("#ARGS!", ValueError::WrongArgCount),
             ("#BUSY!", ValueError::Busy),
@@ -1441,6 +1489,66 @@ mod tests {
         assert_eq!(
             parse_formula("=-A1"),
             Some(Expr::Negate(Box::new(Expr::CellRef(
+                CellAddress::new(0, 0),
+                RefAbs::REL
+            ))))
+        );
+    }
+
+    /// 后缀 `%` 的优先级阶梯，三个组合钉死（Excel 运算符优先级表：
+    /// 一元负号 > `%` > `^` > `*` `/` > `+` `-`）。
+    #[test]
+    fn parse_percent_precedence_ladder() {
+        // `=50%` —— 后缀一元，不是取模（Excel 没有取模运算符）。
+        assert_eq!(
+            parse_formula("=50%"),
+            Some(Expr::Percent(Box::new(Expr::Number(50.0))))
+        );
+        // `=-50%` —— 负号优先级更高，落在里层；数值 -0.5。
+        assert_eq!(
+            parse_formula("=-50%"),
+            Some(Expr::Percent(Box::new(Expr::Negate(Box::new(
+                Expr::Number(50.0)
+            )))))
+        );
+        // `=2^2%` —— `%` 比 `^` 紧，所以是 `2^(2%)` 而**不是** `(2^2)%`。
+        assert_eq!(
+            parse_formula("=2^2%"),
+            Some(Expr::BinOp {
+                op: BinOperator::Pow,
+                left: Box::new(Expr::Number(2.0)),
+                right: Box::new(Expr::Percent(Box::new(Expr::Number(2.0)))),
+            })
+        );
+        // `=50%%` —— Excel 允许叠加，0.005。
+        assert_eq!(
+            parse_formula("=50%%"),
+            Some(Expr::Percent(Box::new(Expr::Percent(Box::new(
+                Expr::Number(50.0)
+            )))))
+        );
+        // `=1+2%` —— `%` 只吃住右操作数。
+        assert_eq!(
+            parse_formula("=1+2%"),
+            Some(Expr::BinOp {
+                op: BinOperator::Add,
+                left: Box::new(Expr::Number(1.0)),
+                right: Box::new(Expr::Percent(Box::new(Expr::Number(2.0)))),
+            })
+        );
+        // 括号里的整个表达式也能带 `%`。
+        assert_eq!(
+            parse_formula("=(1+2)%"),
+            Some(Expr::Percent(Box::new(Expr::BinOp {
+                op: BinOperator::Add,
+                left: Box::new(Expr::Number(1.0)),
+                right: Box::new(Expr::Number(2.0)),
+            })))
+        );
+        // 单元格引用同样可以，`%` 不会被误当成 `#` 之类的后缀。
+        assert_eq!(
+            parse_formula("=A1%"),
+            Some(Expr::Percent(Box::new(Expr::CellRef(
                 CellAddress::new(0, 0),
                 RefAbs::REL
             ))))

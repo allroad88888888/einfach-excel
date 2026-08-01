@@ -19,12 +19,23 @@
  * returns '#DIV/0!'. Cyclic references return '#CYCLE!'. Cross-sheet
  * refs (Sheet!A1) are not supported — the worker backend covers those.
  *
+ * The error codes above are this evaluator's INTERNAL vocabulary — what
+ * `evaluateFormula` returns. What a cell SHOWS is narrower: `formatEvalResult`
+ * is the display boundary and routes every code through `errorDisplayToken`,
+ * which collapses the non-Excel `#TYPE!` and `#ARGS!` to `#VALUE!`. Both still
+ * parse (they must — see `errorDisplayToken`'s doc) and the guards below still
+ * produce them, because they say WHICH check rejected the call. `#CYCLE!` is
+ * non-Excel too and is deliberately NOT collapsed; the reasoning for all three
+ * lives on `errorDisplayToken`.
+ *
  * Plain (non-error) string results are valid first-class values: CONCAT
  * builds them, comparisons can take them, IF can branch to them. Only
  * strings that start with '#' are treated as error codes.
  */
 
 import type { DisplayCell } from '@einfach/spreadsheet-ui-core'
+
+import { errorDisplayToken } from './error-display-token'
 
 export type EvalResult =
   | { kind: 'number'; value: number }
@@ -188,8 +199,14 @@ const BARE_LITERALS: Record<string, number> = {
 }
 
 /**
- * Error literal tokens — 13 Excel error codes aligned with
- * `excel/rust/wasm` `error_token_to_value_error`.
+ * Error literal tokens — 13 codes aligned with `excel/rust/wasm`
+ * `error_token_to_value_error`.
+ *
+ * A PARSE table, so it is the inverse of the internal vocabulary, not of
+ * `errorDisplayToken`. `#TYPE!` and `#ARGS!` stay parse-only aliases: dropping
+ * either would stop stored formula text from round-tripping (the engine writes
+ * error codes back into formula source on every structural edit), even though
+ * nothing ever shows them back to the user.
  */
 const ERROR_LITERAL_RE = /^#(NULL!|DIV\/0!|N\/A|REF!|VALUE!|NAME\?|NUM!|CYCLE!|TYPE!|ARGS!|SPILL!|CALC!|BUSY!)/
 
@@ -954,8 +971,18 @@ function applySubtotal(
   hiddenRows: ReadonlySet<number> | undefined,
   filterHiddenRows: ReadonlySet<number> | undefined,
 ): Value {
+  // INTERNAL arity code, mirroring the engine's `ValueError::WrongArgCount`.
+  // It never reaches a cell — `formatEvalResult` renders it `#VALUE!`, which
+  // is what Excel's entry-time rejection leaves a user with. Keep it here: it
+  // distinguishes "too few args" from a genuine `#VALUE!` when reading engine
+  // state or a failing assertion.
   if (args.length < 2) return '#ARGS!'
   const rawFn = args[0]
+  // `#TYPE!` is the INTERNAL argument-type-guard code (the engine's
+  // `ValueError::WrongType`, which `fn_subtotal` raises for exactly this
+  // check). It never reaches a cell: `formatEvalResult` renders it as
+  // `#VALUE!`. Keep it here — it distinguishes "the function-number arg was
+  // the wrong kind" from the `#VALUE!` an out-of-band code number gets.
   if (typeof rawFn === 'object') return '#TYPE!'
   if (isErrLocal(rawFn)) return rawFn
   const asNumber = typeof rawFn === 'number' ? rawFn : Number(rawFn)
@@ -1159,9 +1186,17 @@ function resolveCellValue(
   return Number.isFinite(n) ? n : cell.displayValue
 }
 
+/**
+ * THE display boundary of the static evaluator — every static-backend path
+ * that turns an evaluation into cell text goes through here. It is where the
+ * internal error vocabulary narrows to Excel's: `#TYPE!` and `#ARGS!` render
+ * `#VALUE!`, every other code (including the deliberately-kept `#CYCLE!`)
+ * renders as itself. `isError` still keys off the raw result, so the
+ * classification is unaffected by the token map.
+ */
 export function formatEvalResult(result: Value): { display: string; isError: boolean } {
   if (typeof result === 'string' && result.startsWith('#')) {
-    return { display: result, isError: true }
+    return { display: errorDisplayToken(result), isError: true }
   }
   if (typeof result === 'number') {
     if (Number.isInteger(result)) return { display: String(result), isError: false }

@@ -79,6 +79,7 @@ import {
   type AsyncCustomCallable,
   type AsyncCustomPump,
 } from './async-custom-pump'
+import { errorDisplayToken } from './error-display-token'
 import { sparseRangeToTSV } from './range-tsv'
 import type {
   CellRefWire,
@@ -146,6 +147,17 @@ export const TS_WORKER_RUNTIME_CAPABILITIES: WorkerRuntimeCapabilitiesWire = Obj
   engineHiddenState: false,
 })
 
+/**
+ * Error tokens a custom-formula callback may RETURN — the twin of the Rust
+ * bridge's `error_token_to_value_error` accept-list.
+ *
+ * This is a PARSE vocabulary, not a display one, so it deliberately still
+ * carries `#TYPE!` and `#ARGS!`: both tokens are accepted and STORED as the
+ * internal code. What a cell can SHOW is narrower — see `errorDisplayToken`,
+ * which collapses both to `#VALUE!` at the read boundary. Returning
+ * `{ error: '#TYPE!' }`, `{ error: '#ARGS!' }` and `{ error: '#VALUE!' }`
+ * therefore produce identical cell text.
+ */
 const CUSTOM_FORMULA_ERROR_CODES: readonly ErrorCode[] = [
   '#NULL!',
   '#DIV/0!',
@@ -297,6 +309,16 @@ function valueKindToCellType(v: Value): CellSnapshotWire['type'] {
   }
 }
 
+/**
+ * The UNFORMATTED display string of a value at this runtime's read boundary —
+ * the twin of `einfach_excel_core::value_to_display`. Every `display` field
+ * this worker puts on the wire (`readCells`, `readSparseRange`) comes from
+ * here, which is what makes it the exact string a host assertion sees.
+ *
+ * `snapshotRangeSparse` / `exportRangeTsv` deliberately do NOT come through
+ * here — those are serialization channels and keep the internal vocabulary
+ * (see `readSparseCell`).
+ */
 function valueDisplay(v: Value): string {
   switch (v.kind) {
     case 'number':
@@ -308,7 +330,9 @@ function valueDisplay(v: Value): string {
     case 'boolean':
       return v.value ? 'TRUE' : 'FALSE'
     case 'error':
-      return v.code
+      // NOT `v.code`: the rendering boundary speaks Excel's error
+      // vocabulary, which is narrower than the engine's diagnostic one.
+      return errorDisplayToken(v.code)
     case 'blank':
       return ''
     case 'array': {
@@ -443,6 +467,12 @@ function readSparseCell(
       return { sheet: sheet.idx, addr: formatA1({ row, col }), row, col, kind: 'text', value: value.value }
     case 'boolean':
       return { sheet: sheet.idx, addr: formatA1({ row, col }), row, col, kind: 'boolean', value: value.value }
+    // `value.code`, NOT `errorDisplayToken(...)`. This record is the
+    // persistence / clipboard WIRE and `setCellFromWire` is its inverse — a
+    // restore must reproduce the variant it captured, so it speaks the
+    // serialization vocabulary (where the internal codes are still `#TYPE!`
+    // and `#ARGS!`), not the narrower Excel-facing display one. Same split as
+    // the Rust twin's `sparse_cell_from_value`.
     case 'error':
       return { sheet: sheet.idx, addr: formatA1({ row, col }), row, col, kind: 'error', value: value.code }
     case 'array':
@@ -705,10 +735,15 @@ function snapshotRangeSparse(state: RuntimeState, range: SparseRangeWire): Spars
   // the projections were serialized as literal records (the pre-fix
   // behavior), `restoreSparse` after an undo would MATERIALIZE them as
   // real cells that shadow the spill and go stale on the next anchor
-  // edit. This also matches the WASM engine's no_eval snapshot, which
-  // only ever walks existing cells. Projection reads (`readSparseRange`,
-  // `readCells`) still surface spill values via `collectSpillTargets` /
-  // `getSpillProjectedValue`.
+  // edit. Projection reads (`readSparseRange`, `readCells`) still surface
+  // spill values via `collectSpillTargets` / `getSpillProjectedValue`.
+  //
+  // Here it is free: a TS spill target has no entry in the sheet map, so
+  // this loop cannot reach it. The WASM engine parks a real derived atom
+  // at the target address, so its twin has to filter explicitly — see
+  // `sparse_cell_from_sheet_no_eval` in `excel/rust/wasm/src/lib.rs`. It
+  // did not, which is how a `=SEQUENCE(10)` came back from a persistence
+  // roundtrip as nine literals plus a `#SPILL!` anchor.
   for (const { row, col } of collectCellsInBounds(cells, bounds)) {
     const sparse = readSparseCell(state, sheet, row, col)
     if (sparse) out.push(sparse)

@@ -1,4 +1,5 @@
-use einfach_core::Value;
+use einfach_core::{Value, ValueError};
+use std::borrow::Cow;
 
 /// Per-cell display + style information. Phase 6.
 ///
@@ -148,6 +149,69 @@ fn collapse_array_for_display(val: &Value) -> std::borrow::Cow<'_, Value> {
     }
 }
 
+/// The USER-VISIBLE token for an evaluation error.
+///
+/// `ValueError`'s `Display` impl (`einfach_core::atom`) is the ENGINE-INTERNAL
+/// spelling: it names the diagnostic variant, and three of those variants have
+/// no Excel counterpart at all. Everything else renders as it serializes.
+///
+/// # Registry of non-Excel codes
+///
+/// This function is the single place the engine decides what a user reads, so
+/// the register of "codes Excel does not have" lives here rather than in a doc
+/// someone would have to already know to look for. The TypeScript twin
+/// (`excel/solid-excel/src-vnext/adapter/error-display-token.ts`) mirrors this
+/// table, and the always-on `cross-engine-parity-smoke.test.ts` pins both
+/// engines to it — a one-sided change here goes red there.
+///
+/// | internal (`Display`) | shown to the user | disposition |
+/// |---|---|---|
+/// | `#TYPE!` (`WrongType`)      | `#VALUE!` | collapsed |
+/// | `#ARGS!` (`WrongArgCount`)  | `#VALUE!` | collapsed |
+/// | `#CYCLE!` (`CyclicRef`)     | `#CYCLE!` | **deliberate extension — kept** |
+///
+/// **`WrongType` → `#VALUE!`.** Excel has no `#TYPE!` code, so a cell showing
+/// `#TYPE!` is something no real spreadsheet can produce, and the engine
+/// already answers `#VALUE!` from the arithmetic operators
+/// (`eval::eval_binop`, `=1+"x"`). The ~350 built-in argument-type checks keep
+/// `WrongType` because the DIAGNOSTIC distinction earns its keep: a failing
+/// assertion that says `WrongType` tells you an argument-type guard fired,
+/// `InvalidValue` does not.
+///
+/// **`WrongArgCount` → `#VALUE!`.** Excel rejects a wrong argument count at
+/// ENTRY TIME — the formula bar refuses the edit with a dialog — so the
+/// mistake never reaches a cell and Excel has no code for it. This engine has
+/// no entry-time validation layer, so the same mistake has to survive as a
+/// cell value; `#VALUE!` is the closest thing a spreadsheet user can read.
+/// The variant itself stays for the same reason `WrongType` does: "arity
+/// guard fired" is a distinct diagnosis, and `ERROR.TYPE` already grades it 3
+/// (`#VALUE!`'s number), so the collapse costs no host-visible information.
+///
+/// **`CyclicRef` stays `#CYCLE!` — this repo deliberately does NOT align.**
+/// Excel's behaviour for a circular reference is to display `0` and warn in
+/// the status bar. Degrading to `0` would hide a real bug inside a plausible
+/// number: a mis-typed `=SUM(A1:A5)` in `A5` would read as a legitimate total.
+/// A distinct code that a user can search for is strictly more useful than
+/// Excel's answer, and it is the ONE place we take that trade. Treat this row
+/// as a decision, not an oversight — a future "align everything with Excel"
+/// pass should leave it alone.
+///
+/// # Why `Display` is not touched
+///
+/// `Display` deliberately stays as-is, because it is also the FORMULA-TEXT
+/// serializer (`shift::render_formula` renders `Expr::Error` via `to_string`)
+/// and that text has to re-parse through `formula::parse_error_literal`, whose
+/// table still maps `#TYPE!` and `#ARGS!` back to their variants. Rendering
+/// and serialization are different boundaries with different vocabularies;
+/// only the rendering one is Excel-facing. A serialization format may be WIDER
+/// than the display vocabulary, never narrower.
+pub fn error_display_token(err: &ValueError) -> Cow<'static, str> {
+    match err {
+        ValueError::WrongType | ValueError::WrongArgCount => Cow::Borrowed("#VALUE!"),
+        other => Cow::Owned(other.to_string()),
+    }
+}
+
 /// The UNFORMATTED display string of a value — no `NumberFormat` applied.
 ///
 /// THE single definition of "what this cell looks like as text" at the
@@ -174,7 +238,9 @@ pub fn value_to_display(val: &Value) -> String {
         Value::Text(s) => s.clone(),
         Value::Boolean(b) => if *b { "TRUE" } else { "FALSE" }.into(),
         Value::Null => String::new(),
-        Value::Error(e) => format!("{}", e),
+        // NOT `format!("{}", e)`: the rendering boundary speaks Excel's error
+        // vocabulary, which is narrower than the engine's diagnostic one.
+        Value::Error(e) => error_display_token(e).into_owned(),
         // Unreachable: collapsed above. Defensive fallback.
         Value::Array(_) => String::new(),
         // Lambdas are transient evaluator state — they never get persisted
@@ -767,5 +833,55 @@ mod tests {
         assert_eq!(f.format_number(12.0), "12");
         assert_eq!(f.format_number(-12.0), "(12)");
         assert_eq!(f.format_number(0.0), "-");
+    }
+
+    /// The two variants whose rendered token differs from their `Display`.
+    /// Excel has neither `#TYPE!` nor `#ARGS!`; both survive internally for
+    /// diagnostics but must never reach a cell.
+    #[test]
+    fn non_excel_variants_render_as_value_error() {
+        for err in [ValueError::WrongType, ValueError::WrongArgCount] {
+            assert_eq!(error_display_token(&err), "#VALUE!", "{err:?}");
+            assert_eq!(value_to_display(&Value::Error(err.clone())), "#VALUE!");
+        }
+        // The diagnostic spellings are unchanged — that is what makes the
+        // formula-text round-trip through `parse_error_literal` still work.
+        assert_eq!(format!("{}", ValueError::WrongType), "#TYPE!");
+        assert_eq!(format!("{}", ValueError::WrongArgCount), "#ARGS!");
+    }
+
+    /// `#CYCLE!` is a non-Excel code too, and it is DELIBERATELY not
+    /// collapsed — Excel shows `0` plus a status-bar warning for a circular
+    /// reference, which hides a real bug inside a plausible number. See the
+    /// registry on `error_display_token`. This pins the decision so an
+    /// "align everything with Excel" pass has to argue with a red test.
+    #[test]
+    fn cyclic_ref_keeps_its_non_excel_token() {
+        assert_eq!(error_display_token(&ValueError::CyclicRef), "#CYCLE!");
+        assert_eq!(
+            value_to_display(&Value::Error(ValueError::CyclicRef)),
+            "#CYCLE!"
+        );
+    }
+
+    /// Every other variant renders exactly as it serializes. Guards against
+    /// someone "helpfully" extending the collapse to codes Excel does have.
+    #[test]
+    fn other_error_variants_render_as_their_display() {
+        for err in [
+            ValueError::Null,
+            ValueError::DivisionByZero,
+            ValueError::NotAvailable,
+            ValueError::InvalidRef,
+            ValueError::InvalidValue,
+            ValueError::InvalidName,
+            ValueError::CyclicRef,
+            ValueError::Overflow,
+            ValueError::Spill,
+            ValueError::Calc,
+            ValueError::Busy,
+        ] {
+            assert_eq!(error_display_token(&err), err.to_string(), "{err:?}");
+        }
     }
 }

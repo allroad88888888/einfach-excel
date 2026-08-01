@@ -46,7 +46,7 @@ pub fn contains_invalid_ref(expr: &Expr) -> bool {
             unbounded,
             ..
         } => range_has_invalid_ref(*start, *end, *unbounded),
-        Expr::Negate(inner) => contains_invalid_ref(inner),
+        Expr::Negate(inner) | Expr::Percent(inner) => contains_invalid_ref(inner),
         Expr::BinOp { left, right, .. } => {
             contains_invalid_ref(left) || contains_invalid_ref(right)
         }
@@ -738,6 +738,7 @@ pub fn map_addrs(expr: &Expr, f: &dyn Fn(CellAddress) -> CellAddress) -> Expr {
             end: Box::new(map_addrs(end, f)),
         },
         Expr::Negate(inner) => Expr::Negate(Box::new(map_addrs(inner, f))),
+        Expr::Percent(inner) => Expr::Percent(Box::new(map_addrs(inner, f))),
         Expr::BinOp { op, left, right } => Expr::BinOp {
             op: *op,
             left: Box::new(map_addrs(left, f)),
@@ -865,6 +866,7 @@ pub fn shift_refs(expr: &Expr, drow: i32, dcol: i32) -> Result<Expr, ()> {
             end: Box::new(shift_refs(end, drow, dcol)?),
         },
         Expr::Negate(inner) => Expr::Negate(Box::new(shift_refs(inner, drow, dcol)?)),
+        Expr::Percent(inner) => Expr::Percent(Box::new(shift_refs(inner, drow, dcol)?)),
         Expr::BinOp { op, left, right } => Expr::BinOp {
             op: *op,
             left: Box::new(shift_refs(left, drow, dcol)?),
@@ -1122,6 +1124,12 @@ fn render_into(expr: &Expr, out: &mut String) {
             out.push('-');
             render_into(inner, out);
         }
+        // 后缀 `%`。`BinOp` 那条臂无条件加括号，所以 `(1+2)%` 回写成
+        // `((1+2))%` 也仍然重解析成同一棵树；`50%%` / `2^2%` 同理。
+        Expr::Percent(inner) => {
+            render_into(inner, out);
+            out.push('%');
+        }
         Expr::BinOp { op, left, right } => {
             // Always parenthesize binops to avoid having to track precedence
             // on the way back. Parser handles redundant parens fine.
@@ -1343,6 +1351,9 @@ pub(crate) fn rewrite_table_refs(
         },
         Expr::Negate(inner) => {
             rewrite_table_refs(inner, spec, apply_bare).map(|e| Expr::Negate(Box::new(e)))
+        }
+        Expr::Percent(inner) => {
+            rewrite_table_refs(inner, spec, apply_bare).map(|e| Expr::Percent(Box::new(e)))
         }
         Expr::BinOp { op, left, right } => {
             let l = rewrite_table_refs(left, spec, apply_bare);

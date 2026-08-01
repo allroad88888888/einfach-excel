@@ -26,8 +26,9 @@ pub use filter::{
     MAX_FILTER_PREDICATE_CELLS,
 };
 pub use format::{
-    apply_rules, value_to_display, Align, BorderSpec, BorderStyle, CellBorders, CellFormat,
-    Condition, ConditionalRule, NumberFormat, Rotation, StyleOverrides, VerticalAlign,
+    apply_rules, error_display_token, value_to_display, Align, BorderSpec, BorderStyle,
+    CellBorders, CellFormat, Condition, ConditionalRule, NumberFormat, Rotation, StyleOverrides,
+    VerticalAlign,
 };
 pub use formula::{parse_formula, BinOperator, Expr, TableArea};
 pub use range::CellRange;

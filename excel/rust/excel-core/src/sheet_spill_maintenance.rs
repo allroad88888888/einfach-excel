@@ -396,7 +396,13 @@ impl Sheet {
     /// Sorted row-major because `HashSet` iteration order must not decide
     /// which of two blocked anchors wins a rectangle the shift just freed
     /// for both.
-    pub(super) fn teardown_blocked_spill_anchors(&mut self) -> Vec<CellAddress> {
+    ///
+    /// `pub(crate)` rather than `pub(super)` because `sort.rs` is the second
+    /// caller: `sort_range` relocates cells without going through
+    /// `apply_structural_shift`, yet moves blocked anchors exactly the same
+    /// way. Both callers must pair this with `rederive_spill_anchors` over
+    /// the SAME address remap, or the registry keeps pre-move keys.
+    pub(crate) fn teardown_blocked_spill_anchors(&mut self) -> Vec<CellAddress> {
         let mut anchors: Vec<CellAddress> = self.blocked_anchor_addresses();
         anchors.sort_unstable_by_key(|a| (a.row, a.col));
         // Drain through the registry's own retire hook rather than
@@ -424,7 +430,10 @@ impl Sheet {
     /// anchor's `recompute_array_formula` either installs the spill (the
     /// obstruction moved out of the box) or re-registers the claim at its
     /// new address.
-    pub(super) fn rederive_spill_anchors(&mut self, shifted_anchors: Vec<CellAddress>) {
+    ///
+    /// `pub(crate)` for the same reason as `teardown_blocked_spill_anchors`
+    /// above — `sort.rs` runs the same snapshot → move → re-derive pipeline.
+    pub(crate) fn rederive_spill_anchors(&mut self, shifted_anchors: Vec<CellAddress>) {
         for addr in shifted_anchors {
             if addr.row == crate::shift::REF_INVALID_ROW
                 || addr.col == crate::shift::REF_INVALID_COL

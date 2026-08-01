@@ -115,12 +115,16 @@ are owned; it is a separate follow-up rather than an implied core guarantee.
      `formula-functions/registry.ts`.
 - Re-registering an existing custom name silently replaces the previous
   source / metadata (Excel semantics).
-- **One deliberate hole**: `REGEXTEST` / `REGEXEXTRACT` / `REGEXREPLACE`
-  are dispatched by the engine but not reserved, so registering them is
-  accepted and a full (non-lite) build shadows the registration. They
-  are the only `regex-formulas`-gated built-ins; the trade-off is an
-  open owner decision recorded in `RESERVED_NAME_WHITELIST` in
-  `excel/rust/excel-core/tests/reserved_name_parity.rs`.
+- **No holes.** Every name the engine dispatches is reserved, so no
+  registration can be accepted and then silently shadowed at eval time.
+  `RESERVED_NAME_WHITELIST` in
+  `excel/rust/excel-core/tests/reserved_name_parity.rs` is the escape
+  hatch for a deliberate exception, and it is currently **empty**.
+  Notably `REGEXTEST` / `REGEXEXTRACT` / `REGEXREPLACE` are reserved
+  even though they are `regex-formulas`-gated and do not exist in a
+  lite build: reserving them costs lite hosts the ability to polyfill
+  the trio here, and buys the guarantee that one workbook never
+  computes different values under lite vs full.
 
 If the Rust engine adds a new built-in arm, re-run
 `node excel/spreadsheet-ui-core/scripts/extract-builtin-names.mjs`

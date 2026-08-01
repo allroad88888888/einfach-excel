@@ -28,20 +28,22 @@ use eval_source_scan::{
     dispatch_names, eval_rs_chars, is_formula_name, reserved_macro_body, reserved_names,
 };
 
-/// 刻意留在保留名清单**之外**的分发名。
+/// 刻意留在保留名清单**之外**的分发名。**现在是空的，并且应当保持为空。**
 ///
-/// `REGEXTEST` / `REGEXEXTRACT` / `REGEXREPLACE` 是这批里唯一被
-/// `#[cfg(feature = "regex-formulas")]` 门控的：lite 构建下这三个内建根本不存在，
-/// 宿主用 JS 自定义公式 polyfill 它们是合理且有用的用法，无条件保留会掐掉它。
-/// 反过来不保留，则同一份工作簿在 lite / full 两种构建下可能算出不同的值。两边
-/// 都有代价，取舍属于 owner 的产品决策，不由这条门禁替他做。
+/// 这里曾经登记着 `REGEXTEST` / `REGEXEXTRACT` / `REGEXREPLACE` —— 它们是唯一被
+/// `#[cfg(feature = "regex-formulas")]` 门控的内建，lite 构建下并不存在，所以
+/// 「要不要保留」两边都有代价：保留掐掉了「lite + 用 JS polyfill REGEX*」这个
+/// 合理用法；不保留则同一份工作簿在 lite / full 下可能算出不同的值。
 ///
-/// TODO(owner): 裁决 REGEX* 究竟保留还是放行。在那之前它们显式登记在此 —— 目的
-/// 是把「刻意的例外」和「忘了同步」区分开：忘了同步会让下面的断言失败，刻意的
-/// 例外必须有人动手写进这个数组。
-const RESERVED_NAME_WHITELIST: &[&str] = &["REGEXEXTRACT", "REGEXREPLACE", "REGEXTEST"];
+/// owner 已裁决**保留**（跨构建一致性优先，见 `eval.rs::is_builtin_function_name`
+/// 里 REGEX* 那三行的注释），于是这个数组空了。
+///
+/// 它**不是**死代码：留着是为了让「刻意的例外」与「忘了同步」在失败时可区分。
+/// 忘了同步 → 下面的断言直接失败；真要开新的例外 → 必须有人动手往这里加一个名字
+/// 并写下理由。空数组本身就是一条断言：**今天没有任何例外。**
+const RESERVED_NAME_WHITELIST: &[&str] = &[];
 
-/// 抽取器数量下限。真实值是 500 / 497；写成下限而不是等值，是为了让新增内建不必
+/// 抽取器数量下限。真实值是 500 / 500；写成下限而不是等值，是为了让新增内建不必
 /// 改这两个常量，同时仍能在扫描器失效（抽到个位数）时立刻失败。
 const MIN_DISPATCH_NAMES: usize = 450;
 const MIN_RESERVED_NAMES: usize = 400;

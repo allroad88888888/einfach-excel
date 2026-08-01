@@ -6,7 +6,7 @@
  * for the JS-side shadow check lives in the Rust engine — this file is
  * a mirror, not an authority.
  *
- * Count: 497 names.
+ * Count: 500 names.
  */
 export const ENGINE_BUILTIN_FORMULA_NAMES: readonly string[] = Object.freeze([
   'ABS',
@@ -384,6 +384,9 @@ export const ENGINE_BUILTIN_FORMULA_NAMES: readonly string[] = Object.freeze([
   'RATE',
   'RECEIVED',
   'REDUCE',
+  'REGEXEXTRACT',
+  'REGEXREPLACE',
+  'REGEXTEST',
   'REPLACE',
   'REPLACEB',
   'REPT',

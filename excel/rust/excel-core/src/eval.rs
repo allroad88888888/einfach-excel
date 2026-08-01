@@ -518,6 +518,16 @@ pub fn is_builtin_function_name(name: &str) -> bool {
             | "RATE"
             | "RECEIVED"
             | "REDUCE"
+            // REGEX* 受 `regex-formulas` feature 门控，lite 构建下这三个内建并不
+            // 存在 —— 但保留名清单**刻意不跟着门控**。理由是跨构建一致性优先：
+            // 不保留的话，同一份工作簿在 lite 下跑用户注册的 REGEXTEST、在 full
+            // 下被内建静默遮蔽，两种构建算出不同的值，而用户没有任何提示。
+            // 代价是 lite 用户不能用 JS 自定义公式 polyfill REGEX*（owner 已权衡：
+            // 「想用 REGEX* 就换 full」是一句能说清的话，「你的工作簿在别人机器上
+            // 算出别的数」不是）。见 excel/rust/wasm/README.md § 两份产物。
+            | "REGEXEXTRACT"
+            | "REGEXREPLACE"
+            | "REGEXTEST"
             | "REPLACE"
             | "REPLACEB"
             | "REPT"

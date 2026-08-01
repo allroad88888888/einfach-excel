@@ -43,21 +43,23 @@ export const MAX_CUSTOM_FORMULA_REGISTRY_ENTRIES = 10_000
  *      union both so a forgotten extraction never reopens a shadowing
  *      hole.
  *
- * Remaining gap: the `REGEX*` trio (`REGEXTEST` / `REGEXEXTRACT` /
- * `REGEXREPLACE`) is dispatched by the engine but deliberately NOT
- * reserved, so a host can still register those names and the full
- * build will shadow the registration (precedence is built-in →
- * defined-name LAMBDA → custom formula → `#NAME?`). They are the only
- * `#[cfg(feature = "regex-formulas")]`-gated built-ins — under a lite
- * build they do not exist and polyfilling them here is legitimate, so
- * the trade-off is an open owner decision, registered explicitly in
- * `RESERVED_NAME_WHITELIST` in
- * `excel/rust/excel-core/tests/reserved_name_parity.rs`. The other 71
- * names that used to leak (the `IM*` complex family, the extended
- * finance batch, the text/info batch, the `RANKEQ` / `RANKAVG`
- * aliases) are now reserved, and that gate asserts the set stays
- * closed. Closing the rest means adding arms on the Rust side, not
- * widening this set.
+ * No gap remains: every name the engine dispatches is reserved, so a
+ * registration can never be accepted here and then silently shadowed at
+ * eval time (precedence is built-in → defined-name LAMBDA → custom
+ * formula → `#NAME?`). 74 names used to leak — the `IM*` family, the
+ * extended finance batch, the text/info batch, the `RANKEQ`/`RANKAVG`
+ * aliases, the `REGEX*` trio — because `scripts/extract-builtin-names.mjs`
+ * resolved a wrong path and had never actually run.
+ *
+ * The trio is reserved even though it is the only
+ * `#[cfg(feature = "regex-formulas")]`-gated batch and does not exist in
+ * a lite build: that costs lite hosts the ability to polyfill it here,
+ * and buys the guarantee that one workbook never computes different
+ * values under lite vs full. Deliberate exceptions go in
+ * `RESERVED_NAME_WHITELIST`
+ * (`excel/rust/excel-core/tests/reserved_name_parity.rs`) — currently
+ * empty, and that gate keeps the set closed. Widening THIS set is not
+ * how you close a gap; add the arm on the Rust side.
  *
  * Normalizes to upper-case so callers can use either case in lookups.
  */

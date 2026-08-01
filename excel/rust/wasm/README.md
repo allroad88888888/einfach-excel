@@ -53,29 +53,32 @@ ls -l excel/solid-excel/wasm-pkg{,-full}/einfach_wasm_bg.wasm
 gzip -9 -c excel/solid-excel/wasm-pkg/einfach_wasm_bg.wasm | wc -c
 ```
 
-### 语义差异：不只是"少三个函数"
+### 语义差异：两种构建只差"少三个函数"，不差别的
 
-选构建时**必须**知道这条 —— full 与 lite 对**用户定义的同名东西**行为不同：
+选构建时要知道的就一条：**lite 下 `=REGEXTEST(...)` 求值为 `#NAME?`，full 下能用。**
+除此之外两种构建的行为完全一致 —— 特别是**同一份工作簿不会算出不同的值**。
 
-- `define_name("REGEXTEST", "=LAMBDA(...)")` 在两种构建下都被**接受**，但求值时
-  **full 里内建赢、用户的 LAMBDA 被静默忽略**，**lite 里内建不存在、LAMBDA 真的会跑**。
-- 宿主注册的 JS 自定义公式同理：叫 `REGEXTEST` 的注册在 full 下被内建遮蔽，在 lite 下生效。
+这句话是被一条决策撑住的，不是自然成立的。求值优先级是「内建 → 定义名 LAMBDA →
+宿主自定义公式 → `#NAME?`」（见 `eval.rs` 里 `eval_named_call` 的 **Precedence** 注释），
+所以如果保留名清单 `is_builtin_function_name` 跟着 feature 门控走，就会出现：
 
-机制：求值优先级是「内建 → 定义名 LAMBDA → 宿主自定义公式 → `#NAME?`」（见 `eval.rs` 里
-`eval_named_call` 的 **Precedence** 注释）。本该拦住这种静默遮蔽的是保留名清单
-`is_builtin_function_name`（及其 JS 镜像
-`excel/spreadsheet-ui-core/src/custom-formulas/engine-builtin-names.ts`），但 **REGEX*
-三个名字不在那份清单里** —— 于是注册侧放行、求值侧遮蔽，两边不一致。加 feature 门控没有
-制造这个缺口，只是让它在两种构建下呈现出不同结果。
+- `define_name("REGEXTEST", "=LAMBDA(...)")` 两种构建都被接受，但 full 里内建赢、用户的
+  LAMBDA 被**静默忽略**，lite 里内建不存在、LAMBDA 真的会跑；
+- 宿主注册的同名 JS 自定义公式同理。
 
-也就是说，同一份工作簿在两种构建下可能算出不同的值，而不只是"一边报 `#NAME?`"。自定义
-公式的完整契约见 [`../excel-core/src/CUSTOM_FORMULAS.md`](../excel-core/src/CUSTOM_FORMULAS.md)。
+也就是同一份工作簿换个构建就算出别的数，而用户没有任何提示。
 
-这三个现在是**显式登记的例外**，不是遗漏：曾经有 74 个「分发得到却没保留」的名字，其余 71 个
-已补进清单，门禁 `excel/rust/excel-core/tests/reserved_name_parity.rs` 断言差集恰好等于
-`RESERVED_NAME_WHITELIST`。REGEX* 留在白名单里是因为两个选择各有代价 —— 无条件保留会掐掉
-「lite 下用 JS 自定义公式 polyfill REGEXTEST」这个合理用法，不保留就是上面这段不一致。
-**待 owner 裁决**。
+**保留名清单因此刻意不跟着门控**：REGEX* 三个名字在两种构建下都被保留，注册侧一律拒绝。
+代价是 lite 用户不能用 JS 自定义公式 polyfill REGEX*（"想用就换 full"）。这是权衡后的
+选择，见 `eval.rs::is_builtin_function_name` 里 REGEX* 那三行的注释。
+
+门禁：`excel/rust/excel-core/tests/reserved_name_parity.rs` 断言「求值器分发的名字集合」与
+「保留名清单」的差集恰好等于 `RESERVED_NAME_WHITELIST`，而那个白名单**现在是空的** ——
+即"今天没有任何内建能被静默遮蔽"。曾经这里有 74 个漏网的名字（成因是生成器脚本路径算错、
+从未真正跑过），现已全部补齐：500 = 500。
+
+自定义公式的完整契约见
+[`../excel-core/src/CUSTOM_FORMULAS.md`](../excel-core/src/CUSTOM_FORMULAS.md)。
 
 ### 怎么选 full
 

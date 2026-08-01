@@ -74,9 +74,33 @@ Full approved plan: `/Users/dol/.claude/plans/federated-mapping-crab.md`
 | INV-3 | Bulk import materializes 0 atoms and evaluates 0 formulas, at any size. |
 | INV-4 | `WasmSheet`/`WasmWorkbook` exported names + signatures frozen (additive debug probes allowed). `worker-protocol.ts` wire shapes frozen. |
 | INV-5 | Every landed commit is green on its tier fences. Fence-expectation edits land in the same commit as the semantic change, with closed-form justification in the commit message and a row in §4. |
-| INV-6 | `eval.rs` / `formula.rs` / `format.rs` / `undo.rs` / `csv.rs`: resolver-interface seam changes only. |
+| INV-6 | `eval.rs` / `formula.rs` / `format.rs` / `undo.rs` / `csv.rs`: resolver-interface seam changes only. **一条已批准的例外，见下方「INV-6 的显式例外」。** |
 | INV-7 | Laziness contract: never-read formulas are never materialized or evaluated by writes. Once-read formulas re-derive eagerly on upstream change, with change pruning (owner-approved semantic shift, converges with vanilla/TS semantics). |
 | INV-8 | No permanent dual path. Transitional code carries `// BRIDGE(delete-by: P<n>-exit)`; zero BRIDGE markers may survive P6 exit. |
+
+### INV-6 的显式例外
+
+下表是 owner 批准的、对 INV-6「只许改 resolver 接口缝」的例外。**这些不是有人
+违规，是拍板过的定向豁免**：每条都写明为什么让它留在原文件比搬走更划算。表外的
+任何新增仍按 INV-6 原文办 —— 想再开一条，走 §6 的升级流程。
+
+| # | 文件 | 允许做的事 | 为什么批准 |
+|---|---|---|---|
+| EX-6.1 | `csv.rs` | `import_csv` 在 `Sheet::bulk_load` 之后调用 spill 投影尾 `Sheet::project_bulk_spill_anchors`（含为选候选而调用 `source_may_produce_array` / `expr_may_produce_array` / `parse_formula`） | CSV 是第**四**条批量入口。前三条（`bulk_install_workbook`、`WorkbookLoader::flush`、跨表数组重投影）已在 ADR 0006 那批补上同一条尾巴；`import_csv` 当时漏了，症状是同一个用户可见缺陷的第四个复发点 —— 导入含 `=SEQUENCE(3)` 的 CSV 只剩锚点，其余目标格全空。语义与顺序契约见 [ADR 0006](../../../docs/decisions/0006-spill-region-write-semantics.md)。 |
+
+EX-6.1 的备选方案与否决理由（存档，免得后来人重开这一局）：把投影尾下沉进
+`Sheet::bulk_load`，让四条入口自动都有。**否决** —— 那会改掉
+`tests/lazy_bulk_load.rs::read_of_spill_anchor_returns_array_before_mutation`
+明文钉死的「投影要等一次 mutation」契约，而那条是 INV-7 惰性契约的一部分。
+为省一次显式调用去动 INV-7，代价不对等。
+
+EX-6.1 的边界（越过就不再是本例外覆盖的范围）：
+- 只准**复用** `project_bulk_spill_anchors`，不准在 `csv.rs` 里另写一套投影/碰撞
+  仲裁逻辑 —— 四条入口的行主序仲裁必须收敛到同一份实现。
+- 投影尾只能在 `bulk_load` 的 Store 批次**关闭之后**跑。批次内调用会让
+  `recompute_array_formula` 读到旧的 formula-inner，症状与完全不修一样。
+- INV-3 不放宽：候选闸门先跑无需解析的字节筛，标量公式在导入期仍是 0 解析、
+  0 求值。回归护栏 `tests/csv_import_spill.rs`。
 
 ## 3. Phases & exit gates
 

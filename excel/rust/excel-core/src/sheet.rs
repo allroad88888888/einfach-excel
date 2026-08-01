@@ -7203,7 +7203,7 @@ pub(crate) fn expr_may_produce_array(expr: &Expr) -> bool {
 /// Over-flagging is free (the candidate just gets parsed and then rejected
 /// by the AST gate); under-flagging would silently drop a spill, hence the
 /// deliberately loose `#` / `[` / `{` tests.
-fn source_may_produce_array(source: &str) -> bool {
+pub(crate) fn source_may_produce_array(source: &str) -> bool {
     // Strip the formula intro so `=` isn't mistaken for a comparison
     // operator; Excel also accepts `+`/`-` as an intro.
     let body = source

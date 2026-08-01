@@ -52,6 +52,30 @@ impl Sheet {
         self.spilled_into_anchor(addr).is_some()
     }
 
+    /// True when `addr` sits anywhere inside an ACTIVE spill rectangle — the
+    /// anchor itself OR one of its projection cells. This is the per-address
+    /// form of the rectangle `sort.rs` §5.1 (`sort_spill_intersecting`) tests
+    /// a whole range against, and the two must stay the same predicate: ADR
+    /// 0006's「明确非目标」keeps sort and auto-fill on *whole-request*
+    /// rejection, so a rectangle one of them refuses the other may not accept.
+    ///
+    /// The anchor half is keyed off `spill_targets` rather than the anchor's
+    /// VALUE (which is what `spill_info` reads): a COLLIDED anchor holds
+    /// `#SPILL!`, installed nothing, and therefore owns no cells — it must read
+    /// false here so that removing the obstruction by sort or fill stays
+    /// possible, which is the whole point of the stage-2 revive path.
+    pub fn is_spill_region(&self, addr: CellAddress) -> bool {
+        if self.is_spilled(addr) {
+            return true;
+        }
+        self.interior
+            .cells
+            .borrow()
+            .get(&addr)
+            .and_then(|slot| slot.atom_id())
+            .is_some_and(|atom| self.spill_targets.contains_key(&atom))
+    }
+
     /// Public accessor for `spilled_into_anchor`. Returns the anchor
     /// address of the spill range that covers `addr`, or `None` if
     /// `addr` is not a spilled (non-anchor) cell. Used by JS UI hosts

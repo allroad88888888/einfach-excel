@@ -395,7 +395,7 @@ fn plan_copy(
 ) -> Result<Vec<PlannedCell>, AutoFillError> {
     let mut planned = Vec::with_capacity(write_range.cell_count() as usize);
     for addr in write_range.iter() {
-        if sheet.is_spilled(addr) {
+        if sheet.is_spill_region(addr) {
             return Err(AutoFillError::SpillTarget(addr));
         }
         let source = source_coord(request.source_range, addr);
@@ -476,7 +476,7 @@ fn plan_numeric_series(
     let first = values[0];
     let mut planned = Vec::with_capacity(write_range.cell_count() as usize);
     for addr in write_range.iter() {
-        if sheet.is_spilled(addr) {
+        if sheet.is_spill_region(addr) {
             return Err(AutoFillError::SpillTarget(addr));
         }
         let relative = source_relative_index(request, addr) as f64;
@@ -568,7 +568,7 @@ fn plan_generated(
     };
     let mut planned = Vec::with_capacity(write_range.cell_count() as usize);
     for addr in write_range.iter() {
-        if sheet.is_spilled(addr) {
+        if sheet.is_spill_region(addr) {
             return Err(AutoFillError::SpillTarget(addr));
         }
         let value = generate(source_relative_index(request, addr))?;
@@ -2463,7 +2463,7 @@ mod tests {
     // `AutoFillError::SpillTarget` has exactly three raise sites, one per
     // planner shape: `plan_copy`, `plan_numeric_series`, and the shared
     // `plan_generated` (behind linear-trend, calendar, text-number, and
-    // named-list series). All three run the same probe — `sheet.is_spilled`
+    // named-list series). All three run the same probe — `sheet.is_spill_region`
     // over `write_range`, the target-minus-source rectangle — during
     // preflight, so a rejected fill leaves the workbook untouched.
     //
@@ -2473,6 +2473,14 @@ mod tests {
     // whole-request rejection for sort and auto-fill: Excel likewise refuses
     // a drag that would rewrite part of an array ("You can't change part of
     // an array"). Phases 1/2 must leave the gates below exactly as they are.
+    //
+    // The probe is `is_spill_region`, NOT `is_spilled`: the latter excludes the
+    // anchor by definition, which used to let a fill whose write rectangle
+    // stopped exactly at the anchor pass the gate and tear the array down with
+    // a success report — while `sort.rs` refused the identical rectangle. That
+    // the two gates now answer alike is pinned in
+    // `tests/spill_range_gate_parity.rs`; the reported address is therefore the
+    // first cell of the array met row-major, anchor included.
 
     /// Install a `rows x 1` array anchored at `anchor`, so `anchor` is a spill
     /// anchor and the rows below it are spilled (non-anchor) targets.
@@ -2506,12 +2514,13 @@ mod tests {
             ))
             .unwrap_err();
 
-        // `write_range` is A2:A6 and iterates row-major, so A5 is the first
-        // spilled cell reached — A4 is the anchor and `is_spilled` excludes it.
-        assert_eq!(error, AutoFillError::SpillTarget(addr("A5")));
+        // `write_range` is A2:A6 and iterates row-major, so the anchor A4 is
+        // the first cell of the array reached. `is_spill_region` covers the
+        // anchor, so the report names it rather than the first projection cell.
+        assert_eq!(error, AutoFillError::SpillTarget(addr("A4")));
         assert_eq!(
             error.to_string(),
-            "auto-fill target A5 belongs to a spilled array"
+            "auto-fill target A4 belongs to a spilled array"
         );
         let sheet = wb.sheet(0).unwrap();
         // Whole request rejected: cells the planner walked past before the
@@ -2546,7 +2555,8 @@ mod tests {
                 ))
                 .unwrap_err();
 
-            assert_eq!(error, AutoFillError::SpillTarget(addr("A6")));
+            // Anchor A5 precedes target A6 row-major inside write_range A3:A6.
+            assert_eq!(error, AutoFillError::SpillTarget(addr("A5")));
             let sheet = wb.sheet(0).unwrap();
             assert_eq!(sheet.peek_value(addr("A3")), Value::Null);
             assert_eq!(sheet.peek_value(addr("A4")), Value::Null);
@@ -2574,7 +2584,7 @@ mod tests {
                 Some(1.0),
             ))
             .unwrap_err();
-        assert_eq!(error, AutoFillError::SpillTarget(addr("D5")));
+        assert_eq!(error, AutoFillError::SpillTarget(addr("D4")));
         assert_eq!(
             wb.sheet(0).unwrap().peek_value(addr("D5")),
             Value::Number(20.0)
@@ -2594,7 +2604,7 @@ mod tests {
                 Some(1.0),
             ))
             .unwrap_err();
-        assert_eq!(error, AutoFillError::SpillTarget(addr("E4")));
+        assert_eq!(error, AutoFillError::SpillTarget(addr("E3")));
 
         // Text-number series: witness must match the sources to reach the gate.
         let mut wb = Workbook::new();
@@ -2615,7 +2625,7 @@ mod tests {
         });
         assert_eq!(
             wb.apply_auto_fill(&text_request).unwrap_err(),
-            AutoFillError::SpillTarget(addr("F4"))
+            AutoFillError::SpillTarget(addr("F3"))
         );
 
         // Named list (custom list and both built-in list flavours share the
@@ -2640,7 +2650,7 @@ mod tests {
         });
         assert_eq!(
             wb.apply_auto_fill(&list_request).unwrap_err(),
-            AutoFillError::SpillTarget(addr("G3"))
+            AutoFillError::SpillTarget(addr("G2"))
         );
     }
 
@@ -2725,23 +2735,21 @@ mod tests {
         assert_eq!(sheet.peek_value(addr("A3")), Value::Number(30.0));
     }
 
-    /// Characterization, NOT an endorsement: `is_spilled` is false for a spill
-    /// *anchor*, so a fill whose write rectangle covers the anchor but not the
-    /// whole spill passes the gate, overwrites the anchor, and tears the array
-    /// down. Excel refuses this ("You can't change part of an array") and
-    /// `sort.rs` refuses it too — `SortRangeError::SpillIntersectsRange` fires
-    /// on anchor intersection (`spill_anchor_inside_range_rejects`). The
-    /// asymmetry is recorded here so any future change to it is visible;
-    /// adjudicating it is out of scope for this test pass.
+    /// The asymmetry this test used to characterize — `is_spilled` excluding
+    /// the anchor, so a fill stopping exactly at the anchor tore the array down
+    /// while `sort.rs` refused the same rectangle — is adjudicated: both gates
+    /// now reject, and `tests/spill_range_gate_parity.rs` owns that contract on
+    /// both sides at once. Keeping a one-sided copy here would only give it a
+    /// second place to drift from.
     #[test]
-    fn a_fill_over_a_spill_anchor_alone_is_not_gated_and_tears_the_array_down() {
+    fn a_fill_over_a_spill_anchor_alone_is_rejected_like_any_other_array_cell() {
         let mut wb = Workbook::new();
         wb.set_cell(0, "A1", Value::Number(1.0));
         // Anchor A3, spilled target A4.
         spill_column(&mut wb, "A3", &[7.0, 8.0]);
 
         // write_range is A2:A3 — it covers the anchor but not A4.
-        let report = wb
+        let error = wb
             .apply_auto_fill(&request(
                 range("A1", "A1"),
                 range("A1", "A3"),
@@ -2749,14 +2757,14 @@ mod tests {
                 AutoFillSeries::Copy,
                 None,
             ))
-            .unwrap();
-        assert_eq!(report.written, 2);
+            .unwrap_err();
+        assert_eq!(error, AutoFillError::SpillTarget(addr("A3")));
 
+        // Whole-request rejection: A2 was planned but never written, and the
+        // array is intact.
         let sheet = wb.sheet(0).unwrap();
-        assert_eq!(sheet.peek_value(addr("A3")), Value::Number(1.0));
-        // The array is gone rather than orphaned: A4 is cleared and no longer
-        // reports as spilled.
-        assert_eq!(sheet.peek_value(addr("A4")), Value::Null);
-        assert!(!sheet.is_spilled(addr("A4")));
+        assert_eq!(sheet.peek_value(addr("A2")), Value::Null);
+        assert_eq!(sheet.spill_info(addr("A3")), Some((2, 1)));
+        assert!(sheet.is_spilled(addr("A4")));
     }
 }

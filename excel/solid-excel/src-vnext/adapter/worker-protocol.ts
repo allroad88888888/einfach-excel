@@ -230,7 +230,9 @@ export interface RpcErrorWire {
    * the flat `code`/`message` pair. `sortRange` uses it to forward the
    * engine's `{ code, anchor?, message? }` reject payload (`SortRangeRejectWire`)
    * — the RPC `code` is `SORT_REJECTED`, `detail.code` is the engine
-   * reason. Absent for every other command.
+   * reason. `TABLE_REJECTED` (`TableRejectWire`) and `CELL_WRITE_REJECTED`
+   * (`CellWriteRejectWire`) follow the same convention. Absent for every
+   * other command.
    */
   detail?: unknown
 }
@@ -466,11 +468,18 @@ export interface FilterSnapshotWire {
   filters: SheetFilterStateWire[]
 }
 
+/**
+ * 表元数据 = 表身份，**仅此而已**。两个 runtime 都只发 `{ idx, name }`，
+ * 两边的 restore 也只读这两个字段（按 idx 校验连续、按 name 建表）。
+ *
+ * 这里曾经还有 `rowCount?` / `colCount?`：只有 WASM 引擎填（扫全表求稀疏边界），
+ * TS 引擎不填，整个代码库没有一处读。纯写不读的字段唯一的作用是让两个引擎的快照
+ * 永远无法逐字相等 —— 它把 scale-parity P5 的形状断言逼成了子集比对。
+ * 2026-08-01 删除，P5 随之升级为 sheets 全等。
+ */
 export interface WorkbookPersistenceSheetWire {
   idx: number
   name: string
-  rowCount?: number
-  colCount?: number
 }
 
 export interface WorkbookPersistenceSnapshotWire {
@@ -623,6 +632,21 @@ export interface WorkerWorkbookClient {
   renameSheet(sheet: number, name: string): Promise<boolean>
   removeSheet(sheet: number): Promise<boolean>
   moveSheet(from: number, to: number): Promise<boolean>
+  /**
+   * Single-cell writes. Fail-closed: an engine refusal REJECTS with an
+   * Error whose `code` is `CELL_WRITE_REJECTED` and whose `detail` is a
+   * `CellWriteRejectWire` — same convention as `sortRange`. Nothing was
+   * written when that happens, so a caller must not record undo or bump a
+   * revision.
+   *
+   * `setFormula`'s `false` and `setFormulaDetailed`'s `{ ok: false, code }`
+   * are NOT refusals: the source failed to parse or cycled and the cell
+   * already holds `#VALUE!` / `#CYCLE!`.
+   *
+   * A write into a dynamic array's spill region is NOT a refusal either on
+   * either runtime: it lands, and the array is withdrawn with the anchor
+   * left at `#SPILL!` (ADR 0006).
+   */
   setCell(sheet: number, addr: string, value: CellWire): Promise<boolean>
   setFormula(sheet: number, addr: string, formula: string): Promise<boolean>
   setFormulaDetailed(

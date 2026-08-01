@@ -1096,6 +1096,15 @@ export interface SpreadsheetBackend {
   readViewportSizeProjection?(
     request: ViewportSizeProjectionRequest,
   ): Promise<ViewportSizeProjectionResult>
+  /**
+   * Commit one cell's raw input. Resolving a `BackendMutationResult` means
+   * the value really landed — a host that cannot apply the write MUST
+   * reject, never resolve a success-shaped ACK, or the user's keystrokes
+   * disappear while UI core records history and bumps the revision.
+   * `runEditingCommitAtom` turns the rejection into a `rejected` editing
+   * lifecycle carrying the Error's `message`, so the reason belongs there
+   * (any structured `code` / `detail` is host-private).
+   */
   setCellInput(request: SetCellInputRequest): Promise<BackendMutationResult>
   setCellRichValue?(request: SetCellRichValueRequest): Promise<BackendMutationResult>
   importCells?(request: ImportCellsRequest): Promise<BackendMutationResult>

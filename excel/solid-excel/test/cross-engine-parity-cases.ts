@@ -1,0 +1,193 @@
+/**
+ * always-on 跨引擎烟测的**场景数据**：每一类分歧的夹具、地址、以及闭式期望值。
+ *
+ * 与规格分开的理由：加一类分歧时改的是这里（一行 case + 一行 workload），
+ * 而规格本身（怎么跑两个引擎、怎么比对）几乎不动。混在一份里，读的人得先
+ * 翻过 180 行数据才能看到第一条断言。
+ *
+ * 期望值一律写成**字面量**而不是「两侧相等」—— 相等只能证明两个引擎一致，
+ * 证明不了它们一起错。规格里两种断言都做。
+ *
+ * 规格在 `cross-engine-parity-smoke.test.ts`，引擎驱动在
+ * `cross-engine-parity-engines.ts`。
+ */
+import { a1, type WorkloadCell } from './cross-engine-parity-engines'
+
+
+/** Row-major address list of a rectangle anchored at (row0, col0). */
+export function region(row0: number, col0: number, rows: number, cols: number): string[] {
+  const out: string[] = []
+  for (let r = 0; r < rows; r += 1) {
+    for (let c = 0; c < cols; c += 1) out.push(a1(row0 + r, col0 + c))
+  }
+  return out
+}
+
+/**
+ * Every error literal the formula parsers accept, paired with the token a
+ * cell must SHOW for it. The two columns differ on exactly one row.
+ *
+ * `#TYPE!` and `#ARGS!` have no Excel counterpart: both engines keep them as
+ * internal diagnostic codes (the argument-type / arity guards raise them, the
+ * custom-formula return map accepts them, formula text and persistence
+ * records carry them) and both collapse them to `#VALUE!` at the rendering
+ * boundary — `format::error_display_token` in Rust, `errorDisplayToken` in
+ * TS. `#TYPE!` is the row that caught a real divergence: only the TS side had
+ * missed that collapse.
+ *
+ * `#CYCLE!` is non-Excel too and is DELIBERATELY displayed as-is on both
+ * engines — Excel's answer (`0` + a status-bar warning) hides a real bug
+ * inside a plausible number. That row pins a decision, not a pending item;
+ * see the registry on `format::error_display_token` before "fixing" it.
+ *
+ * Changing any row here is a two-engine change: update Rust and TS in the
+ * same commit or this table goes red.
+ */
+export const ERROR_LITERALS: ReadonlyArray<readonly [literal: string, displayed: string]> = [
+  ['#NULL!', '#NULL!'],
+  ['#DIV/0!', '#DIV/0!'],
+  ['#N/A', '#N/A'],
+  ['#REF!', '#REF!'],
+  ['#VALUE!', '#VALUE!'],
+  ['#NAME?', '#NAME?'],
+  ['#NUM!', '#NUM!'],
+  ['#CYCLE!', '#CYCLE!'],
+  ['#TYPE!', '#VALUE!'],
+  ['#ARGS!', '#VALUE!'],
+  ['#SPILL!', '#SPILL!'],
+  ['#CALC!', '#CALC!'],
+  ['#BUSY!', '#BUSY!'],
+]
+
+/** `=#REF!` in column P, `=#REF!+1` in column Q — one row per literal. */
+export const LITERAL_ADDRS = ERROR_LITERALS.map((_, i) => a1(i, 15))
+export const PROPAGATED_ADDRS = ERROR_LITERALS.map((_, i) => a1(i, 16))
+export const EXPECTED_LITERAL_DISPLAYS = ERROR_LITERALS.map(([, displayed]) => displayed)
+
+/**
+ * Column R — arithmetic operand coercion, one formula per row paired with the
+ * display BOTH engines must show. Excel's answers; the TS reference engine
+ * (`excel-core-ts/src/eval/coerce.ts` `toNumber` + `evaluate.ts` unary /
+ * percent arms) agrees on every row.
+ *
+ * Rows 1-4 are the numeric-string rule: an operand that is text but LOOKS
+ * numeric coerces. Row 5 is the same rule under unary minus. Rows 6-8 are the
+ * postfix `%` operator, whose binding is what makes `=-50%` `-0.5` rather than
+ * a parse error, and which is NOT modulo — Excel has no modulo operator.
+ *
+ * Rows 9-10 are the two places where `^` meets the operators that outrank it
+ * in Excel's table (unary `-` > `%` > `^`). Both used to be TS-only defects
+ * and were fenced out of this file for exactly that reason: `POSTFIX_BP` (55)
+ * and `PREFIX_BP` (50) sat BELOW `^`'s left-bp (60), so `=2^2%` left the `%`
+ * unconsumed (a parse error) and `=-2^2` answered `-4`. The parser now ranks
+ * them 62 / 64 and agrees with the Rust engine, so the rows are pinned rather
+ * than described.
+ */
+export const COERCION_CASES: ReadonlyArray<readonly [formula: string, displayed: string]> = [
+  ['=1+"5"', '6'],
+  ['="5"*"3"', '15'],
+  ['="10"-4', '6'],
+  ['=" -5 "+0', '-5'], // surrounding whitespace is trimmed before parsing
+  ['=-"5"', '-5'],
+  ['=50%', '0.5'],
+  ['=-50%', '-0.5'],
+  ['=50%%', '0.005'], // stacking is legal in Excel
+  ['=2^2%', '1.013959479790029'], // `%` outranks `^`: 2^(2%) = 2^0.02
+  ['=-2^2', '4'], // unary `-` outranks `^`: (-2)^2, NOT -(2^2)
+]
+export const COERCION_ADDRS = COERCION_CASES.map((_, i) => a1(i, 17))
+export const EXPECTED_COERCION_DISPLAYS = COERCION_CASES.map(([, displayed]) => displayed)
+
+/**
+ * A sixth class: AGGREGATION ERROR TRANSPARENCY — whether an error CELL inside
+ * a reference poisons the whole aggregation, or is merely a value the
+ * aggregation has its own opinion about.
+ *
+ * Column T holds one of each value class Excel's counting rules distinguish:
+ * three numbers, a text, a boolean, and an error. Excel's rule is per function
+ * number, not per SUBTOTAL: an error cell is not a NUMBER (so COUNT skips it)
+ * and is not BLANK (so COUNTA tallies it), while SUM and friends do propagate.
+ * The Rust engine has always answered that way; the TS reference engine
+ * short-circuited on the first error for every code, so `=SUBTOTAL(2, T1:T6)`
+ * read `3` on one engine and `#DIV/0!` on the other.
+ *
+ * The last row is the same rule reached through a different door: a data
+ * argument that is a bare error (which is what a single-cell reference to an
+ * error cell looks like by the time the implementation sees it) must not
+ * short-circuit either — only the FUNCTION-NUMBER argument may.
+ */
+export const SUBTOTAL_SOURCE: ReadonlyArray<readonly [row: number, kind: 'number' | 'formula', value: string]> = [
+  [0, 'number', '1'],
+  [1, 'number', '2'],
+  [2, 'number', '3'],
+  [3, 'formula', '="txt"'],
+  [4, 'formula', '=TRUE'],
+  [5, 'formula', '=1/0'],
+]
+export const SUBTOTAL_CASES: ReadonlyArray<readonly [formula: string, displayed: string]> = [
+  ['=SUBTOTAL(2,T1:T6)', '3'], // COUNT — numbers only, error skipped
+  ['=SUBTOTAL(3,T1:T6)', '6'], // COUNTA — every non-blank, error tallied
+  ['=SUBTOTAL(102,T1:T6)', '3'], // the 101-111 tier folds onto the same rule
+  ['=SUBTOTAL(103,T1:T6)', '6'],
+  ['=SUBTOTAL(9,T1:T6)', '#DIV/0!'], // control: SUM still propagates
+  ['=SUBTOTAL(2,T6,T6)', '0'], // bare-error data args do not short-circuit
+]
+export const SUBTOTAL_ADDRS = SUBTOTAL_CASES.map((_, i) => a1(i, 20))
+export const EXPECTED_SUBTOTAL_DISPLAYS = SUBTOTAL_CASES.map(([, displayed]) => displayed)
+
+export const WORKLOAD: WorkloadCell[] = [
+  { row: 0, col: 0, kind: 'number', value: 5 }, // A1 — a plain literal
+  { row: 0, col: 7, kind: 'formula', value: '=SEQUENCE(10)' }, // H1 → H1:H10
+  { row: 0, col: 9, kind: 'formula', value: '=SEQUENCE(4,3)' }, // J1 → J1:L4
+  { row: 0, col: 12, kind: 'formula', value: '=1+"x"' }, // M1
+  { row: 1, col: 12, kind: 'formula', value: '="x"+"y"' }, // M2
+  { row: 2, col: 12, kind: 'formula', value: '=-"abc"' }, // M3
+  { row: 0, col: 13, kind: 'formula', value: '=SUBTOTAL("x",A1:A3)' }, // N1
+  // Columns T / U — aggregation error transparency, see SUBTOTAL_CASES.
+  ...SUBTOTAL_SOURCE.map(([row, kind, value]): WorkloadCell =>
+    kind === 'number'
+      ? { row, col: 19, kind: 'number', value: Number(value) }
+      : { row, col: 19, kind: 'formula', value },
+  ),
+  ...SUBTOTAL_CASES.map(
+    ([formula], row): WorkloadCell => ({ row, col: 20, kind: 'formula', value: formula }),
+  ),
+  // Column R — arithmetic operand coercion + `^` binding, see COERCION_CASES.
+  ...COERCION_CASES.map(
+    ([formula], row): WorkloadCell => ({ row, col: 17, kind: 'formula', value: formula }),
+  ),
+  // P1:P13 / Q1:Q13 — one error literal per row, bare then propagated
+  // through arithmetic (a token that renders right bare can still leak its
+  // internal spelling once an operator short-circuits on it).
+  ...ERROR_LITERALS.flatMap(([literal], row): WorkloadCell[] => [
+    { row, col: 15, kind: 'formula', value: `=${literal}` },
+    { row, col: 16, kind: 'formula', value: `=${literal}+1` },
+  ]),
+]
+
+export const SPILL_1D = region(0, 7, 10, 1) // H1:H10
+export const SPILL_2D = region(0, 9, 4, 3) // J1:L4
+export const ERROR_ADDRS = ['M1', 'M2', 'M3']
+/** Everything the parity comparisons sample, incl. blanks past each spill. */
+export const PROBE_ADDRS = [
+  'A1',
+  ...SPILL_1D,
+  'H11',
+  ...SPILL_2D,
+  'M9',
+  ...ERROR_ADDRS,
+  'N1',
+  ...LITERAL_ADDRS,
+  ...PROPAGATED_ADDRS,
+  ...COERCION_ADDRS,
+  ...SUBTOTAL_ADDRS,
+]
+
+export const SEQ_10 = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
+export const SEQ_4X3 = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
+// `=SEQUENCE(3,1,100,1)` / `=SEQUENCE(2,2,50,1)` re-pointed onto the anchors.
+export const SHRUNK_1D = ['100', '101', '102', '', '', '', '', '', '', '']
+export const SHRUNK_2D = ['50', '51', '', '52', '53', '', '', '', '', '', '', '']
+// A blocker at H3 withdraws the whole array: anchor `#SPILL!`, ghosts blank,
+// the typed value kept verbatim.
+export const BLOCKED_1D = ['#SPILL!', '', 'blocker', '', '', '', '', '', '', '']

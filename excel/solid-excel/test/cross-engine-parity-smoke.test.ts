@@ -50,147 +50,40 @@
  *
  * A failure here is a REAL cross-engine finding: report the divergent
  * addresses, do not relax the assertion.
+ *
+ * 每一类的夹具、地址与闭式期望值在 `cross-engine-parity-cases.ts` —— 加一类
+ * 分歧改的是那边（一行 case + 一行 workload），本文件只放规格。
  */
+
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals'
 
 import {
-  a1,
   displaysOf,
   flatten,
   loadWasmModule,
   makeEngine,
   type Engine,
   type EngineLabel,
-  type WorkloadCell,
 } from './cross-engine-parity-engines'
-
-/** Row-major address list of a rectangle anchored at (row0, col0). */
-function region(row0: number, col0: number, rows: number, cols: number): string[] {
-  const out: string[] = []
-  for (let r = 0; r < rows; r += 1) {
-    for (let c = 0; c < cols; c += 1) out.push(a1(row0 + r, col0 + c))
-  }
-  return out
-}
-
-/**
- * Every error literal the formula parsers accept, paired with the token a
- * cell must SHOW for it. The two columns differ on exactly one row.
- *
- * `#TYPE!` and `#ARGS!` have no Excel counterpart: both engines keep them as
- * internal diagnostic codes (the argument-type / arity guards raise them, the
- * custom-formula return map accepts them, formula text and persistence
- * records carry them) and both collapse them to `#VALUE!` at the rendering
- * boundary — `format::error_display_token` in Rust, `errorDisplayToken` in
- * TS. `#TYPE!` is the row that caught a real divergence: only the TS side had
- * missed that collapse.
- *
- * `#CYCLE!` is non-Excel too and is DELIBERATELY displayed as-is on both
- * engines — Excel's answer (`0` + a status-bar warning) hides a real bug
- * inside a plausible number. That row pins a decision, not a pending item;
- * see the registry on `format::error_display_token` before "fixing" it.
- *
- * Changing any row here is a two-engine change: update Rust and TS in the
- * same commit or this table goes red.
- */
-const ERROR_LITERALS: ReadonlyArray<readonly [literal: string, displayed: string]> = [
-  ['#NULL!', '#NULL!'],
-  ['#DIV/0!', '#DIV/0!'],
-  ['#N/A', '#N/A'],
-  ['#REF!', '#REF!'],
-  ['#VALUE!', '#VALUE!'],
-  ['#NAME?', '#NAME?'],
-  ['#NUM!', '#NUM!'],
-  ['#CYCLE!', '#CYCLE!'],
-  ['#TYPE!', '#VALUE!'],
-  ['#ARGS!', '#VALUE!'],
-  ['#SPILL!', '#SPILL!'],
-  ['#CALC!', '#CALC!'],
-  ['#BUSY!', '#BUSY!'],
-]
-
-/** `=#REF!` in column P, `=#REF!+1` in column Q — one row per literal. */
-const LITERAL_ADDRS = ERROR_LITERALS.map((_, i) => a1(i, 15))
-const PROPAGATED_ADDRS = ERROR_LITERALS.map((_, i) => a1(i, 16))
-const EXPECTED_LITERAL_DISPLAYS = ERROR_LITERALS.map(([, displayed]) => displayed)
-
-/**
- * Column R — arithmetic operand coercion, one formula per row paired with the
- * display BOTH engines must show. Excel's answers; the TS reference engine
- * (`excel-core-ts/src/eval/coerce.ts` `toNumber` + `evaluate.ts` unary /
- * percent arms) agrees on every row.
- *
- * Rows 1-4 are the numeric-string rule: an operand that is text but LOOKS
- * numeric coerces. Row 5 is the same rule under unary minus. Rows 6-8 are the
- * postfix `%` operator, whose binding is what makes `=-50%` `-0.5` rather than
- * a parse error, and which is NOT modulo — Excel has no modulo operator.
- *
- * NOT pinned here, deliberately: `=2^2%`. Excel parses it `2^(2%)` = 2^0.02
- * because `%` binds tighter than `^`; the TS parser's `POSTFIX_BP` (55) sits
- * BELOW `^`'s left-bp (60) and its infix loop never re-enters the postfix
- * loop, so the `%` is left unconsumed and the whole formula becomes a parse
- * error. That is a single-engine TS defect, not a shape this file can assert
- * agreement on — pinning it would just encode the defect.
- */
-const COERCION_CASES: ReadonlyArray<readonly [formula: string, displayed: string]> = [
-  ['=1+"5"', '6'],
-  ['="5"*"3"', '15'],
-  ['="10"-4', '6'],
-  ['=" -5 "+0', '-5'], // surrounding whitespace is trimmed before parsing
-  ['=-"5"', '-5'],
-  ['=50%', '0.5'],
-  ['=-50%', '-0.5'],
-  ['=50%%', '0.005'], // stacking is legal in Excel
-]
-const COERCION_ADDRS = COERCION_CASES.map((_, i) => a1(i, 17))
-const EXPECTED_COERCION_DISPLAYS = COERCION_CASES.map(([, displayed]) => displayed)
-
-const WORKLOAD: WorkloadCell[] = [
-  { row: 0, col: 0, kind: 'number', value: 5 }, // A1 — a plain literal
-  { row: 0, col: 7, kind: 'formula', value: '=SEQUENCE(10)' }, // H1 → H1:H10
-  { row: 0, col: 9, kind: 'formula', value: '=SEQUENCE(4,3)' }, // J1 → J1:L4
-  { row: 0, col: 12, kind: 'formula', value: '=1+"x"' }, // M1
-  { row: 1, col: 12, kind: 'formula', value: '="x"+"y"' }, // M2
-  { row: 2, col: 12, kind: 'formula', value: '=-"abc"' }, // M3
-  { row: 0, col: 13, kind: 'formula', value: '=SUBTOTAL("x",A1:A3)' }, // N1
-  // R1:R8 — arithmetic operand coercion, see COERCION_CASES.
-  ...COERCION_CASES.map(
-    ([formula], row): WorkloadCell => ({ row, col: 17, kind: 'formula', value: formula }),
-  ),
-  // P1:P13 / Q1:Q13 — one error literal per row, bare then propagated
-  // through arithmetic (a token that renders right bare can still leak its
-  // internal spelling once an operator short-circuits on it).
-  ...ERROR_LITERALS.flatMap(([literal], row): WorkloadCell[] => [
-    { row, col: 15, kind: 'formula', value: `=${literal}` },
-    { row, col: 16, kind: 'formula', value: `=${literal}+1` },
-  ]),
-]
-
-const SPILL_1D = region(0, 7, 10, 1) // H1:H10
-const SPILL_2D = region(0, 9, 4, 3) // J1:L4
-const ERROR_ADDRS = ['M1', 'M2', 'M3']
-/** Everything the parity comparisons sample, incl. blanks past each spill. */
-const PROBE_ADDRS = [
-  'A1',
-  ...SPILL_1D,
-  'H11',
-  ...SPILL_2D,
-  'M9',
-  ...ERROR_ADDRS,
-  'N1',
-  ...LITERAL_ADDRS,
-  ...PROPAGATED_ADDRS,
-  ...COERCION_ADDRS,
-]
-
-const SEQ_10 = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
-const SEQ_4X3 = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
-// `=SEQUENCE(3,1,100,1)` / `=SEQUENCE(2,2,50,1)` re-pointed onto the anchors.
-const SHRUNK_1D = ['100', '101', '102', '', '', '', '', '', '', '']
-const SHRUNK_2D = ['50', '51', '', '52', '53', '', '', '', '', '', '', '']
-// A blocker at H3 withdraws the whole array: anchor `#SPILL!`, ghosts blank,
-// the typed value kept verbatim.
-const BLOCKED_1D = ['#SPILL!', '', 'blocker', '', '', '', '', '', '', '']
+import {
+  BLOCKED_1D,
+  COERCION_ADDRS,
+  ERROR_ADDRS,
+  EXPECTED_COERCION_DISPLAYS,
+  EXPECTED_LITERAL_DISPLAYS,
+  EXPECTED_SUBTOTAL_DISPLAYS,
+  LITERAL_ADDRS,
+  PROBE_ADDRS,
+  PROPAGATED_ADDRS,
+  SEQ_10,
+  SEQ_4X3,
+  SHRUNK_1D,
+  SHRUNK_2D,
+  SPILL_1D,
+  SPILL_2D,
+  SUBTOTAL_ADDRS,
+  WORKLOAD,
+} from './cross-engine-parity-cases'
 
 describe('cross-engine parity smoke — TS runtime vs WASM engine', () => {
   let ts: Engine
@@ -282,6 +175,19 @@ describe('cross-engine parity smoke — TS runtime vs WASM engine', () => {
     for (const read of [tsRead, wasmRead]) {
       expect(read.get('N1')?.display).toBe('#VALUE!')
       expect(read.get('N1')?.isError).toBe(true)
+    }
+  })
+
+  test('an error cell inside a range does not poison SUBTOTAL\'s counting codes', async () => {
+    const tsRead = await ts.read(SUBTOTAL_ADDRS)
+    const wasmRead = await wasm.read(SUBTOTAL_ADDRS)
+    expect(flatten(wasmRead)).toEqual(flatten(tsRead))
+
+    // Closed form on BOTH readings: two engines that both answer `#DIV/0!` to
+    // `=SUBTOTAL(2, T1:T6)` agree perfectly and are both wrong, which is
+    // exactly the state this scenario was added to end.
+    for (const read of [tsRead, wasmRead]) {
+      expect(displaysOf(read, SUBTOTAL_ADDRS)).toEqual(EXPECTED_SUBTOTAL_DISPLAYS)
     }
   })
 

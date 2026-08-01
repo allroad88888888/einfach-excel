@@ -32,44 +32,10 @@ use std::rc::Rc;
 use std::sync::Arc;
 
 use einfach_core::{ArrayData, Value, ValueError};
-use einfach_excel_core::{CellAddress, CellRange, Sheet, Workbook};
+use einfach_excel_core::Sheet;
 
-fn addr(s: &str) -> CellAddress {
-    CellAddress::parse(s).expect("test address must parse")
-}
-
-fn range(start: &str, end: &str) -> CellRange {
-    CellRange::new(addr(start), addr(end)).normalize()
-}
-
-/// `=SEQUENCE(4)` at H1, spilled into H2:H4.
-fn column_spill_sheet() -> Sheet {
-    let mut sheet = Sheet::new();
-    assert!(sheet.set_formula("H1", "=SEQUENCE(4)"));
-    assert_eq!(sheet.get_cell("H3"), Value::Number(3.0), "spill landed");
-    sheet
-}
-
-/// Assert the array is gone: anchor at `#SPILL!`, every projection cell but
-/// `written` back to empty, and the spill bookkeeping empty.
-fn assert_collapsed(sheet: &Sheet, anchor: &str, ghosts: &[&str]) {
-    assert_eq!(
-        sheet.get_cell(anchor),
-        Value::Error(ValueError::Spill),
-        "{anchor} must project #SPILL! after the write"
-    );
-    for g in ghosts {
-        assert_eq!(
-            sheet.get_cell(g),
-            Value::Null,
-            "{g} must be empty — the whole array is withdrawn, not just the written cell"
-        );
-    }
-    assert_eq!(sheet.spill_info(addr(anchor)), None, "no shape any more");
-    assert_eq!(sheet.debug_spill_anchor_count(), 0);
-    assert_eq!(sheet.debug_spill_target_count(), 0);
-    assert_eq!(sheet.debug_spill_reverse_index_len(), 0);
-}
+mod spill_write_support;
+use spill_write_support::{assert_collapsed, column_spill_sheet};
 
 // =====================================================================
 // Stage 1 — the write lands and the array withdraws
@@ -279,88 +245,4 @@ fn delete_over_a_projection_cell_holding_null_does_not_release_the_atom() {
     assert_eq!(sheet.debug_spill_target_count(), targets_before);
     assert_eq!(sheet.debug_spill_reverse_index_len(), targets_before);
     assert_eq!(sheet.get_cell("A3"), Value::Number(3.0), "array intact");
-}
-
-// =====================================================================
-// Stage 1 — the bulk paths
-// =====================================================================
-
-/// `BulkLoader::set_cell` used to skip a projection cell silently. It now
-/// collapses, and the anchor's `#SPILL!` is delivered by `flush` — the bulk
-/// path cannot reach the anchor through Store reverse dependencies either.
-#[test]
-fn bulk_literal_into_projection_cell_collapses_at_flush() {
-    let mut sheet = column_spill_sheet();
-
-    sheet.bulk_load(|loader| {
-        loader.set_cell("H3", Value::Number(7.0));
-    });
-
-    assert_eq!(sheet.get_cell("H3"), Value::Number(7.0));
-    assert_collapsed(&sheet, "H1", &["H2", "H4"]);
-}
-
-/// Same for `BulkLoader::set_formula`, which also has to start returning
-/// `true`: the formula really is installed now.
-#[test]
-fn bulk_formula_into_projection_cell_installs_and_collapses() {
-    let mut sheet = column_spill_sheet();
-
-    let installed = sheet.bulk_load(|loader| loader.set_formula("H3", "=1+1"));
-
-    assert!(installed, "the formula is installed, not rejected");
-    assert_eq!(sheet.get_cell("H3"), Value::Number(2.0));
-    assert_collapsed(&sheet, "H1", &["H2", "H4"]);
-}
-
-/// `Workbook::bulk_load` reaches `set_formula_lazy` through
-/// `set_formula_pre_parsed`, a third entry point with its own copy of the
-/// guard. Leaving it un-collapsed is what would have made `store.set` panic on
-/// a read-only derived atom.
-#[test]
-fn workbook_bulk_load_formula_into_projection_cell_collapses() {
-    let mut wb = Workbook::new();
-    assert!(wb.set_formula(0, "H1", "=SEQUENCE(4)"));
-    assert_eq!(wb.get_cell("Sheet1", "H3"), Value::Number(3.0));
-
-    wb.bulk_load(|loader| {
-        loader.set_formula(0, "H3", "=1+1");
-    });
-
-    assert_eq!(wb.get_cell("Sheet1", "H3"), Value::Number(2.0));
-    assert_eq!(wb.get_cell("Sheet1", "H1"), Value::Error(ValueError::Spill));
-    assert_eq!(wb.get_cell("Sheet1", "H2"), Value::Null);
-    assert_eq!(wb.get_cell("Sheet1", "H4"), Value::Null);
-}
-
-/// `clear_range` over part of a spill region routes through
-/// `BulkLoader::set_cell_at` with `Value::Null`, so it inherits the inert
-/// Delete rule: plain cells clear, the array survives. The count still
-/// reports every non-empty address the sparse scan VISITED, which at the
-/// Rust layer includes projection cells.
-#[test]
-fn clear_range_over_part_of_a_spill_leaves_the_array_intact() {
-    let mut sheet = column_spill_sheet();
-    sheet.set_cell("I3", Value::Number(99.0));
-
-    sheet.clear_range(range("H3", "I3"));
-
-    assert_eq!(sheet.get_cell("I3"), Value::Null, "plain cell cleared");
-    assert_eq!(sheet.get_cell("H3"), Value::Number(3.0), "array intact");
-    assert!(matches!(sheet.get_cell("H1"), Value::Array(_)));
-}
-
-/// But a range that clears the ANCHOR still tears everything down, and the
-/// region is writable afterwards.
-#[test]
-fn clear_range_over_the_anchor_still_tears_the_spill_down() {
-    let mut sheet = column_spill_sheet();
-
-    sheet.clear_range(range("H1", "H4"));
-
-    for a in ["H1", "H2", "H3", "H4"] {
-        assert_eq!(sheet.get_cell(a), Value::Null, "{a} must be empty");
-    }
-    assert!(sheet.try_set_cell("H3", Value::Number(5.0)).is_ok());
-    assert_eq!(sheet.get_cell("H3"), Value::Number(5.0));
 }

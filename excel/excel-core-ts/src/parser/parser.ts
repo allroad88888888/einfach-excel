@@ -95,8 +95,14 @@ function infixBindingPower(op: OpLexeme): [number, number] {
   }
 }
 
-const PREFIX_BP = 50 // higher than `+`/`-`/`*`/`/`, lower than `^`
-const POSTFIX_BP = 55 // `%` binds tighter than infix arithmetic but looser than `^`
+// The three bands above `^` (left-bp 60), ordered exactly as Excel's operator
+// table does: reference operators > unary `-` > `%` > `^`. Both of the
+// non-reference ones USED to sit below 60 (50 / 55), which cost two defects:
+// `=-2^2` parsed as `-(2^2)` = -4 where Excel and the Rust engine say
+// `(-2)^2` = 4, and `=2^2%` left the `%` unconsumed (→ `unexpected trailing
+// token percent` → `#VALUE!`) where both say `2^(2%)` = 2^0.02.
+const POSTFIX_BP = 62 // `%` — above `^`, below unary
+const PREFIX_BP = 64 // unary `+`/`-` — above `%`, below the reference operators
 const RANGE_BP = 65 // reference range operator binds tighter than scalar infix ops
 const CALL_BP = 70 // expression-level LAMBDA calls bind tighter than all infix ops
 const SPILL_BP = 75 // spill references are syntactic anchors, not scalar arithmetic
@@ -141,11 +147,10 @@ function parseExpr(cur: TokenCursor, minBp: number): Expr {
       cur.next()
       const rhs = parseExpr(cur, rbp)
       lhs = { kind: 'binary', op: t.value as BinaryOp, left: lhs, right: rhs }
-      // After consuming an infix op, postfix `%` could still apply to the
-      // whole expression — but Excel actually only allows `%` on atoms,
-      // so we don't re-enter the postfix loop here. Doing so would let
-      // `=1+2%` parse as `(1+2)%`; Excel parses as `1 + 2%`. Bind-power
-      // ordering above already covers that case.
+      // Deliberately NOT re-entering the postfix loop: a trailing `%` was
+      // already claimed by the recursive `parseExpr(rbp)` above, because
+      // POSTFIX_BP outranks every infix right-bp. Re-entering would let
+      // `=1+2%` parse as `(1+2)%` = 0.03; Excel parses `1 + 2%` = 1.02.
       continue
     }
     break

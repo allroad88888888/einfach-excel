@@ -6,9 +6,13 @@
  *   - string literals: "hello"
  *   - cell references: A1, $A$1
  *   - range references inside function args: B2:E8
- *   - operators: + - * / ^ with normal precedence, plus comparison
- *     operators = <> < <= > >= (lowest precedence) returning 1/0
+ *   - operators: + - * / ^ with normal precedence, postfix % (which binds
+ *     ABOVE `^` — see `parsePercent`), plus comparison operators
+ *     = <> < <= > >= (lowest precedence) returning 1/0
  *   - unary minus / plus
+ *   - Excel's arithmetic operand coercion: text that looks numeric is
+ *     parsed (`=1+"5"` is 6), text that does not is `#VALUE!` — see
+ *     `coerceNumber`
  *   - parentheses
  *   - functions: SUM, AVERAGE, COUNT, MIN, MAX, IF, SUMIF, COUNTIF,
  *     ABS, ROUND, CONCAT, SUBTOTAL
@@ -336,7 +340,9 @@ function tokenize(
       i += 1
       continue
     }
-    if ('+-*/^'.includes(ch)) {
+    // `%` rides in the same class as the arithmetic operators even though it
+    // is POSTFIX — `parsePercent` is what gives it its Excel binding power.
+    if ('+-*/^%'.includes(ch)) {
       tokens.push({ kind: 'op', op: ch })
       i += 1
       continue
@@ -411,6 +417,28 @@ function isErr(v: Value): boolean {
   return typeof v === 'string' && v.startsWith('#')
 }
 
+/**
+ * Excel's ARITHMETIC operand coercion — the static twin of the two real
+ * engines' rule (`coerce_text_to_number` in excel/rust/excel-core/src/eval.rs,
+ * `toNumber` in excel/excel-core-ts/src/eval/coerce.ts). Returns a number, or
+ * the error code the operator must answer with.
+ *
+ * Order matters: the empty-string guard runs BEFORE `Number()`, because
+ * `Number('')` is `0` — without it `=1+""` answers `1` where Excel and both
+ * engines answer `#VALUE!`.
+ *
+ * Only ARITHMETIC coerces. `combineCompare` deliberately does not: Excel
+ * orders text above numbers rather than parsing it, so `="5"=5` stays false.
+ */
+function coerceNumber(v: Value): number | string {
+  if (typeof v === 'number') return v
+  if (isErr(v)) return v
+  const trimmed = v.trim()
+  if (trimmed.length === 0) return '#VALUE!'
+  const n = Number(trimmed)
+  return Number.isFinite(n) ? n : '#VALUE!'
+}
+
 function isTruthy(v: Value): boolean {
   if (isErr(v)) return false
   if (typeof v === 'number') return v !== 0
@@ -482,13 +510,38 @@ class Parser {
   }
 
   private parseExponent(): Value {
-    let left = this.parseUnary()
+    let left = this.parsePercent()
     while (this.peek()?.kind === 'op' && (this.peek() as { op: string }).op === '^') {
       this.pos += 1
-      const right = this.parseUnary()
+      const right = this.parsePercent()
       left = this.combine('^', left, right)
     }
     return left
+  }
+
+  /**
+   * percent = unary '%'* — postfix and stackable.
+   *
+   * Excel's operator table (high → low) reads: reference operators >
+   * unary `-` > `%` > `^` > `*` `/` > `+` `-` > `&` > comparison, so this
+   * level sits exactly between `parseExponent` and `parseUnary` — the same
+   * slot `Parser::parse_percent` occupies in excel/rust/excel-core/src/formula.rs.
+   * Consequences worth naming: `=2^2%` is `2^(2%)` = 2^0.02 (NOT `(2^2)%`),
+   * `=-50%` is -0.5, `=50%%` is 0.005, `=1+2%` is 1.02.
+   *
+   * `%` is NOT modulo — Excel has no modulo operator (that is `MOD()`), so
+   * `=10%3` leaves a stray `3` and fails the trailing-token check in
+   * `parse()` rather than quietly answering 1.
+   */
+  private parsePercent(): Value {
+    let value = this.parseUnary()
+    while (this.peek()?.kind === 'op' && (this.peek() as { op: string }).op === '%') {
+      this.pos += 1
+      const n = coerceNumber(value)
+      if (typeof n === 'string') return n
+      value = n / 100
+    }
+    return value
   }
 
   private parseUnary(): Value {
@@ -496,8 +549,11 @@ class Parser {
     if (tok?.kind === 'op' && (tok.op === '-' || tok.op === '+')) {
       this.pos += 1
       const inner = this.parseUnary()
-      if (typeof inner !== 'number') return inner
-      return tok.op === '-' ? -inner : inner
+      // Coerce, never pass through. Returning a non-number verbatim silently
+      // DROPPED the operator: `=-"5"` used to display 5.
+      const n = coerceNumber(inner)
+      if (typeof n === 'string') return n
+      return tok.op === '-' ? -n : n
     }
     return this.parsePrimary()
   }
@@ -574,22 +630,25 @@ class Parser {
   private combine(op: string, left: Value, right: Value): Value {
     if (isErr(left)) return left
     if (isErr(right)) return right
-    if (typeof left === 'string' || typeof right === 'string') {
-      // Arithmetic on strings (other than via CONCAT) is invalid.
-      return '#VALUE!'
-    }
+    // Excel coerces a numeric-LOOKING operand rather than rejecting every
+    // string: `=1+"5"` is 6, `=1+"x"` is #VALUE!. Left first, so the leftmost
+    // non-coercible operand is the one that names the failure.
+    const a = coerceNumber(left)
+    if (typeof a === 'string') return a
+    const b = coerceNumber(right)
+    if (typeof b === 'string') return b
     switch (op) {
       case '+':
-        return left + right
+        return a + b
       case '-':
-        return left - right
+        return a - b
       case '*':
-        return left * right
+        return a * b
       case '/':
-        if (right === 0) return '#DIV/0!'
-        return left / right
+        if (b === 0) return '#DIV/0!'
+        return a / b
       case '^':
-        return Math.pow(left, right)
+        return Math.pow(a, b)
       default:
         return '#ERROR!'
     }

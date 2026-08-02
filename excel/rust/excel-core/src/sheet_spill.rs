@@ -221,7 +221,12 @@ impl Sheet {
     /// `our_anchor_atom` is the anchor we're spilling FROM — entries in
     /// `spill_targets[our_anchor_atom]` should NOT be considered
     /// collisions (we're re-spilling into our own previous range).
-    fn is_target_occupied(&self, target: CellAddress, our_anchor_atom: AtomId) -> bool {
+    ///
+    /// `pub(super)` for `sheet_spill_blocker.rs`, which answers "which cell is
+    /// blocking this `#SPILL!`" and MUST use this exact predicate: reporting a
+    /// cell that `register_spill` would not have tripped over sends the user to
+    /// clear something that does not revive the array.
+    pub(super) fn is_target_occupied(&self, target: CellAddress, our_anchor_atom: AtomId) -> bool {
         // (a) Formula cell at target — always blocks. Unhydrated lazy
         // formulas count too: a same-cell collision with a deferred
         // formula must surface as #SPILL!, not pass through.

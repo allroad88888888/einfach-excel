@@ -832,6 +832,10 @@ export const messages: Record<string, string> = {
   'removeDuplicates.status.success': '已删除 {count} 行重复项',
   'removeDuplicates.status.failed': '删除失败',
 
+  // 动态数组 —— `#SPILL!` 自己说不出来的那件事：是哪一格挡着。选中碰撞态
+  // 锚点时显示。
+  'spill.blockedBy': '被 {addr} 挡住 —— 清掉那一格，数组就能溢出来。',
+
   // 诊断 —— 失败操作的可见出口。此表未列出的码回落到 UI core 带的英文
   // message，这样引擎新增的码仍然可见，不会被静默吞掉。
   'diagnostics.region.label': '通知',

@@ -1,6 +1,7 @@
-import { atom, type Atom } from '@einfach/core'
+import { atom, type Atom, type Setter } from '@einfach/core'
 import type { CellCoord } from '../shared'
 import type {
+  ActiveSpillBlockage,
   ActiveSpillRegion,
   SpillCellRole,
   SpillRegion,
@@ -16,6 +17,12 @@ export * from './types'
  * per-cell atom 家族」在本 feature 的落法。
  */
 export const SPILL_REGION_CACHE_MAX = 1
+
+/**
+ * 有界上限：**同时只留 1 条 `#SPILL!` 阻塞线索**。与溢出区同一条查询、同一次换进
+ * 换出，所以两者恒定不会同时非空（装上了投影就没有阻塞物）。
+ */
+export const SPILL_BLOCKAGE_CACHE_MAX = 1
 
 /** 宿主后端里被本模块调用的那一个可选端口。 */
 export interface SpillRegionPort {
@@ -33,9 +40,17 @@ export interface RefreshSpillRegionInput {
  * - `unsupported`：宿主后端没实现端口 —— 功能整体隐身，不是错误。
  * - `stale`：应答回来时已经有更新的一次查询发出去了，丢弃。
  * - `cleared` / `updated`：这一格不在 / 在某个溢出区里。
+ * - `blocked`：这一格是个碰撞态（`#SPILL!`）锚点，而且后端说得出被谁挡住 ——
+ *   没有框可画（它一格都没装上），但有一句话可说。
  * - `error`：端口拒绝或应答不合法；缓存被清空，边框消失而不是画错地方。
  */
-export type RefreshSpillRegionOutcome = 'unsupported' | 'stale' | 'cleared' | 'updated' | 'error'
+export type RefreshSpillRegionOutcome =
+  | 'unsupported'
+  | 'stale'
+  | 'cleared'
+  | 'updated'
+  | 'blocked'
+  | 'error'
 
 // --- source ---------------------------------------------------------------
 
@@ -52,6 +67,14 @@ spillRequestSeqBackingAtom.debugLabel = 'spreadsheet.spill.requestSeqBacking'
 const spillCapabilityBackingAtom = atom<boolean>(false)
 spillCapabilityBackingAtom.debugLabel = 'spreadsheet.spill.capabilityBacking'
 
+/**
+ * 唯一那一格阻塞线索缓存。与 `spillRegionBackingAtom` 分成两格而不是塞进一个联合
+ * 类型：两者的消费者不同（一个画框、一个写字），合成一格会让画框的组件在只有文案
+ * 变化时也重渲染。
+ */
+const spillBlockageBackingAtom = atom<ActiveSpillBlockage | null>(null)
+spillBlockageBackingAtom.debugLabel = 'spreadsheet.spill.blockageBacking'
+
 // --- derived --------------------------------------------------------------
 
 /** 当前高亮的溢出区；没有就是 `null`。只读投影，宿主反射写会抛。 */
@@ -59,6 +82,17 @@ export const activeSpillRegionAtom: Atom<ActiveSpillRegion | null> = atom((get) 
   get(spillRegionBackingAtom),
 )
 activeSpillRegionAtom.debugLabel = 'spreadsheet.spill.activeRegion'
+
+/**
+ * 当前选中的那个 `#SPILL!` 锚点是被谁挡住的；不适用时 `null`。
+ *
+ * `null` 覆盖三种情形，宿主对它们的处理一样 —— 不说话：选中的不是碰撞态锚点、
+ * 后端答不出（TS 参考引擎没有溢出索引）、端口整个缺席。
+ */
+export const activeSpillBlockageAtom: Atom<ActiveSpillBlockage | null> = atom((get) =>
+  get(spillBlockageBackingAtom),
+)
+activeSpillBlockageAtom.debugLabel = 'spreadsheet.spill.activeBlockage'
 
 /** 端口在位与否的只读证据。宿主没实现 → 边框与标记整体不出现。 */
 export const spillRegionSupportedAtom: Atom<boolean> = atom((get) =>
@@ -91,6 +125,13 @@ function isFiniteIndex(value: unknown): value is number {
   return typeof value === 'number' && Number.isInteger(value) && value >= 0
 }
 
+function normalizeCoord(coord: unknown): CellCoord | null {
+  if (typeof coord !== 'object' || coord === null) return null
+  const { row, col } = coord as Partial<CellCoord>
+  if (!isFiniteIndex(row) || !isFiniteIndex(col)) return null
+  return { row, col }
+}
+
 function normalizeRegion(region: unknown): SpillRegion | null {
   if (typeof region !== 'object' || region === null) return null
   const { anchor, range } = region as Partial<SpillRegion>
@@ -115,6 +156,15 @@ function normalizeRegion(region: unknown): SpillRegion | null {
 
 // --- commands -------------------------------------------------------------
 
+/**
+ * 两格缓存一起清。所有「什么都不该显示」的出口都走这里 —— 分开写过一次就会漏掉
+ * 一个，症状是框没了但「被 B3 挡住」还挂着。
+ */
+function clearSpillCaches(set: Setter): void {
+  set(spillRegionBackingAtom, null)
+  set(spillBlockageBackingAtom, null)
+}
+
 /** 抓一次端口在位与否；宿主换 backend 或 backend `ready()` 之后再抓一次。 */
 export const captureSpillRegionCapabilityAtom = atom(
   null,
@@ -126,14 +176,14 @@ export const captureSpillRegionCapabilityAtom = atom(
       available = false
     }
     set(spillCapabilityBackingAtom, available)
-    if (!available) set(spillRegionBackingAtom, null)
+    if (!available) clearSpillCaches(set)
     return available
   },
 )
 captureSpillRegionCapabilityAtom.debugLabel = 'spreadsheet.spill.captureCapability'
 
 export const clearSpillRegionAtom = atom(null, (_get, set): void => {
-  set(spillRegionBackingAtom, null)
+  clearSpillCaches(set)
 })
 clearSpillRegionAtom.debugLabel = 'spreadsheet.spill.clearRegion'
 
@@ -141,6 +191,10 @@ clearSpillRegionAtom.debugLabel = 'spreadsheet.spill.clearRegion'
  * 问后端「活动单元格在不在某个溢出区里」，把答案换进唯一的那格缓存。
  *
  * 宿主没实现端口就直接返回 `unsupported` —— 端口缺席是「功能不存在」，不是错误。
+ *
+ * 同一次应答顺带带回「这一格是不是一个说得出理由的 `#SPILL!`」。两件事共用一次
+ * 查询而不是各发一次：它们是同一个问题的两半（「我脚下这一格跟动态数组有什么
+ * 关系」），而且互斥 —— 装上了投影就没有阻塞物。
  */
 export const refreshSpillRegionAtom = atom(
   null,
@@ -149,12 +203,12 @@ export const refreshSpillRegionAtom = atom(
     const read = input?.source?.readSpillRegion
     if (typeof read !== 'function') {
       set(spillCapabilityBackingAtom, false)
-      set(spillRegionBackingAtom, null)
+      clearSpillCaches(set)
       return 'unsupported'
     }
     set(spillCapabilityBackingAtom, true)
     if (!sheetId || !isFiniteIndex(input.cell?.row) || !isFiniteIndex(input.cell?.col)) {
-      set(spillRegionBackingAtom, null)
+      clearSpillCaches(set)
       return 'cleared'
     }
 
@@ -174,21 +228,34 @@ export const refreshSpillRegionAtom = atom(
     } catch {
       if (get(spillRequestSeqBackingAtom) !== seq) return 'stale'
       // 装饰性读失败不该留下一个陈旧的框。
-      set(spillRegionBackingAtom, null)
+      clearSpillCaches(set)
       return 'error'
     }
     if (get(spillRequestSeqBackingAtom) !== seq) return 'stale'
 
     const payload = result as Partial<SpillRegionResult> | null | undefined
     if (typeof payload !== 'object' || payload === null || payload.sheetId !== sheetId) {
-      set(spillRegionBackingAtom, null)
+      clearSpillCaches(set)
       return 'error'
     }
     const region = payload.region === null ? null : normalizeRegion(payload.region)
     if (region === null) {
-      set(spillRegionBackingAtom, null)
-      return payload.region === null ? 'cleared' : 'error'
+      clearSpillCaches(set)
+      if (payload.region !== null) return 'error'
+      // 没有活动溢出区，但可能有一条「你是个被挡住的锚点」的线索。缺席、坐标不
+      // 合法、后端答不出，在这里都收敛成同一个「不说话」。
+      const blockedBy = normalizeCoord(payload.blockedBy)
+      if (blockedBy === null) return 'cleared'
+      set(spillBlockageBackingAtom, {
+        sheetId,
+        anchor: { row: input.cell.row, col: input.cell.col },
+        blockedBy,
+      })
+      return 'blocked'
     }
+    // 两格互斥：装上了投影就没有阻塞物，上一次的线索必须跟着走，否则会挂着
+    // 上一个锚点的那句话。
+    set(spillBlockageBackingAtom, null)
     set(spillRegionBackingAtom, { sheetId, anchor: region.anchor, range: region.range })
     return 'updated'
   },

@@ -30,12 +30,35 @@ export interface SpillRegionResult extends SheetRef {
    * `null` —— 它一个格子都没装上，Excel 同样不给它画边框。
    */
   region: SpillRegion | null
+  /**
+   * 查询坐标是碰撞态（`#SPILL!`）锚点、且后端说得出是谁挡住它时，给出那一格的坐标。
+   *
+   * **缺席有两种原因，本层刻意不区分**：「这一格不是碰撞态锚点」与「后端答不出」
+   * （TS 参考引擎没有溢出索引，见 `worker-protocol.ts` 的 `SpillRegionWire`）。
+   * 理由是 UI 对两者的处理完全一样 —— 说不出就不说。要分辨得去看 wire 层。
+   *
+   * 与 `region` 互斥：装上了投影就不存在阻塞物。
+   */
+  blockedBy?: CellCoord
   requestId?: number
   revision?: number | string
 }
 
 /** 当前高亮的溢出区 —— 比 `SpillRegion` 多一个「属于哪张表」。 */
 export interface ActiveSpillRegion extends SpillRegion, SheetRef {}
+
+/**
+ * 一个说得出理由的 `#SPILL!`：锚点在哪，被哪一格挡住。
+ *
+ * 只在**选中锚点本身**时存在 —— 与溢出边框同一条按需查询、同一格缓存。用户站在
+ * 别处时引擎当然还知道，但没人问就不查。
+ */
+export interface ActiveSpillBlockage extends SheetRef {
+  /** 读 `#SPILL!` 的那个数组公式格（= 查询坐标）。 */
+  anchor: CellCoord
+  /** 行主序第一个挡住它的格子 —— 清掉这一格，数组就能溢出来。 */
+  blockedBy: CellCoord
+}
 
 /** 一格在溢出区里的身份：锚点，还是从锚点溢出来的投影格。 */
 export type SpillCellRole = 'anchor' | 'projected'

@@ -93,3 +93,35 @@
 .spreadsheet-diagnostics-overflow {
   opacity: 0.7;
 }
+
+/* --- `#SPILL!` 阻塞线索 ---------------------------------------------------
+
+   与上面的诊断条**不是**同一个东西：那是日志流（逐条可关、会堆叠），这是随选区
+   变化的一行状态。所以不给 dismiss、不做列表、也不共用 `.spreadsheet-diagnostics`
+   的 class —— 复用会让它继承「可以堆两条」的视觉暗示。 */
+.spreadsheet-spill-blocked {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-top: 1px solid var(--border);
+  border-left: 3px solid var(--warning, #d68910);
+  background: var(--bg-chrome);
+  color: var(--text-default);
+  font-family: var(--excel-font);
+  font-size: 12px;
+}
+
+/* 错误码本身用等宽，用户在单元格里看到的就是这几个字符，两处要认得出是同一个。 */
+.spreadsheet-spill-blocked-code {
+  flex: none;
+  font-family: var(--excel-mono-font, ui-monospace, monospace);
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.spreadsheet-spill-blocked-message {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

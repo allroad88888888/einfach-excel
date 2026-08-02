@@ -218,17 +218,34 @@ export interface CellSnapshotWire extends CellRefWire {
 }
 
 /**
- * 一个**活动**溢出区（ADR 0006 阶段 3）。地址是零基 row/col，与投影同一坐标系。
+ * `spillRegion` 的应答：要么是一个**活动**溢出区，要么是一个碰撞态锚点的阻塞线索。
+ * 地址一律零基 row/col，与投影同一坐标系。
  *
- * `anchorRow` / `anchorCol` 恒等于矩形左上角 —— 数组只往下、往右溢出。碰撞态
- * （`#SPILL!`）锚点一个格子都没装上，两个 runtime 都对它回 `null`。
+ * `anchorRow` / `anchorCol` 恒等于矩形左上角 —— 数组只往下、往右溢出。
+ *
+ * 两种形态互斥：
+ *
+ * - **活动溢出区**：带 `rows` / `cols`，不带 `blockedBy`。
+ * - **碰撞态（`#SPILL!`）锚点**：带 `blockedBy`，不带 `rows` / `cols` —— 它一个格子都
+ *   没装上，没有矩形可画（与 Excel 一致）。
+ *
+ * 都不是（普通格、空格、越界）时整个应答是 `null`。
+ *
+ * **两个 runtime 在这里行为不同，这是刻意的**：`blockedBy` 只有 WASM runtime 会给。
+ * TS 参考引擎的溢出目标在表里根本没有条目，碰撞态锚点连「它想要多大的矩形」都没存
+ * （`validateSpillAnchorValue` 算完就丢），所以它答不出「被谁挡住」—— 于是它对碰撞态
+ * 锚点仍回 `null`，也就是**诚实地说不知道**，而不是编一个地址。跨引擎差异钉在
+ * `excel/solid-excel/test/cross-engine-parity-spill.test.ts`。
  */
 export interface SpillRegionWire {
   sheet: number
   anchorRow: number
   anchorCol: number
-  rows: number
-  cols: number
+  /** 溢出区尺寸。只有活动溢出区有；碰撞态锚点缺席。 */
+  rows?: number
+  cols?: number
+  /** 行主序第一个挡住这个碰撞态锚点的地址。引擎答不出就缺席。 */
+  blockedBy?: { row: number; col: number }
 }
 
 export interface WorkbookSheetMeta {

@@ -113,17 +113,22 @@ export type WasmWorkbookRuntime = {
     endCol: number,
   ) => number
   /**
-   * 动态数组的两个 UI 查询导出（ADR 0006 阶段 3）。
+   * 动态数组的三个 UI 查询导出（ADR 0006 阶段 3 及其后续）。
    *
    * - `spillAnchor(sheet, addr)` → 锚点地址字符串；`addr` 是锚点本身/普通格/空格时 `null`。
    * - `spillInfo(sheet, addr)` → `Uint32Array [rows, cols]`；`addr` 不是**已装上投影**的
    *   锚点时 `null`（碰撞态 `#SPILL!` 锚点也算不是）。
+   * - `spillBlocker(sheet, addr)` → 挡住这个碰撞态锚点的地址字符串；答不出时 `null`。
+   *   前两个合起来只能说「这里没有活动数组」，说不出 `#SPILL!` 的**原因**，这个补上。
    *
-   * 可选：手写的测试替身与早于这两个导出的 wasm-pkg 没有它们，缺席时经
-   * `assertMethod` 变成结构化的 `WASM_METHOD_UNAVAILABLE`，而不是假装「这里没有数组」。
+   * 可选：手写的测试替身与早于这些导出的 wasm-pkg 没有它们。前两个缺席时经
+   * `assertMethod` 变成结构化的 `WASM_METHOD_UNAVAILABLE`，而不是假装「这里没有数组」；
+   * `spillBlocker` 缺席则**静默降级**成「答不出」—— 它是纯装饰性的一句提示，为它把整个
+   * 溢出区查询打成错误是本末倒置。
    */
   spillAnchor?: (sheetIdx: number, addr: string) => string | null | undefined
   spillInfo?: (sheetIdx: number, addr: string) => ArrayLike<number> | null | undefined
+  spillBlocker?: (sheetIdx: number, addr: string) => string | null | undefined
   apply_auto_fill?: (request: AutoFillRequestWire) => AutoFillReportWire
   set_format_range?: (
     sheetIdx: number,

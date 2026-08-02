@@ -244,6 +244,10 @@ impl BlockedClaims {
         self.anchors.keys().copied().collect()
     }
 
+    fn shape_of(&self, anchor: CellAddress) -> Option<(u32, u32)> {
+        self.anchors.get(&anchor).copied()
+    }
+
     fn note_freed(&mut self, cell: CellAddress) {
         if let Some(owners) = self.claims.get(&cell) {
             self.pending.extend_from_slice(&owners.anchors);
@@ -309,6 +313,20 @@ impl Sheet {
     /// Every blocked anchor address. Sorted by the caller.
     pub(super) fn blocked_anchor_addresses(&self) -> Vec<CellAddress> {
         self.spill_blocked.anchor_addresses()
+    }
+
+    /// The `(rows, cols)` rectangle `anchor` wanted, or `None` when `anchor` is
+    /// not currently blocked. `Some` is therefore also the authoritative test
+    /// for "this address is projecting `#SPILL!`".
+    ///
+    /// Recorded for EVERY blocked anchor regardless of the two caps above —
+    /// `register` inserts into `anchors` before testing them, and only the
+    /// per-cell `claims` are skipped past a cap. `sheet_spill_blocker.rs`
+    /// depends on that: it must be able to answer "who is blocking you" for a
+    /// million-cell array too, which is exactly the case that registers no
+    /// claims.
+    pub(super) fn blocked_anchor_shape(&self, anchor: CellAddress) -> Option<(u32, u32)> {
+        self.spill_blocked.shape_of(anchor)
     }
 
     /// Report that a spill teardown just emptied `cell`, so any blocked anchor

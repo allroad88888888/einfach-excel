@@ -41,6 +41,12 @@ fn spill_claims_rs() -> String {
     read(&manifest_dir().join("src/sheet_spill_claims.rs"))
 }
 
+/// The `#SPILL!` blocker query stores NOTHING — it recomputes the obstruction
+/// from live cell content on demand — but it is scanned all the same.
+fn spill_blocker_rs() -> String {
+    read(&manifest_dir().join("src/sheet_spill_blocker.rs"))
+}
+
 fn store_rs() -> String {
     read(&manifest_dir().join("../core/src/store.rs"))
 }
@@ -92,9 +98,10 @@ const FORBIDDEN: &[(&str, u8, &[&str])] = &[
 /// are named. Checked whitespace-insensitively from P4 on. INV-2 allowlist
 /// lives in dedicated modules (range family geometry, spill claims) — those
 /// map addresses to range keys / anchors, never to dependent formula cells,
-/// and they must not use these shapes. `sheet_spill_claims.rs` is scanned
-/// alongside `sheet.rs` / `workbook.rs` so "moved to its own module" can never
-/// become a way to smuggle one of these shapes in.
+/// and they must not use these shapes. The two spill side modules are scanned
+/// alongside `sheet.rs` / `workbook.rs` so "moved to its own module" — or "it
+/// is only a diagnostic" — can never become a way to smuggle one of these
+/// shapes in.
 const FORBIDDEN_SHAPES: &[(&str, u8)] = &[
     ("HashMap<CellAddress,HashSet<CellAddress", 4),
     ("HashMap<CellAddress,Vec<CellAddress", 4),
@@ -211,6 +218,7 @@ fn forbidden_type_shapes_absent_for_current_phase() {
         ("sheet", strip(&sheet_rs())),
         ("workbook", strip(&workbook_rs())),
         ("sheet_spill_claims", strip(&spill_claims_rs())),
+        ("sheet_spill_blocker", strip(&spill_blocker_rs())),
     ];
     let mut violations = Vec::new();
     for (shape, from_phase) in FORBIDDEN_SHAPES {

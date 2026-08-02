@@ -20,13 +20,16 @@ use crate::range::CellRange;
 // `spill` owns the *installed* projection state (the bookkeeping tables
 // declared on `Sheet` below, plus install / teardown), `spill_claims` owns the
 // BLOCKED side (anchors currently projecting `#SPILL!` and the rectangle they
-// would have owned), `spill_maintenance` owns the re-projection triggers. They
-// are children of `sheet`, not siblings in `lib.rs`, so they keep reading
-// `Sheet`'s private fields and helpers without anything being widened —
-// `pub(super)` there spans exactly what plain `fn` spanned here. `#[path]`
-// keeps all three files flat in `src/`.
+// would have owned), `spill_maintenance` owns the re-projection triggers, and
+// `spill_blocker` answers the one diagnostic question those three do not —
+// which cell is blocking a given `#SPILL!`. They are children of `sheet`, not
+// siblings in `lib.rs`, so they keep reading `Sheet`'s private fields and
+// helpers without anything being widened — `pub(super)` there spans exactly
+// what plain `fn` spanned here. `#[path]` keeps all four files flat in `src/`.
 #[path = "sheet_spill.rs"]
 mod spill;
+#[path = "sheet_spill_blocker.rs"]
+mod spill_blocker;
 #[path = "sheet_spill_claims.rs"]
 mod spill_claims;
 #[path = "sheet_spill_maintenance.rs"]

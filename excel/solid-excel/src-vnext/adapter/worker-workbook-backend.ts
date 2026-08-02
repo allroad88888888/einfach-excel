@@ -4618,6 +4618,10 @@ export function createWorkerWorkbookSpreadsheetBackend(
      * 两个 runtime 都实现（WASM 走 `spillAnchor`/`spillInfo` 导出，TS runtime 走
      * 反向扫描），所以这里不做能力门控。查询坐标越界或不在任何活动数组里都回
      * `region: null` —— 与端口缺席是两回事，后者由 UI-core 的能力证据处理。
+     *
+     * `blockedBy`（碰撞态 `#SPILL!` 锚点被谁挡住）只有 WASM runtime 给得出，TS
+     * 参考引擎没有溢出索引、答不出，于是那边恒缺席。两侧差异见
+     * `worker-protocol.ts` 的 `SpillRegionWire`。
      */
     async readSpillRegion(request: SpillRegionRequest): Promise<SpillRegionResult> {
       const sheet = await resolveSheet(request.sheetId)
@@ -4633,15 +4637,20 @@ export function createWorkerWorkbookSpreadsheetBackend(
 
       const wire = await client.spillRegion(sheet.idx, toA1(request.row, request.col))
       if (!wire) return empty
+      // 碰撞态锚点：有阻塞线索，但没有矩形可画 —— 它一个格子都没装上。
+      if (wire.blockedBy) return { ...empty, blockedBy: { ...wire.blockedBy } }
+      if (!Number.isInteger(wire.rows) || !Number.isInteger(wire.cols)) return empty
+      const rows = wire.rows as number
+      const cols = wire.cols as number
       return {
         ...empty,
         region: {
           anchor: { row: wire.anchorRow, col: wire.anchorCol },
           range: {
             rowStart: wire.anchorRow,
-            rowEnd: wire.anchorRow + wire.rows - 1,
+            rowEnd: wire.anchorRow + rows - 1,
             colStart: wire.anchorCol,
-            colEnd: wire.anchorCol + wire.cols - 1,
+            colEnd: wire.anchorCol + cols - 1,
           },
         },
       }

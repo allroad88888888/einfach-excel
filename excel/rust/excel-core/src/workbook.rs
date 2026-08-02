@@ -1525,6 +1525,14 @@ impl Workbook {
         sheet.spill_anchor_for(addr)
     }
 
+    /// 诊断查询：`addr_str` 若是碰撞态（`#SPILL!`）锚点，回答行主序第一个挡住它的
+    /// 格子。语义与上限见 `sheet_spill_blocker.rs`；表号越界、地址非法一律 `None`。
+    pub fn spill_blocker(&self, sheet_idx: usize, addr_str: &str) -> Option<CellAddress> {
+        let sheet = self.sheets.get(sheet_idx)?;
+        let addr = CellAddress::parse(addr_str)?;
+        sheet.spill_blocker(addr)
+    }
+
     fn cross_sheet_array_dependents_for_addr(
         &self,
         source_sheet: usize,

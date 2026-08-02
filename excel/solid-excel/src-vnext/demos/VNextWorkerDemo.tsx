@@ -25,6 +25,7 @@ import { SpreadsheetContextMenu } from '../context-menu'
 import { SpreadsheetDataValidationDialog } from '../data-validation'
 import { SpreadsheetFilterDropdown } from '../filter-sort'
 import { SpreadsheetFindReplaceDialog } from '../find-replace'
+import { SpreadsheetSpillBlockedHint } from '../diagnostics'
 import { SpreadsheetFormatPainter } from '../format-painter'
 import { SpreadsheetFormulaAutocomplete } from '../formula-autocomplete'
 import { SpreadsheetFormulaBar } from '../formula-bar'
@@ -228,6 +229,8 @@ function VNextWorkerWorkbook() {
       </Show>
       <VNextWorkerLazyProbeLogger activeSheetId={activeSheetId} />
       <SpreadsheetSheetTabs sheets={sheets} data-testid="vnext-worker-sheet-tabs" />
+      {/* 只挂在 WASM demo 上：TS runtime 答不出「被谁挡住」，那边挂了也永远是空的。 */}
+      <SpreadsheetSpillBlockedHint />
       <SpreadsheetStatusBar data-testid="vnext-worker-status-bar" />
       <SpreadsheetContextMenu data-testid="vnext-worker-context-menu" />
       <SpreadsheetFormatPainter data-testid="vnext-worker-format-painter" />

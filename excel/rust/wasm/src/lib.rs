@@ -3672,6 +3672,21 @@ impl WasmWorkbook {
         }
     }
 
+    /// 碰撞态（`#SPILL!`）锚点是被哪一格挡住的 —— 返回 `"B3"` 形式的地址字符串，
+    /// 答不出时 `null`。UI 拿它给用户一句「把 B3 清掉就好了」，这是 `#SPILL!`
+    /// 唯一缺的那条线索（`spillInfo` 对碰撞态锚点恒回 `null`，因为它一格都没装上）。
+    ///
+    /// 答不出的三种情形在 JS 侧不区分，因为处理方式一样 —— 不说话：`addr` 不是碰撞态
+    /// 锚点、碰撞原因是矩形跑出表边（没有哪一格该被指责）、矩形大到超出扫描上限。
+    /// 语义与上限的完整说明见 `sheet_spill_blocker.rs`。
+    #[wasm_bindgen(js_name = "spillBlocker")]
+    pub fn spill_blocker(&self, sheet_idx: u32, addr: &str) -> JsValue {
+        match self.workbook.spill_blocker(sheet_idx as usize, addr) {
+            Some(blocker) => JsValue::from_str(&blocker.to_string()),
+            None => JsValue::null(),
+        }
+    }
+
     /// Read a cell's display string through the workbook eval path.
     /// Convenience wrapper around `get_display(u32, ...)` with `usize`
     /// for the Phase 3 canonical API shape. The `&mut self` receiver
@@ -6691,6 +6706,30 @@ mod tests {
         assert_eq!(wb.get_display(0, "B2"), "6");
         assert_eq!(wb.debug_formula_cache_state(0, "B2"), "clean");
         assert_eq!(wb.debug_formula_eval_count(0), 1);
+    }
+
+    /// `spillBlocker` 把引擎的诊断答案原样送到 JS 边界：碰撞态锚点给出行主序
+    /// 第一个阻塞地址的 A1 字符串，其余一律 `null`。
+    ///
+    /// 在 WASM 侧单独钉一条的理由是这个导出**只**在这里做地址字符串化 ——
+    /// `Sheet::spill_blocker` 回的是 `CellAddress`，回错格式（比如零基下标）在
+    /// Rust 单测里看不出来，只有跨过边界才暴露。
+    #[test]
+    fn wasm_workbook_spill_blocker_reports_the_obstruction_as_a1() {
+        let mut wb = WasmWorkbook::new();
+        wb.set_cell_number(0, "H3", 999.0);
+        assert!(wb.set_formula(0, "H1", "=SEQUENCE(10)"));
+        assert_eq!(wb.get_display(0, "H1"), "#SPILL!");
+
+        assert_eq!(
+            wb.workbook.spill_blocker(0, "H1"),
+            Some(CellAddress::new(2, 7)),
+            "H3 挡着 H1:H10"
+        );
+        // 非碰撞态、非法地址、越界表号都答不出 —— JS 侧看到的都是 `null`。
+        assert_eq!(wb.workbook.spill_blocker(0, "H3"), None);
+        assert_eq!(wb.workbook.spill_blocker(0, "not-an-addr"), None);
+        assert_eq!(wb.workbook.spill_blocker(99, "H1"), None);
     }
 
     /// A dynamic-array region contributes exactly ONE sparse record: its

@@ -14,6 +14,13 @@
  *
  * 断言都是**闭式**的整块比较（锚点坐标 + 形状），不是"没抛就算过"：形状少一行、
  * 锚点差一格，diff 里直接看得见。
+ *
+ * **一处刻意的跨引擎分歧**：碰撞态（`#SPILL!`）锚点的 `blockedBy`（被谁挡住）只有
+ * WASM runtime 给得出。TS 参考引擎的碰撞态锚点连「它想要多大的矩形」都没存下来
+ * （`validateSpillAnchorValue` 算完就丢），所以它答不出，于是诚实地什么都不带 ——
+ * 而不是编一个地址。`ENGINES` 里的 `blocker` 标志就是这条分歧的显式登记：它是
+ * 每个 runtime 的**契约**，不是"哪边先实现了"的现状快照。要抹平它得先让
+ * `excel/excel-core-ts` 把碰撞事实留下来。
  */
 
 import { beforeAll, describe, expect, jest, test } from '@jest/globals'
@@ -97,9 +104,10 @@ beforeAll(async () => {
     adapter.createWorkerWorkbook({ workerFactory: () => createInProcessTsWorker() })
 })
 
-const ENGINES: Array<{ name: string; open: () => WorkerWorkbookClient }> = [
-  { name: 'wasm', open: () => makeWasmClient!() },
-  { name: 'ts', open: () => makeTsClient!() },
+/** `blocker`：这个 runtime 说不说得出「碰撞态锚点被谁挡住」。见文件头。 */
+const ENGINES: Array<{ name: string; blocker: boolean; open: () => WorkerWorkbookClient }> = [
+  { name: 'wasm', blocker: true, open: () => makeWasmClient!() },
+  { name: 'ts', blocker: false, open: () => makeTsClient!() },
 ]
 
 async function freshClient(open: () => WorkerWorkbookClient): Promise<WorkerWorkbookClient> {
@@ -108,7 +116,7 @@ async function freshClient(open: () => WorkerWorkbookClient): Promise<WorkerWork
   return client
 }
 
-describe.each(ENGINES)('spill region query — $name runtime', ({ open }) => {
+describe.each(ENGINES)('spill region query — $name runtime', ({ open, blocker }) => {
   test('锚点与每一个投影格都报同一个区域，区外报 null', async () => {
     const client = await freshClient(open)
     // H1 上一个 `=SEQUENCE(3)` → 竖着占 H1:H3，锚点 (row 0, col 7)。
@@ -144,14 +152,19 @@ describe.each(ENGINES)('spill region query — $name runtime', ({ open }) => {
     client.dispose()
   })
 
-  test('碰撞态 #SPILL! 锚点报 null：它一个格子都没装上，Excel 也不给它画框', async () => {
+  test('碰撞态 #SPILL! 锚点没有区域可画，但（WASM 侧）说得出被谁挡住', async () => {
     const client = await freshClient(open)
     expect(await client.setCell(0, 'H3', { type: 'text', value: 'blocker' })).toBe(true)
     expect(await client.setFormula(0, 'H1', '=SEQUENCE(3)')).toBe(true)
     const anchor = await client.readCells([{ sheet: 0, addr: 'H1' }])
     expect(anchor[0]?.display).toBe('#SPILL!')
 
-    expect(await client.spillRegion(0, 'H1')).toBeNull()
+    // 锚点：两个 runtime 都没有 `rows`/`cols`（它一个格子都没装上，Excel 也不给它
+    // 画框）；WASM 额外带一条阻塞线索，TS 整个应答仍是 null。
+    expect(await client.spillRegion(0, 'H1')).toEqual(
+      blocker ? { sheet: 0, anchorRow: 0, anchorCol: 7, blockedBy: { row: 2, col: 7 } } : null,
+    )
+    // 锚点以外的格子两边一致：H2 是空格，H3 是那个阻塞物本身，都不是锚点。
     expect(await client.spillRegion(0, 'H2')).toBeNull()
     expect(await client.spillRegion(0, 'H3')).toBeNull()
 
@@ -173,7 +186,11 @@ describe.each(ENGINES)('spill region query — $name runtime', ({ open }) => {
     expect(await client.spillRegion(0, 'H2')).not.toBeNull()
 
     expect(await client.setCell(0, 'H2', { type: 'text', value: 'blocker' })).toBe(true)
-    expect(await client.spillRegion(0, 'H1')).toBeNull()
+    // 塌缩后 H1 是碰撞态锚点，挡住它的正是用户刚打进去的 H2 —— 这条把「谁挡的」
+    // 和「谁写的」钉成同一格，用户照着提示清掉它数组就该复活。
+    expect(await client.spillRegion(0, 'H1')).toEqual(
+      blocker ? { sheet: 0, anchorRow: 0, anchorCol: 7, blockedBy: { row: 1, col: 7 } } : null,
+    )
     expect(await client.spillRegion(0, 'H2')).toBeNull()
     client.dispose()
   })

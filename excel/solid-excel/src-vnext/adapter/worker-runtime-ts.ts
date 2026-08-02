@@ -81,6 +81,7 @@ import {
 } from './async-custom-pump'
 import { errorDisplayToken } from './error-display-token'
 import { sparseRangeToTSV } from './range-tsv'
+import { resolveSpillRegion, type SpillProbe } from './worker-spill-region'
 import type {
   CellRefWire,
   CellSnapshotWire,
@@ -91,6 +92,7 @@ import type {
   RpcResponseWire,
   SparseCellWire,
   SparseRangeWire,
+  SpillRegionWire,
   ViewportColumnWidthWire,
   ViewportRowHeightWire,
   ViewportSizeSnapshotWire,
@@ -381,6 +383,38 @@ function getSpillProjectedValue(
     }
   }
   return undefined
+}
+
+/**
+ * UI 查询：`(row, col)` 属于哪个活动溢出区（ADR 0006 阶段 3）。
+ *
+ * 探针与 `getSpillProjectedValue` 读的是同一批事实（自有条目 + 公式格的数组值），
+ * lookback 也是同一个 `SPILL_LOOKBACK`，所以「画得出框」与「读得到投影值」永远一致。
+ */
+function spillRegionAt(
+  state: RuntimeState,
+  sheet: SheetEntry,
+  row: number,
+  col: number,
+): SpillRegionWire | null {
+  const target = state.workbook.sheet(sheet.id)
+  if (!target) return null
+  const cells = state.workbook.store.getter(target.sheetAtom)
+  const probe: SpillProbe = {
+    hasOwnCell: (r, c) => cells.has(`${r}:${c}`),
+    arrayShapeAt: (r, c) => {
+      const key = `${r}:${c}`
+      const cell = cells.get(key)
+      if (!cell?.input?.startsWith('=')) return null
+      const value = state.workbook.store.getter(target.formulaCellAtom(key))
+      if (value.kind !== 'array') return null
+      const rows = value.value.length
+      const cols = value.value[0]?.length ?? 0
+      return rows > 0 && cols > 0 ? { rows, cols } : null
+    },
+  }
+  const found = resolveSpillRegion(probe, row, col, SPILL_LOOKBACK)
+  return found === null ? null : { sheet: sheet.idx, ...found }
 }
 
 function readCellValue(state: RuntimeState, sheet: SheetEntry, row: number, col: number): Value {
@@ -1696,6 +1730,12 @@ export function createWorkerRuntimeTs(events?: WorkerRuntimeTsEvents): ExcelCore
         return snapshotRangeSparse(state, normalizeSparseRange(msg.range))
       case 'readSparseRange':
         return readSparseRange(state, normalizeSparseRange(msg.range))
+      case 'spillRegion': {
+        const sheet = assertSheetIdx(state, Number(msg.sheet))
+        const coord = parseA1(normalizeAddr(msg.addr))
+        if (!coord) throw rpcError('INVALID_ADDR', `invalid cell address: ${String(msg.addr)}`)
+        return spillRegionAt(state, sheet, coord.row, coord.col)
+      }
       case 'readCells': {
         const cells = Array.isArray(msg.cells) ? (msg.cells as CellRefWire[]) : []
         return cells.map((ref) => {

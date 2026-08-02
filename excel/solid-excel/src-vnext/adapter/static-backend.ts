@@ -4553,6 +4553,10 @@ export function createStaticSpreadsheetBackend(
     async exportRangeTsv(request) {
       return exportRangeTsvFromState(state, request)
     },
+    // 刻意**不**实现 `readSpillRegion`（ADR 0006 阶段 3）：静态引擎根本没有动态数组
+    // 模型（同 §5.1 的排序闸门注释），装一个恒回 null 的实现等于谎称「这里确实没有
+    // 数组」。省掉端口后 `spillRegionSupportedAtom` 转 false，溢出边框与投影格标记
+    // 整体不出现 —— 这就是可选端口的降级契约。
     async readVisibleProjection(request) {
       return buildProjectionResult(request, state) as VisibleProjectionResult
     },

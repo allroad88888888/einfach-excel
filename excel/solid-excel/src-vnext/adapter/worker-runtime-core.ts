@@ -5,6 +5,7 @@ import { handleFilterSortCommand } from './worker-commands-filter-sort'
 import { handleFormatCommand } from './worker-commands-format'
 import { handleSessionCommand } from './worker-commands-sessions'
 import { handleSnapshotCommand } from './worker-commands-snapshot'
+import { handleSpillCommand } from './worker-commands-spill'
 import { handleStructureCommand } from './worker-commands-structure'
 import { handleTableCommand } from './worker-commands-tables'
 import { handleWorkbookCommand } from './worker-commands-workbook'
@@ -32,6 +33,7 @@ const COMMAND_HANDLERS: WorkerCommandHandler[] = [
   handleTableCommand,
   handleSessionCommand,
   handleSnapshotCommand,
+  handleSpillCommand,
   handleSubscriptionCommand,
   handleCustomFormulaCommand,
 ]

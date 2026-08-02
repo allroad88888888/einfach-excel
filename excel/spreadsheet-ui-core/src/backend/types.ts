@@ -50,6 +50,7 @@ import type {
   SetSheetProtectionRequest,
 } from '../protection/types'
 import type { PasteRangeRequest, PasteRangeResult, PasteSpecialKind } from '../paste-special/types'
+import type { SpillRegionRequest, SpillRegionResult } from '../spill/types'
 import type {
   CreateTableRequest,
   CreateTableResult,
@@ -123,6 +124,9 @@ export type {
 
 // --- paste-special ---
 export type { PasteRangeRequest, PasteRangeResult }
+
+// --- spill (dynamic arrays) ---
+export type { SpillRegionRequest, SpillRegionResult }
 
 // --- remove-duplicates (Wave 7.5) ---
 
@@ -1275,6 +1279,14 @@ export interface SpreadsheetBackend {
   // cell snapshots, the registry geometry change is not).
   setTableTotalsRow?(request: SetTableTotalsRowRequest): Promise<TableMutationResult>
   setTableTotalFunction?(request: SetTableTotalFunctionRequest): Promise<TableMutationResult>
+  // spill (dynamic arrays) — ADR 0006 阶段 3。可选能力：引擎里没有动态数组
+  // 模型的宿主（静态后端）省掉这个端口，`spillRegionSupportedAtom` 转 false，
+  // 溢出边框与投影格标记整体不出现 —— 端口缺席是「功能不存在」，不是错误。
+  //
+  // 按需查询而不是给 `DisplayCell` 加字段：溢出边框只在选区落进数组时出现，
+  // 所以一次选区移动查一次就够。取舍与代价见 `src/spill/README.md`。
+  // `region: null` 是明确的「这一格不在任何活动溢出区里」，与端口缺席不同。
+  readSpillRegion?(request: SpillRegionRequest): Promise<SpillRegionResult>
   // content-change push — Wave 8.2. Optional capability: backends whose
   // engine can change cell content OUTSIDE a UI-initiated mutation
   // (async custom-formula settles, collaborative edits) invoke the

@@ -58,6 +58,11 @@ import {
   selectCellAtom,
   selectColumnsAtom,
   selectRowsAtom,
+  activeSpillRegionAtom,
+  refreshSpillRegionAtom,
+  spillCellRoleAtom,
+  spillRegionSupportedAtom,
+  type SpillCellRole,
   setSelectionAtom,
   setViewportColumnWidthAtom,
   setSelectionBoundsAtom,
@@ -601,6 +606,8 @@ export function SpreadsheetGrid(props: SpreadsheetGridProps) {
   let unsubscribeShowHeadings: (() => void) | null = null
   let unsubscribeSelection: (() => void) | null = null
   let unsubscribeEditing: (() => void) | null = null
+  let unsubscribeSpillRegion: (() => void) | null = null
+  let lastSpillProbeKey = ''
   let lastActiveSheetId: string | null = null
   let lastEffectiveFreezeRows = 0
   let lastEffectiveFreezeCols = 0
@@ -608,6 +615,34 @@ export function SpreadsheetGrid(props: SpreadsheetGridProps) {
 
   function bumpRender() {
     setRenderTick((value) => value + 1)
+  }
+
+  /**
+   * 溢出区高亮跟着**活动单元格**走 —— Excel 也只在选区落进动态数组时才画蓝框，
+   * 所以这里是每次选区移动查一次，而不是给可见窗口每一格都带溢出字段。
+   *
+   * 用 `(表, 行, 列, revision)` 去重：滚动会重读投影但不改这四项，所以滚动不发
+   * 多余的 RPC；改了内容才 bump revision，框跟着更新。
+   */
+  function refreshSpillRegion() {
+    if (!store.getter(spillRegionSupportedAtom)) return
+    const active = store.getter(selectionSnapshotAtom).activeCell
+    const sheetId = active.sheetId || props.sheetId
+    const revision = store.getter(spreadsheetProjectionSnapshotAtom).result?.revision
+    const key = `${sheetId}|${active.row}|${active.col}|${String(revision ?? '')}`
+    if (key === lastSpillProbeKey) return
+    lastSpillProbeKey = key
+    void store.setter(refreshSpillRegionAtom, {
+      source: backend,
+      sheetId,
+      cell: { row: active.row, col: active.col },
+      revision,
+    })
+  }
+
+  function bumpRenderAndProbeSpill() {
+    bumpRender()
+    refreshSpillRegion()
   }
 
   function visibleWindow() {
@@ -1167,7 +1202,7 @@ export function SpreadsheetGrid(props: SpreadsheetGridProps) {
     const initialFreeze = getEffectiveFreezeProjection()
     lastEffectiveFreezeRows = initialFreeze.rows
     lastEffectiveFreezeCols = initialFreeze.cols
-    unsubscribeProjection = store.sub(spreadsheetProjectionSnapshotAtom, bumpRender)
+    unsubscribeProjection = store.sub(spreadsheetProjectionSnapshotAtom, bumpRenderAndProbeSpill)
     unsubscribeViewport = store.sub(viewportMetricsAtom, refreshViewportProjection)
     unsubscribeSizes = store.sub(viewportSizeOverridesAtom, bumpRender)
     unsubscribeHidden = store.sub(viewportHiddenAtom, bumpRender)
@@ -1182,7 +1217,9 @@ export function SpreadsheetGrid(props: SpreadsheetGridProps) {
     unsubscribeFilterSort = store.sub(filterSortStateAtom, bumpRender)
     unsubscribeShowGridlines = store.sub(viewportShowGridlinesAtom, bumpRender)
     unsubscribeShowHeadings = store.sub(viewportShowHeadingsAtom, bumpRender)
-    unsubscribeSelection = store.sub(selectionAtom, bumpRender)
+    unsubscribeSelection = store.sub(selectionAtom, bumpRenderAndProbeSpill)
+    unsubscribeSpillRegion = store.sub(activeSpillRegionAtom, bumpRender)
+    refreshSpillRegion()
     unsubscribeEditing = store.sub(editingSessionAtom, bumpRender)
     // Wave 8.2 — engine-initiated content changes (async custom-formula
     // settles, collaborative edits) have no UI command to piggyback on;
@@ -1245,6 +1282,7 @@ export function SpreadsheetGrid(props: SpreadsheetGridProps) {
     unsubscribeShowHeadings?.()
     unsubscribeSelection?.()
     unsubscribeEditing?.()
+    unsubscribeSpillRegion?.()
     activeDragSelectCleanup?.()
     activeResizeCleanup?.()
     activeFillCleanup?.()
@@ -2844,6 +2882,15 @@ export function SpreadsheetGrid(props: SpreadsheetGridProps) {
     return range !== null && range.rowStart === row && range.colStart === col
   }
 
+  /**
+   * 这一格在当前高亮溢出区里的身份：锚点 / 投影格 / 不在里面。判定逻辑住在
+   * UI core 的 `spillCellRoleAtom` 选择器里（不是按坐标建 atom 家族）。
+   */
+  function getSpillRole(row: number, col: number): SpillCellRole | undefined {
+    renderTick()
+    return store.getter(spillCellRoleAtom)(props.sheetId, { row, col }) ?? undefined
+  }
+
   function getRenderedRowHeight(row: number) {
     return getViewportRowHeight(sizeOverrides(), props.sheetId, row, props.viewport.rowHeight)
   }
@@ -3714,6 +3761,7 @@ export function SpreadsheetGrid(props: SpreadsheetGridProps) {
                         const editing = () => isEditing(row, col)
                         const mergeAnchor = () => isCellMergeAnchor(row, col)
                         const validationSeverity = () => getCellValidationSeverity(cell())
+                        const spillRole = () => getSpillRole(row, col)
                         return (
                           <Show when={!isCellCoveredByMerge(row, col)}>
                             <td
@@ -3725,7 +3773,9 @@ export function SpreadsheetGrid(props: SpreadsheetGridProps) {
                                 validationSeverity()
                                   ? `cell-validation-${validationSeverity()}`
                                   : ''
-                              } ${cell()?.valueKind ? `kind-${cell()?.valueKind}` : ''}`.trim()}
+                              } ${cell()?.valueKind ? `kind-${cell()?.valueKind}` : ''} ${
+                                spillRole() ? `cell-spill cell-spill-${spillRole()}` : ''
+                              }`.trim()}
                               data-row={row}
                               data-col={col}
                               data-cell-addr={addr}
@@ -3744,6 +3794,7 @@ export function SpreadsheetGrid(props: SpreadsheetGridProps) {
                               data-selected={selected() ? 'true' : 'false'}
                               data-active={active() ? 'true' : 'false'}
                               data-merge-anchor={mergeAnchor() ? 'true' : 'false'}
+                              data-spill={spillRole()}
                               data-validation-code={cell()?.validation?.code}
                               data-validation-severity={validationSeverity()}
                               data-has-conditional-format={

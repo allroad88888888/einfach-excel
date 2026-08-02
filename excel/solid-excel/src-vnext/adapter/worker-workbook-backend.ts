@@ -65,6 +65,8 @@ import type {
   SortRangeRejectionCode,
   SortRangeRequest,
   SortRangeResult,
+  SpillRegionRequest,
+  SpillRegionResult,
   CreateTableRequest,
   CreateTableResult,
   DeleteTableRequest,
@@ -4607,6 +4609,41 @@ export function createWorkerWorkbookSpreadsheetBackend(
         revision: result.revision,
         window: { ...request.window },
         cells: result.cells,
+      }
+    },
+
+    /**
+     * ADR 0006 阶段 3 —— 溢出区查询。装饰性只读：不 bump revision、不记 undo。
+     *
+     * 两个 runtime 都实现（WASM 走 `spillAnchor`/`spillInfo` 导出，TS runtime 走
+     * 反向扫描），所以这里不做能力门控。查询坐标越界或不在任何活动数组里都回
+     * `region: null` —— 与端口缺席是两回事，后者由 UI-core 的能力证据处理。
+     */
+    async readSpillRegion(request: SpillRegionRequest): Promise<SpillRegionResult> {
+      const sheet = await resolveSheet(request.sheetId)
+      const empty: SpillRegionResult = {
+        kind: 'spill-region',
+        sheetId: request.sheetId,
+        region: null,
+        requestId: request.requestId,
+        revision: request.revision ?? revision,
+      }
+      if (!Number.isInteger(request.row) || !Number.isInteger(request.col)) return empty
+      if (request.row < 0 || request.col < 0) return empty
+
+      const wire = await client.spillRegion(sheet.idx, toA1(request.row, request.col))
+      if (!wire) return empty
+      return {
+        ...empty,
+        region: {
+          anchor: { row: wire.anchorRow, col: wire.anchorCol },
+          range: {
+            rowStart: wire.anchorRow,
+            rowEnd: wire.anchorRow + wire.rows - 1,
+            colStart: wire.anchorCol,
+            colEnd: wire.anchorCol + wire.cols - 1,
+          },
+        },
       }
     },
 

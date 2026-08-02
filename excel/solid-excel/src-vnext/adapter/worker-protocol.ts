@@ -217,6 +217,20 @@ export interface CellSnapshotWire extends CellRefWire {
   formula: string
 }
 
+/**
+ * 一个**活动**溢出区（ADR 0006 阶段 3）。地址是零基 row/col，与投影同一坐标系。
+ *
+ * `anchorRow` / `anchorCol` 恒等于矩形左上角 —— 数组只往下、往右溢出。碰撞态
+ * （`#SPILL!`）锚点一个格子都没装上，两个 runtime 都对它回 `null`。
+ */
+export interface SpillRegionWire {
+  sheet: number
+  anchorRow: number
+  anchorCol: number
+  rows: number
+  cols: number
+}
+
 export interface WorkbookSheetMeta {
   idx: number
   name: string
@@ -816,6 +830,15 @@ export interface WorkerWorkbookClient {
   exportRangeTsvChunks(range: SparseRangeWire, rowsPerChunk?: number): Promise<string[]>
   restoreSparse(cells: SparseCellWire[]): Promise<number>
   readSparseRange(range: SparseRangeWire): Promise<CellSnapshotWire[]>
+  /**
+   * ADR 0006 阶段 3 —— 问「`addr` 这一格属不属于某个活动的动态数组」。
+   * 不属于（含碰撞态 `#SPILL!` 锚点、普通格、空格）时解析为 `null`。
+   *
+   * 装饰性只读，不改任何状态、不 bump revision。WASM runtime 走 wasm-pkg 的
+   * `spillAnchor` / `spillInfo` 两个导出；产物太老缺这两个导出时按本仓惯例
+   * 报结构化 `WASM_METHOD_UNAVAILABLE`，不假装「这里没有数组」。
+   */
+  spillRegion(sheet: number, addr: string): Promise<SpillRegionWire | null>
   debugFormulaCacheState(sheet: number, addr: string): Promise<string>
   debugFormulaEvalCount(sheet: number): Promise<number>
   debugCounters(): Promise<WorkerWorkbookDebugCountersWire>
@@ -1260,6 +1283,9 @@ export function createWorkerWorkbook(opts: WorkerWorkbookOptions): WorkerWorkboo
     },
     readSparseRange(range) {
       return request<CellSnapshotWire[]>('readSparseRange', { range })
+    },
+    spillRegion(sheet, addr) {
+      return request<SpillRegionWire | null>('spillRegion', { sheet, addr: addr.toUpperCase() })
     },
     debugFormulaCacheState(sheet, addr) {
       return request<string>('debugFormulaCacheState', { sheet, addr: addr.toUpperCase() })

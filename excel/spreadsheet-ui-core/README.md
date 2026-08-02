@@ -23,7 +23,7 @@ Charts、images 与浮动对象明确不在范围内。
 
 ## 模块清单
 
-共 44 个 feature 目录。每个模块在自己的 `README.md` 里记录 source / derived / command atom 的分类、有界缓存的上限与测试面 —— **那才是该 feature 的权威契约**，本表只做索引。
+共 45 个 feature 目录。每个模块在自己的 `README.md` 里记录 source / derived / command atom 的分类、有界缓存的上限与测试面 —— **那才是该 feature 的权威契约**，本表只做索引。
 
 | 模块 | 职责 | README |
 |---|---|---|
@@ -65,6 +65,7 @@ Charts、images 与浮动对象明确不在范围内。
 | `src/selection/` | 活动单元格、锚点/焦点区间、行列/全选，以及名称框锚点 | [✓](./src/selection/README.md) |
 | `src/shared/` | 跨 feature 的基础类型与工具（`CellCoord`、`CellRange`、`SheetRef`、`SpreadsheetError`） | [✓](./src/shared/README.md) |
 | `src/sheet-tabs/` | 工作表标签菜单、改名、删除与标签交互流程 | [✓](./src/sheet-tabs/README.md) |
+| `src/spill/` | 动态数组溢出区的可见性：当前选区所在数组的锚点与外接矩形（上限 1） | [✓](./src/spill/README.md) |
 | `src/status-bar/` | 状态栏聚合值与缩放的 UI 状态 | — |
 | `src/tables/` | Excel Table（结构化引用、汇总行）—— parity #32 | [✓](./src/tables/README.md) |
 | `src/text-to-columns/` | 三步「分列」向导：把单列选区按分隔符或定宽拆开 | [✓](./src/text-to-columns/README.md) |

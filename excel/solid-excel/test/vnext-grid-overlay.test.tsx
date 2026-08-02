@@ -14,6 +14,7 @@ import {
   clipboardStateAtom,
   copyClipboardAtom,
   cutClipboardAtom,
+  refreshSpillRegionAtom,
   selectCellAtom,
   setFreezeConfigAtom,
   setSelectionAtom,
@@ -352,6 +353,45 @@ describe('OverlayRenderer', () => {
     expect(handle.args[1]).toBe(cy - FILL_HANDLE_SIZE)
     expect(handle.args[2]).toBe(FILL_HANDLE_SIZE)
     expect(handle.args[3]).toBe(FILL_HANDLE_SIZE)
+
+    renderer.detach()
+  })
+
+  it('draws ONE spill border for the active spill region, and none without it', async () => {
+    const store = createStore()
+    const { ctx, calls } = createRecordingContext()
+    const renderer = new OverlayRenderer(() => ctx)
+    renderer.attach(makeCanvas(), store, makeViewportProvider(store))
+
+    // 没有活动溢出区 → 一笔都不画。少了这条负向断言，下面那条可以靠"永远画"骗过去。
+    renderer.renderNow()
+    expect(findStrokeRectForColor(calls, OVERLAY_COLORS.spillBorder)).toHaveLength(0)
+
+    // B2 上一个 2 行 3 列的数组 → B2:D3。
+    await store.setter(refreshSpillRegionAtom, {
+      source: {
+        async readSpillRegion(request) {
+          return {
+            kind: 'spill-region' as const,
+            sheetId: request.sheetId,
+            region: {
+              anchor: { row: 1, col: 1 },
+              range: { rowStart: 1, rowEnd: 2, colStart: 1, colEnd: 3 },
+            },
+          }
+        },
+      },
+      sheetId: 'sheet-1',
+      cell: { row: 2, col: 2 },
+    })
+    renderer.renderNow()
+
+    const spillStrokes = findStrokeRectForColor(calls, OVERLAY_COLORS.spillBorder)
+    expect(spillStrokes).toHaveLength(1)
+    expect(spillStrokes[0].args[0]).toBe(HEADER_W + CELL_W + 0.5)
+    expect(spillStrokes[0].args[1]).toBe(HEADER_H + CELL_H + 0.5)
+    expect(spillStrokes[0].args[2]).toBe(3 * CELL_W - 1)
+    expect(spillStrokes[0].args[3]).toBe(2 * CELL_H - 1)
 
     renderer.detach()
   })

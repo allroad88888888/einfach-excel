@@ -319,6 +319,13 @@ specs listed under "Static `VNextWave5Demo`" above and include:
 真要在 TS 侧补齐，缺口是引擎级的（`EvalContext` 里没有任何 hidden 钩子），属独立
 切片，不是 adapter 层能补的。
 
+**溢出区查询（`spillRegion`，ADR 0006 阶段 3）不在上表里** —— 两个 runtime 都真的
+实现了它，只是路子不同：WASM 走 `spillAnchor` / `spillInfo` 两个导出，TS runtime
+没有溢出索引（溢出目标在表里根本没有条目），反着往左上扫。既然两边都有，它就属于
+「同一次调用答案必须一样」那一类，由参数化跑两遍的
+`excel/solid-excel/test/vnext-worker-spill-region.test.ts` 钉住：锚点坐标 + 形状的
+闭式比较，含碰撞态 `#SPILL!` 与写入塌缩两个边界。
+
 ## What the debug-probe RPC surfaces
 
 `excel/solid-excel/src-vnext/adapter/worker-runtime-ts.ts` exposes the same three

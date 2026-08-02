@@ -150,7 +150,7 @@ grep -oE 'pub fn [a-z_0-9]+' excel/rust/wasm/src/lib.rs | sed 's/pub fn //' | so
 | 持久化 | `snapshot_persistence_v1` / `restore_persistence_v1` |
 | 自动填充 | `apply_auto_fill` |
 | 订阅 | `subscribe_cell` / `unsubscribe_cell` |
-| spill | `spill_anchor` / `spill_info` |
+| spill | `spill_anchor` / `spill_info`（JS 侧消费者：`worker-commands-spill.ts` 的 `spillRegion` 命令） |
 | debug 探针 | `debug_*` 一族：求值次数、脏计数、活订阅数、依赖图统计、bulk import 分阶段耗时 |
 
 隐藏行与筛选的**求值输入**（`set_eval_*`）与展示用的隐藏集是刻意分开的两组状态 ——

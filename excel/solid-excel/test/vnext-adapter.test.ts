@@ -709,6 +709,10 @@ function createFakeWorkerWorkbookClient(): FakeWorkerWorkbookClient {
       calls.readSparseRange.push({ ...range })
       return [...cells.values()].filter((cell) => insideRange(cell, range))
     },
+    // 这个替身不建模动态数组：溢出区查询恒答「不在任何数组里」。
+    async spillRegion() {
+      return null
+    },
     // E5: `setFilterSort` routes here. The engine runs the predicate ONCE and
     // returns the FILTER-hidden rows; this double reproduces that scan against
     // its own cell store with the shared helper the Rust port mirrors.

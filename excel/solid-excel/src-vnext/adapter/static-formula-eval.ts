@@ -509,12 +509,20 @@ class Parser {
     return left
   }
 
+  /**
+   * exponent = percent ('^' exponent)? —— **右结合**。
+   *
+   * `=2^3^2` 是 `2^(3^2)` = 512，不是 `(2^3)^2` = 64。这里曾经用 `while` 循环
+   * （左结合）算出 64，而两个真引擎都是右结合：TS 的 `infixBindingPower` 对 `^`
+   * 返回 `[60, 59]`（right-bp 比 left-bp 小 ⇒ 右结合，`parser.test.ts` 有断言），
+   * Rust 的 `parse_pow` 尾部递归调自己。
+   */
   private parseExponent(): Value {
-    let left = this.parsePercent()
-    while (this.peek()?.kind === 'op' && (this.peek() as { op: string }).op === '^') {
+    const left = this.parsePercent()
+    if (this.peek()?.kind === 'op' && (this.peek() as { op: string }).op === '^') {
       this.pos += 1
-      const right = this.parsePercent()
-      left = this.combine('^', left, right)
+      const right = this.parseExponent()
+      return this.combine('^', left, right)
     }
     return left
   }

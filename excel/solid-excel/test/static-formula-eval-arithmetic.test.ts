@@ -138,4 +138,15 @@ describe('static-formula-eval — postfix percent', () => {
     // never quietly answer 1.
     expect(ev('=10%3')).toBe('#ERROR!')
   })
+
+  it('^ is right-associative, like both real engines', () => {
+    // 曾经这里是 `while` 循环（左结合），`=2^3^2` 算出 64。两个真引擎都是右
+    // 结合：TS 的 `infixBindingPower` 对 `^` 返回 `[60, 59]`，Rust 的
+    // `parse_pow` 尾部递归调自己。左右结合差的不是括号风格，是答案。
+    expect(ev('=2^3^2')).toBe(512) // 2^(3^2)，不是 (2^3)^2 = 64
+    expect(ev('=(2^3)^2')).toBe(64) // 显式括号仍然是 64
+    // 与一元负号、% 的相对优先级不受结合性影响，一并守住。
+    expect(ev('=-2^2')).toBe(4) // (-2)^2
+    expect(ev('=2^2%')).toBe(Math.pow(2, 0.02))
+  })
 })

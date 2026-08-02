@@ -61,6 +61,26 @@ const config = defineConfig({
   plugins: [],
 })
 
+/**
+ * `eval/evaluate.ts` ↔ `eval/sparse-*.ts` 是一个**有意的**环，别的环不是。
+ *
+ * 稀疏聚合是求值器的一部分：`evaluate` 在 `case 'COUNT'` 这类分支把调用截给稀疏
+ * 版，稀疏版遇到非区域参数又递归回 `evaluate`。这条互递归在语义上真实存在，把它
+ * 拆掉需要把一个 5 元 context 穿过约 20 个函数 —— 那是改逻辑，不是拆文件。
+ * 详见 `excel/excel-core-ts/src/eval/sparse-aggregations.ts` 的文件头。
+ *
+ * 这里**只**放行这一个环。全局关掉 `CIRCULAR_DEPENDENCY` 会把将来非预期的环一起
+ * 盖住 —— 那正是这条警告存在的意义。新的环仍然会照常打出来。
+ */
+const INTENTIONAL_CYCLE = /[/\\]eval[/\\](evaluate|sparse-[a-z-]+)\.ts$/
+function onwarn(warning, warn) {
+  if (warning.code === 'CIRCULAR_DEPENDENCY') {
+    const members = warning.ids ?? warning.cycle ?? []
+    if (members.length > 0 && members.every((id) => INTENTIONAL_CYCLE.test(id))) return
+  }
+  warn(warning)
+}
+
 /** @type {import('rollup').RollupOptions} */
 export default products.map((dir) => {
   /** @type {import('rollup').RollupOptions} */
@@ -125,6 +145,7 @@ export default products.map((dir) => {
     ...config,
     input: `${dir}/src/index.ts`,
     // treeshake: false,
+    onwarn,
     plugins: pluginsConfig,
     output: [
       {

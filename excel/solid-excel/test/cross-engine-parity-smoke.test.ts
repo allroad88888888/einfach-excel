@@ -28,6 +28,11 @@
  *    COUNT 跳过）、不是 BLANK（所以 COUNTA 计数），而 SUM 那一档传播。
  *    `SUBTOTAL` / 裸 `COUNT` / `COUNTIFS` 在两个引擎上都是**各自独立的代码路径**，
  *    钉住一条说明不了另一条 —— 事实就是它们是分三批修好的。
+ * 5. **criteria × 错误值** —— 上一类只问「错误格会不会短路」，这一类问「不短路之后
+ *    它匹配上什么」，外加一条方向相反的：criteria 实参**本身**是错误值时要传播。
+ *    两侧**各错一半且方向相反**（TS 让错误格一律不匹配、Rust 把 `<>` 退化成 `=`；
+ *    B 那条反过来），所以「两侧相等」在这一类上从来不响。见
+ *    `cross-engine-parity-criteria-errors.ts`。
  *
  * 期望值一律断言**字面量**，不只断言「两侧相等」：相等只能证明两个引擎一致，
  * 证不了它们一起错，而「一起错」在这份文件的历史里出现过不止一次。
@@ -48,10 +53,12 @@ import {
   COERCION_ADDRS,
   COUNT_ADDRS,
   CRITERIA_ADDRS,
+  CRITERIA_ERROR_ADDRS,
   ERROR_ADDRS,
   EXPECTED_COERCION_DISPLAYS,
   EXPECTED_COUNT_DISPLAYS,
   EXPECTED_CRITERIA_DISPLAYS,
+  EXPECTED_CRITERIA_ERROR_DISPLAYS,
   EXPECTED_GENERAL_TEXT_DISPLAYS,
   EXPECTED_LITERAL_DISPLAYS,
   EXPECTED_SUBTOTAL_DISPLAYS,
@@ -177,6 +184,20 @@ describe('cross-engine parity — evaluation semantics (TS runtime vs WASM engin
     // fix from the defect. The `#DIV/0!` rows are the value tier, still live.
     for (const read of [tsRead, wasmRead]) {
       expect(displaysOf(read, CRITERIA_ADDRS)).toEqual(EXPECTED_CRITERIA_DISPLAYS)
+    }
+  })
+
+  test('criteria 里的错误：写成字符串是条件，求值成错误值是传播', async () => {
+    const tsRead = await ts.read(CRITERIA_ERROR_ADDRS)
+    const wasmRead = await wasm.read(CRITERIA_ERROR_ADDRS)
+    expect(flatten(wasmRead)).toEqual(flatten(tsRead))
+
+    // 这一类只能靠字面量断言 —— 两侧从来不相等，而是**各错一半、方向相反**：
+    // A（条件字符串里写错误码）上 TS 让错误格一律不匹配、Rust 把 `<>` 退化成
+    // `=`；B（criteria 实参本身是错误）上 TS 传播、Rust 拿错误码去做文本比较。
+    // 任何「两侧相等」的断言在这里都只会红在半路上，说明不了谁对。
+    for (const read of [tsRead, wasmRead]) {
+      expect(displaysOf(read, CRITERIA_ERROR_ADDRS)).toEqual(EXPECTED_CRITERIA_ERROR_DISPLAYS)
     }
   })
 

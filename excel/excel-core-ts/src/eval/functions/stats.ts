@@ -149,20 +149,30 @@ function escapeRegex(s: string): string {
  *  - Comparison operators (`<`, `<=`, `>`, `>=`) only work between
  *    numerically-coercible values; otherwise no match.
  *  - String equality is case-insensitive (Excel-compat).
+ *  - 错误格按**显示文本**参与比较（见下）。
  */
-function matchesCriterion(value: Value, parsed: ParsedCriterion): boolean {
+function matchesCriterion(cell: Value, parsed: ParsedCriterion): boolean {
   const { op, target, wildcard } = parsed
 
   // Wildcards only apply with = / <>, only when target is a string.
   if (wildcard && target.kind === 'string' && (op === '=' || op === '<>')) {
-    if (value.kind !== 'string') {
+    // 通配符 × 错误格这一档没有可靠的 Excel 依据，两个引擎本来就不同判，
+    // 保持既有行为：错误格完全不参与通配符匹配（`=` / `<>` 都不命中）。
+    if (cell.kind === 'error') return false
+    if (cell.kind !== 'string') {
       // Wildcard never matches a non-string cell with `=`; the negation of
       // "no match" is "true" under `<>`.
       return op === '<>'
     }
-    const hit = wildcardMatch(value.value, target.value)
+    const hit = wildcardMatch(cell.value, target.value)
     return op === '=' ? hit : !hit
   }
+
+  // 非通配符档：错误格按显示文本参与比较。Excel 里 `COUNTIF(rng,"#DIV/0!")`
+  // 数得到错误格，`COUNTIF(rng,"<>#N/A")` 这条标准错误过滤配方也正是靠它成立。
+  // 注意与「criteria 实参**本身**求值成错误」区分 —— 那一档在 `parseCriterion`
+  // 里就原样传播掉了，根本走不到这里。一个看字符串内容，一个看值的种类。
+  const value: Value = cell.kind === 'error' ? { kind: 'string', value: cell.code } : cell
 
   if (op === '=' || op === '<>') {
     const eq = scalarEquals(value, target)
@@ -201,7 +211,9 @@ export function makeCriterionMatcher(
   if ('error' in parsed) return { ok: false, error: parsed.error }
   return {
     ok: true,
-    matches: (value) => value.kind !== 'error' && matchesCriterion(value, parsed),
+    // 错误格不再被无条件挡掉 —— 由 `matchesCriterion` 按显示文本判定，于是
+    // `"#DIV/0!"` 命中、`">3"` 仍然不命中。
+    matches: (value) => matchesCriterion(value, parsed),
     matchesBlank: matchesCriterion({ kind: 'blank' }, parsed),
   }
 }
@@ -279,15 +291,14 @@ const COUNTIF: FunctionImpl = (args, _ctx) => {
     return { kind: 'error', code: '#VALUE!', message: 'COUNTIF() requires 2 arguments' }
   }
   const [range, criterion] = args
-  // Criterion errors propagate; range errors do **not** — Excel skips error
-  // cells inside a range and counts the rest. We replicate that.
+  // criteria 实参本身是错误 → 传播（分歧 B）；条件区里的错误**格**则不短路，
+  // 按显示文本参与比较（分歧 A），由 `matchesCriterion` 判定。
   const parsed = parseCriterion(criterion)
   if ('error' in parsed) return parsed.error
 
   const cells = flatten(range)
   let count = 0
   for (const cell of cells) {
-    if (cell.kind === 'error') continue
     if (matchesCriterion(cell, parsed)) count++
   }
   return { kind: 'number', value: count }
@@ -312,7 +323,7 @@ const SUMIF: FunctionImpl = (args, _ctx) => {
   let total = 0
   for (let i = 0; i < n; i++) {
     const probe = checkCells[i]
-    if (probe.kind === 'error') continue
+    // 条件区的错误格按显示文本参与比较，不再被无条件跳过（分歧 A）。
     if (!matchesCriterion(probe, parsed)) continue
     const target = sumCells[i]
     if (target.kind === 'error') return target // propagate sum-side errors
@@ -344,9 +355,9 @@ const COUNTIFS: FunctionImpl = (args, _ctx) => {
   outer: for (let i = 0; i < len; i++) {
     for (let j = 0; j < pairs.flats.length; j++) {
       const cell = pairs.flats[j][i]
-      // 条件区里的错误格 = 这一行不满足条件，跳过；与正上方 COUNTIF / SUMIF
-      // 同一口径（Excel 只有一套 criteria 语义）。值区那一档照常传播。
-      if (cell.kind === 'error') continue outer
+      // 条件区里的错误格不短路：按显示文本参与比较，命不命中交给
+      // `matchesCriterion`（与正上方 COUNTIF / SUMIF 同一口径 —— Excel 只有
+      // 一套 criteria 语义）。值区那一档照常传播。
       if (!matchesCriterion(cell, pairs.parsed[j])) continue outer
     }
     count++
@@ -378,9 +389,9 @@ const SUMIFS: FunctionImpl = (args, _ctx) => {
   outer: for (let i = 0; i < len; i++) {
     for (let j = 0; j < pairs.flats.length; j++) {
       const cell = pairs.flats[j][i]
-      // 条件区里的错误格 = 这一行不满足条件，跳过；与正上方 COUNTIF / SUMIF
-      // 同一口径（Excel 只有一套 criteria 语义）。值区那一档照常传播。
-      if (cell.kind === 'error') continue outer
+      // 条件区里的错误格不短路：按显示文本参与比较，命不命中交给
+      // `matchesCriterion`（与正上方 COUNTIF / SUMIF 同一口径 —— Excel 只有
+      // 一套 criteria 语义）。值区那一档照常传播。
       if (!matchesCriterion(cell, pairs.parsed[j])) continue outer
     }
     const target = sumCells[i]
@@ -810,8 +821,7 @@ const AVERAGEIF: FunctionImpl = (args, _ctx) => {
   let count = 0
   for (let i = 0; i < checkCells.length; i++) {
     const probe = checkCells[i]
-    // 条件区错误格跳过（同 COUNTIF / SUMIF）；平均区错误格照旧传播。
-    if (probe.kind === 'error') continue
+    // 条件区错误格按显示文本参与比较（同 COUNTIF / SUMIF）；平均区错误格照旧传播。
     if (!matchesCriterion(probe, parsed)) continue
     const target = sumCells[i]
     if (target.kind === 'error') return target
@@ -841,9 +851,9 @@ const AVERAGEIFS: FunctionImpl = (args, _ctx) => {
   outer: for (let i = 0; i < len; i++) {
     for (let j = 0; j < pairs.flats.length; j++) {
       const cell = pairs.flats[j][i]
-      // 条件区里的错误格 = 这一行不满足条件，跳过；与正上方 COUNTIF / SUMIF
-      // 同一口径（Excel 只有一套 criteria 语义）。值区那一档照常传播。
-      if (cell.kind === 'error') continue outer
+      // 条件区里的错误格不短路：按显示文本参与比较，命不命中交给
+      // `matchesCriterion`（与正上方 COUNTIF / SUMIF 同一口径 —— Excel 只有
+      // 一套 criteria 语义）。值区那一档照常传播。
       if (!matchesCriterion(cell, pairs.parsed[j])) continue outer
     }
     const target = sumCells[i]
@@ -874,9 +884,9 @@ const MAXIFS: FunctionImpl = (args, _ctx) => {
   outer: for (let i = 0; i < len; i++) {
     for (let j = 0; j < pairs.flats.length; j++) {
       const cell = pairs.flats[j][i]
-      // 条件区里的错误格 = 这一行不满足条件，跳过；与正上方 COUNTIF / SUMIF
-      // 同一口径（Excel 只有一套 criteria 语义）。值区那一档照常传播。
-      if (cell.kind === 'error') continue outer
+      // 条件区里的错误格不短路：按显示文本参与比较，命不命中交给
+      // `matchesCriterion`（与正上方 COUNTIF / SUMIF 同一口径 —— Excel 只有
+      // 一套 criteria 语义）。值区那一档照常传播。
       if (!matchesCriterion(cell, pairs.parsed[j])) continue outer
     }
     const target = targetCells[i]
@@ -905,9 +915,9 @@ const MINIFS: FunctionImpl = (args, _ctx) => {
   outer: for (let i = 0; i < len; i++) {
     for (let j = 0; j < pairs.flats.length; j++) {
       const cell = pairs.flats[j][i]
-      // 条件区里的错误格 = 这一行不满足条件，跳过；与正上方 COUNTIF / SUMIF
-      // 同一口径（Excel 只有一套 criteria 语义）。值区那一档照常传播。
-      if (cell.kind === 'error') continue outer
+      // 条件区里的错误格不短路：按显示文本参与比较，命不命中交给
+      // `matchesCriterion`（与正上方 COUNTIF / SUMIF 同一口径 —— Excel 只有
+      // 一套 criteria 语义）。值区那一档照常传播。
       if (!matchesCriterion(cell, pairs.parsed[j])) continue outer
     }
     const target = targetCells[i]

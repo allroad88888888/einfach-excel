@@ -158,9 +158,12 @@ export function countMatchingCriteria(
 }
 
 /**
- * 条件区里的错误格不短路：`pair.matches`（`makeCriterionMatcher`）对错误值一
- * 律返回 false，所以错误格就是「这一行不满足条件」，与 COUNTIF / SUMIF 同一
- * 口径。值区那一档由各调用方在命中之后自行传播。
+ * 条件区里的错误格不短路：判定全交给 `pair.matches`（`makeCriterionMatcher`）
+ * —— 错误格按**显示文本**参与比较，所以 `"#N/A"` 命中它、`">3"` 不命中它，
+ * 与 COUNTIF / SUMIF 同一口径。值区那一档由各调用方在命中之后自行传播。
+ *
+ * 与「criteria 实参**本身**求值成错误」是两回事：那一档在 `sparseCriteriaPairs`
+ * 里由 `makeCriterionMatcher` 返回 `ok: false` 直接传播，走不到这里。
  */
 export function matchesAllCriteria(
   coord: CellCoord,

@@ -2471,6 +2471,11 @@ fn collect_criteria_pairs(
             shape = Some((range.rows, range.cols));
         }
         let criterion = eval_expr_with_provider(&args[i + 1], provider);
+        // criteria 实参本身求值成错误 → 原样传播（普通实参错误规则）。不能落到
+        // `matches_criterion`，否则会退化成「数显示文本等于 #REF! 的格子」。
+        if let Value::Error(e) = criterion {
+            return Err(e);
+        }
         pairs.push((range, criterion));
         i += 2;
     }
@@ -3284,6 +3289,10 @@ fn eval_func(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
             }
             // Eval the criterion once outside the streaming loop.
             let criterion = eval_expr_with_provider(&args[1], provider);
+            // criteria 实参本身是错误 → 传播（对照：条件区里的错误**格**不短路）。
+            if let Value::Error(e) = criterion {
+                return Value::Error(e);
+            }
             let mut count = 0u64;
             for_each_arg_value(&args[0], provider, &mut |_addr, v| {
                 if matches_criterion(&v, &criterion) {
@@ -3307,6 +3316,10 @@ fn eval_func(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
                 return Value::Error(ValueError::WrongArgCount);
             }
             let criterion = eval_expr_with_provider(&args[1], provider);
+            // criteria 实参本身是错误 → 传播（对照：条件区里的错误**格**不短路）。
+            if let Value::Error(e) = criterion {
+                return Value::Error(e);
+            }
             let mut total = 0.0_f64;
             if args.len() == 2 {
                 for_each_arg_value(&args[0], provider, &mut |_addr, v| {
@@ -3429,6 +3442,10 @@ fn eval_func(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
                 return Value::Error(ValueError::InvalidValue);
             }
             let criterion = eval_expr_with_provider(&args[1], provider);
+            // criteria 实参本身是错误 → 传播（对照：条件区里的错误**格**不短路）。
+            if let Value::Error(e) = criterion {
+                return Value::Error(e);
+            }
             let mut sum = 0.0_f64;
             let mut count = 0u64;
             for dr in 0..crit_range.rows {
@@ -21483,10 +21500,22 @@ fn matches_criterion(v: &Value, criterion: &Value) -> bool {
             _ => matched,
         };
     }
-    // Fallback: text equality (Excel-compatible default). Preserves the
-    // pre-wildcard behavior: any `op` other than the numeric branches above
-    // reduces to a string compare against `rest`.
-    coerce_to_text(v) == rest
+    // Fallback: text comparison (Excel-compatible default) for any `op` the
+    // numeric / wildcard branches above didn't take.
+    //
+    // `<>` 必须是真的「不等于」。这里曾经无视 op 直接回 `text == rest`，于是
+    // `COUNTIF(rng,"<>apple")` 回的是**等于** apple 的个数，正好反过来；
+    // `"<>#N/A"` 这条标准错误过滤配方也因此拿不到正确答案。
+    //
+    // 注意这一档同时承载「条件字符串里写错误码」：`coerce_to_text` 把
+    // `Value::Error` 渲染成 `#N/A` / `#DIV/0!`，所以 `"#N/A"` 命中错误格、
+    // `"<>#N/A"` 命中除它以外的一切。这与「criteria 实参**本身**是错误值」
+    // 是两回事 —— 那一档在各调用点求值后就直接传播，走不到 `matches_criterion`。
+    let equal = coerce_to_text(v) == rest;
+    match op {
+        "<>" => !equal,
+        _ => equal,
+    }
 }
 
 fn parse_criterion_op(s: &str) -> (&str, &str) {
@@ -25028,12 +25057,26 @@ mod tests {
             &Value::Number(5.0),
             &Value::Text(">=5".into())
         ));
-        // `<>"x"` non-wildcard: legacy fallback (text eq) — preserved.
-        assert!(!matches_criterion(
+        // `<>y` 非通配符档：真的「不等于」。这里曾经无视 op 直接回 text-eq，
+        // 于是 `COUNTIF(rng,"<>y")` 数的是**等于** y 的格子，正好反了。
+        assert!(matches_criterion(
             &Value::Text("x".into()),
             &Value::Text("<>y".into())
-        )); // legacy: "x" != "y" → false (existing quirk; not a wildcard case)
-            // Bare equality on numbers.
+        ));
+        assert!(!matches_criterion(
+            &Value::Text("y".into()),
+            &Value::Text("<>y".into())
+        ));
+        // 同一档承载「条件字符串里写错误码」：错误格按显示文本比。
+        assert!(matches_criterion(
+            &Value::Error(ValueError::NotAvailable),
+            &Value::Text("#N/A".into())
+        ));
+        assert!(matches_criterion(
+            &Value::Error(ValueError::DivisionByZero),
+            &Value::Text("<>#N/A".into())
+        ));
+        // Bare equality on numbers.
         assert!(matches_criterion(&Value::Number(7.0), &Value::Number(7.0)));
     }
 

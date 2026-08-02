@@ -7,6 +7,14 @@ use std::fmt;
 use unicode_normalization::char::canonical_combining_class;
 
 const NUMBER_EPSILON: f64 = 1e-10;
+
+/// JS 正则里不带 `s` 标志的 `.` 所排除的四个行终止符。
+///
+/// 用途只有一个：让 `parse_text_number` 与 JS 侧探测器
+/// （`excel/spreadsheet-ui-core/src/auto-fill/detector.ts`）对同一个标签给出同一个
+/// 答案。那边靠 `.` 的天然行为把这四个挡在前缀之外，这边只能显式列出来。
+/// 少列一个就是一条「同一次拖拽填充在两个后端结果不同」的分歧。
+const JS_LINE_TERMINATORS: [char; 4] = ['\n', '\r', '\u{2028}', '\u{2029}'];
 const MAX_SAFE_INTEGER: f64 = 9_007_199_254_740_991.0;
 const LIST_MAX_ITEMS: usize = 512;
 /// Fail-closed size budget for one drag-fill: one full Excel column
@@ -943,8 +951,16 @@ fn parse_text_number(value: &str) -> Option<ParsedTextNumber> {
     let numeric_start = sign_start.unwrap_or(digits_start);
 
     let prefix = &value[..numeric_start];
-    // A bare number has no prefix to extend, and `.*?` cannot span a newline.
-    if prefix.is_empty() || prefix.contains('\n') {
+    // 裸数字没有可延续的前缀，直接出局。
+    //
+    // 另一半是与 JS 侧探测器（`excel/spreadsheet-ui-core/src/auto-fill/detector.ts`
+    // 的 `parseFillSeriesTextNumber`）对齐：那边用 `/^(.*?)(-?\d+)(\D*)$/`，而 JS
+    // 正则里不带 `s` 标志的 `.` **排除四个行终止符** —— LF / CR / LINE SEPARATOR /
+    // PARAGRAPH SEPARATOR。前缀里出现任何一个，JS 那侧整条正则失配、返回 null。
+    //
+    // 这里此前只挡了 `\n`，于是 `"a\rb1"` 在 JS 上不成序列、在 Rust 上成序列 ——
+    // 同一次拖拽填充在两个后端给出不同结果。四个一起挡才是同判。
+    if prefix.is_empty() || prefix.contains(JS_LINE_TERMINATORS) {
         return None;
     }
     let parsed = value[numeric_start..digits_end].parse::<i64>().ok()?;
@@ -2308,6 +2324,32 @@ mod tests {
             split("Item01-final"),
             Some(("Item".to_string(), 1, "-final".to_string()))
         );
+
+        // 四个行终止符必须一视同仁：JS 侧 `/^(.*?)(-?\d+)(\D*)$/` 的 `.`（无 `s`
+        // 标志）对这四个都不匹配，于是整条正则失配。此前这里只挡了 `\n`，所以
+        // `"a\rb1"` 在 JS 上不成序列、在 Rust 上成序列 —— 同一次拖拽两个后端
+        // 给出不同结果。
+        //
+        // ⚠️ 这里**刻意不遍历 `JS_LINE_TERMINATORS`**，而是把四个码点写死。
+        // 用那个常量来测那个常量是自指的：把它改成 `['\n','\n','\n','\n']`
+        // 测试照样绿（实测过），因为循环跟着一起退化。写死才验得到「集合本身
+        // 是不是那四个」。
+        for terminator in ['\n', '\r', '\u{2028}', '\u{2029}'] {
+            assert_eq!(
+                split(&format!("a{terminator}b1")),
+                None,
+                "前缀含行终止符 U+{:04X} 时必须与 JS 侧一样失配",
+                terminator as u32
+            );
+            // 反面：`\D` 没有这个限制，同样的字符出现在**后缀**里照常成立。
+            // 这条不对称是照抄 JS 正则的，不是疏漏。
+            assert_eq!(
+                split(&format!("a1{terminator}")),
+                Some(("a".to_string(), 1, terminator.to_string())),
+                "后缀含行终止符 U+{:04X} 时 `\\D*` 照常吃下",
+                terminator as u32
+            );
+        }
     }
 
     #[test]

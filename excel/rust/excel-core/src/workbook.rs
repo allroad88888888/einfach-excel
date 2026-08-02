@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::rc::Rc;
 use std::sync::Arc;
 
-use einfach_core::{Store, Value, ValueError};
+use einfach_core::{AtomId, Store, Value, ValueError};
 
 use crate::cell::CellAddress;
 use crate::eval::{
@@ -1087,7 +1087,34 @@ impl Workbook {
         if self.is_inside_custom_call() {
             return Err(WorkbookError::MutationDuringCustomCall);
         }
-        Ok(self.atom_context.resolve_async_custom_call(call_id, value))
+        let Some(atom) = self.atom_context.resolve_async_custom_call(call_id, value) else {
+            return Ok(false);
+        };
+        // 结算值可能是 `Value::Array`（异步自定义公式返回动态数组）。结算本身
+        // 只是一次 `Store::set`，走不到任何 mutation 入口，因此不会有人去装
+        // spill 投影 —— 少了这一步，同一个数组「同步返回会溢出、异步结算不会」，
+        // 正是最难查的那类不一致。这里复用写路径完全相同的三段式：
+        // 反向依赖 → 挑出需要维护 spill 的数组公式 → `recompute_array_formulas_in`。
+        // 非数组结算走到这里也是安全的：`recompute_array_formula` 见到非数组结果
+        // 会拆掉旧投影或直接返回。
+        self.reproject_array_formulas_observing(atom);
+        Ok(true)
+    }
+
+    /// 把「观察某个 Store atom 的数组公式」重新投影一遍。根是 atom 而不是
+    /// 地址，因为异步结算的源头是每次调用的结果 atom，没有对应单元格。
+    fn reproject_array_formulas_observing(&mut self, root: AtomId) {
+        let dependent_atoms = self.store.reverse_dependents(&[root]);
+        let groups: Vec<(usize, HashSet<CellAddress>)> = self
+            .sheets
+            .iter()
+            .enumerate()
+            .filter_map(|(sheet_idx, sheet)| {
+                let addrs = sheet.array_formula_addrs_for_store_atoms(&dependent_atoms);
+                (!addrs.is_empty()).then_some((sheet_idx, addrs))
+            })
+            .collect();
+        self.recompute_array_formula_groups(groups);
     }
 
     fn validate_name(name: &str) -> Result<(), WorkbookError> {

@@ -2563,6 +2563,8 @@ fn value_to_js(value: &Value) -> JsValue {
 ///   - `null` / `undefined` → `Value::Null`.
 ///   - `{ error: string }` → `Value::Error(_)` parsed from the string
 ///     (same token map as above; unknown strings → `#VALUE!`).
+///   - `Array` → `Value::Array` (二维、行主序)，交给既有 spill 路径去溢出。
+///     形状与边界规则见 `js_array_to_value`。
 ///   - Anything else (Date, function, opaque object) →
 ///     `ValueError::WrongType`, which RENDERS as `#VALUE!`. Excel has no
 ///     `#TYPE!` code; the variant survives as an internal diagnostic and
@@ -2611,6 +2613,13 @@ fn js_to_value(js: &JsValue) -> Value {
         }
         return Value::Text(s);
     }
+    // 数组回程（动态数组 / spill）。必须排在 `is_object()` 之前 —— JS 里
+    // Array 也是 object，落到下面那条分支就会被当成「不认识的对象」判成
+    // `#TYPE!`，正是这个缺口让自定义公式一直没法返回可溢出的数组。
+    #[cfg(target_arch = "wasm32")]
+    if js_sys::Array::is_array(js) {
+        return js_array_to_value(js.unchecked_ref::<js_sys::Array>());
+    }
     // Tagged-error escape hatch: `{ error: "..." }`. Used so JS code can
     // return a structured value-or-error without picking between
     // overloading `return "#VALUE!"` (ambiguous if a user actually wants
@@ -2630,11 +2639,109 @@ fn js_to_value(js: &JsValue) -> Value {
         // cell renders as `#VALUE!`. The finer variant is kept so a
         // marshaling rejection stays distinguishable from a callback that
         // deliberately returned `#VALUE!` when you are reading engine
-        // state. Custom formulas are scalar-in / scalar-out in this
-        // initial cut.
+        // state. Arrays are NOT rejected here — they were peeled off above
+        // by `js_array_to_value` and spill through the dynamic-array path.
         return Value::Error(ValueError::WrongType);
     }
     Value::Error(ValueError::WrongType)
+}
+
+/// 自定义公式返回的 JS 数组 → `Value::Array`（二维、行主序），随后由既有
+/// spill 路径投影、碰撞检测、`#SPILL!`（ADR 0006），这里不碰溢出语义。
+///
+/// 形状规则 —— 与**入参**方向严格对称（`value_to_js` 把 `Value::Array`
+/// marshal 成 `Array<Array<..>>`），所以回程也只认二维嵌套：
+///
+/// - `[[1,2],[3,4]]` → 2×2。
+/// - `[1,2,3]`（一维）→ **拒绝**（`#TYPE!`/显示 `#VALUE!`）。不猜行还是列：
+///   入参方向从不产生一维数组，这里替宿主猜一个方向就是第二套映射，
+///   而且猜错要到渲染时才看得出来。warn 里直接给出两种写法。
+/// - 参差不齐（`[[1,2],[3]]`）→ **拒绝**，绝不静默补空。
+/// - `[]` / `[[]]`（零元素）→ `#CALC!`，与 `FILTER` 空结果同一个答案
+///   （eval.rs § FILTER），不另立新错误码。
+/// - `[[5]]` → 1×1 数组，走 `=SEQUENCE(1,1)` 完全相同的路径（读取侧的
+///   `collapse_array_for_scalar` 负责在标量上下文里塌回标量）。
+///
+/// 元素类型不另写一套映射：每个元素递归回 `js_to_value`，所以数字 / 文本 /
+/// 布尔 / `null` / 错误 token / `{ error }` 与顶层完全一致（1 MB 字符串上限
+/// 也因此自动逐元素生效）。唯一的额外约束是**深度**：元素本身又是数组
+/// （`[[[1]]]`）说明嵌套超过二维，拒绝。
+///
+/// 尺寸闸门复用引擎的 `DYNAMIC_ARRAY_CELL_CAP`（1_048_576 格，
+/// = Excel 最大行数），也就是 `SEQUENCE` / `MAKEARRAY` / `MMULT` 用的那一个；
+/// 超限返回 `#VALUE!`，与 `SEQUENCE` 超限的答案一致。闸门在**分配之前**
+/// 就位：只读 `length`，不 materialize，所以返回一百万行不会先撑爆 worker
+/// 内存再报错。
+#[cfg(target_arch = "wasm32")]
+fn js_array_to_value(outer: &js_sys::Array) -> Value {
+    let rows = outer.length();
+    if rows == 0 {
+        return Value::Error(ValueError::Calc);
+    }
+
+    // 列数以第 0 行为准；其余行必须与之相等（矩形约束）。
+    let first = outer.get(0);
+    if !js_sys::Array::is_array(&first) {
+        warn_custom_array(
+            "callback returned a 1-D array; wrap it as [[a,b,c]] for a row or [[a],[b],[c]] for a column",
+        );
+        return Value::Error(ValueError::WrongType);
+    }
+    let cols = first.unchecked_ref::<js_sys::Array>().length();
+    if cols == 0 {
+        return Value::Error(ValueError::Calc);
+    }
+
+    // 先闸门后分配。
+    let total = (rows as u64) * (cols as u64);
+    if total > einfach_excel_core::DYNAMIC_ARRAY_CELL_CAP {
+        warn_custom_array(&format!(
+            "callback returned a {rows}x{cols} array ({total} cells) exceeding the {} cell cap; surfacing #VALUE!",
+            einfach_excel_core::DYNAMIC_ARRAY_CELL_CAP
+        ));
+        return Value::Error(ValueError::InvalidValue);
+    }
+
+    let mut data: Vec<Value> = Vec::with_capacity(total as usize);
+    for r in 0..rows {
+        let row_js = outer.get(r);
+        if !js_sys::Array::is_array(&row_js) {
+            warn_custom_array(&format!(
+                "callback returned a ragged array: row {r} is not an array; surfacing #VALUE!"
+            ));
+            return Value::Error(ValueError::WrongType);
+        }
+        let row = row_js.unchecked_ref::<js_sys::Array>();
+        if row.length() != cols {
+            warn_custom_array(&format!(
+                "callback returned a ragged array: row {r} has {} cells, expected {cols}; surfacing #VALUE!",
+                row.length()
+            ));
+            return Value::Error(ValueError::WrongType);
+        }
+        for c in 0..cols {
+            let cell = js_to_value(&row.get(c));
+            if matches!(cell, Value::Array(_)) {
+                warn_custom_array(&format!(
+                    "callback returned a nested array at ({r},{c}); cells must be scalars; surfacing #VALUE!"
+                ));
+                return Value::Error(ValueError::WrongType);
+            }
+            data.push(cell);
+        }
+    }
+
+    Value::Array(Arc::new(einfach_core::ArrayData::new(rows, cols, data)))
+}
+
+/// 数组回程的诊断日志。单元格只承载一个 token，具体哪一行参差、超了多少，
+/// 只能靠 worker devtools 看到 —— 与 `invoke_js_custom_formula` 里
+/// 「回调 throw」的处理同一个思路。
+#[cfg(target_arch = "wasm32")]
+fn warn_custom_array(message: &str) {
+    web_sys::console::warn_1(&JsValue::from_str(&format!(
+        "[einfach custom formula] {message}"
+    )));
 }
 
 /// Translate Excel-style error tokens back to `ValueError`. Used by both
@@ -5313,6 +5420,55 @@ mod tests {
         // Unregister clears the flag.
         assert!(registry.unregister("SLOW"));
         assert!(!registry.is_async("SLOW"));
+    }
+
+    /// 把「JS 侧能不能造出 Array」和「引擎侧拿到 Array 会不会溢出」拆开验证：
+    /// 这里用一个**原生** registry 直接返回 `Value::Array`，完全绕开 JS
+    /// （JsValue 只能在 wasm32 下构造，原生 `cargo test` 摸不到）。
+    #[test]
+    fn custom_formula_returning_array_spills_through_the_existing_path() {
+        use einfach_core::ArrayData;
+
+        #[derive(Debug)]
+        struct Reg;
+        // SAFETY: 单线程测试，仅为满足 trait bound。
+        unsafe impl Send for Reg {}
+        unsafe impl Sync for Reg {}
+        impl CustomFunctionRegistry for Reg {
+            fn lookup(&self, _name: &str, _args: &[Value]) -> Option<Value> {
+                Some(Value::Array(Arc::new(ArrayData::new(
+                    2,
+                    2,
+                    vec![
+                        Value::Number(1.0),
+                        Value::Number(2.0),
+                        Value::Number(3.0),
+                        Value::Number(4.0),
+                    ],
+                ))))
+            }
+        }
+
+        let mut wb = Workbook::new();
+        wb.set_custom_function_registry(Some(Arc::new(Reg) as Arc<dyn CustomFunctionRegistry>));
+        assert!(wb.set_formula(0, "A1", "=MYGRID()"));
+
+        // Anchor 持有原始 Array（WASM 投影口再塌成左上角标量），
+        // 其余三格由既有 spill 投影出来 —— 与 `=SEQUENCE(2,2)` 同形。
+        match wb.get_cell("Sheet1", "A1") {
+            Value::Array(a) => assert_eq!(a.shape(), (2, 2)),
+            other => panic!("anchor A1 应持有 Array，实得 {other:?}"),
+        }
+        assert_eq!(
+            wb.sheet(0).expect("sheet 0").spill_info(
+                einfach_excel_core::CellAddress::parse("A1").expect("A1")
+            ),
+            Some((2, 2)),
+            "自定义公式返回的数组必须注册成真正的 spill anchor"
+        );
+        assert_eq!(wb.get_cell("Sheet1", "B1"), Value::Number(2.0));
+        assert_eq!(wb.get_cell("Sheet1", "A2"), Value::Number(3.0));
+        assert_eq!(wb.get_cell("Sheet1", "B2"), Value::Number(4.0));
     }
 
     #[test]

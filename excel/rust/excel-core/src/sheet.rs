@@ -1694,25 +1694,25 @@ impl WorkbookAtomContext {
     }
 
     /// Write an async call's settled value into its result atom. Returns
-    /// false (and writes nothing) when the call_id is unknown or stale —
+    /// `None` (and writes nothing) when the call_id is unknown or stale —
     /// i.e. the registry changed while the Promise was in flight.
-    pub(crate) fn resolve_async_custom_call(&self, call_id: u64, value: Value) -> bool {
+    ///
+    /// 结算成功时返回被写入的结果 atom —— 调用方（`Workbook`）需要它作为
+    /// 反向依赖的根，去给观察它的数组公式补 spill 投影。异步结算是一次
+    /// 纯 `Store::set`，不经过任何 mutation 入口，所以那条投影不会自己发生。
+    pub(crate) fn resolve_async_custom_call(&self, call_id: u64, value: Value) -> Option<AtomId> {
         let atom = {
             let mut state = self.async_custom.borrow_mut();
-            let Some(key) = state.by_call_id.remove(&call_id) else {
-                return false;
-            };
+            let key = state.by_call_id.remove(&call_id)?;
             let generation = state.generation;
-            let Some(entry) = state.entries.get(&key) else {
-                return false;
-            };
+            let entry = state.entries.get(&key)?;
             if entry.call_id != call_id || entry.generation != generation {
-                return false;
+                return None;
             }
             entry.atom
         };
         self.store.set(atom, value);
-        true
+        Some(atom)
     }
 
     /// Diagnostics: number of memoized async custom-formula entries.
@@ -7137,6 +7137,13 @@ pub(crate) fn expr_may_produce_array(expr: &Expr) -> bool {
             if ARRAY_FUNCTION_NAMES.binary_search(&name.as_str()).is_ok() {
                 return true;
             }
+            // 非内建名 = 可能是宿主自定义公式（Wave 8）或 LAMBDA 具名公式，
+            // 两者都能返回 `Value::Array`，而它们的名字在编译期不可知 ——
+            // 静态表里永远不会有。保守地放行，让 `recompute_array_formula`
+            // 拿真实求值结果去判定；非数组结果在那里被原样丢弃。
+            if !crate::eval::is_builtin_function_name(name) {
+                return true;
+            }
             args.iter().any(expr_may_produce_array)
         }
         Expr::BinOp { left, right, .. } => {
@@ -7227,7 +7234,14 @@ pub(crate) fn source_may_produce_array(source: &str) -> bool {
             continue;
         }
         if let Some(start) = ident_start.take() {
-            if is_array_function_token(&body[start..i]) {
+            let token = &body[start..i];
+            if is_array_function_token(token) {
+                return true;
+            }
+            // 紧跟 `(` 的标识符就是一次函数调用。名字不在内建表里 → AST 门
+            // (`expr_may_produce_array`) 会放行它（自定义公式 / LAMBDA 具名
+            // 公式），这里必须同样放行，否则批量安装路径会静默漏掉溢出。
+            if b == b'(' && !is_builtin_function_token(token) {
                 return true;
             }
         }
@@ -7253,6 +7267,29 @@ fn is_array_function_token(token: &str) -> bool {
     ARRAY_FUNCTION_NAMES
         .iter()
         .any(|name| name.eq_ignore_ascii_case(token))
+}
+
+/// 内建函数名的大小写无关、**零分配**判定。`is_builtin_function_name` 只认
+/// 大写（解析器会先 upper-case），而这里扫的是保留了作者大小写的原始源码，
+/// 所以要先归一。不能用 `to_ascii_uppercase()`：这条扫描跑在批量安装的每一条
+/// 公式源码上（5M 单元格量级），每个函数名一次堆分配是不可接受的。
+///
+/// 当前最长的内建名是 `BINOM.DIST.RANGE` / `NETWORKDAYS.INTL`（16 字节），
+/// 缓冲区取 32 留足余量；超长 token 必然不是内建名，返回 `false` 让调用方
+/// 保守放行（保守 = 多解析一次，不会漏掉溢出）。
+fn is_builtin_function_token(token: &str) -> bool {
+    const MAX_BUILTIN_NAME_LEN: usize = 32;
+    let bytes = token.as_bytes();
+    if bytes.is_empty() || bytes.len() > MAX_BUILTIN_NAME_LEN {
+        return false;
+    }
+    let mut buf = [0u8; MAX_BUILTIN_NAME_LEN];
+    for (dst, &src) in buf.iter_mut().zip(bytes) {
+        *dst = src.to_ascii_uppercase();
+    }
+    // token 是从 `body` 的 char 边界切出来的，且只含 ASCII 时才可能命中内建表；
+    // 含非 ASCII 字节的 token 走 `from_utf8` 失败 → 保守返回 false。
+    std::str::from_utf8(&buf[..bytes.len()]).is_ok_and(crate::eval::is_builtin_function_name)
 }
 
 struct SheetEvalProvider<'a> {
@@ -7393,6 +7430,14 @@ mod tests {
             "=-A1:A3",
             "=Sheet2!A1:A3*2",
             "=A:A*2",
+            // 宿主自定义公式（Wave 8）能返回 `Value::Array`，但名字在编译期
+            // 不可知，静态表里永远不会有。两道门都靠「非内建名」放行它们，
+            // 大小写、点号名、带参数的形态都要一致。
+            "=MYGRID()",
+            "=mygrid()",
+            "=MY.GRID(A1)",
+            "=SUM(MYGRID())",
+            "=MYGRID(A1:A9)",
             // Non-array shapes — these may be flagged (over-approximation) but
             // must never make the two gates disagree in the unsafe direction.
             "=A1*2",

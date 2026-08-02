@@ -204,15 +204,44 @@ Engine contract details: `excel/rust/excel-core/src/CUSTOM_FORMULAS.md`
 
 Plain-value contract (see `CustomFormulaArg` / `CustomFormulaReturn`):
 
-| direction | shape                                                                              |
-| --------- | ---------------------------------------------------------------------------------- |
-| in        | `Array<CustomFormulaScalar \| ReadonlyArray<ReadonlyArray<CustomFormulaScalar>>>`  |
-| out       | `number \| string \| boolean \| null \| undefined`                                 |
+| direction | shape                                                                                                          |
+| --------- | -------------------------------------------------------------------------------------------------------------- |
+| in        | `Array<CustomFormulaScalar \| ReadonlyArray<ReadonlyArray<CustomFormulaScalar>>>`                              |
+| out       | `number \| string \| boolean \| null \| undefined \| { error } \| ReadonlyArray<ReadonlyArray<cell>>`          |
 
-where `CustomFormulaScalar = number | string | boolean | null`. See
+where `CustomFormulaScalar = number | string | boolean | null` and a `cell`
+is a scalar or `{ error }`. See
 `excel/rust/excel-core/src/CUSTOM_FORMULAS.md` "Marshaling" for the full
 JsValue ↔ Value mapping, including the structured-error return form
 (`{ error: '#DIV/0!' }`) and the error tokens a callback may return.
+
+### Returning a dynamic array
+
+Both directions are 2-D and row-major — one mapping, read either way. A
+callback that returns a 2-D array spills:
+
+```js
+// =SPLITNAME(A1)  →  fills two columns on one row
+const [first, last] = String(args[0]).split(' ')
+return [[first, last]]
+```
+
+The result goes through the engine's normal dynamic-array path, so
+projection, collision and `#SPILL!` behave exactly like `=SEQUENCE(2,2)`
+(ADR 0006) — there is no custom-formula-specific spill behavior to learn.
+
+Boundaries worth internalising before shipping a host callback:
+
+- **Rectangular only.** `[[1,2],[3]]` is `#VALUE!`; it is never padded.
+- **2-D only.** `[1,2,3]` is `#VALUE!` — the engine refuses to guess row
+  vs column. Write `[[1,2,3]]` (row) or `[[1],[2],[3]]` (column).
+- **Empty is `#CALC!`.** `[]` and `[[]]` both, matching `FILTER`.
+- **Capped at 1,048,576 cells**, the same gate `SEQUENCE` uses; over-cap
+  is `#VALUE!` and the check runs before allocation.
+- Every rejection logs a `console.warn` in the worker naming the cause.
+
+`isAsync: true` callbacks may resolve an array too — the settle path
+reuses the identical marshaling, so there is no sync/async split here.
 
 **Returned token ≠ displayed token.** The token list a callback may return
 is wider than the set of codes a cell can show. Two tokens differ today,

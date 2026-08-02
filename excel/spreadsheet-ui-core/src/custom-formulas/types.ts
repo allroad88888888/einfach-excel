@@ -34,11 +34,49 @@ export type CustomFormulaArg =
   | ReadonlyArray<ReadonlyArray<CustomFormulaScalar>>
 
 /**
+ * Structured error return. `{ error: '#DIV/0!' }` puts that Excel error in
+ * the cell without the ambiguity of returning the literal string `'#DIV/0!'`
+ * (which a callback might legitimately want as text). Unknown tokens
+ * degrade to `#VALUE!`.
+ */
+export interface CustomFormulaErrorReturn {
+  error: string
+}
+
+/**
  * Plain-value return shape. `undefined` is treated as a blank result by
  * the engine (same as a `null` return); both forms are accepted because
  * `return` with no value is a common pattern.
+ *
+ * A **2-D** array return spills: `=MYFN()` returning `[[1,2],[3,4]]` fills
+ * a 2x2 rectangle through the engine's normal dynamic-array path (same
+ * projection / collision / `#SPILL!` rules as `=SEQUENCE(2,2)`). The shape
+ * is deliberately symmetric with `CustomFormulaArg`'s range form — nested
+ * rows, row-major — so one mapping serves both directions.
+ *
+ * Rules worth knowing before returning an array (full list in
+ * `excel/rust/excel-core/src/CUSTOM_FORMULAS.md` "Marshaling"):
+ * - Rows must be rectangular. A ragged return is `#VALUE!`, never
+ *   silently padded.
+ * - A 1-D array (`[1,2,3]`) is rejected — the engine will not guess row
+ *   vs column. Write `[[1,2,3]]` or `[[1],[2],[3]]`.
+ * - An empty array (`[]` / `[[]]`) is `#CALC!`, matching `FILTER`'s
+ *   empty result.
+ * - Cells must be scalars; nesting deeper than 2-D is `#VALUE!`.
+ * - Total cells are capped by the engine's shared dynamic-array limit
+ *   (1_048_576, the same gate `SEQUENCE` uses); over-cap is `#VALUE!`.
+ *
+ * Async registrations (`isAsync: true`) resolve through the SAME
+ * marshaling, so an async callback may resolve an array too.
  */
-export type CustomFormulaReturn = number | string | boolean | null | undefined
+export type CustomFormulaReturn =
+  | number
+  | string
+  | boolean
+  | null
+  | undefined
+  | CustomFormulaErrorReturn
+  | ReadonlyArray<ReadonlyArray<CustomFormulaScalar | CustomFormulaErrorReturn>>
 
 /**
  * Compiled local function form. Used by jest tests (no worker) and for

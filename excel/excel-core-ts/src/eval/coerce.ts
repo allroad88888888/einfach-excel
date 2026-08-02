@@ -21,6 +21,7 @@
  */
 
 import type { Value } from '../types'
+import { excelGeneralToText } from './general-text'
 
 export interface CoerceOk<T> {
   readonly ok: true
@@ -89,7 +90,10 @@ export function toNumber(v: Value): CoerceResult<number> {
  *
  * - `blank` → ""
  * - `string` → itself
- * - `number` → JS `String(n)` (Wave C TEXT() handles number-format).
+ * - `number` → Excel 的「General」转文本规格（`excelGeneralToText`），不是 JS
+ *   `String(n)`：15 位有效数字、大写带符号至少两位的指数、两侧各自的科学计数
+ *   门槛。`String(n)` 会给出 `'1e+21'` / `'1e-7'` 这种 Excel 不存在的写法。
+ *   `TEXT()` 的显式 number-format 是另一条路，不走这里。
  * - `boolean` → "TRUE" / "FALSE"
  * - `error` → propagates
  * - `array` → top-left scalar
@@ -101,7 +105,7 @@ export function toString(v: Value): CoerceResult<string> {
     case 'string':
       return ok(v.value)
     case 'number':
-      return ok(String(v.value))
+      return ok(excelGeneralToText(v.value))
     case 'boolean':
       return ok(v.value ? 'TRUE' : 'FALSE')
     case 'error':

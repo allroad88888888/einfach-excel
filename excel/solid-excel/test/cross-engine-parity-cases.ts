@@ -12,6 +12,16 @@
  * `cross-engine-parity-engines.ts`。
  */
 import { a1, type WorkloadCell } from './cross-engine-parity-engines'
+import { GENERAL_TEXT_ADDRS, GENERAL_TEXT_WORKLOAD } from './cross-engine-parity-general-text'
+
+// 第七类（General 转文本）的夹具与期望值住在自己的文件里 —— 这份已贴着 300 行
+// 上限，而那一类的期望值离不开「门槛在哪」的长说明。经由这里转出，调用方仍然只
+// 认一个入口。
+export {
+  GENERAL_TEXT_CASES,
+  GENERAL_TEXT_ADDRS,
+  EXPECTED_GENERAL_TEXT_DISPLAYS,
+} from './cross-engine-parity-general-text'
 
 
 /** Row-major address list of a rectangle anchored at (row0, col0). */
@@ -242,6 +252,8 @@ export const WORKLOAD: WorkloadCell[] = [
   ...CRITERIA_CASES.map(
     ([formula], row): WorkloadCell => ({ row, col: 24, kind: 'formula', value: formula }),
   ),
+  // Column Z — Excel General 转文本，见 GENERAL_TEXT_CASES。
+  ...GENERAL_TEXT_WORKLOAD,
   // Column R — arithmetic operand coercion + `^` binding, see COERCION_CASES.
   ...COERCION_CASES.map(
     ([formula], row): WorkloadCell => ({ row, col: 17, kind: 'formula', value: formula }),
@@ -273,6 +285,7 @@ export const PROBE_ADDRS = [
   ...SUBTOTAL_ADDRS,
   ...COUNT_ADDRS,
   ...CRITERIA_ADDRS,
+  ...GENERAL_TEXT_ADDRS,
 ]
 
 export const SEQ_10 = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']

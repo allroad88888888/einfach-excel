@@ -1407,13 +1407,11 @@ fn eval_binop(op: BinOperator, left: &Value, right: &Value) -> Value {
 fn coerce_to_text(v: &Value) -> String {
     match v {
         Value::Text(s) => s.clone(),
-        Value::Number(n) => {
-            if *n == n.floor() && n.abs() < 1e15 {
-                format!("{}", *n as i64)
-            } else {
-                format!("{}", n)
-            }
-        }
+        // Excel「General」转文本规格的唯一调用点：15 位有效数字、half-up 收位、
+        // 大数指数 > 19 / 小数普通写法超过 20 字符才退到科学计数。规格本身与它
+        // 和 `format::value_to_display`（网格渲染，另一条路）的关系写在
+        // `crate::general_text` 的模块文档里。散开写就会变成第二份实现。
+        Value::Number(n) => crate::general_text::excel_general_to_text(*n),
         Value::Boolean(true) => "TRUE".into(),
         Value::Boolean(false) => "FALSE".into(),
         Value::Null => String::new(),
@@ -1713,7 +1711,16 @@ fn stream_range(
 /// reject these sentinels before allocation.
 const EXCEL_MAX_ROWS: u32 = 1_048_576;
 const EXCEL_MAX_COLS: u32 = 16_384;
-const DYNAMIC_ARRAY_CELL_CAP: u64 = EXCEL_MAX_ROWS as u64;
+
+/// 一个动态数组结果最多能有多少个单元格。SEQUENCE / MAKEARRAY / MAP /
+/// MMULT 等所有数组构造器共用这一个闸门，超限一律 `#VALUE!`（而不是去尝试
+/// 那次分配）。
+///
+/// `pub` 是给 WASM 桥用的：宿主 JS 自定义公式的**返回值**也能是二维数组
+/// （`einfach-wasm` 的 `js_array_to_value`），它必须复用这同一个上限，
+/// 而不是另立一个拍脑袋的常数 —— 否则 `=MYFN()` 能造出内建函数造不出的
+/// 尺寸，后面的 spill 路径要为两套上限各写一遍防御。
+pub const DYNAMIC_ARRAY_CELL_CAP: u64 = EXCEL_MAX_ROWS as u64;
 
 fn checked_array_len(rows: u64, cols: u64) -> Result<usize, ValueError> {
     let total = rows.checked_mul(cols).ok_or(ValueError::InvalidValue)?;

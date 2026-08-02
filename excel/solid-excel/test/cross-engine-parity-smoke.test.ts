@@ -1,58 +1,38 @@
 /**
- * ALWAYS-ON cross-engine parity smoke — TS engine vs WASM engine.
+ * ALWAYS-ON 跨引擎烟测 —— **求值语义**：同一个公式，两个引擎必须算出同一个东西。
  *
- * Companion to `scale-parity.test.ts`, which drives a seeded ~75k workload.
- * That file **used to be** gated behind `EINFACH_SCALE=1`, which meant every
- * divergence it can see was invisible to a plain `npx jest`, and two real
- * bugs sat in it unnoticed:
+ * 溢出（spill）的生命周期在兄弟文件 `cross-engine-parity-spill.test.ts`；
+ * 每一类的夹具、地址与闭式期望值在 `cross-engine-parity-cases.ts` —— 加一类分歧
+ * 改的是那边（一行 case + 一行 workload），本文件只放规格。
  *
- *   1. the WASM `bulk_install_workbook` path installed no spill projection,
- *      so an IMPORTED workbook showed only the top-left cell of every
- *      dynamic array;
- *   2. `=1+"x"` answered a non-Excel `#TYPE!` instead of `#VALUE!`.
+ * 与 `scale-parity.test.ts` 的分工不是「跑不跑」而是**形状**：本份是每个分歧类的
+ * **最小形状**（一张表、无播种工作负载、不走 bulk 导入，失败时地址少到可以直接
+ * 读），那份是播种规模，负责撞出最小形状撞不出的组合态。两份都是 always-on。
  *
- * A third class joined them: the ERROR-CODE VOCABULARY. Both engines keep an
- * internal diagnostic code set that is wider than Excel's and narrow it at
- * the rendering boundary; when only one engine did the narrowing, the same
- * formula read `#TYPE!` on TS and `#VALUE!` on WASM. Single-engine suites
- * cannot see that — theirs was the vocabulary being asserted — so the pin
- * belongs here. See `ERROR_LITERALS` below.
+ * 本份必须快到能挂在每一次 `npx jest` 上，所以**不要**把它长成第二个 scale 套件。
+ * 只有当一条分歧是**单引擎单测看不见的一整类**时，才往这里加场景。
  *
- * 那道门 2026-08-01 已经拆掉（理由见 `scale-parity.test.ts` 的文件头：门控依据的
- * 「~4.5 min」实测过期了约 57 倍，现场只要 4.7 s）。两份现在都是 always-on，
- * 分工不再是「跑不跑」而是**形状**：本份是每个分歧类的**最小形状** —— 一张表、
- * 无播种工作负载、不走 bulk 导入，失败时地址少到可以直接读；那份是播种规模，
- * 负责撞出最小形状撞不出的组合态。
+ * ## 已经钉住的分歧类（每一条都曾是活的）
  *
- * 本份必须快到能挂在每一次 `npx jest` 上（预算：远低于 60s；今天实测 ~1s），
- * 所以**不要**把它长成第二个 scale 套件。只有当一条分歧是**单引擎单测看不见的
- * 一整类**时，才往这里加场景。
+ * 1. **错误码词汇** —— 两个引擎的内部诊断码集都比 Excel 宽，在渲染边界收窄；
+ *    只有一侧做了收窄时，同一个公式在 TS 上读 `#TYPE!`、在 WASM 上读 `#VALUE!`。
+ *    单引擎套件看不见这一类 —— 被断言的正是那份词汇本身。见 `ERROR_LITERALS`。
+ * 2. **算术操作数强制转换** —— 运算符拿到一个还不是数字的值时做什么。`=1+"x"` 那
+ *    一行只覆盖了一半：它钉的是**失败码**，而一个只喂过不可强转文本的套件，看不见
+ *    一个**什么都不转**的引擎。`=1+"5"` 在 Excel 与 TS 上是 `6`，在 Rust 上曾长期
+ *    是 `#VALUE!` —— 缺口能活下来，正因为这份文件此前只喂过 `"x"`。
+ * 3. **运算符优先级** —— `=2^2%` 与 `=-2^2` 是 `^` 撞上比它高的运算符的两处，
+ *    都曾是 TS 单侧缺陷（`POSTFIX_BP` / `PREFIX_BP` 排在 `^` 之下）。
+ * 4. **聚合的错误透明度** —— 区域里的一个错误格是毒死整个聚合，还是只是一个聚合
+ *    自己有主张的值。规则是**按 function number 分的**：错误格不是 NUMBER（所以
+ *    COUNT 跳过）、不是 BLANK（所以 COUNTA 计数），而 SUM 那一档传播。
+ *    `SUBTOTAL` / 裸 `COUNT` / `COUNTIFS` 在两个引擎上都是**各自独立的代码路径**，
+ *    钉住一条说明不了另一条 —— 事实就是它们是分三批修好的。
  *
- * A fourth class is SPILL-REGION WRITE SEMANTICS. Typing into a non-anchor
- * projection cell was a known, owned divergence — the Rust engine refused the
- * write while the TS reference engine (and Excel) let it land and flipped the
- * anchor to `#SPILL!` — and it is what made the gated suite's P2/P4/P5 red at
- * 22 cells each. `docs/decisions/0006-spill-region-write-semantics.md` settled
- * it in Excel's favour and its phases 1/2 shipped, so the scenario is pinned
- * here now instead of being fenced off. Two engines are required: the whole
- * failure was one engine answering differently from the other on the same
- * keystroke.
+ * 期望值一律断言**字面量**，不只断言「两侧相等」：相等只能证明两个引擎一致，
+ * 证不了它们一起错，而「一起错」在这份文件的历史里出现过不止一次。
  *
- * A fifth class is ARITHMETIC OPERAND COERCION — what an operator does with a
- * value that is not already a number. It is the class the `=1+"x"` row above
- * only half covered: that row pins the FAILURE code, and a suite that only
- * ever asks about non-coercible text cannot see an engine that coerces
- * nothing. `=1+"5"` is `6` in Excel and on the TS reference engine, and was
- * `#VALUE!` on the Rust engine for as long as this file existed — the gap
- * survived precisely because the only text this file ever fed an operator was
- * `"x"`. The scenarios below feed it text that IS a number, plus the two other
- * operators that share the coercion (unary minus, postfix `%`).
- *
- * A failure here is a REAL cross-engine finding: report the divergent
- * addresses, do not relax the assertion.
- *
- * 每一类的夹具、地址与闭式期望值在 `cross-engine-parity-cases.ts` —— 加一类
- * 分歧改的是那边（一行 case + 一行 workload），本文件只放规格。
+ * 这里失败就是一条**真的**跨引擎发现：报告分歧地址，不要放宽断言。
  */
 
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals'
@@ -63,10 +43,8 @@ import {
   loadWasmModule,
   makeEngine,
   type Engine,
-  type EngineLabel,
 } from './cross-engine-parity-engines'
 import {
-  BLOCKED_1D,
   COERCION_ADDRS,
   COUNT_ADDRS,
   CRITERIA_ADDRS,
@@ -74,22 +52,17 @@ import {
   EXPECTED_COERCION_DISPLAYS,
   EXPECTED_COUNT_DISPLAYS,
   EXPECTED_CRITERIA_DISPLAYS,
+  EXPECTED_GENERAL_TEXT_DISPLAYS,
   EXPECTED_LITERAL_DISPLAYS,
   EXPECTED_SUBTOTAL_DISPLAYS,
+  GENERAL_TEXT_ADDRS,
   LITERAL_ADDRS,
-  PROBE_ADDRS,
   PROPAGATED_ADDRS,
-  SEQ_10,
-  SEQ_4X3,
-  SHRUNK_1D,
-  SHRUNK_2D,
-  SPILL_1D,
-  SPILL_2D,
   SUBTOTAL_ADDRS,
   WORKLOAD,
 } from './cross-engine-parity-cases'
 
-describe('cross-engine parity smoke — TS runtime vs WASM engine', () => {
+describe('cross-engine parity — evaluation semantics (TS runtime vs WASM engine)', () => {
   let ts: Engine
   let wasm: Engine
 
@@ -104,21 +77,6 @@ describe('cross-engine parity smoke — TS runtime vs WASM engine', () => {
   afterAll(() => {
     wasm?.dispose()
     ts?.dispose()
-  })
-
-  test('bulk import projects both spill shapes identically on both engines', async () => {
-    const tsRead = await ts.read(PROBE_ADDRS)
-    const wasmRead = await wasm.read(PROBE_ADDRS)
-    expect(flatten(wasmRead)).toEqual(flatten(tsRead))
-
-    // Closed form, so "identical" cannot be satisfied by both engines being
-    // equally wrong — this is what the WASM bulk-import defect (top-left
-    // scalar only, no projection installed) failed.
-    for (const read of [tsRead, wasmRead]) {
-      expect(displaysOf(read, SPILL_1D)).toEqual(SEQ_10)
-      expect(displaysOf(read, SPILL_2D)).toEqual(SEQ_4X3)
-      expect(read.get('H11')?.display).toBe('') // one row past the 1-D spill
-    }
   })
 
   test('arithmetic type errors agree: =1+"x" / ="x"+"y" / =-"abc" are all #VALUE!', async () => {
@@ -222,79 +180,16 @@ describe('cross-engine parity smoke — TS runtime vs WASM engine', () => {
     }
   })
 
-  test('persistence roundtrip keeps a LIVE spill projection on both engines', async () => {
-    const before: Record<EngineLabel, string[]> = {
-      ts: flatten(await ts.read(PROBE_ADDRS)),
-      wasm: flatten(await wasm.read(PROBE_ADDRS)),
-    }
-    const restored: Record<EngineLabel, Engine> = {
-      ts: makeEngine('ts'),
-      wasm: makeEngine('wasm'),
-    }
-    try {
-      for (const label of ['ts', 'wasm'] as const) {
-        await restored[label].restore(await (label === 'ts' ? ts : wasm).snapshot())
-        // Per-engine roundtrip: restore reproduces the pre-snapshot state.
-        expect(flatten(await restored[label].read(PROBE_ADDRS))).toEqual(before[label])
-      }
-      // Cross-engine equality of the two restored workbooks.
-      expect(flatten(await restored.wasm.read(PROBE_ADDRS))).toEqual(
-        flatten(await restored.ts.read(PROBE_ADDRS)),
-      )
+  test('数字转文本走 Excel 的 General 规格，不是宿主语言的默认写法', async () => {
+    const tsRead = await ts.read(GENERAL_TEXT_ADDRS)
+    const wasmRead = await wasm.read(GENERAL_TEXT_ADDRS)
+    expect(flatten(wasmRead)).toEqual(flatten(tsRead))
 
-      // Displays alone cannot tell a live projection from literals baked
-      // into the snapshot — both read `1..10`. So re-point each ANCHOR at a
-      // SHORTER array: a live region shrinks with it and the vacated cells
-      // go blank, while a frozen copy either refuses the write or keeps the
-      // old numbers in the rows the new array no longer covers.
-      for (const engine of [restored.ts, restored.wasm]) {
-        await engine.setFormula('H1', '=SEQUENCE(3,1,100,1)')
-        await engine.setFormula('J1', '=SEQUENCE(2,2,50,1)')
-      }
-      const afterTs = await restored.ts.read(PROBE_ADDRS)
-      const afterWasm = await restored.wasm.read(PROBE_ADDRS)
-      expect(flatten(afterWasm)).toEqual(flatten(afterTs))
-      for (const read of [afterTs, afterWasm]) {
-        expect(displaysOf(read, SPILL_1D)).toEqual(SHRUNK_1D)
-        expect(displaysOf(read, SPILL_2D)).toEqual(SHRUNK_2D)
-      }
-    } finally {
-      restored.wasm.dispose()
-      restored.ts.dispose()
+    // 这一类必须靠字面量断言，「两侧相等」在这里从来没红过 —— 因为两侧一直是
+    // 各错各的：TS 走 JS `String(n)` 给 `1e+21`，Rust 走 `Display` 把 22 位数字
+    // 原样铺开。相等断言只有在两个引擎错到一块去时才会响。
+    for (const read of [tsRead, wasmRead]) {
+      expect(displaysOf(read, GENERAL_TEXT_ADDRS)).toEqual(EXPECTED_GENERAL_TEXT_DISPLAYS)
     }
-  }, 30_000)
-
-  // Runs LAST and hands the workbook back exactly as it found it, so the
-  // shared fixture above stays valid regardless of jest ordering.
-  test('a spill-region write withdraws the array on both engines, and revives', async () => {
-    const bothRead = async () => {
-      const tsRead = await ts.read(PROBE_ADDRS)
-      const wasmRead = await wasm.read(PROBE_ADDRS)
-      // Cross-engine equality FIRST: this is the divergence ADR 0006 closed.
-      expect(flatten(wasmRead)).toEqual(flatten(tsRead))
-      return [tsRead, wasmRead]
-    }
-
-    // Clearing a ghost cell is LAZY on both engines — a blank cannot block a
-    // spill, so nothing collapses. Asserting it here (not just in the
-    // single-engine suites) is what stops one engine going eager later.
-    for (const engine of [ts, wasm]) await engine.clearCell('H3')
-    for (const read of await bothRead()) expect(displaysOf(read, SPILL_1D)).toEqual(SEQ_10)
-
-    // Typing a real value into the same ghost cell DOES collapse it. Closed
-    // form, so "identical" cannot be satisfied by both engines refusing the
-    // write (the old Rust behaviour would read `1..10` here) nor by both
-    // withdrawing and losing the keystroke (`H3` would read blank).
-    for (const engine of [ts, wasm]) await engine.setText('H3', 'blocker')
-    for (const read of await bothRead()) {
-      expect(displaysOf(read, SPILL_1D)).toEqual(BLOCKED_1D)
-      expect(read.get('H1')?.isError).toBe(true)
-      // The unrelated 2-D array must not be disturbed by its neighbour.
-      expect(displaysOf(read, SPILL_2D)).toEqual(SEQ_4X3)
-    }
-
-    // Phase 2: removing the blocker revives the array on both engines.
-    for (const engine of [ts, wasm]) await engine.clearCell('H3')
-    for (const read of await bothRead()) expect(displaysOf(read, SPILL_1D)).toEqual(SEQ_10)
-  }, 30_000)
+  })
 })

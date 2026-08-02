@@ -238,10 +238,21 @@ Boundaries worth internalising before shipping a host callback:
 - **Empty is `#CALC!`.** `[]` and `[[]]` both, matching `FILTER`.
 - **Capped at 1,048,576 cells**, the same gate `SEQUENCE` uses; over-cap
   is `#VALUE!` and the check runs before allocation.
-- Every rejection logs a `console.warn` in the worker naming the cause.
+- Every rejection names its cause somewhere the host can read: the WASM
+  backend logs a `console.warn` in the worker (a cell can only carry a
+  token), the TS reference backend attaches the reason to the error value's
+  `message`. **The token in the cell is identical either way** — the
+  diagnostic channel is the only difference.
+
+The rules above hold on **both** backends and are pinned by twin suites,
+because a shape that spills on one engine and errors on the other is the
+worst kind of parity gap: `excel/rust/wasm/tests/custom_formula_array_web.rs`
+(WASM) and `excel/solid-excel/test/excel-core-ts-custom-formula-arrays.test.ts`
+(TS). Change one table, change the other.
 
 `isAsync: true` callbacks may resolve an array too — the settle path
-reuses the identical marshaling, so there is no sync/async split here.
+reuses the identical marshaling on both backends, so there is no
+sync/async split here.
 
 **Returned token ≠ displayed token.** The token list a callback may return
 is wider than the set of codes a cell can show. Two tokens differ today,

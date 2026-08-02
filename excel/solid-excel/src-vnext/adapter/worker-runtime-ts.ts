@@ -79,6 +79,7 @@ import {
   type AsyncCustomCallable,
   type AsyncCustomPump,
 } from './async-custom-pump'
+import { gateCustomArrayReturn } from './custom-array-return'
 import { errorDisplayToken } from './error-display-token'
 import { sparseRangeToTSV } from './range-tsv'
 import { resolveSpillRegion, type SpillProbe } from './worker-spill-region'
@@ -1179,11 +1180,13 @@ function wrapCustomResult(result: unknown): Value {
     return { kind: 'string', value: result }
   }
   if (Array.isArray(result)) {
-    // 2-D array marshalling.
-    const rows: Value[][] = result.map((row) =>
-      Array.isArray(row) ? row.map(wrapCustomResult) : [wrapCustomResult(row)],
-    )
-    return { kind: 'array', value: rows }
+    // 二维数组回程（动态数组 / spill）。形状 / 尺寸判定全在
+    // `gateCustomArrayReturn` 里，与 Rust 侧 `js_array_to_value` 逐条对齐；
+    // 放行之后元素**递归回本函数**，所以数组里的数字 / 文本 / 布尔 / null /
+    // 错误 token / `{ error }` 与标量回程含义完全一致，没有第二套映射。
+    const gated = gateCustomArrayReturn(result)
+    if (!gated.ok) return { kind: 'error', code: gated.code, message: gated.message }
+    return { kind: 'array', value: gated.rows.map((row) => row.map(wrapCustomResult)) }
   }
   if (typeof result === 'object' && 'error' in (result as Record<string, unknown>)) {
     // Tagged-error escape hatch `{ error: '#DIV/0!' }` — wasm parity.

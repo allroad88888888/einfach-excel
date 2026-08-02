@@ -166,6 +166,47 @@ export const COUNT_CASES: ReadonlyArray<readonly [formula: string, displayed: st
 export const COUNT_ADDRS = COUNT_CASES.map((_, i) => a1(i, 21))
 export const EXPECTED_COUNT_DISPLAYS = COUNT_CASES.map(([, displayed]) => displayed)
 
+/**
+ * Column Y — the CRITERIA-tier half of the same question. Column T asks what
+ * an aggregate does with an error among the values it is aggregating; this
+ * asks what the `*IF` / `*IFS` family does with an error among the cells it is
+ * TESTING. They are different tiers of the same function call.
+ *
+ * Excel skips it, and skips it identically for the single- and multi-criterion
+ * forms — there is one criteria semantics, not two. The proof that holds up
+ * without a spreadsheet at hand is Exceljet's documented recipe for counting
+ * non-error cells, `=COUNTIFS(rng,"<>#N/A",rng,"<>#VALUE!")`: it answers a
+ * COUNT over a range that is FULL of errors. Were COUNTIFS short-circuiting on
+ * the criteria cell it would answer `#N/A` and the recipe could not exist.
+ *
+ * This belongs here and not in a single-engine suite because BOTH engines had
+ * `COUNTIF` / `SUMIF` right and `COUNTIFS` / `SUMIFS` wrong. Cross-engine
+ * equality was green throughout, and so was every per-engine test — they were
+ * pinning the defect.
+ *
+ * The fixture puts its two errors on OPPOSITE rows: `W4` is a criteria cell
+ * that fails `">3"`, `X1` is a value cell on the one row `"<5"` does match.
+ * The `"<5"` rows are the control — the value tier must still propagate, so
+ * "stopped propagating everywhere" cannot satisfy this table either.
+ */
+export const CRITERIA_CASES: ReadonlyArray<readonly [formula: string, displayed: string]> = [
+  ['=COUNTIF(W1:W4,">3")', '2'], // the single-criterion form was always right
+  ['=COUNTIFS(W1:W4,">3")', '2'], // ...and the multi-criterion form must agree
+  ['=SUMIF(W1:W4,">3",X1:X4)', '50'],
+  ['=SUMIFS(X1:X4,W1:W4,">3")', '50'],
+  ['=AVERAGEIF(W1:W4,">3",X1:X4)', '25'],
+  ['=AVERAGEIFS(X1:X4,W1:W4,">3")', '25'],
+  ['=MAXIFS(X1:X4,W1:W4,">3")', '30'],
+  ['=MINIFS(X1:X4,W1:W4,">3")', '20'],
+  // Control — the VALUE tier still propagates: `"<5"` matches row 1, whose X
+  // cell is an error. The Rust `SUMIF` used to drop it and answer `0`, a
+  // plausible number that no equality-only assertion could catch.
+  ['=SUMIF(W1:W4,"<5",X1:X4)', '#DIV/0!'],
+  ['=SUMIFS(X1:X4,W1:W4,"<5")', '#DIV/0!'],
+]
+export const CRITERIA_ADDRS = CRITERIA_CASES.map((_, i) => a1(i, 24))
+export const EXPECTED_CRITERIA_DISPLAYS = CRITERIA_CASES.map(([, displayed]) => displayed)
+
 export const WORKLOAD: WorkloadCell[] = [
   { row: 0, col: 0, kind: 'number', value: 5 }, // A1 — a plain literal
   { row: 0, col: 7, kind: 'formula', value: '=SEQUENCE(10)' }, // H1 → H1:H10
@@ -186,6 +227,20 @@ export const WORKLOAD: WorkloadCell[] = [
   // Column V — bare COUNT / COUNTA / SUM over the same column, see COUNT_CASES.
   ...COUNT_CASES.map(
     ([formula], row): WorkloadCell => ({ row, col: 21, kind: 'formula', value: formula }),
+  ),
+  // Columns W / X — criteria source and value source for CRITERIA_CASES. The
+  // two errors sit on opposite rows: W4 is a CRITERIA cell, X1 a VALUE cell.
+  { row: 0, col: 22, kind: 'number', value: 1 },
+  { row: 1, col: 22, kind: 'number', value: 5 },
+  { row: 2, col: 22, kind: 'number', value: 9 },
+  { row: 3, col: 22, kind: 'formula', value: '=1/0' },
+  { row: 0, col: 23, kind: 'formula', value: '=1/0' },
+  { row: 1, col: 23, kind: 'number', value: 20 },
+  { row: 2, col: 23, kind: 'number', value: 30 },
+  { row: 3, col: 23, kind: 'number', value: 40 },
+  // Column Y — the *IF / *IFS formulas themselves, see CRITERIA_CASES.
+  ...CRITERIA_CASES.map(
+    ([formula], row): WorkloadCell => ({ row, col: 24, kind: 'formula', value: formula }),
   ),
   // Column R — arithmetic operand coercion + `^` binding, see COERCION_CASES.
   ...COERCION_CASES.map(
@@ -217,6 +272,7 @@ export const PROBE_ADDRS = [
   ...COERCION_ADDRS,
   ...SUBTOTAL_ADDRS,
   ...COUNT_ADDRS,
+  ...CRITERIA_ADDRS,
 ]
 
 export const SEQ_10 = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']

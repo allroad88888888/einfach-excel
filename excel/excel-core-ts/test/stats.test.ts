@@ -240,10 +240,13 @@ describe('COUNTIFS', () => {
     })
   })
 
-  test('error cell in any range propagates', () => {
+  test('error cell in a criteria range is skipped, like COUNTIF', () => {
+    // 错误格只是「不满足条件」的一格 —— 隔壁 COUNTIF 一直是这么算的，
+    // Excel 的 criteria 语义对单条件版与多条件版是同一套。
     const r1 = range1D([num(1), errVal('#REF!'), num(1)])
     const r2 = range1D([str('a'), str('a'), str('a')])
-    expect(call(COUNTIFS, [r1, num(1), r2, str('a')])).toEqual(errVal('#REF!'))
+    expect(call(COUNTIFS, [r1, num(1), r2, str('a')])).toEqual(num(2))
+    expect(call(FUNCTIONS.COUNTIF, [r1, num(1)])).toEqual(num(2))
   })
 
   test('criterion error propagates', () => {
@@ -312,10 +315,15 @@ describe('SUMIFS', () => {
     expect(call(SUMIFS, [sum, r1, num(1)])).toMatchObject({ kind: 'error', code: '#VALUE!' })
   })
 
-  test('SUMIFS propagates error cells in criterion range', () => {
+  test('SUMIFS skips error cells in the criterion range but not in sum_range', () => {
     const sum = range1D([num(10), num(20), num(30)])
     const r1 = range1D([num(1), errVal('#REF!'), num(1)])
-    expect(call(SUMIFS, [sum, r1, num(1)])).toEqual(errVal('#REF!'))
+    // 条件区错误 → 该行不命中；SUMIF 给同一个答案。
+    expect(call(SUMIFS, [sum, r1, num(1)])).toEqual(num(40))
+    expect(call(FUNCTIONS.SUMIF, [r1, num(1), sum])).toEqual(num(40))
+    // 求和区错误落在命中行 → 值档照旧传播（对照上面）。
+    const errSum = range1D([num(10), num(20), errVal('#DIV/0!')])
+    expect(call(SUMIFS, [errSum, r1, num(1)])).toEqual(errVal('#DIV/0!'))
   })
 
   test('SUMIFS with comparison criterion', () => {

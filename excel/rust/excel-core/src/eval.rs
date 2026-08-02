@@ -3329,7 +3329,16 @@ fn eval_func(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
                         let ss_n = CellRange::new(ss, ss).normalize();
                         let dr = ss_n.start.row as i64 - rs_n.start.row as i64;
                         let dc = ss_n.start.col as i64 - rs_n.start.col as i64;
+                        // 命中行的 sum_range 格子是**值档**，错误要传播（`SUM` 也
+                        // 传播，SUMIFS / AVERAGEIF* / MAXIFS / MINIFS 也一样）。
+                        // 之前这里靠 `coerce_to_number` 返回 `None` 把错误静默吞
+                        // 掉，答案是个看着正常的数 —— 与 TS 参考引擎的 `SUMIF`
+                        // 相反。流式回调不能提前返回，所以记下来循环后再交出去。
+                        let mut sum_err: Option<ValueError> = None;
                         for_each_arg_value(&args[0], provider, &mut |addr, v| {
+                            if sum_err.is_some() {
+                                return;
+                            }
                             let Some(addr) = addr else { return };
                             if matches_criterion(&v, &criterion) {
                                 let r = addr.row as i64 + dr;
@@ -3338,11 +3347,18 @@ fn eval_func(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
                                     return;
                                 }
                                 let target = provider.cell(CellAddress::new(r as u32, c as u32));
+                                if let Value::Error(e) = target {
+                                    sum_err = Some(e);
+                                    return;
+                                }
                                 if let Some(n) = coerce_to_number(&target) {
                                     total += n;
                                 }
                             }
                         });
+                        if let Some(e) = sum_err {
+                            return Value::Error(e);
+                        }
                     }
                     _ => {
                         // Non-range args fall back to "broadcast same eval"
@@ -3368,8 +3384,18 @@ fn eval_func(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
         // Range arg accepted: literal `Range` / `SheetRange`, or `OFFSET(...)`.
         // Anything else → InvalidValue.
         //
-        // Error propagation: if any criteria-range cell or value-range cell
-        // evaluates to `Value::Error(e)`, the aggregate returns `Error(e)`.
+        // Error propagation is per TIER, not per range:
+        //
+        //   - CRITERIA range — an error cell is just a cell that fails the
+        //     criterion, and is skipped. This is what `matches_criterion`
+        //     already does for the single-criterion `COUNTIF` / `SUMIF`
+        //     above, and Excel applies one criteria semantics to both
+        //     (`=COUNTIFS(rng,"<>#N/A",rng,"<>#VALUE!")` answers a COUNT on a
+        //     range full of errors rather than handing an error back).
+        //   - VALUE range (sum_range / average_range / max_range /
+        //     min_range) — an error on a MATCHING row propagates, same as
+        //     `SUM`. Unmatched rows are never read, so their errors cannot
+        //     leak.
         //
         // For COUNTIFS, "match" is reported on any non-Null criteria cell
         // where the criterion passes — including Text and Boolean — matching
@@ -3400,10 +3426,8 @@ fn eval_func(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
             let mut count = 0u64;
             for dr in 0..crit_range.rows {
                 for dc in 0..crit_range.cols {
+                    // 条件区里的错误格 = 不满足条件（见本块开头的分档说明）。
                     let cv = fetch_range_cell(&crit_range, dr, dc, provider);
-                    if let Value::Error(e) = cv {
-                        return Value::Error(e);
-                    }
                     if matches_criterion(&cv, &criterion) {
                         let tv = fetch_range_cell(&value_range, dr, dc, provider);
                         if let Value::Error(e) = tv {
@@ -3440,10 +3464,9 @@ fn eval_func(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
                     let mut all_match = true;
                     let mut has_value = false;
                     for (range, criterion) in &pairs {
+                        // 条件区里的错误格 = 不满足条件，交给 `matches_criterion`
+                        // 判掉即可，不短路（见本块开头的分档说明）。
                         let cv = fetch_range_cell(range, dr, dc, provider);
-                        if let Value::Error(e) = cv {
-                            return Value::Error(e);
-                        }
                         if !matches!(cv, Value::Null) {
                             has_value = true;
                         }
@@ -3482,10 +3505,9 @@ fn eval_func(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
                 for dc in 0..sum_range.cols {
                     let mut all_match = true;
                     for (range, criterion) in &pairs {
+                        // 条件区里的错误格 = 不满足条件，交给 `matches_criterion`
+                        // 判掉即可，不短路（见本块开头的分档说明）。
                         let cv = fetch_range_cell(range, dr, dc, provider);
-                        if let Value::Error(e) = cv {
-                            return Value::Error(e);
-                        }
                         if !matches_criterion(&cv, criterion) {
                             all_match = false;
                             break;
@@ -3528,10 +3550,9 @@ fn eval_func(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
                 for dc in 0..avg_range.cols {
                     let mut all_match = true;
                     for (range, criterion) in &pairs {
+                        // 条件区里的错误格 = 不满足条件，交给 `matches_criterion`
+                        // 判掉即可，不短路（见本块开头的分档说明）。
                         let cv = fetch_range_cell(range, dr, dc, provider);
-                        if let Value::Error(e) = cv {
-                            return Value::Error(e);
-                        }
                         if !matches_criterion(&cv, criterion) {
                             all_match = false;
                             break;
@@ -3577,10 +3598,9 @@ fn eval_func(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
                 for dc in 0..max_range.cols {
                     let mut all_match = true;
                     for (range, criterion) in &pairs {
+                        // 条件区里的错误格 = 不满足条件，交给 `matches_criterion`
+                        // 判掉即可，不短路（见本块开头的分档说明）。
                         let cv = fetch_range_cell(range, dr, dc, provider);
-                        if let Value::Error(e) = cv {
-                            return Value::Error(e);
-                        }
                         if !matches_criterion(&cv, criterion) {
                             all_match = false;
                             break;
@@ -3625,10 +3645,9 @@ fn eval_func(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
                 for dc in 0..min_range.cols {
                     let mut all_match = true;
                     for (range, criterion) in &pairs {
+                        // 条件区里的错误格 = 不满足条件，交给 `matches_criterion`
+                        // 判掉即可，不短路（见本块开头的分档说明）。
                         let cv = fetch_range_cell(range, dr, dc, provider);
-                        if let Value::Error(e) = cv {
-                            return Value::Error(e);
-                        }
                         if !matches_criterion(&cv, criterion) {
                             all_match = false;
                             break;
@@ -25114,12 +25133,9 @@ mod tests {
     }
 
     #[test]
-    fn averageif_error_propagation_from_criteria_cell() {
+    fn averageif_skips_error_cells_in_the_criteria_range() {
         let (cm, vs) = make_multi_env();
-        // Force a cell to produce an error during eval.
-        // B1/C1 (text/0) coerces text → error. Use formula via temp eval.
-        // Simpler: pass an OFFSET that produces an invalid ref isn't easy
-        // through criteria; instead pre-populate one cell as Error.
+        // Pre-populate A11 as an Error and leave B11 a plain number.
         let mut cm = cm;
         let mut vs = vs;
         let err_id = AtomId::from_raw(99);
@@ -25127,9 +25143,11 @@ mod tests {
         cm.insert(CellAddress::new(10, 1), AtomId::from_raw(100));
         vs.insert(err_id, Value::Error(ValueError::WrongType));
         vs.insert(AtomId::from_raw(100), Value::Number(5.0));
+        // 条件区里的错误格不满足 `"x"`，于是一行都没命中 → `#DIV/0!`，
+        // 而**不是**把 `WrongType` 交回去。
         assert_eq!(
             eval_str("=AVERAGEIF(A11:A11,\"x\",B11:B11)", &cm, &vs),
-            Value::Error(ValueError::WrongType)
+            Value::Error(ValueError::DivisionByZero)
         );
     }
 
@@ -25221,15 +25239,16 @@ mod tests {
     }
 
     #[test]
-    fn countifs_error_propagation() {
+    fn countifs_skips_error_cells_in_the_criteria_range() {
         let mut cell_map = HashMap::new();
         let mut values = HashMap::new();
         let a1 = AtomId::from_raw(0);
         cell_map.insert(CellAddress::new(0, 0), a1);
         values.insert(a1, Value::Error(ValueError::WrongType));
+        // COUNTIFS 没有值区，条件区是它唯一读的东西 —— 错误格只是「不满足」。
         assert_eq!(
             eval_str("=COUNTIFS(A1:A1,\"x\")", &cell_map, &values),
-            Value::Error(ValueError::WrongType)
+            Value::Number(0.0)
         );
     }
 
@@ -25299,7 +25318,7 @@ mod tests {
     }
 
     #[test]
-    fn sumifs_error_propagation() {
+    fn sumifs_skips_criteria_range_errors_but_not_sum_range_ones() {
         let mut cell_map = HashMap::new();
         let mut values = HashMap::new();
         let a1 = AtomId::from_raw(0);
@@ -25308,7 +25327,14 @@ mod tests {
         cell_map.insert(CellAddress::new(0, 1), b1);
         values.insert(a1, Value::Error(ValueError::DivisionByZero));
         values.insert(b1, Value::Number(7.0));
-        // Criteria-range error propagates.
+        // 条件区错误 → 该行不命中，B1 根本没被读。
+        assert_eq!(
+            eval_str("=SUMIFS(B1:B1,A1:A1,\"x\")", &cell_map, &values),
+            Value::Number(0.0)
+        );
+        // 对调两格：条件命中，求和区是错误 → 值档照旧传播。
+        values.insert(a1, Value::Text("x".into()));
+        values.insert(b1, Value::Error(ValueError::DivisionByZero));
         assert_eq!(
             eval_str("=SUMIFS(B1:B1,A1:A1,\"x\")", &cell_map, &values),
             Value::Error(ValueError::DivisionByZero)
@@ -25440,14 +25466,25 @@ mod tests {
     }
 
     #[test]
-    fn maxifs_error_propagation() {
+    fn maxifs_skips_criteria_range_errors_but_not_max_range_ones() {
         let mut cell_map = HashMap::new();
         let mut values = HashMap::new();
         let a1 = AtomId::from_raw(0);
+        let b1 = AtomId::from_raw(1);
         cell_map.insert(CellAddress::new(0, 0), a1);
+        cell_map.insert(CellAddress::new(0, 1), b1);
         values.insert(a1, Value::Error(ValueError::CyclicRef));
+        values.insert(b1, Value::Number(7.0));
+        // 条件区错误 → 不命中，无匹配行 → 0。
         assert_eq!(
-            eval_str("=MAXIFS(A1:A1,A1:A1,\">0\")", &cell_map, &values),
+            eval_str("=MAXIFS(B1:B1,A1:A1,\">0\")", &cell_map, &values),
+            Value::Number(0.0)
+        );
+        // 对调：条件命中，值区是错误 → 传播。
+        values.insert(a1, Value::Number(1.0));
+        values.insert(b1, Value::Error(ValueError::CyclicRef));
+        assert_eq!(
+            eval_str("=MAXIFS(B1:B1,A1:A1,\">0\")", &cell_map, &values),
             Value::Error(ValueError::CyclicRef)
         );
     }
@@ -25502,16 +25539,92 @@ mod tests {
     }
 
     #[test]
-    fn minifs_error_propagation() {
+    fn minifs_skips_criteria_range_errors_but_not_min_range_ones() {
         let mut cell_map = HashMap::new();
         let mut values = HashMap::new();
         let a1 = AtomId::from_raw(0);
+        let b1 = AtomId::from_raw(1);
         cell_map.insert(CellAddress::new(0, 0), a1);
+        cell_map.insert(CellAddress::new(0, 1), b1);
         values.insert(a1, Value::Error(ValueError::Overflow));
+        values.insert(b1, Value::Number(7.0));
         assert_eq!(
-            eval_str("=MINIFS(A1:A1,A1:A1,\">0\")", &cell_map, &values),
+            eval_str("=MINIFS(B1:B1,A1:A1,\">0\")", &cell_map, &values),
+            Value::Number(0.0)
+        );
+        values.insert(a1, Value::Number(1.0));
+        values.insert(b1, Value::Error(ValueError::Overflow));
+        assert_eq!(
+            eval_str("=MINIFS(B1:B1,A1:A1,\">0\")", &cell_map, &values),
             Value::Error(ValueError::Overflow)
         );
+    }
+
+    // ---- IF / IFS 家族：条件区与值区是两档规则 ----
+
+    /// `A1:A4 = 1, 5, 9, #DIV/0!`；`B1:B4 = #DIV/0!, 20, 30, 40`。
+    ///
+    /// 两个错误格摆在**位置相反**的行：`A4` 落在条件区且不满足 `">3"`，`B1`
+    /// 落在值区且它那行的条件 `"<5"` 是**满足**的。一份夹具同时喂两条方向
+    /// 相反的规则，任何一侧「一律短路」或「一律吞掉」都会被抓住。
+    fn make_criteria_error_env() -> (HashMap<CellAddress, AtomId>, HashMap<AtomId, Value>) {
+        let col_a = [
+            Value::Number(1.0),
+            Value::Number(5.0),
+            Value::Number(9.0),
+            Value::Error(ValueError::DivisionByZero),
+        ];
+        let col_b = [
+            Value::Error(ValueError::DivisionByZero),
+            Value::Number(20.0),
+            Value::Number(30.0),
+            Value::Number(40.0),
+        ];
+        let mut cell_map = HashMap::new();
+        let mut values = HashMap::new();
+        for (row, (a, b)) in col_a.into_iter().zip(col_b).enumerate() {
+            let a_id = AtomId::from_raw(row as u64 * 2);
+            let b_id = AtomId::from_raw(row as u64 * 2 + 1);
+            cell_map.insert(CellAddress::new(row as u32, 0), a_id);
+            cell_map.insert(CellAddress::new(row as u32, 1), b_id);
+            values.insert(a_id, a);
+            values.insert(b_id, b);
+        }
+        (cell_map, values)
+    }
+
+    #[test]
+    fn ifs_family_skips_criteria_range_errors() {
+        let (cm, vs) = make_criteria_error_env();
+        // 条件区里的错误格只是「不满足条件」。单条件版一直是这么做的，多条件版
+        // 必须给出同一个答案 —— 两者本是同一套 criteria 语义（Excel 里
+        // `=COUNTIFS(rng,"<>#N/A",rng,"<>#VALUE!")` 在含错误的区域上照样回一个
+        // 计数，而不是把错误交回去）。
+        let two = Value::Number(2.0);
+        assert_eq!(eval_str("=COUNTIF(A1:A4,\">3\")", &cm, &vs), two);
+        assert_eq!(eval_str("=COUNTIFS(A1:A4,\">3\")", &cm, &vs), two);
+        let fifty = Value::Number(50.0);
+        assert_eq!(eval_str("=SUMIF(A1:A4,\">3\",B1:B4)", &cm, &vs), fifty);
+        assert_eq!(eval_str("=SUMIFS(B1:B4,A1:A4,\">3\")", &cm, &vs), fifty);
+        let twenty_five = Value::Number(25.0);
+        assert_eq!(eval_str("=AVERAGEIF(A1:A4,\">3\",B1:B4)", &cm, &vs), twenty_five);
+        assert_eq!(eval_str("=AVERAGEIFS(B1:B4,A1:A4,\">3\")", &cm, &vs), twenty_five);
+        assert_eq!(eval_str("=MAXIFS(B1:B4,A1:A4,\">3\")", &cm, &vs), Value::Number(30.0));
+        assert_eq!(eval_str("=MINIFS(B1:B4,A1:A4,\">3\")", &cm, &vs), Value::Number(20.0));
+    }
+
+    #[test]
+    fn ifs_family_still_propagates_value_range_errors() {
+        let (cm, vs) = make_criteria_error_env();
+        // `"<5"` 命中第 1 行，而那一行的值区 `B1` 是错误 —— 值档照旧传播，
+        // 跟 `SUM` 一样。这是上一条的对照：只跳条件区，不是「到处不传播」。
+        let div0 = Value::Error(ValueError::DivisionByZero);
+        assert_eq!(eval_str("=SUMIF(A1:A4,\"<5\",B1:B4)", &cm, &vs), div0);
+        assert_eq!(eval_str("=SUMIFS(B1:B4,A1:A4,\"<5\")", &cm, &vs), div0);
+        assert_eq!(eval_str("=AVERAGEIF(A1:A4,\"<5\",B1:B4)", &cm, &vs), div0);
+        assert_eq!(eval_str("=AVERAGEIFS(B1:B4,A1:A4,\"<5\")", &cm, &vs), div0);
+        assert_eq!(eval_str("=MAXIFS(B1:B4,A1:A4,\"<5\")", &cm, &vs), div0);
+        assert_eq!(eval_str("=MINIFS(B1:B4,A1:A4,\"<5\")", &cm, &vs), div0);
     }
 
     // ===== Reference / lookup tests =====

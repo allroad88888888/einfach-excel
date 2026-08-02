@@ -687,7 +687,7 @@ describe('evaluator — literals + arithmetic', () => {
     ).toEqual(numVal(25))
   })
 
-  test('AVERAGEIF sparse criteria range errors propagate', () => {
+  test('AVERAGEIF sparse criteria range errors are skipped, not propagated', () => {
     const cells = new Map<CellKey, Cell>([
       ['0:0', makeLiteralCell({ kind: 'error', code: '#VALUE!' })],
       ['0:1', makeLiteralCell(numVal(10))],
@@ -696,6 +696,8 @@ describe('evaluator — literals + arithmetic', () => {
     ctx.rangeLookup = () => {
       throw new Error('rangeLookup should not be called')
     }
+    // A1 fails `"x"` like any other non-matching cell, so nothing is averaged
+    // → `#DIV/0!` (no matches), NOT the `#VALUE!` that lives in A1.
     expect(
       evaluate(
         {
@@ -705,7 +707,58 @@ describe('evaluator — literals + arithmetic', () => {
         },
         ctx,
       ),
-    ).toEqual({ kind: 'error', code: '#VALUE!' })
+    ).toEqual({ kind: 'error', code: '#DIV/0!' })
+  })
+
+  test('the IFS family skips criteria-range errors but still propagates value-range ones', () => {
+    // A1:A4 = 1, 5, 9, #DIV/0!  /  B1:B4 = #DIV/0!, 20, 30, 40 — the two error
+    // cells sit on opposite rows on purpose: A4 is a CRITERIA cell that fails
+    // `">3"`, B1 is a VALUE cell on the one row `"<5"` does match. One fixture
+    // feeds both rules, so neither "always short-circuit" nor "never
+    // propagate" can satisfy it.
+    //
+    // Whole-column refs on purpose too: `evaluate()` diverts every one of
+    // these names into its sparse twin (`evaluateSparse*Ifs`), so the
+    // FunctionImpl tests in `stats.test.ts` say nothing about what a real
+    // formula does. This is the path a real formula takes.
+    const cells = new Map<CellKey, Cell>([
+      ['0:0', makeLiteralCell(numVal(1))],
+      ['1:0', makeLiteralCell(numVal(5))],
+      ['2:0', makeLiteralCell(numVal(9))],
+      ['3:0', makeLiteralCell({ kind: 'error', code: '#DIV/0!' })],
+      ['0:1', makeLiteralCell({ kind: 'error', code: '#DIV/0!' })],
+      ['1:1', makeLiteralCell(numVal(20))],
+      ['2:1', makeLiteralCell(numVal(30))],
+      ['3:1', makeLiteralCell(numVal(40))],
+    ])
+    const ctx = makeCtx(cells)
+    ctx.rangeLookup = () => {
+      throw new Error('rangeLookup should not be called')
+    }
+    const call = (name: string, args: Expr[]): Value => evaluate({ kind: 'call', name, args }, ctx)
+    const colA = rangeExpr('A', 'A')
+    const colB = rangeExpr('B', 'B')
+    const crit = (value: string): Expr => ({ kind: 'string', value })
+
+    // Criteria tier: an error cell is just a cell that does not match, exactly
+    // as the single-criterion COUNTIF / SUMIF have always treated it.
+    expect(call('COUNTIF', [colA, crit('>3')])).toEqual(numVal(2))
+    expect(call('COUNTIFS', [colA, crit('>3')])).toEqual(numVal(2))
+    expect(call('SUMIF', [colA, crit('>3'), colB])).toEqual(numVal(50))
+    expect(call('SUMIFS', [colB, colA, crit('>3')])).toEqual(numVal(50))
+    expect(call('AVERAGEIF', [colA, crit('>3'), colB])).toEqual(numVal(25))
+    expect(call('AVERAGEIFS', [colB, colA, crit('>3')])).toEqual(numVal(25))
+    expect(call('MAXIFS', [colB, colA, crit('>3')])).toEqual(numVal(30))
+    expect(call('MINIFS', [colB, colA, crit('>3')])).toEqual(numVal(20))
+
+    // Value tier: unchanged — `"<5"` matches row 1, whose B cell is an error.
+    const div0: Value = { kind: 'error', code: '#DIV/0!' }
+    expect(call('SUMIF', [colA, crit('<5'), colB])).toEqual(div0)
+    expect(call('SUMIFS', [colB, colA, crit('<5')])).toEqual(div0)
+    expect(call('AVERAGEIF', [colA, crit('<5'), colB])).toEqual(div0)
+    expect(call('AVERAGEIFS', [colB, colA, crit('<5')])).toEqual(div0)
+    expect(call('MAXIFS', [colB, colA, crit('<5')])).toEqual(div0)
+    expect(call('MINIFS', [colB, colA, crit('<5')])).toEqual(div0)
   })
 
   test('COUNTIFS and SUMIFS stream whole-column criteria refs', () => {
@@ -929,7 +982,11 @@ describe('evaluator — literals + arithmetic', () => {
     ).toEqual(numVal(20))
   })
 
-  test('sparse IFS aggregators propagate whole-column criteria errors', () => {
+  test('sparse IFS aggregators treat a whole-column criteria error as "no match"', () => {
+    // The only populated criteria row IS the error, so every aggregator ends
+    // up with an empty match set — the degenerate end of the same rule the
+    // two-tier fixture above pins. `#DIV/0!` from AVERAGEIFS is the
+    // no-matches answer, not the criteria cell leaking through.
     const cells = new Map<CellKey, Cell>([
       ['0:0', makeLiteralCell({ kind: 'error', code: '#VALUE!' })],
       ['0:2', makeLiteralCell(numVal(10))],
@@ -940,20 +997,20 @@ describe('evaluator — literals + arithmetic', () => {
     }
 
     const criterion: Expr[] = [rangeExpr('A', 'A'), { kind: 'string', value: '>0' }]
-    const expected = { kind: 'error', code: '#VALUE!' }
-    expect(evaluate({ kind: 'call', name: 'COUNTIFS', args: criterion }, ctx)).toEqual(expected)
+    const zero = numVal(0)
+    expect(evaluate({ kind: 'call', name: 'COUNTIFS', args: criterion }, ctx)).toEqual(zero)
     expect(
       evaluate({ kind: 'call', name: 'SUMIFS', args: [rangeExpr('C', 'C'), ...criterion] }, ctx),
-    ).toEqual(expected)
+    ).toEqual(zero)
     expect(
       evaluate({ kind: 'call', name: 'AVERAGEIFS', args: [rangeExpr('C', 'C'), ...criterion] }, ctx),
-    ).toEqual(expected)
+    ).toEqual({ kind: 'error', code: '#DIV/0!' })
     expect(
       evaluate({ kind: 'call', name: 'MAXIFS', args: [rangeExpr('C', 'C'), ...criterion] }, ctx),
-    ).toEqual(expected)
+    ).toEqual(zero)
     expect(
       evaluate({ kind: 'call', name: 'MINIFS', args: [rangeExpr('C', 'C'), ...criterion] }, ctx),
-    ).toEqual(expected)
+    ).toEqual(zero)
   })
 
   test('evaluator-owned FILTER empty result returns #CALC! without if_empty', () => {

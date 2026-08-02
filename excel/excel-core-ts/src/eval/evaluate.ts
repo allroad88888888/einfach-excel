@@ -1086,7 +1086,8 @@ function evaluateSparseAverageIf(args: ReadonlyArray<Expr>, ctx: EvalContext): V
   let total = 0
   let count = 0
   for (const { coord, value } of sparse.values) {
-    if (value.kind === 'error') return value
+    // 条件区错误格跳过（`matcher.matches` 也会判 false，这里保持与
+    // `evaluateSparseSumIf` 同形）；平均区错误格在下面照旧传播。
     if (!matcher.matches(value)) continue
     const targetCoord = relativeCoord(checkRef.ref.range, averageRef.ref.range, coord)
     if (!targetCoord) return ERR('#REF!')
@@ -1120,7 +1121,8 @@ function averageBlankMatchedTargets(
   let count = 0
   for (const coord of candidates.values()) {
     const checkValue = valueAtRuntimeCoord(checkRef.sheetName, coord, ctx)
-    if (checkValue.kind === 'error') return checkValue
+    // 条件区错误格跳过，与 `sumBlankMatchedTargets` 同形。
+    if (checkValue.kind === 'error') continue
     if (!matches(checkValue)) continue
     const targetCoord = relativeCoord(checkRef.range, averageRef.range, coord)
     if (!targetCoord) return ERR('#REF!')
@@ -1169,9 +1171,7 @@ function evaluateSparseSumIfs(args: ReadonlyArray<Expr>, ctx: EvalContext): Valu
 
   let total = 0
   for (const coord of candidates.coords) {
-    const match = matchesAllCriteria(coord, criteria.pairs, ctx)
-    if (!match.ok) return match.error
-    if (!match.matches) continue
+    if (!matchesAllCriteria(coord, criteria.pairs, ctx)) continue
     const target = valueAtRelativeCoord(base, sumRef.ref, coord, ctx)
     if (target.kind === 'error') return target
     const n = toNumber(target)
@@ -1200,9 +1200,7 @@ function evaluateSparseAverageIfs(args: ReadonlyArray<Expr>, ctx: EvalContext): 
   let total = 0
   let count = 0
   for (const coord of candidates.coords) {
-    const match = matchesAllCriteria(coord, criteria.pairs, ctx)
-    if (!match.ok) return match.error
-    if (!match.matches) continue
+    if (!matchesAllCriteria(coord, criteria.pairs, ctx)) continue
     const target = valueAtRelativeCoord(base, averageRef.ref, coord, ctx)
     if (target.kind === 'error') return target
     const n = toNumber(target)
@@ -1238,9 +1236,7 @@ function evaluateSparseMinMaxIfs(
   let seen = false
   let best = kind === 'min' ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY
   for (const coord of candidates.coords) {
-    const match = matchesAllCriteria(coord, criteria.pairs, ctx)
-    if (!match.ok) return match.error
-    if (!match.matches) continue
+    if (!matchesAllCriteria(coord, criteria.pairs, ctx)) continue
     const target = valueAtRelativeCoord(base, targetRef.ref, coord, ctx)
     if (target.kind === 'error') return target
     if (target.kind !== 'number') continue
@@ -2246,9 +2242,6 @@ function countIfsCandidateCoords(
       const baseCoord = inverseRelativeCoord(base, nonBlankDriver.ref.range, coord)
       if (baseCoord) coords.set(cellKey(baseCoord), baseCoord)
     }
-    const errorCandidates = sparseCriteriaErrorCoords(pairs, ctx)
-    if (!errorCandidates.ok) return errorCandidates
-    for (const coord of errorCandidates.coords) coords.set(cellKey(coord), coord)
     return { ok: true, coords: [...coords.values()], implicitCount: 0 }
   }
 
@@ -2285,9 +2278,6 @@ function sumIfsCandidateCoords(
       const baseCoord = inverseRelativeCoord(base, nonBlankDriver.ref.range, coord)
       if (baseCoord) coords.set(cellKey(baseCoord), baseCoord)
     }
-    const errorCandidates = sparseCriteriaErrorCoords(pairs, ctx)
-    if (!errorCandidates.ok) return errorCandidates
-    for (const coord of errorCandidates.coords) coords.set(cellKey(coord), coord)
     return { ok: true, coords: [...coords.values()] }
   }
 
@@ -2316,47 +2306,26 @@ function countMatchingCriteria(
 ): Value {
   let count = candidates.implicitCount
   for (const coord of candidates.coords) {
-    const match = matchesAllCriteria(coord, pairs, ctx)
-    if (!match.ok) return match.error
-    if (match.matches) count += 1
+    if (matchesAllCriteria(coord, pairs, ctx)) count += 1
   }
   return { kind: 'number', value: count }
 }
 
+/**
+ * 条件区里的错误格不短路：`pair.matches`（`makeCriterionMatcher`）对错误值一
+ * 律返回 false，所以错误格就是「这一行不满足条件」，与 COUNTIF / SUMIF 同一
+ * 口径。值区那一档由各调用方在命中之后自行传播。
+ */
 function matchesAllCriteria(
   coord: CellCoord,
   pairs: ReadonlyArray<SparseCriterionPair>,
   ctx: EvalContext,
-): { readonly ok: true; readonly matches: boolean }
-  | { readonly ok: false; readonly error: Value } {
+): boolean {
   const base = pairs[0].ref.range
   for (const pair of pairs) {
-    const cell = valueAtRelativeCoord(base, pair.ref, coord, ctx)
-    if (cell.kind === 'error') return { ok: false, error: cell }
-    if (!pair.matches(cell)) return { ok: true, matches: false }
+    if (!pair.matches(valueAtRelativeCoord(base, pair.ref, coord, ctx))) return false
   }
-  return { ok: true, matches: true }
-}
-
-function sparseCriteriaErrorCoords(
-  pairs: ReadonlyArray<SparseCriterionPair>,
-  ctx: EvalContext,
-): { readonly ok: true; readonly coords: ReadonlyArray<CellCoord> } | {
-  readonly ok: false
-  readonly error: Value
-} {
-  const base = pairs[0].ref.range
-  const coords = new Map<CellKey, CellCoord>()
-  for (const pair of pairs) {
-    const sparse = sparseValuesForRef(pair.ref, ctx)
-    if (!sparse.ok) return sparse
-    for (const { coord, value } of sparse.values) {
-      if (value.kind !== 'error') continue
-      const baseCoord = inverseRelativeCoord(base, pair.ref.range, coord)
-      if (baseCoord) coords.set(cellKey(baseCoord), baseCoord)
-    }
-  }
-  return { ok: true, coords: [...coords.values()] }
+  return true
 }
 
 function validateCriteriaShapes(

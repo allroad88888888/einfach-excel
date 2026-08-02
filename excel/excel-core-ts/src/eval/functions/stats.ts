@@ -344,7 +344,9 @@ const COUNTIFS: FunctionImpl = (args, _ctx) => {
   outer: for (let i = 0; i < len; i++) {
     for (let j = 0; j < pairs.flats.length; j++) {
       const cell = pairs.flats[j][i]
-      if (cell.kind === 'error') return cell
+      // 条件区里的错误格 = 这一行不满足条件，跳过；与正上方 COUNTIF / SUMIF
+      // 同一口径（Excel 只有一套 criteria 语义）。值区那一档照常传播。
+      if (cell.kind === 'error') continue outer
       if (!matchesCriterion(cell, pairs.parsed[j])) continue outer
     }
     count++
@@ -376,7 +378,9 @@ const SUMIFS: FunctionImpl = (args, _ctx) => {
   outer: for (let i = 0; i < len; i++) {
     for (let j = 0; j < pairs.flats.length; j++) {
       const cell = pairs.flats[j][i]
-      if (cell.kind === 'error') return cell
+      // 条件区里的错误格 = 这一行不满足条件，跳过；与正上方 COUNTIF / SUMIF
+      // 同一口径（Excel 只有一套 criteria 语义）。值区那一档照常传播。
+      if (cell.kind === 'error') continue outer
       if (!matchesCriterion(cell, pairs.parsed[j])) continue outer
     }
     const target = sumCells[i]
@@ -806,7 +810,8 @@ const AVERAGEIF: FunctionImpl = (args, _ctx) => {
   let count = 0
   for (let i = 0; i < checkCells.length; i++) {
     const probe = checkCells[i]
-    if (probe.kind === 'error') return probe
+    // 条件区错误格跳过（同 COUNTIF / SUMIF）；平均区错误格照旧传播。
+    if (probe.kind === 'error') continue
     if (!matchesCriterion(probe, parsed)) continue
     const target = sumCells[i]
     if (target.kind === 'error') return target
@@ -836,7 +841,9 @@ const AVERAGEIFS: FunctionImpl = (args, _ctx) => {
   outer: for (let i = 0; i < len; i++) {
     for (let j = 0; j < pairs.flats.length; j++) {
       const cell = pairs.flats[j][i]
-      if (cell.kind === 'error') return cell
+      // 条件区里的错误格 = 这一行不满足条件，跳过；与正上方 COUNTIF / SUMIF
+      // 同一口径（Excel 只有一套 criteria 语义）。值区那一档照常传播。
+      if (cell.kind === 'error') continue outer
       if (!matchesCriterion(cell, pairs.parsed[j])) continue outer
     }
     const target = sumCells[i]
@@ -867,7 +874,9 @@ const MAXIFS: FunctionImpl = (args, _ctx) => {
   outer: for (let i = 0; i < len; i++) {
     for (let j = 0; j < pairs.flats.length; j++) {
       const cell = pairs.flats[j][i]
-      if (cell.kind === 'error') return cell
+      // 条件区里的错误格 = 这一行不满足条件，跳过；与正上方 COUNTIF / SUMIF
+      // 同一口径（Excel 只有一套 criteria 语义）。值区那一档照常传播。
+      if (cell.kind === 'error') continue outer
       if (!matchesCriterion(cell, pairs.parsed[j])) continue outer
     }
     const target = targetCells[i]
@@ -896,7 +905,9 @@ const MINIFS: FunctionImpl = (args, _ctx) => {
   outer: for (let i = 0; i < len; i++) {
     for (let j = 0; j < pairs.flats.length; j++) {
       const cell = pairs.flats[j][i]
-      if (cell.kind === 'error') return cell
+      // 条件区里的错误格 = 这一行不满足条件，跳过；与正上方 COUNTIF / SUMIF
+      // 同一口径（Excel 只有一套 criteria 语义）。值区那一档照常传播。
+      if (cell.kind === 'error') continue outer
       if (!matchesCriterion(cell, pairs.parsed[j])) continue outer
     }
     const target = targetCells[i]

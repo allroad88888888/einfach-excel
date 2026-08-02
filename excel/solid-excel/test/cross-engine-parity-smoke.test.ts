@@ -69,9 +69,11 @@ import {
   BLOCKED_1D,
   COERCION_ADDRS,
   COUNT_ADDRS,
+  CRITERIA_ADDRS,
   ERROR_ADDRS,
   EXPECTED_COERCION_DISPLAYS,
   EXPECTED_COUNT_DISPLAYS,
+  EXPECTED_CRITERIA_DISPLAYS,
   EXPECTED_LITERAL_DISPLAYS,
   EXPECTED_SUBTOTAL_DISPLAYS,
   LITERAL_ADDRS,
@@ -204,6 +206,19 @@ describe('cross-engine parity smoke — TS runtime vs WASM engine', () => {
     // engine that stopped propagating for every function at once.
     for (const read of [tsRead, wasmRead]) {
       expect(displaysOf(read, COUNT_ADDRS)).toEqual(EXPECTED_COUNT_DISPLAYS)
+    }
+  })
+
+  test('an error cell in a CRITERIA range does not poison COUNTIFS / SUMIFS', async () => {
+    const tsRead = await ts.read(CRITERIA_ADDRS)
+    const wasmRead = await wasm.read(CRITERIA_ADDRS)
+    expect(flatten(wasmRead)).toEqual(flatten(tsRead))
+
+    // Closed form on BOTH readings: the engines agreed perfectly while both
+    // short-circuited COUNTIFS/SUMIFS here, so only the literals separate the
+    // fix from the defect. The `#DIV/0!` rows are the value tier, still live.
+    for (const read of [tsRead, wasmRead]) {
+      expect(displaysOf(read, CRITERIA_ADDRS)).toEqual(EXPECTED_CRITERIA_DISPLAYS)
     }
   })
 

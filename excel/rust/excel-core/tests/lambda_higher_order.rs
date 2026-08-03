@@ -8,7 +8,7 @@
 //!
 //! Implementation lives in:
 //! - `excel/rust/core/src/atom.rs` — `LambdaValue` trait + `Value::Lambda` variant
-//! - `excel/rust/excel-core/src/formula.rs` — `Expr::Call` parser support
+//! - `excel/rust/excel-core/src/formula/operators.rs` — `Expr::Call` parser support
 //! - `excel/rust/excel-core/src/eval.rs` — `ExcelLambda`, `apply_lambda`,
 //!   `LAMBDA` / `MAP` / `REDUCE` / `SCAN` / `BYROW` / `BYCOL` /
 //!   `MAKEARRAY` / `ISOMITTED` arms

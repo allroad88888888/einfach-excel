@@ -7,7 +7,8 @@
 //! which call `eval_expr` directly).
 //!
 //! Implementation lives in:
-//! - `excel/rust/excel-core/src/formula.rs` — `Expr::Name` AST node + parser fallback
+//! - `excel/rust/excel-core/src/formula/ast.rs` — `Expr::Name` AST node
+//! - `excel/rust/excel-core/src/formula/identifier.rs` — parser fallback to `Name`
 //! - `excel/rust/excel-core/src/eval.rs` — `LET_FRAMES` TLS stack + `LET` arm
 
 use einfach_core::{Value, ValueError};

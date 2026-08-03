@@ -74,7 +74,7 @@ Full approved plan: `/Users/dol/.claude/plans/federated-mapping-crab.md`
 | INV-3 | Bulk import materializes 0 atoms and evaluates 0 formulas, at any size. |
 | INV-4 | `WasmSheet`/`WasmWorkbook` exported names + signatures frozen (additive debug probes allowed). `worker-protocol.ts` wire shapes frozen. |
 | INV-5 | Every landed commit is green on its tier fences. Fence-expectation edits land in the same commit as the semantic change, with closed-form justification in the commit message and a row in §4. |
-| INV-6 | `eval.rs` / `formula.rs` / `format.rs` / `undo.rs` / `csv.rs`: resolver-interface seam changes only. **两条已批准的例外，见下方「INV-6 的显式例外」。** |
+| INV-6 | `eval.rs` / `formula.rs`（连同 `formula/` 下的子模块 —— 2026-08-03 那次纯文件拆分只搬了行，没搬语义，条款覆盖面不因此变窄）/ `format.rs` / `undo.rs` / `csv.rs`: resolver-interface seam changes only. **两条已批准的例外，见下方「INV-6 的显式例外」。** |
 | INV-7 | Laziness contract: never-read formulas are never materialized or evaluated by writes. Once-read formulas re-derive eagerly on upstream change, with change pruning (owner-approved semantic shift, converges with vanilla/TS semantics). |
 | INV-8 | No permanent dual path. Transitional code carries `// BRIDGE(delete-by: P<n>-exit)`; zero BRIDGE markers may survive P6 exit. |
 

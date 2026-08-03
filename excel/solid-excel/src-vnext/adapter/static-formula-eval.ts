@@ -533,7 +533,8 @@ class Parser {
    * Excel's operator table (high → low) reads: reference operators >
    * unary `-` > `%` > `^` > `*` `/` > `+` `-` > `&` > comparison, so this
    * level sits exactly between `parseExponent` and `parseUnary` — the same
-   * slot `Parser::parse_percent` occupies in excel/rust/excel-core/src/formula.rs.
+   * slot `Parser::parse_percent` occupies in
+   * excel/rust/excel-core/src/formula/operators.rs.
    * Consequences worth naming: `=2^2%` is `2^(2%)` = 2^0.02 (NOT `(2^2)%`),
    * `=-50%` is -0.5, `=50%%` is 0.005, `=1+2%` is 1.02.
    *

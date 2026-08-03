@@ -74,9 +74,42 @@ Full approved plan: `/Users/dol/.claude/plans/federated-mapping-crab.md`
 | INV-3 | Bulk import materializes 0 atoms and evaluates 0 formulas, at any size. |
 | INV-4 | `WasmSheet`/`WasmWorkbook` exported names + signatures frozen (additive debug probes allowed). `worker-protocol.ts` wire shapes frozen. |
 | INV-5 | Every landed commit is green on its tier fences. Fence-expectation edits land in the same commit as the semantic change, with closed-form justification in the commit message and a row in §4. |
-| INV-6 | `eval.rs` / `formula.rs`（连同 `formula/` 下的子模块 —— 2026-08-03 那次纯文件拆分只搬了行，没搬语义，条款覆盖面不因此变窄）/ `format.rs` / `undo.rs` / `csv.rs`: resolver-interface seam changes only. **两条已批准的例外，见下方「INV-6 的显式例外」。** |
+| INV-6 | `eval.rs` / `formula.rs`（连同 `formula/` 下的子模块 —— 2026-08-03 那次纯文件拆分只搬了行，没搬语义，条款覆盖面不因此变窄）/ `format.rs` / `undo.rs` / `csv.rs`: resolver-interface seam changes only. **射程见下方「INV-6 管什么、不管什么」；两条已批准的例外见「INV-6 的显式例外」。** |
 | INV-7 | Laziness contract: never-read formulas are never materialized or evaluated by writes. Once-read formulas re-derive eagerly on upstream change, with change pruning (owner-approved semantic shift, converges with vanilla/TS semantics). |
 | INV-8 | No permanent dual path. Transitional code carries `// BRIDGE(delete-by: P<n>-exit)`; zero BRIDGE markers may survive P6 exit. |
+
+### INV-6 管什么、不管什么
+
+**这一节是射程澄清，不是放宽。** 记于 2026-08-03，起因是一个 agent 在给
+`eval.rs` 的 `fn_expand` 补格数闸门时停下来问「这算不算违反 INV-6」——
+问得对，条款原文确实盖得住它。查完之后的结论是：**条款文字比它的意图宽**。
+
+判定线是一句话：**改的是这些文件「怎么伸手去够引擎机制」，还是「函数体内部算什么」。**
+
+| | 需要豁免 | 例子 |
+|---|---|---|
+| 够引擎机制 | **是**，走 §6 流程 | `import_csv` 调 `project_bulk_spill_anchors`（EX-6.1）；`default_number_string` 改为委托 `general_text`（EX-6.2）；任何新的 resolver 调用、依赖登记、状态共享 |
+| 函数体内部的 Excel 语义 | **否** | 错误码从 `#TYPE!` 改成 `#VALUE!`；`matches_criterion` 的 `<>` 修正；补一个漏掉的内建；给 `fn_expand` 加格数闸门 |
+
+牙齿在 §6 那句：*「Introducing any address→formula index, cache, or shortcut
+structure without an INV amendment is a P0 defect even if all tests pass」*。
+INV-6 的文件清单是为它服务的 —— 挡的是**并行公式状态**在这几个刚重写完的文件里
+重新长出来，不是挡 Excel 语义缺陷的修复。
+
+支持这条判读的证据（写下来免得下次再查一遍）：
+
+- `d8aeccb` 之后有 **8 个提交**在 `eval.rs` 里落 Excel 语义修复（错误码词汇、
+  criteria 大小写与通配符、`<>` 退化、IFS 家族的错误传播、保留名清单补齐、
+  General 数字转文本、科学计数词法、WRAPROWS/WRAPCOLS），**没有一条开过豁免**。
+- 同期唯二开过的豁免 EX-6.1 / EX-6.2 都是给 `csv.rs` / `format.rs` 的，
+  而那两条恰好都属于上表第一行。**同一批人对「够机制」走了流程、对「算什么」
+  没走** —— 这不是集体疏忽，是大家读出的射程本来就是上表这条线。
+- `architecture_invariants.rs`（PHASE = 7）**零处**机械执行 INV-6，其它不变式都有。
+  一条既不被机械执行、又与八次实际做法不符的条款，留着只会让每个后来的 agent
+  各花一段时间重新纠结一遍。
+
+**没有追认那 8 个提交为豁免**，因为按上表它们本来就不需要豁免。反过来说：
+今后任何落在上表第一行的改动，仍然一条不落地走 §6。
 
 ### INV-6 的显式例外
 

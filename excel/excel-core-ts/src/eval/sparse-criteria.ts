@@ -158,9 +158,11 @@ export function countMatchingCriteria(
 }
 
 /**
- * 条件区里的错误格不短路：判定全交给 `pair.matches`（`makeCriterionMatcher`）
- * —— 错误格按**显示文本**参与比较，所以 `"#N/A"` 命中它、`">3"` 不命中它，
+ * 条件区里的错误格不短路：判定全交给 `pair.matches`（`makeCriterionMatcher`），
  * 与 COUNTIF / SUMIF 同一口径。值区那一档由各调用方在命中之后自行传播。
+ *
+ * 错误格具体匹配上什么由 `matchesCriterion` 分档（判据带不带通配符是两套规则），
+ * 这里**不要**再加任何 `kind === 'error'` 特判 —— 加了就是第二套口径。
  *
  * 与「criteria 实参**本身**求值成错误」是两回事：那一档在 `sparseCriteriaPairs`
  * 里由 `makeCriterionMatcher` 返回 `ok: false` 直接传播，走不到这里。

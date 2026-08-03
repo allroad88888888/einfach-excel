@@ -21489,12 +21489,27 @@ fn matches_criterion(v: &Value, criterion: &Value) -> bool {
     // `<>` honor wildcards (match / not-match); comparison operators (`>`,
     // `<`, `>=`, `<=`) fall through to text equality (existing legacy
     // behavior — those forms don't apply meaningfully to text patterns).
+    //
+    // 通配符判据**只匹配文本格**。数字 / 布尔 / 错误 / 空格都不是文本，一律
+    // 不命中 —— 于是 `"*"` 数的正是文本格个数，`"<>*"` 是它在整个区域上的
+    // 严格补集。依据是 Exceljet「Count cells that contain text」：
+    // “Empty cells and cells that contain numeric values or errors should not
+    // be included in the count.”，同页的 `=COUNTIF(data,"<>*")` 在同一个 11
+    // 格区域上回 7、`"*"` 回 4，两者严格互补。
+    //
+    // 这里曾经先 `coerce_to_text(v)` 再匹配，于是 `"*"` 把数字、布尔、错误格
+    // 全数了进去（8 格夹具上回 8 而不是 5），`"<>*"` 相应地恒为 0。
+    //
+    // 与「条件字符串里写错误码」（`"#N/A"`）不冲突：那一档**不带**通配符，走
+    // 下面的文本兜底，错误格在那里按显示文本参与比较。一个看模式里有没有
+    // `?`/`*`/`~`，一个看值的种类 —— 别把两档合并。
     if pattern_has_wildcard(rest) {
-        let text = coerce_to_text(v);
-        let matched = wildcard_match(rest, &text);
+        let matched = match criterion_cell_text(v) {
+            Some(text) => wildcard_match(rest, &text),
+            None => false,
+        };
         return match op {
             "<>" => !matched,
-            "=" => matched,
             // Comparison operators against a wildcard pattern fall back to
             // equality semantics (Excel does the same).
             _ => matched,
@@ -21511,10 +21526,37 @@ fn matches_criterion(v: &Value, criterion: &Value) -> bool {
     // `Value::Error` 渲染成 `#N/A` / `#DIV/0!`，所以 `"#N/A"` 命中错误格、
     // `"<>#N/A"` 命中除它以外的一切。这与「criteria 实参**本身**是错误值」
     // 是两回事 —— 那一档在各调用点求值后就直接传播，走不到 `matches_criterion`。
-    let equal = coerce_to_text(v) == rest;
+    //
+    // 比较**不区分大小写**。MS 官方 COUNTIF 文档原话：“Criteria aren't case
+    // sensitive. In other words, the string "apples" and the string "APPLES"
+    // will match the same cells.” 这里曾经是逐字节 `==`，于是
+    // `COUNTIF(rng,"APPLE")` 数不到内容为 `apple` 的格子 —— 而上面的通配符档
+    // 一直是不敏感的（`wildcard_match` 两侧都折成小写），同一个函数里两套口径。
+    //
+    // 别拿 `EXACT()` 来推翻这条：那个函数**区分**大小写，正是 criteria 做不到
+    // 大小写敏感时的标准替代写法（`SUMPRODUCT(--EXACT(rng,"APPLE"))`）。
+    let cell_text = coerce_to_text(v);
+    // 先走逐字节相等的快路径，绝大多数格子在这里就判完，不必分配两个小写串。
+    let equal = cell_text == rest || cell_text.to_lowercase() == rest.to_lowercase();
     match op {
         "<>" => !equal,
         _ => equal,
+    }
+}
+
+/// 通配符判据眼里的「文本格」。
+///
+/// 只有 `Value::Text` 算文本 —— 数字、布尔、错误、空格一律 `None`，于是
+/// `matches_criterion` 的通配符档对它们不命中。数组按本文件既有约定塌成左上角
+/// （与 `coerce_to_text` 同形）。
+///
+/// 刻意**不**复用 `coerce_to_text`：那个函数会把 `5` 渲染成 `"5"`、把 `#N/A`
+/// 渲染成 `"#N/A"`，正是本次要去掉的行为。
+fn criterion_cell_text(v: &Value) -> Option<String> {
+    match v {
+        Value::Text(s) => Some(s.clone()),
+        Value::Array(arr) => arr.get(0, 0).and_then(criterion_cell_text),
+        _ => None,
     }
 }
 

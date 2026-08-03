@@ -183,7 +183,7 @@ callback a nested row-major array) rather than to invent a second mapping:
 | --- | --- | --- |
 | `[[1,2],[3,4]]` | 2x2 spill | the canonical form |
 | `[[5]]` | 1x1 array | same as `=SEQUENCE(1,1)`; scalar contexts collapse it |
-| `[1,2,3]` (1-D) | `#VALUE!` | the engine will not guess row vs column — write `[[1,2,3]]` or `[[1],[2],[3]]` |
+| `[1,2,3]` (1-D) | `#VALUE!` | deliberate: this engine will not guess row vs column — write `[[1,2,3]]` or `[[1],[2],[3]]`. Apps Script *does* guess (row); Office.js does not. See "Known limits". |
 | `[[1,2],[3]]` (ragged) | `#VALUE!` | **never** silently padded |
 | `[]` / `[[]]` | `#CALC!` | same answer `FILTER` gives for an empty result |
 | `[[[1]]]` (3-D) | `#VALUE!` | cells must be scalars |
@@ -371,6 +371,16 @@ surfaces `#BUSY!` (`EvalFailed(Busy)`) permanently.
 - **Array returns must be explicitly 2-D.** A 1-D array is rejected
   rather than guessed as a row or a column, and a ragged array is
   rejected rather than padded. See § "Array returns".
+
+  This is a **decision with a counterparty**, not a self-evident rule:
+  Google Apps Script's custom functions *do* assign a meaning to a 1-D
+  return (it fills a row). Three reasons this engine still refuses:
+  (1) Office.js — the actual Excel host API — requires `any[][]` for
+  matrix custom functions; (2) the inbound direction never hands the
+  callback a 1-D array, so accepting one on the way back would create a
+  second, asymmetric marshaling; (3) widening from "reject" to "guess" is
+  backward compatible, the reverse is not. The rejection message spells
+  out both spellings so the caller does not have to know any of this.
 - **A custom name is statically assumed array-capable.** The spill
   projection is gated by `sheet::expr_may_produce_array`, which cannot
   know host-registered names at compile time, so it now treats *any*

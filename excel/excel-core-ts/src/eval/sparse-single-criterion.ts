@@ -152,8 +152,9 @@ function sumBlankMatchedTargets(
   let total = 0
   for (const coord of candidates.values()) {
     const checkValue = valueAtRuntimeCoord(checkRef.sheetName, coord, ctx)
-    // 条件区错误格不短路：按显示文本参与比较，判定全交给 `matches`
-    // （`makeCriterionMatcher`）。值区错误格在下面照旧传播。
+    // 条件区错误格不短路：判定全交给 `matches`（`makeCriterionMatcher`）——
+    // 具体匹配上什么由 `matchesCriterion` 按「判据带不带通配符」分档。
+    // 值区错误格在下面照旧传播。
     if (!matches(checkValue)) continue
     const targetCoord = relativeCoord(checkRef.range, sumRef.range, coord)
     if (!targetCoord) return ERR('#REF!')
@@ -207,7 +208,7 @@ export function evaluateSparseAverageIf(
   let total = 0
   let count = 0
   for (const { coord, value } of sparse.values) {
-    // 条件区错误格按显示文本参与比较，判定全交给 `matcher.matches`（保持与
+    // 条件区错误格不短路，判定全交给 `matcher.matches`（保持与
     // `evaluateSparseSumIf` 同形）；平均区错误格在下面照旧传播。
     if (!matcher.matches(value)) continue
     const targetCoord = relativeCoord(checkRef.ref.range, averageRef.ref.range, coord)

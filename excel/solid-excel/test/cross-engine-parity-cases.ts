@@ -18,9 +18,10 @@ import {
   CRITERIA_ERROR_ADDRS,
   CRITERIA_WORKLOAD,
 } from './cross-engine-parity-criteria-errors'
+import { CRITERIA_WILDCARD_WORKLOAD } from './cross-engine-parity-criteria-wildcard'
 
 // 第七类（General 转文本）与 criteria 这一层的夹具与期望值住在自己的文件里 ——
-// 这份已贴着 300 行上限，而那两类的期望值都离不开长说明。经由这里转出，调用方
+// 这份已贴着 300 行上限，而那几类的期望值都离不开长说明。经由这里转出，调用方
 // 仍然只认一个入口。
 export {
   GENERAL_TEXT_CASES,
@@ -35,6 +36,11 @@ export {
   CRITERIA_ERROR_ADDRS,
   EXPECTED_CRITERIA_ERROR_DISPLAYS,
 } from './cross-engine-parity-criteria-errors'
+export {
+  CRITERIA_WILDCARD_CASES,
+  CRITERIA_WILDCARD_ADDRS,
+  EXPECTED_CRITERIA_WILDCARD_DISPLAYS,
+} from './cross-engine-parity-criteria-wildcard'
 
 
 /** Row-major address list of a rectangle anchored at (row0, col0). */
@@ -215,6 +221,9 @@ export const WORKLOAD: WorkloadCell[] = [
   // 列 W/X/Y + AA/AB/AC/AD —— criteria 这一层的全部夹具与公式，
   // 见 `cross-engine-parity-criteria-errors.ts`。
   ...CRITERIA_WORKLOAD,
+  // 列 AE/AF/AG —— criteria 的文本比较层（大小写、通配符只匹配文本格），
+  // 见 `cross-engine-parity-criteria-wildcard.ts`。
+  ...CRITERIA_WILDCARD_WORKLOAD,
   // Column R — arithmetic operand coercion + `^` binding, see COERCION_CASES.
   ...COERCION_CASES.map(
     ([formula], row): WorkloadCell => ({ row, col: 17, kind: 'formula', value: formula }),

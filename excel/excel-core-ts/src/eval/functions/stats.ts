@@ -88,7 +88,13 @@ function parseCriterion(criterion: Value): ParsedCriterion | { error: Value } {
     if (u === 'FALSE') return { op, target: { kind: 'boolean', value: false }, wildcard: false }
   }
   // Fall through to string comparison.
-  const wildcard = /[*?]/.test(rest)
+  //
+  // `~` 也算「需要通配符匹配器」的标记，不只是 `*` / `?`：`~` 是转义符，
+  // `"~~"` 是**一个字面量 `~`**，只有解码过才知道。原先只测 `[*?]`，于是
+  // `COUNTIF(rng,"~~")` 拿 `~~` 原样去比，命中的是内容为 `~~` 的格子而不是
+  // 内容为 `~` 的格子 —— 数字看着对（都是 1），命中的格子是错的。
+  // 依据：`~` 置于通配符前使其降级为字面 `*` / `?`，`~~` 即字面 `~`。
+  const wildcard = /[*?~]/.test(rest)
   return { op, target: { kind: 'string', value: rest }, wildcard }
 }
 
@@ -149,16 +155,33 @@ function escapeRegex(s: string): string {
  *  - Comparison operators (`<`, `<=`, `>`, `>=`) only work between
  *    numerically-coercible values; otherwise no match.
  *  - String equality is case-insensitive (Excel-compat).
- *  - 错误格按**显示文本**参与比较（见下）。
+ *
+ * 错误格分两档，**取决于判据带不带通配符**，别把两档合并：
+ *
+ *  - **不带**通配符（`"#N/A"` / `"<>#N/A"`）→ 按**显示文本**参与比较，于是
+ *    `"#N/A"` 命中错误格，Excel 的标准错误过滤配方靠的就是这个。
+ *  - **带**通配符（`"*"` / `"*N*"`）→ 错误格是**非文本格**，完全不参与匹配，
+ *    因此 `"*"` 不命中它、`"<>*"` 命中它。
+ *
+ * 再往外还有第三档：criteria 实参**本身**求值成错误值 → 在 `parseCriterion`
+ * 里原样传播，根本走不到这里。
  */
 function matchesCriterion(cell: Value, parsed: ParsedCriterion): boolean {
   const { op, target, wildcard } = parsed
 
   // Wildcards only apply with = / <>, only when target is a string.
   if (wildcard && target.kind === 'string' && (op === '=' || op === '<>')) {
-    // 通配符 × 错误格这一档没有可靠的 Excel 依据，两个引擎本来就不同判，
-    // 保持既有行为：错误格完全不参与通配符匹配（`=` / `<>` 都不命中）。
-    if (cell.kind === 'error') return false
+    // 通配符判据**只匹配文本格**，非文本格（数字 / 布尔 / 错误 / 空格）一律
+    // 不命中，于是 `"*"` 数的正是文本格个数、`"<>*"` 是它的严格补集。
+    // 依据：Exceljet「Count cells that contain text」原话 “Empty cells and
+    // cells that contain numeric values or errors should not be included in
+    // the count.”，同页 `=COUNTIF(data,"<>*")` 在同一个 11 格区域上回 7、
+    // `"*"` 回 4 —— 两者严格互补，所以**错误格必须落在 `<>` 那一侧**。
+    //
+    // 这里曾经写死 `if (cell.kind === 'error') return false`，让错误格 `=` 和
+    // `<>` **两侧都不算**，`"*"` 与 `"<>*"` 加起来凑不满整个区域。当时注明
+    // 「没有可靠的 Excel 依据」，现在有了，所以那道特判去掉 —— 错误格就是一个
+    // 普通的非文本格，和数字、布尔走同一条路。
     if (cell.kind !== 'string') {
       // Wildcard never matches a non-string cell with `=`; the negation of
       // "no match" is "true" under `<>`.

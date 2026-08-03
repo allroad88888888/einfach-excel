@@ -33,6 +33,12 @@
  *    两侧**各错一半且方向相反**（TS 让错误格一律不匹配、Rust 把 `<>` 退化成 `=`；
  *    B 那条反过来），所以「两侧相等」在这一类上从来不响。见
  *    `cross-engine-parity-criteria-errors.ts`。
+ * 6. **criteria 的文本比较** —— 上一类问「错误格匹配上什么」，这一类问「**判据
+ *    本身**怎么解释」：大小写折不折（Rust 逐字节 `==`，同一个函数里紧邻的通配符
+ *    档却折小写，自相矛盾）、带了通配符之后还看不看非文本格（Rust 先
+ *    `coerce_to_text` 再匹配，把数字 / 布尔 / 错误全数进 `"*"`；TS 只把错误格
+ *    写死成两侧都不算）、以及 `~` 转义（这条反过来是 TS 错）。见
+ *    `cross-engine-parity-criteria-wildcard.ts`。
  *
  * 期望值一律断言**字面量**，不只断言「两侧相等」：相等只能证明两个引擎一致，
  * 证不了它们一起错，而「一起错」在这份文件的历史里出现过不止一次。
@@ -54,11 +60,13 @@ import {
   COUNT_ADDRS,
   CRITERIA_ADDRS,
   CRITERIA_ERROR_ADDRS,
+  CRITERIA_WILDCARD_ADDRS,
   ERROR_ADDRS,
   EXPECTED_COERCION_DISPLAYS,
   EXPECTED_COUNT_DISPLAYS,
   EXPECTED_CRITERIA_DISPLAYS,
   EXPECTED_CRITERIA_ERROR_DISPLAYS,
+  EXPECTED_CRITERIA_WILDCARD_DISPLAYS,
   EXPECTED_GENERAL_TEXT_DISPLAYS,
   EXPECTED_LITERAL_DISPLAYS,
   EXPECTED_SUBTOTAL_DISPLAYS,
@@ -198,6 +206,22 @@ describe('cross-engine parity — evaluation semantics (TS runtime vs WASM engin
     // 任何「两侧相等」的断言在这里都只会红在半路上，说明不了谁对。
     for (const read of [tsRead, wasmRead]) {
       expect(displaysOf(read, CRITERIA_ERROR_ADDRS)).toEqual(EXPECTED_CRITERIA_ERROR_DISPLAYS)
+    }
+  })
+
+  test('criteria 的文本比较：大小写要折，通配符只看文本格', async () => {
+    const tsRead = await ts.read(CRITERIA_WILDCARD_ADDRS)
+    const wasmRead = await wasm.read(CRITERIA_WILDCARD_ADDRS)
+    expect(flatten(wasmRead)).toEqual(flatten(tsRead))
+
+    // 又是一类「两侧各错一半、方向相反」：大小写与通配符 × 非文本格上 Rust 错
+    // （逐字节 `==`；先 `coerce_to_text` 再匹配），`~` 转义上反过来是 TS 错
+    // （`~` 不算通配符标记，`"~~"` 没被解码）。字面量断言是唯一能同时压住三面的
+    // 写法 —— 其中 `"*"` 与 `"<>*"` 必须加起来铺满整个区域。
+    for (const read of [tsRead, wasmRead]) {
+      expect(displaysOf(read, CRITERIA_WILDCARD_ADDRS)).toEqual(
+        EXPECTED_CRITERIA_WILDCARD_DISPLAYS,
+      )
     }
   })
 

@@ -8632,7 +8632,13 @@ fn eval_func(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
                 picks.push(resolved as u32);
             }
             let out_rows = picks.len() as u32;
-            let mut out: Vec<Value> = Vec::with_capacity(picks.len() * (cols as usize));
+            // 格数闸门：pick 可以重复，输出行数不受输入行数约束
+            // （`=CHOOSEROWS(A1:XFD1,1,1,…)` 每多一个实参就多复制一整行）。
+            let cap = match checked_array_len(out_rows as u64, cols as u64) {
+                Ok(cap) => cap,
+                Err(e) => return Value::Error(e),
+            };
+            let mut out: Vec<Value> = Vec::with_capacity(cap);
             for &r in &picks {
                 for c in 0..cols {
                     out.push(data[(r as usize) * (cols as usize) + (c as usize)].clone());
@@ -8674,7 +8680,12 @@ fn eval_func(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
                 picks.push(resolved as u32);
             }
             let out_cols = picks.len() as u32;
-            let mut out: Vec<Value> = Vec::with_capacity((rows as usize) * picks.len());
+            // 同 CHOOSEROWS：输出列数由实参个数决定，不受输入列数约束。
+            let cap = match checked_array_len(rows as u64, out_cols as u64) {
+                Ok(cap) => cap,
+                Err(e) => return Value::Error(e),
+            };
+            let mut out: Vec<Value> = Vec::with_capacity(cap);
             for r in 0..rows {
                 for &c in &picks {
                     out.push(data[(r as usize) * (cols as usize) + (c as usize)].clone());
@@ -20942,7 +20953,15 @@ fn fn_expand(args: &[Expr], provider: &dyn EvalProvider) -> Value {
     if new_rows < rows || new_cols < cols {
         return Value::Error(ValueError::InvalidValue);
     }
-    let mut out: Vec<Value> = Vec::with_capacity((new_rows as usize) * (new_cols as usize));
+    // 格数闸门。EXPAND 的输出尺寸**只由两个标量实参决定**，与输入数组无关 ——
+    // 少了这一道，`=EXPAND(1,4294967295,4294967295)` 直接把 `Vec::with_capacity`
+    // 顶到 capacity overflow（panic，不是错误值），在 WASM 里就是一条公式打死
+    // worker。口径与 SEQUENCE / MAKEARRAY / TAKE 等同一个 `checked_array_len`。
+    let cap = match checked_array_len(new_rows as u64, new_cols as u64) {
+        Ok(cap) => cap,
+        Err(e) => return Value::Error(e),
+    };
+    let mut out: Vec<Value> = Vec::with_capacity(cap);
     for r in 0..new_rows {
         for c in 0..new_cols {
             if r < rows && c < cols {
@@ -27897,7 +27916,7 @@ mod tests {
     // Excel 2010+ dotted-name aliases & variants.
     //
     // Parser support (`.` allowed inside identifiers) is verified in
-    // `formula::tests`; here we pin the dispatcher arms.
+    // `formula::identifier::tests`; here we pin the dispatcher arms.
     // ============================================================
 
     // --- Pure aliases — RANK.EQ / RANK.AVG / PERCENTILE.INC / QUARTILE.INC ---

@@ -62,6 +62,9 @@
 //! `render_formula`。渲染器不保留字面量的书写形式（`=1.50` 今天也渲染成
 //! `=1.5`），`Expr::Number` 里只有一个 `f64`；所以 `=1E2` 往返后是 `=100`。
 //! 本文件钉的是**语义**往返：往返前后求值相同，且再往返一次不再变（幂等）。
+//!
+//! **写法**（什么时候退回科学计数）不在这里钉，在
+//! `tests/render_number_literal.rs`。
 
 use einfach_excel_core::{parse_formula, render_formula, value_to_display, CellAddress, Workbook};
 
@@ -245,9 +248,9 @@ fn round_trip_is_value_preserving_and_idempotent() {
 
 #[test]
 fn round_trip_survives_the_extremes() {
-    // 大/小指数走 `render_into` 的非整数分支（`{}` 对 f64 是十进制展开，不带
-    // 指数），文本会很长；要紧的是它**再解析回同一个 f64**，否则一次插行就把
-    // 用户的数改了。
+    // 大/小指数走 `render_into` 的非整数分支；要紧的是它**再解析回同一个
+    // f64**，否则一次插行就把用户的数改了。写法本身（普通十进制展开 vs
+    // 科学计数）由 `tests/render_number_literal.rs` 钉。
     for src in ["=1E308", "=1E-300", "=1.7976931348623157E308"] {
         let expr = parse_formula(src).unwrap_or_else(|| panic!("{src} must parse"));
         let rendered = render_formula(&expr);

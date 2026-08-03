@@ -102,10 +102,14 @@ pub(super) fn compile_regex(
 
     #[cfg(test)]
     REGEX_COMPILE_COUNT.with(|c| c.set(c.get() + 1));
+    // 方言改写只在**未命中**时跑：缓存键是原始模式，命中路径一个字节都不动。
+    // 见 `eval_regex_ascii.rs` —— `\d` 一族要和 Excel（PCRE2 默认）以及 TS
+    // 引擎（JS `RegExp`）一样只认 ASCII。
+    let rewritten = super::ascii::to_ascii_classes(pattern);
     let compiled = if case_insensitive {
-        regex::Regex::new(&format!("(?i){}", pattern))?
+        regex::Regex::new(&format!("(?i){}", rewritten))?
     } else {
-        regex::Regex::new(pattern)?
+        regex::Regex::new(&rewritten)?
     };
     let re = Arc::new(compiled);
 

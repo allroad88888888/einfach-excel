@@ -11,6 +11,9 @@
 //! `#[path]` on the submodules keeps every file flat in `src/`, matching the
 //! rest of the crate — no module here owns a subdirectory.
 
+// 方言口径改写（`\d` 一族拉到 ASCII），在 `cache` 编译前跑一次。
+#[path = "eval_regex_ascii.rs"]
+mod ascii;
 #[path = "eval_regex_cache.rs"]
 mod cache;
 
@@ -161,12 +164,14 @@ pub(super) fn fn_regexextract(args: &[Expr], provider: &dyn EvalProvider) -> Val
         Err(_) => return Value::Error(ValueError::InvalidValue),
     };
     match mode {
+        // “没匹配上”在 Excel 里是 `#N/A`，不是 `#VALUE!` —— `#VALUE!` 留给
+        // “模式本身非法”。TS 引擎一直是 `#N/A`；这里曾经是 `InvalidValue`，
+        // 注释写着“没有独立的 N/A 变体”，但 `ValueError::NotAvailable` 早就
+        // 存在了，属于陈旧注释带出来的双引擎分歧。
         0 => {
             match re.find(&text) {
                 Some(m) => Value::Text(m.as_str().to_string()),
-                // Excel surfaces `#N/A` for "no match"; we don't have a
-                // distinct N/A enum yet, so InvalidValue is the closest.
-                None => Value::Error(ValueError::InvalidValue),
+                None => Value::Error(ValueError::NotAvailable),
             }
         }
         1 => {
@@ -175,7 +180,7 @@ pub(super) fn fn_regexextract(args: &[Expr], provider: &dyn EvalProvider) -> Val
                 .map(|m| Value::Text(m.as_str().to_string()))
                 .collect();
             if matches.is_empty() {
-                return Value::Error(ValueError::InvalidValue);
+                return Value::Error(ValueError::NotAvailable);
             }
             let n = matches.len() as u32;
             // 1-column array (one match per row) is how Excel returns this
@@ -184,10 +189,11 @@ pub(super) fn fn_regexextract(args: &[Expr], provider: &dyn EvalProvider) -> Val
         }
         2 => {
             let Some(caps) = re.captures(&text) else {
-                return Value::Error(ValueError::InvalidValue);
+                return Value::Error(ValueError::NotAvailable);
             };
+            // 模式里没有捕获组 → 没有可返回的组，同样算“取不到”，`#N/A`。
             if caps.len() <= 1 {
-                return Value::Error(ValueError::InvalidValue);
+                return Value::Error(ValueError::NotAvailable);
             }
             let data: Vec<Value> = (1..caps.len())
                 .map(|i| Value::Text(caps.get(i).map(|m| m.as_str()).unwrap_or("").to_string()))

@@ -80,6 +80,44 @@ gzip -9 -c excel/solid-excel/wasm-pkg/einfach_wasm_bg.wasm | wc -c
 自定义公式的完整契约见
 [`../excel-core/src/CUSTOM_FORMULAS.md`](../excel-core/src/CUSTOM_FORMULAS.md)。
 
+### 另一条轴：TS 后端与 WASM 后端的 REGEX* 方言
+
+上一节说的是 **lite ↔ full** 这条轴。还有一条正交的轴：worker 有两份运行时实现
+（`worker-runtime.ts` 走 wasm，`worker-runtime-ts.ts` 走 `@einfach/excel-core-ts`），
+而 REGEX* 在两边是**两套正则引擎**——Rust 的 `regex` crate 与 JS 的 `RegExp`。
+
+Excel 的 REGEX* 三函数用 **PCRE2** 方言（微软 support 文档在三个函数页各写了一遍
+“use the PCRE2 'flavor' of regex”）。以 PCRE2 为基准，两个引擎的位置是：
+
+| | Excel（PCRE2） | WASM（`regex` crate） | TS（JS `RegExp`） |
+|---|---|---|---|
+| 反向引用 `(a)\1` | 支持 | **`#VALUE!`** | 支持 |
+| lookahead / lookbehind | 支持 | **`#VALUE!`** | 支持 |
+| `\d` `\w` `\b` | ASCII | ASCII（靠改写，见下） | ASCII |
+| `\s` | ASCII | **Unicode** | **Unicode** |
+| `(?P<n>)` | 支持 | 支持 | **`#VALUE!`** |
+| 无匹配 | `#N/A` | `#N/A` | `#N/A` |
+
+`\d` / `\w` / `\D` / `\W` / `\b` / `\B` 原本在 `regex` crate 下是 Unicode 感知的
+（`\d` 认 `٥`、`\w` 认 `é`），于是 `=REGEXTEST("٥","\d")` 在两个后端**静默**算出
+不同的布尔值。现在由 `excel/rust/excel-core/src/eval_regex_ascii.rs` 在编译前把模式
+改写到 ASCII 口径，三方对齐。`\s` 是例外且刻意不动：两个引擎在那一点上本就一致
+（共同比 PCRE2 宽），单边改反而会制造新分歧。
+
+**剩下的分歧不是疏漏，是引擎能力边界**：`regex` crate 是 RE2 血统，结构上就没有
+反向引用与 lookaround。没有把 TS 侧也改成拒绝——那只会让两个后端一起偏离 Excel，
+换来“错得一致”。要真正收敛得换掉 Rust 侧的正则引擎（`fancy-regex` 覆盖这两类构造），
+属于依赖决策；注意体积顾虑只落在 full 上，lite 本来就没有 REGEX*。
+
+门禁是两份对称的钉子，**没有**走 `cross-engine-parity-*` 那张网——那张网的 WASM 侧
+加载的正是 lite 产物，REGEX* 在那里求值成 `#NAME?`：
+
+- `excel/rust/excel-core/tests/regex_dialect_parity.rs`
+- `excel/excel-core-ts/test/regex-dialect.test.ts`
+
+顺带一条产品口径上的分歧：**lite + TS 后端 REGEX* 可用，lite + WASM 后端 `#NAME?`**
+——feature 门控只管 Rust 侧，TS 引擎没有对应开关，永远带着这三个函数。
+
 ### 怎么选 full
 
 dispatcher 与"用哪份 wasm"已经解耦：worker 的消息循环住在

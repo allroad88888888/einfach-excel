@@ -45,7 +45,7 @@ import { EXCEL_MAX_COL, EXCEL_MAX_ROW } from '../refs'
 import type { Cell, CellCoord, CellKey, CellRange, Value } from '../types'
 import { BLANK } from '../types'
 
-import { ARRAY_CELL_CAP } from './evaluate'
+import { ARRAY_CELL_CAP } from './array-shape'
 
 /**
  * 锚点能往右下投多远才还算得上「够得着」。

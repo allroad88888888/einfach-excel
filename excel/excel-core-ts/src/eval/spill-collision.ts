@@ -51,7 +51,7 @@
 import { EXCEL_MAX_COL, EXCEL_MAX_ROW } from '../refs'
 import type { Cell, CellCoord, CellKey, CellRange, Value } from '../types'
 
-import { ARRAY_CELL_CAP } from './evaluate'
+import { ARRAY_CELL_CAP } from './array-shape'
 
 /** 「矩形被别的数组压住了」这一支的诊断文案。 */
 const ARRAY_OVERLAP = 'spill range overlaps another array'

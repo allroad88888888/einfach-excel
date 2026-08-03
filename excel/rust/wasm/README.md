@@ -36,14 +36,17 @@ worker 入口（`worker-runtime-full.ts`），但没有任何库内代码引用�
 
 ### 体积
 
-剥完符号后实测（2026-07，`opt-level = "s"` + `lto`，未跑 wasm-opt）：
+剥完符号后实测（2026-08-03，`opt-level = "s"` + `lto`，未跑 wasm-opt）：
 
 | 口径 | lite | full | 省下 |
 |---|---:|---:|---:|
-| raw | 1,627.1 KB | 2,542.1 KB | 915.0 KB（36.0%） |
-| gzip -9 | 510.1 KB | 813.9 KB | 303.8 KB（37.3%） |
-| `code` 段 | 1,496.1 KB | 2,016.4 KB | 520.3 KB（25.8%） |
-| `data` 段 | 114.1 KB | 505.9 KB | 391.7 KB（77.4%） |
+| raw | 1,672.0 KB | 2,588.5 KB | 916.4 KB（35.4%） |
+| gzip -9 | 524.8 KB | 829.2 KB | 304.4 KB（36.7%） |
+| `code` 段 | 1,538.2 KB | 2,059.7 KB | 521.5 KB（25.3%） |
+| `data` 段 | 116.8 KB | 508.8 KB | 392.0 KB（77.0%） |
+
+绝对值会随功能增长漂（上一次 2026-07 是 1,627.1 / 2,542.1 KB），**要看的是「省下」
+那一列的稳定性** —— 它由 `regex` 依赖树的大小决定，不由本仓代码量决定。
 
 `data` 段那 77% 是最干净的证据：`regex-syntax` 的 Unicode 属性表是纯静态数据，不受 LTO
 把代码归到哪个 crate 的噪声影响。现场复算：
@@ -94,20 +97,53 @@ Excel 的 REGEX* 三函数用 **PCRE2** 方言（微软 support 文档在三个�
 | 反向引用 `(a)\1` | 支持 | **`#VALUE!`** | 支持 |
 | lookahead / lookbehind | 支持 | **`#VALUE!`** | 支持 |
 | `\d` `\w` `\b` | ASCII | ASCII（靠改写，见下） | ASCII |
-| `\s` | ASCII | **Unicode** | **Unicode** |
+| `\s` `\S` | ASCII | ASCII（靠改写） | ASCII（靠改写） |
 | `(?P<n>)` | 支持 | 支持 | **`#VALUE!`** |
 | 无匹配 | `#N/A` | `#N/A` | `#N/A` |
 
 `\d` / `\w` / `\D` / `\W` / `\b` / `\B` 原本在 `regex` crate 下是 Unicode 感知的
 （`\d` 认 `٥`、`\w` 认 `é`），于是 `=REGEXTEST("٥","\d")` 在两个后端**静默**算出
 不同的布尔值。现在由 `excel/rust/excel-core/src/eval_regex_ascii.rs` 在编译前把模式
-改写到 ASCII 口径，三方对齐。`\s` 是例外且刻意不动：两个引擎在那一点上本就一致
-（共同比 PCRE2 宽），单边改反而会制造新分歧。
+改写到 ASCII 口径，三方对齐。
+
+`\s` / `\S` 是**两边都要改写**的一对：Rust 的 `\s` 走 Unicode `White_Space`，JS 的走
+ECMAScript `WhiteSpace`+`LineTerminator`，两者**互不相等**（U+0085 只有 Rust 算空白，
+U+FEFF 只有 JS 算空白），所以在这一点上两个后端本来就有分歧。TS 半边的改写在
+`excel/excel-core-ts/src/eval/functions/regex-ascii.ts`。判定 Excel 走 ASCII 的依据是
+`PCRE2_UCP` 的结构：它是**一个**开关，同时管 `\d`/`\s`/`\w`，而 10.43 起的
+`PCRE2_EXTRA_ASCII_BS*` 只能在 UCP 开着时把个别转义**摁回** ASCII，不能反向给单个转义
+加 Unicode。所以「`\d` ASCII + `\s` Unicode」这个组合在 PCRE2 里够不到 —— 既然 `\d`
+按 ASCII 钉死，`\s` 只能同极性。完整三方实测表在
+`excel/rust/excel-core/tests/regex_dialect_parity.rs` 的文件头。
 
 **剩下的分歧不是疏漏，是引擎能力边界**：`regex` crate 是 RE2 血统，结构上就没有
 反向引用与 lookaround。没有把 TS 侧也改成拒绝——那只会让两个后端一起偏离 Excel，
-换来“错得一致”。要真正收敛得换掉 Rust 侧的正则引擎（`fancy-regex` 覆盖这两类构造），
-属于依赖决策；注意体积顾虑只落在 full 上，lite 本来就没有 REGEX*。
+换来“错得一致”。
+
+#### 评估过 `fancy-regex`，结论是不换
+
+`fancy-regex` 能补上反向引用与 lookaround（实测三类构造全支持）。**体积那一关过了**：
+`regex-formulas` 不在本 crate 的 `default` 里，`cargo tree --target wasm32-unknown-unknown`
+证实 lite 的依赖图里一个正则引擎都没有，所以增量只落在 full ——
+剥离后 2,648,449 → 2,833,466 字节（**+6.99%**），lite 零变化。
+
+**卡住的是别的**：`fancy-regex` 拒绝 `(?-u:…)`（`Disabling Unicode not supported`），
+而上面那套 ASCII 方言对齐正是靠它实现的。`\d` / `\w` 能改写成显式字符类，
+**`\b` / `\B` 没有字符类等价物**，只能用 lookaround 拼出来 —— 而 lookaround 会让模式
+离开 `regex` 的线性时间引擎、掉进回溯引擎。实测：原生 `\b` 走委派（线性），
+lookaround 版 `\b` 触发回溯上限（单次 ~13ms）。
+
+于是代价不是"只有写反向引用的用户承担"，而是**每一条含 `\b` 的模式都承担** ——
+而 `\bword\b` 是表格正则里最常见的写法之一（13ms × 10 万行 ≈ 22 分钟）。
+换来的能力只对主动写反向引用/lookaround 的用户有价值，这笔交易不划算，**故不换**。
+
+回溯风险本身是有界的（`backtrack_limit` 默认 1_000_000，超限返 `Err` 而不是挂死；
+不含 fancy 构造的模式仍被委派给 `regex`，经典的 `(a+)+$` 在 1001 字符输入上 209ns）。
+真要重启这个决定，先解决 `\b` 的 ASCII/线性二选一。
+
+换引擎也**换不掉**另外两条反向分歧（它们在 TS 侧）：`(?P<n>…)` 命名组 PCRE2 与 Rust
+都支持、JS 抛异常；变长 lookbehind `(?<=a+)b` 只有 JS 支持，PCRE2 与 fancy-regex 都只
+支持定长。
 
 门禁是两份对称的钉子，**没有**走 `cross-engine-parity-*` 那张网——那张网的 WASM 侧
 加载的正是 lite 产物，REGEX* 在那里求值成 `#NAME?`：
@@ -115,8 +151,29 @@ Excel 的 REGEX* 三函数用 **PCRE2** 方言（微软 support 文档在三个�
 - `excel/rust/excel-core/tests/regex_dialect_parity.rs`
 - `excel/excel-core-ts/test/regex-dialect.test.ts`
 
-顺带一条产品口径上的分歧：**lite + TS 后端 REGEX* 可用，lite + WASM 后端 `#NAME?`**
-——feature 门控只管 Rust 侧，TS 引擎没有对应开关，永远带着这三个函数。
+#### 「lite + TS 后端」不是一个格子
+
+看起来还有一条产品分歧：**lite + TS 后端 REGEX* 可用，lite + WASM 后端 `#NAME?`**。
+但把它读成矩阵是**错觉**：`lite` / `full` 是**这份 wasm 产物**的属性，TS 引擎根本不在
+这条轴上 —— 不存在"lite 的 TS 版"。TS 后端就是另一个引擎，它有 REGEX*，和 Excel 一样。
+
+**给 TS 侧也加门控？不加**，判据是体积对称性根本不成立：
+
+| | 省下的体积 |
+|---|---:|
+| Rust 侧门控（现存） | **938,407 字节**（full 2,650,581 → lite 1,712,174，占 full 的 35.4%） |
+| TS 侧若照做 | **5,173 字节源码**（146 行）；JS `RegExp` 本身在宿主引擎里，成本为 0 |
+
+约 180 倍的不对称。门控存在的唯一理由是体积，而这个理由在 TS 侧不存在；再加上砍掉
+TS 的 REGEX* 会让上面那两份对称钉子失去一侧，对拍能力直接没了。
+
+**真正该盯的是另一件事**：两个后端可运行期互换（`worker-factory.ts` 导出两个 factory，
+`excel-site` 的 `makeTsWorkerBackend` / `makeWasmWorkerBackend` 都是产品路径），所以
+「只在一侧存在的函数名」是一整类风险，REGEX* 只是其中被文档化了的那一条。这条风险
+现在由 `excel/solid-excel/test/engine-function-set-parity.test.ts` 钉住 —— 它断言两个
+引擎的内建名集合**完全相等**，白名单是空的。立起它时抓到的第一条就是 `WRAPROWS` /
+`WRAPCOLS`（TS 有、Rust 无，两份 wasm 都 `#NAME?`，且因为不在保留名清单里还会让宿主
+的同名自定义公式在 TS 后端被静默遮蔽）。
 
 ### 怎么选 full
 

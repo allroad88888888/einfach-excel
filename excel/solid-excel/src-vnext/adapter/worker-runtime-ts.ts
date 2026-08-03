@@ -59,11 +59,15 @@
  */
 
 import {
+  anchorScalar,
   createWorkbook,
   excelGeneralToText,
   formatA1,
   parseA1,
   parseFormula,
+  projectedValueAt,
+  scanSpillAnchors,
+  SPILL_PROJECTION_LOOKBACK,
   type BulkCellInput,
   type BulkTypedCellInput,
   type Cell,
@@ -341,21 +345,36 @@ function valueDisplay(v: Value): string {
       return errorDisplayToken(v.code)
     case 'blank':
       return ''
-    case 'array': {
-      const row = v.value[0]
-      if (!row || row.length === 0) return ''
-      return valueDisplay(row[0])
-    }
+    case 'array':
+      // 数组落在显示边界上 = 锚点位置的那个标量，与公式层读到的同一条规则。
+      return valueDisplay(anchorScalar(v))
   }
 }
 
 /**
- * Walk up + left within a bounded window looking for a spill anchor whose
- * `kind:'array'` covers the target. If found, return the projected scalar;
- * otherwise undefined. The window cap (`SPILL_LOOKBACK`) keeps reads O(1)
- * even on dense sheets — anchors farther than this aren't projectable.
+ * 「这一格是不是别人的投影格，投影出什么」—— **薄委派**给引擎。
+ *
+ * 几何（只向右下铺、`SPILL_PROJECTION_LOOKBACK` 回看上限、数组上限闸门）住在
+ * `excel-core-ts` 的 `eval/spill-projection.ts`，公式层的读路径走的是同一份。
+ * 这里只提供本层自己的那一件事：**怎么拿到一个锚点的数组值**（读它的
+ * `formulaCellAtom`）。
+ *
+ * 下沉之前这里是一份手写的左上回看双重循环，与公式层各算各的 —— 那正是
+ * 「`=SUM(A1:A3)` 给 `#CALC!` 而格子里显示 2」这类分歧的来源。
  */
-const SPILL_LOOKBACK = 200
+function* anchorCandidates(
+  cells: ReadonlyMap<string, Cell>,
+  query: CellRange,
+): Generator<readonly [string, Cell]> {
+  const bounds: CellRange = {
+    rowStart: Math.max(0, query.rowStart - SPILL_PROJECTION_LOOKBACK),
+    rowEnd: query.rowEnd,
+    colStart: Math.max(0, query.colStart - SPILL_PROJECTION_LOOKBACK),
+    colEnd: query.colEnd,
+  }
+  for (const entry of collectCellsInBounds(cells, bounds)) yield [entry.key, entry.cell]
+}
+
 function getSpillProjectedValue(
   state: RuntimeState,
   sheet: SheetEntry,
@@ -365,35 +384,30 @@ function getSpillProjectedValue(
   const target = state.workbook.sheet(sheet.id)
   if (!target) return undefined
   const cells = state.workbook.store.getter(target.sheetAtom)
-  // Self-check: if (row,col) has its own cell, it isn't a spill target.
+  // 有自有条目就不是别人的投影格。
   if (cells.has(`${row}:${col}`)) return undefined
-
-  const rowMin = Math.max(0, row - SPILL_LOOKBACK)
-  const colMin = Math.max(0, col - SPILL_LOOKBACK)
-  for (let r = row; r >= rowMin; r -= 1) {
-    for (let c = col; c >= colMin; c -= 1) {
-      if (r === row && c === col) continue
-      const anchor = cells.get(`${r}:${c}`)
-      if (!anchor || !anchor.input?.startsWith('=')) continue
-      const atom = target.formulaCellAtom(`${r}:${c}`)
-      const v = state.workbook.store.getter(atom)
-      if (v.kind !== 'array') continue
-      const dr = row - r
-      const dc = col - c
-      if (dr < v.value.length && dc < (v.value[dr]?.length ?? 0)) {
-        return v.value[dr][dc]
+  const query = { rowStart: row, rowEnd: row, colStart: col, colEnd: col }
+  // 候选只可能落在左上回看象限里（`couldReach` 也是这么判的），所以喂给引擎的是
+  // 「象限 ∩ 已有格子」而不是整张表 —— `collectCellsInBounds` 会在「走窗口」与
+  // 「走稀疏表」之间挑便宜的那条。少喂不漏判，见 `scanSpillAnchors` 的注释。
+  const scan = scanSpillAnchors(query, anchorCandidates(cells, query), {
+    arrayAt: (key, cell) => {
+      if (!cell.input.startsWith('=')) {
+        return cell.value.kind === 'array' ? cell.value.value : undefined
       }
-      // Anchor exists but its array doesn't cover us — keep searching.
-    }
-  }
-  return undefined
+      const value = state.workbook.store.getter(target.formulaCellAtom(key))
+      return value.kind === 'array' ? value.value : undefined
+    },
+  })
+  return projectedValueAt(scan, { row, col })
 }
 
 /**
  * UI 查询：`(row, col)` 属于哪个活动溢出区（ADR 0006 阶段 3）。
  *
  * 探针与 `getSpillProjectedValue` 读的是同一批事实（自有条目 + 公式格的数组值），
- * lookback 也是同一个 `SPILL_LOOKBACK`，所以「画得出框」与「读得到投影值」永远一致。
+ * lookback 也是引擎那一个 `SPILL_PROJECTION_LOOKBACK`，所以「画得出框」与「读得到投影
+ * 值」、以及「公式算得出的值」永远一致。
  */
 function spillRegionAt(
   state: RuntimeState,
@@ -417,7 +431,7 @@ function spillRegionAt(
       return rows > 0 && cols > 0 ? { rows, cols } : null
     },
   }
-  const found = resolveSpillRegion(probe, row, col, SPILL_LOOKBACK)
+  const found = resolveSpillRegion(probe, row, col, SPILL_PROJECTION_LOOKBACK)
   if (found === null) return null
   // 锚点的公式原文，给公式栏在投影格上显示。这一条 TS runtime **答得出** —— 与
   // `blockedBy` 不同：锚点在表里有自己的条目，`input` 就是那条公式。多这一次
@@ -441,11 +455,9 @@ function readCellValue(state: RuntimeState, sheet: SheetEntry, row: number, col:
     // any returned array to its top-left scalar at the boundary (mirrors
     // the WASM convention — UI cells project one scalar each).
     const atom = target.formulaCellAtom(key)
-    const v = state.workbook.store.getter(atom)
-    if (v.kind === 'array') {
-      return v.value[0]?.[0] ?? { kind: 'blank' }
-    }
-    return v
+    // 锚点在边界上收成左上角那个标量 —— `anchorScalar` 是这条规则的单点实现，
+    // 公式层的读路径走的是同一个函数。
+    return anchorScalar(state.workbook.store.getter(atom))
   }
   // Empty cell — check if a nearby anchor's array projects into us.
   const spilled = getSpillProjectedValue(state, sheet, row, col)
@@ -728,14 +740,14 @@ function collectSpillTargets(
   // RIGHT, so only anchors at or before the bounds end can project in;
   // when `collectCellsInBounds` takes its probe path (huge sheets,
   // small windows) the up-left search is additionally capped at
-  // SPILL_LOOKBACK — the same documented projectability cap the
+  // SPILL_PROJECTION_LOOKBACK — the same documented projectability cap the
   // single-cell boundary read (`getSpillProjectedValue`) applies. On
   // sheets smaller than the expanded probe area the sparse map walk
   // runs instead and finds every anchor (today's behavior).
   const anchorBounds: CellRange = {
-    rowStart: Math.max(0, bounds.rowStart - SPILL_LOOKBACK),
+    rowStart: Math.max(0, bounds.rowStart - SPILL_PROJECTION_LOOKBACK),
     rowEnd: bounds.rowEnd,
-    colStart: Math.max(0, bounds.colStart - SPILL_LOOKBACK),
+    colStart: Math.max(0, bounds.colStart - SPILL_PROJECTION_LOOKBACK),
     colEnd: bounds.colEnd,
   }
   for (const { key, row: ar, col: ac, cell } of collectCellsInBounds(cells, anchorBounds)) {

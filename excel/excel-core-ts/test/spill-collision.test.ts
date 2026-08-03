@@ -92,8 +92,8 @@ describe('spill collision — another array’s projection cells occupy the rect
   })
 
   test('读锚点格的公式不会被误判成循环引用', () => {
-    // `=C1+1` 在 TS 引擎里会广播成数组（自身也成了锚点），而 C1 的碰撞检测要
-    // 探测它 —— 若探测时让它回读 C1 撞上「求值中」，C1 会被错判 #CIRCULAR!。
+    // 碰撞检测要探测 A1（它排在 C1 前面），而 A1 又回读 C1 —— 若探测时让它撞上
+    // 「求值中」，C1 会被错判 #CIRCULAR!。
     const { wb, read } = makeWorkbook()
     wb.setCell('s1', 0, 0, '=C1+1') // A1，先声明
     wb.setCell('s1', 0, 2, '=SEQUENCE(3)') // C1:C3
@@ -102,7 +102,9 @@ describe('spill collision — another array’s projection cells occupy the rect
       kind: 'array',
       value: [[num(1)], [num(2)], [num(3)]],
     })
-    expect(read(0, 0)).toMatchObject({ kind: 'array' })
+    // 锚点格作为单元格引用被读到时是**左上角那个标量**（Excel / Rust 同判），
+    // 所以 A1 = 1 + 1 = 2，不是一片广播出来的数组。整片只有 `C1#` 拿得到。
+    expect(read(0, 0)).toEqual(num(2))
   })
 
   test('往投影格里写入仍然照 ADR 0006 收回整片（无论写的是不是数组）', () => {

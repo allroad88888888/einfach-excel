@@ -210,4 +210,66 @@ describe('cross-engine parity — spill lifecycle (TS runtime vs WASM engine)', 
       expect(read.get('A2')?.isError).toBe(false)
     }, 30_000)
   })
+
+  // 第 5 条：**公式层读得到投影格**。
+  //
+  // TS 侧的投影格以前只活在显示层，公式层完全读不到：`=SUM(A1:A3)` 给 `#CALC!`
+  // 而 Rust 给 6，`=A2` 给空而 Rust 给 2，`COUNTA` / `COUNTIF` / `ISBLANK` /
+  // `INDEX` 同款。更难看的是**同一个 SUM 两个答案**：`=SUM(A:A)` 走稀疏路径把
+  // 锚点数组摊平了所以对，`=SUM(A1:A3)` 走物化路径就错 —— 答案取决于用户写的是
+  // 区间还是整列。修在 `excel/excel-core-ts/src/eval/spill-projection.ts`。
+  //
+  // 每条断言都是**闭式字面量**：写「两侧相等」会被「两个引擎一起错」满足，而这
+  // 一族缺陷的历史正是「稀疏孪生只改了一侧」。区间形式与整列形式各断言一次，
+  // 因为它们在 TS 引擎里跑的是两份不同的实现。
+  describe('公式层读得到投影格', () => {
+    const CELLS = ['E1', 'E2', 'E3', 'E4', 'E5', 'E6', 'E7', 'E8', 'E9', 'E10']
+    const FORMULAS: ReadonlyArray<[string, string]> = [
+      ['E1', '=SUM(A1:A3)'],
+      ['E2', '=SUM(A:A)'],
+      ['E3', '=COUNTA(A1:A3)'],
+      ['E4', '=COUNTA(A:A)'],
+      ['E5', '=COUNTIF(A1:A3,">1")'],
+      ['E6', '=COUNTIF(A:A,">1")'],
+      ['E7', '=A2'],
+      ['E8', '=A2+1'],
+      ['E9', '=ISBLANK(A2)'],
+      ['E10', '=INDEX(A1:A3,2,1)'],
+    ]
+
+    test('SUM / COUNTA / COUNTIF / =A2 / ISBLANK / INDEX 在两个引擎上同判', async () => {
+      const engines: Engine[] = [makeEngine('ts'), makeEngine('wasm')]
+      try {
+        for (const engine of engines) {
+          await engine.setFormula('A1', '=SEQUENCE(3)') // A1:A3 = 1,2,3
+          for (const [addr, formula] of FORMULAS) await engine.setFormula(addr, formula)
+        }
+        const [tsRead, wasmRead] = [await engines[0].read(CELLS), await engines[1].read(CELLS)]
+        const expected = ['6', '6', '3', '3', '2', '2', '2', '3', 'FALSE', '2']
+        expect(displaysOf(tsRead, CELLS)).toEqual(expected)
+        expect(displaysOf(wasmRead, CELLS)).toEqual(expected)
+      } finally {
+        for (const engine of engines) engine.dispose()
+      }
+    }, 30_000)
+
+    test('锚点格作为单元格引用被读到 = 左上角标量，不是广播出的一整片', async () => {
+      const addrs = ['E1', 'E2']
+      const engines: Engine[] = [makeEngine('ts'), makeEngine('wasm')]
+      try {
+        for (const engine of engines) {
+          await engine.setFormula('A1', '=SEQUENCE(3)')
+          await engine.setFormula('E1', '=A1+1')
+          await engine.setFormula('E2', '=SUM(A1#)') // 整片仍然只有 `A1#` 拿得到
+        }
+        const [tsRead, wasmRead] = [await engines[0].read(addrs), await engines[1].read(addrs)]
+        // `=A1+1` 广播成一片时 E1 会显示 2 但 E2/E3 也会被占；这里断言的是 E1 = 2
+        // 且 `A1#` 仍然求和到 6 —— 两者一起才能排除「折叠折过头」。
+        expect(displaysOf(tsRead, addrs)).toEqual(['2', '6'])
+        expect(displaysOf(wasmRead, addrs)).toEqual(['2', '6'])
+      } finally {
+        for (const engine of engines) engine.dispose()
+      }
+    }, 30_000)
+  })
 })

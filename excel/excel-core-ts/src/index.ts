@@ -116,6 +116,21 @@ export type { CoerceResult, CoerceOk, CoerceErr } from './eval'
 // （`worker-runtime-ts.ts` 的 `valueDisplay`）必须走它，而不是 `String(n)` ——
 // 否则同一个数字在「`&` 拼接出来的文本」和「单元格显示」上是两种写法。
 export { excelGeneralToText } from './eval/general-text'
+// 溢出投影：「一个地址落在哪个锚点的矩形里、投影出什么标量」的单点实现。
+// 公式层（`eval/evaluate.ts` 的读路径）与宿主的显示边界
+// （`worker-runtime-ts.ts`）走的是同一份几何与同一个 lookback 上限 —— 两边各写一
+// 遍就会出现「公式算得出 6、格子里显示空」这类分歧。
+export {
+  anchorScalar,
+  projectedValueAt,
+  scanSpillAnchors,
+  SPILL_PROJECTION_LOOKBACK,
+} from './eval/spill-projection'
+export type {
+  SpillAnchorHit,
+  SpillAnchorScan,
+  SpillAnchorSource,
+} from './eval/spill-projection'
 
 // Wave C — built-in function registry (math / logical / lookup / text /
 // date / stats). Evaluator dispatches against `BUILTIN_FUNCTIONS`.

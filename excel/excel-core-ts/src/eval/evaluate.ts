@@ -69,9 +69,36 @@ import { evaluateSparseAggregate, evaluateSparseSubtotal } from './sparse-subtot
 // 溢出矩形的碰撞判定。同样是有意的循环导入（它回读 `ARRAY_CELL_CAP`），约束与
 // 上面那一族一致：禁止在顶层求值从对方导入的绑定。
 import { checkSpillCollision } from './spill-collision'
+// 溢出投影：一个地址落在某个锚点的矩形里时读到的标量。几何住在
+// `spill-projection.ts`，一次求值内的备忘录与运行期依赖收集住在
+// `spill-projection-run.ts` —— 这里只做接线。循环导入的约束同上。
+import {
+  anchorScalar,
+  NO_SPILL_ANCHORS,
+  projectedCoordsIn,
+  projectedValueAt,
+  type SpillAnchorSource,
+} from './spill-projection'
+import { createSpillProjectionRun, type SpillProjectionRun } from './spill-projection-run'
 
 export const ERR = (code: ErrorCode, message?: string): Value =>
   message === undefined ? { kind: 'error', code } : { kind: 'error', code, message }
+
+/**
+ * 求值器内部在 `EvalContext` 上捎带的投影账本。
+ *
+ * 刻意**不进**公开契约 `EvalContext`：宿主不实现它，它也只在一次 trampoline 运行
+ * 内有意义。缺席时（宿主自造 ctx 的直测）投影格读回空，与本能力落地前一致。
+ */
+type SpillAwareContext = EvalContext & {
+  readonly spillProjection?: SpillProjectionRun
+  /** 不折叠数组的单格读。只有 `A1#` 走它 —— 见 `rawValueAtRuntimeCoord`。 */
+  readonly refLookupRaw?: (a1: string) => Value
+}
+
+function spillRunOf(ctx: EvalContext): SpillProjectionRun | undefined {
+  return (ctx as SpillAwareContext).spillProjection
+}
 
 /** 数组结果的软上限（格数）。`spill-collision.ts` 用它砍「够不着」的候选锚点。 */
 export const ARRAY_CELL_CAP = 1_048_576
@@ -203,7 +230,11 @@ export function evaluate(ast: Expr, ctx: EvalContext): Value {
     case 'crossSheet': {
       const sheetCells = ctx.crossSheetCells(ast.sheetName)
       if (!sheetCells) return ERR('#REF!')
-      return evaluateInForeignSheet(ast.inner, ctx, sheetCells, ast.sheetName)
+      const value = evaluateInForeignSheet(ast.inner, ctx, sheetCells, ast.sheetName)
+      // 跨表单格与本表同一条规则：锚点读成左上角标量（`Sheet2!A1+1` 是 2，不是
+      // 一片广播）。整片仍然只有 `Sheet2!A1#` 拿得到 —— 那条走 `spillRef`，
+      // 经 `rawValueAtRuntimeCoord` 绕开这里。
+      return ast.inner.kind === 'ref' ? anchorScalar(value) : value
     }
 
     case 'multiArea':
@@ -1199,11 +1230,14 @@ function evaluateRuntimeRef(ref: RuntimeRef, ctx: EvalContext, scalarTopLeft = f
     if (!ref.sheetName) return ctx.refLookup(start)
     const cells = ctx.crossSheetCells(ref.sheetName)
     if (!cells) return ERR('#REF!')
-    return evaluateInForeignSheet(
-      { kind: 'ref', a1: start, absCol: false, absRow: false },
-      ctx,
-      cells,
-      ref.sheetName,
+    // 跨表单格读成值：与本表同一条规则，锚点折叠成左上角标量。
+    return anchorScalar(
+      evaluateInForeignSheet(
+        { kind: 'ref', a1: start, absCol: false, absRow: false },
+        ctx,
+        cells,
+        ref.sheetName,
+      ),
     )
   }
 
@@ -1263,6 +1297,15 @@ export function sparseValuesForRef(
     const coord = cellCoordFromKey(key)
     if (coord && rangeContainsCoord(ref.range, coord)) coords.push(coord)
   }
+  // 投影格在 `cells` 里没有条目，稀疏遍历看不见它们。补回来 —— 少了这一步，
+  // 锚点被 `anchorScalar` 收成标量之后 `SUM(A:A)` 会从 6 掉成 1（A2/A3 没人报数）。
+  // 这是「稀疏孪生」那一族最容易出事的一处：区间形式走物化路径、整列形式走这里，
+  // 两条路必须给同一个答案。
+  const projected = spillProjectedInRange(ref, ctx)
+  for (const key of projected.keys()) {
+    const coord = cellCoordFromKey(key)
+    if (coord) coords.push(coord)
+  }
   coords.sort((a, b) => a.row - b.row || a.col - b.col)
 
   // Per-cell resolution discipline (scale-suite S3/S4 finding,
@@ -1290,10 +1333,19 @@ export function sparseValuesForRef(
   const values: Array<{ coord: CellCoord; value: Value }> = new Array(coords.length)
   for (let i = 0; i < coords.length; i += 1) {
     const coord = coords[i]
-    const cell = cells.get(cellKey(coord))
+    const key = cellKey(coord)
+    const cell = cells.get(key)
     if (cell && !cell.ast) {
-      values[i] = { coord, value: cell.value }
+      values[i] = { coord, value: anchorScalar(cell.value) }
       continue
+    }
+    if (!cell) {
+      // 投影格：值上面已经算出来了，别再逐格回头扫一遍锚点。
+      const hit = projected.get(key)
+      if (hit !== undefined) {
+        values[i] = { coord, value: hit }
+        continue
+      }
     }
     try {
       values[i] = { coord, value: valueAtRuntimeCoord(ref.sheetName, coord, ctx) }
@@ -1310,6 +1362,24 @@ export function sparseValuesForRef(
   }
   if (missing.length > 0) throw new NeedsDep(missing)
   return { ok: true, values }
+}
+
+/**
+ * `ref` 覆盖的矩形里所有**没有自有条目**的投影格。账本缺席 / 一个锚点都没压过来
+ * 时返回空 Map，调用方零代价。
+ */
+function spillProjectedInRange(ref: RuntimeRef, ctx: EvalContext): Map<CellKey, Value> {
+  const out = new Map<CellKey, Value>()
+  const run = spillRunOf(ctx)
+  if (!run) return out
+  const cells = ref.sheetName ? ctx.crossSheetCells(ref.sheetName) : ctx.cells
+  if (!cells) return out
+  const scan = run.scan(ref.sheetName, ref.range)
+  if (scan.anchors.length === 0) return out
+  for (const hit of projectedCoordsIn(scan, ref.range, cells)) {
+    out.set(cellKey(hit.coord), hit.value)
+  }
+  return out
 }
 
 function rangeContainsCoord(range: CellRange, coord: CellCoord): boolean {
@@ -1346,20 +1416,53 @@ export function valueAtRuntimeCoord(
     const storage = sheetName ? ctx.crossSheetCells(sheetName) : ctx.cells
     if (storage) {
       const cell = storage.get(cellKey(coord))
-      if (!cell) return BLANK
-      if (!cell.ast) return cell.value
+      // 自有条目缺席 → 问投影：这一格可能落在某个锚点的溢出矩形里。账本缺席时
+      // （宿主自造 ctx）退回原来的「空」。
+      if (!cell) return spillRunOf(ctx)?.at(sheetName, coord) ?? BLANK
+      // 数组字面量（`setCellValue` 直接塞进来的锚点）作为单元格引用被读到时是
+      // 左上角那个标量 —— 与公式锚点同一条规则，见 `anchorScalar`。
+      if (!cell.ast) return anchorScalar(cell.value)
     }
   }
   const a1 = formatA1(coord)
   if (!sheetName) return ctx.refLookup(a1)
   const cells = ctx.crossSheetCells(sheetName)
   if (!cells) return ERR('#REF!')
-  return evaluateInForeignSheet(
-    { kind: 'ref', a1, absCol: false, absRow: false },
-    ctx,
-    cells,
-    sheetName,
+  // 跨表单格：`evaluateCellTrampolined` 交回的是**原值**（锚点是整片数组），所以
+  // 这里补上同表路径已经做过的那次折叠。
+  return anchorScalar(
+    evaluateInForeignSheet(
+      { kind: 'ref', a1, absCol: false, absRow: false },
+      ctx,
+      cells,
+      sheetName,
+    ),
   )
+}
+
+/**
+ * `A1#` 专用：读锚点的**整片数组**，不折叠。
+ *
+ * 除这一条外，所有把地址读成值的路径都走 `valueAtRuntimeCoord`（折叠 + 投影）。
+ * 两者的差别就是 Excel 里 `A1` 与 `A1#` 的差别。
+ */
+function rawValueAtRuntimeCoord(
+  sheetName: string | undefined,
+  coord: CellCoord,
+  ctx: EvalContext,
+): Value {
+  const storage = sheetName ? ctx.crossSheetCells(sheetName) : ctx.cells
+  const cell = storage?.get(cellKey(coord))
+  if (storage && !cell) return spillRunOf(ctx)?.at(sheetName, coord) ?? BLANK
+  if (cell && !cell.ast) return cell.value
+  const a1 = formatA1(coord)
+  if (sheetName) {
+    const cells = ctx.crossSheetCells(sheetName)
+    if (!cells) return ERR('#REF!')
+    return evaluateInForeignSheet({ kind: 'ref', a1, absCol: false, absRow: false }, ctx, cells, sheetName)
+  }
+  const raw = (ctx as SpillAwareContext).refLookupRaw
+  return raw ? raw(a1) : ctx.refLookup(a1)
 }
 
 function validateRuntimeRefSheet(ref: RuntimeRef, ctx: EvalContext): Value | undefined {
@@ -1554,7 +1657,7 @@ function spillAnchorValue(
   if (!anchor.ok) return anchor.error ?? ERR('#REF!')
   const range = anchor.ref.range
   if (range.rowStart !== range.rowEnd || range.colStart !== range.colEnd) return ERR('#REF!')
-  return valueAtRuntimeCoord(
+  return rawValueAtRuntimeCoord(
     anchor.ref.sheetName,
     { row: range.rowStart, col: range.colStart },
     ctx,
@@ -3116,6 +3219,12 @@ function evaluateInForeignSheet(
   if (inner.kind === 'ref') {
     const key = parseRefToKey(inner.a1)
     if (!key) return ERR('#REF!')
+    // 跨表单格也走同一条规则：有条目读自己（数组不折叠 —— 调用方决定，因为
+    // `Sheet2!A1#` 要整片），没条目问投影。
+    if (!foreignCells.has(key)) {
+      const coord = cellCoordFromKey(key)
+      return (coord ? foreignSpillRun(foreignCells, shim).at(undefined, coord) : undefined) ?? BLANK
+    }
     return evaluateCellTrampolined(key, foreignCells, shim)
   }
   return evaluate(inner, shim)
@@ -3136,6 +3245,9 @@ function rangeLookupTrampolined(
     return [[ERR('#NUM!', rangeTooLargeMessage(rowCount, colCount, totalCells))]]
   }
 
+  const spilled = rangeHasHole(range, cells)
+    ? foreignSpillRun(cells, ctx).scan(undefined, range)
+    : NO_SPILL_ANCHORS
   const rows: Value[][] = new Array(rowCount)
   try {
     let rIdx = 0
@@ -3148,7 +3260,10 @@ function rangeLookupTrampolined(
         rIdx += 1
         lastRow = coord.row
       }
-      buf![coord.col - range.colStart] = evaluateCellTrampolined(cellKey(coord), cells, ctx)
+      const k = cellKey(coord)
+      buf![coord.col - range.colStart] = cells.has(k)
+        ? anchorScalar(evaluateCellTrampolined(k, cells, ctx))
+        : projectedValueAt(spilled, coord) ?? BLANK
     }
   } catch (err) {
     if (err instanceof RangeTooLargeError) {
@@ -3293,6 +3408,84 @@ function resolveCell(
   cells: ReadonlyMap<CellKey, Cell>,
   ctx: EvalContext,
 ): Value {
+  const cell = cells.get(key)
+  if (!cell) {
+    // 自有条目缺席 → 问投影。递归路径（跨表 / 宿主自造 ctx）没有 trampoline 的
+    // 账本，就地建一个：这条路是冷路径，不值得再加一层缓存。
+    const coord = cellCoordFromKey(key)
+    if (!coord) return BLANK
+    const run = ctx.cells === cells ? spillRunOf(ctx) : undefined
+    return (run ?? recursiveSpillRun(cells, ctx)).at(undefined, coord) ?? BLANK
+  }
+  // 把地址读成值 = 折叠数组到左上角标量。整片只有 `A1#` 拿得到。
+  return anchorScalar(resolveCellRaw(key, cells, ctx))
+}
+
+/**
+ * 递归路径的投影账本。每次查找现建一个（`unstable` 关掉备忘录），因为 `cells`
+ * 与求值栈都由调用方的 `currentlyEvaluating` 决定，跨调用复用会读到过期形状。
+ */
+function outOfBandSpillRun(
+  cells: ReadonlyMap<CellKey, Cell>,
+  ctx: EvalContext,
+  evaluateAnchor: (key: CellKey, target: ReadonlyMap<CellKey, Cell>) => Value,
+): SpillProjectionRun {
+  return createSpillProjectionRun({
+    cellsFor: (sheetName) => (sheetName === undefined ? cells : ctx.crossSheetCells(sheetName)),
+    sourceFor: (target): SpillAnchorSource => ({
+      arrayAt: (key, cell) => {
+        if (cell.ast === undefined) {
+          return cell.value.kind === 'array' ? cell.value.value : undefined
+        }
+        // 候选正在求值栈上：它在读我们，不能反过来向它索赔。
+        if (ctx.currentlyEvaluating.has(`${tagFor(target)}:${key}`)) return undefined
+        const value = evaluateAnchor(key, target)
+        return value.kind === 'array' ? value.value : undefined
+      },
+      unstable: () => true,
+    }),
+  })
+}
+
+/** 递归路径（宿主自造 ctx / `resolveCell` 的嵌套读）的账本。 */
+function recursiveSpillRun(
+  cells: ReadonlyMap<CellKey, Cell>,
+  ctx: EvalContext,
+): SpillProjectionRun {
+  return outOfBandSpillRun(cells, ctx, (key, target) => resolveCellRaw(key, target, ctx))
+}
+
+/**
+ * 跨表路径的账本 —— 候选也走 trampoline。用递归求值器会把跨表深链重新压回 JS
+ * 调用栈（`chain-eval` 的 `RangeError` 就是这么来的）。
+ */
+function foreignSpillRun(
+  cells: ReadonlyMap<CellKey, Cell>,
+  ctx: EvalContext,
+): SpillProjectionRun {
+  return outOfBandSpillRun(cells, ctx, (key, target) =>
+    evaluateCellTrampolined(key, target, ctx),
+  )
+}
+
+/**
+ * 矩形里有没有**没有自有条目**的格子。没有 → 一个投影格都不可能有，整趟扫描可以
+ * 省掉。密集区域（链式公式、导入的数据块）走的正是这一支，所以下沉投影对它们
+ * 是零代价。
+ */
+function rangeHasHole(range: CellRange, cells: ReadonlyMap<CellKey, Cell>): boolean {
+  for (const coord of iterateRange(range)) {
+    if (!cells.has(cellKey(coord))) return true
+  }
+  return false
+}
+
+/** `resolveCell` 的不折叠版：锚点交回整片数组。 */
+function resolveCellRaw(
+  key: CellKey,
+  cells: ReadonlyMap<CellKey, Cell>,
+  ctx: EvalContext,
+): Value {
   const tag = tagFor(cells)
   const guardKey: CellKey = `${tag}:${key}`
   if (ctx.currentlyEvaluating.has(guardKey)) {
@@ -3305,10 +3498,14 @@ function resolveCell(
   try {
     // Use a sub-context bound to the same `cells` so nested ref lookups
     // go through the same snapshot (no recursion into the parent shim).
-    const sub: EvalContext = {
+    const sub: SpillAwareContext = {
       cells,
       currentlyEvaluating: ctx.currentlyEvaluating,
       refLookup: (a1) => refLookupGeneric(a1, cells, sub),
+      refLookupRaw: (a1) => {
+        const coord = parseRefToKey(a1)
+        return coord ? resolveCellRaw(coord, cells, sub) : ERR('#REF!')
+      },
       rangeLookup: (start, end) => rangeLookupGeneric(start, end, cells, sub),
       crossSheetCells: ctx.crossSheetCells,
       callCustom: ctx.callCustom,
@@ -3430,7 +3627,24 @@ function makeTrampolineCtx(
   hostCtx: EvalContext,
   cache: Map<CellKey, Value>,
   inProgress: Set<CellKey>,
+  spill: SpillProjectionRun,
 ): EvalContext {
+  /**
+   * 「把一个地址读成值」的单点。两条分支：
+   *
+   *  - 有自有条目 → 读它自己的值，数组折叠成左上角标量（`=A1+1` 在
+   *    `A1 = =SEQUENCE(3)` 上给 2，不是一片）。
+   *  - 没有自有条目 → 问投影账本：可能落在某个锚点的溢出矩形里。
+   */
+  const readKey = (targetCells: ReadonlyMap<CellKey, Cell>, key: CellKey): Value => {
+    if (!targetCells.has(key)) {
+      const coord = cellCoordFromKey(key)
+      // trampoline 的 shim 只绑本表；跨表走 `evaluateInForeignSheet`。
+      return (coord ? spill.at(undefined, coord) : undefined) ?? BLANK
+    }
+    return anchorScalar(lookupKey(targetCells, key))
+  }
+
   const lookupKey = (
     targetCells: ReadonlyMap<CellKey, Cell>,
     key: CellKey,
@@ -3451,13 +3665,19 @@ function makeTrampolineCtx(
     throw new NeedsDep([{ cells: targetCells, key, guardKey }])
   }
 
-  const ctx: EvalContext = {
+  const ctx: SpillAwareContext = {
     cells,
     currentlyEvaluating: hostCtx.currentlyEvaluating,
+    spillProjection: spill,
     refLookup: (a1) => {
       const coord = parseRefToKey(a1)
       if (!coord) return ERR('#REF!')
-      return lookupKey(cells, coord)
+      return readKey(cells, coord)
+    },
+    refLookupRaw: (a1) => {
+      const coord = parseRefToKey(a1)
+      if (!coord) return ERR('#REF!')
+      return cells.has(coord) ? lookupKey(cells, coord) : readKey(cells, coord)
     },
     rangeLookup: (start, end) => {
       const range = parseRange(start, end)
@@ -3491,6 +3711,12 @@ function makeTrampolineCtx(
       if (missing.length > 0) {
         throw new NeedsDep(missing)
       }
+      // 压到这个矩形上的锚点，一次扫完 —— 逐格再问一遍会把 O(格数) 变成
+      // O(格数 × cells)。矩形没有空洞时一趟都不扫（密集区域零代价）。扫描内部
+      // 可能抛 `NeedsDep`（候选还没算），trampoline 接住。
+      const spilled = rangeHasHole(range, cells)
+        ? spill.scan(undefined, range)
+        : NO_SPILL_ANCHORS
       const rows: Value[][] = new Array(rowCount)
       try {
         let rIdx = 0
@@ -3508,14 +3734,17 @@ function makeTrampolineCtx(
           // inline) or its value is in cache (via the previous pass).
           const cell = cells.get(k)
           if (!cell) {
-            buf![coord.col - range.colStart] = BLANK
+            // 自有条目缺席 → 可能是别人的投影格。
+            buf![coord.col - range.colStart] = projectedValueAt(spilled, coord) ?? BLANK
           } else if (!cell.ast) {
-            buf![coord.col - range.colStart] = cell.value
+            buf![coord.col - range.colStart] = anchorScalar(cell.value)
           } else {
             const gk = cycleGuardKey(cells, k)
             const cached = cache.get(gk)
             if (cached !== undefined) {
-              buf![coord.col - range.colStart] = cached
+              // 锚点在区域里：读到的是它左上角那个标量，不是整片。没有这一折叠，
+              // `SUM(A1:A3)` 会拿到一个「3 行 1 列的格子」而报 `#CALC!`。
+              buf![coord.col - range.colStart] = anchorScalar(cached)
             } else if (inProgress.has(gk)) {
               const circ = ERR('#CIRCULAR!')
               cache.set(gk, circ)
@@ -3608,6 +3837,42 @@ export function evaluateCellTrampolined(
   // 算完、本帧重回栈顶时撤掉它，让本帧重跑一次得出真判定。
   const spillProbeSeeds = new Set<CellKey>()
 
+  // 本轮的溢出投影账本。候选锚点的值走同一个 `cache`：已经算过的直接用，没算过
+  // 的攒起来在扫描收尾时一次性抛给 trampoline（与区域物化的批量 `NeedsDep` 同
+  // 形，避免每个候选各中断一次）。
+  let pendingAnchors: TrampolineFrame[] = []
+  let skippedInFlight = false
+  const spill = createSpillProjectionRun({
+    cellsFor: (sheetName) =>
+      sheetName === undefined ? rootCells : hostCtx.crossSheetCells(sheetName),
+    sourceFor: (target): SpillAnchorSource => {
+      pendingAnchors = []
+      skippedInFlight = false
+      return {
+        arrayAt: (key, cell) => {
+          if (cell.ast === undefined) {
+            return cell.value.kind === 'array' ? cell.value.value : undefined
+          }
+          const guardKey = cycleGuardKey(target, key)
+          const cached = cache.get(guardKey)
+          if (cached !== undefined) return cached.kind === 'array' ? cached.value : undefined
+          // 候选正在求值栈上 —— 它在读我们，不能反过来向它索赔（`lookupKey`
+          // 会把它烙成 `#CIRCULAR!`，一条本来好好的公式就被判了环）。
+          if (inProgress.has(guardKey)) {
+            skippedInFlight = true
+            return undefined
+          }
+          pendingAnchors.push({ cells: target, key, guardKey })
+          return undefined
+        },
+        settle: () => {
+          if (pendingAnchors.length > 0) throw new NeedsDep(pendingAnchors)
+        },
+        unstable: () => skippedInFlight,
+      }
+    },
+  })
+
   const rootGuard = cycleGuardKey(rootCells, rootKey)
   if (hostCtx.currentlyEvaluating.has(rootGuard)) return ERR('#CIRCULAR!')
   hostCtx.currentlyEvaluating.add(rootGuard)
@@ -3672,7 +3937,9 @@ export function evaluateCellTrampolined(
     // inProgress so a back-edge through this guard key surfaces
     // #CIRCULAR! instead of falling into infinite re-trying.
     inProgress.add(top.guardKey)
-    const shimCtx = makeTrampolineCtx(top.cells, top.key, hostCtx, cache, inProgress)
+    const shimCtx = makeTrampolineCtx(top.cells, top.key, hostCtx, cache, inProgress, spill)
+    // 本帧重跑时上一轮攒的 watch 作废 —— 每次都从这一帧真正问过的候选重新收。
+    spill.resetWatches()
     try {
       const result = validateSpillAnchorValue(
         evaluate(cell.ast, shimCtx),
@@ -3689,7 +3956,13 @@ export function evaluateCellTrampolined(
       // dependency cells — reports to the workbook so its reverse edges
       // exist before any of its dependents cache a value derived from it.
       hostCtx.onFormulaEvaluated?.(top.cells, top.key, cell.ast, {
-        ranges: (result.ranges ?? []).map((range) => ({ range })),
+        ranges: [
+          ...(result.ranges ?? []).map((range) => ({ range })),
+          // 读到过投影值的公式必须依赖那些**锚点**：它的静态依赖指向投影格自己，
+          // 而投影格在表里没有条目 —— 锚点重算 / 被清掉时没有任何一条现成的边
+          // 会通知它。收成外接矩形（区域依赖），不逐格登记。
+          ...spill.watches().map((watch) => ({ sheetName: watch.sheetName, range: watch.range })),
+        ],
       })
     } catch (err) {
       if (err instanceof NeedsSpillProbes) {

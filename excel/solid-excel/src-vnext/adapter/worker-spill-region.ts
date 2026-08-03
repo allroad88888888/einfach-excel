@@ -5,7 +5,12 @@
  * `worker-commands-spill.ts`。TS 参考引擎不挂：溢出目标在表里根本没有条目，值是读的
  * 时候从锚点投影出来的，所以只能反着往左上找锚点。本模块就是那次查找，与投影读用的
  * `getSpillProjectedValue` **同一形状、同一 lookback 上限**，两者不许有分歧。
+ *
+ * 本模块回答的是**几何**（哪一片、多大），投影读回答的是**值**。两者的 lookback
+ * 现在都取自引擎的 `SPILL_PROJECTION_LOOKBACK`。
  */
+
+import { SPILL_PROJECTION_LOOKBACK } from '@einfach/excel-core-ts'
 
 export interface SpillProbeShape {
   rows: number
@@ -27,10 +32,13 @@ export interface SpillRegionScanResult {
 }
 
 /**
- * 往左上回看的格数上限。与 `worker-runtime-ts.ts` 的 `SPILL_LOOKBACK` 是同一个数：
- * 超过这个距离的锚点，投影读本身也不认，边框自然也不该画。
+ * 往左上回看的格数上限。**这个数归引擎所有** —— 公式层的投影读
+ * （`excel-core-ts` 的 `eval/spill-projection.ts`）用同一个上限判「够不够得着」，
+ * 超过这个距离的锚点公式层本身就不认，边框自然也不该画。
+ *
+ * 曾经这里、`worker-runtime-ts.ts` 各写过一个 200，靠注释互相钉住。现在只剩一份。
  */
-export const SPILL_SCAN_LOOKBACK = 200
+export const SPILL_SCAN_LOOKBACK = SPILL_PROJECTION_LOOKBACK
 
 export function resolveSpillRegion(
   probe: SpillProbe,

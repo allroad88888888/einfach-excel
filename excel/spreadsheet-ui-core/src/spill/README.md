@@ -135,10 +135,31 @@ atom 家族** —— `spillCellRoleAtom` 返回的是一个选择器**函数**�
   > `excel/excel-core-ts/src/eval/spill-collision.ts`。跨引擎钉子在
   > `cross-engine-parity-spill.test.ts` 的「阻塞物是另一个数组的投影格」一节。
 
-- TS 引擎的投影格**只在显示层存在**（`worker-runtime-ts.ts` 的 `getSpillProjectedValue`），
-  公式读不到：`=SUM(A1:A3)` 在 `A1 = =SEQUENCE(3)` 上 TS 给 `#CALC!` / Rust 给 `6`，
-  `=A2` 给空 / Rust 给 `2`，`COUNTA` / `COUNTIF` / `ISBLANK` / `INDEX` 同款。这是比阻塞
-  地址更大的一条引擎级分歧，尚未立项。
+「TS 的公式层完全读不到投影格」曾经也记在这里（`=SUM(A1:A3)` 给 `#CALC!` 而 Rust 给 `6`，
+`=A2` 给空 / Rust 给 `2`，还有「同一个 SUM 两个答案：写区间错、写整列对」），**已经修掉**：
+投影从适配层下沉进了引擎，`SUM` / `COUNTA` / `COUNTIF` / `ISBLANK` / `INDEX` 与单地址读
+现在都与 Rust 同判，锚点格作为单元格引用被读到时收成左上角标量（`=A1+1` 给 `2`，不是广播
+成一片；整片仍然只有 `A1#` 拿得到）。见 `excel/excel-core-ts/src/eval/spill-projection.ts`；
+`worker-runtime-ts.ts` 的 `getSpillProjectedValue` 已改成薄委派，回看上限
+`SPILL_PROJECTION_LOOKBACK` 只剩引擎那一份。跨引擎钉子在
+`cross-engine-parity-spill.test.ts` 的「公式层读得到投影格」一节。
+
+下沉带来的三条新缺口：
+
+- **回看上限 200**：TS 引擎只承认「锚点在查询矩形左上方 200 行/列以内」的投影。
+  `=SEQUENCE(400)` 在 A1 上时 `=A100` 读得到、`=A300` 读回空，而 Rust 在溢出目标上挂了
+  真的派生 atom，多远都读得到。这是**代价换来的**（没有反查索引就得扫，扫多远要有上限），
+  不是几何真相；放宽它只是变慢，不会变对/变错。同一个数也管着宿主画不画溢出边框，
+  所以「读得到值」与「画得出框」永远一致。
+
+- **读到空洞的公式会被多余重算**。读者必须依赖「锚点可能待的那一片」（回看象限），
+  否则锚点**后来**才出现时读者不会被叫醒。象限比真正的锚点大，所以象限里任何一次
+  写入都会让这条公式重跑。只有真的读到空洞的公式付这个代价（矩形没有空洞时整趟
+  扫描都省掉）。
+
+- **公式文本类函数看不到投影格**：`ISFORMULA(A2)` / `FORMULATEXT(A2)` 走的是「这一格
+  自己的 `Cell` 记录」，而投影格没有记录，所以答 `FALSE` / `#N/A`。Excel 会把锚点的
+  公式报出来。这一条与显示层的公式栏（已经会显示锚点公式）不一致，未修。
 
 ## Tests
 
@@ -147,3 +168,5 @@ atom 家族** —— `spillCellRoleAtom` 返回的是一个选择器**函数**�
 - `excel/solid-excel/test/vnext-formula-bar-spill-readonly.test.tsx`（投影格上的只读公式栏）
 - `excel/solid-excel/test/vnext-worker-spill-region.test.ts`（worker RPC）
 - `excel/solid-excel/test/cross-engine-parity-spill.test.ts`（两个引擎的差异）
+- `excel/excel-core-ts/test/spill-projection.test.ts`（公式层读到的**值**，区间与整列各一遍）
+- `excel/excel-core-ts/test/spill-projection-invalidation.test.ts`（锚点动了读者跟不跟）

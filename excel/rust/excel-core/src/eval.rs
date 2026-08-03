@@ -2554,6 +2554,36 @@ fn for_each_arg_value(
     provider: &dyn EvalProvider,
     f: &mut dyn FnMut(Option<CellAddress>, Value),
 ) {
+    for_each_arg_value_indexed(arg, provider, &mut |addr, _pos, v| f(addr, v))
+}
+
+/// 同一条流，但回调拿到的是「这个格子是区域里的第几个」—— 1-based、行主序的
+/// **绝对位置**，而不是「这是第几个被发出来的格子」。
+///
+/// 两者在稠密 provider 上重合，在稀疏 provider 上不重合：`for_each_range_cell`
+/// 的契约是**只发非空格**，所以用累加计数器当位置的写法会让空格不占位。
+/// `A1=1 / A2 空 / A3=3` 时 `MATCH(3,A1:A3,0)` 因此答 2，而 Excel（和本仓的
+/// TS 参考引擎）答 3 —— Excel 数的是区域内的绝对位置，空格照样占一格。
+///
+/// 谁该用这个而不是 [`for_each_arg_value`]：**把序号当结果交出去**的函数
+/// （`MATCH` / `XMATCH` 的返回值、`SERIESSUM` 的系数指数）。只做聚合、计数、
+/// 排序的那一大批不需要 —— 它们的答案与空格占不占位无关。
+fn for_each_arg_value_positioned(
+    arg: &Expr,
+    provider: &dyn EvalProvider,
+    f: &mut dyn FnMut(u64, Value),
+) {
+    for_each_arg_value_indexed(arg, provider, &mut |_addr, pos, v| f(pos, v))
+}
+
+/// [`for_each_arg_value`] 与 [`for_each_arg_value_positioned`] 共用的实现。
+/// 实参**只解析一次**（`OFFSET` / `INDIRECT` / `INDEX` 这类动态区域的解析带
+/// 求值副作用，解两遍既慢又可能不等价），两个外壳各取所需。
+fn for_each_arg_value_indexed(
+    arg: &Expr,
+    provider: &dyn EvalProvider,
+    f: &mut dyn FnMut(Option<CellAddress>, u64, Value),
+) {
     match runtime_ref_from_expr(arg, provider) {
         Ok(r) => {
             let n = r.normalized();
@@ -2562,35 +2592,40 @@ fn for_each_arg_value(
                 for row in 0..rows {
                     for col in 0..cols {
                         let addr = CellAddress::new(n.start.row + row, n.start.col + col);
+                        let pos = row as u64 * cols as u64 + col as u64 + 1;
                         f(
                             Some(addr),
+                            pos,
                             arr.get(row, col).cloned().unwrap_or(Value::Null),
                         );
                     }
                 }
                 return;
             }
+            // 区域的列宽。`bounded_shape` 已把整列 / 整行的 `u32::MAX` 哨兵夹到
+            // Excel 网格上限，所以 `A:A` 得到 1 列、`1:1` 得到 16384 列。
+            let cols = r.bounded_shape().map_or(1u64, |(_, c)| c as u64);
+            let mut emit = |addr: CellAddress, v: Value| {
+                let dr = addr.row.saturating_sub(n.start.row) as u64;
+                let dc = addr.col.saturating_sub(n.start.col) as u64;
+                f(Some(addr), dr * cols + dc + 1, v);
+            };
             match &r.sheet {
-                Some(sheet) => {
-                    provider
-                        .for_each_sheet_range_cell(sheet, r.range, &mut |addr, v| f(Some(addr), v))
-                }
-                None => stream_range(&r.range.start, &r.range.end, provider, &mut |addr, v| {
-                    f(Some(addr), v)
-                }),
+                Some(sheet) => provider.for_each_sheet_range_cell(sheet, r.range, &mut emit),
+                None => stream_range(&r.range.start, &r.range.end, provider, &mut emit),
             }
         }
         Err(ValueError::InvalidValue) => {
             let v = eval_expr_with_provider(arg, provider);
             if let Value::Array(arr) = v {
-                for elem in arr.data.iter() {
-                    f(None, elem.clone());
+                for (i, elem) in arr.data.iter().enumerate() {
+                    f(None, i as u64 + 1, elem.clone());
                 }
             } else {
-                f(None, v);
+                f(None, 1, v);
             }
         }
-        Err(e) => f(None, Value::Error(e)),
+        Err(e) => f(None, 1, Value::Error(e)),
     }
 }
 
@@ -3830,11 +3865,11 @@ fn eval_func(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
         "MATCH" => {
             // MATCH(value, range, [match_type])
             //
-            // Streaming early-exit: walk the range, return on first hit.
-            // The position is by visit order, which for a dense provider
-            // matches the legacy `(i + 1)` 1-based result. (Sparse
-            // providers skip holes — position counts only present cells,
-            // a deliberate behavior change for full-column refs.)
+            // 返回的是命中格在区域内的**绝对位置**（1-based，行主序），由
+            // `addr` 相对区域起点算出 —— 不是「第几个被发出来的格子」。
+            // 稀疏 provider 不发空格，所以老写法的累加计数器会让空格不占位：
+            // `A1=1 / A2 空 / A3=3` 时 `MATCH(3,A1:A3,0)` 答 2 而不是 Excel
+            // 的 3。二维区域按行主序数：`A1:B3` 里 B2 是第 4 个、A3 是第 5 个。
             //
             // match_type semantics:
             //   0  → exact match. Text needles with `?`/`*`/`~` engage
@@ -3881,19 +3916,21 @@ fn eval_func(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
             } else {
                 None
             };
-            let mut position: u64 = 0;
             let mut found: Option<u64> = None;
-            for_each_arg_value(&args[1], provider, &mut |_addr, v| {
-                if found.is_some() {
+            for_each_arg_value_positioned(&args[1], provider, &mut |pos, v| {
+                // 收口取「位置最小的命中」而不是「第一个发出来的命中」。生产
+                // provider 的发射顺序是行主序（见 tests/range_materialization_
+                // order.rs），两者等价；但位置比较是几何事实，不依赖发射顺序，
+                // 而 `pos >= p` 这道守卫同时保留了老写法跳过后续比较的开销。
+                if found.is_some_and(|p| pos >= p) {
                     return;
                 }
-                position += 1;
                 let hit = match wildcard_pattern {
                     Some(pat) => wildcard_match(pat, &coerce_to_text(&v)),
                     None => values_equal(&v, &needle),
                 };
                 if hit {
-                    found = Some(position);
+                    found = Some(pos);
                 }
             });
             match found {
@@ -3960,14 +3997,20 @@ fn eval_func(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
             for n in &nums {
                 *counts.entry(*n).or_insert(0) += 1;
             }
-            let (best, max_count) = counts
-                .iter()
-                .max_by_key(|(_, c)| *c)
-                .map(|(k, c)| (*k, *c))
-                .unwrap();
+            let max_count = counts.values().copied().max().unwrap_or(0);
             if max_count <= 1 {
                 return Value::Error(ValueError::InvalidValue);
             }
+            // 并列众数取**首次出现**的那个（Excel 口径；隔壁 `stat_mode_mult`
+            // 用的也是这条扫描）。这里原本写的是 `counts.iter().max_by_key(..)`
+            // —— 遍历的是 `HashMap`，顺序不确定，于是并列的打破是随机的：
+            // `A1:A4 = 3,1,1,3` 同一进程内连跑几次，答案会在 3 和 1 之间乱跳
+            // （`RandomState` 每 new 一个 HashMap 就换一次种子）。
+            let best = nums
+                .iter()
+                .copied()
+                .find(|n| counts[n] == max_count)
+                .expect("max_count 取自 counts，必有一个 nums 元素达到它");
             Value::Number(best as f64 / 1e9)
         }
 
@@ -20708,20 +20751,42 @@ fn fn_seriessum(args: &[Expr], provider: &dyn EvalProvider) -> Value {
         Some(n) if n.is_finite() => n,
         _ => return Value::Error(ValueError::WrongType),
     };
+    // 系数按区域内的**绝对位置**入座，第 i 项的指数是 `n + i*m`。老写法用
+    // `push` 排队，稀疏 provider 不发空格，于是 `A1=1 / A2 空 / A3=1` 里的
+    // A3 会坐到 i=1（指数 n+m）而不是 i=2 —— 同一份系数写成数组字面量
+    // `{1,0,1}` 答案却是对的，两种形态自相矛盾。TS 参考引擎（数组恒稠密）
+    // 把空格当 0 且占位，这里对齐它。
     let mut coefs: Vec<f64> = Vec::new();
     let mut err: Option<ValueError> = None;
-    for_each_arg_value(&args[3], provider, &mut |_addr, v| {
+    for_each_arg_value_positioned(&args[3], provider, &mut |pos, v| {
         if err.is_some() {
             return;
         }
-        match v {
-            Value::Error(e) => err = Some(e),
-            Value::Null => coefs.push(0.0),
+        let coef = match v {
+            Value::Error(e) => {
+                err = Some(e);
+                return;
+            }
+            Value::Null => 0.0,
             other => match coerce_to_number(&other) {
-                Some(n) => coefs.push(n),
-                None => err = Some(ValueError::WrongType),
+                Some(n) => n,
+                None => {
+                    err = Some(ValueError::WrongType);
+                    return;
+                }
             },
+        };
+        // 空洞用 0 补齐；上限沿用动态数组那道闸门，免得 `SERIESSUM(x,n,m,A:A)`
+        // 里一个孤零零的末行系数逼出一整列的 Vec。
+        if pos > DYNAMIC_ARRAY_CELL_CAP {
+            err = Some(ValueError::InvalidValue);
+            return;
         }
+        let idx = (pos - 1) as usize;
+        if coefs.len() <= idx {
+            coefs.resize(idx + 1, 0.0);
+        }
+        coefs[idx] = coef;
     });
     if let Some(e) = err {
         return Value::Error(e);
@@ -21013,9 +21078,17 @@ fn fn_xmatch(args: &[Expr], provider: &dyn EvalProvider) -> Value {
     if !matches!(search_mode, -2 | -1 | 1 | 2) {
         return Value::Error(ValueError::InvalidValue);
     }
+    // `items` 与 `positions` 一一对应：前者是**发出来的**格子（稀疏 provider
+    // 会跳过空格），后者是每个格子在区域内的**绝对位置**。返回值取
+    // `positions[i]` 而不是 `i + 1` —— 否则空格不占位，`A1=1 / A2 空 / A3=3`
+    // 时 `XMATCH(3,A1:A3)` 会答 2 而不是 Excel 的 3。与 `MATCH` 同一根因。
+    //
+    // 只压缩不补齐（而不是把区域摊平成稠密数组）是刻意的：`XMATCH(x, A:A)`
+    // 的稠密形态是 1,048,576 个槽，代价与这个函数的稀疏遍历初衷相反。
     let mut items: Vec<Value> = Vec::new();
+    let mut positions: Vec<u64> = Vec::new();
     let mut err: Option<ValueError> = None;
-    for_each_arg_value(&args[1], provider, &mut |_addr, v| {
+    for_each_arg_value_positioned(&args[1], provider, &mut |pos, v| {
         if err.is_some() {
             return;
         }
@@ -21024,6 +21097,7 @@ fn fn_xmatch(args: &[Expr], provider: &dyn EvalProvider) -> Value {
             return;
         }
         items.push(v);
+        positions.push(pos);
     });
     if let Some(e) = err {
         return Value::Error(e);
@@ -21055,7 +21129,7 @@ fn fn_xmatch(args: &[Expr], provider: &dyn EvalProvider) -> Value {
             let mid = (lo + hi) / 2;
             let ord = compare_lookup(&items[mid], &needle);
             if ord == std::cmp::Ordering::Equal {
-                return Value::Number((mid + 1) as f64);
+                return Value::Number(positions[mid] as f64);
             }
             let go_right = if ascending {
                 ord == std::cmp::Ordering::Less
@@ -21085,7 +21159,7 @@ fn fn_xmatch(args: &[Expr], provider: &dyn EvalProvider) -> Value {
     for i in order {
         let v = &items[i];
         if test_exact(v) {
-            return Value::Number((i + 1) as f64);
+            return Value::Number(positions[i] as f64);
         }
         if matches!(match_mode, -1 | 1) {
             if let (Some(needle_n), Some(item_n)) = (needle_num, coerce_to_number(v)) {
@@ -21106,7 +21180,7 @@ fn fn_xmatch(args: &[Expr], provider: &dyn EvalProvider) -> Value {
         }
     }
     match best {
-        Some(i) => Value::Number((i + 1) as f64),
+        Some(i) => Value::Number(positions[i] as f64),
         None => Value::Error(ValueError::NotAvailable),
     }
 }

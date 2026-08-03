@@ -87,6 +87,57 @@ fn eval_trimmean_percent_out_of_range() {
     );
 }
 
+// --- MODE 的并列打破 ---
+
+/// 并列众数必须取**首次出现**的那个，而且必须是**确定的**。
+///
+/// 坏实现是 `counts.iter().max_by_key(..)` —— 遍历的是 `HashMap`，顺序不确定，
+/// 于是并列的打破是随机的。单跑一次的断言在坏实现上有约 `1/并列宽度` 的概率
+/// 蒙对，绿灯说明不了任何事，所以这里跑 N 次并要求**每次都等于**首次出现的值。
+///
+/// 为什么同一进程内重复调用就够（不用靠重启进程换种子）：`std` 的 `RandomState`
+/// 只在每个线程首次使用时向 OS 要一次种子，之后**每 new 一个 `HashMap` 就换一次
+/// 哈希键**。实测同一进程内连造 12 个 4 键 `HashMap`，拿到 9 种不同的迭代顺序；
+/// 未修版本的 `=MODE(A1:A4)`（3,1,1,3）单进程连跑 20 次，答案在 3 和 1 之间
+/// 来回跳（9 次 3 / 11 次 1）。而 `MODE` 每次调用都新建一个 `counts` 映射，
+/// 所以每次 `eval_str` 就是一次独立抽样。
+///
+/// N 与并列宽度：2 路并列坏实现每次约 1/2 蒙对，4 路约 1/4（`max_by_key` 取
+/// 迭代序里**最后**一个最大值）。取 N = 64，坏实现全程蒙对的概率 ≤ 2⁻⁶⁴。
+#[test]
+fn mode_tie_break_is_first_occurrence_and_deterministic() {
+    let (cm, vs) = make_test_env();
+    const N: usize = 64;
+
+    // 2 路并列：3 与 1 各出现两次，3 先出现 → 3。
+    for i in 0..N {
+        assert_eq!(
+            eval_str("=MODE({3,1,1,3})", &cm, &vs),
+            Value::Number(3.0),
+            "第 {i} 次：并列众数必须恒定取首次出现的 3"
+        );
+    }
+
+    // 4 路并列：2/9/5/7 各出现两次，2 先出现 → 2。
+    for i in 0..N {
+        assert_eq!(
+            eval_str("=MODE({2,9,5,7,2,9,5,7})", &cm, &vs),
+            Value::Number(2.0),
+            "第 {i} 次：4 路并列同样恒定取首次出现的 2"
+        );
+    }
+
+    // MODE 与 MODE.MULT 的首元素必须是同一个值 —— 两边共用「首次出现」这条扫描。
+    for i in 0..N {
+        let (_, _, data) = unwrap_array(eval_str("=MODE.MULT({3,1,1,3})", &cm, &vs));
+        assert_eq!(
+            data.first(),
+            Some(&Value::Number(3.0)),
+            "第 {i} 次：MODE.MULT 的首元素必须与 MODE 一致"
+        );
+    }
+}
+
 // --- MODE.SNGL / MODE.MULT ---
 
 #[test]

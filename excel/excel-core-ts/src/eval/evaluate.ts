@@ -15,36 +15,92 @@
  */
 
 import type {
-  BinaryOp,
   CallExpr,
   Cell,
   CellCoord,
   CellKey,
-  CellRange,
-  ErrorCode,
   EvalContext,
   Expr,
   LambdaBinding,
-  LambdaReferenceBinding,
   Value,
 } from '../types'
 import { getBuiltinFunction } from './functions'
 import { excelEquals } from './functions/logical'
 import { resolveXLookupValue, type XLookupCoreResult } from './functions/lookup'
-import { BLANK, MAX_LAMBDA_CALL_DEPTH } from '../types'
+import { propagateError, toBoolean, toNumber } from './coerce'
+// 下面这一批是从本文件切出去的模块。它们只接收参数（求值器按回调传进去）、
+// 不回头 import `evaluate.ts`，所以一条新的环都没引入 —— 形状照抄
+// `spill-collision.ts` / `spill-projection.ts` 那两个纯函数模块。对外导出面不变：
+// 本文件末尾把别处仍按 `from './evaluate'` 取用的名字原样再导出一遍。
+import { BLANK } from '../types'
+import { ERR } from './error-value'
+import { ARRAY_CELL_CAP, arrayResult, arrayShapeError, scalarCellError } from './array-shape'
+import { makeMatrix, valueToGrid, type Grid } from './grid'
 import {
-  EXCEL_MAX_COL,
-  EXCEL_MAX_ROW,
-  cellKey,
-  formatA1,
-  iterateRange,
-  parseA1,
-  parseRange,
-  normalizeRange,
-  RangeTooLargeError,
-} from '../refs'
-import { propagateError, toBoolean, toNumber, toString as toStr } from './coerce'
-import { finiteOrNum } from './overflow'
+  canSparseIterate,
+  rangeCellCount,
+  sameRuntimeRefRange,
+  validateRuntimeRefSheet,
+  type RuntimeRef,
+} from './runtime-ref'
+import { applyBinary } from './binary-ops'
+import { parseRefToCoord, parseRefToKey } from './cell-address'
+import { cycleGuardKey } from './cycle-guard'
+import { evaluateCellTrampolined as evaluateCellWithWorkStack } from './trampoline'
+import {
+  rangeLookupGeneric as rangeLookupIn,
+  refLookupGeneric as refLookupIn,
+} from './cell-read'
+import { evaluateInForeignSheet as evaluateInForeignSheetWith } from './foreign-sheet'
+import {
+  evaluateRuntimeRef as evaluateRuntimeRefIn,
+  rawValueAtRuntimeCoord as rawValueAtRuntimeCoordIn,
+  sparseValuesForRef as sparseValuesForRefIn,
+  valueAtRuntimeCoord as valueAtRuntimeCoordIn,
+} from './runtime-ref-read'
+import {
+  applyLambda,
+  applyLambdaForArrayCell,
+  bindLambdaSelf,
+  makeLambdaBinding,
+  prepareLambdaContext,
+  type LambdaArgument,
+  type LambdaResolveResult,
+} from './lambda-apply'
+import { canonicalName } from './canonical-name'
+import {
+  evaluateArrayChoose,
+  evaluateArrayIf,
+  evaluateArrayIfError,
+  evaluateArrayIfs,
+  evaluateArraySwitch,
+} from './array-selectors'
+import {
+  evaluateAreas,
+  evaluateColumn,
+  evaluateColumns,
+  evaluateFormulaText,
+  evaluateIsFormula,
+  evaluateIsRef,
+  evaluateRow,
+  evaluateRows,
+  evaluateSheet,
+  evaluateSheets,
+  type RefInfoDeps,
+} from './reference-info'
+import { evaluateCellInfo } from './cell-info'
+import {
+  chooseSelectedExpr as resolveChooseSelectedExpr,
+  runtimeRefFromExpr as resolveRefFromExpr,
+  runtimeRefFromIndexArgs as resolveIndexArgs,
+  runtimeRefFromIndirectArgs as resolveIndirectArgs,
+  runtimeRefFromOffsetArgs as resolveOffsetArgs,
+  runtimeRefFromSpillRef as resolveSpillRefArgs,
+  type IntegerArgResult,
+  type RefResolveDeps,
+  type RuntimeRefResult,
+  type SelectedExprResult,
+} from './runtime-ref-resolve'
 // 稀疏聚合族：`evaluate` 在派发到内建函数表之前，把 17 个聚合函数名截走交给
 // 这一族的流式实现，两份实现必须同判 —— 约定与两起真实事故的留痕见
 // `sparse-aggregations.ts` 文件头。与它们的循环导入是有意的，同处有说明。
@@ -66,134 +122,56 @@ import {
   evaluateSparseSumIfs,
 } from './sparse-multi-criterion'
 import { evaluateSparseAggregate, evaluateSparseSubtotal } from './sparse-subtotal'
-// 溢出矩形的碰撞判定。同样是有意的循环导入（它回读 `ARRAY_CELL_CAP`），约束与
-// 上面那一族一致：禁止在顶层求值从对方导入的绑定。
-import { checkSpillCollision } from './spill-collision'
-// 溢出投影：一个地址落在某个锚点的矩形里时读到的标量。几何住在
-// `spill-projection.ts`，一次求值内的备忘录与运行期依赖收集住在
-// `spill-projection-run.ts` —— 这里只做接线。循环导入的约束同上。
-import {
-  anchorScalar,
-  NO_SPILL_ANCHORS,
-  projectedCoordsIn,
-  projectedValueAt,
-  type SpillAnchorSource,
-} from './spill-projection'
-import { createSpillProjectionRun, type SpillProjectionRun } from './spill-projection-run'
+// 溢出投影：跨表锚点折叠成左上角标量的单点实现。几何住在 `spill-projection.ts`，
+// 一次求值内的备忘录与运行期依赖收集住在 `spill-projection-run.ts`。
+import { anchorScalar } from './spill-projection'
 
-export const ERR = (code: ErrorCode, message?: string): Value =>
-  message === undefined ? { kind: 'error', code } : { kind: 'error', code, message }
+// ----------------------------------------------------------------------------
+// 「表达式 → 运行期引用矩形」的绑定。
+//
+// 解析本身住在 `runtime-ref-resolve.ts`，它把求值器**参数化**了（直接 import 会
+// 让两个文件成环）。这里绑一次回调，再用原来的名字包回来 —— 本文件里那三十来处
+// 调用点、以及 `sparse-multi-criterion.ts` 的 `import { runtimeRefFromExpr }`，
+// 一个字节都不用改。
+// ----------------------------------------------------------------------------
+const REF_RESOLVE_DEPS: RefResolveDeps = { evaluate, rawValueAt: rawValueAtRuntimeCoord }
 
-/**
- * 求值器内部在 `EvalContext` 上捎带的投影账本。
- *
- * 刻意**不进**公开契约 `EvalContext`：宿主不实现它，它也只在一次 trampoline 运行
- * 内有意义。缺席时（宿主自造 ctx 的直测）投影格读回空，与本能力落地前一致。
- */
-type SpillAwareContext = EvalContext & {
-  readonly spillProjection?: SpillProjectionRun
-  /** 不折叠数组的单格读。只有 `A1#` 走它 —— 见 `rawValueAtRuntimeCoord`。 */
-  readonly refLookupRaw?: (a1: string) => Value
+/** 引用元数据函数族（`reference-info.ts`）向本文件索取的回调，同样是绑一次。 */
+const REF_INFO_DEPS: RefInfoDeps = { evaluate, resolveRef: runtimeRefFromExpr, evaluateRuntimeRef }
+
+export function runtimeRefFromExpr(expr: Expr, ctx?: EvalContext): RuntimeRefResult {
+  return resolveRefFromExpr(expr, ctx, REF_RESOLVE_DEPS)
 }
 
-function spillRunOf(ctx: EvalContext): SpillProjectionRun | undefined {
-  return (ctx as SpillAwareContext).spillProjection
+function runtimeRefFromIndirectArgs(
+  args: ReadonlyArray<Expr>,
+  ctx: EvalContext,
+): RuntimeRefResult {
+  return resolveIndirectArgs(args, ctx, REF_RESOLVE_DEPS)
 }
 
-/** 数组结果的软上限（格数）。`spill-collision.ts` 用它砍「够不着」的候选锚点。 */
-export const ARRAY_CELL_CAP = 1_048_576
-const MAX_ARRAY_ROWS = EXCEL_MAX_ROW + 1
-const MAX_ARRAY_COLS = EXCEL_MAX_COL + 1
-const MATERIALIZED_RANGE_CELL_CAP = 100_000
-
-function canonicalName(name: string): string {
-  return name.toUpperCase()
+function runtimeRefFromOffsetArgs(args: ReadonlyArray<Expr>, ctx: EvalContext): RuntimeRefResult {
+  return resolveOffsetArgs(args, ctx, REF_RESOLVE_DEPS)
 }
 
-interface LambdaResolveResult {
-  readonly lambda?: LambdaBinding
-  readonly error?: Value
+function runtimeRefFromIndexArgs(args: ReadonlyArray<Expr>, ctx: EvalContext): RuntimeRefResult {
+  return resolveIndexArgs(args, ctx, REF_RESOLVE_DEPS)
 }
 
-interface LambdaArgumentValue {
-  readonly kind: 'lambdaArgument'
-  readonly lambda: LambdaBinding
+function runtimeRefFromSpillRef(
+  expr: Extract<Expr, { readonly kind: 'spillRef' }>,
+  ctx: EvalContext,
+): RuntimeRefResult {
+  return resolveSpillRefArgs(expr, ctx, REF_RESOLVE_DEPS)
 }
 
-interface ReferenceArgumentValue {
-  readonly kind: 'referenceArgument'
-  readonly ref: RuntimeRef
+function chooseSelectedExpr(args: ReadonlyArray<Expr>, ctx: EvalContext): SelectedExprResult {
+  return resolveChooseSelectedExpr(args, ctx, REF_RESOLVE_DEPS)
 }
-
-type LambdaArgument = Value | LambdaArgumentValue | ReferenceArgumentValue
-
-type LambdaContextResult =
-  | { readonly ok: true; readonly subCtx: EvalContext; readonly depth: { count: number } }
-  | { readonly ok: false; readonly error: Value }
-
-interface Grid {
-  readonly rows: number
-  readonly cols: number
-  readonly cells: Value[][]
-}
-
-type RuntimeRef = LambdaReferenceBinding
-
-type IntegerArgResult =
-  | { readonly ok: true; readonly value: number }
-  | { readonly ok: false; readonly error: Value }
 
 type SliceRangeResult =
   | { readonly ok: true; readonly start: number; readonly end: number }
   | { readonly ok: false; readonly error: Value }
-
-type SelectedExprResult =
-  | { readonly ok: true; readonly expr: Expr }
-  | { readonly ok: false; readonly error: Value }
-
-function arrayShapeError(
-  rows: number,
-  cols: number,
-  label: string,
-  capMessage = `${label} exceeds array cell cap`,
-): Value | undefined {
-  if (rows < 1 || cols < 1 || !Number.isFinite(rows) || !Number.isFinite(cols)) {
-    return ERR('#VALUE!')
-  }
-  // Excel bounds the worksheet at 1,048,576 rows × 16,384 columns (XFD).
-  // Requests beyond either axis surface `#NUM!` (Excel-compatible) — the
-  // engine cell-cap (`ARRAY_CELL_CAP`) is a softer cap that keeps engine
-  // memory bounded and surfaces `#VALUE!`.
-  if (rows > MAX_ARRAY_ROWS || cols > MAX_ARRAY_COLS) {
-    return ERR('#NUM!', `${label} exceeds Excel grid limits`)
-  }
-  if (rows * cols > ARRAY_CELL_CAP) return ERR('#VALUE!', capMessage)
-  return undefined
-}
-
-function scalarCellError(value: Value): Value | undefined {
-  return value.kind === 'array' ? ERR('#CALC!', 'array result was not expanded') : undefined
-}
-
-function matrixScalarCellError(matrix: Value[][]): Value | undefined {
-  for (const row of matrix) {
-    for (const cell of row) {
-      const error = scalarCellError(cell)
-      if (error) return error
-    }
-  }
-  return undefined
-}
-
-function arrayResult(matrix: Value[][], label = 'array result'): Value {
-  const cols = matrix[0]?.length ?? 0
-  const shapeError = arrayShapeError(matrix.length, cols, label)
-  if (shapeError) return shapeError
-  for (const row of matrix) {
-    if (row.length !== cols) return ERR('#VALUE!', 'array rows must be rectangular')
-  }
-  return matrixScalarCellError(matrix) ?? { kind: 'array', value: matrix }
-}
 
 export function evaluate(ast: Expr, ctx: EvalContext): Value {
   switch (ast.kind) {
@@ -339,7 +317,7 @@ export function evaluate(ast: Expr, ctx: EvalContext): Value {
         return ERR('#VALUE!', 'expected LAMBDA')
       }
       const argValues: LambdaArgument[] = ast.args.map((a) => evaluateLambdaArg(a, ctx))
-      return applyLambda(resolved.lambda, argValues, ctx)
+      return applyLambda(resolved.lambda, argValues, ctx, evaluate)
     }
 
     case 'call': {
@@ -496,31 +474,31 @@ export function evaluate(ast: Expr, ctx: EvalContext): Value {
         case 'INDEX':
           return evaluateIndex(ast.args, ctx)
         case 'ISFORMULA':
-          return evaluateIsFormula(ast.args, ctx)
+          return evaluateIsFormula(ast.args, ctx, REF_INFO_DEPS)
         case 'ISREF':
-          return evaluateIsRef(ast.args, ctx)
+          return evaluateIsRef(ast.args, ctx, REF_INFO_DEPS)
         case 'SHEET':
-          return evaluateSheet(ast.args, ctx)
+          return evaluateSheet(ast.args, ctx, REF_INFO_DEPS)
         case 'SHEETS':
-          return evaluateSheets(ast.args, ctx)
+          return evaluateSheets(ast.args, ctx, REF_INFO_DEPS)
         case 'AREAS':
-          return evaluateAreas(ast.args, ctx)
+          return evaluateAreas(ast.args, ctx, REF_INFO_DEPS)
         case 'FORMULATEXT':
-          return evaluateFormulaText(ast.args, ctx)
+          return evaluateFormulaText(ast.args, ctx, REF_INFO_DEPS)
         case 'CELL':
-          return evaluateCellInfo(ast.args, ctx)
+          return evaluateCellInfo(ast.args, ctx, REF_INFO_DEPS)
         case 'INDIRECT':
           return evaluateIndirect(ast.args, ctx)
         case 'OFFSET':
           return evaluateOffset(ast.args, ctx)
         case 'ROW':
-          return evaluateRow(ast.args, ctx)
+          return evaluateRow(ast.args, ctx, REF_INFO_DEPS)
         case 'COLUMN':
-          return evaluateColumn(ast.args, ctx)
+          return evaluateColumn(ast.args, ctx, REF_INFO_DEPS)
         case 'ROWS':
-          return evaluateRows(ast.args, ctx)
+          return evaluateRows(ast.args, ctx, REF_INFO_DEPS)
         case 'COLUMNS':
-          return evaluateColumns(ast.args, ctx)
+          return evaluateColumns(ast.args, ctx, REF_INFO_DEPS)
       }
 
       // Dispatch order: built-in registry → workbook LAMBDA name →
@@ -538,7 +516,7 @@ export function evaluate(ast: Expr, ctx: EvalContext): Value {
       const scopedLambda = ctx.lambdaFunctionScope?.get(canonicalName(ast.name))
       if (scopedLambda) {
         const argValues: LambdaArgument[] = ast.args.map((a) => evaluateLambdaArg(a, ctx))
-        return applyLambda(scopedLambda, argValues, ctx)
+        return applyLambda(scopedLambda, argValues, ctx, evaluate)
       }
 
       // LAMBDA dispatch: a `NameBinding` of `kind:'lambda'` registered
@@ -556,7 +534,7 @@ export function evaluate(ast: Expr, ctx: EvalContext): Value {
       const binding = ctx.resolveName(ast.name)
       if (binding && binding.kind === 'lambda') {
         const argValues: LambdaArgument[] = ast.args.map((a) => evaluateLambdaArg(a, ctx))
-        return applyLambda(binding, argValues, ctx)
+        return applyLambda(binding, argValues, ctx, evaluate)
       }
 
       const argValues: Value[] = ast.args.map((a) => evaluateFunctionArg(a, ctx))
@@ -568,90 +546,6 @@ export function evaluate(ast: Expr, ctx: EvalContext): Value {
       return ERR('#NAME?', `function '${ast.name}' is not registered`)
     }
   }
-}
-
-function evaluateSheet(args: ReadonlyArray<Expr>, ctx: EvalContext): Value {
-  if (args.length > 1) return ERR('#VALUE!', 'SHEET expects 0 or 1 arguments')
-  if (args.length === 0) return currentSheetNumber(ctx)
-  const arg = args[0]
-  if (arg.kind === 'ref' || arg.kind === 'range') return currentSheetNumber(ctx)
-  if (arg.kind === 'crossSheet') {
-    const idx = ctx.sheetIndexOf?.(arg.sheetName)
-    return idx === undefined ? ERR('#REF!') : { kind: 'number', value: idx + 1 }
-  }
-  if (arg.kind === 'multiArea') {
-    if (arg.areas.length === 0) return ERR('#VALUE!')
-    const error = validateReferenceExpr(arg, ctx)
-    if (error) return error
-    return evaluateSheet([arg.areas[0]], ctx)
-  }
-  return ERR('#VALUE!')
-}
-
-function currentSheetNumber(ctx: EvalContext): Value {
-  return ctx.currentSheetIndex === undefined
-    ? ERR('#REF!')
-    : { kind: 'number', value: ctx.currentSheetIndex + 1 }
-}
-
-function evaluateSheets(args: ReadonlyArray<Expr>, ctx: EvalContext): Value {
-  if (args.length > 1) return ERR('#VALUE!', 'SHEETS expects 0 or 1 arguments')
-  if (args.length === 0) return { kind: 'number', value: ctx.sheetCount ?? 1 }
-  const arg = args[0]
-  if (arg.kind === 'ref' || arg.kind === 'range') {
-    return { kind: 'number', value: 1 }
-  }
-  if (arg.kind === 'crossSheet') {
-    const error = validateReferenceExpr(arg, ctx)
-    return error ?? { kind: 'number', value: 1 }
-  }
-  return ERR('#VALUE!')
-}
-
-function evaluateAreas(args: ReadonlyArray<Expr>, ctx: EvalContext): Value {
-  if (args.length !== 1) return ERR('#VALUE!', 'AREAS expects 1 argument')
-  const arg = args[0]
-  if (arg.kind === 'multiArea') {
-    const error = validateReferenceExpr(arg, ctx)
-    if (error) return error
-    return { kind: 'number', value: arg.areas.length }
-  }
-  const resolved = runtimeRefFromExpr(arg, ctx)
-  if (!resolved.ok) return resolved.error ?? ERR('#VALUE!')
-  return validateRuntimeRefSheet(resolved.ref, ctx) ?? { kind: 'number', value: 1 }
-}
-
-function evaluateIsFormula(args: ReadonlyArray<Expr>, ctx: EvalContext): Value {
-  if (args.length !== 1) return ERR('#VALUE!')
-  const resolved = runtimeRefFromExpr(args[0], ctx)
-  if (!resolved.ok) return { kind: 'boolean', value: false }
-  const target = cellForRuntimeRef(topLeftRuntimeRef(resolved.ref), ctx)
-  if (target.error) return { kind: 'boolean', value: false }
-  return { kind: 'boolean', value: target.cell?.ast !== undefined }
-}
-
-function evaluateIsRef(args: ReadonlyArray<Expr>, ctx: EvalContext): Value {
-  if (args.length !== 1) return ERR('#VALUE!')
-  if (args[0].kind === 'multiArea') {
-    return { kind: 'boolean', value: validateReferenceExpr(args[0], ctx) === undefined }
-  }
-  const resolved = runtimeRefFromExpr(args[0], ctx)
-  if (!resolved.ok) return { kind: 'boolean', value: false }
-  const sheetError = validateRuntimeRefSheet(resolved.ref, ctx)
-  return { kind: 'boolean', value: sheetError === undefined }
-}
-
-function validateReferenceExpr(expr: Expr, ctx: EvalContext): Value | undefined {
-  if (expr.kind === 'multiArea') {
-    for (const area of expr.areas) {
-      const error = validateReferenceExpr(area, ctx)
-      if (error) return error
-    }
-    return undefined
-  }
-  const resolved = runtimeRefFromExpr(expr, ctx)
-  if (!resolved.ok) return resolved.error ?? ERR('#VALUE!')
-  return validateRuntimeRefSheet(resolved.ref, ctx)
 }
 
 export function evaluateFunctionArg(expr: Expr, ctx: EvalContext): Value {
@@ -671,21 +565,13 @@ function evaluateLambdaArg(expr: Expr, ctx: EvalContext): LambdaArgument {
   return evaluateFunctionArg(expr, ctx)
 }
 
-function isLambdaArgument(value: LambdaArgument | undefined): value is LambdaArgumentValue {
-  return value?.kind === 'lambdaArgument'
-}
-
-function isReferenceArgument(value: LambdaArgument | undefined): value is ReferenceArgumentValue {
-  return value?.kind === 'referenceArgument'
-}
-
 function evaluateIf(args: ReadonlyArray<Expr>, ctx: EvalContext): Value {
   if (args.length < 2 || args.length > 3) {
     return ERR('#VALUE!', 'IF expects 2 or 3 arguments')
   }
   const cond = evaluateFunctionArg(args[0], ctx)
   if (cond.kind === 'error') return cond
-  if (cond.kind === 'array') return evaluateArrayIf(cond, args, ctx)
+  if (cond.kind === 'array') return evaluateArrayIf(cond, args, ctx, evaluateFunctionArg)
   const coerced = toBoolean(cond)
   if (!coerced.ok) return coerced.error
   if (coerced.value) return evaluateFunctionArg(args[1], ctx)
@@ -697,7 +583,7 @@ function evaluateIf(args: ReadonlyArray<Expr>, ctx: EvalContext): Value {
 function evaluateIfError(args: ReadonlyArray<Expr>, ctx: EvalContext): Value {
   if (args.length !== 2) return ERR('#VALUE!')
   const value = evaluateFunctionArg(args[0], ctx)
-  if (value.kind === 'array') return evaluateArrayIfError(value, args[1], ctx, () => true)
+  if (value.kind === 'array') return evaluateArrayIfError(value, args[1], ctx, () => true, evaluateFunctionArg)
   return value.kind === 'error' ? evaluateFunctionArg(args[1], ctx) : value
 }
 
@@ -705,7 +591,7 @@ function evaluateIfNa(args: ReadonlyArray<Expr>, ctx: EvalContext): Value {
   if (args.length !== 2) return ERR('#VALUE!')
   const value = evaluateFunctionArg(args[0], ctx)
   if (value.kind === 'array') {
-    return evaluateArrayIfError(value, args[1], ctx, (error) => error.code === '#N/A')
+    return evaluateArrayIfError(value, args[1], ctx, (error) => error.code === '#N/A', evaluateFunctionArg)
   }
   return value.kind === 'error' && value.code === '#N/A'
     ? evaluateFunctionArg(args[1], ctx)
@@ -718,7 +604,7 @@ function evaluateIfs(args: ReadonlyArray<Expr>, ctx: EvalContext): Value {
   for (let i = 0; i < pairCount; i += 1) {
     const cond = evaluateFunctionArg(args[i * 2], ctx)
     if (cond.kind === 'error') return cond
-    if (cond.kind === 'array') return evaluateArrayIfs(args, ctx, i, cond)
+    if (cond.kind === 'array') return evaluateArrayIfs(args, ctx, i, cond, evaluateFunctionArg)
     const coerced = toBoolean(cond)
     if (!coerced.ok) return coerced.error
     if (coerced.value) return evaluateFunctionArg(args[i * 2 + 1], ctx)
@@ -730,7 +616,7 @@ function evaluateSwitch(args: ReadonlyArray<Expr>, ctx: EvalContext): Value {
   if (args.length < 3) return ERR('#VALUE!')
   const expr = evaluateFunctionArg(args[0], ctx)
   if (expr.kind === 'error') return expr
-  if (expr.kind === 'array') return evaluateArraySwitch(expr, args, ctx)
+  if (expr.kind === 'array') return evaluateArraySwitch(expr, args, ctx, evaluateFunctionArg)
   const rest = args.length - 1
   const pairCount = Math.floor(rest / 2)
   const hasDefault = rest % 2 === 1
@@ -798,169 +684,6 @@ function isIndexReferenceSource(expr: Expr | undefined, ctx: EvalContext): boole
   return upper === 'OFFSET' || upper === 'INDIRECT' || upper === 'CHOOSE'
 }
 
-function evaluateRow(args: ReadonlyArray<Expr>, ctx: EvalContext): Value {
-  if (args.length === 0) {
-    return { kind: 'number', value: (ctx.currentCell?.row ?? 0) + 1 }
-  }
-  if (args.length !== 1) return ERR('#VALUE!', 'ROW expects 0 or 1 arguments')
-  const resolved = runtimeRefFromExpr(args[0], ctx)
-  if (resolved.ok) return verticalSequence(resolved.ref.range.rowStart, resolved.ref.range.rowEnd)
-  if (resolved.error) return resolved.error
-  const value = evaluate(args[0], ctx)
-  if (value.kind === 'error') return value
-  if (value.kind === 'array') return verticalSequence(0, value.value.length - 1)
-  return { kind: 'number', value: 1 }
-}
-
-function evaluateColumn(args: ReadonlyArray<Expr>, ctx: EvalContext): Value {
-  if (args.length === 0) {
-    return { kind: 'number', value: (ctx.currentCell?.col ?? 0) + 1 }
-  }
-  if (args.length !== 1) return ERR('#VALUE!', 'COLUMN expects 0 or 1 arguments')
-  const resolved = runtimeRefFromExpr(args[0], ctx)
-  if (resolved.ok) return horizontalSequence(resolved.ref.range.colStart, resolved.ref.range.colEnd)
-  if (resolved.error) return resolved.error
-  const value = evaluate(args[0], ctx)
-  if (value.kind === 'error') return value
-  if (value.kind === 'array') return horizontalSequence(0, (value.value[0]?.length ?? 1) - 1)
-  return { kind: 'number', value: 1 }
-}
-
-function evaluateRows(args: ReadonlyArray<Expr>, ctx: EvalContext): Value {
-  if (args.length !== 1) return ERR('#VALUE!', 'ROWS expects 1 argument')
-  const resolved = runtimeRefFromExpr(args[0], ctx)
-  if (resolved.ok) {
-    return { kind: 'number', value: resolved.ref.range.rowEnd - resolved.ref.range.rowStart + 1 }
-  }
-  if (resolved.error) return resolved.error
-  const value = evaluate(args[0], ctx)
-  if (value.kind === 'error') return value
-  if (value.kind === 'array') return { kind: 'number', value: value.value.length }
-  return { kind: 'number', value: 1 }
-}
-
-function evaluateColumns(args: ReadonlyArray<Expr>, ctx: EvalContext): Value {
-  if (args.length !== 1) return ERR('#VALUE!', 'COLUMNS expects 1 argument')
-  const resolved = runtimeRefFromExpr(args[0], ctx)
-  if (resolved.ok) {
-    return { kind: 'number', value: resolved.ref.range.colEnd - resolved.ref.range.colStart + 1 }
-  }
-  if (resolved.error) return resolved.error
-  const value = evaluate(args[0], ctx)
-  if (value.kind === 'error') return value
-  if (value.kind === 'array') return { kind: 'number', value: value.value[0]?.length ?? 0 }
-  return { kind: 'number', value: 1 }
-}
-
-function verticalSequence(start: number, end: number): Value {
-  if (start === end) return { kind: 'number', value: start + 1 }
-  const rows: Value[][] = []
-  for (let row = start; row <= end; row += 1) {
-    rows.push([{ kind: 'number', value: row + 1 }])
-  }
-  return arrayResult(rows, 'ROW result')
-}
-
-function horizontalSequence(start: number, end: number): Value {
-  if (start === end) return { kind: 'number', value: start + 1 }
-  const row: Value[] = []
-  for (let col = start; col <= end; col += 1) {
-    row.push({ kind: 'number', value: col + 1 })
-  }
-  return arrayResult([row], 'COLUMN result')
-}
-
-function evaluateFormulaText(args: ReadonlyArray<Expr>, ctx: EvalContext): Value {
-  if (args.length !== 1) return ERR('#VALUE!', 'FORMULATEXT expects 1 argument')
-  const resolved = runtimeRefFromExpr(args[0], ctx)
-  if (!resolved.ok) return resolved.error ?? ERR('#VALUE!')
-  const cell = cellForRuntimeRef(resolved.ref, ctx)
-  if (cell.error) return cell.error
-  if (!cell.cell?.ast) return ERR('#N/A')
-  return { kind: 'string', value: cell.cell.input }
-}
-
-function evaluateCellInfo(args: ReadonlyArray<Expr>, ctx: EvalContext): Value {
-  if (args.length < 1 || args.length > 2) return ERR('#VALUE!', 'CELL expects 1 or 2 arguments')
-  const infoValue = evaluate(args[0], ctx)
-  if (infoValue.kind === 'error') return infoValue
-  if (infoValue.kind !== 'string') return ERR('#VALUE!')
-  const infoType = infoValue.value.toLowerCase()
-
-  let target: RuntimeRef
-  if (args.length === 2) {
-    const resolved = runtimeRefFromExpr(args[1], ctx)
-    if (!resolved.ok) return resolved.error ?? ERR('#VALUE!')
-    target = topLeftRuntimeRef(resolved.ref)
-  } else {
-    if (!ctx.currentCell) return ERR('#REF!')
-    target = {
-      range: {
-        rowStart: ctx.currentCell.row,
-        rowEnd: ctx.currentCell.row,
-        colStart: ctx.currentCell.col,
-        colEnd: ctx.currentCell.col,
-      },
-    }
-  }
-  const sheetError = validateRuntimeRefSheet(target, ctx)
-  if (sheetError) return sheetError
-
-  switch (infoType) {
-    case 'address':
-      return {
-        kind: 'string',
-        value: formatCellAddress(target),
-      }
-    case 'row':
-      return { kind: 'number', value: target.range.rowStart + 1 }
-    case 'col':
-    case 'column':
-      return { kind: 'number', value: target.range.colStart + 1 }
-    case 'contents':
-      return evaluateRuntimeRef(target, ctx, true)
-    case 'type': {
-      const value = evaluateRuntimeRef(target, ctx, true)
-      if (value.kind === 'blank') return { kind: 'string', value: 'b' }
-      if (value.kind === 'string') return { kind: 'string', value: 'l' }
-      return { kind: 'string', value: 'v' }
-    }
-    case 'prefix': {
-      const value = evaluateRuntimeRef(target, ctx, true)
-      return { kind: 'string', value: value.kind === 'string' ? "'" : '' }
-    }
-    case 'width':
-      return { kind: 'number', value: 8 }
-    case 'protect':
-      return { kind: 'number', value: 1 }
-    case 'color':
-    case 'parentheses':
-      return { kind: 'number', value: 0 }
-    case 'format':
-      return { kind: 'string', value: 'G' }
-    case 'filename':
-      return { kind: 'string', value: '' }
-    default:
-      return ERR('#VALUE!')
-  }
-}
-
-function formatCellAddress(ref: RuntimeRef): string {
-  const address = formatA1({
-    row: ref.range.rowStart,
-    col: ref.range.colStart,
-    absRow: true,
-    absCol: true,
-  })
-  if (!ref.sheetName) return address
-  return `${formatSheetAddressPrefix(ref.sheetName)}!${address}`
-}
-
-function formatSheetAddressPrefix(sheetName: string): string {
-  if (/^[A-Za-z_][A-Za-z0-9_.]*$/.test(sheetName)) return sheetName
-  return `'${sheetName.replace(/'/g, "''")}'`
-}
-
 function evaluateIndirect(args: ReadonlyArray<Expr>, ctx: EvalContext): Value {
   const resolved = runtimeRefFromIndirectArgs(args, ctx)
   if (!resolved.ok) return resolved.error ?? ERR('#REF!')
@@ -973,623 +696,6 @@ function evaluateOffset(args: ReadonlyArray<Expr>, ctx: EvalContext): Value {
   return evaluateRuntimeRef(resolved.ref, ctx)
 }
 
-function runtimeRefFromIndirectArgs(
-  args: ReadonlyArray<Expr>,
-  ctx: EvalContext,
-): { readonly ok: true; readonly ref: RuntimeRef } | {
-  readonly ok: false
-  readonly error?: Value
-} {
-  if (args.length < 1 || args.length > 2) {
-    return { ok: false, error: ERR('#VALUE!', 'INDIRECT expects 1 or 2 arguments') }
-  }
-  const textValue = evaluate(args[0], ctx)
-  if (textValue.kind === 'error') return { ok: false, error: textValue }
-  const text = toStr(textValue)
-  if (!text.ok) return { ok: false, error: text.error }
-
-  let a1Style = true
-  if (args.length === 2) {
-    const styleValue = evaluate(args[1], ctx)
-    if (styleValue.kind === 'error') return { ok: false, error: styleValue }
-    const style = toBoolean(styleValue)
-    if (!style.ok) return { ok: false, error: style.error }
-    a1Style = style.value
-  }
-
-  const ref = parseIndirectReference(text.value, a1Style, ctx.currentCell)
-  return ref ? { ok: true, ref } : { ok: false, error: ERR('#REF!') }
-}
-
-function runtimeRefFromOffsetArgs(
-  args: ReadonlyArray<Expr>,
-  ctx: EvalContext,
-): { readonly ok: true; readonly ref: RuntimeRef } | {
-  readonly ok: false
-  readonly error?: Value
-} {
-  if (args.length < 3 || args.length > 5) {
-    return { ok: false, error: ERR('#VALUE!', 'OFFSET expects 3 to 5 arguments') }
-  }
-  const anchor = runtimeRefFromExpr(args[0], ctx)
-  if (!anchor.ok) return { ok: false, error: anchor.error ?? ERR('#VALUE!') }
-
-  const rowOffset = evaluateIntegerArg(args[1], ctx)
-  if (!rowOffset.ok) return { ok: false, error: rowOffset.error }
-  const colOffset = evaluateIntegerArg(args[2], ctx)
-  if (!colOffset.ok) return { ok: false, error: colOffset.error }
-
-  const anchorRows = anchor.ref.range.rowEnd - anchor.ref.range.rowStart + 1
-  const anchorCols = anchor.ref.range.colEnd - anchor.ref.range.colStart + 1
-  const height: IntegerArgResult = args.length >= 4
-    ? evaluatePositiveIntegerArg(args[3], ctx)
-    : { ok: true, value: anchorRows }
-  if (!height.ok) return { ok: false, error: height.error }
-  const width: IntegerArgResult = args.length === 5
-    ? evaluatePositiveIntegerArg(args[4], ctx)
-    : { ok: true, value: anchorCols }
-  if (!width.ok) return { ok: false, error: width.error }
-
-  const rowStart = anchor.ref.range.rowStart + rowOffset.value
-  const colStart = anchor.ref.range.colStart + colOffset.value
-  const rowEnd = rowStart + height.value - 1
-  const colEnd = colStart + width.value - 1
-  if (
-    rowStart < 0 ||
-    colStart < 0 ||
-    rowEnd > EXCEL_MAX_ROW ||
-    colEnd > EXCEL_MAX_COL
-  ) {
-    return { ok: false, error: ERR('#REF!') }
-  }
-  return {
-    ok: true,
-    ref: {
-      sheetName: anchor.ref.sheetName,
-      range: { rowStart, rowEnd, colStart, colEnd },
-    },
-  }
-}
-
-function runtimeRefFromIndexArgs(
-  args: ReadonlyArray<Expr>,
-  ctx: EvalContext,
-): { readonly ok: true; readonly ref: RuntimeRef } | {
-  readonly ok: false
-  readonly error?: Value
-} {
-  if (args.length < 2 || args.length > 4) {
-    return { ok: false, error: ERR('#VALUE!', 'INDEX expects 2 to 4 arguments') }
-  }
-  const source = runtimeRefFromIndexSource(args, ctx)
-  if (!source.ok) return source.error ? { ok: false, error: source.error } : { ok: false }
-
-  const row = evaluateIntegerArg(args[1], ctx)
-  if (!row.ok) return { ok: false, error: row.error }
-  const colExplicit = args.length >= 3
-  const col: IntegerArgResult = colExplicit
-    ? evaluateIntegerArg(args[2], ctx)
-    : { ok: true, value: 0 }
-  if (!col.ok) return { ok: false, error: col.error }
-  if (row.value < 0 || col.value < 0) return { ok: false, error: ERR('#VALUE!') }
-
-  const range = source.ref.range
-  const height = range.rowEnd - range.rowStart + 1
-  const width = range.colEnd - range.colStart + 1
-
-  const refAt = (
-    rowStartOffset: number,
-    rowEndOffset: number,
-    colStartOffset: number,
-    colEndOffset: number,
-  ): { readonly ok: true; readonly ref: RuntimeRef } => {
-    const materialized = source.ref.materialized
-      ? sliceMaterialized(
-          source.ref.materialized,
-          rowStartOffset,
-          rowEndOffset,
-          colStartOffset,
-          colEndOffset,
-        )
-      : undefined
-    return {
-      ok: true,
-      ref: {
-        sheetName: source.ref.sheetName,
-        range: {
-          rowStart: range.rowStart + rowStartOffset,
-          rowEnd: range.rowStart + rowEndOffset,
-          colStart: range.colStart + colStartOffset,
-          colEnd: range.colStart + colEndOffset,
-        },
-        ...(materialized ? { materialized } : {}),
-      },
-    }
-  }
-
-  if (!colExplicit) {
-    if (height === 1 && width > 1) {
-      if (row.value === 0) return refAt(0, 0, 0, width - 1)
-      if (row.value < 1 || row.value > width) return { ok: false, error: ERR('#REF!') }
-      const colOffset = row.value - 1
-      return refAt(0, 0, colOffset, colOffset)
-    }
-    if (width === 1 && height > 1) {
-      if (row.value === 0) return refAt(0, height - 1, 0, 0)
-      if (row.value < 1 || row.value > height) return { ok: false, error: ERR('#REF!') }
-      const rowOffset = row.value - 1
-      return refAt(rowOffset, rowOffset, 0, 0)
-    }
-    if (height === 1 && width === 1) {
-      if (row.value === 0 || row.value === 1) return refAt(0, 0, 0, 0)
-      return { ok: false, error: ERR('#REF!') }
-    }
-  }
-
-  if (row.value > height || col.value > width) return { ok: false, error: ERR('#REF!') }
-
-  if (row.value === 0 && col.value === 0) return refAt(0, height - 1, 0, width - 1)
-  if (row.value === 0) {
-    const colOffset = col.value - 1
-    return refAt(0, height - 1, colOffset, colOffset)
-  }
-  if (col.value === 0) {
-    const rowOffset = row.value - 1
-    return refAt(rowOffset, rowOffset, 0, width - 1)
-  }
-  return refAt(row.value - 1, row.value - 1, col.value - 1, col.value - 1)
-}
-
-function runtimeRefFromIndexSource(
-  args: ReadonlyArray<Expr>,
-  ctx: EvalContext,
-): { readonly ok: true; readonly ref: RuntimeRef } | {
-  readonly ok: false
-  readonly error?: Value
-} {
-  const sourceExpr = args[0]
-  if (sourceExpr.kind === 'multiArea') {
-    const area = evaluateIndexAreaArg(args[3], ctx, sourceExpr.areas.length)
-    if (!area.ok) return { ok: false, error: area.error }
-    return runtimeRefFromExpr(sourceExpr.areas[area.value - 1], ctx)
-  }
-
-  const source = runtimeRefFromExpr(sourceExpr, ctx)
-  if (!source.ok) return source
-  if (args.length < 4) return source
-
-  const area = evaluateIndexAreaArg(args[3], ctx, 1)
-  if (!area.ok) return { ok: false, error: area.error }
-  return source
-}
-
-function evaluateIndexAreaArg(
-  expr: Expr | undefined,
-  ctx: EvalContext,
-  areaCount: number,
-): IntegerArgResult {
-  if (expr === undefined) return { ok: true, value: 1 }
-  const area = evaluateIntegerArg(expr, ctx)
-  if (!area.ok) return area
-  if (area.value < 1) return { ok: false, error: ERR('#VALUE!') }
-  if (area.value > areaCount) return { ok: false, error: ERR('#REF!') }
-  return area
-}
-
-function evaluateIntegerArg(
-  expr: Expr,
-  ctx: EvalContext,
-): IntegerArgResult {
-  const value = evaluate(expr, ctx)
-  if (value.kind === 'error') return { ok: false, error: value }
-  const n = toNumber(value)
-  if (!n.ok) return { ok: false, error: n.error }
-  const integer = Math.trunc(n.value)
-  if (!Number.isFinite(integer)) return { ok: false, error: ERR('#REF!') }
-  return { ok: true, value: integer }
-}
-
-function evaluatePositiveIntegerArg(
-  expr: Expr,
-  ctx: EvalContext,
-): IntegerArgResult {
-  const value = evaluateIntegerArg(expr, ctx)
-  if (!value.ok) return value
-  if (value.value < 1) return { ok: false, error: ERR('#REF!') }
-  return value
-}
-
-function topLeftRuntimeRef(ref: RuntimeRef): RuntimeRef {
-  const materialized = ref.materialized ? [[ref.materialized[0]?.[0] ?? BLANK]] : undefined
-  return {
-    sheetName: ref.sheetName,
-    range: {
-      rowStart: ref.range.rowStart,
-      rowEnd: ref.range.rowStart,
-      colStart: ref.range.colStart,
-      colEnd: ref.range.colStart,
-    },
-    ...(materialized ? { materialized } : {}),
-  }
-}
-
-function evaluateRuntimeRef(ref: RuntimeRef, ctx: EvalContext, scalarTopLeft = false): Value {
-  if (ref.materialized) {
-    if (
-      scalarTopLeft ||
-      (ref.materialized.length === 1 && (ref.materialized[0]?.length ?? 0) === 1)
-    ) {
-      return ref.materialized[0]?.[0] ?? BLANK
-    }
-    return arrayResult(ref.materialized, 'range result')
-  }
-  const range = ref.range
-  const start = formatA1({ row: range.rowStart, col: range.colStart })
-  const isSingle = range.rowStart === range.rowEnd && range.colStart === range.colEnd
-  if (isSingle || scalarTopLeft) {
-    if (!ref.sheetName) return ctx.refLookup(start)
-    const cells = ctx.crossSheetCells(ref.sheetName)
-    if (!cells) return ERR('#REF!')
-    // 跨表单格读成值：与本表同一条规则，锚点折叠成左上角标量。
-    return anchorScalar(
-      evaluateInForeignSheet(
-        { kind: 'ref', a1: start, absCol: false, absRow: false },
-        ctx,
-        cells,
-        ref.sheetName,
-      ),
-    )
-  }
-
-  const end = formatA1({ row: range.rowEnd, col: range.colEnd })
-  if (!ref.sheetName) {
-    const rows = ctx.rangeLookup(start, end)
-    if (rows.length === 0 || rows[0].length === 0) return ERR('#REF!')
-    return arrayResult(rows, 'range result')
-  }
-  const cells = ctx.crossSheetCells(ref.sheetName)
-  if (!cells) return ERR('#REF!')
-  return evaluateInForeignSheet({ kind: 'range', start, end }, ctx, cells, ref.sheetName)
-}
-
-function cellForRuntimeRef(
-  ref: RuntimeRef,
-  ctx: EvalContext,
-): { readonly cell: Cell | undefined; readonly error?: undefined } | { readonly error: Value } {
-  const cells = ref.sheetName ? ctx.crossSheetCells(ref.sheetName) : ctx.cells
-  if (!cells) return { error: ERR('#REF!') }
-  return {
-    cell: cells.get(cellKey({ row: ref.range.rowStart, col: ref.range.colStart })),
-  }
-}
-
-function shouldSparseIterate(range: CellRange): boolean {
-  const wholeColumns = range.rowStart === 0 && range.rowEnd === EXCEL_MAX_ROW
-  const wholeRows = range.colStart === 0 && range.colEnd === EXCEL_MAX_COL
-  return wholeColumns || wholeRows || rangeCellCount(range) > MATERIALIZED_RANGE_CELL_CAP
-}
-
-export function canSparseIterate(ref: RuntimeRef): boolean {
-  return !ref.materialized && shouldSparseIterate(ref.range)
-}
-
-export function rangeCellCount(range: CellRange): number {
-  return (range.rowEnd - range.rowStart + 1) * (range.colEnd - range.colStart + 1)
-}
-
-export function sparseValuesForRef(
-  ref: RuntimeRef,
-  ctx: EvalContext,
-):
-  | {
-      readonly ok: true
-      readonly values: ReadonlyArray<{ readonly coord: CellCoord; readonly value: Value }>
-    }
-  | {
-      readonly ok: false
-      readonly error: Value
-    } {
-  const cells = ref.sheetName ? ctx.crossSheetCells(ref.sheetName) : ctx.cells
-  if (!cells) return { ok: false, error: ERR('#REF!') }
-
-  const coords: CellCoord[] = []
-  for (const key of cells.keys()) {
-    const coord = cellCoordFromKey(key)
-    if (coord && rangeContainsCoord(ref.range, coord)) coords.push(coord)
-  }
-  // 投影格在 `cells` 里没有条目，稀疏遍历看不见它们。补回来 —— 少了这一步，
-  // 锚点被 `anchorScalar` 收成标量之后 `SUM(A:A)` 会从 6 掉成 1（A2/A3 没人报数）。
-  // 这是「稀疏孪生」那一族最容易出事的一处：区间形式走物化路径、整列形式走这里，
-  // 两条路必须给同一个答案。
-  const projected = spillProjectedInRange(ref, ctx)
-  for (const key of projected.keys()) {
-    const coord = cellCoordFromKey(key)
-    if (coord) coords.push(coord)
-  }
-  coords.sort((a, b) => a.row - b.row || a.col - b.col)
-
-  // Per-cell resolution discipline (scale-suite S3/S4 finding,
-  // 2026-06-12 — pre-fix, whole-column aggregates over N existing cells
-  // were O(N² log N): every uncached cell's refLookup threw NeedsDep
-  // under the trampoline shim, restarting this whole scan-and-sort once
-  // per cell; SUM(A:A) measured 458 ms @ 1k, 1.83 s @ 2k, 7.3 s @ 4k,
-  // ~hours @ 100k):
-  //
-  //  1. LITERAL cells resolve straight from storage (`coords` came from
-  //     this very map) — O(1), semantics-preserving (refLookup returns
-  //     exactly `cell.value` for them; see `valueAtRuntimeCoord`).
-  //  2. FORMULA cells keep the refLookup path (trampoline evaluation,
-  //     cycle detection, lazy dep install) — but their NeedsDep faults
-  //     are ACCUMULATED and rethrown as ONE batch, mirroring the shim's
-  //     `rangeLookup` batching, so a column dense with formula cells
-  //     costs one retry of the calling formula, not one restart per
-  //     cell. Under the recursive (non-shim) path refLookup never
-  //     throws and the try/catch is inert.
-  const missing: Array<{
-    cells: ReadonlyMap<CellKey, Cell>
-    key: CellKey
-    guardKey: CellKey
-  }> = []
-  const values: Array<{ coord: CellCoord; value: Value }> = new Array(coords.length)
-  for (let i = 0; i < coords.length; i += 1) {
-    const coord = coords[i]
-    const key = cellKey(coord)
-    const cell = cells.get(key)
-    if (cell && !cell.ast) {
-      values[i] = { coord, value: anchorScalar(cell.value) }
-      continue
-    }
-    if (!cell) {
-      // 投影格：值上面已经算出来了，别再逐格回头扫一遍锚点。
-      const hit = projected.get(key)
-      if (hit !== undefined) {
-        values[i] = { coord, value: hit }
-        continue
-      }
-    }
-    try {
-      values[i] = { coord, value: valueAtRuntimeCoord(ref.sheetName, coord, ctx) }
-    } catch (err) {
-      if (err instanceof NeedsDep) {
-        // Placeholder never observed: the merged NeedsDep below aborts
-        // the caller before `values` is returned.
-        missing.push(...err.deps)
-        values[i] = { coord, value: BLANK }
-        continue
-      }
-      throw err
-    }
-  }
-  if (missing.length > 0) throw new NeedsDep(missing)
-  return { ok: true, values }
-}
-
-/**
- * `ref` 覆盖的矩形里所有**没有自有条目**的投影格。账本缺席 / 一个锚点都没压过来
- * 时返回空 Map，调用方零代价。
- */
-function spillProjectedInRange(ref: RuntimeRef, ctx: EvalContext): Map<CellKey, Value> {
-  const out = new Map<CellKey, Value>()
-  const run = spillRunOf(ctx)
-  if (!run) return out
-  const cells = ref.sheetName ? ctx.crossSheetCells(ref.sheetName) : ctx.cells
-  if (!cells) return out
-  const scan = run.scan(ref.sheetName, ref.range)
-  if (scan.anchors.length === 0) return out
-  for (const hit of projectedCoordsIn(scan, ref.range, cells)) {
-    out.set(cellKey(hit.coord), hit.value)
-  }
-  return out
-}
-
-function rangeContainsCoord(range: CellRange, coord: CellCoord): boolean {
-  return (
-    coord.row >= range.rowStart &&
-    coord.row <= range.rowEnd &&
-    coord.col >= range.colStart &&
-    coord.col <= range.colEnd
-  )
-}
-
-export function valueAtRuntimeCoord(
-  sheetName: string | undefined,
-  coord: CellCoord,
-  ctx: EvalContext,
-): Value {
-  // Literal / missing cells resolve straight from storage — O(1), no
-  // trampoline fault. Routing them through `refLookup` made every
-  // per-cell read inside the sparse aggregates THROW NeedsDep under the
-  // trampoline shim, restarting the calling formula's whole evaluation
-  // once per cell (scale-suite S3/S4 finding, 2026-06-12: SUM(A:A) over
-  // N literals was O(N² log N); SUMIF(A:A, crit) re-ran once per
-  // MATCHING cell — 1.86 s @ 50k). The direct read is semantics-
-  // preserving: for a literal, `refLookup` returns exactly `cell.value`,
-  // and for a missing cell, BLANK. Formula cells keep the original
-  // paths (trampoline evaluation, cycle detection, lazy dep install)
-  // untouched, as do out-of-bounds coords (#REF! via the parse failure).
-  if (
-    coord.row >= 0 &&
-    coord.row <= EXCEL_MAX_ROW &&
-    coord.col >= 0 &&
-    coord.col <= EXCEL_MAX_COL
-  ) {
-    const storage = sheetName ? ctx.crossSheetCells(sheetName) : ctx.cells
-    if (storage) {
-      const cell = storage.get(cellKey(coord))
-      // 自有条目缺席 → 问投影：这一格可能落在某个锚点的溢出矩形里。账本缺席时
-      // （宿主自造 ctx）退回原来的「空」。
-      if (!cell) return spillRunOf(ctx)?.at(sheetName, coord) ?? BLANK
-      // 数组字面量（`setCellValue` 直接塞进来的锚点）作为单元格引用被读到时是
-      // 左上角那个标量 —— 与公式锚点同一条规则，见 `anchorScalar`。
-      if (!cell.ast) return anchorScalar(cell.value)
-    }
-  }
-  const a1 = formatA1(coord)
-  if (!sheetName) return ctx.refLookup(a1)
-  const cells = ctx.crossSheetCells(sheetName)
-  if (!cells) return ERR('#REF!')
-  // 跨表单格：`evaluateCellTrampolined` 交回的是**原值**（锚点是整片数组），所以
-  // 这里补上同表路径已经做过的那次折叠。
-  return anchorScalar(
-    evaluateInForeignSheet(
-      { kind: 'ref', a1, absCol: false, absRow: false },
-      ctx,
-      cells,
-      sheetName,
-    ),
-  )
-}
-
-/**
- * `A1#` 专用：读锚点的**整片数组**，不折叠。
- *
- * 除这一条外，所有把地址读成值的路径都走 `valueAtRuntimeCoord`（折叠 + 投影）。
- * 两者的差别就是 Excel 里 `A1` 与 `A1#` 的差别。
- */
-function rawValueAtRuntimeCoord(
-  sheetName: string | undefined,
-  coord: CellCoord,
-  ctx: EvalContext,
-): Value {
-  const storage = sheetName ? ctx.crossSheetCells(sheetName) : ctx.cells
-  const cell = storage?.get(cellKey(coord))
-  if (storage && !cell) return spillRunOf(ctx)?.at(sheetName, coord) ?? BLANK
-  if (cell && !cell.ast) return cell.value
-  const a1 = formatA1(coord)
-  if (sheetName) {
-    const cells = ctx.crossSheetCells(sheetName)
-    if (!cells) return ERR('#REF!')
-    return evaluateInForeignSheet({ kind: 'ref', a1, absCol: false, absRow: false }, ctx, cells, sheetName)
-  }
-  const raw = (ctx as SpillAwareContext).refLookupRaw
-  return raw ? raw(a1) : ctx.refLookup(a1)
-}
-
-function validateRuntimeRefSheet(ref: RuntimeRef, ctx: EvalContext): Value | undefined {
-  if (!ref.sheetName) return undefined
-  return ctx.crossSheetCells(ref.sheetName) ? undefined : ERR('#REF!')
-}
-
-export function runtimeRefFromExpr(
-  expr: Expr,
-  ctx?: EvalContext,
-): { readonly ok: true; readonly ref: RuntimeRef } | {
-  readonly ok: false
-  readonly error?: Value
-} {
-  switch (expr.kind) {
-    case 'ref': {
-      const parsed = parseA1(expr.a1)
-      if (!parsed) return { ok: false, error: ERR('#REF!') }
-      return {
-        ok: true,
-        ref: {
-          range: {
-            rowStart: parsed.row,
-            rowEnd: parsed.row,
-            colStart: parsed.col,
-            colEnd: parsed.col,
-          },
-        },
-      }
-    }
-    case 'range': {
-      const range = parseRange(expr.start, expr.end)
-      if (!range) return { ok: false, error: ERR('#REF!') }
-      return { ok: true, ref: { range } }
-    }
-    case 'dynamicRange': {
-      if (!ctx) return { ok: false }
-      return runtimeRefFromDynamicRange(expr, ctx)
-    }
-    case 'spillRef': {
-      if (!ctx) return { ok: false }
-      return runtimeRefFromSpillRef(expr, ctx)
-    }
-    case 'crossSheet': {
-      const inner = runtimeRefFromExpr(expr.inner, ctx)
-      if (!inner.ok) return inner
-      return {
-        ok: true,
-        ref: {
-          sheetName: expr.sheetName,
-          range: inner.ref.range,
-        },
-      }
-    }
-    case 'name': {
-      if (!ctx) return { ok: false }
-      const name = canonicalName(expr.name)
-      if (ctx.lambdaScope?.get(name) !== undefined) return { ok: false }
-      const scopedRef = ctx.lambdaRefScope?.get(name)
-      if (scopedRef) return { ok: true, ref: scopedRef }
-      const binding = ctx.resolveName(expr.name)
-      if (binding?.kind !== 'range') return { ok: false }
-      const range = parseRange(binding.start, binding.end)
-      if (!range) return { ok: false, error: ERR('#REF!') }
-      return { ok: true, ref: { sheetName: binding.sheetName, range } }
-    }
-    case 'call': {
-      if (!ctx) return { ok: false }
-      const upper = expr.name.toUpperCase()
-      if (upper === 'OFFSET') return runtimeRefFromOffsetArgs(expr.args, ctx)
-      if (upper === 'INDIRECT') return runtimeRefFromIndirectArgs(expr.args, ctx)
-      if (upper === 'INDEX') return runtimeRefFromIndexArgs(expr.args, ctx)
-      if (upper === 'CHOOSE') {
-        const selected = chooseSelectedExpr(expr.args, ctx)
-        if (!selected.ok) return { ok: false, error: selected.error }
-        return runtimeRefFromExpr(selected.expr, ctx)
-      }
-      return { ok: false }
-    }
-    default:
-      return { ok: false }
-  }
-}
-
-function runtimeRefFromDynamicRange(
-  expr: Extract<Expr, { readonly kind: 'dynamicRange' }>,
-  ctx: EvalContext,
-): { readonly ok: true; readonly ref: RuntimeRef } | {
-  readonly ok: false
-  readonly error?: Value
-} {
-  const start = runtimeRefFromExpr(expr.start, ctx)
-  if (!start.ok) return start.error ? { ok: false, error: start.error } : { ok: false }
-  const end = runtimeRefFromExpr(expr.end, ctx)
-  if (!end.ok) return end.error ? { ok: false, error: end.error } : { ok: false, error: ERR('#VALUE!') }
-
-  const sheet = combinedRuntimeRefSheet(start.ref, end.ref, ctx)
-  if (!sheet.ok) return { ok: false, error: sheet.error }
-
-  return {
-    ok: true,
-    ref: {
-      sheetName: sheet.sheetName,
-      range: normalizeRange({
-        rowStart: start.ref.range.rowStart,
-        rowEnd: end.ref.range.rowEnd,
-        colStart: start.ref.range.colStart,
-        colEnd: end.ref.range.colEnd,
-      }),
-    },
-  }
-}
-
-function combinedRuntimeRefSheet(
-  start: RuntimeRef,
-  end: RuntimeRef,
-  ctx: EvalContext,
-): { readonly ok: true; readonly sheetName?: string }
-  | { readonly ok: false; readonly error: Value } {
-  const lhs = start.sheetName ?? ctx.currentSheetName
-  const rhs = end.sheetName ?? ctx.currentSheetName
-  if (lhs !== undefined && rhs !== undefined && lhs !== rhs) {
-    return { ok: false, error: ERR('#VALUE!', 'range endpoints must be on the same sheet') }
-  }
-  return { ok: true, sheetName: start.sheetName ?? end.sheetName }
-}
-
 function evaluateSpillRef(
   expr: Extract<Expr, { readonly kind: 'spillRef' }>,
   ctx: EvalContext,
@@ -1598,219 +704,6 @@ function evaluateSpillRef(
   if (!resolved.ok) return resolved.error ?? ERR('#REF!')
   if (resolved.ref.materialized) return arrayResult(resolved.ref.materialized, 'range result')
   return evaluateRuntimeRef(resolved.ref, ctx)
-}
-
-function runtimeRefFromSpillRef(
-  expr: Extract<Expr, { readonly kind: 'spillRef' }>,
-  ctx: EvalContext,
-): { readonly ok: true; readonly ref: RuntimeRef } | {
-  readonly ok: false
-  readonly error?: Value
-} {
-  const anchor = runtimeRefFromExpr(expr.anchor, ctx)
-  if (!anchor.ok) return anchor.error ? { ok: false, error: anchor.error } : { ok: false }
-  const value = spillAnchorValue(expr, ctx)
-  if (value.kind === 'error') return { ok: false, error: value }
-  if (value.kind !== 'array') {
-    return { ok: false, error: ERR('#REF!', 'spill reference anchor is not an array') }
-  }
-  const rows = value.value.length
-  const cols = value.value[0]?.length ?? 0
-  if (rows < 1 || cols < 1) return { ok: false, error: ERR('#REF!') }
-  const rowEnd = anchor.ref.range.rowStart + rows - 1
-  const colEnd = anchor.ref.range.colStart + cols - 1
-  if (rowEnd > EXCEL_MAX_ROW || colEnd > EXCEL_MAX_COL) return { ok: false, error: ERR('#REF!') }
-  return {
-    ok: true,
-    ref: {
-      sheetName: anchor.ref.sheetName,
-      range: {
-        rowStart: anchor.ref.range.rowStart,
-        rowEnd,
-        colStart: anchor.ref.range.colStart,
-        colEnd,
-      },
-      materialized: value.value,
-    },
-  }
-}
-
-function sliceMaterialized(
-  cells: Value[][],
-  rowStartOffset: number,
-  rowEndOffset: number,
-  colStartOffset: number,
-  colEndOffset: number,
-): Value[][] {
-  const out: Value[][] = []
-  for (let r = rowStartOffset; r <= rowEndOffset; r += 1) {
-    out.push(cells[r].slice(colStartOffset, colEndOffset + 1))
-  }
-  return out
-}
-
-function spillAnchorValue(
-  expr: Extract<Expr, { readonly kind: 'spillRef' }>,
-  ctx: EvalContext,
-): Value {
-  const anchor = runtimeRefFromExpr(expr.anchor, ctx)
-  if (!anchor.ok) return anchor.error ?? ERR('#REF!')
-  const range = anchor.ref.range
-  if (range.rowStart !== range.rowEnd || range.colStart !== range.colEnd) return ERR('#REF!')
-  return rawValueAtRuntimeCoord(
-    anchor.ref.sheetName,
-    { row: range.rowStart, col: range.colStart },
-    ctx,
-  )
-}
-
-function parseIndirectReference(
-  text: string,
-  a1Style = true,
-  base?: CellCoord,
-): RuntimeRef | undefined {
-  const trimmed = text.trim()
-  if (trimmed.length === 0) return undefined
-
-  let sheetName: string | undefined
-  let body = trimmed
-  if (trimmed[0] === "'") {
-    const quoted = readQuotedSheetName(trimmed)
-    if (!quoted || trimmed[quoted.next] !== '!') return undefined
-    sheetName = quoted.name
-    body = trimmed.slice(quoted.next + 1)
-  } else {
-    const bang = trimmed.indexOf('!')
-    if (bang >= 0) {
-      sheetName = trimmed.slice(0, bang)
-      if (sheetName.length === 0) return undefined
-      body = trimmed.slice(bang + 1)
-    }
-  }
-  if (body.length === 0) return undefined
-
-  const range = parseIndirectBody(body, a1Style, base)
-  return range ? { sheetName, range } : undefined
-}
-
-function parseIndirectBody(
-  body: string,
-  a1Style: boolean,
-  base?: CellCoord,
-): CellRange | undefined {
-  const colon = body.indexOf(':')
-  if (colon < 0) {
-    const parsed = a1Style ? parseA1(body) : parseR1C1(body, base)
-    if (!parsed) return undefined
-    return {
-      rowStart: parsed.row,
-      rowEnd: parsed.row,
-      colStart: parsed.col,
-      colEnd: parsed.col,
-    }
-  }
-  if (body.indexOf(':', colon + 1) >= 0) return undefined
-  const parsePart = (part: string): CellCoord | null =>
-    a1Style ? parseA1(part) : parseR1C1(part, base)
-  const startStr = body.slice(0, colon).trim()
-  const endStr = body.slice(colon + 1).trim()
-  if (a1Style) {
-    const wholeColumn = expandWholeColumn(startStr, endStr)
-    if (wholeColumn) return wholeColumn
-    const wholeRow = expandWholeRow(startStr, endStr)
-    if (wholeRow) return wholeRow
-  }
-  const start = parsePart(startStr)
-  const end = parsePart(endStr)
-  if (!start || !end) return undefined
-  return {
-    rowStart: Math.min(start.row, end.row),
-    rowEnd: Math.max(start.row, end.row),
-    colStart: Math.min(start.col, end.col),
-    colEnd: Math.max(start.col, end.col),
-  }
-}
-
-const WHOLE_COLUMN_PART_RE = /^\$?[A-Za-z]{1,3}$/
-const WHOLE_ROW_PART_RE = /^\$?\d+$/
-
-function expandWholeColumn(startStr: string, endStr: string): CellRange | undefined {
-  if (!WHOLE_COLUMN_PART_RE.test(startStr) || !WHOLE_COLUMN_PART_RE.test(endStr)) {
-    return undefined
-  }
-  const startCol = parseA1(`${startStr}1`)
-  const endCol = parseA1(`${endStr}1`)
-  if (!startCol || !endCol) return undefined
-  return {
-    rowStart: 0,
-    rowEnd: EXCEL_MAX_ROW,
-    colStart: Math.min(startCol.col, endCol.col),
-    colEnd: Math.max(startCol.col, endCol.col),
-  }
-}
-
-function expandWholeRow(startStr: string, endStr: string): CellRange | undefined {
-  if (!WHOLE_ROW_PART_RE.test(startStr) || !WHOLE_ROW_PART_RE.test(endStr)) {
-    return undefined
-  }
-  const startRow = parseA1(`A${startStr}`)
-  const endRow = parseA1(`A${endStr}`)
-  if (!startRow || !endRow) return undefined
-  return {
-    rowStart: Math.min(startRow.row, endRow.row),
-    rowEnd: Math.max(startRow.row, endRow.row),
-    colStart: 0,
-    colEnd: EXCEL_MAX_COL,
-  }
-}
-
-function parseR1C1(text: string, base?: CellCoord): CellCoord | null {
-  const match = /^R(\[[-+]?\d+\]|\d*)C(\[[-+]?\d+\]|\d*)$/i.exec(text.trim())
-  if (!match) return null
-  const row = resolveR1C1Axis(match[1], base?.row, EXCEL_MAX_ROW)
-  const col = resolveR1C1Axis(match[2], base?.col, EXCEL_MAX_COL)
-  if (row === undefined || col === undefined) return null
-  return { row, col }
-}
-
-function resolveR1C1Axis(
-  spec: string,
-  base: number | undefined,
-  max: number,
-): number | undefined {
-  if (spec.length === 0) return base
-  if (spec[0] === '[') {
-    if (base === undefined || spec[spec.length - 1] !== ']') return undefined
-    const offset = Number(spec.slice(1, -1))
-    if (!Number.isInteger(offset)) return undefined
-    const resolved = base + offset
-    return resolved < 0 || resolved > max ? undefined : resolved
-  }
-  const oneBased = Number(spec)
-  if (!Number.isInteger(oneBased) || oneBased < 1) return undefined
-  const resolved = oneBased - 1
-  return resolved > max ? undefined : resolved
-}
-
-function readQuotedSheetName(
-  text: string,
-): { readonly name: string; readonly next: number } | undefined {
-  let i = 1
-  let name = ''
-  while (i < text.length) {
-    const ch = text[i]
-    if (ch === "'") {
-      if (text[i + 1] === "'") {
-        name += "'"
-        i += 2
-        continue
-      }
-      return { name, next: i + 1 }
-    }
-    name += ch
-    i += 1
-  }
-  return undefined
 }
 
 function evaluateLet(args: ReadonlyArray<Expr>, ctx: EvalContext): Value {
@@ -1917,7 +810,7 @@ function evaluateMap(args: ReadonlyArray<Expr>, ctx: EvalContext): Value {
   for (let r = 0; r < first.rows; r += 1) {
     for (let c = 0; c < first.cols; c += 1) {
       const values = grids.map((grid) => grid.cells[r][c])
-      const result = applyLambdaForArrayCell(lambda.lambda, values, ctx)
+      const result = applyLambdaForArrayCell(lambda.lambda, values, ctx, evaluate)
       if (!result.ok) return result.error
       out[r][c] = result.value
     }
@@ -1952,7 +845,7 @@ function evaluateMapSparse(
   const out: Value[][] = []
   for (const { value } of sparse.values) {
     if (value.kind === 'blank') continue
-    const result = applyLambdaForArrayCell(lambda, [value], ctx)
+    const result = applyLambdaForArrayCell(lambda, [value], ctx, evaluate)
     if (!result.ok) return result.error
     out.push([result.value])
   }
@@ -1973,7 +866,7 @@ function evaluateReduce(args: ReadonlyArray<Expr>, ctx: EvalContext): Value {
   let acc: Value = initial
   for (let r = 0; r < grid.grid.rows; r += 1) {
     for (let c = 0; c < grid.grid.cols; c += 1) {
-      acc = applyLambda(lambda.lambda, [acc, grid.grid.cells[r][c]], ctx)
+      acc = applyLambda(lambda.lambda, [acc, grid.grid.cells[r][c]], ctx, evaluate)
       if (acc.kind === 'error') return acc
     }
   }
@@ -1994,7 +887,12 @@ function evaluateScan(args: ReadonlyArray<Expr>, ctx: EvalContext): Value {
   let acc: Value = initial
   for (let r = 0; r < grid.grid.rows; r += 1) {
     for (let c = 0; c < grid.grid.cols; c += 1) {
-      const result = applyLambdaForArrayCell(lambda.lambda, [acc, grid.grid.cells[r][c]], ctx)
+      const result = applyLambdaForArrayCell(
+        lambda.lambda,
+        [acc, grid.grid.cells[r][c]],
+        ctx,
+        evaluate,
+      )
       if (!result.ok) return result.error
       acc = result.value
       out[r][c] = result.value
@@ -2016,7 +914,7 @@ function evaluateByRow(args: ReadonlyArray<Expr>, ctx: EvalContext): Value {
   const out = makeMatrix(grid.grid.rows, 1)
   for (let r = 0; r < grid.grid.rows; r += 1) {
     const rowArray: Value = { kind: 'array', value: [grid.grid.cells[r].slice()] }
-    const result = applyLambdaForArrayCell(lambda.lambda, [rowArray], ctx)
+    const result = applyLambdaForArrayCell(lambda.lambda, [rowArray], ctx, evaluate)
     if (!result.ok) return result.error
     out[r][0] = result.value
   }
@@ -2039,7 +937,7 @@ function evaluateByCol(args: ReadonlyArray<Expr>, ctx: EvalContext): Value {
     for (let r = 0; r < grid.grid.rows; r += 1) {
       col.push([grid.grid.cells[r][c]])
     }
-    const result = applyLambdaForArrayCell(lambda.lambda, [{ kind: 'array', value: col }], ctx)
+    const result = applyLambdaForArrayCell(lambda.lambda, [{ kind: 'array', value: col }], ctx, evaluate)
     if (!result.ok) return result.error
     out[0][c] = result.value
   }
@@ -2075,6 +973,7 @@ function evaluateMakeArray(args: ReadonlyArray<Expr>, ctx: EvalContext): Value {
           { kind: 'number', value: c + 1 },
         ],
         ctx,
+        evaluate,
       )
       if (!result.ok) return result.error
       out[r][c] = result.value
@@ -2160,16 +1059,6 @@ function evaluateFilterSparse(
     return ERR('#CALC!', 'FILTER returned empty result')
   }
   return arrayResult(out, 'FILTER result')
-}
-
-function sameRuntimeRefRange(a: RuntimeRef, b: RuntimeRef): boolean {
-  if (a.sheetName !== b.sheetName) return false
-  return (
-    a.range.rowStart === b.range.rowStart &&
-    a.range.rowEnd === b.range.rowEnd &&
-    a.range.colStart === b.range.colStart &&
-    a.range.colEnd === b.range.colEnd
-  )
 }
 
 /**
@@ -2341,7 +1230,7 @@ function evaluateChoose(args: ReadonlyArray<Expr>, ctx: EvalContext): Value {
   if (args.length < 2) return ERR('#VALUE!')
   const indexValue = evaluateFunctionArg(args[0], ctx)
   if (indexValue.kind === 'error') return indexValue
-  if (indexValue.kind === 'array') return evaluateArrayChoose(indexValue, args, ctx)
+  if (indexValue.kind === 'array') return evaluateArrayChoose(indexValue, args, ctx, evaluateFunctionArg)
   const selected = chooseSelectedExpr(args, ctx)
   if (!selected.ok) return selected.error
   return evaluateFunctionArg(selected.expr, ctx)
@@ -2378,316 +1267,6 @@ function evaluateXLookupMatch(
   if (searchMode?.kind === 'error') return { kind: 'error', error: searchMode }
 
   return resolveXLookupValue(needle, lookupValue, returnValue, matchMode, searchMode)
-}
-
-function evaluateArrayIf(cond: Value, args: ReadonlyArray<Expr>, ctx: EvalContext): Value {
-  const condGrid = valueToGrid(cond)
-  if (condGrid.error) return condGrid.error
-  const rows = condGrid.grid.rows
-  const cols = condGrid.grid.cols
-  const conds: Array<Array<
-    | { readonly kind: 'then' }
-    | { readonly kind: 'else' }
-    | { readonly kind: 'error'; readonly error: Value }
-  >> = new Array(rows)
-  let needsThen = false
-  let needsElse = false
-
-  for (let r = 0; r < rows; r += 1) {
-    conds[r] = new Array(cols)
-    for (let c = 0; c < cols; c += 1) {
-      const coerced = toBoolean(condGrid.grid.cells[r][c])
-      if (!coerced.ok) {
-        conds[r][c] = { kind: 'error', error: coerced.error }
-      } else if (coerced.value) {
-        conds[r][c] = { kind: 'then' }
-        needsThen = true
-      } else {
-        conds[r][c] = { kind: 'else' }
-        needsElse = true
-      }
-    }
-  }
-
-  const thenGrid = needsThen
-    ? evaluateBroadcastGrid(args[1], ctx, rows, cols)
-    : undefined
-  if (thenGrid?.error) return thenGrid.error
-  const elseGrid = needsElse
-    ? args.length === 3
-      ? evaluateBroadcastGrid(args[2], ctx, rows, cols)
-      : valueBroadcastGrid({ kind: 'boolean', value: false }, rows, cols)
-    : undefined
-  if (elseGrid?.error) return elseGrid.error
-
-  const out = makeMatrix(rows, cols)
-  for (let r = 0; r < rows; r += 1) {
-    for (let c = 0; c < cols; c += 1) {
-      const selected = conds[r][c]
-      switch (selected.kind) {
-        case 'error':
-          out[r][c] = selected.error
-          break
-        case 'then':
-          out[r][c] = pickBroadcastCell(thenGrid!.grid, r, c)
-          break
-        case 'else':
-          out[r][c] = pickBroadcastCell(elseGrid!.grid, r, c)
-          break
-      }
-    }
-  }
-  return arrayResult(out, 'IF result')
-}
-
-function evaluateArrayIfError(
-  value: Value,
-  fallback: Expr,
-  ctx: EvalContext,
-  catches: (error: Value & { kind: 'error' }) => boolean,
-): Value {
-  const valueGrid = valueToGrid(value)
-  if (valueGrid.error) return valueGrid.error
-  const rows = valueGrid.grid.rows
-  const cols = valueGrid.grid.cols
-  let needsFallback = false
-  for (const row of valueGrid.grid.cells) {
-    for (const cell of row) {
-      if (cell.kind === 'error' && catches(cell)) needsFallback = true
-    }
-  }
-  if (!needsFallback) return value
-
-  const fallbackGrid = evaluateBroadcastGrid(fallback, ctx, rows, cols)
-  if (fallbackGrid.error) return fallbackGrid.error
-  const out = makeMatrix(rows, cols)
-  for (let r = 0; r < rows; r += 1) {
-    for (let c = 0; c < cols; c += 1) {
-      const cell = valueGrid.grid.cells[r][c]
-      out[r][c] = cell.kind === 'error' && catches(cell)
-        ? pickBroadcastCell(fallbackGrid.grid, r, c)
-        : cell
-    }
-  }
-  return arrayResult(out, 'IFERROR result')
-}
-
-function evaluateArrayChoose(
-  indexValue: Value,
-  args: ReadonlyArray<Expr>,
-  ctx: EvalContext,
-): Value {
-  const indexGrid = valueToGrid(indexValue)
-  if (indexGrid.error) return indexGrid.error
-  const rows = indexGrid.grid.rows
-  const cols = indexGrid.grid.cols
-  const choices = new Map<number, { readonly grid?: Grid; readonly error?: Value }>()
-  const out = makeMatrix(rows, cols)
-
-  for (let r = 0; r < rows; r += 1) {
-    for (let c = 0; c < cols; c += 1) {
-      const indexCell = indexGrid.grid.cells[r][c]
-      if (indexCell.kind === 'error') {
-        out[r][c] = indexCell
-        continue
-      }
-      const indexNumber = toNumber(indexCell)
-      if (!indexNumber.ok) {
-        out[r][c] = indexNumber.error
-        continue
-      }
-      const index = Math.trunc(indexNumber.value)
-      if (index < 1 || index > args.length - 1) {
-        out[r][c] = ERR('#VALUE!')
-        continue
-      }
-
-      let choice = choices.get(index)
-      if (!choice) {
-        const broadcast = evaluateBroadcastGrid(args[index], ctx, rows, cols)
-        choice = broadcast.error ? { error: broadcast.error } : { grid: broadcast.grid }
-        choices.set(index, choice)
-      }
-      out[r][c] = choice.error ?? pickBroadcastCell(choice.grid!, r, c)
-    }
-  }
-  return arrayResult(out, 'CHOOSE result')
-}
-
-function evaluateArrayIfs(
-  args: ReadonlyArray<Expr>,
-  ctx: EvalContext,
-  startPair: number,
-  firstCond: Value,
-): Value {
-  const firstGrid = valueToGrid(firstCond)
-  if (firstGrid.error) return firstGrid.error
-  const rows = firstGrid.grid.rows
-  const cols = firstGrid.grid.cols
-  const pairCount = Math.floor(args.length / 2)
-  const selected = makeSelectionMatrix(rows, cols)
-  const selectedPairs = new Set<number>()
-  let pending = rows * cols
-
-  for (let i = startPair; i < pairCount && pending > 0; i += 1) {
-    const condValue = i === startPair ? firstCond : evaluateFunctionArg(args[i * 2], ctx)
-    const condGrid = valueBroadcastGrid(condValue, rows, cols)
-    if (condGrid.error) return condGrid.error
-
-    for (let r = 0; r < rows; r += 1) {
-      for (let c = 0; c < cols; c += 1) {
-        if (selected[r][c].kind !== 'pending') continue
-        const coerced = toBoolean(pickBroadcastCell(condGrid.grid, r, c))
-        if (!coerced.ok) {
-          selected[r][c] = { kind: 'error', error: coerced.error }
-          pending -= 1
-        } else if (coerced.value) {
-          selected[r][c] = { kind: 'value', index: i }
-          selectedPairs.add(i)
-          pending -= 1
-        }
-      }
-    }
-  }
-
-  return materializeSelections(selected, selectedPairs, (index) => args[index * 2 + 1], ctx)
-}
-
-function evaluateArraySwitch(exprValue: Value, args: ReadonlyArray<Expr>, ctx: EvalContext): Value {
-  const exprGrid = valueToGrid(exprValue)
-  if (exprGrid.error) return exprGrid.error
-  const rows = exprGrid.grid.rows
-  const cols = exprGrid.grid.cols
-  const rest = args.length - 1
-  const pairCount = Math.floor(rest / 2)
-  const hasDefault = rest % 2 === 1
-  const selected = makeSelectionMatrix(rows, cols)
-  const selectedPairs = new Set<number>()
-  let pending = rows * cols
-
-  for (let r = 0; r < rows; r += 1) {
-    for (let c = 0; c < cols; c += 1) {
-      const exprCell = exprGrid.grid.cells[r][c]
-      if (exprCell.kind === 'error') {
-        selected[r][c] = { kind: 'error', error: exprCell }
-        pending -= 1
-      }
-    }
-  }
-
-  for (let i = 0; i < pairCount && pending > 0; i += 1) {
-    const caseValue = evaluateFunctionArg(args[1 + i * 2], ctx)
-    const caseGrid = valueBroadcastGrid(caseValue, rows, cols)
-    if (caseGrid.error) return caseGrid.error
-
-    for (let r = 0; r < rows; r += 1) {
-      for (let c = 0; c < cols; c += 1) {
-        if (selected[r][c].kind !== 'pending') continue
-        const caseCell = pickBroadcastCell(caseGrid.grid, r, c)
-        if (caseCell.kind === 'error') {
-          selected[r][c] = { kind: 'error', error: caseCell }
-          pending -= 1
-        } else if (excelEquals(exprGrid.grid.cells[r][c], caseCell)) {
-          selected[r][c] = { kind: 'value', index: i }
-          selectedPairs.add(i)
-          pending -= 1
-        }
-      }
-    }
-  }
-
-  if (pending > 0) {
-    const defaultIndex = hasDefault ? pairCount : -1
-    for (let r = 0; r < rows; r += 1) {
-      for (let c = 0; c < cols; c += 1) {
-        if (selected[r][c].kind !== 'pending') continue
-        if (hasDefault) {
-          selected[r][c] = { kind: 'value', index: defaultIndex }
-          selectedPairs.add(defaultIndex)
-        } else {
-          selected[r][c] = { kind: 'error', error: ERR('#N/A') }
-        }
-      }
-    }
-  }
-
-  return materializeSelections(
-    selected,
-    selectedPairs,
-    (index) => (index === pairCount ? args[args.length - 1] : args[1 + index * 2 + 1]),
-    ctx,
-  )
-}
-
-type ArraySelection =
-  | { readonly kind: 'pending' }
-  | { readonly kind: 'value'; readonly index: number }
-  | { readonly kind: 'error'; readonly error: Value }
-
-function makeSelectionMatrix(rows: number, cols: number): ArraySelection[][] {
-  const selected: ArraySelection[][] = new Array(rows)
-  for (let r = 0; r < rows; r += 1) {
-    selected[r] = new Array(cols)
-    for (let c = 0; c < cols; c += 1) selected[r][c] = { kind: 'pending' }
-  }
-  return selected
-}
-
-function materializeSelections(
-  selected: ReadonlyArray<ReadonlyArray<ArraySelection>>,
-  selectedPairs: ReadonlySet<number>,
-  exprForIndex: (index: number) => Expr,
-  ctx: EvalContext,
-): Value {
-  const rows = selected.length
-  const cols = selected[0]?.length ?? 0
-  const grids = new Map<number, { readonly grid?: Grid; readonly error?: Value }>()
-
-  for (const index of selectedPairs) {
-    const broadcast = evaluateBroadcastGrid(exprForIndex(index), ctx, rows, cols)
-    grids.set(index, broadcast.error ? { error: broadcast.error } : { grid: broadcast.grid })
-  }
-
-  const out = makeMatrix(rows, cols)
-  for (let r = 0; r < rows; r += 1) {
-    for (let c = 0; c < cols; c += 1) {
-      const choice = selected[r][c]
-      if (choice.kind === 'error') {
-        out[r][c] = choice.error
-      } else if (choice.kind === 'value') {
-        const grid = grids.get(choice.index)!
-        out[r][c] = grid.error ?? pickBroadcastCell(grid.grid!, r, c)
-      } else {
-        out[r][c] = ERR('#N/A')
-      }
-    }
-  }
-  return arrayResult(out, 'selector result')
-}
-
-function evaluateBroadcastGrid(
-  expr: Expr,
-  ctx: EvalContext,
-  rows: number,
-  cols: number,
-): { readonly grid: Grid; readonly error?: undefined } | { readonly error: Value } {
-  return valueBroadcastGrid(evaluateFunctionArg(expr, ctx), rows, cols)
-}
-
-function valueBroadcastGrid(
-  value: Value,
-  rows: number,
-  cols: number,
-): { readonly grid: Grid; readonly error?: undefined } | { readonly error: Value } {
-  const grid = valueToGrid(value)
-  if (grid.error) return { error: grid.error }
-  if (
-    broadcastExtent(grid.grid.rows, rows) !== rows ||
-    broadcastExtent(grid.grid.cols, cols) !== cols
-  ) {
-    return { error: ERR('#VALUE!') }
-  }
-  return { grid: grid.grid }
 }
 
 type FilterRowsResult =
@@ -2895,17 +1474,6 @@ function resolveChooseResultAsLambda(
   return resolveLambdaOrValueError(selected.expr, ctx)
 }
 
-function chooseSelectedExpr(args: ReadonlyArray<Expr>, ctx: EvalContext): SelectedExprResult {
-  if (args.length < 2) return { ok: false, error: ERR('#VALUE!') }
-  const indexValue = evaluate(args[0], ctx)
-  if (indexValue.kind === 'error') return { ok: false, error: indexValue }
-  const indexNumber = toNumber(indexValue)
-  if (!indexNumber.ok) return { ok: false, error: indexNumber.error }
-  const index = Math.trunc(indexNumber.value)
-  if (index < 1 || index > args.length - 1) return { ok: false, error: ERR('#VALUE!') }
-  return { ok: true, expr: args[index] }
-}
-
 function resolveFilterResultAsLambda(
   args: ReadonlyArray<Expr>,
   ctx: EvalContext,
@@ -3023,131 +1591,6 @@ function resolveLambdaOrValueError(expr: Expr, ctx: EvalContext): LambdaResolveR
   return value.kind === 'error' ? { error: value } : {}
 }
 
-function makeLambdaBinding(args: ReadonlyArray<Expr>, ctx: EvalContext): LambdaResolveResult {
-  if (args.length === 0) {
-    return { error: ERR('#VALUE!', 'LAMBDA expects a body expression') }
-  }
-  const params: string[] = []
-  for (const arg of args.slice(0, -1)) {
-    if (arg.kind !== 'name') {
-      return { error: ERR('#NAME?', 'LAMBDA parameter must be an identifier') }
-    }
-    params.push(canonicalName(arg.name))
-  }
-  return {
-    lambda: {
-      params,
-      body: args[args.length - 1],
-      closureScope: new Map(ctx.lambdaScope ?? []),
-      closureRefScope: new Map(ctx.lambdaRefScope ?? []),
-      closureFunctionScope: new Map(ctx.lambdaFunctionScope ?? []),
-      closureOmittedParams: new Set(ctx.lambdaOmittedParams ?? []),
-    },
-  }
-}
-
-function bindLambdaSelf(name: string, lambda: LambdaBinding): LambdaBinding {
-  const functionScope = new Map<string, LambdaBinding>(lambda.closureFunctionScope ?? [])
-  const recursive: LambdaBinding = {
-    ...lambda,
-    closureFunctionScope: functionScope,
-  }
-  functionScope.set(canonicalName(name), recursive)
-  return recursive
-}
-
-function applyLambda(
-  lambda: LambdaBinding,
-  args: ReadonlyArray<LambdaArgument>,
-  ctx: EvalContext,
-): Value {
-  const prepared = prepareLambdaContext(lambda, args, ctx)
-  if (!prepared.ok) return prepared.error
-  prepared.depth.count += 1
-  try {
-    return evaluate(lambda.body, prepared.subCtx)
-  } finally {
-    prepared.depth.count -= 1
-  }
-}
-
-function applyLambdaForArrayCell(
-  lambda: LambdaBinding,
-  args: ReadonlyArray<LambdaArgument>,
-  ctx: EvalContext,
-): { readonly ok: true; readonly value: Value } | { readonly ok: false; readonly error: Value } {
-  const prepared = prepareLambdaContext(lambda, args, ctx)
-  if (!prepared.ok) return { ok: false, error: prepared.error }
-  prepared.depth.count += 1
-  try {
-    const value = evaluate(lambda.body, prepared.subCtx)
-    if (value.kind === 'array') {
-      return { ok: false, error: ERR('#CALC!', 'array result was not expanded') }
-    }
-    return { ok: true, value }
-  } finally {
-    prepared.depth.count -= 1
-  }
-}
-
-function prepareLambdaContext(
-  lambda: LambdaBinding,
-  args: ReadonlyArray<LambdaArgument>,
-  ctx: EvalContext,
-): LambdaContextResult {
-  const depth = ctx.lambdaCallDepth ?? { count: 0 }
-  if (args.length > lambda.params.length) {
-    return { ok: false, error: ERR('#VALUE!') }
-  }
-  if (depth.count >= MAX_LAMBDA_CALL_DEPTH) {
-    return {
-      ok: false,
-      error: ERR(
-        '#NUM!',
-        `LAMBDA recursion depth exceeded (${MAX_LAMBDA_CALL_DEPTH}); aborting to avoid stack overflow`,
-      ),
-    }
-  }
-  const scope = new Map<string, Value>(lambda.closureScope ?? [])
-  const refScope = new Map<string, RuntimeRef>(lambda.closureRefScope ?? [])
-  const functionScope = new Map<string, LambdaBinding>(
-    lambda.closureFunctionScope ?? [],
-  )
-  const omitted = new Set<string>(lambda.closureOmittedParams ?? [])
-  for (let i = 0; i < lambda.params.length; i += 1) {
-    const name = canonicalName(lambda.params[i])
-    const hasArg = i < args.length
-    const arg = hasArg ? args[i] : undefined
-    if (isLambdaArgument(arg)) {
-      functionScope.set(name, arg.lambda)
-      scope.delete(name)
-      refScope.delete(name)
-    } else if (isReferenceArgument(arg)) {
-      refScope.set(name, arg.ref)
-      scope.delete(name)
-      functionScope.delete(name)
-    } else {
-      scope.set(name, arg ?? BLANK)
-      refScope.delete(name)
-      functionScope.delete(name)
-    }
-    if (hasArg) {
-      omitted.delete(name)
-    } else {
-      omitted.add(name)
-    }
-  }
-  const subCtx: EvalContext = {
-    ...ctx,
-    lambdaScope: scope,
-    lambdaRefScope: refScope,
-    lambdaFunctionScope: functionScope,
-    lambdaOmittedParams: omitted,
-    lambdaCallDepth: depth,
-  }
-  return { ok: true, subCtx, depth }
-}
-
 function evaluateGrid(
   expr: Expr,
   ctx: EvalContext,
@@ -3157,1087 +1600,106 @@ function evaluateGrid(
   return valueToGrid(value)
 }
 
-function valueToGrid(
-  value: Value,
-): { readonly grid: Grid; readonly error?: undefined } | { readonly error: Value } {
-  if (value.kind !== 'array') {
-    return { grid: { rows: 1, cols: 1, cells: [[value]] } }
-  }
-  const rows = value.value.length
-  const cols = value.value[0]?.length ?? 0
-  const shapeError = arrayShapeError(rows, cols, 'array result', 'array result exceeds cell cap')
-  if (shapeError) return { error: shapeError }
-  for (const row of value.value) {
-    if (row.length !== cols) return { error: ERR('#VALUE!', 'array rows must be rectangular') }
-  }
-  const scalarError = matrixScalarCellError(value.value)
-  if (scalarError) return { error: scalarError }
-  return { grid: { rows, cols, cells: value.value } }
-}
-
-function makeMatrix(rows: number, cols: number): Value[][] {
-  const out: Value[][] = new Array(rows)
-  for (let r = 0; r < rows; r += 1) {
-    out[r] = new Array(cols)
-  }
-  return out
-}
-
 /**
- * Evaluate `inner` (a `ref` or `range` expression) against a *foreign*
- * sheet's cell snapshot. We build a tiny shim EvalContext whose `cells`
- * points at the foreign Map, but keep the rest of `ctx` (cycle set,
- * resolveName, etc.) intact.
+ * Public entry: evaluate the cell at `rootKey` inside `rootCells` to a
+ * concrete `Value`.
  *
- * The shim's `refLookup` re-uses `ctx.currentlyEvaluating` so circular
- * detection still works across sheets. Cross-sheet keys are namespaced
- * with the sheet name so `A1` on Sheet1 doesn't collide with `A1` on
- * Sheet2 in the cycle set.
+ * 工作栈本体住在 `trampoline.ts`，它把「单格 AST 怎么求值」参数化了（否则两边
+ * 成环）。这里就是把本文件的 `evaluate` 绑上去，对外仍是三参数签名 ——
+ * `sheet.ts` 与本文件的跨表路径都按这个签名调用。
  */
-function evaluateInForeignSheet(
-  inner: Expr,
-  parent: EvalContext,
-  foreignCells: ReadonlyMap<CellKey, Cell>,
-  sheetName?: string,
-): Value {
-  const sheetIndex = sheetName === undefined ? undefined : parent.sheetIndexOf?.(sheetName)
-  const shim: EvalContext = {
-    cells: foreignCells,
-    currentlyEvaluating: parent.currentlyEvaluating,
-    refLookup: (a1) => refLookupGeneric(a1, foreignCells, shim),
-    rangeLookup: (start, end) => rangeLookupTrampolined(start, end, foreignCells, shim),
-    crossSheetCells: parent.crossSheetCells,
-    callCustom: parent.callCustom,
-    resolveName: parent.resolveName,
-    currentSheetName: sheetName,
-    currentSheetIndex: sheetIndex,
-    sheetCount: parent.sheetCount,
-    sheetIndexOf: parent.sheetIndexOf,
-    locale: parent.locale,
-    onFormulaEvaluated: parent.onFormulaEvaluated,
-  }
-  if (inner.kind === 'ref') {
-    const key = parseRefToKey(inner.a1)
-    if (!key) return ERR('#REF!')
-    // 跨表单格也走同一条规则：有条目读自己（数组不折叠 —— 调用方决定，因为
-    // `Sheet2!A1#` 要整片），没条目问投影。
-    if (!foreignCells.has(key)) {
-      const coord = cellCoordFromKey(key)
-      return (coord ? foreignSpillRun(foreignCells, shim).at(undefined, coord) : undefined) ?? BLANK
-    }
-    return evaluateCellTrampolined(key, foreignCells, shim)
-  }
-  return evaluate(inner, shim)
-}
-
-function rangeLookupTrampolined(
-  start: string,
-  end: string,
-  cells: ReadonlyMap<CellKey, Cell>,
-  ctx: EvalContext,
-): Value[][] {
-  const range = parseRange(start, end)
-  if (!range) return [[ERR('#REF!')]]
-  const rowCount = range.rowEnd - range.rowStart + 1
-  const colCount = range.colEnd - range.colStart + 1
-  const totalCells = rowCount * colCount
-  if (totalCells > MATERIALIZED_RANGE_CELL_CAP) {
-    return [[ERR('#NUM!', rangeTooLargeMessage(rowCount, colCount, totalCells))]]
-  }
-
-  const spilled = rangeHasHole(range, cells)
-    ? foreignSpillRun(cells, ctx).scan(undefined, range)
-    : NO_SPILL_ANCHORS
-  const rows: Value[][] = new Array(rowCount)
-  try {
-    let rIdx = 0
-    let buf: Value[] | null = null
-    let lastRow = -1
-    for (const coord of iterateRange(range)) {
-      if (coord.row !== lastRow) {
-        buf = new Array(colCount)
-        rows[rIdx] = buf
-        rIdx += 1
-        lastRow = coord.row
-      }
-      const k = cellKey(coord)
-      buf![coord.col - range.colStart] = cells.has(k)
-        ? anchorScalar(evaluateCellTrampolined(k, cells, ctx))
-        : projectedValueAt(spilled, coord) ?? BLANK
-    }
-  } catch (err) {
-    if (err instanceof RangeTooLargeError) {
-      return [[ERR('#NUM!', err.message)]]
-    }
-    throw err
-  }
-  return rows
-}
-
-function rangeTooLargeMessage(rowCount: number, colCount: number, totalCells: number): string {
-  return `range too large to materialize (${rowCount}x${colCount} = ${totalCells} cells; cap 100000)`
-}
-
 /**
- * Generic ref-lookup shared between the per-sheet ctx (workbook wires it)
- * and the cross-sheet shim. Pulled into evaluator-internal scope so cycle
- * detection lives in exactly one place.
- *
- * Returns `BLANK` when the cell does not exist (Excel behavior — an
- * unwritten cell reads as blank, not as `#REF!`).
+ * 递归读路径与跨表求值的三个绑定：实现分别住在 `cell-read.ts` / `foreign-sheet.ts`，
+ * 它们把「单格 AST 怎么求值」参数化了（否则与本文件成环）。这里绑上本文件的
+ * `evaluate`，对外与对内都保持原来的签名。
  */
 export function refLookupGeneric(
   a1: string,
   cells: ReadonlyMap<CellKey, Cell>,
   ctx: EvalContext,
 ): Value {
-  const coord = parseRefToKey(a1)
-  if (!coord) return ERR('#REF!')
-  return resolveCell(coord, cells, ctx)
+  return refLookupIn(a1, cells, ctx, evaluate)
 }
 
-/**
- * Generic range lookup. Returns a row-major 2-D `Value[][]`. Blank cells
- * stay blank rather than being omitted.
- *
- * For whole-row / whole-col ranges (`A:A`, `1:1`) the range expands to
- * the Excel max bounds via `parseRange` → could be ~1M rows. We guard
- * against materializing those with `RangeTooLargeError` and surface
- * `#NUM!`. Wave E will add a streaming iterator so SUM / AVERAGE can
- * still consume them without allocating the entire 2-D array.
- */
 export function rangeLookupGeneric(
   start: string,
   end: string,
   cells: ReadonlyMap<CellKey, Cell>,
   ctx: EvalContext,
 ): Value[][] {
-  const range = parseRange(start, end)
-  if (!range) return [[ERR('#REF!')]]
-  const rowCount = range.rowEnd - range.rowStart + 1
-  const colCount = range.colEnd - range.colStart + 1
-  // Bound materialization. `iterateRange` is uncapped (it's a lazy
-  // generator), and `expandRange`'s `RangeTooLargeError` doesn't fire
-  // when we walk via iterateRange. Materializing `A:XFD` (16M cells)
-  // or `A:A` (1M cells) here would hang the worker. We surface `#NUM!`
-  // with a hint instead — formulas that need to scan an entire column
-  // must use COUNTIF / SUMIF (which iterate the existing cell map, not
-  // the abstract range) for now.
-  const totalCells = rowCount * colCount
-  // Use the same 100k cap as expandRange (refs/ranges.ts EXPAND_MAX_CELLS).
-  // Picked to match Go-To-Special's convention across the codebase.
-  if (totalCells > 100_000) {
-    return [[ERR('#NUM!', `range too large to materialize (${rowCount}x${colCount} = ${totalCells} cells; cap 100000)`)]]
-  }
-  const rows: Value[][] = new Array(rowCount)
-  try {
-    let rIdx = 0
-    let buf: Value[] | null = null
-    let lastRow = -1
-    for (const coord of iterateRange(range)) {
-      if (coord.row !== lastRow) {
-        buf = new Array(colCount)
-        rows[rIdx] = buf
-        rIdx += 1
-        lastRow = coord.row
-      }
-      buf![coord.col - range.colStart] = resolveCell(cellKey(coord), cells, ctx)
-    }
-  } catch (err) {
-    if (err instanceof RangeTooLargeError) {
-      return [[ERR('#NUM!', err.message)]]
-    }
-    throw err
-  }
-  return rows
+  return rangeLookupIn(start, end, cells, ctx, evaluate)
 }
 
 /**
- * Tag a cells-Map identity so the cycle set can distinguish
- * `Sheet1!A1` from `Sheet2!A1`. The tag is stable across calls within
- * a single derive (since the same `cells` Map reference flows through),
- * and lives in a WeakMap so unused tags get GC'd with the Map.
+ * 「把矩形读成值」的四个绑定：实现住在 `runtime-ref-read.ts`，同样把求值器参数化
+ * 了。这里绑上本文件的 `evaluate`，对内对外都保持原来的签名 —— `sparse-*.ts` 按
+ * `from './evaluate'` 取 `sparseValuesForRef` / `valueAtRuntimeCoord`。
  */
-const cellsMapTags = new WeakMap<object, string>()
-let cellsMapTagCounter = 0
-function tagFor(cells: ReadonlyMap<CellKey, Cell>): string {
-  const existing = cellsMapTags.get(cells)
-  if (existing !== undefined) return existing
-  cellsMapTagCounter += 1
-  const tag = `m${cellsMapTagCounter}`
-  cellsMapTags.set(cells, tag)
-  return tag
+function evaluateRuntimeRef(ref: RuntimeRef, ctx: EvalContext, scalarTopLeft = false): Value {
+  return evaluateRuntimeRefIn(ref, ctx, scalarTopLeft, evaluate)
 }
 
-/**
- * Build the composite cycle-set key for `(cells, cellKey)`. Exported so
- * `sheet.ts` can seed the set with the entry-point cell before invoking
- * `evaluate` directly (the entry doesn't flow through `resolveCell` and
- * would otherwise re-enter unguarded).
- */
-export function cycleGuardKey(
-  cells: ReadonlyMap<CellKey, Cell>,
-  key: CellKey,
-): CellKey {
-  return `${tagFor(cells)}:${key}`
+export function sparseValuesForRef(
+  ref: RuntimeRef,
+  ctx: EvalContext,
+): ReturnType<typeof sparseValuesForRefIn> {
+  return sparseValuesForRefIn(ref, ctx, evaluate)
 }
 
-/**
- * Resolve a single CellKey within `cells`. Handles:
- *  - cell missing → BLANK
- *  - literal cell (no AST) → stored value
- *  - formula cell (with AST) → recursive `evaluate`, guarded against
- *    cycles via `ctx.currentlyEvaluating`.
- *
- * The cycle-set key is composite — `<mapTag>:<cellKey>` — so the same
- * `0:0` CellKey on different sheets doesn't false-positive.
- *
- * **Recursion note (Chain-eval bug):** prior to the trampoline introduced
- * in `evaluateCellTrampolined`, a 1000-deep dependency chain
- * (`A2=A1+1, A3=A2+1, …`) blew V8's ~1 MB call stack here, because every
- * `ref` lookup walked back through `evaluate → refLookupGeneric →
- * resolveCell → evaluate` on the JS stack. This recursive `resolveCell`
- * is preserved for cycle-detection compatibility and for the
- * cross-sheet shim's foreign-sheet entry path, but the per-cell entry
- * point in `sheet.ts` now goes through `evaluateCellTrampolined`, which
- * processes the same dependency graph using an explicit work stack
- * (Option B in the bug report).
- */
-function resolveCell(
-  key: CellKey,
-  cells: ReadonlyMap<CellKey, Cell>,
+export function valueAtRuntimeCoord(
+  sheetName: string | undefined,
+  coord: CellCoord,
   ctx: EvalContext,
 ): Value {
-  const cell = cells.get(key)
-  if (!cell) {
-    // 自有条目缺席 → 问投影。递归路径（跨表 / 宿主自造 ctx）没有 trampoline 的
-    // 账本，就地建一个：这条路是冷路径，不值得再加一层缓存。
-    const coord = cellCoordFromKey(key)
-    if (!coord) return BLANK
-    const run = ctx.cells === cells ? spillRunOf(ctx) : undefined
-    return (run ?? recursiveSpillRun(cells, ctx)).at(undefined, coord) ?? BLANK
-  }
-  // 把地址读成值 = 折叠数组到左上角标量。整片只有 `A1#` 拿得到。
-  return anchorScalar(resolveCellRaw(key, cells, ctx))
+  return valueAtRuntimeCoordIn(sheetName, coord, ctx, evaluate)
 }
 
-/**
- * 递归路径的投影账本。每次查找现建一个（`unstable` 关掉备忘录），因为 `cells`
- * 与求值栈都由调用方的 `currentlyEvaluating` 决定，跨调用复用会读到过期形状。
- */
-function outOfBandSpillRun(
-  cells: ReadonlyMap<CellKey, Cell>,
-  ctx: EvalContext,
-  evaluateAnchor: (key: CellKey, target: ReadonlyMap<CellKey, Cell>) => Value,
-): SpillProjectionRun {
-  return createSpillProjectionRun({
-    cellsFor: (sheetName) => (sheetName === undefined ? cells : ctx.crossSheetCells(sheetName)),
-    sourceFor: (target): SpillAnchorSource => ({
-      arrayAt: (key, cell) => {
-        if (cell.ast === undefined) {
-          return cell.value.kind === 'array' ? cell.value.value : undefined
-        }
-        // 候选正在求值栈上：它在读我们，不能反过来向它索赔。
-        if (ctx.currentlyEvaluating.has(`${tagFor(target)}:${key}`)) return undefined
-        const value = evaluateAnchor(key, target)
-        return value.kind === 'array' ? value.value : undefined
-      },
-      unstable: () => true,
-    }),
-  })
-}
-
-/** 递归路径（宿主自造 ctx / `resolveCell` 的嵌套读）的账本。 */
-function recursiveSpillRun(
-  cells: ReadonlyMap<CellKey, Cell>,
-  ctx: EvalContext,
-): SpillProjectionRun {
-  return outOfBandSpillRun(cells, ctx, (key, target) => resolveCellRaw(key, target, ctx))
-}
-
-/**
- * 跨表路径的账本 —— 候选也走 trampoline。用递归求值器会把跨表深链重新压回 JS
- * 调用栈（`chain-eval` 的 `RangeError` 就是这么来的）。
- */
-function foreignSpillRun(
-  cells: ReadonlyMap<CellKey, Cell>,
-  ctx: EvalContext,
-): SpillProjectionRun {
-  return outOfBandSpillRun(cells, ctx, (key, target) =>
-    evaluateCellTrampolined(key, target, ctx),
-  )
-}
-
-/**
- * 矩形里有没有**没有自有条目**的格子。没有 → 一个投影格都不可能有，整趟扫描可以
- * 省掉。密集区域（链式公式、导入的数据块）走的正是这一支，所以下沉投影对它们
- * 是零代价。
- */
-function rangeHasHole(range: CellRange, cells: ReadonlyMap<CellKey, Cell>): boolean {
-  for (const coord of iterateRange(range)) {
-    if (!cells.has(cellKey(coord))) return true
-  }
-  return false
-}
-
-/** `resolveCell` 的不折叠版：锚点交回整片数组。 */
-function resolveCellRaw(
-  key: CellKey,
-  cells: ReadonlyMap<CellKey, Cell>,
+function rawValueAtRuntimeCoord(
+  sheetName: string | undefined,
+  coord: CellCoord,
   ctx: EvalContext,
 ): Value {
-  const tag = tagFor(cells)
-  const guardKey: CellKey = `${tag}:${key}`
-  if (ctx.currentlyEvaluating.has(guardKey)) {
-    return ERR('#CIRCULAR!')
-  }
-  const cell = cells.get(key)
-  if (!cell) return BLANK
-  if (!cell.ast) return cell.value
-  ctx.currentlyEvaluating.add(guardKey)
-  try {
-    // Use a sub-context bound to the same `cells` so nested ref lookups
-    // go through the same snapshot (no recursion into the parent shim).
-    const sub: SpillAwareContext = {
-      cells,
-      currentlyEvaluating: ctx.currentlyEvaluating,
-      refLookup: (a1) => refLookupGeneric(a1, cells, sub),
-      refLookupRaw: (a1) => {
-        const coord = parseRefToKey(a1)
-        return coord ? resolveCellRaw(coord, cells, sub) : ERR('#REF!')
-      },
-      rangeLookup: (start, end) => rangeLookupGeneric(start, end, cells, sub),
-      crossSheetCells: ctx.crossSheetCells,
-      callCustom: ctx.callCustom,
-      resolveName: ctx.resolveName,
-      currentCell: cellCoordFromKey(key),
-      currentSheetName: ctx.currentSheetName,
-      currentSheetIndex: ctx.currentSheetIndex,
-      sheetCount: ctx.sheetCount,
-      sheetIndexOf: ctx.sheetIndexOf,
-      locale: ctx.locale,
-      onFormulaEvaluated: ctx.onFormulaEvaluated,
-    }
-    const value = evaluate(cell.ast, sub)
-    // Lazy dep install (KEY_GRANULAR_INVALIDATION): this formula was
-    // really evaluated — let the workbook record its reverse edges.
-    ctx.onFormulaEvaluated?.(cells, key, cell.ast)
-    return value
-  } finally {
-    ctx.currentlyEvaluating.delete(guardKey)
-  }
+  return rawValueAtRuntimeCoordIn(sheetName, coord, ctx, evaluate)
 }
 
-// ----------------------------------------------------------------------------
-// Trampolined per-cell evaluation (Chain-eval fix).
-//
-// Goal: evaluate the formula at `rootKey` against `rootCells` without
-// blowing V8's ~1 MB call stack on deep cross-cell dependency chains
-// (e.g. `A2=A1+1, A3=A2+1, …, A1000=A999+1`).
-//
-// Strategy (Option B from the bug report): keep an explicit work stack
-// of cells to resolve. When the in-flight evaluation of a cell's AST
-// reaches a `ref` / `range` / `crossSheet` whose value is not yet in the
-// `cache`, throw a `NeedsDep` sentinel. The trampoline catches it,
-// pushes the missing deps onto the work stack, and re-attempts the
-// current cell on the next iteration once those deps have been
-// resolved. Each cell's AST is evaluated at most `1 + (# of distinct
-// refs it depends on)` times in the worst case; for the canonical
-// `=A(n-1)+1` chain that's 2 evaluations per cell.
-//
-// AST traversal inside a single cell still uses the existing recursive
-// `evaluate`, but since AST depth is bounded by formula complexity (not
-// chain length), it never touches the deep-recursion ceiling. The
-// trampoline only flattens the *cross-cell* recursion that was the
-// source of the stack overflow.
-//
-// Cycle detection moves from `currentlyEvaluating` (the set passed
-// through nested `evaluate` calls) to the trampoline's `inProgress`
-// set, keyed by the same `cycleGuardKey(cells, key)` so cross-sheet
-// chains remain disjoint. A cycle is detected when a `refLookup` hits a
-// dep whose guard key is already in `inProgress` — that dep is stamped
-// `#CIRCULAR!` in the cache and short-circuits future lookups.
-//
-// Crucially, dep discovery is *lazy* — we throw on the first missing
-// dep encountered during AST walk, not by pre-walking the AST to
-// collect every reference. This preserves `IF`'s short-circuit
-// semantics: a `=IF(TRUE, 0, A1)` cell will never request `A1` because
-// the AST walk never reaches the else branch. Pre-walking would
-// regress that.
-// ----------------------------------------------------------------------------
-
-/**
- * Sentinel thrown by the trampoline's shim `refLookup` / `rangeLookup`
- * to signal "this dep isn't in the cache yet; please resolve it first
- * and retry the current cell." Carries the list of missing deps so a
- * single `rangeLookup` covering N cells can request all of them at
- * once instead of forcing N retries.
- */
-class NeedsDep {
-  constructor(
-    readonly deps: ReadonlyArray<{
-      readonly cells: ReadonlyMap<CellKey, Cell>
-      readonly key: CellKey
-      readonly guardKey: CellKey
-    }>,
-  ) {}
+function evaluateInForeignSheet(
+  inner: Expr,
+  parent: EvalContext,
+  foreignCells: ReadonlyMap<CellKey, Cell>,
+  sheetName?: string,
+): Value {
+  return evaluateInForeignSheetWith(inner, parent, foreignCells, sheetName, evaluate)
 }
 
-interface TrampolineFrame {
-  readonly cells: ReadonlyMap<CellKey, Cell>
-  readonly key: CellKey
-  readonly guardKey: CellKey
-}
-
-/**
- * `NeedsDep` 的溢出碰撞版：这一格算出了数组，但要先知道**排在它前面的几个锚点**
- * 摊开成什么形状，才能判自己是不是 `#SPILL!`（见 `spill-collision.ts`）。
- *
- * 与 `NeedsDep` 的唯一区别是多带一个 `tentative`：trampoline 会把它**暂时**写进
- * 缓存再去算候选。原因是候选完全可能回读锚点本身（`A1 = =C1+1` 在本引擎里会广播
- * 成数组，于是 A1 自己也是锚点，而 C1 的碰撞检测要探测 A1）—— 若不给这个暂定值，
- * 候选读到的是「求值中」，`lookupKey` 会把锚点烙成 `#CIRCULAR!`，一条本来好好的
- * 公式就被判了环。候选全部算完后 trampoline 撤掉暂定值、重跑本帧得出真判定。
- *
- * 代价说明白：候选是在「锚点按暂定值溢出」这个假设下算的。若锚点最终判成
- * `#SPILL!`，候选那一轮的缓存值就建立在一个没成立的假设上 —— 窗口只在同一次
- * trampoline 运行内，且要求候选**引用了锚点**。没有为它加清理：清缓存会让候选
- * 重算并再次探测，代价高于这个角落的收益。
- */
-class NeedsSpillProbes {
-  constructor(
-    readonly deps: ReadonlyArray<TrampolineFrame>,
-    readonly tentative: Value,
-  ) {}
-}
-
-/**
- * Build the trampoline's shim `EvalContext`. The shim is a thin wrapper
- * around the host `ctx` (which still owns `callCustom`, `resolveName`,
- * `lambdaScope`, `lambdaRefScope`, `lambdaCallDepth`); only the ref / range / crossSheet
- * lookups are intercepted to consult the cache instead of recursing.
- *
- * `currentlyEvaluating` is still passed through for compatibility with
- * any code path that wants to check it, but it's the trampoline's
- * `inProgress` set that actually drives cycle detection now.
- */
-function makeTrampolineCtx(
-  cells: ReadonlyMap<CellKey, Cell>,
-  currentKey: CellKey,
-  hostCtx: EvalContext,
-  cache: Map<CellKey, Value>,
-  inProgress: Set<CellKey>,
-  spill: SpillProjectionRun,
-): EvalContext {
-  /**
-   * 「把一个地址读成值」的单点。两条分支：
-   *
-   *  - 有自有条目 → 读它自己的值，数组折叠成左上角标量（`=A1+1` 在
-   *    `A1 = =SEQUENCE(3)` 上给 2，不是一片）。
-   *  - 没有自有条目 → 问投影账本：可能落在某个锚点的溢出矩形里。
-   */
-  const readKey = (targetCells: ReadonlyMap<CellKey, Cell>, key: CellKey): Value => {
-    if (!targetCells.has(key)) {
-      const coord = cellCoordFromKey(key)
-      // trampoline 的 shim 只绑本表；跨表走 `evaluateInForeignSheet`。
-      return (coord ? spill.at(undefined, coord) : undefined) ?? BLANK
-    }
-    return anchorScalar(lookupKey(targetCells, key))
-  }
-
-  const lookupKey = (
-    targetCells: ReadonlyMap<CellKey, Cell>,
-    key: CellKey,
-  ): Value => {
-    const guardKey = cycleGuardKey(targetCells, key)
-    const cached = cache.get(guardKey)
-    if (cached !== undefined) return cached
-    if (inProgress.has(guardKey)) {
-      // The dep is still on the work stack — by definition, evaluating
-      // it again here would recurse into a cycle. Stamp it #CIRCULAR!
-      // so the in-flight cell sees the error this iteration; the dep's
-      // own work-stack frame will pick up the same cached value when it
-      // pops.
-      const circ = ERR('#CIRCULAR!')
-      cache.set(guardKey, circ)
-      return circ
-    }
-    throw new NeedsDep([{ cells: targetCells, key, guardKey }])
-  }
-
-  const ctx: SpillAwareContext = {
-    cells,
-    currentlyEvaluating: hostCtx.currentlyEvaluating,
-    spillProjection: spill,
-    refLookup: (a1) => {
-      const coord = parseRefToKey(a1)
-      if (!coord) return ERR('#REF!')
-      return readKey(cells, coord)
-    },
-    refLookupRaw: (a1) => {
-      const coord = parseRefToKey(a1)
-      if (!coord) return ERR('#REF!')
-      return cells.has(coord) ? lookupKey(cells, coord) : readKey(cells, coord)
-    },
-    rangeLookup: (start, end) => {
-      const range = parseRange(start, end)
-      if (!range) return [[ERR('#REF!')]]
-      const rowCount = range.rowEnd - range.rowStart + 1
-      const colCount = range.colEnd - range.colStart + 1
-      const totalCells = rowCount * colCount
-      if (totalCells > 100_000) {
-        const msg =
-          `range too large to materialize (${rowCount}x${colCount} = ` +
-          `${totalCells} cells; cap 100000)`
-        return [[ERR('#NUM!', msg)]]
-      }
-      // Walk the range twice if needed: first collect every missing
-      // dep into one NeedsDep batch (so a SUM(A1:A100) on a chained
-      // column doesn't fault 100 times — once is enough). Only resort
-      // to actual materialization once every cell in the range is
-      // resolved.
-      const missing: { cells: typeof cells; key: CellKey; guardKey: CellKey }[] = []
-      for (const coord of iterateRange(range)) {
-        const k = cellKey(coord)
-        const gk = cycleGuardKey(cells, k)
-        if (cache.has(gk) || inProgress.has(gk)) continue
-        // We need this dep. Only push if the cell exists with an AST —
-        // literal / missing cells resolve inline below.
-        const cell = cells.get(k)
-        if (cell && cell.ast) {
-          missing.push({ cells, key: k, guardKey: gk })
-        }
-      }
-      if (missing.length > 0) {
-        throw new NeedsDep(missing)
-      }
-      // 压到这个矩形上的锚点，一次扫完 —— 逐格再问一遍会把 O(格数) 变成
-      // O(格数 × cells)。矩形没有空洞时一趟都不扫（密集区域零代价）。扫描内部
-      // 可能抛 `NeedsDep`（候选还没算），trampoline 接住。
-      const spilled = rangeHasHole(range, cells)
-        ? spill.scan(undefined, range)
-        : NO_SPILL_ANCHORS
-      const rows: Value[][] = new Array(rowCount)
-      try {
-        let rIdx = 0
-        let buf: Value[] | null = null
-        let lastRow = -1
-        for (const coord of iterateRange(range)) {
-          if (coord.row !== lastRow) {
-            buf = new Array(colCount)
-            rows[rIdx] = buf
-            rIdx += 1
-            lastRow = coord.row
-          }
-          const k = cellKey(coord)
-          // Either the cell is a non-ast literal/missing (resolve
-          // inline) or its value is in cache (via the previous pass).
-          const cell = cells.get(k)
-          if (!cell) {
-            // 自有条目缺席 → 可能是别人的投影格。
-            buf![coord.col - range.colStart] = projectedValueAt(spilled, coord) ?? BLANK
-          } else if (!cell.ast) {
-            buf![coord.col - range.colStart] = anchorScalar(cell.value)
-          } else {
-            const gk = cycleGuardKey(cells, k)
-            const cached = cache.get(gk)
-            if (cached !== undefined) {
-              // 锚点在区域里：读到的是它左上角那个标量，不是整片。没有这一折叠，
-              // `SUM(A1:A3)` 会拿到一个「3 行 1 列的格子」而报 `#CALC!`。
-              buf![coord.col - range.colStart] = anchorScalar(cached)
-            } else if (inProgress.has(gk)) {
-              const circ = ERR('#CIRCULAR!')
-              cache.set(gk, circ)
-              buf![coord.col - range.colStart] = circ
-            } else {
-              // Shouldn't happen — we just verified above. Defensive
-              // fallback: throw NeedsDep so the trampoline pushes it.
-              throw new NeedsDep([{ cells, key: k, guardKey: gk }])
-            }
-          }
-        }
-      } catch (err) {
-        if (err instanceof RangeTooLargeError) {
-          return [[ERR('#NUM!', err.message)]]
-        }
-        throw err
-      }
-      return rows
-    },
-    crossSheetCells: hostCtx.crossSheetCells,
-    callCustom: hostCtx.callCustom,
-    resolveName: hostCtx.resolveName,
-    currentCell: cellCoordFromKey(currentKey) ?? hostCtx.currentCell,
-    currentSheetName: hostCtx.currentSheetName,
-    currentSheetIndex: hostCtx.currentSheetIndex,
-    sheetCount: hostCtx.sheetCount,
-    sheetIndexOf: hostCtx.sheetIndexOf,
-    lambdaScope: hostCtx.lambdaScope,
-    lambdaRefScope: hostCtx.lambdaRefScope,
-    lambdaFunctionScope: hostCtx.lambdaFunctionScope,
-    lambdaOmittedParams: hostCtx.lambdaOmittedParams,
-    lambdaCallDepth: hostCtx.lambdaCallDepth,
-    locale: hostCtx.locale,
-    onFormulaEvaluated: hostCtx.onFormulaEvaluated,
-  }
-  return ctx
-}
-
-/**
- * Public entry: evaluate the cell at `rootKey` inside `rootCells` to a
- * concrete `Value`. The trampoline removes the cross-cell recursion
- * that previously blew V8's stack on deep dependency chains.
- *
- * If `rootKey` does not exist in `rootCells`, returns `BLANK` (Excel
- * convention). If the cell exists but has no AST, returns the stored
- * literal value verbatim — no trampoline machinery is involved in that
- * common case.
- *
- * `hostCtx` provides the host-level pieces the trampoline can't
- * synthesize: `crossSheetCells`, `callCustom`, `resolveName`, and the
- * shared `currentlyEvaluating` set (kept for back-compat, though cycle
- * detection is driven by `inProgress` internally).
- */
 export function evaluateCellTrampolined(
   rootKey: CellKey,
   rootCells: ReadonlyMap<CellKey, Cell>,
   hostCtx: EvalContext,
 ): Value {
-  const rootCell = rootCells.get(rootKey)
-  if (!rootCell) return BLANK
-  if (!rootCell.ast) return rootCell.value
-
-  const cache = new Map<CellKey, Value>()
-  // `inProgress` marks cells whose AST is currently mid-walk (started
-  // evaluating but waiting on deps before it can finish). A cycle is
-  // detected when `refLookup` hits a dep already in `inProgress`.
-  //
-  // Subtle: cells that have been *pushed* onto the work stack but not
-  // yet started must NOT be in `inProgress`. Otherwise, when a single
-  // range-lookup batch (`SUM(B1:B100)`) pushes 99 deps at once, every
-  // pair within that batch would mark each other as in-progress and
-  // false-positive a cycle. Membership in `inProgress` is bound to
-  // "AST eval has started but not finished for this guard key."
-  //
-  // We do NOT maintain a separate `queued` "already pushed" set. An
-  // earlier revision tried to skip re-pushing deps already on the
-  // stack, but that broke a corner case: when a range batch like
-  // `=SUM(B1:B3)` with `B1=B2+1, B2=B3+1, B3=1` pre-pushes [B3, B2, B1]
-  // (B1 on top), B1's AST walk faults on B2 — which is queued lower on
-  // the stack but hasn't started yet. Short-circuiting the re-push left
-  // B1 stuck on top, retrying forever until `maxIter`. The correctness
-  // invariant is the cache check at the top of the loop: re-pushing a
-  // dep that's already in the stack costs O(1) per duplicate pop (the
-  // cache-hit branch immediately drops it), and the duplicate count is
-  // bounded by the number of distinct refs in each in-flight cell's
-  // AST — not by chain depth.
-  const inProgress = new Set<CellKey>()
-  const stack: TrampolineFrame[] = []
-  // 溢出碰撞探测期间被塞了「暂定数组值」的锚点（见 `NeedsSpillProbes`）。候选全部
-  // 算完、本帧重回栈顶时撤掉它，让本帧重跑一次得出真判定。
-  const spillProbeSeeds = new Set<CellKey>()
-
-  // 本轮的溢出投影账本。候选锚点的值走同一个 `cache`：已经算过的直接用，没算过
-  // 的攒起来在扫描收尾时一次性抛给 trampoline（与区域物化的批量 `NeedsDep` 同
-  // 形，避免每个候选各中断一次）。
-  let pendingAnchors: TrampolineFrame[] = []
-  let skippedInFlight = false
-  const spill = createSpillProjectionRun({
-    cellsFor: (sheetName) =>
-      sheetName === undefined ? rootCells : hostCtx.crossSheetCells(sheetName),
-    sourceFor: (target): SpillAnchorSource => {
-      pendingAnchors = []
-      skippedInFlight = false
-      return {
-        arrayAt: (key, cell) => {
-          if (cell.ast === undefined) {
-            return cell.value.kind === 'array' ? cell.value.value : undefined
-          }
-          const guardKey = cycleGuardKey(target, key)
-          const cached = cache.get(guardKey)
-          if (cached !== undefined) return cached.kind === 'array' ? cached.value : undefined
-          // 候选正在求值栈上 —— 它在读我们，不能反过来向它索赔（`lookupKey`
-          // 会把它烙成 `#CIRCULAR!`，一条本来好好的公式就被判了环）。
-          if (inProgress.has(guardKey)) {
-            skippedInFlight = true
-            return undefined
-          }
-          pendingAnchors.push({ cells: target, key, guardKey })
-          return undefined
-        },
-        settle: () => {
-          if (pendingAnchors.length > 0) throw new NeedsDep(pendingAnchors)
-        },
-        unstable: () => skippedInFlight,
-      }
-    },
-  })
-
-  const rootGuard = cycleGuardKey(rootCells, rootKey)
-  if (hostCtx.currentlyEvaluating.has(rootGuard)) return ERR('#CIRCULAR!')
-  hostCtx.currentlyEvaluating.add(rootGuard)
-
-  // Bound on iterations as a defense against accidental infinite
-  // re-trying. Worst case the trampoline visits each cell `1 + deps`
-  // times; for a 100k chain with single-ref formulas that's 2*100k =
-  // 200k. Use a 10× margin (2M iterations) before bailing with a
-  // diagnostic error — anything past that signals a logic bug in the
-  // sentinel-retry loop, not a legitimate workload.
-  const maxIter = 20_000_000
-  let iter = 0
-
-  stack.push({ cells: rootCells, key: rootKey, guardKey: rootGuard })
-
-  try {
-  while (stack.length > 0) {
-    iter += 1
-    if (iter > maxIter) {
-      return ERR(
-        '#NUM!',
-        `evaluateCellTrampolined exceeded ${maxIter} work-stack iterations (possible logic bug)`,
-      )
-    }
-    const top = stack[stack.length - 1]
-    if (spillProbeSeeds.delete(top.guardKey)) {
-      // 候选锚点的帧都压在本帧之上，此刻已全部出栈 —— 撤掉暂定值，下面重跑一次
-      // AST + 碰撞判定，这一次候选的形状都在缓存里了。
-      cache.delete(top.guardKey)
-    } else if (cache.has(top.guardKey)) {
-      inProgress.delete(top.guardKey)
-      stack.pop()
-      // Lazy dep install for frames whose value was cached OUT FROM
-      // UNDER them by cycle detection: when `refLookup` / `rangeLookup`
-      // hits an in-progress ancestor it stamps that ancestor's cache
-      // entry with #CIRCULAR!, so the ancestor's frame lands here and
-      // never reaches the post-`evaluate` hook below. Without this, a
-      // cycle member's reverse edges are missing and breaking the cycle
-      // never re-derives it (codex P1 #2). Repeat pops of duplicate
-      // frames are O(1): `installDepsFor` skips when the AST identity
-      // and names revision are unchanged.
-      if (hostCtx.onFormulaEvaluated) {
-        const cachedCell = top.cells.get(top.key)
-        if (cachedCell?.ast) hostCtx.onFormulaEvaluated(top.cells, top.key, cachedCell.ast)
-      }
-      continue
-    }
-    const cell = top.cells.get(top.key)
-    if (!cell) {
-      cache.set(top.guardKey, BLANK)
-      inProgress.delete(top.guardKey)
-      stack.pop()
-      continue
-    }
-    if (!cell.ast) {
-      cache.set(top.guardKey, cell.value)
-      inProgress.delete(top.guardKey)
-      stack.pop()
-      continue
-    }
-    // About to start (or resume) walking this cell's AST — mark
-    // inProgress so a back-edge through this guard key surfaces
-    // #CIRCULAR! instead of falling into infinite re-trying.
-    inProgress.add(top.guardKey)
-    const shimCtx = makeTrampolineCtx(top.cells, top.key, hostCtx, cache, inProgress, spill)
-    // 本帧重跑时上一轮攒的 watch 作废 —— 每次都从这一帧真正问过的候选重新收。
-    spill.resetWatches()
-    try {
-      const result = validateSpillAnchorValue(
-        evaluate(cell.ast, shimCtx),
-        top.cells,
-        top.key,
-        cache,
-        inProgress,
-      )
-      cache.set(top.guardKey, result.value)
-      inProgress.delete(top.guardKey)
-      stack.pop()
-      // Lazy dep install (KEY_GRANULAR_INVALIDATION): every formula the
-      // trampoline finishes — the root anchor AND transitively-visited
-      // dependency cells — reports to the workbook so its reverse edges
-      // exist before any of its dependents cache a value derived from it.
-      hostCtx.onFormulaEvaluated?.(top.cells, top.key, cell.ast, {
-        ranges: [
-          ...(result.ranges ?? []).map((range) => ({ range })),
-          // 读到过投影值的公式必须依赖那些**锚点**：它的静态依赖指向投影格自己，
-          // 而投影格在表里没有条目 —— 锚点重算 / 被清掉时没有任何一条现成的边
-          // 会通知它。收成外接矩形（区域依赖），不逐格登记。
-          ...spill.watches().map((watch) => ({ sheetName: watch.sheetName, range: watch.range })),
-        ],
-      })
-    } catch (err) {
-      if (err instanceof NeedsSpillProbes) {
-        // 这一格算出了数组，但要先知道排在它前面的几个锚点摊开成什么形状。把暂定
-        // 数组值写进缓存再去算候选 —— 候选若回读本格（`=C1+1` 这类），读到的是这个
-        // 暂定值而不是「求值中」，否则 `lookupKey` 会把本格烙成 `#CIRCULAR!`。
-        cache.set(top.guardKey, err.tentative)
-        spillProbeSeeds.add(top.guardKey)
-        for (let i = err.deps.length - 1; i >= 0; i -= 1) {
-          const dep = err.deps[i]
-          if (cache.has(dep.guardKey)) continue
-          stack.push({ cells: dep.cells, key: dep.key, guardKey: dep.guardKey })
-        }
-        continue
-      }
-      if (err instanceof NeedsDep) {
-        // The cell isn't done — it faulted out partway through AST
-        // evaluation when it hit a dep that wasn't in the cache yet.
-        // Leave it in `inProgress` (it's a paused ancestor whose work
-        // depends on the deps about to be pushed); when one of those
-        // deps tries to refer back to us, the refLookup shim will
-        // surface #CIRCULAR! against this still-in-progress entry.
-        // Push deps in *reverse* iteration order so the first dep in
-        // `err.deps` ends up on TOP of the stack (LIFO → processed
-        // next). This matters for range batches whose deps form a
-        // chain: `SUM(B1:B100)` with `B(k)=B(k-1)+1` lists deps as
-        // [B2, B3, …, B100]; to evaluate them bottom-up we want B2
-        // popped first, so push B100 first and B2 last.
-        //
-        // We deliberately do NOT skip deps already on the stack — see
-        // the comment near `inProgress` for the corner case (range
-        // batch faulting on a queued-but-not-started dep). Duplicates
-        // are O(1) at pop time via the cache-hit branch.
-        for (let i = err.deps.length - 1; i >= 0; i -= 1) {
-          const dep = err.deps[i]
-          if (cache.has(dep.guardKey)) continue
-          stack.push({ cells: dep.cells, key: dep.key, guardKey: dep.guardKey })
-        }
-        // Loop continues; the newly-pushed deps will be evaluated
-        // first, and `top` will be retried once they cache out.
-        continue
-      }
-      // Any other throw is a real bug — surface it.
-      inProgress.delete(top.guardKey)
-      throw err
-    }
-  }
-
-  return cache.get(rootGuard) ?? BLANK
-  } finally {
-    hostCtx.currentlyEvaluating.delete(rootGuard)
-  }
-}
-
-/**
- * 数组结果落地前的最后一关：矩形越界 / 被占 → `#SPILL!`，否则原值放行并把矩形
- * 交回调用方登记运行期依赖。
- *
- * 判定本身（含「阻塞物是别的数组的投影格」那一整类）住在 `spill-collision.ts`；
- * 这里只负责把它的结论翻成 `Value`，以及在需要探测别的锚点时向 trampoline 请求
- * 那几个候选 —— 见 `NeedsSpillProbes`。
- */
-function validateSpillAnchorValue(
-  value: Value,
-  cells: ReadonlyMap<CellKey, Cell>,
-  key: CellKey,
-  cache: Map<CellKey, Value>,
-  inProgress: Set<CellKey>,
-): { readonly value: Value; readonly ranges?: ReadonlyArray<CellRange> } {
-  if (value.kind !== 'array') return { value }
-  const anchor = cellCoordFromKey(key)
-  if (!anchor) return { value }
-  const rows = value.value.length
-  const cols = value.value[0]?.length ?? 0
-  const outcome = checkSpillCollision(anchor, { rows, cols }, cells, key, {
-    evaluated: (candidateKey) => cache.get(cycleGuardKey(cells, candidateKey)),
-    inFlight: (candidateKey) => inProgress.has(cycleGuardKey(cells, candidateKey)),
-  })
-  switch (outcome.kind) {
-    case 'outOfBounds':
-      return { value: ERR('#SPILL!', 'spill range exceeds sheet bounds') }
-    case 'blocked':
-      return { value: ERR('#SPILL!', outcome.reason), ranges: spillDepRanges(outcome) }
-    case 'clear':
-      return { value, ranges: spillDepRanges(outcome) }
-    case 'pending':
-      throw new NeedsSpillProbes(
-        outcome.keys.map((candidateKey) => ({
-          cells,
-          key: candidateKey,
-          guardKey: cycleGuardKey(cells, candidateKey),
-        })),
-        value,
-      )
-  }
-}
-
-/**
- * 锚点这一轮要看住的区域：自己的溢出矩形，加上「可能压过来的那些锚点」的外接
- * 矩形。后者是复活路径的关键 —— 挡住我们的那片数组，它的锚点在我们的矩形**外
- * 面**，清掉它时若没有这条边，被挡的一片永远不会重算。
- */
-function spillDepRanges(outcome: {
-  readonly range: CellRange
-  readonly watch?: CellRange
-}): ReadonlyArray<CellRange> {
-  return outcome.watch === undefined ? [outcome.range] : [outcome.range, outcome.watch]
-}
-
-/**
- * Apply a binary operator. Errors propagate (left-first per Excel).
- * Comparisons return `boolean` Value. Concat returns `string`. Numeric
- * ops return `number`.
- */
-function applyBinary(op: BinaryOp, left: Value, right: Value): Value {
-  if (left.kind === 'array' || right.kind === 'array') {
-    return applyBroadcastBinary(op, left, right)
-  }
-  return applyScalarBinary(op, left, right)
-}
-
-function applyBroadcastBinary(op: BinaryOp, left: Value, right: Value): Value {
-  const leftGrid = valueToGrid(left)
-  if (leftGrid.error) return leftGrid.error
-  const rightGrid = valueToGrid(right)
-  if (rightGrid.error) return rightGrid.error
-
-  const rows = broadcastExtent(leftGrid.grid.rows, rightGrid.grid.rows)
-  const cols = broadcastExtent(leftGrid.grid.cols, rightGrid.grid.cols)
-  if (rows === undefined || cols === undefined) return ERR('#VALUE!')
-  const shapeError = arrayShapeError(rows, cols, 'array result', 'array result exceeds cell cap')
-  if (shapeError) return shapeError
-
-  const out = makeMatrix(rows, cols)
-  for (let r = 0; r < rows; r += 1) {
-    for (let c = 0; c < cols; c += 1) {
-      out[r][c] = applyScalarBinary(
-        op,
-        pickBroadcastCell(leftGrid.grid, r, c),
-        pickBroadcastCell(rightGrid.grid, r, c),
-      )
-    }
-  }
-  return arrayResult(out, 'array result')
-}
-
-function pickBroadcastCell(grid: Grid, row: number, col: number): Value {
-  return grid.cells[grid.rows === 1 ? 0 : row][grid.cols === 1 ? 0 : col]
-}
-
-function broadcastExtent(left: number, right: number): number | undefined {
-  if (left === right) return left
-  if (left === 1) return right
-  if (right === 1) return left
-  return undefined
-}
-
-function applyScalarBinary(op: BinaryOp, left: Value, right: Value): Value {
-  const propagated = propagateError([left, right])
-  if (propagated) return propagated
-
-  if (op === '&') {
-    const ls = toStr(left)
-    if (!ls.ok) return ls.error
-    const rs = toStr(right)
-    if (!rs.ok) return rs.error
-    return { kind: 'string', value: ls.value + rs.value }
-  }
-
-  // Comparison ops support mixed types: numbers compared with numbers,
-  // strings with strings (lex order), booleans coerced to 0/1.
-  if (op === '=' || op === '<>' || op === '<' || op === '<=' || op === '>' || op === '>=') {
-    return compareValues(op, left, right)
-  }
-
-  // Arithmetic ops — coerce both sides to number.
-  const ln = toNumber(left)
-  if (!ln.ok) return ln.error
-  const rn = toNumber(right)
-  if (!rn.ok) return rn.error
-  const l = ln.value
-  const r = rn.value
-  switch (op) {
-    case '+':
-      return finiteOrNum(l + r)
-    case '-':
-      return finiteOrNum(l - r)
-    case '*':
-      return finiteOrNum(l * r)
-    case '/':
-      if (r === 0) return ERR('#DIV/0!')
-      return finiteOrNum(l / r)
-    case '^': {
-      const res = Math.pow(l, r)
-      if (!Number.isFinite(res)) return ERR('#NUM!')
-      return { kind: 'number', value: res }
-    }
-  }
-}
-
-/**
- * Excel comparison semantics:
- *  - `blank` compares as 0 (numeric) or "" (string) — we model it as
- *    coerce to the *other* side's type.
- *  - cross-type compares: number < string in Excel's collation order.
- *    For Wave B parity we only need the cases that real formulas hit:
- *    same-type compares + blank-vs-anything. Skip the exotic ordering.
- *  - boolean compares to number via coerce, to boolean directly.
- */
-function compareValues(op: BinaryOp, l: Value, r: Value): Value {
-  let cmp: number
-  if (l.kind === 'blank' && r.kind === 'blank') {
-    cmp = 0
-  } else if (l.kind === 'string' && r.kind === 'string') {
-    cmp = l.value < r.value ? -1 : l.value > r.value ? 1 : 0
-  } else if (l.kind === 'boolean' && r.kind === 'boolean') {
-    cmp = (l.value ? 1 : 0) - (r.value ? 1 : 0)
-  } else {
-    // Default: coerce both to number.
-    const ln = toNumber(l)
-    if (!ln.ok) return ln.error
-    const rn = toNumber(r)
-    if (!rn.ok) return rn.error
-    cmp = ln.value < rn.value ? -1 : ln.value > rn.value ? 1 : 0
-  }
-  let result: boolean
-  switch (op) {
-    case '=':
-      result = cmp === 0
-      break
-    case '<>':
-      result = cmp !== 0
-      break
-    case '<':
-      result = cmp < 0
-      break
-    case '<=':
-      result = cmp <= 0
-      break
-    case '>':
-      result = cmp > 0
-      break
-    case '>=':
-      result = cmp >= 0
-      break
-    default:
-      return ERR('#ERROR!')
-  }
-  return { kind: 'boolean', value: result }
+  return evaluateCellWithWorkStack(rootKey, rootCells, hostCtx, evaluate)
 }
 
 // ----------------------------------------------------------------------------
-// A1 helpers — thin shims around refs/a1 + refs/ranges for the evaluator.
+// 搬走之后的转口导出。
 //
-// Kept named so worker / adapter / future-Wave code can reach a "Value
-// engine-side cell coord" without re-importing `refs/`.
+// 这些名字的实现已经下沉到各自的叶子模块，但 `sheet.ts` / `eval/index.ts` /
+// `sparse-*.ts` / `spill-*.ts` / 测试仍按 `from './evaluate'` 取用它们。原样再
+// 导出一遍，调用点一个字节都不用改。
+//
+// ⚠️ 这一行同时是两个**有意的环**的闭合点：`sparse-*.ts` 回读 `ERR` /
+// `canSparseIterate` / `rangeCellCount` / `runtimeRefFromExpr` /
+// `valueAtRuntimeCoord` / `sparseValuesForRef`，`spill-collision.ts` 与
+// `spill-projection.ts` 回读 `ARRAY_CELL_CAP`。约束照旧：**禁止在那三族文件的
+// 顶层求值从本文件导入的绑定**（只能在函数体里用），否则模块初始化顺序一变就是
+// undefined。`spill-*` 那两条如果哪天想彻底解掉，把它们的 `ARRAY_CELL_CAP` 改成
+// `from './array-shape'` 即可 —— 常量已经住在那儿了。
 // ----------------------------------------------------------------------------
-
-export function parseRefToCoord(a1: string): { row: number; col: number } | null {
-  const parsed = parseA1(a1)
-  if (!parsed) return null
-  return { row: parsed.row, col: parsed.col }
-}
-
-function cellCoordFromKey(key: CellKey): CellCoord | undefined {
-  const sep = key.indexOf(':')
-  if (sep < 0) return undefined
-  const row = Number(key.slice(0, sep))
-  const col = Number(key.slice(sep + 1))
-  if (!Number.isInteger(row) || !Number.isInteger(col)) return undefined
-  return { row, col }
-}
-
-export function parseRefToKey(a1: string): CellKey | null {
-  const parsed = parseA1(a1)
-  if (!parsed) return null
-  return cellKey(parsed)
+export {
+  ERR,
+  ARRAY_CELL_CAP,
+  canSparseIterate,
+  rangeCellCount,
+  cycleGuardKey,
+  parseRefToCoord,
+  parseRefToKey,
 }

@@ -21932,7 +21932,10 @@ fn eval_optional_value_arg(
 }
 
 fn fn_textsplit(args: &[Expr], provider: &dyn EvalProvider) -> Value {
-    if args.is_empty() || args.len() > 6 {
+    // `col_delim` 是必填的：下面直接索引 `args[1]`，只挡 `args.is_empty()`
+    // 时 `=TEXTSPLIT("a")` 会 panic（index out of bounds），在 WASM 里等于
+    // 一条公式打死 worker。TS 参考引擎判的是 `args.length < 2`，这里向它收敛。
+    if args.len() < 2 || args.len() > 6 {
         return Value::Error(ValueError::WrongArgCount);
     }
     // text
@@ -22033,7 +22036,24 @@ fn fn_textsplit(args: &[Expr], provider: &dyn EvalProvider) -> Value {
     }
     let r = grid.len() as u32;
     let c = max_cols as u32;
-    let mut data: Vec<Value> = Vec::with_capacity((r as usize) * (c as usize));
+    // 格数闸门。TEXTSPLIT 的输出是**两轴分隔符个数之积**，对长度 L 的文本最坏
+    // (L/2)²；到这里为止的分配都还是线性的（`grid` 里的 String 总数 ≤ L + 行数），
+    // 二次爆炸只发生在下面按 `max_cols` 补齐 pad 的那一步 —— 所以闸门必须钉在
+    // `Vec::with_capacity` 之前。实测 `REPT(";",16383)&REPT(",",16383)`（32766
+    // 字符，公式能造出的最长文本量级）= 16384 × 16384 = 268,435,456 格 ≈ 6.4 GB。
+    //
+    // 只数格数，**不看行列各自是否越网格** —— 后者是 `DYNAMIC_ARRAY_CELL_CAP`
+    // 注释里登记的那条未决分歧，不在这里顺手统一。
+    // 口径与 SEQUENCE / EXPAND / MAKEARRAY 等同一个 `checked_array_len`。
+    //
+    // 1×N 分支（`row_delims` 为空）不需要这道闸门：它的格数 = 片段数 ≤ L + 1，
+    // 是线性的，而公式能造出的最长文本被 REPT / CONCAT / TEXTJOIN 卡在 32767
+    // 字符 → 最坏 32768 格，只有上限的 3%。
+    let cap = match checked_array_len(r as u64, c as u64) {
+        Ok(cap) => cap,
+        Err(e) => return Value::Error(e),
+    };
+    let mut data: Vec<Value> = Vec::with_capacity(cap);
     let pad_arg = args.get(5);
     let mut pad: Option<Value> = None;
     for row in grid {

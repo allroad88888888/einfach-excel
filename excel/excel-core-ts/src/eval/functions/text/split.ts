@@ -14,6 +14,23 @@ import {
   ERR_VALUE,
 } from './read-args'
 
+/**
+ * TEXTSPLIT 二维结果的格数上限。
+ *
+ * **不是又抄一个魔数，是抄不动**：这条上限的既有声明点有两个 —— `evaluate.ts`
+ * 的 `ARRAY_CELL_CAP`（导出）和 `functions/array.ts` 的 `MAX_ARRAY_CELLS`
+ * （模块私有）。前者导不进来：`split.ts → evaluate.ts → functions/index.ts →
+ * text/index.ts` 是一条真的会炸的环 —— `text/index.ts` 在模块顶层建 `FUNCTIONS`
+ * 注册表，而 `evaluate.ts` 也在顶层读 `TEXT_FUNCTIONS`，任何先加载
+ * `functions/text` 的入口（`phase8-text.test.ts` 就是）当场
+ * `ReferenceError: Cannot access 'FUNCTIONS' before initialization`（试过）。
+ * 后者没导出，且 `array.ts` 不归本次改动动。
+ *
+ * 防漂移不靠注释靠测试：`textsplit-cell-cap.test.ts` 断言这个值 === 从
+ * `evaluate.ts` 导入的 `ARRAY_CELL_CAP`，改一边不改另一边就红。
+ */
+const TEXTSPLIT_CELL_CAP = 1_048_576
+
 function collectTextDelimiters(
   v: Value,
   includeEmpty = false,
@@ -143,7 +160,26 @@ export const TEXTSPLIT: FunctionImpl = (args) => {
   const rows = (rowTexts.length === 0 ? [''] : rowTexts).map((row) =>
     textsplitOneAxis(row, colR.value, ignoreEmpty, matchMode),
   )
-  const maxCols = Math.max(1, ...rows.map((row) => row.length))
+  // 逐个比而不是 `Math.max(1, ...rows.map(...))`：展开成实参的数组一长就是
+  // `RangeError: Maximum call stack size exceeded`（实测 30 万个行分隔符即触发），
+  // 那是**抛异常**而不是错误值，且发生在下面的格数闸门之前 —— 闸门就白装了。
+  let maxCols = 1
+  for (const row of rows) {
+    if (row.length > maxCols) maxCols = row.length
+  }
+  // 格数闸门。TEXTSPLIT 的输出是**两轴分隔符个数之积**，对长度 L 的文本最坏
+  // (L/2)²；到这里为止都还是线性的（`rows` 里的片段总数 ≤ L + 行数），二次爆炸
+  // 只发生在下面按 `maxCols` 补 pad 的那一步，所以闸门必须钉在 `rows.map` 之前。
+  // 实测 2200 字符（1100 个 ';' + 1100 个 ','）= 1101 × 1101 = 1,212,201 格。
+  //
+  // 只数格数，**不用 `array.ts` 的 `tooLarge()`**：那个 helper 还捎带「行 > 网格
+  // 行数 / 列 > 网格列数」两条，会把 Rust 引擎照收的形状（例如 row_delim 一次都
+  // 没匹配上时的 1 × 20001）判成错，等于新造一条跨引擎分歧；而「超网格给 `#NUM!`
+  // 还是 `#VALUE!`」正是两边登记在案的未决分歧，不在这里顺手统一。
+  // `#VALUE!` 与 Rust 的 `checked_array_len` 同码。
+  if (rows.length * maxCols > TEXTSPLIT_CELL_CAP) {
+    return errValue('#VALUE!', `TEXTSPLIT result too large (${rows.length}x${maxCols})`)
+  }
   const out = rows.map((row) => {
     const cells: Value[] = []
     for (let i = 0; i < maxCols; i++) {

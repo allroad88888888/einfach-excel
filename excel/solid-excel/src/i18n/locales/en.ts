@@ -871,6 +871,13 @@ export const messages: Record<string, string> = {
   // Dynamic arrays — the one thing `#SPILL!` could never say on its own:
   // which cell is in the way. Shown while the collided anchor is selected.
   'spill.blockedBy': 'Blocked by {addr} — clear that cell to let the array spill.',
+  // Same clue, but the obstruction is ANOTHER dynamic array. The engine points
+  // at that array's anchor rather than the cell physically in the way: clearing
+  // a projected cell only collapses that array into a second `#SPILL!`. Naming
+  // the array is what keeps the message believable — the anchor can look empty
+  // from where the user is standing.
+  'spill.blockedByArray':
+    'Blocked by the array at {addr} — clear that array to let this one spill.',
   // Tooltip on the greyed-out formula bar while a spilled (non-anchor) cell is
   // selected. The formula shown belongs to the anchor, so editing it here would
   // write it INTO the projected cell and collapse the whole array to `#SPILL!`.

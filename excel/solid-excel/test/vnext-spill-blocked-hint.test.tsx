@@ -7,12 +7,14 @@
  * 这里测的是**状态**（跟着活动单元格走，移开就没）。两者形状不同，混在一起会让
  * 「不该有 dismiss」这条要求变得看不出来。
  *
- * 三条不能回潮的性质：
+ * 四条不能回潮的性质：
  *
  *   1. 有线索就一定看得见 —— 缺了它 `#SPILL!` 又变回一个说不出理由的错误码；
  *   2. 地址按 **A1** 呈现 —— 用户接下来要去名称框里输的就是这个形式，报 `(2,7)`
  *      等于没报；
- *   3. 线索消失时组件跟着消失 —— 挂着上一个锚点的话比不说更糟。
+ *   3. 线索消失时组件跟着消失 —— 挂着上一个锚点的话比不说更糟；
+ *   4. 挡路的是另一个数组时，话里得说出「数组」—— 那时指的是那个数组的**锚点**，
+ *      而锚点在用户眼里可能是空的，照直说「清掉 H3」会像是提示指错了地方。
  */
 import { afterEach, describe, expect, it } from '@jest/globals'
 import { createStore, type Store } from '@einfach/core'
@@ -55,6 +57,19 @@ const blockedPort: SpillRegionPort = {
   },
 }
 
+/** 同上，但 `H3` 是**另一个数组的锚点**——文案要换一句说。 */
+const blockedByArrayPort: SpillRegionPort = {
+  async readSpillRegion(request) {
+    return {
+      kind: 'spill-region',
+      sheetId: request.sheetId,
+      region: null,
+      blockedBy: { row: 2, col: 7 },
+      blockedByArray: true,
+    }
+  },
+}
+
 function mount(store: Store, sheetId?: string) {
   return render(() => (
     <SpreadsheetUiProvider backend={createFakeBackend()} store={store}>
@@ -91,6 +106,38 @@ describe('SpreadsheetSpillBlockedHint', () => {
     expect(hint?.textContent).toContain('H3')
     // 状态而非日志：没有关闭按钮。
     expect(hint?.querySelector('button')).toBeNull()
+  })
+
+  it('says the obstruction is an ARRAY when it is one, not just "clear H3"', async () => {
+    const store = createStore()
+    const { queryByTestId } = mount(store)
+    expect(
+      await store.setter(refreshSpillRegionAtom, {
+        source: blockedByArrayPort,
+        sheetId: 'sheet-1',
+        cell: { row: 0, col: 7 },
+      }),
+    ).toBe('blocked')
+
+    const hint = queryByTestId('spill-blocked-hint')
+    expect(hint?.getAttribute('data-blocked-by')).toBe('H3')
+    // 换的是**措辞**，指的还是同一格 —— 标志不许把地址也改掉。
+    expect(hint).not.toBeNull()
+    expect(hint?.hasAttribute('data-blocked-by-array')).toBe(true)
+    // H3 那一格在用户眼里可能是空的（数组的内容画在它的投影格上），所以这句话必须
+    // 点明「H3 处的**那个数组**」，否则提示看着像指错了地方。两个 locale 各认一段。
+    expect(hint?.textContent).toMatch(/处的数组|the array at/)
+    expect(hint?.textContent).toContain('H3')
+  })
+
+  it('keeps the plain wording when the obstruction is a value the user typed', async () => {
+    const store = createStore()
+    const { queryByTestId } = mount(store)
+    await seedBlockage(store)
+
+    const hint = queryByTestId('spill-blocked-hint')
+    expect(hint?.hasAttribute('data-blocked-by-array')).toBe(false)
+    expect(hint?.textContent).not.toMatch(/处的数组|the array at/)
   })
 
   it('disappears when the blockage is cleared', async () => {

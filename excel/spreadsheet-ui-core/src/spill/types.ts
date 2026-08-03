@@ -43,7 +43,11 @@ export interface SpillRegionResult extends SheetRef {
    */
   anchorFormula?: string
   /**
-   * 查询坐标是碰撞态（`#SPILL!`）锚点、且后端说得出是谁挡住它时，给出那一格的坐标。
+   * 查询坐标是碰撞态（`#SPILL!`）锚点、且后端说得出**要清哪一格**时，给出那一格的坐标。
+   *
+   * 不保证它落在锚点想要的矩形里：阻塞物若是别的数组的投影格，后端报的是**那个数组的
+   * 锚点**（清投影格只会把那个数组也塌成 `#SPILL!`）。所以这条的语义是「清掉它，这个
+   * `#SPILL!` 就没了」，不是「它压在矩形的哪一格上」。
    *
    * **缺席有两种原因，本层刻意不区分**：「这一格不是碰撞态锚点」与「后端答不出」
    * （TS 参考引擎没有溢出索引，见 `worker-protocol.ts` 的 `SpillRegionWire`）。
@@ -52,6 +56,14 @@ export interface SpillRegionResult extends SheetRef {
    * 与 `region` 互斥：装上了投影就不存在阻塞物。
    */
   blockedBy?: CellCoord
+  /**
+   * `blockedBy` 指的是一个**动态数组**（那一格是某个数组的锚点），不是用户自己打的值。
+   *
+   * 只影响措辞，不影响该不该说话：为真时宿主该说「被那儿的数组挡住」，否则用户对着一格
+   * 看着空空如也的地址（数组的内容画在它的投影格上）会以为提示指错了。缺席 = 「不是
+   * 数组」或「后端答不出」，两者退回同一句朴素说法。
+   */
+  blockedByArray?: boolean
   requestId?: number
   revision?: number | string
 }
@@ -79,7 +91,7 @@ export interface SpillProjectedFormula {
 }
 
 /**
- * 一个说得出理由的 `#SPILL!`：锚点在哪，被哪一格挡住。
+ * 一个说得出理由的 `#SPILL!`：锚点在哪，要清哪一格。
  *
  * 只在**选中锚点本身**时存在 —— 与溢出边框同一条按需查询、同一格缓存。用户站在
  * 别处时引擎当然还知道，但没人问就不查。
@@ -87,8 +99,10 @@ export interface SpillProjectedFormula {
 export interface ActiveSpillBlockage extends SheetRef {
   /** 读 `#SPILL!` 的那个数组公式格（= 查询坐标）。 */
   anchor: CellCoord
-  /** 行主序第一个挡住它的格子 —— 清掉这一格，数组就能溢出来。 */
+  /** 清掉这一格，数组就能溢出来。见 `SpillRegionResult.blockedBy`。 */
   blockedBy: CellCoord
+  /** `blockedBy` 是不是一个数组的锚点；决定宿主说哪一句。见同名应答字段。 */
+  blockedByArray?: boolean
 }
 
 /** 一格在溢出区里的身份：锚点，还是从锚点溢出来的投影格。 */

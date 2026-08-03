@@ -4619,9 +4619,9 @@ export function createWorkerWorkbookSpreadsheetBackend(
      * 反向扫描），所以这里不做能力门控。查询坐标越界或不在任何活动数组里都回
      * `region: null` —— 与端口缺席是两回事，后者由 UI-core 的能力证据处理。
      *
-     * `blockedBy`（碰撞态 `#SPILL!` 锚点被谁挡住）只有 WASM runtime 给得出，TS
-     * 参考引擎没有溢出索引、答不出，于是那边恒缺席。两侧差异见
-     * `worker-protocol.ts` 的 `SpillRegionWire`。
+     * `blockedBy`（碰撞态 `#SPILL!` 锚点要清哪一格）与随它同行的 `blockedByArray`
+     * （那一格是不是一个数组）只有 WASM runtime 给得出，TS 参考引擎没有溢出索引、
+     * 答不出，于是那边恒缺席。两侧差异见 `worker-protocol.ts` 的 `SpillRegionWire`。
      *
      * `anchorFormula`（锚点公式原文，公式栏在投影格上显示的那条）则**两侧都给得
      * 出** —— 锚点在两个引擎里都有自己的条目。别把它跟 `blockedBy` 归成一类。
@@ -4641,7 +4641,14 @@ export function createWorkerWorkbookSpreadsheetBackend(
       const wire = await client.spillRegion(sheet.idx, toA1(request.row, request.col))
       if (!wire) return empty
       // 碰撞态锚点：有阻塞线索，但没有矩形可画 —— 它一个格子都没装上。
-      if (wire.blockedBy) return { ...empty, blockedBy: { ...wire.blockedBy } }
+      // `blockedByArray` 只在为真时上抛，缺席 = 「不是数组 / 答不出」，UI 说朴素那句。
+      if (wire.blockedBy) {
+        return {
+          ...empty,
+          blockedBy: { ...wire.blockedBy },
+          ...(wire.blockedByArray === true ? { blockedByArray: true } : {}),
+        }
+      }
       if (!Number.isInteger(wire.rows) || !Number.isInteger(wire.cols)) return empty
       const rows = wire.rows as number
       const cols = wire.cols as number

@@ -15,8 +15,8 @@
  * 断言都是**闭式**的整块比较（锚点坐标 + 形状），不是"没抛就算过"：形状少一行、
  * 锚点差一格，diff 里直接看得见。
  *
- * **一处刻意的跨引擎分歧**：碰撞态（`#SPILL!`）锚点的 `blockedBy`（被谁挡住）只有
- * WASM runtime 给得出。TS 参考引擎的碰撞态锚点连「它想要多大的矩形」都没存下来
+ * **一处刻意的跨引擎分歧**：碰撞态（`#SPILL!`）锚点的 `blockedBy`（要清哪一格）以及
+ * 随它同行的 `blockedByArray`（那一格是不是一个数组）只有 WASM runtime 给得出。TS 参考引擎的碰撞态锚点连「它想要多大的矩形」都没存下来
  * （`validateSpillAnchorValue` 算完就丢），所以它答不出，于是诚实地什么都不带 ——
  * 而不是编一个地址。`ENGINES` 里的 `blocker` 标志就是这条分歧的显式登记：它是
  * 每个 runtime 的**契约**，不是"哪边先实现了"的现状快照。要抹平它得先让
@@ -194,6 +194,40 @@ describe.each(ENGINES)('spill region query — $name runtime', ({ open, blocker 
       cols: 1,
       anchorFormula: '=SEQUENCE(3)',
     })
+    client.dispose()
+  })
+
+  test('挡路的是另一个数组时，线索带上 `blockedByArray` —— 文案要换一句说', async () => {
+    const client = await freshClient(open)
+    // H3 上一个活着的数组挡住 H1 想要的 H1:H10。挡路的那一格**自己就是锚点**，所以
+    // 引擎不用反查就指对了地方；这里钉的是随行的那个标志。
+    expect(await client.setFormula(0, 'H3', '=SEQUENCE(3)')).toBe(true)
+    expect(await client.setFormula(0, 'H1', '=SEQUENCE(10)')).toBe(true)
+
+    expect(await client.spillRegion(0, 'H1')).toEqual(
+      blocker
+        ? {
+            sheet: 0,
+            anchorRow: 0,
+            anchorCol: 7,
+            blockedBy: { row: 2, col: 7 },
+            blockedByArray: true,
+          }
+        : null,
+    )
+    client.dispose()
+  })
+
+  test('挡路的是用户自己打的值时，`blockedByArray` 必须缺席', async () => {
+    const client = await freshClient(open)
+    expect(await client.setCell(0, 'H3', { type: 'text', value: 'blocker' })).toBe(true)
+    expect(await client.setFormula(0, 'H1', '=SEQUENCE(10)')).toBe(true)
+
+    // 缺席而不是 `false`：这条只换措辞，「不是数组」与「答不出」在 UI 那边同一处理。
+    // 标志错误地恒为真会把每一条提示都改口成「被那儿的数组挡住」，用户找不到那个数组。
+    const wire = await client.spillRegion(0, 'H1')
+    expect(wire?.blockedBy ?? null).toEqual(blocker ? { row: 2, col: 7 } : null)
+    expect(wire?.blockedByArray).toBeUndefined()
     client.dispose()
   })
 

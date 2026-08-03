@@ -16,6 +16,10 @@
  *   流；`polite` 让读屏在读完当前内容后再播，不打断。
  * - **地址用 A1 而不是行列号。** 用户接下来要做的事是「去 B3 把它删掉」，A1 是他
  *   在名称框里输得进去的那个形式。
+ * - **挡路的是另一个数组时换一句话说。** 引擎那时报的是那个数组的**锚点**，而不是
+ *   物理上压着的那一格（清投影格只会把那个数组也塌成第二个 `#SPILL!`）。可锚点在
+ *   用户眼里可能是空的 —— 数组的内容画在它的投影格上 —— 照直说「清掉 C1」会像是
+ *   提示指错了地方。所以这一支说的是「被 C1 **处的数组**挡住」。
  *
  * 这个组件不发查询 —— 查询由 `SpreadsheetGrid` 的选区探针统一发（与溢出边框同一
  * 次 RPC），这里只读结果。
@@ -69,12 +73,15 @@ export function SpreadsheetSpillBlockedHint(props: SpreadsheetSpillBlockedHintPr
           data-testid="spill-blocked-hint"
           data-anchor={toA1(current().anchor)}
           data-blocked-by={toA1(current().blockedBy)}
+          data-blocked-by-array={current().blockedByArray === true ? '' : undefined}
         >
           <span class="spreadsheet-spill-blocked-code" aria-hidden="true">
             #SPILL!
           </span>
           <span class="spreadsheet-spill-blocked-message">
-            {t('spill.blockedBy', { addr: toA1(current().blockedBy) })}
+            {t(current().blockedByArray === true ? 'spill.blockedByArray' : 'spill.blockedBy', {
+              addr: toA1(current().blockedBy),
+            })}
           </span>
         </div>
       )}

@@ -7,11 +7,12 @@ import type { SpillRegionWire } from './worker-protocol'
 /**
  * 动态数组的溢出区查询（ADR 0006 阶段 3）。装饰性只读：不改状态、不 bump revision。
  *
- * 三次绑定调用封顶：先问 `spillAnchor`（`addr` 是投影格时给出锚点），问不到再拿
+ * 四次绑定调用封顶：先问 `spillAnchor`（`addr` 是投影格时给出锚点），问不到再拿
  * `addr` 自己去问 `spillInfo`（`addr` 就是锚点的情形）。两个都问不到时还剩最后一种
  * 可能 —— `addr` 是**碰撞态**（`#SPILL!`）锚点，它一个格子都没装上，所以前两问必然
- * 空手而回；这时问 `spillBlocker`，把「被谁挡住」带上去。全都问不到才是「不在任何
- * 活动溢出区里，也没什么可解释的」。
+ * 空手而回；这时问 `spillBlocker`，把「要清哪一格」带上去，再拿那一格问一次
+ * `spillInfo` 判断它是不是一个数组（文案要分这两种说法）。全都问不到才是「不在任何
+ * 活动溢出区里，也没什么可解释的」。第四问只在碰撞态这条稀有分支上付。
  *
  * 第三问放在这里而不是单开一条 RPC：它与前两问是**同一次选区移动**上的同一个问题
  * （「我脚下这一格跟动态数组有什么关系」），拆成两条 RPC 只会让每次选区移动多一个
@@ -44,18 +45,32 @@ function shapeOf(
 }
 
 /**
- * 碰撞态锚点的阻塞地址。**不走 `assertMethod`**：这个导出比另外两个晚落地，旧的
- * wasm-pkg 上它不存在，而为一句提示文案把整条溢出区查询打成
- * `WASM_METHOD_UNAVAILABLE` 是本末倒置 —— 缺席就当「答不出」，边框照画。
+ * 碰撞态锚点要清的那一格，外加「那一格是不是一个数组」。
+ *
+ * **不走 `assertMethod`**：`spillBlocker` 这个导出比另外两个晚落地，旧的 wasm-pkg 上
+ * 它不存在，而为一句提示文案把整条溢出区查询打成 `WASM_METHOD_UNAVAILABLE` 是本末
+ * 倒置 —— 缺席就当「答不出」，边框照画。
+ *
+ * `isArray` 不需要新导出：引擎已经把「撞上投影格」翻译成了那个数组的**锚点**
+ * （`sheet_spill_blocker.rs` 的 `blame_for`），而锚点是唯一持有 `Value::Array` 的
+ * 地址，所以拿现成的 `spillInfo` 问一句就够。UI 要它是为了把话说清 —— 指着一个
+ * 用户看着是空的格子说「清掉它」会让人以为提示错了。
+ *
+ * 旧 wasm-pkg 上 `spillBlocker` 回的是没翻译过的投影格，那一格 `spillInfo` 答不出
+ * 形状，于是 `isArray` 为 `false`、文案退回「被 X 挡住」—— 正是它今天的样子。
  */
 function blockerOf(
   wb: WasmWorkbookRuntime,
   sheet: number,
   addr: string,
-): { row: number; col: number } | null {
+  spillInfo: NonNullable<WasmWorkbookRuntime['spillInfo']>,
+): { coord: { row: number; col: number }; isArray: boolean } | null {
   if (typeof wb.spillBlocker !== 'function') return null
   const blocker = wb.spillBlocker(sheet, addr)
-  return typeof blocker === 'string' ? parseAnchorAddr(blocker) : null
+  if (typeof blocker !== 'string') return null
+  const coord = parseAnchorAddr(blocker)
+  if (coord === null) return null
+  return { coord, isArray: shapeOf(spillInfo.call(wb, sheet, blocker)) !== null }
 }
 
 /**
@@ -91,17 +106,19 @@ export const handleSpillCommand: WorkerCommandHandler = (id, msg, wb) => {
     // 没有活动溢出区。剩下唯一值得说的是「你脚下这一格是个被挡住的锚点」——
     // 问的是 `addr` 自己而不是 `anchorAddr`：碰撞态锚点没有投影格，所以
     // `spillAnchor` 那一问必然回 null，两者本就相等，用 `addr` 更说得清意图。
-    const blockedBy = blockerOf(wb, sheet, addr)
-    const self = blockedBy === null ? null : parseAnchorAddr(addr)
+    const blocked = blockerOf(wb, sheet, addr, spillInfo)
+    const self = blocked === null ? null : parseAnchorAddr(addr)
     postResponse(
       id,
-      blockedBy === null || self === null
+      blocked === null || self === null
         ? null
         : ({
             sheet,
             anchorRow: self.row,
             anchorCol: self.col,
-            blockedBy,
+            blockedBy: blocked.coord,
+            // 只在为真时出现：缺席 = 「不是数组，或者答不出」，两者 UI 处理一样。
+            ...(blocked.isArray ? { blockedByArray: true } : {}),
           } satisfies SpillRegionWire),
     )
     return true

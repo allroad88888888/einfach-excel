@@ -136,11 +136,13 @@ fn a_formula_cell_counts_as_the_blocker() {
     assert_eq!(sheet.spill_blocker(at("H1")), Some(at("H4")));
 }
 
-/// 别的数组的投影格也算阻塞物，而且报的是那一格本身、不是它的锚点 —— 用户要清的
-/// 是**锚点**才有用，但引擎在这里的诚实答案是「挡住你的是 H3 这一格」，把「H3 是
-/// 谁的投影」留给已有的 `spillAnchor` 查询去接。两条线索各司其职，不在这里合并。
+/// 阻塞物是别的数组的**锚点**时，报的就是那一格 —— 它本来就是用户要清的那一格，
+/// 不需要任何反查。
+///
+/// 顺带钉住「只追一步」前提的第二个方向：矩形盖住一个活锚点时，那个锚点**不会**被
+/// 装成投影格（`is_target_occupied` 判公式格占用），所以 H3 追一步是空转。
 #[test]
-fn another_arrays_projection_cell_is_reported_as_itself() {
+fn another_arrays_anchor_is_reported_as_itself() {
     let mut sheet = Sheet::new();
     assert!(sheet.set_formula("H3", "=SEQUENCE(3)"));
     assert!(matches!(sheet.get_cell("H3"), Value::Array(_)));
@@ -148,6 +150,60 @@ fn another_arrays_projection_cell_is_reported_as_itself() {
     assert_eq!(sheet.get_cell("H1"), Value::Error(ValueError::Spill));
 
     assert_eq!(sheet.spill_blocker(at("H1")), Some(at("H3")));
+    assert_eq!(
+        sheet.spill_anchor_for(at("H3")),
+        None,
+        "活锚点不会同时是别人的投影格 —— 追一步落在这里就该停"
+    );
+}
+
+/// 「一个地址不可能既是锚点又是投影格」—— `blame_for` 只追一步、不防环的那条前提，
+/// 从最危险的方向验一次：**把一个投影格变成锚点**。
+///
+/// ADR 0006 的写入语义要求先 `collapse_spill_for_write` 拆掉原数组，那一格的
+/// `spill_target_anchor` 条目当场消失，之后它才成为新锚点。两个身份不重叠，所以追
+/// 一步落到的锚点再追第二步永远是空转 —— 也就没有链、没有环可防。
+#[test]
+fn an_anchor_address_is_never_also_a_projection_cell() {
+    let mut sheet = Sheet::new();
+    assert!(sheet.set_formula("C1", "=SEQUENCE(3)"));
+    assert_eq!(sheet.spill_anchor_for(at("C2")), Some(at("C1")), "C2 先是投影格");
+
+    assert!(sheet.set_formula("C2", "=SEQUENCE(2)"));
+    assert!(matches!(sheet.get_cell("C2"), Value::Array(_)), "C2 现在是锚点");
+    assert_eq!(
+        sheet.spill_anchor_for(at("C2")),
+        None,
+        "成为锚点的同时不再是投影格，两个身份互斥"
+    );
+}
+
+/// 阻塞物是别的数组的**投影格**时，报的必须是那个数组的**锚点**，不是投影格本身。
+///
+/// 布局：C1 的 3×1 数组占 C1:C3（C2、C3 是投影格）；A2 的 1×4 数组想占 A2:D2，
+/// 行主序第一个撞上的是 **C2** —— 一个用户没打过任何东西的格子。
+///
+/// 报 C2 是**误导**：按 ADR 0006，往投影格里写/清会把 C1 的数组整个塌成 `#SPILL!`，
+/// 用户拿一个 `#SPILL!` 换另一个。真正的解法只有「把 C1 的公式清掉」，所以引擎必须
+/// 说 C1。
+#[test]
+fn a_projection_cell_blocker_is_reported_as_its_anchor() {
+    let mut sheet = Sheet::new();
+    assert!(sheet.set_formula("C1", "=SEQUENCE(3)"));
+    assert!(matches!(sheet.get_cell("C1"), Value::Array(_)));
+    assert!(sheet.set_formula("A2", "={1,2,3,4}"));
+    assert_eq!(sheet.get_cell("A2"), Value::Error(ValueError::Spill));
+    assert_eq!(
+        sheet.spill_anchor_for(at("C2")),
+        Some(at("C1")),
+        "前提：撞上的那一格确实是 C1 的投影格，不是用户自己打的值"
+    );
+
+    assert_eq!(
+        sheet.spill_blocker(at("A2")),
+        Some(at("C1")),
+        "要报的是数组的锚点 —— 清投影格只会把那个数组也打成 #SPILL!"
+    );
 }
 
 /// 结构编辑之后答案跟着移动 —— 阻塞物被推走则无人可指，仍留在矩形里则指新地址。

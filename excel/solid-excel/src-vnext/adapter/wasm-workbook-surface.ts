@@ -118,8 +118,11 @@ export type WasmWorkbookRuntime = {
    * - `spillAnchor(sheet, addr)` → 锚点地址字符串；`addr` 是锚点本身/普通格/空格时 `null`。
    * - `spillInfo(sheet, addr)` → `Uint32Array [rows, cols]`；`addr` 不是**已装上投影**的
    *   锚点时 `null`（碰撞态 `#SPILL!` 锚点也算不是）。
-   * - `spillBlocker(sheet, addr)` → 挡住这个碰撞态锚点的地址字符串；答不出时 `null`。
-   *   前两个合起来只能说「这里没有活动数组」，说不出 `#SPILL!` 的**原因**，这个补上。
+   * - `spillBlocker(sheet, addr)` → 这个碰撞态锚点**要清哪一格**才能溢出来，地址字符串；
+   *   答不出时 `null`。前两个合起来只能说「这里没有活动数组」，说不出 `#SPILL!` 的
+   *   **原因**，这个补上。它报的不一定是物理上压着矩形的那一格：那一格若是别的数组的
+   *   投影格，引擎报的是那个数组的锚点（清投影格只会换来第二个 `#SPILL!`）。
+   *   「那一格是不是一个数组」不另设导出 —— 拿它的地址回头问一次 `spillInfo` 即可。
    *
    * 可选：手写的测试替身与早于这些导出的 wasm-pkg 没有它们。前两个缺席时经
    * `assertMethod` 变成结构化的 `WASM_METHOD_UNAVAILABLE`，而不是假装「这里没有数组」；

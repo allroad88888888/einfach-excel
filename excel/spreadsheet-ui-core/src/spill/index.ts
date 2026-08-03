@@ -249,6 +249,8 @@ export const refreshSpillRegionAtom = atom(
         sheetId,
         anchor: { row: input.cell.row, col: input.cell.col },
         blockedBy,
+        // 只认字面的 `true`：这条只换措辞，一个真值化的脏值不该让宿主改口。
+        ...(payload.blockedByArray === true ? { blockedByArray: true } : {}),
       })
       return 'blocked'
     }

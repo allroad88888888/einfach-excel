@@ -78,6 +78,40 @@ describe('spill blockage', () => {
     })
   })
 
+  test('阻塞物是另一个数组 → 标志跟着上来，宿主据此换一句话说', async () => {
+    const store = createStore()
+    const outcome = await store.setter(refreshSpillRegionAtom, {
+      source: portAnswering({ blockedBy: H3, blockedByArray: true }),
+      sheetId: 'sheet-1',
+      cell: { row: 0, col: 7 },
+    })
+
+    expect(outcome).toBe('blocked')
+    expect(store.getter(activeSpillBlockageAtom)).toEqual({
+      sheetId: 'sheet-1',
+      anchor: { row: 0, col: 7 },
+      blockedBy: H3,
+      blockedByArray: true,
+    })
+  })
+
+  test('标志只认字面 true —— 脏真值不该让宿主改口', async () => {
+    const store = createStore()
+    for (const dirty of [1, 'yes', {}, undefined, false]) {
+      await store.setter(refreshSpillRegionAtom, {
+        source: portAnswering({ blockedBy: H3, blockedByArray: dirty as never }),
+        sheetId: 'sheet-1',
+        cell: { row: 0, col: 7 },
+      })
+      // 线索本身照说 —— 换措辞的标志脏了不该把整条话吞掉。
+      expect(store.getter(activeSpillBlockageAtom)).toEqual({
+        sheetId: 'sheet-1',
+        anchor: { row: 0, col: 7 },
+        blockedBy: H3,
+      })
+    }
+  })
+
   test('后端不带线索 → 什么都不说，outcome 退回 cleared', async () => {
     const store = createStore()
     const outcome = await store.setter(refreshSpillRegionAtom, {

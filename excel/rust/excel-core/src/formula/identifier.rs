@@ -4,7 +4,7 @@
 //! 单元格或整列引用、兜底的 `Expr::Name` —— 分流次序本身是语义的一
 //! 部分，函数内注释逐条写明了为什么是这个次序。
 
-use super::ast::{Expr, RangeAbs, RangeBounds};
+use super::ast::Expr;
 use super::lexer::Parser;
 
 impl Parser {
@@ -76,45 +76,19 @@ impl Parser {
             return self.parse_table_ref_body(Some(ident));
         }
 
-        // Check for cross-sheet reference: `Name!A1` / `Name!A1:B3`
-        // (Excel syntax).
+        // Check for cross-sheet reference: `Name!A1` / `Name!A1:B3` /
+        // `Name!A:C` / `Name!1:3` (Excel syntax).
         // The bang `!` unambiguously marks the preceding identifier as a
         // sheet name — it's not a token in any other formula context. The
         // identifier ALWAYS becomes a sheet name when '!' follows, even if
         // the same chars would also parse as a cell address.
+        //
+        // `!` 之后的尾巴与同表引用是**同一族语法**（单格 / 有界区间 / 整列 /
+        // 整行），所以交给 `refs` 里的 `finish_sheet_qualified_ref` —— 它复用
+        // 同表那三个扫描器，不在这里另写一份只认 `A1` 的窄版本。
         if self.peek() == Some('!') {
             self.advance(); // skip '!'
-            let (start_addr, start_abs) = self.scan_abs_cell_addr()?;
-            self.skip_whitespace();
-            if self.peek() == Some(':') {
-                self.advance();
-                self.skip_whitespace();
-                let after_colon = self.pos;
-                if let Some((end_addr, end_abs)) = self.scan_abs_cell_addr() {
-                    return Some(Expr::SheetRange {
-                        sheet: ident,
-                        start: start_addr,
-                        end: end_addr,
-                        unbounded: RangeBounds::None,
-                        abs: RangeAbs::new(start_abs, end_abs),
-                    });
-                }
-                self.pos = after_colon;
-                let end = self.parse_unary()?;
-                return Some(Expr::DynamicRange {
-                    start: Box::new(Expr::SheetRef {
-                        sheet: ident,
-                        addr: start_addr,
-                        abs: start_abs,
-                    }),
-                    end: Box::new(end),
-                });
-            }
-            return Some(Expr::SheetRef {
-                sheet: ident,
-                addr: start_addr,
-                abs: start_abs,
-            });
+            return self.finish_sheet_qualified_ref(ident);
         }
 
         // Same-sheet reference (cell ref, bounded / dynamic range, or

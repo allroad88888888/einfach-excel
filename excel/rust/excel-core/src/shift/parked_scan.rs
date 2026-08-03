@@ -114,6 +114,74 @@ pub(super) fn scan_abs_addr_token(b: &[u8], i: usize) -> Option<(CellAddress, bo
     Some((CellAddress::new(row - 1, col), col_abs, row_abs, j))
 }
 
+/// `Sheet!` 之后那截引用**结束在哪** —— `i` 指向 `!` 的下一个字节。
+///
+/// 调用点拿它把整个跨表引用一次跳过：本表的结构性编辑不移动跨表引用，这与
+/// AST 侧 `delta` / `retarget` 里 `SheetRange => expr.clone()` 是同一条规则，
+/// 停泊态只是换了个介质表达它。
+///
+/// 认的三种形态与 `formula::refs::finish_sheet_qualified_ref` 一一对应：
+/// 有界的 `A1` / `A1:B2`、整列 `A:C`、整行 `1:3`（都带 `$` 变体）。
+///
+/// `None` 表示 `!` 之后不是静态引用 —— 例如 `Sheet2!A1:INDEX(...)` 的算出来
+/// 的右角。调用点让它落回普通扫描，藏在里面的**同表**引用因此照样平移。
+pub(super) fn scan_cross_sheet_ref_end(b: &[u8], i: usize) -> Option<usize> {
+    let n = b.len();
+    // 有界形态：`A1`，再看有没有 `:B2` 尾巴。
+    if let Some((_, _, _, end)) = scan_abs_addr_token(b, i) {
+        let j = skip_ascii_ws(b, end);
+        if j < n && b[j] == b':' {
+            let jj = skip_ascii_ws(b, j + 1);
+            if let Some((_, _, _, end2)) = scan_abs_addr_token(b, jj) {
+                return Some(end2);
+            }
+        }
+        return Some(end);
+    }
+    // 整列 `A:C`。右角后面跟数字说明那是 `A:B3`（右角其实是个地址），不收。
+    if let Some((_, _, after_start)) = scan_abs_col_token(b, i) {
+        let j = skip_ascii_ws(b, after_start);
+        if j < n && b[j] == b':' {
+            let jj = skip_ascii_ws(b, j + 1);
+            if let Some((_, _, end)) = scan_abs_col_token(b, jj) {
+                if !(end < n && b[end].is_ascii_digit()) {
+                    return Some(end);
+                }
+            }
+        }
+        return None;
+    }
+    // 整行 `1:3`。接受规则照抄 `try_shift_whole_row`：`:` 必须紧邻（不跳
+    // 空白），两侧都是数字串，右角后面不能跟字母。
+    let after_start = scan_abs_row_token(b, i)?;
+    if after_start >= n || b[after_start] != b':' {
+        return None;
+    }
+    let end = scan_abs_row_token(b, after_start + 1)?;
+    if end < n && b[end].is_ascii_alphabetic() {
+        return None;
+    }
+    Some(end)
+}
+
+/// Scan a `[$]digits` whole-row corner at `i`, returning the end offset.
+/// `None` when no digits are present.
+fn scan_abs_row_token(b: &[u8], i: usize) -> Option<usize> {
+    let n = b.len();
+    let mut j = i;
+    if j < n && b[j] == b'$' {
+        j += 1;
+    }
+    let s = j;
+    while j < n && b[j].is_ascii_digit() {
+        j += 1;
+    }
+    if j == s {
+        return None;
+    }
+    Some(j)
+}
+
 /// Scan a `[$]letters` whole-column corner at `i`. Returns `(col, col_abs,
 /// end)`. Overflow-safe. `None` when no letters are present.
 pub(super) fn scan_abs_col_token(b: &[u8], i: usize) -> Option<(u32, bool, usize)> {

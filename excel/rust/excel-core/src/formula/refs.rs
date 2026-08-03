@@ -54,6 +54,86 @@ impl Parser {
         Some(Expr::CellRef(start, start_abs))
     }
 
+    /// `Sheet!` 之后的引用尾巴，`!` 已经被吃掉。三种形态：单格 / 有界区间
+    /// （`A1`、`A1:B2`、`A1:INDEX(...)`）、整列（`A:C`）、整行（`1:3`）。
+    ///
+    /// 后两支是把 [`Self::try_scan_whole_col_range`] /
+    /// [`Self::try_parse_whole_row_range`] 产出的同表 `Expr::Range` **原样
+    /// 重挂**到 `sheet` 上：哨兵坐标、`unbounded` 判别位、`$` 标记全部照搬。
+    /// 跨表整轴因此与同表整轴共用整条下游 —— `bounded_shape()` 的网格夹取、
+    /// 稀疏遍历、`render_range_body` 的回写、`range_has_invalid_ref` 的
+    /// `#REF!` 判定，一处都不用为跨表再写一遍。
+    ///
+    /// 次序不能换：`scan_abs_cell_addr` 先试，否则 `Sheet2!A1:A5` 的左角
+    /// `A1` 会被整列扫描当成列字母 `A` 后接垃圾。三个扫描失败时都自行回卷
+    /// 位置，所以逐个试不会吃掉输入。
+    pub(super) fn finish_sheet_qualified_ref(&mut self, sheet: String) -> Option<Expr> {
+        if let Some((start, start_abs)) = self.scan_abs_cell_addr() {
+            return self.finish_sheet_ref_tail(sheet, start, start_abs);
+        }
+        let whole_axis = match self.try_scan_whole_col_range() {
+            Some(expr) => expr,
+            None => self.try_parse_whole_row_range()?,
+        };
+        let Expr::Range {
+            start,
+            end,
+            unbounded,
+            abs,
+        } = whole_axis
+        else {
+            return None;
+        };
+        Some(Expr::SheetRange {
+            sheet,
+            start,
+            end,
+            unbounded,
+            abs,
+        })
+    }
+
+    /// `Sheet!<角>` 之后的可选 `:` 尾巴 —— [`Self::finish_same_sheet_ref`]
+    /// 的跨表孪生：静态右角出 `SheetRange`，算出来的右角出 `DynamicRange`，
+    /// 没有 `:` 就是单格 `SheetRef`。
+    fn finish_sheet_ref_tail(
+        &mut self,
+        sheet: String,
+        start: CellAddress,
+        start_abs: RefAbs,
+    ) -> Option<Expr> {
+        self.skip_whitespace();
+        if self.peek() == Some(':') {
+            self.advance();
+            self.skip_whitespace();
+            let after_colon = self.pos;
+            if let Some((end, end_abs)) = self.scan_abs_cell_addr() {
+                return Some(Expr::SheetRange {
+                    sheet,
+                    start,
+                    end,
+                    unbounded: RangeBounds::None,
+                    abs: RangeAbs::new(start_abs, end_abs),
+                });
+            }
+            self.pos = after_colon;
+            let end = self.parse_unary()?;
+            return Some(Expr::DynamicRange {
+                start: Box::new(Expr::SheetRef {
+                    sheet,
+                    addr: start,
+                    abs: start_abs,
+                }),
+                end: Box::new(end),
+            });
+        }
+        Some(Expr::SheetRef {
+            sheet,
+            addr: start,
+            abs: start_abs,
+        })
+    }
+
     /// Whole-column range `[$]A:[$]C`. Both corners are column letters with
     /// an optional `$`; the range spans every row. Returns `None` (restoring
     /// position) when the shape is not a whole-column range — in particular

@@ -47,12 +47,26 @@ if (!g.TextEncoder) g.TextEncoder = TextEncoder
 const WASM_PKG_JS = path.join(__dirname, '..', 'wasm-pkg', 'einfach_wasm.js')
 const WASM_PKG_BIN = path.join(__dirname, '..', 'wasm-pkg', 'einfach_wasm_bg.wasm')
 
-/** Every driver here works on a single sheet at index 0. */
-const SHEET = 'Sheet1'
+/**
+ * 表名按索引排开。工作负载**只在用得着时**才拉起第 1 张之后的表（见
+ * `sheetsNeeded`）—— 单表场景的持久化快照因此逐字不变，跨表用例不会顺手
+ * 改掉别的场景的夹具。
+ */
+const SHEET_NAMES = ['Sheet1', 'Sheet2'] as const
 
-export type WorkloadCell =
-  | { row: number; col: number; kind: 'number'; value: number }
-  | { row: number; col: number; kind: 'formula'; value: string }
+/**
+ * `sheet` 省略即 0 号表。读回一律走 0 号表（`read`）—— 跨表场景要断言的是
+ * **公式所在表**算出了什么，被引用表只是夹具。
+ */
+export type WorkloadCell = (
+  | { kind: 'number'; value: number }
+  | { kind: 'formula'; value: string }
+) & { row: number; col: number; sheet?: number }
+
+/** 工作负载碰到的最大表索引 + 1。 */
+function sheetsNeeded(cells: readonly WorkloadCell[]): number {
+  return cells.reduce((n, c) => Math.max(n, (c.sheet ?? 0) + 1), 1)
+}
 
 export interface Cell {
   display: string
@@ -89,9 +103,14 @@ function makeTsEngine(): Engine {
   return {
     label: 'ts',
     async bulkImport(cells) {
-      await rpc({ cmd: 'initWorkbook', sheets: [SHEET] })
+      const sheets = SHEET_NAMES.slice(0, sheetsNeeded(cells))
+      await rpc({ cmd: 'initWorkbook', sheets })
       const sessionId = (await rpc({ cmd: 'beginImport', mode: 'atomic' })) as number
-      await rpc({ cmd: 'importChunk', sessionId, cells: cells.map((c) => ({ sheet: 0, ...c })) })
+      await rpc({
+        cmd: 'importChunk',
+        sessionId,
+        cells: cells.map(({ sheet, ...c }) => ({ sheet: sheet ?? 0, ...c })),
+      })
       const stats = (await rpc({ cmd: 'commitImport', sessionId })) as {
         accepted: number
         rejectedFormulas: number
@@ -135,6 +154,7 @@ function makeTsEngine(): Engine {
 // --- WASM engine -----------------------------------------------------------
 interface WasmWorkbookLike {
   rename_sheet(idx: number, name: string): boolean
+  add_sheet(name: string): number
   bulk_install_workbook(payload: unknown): unknown
   snapshotCell(sheet: number, addr: string): { display: string; isError: boolean }
   trySetFormulaAt(sheet: number, addr: string, src: string): unknown
@@ -186,20 +206,34 @@ function makeWasmEngine(): Engine {
   return {
     label: 'wasm',
     async bulkImport(cells) {
-      wb.rename_sheet(0, SHEET)
-      const primitives: Array<[string, unknown]> = []
-      const formulas: Array<[string, string]> = []
+      const sheets = SHEET_NAMES.slice(0, sheetsNeeded(cells))
+      wb.rename_sheet(0, sheets[0])
+      for (let i = 1; i < sheets.length; i += 1) wb.add_sheet(sheets[i])
+      // 每张表一个 payload 分片，与 TS 侧 `importChunk` 的逐格 `sheet` 等价。
+      const parts = sheets.map((_, sheet) => ({
+        sheet,
+        primitives: [] as Array<[string, unknown]>,
+        formulas: [] as Array<[string, string]>,
+      }))
+      let primitiveCount = 0
+      let formulaCount = 0
       for (const cell of cells) {
         const addr = a1(cell.row, cell.col)
-        if (cell.kind === 'formula') formulas.push([addr, cell.value])
-        else primitives.push([addr, cell.value])
+        const part = parts[cell.sheet ?? 0]
+        if (cell.kind === 'formula') {
+          part.formulas.push([addr, cell.value])
+          formulaCount += 1
+        } else {
+          part.primitives.push([addr, cell.value])
+          primitiveCount += 1
+        }
       }
-      const stats = wb.bulk_install_workbook([{ sheet: 0, primitives, formulas }]) as Array<{
+      const stats = wb.bulk_install_workbook(parts) as Array<{
         primitivesInstalled: number
         formulasInstalled: number
       }>
-      expect(stats.reduce((n, s) => n + s.primitivesInstalled, 0)).toBe(primitives.length)
-      expect(stats.reduce((n, s) => n + s.formulasInstalled, 0)).toBe(formulas.length)
+      expect(stats.reduce((n, s) => n + s.primitivesInstalled, 0)).toBe(primitiveCount)
+      expect(stats.reduce((n, s) => n + s.formulasInstalled, 0)).toBe(formulaCount)
     },
     async read(addrs) {
       const out: Reading = new Map()

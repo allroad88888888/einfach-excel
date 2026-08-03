@@ -3,7 +3,9 @@
 
 use super::edit::{ShiftEdit, REF_INVALID_COL, REF_INVALID_ROW};
 use super::parked_band::{try_shift_whole_col, try_shift_whole_row};
-use super::parked_scan::{next_non_ws, scan_abs_addr_token, scan_ident_end, skip_ascii_ws};
+use super::parked_scan::{
+    next_non_ws, scan_abs_addr_token, scan_cross_sheet_ref_end, scan_ident_end,
+};
 use crate::cell::push_abs_addr;
 
 /// Outcome of `rewrite_parked_source` for one parked formula source.
@@ -95,29 +97,23 @@ pub fn rewrite_parked_source(src: &str, edit: ShiftEdit) -> SourceRewrite {
             prev = b'"';
             continue;
         }
-        if c == b'$' || c.is_ascii_alphabetic() {
-            // A token that immediately follows a sheet `!` is a cross-sheet
-            // address (SheetRef / SheetRange corner). Within-sheet edits
-            // never shift those (mirrors `map_addrs`), so skip the whole
-            // `[$]col[$]row` corner plus an optional `:corner` SheetRange
-            // tail. A non-address after `!` (a DynamicRange end) falls
-            // through so its inner refs still shift.
-            if prev == b'!' {
-                if let Some((_, _, _, end)) = scan_abs_addr_token(b, i) {
-                    let mut k = end;
-                    let j = skip_ascii_ws(b, k);
-                    if j < n && b[j] == b':' {
-                        let jj = skip_ascii_ws(b, j + 1);
-                        if let Some((_, _, _, end2)) = scan_abs_addr_token(b, jj) {
-                            k = end2;
-                        }
-                    }
-                    i = k;
-                    prev = b[i - 1];
-                    continue;
-                }
+        // A token that immediately follows a sheet `!` is a cross-sheet
+        // reference (SheetRef / SheetRange). Within-sheet edits never shift
+        // those (mirrors `map_addrs`), so skip the whole tail — bounded
+        // corner(s) `A1[:B2]`, whole-column `A:C`, or whole-row `1:3`.
+        // A non-reference after `!` (a DynamicRange end) falls through so
+        // its inner refs still shift.
+        //
+        // 这一支必须**在按首字符分流之前**：整行形态 `Sheet2!1:3` 以数字开头，
+        // 留在字母 / `$` 那一支里就漏掉了，本表插行会把它错误改写成 `2:4`。
+        if prev == b'!' {
+            if let Some(end) = scan_cross_sheet_ref_end(b, i) {
+                i = end;
+                prev = b[i - 1];
+                continue;
             }
-
+        }
+        if c == b'$' || c.is_ascii_alphabetic() {
             if c.is_ascii_alphabetic() {
                 let start = i;
                 i = scan_ident_end(b, i);

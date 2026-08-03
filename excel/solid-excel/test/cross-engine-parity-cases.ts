@@ -23,6 +23,7 @@ import { OVERFLOW_WORKLOAD } from './cross-engine-parity-overflow'
 import { SCIENTIFIC_WORKLOAD } from './cross-engine-parity-scientific'
 import { DYNAMIC_ARRAY_WORKLOAD } from './cross-engine-parity-dynamic-array'
 import { SPILL_ORDER_WORKLOAD } from './cross-engine-parity-spill-order'
+import { CROSS_SHEET_WORKLOAD } from './cross-engine-parity-cross-sheet'
 
 // 第七类（General 转文本）与 criteria 这一层的夹具与期望值住在自己的文件里 ——
 // 这份已贴着 300 行上限，而那几类的期望值都离不开长说明。经由这里转出，调用方
@@ -55,7 +56,6 @@ export {
   SCIENTIFIC_ADDRS,
   EXPECTED_SCIENTIFIC_DISPLAYS,
 } from './cross-engine-parity-scientific'
-
 
 /** Row-major address list of a rectangle anchored at (row0, col0). */
 export function region(row0: number, col0: number, rows: number, cols: number): string[] {
@@ -248,13 +248,12 @@ export const WORKLOAD: WorkloadCell[] = [
   // 列 E + AI —— 科学计数字面量的词法边界（`E2` 是指数还是格子），
   // 见 `cross-engine-parity-scientific.ts`。E 列的两格是它的夹具。
   ...SCIENTIFIC_WORKLOAD,
-  // 列 AK 起 —— WRAPROWS / WRAPCOLS 的折叠方向与错误码。地址与期望值不经这里
-  // 转出（少一处并发改动面），规格直接从 `cross-engine-parity-dynamic-array.ts`
-  // 取；这里只并入工作负载，因为 `WORKLOAD` 是唯一的 bulk 导入入口。
+  // 以下三类只并入工作负载（`WORKLOAD` 是唯一的 bulk 导入入口），地址与期望值
+  // 由规格直接从各自的组文件取，少一处并发改动面：列 AK 起 WRAPROWS/WRAPCOLS、
+  // 列 CC 起 区域物化遍历顺序、Sheet2 + 列 CH 起 跨表 × 整轴（第一个多表负载）。
   ...DYNAMIC_ARRAY_WORKLOAD,
-  // 列 CC 起 —— 区域物化的遍历顺序，同样只并工作负载，地址与期望值由规格
-  // 直接从 `cross-engine-parity-spill-order.ts` 取。
   ...SPILL_ORDER_WORKLOAD,
+  ...CROSS_SHEET_WORKLOAD,
   // Column R — arithmetic operand coercion + `^` binding, see COERCION_CASES.
   ...COERCION_CASES.map(
     ([formula], row): WorkloadCell => ({ row, col: 17, kind: 'formula', value: formula }),

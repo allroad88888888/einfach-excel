@@ -19,6 +19,7 @@ import {
   CRITERIA_WORKLOAD,
 } from './cross-engine-parity-criteria-errors'
 import { CRITERIA_WILDCARD_WORKLOAD } from './cross-engine-parity-criteria-wildcard'
+import { OVERFLOW_WORKLOAD } from './cross-engine-parity-overflow'
 
 // 第七类（General 转文本）与 criteria 这一层的夹具与期望值住在自己的文件里 ——
 // 这份已贴着 300 行上限，而那几类的期望值都离不开长说明。经由这里转出，调用方
@@ -41,6 +42,11 @@ export {
   CRITERIA_WILDCARD_ADDRS,
   EXPECTED_CRITERIA_WILDCARD_DISPLAYS,
 } from './cross-engine-parity-criteria-wildcard'
+export {
+  OVERFLOW_CASES,
+  OVERFLOW_ADDRS,
+  EXPECTED_OVERFLOW_DISPLAYS,
+} from './cross-engine-parity-overflow'
 
 
 /** Row-major address list of a rectangle anchored at (row0, col0). */
@@ -121,7 +127,12 @@ export const COERCION_CASES: ReadonlyArray<readonly [formula: string, displayed:
   ['=50%', '0.5'],
   ['=-50%', '-0.5'],
   ['=50%%', '0.005'], // stacking is legal in Excel
-  ['=2^2%', '1.013959479790029'], // `%` outranks `^`: 2^(2%) = 2^0.02
+  // `%` outranks `^`: 2^(2%) = 2^0.02。期望值从 `1.013959479790029` 改成 15 位
+  // ——**闭式**：这个商的最短往返表示要 16 位有效数字，而 Excel General 只留 15
+  // 位、half-up，第 16 位 `9` 进位把 `…79002` 顶成 `…79003`，末位随之消失。
+  // 它是整份 always-on 语料里**唯一**一行需要超过 15 位的值（其余不是小整数、
+  // 短小数，就是错误码），所以显示层收口只动了这一行。两个引擎仍然逐字节相同。
+  ['=2^2%', '1.01395947979003'],
   ['=-2^2', '4'], // unary `-` outranks `^`: (-2)^2, NOT -(2^2)
 ]
 export const COERCION_ADDRS = COERCION_CASES.map((_, i) => a1(i, 17))
@@ -224,6 +235,8 @@ export const WORKLOAD: WorkloadCell[] = [
   // 列 AE/AF/AG —— criteria 的文本比较层（大小写、通配符只匹配文本格），
   // 见 `cross-engine-parity-criteria-wildcard.ts`。
   ...CRITERIA_WILDCARD_WORKLOAD,
+  // 列 AH —— 浮点溢出 / 下溢 / 除零的出口，见 `cross-engine-parity-overflow.ts`。
+  ...OVERFLOW_WORKLOAD,
   // Column R — arithmetic operand coercion + `^` binding, see COERCION_CASES.
   ...COERCION_CASES.map(
     ([formula], row): WorkloadCell => ({ row, col: 17, kind: 'formula', value: formula }),

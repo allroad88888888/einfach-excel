@@ -1368,14 +1368,14 @@ fn eval_binop(op: BinOperator, left: &Value, right: &Value) -> Value {
 
     match (ln, rn) {
         (Some(l), Some(r)) => match op {
-            BinOperator::Add => Value::Number(l + r),
-            BinOperator::Sub => Value::Number(l - r),
-            BinOperator::Mul => Value::Number(l * r),
+            BinOperator::Add => finite_or_overflow(l + r),
+            BinOperator::Sub => finite_or_overflow(l - r),
+            BinOperator::Mul => finite_or_overflow(l * r),
             BinOperator::Div => {
                 if r == 0.0 {
                     Value::Error(ValueError::DivisionByZero)
                 } else {
-                    Value::Number(l / r)
+                    finite_or_overflow(l / r)
                 }
             }
             BinOperator::Pow => {
@@ -1401,6 +1401,30 @@ fn eval_binop(op: BinOperator, left: &Value, right: &Value) -> Value {
         // operators made every cross-engine parity check against the TS
         // reference engine diverge on a plain `=1+"x"`.
         _ => Value::Error(ValueError::InvalidValue),
+    }
+}
+
+/// 算术结果的出口闸门：**非有限一律 `#NUM!`**。
+///
+/// Excel 明文按 IEEE 754 存数，但在两个点上刻意不跟：溢出（"Overflow occurs
+/// when a number is too large to be represented. Excel uses its own special
+/// representation for this case (`#NUM!`)"）与 NaN（"Excel instead immediately
+/// generates an error such as `#NUM!` or `#DIV/0!`"）—— 见 Microsoft Learn
+/// "Floating-point arithmetic may give inaccurate result in Excel"。所以
+/// `=1E308*10` 不是 `inf`（Rust `Display`）也不是 `Infinity`（JS `String`），
+/// 是 `#NUM!`。
+///
+/// **下溢不在这条闸门里**：同一份文档写明 "Underflow ... In IEEE and Excel,
+/// the result is 0"，而 IEEE 的下溢结果本来就是 `0.0`，`is_finite()` 判真、
+/// 原样落地。`=1E-308/1E10` 要的就是 `0`，不要在这里替它报错。
+///
+/// `Pow` 不走这里：它要把 `0^负数` 单独分流成 `#DIV/0!`（Excel 的答案），
+/// 判非有限之后还得再分一次类，所以保留自己的分支。
+fn finite_or_overflow(n: f64) -> Value {
+    if n.is_finite() {
+        Value::Number(n)
+    } else {
+        Value::Error(ValueError::Overflow)
     }
 }
 
@@ -1720,6 +1744,31 @@ const EXCEL_MAX_COLS: u32 = 16_384;
 /// （`einfach-wasm` 的 `js_array_to_value`），它必须复用这同一个上限，
 /// 而不是另立一个拍脑袋的常数 —— 否则 `=MYFN()` 能造出内建函数造不出的
 /// 尺寸，后面的 spill 路径要为两套上限各写一遍防御。
+///
+/// # 已知分歧（未决，owner 待定 —— 别顺手「统一」）
+///
+/// 本闸门只数**格子总数**，不看行列各自是否越过网格。TS 参考引擎有**两道**
+/// 闸门且给不同的码。同一批公式今天的答案：
+///
+/// | 公式 | 本引擎 | TS 引擎 | Excel |
+/// |---|---|---|---|
+/// | `=SEQUENCE(1048577)` | `#VALUE!` | `#NUM!` | `#NUM!` |
+/// | `=SEQUENCE(1,16385)` | `#SPILL!`（数组建出来了，放不下） | `#NUM!` | `#NUM!` |
+/// | `=SEQUENCE(2000,2000)` | `#VALUE!` | `#VALUE!` | **不报错**，正常溢出 |
+///
+/// Excel 那一列的依据是 `Excel.NumErrorCellValueSubType` 这个枚举 —— 它只有
+/// 两个成员，其中 `arrayTooLarge` 的原文是 "An error caused by a cell's
+/// formula having an array parameter with too many rows or columns. The
+/// maximum number of rows and columns in an array parameter is 1048576.
+/// Displays as error type #NUM! in Excel."；而 `ValueErrorCellValueSubType`
+/// （近百个成员）里**没有任何一条**与数组尺寸有关。所以「越过网格」在 Excel
+/// 里是 `#NUM!`，这一半是查实的。
+///
+/// **另一半查不实**：`DYNAMIC_ARRAY_CELL_CAP` 这条「格数上限」在 Excel 里
+/// 根本不是一个概念 —— 2000×2000 = 4e6 格完全塞得进 1048576×16384 的网格，
+/// Excel 就是把它溢出去（机器扛不住时弹的是资源耗尽对话框，不是单元格错误）。
+/// 它是本引擎自己的内存闸门。因此「两种超限各返回什么」这个问法只有一半有
+/// 答案，硬统一成一个码是在替 Excel 编另一半。
 pub const DYNAMIC_ARRAY_CELL_CAP: u64 = EXCEL_MAX_ROWS as u64;
 
 fn checked_array_len(rows: u64, cols: u64) -> Result<usize, ValueError> {
@@ -2938,7 +2987,10 @@ fn eval_func(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
             }
             match err {
                 Some(e) => Value::Error(e),
-                None => Value::Number(total),
+                // 累加器同样会溢出（`=SUM(A1:A2)` 上两个 1E308）。出口共用
+                // `finite_or_overflow`，否则「运算符报 `#NUM!`、聚合吐 `inf`」
+                // 又是同一个引擎里的两种答案。
+                None => finite_or_overflow(total),
             }
         }
 
@@ -4308,7 +4360,8 @@ fn eval_func(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
             } else if !saw_number {
                 Value::Number(0.0)
             } else {
-                Value::Number(product)
+                // 连乘比连加更容易顶破 f64 —— 同一条出口闸门。
+                finite_or_overflow(product)
             }
         }
         "QUOTIENT" => {

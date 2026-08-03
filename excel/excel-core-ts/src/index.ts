@@ -112,6 +112,10 @@ export {
   parseRefToCoord,
 } from './eval'
 export type { CoerceResult, CoerceOk, CoerceErr } from './eval'
+// Excel「General」数字→文本的单点实现。宿主的显示边界
+// （`worker-runtime-ts.ts` 的 `valueDisplay`）必须走它，而不是 `String(n)` ——
+// 否则同一个数字在「`&` 拼接出来的文本」和「单元格显示」上是两种写法。
+export { excelGeneralToText } from './eval/general-text'
 
 // Wave C — built-in function registry (math / logical / lookup / text /
 // date / stats). Evaluator dispatches against `BUILTIN_FUNCTIONS`.

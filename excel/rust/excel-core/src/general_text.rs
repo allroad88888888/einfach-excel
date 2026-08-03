@@ -1,17 +1,29 @@
 //! Excel「General」格式下 **数字 → 文本** 的单点实现。
 //!
-//! 这条规格被 `&` 拼接、`LEN`、`T`、`CONCAT`、`EXACT` 等一切把数字读成文本的
-//! 路径共用，所以它只能有一份：`eval::coerce_to_text` 是本 crate 里唯一的调用
-//! 点，TS 参考引擎的孪生实现是
-//! `excel/excel-core-ts/src/eval/general-text.ts`，两侧必须逐字节同判。
+//! 这条规格被一切把数字读成文本的路径共用，所以它只能有一份。本 crate 里有
+//! **三个**调用点，各是一条出口：
+//!
+//! | 调用点 | 出口 |
+//! |---|---|
+//! | `eval::coerce_to_text` | `&` 拼接 / `LEN` / `T` / `CONCAT` / `EXACT` |
+//! | `format::default_number_string` | `value_to_display` + `NumberFormat` 兜底 |
+//! | `csv::value_to_csv_field` | CSV 导出 |
+//!
+//! 三者曾各自持有一份逐字节相同却互不调用的复制粘贴，收口过程与被批准的
+//! INV-6 例外见 `excel/rust/docs/ATOM_DELEGATION_REWRITE_PLAN.md` 的 EX-6.2。
+//! TS 参考引擎的孪生实现是 `excel/excel-core-ts/src/eval/general-text.ts`
+//! （调用点：`eval/coerce.ts` 的 `toString`，以及宿主的显示边界
+//! `excel/solid-excel/src-vnext/adapter/worker-runtime-ts.ts` 的
+//! `valueDisplay`），两侧必须逐字节同判。
 //!
 //! # 这是 Excel 的哪一套规则
 //!
-//! Excel 对同一个 f64 有四套互不相同的规则：转文本、在网格里渲染、从文本解析、
-//! 算术。这里实现的是**第一套** —— `=A1&""` / `=LEN(A1)` 看到的文本，不受列宽
-//! 影响。网格渲染那套在 `format::value_to_display`（列宽会让它更早退到科学计数
-//! 甚至 `####`），是**另一条路**，本文件不碰它。两者今天的差异是已知的、单列
-//! 的待办，别把它们合并成一个函数。
+//! Excel 对同一个 f64 有几套互不相同的规则：转文本、从文本解析、算术。这里实现
+//! 的是**转文本**那一套 —— `=A1&""` / `=LEN(A1)` 看到的文本。**网格显示走的是
+//! 同一套**（`format::value_to_display` 委托到这里）：真正与它分家的是**列宽
+//! 自适应**（窄列会更早退到科学计数甚至 `####`），而那属于渲染层、不在引擎里；
+//! 以及显式 `NumberFormat`（`format_fixed` / `format_custom_number`），那是另一
+//! 条分支，本函数只服务「没有格式、按 General 走」。
 //!
 //! 规格按 Apache POI `NumberToTextConverter` 反推的 Excel 行为实现 —— POI 的
 //! `NumberToTextConversionExamples` 是从 Excel 里实测抄回来的对照表，本仓

@@ -60,6 +60,7 @@
 
 import {
   createWorkbook,
+  excelGeneralToText,
   formatA1,
   parseA1,
   parseFormula,
@@ -325,9 +326,11 @@ function valueKindToCellType(v: Value): CellSnapshotWire['type'] {
 function valueDisplay(v: Value): string {
   switch (v.kind) {
     case 'number':
-      // Match Excel's "as short as possible" string rep for numbers.
-      // Number.prototype.toString already trims trailing zeros.
-      return String(v.value)
+      // NOT `String(v.value)`: JS 的默认写法给 `1e+21` / `1e-7`（小写 `e`、
+      // 指数不补零），Excel 里根本没有这种写法。走引擎的 General 转文本单点
+      // 实现，与 `&` 拼接读到的文本、与 WASM 侧 `value_to_display` 逐字节
+      // 同判 —— 三者不同判时，同一个数字在同一个产品里就有三种写法。
+      return excelGeneralToText(v.value)
     case 'string':
       return v.value
     case 'boolean':

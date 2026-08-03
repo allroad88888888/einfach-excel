@@ -69,9 +69,11 @@ import {
   EXPECTED_CRITERIA_WILDCARD_DISPLAYS,
   EXPECTED_GENERAL_TEXT_DISPLAYS,
   EXPECTED_LITERAL_DISPLAYS,
+  EXPECTED_OVERFLOW_DISPLAYS,
   EXPECTED_SUBTOTAL_DISPLAYS,
   GENERAL_TEXT_ADDRS,
   LITERAL_ADDRS,
+  OVERFLOW_ADDRS,
   PROPAGATED_ADDRS,
   SUBTOTAL_ADDRS,
   WORKLOAD,
@@ -235,6 +237,21 @@ describe('cross-engine parity — evaluation semantics (TS runtime vs WASM engin
     // 原样铺开。相等断言只有在两个引擎错到一块去时才会响。
     for (const read of [tsRead, wasmRead]) {
       expect(displaysOf(read, GENERAL_TEXT_ADDRS)).toEqual(EXPECTED_GENERAL_TEXT_DISPLAYS)
+    }
+  })
+
+  test('浮点溢出是 #NUM!，下溢是 0 —— 不是宿主语言的 Infinity', async () => {
+    const tsRead = await ts.read(OVERFLOW_ADDRS)
+    const wasmRead = await wasm.read(OVERFLOW_ADDRS)
+    expect(flatten(wasmRead)).toEqual(flatten(tsRead))
+
+    // 又是一类「相等断言从来没红过」：先是各错各的（Rust `inf` / TS
+    // `Infinity`），后来被数字→文本收口成同一个 `Infinity` —— 一致，但仍然
+    // 不是 Excel 的答案。只有字面量能分开「两侧一致」与「两侧都对」。
+    // 溢出与下溢方向相反，必须同表：一个「非有限或过小都报错」的实现在只测
+    // 溢出的表上照样全绿，却会把 `=10^-200*10^-200` 从 `0` 变成 `#NUM!`。
+    for (const read of [tsRead, wasmRead]) {
+      expect(displaysOf(read, OVERFLOW_ADDRS)).toEqual(EXPECTED_OVERFLOW_DISPLAYS)
     }
   })
 })

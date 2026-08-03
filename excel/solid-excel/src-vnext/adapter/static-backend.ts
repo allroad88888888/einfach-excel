@@ -145,6 +145,7 @@ import {
   getEffectiveFormat,
   ENGINE_BUILTIN_FORMULA_NAMES,
 } from '@einfach/spreadsheet-ui-core'
+import { excelGeneralToText } from '@einfach/excel-core-ts'
 import { buildFilterSortDisplayRows as buildFilterSortDisplayRowsShared } from './filter-predicate'
 import type {
   StaticProjectionRequest,
@@ -952,7 +953,12 @@ function valueToDisplayCell(row: number, col: number, value: StaticSeedValue): D
     return {
       row,
       col,
-      displayValue: Number.isFinite(value) ? String(value) : String(value),
+      // 与两个真引擎共用同一份 Excel General 规格（15 位有效数字、大数/小数各自的
+      // 科学计数门槛）。此前这里是 `String(value)` —— 于是 `=5/3` 在 worker
+      // runtime 上显示 `1.66666666666667`、在这个静态参考后端上显示
+      // `1.6666666666666667`，而 `vnext-worker-paste-special.test.ts` 的
+      // `expectParity` 比的正是两者，当场红。
+      displayValue: excelGeneralToText(value),
       valueKind: 'number',
     }
   }
@@ -2228,6 +2234,7 @@ function updateCell(
   let displayValue = request.input
   let valueKind: DisplayCell['valueKind'] = 'string'
   let formula: string | undefined
+  let numeric: number | undefined
 
   if (isFormula) {
     formula = trimmed
@@ -2238,9 +2245,16 @@ function updateCell(
     displayValue = trimmed
     valueKind = 'string'
   } else {
-    const numeric = Number(request.input)
-    if (Number.isFinite(numeric) && request.input.trim().length > 0) {
+    const parsed = Number(request.input)
+    if (Number.isFinite(parsed) && request.input.trim().length > 0) {
       valueKind = 'number'
+      numeric = parsed
+      // 数字字面量的显示走 Excel General 规格，不是把输入原样回显。两个真引擎
+      // 都是「输入解析成 double，再按 General 格式化」，所以 `=5/3` 经 Paste
+      // Special 除法落地的输入串 `1.6666666666666667` 在它们那里显示为
+      // `1.66666666666667`；这里原样回显就会差 17 位对 15 位。
+      // 原始双精度不丢 —— 它走 `numericValue` 通道（求和/筛选/排序读的是它）。
+      displayValue = excelGeneralToText(parsed)
     }
   }
 
@@ -2249,6 +2263,7 @@ function updateCell(
     col: request.col,
     displayValue,
     valueKind,
+    ...(numeric === undefined ? {} : { numericValue: numeric }),
     ...(formula ? { formula } : {}),
   }
 
@@ -2980,7 +2995,10 @@ function applyFillSeriesPlan(
         ? {
             row: cellPlan.row,
             col: cellPlan.col,
-            displayValue: String(cellPlan.value),
+            // 同上：显示走 Excel General 规格，`numericValue` 保留原始双精度。
+            // 这是粘贴写入路径 —— `=5/3` 经「除」粘贴落地时也必须显示
+            // `1.66666666666667`，否则与 worker runtime 差一个写入口。
+            displayValue: excelGeneralToText(cellPlan.value as number),
             valueKind: 'number',
             numericValue: cellPlan.value as number,
           }

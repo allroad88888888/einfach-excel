@@ -1,3 +1,4 @@
+import { excelGeneralToText } from '@einfach/excel-core-ts'
 import type { CellValue, ISheet } from './types'
 
 /**
@@ -12,7 +13,8 @@ import type { CellValue, ISheet } from './types'
  *   2. **definitive** push from the worker on a `change` message — Step 2
  *      will wire this; Step 1 leaves the channel open but unused.
  *
- * The optimistic path is "best-guess display": `String(value)` for
+ * The optimistic path is "best-guess display": Excel 的 General 转文本
+ * (`excelGeneralToText`, 与 Rust `default_number_string` 同一份规格) for
  * numbers, the literal text for set_text, etc. The worker's eventual
  * push corrects any formatting drift (e.g. number → currency on a
  * formatted cell). For formulas, optimism only records the formula
@@ -158,16 +160,20 @@ export function createWorkerSheet(opts: WorkerSheetOptions): ISheet {
     worker.postMessage({ cmd, ...payload })
   }
 
-  /** Best-guess display for an optimistic numeric write. Rust's
-   * `Value::Number` `Display` impl renders integers without a decimal
-   * point (e.g. 42 → "42") and floats with `to_string` semantics
-   * (0.1 + 0.2 → "0.30000000000000004"). `String(value)` in JS lands
-   * on the same shape for both, so the optimistic display matches the
-   * worker's `get_display` until a formatted-display upgrade replaces
-   * it via a 'change' push. */
+  /** 乐观写入时的数字显示。
+   *
+   * 这里曾经是 `String(n)`，注释声称它与 Rust `Value::Number` 的 `Display`
+   * 逐字节同判（`0.1 + 0.2 → "0.30000000000000004"`）。那条声明现在是假的：
+   * Rust 侧的 `format::default_number_string`（`get_display` 的 General 分支）
+   * 已委托给 `excel_general_to_text`，同一个值回的是 `0.3`。留着 `String(n)`
+   * 就会让乐观显示先闪一串 17 位、再被 worker 的 'change' 推送改回 15 位。
+   *
+   * 所以这里也走同一份 General 规格的 TS 孪生实现 —— 单点，不再抄第二份。
+   *
+   * 仍然只是「乐观」：本函数看不到单元格的显式 `NumberFormat`（货币/百分比
+   * 等），那一路依旧由 worker 推送纠正 —— 与文件头注释描述的一致。 */
   function optimisticNumberDisplay(n: number): string {
-    if (Number.isInteger(n) && Math.abs(n) < 1e15) return String(n)
-    return String(n)
+    return excelGeneralToText(n)
   }
 
   return {

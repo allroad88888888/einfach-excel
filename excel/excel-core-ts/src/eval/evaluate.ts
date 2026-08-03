@@ -44,6 +44,7 @@ import {
   RangeTooLargeError,
 } from '../refs'
 import { propagateError, toBoolean, toNumber, toString as toStr } from './coerce'
+import { finiteOrNum } from './overflow'
 // 稀疏聚合族：`evaluate` 在派发到内建函数表之前，把 17 个聚合函数名截走交给
 // 这一族的流式实现，两份实现必须同判 —— 约定与两起真实事故的留痕见
 // `sparse-aggregations.ts` 文件头。与它们的循环导入是有意的，同处有说明。
@@ -3802,14 +3803,14 @@ function applyScalarBinary(op: BinaryOp, left: Value, right: Value): Value {
   const r = rn.value
   switch (op) {
     case '+':
-      return { kind: 'number', value: l + r }
+      return finiteOrNum(l + r)
     case '-':
-      return { kind: 'number', value: l - r }
+      return finiteOrNum(l - r)
     case '*':
-      return { kind: 'number', value: l * r }
+      return finiteOrNum(l * r)
     case '/':
       if (r === 0) return ERR('#DIV/0!')
-      return { kind: 'number', value: l / r }
+      return finiteOrNum(l / r)
     case '^': {
       const res = Math.pow(l, r)
       if (!Number.isFinite(res)) return ERR('#NUM!')

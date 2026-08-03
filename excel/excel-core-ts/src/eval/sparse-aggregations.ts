@@ -42,6 +42,7 @@
 
 import type { EvalContext, Expr, Value } from '../types'
 import { toNumber } from './coerce'
+import { finiteOrNum } from './overflow'
 import {
   ERR,
   canSparseIterate,
@@ -129,7 +130,9 @@ export function evaluateSparseSum(
     if (error) return error
   }
 
-  return usedSparseRef ? { kind: 'number', value: total } : undefined
+  // 溢出闸门与注册表侧 `FUNCTIONS.SUM` 同一条（`finiteOrNum`）。真实公式路径
+  // 走的是本函数，只改那一侧的话「单测绿、端到端错」会第三次复发。
+  return usedSparseRef ? finiteOrNum(total) : undefined
 }
 
 export type SparseAggregateKind = 'count' | 'average' | 'min' | 'max'

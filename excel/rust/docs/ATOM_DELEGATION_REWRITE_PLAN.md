@@ -74,7 +74,7 @@ Full approved plan: `/Users/dol/.claude/plans/federated-mapping-crab.md`
 | INV-3 | Bulk import materializes 0 atoms and evaluates 0 formulas, at any size. |
 | INV-4 | `WasmSheet`/`WasmWorkbook` exported names + signatures frozen (additive debug probes allowed). `worker-protocol.ts` wire shapes frozen. |
 | INV-5 | Every landed commit is green on its tier fences. Fence-expectation edits land in the same commit as the semantic change, with closed-form justification in the commit message and a row in §4. |
-| INV-6 | `eval.rs` / `formula.rs` / `format.rs` / `undo.rs` / `csv.rs`: resolver-interface seam changes only. **一条已批准的例外，见下方「INV-6 的显式例外」。** |
+| INV-6 | `eval.rs` / `formula.rs` / `format.rs` / `undo.rs` / `csv.rs`: resolver-interface seam changes only. **两条已批准的例外，见下方「INV-6 的显式例外」。** |
 | INV-7 | Laziness contract: never-read formulas are never materialized or evaluated by writes. Once-read formulas re-derive eagerly on upstream change, with change pruning (owner-approved semantic shift, converges with vanilla/TS semantics). |
 | INV-8 | No permanent dual path. Transitional code carries `// BRIDGE(delete-by: P<n>-exit)`; zero BRIDGE markers may survive P6 exit. |
 
@@ -87,6 +87,7 @@ Full approved plan: `/Users/dol/.claude/plans/federated-mapping-crab.md`
 | # | 文件 | 允许做的事 | 为什么批准 |
 |---|---|---|---|
 | EX-6.1 | `csv.rs` | `import_csv` 在 `Sheet::bulk_load` 之后调用 spill 投影尾 `Sheet::project_bulk_spill_anchors`（含为选候选而调用 `source_may_produce_array` / `expr_may_produce_array` / `parse_formula`） | CSV 是第**四**条批量入口。前三条（`bulk_install_workbook`、`WorkbookLoader::flush`、跨表数组重投影）已在 ADR 0006 那批补上同一条尾巴；`import_csv` 当时漏了，症状是同一个用户可见缺陷的第四个复发点 —— 导入含 `=SEQUENCE(3)` 的 CSV 只剩锚点，其余目标格全空。语义与顺序契约见 [ADR 0006](../../../docs/decisions/0006-spill-region-write-semantics.md)。 |
+| EX-6.2 | `format.rs`、`csv.rs` | `format::default_number_string` 与 `csv::value_to_csv_field` 的数字分支改为调用 `crate::general_text::excel_general_to_text`（各一行委托，两处 `if n == n.floor() && n.abs() < 1e15 { i64 } else { Display }` 随之删除） | 数字→文本是第**三**条复制粘贴的复发点。同一段判断此前在三处逐字节相同却互不调用：`eval::coerce_to_text`（`&` 拼接 / `LEN` / `T`）、`format::default_number_string`（`value_to_display` 与 `NumberFormat::General`/`Date`/自定义兜底）、`csv::value_to_csv_field`。上一程只把第一处换成了 Excel 的 General 规格，留下一个用户可见的自相矛盾：`=10^21&""` 读 `1E+21`，而**裸的** `=10^21` 那格显示 `1000000000000000000000`。同一个数字、同一个引擎、两种写法。规格与依据（Apache POI 从 Excel 实测抄回的对照表）见 `general_text.rs` 模块文档，回归护栏 `tests/display_general_text.rs`。 |
 
 EX-6.1 的备选方案与否决理由（存档，免得后来人重开这一局）：把投影尾下沉进
 `Sheet::bulk_load`，让四条入口自动都有。**否决** —— 那会改掉
@@ -101,6 +102,28 @@ EX-6.1 的边界（越过就不再是本例外覆盖的范围）：
   `recompute_array_formula` 读到旧的 formula-inner，症状与完全不修一样。
 - INV-3 不放宽：候选闸门先跑无需解析的字节筛，标量公式在导入期仍是 0 解析、
   0 求值。回归护栏 `tests/csv_import_spill.rs`。
+
+EX-6.2 的备选方案与否决理由（存档，免得后来人重开这一局）：把 `value_to_display`
+整个搬出 `format.rs`、另立一个 `display.rs`，让 INV-6 的文件清单原封不动。
+**否决** —— `value_to_display` 与 `CellFormat::format_number` 共用
+`default_number_string`，搬走它等于把 `NumberFormat` 的兜底链一起搬，那是一次
+真正的模块重构，改动面比「两行委托」大两个数量级；而 INV-6 要挡的是**改写这些
+文件里的求值/格式化语义**，不是挡它们调用一个已经存在的单点函数。第二个否决项：
+让三处继续各留一份、只在注释里互相指认。**否决** —— 那正是本条例外要消灭的状态，
+它已经复发过一次（第三条出口 CSV 至今没人发现它和显示层已经不一致了）。
+
+EX-6.2 的边界（越过就不再是本例外覆盖的范围）：
+- 只准**委托**给 `general_text::excel_general_to_text`，不准在 `format.rs` /
+  `csv.rs` 里为「显示专用」再分叉出一套收位或门槛规则。真出现了列宽自适应
+  （窄列更早退到科学计数、乃至 `####`）那种确实与转文本不同的规则，它属于**渲染
+  层**，不在引擎里，更不在这两个文件里。
+- 不动 `error_display_token` 与 `collapse_array_for_display` 这两条分支：它们是
+  错误词汇与 spill 塌缩，跟数字→文本无关。
+- 显示字节是筛选谓词的输入（`Workbook::apply_filter` → `value_to_display`，
+  以及宿主 TS 谓词读到的 wire 上的 `display`），所以本条例外**同时**是一次筛选
+  行为变更 —— 两侧读的仍是同一份字节，E3 下沉的等价性不受影响，但可筛的字面量
+  变了（`=0.1+0.2` 那格从 `0.30000000000000004` 变成 `0.3`）。方向钉在
+  `tests/display_general_text.rs::filter_predicate_sees_the_displayed_bytes`。
 
 ## 3. Phases & exit gates
 

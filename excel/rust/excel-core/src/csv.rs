@@ -164,13 +164,11 @@ pub fn export_csv(sheet: &mut Sheet, top_left: CellAddress, bottom_right: CellAd
 
 fn value_to_csv_field(v: &Value) -> String {
     match v {
-        Value::Number(n) => {
-            if *n == n.floor() && n.abs() < 1e15 {
-                format!("{}", *n as i64)
-            } else {
-                format!("{}", n)
-            }
-        }
+        // CSV 字段是「用户在另一个表格软件里打开会看到什么」，所以它和网格显示
+        // 必须是同一个答案，而不是第三份 `format!("{}", n)`。委托给 General 转
+        // 文本的单点实现，与 `format::value_to_display` / `eval::coerce_to_text`
+        // 共用一份规格。
+        Value::Number(n) => crate::general_text::excel_general_to_text(*n),
         Value::Text(s) => s.clone(),
         Value::Boolean(true) => "TRUE".into(),
         Value::Boolean(false) => "FALSE".into(),

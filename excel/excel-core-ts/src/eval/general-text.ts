@@ -14,8 +14,12 @@
  *   （`1e-7` 是 `'0.0000001'`，`1e-19` 才是 `'1E-19'`）。
  * - 指数大写 `E`、带符号、至少两位；尾随零先剪再计位数（`0.1 + 0.2` → `'0.3'`）。
  *
- * 这条规格被 `&` 拼接、`LEN`、`T`、`CONCAT` 共用，所以只能有一份：`coerce.ts`
- * 的 `toString` 是本包里唯一的调用点。
+ * 这条规格被一切把数字读成文本的路径共用，所以只能有一份。本包内的调用点是
+ * `coerce.ts` 的 `toString`（`&` 拼接 / `LEN` / `T` / `CONCAT`）；它还经包根
+ * `index.ts` 导出给宿主的**显示边界**
+ * （`excel/solid-excel/src-vnext/adapter/worker-runtime-ts.ts` 的
+ * `valueDisplay`）—— 那里此前是 `String(n)`，于是同一个数字在「拼接出来的
+ * 文本」和「单元格显示」上是两种写法。Rust 侧对应三个调用点，见那份模块文档。
  *
  * 起点是 `toExponential()`（无参数 = 最短往返表示，与 Rust `{:e}` 逐字节相同）
  * 而不是 `toExponential(14)`：后者的定点舍入在 Rust 是 half-even、在 JS 是

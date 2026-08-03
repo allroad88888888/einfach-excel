@@ -32,6 +32,7 @@
 
 import type { FunctionImpl, Value } from '../../types'
 import { propagateError, toNumber, toString } from '../coerce'
+import { finiteOrNum } from '../overflow'
 
 const ERR = (code: '#DIV/0!' | '#N/A' | '#NUM!' | '#VALUE!', message?: string): Value =>
   message === undefined ? { kind: 'error', code } : { kind: 'error', code, message }
@@ -187,7 +188,9 @@ export const SUM: FunctionImpl = (args) => {
     total += n
   })
   if (!walk.ok) return walk.error
-  return NUM(total)
+  // 累加器会溢出（两个 1E308 相加）。出口共用 `finiteOrNum`，且**稀疏孪生
+  // `evaluateSparseSum` 必须同改** —— 真实公式路径跑的是那一份。
+  return finiteOrNum(total)
 }
 
 export const AVERAGE: FunctionImpl = (args) => {
@@ -564,7 +567,8 @@ export const PRODUCT: FunctionImpl = (args) => {
   })
   if (!walk.ok) return walk.error
   if (!seen) return NUM(0)
-  return NUM(total)
+  // 连乘比连加更容易顶破 f64 —— 同一条出口闸门。
+  return finiteOrNum(total)
 }
 
 // ---------------------------------------------------------------------------

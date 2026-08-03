@@ -130,12 +130,22 @@ impl CellFormat {
     }
 }
 
+/// 「General」格式下一个数字长什么样 —— 直接委托给 Excel General 转文本的单点
+/// 实现 [`crate::general_text::excel_general_to_text`]。
+///
+/// 这里**不重写**一份规格。曾经有过：`if n == n.floor() && n.abs() < 1e15 { i64 }
+/// else { Display }` 这段与 `eval::coerce_to_text`、`csv::value_to_csv_field`
+/// 逐字节相同却互不调用，于是 `=10^21&""` 一改就与裸数字 `=10^21` 的**显示**
+/// 对不上（前者 `1E+21`，后者 22 位数字铺开）。同一个数字在同一个引擎里有两种
+/// 写法，是复制粘贴的直接产物。
+///
+/// Excel 对一个 f64 确实有多套规则，但**转文本与 General 显示不在其中分家**：
+/// 分家的是列宽自适应（窄列会更早退到科学计数甚至 `####`）与显式
+/// `NumberFormat`，而这两条都在本函数**之外** —— 列宽是渲染层的事，显式格式走
+/// `format_fixed` / `format_custom_number`。落到这里的只有「没有格式、按 General
+/// 走」这一种情况，它和 `&` 拼接读到的文本是同一个答案。
 fn default_number_string(n: f64) -> String {
-    if n == n.floor() && n.abs() < 1e15 {
-        format!("{}", n as i64)
-    } else {
-        format!("{}", n)
-    }
+    crate::general_text::excel_general_to_text(n)
 }
 
 /// Collapse a spill anchor's `Value::Array` to its top-left scalar. Twin of

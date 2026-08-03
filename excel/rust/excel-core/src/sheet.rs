@@ -886,6 +886,69 @@ pub struct Sheet {
     spill_blocked: spill_claims::BlockedClaims,
 }
 
+/// 区域内所有**公式格**地址，行主序（先行后列）升序。
+///
+/// 一条公式要么已 hydrate 落在 `formula_cells`，要么还躺在 `formula_source`
+/// （LAZY_FORMULA_INDEXING 的共存不变式保证互斥），两张表各自升序，这里把它们
+/// 归并成一条。区域物化的两个入口（[`FacadeCtx::range_member_addrs`] 与
+/// [`Sheet::for_each_sparse_cell_with`]）共用它，避免两处各写一遍归并再漂移。
+fn formula_addrs_in_range(interior: &SheetInterior, range: CellRange) -> Vec<CellAddress> {
+    let cells = interior.formula_cells.borrow();
+    let source = interior.formula_source.borrow();
+    let mut out: Vec<CellAddress> = Vec::with_capacity(cells.len() + source.len());
+    let mut hydrated = cells.range_iter(range).map(|(addr, _)| addr).peekable();
+    let mut lazy = source.range_iter(range).map(|(addr, _)| addr).peekable();
+    loop {
+        match (hydrated.peek().copied(), lazy.peek().copied()) {
+            (None, None) => break,
+            (Some(x), None) => {
+                out.push(x);
+                hydrated.next();
+            }
+            (None, Some(y)) => {
+                out.push(y);
+                lazy.next();
+            }
+            (Some(x), Some(y)) => {
+                let (xk, yk) = ((x.row, x.col), (y.row, y.col));
+                if xk == yk {
+                    // 共存不变式说这不该发生，防御性地折叠成一个，免得重复
+                    // 发射打穿「地址两两不同」的调用方假设。
+                    out.push(x);
+                    hydrated.next();
+                    lazy.next();
+                } else if xk < yk {
+                    out.push(x);
+                    hydrated.next();
+                } else {
+                    out.push(y);
+                    lazy.next();
+                }
+            }
+        }
+    }
+    out
+}
+
+/// 把两条各自行主序升序的地址序列归并成一条行主序升序序列。相等坐标时先给
+/// `primitives` —— 调用方要么已把被公式遮蔽的字面量滤掉，要么会跳过它。
+fn merge_row_major(primitives: Vec<CellAddress>, formulas: Vec<CellAddress>) -> Vec<CellAddress> {
+    let mut out: Vec<CellAddress> = Vec::with_capacity(primitives.len() + formulas.len());
+    let mut prims = primitives.into_iter().peekable();
+    let mut forms = formulas.into_iter().peekable();
+    loop {
+        let take_prim = match (prims.peek(), forms.peek()) {
+            (None, None) => break,
+            (Some(_), None) => true,
+            (None, Some(_)) => false,
+            (Some(p), Some(q)) => (p.row, p.col) <= (q.row, q.col),
+        };
+        let next = if take_prim { prims.next() } else { forms.next() };
+        out.push(next.expect("peek 已确认非空"));
+    }
+    out
+}
+
 /// Shared facade/formula-inner context: the minimal handles needed to mint and
 /// resolve per-address Store atoms without holding `&Sheet`.
 ///
@@ -2069,9 +2132,16 @@ impl FacadeCtx {
     /// reactively without holding a borrow across a `store` read (D7).
     /// Tier-A ranges track every member facade; larger ranges track geometry
     /// epochs and use this sparse snapshot only for current values.
+    ///
+    /// # 「Row-major」指的是坐标，不是存储分桶
+    ///
+    /// 字面量格与公式格住在两张分开的稀疏表里，两张表各自升序 —— 但「先发完
+    /// 字面量、再发公式」拼出来的序列不是行主序，混了两类格子的区域会把公式格
+    /// 甩到最后（`=SEQUENCE(3)` 铺出的 A1:A3 发成 A2、A3、A1）。区域的遍历顺序
+    /// 是**几何事实**，所以这里把两条升序序列按坐标**归并**，而不是给 spill
+    /// 锚点开特例把它挪到前面。
+    /// 见 `excel/rust/excel-core/tests/range_materialization_order.rs`。
     fn range_member_addrs(&self, range: CellRange) -> Vec<CellAddress> {
-        // Primitives first (skipping formula-shadowed addresses), matching
-        // `for_each_sparse_cell_with`'s emission order.
         let primitive_addrs: Vec<CellAddress> = {
             let cells = self.interior.cells.borrow();
             cells
@@ -2083,44 +2153,13 @@ impl FacadeCtx {
                 })
                 .collect()
         };
-        let mut out: Vec<CellAddress> = primitive_addrs
+        // `primitive_slot_has_visible_value` 会读 store，必须在 `cells` 借用
+        // 释放之后再滤。滤完仍是升序。
+        let primitives: Vec<CellAddress> = primitive_addrs
             .into_iter()
             .filter(|addr| self.primitive_slot_has_visible_value(*addr))
             .collect();
-        // Then the row-major union of hydrated formula cells + unhydrated
-        // formula source (a formula is in exactly one of the two).
-        let cells = self.interior.formula_cells.borrow();
-        let source = self.interior.formula_source.borrow();
-        let mut a = cells.range_iter(range).map(|(addr, _)| addr).peekable();
-        let mut b = source.range_iter(range).map(|(addr, _)| addr).peekable();
-        loop {
-            match (a.peek().copied(), b.peek().copied()) {
-                (None, None) => break,
-                (Some(x), None) => {
-                    out.push(x);
-                    a.next();
-                }
-                (None, Some(y)) => {
-                    out.push(y);
-                    b.next();
-                }
-                (Some(x), Some(y)) => {
-                    let (xk, yk) = ((x.row, x.col), (y.row, y.col));
-                    if xk == yk {
-                        out.push(x);
-                        a.next();
-                        b.next();
-                    } else if xk < yk {
-                        out.push(x);
-                        a.next();
-                    } else {
-                        out.push(y);
-                        b.next();
-                    }
-                }
-            }
-        }
-        out
+        merge_row_major(primitives, formula_addrs_in_range(&self.interior, range))
     }
 
     /// Primitive Null atoms may remain alive as Store dependency anchors after
@@ -4911,6 +4950,19 @@ impl Sheet {
     /// `range(min..=max)` calls — no filter sweep over the whole
     /// sheet. At 1M scattered non-empty cells, a 50×27 viewport read
     /// visits at most 50 rows × 27 cols, not 1M.
+    ///
+    /// # 发射顺序是行主序坐标，不是存储分桶
+    ///
+    /// 字面量格住 `interior.cells`，公式格住 `formula_cells` / `formula_source`。
+    /// 两张表**各自**升序，但「先发完字面量表、再发公式表」拼出来的序列不是
+    /// 行主序 —— 任何混了两类格子的区域，公式格都会被甩到最后。顺序敏感的
+    /// 消费者（`MATCH` / `XMATCH` / `CONCAT` / `CONCATENATE` / `TEXTJOIN` /
+    /// `NPV` / `SERIESSUM` / `XIRR` 等走 `for_each_arg_value` 的那一支）直接
+    /// 吃这个顺序，于是 `=SEQUENCE(3)` 铺出的 A1:A3 会答 `MATCH(2,…,0)=1`、
+    /// `CONCAT=231`。区域的遍历顺序是**几何事实**，所以下面把两个升序序列
+    /// **归并**成一条按 `(row, col)` 升序的序列再发，而不是给 spill 锚点开
+    /// 特例把它挪到前面。契约测试见
+    /// `excel/rust/excel-core/tests/range_materialization_order.rs`。
     pub(crate) fn for_each_sparse_cell_with(
         &self,
         range: CellRange,
@@ -4924,50 +4976,7 @@ impl Sheet {
         // hold a borrow that conflicts with the `borrow_mut` inside
         // hydration. Collecting addresses first releases the borrows
         // and gives us a stable iteration set.
-        let formula_addrs: Vec<CellAddress> = {
-            let cells = self.interior.formula_cells.borrow();
-            let source = self.interior.formula_source.borrow();
-            // Row-major union: each map yields ascending order; merge
-            // so duplicates collapse and the final list is ascending
-            // too (matches the pre-lazy contract that callers rely on
-            // for deterministic snapshots).
-            let mut out: Vec<CellAddress> = Vec::with_capacity(cells.len() + source.len());
-            let mut a = cells.range_iter(range).map(|(addr, _)| addr).peekable();
-            let mut b = source.range_iter(range).map(|(addr, _)| addr).peekable();
-            loop {
-                match (a.peek().copied(), b.peek().copied()) {
-                    (None, None) => break,
-                    (Some(x), None) => {
-                        out.push(x);
-                        a.next();
-                    }
-                    (None, Some(y)) => {
-                        out.push(y);
-                        b.next();
-                    }
-                    (Some(x), Some(y)) => {
-                        let xk = (x.row, x.col);
-                        let yk = (y.row, y.col);
-                        if xk == yk {
-                            // Co-existence invariant says this should
-                            // never happen, but guard defensively so
-                            // duplicate emit can't break callers that
-                            // assume distinct addresses.
-                            out.push(x);
-                            a.next();
-                            b.next();
-                        } else if xk < yk {
-                            out.push(x);
-                            a.next();
-                        } else {
-                            out.push(y);
-                            b.next();
-                        }
-                    }
-                }
-            }
-            out
-        };
+        let formula_addrs = formula_addrs_in_range(&self.interior, range);
 
         // P4a borrow rule: snapshot the primitive addresses in range so no
         // `cells` borrow is held across `cell_value_at` (store read) or the
@@ -4981,27 +4990,44 @@ impl Sheet {
             .range_iter(range)
             .map(|(addr, _)| addr)
             .collect();
-        for addr in prim_addrs {
-            // Skip primitives that have been upgraded to formulas — the
-            // formula pass below will emit the formula value at this addr.
-            // Address-equality check stays O(1) (BTreeMap point lookup).
-            // Both hydrated and lazy formulas count.
-            if self.interior.formula_cells.borrow().contains_key(&addr)
-                || self.interior.formula_source.borrow().contains_key(&addr)
-            {
-                continue;
-            }
-            let Some(value) = self.cell_value_at(addr) else {
-                continue;
+        // 行主序归并：`prim_addrs` 与 `formula_addrs` 各自升序，按 `(row, col)`
+        // 交错取小的那个，合成一条全局行主序的发射序列。两个快照都在循环前取好，
+        // 所以 `value_resolver` 里的惰性 hydration（把条目从 `formula_source`
+        // 搬进 `formula_cells`）不会动到迭代集合。
+        let mut prims = prim_addrs.into_iter().peekable();
+        let mut formulas = formula_addrs.into_iter().peekable();
+        loop {
+            let take_prim = match (prims.peek(), formulas.peek()) {
+                (None, None) => break,
+                (Some(_), None) => true,
+                (None, Some(_)) => false,
+                // 同坐标时先取字面量：它会被下面的「已升级成公式」判断跳过，
+                // 下一轮再由公式分支在同一坐标发出值。
+                (Some(p), Some(q)) => (p.row, p.col) <= (q.row, q.col),
             };
-            if matches!(value, Value::Null) {
-                continue;
+            if take_prim {
+                let addr = prims.next().expect("peek 已确认非空");
+                // Skip primitives that have been upgraded to formulas — the
+                // formula branch emits the formula value at this addr.
+                // Address-equality check stays O(1) (BTreeMap point lookup).
+                // Both hydrated and lazy formulas count.
+                if self.interior.formula_cells.borrow().contains_key(&addr)
+                    || self.interior.formula_source.borrow().contains_key(&addr)
+                {
+                    continue;
+                }
+                let Some(value) = self.cell_value_at(addr) else {
+                    continue;
+                };
+                if matches!(value, Value::Null) {
+                    continue;
+                }
+                f(addr, value);
+            } else {
+                let addr = formulas.next().expect("peek 已确认非空");
+                let v = value_resolver(self, addr);
+                f(addr, v);
             }
-            f(addr, value);
-        }
-        for addr in formula_addrs {
-            let v = value_resolver(self, addr);
-            f(addr, v);
         }
     }
 

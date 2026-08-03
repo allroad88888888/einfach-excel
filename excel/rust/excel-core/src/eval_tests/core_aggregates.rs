@@ -136,4 +136,16 @@ fn eval_countblank() {
     );
     // Error propagation through a sub-expression — error is not Null.
     assert_eq!(eval_str("=COUNTBLANK(A1/C1)", &cm, &vs), Value::Number(0.0));
+    // 1×1 区域里的空格也是一格（B7 不在 cell_map 里）。
+    assert_eq!(eval_str("=COUNTBLANK(B7)", &cm, &vs), Value::Number(1.0));
+    // 空文本 `""` 算空、`0` 不算空 —— Excel 实测口径（微软文档原文：「Cells with
+    // formulas that return "" (empty text) are also counted. Cells with zero
+    // values are not counted.」）。**注意**：Excel 的 COUNTBLANK 只收引用，数组
+    // 常量在它那里是**解析期就被拒**的；本引擎宽容地接受，这里只是借数组形态
+    // 把「什么算空」这条判据钉住。真实区域上的同一条判据见
+    // `tests/sparse_range_blank_cardinality.rs`（稠密 provider 抓不住整列口径）。
+    assert_eq!(eval_str("=COUNTBLANK({1,\"\",3})", &cm, &vs), Value::Number(1.0));
+    assert_eq!(eval_str("=COUNTBLANK({1,0,3})", &cm, &vs), Value::Number(0.0));
+    // 同一个 `""` 格 COUNTA 算非空 → COUNTBLANK **不是** COUNTA 的补集。
+    assert_eq!(eval_str("=COUNTA({1,\"\",3})", &cm, &vs), Value::Number(3.0));
 }

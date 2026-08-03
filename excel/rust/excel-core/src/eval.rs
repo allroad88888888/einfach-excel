@@ -2554,7 +2554,22 @@ fn for_each_arg_value(
     provider: &dyn EvalProvider,
     f: &mut dyn FnMut(Option<CellAddress>, Value),
 ) {
-    for_each_arg_value_indexed(arg, provider, &mut |addr, _pos, v| f(addr, v))
+    for_each_arg_value_indexed(arg, provider, &mut |addr, _pos, v| f(addr, v));
+}
+
+/// `COUNTBLANK` 的「算空」判据，作用在**已经发出来的**格子上（没发出来的空格
+/// 走矩形差额，见 `"COUNTBLANK"` 那一臂）。
+///
+/// 空文本 `""` 也算空 —— 这是 Excel 的口径，也是本仓 TS 参考引擎的口径
+/// （`evaluateSparseCountBlank`：`value.kind === 'blank' || (string && === '')`）。
+/// 因此 `COUNTBLANK` **不是** `COUNTA` 的补集：`=""` 那一格 COUNTA 算它非空、
+/// COUNTBLANK 算它空，同一格被两边都数进去。错误格两边都算「非空」。
+fn value_counts_as_blank(v: &Value) -> bool {
+    match v {
+        Value::Null => true,
+        Value::Text(s) => s.is_empty(),
+        _ => false,
+    }
 }
 
 /// 同一条流，但回调拿到的是「这个格子是区域里的第几个」—— 1-based、行主序的
@@ -2566,24 +2581,33 @@ fn for_each_arg_value(
 /// TS 参考引擎）答 3 —— Excel 数的是区域内的绝对位置，空格照样占一格。
 ///
 /// 谁该用这个而不是 [`for_each_arg_value`]：**把序号当结果交出去**的函数
-/// （`MATCH` / `XMATCH` 的返回值、`SERIESSUM` 的系数指数）。只做聚合、计数、
-/// 排序的那一大批不需要 —— 它们的答案与空格占不占位无关。
+/// （`MATCH` / `XMATCH` 的返回值、`SERIESSUM` 的系数指数），以及需要知道
+/// **空格在哪 / 有几个**的函数（`COUNTBLANK` 的基数、`TEXTJOIN` 的补洞）。
+/// 只做聚合、计数、排序的那一大批不需要 —— 它们的答案与空格占不占位无关。
+///
+/// 返回值见 [`for_each_arg_value_indexed`]：区域实参的**矩形格数**。
 fn for_each_arg_value_positioned(
     arg: &Expr,
     provider: &dyn EvalProvider,
     f: &mut dyn FnMut(u64, Value),
-) {
+) -> Option<u64> {
     for_each_arg_value_indexed(arg, provider, &mut |_addr, pos, v| f(pos, v))
 }
 
 /// [`for_each_arg_value`] 与 [`for_each_arg_value_positioned`] 共用的实现。
 /// 实参**只解析一次**（`OFFSET` / `INDIRECT` / `INDEX` 这类动态区域的解析带
 /// 求值副作用，解两遍既慢又可能不等价），两个外壳各取所需。
+///
+/// 返回**矩形格数**（`bounded_shape()` 的行 × 列），区域实参才有：它是「这个
+/// 实参名义上覆盖多少格」，与「回调被调了几次」是两个数 —— 差额就是被稀疏
+/// 遍历跳过的空格数。`COUNTBLANK` 靠这个差额闭式求解，不必物化空格。
+/// 非区域实参（标量 / 数组字面量 / 求值出错）返回 `None`：它们的每个位置都
+/// 发出来了，不存在洞，也就没有「矩形」这个概念。
 fn for_each_arg_value_indexed(
     arg: &Expr,
     provider: &dyn EvalProvider,
     f: &mut dyn FnMut(Option<CellAddress>, u64, Value),
-) {
+) -> Option<u64> {
     match runtime_ref_from_expr(arg, provider) {
         Ok(r) => {
             let n = r.normalized();
@@ -2600,11 +2624,12 @@ fn for_each_arg_value_indexed(
                         );
                     }
                 }
-                return;
+                return Some(rows as u64 * cols as u64);
             }
-            // 区域的列宽。`bounded_shape` 已把整列 / 整行的 `u32::MAX` 哨兵夹到
-            // Excel 网格上限，所以 `A:A` 得到 1 列、`1:1` 得到 16384 列。
-            let cols = r.bounded_shape().map_or(1u64, |(_, c)| c as u64);
+            // 区域的形状。`bounded_shape` 已把整列 / 整行的 `u32::MAX` 哨兵夹到
+            // Excel 网格上限，所以 `A:A` 得到 1048576×1、`1:1` 得到 1×16384。
+            let shape = r.bounded_shape();
+            let cols = shape.map_or(1u64, |(_, c)| c as u64);
             let mut emit = |addr: CellAddress, v: Value| {
                 let dr = addr.row.saturating_sub(n.start.row) as u64;
                 let dc = addr.col.saturating_sub(n.start.col) as u64;
@@ -2614,6 +2639,7 @@ fn for_each_arg_value_indexed(
                 Some(sheet) => provider.for_each_sheet_range_cell(sheet, r.range, &mut emit),
                 None => stream_range(&r.range.start, &r.range.end, provider, &mut emit),
             }
+            shape.map(|(rows, c)| rows as u64 * c as u64)
         }
         Err(ValueError::InvalidValue) => {
             let v = eval_expr_with_provider(arg, provider);
@@ -2624,8 +2650,12 @@ fn for_each_arg_value_indexed(
             } else {
                 f(None, 1, v);
             }
+            None
         }
-        Err(e) => f(None, 1, Value::Error(e)),
+        Err(e) => {
+            f(None, 1, Value::Error(e));
+            None
+        }
     }
 }
 
@@ -4611,21 +4641,31 @@ fn eval_func(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
             Value::Number(count as f64)
         }
         "COUNTBLANK" => {
-            // Exactly 1 arg, ideally a range. Counts cells that come back
-            // as Value::Null. Note: this walks the values yielded by
-            // for_each_arg_value, which for sparse providers may visit
-            // only populated cells — fine for the small test ranges, but
-            // worth flagging if extended to full-column refs.
+            // 恰好 1 个实参（Excel 的签名就是单区域；两个实参是 #VALUE!）。
+            //
+            // **闭式，不物化空格**：稀疏 provider 的 `for_each_range_cell` 只发
+            // 非空格，所以「回调里数 Null」永远数不到真正的空格 —— `A:A` 会答 0。
+            // 改成拿区域的**矩形格数**减掉**发出来的格子数**：差额就是稀疏遍历
+            // 跳过的空格，一个都不用访问。`COUNTBLANK(A:A)` 于是是两次减法，
+            // 而不是一百万次迭代。
+            //
+            // 发出来的格子里还要再挑出「算空」的那些：Excel 的 COUNTBLANK 把
+            // **公式算出的空文本 `""` 也算空**（COUNTA 却把它算作非空 —— 两者
+            // 不是互补关系）。错误格不算空。
             if args.len() != 1 {
                 return Value::Error(ValueError::WrongArgCount);
             }
-            let mut count = 0u64;
-            for_each_arg_value(&args[0], provider, &mut |_addr, v| {
-                if matches!(v, Value::Null) {
-                    count += 1;
+            let mut emitted = 0u64;
+            let mut blank_among_emitted = 0u64;
+            let extent = for_each_arg_value_positioned(&args[0], provider, &mut |_pos, v| {
+                emitted += 1;
+                if value_counts_as_blank(&v) {
+                    blank_among_emitted += 1;
                 }
             });
-            Value::Number(count as f64)
+            // 非区域实参（标量 / 数组字面量）没有洞，只数发出来的那些。
+            let skipped = extent.unwrap_or(emitted).saturating_sub(emitted);
+            Value::Number((skipped + blank_among_emitted) as f64)
         }
 
         // === B3: trig (radians) ===
@@ -5330,63 +5370,8 @@ fn eval_func(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
             out
         }),
 
-        // TEXTJOIN(delim, ignore_empty, ...). Range args streamed via for_each_arg_value.
-        "TEXTJOIN" => {
-            if args.len() < 3 {
-                return Value::Error(ValueError::WrongArgCount);
-            }
-            let delim_v = eval_expr_with_provider(&args[0], provider);
-            if let Value::Error(e) = delim_v {
-                return Value::Error(e);
-            }
-            let ignore_v = eval_expr_with_provider(&args[1], provider);
-            if let Value::Error(e) = ignore_v {
-                return Value::Error(e);
-            }
-            let delim = coerce_to_text(&delim_v);
-            let ignore_empty = match coerce_to_bool(&ignore_v) {
-                Some(b) => b,
-                None => return Value::Error(ValueError::WrongType),
-            };
-            let mut out = String::new();
-            let mut first = true;
-            let mut err: Option<ValueError> = None;
-            for arg in &args[2..] {
-                if err.is_some() {
-                    break;
-                }
-                for_each_arg_value(arg, provider, &mut |_addr, v| {
-                    if err.is_some() {
-                        return;
-                    }
-                    match v {
-                        Value::Error(e) => {
-                            err = Some(e);
-                            return;
-                        }
-                        Value::Null if ignore_empty => return,
-                        _ => {}
-                    }
-                    let piece = coerce_to_text(&v);
-                    if ignore_empty && piece.is_empty() {
-                        return;
-                    }
-                    if !first {
-                        out.push_str(&delim);
-                    }
-                    out.push_str(&piece);
-                    first = false;
-                    if out.chars().count() > 32767 {
-                        err = Some(ValueError::InvalidValue);
-                    }
-                });
-            }
-            if let Some(e) = err {
-                Value::Error(e)
-            } else {
-                Value::Text(out)
-            }
-        }
+        // TEXTJOIN(delim, ignore_empty, ...). 见 `text_join_delimited`。
+        "TEXTJOIN" => text_join_delimited(args, provider),
 
         // === Reference / lookup ===
         // ROW([ref]) — return the 1-based row number of `ref`. `ref` must be a
@@ -22002,6 +21987,149 @@ fn eval_optional_value_arg(
     match arg {
         Some(expr) => eval_expr_with_provider(expr, provider),
         None => default,
+    }
+}
+
+/// 一个 `TEXTJOIN` 结果最多多少个字符。Excel 的单元格文本上限就是这个数，
+/// 官方文档把「结果超过 32767 字符」明确列为 `#VALUE!`。
+const TEXTJOIN_MAX_CHARS: u64 = 32767;
+
+/// TEXTJOIN(delim, ignore_empty, ...)。
+///
+/// # 空格要占位
+///
+/// `ignore_empty = FALSE` 时区域里的空格**要产出一个空片段**，也就是要多出一个
+/// 分隔符：`A1=1 / A2 空 / A3=3` 的 `TEXTJOIN(",",FALSE,A1:A3)` 是 `"1,,3"`，
+/// 不是 `"1,3"`。但稀疏 provider 的 `for_each_range_cell` 只发非空格，所以光靠
+/// 「发出来的值」拼不出中间那个空片段 —— 同一个引擎里数组字面量形态
+/// `TEXTJOIN(",",FALSE,{1,"",3})` 早就答对了 `"1,,3"`，区域形态却答 `"1,3"`，
+/// 两种形态自相矛盾。
+///
+/// 修法是**按位置补洞**：`for_each_arg_value_positioned` 交出每个格子在区域里的
+/// 绝对位次，两次回调之间的位次缺口有几个就补几个空片段，实参末尾没发到的位次
+/// 用矩形格数补齐。
+///
+/// # 为什么不会铺开一百万个空格
+///
+/// 两道闸门，都是闭式的：
+///
+/// 1. **分隔符为空串时根本不补洞**。空片段 + 空分隔符对结果的贡献恒为零，
+///    `TEXTJOIN("",FALSE,A:A)` 的答案与稀疏流一模一样。于是「整列 + 空分隔符」
+///    这条最容易爆的路径连循环都不进。
+/// 2. **分隔符非空时补洞循环自带上限**。每补一个洞至少推进一个分隔符（≥ 1 字符），
+///    所以最多补到 `TEXTJOIN_MAX_CHARS` 就必然越界、置错并停手 ——
+///    `TEXTJOIN(",",FALSE,A:A)` 走的是「补满 32768 个空片段 → `#VALUE!`」，
+///    而不是「走一百万格」。这也正是 Excel 的答案：一百万个分隔符远超单元格
+///    32767 字符上限，Excel 同样给 `#VALUE!`。
+///
+/// 字符数用**累加计数器**而不是每次 `out.chars().count()`：后者在补洞路径上是
+/// O(n²)（32768 次 × 每次重数整串），前者 O(1)。
+fn text_join_delimited(args: &[Expr], provider: &dyn EvalProvider) -> Value {
+    if args.len() < 3 {
+        return Value::Error(ValueError::WrongArgCount);
+    }
+    let delim_v = eval_expr_with_provider(&args[0], provider);
+    if let Value::Error(e) = delim_v {
+        return Value::Error(e);
+    }
+    let ignore_v = eval_expr_with_provider(&args[1], provider);
+    if let Value::Error(e) = ignore_v {
+        return Value::Error(e);
+    }
+    let delim = coerce_to_text(&delim_v);
+    let ignore_empty = match coerce_to_bool(&ignore_v) {
+        Some(b) => b,
+        None => return Value::Error(ValueError::WrongType),
+    };
+    let delim_chars = delim.chars().count() as u64;
+    // 见上文闸门 1/2：只有「保留空格」且「分隔符可见」时补洞才有可观测效果。
+    let fill_holes = !ignore_empty && delim_chars > 0;
+
+    let mut acc = TextJoinAcc {
+        out: String::new(),
+        chars: 0,
+        first: true,
+        delim: &delim,
+        delim_chars,
+        err: None,
+    };
+
+    for arg in &args[2..] {
+        if acc.err.is_some() {
+            break;
+        }
+        // 下一个「应该出现」的位次，1-based。回调看到的 pos 比它大就说明中间有洞。
+        let mut expected = 1u64;
+        let extent = for_each_arg_value_positioned(arg, provider, &mut |pos, v| {
+            if acc.err.is_some() {
+                return;
+            }
+            if fill_holes {
+                while expected < pos && acc.err.is_none() {
+                    acc.push("");
+                    expected += 1;
+                }
+            }
+            expected = pos + 1;
+            if acc.err.is_some() {
+                return;
+            }
+            match v {
+                Value::Error(e) => {
+                    acc.err = Some(e);
+                    return;
+                }
+                Value::Null if ignore_empty => return,
+                _ => {}
+            }
+            let piece = coerce_to_text(&v);
+            if ignore_empty && piece.is_empty() {
+                return;
+            }
+            acc.push(&piece);
+        });
+        // 实参尾部的空格：最后一个非空格之后还剩多少个位次没发。
+        if fill_holes {
+            if let Some(rect) = extent {
+                while expected <= rect && acc.err.is_none() {
+                    acc.push("");
+                    expected += 1;
+                }
+            }
+        }
+    }
+
+    match acc.err {
+        Some(e) => Value::Error(e),
+        None => Value::Text(acc.out),
+    }
+}
+
+/// `text_join_delimited` 的累加器：把「要不要先推分隔符」和「有没有超字符上限」
+/// 收在一处，免得补洞路径和正常路径各写一遍还写岔。
+struct TextJoinAcc<'a> {
+    out: String,
+    /// `out` 的字符数，增量维护 —— 不要改成每次重数（见函数文档末段）。
+    chars: u64,
+    first: bool,
+    delim: &'a str,
+    delim_chars: u64,
+    err: Option<ValueError>,
+}
+
+impl TextJoinAcc<'_> {
+    /// 追加一个片段（空片段代表一个「占位的空格」）。
+    fn push(&mut self, piece: &str) {
+        if !self.first {
+            self.out.push_str(self.delim);
+            self.chars += self.delim_chars;
+        }
+        self.out.push_str(piece);
+        self.chars += piece.chars().count() as u64;
+        self.first = false;
+        if self.chars > TEXTJOIN_MAX_CHARS {
+            self.err = Some(ValueError::InvalidValue);
+        }
     }
 }
 

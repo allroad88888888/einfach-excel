@@ -4,7 +4,6 @@
 //! 本文件的函数一律不认识 [`ShiftEdit`](super::edit::ShiftEdit) —— 它们只认
 //! 记号，不判断记号该不该动。
 
-use super::render::col_only;
 use crate::cell::CellAddress;
 
 /// Identifier scan mirroring `Parser::parse_identifier`: alphanumerics
@@ -113,19 +112,6 @@ pub(super) fn scan_abs_addr_token(b: &[u8], i: usize) -> Option<(CellAddress, bo
         return None;
     }
     Some((CellAddress::new(row - 1, col), col_abs, row_abs, j))
-}
-
-/// Emit a `[$]col[$]row` address token into `out`, preserving the `$`
-/// markers.
-pub(super) fn push_abs_addr(out: &mut String, addr: CellAddress, col_abs: bool, row_abs: bool) {
-    if col_abs {
-        out.push('$');
-    }
-    out.push_str(&col_only(addr.col));
-    if row_abs {
-        out.push('$');
-    }
-    out.push_str(&(addr.row + 1).to_string());
 }
 
 /// Scan a `[$]letters` whole-column corner at `i`. Returns `(col, col_abs,

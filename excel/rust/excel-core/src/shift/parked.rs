@@ -3,9 +3,8 @@
 
 use super::edit::{ShiftEdit, REF_INVALID_COL, REF_INVALID_ROW};
 use super::parked_band::{try_shift_whole_col, try_shift_whole_row};
-use super::parked_scan::{
-    next_non_ws, push_abs_addr, scan_abs_addr_token, scan_ident_end, skip_ascii_ws,
-};
+use super::parked_scan::{next_non_ws, scan_abs_addr_token, scan_ident_end, skip_ascii_ws};
+use crate::cell::push_abs_addr;
 
 /// Outcome of `rewrite_parked_source` for one parked formula source.
 #[derive(Debug, PartialEq, Eq)]

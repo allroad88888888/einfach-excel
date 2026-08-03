@@ -3,8 +3,7 @@
 
 use super::edit::{ShiftEdit, REF_INVALID_COL, REF_INVALID_ROW};
 use super::parked_scan::{scan_abs_col_token, skip_ascii_ws};
-use super::render::col_only;
-use crate::cell::CellAddress;
+use crate::cell::{push_abs_col, push_abs_row, CellAddress};
 
 /// Try to consume a `$`-aware whole-column range `[$]A:[$]C` starting at
 /// `start`. `None` when the shape is not a whole-column range. `Some(Err)`
@@ -39,15 +38,9 @@ pub(super) fn try_shift_whole_col(
     }
     let rewrite = if !edit.is_row_edit() && (m1.col != start_col || m2.col != end_col) {
         let mut s = String::new();
-        if start_abs {
-            s.push('$');
-        }
-        s.push_str(&col_only(m1.col));
+        push_abs_col(&mut s, m1.col, start_abs);
         s.push(':');
-        if end_abs {
-            s.push('$');
-        }
-        s.push_str(&col_only(m2.col));
+        push_abs_col(&mut s, m2.col, end_abs);
         Some(s)
     } else {
         None
@@ -115,15 +108,9 @@ pub(super) fn try_shift_whole_row(
     }
     let rewrite = if edit.is_row_edit() && (m1.row != r1 - 1 || m2.row != r2 - 1) {
         let mut s = String::new();
-        if start_abs {
-            s.push('$');
-        }
-        s.push_str(&(m1.row + 1).to_string());
+        push_abs_row(&mut s, m1.row, start_abs);
         s.push(':');
-        if end_abs {
-            s.push('$');
-        }
-        s.push_str(&(m2.row + 1).to_string());
+        push_abs_row(&mut s, m2.row, end_abs);
         Some(s)
     } else {
         None

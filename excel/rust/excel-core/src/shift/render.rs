@@ -2,7 +2,7 @@
 
 use super::edit::{is_invalid, range_has_invalid_ref};
 use super::render_number::render_number;
-use crate::cell::CellAddress;
+use crate::cell::{push_abs_addr, push_abs_col, push_abs_row, CellAddress};
 use crate::formula::{BinOperator, Expr, RangeAbs, RangeBounds, RefAbs, TableArea};
 
 /// Render an AST back to a formula string (for paste-and-store flows that
@@ -13,34 +13,16 @@ pub fn render_formula(expr: &Expr) -> String {
     out
 }
 
-/// Render a 0-based column index as letters ("A", "B", ..., "AA", ...).
-/// Mirrors the private helper in `cell.rs`; duplicated here so render_into
-/// doesn't have to instantiate a CellAddress + parse its repr just to drop
-/// the row part.
-pub(super) fn col_only(mut col: u32) -> String {
-    let mut result = String::new();
-    loop {
-        result.push((b'A' + (col % 26) as u8) as char);
-        if col < 26 {
-            break;
-        }
-        col = col / 26 - 1;
-    }
-    result.chars().rev().collect()
-}
-
 /// Render one cell address with its `$` absolute markers (`$A$1`, `$A1`,
 /// `A$1`, `A1`). Absoluteness is a written-form annotation only; the address
 /// coordinates are unchanged from `to_string_repr`.
+///
+/// 只做 `RefAbs` → 两个裸 `bool` 的拆包，写出实现是
+/// [`crate::cell::push_abs_addr`] 那唯一一份。拆包留在这一侧而不是下沉进
+/// `cell.rs`：`RefAbs` 住在 `formula::ast`，而 `formula` 依赖 `cell`，
+/// 让 `cell` 反过来认识 `RefAbs` 就把依赖方向倒过来了。
 fn render_abs_addr(addr: CellAddress, abs: RefAbs, out: &mut String) {
-    if abs.col {
-        out.push('$');
-    }
-    out.push_str(&col_only(addr.col));
-    if abs.row {
-        out.push('$');
-    }
-    out.push_str(&format!("{}", addr.row + 1));
+    push_abs_addr(out, addr, abs.col, abs.row);
 }
 
 fn render_range_body(
@@ -58,27 +40,15 @@ fn render_range_body(
         }
         RangeBounds::Rows => {
             // Whole-column range — only the column carries a `$`.
-            if abs.start.col {
-                out.push('$');
-            }
-            out.push_str(&col_only(start.col));
+            push_abs_col(out, start.col, abs.start.col);
             out.push(':');
-            if abs.end.col {
-                out.push('$');
-            }
-            out.push_str(&col_only(end.col));
+            push_abs_col(out, end.col, abs.end.col);
         }
         RangeBounds::Cols => {
             // Whole-row range — only the row carries a `$`.
-            if abs.start.row {
-                out.push('$');
-            }
-            out.push_str(&format!("{}", start.row + 1));
+            push_abs_row(out, start.row, abs.start.row);
             out.push(':');
-            if abs.end.row {
-                out.push('$');
-            }
-            out.push_str(&format!("{}", end.row + 1));
+            push_abs_row(out, end.row, abs.end.row);
         }
     }
 }

@@ -11,11 +11,11 @@
 //! 只挑写法，**一位数字都不改**：`{}` 与 `{:e}` 都是 f64 的最短往返表示，
 //! 二选一而已。阈值是「普通写法（不含符号）超过 20 字符就退到科学计数」，
 //! `20 = 2 ("0.") + 17 (最短往返的有效数字上限)` —— 推导写在
-//! `shift.rs` 的 `MAX_PLAIN_LITERAL_LEN` 上。
+//! `shift/render_number.rs` 的 `MAX_PLAIN_LITERAL_LEN` 上。
 //!
 //! **没有复用 `general_text::excel_general_to_text`**（Excel General 显示规格）：
 //! 它只保留 15 位有效数字，用来渲染源码就是每次插行都改用户的数。
-//! 完整理由与 Apache POI 的依据写在 `shift.rs::render_number` 的文档注释里；
+//! 完整理由与 Apache POI 的依据写在 `shift/render_number.rs::render_number` 的文档注释里；
 //! 本文件用 `general_text_would_lose_digits_here` 那条把「为什么不能复用」变成
 //! 一条可执行的证据。
 

@@ -7,7 +7,7 @@
  * 「这片数组的**状态机**走对了没有」—— 后者的每一条都要跨越一次真实的引擎状态
  * 转移（bulk 导入 / 快照往返 / 写入塌缩），断言的是几何而不是数值。
  *
- * 三条各自钉住一个曾经活着的缺陷：
+ * 四条各自钉住一个曾经活着的缺陷：
  *
  * 1. **bulk 导入建投影** —— WASM 的 `bulk_install_workbook` 曾经一个投影都不装，
  *    于是**导入**的工作簿里每个动态数组只显示左上角一个值。闭式断言（整列必须是
@@ -19,6 +19,14 @@
  *    丢弃输入，而 TS 参考引擎（与 Excel）让它落地、anchor 变 `#SPILL!`；清掉阻塞
  *    物后数组复活。这条曾让被门控的 scale 套件在 P2/P4/P5 各红 22 格。
  *    见 `docs/decisions/0006-spill-region-write-semantics.md`。
+ * 4. **阻塞物是另一个数组的投影格** —— TS 侧的投影格是虚的（`cells` 里没有条目），
+ *    于是碰撞检测「遍历活单元格找落在矩形里的条目」对这一整类碰撞一条都报不出来：
+ *    两片数组会当场重叠，TS 产出的是与 Rust **不同的值**（不是不同的提示）。
+ *    修在 `excel/excel-core-ts/src/eval/spill-collision.ts`。
+ *
+ * 第 4 条钉的是**输赢**而不只是「有没有报错」：两个写入顺序各测一次，先声明的那
+ * 一片永远赢。只断言「两侧相等」会被「两个引擎都不报」满足，只断言「有一个
+ * `#SPILL!`」会被「输赢反了」满足。
  *
  * 必须两个引擎：整个缺陷形态就是「同一次按键，一个引擎答得和另一个不一样」。
  *
@@ -155,4 +163,51 @@ describe('cross-engine parity — spill lifecycle (TS runtime vs WASM engine)', 
     for (const engine of [ts, wasm]) await engine.clearCell('H3')
     for (const read of await bothRead()) expect(displaysOf(read, SPILL_1D)).toEqual(SEQ_10)
   }, 30_000)
+
+  // 自带引擎（不碰上面的共享夹具）：这一条要控制**写入顺序**，而顺序正是判定的
+  // 输入 —— 谁先声明谁拿走矩形。
+  describe('阻塞物是另一个数组的投影格', () => {
+    const ADDRS = ['A2', 'B2', 'C1', 'C2', 'C3', 'D2']
+    // `C1 = =SEQUENCE(3)` 占 C1:C3；`A2 = ={1,2,3,4}` 想占 A2:D2，行主序第一个
+    // 撞上 C2 —— 一个用户没打过任何东西的格子。
+    const ARRAY_DOWN: [string, string] = ['C1', '=SEQUENCE(3)']
+    const ARRAY_RIGHT: [string, string] = ['A2', '={1,2,3,4}']
+
+    const runBoth = async (
+      order: ReadonlyArray<[string, string]>,
+      after?: (engine: Engine) => Promise<void>,
+    ) => {
+      const engines: Engine[] = [makeEngine('ts'), makeEngine('wasm')]
+      try {
+        for (const engine of engines) {
+          for (const [addr, formula] of order) await engine.setFormula(addr, formula)
+          if (after) await after(engine)
+        }
+        const [tsRead, wasmRead] = [await engines[0].read(ADDRS), await engines[1].read(ADDRS)]
+        expect(flatten(wasmRead)).toEqual(flatten(tsRead))
+        return tsRead
+      } finally {
+        for (const engine of engines) engine.dispose()
+      }
+    }
+
+    test('先声明的那一片赢，后来的整片变 #SPILL!', async () => {
+      const read = await runBoth([ARRAY_DOWN, ARRAY_RIGHT])
+      // 闭式：C 列仍是完整的 1..3（先声明的一字未动），A2 整片收回。
+      expect(displaysOf(read, ADDRS)).toEqual(['#SPILL!', '', '1', '2', '3', ''])
+      expect(read.get('A2')?.isError).toBe(true)
+    }, 30_000)
+
+    test('反过来写：输的换成 C1，A2 照常铺开', async () => {
+      const read = await runBoth([ARRAY_RIGHT, ARRAY_DOWN])
+      expect(displaysOf(read, ADDRS)).toEqual(['1', '2', '#SPILL!', '3', '', '4'])
+      expect(read.get('C1')?.isError).toBe(true)
+    }, 30_000)
+
+    test('清掉赢家 → 被挡的那一片复活', async () => {
+      const read = await runBoth([ARRAY_DOWN, ARRAY_RIGHT], (engine) => engine.clearCell('C1'))
+      expect(displaysOf(read, ADDRS)).toEqual(['1', '2', '', '3', '', '4'])
+      expect(read.get('A2')?.isError).toBe(false)
+    }, 30_000)
+  })
 })

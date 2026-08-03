@@ -126,10 +126,19 @@ atom 家族** —— `spillCellRoleAtom` 返回的是一个选择器**函数**�
 
 ## 已知缺口
 
-- TS 参考引擎答不出阻塞地址（见上）。要补需要 `excel/excel-core-ts` 把
-  `validateSpillAnchorValue` 算出来的碰撞事实留下来。而且它的碰撞检测只扫**有自己条目**
-  的格子，投影格在那边根本没有条目 —— 所以「阻塞物是投影格」这一整类碰撞它连
-  `#SPILL!` 都不会报。两条一起补才有意义。
+- TS 参考引擎答不出阻塞**地址**（见上）。要补需要 `excel/excel-core-ts` 把
+  `validateSpillAnchorValue` 算出来的碰撞事实留下来 —— 今天它算完就扔，只留一个
+  `#SPILL!`。
+
+  > 「阻塞物是投影格时 TS 连 `#SPILL!` 都不报」这一条**已经修掉**：碰撞检测现在除了
+  > 扫矩形里的活条目，还会看「有没有更早声明的锚点的矩形压过来」，见
+  > `excel/excel-core-ts/src/eval/spill-collision.ts`。跨引擎钉子在
+  > `cross-engine-parity-spill.test.ts` 的「阻塞物是另一个数组的投影格」一节。
+
+- TS 引擎的投影格**只在显示层存在**（`worker-runtime-ts.ts` 的 `getSpillProjectedValue`），
+  公式读不到：`=SUM(A1:A3)` 在 `A1 = =SEQUENCE(3)` 上 TS 给 `#CALC!` / Rust 给 `6`，
+  `=A2` 给空 / Rust 给 `2`，`COUNTA` / `COUNTIF` / `ISBLANK` / `INDEX` 同款。这是比阻塞
+  地址更大的一条引擎级分歧，尚未立项。
 
 ## Tests
 

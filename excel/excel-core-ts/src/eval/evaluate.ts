@@ -66,11 +66,15 @@ import {
   evaluateSparseSumIfs,
 } from './sparse-multi-criterion'
 import { evaluateSparseAggregate, evaluateSparseSubtotal } from './sparse-subtotal'
+// 溢出矩形的碰撞判定。同样是有意的循环导入（它回读 `ARRAY_CELL_CAP`），约束与
+// 上面那一族一致：禁止在顶层求值从对方导入的绑定。
+import { checkSpillCollision } from './spill-collision'
 
 export const ERR = (code: ErrorCode, message?: string): Value =>
   message === undefined ? { kind: 'error', code } : { kind: 'error', code, message }
 
-const ARRAY_CELL_CAP = 1_048_576
+/** 数组结果的软上限（格数）。`spill-collision.ts` 用它砍「够不着」的候选锚点。 */
+export const ARRAY_CELL_CAP = 1_048_576
 const MAX_ARRAY_ROWS = EXCEL_MAX_ROW + 1
 const MAX_ARRAY_COLS = EXCEL_MAX_COL + 1
 const MATERIALIZED_RANGE_CELL_CAP = 100_000
@@ -3389,6 +3393,28 @@ interface TrampolineFrame {
 }
 
 /**
+ * `NeedsDep` 的溢出碰撞版：这一格算出了数组，但要先知道**排在它前面的几个锚点**
+ * 摊开成什么形状，才能判自己是不是 `#SPILL!`（见 `spill-collision.ts`）。
+ *
+ * 与 `NeedsDep` 的唯一区别是多带一个 `tentative`：trampoline 会把它**暂时**写进
+ * 缓存再去算候选。原因是候选完全可能回读锚点本身（`A1 = =C1+1` 在本引擎里会广播
+ * 成数组，于是 A1 自己也是锚点，而 C1 的碰撞检测要探测 A1）—— 若不给这个暂定值，
+ * 候选读到的是「求值中」，`lookupKey` 会把锚点烙成 `#CIRCULAR!`，一条本来好好的
+ * 公式就被判了环。候选全部算完后 trampoline 撤掉暂定值、重跑本帧得出真判定。
+ *
+ * 代价说明白：候选是在「锚点按暂定值溢出」这个假设下算的。若锚点最终判成
+ * `#SPILL!`，候选那一轮的缓存值就建立在一个没成立的假设上 —— 窗口只在同一次
+ * trampoline 运行内，且要求候选**引用了锚点**。没有为它加清理：清缓存会让候选
+ * 重算并再次探测，代价高于这个角落的收益。
+ */
+class NeedsSpillProbes {
+  constructor(
+    readonly deps: ReadonlyArray<TrampolineFrame>,
+    readonly tentative: Value,
+  ) {}
+}
+
+/**
  * Build the trampoline's shim `EvalContext`. The shim is a thin wrapper
  * around the host `ctx` (which still owns `callCustom`, `resolveName`,
  * `lambdaScope`, `lambdaRefScope`, `lambdaCallDepth`); only the ref / range / crossSheet
@@ -3578,6 +3604,9 @@ export function evaluateCellTrampolined(
   // AST — not by chain depth.
   const inProgress = new Set<CellKey>()
   const stack: TrampolineFrame[] = []
+  // 溢出碰撞探测期间被塞了「暂定数组值」的锚点（见 `NeedsSpillProbes`）。候选全部
+  // 算完、本帧重回栈顶时撤掉它，让本帧重跑一次得出真判定。
+  const spillProbeSeeds = new Set<CellKey>()
 
   const rootGuard = cycleGuardKey(rootCells, rootKey)
   if (hostCtx.currentlyEvaluating.has(rootGuard)) return ERR('#CIRCULAR!')
@@ -3604,7 +3633,11 @@ export function evaluateCellTrampolined(
       )
     }
     const top = stack[stack.length - 1]
-    if (cache.has(top.guardKey)) {
+    if (spillProbeSeeds.delete(top.guardKey)) {
+      // 候选锚点的帧都压在本帧之上，此刻已全部出栈 —— 撤掉暂定值，下面重跑一次
+      // AST + 碰撞判定，这一次候选的形状都在缓存里了。
+      cache.delete(top.guardKey)
+    } else if (cache.has(top.guardKey)) {
       inProgress.delete(top.guardKey)
       stack.pop()
       // Lazy dep install for frames whose value was cached OUT FROM
@@ -3641,7 +3674,13 @@ export function evaluateCellTrampolined(
     inProgress.add(top.guardKey)
     const shimCtx = makeTrampolineCtx(top.cells, top.key, hostCtx, cache, inProgress)
     try {
-      const result = validateSpillAnchorValue(evaluate(cell.ast, shimCtx), top.cells, top.key)
+      const result = validateSpillAnchorValue(
+        evaluate(cell.ast, shimCtx),
+        top.cells,
+        top.key,
+        cache,
+        inProgress,
+      )
       cache.set(top.guardKey, result.value)
       inProgress.delete(top.guardKey)
       stack.pop()
@@ -3650,9 +3689,22 @@ export function evaluateCellTrampolined(
       // dependency cells — reports to the workbook so its reverse edges
       // exist before any of its dependents cache a value derived from it.
       hostCtx.onFormulaEvaluated?.(top.cells, top.key, cell.ast, {
-        ranges: result.spillRange ? [{ range: result.spillRange }] : [],
+        ranges: (result.ranges ?? []).map((range) => ({ range })),
       })
     } catch (err) {
+      if (err instanceof NeedsSpillProbes) {
+        // 这一格算出了数组，但要先知道排在它前面的几个锚点摊开成什么形状。把暂定
+        // 数组值写进缓存再去算候选 —— 候选若回读本格（`=C1+1` 这类），读到的是这个
+        // 暂定值而不是「求值中」，否则 `lookupKey` 会把本格烙成 `#CIRCULAR!`。
+        cache.set(top.guardKey, err.tentative)
+        spillProbeSeeds.add(top.guardKey)
+        for (let i = err.deps.length - 1; i >= 0; i -= 1) {
+          const dep = err.deps[i]
+          if (cache.has(dep.guardKey)) continue
+          stack.push({ cells: dep.cells, key: dep.key, guardKey: dep.guardKey })
+        }
+        continue
+      }
       if (err instanceof NeedsDep) {
         // The cell isn't done — it faulted out partway through AST
         // evaluation when it hit a dep that wasn't in the cache yet.
@@ -3692,40 +3744,59 @@ export function evaluateCellTrampolined(
   }
 }
 
+/**
+ * 数组结果落地前的最后一关：矩形越界 / 被占 → `#SPILL!`，否则原值放行并把矩形
+ * 交回调用方登记运行期依赖。
+ *
+ * 判定本身（含「阻塞物是别的数组的投影格」那一整类）住在 `spill-collision.ts`；
+ * 这里只负责把它的结论翻成 `Value`，以及在需要探测别的锚点时向 trampoline 请求
+ * 那几个候选 —— 见 `NeedsSpillProbes`。
+ */
 function validateSpillAnchorValue(
   value: Value,
   cells: ReadonlyMap<CellKey, Cell>,
   key: CellKey,
-): { readonly value: Value; readonly spillRange?: CellRange } {
+  cache: Map<CellKey, Value>,
+  inProgress: Set<CellKey>,
+): { readonly value: Value; readonly ranges?: ReadonlyArray<CellRange> } {
   if (value.kind !== 'array') return { value }
   const anchor = cellCoordFromKey(key)
   if (!anchor) return { value }
   const rows = value.value.length
   const cols = value.value[0]?.length ?? 0
-  const rowEnd = anchor.row + rows - 1
-  const colEnd = anchor.col + cols - 1
-  if (rowEnd > EXCEL_MAX_ROW || colEnd > EXCEL_MAX_COL) {
-    return { value: ERR('#SPILL!', 'spill range exceeds sheet bounds') }
+  const outcome = checkSpillCollision(anchor, { rows, cols }, cells, key, {
+    evaluated: (candidateKey) => cache.get(cycleGuardKey(cells, candidateKey)),
+    inFlight: (candidateKey) => inProgress.has(cycleGuardKey(cells, candidateKey)),
+  })
+  switch (outcome.kind) {
+    case 'outOfBounds':
+      return { value: ERR('#SPILL!', 'spill range exceeds sheet bounds') }
+    case 'blocked':
+      return { value: ERR('#SPILL!', outcome.reason), ranges: spillDepRanges(outcome) }
+    case 'clear':
+      return { value, ranges: spillDepRanges(outcome) }
+    case 'pending':
+      throw new NeedsSpillProbes(
+        outcome.keys.map((candidateKey) => ({
+          cells,
+          key: candidateKey,
+          guardKey: cycleGuardKey(cells, candidateKey),
+        })),
+        value,
+      )
   }
-
-  const spillRange: CellRange = {
-    rowStart: anchor.row,
-    rowEnd,
-    colStart: anchor.col,
-    colEnd,
-  }
-  for (const [candidateKey, candidate] of cells) {
-    if (candidateKey === key || !cellBlocksSpill(candidate)) continue
-    const coord = cellCoordFromKey(candidateKey)
-    if (coord && rangeContainsCoord(spillRange, coord)) {
-      return { value: ERR('#SPILL!', 'spill range is not blank'), spillRange }
-    }
-  }
-  return { value, spillRange }
 }
 
-function cellBlocksSpill(cell: Cell): boolean {
-  return cell.ast !== undefined || cell.input.length > 0 || cell.value.kind !== 'blank'
+/**
+ * 锚点这一轮要看住的区域：自己的溢出矩形，加上「可能压过来的那些锚点」的外接
+ * 矩形。后者是复活路径的关键 —— 挡住我们的那片数组，它的锚点在我们的矩形**外
+ * 面**，清掉它时若没有这条边，被挡的一片永远不会重算。
+ */
+function spillDepRanges(outcome: {
+  readonly range: CellRange
+  readonly watch?: CellRange
+}): ReadonlyArray<CellRange> {
+  return outcome.watch === undefined ? [outcome.range] : [outcome.range, outcome.watch]
 }
 
 /**

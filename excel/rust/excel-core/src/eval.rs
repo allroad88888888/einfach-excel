@@ -9,6 +9,12 @@
 #[path = "eval_regex.rs"]
 mod eval_regex;
 
+// WRAPROWS / WRAPCOLS。同样用 `#[path]` 平铺在 `src/`、仍是 `eval` 的子模块，
+// 理由与上面那块一致，外加一条：本文件已经三万九千行，远超本仓 500 行上限，
+// 新增内建不该继续往里堆。无 `#[cfg]` —— 这两个不属于任何 feature 门控。
+#[path = "eval_wrap.rs"]
+mod eval_wrap;
+
 use std::cell::{Cell, RefCell};
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
@@ -638,6 +644,8 @@ pub fn is_builtin_function_name(name: &str) -> bool {
             | "WEIBULL.DIST"
             | "WORKDAY"
             | "WORKDAY.INTL"
+            | "WRAPCOLS"
+            | "WRAPROWS"
             | "XIRR"
             | "XLOOKUP"
             | "XMATCH"
@@ -8820,6 +8828,10 @@ fn eval_func(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
             };
             Value::Array(Arc::new(ArrayData::new(out_rows, 1, out)))
         }
+        // TOROW / TOCOL 的反方向：把一维向量折回二维。方向依据与全部错误
+        // 口径写在 `eval_wrap.rs` 的模块注释里（这一对极容易搞反）。
+        "WRAPROWS" => eval_wrap::fn_wraprows(args, provider),
+        "WRAPCOLS" => eval_wrap::fn_wrapcols(args, provider),
         "NORM.DIST" => stat_norm_dist(args, provider),
         "NORM.INV" => stat_norm_inv(args, provider),
         "NORM.S.DIST" => stat_norm_s_dist(args, provider),

@@ -20,6 +20,8 @@ import {
 } from './cross-engine-parity-criteria-errors'
 import { CRITERIA_WILDCARD_WORKLOAD } from './cross-engine-parity-criteria-wildcard'
 import { OVERFLOW_WORKLOAD } from './cross-engine-parity-overflow'
+import { SCIENTIFIC_WORKLOAD } from './cross-engine-parity-scientific'
+import { DYNAMIC_ARRAY_WORKLOAD } from './cross-engine-parity-dynamic-array'
 
 // 第七类（General 转文本）与 criteria 这一层的夹具与期望值住在自己的文件里 ——
 // 这份已贴着 300 行上限，而那几类的期望值都离不开长说明。经由这里转出，调用方
@@ -47,6 +49,11 @@ export {
   OVERFLOW_ADDRS,
   EXPECTED_OVERFLOW_DISPLAYS,
 } from './cross-engine-parity-overflow'
+export {
+  SCIENTIFIC_CASES,
+  SCIENTIFIC_ADDRS,
+  EXPECTED_SCIENTIFIC_DISPLAYS,
+} from './cross-engine-parity-scientific'
 
 
 /** Row-major address list of a rectangle anchored at (row0, col0). */
@@ -237,6 +244,13 @@ export const WORKLOAD: WorkloadCell[] = [
   ...CRITERIA_WILDCARD_WORKLOAD,
   // 列 AH —— 浮点溢出 / 下溢 / 除零的出口，见 `cross-engine-parity-overflow.ts`。
   ...OVERFLOW_WORKLOAD,
+  // 列 E + AI —— 科学计数字面量的词法边界（`E2` 是指数还是格子），
+  // 见 `cross-engine-parity-scientific.ts`。E 列的两格是它的夹具。
+  ...SCIENTIFIC_WORKLOAD,
+  // 列 AK 起 —— WRAPROWS / WRAPCOLS 的折叠方向与错误码。地址与期望值不经这里
+  // 转出（少一处并发改动面），规格直接从 `cross-engine-parity-dynamic-array.ts`
+  // 取；这里只并入工作负载，因为 `WORKLOAD` 是唯一的 bulk 导入入口。
+  ...DYNAMIC_ARRAY_WORKLOAD,
   // Column R — arithmetic operand coercion + `^` binding, see COERCION_CASES.
   ...COERCION_CASES.map(
     ([formula], row): WorkloadCell => ({ row, col: 17, kind: 'formula', value: formula }),

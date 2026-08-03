@@ -70,14 +70,23 @@ import {
   EXPECTED_GENERAL_TEXT_DISPLAYS,
   EXPECTED_LITERAL_DISPLAYS,
   EXPECTED_OVERFLOW_DISPLAYS,
+  EXPECTED_SCIENTIFIC_DISPLAYS,
   EXPECTED_SUBTOTAL_DISPLAYS,
   GENERAL_TEXT_ADDRS,
   LITERAL_ADDRS,
   OVERFLOW_ADDRS,
   PROPAGATED_ADDRS,
+  SCIENTIFIC_ADDRS,
   SUBTOTAL_ADDRS,
   WORKLOAD,
 } from './cross-engine-parity-cases'
+// 第九类的地址与期望值直接取自群组文件，不走 `cross-engine-parity-cases.ts`
+// 转出：那份正被并发改动，少一处 re-export 就少一处冲突面。工作负载仍然并进
+// `WORKLOAD`（bulk 导入只有那一个入口）。
+import {
+  DYNAMIC_ARRAY_ADDRS,
+  EXPECTED_DYNAMIC_ARRAY_DISPLAYS,
+} from './cross-engine-parity-dynamic-array'
 
 describe('cross-engine parity — evaluation semantics (TS runtime vs WASM engine)', () => {
   let ts: Engine
@@ -252,6 +261,37 @@ describe('cross-engine parity — evaluation semantics (TS runtime vs WASM engin
     // 溢出的表上照样全绿，却会把 `=10^-200*10^-200` 从 `0` 变成 `#NUM!`。
     for (const read of [tsRead, wasmRead]) {
       expect(displaysOf(read, OVERFLOW_ADDRS)).toEqual(EXPECTED_OVERFLOW_DISPLAYS)
+    }
+  })
+
+  test('=1E2 是 100，=1+E2 读 E2 格 —— 科学计数与单元格引用的分界', async () => {
+    const tsRead = await ts.read(SCIENTIFIC_ADDRS)
+    const wasmRead = await wasm.read(SCIENTIFIC_ADDRS)
+    expect(flatten(wasmRead)).toEqual(flatten(tsRead))
+
+    // 这一类不是「两侧一起错」而是一侧错：Rust 的词法层把 `1E2` 读成
+    // 「数字 1」+「单元格 E2」，整式 `#VALUE!`；TS 与 Excel 给 100。修好之后
+    // 相等断言会永远为真，所以真正的门是字面量。
+    // 表里每条「吞」都配了一条方向相反的「不吞」（`=1E2` vs `=1+E2`），
+    // 而 `=1E2+E2` 一条式子里同时要两种切法 —— 任何「一律当指数」或
+    // 「一律当引用」的实现都过不去。
+    for (const read of [tsRead, wasmRead]) {
+      expect(displaysOf(read, SCIENTIFIC_ADDRS)).toEqual(EXPECTED_SCIENTIFIC_DISPLAYS)
+    }
+  })
+
+  test('WRAPROWS 按行折、WRAPCOLS 按列折 —— 同一份向量、两个转置的矩形', async () => {
+    const tsRead = await ts.read(DYNAMIC_ARRAY_ADDRS)
+    const wasmRead = await wasm.read(DYNAMIC_ARRAY_ADDRS)
+    expect(flatten(wasmRead)).toEqual(flatten(tsRead))
+
+    // 这一类的起点是「Rust 侧根本没有这两个函数」（Excel 365 那批动态数组里
+    // 只漏了这一对），所以相等断言在补齐之前红得毫无信息量、补齐之后又可能
+    // 一起把方向写反。只有字面量能同时压住「有没有」与「方向对不对」。
+    // 表里两个函数吃同一份 6 元素向量，期望的是两个转置关系的矩形；`#NUM!`
+    // （wrap_count < 1）与 `#VALUE!`（非一维）是两个不同的码，也在同一张表里。
+    for (const read of [tsRead, wasmRead]) {
+      expect(displaysOf(read, DYNAMIC_ARRAY_ADDRS)).toEqual(EXPECTED_DYNAMIC_ARRAY_DISPLAYS)
     }
   })
 })

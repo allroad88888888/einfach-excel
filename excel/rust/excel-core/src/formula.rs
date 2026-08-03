@@ -676,7 +676,7 @@ impl Parser {
                 // plain number. We scan a digit run; if the next non-digit
                 // char is ':' followed by another digit run, treat as a
                 // whole-row range. Otherwise fall back to parse_number,
-                // which handles fractional / scientific via '.'.
+                // which handles the fractional and scientific forms.
                 if c.is_ascii_digit() {
                     if let Some(range) = self.try_parse_whole_row_range() {
                         return Some(range);
@@ -1015,9 +1015,51 @@ impl Parser {
                 break;
             }
         }
+        self.consume_exponent_suffix();
         let s: String = self.chars[start..self.pos].iter().collect();
         let n: f64 = s.parse().ok()?;
+        if !n.is_finite() {
+            // `2E308` / 320 个 9 —— Rust 的 `parse::<f64>()` 对溢出返回
+            // `Ok(inf)`，不像 JS 的 `Number()` 那样还能被 `isFinite` 挡在
+            // 外面。这里补上同一道闸门，否则单元格会显示 `Infinity`，那是
+            // 两个引擎都给不出的答案。TS 侧对应 `readNumber` 结尾的
+            // `if (!Number.isFinite(value)) return null`。
+            return None;
+        }
         Some(Expr::Number(n))
+    }
+
+    /// 尾数之后的科学计数后缀。形状必须是 `[eE] [+-]? digit+`，**至少一位**
+    /// 指数数字；不满足就一个字符都不消费。
+    ///
+    /// 这是 `E2` 的消歧点 —— 它既能当指数、也能当 E 列第 2 行的引用：
+    ///
+    /// - `=1E2` → `100`：形状满足，`E2` 被吞进指数。**贪婪**，不回头考虑
+    ///   「它当引用是不是更讲得通」—— Excel 与 TS 参考实现都是这么切的，
+    ///   所以 `=1E2E2` 是「`100` 后面跟着 `E2`」而非「`1` 乘不上的两个引用」。
+    /// - `=1+E2` → 隔着运算符，指数扫描根本轮不到 `E2`，它还是引用。
+    /// - `=1E` / `=1E+` → 零位指数数字，整段退回，`E` 落回标识符。
+    /// - `=1E$2` → `$` 不是指数符号，退回，`E$2` 是行绝对引用。
+    ///
+    /// 只认十进制：Excel 公式里没有 `0x` / `0b` 这类前缀字面量。
+    fn consume_exponent_suffix(&mut self) {
+        let save = self.pos;
+        match self.peek() {
+            Some('e') | Some('E') => {
+                self.advance();
+            }
+            _ => return,
+        }
+        if matches!(self.peek(), Some('+') | Some('-')) {
+            self.advance();
+        }
+        let digits_start = self.pos;
+        while matches!(self.peek(), Some(c) if c.is_ascii_digit()) {
+            self.advance();
+        }
+        if self.pos == digits_start {
+            self.pos = save;
+        }
     }
 
     fn parse_string(&mut self) -> Option<Expr> {

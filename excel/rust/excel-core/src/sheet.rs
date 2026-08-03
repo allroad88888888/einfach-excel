@@ -7114,6 +7114,8 @@ const ARRAY_FUNCTION_NAMES: &[&str] = &[
     "TREND",
     "UNIQUE",
     "VSTACK",
+    "WRAPCOLS",
+    "WRAPROWS",
 ];
 
 /// Conservative static check: does this AST contain a call to a

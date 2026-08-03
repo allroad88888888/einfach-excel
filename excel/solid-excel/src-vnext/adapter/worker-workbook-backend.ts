@@ -4622,6 +4622,9 @@ export function createWorkerWorkbookSpreadsheetBackend(
      * `blockedBy`（碰撞态 `#SPILL!` 锚点被谁挡住）只有 WASM runtime 给得出，TS
      * 参考引擎没有溢出索引、答不出，于是那边恒缺席。两侧差异见
      * `worker-protocol.ts` 的 `SpillRegionWire`。
+     *
+     * `anchorFormula`（锚点公式原文，公式栏在投影格上显示的那条）则**两侧都给得
+     * 出** —— 锚点在两个引擎里都有自己的条目。别把它跟 `blockedBy` 归成一类。
      */
     async readSpillRegion(request: SpillRegionRequest): Promise<SpillRegionResult> {
       const sheet = await resolveSheet(request.sheetId)
@@ -4653,6 +4656,8 @@ export function createWorkerWorkbookSpreadsheetBackend(
             colEnd: wire.anchorCol + cols - 1,
           },
         },
+        // 锚点公式：公式栏在投影格上显示的就是它。缺席就缺席，UI 会退回原行为。
+        ...(wire.anchorFormula === undefined ? {} : { anchorFormula: wire.anchorFormula }),
       }
     },
 

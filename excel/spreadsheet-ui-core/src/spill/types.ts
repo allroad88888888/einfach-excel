@@ -31,6 +31,18 @@ export interface SpillRegionResult extends SheetRef {
    */
   region: SpillRegion | null
   /**
+   * 锚点那一格的公式原文（含前导 `=`）。**它是整个溢出区的属性**，不是查询坐标的 ——
+   * 投影格没有自己的公式，Excel 在公式栏里给它们看的正是这一条。
+   *
+   * 与 `region` 同生共死：`region` 为 `null` 时无意义（碰撞态锚点的公式在它自己格子
+   * 上，投影读得到，不用绕这一圈）。
+   *
+   * 缺席 = **后端答不出**（手写替身、早于这条字段的产物），不是「锚点没有公式」——
+   * 锚点按定义一定有一条数组公式。缺席时公式栏退回原行为（显示投影值、可编辑），
+   * 与 `blockedBy` 缺席时不说话是同一条降级纪律。
+   */
+  anchorFormula?: string
+  /**
    * 查询坐标是碰撞态（`#SPILL!`）锚点、且后端说得出是谁挡住它时，给出那一格的坐标。
    *
    * **缺席有两种原因，本层刻意不区分**：「这一格不是碰撞态锚点」与「后端答不出」
@@ -44,8 +56,27 @@ export interface SpillRegionResult extends SheetRef {
   revision?: number | string
 }
 
-/** 当前高亮的溢出区 —— 比 `SpillRegion` 多一个「属于哪张表」。 */
-export interface ActiveSpillRegion extends SpillRegion, SheetRef {}
+/** 当前高亮的溢出区 —— 比 `SpillRegion` 多一个「属于哪张表」与锚点的公式原文。 */
+export interface ActiveSpillRegion extends SpillRegion, SheetRef {
+  /** 见 `SpillRegionResult.anchorFormula`；后端答不出时缺席。 */
+  anchorFormula?: string
+}
+
+/**
+ * 「这一格的公式栏该显示哪条**别人的**公式」。
+ *
+ * 只对**投影格**成立：锚点自己是那条公式的主人，正常可编辑，不走这条路。
+ *
+ * 存在即意味着**不可编辑** —— 把这条公式提交进投影格会按 ADR 0006 的写入语义
+ * 把整个数组塌成 `#SPILL!`，所以 Excel 把它做成灰色只读的。宿主拿到它就该关掉
+ * 公式栏的输入，而不是显示完再指望用户不动手。
+ */
+export interface SpillProjectedFormula {
+  /** 那条公式真正所在的格子。用来告诉用户「去哪儿改」。 */
+  anchor: CellCoord
+  /** 锚点的公式原文，含前导 `=`。 */
+  formula: string
+}
 
 /**
  * 一个说得出理由的 `#SPILL!`：锚点在哪，被哪一格挡住。

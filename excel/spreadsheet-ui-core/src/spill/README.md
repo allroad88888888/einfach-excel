@@ -18,6 +18,7 @@
 | `activeSpillBlockageAtom` | derived | 阻塞线索缓存的只读投影 |
 | `spillRegionSupportedAtom` | derived | 能力证据的只读投影；`false` 时宿主不画任何东西 |
 | `spillCellRoleAtom` | derived | 选择器投影 `(sheetId, coord) => 'anchor' \| 'projected' \| null` |
+| `spillProjectedFormulaAtom` | derived | 选择器投影 `(sheetId, coord) => SpillProjectedFormula \| null`：投影格的公式栏该显示哪条锚点公式 |
 | `captureSpillRegionCapabilityAtom` | command | 抓一次端口在位与否 |
 | `refreshSpillRegionAtom` | command | 问后端「这一格在不在溢出区里 / 是不是被挡住的锚点」，换进缓存 |
 | `clearSpillRegionAtom` | command | 清空两格缓存（切表、失焦） |
@@ -81,10 +82,34 @@ atom 家族** —— `spillCellRoleAtom` 返回的是一个选择器**函数**�
 都不存（存下来会在 claims 上限降级的路径上给出过期答案，指向一个已经被清空的格子）。
 那份模块头带着与 `sheet_spill_claims.rs` 同形式的 INV-2 逐条论证。
 
+## 投影格的公式栏：显示锚点的公式，且不接受输入
+
+投影格**没有自己的公式**，所以公式栏原先落到那一格的投影值。Excel 显示的是**锚点的公式**，
+并且置灰。这个差别不是审美：把 `=SEQUENCE(10)` 显示在一条**可编辑**的输入框里，用户敲一个
+字符就会把它提交进**投影格**，按 ADR 0006 的写入语义整个数组当场塌成 `#SPILL!`。所以「显示」
+与「只读」必须同一批落地 —— 只做前者比不做更危险。
+
+数据走 `readSpillRegion` 应答上的 `anchorFormula`（与 `region` 同生共死）。**不另发一次读单元格**：
+溢出区查询本来就每次选区移动才发一次，把公式挂在同一条应答上是零额外往返；而锚点可能落在
+可见窗口之外（`=SEQUENCE(10000)` 滚到中段），单独去读要么多一个往返、要么根本读不到。
+
+`anchorFormula` 与 `blockedBy` **不是一类**：**两个 runtime 都答得出**这一条（锚点在两个引擎里
+都有自己的条目 —— WASM 走早就在产物里的 `get_formula`，TS runtime 直接读锚点的 `input`），所以
+它在跨引擎契约里是**无条件**断言，没有 `blocker` 那样的分歧标志。
+
+只读是**显示层**的事实，刻意**不进** `editingSessionAtom`：
+
+- **进**：没有编辑会话 + 活动单元格是投影格 + 后端说得出锚点公式。三者缺一就不生效。
+- **出**：选区移开（选择器现读，自动停口）；或**编辑会话一开就立刻退场** —— 往投影格里直接
+  打字是 ADR 0006 明确允许的操作，只读态不许把它一起禁掉。
+- 锚点公式**只覆盖显示**，`formulaBarStateAtom.draft` 仍是这一格自己的源文本。反过来做会把
+  一条别人的公式放进「待提交的草稿」里，任何读 `draft` 去提交的路径都会打爆整个数组。
+
+宿主侧是 `excel/solid-excel/src-vnext/formula-bar/SpreadsheetFormulaBar.tsx`（`readOnly` +
+`data-spill-readonly` / `data-spill-anchor` + i18n `spill.projectedFormula` 悬停提示）。
+
 ## 已知缺口
 
-- 公式栏在选中投影格时仍显示**投影值**，而不是 Excel 那样显示灰色的锚点公式。
-  本模块已经知道锚点坐标，补这条需要的是公式栏侧的只读草稿态。
 - 阻塞物若是**别的数组的投影格**，提示指的是那一格本身而不是它的锚点 —— 用户真正要
   清的是锚点。引擎那边两条线索是分开的（`spillBlocker` 与 `spillAnchor`），把它们串起来
   是 UI 侧的一次再查询，本切片没做。
@@ -95,5 +120,6 @@ atom 家族** —— `spillCellRoleAtom` 返回的是一个选择器**函数**�
 
 - `test/spill.test.ts`（本包）
 - `excel/solid-excel/test/vnext-spill-region.test.tsx`（宿主渲染）
+- `excel/solid-excel/test/vnext-formula-bar-spill-readonly.test.tsx`（投影格上的只读公式栏）
 - `excel/solid-excel/test/vnext-worker-spill-region.test.ts`（worker RPC）
 - `excel/solid-excel/test/cross-engine-parity-spill.test.ts`（两个引擎的差异）

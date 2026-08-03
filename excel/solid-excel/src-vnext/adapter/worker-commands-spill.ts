@@ -58,6 +58,23 @@ function blockerOf(
   return typeof blocker === 'string' ? parseAnchorAddr(blocker) : null
 }
 
+/**
+ * 锚点的公式原文，给公式栏在投影格上显示用。
+ *
+ * `get_formula` 不是新导出 —— 它比这三个 spill 查询早得多，所以这条**一行 Rust 都
+ * 没改**。同样**不走 `assertMethod`**：它对溢出区查询是装饰性的，手写替身缺了它
+ * 就当答不出，框照画。空串（非公式格）也当答不出。
+ */
+function anchorFormulaOf(
+  wb: WasmWorkbookRuntime,
+  sheet: number,
+  anchorAddr: string,
+): string | undefined {
+  if (typeof wb.get_formula !== 'function') return undefined
+  const formula = wb.get_formula(sheet, anchorAddr)
+  return typeof formula === 'string' && formula.startsWith('=') ? formula : undefined
+}
+
 export const handleSpillCommand: WorkerCommandHandler = (id, msg, wb) => {
   if (msg.cmd !== 'spillRegion') return false
 
@@ -90,12 +107,14 @@ export const handleSpillCommand: WorkerCommandHandler = (id, msg, wb) => {
     return true
   }
 
+  const formula = anchorFormulaOf(wb, sheet, anchorAddr)
   postResponse(id, {
     sheet,
     anchorRow: anchor.row,
     anchorCol: anchor.col,
     rows: shape.rows,
     cols: shape.cols,
+    ...(formula === undefined ? {} : { anchorFormula: formula }),
   } satisfies SpillRegionWire)
   return true
 }

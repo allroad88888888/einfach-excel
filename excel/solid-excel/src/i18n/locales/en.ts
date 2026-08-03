@@ -871,6 +871,10 @@ export const messages: Record<string, string> = {
   // Dynamic arrays — the one thing `#SPILL!` could never say on its own:
   // which cell is in the way. Shown while the collided anchor is selected.
   'spill.blockedBy': 'Blocked by {addr} — clear that cell to let the array spill.',
+  // Tooltip on the greyed-out formula bar while a spilled (non-anchor) cell is
+  // selected. The formula shown belongs to the anchor, so editing it here would
+  // write it INTO the projected cell and collapse the whole array to `#SPILL!`.
+  'spill.projectedFormula': 'Spilled from {addr} — edit this formula in {addr}.',
 
   // Diagnostics — the visible outlet for operations that failed. Codes not
   // listed here fall back to the English message UI core carries, so a new

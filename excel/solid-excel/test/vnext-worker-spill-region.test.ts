@@ -121,7 +121,16 @@ describe.each(ENGINES)('spill region query — $name runtime', ({ open, blocker 
     const client = await freshClient(open)
     // H1 上一个 `=SEQUENCE(3)` → 竖着占 H1:H3，锚点 (row 0, col 7)。
     expect(await client.setFormula(0, 'H1', '=SEQUENCE(3)')).toBe(true)
-    const expected = { sheet: 0, anchorRow: 0, anchorCol: 7, rows: 3, cols: 1 }
+    // `anchorFormula` 与 `rows`/`cols` 同行 —— 公式栏在投影格上显示的就是它。这一条
+    // **两个 runtime 都答得出**（与 `blockedBy` 不同），所以不参数化，两边同一个断言。
+    const expected = {
+      sheet: 0,
+      anchorRow: 0,
+      anchorCol: 7,
+      rows: 3,
+      cols: 1,
+      anchorFormula: '=SEQUENCE(3)',
+    }
 
     expect(await client.spillRegion(0, 'H1')).toEqual(expected)
     expect(await client.spillRegion(0, 'H2')).toEqual(expected)
@@ -141,7 +150,14 @@ describe.each(ENGINES)('spill region query — $name runtime', ({ open, blocker 
     const client = await freshClient(open)
     // B2 上 `=SEQUENCE(2,3)` → B2:D3，锚点 (row 1, col 1)。
     expect(await client.setFormula(0, 'B2', '=SEQUENCE(2, 3)')).toBe(true)
-    const expected = { sheet: 0, anchorRow: 1, anchorCol: 1, rows: 2, cols: 3 }
+    const expected = {
+      sheet: 0,
+      anchorRow: 1,
+      anchorCol: 1,
+      rows: 2,
+      cols: 3,
+      anchorFormula: '=SEQUENCE(2, 3)',
+    }
 
     for (const addr of ['B2', 'D2', 'B3', 'D3', 'C3']) {
       expect(await client.spillRegion(0, addr)).toEqual(expected)
@@ -176,6 +192,7 @@ describe.each(ENGINES)('spill region query — $name runtime', ({ open, blocker 
       anchorCol: 7,
       rows: 3,
       cols: 1,
+      anchorFormula: '=SEQUENCE(3)',
     })
     client.dispose()
   })
@@ -192,6 +209,30 @@ describe.each(ENGINES)('spill region query — $name runtime', ({ open, blocker 
       blocker ? { sheet: 0, anchorRow: 0, anchorCol: 7, blockedBy: { row: 1, col: 7 } } : null,
     )
     expect(await client.spillRegion(0, 'H2')).toBeNull()
+    client.dispose()
+  })
+
+  test('每个投影格都报得出**锚点的公式**；碰撞态锚点不报', async () => {
+    const client = await freshClient(open)
+    expect(await client.setFormula(0, 'B2', '=SEQUENCE(3, 2)')).toBe(true)
+
+    // 承重的一条：`C4` 这一格自己没有任何公式（它是投影出来的），但查询必须报出
+    // 锚点 `B2` 的那条。公式栏正是靠这个字段才不用再发一次读单元格。
+    for (const addr of ['B2', 'C2', 'B4', 'C4']) {
+      const wire = await client.spillRegion(0, addr)
+      expect(wire?.anchorFormula).toBe('=SEQUENCE(3, 2)')
+      expect(wire?.anchorRow).toBe(1)
+      expect(wire?.anchorCol).toBe(1)
+    }
+    // 区外一格都不报 —— 报了就会让公式栏在无关格子上显示一条别人的公式。
+    expect(await client.spillRegion(0, 'D2')).toBeNull()
+
+    // 碰撞态锚点：整块没有 `rows`/`cols`，`anchorFormula` 也不带。它自己的公式在
+    // 它自己格子上，投影读得到，不需要绕这一圈。
+    expect(await client.setCell(0, 'H3', { type: 'text', value: 'blocker' })).toBe(true)
+    expect(await client.setFormula(0, 'H1', '=SEQUENCE(3)')).toBe(true)
+    const collided = await client.spillRegion(0, 'H1')
+    expect(collided?.anchorFormula).toBeUndefined()
     client.dispose()
   })
 })

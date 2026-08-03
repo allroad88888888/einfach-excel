@@ -7,6 +7,7 @@ import {
   refreshSpillRegionAtom,
   SPILL_REGION_CACHE_MAX,
   spillCellRoleAtom,
+  spillProjectedFormulaAtom,
   spillRegionSupportedAtom,
   type SpillRegionPort,
   type SpillRegionRequest,
@@ -36,6 +37,7 @@ const SEQUENCE_REGION = {
 function portReturning(
   region: SpillRegionResult['region'],
   seen: SpillRegionRequest[] = [],
+  anchorFormula?: string,
 ): SpillRegionPort {
   return {
     async readSpillRegion(request) {
@@ -44,10 +46,24 @@ function portReturning(
         kind: 'spill-region',
         sheetId: request.sheetId,
         region,
+        anchorFormula,
         requestId: request.requestId,
       }
     },
   }
+}
+
+/** 装上一个带锚点公式的溢出区，返回可直接调用的选择器。 */
+async function loadRegionWithFormula(
+  store: ReturnType<typeof createStore>,
+  anchorFormula: string | undefined,
+) {
+  await store.setter(refreshSpillRegionAtom, {
+    source: portReturning(SEQUENCE_REGION, [], anchorFormula),
+    sheetId: 'sheet-1',
+    cell: { row: 3, col: 7 },
+  })
+  return store.getter(spillProjectedFormulaAtom)
 }
 
 describe('spill core', () => {
@@ -207,6 +223,50 @@ describe('spill core', () => {
     expect(store.setter(captureSpillRegionCapabilityAtom, {})).toBe(false)
     expect(store.getter(activeSpillRegionAtom)).toBeNull()
     expect(store.getter(spillCellRoleAtom)('sheet-1', { row: 3, col: 7 })).toBeNull()
+  })
+
+  test('投影格报得出锚点的公式；锚点自己不报（它照常可编辑）', async () => {
+    const store = createStore()
+    const formulaAt = await loadRegionWithFormula(store, '=SEQUENCE(10)')
+
+    // 投影格：公式栏该显示锚点那条公式，并顺带说出「主人在 (0,7)」。
+    expect(formulaAt('sheet-1', { row: 3, col: 7 })).toEqual({
+      anchor: { row: 0, col: 7 },
+      formula: '=SEQUENCE(10)',
+    })
+    expect(formulaAt('sheet-1', { row: 9, col: 7 })).not.toBeNull()
+
+    // 锚点自己：**必须**为 null。它是那条公式的主人，置灰它等于让用户永远改不了
+    // 这个数组 —— 这条比「投影格显示得对」更容易写错，所以单独钉一条。
+    expect(formulaAt('sheet-1', { row: 0, col: 7 })).toBeNull()
+    // 区外、另一张表：不报，否则会在无关格子上显示一条别人的公式。
+    expect(formulaAt('sheet-1', { row: 10, col: 7 })).toBeNull()
+    expect(formulaAt('sheet-1', { row: 3, col: 6 })).toBeNull()
+    expect(formulaAt('sheet-2', { row: 3, col: 7 })).toBeNull()
+    expect(spillProjectedFormulaAtom.debugLabel).toBe('spreadsheet.spill.projectedFormula')
+  })
+
+  test('后端答不出锚点公式 → 整条不生效，公式栏退回原行为', async () => {
+    const store = createStore()
+    const projected = { row: 3, col: 7 }
+    // 缺席：老产物 / 手写替身。
+    expect((await loadRegionWithFormula(store, undefined))('sheet-1', projected)).toBeNull()
+    // 空串与不以 `=` 开头的字面量同样当答不出 —— 把一个常量当公式显示，会让用户
+    // 以为锚点里放的不是数组公式。
+    expect((await loadRegionWithFormula(store, ''))('sheet-1', projected)).toBeNull()
+    expect((await loadRegionWithFormula(store, '123'))('sheet-1', projected)).toBeNull()
+    // 边框仍然照画 —— 答不出公式不该连溢出区一起隐身。
+    expect(store.getter(activeSpillRegionAtom)).not.toBeNull()
+  })
+
+  test('区域被清掉后选择器立刻停口，不留上一个数组的公式', async () => {
+    const store = createStore()
+    const formulaAt = await loadRegionWithFormula(store, '=SEQUENCE(10)')
+    expect(formulaAt('sheet-1', { row: 3, col: 7 })).not.toBeNull()
+
+    store.setter(clearSpillRegionAtom)
+    // 选择器是从 atom 现读的，清空后**同一个**函数引用也必须停口。
+    expect(store.getter(spillProjectedFormulaAtom)('sheet-1', { row: 3, col: 7 })).toBeNull()
   })
 
   test('clearSpillRegionAtom 清掉当前区域', async () => {

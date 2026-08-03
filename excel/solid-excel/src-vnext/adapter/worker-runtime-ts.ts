@@ -415,7 +415,17 @@ function spillRegionAt(
     },
   }
   const found = resolveSpillRegion(probe, row, col, SPILL_LOOKBACK)
-  return found === null ? null : { sheet: sheet.idx, ...found }
+  if (found === null) return null
+  // 锚点的公式原文，给公式栏在投影格上显示。这一条 TS runtime **答得出** —— 与
+  // `blockedBy` 不同：锚点在表里有自己的条目，`input` 就是那条公式。多这一次
+  // `cells.get` 的代价可以忽略（同一个 Map，扫描本身已经命中过它）。
+  const anchorInput = cells.get(`${found.anchorRow}:${found.anchorCol}`)?.input
+  const anchorFormula = anchorInput?.startsWith('=') ? anchorInput : undefined
+  return {
+    sheet: sheet.idx,
+    ...found,
+    ...(anchorFormula === undefined ? {} : { anchorFormula }),
+  }
 }
 
 function readCellValue(state: RuntimeState, sheet: SheetEntry, row: number, col: number): Value {

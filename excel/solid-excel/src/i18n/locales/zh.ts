@@ -835,6 +835,9 @@ export const messages: Record<string, string> = {
   // 动态数组 —— `#SPILL!` 自己说不出来的那件事：是哪一格挡着。选中碰撞态
   // 锚点时显示。
   'spill.blockedBy': '被 {addr} 挡住 —— 清掉那一格，数组就能溢出来。',
+  // 选中投影格（非锚点）时，置灰公式栏上的悬停提示。那条公式属于锚点，在这里改
+  // 等于把它写**进**投影格，整个数组会塌成 `#SPILL!`。
+  'spill.projectedFormula': '由 {addr} 溢出而来 —— 这条公式请在 {addr} 里改。',
 
   // 诊断 —— 失败操作的可见出口。此表未列出的码回落到 UI core 带的英文
   // message，这样引擎新增的码仍然可见，不会被静默吞掉。

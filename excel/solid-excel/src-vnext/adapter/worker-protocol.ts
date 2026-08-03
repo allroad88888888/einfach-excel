@@ -246,6 +246,19 @@ export interface SpillRegionWire {
   cols?: number
   /** 行主序第一个挡住这个碰撞态锚点的地址。引擎答不出就缺席。 */
   blockedBy?: { row: number; col: number }
+  /**
+   * 锚点那一格的公式原文（含 `=`）。公式栏在投影格上要显示的就是它 —— 投影格没有
+   * 自己的公式。**与 `rows`/`cols` 同行**：只有活动溢出区带，碰撞态锚点不带。
+   *
+   * 与 `blockedBy` 不同，这条**两个 runtime 都答得出**：WASM 走早就在产物里的
+   * `get_formula` 导出，TS runtime 直接读锚点条目的 `input`。答不出（老产物、手写
+   * 替身）时整个字段缺席，UI 退回「显示投影值、可编辑」的原行为。
+   *
+   * 走这条应答而不是另发一次读单元格：溢出区查询本来就每次选区移动才发一次，锚点
+   * 又可能落在可见窗口之外（`=SEQUENCE(10000)` 滚到中段），单独去读要么多一个往返、
+   * 要么读不到。
+   */
+  anchorFormula?: string
 }
 
 export interface WorkbookSheetMeta {

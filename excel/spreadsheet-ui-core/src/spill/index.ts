@@ -1,10 +1,11 @@
 import { atom, type Atom, type Setter } from '@einfach/core'
 import type { CellCoord } from '../shared'
+import { isFiniteIndex, normalizeAnchorFormula, normalizeCoord, normalizeRegion } from './normalize'
 import type {
   ActiveSpillBlockage,
   ActiveSpillRegion,
   SpillCellRole,
-  SpillRegion,
+  SpillProjectedFormula,
   SpillRegionRequest,
   SpillRegionResult,
 } from './types'
@@ -100,6 +101,19 @@ export const spillRegionSupportedAtom: Atom<boolean> = atom((get) =>
 )
 spillRegionSupportedAtom.debugLabel = 'spreadsheet.spill.supported'
 
+/** 两个选择器共用的判定，免得「区内」的边界在两处各写一遍然后漂移。 */
+function roleWithin(
+  region: ActiveSpillRegion | null,
+  sheetId: string,
+  coord: CellCoord,
+): SpillCellRole | null {
+  if (!region || region.sheetId !== sheetId) return null
+  const { range, anchor } = region
+  if (coord.row < range.rowStart || coord.row > range.rowEnd) return null
+  if (coord.col < range.colStart || coord.col > range.colEnd) return null
+  return coord.row === anchor.row && coord.col === anchor.col ? 'anchor' : 'projected'
+}
+
 /**
  * 选择器投影：给一个坐标，回答它在当前高亮溢出区里的身份。
  *
@@ -109,50 +123,35 @@ export const spillCellRoleAtom: Atom<
   (sheetId: string, coord: CellCoord) => SpillCellRole | null
 > = atom((get) => {
   const region = get(spillRegionBackingAtom)
-  return (sheetId: string, coord: CellCoord): SpillCellRole | null => {
-    if (!region || region.sheetId !== sheetId) return null
-    const { range, anchor } = region
-    if (coord.row < range.rowStart || coord.row > range.rowEnd) return null
-    if (coord.col < range.colStart || coord.col > range.colEnd) return null
-    return coord.row === anchor.row && coord.col === anchor.col ? 'anchor' : 'projected'
-  }
+  return (sheetId: string, coord: CellCoord): SpillCellRole | null =>
+    roleWithin(region, sheetId, coord)
 })
 spillCellRoleAtom.debugLabel = 'spreadsheet.spill.cellRole'
 
-// --- validation -----------------------------------------------------------
-
-function isFiniteIndex(value: unknown): value is number {
-  return typeof value === 'number' && Number.isInteger(value) && value >= 0
-}
-
-function normalizeCoord(coord: unknown): CellCoord | null {
-  if (typeof coord !== 'object' || coord === null) return null
-  const { row, col } = coord as Partial<CellCoord>
-  if (!isFiniteIndex(row) || !isFiniteIndex(col)) return null
-  return { row, col }
-}
-
-function normalizeRegion(region: unknown): SpillRegion | null {
-  if (typeof region !== 'object' || region === null) return null
-  const { anchor, range } = region as Partial<SpillRegion>
-  if (!anchor || !range) return null
-  if (!isFiniteIndex(anchor.row) || !isFiniteIndex(anchor.col)) return null
-  if (!isFiniteIndex(range.rowStart) || !isFiniteIndex(range.rowEnd)) return null
-  if (!isFiniteIndex(range.colStart) || !isFiniteIndex(range.colEnd)) return null
-  if (range.rowEnd < range.rowStart || range.colEnd < range.colStart) return null
-  // 锚点恒在矩形左上角 —— 引擎侧的两个实现都是这么算的，破了这条说明 wire 坏了，
-  // 与其画一个歪掉的框不如什么都不画。
-  if (anchor.row !== range.rowStart || anchor.col !== range.colStart) return null
-  return {
-    anchor: { row: anchor.row, col: anchor.col },
-    range: {
-      rowStart: range.rowStart,
-      rowEnd: range.rowEnd,
-      colStart: range.colStart,
-      colEnd: range.colEnd,
-    },
+/**
+ * 选择器投影：这一格的公式栏该显示哪条**别人的**公式，且不接受编辑。
+ *
+ * 非 `null` 只发生在**投影格**上（锚点自己是那条公式的主人，照常可编辑），且后端
+ * 说得出锚点公式时。两个条件缺一个就回 `null` = 「按原样走」。
+ *
+ * 这是一条**显示层**的事实，刻意不进 `editingSessionAtom`：往投影格里写值是 Excel
+ * 允许的操作（ADR 0006：数组塌成 `#SPILL!`），只是**不能从公式栏那条灰公式改起**。
+ * 把它做成编辑会话的一个状态会顺手连单元格内直接输入一起禁掉，那是另一个 bug。
+ */
+export const spillProjectedFormulaAtom: Atom<
+  (sheetId: string, coord: CellCoord) => SpillProjectedFormula | null
+> = atom((get) => {
+  const region = get(spillRegionBackingAtom)
+  return (sheetId: string, coord: CellCoord): SpillProjectedFormula | null => {
+    if (!region?.anchorFormula) return null
+    if (roleWithin(region, sheetId, coord) !== 'projected') return null
+    return {
+      anchor: { row: region.anchor.row, col: region.anchor.col },
+      formula: region.anchorFormula,
+    }
   }
-}
+})
+spillProjectedFormulaAtom.debugLabel = 'spreadsheet.spill.projectedFormula'
 
 // --- commands -------------------------------------------------------------
 
@@ -256,7 +255,13 @@ export const refreshSpillRegionAtom = atom(
     // 两格互斥：装上了投影就没有阻塞物，上一次的线索必须跟着走，否则会挂着
     // 上一个锚点的那句话。
     set(spillBlockageBackingAtom, null)
-    set(spillRegionBackingAtom, { sheetId, anchor: region.anchor, range: region.range })
+    set(spillRegionBackingAtom, {
+      sheetId,
+      anchor: region.anchor,
+      range: region.range,
+      // 答不出就整个字段缺席 —— 公式栏据此退回原行为，而不是显示一条空公式。
+      anchorFormula: normalizeAnchorFormula(payload.anchorFormula),
+    })
     return 'updated'
   },
 )

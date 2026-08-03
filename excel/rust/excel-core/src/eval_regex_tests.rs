@@ -7,7 +7,6 @@ use std::collections::HashMap;
 
 use einfach_core::{AtomId, Value, ValueError};
 
-use super::ascii::to_ascii_classes;
 use super::cache::{regex_cache_len, regex_cache_reset, regex_compile_count, REGEX_CACHE_CAP};
 use crate::eval::eval_expr;
 use crate::formula::parse_formula;
@@ -227,38 +226,4 @@ fn regex_cache_keys_on_the_raw_pattern_not_the_rewritten_one() {
         assert_eq!(ev("=REGEXTEST(\"key7probe\", \"key\\dprobe\")"), Value::Boolean(true));
     }
     assert_eq!(regex_compile_count(), 1, "改写后的模式不该顶掉原始键");
-}
-
-// --- ASCII 口径改写（`eval_regex_ascii.rs`）---
-
-/// 类外用作用域组，类内摊平成区间 —— 两种位置不能互换：`[(?-u:\d)]` 会被
-/// 当成一堆字面字符，而 `0-9` 出现在类外就是三个字面字符。
-#[test]
-fn ascii_rewrite_is_position_aware() {
-    assert_eq!(to_ascii_classes("\\d+"), "(?-u:\\d)+");
-    assert_eq!(to_ascii_classes("[\\d-]"), "[0-9-]");
-    assert_eq!(to_ascii_classes("[\\w]"), "[0-9A-Za-z_]");
-    assert_eq!(to_ascii_classes("\\b\\w\\B"), "(?-u:\\b)(?-u:\\w)(?-u:\\B)");
-}
-
-/// 否定形态不能用 `(?-u:)`（会匹配非法 UTF-8，`regex` 拒编），只能写成保留
-/// Unicode 模式的否定类；类内则借嵌套类。
-#[test]
-fn ascii_rewrite_negated_forms_stay_in_unicode_mode() {
-    assert_eq!(to_ascii_classes("\\D"), "[^0-9]");
-    assert_eq!(to_ascii_classes("\\W"), "(?-i:[^0-9A-Za-z_])");
-    assert_eq!(to_ascii_classes("[\\Dx]"), "[[^0-9]x]");
-    assert_eq!(to_ascii_classes("[\\Wx]"), "[[^0-9A-Za-z_]x]");
-}
-
-/// 无关的转义原样透传，尤其是 `\\`（转义反斜杠）后面跟的 `d` 是**字面 d**，
-/// 不是数字类；`\s` 刻意不改（见模块头注释）。
-#[test]
-fn ascii_rewrite_leaves_other_escapes_alone() {
-    assert_eq!(to_ascii_classes("\\\\d"), "\\\\d");
-    assert_eq!(to_ascii_classes("\\s\\S"), "\\s\\S");
-    assert_eq!(to_ascii_classes("a\\.b"), "a\\.b");
-    assert_eq!(to_ascii_classes("[a\\]\\d]"), "[a\\]0-9]");
-    // 没有反斜杠 → 原样借用，不分配。
-    assert!(matches!(to_ascii_classes("[0-9]+"), std::borrow::Cow::Borrowed(_)));
 }

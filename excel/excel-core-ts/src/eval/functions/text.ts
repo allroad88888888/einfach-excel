@@ -25,6 +25,7 @@ import {
   formatNumber,
   getNumberFormatParts,
 } from './_locale'
+import { toAsciiClasses } from './regex-ascii'
 
 // =============================================================================
 // Helpers
@@ -2677,7 +2678,9 @@ function readRegexCase(
 
 function compileRegex(pattern: string, flags: string): RegExp | Value {
   try {
-    return new RegExp(pattern, flags)
+    // `\s` / `\S` 在 JS 里是 Unicode 感知的，而 Excel 走 PCRE2 默认口径（ASCII）。
+    // 改写见 `regex-ascii.ts`，Rust 半边是 `eval_regex_ascii.rs`，两边同步。
+    return new RegExp(toAsciiClasses(pattern), flags)
   } catch {
     return ERR_VALUE
   }

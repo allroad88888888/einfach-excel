@@ -21,6 +21,12 @@ mod cache;
 #[path = "eval_regex_tests.rs"]
 mod tests;
 
+// 改写层的测试单独一份：那边断言的是「改写函数吐出什么字符串」，和上面那份
+// 「内建语义 + 编译缓存」不是一回事。
+#[cfg(test)]
+#[path = "eval_regex_ascii_tests.rs"]
+mod ascii_tests;
+
 use std::sync::Arc;
 
 use einfach_core::{ArrayData, Value, ValueError};

@@ -10,8 +10,33 @@
 //!
 //! 口径的依据：Excel 的三个 REGEX* 函数用 **PCRE2** 方言（微软 support 文档在
 //! 三个函数页各写了一遍：“use the PCRE2 'flavor' of regex”），而 PCRE2 不开
-//! `PCRE2_UCP` 时 `\d`/`\w` 只认 ASCII。改写实现见
+//! `PCRE2_UCP` 时 `\d`/`\s`/`\w` 只认 ASCII。改写实现见
 //! `excel/rust/excel-core/src/eval_regex_ascii.rs`。
+//!
+//! `\s` 的三方实测（`pcre2test 10.47` / node 24 / `regex 1.12.3`，T=算空白）：
+//!
+//! | 码点 | PCRE2 默认 | PCRE2 `ucp` | JS `RegExp` | Rust `regex` |
+//! |---|---|---|---|---|
+//! | U+0009 HT / U+000A LF / U+000D CR / U+0020 SP | T | T | T | T |
+//! | U+000B VT / U+000C FF | T | T | T | T |
+//! | U+0085 NEL | **F** | T | **F** | **T** |
+//! | U+00A0 NBSP | **F** | T | T | T |
+//! | U+2028 LS / U+2029 PS | **F** | T | T | T |
+//! | U+3000 全角空格 | **F** | T | T | T |
+//! | U+FEFF ZWNBSP | **F** | **F** | **T** | **F** |
+//!
+//! 两条要点：(1) PCRE2 默认那一列就是 `[\t\n\x0B\x0C\r\x20]` 六个码点；
+//! (2) 改之前 JS 与 Rust 在 U+0085 和 U+FEFF 上**本来就不一致**，所以把两边
+//! 一起拉到 ASCII 是**消除**分歧，不是制造分歧。
+//!
+//! 为什么敢断定 Excel 那一栏是「PCRE2 默认」而不是「`ucp`」：`PCRE2_UCP` 是
+//! **一个**开关，同时管 `\d`/`\s`/`\w`。10.43 起的 `PCRE2_EXTRA_ASCII_BSD/BSS/BSW`
+//! 只能在 UCP 开着时把个别转义**摁回** ASCII，方向单向（实测 `pcre2test`：
+//! `/^\d$/utf,ascii_bsd` 不开 `ucp` 时对 `٥` 仍 No match，即该选项是空操作）。
+//! 于是「`\d` ASCII + `\s` Unicode」这个组合在 PCRE2 里够不到，除非刻意配成
+//! UCP + ASCII_BSD + ASCII_BSW 却偏不加 ASCII_BSS。本仓已按 ASCII 钉死 `\d`
+//! / `\w`，`\s` 只能同极性。**这两件事的证据强度是同一份**：微软没有文档化
+//! UCP 位，若 `\d` 那条判断错了，`\s` 会跟着一起错 —— 它们不会各错各的。
 
 #![cfg(feature = "regex-formulas")]
 
@@ -93,13 +118,67 @@ fn word_boundary_follows_the_ascii_word_class() {
     assert_eq!(ev("=REGEXTEST(\"ab\", \"\\bab\\b\")"), Value::Boolean(true));
 }
 
-/// `\s` **刻意**留在 Unicode 口径：JS 的 `\s` 本来就认 NBSP，两个引擎在这一点
-/// 上已经一致（共同偏离 PCRE2 默认的 ASCII）。单边改 Rust 会制造新分歧。
-/// 这条断言存在的意义就是防止有人“顺手统一”。
+/// `\s` 只认 PCRE2 默认的六个 ASCII 空白。NBSP / 全角空格 / 行分隔符都不算 ——
+/// 它们在 `regex` crate 的 Unicode `White_Space` 里算，所以这条是改写的功劳。
 #[test]
-fn whitespace_class_deliberately_stays_unicode_aware() {
-    assert_eq!(ev("=REGEXTEST(\"\u{00a0}\", \"^\\s$\")"), Value::Boolean(true));
-    assert_eq!(ev("=REGEXTEST(\"\u{2028}\", \"^\\s$\")"), Value::Boolean(true));
+fn whitespace_class_is_ascii_only() {
+    for c in ['\u{0009}', '\u{000a}', '\u{000b}', '\u{000c}', '\u{000d}', '\u{0020}'] {
+        assert_eq!(ev(&format!("=REGEXTEST(\"{}\", \"^\\s$\")", c)), Value::Boolean(true), "U+{:04X}", c as u32);
+    }
+    for c in ['\u{0085}', '\u{00a0}', '\u{1680}', '\u{2028}', '\u{2029}', '\u{202f}', '\u{3000}'] {
+        assert_eq!(ev(&format!("=REGEXTEST(\"{}\", \"^\\s$\")", c)), Value::Boolean(false), "U+{:04X}", c as u32);
+    }
+}
+
+/// `\S` 必须是 `\s` 的补集。留在 Unicode 口径的话，NBSP 会同时被 `\s` 和 `\S`
+/// 拒绝，模式作者拿到自相矛盾的引擎。
+#[test]
+fn negated_whitespace_is_the_complement_of_the_ascii_one() {
+    assert_eq!(ev("=REGEXTEST(\"\u{00a0}\", \"^\\S$\")"), Value::Boolean(true));
+    assert_eq!(ev("=REGEXTEST(\"\u{3000}\", \"^\\S$\")"), Value::Boolean(true));
+    assert_eq!(ev("=REGEXTEST(\"\u{0085}\", \"^\\S$\")"), Value::Boolean(true));
+    assert_eq!(ev("=REGEXTEST(\" \", \"^\\S$\")"), Value::Boolean(false));
+    assert_eq!(ev("=REGEXTEST(\"\u{000b}\", \"^\\S$\")"), Value::Boolean(false));
+}
+
+/// `\s` 叠上大小写不敏感不能漂。`\W` 那条曾经因为 `(?i)` 的 Unicode 折叠翻车，
+/// `\s` 的字符类里没有带大小写的字母，所以不需要 `(?-i:)` 包裹 —— 这条钉住
+/// 「不需要」这个结论，将来若展开形式变了会立刻被抓到。
+#[test]
+fn whitespace_class_survives_case_insensitivity() {
+    assert_eq!(ev("=REGEXTEST(\" \", \"^\\s$\", 1)"), Value::Boolean(true));
+    assert_eq!(ev("=REGEXTEST(\"\u{00a0}\", \"^\\s$\", 1)"), Value::Boolean(false));
+    assert_eq!(ev("=REGEXTEST(\"\u{00a0}\", \"^\\S$\", 1)"), Value::Boolean(true));
+}
+
+/// 字符类**内部**的 `\s`/`\S` 走另一条改写分支（嵌套类而非作用域组）。
+/// `[\s-x]` 这条同时钉住「展开不能拼出假区间」：`-` 必须是字面量，字母数字
+/// 不能被捎进来。
+#[test]
+fn whitespace_classes_inside_a_character_class() {
+    assert_eq!(ev("=REGEXTEST(\"\u{00a0}\", \"^[\\s]$\")"), Value::Boolean(false));
+    assert_eq!(ev("=REGEXTEST(\" \", \"^[\\s]$\")"), Value::Boolean(true));
+    assert_eq!(ev("=REGEXTEST(\"\u{00a0}\", \"^[\\Sx]$\")"), Value::Boolean(true));
+    assert_eq!(ev("=REGEXTEST(\" \", \"^[\\Sx]$\")"), Value::Boolean(false));
+    // 假区间的钉子：`\x20-x` 若成了区间，`a` 和 `5` 会被误收。
+    for (subject, expected) in [(" ", true), ("-", true), ("x", true), ("a", false), ("5", false)] {
+        assert_eq!(
+            ev(&format!("=REGEXTEST(\"{}\", \"^[\\s-x]$\")", subject)),
+            Value::Boolean(expected),
+            "subject {:?}",
+            subject
+        );
+    }
+}
+
+/// 转义后的**字面反斜杠**不能被当成字符类：`\\s` 是「反斜杠 + 字母 s」两个
+/// 字符，不是空白类。改写器若在这里错一步，`\\` 之后的每个字母都会被误改写。
+#[test]
+fn an_escaped_backslash_is_not_a_class() {
+    assert_eq!(ev("=REGEXTEST(\"\\s\", \"^\\\\s$\")"), Value::Boolean(true));
+    assert_eq!(ev("=REGEXTEST(\" \", \"^\\\\s$\")"), Value::Boolean(false));
+    assert_eq!(ev("=REGEXTEST(\"\\d\", \"^\\\\d$\")"), Value::Boolean(true));
+    assert_eq!(ev("=REGEXTEST(\"5\", \"^\\\\d$\")"), Value::Boolean(false));
 }
 
 // --- 错误码 -----------------------------------------------------------------

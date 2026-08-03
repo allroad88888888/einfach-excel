@@ -8,8 +8,20 @@
  * 成 `#NAME?`，进网只会得到满屏假分歧。两侧各钉一份是既有先例。
  *
  * 口径依据：Excel 的 REGEX* 三函数用 **PCRE2** 方言（微软 support 文档三处
- * 明写），PCRE2 不开 `PCRE2_UCP` 时 `\d`/`\w` 只认 ASCII —— 和 JS `RegExp`
- * 天生的口径一致。Rust 侧靠 `eval_regex_ascii.rs` 的模式改写追上来。
+ * 明写），PCRE2 不开 `PCRE2_UCP` 时 `\d`/`\s`/`\w` 只认 ASCII。`\d`/`\w` 上
+ * JS `RegExp` 天生就落在这个口径，Rust 侧靠 `eval_regex_ascii.rs` 追上来。
+ *
+ * **`\s` 是例外，两边都要改写**：JS 的 `\s` 是 Unicode 感知的（认 NBSP、全角
+ * 空格、U+FEFF 等 19 个额外码点），Rust 的 `\s` 走 Unicode `White_Space`，
+ * 两者**互不相等**（U+0085 只有 Rust 算空白，U+FEFF 只有 JS 算空白），所以改
+ * 之前这里本来就有分歧。TS 半边的改写在
+ * `excel/excel-core-ts/src/eval/functions/regex-ascii.ts`。
+ *
+ * 为什么敢断定 Excel 走的是「PCRE2 默认」而不是 `ucp`：`PCRE2_UCP` 是**一个**
+ * 开关，同时管 `\d`/`\s`/`\w`；10.43 起的 `PCRE2_EXTRA_ASCII_BS*` 只能在 UCP
+ * 开着时把个别转义摁回 ASCII，不能反向给单个转义加 Unicode。所以「`\d` ASCII
+ * + `\s` Unicode」在 PCRE2 里够不到，本仓既已按 ASCII 钉死 `\d`，`\s` 只能同
+ * 极性。完整实测表见 Rust 半边 `regex_dialect_parity.rs` 的文件头。
  */
 
 import { describe, expect, test } from '@jest/globals'
@@ -85,11 +97,57 @@ describe('REGEX* 字符类是 ASCII 口径', () => {
     expect(test1('ab', '\\bab\\b')).toEqual(BOOL(true))
   })
 
-  // `\s` 刻意留在 Unicode 口径：JS 本来就认 NBSP，两个引擎在这点上一致（共同
-  // 偏离 PCRE2 默认的 ASCII）。单边改 Rust 反而会制造新分歧。防“顺手统一”。
-  test('\\s 刻意保持 Unicode 感知', () => {
-    expect(test1('\u00a0', '^\\s$')).toEqual(BOOL(true))
-    expect(test1('\u2028', '^\\s$')).toEqual(BOOL(true))
+  // JS 的 `\s` 原生多认 19 个码点，靠 `regex-ascii.ts` 摁回 PCRE2 默认的六个。
+  // 这一组与 Rust 半边 `whitespace_class_is_ascii_only` 逐条对应。
+  const ASCII_WS = ['\u0009', '\u000a', '\u000b', '\u000c', '\u000d', '\u0020']
+  // U+0085 改写前两边就都是 false（JS 不认 NEL，Rust 认，方向与下面那条相反）；
+  // U+FEFF 是**只有 JS** 算空白的那一个，改写前 `\s` 对它是 true。这两个码点
+  // 正是本次改写消除掉的既存双引擎分歧。
+  const NOT_ASCII_WS = ['\u0085', '\u00a0', '\u1680', '\u2028', '\u2029', '\u202f', '\u205f', '\u3000', '\ufeff']
+
+  test('\\s 只认 PCRE2 默认的六个 ASCII 空白', () => {
+    for (const c of ASCII_WS) expect(test1(c, '^\\s$')).toEqual(BOOL(true))
+    for (const c of NOT_ASCII_WS) expect(test1(c, '^\\s$')).toEqual(BOOL(false))
+  })
+
+  test('\\S 是 \\s 的补集', () => {
+    for (const c of NOT_ASCII_WS) expect(test1(c, '^\\S$')).toEqual(BOOL(true))
+    for (const c of ASCII_WS) expect(test1(c, '^\\S$')).toEqual(BOOL(false))
+  })
+
+  test('\\s 叠上大小写不敏感不漂', () => {
+    expect(call('REGEXTEST', [STR(' '), STR('^\\s$'), NUM(1)])).toEqual(BOOL(true))
+    expect(call('REGEXTEST', [STR('\u00a0'), STR('^\\s$'), NUM(1)])).toEqual(BOOL(false))
+    expect(call('REGEXTEST', [STR('\u00a0'), STR('^\\S$'), NUM(1)])).toEqual(BOOL(true))
+  })
+
+  // 类内走另一条改写分支。JS 没有嵌套字符类（Rust 有），只能把码点摊进外层
+  // 类，于是展开的尾字符会和后面的 `-` 拼出假区间：`[\s-x]` 若展开成
+  // `[\t-\r\x20-x]`，`\x20-x` 会把字母数字全收进来。摆成 `[\x20\t-\r]`（以完成
+  // 的区间收尾）后那个 `-` 只能当字面量，结果与 Rust 侧的嵌套类逐条一致。
+  test('字符类内部的 \\s / \\S，且不拼出假区间', () => {
+    expect(test1('\u00a0', '^[\\s]$')).toEqual(BOOL(false))
+    expect(test1(' ', '^[\\s]$')).toEqual(BOOL(true))
+    expect(test1('\u00a0', '^[\\Sx]$')).toEqual(BOOL(true))
+    expect(test1(' ', '^[\\Sx]$')).toEqual(BOOL(false))
+    for (const [subject, expected] of [
+      [' ', true],
+      ['-', true],
+      ['x', true],
+      ['a', false],
+      ['5', false],
+    ] as const) {
+      expect(test1(subject, '^[\\s-x]$')).toEqual(BOOL(expected))
+    }
+  })
+
+  // 转义后的字面反斜杠不能被当成字符类：`\\s` 是「反斜杠 + 字母 s」两个字符。
+  // 改写器在这里错一步，`\\` 之后的每个字母都会被误改写。
+  test('转义后的字面反斜杠不是字符类', () => {
+    expect(test1('\\s', '^\\\\s$')).toEqual(BOOL(true))
+    expect(test1(' ', '^\\\\s$')).toEqual(BOOL(false))
+    expect(test1('\\d', '^\\\\d$')).toEqual(BOOL(true))
+    expect(test1('5', '^\\\\d$')).toEqual(BOOL(false))
   })
 })
 

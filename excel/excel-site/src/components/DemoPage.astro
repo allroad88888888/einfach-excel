@@ -1,0 +1,70 @@
+---
+import DemoIsland from '../islands/DemoIsland'
+import { findDemo } from '../data/demo-catalog'
+import { sitePath } from '../data/site-path'
+import SiteLayout from '../layouts/SiteLayout.astro'
+import basicsSeedSource from '../demos/seeds/seed-basics.ts?raw'
+import cleanMessyDataSeedSource from '../demos/seeds/seed-clean-messy-data.ts?raw'
+import collaborationSeedSource from '../demos/seeds/seed-collaboration.ts?raw'
+import customFormulasSeedSource from '../demos/seeds/seed-custom-formulas.ts?raw'
+import formulaEngineSeedSource from '../demos/seeds/seed-formula-engine.ts?raw'
+import handOffFormSeedSource from '../demos/seeds/seed-hand-off-form.ts?raw'
+import performanceSeedSource from '../demos/seeds/seed-performance.ts?raw'
+
+interface Props {
+  id: string
+  locale: 'en' | 'zh'
+  Content: any
+  frontmatter: {
+    title: string
+    summary: string
+  }
+}
+
+const { id, locale, Content, frontmatter } = Astro.props
+const demo = findDemo(id)
+const seedSource = seedSourceFor(id, demo.runtime)
+const sourceBase = 'https://github.com/allroad88888888/einfach-excel/blob/main/'
+const alternateLocaleHref = sitePath(locale === 'zh' ? 'demos/' + id + '/' : 'zh/demos/' + id + '/')
+
+function seedSourceFor(demoId: string, runtime: 'worker-wasm' | 'static'): string {
+  if (demoId === 'formula-engine') return formulaEngineSeedSource
+  if (demoId === 'custom-formulas') return customFormulasSeedSource
+  if (demoId === 'clean-messy-data') return cleanMessyDataSeedSource
+  if (demoId === 'hand-off-a-form') return handOffFormSeedSource
+  if (demoId === 'collaboration') return collaborationSeedSource
+  return runtime === 'static' ? basicsSeedSource : performanceSeedSource
+}
+---
+
+<SiteLayout locale={locale} title={frontmatter.title + ' · einfach excel'} alternateLocaleHref={alternateLocaleHref}>
+  <main class="page demo-detail-page">
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+      <a href={sitePath(locale === 'zh' ? 'zh/' : '')}>{locale === 'zh' ? '首页' : 'Home'}</a>
+      <span>/</span>
+      <a href={sitePath(locale === 'zh' ? 'zh/#demos' : '#demos')}>{locale === 'zh' ? '演示' : 'Demos'}</a>
+      <span>/</span>
+      <span>{frontmatter.title}</span>
+    </nav>
+    <header class="page-intro">
+      <p class="eyebrow">{demo.runtime === 'static' ? 'PORT CONTRACT' : 'WORKER / WASM DEMO'}</p>
+      <h1>{frontmatter.title}</h1>
+      <p>{frontmatter.summary}</p>
+    </header>
+    <article class="demo-narrative">
+      <Content />
+    </article>
+    <DemoIsland client:only="solid-js" demoId={id} locale={locale} />
+    <section class="source-section" aria-labelledby="source-heading">
+      <h2 id="source-heading">{locale === 'zh' ? '查看源码' : 'View source'}</h2>
+      <ul>
+        {
+          demo.sourceFiles.map((sourceFile) => (
+            <li><a href={sourceBase + sourceFile}>{sourceFile}</a></li>
+          ))
+        }
+      </ul>
+      <pre><code>{seedSource.split('\n').slice(0, 24).join('\n')}</code></pre>
+    </section>
+  </main>
+</SiteLayout>

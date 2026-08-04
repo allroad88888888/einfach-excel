@@ -1,0 +1,21 @@
+---
+import DocsPage from '../../components/DocsPage.astro'
+import { backendContract, backendOverview, backendTypesPath, sourceUrl } from '../../data/source-projection'
+import { sitePath } from '../../data/site-path'
+---
+
+<DocsPage
+  title="Backend port"
+  eyebrow="SOURCE-PROJECTED CONTRACT"
+  summary="Implement the required projection and edit methods; optional ports progressively enrich the same spreadsheet UI."
+  alternateLocaleHref={sitePath('zh/docs/backend-port/')}
+>
+  <p>
+    This block is extracted at build time from
+    <a href={sourceUrl(backendTypesPath)}>{backendTypesPath}</a>. It is not a hand-maintained copy.
+  </p>
+  <h2 id="required-methods">Required methods</h2>
+  <pre><code>{backendContract}</code></pre>
+  <h2 id="contract-notes">Contract notes from source</h2>
+  <pre><code>{backendOverview}</code></pre>
+</DocsPage>

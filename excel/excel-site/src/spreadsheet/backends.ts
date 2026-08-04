@@ -17,10 +17,7 @@ import {
 // Separate subpath on purpose: the worker factories resolve their bundles via
 // `import.meta.url`, so they stay off the `/vnext` barrel (see that barrel's
 // note in `adapter/index.ts`).
-import {
-  defaultExcelCoreTsWorkerFactory,
-  defaultVNextWorkbookWorkerFactory,
-} from '@einfach/solid-excel/vnext-worker-factory'
+import { defaultVNextWorkbookWorkerFactory } from '@einfach/solid-excel/vnext-worker-factory'
 
 /** In-memory backend for demos that need no worker/WASM round trip. */
 export function makeStaticBackend(seed?: StaticSpreadsheetSeedInput): StaticSpreadsheetBackend {
@@ -33,16 +30,6 @@ export function makeWasmWorkerBackend(
 ): WorkerWorkbookSpreadsheetBackend {
   return createWorkerWorkbookSpreadsheetBackend({
     workerFactory: defaultVNextWorkbookWorkerFactory,
-    ...options,
-  })
-}
-
-/** Worker-hosted backend backed by the in-process TS formula engine. */
-export function makeTsWorkerBackend(
-  options?: WorkerWorkbookSpreadsheetBackendOptions,
-): WorkerWorkbookSpreadsheetBackend {
-  return createWorkerWorkbookSpreadsheetBackend({
-    workerFactory: defaultExcelCoreTsWorkerFactory,
     ...options,
   })
 }

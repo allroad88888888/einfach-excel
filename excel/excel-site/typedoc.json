@@ -1,0 +1,19 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": [
+    "../spreadsheet-ui-core/src/index.ts",
+    "../solid-excel/src-vnext/public.ts"
+  ],
+  "entryPointStrategy": "resolve",
+  "tsconfig": "typedoc.tsconfig.json",
+  "name": "Einfach Excel public API",
+  "readme": "none",
+  "plugin": ["typedoc-plugin-markdown"],
+  "out": "./public/api-reference",
+  "router": "module",
+  "cleanOutputDir": true,
+  "excludeInternal": true,
+  "excludePrivate": true,
+  "skipErrorChecking": true,
+  "sort": ["source-order"]
+}

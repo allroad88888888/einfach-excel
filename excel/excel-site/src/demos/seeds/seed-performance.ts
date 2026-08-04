@@ -1,6 +1,6 @@
 /**
- * Seed for the "performance" demo — a 50,000-row × 8-column generated
- * dataset (400,000 data cells) loaded through the worker's chunked
+ * Seed for the "performance" demo — a 100,000-row × 8-column generated
+ * dataset (800,000 data cells) loaded through the worker's chunked
  * import-session API (`beginImport` / `importChunk` / `commitImport`),
  * never through per-cell `setCell` calls (see `seed-formulas.ts` for that
  * pattern, which is fine at ~20 cells but would be ~400,016 RPC round
@@ -40,7 +40,7 @@ import type {
 } from '@einfach/solid-excel/vnext'
 
 /** The actual seeded shape — the demo page's header copy reads these, not a guess. */
-export const PERFORMANCE_DATA_ROWS = 50_000
+export const PERFORMANCE_DATA_ROWS = 100_000
 export const PERFORMANCE_COLS = 8
 
 const SUMMARY_ROW = 0

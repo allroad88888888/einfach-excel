@@ -1,0 +1,22 @@
+---
+import DocsPage from '../../../components/DocsPage.astro'
+import { backendContract, backendOverview, backendTypesPath, sourceUrl } from '../../../data/source-projection'
+import { sitePath } from '../../../data/site-path'
+---
+
+<DocsPage
+  locale="zh"
+  title="Backend port"
+  eyebrow="从源码投射的契约"
+  summary="实现必需的投影和编辑方法；可选 port 会逐步丰富同一个电子表格 UI。"
+  alternateLocaleHref={sitePath('docs/backend-port/')}
+>
+  <p>
+    此代码块在构建时从 <a href={sourceUrl(backendTypesPath)}>{backendTypesPath}</a> 提取，
+    不是手工维护的副本。
+  </p>
+  <h2 id="required-methods">必需方法</h2>
+  <pre><code>{backendContract}</code></pre>
+  <h2 id="contract-notes">源码中的契约说明</h2>
+  <pre><code>{backendOverview}</code></pre>
+</DocsPage>

@@ -34,7 +34,7 @@ npm run eslint
 excel/spreadsheet-ui-core/ → @einfach/spreadsheet-ui-core # Framework-agnostic spreadsheet UI atoms + types (vnext)
 excel/excel-core-ts/       → @einfach/excel-core-ts       # TS formula engine (private, parity reference)
 excel/solid-excel/         → @einfach/solid-excel         # Solid.js spreadsheet surface (legacy + vnext)
-excel/excel-site/          → @einfach/excel-site           # Demo/marketing site (private, vite)
+excel/excel-site/          → @einfach/excel-site           # Static docs site with Solid/WASM islands (private, Astro)
 excel/rust/core/           → einfach-core (Rust)          # Rust atom store（TS 版 core 的孪生实现）
 excel/rust/excel-core/     → einfach-excel-core           # Rust formula / workbook engine
 excel/rust/wasm/           → einfach-wasm                 # WASM bindings exposed to excel/solid-excel

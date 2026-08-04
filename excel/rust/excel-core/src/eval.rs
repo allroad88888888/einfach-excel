@@ -15,6 +15,14 @@ mod eval_regex;
 #[path = "eval_wrap.rs"]
 mod eval_wrap;
 
+// 条件聚合家族（COUNTIF/SUMIF/AVERAGEIF/COUNTIFS/SUMIFS/AVERAGEIFS/MAXIFS/
+// MINIFS）。拆成两块：`_blank` 是「不物化空格地枚举候选位置」这一个抽象，
+// `_family` 是八个函数各自的折叠体。`#[path]` 约定同上两块。
+#[path = "eval_criteria_blank.rs"]
+mod eval_criteria_blank;
+#[path = "eval_criteria_family.rs"]
+mod eval_criteria_family;
+
 use std::cell::{Cell, RefCell};
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
@@ -3428,418 +3436,19 @@ fn eval_func(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
         }
 
         // === Conditional aggregates ===
-        "COUNTIF" => {
-            if args.len() != 2 {
-                return Value::Error(ValueError::WrongArgCount);
-            }
-            // Eval the criterion once outside the streaming loop.
-            let criterion = eval_expr_with_provider(&args[1], provider);
-            // criteria 实参本身是错误 → 传播（对照：条件区里的错误**格**不短路）。
-            if let Value::Error(e) = criterion {
-                return Value::Error(e);
-            }
-            let mut count = 0u64;
-            for_each_arg_value(&args[0], provider, &mut |_addr, v| {
-                if matches_criterion(&v, &criterion) {
-                    count += 1;
-                }
-            });
-            Value::Number(count as f64)
-        }
-        "SUMIF" => {
-            // SUMIF(range, criterion[, sum_range])
-            //
-            // Two-arg form: stream the single range; sum hits that coerce
-            // to a number. O(1) memory.
-            //
-            // Three-arg form: stream `range`; on each hit, translate the
-            // `addr` into the matching cell in `sum_range` by relative
-            // offset and fetch the target through `fetch_range_cell`.
-            // Still O(1) memory (no Vec of either range) — at the cost of
-            // an extra HashMap lookup per hit, which is cheap.
-            if args.len() != 2 && args.len() != 3 {
-                return Value::Error(ValueError::WrongArgCount);
-            }
-            let criterion = eval_expr_with_provider(&args[1], provider);
-            // criteria 实参本身是错误 → 传播（对照：条件区里的错误**格**不短路）。
-            if let Value::Error(e) = criterion {
-                return Value::Error(e);
-            }
-            let mut total = 0.0_f64;
-            if args.len() == 2 {
-                for_each_arg_value(&args[0], provider, &mut |_addr, v| {
-                    if matches_criterion(&v, &criterion) {
-                        if let Some(n) = coerce_to_number(&v) {
-                            total += n;
-                        }
-                    }
-                });
-            } else {
-                // 两个区域实参都走**同一条**入口：条件区 `runtime_ref_from_expr`、
-                // 求和区 `resolve_range_arg`（后者只是前者 + `bounded_shape`）。
-                // 跨表 `Sheet2!B1:B3`、同表 `B1:B3`、单格 `B1`、动态区域
-                // (`OFFSET` / `INDIRECT` / `INDEX` / 表引用) 从解析那一步起就
-                // 不分叉，取格由 `fetch_range_cell` 按 `sheet` 派给
-                // `sheet_cell` / `cell`。
-                //
-                // 此前这里自己 `match Expr::Range`，`SheetRange` 与所有动态区域
-                // 节点都掉进下面那条「当求和区不存在」的回退 —— 回退加的是**条件
-                // 区自己的值**，于是 `=SUMIF(Sheet2!A1:A3,">1",Sheet2!B1:B3)`
-                // 答 5 而不是 500。错的是个看着正常的数，比 `#VALUE!` 难发现。
-                //
-                // 对齐规则是 Excel 的「左上角 + 条件区形状」：求和区只贡献左上角，
-                // 自己的行列数不参与。`SUMIF(A1:A3,">1",B1)` 与
-                // `SUMIF(A1:A3,">1",B1:B10)` 因此同值 500。
-                let crit_ref = runtime_ref_from_expr(&args[0], provider).ok();
-                let sum_range = resolve_range_arg(&args[2], provider);
-                match (crit_ref, sum_range) {
-                    (Some(crit), Some(sum)) => {
-                        let origin = crit.normalized().start;
-                        // 命中行的 sum_range 格子是**值档**，错误要传播（`SUM` 也
-                        // 传播，SUMIFS / AVERAGEIF* / MAXIFS / MINIFS 也一样）。
-                        // 之前这里靠 `coerce_to_number` 返回 `None` 把错误静默吞
-                        // 掉，答案是个看着正常的数 —— 与 TS 参考引擎的 `SUMIF`
-                        // 相反。流式回调不能提前返回，所以记下来循环后再交出去。
-                        let mut sum_err: Option<ValueError> = None;
-                        // 条件区**只解析一次**：动态区域实参的解析带求值副作用，
-                        // 所以这里从已解析的 ref 直接流，而不是把 `args[0]` 再
-                        // 喂一遍 `for_each_arg_value`。
-                        for_each_ref_value_indexed(&crit, provider, &mut |addr, _pos, v| {
-                            if sum_err.is_some() {
-                                return;
-                            }
-                            let Some(addr) = addr else { return };
-                            if matches_criterion(&v, &criterion) {
-                                let dr = addr.row.saturating_sub(origin.row);
-                                let dc = addr.col.saturating_sub(origin.col);
-                                let target = fetch_range_cell(&sum, dr, dc, provider);
-                                if let Value::Error(e) = target {
-                                    sum_err = Some(e);
-                                    return;
-                                }
-                                if let Some(n) = coerce_to_number(&target) {
-                                    total += n;
-                                }
-                            }
-                        });
-                        if let Some(e) = sum_err {
-                            return Value::Error(e);
-                        }
-                    }
-                    _ => {
-                        // 到这里说明某一侧根本不是引用（数组字面量 / 标量 / 求值
-                        // 出错的子表达式），没有「相对位置」可言 —— 退回二参口径。
-                        for_each_arg_value(&args[0], provider, &mut |_addr, v| {
-                            if matches_criterion(&v, &criterion) {
-                                if let Some(n) = coerce_to_number(&v) {
-                                    total += n;
-                                }
-                            }
-                        });
-                    }
-                }
-            }
-            Value::Number(total)
-        }
-
-        // === Multi-criteria aggregates (COUNTIFS/SUMIFS/AVERAGEIF/AVERAGEIFS/MAXIFS/MINIFS) ===
         //
-        // Shape rules: all criteria ranges AND the value range (sum_range /
-        // average_range / max_range / min_range) share the same (rows, cols)
-        // shape. Shape mismatch → InvalidValue (Excel maps this to #VALUE!).
-        //
-        // Range arg accepted: literal `Range` / `SheetRange`, or `OFFSET(...)`.
-        // Anything else → InvalidValue.
-        //
-        // Error propagation is per TIER, not per range:
-        //
-        //   - CRITERIA range — an error cell is just a cell that fails the
-        //     criterion, and is skipped. This is what `matches_criterion`
-        //     already does for the single-criterion `COUNTIF` / `SUMIF`
-        //     above, and Excel applies one criteria semantics to both
-        //     (`=COUNTIFS(rng,"<>#N/A",rng,"<>#VALUE!")` answers a COUNT on a
-        //     range full of errors rather than handing an error back).
-        //   - VALUE range (sum_range / average_range / max_range /
-        //     min_range) — an error on a MATCHING row propagates, same as
-        //     `SUM`. Unmatched rows are never read, so their errors cannot
-        //     leak.
-        //
-        // For COUNTIFS, "match" is reported on any non-Null criteria cell
-        // where the criterion passes — including Text and Boolean — matching
-        // Excel's COUNTIFS (which counts on criteria match, not numeric-ness).
-        // Sums/averages/min/max only accept `Value::Number(_)`.
-        "AVERAGEIF" => {
-            // AVERAGEIF(range, criterion[, average_range])
-            if args.len() != 2 && args.len() != 3 {
-                return Value::Error(ValueError::WrongArgCount);
-            }
-            let crit_range = match resolve_range_arg(&args[0], provider) {
-                Some(r) => r,
-                None => return Value::Error(ValueError::InvalidValue),
-            };
-            let value_range = if args.len() == 3 {
-                match resolve_range_arg(&args[2], provider) {
-                    Some(r) => r,
-                    None => return Value::Error(ValueError::InvalidValue),
-                }
-            } else {
-                crit_range.clone()
-            };
-            if crit_range.rows != value_range.rows || crit_range.cols != value_range.cols {
-                return Value::Error(ValueError::InvalidValue);
-            }
-            let criterion = eval_expr_with_provider(&args[1], provider);
-            // criteria 实参本身是错误 → 传播（对照：条件区里的错误**格**不短路）。
-            if let Value::Error(e) = criterion {
-                return Value::Error(e);
-            }
-            let mut sum = 0.0_f64;
-            let mut count = 0u64;
-            for dr in 0..crit_range.rows {
-                for dc in 0..crit_range.cols {
-                    // 条件区里的错误格 = 不满足条件（见本块开头的分档说明）。
-                    let cv = fetch_range_cell(&crit_range, dr, dc, provider);
-                    if matches_criterion(&cv, &criterion) {
-                        let tv = fetch_range_cell(&value_range, dr, dc, provider);
-                        if let Value::Error(e) = tv {
-                            return Value::Error(e);
-                        }
-                        if let Value::Number(n) = tv {
-                            sum += n;
-                            count += 1;
-                        }
-                    }
-                }
-            }
-            if count == 0 {
-                return Value::Error(ValueError::DivisionByZero);
-            }
-            Value::Number(sum / count as f64)
-        }
-        "COUNTIFS" => {
-            // COUNTIFS(range1, criterion1, [range2, criterion2, ...])
-            if args.is_empty() || args.len() % 2 != 0 {
-                return Value::Error(ValueError::WrongArgCount);
-            }
-            let pairs = match collect_criteria_pairs(args, provider) {
-                Ok(p) => p,
-                Err(e) => return Value::Error(e),
-            };
-            // pairs[0] is the shape-defining range.
-            let (shape_range, _) = &pairs[0];
-            let rows = shape_range.rows;
-            let cols = shape_range.cols;
-            let mut count = 0u64;
-            for dr in 0..rows {
-                for dc in 0..cols {
-                    let mut all_match = true;
-                    let mut has_value = false;
-                    for (range, criterion) in &pairs {
-                        // 条件区里的错误格 = 不满足条件，交给 `matches_criterion`
-                        // 判掉即可，不短路（见本块开头的分档说明）。
-                        let cv = fetch_range_cell(range, dr, dc, provider);
-                        if !matches!(cv, Value::Null) {
-                            has_value = true;
-                        }
-                        if !matches_criterion(&cv, criterion) {
-                            all_match = false;
-                            break;
-                        }
-                    }
-                    if all_match && has_value {
-                        count += 1;
-                    }
-                }
-            }
-            Value::Number(count as f64)
-        }
-        "SUMIFS" => {
-            // SUMIFS(sum_range, range1, criterion1, [range2, criterion2, ...])
-            if args.len() < 3 || args.len() % 2 == 0 {
-                return Value::Error(ValueError::WrongArgCount);
-            }
-            let sum_range = match resolve_range_arg(&args[0], provider) {
-                Some(r) => r,
-                None => return Value::Error(ValueError::InvalidValue),
-            };
-            let pairs = match collect_criteria_pairs(&args[1..], provider) {
-                Ok(p) => p,
-                Err(e) => return Value::Error(e),
-            };
-            for (range, _) in &pairs {
-                if range.rows != sum_range.rows || range.cols != sum_range.cols {
-                    return Value::Error(ValueError::InvalidValue);
-                }
-            }
-            let mut total = 0.0_f64;
-            for dr in 0..sum_range.rows {
-                for dc in 0..sum_range.cols {
-                    let mut all_match = true;
-                    for (range, criterion) in &pairs {
-                        // 条件区里的错误格 = 不满足条件，交给 `matches_criterion`
-                        // 判掉即可，不短路（见本块开头的分档说明）。
-                        let cv = fetch_range_cell(range, dr, dc, provider);
-                        if !matches_criterion(&cv, criterion) {
-                            all_match = false;
-                            break;
-                        }
-                    }
-                    if all_match {
-                        let tv = fetch_range_cell(&sum_range, dr, dc, provider);
-                        if let Value::Error(e) = tv {
-                            return Value::Error(e);
-                        }
-                        if let Value::Number(n) = tv {
-                            total += n;
-                        }
-                    }
-                }
-            }
-            Value::Number(total)
-        }
-        "AVERAGEIFS" => {
-            // AVERAGEIFS(average_range, range1, criterion1, ...)
-            if args.len() < 3 || args.len() % 2 == 0 {
-                return Value::Error(ValueError::WrongArgCount);
-            }
-            let avg_range = match resolve_range_arg(&args[0], provider) {
-                Some(r) => r,
-                None => return Value::Error(ValueError::InvalidValue),
-            };
-            let pairs = match collect_criteria_pairs(&args[1..], provider) {
-                Ok(p) => p,
-                Err(e) => return Value::Error(e),
-            };
-            for (range, _) in &pairs {
-                if range.rows != avg_range.rows || range.cols != avg_range.cols {
-                    return Value::Error(ValueError::InvalidValue);
-                }
-            }
-            let mut sum = 0.0_f64;
-            let mut count = 0u64;
-            for dr in 0..avg_range.rows {
-                for dc in 0..avg_range.cols {
-                    let mut all_match = true;
-                    for (range, criterion) in &pairs {
-                        // 条件区里的错误格 = 不满足条件，交给 `matches_criterion`
-                        // 判掉即可，不短路（见本块开头的分档说明）。
-                        let cv = fetch_range_cell(range, dr, dc, provider);
-                        if !matches_criterion(&cv, criterion) {
-                            all_match = false;
-                            break;
-                        }
-                    }
-                    if all_match {
-                        let tv = fetch_range_cell(&avg_range, dr, dc, provider);
-                        if let Value::Error(e) = tv {
-                            return Value::Error(e);
-                        }
-                        if let Value::Number(n) = tv {
-                            sum += n;
-                            count += 1;
-                        }
-                    }
-                }
-            }
-            if count == 0 {
-                return Value::Error(ValueError::DivisionByZero);
-            }
-            Value::Number(sum / count as f64)
-        }
-        "MAXIFS" => {
-            // MAXIFS(max_range, range1, criterion1, ...)
-            if args.len() < 3 || args.len() % 2 == 0 {
-                return Value::Error(ValueError::WrongArgCount);
-            }
-            let max_range = match resolve_range_arg(&args[0], provider) {
-                Some(r) => r,
-                None => return Value::Error(ValueError::InvalidValue),
-            };
-            let pairs = match collect_criteria_pairs(&args[1..], provider) {
-                Ok(p) => p,
-                Err(e) => return Value::Error(e),
-            };
-            for (range, _) in &pairs {
-                if range.rows != max_range.rows || range.cols != max_range.cols {
-                    return Value::Error(ValueError::InvalidValue);
-                }
-            }
-            let mut best: Option<f64> = None;
-            for dr in 0..max_range.rows {
-                for dc in 0..max_range.cols {
-                    let mut all_match = true;
-                    for (range, criterion) in &pairs {
-                        // 条件区里的错误格 = 不满足条件，交给 `matches_criterion`
-                        // 判掉即可，不短路（见本块开头的分档说明）。
-                        let cv = fetch_range_cell(range, dr, dc, provider);
-                        if !matches_criterion(&cv, criterion) {
-                            all_match = false;
-                            break;
-                        }
-                    }
-                    if all_match {
-                        let tv = fetch_range_cell(&max_range, dr, dc, provider);
-                        if let Value::Error(e) = tv {
-                            return Value::Error(e);
-                        }
-                        if let Value::Number(n) = tv {
-                            best = Some(match best {
-                                Some(b) => b.max(n),
-                                None => n,
-                            });
-                        }
-                    }
-                }
-            }
-            Value::Number(best.unwrap_or(0.0))
-        }
-        "MINIFS" => {
-            // MINIFS(min_range, range1, criterion1, ...)
-            if args.len() < 3 || args.len() % 2 == 0 {
-                return Value::Error(ValueError::WrongArgCount);
-            }
-            let min_range = match resolve_range_arg(&args[0], provider) {
-                Some(r) => r,
-                None => return Value::Error(ValueError::InvalidValue),
-            };
-            let pairs = match collect_criteria_pairs(&args[1..], provider) {
-                Ok(p) => p,
-                Err(e) => return Value::Error(e),
-            };
-            for (range, _) in &pairs {
-                if range.rows != min_range.rows || range.cols != min_range.cols {
-                    return Value::Error(ValueError::InvalidValue);
-                }
-            }
-            let mut best: Option<f64> = None;
-            for dr in 0..min_range.rows {
-                for dc in 0..min_range.cols {
-                    let mut all_match = true;
-                    for (range, criterion) in &pairs {
-                        // 条件区里的错误格 = 不满足条件，交给 `matches_criterion`
-                        // 判掉即可，不短路（见本块开头的分档说明）。
-                        let cv = fetch_range_cell(range, dr, dc, provider);
-                        if !matches_criterion(&cv, criterion) {
-                            all_match = false;
-                            break;
-                        }
-                    }
-                    if all_match {
-                        let tv = fetch_range_cell(&min_range, dr, dc, provider);
-                        if let Value::Error(e) = tv {
-                            return Value::Error(e);
-                        }
-                        if let Value::Number(n) = tv {
-                            best = Some(match best {
-                                Some(b) => b.min(n),
-                                None => n,
-                            });
-                        }
-                    }
-                }
-            }
-            Value::Number(best.unwrap_or(0.0))
-        }
+        // 八个函数的实现都在 `eval_criteria_family.rs`，共同的分档（判据实参
+        // 出错 / 条件区错误格 / 值区错误格 / 空格认不认）与形状规则写在那个
+        // 文件的模块头，**只有那一份**。候选位置怎么在不物化空格的前提下枚举
+        // 出来在 `eval_criteria_blank.rs`。
+        "COUNTIF" => eval_criteria_family::fn_countif(args, provider),
+        "SUMIF" => eval_criteria_family::fn_sumif(args, provider),
+        "AVERAGEIF" => eval_criteria_family::fn_averageif(args, provider),
+        "COUNTIFS" => eval_criteria_family::fn_countifs(args, provider),
+        "SUMIFS" => eval_criteria_family::fn_sumifs(args, provider),
+        "AVERAGEIFS" => eval_criteria_family::fn_averageifs(args, provider),
+        "MAXIFS" => eval_criteria_family::fn_maxifs(args, provider),
+        "MINIFS" => eval_criteria_family::fn_minifs(args, provider),
 
         // === Phase 5: lookup / stats / dates ===
         "VLOOKUP" => {
@@ -21643,7 +21252,23 @@ fn matches_criterion(v: &Value, criterion: &Value) -> bool {
     let crit_text = coerce_to_text(criterion);
     // Try operator prefix forms first.
     let (op, rest) = parse_criterion_op(&crit_text);
-    if let Some(target_n) = rest.parse::<f64>().ok() {
+    // 空格**不参与数值比较**。Excel 里 `COUNTIF(rng,0)` 数不到空格、
+    // `SUMIFS(v,rng,">-1")` 也不把空格那一行算进来 —— 空格在判据眼里不是 0，
+    // 它压根没有可比的数值。本仓 TS 参考引擎同口径（`numericComparable` 对
+    // blank 返回 undefined，`scalarEquals` 里 blank 只与 blank / `""` 相等）。
+    //
+    // 这里刻意**不**复用 `coerce_to_number`：那个函数把 `Null` 当 0，是算术与
+    // 两百多个内建函数要的口径（`=SUM(A1:A3)` 得把空格当 0），换掉会波及全仓。
+    // 判据这一档单独把空格摘出去，于是空格只剩「文本兜底」和「通配符」两条路
+    // 可走 —— 正好是 `""` / `"="` / `"<>x"` / `"<>*"` 命中而 `">0"` / `0` /
+    // `"<5"` 不命中的那套分档。
+    //
+    // 过去这条判死的位置很隐蔽：稀疏遍历本来就不发空格，所以 `COUNTIF` 看不出
+    // 差别；稠密遍历的 `SUMIFS` / `AVERAGEIFS` / `MAXIFS` / `MINIFS` 却会读到
+    // 空格，于是 `SUMIFS(B1:B3,A1:A3,">-1")` 在 A2 空时多加了 B2 —— 同一个
+    // 判据在同一个引擎里有两种答案。
+    let numeric_comparable = !matches!(v, Value::Null);
+    if let (true, Ok(target_n)) = (numeric_comparable, rest.parse::<f64>()) {
         if let Some(vn) = coerce_to_number(v) {
             return match op {
                 ">" => vn > target_n,

@@ -67,7 +67,7 @@ fn value_family_setup(
     if args.len() < 3 || args.len() % 2 == 0 {
         return Err(ValueError::WrongArgCount);
     }
-    let value = resolve_range_arg(&args[0], provider).ok_or(ValueError::InvalidValue)?;
+    let value = resolve_range_arg(&args[0], provider)?.ok_or(ValueError::InvalidValue)?;
     let pairs = build_pairs(&args[1..], provider)?;
     for pair in &pairs {
         if pair.rect.rows != value.rows || pair.rect.cols != value.cols {
@@ -81,10 +81,9 @@ fn value_family_setup(
 
 /// `COUNTIF(range, criterion)`。
 ///
-/// 空格那一档是**闭式**：`for_each_arg_value_indexed` 的返回值是实参的矩形格数，
-/// 减掉回调被调次数就是稀疏遍历跳过的空格数 —— 判据认空格时整块加进来，一个都
-/// 不用访问。`COUNTIF(A:A,"")` 因此是两次减法而不是一百万次迭代，口径与
-/// `COUNTBLANK(A:A)` 对齐（同一个矩形基数、同一套「算不算空」）。
+/// 空格那一档是**闭式**：实参矩形格数减去稀疏回调次数就是跳过的空格数；判据
+/// 认空格时整块加进来而不用访问。`COUNTIF(A:A,"")` 因此与 `COUNTBLANK(A:A)`
+/// 同口径、只需两次减法。
 ///
 /// 非区域实参（标量 / 数组字面量）没有矩形也就没有洞，返回 `None`，补零。
 pub(super) fn fn_countif(args: &[Expr], provider: &dyn EvalProvider) -> Value {
@@ -95,6 +94,9 @@ pub(super) fn fn_countif(args: &[Expr], provider: &dyn EvalProvider) -> Value {
         Ok(c) => c,
         Err(e) => return Value::Error(e),
     };
+    if let Err(e) = resolve_range_arg(&args[0], provider) {
+        return Value::Error(e);
+    }
     let mut emitted = 0u64;
     let mut count = 0u64;
     let extent = for_each_arg_value_indexed(&args[0], provider, &mut |_addr, _pos, v| {
@@ -111,8 +113,7 @@ pub(super) fn fn_countif(args: &[Expr], provider: &dyn EvalProvider) -> Value {
 
 /// `SUMIF(range, criterion[, sum_range])`。
 ///
-/// 二参形态**不需要补空格**：值就是条件区自己，空格加进去也是加 0。三参形态才
-/// 要 —— 条件区的空格位置上，求和区那一格可能是个实打实的数
+/// 二参形态不用补空格；三参形态需要，因为条件区空格在求和区可对应实数
 /// （`SUMIF(A1:A3,"",B1:B3)` 在 A2 空、B2=20 时答 20）。
 pub(super) fn fn_sumif(args: &[Expr], provider: &dyn EvalProvider) -> Value {
     if args.len() != 2 && args.len() != 3 {
@@ -122,14 +123,19 @@ pub(super) fn fn_sumif(args: &[Expr], provider: &dyn EvalProvider) -> Value {
         Ok(c) => c,
         Err(e) => return Value::Error(e),
     };
+    let crit_range = match resolve_range_arg(&args[0], provider) {
+        Ok(range) => range,
+        Err(e) => return Value::Error(e),
+    };
     if args.len() == 3 {
         // 两个区域实参走同一条入口（`resolve_range_arg`），跨表 / 同表 / 单格 /
         // 动态区域从解析那一步起就不分叉。任一侧不是引用（数组字面量 / 标量 /
         // 求值出错的子表达式）就没有「相对位置」可言 —— 退回二参口径。
-        if let (Some(crit), Some(sum)) = (
-            resolve_range_arg(&args[0], provider),
-            resolve_range_arg(&args[2], provider),
-        ) {
+        let sum_range = match resolve_range_arg(&args[2], provider) {
+            Ok(range) => range,
+            Err(e) => return Value::Error(e),
+        };
+        if let (Some(crit), Some(sum)) = (crit_range, sum_range) {
             if !value_rect_fits(&crit, &sum) {
                 return Value::Error(ValueError::InvalidRef);
             }
@@ -158,25 +164,22 @@ pub(super) fn fn_sumif(args: &[Expr], provider: &dyn EvalProvider) -> Value {
 
 /// `AVERAGEIF(range, criterion[, average_range])`。
 ///
-/// 平均区里只有**真正的数字**进分母：空格、文本、布尔都不计数，所以
-/// `AVERAGEIF(A1:A3,"")` 在「唯一命中的是空格」时是 `#DIV/0!` 而不是 0
-/// （微软文档：average_range 里的空格被忽略；没有格子满足条件则 `#DIV/0!`）。
-///
-/// average_range 与 `SUMIF` 的 sum_range 同一条形状规则（`value_rect_fits`）。
-/// 这里曾挂着 `crit.rows != value.rows → #VALUE!`，把
-/// `AVERAGEIF(A1:A3,">1",B1)` 这类合法写法挡在门外，与紧邻的 `fn_sumif`
-/// 也不自洽。
+/// 只有数字进分母，命中空格但没有数字时答 `#DIV/0!`。average_range 与
+/// `SUMIF` 共用 `value_rect_fits`，都按条件区左上角和形状展开。
 pub(super) fn fn_averageif(args: &[Expr], provider: &dyn EvalProvider) -> Value {
     if args.len() != 2 && args.len() != 3 {
         return Value::Error(ValueError::WrongArgCount);
     }
-    let Some(crit) = resolve_range_arg(&args[0], provider) else {
-        return Value::Error(ValueError::InvalidValue);
+    let crit = match resolve_range_arg(&args[0], provider) {
+        Ok(Some(range)) => range,
+        Ok(None) => return Value::Error(ValueError::InvalidValue),
+        Err(e) => return Value::Error(e),
     };
     let value = if args.len() == 3 {
         match resolve_range_arg(&args[2], provider) {
-            Some(r) => r,
-            None => return Value::Error(ValueError::InvalidValue),
+            Ok(Some(range)) => range,
+            Ok(None) => return Value::Error(ValueError::InvalidValue),
+            Err(e) => return Value::Error(e),
         }
     } else {
         crit.clone()

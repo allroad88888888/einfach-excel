@@ -186,17 +186,22 @@ fn sumif_cross_sheet_keeps_the_two_error_tiers() {
 
 /// 求和区指向不存在的表 → `#REF!`，与 `=SUM(NoSuch!A1:A3)` 同码。
 ///
-/// 反方向（**条件区**指向不存在的表）现在答 0 而不是 `#REF!` —— 那是整个
-/// 条件聚合家族的既有口径（`COUNTIF` / `COUNTIFS` / `SUMIFS` 全都答 0，本次
-/// 一格没动），与 `SUM` 不一致，另案。这里把两侧都钉住，防止哪天只改一半。
+/// 条件区与求和区都必须传播 `#REF!`。条件聚合家族不能再把「表不存在」与
+/// 「空的匹配集合」混为一谈。
 #[test]
 fn sumif_missing_sheet_codes() {
     assert_eq!(
         eval("=SUMIF(Sheet2!A1:A3,\">1\",NoSuch!B1:B3)"),
         Value::Error(ValueError::InvalidRef)
     );
-    assert_eq!(num("=SUMIF(NoSuch!A1:A3,\">1\",Sheet2!B1:B3)"), 0.0);
-    assert_eq!(num("=COUNTIF(NoSuch!A1:A3,\">1\")"), 0.0);
+    assert_eq!(
+        eval("=SUMIF(NoSuch!A1:A3,\">1\",Sheet2!B1:B3)"),
+        Value::Error(ValueError::InvalidRef)
+    );
+    assert_eq!(
+        eval("=COUNTIF(NoSuch!A1:A3,\">1\")"),
+        Value::Error(ValueError::InvalidRef)
+    );
 }
 
 /// 非引用实参仍走二参口径（加条件区自己的值）。这是回退臂**唯一**该管的

@@ -25,6 +25,7 @@ import {
   runtimeRefFromExpr,
   sparseValuesForRef,
 } from './evaluate'
+import { runtimeRefSheetError } from './runtime-ref-read'
 import {
   inverseRelativeCoord,
   sameRangeShape,
@@ -54,6 +55,8 @@ export function sparseCriteriaPairs(
   for (let i = 0; i < args.length; i += 2) {
     const ref = runtimeRefFromExpr(args[i], ctx)
     if (!ref.ok) return ref.error ? { kind: 'error', error: ref.error } : { kind: 'fallback' }
+    const sheetError = runtimeRefSheetError(ref.ref, ctx)
+    if (sheetError) return { kind: 'error', error: sheetError }
     if (ref.ref.materialized) return { kind: 'fallback' }
 
     const matcher = makeCriterionMatcher(evaluateFunctionArg(args[i + 1], ctx))

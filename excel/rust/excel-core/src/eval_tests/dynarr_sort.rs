@@ -113,6 +113,22 @@ fn eval_sortby_single_key_asc() {
 }
 
 #[test]
+fn eval_sortby_omitted_order_defaults_to_ascending() {
+    let (cm, vs) = make_sortby_env_multi_key();
+    let (r, c, data) = unwrap_array(eval_str("=SORTBY(A1:A4, B1:B4,)", &cm, &vs));
+    assert_eq!((r, c), (4, 1));
+    assert_eq!(
+        data,
+        vec![
+            Value::Text("w".into()),
+            Value::Text("x".into()),
+            Value::Text("y".into()),
+            Value::Text("z".into()),
+        ]
+    );
+}
+
+#[test]
 fn eval_sortby_single_key_desc() {
     let (cm, vs) = make_sortby_env_multi_key();
     // Sort col A by col B descending. Col B = [1,1,2,2] → rows with

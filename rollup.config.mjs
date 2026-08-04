@@ -11,14 +11,24 @@ import { babel } from '@rollup/plugin-babel'
 const workspaceConfig = yaml.load(readFileSync('./pnpm-workspace.yaml', 'utf8'))
 const topLevelDirs = workspaceConfig.packages.map((p) => p.replace(/\/\*+$/, ''))
 
+function hasRollupLibraryEntrypoint(packageDir) {
+  const packageJsonPath = `${packageDir}/package.json`
+  if (!fs.existsSync(packageJsonPath) || !fs.existsSync(`${packageDir}/src/index.ts`)) {
+    return false
+  }
+
+  const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'))
+  return typeof packageJson.main === 'string' && typeof packageJson.module === 'string'
+}
+
 // 获取所有子目录
 const products = topLevelDirs.reduce((acc, dir) => {
   const subDirs = fs
     .readdirSync(dir, { withFileTypes: true })
     .filter((dirent) => dirent.isDirectory())
     .map((dirent) => `${dir}/${dirent.name}`)
-    // 跳过没有 src/index.ts 的子包（demo 应用走 vite build，不进 rollup）
-    .filter((p) => fs.existsSync(`${p}/src/index.ts`))
+    // 只构建声明 cjs 与 esm 发布入口的库；Vite 应用（包括 solid-excel）不产出 Rollup 文件。
+    .filter(hasRollupLibraryEntrypoint)
   return [...acc, ...subDirs]
 }, [])
 

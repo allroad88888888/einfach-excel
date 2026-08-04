@@ -18,10 +18,20 @@ fn eval_weekday() {
     assert_eq!(eval_str("=WEEKDAY(0,3)", &cm, &vs), Value::Number(3.0));
     // 1970-01-04 is a Sunday (serial 3) → return_type=1 → 1.
     assert_eq!(eval_str("=WEEKDAY(3,1)", &cm, &vs), Value::Number(1.0));
-    // Out-of-range return_type → InvalidValue.
+    // Out-of-range return_type → #NUM!.
     assert_eq!(
         eval_str("=WEEKDAY(0,99)", &cm, &vs),
-        Value::Error(ValueError::InvalidValue)
+        Value::Error(ValueError::Overflow)
+    );
+    // Explicit zero and a trailing omitted slot both coerce to an invalid
+    // return_type, so they share Excel's #NUM! result.
+    assert_eq!(
+        eval_str("=WEEKDAY(0,0)", &cm, &vs),
+        Value::Error(ValueError::Overflow)
+    );
+    assert_eq!(
+        eval_str("=WEEKDAY(45000,)", &cm, &vs),
+        Value::Error(ValueError::Overflow)
     );
     // Wrong arg count.
     assert_eq!(

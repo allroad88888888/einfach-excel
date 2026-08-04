@@ -22,6 +22,11 @@ import { NeedsDep } from './trampoline-ctx'
 import type { EvaluateExpr } from './trampoline'
 import { evaluateInForeignSheet } from './foreign-sheet'
 
+export function runtimeRefSheetError(ref: RuntimeRef, ctx: EvalContext): Value | undefined {
+  if (ref.sheetName && !ctx.crossSheetCells(ref.sheetName)) return ERR('#REF!')
+  return undefined
+}
+
 export function evaluateRuntimeRef(
   ref: RuntimeRef,
   ctx: EvalContext,

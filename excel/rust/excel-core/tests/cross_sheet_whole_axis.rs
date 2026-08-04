@@ -25,12 +25,24 @@ fn fixture() -> Workbook {
     wb.sheet_mut(s2)
         .unwrap()
         .set_cell("B3", Value::Number(300.0));
+    wb.sheet_mut(s2)
+        .unwrap()
+        .set_cell("B5", Value::Number(500.0));
     let s3 = wb.add_sheet("Sheet3");
     wb.sheet_mut(s3).unwrap().set_cell("A1", Value::Number(7.0));
     wb.sheet_mut(s3).unwrap().set_cell("A2", Value::Number(9.0));
     // Sheet1 的同形对照列。
     wb.sheet_mut(0).unwrap().set_cell("C1", Value::Number(1.0));
     wb.sheet_mut(0).unwrap().set_cell("C3", Value::Number(3.0));
+    wb.sheet_mut(0)
+        .unwrap()
+        .set_cell("D1", Value::Number(100.0));
+    wb.sheet_mut(0)
+        .unwrap()
+        .set_cell("D3", Value::Number(300.0));
+    wb.sheet_mut(0)
+        .unwrap()
+        .set_cell("D5", Value::Number(500.0));
     wb
 }
 
@@ -75,11 +87,11 @@ fn same_sheet_whole_axis_and_bounded_cross_sheet_controls_hold() {
 /// 多轴：跨表整列区间 `A:C`、跨表整行区间 `1:3`。
 #[test]
 fn cross_sheet_multi_axis_bands_resolve() {
-    // A 列 4 + B 列 400，C 列空。
-    assert_eq!(eval("=SUM(Sheet2!A:C)"), Value::Number(404.0));
+    // A 列 4 + B 列 900，C 列空。
+    assert_eq!(eval("=SUM(Sheet2!A:C)"), Value::Number(904.0));
     // 第 1..3 行覆盖同样四个格子。
     assert_eq!(eval("=SUM(Sheet2!1:3)"), Value::Number(404.0));
-    assert_eq!(eval("=COUNT(Sheet2!A:C)"), Value::Number(4.0));
+    assert_eq!(eval("=COUNT(Sheet2!A:C)"), Value::Number(5.0));
 }
 
 /// `$` 变体。绝对性只是写法标注，取值必须与相对形式逐字相同。
@@ -88,7 +100,7 @@ fn cross_sheet_whole_axis_absolute_forms_match_relative() {
     assert_eq!(eval("=SUM(Sheet2!$A:$A)"), Value::Number(4.0));
     assert_eq!(eval("=SUM(Sheet2!A:$A)"), Value::Number(4.0));
     assert_eq!(eval("=SUM(Sheet2!$1:$1)"), Value::Number(101.0));
-    assert_eq!(eval("=SUM(Sheet2!$A:$C)"), Value::Number(404.0));
+    assert_eq!(eval("=SUM(Sheet2!$A:$C)"), Value::Number(904.0));
 }
 
 /// 跨表整轴出现在聚合以外的位置。
@@ -109,7 +121,7 @@ fn cross_sheet_whole_axis_in_other_argument_positions() {
     // 两条跨表整轴参与算术。
     assert_eq!(
         eval("=SUM(Sheet2!A:A)+SUM(Sheet2!B:B)"),
-        Value::Number(404.0)
+        Value::Number(904.0)
     );
 }
 
@@ -143,32 +155,38 @@ fn missing_sheet_whole_axis_is_invalid_ref_like_single_cell() {
     );
 }
 
-/// 整轴喂给 `VLOOKUP` / `XLOOKUP` / `HLOOKUP` 是本引擎既有的拒收口径
-/// （见 `bug_fixes.rs` 的 "Bug 2 — unbounded range (A:A) in VLOOKUP
-/// returns an error, not overflow"）。这里钉的是**跨表与同表同口径**：
-/// 跨表不该比同表更严或更松。口径本身要改的话，两条断言会一起变。
+/// 整轴作为 `VLOOKUP` / `XLOOKUP` / `HLOOKUP` 的范围实参必须走稀疏裁剪，
+/// 且跨表与同表保持同一结果。`HLOOKUP` 的表区写成整列带 `C:D` / `A:B`：
+/// 第一行找键，第三行取值，证明它不会因 1048576 行的尾空格而拒收。
 #[test]
-fn whole_axis_in_lookups_rejects_identically_cross_sheet_and_same_sheet() {
+fn whole_axis_in_lookups_match_cross_sheet_and_same_sheet() {
     for (same, cross) in [
         ("=VLOOKUP(3,C:D,2,FALSE)", "=VLOOKUP(3,Sheet2!A:B,2,FALSE)"),
         ("=XLOOKUP(3,C:C,D:D)", "=XLOOKUP(3,Sheet2!A:A,Sheet2!B:B)"),
         (
-            "=HLOOKUP(100,1:3,3,FALSE)",
-            "=HLOOKUP(100,Sheet2!1:3,3,FALSE)",
+            "=HLOOKUP(100,C:D,3,FALSE)",
+            "=HLOOKUP(100,Sheet2!A:B,3,FALSE)",
         ),
     ] {
         assert_eq!(
             eval(same),
-            Value::Error(ValueError::InvalidValue),
+            Value::Number(300.0),
             "same-sheet baseline changed: {same}"
         );
         assert_eq!(
             eval(cross),
-            Value::Error(ValueError::InvalidValue),
+            Value::Number(300.0),
             "cross-sheet must match the same-sheet verdict: {cross}"
         );
     }
-    // 有界跨表 VLOOKUP 照常可用 —— 拒收的是整轴，不是跨表。
+    // 返回列比查找列多一条尾数据时，两条整列仍是等长的 Excel 区域；
+    // XLOOKUP 必须共享稀疏裁剪后的高度，不能各自裁完再误报长度不等。
+    assert_eq!(eval("=XLOOKUP(1,C:C,D:D)"), Value::Number(100.0));
+    assert_eq!(
+        eval("=XLOOKUP(1,Sheet2!A:A,Sheet2!B:B)"),
+        Value::Number(100.0)
+    );
+    // 有界跨表 VLOOKUP 照常可用。
     assert_eq!(
         eval("=VLOOKUP(3,Sheet2!A1:B3,2,FALSE)"),
         Value::Number(300.0)

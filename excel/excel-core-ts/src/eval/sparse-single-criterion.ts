@@ -26,6 +26,7 @@ import {
   sparseValuesForRef,
   valueAtRuntimeCoord,
 } from './evaluate'
+import { runtimeRefSheetError } from './runtime-ref-read'
 import { inverseRelativeCoord, relativeCoord } from './sparse-range-alignment'
 
 type RuntimeRef = LambdaReferenceBinding
@@ -55,6 +56,8 @@ export function evaluateSparseCountIf(
   const criterion = evaluateFunctionArg(args[1], ctx)
   const matcher = makeCriterionMatcher(criterion)
   if (!matcher.ok) return matcher.error
+  const sheetError = runtimeRefSheetError(ref.ref, ctx)
+  if (sheetError) return sheetError
 
   const sparse = sparseValuesForRef(ref.ref, ctx)
   if (!sparse.ok) return sparse.error
@@ -101,9 +104,13 @@ export function evaluateSparseSumIf(
   const criterion = evaluateFunctionArg(args[1], ctx)
   const matcher = makeCriterionMatcher(criterion)
   if (!matcher.ok) return matcher.error
+  const checkSheetError = runtimeRefSheetError(checkRef.ref, ctx)
+  if (checkSheetError) return checkSheetError
 
   const sumRef = args.length === 3 ? runtimeRefFromExpr(args[2], ctx) : checkRef
   if (!sumRef.ok) return undefined
+  const sumSheetError = runtimeRefSheetError(sumRef.ref, ctx)
+  if (sumSheetError) return sumSheetError
   if (sumRef.ref.materialized) return undefined
 
   const sparse = sparseValuesForRef(checkRef.ref, ctx)
@@ -176,6 +183,10 @@ export function evaluateSparseAverageIf(
 
   const averageRef = args.length === 3 ? runtimeRefFromExpr(args[2], ctx) : checkRef
   if (!averageRef.ok) return undefined
+  const checkSheetError = runtimeRefSheetError(checkRef.ref, ctx)
+  if (checkSheetError) return checkSheetError
+  const averageSheetError = runtimeRefSheetError(averageRef.ref, ctx)
+  if (averageSheetError) return averageSheetError
   if (checkRef.ref.materialized || averageRef.ref.materialized) return undefined
   if (
     !canSparseIterate(checkRef.ref) &&

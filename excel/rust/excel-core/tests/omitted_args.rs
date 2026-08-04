@@ -19,10 +19,10 @@
 //! 全部闭式字面量，不写「两个引擎相等」——那样两边一起退回去也是绿的。
 //! 跨引擎逐条对照在 `excel/solid-excel/test/cross-engine-parity-omitted-args.test.ts`。
 //!
-//! 「空占位 ⇒ 取默认值」**只动了四个函数**（`SORT` / `SEQUENCE` 的「必须
-//! ≥ 1」校验、`TEXTJOIN` 的 ignore_empty 强转、`XLOOKUP` 的 if_not_found）
-//! —— 501 个 `match` 臂里有大量可选参数，但实测下来只有这四处会因为空占位
-//! 给出与 Excel 不同的答案。判定口径见 `eval.rs::arg_is_omitted`。
+//! 「空占位 ⇒ 默认值」只适用于有已验证默认值的**可选**参数；其余函数仍走
+//! 各自的数值、形状与值域校验。这里覆盖 `SORT` / `SEQUENCE` / `TEXTJOIN` /
+//! `XLOOKUP` 的既有默认值，以及 #116 的代表性反例；不把这组回归误称为对
+//! 所有带可选参数函数的穷尽审计。判定口径见 `arg_is_omitted`。
 
 use einfach_core::{Value, ValueError};
 use einfach_excel_core::{parse_formula, Expr, Workbook};
@@ -215,6 +215,18 @@ fn dynamic_array_optional_args_take_their_default_not_zero() {
     assert_eq!(eval_spill("=SEQUENCE(2,)"), "1 ; 2");
     assert_eq!(eval_spill("=FILTER(F1:F5,F1:F5>3,)"), "4 ; 5");
     assert_eq!(eval_spill("=UNIQUE(F1:F5,,)"), "1 ; 2 ; 3 ; 4 ; 5");
+    assert_eq!(eval_spill("=SORTBY(F1:F5,F1:F5,)"), "1 ; 2 ; 3 ; 4 ; 5");
+}
+
+/// 空占位不总是默认值：它也可能按普通空值进入形状或数值域校验。
+#[test]
+fn omitted_args_keep_their_function_specific_shape_and_domain_rules() {
+    assert_eq!(
+        eval("=SUMPRODUCT(F1:F5,)"),
+        Value::Error(ValueError::InvalidValue)
+    );
+    assert_eq!(eval("=WEEKDAY(45000,)"), Value::Error(ValueError::Overflow));
+    assert_eq!(eval_spill("=INDEX(F1:G5,2,)"), "2|20");
 }
 
 /// 「取默认值」只认**语法上的空占位**，不认「求值成空」。
@@ -253,4 +265,3 @@ fn a_blank_result_stays_blank() {
     assert_eq!(eval("=LEFT(\"abc\",)"), text(""));
     assert_eq!(eval("=MID(\"abcdef\",2,)"), text(""));
 }
-

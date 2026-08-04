@@ -114,6 +114,19 @@ fn eval_sumproduct() {
         eval_str("=SUMPRODUCT(A1:A5)", &cm, &vs),
         eval_str("=SUM(A1:A5)", &cm, &vs),
     );
+    // Scalar arguments retain their established 1×1 shape.
+    assert_eq!(eval_str("=SUMPRODUCT(3,4)", &cm, &vs), Value::Number(12.0));
+    // Array literals remain arrays rather than being routed through the
+    // range-only sparse path.
+    assert_eq!(
+        eval_str("=SUMPRODUCT({1,2;3,4})", &cm, &vs),
+        Value::Number(10.0),
+    );
+    // A scalar cannot be positionally paired with a multi-cell range.
+    assert_eq!(
+        eval_str("=SUMPRODUCT(A1:A5,2)", &cm, &vs),
+        Value::Error(ValueError::InvalidValue),
+    );
     // Shape mismatch → InvalidValue.
     assert_eq!(
         eval_str("=SUMPRODUCT(A1:A5,B1:B4)", &cm, &vs),

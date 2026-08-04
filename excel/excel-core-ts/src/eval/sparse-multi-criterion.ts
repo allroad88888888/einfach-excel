@@ -10,6 +10,7 @@ import type { EvalContext, Expr, Value } from '../types'
 import { toNumber } from './coerce'
 import { ERR, canSparseIterate, runtimeRefFromExpr } from './evaluate'
 import { averageTierNumber } from './functions/stats'
+import { runtimeRefSheetError } from './runtime-ref-read'
 import {
   countIfsCandidateCoords,
   countMatchingCriteria,
@@ -45,6 +46,8 @@ export function evaluateSparseSumIfs(
   if (args.length < 3 || args.length % 2 === 0) return undefined
   const sumRef = runtimeRefFromExpr(args[0], ctx)
   if (!sumRef.ok) return undefined
+  const sumSheetError = runtimeRefSheetError(sumRef.ref, ctx)
+  if (sumSheetError) return sumSheetError
   if (sumRef.ref.materialized) return undefined
 
   const criteria = sparseCriteriaPairs(args.slice(1), ctx)
@@ -76,6 +79,8 @@ export function evaluateSparseAverageIfs(
   if (args.length < 3 || args.length % 2 === 0) return undefined
   const averageRef = runtimeRefFromExpr(args[0], ctx)
   if (!averageRef.ok) return undefined
+  const averageSheetError = runtimeRefSheetError(averageRef.ref, ctx)
+  if (averageSheetError) return averageSheetError
   if (averageRef.ref.materialized) return undefined
 
   const criteria = sparseCriteriaPairs(args.slice(1), ctx)
@@ -114,6 +119,8 @@ export function evaluateSparseMinMaxIfs(
   if (args.length < 3 || args.length % 2 === 0) return undefined
   const targetRef = runtimeRefFromExpr(args[0], ctx)
   if (!targetRef.ok) return undefined
+  const targetSheetError = runtimeRefSheetError(targetRef.ref, ctx)
+  if (targetSheetError) return targetSheetError
   if (targetRef.ref.materialized) return undefined
 
   const criteria = sparseCriteriaPairs(args.slice(1), ctx)

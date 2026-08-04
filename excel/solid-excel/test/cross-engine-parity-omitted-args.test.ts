@@ -29,9 +29,9 @@
  *
  * # 已知分歧单列一组
  *
- * 最后一组钉的是**两个引擎目前答得不一样**的格子。它们各有各的根因，都不是
- * 空占位造成的（逐条注明了反证：不写空占位也一样错）。这一组红了不一定是坏
- * 消息 —— 可能是某一侧修好了，那时把它挪进上面的组里。
+ * 最后一组钉的是**两个引擎目前答得不一样**的格子。空格引用的差异不由空占位
+ * 引起；`SORTBY` 则是 TS 函数分派层丢失尾随空槽语法。每条均说明根因；这一组
+ * 红了不一定是坏消息 —— 可能是某一侧修好了，那时把它挪进上面的组里。
  */
 
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals'
@@ -97,7 +97,7 @@ describe('cross-engine parity — omitted arguments (TS runtime vs WASM engine)'
    * 已知分歧的现状钉。这一组**红了先去看是不是有人修好了某一侧** —— 是的话
    * 把那条挪进上面两组，不要放宽断言。
    */
-  test('已知分歧：逐条钉住现状（都不是空占位造成的）', async () => {
+  test('已知分歧：逐条钉住现状', async () => {
     const tsRead = await ts.read(DIVERGENT_ADDRS)
     const wasmRead = await wasm.read(DIVERGENT_ADDRS)
     expect(displaysOf(tsRead, DIVERGENT_ADDRS)).toEqual(DIVERGENT_CASES.map((c) => c.ts))

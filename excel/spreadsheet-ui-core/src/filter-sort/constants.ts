@@ -1,0 +1,15 @@
+export const MAX_FILTER_LIST_VALUES = 10000
+export const MAX_FILTER_SORT_SHEETS = 256
+export const FILTER_SORT_CAPABILITY_ERROR = 'Filter and sort are unavailable because this workbook does not provide setFilterSort.'
+export const FILTER_SORT_INVALID_INPUT_ERROR = 'Filter and sort input is invalid.'
+export const FILTER_SORT_ACKNOWLEDGEMENT_ERROR = 'Filter and sort acknowledgement did not match the active request.'
+export const FILTER_SORT_TARGET_ERROR = 'Filter and sort require an active sheet and column.'
+export const FILTER_SORT_PENDING_ERROR = 'Filter and sort is already in progress.'
+export const FILTER_SORT_DROPDOWN_OPEN_ERROR = 'Close the filter dropdown before sorting from the toolbar or menu.'
+export const FILTER_SORT_STALE_OPERATION_ERROR = 'Filter and sort was ignored because the active sheet or selection changed.'
+export const FILTER_SORT_OUTCOME_UNKNOWN_ERROR = 'Filter and sort result is unknown. Reload or reconcile workbook data before another change.'
+export const FILTER_SORT_REAPPLY_NO_RULES_ERROR = 'Reapply needs an active filter on this sheet.'
+export const FILTER_SORT_DEFAULT_TIMEOUT_MS = 15_000
+export const FILTER_SORT_TRANSPORT_TIMEOUT_ERROR = 'Filter and sort transport exceeded the Core deadline.'
+export const FILTER_SORT_REFRESH_TIMEOUT_ERROR = 'Filter and sort refresh exceeded the Core deadline.'
+export const PHYSICAL_SORT_CAPABILITY_ERROR = 'Sort is unavailable because this workbook backend cannot reorder data.'

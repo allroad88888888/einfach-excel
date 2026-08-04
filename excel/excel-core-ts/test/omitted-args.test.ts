@@ -105,6 +105,10 @@ describe('空占位实参：取到的是默认值 / 空值', () => {
       ['=ROUND(3.14159,)', num(3)],
       // AGGREGATE 的 options 空 ⇒ 0（不忽略任何东西）。
       ['=AGGREGATE(9,,F1:F5)', num(15)],
+      // 空占位是 1×1 空值；SUMPRODUCT 不会把它广播到 5 行。
+      ['=SUMPRODUCT(F1:F5,)', err('#VALUE!')],
+      // WEEKDAY 的空 return_type 在数值语境下是 0，落入非法取值域。
+      ['=WEEKDAY(45000,)', err('#NUM!')],
     ])
   })
 
@@ -126,9 +130,24 @@ describe('空占位实参：取到的是默认值 / 空值', () => {
       ['=SORT(F1:F5,,-1)', arr([[num(5)], [num(4)], [num(3)], [num(2)], [num(1)]])],
       ['=SEQUENCE(2,,)', arr([[num(1)], [num(2)]])],
       ['=FILTER(F1:F5,F1:F5>3,)', arr([[num(4)], [num(5)]])],
+      // INDEX 的空 column_num 强转 0，返回该行的整个区域。
+      ['=INDEX(F1:G5,2,)', arr([[num(2), num(20)]])],
       // TEXTSPLIT 的 ignore_empty 空 ⇒ FALSE（空片段保留）。
       ['=TEXTSPLIT("a,,b",",",,)', arr([[str('a'), str(''), str('b')]])],
       ['=TEXTSPLIT("a,,b",",",,TRUE)', arr([[str('a'), str('b')]])],
+    ])
+  })
+})
+
+describe('空占位实参：数值聚合跳过空值', () => {
+  test('空槽位与空单元格引用都不参与 AVERAGE、PRODUCT、MIN', () => {
+    expectAll([
+      ['=AVERAGE(1,,3)', num(2)],
+      ['=AVERAGE(1,Z99,3)', num(2)],
+      ['=PRODUCT(2,,3)', num(6)],
+      ['=PRODUCT(2,Z99,3)', num(6)],
+      ['=MIN(1,,5)', num(1)],
+      ['=MIN(1,Z99,5)', num(1)],
     ])
   })
 })

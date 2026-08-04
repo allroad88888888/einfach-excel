@@ -6,18 +6,21 @@ emits a single `importCellChunks` plan so undo collapses into one entry.
 
 ## State Decision Template
 
-- **Source atoms:**
-  - `textToColumnsOpenAtom` — boolean, dialog visibility.
-  - `textToColumnsWizardAtom` — discriminated union over step
-    (`step-1` | `step-2-delimited` | `step-2-fixed` | `step-3`).
-  - `textToColumnsSourceAtom` — the source rows (text + sourceRow index).
-    Backed by an atom so the Solid 1.9.12 Provider remount hazard does
-    not strand it.
-  - `textToColumnsAnchorAtom` / `textToColumnsSheetIdAtom` — sheet + top
-    coordinate of the source column.
-- **Derived atoms:**
-  - `textToColumnsPreviewAtom` — first `TEXT_TO_COLUMNS_PREVIEW_CAP` (100)
-    source rows tokenized under the current wizard config. Bounded cache
+### Source atoms
+
+Implementation-private backing atoms in `state.ts` own the dialog state:
+source rows, anchor, sheet id, open state, wizard state, session/request
+identities, lifecycle/error, capability, entrypoint ids/state, and active
+entrypoint/finish tickets. The public read atoms (`textToColumnsSourceAtom`,
+`textToColumnsAnchorAtom`, `textToColumnsSheetIdAtom`,
+`textToColumnsOpenAtom`, `textToColumnsWizardAtom`, and their lifecycle
+peers) are read-only projections over those sources. Keeping the writable
+atoms private prevents UI code from bypassing lifecycle and ticket rules.
+
+### Derived atoms
+
+- `textToColumnsPreviewAtom` — first `TEXT_TO_COLUMNS_PREVIEW_CAP` (100)
+  source rows tokenized under the current wizard config. Bounded cache
     cap: **100 rows × 500 total cells** (`TEXT_TO_COLUMNS_PREVIEW_TOKEN_CAP`).
     A row that exceeds the remaining budget gets a trailing
     `TEXT_TO_COLUMNS_PREVIEW_TRUNCATION_MARK` (`'…'`); the marker
@@ -25,12 +28,22 @@ emits a single `importCellChunks` plan so undo collapses into one entry.
     `TEXT_TO_COLUMNS_PREVIEW_TOKEN_CAP` cells (marker included). Rows
     past the budget emit an empty `tokens` list (so row anchoring is
     preserved).
-- **Commands:**
-  - `openTextToColumnsAtom({ sheetId, anchor, rows })`
-  - `closeTextToColumnsAtom`
-  - `confirmTextToColumnsAtom` — returns a `TextToColumnsCommitPlan` (or
-    `null` if not on step-3 / no source). The host adapter forwards the
-    plan through `backend.importCellChunks`.
+- `textToColumnsColumnCountAtom`, `textToColumnsHasSourceAtom`,
+  `textToColumnsNextBlockAtom`, and the `textToColumnsCan*Atom` family
+  calculate UI affordances from source state. `textToColumnsEntrypointProjectionAtom`
+  calculates the capability-aware host projection without taking ownership
+  of it.
+
+### Command atoms
+
+- `openTextToColumnsAtom({ sheetId, anchor, rows })`
+- `closeTextToColumnsAtom`
+- `captureTextToColumnsCapabilityAtom` and `dispatchTextToColumnsWizardAtom`
+  establish a valid session before state changes.
+- `confirmTextToColumnsAtom` returns a `TextToColumnsCommitPlan` (or `null`
+  if not on step-3 / no source); `runTextToColumnsEntrypointAtom` captures
+  entrypoint state; `runTextToColumnsFinishAtom` is the sole mutation
+  command. The host adapter forwards its plan through `backend.importCellChunks`.
 
 ## Wizard state machine
 

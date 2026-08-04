@@ -22,7 +22,7 @@
  * 这一类尤其不能只断言相等：闸门的老症状**恰好**是「一侧算得出、一侧
  * `#N/A`」，而修坏的方向是「两侧一起退回 `#N/A`」—— 相等断言对后者是瞎的。
  *
- * # 已知仍在分歧的 4 条
+ * # 已知仍在分歧的 1 条
  *
  * 见 `DIVERGENT`。每条按**引擎**分别钉死当前答案，而不是从网里摘掉：摘掉
  * 会让「谁先修好」这件事没有触发器。它们红了不是回归，是有人动了那一侧 ——
@@ -55,6 +55,11 @@ const FIXTURE: WorkloadCell[] = [
   { kind: 'number', value: 90, row: 100_000, col: 6 },
 ]
 
+// `A:XFD` includes every formula cell on Sheet1, including the formula that
+// performs the check. Put just its numeric inputs on Sheet2 so the known #111
+// divergence measures the materialization limit rather than a self-reference.
+const WHOLE_GRID_FIXTURE: WorkloadCell[] = FIXTURE.map((cell) => ({ ...cell, sheet: 1 }))
+
 /**
  * `[公式, 两侧共同的显示串]`。有界（`F1:F100001`）与整轴（`F:F`）成对写：
  * 修前有界那一半在 TS 上全军覆没，整轴那一半靠稀疏孪生活着 —— 两种形态
@@ -69,7 +74,10 @@ const AGREED: ReadonlyArray<readonly [string, string]> = [
   ['=MATCH(3,F:G,0)', '5'],
   // —— 查找：修前 TS 是 #REF!（VLOOKUP 把 1×1 当成一列）——
   ['=VLOOKUP(3,F1:G100001,2,FALSE)', '30'],
+  ['=VLOOKUP(3,F:G,2,FALSE)', '30'],
+  ['=HLOOKUP(10,F:G,2,FALSE)', '20'],
   ['=XLOOKUP(3,F1:F100001,G1:G100001)', '30'],
+  ['=XLOOKUP(3,F:F,G:G)', '30'],
   // —— 取值：修前 TS 把 #NUM! 直接冒上去 ——
   ['=LARGE(F1:F100001,1)', '9'],
   ['=LARGE(F:F,1)', '9'],
@@ -77,6 +85,7 @@ const AGREED: ReadonlyArray<readonly [string, string]> = [
   ['=MEDIAN(F:F)', '3.5'],
   ['=RANK(3,F:F)', '4'],
   ['=SUMPRODUCT(F1:F100001,G1:G100001)', '1360'],
+  ['=SUMPRODUCT(F:F,G:G)', '1360'],
   ['=CORREL(F1:F100001,G1:G100001)', '1'],
   ['=INDEX(F:F,3)', '3'],
   ['=TEXTJOIN(",",TRUE,F1:F6)', '1,2,3,4,5'],
@@ -88,23 +97,18 @@ const AGREED: ReadonlyArray<readonly [string, string]> = [
 ]
 
 /**
- * 仍在分歧的 4 条：`[公式, TS 显示, WASM 显示, 谁等于 Excel]`。
+ * 仍在分歧的 1 条：`[公式, TS 显示, WASM 显示, 谁等于 Excel]`。
  *
- * 前两条是 `a827bac` 修好 TS 侧整轴查找时**新产生**的分歧（Rust 的
- * `bug_fixes.rs` "Bug 2" 是既有设计：查找族的表区不吃整轴哨兵）。
- * 后两条是本轮新量出来的：Rust 的 `SUMPRODUCT` 吃整轴实参时答 0 而不是
- * 乘积和 —— `SUM(F:F)` 在同一张表上是对的，所以坏的不是稀疏遍历本身，
- * 是多实参按位置对齐那一步。
+ * Rust 的 `SUMPRODUCT` 现已按稀疏绝对位置对齐整轴实参，故
+ * `SUMPRODUCT(F:F,G:G)` 已移入 `AGREED`，与 Excel 同为 1360。
  *
- * 第 4 条两侧都不等于 Excel（264）：TS 拒绝物化 4,500 万格的矩形（闸门
- * 按设计拦下），Rust 答 0（同上那条 bug）。钉住是为了让任何一侧的变化
- * 有触发器。
+ * 剩下的 #111 区域物化上限分歧：TS 按设计拒绝 `Sheet2!A:XFD`（`#NUM!`），Rust
+ * 则以稀疏扫描答 264，与 Excel 一致。输入数值放在 Sheet2，避免 A:XFD 吃到
+ * Sheet1 的公式单元而自引用；这是测试隔离，不是借这次 SUMPRODUCT 修复替 #111
+ * 定策略。
  */
 const DIVERGENT: ReadonlyArray<readonly [string, string, string, string]> = [
-  ['=VLOOKUP(3,F:G,2,FALSE)', '30', '#VALUE!', 'ts'],
-  ['=XLOOKUP(3,F:F,G:G)', '30', '#VALUE!', 'ts'],
-  ['=SUMPRODUCT(F:F,G:G)', '1360', '0', 'ts'],
-  ['=SUMPRODUCT(A:XFD)', '#NUM!', '0', 'neither (Excel: 264)'],
+  ['=SUMPRODUCT(Sheet2!A:XFD)', '#NUM!', '264', 'wasm'],
 ]
 
 /**
@@ -120,6 +124,7 @@ const DIVERGENT_ADDRS = DIVERGENT.map((_, i) => a1(FORMULA_ROW0 + AGREED.length 
 
 const WORKLOAD: WorkloadCell[] = [
   ...FIXTURE,
+  ...WHOLE_GRID_FIXTURE,
   ...AGREED.map(
     ([formula], i): WorkloadCell => ({
       kind: 'formula',
@@ -180,7 +185,7 @@ describe('cross-engine parity — 大区域实参 (TS runtime vs WASM engine)', 
     }
   })
 
-  test('已知分歧的 4 条：按引擎各自钉死当前答案', async () => {
+  test('已知分歧的 1 条：按引擎各自钉死当前答案', async () => {
     const tsRead = await ts.read(DIVERGENT_ADDRS)
     const wasmRead = await wasm.read(DIVERGENT_ADDRS)
     // 摘掉断言等于放弃触发器；分引擎钉死既不长红，又在任何一侧被改动时立刻红。

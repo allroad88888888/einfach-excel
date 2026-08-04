@@ -121,6 +121,7 @@ INV-6 的文件清单是为它服务的 —— 挡的是**并行公式状态**�
 |---|---|---|---|
 | EX-6.1 | `csv.rs` | `import_csv` 在 `Sheet::bulk_load` 之后调用 spill 投影尾 `Sheet::project_bulk_spill_anchors`（含为选候选而调用 `source_may_produce_array` / `expr_may_produce_array` / `parse_formula`） | CSV 是第**四**条批量入口。前三条（`bulk_install_workbook`、`WorkbookLoader::flush`、跨表数组重投影）已在 ADR 0006 那批补上同一条尾巴；`import_csv` 当时漏了，症状是同一个用户可见缺陷的第四个复发点 —— 导入含 `=SEQUENCE(3)` 的 CSV 只剩锚点，其余目标格全空。语义与顺序契约见 [ADR 0006](../../../docs/decisions/0006-spill-region-write-semantics.md)。 |
 | EX-6.2 | `format.rs`、`csv.rs` | `format::default_number_string` 与 `csv::value_to_csv_field` 的数字分支改为调用 `crate::general_text::excel_general_to_text`（各一行委托，两处 `if n == n.floor() && n.abs() < 1e15 { i64 } else { Display }` 随之删除） | 数字→文本是第**三**条复制粘贴的复发点。同一段判断此前在三处逐字节相同却互不调用：`eval::coerce_to_text`（`&` 拼接 / `LEN` / `T`）、`format::default_number_string`（`value_to_display` 与 `NumberFormat::General`/`Date`/自定义兜底）、`csv::value_to_csv_field`。上一程只把第一处换成了 Excel 的 General 规格，留下一个用户可见的自相矛盾：`=10^21&""` 读 `1E+21`，而**裸的** `=10^21` 那格显示 `1000000000000000000000`。同一个数字、同一个引擎、两种写法。规格与依据（Apache POI 从 Excel 实测抄回的对照表）见 `general_text.rs` 模块文档，回归护栏 `tests/display_general_text.rs`。 |
+| EX-6.3 | `eval_fn_reference_resolution.rs`、`eval_fn_information_workbook.rs`、`eval_core_indirect.rs` | `ADDRESS` 的 A1 分支与 `CELL("address")` 委托 `crate::cell::push_abs_addr`，并删除 `eval_core_indirect::col_index_to_letters_eval` 这份副本。 | `[$]列[$]行` 在 `cell.rs` 已是唯一写入器，AST 渲染也已经委托它；公式函数却仍各自拼 `$`、列名和 1-based 行号。三条用户可见出口必须逐字节一致，尤其 `ADDRESS` 的产物常再交给 `INDIRECT`。这是纯、无状态的既有 writer 委托，不引入 resolver、依赖、地址→公式索引、缓存或捷径。 |
 
 EX-6.1 的备选方案与否决理由（存档，免得后来人重开这一局）：把投影尾下沉进
 `Sheet::bulk_load`，让四条入口自动都有。**否决** —— 那会改掉
@@ -157,6 +158,21 @@ EX-6.2 的边界（越过就不再是本例外覆盖的范围）：
   行为变更 —— 两侧读的仍是同一份字节，E3 下沉的等价性不受影响，但可筛的字面量
   变了（`=0.1+0.2` 那格从 `0.30000000000000004` 变成 `0.3`）。方向钉在
   `tests/display_general_text.rs::filter_predicate_sees_the_displayed_bytes`。
+
+EX-6.3 的备选方案与否决理由（存档，免得后来人重开这一局）：保留两份函数内
+拼接、只以注释声明它们应与 `cell.rs` 一致。**否决** —— 这正是已经造成重复的
+模式，列边界和 `$` 组合的任何后续修正仍会分叉。把 ADDRESS/CELL 的整个求值分派
+搬到 `cell.rs` 也**否决**：`cell.rs` 只应负责地址文字的读写；把公式参数求值和
+错误语义倒灌进去会破坏这个边界，改动面远大于对已有 writer 的三处小委托。
+
+EX-6.3 的边界（越过就不再是本例外覆盖的范围）：
+- 只准调用 `cell::push_abs_addr` 写 A1 的 `[$]列[$]行` 主体；R1C1 分支、ADDRESS
+  的 sheet 前缀规则和 INDIRECT 的解析/寻址语义均保持原样。
+- 不准新建或触碰 resolver、依赖登记、缓存、地址→公式索引或任何跨单元格状态；
+  调用方向只能是公式函数 → 既有无状态 `cell` writer。
+- 回归护栏固定多字母列与四种绝对标记：
+  `eval_tests::ref_address_indirect::eval_address` 和
+  `eval_tests::ref_cell_info::eval_cell_address`。
 
 ## 3. Phases & exit gates
 

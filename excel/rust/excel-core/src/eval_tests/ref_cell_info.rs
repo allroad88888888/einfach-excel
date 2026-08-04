@@ -13,6 +13,10 @@ fn eval_cell_address() {
         eval_str("=CELL(\"address\",B2)", &cm, &vs),
         Value::Text("$B$2".into())
     );
+    assert_eq!(
+        eval_str("=CELL(\"address\",AB27)", &cm, &vs),
+        Value::Text("$AB$27".into())
+    );
     // Case insensitivity: info_type is lowercased.
     assert_eq!(
         eval_str("=CELL(\"ADDRESS\",A1)", &cm, &vs),

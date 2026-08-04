@@ -28,6 +28,7 @@ fn source_gate_is_superset_of_ast_gate() {
         "=UNIQUE(A1:A9)",
         "=SORT(A1:A9)",
         "=SORTBY(A1:A9,B1:B9)",
+        "=INDEX(A1:B3,2,)",
         "=FILTER(A1:A9,B1:B9>0)",
         "=MODE.MULT(A1:A9)",
         "=TRANSPOSE(A1:B2)",

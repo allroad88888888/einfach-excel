@@ -5,8 +5,8 @@ import { ENGINE_BUILTIN_FORMULA_NAMES } from '../src/custom-formulas'
 
 /**
  * Drift guard: `engine-builtin-names.ts` must stay byte-for-byte
- * equivalent (as a set) to the Rust engine's `is_builtin_function_name`
- * arms.
+ * equivalent (as a set) to the Rust engine's delegated
+ * `is_builtin_function_name` arms.
  *
  * Why this matters: the reserved-name list is what stops a host from
  * registering a JS custom formula whose name an engine built-in would
@@ -29,7 +29,11 @@ import { ENGINE_BUILTIN_FORMULA_NAMES } from '../src/custom-formulas'
  * Do not duplicate that assertion here — one extractor per invariant.
  */
 
-const EVAL_RS_PATH = join(process.cwd(), 'excel/rust/excel-core/src/eval.rs')
+const RESERVED_NAME_MODULE_PATHS = [
+  'eval_builtin_names_a_h.rs',
+  'eval_builtin_names_i_r.rs',
+  'eval_builtin_names_s_z.rs',
+].map((file) => join(process.cwd(), 'excel/rust/excel-core/src', file))
 
 /**
  * Self-check floor for the extractor — a floor, not the real count, so
@@ -44,20 +48,15 @@ const MIN_EXTRACTED_NAMES = 400
 const ANCHOR_NAMES = ['SUM', 'IF', 'LAMBDA', 'LET', 'XLOOKUP', 'MAP', 'REDUCE', 'T.DIST']
 
 /**
- * Slice the body of the `matches!(...)` macro inside
- * `pub fn is_builtin_function_name`. Deliberately narrow: pulling
- * string literals from the whole 39k-line file would drag in unrelated
- * identifiers.
+ * Slice the body of the `matches!(...)` macro in one delegated reserved-name
+ * module. Deliberately narrow: pulling all string literals would drag in
+ * unrelated identifiers.
  */
-function readReservedNameMacroBody(): string {
-  const src = readFileSync(EVAL_RS_PATH, 'utf8')
-  const fnIdx = src.indexOf('pub fn is_builtin_function_name')
-  if (fnIdx === -1) {
-    throw new Error(`'pub fn is_builtin_function_name' not found in ${EVAL_RS_PATH}`)
-  }
-  const macroIdx = src.indexOf('matches!(', fnIdx)
+function readReservedNameMacroBody(path: string): string {
+  const src = readFileSync(path, 'utf8')
+  const macroIdx = src.indexOf('matches!(')
   if (macroIdx === -1) {
-    throw new Error('matches!(...) macro not found after is_builtin_function_name')
+    throw new Error(`matches!(...) macro not found in ${path}`)
   }
   let depth = 0
   for (let i = src.indexOf('(', macroIdx); i < src.length; i++) {
@@ -67,7 +66,7 @@ function readReservedNameMacroBody(): string {
       if (depth === 0) return src.slice(macroIdx, i)
     }
   }
-  throw new Error('unbalanced matches!(...) parens in is_builtin_function_name')
+  throw new Error(`unbalanced matches!(...) parens in ${path}`)
 }
 
 function extractReservedNames(body: string): string[] {
@@ -75,8 +74,8 @@ function extractReservedNames(body: string): string[] {
 }
 
 describe('engine-builtin mirror: Rust is_builtin_function_name vs JS ENGINE_BUILTIN_FORMULA_NAMES', () => {
-  const macroBody = readReservedNameMacroBody()
-  const rustNames = extractReservedNames(macroBody)
+  const macroBodies = RESERVED_NAME_MODULE_PATHS.map(readReservedNameMacroBody)
+  const rustNames = macroBodies.flatMap(extractReservedNames)
 
   // --- extractor self-checks (guard against a false green) ---
 
@@ -96,7 +95,7 @@ describe('engine-builtin mirror: Rust is_builtin_function_name vs JS ENGINE_BUIL
     // the union of all build configurations while any single build
     // reserves a subset. Fail here and decide what the mirror means
     // before changing this test.
-    expect(macroBody).not.toContain('#[cfg(')
+    expect(macroBodies.join('\n')).not.toContain('#[cfg(')
   })
 
   // --- the actual mirror assertion ---

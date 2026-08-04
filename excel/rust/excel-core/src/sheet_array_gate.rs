@@ -9,9 +9,10 @@ use super::*;
 /// Functions whose result can be a `Value::Array`.
 ///
 /// SEQUENCE / UNIQUE / SORT / FILTER are the original dynamic-array
-/// constructors; MAP / SCAN / BYROW / BYCOL / MAKEARRAY are the L3 array
-/// higher-order functions added alongside LAMBDA. REDUCE always returns a
-/// scalar so it's intentionally omitted. ISOMITTED is a scalar predicate.
+/// constructors. INDEX can also return a whole row or column. MAP / SCAN /
+/// BYROW / BYCOL / MAKEARRAY are the L3 array higher-order functions added
+/// alongside LAMBDA. REDUCE always returns a scalar so it's intentionally
+/// omitted. ISOMITTED is a scalar predicate.
 ///
 /// Kept ASCII-sorted so lookups can binary-search (pinned by
 /// `array_function_names_sorted`). Shared by the AST gate
@@ -28,6 +29,7 @@ pub(super) const ARRAY_FUNCTION_NAMES: &[&str] = &[
     "FREQUENCY",
     "GROWTH",
     "HSTACK",
+    "INDEX",
     "LINEST",
     "LOGEST",
     "MAKEARRAY",

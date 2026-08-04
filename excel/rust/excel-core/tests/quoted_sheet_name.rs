@@ -137,20 +137,13 @@ fn unterminated_quote_is_a_parse_failure() {
 
 // -------------------------------------------------------- 相邻面：其它入口
 
-/// `INDIRECT` 走的是**另一条**解析路径（`eval.rs::parse_indirect_ref`，一个
-/// 独立的文本扫描器，不经过 `parse_formula`），它的表名判据仍是
-/// `[A-Za-z_][A-Za-z0-9_]*`，不认引号。
-///
-/// 这条用例把现状钉成闭式字面量而不是断言「应该是 1」—— 它是与 TS 的一条
-/// **已知分歧**（TS 的 `eval/indirect-text.ts` 自带一份 `readQuotedSheetName`
-/// 分支，给 `1`），修法在 `eval.rs`，不在本次范围内。
+/// `INDIRECT` 走的是独立的文本解析路径，因此要单独覆盖带空格、转义单引号和
+/// 中文表名；它们应与普通公式引用走同一套工作簿查找语义。
 #[test]
-fn indirect_does_not_accept_quoted_sheet_names_yet() {
-    assert_eq!(
-        eval("=INDIRECT(\"'My Sheet'!A1\")"),
-        Value::Error(ValueError::InvalidRef)
-    );
-    // 不带引号的表名在 INDIRECT 上一直是好的，作为对照。
+fn indirect_accepts_quoted_sheet_names() {
+    assert_eq!(eval("=INDIRECT(\"'My Sheet'!A1\")"), Value::Number(1.0));
+    assert_eq!(eval("=INDIRECT(\"'It''s'!B3\")"), Value::Number(300.0));
+    assert_eq!(eval("=INDIRECT(\"'销售 数据'!A3\")"), Value::Number(3.0));
     assert_eq!(eval("=INDIRECT(\"Plain!A1\")"), Value::Number(1.0));
 }
 

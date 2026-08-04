@@ -1,4 +1,4 @@
-//! 门禁：`eval_func` 的分发名集合 ⊇ `is_builtin_function_name` 的保留名清单，
+//! 门禁：实际内建函数臂的分发名集合 ⊇ `is_builtin_function_name` 的保留名清单，
 //! 且两者差集恰好等于一份**显式白名单**。
 //!
 //! 为什么需要它：保留名清单是宿主注册 JS 自定义公式时的拒绝依据。求值优先级是
@@ -15,9 +15,8 @@
 //! `excel/spreadsheet-ui-core/test/engine-builtin-mirror.test.ts` 管的是下一段
 //! —— 保留名清单 vs 它生成的 JS 镜像。两段串起来才是完整链路。
 //!
-//! 防假绿：抽取器有数量下限自检、锚点名自检、逐项形状自检，外加一条「文本抽取
-//! 结果 vs 编译后真函数」的对照。扫描器一旦失效就会抽到 0 个、差集为空、断言
-//! 空过 —— 这几条自检就是为了让那种情况当场炸掉。
+//! 防假绿：根路由选择器与子模块实际臂严格相等，并有精确数量、锚点、逐项形状及
+//! 「文本抽取结果 vs 编译后真函数」的对照。扫描器一旦失效会立刻炸掉。
 
 mod eval_source_scan;
 
@@ -25,7 +24,8 @@ use std::collections::BTreeSet;
 
 use einfach_excel_core::is_builtin_function_name;
 use eval_source_scan::{
-    dispatch_names, eval_rs_chars, is_formula_name, reserved_macro_body, reserved_names,
+    actual_dispatches, eval_builtin_name_chars, eval_dispatch_chars, eval_family_chars,
+    is_formula_name, reserved_macro_body, reserved_names, routing_selectors,
 };
 
 /// 刻意留在保留名清单**之外**的分发名。**现在是空的，并且应当保持为空。**
@@ -43,42 +43,59 @@ use eval_source_scan::{
 /// 并写下理由。空数组本身就是一条断言：**今天没有任何例外。**
 const RESERVED_NAME_WHITELIST: &[&str] = &[];
 
-/// 抽取器数量下限。真实值是 500 / 500；写成下限而不是等值，是为了让新增内建不必
-/// 改这两个常量，同时仍能在扫描器失效（抽到个位数）时立刻失败。
-const MIN_DISPATCH_NAMES: usize = 450;
-const MIN_RESERVED_NAMES: usize = 400;
+/// 484 个直接函数分发臂，包含别名后共 502 个函数名。
+const EXPECTED_DISPATCH_ARM_COUNT: usize = 484;
+const EXPECTED_BUILTIN_NAME_COUNT: usize = 502;
 
 /// 形状自检：任何合理的抽取结果都必须含有这几个名字。
 const ANCHOR_NAMES: &[&str] = &[
     "SUM", "IF", "LAMBDA", "LET", "XLOOKUP", "MAP", "REDUCE", "T.DIST",
 ];
 
+fn actual_dispatch() -> eval_source_scan::DispatchScan {
+    actual_dispatches(&eval_family_chars())
+}
+
 #[test]
 fn extractors_are_not_vacuous() {
-    let src = eval_rs_chars();
-    let dispatch = dispatch_names(&src);
+    let src = eval_builtin_name_chars();
+    let dispatch = actual_dispatch();
     let reserved = reserved_names(&src);
 
     assert!(
-        dispatch.len() >= MIN_DISPATCH_NAMES,
-        "eval_func 只抽到 {} 个分发名（下限 {}）—— 扫描器多半失效了。\
-         不要调低下限，去修 tests/eval_source_scan/mod.rs",
-        dispatch.len(),
-        MIN_DISPATCH_NAMES
+        dispatch.arm_count == EXPECTED_DISPATCH_ARM_COUNT,
+        "实际函数臂数量变更：预期 {EXPECTED_DISPATCH_ARM_COUNT}，实际 {}。\
+         请同步确认别名与扫描器语义。",
+        dispatch.arm_count
     );
     assert!(
-        reserved.len() >= MIN_RESERVED_NAMES,
-        "is_builtin_function_name 只抽到 {} 个保留名（下限 {}）",
-        reserved.len(),
-        MIN_RESERVED_NAMES
+        dispatch.names.len() == EXPECTED_BUILTIN_NAME_COUNT,
+        "实际分发名数量变更：预期 {EXPECTED_BUILTIN_NAME_COUNT}，实际 {}。",
+        dispatch.names.len()
+    );
+    assert!(
+        reserved.len() == EXPECTED_BUILTIN_NAME_COUNT,
+        "保留名数量变更：预期 {EXPECTED_BUILTIN_NAME_COUNT}，实际 {}。",
+        reserved.len()
     );
     for anchor in ANCHOR_NAMES {
-        assert!(dispatch.contains(*anchor), "分发名里没有锚点 {anchor}");
+        assert!(dispatch.names.contains(*anchor), "分发名里没有锚点 {anchor}");
         assert!(reserved.contains(*anchor), "保留名里没有锚点 {anchor}");
     }
-    for n in dispatch.iter().chain(reserved.iter()) {
+    for n in dispatch.names.iter().chain(reserved.iter()) {
         assert!(is_formula_name(n), "抽到了不像公式名的字面量：{n:?}");
     }
+}
+
+#[test]
+fn root_routing_selectors_match_actual_function_arms() {
+    let routing = routing_selectors(&eval_dispatch_chars());
+    let actual = actual_dispatch();
+
+    assert_eq!(
+        routing.names, actual.names,
+        "eval.rs 路由选择器与 eval_fn_* 子模块的实际函数臂不一致"
+    );
 }
 
 #[test]
@@ -86,15 +103,16 @@ fn reserved_list_has_no_cfg_gated_arms() {
     // 保留名清单一旦被 `#[cfg]` 切分，「清单」就随构建配置而变：纯文本抽取会得到
     // 所有配置的并集，而任一构建实际只保留其中一个子集 —— 那时这条门禁的语义需要
     // 重新定义。先在这里炸掉，逼人先想清楚再改。
-    let body = reserved_macro_body(&eval_rs_chars());
+    let body = reserved_macro_body(&eval_builtin_name_chars());
     assert!(!body.contains("#[cfg("), "保留名清单里出现了 #[cfg] 门控");
 }
 
 #[test]
 fn dispatch_covers_reserved_list() {
-    let src = eval_rs_chars();
+    let src = eval_builtin_name_chars();
+    let dispatch = actual_dispatch();
     let orphans: Vec<String> = reserved_names(&src)
-        .difference(&dispatch_names(&src))
+        .difference(&dispatch.names)
         .cloned()
         .collect();
     assert!(
@@ -106,8 +124,10 @@ fn dispatch_covers_reserved_list() {
 
 #[test]
 fn dispatch_minus_reserved_equals_whitelist() {
-    let src = eval_rs_chars();
-    let gap: BTreeSet<String> = dispatch_names(&src)
+    let src = eval_builtin_name_chars();
+    let dispatch = actual_dispatch();
+    let gap: BTreeSet<String> = dispatch
+        .names
         .difference(&reserved_names(&src))
         .cloned()
         .collect();
@@ -138,7 +158,7 @@ fn dispatch_minus_reserved_equals_whitelist() {
 /// 纯文本门禁最大的盲点是「抽的和编译的不是同一个东西」，这条把两者钉在一起。
 #[test]
 fn extracted_reserved_names_match_the_compiled_function() {
-    let src = eval_rs_chars();
+    let src = eval_builtin_name_chars();
     for name in reserved_names(&src) {
         assert!(
             is_builtin_function_name(&name),

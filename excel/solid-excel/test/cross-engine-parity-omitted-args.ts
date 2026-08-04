@@ -26,11 +26,18 @@ export const SCALAR_CASES: ReadonlyArray<readonly [formula: string, display: str
   ['=SUM(1,)', '1'],
   ['=COUNT(1,,3)', '2'],
   ['=MAX(1,,5)', '5'],
+  ['=AVERAGE(1,,3)', '2'],
+  ['=PRODUCT(2,,3)', '6'],
+  ['=MIN(1,,5)', '1'],
   ['=CONCAT(1,,2)', '12'],
   ['=ROUND(3.14159,)', '3'],
   ['=TEXTJOIN(",",,1,2)', '1,2'],
   // AGGREGATE 的 options 空 ⇒ 0（不忽略任何东西）。
   ['=AGGREGATE(9,,F1:F5)', '15'],
+  // 空占位是 1×1 空值；SUMPRODUCT 不会把它广播到 5 行。
+  ['=SUMPRODUCT(F1:F5,)', '#VALUE!'],
+  // return_type 的空值数值化为 0，属于非法值域。
+  ['=WEEKDAY(45000,)', '#NUM!'],
   // 查找家族。
   ['=VLOOKUP(3,F1:G5,2,)', '30'],
   ['=HLOOKUP(1,F1:G5,2,)', '2'],
@@ -41,6 +48,7 @@ export const SCALAR_CASES: ReadonlyArray<readonly [formula: string, display: str
   ['=RANK(3,F1:F5,)', '3'],
   // 报障的这一条：省略 if_not_found 同时给 match_mode。
   ['=XLOOKUP(3,F1:F5,G1:G5,,-1)', '30'],
+  ['=XLOOKUP(3,F:F,G:G,,-1)', '30'],
   ['=XLOOKUP(3,F1:F5,G1:G5,,,-1)', '30'],
   ['=XLOOKUP(3,F1:F5,G1:G5,)', '30'],
   ['=XLOOKUP(0,F1:F5,G1:G5,"nf",-1)', 'nf'],
@@ -125,14 +133,24 @@ export const SPILL_CASES: ReadonlyArray<{
     ],
     displays: ['a', '', 'b'],
   },
+  {
+    // column_num 空值为 0，INDEX 返回第 2 行的整个区域。
+    formula: '=INDEX(F1:G5,2,)',
+    col: 28,
+    cells: [
+      [0, 28],
+      [0, 29],
+    ],
+    displays: ['2', '20'],
+  },
 ]
 
 export const SPILL_ADDRS = SPILL_CASES.flatMap((c) => c.cells.map(([r, col]) => a1(r, col)))
 export const EXPECTED_SPILL_DISPLAYS = SPILL_CASES.flatMap((c) => c.displays)
 
 /**
- * 两个引擎目前答得**不一样**的格子。每条都注明了根因与反证 —— 没有一条是
- * 空占位造成的，所以修空占位不该动它们。
+ * 两个引擎目前答得**不一样**的格子。每条都注明了根因与反证；空格引用与
+ * `SORTBY` 的 TS 参数传递层仍是已知差异，不应和已核销的空占位行为混在一起。
  */
 export const DIVERGENT_CASES: ReadonlyArray<{
   readonly formula: string
@@ -140,15 +158,6 @@ export const DIVERGENT_CASES: ReadonlyArray<{
   readonly wasm: string
   readonly why: string
 }> = [
-  // ── 空值该不该参与计算：TS 把它当 0 算进去了，Rust 与 Excel 都跳过 ──
-  //
-  // 反证：`=AVERAGE(1,Z99,3)`（Z99 是空格，一个空占位都没有）在 TS 侧同样
-  // 是 1.333…。所以根因是 TS 聚合函数对**空值**的处理，不是空占位的解析。
-  // Excel 的答案是 Rust 这一列：空格不进 AVERAGE 的分母、不当 PRODUCT 的
-  // 因子、不当 MIN 的候选。修的时候要动的是 TS 侧的聚合口径。
-  { formula: '=AVERAGE(1,,3)', ts: '1.33333333333333', wasm: '2', why: 'TS 把空值计入分母' },
-  { formula: '=PRODUCT(2,,3)', ts: '0', wasm: '6', why: 'TS 把空值当 0 乘进去' },
-  { formula: '=MIN(1,,5)', ts: '0', wasm: '1', why: 'TS 把空值当 0 参与取最小' },
   // ── 「取默认值」按语法判还是按值判：指向空格的引用算不算「没提供」 ──
   //
   // 空占位 `,,` 两侧一致（上面两组已钉）。分歧只出现在**指向空格的引用**
@@ -172,37 +181,13 @@ export const DIVERGENT_CASES: ReadonlyArray<{
     why: 'start 指向空格：TS 取默认 1，Rust 与 Excel 一样强转 0',
   },
   {
-    formula: '=XLOOKUP(3,F:F,G:G,,-1)',
-    ts: '30',
-    wasm: '#VALUE!',
-    // 反证：`=XLOOKUP(3,F:F,G:G)`（一个空占位都没有）在 Rust 侧同样
-    // `#VALUE!`，而 `=SUM(F:F)` 是对的 —— 整轴引用喂给 XLOOKUP 这条路
-    // 本身就断，与空占位无关。
-    why: 'Rust 侧整轴引用 + XLOOKUP 的既有缺陷，不写空占位也一样',
-  },
-  {
-    formula: '=INDEX(F1:G5,2,)',
-    ts: '2',
-    wasm: '2',
-    // 这一行两列相同**是刻意的**：分歧在溢出宽度上（TS 溢出 {2,20} 两格，
-    // Rust 只给一格），而这里读的是锚点格，两侧都是 2。留在这一组是为了钉住
-    // 「Rust 至少解析得出来」，真正的宽度分歧读不到。反证：`=INDEX(F1:G5,2,0)`
-    // 在 Rust 侧同样只给一格，所以根因是 INDEX 的整行返回未实现，不是空占位。
-    why: 'Rust 侧 INDEX 的整行返回未实现（col=0 也一样）；锚点格相同，宽度分歧此处读不到',
-  },
-  {
-    formula: '=WEEKDAY(45000,)',
-    ts: '#NUM!',
-    wasm: '#VALUE!',
-    // 两侧都与 Excel 不符（Excel: 2，return_type 空 ⇒ 默认 1），而且错得
-    // 不一样。要修得两侧一起修，单边修只会把分歧换个形状。
-    why: '两侧都把空的 return_type 当 0，Excel 是「取默认值 1」；错法还不同',
-  },
-  {
-    formula: '=SUMPRODUCT(F1:F5,)',
-    ts: '0',
-    wasm: '#VALUE!',
-    why: '空实参当成 0 标量还是形状不匹配，两侧口径不同；与 Excel 的答案另需核对',
+    formula: '=SORTBY(F1:F5,F1:F5,)',
+    ts: '#VALUE!',
+    wasm: '1',
+    // Microsoft 的 SORTBY 文档把 [sort_order1] 标为可选，默认升序。Rust
+    // 在 Expr::Omitted 上作语法判定；TS FunctionImpl 只拿到求值后的 BLANK，
+    // 无法把尾逗号和空单元格引用区分开，误送入 sort_order 校验。
+    why: 'SORTBY 的 TS 入口丢失空占位语法，Rust 按可选 sort_order 默认升序',
   },
 ]
 

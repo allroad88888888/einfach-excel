@@ -15,6 +15,7 @@
   "scripts": {
     "eslint": "npx eslint --config rules/.eslintrc --ext=.tsx,.ts --ignore-path ./rules/.eslintignore ./ --fix ",
     "check:docs": "node scripts/check-doc-links.mjs",
+    "check:cycles": "depcruise --config .dependency-cruiser.cjs --output-type err-long excel/excel-core-ts/src excel/spreadsheet-ui-core/src excel/solid-excel/src excel/solid-excel/src-vnext excel/excel-site/src",
     "lint:check": "npx eslint --config rules/.eslintrc --ext=.ts,.tsx --ignore-path ./rules/.eslintignore excel/*/src excel/*/test excel/solid-excel/src-vnext",
     "typecheck:apps": "npx tsc --noEmit -p excel/excel-site/tsconfig.json",
     "test": "jest --collect-coverage",
@@ -68,6 +69,7 @@
     "@types/node": "^20.11.30",
     "babel-jest": "^29.7.0",
     "babel-plugin-jsx-dom-expressions": "^0.39.7",
+    "dependency-cruiser": "^16.10.4",
     "husky": "^9.0.11",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",

@@ -76,6 +76,11 @@ fn eval_address() {
         eval_str("=ADDRESS(3,27,4)", &cm, &vs),
         Value::Text("AA3".into())
     );
+    // Shared writer preserves every absolute-marker permutation past Z.
+    assert_eq!(
+        eval_str("=ADDRESS(27,28,3)", &cm, &vs),
+        Value::Text("$AB27".into())
+    );
     // R1C1 (a1=FALSE), abs_num=1: R3C5.
     assert_eq!(
         eval_str("=ADDRESS(3,5,1,FALSE)", &cm, &vs),

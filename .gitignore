@@ -49,5 +49,9 @@ playwright/.cache/
 .codegraph/
 .codex-artifacts/
 
+# TypeDoc is rebuilt by excel/excel-site's build script.
+excel/excel-site/public/api-reference/
+excel/excel-site/.astro/
+
 # agent-harness conversation archives (never commit)
 .agent-archive/

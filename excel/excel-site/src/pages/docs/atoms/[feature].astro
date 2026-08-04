@@ -1,0 +1,21 @@
+---
+import DocsPage from '../../../components/DocsPage.astro'
+import { atomFeatureDocs, findAtomFeature, sourceUrl } from '../../../data/source-projection'
+import { sitePath } from '../../../data/site-path'
+
+export function getStaticPaths() {
+  return atomFeatureDocs.map((feature) => ({ params: { feature: feature.id } }))
+}
+
+const feature = findAtomFeature(Astro.params.feature ?? '')
+---
+
+<DocsPage
+  title={feature.title}
+  eyebrow="SOURCE-PROJECTED ATOM GUIDE"
+  summary="This guide is projected from the feature-owned README so ownership, state boundaries, and tests stay adjacent to implementation."
+  alternateLocaleHref={sitePath('zh/docs/atoms/' + feature.id + '/')}
+>
+  <p><a href={sourceUrl(feature.sourcePath)}>Open the authoritative feature source</a></p>
+  <pre><code>{feature.source}</code></pre>
+</DocsPage>

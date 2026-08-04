@@ -1,0 +1,31 @@
+---
+import DocsPage from '../../../components/DocsPage.astro'
+import { backendContract, backendTypesPath, sourceUrl } from '../../../data/source-projection'
+import { sitePath } from '../../../data/site-path'
+---
+
+<DocsPage
+  locale="zh"
+  title="API 参考"
+  eyebrow="从源码投射的参考"
+  summary="由线上演示使用的实现源码派生出的精简公开接口。"
+  alternateLocaleHref={sitePath('api/')}
+>
+  <p>
+    请先阅读 <a href={sitePath('zh/docs/backend-port/')}>backend port 指南</a>，再查看权威的
+    <a href={sourceUrl(backendTypesPath)}>TypeScript 源码</a>，了解可选能力。
+  </p>
+  <h2>SpreadsheetBackend</h2>
+  <pre><code>{backendContract}</code></pre>
+  <h2>Atom 功能指南</h2>
+  <ul>
+    <li><a href={sitePath('zh/docs/atoms/viewport/')}>视口 atoms</a></li>
+    <li><a href={sitePath('zh/docs/atoms/selection/')}>选择 atoms</a></li>
+    <li><a href={sitePath('zh/docs/atoms/custom-formulas/')}>自定义公式 atoms</a></li>
+  </ul>
+  <h2>生成的 API Markdown</h2>
+  <p>
+    <a href={sitePath('api-reference/globals.md')}>浏览 TypeDoc API 参考</a>。它在站点构建时从
+    <code>spreadsheet-ui-core</code> 与 <code>solid-excel</code> 的公开入口生成。
+  </p>
+</DocsPage>

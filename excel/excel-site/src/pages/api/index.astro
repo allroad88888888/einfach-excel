@@ -1,0 +1,30 @@
+---
+import DocsPage from '../../components/DocsPage.astro'
+import { backendContract, backendTypesPath, sourceUrl } from '../../data/source-projection'
+import { sitePath } from '../../data/site-path'
+---
+
+<DocsPage
+  title="API reference"
+  eyebrow="SOURCE-PROJECTED REFERENCE"
+  summary="A concise public surface derived from the implementation source used by the live demos."
+  alternateLocaleHref={sitePath('zh/api/')}
+>
+  <p>
+    Start with the <a href={sitePath('docs/backend-port/')}>backend port guide</a>, then inspect the authoritative
+    <a href={sourceUrl(backendTypesPath)}>TypeScript source</a> for optional capabilities.
+  </p>
+  <h2>SpreadsheetBackend</h2>
+  <pre><code>{backendContract}</code></pre>
+  <h2>Atom feature guides</h2>
+  <ul>
+    <li><a href={sitePath('docs/atoms/viewport/')}>Viewport atoms</a></li>
+    <li><a href={sitePath('docs/atoms/selection/')}>Selection atoms</a></li>
+    <li><a href={sitePath('docs/atoms/custom-formulas/')}>Custom formula atoms</a></li>
+  </ul>
+  <h2>Generated API Markdown</h2>
+  <p>
+    <a href={sitePath('api-reference/globals.md')}>Browse the TypeDoc reference</a> generated from the public
+    <code>spreadsheet-ui-core</code> and <code>solid-excel</code> entry points during this site's build.
+  </p>
+</DocsPage>

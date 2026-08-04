@@ -1,0 +1,49 @@
+---
+import '../styles/site.css'
+import { sitePath } from '../data/site-path'
+
+interface Props {
+  locale: 'en' | 'zh'
+  title: string
+  alternateLocaleHref?: string
+}
+
+const { locale, title, alternateLocaleHref } = Astro.props
+const isZh = locale === 'zh'
+const rootHref = sitePath(isZh ? 'zh/' : '')
+const demosHref = sitePath(isZh ? 'zh/#demos' : '#demos')
+const docsHref = sitePath(isZh ? 'zh/docs/getting-started/' : 'docs/getting-started/')
+const apiHref = sitePath(isZh ? 'zh/api/' : 'api/')
+const languageHref = alternateLocaleHref ?? sitePath(isZh ? '' : 'zh/')
+---
+
+<!doctype html>
+<html lang={isZh ? 'zh-CN' : 'en'}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content="Einfach spreadsheet engine demos and integration documentation." />
+    <link rel="icon" href={sitePath('favicon.svg')} type="image/svg+xml" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="wordmark" href={rootHref}>einfach · excel</a>
+      <nav aria-label={isZh ? '主导航' : 'Primary navigation'}>
+        <a href={demosHref}>{isZh ? '演示' : 'Demos'}</a>
+        <a href={docsHref}>{isZh ? '文档' : 'Docs'}</a>
+        <a href={apiHref}>API</a>
+        <a href={languageHref}>{isZh ? 'EN' : '中文'}</a>
+        <button id="theme-toggle" type="button" aria-label={isZh ? '切换颜色主题' : 'Toggle color theme'}>◐</button>
+      </nav>
+    </header>
+    <slot />
+    <footer class="site-footer">
+      <span>einfach · excel</span>
+      <a href="https://github.com/allroad88888888/einfach-excel">GitHub</a>
+    </footer>
+    <script>
+      import '../scripts/theme-toggle'
+    </script>
+  </body>
+</html>

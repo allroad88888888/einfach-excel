@@ -1,0 +1,21 @@
+---
+import DemoPage from '../../../components/DemoPage.astro'
+import { demos } from '../../../data/demo-catalog'
+
+export function getStaticPaths() {
+  return demos.map((demo) => ({ params: { id: demo.id } }))
+}
+
+type ContentModule = {
+  default: any
+  frontmatter: { title: string; summary: string }
+}
+
+const { id } = Astro.params
+const documents = import.meta.glob('../../../content/demos/zh/*.md', { eager: true }) as Record<string, ContentModule>
+const document = documents['../../../content/demos/zh/' + id + '.md']
+
+if (!document) throw new Error('Missing Chinese demo content for ' + id)
+---
+
+<DemoPage id={id!} locale="zh" Content={document.default} frontmatter={document.frontmatter} />

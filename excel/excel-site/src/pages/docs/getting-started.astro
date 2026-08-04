@@ -1,0 +1,27 @@
+---
+import DocsPage from '../../components/DocsPage.astro'
+import { sitePath } from '../../data/site-path'
+---
+
+<DocsPage
+  title="Getting started"
+  eyebrow="INTEGRATION GUIDE"
+  summary="Create one backend, mount one provider, and let the grid request only the projection it needs."
+  alternateLocaleHref={sitePath('zh/docs/getting-started/')}
+>
+  <h2>1. Choose a backend</h2>
+  <p>
+    The bundled Worker + Rust/WASM backend is a useful default. A host-owned backend works too when it implements the
+    <a href={sitePath('docs/backend-port/')}>backend port</a>.
+  </p>
+  <h2>2. Mount the provider once</h2>
+  <pre><code>{`<SpreadsheetUiProvider backend={backend}>
+  <SpreadsheetGrid sheetId={sheetId} viewport={viewport} />
+</SpreadsheetUiProvider>`}</code></pre>
+  <h2>3. Add capabilities deliberately</h2>
+  <p>
+    Keep authoritative workbook facts in the backend. Feature-local UI state belongs to atoms; consult the
+    <a href={sitePath('docs/atoms/viewport/')}>viewport</a> and
+    <a href={sitePath('docs/atoms/selection/')}>selection</a> ownership guides before adding state.
+  </p>
+</DocsPage>

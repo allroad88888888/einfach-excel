@@ -1,20 +1,20 @@
 {
+  "extends": "astro/tsconfigs/strict",
   "compilerOptions": {
-    "target": "ES2022",
-    "useDefineForClassFields": true,
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "allowJs": false,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "preserve",
     "jsxImportSource": "solid-js"
   },
-  "include": ["src", "vite.config.ts"]
+  "include": [".astro/types.d.ts", "src/**/*"],
+  "exclude": [
+    "src/main.tsx",
+    "src/routes.tsx",
+    "src/landing/**/*",
+    "src/shell/**/*",
+    "src/workbench/**/*",
+    "src/demos/DemoGalleryPage.tsx",
+    "src/demos/DemoPage.tsx",
+    "src/demos/DemoShell.tsx",
+    "src/demos/registry.ts",
+    "src/demos/registry-types.ts",
+    "src/demos/pages/**/*"
+  ]
 }

@@ -32,16 +32,34 @@ export const MAX_CUSTOM_FORMULA_REGISTRY_ENTRIES = 10_000
  * Set of built-in formula names that user code cannot redefine.
  *
  * Built from the union of:
- *   1. `ENGINE_BUILTIN_FORMULA_NAMES` — the authoritative mirror of the
- *      Rust engine's `is_builtin_function_name` arms (see
- *      `scripts/extract-builtin-names.mjs`). Covers every name the
- *      WASM evaluator would dispatch to a built-in arm, including
- *      `LAMBDA`, `LET`, `IFERROR`, `XLOOKUP`, `MAP`, `REDUCE`, etc.
- *      that the IntelliSense seed registry does not surface.
+ *   1. `ENGINE_BUILTIN_FORMULA_NAMES` — an exact mirror of the Rust
+ *      engine's `is_builtin_function_name` arms (see
+ *      `scripts/extract-builtin-names.mjs`; drift is caught by
+ *      `test/engine-builtin-mirror.test.ts`). Includes `LAMBDA`, `LET`,
+ *      `IFERROR`, `XLOOKUP`, `MAP`, `REDUCE`, etc. that the
+ *      IntelliSense seed registry does not surface.
  *   2. `FORMULA_FUNCTION_SPECS` — the IntelliSense seed registry. The
  *      Rust mirror should already include every name here, but we
  *      union both so a forgotten extraction never reopens a shadowing
  *      hole.
+ *
+ * No gap remains: every name the engine dispatches is reserved, so a
+ * registration can never be accepted here and then silently shadowed at
+ * eval time (precedence is built-in → defined-name LAMBDA → custom
+ * formula → `#NAME?`). 74 names used to leak — the `IM*` family, the
+ * extended finance batch, the text/info batch, the `RANKEQ`/`RANKAVG`
+ * aliases, the `REGEX*` trio — because `scripts/extract-builtin-names.mjs`
+ * resolved a wrong path and had never actually run.
+ *
+ * The trio is reserved even though it is the only
+ * `#[cfg(feature = "regex-formulas")]`-gated batch and does not exist in
+ * a lite build: that costs lite hosts the ability to polyfill it here,
+ * and buys the guarantee that one workbook never computes different
+ * values under lite vs full. Deliberate exceptions go in
+ * `RESERVED_NAME_WHITELIST`
+ * (`excel/rust/excel-core/tests/reserved_name_parity.rs`) — currently
+ * empty, and that gate keeps the set closed. Widening THIS set is not
+ * how you close a gap; add the arm on the Rust side.
  *
  * Normalizes to upper-case so callers can use either case in lookups.
  */

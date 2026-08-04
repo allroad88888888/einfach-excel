@@ -264,6 +264,18 @@ function firstError(values: Value[]): ErrorValue | undefined {
 }
 
 /**
+ * 可选实参写成空占位（`=SORT(A1:A5,,-1)` 里那个 `,,`）→ 取默认值，而不是强转
+ * 成 0。`SORT` 的 sort_index 与 `SEQUENCE` 的 columns 默认都是 1，强转 0 会撞
+ * 上「必须 ≥ 1」的校验，把 Excel 里最常见的降序写法判成 `#VALUE!`。
+ *
+ * 与 `functions/lookup.ts` 的 `pullNumber(v, fallback)` 同一条口径（那边也把
+ * `blank` 当「没提供」）。空占位的解析见 `parser/parser.ts` 的 `OMITTED`。
+ */
+function isOmittedArg(value: Value): boolean {
+  return value.kind === 'blank'
+}
+
+/**
  * SEQUENCE(rows, [cols=1], [start=1], [step=1])
  * Row-major fill.
  */
@@ -278,7 +290,7 @@ const SEQUENCE: FunctionImpl = (args) => {
   if (rows < 1) return ERR('#VALUE!', 'SEQUENCE rows must be >= 1')
 
   let cols = 1
-  if (args.length >= 2) {
+  if (args.length >= 2 && !isOmittedArg(args[1])) {
     const c = toNumber(args[1])
     if (!c.ok) return c.error
     cols = Math.floor(c.value)
@@ -286,14 +298,14 @@ const SEQUENCE: FunctionImpl = (args) => {
   }
 
   let start = 1
-  if (args.length >= 3) {
+  if (args.length >= 3 && !isOmittedArg(args[2])) {
     const s = toNumber(args[2])
     if (!s.ok) return s.error
     start = s.value
   }
 
   let step = 1
-  if (args.length >= 4) {
+  if (args.length >= 4 && !isOmittedArg(args[3])) {
     const st = toNumber(args[3])
     if (!st.ok) return st.error
     step = st.value
@@ -370,13 +382,13 @@ const SORT: FunctionImpl = (args) => {
 
   const m = asMatrix(args[0])
   let sortIndex = 1
-  if (args.length >= 2) {
+  if (args.length >= 2 && !isOmittedArg(args[1])) {
     const si = toNumber(args[1])
     if (!si.ok) return si.error
     sortIndex = Math.floor(si.value)
   }
   let asc = true
-  if (args.length >= 3) {
+  if (args.length >= 3 && !isOmittedArg(args[2])) {
     const so = toNumber(args[2])
     if (!so.ok) return so.error
     const sortOrder = Math.trunc(so.value)
@@ -384,7 +396,7 @@ const SORT: FunctionImpl = (args) => {
     asc = sortOrder === 1
   }
   let byCol = false
-  if (args.length >= 4) {
+  if (args.length >= 4 && !isOmittedArg(args[3])) {
     const bc = toBoolean(args[3])
     if (!bc.ok) return bc.error
     byCol = bc.value

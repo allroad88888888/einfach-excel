@@ -5,7 +5,7 @@
 //! get a direct mapped-AST install (no render→re-parse).
 //!
 //! Scanner-level unit tests (token classification, AST-parity corpus)
-//! live in `src/shift.rs`; this file covers the engine-visible
+//! live in `src/shift/parked_tests.rs`; this file covers the engine-visible
 //! contract: laziness preserved, values correct after edits, deleted
 //! bands surfacing `#REF!`, and hydrated-cache invalidation rules.
 

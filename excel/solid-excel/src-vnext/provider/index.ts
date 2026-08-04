@@ -1,4 +1,5 @@
 export * from './atoms'
+export * from './command-failure'
 export * from './context'
 export * from './copy-as-dispatch'
 export * from './edit-dispatch'

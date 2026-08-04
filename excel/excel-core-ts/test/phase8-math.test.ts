@@ -562,6 +562,36 @@ describe('SUBTOTAL / AGGREGATE', () => {
     expect(call(SUBTOTAL, [NUM(9), ARR([[NUM(1), ERR('#REF!')]])])).toEqual(ERR('#REF!'))
   })
 
+  // Cross-engine parity (Rust `fn_subtotal` / `run_subtotal` has always
+  // answered this way; this engine used to answer the error for both).
+  // Excel: an error cell is not a NUMBER, so COUNT skips it; it is not
+  // BLANK, so COUNTA tallies it. Neither ever hands back the error.
+  test('SUBTOTAL COUNT / COUNTA are error-transparent, unlike the value codes', () => {
+    const mixed = ARR([[NUM(1), NUM(2), NUM(3)], [STR('txt'), BOOL(true), ERR('#DIV/0!')]])
+    expect(call(SUBTOTAL, [NUM(2), mixed])).toEqual(NUM(3))
+    expect(call(SUBTOTAL, [NUM(3), mixed])).toEqual(NUM(6))
+    // The 101-111 tier collapses onto the same rule.
+    expect(call(SUBTOTAL, [NUM(102), mixed])).toEqual(NUM(3))
+    expect(call(SUBTOTAL, [NUM(103), mixed])).toEqual(NUM(6))
+    // Control: a value code on the SAME data still propagates.
+    expect(call(SUBTOTAL, [NUM(9), mixed])).toEqual(ERR('#DIV/0!'))
+    // A data arg that is a bare error (a single-cell reference to an error
+    // cell reaches the impl this way) no longer short-circuits COUNT.
+    expect(call(SUBTOTAL, [NUM(2), ERR('#DIV/0!'), ERR('#DIV/0!')])).toEqual(NUM(0))
+    // ...but the FUNCTION-NUMBER argument still does.
+    expect(call(SUBTOTAL, [ERR('#REF!'), mixed])).toEqual(ERR('#REF!'))
+  })
+
+  // AGGREGATE's ignore-errors bit is what separates its COUNTA from
+  // SUBTOTAL's: with the bit set the error stops being counted at all.
+  test('AGGREGATE COUNTA drops errors only when the ignore-errors bit is set', () => {
+    const mixed = ARR([[NUM(1), NUM(2), NUM(3)], [STR('txt'), BOOL(true), ERR('#DIV/0!')]])
+    expect(call(AGGREGATE, [NUM(3), NUM(0), mixed])).toEqual(NUM(6))
+    expect(call(AGGREGATE, [NUM(3), NUM(6), mixed])).toEqual(NUM(5))
+    expect(call(AGGREGATE, [NUM(2), NUM(0), mixed])).toEqual(NUM(3))
+    expect(call(AGGREGATE, [NUM(2), NUM(6), mixed])).toEqual(NUM(3))
+  })
+
   test('AGGREGATE supports ignore-error option and ranking functions', () => {
     expect(call(AGGREGATE, [NUM(9), NUM(6), ARR([[NUM(1), ERR('#REF!'), NUM(4)]])])).toEqual(
       NUM(5),

@@ -59,10 +59,15 @@
  */
 
 import {
+  anchorScalar,
   createWorkbook,
+  excelGeneralToText,
   formatA1,
   parseA1,
   parseFormula,
+  projectedValueAt,
+  scanSpillAnchors,
+  SPILL_PROJECTION_LOOKBACK,
   type BulkCellInput,
   type BulkTypedCellInput,
   type Cell,
@@ -79,7 +84,10 @@ import {
   type AsyncCustomCallable,
   type AsyncCustomPump,
 } from './async-custom-pump'
+import { gateCustomArrayReturn } from './custom-array-return'
+import { errorDisplayToken } from './error-display-token'
 import { sparseRangeToTSV } from './range-tsv'
+import { resolveSpillRegion, type SpillProbe } from './worker-spill-region'
 import type {
   CellRefWire,
   CellSnapshotWire,
@@ -90,6 +98,7 @@ import type {
   RpcResponseWire,
   SparseCellWire,
   SparseRangeWire,
+  SpillRegionWire,
   ViewportColumnWidthWire,
   ViewportRowHeightWire,
   ViewportSizeSnapshotWire,
@@ -146,6 +155,17 @@ export const TS_WORKER_RUNTIME_CAPABILITIES: WorkerRuntimeCapabilitiesWire = Obj
   engineHiddenState: false,
 })
 
+/**
+ * Error tokens a custom-formula callback may RETURN — the twin of the Rust
+ * bridge's `error_token_to_value_error` accept-list.
+ *
+ * This is a PARSE vocabulary, not a display one, so it deliberately still
+ * carries `#TYPE!` and `#ARGS!`: both tokens are accepted and STORED as the
+ * internal code. What a cell can SHOW is narrower — see `errorDisplayToken`,
+ * which collapses both to `#VALUE!` at the read boundary. Returning
+ * `{ error: '#TYPE!' }`, `{ error: '#ARGS!' }` and `{ error: '#VALUE!' }`
+ * therefore produce identical cell text.
+ */
 const CUSTOM_FORMULA_ERROR_CODES: readonly ErrorCode[] = [
   '#NULL!',
   '#DIV/0!',
@@ -297,35 +317,64 @@ function valueKindToCellType(v: Value): CellSnapshotWire['type'] {
   }
 }
 
+/**
+ * The UNFORMATTED display string of a value at this runtime's read boundary —
+ * the twin of `einfach_excel_core::value_to_display`. Every `display` field
+ * this worker puts on the wire (`readCells`, `readSparseRange`) comes from
+ * here, which is what makes it the exact string a host assertion sees.
+ *
+ * `snapshotRangeSparse` / `exportRangeTsv` deliberately do NOT come through
+ * here — those are serialization channels and keep the internal vocabulary
+ * (see `readSparseCell`).
+ */
 function valueDisplay(v: Value): string {
   switch (v.kind) {
     case 'number':
-      // Match Excel's "as short as possible" string rep for numbers.
-      // Number.prototype.toString already trims trailing zeros.
-      return String(v.value)
+      // NOT `String(v.value)`: JS 的默认写法给 `1e+21` / `1e-7`（小写 `e`、
+      // 指数不补零），Excel 里根本没有这种写法。走引擎的 General 转文本单点
+      // 实现，与 `&` 拼接读到的文本、与 WASM 侧 `value_to_display` 逐字节
+      // 同判 —— 三者不同判时，同一个数字在同一个产品里就有三种写法。
+      return excelGeneralToText(v.value)
     case 'string':
       return v.value
     case 'boolean':
       return v.value ? 'TRUE' : 'FALSE'
     case 'error':
-      return v.code
+      // NOT `v.code`: the rendering boundary speaks Excel's error
+      // vocabulary, which is narrower than the engine's diagnostic one.
+      return errorDisplayToken(v.code)
     case 'blank':
       return ''
-    case 'array': {
-      const row = v.value[0]
-      if (!row || row.length === 0) return ''
-      return valueDisplay(row[0])
-    }
+    case 'array':
+      // 数组落在显示边界上 = 锚点位置的那个标量，与公式层读到的同一条规则。
+      return valueDisplay(anchorScalar(v))
   }
 }
 
 /**
- * Walk up + left within a bounded window looking for a spill anchor whose
- * `kind:'array'` covers the target. If found, return the projected scalar;
- * otherwise undefined. The window cap (`SPILL_LOOKBACK`) keeps reads O(1)
- * even on dense sheets — anchors farther than this aren't projectable.
+ * 「这一格是不是别人的投影格，投影出什么」—— **薄委派**给引擎。
+ *
+ * 几何（只向右下铺、`SPILL_PROJECTION_LOOKBACK` 回看上限、数组上限闸门）住在
+ * `excel-core-ts` 的 `eval/spill-projection.ts`，公式层的读路径走的是同一份。
+ * 这里只提供本层自己的那一件事：**怎么拿到一个锚点的数组值**（读它的
+ * `formulaCellAtom`）。
+ *
+ * 下沉之前这里是一份手写的左上回看双重循环，与公式层各算各的 —— 那正是
+ * 「`=SUM(A1:A3)` 给 `#CALC!` 而格子里显示 2」这类分歧的来源。
  */
-const SPILL_LOOKBACK = 200
+function* anchorCandidates(
+  cells: ReadonlyMap<string, Cell>,
+  query: CellRange,
+): Generator<readonly [string, Cell]> {
+  const bounds: CellRange = {
+    rowStart: Math.max(0, query.rowStart - SPILL_PROJECTION_LOOKBACK),
+    rowEnd: query.rowEnd,
+    colStart: Math.max(0, query.colStart - SPILL_PROJECTION_LOOKBACK),
+    colEnd: query.colEnd,
+  }
+  for (const entry of collectCellsInBounds(cells, bounds)) yield [entry.key, entry.cell]
+}
+
 function getSpillProjectedValue(
   state: RuntimeState,
   sheet: SheetEntry,
@@ -335,28 +384,65 @@ function getSpillProjectedValue(
   const target = state.workbook.sheet(sheet.id)
   if (!target) return undefined
   const cells = state.workbook.store.getter(target.sheetAtom)
-  // Self-check: if (row,col) has its own cell, it isn't a spill target.
+  // 有自有条目就不是别人的投影格。
   if (cells.has(`${row}:${col}`)) return undefined
-
-  const rowMin = Math.max(0, row - SPILL_LOOKBACK)
-  const colMin = Math.max(0, col - SPILL_LOOKBACK)
-  for (let r = row; r >= rowMin; r -= 1) {
-    for (let c = col; c >= colMin; c -= 1) {
-      if (r === row && c === col) continue
-      const anchor = cells.get(`${r}:${c}`)
-      if (!anchor || !anchor.input?.startsWith('=')) continue
-      const atom = target.formulaCellAtom(`${r}:${c}`)
-      const v = state.workbook.store.getter(atom)
-      if (v.kind !== 'array') continue
-      const dr = row - r
-      const dc = col - c
-      if (dr < v.value.length && dc < (v.value[dr]?.length ?? 0)) {
-        return v.value[dr][dc]
+  const query = { rowStart: row, rowEnd: row, colStart: col, colEnd: col }
+  // 候选只可能落在左上回看象限里（`couldReach` 也是这么判的），所以喂给引擎的是
+  // 「象限 ∩ 已有格子」而不是整张表 —— `collectCellsInBounds` 会在「走窗口」与
+  // 「走稀疏表」之间挑便宜的那条。少喂不漏判，见 `scanSpillAnchors` 的注释。
+  const scan = scanSpillAnchors(query, anchorCandidates(cells, query), {
+    arrayAt: (key, cell) => {
+      if (!cell.input.startsWith('=')) {
+        return cell.value.kind === 'array' ? cell.value.value : undefined
       }
-      // Anchor exists but its array doesn't cover us — keep searching.
-    }
+      const value = state.workbook.store.getter(target.formulaCellAtom(key))
+      return value.kind === 'array' ? value.value : undefined
+    },
+  })
+  return projectedValueAt(scan, { row, col })
+}
+
+/**
+ * UI 查询：`(row, col)` 属于哪个活动溢出区（ADR 0006 阶段 3）。
+ *
+ * 探针与 `getSpillProjectedValue` 读的是同一批事实（自有条目 + 公式格的数组值），
+ * lookback 也是引擎那一个 `SPILL_PROJECTION_LOOKBACK`，所以「画得出框」与「读得到投影
+ * 值」、以及「公式算得出的值」永远一致。
+ */
+function spillRegionAt(
+  state: RuntimeState,
+  sheet: SheetEntry,
+  row: number,
+  col: number,
+): SpillRegionWire | null {
+  const target = state.workbook.sheet(sheet.id)
+  if (!target) return null
+  const cells = state.workbook.store.getter(target.sheetAtom)
+  const probe: SpillProbe = {
+    hasOwnCell: (r, c) => cells.has(`${r}:${c}`),
+    arrayShapeAt: (r, c) => {
+      const key = `${r}:${c}`
+      const cell = cells.get(key)
+      if (!cell?.input?.startsWith('=')) return null
+      const value = state.workbook.store.getter(target.formulaCellAtom(key))
+      if (value.kind !== 'array') return null
+      const rows = value.value.length
+      const cols = value.value[0]?.length ?? 0
+      return rows > 0 && cols > 0 ? { rows, cols } : null
+    },
   }
-  return undefined
+  const found = resolveSpillRegion(probe, row, col, SPILL_PROJECTION_LOOKBACK)
+  if (found === null) return null
+  // 锚点的公式原文，给公式栏在投影格上显示。这一条 TS runtime **答得出** —— 与
+  // `blockedBy` 不同：锚点在表里有自己的条目，`input` 就是那条公式。多这一次
+  // `cells.get` 的代价可以忽略（同一个 Map，扫描本身已经命中过它）。
+  const anchorInput = cells.get(`${found.anchorRow}:${found.anchorCol}`)?.input
+  const anchorFormula = anchorInput?.startsWith('=') ? anchorInput : undefined
+  return {
+    sheet: sheet.idx,
+    ...found,
+    ...(anchorFormula === undefined ? {} : { anchorFormula }),
+  }
 }
 
 function readCellValue(state: RuntimeState, sheet: SheetEntry, row: number, col: number): Value {
@@ -369,11 +455,9 @@ function readCellValue(state: RuntimeState, sheet: SheetEntry, row: number, col:
     // any returned array to its top-left scalar at the boundary (mirrors
     // the WASM convention — UI cells project one scalar each).
     const atom = target.formulaCellAtom(key)
-    const v = state.workbook.store.getter(atom)
-    if (v.kind === 'array') {
-      return v.value[0]?.[0] ?? { kind: 'blank' }
-    }
-    return v
+    // 锚点在边界上收成左上角那个标量 —— `anchorScalar` 是这条规则的单点实现，
+    // 公式层的读路径走的是同一个函数。
+    return anchorScalar(state.workbook.store.getter(atom))
   }
   // Empty cell — check if a nearby anchor's array projects into us.
   const spilled = getSpillProjectedValue(state, sheet, row, col)
@@ -443,6 +527,12 @@ function readSparseCell(
       return { sheet: sheet.idx, addr: formatA1({ row, col }), row, col, kind: 'text', value: value.value }
     case 'boolean':
       return { sheet: sheet.idx, addr: formatA1({ row, col }), row, col, kind: 'boolean', value: value.value }
+    // `value.code`, NOT `errorDisplayToken(...)`. This record is the
+    // persistence / clipboard WIRE and `setCellFromWire` is its inverse — a
+    // restore must reproduce the variant it captured, so it speaks the
+    // serialization vocabulary (where the internal codes are still `#TYPE!`
+    // and `#ARGS!`), not the narrower Excel-facing display one. Same split as
+    // the Rust twin's `sparse_cell_from_value`.
     case 'error':
       return { sheet: sheet.idx, addr: formatA1({ row, col }), row, col, kind: 'error', value: value.code }
     case 'array':
@@ -650,14 +740,14 @@ function collectSpillTargets(
   // RIGHT, so only anchors at or before the bounds end can project in;
   // when `collectCellsInBounds` takes its probe path (huge sheets,
   // small windows) the up-left search is additionally capped at
-  // SPILL_LOOKBACK — the same documented projectability cap the
+  // SPILL_PROJECTION_LOOKBACK — the same documented projectability cap the
   // single-cell boundary read (`getSpillProjectedValue`) applies. On
   // sheets smaller than the expanded probe area the sparse map walk
   // runs instead and finds every anchor (today's behavior).
   const anchorBounds: CellRange = {
-    rowStart: Math.max(0, bounds.rowStart - SPILL_LOOKBACK),
+    rowStart: Math.max(0, bounds.rowStart - SPILL_PROJECTION_LOOKBACK),
     rowEnd: bounds.rowEnd,
-    colStart: Math.max(0, bounds.colStart - SPILL_LOOKBACK),
+    colStart: Math.max(0, bounds.colStart - SPILL_PROJECTION_LOOKBACK),
     colEnd: bounds.colEnd,
   }
   for (const { key, row: ar, col: ac, cell } of collectCellsInBounds(cells, anchorBounds)) {
@@ -705,10 +795,15 @@ function snapshotRangeSparse(state: RuntimeState, range: SparseRangeWire): Spars
   // the projections were serialized as literal records (the pre-fix
   // behavior), `restoreSparse` after an undo would MATERIALIZE them as
   // real cells that shadow the spill and go stale on the next anchor
-  // edit. This also matches the WASM engine's no_eval snapshot, which
-  // only ever walks existing cells. Projection reads (`readSparseRange`,
-  // `readCells`) still surface spill values via `collectSpillTargets` /
-  // `getSpillProjectedValue`.
+  // edit. Projection reads (`readSparseRange`, `readCells`) still surface
+  // spill values via `collectSpillTargets` / `getSpillProjectedValue`.
+  //
+  // Here it is free: a TS spill target has no entry in the sheet map, so
+  // this loop cannot reach it. The WASM engine parks a real derived atom
+  // at the target address, so its twin has to filter explicitly — see
+  // `sparse_cell_from_sheet_no_eval` in `excel/rust/wasm/src/lib.rs`. It
+  // did not, which is how a `=SEQUENCE(10)` came back from a persistence
+  // roundtrip as nine literals plus a `#SPILL!` anchor.
   for (const { row, col } of collectCellsInBounds(cells, bounds)) {
     const sparse = readSparseCell(state, sheet, row, col)
     if (sparse) out.push(sparse)
@@ -1110,11 +1205,13 @@ function wrapCustomResult(result: unknown): Value {
     return { kind: 'string', value: result }
   }
   if (Array.isArray(result)) {
-    // 2-D array marshalling.
-    const rows: Value[][] = result.map((row) =>
-      Array.isArray(row) ? row.map(wrapCustomResult) : [wrapCustomResult(row)],
-    )
-    return { kind: 'array', value: rows }
+    // 二维数组回程（动态数组 / spill）。形状 / 尺寸判定全在
+    // `gateCustomArrayReturn` 里，与 Rust 侧 `js_array_to_value` 逐条对齐；
+    // 放行之后元素**递归回本函数**，所以数组里的数字 / 文本 / 布尔 / null /
+    // 错误 token / `{ error }` 与标量回程含义完全一致，没有第二套映射。
+    const gated = gateCustomArrayReturn(result)
+    if (!gated.ok) return { kind: 'error', code: gated.code, message: gated.message }
+    return { kind: 'array', value: gated.rows.map((row) => row.map(wrapCustomResult)) }
   }
   if (typeof result === 'object' && 'error' in (result as Record<string, unknown>)) {
     // Tagged-error escape hatch `{ error: '#DIV/0!' }` — wasm parity.
@@ -1661,6 +1758,12 @@ export function createWorkerRuntimeTs(events?: WorkerRuntimeTsEvents): ExcelCore
         return snapshotRangeSparse(state, normalizeSparseRange(msg.range))
       case 'readSparseRange':
         return readSparseRange(state, normalizeSparseRange(msg.range))
+      case 'spillRegion': {
+        const sheet = assertSheetIdx(state, Number(msg.sheet))
+        const coord = parseA1(normalizeAddr(msg.addr))
+        if (!coord) throw rpcError('INVALID_ADDR', `invalid cell address: ${String(msg.addr)}`)
+        return spillRegionAt(state, sheet, coord.row, coord.col)
+      }
       case 'readCells': {
         const cells = Array.isArray(msg.cells) ? (msg.cells as CellRefWire[]) : []
         return cells.map((ref) => {

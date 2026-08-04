@@ -72,8 +72,23 @@ export interface CellRange {
  * Excel formula errors. Strings (not numeric) so they survive
  * `JSON.stringify` round-trips through `postMessage` and dev-tools.
  *
- * `#CIRCULAR!` is einfach-specific; Excel surfaces circular refs as
- * `0` with a warning dialog. We diverge for diagnostic clarity.
+ * This is the INTERNAL / INBOUND vocabulary — every code a value may carry or
+ * a literal may parse to. It is deliberately WIDER than what a cell can show.
+ * The display boundary is the host's `errorDisplayToken`
+ * (`excel/solid-excel/src-vnext/adapter/error-display-token.ts`, twin of Rust's
+ * `format::error_display_token`), which collapses the two codes Excel has no
+ * counterpart for — `#TYPE!` and `#ARGS!` — to `#VALUE!`. Do not narrow this
+ * list to match: a parse/wire vocabulary may be wider than the display one,
+ * never narrower.
+ *
+ * Note this engine's own arity guards already answer `#VALUE!` directly, so
+ * `#ARGS!` only ever enters from outside — a formula literal, a restored
+ * snapshot, or a custom-formula return token.
+ *
+ * `#CIRCULAR!` and `#CYCLE!` are einfach-specific; Excel surfaces circular
+ * refs as `0` with a warning dialog. We diverge for diagnostic clarity, and
+ * unlike `#TYPE!` / `#ARGS!` that divergence is carried through to the
+ * display — a `0` would bury the bug inside a plausible number.
  */
 export const ERROR_CODES = [
   '#DIV/0!',
@@ -204,6 +219,7 @@ export type Expr =
   | StringLiteral
   | BooleanLiteral
   | ErrorLiteral
+  | OmittedExpr
   | ReferenceExpr
   | RangeExpr
   | DynamicRangeExpr
@@ -236,6 +252,15 @@ export interface BooleanLiteral {
 export interface ErrorLiteral {
   readonly kind: 'error'
   readonly code: ErrorCode
+}
+
+/**
+ * 实参列表里的**空占位**（`=XLOOKUP(3,F1:F5,G1:G5,,-1)` 的 `,,`）。求值成
+ * `BLANK` —— Excel 的语义是「传一个空值进去」而非「这个参数不存在」，各函数
+ * 对空值的既有处理照旧生效。与只管 LAMBDA 形参的 `ISOMITTED` 无关。
+ */
+export interface OmittedExpr {
+  readonly kind: 'omitted'
 }
 
 /** A single-cell reference like `A1`, `$A$1`, `$A1`, `A$1`. */

@@ -867,4 +867,49 @@ export const messages: Record<string, string> = {
   'removeDuplicates.confirm': 'Remove',
   'removeDuplicates.status.success': 'Removed {count} duplicate rows',
   'removeDuplicates.status.failed': 'Failed to remove rows',
+
+  // Dynamic arrays — the one thing `#SPILL!` could never say on its own:
+  // which cell is in the way. Shown while the collided anchor is selected.
+  'spill.blockedBy': 'Blocked by {addr} — clear that cell to let the array spill.',
+  // Same clue, but the obstruction is ANOTHER dynamic array. The engine points
+  // at that array's anchor rather than the cell physically in the way: clearing
+  // a projected cell only collapses that array into a second `#SPILL!`. Naming
+  // the array is what keeps the message believable — the anchor can look empty
+  // from where the user is standing.
+  'spill.blockedByArray':
+    'Blocked by the array at {addr} — clear that array to let this one spill.',
+  // Tooltip on the greyed-out formula bar while a spilled (non-anchor) cell is
+  // selected. The formula shown belongs to the anchor, so editing it here would
+  // write it INTO the projected cell and collapse the whole array to `#SPILL!`.
+  'spill.projectedFormula': 'Spilled from {addr} — edit this formula in {addr}.',
+
+  // Diagnostics — the visible outlet for operations that failed. Codes not
+  // listed here fall back to the English message UI core carries, so a new
+  // engine code stays visible instead of being swallowed.
+  'diagnostics.region.label': 'Notifications',
+  'diagnostics.dismiss': 'Dismiss',
+  'diagnostics.clearAll': 'Clear all',
+  'diagnostics.more': '+{count} more',
+  'diagnostics.severity.error': 'Error',
+  'diagnostics.severity.warning': 'Warning',
+  'diagnostics.severity.info': 'Info',
+  'diagnostics.code.mutationBlockedLocked': 'That cell is protected and cannot be edited.',
+  'diagnostics.code.mutationInvalidTarget': 'That edit target is not valid.',
+  'diagnostics.code.invalidFormula': 'That formula could not be parsed.',
+  'diagnostics.code.formulaCycle': 'That formula would create a circular reference.',
+  'diagnostics.code.outOfBounds': 'That reference is outside the sheet.',
+  'diagnostics.code.backendError': 'The workbook engine could not complete the request.',
+  'diagnostics.code.cancelled': 'The request was cancelled.',
+  'diagnostics.code.invalidSheet': 'That sheet no longer exists.',
+  'diagnostics.code.invalidRequestId': 'A stale request was discarded.',
+  'diagnostics.code.invalidRange': 'That range is not valid.',
+  'diagnostics.code.emptyRange': 'That range is empty.',
+  'diagnostics.code.rangeTooLarge': 'That range is too large to read at once.',
+  'diagnostics.code.resultTooLarge': 'The result is too large to display.',
+  'diagnostics.code.cellOutOfRange': 'That cell is outside the requested range.',
+  'diagnostics.code.staleResult': 'A stale result was discarded.',
+  'diagnostics.code.tabRenameEmpty': 'A sheet name cannot be empty.',
+  'diagnostics.code.tabReorderInvalid': 'That sheet cannot be moved there.',
+  'diagnostics.code.operationInvalid': 'That operation is not valid here.',
+  'diagnostics.code.workspaceStaleProjection': 'The view was out of date and has been refreshed.',
 }

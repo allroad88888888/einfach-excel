@@ -217,6 +217,66 @@ export interface CellSnapshotWire extends CellRefWire {
   formula: string
 }
 
+/**
+ * `spillRegion` 的应答：要么是一个**活动**溢出区，要么是一个碰撞态锚点的阻塞线索。
+ * 地址一律零基 row/col，与投影同一坐标系。
+ *
+ * `anchorRow` / `anchorCol` 恒等于矩形左上角 —— 数组只往下、往右溢出。
+ *
+ * 两种形态互斥：
+ *
+ * - **活动溢出区**：带 `rows` / `cols`，不带 `blockedBy`。
+ * - **碰撞态（`#SPILL!`）锚点**：带 `blockedBy`，不带 `rows` / `cols` —— 它一个格子都
+ *   没装上，没有矩形可画（与 Excel 一致）。
+ *
+ * 都不是（普通格、空格、越界）时整个应答是 `null`。
+ *
+ * **两个 runtime 在这里行为不同，这是刻意的**：`blockedBy` 只有 WASM runtime 会给。
+ * TS 参考引擎的溢出目标在表里根本没有条目，碰撞态锚点连「它想要多大的矩形」都没存
+ * （`validateSpillAnchorValue` 算完就丢），所以它答不出「被谁挡住」—— 于是它对碰撞态
+ * 锚点仍回 `null`，也就是**诚实地说不知道**，而不是编一个地址。跨引擎差异钉在
+ * `excel/solid-excel/test/cross-engine-parity-spill.test.ts`。
+ */
+export interface SpillRegionWire {
+  sheet: number
+  anchorRow: number
+  anchorCol: number
+  /** 溢出区尺寸。只有活动溢出区有；碰撞态锚点缺席。 */
+  rows?: number
+  cols?: number
+  /**
+   * 这个碰撞态锚点**要清哪一格**才能溢出来。引擎答不出就缺席。
+   *
+   * 不是「矩形里行主序第一个非空格」那么直白：那一格若是别的数组的投影格，引擎报的是
+   * **那个数组的锚点**（`sheet_spill_blocker.rs` 的 `blame_for`）—— 清投影格会把那个
+   * 数组也塌成 `#SPILL!`，等于拿一个错误换另一个。
+   */
+  blockedBy?: { row: number; col: number }
+  /**
+   * `blockedBy` 指的是一个**动态数组**（它是某个数组的锚点），而不是用户自己打的值。
+   *
+   * 为真时 UI 换一套说法：`blockedBy` 可能是一格用户看着「什么都没有」的地址（数组的
+   * 内容画在它的投影格上），照直说「清掉 C1」会让人以为提示指错了。
+   *
+   * 与 `blockedBy` 一样是**可选**的，且只在为真时出现：缺席 = 「不是数组」或「答不出」，
+   * UI 对两者的处理一样（退回朴素说法）。旧 wasm-pkg 上恒缺席。
+   */
+  blockedByArray?: boolean
+  /**
+   * 锚点那一格的公式原文（含 `=`）。公式栏在投影格上要显示的就是它 —— 投影格没有
+   * 自己的公式。**与 `rows`/`cols` 同行**：只有活动溢出区带，碰撞态锚点不带。
+   *
+   * 与 `blockedBy` 不同，这条**两个 runtime 都答得出**：WASM 走早就在产物里的
+   * `get_formula` 导出，TS runtime 直接读锚点条目的 `input`。答不出（老产物、手写
+   * 替身）时整个字段缺席，UI 退回「显示投影值、可编辑」的原行为。
+   *
+   * 走这条应答而不是另发一次读单元格：溢出区查询本来就每次选区移动才发一次，锚点
+   * 又可能落在可见窗口之外（`=SEQUENCE(10000)` 滚到中段），单独去读要么多一个往返、
+   * 要么读不到。
+   */
+  anchorFormula?: string
+}
+
 export interface WorkbookSheetMeta {
   idx: number
   name: string
@@ -230,7 +290,9 @@ export interface RpcErrorWire {
    * the flat `code`/`message` pair. `sortRange` uses it to forward the
    * engine's `{ code, anchor?, message? }` reject payload (`SortRangeRejectWire`)
    * — the RPC `code` is `SORT_REJECTED`, `detail.code` is the engine
-   * reason. Absent for every other command.
+   * reason. `TABLE_REJECTED` (`TableRejectWire`) and `CELL_WRITE_REJECTED`
+   * (`CellWriteRejectWire`) follow the same convention. Absent for every
+   * other command.
    */
   detail?: unknown
 }
@@ -466,11 +528,18 @@ export interface FilterSnapshotWire {
   filters: SheetFilterStateWire[]
 }
 
+/**
+ * 表元数据 = 表身份，**仅此而已**。两个 runtime 都只发 `{ idx, name }`，
+ * 两边的 restore 也只读这两个字段（按 idx 校验连续、按 name 建表）。
+ *
+ * 这里曾经还有 `rowCount?` / `colCount?`：只有 WASM 引擎填（扫全表求稀疏边界），
+ * TS 引擎不填，整个代码库没有一处读。纯写不读的字段唯一的作用是让两个引擎的快照
+ * 永远无法逐字相等 —— 它把 scale-parity P5 的形状断言逼成了子集比对。
+ * 2026-08-01 删除，P5 随之升级为 sheets 全等。
+ */
 export interface WorkbookPersistenceSheetWire {
   idx: number
   name: string
-  rowCount?: number
-  colCount?: number
 }
 
 export interface WorkbookPersistenceSnapshotWire {
@@ -623,6 +692,21 @@ export interface WorkerWorkbookClient {
   renameSheet(sheet: number, name: string): Promise<boolean>
   removeSheet(sheet: number): Promise<boolean>
   moveSheet(from: number, to: number): Promise<boolean>
+  /**
+   * Single-cell writes. Fail-closed: an engine refusal REJECTS with an
+   * Error whose `code` is `CELL_WRITE_REJECTED` and whose `detail` is a
+   * `CellWriteRejectWire` — same convention as `sortRange`. Nothing was
+   * written when that happens, so a caller must not record undo or bump a
+   * revision.
+   *
+   * `setFormula`'s `false` and `setFormulaDetailed`'s `{ ok: false, code }`
+   * are NOT refusals: the source failed to parse or cycled and the cell
+   * already holds `#VALUE!` / `#CYCLE!`.
+   *
+   * A write into a dynamic array's spill region is NOT a refusal either on
+   * either runtime: it lands, and the array is withdrawn with the anchor
+   * left at `#SPILL!` (ADR 0006).
+   */
   setCell(sheet: number, addr: string, value: CellWire): Promise<boolean>
   setFormula(sheet: number, addr: string, formula: string): Promise<boolean>
   setFormulaDetailed(
@@ -792,6 +876,15 @@ export interface WorkerWorkbookClient {
   exportRangeTsvChunks(range: SparseRangeWire, rowsPerChunk?: number): Promise<string[]>
   restoreSparse(cells: SparseCellWire[]): Promise<number>
   readSparseRange(range: SparseRangeWire): Promise<CellSnapshotWire[]>
+  /**
+   * ADR 0006 阶段 3 —— 问「`addr` 这一格属不属于某个活动的动态数组」。
+   * 不属于（含碰撞态 `#SPILL!` 锚点、普通格、空格）时解析为 `null`。
+   *
+   * 装饰性只读，不改任何状态、不 bump revision。WASM runtime 走 wasm-pkg 的
+   * `spillAnchor` / `spillInfo` 两个导出；产物太老缺这两个导出时按本仓惯例
+   * 报结构化 `WASM_METHOD_UNAVAILABLE`，不假装「这里没有数组」。
+   */
+  spillRegion(sheet: number, addr: string): Promise<SpillRegionWire | null>
   debugFormulaCacheState(sheet: number, addr: string): Promise<string>
   debugFormulaEvalCount(sheet: number): Promise<number>
   debugCounters(): Promise<WorkerWorkbookDebugCountersWire>
@@ -1236,6 +1329,9 @@ export function createWorkerWorkbook(opts: WorkerWorkbookOptions): WorkerWorkboo
     },
     readSparseRange(range) {
       return request<CellSnapshotWire[]>('readSparseRange', { range })
+    },
+    spillRegion(sheet, addr) {
+      return request<SpillRegionWire | null>('spillRegion', { sheet, addr: addr.toUpperCase() })
     },
     debugFormulaCacheState(sheet, addr) {
       return request<string>('debugFormulaCacheState', { sheet, addr: addr.toUpperCase() })

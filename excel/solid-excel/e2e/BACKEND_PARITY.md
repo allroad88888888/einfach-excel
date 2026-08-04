@@ -295,6 +295,37 @@ specs listed under "Static `VNextWave5Demo`" above and include:
   the result`) also failed once on TS but PASSED on Playwright's
   built-in retry — already flaky, not a regression.
 
+## 能力差异 ≠ 分歧：TS runtime 用能力证词把缺失的引擎能力**声明**出来
+
+查 parity 时最容易误判的一类：`@einfach/excel-core-ts` 有几项 Rust 引擎有、它没有的
+能力。这些**不是**会在运行时咬人的静默分歧 —— `worker-runtime-ts.ts` 顶上的能力
+证词把它们声明成 `false`，UI core 据此**撤下**对应的宿主端口，于是 provider 根本
+不会推；万一有不合规的 adapter 硬发，RPC 侧还会 `unsupported(...)` **fail closed**，
+而不是回一个成功形状的假 ACK。
+
+| 证词 | TS 引擎缺的东西 | 后果 |
+|---|---|---|
+| `autoFill: false` | 无填充序列原语 | 端口撤下；直接发 RPC 会被结构化拒绝 |
+| `sortRange: false` | 无物理排序（任意置换 relocate + 逐字搬运 + spill 闸门） | 同上 |
+| `evalHiddenRows: false` | 无隐藏行求值输入 | `SUBTOTAL 101-111` 在 TS 后端退化成「不排除」—— 可接受，因为 TS 的 SUBTOTAL 从来就没排除过隐藏行 |
+| `evalFilterHiddenRows: false` | 无 FILTER 隐藏行求值输入 | `SUBTOTAL 1-11` 与 `101-111` 都保持「不排除」 |
+| `structuredTables: false` | 无 Excel Table 注册表（无结构化引用解析、无表几何） | 六个 table CRUD 端口全撤下；WASM 是唯一的真 Table 路径 |
+
+也就是说：**宿主在 TS 后端上根本没有办法把隐藏行喂给引擎**，所以不存在「隐藏了行
+之后两个后端算出不同 SUBTOTAL」这种运行时惊喜 —— 差的是**功能有没有**，不是
+**同一次调用答案一不一样**。Rust 侧的两档规则见
+[ADR 0003](../../../docs/decisions/0003-engine-owns-filter-sort.md)。
+
+真要在 TS 侧补齐，缺口是引擎级的（`EvalContext` 里没有任何 hidden 钩子），属独立
+切片，不是 adapter 层能补的。
+
+**溢出区查询（`spillRegion`，ADR 0006 阶段 3）不在上表里** —— 两个 runtime 都真的
+实现了它，只是路子不同：WASM 走 `spillAnchor` / `spillInfo` 两个导出，TS runtime
+没有溢出索引（溢出目标在表里根本没有条目），反着往左上扫。既然两边都有，它就属于
+「同一次调用答案必须一样」那一类，由参数化跑两遍的
+`excel/solid-excel/test/vnext-worker-spill-region.test.ts` 钉住：锚点坐标 + 形状的
+闭式比较，含碰撞态 `#SPILL!` 与写入塌缩两个边界。
+
 ## What the debug-probe RPC surfaces
 
 `excel/solid-excel/src-vnext/adapter/worker-runtime-ts.ts` exposes the same three

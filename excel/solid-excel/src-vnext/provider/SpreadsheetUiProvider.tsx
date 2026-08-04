@@ -2,6 +2,7 @@ import { createStore } from '@einfach/core'
 import { Provider as SolidProvider } from '@einfach/solid'
 import {
   capturePasteSpecialCapabilityAtom,
+  captureSpillRegionCapabilityAtom,
   createSpreadsheetUi,
   customFormulaRegistryAtom,
   MAX_CUSTOM_FORMULA_REGISTRY_ENTRIES,
@@ -165,6 +166,8 @@ export function SpreadsheetUiProvider(props: SpreadsheetUiProviderProps) {
   })
   core.store.setter(spreadsheetBackendAtom, props.backend)
   core.store.setter(capturePasteSpecialCapabilityAtom, props.backend)
+  // ADR 0006 阶段 3：后端没实现 `readSpillRegion` 时溢出边框整体隐身。
+  core.store.setter(captureSpillRegionCapabilityAtom, props.backend)
 
   // The host locale lives in its dedicated Einfach store. Mirror its
   // workbook-facing fill-series facts into this provider's actual core store
@@ -195,6 +198,7 @@ export function SpreadsheetUiProvider(props: SpreadsheetUiProviderProps) {
     ?.call(props.backend)
     .then(() => {
       core.store.setter(capturePasteSpecialCapabilityAtom, props.backend)
+      core.store.setter(captureSpillRegionCapabilityAtom, props.backend)
     })
     .catch(() => {})
   const detachNamedRangeFeaturePort = attachNamedRangeFeaturePort(

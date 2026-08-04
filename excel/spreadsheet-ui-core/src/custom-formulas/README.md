@@ -108,16 +108,30 @@ are owned; it is a separate follow-up rather than an implied core guarantee.
   1. `ENGINE_BUILTIN_FORMULA_NAMES` — the authoritative mirror of the
      Rust evaluator's `is_builtin_function_name` arms, auto-generated
      by `scripts/extract-builtin-names.mjs` from
-     `excel/rust/excel-core/src/eval.rs` (currently 426 names including
-     `LAMBDA`, `LET`, `IFERROR`, `XLOOKUP`, `MAP`, `REDUCE`, …).
+     `excel/rust/excel-core/src/eval.rs` (includes `LAMBDA`, `LET`,
+     `IFERROR`, `XLOOKUP`, `MAP`, `REDUCE`, the `IM*` complex family,
+     the finance batch, …).
   2. `FORMULA_FUNCTION_SPECS` — the IntelliSense seed registry under
      `formula-functions/registry.ts`.
 - Re-registering an existing custom name silently replaces the previous
   source / metadata (Excel semantics).
+- **No holes.** Every name the engine dispatches is reserved, so no
+  registration can be accepted and then silently shadowed at eval time.
+  `RESERVED_NAME_WHITELIST` in
+  `excel/rust/excel-core/tests/reserved_name_parity.rs` is the escape
+  hatch for a deliberate exception, and it is currently **empty**.
+  Notably `REGEXTEST` / `REGEXEXTRACT` / `REGEXREPLACE` are reserved
+  even though they are `regex-formulas`-gated and do not exist in a
+  lite build: reserving them costs lite hosts the ability to polyfill
+  the trio here, and buys the guarantee that one workbook never
+  computes different values under lite vs full.
 
 If the Rust engine adds a new built-in arm, re-run
 `node excel/spreadsheet-ui-core/scripts/extract-builtin-names.mjs`
-to refresh `engine-builtin-names.ts`.
+to refresh `engine-builtin-names.ts`. Forgetting the arm itself is
+caught by `excel/rust/excel-core/tests/reserved_name_parity.rs`;
+forgetting the regeneration is caught by
+`excel/spreadsheet-ui-core/test/engine-builtin-mirror.test.ts`.
 
 ## JS callback signature
 
@@ -190,16 +204,73 @@ Engine contract details: `excel/rust/excel-core/src/CUSTOM_FORMULAS.md`
 
 Plain-value contract (see `CustomFormulaArg` / `CustomFormulaReturn`):
 
-| direction | shape                                                                              |
-| --------- | ---------------------------------------------------------------------------------- |
-| in        | `Array<CustomFormulaScalar \| ReadonlyArray<ReadonlyArray<CustomFormulaScalar>>>`  |
-| out       | `number \| string \| boolean \| null \| undefined`                                 |
+| direction | shape                                                                                                          |
+| --------- | -------------------------------------------------------------------------------------------------------------- |
+| in        | `Array<CustomFormulaScalar \| ReadonlyArray<ReadonlyArray<CustomFormulaScalar>>>`                              |
+| out       | `number \| string \| boolean \| null \| undefined \| { error } \| ReadonlyArray<ReadonlyArray<cell>>`          |
 
-where `CustomFormulaScalar = number | string | boolean | null`. See
+where `CustomFormulaScalar = number | string | boolean | null` and a `cell`
+is a scalar or `{ error }`. See
 `excel/rust/excel-core/src/CUSTOM_FORMULAS.md` "Marshaling" for the full
 JsValue ↔ Value mapping, including the structured-error return form
-(`{ error: '#DIV/0!' }`) and the Excel error tokens that round-trip
-back to `Value::Error`.
+(`{ error: '#DIV/0!' }`) and the error tokens a callback may return.
+
+### Returning a dynamic array
+
+Both directions are 2-D and row-major — one mapping, read either way. A
+callback that returns a 2-D array spills:
+
+```js
+// =SPLITNAME(A1)  →  fills two columns on one row
+const [first, last] = String(args[0]).split(' ')
+return [[first, last]]
+```
+
+The result goes through the engine's normal dynamic-array path, so
+projection, collision and `#SPILL!` behave exactly like `=SEQUENCE(2,2)`
+(ADR 0006) — there is no custom-formula-specific spill behavior to learn.
+
+Boundaries worth internalising before shipping a host callback:
+
+- **Rectangular only.** `[[1,2],[3]]` is `#VALUE!`; it is never padded.
+- **2-D only.** `[1,2,3]` is `#VALUE!` — the engine refuses to guess row
+  vs column. Write `[[1,2,3]]` (row) or `[[1],[2],[3]]` (column).
+- **Empty is `#CALC!`.** `[]` and `[[]]` both, matching `FILTER`.
+- **Capped at 1,048,576 cells**, the same gate `SEQUENCE` uses; over-cap
+  is `#VALUE!` and the check runs before allocation.
+- Every rejection names its cause somewhere the host can read: the WASM
+  backend logs a `console.warn` in the worker (a cell can only carry a
+  token), the TS reference backend attaches the reason to the error value's
+  `message`. **The token in the cell is identical either way** — the
+  diagnostic channel is the only difference.
+
+The rules above hold on **both** backends and are pinned by twin suites,
+because a shape that spills on one engine and errors on the other is the
+worst kind of parity gap: `excel/rust/wasm/tests/custom_formula_array_web.rs`
+(WASM) and `excel/solid-excel/test/excel-core-ts-custom-formula-arrays.test.ts`
+(TS). Change one table, change the other.
+
+`isAsync: true` callbacks may resolve an array too — the settle path
+reuses the identical marshaling on both backends, so there is no
+sync/async split here.
+
+**Returned token ≠ displayed token.** The token list a callback may return
+is wider than the set of codes a cell can show. Two tokens differ today,
+both because Excel has no code for them:
+
+- `#TYPE!` — the engine keeps `WrongType` internally (it is what the
+  built-in argument-type guards and the "returned a Date/function/object"
+  marshaling fallback produce).
+- `#ARGS!` — the engine keeps `WrongArgCount` internally (the arity
+  guards). Excel rejects a wrong argument count at *entry time* with a
+  dialog, so it never becomes a cell error there at all.
+
+Every rendering boundary maps both to `#VALUE!`. So returning
+`{ error: '#TYPE!' }`, `{ error: '#ARGS!' }` and `{ error: '#VALUE!' }`
+produce identical cell text, and a test asserting on cell text must expect
+`#VALUE!`. Prefer `#VALUE!` in new host code. `#CYCLE!` is non-Excel too
+but is deliberately shown as-is. Full rationale in `CUSTOM_FORMULAS.md`
+§ "Internal vs displayed codes".
 
 ## Dependency tracking
 

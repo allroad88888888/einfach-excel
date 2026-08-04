@@ -95,8 +95,14 @@ function infixBindingPower(op: OpLexeme): [number, number] {
   }
 }
 
-const PREFIX_BP = 50 // higher than `+`/`-`/`*`/`/`, lower than `^`
-const POSTFIX_BP = 55 // `%` binds tighter than infix arithmetic but looser than `^`
+// The three bands above `^` (left-bp 60), ordered exactly as Excel's operator
+// table does: reference operators > unary `-` > `%` > `^`. Both of the
+// non-reference ones USED to sit below 60 (50 / 55), which cost two defects:
+// `=-2^2` parsed as `-(2^2)` = -4 where Excel and the Rust engine say
+// `(-2)^2` = 4, and `=2^2%` left the `%` unconsumed (→ `unexpected trailing
+// token percent` → `#VALUE!`) where both say `2^(2%)` = 2^0.02.
+const POSTFIX_BP = 62 // `%` — above `^`, below unary
+const PREFIX_BP = 64 // unary `+`/`-` — above `%`, below the reference operators
 const RANGE_BP = 65 // reference range operator binds tighter than scalar infix ops
 const CALL_BP = 70 // expression-level LAMBDA calls bind tighter than all infix ops
 const SPILL_BP = 75 // spill references are syntactic anchors, not scalar arithmetic
@@ -141,11 +147,10 @@ function parseExpr(cur: TokenCursor, minBp: number): Expr {
       cur.next()
       const rhs = parseExpr(cur, rbp)
       lhs = { kind: 'binary', op: t.value as BinaryOp, left: lhs, right: rhs }
-      // After consuming an infix op, postfix `%` could still apply to the
-      // whole expression — but Excel actually only allows `%` on atoms,
-      // so we don't re-enter the postfix loop here. Doing so would let
-      // `=1+2%` parse as `(1+2)%`; Excel parses as `1 + 2%`. Bind-power
-      // ordering above already covers that case.
+      // Deliberately NOT re-entering the postfix loop: a trailing `%` was
+      // already claimed by the recursive `parseExpr(rbp)` above, because
+      // POSTFIX_BP outranks every infix right-bp. Re-entering would let
+      // `=1+2%` parse as `(1+2)%` = 0.03; Excel parses `1 + 2%` = 1.02.
       continue
     }
     break
@@ -422,13 +427,30 @@ function parseArrayLiteral(cur: TokenCursor): ArrayLiteralExpr {
   return { kind: 'arrayLiteral', rows }
 }
 
+/**
+ * 空占位实参：Excel 允许中间 / 末尾的实参留空取默认值
+ * （`=XLOOKUP(3,F1:F5,G1:G5,,-1)`）。留空的槽位在 `,` 或 `)` 之前**没有任何
+ * token**，所以在调 `parseExpr` 之前先看一眼 —— 否则 `parseAtom` 会拿 `comma`
+ * / `rparen` 去撞 default 分支抛 `unexpected token`，整条公式变 `#VALUE!`。
+ *
+ * 只在实参列表里成立。数组字面量 `{1,,2}` 与多区域 `(A1:A3,)` 不走这条路，
+ * 照旧是解析错误 —— Excel 那两处也不接受空槽。
+ */
+const OMITTED: Expr = { kind: 'omitted' }
+
+function parseArgOrOmitted(cur: TokenCursor): Expr {
+  const kind = cur.peek().kind
+  if (kind === 'comma' || kind === 'rparen') return OMITTED
+  return parseExpr(cur, 0)
+}
+
 function parseArgList(cur: TokenCursor): Expr[] {
   const args: Expr[] = []
   if (cur.peek().kind === 'rparen') return args
-  args.push(parseExpr(cur, 0))
+  args.push(parseArgOrOmitted(cur))
   while (cur.peek().kind === 'comma') {
     cur.next()
-    args.push(parseExpr(cur, 0))
+    args.push(parseArgOrOmitted(cur))
   }
   return args
 }

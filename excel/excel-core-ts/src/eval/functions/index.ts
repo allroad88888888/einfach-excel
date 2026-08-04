@@ -89,9 +89,16 @@ export function getBuiltinFunction(name: string): FunctionImpl | undefined {
 }
 
 /**
- * Full list of built-in names, used by the formula-autocomplete UI in
- * `excel/spreadsheet-ui-core` to shadow conflicting custom-formula
- * registrations. Returned as a sorted array for determinism.
+ * Full list of built-in names, sorted for determinism.
+ *
+ * 这里曾写着「被 `excel/spreadsheet-ui-core` 的公式自动补全用来遮蔽冲突的自定义公式
+ * 注册」—— 那是假的，从来没有生产消费者。注册侧的遮蔽名单是
+ * `ENGINE_BUILTIN_FORMULA_NAMES`（Rust 侧 `is_builtin_function_name` 的镜像），
+ * **刻意**不是这份：两个后端可互换，而拒绝规则必须只有一份、且以引擎为准。
+ *
+ * 现在它是测试专用的抽取口，供
+ * `excel/solid-excel/test/engine-function-set-parity.test.ts` 与本包的
+ * `test/functions-registry.test.ts` 拿到 TS 侧的真实名字集合。
  */
 export function listBuiltinNames(): readonly string[] {
   return Object.freeze([...BUILTIN_FUNCTIONS.keys()].sort())

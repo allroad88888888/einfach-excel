@@ -101,6 +101,13 @@ worker 工厂**刻意不从** `src-vnext` barrel 导出（`import.meta` 会炸 j
 `@einfach/solid-excel/vnext-worker-factory` 子路径 —— 见
 [ADR 0004](decisions/0004-worker-factory-out-of-barrel.md)。
 
+Rust/WASM 那侧的 dispatcher 与"用哪份 wasm 产物"是解耦的：消息循环在
+`worker-runtime-core.ts`（`installWorkerRuntime(wasm)`，命令族分在 `worker-commands-*.ts`），
+`worker-runtime.ts` / `worker-runtime-full.ts` 只是各自静态 import `wasm-pkg/` 与
+`wasm-pkg-full/` 的**叶子**入口。库的 barrel 与 factory 不引用任何一份 `wasm-pkg*`，所以
+默认不构建的 full 产物不会变成构建期必需项 —— 选型见 `excel/rust/wasm/README.md`
+§「怎么选 full」。
+
 ## 构建管线
 
 - TypeScript composite project，`tsc -build` 出声明

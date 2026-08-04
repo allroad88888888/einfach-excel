@@ -5,52 +5,34 @@ import type {
   VisibleProjectionResult,
 } from '@einfach/spreadsheet-ui-core'
 import {
-  dismissFormulaSuggestionsAtom,
   editingDraftAtom,
   editingSessionAtom,
   focusFormulaBarAtom,
   formulaBarStateAtom,
-  formulaFunctionSuggestionCursorAtom,
-  formulaFunctionSuggestionsAtom,
   startEditingAtom,
   syncFormulaBarAtom,
   selectionSnapshotAtom,
+  spillProjectedFormulaAtom,
+  toA1,
   workspaceSessionAtom,
   type FormulaBarSyncInput,
 } from '@einfach/spreadsheet-ui-core'
+import { useT } from '../../src/i18n'
 import { isVisibleProjectionResult } from '../provider'
 import {
   dispatchEditingCancel,
   dispatchEditingCommit,
-  acceptFormulaSuggestion,
   notifyDraftTypedChar,
-  readActiveFormulaSuggestion,
   syncFormulaReferenceCaret,
 } from '../provider/edit-dispatch'
 import { spreadsheetProjectionSnapshotAtom } from '../provider/atoms'
 import { useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider/hooks'
 import { SpreadsheetNameBox } from '../name-box'
+import { createFormulaBarKeyHandler } from './formula-bar-keys'
 
 export interface SpreadsheetFormulaBarProps {
   class?: string
   'data-testid'?: string
-}
-
-function getColumnLabel(index: number): string {
-  let value = index + 1
-  let label = ''
-
-  while (value > 0) {
-    const remainder = (value - 1) % 26
-    label = String.fromCharCode(65 + remainder) + label
-    value = Math.floor((value - 1) / 26)
-  }
-
-  return label
-}
-
-function toA1(cell: CellCoord): string {
-  return `${getColumnLabel(cell.col)}${cell.row + 1}`
 }
 
 function getSourceTextFromProjection(
@@ -77,11 +59,13 @@ function getSourceTextFromProjection(
 export function SpreadsheetFormulaBar(props: SpreadsheetFormulaBarProps) {
   const store = useSpreadsheetUiStore()
   const backend = useSpreadsheetBackend()
+  const t = useT()
   const selectionSnapshot = useAtomValue(selectionSnapshotAtom)
   const formulaBarState = useAtomValue(formulaBarStateAtom)
   const editingSession = useAtomValue(editingSessionAtom)
   const editingDraft = useAtomValue(editingDraftAtom)
   const projectionSnapshot = useAtomValue(spreadsheetProjectionSnapshotAtom)
+  const spillProjectedFormula = useAtomValue(spillProjectedFormulaAtom)
   const workspace = useAtomValue(workspaceSessionAtom)
   let inputRef: HTMLInputElement | undefined
 
@@ -125,10 +109,32 @@ export function SpreadsheetFormulaBar(props: SpreadsheetFormulaBarProps) {
     store.setter(syncFormulaBarAtom, input)
   })
 
+  /**
+   * 活动单元格是不是某个数组的**投影格** —— 是的话公式栏显示锚点的公式，且整条
+   * 不接受输入。
+   *
+   * 三条设计要点：
+   *
+   * 1. **只在没有编辑会话时成立。** 用户在格子里直接打字是 Excel 允许的（ADR 0006：
+   *    数组塌成 `#SPILL!`），那时 `status === 'drafting'`，这里立刻回 `null`，公式栏
+   *    照常镜像 `editingDraft`。只读态因此**不会**顺手禁掉合法的写入路径。
+   * 2. **纯显示层，不写进任何 atom。** `formulaBarStateAtom.draft` 仍然是这一格自己的
+   *    源文本（投影值），锚点公式只覆盖**显示**。反过来做会把一条别人的公式放进
+   *    「待提交的草稿」里，任何一个读 `draft` 去提交的路径都会把整个数组打成 `#SPILL!`
+   *    —— 那正是这条特性要防的事故。
+   * 3. **后端答不出锚点公式就整条不生效**，退回原行为（显示投影值、可编辑）。
+   */
+  const spillReadonly = createMemo(() => {
+    if (editingSession().status === 'drafting') return null
+    return spillProjectedFormula()(resolveActiveSheetId(), selectionSnapshot().activeCell)
+  })
+
   // The input element's value: editingDraft while drafting, otherwise the
   // formula-bar synced draft (which reflects the projection source text).
   const displayValue = createMemo(() => {
     if (editingSession().status === 'drafting') return editingDraft()
+    const readonly = spillReadonly()
+    if (readonly) return readonly.formula
     return formulaBarState().draft
   })
 
@@ -148,6 +154,14 @@ export function SpreadsheetFormulaBar(props: SpreadsheetFormulaBarProps) {
   function onInput(event: InputEvent) {
     const target = event.target as HTMLInputElement | null
     if (!target) return
+    // `readOnly` 已经挡住键盘与粘贴，这里是第二道闸：少了它，任何一条绕过 DOM
+    // 只读位的输入（程序化派发的 input 事件、某些 IME 合成路径）都会把锚点公式
+    // 当成用户输入提交进投影格，直接把整个数组塌成 `#SPILL!`。
+    const readonly = spillReadonly()
+    if (readonly) {
+      target.value = readonly.formula
+      return
+    }
     const next = target.value
     if (editingSession().status !== 'drafting') {
       // First keystroke in the formula bar opens an editing session for the
@@ -166,82 +180,24 @@ export function SpreadsheetFormulaBar(props: SpreadsheetFormulaBarProps) {
     syncFormulaReferenceCaret(store, target.selectionStart ?? 0)
   }
 
-  async function commitDraft() {
-    if (editingSession().status !== 'drafting') return
-    await dispatchEditingCommit(store, backend, { source: 'formula-bar', move: 'none' })
-  }
-
-  function cancelDraft() {
-    dispatchEditingCancel(store)
-  }
-
-  function isCommitKey(event: KeyboardEvent) {
-    return event.key === 'Enter' || event.code === 'Enter' || event.keyCode === 13
-  }
-
-  function isEscapeKey(event: KeyboardEvent) {
-    return (
-      event.key === 'Escape' ||
-      event.key === 'Esc' ||
-      event.code === 'Escape' ||
-      event.code === 'Esc' ||
-      event.keyCode === 27
-    )
-  }
-
-  async function handleKeyDown(event: KeyboardEvent) {
-    // Autocomplete first: when the dropdown has rows, ArrowUp/Down move
-    // the cursor and Tab/Enter accept the highlighted suggestion (open
-    // the function paren without committing the cell). Esc dismisses.
-    const suggestionsOpen = store.getter(formulaFunctionSuggestionsAtom).length > 0
-    if (suggestionsOpen) {
-      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-        event.preventDefault()
-        const list = store.getter(formulaFunctionSuggestionsAtom)
-        const current = store.getter(formulaFunctionSuggestionCursorAtom)
-        const next =
-          event.key === 'ArrowDown'
-            ? (current + 1) % list.length
-            : (current - 1 + list.length) % list.length
-        store.setter(formulaFunctionSuggestionCursorAtom, next)
-        return
+  const handleKeyDown = createFormulaBarKeyHandler({
+    store,
+    isReadonly: () => spillReadonly() !== null,
+    async commit() {
+      if (editingSession().status === 'drafting') {
+        await dispatchEditingCommit(store, backend, { source: 'formula-bar', move: 'none' })
       }
-      if (event.key === 'Tab' || isCommitKey(event)) {
-        const suggestion = readActiveFormulaSuggestion(store)
-        if (suggestion) {
-          event.preventDefault()
-          const { caret } = acceptFormulaSuggestion(store, suggestion)
-          queueMicrotask(() => {
-            inputRef?.focus()
-            inputRef?.setSelectionRange(caret, caret)
-          })
-          return
-        }
-      }
-    }
-
-    if (isCommitKey(event)) {
-      event.preventDefault()
-      await commitDraft()
       inputRef?.blur()
-      return
-    }
-
-    if (isEscapeKey(event)) {
-      // Autocomplete-first: if the popup is open, Esc dismisses it but
-      // keeps the editing session active so the user can keep typing.
-      // Only the second Esc (or Esc with no popup) cancels editing.
-      if (suggestionsOpen) {
-        event.preventDefault()
-        store.setter(dismissFormulaSuggestionsAtom)
-        store.setter(formulaFunctionSuggestionCursorAtom, 0)
-        return
-      }
-      event.preventDefault()
-      cancelDraft()
+    },
+    cancel() {
+      dispatchEditingCancel(store)
       inputRef?.blur()
-    }
-  }
+    },
+    setCaret(caret) {
+      inputRef?.focus()
+      inputRef?.setSelectionRange(caret, caret)
+    },
+  })
 
   function bindInputRef(node: HTMLInputElement | undefined | null) {
     if (!node || inputRef === node) {
@@ -260,7 +216,16 @@ export function SpreadsheetFormulaBar(props: SpreadsheetFormulaBarProps) {
     })
   }
 
-  const cellAddress = () => toA1(selectionSnapshot().activeCell)
+  const cellAddress = () => {
+    const active = selectionSnapshot().activeCell
+    return toA1(active.row, active.col)
+  }
+
+  /** 只读态下「那条公式的主人在哪」，A1 形式 —— 用户要去改的就是这一格。 */
+  const spillAnchorLabel = createMemo(() => {
+    const readonly = spillReadonly()
+    return readonly ? toA1(readonly.anchor.row, readonly.anchor.col) : undefined
+  })
 
   return (
     <div
@@ -285,6 +250,18 @@ export function SpreadsheetFormulaBar(props: SpreadsheetFormulaBarProps) {
         // `label`, critical). Screen readers announced it as an unlabeled
         // edit box. Matches Excel's own "Formula bar" announcement.
         aria-label="Formula bar"
+        // 投影格：显示锚点的公式，但不接受编辑 —— 在这里敲一个字就会把这条公式
+        // 提交进投影格，按 ADR 0006 的写入语义整个数组会塌成 `#SPILL!`。Excel 同样
+        // 把它做成灰色只读。`data-*` 是这条性质的测试抓手。
+        readOnly={spillAnchorLabel() !== undefined}
+        aria-readonly={spillAnchorLabel() !== undefined ? 'true' : undefined}
+        title={
+          spillAnchorLabel() === undefined
+            ? undefined
+            : t('spill.projectedFormula', { addr: spillAnchorLabel() })
+        }
+        data-spill-readonly={spillAnchorLabel() === undefined ? undefined : 'true'}
+        data-spill-anchor={spillAnchorLabel()}
         value={displayValue()}
         onInput={onInput}
         onSelect={onSelectionChange}

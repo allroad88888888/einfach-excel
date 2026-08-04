@@ -155,26 +155,41 @@ describe('static backend fill series', () => {
       colEnd: 0,
     })
     const expected = [0.1, 0.2, 0.2 + 0.1, 0.2 + 0.1 * 2]
+    // 「没被折掉」量的是**原始双精度**，它住在 `numericValue`：第三格必须是
+    // `0.30000000000000004` 这个具体的 double，而不是被四舍五入过的近邻。
     expect(projection.cells.map((cell) => cell.numericValue)).toEqual(expected)
-    expect(projection.cells.map((cell) => cell.displayValue)).toEqual(expected.map(String))
+    // `displayValue` 是另一条通道 —— 它按 Excel 的 General 规格渲染（15 位有效
+    // 数字），所以第三格显示 `0.3`。这不是精度丢失：丢没丢由上面那行判。
+    // 期望值写字面量而不是 `excelGeneralToText(...)` —— 拿实现当预言机就等于
+    // 什么都没断。`(0.1+0.2) → "0.3"` 正是 24f6e4d 从 POI 实测表抄进来的观测行。
+    expect(projection.cells.map((cell) => cell.displayValue)).toEqual(['0.1', '0.2', '0.3', '0.4'])
   })
 
+  // `expectedNext` 是原始双精度（走 `numericValue`），`expectedDisplay` 是它按
+  // Excel General 规格的渲染（走 `displayValue`）。两者不同不代表精度丢了 ——
+  // 15 位有效数字上限正是微软文档里「超过 15 位后面的数字变成零」那条行为，
+  // `1000000000000001` 在真 Excel 里同样显示 `1000000000000000`。
+  // 写字面量是刻意的：用 `excelGeneralToText(expectedNext)` 会拿实现当预言机。
   it.each([
     {
       label: 'a sub-epsilon delta near one',
       first: 1,
       second: 1 + 1e-15,
       expectedNext: 1 + 1e-15 + (1 + 1e-15 - 1),
+      // 1.0000000000000022 → 17 位有效数字，收到 15 位是 1.00000000000000 → `1`
+      expectedDisplay: '1',
     },
     {
       label: 'a unit delta near 10^15',
       first: 999_999_999_999_999,
       second: 1_000_000_000_000_000,
       expectedNext: 1_000_000_000_000_001,
+      // 16 位有效数字，收到 15 位末位归零；十进制指数 15 ≤ 19，不转科学计数。
+      expectedDisplay: '1000000000000000',
     },
   ])(
     'does not collapse canonical precision for $label',
-    async ({ first, second, expectedNext }) => {
+    async ({ first, second, expectedNext, expectedDisplay }) => {
       const step = second - first
       const backend = createStaticSpreadsheetBackend({
         revision: 1,
@@ -197,8 +212,9 @@ describe('static backend fill series', () => {
         colStart: 0,
         colEnd: 0,
       })
+      // 精度有没有被折掉，只由这一行判 —— 它读的是原始双精度。
       expect(projection.cells[2]?.numericValue).toBe(expectedNext)
-      expect(projection.cells[2]?.displayValue).toBe(String(expectedNext))
+      expect(projection.cells[2]?.displayValue).toBe(expectedDisplay)
     },
   )
 

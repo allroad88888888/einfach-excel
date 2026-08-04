@@ -1,5 +1,6 @@
 import {
   activeCellAtom,
+  activeSpillRegionAtom,
   clipboardStateAtom,
   editingSessionAtom,
   formulaReferenceTokensAtom,
@@ -15,6 +16,7 @@ import {
   type ClipboardState,
   type DisplayCell,
   type FormulaReferenceToken,
+  type ActiveSpillRegion,
   type PointerSessionState,
   type SelectionState,
 } from '@einfach/spreadsheet-ui-core'
@@ -46,6 +48,9 @@ export const OVERLAY_COLORS = {
   fillHandle: '#217346',
   fillHandleStroke: '#ffffff',
   mergeBorder: '#8f8f8f',
+  // 动态数组溢出区的细蓝框（ADR 0006 阶段 3）。Excel 用蓝色把「这一片是一个数组」
+  // 与普通单元格区分开。
+  spillBorder: '#2b579a',
   freezeDivider: '#a0a0a0',
   marchingAnts: '#217346',
   marchingAntsBg: '#ffffff',
@@ -60,6 +65,7 @@ export const OVERLAY_BORDER_WIDTH = {
   secondary: 1,
   active: 2,
   merge: 1,
+  spill: 1,
   freeze: 2,
   marchingAnts: 1.5,
   drop: 2,
@@ -122,6 +128,7 @@ interface OverlaySnapshot {
   marchingAntsOffset: number
   formulaReferenceTokens: readonly FormulaReferenceToken[]
   formulaReferenceSheetId: string | null
+  spillRegion: ActiveSpillRegion | null
 }
 
 export class OverlayRenderer {
@@ -229,6 +236,7 @@ export class OverlayRenderer {
     this.unsubscribes.push(store.sub(spreadsheetProjectionSnapshotAtom, wake('projection')))
     this.unsubscribes.push(store.sub(editingSessionAtom, wake('selection')))
     this.unsubscribes.push(store.sub(formulaReferenceTokensAtom, wake('selection')))
+    this.unsubscribes.push(store.sub(activeSpillRegionAtom, wake('projection')))
     this.refreshMarchingAnts()
   }
 
@@ -283,6 +291,7 @@ export class OverlayRenderer {
       marchingAntsOffset: this.marchingAntsOffset,
       formulaReferenceTokens: tokens,
       formulaReferenceSheetId: editing.source?.sheetId ?? null,
+      spillRegion: store.getter(activeSpillRegionAtom),
     }
   }
 
@@ -303,6 +312,7 @@ export class OverlayRenderer {
     this.drawFreezeDividers(ctx, viewport, snap)
     this.drawConditionalFormatOverlays(ctx, viewport, cells)
     this.drawMergeBorders(ctx, viewport, cells)
+    this.drawSpillBorder(ctx, viewport, snap, sheetId)
     this.drawSecondarySelections(ctx, viewport, snap, sheetId)
     this.drawPrimarySelection(ctx, viewport, snap, sheetId)
     this.drawActiveCell(ctx, viewport, snap, sheetId)
@@ -310,6 +320,27 @@ export class OverlayRenderer {
     this.drawFillPreview(ctx, viewport, snap, sheetId)
     this.drawClipboardSource(ctx, viewport, snap)
     this.drawFormulaReferenceTokens(ctx, viewport, snap, sheetId)
+  }
+
+  /**
+   * 溢出区的细蓝框（ADR 0006 阶段 3）。只画**一个** —— 活动单元格所在的那个数组，
+   * 与 Excel 一致：不选中就不画。矩形由 UI core 的 `activeSpillRegionAtom` 给出，
+   * 这里不做任何几何推断。
+   */
+  private drawSpillBorder(
+    ctx: OverlayContext,
+    viewport: OverlayViewportProvider,
+    snap: OverlaySnapshot,
+    sheetId: string,
+  ): void {
+    const region = snap.spillRegion
+    if (!region || region.sheetId !== sheetId) return
+    const rect = this.rectForRange(viewport, region.range)
+    if (!rect) return
+    ctx.strokeStyle = OVERLAY_COLORS.spillBorder
+    ctx.lineWidth = OVERLAY_BORDER_WIDTH.spill
+    ctx.setLineDash([])
+    ctx.strokeRect(rect.x + 0.5, rect.y + 0.5, Math.max(0, rect.w - 1), Math.max(0, rect.h - 1))
   }
 
   private drawFormulaReferenceTokens(

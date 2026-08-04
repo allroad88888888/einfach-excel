@@ -1,30 +1,27 @@
 # find-replace
 
-Owns find/replace query state, cursor navigation, and backend search/replace contracts.
+Owns the ticketed Core lifecycle for find, replace, and read-only recovery.
 
-## State Decision Template
+## Module boundaries
 
-- Source atoms:
-  - `findReplaceQueryAtom`: active query and options; null when dialog is closed.
-  - `findReplaceCursorAtom`: status, currentIndex, totalCount, and bounded pageMatches.
-  - `findReplaceOpenAtom`: whether the find-replace dialog is open.
-  - `replaceAllCappedAtom`: non-null `{ replacedCount, totalCount }` when the last
-    replace-all hit the `MAX_FIND_PAGE` cap (audit D-12) — the dialog surfaces
-    "replaced first N of M; run again for the rest" instead of silently leaving
-    matches 501..M untouched. Cleared on commit (new search) and close.
-- Derived atoms: none; current match coord read from `pageMatches[currentIndex]` by the host adapter.
-- Commands:
-  - `openFindReplaceAtom`
-  - `closeFindReplaceAtom`
-  - `commitFindReplaceQueryAtom`
-  - `setFindMatchesAtom`
-  - `advanceFindCursorAtom`
-  - `setFindReplaceErrorAtom`
-  - `markReplaceAllCappedAtom` (host calls it AFTER the post-replace re-search,
-    so the commit-time clear does not erase the notice)
-- Scale bound: `MAX_FIND_PAGE = 500` coords in `pageMatches` at any time. The cap
-  is intentional (bounded find cache); replace-all over a larger result set is
-  page-at-a-time BY DESIGN — the capped notice is the contract for the remainder.
-- Backend reads: paged `searchRange` / `replaceMatches` via optional backend methods.
-- Per-cell atom risk: do not store the full match list; backend owns the index.
-- Tests: `test/find-replace.test.ts`.
+- `state.ts`: private source atoms only.
+- `projection-atoms.ts`: immutable public projections.
+- `basic-commands.ts`: dialog, form, compatibility, and capability commands.
+- `search-commands.ts`: exact-correlated search and cursor focus.
+- `mutation-domain.ts` / `mutation-commands.ts`: replace evidence and dispatch.
+- `refresh-recovery.ts`: projection acceptance and read-only refresh recovery.
+- `target-domain.ts`, `ledger-domain.ts`, and `value-domain.ts`: ticket validity,
+  bounded evidence ledger, and pure value helpers.
+
+## Atom classification
+
+- Source atoms are private to `state.ts`; consumers use only immutable projections.
+- Derived atoms: query, cursor, form, lifecycle, capability, availability/error,
+  pending/mutation-blocked status, operation diagnostics, and capped-result notice.
+- Commands: dialog/form updates, capability capture, compatibility writes, search,
+  step, mutation, and refresh recovery.
+
+The match page is bounded by `MAX_FIND_PAGE = 500`. The evidence ledger is bounded
+to 32 entries and prevents automatic resend after an unknown replace outcome.
+
+Tests: `test/find-replace.test.ts`.

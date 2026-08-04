@@ -74,9 +74,105 @@ Full approved plan: `/Users/dol/.claude/plans/federated-mapping-crab.md`
 | INV-3 | Bulk import materializes 0 atoms and evaluates 0 formulas, at any size. |
 | INV-4 | `WasmSheet`/`WasmWorkbook` exported names + signatures frozen (additive debug probes allowed). `worker-protocol.ts` wire shapes frozen. |
 | INV-5 | Every landed commit is green on its tier fences. Fence-expectation edits land in the same commit as the semantic change, with closed-form justification in the commit message and a row in §4. |
-| INV-6 | `eval.rs` / `formula.rs` / `format.rs` / `undo.rs` / `csv.rs`: resolver-interface seam changes only. |
+| INV-6 | `eval.rs` / `formula.rs`（连同 `formula/` 下的子模块 —— 2026-08-03 那次纯文件拆分只搬了行，没搬语义，条款覆盖面不因此变窄）/ `format.rs` / `undo.rs` / `csv.rs`: resolver-interface seam changes only. **射程见下方「INV-6 管什么、不管什么」；两条已批准的例外见「INV-6 的显式例外」。** |
 | INV-7 | Laziness contract: never-read formulas are never materialized or evaluated by writes. Once-read formulas re-derive eagerly on upstream change, with change pruning (owner-approved semantic shift, converges with vanilla/TS semantics). |
 | INV-8 | No permanent dual path. Transitional code carries `// BRIDGE(delete-by: P<n>-exit)`; zero BRIDGE markers may survive P6 exit. |
+
+### INV-6 管什么、不管什么
+
+**这一节是射程澄清，不是放宽。** 记于 2026-08-03，起因是一个 agent 在给
+`eval.rs` 的 `fn_expand` 补格数闸门时停下来问「这算不算违反 INV-6」——
+问得对，条款原文确实盖得住它。查完之后的结论是：**条款文字比它的意图宽**。
+
+判定线是一句话：**改的是这些文件「怎么伸手去够引擎机制」，还是「函数体内部算什么」。**
+
+| | 需要豁免 | 例子 |
+|---|---|---|
+| 够引擎机制 | **是**，走 §6 流程 | `import_csv` 调 `project_bulk_spill_anchors`（EX-6.1）；`default_number_string` 改为委托 `general_text`（EX-6.2）；任何新的 resolver 调用、依赖登记、状态共享 |
+| 函数体内部的 Excel 语义 | **否** | 错误码从 `#TYPE!` 改成 `#VALUE!`；`matches_criterion` 的 `<>` 修正；补一个漏掉的内建；给 `fn_expand` 加格数闸门 |
+
+牙齿在 §6 那句：*「Introducing any address→formula index, cache, or shortcut
+structure without an INV amendment is a P0 defect even if all tests pass」*。
+INV-6 的文件清单是为它服务的 —— 挡的是**并行公式状态**在这几个刚重写完的文件里
+重新长出来，不是挡 Excel 语义缺陷的修复。
+
+支持这条判读的证据（写下来免得下次再查一遍）：
+
+- `d8aeccb` 之后有 **8 个提交**在 `eval.rs` 里落 Excel 语义修复（错误码词汇、
+  criteria 大小写与通配符、`<>` 退化、IFS 家族的错误传播、保留名清单补齐、
+  General 数字转文本、科学计数词法、WRAPROWS/WRAPCOLS），**没有一条开过豁免**。
+- 同期唯二开过的豁免 EX-6.1 / EX-6.2 都是给 `csv.rs` / `format.rs` 的，
+  而那两条恰好都属于上表第一行。**同一批人对「够机制」走了流程、对「算什么」
+  没走** —— 这不是集体疏忽，是大家读出的射程本来就是上表这条线。
+- `architecture_invariants.rs`（PHASE = 7）**零处**机械执行 INV-6，其它不变式都有。
+  一条既不被机械执行、又与八次实际做法不符的条款，留着只会让每个后来的 agent
+  各花一段时间重新纠结一遍。
+
+**没有追认那 8 个提交为豁免**，因为按上表它们本来就不需要豁免。反过来说：
+今后任何落在上表第一行的改动，仍然一条不落地走 §6。
+
+### INV-6 的显式例外
+
+下表是 owner 批准的、对 INV-6「只许改 resolver 接口缝」的例外。**这些不是有人
+违规，是拍板过的定向豁免**：每条都写明为什么让它留在原文件比搬走更划算。表外的
+任何新增仍按 INV-6 原文办 —— 想再开一条，走 §6 的升级流程。
+
+| # | 文件 | 允许做的事 | 为什么批准 |
+|---|---|---|---|
+| EX-6.1 | `csv.rs` | `import_csv` 在 `Sheet::bulk_load` 之后调用 spill 投影尾 `Sheet::project_bulk_spill_anchors`（含为选候选而调用 `source_may_produce_array` / `expr_may_produce_array` / `parse_formula`） | CSV 是第**四**条批量入口。前三条（`bulk_install_workbook`、`WorkbookLoader::flush`、跨表数组重投影）已在 ADR 0006 那批补上同一条尾巴；`import_csv` 当时漏了，症状是同一个用户可见缺陷的第四个复发点 —— 导入含 `=SEQUENCE(3)` 的 CSV 只剩锚点，其余目标格全空。语义与顺序契约见 [ADR 0006](../../../docs/decisions/0006-spill-region-write-semantics.md)。 |
+| EX-6.2 | `format.rs`、`csv.rs` | `format::default_number_string` 与 `csv::value_to_csv_field` 的数字分支改为调用 `crate::general_text::excel_general_to_text`（各一行委托，两处 `if n == n.floor() && n.abs() < 1e15 { i64 } else { Display }` 随之删除） | 数字→文本是第**三**条复制粘贴的复发点。同一段判断此前在三处逐字节相同却互不调用：`eval::coerce_to_text`（`&` 拼接 / `LEN` / `T`）、`format::default_number_string`（`value_to_display` 与 `NumberFormat::General`/`Date`/自定义兜底）、`csv::value_to_csv_field`。上一程只把第一处换成了 Excel 的 General 规格，留下一个用户可见的自相矛盾：`=10^21&""` 读 `1E+21`，而**裸的** `=10^21` 那格显示 `1000000000000000000000`。同一个数字、同一个引擎、两种写法。规格与依据（Apache POI 从 Excel 实测抄回的对照表）见 `general_text.rs` 模块文档，回归护栏 `tests/display_general_text.rs`。 |
+| EX-6.3 | `eval_fn_reference_resolution.rs`、`eval_fn_information_workbook.rs`、`eval_core_indirect.rs` | `ADDRESS` 的 A1 分支与 `CELL("address")` 委托 `crate::cell::push_abs_addr`，并删除 `eval_core_indirect::col_index_to_letters_eval` 这份副本。 | `[$]列[$]行` 在 `cell.rs` 已是唯一写入器，AST 渲染也已经委托它；公式函数却仍各自拼 `$`、列名和 1-based 行号。三条用户可见出口必须逐字节一致，尤其 `ADDRESS` 的产物常再交给 `INDIRECT`。这是纯、无状态的既有 writer 委托，不引入 resolver、依赖、地址→公式索引、缓存或捷径。 |
+
+EX-6.1 的备选方案与否决理由（存档，免得后来人重开这一局）：把投影尾下沉进
+`Sheet::bulk_load`，让四条入口自动都有。**否决** —— 那会改掉
+`tests/lazy_bulk_load.rs::read_of_spill_anchor_returns_array_before_mutation`
+明文钉死的「投影要等一次 mutation」契约，而那条是 INV-7 惰性契约的一部分。
+为省一次显式调用去动 INV-7，代价不对等。
+
+EX-6.1 的边界（越过就不再是本例外覆盖的范围）：
+- 只准**复用** `project_bulk_spill_anchors`，不准在 `csv.rs` 里另写一套投影/碰撞
+  仲裁逻辑 —— 四条入口的行主序仲裁必须收敛到同一份实现。
+- 投影尾只能在 `bulk_load` 的 Store 批次**关闭之后**跑。批次内调用会让
+  `recompute_array_formula` 读到旧的 formula-inner，症状与完全不修一样。
+- INV-3 不放宽：候选闸门先跑无需解析的字节筛，标量公式在导入期仍是 0 解析、
+  0 求值。回归护栏 `tests/csv_import_spill.rs`。
+
+EX-6.2 的备选方案与否决理由（存档，免得后来人重开这一局）：把 `value_to_display`
+整个搬出 `format.rs`、另立一个 `display.rs`，让 INV-6 的文件清单原封不动。
+**否决** —— `value_to_display` 与 `CellFormat::format_number` 共用
+`default_number_string`，搬走它等于把 `NumberFormat` 的兜底链一起搬，那是一次
+真正的模块重构，改动面比「两行委托」大两个数量级；而 INV-6 要挡的是**改写这些
+文件里的求值/格式化语义**，不是挡它们调用一个已经存在的单点函数。第二个否决项：
+让三处继续各留一份、只在注释里互相指认。**否决** —— 那正是本条例外要消灭的状态，
+它已经复发过一次（第三条出口 CSV 至今没人发现它和显示层已经不一致了）。
+
+EX-6.2 的边界（越过就不再是本例外覆盖的范围）：
+- 只准**委托**给 `general_text::excel_general_to_text`，不准在 `format.rs` /
+  `csv.rs` 里为「显示专用」再分叉出一套收位或门槛规则。真出现了列宽自适应
+  （窄列更早退到科学计数、乃至 `####`）那种确实与转文本不同的规则，它属于**渲染
+  层**，不在引擎里，更不在这两个文件里。
+- 不动 `error_display_token` 与 `collapse_array_for_display` 这两条分支：它们是
+  错误词汇与 spill 塌缩，跟数字→文本无关。
+- 显示字节是筛选谓词的输入（`Workbook::apply_filter` → `value_to_display`，
+  以及宿主 TS 谓词读到的 wire 上的 `display`），所以本条例外**同时**是一次筛选
+  行为变更 —— 两侧读的仍是同一份字节，E3 下沉的等价性不受影响，但可筛的字面量
+  变了（`=0.1+0.2` 那格从 `0.30000000000000004` 变成 `0.3`）。方向钉在
+  `tests/display_general_text.rs::filter_predicate_sees_the_displayed_bytes`。
+
+EX-6.3 的备选方案与否决理由（存档，免得后来人重开这一局）：保留两份函数内
+拼接、只以注释声明它们应与 `cell.rs` 一致。**否决** —— 这正是已经造成重复的
+模式，列边界和 `$` 组合的任何后续修正仍会分叉。把 ADDRESS/CELL 的整个求值分派
+搬到 `cell.rs` 也**否决**：`cell.rs` 只应负责地址文字的读写；把公式参数求值和
+错误语义倒灌进去会破坏这个边界，改动面远大于对已有 writer 的三处小委托。
+
+EX-6.3 的边界（越过就不再是本例外覆盖的范围）：
+- 只准调用 `cell::push_abs_addr` 写 A1 的 `[$]列[$]行` 主体；R1C1 分支、ADDRESS
+  的 sheet 前缀规则和 INDIRECT 的解析/寻址语义均保持原样。
+- 不准新建或触碰 resolver、依赖登记、缓存、地址→公式索引或任何跨单元格状态；
+  调用方向只能是公式函数 → 既有无状态 `cell` writer。
+- 回归护栏固定多字母列与四种绝对标记：
+  `eval_tests::ref_address_indirect::eval_address` 和
+  `eval_tests::ref_cell_info::eval_cell_address`。
 
 ## 3. Phases & exit gates
 

@@ -3,7 +3,7 @@
 //!
 //! These exercise the formulas through the full `Workbook` set/get cycle so
 //! we know they survive the formula store, dependency tracker, and
-//! `WorkbookEvalProvider` — not just the in-file `mod tests` shim.
+//! `WorkbookEvalProvider` — not just the `src/eval_tests/` unit-test shim.
 
 use einfach_core::{Value, ValueError};
 use einfach_excel_core::Workbook;

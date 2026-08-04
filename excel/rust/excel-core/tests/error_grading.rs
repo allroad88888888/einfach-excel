@@ -5,8 +5,19 @@
 //!
 //! Variants covered:
 //! - `ValueError::Overflow`     — non-finite numeric result (#NUM!)
-//! - `ValueError::WrongType`    — type coercion failure (#TYPE!)
-//! - `ValueError::WrongArgCount`— wrong argument count (#ARGS!)
+//! - `ValueError::WrongType`    — built-in argument-type rejection. An
+//!   ENGINE-INTERNAL diagnostic: a cell holding it DISPLAYS `#VALUE!` (Excel
+//!   has no `#TYPE!`; the collapse lives in `format::error_display_token`).
+//!   Tests below assert the variant, so they name `WrongType` — never read
+//!   that as "the user sees #TYPE!". Not the arithmetic operators either:
+//!   `=A1+1` / `=-A1` on text grade as `InvalidValue`, matching Excel and the
+//!   TS reference engine in cross-engine parity runs.
+//! - `ValueError::WrongArgCount`— wrong argument count. Also an ENGINE-INTERNAL
+//!   diagnostic: a cell holding it DISPLAYS `#VALUE!`. Excel rejects a wrong
+//!   argument count at ENTRY TIME with a dialog, so it has no cell error code
+//!   for this at all; the collapse lives in `format::error_display_token`
+//!   alongside `WrongType`'s. Tests below assert the VARIANT, so they name
+//!   `WrongArgCount` — never read that as "the user sees #ARGS!".
 //!
 //! Pre-existing variants (`DivisionByZero`, `InvalidName`, `InvalidRef`,
 //! `CyclicRef`) are not tested here — they already had dedicated tests.
@@ -86,34 +97,37 @@ fn pow_zero_negative_exp_is_division_by_zero() {
     );
 }
 
-// ── WrongType (#TYPE!) ─────────────────────────────────────────────────────
+// ── WrongType (shown as #VALUE!) ───────────────────────────────────────────
 
-/// Text added to a number → WrongType (was InvalidValue).
+/// Text added to a number → `#VALUE!`. The arithmetic operators follow Excel,
+/// not the engine-private `WrongType` grading: Excel answers `=1+"x"` with
+/// `#VALUE!` and has no `#TYPE!` code at all.
 #[test]
-fn text_plus_number_is_wrong_type() {
+fn text_plus_number_is_invalid_value() {
     let mut wb = Workbook::new();
     wb.set_cell(0, "A1", Value::Text("hello".into()));
     wb.set_formula(0, "B1", "=A1+1");
     let v = wb.get_cell("Sheet1", "B1");
     assert_eq!(
         v,
-        Value::Error(ValueError::WrongType),
-        "text+number should produce #TYPE!, got {:?}",
+        Value::Error(ValueError::InvalidValue),
+        "text+number should produce #VALUE!, got {:?}",
         v
     );
 }
 
-/// Negation of a text value → WrongType.
+/// Negation of a text value → `#VALUE!`, same Excel rule as the binary
+/// arithmetic operators.
 #[test]
-fn negate_text_is_wrong_type() {
+fn negate_text_is_invalid_value() {
     let mut wb = Workbook::new();
     wb.set_cell(0, "A1", Value::Text("abc".into()));
     wb.set_formula(0, "B1", "=-A1");
     let v = wb.get_cell("Sheet1", "B1");
     assert_eq!(
         v,
-        Value::Error(ValueError::WrongType),
-        "-text should produce #TYPE!, got {:?}",
+        Value::Error(ValueError::InvalidValue),
+        "-text should produce #VALUE!, got {:?}",
         v
     );
 }
@@ -128,7 +142,7 @@ fn round_text_digits_is_wrong_type() {
     assert_eq!(
         v,
         Value::Error(ValueError::WrongType),
-        "ROUND(num, text) should produce #TYPE!, got {:?}",
+        "ROUND(num, text) should produce WrongType (shown as #VALUE!), got {:?}",
         v
     );
 }
@@ -143,7 +157,7 @@ fn mod_text_divisor_is_wrong_type() {
     assert_eq!(
         v,
         Value::Error(ValueError::WrongType),
-        "MOD(10, text) should produce #TYPE!, got {:?}",
+        "MOD(10, text) should produce WrongType (shown as #VALUE!), got {:?}",
         v
     );
 }
@@ -158,7 +172,7 @@ fn not_text_is_wrong_type() {
     assert_eq!(
         v,
         Value::Error(ValueError::WrongType),
-        "NOT(text) should produce #TYPE!, got {:?}",
+        "NOT(text) should produce WrongType (shown as #VALUE!), got {:?}",
         v
     );
 }
@@ -174,12 +188,12 @@ fn sqrt_text_is_wrong_type() {
     assert_eq!(
         v,
         Value::Error(ValueError::WrongType),
-        "SQRT(text) should produce #TYPE!, got {:?}",
+        "SQRT(text) should produce WrongType (shown as #VALUE!), got {:?}",
         v
     );
 }
 
-// ── WrongArgCount (#ARGS!) ─────────────────────────────────────────────────
+// ── WrongArgCount (internal #ARGS!, displayed #VALUE!) ─────────────────────
 
 /// IF with only 1 argument → WrongArgCount.
 #[test]
@@ -188,7 +202,7 @@ fn if_one_arg_is_wrong_arg_count() {
     assert_eq!(
         v,
         Value::Error(ValueError::WrongArgCount),
-        "IF(1) should produce #ARGS!, got {:?}",
+        "IF(1) should produce WrongArgCount (shown as #VALUE!), got {:?}",
         v
     );
 }
@@ -200,7 +214,7 @@ fn if_four_args_is_wrong_arg_count() {
     assert_eq!(
         v,
         Value::Error(ValueError::WrongArgCount),
-        "IF(1,2,3,4) should produce #ARGS!, got {:?}",
+        "IF(1,2,3,4) should produce WrongArgCount (shown as #VALUE!), got {:?}",
         v
     );
 }
@@ -212,7 +226,7 @@ fn round_one_arg_is_wrong_arg_count() {
     assert_eq!(
         v,
         Value::Error(ValueError::WrongArgCount),
-        "ROUND(3.14) should produce #ARGS!, got {:?}",
+        "ROUND(3.14) should produce WrongArgCount (shown as #VALUE!), got {:?}",
         v
     );
 }
@@ -226,7 +240,7 @@ fn not_zero_args_is_wrong_arg_count() {
     assert_eq!(
         v,
         Value::Error(ValueError::WrongArgCount),
-        "LEN() should produce #ARGS!, got {:?}",
+        "LEN() should produce WrongArgCount (shown as #VALUE!), got {:?}",
         v
     );
 }
@@ -238,7 +252,7 @@ fn vlookup_two_args_is_wrong_arg_count() {
     assert_eq!(
         v,
         Value::Error(ValueError::WrongArgCount),
-        "VLOOKUP(1,A1) should produce #ARGS!, got {:?}",
+        "VLOOKUP(1,A1) should produce WrongArgCount (shown as #VALUE!), got {:?}",
         v
     );
 }
@@ -250,7 +264,7 @@ fn mod_one_arg_is_wrong_arg_count() {
     assert_eq!(
         v,
         Value::Error(ValueError::WrongArgCount),
-        "MOD(10) should produce #ARGS!, got {:?}",
+        "MOD(10) should produce WrongArgCount (shown as #VALUE!), got {:?}",
         v
     );
 }
@@ -262,7 +276,7 @@ fn large_one_arg_is_wrong_arg_count() {
     assert_eq!(
         v,
         Value::Error(ValueError::WrongArgCount),
-        "LARGE(A1) should produce #ARGS!, got {:?}",
+        "LARGE(A1) should produce WrongArgCount (shown as #VALUE!), got {:?}",
         v
     );
 }
@@ -274,11 +288,22 @@ fn overflow_displays_num() {
     assert_eq!(format!("{}", ValueError::Overflow), "#NUM!");
 }
 
+/// Pins the ENGINE-INTERNAL spelling, NOT what a user sees. `Display` doubles
+/// as the formula-text serializer (`shift::render_formula`), and its output
+/// must re-parse via `formula::parse_error_literal`, which still maps `#TYPE!`
+/// to `WrongType` — change this token and stored `=IF(A1,#TYPE!,1)` stops
+/// round-tripping. The USER-FACING token is `#VALUE!`, from
+/// `format::error_display_token` (asserted in `format.rs`).
 #[test]
 fn wrong_type_displays_type() {
     assert_eq!(format!("{}", ValueError::WrongType), "#TYPE!");
 }
 
+/// Pins the ENGINE-INTERNAL spelling, NOT what a user sees — same split as
+/// `wrong_type_displays_type` above. `Display` doubles as the formula-text
+/// serializer, and its output must re-parse via `formula::parse_error_literal`,
+/// which still maps `#ARGS!` to `WrongArgCount`. The USER-FACING token is
+/// `#VALUE!`, from `format::error_display_token` (asserted in `format.rs`).
 #[test]
 fn wrong_arg_count_displays_args() {
     assert_eq!(format!("{}", ValueError::WrongArgCount), "#ARGS!");

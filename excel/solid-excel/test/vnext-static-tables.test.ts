@@ -827,6 +827,11 @@ describe('static backend — SUBTOTAL semantics', () => {
     expect(await evalAt(backend, '=SUBTOTAL(12,A1:A6)')).toBe('#VALUE!')
     expect(await evalAt(backend, '=SUBTOTAL(0,A1:A6)')).toBe('#VALUE!')
     expect(await evalAt(backend, '=SUBTOTAL(112,A1:A6)')).toBe('#VALUE!')
-    expect(await evalAt(backend, '=SUBTOTAL(9)')).toBe('#ARGS!')
+    // `evalAt` reads `displayValue`, i.e. the far side of the display
+    // boundary. The evaluator's internal code is `#ARGS!` (pinned in
+    // static-formula-eval-error-literals.test.ts); Excel has no such code —
+    // it rejects a bad argument count at entry time — so a cell shows
+    // `#VALUE!`. See `errorDisplayToken`.
+    expect(await evalAt(backend, '=SUBTOTAL(9)')).toBe('#VALUE!')
   })
 })

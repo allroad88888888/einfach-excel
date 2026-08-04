@@ -132,3 +132,12 @@
   background: #e8f0fe;
 }
 
+/* 动态数组溢出区（ADR 0006 阶段 3）。外圈的细蓝框由 overlay 画；这里只给区内每格
+ * 一层极淡的蓝，让「这一片是一个数组」在框之外也读得出来。
+ *
+ * 刻意用低特异性的单类选择器：`.spreadsheet-grid .spreadsheet-grid-cell.cell-active`
+ * 一类的选区底色特异性更高，所以选中态永远压得住这层。 */
+.cell-spill {
+  background: rgba(43, 87, 154, 0.05);
+}
+

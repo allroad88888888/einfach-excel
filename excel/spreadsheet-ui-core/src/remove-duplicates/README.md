@@ -13,25 +13,16 @@ actual `removeRows` round-trip and undo bookkeeping.
 ## State Decision Template
 
 - **Source atoms:**
-  - `removeDuplicatesOpenAtom` — boolean, dialog visibility.
-  - `removeDuplicatesRangeAtom` — `RemoveDuplicatesRange | null`. Set
-    by the open command; null when closed.
-  - `removeDuplicatesKeyColumnsAtom` — `ReadonlySet<number>` of
-    sheet-absolute column indices currently checked. The open command
-    seeds this with every column in the range; an empty set is a valid
-    transient state (preview reports `noKeyColumns: true`).
-  - `removeDuplicatesComparisonAtom` — `'exact' | 'caseInsensitive' |
-    'trim' | 'trimAndIgnoreCase'`. Defaults to `'exact'`. Survives
-    dialog close (last-used wins per session, matching Excel).
-  - `removeDuplicatesExcludeHeaderAtom` — boolean, defaults `true`.
-    Header row is always reported back via `result.headerRow` so the
-    host can label / preserve it.
-  - `removeDuplicatesScanInputCellsAtom` — `ReadonlyArray<DisplayCell>`.
-    The Solid layer pushes the projection cells in here on open; kept
-    in an atom (rather than a Solid signal) so the 1.9.12 Provider
-    remount hazard does not strand it.
+  - Private backing atoms in `state.ts`: open/range/cells/key-columns,
+    comparison/header choices, capability, immutable session/lifecycle,
+    request sequences, error, and active read/mutation tickets.
+  - They are written only through the commands below; exported public atoms
+    are read-only projections and never form a second source of truth.
 
 - **Derived atoms:**
+  - Public state projections: `removeDuplicatesOpenAtom`, range, scan cells,
+    key columns, comparison, exclude-header, session, lifecycle, capability,
+    error, request identities, and mutation target.
   - `removeDuplicatesPreviewAtom` — `RemoveDuplicatesScanResult | null`.
     Null when the dialog is closed OR no range is set. When the key set
     is empty post-deselect, returns a synthetic result with
@@ -39,7 +30,7 @@ actual `removeRows` round-trip and undo bookkeeping.
     flag to disable OK. When the set has at least one in-range column,
     delegates to the pure `findDuplicateRows` function.
 
-- **Commands (write atoms, all `null` state, `void` return):**
+ - **Command atoms (all `null` state):**
   - `openRemoveDuplicatesAtom(range, cells)` — seeds range + cells,
     defaults key columns to every column in the range, flips open.
     Does NOT reset `comparison` / `excludeHeader` (session-sticky).
@@ -52,6 +43,11 @@ actual `removeRows` round-trip and undo bookkeeping.
     range. No-op when no range is set.
   - `deselectAllKeyColumnsAtom()` — empties the key set. Preview will
     report `noKeyColumns: true`.
+  - `openRemoveDuplicatesFromSelectionAtom` / retry capture the current
+    selection authority, perform the exact range read, and publish an
+    immutable editing session.
+  - `runRemoveDuplicatesConfirmAtom` owns the exact deletion transport,
+    local structural shifts, history reservation, and post-mutation refresh.
 
 ## Algorithm contract (pure)
 

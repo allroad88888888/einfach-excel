@@ -214,7 +214,7 @@ describe('package boundary', () => {
       FILTER_SORT_PUBLIC_STATE_IS_READ_ONLY,
     )
 
-    const source = readFileSync(join(SRC_ROOT, 'filter-sort/index.ts'), 'utf8')
+    const source = readFileSync(join(SRC_ROOT, 'filter-sort/projection-atoms.ts'), 'utf8')
     const names = [
       'filterSortStateAtom',
       'filterDropdownAtom',

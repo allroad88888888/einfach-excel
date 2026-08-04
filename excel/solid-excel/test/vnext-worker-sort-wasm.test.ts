@@ -208,4 +208,28 @@ describe('sortRange RPC over the real WASM engine', () => {
     })
     client.dispose()
   })
+
+  test('sorting a COLLIDED anchor into a free box re-spills it over the wire', async () => {
+    const client = await freshClient()
+    // B2 blocks B1's array, so the anchor never installs — it collides and
+    // shows `#SPILL!`. A collided anchor owns nothing, which is why the
+    // spill-in-range gate above deliberately lets this sort through.
+    await client.setCell(0, 'B2', { type: 'number', value: 99 })
+    await client.setFormula(0, 'B1', '=SEQUENCE(3)')
+    expect(await readColumn(client, 'B', 4)).toEqual(['#SPILL!', '99', '', ''])
+
+    // Ascending puts numbers before error values, so 99 rises to B1 and the
+    // formula sinks to B2 — and B2:B4 is now empty, so it must spill.
+    await client.sortRange(0, {
+      range: { startRow: 0, startCol: 1, endRow: 1, endCol: 1 },
+      keys: [{ col: 1 }],
+    })
+
+    // The bug this pins left B2 stuck at `#SPILL!` forever: `sort_range`
+    // relocated the anchor without re-deriving it, and the blocked-claims
+    // registry stayed keyed to the address the anchor had VACATED — so
+    // writing B1 (now an unrelated cell) retired someone else's claim.
+    expect(await readColumn(client, 'B', 4)).toEqual(['99', '1', '2', '3'])
+    client.dispose()
+  })
 })

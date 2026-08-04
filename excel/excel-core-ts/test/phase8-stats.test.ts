@@ -150,8 +150,14 @@ describe('AVERAGEIF', () => {
         ARR([[NUM(10), NUM(20), NUM(30)]]),
       ]),
     ).toEqual(NUM(25)))
-  test('criteria range errors propagate', () =>
+  // 条件区里的错误格 = 不满足条件（同 COUNTIF / SUMIF），于是一行都不命中，
+  // 答案是「无匹配」的 `#DIV/0!` 而不是那格自己的 `#VALUE!`。
+  test('criteria range errors are skipped, not propagated', () =>
     expect(call('AVERAGEIF', [ARR([[ERR('#VALUE!')]]), STR('x'), ARR([[NUM(10)]])])).toEqual(
+      ERR('#DIV/0!'),
+    ))
+  test('averageRange errors on a MATCHING row still propagate', () =>
+    expect(call('AVERAGEIF', [ARR([[STR('x')]]), STR('x'), ARR([[ERR('#VALUE!')]])])).toEqual(
       ERR('#VALUE!'),
     ))
   test('averageRange must match criteria range shape', () =>
@@ -185,9 +191,13 @@ describe('AVERAGEIFS', () => {
     expect(
       call('AVERAGEIFS', [ARR([[NUM(10)], [NUM(20)]]), ARR([[NUM(1), NUM(2)]]), STR('>0')]),
     ).toEqual(ERR('#VALUE!')))
-  test('criteria range errors propagate', () =>
+  test('criteria range errors are skipped, not propagated', () =>
     expect(
       call('AVERAGEIFS', [ARR([[NUM(10)]]), ARR([[ERR('#VALUE!')]]), STR('x')]),
+    ).toEqual(ERR('#DIV/0!')))
+  test('averageRange errors on a MATCHING row still propagate', () =>
+    expect(
+      call('AVERAGEIFS', [ARR([[ERR('#VALUE!')]]), ARR([[STR('x')]]), STR('x')]),
     ).toEqual(ERR('#VALUE!')))
 })
 
@@ -217,10 +227,13 @@ describe('MAXIFS / MINIFS', () => {
     expect(call('MAXIFS', args)).toEqual(ERR('#VALUE!'))
     expect(call('MINIFS', args)).toEqual(ERR('#VALUE!'))
   })
-  test('MAXIFS / MINIFS propagate criteria range errors', () => {
-    const args = [ARR([[NUM(10)]]), ARR([[ERR('#VALUE!')]]), STR('x')]
-    expect(call('MAXIFS', args)).toEqual(ERR('#VALUE!'))
-    expect(call('MINIFS', args)).toEqual(ERR('#VALUE!'))
+  test('MAXIFS / MINIFS skip criteria range errors but propagate value range ones', () => {
+    const crit = [ARR([[NUM(10)]]), ARR([[ERR('#VALUE!')]]), STR('x')]
+    expect(call('MAXIFS', crit)).toEqual(NUM(0)) // no row matched
+    expect(call('MINIFS', crit)).toEqual(NUM(0))
+    const value = [ARR([[ERR('#VALUE!')]]), ARR([[STR('x')]]), STR('x')]
+    expect(call('MAXIFS', value)).toEqual(ERR('#VALUE!'))
+    expect(call('MINIFS', value)).toEqual(ERR('#VALUE!'))
   })
 })
 

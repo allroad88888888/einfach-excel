@@ -9,11 +9,14 @@
 //! See `excel/rust/core/src/atom.rs` § `ArrayData` and
 //! `excel/rust/excel-core/src/sheet.rs` § "Spill (dynamic-array) infrastructure"
 //! for the design rationale.
+//!
+//! What a write INTO a live spill region does is a separate contract with its
+//! own decision record — see `tests/spill_write_semantics.rs` (ADR 0006).
 
 use std::sync::Arc;
 
 use einfach_core::{ArrayData, Value, ValueError};
-use einfach_excel_core::{Sheet, SheetError};
+use einfach_excel_core::Sheet;
 
 /// Build a column array `data.len() x 1`.
 fn col_array(data: Vec<Value>) -> Arc<ArrayData> {
@@ -133,53 +136,6 @@ fn collision_blocks_spill_anchor_gets_spill_error() {
     assert_eq!(sheet.spill_info(parsed), None);
 }
 
-/// Phase 1 limitation: clearing the obstructing cell does NOT
-/// auto-retry the spill. The user has to call `set_array` again.
-/// This test documents that limitation.
-#[test]
-fn collision_does_not_auto_retry_on_clear() {
-    let mut sheet = Sheet::new();
-    sheet.set_cell("C5", Value::Number(42.0));
-    let arr = || {
-        array_2d(
-            3,
-            3,
-            vec![
-                Value::Number(1.0),
-                Value::Number(2.0),
-                Value::Number(3.0),
-                Value::Number(4.0),
-                Value::Number(5.0),
-                Value::Number(6.0),
-                Value::Number(7.0),
-                Value::Number(8.0),
-                Value::Number(9.0),
-            ],
-        )
-    };
-    sheet.set_array("A5", arr()).unwrap();
-    assert_eq!(sheet.get_cell("A5"), Value::Error(ValueError::Spill));
-
-    // Clear C5; the anchor stays #SPILL! — no auto-retry.
-    sheet.clear_cell("C5");
-    assert_eq!(
-        sheet.get_cell("A5"),
-        Value::Error(ValueError::Spill),
-        "Phase 1 limitation: cleared obstruction does not auto-revive spill"
-    );
-
-    // Caller must explicitly re-trigger the spill.
-    sheet.set_array("A5", arr()).unwrap();
-    match sheet.get_cell("A5") {
-        Value::Array(_) => {}
-        other => panic!("expected Array after re-trigger, got {:?}", other),
-    }
-    // C5 is now spilled into: row 0, col 2 of the 3x3 array → element 3.
-    assert_eq!(sheet.get_cell("C5"), Value::Number(3.0));
-    // Bottom-right is row 2, col 2 → element 9.
-    assert_eq!(sheet.get_cell("C7"), Value::Number(9.0));
-}
-
 // === Shape changes ===
 
 /// Replacing a 5x1 anchor with a 3x1 should revert A4/A5 to empty
@@ -249,55 +205,6 @@ fn clear_anchor_collapses_spill() {
             addr
         );
     }
-}
-
-// === Write rejection ===
-
-/// Writing a value to a spilled (non-anchor) cell must fail.
-#[test]
-fn write_to_spilled_cell_rejected() {
-    let mut sheet = Sheet::new();
-    sheet
-        .set_array(
-            "A1",
-            col_array(vec![
-                Value::Number(10.0),
-                Value::Number(20.0),
-                Value::Number(30.0),
-            ]),
-        )
-        .unwrap();
-    // A2 is now spilled.
-    let result = sheet.try_set_cell("A2", Value::Number(99.0));
-    match result {
-        Err(SheetError::SpillCellWrite { anchor }) => {
-            assert_eq!(anchor.to_string_repr(), "A1");
-        }
-        other => panic!("expected SpillCellWrite, got {:?}", other),
-    }
-    // A2's value unchanged — still the spill element.
-    assert_eq!(sheet.get_cell("A2"), Value::Number(20.0));
-}
-
-/// Same rejection for `try_set_formula`.
-#[test]
-fn write_formula_to_spilled_cell_rejected() {
-    let mut sheet = Sheet::new();
-    sheet
-        .set_array(
-            "A1",
-            col_array(vec![Value::Number(10.0), Value::Number(20.0)]),
-        )
-        .unwrap();
-    let result = sheet.try_set_formula("A2", "=1+1");
-    match result {
-        Err(SheetError::SpillCellWrite { anchor }) => {
-            assert_eq!(anchor.to_string_repr(), "A1");
-        }
-        other => panic!("expected SpillCellWrite, got {:?}", other),
-    }
-    // A2 still the spill element.
-    assert_eq!(sheet.get_cell("A2"), Value::Number(20.0));
 }
 
 // === Subscription / atom-graph propagation ===

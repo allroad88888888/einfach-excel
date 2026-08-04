@@ -5,9 +5,14 @@
 //! spill-aware. Semantics match the single-cell mutators
 //! (`Sheet::try_set_cell` / `try_set_formula`):
 //!   - a write to a spill ANCHOR tears the spill down and proceeds;
-//!   - a write to a non-anchor spill TARGET is rejected / skipped and
-//!     the array stays intact (Excel: Delete over ghost cells of a
-//!     dynamic array is a no-op).
+//!   - a Delete over a non-anchor spill TARGET is inert and the array stays
+//!     intact (Excel: Delete over ghost cells of a dynamic array is a no-op);
+//!   - a CONTENT write to a non-anchor spill TARGET lands and withdraws the
+//!     array (ADR 0006 stage 1). That case has its own suite,
+//!     `spill_write_collapse.rs` / `spill_write_revive.rs`; what this file
+//!     keeps is the structural half — that the bookkeeping is coherent at the
+//!     POST-SHIFT addresses, which the collapse now witnesses in place of the
+//!     old `SpillCellWrite` rejection.
 //!
 //! A-5: structural edits (insert/delete row/col) must keep the spill
 //! bookkeeping consistent. The engine tears every spill down before
@@ -15,8 +20,8 @@
 //! spills always re-flow contiguously from the (possibly shifted)
 //! anchor — matching Excel's recompute-after-structural-edit contract.
 
-use einfach_core::Value;
-use einfach_excel_core::{CellAddress, CellRange, Sheet, SheetError};
+use einfach_core::{Value, ValueError};
+use einfach_excel_core::{CellAddress, CellRange, Sheet};
 
 fn addr(s: &str) -> CellAddress {
     CellAddress::parse(s).expect("test address must parse")
@@ -40,6 +45,47 @@ fn assert_anchor_top_left(sheet: &Sheet, cell: &str, expected: f64) {
         ),
         other => panic!("{cell} must hold the spill array at the sheet layer, got {other:?}"),
     }
+}
+
+/// ADR 0006 stage 1 witness that the post-shift bookkeeping names the right
+/// anchor. Before the ADR this file asserted `Err(SpillCellWrite { anchor })`
+/// and read the anchor address straight out of the error; the write is now
+/// accepted, so the same fact is witnessed by WHICH anchor the collapse hits:
+/// the array withdraws from `anchor`, and `anchor` — not some stale pre-shift
+/// address — is what ends up at `#SPILL!`.
+///
+/// This is a strictly stronger check than the old one. The rejection only
+/// proved the reverse index pointed somewhere; this proves the whole
+/// projection at the new addresses is coherent enough to be torn down and
+/// re-derived.
+fn assert_target_write_collapses_anchor(
+    sheet: &mut Sheet,
+    target: &str,
+    anchor: &str,
+    freed: &[&str],
+) {
+    sheet
+        .try_set_cell(target, Value::Number(7.0))
+        .unwrap_or_else(|e| panic!("write to {target} must be accepted, got {e:?}"));
+    assert_eq!(
+        sheet.get_cell(target),
+        Value::Number(7.0),
+        "{target} written"
+    );
+    assert_eq!(
+        sheet.get_cell(anchor),
+        Value::Error(ValueError::Spill),
+        "{anchor} is the anchor the shifted bookkeeping named"
+    );
+    for f in freed {
+        assert_eq!(
+            sheet.get_cell(f),
+            Value::Null,
+            "{f} released with the array"
+        );
+    }
+    assert_eq!(sheet.debug_spill_target_count(), 0);
+    assert_eq!(sheet.debug_spill_reverse_index_len(), 0);
 }
 
 /// Sheet with `=SEQUENCE(3)` at A1, spilled into A2:A3.
@@ -80,9 +126,12 @@ fn clear_range_covering_anchor_clears_spill_cleanly() {
     assert_eq!(sheet.get_cell("A2"), Value::Number(5.0));
 }
 
-/// Clearing a range that touches ONLY non-anchor targets is a no-op for
-/// those cells: the array stays intact (single-cell parity — a target
-/// write is rejected with SpillCellWrite; the range path skips).
+/// Clearing a range that touches ONLY non-anchor targets is a no-op for those
+/// cells: the array stays intact. ADR 0006 stage 1 kept this — a `Value::Null`
+/// write could never have blocked the spill, so collapsing would only
+/// re-install the identical projection; Excel and `excel/excel-core-ts` treat
+/// Delete over ghost cells as inert for exactly that reason. What CHANGED is
+/// the reason: it is no longer a refusal, it is a fixpoint.
 #[test]
 fn clear_range_targets_only_is_noop_and_keeps_array() {
     let mut sheet = column_spill_sheet();
@@ -96,7 +145,8 @@ fn clear_range_targets_only_is_noop_and_keeps_array() {
     );
 }
 
-/// A mixed range clears the plain cells and skips the spill targets.
+/// A mixed range clears the plain cells and leaves the spill targets alone —
+/// same Delete-is-inert rule as above.
 #[test]
 fn clear_range_partially_overlapping_spill_clears_only_plain_cells() {
     let mut sheet = column_spill_sheet();
@@ -108,25 +158,34 @@ fn clear_range_partially_overlapping_spill_clears_only_plain_cells() {
     assert_eq!(sheet.get_cell("B2"), Value::Null, "plain cell cleared");
 }
 
-/// Direct BulkLoader::set_cell on a spill target must not panic and
-/// must leave the array intact.
+/// ADR 0006 stage 1 — SEMANTICS CHANGED. This used to pin
+/// `bulk_set_cell_on_spill_target_is_skipped_without_panic`: the value was
+/// silently dropped. It now lands and withdraws the array. The "without panic"
+/// half of the old name is still the real risk being guarded — the write must
+/// reach a fresh primitive atom, never the projection cell's read-only derived
+/// one. Full semantics live in `spill_write_collapse.rs`.
 #[test]
-fn bulk_set_cell_on_spill_target_is_skipped_without_panic() {
+fn bulk_set_cell_on_spill_target_lands_and_collapses() {
     let mut sheet = column_spill_sheet();
     sheet.bulk_load(|loader| {
         loader.set_cell("A2", Value::Number(7.0));
     });
-    assert_eq!(sheet.get_cell("A2"), Value::Number(2.0), "array intact");
+    assert_eq!(sheet.get_cell("A2"), Value::Number(7.0), "write landed");
+    assert_eq!(sheet.get_cell("A1"), Value::Error(ValueError::Spill));
+    assert_eq!(sheet.get_cell("A3"), Value::Null, "array withdrawn");
 }
 
-/// Direct BulkLoader::set_formula on a spill target must not panic,
-/// must return false, and must leave the array intact.
+/// ADR 0006 stage 1 — SEMANTICS CHANGED, was
+/// `bulk_set_formula_on_spill_target_is_rejected_without_panic`. The `false`
+/// return meant "rejected"; the formula is installed now, so it returns `true`.
 #[test]
-fn bulk_set_formula_on_spill_target_is_rejected_without_panic() {
+fn bulk_set_formula_on_spill_target_installs_and_collapses() {
     let mut sheet = column_spill_sheet();
     let installed = sheet.bulk_load(|loader| loader.set_formula("A2", "=1+1"));
-    assert!(!installed, "formula write on a spill target is rejected");
-    assert_eq!(sheet.get_cell("A2"), Value::Number(2.0), "array intact");
+    assert!(installed, "the formula is installed, not rejected");
+    assert_eq!(sheet.get_cell("A2"), Value::Number(2.0));
+    assert_eq!(sheet.get_cell("A1"), Value::Error(ValueError::Spill));
+    assert_eq!(sheet.get_cell("A3"), Value::Null, "array withdrawn");
 }
 
 /// BulkLoader::set_cell on the ANCHOR replaces the array (single-cell
@@ -170,8 +229,8 @@ fn bulk_dependency_write_recomputes_spill_at_flush() {
 // =====================================================================
 
 /// insert_row above a spill: the whole spill shifts down and the
-/// bookkeeping follows — target writes are rejected cleanly at the NEW
-/// addresses and the NEW anchor accepts an overwrite.
+/// bookkeeping follows — a target write collapses the spill at the NEW anchor
+/// address, and the NEW anchor accepts an overwrite.
 #[test]
 fn insert_row_above_spill_relocates_spill_bookkeeping() {
     let mut sheet = column_spill_sheet();
@@ -182,19 +241,14 @@ fn insert_row_above_spill_relocates_spill_bookkeeping() {
     assert_eq!(sheet.get_cell("A3"), Value::Number(2.0));
     assert_eq!(sheet.get_cell("A4"), Value::Number(3.0));
 
-    // Write to the real (shifted) bottom target: clean rejection, no panic.
-    match sheet.try_set_cell("A4", Value::Number(7.0)) {
-        Err(SheetError::SpillCellWrite { anchor }) => {
-            assert_eq!(anchor, addr("A2"), "anchor reported at its new address")
-        }
-        other => panic!("expected SpillCellWrite rejection, got {other:?}"),
-    }
+    // Write to the real (shifted) bottom target: accepted, and it withdraws
+    // the array anchored at the NEW address.
+    assert_target_write_collapses_anchor(&mut sheet, "A4", "A2", &["A3"]);
 
     // Overwriting the shifted anchor is legal: replaces the array.
     assert!(sheet.try_set_cell("A2", Value::Number(9.0)).is_ok());
     assert_eq!(sheet.get_cell("A2"), Value::Number(9.0));
     assert_eq!(sheet.get_cell("A3"), Value::Null);
-    assert_eq!(sheet.get_cell("A4"), Value::Null);
 }
 
 /// insert_row THROUGH the spill band: the anchor stays put and the
@@ -210,10 +264,7 @@ fn insert_row_through_spill_band_respills_contiguously() {
     assert_eq!(sheet.get_cell("A3"), Value::Number(3.0));
     assert_eq!(sheet.get_cell("A4"), Value::Null);
 
-    match sheet.try_set_cell("A3", Value::Number(7.0)) {
-        Err(SheetError::SpillCellWrite { anchor }) => assert_eq!(anchor, addr("A1")),
-        other => panic!("expected SpillCellWrite rejection, got {other:?}"),
-    }
+    assert_target_write_collapses_anchor(&mut sheet, "A3", "A1", &["A2"]);
 }
 
 /// delete_row through the spill band: no panic, and the array re-flows
@@ -227,10 +278,7 @@ fn delete_row_through_spill_band_respills() {
     assert_eq!(sheet.get_cell("A2"), Value::Number(2.0));
     assert_eq!(sheet.get_cell("A3"), Value::Number(3.0));
 
-    match sheet.try_set_cell("A2", Value::Number(7.0)) {
-        Err(SheetError::SpillCellWrite { anchor }) => assert_eq!(anchor, addr("A1")),
-        other => panic!("expected SpillCellWrite rejection, got {other:?}"),
-    }
+    assert_target_write_collapses_anchor(&mut sheet, "A2", "A1", &["A3"]);
 }
 
 /// delete_row of the ANCHOR row collapses the spill entirely: formula
@@ -257,10 +305,7 @@ fn insert_col_left_of_spill_relocates_spill_bookkeeping() {
     assert_eq!(sheet.get_cell("C1"), Value::Number(2.0));
     assert_eq!(sheet.get_cell("D1"), Value::Number(3.0));
 
-    match sheet.try_set_cell("D1", Value::Number(7.0)) {
-        Err(SheetError::SpillCellWrite { anchor }) => assert_eq!(anchor, addr("B1")),
-        other => panic!("expected SpillCellWrite rejection, got {other:?}"),
-    }
+    assert_target_write_collapses_anchor(&mut sheet, "D1", "B1", &["C1"]);
     assert!(sheet.try_set_cell("B1", Value::Number(9.0)).is_ok());
 }
 
@@ -275,8 +320,5 @@ fn delete_col_through_spill_band_respills() {
     assert_eq!(sheet.get_cell("B1"), Value::Number(2.0));
     assert_eq!(sheet.get_cell("C1"), Value::Number(3.0));
 
-    match sheet.try_set_cell("C1", Value::Number(7.0)) {
-        Err(SheetError::SpillCellWrite { anchor }) => assert_eq!(anchor, addr("A1")),
-        other => panic!("expected SpillCellWrite rejection, got {other:?}"),
-    }
+    assert_target_write_collapses_anchor(&mut sheet, "C1", "A1", &["B1"]);
 }

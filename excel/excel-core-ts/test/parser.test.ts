@@ -522,6 +522,26 @@ describe('parseFormula — binary precedence', () => {
       right: { kind: 'number', value: 3 },
     })
   })
+  // Excel's table puts unary `-` ABOVE `^`, so `=-2^2` is `(-2)^2` = 4, not
+  // `-(2^2)` = -4. The Rust engine agrees (`formula.rs` parse_pow → parse_percent
+  // → parse_unary); the TS parser used to disagree because `PREFIX_BP` sat below
+  // `^`'s left-bp.
+  test('unary binds tighter than `^`: -2 ^ 2 → (-2) ^ 2', () => {
+    expect(parseFormula('-2^2')).toEqual({
+      kind: 'binary',
+      op: '^',
+      left: { kind: 'unary', op: '-', operand: { kind: 'number', value: 2 } },
+      right: { kind: 'number', value: 2 },
+    })
+  })
+  test('unary on both sides of `^`: -2 ^ -2 → (-2) ^ (-2)', () => {
+    expect(parseFormula('-2^-2')).toEqual({
+      kind: 'binary',
+      op: '^',
+      left: { kind: 'unary', op: '-', operand: { kind: 'number', value: 2 } },
+      right: { kind: 'unary', op: '-', operand: { kind: 'number', value: 2 } },
+    })
+  })
 })
 
 // ---------- 11. Percent ----------
@@ -545,6 +565,32 @@ describe('parseFormula — percent', () => {
       op: '+',
       left: { kind: 'number', value: 1 },
       right: { kind: 'percent', operand: { kind: 'number', value: 2 } },
+    })
+  })
+  // `%` sits ABOVE `^` in Excel's table, so the exponent absorbs it: `2^(2%)`
+  // = 2^0.02. This used to be a parse error (`POSTFIX_BP` below `^`'s left-bp
+  // left the `%` unconsumed).
+  test('2 ^ 2% → 2 ^ (2%)', () => {
+    expect(parseFormula('2^2%')).toEqual({
+      kind: 'binary',
+      op: '^',
+      left: { kind: 'number', value: 2 },
+      right: { kind: 'percent', operand: { kind: 'number', value: 2 } },
+    })
+  })
+  // `-` is above `%`, so the negation is the INNER node — same shape the Rust
+  // engine builds (`Percent(Negate(50))`). Numerically both nestings agree;
+  // the shape is pinned so the two parsers stay comparable.
+  test('-50% → (-50)%', () => {
+    expect(parseFormula('-50%')).toEqual({
+      kind: 'percent',
+      operand: { kind: 'unary', op: '-', operand: { kind: 'number', value: 50 } },
+    })
+  })
+  test('stacked 50%% → ((50)%)%', () => {
+    expect(parseFormula('50%%')).toEqual({
+      kind: 'percent',
+      operand: { kind: 'percent', operand: { kind: 'number', value: 50 } },
     })
   })
 })

@@ -39,6 +39,7 @@
  */
 
 import { cellKey, parseA1, parseRange } from './refs'
+import { criteriaValueDepRect } from './eval/criteria-value-rect'
 import type { CellKey, CellRange, Expr, NameBinding } from './types'
 
 /** Workbook-global formula identity: `${sheetId}<NUL>${key}`. */
@@ -158,6 +159,7 @@ function walk(
     case 'string':
     case 'boolean':
     case 'error':
+    case 'omitted':
       return
     case 'ref':
       addPoint(out, node.a1, sheetName)
@@ -203,6 +205,11 @@ function walk(
       }
       // Named-LAMBDA invocation: the body's refs are real deps.
       resolveAndWalkName(node.name, out, resolveName, visitedNames)
+      // SUMIF / AVERAGEIF 的值区读的是「左上角 + 条件区形状」那片格子，比实参
+      // 写出来的矩形大 —— `=SUMIF(A1:A3,">1",B1)` 实际读 B1:B3。按实参登记会漏掉
+      // B2 / B3 的写入，值对但会陈。见 `eval/criteria-value-rect.ts`。
+      const valueRect = criteriaValueDepRect(upper, node.args, sheetName)
+      if (valueRect) out.ranges.push(valueRect)
       for (const arg of node.args) walk(arg, sheetName, out, resolveName, visitedNames)
       return
     }

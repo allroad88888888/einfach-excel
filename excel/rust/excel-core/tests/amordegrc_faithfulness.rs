@@ -1,5 +1,5 @@
 //! End-to-end AMORDEGRC faithfulness checks through the public `Workbook`
-//! API. The inline `mod tests` in `eval.rs` covers the evaluator surface;
+//! API. The unit tests under `src/eval_tests/` cover the evaluator surface;
 //! these tests confirm the same algorithm reaches a real `Sheet` +
 //! `WorkbookEvalProvider` pipeline (formula parsing, evaluation, atom
 //! storage, retrieval) and produces Excel-faithful values.

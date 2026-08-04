@@ -50,9 +50,12 @@ const LINK = /\[[^\]]*\]\(([^)\s]+?)(?:#[^)]*)?\)/g
 const STALE_OPT_OUT = 'doc-check: allow-stale-paths'
 
 const ls = (...globs) =>
-  execFileSync('git', ['ls-files', ...globs], { encoding: 'utf8' })
+  execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', ...globs], {
+    encoding: 'utf8',
+  })
     .split('\n')
     .filter(Boolean)
+    .filter((f) => existsSync(f))
     .filter((f) => !EXEMPT.some((e) => f.includes(e)))
 
 // 链接检查只对 markdown；失效路径检查连源码注释一起查 —— 上一轮

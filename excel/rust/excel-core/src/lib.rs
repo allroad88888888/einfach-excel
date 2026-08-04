@@ -6,6 +6,7 @@ pub mod eval;
 pub mod filter;
 pub mod format;
 pub mod formula;
+pub mod general_text;
 pub mod range;
 pub mod sheet;
 pub mod shift;
@@ -19,17 +20,22 @@ pub use auto_fill::{
 };
 pub use cell::CellAddress;
 pub use csv::{export_csv, import_csv, parse_csv, to_csv};
-pub use eval::{eval_expr, is_builtin_function_name, CustomFunctionRegistry, EvalProvider};
+pub use eval::{
+    eval_expr, is_builtin_function_name, CustomFunctionRegistry, EvalProvider,
+    DYNAMIC_ARRAY_CELL_CAP,
+};
 pub use filter::{
     filter_rule_matches_value, is_filter_sort_summary_row, js_numeric_value, js_trim,
     ColumnFilterRule, FilterApplyReport, FilterError, SheetAutoFilter,
     MAX_FILTER_PREDICATE_CELLS,
 };
 pub use format::{
-    apply_rules, value_to_display, Align, BorderSpec, BorderStyle, CellBorders, CellFormat,
-    Condition, ConditionalRule, NumberFormat, Rotation, StyleOverrides, VerticalAlign,
+    apply_rules, error_display_token, value_to_display, Align, BorderSpec, BorderStyle,
+    CellBorders, CellFormat, Condition, ConditionalRule, NumberFormat, Rotation, StyleOverrides,
+    VerticalAlign,
 };
 pub use formula::{parse_formula, BinOperator, Expr, TableArea};
+pub use general_text::excel_general_to_text;
 pub use range::CellRange;
 pub use sheet::{
     CellSubscription, DepGraphStats, FormatRangeSnapshot, PendingAsyncCustomCall,

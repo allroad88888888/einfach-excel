@@ -42,7 +42,7 @@ Layering rules: components read atoms via `@einfach/solid`; mutations dispatch a
 | Folder                    | Surface                                                                                                              |
 | ------------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | `provider/`               | `SpreadsheetUiProvider`, `SpreadsheetUiContext`, `useSpreadsheetBackend`, `useSpreadsheetUiStore`                    |
-| `adapter/`                | `static-backend`, `worker-workbook-backend`, `worker-protocol`, `worker-runtime`, `worker-factory`, range-TSV helper |
+| `adapter/`                | `static-backend`, `worker-workbook-backend`, `worker-protocol`, `worker-factory`, range-TSV helper；WASM worker 拆成 `worker-runtime-core`（消息循环）+ `worker-commands-*`（命令族）+ `worker-runtime` / `worker-runtime-full`（分别静态 import lite / full 产物的叶子入口） |
 | `grid/`                   | `SpreadsheetGrid` — virtualized cells, selection rendering, fill handle                                              |
 | `formula-bar/`            | `SpreadsheetFormulaBar`                                                                                              |
 | `toolbar/`                | `SpreadsheetToolbar` plus toolbar command types                                                                      |

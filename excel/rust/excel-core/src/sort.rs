@@ -20,10 +20,13 @@
 //!     `relocate_cells`; range-format layers are pre-processed by
 //!     "materialize + cut" so no layer overlaps the sorted range when the
 //!     permutation runs. Row heights do NOT move (Excel behavior).
-//!   - **Spill** (§5.1): any intersection between the range and an active
-//!     spill (anchor or target) is rejected up front; after that gate the
-//!     permutation is identity outside the range, so no spill teardown or
-//!     re-derive is needed.
+//!   - **Spill** (§5.1): any intersection between the range and an ACTIVE
+//!     spill (anchor or target) is rejected up front, so no installed
+//!     projection ever needs tearing down — the permutation is identity
+//!     outside the range. COLLIDED anchors (`#SPILL!`, zero targets
+//!     installed) are deliberately NOT gated — see `is_spill_region` — and
+//!     therefore ride the same snapshot → move → re-derive pipeline the
+//!     structural edits use (ADR 0006 stage 0/2, in `sort_range` below).
 
 use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
@@ -429,22 +432,38 @@ impl Sheet {
 
         // §6.3: reuse the structural-edit machine (subscription detach,
         // one Store batch, topology epoch bump, per-address change
-        // notification), but SKIP spill teardown (gate above) and both
-        // `retarget_*` steps (verbatim semantics). `relocate_cells` moves
-        // values, hydrated ASTs, formula texts, parked sources, and
-        // per-cell formats under the row permutation; the map is a
-        // bijection so the full-map rebuild cannot collide.
+        // notification), but SKIP the INSTALLED-spill teardown (gate above)
+        // and both `retarget_*` steps (verbatim semantics).
+        // `relocate_cells` moves values, hydrated ASTs, formula texts,
+        // parked sources, and per-cell formats under the row permutation;
+        // the map is a bijection so the full-map rebuild cannot collide.
         let (c0, c1) = (n.start.col, n.end.col);
         self.with_structural_edit(move |sheet| {
             sheet.materialize_and_cut_format_layers(n);
-            sheet.relocate_cells(|addr| {
+            // ADR 0006 阶段 0/2 —— 碰撞态 anchor 不在 §5.1 闸门的视野里：闸门
+            // 遍历 `spill_anchor_addr`，那是**已安装**投影的索引，而碰撞态
+            // anchor 一个 target 都没装。放行是有意的（`is_spill_region` 的
+            // 注释写着「collided anchor 必须读 false，好让 sort/fill 有机会挪走
+            // 阻塞物」），欠的那一步是搬完之后的收尾：登记表键在**旧**地址，
+            // 于是新地址上的数组既不复活，写旧地址还会退掉它的 claim。
+            //
+            // 收尾就是插删行列那条流水线：整表摘下 → 跟着搬 → 重投影时按新地址
+            // 重新登记。摘**整张表**而不只是矩形内的 anchor，因为排序也能在不碰
+            // anchor 的情况下腾空（或堵上）它的盒子 —— 空格恒沉底，所以排序矩形
+            // 底部的格子会被清空，那可能正是别处某个 anchor 的阻塞物。
+            let blocked_anchors = sheet.teardown_blocked_spill_anchors();
+            let remap = |addr: CellAddress| {
                 if addr.col >= c0 && addr.col <= c1 {
                     if let Some(&next) = row_map.get(&addr.row) {
                         return CellAddress::new(next, addr.col);
                     }
                 }
                 addr
-            });
+            };
+            sheet.relocate_cells(remap);
+            // 与 `apply_structural_shift` 同序：先重投影、再剪枝，且喂进去的是
+            // **同一个** remap 映射过的地址 —— 两处用不同映射就等于重键错位。
+            sheet.rederive_spill_anchors(blocked_anchors.into_iter().map(remap).collect());
             sheet.prune_obsolete_formula_atoms();
         });
 

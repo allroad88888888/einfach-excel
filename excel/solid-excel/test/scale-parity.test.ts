@@ -1,61 +1,53 @@
 /**
- * Adapter-level scale PARITY suite — `excel/rust/excel-core/docs/SCALE_TEST_SUITE_PLAN.md`
- * ("Parity suite"): ONE seeded ~75k mixed workload driven through BOTH
- * worker runtimes, asserting identical observable state.
+ * Adapter-level scale PARITY suite — `excel/rust/excel-core/docs/archive/
+ * SCALE_TEST_SUITE_PLAN.md` ("Parity suite"): ONE seeded ~75k mixed workload
+ * driven through BOTH worker runtimes, asserting identical observable state.
  *
- * Engines under test (both node-side, no browser, no real Worker):
+ * 输入、驱动、比对分别住在：
+ *   - `scale-parity-workload.ts`      工作负载（WORKLOAD_SEED）
+ *   - `scale-parity-edits.ts`         P2 编辑序列（EDIT_SEED）
+ *   - `scale-parity-engine-types.ts`  `ParityEngine` 契约
+ *   - `scale-parity-engine-ts.ts`     TS 引擎驱动
+ *   - `scale-parity-engine-wasm.ts`   WASM 引擎驱动
+ *   - `scale-parity-compare.ts`       采样比对与失败报告
+ * 本文件只剩规格本身。
  *
- *   - TS engine — `createWorkerRuntimeTs().handle()` RPC surface (the same
- *     dispatcher the real Worker runs). Bulk path:
- *     beginImport → importChunk → commitImport (one `bulkApply` per sheet).
- *   - WASM engine — `WasmWorkbook` from `excel/solid-excel/wasm-pkg/`, driven
- *     exactly like `perf-ts-vs-wasm.bench.ts`: the wasm RPC dispatcher in
- *     `worker-runtime.ts` auto-installs onto `self` and can't be invoked
- *     twice cleanly under jest, so we call the same wasm-bindgen methods
- *     the dispatcher would call. Bulk path: `bulk_install_workbook`
- *     (storage-primary, Phase 6.2).
+ * Phases（工作负载的组成见 `scale-parity-workload.ts` 的文件头）:
+ *   P1 import parity    — 500 个确定性采样地址的 `display` / `isError` 一致，
+ *                         外加闭式点检与**契约内**的 formula-cache 探针状态。
+ *   P2 mutation parity  — 200 条播种编辑（含写入溢出区）后重采样一致。
+ *   P3 structural parity— test.todo：TS core 无 band shift，`worker-runtime-ts.ts`
+ *                         对 insert/deleteRows/Columns **fail closed**（结构化
+ *                         `UNSUPPORTED`，与它 `structuralEdits: false` 的能力
+ *                         证词一致）。下面有一条 guard 规格钉住这个拒绝的**形状**，
+ *                         等 band shift 落到 TS runtime 时它会大声失败。
+ *   P4 clearRange parity— 整列清除（e507222 稀疏路径）：清除计数是**闭式**的
+ *                         （== 该列既有单元格数，而非 1M 稠密矩形）+ 后态一致。
+ *   P5 restore parity   — snapshotPersistenceV1 → 全新 runtime → 各自 restore，
+ *                         每引擎往返一致 + 跨引擎一致，再比对快照形状：表元数据
+ *                         **全等**（曾因纯写不读的 `rowCount`/`colCount` 退化成
+ *                         子集比对，字段已删，见该规格内注释）。
  *
- * Phases:
- *   P1 import parity      — seeded LCG workload (50k primitives + ~25k
- *                           formulas: binops, IF, bounded chains, whole-col
- *                           SUM/SUMIF/COUNTIF, cross-sheet refs over 3
- *                           sheets, SEQUENCE spills, deliberate error
- *                           formulas) → 500 deterministic sampled
- *                           addresses: `display` and `isError` identical.
- *                           Plus closed-form spot checks and the
- *                           CONTRACTUAL formula-cache-probe states.
- *   P2 mutation parity    — 200 seeded edits (set/clear/formula-overwrite,
- *                           incl. writes into spill regions) → re-sample
- *                           identical.
- *   P3 structural parity  — test.todo: `worker-runtime-ts.ts` stubs
- *                           insertRows / deleteRows / insertColumns /
- *                           deleteColumns as no-op `true` ("Wave E will
- *                           implement band shifts"). A guard spec pins the
- *                           stub so the todo flips loudly when structural
- *                           ops land on the TS runtime.
- *   P4 clearRange parity  — full-column clear over the seeded sheet
- *                           (e507222 sparse path): cleared-cell counter is
- *                           CLOSED-FORM (== existing cells in the column,
- *                           never the dense 1M rectangle) + identical
- *                           post-state.
- *   P5 restore parity     — snapshotPersistenceV1 → FRESH runtime →
- *                           restore on each engine (TS→TS, WASM→WASM),
- *                           sampled equality per engine + cross-engine,
- *                           plus snapshot-shape comparison between the two
- *                           wires.
+ * ## 曾经被 `EINFACH_SCALE=1` 门控，2026-08-01 解禁
  *
- * Discipline (SCALE_TEST_SUITE_PLAN design principles):
- *   - GATED, not always-on (measured deviation from the plan): the full
- *     file costs ~4.5 min wall (TS trampoline eval of ~25k formulas ×
- *     two engines × five phases) — 40× over the always-on budget, so it
- *     runs only when `EINFACH_SCALE=1` is set. The per-engine S1–S12
- *     suites (rust scale_suite.rs / excel-core-ts scale-suite.test.ts)
- *     remain always-on; this file is the cross-engine equivalence layer:
- *       EINFACH_SCALE=1 npx jest excel/solid-excel/test/scale-parity.test.ts --no-coverage
+ * 门控的**全部**理由是一句实测：「~4.5 min wall（2026-06-12），40× 超 always-on
+ * 预算」。2026-08-01 现场复测：**4.7 s**。理由过期了约 57 倍，而这道门的代价是
+ * 真金白银的 —— 它遮住的分歧不是假想：ADR 0006（溢出区写入语义）那条跨引擎分歧
+ * 在 P2/P4/P5 各红 22 格，靠人手敲 `EINFACH_SCALE=1` 才被看见；同期还有
+ * bulk-install 不建 spill 投影、`#TYPE!` 非 Excel 错误码两条。**一道默认不跑的
+ * 网等于没有网。**
+ *
+ * 4.7 s 这个数**没有被断言**（本仓纪律：counters, not clocks），它只是解禁的依据。
+ * 若哪天这里明显变慢，正确的反应是查为什么变慢，不是把门加回来。
+ *
+ * 其余纪律（同 SCALE_TEST_SUITE_PLAN 设计原则）：
  *   - deterministic: seeded LCG only — no Date.now / Math.random.
  *   - counters, not clocks: completion is asserted via cleared-cell /
  *     import-stat counters, never wall-time.
  *   - closed-form where possible: whole-col SUM == JS-computed seed sum.
+ *
+ * 单表最小烟测在 `cross-engine-parity-smoke.test.ts` —— 那份现在与本份都是
+ * always-on，分工是「最小形状」对「播种规模」，不要合并。
  *
  * Documented divergences NOT asserted here (see
  * `excel/solid-excel/e2e/BACKEND_PARITY.md` § "What the debug-probe RPC
@@ -71,700 +63,19 @@
  * either engine to make the suite green.
  */
 import { describe, expect, test, beforeAll, afterAll } from '@jest/globals'
-import { readFileSync, existsSync } from 'node:fs'
-import { TextDecoder, TextEncoder } from 'node:util'
-import path from 'node:path'
 
-import {
-  createWorkerRuntimeTs,
-  type ExcelCoreTsWorkerRuntime,
-} from '../src-vnext/adapter/worker-runtime-ts'
-
-// jsdom under jest doesn't expose TextDecoder/TextEncoder; the wasm-bindgen
-// glue grabs them at module-load time, so patch globals BEFORE importing
-// the wasm module (same trick as perf-ts-vs-wasm.bench.ts).
-const g = globalThis as unknown as {
-  TextDecoder: typeof TextDecoder
-  TextEncoder: typeof TextEncoder
-}
-if (!g.TextDecoder) g.TextDecoder = TextDecoder
-if (!g.TextEncoder) g.TextEncoder = TextEncoder
-
-const WASM_PKG_JS = path.join(__dirname, '..', 'wasm-pkg', 'einfach_wasm.js')
-const WASM_PKG_BIN = path.join(__dirname, '..', 'wasm-pkg', 'einfach_wasm_bg.wasm')
-
-// ---------------------------------------------------------------------------
-// Seeds. Changing either changes the workload — keep them stable so a
-// reported divergence stays reproducible.
-// ---------------------------------------------------------------------------
-const WORKLOAD_SEED = 0x5ca1ab1e
-const EDIT_SEED = 0xed17ed17
-const SAMPLE_SEED = 0x5a401e5
-
-// ---------------------------------------------------------------------------
-// Deterministic LCG (Numerical Recipes — same generator as the perf bench).
-// ---------------------------------------------------------------------------
-function makeRng(seed: number) {
-  let s = seed >>> 0
-  return () => {
-    s = (s * 1664525 + 1013904223) >>> 0
-    return s / 0xffffffff
-  }
-}
-function rngInt(rng: () => number, bound: number): number {
-  return Math.floor(rng() * bound) % bound
-}
-
-function colLetters(col: number): string {
-  let out = ''
-  let n = col
-  for (;;) {
-    out = String.fromCharCode(65 + (n % 26)) + out
-    if (n < 26) return out
-    n = Math.floor(n / 26) - 1
-  }
-}
-function a1(row: number, col: number): string {
-  return `${colLetters(col)}${row + 1}`
-}
-
-// ---------------------------------------------------------------------------
-// Workload definition — built ONCE; both engines consume the same object.
-//
-// Sheets: Sheet1 / Sheet2 / Sheet3.
-//
-// Primitives (50,000):
-//   Sheet1 A1:A20000  numbers  (LCG 0..999)
-//   Sheet1 B1:B3000   text     (`t<n>-<lcg>`)
-//   Sheet1 C1:C2000   booleans
-//   Sheet2 A1:A15000  numbers
-//   Sheet3 A1:A10000  numbers
-//
-// Formulas (~25,000):
-//   Sheet1 D1:D10000  50/50 `=Ax+Ay` | `=IF(Ax>500,Ax*2,Ax-1)`
-//   Sheet1 E1:E5000   bounded SUMIF windows `=SUMIF(Alo:Ahi,">500")`
-//   Sheet2 B1:B5000   cross-sheet `=Sheet1!Ax*2`
-//   Sheet3 B1:B5000   chains in 50-cell blocks (`=B(r-1)+1`, head `=A(r)+0`)
-//   Specials: whole-col aggregates, cross-sheet aggregate, SEQUENCE spills,
-//             deliberate error formulas (see SPECIALS below).
-// ---------------------------------------------------------------------------
-const SHEET_NAMES = ['Sheet1', 'Sheet2', 'Sheet3']
-const S1_NUMS = 20_000
-const S1_TEXTS = 3_000
-const S1_BOOLS = 2_000
-const S2_NUMS = 15_000
-const S3_NUMS = 10_000
-const S1_BINOPS = 10_000
-const S1_SUMIFS = 5_000
-const S2_XSHEET = 5_000
-const S3_CHAIN = 5_000
-const CHAIN_BLOCK = 50
-
-interface WorkloadCellNumber {
-  sheet: number
-  row: number
-  col: number
-  kind: 'number'
-  value: number
-}
-interface WorkloadCellText {
-  sheet: number
-  row: number
-  col: number
-  kind: 'text'
-  value: string
-}
-interface WorkloadCellBoolean {
-  sheet: number
-  row: number
-  col: number
-  kind: 'boolean'
-  value: boolean
-}
-interface WorkloadCellFormula {
-  sheet: number
-  row: number
-  col: number
-  kind: 'formula'
-  value: string
-}
-type WorkloadCell =
-  | WorkloadCellNumber
-  | WorkloadCellText
-  | WorkloadCellBoolean
-  | WorkloadCellFormula
-
-interface CellRef {
-  sheet: number
-  addr: string
-}
-
-interface Workload {
-  cells: WorkloadCell[]
-  /** 500 deterministic sample refs (incl. specials, spill targets, errors, empties). */
-  sampleRefs: CellRef[]
-  /** Formula cells NOT in the sample set, reserved for the never-read probe. */
-  probeRefs: { neverRead: CellRef; literal: CellRef }
-  /** Closed form: sum of the Sheet1 A-column seed values. */
-  sheet1ColASum: number
-  /** Count of Sheet1 A-column cells (closed form for the P4 clear counter). */
-  sheet1ColACount: number
-  /** Addresses covered by spill regions (anchors + targets), per sheet. */
-  spillRegionRefs: CellRef[]
-}
-
-// Specials — fixed addresses (zero-based row/col), all on top of the bulk
-// columns above. Kept OUT of the LCG columns so nothing overwrites them.
-const SPECIALS: WorkloadCellFormula[] = [
-  // Whole-column aggregates (sparse fan-in at scale).
-  { sheet: 0, row: 0, col: 6, kind: 'formula', value: '=SUM(A:A)' }, // Sheet1!G1
-  { sheet: 0, row: 1, col: 6, kind: 'formula', value: '=SUMIF(A:A,">500")' }, // Sheet1!G2
-  { sheet: 0, row: 2, col: 6, kind: 'formula', value: '=COUNTIF(A:A,"<200")' }, // Sheet1!G3
-  { sheet: 1, row: 0, col: 2, kind: 'formula', value: '=SUM(A:A)' }, // Sheet2!C1
-  { sheet: 2, row: 0, col: 2, kind: 'formula', value: '=SUM(A:A)' }, // Sheet3!C1
-  // Cross-sheet aggregate.
-  {
-    sheet: 1,
-    row: 1,
-    col: 2,
-    kind: 'formula',
-    value: '=SUM(Sheet1!A1:A1000)+SUM(A1:A1000)', // Sheet2!C2
-  },
-  // Spill anchors (dynamic arrays).
-  { sheet: 0, row: 0, col: 7, kind: 'formula', value: '=SEQUENCE(10)' }, // Sheet1!H1 → H1:H10
-  { sheet: 0, row: 0, col: 9, kind: 'formula', value: '=SEQUENCE(4,3)' }, // Sheet1!J1 → J1:L4
-  { sheet: 1, row: 0, col: 3, kind: 'formula', value: '=SEQUENCE(8)' }, // Sheet2!D1 → D1:D8
-  { sheet: 2, row: 0, col: 3, kind: 'formula', value: '=SEQUENCE(5,2)' }, // Sheet3!D1 → D1:E5
-  // Deliberate error formulas.
-  { sheet: 0, row: 0, col: 12, kind: 'formula', value: '=1/0' }, // Sheet1!M1 → #DIV/0!
-  { sheet: 0, row: 1, col: 12, kind: 'formula', value: '=NOSUCHFN_PARITY(1)' }, // Sheet1!M2 → #NAME?
-  { sheet: 0, row: 2, col: 12, kind: 'formula', value: '=SQRT(-1)' }, // Sheet1!M3 → #NUM!
-  { sheet: 0, row: 3, col: 12, kind: 'formula', value: '=1+"x"' }, // Sheet1!M4 → #VALUE!
-]
-
-// Spill regions implied by the SPECIALS above (anchor + targets).
-function spillRegions(): CellRef[] {
-  const out: CellRef[] = []
-  const push = (sheet: number, row0: number, col0: number, rows: number, cols: number) => {
-    for (let r = 0; r < rows; r += 1) {
-      for (let c = 0; c < cols; c += 1) {
-        out.push({ sheet, addr: a1(row0 + r, col0 + c) })
-      }
-    }
-  }
-  push(0, 0, 7, 10, 1) // Sheet1 H1:H10
-  push(0, 0, 9, 4, 3) // Sheet1 J1:L4
-  push(1, 0, 3, 8, 1) // Sheet2 D1:D8
-  push(2, 0, 3, 5, 2) // Sheet3 D1:E5
-  return out
-}
-
-function buildWorkload(): Workload {
-  const rng = makeRng(WORKLOAD_SEED)
-  const cells: WorkloadCell[] = []
-
-  // --- primitives ---------------------------------------------------------
-  let sheet1ColASum = 0
-  for (let r = 0; r < S1_NUMS; r += 1) {
-    const v = rngInt(rng, 1000)
-    sheet1ColASum += v
-    cells.push({ sheet: 0, row: r, col: 0, kind: 'number', value: v })
-  }
-  for (let r = 0; r < S1_TEXTS; r += 1) {
-    cells.push({ sheet: 0, row: r, col: 1, kind: 'text', value: `t${r}-${rngInt(rng, 100)}` })
-  }
-  for (let r = 0; r < S1_BOOLS; r += 1) {
-    cells.push({ sheet: 0, row: r, col: 2, kind: 'boolean', value: rng() < 0.5 })
-  }
-  for (let r = 0; r < S2_NUMS; r += 1) {
-    cells.push({ sheet: 1, row: r, col: 0, kind: 'number', value: rngInt(rng, 1000) })
-  }
-  for (let r = 0; r < S3_NUMS; r += 1) {
-    cells.push({ sheet: 2, row: r, col: 0, kind: 'number', value: rngInt(rng, 1000) })
-  }
-
-  // --- formulas ------------------------------------------------------------
-  // Sheet1 D: binop / IF mix over the A column.
-  for (let r = 0; r < S1_BINOPS; r += 1) {
-    if (rng() < 0.5) {
-      const x = rngInt(rng, S1_NUMS)
-      const y = rngInt(rng, S1_NUMS)
-      cells.push({
-        sheet: 0,
-        row: r,
-        col: 3,
-        kind: 'formula',
-        value: `=${a1(x, 0)}+${a1(y, 0)}`,
-      })
-    } else {
-      const x = rngInt(rng, S1_NUMS)
-      cells.push({
-        sheet: 0,
-        row: r,
-        col: 3,
-        kind: 'formula',
-        value: `=IF(${a1(x, 0)}>500,${a1(x, 0)}*2,${a1(x, 0)}-1)`,
-      })
-    }
-  }
-  // Sheet1 E: bounded SUMIF windows (1,000-cell windows over A).
-  for (let r = 0; r < S1_SUMIFS; r += 1) {
-    const lo = rngInt(rng, S1_NUMS - 1000)
-    cells.push({
-      sheet: 0,
-      row: r,
-      col: 4,
-      kind: 'formula',
-      value: `=SUMIF(${a1(lo, 0)}:${a1(lo + 999, 0)},">500")`,
-    })
-  }
-  // Sheet2 B: cross-sheet point refs into Sheet1.
-  for (let r = 0; r < S2_XSHEET; r += 1) {
-    const x = rngInt(rng, S1_NUMS)
-    cells.push({ sheet: 1, row: r, col: 1, kind: 'formula', value: `=Sheet1!${a1(x, 0)}*2` })
-  }
-  // Sheet3 B: 50-deep chains (block head re-roots on the A column so a
-  // single block stays a bounded dependency chain on both engines).
-  for (let r = 0; r < S3_CHAIN; r += 1) {
-    cells.push({
-      sheet: 2,
-      row: r,
-      col: 1,
-      kind: 'formula',
-      value: r % CHAIN_BLOCK === 0 ? `=${a1(r, 0)}+0` : `=${a1(r - 1, 1)}+1`,
-    })
-  }
-  cells.push(...SPECIALS)
-
-  // --- deterministic samples ------------------------------------------------
-  const spillRefs = spillRegions()
-  const sampleRefs: CellRef[] = []
-  const seen = new Set<string>()
-  const addRef = (ref: CellRef) => {
-    const key = `${ref.sheet}:${ref.addr}`
-    if (seen.has(key)) return
-    seen.add(key)
-    sampleRefs.push(ref)
-  }
-  // Specials, full spill regions, and a blank just outside each spill edge.
-  for (const s of SPECIALS) addRef({ sheet: s.sheet, addr: a1(s.row, s.col) })
-  for (const ref of spillRefs) addRef(ref)
-  addRef({ sheet: 0, addr: 'H11' }) // one past Sheet1!H1 spill
-  addRef({ sheet: 1, addr: 'D9' }) // one past Sheet2!D1 spill
-  // A handful of definitely-empty cells.
-  addRef({ sheet: 0, addr: 'AZ99999' })
-  addRef({ sheet: 1, addr: 'Q42' })
-  addRef({ sheet: 2, addr: 'XFD1048576' })
-  // Chain tails (closed-form-ish: head + 49).
-  for (let b = 0; b < S3_CHAIN; b += CHAIN_BLOCK * 10) {
-    addRef({ sheet: 2, addr: a1(b + CHAIN_BLOCK - 1, 1) })
-  }
-  // Fill to 500 by LCG over the workload cells. Reserve the LAST formula
-  // rows of Sheet1 D / E for the never-read probe pool by skipping them.
-  const sampleRng = makeRng(SAMPLE_SEED)
-  while (sampleRefs.length < 500) {
-    const cell = cells[rngInt(sampleRng, cells.length)]
-    if (cell.sheet === 0 && cell.col === 3 && cell.row >= S1_BINOPS - 10) continue
-    addRef({ sheet: cell.sheet, addr: a1(cell.row, cell.col) })
-  }
-
-  return {
-    cells,
-    sampleRefs,
-    probeRefs: {
-      // Reserved above — never read through any sampling pass.
-      neverRead: { sheet: 0, addr: a1(S1_BINOPS - 1, 3) },
-      literal: { sheet: 0, addr: 'A1' },
-    },
-    sheet1ColASum,
-    sheet1ColACount: S1_NUMS,
-    spillRegionRefs: spillRefs,
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Seeded edit script (P2). Applied IDENTICALLY to both engines.
-// ---------------------------------------------------------------------------
-type EditOp =
-  | { op: 'setNumber'; sheet: number; addr: string; value: number }
-  | { op: 'setText'; sheet: number; addr: string; value: string }
-  | { op: 'clearCell'; sheet: number; addr: string }
-  | { op: 'setFormula'; sheet: number; addr: string; formula: string }
-
-function buildEdits(): EditOp[] {
-  const rng = makeRng(EDIT_SEED)
-  const ops: EditOp[] = []
-  for (let i = 0; i < 197; i += 1) {
-    const k = rng()
-    if (k < 0.4) {
-      // Overwrite a seeded number (keeps the Sheet1 A-column cell COUNT
-      // stable — the P4 closed form depends on it).
-      const sheet = rngInt(rng, 3)
-      const bound = sheet === 0 ? S1_NUMS : sheet === 1 ? S2_NUMS : S3_NUMS
-      ops.push({
-        op: 'setNumber',
-        sheet,
-        addr: a1(rngInt(rng, bound), 0),
-        value: rngInt(rng, 5000),
-      })
-    } else if (k < 0.55) {
-      ops.push({
-        op: 'setText',
-        sheet: 0,
-        addr: a1(rngInt(rng, S1_TEXTS), 1),
-        value: `edit${i}-${rngInt(rng, 100)}`,
-      })
-    } else if (k < 0.7) {
-      ops.push({ op: 'clearCell', sheet: 0, addr: a1(rngInt(rng, S1_BINOPS - 10), 3) })
-    } else if (k < 0.9) {
-      const r = rngInt(rng, S1_NUMS)
-      ops.push({
-        op: 'setFormula',
-        sheet: 0,
-        addr: a1(rngInt(rng, S1_BINOPS - 10), 3),
-        formula: `=${a1(r, 0)}*3+1`,
-      })
-    } else {
-      const r = rngInt(rng, S3_NUMS)
-      ops.push({
-        op: 'setFormula',
-        sheet: 1,
-        addr: a1(rngInt(rng, S2_XSHEET), 1),
-        formula: `=Sheet3!${a1(r, 0)}+${rngInt(rng, 100)}`,
-      })
-    }
-  }
-  // Spill-region edits (fixed, deterministic): a literal into a spill
-  // target, a formula overwrite into a spill target, and an anchor clear.
-  ops.push({ op: 'setNumber', sheet: 0, addr: 'H3', value: 999 }) // into Sheet1!H1 spill
-  ops.push({ op: 'setFormula', sheet: 0, addr: 'K2', formula: '=1+1' }) // into Sheet1!J1 spill
-  ops.push({ op: 'clearCell', sheet: 1, addr: 'D1' }) // tear down Sheet2!D1 anchor
-  return ops
-}
-
-// ---------------------------------------------------------------------------
-// Engine drivers — one common surface over both runtimes.
-// ---------------------------------------------------------------------------
-interface SampledCell {
-  display: string
-  isError: boolean
-}
-
-interface ParityEngine {
-  readonly label: 'ts' | 'wasm'
-  importWorkload(cells: WorkloadCell[]): Promise<void>
-  readSamples(refs: CellRef[]): Promise<Map<string, SampledCell>>
-  applyEdit(op: EditOp): Promise<void>
-  /** Clear one full column (rows 0..1_048_575). Returns the cleared-cell counter. */
-  clearColumn(sheet: number, col: number): Promise<number>
-  cacheState(sheet: number, addr: string): Promise<string>
-  snapshotPersistence(): Promise<PersistenceSnapshot>
-  /** Build a FRESH engine of the same kind and restore the snapshot into it. */
-  restoreIntoFresh(snapshot: PersistenceSnapshot): Promise<ParityEngine>
-  dispose(): void
-}
-
-interface PersistenceSnapshot {
-  version: number
-  sheets: Array<{ idx: number; name: string }>
-  cells: Array<{
-    sheet: number
-    addr: string
-    row: number
-    col: number
-    kind: string
-    value?: unknown
-  }>
-  [key: string]: unknown
-}
-
-function refKey(ref: CellRef): string {
-  return `${ref.sheet}:${ref.addr}`
-}
-
-// --- TS engine -------------------------------------------------------------
-function makeTsEngine(runtime?: ExcelCoreTsWorkerRuntime): ParityEngine & {
-  rpc: (msg: Record<string, unknown>) => Promise<unknown>
-} {
-  const rt = runtime ?? createWorkerRuntimeTs()
-  let rpcId = 0
-  const rpc = async (msg: Record<string, unknown>) => {
-    rpcId += 1
-    const resp = await rt.handle({ id: rpcId, ...msg } as never)
-    if (!resp.ok) {
-      throw new Error(`ts rpc ${String(msg.cmd)} failed: ${resp.error.code} ${resp.error.message}`)
-    }
-    return resp.result
-  }
-
-  return {
-    label: 'ts',
-    rpc,
-    async importWorkload(cells) {
-      await rpc({ cmd: 'initWorkbook', sheets: SHEET_NAMES })
-      const sessionId = (await rpc({ cmd: 'beginImport', mode: 'atomic' })) as number
-      // Stream in chunks like the real backend does; the runtime buffers
-      // and commits in one bulkApply per sheet either way.
-      const CHUNK = 25_000
-      for (let i = 0; i < cells.length; i += CHUNK) {
-        await rpc({ cmd: 'importChunk', sessionId, cells: cells.slice(i, i + CHUNK) })
-      }
-      const stats = (await rpc({ cmd: 'commitImport', sessionId })) as {
-        accepted: number
-        formulas: number
-        rejectedFormulas: number
-      }
-      // Counter, not clock: every staged cell must be accepted.
-      expect(stats.accepted).toBe(cells.length)
-      expect(stats.rejectedFormulas).toBe(0)
-    },
-    async readSamples(refs) {
-      const out = new Map<string, SampledCell>()
-      const snaps = (await rpc({
-        cmd: 'readCells',
-        cells: refs.map((r) => ({ sheet: r.sheet, addr: r.addr })),
-      })) as Array<{ sheet: number; addr: string; display: string; isError: boolean }>
-      snaps.forEach((snap, i) => {
-        out.set(refKey(refs[i]), { display: snap.display, isError: snap.isError })
-      })
-      return out
-    },
-    async applyEdit(op) {
-      switch (op.op) {
-        case 'setNumber':
-          await rpc({
-            cmd: 'setCell',
-            sheet: op.sheet,
-            addr: op.addr,
-            value: { type: 'number', value: op.value },
-          })
-          return
-        case 'setText':
-          await rpc({
-            cmd: 'setCell',
-            sheet: op.sheet,
-            addr: op.addr,
-            value: { type: 'text', value: op.value },
-          })
-          return
-        case 'clearCell':
-          await rpc({ cmd: 'clearCell', sheet: op.sheet, addr: op.addr })
-          return
-        case 'setFormula':
-          await rpc({ cmd: 'setFormula', sheet: op.sheet, addr: op.addr, formula: op.formula })
-          return
-      }
-    },
-    async clearColumn(sheet, col) {
-      return (await rpc({
-        cmd: 'clearRange',
-        range: { sheet, startRow: 0, startCol: col, endRow: 1_048_575, endCol: col },
-      })) as number
-    },
-    async cacheState(sheet, addr) {
-      return (await rpc({ cmd: 'debugFormulaCacheState', sheet, addr })) as string
-    },
-    async snapshotPersistence() {
-      return (await rpc({ cmd: 'snapshotPersistenceV1' })) as PersistenceSnapshot
-    },
-    async restoreIntoFresh(snapshot) {
-      const fresh = makeTsEngine()
-      await fresh.rpc({ cmd: 'restorePersistenceV1', snapshot })
-      return fresh
-    },
-    dispose() {
-      // GC'd with the closure.
-    },
-  }
-}
-
-// --- WASM engine -------------------------------------------------------------
-type WasmWorkbookCtor = new () => WasmWorkbookLike
-interface WasmModuleShape {
-  default: (init?: { module_or_path: ArrayBufferLike }) => Promise<unknown>
-  WasmWorkbook: WasmWorkbookCtor
-}
-
-interface WasmWorkbookLike {
-  rename_sheet(idx: number, name: string): boolean
-  add_sheet(name: string): number
-  bulk_install_workbook(payload: unknown): unknown
-  snapshotCell(
-    sheet: number,
-    addr: string,
-  ): {
-    sheet: number
-    addr: string
-    display: string
-    type: string
-    isError: boolean
-    formula: string
-  }
-  set_cell_number(sheet: number, addr: string, value: number): void
-  set_cell_text(sheet: number, addr: string, value: string): void
-  clearCellAt(sheet: number, addr: string): void
-  setFormulaAt(sheet: number, addr: string, src: string): boolean
-  clear_range(
-    sheet: number,
-    startRow: number,
-    startCol: number,
-    endRow: number,
-    endCol: number,
-  ): number
-  debug_formula_cache_state(sheet: number, addr: string): string
-  snapshot_persistence_v1(): unknown
-  restore_persistence_v1(snapshot: unknown): unknown
-  free(): void
-}
-
-let WasmModule: WasmModuleShape | undefined
-
-async function loadWasmModule(): Promise<WasmModuleShape> {
-  if (WasmModule) return WasmModule
-  if (!existsSync(WASM_PKG_JS) || !existsSync(WASM_PKG_BIN)) {
-    throw new Error(
-      `scale-parity: wasm-pkg missing at ${WASM_PKG_JS} — run \`npm --prefix excel/solid-excel run build:wasm\``,
-    )
-  }
-  const mod = (await import(WASM_PKG_JS)) as WasmModuleShape
-  const bytes = readFileSync(WASM_PKG_BIN)
-  await mod.default({
-    module_or_path: bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength),
-  })
-  WasmModule = mod
-  return mod
-}
-
-function makeWasmEngine(existing?: WasmWorkbookLike): ParityEngine & { wb: WasmWorkbookLike } {
-  if (!WasmModule) throw new Error('wasm module not loaded')
-  const wb = existing ?? new WasmModule.WasmWorkbook()
-
-  return {
-    label: 'wasm',
-    wb,
-    async importWorkload(cells) {
-      // Mirror worker-runtime.ts `resetWorkbook` sheet setup.
-      wb.rename_sheet(0, SHEET_NAMES[0])
-      for (const name of SHEET_NAMES.slice(1)) wb.add_sheet(name)
-      // Storage-primary bulk install (Phase 6.2) — group per sheet.
-      const bySheet = new Map<
-        number,
-        { sheet: number; primitives: Array<[string, unknown]>; formulas: Array<[string, string]> }
-      >()
-      for (let i = 0; i < SHEET_NAMES.length; i += 1) {
-        bySheet.set(i, { sheet: i, primitives: [], formulas: [] })
-      }
-      for (const cell of cells) {
-        const entry = bySheet.get(cell.sheet)
-        if (!entry) throw new Error(`workload sheet out of range: ${cell.sheet}`)
-        const addr = a1(cell.row, cell.col)
-        if (cell.kind === 'formula') entry.formulas.push([addr, cell.value])
-        else entry.primitives.push([addr, cell.value])
-      }
-      const stats = wb.bulk_install_workbook([...bySheet.values()]) as Array<{
-        sheet: number
-        primitivesInstalled: number
-        formulasInstalled: number
-      }>
-      // Counter, not clock: install counts must cover the whole workload.
-      const primitives = cells.filter((c) => c.kind !== 'formula').length
-      const formulas = cells.length - primitives
-      expect(stats.reduce((acc, s) => acc + s.primitivesInstalled, 0)).toBe(primitives)
-      expect(stats.reduce((acc, s) => acc + s.formulasInstalled, 0)).toBe(formulas)
-    },
-    async readSamples(refs) {
-      const out = new Map<string, SampledCell>()
-      for (const ref of refs) {
-        const snap = wb.snapshotCell(ref.sheet, ref.addr)
-        out.set(refKey(ref), { display: snap.display, isError: snap.isError })
-      }
-      return out
-    },
-    async applyEdit(op) {
-      switch (op.op) {
-        case 'setNumber':
-          wb.set_cell_number(op.sheet, op.addr, op.value)
-          return
-        case 'setText':
-          wb.set_cell_text(op.sheet, op.addr, op.value)
-          return
-        case 'clearCell':
-          wb.clearCellAt(op.sheet, op.addr)
-          return
-        case 'setFormula':
-          wb.setFormulaAt(op.sheet, op.addr, op.formula)
-          return
-      }
-    },
-    async clearColumn(sheet, col) {
-      return wb.clear_range(sheet, 0, col, 1_048_575, col)
-    },
-    async cacheState(sheet, addr) {
-      return wb.debug_formula_cache_state(sheet, addr)
-    },
-    async snapshotPersistence() {
-      return wb.snapshot_persistence_v1() as PersistenceSnapshot
-    },
-    async restoreIntoFresh(snapshot) {
-      const fresh = makeWasmEngine()
-      fresh.wb.restore_persistence_v1(snapshot)
-      return fresh
-    },
-    dispose() {
-      wb.free()
-    },
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Comparison helper. Collects ALL mismatches so a failure reports the
-// complete divergent address list + seeds in one shot.
-// ---------------------------------------------------------------------------
-function diffSamples(
-  ts: Map<string, SampledCell>,
-  wasm: Map<string, SampledCell>,
-): string[] {
-  const mismatches: string[] = []
-  for (const [key, t] of ts) {
-    const w = wasm.get(key)
-    if (!w) {
-      mismatches.push(`${key}: missing from wasm sample`)
-      continue
-    }
-    if (t.display !== w.display || t.isError !== w.isError) {
-      mismatches.push(
-        `${key}: ts={display:${JSON.stringify(t.display)},isError:${t.isError}} ` +
-          `wasm={display:${JSON.stringify(w.display)},isError:${w.isError}}`,
-      )
-    }
-  }
-  return mismatches
-}
-
-function expectParity(
-  ts: Map<string, SampledCell>,
-  wasm: Map<string, SampledCell>,
-  phase: string,
-) {
-  const mismatches = diffSamples(ts, wasm)
-  if (mismatches.length > 0) {
-    throw new Error(
-      `${phase}: ${mismatches.length} divergent cells ` +
-        `(WORKLOAD_SEED=0x${WORKLOAD_SEED.toString(16)}, EDIT_SEED=0x${EDIT_SEED.toString(16)}):\n` +
-        mismatches.join('\n'),
-    )
-  }
-  expect(mismatches).toEqual([])
-}
+import { buildWorkload } from './scale-parity-workload'
+import { buildEdits } from './scale-parity-edits'
+import { refKey, type PersistenceSnapshot } from './scale-parity-engine-types'
+import { makeTsEngine } from './scale-parity-engine-ts'
+import { loadWasmModule, makeWasmEngine } from './scale-parity-engine-wasm'
+import { expectParity } from './scale-parity-compare'
 
 // ---------------------------------------------------------------------------
 // Suite. Phases share one imported workbook pair — jest runs the specs in
 // declaration order within the file.
 // ---------------------------------------------------------------------------
-// Gated: ~4.5 min measured (2026-06-12) — see the Discipline note above.
-const describeScale = process.env.EINFACH_SCALE ? describe : describe.skip
-
-describeScale('scale parity — one seeded ~75k workload through both worker runtimes', () => {
+describe('scale parity — one seeded ~75k workload through both worker runtimes', () => {
   const workload = buildWorkload()
   let tsEngine: ReturnType<typeof makeTsEngine>
   let wasmEngine: ReturnType<typeof makeWasmEngine>
@@ -835,29 +146,57 @@ describeScale('scale parity — one seeded ~75k workload through both worker run
     30_000,
   )
 
-  // P3 — structural parity. `worker-runtime-ts.ts` ('insertRows' /
-  // 'deleteRows' / 'insertColumns' / 'deleteColumns' cases) explicitly
-  // no-ops with `return true` ("Wave E will implement band shifts. For
-  // Phase 4, no-op true."). Driving structural ops through both engines
-  // would compare a real row shift against a no-op — not a parity signal.
+  // P3 — structural parity. The TS core has no band shift, so
+  // `worker-runtime-ts.ts` ('insertRows' / 'deleteRows' / 'insertColumns' /
+  // 'deleteColumns' cases) fails CLOSED with a structured `UNSUPPORTED`
+  // refusal. Driving structural ops through both engines would compare a
+  // real WASM row shift against a refusal — not a parity signal.
   test.todo(
-    'P3 structural parity — BLOCKED: TS runtime stubs insertRows/deleteRows/insertColumns/deleteColumns as no-op `true` (Wave E); enable once band shifts land',
+    'P3 structural parity — BLOCKED: TS core has no band shift, so the TS runtime refuses insertRows/deleteRows/insertColumns/deleteColumns (`structuralEdits: false`); enable once band shifts land',
   )
 
-  test('P3 guard — TS structural stubs are still no-ops (flip the todo above when this fails)', async () => {
-    // Pin the CURRENT stub shape: the RPC succeeds but moves nothing.
-    // When Wave E implements band shifts this spec fails, which is the
-    // signal to delete it and implement real P3 structural parity.
+  test('P3 guard — TS structural ops fail closed with UNSUPPORTED (flip the todo above when this fails)', async () => {
+    // NOT a parity assertion, and NOT a relaxed one: this guard pins the TS
+    // runtime's DEGRADATION CONTRACT — what it is allowed to answer while
+    // band shift is missing — so the todo above cannot rot silently.
+    //
+    // History (read this before "fixing" the guard again): it used to pin
+    // the OPPOSITE, a success-shaped no-op `return true`. That stub was a
+    // fake ACK — a host could not tell "nothing moved" from "rows moved" —
+    // and `worker-runtime-ts.ts` deliberately replaced it with the refusal
+    // asserted below. The old guard then failed loudly, which is exactly
+    // what a guard is for; the fix was to re-point the guard at the new,
+    // honest contract, NOT to restore the stub. When band shifts DO land,
+    // these four commands stop refusing, this spec fails again, and THAT is
+    // the signal to delete it and write real cross-engine P3 parity.
+    const structuralCmds = [
+      { cmd: 'insertRows', sheet: 0, rowIndex: 0, count: 3 },
+      { cmd: 'deleteRows', sheet: 0, rowIndex: 0, count: 3 },
+      { cmd: 'insertColumns', sheet: 0, colIndex: 0, count: 2 },
+      { cmd: 'deleteColumns', sheet: 0, colIndex: 0, count: 2 },
+    ]
     const before = await tsEngine.readSamples([{ sheet: 0, addr: 'A5' }])
-    const ok = await tsEngine.rpc({
-      cmd: 'insertRows',
-      sheet: 0,
-      rowIndex: 0,
-      count: 3,
-    })
-    expect(ok).toBe(true)
+    for (const msg of structuralCmds) {
+      const resp = await tsEngine.rawRpc(msg)
+      // Assert the REJECTION SHAPE, not merely "it threw": an error
+      // envelope, the protocol-level `UNSUPPORTED` code, and a message that
+      // names both the command and the missing engine feature.
+      expect(resp.ok).toBe(false)
+      if (resp.ok) throw new Error(`expected an error envelope for ${msg.cmd}`)
+      expect(resp.error).toEqual({
+        code: 'UNSUPPORTED',
+        message: `${msg.cmd} (structural edits) is not implemented by the TS worker runtime`,
+      })
+    }
+    // Fail-closed means fail-CLOSED: no partial band shift leaked through.
     const after = await tsEngine.readSamples([{ sheet: 0, addr: 'A5' }])
     expect(after.get('0:A5')).toEqual(before.get('0:A5'))
+    // ...and the capability handshake agrees, so a compliant adapter never
+    // sends these at all — the refusal is only the last line of defence.
+    const caps = (await tsEngine.rpc({ cmd: 'describeCapabilities' })) as {
+      structuralEdits: boolean
+    }
+    expect(caps.structuralEdits).toBe(false)
   })
 
   test(
@@ -890,16 +229,40 @@ describeScale('scale parity — one seeded ~75k workload through both worker run
       const tsSnapshot = await tsEngine.snapshotPersistence()
       const wasmSnapshot = await wasmEngine.snapshotPersistence()
 
-      // Snapshot-shape parity (wire level): version + sheet metadata.
+      // Snapshot-shape parity (wire level): version + 表元数据**全等**。
+      //
+      // 这里以前是子集比对（只挑 `{ idx, name }`），理由是
+      // `WorkbookPersistenceSheetWire` 当年还声明了可选的 `rowCount?` /
+      // `colCount?`：WASM 引擎用 `sheet_sparse_bounds` 填，TS runtime 不填，
+      // 两边都合法，于是 `toEqual` 断的是 wire 从没许诺过的事。
+      //
+      // 2026-08-01 那两个字段被**删掉了** —— 它们纯写不读（两边的 restore 都
+      // 不碰），唯一的实际作用就是让两个引擎的快照永远无法逐字相等。字段没了，
+      // 分歧的来源也就没了：wire 上现在只剩 `{ idx, name }`，没有留给「某一边
+      // 填、另一边不填」的空位，所以直接整对象全等。
+      //
+      // 这条断言现在是有牙的：任何一边**再往表元数据上加字段**，只要另一边没
+      // 跟上，这里就会红。那正是想要的信号 —— 不要再把它放宽回子集比对，去让
+      // 两边的 wire 重新对齐。
       expect(wasmSnapshot.version).toBe(tsSnapshot.version)
-      expect(wasmSnapshot.sheets).toEqual(tsSnapshot.sheets)
+      // `toStrictEqual` 而非 `toEqual`：后者会忽略值为 `undefined` 的属性，
+      // 那正是本次要堵的洞 —— 一边显式写 `rowCount: undefined` 也算「相等」。
+      expect(wasmSnapshot.sheets).toStrictEqual(tsSnapshot.sheets)
       // Cell-record parity keyed by sheet:addr → kind:value. Spill-region
       // addresses stay excluded for robustness, though both engines now
       // omit spill projections from snapshots: the TS runtime's
-      // `snapshotRangeSparse` serializes only real cells (anchor formula
-      // source included) so restore cannot materialize projections, and
-      // the Rust engine's spill targets are virtual derived atoms that
-      // never serialize. Restored DISPLAYS are asserted equal below.
+      // `snapshotRangeSparse` walks only real cells (anchor formula source
+      // included), and the Rust engine's `sparse_cell_from_sheet_no_eval`
+      // filters its projected targets out with `Sheet::is_spilled`.
+      //
+      // That filter is NEW, and this exclusion is why the test never caught
+      // its absence. A Rust spill target IS a live cell in `Sheet::cells` —
+      // a derived atom — so `for_each_non_empty` reported it and the
+      // snapshot serialized it as a `kind:"number"` literal. On restore the
+      // literals occupied the anchor's own region and it read back
+      // `#SPILL!`. Nothing here saw it because `spillKeys` dropped exactly
+      // those addresses; the roundtrip assertion below is what failed.
+      // Restored DISPLAYS are asserted equal below.
       const spillKeys = new Set(workload.spillRegionRefs.map(refKey))
       const cellMap = (snapshot: PersistenceSnapshot) => {
         const out = new Map<string, string>()

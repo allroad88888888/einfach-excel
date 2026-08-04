@@ -25,7 +25,8 @@ fn row_column_dimensions_round_trip() {
 /// `=ROW()` / `=COLUMN()` with no args resolve to the formula's own row /
 /// column once the provider exposes `current_cell()`. The legacy single-sheet
 /// `AtomEvalProvider` returns `#REF!` for the no-arg form (covered by the
-/// inline `eval_row` / `eval_column` unit tests); this exercise covers the
+/// `eval_row` / `eval_column` unit tests in `src/eval_tests/ref_row_column.rs`);
+/// this exercise covers the
 /// production `WorkbookEvalProvider` path.
 #[test]
 fn row_column_no_args_uses_current_cell() {

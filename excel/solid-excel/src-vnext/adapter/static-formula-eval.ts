@@ -6,9 +6,13 @@
  *   - string literals: "hello"
  *   - cell references: A1, $A$1
  *   - range references inside function args: B2:E8
- *   - operators: + - * / ^ with normal precedence, plus comparison
- *     operators = <> < <= > >= (lowest precedence) returning 1/0
+ *   - operators: + - * / ^ with normal precedence, postfix % (which binds
+ *     ABOVE `^` — see `parsePercent`), plus comparison operators
+ *     = <> < <= > >= (lowest precedence) returning 1/0
  *   - unary minus / plus
+ *   - Excel's arithmetic operand coercion: text that looks numeric is
+ *     parsed (`=1+"5"` is 6), text that does not is `#VALUE!` — see
+ *     `coerceNumber`
  *   - parentheses
  *   - functions: SUM, AVERAGE, COUNT, MIN, MAX, IF, SUMIF, COUNTIF,
  *     ABS, ROUND, CONCAT, SUBTOTAL
@@ -19,12 +23,23 @@
  * returns '#DIV/0!'. Cyclic references return '#CYCLE!'. Cross-sheet
  * refs (Sheet!A1) are not supported — the worker backend covers those.
  *
+ * The error codes above are this evaluator's INTERNAL vocabulary — what
+ * `evaluateFormula` returns. What a cell SHOWS is narrower: `formatEvalResult`
+ * is the display boundary and routes every code through `errorDisplayToken`,
+ * which collapses the non-Excel `#TYPE!` and `#ARGS!` to `#VALUE!`. Both still
+ * parse (they must — see `errorDisplayToken`'s doc) and the guards below still
+ * produce them, because they say WHICH check rejected the call. `#CYCLE!` is
+ * non-Excel too and is deliberately NOT collapsed; the reasoning for all three
+ * lives on `errorDisplayToken`.
+ *
  * Plain (non-error) string results are valid first-class values: CONCAT
  * builds them, comparisons can take them, IF can branch to them. Only
  * strings that start with '#' are treated as error codes.
  */
 
 import type { DisplayCell } from '@einfach/spreadsheet-ui-core'
+
+import { errorDisplayToken } from './error-display-token'
 
 export type EvalResult =
   | { kind: 'number'; value: number }
@@ -188,8 +203,14 @@ const BARE_LITERALS: Record<string, number> = {
 }
 
 /**
- * Error literal tokens — 13 Excel error codes aligned with
- * `excel/rust/wasm` `error_token_to_value_error`.
+ * Error literal tokens — 13 codes aligned with `excel/rust/wasm`
+ * `error_token_to_value_error`.
+ *
+ * A PARSE table, so it is the inverse of the internal vocabulary, not of
+ * `errorDisplayToken`. `#TYPE!` and `#ARGS!` stay parse-only aliases: dropping
+ * either would stop stored formula text from round-tripping (the engine writes
+ * error codes back into formula source on every structural edit), even though
+ * nothing ever shows them back to the user.
  */
 const ERROR_LITERAL_RE = /^#(NULL!|DIV\/0!|N\/A|REF!|VALUE!|NAME\?|NUM!|CYCLE!|TYPE!|ARGS!|SPILL!|CALC!|BUSY!)/
 
@@ -319,7 +340,9 @@ function tokenize(
       i += 1
       continue
     }
-    if ('+-*/^'.includes(ch)) {
+    // `%` rides in the same class as the arithmetic operators even though it
+    // is POSTFIX — `parsePercent` is what gives it its Excel binding power.
+    if ('+-*/^%'.includes(ch)) {
       tokens.push({ kind: 'op', op: ch })
       i += 1
       continue
@@ -394,6 +417,28 @@ function isErr(v: Value): boolean {
   return typeof v === 'string' && v.startsWith('#')
 }
 
+/**
+ * Excel's ARITHMETIC operand coercion — the static twin of the two real
+ * engines' rule (`coerce_text_to_number` in excel/rust/excel-core/src/eval.rs,
+ * `toNumber` in excel/excel-core-ts/src/eval/coerce.ts). Returns a number, or
+ * the error code the operator must answer with.
+ *
+ * Order matters: the empty-string guard runs BEFORE `Number()`, because
+ * `Number('')` is `0` — without it `=1+""` answers `1` where Excel and both
+ * engines answer `#VALUE!`.
+ *
+ * Only ARITHMETIC coerces. `combineCompare` deliberately does not: Excel
+ * orders text above numbers rather than parsing it, so `="5"=5` stays false.
+ */
+function coerceNumber(v: Value): number | string {
+  if (typeof v === 'number') return v
+  if (isErr(v)) return v
+  const trimmed = v.trim()
+  if (trimmed.length === 0) return '#VALUE!'
+  const n = Number(trimmed)
+  return Number.isFinite(n) ? n : '#VALUE!'
+}
+
 function isTruthy(v: Value): boolean {
   if (isErr(v)) return false
   if (typeof v === 'number') return v !== 0
@@ -464,14 +509,48 @@ class Parser {
     return left
   }
 
+  /**
+   * exponent = percent ('^' exponent)? —— **右结合**。
+   *
+   * `=2^3^2` 是 `2^(3^2)` = 512，不是 `(2^3)^2` = 64。这里曾经用 `while` 循环
+   * （左结合）算出 64，而两个真引擎都是右结合：TS 的 `infixBindingPower` 对 `^`
+   * 返回 `[60, 59]`（right-bp 比 left-bp 小 ⇒ 右结合，`parser.test.ts` 有断言），
+   * Rust 的 `parse_pow` 尾部递归调自己。
+   */
   private parseExponent(): Value {
-    let left = this.parseUnary()
-    while (this.peek()?.kind === 'op' && (this.peek() as { op: string }).op === '^') {
+    const left = this.parsePercent()
+    if (this.peek()?.kind === 'op' && (this.peek() as { op: string }).op === '^') {
       this.pos += 1
-      const right = this.parseUnary()
-      left = this.combine('^', left, right)
+      const right = this.parseExponent()
+      return this.combine('^', left, right)
     }
     return left
+  }
+
+  /**
+   * percent = unary '%'* — postfix and stackable.
+   *
+   * Excel's operator table (high → low) reads: reference operators >
+   * unary `-` > `%` > `^` > `*` `/` > `+` `-` > `&` > comparison, so this
+   * level sits exactly between `parseExponent` and `parseUnary` — the same
+   * slot `Parser::parse_percent` occupies in
+   * excel/rust/excel-core/src/formula/operators.rs.
+   * Consequences worth naming: `=2^2%` is `2^(2%)` = 2^0.02 (NOT `(2^2)%`),
+   * `=-50%` is -0.5, `=50%%` is 0.005, `=1+2%` is 1.02.
+   *
+   * `%` is NOT modulo — Excel has no modulo operator (that is `MOD()`), so
+   * `=10%3` leaves a stray `3` and fails the trailing-token check in
+   * `parse()` rather than quietly answering 1.
+   */
+  private parsePercent(): Value {
+    let value = this.parseUnary()
+    while (this.peek()?.kind === 'op' && (this.peek() as { op: string }).op === '%') {
+      this.pos += 1
+      const n = coerceNumber(value)
+      if (typeof n === 'string') return n
+      value = n / 100
+    }
+    return value
   }
 
   private parseUnary(): Value {
@@ -479,8 +558,11 @@ class Parser {
     if (tok?.kind === 'op' && (tok.op === '-' || tok.op === '+')) {
       this.pos += 1
       const inner = this.parseUnary()
-      if (typeof inner !== 'number') return inner
-      return tok.op === '-' ? -inner : inner
+      // Coerce, never pass through. Returning a non-number verbatim silently
+      // DROPPED the operator: `=-"5"` used to display 5.
+      const n = coerceNumber(inner)
+      if (typeof n === 'string') return n
+      return tok.op === '-' ? -n : n
     }
     return this.parsePrimary()
   }
@@ -557,22 +639,25 @@ class Parser {
   private combine(op: string, left: Value, right: Value): Value {
     if (isErr(left)) return left
     if (isErr(right)) return right
-    if (typeof left === 'string' || typeof right === 'string') {
-      // Arithmetic on strings (other than via CONCAT) is invalid.
-      return '#VALUE!'
-    }
+    // Excel coerces a numeric-LOOKING operand rather than rejecting every
+    // string: `=1+"5"` is 6, `=1+"x"` is #VALUE!. Left first, so the leftmost
+    // non-coercible operand is the one that names the failure.
+    const a = coerceNumber(left)
+    if (typeof a === 'string') return a
+    const b = coerceNumber(right)
+    if (typeof b === 'string') return b
     switch (op) {
       case '+':
-        return left + right
+        return a + b
       case '-':
-        return left - right
+        return a - b
       case '*':
-        return left * right
+        return a * b
       case '/':
-        if (right === 0) return '#DIV/0!'
-        return left / right
+        if (b === 0) return '#DIV/0!'
+        return a / b
       case '^':
-        return Math.pow(left, right)
+        return Math.pow(a, b)
       default:
         return '#ERROR!'
     }
@@ -954,8 +1039,18 @@ function applySubtotal(
   hiddenRows: ReadonlySet<number> | undefined,
   filterHiddenRows: ReadonlySet<number> | undefined,
 ): Value {
+  // INTERNAL arity code, mirroring the engine's `ValueError::WrongArgCount`.
+  // It never reaches a cell — `formatEvalResult` renders it `#VALUE!`, which
+  // is what Excel's entry-time rejection leaves a user with. Keep it here: it
+  // distinguishes "too few args" from a genuine `#VALUE!` when reading engine
+  // state or a failing assertion.
   if (args.length < 2) return '#ARGS!'
   const rawFn = args[0]
+  // `#TYPE!` is the INTERNAL argument-type-guard code (the engine's
+  // `ValueError::WrongType`, which `fn_subtotal` raises for exactly this
+  // check). It never reaches a cell: `formatEvalResult` renders it as
+  // `#VALUE!`. Keep it here — it distinguishes "the function-number arg was
+  // the wrong kind" from the `#VALUE!` an out-of-band code number gets.
   if (typeof rawFn === 'object') return '#TYPE!'
   if (isErrLocal(rawFn)) return rawFn
   const asNumber = typeof rawFn === 'number' ? rawFn : Number(rawFn)
@@ -1074,7 +1169,14 @@ function aggregateNumeric(
       }
       continue
     }
-    if (isErrLocal(arg)) return arg
+    // COUNT 对错误值的态度只有一条：它不是数字，跳过 —— 区域里的格子（上面
+    // 那个 `name === 'COUNT'` 分支）如此，直接写进参数表的也如此。这两处必须
+    // 对称，否则 `=COUNT(A1:A3)` 与 `=COUNT(#REF!)` 会给出互相矛盾的答案。
+    // 依据见 MS 文档 COUNT § Remarks 与 Rust 引擎的 `"COUNT"` 臂（零短路）。
+    if (isErrLocal(arg)) {
+      if (name === 'COUNT') continue
+      return arg
+    }
     if (typeof arg === 'number') numbers.push(arg)
   }
   switch (name) {
@@ -1159,9 +1261,17 @@ function resolveCellValue(
   return Number.isFinite(n) ? n : cell.displayValue
 }
 
+/**
+ * THE display boundary of the static evaluator — every static-backend path
+ * that turns an evaluation into cell text goes through here. It is where the
+ * internal error vocabulary narrows to Excel's: `#TYPE!` and `#ARGS!` render
+ * `#VALUE!`, every other code (including the deliberately-kept `#CYCLE!`)
+ * renders as itself. `isError` still keys off the raw result, so the
+ * classification is unaffected by the token map.
+ */
 export function formatEvalResult(result: Value): { display: string; isError: boolean } {
   if (typeof result === 'string' && result.startsWith('#')) {
-    return { display: result, isError: true }
+    return { display: errorDisplayToken(result), isError: true }
   }
   if (typeof result === 'number') {
     if (Number.isInteger(result)) return { display: String(result), isError: false }

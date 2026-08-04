@@ -1,0 +1,127 @@
+/* === D. 诊断条 —— 失败操作的可见出口 ================================== */
+
+/* 贴在状态栏之上的一条通知流。只有有诊断时才渲染（组件里 <Show> 控制），
+   所以这里不做 `:empty` 隐藏。 */
+.spreadsheet-diagnostics {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-chrome);
+  color: var(--text-default);
+  font-family: var(--excel-font);
+  font-size: 12px;
+}
+
+.spreadsheet-diagnostics-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--bg-default);
+}
+
+/* 严重程度只靠颜色区分是不够的（色觉障碍 + 单色打印），所以左侧留一条
+   宽边框，并且文本徽标本身就写着级别。 */
+.spreadsheet-diagnostics-item[data-severity='error'] {
+  border-left: 3px solid var(--danger, #c0392b);
+}
+
+.spreadsheet-diagnostics-item[data-severity='warning'] {
+  border-left: 3px solid var(--warning, #d68910);
+}
+
+.spreadsheet-diagnostics-item[data-severity='info'] {
+  border-left: 3px solid var(--accent, #2e75b6);
+}
+
+.spreadsheet-diagnostics-severity {
+  flex: none;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  opacity: 0.75;
+}
+
+/* 视觉上徽标已经在左边显示了一次，读屏再读一次是冗余；但徽标是
+   aria-hidden 的，所以给读屏留这一份。 */
+.spreadsheet-diagnostics-severity-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.spreadsheet-diagnostics-message {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.spreadsheet-diagnostics-dismiss,
+.spreadsheet-diagnostics-clear {
+  flex: none;
+  padding: 0 4px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.spreadsheet-diagnostics-clear {
+  margin-left: auto;
+  text-decoration: underline;
+}
+
+.spreadsheet-diagnostics-dismiss:hover,
+.spreadsheet-diagnostics-clear:hover {
+  background: var(--bg-hover);
+}
+
+.spreadsheet-diagnostics-overflow {
+  opacity: 0.7;
+}
+
+/* --- `#SPILL!` 阻塞线索 ---------------------------------------------------
+
+   与上面的诊断条**不是**同一个东西：那是日志流（逐条可关、会堆叠），这是随选区
+   变化的一行状态。所以不给 dismiss、不做列表、也不共用 `.spreadsheet-diagnostics`
+   的 class —— 复用会让它继承「可以堆两条」的视觉暗示。 */
+.spreadsheet-spill-blocked {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-top: 1px solid var(--border);
+  border-left: 3px solid var(--warning, #d68910);
+  background: var(--bg-chrome);
+  color: var(--text-default);
+  font-family: var(--excel-font);
+  font-size: 12px;
+}
+
+/* 错误码本身用等宽，用户在单元格里看到的就是这几个字符，两处要认得出是同一个。 */
+.spreadsheet-spill-blocked-code {
+  flex: none;
+  font-family: var(--excel-mono-font, ui-monospace, monospace);
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.spreadsheet-spill-blocked-message {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

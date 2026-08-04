@@ -1,5 +1,5 @@
 // Physical sort × cross-sheet formula references. A vNext Worker demo smoke
-// surfaced a #TYPE! after sorting that looked like a relocation bug; these
+// surfaced a #VALUE! after sorting that looked like a relocation bug; these
 // controlled repros proved the engine is correct on both counts:
 //  1. A relocated formula carrying a cross-sheet reference re-evaluates
 //     correctly at its new slot (=Sheet2!C2+1 stays 13).
@@ -74,8 +74,8 @@ fn physical_sort_relocates_cross_sheet_formula_and_reevaluates() {
 // (Sheet3!C2) holds an absolute reference to Sheet1!B4 — a cell INSIDE the
 // sort range. Sorting physically swaps B4's number for text, so the far
 // (un-retargeted, by design) reference correctly sees the new text occupant
-// and yields #TYPE!, which propagates back. This documents that the demo's
-// observed #TYPE! is CORRECT propagation, not a sort bug (task #20).
+// and yields #VALUE!, which propagates back. This documents that the demo's
+// observed #VALUE! is CORRECT propagation, not a sort bug (task #20).
 #[test]
 fn physical_sort_moving_a_referenced_number_cell_propagates_type_error() {
     let mut wb = Workbook::new();
@@ -106,7 +106,7 @@ fn physical_sort_moving_a_referenced_number_cell_propagates_type_error() {
     wb.sort_range(s0, rng("A2", "C4"), &[asc(0)], &[]).unwrap();
 
     // After the 3-cycle sort, Sheet1!B4 now holds the text "result" (moved
-    // from B2). Sheet3!C2 = =Sheet1!B4+1 reads text+1 → #TYPE!, and the
+    // from B2). Sheet3!C2 = =Sheet1!B4+1 reads text+1 → #VALUE!, and the
     // whole chain (Sheet2!C2, then the relocated formula at Sheet1!C4)
     // resolves to the same type error. This is correct — the sort moved the
     // number out of B4 and the absolute reference was not retargeted.

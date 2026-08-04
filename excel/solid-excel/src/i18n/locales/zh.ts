@@ -831,4 +831,44 @@ export const messages: Record<string, string> = {
   'removeDuplicates.confirm': '删除',
   'removeDuplicates.status.success': '已删除 {count} 行重复项',
   'removeDuplicates.status.failed': '删除失败',
+
+  // 动态数组 —— `#SPILL!` 自己说不出来的那件事：是哪一格挡着。选中碰撞态
+  // 锚点时显示。
+  'spill.blockedBy': '被 {addr} 挡住 —— 清掉那一格，数组就能溢出来。',
+  // 同一条线索，但挡路的是**另一个动态数组**。引擎指的是那个数组的锚点，而不是物理上
+  // 压着的那一格 —— 清投影格只会把那个数组也塌成第二个 `#SPILL!`。说出「那儿的数组」
+  // 是这句话可信的关键：站在用户的角度，锚点那一格可能看着空空如也。
+  'spill.blockedByArray': '被 {addr} 处的数组挡住 —— 清掉那个数组，本数组才能溢出来。',
+  // 选中投影格（非锚点）时，置灰公式栏上的悬停提示。那条公式属于锚点，在这里改
+  // 等于把它写**进**投影格，整个数组会塌成 `#SPILL!`。
+  'spill.projectedFormula': '由 {addr} 溢出而来 —— 这条公式请在 {addr} 里改。',
+
+  // 诊断 —— 失败操作的可见出口。此表未列出的码回落到 UI core 带的英文
+  // message，这样引擎新增的码仍然可见，不会被静默吞掉。
+  'diagnostics.region.label': '通知',
+  'diagnostics.dismiss': '关闭',
+  'diagnostics.clearAll': '全部清除',
+  'diagnostics.more': '另有 {count} 条',
+  'diagnostics.severity.error': '错误',
+  'diagnostics.severity.warning': '警告',
+  'diagnostics.severity.info': '提示',
+  'diagnostics.code.mutationBlockedLocked': '该单元格受保护，无法编辑。',
+  'diagnostics.code.mutationInvalidTarget': '编辑目标无效。',
+  'diagnostics.code.invalidFormula': '该公式无法解析。',
+  'diagnostics.code.formulaCycle': '该公式会形成循环引用。',
+  'diagnostics.code.outOfBounds': '引用超出工作表范围。',
+  'diagnostics.code.backendError': '工作簿引擎无法完成该请求。',
+  'diagnostics.code.cancelled': '请求已取消。',
+  'diagnostics.code.invalidSheet': '该工作表已不存在。',
+  'diagnostics.code.invalidRequestId': '已丢弃一个过期请求。',
+  'diagnostics.code.invalidRange': '区间无效。',
+  'diagnostics.code.emptyRange': '区间为空。',
+  'diagnostics.code.rangeTooLarge': '区间过大，无法一次读取。',
+  'diagnostics.code.resultTooLarge': '结果过大，无法显示。',
+  'diagnostics.code.cellOutOfRange': '该单元格不在请求的区间内。',
+  'diagnostics.code.staleResult': '已丢弃一个过期结果。',
+  'diagnostics.code.tabRenameEmpty': '工作表名不能为空。',
+  'diagnostics.code.tabReorderInvalid': '该工作表无法移动到此处。',
+  'diagnostics.code.operationInvalid': '此处不支持该操作。',
+  'diagnostics.code.workspaceStaleProjection': '视图曾过期，已刷新。',
 }

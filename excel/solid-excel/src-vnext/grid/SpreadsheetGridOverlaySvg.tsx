@@ -1,5 +1,6 @@
 import {
   activeCellAtom,
+  activeSpillRegionAtom,
   clipboardStateAtom,
   editingSessionAtom,
   formulaReferenceTokensAtom,
@@ -88,6 +89,7 @@ export function SpreadsheetGridOverlaySvg(props: SpreadsheetGridOverlaySvgProps)
     unsubscribes.push(store.sub(clipboardStateAtom, bumpDecoration))
     unsubscribes.push(store.sub(editingSessionAtom, bumpDecoration))
     unsubscribes.push(store.sub(formulaReferenceTokensAtom, bumpDecoration))
+    unsubscribes.push(store.sub(activeSpillRegionAtom, bumpDecoration))
 
     // Geometry atoms — change which rectangles map to which cells. Memos that
     // walk cells (CF / merge borders) only need to re-derive when one of
@@ -202,6 +204,14 @@ export function SpreadsheetGridOverlaySvg(props: SpreadsheetGridOverlaySvgProps)
     return out
   })
 
+  // 溢出区细蓝框：只有一个（活动单元格所在的数组），与 canvas 分支同一矩形来源。
+  const spillBorderRect = createMemo<Rect | null>(() => {
+    trackBoth()
+    const region = store.getter(activeSpillRegionAtom)
+    if (!region || region.sheetId !== props.sheetId) return null
+    return rectForRange(region.range)
+  })
+
   const mergeBorderRects = createMemo<Rect[]>(() => {
     trackGeometry()
     const cells = props.getCells()
@@ -281,8 +291,8 @@ export function SpreadsheetGridOverlaySvg(props: SpreadsheetGridOverlaySvgProps)
       }}
     >
       {/* Z-order matches the canvas render() sequence: CF overlays (bottom),
-          merge borders, secondary selections, primary selection, active cell,
-          fill handle, fill preview, formula reference tokens (top). */}
+          merge borders, spill border, secondary selections, primary selection,
+          active cell, fill handle, fill preview, formula reference tokens (top). */}
 
       <For each={conditionalFormatRects()}>
         {(rect) => (
@@ -313,6 +323,21 @@ export function SpreadsheetGridOverlaySvg(props: SpreadsheetGridOverlaySvgProps)
           />
         )}
       </For>
+
+      <Show when={spillBorderRect()}>
+        {(rect) => (
+          <rect
+            data-testid="svg-overlay-spill-border"
+            x={insetX(rect(), OVERLAY_BORDER_WIDTH.spill)}
+            y={insetY(rect(), OVERLAY_BORDER_WIDTH.spill)}
+            width={insetW(rect(), OVERLAY_BORDER_WIDTH.spill)}
+            height={insetH(rect(), OVERLAY_BORDER_WIDTH.spill)}
+            fill="none"
+            stroke={OVERLAY_COLORS.spillBorder}
+            stroke-width={OVERLAY_BORDER_WIDTH.spill}
+          />
+        )}
+      </Show>
 
       <For each={secondarySelectionRects()}>
         {(rect) => (

@@ -26,6 +26,14 @@ Data-navigation ports return a single coordinate, not a row/column projection.
 For example, `resolveDataEdge` lets a host adapter answer Ctrl+Arrow movement
 from sparse facts without materializing a full row or column in the UI layer.
 
+Point queries return one bounded fact, not a projection. `readSpillRegion`
+answers "does this one cell belong to a dynamic array" with the anchor plus the
+array's bounding rectangle — the UI core keeps exactly one such answer at a
+time (the active cell's). It is deliberately NOT a `DisplayCell` field: the
+spill outline only appears while the selection sits inside the array, so a
+per-cell wire field would be paid on every visible cell of every scroll for a
+decoration that is usually not drawn. See `../spill/README.md`.
+
 Sheet metadata ports return bounded sheet lists only. `reorderSheet` changes the
 displayed sheet metadata order and must not imply any cell snapshot or sheet
 content materialization.

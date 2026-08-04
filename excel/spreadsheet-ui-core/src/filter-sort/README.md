@@ -6,12 +6,23 @@ Sort is NOT state here. The display-permutation sort (`SortDirective`) was retir
 sorting is a physical engine DATA mutation dispatched through `runPhysicalSortAtom` → the host `sortRange` port,
 so nothing about "which column is sorted" survives in UI-core view state.
 
+## Module boundaries and atom ownership
+
+`index.ts` is the public facade. Every other implementation module is source-private:
+`state.ts` owns writable backing atoms, `projection-atoms.ts` exposes read-only
+views, `basic-commands.ts` owns synchronous UI commands, and the remaining
+`*-command.ts` / `*-domain.ts` modules own one lifecycle or pure domain concern.
+No backing atom is re-exported through the facade.
+
 ## State Decision Template
 
 - Source atoms:
-  - `filterSortStateAtom`: map of sheetId → `FilterSortState` (filter `rules` only). Initial `{}`.
-  - `filterDropdownAtom`: tracks which column header dropdown is open. Initial `{ status: 'closed' }`.
-- Derived atoms: none in the first wave.
+  - private `filterSortStateBackingAtom`: map of sheetId → `FilterSortState` (filter `rules` only). Initial `{}`.
+  - private `filterDropdownBackingAtom`: tracks which column header dropdown is open. Initial `{ status: 'closed' }`.
+  - private lifecycle, ticket, capability, draft and active-operation atoms in `state.ts`.
+- Derived/read-only atoms: `filterSortStateAtom`, `filterDropdownAtom`, error,
+  capability, draft and lifecycle projections, plus entrypoint projections in
+  `projection-atoms.ts`.
 - Commands:
   - `setFilterSortAtom`: validates and stores per-sheet filter/sort state. Truncates oversized list rules.
   - `clearFilterSortAtom`: removes the sheet entry and closes any open dropdown.

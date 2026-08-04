@@ -256,21 +256,30 @@ describe('worker-runtime-ts custom formulas — registration + dispatch', () => 
     const runtime = createWorkerRuntimeTs()
     const { rpc, sheetIdx } = await initSheet(runtime)
 
+    // `[returned token, displayed token]`. The two lists differ on exactly
+    // two rows: `#TYPE!` and `#ARGS!` are ACCEPTED by the return-token map
+    // (so they are stored as errors, not as text) but Excel has neither code,
+    // so the read boundary renders both `#VALUE!` — matching the engine,
+    // whose `format::error_display_token` does the same collapse. Returning
+    // `{ error: '#TYPE!' }`, `{ error: '#ARGS!' }` and `{ error: '#VALUE!' }`
+    // are indistinguishable in a cell. `#CYCLE!` is non-Excel too but is
+    // deliberately shown as-is; see CUSTOM_FORMULAS.md § "Internal vs
+    // displayed codes".
     const codes = [
-      '#NULL!',
-      '#DIV/0!',
-      '#N/A',
-      '#REF!',
-      '#VALUE!',
-      '#NAME?',
-      '#NUM!',
-      '#CYCLE!',
-      '#TYPE!',
-      '#ARGS!',
-      '#SPILL!',
-      '#CALC!',
+      ['#NULL!', '#NULL!'],
+      ['#DIV/0!', '#DIV/0!'],
+      ['#N/A', '#N/A'],
+      ['#REF!', '#REF!'],
+      ['#VALUE!', '#VALUE!'],
+      ['#NAME?', '#NAME?'],
+      ['#NUM!', '#NUM!'],
+      ['#CYCLE!', '#CYCLE!'],
+      ['#TYPE!', '#VALUE!'],
+      ['#ARGS!', '#VALUE!'],
+      ['#SPILL!', '#SPILL!'],
+      ['#CALC!', '#CALC!'],
     ] as const
-    for (const [i, code] of codes.entries()) {
+    for (const [i, [code, displayed]] of codes.entries()) {
       const name = `FAIL${i}`
       const addr = `A${i + 1}`
       await rpc({
@@ -281,7 +290,7 @@ describe('worker-runtime-ts custom formulas — registration + dispatch', () => 
       await rpc({ cmd: 'setFormulaDetailed', sheet: sheetIdx, addr, formula: `=${name}()` })
       const cell = await readCellDisplay(rpc, sheetIdx, addr)
       expect(cell.isError).toBe(true)
-      expect(cell.display).toBe(code)
+      expect(cell.display).toBe(displayed)
     }
 
     await rpc({

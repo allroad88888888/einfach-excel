@@ -24,7 +24,11 @@ describe('@einfach/excel-core-ts — Wave A contracts', () => {
     expect(BLANK).toEqual({ kind: 'blank' })
   })
 
-  test('ERROR_CODES enumerates every error token the engine emits', () => {
+  // The INTERNAL / inbound vocabulary, not the display one. `#TYPE!` and
+  // `#ARGS!` must stay in it even though no cell ever shows them — they still
+  // have to parse out of formula text and restore off the wire. The display
+  // narrowing is pinned separately, on the host's `errorDisplayToken`.
+  test('ERROR_CODES enumerates every error token the engine accepts', () => {
     expect(ERROR_CODES).toContain('#DIV/0!')
     expect(ERROR_CODES).toContain('#N/A')
     expect(ERROR_CODES).toContain('#NAME?')

@@ -20,6 +20,10 @@ import type {
   SparseRangeWire,
   WorkbookImportStatsWire,
 } from '../src/wasm-workbook-proxy'
+import type {
+  CellWriteOutcomeWire,
+  FormulaWriteOutcomeWire,
+} from '../src-vnext/adapter/cell-write-reject'
 import { WasmWorkbook } from '../wasm-pkg/einfach_wasm.js'
 
 jest.mock('../wasm-pkg/einfach_wasm.js', () => ({
@@ -76,12 +80,15 @@ type MockWasmWorkbook = {
   bulk_import_cells: (cells: ImportCellWire[]) => WorkbookImportStatsWire
   bulk_install_workbook?: (payload: MockBulkInstallSheetPayload[]) => unknown
   list_non_empty_cells: () => { sheet: number; addr: string }[]
-  set_cell_number: (sheet: number, addr: string, value: number) => void
-  set_cell_text: (sheet: number, addr: string, value: string) => void
-  set_cell_boolean: (sheet: number, addr: string, value: boolean) => void
-  set_cell_error: (sheet: number, addr: string, value: string) => void
-  clearCellAt: (sheet: number, addr: string) => void
-  setFormulaAt: (sheet: number, addr: string, formula: string) => boolean
+  // Fallible single-cell writes only — the dispatcher deliberately never
+  // reaches the infallible `set_cell_*` / `clearCellAt` / `setFormulaAt`
+  // twins, which swallow the engine's refusal and fake a success ACK.
+  trySetCellNumber: (sheet: number, addr: string, value: number) => CellWriteOutcomeWire
+  trySetCellText: (sheet: number, addr: string, value: string) => CellWriteOutcomeWire
+  trySetCellBoolean: (sheet: number, addr: string, value: boolean) => CellWriteOutcomeWire
+  trySetCellError: (sheet: number, addr: string, value: string) => CellWriteOutcomeWire
+  tryClearCellAt: (sheet: number, addr: string) => CellWriteOutcomeWire
+  trySetFormulaAt: (sheet: number, addr: string, formula: string) => FormulaWriteOutcomeWire
   insert_row: (sheet: number, at: number, count: number) => void
   delete_row: (sheet: number, at: number, count: number) => void
   insert_col: (sheet: number, at: number, count: number) => void
@@ -461,18 +468,27 @@ function createMockWasmWorkbook(options: MockWasmWorkbookOptions = {}) {
         const [sheet, addr] = raw.split(':')
         return { sheet: Number(sheet), addr }
       }),
-    set_cell_number: (sheet: number, addr: string, value: number) =>
-      setPrimitive(sheet, addr, 'number', value),
-    set_cell_text: (sheet: number, addr: string, value: string) =>
-      setPrimitive(sheet, addr, 'text', value),
-    set_cell_boolean: (sheet: number, addr: string, value: boolean) =>
-      setPrimitive(sheet, addr, 'boolean', value),
-    set_cell_error: (sheet: number, addr: string, value: string) =>
-      setPrimitive(sheet, addr, 'error', value),
-    clearCellAt: (sheet: number, addr: string) => {
-      cells.delete(key(sheet, addr))
+    trySetCellNumber: (sheet: number, addr: string, value: number) => {
+      setPrimitive(sheet, addr, 'number', value)
+      return { ok: true as const }
     },
-    setFormulaAt: (sheet: number, addr: string, formula: string) => {
+    trySetCellText: (sheet: number, addr: string, value: string) => {
+      setPrimitive(sheet, addr, 'text', value)
+      return { ok: true as const }
+    },
+    trySetCellBoolean: (sheet: number, addr: string, value: boolean) => {
+      setPrimitive(sheet, addr, 'boolean', value)
+      return { ok: true as const }
+    },
+    trySetCellError: (sheet: number, addr: string, value: string) => {
+      setPrimitive(sheet, addr, 'error', value)
+      return { ok: true as const }
+    },
+    tryClearCellAt: (sheet: number, addr: string) => {
+      cells.delete(key(sheet, addr))
+      return { ok: true as const }
+    },
+    trySetFormulaAt: (sheet: number, addr: string, formula: string) => {
       const failure = options.formulaFailuresByFormula?.[formula]
       if (failure) {
         cells.set(key(sheet, addr), {
@@ -481,7 +497,7 @@ function createMockWasmWorkbook(options: MockWasmWorkbookOptions = {}) {
           formula: '',
           isError: true,
         })
-        return false
+        return { ok: true as const, installed: false }
       }
       cells.set(key(sheet, addr), {
         type: 'formula',
@@ -489,7 +505,7 @@ function createMockWasmWorkbook(options: MockWasmWorkbookOptions = {}) {
         formula,
         isError: false,
       })
-      return true
+      return { ok: true as const, installed: true }
     },
     insert_row: (sheet: number, at: number, count: number) => {
       calls.insertRows.push({ sheet, at, count })

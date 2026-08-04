@@ -1,3 +1,14 @@
+//! 一个格子地址：怎么从 `A1` 这样的文本读进来，怎么写回去。
+//!
+//! **`[$]列[$]行` 的写出在本文件是唯一一份**（[`push_abs_col`] /
+//! [`push_abs_row`] / [`push_abs_addr`]）。`shift/` 下的 AST 渲染与未解析
+//! 源码重写此前各留了一份逐字节相同的拷贝，2026-08-03 收敛到这里；跨路径
+//! 的逐字节一致由 `tests/abs_addr_single_source.rs` 钉死。
+//!
+//! 参数用两个裸 `bool` 而不是 `formula::RefAbs`：`formula` 依赖 `cell`，
+//! 反过来会把依赖方向倒过来。语法树那侧的拆包放在
+//! `shift::render::render_abs_addr` 里。
+
 /// A cell address in a spreadsheet, e.g. "A1" → (row=0, col=0).
 #[derive(Clone, Copy, Hash, Eq, PartialEq, Debug)]
 pub struct CellAddress {
@@ -53,9 +64,13 @@ impl CellAddress {
     }
 
     /// Convert back to string representation like "A1".
+    ///
+    /// 就是 [`push_abs_addr`] 两个 `$` 都不加的那一档 —— 走同一份实现，
+    /// 免得「有 `$`」和「没 `$`」两种写法各自漂移。
     pub fn to_string_repr(&self) -> String {
-        let col_str = col_index_to_letters(self.col);
-        format!("{}{}", col_str, self.row + 1) // convert back to 1-based
+        let mut out = String::new();
+        push_abs_addr(&mut out, *self, false, false);
+        out
     }
 }
 
@@ -79,6 +94,10 @@ fn col_letters_to_index(s: &str) -> Option<u32> {
 }
 
 /// Convert 0-based column index to letters: 0→"A", 25→"Z", 26→"AA"
+///
+/// 保持私有：列名从来不单独出现在公式文本里，外面要的一直是「带不带 `$`
+/// 的列写法」，那由 [`push_abs_col`] 提供。留个私有出口只会让 `shift/` 又
+/// 绕过 `$` 这一层各写一遍。
 fn col_index_to_letters(mut col: u32) -> String {
     let mut result = String::new();
     loop {
@@ -89,6 +108,38 @@ fn col_index_to_letters(mut col: u32) -> String {
         col = col / 26 - 1;
     }
     result.chars().rev().collect()
+}
+
+/// 把 0-based 列号按 `[$]列名` 写进 `out`：`(0, false)` → `A`，
+/// `(26, true)` → `$AA`。
+pub(crate) fn push_abs_col(out: &mut String, col: u32, abs: bool) {
+    if abs {
+        out.push('$');
+    }
+    out.push_str(&col_index_to_letters(col));
+}
+
+/// 把 0-based 行号按 `[$]行号` 写进 `out`，行号转回 1-based：
+/// `(0, false)` → `1`，`(99, true)` → `$100`。
+pub(crate) fn push_abs_row(out: &mut String, row: u32, abs: bool) {
+    if abs {
+        out.push('$');
+    }
+    out.push_str(&(row + 1).to_string());
+}
+
+/// 把一个地址按 `[$]列[$]行` 写进 `out`：`$A$1` / `$A1` / `A$1` / `A1`。
+///
+/// `$` 只是**写法**上的标注，不改坐标 —— 调用方拿到的行列号和
+/// [`CellAddress::to_string_repr`] 里的完全一样。
+///
+/// 调用方须自己先挡掉 `#REF!` 哨兵（`shift::edit::REF_INVALID_ROW`
+/// = `u32::MAX`）：本函数会算 `row + 1`，哨兵进来在 debug 构建下会溢出
+/// panic。AST 侧由 `is_invalid` / `range_has_invalid_ref` 挡，未解析源码侧
+/// 由 `rewrite_parked_source` 的 `DeadRef` 早退挡。
+pub(crate) fn push_abs_addr(out: &mut String, addr: CellAddress, col_abs: bool, row_abs: bool) {
+    push_abs_col(out, addr.col, col_abs);
+    push_abs_row(out, addr.row, row_abs);
 }
 
 #[cfg(test)]

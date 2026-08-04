@@ -26,7 +26,7 @@ import {
   sparseValuesForRef,
   valueAtRuntimeCoord,
 } from './evaluate'
-import { inverseRelativeCoord, relativeCoord, sameRangeShape } from './sparse-range-alignment'
+import { inverseRelativeCoord, relativeCoord } from './sparse-range-alignment'
 
 type RuntimeRef = LambdaReferenceBinding
 
@@ -183,7 +183,10 @@ export function evaluateSparseAverageIf(
   ) {
     return undefined
   }
-  if (!sameRangeShape(checkRef.ref.range, averageRef.ref.range)) return ERR('#VALUE!')
+  // 这里曾有一条 `sameRangeShape → #VALUE!`。它不是 Excel 的规则：average_range
+  // 只贡献左上角，行列数由条件区决定（见 `criteria-value-rect.ts`），下面的
+  // `relativeCoord` 本来就是按这条规则换算的 —— 守卫只是把合法写法挡在门外，
+  // 与 `evaluateSparseSumIf`（从来没有这条守卫）也不自洽。
 
   const criterion = evaluateFunctionArg(args[1], ctx)
   const matcher = makeCriterionMatcher(criterion)

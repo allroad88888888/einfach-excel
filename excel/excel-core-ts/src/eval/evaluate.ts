@@ -44,6 +44,7 @@ import {
   type RuntimeRef,
 } from './runtime-ref'
 import { applyBinary } from './binary-ops'
+import { alignCriteriaValueArg, type CriteriaValueDeps } from './criteria-value-range'
 import { parseRefToCoord, parseRefToKey } from './cell-address'
 import { cycleGuardKey } from './cycle-guard'
 import { evaluateCellTrampolined as evaluateCellWithWorkStack } from './trampoline'
@@ -139,6 +140,12 @@ const REF_RESOLVE_DEPS: RefResolveDeps = { evaluate, rawValueAt: rawValueAtRunti
 /** 引用元数据函数族（`reference-info.ts`）向本文件索取的回调，同样是绑一次。 */
 const REF_INFO_DEPS: RefInfoDeps = { evaluate, resolveRef: runtimeRefFromExpr, evaluateRuntimeRef }
 
+/** SUMIF / AVERAGEIF 值区重读（`criteria-value-range.ts`）向本文件索取的回调。 */
+const CRITERIA_VALUE_DEPS: CriteriaValueDeps = {
+  resolveRef: runtimeRefFromExpr,
+  valueAt: valueAtRuntimeCoord,
+}
+
 export function runtimeRefFromExpr(expr: Expr, ctx?: EvalContext): RuntimeRefResult {
   return resolveRefFromExpr(expr, ctx, REF_RESOLVE_DEPS)
 }
@@ -183,6 +190,10 @@ export function evaluate(ast: Expr, ctx: EvalContext): Value {
       return { kind: 'boolean', value: ast.value }
     case 'error':
       return { kind: 'error', code: ast.code }
+    // 空占位实参（`f(a,,b)`）——「传了个空值」，不是「参数不存在」。见
+    // `types.ts` 的 `OmittedExpr`。
+    case 'omitted':
+      return BLANK
 
     case 'ref':
       return ctx.refLookup(ast.a1)
@@ -509,7 +520,12 @@ export function evaluate(ast: Expr, ctx: EvalContext): Value {
       // host callback can't override a LAMBDA definition either.
       const builtin = getBuiltinFunction(ast.name)
       if (builtin) {
-        const argValues: Value[] = ast.args.map((a) => evaluateFunctionArg(a, ctx))
+        // SUMIF / AVERAGEIF 的值区要按「左上角 + 条件区形状」重读 —— 注册表
+        // 实现只拿得到 `Value[]`，够不着网格。见 `criteria-value-range.ts`。
+        const aligned = alignCriteriaValueArg(upper, ast.args, ctx, CRITERIA_VALUE_DEPS)
+        const argValues: Value[] = ast.args.map((a, i) =>
+          aligned && i === aligned.index ? aligned.value : evaluateFunctionArg(a, ctx),
+        )
         return builtin(argValues, ctx)
       }
 
@@ -1243,9 +1259,14 @@ function evaluateXLookup(args: ReadonlyArray<Expr>, ctx: EvalContext): Value {
       return result.value
     case 'error':
       return result.error
-    case 'notFound':
-      if (args.length >= 4) return evaluateFunctionArg(args[3], ctx)
-      return ERR('#N/A')
+    case 'notFound': {
+      // `if_not_found` 求值成空（真的没传、写成空占位 `,,`、或指向一个空格）
+      // 一律等同「没提供」→ `#N/A`。与注册表里的 `FUNCTIONS.XLOOKUP` 同一条
+      // （那边写作 `args[3].kind !== 'blank'`）—— 两个实现必须同答案。
+      if (args.length < 4) return ERR('#N/A')
+      const fallback = evaluateFunctionArg(args[3], ctx)
+      return fallback.kind === 'blank' ? ERR('#N/A') : fallback
+    }
   }
 }
 

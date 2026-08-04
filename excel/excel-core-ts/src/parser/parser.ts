@@ -427,13 +427,30 @@ function parseArrayLiteral(cur: TokenCursor): ArrayLiteralExpr {
   return { kind: 'arrayLiteral', rows }
 }
 
+/**
+ * 空占位实参：Excel 允许中间 / 末尾的实参留空取默认值
+ * （`=XLOOKUP(3,F1:F5,G1:G5,,-1)`）。留空的槽位在 `,` 或 `)` 之前**没有任何
+ * token**，所以在调 `parseExpr` 之前先看一眼 —— 否则 `parseAtom` 会拿 `comma`
+ * / `rparen` 去撞 default 分支抛 `unexpected token`，整条公式变 `#VALUE!`。
+ *
+ * 只在实参列表里成立。数组字面量 `{1,,2}` 与多区域 `(A1:A3,)` 不走这条路，
+ * 照旧是解析错误 —— Excel 那两处也不接受空槽。
+ */
+const OMITTED: Expr = { kind: 'omitted' }
+
+function parseArgOrOmitted(cur: TokenCursor): Expr {
+  const kind = cur.peek().kind
+  if (kind === 'comma' || kind === 'rparen') return OMITTED
+  return parseExpr(cur, 0)
+}
+
 function parseArgList(cur: TokenCursor): Expr[] {
   const args: Expr[] = []
   if (cur.peek().kind === 'rparen') return args
-  args.push(parseExpr(cur, 0))
+  args.push(parseArgOrOmitted(cur))
   while (cur.peek().kind === 'comma') {
     cur.next()
-    args.push(parseExpr(cur, 0))
+    args.push(parseArgOrOmitted(cur))
   }
   return args
 }

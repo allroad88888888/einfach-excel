@@ -18,6 +18,7 @@
  */
 
 import type { EvalContext, FunctionImpl, Value } from '../../types'
+import { BLANK } from '../../types'
 import { toBoolean, toNumber } from '../coerce'
 
 // ---------------------------------------------------------------------------
@@ -334,21 +335,28 @@ const SUMIF: FunctionImpl = (args, _ctx) => {
   const [range, criterion, sumRange] = args
   const parsed = parseCriterion(criterion)
   if ('error' in parsed) return parsed.error
+  // sum_range **实参本身**是错误 → 传播（`=SUMIF(A1:A3,">1",#REF!)`）。与
+  // 「条件区里的错误**格**不短路」是两回事，后者由 `matchesCriterion` 分档。
+  if (sumRange?.kind === 'error') return sumRange
 
   const checkCells = flatten(range)
   const sumCells = sumRange ? flatten(sumRange) : checkCells
 
-  // Excel: if sum_range is shorter, it's *extended* to match range. We
-  // implement the simpler conservative rule — same length, otherwise we
-  // pair index-by-index and stop at min(len). Matches WPS / LibreOffice
-  // behavior for unequal arrays; Excel will silently truncate too.
-  const n = Math.min(checkCells.length, sumCells.length)
+  // 遍历长度由**条件区**定，值区不参与 —— Excel 的 sum_range 只贡献左上角。
+  // 值区是引用时，求值器已按 `criteria-value-rect.ts` 的矩形把它重读成同形
+  // （见 `eval/criteria-value-range.ts`）；这里剩下的是非引用实参（数组字面量
+  // 等）的兜底：短了当空格补（贡献 0），不再 `min(len)` 截断条件区。
+  //
+  // ⚠️ 曾经这里是 `n = Math.min(checkCells.length, sumCells.length)`，于是
+  // `SUMIF(A1:A3,">1",B1)` 给 0、`SUMIF(A1:A3,">1",B1:B2)` 给 200，而稀疏孪生
+  // `evaluateSparseSumIf` 对同一组输入给 500。配对断言见
+  // `test/criteria-value-range.test.ts`，改这里必须让那条测试仍然绿。
   let total = 0
-  for (let i = 0; i < n; i++) {
+  for (let i = 0; i < checkCells.length; i++) {
     const probe = checkCells[i]
     // 条件区的错误格按显示文本参与比较，不再被无条件跳过（分歧 A）。
     if (!matchesCriterion(probe, parsed)) continue
-    const target = sumCells[i]
+    const target = sumCells[i] ?? BLANK
     if (target.kind === 'error') return target // propagate sum-side errors
     const num = toNumber(target)
     // Non-numeric sum-targets are silently ignored (Excel-compat); a string
@@ -837,6 +845,15 @@ const AVERAGEIF: FunctionImpl = (args, _ctx) => {
   const [range, criterion, avgRange] = args
   const parsed = parseCriterion(criterion)
   if ('error' in parsed) return parsed.error
+  // average_range 实参本身是错误 → 传播（同 SUMIF 的 sum_range）。
+  if (avgRange?.kind === 'error') return avgRange
+  // average_range 与 SUMIF 的 sum_range 同一条规则：只取左上角，行列数由条件区
+  // 决定（见 `eval/criteria-value-rect.ts`）。实参是引用时求值器已经把它重读成
+  // 同形；这里剩下非引用实参的兜底 —— 形状对不上才 `#VALUE!`。
+  //
+  // ⚠️ 曾经这条 `sameValueShape` 是无条件的，于是 `AVERAGEIF(A1:A3,">1",B1)`
+  // 给 `#VALUE!`（Excel 250）。稀疏孪生 `evaluateSparseAverageIf` 当时也有同款
+  // 守卫，两条路一起错 —— 一起改了，配对断言见 `test/criteria-value-range.test.ts`。
   if (avgRange && !sameValueShape(range, avgRange)) return ERR_VAL('#VALUE!')
   const checkCells = flatten(range)
   const sumCells = avgRange ? flatten(avgRange) : checkCells

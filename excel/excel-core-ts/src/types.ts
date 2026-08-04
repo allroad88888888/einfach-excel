@@ -219,6 +219,7 @@ export type Expr =
   | StringLiteral
   | BooleanLiteral
   | ErrorLiteral
+  | OmittedExpr
   | ReferenceExpr
   | RangeExpr
   | DynamicRangeExpr
@@ -251,6 +252,15 @@ export interface BooleanLiteral {
 export interface ErrorLiteral {
   readonly kind: 'error'
   readonly code: ErrorCode
+}
+
+/**
+ * 实参列表里的**空占位**（`=XLOOKUP(3,F1:F5,G1:G5,,-1)` 的 `,,`）。求值成
+ * `BLANK` —— Excel 的语义是「传一个空值进去」而非「这个参数不存在」，各函数
+ * 对空值的既有处理照旧生效。与只管 LAMBDA 形参的 `ISOMITTED` 无关。
+ */
+export interface OmittedExpr {
+  readonly kind: 'omitted'
 }
 
 /** A single-cell reference like `A1`, `$A$1`, `$A1`, `A$1`. */

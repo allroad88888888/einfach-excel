@@ -2271,6 +2271,8 @@ impl Sheet {
             | Expr::Error(_)
             | Expr::Name(_)
             | Expr::ArrayLit { .. }
+            // 空占位实参没有地址。
+            | Expr::Omitted
             // Structured reference carries no static A1 ref (design §5.2).
             | Expr::TableRef { .. } => {}
         }
@@ -2337,6 +2339,8 @@ impl Sheet {
             | Expr::Error(_)
             | Expr::Name(_)
             | Expr::ArrayLit { .. }
+            // 空占位实参没有地址。
+            | Expr::Omitted
             // Structured reference carries no static A1 ref (design §5.2).
             | Expr::TableRef { .. } => false,
         }

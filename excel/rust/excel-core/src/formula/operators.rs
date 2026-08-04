@@ -272,7 +272,20 @@ impl Parser {
         Some(args)
     }
 
+    /// 一个实参槽位。空槽位（下一个非空白字符就是 `,` 或 `)`）在源码里
+    /// **没有任何 token**，所以要在下探 `parse_expr` 之前先看一眼 ——
+    /// 否则 `primary` 拿着 `,` / `)` 找不到任何分支，返回 `None`，
+    /// `parse_func_args` 的 `?` 把**整条公式**的解析拽失败，最终显示成
+    /// `#VALUE!`（「没解析成」的通用码）。中枪的远不止 XLOOKUP：
+    /// `=SUM(1,,2)`、`=SORT(区域,,-1)`、`=ROUND(3.14,)` 全在内。
+    ///
+    /// 只有实参列表走这条路。数组字面量与联合区域各自有自己的元素解析器
+    /// （`formula/array_lit.rs` / `primary.rs`），照旧对空槽报错。
     fn parse_func_arg(&mut self) -> Option<Expr> {
+        self.skip_whitespace();
+        if matches!(self.peek(), Some(',') | Some(')')) {
+            return Some(Expr::Omitted);
+        }
         // Function args can be regular expressions (which include ranges in identifiers)
         self.parse_expr()
     }

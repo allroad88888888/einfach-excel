@@ -1859,7 +1859,7 @@ impl Workbook {
                     }
                 }
             }
-            Expr::Number(_) | Expr::Text(_) | Expr::Bool(_) | Expr::Error(_) => {}
+            Expr::Number(_) | Expr::Text(_) | Expr::Bool(_) | Expr::Error(_) | Expr::Omitted => {}
             // Structured (Table) reference: no static A1 ref to follow for
             // cross-sheet cycle detection (design doc §5.2). It resolves
             // dynamically; a Table-mediated cycle surfaces at eval time as

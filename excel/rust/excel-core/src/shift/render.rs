@@ -15,6 +15,8 @@ pub fn render_formula(expr: &Expr) -> String {
 
 fn render_into(expr: &Expr, out: &mut String) {
     match expr {
+        // 空占位实参渲染成空串 —— 逗号由实参列表自己打，所以 `=SUM(1,,2)` 原样往返。
+        Expr::Omitted => {}
         Expr::Number(n) => render_number(*n, out),
         Expr::Text(s) => {
             out.push('"');

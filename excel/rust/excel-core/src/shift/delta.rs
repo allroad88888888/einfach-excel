@@ -12,7 +12,9 @@ use crate::formula::{Expr, RangeBounds};
 /// becomes `B:B`; shifted down it stays `A:A`).
 pub fn shift_refs(expr: &Expr, drow: i32, dcol: i32) -> Result<Expr, ()> {
     Ok(match expr {
-        Expr::Number(_) | Expr::Text(_) | Expr::Bool(_) | Expr::Error(_) => expr.clone(),
+        Expr::Omitted | Expr::Number(_) | Expr::Text(_) | Expr::Bool(_) | Expr::Error(_) => {
+            expr.clone()
+        }
         Expr::CellRef(addr, abs) => Expr::CellRef(shift_addr(*addr, drow, dcol)?, *abs),
         Expr::Range {
             start,

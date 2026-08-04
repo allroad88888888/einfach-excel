@@ -15,7 +15,9 @@ use crate::formula::{Expr, RangeBounds};
 /// still seen by the bounded axis.
 pub fn map_addrs(expr: &Expr, f: &dyn Fn(CellAddress) -> CellAddress) -> Expr {
     match expr {
-        Expr::Number(_) | Expr::Text(_) | Expr::Bool(_) | Expr::Error(_) => expr.clone(),
+        Expr::Omitted | Expr::Number(_) | Expr::Text(_) | Expr::Bool(_) | Expr::Error(_) => {
+            expr.clone()
+        }
         Expr::CellRef(addr, abs) => Expr::CellRef(f(*addr), *abs),
         Expr::Range {
             start,

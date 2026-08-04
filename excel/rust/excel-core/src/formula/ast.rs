@@ -131,6 +131,21 @@ impl RangeAbs {
 /// AST node for a formula expression.
 #[derive(Clone, Debug, PartialEq)]
 pub enum Expr {
+    /// 实参列表里的**空占位** —— `=SUM(1,,2)` / `=XLOOKUP(a,b,c,,0)` 的
+    /// 那个空槽。Excel 允许中间或末尾的实参留空表示「取默认值」。
+    ///
+    /// 求值成 `Value::Null`（空值），**不是**「参数不存在」：`args.len()`
+    /// 照常把空槽算进去，各函数对空值的既有处理照旧生效。这与 TS 引擎的
+    /// `OmittedExpr`（`excel/excel-core-ts/src/types.ts`）是同一条语义，
+    /// 两侧必须同答案。
+    ///
+    /// 只在**函数实参列表**里产生（`formula/operators.rs::parse_func_arg`）。
+    /// 数组字面量 `{1,,2}` 与联合区域 `(A1:A3,)` 仍是解析错误 —— Excel
+    /// 那两处也不接受空槽。
+    ///
+    /// 结构随动对它是恒等（没有地址）、渲染成空串（逗号由实参列表自己
+    /// 打），所以 `=SUM(1,,2)` 插行后照样渲染回 `=SUM(1,,2)`。
+    Omitted,
     /// A literal number, e.g. 42, 3.14
     Number(f64),
     /// A literal string, e.g. "hello"

@@ -28,13 +28,21 @@ fn eval_lambda_immediate_binary() {
     );
 }
 
-/// Arity mismatch: too few args → WrongArgCount.
+/// 实参**少于**形参不再是错误：没拿到实参的形参绑成空值，体内用
+/// `ISOMITTED(形参)` 分流。`x*x` 里 x 是空值 ⇒ 0（算术对空值的既有口径）。
+///
+/// ⚠️ **与 Excel 的一条已知分歧，两个引擎一致**：Excel 里只有写成 `[y]` 的
+/// 形参才可省略，`=LAMBDA(x,y,x+y)(5)` 在 Excel 里是 `#VALUE!`。两个引擎都
+/// 还没有 `[y]` 语法，都把**所有**形参当可选 —— 与 TS 引擎
+/// `buildLambdaContext` 同一条（那边也只挡「实参多于形参」）。真去补 `[y]`
+/// 时两侧必须一起补，否则 `ISOMITTED` 又会分叉。
 #[test]
-fn eval_lambda_too_few_args() {
+fn eval_lambda_too_few_args_binds_blank() {
     let (cm, vs) = make_test_env();
+    assert_eq!(eval_str("=LAMBDA(x, x*x)()", &cm, &vs), Value::Number(0.0));
     assert_eq!(
-        eval_str("=LAMBDA(x, x*x)()", &cm, &vs),
-        Value::Error(ValueError::WrongArgCount)
+        eval_str("=LAMBDA(x, y, IF(ISOMITTED(y), 100, 200))(5)", &cm, &vs),
+        Value::Number(100.0)
     );
 }
 
@@ -125,16 +133,29 @@ fn eval_lambda_param_must_be_identifier() {
 
 // ── ISOMITTED (Part B) ────────────────────────────────────────────
 
-/// ISOMITTED currently returns FALSE for any argument — we don't
-/// support optional LAMBDA parameters yet so the function is a stub.
-/// Documented gap.
+/// `ISOMITTED` 只在 LAMBDA 体内有意义：答的是「这个**形参**有没有拿到
+/// 实参」。裸公式里没有形参可问 ⇒ `#NAME?`（与 TS 引擎
+/// `evaluateIsOmitted` 的 `if (!ctx.lambdaOmittedParams)` 同一条）。
+///
+/// 修之前这里恒答 FALSE —— 一个「永远不报错也永远不为真」的空壳，因为
+/// `apply_lambda` 的 arity 严格相等，少传实参的调用根本进不了函数体。
+/// 完整行为见 `tests/omitted_args.rs`。
 #[test]
-fn eval_isomitted_returns_false() {
+fn eval_isomitted_outside_a_lambda_is_a_name_error() {
     let (cm, vs) = make_test_env();
-    assert_eq!(eval_str("=ISOMITTED(123)", &cm, &vs), Value::Boolean(false));
     assert_eq!(
-        eval_str("=ISOMITTED(\"hi\")", &cm, &vs),
+        eval_str("=ISOMITTED(123)", &cm, &vs),
+        Value::Error(ValueError::InvalidName)
+    );
+    // 体内、形参拿到了实参 ⇒ FALSE。
+    assert_eq!(
+        eval_str("=LAMBDA(x, ISOMITTED(x))(1)", &cm, &vs),
         Value::Boolean(false)
+    );
+    // 体内、形参没拿到实参 ⇒ TRUE。
+    assert_eq!(
+        eval_str("=LAMBDA(x, ISOMITTED(x))()", &cm, &vs),
+        Value::Boolean(true)
     );
 }
 

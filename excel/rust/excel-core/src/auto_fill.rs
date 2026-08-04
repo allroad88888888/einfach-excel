@@ -1385,9 +1385,14 @@ fn shift_range(
 
 fn shift_fill_formula(expr: &Expr, drow: i64, dcol: i64) -> Result<Expr, AutoFillError> {
     let shifted = match expr {
-        Expr::Number(_) | Expr::Text(_) | Expr::Bool(_) | Expr::Error(_) | Expr::Name(_) => {
-            expr.clone()
-        }
+        // `Expr::Omitted` 必须显式列出：这个 match 的兜底是 `UnsupportedFormula`，
+        // 漏了它就会让 `=SUM(A1,,B1)` 拖拽填充直接失败，而不是原样平移。
+        Expr::Omitted
+        | Expr::Number(_)
+        | Expr::Text(_)
+        | Expr::Bool(_)
+        | Expr::Error(_)
+        | Expr::Name(_) => expr.clone(),
         Expr::CellRef(addr, abs) => shift_ref(*addr, *abs, drow, dcol)
             .map(|addr| Expr::CellRef(addr, *abs))
             .unwrap_or_else(|| Expr::Error(einfach_core::ValueError::InvalidRef)),

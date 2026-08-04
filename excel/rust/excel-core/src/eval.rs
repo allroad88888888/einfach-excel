@@ -49,12 +49,20 @@ use crate::shift::{REF_INVALID_COL, REF_INVALID_ROW};
 #[derive(Debug)]
 struct LetFrame {
     bindings: HashMap<String, Value>,
+    /// 本帧里**因为调用方没给实参**而绑成空值的 LAMBDA 形参名。
+    /// `ISOMITTED(形参)` 靠它答 TRUE；LET 帧永远是空集。
+    omitted: HashSet<String>,
+    /// 本帧是不是一次 LAMBDA 调用的活动记录（LET 帧不是）。
+    /// `ISOMITTED` 在 LAMBDA 之外没有意义，栈上没有这样的帧就答 `#NAME?`。
+    lambda_activation: bool,
 }
 
 impl LetFrame {
     fn new() -> Self {
         LetFrame {
             bindings: HashMap::new(),
+            omitted: HashSet::new(),
+            lambda_activation: false,
         }
     }
 
@@ -716,14 +724,43 @@ fn snapshot_let_frames() -> Vec<(String, Value)> {
 /// lambda's captured snapshot + parameter bindings before evaluating the
 /// body. `pop_let_frame` MUST be called after — the public API leaks
 /// the imbalance otherwise; callers use a guard to enforce that.
-fn push_let_frame(initial: Vec<(String, Value)>) {
+///
+/// 额外记下哪些形参是「调用方没给」的，并把本帧标成一次 LAMBDA 活动记录 ——
+/// `ISOMITTED` 要靠这两样东西回答。
+fn push_lambda_frame(initial: Vec<(String, Value)>, omitted: HashSet<String>) {
     LET_FRAMES.with(|frames| {
         let mut frame = LetFrame::new();
         for (k, v) in initial {
             frame.bind(k, v);
         }
+        frame.omitted = omitted;
+        frame.lambda_activation = true;
         frames.borrow_mut().push(frame);
     });
+}
+
+/// 栈上有没有 LAMBDA 活动记录。`ISOMITTED` 用它区分「在 LAMBDA 体内」与
+/// 「在裸公式 / LET 里」—— 后者答 `#NAME?`（与 TS 引擎
+/// `evaluateIsOmitted` 的 `if (!ctx.lambdaOmittedParams)` 同一条）。
+fn in_lambda_activation() -> bool {
+    LET_FRAMES.with(|frames| frames.borrow().iter().any(|f| f.lambda_activation))
+}
+
+/// `name` 是不是一个「调用方没给实参」的 LAMBDA 形参。
+///
+/// 按 `lookup_let_binding` 同样的innermost-first walk 找到**第一个绑定它的
+/// 帧**再问 —— 内层重新绑定（LET 或嵌套 LAMBDA）自然把外层的省略标记盖掉，
+/// 不需要额外的删除动作。
+fn lambda_param_is_omitted(name: &str) -> bool {
+    LET_FRAMES.with(|frames| {
+        let frames = frames.borrow();
+        for frame in frames.iter().rev() {
+            if frame.bindings.contains_key(name) {
+                return frame.omitted.contains(name);
+            }
+        }
+        false
+    })
 }
 
 fn pop_let_frame() {
@@ -767,6 +804,29 @@ impl LambdaValue for ExcelLambda {
 /// Errors from the body propagate out as-is. The frame is popped via a
 /// guard so the LET stack stays balanced even when the body
 /// short-circuits.
+/// 可选实参「取默认值」的判定：这个槽位**在语法上根本没写东西**吗。
+///
+/// 看的是语法（`Expr::Omitted`）而不是求值结果 —— 这是一条刻意的选择，
+/// 而且**与 TS 引擎不同**（`eval/functions/array.ts::isOmittedArg` 看的是
+/// `value.kind === 'blank'`）。理由：
+///
+/// 1. Excel 的「取默认值」规则key 在「参数没提供」上。指向空格的引用是
+///    **提供了**一个值，它在数值语境下强转成 0 —— `=SEQUENCE(3,1,F11)`
+///    （F11 是空格）在 Excel 里是 0/1/2，不是 1/2/3。
+/// 2. 按值判会让**不含 `,,` 的公式**也改行为，超出本次修复的范围。
+///    `tests/golden_replay.rs` 的漂移哨兵当场抓到过这一点（seed 11
+///    第 853 行就是上面那条 `SEQUENCE`）—— 那次是按值判的版本。
+///
+/// 代价是「空格引用喂给可选参数」这一类两个引擎仍不同答案，逐条钉在
+/// `excel/solid-excel/test/cross-engine-parity-omitted-args.test.ts` 的
+/// 已知分歧组里。Rust 这一侧与 Excel 一致。
+///
+/// 只用在**可选**参数上。必填参数写成空占位仍按空值参与运算
+/// （`=SUM(1,,2)` 是 3，不是「少了一个参数」）。
+fn arg_is_omitted(expr: &Expr) -> bool {
+    matches!(expr, Expr::Omitted)
+}
+
 pub(crate) fn apply_lambda(lambda: &Value, args: Vec<Value>, provider: &dyn EvalProvider) -> Value {
     let arc = match lambda {
         Value::Lambda(a) => a.clone(),
@@ -777,7 +837,11 @@ pub(crate) fn apply_lambda(lambda: &Value, args: Vec<Value>, provider: &dyn Eval
         Some(l) => l,
         None => return Value::Error(ValueError::WrongType),
     };
-    if args.len() != excel_lambda.params.len() {
+    // 实参**多于**形参仍是错误。实参**少于**形参不是 —— Excel 允许尾部
+    // 形参不传，体内用 `ISOMITTED(形参)` 分流；没传的形参绑成空值。
+    // 与 TS 引擎 `buildLambdaContext` 同一条（那边也只挡 `args.length >
+    // params.length`）。
+    if args.len() > excel_lambda.params.len() {
         return Value::Error(ValueError::WrongArgCount);
     }
     // Build the activation frame: start with the captured snapshot, then
@@ -785,7 +849,16 @@ pub(crate) fn apply_lambda(lambda: &Value, args: Vec<Value>, provider: &dyn Eval
     // name as a captured binding shadow it (Excel parity — `LAMBDA(x,
     // ...)` body sees the new `x`, not the outer LET's `x`).
     let mut frame_bindings: Vec<(String, Value)> = excel_lambda.captured.clone();
-    for (name, value) in excel_lambda.params.iter().zip(args) {
+    let mut omitted_params: HashSet<String> = HashSet::new();
+    let mut args_iter = args.into_iter();
+    for name in excel_lambda.params.iter() {
+        let value = match args_iter.next() {
+            Some(v) => v,
+            None => {
+                omitted_params.insert(name.clone());
+                Value::Null
+            }
+        };
         if let Some(slot) = frame_bindings.iter_mut().find(|(n, _)| n == name) {
             slot.1 = value;
         } else {
@@ -806,7 +879,7 @@ pub(crate) fn apply_lambda(lambda: &Value, args: Vec<Value>, provider: &dyn Eval
         return Value::Error(ValueError::Overflow);
     }
     NAMED_CALL_DEPTH.with(|c| c.set(depth + 1));
-    push_let_frame(frame_bindings);
+    push_lambda_frame(frame_bindings, omitted_params);
     // Save/restore-style guard equivalent: any early-return from the
     // body still has the pop executed because we route everything
     // through the closure below.
@@ -1184,6 +1257,9 @@ pub fn eval_expr_with_provider(expr: &Expr, provider: &dyn EvalProvider) -> Valu
         Expr::Text(s) => Value::Text(s.clone()),
         Expr::Bool(b) => Value::Boolean(*b),
         Expr::Error(e) => Value::Error(e.clone()),
+        // 空占位实参（`=SUM(1,,2)`）——「传了个空值进去」，不是「这个参数
+        // 不存在」。与 TS 引擎的 `case 'omitted': return BLANK` 同语义。
+        Expr::Omitted => Value::Null,
 
         Expr::CellRef(addr, _) => {
             if addr.row == REF_INVALID_ROW || addr.col == REF_INVALID_COL {
@@ -3036,16 +3112,27 @@ fn eval_func(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
             Value::Lambda(Arc::new(lambda))
         }
 
-        // ISOMITTED(arg) — Excel uses this in conjunction with LAMBDA's
-        // OPTIONAL-parameter syntax (e.g. `LAMBDA(x, [y], IF(ISOMITTED(y),
-        // x, x+y))`). We don't support optional parameters in this phase
-        // (every LAMBDA parameter is required; arity is strict in
-        // `apply_lambda`), so ISOMITTED has no meaningful work to do and
-        // always returns FALSE. Documented gap — re-evaluate when
-        // optional-param syntax lands.
+        // ISOMITTED(形参) — 只在 LAMBDA 体内有意义：调用方少传了实参时答
+        // TRUE，让 `LAMBDA(x,y,IF(ISOMITTED(y),x,x+y))(5)` 走默认值分支。
+        //
+        // 判定的是「这个**名字**是不是没拿到实参」，不是「它的值是不是
+        // 空」—— `LAMBDA(x,y,ISOMITTED(y))(5,)` 里 y 拿到了一个空占位实参，
+        // 那是「传了个空值」，答 FALSE。两者的区别正是空占位 `,,` 与
+        // 「参数不存在」的区别。
+        //
+        // LAMBDA 之外（裸公式、LET 体内）答 `#NAME?`。与 TS 引擎
+        // `evaluateIsOmitted` 逐条同答案。
         "ISOMITTED" => {
             if args.len() != 1 {
                 return Value::Error(ValueError::WrongArgCount);
+            }
+            if !in_lambda_activation() {
+                return Value::Error(ValueError::InvalidName);
+            }
+            if let Expr::Name(n) = &args[0] {
+                if lambda_param_is_omitted(n) {
+                    return Value::Boolean(true);
+                }
             }
             // Evaluate the arg so any error it contains propagates
             // (Excel parity). Otherwise: FALSE.
@@ -5367,11 +5454,17 @@ fn eval_func(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
             }
             let n = lookup_flat.len();
             // Helper: produce the not-found fallback.
+            // `if_not_found` 没传、或写成空占位 `,,` ⇒ `#N/A`。
+            //
+            // ⚠️ 指向空格的引用（`=XLOOKUP(0,F1:F5,G1:G5,Z99,-1)`）**不**
+            // 走这条：那是提供了一个空值，原样交出去。TS 引擎在这里按值判
+            // （`fallback.kind === 'blank'` 也给 `#N/A`），是一条已知分歧，
+            // 钉在 `cross-engine-parity-omitted-args.test.ts`。取舍理由见
+            // `arg_is_omitted`。
             let not_found = |this_args: &[Expr]| -> Value {
-                if this_args.len() >= 4 {
-                    eval_expr_with_provider(&this_args[3], provider)
-                } else {
-                    Value::Error(ValueError::NotAvailable)
+                match this_args.get(3).filter(|a| !arg_is_omitted(a)) {
+                    Some(fallback_expr) => eval_expr_with_provider(fallback_expr, provider),
+                    None => Value::Error(ValueError::NotAvailable),
                 }
             };
 
@@ -7151,44 +7244,49 @@ fn eval_func(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
                 Some(n) if n >= 1.0 => n.trunc() as u64,
                 _ => return Value::Error(ValueError::InvalidValue),
             };
-            // cols
-            let cols = if args.len() >= 2 {
-                let v = eval_expr_with_provider(&args[1], provider);
-                if let Value::Error(e) = v {
-                    return Value::Error(e);
+            // cols / start / step 写成空占位 ⇒ 取默认值 1，而不是强转 0
+            // —— `=SEQUENCE(2,,)` 强转 0 会撞上 cols ≥ 1 的校验判成
+            // `#VALUE!`。与 SORT 同一条口径。
+            let cols = match args.get(1).filter(|a| !arg_is_omitted(a)) {
+                Some(a) => {
+                    let v = eval_expr_with_provider(a, provider);
+                    if let Value::Error(e) = v {
+                        return Value::Error(e);
+                    }
+                    match coerce_to_number(&v) {
+                        Some(n) if n >= 1.0 => n.trunc() as u64,
+                        _ => return Value::Error(ValueError::InvalidValue),
+                    }
                 }
-                match coerce_to_number(&v) {
-                    Some(n) if n >= 1.0 => n.trunc() as u64,
-                    _ => return Value::Error(ValueError::InvalidValue),
-                }
-            } else {
-                1u64
+                None => 1u64,
             };
             // start
-            let start = if args.len() >= 3 {
-                let v = eval_expr_with_provider(&args[2], provider);
-                if let Value::Error(e) = v {
-                    return Value::Error(e);
+            let start = match args.get(2).filter(|a| !arg_is_omitted(a)) {
+                Some(a) => {
+                    let v = eval_expr_with_provider(a, provider);
+                    if let Value::Error(e) = v {
+                        return Value::Error(e);
+                    }
+                    match coerce_to_number(&v) {
+                        Some(n) => n,
+                        None => return Value::Error(ValueError::WrongType),
+                    }
                 }
-                match coerce_to_number(&v) {
-                    Some(n) => n,
-                    None => return Value::Error(ValueError::WrongType),
-                }
-            } else {
-                1.0
+                None => 1.0,
             };
             // step
-            let step = if args.len() == 4 {
-                let v = eval_expr_with_provider(&args[3], provider);
-                if let Value::Error(e) = v {
-                    return Value::Error(e);
+            let step = match args.get(3).filter(|a| !arg_is_omitted(a)) {
+                Some(a) => {
+                    let v = eval_expr_with_provider(a, provider);
+                    if let Value::Error(e) = v {
+                        return Value::Error(e);
+                    }
+                    match coerce_to_number(&v) {
+                        Some(n) => n,
+                        None => return Value::Error(ValueError::WrongType),
+                    }
                 }
-                match coerce_to_number(&v) {
-                    Some(n) => n,
-                    None => return Value::Error(ValueError::WrongType),
-                }
-            } else {
-                1.0
+                None => 1.0,
             };
             // Cap total elements to keep allocations bounded.
             let total = rows.checked_mul(cols).unwrap_or(u64::MAX);
@@ -7308,39 +7406,45 @@ fn eval_func(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
                 Ok(t) => t,
                 Err(e) => return Value::Error(e),
             };
-            let sort_index = if args.len() >= 2 {
-                let v = eval_expr_with_provider(&args[1], provider);
-                if let Value::Error(e) = v {
-                    return Value::Error(e);
+            // 三个可选参数写成空占位 ⇒ 取默认值，而不是强转 0：
+            // `=SORT(区域,,-1)` 是 Excel 里最常见的降序写法，强转 0 会撞上
+            // 下面 sort_index ≥ 1 的校验判成 `#VALUE!`。
+            let sort_index = match args.get(1).filter(|a| !arg_is_omitted(a)) {
+                Some(a) => {
+                    let v = eval_expr_with_provider(a, provider);
+                    if let Value::Error(e) = v {
+                        return Value::Error(e);
+                    }
+                    match coerce_to_number(&v) {
+                        Some(n) if n >= 1.0 => n.trunc() as u32,
+                        _ => return Value::Error(ValueError::InvalidValue),
+                    }
                 }
-                match coerce_to_number(&v) {
-                    Some(n) if n >= 1.0 => n.trunc() as u32,
-                    _ => return Value::Error(ValueError::InvalidValue),
-                }
-            } else {
-                1u32
+                None => 1u32,
             };
-            let sort_order = if args.len() >= 3 {
-                let v = eval_expr_with_provider(&args[2], provider);
-                if let Value::Error(e) = v {
-                    return Value::Error(e);
+            let sort_order = match args.get(2).filter(|a| !arg_is_omitted(a)) {
+                Some(a) => {
+                    let v = eval_expr_with_provider(a, provider);
+                    if let Value::Error(e) = v {
+                        return Value::Error(e);
+                    }
+                    match coerce_to_number(&v) {
+                        Some(n) if n == 1.0 => 1i32,
+                        Some(n) if n == -1.0 => -1i32,
+                        _ => return Value::Error(ValueError::InvalidValue),
+                    }
                 }
-                match coerce_to_number(&v) {
-                    Some(n) if n == 1.0 => 1i32,
-                    Some(n) if n == -1.0 => -1i32,
-                    _ => return Value::Error(ValueError::InvalidValue),
-                }
-            } else {
-                1i32
+                None => 1i32,
             };
-            let by_col = if args.len() == 4 {
-                let v = eval_expr_with_provider(&args[3], provider);
-                if let Value::Error(e) = v {
-                    return Value::Error(e);
+            let by_col = match args.get(3).filter(|a| !arg_is_omitted(a)) {
+                Some(a) => {
+                    let v = eval_expr_with_provider(a, provider);
+                    if let Value::Error(e) = v {
+                        return Value::Error(e);
+                    }
+                    coerce_to_bool(&v).unwrap_or(false)
                 }
-                coerce_to_bool(&v).unwrap_or(false)
-            } else {
-                false
+                None => false,
             };
             if rows == 0 || cols == 0 {
                 return Value::Error(ValueError::InvalidValue);
@@ -21690,9 +21794,15 @@ fn text_join_delimited(args: &[Expr], provider: &dyn EvalProvider) -> Value {
         return Value::Error(e);
     }
     let delim = coerce_to_text(&delim_v);
-    let ignore_empty = match coerce_to_bool(&ignore_v) {
-        Some(b) => b,
-        None => return Value::Error(ValueError::WrongType),
+    // ignore_empty 写成空占位 ⇒ FALSE（保留空片段）。`=TEXTJOIN(",",,1,2)`
+    // 这条写法在 Excel 里常见，强转失败判 `#TYPE!` 会把整条折掉。
+    let ignore_empty = if arg_is_omitted(&args[1]) {
+        false
+    } else {
+        match coerce_to_bool(&ignore_v) {
+            Some(b) => b,
+            None => return Value::Error(ValueError::WrongType),
+        }
     };
     let delim_chars = delim.chars().count() as u64;
     // 见上文闸门 1/2：只有「保留空格」且「分隔符可见」时补洞才有可观测效果。

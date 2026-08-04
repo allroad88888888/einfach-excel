@@ -50,6 +50,8 @@ pub(super) fn collect_range_refs_into(expr: &Expr, out: &mut HashSet<CellRange>)
         Expr::CellRef(..)
         | Expr::SheetRef { .. }
         | Expr::SheetRange { .. }
+        // 空占位实参没有地址。
+        | Expr::Omitted
         | Expr::Number(_)
         | Expr::Text(_)
         | Expr::Bool(_)
@@ -133,7 +135,7 @@ pub(super) fn collect_refs(expr: &Expr, out: &mut Vec<CellAddress>) {
         // Cross-sheet refs are out-of-scope for static cycle detection on
         // this sheet (cross-sheet cycles need workbook-level analysis).
         Expr::SheetRef { .. } | Expr::SheetRange { .. } => {}
-        Expr::Number(_) | Expr::Text(_) | Expr::Bool(_) | Expr::Error(_) => {}
+        Expr::Number(_) | Expr::Text(_) | Expr::Bool(_) | Expr::Error(_) | Expr::Omitted => {}
         // LET-bound names don't reference cells.
         Expr::Name(_) => {}
         Expr::SpillRef(anchor) => collect_refs(anchor, out),

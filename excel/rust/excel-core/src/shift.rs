@@ -13,6 +13,7 @@
 //! | `parked_band` | 整列 / 整行范围记号在源码文本上的重写 |
 //! | `render` | 把 AST 渲染回公式源码文本 |
 //! | `render_number` | 数字字面量渲染回源码时挑普通写法还是科学计数 |
+//! | `render_ref` | 单元格地址 / 区域引用写成 A1 文本时的 `$` 与 `#REF!` 形状 |
 //! | `table_ref` | 表名 / 列名改掉之后重写结构化引用节点 |
 //!
 //! 子模块一律私有，公开面由本文件逐项 `pub use` 出去 —— `crate::shift::X`
@@ -25,6 +26,7 @@ mod parked_band;
 mod parked_scan;
 mod render;
 mod render_number;
+mod render_ref;
 mod retarget;
 mod table_ref;
 

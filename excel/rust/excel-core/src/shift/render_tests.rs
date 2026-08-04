@@ -5,7 +5,8 @@
 //! `formula/lexer_tests.rs` 同一套做法。
 
 use super::*;
-use crate::formula::parse_formula;
+use crate::cell::CellAddress;
+use crate::formula::{parse_formula, RangeAbs, RangeBounds};
 
 #[test]
 fn render_roundtrip() {
@@ -117,4 +118,45 @@ fn render_absolute_refs_ast_roundtrip() {
         let reparsed = parse_formula(&rendered).unwrap();
         assert_eq!(parsed, reparsed, "AST round-trip {s} -> {rendered}");
     }
+}
+
+// === #89 整表区域（`RangeBounds::Both`）写不出文本，回 `#REF!` ===
+//
+// `Both` 目前没有任何构造点（解析器只产 `None` / `Rows` / `Cols`，重建路径
+// 一律原样透传），所以这两条测试要手搓 AST 才能到达那条臂。它们同时是
+// 溢出回归测试：`Both` 从前与 `None` 共用一条臂，会把 end 角的 `u32::MAX`
+// 喂进 `push_abs_row` 去算 `row + 1` —— debug 构建直接 panic。
+//
+// 角坐标按 `RangeBounds` 文档的哨兵约定取：start `(0,0)`、end 两轴都是
+// `u32::MAX`。
+#[test]
+fn render_whole_sheet_range_is_ref_error() {
+    let expr = Expr::Range {
+        start: CellAddress { row: 0, col: 0 },
+        end: CellAddress {
+            row: u32::MAX,
+            col: u32::MAX,
+        },
+        unbounded: RangeBounds::Both,
+        abs: RangeAbs::REL,
+    };
+    assert_eq!(render_formula(&expr), "=#REF!");
+}
+
+#[test]
+fn render_whole_sheet_sheet_range_is_ref_error() {
+    // 工作表前缀也不写 —— 整个引用写不出来，`Sheet1!#REF!` 重解析不回任何
+    // 合法引用，裸 `#REF!` 至少能解析成 `Expr::Error(InvalidRef)`。
+    let expr = Expr::SheetRange {
+        sheet: "Sheet1".to_string(),
+        start: CellAddress { row: 0, col: 0 },
+        end: CellAddress {
+            row: u32::MAX,
+            col: u32::MAX,
+        },
+        unbounded: RangeBounds::Both,
+        abs: RangeAbs::REL,
+    };
+    assert_eq!(render_formula(&expr), "=#REF!");
+    assert!(parse_formula(&render_formula(&expr)).is_some());
 }

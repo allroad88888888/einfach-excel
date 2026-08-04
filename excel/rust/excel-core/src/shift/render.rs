@@ -1,11 +1,9 @@
 //! 把 [`Expr`] 语法树渲染回公式源码文本。
 
-use super::edit::{is_invalid, range_has_invalid_ref};
+use super::edit::is_invalid;
 use super::render_number::render_number;
-use crate::cell::{push_abs_addr, push_abs_col, push_abs_row, CellAddress};
-use crate::formula::{
-    push_sheet_name, BinOperator, Expr, RangeAbs, RangeBounds, RefAbs, TableArea,
-};
+use super::render_ref::{render_abs_addr, render_range_body, renderable_shape};
+use crate::formula::{push_sheet_name, BinOperator, Expr, TableArea};
 
 /// Render an AST back to a formula string (for paste-and-store flows that
 /// need text representation). Round-trip: parse(render(parse(s))) == parse(s).
@@ -13,46 +11,6 @@ pub fn render_formula(expr: &Expr) -> String {
     let mut out = String::from("=");
     render_into(expr, &mut out);
     out
-}
-
-/// Render one cell address with its `$` absolute markers (`$A$1`, `$A1`,
-/// `A$1`, `A1`). Absoluteness is a written-form annotation only; the address
-/// coordinates are unchanged from `to_string_repr`.
-///
-/// 只做 `RefAbs` → 两个裸 `bool` 的拆包，写出实现是
-/// [`crate::cell::push_abs_addr`] 那唯一一份。拆包留在这一侧而不是下沉进
-/// `cell.rs`：`RefAbs` 住在 `formula::ast`，而 `formula` 依赖 `cell`，
-/// 让 `cell` 反过来认识 `RefAbs` 就把依赖方向倒过来了。
-fn render_abs_addr(addr: CellAddress, abs: RefAbs, out: &mut String) {
-    push_abs_addr(out, addr, abs.col, abs.row);
-}
-
-fn render_range_body(
-    start: CellAddress,
-    end: CellAddress,
-    unbounded: RangeBounds,
-    abs: RangeAbs,
-    out: &mut String,
-) {
-    match unbounded {
-        RangeBounds::None | RangeBounds::Both => {
-            render_abs_addr(start, abs.start, out);
-            out.push(':');
-            render_abs_addr(end, abs.end, out);
-        }
-        RangeBounds::Rows => {
-            // Whole-column range — only the column carries a `$`.
-            push_abs_col(out, start.col, abs.start.col);
-            out.push(':');
-            push_abs_col(out, end.col, abs.end.col);
-        }
-        RangeBounds::Cols => {
-            // Whole-row range — only the row carries a `$`.
-            push_abs_row(out, start.row, abs.start.row);
-            out.push(':');
-            push_abs_row(out, end.row, abs.end.row);
-        }
-    }
 }
 
 fn render_into(expr: &Expr, out: &mut String) {
@@ -78,14 +36,9 @@ fn render_into(expr: &Expr, out: &mut String) {
             unbounded,
             abs,
         } => {
-            // For whole-col / whole-row ranges, only the bounded axis can
-            // carry a #REF! sentinel. is_invalid() checks BOTH axes, so
-            // we'd false-positive on the u32::MAX sentinel. Check the
-            // bounded axes explicitly.
-            if range_has_invalid_ref(*start, *end, *unbounded) {
-                out.push_str("#REF!");
-            } else {
-                render_range_body(*start, *end, *unbounded, *abs, out);
+            match renderable_shape(*start, *end, *unbounded) {
+                Some(shape) => render_range_body(*start, *end, shape, *abs, out),
+                None => out.push_str("#REF!"),
             }
         }
         Expr::SheetRef { sheet, addr, abs } => {
@@ -104,12 +57,13 @@ fn render_into(expr: &Expr, out: &mut String) {
             unbounded,
             abs,
         } => {
-            if range_has_invalid_ref(*start, *end, *unbounded) {
-                out.push_str("#REF!");
-            } else {
-                push_sheet_name(out, sheet);
-                out.push('!');
-                render_range_body(*start, *end, *unbounded, *abs, out);
+            match renderable_shape(*start, *end, *unbounded) {
+                Some(shape) => {
+                    push_sheet_name(out, sheet);
+                    out.push('!');
+                    render_range_body(*start, *end, shape, *abs, out)
+                }
+                None => out.push_str("#REF!"),
             }
         }
         Expr::SpillRef(anchor) => {

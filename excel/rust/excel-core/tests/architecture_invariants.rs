@@ -24,28 +24,63 @@ fn read(path: &Path) -> String {
     fs::read_to_string(path).unwrap_or_else(|e| panic!("cannot read {}: {e}", path.display()))
 }
 
+/// 截掉 `#[cfg(test)]` 之后的测试尾巴，只留生产代码。
+fn production(source: &str) -> String {
+    source.split("#[cfg(test)]").next().unwrap_or(source).to_string()
+}
+
+/// sheet 家族**逐文件**的生产代码：`sheet.rs` 加上所有 `src/sheet_*.rs`。
+///
+/// 为什么要枚举整个家族：这些代码原本全住在 `sheet.rs` 里，本测试按文本扫它。
+/// 拆出去的部分若不一起扫，就等于**搬家即脱离门禁** —— 上一轮 spill 拆分正是
+/// 这样让 `sheet_spill.rs` 与 `sheet_spill_maintenance.rs` 漏网的，这一轮
+/// `sheet.rs` 从 10561 行降到 2681 行，漏网面积会再放大一个量级。
+/// 用 `read_dir` 而不是写死清单，是为了让**将来新拆出的** `sheet_*.rs` 自动进网。
+///
+/// 注意必须**逐文件先截测试尾巴再拼**：先拼后截会从第一个带测试的文件处整体
+/// 截断，把它后面的所有文件悄悄排除掉。
+fn sheet_family_sources() -> Vec<(String, String)> {
+    let dir = manifest_dir().join("src");
+    let mut names: Vec<String> = fs::read_dir(&dir)
+        .unwrap_or_else(|e| panic!("cannot read {}: {e}", dir.display()))
+        .filter_map(|e| e.ok())
+        .filter(|e| e.file_type().map(|t| t.is_file()).unwrap_or(false))
+        .filter_map(|e| e.file_name().into_string().ok())
+        .filter(|n| n.starts_with("sheet_") && n.ends_with(".rs"))
+        .collect();
+    names.sort();
+    let mut out = vec![(
+        "sheet".to_string(),
+        production(&read(&dir.join("sheet.rs"))),
+    )];
+    for name in names {
+        let src = production(&read(&dir.join(&name)));
+        out.push((name.trim_end_matches(".rs").to_string(), src));
+    }
+    out
+}
+
+/// 整个 sheet 家族的生产代码拼接。正向断言（接线锚点、出现次数）用它。
 fn sheet_rs() -> String {
-    read(&manifest_dir().join("src/sheet.rs"))
+    sheet_family_sources()
+        .into_iter()
+        .map(|(_, src)| src)
+        .collect::<Vec<_>>()
+        .join("\n")
 }
 
 fn workbook_rs() -> String {
     read(&manifest_dir().join("src/workbook.rs"))
 }
 
-/// ADR 0006 stage 2 put an INV-2-allowlisted `addr → anchor` index (spill
-/// `claims`) in its own module, following the rule stated on
-/// `FORBIDDEN_SHAPES`. Scanning it here is what keeps that from being a way
-/// AROUND the shape ban rather than a way to honour it: the allowlisted index
-/// must still avoid every banned shape, it just gets to exist.
-fn spill_claims_rs() -> String {
-    read(&manifest_dir().join("src/sheet_spill_claims.rs"))
-}
-
-/// The `#SPILL!` blocker query stores NOTHING — it recomputes the obstruction
-/// from live cell content on demand — but it is scanned all the same.
-fn spill_blocker_rs() -> String {
-    read(&manifest_dir().join("src/sheet_spill_blocker.rs"))
-}
+// `sheet_spill_claims.rs` / `sheet_spill_blocker.rs` 曾各有一个专用读取函数。
+// 现在它们由 `sheet_family_sources()` 的 `sheet_*.rs` 通配自动覆盖，专用函数已删。
+// 它们当初被单列的理由仍然成立、并且现在适用于整个家族：
+//   - ADR 0006 阶段 2 把一个 INV-2 白名单内的 `addr → anchor` 索引（spill
+//     `claims`）放进了自己的模块。扫它，是为了让「搬进独立模块」是**遵守**
+//     形状禁令的方式，而不是**绕过**它的方式 —— 白名单索引可以存在，但仍须
+//     避开每一条被禁的形状。
+//   - `#SPILL!` 阻塞查询什么都不存（按需从活单元格重算），照扫不误。
 
 fn store_rs() -> String {
     read(&manifest_dir().join("../core/src/store.rs"))
@@ -214,12 +249,12 @@ fn forbidden_identifiers_absent_for_current_phase() {
 #[test]
 fn forbidden_type_shapes_absent_for_current_phase() {
     let strip = |s: &str| s.replace([' ', '\n', '\t'], "");
-    let sources = [
-        ("sheet", strip(&sheet_rs())),
-        ("workbook", strip(&workbook_rs())),
-        ("sheet_spill_claims", strip(&spill_claims_rs())),
-        ("sheet_spill_blocker", strip(&spill_blocker_rs())),
-    ];
+    // 逐文件扫而不是拼起来扫：违规信息要点得出**具体哪个文件**。
+    let mut sources: Vec<(String, String)> = sheet_family_sources()
+        .into_iter()
+        .map(|(name, src)| (name, strip(&src)))
+        .collect();
+    sources.push(("workbook".to_string(), strip(&workbook_rs())));
     let mut violations = Vec::new();
     for (shape, from_phase) in FORBIDDEN_SHAPES {
         if PHASE < *from_phase {

@@ -1958,12 +1958,7 @@ fn runtime_ref_from_expr(
             })
         }
         Expr::FuncCall { name, args } if name == "OFFSET" => {
-            let range = eval_offset_as_range(args, provider).ok_or(ValueError::InvalidRef)?;
-            Ok(RuntimeRef {
-                sheet: None,
-                range,
-                materialized: None,
-            })
+            eval_offset_as_range(args, provider).ok_or(ValueError::InvalidRef)
         }
         Expr::FuncCall { name, args } if name == "INDIRECT" => {
             runtime_ref_from_indirect(args, provider)
@@ -2337,17 +2332,23 @@ fn collect_range_2d_for_arg(arg: &Expr, provider: &dyn EvalProvider) -> Option<V
 }
 
 /// Evaluate an `OFFSET(ref, row_off, col_off[, height[, width]])` call and
-/// return the resolved `CellRange`, or `None` if arguments are invalid.
-/// `ref` must be a `CellRef` (single-cell anchor); row/col offsets are
-/// applied to produce the top-left corner; height/width (default 1×1) give
-/// the extent. All numeric args must be coercible; otherwise returns `None`.
-fn eval_offset_as_range(args: &[Expr], provider: &dyn EvalProvider) -> Option<CellRange> {
+/// return the resolved `RuntimeRef`, or `None` if arguments are invalid.
+/// Row/col offsets are applied to produce the top-left corner; height/width
+/// (default 1×1) give the extent. All numeric args must be coercible;
+/// otherwise returns `None`.
+///
+/// 锚点认**单格**引用，同表 `A1` 与跨表 `Sheet2!A1` 同口径 —— 跨表那支此前
+/// 没接上，`=OFFSET(Sheet2!A1,0,1)` 掉进 `_` 给 `#REF!`，套在聚合里更糟：
+/// `=COUNTIF(OFFSET(Sheet2!A1,0,0,3,1),">1")` 把那个 `#REF!` 当**一个不满足
+/// 条件的格子**，答 0（TS 参考引擎两条分别给 200 / 2）。区域锚点
+/// (`OFFSET(A1:B2,…)`) 两侧都不认，那是另一条既有口径，不在本次范围。
+fn eval_offset_as_range(args: &[Expr], provider: &dyn EvalProvider) -> Option<RuntimeRef> {
     if args.len() < 3 || args.len() > 5 {
         return None;
     }
-    // First arg must be a cell reference (the anchor).
-    let anchor = match &args[0] {
-        Expr::CellRef(addr, _) => *addr,
+    let (sheet, anchor) = match &args[0] {
+        Expr::CellRef(addr, _) => (None, *addr),
+        Expr::SheetRef { sheet, addr, .. } => (Some(sheet.clone()), *addr),
         _ => return None,
     };
     let row_off = coerce_to_number(&eval_expr_with_provider(&args[1], provider))? as i64;
@@ -2377,7 +2378,11 @@ fn eval_offset_as_range(args: &[Expr], provider: &dyn EvalProvider) -> Option<Ce
     }
     let start = CellAddress::new(start_row as u32, start_col as u32);
     let end = CellAddress::new(start_row as u32 + height - 1, start_col as u32 + width - 1);
-    Some(CellRange::new(start, end))
+    Some(RuntimeRef {
+        sheet,
+        range: CellRange::new(start, end),
+        materialized: None,
+    })
 }
 
 /// Normalized rectangle resolved from a range-shaped argument expression.
@@ -2609,38 +2614,7 @@ fn for_each_arg_value_indexed(
     f: &mut dyn FnMut(Option<CellAddress>, u64, Value),
 ) -> Option<u64> {
     match runtime_ref_from_expr(arg, provider) {
-        Ok(r) => {
-            let n = r.normalized();
-            if let Some(arr) = &r.materialized {
-                let (rows, cols) = arr.shape();
-                for row in 0..rows {
-                    for col in 0..cols {
-                        let addr = CellAddress::new(n.start.row + row, n.start.col + col);
-                        let pos = row as u64 * cols as u64 + col as u64 + 1;
-                        f(
-                            Some(addr),
-                            pos,
-                            arr.get(row, col).cloned().unwrap_or(Value::Null),
-                        );
-                    }
-                }
-                return Some(rows as u64 * cols as u64);
-            }
-            // 区域的形状。`bounded_shape` 已把整列 / 整行的 `u32::MAX` 哨兵夹到
-            // Excel 网格上限，所以 `A:A` 得到 1048576×1、`1:1` 得到 1×16384。
-            let shape = r.bounded_shape();
-            let cols = shape.map_or(1u64, |(_, c)| c as u64);
-            let mut emit = |addr: CellAddress, v: Value| {
-                let dr = addr.row.saturating_sub(n.start.row) as u64;
-                let dc = addr.col.saturating_sub(n.start.col) as u64;
-                f(Some(addr), dr * cols + dc + 1, v);
-            };
-            match &r.sheet {
-                Some(sheet) => provider.for_each_sheet_range_cell(sheet, r.range, &mut emit),
-                None => stream_range(&r.range.start, &r.range.end, provider, &mut emit),
-            }
-            shape.map(|(rows, c)| rows as u64 * c as u64)
-        }
+        Ok(r) => for_each_ref_value_indexed(&r, provider, f),
         Err(ValueError::InvalidValue) => {
             let v = eval_expr_with_provider(arg, provider);
             if let Value::Array(arr) = v {
@@ -2657,6 +2631,52 @@ fn for_each_arg_value_indexed(
             None
         }
     }
+}
+
+/// 把**已经解析好**的区域引用按行主序流出来。[`for_each_arg_value_indexed`]
+/// 解析完实参后就落到这里，跨表走 `for_each_sheet_range_cell`、同表走
+/// `stream_range`、物化引用（`INDEX` / 溢出区）直接读数组 —— 三条只有这一份。
+///
+/// 直接进这里而不进 `for_each_arg_value_indexed` 的唯一理由：调用方**还需要
+/// 引用本身**（`SUMIF` 三参要条件区的左上角来给求和区做偏移平移），而动态区域
+/// 实参的解析带求值副作用，不能为了拿左上角再解析一遍。
+///
+/// 返回值同 [`for_each_arg_value_indexed`]：区域的**矩形格数**。
+fn for_each_ref_value_indexed(
+    r: &RuntimeRef,
+    provider: &dyn EvalProvider,
+    f: &mut dyn FnMut(Option<CellAddress>, u64, Value),
+) -> Option<u64> {
+    let n = r.normalized();
+    if let Some(arr) = &r.materialized {
+        let (rows, cols) = arr.shape();
+        for row in 0..rows {
+            for col in 0..cols {
+                let addr = CellAddress::new(n.start.row + row, n.start.col + col);
+                let pos = row as u64 * cols as u64 + col as u64 + 1;
+                f(
+                    Some(addr),
+                    pos,
+                    arr.get(row, col).cloned().unwrap_or(Value::Null),
+                );
+            }
+        }
+        return Some(rows as u64 * cols as u64);
+    }
+    // 区域的形状。`bounded_shape` 已把整列 / 整行的 `u32::MAX` 哨兵夹到
+    // Excel 网格上限，所以 `A:A` 得到 1048576×1、`1:1` 得到 1×16384。
+    let shape = r.bounded_shape();
+    let cols = shape.map_or(1u64, |(_, c)| c as u64);
+    let mut emit = |addr: CellAddress, v: Value| {
+        let dr = addr.row.saturating_sub(n.start.row) as u64;
+        let dc = addr.col.saturating_sub(n.start.col) as u64;
+        f(Some(addr), dr * cols + dc + 1, v);
+    };
+    match &r.sheet {
+        Some(sheet) => provider.for_each_sheet_range_cell(sheet, r.range, &mut emit),
+        None => stream_range(&r.range.start, &r.range.end, provider, &mut emit),
+    }
+    shape.map(|(rows, c)| rows as u64 * c as u64)
 }
 
 /// A database range resolved from a D* function's first argument. The
@@ -3434,9 +3454,9 @@ fn eval_func(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
             //
             // Three-arg form: stream `range`; on each hit, translate the
             // `addr` into the matching cell in `sum_range` by relative
-            // offset and call `provider.cell` for the target. Still O(1)
-            // memory (no Vec of either range) — at the cost of an extra
-            // HashMap lookup per hit, which is cheap.
+            // offset and fetch the target through `fetch_range_cell`.
+            // Still O(1) memory (no Vec of either range) — at the cost of
+            // an extra HashMap lookup per hit, which is cheap.
             if args.len() != 2 && args.len() != 3 {
                 return Value::Error(ValueError::WrongArgCount);
             }
@@ -3455,43 +3475,44 @@ fn eval_func(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
                     }
                 });
             } else {
-                // Three-arg with offset translation needs both args to be
-                // ranges; otherwise fall back to the two-arg behavior
-                // (Excel actually broadcasts a single sum_range cell, but
-                // the legacy tests here matched index-equality only when
-                // both were ranges).
-                let range = match &args[0] {
-                    Expr::Range { start, end, .. } => Some((*start, *end)),
-                    _ => None,
-                };
-                let sum_range = match &args[2] {
-                    Expr::Range { start, end, .. } => Some((*start, *end)),
-                    _ => None,
-                };
-                match (range, sum_range) {
-                    (Some((rs, re)), Some((ss, _se))) => {
-                        let rs_n = CellRange::new(rs, re).normalize();
-                        let ss_n = CellRange::new(ss, ss).normalize();
-                        let dr = ss_n.start.row as i64 - rs_n.start.row as i64;
-                        let dc = ss_n.start.col as i64 - rs_n.start.col as i64;
+                // 两个区域实参都走**同一条**入口：条件区 `runtime_ref_from_expr`、
+                // 求和区 `resolve_range_arg`（后者只是前者 + `bounded_shape`）。
+                // 跨表 `Sheet2!B1:B3`、同表 `B1:B3`、单格 `B1`、动态区域
+                // (`OFFSET` / `INDIRECT` / `INDEX` / 表引用) 从解析那一步起就
+                // 不分叉，取格由 `fetch_range_cell` 按 `sheet` 派给
+                // `sheet_cell` / `cell`。
+                //
+                // 此前这里自己 `match Expr::Range`，`SheetRange` 与所有动态区域
+                // 节点都掉进下面那条「当求和区不存在」的回退 —— 回退加的是**条件
+                // 区自己的值**，于是 `=SUMIF(Sheet2!A1:A3,">1",Sheet2!B1:B3)`
+                // 答 5 而不是 500。错的是个看着正常的数，比 `#VALUE!` 难发现。
+                //
+                // 对齐规则是 Excel 的「左上角 + 条件区形状」：求和区只贡献左上角，
+                // 自己的行列数不参与。`SUMIF(A1:A3,">1",B1)` 与
+                // `SUMIF(A1:A3,">1",B1:B10)` 因此同值 500。
+                let crit_ref = runtime_ref_from_expr(&args[0], provider).ok();
+                let sum_range = resolve_range_arg(&args[2], provider);
+                match (crit_ref, sum_range) {
+                    (Some(crit), Some(sum)) => {
+                        let origin = crit.normalized().start;
                         // 命中行的 sum_range 格子是**值档**，错误要传播（`SUM` 也
                         // 传播，SUMIFS / AVERAGEIF* / MAXIFS / MINIFS 也一样）。
                         // 之前这里靠 `coerce_to_number` 返回 `None` 把错误静默吞
                         // 掉，答案是个看着正常的数 —— 与 TS 参考引擎的 `SUMIF`
                         // 相反。流式回调不能提前返回，所以记下来循环后再交出去。
                         let mut sum_err: Option<ValueError> = None;
-                        for_each_arg_value(&args[0], provider, &mut |addr, v| {
+                        // 条件区**只解析一次**：动态区域实参的解析带求值副作用，
+                        // 所以这里从已解析的 ref 直接流，而不是把 `args[0]` 再
+                        // 喂一遍 `for_each_arg_value`。
+                        for_each_ref_value_indexed(&crit, provider, &mut |addr, _pos, v| {
                             if sum_err.is_some() {
                                 return;
                             }
                             let Some(addr) = addr else { return };
                             if matches_criterion(&v, &criterion) {
-                                let r = addr.row as i64 + dr;
-                                let c = addr.col as i64 + dc;
-                                if r < 0 || c < 0 {
-                                    return;
-                                }
-                                let target = provider.cell(CellAddress::new(r as u32, c as u32));
+                                let dr = addr.row.saturating_sub(origin.row);
+                                let dc = addr.col.saturating_sub(origin.col);
+                                let target = fetch_range_cell(&sum, dr, dc, provider);
                                 if let Value::Error(e) = target {
                                     sum_err = Some(e);
                                     return;
@@ -3506,7 +3527,8 @@ fn eval_func(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
                         }
                     }
                     _ => {
-                        // Non-range args fall back to "broadcast same eval"
+                        // 到这里说明某一侧根本不是引用（数组字面量 / 标量 / 求值
+                        // 出错的子表达式），没有「相对位置」可言 —— 退回二参口径。
                         for_each_arg_value(&args[0], provider, &mut |_addr, v| {
                             if matches_criterion(&v, &criterion) {
                                 if let Some(n) = coerce_to_number(&v) {
@@ -4152,7 +4174,13 @@ fn eval_func(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
                 return Value::Error(ValueError::WrongArgCount);
             }
             match eval_offset_as_range(args, provider) {
-                Some(range) => provider.cell(range.start),
+                Some(r) => {
+                    let start = r.range.normalize().start;
+                    match &r.sheet {
+                        Some(sheet) => provider.sheet_cell(sheet, start),
+                        None => provider.cell(start),
+                    }
+                }
                 None => Value::Error(ValueError::InvalidRef),
             }
         }

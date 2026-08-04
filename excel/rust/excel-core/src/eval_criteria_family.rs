@@ -19,9 +19,10 @@
 //!
 //! - `COUNTIFS` / `SUMIFS` / `AVERAGEIFS` / `MAXIFS` / `MINIFS`：所有条件区与
 //!   值区共享同一个 `(rows, cols)`，不一致 → `#VALUE!`。
-//! - `SUMIF` / `AVERAGEIF` 三参：`SUMIF` 按 Excel 的「左上角 + 条件区形状」
-//!   重定尺寸（求和区自己的行列数不参与）；`AVERAGEIF` 沿用本仓既有的严格
-//!   同形校验，不一致 → `#VALUE!`。这条家族内部的不一致是存量，本次不动。
+//! - `SUMIF` / `AVERAGEIF` 三参：值区按 Excel 的「左上角 + 条件区形状」重定
+//!   尺寸，值区自己的行列数不参与 —— 见 `value_rect_fits` 的文档。两个函数
+//!   同一条规则；`AVERAGEIF` 曾单独挂着一条严格同形校验（`#VALUE!`），那是
+//!   存量分歧，已去掉。
 
 use super::eval_criteria_blank::{
     all_match, build_pairs, count_candidates, criterion_matches_blank, for_each_matched_number,
@@ -35,6 +36,26 @@ fn eval_criterion(arg: &Expr, provider: &dyn EvalProvider) -> Result<Value, Valu
         Value::Error(e) => Err(e),
         v => Ok(v),
     }
+}
+
+/// 三参 `SUMIF` / `AVERAGEIF` 的值区实际矩形放不放得下。
+///
+/// Excel 的值区**只取左上角**，行列数由条件区决定（"…using the upper leftmost
+/// cell in the sum_range argument as the beginning cell, and then including
+/// cells that correspond in size and shape to the range argument" —— Microsoft,
+/// SUMIF）。铺开那一步本来就由 `for_each_value_candidate` + `fetch_range_cell`
+/// 做掉了，本函数只回答**越不越界**：`B1048575` 配 3 行条件区要读到第 1048577
+/// 行，网格外，Excel 给 `#REF!`；没有这道闸它们会静悄悄读成空格，
+/// `SUMIF(A1:A3,">1",B1048575)` 答 0。TS 参考引擎同口径的实现是
+/// `excel/excel-core-ts/src/eval/criteria-value-rect.ts::criteriaValueRect`。
+///
+/// 物化引用（`INDEX` / 溢出区的快照）没有网格坐标可越界，一律放行。
+fn value_rect_fits(criteria: &ResolvedRange, value: &ResolvedRange) -> bool {
+    if value.materialized.is_some() {
+        return true;
+    }
+    value.start_row as u64 + criteria.rows as u64 <= EXCEL_MAX_ROWS as u64
+        && value.start_col as u64 + criteria.cols as u64 <= EXCEL_MAX_COLS as u64
 }
 
 /// 值型多条件函数（SUMIFS / AVERAGEIFS / MAXIFS / MINIFS）共用的开头：
@@ -109,6 +130,9 @@ pub(super) fn fn_sumif(args: &[Expr], provider: &dyn EvalProvider) -> Value {
             resolve_range_arg(&args[0], provider),
             resolve_range_arg(&args[2], provider),
         ) {
+            if !value_rect_fits(&crit, &sum) {
+                return Value::Error(ValueError::InvalidRef);
+            }
             let pairs = vec![CriterionPair::new(crit, criterion)];
             let mut total = 0.0_f64;
             if let Some(e) =
@@ -137,6 +161,11 @@ pub(super) fn fn_sumif(args: &[Expr], provider: &dyn EvalProvider) -> Value {
 /// 平均区里只有**真正的数字**进分母：空格、文本、布尔都不计数，所以
 /// `AVERAGEIF(A1:A3,"")` 在「唯一命中的是空格」时是 `#DIV/0!` 而不是 0
 /// （微软文档：average_range 里的空格被忽略；没有格子满足条件则 `#DIV/0!`）。
+///
+/// average_range 与 `SUMIF` 的 sum_range 同一条形状规则（`value_rect_fits`）。
+/// 这里曾挂着 `crit.rows != value.rows → #VALUE!`，把
+/// `AVERAGEIF(A1:A3,">1",B1)` 这类合法写法挡在门外，与紧邻的 `fn_sumif`
+/// 也不自洽。
 pub(super) fn fn_averageif(args: &[Expr], provider: &dyn EvalProvider) -> Value {
     if args.len() != 2 && args.len() != 3 {
         return Value::Error(ValueError::WrongArgCount);
@@ -152,8 +181,8 @@ pub(super) fn fn_averageif(args: &[Expr], provider: &dyn EvalProvider) -> Value 
     } else {
         crit.clone()
     };
-    if crit.rows != value.rows || crit.cols != value.cols {
-        return Value::Error(ValueError::InvalidValue);
+    if !value_rect_fits(&crit, &value) {
+        return Value::Error(ValueError::InvalidRef);
     }
     let criterion = match eval_criterion(&args[1], provider) {
         Ok(c) => c,

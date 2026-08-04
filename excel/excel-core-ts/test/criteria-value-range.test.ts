@@ -74,8 +74,11 @@ function read(wb: Workbook, row: number): Value {
 }
 
 /** 把一批 `[公式, 期望值]` 写进 Z 列逐条求值。行号从 200 起，避开夹具。 */
-function expectAll(cases: ReadonlyArray<readonly [string, Value]>): void {
-  const wb = fixture()
+function expectAll(
+  cases: ReadonlyArray<readonly [string, Value]>,
+  makeWorkbook: () => Workbook = fixture,
+): void {
+  const wb = makeWorkbook()
   cases.forEach(([formula], i) => wb.setCell('s1', 200 + i, 25, formula))
   cases.forEach(([formula, want], i) => {
     expect([formula, read(wb, 200 + i)]).toEqual([formula, want])
@@ -111,12 +114,11 @@ const PAIRED_CASES: ReadonlyArray<readonly [string, Value]> = [
   ['=AVERAGEIF({C},">1",B1)', num(250)],
   ['=AVERAGEIF({C},">1",B1:B2)', num(250)],
   ['=AVERAGEIF({C},">1",Sheet2!B1)', num(8.5)],
-  // ⚠️ 几何是对的（B2 起 ⇒ B2:B4，命中 B3=300 与 B4=空），150 却不是 Excel 的
-  // 答案：Excel 的 average_range **忽略空格**，应当是 300/1=300，本引擎把空格
-  // 当 0 计进了分母 ⇒ 300/2。这是另一条根因（累加器的空值口径，不是值区几何），
-  // 两条路一致地错，此处先钉住现状；真去修时这一行要改成 num(300)，
-  // AVERAGEIFS 同款问题一起改。
-  ['=AVERAGEIF({C},">1",B2)', num(150)],
+  // 几何（B2 起 ⇒ B2:B4，命中 B3=300 与 B4=空）与**分母口径**在同一行上验：
+  // Excel 的 average_range 忽略空格，B4 那一格不进分母 ⇒ 300/1。这一行曾经是
+  // `num(150)`（空格当 0 计进分母），根因是累加器用了 SUMIF 那档 `toNumber`，
+  // 现在走 `averageTierNumber`（只认数字）。任务 #103(b)。
+  ['=AVERAGEIF({C},">1",B2)', num(300)],
 ]
 
 describe('SUMIF / AVERAGEIF 值区：稀疏与物化两条路必须同答案', () => {
@@ -129,6 +131,66 @@ describe('SUMIF / AVERAGEIF 值区：稀疏与物化两条路必须同答案', (
   describe.each(SPELLINGS)('$label：条件区写作 $criteria', ({ criteria }) => {
     test('值区一律「左上角 + 条件区形状」', () => {
       expectAll(PAIRED_CASES.map(([tpl, want]) => [tpl.replace('{C}', criteria), want] as const))
+    })
+  })
+})
+
+/**
+ * 洞在中间的夹具：`A1=1 / A2 空 / A3=3`、`B1=10 / B2 空 / B3=30`，
+ * 外加一组「条件区无洞、值区有洞」的 C/D 列（`C1:C3=1,2,3`、`D1=10 / D2 空 /
+ * D3=30`）—— 两个洞的位置不同，是**两条不同的规则**：
+ *
+ *  - A/B：洞在**条件区**，判据认空格时命中它，取到的值区那一格也是空 ⇒ 分子
+ *    分母都不动。这是 `AVERAGEIF(区域,"")` 那一条。
+ *  - C/D：洞只在**值区**，条件区照常命中 ⇒ 该位置不进分母。
+ *
+ * 只留一个洞覆盖不了另一条：C/D 那组在「空格当 0」的实现下也照样能给出错误的
+ * 13.33，而 A/B 那组会给 0 —— 症状不同，根因是同一处。
+ */
+function blankFixture(): Workbook {
+  const wb = createWorkbook([{ id: 's1', name: 'Sheet1' }])
+  wb.setCell('s1', 0, 0, '1')
+  wb.setCell('s1', 2, 0, '3')
+  wb.setCell('s1', 0, 1, '10')
+  wb.setCell('s1', 2, 1, '30')
+  ;[1, 2, 3].forEach((v, r) => wb.setCell('s1', r, 2, String(v)))
+  wb.setCell('s1', 0, 3, '10')
+  wb.setCell('s1', 2, 3, '30')
+  return wb
+}
+
+/**
+ * 值区的**空格贡献什么** —— 与上面的「值区覆盖哪个矩形」是两条正交的规则，
+ * 但同样有稀疏 / 物化两份实现，所以用同一套三拼法跑。
+ *
+ * 事故留痕（任务 #103）：`AVERAGEIF(A1:A3,"")` 在物化路径上答 **0**、在稀疏路径
+ * 上答 `#DIV/0!` —— **两条路当场就是岔的**，而跨引擎那张网也没覆盖这一格。根因
+ * 是物化路径用 SUMIF 那档 `toNumber` 取值（空格 → 0），于是「唯一命中的是空格」
+ * 变成了「命中一格、值 0」；稀疏路径压根不枚举空格才碰巧对。Rust 引擎与 Excel
+ * 都是 `#DIV/0!`（微软文档：average_range 里的空格被忽略；没有格子满足条件则
+ * `#DIV/0!`）。
+ */
+const BLANK_TIER_CASES: ReadonlyArray<readonly [string, Value]> = [
+  // 唯一命中的位置在值区侧是空格 ⇒ 一个数都没有 ⇒ #DIV/0!，不是 0。
+  ['=AVERAGEIF({C},"")', err('#DIV/0!')],
+  ['=AVERAGEIF({C},"",B1:B3)', err('#DIV/0!')],
+  // 判据认空格且**另有**数字命中：空格那一格不进分母 ⇒ (10+30)/2。
+  ['=AVERAGEIF({C},"<>x",B1:B3)', num(20)],
+  // 洞只在值区（条件区 C 列无洞）：命中三格、只有两个数 ⇒ 20，不是 13.33。
+  ['=AVERAGEIF(C1:C3,">0",D1:D3)', num(20)],
+  ['=AVERAGEIFS(D1:D3,C1:C3,">0")', num(20)],
+  // 反向围栏：SUMIF 那一档**不**跟着改，空格照旧当 0 加（对和无害）。
+  ['=SUMIF({C},"<>x",B1:B3)', num(40)],
+  ['=SUMIF({C},"")', num(0)],
+]
+
+describe('AVERAGEIF 值区的空格：不进分母（稀疏与物化两条路必须同答案）', () => {
+  describe.each(SPELLINGS)('$label：条件区写作 $criteria', ({ criteria }) => {
+    test('空格不进分母，一个数都没有就是 #DIV/0!', () => {
+      expectAll(
+        BLANK_TIER_CASES.map(([tpl, want]) => [tpl.replace('{C}', criteria), want] as const),
+        blankFixture,
+      )
     })
   })
 })

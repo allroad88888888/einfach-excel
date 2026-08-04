@@ -15,7 +15,7 @@ import type {
   Value,
 } from '../types'
 import { cellKey } from '../refs'
-import { makeCriterionMatcher } from './functions/stats'
+import { averageTierNumber, makeCriterionMatcher } from './functions/stats'
 import { toNumber } from './coerce'
 import {
   ERR,
@@ -218,9 +218,11 @@ export function evaluateSparseAverageIf(
     if (!targetCoord) return ERR('#REF!')
     const target = valueAtRuntimeCoord(averageRef.ref.sheetName, targetCoord, ctx)
     if (target.kind === 'error') return target
-    const n = toNumber(target)
-    if (n.ok) {
-      total += n.value
+    // 分母只数真正的数字 —— 与物化孪生 `FUNCTIONS.AVERAGEIF` 共用
+    // `averageTierNumber`，不是 SUMIF 那档 `toNumber`（空格→0 会进分母）。
+    const n = averageTierNumber(target)
+    if (n !== undefined) {
+      total += n
       count += 1
     }
   }
@@ -252,9 +254,10 @@ function averageBlankMatchedTargets(
     if (!targetCoord) return ERR('#REF!')
     const target = valueAtRuntimeCoord(averageRef.sheetName, targetCoord, ctx)
     if (target.kind === 'error') return target
-    const n = toNumber(target)
-    if (n.ok) {
-      total += n.value
+    // 同上：空格命中时贡献的是「什么都不贡献」，不是 0。
+    const n = averageTierNumber(target)
+    if (n !== undefined) {
+      total += n
       count += 1
     }
   }

@@ -9,6 +9,7 @@
 import type { EvalContext, Expr, Value } from '../types'
 import { toNumber } from './coerce'
 import { ERR, canSparseIterate, runtimeRefFromExpr } from './evaluate'
+import { averageTierNumber } from './functions/stats'
 import {
   countIfsCandidateCoords,
   countMatchingCriteria,
@@ -94,9 +95,11 @@ export function evaluateSparseAverageIfs(
     if (!matchesAllCriteria(coord, criteria.pairs, ctx)) continue
     const target = valueAtRelativeCoord(base, averageRef.ref, coord, ctx)
     if (target.kind === 'error') return target
-    const n = toNumber(target)
-    if (n.ok) {
-      total += n.value
+    // 分母只数真正的数字（`averageTierNumber`），与物化孪生
+    // `FUNCTIONS.AVERAGEIFS` 同一份。SUMIFS 那档仍是 `toNumber`。
+    const n = averageTierNumber(target)
+    if (n !== undefined) {
+      total += n
       count += 1
     }
   }

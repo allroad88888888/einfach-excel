@@ -660,7 +660,11 @@ describe('evaluator — literals + arithmetic', () => {
         },
         ctx,
       ),
-    ).toEqual(numVal(15))
+      // 命中两格（A1=1 与 A1048576 的文本 "2"），但 average_range 的分母**只数
+      // 真正的数字**：B1048576 是文本 `"20"`，与空格 / 布尔一样被忽略
+      // （Excel：引用里的文本、逻辑值、空格都不参与 AVERAGE）。所以是 10/1，
+      // 不是 (10+20)/2。曾经这里用 SUMIF 那档 `toNumber` 把 `"20"` 强转进来。
+    ).toEqual(numVal(10))
   })
 
   test('AVERAGEIF whole-column blank criteria include sparse average cells', () => {
@@ -684,7 +688,9 @@ describe('evaluator — literals + arithmetic', () => {
         },
         ctx,
       ),
-    ).toEqual(numVal(25))
+      // 空格判据命中 A2（真空格 → B2=20）与 A3（空串文本 → B3 是文本 `"30"`）。
+      // 分母只数真正的数字，文本 `"30"` 不算 ⇒ 20/1。见上一条测试的注释。
+    ).toEqual(numVal(20))
   })
 
   test('AVERAGEIF sparse criteria range errors are skipped, not propagated', () => {

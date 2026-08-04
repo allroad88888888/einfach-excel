@@ -242,6 +242,28 @@ export function makeCriterionMatcher(
   }
 }
 
+/**
+ * AVERAGEIF / AVERAGEIFS 的**值区取数口径**：只认真正的数字。
+ *
+ * 与 SUMIF 的 `toNumber` 是两档，别合并 —— 求和把空格当 0 加进去无害，平均
+ * 却要靠它决定**分母**。Excel 的措辞是 "If a cell in average_range is an
+ * empty cell, AVERAGEIF ignores it" 与 "Cells in range that contain TRUE or
+ * FALSE are ignored"，等价于「只有 number 格进分子分母」，与裸 `AVERAGE`
+ * （`forEachNumericArg`，见 `functions/math.ts`）同一条规则。
+ *
+ * 事故留痕：这里曾经是 `toNumber`，于是空格 → 0、`TRUE` → 1、文本 `"5"` → 5
+ * 全都进了分母。`AVERAGEIF(A1:A3,"")` 因此在 A2 空、B2 空时答 **0**
+ * （命中一格、值 0），而 Excel 与本仓 Rust 引擎都是 `#DIV/0!` —— 这两条
+ * 看着是两个 bug，其实是同一处口径错误的两个症状。
+ *
+ * Rust 孪生：`excel/rust/excel-core/src/eval_criteria_blank.rs::number_only`。
+ * 稀疏孪生：`sparse-single-criterion.ts` / `sparse-multi-criterion.ts` 的
+ * AVERAGEIF(S) 分支 —— 三处必须同改。
+ */
+export function averageTierNumber(v: Value): number | undefined {
+  return v.kind === 'number' ? v.value : undefined
+}
+
 /** Coerce to a number for ordered comparison; return undefined if no clean coercion. */
 function numericComparable(v: Value): number | undefined {
   if (v.kind === 'number') return v.value
@@ -865,9 +887,10 @@ const AVERAGEIF: FunctionImpl = (args, _ctx) => {
     if (!matchesCriterion(probe, parsed)) continue
     const target = sumCells[i]
     if (target.kind === 'error') return target
-    const num = toNumber(target)
-    if (num.ok) {
-      total += num.value
+    // 分母只数真正的数字（`averageTierNumber`）—— 空格 / 布尔 / 文本都不算。
+    const num = averageTierNumber(target)
+    if (num !== undefined) {
+      total += num
       count++
     }
   }
@@ -898,9 +921,10 @@ const AVERAGEIFS: FunctionImpl = (args, _ctx) => {
     }
     const target = sumCells[i]
     if (target.kind === 'error') return target
-    const num = toNumber(target)
-    if (num.ok) {
-      total += num.value
+    // 与 AVERAGEIF 同一条分母口径（`averageTierNumber`）。
+    const num = averageTierNumber(target)
+    if (num !== undefined) {
+      total += num
       count++
     }
   }

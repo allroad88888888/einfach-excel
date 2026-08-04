@@ -5,6 +5,7 @@ use super::edit::{ShiftEdit, REF_INVALID_COL, REF_INVALID_ROW};
 use super::parked_band::{try_shift_whole_col, try_shift_whole_row};
 use super::parked_scan::{
     next_non_ws, scan_abs_addr_token, scan_cross_sheet_ref_end, scan_ident_end,
+    scan_quoted_name_end,
 };
 use crate::cell::push_abs_addr;
 
@@ -59,8 +60,13 @@ pub enum SourceRewrite {
 ///     whole-row forms) are shifted exactly like their relative twins —
 ///     the address moves, the `$` markers are preserved — mirroring the
 ///     hydrated `map_addrs` path (absoluteness never changes how an edit
-///     moves an address). Quoted sheet names (`'My Sheet'!A1`) still do
-///     not exist in this grammar, so the scanner doesn't model them.
+///     moves an address).
+///   - Quoted sheet names (`'My Sheet'!A1`) are skipped whole, `''`
+///     escape included — the bytes between the quotes are a NAME, never
+///     a reference, so a sheet called `Q1 2024` / `A1` / `Sheet A1`
+///     survives an edit byte-for-byte. The `!` after the closing quote
+///     is left to the main loop, so the ref tail still hits the
+///     cross-sheet guard above.
 ///
 /// Sources that don't parse (possible via `bulk_install_storage`,
 /// which parks without validating) still surface `#VALUE!` at
@@ -95,6 +101,23 @@ pub fn rewrite_parked_source(src: &str, edit: ShiftEdit) -> SourceRewrite {
                 i += 1;
             }
             prev = b'"';
+            continue;
+        }
+        if c == b'\'' {
+            // 带引号表名 `'My Sheet'!A1`：引号内的字节一律不参与改写判定，
+            // 否则表名里的地址形状（`'Q1 2024'` / `'A1'`）会被当成同表引用，
+            // 一次插行就把**表名本身**改写坏。
+            //
+            // 这一跳是**词法**层的（哪些字节才算记号），所以排在 `!` 守卫与
+            // 首字符分流**之前**：先跳引号，`prev == b'!'` 才真的等价于
+            // 「分隔符 `!`」而不是 `'A!B'` 里那个。闭合引号后面的 `!` 刻意
+            // 留给主循环 —— `'A1'!A1` 的头一个 `A1` 靠引号跳过、第二个靠
+            // `!` 守卫，两条机制串起来才都护住。
+            //
+            // 引号未闭合（用户输入到一半就停泊）时按普通标点前进**一**字节：
+            // 不吞尾、不跑飞，见 `scan_quoted_name_end`。
+            i = scan_quoted_name_end(b, i).unwrap_or(i + 1);
+            prev = b'\'';
             continue;
         }
         // A token that immediately follows a sheet `!` is a cross-sheet

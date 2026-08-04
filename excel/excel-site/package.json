@@ -4,9 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev": "npm run build:api && astro dev",
+    "build": "npm run build:api && astro build",
+    "build:api": "typedoc --options typedoc.json",
+    "check:docs": "node scripts/check-docs.mjs",
+    "check:solid": "node scripts/check-solid-singleton.mjs",
+    "preview": "astro preview"
   },
   "dependencies": {
     "@einfach/core": "^0.4.0",
@@ -14,15 +17,16 @@
     "@einfach/solid": "^0.4.0",
     "@einfach/solid-excel": "workspace:*",
     "@einfach/spreadsheet-ui-core": "workspace:*",
-    "@lingui/core": "6.0.1",
-    "@solidjs/router": "^0.15.3",
     "solid-js": "^1.9.12"
   },
   "devDependencies": {
-    "@types/node": "^20.17.30",
+    "@astrojs/solid-js": "^7.0.1",
+    "@types/node": "^20.19.0",
+    "astro": "^7.1.6",
+    "typedoc": "^0.28.20",
+    "typedoc-plugin-markdown": "^4.12.0",
     "typescript": "^5.7.2",
     "vite": "^5.4.21",
-    "vite-plugin-solid": "^2.8.0",
     "vite-plugin-top-level-await": "^1.4.4",
     "vite-plugin-wasm": "^3.3.0"
   }

@@ -1,0 +1,18 @@
+---
+interface Props {
+  href: string
+  title: string
+  summary: string
+  runtime: string
+  label: string
+}
+
+const { href, title, summary, runtime, label } = Astro.props
+---
+
+<article class="demo-card">
+  <p>{runtime === 'static' ? 'Port contract' : 'Worker + Rust/WASM'}</p>
+  <h2><a href={href}>{title}</a></h2>
+  <p>{summary}</p>
+  <a class="text-link" href={href}>{label} <span aria-hidden="true">→</span></a>
+</article>

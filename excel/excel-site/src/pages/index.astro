@@ -1,0 +1,48 @@
+---
+import DemoCard from '../components/DemoCard.astro'
+import DemoIsland from '../islands/DemoIsland'
+import SiteLayout from '../layouts/SiteLayout.astro'
+import { demos } from '../data/demo-catalog'
+import { sitePath } from '../data/site-path'
+
+type ContentModule = { frontmatter: { title: string; summary: string } }
+const documents = import.meta.glob('../content/demos/en/*.md', { eager: true }) as Record<string, ContentModule>
+const cards = demos.map((demo) => ({
+  ...demo,
+  ...documents['../content/demos/en/' + demo.id + '.md'].frontmatter,
+}))
+---
+
+<SiteLayout locale="en" title="einfach excel · spreadsheet engine demos">
+  <main class="page">
+    <section class="hero">
+      <p class="eyebrow">EINFACH · SPREADSHEET STACK</p>
+      <h1>Only draw what is visible. Only calculate what is needed.</h1>
+      <p>
+        A real spreadsheet grid powered by the Rust/WASM workbook engine in a Web Worker.
+        The static page explains the architecture; the island below runs it.
+      </p>
+      <div class="hero-links">
+        <a class="button-link" href={sitePath('demos/viewport-projection/')}>Explore the projection</a>
+        <a class="button-link secondary" href={sitePath('demos/lazy-formulas/')}>Explore lazy formulas</a>
+      </div>
+    </section>
+    <DemoIsland client:only="solid-js" demoId="viewport-projection" />
+    <section id="demos" aria-labelledby="demos-heading">
+      <h2 id="demos-heading" class="section-heading">Demos built around real engine boundaries</h2>
+      <div class="demo-list">
+        {
+          cards.map((card) => (
+            <DemoCard
+              href={sitePath('demos/' + card.id + '/')}
+              title={card.title}
+              summary={card.summary}
+              runtime={card.runtime}
+              label="Open demo"
+            />
+          ))
+        }
+      </div>
+    </section>
+  </main>
+</SiteLayout>

@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "target": "ES2022",
+    "skipLibCheck": true
+  },
+  "include": [
+    "../spreadsheet-ui-core/src/**/*.ts",
+    "../solid-excel/src-vnext/**/*.ts"
+  ]
+}

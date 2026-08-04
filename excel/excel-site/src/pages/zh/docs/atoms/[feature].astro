@@ -1,0 +1,28 @@
+---
+import DocsPage from '../../../../components/DocsPage.astro'
+import { atomFeatureDocs, findAtomFeature, sourceUrl } from '../../../../data/source-projection'
+import { sitePath } from '../../../../data/site-path'
+
+const titles = {
+  viewport: '视口 atoms',
+  selection: '选择 atoms',
+  'custom-formulas': '自定义公式 atoms',
+}
+
+export function getStaticPaths() {
+  return atomFeatureDocs.map((feature) => ({ params: { feature: feature.id } }))
+}
+
+const feature = findAtomFeature(Astro.params.feature ?? '')
+---
+
+<DocsPage
+  locale="zh"
+  title={titles[feature.id]}
+  eyebrow="从源码投射的 ATOM 指南"
+  summary="本指南由功能所属的 README 投射而来，使状态边界、职责和测试与实现保持相邻。"
+  alternateLocaleHref={sitePath('docs/atoms/' + feature.id + '/')}
+>
+  <p><a href={sourceUrl(feature.sourcePath)}>打开权威的功能源码</a></p>
+  <pre><code>{feature.source}</code></pre>
+</DocsPage>

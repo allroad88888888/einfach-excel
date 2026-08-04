@@ -1,0 +1,28 @@
+---
+import DocsPage from '../../../components/DocsPage.astro'
+import { sitePath } from '../../../data/site-path'
+---
+
+<DocsPage
+  locale="zh"
+  title="快速开始"
+  eyebrow="集成指南"
+  summary="创建一个 backend，挂载一个 provider，让网格只请求它需要的投影。"
+  alternateLocaleHref={sitePath('docs/getting-started/')}
+>
+  <h2>1. 选择 backend</h2>
+  <p>
+    内置的 Worker + Rust/WASM backend 是一个实用默认值。宿主自有的 backend 也可以，只要实现
+    <a href={sitePath('zh/docs/backend-port/')}>backend port</a>。
+  </p>
+  <h2>2. 只挂载一次 provider</h2>
+  <pre><code>{`<SpreadsheetUiProvider backend={backend}>
+  <SpreadsheetGrid sheetId={sheetId} viewport={viewport} />
+</SpreadsheetUiProvider>`}</code></pre>
+  <h2>3. 有意识地增加能力</h2>
+  <p>
+    将权威的工作簿事实保留在 backend 中。功能局部的 UI 状态属于 atoms；添加状态前，请先阅读
+    <a href={sitePath('zh/docs/atoms/viewport/')}>视口</a>和
+    <a href={sitePath('zh/docs/atoms/selection/')}>选择</a>的所有权指南。
+  </p>
+</DocsPage>

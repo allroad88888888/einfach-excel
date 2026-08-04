@@ -1,0 +1,293 @@
+:root {
+  color: #1e2927;
+  background: #f5f7f2;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height: 1.55;
+  --canvas: #f5f7f2;
+  --surface: #ffffff;
+  --ink: #1e2927;
+  --muted: #6d7b75;
+  --line: #d8e0da;
+  --accent: #0c7a56;
+  --accent-soft: #dcefe6;
+  --hud: #172122;
+}
+
+:root[data-theme="dark"] {
+  color: #e9f1ed;
+  background: #16201f;
+  --canvas: #16201f;
+  --surface: #202c2a;
+  --ink: #e9f1ed;
+  --muted: #a5b4ad;
+  --line: #3a4a45;
+  --accent: #63c59d;
+  --accent-soft: #214e3d;
+  --hud: #0d1414;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  min-width: 320px;
+  margin: 0;
+  color: var(--ink);
+  background: var(--canvas);
+}
+
+/* The reusable spreadsheet stylesheet also styles `body`; keep the static
+   site shell themed when that island stylesheet loads after this file. */
+:root body {
+  color: var(--ink);
+  background: var(--canvas);
+}
+
+a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.18em; }
+
+.site-header,
+.site-footer,
+.page {
+  width: min(1120px, calc(100% - 48px));
+  margin: 0 auto;
+}
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 64px;
+}
+
+.wordmark { font-weight: 750; text-decoration: none; letter-spacing: -0.03em; }
+
+.site-header nav { display: flex; align-items: center; gap: 20px; font-size: 0.9rem; }
+
+.site-header nav a { color: var(--muted); text-decoration: none; }
+
+#theme-toggle {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 3px 8px;
+  color: var(--ink);
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.page { padding: 64px 0 80px; }
+
+.hero { max-width: 900px; padding: 62px 0 36px; }
+
+.eyebrow,
+.demo-card > p:first-child {
+  margin: 0 0 10px;
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 760;
+  letter-spacing: 0.08em;
+}
+
+h1,
+h2,
+h3 { letter-spacing: -0.04em; line-height: 1.14; }
+
+h1 { max-width: 860px; margin: 0; font-size: clamp(2.6rem, 6vw, 5rem); }
+
+h2 { font-size: clamp(1.45rem, 2.3vw, 2.25rem); }
+
+.hero > p:last-child,
+.page-intro > p:last-child { max-width: 760px; color: var(--muted); font-size: 1.14rem; }
+
+.hero-links { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
+
+.button-link {
+  display: inline-block;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 9px 14px;
+  color: white;
+  background: var(--accent);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.button-link.secondary { color: var(--accent); background: transparent; }
+
+.section-heading { margin: 74px 0 22px; }
+
+.demo-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+.demo-card,
+.guide-card,
+.demo-narrative > blockquote {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 22px;
+  background: var(--surface);
+}
+
+.demo-card h2 { margin: 0; font-size: 1.3rem; }
+
+.demo-card h2 a { text-decoration: none; }
+
+.demo-card p:not(:first-child) { color: var(--muted); }
+
+.text-link { color: var(--accent); font-weight: 700; text-decoration: none; }
+
+.demo-island { margin: 28px 0 54px; }
+
+.demo-runtime-note {
+  display: grid;
+  gap: 3px;
+  margin-bottom: 14px;
+  padding: 14px 16px;
+  border-radius: 7px;
+  color: #e7f5ef;
+  background: var(--hud);
+}
+
+.demo-runtime-note strong { color: #60d3a5; }
+
+.demo-runtime-note span { color: #b9cbc3; font-size: 0.9rem; }
+
+.demo-tour {
+  align-items: center;
+  border: 1px solid var(--line);
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin: 1rem 0;
+  padding: .75rem 1rem;
+}
+
+.demo-tour span { color: var(--muted); font-size: .88rem; }
+
+.demo-tour button {
+  background: var(--accent);
+  border: 0;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  padding: .5rem .75rem;
+}
+
+.demo-tour button:disabled { cursor: default; opacity: .65; }
+
+.demo-narrative li[data-tour-active] {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  outline: 2px solid var(--accent);
+}
+
+.performance-hud {
+  display: grid;
+  gap: 14px;
+  margin: 0 0 14px;
+  padding: 18px;
+  border-radius: 7px;
+  color: #dce9e3;
+  background: var(--hud);
+}
+
+.performance-hud-label {
+  margin: 0;
+  color: #60d3a5;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.performance-hud dl {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.performance-hud dl div { min-width: 0; }
+
+.performance-hud dt { color: #a7bbb1; font-size: 0.73rem; }
+
+.performance-hud dd {
+  margin: 3px 0 0;
+  color: #f2fbf6;
+  font-feature-settings: "tnum" 1;
+  font-size: 0.94rem;
+  font-weight: 720;
+  overflow-wrap: anywhere;
+}
+
+.performance-hud-note { margin: 0; color: #a7bbb1; font-size: 0.78rem; }
+
+.demo-grid-frame {
+  min-height: 430px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.demo-narrative { max-width: 800px; margin: 34px 0 24px; }
+
+.demo-narrative h2 { margin-top: 34px; font-size: 1.65rem; }
+
+.demo-narrative p,
+.demo-narrative li { color: var(--muted); }
+
+.demo-narrative :not(pre) > code {
+  padding: 0.1em 0.3em;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--surface);
+}
+
+.breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.source-section { margin-top: 56px; }
+
+.source-section ul { padding-left: 20px; }
+
+.source-section a { color: var(--accent); }
+
+pre {
+  max-height: 400px;
+  overflow: auto;
+  padding: 20px;
+  border-radius: 8px;
+  color: #e9f3ee;
+  background: var(--hud);
+}
+
+.site-footer {
+  display: flex;
+  justify-content: space-between;
+  padding: 26px 0;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+@media (max-width: 780px) {
+  .site-header,
+  .site-footer,
+  .page { width: min(100% - 28px, 1120px); }
+
+  .site-header { align-items: flex-start; padding-top: 18px; }
+
+  .site-header nav { flex-wrap: wrap; justify-content: flex-end; gap: 11px; }
+
+  .page { padding-top: 38px; }
+
+  .demo-list { grid-template-columns: 1fr; }
+
+  .performance-hud dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  .demo-tour { align-items: stretch; flex-direction: column; }
+
+  .demo-grid-frame { min-height: 340px; }
+}

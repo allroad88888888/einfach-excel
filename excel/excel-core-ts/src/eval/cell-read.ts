@@ -20,6 +20,7 @@ import { ERR } from './error-value'
 import { spillRunOf, type SpillAwareContext } from './spill-aware-context'
 import { cellCoordFromKey, parseRefToKey } from './cell-address'
 import { tagFor } from './cycle-guard'
+import { clampWholeAxisRange } from './whole-axis-clamp'
 import type { EvaluateExpr } from './trampoline'
 
 /**
@@ -58,8 +59,10 @@ export function rangeLookupGeneric(
   ctx: EvalContext,
   evaluate: EvaluateExpr,
 ): Value[][] {
-  const range = parseRange(start, end)
-  if (!range) return [[ERR('#REF!')]]
+  const parsed = parseRange(start, end)
+  if (!parsed) return [[ERR('#REF!')]]
+  // 整轴引用先夹到已用区域，否则 1M 格的矩形必然撞下面那道闸门。
+  const range = clampWholeAxisRange(parsed, cells)
   const rowCount = range.rowEnd - range.rowStart + 1
   const colCount = range.colEnd - range.colStart + 1
   // Bound materialization. `iterateRange` is uncapped (it's a lazy

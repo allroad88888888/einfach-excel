@@ -17,6 +17,7 @@ import type { SpillProjectionRun } from './spill-projection-run'
 import { ERR } from './error-value'
 import { cellCoordFromKey, parseRefToKey } from './cell-address'
 import { MATERIALIZED_RANGE_CELL_CAP, rangeHasHole } from './runtime-ref'
+import { clampWholeAxisRange } from './whole-axis-clamp'
 import { outOfBandSpillRun, refLookupGeneric } from './cell-read'
 import { evaluateCellTrampolined, type EvaluateExpr } from './trampoline'
 
@@ -79,8 +80,10 @@ function rangeLookupTrampolined(
   ctx: EvalContext,
   evaluate: EvaluateExpr,
 ): Value[][] {
-  const range = parseRange(start, end)
-  if (!range) return [[ERR('#REF!')]]
+  const parsed = parseRange(start, end)
+  if (!parsed) return [[ERR('#REF!')]]
+  // 跨表整轴与同表整轴同一条口径：先夹到**外表**的已用区域。
+  const range = clampWholeAxisRange(parsed, cells)
   const rowCount = range.rowEnd - range.rowStart + 1
   const colCount = range.colEnd - range.colStart + 1
   const totalCells = rowCount * colCount

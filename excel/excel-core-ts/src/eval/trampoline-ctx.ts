@@ -17,6 +17,7 @@ import { ERR } from './error-value'
 import { cellCoordFromKey, parseRefToKey } from './cell-address'
 import { cycleGuardKey } from './cycle-guard'
 import { rangeHasHole } from './runtime-ref'
+import { clampWholeAxisRange } from './whole-axis-clamp'
 import type { SpillAwareContext } from './spill-aware-context'
 
 /**
@@ -111,8 +112,10 @@ export function makeTrampolineCtx(
       return cells.has(coord) ? lookupKey(cells, coord) : readKey(cells, coord)
     },
     rangeLookup: (start, end) => {
-      const range = parseRange(start, end)
-      if (!range) return [[ERR('#REF!')]]
+      const parsed = parseRange(start, end)
+      if (!parsed) return [[ERR('#REF!')]]
+      // 整轴引用先夹到已用区域 —— 也让下面的 `iterateRange` 别走 1M 圈空转。
+      const range = clampWholeAxisRange(parsed, cells)
       const rowCount = range.rowEnd - range.rowStart + 1
       const colCount = range.colEnd - range.colStart + 1
       const totalCells = rowCount * colCount

@@ -145,6 +145,24 @@ function compareForLookup(needle: Value, hay: Value): number | null {
 }
 
 /**
+ * 有序查找专用的比较：**空格不参与排序**，一律 `null`（= 与本次查找无关）。
+ *
+ * `compareForLookup` 把空格当数值 0（`=A1=0` 在 Excel 里确实为真），排序语义下
+ * 这就成了「一列尾巴上的每个空格都 ≤ 3」。近似查找取的是「最后一个 ≤ needle 的
+ * 位置」，于是 `LOOKUP(3,F1:F10,G1:G10)` 落在空尾巴上答空、`MATCH(3,F:F,1)` 答
+ * 尾巴的下标 —— 有界形态里靠二分恰好绕开、整轴形态里就现形，两条路一个函数
+ * 两个答案。
+ *
+ * Excel 的口径是**忽略空格**（LOOKUP 文档明写 lookup_vector 里的空单元格被忽略；
+ * VLOOKUP/HLOOKUP/MATCH 的近似档在整列上同样只认有值的格子）。精确档不走这里 ——
+ * `MATCH("",A1:A3,0)` 要能命中空格，那是 `exactMatch` 的事。
+ */
+function compareOrdered(hay: Value, needle: Value): number | null {
+  if (hay.kind === 'blank') return null
+  return compareForLookup(hay, needle)
+}
+
+/**
  * Exact match check supporting wildcards when `useWildcards` is true and the
  * needle is a string. Otherwise delegates to `compareForLookup`.
  */
@@ -180,9 +198,11 @@ function wildcardHaystackText(value: Value): string | undefined {
 
 /**
  * Sentinel returned by `binarySearchSorted` when the array isn't reliably
- * sortable in the assumed direction (mixed types, errors, blanks-vs-string).
- * Callers fall back to a linear scan to preserve Excel's "undefined on
- * unsorted data" leniency.
+ * sortable in the assumed direction (mixed types, errors). Callers fall back
+ * to a linear scan to preserve Excel's "undefined on unsorted data" leniency.
+ *
+ * 空格**不**走这条回退 —— `binarySearchSorted` 会先把它们压掉再二分
+ * （见 `packNonBlank`），所以二分与线性两条路看到的是同一个向量。
  */
 const BSEARCH_UNSORTABLE = -2
 
@@ -217,17 +237,27 @@ function binarySearchSorted(
   mode: 'exact' | 'lte' | 'gte',
   direction: 'asc' | 'desc',
 ): number {
-  const n = arr.length
+  // 空格先压掉，再在压实后的向量上二分，命中后把下标映射回原位置。
+  //
+  // 不能把空格当 0 参与排序（`compareForLookup` 的口径）—— 那会让一列尾巴上的
+  // 每个空格都成为「≤ needle」的候选，二分一路往右走，交回尾巴的下标。
+  // 也不能一碰到空格就退线性 —— 那样有界形态走二分、整轴形态（必然带空尾巴）
+  // 走线性，数据没按档位方向排序时两条路给不同答案。压实让两条路看到同一个
+  // 向量，代价是一趟 O(n)，而调用方本来就 O(n) 地把区域摊平过一次。
+  const packed = packNonBlank(arr)
+  const values = packed.values
+  const n = values.length
   if (n === 0) return -1
+  const at = (i: number): number => (packed.indices ? packed.indices[i] : i)
   let lo = 0
   let hi = n - 1
   let best = -1
   while (lo <= hi) {
     const mid = (lo + hi) >>> 1
-    const rawCmp = compareForLookup(arr[mid], target)
+    const rawCmp = compareForLookup(values[mid], target)
     if (rawCmp === null) return BSEARCH_UNSORTABLE
     if (rawCmp === 0) {
-      if (mode === 'exact') return mid
+      if (mode === 'exact') return at(mid)
       best = mid
       // For lte we want the rightmost (asc) / leftmost (desc) equal element.
       // For gte we want the leftmost (asc) / rightmost (desc) equal element.
@@ -263,7 +293,27 @@ function binarySearchSorted(
       }
     }
   }
-  return best
+  return best === -1 ? -1 : at(best)
+}
+
+/**
+ * 压掉空格，保留原下标。没有空格时 `indices` 缺席，调用方零拷贝直接用原数组。
+ */
+function packNonBlank(arr: ReadonlyArray<Value>): {
+  readonly values: ReadonlyArray<Value>
+  readonly indices?: ReadonlyArray<number>
+} {
+  let blanks = 0
+  for (const v of arr) if (v.kind === 'blank') blanks += 1
+  if (blanks === 0) return { values: arr }
+  const values: Value[] = []
+  const indices: number[] = []
+  for (let i = 0; i < arr.length; i += 1) {
+    if (arr[i].kind === 'blank') continue
+    values.push(arr[i])
+    indices.push(i)
+  }
+  return { values, indices }
 }
 
 /**
@@ -365,8 +415,8 @@ function findRowVLookup(needle: Value, table: Value[][], approx: boolean): numbe
   if (bin !== BSEARCH_UNSORTABLE) return bin
   let best = -1
   for (let r = 0; r < table.length; r += 1) {
-    const cmp = compareForLookup(table[r][0], needle)
-    if (cmp === null) continue // skip incompatible cells
+    const cmp = compareOrdered(table[r][0], needle)
+    if (cmp === null) continue // skip incompatible / empty cells
     if (cmp <= 0) best = r
     else if (cmp > 0) break // sorted-ascending assumption: bail early
   }
@@ -418,7 +468,7 @@ function findColHLookup(needle: Value, table: Value[][], approx: boolean): numbe
   if (bin !== BSEARCH_UNSORTABLE) return bin
   let best = -1
   for (let c = 0; c < firstRow.length; c += 1) {
-    const cmp = compareForLookup(firstRow[c], needle)
+    const cmp = compareOrdered(firstRow[c], needle)
     if (cmp === null) continue
     if (cmp <= 0) best = c
     else if (cmp > 0) break
@@ -557,7 +607,7 @@ export const MATCH: FunctionImpl = (args, _ctx) => {
     }
     let best = -1
     for (let i = 0; i < flat.length; i += 1) {
-      const cmp = compareForLookup(flat[i], needle)
+      const cmp = compareOrdered(flat[i], needle)
       if (cmp === null) continue
       if (cmp <= 0) best = i
       else break
@@ -576,7 +626,7 @@ export const MATCH: FunctionImpl = (args, _ctx) => {
   }
   let best = -1
   for (let i = 0; i < flat.length; i += 1) {
-    const cmp = compareForLookup(flat[i], needle)
+    const cmp = compareOrdered(flat[i], needle)
     if (cmp === null) continue
     if (cmp >= 0) best = i
     else break
@@ -864,7 +914,7 @@ function lookupVectorWalk(keys: Value[], result: Value[], needle: Value): Value 
   for (let i = 0; i < keys.length; i += 1) {
     const key = keys[i]
     if (key.kind === 'error') return key
-    const cmp = compareForLookup(key, needle)
+    const cmp = compareOrdered(key, needle)
     if (cmp !== null && cmp <= 0) best = i
   }
   return best === -1 ? ERR_NA : result[best]

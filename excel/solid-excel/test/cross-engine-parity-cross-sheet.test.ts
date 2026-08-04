@@ -1,5 +1,6 @@
 /**
- * ALWAYS-ON 跨引擎烟测 —— **跨表 × 整轴引用**（`Sheet2!A:A`、`Sheet2!1:3`）。
+ * ALWAYS-ON 跨引擎烟测 —— **Rust 解析器认不出的跨表引用形状**：整轴
+ * （`Sheet2!A:A`、`Sheet2!1:3`）与带引号表名（`'My Sheet'!A1`）。
  *
  * 单开一份规格而不是并进 `cross-engine-parity-smoke.test.ts`：那份已经贴着
  * 300 行上限，与 `cross-engine-parity-order.test.ts` /
@@ -37,6 +38,18 @@
  * （1048576 − 2），一个只让公式不报错、却把基数算成遍历到的格子数的修法在
  * `SUM` 那几行上全绿、只会在这里断。
  *
+ * # 第二组：带引号表名
+ *
+ * 同一条根因家族的另一半。`'My Sheet'!A1` 在 Rust 上**连有界形式都解析不
+ * 出来** —— `formula/primary.rs` 的首字符分流里根本没有 `'` 这一支，TS 侧
+ * （`parser/tokenizer.ts::readQuotedSheetName`）一直完整支持。严重度高于整轴
+ * 那一组：表名带空格是 Excel **新建工作表的默认行为**（"Sheet 1"），用户改名
+ * 成"销售 数据"之后任何引用都得加引号。
+ *
+ * 这一组同时钉住**渲染侧**的对称要求：结构性编辑会重渲染受影响的公式并写回
+ * 源表，写回时表名必须重新加引号，否则一次插行就把用户的公式写坏。渲染侧的
+ * 往返在 `excel/rust/excel-core/tests/quoted_sheet_name_render.rs`。
+ *
  * 这里失败就是一条**真的**跨引擎发现：报告分歧地址，不要放宽断言。
  */
 
@@ -69,15 +82,16 @@ describe('cross-engine parity — cross-sheet whole-axis refs (TS runtime vs WAS
     ts?.dispose()
   })
 
-  test('Sheet2!A:A 与 Sheet2!1:3 —— 跨表整轴与同表整轴同值', async () => {
+  test("Sheet2!A:A / Sheet2!1:3 / 'My Sheet'!A1 —— 三种跨表写法两侧同值", async () => {
     const tsRead = await ts.read(CROSS_SHEET_ADDRS)
     const wasmRead = await wasm.read(CROSS_SHEET_ADDRS)
     expect(flatten(wasmRead)).toEqual(flatten(tsRead))
 
     // 真正的门是字面量。表里每条跨表整轴附近都配了一条同表整轴或跨表有界的
-    // 对照（`=SUM(CH:CH)` / `=SUM(Sheet2!A1:A5)`），任何一侧单独漂移都会断；
-    // 不存在的表名那三行钉的是**码的口径**：`#REF!`（表不存在）而不是
-    // `#VALUE!`（公式没解析成），修复前整轴给的正是后者。
+    // 对照（`=SUM(CH:CH)` / `=SUM(Sheet2!A1:A5)`），带引号那一组每一行也在整轴
+    // 组里有同值的不带引号对照 —— 任何一侧单独漂移都会断；不存在的表名那几行
+    // 钉的是**码的口径**：`#REF!`（表不存在）而不是 `#VALUE!`（公式没解析成），
+    // 修复前整轴与带引号给的正是后者。
     for (const read of [tsRead, wasmRead]) {
       expect(displaysOf(read, CROSS_SHEET_ADDRS)).toEqual(EXPECTED_CROSS_SHEET_DISPLAYS)
     }

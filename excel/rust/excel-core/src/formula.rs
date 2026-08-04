@@ -13,6 +13,7 @@
 //! | `identifier` | 标识符记号之后的分流 |
 //! | `array_lit` | 常量数组字面量 |
 //! | `table_ref` | 结构化表引用 |
+//! | `quoted_name` | 带引号表名的引号规则（读与写） |
 //!
 //! 子模块一律私有，公开面由本文件逐项 `pub use` 出去 —— `crate::formula::X`
 //! 的路径与拆分前逐字相同，调用点不需要跟着改。
@@ -23,10 +24,12 @@ mod identifier;
 mod lexer;
 mod operators;
 mod primary;
+mod quoted_name;
 mod refs;
 mod table_ref;
 
 pub use ast::{BinOperator, Expr, RangeAbs, RangeBounds, RefAbs, TableArea};
+pub(crate) use quoted_name::push_sheet_name;
 
 use lexer::Parser;
 

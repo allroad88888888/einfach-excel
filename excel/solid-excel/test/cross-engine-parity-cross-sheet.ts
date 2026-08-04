@@ -1,5 +1,15 @@
 /**
- * 第十类分歧：**跨表 × 整轴引用**（`Sheet2!A:A`、`Sheet2!1:3`）。
+ * 第十类分歧：**Rust 解析器认不出的跨表引用形状**。两组，同一条根因家族 ——
+ * `formula/` 里跨表分流缺了某一支，于是整条公式解析失败：
+ *
+ * 1. 跨表 × 整轴（`Sheet2!A:A`、`Sheet2!1:3`）—— `identifier.rs` 的 `!` 分支
+ *    只认 `[$]列[$]行` 一种右尾。
+ * 2. 跨表 × 带引号表名（`'My Sheet'!A1`）—— `primary.rs` 的首字符分流里根本
+ *    没有 `'` 这一支，连**有界**形式都解析不出来。
+ *
+ * 两组同住一份文件，因为它们是同一个提问的两半：「`!` 左边的表名怎么取」与
+ * 「`!` 右边的尾巴怎么收」。修法上也是同一条复用链 —— 带引号的那一支收完
+ * 表名后直接交给整轴那一支新建的 `finish_sheet_qualified_ref`。
  *
  * 单列一份文件而不是堆进 `cross-engine-parity-cases.ts`：那份已经贴着 300 行
  * 上限。与 `-general-text.ts` / `-criteria-*.ts` / `-overflow.ts` /
@@ -53,17 +63,35 @@ import { a1, type WorkloadCell } from './cross-engine-parity-engines'
 
 /** Sheet1 的同形对照列（`MIRROR_COL`）。列 80..83 已被 spill-order 占用。 */
 const MIRROR_COL = 85
-/** 一行一条公式的探针列。 */
+/** 一行一条公式的探针列（整轴组）。 */
 const PROBE_COL = 86
+/** 带引号表名组的探针列。 */
+const QUOTED_PROBE_COL = 87
 /** 对照列的 A1 写法，喂进同表整轴公式（`=SUM(CH:CH)`）。 */
 const MIRROR = a1(0, MIRROR_COL).replace(/\d+$/, '')
 
-/** Sheet2 的稀疏夹具 + Sheet1 的同形对照列。 */
+/**
+ * Sheet2（2 号索引是 `'My Sheet'`）的稀疏夹具 + Sheet1 的同形对照列。
+ *
+ * 两张被引用表的 A / B 列**刻意同形**（A1=1、A2 空、A3=3、B1=100、B3=300）：
+ * 带引号那一组的每条期望值都能在整轴那一组里找到同值的不带引号对照，于是
+ * 「引号只影响表名怎么取、不影响下游」这句话是被断言证着的，不是注释里说说。
+ * `'My Sheet'` 多出的 D 列溢出锚点落在所有被断言的行 / 列区间之外。
+ */
 const FIXTURE: WorkloadCell[] = [
   { sheet: 1, row: 0, col: 0, kind: 'number', value: 1 },
   { sheet: 1, row: 2, col: 0, kind: 'number', value: 3 },
   { sheet: 1, row: 0, col: 1, kind: 'number', value: 100 },
   { sheet: 1, row: 2, col: 1, kind: 'number', value: 300 },
+  { sheet: 2, row: 0, col: 0, kind: 'number', value: 1 },
+  { sheet: 2, row: 2, col: 0, kind: 'number', value: 3 },
+  { sheet: 2, row: 0, col: 1, kind: 'number', value: 100 },
+  { sheet: 2, row: 2, col: 1, kind: 'number', value: 300 },
+  // 'My Sheet'!D5 上溢出 1..3（占 D5:D7），供 `'My Sheet'!D5#` 那一行引用。
+  // 锚点刻意放在**第 5 行**而不是 D1：整行用例只覆盖 1:1 与 1:3，溢出域落在
+  // 它们外面，`'My Sheet'!1:3` 才与 `Sheet2!1:3` 逐字同值（404）。放 D1 时
+  // 两组会各自算出 102 / 410，对照就断了 —— 这是被 TS 侧实测揪出来的。
+  { sheet: 2, row: 4, col: 3, kind: 'formula', value: '=SEQUENCE(3)' },
   { row: 0, col: MIRROR_COL, kind: 'number', value: 1 },
   { row: 2, col: MIRROR_COL, kind: 'number', value: 3 },
 ]
@@ -102,15 +130,15 @@ export const CROSS_SHEET_CASES: ReadonlyArray<readonly [formula: string, display
   // —— 跨表整轴出现在聚合以外的位置。
   ['=COUNTIF(Sheet2!A:A,">1")', '1'],
   ['=COUNTIFS(Sheet2!A:A,">1")', '1'],
-  // INDEX 数的是区域内**绝对位置**，空格照样占一格（A2 空 → A3 是第 3）。
-  //
-  // `MATCH` **刻意不在这张表里**：TS 引擎对整轴区域的 `MATCH` 一律答 `#N/A`
-  // （`=MATCH(3,CH:CH,0)` 同表也一样，`=MATCH(3,Sheet2!A1:A5,0)` 有界就对），
-  // 而 Rust 与 Excel 都答 3。那是一条**与跨表无关**的 TS 侧缺陷，两个引擎今天
-  // 给不出同一个闭式答案，钉进来只会让这张 always-on 的网长红。它钉在
-  // `excel/rust/excel-core/tests/cross_sheet_whole_axis.rs`（Rust 侧口径），
-  // TS 侧修好后再把这一行搬回来。
+  // INDEX / MATCH 数的是区域内**绝对位置**，空格照样占一格（A2 空 → A3 是第 3）。
   ['=INDEX(Sheet2!A:A,3)', '3'],
+  ['=MATCH(3,Sheet2!A:A,0)', '3'],
+  // MATCH 的两个对照面。这三行钉的是**位置从矩形起点数**：TS 侧整轴要先夹到
+  // 已用区域才物化得了，夹取只许砍尾巴 —— 动了头这三行就分道扬镳。
+  // `match_type` 显式写 0：两个引擎省略第三参时的默认档不同（TS 是 1、Rust 的
+  // 遗留分支按精确档走），那是另一条差异，不该混进这一类里。
+  [`=MATCH(3,${MIRROR}:${MIRROR},0)`, '3'],
+  ['=MATCH(3,Sheet2!A1:A5,0)', '3'],
   ['=SUMIF(Sheet2!A:A,">1")', '3'],
   // 两条跨表整轴参与算术。
   ['=SUM(Sheet2!A:A)+SUM(Sheet2!B:B)', '404'],
@@ -121,17 +149,76 @@ export const CROSS_SHEET_CASES: ReadonlyArray<readonly [formula: string, display
   ['=SUM(NoSuch!1:1)', '#REF!'],
 ]
 
-export const CROSS_SHEET_ADDRS: readonly string[] = CROSS_SHEET_CASES.map((_, row) =>
-  a1(row, PROBE_COL),
-)
+/**
+ * 第二组：**带引号表名**（2 号表叫 `My Sheet`，名字里有空格）。
+ *
+ * 每一行都在整轴那一组里有一条同值的不带引号对照（两张被引用表同形），所以
+ * 这一组断的是「引号这一层」本身，而不是跨表语义。
+ *
+ * 三条不在这张表里，各有理由：
+ *
+ * - `INDIRECT("'My Sheet'!A1")` —— TS 给 `1`，Rust 给 `#REF!`。Rust 的
+ *   `INDIRECT` 走**另一条**文本扫描器（`eval.rs::parse_indirect_ref`，不经过
+ *   `parse_formula`），表名判据仍是 `[A-Za-z_][A-Za-z0-9_]*`。今天两个引擎
+ *   给不出同一个闭式答案，钉进这张 always-on 的网只会长红；它钉在
+ *   `excel/rust/excel-core/tests/quoted_sheet_name.rs`（Rust 侧现状口径）。
+ * - `'It''s'!A1`（`''` 转义）与非 ASCII 表名 —— 驱动的 `SHEET_NAMES` 是按索引
+ *   排开的固定名单，一个索引一个名字；再塞两张表会把所有共用 `WORKLOAD` 的
+ *   场景都拖上。转义规则钉在 Rust 侧
+ *   `src/formula/quoted_name_tests.rs` 与 `tests/quoted_sheet_name*.rs`。
+ */
+const QUOTED_SHEET_CASES: ReadonlyArray<readonly [formula: string, displayed: string]> = [
+  // —— 报障形状本身：带引号 + 有界。修复前 Rust 侧连这条都解析不出来。
+  ["='My Sheet'!A1", '1'],
+  ["=SUM('My Sheet'!A1:A3)", '4'],
+  ["=SUM('My Sheet'!A1:B3)", '404'],
+  // —— 带引号 × 整轴：本文件两组分歧的交点。
+  ["=SUM('My Sheet'!A:A)", '4'],
+  ["=COUNT('My Sheet'!A:A)", '2'],
+  ["=SUM('My Sheet'!A:B)", '404'],
+  ["=SUM('My Sheet'!1:1)", '101'],
+  ["=SUM('My Sheet'!1:3)", '404'],
+  // 矩形基数 1048576 − 2：带引号那条路径同样得走到夹取，而不是只求「别报错」。
+  ["=COUNTBLANK('My Sheet'!A:A)", '1048574'],
+  // —— 带引号 × `$`。绝对性只是写法标注，取值必须与相对形式逐字相同。
+  ["='My Sheet'!$A$1", '1'],
+  ["=SUM('My Sheet'!$A:$A)", '4'],
+  ["=SUM('My Sheet'!$1:$3)", '404'],
+  // —— 带引号 × spill：`'My Sheet'!D5` 上是 `=SEQUENCE(3)`，溢出 D5:D7。
+  ["=SUM('My Sheet'!D5#)", '6'],
+  // —— 不必要的引号。`'Sheet2'!A1` 与 `Sheet2!A1` 必须同值：引号是写法不是
+  //    语义，两侧的语法树里都不该留下它的痕迹。
+  ["='Sheet2'!A1", '1'],
+  ['=Sheet2!A1', '1'],
+  // —— 带引号 + 表名不存在。与不带引号同一个码：`#REF!`（表不存在）而不是
+  //    `#VALUE!`（公式没解析成）—— 修复前带引号给的正是后者。
+  ["='No Such Sheet'!A1", '#REF!'],
+  ["=SUM('No Such Sheet'!A:A)", '#REF!'],
+  // —— 对照：不带引号的同形表，逐条同值。
+  ['=SUM(Sheet2!A1:A3)', '4'],
+]
 
-export const EXPECTED_CROSS_SHEET_DISPLAYS: readonly string[] = CROSS_SHEET_CASES.map(
-  ([, displayed]) => displayed,
-)
+export const CROSS_SHEET_ADDRS: readonly string[] = [
+  ...CROSS_SHEET_CASES.map((_, row) => a1(row, PROBE_COL)),
+  ...QUOTED_SHEET_CASES.map((_, row) => a1(row, QUOTED_PROBE_COL)),
+]
+
+export const EXPECTED_CROSS_SHEET_DISPLAYS: readonly string[] = [
+  ...CROSS_SHEET_CASES.map(([, displayed]) => displayed),
+  ...QUOTED_SHEET_CASES.map(([, displayed]) => displayed),
+]
 
 export const CROSS_SHEET_WORKLOAD: readonly WorkloadCell[] = [
   ...FIXTURE,
   ...CROSS_SHEET_CASES.map(
     ([formula], row): WorkloadCell => ({ row, col: PROBE_COL, kind: 'formula', value: formula }),
+  ),
+  ...QUOTED_SHEET_CASES.map(
+    ([formula], row): WorkloadCell => ({
+      row,
+      col: QUOTED_PROBE_COL,
+      kind: 'formula',
+      value: formula,
+    }),
   ),
 ]

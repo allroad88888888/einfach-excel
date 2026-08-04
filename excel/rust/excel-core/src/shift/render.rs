@@ -3,7 +3,9 @@
 use super::edit::{is_invalid, range_has_invalid_ref};
 use super::render_number::render_number;
 use crate::cell::{push_abs_addr, push_abs_col, push_abs_row, CellAddress};
-use crate::formula::{BinOperator, Expr, RangeAbs, RangeBounds, RefAbs, TableArea};
+use crate::formula::{
+    push_sheet_name, BinOperator, Expr, RangeAbs, RangeBounds, RefAbs, TableArea,
+};
 
 /// Render an AST back to a formula string (for paste-and-store flows that
 /// need text representation). Round-trip: parse(render(parse(s))) == parse(s).
@@ -90,7 +92,7 @@ fn render_into(expr: &Expr, out: &mut String) {
             if is_invalid(*addr) {
                 out.push_str("#REF!");
             } else {
-                out.push_str(sheet);
+                push_sheet_name(out, sheet);
                 out.push('!');
                 render_abs_addr(*addr, *abs, out);
             }
@@ -105,7 +107,7 @@ fn render_into(expr: &Expr, out: &mut String) {
             if range_has_invalid_ref(*start, *end, *unbounded) {
                 out.push_str("#REF!");
             } else {
-                out.push_str(sheet);
+                push_sheet_name(out, sheet);
                 out.push('!');
                 render_range_body(*start, *end, *unbounded, *abs, out);
             }

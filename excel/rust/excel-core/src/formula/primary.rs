@@ -76,6 +76,10 @@ impl Parser {
             }
             '{' => self.parse_array_literal(),
             '"' => self.parse_string(),
+            // 带引号表名：`'My Sheet'!A1`。`'` 在公式里没有第二个词法角色
+            // （字符串字面量用的是 `"`），所以基本位置上的 `'` 无歧义地开启
+            // 一个带引号名字 —— 引号规则与写回都在 `quoted_name` 那一片。
+            '\'' => self.parse_quoted_primary(),
             '#' => self.parse_error_literal(),
             // Table-less structured reference: `[Col]` / `[@Col]` written
             // inside a Table's own cells. `[` has no other lexical role, so

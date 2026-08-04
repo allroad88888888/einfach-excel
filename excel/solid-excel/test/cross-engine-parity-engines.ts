@@ -51,8 +51,12 @@ const WASM_PKG_BIN = path.join(__dirname, '..', 'wasm-pkg', 'einfach_wasm_bg.was
  * 表名按索引排开。工作负载**只在用得着时**才拉起第 1 张之后的表（见
  * `sheetsNeeded`）—— 单表场景的持久化快照因此逐字不变，跨表用例不会顺手
  * 改掉别的场景的夹具。
+ *
+ * 2 号表的名字**刻意带空格**：表名含空格是 Excel 新建工作表的默认行为
+ * （"Sheet 1"），引用它必须写成 `'My Sheet'!A1`。这个名字本身就是被测面的
+ * 一部分 —— 换成不需要引号的名字，带引号表名那一组用例就退化成普通跨表。
  */
-const SHEET_NAMES = ['Sheet1', 'Sheet2'] as const
+const SHEET_NAMES = ['Sheet1', 'Sheet2', 'My Sheet'] as const
 
 /**
  * `sheet` 省略即 0 号表。读回一律走 0 号表（`read`）—— 跨表场景要断言的是

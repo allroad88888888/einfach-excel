@@ -14,6 +14,7 @@ import { EXCEL_MAX_COL, EXCEL_MAX_ROW, cellKey, formatA1 } from '../refs'
 import { anchorScalar, projectedCoordsIn } from './spill-projection'
 import { ERR } from './error-value'
 import { arrayResult } from './array-shape'
+import { rangeRowsToValue } from './range-gate'
 import { spillRunOf, type SpillAwareContext } from './spill-aware-context'
 import { cellCoordFromKey } from './cell-address'
 import { rangeContainsCoord, type RuntimeRef } from './runtime-ref'
@@ -56,11 +57,7 @@ export function evaluateRuntimeRef(
   }
 
   const end = formatA1({ row: range.rowEnd, col: range.colEnd })
-  if (!ref.sheetName) {
-    const rows = ctx.rangeLookup(start, end)
-    if (rows.length === 0 || rows[0].length === 0) return ERR('#REF!')
-    return arrayResult(rows, 'range result')
-  }
+  if (!ref.sheetName) return rangeRowsToValue(ctx.rangeLookup(start, end))
   const cells = ctx.crossSheetCells(ref.sheetName)
   if (!cells) return ERR('#REF!')
   return evaluateInForeignSheet({ kind: 'range', start, end }, ctx, cells, ref.sheetName, evaluate)

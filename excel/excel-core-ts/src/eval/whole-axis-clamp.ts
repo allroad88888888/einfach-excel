@@ -5,12 +5,10 @@
  *
  * `A:A` 经 `parseRange` 展开成 1048576 行的矩形，`F:G` 是它的两倍。三条物化路径
  * （`cell-read.ts` 的递归口、`trampoline-ctx.ts` 的蹦床口、`foreign-sheet.ts` 的
- * 跨表口）都有同一道 `MATERIALIZED_RANGE_CELL_CAP` 闸门，越界一律 `#NUM!`。
+ * 跨表口）都有同一道 `range-gate.ts` 的闸门，越界一律 `#NUM!`。
  *
- * 于是本引擎分成两个世界：约 17 个函数被 `evaluate.ts` 截走送进 `sparse-*.ts`，
- * 它们逐格遍历活单元格、整轴照常算；**其余全部**函数拿到的是那个 1×1 的
- * `[[#NUM!]]`。`MATCH` 把它当成一格没命中，答 `#N/A`；`VLOOKUP` 把它当成一列，
- * 答 `#REF!`；`SUMPRODUCT` / `LARGE` / `CORREL` 直接把 `#NUM!` 冒上去。
+ * 不夹取的话本引擎会分成两个世界：约 17 个函数被 `evaluate.ts` 截走送进
+ * `sparse-*.ts`，它们逐格遍历活单元格、整轴照常算；**其余全部**函数吃闸门。
  * 同一个引用，`=MATCH(3,F:F,0)` 与 `=MATCH(3,F1:F5,0)` 两个答案。
  *
  * ── 夹取为什么保语义 ──
@@ -39,8 +37,13 @@
  *
  * ── 边界 ──
  *
- * 夹完仍越界（表真的有几十万行）→ 照旧 `#NUM!`，闸门没被拆掉。未触及哨兵的
- * 有界大区域（`F1:F200000`）也照旧 —— 那是用户明写的矩形，不是「整轴」这个约定。
+ * 夹完仍越界（夹出来的矩形超过一整列，比如 `F:G` 在有 60 万行的表上）→ 照旧
+ * `#NUM!`，闸门没被拆掉。未触及哨兵的有界大区域（`F1:F200000`）不夹 —— 那是
+ * 用户明写的矩形，不是「整轴」这个约定；它现在照样物化得动，因为闸门抬到了
+ * 一整列（见 `range-gate.ts`）。
+ *
+ * 早退用的是 `MATERIALIZED_RANGE_CELL_CAP`（10 万）而不是闸门那个数：低于它的
+ * 整轴矩形（`1:1` 是 16384 格）物化本来就便宜，不值得为它扫一遍 `cells`。
  */
 import type { Cell, CellKey, CellRange } from '../types'
 import { EXCEL_MAX_COL, EXCEL_MAX_ROW } from '../refs'

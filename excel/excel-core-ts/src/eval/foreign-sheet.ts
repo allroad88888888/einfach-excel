@@ -16,8 +16,9 @@ import { anchorScalar, NO_SPILL_ANCHORS, projectedValueAt } from './spill-projec
 import type { SpillProjectionRun } from './spill-projection-run'
 import { ERR } from './error-value'
 import { cellCoordFromKey, parseRefToKey } from './cell-address'
-import { MATERIALIZED_RANGE_CELL_CAP, rangeHasHole } from './runtime-ref'
+import { rangeHasHole } from './runtime-ref'
 import { clampWholeAxisRange } from './whole-axis-clamp'
+import { MATERIALIZE_REFUSE_CELL_CAP, refuseMaterialization } from './range-gate'
 import { outOfBandSpillRun, refLookupGeneric } from './cell-read'
 import { evaluateCellTrampolined, type EvaluateExpr } from './trampoline'
 
@@ -86,9 +87,8 @@ function rangeLookupTrampolined(
   const range = clampWholeAxisRange(parsed, cells)
   const rowCount = range.rowEnd - range.rowStart + 1
   const colCount = range.colEnd - range.colStart + 1
-  const totalCells = rowCount * colCount
-  if (totalCells > MATERIALIZED_RANGE_CELL_CAP) {
-    return [[ERR('#NUM!', rangeTooLargeMessage(rowCount, colCount, totalCells))]]
+  if (rowCount * colCount > MATERIALIZE_REFUSE_CELL_CAP) {
+    return refuseMaterialization(rowCount, colCount)
   }
 
   const spilled = rangeHasHole(range, cells)
@@ -118,10 +118,6 @@ function rangeLookupTrampolined(
     throw err
   }
   return rows
-}
-
-function rangeTooLargeMessage(rowCount: number, colCount: number, totalCells: number): string {
-  return `range too large to materialize (${rowCount}x${colCount} = ${totalCells} cells; cap 100000)`
 }
 
 /**

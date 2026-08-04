@@ -21,6 +21,7 @@ import { spillRunOf, type SpillAwareContext } from './spill-aware-context'
 import { cellCoordFromKey, parseRefToKey } from './cell-address'
 import { tagFor } from './cycle-guard'
 import { clampWholeAxisRange } from './whole-axis-clamp'
+import { MATERIALIZE_REFUSE_CELL_CAP, refuseMaterialization } from './range-gate'
 import type { EvaluateExpr } from './trampoline'
 
 /**
@@ -47,10 +48,10 @@ export function refLookupGeneric(
  * stay blank rather than being omitted.
  *
  * For whole-row / whole-col ranges (`A:A`, `1:1`) the range expands to
- * the Excel max bounds via `parseRange` → could be ~1M rows. We guard
- * against materializing those with `RangeTooLargeError` and surface
- * `#NUM!`. Wave E will add a streaming iterator so SUM / AVERAGE can
- * still consume them without allocating the entire 2-D array.
+ * the Excel max bounds via `parseRange`; `clampWholeAxisRange` pulls the
+ * tail back to the used region first, and anything still over
+ * `MATERIALIZE_REFUSE_CELL_CAP` is refused — 拒绝值带外带标记，见
+ * `range-gate.ts`。SUM / COUNTIF 一族另有稀疏孪生，根本不到这里。
  */
 export function rangeLookupGeneric(
   start: string,
@@ -68,15 +69,9 @@ export function rangeLookupGeneric(
   // Bound materialization. `iterateRange` is uncapped (it's a lazy
   // generator), and `expandRange`'s `RangeTooLargeError` doesn't fire
   // when we walk via iterateRange. Materializing `A:XFD` (16M cells)
-  // or `A:A` (1M cells) here would hang the worker. We surface `#NUM!`
-  // with a hint instead — formulas that need to scan an entire column
-  // must use COUNTIF / SUMIF (which iterate the existing cell map, not
-  // the abstract range) for now.
-  const totalCells = rowCount * colCount
-  // Use the same 100k cap as expandRange (refs/ranges.ts EXPAND_MAX_CELLS).
-  // Picked to match Go-To-Special's convention across the codebase.
-  if (totalCells > 100_000) {
-    return [[ERR('#NUM!', `range too large to materialize (${rowCount}x${colCount} = ${totalCells} cells; cap 100000)`)]]
+  // here would hang the worker. 上限与拒绝值的形态见 `range-gate.ts`。
+  if (rowCount * colCount > MATERIALIZE_REFUSE_CELL_CAP) {
+    return refuseMaterialization(rowCount, colCount)
   }
   const rows: Value[][] = new Array(rowCount)
   try {

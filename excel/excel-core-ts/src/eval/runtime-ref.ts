@@ -22,6 +22,17 @@ import { ERR } from './error-value'
 
 export type RuntimeRef = LambdaReferenceBinding
 
+/**
+ * 稀疏遍历的**偏好阈值**：矩形大到这个数以上，有稀疏孪生的函数（SUM /
+ * COUNTIF / SUMIF / *IFS / SUBTOTAL…）改走逐格遍历活单元格，而不是物化。
+ *
+ * ⚠️ 这**不是**「物化不动就拒绝」的安全闸门 —— 那道闸门是
+ * `range-gate.ts` 的 `MATERIALIZE_REFUSE_CELL_CAP`（一整列 = 1,048,576 格）。
+ * 两件事此前共用这一个常量，于是「性能上不划算」被当成了「算不出来」：没有
+ * 稀疏孪生的那几百个函数在 10 万格以上一律吃 `#NUM!`，而这个 10 万本身是从
+ * `spreadsheet-ui-core` 的 Go-To 扫描约定抄来的 UI 数字。分家的理由见
+ * `range-gate.ts` 文件头。
+ */
 export const MATERIALIZED_RANGE_CELL_CAP = 100_000
 
 export function topLeftRuntimeRef(ref: RuntimeRef): RuntimeRef {

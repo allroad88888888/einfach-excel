@@ -18,6 +18,7 @@ import { cellCoordFromKey, parseRefToKey } from './cell-address'
 import { cycleGuardKey } from './cycle-guard'
 import { rangeHasHole } from './runtime-ref'
 import { clampWholeAxisRange } from './whole-axis-clamp'
+import { MATERIALIZE_REFUSE_CELL_CAP, refuseMaterialization } from './range-gate'
 import type { SpillAwareContext } from './spill-aware-context'
 
 /**
@@ -118,12 +119,9 @@ export function makeTrampolineCtx(
       const range = clampWholeAxisRange(parsed, cells)
       const rowCount = range.rowEnd - range.rowStart + 1
       const colCount = range.colEnd - range.colStart + 1
-      const totalCells = rowCount * colCount
-      if (totalCells > 100_000) {
-        const msg =
-          `range too large to materialize (${rowCount}x${colCount} = ` +
-          `${totalCells} cells; cap 100000)`
-        return [[ERR('#NUM!', msg)]]
+      // 上限与拒绝值的形态见 `range-gate.ts` —— 这是**真实公式路径**走的那一口。
+      if (rowCount * colCount > MATERIALIZE_REFUSE_CELL_CAP) {
+        return refuseMaterialization(rowCount, colCount)
       }
       // Walk the range twice if needed: first collect every missing
       // dep into one NeedsDep batch (so a SUM(A1:A100) on a chained

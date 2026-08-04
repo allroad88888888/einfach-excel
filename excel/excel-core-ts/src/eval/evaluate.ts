@@ -35,6 +35,7 @@ import { propagateError, toBoolean, toNumber } from './coerce'
 import { BLANK } from '../types'
 import { ERR } from './error-value'
 import { ARRAY_CELL_CAP, arrayResult, arrayShapeError, scalarCellError } from './array-shape'
+import { rangeRowsToValue } from './range-gate'
 import { makeMatrix, valueToGrid, type Grid } from './grid'
 import {
   canSparseIterate,
@@ -198,14 +199,9 @@ export function evaluate(ast: Expr, ctx: EvalContext): Value {
     case 'ref':
       return ctx.refLookup(ast.a1)
 
-    case 'range': {
-      const rows = ctx.rangeLookup(ast.start, ast.end)
-      // Empty range is invalid input — surface #REF!.
-      if (rows.length === 0 || rows[0].length === 0) {
-        return ERR('#REF!')
-      }
-      return arrayResult(rows, 'range result')
-    }
+    // 空矩形 → `#REF!`、闸门拒绝 → 标量错误、其余 → 数组结果，见 `range-gate.ts`。
+    case 'range':
+      return rangeRowsToValue(ctx.rangeLookup(ast.start, ast.end))
 
     case 'dynamicRange': {
       const resolved = runtimeRefFromExpr(ast, ctx)
@@ -262,9 +258,7 @@ export function evaluate(ast: Expr, ctx: EvalContext): Value {
               binding.sheetName,
             )
           }
-          const rows = ctx.rangeLookup(binding.start, binding.end)
-          if (rows.length === 0 || rows[0].length === 0) return ERR('#REF!')
-          return arrayResult(rows, 'range result')
+          return rangeRowsToValue(ctx.rangeLookup(binding.start, binding.end))
         }
         case 'lambda':
           // A LAMBDA name referenced without a call site is a bare

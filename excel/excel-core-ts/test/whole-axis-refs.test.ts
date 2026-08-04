@@ -245,21 +245,8 @@ describe('整轴引用 —— 夹取不许越界的那几条', () => {
     ])
   })
 
-  test('夹完仍超 10 万格 → 闸门照旧拦下', () => {
-    const wb = createWorkbook([{ id: 's1', name: 'Sheet1' }])
-    const cells: Array<{ row: number; col: number; input: string }> = []
-    for (let r = 0; r < 120_000; r += 1) cells.push({ row: r, col: 5, input: String(r + 1) })
-    wb.bulkApply('s1', cells)
-    wb.setCell('s1', 0, 25, '=SUMPRODUCT(F:F,F:F)')
-    const capped = read(wb, 's1', 0, 25)
-    // 夹取把 1048576 收到 120200（已用 12 万行 + 溢出回看余量），仍越 10 万格。
-    expect(capped).toMatchObject({ kind: 'error', code: '#NUM!' })
-    expectAll(wb, [
-      // 稀疏孪生不经物化，照样算得动。
-      ['=SUM(F:F)', num(7_200_060_000)],
-      ['=COUNTA(F:F)', num(120_000)],
-    ])
-  }, 60_000)
+  // 「夹完仍越界 → 闸门照旧拦下」搬去了 `range-materialization-gate.test.ts`：
+  // 那问的是闸门本身（多大拒绝、拒绝长什么样），不是「整轴与有界同答案」。
 })
 
 describe('有序查找里空格不参与排序', () => {

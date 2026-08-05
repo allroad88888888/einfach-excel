@@ -18,8 +18,22 @@ import {
   type AxisScrollGeometry,
 } from './scroll-anchor'
 
+/** URL 带 ?scrollDebug=1 时在 window.__scrollStats 上暴露滚动诊断计数器。 */
+function createScrollStats() {
+  if (typeof window === 'undefined') return null
+  try {
+    if (new URLSearchParams(window.location.search).get('scrollDebug') !== '1') return null
+  } catch {
+    return null
+  }
+  const stats = { scrollEvents: 0, reanchors: 0, windowChanges: 0, lastWindowRenderMs: 0 }
+  ;(window as unknown as Record<string, unknown>).__scrollStats = stats
+  return stats
+}
+
 export function installGridProjectionController(runtime: GridRuntime) {
   const { props, store, backend, bumpRender, getRenderedVisibleWindow, getEffectiveFreezeProjection, hydrateViewportSizeProjection } = runtime
+  const scrollStats = createScrollStats()
   let lastEffectiveFreezeRows = 0
   let lastEffectiveFreezeCols = 0
 
@@ -162,7 +176,14 @@ export function installGridProjectionController(runtime: GridRuntime) {
     const key = `${window.rowStart}|${window.rowEnd}|${window.colStart}|${window.colEnd}`
     if (key === lastViewportWindowKey) return
     lastViewportWindowKey = key
-    bumpRender()
+    if (scrollStats) {
+      scrollStats.windowChanges += 1
+      const startedAt = performance.now()
+      bumpRender()
+      scrollStats.lastWindowRenderMs = Math.round(performance.now() - startedAt)
+    } else {
+      bumpRender()
+    }
     void loadProjection(requestProjection())
     void hydrateViewportSizeProjection()
   }
@@ -200,9 +221,11 @@ export function installGridProjectionController(runtime: GridRuntime) {
 
   function handleViewportScroll(event: Event & { currentTarget: HTMLDivElement }) {
     const target = event.currentTarget
+    if (scrollStats) scrollStats.scrollEvents += 1
     const rowPhysicalPx = reanchorAxis('row', target)
     const colPhysicalPx = reanchorAxis('col', target)
     if (rowPhysicalPx !== null || colPhysicalPx !== null) {
+      if (scrollStats) scrollStats.reanchors += 1
       // spacer 高度先于 scrollTop 落地（同一帧内），内容才不跳。
       bumpRender()
       if (rowPhysicalPx !== null) target.scrollTop = rowPhysicalPx

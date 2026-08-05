@@ -28,14 +28,33 @@ export function installGridLayout(runtime: GridRuntime) {
     return { rowStart: cell.row, rowEnd: cell.row + rows - 1, colStart: cell.col, colEnd: cell.col + cols - 1 }
   }
 
+  // 合并区列表按投影结果的数组身份 memo：兜底分支原来对每次坐标查询线性扫
+  // 全部 cells（每格渲染要查 4+ 次 → O(格子数²)），现在只扫合并区本身
+  // （通常为零或个位数）。
+  let mergeRangesSource: readonly DisplayCell[] | null = null
+  let mergeRangesCache: CellRange[] = []
+
+  function getMergeRanges(): CellRange[] {
+    const cells = projectionSnapshot().result?.cells ?? []
+    if (cells !== mergeRangesSource) {
+      const ranges: CellRange[] = []
+      for (const cell of cells) {
+        const range = getMergeRangeForCell(cell)
+        if (range) ranges.push(range)
+      }
+      mergeRangesSource = cells
+      mergeRangesCache = ranges
+    }
+    return mergeRangesCache
+  }
+
   function getMergeRangeForCoord(row: number, col: number): CellRange | null {
     const cell = getCell(row, col)
     const direct = getMergeRangeForCell(cell)
     if (direct) return direct
     if (cell?.mergeAnchor) return getMergeRangeForCell(getCell(cell.mergeAnchor.row, cell.mergeAnchor.col))
-    for (const candidate of projectionSnapshot().result?.cells ?? []) {
-      const range = getMergeRangeForCell(candidate)
-      if (range && isCoordInRange(row, col, range)) return range
+    for (const range of getMergeRanges()) {
+      if (isCoordInRange(row, col, range)) return range
     }
     return null
   }

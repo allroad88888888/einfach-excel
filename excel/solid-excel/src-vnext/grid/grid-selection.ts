@@ -17,10 +17,21 @@ import { type GridRuntime } from './grid-runtime'
 export function installGridSelection(runtime: GridRuntime) {
   const { props, store, projectionSnapshot, visibleWindow, hiddenState, getMergeRangeForCoord, bumpRender, focusGrid } = runtime
 
+  // 按投影结果的数组身份 memo：一次渲染里每个格子要查若干次 map，重建的话
+  // 是 O(格子数²)（表面级窗口 ~700 格 → 单次重锚渲染数百万次 Map 插入，帧
+  // 耗时秒级）。cells 数组在投影结果不变时引用稳定，直接用身份当缓存键。
+  let cellMapSource: readonly DisplayCell[] | null = null
+  let cellMapCache: Map<string, DisplayCell> = new Map()
+
   function getCellMap() {
-    const map = new Map<string, DisplayCell>()
-    for (const cell of projectionSnapshot().result?.cells ?? []) map.set(makeCellKey(cell.row, cell.col), cell)
-    return map
+    const cells = projectionSnapshot().result?.cells ?? []
+    if (cells !== cellMapSource) {
+      const map = new Map<string, DisplayCell>()
+      for (const cell of cells) map.set(makeCellKey(cell.row, cell.col), cell)
+      cellMapSource = cells
+      cellMapCache = map
+    }
+    return cellMapCache
   }
 
   function getRows() {

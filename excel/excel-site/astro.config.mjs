@@ -23,7 +23,7 @@ export default defineConfig({
         ),
         '@einfach/solid-excel/vnext-styles.css': path.resolve(
           repoRoot,
-          'excel/solid-excel/src/styles.css',
+          'excel/solid-excel/src-vnext/styles/index.css',
         ),
       },
       dedupe: ['solid-js'],

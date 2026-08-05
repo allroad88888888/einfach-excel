@@ -4,23 +4,41 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Einfach ("simple" in German) is a lightweight, Jotai-inspired atom-based state management library. It provides a framework-agnostic core with bindings for React and Solid.js, plus form handling utilities.
+在线表格栈（einfach-excel）：框架无关的表格 UI 核心（`@einfach/spreadsheet-ui-core`）+
+Rust/WASM 公式引擎（`excel/rust/`）+ 基于两者的 Solid.js 表格界面（`@einfach/solid-excel`）。
+状态管理由上游 einfach（Jotai 风格 atom 引擎）提供，从 npm 消费，源码不在本仓。
 
 ## Commands
 
 ```bash
-# Build (clean types, compile TS, bundle with Rollup)
-npm run build
+npm run build            # clearTypes → ensureWasm → tsc -build → rollup（缺 wasm-pkg 时会调 wasm-pack，需要 Rust 工具链）
+npm test                 # 全量 jest（含覆盖率）
+npx jest path/to/file.test.ts                      # 单个测试文件
+npx jest excel/spreadsheet-ui-core --no-coverage   # 分区套件（solid-excel 同理）
 
-# Run all tests with coverage
-npm test
+npm run lint:check       # eslint 只检查；npm run eslint 检查并自动修
+npm run check:docs       # 文档链接门禁（CONTRIBUTING §文档规则）
+npm run check:cycles     # dependency-cruiser 循环依赖检查
+npm run typecheck:apps   # excel-site 的 tsc --noEmit
 
-# Run a single test file
-npx jest path/to/test.test.ts
+npm run dev -w @einfach/excel-site      # 演示 / 门面站（Astro）
+npm run dev -w @einfach/solid-excel     # 表格界面自身的 vite dev
 
-# Lint and auto-fix
-npm run eslint
+# e2e（Playwright，按功能目录组织，每目录 CASES.md 是用例清单权威）
+npm run e2e:install -w @einfach/solid-excel                  # 首次装浏览器
+NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach/solid-excel
+npm run e2e -w @einfach/solid-excel -- e2e/smoke/            # 只跑一个功能目录
+
+# Rust 引擎（各 crate 独立，无 workspace 根 Cargo.toml）
+cd excel/rust/excel-core && cargo test               # core / wasm 同理
+cd excel/rust/excel-core && cargo bench              # criterion 基准，口径见 excel/rust/docs/PERF.md
+
+# 改了 excel/rust/ 之后刷新 WASM 产物
+npm run build:wasm -w @einfach/solid-excel           # 产物落 excel/solid-excel/wasm-pkg/
+npm run build:wasm:full -w @einfach/solid-excel      # full 变体（--features regex-formulas）→ wasm-pkg-full/
 ```
+
+pre-commit（husky）依次跑 `check:docs`、`lint:check`、`typecheck:apps`、`build`、`test` —— 提交前本地跑全量 `npm test` 可以省一轮返工。
 
 ## Monorepo Structure (pnpm workspaces)
 
@@ -32,7 +50,7 @@ npm run eslint
 
 ```
 excel/spreadsheet-ui-core/ → @einfach/spreadsheet-ui-core # Framework-agnostic spreadsheet UI atoms + types (vnext)
-excel/excel-core-ts/       → @einfach/excel-core-ts       # TS formula engine (private, parity reference)
+excel/excel-core-ts/       → @einfach/excel-core-ts       # TS formula engine (private) — parity 参照，同时是第二个 worker 后端
 excel/solid-excel/         → @einfach/solid-excel         # Solid.js spreadsheet surface (legacy + vnext)
 excel/excel-site/          → @einfach/excel-site           # Static docs site with Solid/WASM islands (private, Astro)
 excel/rust/core/           → einfach-core (Rust)          # Rust atom store（TS 版 core 的孪生实现）
@@ -106,6 +124,16 @@ Two reference implementations ship under `excel/solid-excel/src-vnext/adapter/`:
 - `static-backend.ts` — in-memory implementation used by smoke tests and the static demo.
 - `worker-workbook-backend.ts` — RPC to a Web Worker that owns the WASM `Workbook` from `excel/rust/wasm`.
 
+### Worker runtimes（双后端 parity）
+
+Worker 侧有两套运行时实现同一协议：`worker-runtime.ts` / `worker-runtime-full.ts`（Rust/WASM，
+两者只是各自静态 import `wasm-pkg/` 与 `wasm-pkg-full/` 的叶子入口，消息循环在
+`worker-runtime-core.ts`）与 `worker-runtime-ts.ts`（`@einfach/excel-core-ts`）。Rust 是现役主引擎；
+TS 版是 parity 参照兼纯 JS 部署路径，e2e 双后端跑同一批用例钉 parity
+（矩阵见 `excel/solid-excel/e2e/BACKEND_PARITY.md`）。worker 工厂**刻意不从** `src-vnext` barrel
+导出（`import.meta` 会炸 jest）—— 宿主必须走 `@einfach/solid-excel/vnext-worker-factory` 子路径，
+见 [ADR 0004](docs/decisions/0004-worker-factory-out-of-barrel.md)。
+
 ### Atom conventions
 
 - Every atom in `spreadsheet-ui-core` sets `debugLabel = 'spreadsheet.<feature>.<name>'` (e.g. `'spreadsheet.findReplace.cursor'`).
@@ -137,18 +165,21 @@ Every modal under `excel/solid-excel/src-vnext/*/Spreadsheet*Dialog.tsx` follows
 
 - TypeScript composite project with `tsc -build` for declarations
 - Rollup bundles to `cjs/` (.cjs), `esm/` (.mjs), and `dist/`
-- SWC transforms React/Vanilla; Babel transforms Solid.js (for JSX)
+- SWC transforms plain TS; Babel transforms Solid.js (for JSX)
 - All packages have `sideEffects: false` for tree-shaking
-- `excel/solid-excel` runs `npm run build:wasm` before `vite build` to refresh `excel/solid-excel/wasm-pkg/` from `excel/rust/wasm`
+- `excel/solid-excel` runs `npm run build:wasm` before `vite build` to refresh `excel/solid-excel/wasm-pkg/` from `excel/rust/wasm`; `build:wasm` 末尾会跑 `strip-wasm-names.mjs` 剥调试名
+- `excel/excel-site` 是 Astro 静态站 + Solid/WASM islands（[ADR 0007](docs/decisions/0007-astro-static-site-with-solid-wasm-islands.md)），`dev`/`build` 前置 `build:api`（typedoc）
 
 ## Testing
 
 - Jest with jsdom environment
-- SWC for non-Solid tests, Babel for Solid tests
-- `moduleNameMapper` in `jest.config.mjs` resolves `@einfach/*` to source directories
-- React tests use `@testing-library/react` with `renderHook`/`act`
+- SWC for non-Solid tests, Babel for Solid tests（`excel/solid-excel` 下的 `.tsx` 走 babel-jest）
+- `moduleNameMapper` in `jest.config.mjs` maps **only this repo's own packages**（`@einfach/spreadsheet-ui-core`、`@einfach/excel-core-ts`）到源码目录；`@einfach/core` / `@einfach/solid` 刻意走 node_modules（已发布版本）
+- Solid tests use `@solidjs/testing-library`
 - Always create a fresh store per test via `createStore()`
 - vnext spreadsheet suites: `npx jest excel/spreadsheet-ui-core --no-coverage` and `npx jest excel/solid-excel --no-coverage`
+- Playwright e2e specs live in `excel/solid-excel/e2e/`（feature 目录 + `CASES.md`，[ADR 0005](docs/decisions/0005-e2e-feature-folders.md)）；jest 的 `testPathIgnorePatterns` 排除它们，只能用 `npm run e2e` 跑
+- Rust 引擎测试独立于 jest：进各 crate 目录 `cargo test`
 
 ## Code Style
 

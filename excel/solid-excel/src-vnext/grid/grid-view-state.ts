@@ -108,6 +108,10 @@ export function installGridViewState(runtime: GridRuntime) {
     return new Set(getHiddenColumnsForSheet(store.getter(viewportHiddenAtom), props.sheetId))
   }
 
+  // 渲染/投影窗口按滚动**表面**取（锚点 → 锚点+表面跨度，见 grid/scroll-anchor.ts），
+  // 不是可视区 ±overscan：表面内滚动时窗口不变 —— 行列 DOM 静止、零 RPC、
+  // 零重渲染，只有重锚/跳转才换窗口。表面 = min(整表, 5×视口)，行列各 ≤ 一两百个
+  // 索引，远低于投影上限。freeze 轴保持旧口径（窗口钉在原点、随滚动扩到可视区尾）。
   function getRenderedVisibleWindow(): CellRange {
     const metrics = store.getter(viewportMetricsAtom)
     const overrides = store.getter(viewportSizeOverridesAtom)
@@ -120,46 +124,63 @@ export function installGridViewState(runtime: GridRuntime) {
       return { rowStart: 0, rowEnd: -1, colStart: 0, colEnd: -1 }
     }
 
-    const rawRowStart = getAxisStartIndexAtOffset(
-      metrics.scrollTop,
-      metrics.rowCount,
-      metrics.rowHeight,
-      rowOverrides,
-      hiddenRows,
-    )
-    const rawColStart = getAxisStartIndexAtOffset(
-      metrics.scrollLeft,
-      metrics.colCount,
-      metrics.colWidth,
-      colOverrides,
-      hiddenCols,
-    )
-    const rawRowEnd = metrics.viewportHeight <= 0
-      ? rawRowStart
-      : getAxisEndIndexAtOffset(
-          metrics.scrollTop + metrics.viewportHeight,
-          metrics.rowCount,
-          metrics.rowHeight,
-          rowOverrides,
-          hiddenRows,
-        )
-    const rawColEnd = metrics.viewportWidth <= 0
-      ? rawColStart
-      : getAxisEndIndexAtOffset(
-          metrics.scrollLeft + metrics.viewportWidth,
-          metrics.colCount,
-          metrics.colWidth,
-          colOverrides,
-          hiddenCols,
-        )
     const freeze = getEffectiveFreezeProjection()
 
-    return {
-      rowStart: freeze.rows > 0 ? 0 : Math.max(0, rawRowStart - metrics.overscanRows),
-      rowEnd: Math.min(metrics.rowCount - 1, rawRowEnd + metrics.overscanRows),
-      colStart: freeze.cols > 0 ? 0 : Math.max(0, rawColStart - metrics.overscanCols),
-      colEnd: Math.min(metrics.colCount - 1, rawColEnd + metrics.overscanCols),
+    let rowStart: number
+    let rowEnd: number
+    if (freeze.rows > 0) {
+      rowStart = 0
+      const rawRowEnd = metrics.viewportHeight <= 0
+        ? getAxisStartIndexAtOffset(
+            metrics.scrollTop, metrics.rowCount, metrics.rowHeight, rowOverrides, hiddenRows,
+          )
+        : getAxisEndIndexAtOffset(
+            metrics.scrollTop + metrics.viewportHeight,
+            metrics.rowCount, metrics.rowHeight, rowOverrides, hiddenRows,
+          )
+      rowEnd = Math.min(metrics.rowCount - 1, rawRowEnd + metrics.overscanRows)
+    } else {
+      const anchorPx = runtime.rowAnchorPx as number
+      const surfacePx = runtime.getRowScrollSurfacePx()
+      rowStart = getAxisStartIndexAtOffset(
+        anchorPx, metrics.rowCount, metrics.rowHeight, rowOverrides, hiddenRows,
+      )
+      rowEnd = Math.min(
+        metrics.rowCount - 1,
+        getAxisEndIndexAtOffset(
+          anchorPx + surfacePx, metrics.rowCount, metrics.rowHeight, rowOverrides, hiddenRows,
+        ),
+      )
     }
+
+    let colStart: number
+    let colEnd: number
+    if (freeze.cols > 0) {
+      colStart = 0
+      const rawColEnd = metrics.viewportWidth <= 0
+        ? getAxisStartIndexAtOffset(
+            metrics.scrollLeft, metrics.colCount, metrics.colWidth, colOverrides, hiddenCols,
+          )
+        : getAxisEndIndexAtOffset(
+            metrics.scrollLeft + metrics.viewportWidth,
+            metrics.colCount, metrics.colWidth, colOverrides, hiddenCols,
+          )
+      colEnd = Math.min(metrics.colCount - 1, rawColEnd + metrics.overscanCols)
+    } else {
+      const anchorPx = runtime.colAnchorPx as number
+      const surfacePx = runtime.getColScrollSurfacePx()
+      colStart = getAxisStartIndexAtOffset(
+        anchorPx, metrics.colCount, metrics.colWidth, colOverrides, hiddenCols,
+      )
+      colEnd = Math.min(
+        metrics.colCount - 1,
+        getAxisEndIndexAtOffset(
+          anchorPx + surfacePx, metrics.colCount, metrics.colWidth, colOverrides, hiddenCols,
+        ),
+      )
+    }
+
+    return { rowStart, rowEnd, colStart, colEnd }
   }
 
   function hiddenState() {

@@ -28,7 +28,10 @@ import {
   zoomLevelAtom,
 } from '@einfach/spreadsheet-ui-core'
 import { SpreadsheetUiProvider } from '../src-vnext/provider'
-import { SpreadsheetStatusBar } from '../src-vnext/status-bar'
+import {
+  SPREADSHEET_STATUS_BAR_ALL_SECTIONS,
+  SpreadsheetStatusBar,
+} from '../src-vnext/status-bar'
 import { setLocale } from '../src/i18n'
 import { seedReadyVisibleProjection } from './projection-test-fixture'
 
@@ -166,7 +169,7 @@ describe('vNext SpreadsheetStatusBar', () => {
 
     const { getByTestId } = render(() => (
       <SpreadsheetUiProvider backend={backend} store={store}>
-        <SpreadsheetStatusBar />
+        <SpreadsheetStatusBar sections={SPREADSHEET_STATUS_BAR_ALL_SECTIONS} />
       </SpreadsheetUiProvider>
     ))
 
@@ -189,7 +192,7 @@ describe('vNext SpreadsheetStatusBar', () => {
 
     const { getByTestId } = render(() => (
       <SpreadsheetUiProvider backend={backend} store={store}>
-        <SpreadsheetStatusBar />
+        <SpreadsheetStatusBar sections={SPREADSHEET_STATUS_BAR_ALL_SECTIONS} />
       </SpreadsheetUiProvider>
     ))
 
@@ -236,7 +239,7 @@ describe('vNext SpreadsheetStatusBar', () => {
 
     const { getByTestId, queryByTestId } = render(() => (
       <SpreadsheetUiProvider backend={backend} store={store}>
-        <SpreadsheetStatusBar />
+        <SpreadsheetStatusBar sections={SPREADSHEET_STATUS_BAR_ALL_SECTIONS} />
       </SpreadsheetUiProvider>
     ))
 
@@ -308,7 +311,7 @@ describe('vNext SpreadsheetStatusBar', () => {
 
     const { getByTestId } = render(() => (
       <SpreadsheetUiProvider backend={backend} store={store}>
-        <SpreadsheetStatusBar />
+        <SpreadsheetStatusBar sections={SPREADSHEET_STATUS_BAR_ALL_SECTIONS} />
       </SpreadsheetUiProvider>
     ))
 
@@ -343,7 +346,7 @@ describe('vNext SpreadsheetStatusBar', () => {
 
     const { getByTestId } = render(() => (
       <SpreadsheetUiProvider backend={backend} store={store}>
-        <SpreadsheetStatusBar />
+        <SpreadsheetStatusBar sections={SPREADSHEET_STATUS_BAR_ALL_SECTIONS} />
       </SpreadsheetUiProvider>
     ))
 
@@ -377,7 +380,7 @@ describe('vNext SpreadsheetStatusBar', () => {
 
     const { getByTestId } = render(() => (
       <SpreadsheetUiProvider backend={backend} store={store}>
-        <SpreadsheetStatusBar />
+        <SpreadsheetStatusBar sections={SPREADSHEET_STATUS_BAR_ALL_SECTIONS} />
       </SpreadsheetUiProvider>
     ))
 
@@ -409,7 +412,7 @@ describe('vNext SpreadsheetStatusBar', () => {
 
     const { getByTestId } = render(() => (
       <SpreadsheetUiProvider backend={backend} store={store}>
-        <SpreadsheetStatusBar />
+        <SpreadsheetStatusBar sections={SPREADSHEET_STATUS_BAR_ALL_SECTIONS} />
       </SpreadsheetUiProvider>
     ))
 
@@ -426,7 +429,7 @@ describe('vNext SpreadsheetStatusBar', () => {
 
     const { getByTestId } = render(() => (
       <SpreadsheetUiProvider backend={backend} store={store}>
-        <SpreadsheetStatusBar />
+        <SpreadsheetStatusBar sections={SPREADSHEET_STATUS_BAR_ALL_SECTIONS} />
       </SpreadsheetUiProvider>
     ))
 
@@ -453,7 +456,7 @@ describe('vNext SpreadsheetStatusBar', () => {
 
     const { getByTestId } = render(() => (
       <SpreadsheetUiProvider backend={backend} store={store}>
-        <SpreadsheetStatusBar />
+        <SpreadsheetStatusBar sections={SPREADSHEET_STATUS_BAR_ALL_SECTIONS} />
       </SpreadsheetUiProvider>
     ))
 
@@ -479,7 +482,7 @@ describe('vNext SpreadsheetStatusBar', () => {
 
     const { getByTestId } = render(() => (
       <SpreadsheetUiProvider backend={backend} store={store}>
-        <SpreadsheetStatusBar />
+        <SpreadsheetStatusBar sections={SPREADSHEET_STATUS_BAR_ALL_SECTIONS} />
       </SpreadsheetUiProvider>
     ))
 
@@ -521,7 +524,7 @@ describe('vNext SpreadsheetStatusBar', () => {
 
     const { getByTestId } = render(() => (
       <SpreadsheetUiProvider backend={backend} store={store}>
-        <SpreadsheetStatusBar />
+        <SpreadsheetStatusBar sections={SPREADSHEET_STATUS_BAR_ALL_SECTIONS} />
       </SpreadsheetUiProvider>
     ))
 
@@ -554,7 +557,7 @@ describe('vNext SpreadsheetStatusBar', () => {
 
     const { getByTestId } = render(() => (
       <SpreadsheetUiProvider backend={backend} store={store}>
-        <SpreadsheetStatusBar />
+        <SpreadsheetStatusBar sections={SPREADSHEET_STATUS_BAR_ALL_SECTIONS} />
       </SpreadsheetUiProvider>
     ))
 
@@ -587,7 +590,7 @@ describe('vNext SpreadsheetStatusBar', () => {
 
     const { getByTestId } = render(() => (
       <SpreadsheetUiProvider backend={backend} store={store}>
-        <SpreadsheetStatusBar />
+        <SpreadsheetStatusBar sections={SPREADSHEET_STATUS_BAR_ALL_SECTIONS} />
       </SpreadsheetUiProvider>
     ))
 
@@ -622,7 +625,7 @@ describe('vNext SpreadsheetStatusBar', () => {
 
     const { getByTestId } = render(() => (
       <SpreadsheetUiProvider backend={backend} store={store}>
-        <SpreadsheetStatusBar />
+        <SpreadsheetStatusBar sections={SPREADSHEET_STATUS_BAR_ALL_SECTIONS} />
       </SpreadsheetUiProvider>
     ))
 
@@ -661,7 +664,7 @@ describe('vNext SpreadsheetStatusBar', () => {
 
     const { getByTestId } = render(() => (
       <SpreadsheetUiProvider backend={backend} store={store}>
-        <SpreadsheetStatusBar />
+        <SpreadsheetStatusBar sections={SPREADSHEET_STATUS_BAR_ALL_SECTIONS} />
       </SpreadsheetUiProvider>
     ))
 
@@ -712,7 +715,7 @@ describe('vNext SpreadsheetStatusBar', () => {
 
     const { getByTestId } = render(() => (
       <SpreadsheetUiProvider backend={backend} store={store}>
-        <SpreadsheetStatusBar />
+        <SpreadsheetStatusBar sections={SPREADSHEET_STATUS_BAR_ALL_SECTIONS} />
       </SpreadsheetUiProvider>
     ))
     await waitFor(() => expect(getByTestId('status-aggregate-sum-value').textContent).toBe('10'))
@@ -760,7 +763,7 @@ describe('vNext SpreadsheetStatusBar', () => {
 
     const rendered = render(() => (
       <SpreadsheetUiProvider backend={backend} store={store}>
-        <SpreadsheetStatusBar />
+        <SpreadsheetStatusBar sections={SPREADSHEET_STATUS_BAR_ALL_SECTIONS} />
       </SpreadsheetUiProvider>
     ))
     await waitFor(() => expect(store.getter(selectionAggregatesAtom).sum).toBe(10))
@@ -795,7 +798,7 @@ describe('vNext SpreadsheetStatusBar', () => {
 
     const { container, getByRole, getByTestId } = render(() => (
       <SpreadsheetUiProvider backend={backend} store={store}>
-        <SpreadsheetStatusBar />
+        <SpreadsheetStatusBar sections={SPREADSHEET_STATUS_BAR_ALL_SECTIONS} />
       </SpreadsheetUiProvider>
     ))
 
@@ -878,7 +881,7 @@ describe('vNext SpreadsheetStatusBar', () => {
 
     const { getByTestId } = render(() => (
       <SpreadsheetUiProvider backend={backend} store={store}>
-        <SpreadsheetStatusBar />
+        <SpreadsheetStatusBar sections={SPREADSHEET_STATUS_BAR_ALL_SECTIONS} />
       </SpreadsheetUiProvider>
     ))
 
@@ -895,5 +898,25 @@ describe('vNext SpreadsheetStatusBar', () => {
     await waitFor(() => expect(getByTestId('status-aggregates-empty').textContent).toBe('无聚合项'))
     expect(getByTestId('status-aggregates-truncated').textContent).toBe('结果不完整')
     expect(getByTestId('status-aggregates-summary').textContent).toBe('选区聚合：无。结果不完整。')
+  })
+
+  it('omits the volatile projection diagnostics from the default sections', () => {
+    const store = createStore()
+    const backend = createFakeBackend()
+
+    const { getByTestId, queryByTestId } = render(() => (
+      <SpreadsheetUiProvider backend={backend} store={store}>
+        <SpreadsheetStatusBar />
+      </SpreadsheetUiProvider>
+    ))
+
+    // 诊断段的文字随每轮投影变化，滚动时会让状态栏持续抖动 —— 默认不渲染，
+    // 诊断宿主用 sections={SPREADSHEET_STATUS_BAR_ALL_SECTIONS} 显式开启。
+    expect(queryByTestId('status-projection')).toBeNull()
+    expect(queryByTestId('status-visible-cells')).toBeNull()
+    expect(queryByTestId('status-loaded-values')).toBeNull()
+    expect(getByTestId('status-active-cell')).toBeTruthy()
+    expect(getByTestId('status-aggregates')).toBeTruthy()
+    expect(getByTestId('status-zoom')).toBeTruthy()
   })
 })

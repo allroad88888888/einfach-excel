@@ -9,6 +9,7 @@ import {
   type RangeProjectionResult,
 } from '@einfach/spreadsheet-ui-core'
 import { runVisibleProjectionTransport, spreadsheetProjectionSnapshotAtom } from '../provider'
+import { getAxisOffsetForIndex, getAxisStartIndexAtOffset } from './axis-geometry'
 import { GRID_ROW_HEADER_WIDTH } from './grid-constants'
 import { type GridRuntime } from './grid-runtime'
 import {
@@ -70,6 +71,26 @@ export function installGridProjectionController(runtime: GridRuntime) {
     }
   }
 
+  /** 锚点对齐到行/列边界。渲染窗口从锚点起画，锚点若落在行中间，spacer 取整
+   * 会把内容顶出亚行高的偏差，重锚瞬间就能看见一次小跳 —— 对齐后恒为零。 */
+  function snapAnchorPx(axis: 'row' | 'col', anchorPx: number): number {
+    const metrics = store.getter(viewportMetricsAtom)
+    if (axis === 'row') {
+      const overrides = runtime.getRowOverridesForSheet()
+      const hidden = runtime.getHiddenRowSet()
+      const index = getAxisStartIndexAtOffset(
+        anchorPx, metrics.rowCount, metrics.rowHeight, overrides, hidden,
+      )
+      return getAxisOffsetForIndex(index, metrics.rowCount, metrics.rowHeight, overrides, hidden)
+    }
+    const overrides = runtime.getColOverridesForSheet()
+    const hidden = runtime.getHiddenColSet()
+    const index = getAxisStartIndexAtOffset(
+      anchorPx, metrics.colCount, metrics.colWidth, overrides, hidden,
+    )
+    return getAxisOffsetForIndex(index, metrics.colCount, metrics.colWidth, overrides, hidden)
+  }
+
   function getAxisScrollGeometry(axis: 'row' | 'col'): AxisScrollGeometry {
     const metrics = store.getter(viewportMetricsAtom)
     if (axis === 'row') {
@@ -99,15 +120,16 @@ export function installGridProjectionController(runtime: GridRuntime) {
     if (!rowDrifted && !colDrifted) return
     const rowPlacement = planAnchorPlacement(metrics.scrollTop, getAxisScrollGeometry('row'))
     const colPlacement = planAnchorPlacement(metrics.scrollLeft, getAxisScrollGeometry('col'))
+    const rowAnchorPx = snapAnchorPx('row', rowPlacement.anchorPx)
+    const colAnchorPx = snapAnchorPx('col', colPlacement.anchorPx)
     const anchorsChanged =
-      runtime.rowAnchorPx !== rowPlacement.anchorPx ||
-      runtime.colAnchorPx !== colPlacement.anchorPx
-    runtime.rowAnchorPx = rowPlacement.anchorPx
-    runtime.colAnchorPx = colPlacement.anchorPx
+      runtime.rowAnchorPx !== rowAnchorPx || runtime.colAnchorPx !== colAnchorPx
+    runtime.rowAnchorPx = rowAnchorPx
+    runtime.colAnchorPx = colAnchorPx
     // spacer 高度先于 scrollTop 落地（同一帧内），内容才不跳。
     if (anchorsChanged) bumpRender()
-    if (rowDrifted) scrollRoot.scrollTop = rowPlacement.physicalPx
-    if (colDrifted) scrollRoot.scrollLeft = colPlacement.physicalPx
+    if (rowDrifted) scrollRoot.scrollTop = metrics.scrollTop - rowAnchorPx
+    if (colDrifted) scrollRoot.scrollLeft = metrics.scrollLeft - colAnchorPx
   }
 
   function syncViewportSizeFromElement() {
@@ -130,15 +152,17 @@ export function installGridProjectionController(runtime: GridRuntime) {
     // 尺寸读取（clientWidth/Height 强制 layout）不进滚动热路径：挂载与
     // ResizeObserver 已覆盖（grid-lifecycle.ts），这里只消费已知 metrics。
     syncScrollElementToViewport()
-    bumpRender()
-    // 只有可见窗口的行列真变了才发投影请求——scrollTop 在同一窗口内的
-    // 像素级变化不产生 RPC。内容变更走 subscribeContentChanges，freeze
-    // 变更走 refreshEffectiveFreezeProjection，都直接调 requestProjection，
+    // 渲染窗口 = 滚动表面（grid-view-state.ts），表面内滚动时窗口不变 ——
+    // 此时既不重渲染也不发 RPC：行列 DOM 静止靠原生滚动位移，选区 overlay
+    // 的 canvas 自己订阅 viewportMetricsAtom 跟进。窗口真变（重锚/跳转/
+    // resize）才走完整管线。内容变更走 subscribeContentChanges，freeze 变更
+    // 走 refreshEffectiveFreezeProjection，都直接调 requestProjection，
     // 不受这道闸门影响。
     const window = getRenderedVisibleWindow()
     const key = `${window.rowStart}|${window.rowEnd}|${window.colStart}|${window.colEnd}`
     if (key === lastViewportWindowKey) return
     lastViewportWindowKey = key
+    bumpRender()
     void loadProjection(requestProjection())
     void hydrateViewportSizeProjection()
   }
@@ -165,11 +189,13 @@ export function installGridProjectionController(runtime: GridRuntime) {
     const physicalPx = axis === 'row' ? element.scrollTop : element.scrollLeft
     const anchorPx = axis === 'row' ? runtime.rowAnchorPx : runtime.colAnchorPx
     if (!needsReanchor(physicalPx, anchorPx, geometry)) return null
-    const placement = planAnchorPlacement(anchorPx + physicalPx, geometry)
-    if (placement.anchorPx === anchorPx) return null
-    if (axis === 'row') runtime.rowAnchorPx = placement.anchorPx
-    else runtime.colAnchorPx = placement.anchorPx
-    return placement.physicalPx
+    const logicalPx = anchorPx + physicalPx
+    const placement = planAnchorPlacement(logicalPx, geometry)
+    const snappedAnchorPx = snapAnchorPx(axis, placement.anchorPx)
+    if (snappedAnchorPx === anchorPx) return null
+    if (axis === 'row') runtime.rowAnchorPx = snappedAnchorPx
+    else runtime.colAnchorPx = snappedAnchorPx
+    return Math.max(0, logicalPx - snappedAnchorPx)
   }
 
   function handleViewportScroll(event: Event & { currentTarget: HTMLDivElement }) {

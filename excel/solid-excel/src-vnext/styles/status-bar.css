@@ -13,6 +13,8 @@
   color: var(--text-default);
   font-family: var(--excel-font);
   font-size: 12px;
+  /* 数字等宽：聚合值/缩放百分比变化时不改变字符宽度，状态栏不随之抖动 */
+  font-variant-numeric: tabular-nums;
   overflow-x: auto;
   white-space: nowrap;
 }

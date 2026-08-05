@@ -51,11 +51,20 @@ multi-million-pixel span. The mapping invariant is
 - `scroll-anchor.ts` is the pure math: surface span, guard bands (one viewport
   each — sized to absorb the largest momentum per-frame delta), and proportional
   placement, so the thumb roughly indicates whole-sheet position.
+- The rendered/projected window covers the **whole surface**, not the visible
+  slice (`grid-view-state.ts`): while scrolling inside the surface the window —
+  and therefore the table DOM, the projection RPCs, and `bumpRender` — stays
+  untouched; scrolling is plain native compositing. The full pipeline runs only
+  when the window actually changes (re-anchor, jump, resize). The selection
+  overlay needs no bump either: its canvas subscribes to `viewportMetricsAtom`
+  itself and repaints from live DOM rects.
 - `grid-projection-controller.ts` owns the wiring. Re-anchoring runs
   synchronously inside the scroll event (deferring lets the browser clamp large
   deltas at the surface edge and lose them), updates
   `runtime.rowAnchorPx/colAnchorPx`, bumps render so the spacers move in the
   same frame, then rewrites the element offset — content never visually jumps.
+  Anchors snap to row/column boundaries, so the window starts exactly at the
+  surface origin and the spacers stay at zero during in-surface scrolling.
 - `grid-layout.ts` positions the rendered window inside the surface: spacers are
   anchor-relative and bounded by the surface span.
 - A frozen axis keeps its full span (its window stays pinned to origin), which

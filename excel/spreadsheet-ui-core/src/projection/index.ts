@@ -644,8 +644,23 @@ export const resolveProjectionAtom = atom(
       }
 
       if (successor !== null) {
-        // The queued begin already published the latest loading request and
-        // applied its own retainResult policy. Never publish the older result.
+        // The queued begin already published the latest loading request. When
+        // it opted into retainResult, swap the carried result for this fresher
+        // one: during continuous scrolling every transport settles with a
+        // successor queued, and dropping each landed result would freeze the
+        // display on the pre-scroll snapshot until the queue drains. A
+        // successor without retainResult asked for a blank surface (e.g. a
+        // sheet switch) — never show it older data.
+        if (successor.retainResult) {
+          const current = get(projectionSnapshotBackingAtom)
+          if (
+            current.status === 'loading' &&
+            current.request !== undefined &&
+            sameProjectionRequest(current.request, successor.request)
+          ) {
+            set(projectionSnapshotBackingAtom, freezeProjectionSnapshot({ ...current, result }))
+          }
+        }
         return Object.freeze({
           status: 'accepted',
           result,

@@ -449,6 +449,40 @@ describe('projection lifecycle', () => {
     expect(beginVisible(store).requestId).toBe(5)
   })
 
+  test('a retaining successor inherits the freshly landed result while it keeps loading', () => {
+    const store = createStore()
+    const active = beginVisible(store)
+    const queued = store.setter(beginProjectionAtom, {
+      kind: 'visible-window',
+      sheetId: 'sheet-1',
+      window: { rowStart: 10, rowEnd: 12, colStart: 0, colEnd: 2 },
+      reason: 'test',
+      retainResult: true,
+    })
+    if (queued.status !== 'queued') throw new Error('Expected a queued request.')
+
+    const landed = {
+      kind: 'visible-window' as const,
+      sheetId: active.sheetId,
+      requestId: active.requestId,
+      window: active.window,
+      cells: [{ row: 0, col: 0, displayValue: 'landed-mid-scroll' }],
+    }
+    expect(store.setter(resolveProjectionAtom, { request: active, result: landed })).toMatchObject({
+      status: 'accepted',
+      nextRequest: queued.request,
+    })
+    // 连续滚动的中间结果要上屏：快照仍在 loading（等 successor 的数据），
+    // 但 result 已换成刚落地的这份，而不是冻结在滚动前的旧快照上。
+    // successor 未声明 retainResult 时维持旧行为（不发布），由
+    // 'coalesces A to B to C' 用例钉住。
+    expect(store.getter(projectionSnapshotAtom)).toMatchObject({
+      status: 'loading',
+      request: queued.request,
+      result: landed,
+    })
+  })
+
   test('promotes a queued visible request after an exact active mismatch', () => {
     const store = createStore()
     const active = beginVisible(store, { revision: 'rev-a' })

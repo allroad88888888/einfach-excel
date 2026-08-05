@@ -8,7 +8,7 @@ import {
   type CellRange,
   type RangeProjectionResult,
 } from '@einfach/spreadsheet-ui-core'
-import { runVisibleProjectionTransport } from '../provider'
+import { runVisibleProjectionTransport, spreadsheetProjectionSnapshotAtom } from '../provider'
 import { GRID_ROW_HEADER_WIDTH } from './grid-constants'
 import { type GridRuntime } from './grid-runtime'
 import {
@@ -29,7 +29,18 @@ export function installGridProjectionController(runtime: GridRuntime) {
       bumpRender()
       return undefined
     }
-    const begin = store.setter(beginProjectionAtom, { kind: 'visible-window', sheetId: props.sheetId, window, reason: 'viewport' })
+    // 滚动时保留上一窗口的 result：不保留的话 begin 会把快照清成 undefined，
+    // 所有已渲染的格子瞬间变空、等 RPC 回包才恢复。只在同 sheet 时保留，
+    // 避免切表瞬间闪上一张表的旧数据。
+    const retainResult =
+      store.getter(spreadsheetProjectionSnapshotAtom).result?.sheetId === props.sheetId
+    const begin = store.setter(beginProjectionAtom, {
+      kind: 'visible-window',
+      sheetId: props.sheetId,
+      window,
+      reason: 'viewport',
+      retainResult,
+    })
     if ((begin.status !== 'started' && begin.status !== 'queued') || begin.request.kind !== 'visible-window') return undefined
     bumpRender()
     return begin.status === 'started' ? { request: begin.request } : undefined
@@ -113,11 +124,21 @@ export function installGridProjectionController(runtime: GridRuntime) {
     store.setter(viewportMetricsAtom, { ...metrics, viewportWidth, viewportHeight })
   }
 
+  let lastViewportWindowKey = ''
+
   function refreshViewportProjection() {
     // 尺寸读取（clientWidth/Height 强制 layout）不进滚动热路径：挂载与
     // ResizeObserver 已覆盖（grid-lifecycle.ts），这里只消费已知 metrics。
     syncScrollElementToViewport()
     bumpRender()
+    // 只有可见窗口的行列真变了才发投影请求——scrollTop 在同一窗口内的
+    // 像素级变化不产生 RPC。内容变更走 subscribeContentChanges，freeze
+    // 变更走 refreshEffectiveFreezeProjection，都直接调 requestProjection，
+    // 不受这道闸门影响。
+    const window = getRenderedVisibleWindow()
+    const key = `${window.rowStart}|${window.rowEnd}|${window.colStart}|${window.colEnd}`
+    if (key === lastViewportWindowKey) return
+    lastViewportWindowKey = key
     void loadProjection(requestProjection())
     void hydrateViewportSizeProjection()
   }

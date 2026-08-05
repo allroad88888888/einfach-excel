@@ -144,8 +144,10 @@ export function renderGrid(
 }
 
 export async function waitForGrid(container: HTMLElement) {
+  // 渲染窗口 = 锚定滚动表面（5×视口）；10×10 的测试表整个落在表面内，
+  // 全量渲染是设计内退化（grid/README.md §Anchored scrolling）。
   await waitFor(() => {
-    expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(16)
+    expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(100)
   })
 }
 

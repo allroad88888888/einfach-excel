@@ -149,10 +149,13 @@ describe('visible projection refresh transport', () => {
       latestRequest.requestId,
     ])
     expect(controlled.maxConcurrency).toBe(1)
+    // A 的结果落地时后继 C 已排队：C 声明了 retainResult，所以 loading 快照
+    // 继承刚落地的 'old A'（比滚动前的 'seed' 更新），见
+    // projection-lifecycle 的 'a retaining successor inherits …' 用例。
     expect(store.getter(projectionSnapshotAtom)).toMatchObject({
       status: 'loading',
       request: latestRequest,
-      result: { cells: [{ displayValue: 'seed' }] },
+      result: { cells: [{ displayValue: 'old A' }] },
     })
 
     controlled.gates[1]!.resolve(resultFor(latestRequest, 'latest C'))

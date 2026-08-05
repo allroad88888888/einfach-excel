@@ -143,7 +143,8 @@ function renderGrid(backend: SpreadsheetBackend, store: ReturnType<typeof create
   ))
 }
 
-async function waitForGrid(container: HTMLElement, cellCount = 16) {
+// 表面级窗口：10×10 测试表整个落在 5×视口的滚动表面内，全量渲染。
+async function waitForGrid(container: HTMLElement, cellCount = 100) {
   await waitFor(() => {
     expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(cellCount)
   })

@@ -305,7 +305,8 @@ async function runFillSeriesDrag(options: FillSeriesDragOptions) {
   ))
 
   await waitFor(() => {
-    expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(12)
+    // 表面级窗口：10×10 测试表整个落在 5×视口的滚动表面内，全量渲染。
+    expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(100)
   })
 
   const sourceStartAddr = options.sourceStartAddr ?? 'A1'
@@ -375,7 +376,7 @@ async function runFillSeriesDrag(options: FillSeriesDragOptions) {
 }
 
 describe('vNext SpreadsheetGrid', () => {
-  it('requests and renders only the visible viewport window', async () => {
+  it('requests and renders the anchored scroll-surface window', async () => {
     const store = createStore()
     const { backend, requests } = createFakeBackend()
     const viewport = {
@@ -399,12 +400,14 @@ describe('vNext SpreadsheetGrid', () => {
 
     await flushMicrotasks()
 
+    // 渲染/投影窗口 = 锚定滚动表面（min(整表, 5×视口)）；10×10 的表整个
+    // 落在表面内。ui-core 的 visibleWindowAtom 仍是视口语义，不受影响。
     expect(requests).toHaveLength(1)
     expect(requests[0].window).toEqual({
       rowStart: 0,
-      rowEnd: 1,
+      rowEnd: 9,
       colStart: 0,
-      colEnd: 2,
+      colEnd: 9,
     })
     expect(store.getter(visibleWindowAtom)).toEqual({
       rowStart: 0,
@@ -412,9 +415,9 @@ describe('vNext SpreadsheetGrid', () => {
       colStart: 0,
       colEnd: 2,
     })
-    expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(6)
-    expect(container.querySelectorAll('.spreadsheet-grid-row-header')).toHaveLength(2)
-    expect(container.querySelectorAll('.spreadsheet-grid-col-header')).toHaveLength(3)
+    expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(100)
+    expect(container.querySelectorAll('.spreadsheet-grid-row-header')).toHaveLength(10)
+    expect(container.querySelectorAll('.spreadsheet-grid-col-header')).toHaveLength(10)
     await waitFor(() => {
       expect(
         container.querySelector('[data-row="1"][data-col="2"] .cell-display')?.textContent,
@@ -422,7 +425,7 @@ describe('vNext SpreadsheetGrid', () => {
     })
   })
 
-  it('syncs DOM scrolling into viewport metrics and reloads the visible window', async () => {
+  it('syncs DOM scrolling into viewport metrics without re-requesting inside the surface', async () => {
     const store = createStore()
     const { backend, requests } = createFakeBackend()
     const viewport = {
@@ -445,20 +448,17 @@ describe('vNext SpreadsheetGrid', () => {
     ))
 
     await flushMicrotasks()
+    await waitFor(() => {
+      expect(requests).toHaveLength(1)
+    })
 
     const scroller = container.querySelector('.spreadsheet-grid-scroll-viewport') as HTMLDivElement
     scroller.scrollTop = 4
     scroller.scrollLeft = 5
     fireEvent.scroll(scroller)
 
-    await waitFor(() => {
-      expect(requests[requests.length - 1]?.window).toEqual({
-        rowStart: 4,
-        rowEnd: 5,
-        colStart: 5,
-        colEnd: 7,
-      })
-    })
+    // 表面内滚动：逻辑位置照常写入 atoms，但窗口没变 —— 不发新投影请求，
+    // 目标格子早已随表面窗口渲染好（issue #5 的核心行为）。
     expect(store.getter(viewportMetricsAtom)).toMatchObject({
       scrollTop: 4,
       scrollLeft: 5,
@@ -469,6 +469,8 @@ describe('vNext SpreadsheetGrid', () => {
       colStart: 5,
       colEnd: 7,
     })
+    await flushMicrotasks()
+    expect(requests).toHaveLength(1)
     await waitFor(() => {
       expect(
         container.querySelector('[data-row="4"][data-col="5"] .cell-display')?.textContent,
@@ -734,7 +736,7 @@ describe('vNext SpreadsheetGrid', () => {
     // Hidden entries are zero-height/zero-width in the scroll math, so a
     // 3×3 pixel viewport still shows 3 visible rows × 3 visible cols.
     await waitFor(() => {
-      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(9)
+      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(36)
     })
 
     expect(store.getter(viewportHiddenAtom)).toEqual({
@@ -780,15 +782,12 @@ describe('vNext SpreadsheetGrid', () => {
       expect(container.querySelectorAll('td.spreadsheet-grid-cell').length).toBeGreaterThan(0)
     })
 
-    // Rows 0 and 1 are hidden (0px): scrollTop=2 lands on row 4, and the
-    // top spacer spans rows 0..3 at 2 visible pixels — NOT 4. Before the
-    // flip the spacer math counted hidden rows at full height, so the
-    // grid drifted by one hidden-row-height per hidden row above.
-    const topSpacer = container.querySelector(
-      '.spreadsheet-grid-virtual-spacer-row td',
-    ) as HTMLElement
-    expect(topSpacer).not.toBeNull()
-    expect(topSpacer.style.height).toBe('2px')
+    // Rows 0 and 1 are hidden (0px). 表面级窗口下整表落在滚动表面内、窗口
+    // 从锚点起画，spacer 恒为 0 不渲染 —— 隐藏行零高度现在体现在表面跨度
+    // 与总宽上：隐藏行不出行头，B5 照常渲染。
+    expect(container.querySelector('.spreadsheet-grid-virtual-spacer-row')).toBeNull()
+    expect(container.querySelectorAll('.spreadsheet-grid-row-header')).toHaveLength(8)
+    expect(container.querySelector('.spreadsheet-grid-row-header[data-row="0"]')).toBeNull()
     expect(container.querySelector('[data-cell-addr="B5"]')).not.toBeNull()
 
     // Total table width shrinks by the hidden column's width:
@@ -893,7 +892,7 @@ describe('vNext SpreadsheetGrid', () => {
     ))
 
     await waitFor(() => {
-      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(4)
+      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(16)
     })
 
     fireEvent.click(
@@ -933,7 +932,7 @@ describe('vNext SpreadsheetGrid', () => {
     ))
 
     await waitFor(() => {
-      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(9)
+      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(36)
     })
 
     fireEvent.click(container.querySelector('[data-cell-addr="C3"] .spreadsheet-grid-cell-button')!)
@@ -978,7 +977,7 @@ describe('vNext SpreadsheetGrid', () => {
     ))
 
     await waitFor(() => {
-      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(9)
+      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(36)
     })
 
     fireEvent.click(container.querySelector('[data-cell-addr="A1"] .spreadsheet-grid-cell-button')!)
@@ -1040,7 +1039,7 @@ describe('vNext SpreadsheetGrid', () => {
     ))
 
     await waitFor(() => {
-      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(9)
+      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(36)
     })
 
     fireEvent.click(container.querySelector('[data-cell-addr="A1"] .spreadsheet-grid-cell-button')!)
@@ -1093,7 +1092,7 @@ describe('vNext SpreadsheetGrid', () => {
     ))
 
     await waitFor(() => {
-      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(9)
+      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(64)
     })
 
     fireEvent.click(container.querySelector('.spreadsheet-grid-row-header[data-row="2"]')!)
@@ -1204,7 +1203,7 @@ describe('vNext SpreadsheetGrid', () => {
     ))
 
     await waitFor(() => {
-      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(16)
+      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(100)
     })
 
     fireEvent.click(container.querySelector('[data-cell-addr="A1"] .spreadsheet-grid-cell-button')!)
@@ -1253,7 +1252,7 @@ describe('vNext SpreadsheetGrid', () => {
     ))
 
     await waitFor(() => {
-      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(16)
+      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(100)
     })
 
     fireEvent.click(container.querySelector('[data-cell-addr="B2"] .spreadsheet-grid-cell-button')!)
@@ -1301,7 +1300,7 @@ describe('vNext SpreadsheetGrid', () => {
     ))
 
     await waitFor(() => {
-      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(16)
+      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(100)
     })
 
     fireEvent.keyDown(container.querySelector('[data-testid="grid"]')!, {
@@ -1362,7 +1361,7 @@ describe('vNext SpreadsheetGrid', () => {
     ))
 
     await waitFor(() => {
-      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(6)
+      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(100)
     })
 
     fireEvent.click(container.querySelector('[data-cell-addr="A1"] .spreadsheet-grid-cell-button')!)
@@ -1473,7 +1472,7 @@ describe('vNext SpreadsheetGrid', () => {
     ))
 
     await waitFor(() => {
-      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(6)
+      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(24)
     })
     fireEvent.click(container.querySelector('[data-cell-addr="A1"] .spreadsheet-grid-cell-button')!)
 
@@ -1910,7 +1909,7 @@ describe('vNext SpreadsheetGrid', () => {
     ))
 
     await waitFor(() => {
-      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(6)
+      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(40)
     })
 
     fireEvent.click(container.querySelector('[data-cell-addr="A1"] .spreadsheet-grid-cell-button')!)
@@ -2011,7 +2010,7 @@ describe('vNext SpreadsheetGrid', () => {
     ))
 
     await waitFor(() => {
-      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(20)
+      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(100)
     })
 
     fireEvent.click(container.querySelector('[data-cell-addr="B2"] .spreadsheet-grid-cell-button')!)
@@ -2063,7 +2062,7 @@ describe('vNext SpreadsheetGrid', () => {
     ))
 
     await waitFor(() => {
-      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(16)
+      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(100)
     })
 
     fireEvent.click(container.querySelector('[data-cell-addr="B2"] .spreadsheet-grid-cell-button')!)
@@ -2122,7 +2121,7 @@ describe('vNext SpreadsheetGrid', () => {
     ))
 
     await waitFor(() => {
-      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(4)
+      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(16)
     })
 
     dispatchPointerEvent(getByTestId('col-resize-1'), 'pointerdown', { clientX: 100 })
@@ -2186,7 +2185,7 @@ describe('vNext SpreadsheetGrid', () => {
     ))
 
     await waitFor(() => {
-      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(2)
+      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(4)
     })
 
     dispatchPointerEvent(getByTestId('col-resize-0'), 'pointerdown', { clientX: 100 })
@@ -2203,23 +2202,18 @@ describe('vNext SpreadsheetGrid', () => {
     scroller.scrollLeft = 220
     fireEvent.scroll(scroller)
 
-    await waitFor(() => {
-      expect(requests[requests.length - 1]?.window).toEqual({
-        rowStart: 0,
-        rowEnd: 0,
-        colStart: 1,
-        colEnd: 3,
-      })
-    })
-
+    // 表面级窗口：加宽后的 350px 仍落在列滚动表面内，横向滚动属于表面内
+    // 移动 —— 逻辑位置照常写入，但窗口不变、不发新投影请求、无 spacer。
     expect(store.getter(viewportMetricsAtom).scrollLeft).toBe(220)
+    expect(requests[requests.length - 1]?.window).toEqual({
+      rowStart: 0,
+      rowEnd: 0,
+      colStart: 0,
+      colEnd: 3,
+    })
     expect(
-      (
-        container.querySelector(
-          '.spreadsheet-grid-row .spreadsheet-grid-virtual-spacer',
-        ) as HTMLElement
-      ).style.width,
-    ).toBe('200px')
+      container.querySelector('.spreadsheet-grid-row .spreadsheet-grid-virtual-spacer'),
+    ).toBeNull()
     expect(container.querySelector('[data-cell-addr="B1"]')).not.toBeNull()
     expect(container.querySelector('[data-cell-addr="D1"]')).not.toBeNull()
   })
@@ -2265,7 +2259,7 @@ describe('vNext SpreadsheetGrid', () => {
     ))
 
     await waitFor(() => {
-      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(4)
+      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(16)
     })
 
     fireEvent.dblClick(getByTestId('col-resize-1'))
@@ -2288,7 +2282,7 @@ describe('vNext SpreadsheetGrid', () => {
       (container.querySelector('.spreadsheet-grid-row-header[data-row="1"]') as HTMLElement).style
         .height,
     ).toBe(`${rowHeightCalls[0].heightPx}px`)
-    expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(4)
+    expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(16)
   })
 
   it('hydrates row and column size metadata from the backend visible window', async () => {
@@ -2327,11 +2321,12 @@ describe('vNext SpreadsheetGrid', () => {
     // full-sheet hidden seed (without requestId).
     const windowedSizeRequests = sizeRequests.filter((request) => request.requestId !== undefined)
     expect(windowedSizeRequests).toHaveLength(1)
+    // 尺寸 hydration 的窗口 = 锚定滚动表面（这里整表落在表面内）。
     expect(windowedSizeRequests[0].window).toEqual({
       rowStart: 0,
-      rowEnd: 1,
+      rowEnd: 3,
       colStart: 0,
-      colEnd: 1,
+      colEnd: 3,
     })
     expect(store.getter(viewportSizeOverridesAtom)).toEqual({
       rowHeightsBySheet: {
@@ -2353,14 +2348,16 @@ describe('vNext SpreadsheetGrid', () => {
 
   it('reconciles only the hydrated sizes window and never clobbers locally owned hidden state', async () => {
     const store = createStore()
+    // 本地覆盖设在滚动表面之外（表面 = 5×视口 = 前 ~10 行/列），reconcile
+    // 只回收 hydration 窗口内的条目，窗口外的本地覆盖必须幸存。
     store.setter(setViewportRowHeightAtom, {
       sheetId: 'sheet-1',
-      rowIndex: 4,
+      rowIndex: 15,
       heightPx: 54,
     })
     store.setter(setViewportColumnWidthAtom, {
       sheetId: 'sheet-1',
-      colIndex: 4,
+      colIndex: 15,
       widthPx: 154,
     })
     // Local canonical hidden commands claim the sheet before mount.
@@ -2379,8 +2376,8 @@ describe('vNext SpreadsheetGrid', () => {
       viewportWidth: 2,
       rowHeight: 1,
       colWidth: 1,
-      rowCount: 6,
-      colCount: 6,
+      rowCount: 20,
+      colCount: 20,
       overscanRows: 0,
       overscanCols: 0,
     }
@@ -2393,8 +2390,8 @@ describe('vNext SpreadsheetGrid', () => {
 
     await waitFor(() => {
       expect(store.getter(viewportSizeOverridesAtom)).toEqual({
-        rowHeightsBySheet: { 'sheet-1': { '1': 41, '4': 54 } },
-        colWidthsBySheet: { 'sheet-1': { '1': 131, '4': 154 } },
+        rowHeightsBySheet: { 'sheet-1': { '1': 41, '15': 54 } },
+        colWidthsBySheet: { 'sheet-1': { '1': 131, '15': 154 } },
       })
     })
     // The one-shot seed skipped: local commands own the sheet, and the
@@ -2438,8 +2435,8 @@ describe('vNext SpreadsheetGrid', () => {
       viewportWidth: 2,
       rowHeight: 1,
       colWidth: 1,
-      rowCount: 6,
-      colCount: 6,
+      rowCount: 30,
+      colCount: 30,
       overscanRows: 0,
       overscanCols: 0,
     }
@@ -2451,9 +2448,11 @@ describe('vNext SpreadsheetGrid', () => {
     ))
 
     await waitFor(() => expect(pending).toHaveLength(1))
+    // 表面内滚动不再触发新的 hydration —— 第二次请求要靠滚进警戒带引发
+    // 重锚（表面 = 10px，maxScroll = 8，警戒带 = 2 → scrollTop 7 触发）。
     const scroller = container.querySelector('.spreadsheet-grid-scroll-viewport') as HTMLElement
-    scroller.scrollTop = 2
-    scroller.scrollLeft = 2
+    scroller.scrollTop = 7
+    scroller.scrollLeft = 7
     fireEvent.scroll(scroller)
     await waitFor(() => expect(pending).toHaveLength(2))
 
@@ -2464,16 +2463,16 @@ describe('vNext SpreadsheetGrid', () => {
       requestId: latest.requestId,
       revision: 2,
       window: { ...latest.window },
-      rowHeights: [{ rowIndex: 2, heightPx: 42 }],
-      colWidths: [{ colIndex: 2, widthPx: 142 }],
+      rowHeights: [{ rowIndex: 8, heightPx: 42 }],
+      colWidths: [{ colIndex: 8, widthPx: 142 }],
       hiddenRowIndices: [],
       hiddenColIndices: [],
     })
 
     await waitFor(() => {
       expect(store.getter(viewportSizeOverridesAtom)).toEqual({
-        rowHeightsBySheet: { 'sheet-1': { '2': 42 } },
-        colWidthsBySheet: { 'sheet-1': { '2': 142 } },
+        rowHeightsBySheet: { 'sheet-1': { '8': 42 } },
+        colWidthsBySheet: { 'sheet-1': { '8': 142 } },
       })
     })
     const acceptedSizes = store.getter(viewportSizeOverridesAtom)
@@ -2651,7 +2650,7 @@ describe('vNext SpreadsheetGrid', () => {
     ))
 
     await waitFor(() => {
-      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(16)
+      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(100)
     })
 
     fireEvent.click(container.querySelector('[data-cell-addr="A1"] .spreadsheet-grid-cell-button')!)
@@ -2713,7 +2712,7 @@ describe('vNext SpreadsheetGrid', () => {
     ))
 
     await waitFor(() => {
-      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(16)
+      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(100)
     })
 
     fireEvent.click(container.querySelector('[data-cell-addr="A1"] .spreadsheet-grid-cell-button')!)
@@ -2790,7 +2789,7 @@ describe('vNext SpreadsheetGrid', () => {
     ))
 
     await waitFor(() => {
-      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(16)
+      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(100)
     })
 
     fireEvent.click(container.querySelector('[data-cell-addr="A4"] .spreadsheet-grid-cell-button')!)
@@ -2851,7 +2850,7 @@ describe('vNext SpreadsheetGrid', () => {
     ))
 
     await waitFor(() => {
-      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(4)
+      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(16)
     })
 
     fireEvent.click(container.querySelector('[data-cell-addr="A1"] .spreadsheet-grid-cell-button')!)
@@ -2903,7 +2902,7 @@ describe('vNext SpreadsheetGrid', () => {
     ))
 
     await waitFor(() => {
-      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(4)
+      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(16)
     })
 
     fireEvent.click(container.querySelector('[data-cell-addr="B2"] .spreadsheet-grid-cell-button')!)
@@ -2950,7 +2949,7 @@ describe('vNext SpreadsheetGrid', () => {
     ))
 
     await waitFor(() => {
-      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(16)
+      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(100)
     })
 
     // select A1:B2 (2x2 range)
@@ -3013,7 +3012,7 @@ describe('vNext SpreadsheetGrid', () => {
     ))
 
     await waitFor(() => {
-      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(16)
+      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(100)
     })
 
     // Set primary region A1:B2 via click + shift-click
@@ -3081,7 +3080,7 @@ describe('vNext SpreadsheetGrid', () => {
     ))
 
     await waitFor(() => {
-      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(4)
+      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(16)
     })
 
     fireEvent.click(container.querySelector('[data-cell-addr="A1"] .spreadsheet-grid-cell-button')!)
@@ -3123,7 +3122,7 @@ describe('vNext SpreadsheetGrid', () => {
       </SpreadsheetUiProvider>
     ))
     await waitFor(() => {
-      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(16)
+      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(100)
     })
 
     fireEvent.click(container.querySelector('[data-cell-addr="A1"] .spreadsheet-grid-cell-button')!)
@@ -3178,7 +3177,7 @@ describe('vNext SpreadsheetGrid', () => {
       </SpreadsheetUiProvider>
     ))
     await waitFor(() => {
-      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(16)
+      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(100)
     })
 
     // A2:B3 = rows 1..2, cols 0..1. Row 2 is filtered away but stays inside
@@ -3232,7 +3231,7 @@ describe('vNext SpreadsheetGrid', () => {
     ))
 
     await waitFor(() => {
-      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(4)
+      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(16)
     })
 
     expect(store.getter(findReplaceOpenAtom)).toBe(false)
@@ -3297,7 +3296,7 @@ describe('vNext SpreadsheetGrid', () => {
     ))
 
     await waitFor(() => {
-      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(4)
+      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(16)
     })
 
     fireEvent.click(
@@ -3362,7 +3361,7 @@ describe('vNext SpreadsheetGrid', () => {
     ))
 
     await waitFor(() => {
-      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(6)
+      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(16)
     })
 
     // col 0 has no filter rule
@@ -3416,7 +3415,7 @@ describe('vNext SpreadsheetGrid', () => {
     ))
 
     await waitFor(() => {
-      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(4)
+      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(16)
     })
 
     const chevron = container.querySelector('[data-testid="filter-chevron-0"]') as HTMLButtonElement
@@ -3454,7 +3453,7 @@ describe('vNext SpreadsheetGrid', () => {
     ))
 
     await waitFor(() => {
-      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(16)
+      expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(100)
     })
 
     expect(container.querySelector('[data-testid="remote-cursor-user-42"]')).toBeNull()
@@ -4170,7 +4169,7 @@ describe('vNext SpreadsheetGrid', () => {
       ))
 
       await waitFor(() => {
-        expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(4)
+        expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(16)
       })
 
       fireEvent.click(
@@ -4216,7 +4215,7 @@ describe('vNext SpreadsheetGrid', () => {
       ))
 
       await waitFor(() => {
-        expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(4)
+        expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(16)
       })
 
       fireEvent.click(
@@ -4348,7 +4347,7 @@ describe('vNext SpreadsheetGrid', () => {
       ))
 
       await waitFor(() => {
-        expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(4)
+        expect(container.querySelectorAll('td.spreadsheet-grid-cell')).toHaveLength(16)
       })
 
       const wrappers = container.querySelectorAll('.spreadsheet-grid-cell-button')

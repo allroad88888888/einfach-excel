@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>异步自定义公式 · einfach 设计稿</title>
+<style>
+:root {
+  --bg: #f2f4f0; --surface: #fbfcfa; --ink: #1c2420; --ink2: #4d5c54;
+  --muted: #74847b; --line: #dde3dc; --accent: #17754f; --accent-soft: rgba(23,117,79,.1);
+  --paper: #ffffff; --paper-ink: #232a24; --paper-line: #e7eae4; --paper-head: #f2f4ee;
+  --paper-edge: #d4dacf; --hud-bg: #1a2125; --hud-ink: #e6ebe7; --hud-muted: #8da199;
+  --hud-line: #2b3539; --hud-accent: #43c78f; --flash: rgba(23,117,79,.25);
+  --warn: #a25b0c; --error: #c52a1f;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12171a; --surface: #1a2125; --ink: #e6ebe7; --ink2: #a9b6af;
+    --muted: #71807a; --line: #28322f; --accent: #43c78f; --accent-soft: rgba(67,199,143,.12);
+    --paper-edge: #38423e;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12171a; --surface: #1a2125; --ink: #e6ebe7; --ink2: #a9b6af;
+  --muted: #71807a; --line: #28322f; --accent: #43c78f; --accent-soft: rgba(67,199,143,.12);
+  --paper-edge: #38423e;
+}
+:root[data-theme="light"] {
+  --bg: #f2f4f0; --surface: #fbfcfa; --ink: #1c2420; --ink2: #4d5c54;
+  --muted: #74847b; --line: #dde3dc; --accent: #17754f; --accent-soft: rgba(23,117,79,.1);
+  --paper-edge: #d4dacf;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 16px/1.65 -apple-system, "PingFang SC", "Segoe UI", "Microsoft YaHei", sans-serif;
+}
+.mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+a { color: var(--accent); text-decoration: none; }
+a:hover, a:focus-visible { text-decoration: underline; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.site-head {
+  display: flex; align-items: center; gap: 20px;
+  max-width: 1120px; margin: 0 auto; padding: 18px 24px;
+}
+.brand { font-weight: 700; letter-spacing: .02em; font-size: 17px; color: var(--ink); }
+.brand .dot { color: var(--accent); }
+.site-nav { display: flex; gap: 18px; margin-left: auto; font-size: 14px; color: var(--ink2); }
+.site-nav .planned { color: var(--muted); cursor: default; }
+.site-nav .planned::after { content: " ·规划中"; font-size: 11px; color: var(--muted); }
+.ribbon {
+  background: var(--accent-soft); color: var(--ink2); font-size: 12.5px;
+  text-align: center; padding: 6px 16px; border-block: 1px solid var(--line);
+}
+.ribbon b { color: var(--accent); font-weight: 600; }
+
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px 72px; }
+.crumbs { font-size: 13px; color: var(--muted); margin: 26px 0 6px; }
+.crumbs .namebox {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px;
+  border: 1px solid var(--line); background: var(--surface);
+  padding: 2px 8px; border-radius: 3px; margin-right: 10px; color: var(--ink2);
+}
+h1 { font-size: 34px; line-height: 1.25; margin: 4px 0 10px; letter-spacing: -.01em; text-wrap: balance; }
+.lede { max-width: 62ch; color: var(--ink2); margin: 0 0 8px; }
+.lede code, .how code {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .88em;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 3px; padding: 1px 5px;
+}
+
+.demo-split { display: grid; grid-template-columns: minmax(0,1fr) 252px; gap: 18px; margin-top: 26px; }
+@media (max-width: 900px) { .demo-split { grid-template-columns: 1fr; } }
+
+.sheet-card { border: 1px solid var(--paper-edge); border-radius: 8px; overflow: hidden; background: var(--paper); box-shadow: 0 1px 2px rgba(15,26,20,.06), 0 8px 24px rgba(15,26,20,.05); }
+.sheet-toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 8px 10px; background: var(--paper-head); border-bottom: 1px solid var(--paper-line); }
+.sheet-toolbar button {
+  font: 600 12.5px/1 -apple-system, "PingFang SC", sans-serif; color: var(--accent);
+  background: var(--paper); border: 1px solid var(--paper-edge); border-radius: 4px;
+  padding: 6px 10px; cursor: pointer;
+}
+.sheet-toolbar button:disabled { opacity: .5; cursor: not-allowed; }
+.viewport { height: 280px; overflow: auto; background: var(--paper); color: var(--paper-ink); }
+.colhead { display: flex; background: var(--paper-head); border-bottom: 1px solid var(--paper-edge); }
+.colhead .c { font: 600 11px/23px ui-monospace, Menlo, monospace; color: #77816f; text-align: center; border-right: 1px solid var(--paper-line); padding: 0 8px; }
+.r { display: flex; height: 24px; }
+.r .gut {
+  width: 40px; flex: none;
+  font: 500 11px/23px ui-monospace, Menlo, monospace; color: #949e93; text-align: center;
+  background: var(--paper-head); border-right: 1px solid var(--paper-edge); border-bottom: 1px solid var(--paper-line);
+}
+.cell {
+  flex: 1; font-size: 12.5px; line-height: 23px; padding: 0 8px;
+  border-right: 1px solid var(--paper-line); border-bottom: 1px solid var(--paper-line);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;
+}
+.cell.num { text-align: right; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; }
+.r.head .cell { font-weight: 600; background: #fbfcf9; color: #454e44; cursor: auto; }
+.cell.unregistered { color: var(--muted); font-style: italic; }
+.cell.busy { animation: pulse 1.2s infinite; --pulse-color: var(--hud-accent); color: var(--hud-accent); font-weight: 600; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
+@media (prefers-reduced-motion: reduce) { .cell.busy { animation: none; opacity: .6; } }
+.cell.error { color: var(--error); font-weight: 600; }
+
+.hud { background: var(--hud-bg); color: var(--hud-ink); border-radius: 8px; padding: 12px 14px; align-self: start; font-size: 13px; }
+.hud h2 { font-size: 11px; font-weight: 600; letter-spacing: .14em; color: var(--hud-muted); margin: 0 0 10px; text-transform: uppercase; }
+.tile { padding: 8px 0 6px; border-top: 1px solid var(--hud-line); }
+.tile:first-of-type { border-top: 0; padding-top: 0; }
+.tile .k { font-size: 11px; color: var(--hud-muted); }
+.tile .v { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-variant-numeric: tabular-nums; font-size: 18px; color: var(--hud-ink); }
+.tile .v .hi { color: var(--hud-accent); }
+
+.log { background: var(--hud-bg); color: var(--hud-ink); border-radius: 8px; padding: 10px 12px; margin-top: 18px; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 11px; line-height: 1.6; max-height: 160px; overflow-y: auto; }
+.log-line { padding: 2px 0; color: var(--hud-muted); }
+.log-line.ok { color: var(--hud-accent); }
+.log-line.pending { color: #ffb84d; }
+
+.steps { margin-top: 34px; }
+.steps h2, .how h2 { font-size: 20px; margin: 0 0 4px; }
+.steps .sub, .how .sub { color: var(--muted); font-size: 13.5px; margin: 0 0 16px; }
+.steps ol { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 0; padding: 0; }
+.steps li { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; }
+.steps li.done { border-color: var(--accent); }
+.steps .st { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14.5px; }
+.steps .badge {
+  flex: none; width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--muted);
+  font: 700 11px/18px ui-monospace, Menlo, monospace; text-align: center; color: var(--muted);
+}
+.steps li.done .badge { background: var(--accent); border-color: var(--accent); color: #fff; }
+.steps p { font-size: 13px; color: var(--ink2); margin: 8px 0 0; }
+
+.how { margin-top: 40px; max-width: 68ch; }
+.how p { color: var(--ink2); font-size: 14.5px; }
+.how .src { font-size: 13px; color: var(--muted); }
+.foot { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted); }
+</style>
+
+</head>
+<body>
+<header class="site-head">
+  <span class="brand">einfach<span class="dot">·</span>excel</span>
+  <nav class="site-nav">
+    <a href="index.html" data-nav="home">首页</a>
+    <a href="index.html#demos" data-nav="demos">演示</a>
+    <span class="planned">文档</span>
+    <span class="planned">API</span>
+  </nav>
+</header>
+<div class="ribbon"><b>设计稿 M0</b> · 异步回调为页内 Promise 模拟；真实站点由 worker pump 把结果泵回引擎</div>
+
+<main class="wrap">
+  <p class="crumbs"><span class="namebox">A6</span>演示 / 异步自定义公式</p>
+  <h1>#BUSY! 不是错误，是承诺</h1>
+  <p class="lede">
+    把任意 JS 函数注册成公式（如查汇率、算税率的远程服务）。返回 Promise 的格子先显示
+    <b>#BUSY!</b>，结果回来逐个落地；同参调用走<b>记忆化</b>，不再重复请求。
+  </p>
+
+  <div class="demo-split">
+    <div class="sheet-card">
+      <div class="sheet-toolbar">
+        <button id="register-btn">注册 MYTAX 与 FX_RATE</button>
+        <button id="unregister-btn" disabled>注销 MYTAX</button>
+      </div>
+      <div class="viewport" id="vp" role="table" aria-label="异步公式演示表">
+        <div class="colhead" id="colhead"></div>
+        <div id="layer"></div>
+      </div>
+      <div class="log" id="log" role="log" aria-live="polite" aria-label="异步计算日志"></div>
+    </div>
+
+    <aside class="hud" aria-label="异步计算仪表盘">
+      <h2>Async HUD</h2>
+      <div class="tile"><div class="k">在途</div><div class="v"><span class="hi" id="t-pending">0</span></div></div>
+      <div class="tile"><div class="k">已结算</div><div class="v" id="t-settled">0</div></div>
+      <div class="tile"><div class="k">Memo 命中</div><div class="v" id="t-memo">0</div></div>
+      <div class="tile"><div class="k">最近耗时</div><div class="v" id="t-ms">–<small>ms</small></div></div>
+      <div class="tile"><div class="k">注册函数</div><div class="v" id="t-funcs">0</div></div>
+    </aside>
+  </div>
+
+  <section class="steps">
+    <h2>试试这个</h2>
+    <p class="sub">注册→编辑→注销的完整闭环。</p>
+    <ol>
+      <li id="s1"><div class="st"><span class="badge">1</span>注册并计算</div>
+        <p>点上方「注册」按钮。C 列与 D1 先变 #BUSY!（脉冲），然后逐个 settle 成数值。</p></li>
+      <li id="s2"><div class="st"><span class="badge">2</span>编辑一个金额</div>
+        <p>点表中任意 B 列格子 +100。只有该行 C、E 重新计算；其他行不动。</p></li>
+      <li id="s3"><div class="st"><span class="badge">3</span>注销再注册</div>
+        <p>点「注销 MYTAX」按钮。C 列全变 #NAME?。再点「注册」恢复。</p></li>
+    </ol>
+  </section>
+
+  <section class="how">
+    <h2>它是怎么做到的</h2>
+    <p>
+      注册表是个 atom，Provider diff 后经 <code>registerCustomFormula</code> port 转发进
+      worker。#BUSY! 由 async pump 在 Promise settle 时写回引擎；<code>(name,args)</code>
+      记忆化到下次注册表变更为止。
+    </p>
+    <p class="src">源码：rust/excel-core/src/CUSTOM_FORMULAS.md §Async · solid-excel/src-vnext/adapter/async-custom-pump.ts（设计稿中不可点）</p>
+  </section>
+
+  <p class="foot">einfach excel · 站点重构设计稿 · 对应提案 excel/excel-site/docs/SITE_REBUILD_PLAN_2026-08-04.md</p>
+</main>
+
+<script>
+(function () {
+  'use strict'
+  var COLS = ['订单号', '金额', 'MYTAX', 'FX_RATE', '折算']
+  var COL_W = [100, 100, 100, 100, 100]
+  function h32(n) { n = (n ^ 61) ^ (n >>> 16); n = (n + (n << 3)) | 0; n ^= n >>> 4; n = Math.imul(n, 0x27d4eb2d); n ^= n >>> 15; return n >>> 0 }
+
+  var state = {
+    registered: new Set(),
+    values: new Map(),
+    busy: new Set(),
+    edits: new Map(),
+    pending: 0,
+    settled: 0,
+    memo: 0,
+    lastMs: 0,
+    logs: []
+  }
+
+  function log(msg, cls) {
+    state.logs.unshift({msg: msg, cls: cls || ''})
+    if (state.logs.length > 10) state.logs.pop()
+    renderLog()
+  }
+
+  function renderLog() {
+    var html = ''
+    state.logs.forEach(function (l) {
+      html += '<div class="log-line ' + l.cls + '">' + l.msg + '</div>'
+    })
+    document.getElementById('log').innerHTML = html
+  }
+
+  function cellValue(r, c) {
+    if (r === 0) return COLS[c]
+    if (c === 0) return 'SO-' + (1000 + r)
+    if (c === 1) return String(state.edits.has(r) ? state.edits.get(r) : 1000 + h32(r * 5 + 1) % 500)
+    var k = [r, c]
+    var fnName = c === 2 ? 'MYTAX' : c === 3 ? 'FX_RATE' : null
+    if (fnName && !state.registered.has(fnName) && !isBusy(r, c)) {
+      return state.values.has(JSON.stringify(k)) ? '#NAME?' : '未注册'
+    }
+    return state.values.get(JSON.stringify(k)) || '未注册'
+  }
+
+  function isBusy(r, c) {
+    return state.busy.has(JSON.stringify([r, c]))
+  }
+
+  function isError(r, c) {
+    var k = JSON.stringify([r, c])
+    return (c === 2 || (c === 3 && r === 1)) && !state.registered.has(c === 2 ? 'MYTAX' : 'FX_RATE') && !state.busy.has(k)
+  }
+
+  function render() {
+    var html = '<div class="r head">'
+    html += '<div class="gut"></div>'
+    COLS.forEach(function (h) {
+      html += '<div class="cell" style="flex:' + COL_W[COLS.indexOf(h)] + '">' + h + '</div>'
+    })
+    html += '</div>'
+
+    for (var r = 1; r <= 10; r++) {
+      html += '<div class="r">'
+      html += '<div class="gut">' + r + '</div>'
+      for (var c = 0; c < 5; c++) {
+        var cls = 'cell'
+        if (isBusy(r, c)) cls += ' busy'
+        if (isError(r, c)) cls += ' error'
+        if (!state.registered.has(c === 2 ? 'MYTAX' : c === 3 ? 'FX_RATE' : null) && (c === 2 || c === 3) && !isBusy(r, c)) cls += ' unregistered'
+        html += '<div class="' + cls + '" data-r="' + r + '" data-c="' + c + '" style="flex:' + COL_W[c] + '">' + cellValue(r, c) + '</div>'
+      }
+      html += '</div>'
+    }
+    document.getElementById('layer').innerHTML = html
+
+    var layer = document.getElementById('layer')
+    for (var r = 1; r <= 10; r++) {
+      for (var c = 1; c <= 1; c++) {
+        var el = layer.querySelector('[data-r="' + r + '"][data-c="1"]')
+        if (el) el.addEventListener('click', (function (rr) { return function () {
+          var amt = parseInt(cellValue(rr, 1)) + 100
+          state.edits.set(rr, amt)
+          var k = JSON.stringify([rr, 1])
+          state.values.set(k, String(amt))
+          compute([rr], true)
+        }})(r))
+      }
+    }
+  }
+
+  function compute(rows, isEdit) {
+    if (!state.registered.has('MYTAX') && !state.registered.has('FX_RATE')) return
+
+    var toCompute = []
+    if (!isEdit) {
+      for (var r = 1; r <= 10; r++) {
+        if (state.registered.has('MYTAX')) toCompute.push([r, 2])
+        if (state.registered.has('FX_RATE') && r === 1) toCompute.push([1, 3])
+      }
+    } else {
+      rows.forEach(function (r) {
+        if (state.registered.has('MYTAX')) toCompute.push([r, 2])
+        toCompute.push([r, 4])
+      })
+    }
+
+    toCompute.forEach(function (rc) {
+      var k = JSON.stringify(rc)
+      state.busy.add(k)
+      state.pending++
+    })
+    render(); updateHUD()
+
+    toCompute.forEach(function (rc) {
+      var r = rc[0], c = rc[1], k = JSON.stringify(rc)
+      var delay = 300 + h32(r) % 900
+      setTimeout(function () {
+        var ms = delay
+        var val, msg
+        if (c === 2) {
+          var amt = parseInt(cellValue(r, 1))
+          val = (amt * 0.13).toFixed(2)
+          msg = '✓ MYTAX(' + amt + ') = ' + val + ' · ' + ms + 'ms'
+        } else if (c === 3) {
+          val = '6.5'
+          msg = '✓ FX_RATE("USD/CNY") = ' + val + ' · memo 命中 · 0ms'
+          ms = 0; state.memo++
+        } else {
+          var amt1 = parseInt(cellValue(r, 1)), rate = parseFloat(cellValue(1, 3))
+          val = (amt1 * rate).toFixed(2)
+          msg = '↻ E' + r + ' = B' + r + ' * $D$1 = ' + val
+        }
+        state.values.set(k, val)
+        state.busy.delete(k)
+        state.pending--; state.settled++
+        state.lastMs = ms
+        log(msg, c === 3 ? 'ok' : 'ok')
+        render(); updateHUD()
+        if (state.pending === 0) markDone('s1')
+      }, delay)
+    })
+  }
+
+  function markDone(id) {
+    document.getElementById(id).classList.add('done')
+  }
+
+  function updateHUD() {
+    document.getElementById('t-pending').textContent = state.pending
+    document.getElementById('t-settled').textContent = state.settled
+    document.getElementById('t-memo').textContent = state.memo
+    document.getElementById('t-ms').innerHTML = (state.lastMs || '–') + (state.lastMs ? '<small>ms</small>' : '')
+    document.getElementById('t-funcs').textContent = state.registered.size
+  }
+
+  document.getElementById('register-btn').addEventListener('click', function () {
+    if (!state.registered.has('MYTAX')) {
+      state.registered.add('MYTAX')
+      log('⟳ MYTAX 已注册', 'pending')
+    }
+    if (!state.registered.has('FX_RATE')) {
+      state.registered.add('FX_RATE')
+      log('⟳ FX_RATE 已注册', 'pending')
+    }
+    document.getElementById('unregister-btn').disabled = false
+    compute([], false)
+    updateHUD()
+  })
+
+  document.getElementById('unregister-btn').addEventListener('click', function () {
+    state.registered.delete('MYTAX')
+    log('✗ MYTAX 已注销 → #NAME?', 'error')
+    render()
+    markDone('s3')
+    this.disabled = true
+    document.getElementById('register-btn').disabled = false
+    updateHUD()
+  })
+
+  render()
+  updateHUD()
+})()
+</script>
+
+</body>
+</html>

@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>只画看得见的 · einfach 设计稿</title>
+<style>
+:root {
+  --bg: #f2f4f0; --surface: #fbfcfa; --ink: #1c2420; --ink2: #4d5c54;
+  --muted: #74847b; --line: #dde3dc; --accent: #17754f; --accent-soft: rgba(23,117,79,.1);
+  --paper: #ffffff; --paper-ink: #232a24; --paper-line: #e7eae4; --paper-head: #f2f4ee;
+  --paper-edge: #d4dacf; --hud-bg: #1a2125; --hud-ink: #e6ebe7; --hud-muted: #8da199;
+  --hud-line: #2b3539; --hud-accent: #43c78f; --flash: rgba(23,117,79,.25);
+  --warn: #a25b0c;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12171a; --surface: #1a2125; --ink: #e6ebe7; --ink2: #a9b6af;
+    --muted: #71807a; --line: #28322f; --accent: #43c78f; --accent-soft: rgba(67,199,143,.12);
+    --paper-edge: #38423e;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12171a; --surface: #1a2125; --ink: #e6ebe7; --ink2: #a9b6af;
+  --muted: #71807a; --line: #28322f; --accent: #43c78f; --accent-soft: rgba(67,199,143,.12);
+  --paper-edge: #38423e;
+}
+:root[data-theme="light"] {
+  --bg: #f2f4f0; --surface: #fbfcfa; --ink: #1c2420; --ink2: #4d5c54;
+  --muted: #74847b; --line: #dde3dc; --accent: #17754f; --accent-soft: rgba(23,117,79,.1);
+  --paper-edge: #d4dacf;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 16px/1.65 -apple-system, "PingFang SC", "Segoe UI", "Microsoft YaHei", sans-serif;
+}
+.mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+a { color: var(--accent); text-decoration: none; }
+a:hover, a:focus-visible { text-decoration: underline; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.site-head {
+  display: flex; align-items: center; gap: 20px;
+  max-width: 1120px; margin: 0 auto; padding: 18px 24px;
+}
+.brand { font-weight: 700; letter-spacing: .02em; font-size: 17px; color: var(--ink); }
+.brand .dot { color: var(--accent); }
+.site-nav { display: flex; gap: 18px; margin-left: auto; font-size: 14px; color: var(--ink2); }
+.site-nav .planned { color: var(--muted); cursor: default; }
+.site-nav .planned::after { content: " ·规划中"; font-size: 11px; color: var(--muted); }
+.ribbon {
+  background: var(--accent-soft); color: var(--ink2); font-size: 12.5px;
+  text-align: center; padding: 6px 16px; border-block: 1px solid var(--line);
+}
+.ribbon b { color: var(--accent); font-weight: 600; }
+
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px 72px; }
+.crumbs { font-size: 13px; color: var(--muted); margin: 26px 0 6px; }
+.crumbs .namebox {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px;
+  border: 1px solid var(--line); background: var(--surface);
+  padding: 2px 8px; border-radius: 3px; margin-right: 10px; color: var(--ink2);
+}
+h1 { font-size: 34px; line-height: 1.25; margin: 4px 0 10px; letter-spacing: -.01em; text-wrap: balance; }
+.lede { max-width: 62ch; color: var(--ink2); margin: 0 0 8px; }
+.lede code, .how code {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .88em;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 3px; padding: 1px 5px;
+}
+
+.demo-split { display: grid; grid-template-columns: minmax(0,1fr) 252px; gap: 18px; margin-top: 26px; }
+@media (max-width: 900px) { .demo-split { grid-template-columns: 1fr; } }
+
+.sheet-card { border: 1px solid var(--paper-edge); border-radius: 8px; overflow: hidden; background: var(--paper); box-shadow: 0 1px 2px rgba(15,26,20,.06), 0 8px 24px rgba(15,26,20,.05); }
+.sheet-toolbar { display: flex; gap: 10px; align-items: center; padding: 8px 10px; background: var(--paper-head); border-bottom: 1px solid var(--paper-line); }
+.sheet-toolbar input {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12.5px; width: 92px;
+  border: 1px solid var(--paper-edge); border-radius: 4px; padding: 4px 8px; background: var(--paper); color: var(--paper-ink);
+}
+.sheet-toolbar button, .steps button {
+  font: 600 12.5px/1 -apple-system, "PingFang SC", sans-serif; color: var(--accent);
+  background: var(--paper); border: 1px solid var(--paper-edge); border-radius: 4px;
+  padding: 6px 10px; cursor: pointer;
+}
+.sheet-toolbar .fx { color: #6b756c; font-size: 12px; margin-left: auto; font-family: ui-monospace, Menlo, monospace; }
+.viewport { position: relative; height: 430px; overflow: auto; background: var(--paper); color: var(--paper-ink); }
+.viewport.tall { height: 620px; }
+.spacer { position: absolute; top: 0; left: 0; width: 1px; }
+.colhead { position: sticky; top: 0; z-index: 3; display: flex; background: var(--paper-head); border-bottom: 1px solid var(--paper-edge); width: max-content; }
+.colhead .c { font: 600 11px/23px ui-monospace, Menlo, monospace; color: #77816f; text-align: center; border-right: 1px solid var(--paper-line); }
+.colhead .gut { position: sticky; left: 0; background: var(--paper-head); z-index: 4; }
+.layer { position: absolute; left: 0; will-change: transform; width: max-content; }
+.r { display: flex; height: 24px; width: max-content; }
+.r .gut {
+  position: sticky; left: 0; z-index: 2; width: 64px; flex: none;
+  font: 500 11px/23px ui-monospace, Menlo, monospace; color: #949e93; text-align: center;
+  background: var(--paper-head); border-right: 1px solid var(--paper-edge); border-bottom: 1px solid var(--paper-line);
+}
+.cell {
+  flex: none; font-size: 12.5px; line-height: 23px; padding: 0 8px;
+  border-right: 1px solid var(--paper-line); border-bottom: 1px solid var(--paper-line);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cell.num { text-align: right; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; font-variant-numeric: tabular-nums; }
+.r.head .cell { font-weight: 600; background: #fbfcf9; color: #454e44; }
+.cell.flash { animation: flash 1.6s ease-out; outline: 2px solid var(--accent); outline-offset: -2px; }
+@keyframes flash { from { background: var(--flash); } to { background: transparent; } }
+@media (prefers-reduced-motion: reduce) { .cell.flash { animation: none; } }
+
+.hud { background: var(--hud-bg); color: var(--hud-ink); border-radius: 8px; padding: 16px 16px 12px; align-self: start; }
+.hud h2 { font-size: 11px; font-weight: 600; letter-spacing: .14em; color: var(--hud-muted); margin: 0 0 12px; text-transform: uppercase; }
+.tile { padding: 9px 0 7px; border-top: 1px solid var(--hud-line); }
+.tile:first-of-type { border-top: 0; padding-top: 0; }
+.tile .k { font-size: 12px; color: var(--hud-muted); }
+.tile .v { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-variant-numeric: tabular-nums; font-size: 21px; line-height: 1.3; color: var(--hud-ink); }
+.tile .v small { font-size: 12px; color: var(--hud-muted); margin-left: 4px; }
+.tile .v .hi { color: var(--hud-accent); }
+.spark { display: flex; align-items: flex-end; gap: 2px; height: 18px; margin-top: 6px; }
+.spark i { flex: 1 0 4px; background: var(--hud-accent); border-radius: 1px 1px 0 0; min-height: 2px; opacity: .85; }
+.hud .note { font-size: 11.5px; color: var(--hud-muted); margin-top: 10px; line-height: 1.5; }
+
+.steps { margin-top: 34px; }
+.steps h2, .how h2 { font-size: 20px; margin: 0 0 4px; }
+.steps .sub, .how .sub { color: var(--muted); font-size: 13.5px; margin: 0 0 16px; }
+.steps ol { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 0; padding: 0; }
+.steps li { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; }
+.steps li.done { border-color: var(--accent); }
+.steps .st { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14.5px; }
+.steps .badge {
+  flex: none; width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--muted);
+  font: 700 11px/18px ui-monospace, Menlo, monospace; text-align: center; color: var(--muted);
+}
+.steps li.done .badge { background: var(--accent); border-color: var(--accent); color: #fff; }
+.steps p { font-size: 13px; color: var(--ink2); margin: 8px 0 10px; }
+.steps button { background: var(--surface); border-color: var(--line); }
+.steps li.done button { color: var(--muted); }
+
+.how { margin-top: 40px; max-width: 68ch; }
+.how p { color: var(--ink2); font-size: 14.5px; }
+.how .src { font-size: 13px; color: var(--muted); }
+.foot { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted); }
+</style>
+
+</head>
+<body>
+<header class="site-head">
+  <span class="brand">einfach<span class="dot">·</span>excel</span>
+  <nav class="site-nav">
+    <a href="index.html" data-nav="home">首页</a>
+    <a href="index.html#demos" data-nav="demos">演示</a>
+    <span class="planned">文档</span>
+    <span class="planned">API</span>
+  </nav>
+</header>
+<div class="ribbon"><b>设计稿 M0</b> · 本页交互与数字为页内模拟（网格虚拟化是真实现，但没有 worker/WASM）；真实站点的 HUD 由引擎计数端口驱动</div>
+
+<main class="wrap">
+  <p class="crumbs"><span class="namebox">A2</span>演示 / 只画看得见的</p>
+  <h1>只画看得见的</h1>
+  <p class="lede">
+    下面是一张 <b>100,000 行 × 8 列</b>的订单表。无论你滚多快、跳多远，
+    渲染层只向 worker 请求<b>可视窗口加少量预取</b>——右侧仪表盘里的每个数字都在实时变化。
+    其余九万多行从未被触碰。
+  </p>
+
+  <div class="demo-split">
+    <div class="sheet-card">
+      <div class="sheet-toolbar">
+        <input id="namebox" placeholder="F45000" aria-label="名称框：输入单元格地址跳转" />
+        <button id="jump">跳转</button>
+        <button id="height-toggle">视口加高</button>
+        <span class="fx" id="fxbar">fx</span>
+      </div>
+      <div class="viewport" id="vp" tabindex="0" aria-label="虚拟化订单表格，可滚动">
+        <div class="colhead" id="colhead"></div>
+        <div class="spacer" id="spacer"></div>
+        <div class="layer" id="layer"></div>
+      </div>
+    </div>
+
+    <aside class="hud" aria-label="投影仪表盘">
+      <h2>投影仪表盘</h2>
+      <div class="tile"><div class="k">总行数</div><div class="v">100,000</div></div>
+      <div class="tile"><div class="k">投影窗口</div><div class="v"><span class="hi" id="t-range">–</span></div></div>
+      <div class="tile"><div class="k">DOM 行节点（含预取）</div><div class="v" id="t-dom">–</div></div>
+      <div class="tile"><div class="k">上次投影耗时</div><div class="v" id="t-ms">–<small>ms</small></div>
+        <div class="spark" id="spark" aria-hidden="true"></div></div>
+      <div class="tile"><div class="k">投影请求数（模拟 worker 消息）</div><div class="v" id="t-msg">0</div></div>
+      <div class="tile"><div class="k">SUM(G:G) 全表金额</div><div class="v" id="t-sum">–</div></div>
+      <p class="note">真实实现里，这些数字来自 backend 的显式 debug 计数端口，经 diagnostics atoms 上屏。</p>
+    </aside>
+  </div>
+
+  <section class="steps">
+    <h2>试试这个</h2>
+    <p class="sub">每一步做完会自动打勾——不是读完照做的说明文，是可验证的引导。</p>
+    <ol>
+      <li id="s1"><div class="st"><span class="badge">1</span>滚动一屏</div>
+        <p>用滚轮或拖动滚动条。注意「投影窗口」跟着走，而「DOM 行节点」几乎不变。</p></li>
+      <li id="s2"><div class="st"><span class="badge">2</span>跳到表格深处</div>
+        <p>名称框输入 <code>F45000</code> 跳转——落点行会闪烁。九万行外的跳转和第一屏一样快。</p>
+        <button id="do-jump">替我跳到 F45000</button></li>
+      <li id="s3"><div class="st"><span class="badge">3</span>在深处改一个格</div>
+        <p>把 E45000（数量）+10。金额列 G45000 与全表汇总一起更新——重算只触碰 2 个格子和 1 个聚合。</p>
+        <button id="do-edit">E45000 数量 +10</button></li>
+    </ol>
+  </section>
+
+  <section class="how">
+    <h2>它是怎么做到的</h2>
+    <p class="sub">正文静态渲染，爬虫和 AI 都读得到；下面的链接在真实站点指向源码与 API 文档。</p>
+    <p>
+      UI 层持有的只是一个<b>可视窗口投影</b>：滚动改变 <code>ViewportMetrics</code>，
+      backend port 的 <code>readVisibleProjection</code> 返回窗口内的格子——协议上不存在
+      「把整张表交给前端」这条路。数据、公式与依赖图都留在 Web Worker 里的 Rust/WASM 工作簿中。
+    </p>
+    <p class="src">源码：spreadsheet-ui-core/src/backend/types.ts · solid-excel/src-vnext/adapter/worker-workbook-backend.ts（设计稿中不可点）</p>
+  </section>
+
+  <p class="foot">einfach excel · 站点重构设计稿 · 对应提案 excel/excel-site/docs/SITE_REBUILD_PLAN_2026-08-04.md</p>
+</main>
+
+<script>
+(function () {
+  'use strict'
+  var ROWS = 100000, ROW_H = 24, OVERSCAN = 4, GUT = 64
+  var CW = [110, 100, 84, 84, 64, 84, 104, 84]
+  var LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
+  var HEADS = ['订单号', '日期', '地区', '品类', '数量', '单价', '金额', '状态']
+  var REGIONS = ['华东', '华南', '华北', '西南', '东北', '华中']
+  var CATS = ['电子', '家居', '服饰', '食品']
+  var STATUS = ['已完成', '已发货', '待处理']
+  function h32(n) { n = (n ^ 61) ^ (n >>> 16); n = (n + (n << 3)) | 0; n ^= n >>> 4; n = Math.imul(n, 0x27d4eb2d); n ^= n >>> 15; return n >>> 0 }
+  var edits = new Map()
+  function qty(r) { var k = edits.get(r); return k !== undefined ? k : h32(r * 8 + 4) % 90 + 10 }
+  function price(r) { return (h32(r * 8 + 5) % 9000 + 500) / 10 }
+  function dateStr(r) { var d = new Date(Date.UTC(2026, 0, 1 + h32(r) % 210)); return d.toISOString().slice(0, 10) }
+  function cellText(r, c) {
+    if (r === 0) return HEADS[c]
+    switch (c) {
+      case 0: return 'SO-' + (100000 + r)
+      case 1: return dateStr(r)
+      case 2: return REGIONS[h32(r * 8 + 2) % 6]
+      case 3: return CATS[h32(r * 8 + 3) % 4]
+      case 4: return String(qty(r))
+      case 5: return price(r).toFixed(2)
+      case 6: return (qty(r) * price(r)).toFixed(2)
+      case 7: return STATUS[h32(r * 8 + 7) % 3]
+    }
+  }
+  var vp = document.getElementById('vp'), layer = document.getElementById('layer')
+  var spacer = document.getElementById('spacer'), colhead = document.getElementById('colhead')
+  var totalW = GUT; CW.forEach(function (w) { totalW += w })
+  spacer.style.height = ROWS * ROW_H + 'px'; spacer.style.width = totalW + 'px'
+  var hh = '<div class="c gut" style="width:' + GUT + 'px"></div>'
+  for (var c = 0; c < 8; c++) hh += '<div class="c" style="width:' + CW[c] + 'px">' + LETTERS[c] + '</div>'
+  colhead.innerHTML = hh
+
+  var msgCount = 0, lastStart = -1, lastEnd = -1, times = []
+  var grandTotal = 0
+  for (var r = 1; r < ROWS; r++) grandTotal += qty(r) * price(r)
+
+  function fmt(n) { return n.toLocaleString('en-US') }
+  function setText(id, s) { document.getElementById(id).textContent = s }
+  function render(force) {
+    var t0 = performance.now()
+    var start = Math.max(0, Math.floor(vp.scrollTop / ROW_H) - OVERSCAN)
+    var vis = Math.ceil(vp.clientHeight / ROW_H) + 1
+    var end = Math.min(ROWS, start + vis + OVERSCAN * 2)
+    if (!force && start === lastStart && end === lastEnd) return
+    lastStart = start; lastEnd = end
+    var html = ''
+    for (var r = start; r < end; r++) {
+      html += '<div class="r' + (r === 0 ? ' head' : '') + '"><div class="gut">' + (r + 1) + '</div>'
+      for (var c = 0; c < 8; c++) {
+        var cls = 'cell' + (r > 0 && (c === 4 || c === 5 || c === 6) ? ' num' : '')
+        html += '<div class="' + cls + '" data-rc="' + r + ',' + c + '" style="width:' + CW[c] + 'px">' + cellText(r, c) + '</div>'
+      }
+      html += '</div>'
+    }
+    layer.innerHTML = html
+    layer.style.transform = 'translateY(' + start * ROW_H + 'px)'
+    var ms = performance.now() - t0
+    msgCount++; times.push(ms); if (times.length > 22) times.shift()
+    var visStart = Math.floor(vp.scrollTop / ROW_H) + 1
+    setText('t-range', 'r' + fmt(visStart) + '–' + fmt(Math.min(ROWS, visStart + vis - 1)))
+    setText('t-dom', String(end - start))
+    document.getElementById('t-ms').innerHTML = ms.toFixed(1) + '<small>ms</small>'
+    setText('t-msg', fmt(msgCount))
+    setText('t-sum', '¥' + fmt(Math.round(grandTotal)))
+    var max = Math.max.apply(null, times)
+    document.getElementById('spark').innerHTML = times.map(function (t) {
+      return '<i style="height:' + Math.max(2, Math.round(t / max * 18)) + 'px"></i>'
+    }).join('')
+  }
+  var ticking = false
+  vp.addEventListener('scroll', function () {
+    markDone('s1')
+    if (!ticking) { ticking = true; requestAnimationFrame(function () { ticking = false; render(false) }) }
+  })
+  window.addEventListener('resize', function () { render(true) })
+
+  function markDone(id) { document.getElementById(id).classList.add('done') }
+  function flashCell(r, c) {
+    var el = layer.querySelector('[data-rc="' + r + ',' + c + '"]')
+    if (el) { el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash') }
+  }
+  function jumpTo(addr) {
+    var m = /^([A-Ha-h])([0-9]{1,6})$/.exec(addr.trim())
+    if (!m) return
+    var c = LETTERS.indexOf(m[1].toUpperCase()), row = Math.min(ROWS, +m[2]) - 1
+    vp.scrollTop = Math.max(0, row * ROW_H - vp.clientHeight / 2)
+    var left = GUT; for (var i = 0; i < c; i++) left += CW[i]
+    if (left + CW[c] > vp.scrollLeft + vp.clientWidth || left < vp.scrollLeft + GUT) vp.scrollLeft = Math.max(0, left - GUT - 40)
+    render(false); flashCell(row, c)
+    document.getElementById('fxbar').textContent = LETTERS[c] + (row + 1) + (c === 6 && row > 0 ? '  =E' + (row + 1) + '*F' + (row + 1) : '')
+    markDone('s2')
+  }
+  document.getElementById('jump').addEventListener('click', function () { jumpTo(document.getElementById('namebox').value || 'F45000') })
+  document.getElementById('namebox').addEventListener('keydown', function (e) { if (e.key === 'Enter') jumpTo(e.target.value) })
+  document.getElementById('do-jump').addEventListener('click', function () {
+    document.getElementById('namebox').value = 'F45000'; jumpTo('F45000')
+  })
+  document.getElementById('do-edit').addEventListener('click', function () {
+    var r = 44999, oldAmt = qty(r) * price(r)
+    edits.set(r, qty(r) + 10)
+    grandTotal += qty(r) * price(r) - oldAmt
+    jumpTo('E45000'); render(true)
+    flashCell(r, 4); flashCell(r, 6)
+    document.getElementById('fxbar').textContent = 'E45000 → ' + qty(r) + ' · 重算触碰 2 格 + 1 聚合'
+    markDone('s3')
+  })
+  document.getElementById('height-toggle').addEventListener('click', function () {
+    vp.classList.toggle('tall')
+    this.textContent = vp.classList.contains('tall') ? '视口还原' : '视口加高'
+    render(true)
+  })
+  render(true)
+})()
+</script>
+
+</body>
+</html>

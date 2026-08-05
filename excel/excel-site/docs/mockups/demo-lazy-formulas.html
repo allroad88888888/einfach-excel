@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>只算用得着的 · einfach 设计稿</title>
+<style>
+:root {
+  --bg: #f2f4f0; --surface: #fbfcfa; --ink: #1c2420; --ink2: #4d5c54;
+  --muted: #74847b; --line: #dde3dc; --accent: #17754f; --accent-soft: rgba(23,117,79,.1);
+  --paper: #ffffff; --paper-ink: #232a24; --paper-line: #e7eae4; --paper-head: #f2f4ee;
+  --paper-edge: #d4dacf; --hud-bg: #1a2125; --hud-ink: #e6ebe7; --hud-muted: #8da199;
+  --hud-line: #2b3539; --hud-accent: #43c78f; --flash: rgba(23,117,79,.25);
+  --err: #b0430f;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12171a; --surface: #1a2125; --ink: #e6ebe7; --ink2: #a9b6af;
+    --muted: #71807a; --line: #28322f; --accent: #43c78f; --accent-soft: rgba(67,199,143,.12);
+    --paper-edge: #38423e; --err: #e0723a;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12171a; --surface: #1a2125; --ink: #e6ebe7; --ink2: #a9b6af;
+  --muted: #71807a; --line: #28322f; --accent: #43c78f; --accent-soft: rgba(67,199,143,.12);
+  --paper-edge: #38423e; --err: #e0723a;
+}
+:root[data-theme="light"] {
+  --bg: #f2f4f0; --surface: #fbfcfa; --ink: #1c2420; --ink2: #4d5c54;
+  --muted: #74847b; --line: #dde3dc; --accent: #17754f; --accent-soft: rgba(23,117,79,.1);
+  --paper-edge: #d4dacf; --err: #b0430f;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink);
+  font: 16px/1.65 -apple-system, "PingFang SC", "Segoe UI", "Microsoft YaHei", sans-serif; }
+.mono, code, .fx-input, .cellref { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+a { color: var(--accent); text-decoration: none; }
+a:hover, a:focus-visible { text-decoration: underline; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.site-head { display: flex; align-items: center; gap: 20px; max-width: 1120px; margin: 0 auto; padding: 18px 24px; }
+.brand { font-weight: 700; letter-spacing: .02em; font-size: 17px; }
+.brand .dot { color: var(--accent); }
+.site-nav { display: flex; gap: 18px; margin-left: auto; font-size: 14px; color: var(--ink2); }
+.site-nav .planned { color: var(--muted); cursor: default; }
+.site-nav .planned::after { content: " ·规划中"; font-size: 11px; }
+.ribbon { background: var(--accent-soft); color: var(--ink2); font-size: 12.5px; text-align: center; padding: 6px 16px; border-block: 1px solid var(--line); }
+.ribbon b { color: var(--accent); font-weight: 600; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px 72px; }
+.crumbs { font-size: 13px; color: var(--muted); margin: 26px 0 6px; }
+.crumbs .namebox { font-family: ui-monospace, Menlo, monospace; font-size: 12px; border: 1px solid var(--line); background: var(--surface); padding: 2px 8px; border-radius: 3px; margin-right: 10px; color: var(--ink2); }
+h1 { font-size: 34px; line-height: 1.25; margin: 4px 0 10px; letter-spacing: -.01em; text-wrap: balance; }
+.lede { max-width: 62ch; color: var(--ink2); margin: 0 0 8px; }
+code { font-size: .88em; background: var(--surface); border: 1px solid var(--line); border-radius: 3px; padding: 1px 5px; }
+
+.demo-split { display: grid; grid-template-columns: minmax(0,1fr) 252px; gap: 18px; margin-top: 26px; }
+@media (max-width: 900px) { .demo-split { grid-template-columns: 1fr; } }
+
+.fx-card { background: var(--paper); color: var(--paper-ink); border: 1px solid var(--paper-edge); border-radius: 8px; box-shadow: 0 1px 2px rgba(15,26,20,.06), 0 8px 24px rgba(15,26,20,.05); overflow: hidden; }
+.fx-head { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 10px 12px; background: var(--paper-head); border-bottom: 1px solid var(--paper-line); font-size: 13px; color: #5a655b; }
+.fx-head select { font: 13px ui-monospace, Menlo, monospace; padding: 4px 6px; border: 1px solid var(--paper-edge); border-radius: 4px; background: var(--paper); color: var(--paper-ink); }
+.fx-body { padding: 18px 18px 8px; }
+.fx-line { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 17px; line-height: 1.5; overflow-x: auto; white-space: nowrap; padding-bottom: 6px; }
+.fx-line .crit { color: var(--accent); font-weight: 700; }
+.fx-result { display: flex; flex-wrap: wrap; gap: 28px; padding: 8px 0 14px; }
+.fx-result .r .k { font-size: 12px; color: #77816f; }
+.fx-result .r .v { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-variant-numeric: tabular-nums; font-size: 26px; }
+
+.barrow { padding: 4px 18px 18px; }
+.barrow .cap { display: flex; justify-content: space-between; font-size: 12px; color: #77816f; margin-bottom: 6px; }
+.barrow .cap b { color: var(--accent); }
+.bar { position: relative; height: 14px; background: var(--paper-head); border: 1px solid var(--paper-line); border-radius: 4px; overflow: hidden; }
+.bar .fill { position: absolute; inset: 0 auto 0 0; background: var(--accent); border-radius: 3px 4px 4px 3px; min-width: 3px; }
+
+.sheet-card { margin-top: 18px; border: 1px solid var(--paper-edge); border-radius: 8px; overflow: hidden; background: var(--paper); box-shadow: 0 1px 2px rgba(15,26,20,.06); }
+.sheet-toolbar { display: flex; gap: 10px; align-items: center; padding: 8px 10px; background: var(--paper-head); border-bottom: 1px solid var(--paper-line); font-size: 12px; color: #6b756c; }
+.sheet-toolbar input { font: 12.5px ui-monospace, Menlo, monospace; width: 110px; border: 1px solid var(--paper-edge); border-radius: 4px; padding: 4px 8px; background: var(--paper); color: var(--paper-ink); }
+.sheet-toolbar button, .steps button { font: 600 12.5px/1 -apple-system, "PingFang SC", sans-serif; color: var(--accent); background: var(--paper); border: 1px solid var(--paper-edge); border-radius: 4px; padding: 6px 10px; cursor: pointer; }
+.viewport { position: relative; height: 300px; overflow: auto; background: var(--paper); color: var(--paper-ink); }
+.spacer { position: absolute; top: 0; left: 0; width: 1px; }
+.colhead { position: sticky; top: 0; z-index: 3; display: flex; background: var(--paper-head); border-bottom: 1px solid var(--paper-edge); width: max-content; }
+.colhead .c { font: 600 10px/18px ui-monospace, Menlo, monospace; color: #77816f; text-align: center; border-right: 1px solid var(--paper-line); }
+.colhead .gut { position: sticky; left: 0; background: var(--paper-head); z-index: 4; }
+.layer { position: absolute; left: 0; will-change: transform; width: max-content; }
+.r { display: flex; height: 17px; width: max-content; }
+.r .gut { position: sticky; left: 0; z-index: 2; width: 84px; flex: none; font: 500 10px/16px ui-monospace, Menlo, monospace; color: #949e93; text-align: right; padding-right: 8px; background: var(--paper-head); border-right: 1px solid var(--paper-edge); border-bottom: 1px solid var(--paper-line); }
+.cell { flex: none; font-size: 11px; line-height: 16px; padding: 0 8px; border-right: 1px solid var(--paper-line); border-bottom: 1px solid var(--paper-line); white-space: nowrap; overflow: hidden; }
+.cell.num { text-align: right; font-family: ui-monospace, Menlo, monospace; font-variant-numeric: tabular-nums; }
+.cell.has { background: var(--accent-soft); }
+.cell.flash { animation: flash 1.6s ease-out; outline: 2px solid var(--accent); outline-offset: -2px; }
+@keyframes flash { from { background: var(--flash); } to { background: transparent; } }
+@media (prefers-reduced-motion: reduce) { .cell.flash { animation: none; } }
+
+.hud { background: var(--hud-bg); color: var(--hud-ink); border-radius: 8px; padding: 16px 16px 12px; align-self: start; }
+.hud h2 { font-size: 11px; font-weight: 600; letter-spacing: .14em; color: var(--hud-muted); margin: 0 0 12px; text-transform: uppercase; }
+.tile { padding: 9px 0 7px; border-top: 1px solid var(--hud-line); }
+.tile:first-of-type { border-top: 0; padding-top: 0; }
+.tile .k { font-size: 12px; color: var(--hud-muted); }
+.tile .v { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-variant-numeric: tabular-nums; font-size: 21px; line-height: 1.3; }
+.tile .v small { font-size: 12px; color: var(--hud-muted); margin-left: 4px; }
+.tile .v .hi { color: var(--hud-accent); }
+.tile .v .dim { color: var(--hud-muted); }
+.hud .note { font-size: 11.5px; color: var(--hud-muted); margin-top: 10px; line-height: 1.5; }
+
+.steps { margin-top: 34px; }
+.steps h2, .how h2, .gate h2 { font-size: 20px; margin: 0 0 4px; }
+.steps .sub, .how .sub, .gate .sub { color: var(--muted); font-size: 13.5px; margin: 0 0 16px; }
+.steps ol { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 0; padding: 0; }
+.steps li { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; }
+.steps li.done { border-color: var(--accent); }
+.steps .st { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14.5px; }
+.steps .badge { flex: none; width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--muted); font: 700 11px/18px ui-monospace, Menlo, monospace; text-align: center; color: var(--muted); }
+.steps li.done .badge { background: var(--accent); border-color: var(--accent); color: #fff; }
+.steps p { font-size: 13px; color: var(--ink2); margin: 8px 0 10px; }
+.steps button { background: var(--surface); border-color: var(--line); }
+
+.gate { margin-top: 40px; }
+.gate-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+.gate-card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; font-size: 13.5px; }
+.gate-card .fxl { font-family: ui-monospace, Menlo, monospace; font-size: 14px; margin-bottom: 6px; }
+.gate-card .tag { display: inline-block; font: 600 11px/1 ui-monospace, Menlo, monospace; padding: 3px 7px; border-radius: 3px; margin-bottom: 8px; }
+.gate-card.ok .tag { color: var(--accent); background: var(--accent-soft); }
+.gate-card.err .tag { color: var(--err); background: color-mix(in srgb, var(--err) 12%, transparent); }
+.gate-card p { margin: 4px 0 0; color: var(--ink2); }
+.gate blockquote { margin: 16px 0 0; padding: 10px 16px; border-left: 3px solid var(--accent); background: var(--surface); font-size: 14px; color: var(--ink2); max-width: 60ch; }
+
+.how { margin-top: 40px; max-width: 68ch; }
+.how p { color: var(--ink2); font-size: 14.5px; }
+.how .src { font-size: 13px; color: var(--muted); }
+.foot { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted); }
+</style>
+
+</head>
+<body>
+<header class="site-head">
+  <span class="brand">einfach<span class="dot">·</span>excel</span>
+  <nav class="site-nav">
+    <a href="index.html" data-nav="home">首页</a>
+    <a href="index.html#demos" data-nav="demos">演示</a>
+    <span class="planned">文档</span>
+    <span class="planned">API</span>
+  </nav>
+</header>
+<div class="ribbon"><b>设计稿 M0</b> · 本页的 SUMIF 与「摊平对照」都在页内真算（无 worker/WASM）；真实站点由引擎的遍历计数端口驱动</div>
+
+<main class="wrap">
+  <p class="crumbs"><span class="namebox">A3</span>演示 / 只算用得着的</p>
+  <h1>只算用得着的</h1>
+  <p class="lede">
+    一张 <b>1,048,576 行</b>的表——Excel 一整列的高度——里只有 <b>8,192 个</b>真实数据。
+    整列公式 <code>=SUMIF(A:A,…,B:B)</code> 名义上覆盖一百万格，
+    引擎的稀疏路径只遍历真实存在的那些。右侧仪表盘给出证据。
+  </p>
+
+  <div class="demo-split">
+    <div>
+      <div class="fx-card">
+        <div class="fx-head">
+          <span>条件（SUMIF 的第 2 参）</span>
+          <select id="crit" aria-label="选择 SUMIF 条件">
+            <option value="电子" selected>"电子"</option>
+            <option value="家居">"家居"</option>
+            <option value="服饰">"服饰"</option>
+            <option value="食品">"食品"</option>
+          </select>
+        </div>
+        <div class="fx-body">
+          <div class="fx-line">=SUMIF(A:A,<span class="crit" id="fx-crit">"电子"</span>,B:B)</div>
+          <div class="fx-result">
+            <div class="r"><div class="k">SUMIF 结果</div><div class="v" id="r-sum">–</div></div>
+            <div class="r"><div class="k">=COUNTIF(A:A,同条件)</div><div class="v" id="r-cnt">–</div></div>
+          </div>
+        </div>
+        <div class="barrow">
+          <div class="cap"><span>名义区域 1,048,576 格</span><span>实际遍历 <b id="bar-touch">8,192</b> 格 · <b id="bar-pct">0.78%</b></span></div>
+          <div class="bar"><div class="fill" id="bar-fill" style="width:0.78%"></div></div>
+        </div>
+      </div>
+
+      <div class="sheet-card">
+        <div class="sheet-toolbar">
+          <span>微缩视图 · 1,048,576 行（行高 17px，是刻意的：让「几乎全空」看得见）</span>
+          <input id="rowbox" placeholder="987654" aria-label="跳转到行号" />
+          <button id="jump">跳到该行</button>
+        </div>
+        <div class="viewport" id="vp" tabindex="0" aria-label="稀疏百万行表格，可滚动">
+          <div class="colhead" id="colhead"></div>
+          <div class="spacer" id="spacer"></div>
+          <div class="layer" id="layer"></div>
+        </div>
+      </div>
+    </div>
+
+    <aside class="hud" aria-label="求值仪表盘">
+      <h2>求值仪表盘</h2>
+      <div class="tile"><div class="k">名义区域（A:A 两列各）</div><div class="v">1,048,576<small>格</small></div></div>
+      <div class="tile"><div class="k">真实存在的数据</div><div class="v"><span class="hi" id="t-touch">8,192</span><small>格</small></div></div>
+      <div class="tile"><div class="k">本次求值遍历</div><div class="v"><span class="hi" id="t-visit">–</span><small>格</small></div></div>
+      <div class="tile"><div class="k">稀疏路径耗时</div><div class="v" id="t-ms">–<small>ms</small></div></div>
+      <div class="tile"><div class="k">摊平对照（构造 + 全量扫描）</div>
+        <div class="v" id="t-naive"><span class="dim">未运行</span></div></div>
+      <p class="note">真实实现里，「遍历格数」来自引擎稀疏孪生的计数端口；此设计稿在页内等价重现算法路径。</p>
+    </aside>
+  </div>
+
+  <section class="steps">
+    <h2>试试这个</h2>
+    <p class="sub">每一步做完会自动打勾。</p>
+    <ol>
+      <li id="s1"><div class="st"><span class="badge">1</span>换一个条件</div>
+        <p>上方下拉换成 "家居"——结果与命中数变化，遍历格数<b>不变</b>：稀疏路径的成本只与真实数据量相关。</p></li>
+      <li id="s2"><div class="st"><span class="badge">2</span>往深处写一格</div>
+        <p>在第 987,654 行写入一条当前条件的数据。SUMIF 更新，遍历数只 +1。</p>
+        <button id="do-write">在 987,654 行写入</button></li>
+      <li id="s3"><div class="st"><span class="badge">3</span>跑一次摊平对照</div>
+        <p>把整列摊平成 1,048,576 格再全量扫描（页内真跑一遍），和稀疏路径比耗时。</p>
+        <button id="do-naive">运行摊平对照</button></li>
+    </ol>
+  </section>
+
+  <section class="gate">
+    <h2>另一半机制：物化闸门</h2>
+    <p class="sub">稀疏路径解决「聚合类」整列公式；对必须整块摊平的函数，引擎在物化口设闸。</p>
+    <div class="gate-grid">
+      <div class="gate-card ok">
+        <div class="fxl">=SUMIF(A:A,"电子",B:B)</div>
+        <span class="tag">✓ 稀疏路径求值</span>
+        <p>聚合函数不需要把整列摊成数组——逐真实格遍历即可，一百万格的名义区域只是几何，不是成本。</p>
+      </div>
+      <div class="gate-card err">
+        <div class="fxl">=SORT(A:A)</div>
+        <span class="tag">#NUM! 拒绝物化</span>
+        <p>排序必须拿到整块矩形。超过上限的物化请求被闸门以带外标记拒绝，折成标量错误冒出——而不是挂死 worker。</p>
+      </div>
+    </div>
+    <blockquote>闸门的不变式：一个矩形物化得动，当且仅当它作为数组结果落得了地。落不了地的，物化它纯属白干。—— range-gate.ts</blockquote>
+  </section>
+
+  <section class="how">
+    <h2>它是怎么做到的</h2>
+    <p>
+      整列引用在求值器里保持为<b>几何描述</b>而非数据：条件聚合家族走稀疏孪生（只遍历存量单元格），
+      需要整块物化的函数则经过物化闸门审查。两条路径共用同一套引用几何，
+      所以 <code>A:A</code> 写起来和 Excel 一样，跑起来和数据量一样。
+    </p>
+    <p class="src">源码：excel-core-ts/src/eval/sparse-single-criterion.ts · eval/range-gate.ts · rust/excel-core/src/eval_criteria_family.rs（设计稿中不可点）</p>
+  </section>
+
+  <p class="foot">einfach excel · 站点重构设计稿 · 对应提案 excel/excel-site/docs/SITE_REBUILD_PLAN_2026-08-04.md</p>
+</main>
+
+<script>
+(function () {
+  'use strict'
+  var N = 1048576, FILL = 8192, ROW_H = 17, OVERSCAN = 6, GUT = 84
+  var CW = [96, 110]
+  var CATS = ['电子', '家居', '服饰', '食品']
+  function h32(n) { n = (n ^ 61) ^ (n >>> 16); n = (n + (n << 3)) | 0; n ^= n >>> 4; n = Math.imul(n, 0x27d4eb2d); n ^= n >>> 15; return n >>> 0 }
+  var data = new Map()
+  for (var i = 1; i <= FILL; i++) {
+    var r = h32(i * 2654435761 >>> 0) % N
+    while (data.has(r)) r = (r + 9973) % N
+    data.set(r, { cat: CATS[h32(i * 7 + 1) % 4], amt: (h32(i * 13 + 5) % 1000000) / 100 })
+  }
+
+  function fmt(n) { return n.toLocaleString('en-US') }
+  function setText(id, s) { document.getElementById(id).textContent = s }
+  var crit = '电子'
+  function evaluate() {
+    var t0 = performance.now(), sum = 0, cnt = 0, visited = 0
+    data.forEach(function (v) { visited++; if (v.cat === crit) { sum += v.amt; cnt++ } })
+    var ms = performance.now() - t0
+    setText('r-sum', fmt(Math.round(sum * 100) / 100))
+    setText('r-cnt', fmt(cnt))
+    setText('t-visit', fmt(visited))
+    setText('t-touch', fmt(data.size))
+    setText('bar-touch', fmt(data.size))
+    var pct = data.size / N * 100
+    setText('bar-pct', pct.toFixed(2) + '%')
+    document.getElementById('bar-fill').style.width = Math.max(pct, 0.3) + '%'
+    document.getElementById('t-ms').innerHTML = ms.toFixed(2) + '<small>ms</small>'
+  }
+  document.getElementById('crit').addEventListener('change', function () {
+    crit = this.value
+    setText('fx-crit', '"' + crit + '"')
+    evaluate()
+    document.getElementById('s1').classList.add('done')
+  })
+
+  // ---- 微缩虚拟网格（1,048,576 行 × 2 列）----
+  var vp = document.getElementById('vp'), layer = document.getElementById('layer')
+  var spacer = document.getElementById('spacer'), colhead = document.getElementById('colhead')
+  var totalW = GUT + CW[0] + CW[1]
+  spacer.style.height = N * ROW_H + 'px'; spacer.style.width = totalW + 'px'
+  colhead.innerHTML = '<div class="c gut" style="width:' + GUT + 'px"></div>' +
+    '<div class="c" style="width:' + CW[0] + 'px">A · 品类</div>' +
+    '<div class="c" style="width:' + CW[1] + 'px">B · 金额</div>'
+  var lastStart = -1, lastEnd = -1
+  function render(force) {
+    var start = Math.max(0, Math.floor(vp.scrollTop / ROW_H) - OVERSCAN)
+    var vis = Math.ceil(vp.clientHeight / ROW_H) + 1
+    var end = Math.min(N, start + vis + OVERSCAN * 2)
+    if (!force && start === lastStart && end === lastEnd) return
+    lastStart = start; lastEnd = end
+    var html = ''
+    for (var r = start; r < end; r++) {
+      var d = data.get(r)
+      html += '<div class="r"><div class="gut">' + fmt(r + 1) + '</div>' +
+        '<div class="cell' + (d ? ' has' : '') + '" data-rc="' + r + ',0" style="width:' + CW[0] + 'px">' + (d ? d.cat : '') + '</div>' +
+        '<div class="cell num' + (d ? ' has' : '') + '" data-rc="' + r + ',1" style="width:' + CW[1] + 'px">' + (d ? d.amt.toFixed(2) : '') + '</div></div>'
+    }
+    layer.innerHTML = html
+    layer.style.transform = 'translateY(' + start * ROW_H + 'px)'
+  }
+  var ticking = false
+  vp.addEventListener('scroll', function () {
+    if (!ticking) { ticking = true; requestAnimationFrame(function () { ticking = false; render(false) }) }
+  })
+  function jumpToRow(row) {
+    row = Math.min(N, Math.max(1, row)) - 1
+    vp.scrollTop = Math.max(0, row * ROW_H - vp.clientHeight / 2)
+    render(false)
+    var el = layer.querySelector('[data-rc="' + row + ',0"]')
+    if (el) { el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash') }
+  }
+  document.getElementById('jump').addEventListener('click', function () {
+    jumpToRow(parseInt(document.getElementById('rowbox').value, 10) || 987654)
+  })
+  document.getElementById('rowbox').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') jumpToRow(parseInt(e.target.value, 10) || 987654)
+  })
+
+  document.getElementById('do-write').addEventListener('click', function () {
+    data.set(987653, { cat: crit, amt: 888.88 })
+    evaluate(); render(true); jumpToRow(987654)
+    document.getElementById('s2').classList.add('done')
+  })
+
+  document.getElementById('do-naive').addEventListener('click', function () {
+    var t0 = performance.now()
+    var cats = new Uint8Array(N), amts = new Float64Array(N)
+    data.forEach(function (v, r) { cats[r] = CATS.indexOf(v.cat) + 1; amts[r] = v.amt })
+    var t1 = performance.now()
+    var code = CATS.indexOf(crit) + 1, sum = 0
+    for (var r = 0; r < N; r++) if (cats[r] === code) sum += amts[r]
+    var t2 = performance.now()
+    document.getElementById('t-naive').innerHTML =
+      (t1 - t0).toFixed(1) + '<small>ms</small> + ' + (t2 - t1).toFixed(1) + '<small>ms</small>'
+    document.getElementById('s3').classList.add('done')
+  })
+
+  setText('fx-crit', '"' + crit + '"')
+  evaluate()
+  render(true)
+})()
+</script>
+
+</body>
+</html>

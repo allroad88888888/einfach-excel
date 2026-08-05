@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>编辑与撤销 · einfach 设计稿</title>
+<style>
+:root {
+  --bg: #f2f4f0; --surface: #fbfcfa; --ink: #1c2420; --ink2: #4d5c54;
+  --muted: #74847b; --line: #dde3dc; --accent: #17754f; --accent-soft: rgba(23,117,79,.1);
+  --paper: #ffffff; --paper-ink: #232a24; --paper-line: #e7eae4; --paper-head: #f2f4ee;
+  --paper-edge: #d4dacf; --hud-bg: #1a2125; --hud-ink: #e6ebe7; --hud-muted: #8da199;
+  --hud-line: #2b3539; --hud-accent: #43c78f; --flash: rgba(23,117,79,.25);
+  --warn: #a25b0c;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12171a; --surface: #1a2125; --ink: #e6ebe7; --ink2: #a9b6af;
+    --muted: #71807a; --line: #28322f; --accent: #43c78f; --accent-soft: rgba(67,199,143,.12);
+    --paper-edge: #38423e;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12171a; --surface: #1a2125; --ink: #e6ebe7; --ink2: #a9b6af;
+  --muted: #71807a; --line: #28322f; --accent: #43c78f; --accent-soft: rgba(67,199,143,.12);
+  --paper-edge: #38423e;
+}
+:root[data-theme="light"] {
+  --bg: #f2f4f0; --surface: #fbfcfa; --ink: #1c2420; --ink2: #4d5c54;
+  --muted: #74847b; --line: #dde3dc; --accent: #17754f; --accent-soft: rgba(23,117,79,.1);
+  --paper-edge: #d4dacf;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 16px/1.65 -apple-system, "PingFang SC", "Segoe UI", "Microsoft YaHei", sans-serif;
+}
+.mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+a { color: var(--accent); text-decoration: none; }
+a:hover, a:focus-visible { text-decoration: underline; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.site-head {
+  display: flex; align-items: center; gap: 20px;
+  max-width: 1120px; margin: 0 auto; padding: 18px 24px;
+}
+.brand { font-weight: 700; letter-spacing: .02em; font-size: 17px; color: var(--ink); }
+.brand .dot { color: var(--accent); }
+.site-nav { display: flex; gap: 18px; margin-left: auto; font-size: 14px; color: var(--ink2); }
+.site-nav .planned { color: var(--muted); cursor: default; }
+.site-nav .planned::after { content: " ·规划中"; font-size: 11px; color: var(--muted); }
+.ribbon {
+  background: var(--accent-soft); color: var(--ink2); font-size: 12.5px;
+  text-align: center; padding: 6px 16px; border-block: 1px solid var(--line);
+}
+.ribbon b { color: var(--accent); font-weight: 600; }
+
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px 72px; }
+.crumbs { font-size: 13px; color: var(--muted); margin: 26px 0 6px; }
+.crumbs .namebox {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px;
+  border: 1px solid var(--line); background: var(--surface);
+  padding: 2px 8px; border-radius: 3px; margin-right: 10px; color: var(--ink2);
+}
+h1 { font-size: 34px; line-height: 1.25; margin: 4px 0 10px; letter-spacing: -.01em; text-wrap: balance; }
+.lede { max-width: 62ch; color: var(--ink2); margin: 0 0 8px; }
+.lede code, .how code {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .88em;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 3px; padding: 1px 5px;
+}
+
+.demo-split { display: grid; grid-template-columns: minmax(0,1fr) 252px; gap: 18px; margin-top: 26px; }
+@media (max-width: 900px) { .demo-split { grid-template-columns: 1fr; } }
+
+.sheet-card { border: 1px solid var(--paper-edge); border-radius: 8px; overflow: hidden; background: var(--paper); box-shadow: 0 1px 2px rgba(15,26,20,.06), 0 8px 24px rgba(15,26,20,.05); }
+.sheet-toolbar { display: flex; gap: 10px; align-items: center; padding: 8px 10px; background: var(--paper-head); border-bottom: 1px solid var(--paper-line); }
+.sheet-toolbar input {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12.5px; width: 92px;
+  border: 1px solid var(--paper-edge); border-radius: 4px; padding: 4px 8px; background: var(--paper); color: var(--paper-ink);
+}
+.sheet-toolbar button, .steps button {
+  font: 600 12.5px/1 -apple-system, "PingFang SC", sans-serif; color: var(--accent);
+  background: var(--paper); border: 1px solid var(--paper-edge); border-radius: 4px;
+  padding: 6px 10px; cursor: pointer;
+}
+.sheet-toolbar .fx { color: #6b756c; font-size: 12px; margin-left: auto; font-family: ui-monospace, Menlo, monospace; }
+.viewport { position: relative; height: 430px; overflow: auto; background: var(--paper); color: var(--paper-ink); }
+.viewport.tall { height: 620px; }
+.spacer { position: absolute; top: 0; left: 0; width: 1px; }
+.colhead { position: sticky; top: 0; z-index: 3; display: flex; background: var(--paper-head); border-bottom: 1px solid var(--paper-edge); width: max-content; }
+.colhead .c { font: 600 11px/23px ui-monospace, Menlo, monospace; color: #77816f; text-align: center; border-right: 1px solid var(--paper-line); }
+.colhead .gut { position: sticky; left: 0; background: var(--paper-head); z-index: 4; }
+.layer { position: absolute; left: 0; will-change: transform; width: max-content; }
+.r { display: flex; height: 24px; width: max-content; }
+.r .gut {
+  position: sticky; left: 0; z-index: 2; width: 64px; flex: none;
+  font: 500 11px/23px ui-monospace, Menlo, monospace; color: #949e93; text-align: center;
+  background: var(--paper-head); border-right: 1px solid var(--paper-edge); border-bottom: 1px solid var(--paper-line);
+}
+.cell {
+  flex: none; font-size: 12.5px; line-height: 23px; padding: 0 8px;
+  border-right: 1px solid var(--paper-line); border-bottom: 1px solid var(--paper-line);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cell.num { text-align: right; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; font-variant-numeric: tabular-nums; }
+.r.head .cell { font-weight: 600; background: #fbfcf9; color: #454e44; }
+.cell.flash { animation: flash 1.6s ease-out; outline: 2px solid var(--accent); outline-offset: -2px; }
+@keyframes flash { from { background: var(--flash); } to { background: transparent; } }
+@media (prefers-reduced-motion: reduce) { .cell.flash { animation: none; } }
+
+.hud { background: var(--hud-bg); color: var(--hud-ink); border-radius: 8px; padding: 16px 16px 12px; align-self: start; }
+.hud h2 { font-size: 11px; font-weight: 600; letter-spacing: .14em; color: var(--hud-muted); margin: 0 0 12px; text-transform: uppercase; }
+.tile { padding: 9px 0 7px; border-top: 1px solid var(--hud-line); }
+.tile:first-of-type { border-top: 0; padding-top: 0; }
+.tile .k { font-size: 12px; color: var(--hud-muted); }
+.tile .v { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-variant-numeric: tabular-nums; font-size: 21px; line-height: 1.3; color: var(--hud-ink); }
+.tile .v small { font-size: 12px; color: var(--hud-muted); margin-left: 4px; }
+.tile .v .hi { color: var(--hud-accent); }
+.spark { display: flex; align-items: flex-end; gap: 2px; height: 18px; margin-top: 6px; }
+.spark i { flex: 1 0 4px; background: var(--hud-accent); border-radius: 1px 1px 0 0; min-height: 2px; opacity: .85; }
+.hud .note { font-size: 11.5px; color: var(--hud-muted); margin-top: 10px; line-height: 1.5; }
+
+.steps { margin-top: 34px; }
+.steps h2, .how h2 { font-size: 20px; margin: 0 0 4px; }
+.steps .sub, .how .sub { color: var(--muted); font-size: 13.5px; margin: 0 0 16px; }
+.steps ol { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 0; padding: 0; }
+.steps li { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; }
+.steps li.done { border-color: var(--accent); }
+.steps .st { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14.5px; }
+.steps .badge {
+  flex: none; width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--muted);
+  font: 700 11px/18px ui-monospace, Menlo, monospace; text-align: center; color: var(--muted);
+}
+.steps li.done .badge { background: var(--accent); border-color: var(--accent); color: #fff; }
+.steps p { font-size: 13px; color: var(--ink2); margin: 8px 0 10px; }
+.steps button { background: var(--surface); border-color: var(--line); }
+.steps li.done button { color: var(--muted); }
+
+.how { margin-top: 40px; max-width: 68ch; }
+.how p { color: var(--ink2); font-size: 14.5px; }
+.how .src { font-size: 13px; color: var(--muted); }
+.foot { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted); }
+</style>
+
+</head>
+<body>
+<header class="site-head">
+  <span class="brand">einfach<span class="dot">·</span>excel</span>
+  <nav class="site-nav">
+    <a href="index.html" data-nav="home">首页</a>
+    <a href="index.html#demos" data-nav="demos">演示</a>
+    <span class="planned">文档</span>
+    <span class="planned">API</span>
+  </nav>
+</header>
+<div class="ribbon"><b>设计稿 M0</b> · 本页操作栈为页内实现；真实站点 history 有界（上限 100）并经 worker 校验 revision</div>
+
+<main class="wrap">
+<p class="crumbs"><span class="namebox">A8</span>演示 / 编辑与撤销</p>
+<h1>每一步都能反悔</h1>
+<p class="lede">点格直改、TSV 批量粘贴、条件批量格式——三种粒度的修改进同一条 undo 栈，撤销/重做逐步回放。</p>
+
+<div class="demo-split">
+  <div class="sheet-card">
+    <div class="sheet-toolbar">
+      <button id="btnPaste">粘贴 3×3 TSV</button>
+      <button id="btnHigh">高亮 工时>30</button>
+      <button id="btnUndo">撤销</button>
+      <button id="btnRedo">重做</button>
+    </div>
+    <div class="viewport">
+      <div class="spacer"></div>
+      <div class="colhead">
+        <div class="c gut">·</div>
+        <div class="c" style="width:120px">任务</div>
+        <div class="c" style="width:100px">负责人</div>
+        <div class="c" style="width:80px">状态</div>
+        <div class="c" style="width:60px">工时</div>
+        <div class="c" style="width:80px">备注</div>
+      </div>
+      <div class="layer" id="grid"></div>
+    </div>
+  </div>
+
+  <div class="hud">
+    <h2>操作栈</h2>
+    <div class="tile">
+      <span class="k">栈深</span>
+      <div class="v"><span id="depth">0</span></div>
+    </div>
+    <div class="tile">
+      <span class="k">指针</span>
+      <div class="v"><span id="ptr">0</span></div>
+    </div>
+    <div class="tile">
+      <span class="k">总操作数</span>
+      <div class="v"><span id="total">0</span></div>
+    </div>
+    <div class="tile">
+      <span class="k">最近</span>
+      <div class="v"><small id="recent">—</small></div>
+    </div>
+    <div class="note" id="opLog" style="max-height:140px;overflow-y:auto"></div>
+  </div>
+</div>
+
+<div class="steps">
+  <h2>完成步骤</h2>
+  <ol>
+    <li id="s1">
+      <div class="st"><span class="badge">1</span>编辑一格</div>
+      <p>点击任意格进入编辑，输入新值后按 Enter 提交。</p>
+    </li>
+    <li id="s2">
+      <div class="st"><span class="badge">2</span>批量粘贴</div>
+      <p>从指定格向右下铺开一个 3×3 的 TSV 块。</p>
+      <button id="s2Btn">执行粘贴演示</button>
+    </li>
+    <li id="s3">
+      <div class="st"><span class="badge">3</span>撤销与重做</div>
+      <p>撤销多步后再重做，观察操作栈指针移动。</p>
+      <button id="s3Btn">撤销×2 再重做×1</button>
+    </li>
+  </ol>
+</div>
+
+<div class="how">
+  <h2>它是怎么做到的</h2>
+  <p>真实实现里 history 是有界原子（上限 100），每个操作携带 requestId/revision，worker 拒绝过期写入；批量操作是单个复合 op，undo 原子回放。</p>
+  <p class="src">spreadsheet-ui-core/src/history/ · operations/</p>
+</div>
+
+  <p class="foot">einfach excel · 站点重构设计稿 · 对应提案 excel/excel-site/docs/SITE_REBUILD_PLAN_2026-08-04.md</p>
+</main>
+
+<script>
+'use strict';
+const data = [
+  ['API 设计','Alice','进行中','8','RESTful'],['数据库','Bob','完成','12','PostgreSQL'],['前端框架','Carol','待做','16','React'],['测试套件','David','进行中','24','Jest'],['部署脚本','Eve','完成','10','Docker'],['文档生成','Frank','进行中','6','Sphinx'],['性能优化','Grace','进行中','32','缓存'],['安全审计','Henry','待做','28','OWASP'],['用户认证','Ivy','进行中','20','JWT'],['监控告警','Jack','完成','14','Prometheus'],['备份策略','Kate','待做','18','跨区'],['灾难恢复','Leo','规划中','36','冷备']
+];
+let stack=[], ptr=0, editing=null, highlighted=false, pushCnt=0, undoCnt=0, redoCnt=0, editCnt=0, pasteCnt=0;
+function pushOp(desc,before,after,hl){stack=stack.slice(0,ptr);stack.push({desc,before,after,hl});ptr++;pushCnt++;updateHud();}
+function undo(){if(ptr>0){ptr--;let op=stack[ptr];op.before.forEach(c=>{if(c.r!==undefined)data[c.r][c.c]=c.val;});if(op.hl!==undefined)highlighted=op.hl.b;render();undoCnt++;updateHud();}}
+function redo(){if(ptr<stack.length){let op=stack[ptr];op.after.forEach(c=>{if(c.r!==undefined)data[c.r][c.c]=c.val;});if(op.hl!==undefined)highlighted=op.hl.a;ptr++;redoCnt++;render();updateHud();}}
+function setCellData(r,c,val){let old=data[r][c];data[r][c]=val;pushOp(`R${r+1}C${c+1} ${old} → ${val}`,[{r,c,val:old}],[{r,c,val}]);}
+function render(){document.getElementById('grid').innerHTML='';for(let r=0;r<12;r++){let row=document.createElement('div');row.className='r';row.innerHTML=`<div class="gut">${r+1}</div>`;for(let c=0;c<5;c++){let cell=document.createElement('div');cell.className='cell'+(c===3?' num':'');if(highlighted&&c===3&&parseInt(data[r][3])>30)cell.style.background='var(--accent-soft)';let txt=data[r][c];let btn=document.createElement('button');btn.textContent=txt;btn.style.cssText='all:unset;width:100%;padding:0 8px;line-height:23px;font-size:12.5px;cursor:pointer;text-align:'+(c===3?'right':'left');btn.onmouseenter=()=>btn.style.background='var(--paper-head)';btn.onmouseleave=()=>btn.style.background='transparent';btn.onclick=()=>startEdit(r,c);cell.appendChild(btn);row.appendChild(cell);}document.getElementById('grid').appendChild(row);}}
+function startEdit(r,c){if(editing){cancelEdit();editing=null;}editing={r,c};let cell=document.querySelectorAll('.r')[r].children[c+1];let inp=document.createElement('input');inp.type='text';inp.value=data[r][c];inp.style.cssText='all:unset;width:100%;padding:0 8px;box-sizing:border-box;border:1px solid var(--accent);font-size:12.5px;font-family:inherit';cell.innerHTML='';cell.appendChild(inp);inp.focus();inp.onkeydown=e=>{if(e.key==='Enter'){let newVal=inp.value||'?';if(newVal!==data[r][c]){setCellData(r,c,newVal);editCnt++;}editing=null;render();checkS1();}else if(e.key==='Escape'){editing=null;render();}};inp.onblur=()=>{if(editing){cancelEdit();editing=null;render();}};}
+function cancelEdit(){if(!editing)return;let {r,c}=editing;render();}
+function updateHud(){let log='';for(let i=Math.max(0,stack.length-5);i<stack.length;i++){log+=(i<ptr?'·':'○')+' '+stack[i].desc+'<br>';}document.getElementById('depth').textContent=stack.length;document.getElementById('ptr').textContent=ptr;document.getElementById('total').textContent=pushCnt+undoCnt+redoCnt;document.getElementById('recent').textContent=ptr>0?stack[ptr-1].desc:'—';document.getElementById('opLog').innerHTML=log;}
+function checkS1(){if(editCnt>0)document.getElementById('s1').classList.add('done');}
+function checkS2(){if(pasteCnt>0)document.getElementById('s2').classList.add('done');}
+function checkS3(){if(undoCnt>=2&&redoCnt>=1)document.getElementById('s3').classList.add('done');}
+render();updateHud();
+document.getElementById('btnUndo').onclick=()=>{undo();checkS3();};
+document.getElementById('btnRedo').onclick=()=>{redo();checkS3();};
+document.getElementById('btnPaste').onclick=()=>{if(editing)editing=null;let tsv=[['A1','B1','C1'],['A2','B2','C2'],['A3','B3','C3']];let before=[],after=[];for(let i=0;i<3;i++){for(let j=0;j<3;j++){let r=1+i,c=j;if(r<12&&c<5){before.push({r,c,val:data[r][c]});after.push({r,c,val:tsv[i][j]});data[r][c]=tsv[i][j];}}}pushOp('粘贴 3×3 @ R2C1',before,after);render();pasteCnt++;checkS2();};
+document.getElementById('btnHigh').onclick=()=>{let cnt=0;for(let r=0;r<12;r++)if(parseInt(data[r][3])>30)cnt++;let desc=highlighted?'取消高亮':'批量高亮 '+cnt+' 格';pushOp(desc,[],[],(highlighted?{a:false,b:true}:{a:true,b:false}));highlighted=!highlighted;render();};
+document.getElementById('s2Btn').onclick=()=>document.getElementById('btnPaste').click();
+document.getElementById('s3Btn').onclick=()=>{undo();undo();redo();checkS3();};
+</script>
+
+</body>
+</html>

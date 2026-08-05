@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>溢出、阻塞、循环 · einfach 设计稿</title>
+<style>
+:root {
+  --bg: #f2f4f0; --surface: #fbfcfa; --ink: #1c2420; --ink2: #4d5c54;
+  --muted: #74847b; --line: #dde3dc; --accent: #17754f; --accent-soft: rgba(23,117,79,.1);
+  --paper: #ffffff; --paper-ink: #232a24; --paper-line: #e7eae4; --paper-head: #f2f4ee;
+  --paper-edge: #d4dacf; --hud-bg: #1a2125; --hud-ink: #e6ebe7; --hud-muted: #8da199;
+  --hud-line: #2b3539; --hud-accent: #43c78f; --flash: rgba(23,117,79,.25);
+  --warn: #a25b0c; --error: #c73d1a;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12171a; --surface: #1a2125; --ink: #e6ebe7; --ink2: #a9b6af;
+    --muted: #71807a; --line: #28322f; --accent: #43c78f; --accent-soft: rgba(67,199,143,.12);
+    --paper-edge: #38423e;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12171a; --surface: #1a2125; --ink: #e6ebe7; --ink2: #a9b6af;
+  --muted: #71807a; --line: #28322f; --accent: #43c78f; --accent-soft: rgba(67,199,143,.12);
+  --paper-edge: #38423e;
+}
+:root[data-theme="light"] {
+  --bg: #f2f4f0; --surface: #fbfcfa; --ink: #1c2420; --ink2: #4d5c54;
+  --muted: #74847b; --line: #dde3dc; --accent: #17754f; --accent-soft: rgba(23,117,79,.1);
+  --paper-edge: #d4dacf;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.65 -apple-system, "PingFang SC", "Segoe UI", sans-serif; }
+.mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+a { color: var(--accent); text-decoration: none; }
+a:hover, a:focus-visible { text-decoration: underline; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.site-head { display: flex; align-items: center; gap: 20px; max-width: 1120px; margin: 0 auto; padding: 18px 24px; }
+.brand { font-weight: 700; letter-spacing: .02em; font-size: 17px; color: var(--ink); }
+.brand .dot { color: var(--accent); }
+.site-nav { display: flex; gap: 18px; margin-left: auto; font-size: 14px; color: var(--ink2); }
+.site-nav .planned { color: var(--muted); cursor: default; }
+.site-nav .planned::after { content: " ·规划中"; font-size: 11px; }
+.ribbon { background: var(--accent-soft); color: var(--ink2); font-size: 12.5px; text-align: center; padding: 6px 16px; border-block: 1px solid var(--line); }
+.ribbon b { color: var(--accent); font-weight: 600; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px 72px; }
+.crumbs { font-size: 13px; color: var(--muted); margin: 26px 0 6px; }
+.crumbs .namebox { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; border: 1px solid var(--line); background: var(--surface); padding: 2px 8px; border-radius: 3px; margin-right: 10px; color: var(--ink2); }
+h1 { font-size: 34px; line-height: 1.25; margin: 4px 0 10px; letter-spacing: -.01em; text-wrap: balance; }
+.lede { max-width: 62ch; color: var(--ink2); margin: 0 0 8px; }
+.lede code, .how code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .88em; background: var(--surface); border: 1px solid var(--line); border-radius: 3px; padding: 1px 5px; }
+.demo-split { display: grid; grid-template-columns: minmax(0,1fr) 252px; gap: 18px; margin-top: 26px; }
+@media (max-width: 900px) { .demo-split { grid-template-columns: 1fr; } }
+.sheet-card { border: 1px solid var(--paper-edge); border-radius: 8px; overflow: hidden; background: var(--paper); box-shadow: 0 1px 2px rgba(15,26,20,.06), 0 8px 24px rgba(15,26,20,.05); }
+.sheet-toolbar { display: flex; gap: 10px; align-items: center; padding: 8px 10px; background: var(--paper-head); border-bottom: 1px solid var(--paper-line); }
+.sheet-toolbar .fx { color: #6b756c; font-size: 12px; margin-left: auto; font-family: ui-monospace, Menlo, monospace; }
+.grid-frame { border-top: 1px solid var(--paper-line); display: grid; grid-template-columns: 60px repeat(6,1fr); max-height: 336px; overflow: auto; }
+.grid-head, .grid-row { display: contents; }
+.grid-head > div { font-weight: 600; background: var(--paper-head); border-right: 1px solid var(--paper-line); border-bottom: 1px solid var(--paper-edge); font-size: 11px; color: #77816f; line-height: 26px; text-align: center; padding: 0 4px; }
+.grid-row > div { border-right: 1px solid var(--paper-line); border-bottom: 1px solid var(--paper-line); line-height: 22px; padding: 2px 6px; font-size: 12px; cursor: pointer; }
+.grid-row > div:first-child { background: var(--paper-head); color: #949e93; font-weight: 500; font-family: ui-monospace, Menlo, monospace; }
+.cell-selected { outline: 2px solid var(--accent); outline-offset: -2px; }
+.cell-spill { background: var(--accent-soft); border: 1px dashed var(--accent); }
+.cell-error { color: var(--error); font-weight: 500; }
+.cell-anchor::before { content: "▲"; position: absolute; font-size: 6px; color: var(--accent); top: 1px; }
+.log-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; font-size: 12px; color: var(--ink2); font-family: ui-monospace, Menlo, monospace; line-height: 1.4; min-height: 20px; margin-top: 10px; }
+.hud { background: var(--hud-bg); color: var(--hud-ink); border-radius: 8px; padding: 16px 16px 12px; align-self: start; }
+.hud h2 { font-size: 11px; font-weight: 600; letter-spacing: .14em; color: var(--hud-muted); margin: 0 0 12px; text-transform: uppercase; }
+.tile { padding: 9px 0 7px; border-top: 1px solid var(--hud-line); }
+.tile:first-of-type { border-top: 0; padding-top: 0; }
+.tile .k { font-size: 12px; color: var(--hud-muted); }
+.tile .v { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-variant-numeric: tabular-nums; font-size: 21px; line-height: 1.3; color: var(--hud-ink); }
+.tile .v.hi { color: var(--hud-accent); }
+.steps { margin-top: 34px; }
+.steps h2, .how h2 { font-size: 20px; margin: 0 0 4px; }
+.steps .sub, .how .sub { color: var(--muted); font-size: 13.5px; margin: 0 0 16px; }
+.steps ol { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 0; padding: 0; }
+.steps li { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; }
+.steps li.done { border-color: var(--accent); }
+.steps .st { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14.5px; }
+.steps .badge { flex: none; width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--muted); font: 700 11px/18px ui-monospace, Menlo, monospace; text-align: center; color: var(--muted); }
+.steps li.done .badge { background: var(--accent); border-color: var(--accent); color: #fff; }
+.steps p { font-size: 13px; color: var(--ink2); margin: 8px 0 10px; }
+.steps button { font: 600 12.5px/1 -apple-system, "PingFang SC", sans-serif; color: var(--accent); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 6px 10px; cursor: pointer; }
+.steps li.done button { color: var(--muted); }
+.contrast-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+.contrast-cards .card { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 12px; font-size: 13px; }
+.contrast-cards .card h4 { margin: 0 0 6px; font-size: 13.5px; font-weight: 600; }
+.contrast-cards .card p { margin: 0; color: var(--ink2); }
+.contrast-cards .card code { background: var(--bg); padding: 2px 4px; border-radius: 2px; font-size: .9em; }
+.how { margin-top: 40px; max-width: 68ch; }
+.how p { color: var(--ink2); font-size: 14.5px; }
+.how .src { font-size: 13px; color: var(--muted); }
+.foot { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { .grid-row > div { transition: none; } }
+</style>
+</head>
+<body>
+<header class="site-head">
+  <span class="brand">einfach<span class="dot">·</span>excel</span>
+  <nav class="site-nav">
+    <a href="index.html">首页</a>
+    <a href="index.html#demos">演示</a>
+    <span class="planned">文档</span>
+    <span class="planned">API</span>
+  </nav>
+</header>
+<div class="ribbon"><b>设计稿 M0</b> · 求值为页内模拟的小型状态机；真实站点由 Rust/WASM 引擎求值</div>
+
+<main class="wrap">
+  <p class="crumbs"><span class="namebox">A5</span>演示 / 动态数组与错误几何</p>
+  <h1>溢出、阻塞、循环——错误也是一等公民</h1>
+  <p class="lede">
+    动态数组把一个公式的结果铺满一片区域，充分利用空间。铺不开时就要给出 <code>#SPILL!</code> 而不是静默覆盖或截断；
+    循环依赖要检出成错误而不是死循环。下面的小网格是一个可交互的状态机，每一步都改变了依赖图或几何。
+  </p>
+
+  <div class="demo-split">
+    <div class="sheet-card">
+      <div class="sheet-toolbar">
+        <span class="fx mono" id="fxbar">fx A1</span>
+      </div>
+      <div class="grid-frame" id="grid"></div>
+      <div class="log-panel" id="log">就绪</div>
+    </div>
+
+    <aside class="hud" aria-label="状态仪表盘">
+      <h2>实时统计</h2>
+      <div class="tile"><div class="k">溢出锚点数</div><div class="v hi" id="t-spill">0</div></div>
+      <div class="tile"><div class="k">被阻塞的溢出</div><div class="v hi" id="t-blocked">0</div></div>
+      <div class="tile"><div class="k">检出的依赖环</div><div class="v hi" id="t-cycle">0</div></div>
+      <div class="tile"><div class="k">错误单元格数</div><div class="v hi" id="t-error">0</div></div>
+      <p class="note" style="font-size: 11.5px; color: var(--hud-muted); margin-top: 10px; line-height: 1.5;">真实引擎通过 diagnostics atoms 驱动这些计数。</p>
+    </aside>
+  </div>
+
+  <div class="contrast-cards">
+    <div class="card">
+      <h4>#SPILL! 是几何问题</h4>
+      <p>目标区域被占用。<code>A1:C5</code> 如果 <code>B3</code> 有值，<code>SEQUENCE</code> 无处可溢——返回错误而不是覆盖。</p>
+    </div>
+    <div class="card">
+      <h4>#REF! 循环是拓扑问题</h4>
+      <p>依赖图成环。<code>E5=F5+1</code> 和 <code>F5=E5+1</code> 形成环——检出它，而不是执行死循环。</p>
+    </div>
+  </div>
+
+  <section class="steps">
+    <h2>交互演示</h2>
+    <p class="sub">每一步操作都会改变状态机。两个按钮都点过才算完成步骤。</p>
+    <ol>
+      <li id="s1"><div class="st"><span class="badge">1</span>溢出被阻塞</div>
+        <p>点击「在 B3 写入 999」——A1 的溢出因 B3 有值而触发 #SPILL!。整个溢出区清空。</p>
+        <button id="btn-block">在 B3 写入 999</button>
+        <button id="btn-unblock" style="display:none">清掉 B3</button></li>
+      <li id="s2"><div class="st"><span class="badge">2</span>检出循环依赖</div>
+        <p>E5 和 F5 形成循环：<code>E5=F5+1</code>、<code>F5=E5+1</code>。两格都显示错误。解除循环后恢复。</p>
+        <button id="btn-cycle">制造循环</button>
+        <button id="btn-uncycle" style="display:none">解除循环</button></li>
+      <li id="s3"><div class="st"><span class="badge">3</span>错误传播冒泡</div>
+        <p>D7 依赖 B3：<code>D7=B3*2</code>。若 B3 有值则 D7 显示计算结果；若 B3 被阻塞则 D7 显示 #SPILL!（冒泡）。</p>
+        <button id="btn-prop">演示错误传播</button></li>
+    </ol>
+  </section>
+
+  <section class="how">
+    <h2>它是怎么做到的</h2>
+    <p class="sub">真实实现细节（设计稿中不可点击）。</p>
+    <p>
+      <b>溢出目标格</b>是读取锚点数组的派生 atom，不复制数据。锚点 <code>A1</code> 的 atom 持有 <code>[1,2,3,…,15]</code>，
+      而 <code>A2:C5</code> 的每个格都是一个派生 atom，读 <code>A1</code> 并按索引提取。
+      目标区域冲突检查在求值前做，冲突时 <code>A1</code> 返回 <code>#SPILL!</code>，整个溢出塌缩。
+    </p>
+    <p>
+      <b>循环检测</b>在依赖图层做。维护拓扑排序或着色——深度优先访问时如果碰到已在栈上的节点就检出循环。
+      不是在求值时递归尝试，而是预先检查整张图。
+    </p>
+    <p class="src">源码：rust/excel-core/src/sheet.rs § Spill · excel-core-ts/src/eval/（设计稿中不可点）</p>
+  </section>
+
+  <p class="foot">einfach excel · 站点重构设计稿 · 对应提案 excel/excel-site/docs/SITE_REBUILD_PLAN_2026-08-04.md</p>
+</main>
+
+<script>
+(function () {
+  'use strict'
+  const ROWS = 14, COLS = 6
+  const LETTERS = ['A','B','C','D','E','F']
+  const STATE = {
+    cells: new Map(),
+    spillBlocked: false,
+    cycleActive: false,
+    step1b: false,
+    step2b: false,
+  }
+  const SPILL_ANCHOR = 'A1', SPILL_RANGE = ['A2','A3','A4','A5','B1','B2','B3','B4','B5','C1','C2','C3','C4','C5']
+
+  function initGrid() {
+    const cols = document.getElementById('grid')
+    cols.innerHTML = '<div class="grid-head">' + '<div></div>' + LETTERS.map(l => '<div>'+l+'</div>').join('') + '</div>'
+    for (let r = 1; r <= ROWS; r++) {
+      let html = '<div class="grid-row"><div>'+r+'</div>'
+      for (let c = 0; c < COLS; c++) html += '<div id="c'+r+c+'" data-cell="'+LETTERS[c]+r+'"></div>'
+      html += '</div>'
+      cols.innerHTML += html
+    }
+    document.querySelectorAll('[data-cell]').forEach(el => {
+      el.addEventListener('click', () => selectCell(el.dataset.cell))
+    })
+  }
+
+  function resetState() {
+    STATE.cells.clear()
+    STATE.spillBlocked = false
+    STATE.cycleActive = false
+    STATE.step1b = false
+    STATE.step2b = false
+
+    STATE.cells.set('A1', { formula: '=SEQUENCE(5,3)', value: 'SPILL', spillRange: SPILL_RANGE })
+    STATE.cells.set('B3', { formula: '', value: '' })
+    STATE.cells.set('E1', { formula: '', value: 42 })
+    STATE.cells.set('E3', { formula: '=SUM(A1#)', value: 120 })
+    STATE.cells.set('E5', { formula: '', value: '' })
+    STATE.cells.set('F5', { formula: '', value: '' })
+    STATE.cells.set('D7', { formula: '', value: '' })
+  }
+
+  function getCellId(addr) { const m = /^([A-F])(\d+)$/.exec(addr); return m ? 'c' + m[2] + (LETTERS.indexOf(m[1])) : null }
+  function render() {
+    for (let r = 1; r <= ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const addr = LETTERS[c] + r
+        const el = document.getElementById('c'+r+c)
+        const cell = STATE.cells.get(addr)
+        let txt = '', cls = ''
+        if (cell) {
+          if (typeof cell.value === 'number') { txt = String(cell.value); cls = 'mono' }
+          else if (cell.value === 'SPILL') { txt = '#SPILL!'; cls = 'cell-error' }
+          else if (cell.value === 'REF') { txt = '#REF!'; cls = 'cell-error' }
+          else txt = String(cell.value)
+          if (addr === SPILL_ANCHOR && STATE.cells.get(addr).value === 'SPILL') cls += ' cell-anchor'
+          if (STATE.spillBlocked && STATE.cells.get(SPILL_ANCHOR)?.value === 'SPILL' && SPILL_RANGE.includes(addr)) cls += ' cell-spill'
+        }
+        el.textContent = txt
+        el.className = cls
+        el.style.position = addr === SPILL_ANCHOR ? 'relative' : ''
+      }
+    }
+    updateHUD()
+    updateSteps()
+  }
+
+  function selectCell(addr) {
+    const cell = STATE.cells.get(addr)
+    document.getElementById('fxbar').textContent = 'fx ' + addr + (cell?.formula ? '  ' + cell.formula : '')
+  }
+
+  function updateHUD() {
+    const spillCount = STATE.cells.get('A1')?.value === 'SPILL' ? 1 : 0
+    const blockedCount = STATE.spillBlocked ? 1 : 0
+    const cycleCount = STATE.cycleActive ? 1 : 0
+    const errorCount = ['A1','E3','E5','F5','D7'].filter(a => STATE.cells.get(a)?.value === 'SPILL' || STATE.cells.get(a)?.value === 'REF').length
+    document.getElementById('t-spill').textContent = spillCount
+    document.getElementById('t-blocked').textContent = blockedCount
+    document.getElementById('t-cycle').textContent = cycleCount
+    document.getElementById('t-error').textContent = errorCount
+  }
+
+  function updateSteps() {
+    const s1Done = STATE.step1b && !STATE.spillBlocked
+    const s2Done = STATE.step2b && !STATE.cycleActive
+    const s3Done = STATE.cells.get('D7')?.value !== ''
+    document.getElementById('s1').classList.toggle('done', s1Done)
+    document.getElementById('s2').classList.toggle('done', s2Done)
+    document.getElementById('s3').classList.toggle('done', s3Done)
+    document.getElementById('btn-unblock').style.display = STATE.spillBlocked ? 'inline-block' : 'none'
+    document.getElementById('btn-block').style.display = STATE.spillBlocked ? 'none' : 'inline-block'
+    document.getElementById('btn-uncycle').style.display = STATE.cycleActive ? 'inline-block' : 'none'
+    document.getElementById('btn-cycle').style.display = STATE.cycleActive ? 'none' : 'inline-block'
+  }
+
+  document.getElementById('btn-block').addEventListener('click', () => {
+    STATE.cells.set('B3', { formula: '', value: 999 })
+    STATE.spillBlocked = true
+    STATE.step1b = true
+    STATE.cells.get('A1').value = 'SPILL'
+    STATE.cells.set('E3', { formula: '=SUM(A1#)', value: 'REF' })
+    for (const addr of SPILL_RANGE) if (addr !== 'B3') STATE.cells.set(addr, { formula: '', value: '' })
+    document.getElementById('log').textContent = '「溢出被 B3 阻塞」A1 的 SEQUENCE(5,3) 无法溅射：B3 占据了目标区域。'
+    render()
+  })
+
+  document.getElementById('btn-unblock').addEventListener('click', () => {
+    STATE.cells.set('B3', { formula: '', value: '' })
+    STATE.spillBlocked = false
+    STATE.cells.get('A1').value = 'SPILL'
+    STATE.cells.set('E3', { formula: '=SUM(A1#)', value: 120 })
+    for (const addr of SPILL_RANGE.slice(1)) if (!STATE.cells.has(addr) || STATE.cells.get(addr).value === 'SPILL') STATE.cells.set(addr, { formula: '', value: '' })
+    const seq = Array.from({length:15}, (_,i) => i+1)
+    seq.forEach((v, i) => {
+      const r = Math.floor(i/3) + 1, c = i%3
+      if (c === 0) STATE.cells.set(LETTERS[c]+r, { formula: '', value: v })
+      else STATE.cells.set(LETTERS[c]+r, { formula: '', value: v })
+    })
+    document.getElementById('log').textContent = '溢出恢复。A1:C5 重新填充 1–15。E3 = SUM(A1#) = 120。'
+    render()
+  })
+
+  document.getElementById('btn-cycle').addEventListener('click', () => {
+    STATE.cells.set('E5', { formula: '=F5+1', value: 'REF' })
+    STATE.cells.set('F5', { formula: '=E5+1', value: 'REF' })
+    STATE.cycleActive = true
+    STATE.step2b = true
+    document.getElementById('log').textContent = '「循环检出」E5 → F5 → E5。依赖图成环，无法拓扑排序。两个格都显示 #REF!。'
+    render()
+  })
+
+  document.getElementById('btn-uncycle').addEventListener('click', () => {
+    STATE.cells.set('F5', { formula: '', value: 7 })
+    STATE.cells.set('E5', { formula: '=F5+1', value: 8 })
+    STATE.cycleActive = false
+    document.getElementById('log').textContent = '解除循环。F5 → 7（常量），E5 = F5+1 = 8。依赖图无环。'
+    render()
+  })
+
+  document.getElementById('btn-prop').addEventListener('click', () => {
+    if (STATE.spillBlocked) {
+      STATE.cells.set('D7', { formula: '=B3*2', value: 'SPILL' })
+      document.getElementById('log').textContent = '「错误冒泡」D7 依赖 B3，但 B3 嵌入溢出阻塞。D7 显示 #SPILL!（导出 B3 的错误）。'
+    } else {
+      STATE.cells.set('D7', { formula: '=B3*2', value: 1998 })
+      document.getElementById('log').textContent = '「正常求值」D7 = B3*2 = 999*2 = 1998。'
+    }
+    render()
+  })
+
+  initGrid()
+  resetState()
+  const seq = Array.from({length:15}, (_,i) => i+1)
+  seq.forEach((v, i) => {
+    const r = Math.floor(i/3) + 1, c = i%3
+    STATE.cells.set(LETTERS[c]+r, { formula: '', value: v })
+  })
+  document.getElementById('log').textContent = '初始化：A1 = SEQUENCE(5,3) 溢出到 A1:C5。E3 = SUM(A1#) = 120。'
+  render()
+  selectCell('A1')
+})()
+</script>
+
+</body>
+</html>

@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>冻结窗格 · einfach 设计稿</title>
+<style>
+:root {
+  --bg: #f2f4f0; --surface: #fbfcfa; --ink: #1c2420; --ink2: #4d5c54;
+  --muted: #74847b; --line: #dde3dc; --accent: #17754f; --accent-soft: rgba(23,117,79,.1);
+  --paper: #ffffff; --paper-ink: #232a24; --paper-line: #e7eae4; --paper-head: #f2f4ee;
+  --paper-edge: #d4dacf; --hud-bg: #1a2125; --hud-ink: #e6ebe7; --hud-muted: #8da199;
+  --hud-line: #2b3539; --hud-accent: #43c78f; --flash: rgba(23,117,79,.25);
+  --warn: #a25b0c;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12171a; --surface: #1a2125; --ink: #e6ebe7; --ink2: #a9b6af;
+    --muted: #71807a; --line: #28322f; --accent: #43c78f; --accent-soft: rgba(67,199,143,.12);
+    --paper-edge: #38423e;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12171a; --surface: #1a2125; --ink: #e6ebe7; --ink2: #a9b6af;
+  --muted: #71807a; --line: #28322f; --accent: #43c78f; --accent-soft: rgba(67,199,143,.12);
+  --paper-edge: #38423e;
+}
+:root[data-theme="light"] {
+  --bg: #f2f4f0; --surface: #fbfcfa; --ink: #1c2420; --ink2: #4d5c54;
+  --muted: #74847b; --line: #dde3dc; --accent: #17754f; --accent-soft: rgba(23,117,79,.1);
+  --paper-edge: #d4dacf;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 16px/1.65 -apple-system, "PingFang SC", "Segoe UI", "Microsoft YaHei", sans-serif;
+}
+.mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+a { color: var(--accent); text-decoration: none; }
+a:hover, a:focus-visible { text-decoration: underline; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.site-head {
+  display: flex; align-items: center; gap: 20px;
+  max-width: 1120px; margin: 0 auto; padding: 18px 24px;
+}
+.brand { font-weight: 700; letter-spacing: .02em; font-size: 17px; color: var(--ink); }
+.brand .dot { color: var(--accent); }
+.site-nav { display: flex; gap: 18px; margin-left: auto; font-size: 14px; color: var(--ink2); }
+.site-nav .planned { color: var(--muted); cursor: default; }
+.site-nav .planned::after { content: " ·规划中"; font-size: 11px; color: var(--muted); }
+.ribbon {
+  background: var(--accent-soft); color: var(--ink2); font-size: 12.5px;
+  text-align: center; padding: 6px 16px; border-block: 1px solid var(--line);
+}
+.ribbon b { color: var(--accent); font-weight: 600; }
+
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px 72px; }
+.crumbs { font-size: 13px; color: var(--muted); margin: 26px 0 6px; }
+.crumbs .namebox {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px;
+  border: 1px solid var(--line); background: var(--surface);
+  padding: 2px 8px; border-radius: 3px; margin-right: 10px; color: var(--ink2);
+}
+h1 { font-size: 34px; line-height: 1.25; margin: 4px 0 10px; letter-spacing: -.01em; text-wrap: balance; }
+.lede { max-width: 62ch; color: var(--ink2); margin: 0 0 8px; }
+.lede code, .how code {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .88em;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 3px; padding: 1px 5px;
+}
+
+.demo-split { display: grid; grid-template-columns: minmax(0,1fr) 252px; gap: 18px; margin-top: 26px; }
+@media (max-width: 900px) { .demo-split { grid-template-columns: 1fr; } }
+
+.sheet-card { border: 1px solid var(--paper-edge); border-radius: 8px; overflow: hidden; background: var(--paper); box-shadow: 0 1px 2px rgba(15,26,20,.06), 0 8px 24px rgba(15,26,20,.05); }
+.sheet-toolbar { display: flex; gap: 10px; align-items: center; padding: 8px 10px; background: var(--paper-head); border-bottom: 1px solid var(--paper-line); }
+.sheet-toolbar input {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12.5px; width: 92px;
+  border: 1px solid var(--paper-edge); border-radius: 4px; padding: 4px 8px; background: var(--paper); color: var(--paper-ink);
+}
+.sheet-toolbar button, .steps button {
+  font: 600 12.5px/1 -apple-system, "PingFang SC", sans-serif; color: var(--accent);
+  background: var(--paper); border: 1px solid var(--paper-edge); border-radius: 4px;
+  padding: 6px 10px; cursor: pointer;
+}
+.sheet-toolbar .fx { color: #6b756c; font-size: 12px; margin-left: auto; font-family: ui-monospace, Menlo, monospace; }
+.viewport { position: relative; height: 430px; overflow: auto; background: var(--paper); color: var(--paper-ink); }
+.viewport.tall { height: 620px; }
+.spacer { position: absolute; top: 0; left: 0; width: 1px; }
+.colhead { position: sticky; top: 0; z-index: 3; display: flex; background: var(--paper-head); border-bottom: 1px solid var(--paper-edge); width: max-content; }
+.colhead .c { font: 600 11px/23px ui-monospace, Menlo, monospace; color: #77816f; text-align: center; border-right: 1px solid var(--paper-line); }
+.colhead .gut { position: sticky; left: 0; background: var(--paper-head); z-index: 4; }
+.layer { position: absolute; left: 0; will-change: transform; width: max-content; }
+.r { display: flex; height: 24px; width: max-content; }
+.r .gut {
+  position: sticky; left: 0; z-index: 2; width: 64px; flex: none;
+  font: 500 11px/23px ui-monospace, Menlo, monospace; color: #949e93; text-align: center;
+  background: var(--paper-head); border-right: 1px solid var(--paper-edge); border-bottom: 1px solid var(--paper-line);
+}
+.cell {
+  flex: none; font-size: 12.5px; line-height: 23px; padding: 0 8px;
+  border-right: 1px solid var(--paper-line); border-bottom: 1px solid var(--paper-line);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cell.num { text-align: right; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; font-variant-numeric: tabular-nums; }
+.r.head .cell { font-weight: 600; background: #fbfcf9; color: #454e44; }
+.cell.flash { animation: flash 1.6s ease-out; outline: 2px solid var(--accent); outline-offset: -2px; }
+@keyframes flash { from { background: var(--flash); } to { background: transparent; } }
+@media (prefers-reduced-motion: reduce) { .cell.flash { animation: none; } }
+
+.hud { background: var(--hud-bg); color: var(--hud-ink); border-radius: 8px; padding: 16px 16px 12px; align-self: start; }
+.hud h2 { font-size: 11px; font-weight: 600; letter-spacing: .14em; color: var(--hud-muted); margin: 0 0 12px; text-transform: uppercase; }
+.tile { padding: 9px 0 7px; border-top: 1px solid var(--hud-line); }
+.tile:first-of-type { border-top: 0; padding-top: 0; }
+.tile .k { font-size: 12px; color: var(--hud-muted); }
+.tile .v { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-variant-numeric: tabular-nums; font-size: 21px; line-height: 1.3; color: var(--hud-ink); }
+.tile .v small { font-size: 12px; color: var(--hud-muted); margin-left: 4px; }
+.tile .v .hi { color: var(--hud-accent); }
+.spark { display: flex; align-items: flex-end; gap: 2px; height: 18px; margin-top: 6px; }
+.spark i { flex: 1 0 4px; background: var(--hud-accent); border-radius: 1px 1px 0 0; min-height: 2px; opacity: .85; }
+.hud .note { font-size: 11.5px; color: var(--hud-muted); margin-top: 10px; line-height: 1.5; }
+
+.steps { margin-top: 34px; }
+.steps h2, .how h2 { font-size: 20px; margin: 0 0 4px; }
+.steps .sub, .how .sub { color: var(--muted); font-size: 13.5px; margin: 0 0 16px; }
+.steps ol { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 0; padding: 0; }
+.steps li { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; }
+.steps li.done { border-color: var(--accent); }
+.steps .st { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14.5px; }
+.steps .badge {
+  flex: none; width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--muted);
+  font: 700 11px/18px ui-monospace, Menlo, monospace; text-align: center; color: var(--muted);
+}
+.steps li.done .badge { background: var(--accent); border-color: var(--accent); color: #fff; }
+.steps p { font-size: 13px; color: var(--ink2); margin: 8px 0 10px; }
+.steps button { background: var(--surface); border-color: var(--line); }
+.steps li.done button { color: var(--muted); }
+
+.how { margin-top: 40px; max-width: 68ch; }
+.how p { color: var(--ink2); font-size: 14.5px; }
+.how .src { font-size: 13px; color: var(--muted); }
+.foot { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted); }
+</style>
+
+</head>
+<body>
+<header class="site-head">
+  <span class="brand">einfach<span class="dot">·</span>excel</span>
+  <nav class="site-nav">
+    <a href="index.html" data-nav="home">首页</a>
+    <a href="index.html#demos" data-nav="demos">演示</a>
+    <span class="planned">文档</span>
+    <span class="planned">API</span>
+  </nav>
+</header>
+<div class="ribbon"><b>设计稿 M0</b> · 本页冻结用 CSS sticky 模拟；真实站点由 viewport 投影切四象限，各窗口独立</div>
+
+<main class="wrap">
+<style>
+#viewport { max-width: 560px; }
+.freeze-grid { display: grid; grid-template-columns: repeat(10, 80px); grid-auto-rows: 26px; gap: 0; }
+.fc { font-size: 12px; padding: 4px 8px; background: var(--paper); color: var(--paper-ink);
+  border-right: 1px solid var(--paper-line); border-bottom: 1px solid var(--paper-line); }
+.fc.head { font-weight: 600; background: var(--paper-head); }
+.fz-t { position: sticky; z-index: 1; background: var(--paper); }
+.fz-l { position: sticky; z-index: 1; background: var(--paper); }
+.fz-t.fz-l { z-index: 2; }
+.fz-border-b { border-bottom-color: var(--accent); border-bottom-width: 2px; }
+.fz-border-r { border-right-color: var(--accent); border-right-width: 2px; }
+</style>
+
+<p class="crumbs"><span class="namebox">A9</span>演示 / 冻结窗格</p>
+<h1>表头钉住，数据在下面流</h1>
+<p class="lede">冻结窗格让表头和行标签始终可见。支持三种模式：冻结首行（竖滚表头不动）、冻结首列（横滚行标签不动）、冻结行列组合（两个锚点）。滚动时冻结区边界线标出分割。</p>
+
+<div class="demo-split">
+  <div class="sheet-card">
+    <div class="sheet-toolbar">
+      <button id="btn-row">冻结首行</button>
+      <button id="btn-col">冻结首列</button>
+      <button id="btn-both">冻结前2行3列</button>
+      <button id="btn-none">取消冻结</button>
+    </div>
+    <div class="viewport" id="viewport">
+      <div class="freeze-grid" id="grid"></div>
+    </div>
+  </div>
+
+  <div class="hud">
+    <h2>冻结状态</h2>
+    <div class="tile"><div class="k">冻结行数</div><div class="v"><span id="v-rows">0</span></div></div>
+    <div class="tile"><div class="k">冻结列数</div><div class="v"><span id="v-cols">0</span></div></div>
+    <div class="tile"><div class="k">滚动位置</div><div class="v"><span id="v-pos">0, 0</span></div></div>
+    <div class="tile"><div class="k">当前模式</div><div class="v"><span id="v-mode">无</span></div></div>
+    <p class="note">真实实现里冻结不是 sticky 伪装——投影按四象限切窗口，各窗口独立滚动，UI 层无感知数据差异。</p>
+  </div>
+</div>
+
+<div class="steps">
+  <h2>演示步骤</h2>
+  <p class="sub">依次完成三个任务，自动追踪进度</p>
+  <ol>
+    <li id="step-1"><div class="st"><span class="badge">1</span><span>冻结首行后垂直滚动</span></div>
+      <p>点击「冻结首行」，然后向下滚动不少于 200px，表头行始终可见。</p></li>
+    <li id="step-2"><div class="st"><span class="badge">2</span><span>冻结前2行3列后水平滚动</span></div>
+      <p>点击「冻结前2行3列」，然后向右滚动不少于 200px，左上角 2 行 3 列始终可见。</p></li>
+    <li id="step-3"><div class="st"><span class="badge">3</span><span>取消冻结</span></div>
+      <p>点击「取消冻结」按钮，所有冻结类被移除。</p></li>
+  </ol>
+</div>
+
+<div class="how">
+  <h2>工作原理</h2>
+  <p>冻结平面把 ViewportMetrics 切成最多四个投影窗口（左上、右上、左下、右下），每个窗口有独立的滚动偏移。滚动时，非冻结象限的投影移动，而冻结象限保持不变。UI 层通过 <code>readVisibleProjection</code> 获取分层数据，无需感知冻结存在。</p>
+  <p class="src">设计稿：spreadsheet-ui-core/docs/frozen-panes.md（文档中不可交互）</p>
+</div>
+
+  <p class="foot">einfach excel · 站点重构设计稿 · 对应提案 excel/excel-site/docs/SITE_REBUILD_PLAN_2026-08-04.md</p>
+</main>
+
+<script>
+'use strict';
+(function() {
+  const ROWS = 60, COLS = 10, COL_W = 80, ROW_H = 26;
+  const names = ['月份', '北京', '上海', '深圳', '广州', '杭州', '成都', '西安', '南京', '沈阳'];
+  const hash = (r, c) => ((r * COLS + c) * 12345 + 67890) % 9000 + 1000;
+
+  const grid = document.getElementById('grid'), vp = document.getElementById('viewport');
+  const btns = { row: document.getElementById('btn-row'), col: document.getElementById('btn-col'),
+                 both: document.getElementById('btn-both'), none: document.getElementById('btn-none') };
+  let mode = 'none';
+
+  // 生成表格
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'fc' + (r === 0 ? ' head' : '');
+      cell.textContent = r === 0 ? names[c] : (c === 0 ? `SKU-${String(r).padStart(3, '0')}` : hash(r, c));
+      if (c > 0 && r > 0) cell.style.textAlign = 'right';
+      grid.appendChild(cell);
+    }
+  }
+
+  const cells = () => grid.querySelectorAll('.fc');
+  const clearFreeze = () => cells().forEach(el => el.classList.remove('fz-t', 'fz-l', 'fz-border-b', 'fz-border-r'));
+
+  const setMode = m => {
+    mode = m;
+    clearFreeze();
+    const all = cells();
+
+    if (m === 'row') {
+      for (let c = 0; c < COLS; c++) {
+        all[c].classList.add('fz-t', 'fz-border-b');
+        all[c].style.top = '0';
+      }
+    } else if (m === 'col') {
+      for (let r = 0; r < ROWS; r++) {
+        all[r * COLS].classList.add('fz-l', 'fz-border-r');
+        all[r * COLS].style.left = '0';
+      }
+    } else if (m === 'both') {
+      for (let r = 0; r < 2; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const i = r * COLS + c;
+          all[i].classList.add('fz-t');
+          all[i].style.top = r * ROW_H + 'px';
+          if (c < 3) { all[i].classList.add('fz-l'); all[i].style.left = c * COL_W + 'px'; }
+          if (r === 1) all[i].classList.add('fz-border-b');
+        }
+      }
+      for (let r = 2; r < ROWS; r++) {
+        for (let c = 0; c < 3; c++) {
+          const i = r * COLS + c;
+          all[i].classList.add('fz-l');
+          all[i].style.left = c * COL_W + 'px';
+        }
+      }
+      for (let r = 0; r < ROWS; r++) {
+        all[r * COLS + 2].classList.add('fz-border-r');
+      }
+    }
+    updateUi();
+  };
+
+  const updateUi = () => {
+    document.getElementById('v-rows').textContent = (mode === 'both' ? 2 : (mode === 'row' ? 1 : 0));
+    document.getElementById('v-cols').textContent = (mode === 'both' ? 3 : (mode === 'col' ? 1 : 0));
+    document.getElementById('v-mode').textContent = { none: '无', row: '首行', col: '首列', both: '前2行3列' }[mode];
+    Object.keys(btns).forEach(k => btns[k].style.borderColor = (k === mode) ? 'var(--accent)' : 'var(--paper-edge)');
+    updatePos();
+    updateSteps();
+  };
+
+  const updatePos = () => {
+    const r = Math.floor(vp.scrollTop / ROW_H), c = Math.floor(vp.scrollLeft / COL_W);
+    document.getElementById('v-pos').textContent = `${r}, ${c}`;
+  };
+
+  const updateSteps = () => {
+    document.getElementById('step-1').classList[mode === 'row' && vp.scrollTop >= 200 ? 'add' : 'remove']('done');
+    document.getElementById('step-2').classList[mode === 'both' && vp.scrollLeft >= 200 ? 'add' : 'remove']('done');
+    document.getElementById('step-3').classList[mode === 'none' ? 'add' : 'remove']('done');
+  };
+
+  btns.row.addEventListener('click', () => setMode('row'));
+  btns.col.addEventListener('click', () => setMode('col'));
+  btns.both.addEventListener('click', () => setMode('both'));
+  btns.none.addEventListener('click', () => setMode('none'));
+  vp.addEventListener('scroll', () => { updatePos(); updateSteps(); }, { passive: true });
+
+  setMode('none');
+})();
+</script>
+
+</body>
+</html>

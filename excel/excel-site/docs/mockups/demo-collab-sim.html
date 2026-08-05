@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>三个人同时在改这张表 · einfach 设计稿</title>
+<style>
+:root {
+  --bg: #f2f4f0; --surface: #fbfcfa; --ink: #1c2420; --ink2: #4d5c54;
+  --muted: #74847b; --line: #dde3dc; --accent: #17754f; --accent-soft: rgba(23,117,79,.1);
+  --paper: #ffffff; --paper-ink: #232a24; --paper-line: #e7eae4; --paper-head: #f2f4ee;
+  --paper-edge: #d4dacf; --hud-bg: #1a2125; --hud-ink: #e6ebe7; --hud-muted: #8da199;
+  --hud-line: #2b3539; --hud-accent: #43c78f; --flash: rgba(23,117,79,.25);
+  --collab-true: #3573c9; --collab-lan: #b0761f;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12171a; --surface: #1a2125; --ink: #e6ebe7; --ink2: #a9b6af;
+    --muted: #71807a; --line: #28322f; --accent: #43c78f; --accent-soft: rgba(67,199,143,.12);
+    --paper-edge: #38423e;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12171a; --surface: #1a2125; --ink: #e6ebe7; --ink2: #a9b6af;
+  --muted: #71807a; --line: #28322f; --accent: #43c78f; --accent-soft: rgba(67,199,143,.12);
+  --paper-edge: #38423e;
+}
+:root[data-theme="light"] {
+  --bg: #f2f4f0; --surface: #fbfcfa; --ink: #1c2420; --ink2: #4d5c54;
+  --muted: #74847b; --line: #dde3dc; --accent: #17754f; --accent-soft: rgba(23,117,79,.1);
+  --paper-edge: #d4dacf;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 16px/1.65 -apple-system, "PingFang SC", "Segoe UI", "Microsoft YaHei", sans-serif;
+}
+.mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+a { color: var(--accent); text-decoration: none; }
+a:hover, a:focus-visible { text-decoration: underline; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.site-head {
+  display: flex; align-items: center; gap: 20px;
+  max-width: 1120px; margin: 0 auto; padding: 18px 24px;
+}
+.brand { font-weight: 700; letter-spacing: .02em; font-size: 17px; color: var(--ink); }
+.brand .dot { color: var(--accent); }
+.site-nav { display: flex; gap: 18px; margin-left: auto; font-size: 14px; color: var(--ink2); }
+.site-nav .planned { color: var(--muted); cursor: default; }
+.site-nav .planned::after { content: " ·规划中"; font-size: 11px; color: var(--muted); }
+.ribbon {
+  background: var(--accent-soft); color: var(--ink2); font-size: 12.5px;
+  text-align: center; padding: 6px 16px; border-block: 1px solid var(--line);
+}
+.ribbon b { color: var(--accent); font-weight: 600; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px 72px; }
+.crumbs { font-size: 13px; color: var(--muted); margin: 26px 0 6px; }
+.crumbs .namebox {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px;
+  border: 1px solid var(--line); background: var(--surface);
+  padding: 2px 8px; border-radius: 3px; margin-right: 10px; color: var(--ink2);
+}
+h1 { font-size: 34px; line-height: 1.25; margin: 4px 0 10px; letter-spacing: -.01em; text-wrap: balance; }
+.lede { max-width: 62ch; color: var(--ink2); margin: 0 0 8px; }
+.lede code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .88em;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 3px; padding: 1px 5px; }
+.demo-split { display: grid; grid-template-columns: minmax(0,1fr) 252px; gap: 18px; margin-top: 26px; }
+@media (max-width: 900px) { .demo-split { grid-template-columns: 1fr; } }
+.sheet-card { border: 1px solid var(--paper-edge); border-radius: 8px; overflow: hidden; background: var(--paper); box-shadow: 0 1px 2px rgba(15,26,20,.06), 0 8px 24px rgba(15,26,20,.05); }
+.sheet-toolbar { display: flex; gap: 10px; align-items: center; padding: 8px 10px; background: var(--paper-head); border-bottom: 1px solid var(--paper-line); }
+.sheet-toolbar button, .steps button {
+  font: 600 12.5px/1 -apple-system, "PingFang SC", sans-serif; color: var(--accent);
+  background: var(--paper); border: 1px solid var(--paper-edge); border-radius: 4px;
+  padding: 6px 10px; cursor: pointer;
+}
+.viewport { position: relative; height: 430px; overflow: auto; background: var(--paper); color: var(--paper-ink); }
+.spacer { position: absolute; top: 0; left: 0; width: 1px; }
+.colhead { position: sticky; top: 0; z-index: 3; display: flex; background: var(--paper-head); border-bottom: 1px solid var(--paper-edge); width: max-content; }
+.colhead .c { font: 600 11px/23px ui-monospace, Menlo, monospace; color: #77816f; text-align: center; border-right: 1px solid var(--paper-line); }
+.colhead .gut { position: sticky; left: 0; background: var(--paper-head); z-index: 4; }
+.layer { position: absolute; left: 0; will-change: transform; width: max-content; }
+.r { display: flex; height: 24px; width: max-content; }
+.r .gut {
+  position: sticky; left: 0; z-index: 2; width: 64px; flex: none;
+  font: 500 11px/23px ui-monospace, Menlo, monospace; color: #949e93; text-align: center;
+  background: var(--paper-head); border-right: 1px solid var(--paper-edge); border-bottom: 1px solid var(--paper-line);
+}
+.cell {
+  flex: none; font-size: 12.5px; line-height: 23px; padding: 0 8px;
+  border-right: 1px solid var(--paper-line); border-bottom: 1px solid var(--paper-line);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: cell;
+}
+.cell.editing { background: var(--accent-soft); }
+.cell.num { text-align: right; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; font-variant-numeric: tabular-nums; }
+.r.head .cell { font-weight: 600; background: #fbfcf9; color: #454e44; }
+.cell.flash { animation: flash 1.6s ease-out; outline: 2px solid currentColor; outline-offset: -2px; }
+.cell.flash-true { color: var(--collab-true); }
+.cell.flash-lan { color: var(--collab-lan); }
+.cell.flash-local { color: var(--accent); }
+@keyframes flash { from { background: currentColor; opacity: 0.25; } to { background: transparent; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .cell.flash { animation: none; } }
+.cursor-overlay { position: absolute; z-index: 10; pointer-events: none; }
+.cursor-dot { width: 20px; height: 20px; border-radius: 2px; opacity: 0.8; border: 1px solid rgba(255,255,255,.4); }
+.cursor-true .cursor-dot { background: var(--collab-true); }
+.cursor-lan .cursor-dot { background: var(--collab-lan); }
+.cursor-label { font: 600 11px/1 -apple-system, "PingFang SC", sans-serif; color: var(--paper); padding: 2px 4px; margin-top: 2px; border-radius: 2px; display: inline-block; }
+.cursor-true .cursor-label { background: var(--collab-true); }
+.cursor-lan .cursor-label { background: var(--collab-lan); }
+.cursor-overlay.offline .cursor-dot { opacity: 0.3; }
+.hud { background: var(--hud-bg); color: var(--hud-ink); border-radius: 8px; padding: 16px 16px 12px; align-self: start; }
+.hud h2 { font-size: 11px; font-weight: 600; letter-spacing: .14em; color: var(--hud-muted); margin: 0 0 12px; text-transform: uppercase; }
+.tile { padding: 9px 0 7px; border-top: 1px solid var(--hud-line); }
+.tile:first-of-type { border-top: 0; padding-top: 0; }
+.tile .k { font-size: 12px; color: var(--hud-muted); }
+.tile .v { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-variant-numeric: tabular-nums; font-size: 21px; line-height: 1.3; color: var(--hud-ink); }
+.tile .v small { font-size: 12px; color: var(--hud-muted); margin-left: 4px; }
+.tile .v .hi { color: var(--hud-accent); }
+.hud-log { margin-top: 12px; font-size: 11px; max-height: 160px; overflow-y: auto; background: rgba(0,0,0,.2); border-radius: 3px; padding: 6px 8px; }
+.hud-log .log-line { font-family: ui-monospace, Menlo, monospace; color: var(--hud-muted); line-height: 1.3; margin-bottom: 2px; white-space: pre-wrap; word-break: break-word; }
+.hud-log .log-line.self { color: var(--hud-accent); }
+.hud-log .log-line.conflict { color: #ff9500; }
+.hud .note { font-size: 11.5px; color: var(--hud-muted); margin-top: 10px; line-height: 1.5; }
+.steps { margin-top: 34px; }
+.steps h2, .how h2 { font-size: 20px; margin: 0 0 4px; }
+.steps .sub, .how .sub { color: var(--muted); font-size: 13.5px; margin: 0 0 16px; }
+.steps ol { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 0; padding: 0; }
+.steps li { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; }
+.steps li.done { border-color: var(--accent); }
+.steps .st { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14.5px; }
+.steps .badge {
+  flex: none; width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--muted);
+  font: 700 11px/18px ui-monospace, Menlo, monospace; text-align: center; color: var(--muted);
+}
+.steps li.done .badge { background: var(--accent); border-color: var(--accent); color: #fff; }
+.steps p { font-size: 13px; color: var(--ink2); margin: 8px 0 10px; }
+.steps button { background: var(--surface); border-color: var(--line); }
+.steps li.done button { color: var(--muted); }
+.how { margin-top: 40px; max-width: 68ch; }
+.how p { color: var(--ink2); font-size: 14.5px; }
+.how .src { font-size: 13px; color: var(--muted); }
+.foot { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted); }
+</style>
+</head>
+<body>
+<header class="site-head">
+  <span class="brand">einfach<span class="dot">·</span>excel</span>
+  <nav class="site-nav">
+    <a href="index.html" data-nav="home">首页</a>
+    <a href="index.html#demos" data-nav="demos">演示</a>
+    <span class="planned">文档</span>
+    <span class="planned">API</span>
+  </nav>
+</header>
+<div class="ribbon"><b>设计稿 M0</b> · 远端协作者为页内定时器模拟；真实站点走 WebSocket + 后端权威裁决</div>
+
+<main class="wrap">
+  <p class="crumbs"><span class="namebox">A7</span>演示 / 协作</p>
+  <h1>三个人同时在改这张表</h1>
+  <p class="lede">
+    下面是一张任务表。两位模拟协作者持续产生操作（改格、插行、删行），与你的本地编辑汇入同一操作流。
+    在场光标、操作日志、后写胜裁决都在页内可见。
+  </p>
+
+  <div class="demo-split">
+    <div class="sheet-card">
+      <div class="sheet-toolbar">
+        <button id="toggle-offline">断线</button>
+        <span style="font-size:12px; color:var(--ink2); margin-left:auto;">阿真：<span style="color:var(--collab-true); font-weight:600;">●</span> 阿岚：<span style="color:var(--collab-lan); font-weight:600;">●</span></span>
+      </div>
+      <div class="viewport" id="vp" tabindex="0" aria-label="协作表格">
+        <div class="colhead" id="colhead"></div>
+        <div class="spacer" id="spacer"></div>
+        <div class="layer" id="layer"></div>
+        <div id="cursors"></div>
+      </div>
+    </div>
+
+    <aside class="hud" aria-label="协作仪表盘">
+      <h2>协作仪表盘</h2>
+      <div class="tile"><div class="k">在线人数</div><div class="v" id="t-online">3</div></div>
+      <div class="tile"><div class="k">收到远端操作</div><div class="v" id="t-remote">0</div></div>
+      <div class="tile"><div class="k">你的操作</div><div class="v" id="t-local">0</div></div>
+      <div class="tile"><div class="k">冲突数</div><div class="v" id="t-conflict">0</div></div>
+      <div class="tile"><div class="k">离线队列</div><div class="v" id="t-queue">0</div></div>
+      <div class="hud-log" id="log"></div>
+      <p class="note">真实实现中在场光标是有界 atom（上限 32），远端操作经 backend 增量进 worker 工作簿，本地乐观更新 + revision 对账；冲突由服务端权威序裁决。</p>
+    </aside>
+  </div>
+
+  <section class="steps">
+    <h2>试试这个</h2>
+    <p class="sub">每一步做完会自动打勾——可验证的引导。</p>
+    <ol>
+      <li id="s1"><div class="st"><span class="badge">1</span>观察远端操作流</div>
+        <p>在 30 秒内看两位协作者改表。右侧日志记录每个操作。≥8 条自动打勾。</p></li>
+      <li id="s2"><div class="st"><span class="badge">2</span>自己编辑一格</div>
+        <p>点任意格，输入新值或选下拉。提交后闪绿，操作进日志。</p></li>
+      <li id="s3"><div class="st"><span class="badge">3</span>断线→攒→重连</div>
+        <p>点「断线」，然后在你修改的同时协作者继续操作。点「重连」后离线队列 flush。</p></li>
+    </ol>
+  </section>
+
+  <section class="how">
+    <h2>它是怎么做到的</h2>
+    <p>
+      在场光标通过 <code>presence</code> atom 族（上限 32 活跃光标）在页面间同步。远端操作经
+      <code>backend</code> 端口的增量接入，交给 worker 工作簿处理后乐观更新 UI。
+      修改冲突由后端权威序列决策，本地提交时若发现版本落后，按「后写胜」重演。
+    </p>
+    <p class="src">源码：spreadsheet-ui-core/src/presence/ · comments/（设计稿中不可点）</p>
+  </section>
+
+  <p class="foot">einfach excel · 站点重构设计稿 · 对应提案 excel/excel-site/docs/SITE_REBUILD_PLAN_2026-08-04.md</p>
+</main>
+
+<script>
+(function () {
+  'use strict'
+  var ROWS = 40, COLS = 5, ROW_H = 24, GUT = 64
+  var CW = [110, 110, 84, 64, 104]
+  var LETTERS = ['A', 'B', 'C', 'D', 'E']
+  var HEADS = ['任务', '负责人', '状态', '工时', '备注']
+  var PERSONS = ['小李', '小陈', '小赵', '小周']
+  var STATUS = ['进行中', '待评审', '已完成']
+  function h32(n) { n = (n ^ 61) ^ (n >>> 16); n = (n + (n << 3)) | 0; n ^= n >>> 4; n = Math.imul(n, 0x27d4eb2d); n ^= n >>> 15; return n >>> 0 }
+  var data = {}, edits = {}, insertedRows = { aTrue: new Set(), aLan: new Set() }
+  function cellValue(r, c) {
+    if (data[r] && data[r][c] !== undefined) return data[r][c]
+    switch (c) {
+      case 0: return 'TASK-' + (1000 + r)
+      case 1: return PERSONS[h32(r * 5 + 1) % 4]
+      case 2: return STATUS[h32(r * 5 + 2) % 3]
+      case 3: return String(1 + h32(r * 5 + 3) % 40)
+      case 4: return '备注 ' + r
+    }
+  }
+  var vp = document.getElementById('vp'), layer = document.getElementById('layer'), cursors = document.getElementById('cursors')
+  var colhead = document.getElementById('colhead'), spacer = document.getElementById('spacer'), logEl = document.getElementById('log')
+  var totalW = GUT; CW.forEach(function (w) { totalW += w })
+  spacer.style.height = ROWS * ROW_H + 'px'; spacer.style.width = totalW + 'px'
+  var hh = '<div class="c gut" style="width:' + GUT + 'px"></div>'
+  for (var c = 0; c < COLS; c++) hh += '<div class="c" style="width:' + CW[c] + 'px">' + LETTERS[c] + '</div>'
+  colhead.innerHTML = hh
+
+  var msgCount = 0, localCount = 0, conflictCount = 0, queueCount = 0, isOnline = true, selectedCell = null, editInput = null
+  var logs = []
+  function addLog(text, type) { logs.unshift({text: text, type: type}); if (logs.length > 12) logs.pop(); renderLog() }
+  function renderLog() { logEl.innerHTML = logs.map(function (l) { return '<div class="log-line' + (l.type ? ' ' + l.type : '') + '">' + l.text + '</div>' }).join('') }
+  function setText(id, s) { document.getElementById(id).textContent = s }
+  function render(force) {
+    var html = '<div class="r head"><div class="gut"></div>'
+    for (var c = 0; c < COLS; c++) html += '<div class="c" style="width:' + CW[c] + 'px">' + HEADS[c] + '</div>'
+    html += '</div>'
+    for (var r = 0; r < ROWS; r++) {
+      html += '<div class="r"><div class="gut">' + (r + 1) + '</div>'
+      for (var c = 0; c < COLS; c++) {
+        var cls = 'cell' + (c === 3 ? ' num' : '')
+        html += '<div class="' + cls + '" data-rc="' + r + ',' + c + '" style="width:' + CW[c] + 'px">' + cellValue(r, c) + '</div>'
+      }
+      html += '</div>'
+    }
+    layer.innerHTML = html
+    var cells = layer.querySelectorAll('.cell')
+    cells.forEach(function (cell) {
+      var m = cell.getAttribute('data-rc').split(',')
+      var cr = parseInt(m[0]), cc = parseInt(m[1])
+      cell.addEventListener('click', function () { editCell(cr, cc, cell) })
+    })
+  }
+  function editCell(r, c, el) {
+    if (editInput) { editInput.parentNode.replaceChild(document.createTextNode(editInput.value), editInput); editInput = null; selectedCell = null }
+    selectedCell = {r: r, c: c}
+    var val = cellValue(r, c), inp = document.createElement('input')
+    inp.type = 'text'; inp.value = val; inp.style.cssText = 'width:100%; border:none; background:transparent; padding:0 2px; font:inherit'
+    var oldText = el.textContent
+    el.textContent = ''; el.appendChild(inp); el.classList.add('editing'); editInput = inp
+    inp.focus(); inp.select()
+    inp.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { saveEdit(r, c, inp.value); editInput = null; selectedCell = null; el.classList.remove('editing'); el.textContent = cellValue(r, c); }
+      else if (e.key === 'Escape') { editInput = null; selectedCell = null; el.classList.remove('editing'); el.textContent = oldText; }
+    })
+  }
+  function saveEdit(r, c, val) {
+    if (!data[r]) data[r] = {}
+    data[r][c] = val
+    localCount++
+    setText('t-local', String(localCount))
+    addLog('你 · R' + (r+1) + 'C' + (c+1) + ' ' + HEADS[c] + ' → ' + val)
+    flashCell(r, c, 'local')
+    document.getElementById('s2').classList.add('done')
+  }
+  function flashCell(r, c, who) {
+    var el = layer.querySelector('[data-rc="' + r + ',' + c + '"]')
+    if (el) { el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash', 'flash-' + who); }
+  }
+  function updateCursor(name, r, c, who) {
+    var curEl = cursors.querySelector('[data-who="' + who + '"]')
+    if (!curEl) { curEl = document.createElement('div'); curEl.className = 'cursor-overlay cursor-' + who; curEl.setAttribute('data-who', who); cursors.appendChild(curEl) }
+    if (!isOnline) curEl.classList.add('offline'); else curEl.classList.remove('offline')
+    var top = r * ROW_H + vp.scrollTop, left = GUT
+    for (var i = 0; i < c; i++) left += CW[i]
+    curEl.innerHTML = '<div class="cursor-dot"></div><div class="cursor-label">' + name + '</div>'
+    curEl.style.transform = 'translate(' + left + 'px,' + top + 'px)'
+  }
+  function remoteOp(who, op) {
+    if (isOnline) msgCount++
+    else queueCount++
+    setText('t-remote', String(msgCount))
+    setText('t-queue', String(queueCount))
+    if (op.type === 'edit') {
+      if (!data[op.r]) data[op.r] = {}
+      data[op.r][op.c] = op.val
+      if (selectedCell && selectedCell.r === op.r && selectedCell.c === op.c) {
+        conflictCount++
+        setText('t-conflict', String(conflictCount))
+        addLog('⚡ 冲突：R' + (op.r+1) + 'C' + (op.c+1) + ' 你与' + (who === 'aTrue' ? '阿真' : '阿岚') + '同时写入，后写（你）胜', 'conflict')
+      } else {
+        addLog((who === 'aTrue' ? '阿真' : '阿岚') + ' · R' + (op.r+1) + 'C' + (op.c+1) + ' ' + HEADS[op.c] + ' → ' + op.val)
+      }
+      flashCell(op.r, op.c, who)
+      render(false)
+    } else if (op.type === 'insert') {
+      insertedRows[who].add(op.r)
+      ROWS++; spacer.style.height = ROWS * ROW_H + 'px'
+      addLog((who === 'aTrue' ? '阿真' : '阿岚') + ' · 在 R' + (op.r+1) + ' 前插入一行')
+      render(false)
+    } else if (op.type === 'delete' && insertedRows[who].has(op.r)) {
+      insertedRows[who].delete(op.r); ROWS--; spacer.style.height = ROWS * ROW_H + 'px'
+      addLog((who === 'aTrue' ? '阿真' : '阿岚') + ' · 删除 R' + (op.r+1))
+      render(false)
+    }
+  }
+  var collabInterval = setInterval(function () {
+    ['aTrue', 'aLan'].forEach(function (who) {
+      var delay = 1800 + Math.random() * 1200, r = Math.floor(Math.random() * ROWS), c = Math.floor(Math.random() * COLS)
+      setTimeout(function () {
+        var dice = Math.random()
+        if (dice < 0.7) { remoteOp(who, {type: 'edit', r: r, c: c, val: (c === 3 ? String(1 + Math.floor(Math.random() * 40)) : STATUS[Math.floor(Math.random() * 3)])}); updateCursor(who === 'aTrue' ? '阿真' : '阿岚', r, c, who) }
+        else if (dice < 0.85 && ROWS < 60) { remoteOp(who, {type: 'insert', r: r}); updateCursor(who === 'aTrue' ? '阿真' : '阿岚', r, 0, who) }
+        else if (ROWS > 40) { var delRow = Math.min(ROWS - 1, Math.max(0, r)); if (insertedRows[who].has(delRow) || Math.random() > 0.5) { remoteOp(who, {type: 'delete', r: delRow}); } }
+      }, delay)
+    })
+  }, 3000)
+
+  var wentOffline = false
+  document.getElementById('toggle-offline').addEventListener('click', function (e) {
+    isOnline = !isOnline
+    e.target.textContent = isOnline ? '断线' : '重连'
+    if (!isOnline) {
+      wentOffline = true
+    } else {
+      addLog('↻ 重连：flush ' + queueCount + ' 条离线操作')
+      msgCount += queueCount
+      queueCount = 0
+      setText('t-queue', '0')
+      setText('t-remote', String(msgCount))
+      if (wentOffline) document.getElementById('s3').classList.add('done')
+    }
+  })
+
+  var remoteCount = 0
+  setInterval(function () { if (msgCount >= 8 && !document.getElementById('s1').classList.contains('done')) document.getElementById('s1').classList.add('done') }, 500)
+
+  render(true)
+})()
+</script>
+</body>
+</html>

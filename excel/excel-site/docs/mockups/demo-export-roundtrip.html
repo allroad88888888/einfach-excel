@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>导出与回灌 · einfach 设计稿</title>
+<style>
+:root {
+  --bg: #f2f4f0; --surface: #fbfcfa; --ink: #1c2420; --ink2: #4d5c54;
+  --muted: #74847b; --line: #dde3dc; --accent: #17754f; --accent-soft: rgba(23,117,79,.1);
+  --paper: #ffffff; --paper-ink: #232a24; --paper-line: #e7eae4; --paper-head: #f2f4ee;
+  --paper-edge: #d4dacf; --hud-bg: #1a2125; --hud-ink: #e6ebe7; --hud-muted: #8da199;
+  --hud-line: #2b3539; --hud-accent: #43c78f; --flash: rgba(23,117,79,.25);
+  --warn: #a25b0c;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12171a; --surface: #1a2125; --ink: #e6ebe7; --ink2: #a9b6af;
+    --muted: #71807a; --line: #28322f; --accent: #43c78f; --accent-soft: rgba(67,199,143,.12);
+    --paper-edge: #38423e;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12171a; --surface: #1a2125; --ink: #e6ebe7; --ink2: #a9b6af;
+  --muted: #71807a; --line: #28322f; --accent: #43c78f; --accent-soft: rgba(67,199,143,.12);
+  --paper-edge: #38423e;
+}
+:root[data-theme="light"] {
+  --bg: #f2f4f0; --surface: #fbfcfa; --ink: #1c2420; --ink2: #4d5c54;
+  --muted: #74847b; --line: #dde3dc; --accent: #17754f; --accent-soft: rgba(23,117,79,.1);
+  --paper-edge: #d4dacf;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 16px/1.65 -apple-system, "PingFang SC", "Segoe UI", "Microsoft YaHei", sans-serif;
+}
+.mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+a { color: var(--accent); text-decoration: none; }
+a:hover, a:focus-visible { text-decoration: underline; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.site-head {
+  display: flex; align-items: center; gap: 20px;
+  max-width: 1120px; margin: 0 auto; padding: 18px 24px;
+}
+.brand { font-weight: 700; letter-spacing: .02em; font-size: 17px; color: var(--ink); }
+.brand .dot { color: var(--accent); }
+.site-nav { display: flex; gap: 18px; margin-left: auto; font-size: 14px; color: var(--ink2); }
+.site-nav .planned { color: var(--muted); cursor: default; }
+.site-nav .planned::after { content: " ·规划中"; font-size: 11px; color: var(--muted); }
+.ribbon {
+  background: var(--accent-soft); color: var(--ink2); font-size: 12.5px;
+  text-align: center; padding: 6px 16px; border-block: 1px solid var(--line);
+}
+.ribbon b { color: var(--accent); font-weight: 600; }
+
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px 72px; }
+.crumbs { font-size: 13px; color: var(--muted); margin: 26px 0 6px; }
+.crumbs .namebox {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px;
+  border: 1px solid var(--line); background: var(--surface);
+  padding: 2px 8px; border-radius: 3px; margin-right: 10px; color: var(--ink2);
+}
+h1 { font-size: 34px; line-height: 1.25; margin: 4px 0 10px; letter-spacing: -.01em; text-wrap: balance; }
+.lede { max-width: 62ch; color: var(--ink2); margin: 0 0 8px; }
+.lede code, .how code {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .88em;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 3px; padding: 1px 5px;
+}
+
+.demo-split { display: grid; grid-template-columns: minmax(0,1fr) 252px; gap: 18px; margin-top: 26px; }
+@media (max-width: 900px) { .demo-split { grid-template-columns: 1fr; } }
+
+.sheet-card { border: 1px solid var(--paper-edge); border-radius: 8px; overflow: hidden; background: var(--paper); box-shadow: 0 1px 2px rgba(15,26,20,.06), 0 8px 24px rgba(15,26,20,.05); }
+.sheet-toolbar { display: flex; gap: 10px; align-items: center; padding: 8px 10px; background: var(--paper-head); border-bottom: 1px solid var(--paper-line); }
+.sheet-toolbar input {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12.5px; width: 92px;
+  border: 1px solid var(--paper-edge); border-radius: 4px; padding: 4px 8px; background: var(--paper); color: var(--paper-ink);
+}
+.sheet-toolbar button, .steps button {
+  font: 600 12.5px/1 -apple-system, "PingFang SC", sans-serif; color: var(--accent);
+  background: var(--paper); border: 1px solid var(--paper-edge); border-radius: 4px;
+  padding: 6px 10px; cursor: pointer;
+}
+.sheet-toolbar .fx { color: #6b756c; font-size: 12px; margin-left: auto; font-family: ui-monospace, Menlo, monospace; }
+.viewport { position: relative; height: 430px; overflow: auto; background: var(--paper); color: var(--paper-ink); }
+.viewport.tall { height: 620px; }
+.spacer { position: absolute; top: 0; left: 0; width: 1px; }
+.colhead { position: sticky; top: 0; z-index: 3; display: flex; background: var(--paper-head); border-bottom: 1px solid var(--paper-edge); width: max-content; }
+.colhead .c { font: 600 11px/23px ui-monospace, Menlo, monospace; color: #77816f; text-align: center; border-right: 1px solid var(--paper-line); }
+.colhead .gut { position: sticky; left: 0; background: var(--paper-head); z-index: 4; }
+.layer { position: absolute; left: 0; will-change: transform; width: max-content; }
+.r { display: flex; height: 24px; width: max-content; }
+.r .gut {
+  position: sticky; left: 0; z-index: 2; width: 64px; flex: none;
+  font: 500 11px/23px ui-monospace, Menlo, monospace; color: #949e93; text-align: center;
+  background: var(--paper-head); border-right: 1px solid var(--paper-edge); border-bottom: 1px solid var(--paper-line);
+}
+.cell {
+  flex: none; font-size: 12.5px; line-height: 23px; padding: 0 8px;
+  border-right: 1px solid var(--paper-line); border-bottom: 1px solid var(--paper-line);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cell.num { text-align: right; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; font-variant-numeric: tabular-nums; }
+.r.head .cell { font-weight: 600; background: #fbfcf9; color: #454e44; }
+.cell.flash { animation: flash 1.6s ease-out; outline: 2px solid var(--accent); outline-offset: -2px; }
+@keyframes flash { from { background: var(--flash); } to { background: transparent; } }
+@media (prefers-reduced-motion: reduce) { .cell.flash { animation: none; } }
+
+.hud { background: var(--hud-bg); color: var(--hud-ink); border-radius: 8px; padding: 16px 16px 12px; align-self: start; }
+.hud h2 { font-size: 11px; font-weight: 600; letter-spacing: .14em; color: var(--hud-muted); margin: 0 0 12px; text-transform: uppercase; }
+.tile { padding: 9px 0 7px; border-top: 1px solid var(--hud-line); }
+.tile:first-of-type { border-top: 0; padding-top: 0; }
+.tile .k { font-size: 12px; color: var(--hud-muted); }
+.tile .v { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-variant-numeric: tabular-nums; font-size: 21px; line-height: 1.3; color: var(--hud-ink); }
+.tile .v small { font-size: 12px; color: var(--hud-muted); margin-left: 4px; }
+.tile .v .hi { color: var(--hud-accent); }
+.spark { display: flex; align-items: flex-end; gap: 2px; height: 18px; margin-top: 6px; }
+.spark i { flex: 1 0 4px; background: var(--hud-accent); border-radius: 1px 1px 0 0; min-height: 2px; opacity: .85; }
+.hud .note { font-size: 11.5px; color: var(--hud-muted); margin-top: 10px; line-height: 1.5; }
+
+.steps { margin-top: 34px; }
+.steps h2, .how h2 { font-size: 20px; margin: 0 0 4px; }
+.steps .sub, .how .sub { color: var(--muted); font-size: 13.5px; margin: 0 0 16px; }
+.steps ol { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 0; padding: 0; }
+.steps li { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; }
+.steps li.done { border-color: var(--accent); }
+.steps .st { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14.5px; }
+.steps .badge {
+  flex: none; width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--muted);
+  font: 700 11px/18px ui-monospace, Menlo, monospace; text-align: center; color: var(--muted);
+}
+.steps li.done .badge { background: var(--accent); border-color: var(--accent); color: #fff; }
+.steps p { font-size: 13px; color: var(--ink2); margin: 8px 0 10px; }
+.steps button { background: var(--surface); border-color: var(--line); }
+.steps li.done button { color: var(--muted); }
+
+.how { margin-top: 40px; max-width: 68ch; }
+.how p { color: var(--ink2); font-size: 14.5px; }
+.how .src { font-size: 13px; color: var(--muted); }
+.foot { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted); }
+</style>
+
+</head>
+<body>
+<header class="site-head">
+  <span class="brand">einfach<span class="dot">·</span>excel</span>
+  <nav class="site-nav">
+    <a href="index.html" data-nav="home">首页</a>
+    <a href="index.html#demos" data-nav="demos">演示</a>
+    <span class="planned">文档</span>
+    <span class="planned">API</span>
+  </nav>
+</header>
+<div class="ribbon"><b>设计稿 M0</b> · 本页序列化在主线程演示（含刻意的阻塞对比）；真实站点导出在 worker 里做，主线程零停顿</div>
+
+<main class="wrap">
+<p class="crumbs"><span class="namebox">A10</span>演示 / 导出与回灌</p>
+<h1>导出去，灌回来，一个字节不差</h1>
+<p class="lede"><code>toJson</code> 导出快照，改一格 diff 看得见，<code>setSheetsData</code> 回灌重建后校验归零；顺带对比同步导出如何卡主线程、分批导出如何不卡。</p>
+
+<style>
+.json-panel { background: var(--hud-bg); color: var(--hud-ink); font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 11px; line-height: 1.5; overflow: auto; height: 190px; border-radius: 6px; padding: 10px; white-space: pre; }
+.dl { background: rgba(67,199,143,.15); }
+.dl-del { background: rgba(176,67,15,.15); }
+.pbar { height: 8px; background: var(--hud-line); border-radius: 4px; overflow: hidden; }
+.pbar-fill { height: 100%; background: var(--hud-accent); transition: width .3s ease; }
+@media (prefers-reduced-motion: reduce) { .pbar-fill { transition: none; } }
+.panels { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+@media (max-width: 900px) { .panels { grid-template-columns: 1fr; } }
+</style>
+
+<div class="demo-split">
+  <div>
+    <div class="sheet-card">
+      <div class="sheet-toolbar">
+        <button id="exportA">导出 A</button><button id="exportB">导出 B</button><button id="diffAB">diff</button><button id="reloadA">回灌 A</button>
+      </div>
+      <div class="viewport" style="height:280px;">
+        <div class="colhead">
+          <div class="c gut">行</div>
+          <div class="c" style="width:80px;">品名</div>
+          <div class="c" style="width:60px;">单价</div>
+          <div class="c" style="width:60px;">库存</div>
+          <div class="c" style="width:60px;">小计</div>
+        </div>
+        <div id="sheet"></div>
+      </div>
+    </div>
+
+    <div class="panels">
+      <div><p style="font-size:12px;color:var(--ink2);margin:0 0 6px;">快照 A</p><div class="json-panel" id="panelA"></div></div>
+      <div><p style="font-size:12px;color:var(--ink2);margin:0 0 6px;">快照 B</p><div class="json-panel" id="panelB"></div></div>
+    </div>
+
+    <div class="sheet-card" style="margin-top:12px;">
+      <div class="sheet-toolbar" style="flex-wrap:wrap;">
+        <p style="width:100%;font-size:12px;color:var(--paper-ink);margin:0 0 8px;">对比导出策略</p>
+        <button id="syncExport">同步导出 200 sheet（阻塞）</button>
+        <button id="asyncExport">分批导出（每帧 20 个）</button>
+      </div>
+      <div style="padding:12px;background:var(--paper);">
+        <div class="pbar"><div class="pbar-fill" id="pbar" style="width:0%;"></div></div>
+        <p style="font-size:12px;color:var(--paper-ink);margin:10px 0 0;">进度：<span id="progress">0/200</span></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="hud"><h2>导出仪表盘</h2>
+    <div class="tile"><div class="k">导出耗时</div><div class="v"><span id="exportTime">—</span><small>ms</small></div></div>
+    <div class="tile"><div class="k">JSON 字节</div><div class="v"><span id="byteSize">—</span></div></div>
+    <div class="tile"><div class="k">diff 行数</div><div class="v"><span id="diffRows">—</span></div></div>
+    <div class="tile"><div class="k">roundtrip</div><div class="v"><span id="roundtrip">–</span><span class="hi" id="roundtripMark" style="display:none;">✓</span></div></div>
+    <div class="tile"><div class="k">最长停顿</div><div class="v"><span id="maxFrame">—</span><small>ms</small></div></div>
+    <div class="note">分批导出对应 <code>getAllSheetsAsync</code>；worker 侧主线程停顿为 0。</div>
+  </div>
+</div>
+
+<div class="steps">
+  <h2>演示步骤</h2>
+  <ol>
+    <li id="s1">
+      <div class="st"><div class="badge">1</div>导出 A → 改一格 → 导出 B → diff</div>
+      <p>点击任意单元格（数字）+100，看 diff 如何标记变化行。</p>
+    </li>
+    <li id="s2">
+      <div class="st"><div class="badge">2</div>回灌 A 并看 roundtrip ✓</div>
+      <p>点「回灌快照 A」，表格还原，自动重新导出到 B 并 diff，校验应为 0 行。</p>
+    </li>
+    <li id="s3">
+      <div class="st"><div class="badge">3</div>跑同步与分批各一次</div>
+      <p>点两个导出按钮，记录耗时与停顿。同步会卡，分批流畅。</p>
+    </li>
+  </ol>
+</div>
+
+<div class="how">
+  <h2>设计亮点</h2>
+  <p>真实实现里快照序列化发生在 worker，主线程只收字符串；回灌走分批 <code>setSheetsData</code>，<code>revision</code> 保证不覆盖回灌期间的新编辑。</p>
+  <div class="src">solid-excel/src-vnext/adapter/worker-workbook-backend.ts（设计稿中不可点）</div>
+</div>
+
+  <p class="foot">einfach excel · 站点重构设计稿 · 对应提案 excel/excel-site/docs/SITE_REBUILD_PLAN_2026-08-04.md</p>
+</main>
+
+<script>
+'use strict';
+const data = [
+  {name:'苹果',price:15,stock:20}, {name:'香蕉',price:8,stock:30}, {name:'橙子',price:12,stock:25},
+  {name:'葡萄',price:20,stock:15}, {name:'西瓜',price:25,stock:10}, {name:'桃子',price:18,stock:12},
+  {name:'梨',price:10,stock:18}, {name:'蓝莓',price:35,stock:8}
+];
+let snapshotA = null, snapshotB = null;
+const hud = {
+  exportTime: 0,
+  byteSize: 0,
+  diffRows: 0,
+  roundtrip: '–',
+  maxFrame: 0
+};
+
+function renderSheet() {
+  const sheet = document.getElementById('sheet');
+  sheet.innerHTML = data.map((r, i) => `<div class="r"><div class="gut">${i+1}</div><div class="cell" style="width:80px;">${r.name}</div><div class="cell num" style="width:60px;" data-idx="${i}" data-field="price">${r.price}</div><div class="cell num" style="width:60px;" data-idx="${i}" data-field="stock">${r.stock}</div><div class="cell num" style="width:60px;">${r.price*r.stock}</div></div>`).join('');
+  sheet.parentElement.style.height = data.length * 24 + 24 + 'px';
+}
+
+document.addEventListener('click', (e) => {
+  const cell = e.target.closest('.cell[data-idx]');
+  if (!cell) return;
+  const idx = +cell.dataset.idx, field = cell.dataset.field;
+  data[idx][field] += 100;
+  renderSheet();
+  cell.classList.add('flash');
+  setTimeout(() => cell.classList.remove('flash'), 1600);
+  document.getElementById('s1').classList.remove('done');
+});
+
+function exportSnapshot() {
+  const t0 = performance.now();
+  const json = JSON.stringify(data, null, 2);
+  const t1 = performance.now();
+  hud.exportTime = Math.round(t1 - t0);
+  hud.byteSize = new Blob([json]).size;
+  return json;
+}
+
+function showPanel(id, json) {
+  document.getElementById(id).textContent = json;
+}
+
+function diffSnapshots(jsonA, jsonB) {
+  const lA = jsonA.split('\n'), lB = jsonB.split('\n');
+  let d = 0, h = '';
+  for (let i = 0; i < Math.max(lA.length, lB.length); i++) {
+    const a = lA[i] || '', b = lB[i] || '';
+    if (a !== b) d++;
+    h += `<div class="${a !== b ? (a ? 'dl-del' : 'dl') : ''}">${b || '(已删)'}</div>`;
+  }
+  document.getElementById('panelA').textContent = jsonA;
+  document.getElementById('panelB').innerHTML = h;
+  hud.diffRows = d;
+  return d;
+}
+
+document.getElementById('exportA').onclick = () => {
+  snapshotA = exportSnapshot();
+  showPanel('panelA', snapshotA);
+  updateHud();
+};
+
+document.getElementById('exportB').onclick = () => {
+  snapshotB = exportSnapshot();
+  showPanel('panelB', snapshotB);
+  updateHud();
+};
+
+document.getElementById('diffAB').onclick = () => {
+  if (!snapshotA || !snapshotB) return alert('先导出 A 和 B');
+  const diff = diffSnapshots(snapshotA, snapshotB);
+  updateHud();
+  if (diff > 0) document.getElementById('s1').classList.add('done');
+};
+
+document.getElementById('reloadA').onclick = () => {
+  const orig = JSON.parse(snapshotA);
+  data.length = 0; data.push(...orig);
+  renderSheet();
+  snapshotB = exportSnapshot();
+  showPanel('panelB', snapshotB);
+  const diff = diffSnapshots(snapshotA, snapshotB);
+  hud.roundtrip = diff === 0 ? '✓' : '–';
+  updateHud();
+  if (diff === 0) document.getElementById('s2').classList.add('done');
+};
+
+document.getElementById('syncExport').onclick = () => {
+  const frames = [];
+  const t0 = performance.now();
+  for (let i = 0; i < 200; i++) {
+    const t1 = performance.now();
+    JSON.stringify(data);
+    const t2 = performance.now();
+    frames.push(t2 - t1);
+    if (i % 50 === 0) {
+      const now = performance.now();
+      frames.push(now - t1);
+    }
+  }
+  const t3 = performance.now();
+  hud.exportTime = Math.round(t3 - t0);
+  hud.maxFrame = Math.round(Math.max(...frames));
+  updateHud();
+  document.getElementById('s3').classList.add('done');
+};
+
+document.getElementById('asyncExport').onclick = () => {
+  let i = 0, maxF = 0;
+  const pbar = document.getElementById('pbar');
+  const t0 = performance.now();
+  const step = () => {
+    const t1 = performance.now();
+    for (let j = 0; j < 20 && i < 200; j++, i++) JSON.stringify(data);
+    maxF = Math.max(maxF, performance.now() - t1);
+    pbar.style.width = i / 200 * 100 + '%';
+    document.getElementById('progress').textContent = i + '/200';
+    if (i < 200) requestAnimationFrame(step);
+    else {
+      hud.exportTime = Math.round(performance.now() - t0);
+      hud.maxFrame = Math.round(maxF);
+      updateHud();
+      document.getElementById('s3').classList.add('done');
+    }
+  };
+  step();
+};
+
+function updateHud() {
+  document.getElementById('exportTime').textContent = hud.exportTime;
+  document.getElementById('byteSize').textContent = hud.byteSize;
+  document.getElementById('diffRows').textContent = hud.diffRows;
+  document.getElementById('maxFrame').textContent = hud.maxFrame;
+  const rt = hud.roundtrip === '✓';
+  document.getElementById('roundtrip').textContent = rt ? '' : '–';
+  document.getElementById('roundtripMark').style.display = rt ? 'inline' : 'none';
+}
+
+renderSheet();
+</script>
+
+</body>
+</html>

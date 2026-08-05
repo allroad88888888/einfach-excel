@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>einfach excel · 只画看得见的，只算用得着的（设计稿）</title>
+<style>
+:root {
+  --bg: #f2f4f0; --surface: #fbfcfa; --ink: #1c2420; --ink2: #4d5c54;
+  --muted: #74847b; --line: #dde3dc; --accent: #17754f; --accent-soft: rgba(23,117,79,.1);
+  --paper: #ffffff; --paper-ink: #232a24; --paper-line: #e7eae4; --paper-head: #f2f4ee;
+  --paper-edge: #d4dacf; --hud-bg: #1a2125; --hud-ink: #e6ebe7; --hud-muted: #8da199;
+  --hud-line: #2b3539; --hud-accent: #43c78f;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12171a; --surface: #1a2125; --ink: #e6ebe7; --ink2: #a9b6af;
+    --muted: #71807a; --line: #28322f; --accent: #43c78f; --accent-soft: rgba(67,199,143,.12);
+    --paper-edge: #38423e;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12171a; --surface: #1a2125; --ink: #e6ebe7; --ink2: #a9b6af;
+  --muted: #71807a; --line: #28322f; --accent: #43c78f; --accent-soft: rgba(67,199,143,.12);
+  --paper-edge: #38423e;
+}
+:root[data-theme="light"] {
+  --bg: #f2f4f0; --surface: #fbfcfa; --ink: #1c2420; --ink2: #4d5c54;
+  --muted: #74847b; --line: #dde3dc; --accent: #17754f; --accent-soft: rgba(23,117,79,.1);
+  --paper-edge: #d4dacf;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 16px/1.65 -apple-system, "PingFang SC", "Segoe UI", "Microsoft YaHei", sans-serif;
+}
+.mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+a { color: var(--accent); text-decoration: none; }
+a:hover, a:focus-visible { text-decoration: underline; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.site-head {
+  display: flex; align-items: center; gap: 20px;
+  max-width: 1120px; margin: 0 auto; padding: 18px 24px;
+}
+.brand { font-weight: 700; letter-spacing: .02em; font-size: 17px; color: var(--ink); }
+.brand .dot { color: var(--accent); }
+.site-nav { display: flex; gap: 18px; margin-left: auto; font-size: 14px; color: var(--ink2); }
+.site-nav .planned { color: var(--muted); cursor: default; }
+.site-nav .planned::after { content: " ·规划中"; font-size: 11px; color: var(--muted); }
+.ribbon {
+  background: var(--accent-soft); color: var(--ink2); font-size: 12.5px;
+  text-align: center; padding: 6px 16px; border-block: 1px solid var(--line);
+}
+.ribbon b { color: var(--accent); font-weight: 600; }
+
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px 72px; }
+h1 { font-size: 44px; line-height: 1.2; margin: 18px 0 12px; letter-spacing: -.015em; text-wrap: balance; }
+.eyebrow { font-size: 13px; color: var(--muted); font-weight: 500; letter-spacing: .05em; margin: 32px 0 4px; text-transform: uppercase; }
+.lede { max-width: 66ch; color: var(--ink2); margin: 0 0 16px; font-size: 15px; line-height: 1.6; }
+.btn-row { display: flex; gap: 14px; margin: 20px 0 32px; flex-wrap: wrap; }
+.btn { padding: 10px 18px; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; border: 1px solid transparent; }
+.btn.primary { background: var(--accent); color: white; }
+.btn.primary:hover { opacity: .95; }
+.btn.secondary { background: transparent; border: 1.5px solid var(--accent); color: var(--accent); }
+.btn.secondary:hover { background: var(--accent-soft); }
+
+.hero-grid { border: 1px solid var(--paper-edge); border-radius: 8px; overflow: hidden; background: var(--paper); margin: 24px 0; }
+.grid-head { display: flex; gap: 0; align-items: stretch; background: var(--paper-head); border-bottom: 1px solid var(--paper-line); padding: 8px 0; }
+.grid-head .cell { flex: 0 0 auto; padding: 0 10px; line-height: 24px; font-weight: 600; font-size: 11px; text-align: center; color: #77816f; border-right: 1px solid var(--paper-line); }
+.grid-head .cell:last-child { border-right: 0; }
+.viewport { position: relative; height: 300px; overflow: auto; background: var(--paper); color: var(--paper-ink); }
+.spacer { position: absolute; top: 0; left: 0; width: 1px; }
+.layer { position: absolute; left: 0; will-change: transform; width: 100%; }
+.row { display: flex; height: 24px; width: 100%; border-bottom: 1px solid var(--paper-line); }
+.row .cell {
+  flex: 0 0 auto; line-height: 24px; padding: 0 10px;
+  border-right: 1px solid var(--paper-line); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.row .cell:last-child { border-right: 0; }
+.row .cell.num { text-align: right; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-variant-numeric: tabular-nums; }
+
+.grid-stats { display: flex; gap: 12px; padding: 16px 16px 12px; background: var(--paper); justify-content: flex-start; flex-wrap: wrap; }
+.stat-chip { background: var(--hud-bg); color: var(--hud-ink); border-radius: 6px; padding: 8px 12px; font-size: 12px; }
+.stat-chip .v { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-variant-numeric: tabular-nums; font-weight: 600; color: var(--hud-accent); }
+
+.demos { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; margin: 48px 0; }
+.demo-card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 20px; }
+.demo-card h3 { font-size: 18px; margin: 0 0 8px; color: var(--ink); }
+.demo-card p { font-size: 14px; color: var(--ink2); margin: 8px 0 0; line-height: 1.6; }
+.demo-card .metric { font-family: ui-monospace, Menlo, monospace; font-size: 12px; color: var(--muted); margin-top: 12px; }
+.demo-card .metric b { color: var(--accent); }
+.demo-card a { display: inline-block; margin-top: 12px; }
+.demo-card .planned { color: var(--muted); cursor: default; }
+.demo-card .planned::after { content: " ·规划中"; font-size: 11px; }
+
+.quickstart { margin: 48px 0; }
+.quickstart h2 { font-size: 22px; margin: 0 0 12px; }
+.quickstart pre {
+  background: var(--hud-bg); color: var(--hud-ink); padding: 16px; border-radius: 8px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12.5px; overflow-x: auto; margin: 12px 0 0;
+  line-height: 1.5;
+}
+
+.docs-teaser { display: flex; gap: 12px; margin: 48px 0; flex-wrap: wrap; }
+.doc-link { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px 14px; font-size: 13px; text-decoration: none; color: var(--accent); }
+.doc-link:hover { background: var(--accent-soft); }
+.doc-link .planned { color: var(--muted); }
+.doc-link .planned::after { content: " ·规划中"; font-size: 10px; }
+
+.foot { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted); }
+@media (max-width: 768px) {
+  h1 { font-size: 32px; }
+  .btn-row { gap: 10px; }
+  .btn { padding: 9px 14px; font-size: 13px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; }
+}
+</style>
+
+</head>
+<body>
+<header class="site-head">
+  <span class="brand">einfach<span class="dot">·</span>excel</span>
+  <nav class="site-nav">
+    <a href="#demos">演示</a>
+    <span class="planned">文档</span>
+    <span class="planned">API</span>
+  </nav>
+</header>
+<div class="ribbon"><b>设计稿 M0</b> · 首页 hero 的网格为页内模拟（虚拟化是真实现，无 worker/WASM）</div>
+
+<main class="wrap">
+  <p class="eyebrow">einfach · spreadsheet stack</p>
+  <h1>只画看得见的，只算用得着的。</h1>
+  <p class="lede">
+    十万行的表格即开即滚——UI 只投影可视窗口，公式引擎只遍历真实存在的数据。真 Rust/WASM 引擎跑在 Web Worker 里。下面这张表是活的。
+  </p>
+
+  <div class="btn-row">
+    <a href="demo-viewport-projection.html" class="btn primary">旗舰演示 ① 只画看得见的</a>
+    <a href="demo-lazy-formulas.html" class="btn secondary">旗舰演示 ② 只算用得着的</a>
+  </div>
+
+  <div class="hero-grid">
+    <div class="grid-head" id="gridhead"></div>
+    <div class="viewport" id="vp" aria-label="虚拟化表格，100,000行">
+      <div class="spacer" id="spacer"></div>
+      <div class="layer" id="layer"></div>
+    </div>
+    <div class="grid-stats">
+      <div class="stat-chip">总行数 <span class="v" id="s-total">100,000</span></div>
+      <div class="stat-chip">投影行 <span class="v" id="s-proj">–</span></div>
+      <div class="stat-chip">DOM行 <span class="v" id="s-dom">–</span></div>
+      <div class="stat-chip">耗时 <span class="v" id="s-time">–</span> ms</div>
+    </div>
+  </div>
+
+  <section id="demos">
+    <div class="demos">
+      <div class="demo-card">
+        <h3>只画看得见的</h3>
+        <p>滚动 100,000 行，每次只投影可视窗口加少量预取；其余行从未被触碰。</p>
+        <div class="metric">投影行 ~30 ｜ DOM 行 ~35</div>
+        <a href="demo-viewport-projection.html">演示 →</a>
+      </div>
+      <div class="demo-card">
+        <h3>只算用得着的</h3>
+        <p>=SUMIF(A:A,…) 名义覆盖 1,048,576 格，实际只遍历 8,192 个真实数据。</p>
+        <div class="metric">扫描 ~8k 格 ｜ 计算 ~2ms</div>
+        <a href="demo-lazy-formulas.html">演示 →</a>
+      </div>
+      <div class="demo-card">
+        <h3>滚到哪，加载哪</h3>
+        <p>50,000 行的表本地只有前 500 行——进入视口的数据块才向远端发请求；骨架格、失败重试、失效重载都有状态。</p>
+        <div class="metric">块 500 行 × 100 ｜ 骨架 → 就绪</div>
+        <a href="demo-lazy-area.html">演示 →</a>
+      </div>
+      <div class="demo-card">
+        <h3>动态数组与错误几何</h3>
+        <p>=SEQUENCE(5,3) 把结果铺满一片区域；铺不开给 #SPILL!，循环依赖检出成错误而不是死循环。</p>
+        <div class="metric">#SPILL! · 依赖环 · A1# 引用</div>
+        <a href="demo-formula-spill.html">演示 →</a>
+      </div>
+      <div class="demo-card">
+        <h3>异步自定义公式</h3>
+        <p>宿主注册 async JS 函数，格子先 #BUSY! 等 Promise 逐个 settle；同参调用走记忆化，不重复请求。</p>
+        <div class="metric">#BUSY! → 数值 ｜ memo 命中 0ms</div>
+        <a href="demo-async-formulas.html">演示 →</a>
+      </div>
+      <div class="demo-card">
+        <h3>三个人同时在改这张表</h3>
+        <p>两位模拟协作者与你的编辑汇入同一操作流：在场光标、操作日志、断线队列、后写胜裁决都可见。</p>
+        <div class="metric">3 人在线 ｜ 冲突后写胜</div>
+        <a href="demo-collab-sim.html">演示 →</a>
+      </div>
+      <div class="demo-card">
+        <h3>每一步都能反悔</h3>
+        <p>点格直改、TSV 批量粘贴、条件批量格式——三种粒度的修改进同一条 undo 栈，逐步回放。</p>
+        <div class="metric">栈上限 100 ｜ 复合 op 原子回放</div>
+        <a href="demo-edit-undo.html">演示 →</a>
+      </div>
+      <div class="demo-card">
+        <h3>表头钉住，数据在下面流</h3>
+        <p>首行、首列、行列组合三种冻结；滚动时钉住区不动，边界线标出冻结平面。</p>
+        <div class="metric">四象限投影 ｜ 60 × 10</div>
+        <a href="demo-freeze-pane.html">演示 →</a>
+      </div>
+      <div class="demo-card">
+        <h3>导出去，灌回来</h3>
+        <p>toJson 快照、改一格看 diff、回灌重建校验归零；同步导出卡主线程 vs 分批导出不卡。</p>
+        <div class="metric">roundtrip diff = 0 ｜ 分批每帧 20</div>
+        <a href="demo-export-roundtrip.html">演示 →</a>
+      </div>
+      <div class="demo-card">
+        <h3>真引擎，不是 mock</h3>
+        <p>Rust/WASM 公式引擎在 Web Worker 里持有工作簿：跨表依赖、动态数组、自定义公式。</p>
+        <div class="metric">Worker 引擎 · 实时协议</div>
+        <span class="planned">文档</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="quickstart">
+    <h2>十行代码起步</h2>
+    <pre>pnpm add @einfach/solid-excel @einfach/spreadsheet-ui-core
+
+import { SpreadsheetUiProvider, SpreadsheetGrid } from '@einfach/solid-excel/vnext'
+import { createSpreadsheetUi } from '@einfach/spreadsheet-ui-core'
+
+export default function App(props) {
+  return (
+    &lt;SpreadsheetUiProvider backend={props.backend}&gt;
+      &lt;SpreadsheetGrid /&gt;
+    &lt;/SpreadsheetUiProvider&gt;
+  )
+}</pre>
+  </section>
+
+  <div class="docs-teaser">
+    <a href="/docs/getting-started" class="doc-link">/ docs / getting-started <span class="planned" style="all:unset">·规划中</span></a>
+    <a href="/docs/backend-port" class="doc-link">/ docs / backend-port <span class="planned" style="all:unset">·规划中</span></a>
+    <a href="/api" class="doc-link">/ api <span class="planned" style="all:unset">·规划中</span></a>
+    <a href="/llms.txt" class="doc-link">/ llms.txt <span class="planned" style="all:unset">·规划中</span></a>
+  </div>
+
+  <p class="foot">einfach excel · 站点重构设计稿 · 对应提案 excel/excel-site/docs/SITE_REBUILD_PLAN_2026-08-04.md</p>
+</main>
+
+<script>
+(function() {
+  'use strict'
+  var ROWS = 100000, ROW_H = 24, OVERSCAN = 4
+  var CW = [110, 90, 80, 70, 100]
+  var HEADS = ['订单号', '地区', '品类', '数量', '金额']
+  var REGIONS = ['华东', '华南', '华北', '西南', '东北', '华中']
+  var CATS = ['电子', '家居', '服饰', '食品']
+
+  function h32(n) { n = (n ^ 61) ^ (n >>> 16); n = (n + (n << 3)) | 0; n ^= n >>> 4; n = Math.imul(n, 0x27d4eb2d); n ^= n >>> 15; return n >>> 0 }
+  function qty(r) { return h32(r * 5 + 3) % 90 + 10 }
+  function price(r) { return (h32(r * 5 + 4) % 9000 + 500) / 10 }
+  function cellText(r, c) {
+    if (r === 0) return HEADS[c]
+    switch (c) {
+      case 0: return 'SO-' + (100000 + r)
+      case 1: return REGIONS[h32(r * 5 + 1) % 6]
+      case 2: return CATS[h32(r * 5 + 2) % 4]
+      case 3: return String(qty(r))
+      case 4: return (qty(r) * price(r)).toFixed(2)
+    }
+  }
+
+  var vp = document.getElementById('vp'), layer = document.getElementById('layer')
+  var spacer = document.getElementById('spacer'), gridhead = document.getElementById('gridhead')
+  var totalW = 0; CW.forEach(function (w) { totalW += w })
+  spacer.style.height = ROWS * ROW_H + 'px'; spacer.style.width = totalW + 'px'
+
+  var hh = ''
+  for (var c = 0; c < 5; c++) hh += '<div class="cell" style="width:' + CW[c] + 'px">' + HEADS[c] + '</div>'
+  gridhead.innerHTML = hh
+
+  var lastStart = -1, lastEnd = -1
+  function fmt(n) { return n.toLocaleString('en-US') }
+  function render() {
+    var t0 = performance.now()
+    var start = Math.max(0, Math.floor(vp.scrollTop / ROW_H) - OVERSCAN)
+    var vis = Math.ceil(vp.clientHeight / ROW_H) + 1
+    var end = Math.min(ROWS, start + vis + OVERSCAN * 2)
+    if (start === lastStart && end === lastEnd) return
+    lastStart = start; lastEnd = end
+
+    var html = ''
+    for (var r = start; r < end; r++) {
+      html += '<div class="row">'
+      for (var c = 0; c < 5; c++) {
+        var cls = 'cell' + (c >= 3 ? ' num' : '')
+        html += '<div class="' + cls + '" style="width:' + CW[c] + 'px">' + cellText(r, c) + '</div>'
+      }
+      html += '</div>'
+    }
+    layer.innerHTML = html
+    layer.style.transform = 'translateY(' + start * ROW_H + 'px)'
+
+    var ms = (performance.now() - t0).toFixed(1)
+    var visStart = Math.max(1, Math.floor(vp.scrollTop / ROW_H) + 1)
+    document.getElementById('s-proj').textContent = fmt(Math.min(ROWS, visStart + vis - 1) - visStart + 1)
+    document.getElementById('s-dom').textContent = end - start
+    document.getElementById('s-time').textContent = ms
+  }
+
+  var ticking = false
+  vp.addEventListener('scroll', function () {
+    if (!ticking) { ticking = true; requestAnimationFrame(function () { ticking = false; render() }) }
+  }, false)
+  window.addEventListener('resize', function () { render() }, false)
+  render()
+})()
+</script>
+
+</body>
+</html>

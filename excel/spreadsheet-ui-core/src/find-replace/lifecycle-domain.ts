@@ -10,7 +10,7 @@ import { ticketInputsCurrent } from './target-domain'
 import { findReplaceCommandErrorStateAtom, findReplaceCursorStateAtom, findReplaceOperationAttemptLedgerStateAtom, findReplaceQueryStateAtom, findReplaceSessionStateAtom, replaceAllCappedStateAtom } from './state'
 import { copyCursor, copyMatch, copyQuery, error, nextFindReplaceSessionId } from './value-domain'
 import type { FindReplaceSessionState } from './internal-types'
-import { validateSearchResult } from './search-validation'
+import type { validateSearchResult } from './search-validation'
 
 export function rotateLifecycle(get: Getter, set: Setter, open: boolean): FindReplaceSessionState {
   const previous = get(findReplaceSessionStateAtom)

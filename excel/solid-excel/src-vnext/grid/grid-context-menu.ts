@@ -38,7 +38,7 @@ export function installGridContextMenu(runtime: GridRuntime) {
   }
 
   function focusGrid() {
-    ;(runtime.gridRoot as HTMLDivElement | undefined)?.focus()
+    (runtime.gridRoot as HTMLDivElement | undefined)?.focus()
   }
 
   function getKeyboardContextMenuInput(): MenuOpenInput | null {

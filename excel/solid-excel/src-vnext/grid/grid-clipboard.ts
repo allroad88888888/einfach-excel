@@ -49,8 +49,10 @@ export function installGridClipboard(runtime: GridRuntime) {
       const chunks: string[] = []
       let streamResult: Awaited<ReturnType<NonNullable<typeof backend.consumeExportRangeTsvChunks>>> | Awaited<ReturnType<NonNullable<typeof backend.exportRangeTsv>>> | null = null
       if (backend.consumeExportRangeTsvChunks) streamResult = await backend.consumeExportRangeTsvChunks(streamRequest, (chunk: { text: string }) => chunks.push(chunk.text))
-      else if (backend.exportRangeTsv) { streamResult = await backend.exportRangeTsv(streamRequest); chunks.push(streamResult.text) }
-      else {
+      else if (backend.exportRangeTsv) {
+        streamResult = await backend.exportRangeTsv(streamRequest)
+        chunks.push(streamResult.text)
+      } else {
         store.setter(setClipboardErrorAtom, { code: 'BACKEND_ERROR', message: `Clipboard range is too large: ${cellCount} cells. Backend streaming export unavailable.` })
         return
       }
@@ -119,8 +121,9 @@ export function installGridClipboard(runtime: GridRuntime) {
       store.setter(pushHistoryAtom, { transactionId: nextHistoryTransactionId(), kind: 'cells.import', sheetId: props.sheetId, projectionRevision: revision, affectedRange: result?.affectedRange ? { ...result.affectedRange } : affectedRange })
     } else if (writes.length > 0) for (const write of writes) {
       let result: Awaited<ReturnType<typeof backend.setCellInput>>
-      try { result = await backend.setCellInput({ kind: 'set-cell-input', sheetId: props.sheetId, row: write.row, col: write.col, input: write.input }) }
-      catch (error) {
+      try {
+        result = await backend.setCellInput({ kind: 'set-cell-input', sheetId: props.sheetId, row: write.row, col: write.col, input: write.input })
+      } catch (error) {
         store.setter(setClipboardErrorAtom, reportCommandFailure(store, error, 'Paste into the selection failed.'))
         await loadProjection(requestProjection())
         return

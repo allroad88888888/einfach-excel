@@ -9,6 +9,7 @@ import {
   type SpillCellRole,
 } from '@einfach/spreadsheet-ui-core'
 import { getAxisSpanSize } from './axis-geometry'
+import { getSurfaceSpanPx } from './scroll-anchor'
 import { getCellBackgroundStyle, getDisplayCellFormat } from './cell-format'
 import { GRID_ROW_HEADER_WIDTH, isCoordInRange, makeCellKey } from './grid-constants'
 import { type GridRuntime } from './grid-runtime'
@@ -141,12 +142,47 @@ export function installGridLayout(runtime: GridRuntime) {
   function getColOverridesForSheet() { return store.getter(viewportSizeOverridesAtom).colWidthsBySheet[props.sheetId] }
   function getRowSpanHeight(start: number, end: number) { const metrics = viewportMetrics(); return getAxisSpanSize(start, end, metrics.rowCount, metrics.rowHeight, getRowOverridesForSheet(), getHiddenRowSet()) }
   function getColumnSpanWidth(start: number, end: number) { const metrics = viewportMetrics(); return getAxisSpanSize(start, end, metrics.colCount, metrics.colWidth, getColOverridesForSheet(), getHiddenColSet()) }
-  function getTotalTableWidth() { const metrics = viewportMetrics(); return getRowOutlineGutterWidth() + (showHeadings() ? GRID_ROW_HEADER_WIDTH : 0) + getColumnSpanWidth(0, metrics.colCount - 1) }
-  function getTopSpacerHeight() { return getRowSpanHeight(0, visibleWindow().rowStart - 1) }
-  function getBottomSpacerHeight() { const metrics = viewportMetrics(); return getRowSpanHeight(visibleWindow().rowEnd + 1, metrics.rowCount - 1) }
-  function getLeftSpacerWidth() { return getColumnSpanWidth(0, visibleWindow().colStart - 1) }
-  function getRightSpacerWidth() { const metrics = viewportMetrics(); return getColumnSpanWidth(visibleWindow().colEnd + 1, metrics.colCount - 1) }
+  // Anchored scroll surface (issue #5): the DOM table spans only
+  // min(整表, 5×视口) per axis; the spacers position the rendered window
+  // inside that surface relative to the axis anchor (runtime.rowAnchorPx /
+  // colAnchorPx, maintained by grid-projection-controller). A frozen axis
+  // keeps its full span — its window stays pinned to origin, so the anchor
+  // stays 0 and the axis retains the legacy full-height geometry.
+  function getTotalRowSpanPx() {
+    const metrics = viewportMetrics()
+    return getRowSpanHeight(0, metrics.rowCount - 1)
+  }
+  function getTotalColSpanPx() {
+    const metrics = viewportMetrics()
+    return getColumnSpanWidth(0, metrics.colCount - 1)
+  }
+  function getRowScrollSurfacePx() {
+    const total = getTotalRowSpanPx()
+    return freezeRowCount() > 0 ? total : getSurfaceSpanPx(total, viewportMetrics().viewportHeight)
+  }
+  function getColScrollSurfacePx() {
+    const total = getTotalColSpanPx()
+    return freezeColCount() > 0 ? total : getSurfaceSpanPx(total, viewportMetrics().viewportWidth)
+  }
+  function getTotalTableWidth() {
+    const headingWidth = showHeadings() ? GRID_ROW_HEADER_WIDTH : 0
+    return getRowOutlineGutterWidth() + headingWidth + getColScrollSurfacePx()
+  }
+  function getTopSpacerHeight() {
+    return Math.max(0, getRowSpanHeight(0, visibleWindow().rowStart - 1) - runtime.rowAnchorPx)
+  }
+  function getBottomSpacerHeight() {
+    const windowEndPx = getRowSpanHeight(0, visibleWindow().rowEnd) - runtime.rowAnchorPx
+    return Math.max(0, getRowScrollSurfacePx() - windowEndPx)
+  }
+  function getLeftSpacerWidth() {
+    return Math.max(0, getColumnSpanWidth(0, visibleWindow().colStart - 1) - runtime.colAnchorPx)
+  }
+  function getRightSpacerWidth() {
+    const windowEndPx = getColumnSpanWidth(0, visibleWindow().colEnd) - runtime.colAnchorPx
+    return Math.max(0, getColScrollSurfacePx() - windowEndPx)
+  }
   function getVirtualColumnSpan() { return (hasRowOutline() ? 1 : 0) + (showHeadings() ? 1 : 0) + getCols().length + (getLeftSpacerWidth() > 0 ? 1 : 0) + (getRightSpacerWidth() > 0 ? 1 : 0) }
 
-  Object.assign(runtime, { getCell, getMergeRangeForCell, getMergeRangeForCoord, isCellCoveredByMerge, isCellMergeAnchor, getSpillRole, getRenderedRowHeight, getRenderedColumnWidth, getColumnStyle, getFrozenStickyStyle, getCellBoxStyle, getCellRowSpan, getCellColSpan, getRowHeaderStyle, getCornerStyle, getScrollViewportStyle, getRowOverridesForSheet, getColOverridesForSheet, getRowSpanHeight, getColumnSpanWidth, getTotalTableWidth, getTopSpacerHeight, getBottomSpacerHeight, getLeftSpacerWidth, getRightSpacerWidth, getVirtualColumnSpan })
+  Object.assign(runtime, { getCell, getMergeRangeForCell, getMergeRangeForCoord, isCellCoveredByMerge, isCellMergeAnchor, getSpillRole, getRenderedRowHeight, getRenderedColumnWidth, getColumnStyle, getFrozenStickyStyle, getCellBoxStyle, getCellRowSpan, getCellColSpan, getRowHeaderStyle, getCornerStyle, getScrollViewportStyle, getRowOverridesForSheet, getColOverridesForSheet, getRowSpanHeight, getColumnSpanWidth, getTotalRowSpanPx, getTotalColSpanPx, getRowScrollSurfacePx, getColScrollSurfacePx, getTotalTableWidth, getTopSpacerHeight, getBottomSpacerHeight, getLeftSpacerWidth, getRightSpacerWidth, getVirtualColumnSpan })
 }

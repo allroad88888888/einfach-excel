@@ -20,9 +20,9 @@ metadata through UI-core commands, and installs the focused controllers below.
   `SpreadsheetGridDataRow.tsx`, `SpreadsheetGridCell.tsx`,
   `SpreadsheetGridCellEditor.tsx`, and `SpreadsheetGridOutline.tsx` are the
   corresponding render-only layers.
-- `axis-geometry.ts`, `cell-format.ts`, `grid-auto-fit.ts`, and
-  `grid-constants.ts` are pure helpers; `grid-runtime.ts` is the local controller
-  wiring abstraction.
+- `axis-geometry.ts`, `cell-format.ts`, `grid-auto-fit.ts`, `scroll-anchor.ts`,
+  and `grid-constants.ts` are pure helpers; `grid-runtime.ts` is the local
+  controller wiring abstraction.
 
 ## Atom classification
 
@@ -40,7 +40,31 @@ The runtime has component-local closures only. It deliberately has no per-cell,
 per-row, or per-column atom family; virtual rendering stays bounded by the visible
 window and the UI-core sparse projection.
 
+## Anchored scrolling (issue #5)
+
+UI-core's `viewportMetricsAtom.scrollTop/scrollLeft` are **logical** offsets into
+the full sheet; only this adapter knows physical DOM scroll positions. The DOM
+surface spans `min(整表, 5×视口)` per axis, so the table never lays out a
+multi-million-pixel span. The mapping invariant is
+`anchorPx + element.scrollTop === metrics.scrollTop` (per axis):
+
+- `scroll-anchor.ts` is the pure math: surface span, guard bands (one viewport
+  each — sized to absorb the largest momentum per-frame delta), and proportional
+  placement, so the thumb roughly indicates whole-sheet position.
+- `grid-projection-controller.ts` owns the wiring. Re-anchoring runs
+  synchronously inside the scroll event (deferring lets the browser clamp large
+  deltas at the surface edge and lose them), updates
+  `runtime.rowAnchorPx/colAnchorPx`, bumps render so the spacers move in the
+  same frame, then rewrites the element offset — content never visually jumps.
+- `grid-layout.ts` positions the rendered window inside the surface: spacers are
+  anchor-relative and bounded by the surface span.
+- A frozen axis keeps its full span (its window stays pinned to origin), which
+  zeroes the anchor math back to the legacy identity mapping — same code path.
+- Guard bands deactivate at the true sheet start/end, so the scrollbar really
+  reaches its extremes.
+
 ## Verification
 
 Grid behavior is covered by `test/vnext-grid*.test.tsx`, `test/vnext-outline.test.tsx`,
 and the dependent copy, spill, filter/sort, mutation-gateway, and worker UI suites.
+The anchored-scroll axis math is pinned by `test/scroll-anchor.test.ts`.

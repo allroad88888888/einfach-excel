@@ -46,6 +46,11 @@ export function SpreadsheetGrid(props: SpreadsheetGridProps) {
     backend,
     gridRoot: undefined as HTMLDivElement | undefined,
     scrollRoot: undefined as HTMLDivElement | undefined,
+    // Anchored-scroll state (grid/scroll-anchor.ts): logical px offset of the
+    // physical scroll surface's origin, per axis. Plain numbers — every write
+    // is followed by bumpRender(), which the spacer getters already track.
+    rowAnchorPx: 0,
+    colAnchorPx: 0,
     cancelDragSelection: () => undefined,
     cancelResize: () => undefined,
     cancelFill: () => undefined,

@@ -1,89 +1,120 @@
-# einfach-excel
+# Einfach Excel
 
-在线表格栈：一个框架无关的表格 UI 核心，一个 Rust/WASM 公式引擎，以及基于两者的 Solid.js 表格界面。
+[![CI](https://github.com/allroad88888888/einfach-excel/actions/workflows/ci.yml/badge.svg)](https://github.com/allroad88888888/einfach-excel/actions/workflows/ci.yml)
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+[![Live demo](https://img.shields.io/badge/demo-live-0a7f5a.svg)](https://allroad88888888.github.io/einfach-excel/)
 
-状态管理由 [einfach](https://github.com/allroad88888888/einfach)（受 Jotai 启发的 atom 引擎）提供 —— 本仓通过
-npm 消费 `@einfach/core` / `@einfach/solid`，**不是** workspace 依赖。这是刻意的：表格栈必须能跑在**已发布**
-的 core 上，而不是某个只存在于工作区的版本。
+**Build responsive spreadsheet experiences for the web.** Einfach Excel combines a framework-agnostic spreadsheet UI core, a Rust/WASM workbook and formula engine, and a production-ready Solid.js surface.
 
-> 本仓 2026-07-29 从 einfach 主仓拆出。原仓仍留有一份 `excel/` 的历史副本，它冻结在拆分时点，
-> **不是**本仓的镜像 —— 不要在那边改表格栈代码。
+[Explore the live demo](https://allroad88888888.github.io/einfach-excel/) · [中文文档](./README.zh-CN.md) · [Architecture](./docs/ARCHITECTURE.md) · [Contributing](./CONTRIBUTING.md)
 
-## 包与 crate
+## Why Einfach Excel?
 
-| 位置 | 名称 | 说明 |
-|---|---|---|
-| `excel/spreadsheet-ui-core/` | `@einfach/spreadsheet-ui-core` | 框架无关的表格 UI 核心：atoms、类型、投影契约。无 DOM / worker / WASM |
-| `excel/solid-excel/` | `@einfach/solid-excel` | Solid.js 表格界面（`src-vnext/` 为现役，`src/` 仅留作 parity 对照） |
-| `excel/excel-site/` | `@einfach/excel-site` | 演示 / 门面站（private，vite） |
-| `excel/excel-core-ts/` | `@einfach/excel-core-ts` | TS 公式引擎（private）：parity 参照，同时充当第二个 worker 后端 |
-| `excel/rust/core/` | `einfach-core` (crate) | Rust atom store —— TS 版 core 的孪生实现 |
-| `excel/rust/excel-core/` | `einfach-excel-core` (crate) | Rust 公式 / 工作簿引擎 |
-| `excel/rust/wasm/` | `einfach-wasm` (crate) | 暴露给 `solid-excel` 的 WASM 绑定 |
+Spreadsheet interfaces are deceptively hard: a useful one must keep rendering, interaction, calculation, and data access responsive as workbooks grow. Einfach Excel keeps those responsibilities separate, so hosts can use the UI independently of the workbook implementation while the production integration runs calculation off the main thread.
 
-pnpm workspace 的 glob 是 `excel/*`；`excel/rust/` 不是 npm 包，靠 `build:wasm` 接入。
+- **Stay responsive at scale.** The UI requests a bounded visible-window projection instead of rendering the entire workbook. The live demo includes a 100,000-row sheet.
+- **Keep calculation off the main thread.** The Rust/WASM engine runs in a Web Worker, leaving the browser free for scrolling and editing.
+- **Choose your runtime.** `spreadsheet-ui-core` has no dependency on a DOM, Solid, React, a worker, or WASM. Connect it to the backend that fits your product.
+- **Start with real spreadsheet behavior.** The stack covers selection, editing, keyboard interaction, clipboard operations, formulas, history, find/replace, validation, filtering, sorting, comments, and more.
 
-架构分层、数据流与后端 port 契约见 **[docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)**；
-重大技术裁决见 **[docs/decisions/](./docs/decisions/)**。
+## See it in action
 
-## 环境要求
+The [interactive demo](https://allroad88888888.github.io/einfach-excel/) uses the same components and worker boundary as the library. It includes focused examples for:
 
-- Node.js >= 18（CI 覆盖 18 与 20）
-- [pnpm](https://pnpm.io/) 10
-- Rust 工具链 + `wasm32-unknown-unknown` target + [wasm-pack](https://rustwasm.github.io/wasm-pack/)
-  —— `build` 链条里的 `ensureWasm` 会在缺 `wasm-pkg/` 时调 `wasm-pack`，缺工具链会直接 exit 127
+- formula evaluation, dynamic arrays, named ranges, and custom (including async) formulas;
+- a virtualized large-sheet view backed by Rust/WASM in a worker;
+- data validation, conditional formatting, filtering, sorting, find/replace, and clipboard tools;
+- undo/redo, comments, protected sheets, printing, and the full spreadsheet workbench.
 
-## 快速上手
+## How it fits together
+
+```text
+Your application
+       │
+       ▼
+Spreadsheet UI core ── visible-window projection ──► Backend port
+       │                                                   │
+       ▼                                                   ▼
+Solid.js components                              Web Worker + Rust/WASM workbook
+```
+
+The UI core owns interaction state and the projection contract. A backend owns workbook data and mutations. The provided Solid adapter connects both to a virtualized grid and, when selected, a typed worker RPC boundary backed by the Rust formula engine.
+
+## Packages and crates
+
+| Location | Name | Purpose |
+| --- | --- | --- |
+| `excel/spreadsheet-ui-core/` | `@einfach/spreadsheet-ui-core` | Framework-agnostic atoms, types, interaction state, and visible-window projection contracts. |
+| `excel/solid-excel/` | `@einfach/solid-excel` | Solid.js spreadsheet components and static or worker-backed adapters. |
+| `excel/excel-core-ts/` | `@einfach/excel-core-ts` | TypeScript formula engine used for parity and as an alternate worker backend. |
+| `excel/rust/core/` | `einfach-core` | Rust implementation of the atom store. |
+| `excel/rust/excel-core/` | `einfach-excel-core` | Rust workbook and formula engine. |
+| `excel/rust/wasm/` | `einfach-wasm` | WASM bindings consumed by the Solid worker integration. |
+| `excel/excel-site/` | `@einfach/excel-site` | The static documentation and interactive demo site. |
+
+## Use it when you need
+
+- an embeddable spreadsheet UI for a SaaS product or internal tool;
+- a workbook-like workflow without coupling your UI to a particular data backend;
+- responsive formula calculation that does not block the browser UI;
+- a reference implementation for a Solid.js spreadsheet with Rust/WASM workers.
+
+## Get started locally
+
+### Prerequisites
+
+- Node.js 18 or later (CI covers Node.js 18 and 20)
+- pnpm 10
+- Rust with the `wasm32-unknown-unknown` target and [wasm-pack](https://rustwasm.github.io/wasm-pack/)
+
+### Install and build
 
 ```bash
-git clone git@github.com:allroad88888888/einfach-excel.git
+git clone https://github.com/allroad88888888/einfach-excel.git
 cd einfach-excel
 pnpm install
 
-npm run build            # clearTypes → ensureWasm → tsc -build → rollup
-npm test                 # 全量 jest（含覆盖率）
-npm run lint:check       # eslint（不自动修）
+npm run build
+npm test
+npm run lint:check
 ```
 
-跑演示站：
+`npm run build` generates the WASM package when needed, then builds the TypeScript packages and bundles.
+
+### Run the demos
 
 ```bash
-npm run dev -w @einfach/excel-site     # 门面 / 演示站
-npm run dev -w @einfach/solid-excel    # 表格界面自身的 vite dev
+npm run dev -w @einfach/excel-site
 ```
 
-跑单个测试文件与分区套件：
+For the library surface itself:
 
 ```bash
-npx jest path/to/file.test.ts
+npm run dev -w @einfach/solid-excel
+```
+
+### Test one area
+
+```bash
 npx jest excel/spreadsheet-ui-core --no-coverage
 npx jest excel/solid-excel --no-coverage
-```
 
-浏览器端 e2e（Playwright，按功能点分目录）：
-
-```bash
-npm run e2e:install -w @einfach/solid-excel                 # 首次装浏览器
+npm run e2e:install -w @einfach/solid-excel
 NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach/solid-excel
-npm run e2e -w @einfach/solid-excel -- e2e/smoke/            # 只跑一个功能目录
 ```
 
-每个 e2e 功能目录下的 `CASES.md` 是该功能点用例清单的权威说明。
+Each end-to-end feature directory has a `CASES.md` file that defines its test coverage.
 
-刷新 WASM 产物（改了 `excel/rust/` 之后）：
+## Documentation
 
-```bash
-npm run build:wasm -w @einfach/solid-excel
-```
+- [Architecture](./docs/ARCHITECTURE.md) explains the layering, data flow, and backend-port contract.
+- [Architecture decisions](./docs/decisions/) records the decisions behind worker boundaries and engine behavior.
+- Package-level READMEs describe [the UI core](./excel/spreadsheet-ui-core/README.md), [the Solid integration](./excel/solid-excel/README.md), and [the demo site](./excel/excel-site/README.md).
 
-`wasm-pack` 的 `--out-dir` 相对 **crate 目录**而非 cwd，产物落在 `excel/solid-excel/wasm-pkg/`
-—— 改那条 script 时注意这点。
+## Contributing
 
-## 贡献
+Contributions are welcome. Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for code style, changesets, and documentation conventions.
 
-见 [CONTRIBUTING.md](./CONTRIBUTING.md)，其中包含代码风格、changesets 流程，以及本仓的**文档分类学**
-（契约 / 决策 / 提案 / 记录四类各自的生命周期规则）。
-
-## 许可证
+## License
 
 [MIT](./LICENSE)

@@ -24,7 +24,7 @@ interface SpreadsheetGridCellEditorProps {
 /** Renders and owns keyboard handling for the active cell input. */
 export function SpreadsheetGridCellEditor(props: SpreadsheetGridCellEditorProps) {
   const { runtime } = props
-  const { store, editingDraft, bumpRender, commitCellEdit } = runtime
+  const { store, editingDraft, commitCellEdit } = runtime
   return (
     <Show when={props.editing()}>
       <input
@@ -43,7 +43,6 @@ export function SpreadsheetGridCellEditor(props: SpreadsheetGridCellEditorProps)
         onInput={(event) => {
           store.setter(editingDraftAtom, { draft: event.currentTarget.value })
           notifyDraftTypedChar(store, event.currentTarget.selectionStart ?? event.currentTarget.value.length)
-          bumpRender()
         }}
         onSelect={(event) => {
           syncFormulaReferenceCaret(store, event.currentTarget.selectionStart ?? 0)
@@ -61,7 +60,6 @@ export function SpreadsheetGridCellEditor(props: SpreadsheetGridCellEditorProps)
               const current = store.getter(formulaFunctionSuggestionCursorAtom)
               const next = event.key === 'ArrowDown' ? (current + 1) % suggestions.length : (current - 1 + suggestions.length) % suggestions.length
               store.setter(formulaFunctionSuggestionCursorAtom, next)
-              bumpRender()
               return
             }
             if (event.key === 'Tab' || event.key === 'Enter') {
@@ -74,7 +72,6 @@ export function SpreadsheetGridCellEditor(props: SpreadsheetGridCellEditorProps)
                   input.focus()
                   input.setSelectionRange(caret, caret)
                 })
-                bumpRender()
                 return
               }
             }
@@ -82,7 +79,6 @@ export function SpreadsheetGridCellEditor(props: SpreadsheetGridCellEditorProps)
               event.preventDefault()
               store.setter(dismissFormulaSuggestionsAtom)
               store.setter(formulaFunctionSuggestionCursorAtom, 0)
-              bumpRender()
               return
             }
           }
@@ -95,7 +91,6 @@ export function SpreadsheetGridCellEditor(props: SpreadsheetGridCellEditorProps)
           } else if (event.key === 'Escape') {
             event.preventDefault()
             dispatchEditingCancel(store)
-            bumpRender()
           }
         }}
         onBlur={() => {

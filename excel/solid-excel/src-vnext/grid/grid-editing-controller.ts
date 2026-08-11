@@ -8,10 +8,20 @@ import {
   type CellRange,
 } from '@einfach/spreadsheet-ui-core'
 import { dispatchEditingCommit, reportCommandFailure } from '../provider'
-import { type GridRuntime } from './grid-runtime'
+import type { GridContextMenuApi } from './grid-context-menu'
+import type { GridProjectionControllerApi } from './grid-projection-controller'
+import { installGridFeature, type GridRuntimeBase } from './grid-runtime'
+import type { GridSelectionApi } from './grid-selection'
+import type { GridViewStateApi } from './grid-view-state'
 
-export function installGridEditingController(runtime: GridRuntime) {
-  const { props, store, backend, selectionRegions, getSelectionBounds, bumpRender, focusGrid, requestProjection, loadProjection } = runtime
+type GridEditingControllerRuntime = GridRuntimeBase &
+  Pick<GridSelectionApi, 'getSelectionBounds'> &
+  Pick<GridViewStateApi, 'selectionRegions'> &
+  Pick<GridContextMenuApi, 'focusGrid'> &
+  Pick<GridProjectionControllerApi, 'requestProjection' | 'loadProjection'>
+
+export function installGridEditingController(runtime: GridEditingControllerRuntime) {
+  const { props, store, backend, selectionRegions, getSelectionBounds, requestProjection, loadProjection } = runtime
 
   async function commitCellEdit(move: 'none' | 'down' | 'up' | 'left' | 'right' = 'none') {
     const session = store.getter(editingSessionAtom)
@@ -27,8 +37,7 @@ export function installGridEditingController(runtime: GridRuntime) {
     else if (move === 'right') next.col = Math.min(bounds.colCount - 1, next.col + 1)
     else if (move === 'left') next.col = Math.max(0, next.col - 1)
     store.setter(selectCellAtom, { sheetId: source.sheetId, coord: next, extend: false })
-    bumpRender()
-    focusGrid()
+    runtime.focusGrid()
   }
 
   async function clearSelectionRange(target: 'values' | 'formats' | 'all' = 'all') {
@@ -68,5 +77,7 @@ export function installGridEditingController(runtime: GridRuntime) {
     await loadProjection(requestProjection())
   }
 
-  Object.assign(runtime, { commitCellEdit, clearSelectionRange })
+  return installGridFeature(runtime, { commitCellEdit, clearSelectionRange })
 }
+
+export type GridEditingControllerApi = ReturnType<typeof installGridEditingController>

@@ -7,10 +7,10 @@ import {
   setViewportRowHeightAtom,
 } from '@einfach/spreadsheet-ui-core'
 import { clampDimension, measureAutoFitHeight, measureAutoFitWidth } from './grid-auto-fit'
-import { type GridRuntime } from './grid-runtime'
+import { installGridFeature, type GridRuntimeBase } from './grid-runtime'
 
-export function installGridAutoFitController(runtime: GridRuntime) {
-  const { props, store, backend, bumpRender } = runtime
+export function installGridAutoFitController(runtime: GridRuntimeBase) {
+  const { props, store, backend, dom } = runtime
 
   async function persistColumnWidth(colIndex: number, widthPx: number) {
     if (!backend.setColumnWidth) return
@@ -23,7 +23,7 @@ export function installGridAutoFitController(runtime: GridRuntime) {
   }
 
   function getAutoFitColumnWidth(col: number): number {
-    const gridRoot = runtime.gridRoot as HTMLDivElement | undefined
+    const gridRoot = dom.gridRoot()
     const headerLabel = gridRoot?.querySelector(`.spreadsheet-grid-col-header[data-col="${col}"] .spreadsheet-grid-header-label`) as HTMLElement | null
     let width = headerLabel ? measureAutoFitWidth(headerLabel) : props.viewport.colWidth
     const cells = gridRoot?.querySelectorAll(`td.spreadsheet-grid-cell[data-col="${col}"] .cell-display`)
@@ -32,7 +32,7 @@ export function installGridAutoFitController(runtime: GridRuntime) {
   }
 
   function getAutoFitRowHeight(row: number): number {
-    const gridRoot = runtime.gridRoot as HTMLDivElement | undefined
+    const gridRoot = dom.gridRoot()
     const rowLabel = gridRoot?.querySelector(`.spreadsheet-grid-row-header[data-row="${row}"] .spreadsheet-grid-header-label`) as HTMLElement | null
     let height = rowLabel ? measureAutoFitHeight(rowLabel) : props.viewport.rowHeight
     const cells = gridRoot?.querySelectorAll(`td.spreadsheet-grid-cell[data-row="${row}"] .cell-display`)
@@ -41,22 +41,22 @@ export function installGridAutoFitController(runtime: GridRuntime) {
   }
 
   async function autoFitColumn(col: number) {
-    runtime.cancelResize()
-    runtime.cancelFill()
+    dom.cancelResize()
+    dom.cancelFill()
     const widthPx = getAutoFitColumnWidth(col)
     store.setter(setViewportColumnWidthAtom, { sheetId: props.sheetId, colIndex: col, widthPx })
-    bumpRender()
     await persistColumnWidth(col, widthPx)
   }
 
   async function autoFitRow(row: number) {
-    runtime.cancelResize()
-    runtime.cancelFill()
+    dom.cancelResize()
+    dom.cancelFill()
     const heightPx = getAutoFitRowHeight(row)
     store.setter(setViewportRowHeightAtom, { sheetId: props.sheetId, rowIndex: row, heightPx })
-    bumpRender()
     await persistRowHeight(row, heightPx)
   }
 
-  Object.assign(runtime, { persistColumnWidth, persistRowHeight, getAutoFitColumnWidth, getAutoFitRowHeight, autoFitColumn, autoFitRow })
+  return installGridFeature(runtime, { persistColumnWidth, persistRowHeight, getAutoFitColumnWidth, getAutoFitRowHeight, autoFitColumn, autoFitRow })
 }
+
+export type GridAutoFitControllerApi = ReturnType<typeof installGridAutoFitController>

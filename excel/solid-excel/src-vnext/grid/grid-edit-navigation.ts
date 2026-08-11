@@ -1,9 +1,15 @@
 import { activeCellLockedAtom, selectCellAtom, startEditingAtom } from '@einfach/spreadsheet-ui-core'
 import { syncFormulaReferenceCaret } from '../provider'
-import { type GridRuntime } from './grid-runtime'
+import type { GridLayoutApi } from './grid-layout'
+import { installGridFeature, type GridRuntimeBase } from './grid-runtime'
+import type { GridViewStateApi } from './grid-view-state'
 
-export function installGridEditNavigation(runtime: GridRuntime) {
-  const { props, store, backend, getCell, selectionSnapshot, bumpRender } = runtime
+type GridEditNavigationRuntime = GridRuntimeBase &
+  Pick<GridLayoutApi, 'getCell'> &
+  Pick<GridViewStateApi, 'selectionSnapshot'>
+
+export function installGridEditNavigation(runtime: GridEditNavigationRuntime) {
+  const { props, store, backend, getCell, selectionSnapshot } = runtime
 
   function startEditingCell(row: number, col: number, source: 'keyboard' | 'cell', options?: { initialDraft?: string; clearOnStart?: boolean }) {
     if (store.getter(activeCellLockedAtom)) return
@@ -12,7 +18,6 @@ export function installGridEditNavigation(runtime: GridRuntime) {
     const draft = options?.clearOnStart === true ? (options.initialDraft ?? '') : options?.initialDraft !== undefined ? `${existingDraft}${options.initialDraft}` : existingDraft
     store.setter(startEditingAtom, { sheetId: props.sheetId, cell: { row, col }, draft, source })
     syncFormulaReferenceCaret(store, draft.length)
-    bumpRender()
   }
 
   function getDataEdgeDirection(key: string): 'up' | 'down' | 'left' | 'right' | null {
@@ -33,9 +38,10 @@ export function installGridEditNavigation(runtime: GridRuntime) {
       bounds: { rowCount: props.viewport.rowCount, colCount: props.viewport.colCount },
     })
     store.setter(selectCellAtom, { sheetId: props.sheetId, coord: result.target, extend: event.shiftKey })
-    bumpRender()
     return true
   }
 
-  Object.assign(runtime, { startEditingCell, getDataEdgeDirection, moveSelectionToDataEdge })
+  return installGridFeature(runtime, { startEditingCell, getDataEdgeDirection, moveSelectionToDataEdge })
 }
+
+export type GridEditNavigationApi = ReturnType<typeof installGridEditNavigation>

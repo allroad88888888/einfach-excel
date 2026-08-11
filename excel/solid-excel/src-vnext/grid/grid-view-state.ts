@@ -1,41 +1,26 @@
-import { createSignal } from 'solid-js'
 import {
-  editingDraftAtom,
-  editingSessionAtom,
-  effectiveHiddenAtom,
   getHiddenColumnsForSheet,
   getHiddenRowsForSheet,
   refreshSpillRegionAtom,
-  selectionRegionsAtom,
-  selectionSnapshotAtom,
   spillRegionSupportedAtom,
-  viewportFreezeAtom,
-  viewportHiddenAtom,
-  viewportMetricsAtom,
-  viewportSizeOverridesAtom,
   type CellRange,
 } from '@einfach/spreadsheet-ui-core'
-import { spreadsheetProjectionSnapshotAtom } from '../provider'
 import {
   getAxisEndIndexAtOffset,
   getAxisStartIndexAtOffset,
 } from './axis-geometry'
-import { type GridRuntime } from './grid-runtime'
+import { installGridFeature, type GridRuntimeBase } from './grid-runtime'
+import type { GridScrollSurfacePort } from './grid-runtime-ports'
 
-export function installGridViewState(runtime: GridRuntime) {
-  const { props, store, backend } = runtime
-  const [renderTick, setRenderTick] = createSignal(0)
+export function installGridViewState(runtime: GridRuntimeBase & GridScrollSurfacePort) {
+  const { props, store, backend, atoms, dom } = runtime
   let lastSpillProbeKey = ''
-
-  function bumpRender() {
-    setRenderTick((value) => value + 1)
-  }
 
   function refreshSpillRegion() {
     if (!store.getter(spillRegionSupportedAtom)) return
-    const active = store.getter(selectionSnapshotAtom).activeCell
+    const active = atoms.selectionSnapshot().activeCell
     const sheetId = active.sheetId || props.sheetId
-    const revision = store.getter(spreadsheetProjectionSnapshotAtom).result?.revision
+    const revision = atoms.projectionSnapshot().result?.revision
     const key = `${sheetId}|${active.row}|${active.col}|${String(revision ?? '')}`
     if (key === lastSpillProbeKey) return
     lastSpillProbeKey = key
@@ -47,53 +32,40 @@ export function installGridViewState(runtime: GridRuntime) {
     })
   }
 
-  function bumpRenderAndProbeSpill() {
-    bumpRender()
-    refreshSpillRegion()
-  }
-
   function visibleWindow() {
-    renderTick()
     return getRenderedVisibleWindow()
   }
 
   function viewportMetrics() {
-    renderTick()
-    return store.getter(viewportMetricsAtom)
+    return atoms.viewportMetrics()
   }
 
   function projectionSnapshot() {
-    renderTick()
-    return store.getter(spreadsheetProjectionSnapshotAtom)
+    return atoms.projectionSnapshot()
   }
 
   function selectionSnapshot() {
-    renderTick()
-    return store.getter(selectionSnapshotAtom)
+    return atoms.selectionSnapshot()
   }
 
   function selectionRegions() {
-    renderTick()
-    return store.getter(selectionRegionsAtom)
+    return atoms.selectionRegions()
   }
 
   function editingSession() {
-    renderTick()
-    return store.getter(editingSessionAtom)
+    return atoms.editingSession()
   }
 
   function editingDraft() {
-    renderTick()
-    return store.getter(editingDraftAtom)
+    return atoms.editingDraft()
   }
 
   function sizeOverrides() {
-    renderTick()
-    return store.getter(viewportSizeOverridesAtom)
+    return atoms.sizeOverrides()
   }
 
   function getEffectiveFreezeProjection() {
-    const freezeState = store.getter(viewportFreezeAtom)
+    const freezeState = atoms.viewportFreeze()
     return {
       rows: freezeState.rowsBySheet[props.sheetId] ?? 0,
       cols: freezeState.colsBySheet[props.sheetId] ?? 0,
@@ -101,11 +73,11 @@ export function installGridViewState(runtime: GridRuntime) {
   }
 
   function getHiddenRowSet(): ReadonlySet<number> {
-    return new Set(getHiddenRowsForSheet(store.getter(effectiveHiddenAtom), props.sheetId))
+    return new Set(getHiddenRowsForSheet(atoms.hiddenState(), props.sheetId))
   }
 
   function getHiddenColSet(): ReadonlySet<number> {
-    return new Set(getHiddenColumnsForSheet(store.getter(viewportHiddenAtom), props.sheetId))
+    return new Set(getHiddenColumnsForSheet(atoms.viewportHidden(), props.sheetId))
   }
 
   // 渲染/投影窗口按滚动**表面**取（锚点 → 锚点+表面跨度，见 grid/scroll-anchor.ts），
@@ -113,8 +85,8 @@ export function installGridViewState(runtime: GridRuntime) {
   // 零重渲染，只有重锚/跳转才换窗口。表面 = min(整表, 5×视口)，行列各 ≤ 一两百个
   // 索引，远低于投影上限。freeze 轴保持旧口径（窗口钉在原点、随滚动扩到可视区尾）。
   function getRenderedVisibleWindow(): CellRange {
-    const metrics = store.getter(viewportMetricsAtom)
-    const overrides = store.getter(viewportSizeOverridesAtom)
+    const metrics = atoms.viewportMetrics()
+    const overrides = atoms.sizeOverrides()
     const rowOverrides = overrides.rowHeightsBySheet[props.sheetId]
     const colOverrides = overrides.colWidthsBySheet[props.sheetId]
     const hiddenRows = getHiddenRowSet()
@@ -140,7 +112,7 @@ export function installGridViewState(runtime: GridRuntime) {
           )
       rowEnd = Math.min(metrics.rowCount - 1, rawRowEnd + metrics.overscanRows)
     } else {
-      const anchorPx = runtime.rowAnchorPx as number
+      const anchorPx = dom.rowAnchorPx()
       const surfacePx = runtime.getRowScrollSurfacePx()
       rowStart = getAxisStartIndexAtOffset(
         anchorPx, metrics.rowCount, metrics.rowHeight, rowOverrides, hiddenRows,
@@ -167,7 +139,7 @@ export function installGridViewState(runtime: GridRuntime) {
           )
       colEnd = Math.min(metrics.colCount - 1, rawColEnd + metrics.overscanCols)
     } else {
-      const anchorPx = runtime.colAnchorPx as number
+      const anchorPx = dom.colAnchorPx()
       const surfacePx = runtime.getColScrollSurfacePx()
       colStart = getAxisStartIndexAtOffset(
         anchorPx, metrics.colCount, metrics.colWidth, colOverrides, hiddenCols,
@@ -184,15 +156,11 @@ export function installGridViewState(runtime: GridRuntime) {
   }
 
   function hiddenState() {
-    renderTick()
-    return store.getter(effectiveHiddenAtom)
+    return atoms.hiddenState()
   }
 
-  Object.assign(runtime, {
-    renderTick,
-    bumpRender,
+  return installGridFeature(runtime, {
     refreshSpillRegion,
-    bumpRenderAndProbeSpill,
     visibleWindow,
     viewportMetrics,
     projectionSnapshot,
@@ -208,3 +176,5 @@ export function installGridViewState(runtime: GridRuntime) {
     hiddenState,
   })
 }
+
+export type GridViewStateApi = ReturnType<typeof installGridViewState>

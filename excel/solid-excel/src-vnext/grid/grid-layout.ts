@@ -3,7 +3,6 @@ import {
   getViewportRowHeight,
   isMergeCovered,
   spillCellRoleAtom,
-  viewportSizeOverridesAtom,
   type CellRange,
   type DisplayCell,
   type SpillCellRole,
@@ -12,9 +11,15 @@ import { getAxisSpanSize } from './axis-geometry'
 import { getSurfaceSpanPx } from './scroll-anchor'
 import { getCellBackgroundStyle, getDisplayCellFormat } from './cell-format'
 import { GRID_ROW_HEADER_WIDTH, isCoordInRange, makeCellKey } from './grid-constants'
-import { type GridRuntime } from './grid-runtime'
+import { installGridFeature, type GridRuntimeBase } from './grid-runtime'
+import type { GridOutlineRenderPort, GridSelectionLayoutPort } from './grid-runtime-ports'
+import type { GridViewStateApi } from './grid-view-state'
 
-export function installGridLayout(runtime: GridRuntime) {
+type GridLayoutRuntime = GridRuntimeBase &
+  Pick<GridViewStateApi, 'projectionSnapshot' | 'sizeOverrides' | 'viewportMetrics' | 'getHiddenRowSet' | 'getHiddenColSet' | 'visibleWindow'> &
+  GridSelectionLayoutPort & GridOutlineRenderPort
+
+export function installGridLayout(runtime: GridLayoutRuntime) {
   const { props, store, getCellMap, projectionSnapshot, sizeOverrides, viewportMetrics, getHiddenRowSet, getHiddenColSet, hasColOutline, hasRowOutline, getColOutlineBandHeight, getRowOutlineGutterWidth, freezeRowCount, freezeColCount, showHeadings, getRows, getCols, visibleWindow } = runtime
 
   function getCell(row: number, col: number) {
@@ -157,8 +162,8 @@ export function installGridLayout(runtime: GridRuntime) {
     return { width: '100%', height: `${metrics.viewportHeight + (showHeadings() ? metrics.rowHeight : 0) + getColOutlineBandHeight()}px` }
   }
 
-  function getRowOverridesForSheet() { return store.getter(viewportSizeOverridesAtom).rowHeightsBySheet[props.sheetId] }
-  function getColOverridesForSheet() { return store.getter(viewportSizeOverridesAtom).colWidthsBySheet[props.sheetId] }
+  function getRowOverridesForSheet() { return sizeOverrides().rowHeightsBySheet[props.sheetId] }
+  function getColOverridesForSheet() { return sizeOverrides().colWidthsBySheet[props.sheetId] }
   function getRowSpanHeight(start: number, end: number) { const metrics = viewportMetrics(); return getAxisSpanSize(start, end, metrics.rowCount, metrics.rowHeight, getRowOverridesForSheet(), getHiddenRowSet()) }
   function getColumnSpanWidth(start: number, end: number) { const metrics = viewportMetrics(); return getAxisSpanSize(start, end, metrics.colCount, metrics.colWidth, getColOverridesForSheet(), getHiddenColSet()) }
   // Anchored scroll surface (issue #5): the DOM table spans only
@@ -188,20 +193,22 @@ export function installGridLayout(runtime: GridRuntime) {
     return getRowOutlineGutterWidth() + headingWidth + getColScrollSurfacePx()
   }
   function getTopSpacerHeight() {
-    return Math.max(0, getRowSpanHeight(0, visibleWindow().rowStart - 1) - runtime.rowAnchorPx)
+    return Math.max(0, getRowSpanHeight(0, visibleWindow().rowStart - 1) - runtime.dom.rowAnchorPx())
   }
   function getBottomSpacerHeight() {
-    const windowEndPx = getRowSpanHeight(0, visibleWindow().rowEnd) - runtime.rowAnchorPx
+    const windowEndPx = getRowSpanHeight(0, visibleWindow().rowEnd) - runtime.dom.rowAnchorPx()
     return Math.max(0, getRowScrollSurfacePx() - windowEndPx)
   }
   function getLeftSpacerWidth() {
-    return Math.max(0, getColumnSpanWidth(0, visibleWindow().colStart - 1) - runtime.colAnchorPx)
+    return Math.max(0, getColumnSpanWidth(0, visibleWindow().colStart - 1) - runtime.dom.colAnchorPx())
   }
   function getRightSpacerWidth() {
-    const windowEndPx = getColumnSpanWidth(0, visibleWindow().colEnd) - runtime.colAnchorPx
+    const windowEndPx = getColumnSpanWidth(0, visibleWindow().colEnd) - runtime.dom.colAnchorPx()
     return Math.max(0, getColScrollSurfacePx() - windowEndPx)
   }
   function getVirtualColumnSpan() { return (hasRowOutline() ? 1 : 0) + (showHeadings() ? 1 : 0) + getCols().length + (getLeftSpacerWidth() > 0 ? 1 : 0) + (getRightSpacerWidth() > 0 ? 1 : 0) }
 
-  Object.assign(runtime, { getCell, getMergeRangeForCell, getMergeRangeForCoord, isCellCoveredByMerge, isCellMergeAnchor, getSpillRole, getRenderedRowHeight, getRenderedColumnWidth, getColumnStyle, getFrozenStickyStyle, getCellBoxStyle, getCellRowSpan, getCellColSpan, getRowHeaderStyle, getCornerStyle, getScrollViewportStyle, getRowOverridesForSheet, getColOverridesForSheet, getRowSpanHeight, getColumnSpanWidth, getTotalRowSpanPx, getTotalColSpanPx, getRowScrollSurfacePx, getColScrollSurfacePx, getTotalTableWidth, getTopSpacerHeight, getBottomSpacerHeight, getLeftSpacerWidth, getRightSpacerWidth, getVirtualColumnSpan })
+  return installGridFeature(runtime, { getCell, getMergeRangeForCell, getMergeRangeForCoord, isCellCoveredByMerge, isCellMergeAnchor, getSpillRole, getRenderedRowHeight, getRenderedColumnWidth, getColumnStyle, getFrozenStickyStyle, getCellBoxStyle, getCellRowSpan, getCellColSpan, getRowHeaderStyle, getCornerStyle, getScrollViewportStyle, getRowOverridesForSheet, getColOverridesForSheet, getRowSpanHeight, getColumnSpanWidth, getTotalRowSpanPx, getTotalColSpanPx, getRowScrollSurfacePx, getColScrollSurfacePx, getTotalTableWidth, getTopSpacerHeight, getBottomSpacerHeight, getLeftSpacerWidth, getRightSpacerWidth, getVirtualColumnSpan })
 }
+
+export type GridLayoutApi = ReturnType<typeof installGridLayout>

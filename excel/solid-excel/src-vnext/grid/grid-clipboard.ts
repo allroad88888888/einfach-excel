@@ -17,9 +17,17 @@ import {
 } from '@einfach/spreadsheet-ui-core'
 import { reportCommandFailure } from '../provider'
 import { CLIPBOARD_CELL_LIMIT, getColumnLabel } from './grid-constants'
-import { type GridRuntime } from './grid-runtime'
+import type { GridEditingControllerApi } from './grid-editing-controller'
+import type { GridProjectionControllerApi } from './grid-projection-controller'
+import { installGridFeature, type GridRuntimeBase } from './grid-runtime'
+import type { GridViewStateApi } from './grid-view-state'
 
-export function installGridClipboard(runtime: GridRuntime) {
+type GridClipboardRuntime = GridRuntimeBase &
+  Pick<GridViewStateApi, 'selectionSnapshot'> &
+  Pick<GridProjectionControllerApi, 'readRangeProjection' | 'requestProjection' | 'loadProjection'> &
+  Pick<GridEditingControllerApi, 'clearSelectionRange'>
+
+export function installGridClipboard(runtime: GridClipboardRuntime) {
   const { props, store, backend, selectionSnapshot, readRangeProjection, clearSelectionRange, requestProjection, loadProjection } = runtime
 
   async function writeClipboardText(text: string): Promise<boolean> {
@@ -48,7 +56,9 @@ export function installGridClipboard(runtime: GridRuntime) {
       const streamRequest = { kind: 'export-range-tsv' as const, sheetId: props.sheetId, range, requestId, hiddenRows: filterHiddenRows }
       const chunks: string[] = []
       let streamResult: Awaited<ReturnType<NonNullable<typeof backend.consumeExportRangeTsvChunks>>> | Awaited<ReturnType<NonNullable<typeof backend.exportRangeTsv>>> | null = null
-      if (backend.consumeExportRangeTsvChunks) streamResult = await backend.consumeExportRangeTsvChunks(streamRequest, (chunk: { text: string }) => chunks.push(chunk.text))
+      if (backend.consumeExportRangeTsvChunks) streamResult = await backend.consumeExportRangeTsvChunks(streamRequest, (chunk: { text: string }) => {
+        chunks.push(chunk.text)
+      })
       else if (backend.exportRangeTsv) {
         streamResult = await backend.exportRangeTsv(streamRequest)
         chunks.push(streamResult.text)
@@ -135,5 +145,7 @@ export function installGridClipboard(runtime: GridRuntime) {
     await loadProjection(requestProjection())
   }
 
-  Object.assign(runtime, { writeClipboardText, readClipboardText, copySelectionToClipboard, pasteFromClipboard })
+  return installGridFeature(runtime, { writeClipboardText, readClipboardText, copySelectionToClipboard, pasteFromClipboard })
 }
+
+export type GridClipboardApi = ReturnType<typeof installGridClipboard>

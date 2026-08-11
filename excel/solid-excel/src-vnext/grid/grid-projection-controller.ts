@@ -4,19 +4,33 @@ import {
   resetProjectionAtom,
   resolveProjectionAtom,
   viewportMetricsAtom,
-  viewportShowHeadingsAtom,
   type CellRange,
   type RangeProjectionResult,
 } from '@einfach/spreadsheet-ui-core'
 import { runVisibleProjectionTransport, spreadsheetProjectionSnapshotAtom } from '../provider'
 import { getAxisOffsetForIndex, getAxisStartIndexAtOffset } from './axis-geometry'
 import { GRID_ROW_HEADER_WIDTH } from './grid-constants'
-import { type GridRuntime } from './grid-runtime'
+import type { GridLayoutApi } from './grid-layout'
+import { installGridFeature, type GridHydrationApi, type GridRuntimeBase } from './grid-runtime'
+import type { GridViewStateApi } from './grid-view-state'
 import {
   needsReanchor,
   planAnchorPlacement,
   type AxisScrollGeometry,
 } from './scroll-anchor'
+
+interface GridScrollStats {
+  scrollEvents: number
+  reanchors: number
+  windowChanges: number
+  lastWindowRenderMs: number
+}
+
+declare global {
+  interface Window {
+    __scrollStats?: GridScrollStats
+  }
+}
 
 /** URL 带 ?scrollDebug=1 时在 window.__scrollStats 上暴露滚动诊断计数器。 */
 function createScrollStats() {
@@ -26,13 +40,18 @@ function createScrollStats() {
   } catch {
     return null
   }
-  const stats = { scrollEvents: 0, reanchors: 0, windowChanges: 0, lastWindowRenderMs: 0 }
-  ;(window as unknown as Record<string, unknown>).__scrollStats = stats
+  const stats: GridScrollStats = { scrollEvents: 0, reanchors: 0, windowChanges: 0, lastWindowRenderMs: 0 }
+  window.__scrollStats = stats
   return stats
 }
 
-export function installGridProjectionController(runtime: GridRuntime) {
-  const { props, store, backend, bumpRender, getRenderedVisibleWindow, getEffectiveFreezeProjection, hydrateViewportSizeProjection } = runtime
+type GridProjectionRuntime = GridRuntimeBase & GridHydrationApi &
+  Pick<GridViewStateApi, 'getRenderedVisibleWindow' | 'getEffectiveFreezeProjection'> &
+  Pick<GridLayoutApi, 'getRowOverridesForSheet' | 'getColOverridesForSheet' | 'getTotalRowSpanPx' | 'getRowScrollSurfacePx' | 'getTotalColSpanPx' | 'getColScrollSurfacePx'> &
+  Pick<GridViewStateApi, 'getHiddenRowSet' | 'getHiddenColSet'>
+
+export function installGridProjectionController(runtime: GridProjectionRuntime) {
+  const { props, store, backend, atoms, dom, getRenderedVisibleWindow, getEffectiveFreezeProjection, hydrateViewportSizeProjection } = runtime
   const scrollStats = createScrollStats()
   let lastEffectiveFreezeRows = 0
   let lastEffectiveFreezeCols = 0
@@ -41,7 +60,6 @@ export function installGridProjectionController(runtime: GridRuntime) {
     const window = getRenderedVisibleWindow()
     if (window.rowEnd < window.rowStart || window.colEnd < window.colStart) {
       store.setter(resetProjectionAtom)
-      bumpRender()
       return undefined
     }
     // 滚动时保留上一窗口的 result：不保留的话 begin 会把快照清成 undefined，
@@ -57,7 +75,6 @@ export function installGridProjectionController(runtime: GridRuntime) {
       retainResult,
     })
     if ((begin.status !== 'started' && begin.status !== 'queued') || begin.request.kind !== 'visible-window') return undefined
-    bumpRender()
     return begin.status === 'started' ? { request: begin.request } : undefined
   }
 
@@ -68,7 +85,6 @@ export function installGridProjectionController(runtime: GridRuntime) {
     } catch {
       // The shared transport loop publishes terminal projection failures.
     }
-    bumpRender()
   }
 
   async function readRangeProjection(sheetId: string, range: CellRange, reason: 'clipboard' | 'fill-handle'): Promise<RangeProjectionResult | null> {
@@ -124,11 +140,11 @@ export function installGridProjectionController(runtime: GridRuntime) {
   /** 把 DOM 滚动位置对齐到 atom 里的逻辑位置（跳转、名称框、键盘导航都走这里）。
    * 已对齐（anchor + physical === logical）时不动 —— 否则会跟正在进行的滚动打架。 */
   function syncScrollElementToViewport() {
-    const scrollRoot = runtime.scrollRoot as HTMLDivElement | undefined
+    const scrollRoot = dom.scrollRoot()
     if (!scrollRoot) return
     const metrics = store.getter(viewportMetricsAtom)
-    const rowLogicalPx = runtime.rowAnchorPx + scrollRoot.scrollTop
-    const colLogicalPx = runtime.colAnchorPx + scrollRoot.scrollLeft
+    const rowLogicalPx = dom.rowAnchorPx() + scrollRoot.scrollTop
+    const colLogicalPx = dom.colAnchorPx() + scrollRoot.scrollLeft
     const rowDrifted = Math.abs(rowLogicalPx - metrics.scrollTop) > 0.5
     const colDrifted = Math.abs(colLogicalPx - metrics.scrollLeft) > 0.5
     if (!rowDrifted && !colDrifted) return
@@ -136,22 +152,19 @@ export function installGridProjectionController(runtime: GridRuntime) {
     const colPlacement = planAnchorPlacement(metrics.scrollLeft, getAxisScrollGeometry('col'))
     const rowAnchorPx = snapAnchorPx('row', rowPlacement.anchorPx)
     const colAnchorPx = snapAnchorPx('col', colPlacement.anchorPx)
-    const anchorsChanged =
-      runtime.rowAnchorPx !== rowAnchorPx || runtime.colAnchorPx !== colAnchorPx
-    runtime.rowAnchorPx = rowAnchorPx
-    runtime.colAnchorPx = colAnchorPx
+    dom.setRowAnchorPx(rowAnchorPx)
+    dom.setColAnchorPx(colAnchorPx)
     // spacer 高度先于 scrollTop 落地（同一帧内），内容才不跳。
-    if (anchorsChanged) bumpRender()
     if (rowDrifted) scrollRoot.scrollTop = metrics.scrollTop - rowAnchorPx
     if (colDrifted) scrollRoot.scrollLeft = metrics.scrollLeft - colAnchorPx
   }
 
   function syncViewportSizeFromElement() {
-    const scrollRoot = runtime.scrollRoot as HTMLDivElement | undefined
+    const scrollRoot = dom.scrollRoot()
     if (!scrollRoot) return
-    const metrics = store.getter(viewportMetricsAtom)
-    const headingWidth = store.getter(viewportShowHeadingsAtom) ? GRID_ROW_HEADER_WIDTH : 0
-    const headingHeight = store.getter(viewportShowHeadingsAtom) ? metrics.rowHeight : 0
+    const metrics = atoms.viewportMetrics()
+    const headingWidth = atoms.showHeadings() ? GRID_ROW_HEADER_WIDTH : 0
+    const headingHeight = atoms.showHeadings() ? metrics.rowHeight : 0
     const measuredWidth = scrollRoot.clientWidth - headingWidth
     const measuredHeight = scrollRoot.clientHeight - headingHeight
     const viewportWidth = measuredWidth > 0 ? measuredWidth : metrics.viewportWidth
@@ -179,10 +192,7 @@ export function installGridProjectionController(runtime: GridRuntime) {
     if (scrollStats) {
       scrollStats.windowChanges += 1
       const startedAt = performance.now()
-      bumpRender()
       scrollStats.lastWindowRenderMs = Math.round(performance.now() - startedAt)
-    } else {
-      bumpRender()
     }
     void loadProjection(requestProjection())
     void hydrateViewportSizeProjection()
@@ -199,7 +209,6 @@ export function installGridProjectionController(runtime: GridRuntime) {
     const changed = next.rows !== lastEffectiveFreezeRows || next.cols !== lastEffectiveFreezeCols
     lastEffectiveFreezeRows = next.rows
     lastEffectiveFreezeCols = next.cols
-    bumpRender()
     if (changed) void loadProjection(requestProjection())
   }
 
@@ -208,14 +217,14 @@ export function installGridProjectionController(runtime: GridRuntime) {
   function reanchorAxis(axis: 'row' | 'col', element: HTMLDivElement): number | null {
     const geometry = getAxisScrollGeometry(axis)
     const physicalPx = axis === 'row' ? element.scrollTop : element.scrollLeft
-    const anchorPx = axis === 'row' ? runtime.rowAnchorPx : runtime.colAnchorPx
+    const anchorPx = axis === 'row' ? dom.rowAnchorPx() : dom.colAnchorPx()
     if (!needsReanchor(physicalPx, anchorPx, geometry)) return null
     const logicalPx = anchorPx + physicalPx
     const placement = planAnchorPlacement(logicalPx, geometry)
     const snappedAnchorPx = snapAnchorPx(axis, placement.anchorPx)
     if (snappedAnchorPx === anchorPx) return null
-    if (axis === 'row') runtime.rowAnchorPx = snappedAnchorPx
-    else runtime.colAnchorPx = snappedAnchorPx
+    if (axis === 'row') dom.setRowAnchorPx(snappedAnchorPx)
+    else dom.setColAnchorPx(snappedAnchorPx)
     return Math.max(0, logicalPx - snappedAnchorPx)
   }
 
@@ -227,16 +236,17 @@ export function installGridProjectionController(runtime: GridRuntime) {
     if (rowPhysicalPx !== null || colPhysicalPx !== null) {
       if (scrollStats) scrollStats.reanchors += 1
       // spacer 高度先于 scrollTop 落地（同一帧内），内容才不跳。
-      bumpRender()
       if (rowPhysicalPx !== null) target.scrollTop = rowPhysicalPx
       if (colPhysicalPx !== null) target.scrollLeft = colPhysicalPx
     }
-    const metrics = store.getter(viewportMetricsAtom)
-    const scrollTop = runtime.rowAnchorPx + target.scrollTop
-    const scrollLeft = runtime.colAnchorPx + target.scrollLeft
+    const metrics = atoms.viewportMetrics()
+    const scrollTop = dom.rowAnchorPx() + target.scrollTop
+    const scrollLeft = dom.colAnchorPx() + target.scrollLeft
     if (metrics.scrollTop === scrollTop && metrics.scrollLeft === scrollLeft) return
     store.setter(viewportMetricsAtom, { ...metrics, scrollTop, scrollLeft })
   }
 
-  Object.assign(runtime, { requestProjection, loadProjection, readRangeProjection, hydrateViewportSizeProjection, syncScrollElementToViewport, syncViewportSizeFromElement, refreshViewportProjection, initializeFreezeProjection, refreshEffectiveFreezeProjection, handleViewportScroll })
+  return installGridFeature(runtime, { requestProjection, loadProjection, readRangeProjection, syncScrollElementToViewport, syncViewportSizeFromElement, refreshViewportProjection, initializeFreezeProjection, refreshEffectiveFreezeProjection, handleViewportScroll })
 }
+
+export type GridProjectionControllerApi = ReturnType<typeof installGridProjectionController>

@@ -12,10 +12,16 @@ import {
   type SelectionState,
 } from '@einfach/spreadsheet-ui-core'
 import { getWindowIndexes, isCoordInRange, makeCellKey } from './grid-constants'
-import { type GridRuntime } from './grid-runtime'
+import { installGridFeature, type GridRuntimeBase } from './grid-runtime'
+import type { GridFocusPort, GridMergeRangePort } from './grid-runtime-ports'
+import type { GridViewStateApi } from './grid-view-state'
 
-export function installGridSelection(runtime: GridRuntime) {
-  const { props, store, projectionSnapshot, visibleWindow, hiddenState, getMergeRangeForCoord, bumpRender, focusGrid } = runtime
+type GridSelectionRuntime = GridRuntimeBase &
+  Pick<GridViewStateApi, 'projectionSnapshot' | 'visibleWindow' | 'hiddenState' | 'selectionRegions'> &
+  GridMergeRangePort & GridFocusPort
+
+export function installGridSelection(runtime: GridSelectionRuntime) {
+  const { props, store, projectionSnapshot, visibleWindow, hiddenState } = runtime
 
   // 按投影结果的数组身份 memo：一次渲染里每个格子要查若干次 map，重建的话
   // 是 O(格子数²)（表面级窗口 ~700 格 → 单次重锚渲染数百万次 Map 插入，帧
@@ -116,20 +122,20 @@ export function installGridSelection(runtime: GridRuntime) {
   }
 
   function selectCellFromEvent(row: number, col: number, event: MouseEvent) {
-    const mergeRange = getMergeRangeForCoord(row, col)
+    const mergeRange = runtime.getMergeRangeForCoord(row, col)
     if (event.ctrlKey || event.metaKey) {
       if (event.shiftKey) appendRangeSelection(row, col)
       else if (mergeRange) appendCellRangeSelection(mergeRange)
       else appendCellSelection(row, col)
-      bumpRender()
-      focusGrid()
+      runtime.focusGrid()
       return
     }
     if (!event.shiftKey && mergeRange) selectCellRange(mergeRange)
     else store.setter(selectCellAtom, { sheetId: props.sheetId, coord: { row, col }, extend: event.shiftKey })
-    bumpRender()
-    focusGrid()
+    runtime.focusGrid()
   }
 
-  Object.assign(runtime, { getCellMap, getRows, getCols, getSelectionBounds, getSelectionStateRange, getSelectionRegionsForSheet, getSelectionRangeContaining, isSelected, isRowSelected, isColumnSelected, isAllSelected, appendCellSelection, createSelectionForRange, selectCellRange, appendCellRangeSelection, appendRangeSelection, selectCellFromEvent })
+  return installGridFeature(runtime, { getCellMap, getRows, getCols, getSelectionBounds, getSelectionStateRange, getSelectionRegionsForSheet, getSelectionRangeContaining, isSelected, isRowSelected, isColumnSelected, isAllSelected, appendCellSelection, createSelectionForRange, selectCellRange, appendCellRangeSelection, appendRangeSelection, selectCellFromEvent })
 }
+
+export type GridSelectionApi = ReturnType<typeof installGridSelection>

@@ -1,54 +1,38 @@
 import { onCleanup, onMount } from 'solid-js'
 import {
-  activeSpillRegionAtom,
   cancelPointerAtom,
-  editingSessionAtom,
-  filterSortStateAtom,
   notifyActiveSheetChangedAtom,
-  outlineAtom,
-  pointerSessionAtom,
-  presenceStateAtom,
   selectionAtom,
   setSelectionBoundsAtom,
   setViewportMetricsAtom,
   setWorkspaceActiveSheetAtom,
-  viewportFilterHiddenAtom,
   viewportFreezeAtom,
-  viewportHiddenAtom,
   viewportMetricsAtom,
-  viewportShowGridlinesAtom,
-  viewportShowHeadingsAtom,
-  viewportSizeOverridesAtom,
   workspaceSessionAtom,
 } from '@einfach/spreadsheet-ui-core'
 import { spreadsheetProjectionSnapshotAtom } from '../provider'
-import { type GridRuntime } from './grid-runtime'
+import type { GridProjectionControllerApi } from './grid-projection-controller'
+import { type GridRuntimeBase } from './grid-runtime'
+import type { GridViewStateApi } from './grid-view-state'
 
-export function installGridLifecycle(runtime: GridRuntime) {
-  const { props, store, backend, bumpRender, bumpRenderAndProbeSpill, refreshSpillRegion, requestProjection, loadProjection, refreshViewportProjection, refreshEffectiveFreezeProjection, initializeFreezeProjection, syncViewportSizeFromElement, syncScrollElementToViewport } = runtime
+type GridLifecycleRuntime = GridRuntimeBase &
+  Pick<GridViewStateApi, 'refreshSpillRegion'> &
+  Pick<GridProjectionControllerApi, 'requestProjection' | 'loadProjection' | 'refreshViewportProjection' | 'refreshEffectiveFreezeProjection' | 'initializeFreezeProjection' | 'syncViewportSizeFromElement' | 'syncScrollElementToViewport'>
+
+export function installGridLifecycle(runtime: GridLifecycleRuntime) {
+  const { props, store, backend, dom, refreshSpillRegion, requestProjection, loadProjection, refreshViewportProjection, refreshEffectiveFreezeProjection, initializeFreezeProjection, syncViewportSizeFromElement, syncScrollElementToViewport } = runtime
   let resizeObserver: ResizeObserver | null = null
   const unsubscribers: Array<() => void> = []
 
   onMount(() => {
     initializeFreezeProjection()
-    unsubscribers.push(
-      store.sub(spreadsheetProjectionSnapshotAtom, bumpRenderAndProbeSpill),
-      store.sub(viewportMetricsAtom, refreshViewportProjection),
-      store.sub(viewportSizeOverridesAtom, bumpRender),
-      store.sub(viewportHiddenAtom, bumpRender),
-      store.sub(viewportFilterHiddenAtom, bumpRender),
-      store.sub(outlineAtom, bumpRender),
-      store.sub(viewportFreezeAtom, refreshEffectiveFreezeProjection),
-      store.sub(pointerSessionAtom, bumpRender),
-      store.sub(presenceStateAtom, bumpRender),
-      store.sub(filterSortStateAtom, bumpRender),
-      store.sub(viewportShowGridlinesAtom, bumpRender),
-      store.sub(viewportShowHeadingsAtom, bumpRender),
-      store.sub(selectionAtom, bumpRenderAndProbeSpill),
-      store.sub(activeSpillRegionAtom, bumpRender),
-      store.sub(editingSessionAtom, bumpRender),
-    )
     refreshSpillRegion()
+    // These narrow subscriptions start imperative work only. The render tree
+    // consumes the same atoms directly through @einfach/solid accessors.
+    unsubscribers.push(store.sub(selectionAtom, refreshSpillRegion))
+    unsubscribers.push(store.sub(spreadsheetProjectionSnapshotAtom, refreshSpillRegion))
+    unsubscribers.push(store.sub(viewportMetricsAtom, refreshViewportProjection))
+    unsubscribers.push(store.sub(viewportFreezeAtom, refreshEffectiveFreezeProjection))
     const unsubscribeContentChanges = backend.subscribeContentChanges?.(() => void loadProjection(requestProjection()))
     if (unsubscribeContentChanges) unsubscribers.push(unsubscribeContentChanges)
 
@@ -66,9 +50,10 @@ export function installGridLifecycle(runtime: GridRuntime) {
 
     store.setter(setViewportMetricsAtom, props.viewport)
     store.setter(setSelectionBoundsAtom, { rowCount: props.viewport.rowCount, colCount: props.viewport.colCount })
+    refreshViewportProjection()
     syncViewportSizeFromElement()
     syncScrollElementToViewport()
-    const scrollRoot = runtime.scrollRoot as HTMLDivElement | undefined
+    const scrollRoot = dom.scrollRoot()
     if (typeof ResizeObserver !== 'undefined' && scrollRoot) {
       resizeObserver = new ResizeObserver(syncViewportSizeFromElement)
       resizeObserver.observe(scrollRoot)
@@ -78,9 +63,9 @@ export function installGridLifecycle(runtime: GridRuntime) {
   onCleanup(() => {
     resizeObserver?.disconnect()
     unsubscribers.forEach((unsubscribe) => unsubscribe())
-    runtime.cancelDragSelection()
-    runtime.cancelResize()
-    runtime.cancelFill()
+    dom.cancelDragSelection()
+    dom.cancelResize()
+    dom.cancelFill()
     store.setter(cancelPointerAtom)
   })
 }

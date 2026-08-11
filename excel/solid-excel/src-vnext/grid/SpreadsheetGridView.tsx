@@ -40,7 +40,7 @@ export function SpreadsheetGridView(props: { runtime: GridRuntime }) {
   } = runtime
   return (
     <div
-      ref={(element) => { runtime.gridRoot = element }}
+      ref={runtime.dom.setGridRoot}
       class={`spreadsheet-grid ${gridProps.class ?? ''} ${showGridlines() ? '' : 'spreadsheet-grid--no-gridlines'} ${showHeadings() ? '' : 'spreadsheet-grid--no-headings'}`.replace(/\s+/g, ' ').trim()}
       data-show-gridlines={showGridlines() ? 'true' : 'false'}
       data-show-headings={showHeadings() ? 'true' : 'false'}
@@ -51,7 +51,7 @@ export function SpreadsheetGridView(props: { runtime: GridRuntime }) {
         void handleGridKeyDown(event).catch((error: unknown) => reportCommandFailure(store, error))
       }}
     >
-      <div ref={(element) => { runtime.scrollRoot = element }} class="spreadsheet-grid-scroll-viewport" style={getScrollViewportStyle()} onScroll={handleViewportScroll}>
+      <div ref={runtime.dom.setScrollRoot} class="spreadsheet-grid-scroll-viewport" style={getScrollViewportStyle()} onScroll={handleViewportScroll}>
         <SpreadsheetGridTable runtime={runtime} />
       </div>
       <Show when={freezeRowCount() > 0 || freezeColCount() > 0}>

@@ -5,9 +5,15 @@ import {
   type FormatToggleField,
   type SpreadsheetCellFormat,
 } from '@einfach/spreadsheet-ui-core'
-import { type GridRuntime } from './grid-runtime'
+import type { GridProjectionControllerApi } from './grid-projection-controller'
+import { installGridFeature, type GridRuntimeBase } from './grid-runtime'
+import type { GridViewStateApi } from './grid-view-state'
 
-export function installGridFormatController(runtime: GridRuntime) {
+type GridFormatControllerRuntime = GridRuntimeBase &
+  Pick<GridViewStateApi, 'selectionSnapshot' | 'projectionSnapshot'> &
+  Pick<GridProjectionControllerApi, 'requestProjection' | 'loadProjection'>
+
+export function installGridFormatController(runtime: GridFormatControllerRuntime) {
   const { store, backend, selectionSnapshot, projectionSnapshot, requestProjection, loadProjection } = runtime
 
   function activeCellFormat(): SpreadsheetCellFormat {
@@ -38,5 +44,7 @@ export function installGridFormatController(runtime: GridRuntime) {
     await loadProjection(requestProjection())
   }
 
-  Object.assign(runtime, { activeCellFormat, toggleActiveFormatField })
+  return installGridFeature(runtime, { activeCellFormat, toggleActiveFormatField })
 }
+
+export type GridFormatControllerApi = ReturnType<typeof installGridFormatController>

@@ -7,10 +7,18 @@ import {
   type AutoFillControllerPort,
   type PointerFillHandleCommitIntent,
 } from '@einfach/spreadsheet-ui-core'
-import { type GridRuntime } from './grid-runtime'
+import type { GridContextMenuApi } from './grid-context-menu'
+import type { GridProjectionControllerApi } from './grid-projection-controller'
+import { installGridFeature, type GridRuntimeBase } from './grid-runtime'
+import type { GridViewStateApi } from './grid-view-state'
 
-export function installGridFillController(runtime: GridRuntime) {
-  const { props, store, backend, selectionSnapshot, viewportMetrics, readRangeProjection, requestProjection, loadProjection, bumpRender, focusGrid } = runtime
+type GridFillControllerRuntime = GridRuntimeBase &
+  Pick<GridViewStateApi, 'selectionSnapshot' | 'viewportMetrics'> &
+  Pick<GridProjectionControllerApi, 'readRangeProjection' | 'requestProjection' | 'loadProjection'> &
+  Pick<GridContextMenuApi, 'focusGrid'>
+
+export function installGridFillController(runtime: GridFillControllerRuntime) {
+  const { props, store, backend, dom, selectionSnapshot, viewportMetrics, readRangeProjection, requestProjection, loadProjection, focusGrid } = runtime
 
   function createAutoFillController(): AutoFillControllerPort {
     return {
@@ -31,13 +39,12 @@ export function installGridFillController(runtime: GridRuntime) {
       source: createAutoFillController(),
       refreshProjection: async () => loadProjection(requestProjection()),
     })
-    bumpRender()
   }
 
   async function executeFillHandleDoubleClick(event: MouseEvent) {
     event.preventDefault()
     event.stopPropagation()
-    runtime.cancelFill()
+    dom.cancelFill()
     store.setter(cancelPointerAtom)
     const snapshot = selectionSnapshot()
     if (snapshot.selection.sheetId !== props.sheetId) return
@@ -47,36 +54,33 @@ export function installGridFillController(runtime: GridRuntime) {
       bounds: { rowCount: metrics.rowCount, colCount: metrics.colCount }, source: createAutoFillController(),
       refreshProjection: async () => loadProjection(requestProjection()),
     })
-    bumpRender()
   }
 
   function selectRow(row: number, extend: boolean, append: boolean) {
     if (append) {
       store.setter(addSelectionRegionAtom, { region: { kind: 'row', sheetId: props.sheetId, rowAnchor: row, rowFocus: row } })
-      bumpRender()
       focusGrid()
       return
     }
     const selection = selectionSnapshot().selection
     const rowAnchor = extend && selection.sheetId === props.sheetId && selection.kind === 'row' ? selection.rowAnchor : row
     store.setter(selectRowsAtom, { sheetId: props.sheetId, rowAnchor, rowFocus: row })
-    bumpRender()
     focusGrid()
   }
 
   function selectColumn(col: number, extend: boolean, append: boolean) {
     if (append) {
       store.setter(addSelectionRegionAtom, { region: { kind: 'column', sheetId: props.sheetId, colAnchor: col, colFocus: col } })
-      bumpRender()
       focusGrid()
       return
     }
     const selection = selectionSnapshot().selection
     const colAnchor = extend && selection.sheetId === props.sheetId && selection.kind === 'column' ? selection.colAnchor : col
     store.setter(selectColumnsAtom, { sheetId: props.sheetId, colAnchor, colFocus: col })
-    bumpRender()
     focusGrid()
   }
 
-  Object.assign(runtime, { createAutoFillController, executeFillHandle, executeFillHandleDoubleClick, selectRow, selectColumn })
+  return installGridFeature(runtime, { createAutoFillController, executeFillHandle, executeFillHandleDoubleClick, selectRow, selectColumn })
 }
+
+export type GridFillControllerApi = ReturnType<typeof installGridFillController>

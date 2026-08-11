@@ -10,6 +10,7 @@ import {
 import { useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider'
 import { SpreadsheetGridView } from './SpreadsheetGridView'
 import { installGridAutoFitController } from './grid-auto-fit-controller'
+import { useGridAtomAccessors } from './grid-atom-accessors'
 import { installGridClipboard } from './grid-clipboard'
 import { installGridContextMenu } from './grid-context-menu'
 import { installGridEditNavigation } from './grid-edit-navigation'
@@ -26,6 +27,7 @@ import { installGridPointerSelection } from './grid-pointer-selection'
 import { installGridProjectionController } from './grid-projection-controller'
 import { installGridResizeController } from './grid-resize-controller'
 import { createGridRuntime } from './grid-runtime'
+import { createGridDomAdapter } from './grid-dom-adapter'
 import { installGridSelection } from './grid-selection'
 import { installGridViewState } from './grid-view-state'
 
@@ -40,20 +42,13 @@ export interface SpreadsheetGridProps {
 export function SpreadsheetGrid(props: SpreadsheetGridProps) {
   const store = useSpreadsheetUiStore()
   const backend = useSpreadsheetBackend()
+  const atoms = useGridAtomAccessors()
   const runtime = createGridRuntime({
     props,
     store,
     backend,
-    gridRoot: undefined as HTMLDivElement | undefined,
-    scrollRoot: undefined as HTMLDivElement | undefined,
-    // Anchored-scroll state (grid/scroll-anchor.ts): logical px offset of the
-    // physical scroll surface's origin, per axis. Plain numbers — every write
-    // is followed by bumpRender(), which the spacer getters already track.
-    rowAnchorPx: 0,
-    colAnchorPx: 0,
-    cancelDragSelection: () => undefined,
-    cancelResize: () => undefined,
-    cancelFill: () => undefined,
+    atoms,
+    dom: createGridDomAdapter(),
   })
 
   installGridViewState(runtime)
@@ -68,7 +63,7 @@ export function SpreadsheetGrid(props: SpreadsheetGridProps) {
       sheetId: props.sheetId,
       window,
     })
-    if (outcome === 'ready') runtime.bumpRender()
+    void outcome
   }
 
   createEffect(() => {
@@ -85,8 +80,11 @@ export function SpreadsheetGrid(props: SpreadsheetGridProps) {
 
   installGridProjectionController(runtime)
   installGridSelection(runtime)
-  installGridLayout(runtime)
+  // Outline state has no layout dependency at install time. Installing it
+  // before layout makes each required feature dependency explicit instead of
+  // relying on the former runtime Proxy to defer missing methods.
   installGridOutlineState(runtime)
+  installGridLayout(runtime)
   installGridAutoFitController(runtime)
   installGridEditingController(runtime)
   installGridContextMenu(runtime)

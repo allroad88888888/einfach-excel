@@ -25,7 +25,6 @@ export function SpreadsheetGridTable(props: { runtime: GridRuntime }) {
     isColumnSelected,
     freezeColCount,
     colHasFilterRule,
-    bumpRender,
     startColumnResize,
     autoFitColumn,
     getTopSpacerHeight,
@@ -65,7 +64,6 @@ export function SpreadsheetGridTable(props: { runtime: GridRuntime }) {
                 data-selected={isAllSelected() ? 'true' : 'false'}
                 onClick={() => {
                   store.setter(selectAllAtom, gridProps.sheetId)
-                  bumpRender()
                   focusGrid()
                 }}
                 onContextMenu={(event) => openContextMenu(event, { kind: 'all' })}
@@ -95,7 +93,6 @@ export function SpreadsheetGridTable(props: { runtime: GridRuntime }) {
                           onClick={(event) => {
                             event.stopPropagation()
                             store.setter(openFilterDropdownAtom, { sheetId: gridProps.sheetId, colIndex: col })
-                            bumpRender()
                           }}
                         >
                           ▾

@@ -1,17 +1,24 @@
 import {
-  filterSortStateAtom,
   getSelectionRange,
-  presenceStateAtom,
-  remoteCursorsAtom,
+  type RemoteCursor,
 } from '@einfach/spreadsheet-ui-core'
-import { type GridRuntime } from './grid-runtime'
+import type { JSX } from 'solid-js'
+import type { GridLayoutApi } from './grid-layout'
+import { installGridFeature, type GridRuntimeBase } from './grid-runtime'
+import type { GridSelectionApi } from './grid-selection'
+import type { GridViewStateApi } from './grid-view-state'
 
 /** Bridges rendered grid geometry and collaboration state to overlay components. */
-export function installGridOverlayController(runtime: GridRuntime) {
+type GridOverlayControllerRuntime = GridRuntimeBase &
+  Pick<GridViewStateApi, 'projectionSnapshot'> &
+  Pick<GridSelectionApi, 'getSelectionBounds' | 'getRows' | 'getCols'> &
+  Pick<GridLayoutApi, 'getRenderedRowHeight' | 'getRenderedColumnWidth'>
+
+export function installGridOverlayController(runtime: GridOverlayControllerRuntime) {
   const {
     props,
-    store,
-    renderTick,
+    atoms,
+    dom,
     projectionSnapshot,
     getSelectionBounds,
     getRows,
@@ -21,8 +28,7 @@ export function installGridOverlayController(runtime: GridRuntime) {
   } = runtime
 
   function getFilterRulesForSheet() {
-    renderTick()
-    return store.getter(filterSortStateAtom)[props.sheetId]?.rules ?? []
+    return atoms.filterSortState()[props.sheetId]?.rules ?? []
   }
 
   function colHasFilterRule(col: number): boolean {
@@ -30,19 +36,17 @@ export function installGridOverlayController(runtime: GridRuntime) {
   }
 
   function getRemoteCursorsForSheet() {
-    renderTick()
-    const cursors = store.getter(remoteCursorsAtom) as Array<Record<string, any>>
-    return cursors.filter((cursor) => cursor.sheetId === props.sheetId)
+    return atoms.remoteCursors().filter((cursor) => cursor.sheetId === props.sheetId)
   }
 
   function getParticipantColorHint(participantId: string): string | undefined {
-    const participants = store.getter(presenceStateAtom).participants as Array<Record<string, any>>
+    const participants = atoms.presenceState().participants
     return participants.find((participant) => participant.id === participantId)
       ?.colorHint
   }
 
   function findMergeAnchorCovering(row: number, col: number) {
-    const gridRoot = runtime.gridRoot as HTMLDivElement | undefined
+    const gridRoot = dom.gridRoot()
     if (!gridRoot) return null
     const anchors = gridRoot.querySelectorAll<HTMLElement>(
       'td.spreadsheet-grid-cell[data-merge-anchor="true"]',
@@ -60,8 +64,8 @@ export function installGridOverlayController(runtime: GridRuntime) {
   }
 
   function getOverlayCellRect(row: number, col: number) {
-    const gridRoot = runtime.gridRoot as HTMLDivElement | undefined
-    const scrollRoot = runtime.scrollRoot as HTMLDivElement | undefined
+    const gridRoot = dom.gridRoot()
+    const scrollRoot = dom.scrollRoot()
     if (!gridRoot || !scrollRoot) return null
     const td = gridRoot.querySelector(
       `td.spreadsheet-grid-cell[data-row="${row}"][data-col="${col}"]`,
@@ -91,7 +95,7 @@ export function installGridOverlayController(runtime: GridRuntime) {
   }
 
   function getOverlaySurfaceSize() {
-    const scrollRoot = runtime.scrollRoot as HTMLDivElement | undefined
+    const scrollRoot = dom.scrollRoot()
     if (!scrollRoot) return { width: 0, height: 0 }
     const rect = scrollRoot.getBoundingClientRect()
     return { width: rect.width, height: rect.height }
@@ -102,8 +106,8 @@ export function installGridOverlayController(runtime: GridRuntime) {
   }
 
   function getOverlayFreezeOrigin() {
-    const gridRoot = runtime.gridRoot as HTMLDivElement | undefined
-    const scrollRoot = runtime.scrollRoot as HTMLDivElement | undefined
+    const gridRoot = dom.gridRoot()
+    const scrollRoot = dom.scrollRoot()
     if (!gridRoot || !scrollRoot) return { x: 0, y: 0 }
     const corner = gridRoot.querySelector('.spreadsheet-grid-corner') as HTMLElement | null
     if (!corner) return { x: 0, y: 0 }
@@ -112,7 +116,7 @@ export function installGridOverlayController(runtime: GridRuntime) {
     return { x: cornerRect.right - rootRect.left, y: cornerRect.bottom - rootRect.top }
   }
 
-  function getRemoteCursorStyle(cursor: Record<string, any>) {
+  function getRemoteCursorStyle(cursor: RemoteCursor): JSX.CSSProperties {
     const range = getSelectionRange(cursor.selection, getSelectionBounds())
     const rows = getRows() as readonly number[]
     const cols = getCols() as readonly number[]
@@ -124,7 +128,7 @@ export function installGridOverlayController(runtime: GridRuntime) {
     return { position: 'absolute', top: `${top}px`, left: `${left}px`, height: `${Math.max(height, 1)}px`, width: `${Math.max(width, 1)}px`, border: `2px solid ${color}`, 'pointer-events': 'none', 'box-sizing': 'border-box' }
   }
 
-  Object.assign(runtime, {
+  return installGridFeature(runtime, {
     getFilterRulesForSheet,
     colHasFilterRule,
     getRemoteCursorsForSheet,
@@ -137,3 +141,5 @@ export function installGridOverlayController(runtime: GridRuntime) {
     getRemoteCursorStyle,
   })
 }
+
+export type GridOverlayControllerApi = ReturnType<typeof installGridOverlayController>

@@ -44,7 +44,6 @@ export function SpreadsheetGridCell(props: SpreadsheetGridCellProps) {
     startEditingCell,
     openContextMenu,
     getCellContextTarget,
-    bumpRender,
     focusGrid,
     isFillHandleHost,
     isSheetEditing,
@@ -95,7 +94,6 @@ export function SpreadsheetGridCell(props: SpreadsheetGridCellProps) {
           if (!event.shiftKey || event.ctrlKey || event.metaKey) return
           event.preventDefault()
           store.setter(selectCellAtom, { sheetId: gridProps.sheetId, coord: { row, col }, extend: true })
-          bumpRender()
           focusGrid()
         }}
         onPointerDown={(event) => {

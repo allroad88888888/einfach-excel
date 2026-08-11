@@ -5,24 +5,32 @@ import {
   startPointerAtom,
   updatePointerAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { type GridRuntime } from './grid-runtime'
+import type { GridContextMenuApi } from './grid-context-menu'
+import type { GridFillControllerApi } from './grid-fill-controller'
+import { installGridFeature, type GridRuntimeBase } from './grid-runtime'
+import type { GridViewStateApi } from './grid-view-state'
 
 /** Owns the transient pointer session behind the selection fill handle. */
-export function installGridFillHandle(runtime: GridRuntime) {
+type GridFillHandleRuntime = GridRuntimeBase &
+  Pick<GridViewStateApi, 'selectionSnapshot'> &
+  Pick<GridContextMenuApi, 'getCellCoordFromPoint'> &
+  Pick<GridFillControllerApi, 'executeFillHandle'>
+
+export function installGridFillHandle(runtime: GridFillHandleRuntime) {
   const {
     props,
     store,
     selectionSnapshot,
     getCellCoordFromPoint,
     executeFillHandle,
-    bumpRender,
+    dom,
   } = runtime
 
   function startFillHandle(event: PointerEvent) {
     event.preventDefault()
     event.stopPropagation()
-    runtime.cancelFill()
-    runtime.cancelResize()
+    dom.cancelFill()
+    dom.cancelResize()
 
     const selection = selectionSnapshot()
     if (selection.selection.sheetId !== props.sheetId) return
@@ -51,14 +59,13 @@ export function installGridFillHandle(runtime: GridRuntime) {
         direction: nextPreview.direction,
         copyOnly: moveEvent.ctrlKey || moveEvent.metaKey,
       })
-      bumpRender()
     }
 
     const cleanup = () => {
       window.removeEventListener('pointermove', onPointerMove)
       window.removeEventListener('pointerup', onPointerUp)
       store.setter(cancelPointerAtom)
-      runtime.cancelFill = () => undefined
+      dom.setCancelFill(() => undefined)
     }
     const onPointerUp = (upEvent: PointerEvent) => {
       store.setter(updatePointerAtom, {
@@ -68,14 +75,14 @@ export function installGridFillHandle(runtime: GridRuntime) {
       const intent = store.setter(commitPointerAtom)
       cleanup()
       if (intent?.type === 'pointer.fill-handle.commit') void executeFillHandle(intent)
-      bumpRender()
     }
 
     window.addEventListener('pointermove', onPointerMove)
     window.addEventListener('pointerup', onPointerUp, { once: true })
-    runtime.cancelFill = cleanup
-    bumpRender()
+    dom.setCancelFill(cleanup)
   }
 
-  Object.assign(runtime, { startFillHandle })
+  return installGridFeature(runtime, { startFillHandle })
 }
+
+export type GridFillHandleApi = ReturnType<typeof installGridFillHandle>

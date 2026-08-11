@@ -1,6 +1,5 @@
 import {
   openMenuAtom,
-  pointerSessionAtom,
   selectAllAtom,
   selectCellAtom,
   selectColumnsAtom,
@@ -12,10 +11,16 @@ import {
   type MenuOpenInput,
 } from '@einfach/spreadsheet-ui-core'
 import { isCoordInRange } from './grid-constants'
-import { type GridRuntime } from './grid-runtime'
+import { installGridFeature, type GridRuntimeBase } from './grid-runtime'
+import type { GridMergeAnchorPort, GridSelectionContextPort } from './grid-runtime-ports'
+import type { GridViewStateApi } from './grid-view-state'
 
-export function installGridContextMenu(runtime: GridRuntime) {
-  const { props, store, selectionSnapshot, editingSession, getSelectionRangeContaining, findMergeAnchorCovering, bumpRender } = runtime
+type GridContextMenuRuntime = GridRuntimeBase &
+  Pick<GridViewStateApi, 'selectionSnapshot' | 'editingSession'> &
+  GridSelectionContextPort & GridMergeAnchorPort
+
+export function installGridContextMenu(runtime: GridContextMenuRuntime) {
+  const { props, store, selectionSnapshot, editingSession, getSelectionRangeContaining, dom } = runtime
 
   function isActive(row: number, col: number) {
     const selection = selectionSnapshot()
@@ -38,14 +43,14 @@ export function installGridContextMenu(runtime: GridRuntime) {
   }
 
   function focusGrid() {
-    (runtime.gridRoot as HTMLDivElement | undefined)?.focus()
+    dom.gridRoot()?.focus()
   }
 
   function getKeyboardContextMenuInput(): MenuOpenInput | null {
     const snapshot = store.getter(selectionSnapshotAtom)
-    const gridRoot = runtime.gridRoot as HTMLDivElement | undefined
+    const gridRoot = dom.gridRoot()
     if (!gridRoot || snapshot.selection.sheetId !== props.sheetId) return null
-    const activeCellElement = gridRoot.querySelector<HTMLElement>(`td.spreadsheet-grid-cell[data-row="${snapshot.activeCell.row}"][data-col="${snapshot.activeCell.col}"]`) ?? findMergeAnchorCovering(snapshot.activeCell.row, snapshot.activeCell.col)?.el ?? null
+    const activeCellElement = gridRoot.querySelector<HTMLElement>(`td.spreadsheet-grid-cell[data-row="${snapshot.activeCell.row}"][data-col="${snapshot.activeCell.col}"]`) ?? runtime.findMergeAnchorCovering(snapshot.activeCell.row, snapshot.activeCell.col)?.el ?? null
     let anchorElement: HTMLElement | null = activeCellElement
     let input!: Pick<MenuOpenInput, 'surface' | 'target'>
     switch (snapshot.selection.kind) {
@@ -85,7 +90,6 @@ export function installGridContextMenu(runtime: GridRuntime) {
       target: target.kind === 'cell' ? { kind: 'cell', sheetId: props.sheetId, cell: { row: target.row, col: target.col } } : target.kind === 'range' ? { kind: 'range', sheetId: props.sheetId, range: target.range } : target.kind === 'row' ? { kind: 'row', sheetId: props.sheetId, rowIndex: target.row } : target.kind === 'column' ? { kind: 'column', sheetId: props.sheetId, colIndex: target.col } : { kind: 'all', sheetId: props.sheetId },
       position: { x: event.clientX, y: event.clientY }, source: 'pointer',
     })
-    bumpRender()
     focusGrid()
   }
 
@@ -97,7 +101,7 @@ export function installGridContextMenu(runtime: GridRuntime) {
 
   function getCellCoordFromPoint(event: PointerEvent): CellCoord | null {
     const cell = document.elementFromPoint(event.clientX, event.clientY)?.closest?.('td.spreadsheet-grid-cell') as HTMLElement | null
-    const gridRoot = runtime.gridRoot as HTMLDivElement | undefined
+    const gridRoot = dom.gridRoot()
     if (!cell || !gridRoot?.contains(cell)) return null
     const row = Number(cell.dataset.row)
     const col = Number(cell.dataset.col)
@@ -105,7 +109,7 @@ export function installGridContextMenu(runtime: GridRuntime) {
   }
 
   function getFillPreviewRange(): CellRange | null {
-    const session = store.getter(pointerSessionAtom)
+    const session = runtime.atoms.pointerSession()
     return session.status === 'active' && session.interaction?.kind === 'fill-handle' && session.interaction.sheetId === props.sheetId ? session.interaction.previewRange : null
   }
 
@@ -114,5 +118,7 @@ export function installGridContextMenu(runtime: GridRuntime) {
     return previewRange ? isCoordInRange(row, col, previewRange) : false
   }
 
-  Object.assign(runtime, { isActive, isFillHandleHost, isSheetEditing, isEditing, focusGrid, getKeyboardContextMenuInput, targetFallsWithinSingleAxisSelection, openContextMenu, getCellContextTarget, getCellCoordFromPoint, getFillPreviewRange, isFillPreviewCell })
+  return installGridFeature(runtime, { isActive, isFillHandleHost, isSheetEditing, isEditing, focusGrid, getKeyboardContextMenuInput, targetFallsWithinSingleAxisSelection, openContextMenu, getCellContextTarget, getCellCoordFromPoint, getFillPreviewRange, isFillPreviewCell })
 }
+
+export type GridContextMenuApi = ReturnType<typeof installGridContextMenu>

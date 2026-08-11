@@ -660,6 +660,14 @@ describe('vNext SpreadsheetToolbar', () => {
     fireEvent.click(
       document.body.querySelector('[data-testid="toolbar-sort-asc"]') as HTMLButtonElement,
     )
+    await waitFor(() =>
+      expect(
+        document.body.querySelector('[data-testid="sort-confirmation-confirm"]'),
+      ).not.toBeNull(),
+    )
+    fireEvent.click(
+      document.body.querySelector('[data-testid="sort-confirmation-confirm"]') as HTMLButtonElement,
+    )
     await waitFor(() => expect(sortRangeCalls).toHaveLength(1))
     expect(sortRangeCalls[0]!.keys).toEqual([{ col: 4, direction: 'asc' }])
 

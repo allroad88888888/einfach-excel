@@ -157,9 +157,11 @@ function clickMenuSort(container: HTMLElement, direction: 'asc' | 'desc'): void 
   )
 }
 
-function clickToolbarSort(container: HTMLElement, direction: 'asc' | 'desc'): void {
+async function clickToolbarSort(container: HTMLElement, direction: 'asc' | 'desc'): Promise<void> {
   fireEvent.click(button(container, 'toolbar-btn-sort'))
-  fireEvent.click(button(container, `toolbar-sort-${direction}`))
+  fireEvent.click(button(document.body, `toolbar-sort-${direction}`))
+  await waitFor(() => expect(button(document.body, 'sort-confirmation-confirm')).not.toBeNull())
+  fireEvent.click(button(document.body, 'sort-confirmation-confirm'))
 }
 
 describe('vNext filter/sort entrypoints', () => {
@@ -210,7 +212,7 @@ describe('vNext filter/sort entrypoints', () => {
     const { container } = renderEntrypoints(store, backend)
     await waitForEntrypointsEnabled(container)
 
-    clickToolbarSort(container, 'asc')
+    await clickToolbarSort(container, 'asc')
     await waitFor(() => expect(requests).toHaveLength(1))
     expect(button(container, 'spreadsheet-toolbar').getAttribute('data-filter-sort-status')).toBe(
       'pending',
@@ -313,7 +315,7 @@ describe('vNext filter/sort entrypoints', () => {
     const { container } = renderEntrypoints(store, backend)
     await waitForEntrypointsEnabled(container)
 
-    clickToolbarSort(container, 'asc')
+    await clickToolbarSort(container, 'asc')
     await waitFor(() =>
       expect(store.getter(filterSortEntrypointStateAtom).status).toBe('refresh-failed'),
     )

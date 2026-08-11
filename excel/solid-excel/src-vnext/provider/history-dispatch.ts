@@ -150,12 +150,17 @@ export function backendSupportsRedo(backend: SpreadsheetBackend): boolean {
   return typeof backend.redoTransaction === 'function'
 }
 
+/** A history entry is honest only when its whole replay contract is present. */
+export function backendSupportsHistory(backend: SpreadsheetBackend): boolean {
+  return backendSupportsUndo(backend) && backendSupportsRedo(backend)
+}
+
 /**
  * Push a history entry only when the backend can actually replay it.
- * Returns `true` when pushed, `false` when the backend can't undo and
- * the entry was dropped. Hosts should treat `false` as "the mutation
- * stuck but it cannot be reverted" — typically nothing else needs to
- * happen, but a debug log helps diagnose missing-port surprises.
+ * Returns `true` when pushed, `false` when the backend lacks a replay port
+ * and the entry was dropped. Hosts should treat `false` as "the mutation
+ * stuck but it cannot be replayed" — typically nothing else needs to happen,
+ * but a debug log helps diagnose missing-port surprises.
  *
  * Use this from any dispatcher that records an entry tied to a backend
  * mutation (paste-special, remove-duplicates, fill, etc.). It mirrors
@@ -168,7 +173,7 @@ export function recordHistoryEntry(
   backend: SpreadsheetBackend,
   entry: HistoryEntry,
 ): boolean {
-  if (!backendSupportsUndo(backend)) {
+  if (!backendSupportsHistory(backend)) {
     return false
   }
   return store.setter(pushHistoryAtom, entry)
@@ -221,10 +226,7 @@ async function runHistoryDispatchWithLaneRetry(
   return outcome
 }
 
-export async function dispatchUndo(
-  store: Store,
-  backend: SpreadsheetBackend,
-): Promise<boolean> {
+export async function dispatchUndo(store: Store, backend: SpreadsheetBackend): Promise<boolean> {
   const targetSheetId = peekHistoryTargetSheetId(store, 'undo')
   const outcome = await runHistoryDispatchWithLaneRetry(store, () =>
     store.setter(runUndoHistoryAtom, {
@@ -235,10 +237,7 @@ export async function dispatchUndo(
   return outcome === 'completed'
 }
 
-export async function dispatchRedo(
-  store: Store,
-  backend: SpreadsheetBackend,
-): Promise<boolean> {
+export async function dispatchRedo(store: Store, backend: SpreadsheetBackend): Promise<boolean> {
   const targetSheetId = peekHistoryTargetSheetId(store, 'redo')
   const outcome = await runHistoryDispatchWithLaneRetry(store, () =>
     store.setter(runRedoHistoryAtom, {

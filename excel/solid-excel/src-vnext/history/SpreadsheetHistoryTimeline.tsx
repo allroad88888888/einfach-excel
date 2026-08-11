@@ -12,6 +12,8 @@ import {
 } from '@einfach/spreadsheet-ui-core'
 import { dispatchRedo, dispatchUndo, retryHistoryRefresh } from '../provider/history-dispatch'
 import { useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider/hooks'
+import { useAtomFeedbackPresentation } from '../feedback/use-atom-feedback-presentation'
+import { historyLifecycleFeedback } from './history-feedback'
 
 export interface SpreadsheetHistoryTimelineProps {
   class?: string
@@ -34,6 +36,10 @@ export function SpreadsheetHistoryTimeline(props: SpreadsheetHistoryTimelineProp
   const canUndo = useAtomValue(canUndoAtom)
   const canRedo = useAtomValue(canRedoAtom)
   const canRetryRefresh = useAtomValue(historyCanRetryRefreshAtom)
+  const feedback = useAtomFeedbackPresentation({
+    sourceAtom: historyLifecycleAtom,
+    map: historyLifecycleFeedback,
+  })
 
   function format(entry: HistoryEntry): string {
     return (props.formatTimestamp ?? defaultFormatTimestamp)(entry)
@@ -151,18 +157,24 @@ export function SpreadsheetHistoryTimeline(props: SpreadsheetHistoryTimelineProp
         </div>
       </Show>
 
-      <Show when={lifecycle().status !== 'ready' && lifecycle().error.length > 0}>
-        <div
-          class="history-timeline-status"
-          data-testid="history-timeline-status"
-          data-status={lifecycle().status}
-          role={lifecycle().status === 'outcome-unknown' ? 'alert' : 'status'}
-        >
-          {lifecycle().error}
-        </div>
+      <Show when={feedback()}>
+        {(currentFeedback) => (
+          <div
+            class="history-timeline-status"
+            data-testid="history-timeline-status"
+            data-status={lifecycle().status}
+            role={currentFeedback().kind === 'error' ? 'alert' : 'status'}
+            aria-busy={currentFeedback().kind === 'loading' ? 'true' : undefined}
+          >
+            <span class="history-timeline-status-message">{currentFeedback().message}</span>
+            <Show when={currentFeedback().detail}>
+              <span class="history-timeline-status-detail">{currentFeedback().detail}</span>
+            </Show>
+          </div>
+        )}
       </Show>
 
-      <Show when={canRetryRefresh()}>
+      <Show when={canRetryRefresh() && feedback()?.kind === 'error'}>
         <button
           type="button"
           class="history-timeline-btn history-timeline-btn-retry"

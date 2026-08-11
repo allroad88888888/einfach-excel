@@ -59,7 +59,7 @@ test.describe('i18n — vNext 表面 locale 切换', () => {
     await page.getByTestId('toolbar-btn-find-replace').click()
     const dialog = page.getByTestId('wave5-find-replace')
     await expect(dialog).toBeVisible()
-    await expect(dialog).toHaveAttribute('aria-label', 'Find and replace')
+    await expect(dialog).toHaveAccessibleName('Find and replace')
 
     const needle = page.getByTestId('find-needle-input')
     await needle.fill('North')
@@ -68,13 +68,13 @@ test.describe('i18n — vNext 表面 locale 切换', () => {
     await localeBtn(page, '中').click()
     // 对话框不因重译关闭，标题与 tab 文案跟随，输入值保留。
     await expect(dialog).toBeVisible()
-    await expect(dialog).toHaveAttribute('aria-label', '查找和替换')
+    await expect(dialog).toHaveAccessibleName('查找和替换')
     await expect(page.getByTestId('find-tab')).toHaveText('查找')
     await expect(needle).toHaveValue('North')
 
     await localeBtn(page, 'EN').click()
     await expect(dialog).toBeVisible()
-    await expect(dialog).toHaveAttribute('aria-label', 'Find and replace')
+    await expect(dialog).toHaveAccessibleName('Find and replace')
     await expect(page.getByTestId('find-tab')).toHaveText('Find')
     await expect(needle).toHaveValue('North')
   })

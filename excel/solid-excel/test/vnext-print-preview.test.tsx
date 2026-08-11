@@ -147,6 +147,7 @@ describe('vNext SpreadsheetPrintPreviewOverlay', () => {
     const store = createStore()
     const backend = createFakeBackend()
 
+    store.setter(setWorkspaceActiveSheetAtom, { sheetId: 'sheet-1' })
     store.setter(togglePrintPreviewAtom)
 
     const { container } = render(() => (

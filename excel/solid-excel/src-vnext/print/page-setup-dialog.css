@@ -1,0 +1,131 @@
+.spreadsheet-page-setup-dialog {
+  width: min(440px, calc(100vw - 32px));
+  margin: 0;
+  padding: 0 !important;
+  border-radius: 6px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18) !important;
+}
+
+.spreadsheet-page-setup-dialog > * {
+  padding: 0;
+}
+
+.spreadsheet-page-setup-dialog .page-setup-header,
+.spreadsheet-page-setup-dialog .page-setup-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #f8fafc;
+}
+
+.spreadsheet-page-setup-dialog .page-setup-header {
+  justify-content: space-between;
+  border-bottom: 1px solid #e6e8eb;
+}
+
+.spreadsheet-page-setup-dialog h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.spreadsheet-page-setup-dialog .dialog-close-x {
+  display: flex;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.spreadsheet-page-setup-dialog .page-setup-body {
+  display: grid;
+  gap: 14px;
+  padding: 14px 16px;
+}
+
+.spreadsheet-page-setup-dialog fieldset {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+}
+
+.spreadsheet-page-setup-dialog legend {
+  padding: 0 4px;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.spreadsheet-page-setup-dialog label,
+.spreadsheet-page-setup-dialog .page-setup-scale-choice {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #1e293b;
+  font-size: 13px;
+}
+
+.spreadsheet-page-setup-dialog .page-setup-scale-choice {
+  flex-wrap: wrap;
+}
+
+.spreadsheet-page-setup-dialog input[type='number'] {
+  width: 64px;
+  height: 26px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  padding: 0 6px;
+}
+
+.spreadsheet-page-setup-dialog output {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.spreadsheet-page-setup-dialog .page-setup-error {
+  padding: 8px 12px;
+  border: 1px solid #fecaca;
+  border-radius: 4px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 13px;
+}
+
+.spreadsheet-page-setup-dialog .page-setup-footer {
+  justify-content: flex-end;
+  border-top: 1px solid #e6e8eb;
+}
+
+.spreadsheet-page-setup-dialog .page-setup-button {
+  height: 28px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: #fff;
+  color: #1e293b;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 0 12px;
+}
+
+.spreadsheet-page-setup-dialog .page-setup-button-primary {
+  border-color: #1d4ed8;
+  background: #1d4ed8;
+  color: #fff;
+}
+
+.spreadsheet-page-setup-dialog button:disabled,
+.spreadsheet-page-setup-dialog fieldset:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}

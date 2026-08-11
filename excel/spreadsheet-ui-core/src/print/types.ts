@@ -49,3 +49,15 @@ export interface SetPrintConfigRequest extends SheetRef {
   requestId?: ProjectionRequestId
   revision?: ProjectionRevision
 }
+
+export interface PageSetupDraftPatch {
+  orientation?: PrintOrientation
+  scale?: PrintScale
+}
+
+export type PageSetupSaveOutcome =
+  | 'completed'
+  | 'blocked'
+  | 'outcome-unknown'
+  | 'refresh-failed'
+  | 'stale'

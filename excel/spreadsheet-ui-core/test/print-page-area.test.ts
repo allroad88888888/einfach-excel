@@ -2,13 +2,14 @@ import { describe, expect, test } from '@jest/globals'
 import { createStore } from '@einfach/core'
 import {
   DEFAULT_PRINT_CONFIG,
+  cancelPageSetupAtom,
   clearPrintConfigAtom,
+  openPageSetupAtom,
   pageSetupDialogOpenAtom,
   printConfigStateAtom,
   printPreviewOpenAtom,
   setPrintConfigAtom,
   shiftManualPageBreaks,
-  togglePageSetupDialogAtom,
   togglePrintPreviewAtom,
   type ManualPageBreak,
   type PrintConfig,
@@ -76,12 +77,12 @@ describe('print-page-area', () => {
     expect(store.getter(printPreviewOpenAtom)).toBe(false)
   })
 
-  test('togglePageSetupDialogAtom flips boolean independently', () => {
+  test('page setup session opens and cancels independently', () => {
     const store = createStore()
     expect(store.getter(pageSetupDialogOpenAtom)).toBe(false)
-    store.setter(togglePageSetupDialogAtom)
+    store.setter(openPageSetupAtom, { sheetId: 'A' })
     expect(store.getter(pageSetupDialogOpenAtom)).toBe(true)
-    store.setter(togglePageSetupDialogAtom)
+    store.setter(cancelPageSetupAtom)
     expect(store.getter(pageSetupDialogOpenAtom)).toBe(false)
   })
 
@@ -90,7 +91,7 @@ describe('print-page-area', () => {
     store.setter(togglePrintPreviewAtom)
     expect(store.getter(printPreviewOpenAtom)).toBe(true)
     expect(store.getter(pageSetupDialogOpenAtom)).toBe(false)
-    store.setter(togglePageSetupDialogAtom)
+    store.setter(openPageSetupAtom, { sheetId: 'A' })
     expect(store.getter(printPreviewOpenAtom)).toBe(true)
     expect(store.getter(pageSetupDialogOpenAtom)).toBe(true)
   })

@@ -7,15 +7,18 @@ Owns print configuration state per sheet: print area, manual page breaks, scale,
 - Source atoms:
   - `printConfigStateAtom`: map of sheetId → PrintConfig; bounded by sheet count.
   - `printPreviewOpenAtom`: boolean for preview overlay visibility.
-  - `pageSetupDialogOpenAtom`: boolean for Page Setup dialog visibility.
-- Derived atoms: none.
+  - `pageSetupSessionAtom`: one Page Setup session with its draft, phase, and request identities.
+- Derived atoms:
+  - `pageSetupDialogOpenAtom`, edit/cancel/retry capability atoms derive from the session.
 - Commands:
-  - `setPrintConfigAtom` — merge config for a sheet.
+  - `setPrintConfigAtom` — cache a confirmed config for a sheet.
   - `clearPrintConfigAtom` — remove config for a sheet.
   - `togglePrintPreviewAtom` — flip preview open state.
-  - `togglePageSetupDialogAtom` — flip page setup dialog state.
+  - `openPageSetupAtom`, `updatePageSetupDraftAtom`, `cancelPageSetupAtom` — own the edit session.
+  - `runPageSetupSaveAtom` — writes only with both backend ports, requiring an exact write ACK and exact read-back before it updates the cache.
+  - `retryPageSetupRefreshAtom` — reconciles an unknown or failed save by read only; it never repeats the write.
 - Scale bound: one record per sheet; sheet count is bounded.
-- Backend reads: `readPrintConfig` / `setPrintConfig` (optional; UI core degrades gracefully).
+- Backend reads: `readPrintConfig` / `setPrintConfig` are optional host ports. Page Setup enters a cancellable blocked state before dispatch when both are unavailable.
 - Per-cell/per-row/per-col atom risk: none; config is per-sheet.
 - Pure helpers: `shiftManualPageBreaks` for row/col structural edits.
-- Tests: `test/print-page-area.test.ts`.
+- Tests: `test/print-page-area.test.ts`, `test/print-page-setup.test.ts`.

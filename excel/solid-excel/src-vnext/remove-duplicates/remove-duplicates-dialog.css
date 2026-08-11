@@ -28,6 +28,7 @@
   min-width: 480px !important;
   max-width: 480px !important;
   min-height: 420px;
+  margin: 0;
   border-radius: 6px !important;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18) !important;
   padding: 0 !important;
@@ -160,6 +161,18 @@
 .remove-duplicates-dialog .rd-preview-text {
   font-size: 13px;
   color: #1e293b;
+}
+
+.remove-duplicates-dialog .rd-error {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid #fecaca;
+  border-radius: 4px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 13px;
 }
 
 .remove-duplicates-dialog .rd-footer {

@@ -1,8 +1,7 @@
 /** @jsxImportSource solid-js */
 
-import { For, Show, createEffect, createMemo, onCleanup } from 'solid-js'
+import { Show, createEffect } from 'solid-js'
 import { useAtomValue } from '@einfach/solid'
-import { useT } from '../../src/i18n'
 import {
   captureRemoveDuplicatesCapabilityAtom,
   closeRemoveDuplicatesAtom,
@@ -10,6 +9,8 @@ import {
   removeDuplicatesBusyAtom,
   removeDuplicatesCanCloseAtom,
   removeDuplicatesCanConfirmAtom,
+  removeDuplicatesCanEditAtom,
+  removeDuplicatesCanRetryReadAtom,
   removeDuplicatesComparisonAtom,
   removeDuplicatesErrorAtom,
   removeDuplicatesExcludeHeaderAtom,
@@ -20,14 +21,19 @@ import {
   removeDuplicatesRangeAtom,
   removeDuplicatesScanInputCellsAtom,
   removeDuplicatesSessionAtom,
+  retryRemoveDuplicatesReadAtom,
   runRemoveDuplicatesConfirmAtom,
-  type DisplayCell,
   type RemoveDuplicatesComparison,
 } from '@einfach/spreadsheet-ui-core'
+import { useOverlayInteraction } from '../overlay'
 import { refreshVisibleProjection, useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider'
+import {
+  REMOVE_DUPLICATES_DIALOG_ERROR_ID,
+  REMOVE_DUPLICATES_DIALOG_PREVIEW_ID,
+  REMOVE_DUPLICATES_DIALOG_TITLE_ID,
+  RemoveDuplicatesDialogContent,
+} from './RemoveDuplicatesDialogContent'
 
-// CSS import gated like other vnext dialogs — jest skips the dynamic
-// import so unit tests aren't blocked by the lack of a CSS transform.
 if (typeof process === 'undefined' || !process.env.JEST_WORKER_ID) {
   void import('./remove-duplicates-dialog.css')
 }
@@ -37,26 +43,8 @@ export interface SpreadsheetRemoveDuplicatesDialogProps {
   'data-testid'?: string
 }
 
-const COMPARISON_CHOICES: ReadonlyArray<RemoveDuplicatesComparison> = [
-  'exact',
-  'caseInsensitive',
-  'trim',
-  'trimAndIgnoreCase',
-]
-
-/** A-Z, AA-AZ, ... Excel-style column letters. */
-function columnLetter(index: number): string {
-  let n = index
-  let out = ''
-  while (n >= 0) {
-    out = String.fromCharCode(65 + (n % 26)) + out
-    n = Math.floor(n / 26) - 1
-  }
-  return out
-}
-
+/** Connects the Remove Duplicates dialog to its feature-owned Atom commands. */
 export function SpreadsheetRemoveDuplicatesDialog(props: SpreadsheetRemoveDuplicatesDialogProps) {
-  const t = useT()
   const store = useSpreadsheetUiStore()
   const backend = useSpreadsheetBackend()
   const isOpen = useAtomValue(removeDuplicatesOpenAtom)
@@ -69,83 +57,29 @@ export function SpreadsheetRemoveDuplicatesDialog(props: SpreadsheetRemoveDuplic
   const session = useAtomValue(removeDuplicatesSessionAtom)
   const lifecycle = useAtomValue(removeDuplicatesLifecycleAtom)
   const error = useAtomValue(removeDuplicatesErrorAtom)
+  const canEdit = useAtomValue(removeDuplicatesCanEditAtom)
   const canClose = useAtomValue(removeDuplicatesCanCloseAtom)
   const canConfirm = useAtomValue(removeDuplicatesCanConfirmAtom)
+  const canRetryRead = useAtomValue(removeDuplicatesCanRetryReadAtom)
   const busy = useAtomValue(removeDuplicatesBusyAtom)
+  let closeButton: HTMLButtonElement | undefined
 
   createEffect(() => {
     store.setter(captureRemoveDuplicatesCapabilityAtom, backend)
   })
 
-  // Reset-on-open lives store-side inside `openRemoveDuplicatesAtom`
-  // (range + cells + default key set + open flag flipped in one setter).
-  // We deliberately do NOT mirror that via `createEffect<boolean>` open-edge:
-  // under Solid 1.9.12 the consumer body re-executes on unrelated atom
-  // mutations, which would re-fire the edge with a stale prev and clobber
-  // the user's column / comparison choices mid-interaction. This is the
-  // canonical pattern from SpreadsheetPasteSpecialDialog — see CLAUDE.md
-  // "Known limitation: solid-js 1.9.12 Provider interaction".
+  function handleClose() {
+    store.setter(closeRemoveDuplicatesAtom)
+  }
 
-  createEffect(() => {
-    if (!isOpen()) return
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
-        event.stopPropagation()
-        store.setter(closeRemoveDuplicatesAtom)
-      }
-    }
-    document.addEventListener('keydown', onKeyDown)
-    onCleanup(() => document.removeEventListener('keydown', onKeyDown))
-  })
-
-  // Column descriptor list derived from the current range. Header labels
-  // come from the first-row cells when `excludeHeader` is on, falling
-  // back to "Column A/B/..." when the header value is missing or the
-  // option is off.
-  const columnDescriptors = createMemo<Array<{ col: number; letter: string; label: string }>>(
-    () => {
-      const r = range()
-      if (!r) return []
-      const headerRow = r.startRow
-      const headerByCol = new Map<number, string>()
-      if (excludeHeader()) {
-        for (const cell of cells() as ReadonlyArray<DisplayCell>) {
-          if (cell.row !== headerRow) continue
-          const display = cell.displayValue ?? ''
-          if (display.trim().length > 0) headerByCol.set(cell.col, display)
-        }
-      }
-      const out: Array<{ col: number; letter: string; label: string }> = []
-      for (let col = r.startCol; col <= r.endCol; col += 1) {
-        const letter = columnLetter(col)
-        const header = headerByCol.get(col)
-        out.push({ col, letter, label: header ? `${letter} — ${header}` : letter })
-      }
-      return out
-    },
-  )
-
-  const previewMessage = createMemo<string>(() => {
-    const p = preview()
-    if (!p) return ''
-    if (p.noKeyColumns) {
-      return t('removeDuplicates.preview.noKeyColumns')
-    }
-    // Zero-duplicate UX branch (LOW finding): when keyColumns are set but
-    // no duplicates were found, the "Will remove 0 of N rows" summary
-    // reads as a degenerate case. The locale already ships a friendlier
-    // `noDuplicates` string for exactly this state — surface it.
-    if (p.duplicateRows.length === 0) {
-      return t('removeDuplicates.preview.noDuplicates')
-    }
-    return t('removeDuplicates.preview.summary', {
-      duplicates: p.duplicateRows.length,
-      scanned: p.scannedRows,
-      unique: p.uniqueRows,
-    })
+  const overlay = useOverlayInteraction({
+    active: isOpen,
+    initialFocus: () => (closeButton?.disabled ? undefined : closeButton),
+    onRequestClose: handleClose,
   })
 
   function handleConfirm() {
+    if (!canConfirm()) return
     const sessionId = session()?.sessionId
     if (sessionId === undefined) return
     void store.setter(runRemoveDuplicatesConfirmAtom, {
@@ -155,162 +89,69 @@ export function SpreadsheetRemoveDuplicatesDialog(props: SpreadsheetRemoveDuplic
     })
   }
 
-  function handleCancel() {
-    store.setter(closeRemoveDuplicatesAtom)
+  function handleRetryRead() {
+    if (!canRetryRead()) return
+    void store.setter(retryRemoveDuplicatesReadAtom, { source: backend })
+  }
+
+  function dispatchIntent(
+    intent:
+      | { readonly kind: 'set-exclude-header'; readonly excludeHeader: boolean }
+      | { readonly kind: 'toggle-key-column'; readonly column: number }
+      | { readonly kind: 'select-all-key-columns' }
+      | { readonly kind: 'deselect-all-key-columns' }
+      | { readonly kind: 'set-comparison'; readonly comparison: RemoveDuplicatesComparison },
+  ) {
+    store.setter(dispatchRemoveDuplicatesIntentAtom, intent)
   }
 
   return (
     <Show when={isOpen()}>
-      <div
+      <form
+        ref={overlay.overlayRef}
         class={`remove-duplicates-dialog ${props.class ?? ''}`.trim()}
         data-testid={props['data-testid'] ?? 'remove-duplicates-dialog'}
         data-status={lifecycle().status}
         role="dialog"
-        aria-label={t('removeDuplicates.title')}
+        aria-modal="true"
+        aria-labelledby={REMOVE_DUPLICATES_DIALOG_TITLE_ID}
+        aria-describedby={
+          error().length > 0
+            ? REMOVE_DUPLICATES_DIALOG_ERROR_ID
+            : REMOVE_DUPLICATES_DIALOG_PREVIEW_ID
+        }
         aria-busy={busy()}
+        onSubmit={(event) => {
+          event.preventDefault()
+          handleConfirm()
+        }}
       >
-        <div class="rd-header">
-          <span class="rd-title">{t('removeDuplicates.title')}</span>
-          <button
-            type="button"
-            class="dialog-close-x"
-            data-testid="remove-duplicates-close-x"
-            aria-label={t('removeDuplicates.cancel')}
-            disabled={!canClose()}
-            onClick={handleCancel}
-          >
-            ×
-          </button>
-        </div>
-
-        <div class="rd-body">
-          <label class="rd-option">
-            <input
-              type="checkbox"
-              data-testid="remove-duplicates-exclude-header"
-              checked={excludeHeader()}
-              disabled={lifecycle().status !== 'editing'}
-              onChange={(event) => {
-                store.setter(dispatchRemoveDuplicatesIntentAtom, {
-                  kind: 'set-exclude-header',
-                  excludeHeader: event.currentTarget.checked,
-                })
-              }}
-            />
-            {t('removeDuplicates.excludeHeader')}
-          </label>
-
-          <fieldset class="rd-fieldset" data-testid="remove-duplicates-columns-group">
-            <legend class="rd-legend">{t('removeDuplicates.columns.legend')}</legend>
-            <div class="rd-columns-grid">
-              <For each={columnDescriptors()}>
-                {(desc) => (
-                  <label class="rd-checkbox">
-                    <input
-                      type="checkbox"
-                      data-testid={`remove-duplicates-column-${desc.col}`}
-                      checked={keyColumns().has(desc.col)}
-                      disabled={lifecycle().status !== 'editing'}
-                      onChange={() =>
-                        store.setter(dispatchRemoveDuplicatesIntentAtom, {
-                          kind: 'toggle-key-column',
-                          column: desc.col,
-                        })
-                      }
-                    />
-                    {desc.label}
-                  </label>
-                )}
-              </For>
-            </div>
-            <div class="rd-column-actions">
-              <button
-                type="button"
-                class="rd-link-btn"
-                data-testid="remove-duplicates-select-all"
-                disabled={lifecycle().status !== 'editing'}
-                onClick={() =>
-                  store.setter(dispatchRemoveDuplicatesIntentAtom, {
-                    kind: 'select-all-key-columns',
-                  })
-                }
-              >
-                {t('removeDuplicates.columns.selectAll')}
-              </button>
-              <button
-                type="button"
-                class="rd-link-btn"
-                data-testid="remove-duplicates-deselect-all"
-                disabled={lifecycle().status !== 'editing'}
-                onClick={() =>
-                  store.setter(dispatchRemoveDuplicatesIntentAtom, {
-                    kind: 'deselect-all-key-columns',
-                  })
-                }
-              >
-                {t('removeDuplicates.columns.deselectAll')}
-              </button>
-            </div>
-          </fieldset>
-
-          <fieldset class="rd-fieldset" data-testid="remove-duplicates-comparison-group">
-            <legend class="rd-legend">{t('removeDuplicates.comparison.legend')}</legend>
-            <div class="rd-comparison-grid">
-              <For each={COMPARISON_CHOICES}>
-                {(choice) => (
-                  <label class="rd-radio">
-                    <input
-                      type="radio"
-                      name="remove-duplicates-comparison"
-                      data-testid={`remove-duplicates-comparison-${choice}`}
-                      checked={comparison() === choice}
-                      disabled={lifecycle().status !== 'editing'}
-                      onChange={() =>
-                        store.setter(dispatchRemoveDuplicatesIntentAtom, {
-                          kind: 'set-comparison',
-                          comparison: choice,
-                        })
-                      }
-                    />
-                    {t(`removeDuplicates.comparison.${choice}`)}
-                  </label>
-                )}
-              </For>
-            </div>
-          </fieldset>
-
-          <div class="rd-preview" data-testid="remove-duplicates-preview">
-            <div class="rd-preview-label">{t('removeDuplicates.preview.label')}</div>
-            <div class="rd-preview-text">{previewMessage()}</div>
-          </div>
-          <Show when={error().length > 0}>
-            <div role="alert" data-testid="remove-duplicates-error">
-              {error()}
-            </div>
-          </Show>
-        </div>
-
-        <div class="rd-footer">
-          <button
-            type="button"
-            class="rd-btn"
-            data-testid="remove-duplicates-cancel-button"
-            disabled={!canClose()}
-            onClick={handleCancel}
-          >
-            {t('removeDuplicates.cancel')}
-          </button>
-          <button
-            type="button"
-            class="rd-btn rd-btn-primary"
-            data-testid="remove-duplicates-confirm-button"
-            disabled={!canConfirm()}
-            onClick={handleConfirm}
-          >
-            {t('removeDuplicates.confirm')}
-          </button>
-        </div>
-      </div>
+        <RemoveDuplicatesDialogContent
+          range={range}
+          cells={cells}
+          keyColumns={keyColumns}
+          comparison={comparison}
+          excludeHeader={excludeHeader}
+          preview={preview}
+          error={error}
+          canEdit={canEdit}
+          canClose={canClose}
+          canConfirm={canConfirm}
+          canRetryRead={canRetryRead}
+          setCloseButtonRef={(element) => {
+            closeButton = element
+          }}
+          onSetExcludeHeader={(next) =>
+            dispatchIntent({ kind: 'set-exclude-header', excludeHeader: next })
+          }
+          onToggleColumn={(column) => dispatchIntent({ kind: 'toggle-key-column', column })}
+          onSelectAllColumns={() => dispatchIntent({ kind: 'select-all-key-columns' })}
+          onDeselectAllColumns={() => dispatchIntent({ kind: 'deselect-all-key-columns' })}
+          onSetComparison={(next) => dispatchIntent({ kind: 'set-comparison', comparison: next })}
+          onClose={handleClose}
+          onRetryRead={handleRetryRead}
+        />
+      </form>
     </Show>
   )
 }

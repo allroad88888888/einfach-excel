@@ -1,16 +1,18 @@
 /** @jsxImportSource solid-js */
 
-import { Show, For, createEffect, onCleanup } from 'solid-js'
+import { Show, For } from 'solid-js'
 import { useAtomValue } from '@einfach/solid'
 import { useT } from '../../src/i18n'
 import {
   conditionalFormatEditorAtom,
   conditionalFormatRulesCacheAtom,
   closeConditionalFormatEditorAtom,
+  openConditionalFormatEditorAtom,
   runConditionalFormatMutationAtom,
   setConditionalFormatEditorKindAtom,
   type ConditionalFormatRuleKind,
 } from '@einfach/spreadsheet-ui-core'
+import { useOverlayInteraction } from '../overlay'
 import { refreshVisibleProjection, useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider'
 
 // Pull in the dialog stylesheet as a side-effect import. Vite picks the
@@ -35,30 +37,24 @@ const ruleKinds: ConditionalFormatRuleKind[] = [
   'top-bottom',
 ]
 
+const DIALOG_TITLE_ID = 'conditional-format-dialog-title'
+const RULE_LIST_ID = 'conditional-format-rule-list'
+const PREVIEW_ID = 'conditional-format-rule-preview'
+const ERROR_ID = 'conditional-format-dialog-error'
+
 export function SpreadsheetConditionalFormatDialog(props: SpreadsheetConditionalFormatDialogProps) {
   const t = useT()
   const store = useSpreadsheetUiStore()
   const backend = useSpreadsheetBackend()
   const editor = useAtomValue(conditionalFormatEditorAtom)
   const rulesCache = useAtomValue(conditionalFormatRulesCacheAtom)
+  let closeButton: HTMLButtonElement | undefined
 
   const isEditing = () => editor().open
 
   function kindLabel(kind: ConditionalFormatRuleKind): string {
     return t(`conditionalFormat.kind.${kind}`)
   }
-
-  createEffect(() => {
-    if (!isEditing()) return
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
-        event.stopPropagation()
-        store.setter(closeConditionalFormatEditorAtom)
-      }
-    }
-    document.addEventListener('keydown', onKeyDown)
-    onCleanup(() => document.removeEventListener('keydown', onKeyDown))
-  })
 
   function currentKind(): ConditionalFormatRuleKind {
     return editor().selectedKind
@@ -67,6 +63,12 @@ export function SpreadsheetConditionalFormatDialog(props: SpreadsheetConditional
   function close() {
     store.setter(closeConditionalFormatEditorAtom)
   }
+
+  const overlay = useOverlayInteraction({
+    active: isEditing,
+    initialFocus: () => closeButton,
+    onRequestClose: close,
+  })
 
   async function handleSave() {
     await store.setter(runConditionalFormatMutationAtom, {
@@ -107,20 +109,32 @@ export function SpreadsheetConditionalFormatDialog(props: SpreadsheetConditional
 
   return (
     <Show when={isEditing()}>
-      <div
+      <form
+        ref={overlay.overlayRef}
         class={`conditional-format-dialog ${props.class ?? ''}`.trim()}
         data-testid={props['data-testid'] ?? 'conditional-format-dialog'}
         role="dialog"
         aria-modal="true"
-        aria-label={t('conditionalFormat.title')}
+        aria-labelledby={DIALOG_TITLE_ID}
+        aria-describedby={editor().error ? ERROR_ID : PREVIEW_ID}
+        aria-busy={editor().pending}
+        onSubmit={(event) => {
+          event.preventDefault()
+          void handleSave()
+        }}
       >
         <div class="cf-dialog-header">
-          <span class="cf-dialog-title">{t('conditionalFormat.title')}</span>
+          <h2 id={DIALOG_TITLE_ID} class="cf-dialog-title">
+            {t('conditionalFormat.title')}
+          </h2>
           <button
             type="button"
             class="dialog-close-x"
             data-testid="dialog-close-x"
             aria-label={t('dialog.close.label')}
+            ref={(element) => {
+              closeButton = element
+            }}
             onClick={close}
           >
             ×
@@ -130,12 +144,28 @@ export function SpreadsheetConditionalFormatDialog(props: SpreadsheetConditional
         <div class="cf-dialog-body">
           <div class="cf-rules-section">
             <span class="cf-section-label">{t('conditionalFormat.existingRules')}</span>
-            <ul class="cf-rule-list" data-testid="cf-rule-list">
+            <ul
+              id={RULE_LIST_ID}
+              class="cf-rule-list"
+              data-testid="cf-rule-list"
+              aria-label={t('conditionalFormat.existingRules')}
+            >
               <For each={rulesCache().rules}>
                 {(entry) => (
-                  <li data-rule-id={entry.id} data-rule-kind={entry.rule.kind}>
-                    {kindLabel(entry.rule.kind)} - {t('conditionalFormat.priority')}{' '}
-                    {entry.priority}
+                  <li>
+                    <button
+                      type="button"
+                      class="cf-rule-select"
+                      data-testid={`cf-rule-entry-${entry.id}`}
+                      data-rule-id={entry.id}
+                      data-rule-kind={entry.rule.kind}
+                      disabled={editor().pending}
+                      aria-current={editor().ruleId === entry.id ? 'true' : undefined}
+                      onClick={() => store.setter(openConditionalFormatEditorAtom, entry)}
+                    >
+                      {kindLabel(entry.rule.kind)} - {t('conditionalFormat.priority')}{' '}
+                      {entry.priority}
+                    </button>
                   </li>
                 )}
               </For>
@@ -160,7 +190,7 @@ export function SpreadsheetConditionalFormatDialog(props: SpreadsheetConditional
               </select>
             </div>
 
-            <div class="cf-rule-preview" aria-hidden="true">
+            <div id={PREVIEW_ID} class="cf-rule-preview" aria-live="polite">
               <span class="cf-rule-preview-swatch" />
               <span class="cf-rule-preview-text">
                 {t('conditionalFormat.preview')} - {kindLabel(currentKind())}
@@ -170,7 +200,7 @@ export function SpreadsheetConditionalFormatDialog(props: SpreadsheetConditional
         </div>
 
         <Show when={editor().error}>
-          <div class="cf-error" data-testid="cf-error-text" role="alert">
+          <div id={ERROR_ID} class="cf-error" data-testid="cf-error-text" role="alert">
             {editor().error}
           </div>
         </Show>
@@ -192,18 +222,15 @@ export function SpreadsheetConditionalFormatDialog(props: SpreadsheetConditional
             {t('conditionalFormat.cancel')}
           </button>
           <button
-            type="button"
+            type="submit"
             data-testid="cf-save-button"
             data-variant="primary"
             disabled={editor().pending}
-            onClick={() => {
-              void handleSave()
-            }}
           >
             {t('conditionalFormat.save')}
           </button>
         </div>
-      </div>
+      </form>
     </Show>
   )
 }

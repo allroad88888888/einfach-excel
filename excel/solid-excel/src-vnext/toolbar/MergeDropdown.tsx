@@ -1,5 +1,6 @@
-import { For, Show, createEffect, onCleanup } from 'solid-js'
+import { For, createEffect, onCleanup } from 'solid-js'
 import { useT } from '../../src/i18n'
+import { ToolbarAnchoredMenu } from './ToolbarAnchoredMenu'
 
 /**
  * Discrete merge preset emitted from the toolbar merge dropdown.
@@ -111,53 +112,43 @@ export function MergeDropdown(props: MergeDropdownProps) {
   }
 
   return (
-    <Show when={props.isOpen}>
-      <div
-        ref={rootRef}
-        class="spreadsheet-toolbar-merge-dropdown"
-        role="menu"
-        data-testid="toolbar-merge-dropdown"
-        style={{
-          position: 'absolute',
-          top: '100%',
-          left: '0',
-          'z-index': 30,
-          'min-width': '140px',
-          background: '#fff',
-          border: '1px solid #d0d0d0',
-          'box-shadow': '0 4px 12px rgba(0,0,0,0.12)',
-          display: 'flex',
-          'flex-direction': 'column',
-          padding: '4px 0',
-        }}
-      >
-        <For each={PRESETS}>
-          {(descriptor) => (
-            <button
-              type="button"
-              class="spreadsheet-toolbar-merge-option"
-              role="menuitem"
-              data-testid={descriptor.testId}
-              disabled={!isEnabled(descriptor)}
-              style={{
-                padding: '4px 12px',
-                'text-align': 'left',
-                background: 'transparent',
-                border: 'none',
-                cursor: isEnabled(descriptor) ? 'pointer' : 'not-allowed',
-                opacity: isEnabled(descriptor) ? 1 : 0.5,
-                font: 'inherit',
-              }}
-              onClick={() => {
-                if (!isEnabled(descriptor)) return
-                props.onSelect(descriptor.preset)
-              }}
-            >
-              {t(descriptor.labelKey)}
-            </button>
-          )}
-        </For>
-      </div>
-    </Show>
+    <ToolbarAnchoredMenu
+      anchorRef={props.anchorRef}
+      rootRef={(element) => {
+        rootRef = element
+      }}
+      class="spreadsheet-toolbar-merge-dropdown"
+      role="menu"
+      data-testid="toolbar-merge-dropdown"
+      isOpen={props.isOpen}
+      minWidth="140px"
+    >
+      <For each={PRESETS}>
+        {(descriptor) => (
+          <button
+            type="button"
+            class="spreadsheet-toolbar-merge-option"
+            role="menuitem"
+            data-testid={descriptor.testId}
+            disabled={!isEnabled(descriptor)}
+            style={{
+              padding: '4px 12px',
+              'text-align': 'left',
+              background: 'transparent',
+              border: 'none',
+              cursor: isEnabled(descriptor) ? 'pointer' : 'not-allowed',
+              opacity: isEnabled(descriptor) ? 1 : 0.5,
+              font: 'inherit',
+            }}
+            onClick={() => {
+              if (!isEnabled(descriptor)) return
+              props.onSelect(descriptor.preset)
+            }}
+          >
+            {t(descriptor.labelKey)}
+          </button>
+        )}
+      </For>
+    </ToolbarAnchoredMenu>
   )
 }

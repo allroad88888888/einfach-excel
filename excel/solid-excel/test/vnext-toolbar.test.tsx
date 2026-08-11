@@ -213,9 +213,13 @@ function getButtons(container: HTMLElement) {
     // across-cols, unmerge) carry the per-preset disabled state.
     merge: container.querySelector('[data-testid="toolbar-btn-merge"]') as HTMLButtonElement,
     mergeCenterItem: () =>
-      container.querySelector('[data-testid="toolbar-merge-center"]') as HTMLButtonElement | null,
+      document.body.querySelector(
+        '[data-testid="toolbar-merge-center"]',
+      ) as HTMLButtonElement | null,
     unmergeItem: () =>
-      container.querySelector('[data-testid="toolbar-merge-unmerge"]') as HTMLButtonElement | null,
+      document.body.querySelector(
+        '[data-testid="toolbar-merge-unmerge"]',
+      ) as HTMLButtonElement | null,
     painter: container.querySelector(
       '[data-testid="toolbar-btn-format-painter"]',
     ) as HTMLButtonElement,
@@ -654,7 +658,7 @@ describe('vNext SpreadsheetToolbar', () => {
     await waitFor(() => expect(sortButton.disabled).toBe(false))
     fireEvent.click(sortButton)
     fireEvent.click(
-      container.querySelector('[data-testid="toolbar-sort-asc"]') as HTMLButtonElement,
+      document.body.querySelector('[data-testid="toolbar-sort-asc"]') as HTMLButtonElement,
     )
     await waitFor(() => expect(sortRangeCalls).toHaveLength(1))
     expect(sortRangeCalls[0]!.keys).toEqual([{ col: 4, direction: 'asc' }])

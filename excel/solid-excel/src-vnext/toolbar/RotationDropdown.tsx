@@ -1,6 +1,7 @@
-import { For, Show, createEffect, onCleanup } from 'solid-js'
+import { For, createEffect, onCleanup } from 'solid-js'
 import type { SpreadsheetRotation } from '@einfach/spreadsheet-ui-core'
 import { useT } from '../../src/i18n'
+import { ToolbarAnchoredMenu } from './ToolbarAnchoredMenu'
 
 /**
  * Discrete rotation preset emitted from the toolbar rotation dropdown.
@@ -36,7 +37,11 @@ const PRESETS: PresetDescriptor[] = [
   { preset: 90, labelKey: 'toolbar.rotation.90', testId: 'toolbar-rotation-90' },
   { preset: -45, labelKey: 'toolbar.rotation.-45', testId: 'toolbar-rotation-neg45' },
   { preset: -90, labelKey: 'toolbar.rotation.-90', testId: 'toolbar-rotation-neg90' },
-  { preset: 'vertical', labelKey: 'toolbar.rotation.vertical', testId: 'toolbar-rotation-vertical' },
+  {
+    preset: 'vertical',
+    labelKey: 'toolbar.rotation.vertical',
+    testId: 'toolbar-rotation-vertical',
+  },
 ]
 
 export function RotationDropdown(props: RotationDropdownProps) {
@@ -73,48 +78,38 @@ export function RotationDropdown(props: RotationDropdownProps) {
   })
 
   return (
-    <Show when={props.isOpen}>
-      <div
-        ref={rootRef}
-        class="spreadsheet-toolbar-rotation-dropdown"
-        role="menu"
-        data-testid="toolbar-rotation-dropdown"
-        style={{
-          position: 'absolute',
-          top: '100%',
-          left: '0',
-          'z-index': 30,
-          'min-width': '140px',
-          background: '#fff',
-          border: '1px solid #d0d0d0',
-          'box-shadow': '0 4px 12px rgba(0,0,0,0.12)',
-          display: 'flex',
-          'flex-direction': 'column',
-          padding: '4px 0',
-        }}
-      >
-        <For each={PRESETS}>
-          {(descriptor) => (
-            <button
-              type="button"
-              class="spreadsheet-toolbar-rotation-option"
-              role="menuitem"
-              data-testid={descriptor.testId}
-              style={{
-                padding: '4px 12px',
-                'text-align': 'left',
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                font: 'inherit',
-              }}
-              onClick={() => props.onSelect(descriptor.preset)}
-            >
-              {t(descriptor.labelKey)}
-            </button>
-          )}
-        </For>
-      </div>
-    </Show>
+    <ToolbarAnchoredMenu
+      anchorRef={props.anchorRef}
+      rootRef={(element) => {
+        rootRef = element
+      }}
+      class="spreadsheet-toolbar-rotation-dropdown"
+      role="menu"
+      data-testid="toolbar-rotation-dropdown"
+      isOpen={props.isOpen}
+      minWidth="140px"
+    >
+      <For each={PRESETS}>
+        {(descriptor) => (
+          <button
+            type="button"
+            class="spreadsheet-toolbar-rotation-option"
+            role="menuitem"
+            data-testid={descriptor.testId}
+            style={{
+              padding: '4px 12px',
+              'text-align': 'left',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              font: 'inherit',
+            }}
+            onClick={() => props.onSelect(descriptor.preset)}
+          >
+            {t(descriptor.labelKey)}
+          </button>
+        )}
+      </For>
+    </ToolbarAnchoredMenu>
   )
 }

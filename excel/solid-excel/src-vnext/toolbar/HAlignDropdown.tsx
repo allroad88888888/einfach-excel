@@ -1,5 +1,6 @@
-import { For, Show, createEffect, onCleanup } from 'solid-js'
+import { For, createEffect, onCleanup } from 'solid-js'
 import { useT } from '../../src/i18n'
+import { ToolbarAnchoredMenu } from './ToolbarAnchoredMenu'
 
 /**
  * Discrete horizontal alignment value emitted from the toolbar h-align
@@ -70,52 +71,42 @@ export function HAlignDropdown(props: HAlignDropdownProps) {
   })
 
   return (
-    <Show when={props.isOpen}>
-      <div
-        ref={rootRef}
-        class="spreadsheet-toolbar-h-align-dropdown"
-        role="menu"
-        data-testid="toolbar-h-align-dropdown"
-        style={{
-          position: 'absolute',
-          top: '100%',
-          left: '0',
-          'z-index': 30,
-          'min-width': '120px',
-          background: '#fff',
-          border: '1px solid #d0d0d0',
-          'box-shadow': '0 4px 12px rgba(0,0,0,0.12)',
-          display: 'flex',
-          'flex-direction': 'column',
-          padding: '4px 0',
+    <ToolbarAnchoredMenu
+      anchorRef={props.anchorRef}
+      rootRef={(element) => {
+        rootRef = element
+      }}
+      class="spreadsheet-toolbar-h-align-dropdown"
+      role="menu"
+      data-testid="toolbar-h-align-dropdown"
+      isOpen={props.isOpen}
+      minWidth="120px"
+    >
+      <For each={OPTIONS}>
+        {(descriptor) => {
+          const isActive = () => props.current === descriptor.value
+          return (
+            <button
+              type="button"
+              class="spreadsheet-toolbar-h-align-option"
+              role="menuitem"
+              data-testid={descriptor.testId}
+              aria-pressed={isActive()}
+              style={{
+                padding: '4px 12px',
+                'text-align': 'left',
+                background: isActive() ? '#eef3ff' : 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                font: 'inherit',
+              }}
+              onClick={() => props.onSelect(descriptor.value)}
+            >
+              {t(descriptor.labelKey)}
+            </button>
+          )
         }}
-      >
-        <For each={OPTIONS}>
-          {(descriptor) => {
-            const isActive = () => props.current === descriptor.value
-            return (
-              <button
-                type="button"
-                class="spreadsheet-toolbar-h-align-option"
-                role="menuitem"
-                data-testid={descriptor.testId}
-                aria-pressed={isActive()}
-                style={{
-                  padding: '4px 12px',
-                  'text-align': 'left',
-                  background: isActive() ? '#eef3ff' : 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  font: 'inherit',
-                }}
-                onClick={() => props.onSelect(descriptor.value)}
-              >
-                {t(descriptor.labelKey)}
-              </button>
-            )
-          }}
-        </For>
-      </div>
-    </Show>
+      </For>
+    </ToolbarAnchoredMenu>
   )
 }

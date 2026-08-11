@@ -1,5 +1,6 @@
-import { For, Show, createEffect, onCleanup } from 'solid-js'
+import { For, createEffect, onCleanup } from 'solid-js'
 import { useT } from '../../src/i18n'
+import { ToolbarAnchoredMenu } from './ToolbarAnchoredMenu'
 
 /**
  * Discrete border preset emitted from the toolbar borders dropdown.
@@ -8,15 +9,7 @@ import { useT } from '../../src/i18n'
  * (corner cells get two sides for "outer", etc.). For a single-cell
  * selection "all" and "outer" coincide and "inner" is a no-op.
  */
-export type BordersPreset =
-  | 'all'
-  | 'outer'
-  | 'inner'
-  | 'top'
-  | 'right'
-  | 'bottom'
-  | 'left'
-  | 'none'
+export type BordersPreset = 'all' | 'outer' | 'inner' | 'top' | 'right' | 'bottom' | 'left' | 'none'
 
 export interface BordersDropdownProps {
   /** Anchored under the toolbar button — the button owns positioning. */
@@ -43,14 +36,54 @@ interface PresetDescriptor {
 }
 
 const PRESETS: PresetDescriptor[] = [
-  { preset: 'all', labelKey: 'toolbar.borders.all', testId: 'toolbar-borders-all', enabledFor: 'always' },
-  { preset: 'outer', labelKey: 'toolbar.borders.outer', testId: 'toolbar-borders-outer', enabledFor: 'always' },
-  { preset: 'inner', labelKey: 'toolbar.borders.inner', testId: 'toolbar-borders-inner', enabledFor: 'multi' },
-  { preset: 'top', labelKey: 'toolbar.borders.top', testId: 'toolbar-borders-top', enabledFor: 'always' },
-  { preset: 'right', labelKey: 'toolbar.borders.right', testId: 'toolbar-borders-right', enabledFor: 'always' },
-  { preset: 'bottom', labelKey: 'toolbar.borders.bottom', testId: 'toolbar-borders-bottom', enabledFor: 'always' },
-  { preset: 'left', labelKey: 'toolbar.borders.left', testId: 'toolbar-borders-left', enabledFor: 'always' },
-  { preset: 'none', labelKey: 'toolbar.borders.none', testId: 'toolbar-borders-none', enabledFor: 'always' },
+  {
+    preset: 'all',
+    labelKey: 'toolbar.borders.all',
+    testId: 'toolbar-borders-all',
+    enabledFor: 'always',
+  },
+  {
+    preset: 'outer',
+    labelKey: 'toolbar.borders.outer',
+    testId: 'toolbar-borders-outer',
+    enabledFor: 'always',
+  },
+  {
+    preset: 'inner',
+    labelKey: 'toolbar.borders.inner',
+    testId: 'toolbar-borders-inner',
+    enabledFor: 'multi',
+  },
+  {
+    preset: 'top',
+    labelKey: 'toolbar.borders.top',
+    testId: 'toolbar-borders-top',
+    enabledFor: 'always',
+  },
+  {
+    preset: 'right',
+    labelKey: 'toolbar.borders.right',
+    testId: 'toolbar-borders-right',
+    enabledFor: 'always',
+  },
+  {
+    preset: 'bottom',
+    labelKey: 'toolbar.borders.bottom',
+    testId: 'toolbar-borders-bottom',
+    enabledFor: 'always',
+  },
+  {
+    preset: 'left',
+    labelKey: 'toolbar.borders.left',
+    testId: 'toolbar-borders-left',
+    enabledFor: 'always',
+  },
+  {
+    preset: 'none',
+    labelKey: 'toolbar.borders.none',
+    testId: 'toolbar-borders-none',
+    enabledFor: 'always',
+  },
 ]
 
 export function BordersDropdown(props: BordersDropdownProps) {
@@ -97,53 +130,43 @@ export function BordersDropdown(props: BordersDropdownProps) {
   }
 
   return (
-    <Show when={props.isOpen}>
-      <div
-        ref={rootRef}
-        class="spreadsheet-toolbar-borders-dropdown"
-        role="menu"
-        data-testid="toolbar-borders-dropdown"
-        style={{
-          position: 'absolute',
-          top: '100%',
-          left: '0',
-          'z-index': 30,
-          'min-width': '140px',
-          background: '#fff',
-          border: '1px solid #d0d0d0',
-          'box-shadow': '0 4px 12px rgba(0,0,0,0.12)',
-          display: 'flex',
-          'flex-direction': 'column',
-          padding: '4px 0',
-        }}
-      >
-        <For each={PRESETS}>
-          {(descriptor) => (
-            <button
-              type="button"
-              class="spreadsheet-toolbar-borders-option"
-              role="menuitem"
-              data-testid={descriptor.testId}
-              disabled={!isEnabled(descriptor)}
-              style={{
-                padding: '4px 12px',
-                'text-align': 'left',
-                background: 'transparent',
-                border: 'none',
-                cursor: isEnabled(descriptor) ? 'pointer' : 'not-allowed',
-                opacity: isEnabled(descriptor) ? 1 : 0.5,
-                font: 'inherit',
-              }}
-              onClick={() => {
-                if (!isEnabled(descriptor)) return
-                props.onSelect(descriptor.preset)
-              }}
-            >
-              {t(descriptor.labelKey)}
-            </button>
-          )}
-        </For>
-      </div>
-    </Show>
+    <ToolbarAnchoredMenu
+      anchorRef={props.anchorRef}
+      rootRef={(element) => {
+        rootRef = element
+      }}
+      class="spreadsheet-toolbar-borders-dropdown"
+      role="menu"
+      data-testid="toolbar-borders-dropdown"
+      isOpen={props.isOpen}
+      minWidth="140px"
+    >
+      <For each={PRESETS}>
+        {(descriptor) => (
+          <button
+            type="button"
+            class="spreadsheet-toolbar-borders-option"
+            role="menuitem"
+            data-testid={descriptor.testId}
+            disabled={!isEnabled(descriptor)}
+            style={{
+              padding: '4px 12px',
+              'text-align': 'left',
+              background: 'transparent',
+              border: 'none',
+              cursor: isEnabled(descriptor) ? 'pointer' : 'not-allowed',
+              opacity: isEnabled(descriptor) ? 1 : 0.5,
+              font: 'inherit',
+            }}
+            onClick={() => {
+              if (!isEnabled(descriptor)) return
+              props.onSelect(descriptor.preset)
+            }}
+          >
+            {t(descriptor.labelKey)}
+          </button>
+        )}
+      </For>
+    </ToolbarAnchoredMenu>
   )
 }

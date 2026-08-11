@@ -1,0 +1,46 @@
+.spreadsheet-toolbar.toolbar-shell {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0;
+  overflow: visible;
+  padding: 0;
+}
+
+.toolbar-shell__viewport {
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  flex: 1 1 auto;
+}
+
+.toolbar-shell__content {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 40px;
+  min-width: max-content;
+  padding: 4px 10px;
+}
+
+.toolbar-shell__content > .spreadsheet-toolbar-separator {
+  display: inline-block;
+  width: 1px;
+  height: 20px;
+  margin: 0 6px;
+  flex-shrink: 0;
+  background: #d8d8d8;
+}
+
+.toolbar-shell__scroll-button {
+  align-self: stretch;
+  width: 24px;
+  border: 0;
+  background: var(--bg-chrome-light);
+  color: inherit;
+  cursor: pointer;
+}
+
+.toolbar-shell__scroll-button:disabled {
+  visibility: hidden;
+}

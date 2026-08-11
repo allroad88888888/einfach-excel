@@ -15,6 +15,14 @@ export * from './history'
 export * from './backend'
 export * from './clipboard'
 export * from './named-ranges'
+export {
+  beginNameManagerTableRenameAtom,
+  cancelNameManagerTableRenameAtom,
+  nameManagerTableEditorAtom,
+  setNameManagerTablePendingDeleteAtom,
+  settleNameManagerTableRenameAtom,
+  updateNameManagerTableRenameDraftAtom,
+} from './named-ranges'
 export * from './name-box'
 export * from './diagnostics'
 export * from './editing'

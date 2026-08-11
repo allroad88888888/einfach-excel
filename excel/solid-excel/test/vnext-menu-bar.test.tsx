@@ -1228,7 +1228,7 @@ describe('SpreadsheetMenuBar', () => {
 
   it('keeps row, column, and sheet insertion entrypoints as thin Core adapters', () => {
     const source = readFileSync(
-      join(process.cwd(), 'excel/solid-excel/src-vnext/menu-bar/SpreadsheetMenuBar.tsx'),
+      join(process.cwd(), 'excel/solid-excel/src-vnext/menu-bar/menu-bar-command-insert.ts'),
       'utf8',
     )
 
@@ -1236,10 +1236,10 @@ describe('SpreadsheetMenuBar', () => {
     expect(source).toContain('createInsertColumnsOperation')
     expect(source).toContain('runStructureOperationAtom')
     expect(source).toContain('addSheetTabAtom')
-    expect(source).toContain('snap.range.rowStart')
-    expect(source).toContain('snap.range.rowEnd + 1')
-    expect(source).toContain('snap.range.colStart')
-    expect(source).toContain('snap.range.colEnd + 1')
+    expect(source).toContain('snapshot.range.rowStart')
+    expect(source).toContain('snapshot.range.rowEnd + 1')
+    expect(source).toContain('snapshot.range.colStart')
+    expect(source).toContain('snapshot.range.colEnd + 1')
     // No direct INVOCATION of the structural backend ports — mutations
     // must flow through the Core structure-operation lifecycle. Presence
     // reads (`backend.insertRows != null`) are allowed: they gate entry
@@ -1607,11 +1607,10 @@ describe('SpreadsheetMenuBar', () => {
 
   it('keeps unhide menu routes as source-only Core resolver bridges', () => {
     const source = readFileSync(
-      join(process.cwd(), 'excel/solid-excel/src-vnext/menu-bar/SpreadsheetMenuBar.tsx'),
+      join(process.cwd(), 'excel/solid-excel/src-vnext/menu-bar/menu-bar-command-format.ts'),
       'utf8',
     )
-    const routeStart = source.indexOf('function routeDispatch')
-    const unhideStart = source.indexOf("case 'unhide-rows':", routeStart)
+    const unhideStart = source.indexOf("case 'unhide-rows':")
     const unhideEnd = source.indexOf("case 'freeze-panes':", unhideStart)
     const unhideRoutes = source.slice(unhideStart, unhideEnd)
 
@@ -1640,11 +1639,10 @@ describe('SpreadsheetMenuBar', () => {
 
   it('keeps hidden row and column menu routes as thin Core command bridges', () => {
     const source = readFileSync(
-      join(process.cwd(), 'excel/solid-excel/src-vnext/menu-bar/SpreadsheetMenuBar.tsx'),
+      join(process.cwd(), 'excel/solid-excel/src-vnext/menu-bar/menu-bar-command-format.ts'),
       'utf8',
     )
-    const routeStart = source.indexOf('function routeDispatch')
-    const hiddenStart = source.indexOf("case 'hide-rows':", routeStart)
+    const hiddenStart = source.indexOf("case 'hide-rows':")
     const hiddenEnd = source.indexOf("case 'freeze-panes':", hiddenStart)
     const hiddenRoutes = source.slice(hiddenStart, hiddenEnd)
 
@@ -2609,17 +2607,16 @@ describe('SpreadsheetMenuBar', () => {
 
   it('keeps the Text to Columns menu branch as a thin Core command adapter', () => {
     const source = readFileSync(
-      join(process.cwd(), 'excel/solid-excel/src-vnext/menu-bar/SpreadsheetMenuBar.tsx'),
+      join(process.cwd(), 'excel/solid-excel/src-vnext/menu-bar/menu-bar-command-data.ts'),
       'utf8',
     )
-    const routeStart = source.indexOf('function routeDispatch')
-    const start = source.indexOf("case 'open-text-to-columns':", routeStart)
+    const start = source.indexOf("case 'open-text-to-columns':")
     const end = source.indexOf("case 'open-remove-duplicates':", start)
     expect(start).toBeGreaterThanOrEqual(0)
     expect(end).toBeGreaterThan(start)
     const branch = source.slice(start, end)
 
-    expect(branch).toContain('runTextToColumnsEntrypoint()')
+    expect(branch).toContain('runTextToColumnsEntrypoint(context)')
     expect(branch).not.toContain('readRangeProjection')
     expect(branch).not.toContain('requestId: 0')
     expect(branch).not.toContain('new Map')
@@ -2871,14 +2868,17 @@ describe('SpreadsheetMenuBar', () => {
 
   it('keeps every Remove Duplicates entry as a thin Core source adapter', () => {
     const menuSource = readFileSync(
+      join(process.cwd(), 'excel/solid-excel/src-vnext/menu-bar/menu-bar-command-data.ts'),
+      'utf8',
+    )
+    const menuBarSource = readFileSync(
       join(process.cwd(), 'excel/solid-excel/src-vnext/menu-bar/SpreadsheetMenuBar.tsx'),
       'utf8',
     )
     const menuHelperStart = menuSource.indexOf('function runRemoveDuplicatesEntrypoint')
-    const menuHelperEnd = menuSource.indexOf('function getActiveSheetId', menuHelperStart)
-    const menuRouteStart = menuSource.indexOf('function routeDispatch')
-    const menuBranchStart = menuSource.indexOf("case 'open-remove-duplicates':", menuRouteStart)
-    const menuBranchEnd = menuSource.indexOf("case 'open-format-cells':", menuBranchStart)
+    const menuHelperEnd = menuSource.indexOf('/** Dispatches data-menu commands', menuHelperStart)
+    const menuBranchStart = menuSource.indexOf("case 'open-remove-duplicates':")
+    const menuBranchEnd = menuSource.indexOf("case 'create-table':", menuBranchStart)
     expect(menuHelperStart).toBeGreaterThanOrEqual(0)
     expect(menuHelperEnd).toBeGreaterThan(menuHelperStart)
     expect(menuBranchStart).toBeGreaterThanOrEqual(0)
@@ -2889,15 +2889,15 @@ describe('SpreadsheetMenuBar', () => {
 
     expect(menuAdapter).toContain('openRemoveDuplicatesFromSelectionAtom')
     expect(menuAdapter).toContain('{ source: backend }')
-    expect(menuAdapter).toContain('runRemoveDuplicatesEntrypoint()')
+    expect(menuAdapter).toContain('runRemoveDuplicatesEntrypoint(context)')
     expect(menuAdapter).not.toContain('readRangeProjection')
     expect(menuAdapter).not.toContain('requestId: 0')
     expect(menuAdapter).not.toContain('new Map')
     expect(menuAdapter).not.toContain('openRemoveDuplicatesAtom')
     expect(menuAdapter).not.toContain('removeDuplicatesSheetIdAtom')
     expect(menuAdapter).not.toMatch(/\basync\b/)
-    expect(menuSource).toContain('captureRemoveDuplicatesCapabilityAtom')
-    expect(menuSource).toContain('useAtomValue(removeDuplicatesCapabilityAtom)')
+    expect(menuBarSource).toContain('captureRemoveDuplicatesCapabilityAtom')
+    expect(menuBarSource).toContain('useAtomValue(removeDuplicatesCapabilityAtom)')
 
     const demoSource = readFileSync(
       join(process.cwd(), 'excel/solid-excel/src-vnext/demos/VNextWave5Demo.tsx'),

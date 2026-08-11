@@ -56,6 +56,7 @@ export function SpreadsheetGridDataRow(props: SpreadsheetGridDataRowProps) {
             data-testid={`row-resize-${row}`}
             aria-label={`Resize row ${row + 1}`}
             onPointerDown={(event) => startRowResize(event, row)}
+            onClick={(event) => event.stopPropagation()}
             onDblClick={(event) => {
               event.preventDefault()
               event.stopPropagation()
@@ -67,7 +68,9 @@ export function SpreadsheetGridDataRow(props: SpreadsheetGridDataRowProps) {
       <Show when={getLeftSpacerWidth() > 0}>
         <td class="spreadsheet-grid-virtual-spacer" aria-hidden="true" style={{ width: `${getLeftSpacerWidth()}px` }} />
       </Show>
-      <For each={getCols()}>{(col) => <SpreadsheetGridCell runtime={runtime} row={row} col={col} />}</For>
+      <For each={getCols()}>
+        {(col) => <SpreadsheetGridCell runtime={runtime} row={row} col={col} />}
+      </For>
       <Show when={getRightSpacerWidth() > 0}>
         <td class="spreadsheet-grid-virtual-spacer" aria-hidden="true" style={{ width: `${getRightSpacerWidth()}px` }} />
       </Show>

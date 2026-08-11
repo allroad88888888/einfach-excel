@@ -80,7 +80,9 @@ export function SpreadsheetGridTable(props: { runtime: GridRuntime }) {
                       data-frozen-col={col < freezeColCount() ? 'true' : undefined}
                       data-freeze-boundary-right={freezeColCount() > 0 && col === freezeColCount() - 1 ? 'true' : undefined}
                       style={getColumnStyle(col)}
-                      onClick={(event) => runtime.selectColumn(col, event.shiftKey, event.ctrlKey || event.metaKey)}
+                      onClick={(event) =>
+                        runtime.selectColumn(col, event.shiftKey, event.ctrlKey || event.metaKey)
+                      }
                       onContextMenu={(event) => openContextMenu(event, { kind: 'column', col })}
                     >
                       <span class="spreadsheet-grid-header-label">{getColumnLabel(col)}</span>
@@ -92,7 +94,10 @@ export function SpreadsheetGridTable(props: { runtime: GridRuntime }) {
                           aria-label={`Filter column ${getColumnLabel(col)}`}
                           onClick={(event) => {
                             event.stopPropagation()
-                            store.setter(openFilterDropdownAtom, { sheetId: gridProps.sheetId, colIndex: col })
+                            store.setter(openFilterDropdownAtom, {
+                              sheetId: gridProps.sheetId,
+                              colIndex: col,
+                            })
                           }}
                         >
                           ▾
@@ -104,6 +109,7 @@ export function SpreadsheetGridTable(props: { runtime: GridRuntime }) {
                         data-testid={`col-resize-${col}`}
                         aria-label={`Resize column ${getColumnLabel(col)}`}
                         onPointerDown={(event) => startColumnResize(event, col)}
+                        onClick={(event) => event.stopPropagation()}
                         onDblClick={(event) => {
                           event.preventDefault()
                           event.stopPropagation()
@@ -120,7 +126,9 @@ export function SpreadsheetGridTable(props: { runtime: GridRuntime }) {
           <Show when={getTopSpacerHeight() > 0}>
             <tr class="spreadsheet-grid-virtual-spacer-row" aria-hidden="true"><td class="spreadsheet-grid-virtual-spacer" colSpan={getVirtualColumnSpan()} style={{ height: `${getTopSpacerHeight()}px` }} /></tr>
           </Show>
-          <For each={getRows()}>{(row) => <SpreadsheetGridDataRow runtime={runtime} row={row} />}</For>
+          <For each={getRows()}>
+            {(row) => <SpreadsheetGridDataRow runtime={runtime} row={row} />}
+          </For>
           <Show when={getBottomSpacerHeight() > 0}>
             <tr class="spreadsheet-grid-virtual-spacer-row" aria-hidden="true"><td class="spreadsheet-grid-virtual-spacer" colSpan={getVirtualColumnSpan()} style={{ height: `${getBottomSpacerHeight()}px` }} /></tr>
           </Show>

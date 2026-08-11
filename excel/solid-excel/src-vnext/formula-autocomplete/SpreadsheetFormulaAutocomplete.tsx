@@ -8,25 +8,24 @@ import {
   renderActiveSignatureSlots,
   type FormulaFunctionSuggestion,
 } from '@einfach/spreadsheet-ui-core'
-import { For, Show, createEffect, createMemo, createSignal, onCleanup } from 'solid-js'
+import { For, Show, createEffect, createMemo, createSignal, onCleanup, onMount } from 'solid-js'
+import {
+  readFormulaAutocompleteAnchor,
+  type FormulaAutocompleteAnchor,
+} from './formula-autocomplete-anchor'
 import { useSpreadsheetUiStore } from '../provider'
 
 /**
  * Autocomplete + signature overlay anchored to whichever editing input
- * currently has focus (in-cell editor or formula bar). Mount once at the
- * demo root — the component finds the active input by querying
- * `document.activeElement` whenever the reactive suggestions/signature
- * atoms change.
+ * currently has focus (in-cell editor or formula bar). Atom-backed formula
+ * data drives visibility; Solid keeps only the DOM anchor as temporary state.
  *
  * Layout: a small popover positioned below the input rect with
  *   1) a list of fuzzy-matched function names (suggestions atom)
  *   2) a thin signature strip with the active arg in bold
  *
- * The list scrolls horizontally only with overflow:auto on the row.
- * Pointer hover updates the cursor atom; clicking a row dispatches the
- * `acceptFormulaSuggestionAtom` (defined alongside the keyboard wiring
- * in Phase D — for Phase B this component renders + click-to-accept
- * only). Keyboard binding lands in Phase D.
+ * Pointer hover updates the cursor atom; clicking a row delegates acceptance
+ * to the focused editor host, which also owns keyboard routing and focus restore.
  */
 
 export interface SpreadsheetFormulaAutocompleteProps {
@@ -39,28 +38,6 @@ export interface SpreadsheetFormulaAutocompleteProps {
   onAccept?: (suggestion: FormulaFunctionSuggestion) => void
 }
 
-interface AnchorRect {
-  left: number
-  top: number
-  width: number
-  bottom: number
-}
-
-function readActiveInputRect(): AnchorRect | null {
-  const el = document.activeElement
-  if (!(el instanceof HTMLElement)) return null
-  if (!el.classList.contains('cell-input') && !el.classList.contains('formula-bar-input')) {
-    return null
-  }
-  const rect = el.getBoundingClientRect()
-  return {
-    left: rect.left,
-    top: rect.top,
-    width: rect.width,
-    bottom: rect.bottom,
-  }
-}
-
 export function SpreadsheetFormulaAutocomplete(props: SpreadsheetFormulaAutocompleteProps) {
   const store = useSpreadsheetUiStore()
   const suggestions = useAtomValue(formulaFunctionSuggestionsAtom)
@@ -68,12 +45,15 @@ export function SpreadsheetFormulaAutocomplete(props: SpreadsheetFormulaAutocomp
   const signature = useAtomValue(formulaFunctionSignatureAtom)
   const editing = useAtomValue(editingSessionAtom)
 
-  const [anchor, setAnchor] = createSignal<AnchorRect | null>(null)
+  const [anchor, setAnchor] = createSignal<FormulaAutocompleteAnchor | null>(null)
 
-  // Re-read the active input rect whenever suggestions change shape or
-  // editing draft moves. Anchoring this off an atom keeps Solid in charge
-  // of the reactive trigger — we don't need a window resize listener
-  // because draft mutations happen on every keystroke.
+  const reposition = () => {
+    const activeElement = typeof document === 'undefined' ? null : document.activeElement
+    setAnchor(readFormulaAutocompleteAnchor(activeElement))
+  }
+
+  // Formula atoms re-measure after a draft update; DOM events below keep the
+  // temporary anchor correct when focus or viewport geometry changes.
   const editingDraft = useAtomValue(editingDraftAtom)
   createEffect(() => {
     editingDraft()
@@ -81,7 +61,7 @@ export function SpreadsheetFormulaAutocomplete(props: SpreadsheetFormulaAutocomp
     signature()
     // Defer to the microtask queue so the editing input has had a chance
     // to mount before we measure.
-    queueMicrotask(() => setAnchor(readActiveInputRect()))
+    queueMicrotask(reposition)
   })
 
   // Keep the cursor in bounds when suggestions length shrinks.
@@ -102,12 +82,22 @@ export function SpreadsheetFormulaAutocomplete(props: SpreadsheetFormulaAutocomp
     }
   })
 
-  const reposition = () => setAnchor(readActiveInputRect())
-  window.addEventListener('resize', reposition)
-  window.addEventListener('scroll', reposition, { capture: true })
-  onCleanup(() => {
-    window.removeEventListener('resize', reposition)
-    window.removeEventListener('scroll', reposition, { capture: true } as EventListenerOptions)
+  onMount(() => {
+    const refreshAfterFocusChange = () => queueMicrotask(reposition)
+    const refreshFromFocusTarget = (event: FocusEvent) => {
+      setAnchor(readFormulaAutocompleteAnchor(event.target))
+    }
+
+    window.addEventListener('resize', reposition)
+    window.addEventListener('scroll', reposition, { capture: true })
+    document.addEventListener('focusin', refreshFromFocusTarget, true)
+    document.addEventListener('focusout', refreshAfterFocusChange, true)
+    onCleanup(() => {
+      window.removeEventListener('resize', reposition)
+      window.removeEventListener('scroll', reposition, true)
+      document.removeEventListener('focusin', refreshFromFocusTarget, true)
+      document.removeEventListener('focusout', refreshAfterFocusChange, true)
+    })
   })
 
   const isDrafting = createMemo(() => editing().status === 'drafting')
@@ -138,6 +128,7 @@ export function SpreadsheetFormulaAutocomplete(props: SpreadsheetFormulaAutocomp
           <ul
             class="spreadsheet-formula-autocomplete-list"
             role="listbox"
+            aria-label="Function suggestions"
             data-testid="formula-autocomplete-list"
           >
             <For each={suggestions()}>
@@ -149,9 +140,7 @@ export function SpreadsheetFormulaAutocomplete(props: SpreadsheetFormulaAutocomp
                   class={`spreadsheet-formula-autocomplete-row ${
                     index() === cursor() ? 'spreadsheet-formula-autocomplete-row-active' : ''
                   }`}
-                  onPointerEnter={() =>
-                    store.setter(formulaFunctionSuggestionCursorAtom, index())
-                  }
+                  onPointerEnter={() => store.setter(formulaFunctionSuggestionCursorAtom, index())}
                   onMouseDown={(event) => {
                     // mousedown (not click) so the input doesn't blur
                     // before the host's accept handler can splice.
@@ -159,9 +148,7 @@ export function SpreadsheetFormulaAutocomplete(props: SpreadsheetFormulaAutocomp
                     props.onAccept?.(suggestion)
                   }}
                 >
-                  <span class="spreadsheet-formula-autocomplete-name">
-                    {suggestion.spec.name}
-                  </span>
+                  <span class="spreadsheet-formula-autocomplete-name">{suggestion.spec.name}</span>
                   <span class="spreadsheet-formula-autocomplete-summary">
                     {suggestion.spec.summary}
                   </span>

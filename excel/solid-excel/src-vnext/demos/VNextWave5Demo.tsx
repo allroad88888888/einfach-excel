@@ -26,6 +26,7 @@ import { SpreadsheetGoToDialog } from '../go-to'
 import { SpreadsheetFormatCellsDialog } from '../format-cells'
 import { SpreadsheetFormatPainter } from '../format-painter'
 import { SpreadsheetFormulaBar } from '../formula-bar'
+import { SpreadsheetWorkbookFeedbackHost } from '../feedback'
 import { SpreadsheetGrid } from '../grid'
 import { SpreadsheetHistoryTimeline } from '../history'
 import { SpreadsheetMenuBar } from '../menu-bar'
@@ -283,6 +284,7 @@ function VNextWave5Workbook() {
           <SpreadsheetHistoryTimeline data-testid="wave5-history-timeline" />
         </aside>
       </div>
+      <SpreadsheetWorkbookFeedbackHost data-testid="wave5-feedback-host" />
       <SpreadsheetContextMenu data-testid="wave5-context-menu" />
       <SpreadsheetFormatPainter data-testid="wave5-format-painter" />
       <SpreadsheetFormatCellsDialog data-testid="wave5-format-cells" />

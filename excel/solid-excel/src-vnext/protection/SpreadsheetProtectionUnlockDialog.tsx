@@ -13,6 +13,11 @@ import {
   type VerifySheetProtectionPort,
 } from '@einfach/spreadsheet-ui-core'
 import { useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider/hooks'
+import {
+  focusProtectionUnlockDialog,
+  restoreProtectionUnlockFocus,
+  trapProtectionUnlockDialogTab,
+} from './protection-unlock-dialog-focus'
 
 export interface SpreadsheetProtectionUnlockDialogProps {
   class?: string
@@ -31,6 +36,43 @@ export function SpreadsheetProtectionUnlockDialog(props: SpreadsheetProtectionUn
   const backend = useSpreadsheetBackend()
   const state = useAtomValue(protectionUnlockStateAtom)
   const password = useAtomValue(protectionUnlockPasswordAtom)
+  let dialogElement: HTMLDivElement | undefined
+  let returnFocusTarget: HTMLElement | undefined
+  let focusGeneration = 0
+
+  createEffect<boolean>((wasOpen) => {
+    const isOpen = state().isOpen
+    if (isOpen && !wasOpen) {
+      returnFocusTarget =
+        document.activeElement instanceof HTMLElement ? document.activeElement : undefined
+      const generation = ++focusGeneration
+      queueMicrotask(() => {
+        if (generation === focusGeneration && state().phase === 'editing') {
+          focusProtectionUnlockDialog(dialogElement)
+        }
+      })
+    }
+    if (!isOpen && wasOpen) {
+      const target = returnFocusTarget
+      returnFocusTarget = undefined
+      focusGeneration += 1
+      queueMicrotask(() => restoreProtectionUnlockFocus(target))
+    }
+    return isOpen
+  }, false)
+
+  createEffect<string | undefined>((previousPhase) => {
+    const phase = state().phase
+    if (phase === 'editing' && previousPhase === 'verifying') {
+      const generation = ++focusGeneration
+      queueMicrotask(() => {
+        if (generation === focusGeneration && state().phase === 'editing') {
+          focusProtectionUnlockDialog(dialogElement)
+        }
+      })
+    }
+    return phase
+  }, undefined)
 
   createEffect(() => {
     if (!state().isOpen) return
@@ -76,11 +118,13 @@ export function SpreadsheetProtectionUnlockDialog(props: SpreadsheetProtectionUn
   return (
     <Show when={state().isOpen}>
       <div
+        ref={dialogElement}
         class={`protection-unlock-dialog ${props.class ?? ''}`.trim()}
         data-testid={props['data-testid'] ?? 'protection-unlock-dialog'}
         role="dialog"
         aria-modal="true"
         aria-label={t('protection.unlock.ariaLabel')}
+        onKeyDown={(event) => trapProtectionUnlockDialogTab(event, dialogElement)}
       >
         <button
           type="button"
@@ -107,6 +151,8 @@ export function SpreadsheetProtectionUnlockDialog(props: SpreadsheetProtectionUn
             type="password"
             value={password()}
             disabled={state().pending}
+            aria-invalid={state().error ? 'true' : undefined}
+            aria-describedby={state().error ? 'protection-unlock-error' : undefined}
             onInput={(e) => store.setter(setProtectionUnlockPasswordAtom, e.currentTarget.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {

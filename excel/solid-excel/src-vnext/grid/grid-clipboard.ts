@@ -3,6 +3,7 @@ import {
   copyClipboardAtom,
   createClipboardTsvPastePlan,
   cutClipboardAtom,
+  encodeSelectionAsHtml,
   getFilterHiddenRowsForSheet,
   issueProjectionRequestIdAtom,
   markClipboardReadyAtom,
@@ -16,6 +17,10 @@ import {
   type ClipboardTransferInput,
 } from '@einfach/spreadsheet-ui-core'
 import { reportCommandFailure } from '../provider'
+import {
+  readBrowserClipboardText,
+  writeBrowserClipboard,
+} from '../clipboard/browser-clipboard'
 import { CLIPBOARD_CELL_LIMIT, getColumnLabel } from './grid-constants'
 import type { GridEditingControllerApi } from './grid-editing-controller'
 import type { GridProjectionControllerApi } from './grid-projection-controller'
@@ -28,14 +33,23 @@ type GridClipboardRuntime = GridRuntimeBase &
   Pick<GridEditingControllerApi, 'clearSelectionRange'>
 
 export function installGridClipboard(runtime: GridClipboardRuntime) {
-  const { props, store, backend, selectionSnapshot, readRangeProjection, clearSelectionRange, requestProjection, loadProjection } = runtime
+  const {
+    props,
+    store,
+    backend,
+    selectionSnapshot,
+    readRangeProjection,
+    clearSelectionRange,
+    requestProjection,
+    loadProjection,
+  } = runtime
 
-  async function writeClipboardText(text: string): Promise<boolean> {
-    try { await navigator.clipboard.writeText(text); return true } catch { return false }
+  async function writeClipboardText(text: string, html?: string): Promise<boolean> {
+    return (await writeBrowserClipboard({ plainText: text, html })) !== null
   }
 
   async function readClipboardText(): Promise<string | null> {
-    try { return await navigator.clipboard.readText() } catch { return null }
+    return readBrowserClipboardText()
   }
 
   async function copySelectionToClipboard(operation: 'copy' | 'cut' = 'copy') {
@@ -43,9 +57,14 @@ export function installGridClipboard(runtime: GridClipboardRuntime) {
     if (selection.selection.sheetId !== props.sheetId) return
     const range = selection.range
     const cellCount = (range.rowEnd - range.rowStart + 1) * (range.colEnd - range.colStart + 1)
-    const filterHiddenRows = new Set(getFilterHiddenRowsForSheet(store.getter(viewportFilterHiddenAtom), props.sheetId))
+    const hiddenRows = getFilterHiddenRowsForSheet(
+      store.getter(viewportFilterHiddenAtom),
+      props.sheetId,
+    )
+    const filterHiddenRows = new Set(hiddenRows)
     const originAddr = `${getColumnLabel(range.colStart)}${range.rowStart + 1}`
     let text: string
+    let html: string | undefined
     let transferInput: ClipboardTransferInput
     if (cellCount > CLIPBOARD_CELL_LIMIT) {
       const requestId = store.setter(issueProjectionRequestIdAtom)
@@ -55,11 +74,18 @@ export function installGridClipboard(runtime: GridClipboardRuntime) {
       }
       const streamRequest = { kind: 'export-range-tsv' as const, sheetId: props.sheetId, range, requestId, hiddenRows: filterHiddenRows }
       const chunks: string[] = []
-      let streamResult: Awaited<ReturnType<NonNullable<typeof backend.consumeExportRangeTsvChunks>>> | Awaited<ReturnType<NonNullable<typeof backend.exportRangeTsv>>> | null = null
-      if (backend.consumeExportRangeTsvChunks) streamResult = await backend.consumeExportRangeTsvChunks(streamRequest, (chunk: { text: string }) => {
-        chunks.push(chunk.text)
-      })
-      else if (backend.exportRangeTsv) {
+      type StreamResult =
+        | Awaited<ReturnType<NonNullable<typeof backend.consumeExportRangeTsvChunks>>>
+        | Awaited<ReturnType<NonNullable<typeof backend.exportRangeTsv>>>
+      let streamResult: StreamResult | null = null
+      if (backend.consumeExportRangeTsvChunks) {
+        streamResult = await backend.consumeExportRangeTsvChunks(
+          streamRequest,
+          (chunk: { text: string }) => {
+            chunks.push(chunk.text)
+          },
+        )
+      } else if (backend.exportRangeTsv) {
         streamResult = await backend.exportRangeTsv(streamRequest)
         chunks.push(streamResult.text)
       } else {
@@ -68,7 +94,11 @@ export function installGridClipboard(runtime: GridClipboardRuntime) {
       }
       const resolvedOrigin = streamResult?.originAddr ?? originAddr
       text = `${CLIPBOARD_ORIGIN_MARKER_PREFIX}${resolvedOrigin}\n${chunks.join('\n')}`
-      const plan = createClipboardTsvPastePlan({ text, fallbackOriginAddr: resolvedOrigin, targetOrigin: { row: range.rowStart, col: range.colStart } })
+      const plan = createClipboardTsvPastePlan({
+        text,
+        fallbackOriginAddr: resolvedOrigin,
+        targetOrigin: { row: range.rowStart, col: range.colStart },
+      })
       transferInput = { source: { sheetId: props.sheetId, range }, serialization: 'tab-separated', includesFormulas: plan.includesFormulas, includesErrors: false, estimatedBytes: streamResult?.estimatedBytes ?? text.length, revision: streamResult?.revision ?? undefined }
     } else {
       const result = await readRangeProjection(props.sheetId, range, 'clipboard')
@@ -85,10 +115,20 @@ export function installGridClipboard(runtime: GridClipboardRuntime) {
         cells.push(fields)
       }
       text = serializeClipboardTsv({ originAddr: firstEmittedRow === -1 ? originAddr : `${getColumnLabel(range.colStart)}${firstEmittedRow + 1}`, cells })
+      html = encodeSelectionAsHtml({
+        cells: result.cells,
+        rect: {
+          startRow: range.rowStart,
+          endRow: range.rowEnd,
+          startCol: range.colStart,
+          endCol: range.colEnd,
+        },
+        hiddenRows: filterHiddenRows,
+      })
       transferInput = { source: { sheetId: props.sheetId, range }, serialization: 'tab-separated', includesFormulas: cells.some((row) => row.some((field) => field.startsWith('='))), includesErrors: result.cells.some((cell: (typeof result.cells)[number]) => cell.valueKind === 'error' || !!cell.error), estimatedBytes: text.length, revision: result.revision ?? undefined }
     }
     store.setter(operation === 'cut' ? cutClipboardAtom : copyClipboardAtom, transferInput)
-    if (!(await writeClipboardText(text))) {
+    if (!(await writeClipboardText(text, html))) {
       store.setter(setClipboardErrorAtom, { code: 'BACKEND_ERROR', message: 'Clipboard write failed.' })
       return
     }
@@ -107,10 +147,18 @@ export function installGridClipboard(runtime: GridClipboardRuntime) {
     const targetOrigin = { row: selection.activeCell.row, col: selection.activeCell.col }
     const plan = createClipboardTsvPastePlan({ text, fallbackOriginAddr: `${getColumnLabel(targetOrigin.col)}${targetOrigin.row + 1}`, targetOrigin })
     const pasteRange = plan.estimatedRange
-    const sourceRange = { rowStart: plan.sourceOrigin.row, rowEnd: plan.sourceOrigin.row + plan.rowCount - 1, colStart: plan.sourceOrigin.col, colEnd: plan.sourceOrigin.col + plan.colCount - 1 }
+    const sourceRange = {
+      rowStart: plan.sourceOrigin.row,
+      rowEnd: plan.sourceOrigin.row + plan.rowCount - 1,
+      colStart: plan.sourceOrigin.col,
+      colEnd: plan.sourceOrigin.col + plan.colCount - 1,
+    }
     const resolution = store.setter(resolveContentMutationAtom, { kind: 'paste-range', sheetId: props.sheetId, range: pasteRange })
     if (resolution.status === 'blocked') {
-      store.setter(setClipboardErrorAtom, { code: resolution.diagnostic.code, message: resolution.diagnostic.message })
+      store.setter(setClipboardErrorAtom, {
+        code: resolution.diagnostic.code,
+        message: resolution.diagnostic.message,
+      })
       return
     }
     store.setter(pasteClipboardAtom, { source: { sheetId: props.sheetId, range: sourceRange }, target: { sheetId: props.sheetId, range: pasteRange }, serialization: 'tab-separated', includesFormulas: plan.includesFormulas, estimatedBytes: plan.estimatedBytes })
@@ -124,7 +172,15 @@ export function installGridClipboard(runtime: GridClipboardRuntime) {
       writes.push({ row: cellResolution.cell.row, col: cellResolution.cell.col, input: cell.input })
     }
     const affectedRanges = resolution.ranges ?? [pasteRange]
-    const affectedRange = affectedRanges.reduce((acc: typeof pasteRange, range: typeof pasteRange) => ({ rowStart: Math.min(acc.rowStart, range.rowStart), rowEnd: Math.max(acc.rowEnd, range.rowEnd), colStart: Math.min(acc.colStart, range.colStart), colEnd: Math.max(acc.colEnd, range.colEnd) }), { ...affectedRanges[0] })
+    const affectedRange = affectedRanges.reduce(
+      (acc: typeof pasteRange, range: typeof pasteRange) => ({
+        rowStart: Math.min(acc.rowStart, range.rowStart),
+        rowEnd: Math.max(acc.rowEnd, range.rowEnd),
+        colStart: Math.min(acc.colStart, range.colStart),
+        colEnd: Math.max(acc.colEnd, range.colEnd),
+      }),
+      { ...affectedRanges[0] },
+    )
     if (writes.length > 0 && backend.importCells) {
       const result = await backend.importCells({ kind: 'import-cells', sheetId: props.sheetId, cells: writes, range: affectedRange })
       const revision = typeof result?.revision === 'number' ? result.revision : Number(result?.revision ?? 0) || 0
@@ -145,7 +201,12 @@ export function installGridClipboard(runtime: GridClipboardRuntime) {
     await loadProjection(requestProjection())
   }
 
-  return installGridFeature(runtime, { writeClipboardText, readClipboardText, copySelectionToClipboard, pasteFromClipboard })
+  return installGridFeature(runtime, {
+    writeClipboardText,
+    readClipboardText,
+    copySelectionToClipboard,
+    pasteFromClipboard,
+  })
 }
 
 export type GridClipboardApi = ReturnType<typeof installGridClipboard>

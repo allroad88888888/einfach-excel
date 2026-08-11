@@ -1,11 +1,15 @@
 import {
   commitPointerAtom,
-  pickFormulaReferenceAtom,
   startPointerAtom,
   updatePointerAtom,
   type CellCoord,
 } from '@einfach/spreadsheet-ui-core'
 import type { GridContextMenuApi } from './grid-context-menu'
+import {
+  getFormulaReferenceFocusTarget,
+  restoreFormulaReferenceFocus,
+} from './grid-formula-reference-focus'
+import { startFormulaReferencePointerSession } from './grid-formula-reference-pointer-session'
 import { installGridFeature, type GridRuntimeBase } from './grid-runtime'
 import type { GridSelectionApi } from './grid-selection'
 
@@ -17,52 +21,15 @@ export function installGridPointerSelection(runtime: GridPointerSelectionRuntime
   const { props, store, dom, focusGrid, getCellCoordFromPoint } = runtime
 
   function startFormulaReferenceDragPick(event: PointerEvent, row: number, col: number) {
-    const activeInput = document.activeElement as HTMLInputElement | null
-    const anchor: CellCoord = { row, col }
-    store.setter(pickFormulaReferenceAtom, {
-      pickAnchor: anchor,
-      pickFocus: anchor,
+    const input = getFormulaReferenceFocusTarget(document.activeElement)
+    startFormulaReferencePointerSession({
+      event,
+      store,
       sheetId: props.sheetId,
-      dragging: true,
+      anchor: { row, col },
+      getCellCoordFromPoint,
+      restoreFocus: (caret) => restoreFormulaReferenceFocus(input, caret),
     })
-    let lastFocus = anchor
-    const onPointerMove = (moveEvent: PointerEvent) => {
-      const focus = getCellCoordFromPoint(moveEvent)
-      if (!focus || (focus.row === lastFocus.row && focus.col === lastFocus.col)) return
-      lastFocus = focus
-      store.setter(pickFormulaReferenceAtom, {
-        pickAnchor: anchor,
-        pickFocus: focus,
-        sheetId: props.sheetId,
-        dragging: true,
-      })
-    }
-    const onPointerUp = () => {
-      store.setter(pickFormulaReferenceAtom, {
-        pickAnchor: anchor,
-        pickFocus: lastFocus,
-        sheetId: props.sheetId,
-        dragging: false,
-      })
-      cleanup()
-      if (
-        activeInput &&
-        (activeInput.classList.contains('cell-input') ||
-          activeInput.classList.contains('formula-bar-input'))
-      ) {
-        queueMicrotask(() => {
-          activeInput.focus()
-          const length = activeInput.value.length
-          activeInput.setSelectionRange(length, length)
-        })
-      }
-    }
-    const cleanup = () => {
-      window.removeEventListener('pointermove', onPointerMove)
-      window.removeEventListener('pointerup', onPointerUp)
-    }
-    window.addEventListener('pointermove', onPointerMove)
-    window.addEventListener('pointerup', onPointerUp, { once: true })
   }
 
   function startDragSelection(event: PointerEvent, row: number, col: number) {

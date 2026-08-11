@@ -105,3 +105,19 @@
 - Commit：`eeab5d7`。
 - `tablist` 现只含 tab；新增、移动和临时重命名编辑器移到相邻的命名操作区。每个 Move 控件带目标 Sheet 名称，保留既有 Atom controller、roving focus、拖拽数据属性、上下文菜单和键盘命令。
 - 15 项 Sheet Tabs 定向回归、宿主 TypeScript、范围内 ESLint、Prettier 与 diff 检查通过；WASM Playwright Axe 的 Sheet Tab strip 已移除历史 `aria-required-children` 豁免并通过真实断言。e2e 目录不在 typed ESLint 的 tsconfig include 内，未为该配置边界扩改 lint 配置。
+
+### UI-513 Grid ARIA 结构
+
+- Commit：`786cfbb`。
+- Grid 的 layout table 改为纯呈现；显式提供 `rowgroup`、`row`、column/row header 与 cell 角色，虚拟 spacer 不进入可访问结构。既有 `aria-activedescendant`、Atom 选择、键盘处理和虚拟计算均未改动。
+- Grid 焦点回归 4/4、宿主 TypeScript、范围内 ESLint、Prettier 与 diff 检查通过；既有 WASM Axe surface 从 7 个 `aria-required-children` 失败恢复为 8/8 通过。本次三份文件最大 209 行。
+
+### UI-514 Find/Replace locale 对话框语义
+
+- Commit：`a5b9952`。
+- Find/Replace 已正确通过本地化标题的 `aria-labelledby` 命名；locale E2E 改为断言实际 accessible name，移除错误要求重复 `aria-label` 的测试契约，未增加状态或第二份文案。
+- 定向 dialog Jest 2/2、宿主 TypeScript、Prettier、diff 检查以及 WASM/TS Playwright 目标用例各 3/3 通过；E2E 目录未纳入 typed ESLint 的 tsconfig，未扩改 lint 配置。文件 98 行。
+
+## 波次复验
+
+UI-513 与 UI-514 收口后，W3 正在进行第二次独立 lint、类型、Jest 与 Playwright 复验；在该复验完成前，不把全波次标为全绿。

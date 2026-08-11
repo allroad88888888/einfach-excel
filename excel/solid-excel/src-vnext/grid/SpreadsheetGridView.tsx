@@ -1,5 +1,8 @@
-import { For, Show } from 'solid-js'
+import { createEffect, For, Show } from 'solid-js'
+import { selectCellAtom } from '@einfach/spreadsheet-ui-core'
 import { reportCommandFailure } from '../provider'
+import { syncGridActiveDescendant } from './focus-grid-active-descendant'
+import { shouldLeaveGridOnTab } from './focus-grid-tab-boundary'
 import { SpreadsheetGridOverlay } from './SpreadsheetGridOverlay'
 import { SpreadsheetGridOverlaySvg } from './SpreadsheetGridOverlaySvg'
 import { SpreadsheetGridTable } from './SpreadsheetGridTable'
@@ -38,6 +41,28 @@ export function SpreadsheetGridView(props: { runtime: GridRuntime }) {
     getRemoteCursorsForSheet,
     getRemoteCursorStyle,
   } = runtime
+  createEffect(() => {
+    getRows()
+    getCols()
+    const selection = runtime.selectionSnapshot()
+    if (
+      !selection.activeCell.sheetId &&
+      gridProps.viewport.rowCount > 0 &&
+      gridProps.viewport.colCount > 0
+    ) {
+      store.setter(selectCellAtom, {
+        sheetId: gridProps.sheetId,
+        coord: { row: 0, col: 0 },
+      })
+      return
+    }
+    syncGridActiveDescendant({
+      gridRoot: runtime.dom.gridRoot(),
+      sheetId: gridProps.sheetId,
+      activeCell: selection.activeCell,
+      findMergeAnchorCovering: runtime.findMergeAnchorCovering,
+    })
+  })
   return (
     <div
       ref={runtime.dom.setGridRoot}
@@ -46,8 +71,22 @@ export function SpreadsheetGridView(props: { runtime: GridRuntime }) {
       data-show-headings={showHeadings() ? 'true' : 'false'}
       data-testid={gridProps['data-testid'] ?? 'spreadsheet-grid'}
       tabIndex={0}
+      role="grid"
+      aria-label="Spreadsheet grid"
+      aria-rowcount={gridProps.viewport.rowCount}
+      aria-colcount={gridProps.viewport.colCount}
+      aria-multiselectable="true"
       style={{ position: 'relative' }}
       onKeyDown={(event) => {
+        if (
+          shouldLeaveGridOnTab(event, {
+            sheetId: gridProps.sheetId,
+            rowCount: gridProps.viewport.rowCount,
+            colCount: gridProps.viewport.colCount,
+            activeCell: runtime.selectionSnapshot().activeCell,
+          })
+        )
+          return
         void handleGridKeyDown(event).catch((error: unknown) => reportCommandFailure(store, error))
       }}
     >
@@ -63,9 +102,27 @@ export function SpreadsheetGridView(props: { runtime: GridRuntime }) {
       <div class="spreadsheet-grid-overlay-layer" aria-hidden="true">
         <Show
           when={useSvgOverlayEnabled()}
-          fallback={<SpreadsheetGridOverlay sheetId={gridProps.sheetId} getCellRect={getOverlayCellRect} getSurfaceSize={getOverlaySurfaceSize} getCells={getOverlayCells} getFreezeOrigin={getOverlayFreezeOrigin} getVisibleRows={getRows} getVisibleCols={getCols} />}
+          fallback={
+            <SpreadsheetGridOverlay
+              sheetId={gridProps.sheetId}
+              getCellRect={getOverlayCellRect}
+              getSurfaceSize={getOverlaySurfaceSize}
+              getCells={getOverlayCells}
+              getFreezeOrigin={getOverlayFreezeOrigin}
+              getVisibleRows={getRows}
+              getVisibleCols={getCols}
+            />
+          }
         >
-          <SpreadsheetGridOverlaySvg sheetId={gridProps.sheetId} getCellRect={getOverlayCellRect} getSurfaceSize={getOverlaySurfaceSize} getCells={getOverlayCells} getFreezeOrigin={getOverlayFreezeOrigin} getVisibleRows={getRows} getVisibleCols={getCols} />
+          <SpreadsheetGridOverlaySvg
+            sheetId={gridProps.sheetId}
+            getCellRect={getOverlayCellRect}
+            getSurfaceSize={getOverlaySurfaceSize}
+            getCells={getOverlayCells}
+            getFreezeOrigin={getOverlayFreezeOrigin}
+            getVisibleRows={getRows}
+            getVisibleCols={getCols}
+          />
         </Show>
       </div>
       <For each={getRemoteCursorsForSheet()}>

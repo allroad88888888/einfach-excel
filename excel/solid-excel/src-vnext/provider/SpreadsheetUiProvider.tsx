@@ -150,7 +150,6 @@ function bindWorkbookBackend(
   const isCurrentSession = (): boolean =>
     !disposed && core.store.getter(spreadsheetWorkbookLifecycleAtom).sessionId === sessionId
 
-  core.store.setter(clearPresenceAtom)
   core.store.setter(beginSpreadsheetWorkbookLifecycleAtom, sessionId)
   captureWorkbookCapabilities(core.store, backend)
 

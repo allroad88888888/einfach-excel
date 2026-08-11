@@ -4,7 +4,11 @@ import { afterEach, describe, expect, it } from '@jest/globals'
 import { createStore } from '@einfach/core'
 import { cleanup, render, waitFor } from '@solidjs/testing-library'
 import type { SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
-import { applyPresenceUpdateAtom, presenceStateAtom } from '@einfach/spreadsheet-ui-core'
+import {
+  applyPresenceUpdateAtom,
+  presenceStateAtom,
+  setWorkspaceActiveSheetAtom,
+} from '@einfach/spreadsheet-ui-core'
 import { SpreadsheetUiProvider } from '../src-vnext/provider'
 import { SpreadsheetPresenceOverlay } from '../src-vnext/presence'
 
@@ -22,6 +26,12 @@ function createBaseBackend(): SpreadsheetBackend {
       throw new Error('not used')
     },
   }
+}
+
+function createPresenceStore() {
+  const store = createStore()
+  store.setter(setWorkspaceActiveSheetAtom, { sheetId: 'sheet-1' })
+  return store
 }
 
 function joinParticipant(
@@ -54,7 +64,7 @@ function setCursor(
 
 describe('SpreadsheetPresenceOverlay', () => {
   it('renders overlay container with no cursors when presence is empty', () => {
-    const store = createStore()
+    const store = createPresenceStore()
     const backend = createBaseBackend()
 
     const { getByTestId, container } = render(() => (
@@ -68,7 +78,7 @@ describe('SpreadsheetPresenceOverlay', () => {
   })
 
   it('renders a cursor marker per remote participant with active selection', () => {
-    const store = createStore()
+    const store = createPresenceStore()
     const backend = createBaseBackend()
 
     joinParticipant(store, 'alice', 'Alice', '#ff0000', 1_000)
@@ -87,7 +97,7 @@ describe('SpreadsheetPresenceOverlay', () => {
   })
 
   it('attaches participant displayName and colorHint to the marker', () => {
-    const store = createStore()
+    const store = createPresenceStore()
     const backend = createBaseBackend()
 
     joinParticipant(store, 'alice', 'Alice A', '#abcdef', 1_234)
@@ -111,7 +121,7 @@ describe('SpreadsheetPresenceOverlay', () => {
   })
 
   it('filters cursors by activeSheetId when prop is provided', () => {
-    const store = createStore()
+    const store = createPresenceStore()
     const backend = createBaseBackend()
 
     joinParticipant(store, 'alice', 'Alice', undefined, 1_000)
@@ -130,7 +140,7 @@ describe('SpreadsheetPresenceOverlay', () => {
   })
 
   it('reacts to applyPresenceUpdateAtom dispatches at runtime', async () => {
-    const store = createStore()
+    const store = createPresenceStore()
     const backend = createBaseBackend()
 
     const { container } = render(() => (
@@ -150,7 +160,7 @@ describe('SpreadsheetPresenceOverlay', () => {
   })
 
   it('uses resolveCellPosition to compute geometry when supplied', () => {
-    const store = createStore()
+    const store = createPresenceStore()
     const backend = createBaseBackend()
     joinParticipant(store, 'alice', 'Alice', '#000000', 1_000)
     store.setter(applyPresenceUpdateAtom, {
@@ -190,7 +200,7 @@ describe('SpreadsheetPresenceOverlay', () => {
   })
 
   it('removes the cursor marker when the participant leaves', async () => {
-    const store = createStore()
+    const store = createPresenceStore()
     const backend = createBaseBackend()
     joinParticipant(store, 'alice', 'Alice', undefined, 1_000)
     setCursor(store, 'alice', 'sheet-1', 0, 0)
@@ -214,7 +224,7 @@ describe('SpreadsheetPresenceOverlay', () => {
   })
 
   it('sets selection-kind data attribute for downstream styling', () => {
-    const store = createStore()
+    const store = createPresenceStore()
     const backend = createBaseBackend()
     joinParticipant(store, 'alice', 'Alice', undefined, 1_000)
     store.setter(applyPresenceUpdateAtom, {
@@ -237,7 +247,7 @@ describe('SpreadsheetPresenceOverlay', () => {
   })
 
   it('reflects participant color and cursor position updates on the existing marker', async () => {
-    const store = createStore()
+    const store = createPresenceStore()
     const backend = createBaseBackend()
     joinParticipant(store, 'alice', 'Alice', '#ff0000', 1_000)
     setCursor(store, 'alice', 'sheet-1', 0, 0)

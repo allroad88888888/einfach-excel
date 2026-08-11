@@ -31,6 +31,7 @@ export function installGridLayout(runtime: GridLayoutRuntime) {
   const {
     props,
     store,
+    atoms,
     getCellMap,
     projectionSnapshot,
     sizeOverrides,
@@ -55,6 +56,7 @@ export function installGridLayout(runtime: GridLayoutRuntime) {
 
   function getSpillRole(row: number, col: number): SpillCellRole | undefined {
     projectionSnapshot()
+    atoms.activeSpillRegion()
     return store.getter(spillCellRoleAtom)(props.sheetId, { row, col }) ?? undefined
   }
 

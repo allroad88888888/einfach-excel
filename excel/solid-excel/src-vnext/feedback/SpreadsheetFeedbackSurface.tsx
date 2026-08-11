@@ -15,6 +15,7 @@ export function SpreadsheetFeedbackSurface(props: SpreadsheetFeedbackSurfaceProp
       {(feedback) => {
         const isError = () => feedback().kind === 'error'
         const isRetryable = () => isError() && props.onRetry !== undefined
+        const isDismissible = () => isError() && props.onDismiss !== undefined
         const retryLabel = () => {
           const value = feedback()
           return value.kind === 'error'
@@ -31,6 +32,7 @@ export function SpreadsheetFeedbackSurface(props: SpreadsheetFeedbackSurfaceProp
             data-testid={testId()}
             data-state={feedback().kind}
             data-retryable={isRetryable() ? 'true' : 'false'}
+            data-dismissible={isDismissible() ? 'true' : 'false'}
           >
             <p class="spreadsheet-feedback-message">{feedback().message}</p>
             <Show when={feedback().detail}>
@@ -44,6 +46,16 @@ export function SpreadsheetFeedbackSurface(props: SpreadsheetFeedbackSurfaceProp
                 onClick={() => props.onRetry?.()}
               >
                 {retryLabel()}
+              </button>
+            </Show>
+            <Show when={isDismissible()}>
+              <button
+                type="button"
+                class="spreadsheet-feedback-dismiss"
+                data-testid="feedback-dismiss"
+                onClick={() => props.onDismiss?.()}
+              >
+                {props.dismissLabel ?? 'Dismiss'}
               </button>
             </Show>
           </section>

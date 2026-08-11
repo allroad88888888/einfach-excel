@@ -138,21 +138,18 @@ describe('SpreadsheetDiagnostics', () => {
     const store = createStore()
     const rendered = mount(store)
 
-    const keep = createSpreadsheetDiagnostic({
-      severity: 'info',
-      source: 'backend',
-      code: 'CODE_KEEP',
-      message: 'keep me',
-    })
-    store.setter(appendDiagnosticsAtom, blockedByProtection, keep)
+    // 这些诊断的 ID 是错误类型和上下文，不是一次操作的 UUID；连续两次相同
+    // 失败会共享 ID。关闭最新的那条不能把较早提示一并清掉。
+    const newestAttempt = { ...blockedByProtection, message: 'Cell is locked again' }
+    store.setter(appendDiagnosticsAtom, blockedByProtection, newestAttempt)
     expect(store.getter(diagnosticsAtom).items).toHaveLength(2)
 
-    // 最新的在最前 —— 关掉的是 `keep`。
+    // 最新的在最前 —— 关掉的是第二次失败。
     rendered.getAllByTestId('diagnostics-dismiss')[0].click()
 
     const remaining = store.getter(diagnosticsAtom).items
     expect(remaining).toHaveLength(1)
-    expect(remaining[0].code).toBe('MUTATION_BLOCKED_LOCKED')
+    expect(remaining).toEqual([blockedByProtection])
   })
 
   it('clear-all empties the store and unmounts the region', () => {

@@ -18,15 +18,15 @@
  *   回落到 UI core 带来的英文 message。宁可显示一句英文，也不要静默吞掉一条新码
  *   —— 静默吞掉正是这个组件存在的原因。沿用 `SpreadsheetNameManagerDialog.tsx`
  *   对 table diagnostic 的同一套策略。
- * - **逐条关闭走 `replaceDiagnosticsAtom`**：UI core 只有「全清」没有「关一条」，
- *   而用 replace 重写剩余项就够了，不必为此往 core 里加原子。
+ * - **逐条关闭走 `dismissDiagnosticAtom`**：关闭的是一条已渲染的诊断对象，状态转换
+ *   留在 core Atom 命令里；即使重复操作产生了相同 ID，也不会一口气隐藏所有提示。
  */
 import { useAtomValue, useSetAtom } from '@einfach/solid'
 import { createMemo, For, Show } from 'solid-js'
 import {
   clearDiagnosticsAtom,
   diagnosticsAtom,
-  replaceDiagnosticsAtom,
+  dismissDiagnosticAtom,
   type DiagnosticSeverity,
   type SpreadsheetDiagnostic,
 } from '@einfach/spreadsheet-ui-core'
@@ -83,7 +83,7 @@ export interface SpreadsheetDiagnosticsProps {
 export function SpreadsheetDiagnostics(props: SpreadsheetDiagnosticsProps) {
   const t = useT()
   const state = useAtomValue(diagnosticsAtom)
-  const replaceDiagnostics = useSetAtom(replaceDiagnosticsAtom)
+  const dismissDiagnostic = useSetAtom(dismissDiagnosticAtom)
   const clearAll = useSetAtom(clearDiagnosticsAtom)
 
   // 最新的在前：core 是往尾部追加的。
@@ -97,8 +97,8 @@ export function SpreadsheetDiagnostics(props: SpreadsheetDiagnosticsProps) {
     return key === undefined ? diagnostic.message : t(key)
   }
 
-  const dismiss = (id: string) => {
-    replaceDiagnostics(...state().items.filter((item) => item.id !== id))
+  const dismiss = (diagnostic: SpreadsheetDiagnostic) => {
+    dismissDiagnostic(diagnostic)
   }
 
   return (
@@ -133,7 +133,7 @@ export function SpreadsheetDiagnostics(props: SpreadsheetDiagnosticsProps) {
                 class="spreadsheet-diagnostics-dismiss"
                 data-testid="diagnostics-dismiss"
                 aria-label={t('diagnostics.dismiss')}
-                onClick={() => dismiss(diagnostic.id)}
+                onClick={() => dismiss(diagnostic)}
               >
                 ×
               </button>

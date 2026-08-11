@@ -5,6 +5,7 @@ import {
   clearDiagnosticsAtom,
   DEFAULT_DIAGNOSTICS_STATE,
   diagnosticsAtom,
+  dismissDiagnosticAtom,
   mapProjectionValidationErrorToDiagnostic,
   mapSpreadsheetErrorToDiagnostic,
   replaceDiagnosticsAtom,
@@ -17,8 +18,9 @@ const DIAGNOSTICS_PUBLIC_STATE_IS_READ_ONLY: AtomHasPublicWrite<typeof diagnosti
 const DIAGNOSTICS_COMMANDS_ARE_WRITABLE: readonly [
   AtomHasPublicWrite<typeof appendDiagnosticsAtom>,
   AtomHasPublicWrite<typeof replaceDiagnosticsAtom>,
+  AtomHasPublicWrite<typeof dismissDiagnosticAtom>,
   AtomHasPublicWrite<typeof clearDiagnosticsAtom>,
-] = [true, true, true]
+] = [true, true, true, true]
 
 describe('diagnostics core', () => {
   test('keeps public state read-only and rejects reflected writes without changing state', () => {
@@ -90,7 +92,12 @@ describe('diagnostics core', () => {
 
   test('keeps the diagnostics list bounded', () => {
     const store = createStore()
-    const commandAtoms = [appendDiagnosticsAtom, replaceDiagnosticsAtom, clearDiagnosticsAtom]
+    const commandAtoms = [
+      appendDiagnosticsAtom,
+      replaceDiagnosticsAtom,
+      dismissDiagnosticAtom,
+      clearDiagnosticsAtom,
+    ]
     const items = Array.from({ length: 25 }, (_, index) => ({
       id: `d-${index}`,
       severity: 'info' as const,
@@ -105,9 +112,11 @@ describe('diagnostics core', () => {
     expect(commandAtoms.map((commandAtom) => commandAtom.debugLabel)).toEqual([
       'spreadsheet.diagnostics.append',
       'spreadsheet.diagnostics.replace',
+      'spreadsheet.diagnostics.dismiss',
       'spreadsheet.diagnostics.clear',
     ])
     expect(commandAtoms.map((commandAtom) => store.getter(commandAtom))).toEqual([
+      DEFAULT_DIAGNOSTICS_STATE,
       DEFAULT_DIAGNOSTICS_STATE,
       DEFAULT_DIAGNOSTICS_STATE,
       DEFAULT_DIAGNOSTICS_STATE,
@@ -127,5 +136,23 @@ describe('diagnostics core', () => {
     const cleared = store.setter(clearDiagnosticsAtom)
     expect(cleared).toEqual({ items: [] })
     expect(store.getter(diagnosticsAtom)).toBe(cleared)
+  })
+
+  test('dismisses only the diagnostic the user saw, even when IDs repeat', () => {
+    const store = createStore()
+    const first = {
+      id: 'backend:BACKEND_ERROR::',
+      severity: 'error' as const,
+      source: 'backend' as const,
+      code: 'BACKEND_ERROR' as const,
+      message: 'first attempt',
+    }
+    const second = { ...first, message: 'second attempt' }
+
+    store.setter(appendDiagnosticsAtom, first, second)
+    const dismissed = store.setter(dismissDiagnosticAtom, second)
+
+    expect(dismissed.items).toEqual([first])
+    expect(store.getter(diagnosticsAtom)).toBe(dismissed)
   })
 })

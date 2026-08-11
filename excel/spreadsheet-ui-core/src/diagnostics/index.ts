@@ -152,6 +152,27 @@ export function replaceDiagnostics(
   }
 }
 
+/**
+ * Removes the exact diagnostic the user dismissed.
+ *
+ * IDs describe an error class and context, so repeated attempts can share an
+ * ID. The presentation layer therefore passes the rendered object rather than
+ * reconstructing an ID and accidentally dismissing every matching attempt.
+ */
+export function dismissDiagnostic(
+  state: DiagnosticsState,
+  diagnostic: SpreadsheetDiagnostic,
+): DiagnosticsState {
+  const index = state.items.indexOf(diagnostic)
+  if (index === -1) {
+    return state
+  }
+
+  return {
+    items: [...state.items.slice(0, index), ...state.items.slice(index + 1)],
+  }
+}
+
 export function clearDiagnostics(): DiagnosticsState {
   return {
     items: [],
@@ -183,6 +204,19 @@ export const replaceDiagnosticsAtom = atom(
   },
 )
 replaceDiagnosticsAtom.debugLabel = 'spreadsheet.diagnostics.replace'
+
+export const dismissDiagnosticAtom = atom(
+  (get) => get(diagnosticsAtom),
+  (get, set, diagnostic: SpreadsheetDiagnostic): DiagnosticsState => {
+    const currentState = get(diagnosticsBackingAtom)
+    const nextState = dismissDiagnostic(currentState, diagnostic)
+    if (nextState !== currentState) {
+      set(diagnosticsBackingAtom, nextState)
+    }
+    return nextState
+  },
+)
+dismissDiagnosticAtom.debugLabel = 'spreadsheet.diagnostics.dismiss'
 
 export const clearDiagnosticsAtom = atom(
   (get) => get(diagnosticsAtom),

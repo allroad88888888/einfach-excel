@@ -22,12 +22,15 @@ export type SpreadsheetFeedback =
 
 /**
  * Presentation inputs stay outside of command state: `feedback` is an atom
- * accessor and the retry callback remains owned by the command's caller.
+ * accessor and the action callbacks remain owned by the command's caller.
  */
 export interface SpreadsheetFeedbackSurfaceProps {
   readonly feedback: Accessor<SpreadsheetFeedback | null>
   readonly onRetry?: () => void
   readonly retryLabel?: string
+  /** Clears the failed lifecycle state in the owning Atom, when supported. */
+  readonly onDismiss?: () => void
+  readonly dismissLabel?: string
   readonly class?: string
   readonly 'data-testid'?: string
 }

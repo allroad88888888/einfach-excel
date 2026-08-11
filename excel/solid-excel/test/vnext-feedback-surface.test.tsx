@@ -39,19 +39,30 @@ function toFeedback(state: CommandState): SpreadsheetFeedback | null {
   }
 }
 
-function FeedbackFixture(props: { readonly onRetry?: () => void }) {
+interface FeedbackActions {
+  readonly onRetry?: () => void
+  readonly onDismiss?: () => void
+}
+
+function FeedbackFixture(props: FeedbackActions) {
   const feedback = useAtomFeedbackPresentation({
     sourceAtom: commandStateAtom,
     map: toFeedback,
   })
 
-  return <SpreadsheetFeedbackSurface feedback={feedback} onRetry={props.onRetry} />
+  return (
+    <SpreadsheetFeedbackSurface
+      feedback={feedback}
+      onRetry={props.onRetry}
+      onDismiss={props.onDismiss}
+    />
+  )
 }
 
-function mount(store: Store, onRetry?: () => void) {
+function mount(store: Store, actions: FeedbackActions = {}) {
   return render(() => (
     <Provider store={store}>
-      <FeedbackFixture onRetry={onRetry} />
+      <FeedbackFixture {...actions} />
     </Provider>
   ))
 }
@@ -79,7 +90,7 @@ describe('SpreadsheetFeedbackSurface', () => {
   it('renders a retryable atom-derived error and leaves retry execution to its caller', () => {
     const store = createStore()
     const retry = jest.fn()
-    const rendered = mount(store, retry)
+    const rendered = mount(store, { onRetry: retry })
 
     store.setter(commandStateAtom, {
       status: 'error',
@@ -110,5 +121,24 @@ describe('SpreadsheetFeedbackSurface', () => {
 
     expect(rendered.getByTestId('feedback-surface').getAttribute('data-retryable')).toBe('false')
     expect(rendered.queryByTestId('feedback-retry')).toBeNull()
+  })
+
+  it('dismisses an error only through the owning lifecycle action', () => {
+    const store = createStore()
+    const dismiss = jest.fn(() => store.setter(commandStateAtom, { status: 'idle' }))
+    const rendered = mount(store, { onDismiss: dismiss })
+
+    store.setter(commandStateAtom, {
+      status: 'error',
+      message: 'Could not refresh rows',
+    })
+
+    const surface = rendered.getByTestId('feedback-surface')
+    expect(surface.getAttribute('data-dismissible')).toBe('true')
+
+    fireEvent.click(rendered.getByTestId('feedback-dismiss'))
+
+    expect(dismiss).toHaveBeenCalledTimes(1)
+    expect(rendered.queryByTestId('feedback-surface')).toBeNull()
   })
 })

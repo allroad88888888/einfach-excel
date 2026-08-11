@@ -1,5 +1,6 @@
 import { For, Show } from 'solid-js'
 import { type OutlineAxis } from '@einfach/spreadsheet-ui-core'
+import { preserveOutlineScrollAnchor } from './grid-outline-scroll-anchor'
 import { type GridRuntime } from './grid-runtime'
 
 export interface SpreadsheetGridOutlineProps {
@@ -11,7 +12,14 @@ export interface SpreadsheetGridOutlineProps {
 /** Renders a single outline gutter slot group or its level buttons. */
 export function SpreadsheetGridOutline(props: SpreadsheetGridOutlineProps) {
   const { runtime, axis } = props
-  const { getOutlineLevelSlots, getOutlineToggleAt, outlineSlotHasLine, toggleOutlineGroup, getOutlineLevelButtons, collapseOutlineLevel } = runtime
+  const {
+    getOutlineLevelSlots,
+    getOutlineToggleAt,
+    outlineSlotHasLine,
+    toggleOutlineGroup,
+    getOutlineLevelButtons,
+    collapseOutlineLevel,
+  } = runtime
   if (props.index === undefined) {
     return (
       <For each={getOutlineLevelButtons(axis)}>
@@ -23,7 +31,7 @@ export function SpreadsheetGridOutline(props: SpreadsheetGridOutlineProps) {
             aria-label={`Show ${axis === 'row' ? 'row' : 'column'} outline level ${level}`}
             onClick={(event) => {
               event.stopPropagation()
-              collapseOutlineLevel(axis, level)
+              preserveOutlineScrollAnchor(runtime, axis, () => collapseOutlineLevel(axis, level))
             }}
           >
             {level}
@@ -57,7 +65,9 @@ export function SpreadsheetGridOutline(props: SpreadsheetGridOutlineProps) {
                     aria-label={`${group().collapsed ? 'Expand' : 'Collapse'} ${axis === 'row' ? 'rows' : 'columns'} ${group().start + 1}-${group().end + 1}`}
                     onClick={(event) => {
                       event.stopPropagation()
-                      toggleOutlineGroup(axis, group())
+                      preserveOutlineScrollAnchor(runtime, axis, () =>
+                        toggleOutlineGroup(axis, group()),
+                      )
                     }}
                   >
                     {group().collapsed ? '+' : '−'}

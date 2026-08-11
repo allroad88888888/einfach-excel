@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from '@jest/globals'
 import { createMemo, createRoot } from 'solid-js'
-import { locale, setLocale, useT } from '../src/i18n'
+import { locale, localeTag, setLocale, useLocaleTag, useT } from '../src/i18n'
 
 /**
  * Step 2 — verify the i18n core contract:
@@ -29,6 +29,28 @@ describe('i18n', () => {
     setLocale('zh')
     expect(locale()).toBe('zh')
     expect(t('app.title')).toBe('Einfach 表格')
+  })
+
+  it('keeps a non-catalog BCP-47 display locale while falling back to English copy', () => {
+    const t = useT()
+    setLocale('de-de')
+
+    expect(localeTag()).toBe('de-DE')
+    expect(locale()).toBe('en')
+    expect(t('app.title')).toBe('Einfach Excel')
+  })
+
+  it('tracks canonical display-locale changes reactively', () => {
+    createRoot((dispose) => {
+      const activeLocaleTag = useLocaleTag()
+      const tag = createMemo(() => activeLocaleTag())
+
+      expect(tag()).toBe('en')
+      setLocale('fr-fr')
+      expect(tag()).toBe('fr-FR')
+      expect(locale()).toBe('en')
+      dispose()
+    })
   })
 
   it('useT result is reactive — a memo re-computes on locale change', () => {

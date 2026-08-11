@@ -107,14 +107,14 @@ describe('vNext direct cell editor interaction', () => {
     expect(writes).toEqual([])
   })
 
-  it('lets the IME own composing command keys instead of committing or cancelling a draft', async () => {
+  it('lets a real IME composition own command keys until composition ends', async () => {
     const { cell, store, writes } = await mountGrid()
     const input = await startDirectEditing(cell)
 
+    fireEvent.compositionStart(input)
     const enter = new KeyboardEvent('keydown', {
       bubbles: true,
       cancelable: true,
-      isComposing: true,
       key: 'Enter',
     })
     input.dispatchEvent(enter)
@@ -123,8 +123,10 @@ describe('vNext direct cell editor interaction', () => {
     expect(store.getter(editingSessionAtom)).toMatchObject({ status: 'drafting', draft: 'before' })
     expect(writes).toEqual([])
 
-    fireEvent.keyDown(input, { key: 'Escape' })
-    await waitFor(() => expect(store.getter(editingSessionAtom).status).toBe('cancelled'))
+    fireEvent.compositionEnd(input)
+    fireEvent.keyDown(input, { key: 'Enter' })
+    await waitFor(() => expect(store.getter(editingSessionAtom).status).toBe('idle'))
+    expect(writes).toMatchObject([{ sheetId: 'sheet-1', row: 0, col: 0, input: 'before' }])
   })
 
   it('commits the current atom draft, moves down, and restores grid focus', async () => {

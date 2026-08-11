@@ -27,6 +27,7 @@ import { SpreadsheetNameBox } from '../name-box'
 import { useFormulaBarCommitFeedback } from './formula-bar-commit-feedback'
 import { createFormulaBarKeyHandler } from './formula-bar-keys'
 import { getSourceTextFromProjection } from './projection-source-text'
+import { createInputCompositionGuard } from '../i18n-adapter/input-composition'
 
 export interface SpreadsheetFormulaBarProps {
   class?: string
@@ -45,6 +46,7 @@ export function SpreadsheetFormulaBar(props: SpreadsheetFormulaBarProps) {
   const spillProjectedFormula = useAtomValue(spillProjectedFormulaAtom)
   const workspace = useAtomValue(workspaceSessionAtom)
   const commitFeedback = useFormulaBarCommitFeedback()
+  const composition = createInputCompositionGuard()
   let inputRef: HTMLInputElement | undefined
 
   function resolveActiveSheetId() {
@@ -185,6 +187,7 @@ export function SpreadsheetFormulaBar(props: SpreadsheetFormulaBarProps) {
     }
 
     const listener = (event: KeyboardEvent) => {
+      if (composition.isComposing(event)) return
       void handleKeyDown(event)
     }
 
@@ -250,6 +253,8 @@ export function SpreadsheetFormulaBar(props: SpreadsheetFormulaBarProps) {
         onInput={onInput}
         onSelect={onSelectionChange}
         onClick={onSelectionChange}
+        onCompositionStart={composition.onCompositionStart}
+        onCompositionEnd={composition.onCompositionEnd}
         onKeyUp={(event) => {
           // Caret-only key events (ArrowLeft/Right/Home/End) don't fire
           // onSelect — sync explicitly so signature + autocomplete
@@ -267,6 +272,7 @@ export function SpreadsheetFormulaBar(props: SpreadsheetFormulaBarProps) {
           store.setter(focusFormulaBarAtom, true)
         }}
         onBlur={() => {
+          composition.reset()
           store.setter(focusFormulaBarAtom, false)
         }}
         ref={(node) => {

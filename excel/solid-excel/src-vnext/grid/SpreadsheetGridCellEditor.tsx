@@ -16,6 +16,7 @@ import {
   readActiveFormulaSuggestion,
   syncFormulaReferenceCaret,
 } from '../provider'
+import { createInputCompositionGuard } from '../i18n-adapter/input-composition'
 import { type GridRuntime } from './grid-runtime'
 
 interface SpreadsheetGridCellEditorProps {
@@ -27,6 +28,7 @@ interface SpreadsheetGridCellEditorProps {
 export function SpreadsheetGridCellEditor(props: SpreadsheetGridCellEditorProps) {
   const { runtime } = props
   const { store, editingDraft, commitCellEdit } = runtime
+  const composition = createInputCompositionGuard()
   const editingCommitLifecycle = useAtomValue(editingCommitLifecycleAtom)
   const commitRejected = () => editingCommitLifecycle().status === 'rejected'
   return (
@@ -59,6 +61,8 @@ export function SpreadsheetGridCellEditor(props: SpreadsheetGridCellEditorProps)
           onSelect={(event) => {
             syncFormulaReferenceCaret(store, event.currentTarget.selectionStart ?? 0)
           }}
+          onCompositionStart={composition.onCompositionStart}
+          onCompositionEnd={composition.onCompositionEnd}
           onKeyUp={(event) => {
             if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) {
               syncFormulaReferenceCaret(store, event.currentTarget.selectionStart ?? 0)
@@ -68,7 +72,7 @@ export function SpreadsheetGridCellEditor(props: SpreadsheetGridCellEditorProps)
             // The browser owns Enter/Escape while an IME composition is active.
             // Treating them as spreadsheet commands here would commit or discard
             // a character that the IME has not finalized yet.
-            if (event.isComposing || event.key === 'Process') return
+            if (composition.isComposing(event)) return
 
             const suggestions = store.getter(formulaFunctionSuggestionsAtom)
             if (suggestions.length > 0) {
@@ -114,6 +118,7 @@ export function SpreadsheetGridCellEditor(props: SpreadsheetGridCellEditorProps)
             }
           }}
           onBlur={() => {
+            if (composition.reset()) return
             if (store.getter(formulaReferenceSessionAtom)) return
             if (store.getter(editingSessionAtom).status === 'drafting') void commitCellEdit()
           }}

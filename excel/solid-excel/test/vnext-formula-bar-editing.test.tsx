@@ -60,15 +60,15 @@ function mount(setCellInput: (request: SetCellInputRequest) => Promise<BackendMu
 }
 
 describe('vNext formula bar editing interactions', () => {
-  it('leaves Enter to an active IME composition', async () => {
+  it('leaves Enter to an active DOM IME composition until it ends', async () => {
     const setCellInput = jest.fn(async () => ({ sheetId: 'sheet-1' }))
     const { input, store } = mount(setCellInput)
 
     fireEvent.input(input, { target: { value: 'interim' } })
+    fireEvent.compositionStart(input)
     const event = new KeyboardEvent('keydown', {
       bubbles: true,
       cancelable: true,
-      isComposing: true,
       key: 'Enter',
     })
     input.dispatchEvent(event)
@@ -80,6 +80,10 @@ describe('vNext formula bar editing interactions', () => {
       status: 'drafting',
       draft: 'interim',
     })
+
+    fireEvent.compositionEnd(input)
+    fireEvent.keyDown(input, { key: 'Enter' })
+    await waitFor(() => expect(setCellInput).toHaveBeenCalledTimes(1))
   })
 
   it('keeps a rejected draft focused and announces the shared lifecycle error', async () => {

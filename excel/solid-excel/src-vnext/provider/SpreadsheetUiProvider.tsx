@@ -8,7 +8,7 @@ import {
   type SpreadsheetBackend,
 } from '@einfach/spreadsheet-ui-core'
 import { createEffect, onCleanup } from 'solid-js'
-import { useLocale, type Locale } from '../../src/i18n'
+import { useLocale, useLocaleTag, type Locale } from '../../src/i18n'
 import {
   beginSpreadsheetWorkbookLifecycleAtom,
   clearSpreadsheetWorkbookLifecycleAtom,
@@ -23,6 +23,7 @@ import { attachHiddenRowsRefreshBridge } from './hidden-rows-refresh-bridge'
 import { attachNamedRangeFeaturePort } from './named-range-feature-port'
 import { attachPresenceSubscriptionBridge } from './presence-subscription-bridge'
 import { attachStatusBarProjectionBridge } from './status-bar-projection-bridge'
+import { syncWorkbookLocale } from './workbook-locale-bridge'
 import { SpreadsheetUiContext } from './context'
 import type {
   NamedRangeCapabilityPort,
@@ -215,6 +216,7 @@ function bindWorkbookBackend(
 
 export function SpreadsheetUiProvider(props: SpreadsheetUiProviderProps) {
   const activeLocale = useLocale()
+  const activeLocaleTag = useLocaleTag()
   const backendHandle = createSpreadsheetBackendHandle(props.backend)
   const core = createSpreadsheetUi({
     backend: backendHandle.backend,
@@ -239,7 +241,9 @@ export function SpreadsheetUiProvider(props: SpreadsheetUiProviderProps) {
   // Child consumers can read the atom while their subtree is being created,
   // before Solid schedules the first effect. Seed it synchronously first.
   syncFillSeriesLocale(activeLocale())
+  syncWorkbookLocale(core.store, activeLocaleTag())
   createEffect(() => syncFillSeriesLocale(activeLocale()))
+  createEffect(() => syncWorkbookLocale(core.store, activeLocaleTag()))
 
   createEffect(() => {
     const nextBackend = props.backend

@@ -26,10 +26,19 @@
 
 模型须提供领域单测；有 popover/dialog 交互的节点还须有焦点和 Escape 证据。
 
-## 已完成：UI-301 工作表标签
+## 已完成
+
+### UI-301 工作表标签
 
 - Commit：`aa1c97c`。
 - 原 424 行入口已按职责拆为装配（95 行）、单项 Tab、覆盖层、DOM 焦点注册和交互控制器；本次新/改文件均不超过 300 行。
 - 已通过 roving tabindex、Arrow/Home/End、Ctrl/Cmd+PageUp/PageDown、F2 重命名、键盘右键菜单、Escape 焦点归还，以及 pointer cancel/卸载清理的组件路径。
 - 产品状态仍由 `workspaceSessionAtom`、`sheetTabsAtom`、`sheetTabsSheetsAtom` 与既有 command/intent atom 持有；新 controller 只持有 DOM ref 和暂时的 pointer listener。
 - 根侧与既有 core/UI 回归一起复验通过；未改的 `vnext-sheet-tabs.test.tsx`（503 行）和 `sheet-tabs.test.ts`（599 行）是独立的测试拆分债务，不在本 Issue 扩 scope。
+
+### UI-302 行列与区域结构
+
+- Commit：`d782f77`。
+- 新增 core `structural-commands` Atom 命令层，以 selection snapshot 映射既有 operations、viewport 和 outline 命令；Solid host 只注入 backend/projection refresh 适配器，没有引入新的产品状态。
+- 核心和宿主的定向回归、core/host/root TypeScript 检查、范围内 ESLint、Prettier 与 diff 检查均通过；新增或修改文件均不超过 300 行。
+- 本项刻意没有改菜单或右键 presenter；它们应在各自 Issue 消费该命令 seam。现有后端没有移动区域命令端口，未伪造移动功能。

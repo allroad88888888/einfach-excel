@@ -35,8 +35,11 @@
 | UI-104 键盘导航 | `39943c5` | 复用既有 Atom 键盘导航，补 Ctrl/Cmd+方向键数据边缘跳转后的视口跟随。 | 数据边缘目标仍由既有 core resolver 决定。 |
 | UI-105 表头、拖拽尺寸和自动适配 | `58ab5a5` | 尺寸边界、pointer 取消和写入失败反馈；resize handle 不再误触发行/列选择。 | 后端尺寸写入失败时保留乐观显示，并通过既有错误生命周期反馈；本项未引入回滚策略。 |
 | UI-106 冻结、合并和大纲 | `e4fecf8` | 冻结边界只依赖 Atom 几何；合并范围、冻结样式和大纲滚动锚点职责分离，行列折叠均保留逻辑位置。 | 覆盖格的锚点完全在投影窗外时，现有 adapter 缺少完整 merge span，无法推导完整范围。 |
+| UI-107 特殊单元格和提示层 | `7c85b95` | 保持 spill、条件格式与验证的既有 Atom 投影；安全 rich URL 成为可键盘操作的链接，事件不再被 cell 选择吞掉。 | 713 行 canvas Overlay 和 486 行 SVG Overlay 未触碰：现有投影已满足本项，未来若修改应按职责拆分。 |
 | UI-201 单元格直接编辑 | `8494b3f` | Escape 事务取消、IME 边界、拒绝提交后的 draft 保留和 ARIA 错误反馈。 | 公式栏的编辑会话由 UI-202 串行处理。 |
 | UI-202 公式栏与名称框 | `03e5ce4` | 公式栏复用 editing Atom；IME 合成态不误提交/取消，拒绝提交保留草稿与焦点，并通过 ARIA 呈现 lifecycle 错误。 | 名称框地址跳转仍由 UI-406；真实输入法 E2E 待补。 |
+| UI-203 公式引用拾取 | `02c33d5` | 引用拾取的 pointer id、capture、取消和焦点归还被隔离为 DOM adapter；插入位置继续由既有引用 Atom token 决定。 | 输入层的全局 Escape 路由仍须在单独授权的调用链中处理，未改变普通 selection。 |
+| UI-204 公式建议和函数提示 | `34f4231` | 编辑焦点在单元格与公式栏间切换时立即重锚，离开编辑输入即隐藏 overlay，并补 listbox 名称。 | 候选键盘命令继续由既有公式栏和单元格编辑器各自处理。 |
 | UI-205 复制、剪切与普通粘贴 | `1e8b657` | rich MIME、HTML-only 表格粘贴、`writeText` 与 textarea fallback；状态仍由既有 clipboard Atom 拥有。 | Context menu 的旧直连 Clipboard 路径待其自身 Issue 迁移；真实浏览器权限/手势路径需 E2E。 |
 | UI-206 选择性粘贴 | `930c780` | 在不改变公开 Atom/命令 API 下，将 895 行入口拆为会话快照、状态、命令、确认和恢复职责。 | 严格 ACK、错误恢复、refresh-only retry 与宿主路径沿用现有回归；未增加新交互能力。 |
 | UI-207 填充柄和序列填充 | `5212f96` | pointer id/capture、取消、失焦和隐藏清理；预览、提交、错误仍由既有 Atom 链路管理。 | 浏览器真实 lost-capture/visibility 路径仍需 E2E；右键 fill command 不在本范围。 |

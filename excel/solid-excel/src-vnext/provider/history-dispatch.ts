@@ -15,6 +15,7 @@ import {
 } from '@einfach/spreadsheet-ui-core'
 
 import { isVisibleProjectionResult, spreadsheetProjectionSnapshotAtom } from './atoms'
+import { historyRefreshTargetSheetIdAtom } from './history-refresh-target-atom'
 import { refreshVisibleProjection } from './projection-refresh'
 
 /** The sheet id the visible projection is currently showing, if any. */
@@ -39,17 +40,6 @@ function peekHistoryTargetSheetId(store: Store, action: HistoryAction): string |
   const entry = action === 'undo' ? stack.entries[stack.cursor - 1] : stack.entries[stack.cursor]
   return entry?.sheetId ?? null
 }
-
-/**
- * The sheet a history undo/redo targeted, remembered per store so a
- * `retryHistoryRefresh` — which runs AFTER the stack cursor has already moved,
- * so it can no longer peek the entry — reconciles the SAME (possibly
- * off-screen) sheet the failed refresh was for. Written only inside
- * `refreshAfterHistory`, i.e. only when a refresh is actually attempted, so a
- * blocked dispatch (which never refreshes) can never poison it for a later
- * retry.
- */
-const lastHistoryRefreshTargetSheetId = new WeakMap<Store, string | null>()
 
 /**
  * Re-hydrate the FILTER render caches from the engine after an undo/redo
@@ -132,7 +122,7 @@ async function reconcileFilterHiddenFromEngine(
  * engine's restored filter-hidden set for the entry's sheet (and the active
  * sheet) back into the render caches, then refetch the visible projection so
  * SUBTOTAL 101-111 and withheld rows both surface. `targetSheetId` is the sheet
- * the replayed entry belongs to; it is also stashed per store so a
+ * the replayed entry belongs to; it is also stored in the provider's atom so a
  * `retryHistoryRefresh` can reconcile the same sheet after the cursor moved.
  */
 async function refreshAfterHistory(
@@ -140,7 +130,7 @@ async function refreshAfterHistory(
   backend: SpreadsheetBackend,
   targetSheetId: string | null,
 ): Promise<void> {
-  lastHistoryRefreshTargetSheetId.set(store, targetSheetId)
+  store.setter(historyRefreshTargetSheetIdAtom, targetSheetId)
   await reconcileFilterHiddenFromEngine(store, backend, targetSheetId)
   await refreshVisibleProjection(store, backend)
 }
@@ -263,7 +253,7 @@ export async function retryHistoryRefresh(
   store: Store,
   backend: SpreadsheetBackend,
 ): Promise<boolean> {
-  const targetSheetId = lastHistoryRefreshTargetSheetId.get(store) ?? null
+  const targetSheetId = store.getter(historyRefreshTargetSheetIdAtom)
   const outcome = await store.setter(retryHistoryRefreshAtom, {
     refreshProjection: () => refreshAfterHistory(store, backend, targetSheetId),
   })

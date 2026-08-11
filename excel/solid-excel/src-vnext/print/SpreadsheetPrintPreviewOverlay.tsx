@@ -1,17 +1,17 @@
-import { Show, createEffect, onCleanup } from 'solid-js'
+import { Show } from 'solid-js'
 import { useAtomValue } from '@einfach/solid'
 import { useT } from '../../src/i18n'
 import {
   DEFAULT_PRINT_CONFIG,
+  pageSetupDialogOpenAtom,
   printConfigStateAtom,
   printPreviewOpenAtom,
-  togglePageSetupDialogAtom,
-  togglePrintPreviewAtom,
   workspaceSessionAtom,
   type PrintConfig,
 } from '@einfach/spreadsheet-ui-core'
 
 import { useSpreadsheetUiStore } from '../provider'
+import { usePrintPreviewFocus } from './print-preview-focus'
 
 export interface SpreadsheetPrintPreviewOverlayProps {
   class?: string
@@ -28,23 +28,13 @@ function scaleText(config: PrintConfig): string {
 }
 
 export function SpreadsheetPrintPreviewOverlay(props: SpreadsheetPrintPreviewOverlayProps) {
+  let previewRef: HTMLDivElement | undefined
+  let closeButtonRef: HTMLButtonElement | undefined
   const t = useT()
   const store = useSpreadsheetUiStore()
   const previewOpen = useAtomValue(printPreviewOpenAtom)
   const printConfigState = useAtomValue(printConfigStateAtom)
   const workspaceSession = useAtomValue(workspaceSessionAtom)
-
-  createEffect(() => {
-    if (!previewOpen()) return
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
-        event.stopPropagation()
-        store.setter(togglePrintPreviewAtom)
-      }
-    }
-    document.addEventListener('keydown', onKeyDown)
-    onCleanup(() => document.removeEventListener('keydown', onKeyDown))
-  })
 
   const activeSheetId = () => workspaceSession().activeSheetId ?? ''
 
@@ -52,23 +42,38 @@ export function SpreadsheetPrintPreviewOverlay(props: SpreadsheetPrintPreviewOve
     (activeSheetId() ? printConfigState()[activeSheetId()] : undefined) ?? DEFAULT_PRINT_CONFIG
 
   function closePreview() {
-    store.setter(togglePrintPreviewAtom)
+    store.setter(printPreviewOpenAtom, false)
   }
 
   function openPageSetup() {
-    store.setter(togglePageSetupDialogAtom)
+    store.setter(pageSetupDialogOpenAtom, true)
   }
+
+  function printPreview() {
+    if (typeof window === 'undefined' || typeof window.print !== 'function') return
+    window.print()
+  }
+
+  usePrintPreviewFocus({
+    close: closePreview,
+    initialFocus: () => closeButtonRef,
+    isOpen: previewOpen,
+    root: () => previewRef,
+  })
 
   return (
     <Show when={previewOpen()}>
       <div
+        ref={previewRef}
         class={`print-preview-overlay spreadsheet-print-preview ${props.class ?? ''}`.trim()}
         data-testid={props['data-testid'] ?? 'print-preview-overlay'}
         data-sheet-id={activeSheetId()}
         role="dialog"
-        aria-label="Print preview"
+        aria-label={t('toolbar.printPreview.title')}
+        aria-modal="true"
       >
         <button
+          ref={closeButtonRef}
           type="button"
           class="dialog-close-x"
           data-testid="dialog-close-x"
@@ -77,22 +82,13 @@ export function SpreadsheetPrintPreviewOverlay(props: SpreadsheetPrintPreviewOve
         >
           ×
         </button>
-        <div
-          class="print-preview-orientation"
-          data-testid="print-orientation-text"
-        >
+        <div class="print-preview-orientation" data-testid="print-orientation-text">
           {config().orientation}
         </div>
-        <div
-          class="print-preview-scale"
-          data-testid="print-scale-text"
-        >
+        <div class="print-preview-scale" data-testid="print-scale-text">
           {scaleText(config())}
         </div>
-        <div
-          class="print-preview-page-breaks"
-          data-testid="print-page-breaks-count"
-        >
+        <div class="print-preview-page-breaks" data-testid="print-page-breaks-count">
           {config().manualPageBreaks.length}
         </div>
         <Show when={config().header}>
@@ -109,6 +105,14 @@ export function SpreadsheetPrintPreviewOverlay(props: SpreadsheetPrintPreviewOve
             <span class="print-footer-right">{config().footer?.right ?? ''}</span>
           </div>
         </Show>
+        <button
+          type="button"
+          class="print-btn"
+          data-testid="print-action-button"
+          onClick={printPreview}
+        >
+          Print
+        </button>
         <button
           type="button"
           class="print-btn"

@@ -71,3 +71,9 @@
 - 入口 → 操作 → 界面衔接：在小容器、触屏或触控板上选择、滚动、打开命令和配置 → 保持命中与可见性 → 继续原任务。
 - 涉及界面：响应式工具栏、浮层定位、触摸命中区、手势、滚动表面。
 - 前置：UI-102、UI-103、UI-305、UI-505。
+
+### UI-517：打印设置的后端持久化与跨运行时一致性
+
+- 入口 → 操作 → 界面衔接：在打印预览中打开页面设置并保存 → 切换 Static、WASM 或 TS Worker，或重新加载/导入导出工作簿 → 仍看到已确认的页面范围、分页与配置。
+- 涉及界面：`SpreadsheetPageSetupDialog`、`SpreadsheetPrintPreviewOverlay`、Static/Worker backend adapter 与工作簿持久化路径。
+- 前置：UI-504、UI-507、UI-516。

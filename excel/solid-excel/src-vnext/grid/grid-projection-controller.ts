@@ -7,17 +7,15 @@ import {
   type CellRange,
   type RangeProjectionResult,
 } from '@einfach/spreadsheet-ui-core'
+import { createEffect, untrack } from 'solid-js'
 import { runVisibleProjectionTransport, spreadsheetProjectionSnapshotAtom } from '../provider'
 import { getAxisOffsetForIndex, getAxisStartIndexAtOffset } from './axis-geometry'
 import { GRID_ROW_HEADER_WIDTH } from './grid-constants'
 import type { GridLayoutApi } from './grid-layout'
 import { installGridFeature, type GridHydrationApi, type GridRuntimeBase } from './grid-runtime'
 import type { GridViewStateApi } from './grid-view-state'
-import {
-  needsReanchor,
-  planAnchorPlacement,
-  type AxisScrollGeometry,
-} from './scroll-anchor'
+import { needsReanchor, type AxisScrollGeometry } from './scroll-anchor'
+import { planSnappedScrollPlacement } from './scroll-placement'
 
 interface GridScrollStats {
   scrollEvents: number
@@ -40,18 +38,21 @@ function createScrollStats() {
   } catch {
     return null
   }
-  const stats: GridScrollStats = { scrollEvents: 0, reanchors: 0, windowChanges: 0, lastWindowRenderMs: 0 }
+  const stats: GridScrollStats = { scrollEvents: 0, reanchors: 0, windowChanges: 0,
+    lastWindowRenderMs: 0 }
   window.__scrollStats = stats
   return stats
 }
-
 type GridProjectionRuntime = GridRuntimeBase & GridHydrationApi &
   Pick<GridViewStateApi, 'getRenderedVisibleWindow' | 'getEffectiveFreezeProjection'> &
-  Pick<GridLayoutApi, 'getRowOverridesForSheet' | 'getColOverridesForSheet' | 'getTotalRowSpanPx' | 'getRowScrollSurfacePx' | 'getTotalColSpanPx' | 'getColScrollSurfacePx'> &
+  Pick<GridLayoutApi,
+    'getRowOverridesForSheet' | 'getColOverridesForSheet' | 'getTotalRowSpanPx' |
+    'getRowScrollSurfacePx' | 'getTotalColSpanPx' | 'getColScrollSurfacePx'
+  > &
   Pick<GridViewStateApi, 'getHiddenRowSet' | 'getHiddenColSet'>
-
 export function installGridProjectionController(runtime: GridProjectionRuntime) {
-  const { props, store, backend, atoms, dom, getRenderedVisibleWindow, getEffectiveFreezeProjection, hydrateViewportSizeProjection } = runtime
+  const { props, store, backend, atoms, dom, getRenderedVisibleWindow, getEffectiveFreezeProjection,
+    hydrateViewportSizeProjection } = runtime
   const scrollStats = createScrollStats()
   let lastEffectiveFreezeRows = 0
   let lastEffectiveFreezeCols = 0
@@ -139,7 +140,7 @@ export function installGridProjectionController(runtime: GridProjectionRuntime) 
 
   /** 把 DOM 滚动位置对齐到 atom 里的逻辑位置（跳转、名称框、键盘导航都走这里）。
    * 已对齐（anchor + physical === logical）时不动 —— 否则会跟正在进行的滚动打架。 */
-  function syncScrollElementToViewport() {
+  function syncScrollElementToViewport(realignAnchor = false) {
     const scrollRoot = dom.scrollRoot()
     if (!scrollRoot) return
     const metrics = store.getter(viewportMetricsAtom)
@@ -147,16 +148,37 @@ export function installGridProjectionController(runtime: GridProjectionRuntime) 
     const colLogicalPx = dom.colAnchorPx() + scrollRoot.scrollLeft
     const rowDrifted = Math.abs(rowLogicalPx - metrics.scrollTop) > 0.5
     const colDrifted = Math.abs(colLogicalPx - metrics.scrollLeft) > 0.5
-    if (!rowDrifted && !colDrifted) return
-    const rowPlacement = planAnchorPlacement(metrics.scrollTop, getAxisScrollGeometry('row'))
-    const colPlacement = planAnchorPlacement(metrics.scrollLeft, getAxisScrollGeometry('col'))
-    const rowAnchorPx = snapAnchorPx('row', rowPlacement.anchorPx)
-    const colAnchorPx = snapAnchorPx('col', colPlacement.anchorPx)
-    dom.setRowAnchorPx(rowAnchorPx)
-    dom.setColAnchorPx(colAnchorPx)
+    if (!realignAnchor && !rowDrifted && !colDrifted) return
+    const rowPlacement = rowDrifted || realignAnchor
+      ? planSnappedScrollPlacement(
+        metrics.scrollTop,
+        getAxisScrollGeometry('row'),
+        (anchorPx) => snapAnchorPx('row', anchorPx),
+      )
+      : null
+    const colPlacement = colDrifted || realignAnchor
+      ? planSnappedScrollPlacement(
+        metrics.scrollLeft,
+        getAxisScrollGeometry('col'),
+        (anchorPx) => snapAnchorPx('col', anchorPx),
+      )
+      : null
     // spacer 高度先于 scrollTop 落地（同一帧内），内容才不跳。
-    if (rowDrifted) scrollRoot.scrollTop = metrics.scrollTop - rowAnchorPx
-    if (colDrifted) scrollRoot.scrollLeft = metrics.scrollLeft - colAnchorPx
+    if (rowPlacement) {
+      dom.setRowAnchorPx(rowPlacement.anchorPx)
+      scrollRoot.scrollTop = rowPlacement.physicalPx
+    }
+    if (colPlacement) {
+      dom.setColAnchorPx(colPlacement.anchorPx)
+      scrollRoot.scrollLeft = colPlacement.physicalPx
+    }
+    const scrollTop = rowPlacement
+      ? rowPlacement.anchorPx + rowPlacement.physicalPx : metrics.scrollTop
+    const scrollLeft = colPlacement
+      ? colPlacement.anchorPx + colPlacement.physicalPx : metrics.scrollLeft
+    if (scrollTop !== metrics.scrollTop || scrollLeft !== metrics.scrollLeft) {
+      store.setter(viewportMetricsAtom, { ...metrics, scrollTop, scrollLeft })
+    }
   }
 
   function syncViewportSizeFromElement() {
@@ -186,7 +208,7 @@ export function installGridProjectionController(runtime: GridProjectionRuntime) 
     // 走 refreshEffectiveFreezeProjection，都直接调 requestProjection，
     // 不受这道闸门影响。
     const window = getRenderedVisibleWindow()
-    const key = `${window.rowStart}|${window.rowEnd}|${window.colStart}|${window.colEnd}`
+    const key = `${props.sheetId}|${window.rowStart}|${window.rowEnd}|${window.colStart}|${window.colEnd}`
     if (key === lastViewportWindowKey) return
     lastViewportWindowKey = key
     if (scrollStats) {
@@ -197,6 +219,21 @@ export function installGridProjectionController(runtime: GridProjectionRuntime) 
     void loadProjection(requestProjection())
     void hydrateViewportSizeProjection()
   }
+
+  // Async size/hidden facts alter geometry without updating metrics; restore anchor and projection.
+  createEffect(() => {
+    const geometryFacts = [
+      props.sheetId,
+      atoms.sizeOverrides(),
+      atoms.hiddenState(),
+      atoms.viewportHidden(),
+    ]
+    untrack(() => {
+      syncScrollElementToViewport(true)
+      refreshViewportProjection()
+    })
+    return geometryFacts
+  })
 
   function initializeFreezeProjection() {
     const initialFreeze = getEffectiveFreezeProjection()
@@ -220,12 +257,13 @@ export function installGridProjectionController(runtime: GridProjectionRuntime) 
     const anchorPx = axis === 'row' ? dom.rowAnchorPx() : dom.colAnchorPx()
     if (!needsReanchor(physicalPx, anchorPx, geometry)) return null
     const logicalPx = anchorPx + physicalPx
-    const placement = planAnchorPlacement(logicalPx, geometry)
-    const snappedAnchorPx = snapAnchorPx(axis, placement.anchorPx)
-    if (snappedAnchorPx === anchorPx) return null
-    if (axis === 'row') dom.setRowAnchorPx(snappedAnchorPx)
-    else dom.setColAnchorPx(snappedAnchorPx)
-    return Math.max(0, logicalPx - snappedAnchorPx)
+    const placement = planSnappedScrollPlacement(
+      logicalPx, geometry, (nextAnchorPx) => snapAnchorPx(axis, nextAnchorPx),
+    )
+    if (placement.anchorPx === anchorPx) return null
+    if (axis === 'row') dom.setRowAnchorPx(placement.anchorPx)
+    else dom.setColAnchorPx(placement.anchorPx)
+    return placement.physicalPx
   }
 
   function handleViewportScroll(event: Event & { currentTarget: HTMLDivElement }) {
@@ -246,7 +284,17 @@ export function installGridProjectionController(runtime: GridProjectionRuntime) 
     store.setter(viewportMetricsAtom, { ...metrics, scrollTop, scrollLeft })
   }
 
-  return installGridFeature(runtime, { requestProjection, loadProjection, readRangeProjection, syncScrollElementToViewport, syncViewportSizeFromElement, refreshViewportProjection, initializeFreezeProjection, refreshEffectiveFreezeProjection, handleViewportScroll })
+  return installGridFeature(runtime, {
+    requestProjection,
+    loadProjection,
+    readRangeProjection,
+    syncScrollElementToViewport,
+    syncViewportSizeFromElement,
+    refreshViewportProjection,
+    initializeFreezeProjection,
+    refreshEffectiveFreezeProjection,
+    handleViewportScroll,
+  })
 }
 
 export type GridProjectionControllerApi = ReturnType<typeof installGridProjectionController>

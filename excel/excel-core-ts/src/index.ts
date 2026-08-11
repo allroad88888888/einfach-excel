@@ -100,6 +100,21 @@ export type {
   FormulaCacheState,
   PendingAsyncCustomCall,
 } from './workbook'
+export type {
+  HeaderFooterFields,
+  ManualPageBreak,
+  PrintConfig,
+  PrintConfigSnapshot,
+  PrintOrientation,
+  PrintScale,
+} from './print-config'
+export {
+  PrintConfigRegistry,
+  readWorkbookPrintConfig,
+  restoreWorkbookPrintConfigs,
+  setWorkbookPrintConfig,
+  snapshotWorkbookPrintConfigs,
+} from './print-config'
 export { createSheet, keyFor, applyCell } from './sheet'
 export type { SheetState, SheetResolvers, SheetDebugProviders } from './sheet'
 export {
@@ -126,16 +141,8 @@ export {
   scanSpillAnchors,
   SPILL_PROJECTION_LOOKBACK,
 } from './eval/spill-projection'
-export type {
-  SpillAnchorHit,
-  SpillAnchorScan,
-  SpillAnchorSource,
-} from './eval/spill-projection'
+export type { SpillAnchorHit, SpillAnchorScan, SpillAnchorSource } from './eval/spill-projection'
 
 // Wave C — built-in function registry (math / logical / lookup / text /
 // date / stats). Evaluator dispatches against `BUILTIN_FUNCTIONS`.
-export {
-  BUILTIN_FUNCTIONS,
-  getBuiltinFunction,
-  listBuiltinNames,
-} from './eval/functions'
+export { BUILTIN_FUNCTIONS, getBuiltinFunction, listBuiltinNames } from './eval/functions'

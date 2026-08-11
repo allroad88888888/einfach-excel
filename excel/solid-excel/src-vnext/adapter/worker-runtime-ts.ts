@@ -68,6 +68,7 @@ import {
   projectedValueAt,
   scanSpillAnchors,
   SPILL_PROJECTION_LOOKBACK,
+  restoreWorkbookPrintConfigs,
   type BulkCellInput,
   type BulkTypedCellInput,
   type Cell,
@@ -107,6 +108,14 @@ import type {
   WorkbookSheetMeta,
   WorkerRuntimeCapabilitiesWire,
 } from './worker-protocol'
+import {
+  preserveTsWorkerPrintConfigs,
+  readTsWorkerPrintConfig,
+  restoreTsWorkerPrintConfigs,
+  setTsWorkerPrintConfig,
+  snapshotTsWorkerPrintConfigs,
+  validateTsWorkerPrintConfigRestore,
+} from './worker-runtime-ts-print-config'
 
 /**
  * Honest capability declaration for this runtime (see
@@ -227,9 +236,10 @@ function newSheetId(idx: number): string {
   return `sheet-${idx + 1}`
 }
 
-function makeWorkbookFor(
-  sheetNames: ReadonlyArray<string>,
-): { wb: Workbook; sheets: SheetEntry[] } {
+function makeWorkbookFor(sheetNames: ReadonlyArray<string>): {
+  wb: Workbook
+  sheets: SheetEntry[]
+} {
   const names = sheetNames.length > 0 ? sheetNames : DEFAULT_INITIAL_SHEETS
   const seeds = names.map((name, idx) => ({ id: newSheetId(idx), name }))
   const wb = createWorkbook(seeds)
@@ -267,7 +277,6 @@ function clampRowsPerChunk(value: unknown): number {
 function rangeTotalRows(range: SparseRangeWire): number {
   return Math.max(0, range.endRow - range.startRow + 1)
 }
-
 
 function rpcError(code: string, message: string): Error & { code: string } {
   return Object.assign(new Error(message), { code })
@@ -522,11 +531,32 @@ function readSparseCell(
   const value = readCellValue(state, sheet, row, col)
   switch (value.kind) {
     case 'number':
-      return { sheet: sheet.idx, addr: formatA1({ row, col }), row, col, kind: 'number', value: value.value }
+      return {
+        sheet: sheet.idx,
+        addr: formatA1({ row, col }),
+        row,
+        col,
+        kind: 'number',
+        value: value.value,
+      }
     case 'string':
-      return { sheet: sheet.idx, addr: formatA1({ row, col }), row, col, kind: 'text', value: value.value }
+      return {
+        sheet: sheet.idx,
+        addr: formatA1({ row, col }),
+        row,
+        col,
+        kind: 'text',
+        value: value.value,
+      }
     case 'boolean':
-      return { sheet: sheet.idx, addr: formatA1({ row, col }), row, col, kind: 'boolean', value: value.value }
+      return {
+        sheet: sheet.idx,
+        addr: formatA1({ row, col }),
+        row,
+        col,
+        kind: 'boolean',
+        value: value.value,
+      }
     // `value.code`, NOT `errorDisplayToken(...)`. This record is the
     // persistence / clipboard WIRE and `setCellFromWire` is its inverse — a
     // restore must reproduce the variant it captured, so it speaks the
@@ -534,7 +564,14 @@ function readSparseCell(
     // and `#ARGS!`), not the narrower Excel-facing display one. Same split as
     // the Rust twin's `sparse_cell_from_value`.
     case 'error':
-      return { sheet: sheet.idx, addr: formatA1({ row, col }), row, col, kind: 'error', value: value.code }
+      return {
+        sheet: sheet.idx,
+        addr: formatA1({ row, col }),
+        row,
+        col,
+        kind: 'error',
+        value: value.code,
+      }
     case 'array':
     case 'blank':
       return undefined
@@ -617,7 +654,12 @@ function setFormulaDetailed(
     // (cycle, parse error caught upstream) should reject the mutation.
     const value = readCellValue(state, sheet, row, col)
     if (value.kind === 'error' && value.code === '#CIRCULAR!') {
-      return { ok: false, code: 'FORMULA_CYCLE', message: 'formula would create a cycle', display: value.code }
+      return {
+        ok: false,
+        code: 'FORMULA_CYCLE',
+        message: 'formula would create a cycle',
+        display: value.code,
+      }
     }
     // A formula that evaluates to an error is still a valid mutation —
     // the cell projects the error code at the read boundary. We
@@ -1054,7 +1096,11 @@ function registerCustomFormulaInWorker(
     try {
       result = compiled(unwrapped)
     } catch (err) {
-      return { kind: 'error', code: '#VALUE!', message: err instanceof Error ? err.message : String(err) }
+      return {
+        kind: 'error',
+        code: '#VALUE!',
+        message: err instanceof Error ? err.message : String(err),
+      }
     }
     return wrapCustomResult(result)
   })
@@ -1146,10 +1192,7 @@ function defineNameInWorker(state: RuntimeState, name: string, rawBinding: unkno
       // RPC error so the host UI can show a meaningful message instead
       // of silently storing a name that always evaluates to `#VALUE!`.
       if (ast.kind === 'error') {
-        throw rpcError(
-          'INVALID_LAMBDA_BODY',
-          `failed to parse lambda body: ${ast.code}`,
-        )
+        throw rpcError('INVALID_LAMBDA_BODY', `failed to parse lambda body: ${ast.code}`)
       }
       parsed = { kind: 'lambda', params, body: ast }
       break
@@ -1331,11 +1374,9 @@ function rowHeightsFor(
   startRow: number,
   endRow: number,
 ): ViewportRowHeightWire[] {
-  return sortedDimensionEntries(
-    state.rowHeightsBySheetName.get(sheet.name),
-    startRow,
-    endRow,
-  ).map(([rowIndex, heightPx]) => ({ rowIndex, heightPx }))
+  return sortedDimensionEntries(state.rowHeightsBySheetName.get(sheet.name), startRow, endRow).map(
+    ([rowIndex, heightPx]) => ({ rowIndex, heightPx }),
+  )
 }
 
 function colWidthsFor(
@@ -1344,11 +1385,9 @@ function colWidthsFor(
   startCol: number,
   endCol: number,
 ): ViewportColumnWidthWire[] {
-  return sortedDimensionEntries(
-    state.colWidthsBySheetName.get(sheet.name),
-    startCol,
-    endCol,
-  ).map(([colIndex, widthPx]) => ({ colIndex, widthPx }))
+  return sortedDimensionEntries(state.colWidthsBySheetName.get(sheet.name), startCol, endCol).map(
+    ([colIndex, widthPx]) => ({ colIndex, widthPx }),
+  )
 }
 
 function snapshotViewportSizes(
@@ -1446,8 +1485,7 @@ export interface ExcelCoreTsWorkerRuntime {
   handle(
     msg: RequestMessage,
   ): Promise<
-    | { id: number; ok: true; result: unknown }
-    | { id: number; ok: false; error: RpcErrorWire }
+    { id: number; ok: true; result: unknown } | { id: number; ok: false; error: RpcErrorWire }
   >
   /** Resets to a fresh empty workbook (mostly for tests). */
   reset(): void
@@ -1518,7 +1556,10 @@ export function createWorkerRuntimeTs(events?: WorkerRuntimeTsEvents): ExcelCore
     } catch (err) {
       const rpcErr: RpcErrorWire =
         err instanceof Error
-          ? { code: String((err as Error & { code?: string }).code ?? 'WORKER_ERROR'), message: err.message }
+          ? {
+              code: String((err as Error & { code?: string }).code ?? 'WORKER_ERROR'),
+              message: err.message,
+            }
           : { code: 'WORKER_ERROR', message: String(err) }
       return { id, ok: false as const, error: rpcErr }
     } finally {
@@ -1546,6 +1587,18 @@ export function createWorkerRuntimeTs(events?: WorkerRuntimeTsEvents): ExcelCore
       }
       case 'sheetList':
         return listSheetMeta(state)
+      case 'getPrintConfig': {
+        const sheet = assertSheetIdx(state, Number(msg.sheet))
+        return readTsWorkerPrintConfig(state.workbook, sheet)
+      }
+      case 'setPrintConfig': {
+        const sheet = assertSheetIdx(state, Number(msg.sheet))
+        return setTsWorkerPrintConfig(
+          state.workbook,
+          sheet,
+          msg.config as Parameters<typeof setTsWorkerPrintConfig>[2],
+        )
+      }
       case 'addSheet': {
         const name = String(msg.name ?? `Sheet${state.sheets.length + 1}`)
         const idx = state.sheets.length
@@ -1722,7 +1775,8 @@ export function createWorkerRuntimeTs(events?: WorkerRuntimeTsEvents): ExcelCore
       case 'importChunk': {
         const sessionId = Number(msg.sessionId)
         const session = state.importSessions.get(sessionId)
-        if (!session) throw rpcError('INVALID_IMPORT_SESSION', `unknown import session: ${sessionId}`)
+        if (!session)
+          throw rpcError('INVALID_IMPORT_SESSION', `unknown import session: ${sessionId}`)
         const cells = Array.isArray(msg.cells) ? (msg.cells as ImportCellWire[]) : []
         // Both 'direct' and 'atomic' modes buffer per-chunk cells until
         // commit, then apply them in a single `bulkApply` per sheet. This
@@ -1739,7 +1793,8 @@ export function createWorkerRuntimeTs(events?: WorkerRuntimeTsEvents): ExcelCore
       case 'commitImport': {
         const sessionId = Number(msg.sessionId)
         const session = state.importSessions.get(sessionId)
-        if (!session) throw rpcError('INVALID_IMPORT_SESSION', `unknown import session: ${sessionId}`)
+        if (!session)
+          throw rpcError('INVALID_IMPORT_SESSION', `unknown import session: ${sessionId}`)
         state.importSessions.delete(sessionId)
         const stats = importCells(state, session.cells)
         if (session.mode === 'atomic') return stats
@@ -1884,62 +1939,65 @@ export function createWorkerRuntimeTs(events?: WorkerRuntimeTsEvents): ExcelCore
           sheets: state.sheets.map((s) => ({ idx: s.idx, name: s.name })),
           cells: snapshotSparse(state),
           sizes: snapshotPersistenceSizes(state),
+          printConfigs: snapshotTsWorkerPrintConfigs(state.workbook, state.sheets),
         }
-      case 'restorePersistenceV1':
+      case 'restorePersistenceV1': {
         // Reset + restore.
-        {
-          const snapshot = msg.snapshot as WorkbookPersistenceSnapshotWire | undefined
-          if ((snapshot?.formats?.length ?? 0) > 0) {
-            // Fail-closed BEFORE touching any state: silently dropping
-            // the snapshot's format block would be data loss reported as
-            // a successful `restored_formats: 0`.
-            return unsupported('restorePersistenceV1 with a formats block (persistence formats)')
-          }
-          const names = snapshot?.sheets?.map((s) => s.name) ?? DEFAULT_INITIAL_SHEETS
-          const { wb, sheets } = makeWorkbookFor(names)
-          // Registrations survive the engine swap (parity with the WASM
-          // runtime, whose Workbook instance survives
-          // restore_persistence_v1) — re-bind them on the new workbook
-          // instead of silently dropping the registry.
-          const preservedCustomFormulas = state.customFormulas
-          state.workbook = wb
-          state.sheets = sheets
-          state.customFormulas = new Map()
-          state.rowHeightsBySheetName = new Map()
-          state.colWidthsBySheetName = new Map()
-          state.importSessions = new Map()
-          state.snapshotSessions = new Map()
-          state.nextSnapshotSessionId = 1
-          for (const [name, entry] of preservedCustomFormulas) {
-            try {
-              registerCustomFormulaInWorker(state, name, entry.source, entry.isAsync)
-            } catch {
-              // Best-effort — same contract as rebuildPreservingCells.
-            }
-          }
-          const cells = snapshot?.cells ?? []
-          const importable: ImportCellWire[] = cells.map((c) => {
-            switch (c.kind) {
-              case 'formula':
-                return { sheet: c.sheet, row: c.row, col: c.col, kind: 'formula', value: c.value }
-              case 'number':
-                return { sheet: c.sheet, row: c.row, col: c.col, kind: 'number', value: c.value }
-              case 'text':
-                return { sheet: c.sheet, row: c.row, col: c.col, kind: 'text', value: c.value }
-              case 'boolean':
-                return { sheet: c.sheet, row: c.row, col: c.col, kind: 'boolean', value: c.value }
-              case 'error':
-                return { sheet: c.sheet, row: c.row, col: c.col, kind: 'error', value: c.value }
-            }
-          })
-          importCells(state, importable)
-          restorePersistenceSizes(state, snapshot)
-          return {
-            restored_cells: importable.length,
-            restored_formats: 0,
-            sheets: state.sheets.length,
+        const snapshot = msg.snapshot as WorkbookPersistenceSnapshotWire | undefined
+        if ((snapshot?.formats?.length ?? 0) > 0) {
+          // Fail-closed BEFORE touching any state: silently dropping
+          // the snapshot's format block would be data loss reported as
+          // a successful `restored_formats: 0`.
+          return unsupported('restorePersistenceV1 with a formats block (persistence formats)')
+        }
+        const names = snapshot?.sheets?.map((s) => s.name) ?? DEFAULT_INITIAL_SHEETS
+        const { wb, sheets } = makeWorkbookFor(names)
+        validateTsWorkerPrintConfigRestore(sheets, snapshot?.printConfigs)
+        const restoredPrintConfigs = restoreTsWorkerPrintConfigs(wb, sheets, snapshot?.printConfigs)
+        // Registrations survive the engine swap (parity with the WASM
+        // runtime, whose Workbook instance survives
+        // restore_persistence_v1) — re-bind them on the new workbook
+        // instead of silently dropping the registry.
+        const preservedCustomFormulas = state.customFormulas
+        state.workbook = wb
+        state.sheets = sheets
+        state.customFormulas = new Map()
+        state.rowHeightsBySheetName = new Map()
+        state.colWidthsBySheetName = new Map()
+        state.importSessions = new Map()
+        state.snapshotSessions = new Map()
+        state.nextSnapshotSessionId = 1
+        for (const [name, entry] of preservedCustomFormulas) {
+          try {
+            registerCustomFormulaInWorker(state, name, entry.source, entry.isAsync)
+          } catch {
+            // Best-effort — same contract as rebuildPreservingCells.
           }
         }
+        const cells = snapshot?.cells ?? []
+        const importable: ImportCellWire[] = cells.map((c) => {
+          switch (c.kind) {
+            case 'formula':
+              return { sheet: c.sheet, row: c.row, col: c.col, kind: 'formula', value: c.value }
+            case 'number':
+              return { sheet: c.sheet, row: c.row, col: c.col, kind: 'number', value: c.value }
+            case 'text':
+              return { sheet: c.sheet, row: c.row, col: c.col, kind: 'text', value: c.value }
+            case 'boolean':
+              return { sheet: c.sheet, row: c.row, col: c.col, kind: 'boolean', value: c.value }
+            case 'error':
+              return { sheet: c.sheet, row: c.row, col: c.col, kind: 'error', value: c.value }
+          }
+        })
+        importCells(state, importable)
+        restorePersistenceSizes(state, snapshot)
+        return {
+          restored_cells: importable.length,
+          restored_formats: 0,
+          sheets: state.sheets.length,
+          restored_print_configs: restoredPrintConfigs,
+        }
+      }
       case 'subscribeCells':
         // No fine-grained sub propagation in Phase 4 — just acknowledge.
         return true
@@ -2001,6 +2059,13 @@ function rebuildPreservingCells(
   }
 
   const { wb, sheets } = makeWorkbookFor(nextNames)
+  const printConfigs = preserveTsWorkerPrintConfigs(
+    previousWorkbook,
+    previousSheets,
+    sheets,
+    removedIdx,
+  )
+  restoreWorkbookPrintConfigs(wb, printConfigs)
   state.workbook = wb
   state.sheets = sheets
 
@@ -2082,7 +2147,10 @@ export function installWorkerRuntimeTs(target?: WorkerContext): ExcelCoreTsWorke
     // fine-grained per-cell delta yet.
     if (response.ok && isMutatingCommand(msg.cmd)) {
       const sheet = Number((msg as { sheet?: unknown }).sheet ?? 0)
-      const addr = typeof (msg as { addr?: unknown }).addr === 'string' ? normalizeAddr((msg as { addr: string }).addr) : 'A1'
+      const addr =
+        typeof (msg as { addr?: unknown }).addr === 'string'
+          ? normalizeAddr((msg as { addr: string }).addr)
+          : 'A1'
       ctx.postMessage({ event: 'cellsDirty', cells: [{ sheet, addr }] })
     }
   })
@@ -2100,6 +2168,7 @@ function isMutatingCommand(cmd: unknown): boolean {
     cmd === 'commitImport' ||
     cmd === 'restoreSparse' ||
     cmd === 'restorePersistenceV1' ||
+    cmd === 'setPrintConfig' ||
     cmd === 'insertRows' ||
     cmd === 'deleteRows' ||
     cmd === 'insertColumns' ||

@@ -11,6 +11,7 @@ impl Workbook {
             return None;
         }
         let sheet = self.sheets.remove(idx);
+        self.print_configs.remove(idx);
         sheet.detach_workbook_context();
         let name = self.names.remove(idx);
         self.by_name.remove(&name);

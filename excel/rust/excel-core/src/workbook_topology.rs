@@ -21,6 +21,7 @@ impl Workbook {
         // dependencies can live as ordinary in-store edges (P6).
         self.sheets.push(Sheet::with_store(self.store.clone()));
         self.names.push(name.to_string());
+        self.print_configs.push(Default::default());
         self.by_name.insert(name.to_string(), idx);
         self.sync_atom_topology();
         idx
@@ -113,8 +114,10 @@ impl Workbook {
 
         let sheet = self.sheets.remove(from);
         let name = self.names.remove(from);
+        let print_config = self.print_configs.remove(from);
         self.sheets.insert(to, sheet);
         self.names.insert(to, name);
+        self.print_configs.insert(to, print_config);
         // The index-keyed hidden-row side stores must ride the same rotation
         // the sheet vector just underwent (see `remove_sheet`).
         self.atom_context

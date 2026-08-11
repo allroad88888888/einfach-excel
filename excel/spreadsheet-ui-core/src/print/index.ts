@@ -1,6 +1,8 @@
 export * from './config-state'
 export * from './page-breaks'
 export * from './page-setup-commands'
+export { hydratePrintConfigAtom } from './print-config-hydration'
+export { snapshotPrintConfig } from './page-setup-domain'
 export {
   pageSetupCanCancelAtom,
   pageSetupCanEditAtom,

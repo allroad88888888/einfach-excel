@@ -214,6 +214,15 @@ struct WorkbookPersistenceV1JSON {
     /// autoFilter state.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     filters: Vec<SheetFilterStateJSON>,
+    /// Per-sheet print setup belongs to the workbook semantic state. Optional
+    /// keeps legacy v1 payloads valid: an absent field restores defaults.
+    #[serde(
+        default,
+        rename = "printConfigs",
+        alias = "print_configs",
+        skip_serializing_if = "Vec::is_empty"
+    )]
+    print_configs: Vec<PrintConfigSnapshotJSON>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -229,6 +238,9 @@ struct WorkbookPersistenceRestoreStatsJSON {
     restored_hidden_sheets: u32,
     /// Sheets that came back with an AutoFilter (E3). Additive output key.
     restored_filter_sheets: u32,
+    /// Print configurations restored into the fresh workbook. Additive key.
+    #[serde(rename = "restored_print_configs")]
+    restored_print_configs: u32,
 }
 
 // === Engine physical sort (`sortRange`) wire — S2 of

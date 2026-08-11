@@ -50,6 +50,8 @@ mod workbook_loader;
 mod workbook_named;
 #[path = "workbook_names.rs"]
 mod workbook_names;
+#[path = "workbook_print_config.rs"]
+mod workbook_print_config;
 #[path = "workbook_read.rs"]
 mod workbook_read;
 #[path = "workbook_sheet_removal.rs"]
@@ -78,6 +80,10 @@ pub use self::workbook_bulk_types::{BulkInstallStats, InstallError};
 pub use self::workbook_errors::{HiddenRowsError, TableError, TotalsFunction};
 pub use self::workbook_loader::WorkbookLoader;
 pub use self::workbook_named::WorkbookError;
+pub use self::workbook_print_config::{
+    HeaderFooterFields, ManualPageBreak, ManualPageBreakAxis, PrintConfig, PrintConfigError,
+    PrintConfigSnapshot, PrintOrientation, PrintScale,
+};
 pub use self::workbook_table_types::{TableEntry, TableRegistrySnapshot};
 pub use self::workbook_visibility_types::{
     FilterSnapshot, HiddenRowsSnapshot, SheetFilterState, SheetHiddenRows,
@@ -101,6 +107,7 @@ pub struct Workbook {
     pub(super) content_revision: u64,
     pub(super) tables: BTreeMap<String, TableEntry>,
     pub(super) tables_epoch: u64,
+    print_configs: Vec<workbook_print_config::SheetPrintConfig>,
 }
 
 #[cfg(test)]
@@ -118,6 +125,9 @@ mod workbook_tests_dependencies;
 #[cfg(test)]
 #[path = "workbook_tests/mutation.rs"]
 mod workbook_tests_mutation;
+#[cfg(test)]
+#[path = "workbook_tests/print_config.rs"]
+mod workbook_tests_print_config;
 #[cfg(test)]
 #[path = "workbook_tests/topology.rs"]
 mod workbook_tests_topology;

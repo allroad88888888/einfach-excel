@@ -20,6 +20,7 @@ import { createLifecyclePorts } from './ports/lifecycle'
 import { createMergePorts } from './ports/merge'
 import { createNamedRangePorts } from './ports/named-range'
 import { createProjectionPorts } from './ports/projection'
+import { createPrintConfigPorts } from './ports/print-config'
 import { createSheetPorts } from './ports/sheet'
 import { createSpillPorts } from './ports/spill'
 import { createStructurePorts } from './ports/structure'
@@ -35,6 +36,7 @@ export function createWorkerWorkbookSpreadsheetBackend(
   const groups = [
     createSheetPorts(state),
     createProjectionPorts(state),
+    createPrintConfigPorts(state),
     createSpillPorts(state),
     createClipboardPorts(state),
     createCellInputPorts(state),

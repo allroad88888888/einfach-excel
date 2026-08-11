@@ -5,6 +5,7 @@ import type {
   ReadPrintConfigRequest,
   ReadPrintConfigResult,
   SetPrintConfigRequest,
+  SetPrintConfigResult,
 } from '../print/types'
 import type { PresenceUpdate } from '../presence/types'
 import type { DisplayCellRichValue } from '../rich-types/types'
@@ -112,7 +113,12 @@ export type {
 }
 
 // --- print ---
-export type { ReadPrintConfigRequest, ReadPrintConfigResult, SetPrintConfigRequest }
+export type {
+  ReadPrintConfigRequest,
+  ReadPrintConfigResult,
+  SetPrintConfigRequest,
+  SetPrintConfigResult,
+}
 
 // --- protection ---
 export type {
@@ -1175,7 +1181,7 @@ export interface SpreadsheetBackend {
   ): Promise<ConditionalFormatRulesResult>
   // print config
   readPrintConfig?(request: ReadPrintConfigRequest): Promise<ReadPrintConfigResult>
-  setPrintConfig?(request: SetPrintConfigRequest): Promise<BackendMutationResult>
+  setPrintConfig?(request: SetPrintConfigRequest): Promise<SetPrintConfigResult>
   // find-replace
   /**
    * Match offsets are UTF-16 code-unit indexes into the selected target and use half-open

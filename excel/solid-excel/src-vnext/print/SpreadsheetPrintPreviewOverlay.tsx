@@ -1,8 +1,9 @@
-import { Show } from 'solid-js'
+import { createEffect, Show } from 'solid-js'
 import { useAtomValue } from '@einfach/solid'
 import { useT } from '../../src/i18n'
 import {
   DEFAULT_PRINT_CONFIG,
+  hydratePrintConfigAtom,
   openPageSetupAtom,
   pageSetupDialogOpenAtom,
   printConfigStateAtom,
@@ -12,7 +13,7 @@ import {
 } from '@einfach/spreadsheet-ui-core'
 
 import { useOverlayInteraction } from '../overlay'
-import { useSpreadsheetUiStore } from '../provider'
+import { useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider'
 import { SpreadsheetPageSetupDialog } from './SpreadsheetPageSetupDialog'
 
 export interface SpreadsheetPrintPreviewOverlayProps {
@@ -34,6 +35,7 @@ export function SpreadsheetPrintPreviewOverlay(props: SpreadsheetPrintPreviewOve
   let pageSetupButtonRef: HTMLButtonElement | undefined
   const t = useT()
   const store = useSpreadsheetUiStore()
+  const backend = useSpreadsheetBackend()
   const previewOpen = useAtomValue(printPreviewOpenAtom)
   const pageSetupOpen = useAtomValue(pageSetupDialogOpenAtom)
   const printConfigState = useAtomValue(printConfigStateAtom)
@@ -43,6 +45,12 @@ export function SpreadsheetPrintPreviewOverlay(props: SpreadsheetPrintPreviewOve
 
   const config = (): PrintConfig =>
     (activeSheetId() ? printConfigState()[activeSheetId()] : undefined) ?? DEFAULT_PRINT_CONFIG
+
+  createEffect(() => {
+    const sheetId = activeSheetId()
+    if (!previewOpen() || sheetId.length === 0) return
+    void store.setter(hydratePrintConfigAtom, { source: backend, sheetId })
+  })
 
   function closePreview() {
     store.setter(printPreviewOpenAtom, false)

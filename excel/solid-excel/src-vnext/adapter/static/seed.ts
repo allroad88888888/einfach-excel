@@ -1,6 +1,6 @@
 // 一句话：把种子输入规范成一份初始 StaticBackendState。
 
-import { excelGeneralToText } from '@einfach/excel-core-ts'
+import { excelGeneralToText, PrintConfigRegistry } from '@einfach/excel-core-ts'
 import type {
   DisplayCell,
   ProjectionRevision,
@@ -102,6 +102,7 @@ export function buildState(
   cellFormatsBySheetId.set(defaultSheetId, cellFormats)
 
   return {
+    printConfigs: new PrintConfigRegistry(sheets.map((sheet) => sheet.id)),
     cellsBySheet,
     cellFormatsBySheetId,
     rangeFormatsBySheetId: new Map(),

@@ -26,8 +26,7 @@ pub use eval::{
 };
 pub use filter::{
     filter_rule_matches_value, is_filter_sort_summary_row, js_numeric_value, js_trim,
-    ColumnFilterRule, FilterApplyReport, FilterError, SheetAutoFilter,
-    MAX_FILTER_PREDICATE_CELLS,
+    ColumnFilterRule, FilterApplyReport, FilterError, SheetAutoFilter, MAX_FILTER_PREDICATE_CELLS,
 };
 pub use format::{
     apply_rules, error_display_token, value_to_display, Align, BorderSpec, BorderStyle,
@@ -42,10 +41,13 @@ pub use sheet::{
     RangeFormatSnapshotLayer, Sheet, SheetError,
 };
 pub use shift::{render_formula, shift_refs};
-pub use sort::{sort_cmp, sort_cmp_with_direction, SortDirection, SortKey, SortRangeError, SortRangeReport};
+pub use sort::{
+    sort_cmp, sort_cmp_with_direction, SortDirection, SortKey, SortRangeError, SortRangeReport,
+};
 pub use undo::{CellSnapshot, Edit, UndoStack};
 pub use workbook::{
-    BulkInstallStats, FilterSnapshot, HiddenRowsError, HiddenRowsSnapshot, InstallError,
-    SheetFilterState, SheetHiddenRows, TableEntry, TableError, TableRegistrySnapshot,
-    TotalsFunction, Workbook, WorkbookError,
+    BulkInstallStats, FilterSnapshot, HeaderFooterFields, HiddenRowsError, HiddenRowsSnapshot,
+    InstallError, ManualPageBreak, ManualPageBreakAxis, PrintConfig, PrintConfigError,
+    PrintConfigSnapshot, PrintOrientation, PrintScale, SheetFilterState, SheetHiddenRows,
+    TableEntry, TableError, TableRegistrySnapshot, TotalsFunction, Workbook, WorkbookError,
 };

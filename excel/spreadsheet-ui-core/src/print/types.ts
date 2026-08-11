@@ -50,6 +50,12 @@ export interface SetPrintConfigRequest extends SheetRef {
   revision?: ProjectionRevision
 }
 
+/** Exact acknowledgement for a persisted print configuration mutation. */
+export interface SetPrintConfigResult extends SheetRef {
+  requestId?: ProjectionRequestId
+  revision?: ProjectionRevision
+}
+
 export interface PageSetupDraftPatch {
   orientation?: PrintOrientation
   scale?: PrintScale

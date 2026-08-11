@@ -72,6 +72,8 @@ impl WasmWorkbook {
         let table_snapshot = Self::table_snapshot_from_json(payload.tables)?;
         let hidden_snapshot = Self::hidden_snapshot_from_json(payload.hidden);
         let filter_snapshot = Self::filter_snapshot_from_json(payload.filters);
+        let print_configs =
+            Self::print_config_snapshots_from_json(payload.print_configs, sheet_count)?;
 
         let mut workbook = Workbook::new();
         let first_name = payload.sheets[0].name.clone();
@@ -85,6 +87,10 @@ impl WasmWorkbook {
         for sheet in payload.sheets.iter().skip(1) {
             workbook.add_sheet(&sheet.name);
         }
+        let restored_print_configs = workbook
+            .restore_print_configs(print_configs)
+            .map_err(|error| format!("persistence restore print configs failed: {error}"))?
+            as u32;
 
         self.subscriptions.clear();
         self.next_token = 0;
@@ -163,6 +169,7 @@ impl WasmWorkbook {
             restored_tables,
             restored_hidden_sheets,
             restored_filter_sheets,
+            restored_print_configs,
         };
         Ok(stats)
     }

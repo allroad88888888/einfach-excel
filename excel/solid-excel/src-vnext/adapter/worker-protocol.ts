@@ -542,18 +542,57 @@ export interface WorkbookPersistenceSheetWire {
   name: string
 }
 
+export interface PrintAreaWire {
+  rowStart: number
+  rowEnd: number
+  colStart: number
+  colEnd: number
+}
+
+export type PrintScaleWire =
+  | { kind: 'percent'; percent: number }
+  | { kind: 'fit'; pagesWide?: number; pagesTall?: number }
+
+export interface PrintManualPageBreakWire {
+  axis: 'row' | 'column'
+  index: number
+}
+
+export interface PrintHeaderFooterWire {
+  left?: string
+  center?: string
+  right?: string
+}
+
+/** Detached engine snapshot keyed by runtime sheet index. */
+export interface PrintConfigSnapshotWire {
+  sheet: number
+  revision: number
+  config: {
+    printArea?: PrintAreaWire
+    manualPageBreaks: PrintManualPageBreakWire[]
+    scale: PrintScaleWire
+    orientation: 'portrait' | 'landscape'
+    header?: PrintHeaderFooterWire
+    footer?: PrintHeaderFooterWire
+  }
+}
+
 export interface WorkbookPersistenceSnapshotWire {
   version: 1
   sheets: WorkbookPersistenceSheetWire[]
   cells: SparseCellWire[]
   formats?: FormatRangeSnapshot[]
   sizes?: ViewportSizeSnapshotWire[]
+  /** Optional for backward-compatible schema-v1 restore. */
+  printConfigs?: PrintConfigSnapshotWire[]
 }
 
 export interface WorkbookPersistenceRestoreStatsWire {
   restored_cells: number
   restored_formats: number
   sheets: number
+  restored_print_configs?: number
 }
 
 /**
@@ -688,6 +727,11 @@ export interface WorkerWorkbookClient {
    */
   describeCapabilities?(): Promise<WorkerRuntimeCapabilitiesResponseWire | null>
   sheetList(): Promise<WorkbookSheetMeta[]>
+  getPrintConfig?(sheet: number): Promise<PrintConfigSnapshotWire>
+  setPrintConfig?(
+    sheet: number,
+    config: PrintConfigSnapshotWire['config'],
+  ): Promise<PrintConfigSnapshotWire>
   addSheet(name: string): Promise<number>
   renameSheet(sheet: number, name: string): Promise<boolean>
   removeSheet(sheet: number): Promise<boolean>
@@ -1086,6 +1130,12 @@ export function createWorkerWorkbook(opts: WorkerWorkbookOptions): WorkerWorkboo
     sheetList() {
       return request<WorkbookSheetMeta[]>('sheetList')
     },
+    getPrintConfig(sheet) {
+      return request<PrintConfigSnapshotWire>('getPrintConfig', { sheet })
+    },
+    setPrintConfig(sheet, config) {
+      return request<PrintConfigSnapshotWire>('setPrintConfig', { sheet, config })
+    },
     addSheet(name) {
       return request<number>('addSheet', { name })
     },
@@ -1218,10 +1268,8 @@ export function createWorkerWorkbook(opts: WorkerWorkbookOptions): WorkerWorkboo
       return request<number>('restoreFilters', { snapshot })
     },
     beginImport(sessionIdOrOptions, options) {
-      const sessionId =
-        typeof sessionIdOrOptions === 'number' ? sessionIdOrOptions : nextImportId++
-      const importOptions =
-        typeof sessionIdOrOptions === 'number' ? options : sessionIdOrOptions
+      const sessionId = typeof sessionIdOrOptions === 'number' ? sessionIdOrOptions : nextImportId++
+      const importOptions = typeof sessionIdOrOptions === 'number' ? options : sessionIdOrOptions
       return request<number>('beginImport', { sessionId, ...(importOptions ?? {}) })
     },
     importChunk(sessionId, cells) {
@@ -1277,9 +1325,7 @@ export function createWorkerWorkbook(opts: WorkerWorkbookOptions): WorkerWorkboo
         return chunks
       } finally {
         if (!done)
-          await request<boolean>('cancelSnapshot', { sessionId: session.sessionId }).catch(
-            () => {},
-          )
+          await request<boolean>('cancelSnapshot', { sessionId: session.sessionId }).catch(() => {})
       }
     },
     snapshotViewportSizes(range) {

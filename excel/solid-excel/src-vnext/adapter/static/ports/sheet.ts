@@ -49,6 +49,7 @@ export function createSheetPorts(
       beginUndoableMutation(state)
       recordSheetsMetaBefore(state)
       state.sheets = [...state.sheets, createdSheet]
+      state.printConfigs.addSheet(createdSheet.id)
       state.cellsBySheet.set(createdSheet.id, new Map())
       state.cellFormatsBySheetId.set(createdSheet.id, new Map())
       state.rangeFormatsBySheetId.set(createdSheet.id, [])
@@ -110,6 +111,7 @@ export function createSheetPorts(
 
       const nextSheets = state.sheets.filter((sheet) => sheet.id !== request.sheetId)
       state.sheets = reindexSheets(nextSheets)
+      state.printConfigs.removeSheet(request.sheetId)
       state.cellsBySheet.delete(request.sheetId)
       state.cellFormatsBySheetId.delete(request.sheetId)
       state.rangeFormatsBySheetId.delete(request.sheetId)

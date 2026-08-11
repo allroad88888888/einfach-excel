@@ -90,6 +90,7 @@ impl WasmWorkbook {
             tables: self.tables_json(),
             hidden: self.hidden_rows_json(),
             filters: self.filters_json(),
+            print_configs: self.print_configs_json(),
         }
     }
 

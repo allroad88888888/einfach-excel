@@ -12,6 +12,7 @@ import type {
   SpreadsheetSheetMetadata,
   ViewportFreezeConfig,
 } from '@einfach/spreadsheet-ui-core'
+import type { PrintConfigRegistry } from '@einfach/excel-core-ts'
 import type { StateDelta } from './history-delta'
 
 /**
@@ -38,6 +39,8 @@ export interface StaticTableEntry {
 }
 
 export interface StaticBackendState {
+  /** Core-owned print semantics for this static workbook lifetime. */
+  readonly printConfigs: PrintConfigRegistry
   cellsBySheet: Map<string, Map<string, DisplayCell>>
   cellFormatsBySheetId: Map<string, Map<string, SpreadsheetCellFormat>>
   rangeFormatsBySheetId: Map<string, RangeFormatLayer[]>

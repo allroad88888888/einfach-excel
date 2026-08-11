@@ -17,6 +17,7 @@ import { createHistoryPorts } from './ports/history'
 import { createMergePorts } from './ports/merge'
 import { createNamedRangePorts } from './ports/named-range'
 import { createProjectionPorts } from './ports/projection'
+import { createPrintConfigPorts } from './ports/print-config'
 import { createRemoveRowsPorts } from './ports/remove-rows'
 import { createSheetPorts } from './ports/sheet'
 import { createStructurePorts } from './ports/structure'
@@ -38,6 +39,7 @@ export function createStaticSpreadsheetBackend(
   return {
     ...createSheetPorts(state),
     ...createProjectionPorts(state),
+    ...createPrintConfigPorts(state),
     ...createFreezePorts(state),
     ...createCellInputPorts(state),
     ...createStructurePorts(state),

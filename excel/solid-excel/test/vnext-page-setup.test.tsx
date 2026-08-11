@@ -33,8 +33,11 @@ function cloneConfig(config: PrintConfig): PrintConfig {
   return JSON.parse(JSON.stringify(config)) as PrintConfig
 }
 
-function createPrintBackend(rejectWrite = false): PrintBackendHarness {
-  let persisted = cloneConfig(DEFAULT_PRINT_CONFIG)
+function createPrintBackend(
+  rejectWrite = false,
+  initial = DEFAULT_PRINT_CONFIG,
+): PrintBackendHarness {
+  let persisted = cloneConfig(initial)
   const reads: ReadPrintConfigRequest[] = []
   const writes: SetPrintConfigRequest[] = []
   const source = {
@@ -84,6 +87,7 @@ function renderPreview(store = createStore(), backend = createPrintBackend()) {
 describe('vNext page setup dialog', () => {
   it('edits the Atom draft, saves via exact read-back, and restores focus to preview', async () => {
     const { container, backend, store } = renderPreview()
+    await waitFor(() => expect(backend.reads).toHaveLength(1))
     const pageSetupButton = container.querySelector(
       '[data-testid="print-page-setup-button"]',
     ) as HTMLButtonElement
@@ -106,7 +110,7 @@ describe('vNext page setup dialog', () => {
 
     await waitFor(() => expect(store.getter(pageSetupDialogOpenAtom)).toBe(false))
     expect(backend.writes).toHaveLength(1)
-    expect(backend.reads).toHaveLength(1)
+    expect(backend.reads).toHaveLength(2)
     expect(store.getter(printConfigStateAtom)['sheet-1']).toMatchObject({
       orientation: 'landscape',
       scale: { kind: 'percent', percent: 80 },
@@ -118,8 +122,25 @@ describe('vNext page setup dialog', () => {
     expect(document.activeElement).toBe(pageSetupButton)
   })
 
-  it('cancels uncommitted edits with Escape and leaves the preview cache untouched', async () => {
-    const { container, store } = renderPreview()
+  it('hydrates on preview open and active-sheet changes using exact read receipts', async () => {
+    const initial = { ...DEFAULT_PRINT_CONFIG, orientation: 'landscape' as const }
+    const { backend, store } = renderPreview(createStore(), createPrintBackend(false, initial))
+
+    await waitFor(() =>
+      expect(store.getter(printConfigStateAtom)['sheet-1']?.orientation).toBe('landscape'),
+    )
+    expect(backend.reads).toHaveLength(1)
+    expect(backend.reads[0]).toMatchObject({ kind: 'read-print-config', sheetId: 'sheet-1' })
+
+    store.setter(setWorkspaceActiveSheetAtom, { sheetId: 'sheet-2' })
+    await waitFor(() => expect(backend.reads).toHaveLength(2))
+    expect(backend.reads[1]).toMatchObject({ kind: 'read-print-config', sheetId: 'sheet-2' })
+    expect(store.getter(printConfigStateAtom)['sheet-2']?.orientation).toBe('landscape')
+  })
+
+  it('cancels uncommitted edits with Escape and retains the hydrated preview cache', async () => {
+    const { container, backend, store } = renderPreview()
+    await waitFor(() => expect(backend.reads).toHaveLength(1))
     const pageSetupButton = container.querySelector(
       '[data-testid="print-page-setup-button"]',
     ) as HTMLButtonElement
@@ -130,7 +151,7 @@ describe('vNext page setup dialog', () => {
     fireEvent.keyDown(document, { key: 'Escape' })
 
     await waitFor(() => expect(store.getter(pageSetupDialogOpenAtom)).toBe(false))
-    expect(store.getter(printConfigStateAtom)['sheet-1']).toBeUndefined()
+    expect(store.getter(printConfigStateAtom)['sheet-1']).toEqual(DEFAULT_PRINT_CONFIG)
     await Promise.resolve()
     expect(document.activeElement).toBe(pageSetupButton)
   })
@@ -138,6 +159,7 @@ describe('vNext page setup dialog', () => {
   it('blocks closure after an unknown write outcome and retries through read-only reconciliation', async () => {
     const backend = createPrintBackend(true)
     const { container, store } = renderPreview(createStore(), backend)
+    await waitFor(() => expect(backend.reads).toHaveLength(1))
     fireEvent.click(container.querySelector('[data-testid="print-page-setup-button"]')!)
     fireEvent.click(container.querySelector('[data-testid="page-setup-orientation-landscape"]')!)
     fireEvent.click(container.querySelector('[data-testid="page-setup-save-button"]')!)
@@ -151,7 +173,7 @@ describe('vNext page setup dialog', () => {
 
     await waitFor(() => expect(store.getter(pageSetupDialogOpenAtom)).toBe(false))
     expect(backend.writes).toHaveLength(1)
-    expect(backend.reads).toHaveLength(1)
+    expect(backend.reads).toHaveLength(2)
     expect(store.getter(printConfigStateAtom)['sheet-1'].orientation).toBe('landscape')
   })
 

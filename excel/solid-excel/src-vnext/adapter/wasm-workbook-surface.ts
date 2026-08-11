@@ -1,5 +1,5 @@
-import type { AsyncCustomRequest } from './async-custom-pump'
 import type { CellWriteOutcomeWire, FormulaWriteOutcomeWire } from './cell-write-reject'
+import type { WasmWorkbookCustomFormulaRuntime } from './wasm-workbook-custom-formula-surface'
 import type {
   AutoFillReportWire,
   AutoFillRequestWire,
@@ -20,6 +20,7 @@ import type {
   TableJSONWire,
   TableRegistrySnapshotWire,
   WorkbookImportStatsWire,
+  PrintConfigSnapshotWire,
 } from './worker-protocol'
 
 /**
@@ -42,7 +43,9 @@ export type SheetBulkInstallWire = {
   formulas: Array<[string, string]>
 }
 
-export type WasmWorkbookRuntime = {
+export type WasmWorkbookRuntime = WasmWorkbookCoreRuntime & WasmWorkbookCustomFormulaRuntime
+
+type WasmWorkbookCoreRuntime = {
   sheet_count(): number
   sheet_name(idx: number): string
   add_sheet(name: string): number
@@ -252,6 +255,12 @@ export type WasmWorkbookRuntime = {
   restoreHidden?: (snapshot: HiddenRowsSnapshotWire) => number
   snapshotFilters?: () => FilterSnapshotWire
   restoreFilters?: (snapshot: FilterSnapshotWire) => number
+  /** Workbook-owned print setup, keyed by the engine sheet index. */
+  getPrintConfig?: (sheetIdx: number) => PrintConfigSnapshotWire
+  setPrintConfig?: (
+    sheetIdx: number,
+    config: PrintConfigSnapshotWire['config'],
+  ) => PrintConfigSnapshotWire
   snapshot_persistence_v1?: () => WorkbookPersistenceSnapshotWire
   restore_persistence_v1?: (
     snapshot: WorkbookPersistenceSnapshotWire,
@@ -264,36 +273,6 @@ export type WasmWorkbookRuntime = {
   debug_sheet_live_subscription_count?: (sheetIdx: number) => number
   debug_sheet_formula_count?: (sheetIdx: number) => number
   debug_cross_sheet_dependents_count?: () => number
-  /**
-   * Wave 8 — register a synchronous JS callback as a user-defined
-   * formula. The Rust side calls back into JS with a plain `Array` of
-   * arg values and expects a `number | string | boolean | null |
-   * undefined` return. Optional because the WASM crate may not have
-   * landed the bridge yet; the worker runtime stubs gracefully when
-   * missing.
-   *
-   * Method names match agent A's `wasm-bindgen` `js_name` exports:
-   * `registerCustomFormula` / `unregisterCustomFormula`. Register
-   * returns `void`; unregister returns `true` iff an entry was removed.
-   */
-  registerCustomFormula?: (
-    name: string,
-    fn: (args: Array<number | string | boolean | null>) => unknown,
-  ) => void
-  unregisterCustomFormula?: (name: string) => boolean
-  /**
-   * Wave 8.2 — async custom formulas. Registration is name-only (the
-   * callback stays in this worker's map and never crosses into wasm);
-   * the engine memoizes per (name, args), holds cells at #BUSY!, and
-   * queues requests that the pump drains after every command. Optional:
-   * pre-8.2 wasm-pkg builds and test mocks may not expose them — async
-   * registration then degrades to a sync registration of a callback
-   * that returns #VALUE! never (we simply refuse, see
-   * registerCustomFormulaInWorker).
-   */
-  registerCustomFormulaAsync?: (name: string) => void
-  drainAsyncCustomRequests?: () => AsyncCustomRequest[]
-  resolveAsyncCustomCall?: (callId: number, value: unknown) => boolean
 }
 
 /**

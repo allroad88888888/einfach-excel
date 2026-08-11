@@ -49,6 +49,15 @@ impl Workbook {
             &|sheet, addr| sheet.peek_value_with_provider(addr, &provider),
             &mut f,
         );
+        // Same read boundary as `Workbook::get_cell` above. This path is the
+        // viewport projection's read (`WasmWorkbook::read_sparse_range`), and
+        // it EVALUATES the formulas it visits — a whole-column aggregate here
+        // hydrates every cell of its range into `pending`. Without settling,
+        // that debt is inherited by whatever mutates next: the user's first
+        // edit after a bulk import paid a `flush_pending` proportional to the
+        // entire imported sheet (minutes on a 100k-row sheet, and every later
+        // edit was instant because the queue was already drained).
+        self.store.settle_pending_reads();
     }
 
     #[doc(hidden)]

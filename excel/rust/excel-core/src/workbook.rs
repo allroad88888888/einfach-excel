@@ -129,5 +129,8 @@ mod workbook_tests_mutation;
 #[path = "workbook_tests/print_config.rs"]
 mod workbook_tests_print_config;
 #[cfg(test)]
+#[path = "workbook_tests/read_boundary.rs"]
+mod workbook_tests_read_boundary;
+#[cfg(test)]
 #[path = "workbook_tests/topology.rs"]
 mod workbook_tests_topology;

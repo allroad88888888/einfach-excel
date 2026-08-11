@@ -118,6 +118,13 @@
 - Find/Replace 已正确通过本地化标题的 `aria-labelledby` 命名；locale E2E 改为断言实际 accessible name，移除错误要求重复 `aria-label` 的测试契约，未增加状态或第二份文案。
 - 定向 dialog Jest 2/2、宿主 TypeScript、Prettier、diff 检查以及 WASM/TS Playwright 目标用例各 3/3 通过；E2E 目录未纳入 typed ESLint 的 tsconfig，未扩改 lint 配置。文件 98 行。
 
-## 波次复验
+## 独立波次复验
 
-UI-513 与 UI-514 收口后，W3 正在进行第二次独立 lint、类型、Jest 与 Playwright 复验；在该复验完成前，不把全波次标为全绿。
+UI-513 与 UI-514 收口后，独立只读复验确认：根、Core、`spreadsheet-ui-core` 与 `solid-excel` 四组
+TypeScript 均通过；W3 定向 Jest 30 套件/299 测试通过；完整 Jest 299 套件/6,000 测试通过（另有
+1 个 todo）；WASM/TS Playwright 目标集 21 通过、1 个按规格跳过、0 失败。完整 Jest 只有既有 JSDOM
+canvas console 输出，未造成失败或本轮波动。
+
+全仓 `npm run lint:check` 仍报 512 个 error 和 396 个 warning，且均不在 UI-513/UI-514 路径；范围内
+ESLint 为 0 error。故 W3 的功能验收已完成，但不能将整个仓库表述为 lint 全绿；lint 存量须由独立治理
+Issue 接手，避免把无关大范围格式改动混入交互波次。

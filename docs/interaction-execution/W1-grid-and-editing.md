@@ -24,3 +24,11 @@
 | UI-210 Copy As | `model-210-copy-as` | 修复 | `src-vnext/provider/copy-as-dispatch.ts`、`copy-as/**` | IX-001、IX-002 | 文本/富文本与图片路径分别验证；不改 core encoder。 |
 
 每个模型需要给出对应组件或 core 测试，触及真实浏览器 Clipboard、pointer 或焦点时再补 Playwright 路径。
+
+## 已完成
+
+| Issue | Commit | 已验证交付 | 保留边界 |
+| --- | --- | --- | --- |
+| UI-101 首屏与初始焦点 | `2a2522b` | 空选择初始化 A1、root `grid` 语义、`aria-activedescendant`、内部 Tab 与边界 Tab、点击焦点回归。 | 原生浏览器的跨控件 Tab 顺序仍需 E2E；编辑取消后的焦点归位由 UI-201 处理。 |
+| UI-103 鼠标与多区域选择 | `71cc53e` | Shift/Ctrl+Shift 扩展、pointer 拖选和合并单元格锚点保持同一 selection Atom 事实。 | 矩形中间穿越但端点均未命中的独立合并区域，需额外的可枚举 merge-range seam。 |
+| UI-205 复制、剪切与普通粘贴 | `1e8b657` | rich MIME、HTML-only 表格粘贴、`writeText` 与 textarea fallback；状态仍由既有 clipboard Atom 拥有。 | Context menu 的旧直连 Clipboard 路径待其自身 Issue 迁移；真实浏览器权限/手势路径需 E2E。 |

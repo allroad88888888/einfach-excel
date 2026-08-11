@@ -34,4 +34,7 @@
 | IX-006     | 基础契约完成 | Atom 状态可被映射为 loading/error/retry feedback；retry 仍由原 command 回调拥有。                                           | 尚未接入具体业务页面，UI-506、UI-508 负责迁移。                                               |
 
 根侧复验：相关 Jest **13 suites / 190 tests** 通过，且
-`npx tsc --noEmit -p excel/solid-excel/tsconfig.json` 与 `git diff --check` 通过。未暂存或提交。
+`npx tsc --noEmit -p excel/solid-excel/tsconfig.json` 与 `git diff --check` 通过，并已按 Issue 独立提交。
+
+对应独立提交：IX-001 `8c63284`；IX-002 `5f9122b`；IX-003 `b09b5fa`；IX-004 `fa25a2d`；
+IX-005 `03ab50e`；IX-006 `222c913`。

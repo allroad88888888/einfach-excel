@@ -28,6 +28,7 @@
 
 ## 已完成：UI-301 工作表标签
 
+- Commit：`aa1c97c`。
 - 原 424 行入口已按职责拆为装配（95 行）、单项 Tab、覆盖层、DOM 焦点注册和交互控制器；本次新/改文件均不超过 300 行。
 - 已通过 roving tabindex、Arrow/Home/End、Ctrl/Cmd+PageUp/PageDown、F2 重命名、键盘右键菜单、Escape 焦点归还，以及 pointer cancel/卸载清理的组件路径。
 - 产品状态仍由 `workspaceSessionAtom`、`sheetTabsAtom`、`sheetTabsSheetsAtom` 与既有 command/intent atom 持有；新 controller 只持有 DOM ref 和暂时的 pointer listener。

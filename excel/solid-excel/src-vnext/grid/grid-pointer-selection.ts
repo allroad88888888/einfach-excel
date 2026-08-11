@@ -1,10 +1,12 @@
 import {
+  cancelPointerAtom,
   commitPointerAtom,
   startPointerAtom,
   updatePointerAtom,
   type CellCoord,
 } from '@einfach/spreadsheet-ui-core'
 import type { GridContextMenuApi } from './grid-context-menu'
+import { startGridDragSelectionPointerSession } from './grid-drag-selection-pointer-session'
 import {
   getFormulaReferenceFocusTarget,
   restoreFormulaReferenceFocus,
@@ -33,7 +35,14 @@ export function installGridPointerSelection(runtime: GridPointerSelectionRuntime
   }
 
   function startDragSelection(event: PointerEvent, row: number, col: number) {
-    if (event.button !== 0 || event.shiftKey || event.ctrlKey || event.metaKey) return
+    if (
+      event.isPrimary === false ||
+      event.button !== 0 ||
+      event.shiftKey ||
+      event.ctrlKey ||
+      event.metaKey
+    )
+      return
     event.preventDefault()
     dom.cancelDragSelection()
     dom.cancelFill()
@@ -50,40 +59,33 @@ export function installGridPointerSelection(runtime: GridPointerSelectionRuntime
     })
     focusGrid()
     let lastFocusHit = anchorHit
-    const onPointerMove = (moveEvent: PointerEvent) => {
-      const focusHit = getCellCoordFromPoint(moveEvent)
-      if (!focusHit || (focusHit.row === lastFocusHit.row && focusHit.col === lastFocusHit.col))
-        return
-      lastFocusHit = focusHit
-      const selection = runtime.selectCellSpan(anchorHit, focusHit)
-      if (
-        selection.anchor.row !== pointerAnchor.row ||
-        selection.anchor.col !== pointerAnchor.col
-      ) {
-        pointerAnchor = selection.anchor
-        store.setter(startPointerAtom, {
-          kind: 'drag-selection',
-          sheetId: props.sheetId,
-          anchor: pointerAnchor,
-          focus: selection.focus,
-          source: 'pointer',
-        })
-        return
-      }
-      store.setter(updatePointerAtom, { kind: 'drag-selection', focus: selection.focus })
-    }
-    const onPointerUp = () => {
-      store.setter(commitPointerAtom)
-      cleanup()
-    }
-    const cleanup = () => {
-      window.removeEventListener('pointermove', onPointerMove)
-      window.removeEventListener('pointerup', onPointerUp)
-      dom.setCancelDragSelection(() => undefined)
-    }
-    window.addEventListener('pointermove', onPointerMove)
-    window.addEventListener('pointerup', onPointerUp, { once: true })
-    dom.setCancelDragSelection(cleanup)
+    startGridDragSelectionPointerSession(event, {
+      move: (moveEvent) => {
+        const focusHit = getCellCoordFromPoint(moveEvent)
+        if (!focusHit || (focusHit.row === lastFocusHit.row && focusHit.col === lastFocusHit.col))
+          return
+        lastFocusHit = focusHit
+        const selection = runtime.selectCellSpan(anchorHit, focusHit)
+        if (
+          selection.anchor.row !== pointerAnchor.row ||
+          selection.anchor.col !== pointerAnchor.col
+        ) {
+          pointerAnchor = selection.anchor
+          store.setter(startPointerAtom, {
+            kind: 'drag-selection',
+            sheetId: props.sheetId,
+            anchor: pointerAnchor,
+            focus: selection.focus,
+            source: 'pointer',
+          })
+          return
+        }
+        store.setter(updatePointerAtom, { kind: 'drag-selection', focus: selection.focus })
+      },
+      commit: () => store.setter(commitPointerAtom),
+      cancel: () => store.setter(cancelPointerAtom),
+      setCancel: dom.setCancelDragSelection,
+    })
   }
 
   return installGridFeature(runtime, { startFormulaReferenceDragPick, startDragSelection })

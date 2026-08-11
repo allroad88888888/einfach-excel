@@ -1,6 +1,7 @@
 /** @jsxImportSource solid-js */
 
 import { onCleanup } from 'solid-js'
+import type { Store } from '@einfach/core'
 import { useAtomValue } from '@einfach/solid'
 import {
   applyFormatPainterAtom,
@@ -16,27 +17,34 @@ import {
   type CellRange,
   type SpreadsheetBackend,
 } from '@einfach/spreadsheet-ui-core'
-import {
-  refreshVisibleProjection,
-  useSpreadsheetBackend,
-  useSpreadsheetUiStore,
-} from '../provider'
+import { refreshVisibleProjection, useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider'
 
 export interface SpreadsheetFormatPainterProps {
   'data-testid'?: string
 }
 
+interface MountedFormatPainterHost {
+  mountCount: number
+  dispose(): void
+}
+
+const mountedHosts = new WeakMap<Store, MountedFormatPainterHost>()
+
 /**
- * Thin Solid host for the Core-owned format-painter state machine.
+ * Attach one provider-scoped host to the Core-owned format-painter state
+ * machine. A workbook can render several grids (and keep the old explicit
+ * host in place) without duplicating the mutation subscription.
  *
- * Solid observes authority witnesses and supplies frozen backend/projection
- * ports. Session identity, source/target suppression, tickets, pending/error
- * state, acknowledgement validation, and the attempt ledger all remain in
- * @einfach/spreadsheet-ui-core.
+ * This owns host resources only: backend ports plus window/listener cleanup.
+ * Session identity, source/target suppression, tickets, pending/error state,
+ * acknowledgement validation, and the attempt ledger stay in UI-core atoms.
  */
-export function SpreadsheetFormatPainter(props: SpreadsheetFormatPainterProps) {
-  const store = useSpreadsheetUiStore()
-  const backend = useSpreadsheetBackend()
+function retainFormatPainterHost(store: Store, backend: SpreadsheetBackend): () => void {
+  const mounted = mountedHosts.get(store)
+  if (mounted) {
+    mounted.mountCount += 1
+    return () => releaseFormatPainterHost(store, mounted)
+  }
 
   // Capture the provider surface exactly once. All later mutation and refresh
   // calls use these receiver-preserving Core snapshots, never a live re-read.
@@ -84,22 +92,6 @@ export function SpreadsheetFormatPainter(props: SpreadsheetFormatPainterProps) {
     store.setter(syncFormatPainterContextAtom)
   })
 
-  function findGridRoots(): HTMLElement[] {
-    if (typeof document === 'undefined') return []
-    return Array.from(document.querySelectorAll<HTMLElement>('.spreadsheet-grid'))
-  }
-
-  function syncCursor(): void {
-    const state = store.getter(formatPainterStateAtom)
-    for (const root of findGridRoots()) {
-      if (state === 'idle') root.removeAttribute('data-format-painter-active')
-      else root.setAttribute('data-format-painter-active', state)
-    }
-  }
-
-  const unsubscribeCursor = store.sub(formatPainterStateAtom, syncCursor)
-  syncCursor()
-
   function handleKeyDown(event: KeyboardEvent): void {
     if (event.key === 'Escape' && store.getter(formatPainterStateAtom) !== 'idle') {
       store.setter(exitFormatPainterAtom)
@@ -108,14 +100,40 @@ export function SpreadsheetFormatPainter(props: SpreadsheetFormatPainterProps) {
 
   if (typeof window !== 'undefined') window.addEventListener('keydown', handleKeyDown)
 
-  onCleanup(() => {
-    if (typeof window !== 'undefined') window.removeEventListener('keydown', handleKeyDown)
-    unsubscribeSelection()
-    unsubscribePending()
-    unsubscribeWorkspace()
-    unsubscribeCursor()
-    for (const root of findGridRoots()) root.removeAttribute('data-format-painter-active')
-  })
+  const host: MountedFormatPainterHost = {
+    mountCount: 1,
+    dispose: () => {
+      if (typeof window !== 'undefined') window.removeEventListener('keydown', handleKeyDown)
+      unsubscribeSelection()
+      unsubscribePending()
+      unsubscribeWorkspace()
+    },
+  }
+  mountedHosts.set(store, host)
+  return () => releaseFormatPainterHost(store, host)
+}
+
+function releaseFormatPainterHost(store: Store, host: MountedFormatPainterHost): void {
+  if (mountedHosts.get(store) !== host) return
+  host.mountCount -= 1
+  if (host.mountCount > 0) return
+  mountedHosts.delete(store)
+  host.dispose()
+}
+
+/**
+ * Thin Solid mount for the Core-owned format-painter state machine.
+ *
+ * `SpreadsheetGrid` now mounts this automatically. Keeping the public host
+ * makes older compositions safe while the provider-scoped lease prevents a
+ * second grid from adding duplicate mutation listeners.
+ */
+export function SpreadsheetFormatPainter(props: SpreadsheetFormatPainterProps) {
+  const store = useSpreadsheetUiStore()
+  const backend = useSpreadsheetBackend()
+  const releaseHost = retainFormatPainterHost(store, backend)
+
+  onCleanup(releaseHost)
 
   const painterStateSignal = useAtomValue(formatPainterStateAtom)
 

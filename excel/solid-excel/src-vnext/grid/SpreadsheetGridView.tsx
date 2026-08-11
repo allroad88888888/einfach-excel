@@ -3,6 +3,7 @@ import { selectCellAtom } from '@einfach/spreadsheet-ui-core'
 import { reportCommandFailure } from '../provider'
 import { syncGridActiveDescendant } from './focus-grid-active-descendant'
 import { shouldLeaveGridOnTab } from './focus-grid-tab-boundary'
+import { SpreadsheetGridFormatPainterCursor } from './SpreadsheetGridFormatPainterCursor'
 import { SpreadsheetGridOverlay } from './SpreadsheetGridOverlay'
 import { SpreadsheetGridOverlaySvg } from './SpreadsheetGridOverlaySvg'
 import { SpreadsheetGridTable } from './SpreadsheetGridTable'
@@ -66,7 +67,9 @@ export function SpreadsheetGridView(props: { runtime: GridRuntime }) {
   return (
     <div
       ref={runtime.dom.setGridRoot}
-      class={`spreadsheet-grid ${gridProps.class ?? ''} ${showGridlines() ? '' : 'spreadsheet-grid--no-gridlines'} ${showHeadings() ? '' : 'spreadsheet-grid--no-headings'}`.replace(/\s+/g, ' ').trim()}
+      class={`spreadsheet-grid ${gridProps.class ?? ''} ${showGridlines() ? '' : 'spreadsheet-grid--no-gridlines'} ${showHeadings() ? '' : 'spreadsheet-grid--no-headings'}`
+        .replace(/\s+/g, ' ')
+        .trim()}
       data-show-gridlines={showGridlines() ? 'true' : 'false'}
       data-show-headings={showHeadings() ? 'true' : 'false'}
       data-testid={gridProps['data-testid'] ?? 'spreadsheet-grid'}
@@ -90,13 +93,41 @@ export function SpreadsheetGridView(props: { runtime: GridRuntime }) {
         void handleGridKeyDown(event).catch((error: unknown) => reportCommandFailure(store, error))
       }}
     >
-      <div ref={runtime.dom.setScrollRoot} class="spreadsheet-grid-scroll-viewport" style={getScrollViewportStyle()} onScroll={handleViewportScroll}>
+      <SpreadsheetGridFormatPainterCursor gridRoot={runtime.dom.gridRoot} />
+      <div
+        ref={runtime.dom.setScrollRoot}
+        class="spreadsheet-grid-scroll-viewport"
+        style={getScrollViewportStyle()}
+        onScroll={handleViewportScroll}
+      >
         <SpreadsheetGridTable runtime={runtime} />
       </div>
       <Show when={freezeRowCount() > 0 || freezeColCount() > 0}>
-        <svg class="spreadsheet-grid-freeze-boundary" aria-hidden="true" data-testid="freeze-boundary" width="100%" height="100%">
-          <Show when={freezeRowCount() > 0}><line data-testid="freeze-boundary-horizontal" x1={0} x2="100%" y1={getFreezeBoundaryY()} y2={getFreezeBoundaryY()} /></Show>
-          <Show when={freezeColCount() > 0}><line data-testid="freeze-boundary-vertical" x1={getFreezeBoundaryX()} x2={getFreezeBoundaryX()} y1={0} y2="100%" /></Show>
+        <svg
+          class="spreadsheet-grid-freeze-boundary"
+          aria-hidden="true"
+          data-testid="freeze-boundary"
+          width="100%"
+          height="100%"
+        >
+          <Show when={freezeRowCount() > 0}>
+            <line
+              data-testid="freeze-boundary-horizontal"
+              x1={0}
+              x2="100%"
+              y1={getFreezeBoundaryY()}
+              y2={getFreezeBoundaryY()}
+            />
+          </Show>
+          <Show when={freezeColCount() > 0}>
+            <line
+              data-testid="freeze-boundary-vertical"
+              x1={getFreezeBoundaryX()}
+              x2={getFreezeBoundaryX()}
+              y1={0}
+              y2="100%"
+            />
+          </Show>
         </svg>
       </Show>
       <div class="spreadsheet-grid-overlay-layer" aria-hidden="true">
@@ -126,7 +157,13 @@ export function SpreadsheetGridView(props: { runtime: GridRuntime }) {
         </Show>
       </div>
       <For each={getRemoteCursorsForSheet()}>
-        {(cursor) => <div class="spreadsheet-remote-cursor" data-testid={`remote-cursor-${cursor.participantId}`} style={getRemoteCursorStyle(cursor)} />}
+        {(cursor) => (
+          <div
+            class="spreadsheet-remote-cursor"
+            data-testid={`remote-cursor-${cursor.participantId}`}
+            style={getRemoteCursorStyle(cursor)}
+          />
+        )}
       </For>
     </div>
   )

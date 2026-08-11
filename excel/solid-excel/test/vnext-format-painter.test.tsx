@@ -632,36 +632,4 @@ describe('SpreadsheetToolbar format painter button', () => {
     expect(store.getter(formatPainterStateAtom)).toBe('idle')
     expect(store.getter(formatPainterClipboardAtom)).toBeNull()
   })
-
-  it('mirrors painter state onto .spreadsheet-grid via data-format-painter-active', () => {
-    const store = createStore()
-    const { backend } = createRecordingBackend()
-    primeStoreWithProjection(store)
-
-    // Inject a fake grid root so the painter has something to mark.
-    const grid = document.createElement('div')
-    grid.className = 'spreadsheet-grid'
-    document.body.appendChild(grid)
-
-    try {
-      render(() => (
-        <SpreadsheetUiProvider backend={backend} store={store}>
-          <SpreadsheetFormatPainter />
-        </SpreadsheetUiProvider>
-      ))
-
-      expect(grid.hasAttribute('data-format-painter-active')).toBe(false)
-
-      store.setter(armFormatPainterAtom, { format: richFormat() })
-      expect(grid.getAttribute('data-format-painter-active')).toBe('armed')
-
-      store.setter(exitFormatPainterAtom)
-      expect(grid.hasAttribute('data-format-painter-active')).toBe(false)
-
-      store.setter(armFormatPainterStickyAtom, { format: richFormat() })
-      expect(grid.getAttribute('data-format-painter-active')).toBe('sticky')
-    } finally {
-      grid.remove()
-    }
-  })
 })

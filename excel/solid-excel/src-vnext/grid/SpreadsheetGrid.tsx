@@ -7,6 +7,7 @@ import {
   viewportMetricsAtom,
   type ViewportMetrics,
 } from '@einfach/spreadsheet-ui-core'
+import { SpreadsheetFormatPainter } from '../format-painter'
 import { useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider'
 import { SpreadsheetGridView } from './SpreadsheetGridView'
 import { installGridAutoFitController } from './grid-auto-fit-controller'
@@ -99,5 +100,10 @@ export function SpreadsheetGrid(props: SpreadsheetGridProps) {
   installGridOverlayController(runtime)
   installGridLifecycle(runtime)
 
-  return <SpreadsheetGridView runtime={runtime} />
+  return (
+    <>
+      <SpreadsheetFormatPainter />
+      <SpreadsheetGridView runtime={runtime} />
+    </>
+  )
 }

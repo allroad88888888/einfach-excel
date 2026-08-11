@@ -43,3 +43,24 @@
 - Commit：`5645202`。
 - 打印预览补齐模态语义、初始焦点、Tab 循环、Escape/焦点归还和明确的浏览器 `window.print()` 动作；开关与打印配置仍消费既有 print Atom，DOM helper 不保存产品状态。
 - 27 项 print Core/宿主回归、范围内 ESLint、Prettier 与 diff 检查通过，所有本次文件不超过 300 行。`pageSetupDialogOpenAtom` 目前没有已挂载的页面设置编辑器，故该按钮只安全写入现有状态；页面设置 UI 需独立 Issue 实现。
+
+### UI-502 协作 Presence
+
+- Commit：`a9456a1`。
+- Core 只接受已 join 且 Sheet 与选区一致的远端 cursor；覆盖层默认投影 `workspaceSessionAtom.activeSheetId`，并以 `aria-hidden` 保持纯视觉装饰不干扰读屏。
+- 24 项 Core/宿主定向回归、Core TypeScript、范围内 ESLint、Prettier 与 diff 检查通过，改动均不超过 300 行。
+- Provider 的实际订阅/解绑不在 Presence presenter 重造，已经由 UI-507 接管；Chrome 没有 canonical 几何 resolver、grid marker 没有身份标签，留给拥有接线范围的后续 Issue。
+
+### UI-506 状态栏、通知和诊断
+
+- Commit：`c25f699`。
+- 新增 `dismissDiagnosticAtom`，按对象身份只关闭一条诊断，避免相同 ID 的多条记录被误清；反馈表面接受调用方持有的 lifecycle dismiss 回调，retry 仍由调用方持有。
+- 36 项诊断/反馈/状态栏定向回归、Core 构建和宿主 TypeScript、范围内 ESLint、Prettier 与 diff 检查通过，所有本次文件不超过 300 行。
+- 当前没有 Provider 或功能入口挂载诊断/反馈组件；该全局可见性装配必须由拥有入口的后续 Issue 负责，不能让状态栏冒充隐式 toast。
+
+### UI-507 初始化、切换和能力呈现
+
+- Commit：`6122d5d`。
+- `SpreadsheetBackend` 运行时句柄移出 Atom，改由 Provider Context 的稳定转发端口承载；Atom 只持有工作簿 session、`idle/initializing/ready/failed` 生命周期、错误和九项 primitive capability 投影。
+- Provider 统一处理 initial/post-ready capability capture、旧异步结果代际守卫、Presence subscribe/rebind/unmount cleanup；不伪造本地 selection 到远端 Presence 的发布协议。
+- 38 项 Provider 回归、宿主 TypeScript、范围内 ESLint、Prettier 与 diff 检查通过。原 538 行 provider 测试迁出 backend-port 场景后为 474 行，仍是存量混合测试的独立拆分债务；六处功能叶子的重复 capability capture 已列入 provider README，留待拥有这些 feature 的迁移批次。

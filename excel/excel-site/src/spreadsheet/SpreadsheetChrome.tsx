@@ -22,6 +22,7 @@ import {
   SpreadsheetStatusBar,
   SpreadsheetToolbar,
   SpreadsheetUiProvider,
+  SpreadsheetWorkbookFeedbackHost,
   useSpreadsheetUiStore,
 } from '@einfach/solid-excel/vnext'
 import type { ChromeConfig } from './chrome-types'
@@ -91,6 +92,12 @@ function ChromeBody(props: { chrome: Required<ChromeConfig>; children?: JSX.Elem
       <Show when={props.chrome.formulaBarRow}>
         <SpreadsheetFormulaBar />
       </Show>
+
+      {/* Unconditional: this is the site's only channel for "your edit did not
+          land" and workbook-load failures. Every demo here runs a real backend
+          (worker/WASM or in-memory), and a demo that silently swallows a failed
+          commit is worse than one that admits it. */}
+      <SpreadsheetWorkbookFeedbackHost />
 
       <div class="spreadsheet-chrome-body">{props.children}</div>
 

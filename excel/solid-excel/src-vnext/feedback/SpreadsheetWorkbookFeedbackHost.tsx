@@ -1,5 +1,6 @@
 import { SpreadsheetDiagnostics } from '../diagnostics'
 import { SpreadsheetWorkbookRecovery } from '../recovery'
+import { SpreadsheetEditingCommitFeedback } from './SpreadsheetEditingCommitFeedback'
 
 export interface SpreadsheetWorkbookFeedbackHostProps {
   class?: string
@@ -20,6 +21,7 @@ export function SpreadsheetWorkbookFeedbackHost(props: SpreadsheetWorkbookFeedba
       data-testid={testId()}
     >
       <SpreadsheetWorkbookRecovery data-testid={`${testId()}-recovery`} />
+      <SpreadsheetEditingCommitFeedback data-testid={`${testId()}-editing-commit`} />
       <SpreadsheetDiagnostics class="spreadsheet-workbook-feedback-host-diagnostics" />
     </div>
   )

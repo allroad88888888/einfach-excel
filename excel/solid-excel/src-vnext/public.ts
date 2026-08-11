@@ -32,3 +32,10 @@ export * from './named-ranges'
 export * from './presence'
 export * from './print'
 export * from './protection'
+
+// Feedback surfaces. These were reachable only by deep-importing
+// `src-vnext/feedback`, so an out-of-package host (excel-site) could not mount
+// the workbook feedback host at all — which is why a stalled editing commit
+// showed the user nothing there.
+export * from './feedback'
+export * from './recovery'

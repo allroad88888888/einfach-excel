@@ -5,6 +5,7 @@ import { useAtomValue } from '@einfach/solid'
 import {
   presenceStateAtom,
   remoteCursorsAtom,
+  workspaceSessionAtom,
   type Participant,
   type RemoteCursor,
 } from '@einfach/spreadsheet-ui-core'
@@ -15,7 +16,11 @@ export interface SpreadsheetPresenceOverlayProps {
   /** Optional cell coordinate resolver. Hosts wire this to a real layout function;
    *  the overlay falls back to a placeholder when omitted so the overlay still
    *  renders for tests and demos. */
-  resolveCellPosition?: (sheetId: string, row: number, col: number) => {
+  resolveCellPosition?: (
+    sheetId: string,
+    row: number,
+    col: number,
+  ) => {
     left: number
     top: number
     width: number
@@ -70,6 +75,7 @@ function anchorFromSelection(cursor: RemoteCursor): ResolvedAnchor {
 export function SpreadsheetPresenceOverlay(props: SpreadsheetPresenceOverlayProps) {
   const cursors = useAtomValue(remoteCursorsAtom)
   const state = useAtomValue(presenceStateAtom)
+  const workspace = useAtomValue(workspaceSessionAtom)
 
   function participantFor(participantId: string): Participant | undefined {
     return state().participants.find((p) => p.id === participantId)
@@ -77,7 +83,7 @@ export function SpreadsheetPresenceOverlay(props: SpreadsheetPresenceOverlayProp
 
   function visibleCursors(): RemoteCursor[] {
     const list = cursors()
-    const activeId = props.activeSheetId
+    const activeId = props.activeSheetId ?? workspace().activeSheetId
     if (!activeId) return list
     return list.filter((c) => c.sheetId === activeId)
   }
@@ -106,6 +112,7 @@ export function SpreadsheetPresenceOverlay(props: SpreadsheetPresenceOverlayProp
     <div
       class={`spreadsheet-presence-overlay ${props.class ?? ''}`.trim()}
       data-testid={props['data-testid'] ?? 'presence-overlay'}
+      aria-hidden="true"
       style={{ position: 'absolute', inset: '0', 'pointer-events': 'none' }}
     >
       <For each={visibleCursors()}>

@@ -73,3 +73,4 @@
     - UI-513 Grid ARIA 行列语义与 Axe 结构
     - UI-514 Find/Replace locale 对话框语义契约
     - UI-515 全局诊断与恢复反馈入口
+    - UI-516 页面设置编辑与打印预览衔接

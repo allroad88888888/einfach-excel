@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { Show, createEffect, onCleanup } from 'solid-js'
+import { Show } from 'solid-js'
 import { useAtomValue } from '@einfach/solid'
 import { useT } from '../../src/i18n'
 import {
@@ -24,6 +24,7 @@ import {
   type PasteSpecialOp,
 } from '@einfach/spreadsheet-ui-core'
 import { refreshVisibleProjection, useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider'
+import { useOverlayInteraction } from '../overlay'
 
 // Pull in the dialog stylesheet as a side-effect import. Vite picks the
 // dynamic-import target up statically and bundles the CSS into the chunk;
@@ -64,26 +65,14 @@ export function SpreadsheetPasteSpecialDialog(props: SpreadsheetPasteSpecialDial
   const canClose = useAtomValue(pasteSpecialCanCloseAtom)
   const canConfirm = useAtomValue(pasteSpecialCanConfirmAtom)
   const supportedKinds = useAtomValue(pasteSpecialSupportedKindsAtom)
+  let closeButton: HTMLButtonElement | undefined
 
-  // Reset-on-open is owned by `openPasteSpecialAtom` (a write-only
-  // command atom that flips open + writes defaults in a single setter).
-  // We deliberately avoid mirroring that reset in a `createEffect<bool>`
-  // wasOpen → open edge detector here: under Solid 1.9.12 the provider
-  // re-mount hazard causes the consumer body to re-execute on unrelated
-  // atom mutations, and the createEffect would re-fire with stale prev
-  // state, wiping user selections mid-interaction. Keeping the reset
-  // store-side (single source of truth) is the canonical workaround,
-  // per CLAUDE.md "Known limitation: solid-js 1.9.12 Provider interaction".
-  createEffect(() => {
-    if (!isOpen()) return
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
-        event.stopPropagation()
-        if (canClose()) store.setter(closePasteSpecialAtom)
-      }
-    }
-    document.addEventListener('keydown', onKeyDown)
-    onCleanup(() => document.removeEventListener('keydown', onKeyDown))
+  const overlay = useOverlayInteraction({
+    active: isOpen,
+    initialFocus: () => (closeButton?.disabled ? undefined : closeButton),
+    onRequestClose: () => {
+      if (canClose()) store.setter(closePasteSpecialAtom)
+    },
   })
 
   async function handleConfirm() {
@@ -115,10 +104,12 @@ export function SpreadsheetPasteSpecialDialog(props: SpreadsheetPasteSpecialDial
   return (
     <Show when={isOpen()}>
       <div
+        ref={overlay.overlayRef}
         class={`paste-special-dialog ${props.class ?? ''}`.trim()}
         data-testid={props['data-testid'] ?? 'paste-special-dialog'}
         data-lifecycle={lifecycle().status}
         role="dialog"
+        aria-modal="true"
         aria-label={t('pasteSpecial.title')}
         aria-busy={
           lifecycle().status === 'pending' ||
@@ -130,6 +121,9 @@ export function SpreadsheetPasteSpecialDialog(props: SpreadsheetPasteSpecialDial
           <span class="ps-title">{t('pasteSpecial.title')}</span>
           <button
             type="button"
+            ref={(element) => {
+              closeButton = element
+            }}
             class="dialog-close-x"
             data-testid="paste-special-close-x"
             aria-label={t('pasteSpecial.cancel')}

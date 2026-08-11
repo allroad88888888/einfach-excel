@@ -40,6 +40,11 @@ export function ToolbarOverlays(props: ToolbarGroupProps) {
       <FillColorPopover
         open={surface.activeColorMode() !== null}
         mode={surface.activeColorMode()}
+        currentColor={
+          surface.activeColorMode() === 'fill'
+            ? runtime.activeCellFormat().bgColor
+            : runtime.activeCellFormat().fgColor
+        }
         anchorRect={surface.anchorRect}
         onPick={runtime.handleColorPick}
         onRequestClose={surface.closeSurface}

@@ -3,6 +3,7 @@
 import { For, Show, createEffect, onCleanup } from 'solid-js'
 import type { JSX } from 'solid-js'
 import { anchoredMenuStyle } from './anchored-menu-style'
+import { focusCurrentFontMenuItem, handleFontMenuNavigation } from './FontMenuInteraction'
 
 /**
  * Font sizes (in px) offered by the toolbar font-size dropdown. The toolbar
@@ -30,6 +31,15 @@ export function FontSizeDropdown(props: FontSizeDropdownProps): JSX.Element {
   createEffect(() => {
     if (!props.open) return
 
+    queueMicrotask(() => {
+      if (rootRef && props.open) focusCurrentFontMenuItem(rootRef)
+    })
+
+    function closeAndRestoreFocus() {
+      props.onClose()
+      props.anchorEl?.focus()
+    }
+
     function onDocPointerDown(event: MouseEvent) {
       if (!rootRef) return
       const target = event.target as Node | null
@@ -42,7 +52,7 @@ export function FontSizeDropdown(props: FontSizeDropdownProps): JSX.Element {
       if (event.key === 'Escape') {
         event.preventDefault()
         event.stopPropagation()
-        props.onClose()
+        closeAndRestoreFocus()
       }
     }
 
@@ -77,19 +87,21 @@ export function FontSizeDropdown(props: FontSizeDropdownProps): JSX.Element {
         data-testid="toolbar-font-size-dropdown"
         role="menu"
         style={style()}
+        onKeyDown={(event) => handleFontMenuNavigation(event, rootRef!)}
       >
         <For each={FONT_SIZE_OPTIONS}>
           {(size) => {
-            const isActive = size === props.current
+            const isActive = () => size === props.current
             return (
               <button
                 type="button"
                 class={`spreadsheet-toolbar-font-size-option ${
-                  isActive ? 'fmt-btn-active' : ''
+                  isActive() ? 'fmt-btn-active' : ''
                 }`.trim()}
                 data-testid={`toolbar-font-size-item-${size}`}
                 data-font-size={String(size)}
-                role="menuitem"
+                role="menuitemradio"
+                aria-checked={isActive()}
                 style={{
                   // `<button>` defaults to `inline-block`, which made the 11
                   // size rows collapse onto a single horizontal line — only
@@ -99,12 +111,15 @@ export function FontSizeDropdown(props: FontSizeDropdownProps): JSX.Element {
                   width: '100%',
                   padding: '4px 12px',
                   'text-align': 'left',
-                  background: isActive ? '#f0f0f0' : 'transparent',
+                  background: isActive() ? '#f0f0f0' : 'transparent',
                   border: 'none',
                   cursor: 'pointer',
                   font: 'inherit',
                 }}
-                onClick={() => props.onSelect(size)}
+                onClick={() => {
+                  props.onSelect(size)
+                  props.anchorEl?.focus()
+                }}
               >
                 {size}
               </button>

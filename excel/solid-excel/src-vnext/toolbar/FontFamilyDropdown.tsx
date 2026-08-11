@@ -3,6 +3,7 @@
 import { For, Show, createEffect, onCleanup } from 'solid-js'
 import type { JSX } from 'solid-js'
 import { anchoredMenuStyle } from './anchored-menu-style'
+import { focusCurrentFontMenuItem, handleFontMenuNavigation } from './FontMenuInteraction'
 
 /**
  * Catalog of font families offered by the toolbar font-family dropdown.
@@ -43,6 +44,15 @@ export function FontFamilyDropdown(props: FontFamilyDropdownProps): JSX.Element 
   createEffect(() => {
     if (!props.open) return
 
+    queueMicrotask(() => {
+      if (rootRef && props.open) focusCurrentFontMenuItem(rootRef)
+    })
+
+    function closeAndRestoreFocus() {
+      props.onClose()
+      props.anchorEl?.focus()
+    }
+
     function onDocPointerDown(event: MouseEvent) {
       if (!rootRef) return
       const target = event.target as Node | null
@@ -55,7 +65,7 @@ export function FontFamilyDropdown(props: FontFamilyDropdownProps): JSX.Element 
       if (event.key === 'Escape') {
         event.preventDefault()
         event.stopPropagation()
-        props.onClose()
+        closeAndRestoreFocus()
       }
     }
 
@@ -90,19 +100,21 @@ export function FontFamilyDropdown(props: FontFamilyDropdownProps): JSX.Element 
         data-testid="toolbar-font-family-dropdown"
         role="menu"
         style={style()}
+        onKeyDown={(event) => handleFontMenuNavigation(event, rootRef!)}
       >
         <For each={FONT_FAMILY_OPTIONS}>
           {(family) => {
-            const isActive = family === props.current
+            const isActive = () => family === props.current
             return (
               <button
                 type="button"
                 class={`spreadsheet-toolbar-font-family-option ${
-                  isActive ? 'fmt-btn-active' : ''
+                  isActive() ? 'fmt-btn-active' : ''
                 }`.trim()}
                 data-testid={`toolbar-font-family-item-${family}`}
                 data-font-family={family}
-                role="menuitem"
+                role="menuitemradio"
+                aria-checked={isActive()}
                 style={{
                   // Force block so the family rows stack vertically; default
                   // <button> display:inline-block collapsed them onto one line.
@@ -110,13 +122,16 @@ export function FontFamilyDropdown(props: FontFamilyDropdownProps): JSX.Element 
                   width: '100%',
                   padding: '4px 12px',
                   'text-align': 'left',
-                  background: isActive ? '#f0f0f0' : 'transparent',
+                  background: isActive() ? '#f0f0f0' : 'transparent',
                   border: 'none',
                   cursor: 'pointer',
                   font: 'inherit',
                   'font-family': family,
                 }}
-                onClick={() => props.onSelect(family)}
+                onClick={() => {
+                  props.onSelect(family)
+                  props.anchorEl?.focus()
+                }}
               >
                 {family}
               </button>

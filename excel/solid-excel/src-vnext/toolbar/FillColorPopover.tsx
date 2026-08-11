@@ -1,6 +1,7 @@
 import { For, Show, createEffect, createSignal, onCleanup } from 'solid-js'
 import type { JSX } from 'solid-js'
 import { anchoredMenuStyle } from './anchored-menu-style'
+import { focusCurrentColor, handleColorPopoverNavigation } from './FillColorPopoverFocus'
 
 import { useT } from '../../src/i18n'
 
@@ -40,6 +41,8 @@ interface FillColorPopoverProps {
   readonly open: boolean
   /** Core-derived active palette mode. */
   readonly mode: ColorPopoverMode | null
+  /** Current Core-derived color; undefined means automatic/no fill. */
+  readonly currentColor?: string
   /**
    * Bounding rect of the anchor button so the popover can position itself just
    * beneath it. We re-read this each time the popover opens.
@@ -62,10 +65,23 @@ export function FillColorPopover(props: FillColorPopoverProps) {
     if (!isOpen()) return
     setHoverHex(null)
 
+    queueMicrotask(() => {
+      if (containerRef && isOpen()) focusCurrentColor(containerRef)
+    })
+
+    function restoreAnchorFocus(mode: ColorPopoverMode) {
+      const testId = mode === 'fill' ? 'toolbar-btn-fill-color' : 'toolbar-btn-text-color'
+      document.querySelector<HTMLButtonElement>(`[data-testid="${testId}"]`)?.focus()
+    }
+
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
+        const mode = props.mode
+        if (!mode) return
+        event.preventDefault()
         event.stopPropagation()
         props.onRequestClose()
+        restoreAnchorFocus(mode)
       }
     }
 
@@ -101,8 +117,14 @@ export function FillColorPopover(props: FillColorPopoverProps) {
   }
 
   function handlePick(hex: string) {
+    const mode = props.mode
+    if (!mode) return
     props.onPick(hex)
+    const testId = mode === 'fill' ? 'toolbar-btn-fill-color' : 'toolbar-btn-text-color'
+    document.querySelector<HTMLButtonElement>(`[data-testid="${testId}"]`)?.focus()
   }
+
+  const normalizedCurrentColor = () => props.currentColor?.toLowerCase() ?? ''
 
   return (
     <Show when={isOpen()}>
@@ -114,15 +136,20 @@ export function FillColorPopover(props: FillColorPopoverProps) {
         data-testid="toolbar-color-popover"
         data-mode={props.mode ?? ''}
         role="dialog"
+        aria-modal="false"
         aria-label={
           props.mode === 'fill' ? t('toolbar.fillColor.title') : t('toolbar.textColor.title')
         }
         style={positionStyle()}
+        onKeyDown={(event) => handleColorPopoverNavigation(event, containerRef!)}
       >
         <button
           type="button"
           class="spreadsheet-color-popover-no-fill"
           data-testid="color-popover-no-fill"
+          data-color-option="true"
+          data-selected={normalizedCurrentColor() === ''}
+          aria-pressed={normalizedCurrentColor() === ''}
           onClick={() => handlePick('')}
           onMouseEnter={() => setHoverHex('')}
           onMouseLeave={() => setHoverHex(null)}
@@ -185,8 +212,11 @@ export function FillColorPopover(props: FillColorPopoverProps) {
                       role="gridcell"
                       data-testid={`color-popover-swatch-${hex}`}
                       data-color={hex}
+                      data-color-option="true"
+                      data-selected={normalizedCurrentColor() === hex}
                       title={hex}
                       aria-label={hex}
+                      aria-selected={normalizedCurrentColor() === hex}
                       style={{ 'background-color': hex }}
                       onClick={() => handlePick(hex)}
                       onMouseEnter={() => setHoverHex(hex)}

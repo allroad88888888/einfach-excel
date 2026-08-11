@@ -385,7 +385,15 @@ describe('TS worker runtime — structured UNSUPPORTED instead of success-shaped
         },
       }),
     )
-    expect(stats).toEqual({ restored_cells: 2, restored_formats: 0, sheets: 1 })
+    // `restored_print_configs` is a real count, not a success-shaped fake: the
+    // TS runtime validates and restores print configs (worker-runtime-ts-print-
+    // config.ts), and this snapshot simply carries none.
+    expect(stats).toEqual({
+      restored_cells: 2,
+      restored_formats: 0,
+      restored_print_configs: 0,
+      sheets: 1,
+    })
 
     // Previously the restore wiped the registry, so B1 read back #NAME?.
     const cells = expectOk(

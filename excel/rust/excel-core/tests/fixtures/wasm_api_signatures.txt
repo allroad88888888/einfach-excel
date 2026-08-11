@@ -84,6 +84,8 @@ impl WasmWorkbook :: [#[wasm_bindgen(js_name = "trySetFormulaAt")]] :: pub fn tr
 impl WasmWorkbook :: [#[wasm_bindgen(js_name = "undefineName")]] :: pub fn undefine_name(&mut self, name: &str) -> bool
 impl WasmWorkbook :: [#[wasm_bindgen(js_name = "unhideRows")]] :: pub fn unhide_rows(&mut self, sheet_idx: u32, rows: Vec<u32>) -> bool
 impl WasmWorkbook :: [#[wasm_bindgen(js_name = "unregisterCustomFormula")]] :: pub fn unregister_custom_formula(&mut self, name: &str) -> bool
+impl WasmWorkbook :: [#[wasm_bindgen(js_name = getPrintConfig)]] :: pub fn get_print_config(&self, sheet: u32) -> Result<JsValue, JsValue>
+impl WasmWorkbook :: [#[wasm_bindgen(js_name = setPrintConfig)]] :: pub fn set_print_config(&mut self, sheet: u32, config: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn add_sheet(&mut self, name: &str) -> u32
 impl WasmWorkbook :: [] :: pub fn apply_auto_fill(&mut self, payload: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn bulk_import_cells(&mut self, cells: JsValue) -> Result<JsValue, JsValue>

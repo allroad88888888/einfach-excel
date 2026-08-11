@@ -104,6 +104,46 @@ describe('SpreadsheetGoToDialog', () => {
     expect(container.querySelector('[data-testid="go-to-dialog"]')).toBeNull()
   })
 
+  it('focuses the address field, exposes a modal dialog, and restores the opener on Escape', async () => {
+    const store = createStore()
+    bootstrap(store)
+    const backend = createBaseBackend()
+    const { container } = render(() => (
+      <>
+        <button type="button" data-testid="go-to-dialog-opener">
+          Open go to
+        </button>
+        <SpreadsheetUiProvider backend={backend} store={store}>
+          <SpreadsheetGoToDialog />
+        </SpreadsheetUiProvider>
+      </>
+    ))
+    const opener = container.querySelector('[data-testid="go-to-dialog-opener"]') as HTMLButtonElement
+    opener.focus()
+
+    store.setter(openGoToAtom)
+
+    const input = await waitFor(() => {
+      const element = container.querySelector('[data-testid="go-to-input"]') as HTMLInputElement
+      expect(element).not.toBeNull()
+      expect(document.activeElement).toBe(element)
+      return element
+    })
+    const dialog = container.querySelector('[data-testid="go-to-dialog"]')
+    expect(dialog?.getAttribute('aria-modal')).toBe('true')
+    expect(dialog?.getAttribute('aria-labelledby')).toBe('go-to-dialog-title')
+    expect(input.closest('[role="tabpanel"]')?.getAttribute('aria-labelledby')).toBe(
+      'go-to-tab-simple',
+    )
+
+    fireEvent.keyDown(document, { key: 'Escape' })
+
+    await waitFor(() => {
+      expect(store.getter(goToOpenAtom)).toBe(false)
+      expect(document.activeElement).toBe(opener)
+    })
+  })
+
   it('open + Enter on A1 routes selection to A1', async () => {
     const store = createStore()
     bootstrap(store)

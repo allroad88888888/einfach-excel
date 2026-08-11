@@ -194,6 +194,45 @@ describe('SpreadsheetFindReplaceDialog', () => {
     expect(els.status).not.toBeNull()
   })
 
+  it('focuses the find field, exposes a modal dialog, and restores the opener on Escape', async () => {
+    const store = createStore()
+    const backend = createBaseBackend()
+    const { container } = render(() => (
+      <>
+        <button type="button" data-testid="find-dialog-opener">
+          Open find
+        </button>
+        <SpreadsheetUiProvider backend={backend} store={store}>
+          <SpreadsheetFindReplaceDialog />
+        </SpreadsheetUiProvider>
+      </>
+    ))
+    const opener = container.querySelector('[data-testid="find-dialog-opener"]') as HTMLButtonElement
+    opener.focus()
+
+    store.setter(openFindReplaceAtom)
+
+    const needle = await waitFor(() => {
+      const element = getEls(container).needle
+      expect(element).not.toBeNull()
+      expect(document.activeElement).toBe(element)
+      return element!
+    })
+    const dialog = getEls(container).dialog
+    expect(dialog?.getAttribute('aria-modal')).toBe('true')
+    expect(dialog?.getAttribute('aria-labelledby')).toBe('find-replace-dialog-title')
+    expect(needle.closest('[role="tabpanel"]')?.getAttribute('aria-labelledby')).toBe(
+      'find-replace-tab-find',
+    )
+
+    fireEvent.keyDown(document, { key: 'Escape' })
+
+    await waitFor(() => {
+      expect(store.getter(findReplaceOpenAtom)).toBe(false)
+      expect(document.activeElement).toBe(opener)
+    })
+  })
+
   it('keeps Find enabled and explicitly disables Replace with a search-only backend', async () => {
     const store = createStore()
     store.setter(openFindReplaceAtom)

@@ -1,37 +1,13 @@
-import { For, Show, createEffect, createMemo, onCleanup } from 'solid-js'
-import { useAtomValue } from '@einfach/solid'
-import { useT } from '../../src/i18n'
+import { For, Show } from 'solid-js'
+import type { GoToValueKindFilter } from '@einfach/spreadsheet-ui-core'
+import { useGoToDialogController } from './go-to-dialog-controller'
 import {
-  closeGoToAtom,
-  confirmGoToAtom,
-  goToErrorAtom,
-  goToErrorMessageAtom,
-  goToErrorParamsAtom,
-  goToHistoryAtom,
-  goToInputAtom,
-  goToLocatorAtom,
-  goToModeAtom,
-  goToOpenAtom,
-  goToSpecialCapabilityAtom,
-  goToSpecialPendingAtom,
-  goToSpecialWarningAtom,
-  nameRegistryCacheAtom,
-  parseGoToReference,
-  runGoToSpecialScanAtom,
-  selectionSnapshotAtom,
-  setGoToErrorDetailsAtom,
-  setGoToInputAtom,
-  setGoToLocatorAtom,
-  setGoToModeAtom,
-  setGoToSpecialCapabilityAtom,
-  setWorkspaceActiveSheetAtom,
-  sheetTabsSheetsAtom,
-  workspaceSessionAtom,
-  type GoToLocator,
-  type GoToLocatorKind,
-  type GoToValueKindFilter,
-} from '@einfach/spreadsheet-ui-core'
-import { useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider/hooks'
+  isLocatorDisabled,
+  locatorKindOf,
+  locatorValueKind,
+  LOCATOR_KIND_ORDER,
+  VALUE_KIND_FILTERS,
+} from './go-to-dialog-locators'
 import './go-to-dialog.css'
 
 export interface SpreadsheetGoToDialogProps {
@@ -39,280 +15,134 @@ export interface SpreadsheetGoToDialogProps {
   'data-testid'?: string
 }
 
-const LOCATOR_KIND_ORDER: readonly GoToLocatorKind[] = [
-  'formulas',
-  'constants',
-  'blanks',
-  'comments',
-  'conditional-format',
-  'data-validation',
-  'last-cell',
-  'current-region',
-  'visible-cells-only',
-  'row-differences',
-  'column-differences',
-  'precedents',
-  'dependents',
-]
-
-const VALUE_KIND_FILTERS: readonly { value: GoToValueKindFilter; label: string }[] = [
-  { value: null, label: 'goTo.subtype.any' },
-  { value: 'number', label: 'goTo.subtype.number' },
-  { value: 'text', label: 'goTo.subtype.text' },
-  { value: 'logical', label: 'goTo.subtype.logical' },
-  { value: 'error', label: 'goTo.subtype.error' },
-]
-
-function locatorKindOf(locator: GoToLocator): GoToLocatorKind {
-  return locator.kind
-}
-
-function locatorValueKind(locator: GoToLocator): GoToValueKindFilter {
-  if (locator.kind === 'formulas' || locator.kind === 'constants') {
-    return locator.valueKind
-  }
-  return null
-}
-
-function makeLocator(kind: GoToLocatorKind, valueKind: GoToValueKindFilter): GoToLocator {
-  if (kind === 'formulas' || kind === 'constants') {
-    return { kind, valueKind }
-  }
-  return { kind } as GoToLocator
+function tabId(mode: 'simple' | 'special'): string {
+  return `go-to-tab-${mode}`
 }
 
 export function SpreadsheetGoToDialog(props: SpreadsheetGoToDialogProps) {
-  const t = useT()
-  const store = useSpreadsheetUiStore()
-  const backend = useSpreadsheetBackend()
+  const controller = useGoToDialogController()
 
-  const isOpen = useAtomValue(goToOpenAtom)
-  const mode = useAtomValue(goToModeAtom)
-  const inputValue = useAtomValue(goToInputAtom)
-  const locator = useAtomValue(goToLocatorAtom)
-  const history = useAtomValue(goToHistoryAtom)
-  const errorCode = useAtomValue(goToErrorAtom)
-  const errorParams = useAtomValue(goToErrorParamsAtom)
-  const errorMessage = useAtomValue(goToErrorMessageAtom)
-  const specialCapability = useAtomValue(goToSpecialCapabilityAtom)
-  const specialPending = useAtomValue(goToSpecialPendingAtom)
-  const specialWarning = useAtomValue(goToSpecialWarningAtom)
-
-  let inputRef: HTMLInputElement | undefined
-
-  // Core owns open-session reset; the adapter only projects the DOM focus edge.
-  createEffect<boolean>((wasOpen) => {
-    const open = isOpen()
-    if (open && !wasOpen) {
-      queueMicrotask(() => inputRef?.focus())
-    }
-    return open
-  }, false)
-
-  // Capture only the host capability; execution and lifecycle remain in Core.
-  createEffect(() => {
-    store.setter(
-      setGoToSpecialCapabilityAtom,
-      typeof backend.readRangeProjection === 'function' ? 'available' : 'unavailable',
-    )
-  })
-
-  // Esc closes.
-  createEffect(() => {
-    if (!isOpen()) return
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
-        event.stopPropagation()
-        store.setter(closeGoToAtom)
-      }
-    }
-    document.addEventListener('keydown', onKeyDown)
-    onCleanup(() => document.removeEventListener('keydown', onKeyDown))
-  })
-
-  const errorText = createMemo(() => {
-    const message = errorMessage()
-    if (message) return message
-    const code = errorCode()
-    if (!code) return ''
-    const params = errorParams() ?? {}
-    return t(code, params)
-  })
-
-  function setMode(next: 'simple' | 'special') {
-    store.setter(setGoToModeAtom, next)
-  }
-
-  function setLocatorKind(kind: GoToLocatorKind) {
-    store.setter(setGoToLocatorAtom, makeLocator(kind, locatorValueKind(locator())))
-  }
-
-  function setLocatorSubKind(valueKind: GoToValueKindFilter) {
-    store.setter(setGoToLocatorAtom, makeLocator(locatorKindOf(locator()), valueKind))
-  }
-
-  function reportParseError(reason: 'invalid-address' | 'unknown-name' | 'empty', raw: string) {
-    const code =
-      reason === 'empty'
-        ? 'goTo.error.empty'
-        : reason === 'unknown-name'
-          ? 'goTo.error.unknownName'
-          : 'goTo.error.invalidAddress'
-    store.setter(setGoToErrorDetailsAtom, {
-      code,
-      params: { input: raw },
-      message: null,
+  function onTabKeyDown(event: KeyboardEvent) {
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
+    event.preventDefault()
+    const next = controller.mode() === 'simple' ? 'special' : 'simple'
+    controller.setMode(next)
+    const currentTab = event.currentTarget as HTMLButtonElement | null
+    queueMicrotask(() => {
+      const tab = currentTab?.parentElement?.querySelector<HTMLButtonElement>(
+        `[data-go-to-tab="${next}"]`,
+      )
+      tab?.focus()
     })
-  }
-
-  function runSimpleConfirm() {
-    if (specialPending()) return
-    const raw = inputValue().trim()
-    if (raw.length === 0) {
-      reportParseError('empty', raw)
-      return
-    }
-    const sheets = store.getter(sheetTabsSheetsAtom)
-    const snap = store.getter(selectionSnapshotAtom)
-    const activeSheetId =
-      snap.selection.sheetId ||
-      store.getter(workspaceSessionAtom).activeSheetId ||
-      sheets[0]?.id ||
-      ''
-    const registry = store.getter(nameRegistryCacheAtom)
-    const parsed = parseGoToReference(raw, {
-      activeSheetId,
-      sheets,
-      registry,
-      activeCell: snap.activeCell,
-    })
-    if (!parsed.ok) {
-      reportParseError(parsed.reason, raw)
-      return
-    }
-    // If the resolved sheet differs from the current active, switch first
-    // so the selection commit lands on the right sheet.
-    if (parsed.target.sheetId && parsed.target.sheetId !== activeSheetId) {
-      store.setter(setWorkspaceActiveSheetAtom, { sheetId: parsed.target.sheetId })
-    }
-    store.setter(confirmGoToAtom, {
-      kind: 'simple-target',
-      target: parsed.target,
-      historyEntry: raw,
-    })
-  }
-
-  function runSpecialConfirm() {
-    if (specialPending() || specialCapability() === 'unavailable') return
-    void store.setter(runGoToSpecialScanAtom, { port: backend })
-  }
-
-  function onConfirm() {
-    if (mode() === 'simple') {
-      runSimpleConfirm()
-    } else {
-      runSpecialConfirm()
-    }
-  }
-
-  function onHistoryClick(entry: string) {
-    store.setter(setGoToInputAtom, entry)
-    queueMicrotask(() => inputRef?.focus())
-  }
-
-  function isLocatorDisabled(kind: GoToLocatorKind): boolean {
-    return kind === 'precedents' || kind === 'dependents'
   }
 
   return (
-    <Show when={isOpen()}>
+    <Show when={controller.isOpen()}>
       <div
         class={`go-to-dialog ${props.class ?? ''}`.trim()}
         data-testid={props['data-testid'] ?? 'go-to-dialog'}
-        data-active-tab={mode()}
-        data-special-capability={specialCapability()}
-        data-special-pending={String(specialPending())}
-        data-special-warning={specialWarning()?.reason ?? 'none'}
+        data-active-tab={controller.mode()}
+        data-special-capability={controller.specialCapability()}
+        data-special-pending={String(controller.specialPending())}
+        data-special-warning={controller.specialWarning()?.reason ?? 'none'}
         role="dialog"
-        aria-label={t('goTo.title')}
+        aria-modal="true"
+        aria-labelledby="go-to-dialog-title"
       >
         <div class="gt-header">
-          <span class="gt-title">{t('goTo.title')}</span>
+          <span id="go-to-dialog-title" class="gt-title">
+            {controller.t('goTo.title')}
+          </span>
           <button
             type="button"
             class="dialog-close-x"
             data-testid="dialog-close-x"
-            aria-label={t('dialog.close.label')}
-            onClick={() => store.setter(closeGoToAtom)}
+            aria-label={controller.t('dialog.close.label')}
+            onClick={controller.close}
           >
             ×
           </button>
         </div>
 
-        <div class="gt-tabs" role="tablist">
+        <div class="gt-tabs" role="tablist" aria-label={controller.t('goTo.title')}>
           <button
+            id={tabId('simple')}
             type="button"
             class="gt-tab"
             role="tab"
-            aria-selected={mode() === 'simple'}
+            aria-selected={controller.mode() === 'simple'}
+            aria-controls="go-to-simple-pane"
+            tabindex={controller.mode() === 'simple' ? 0 : -1}
             data-testid="go-to-tab-simple"
-            disabled={specialPending()}
-            onClick={() => setMode('simple')}
+            data-go-to-tab="simple"
+            disabled={controller.specialPending()}
+            onClick={() => controller.setMode('simple')}
+            onKeyDown={onTabKeyDown}
           >
-            {t('goTo.simple')}
+            {controller.t('goTo.simple')}
           </button>
           <button
+            id={tabId('special')}
             type="button"
             class="gt-tab"
             role="tab"
-            aria-selected={mode() === 'special'}
+            aria-selected={controller.mode() === 'special'}
+            aria-controls="go-to-special-pane"
+            tabindex={controller.mode() === 'special' ? 0 : -1}
             data-testid="go-to-tab-special"
-            disabled={specialPending()}
-            onClick={() => setMode('special')}
+            data-go-to-tab="special"
+            disabled={controller.specialPending()}
+            onClick={() => controller.setMode('special')}
+            onKeyDown={onTabKeyDown}
           >
-            {t('goTo.special')}
+            {controller.t('goTo.special')}
           </button>
         </div>
 
-        <Show when={mode() === 'simple'}>
-          <div class="gt-body gt-body-simple" data-testid="go-to-simple-pane">
+        <Show when={controller.mode() === 'simple'}>
+          <div
+            id="go-to-simple-pane"
+            class="gt-body gt-body-simple"
+            data-testid="go-to-simple-pane"
+            role="tabpanel"
+            aria-labelledby={tabId('simple')}
+          >
             <label class="gt-field">
-              <span class="gt-field-label">{t('goTo.input.label')}</span>
+              <span class="gt-field-label">{controller.t('goTo.input.label')}</span>
               <input
-                ref={inputRef}
+                ref={controller.setInputRef}
                 type="text"
                 class="gt-input"
                 data-testid="go-to-input"
-                value={inputValue()}
-                placeholder={t('goTo.input.placeholder')}
-                onInput={(e) => store.setter(setGoToInputAtom, e.currentTarget.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault()
-                    onConfirm()
-                  }
+                value={controller.inputValue()}
+                placeholder={controller.t('goTo.input.placeholder')}
+                onInput={(event) => controller.setInput(event.currentTarget.value)}
+                onKeyDown={(event) => {
+                  if (event.key !== 'Enter') return
+                  event.preventDefault()
+                  controller.onConfirm()
                 }}
               />
             </label>
             <div class="gt-history">
-              <div class="gt-history-label">{t('goTo.history.label')}</div>
+              <div class="gt-history-label">{controller.t('goTo.history.label')}</div>
               <Show
-                when={history().length > 0}
+                when={controller.history().length > 0}
                 fallback={
                   <div class="gt-history-empty" data-testid="go-to-history-empty">
-                    {t('goTo.history.empty')}
+                    {controller.t('goTo.history.empty')}
                   </div>
                 }
               >
                 <ul class="gt-history-list" data-testid="go-to-history-list">
-                  <For each={history()}>
+                  <For each={controller.history()}>
                     {(entry) => (
                       <li>
                         <button
                           type="button"
                           class="gt-history-item"
                           data-testid="go-to-history-item"
-                          onClick={() => onHistoryClick(entry)}
+                          onClick={() => controller.onHistoryClick(entry)}
                         >
                           {entry}
                         </button>
@@ -325,10 +155,16 @@ export function SpreadsheetGoToDialog(props: SpreadsheetGoToDialogProps) {
           </div>
         </Show>
 
-        <Show when={mode() === 'special'}>
-          <div class="gt-body gt-body-special" data-testid="go-to-special-pane">
-            <fieldset class="gt-locator-group" disabled={specialPending()}>
-              <legend class="gt-field-label">{t('goTo.special')}</legend>
+        <Show when={controller.mode() === 'special'}>
+          <div
+            id="go-to-special-pane"
+            class="gt-body gt-body-special"
+            data-testid="go-to-special-pane"
+            role="tabpanel"
+            aria-labelledby={tabId('special')}
+          >
+            <fieldset class="gt-locator-group" disabled={controller.specialPending()}>
+              <legend class="gt-field-label">{controller.t('goTo.special')}</legend>
               <For each={LOCATOR_KIND_ORDER}>
                 {(kind) => {
                   const disabled = isLocatorDisabled(kind)
@@ -336,7 +172,9 @@ export function SpreadsheetGoToDialog(props: SpreadsheetGoToDialogProps) {
                   return (
                     <label
                       class={`gt-radio${disabled ? ' gt-radio-disabled' : ''}`}
-                      title={disabled ? t('goTo.locator.disabled.dependencyGraph') : undefined}
+                      title={
+                        disabled ? controller.t('goTo.locator.disabled.dependencyGraph') : undefined
+                      }
                     >
                       <input
                         type="radio"
@@ -344,10 +182,10 @@ export function SpreadsheetGoToDialog(props: SpreadsheetGoToDialogProps) {
                         value={kind}
                         data-testid={id}
                         disabled={disabled}
-                        checked={locatorKindOf(locator()) === kind}
-                        onChange={() => setLocatorKind(kind)}
+                        checked={locatorKindOf(controller.locator()) === kind}
+                        onChange={() => controller.setLocatorKind(kind)}
                       />
-                      {t(`goTo.locator.${kind}`)}
+                      {controller.t(`goTo.locator.${kind}`)}
                     </label>
                   )
                 }}
@@ -356,36 +194,43 @@ export function SpreadsheetGoToDialog(props: SpreadsheetGoToDialogProps) {
 
             <Show
               when={
-                locatorKindOf(locator()) === 'formulas' || locatorKindOf(locator()) === 'constants'
+                locatorKindOf(controller.locator()) === 'formulas' ||
+                locatorKindOf(controller.locator()) === 'constants'
               }
             >
               <label class="gt-subtype">
-                <span class="gt-field-label">{t('goTo.subtype.label')}</span>
+                <span class="gt-field-label">{controller.t('goTo.subtype.label')}</span>
                 <select
                   class="gt-select"
                   data-testid="go-to-subtype-select"
-                  disabled={specialPending()}
-                  value={String(locatorValueKind(locator()) ?? '')}
-                  onChange={(e) => {
-                    const value = e.currentTarget.value
-                    setLocatorSubKind(value === '' ? null : (value as GoToValueKindFilter))
+                  disabled={controller.specialPending()}
+                  value={String(locatorValueKind(controller.locator()) ?? '')}
+                  onChange={(event) => {
+                    const value = event.currentTarget.value
+                    controller.setLocatorSubKind(
+                      value === '' ? null : (value as GoToValueKindFilter),
+                    )
                   }}
                 >
                   <For each={VALUE_KIND_FILTERS}>
-                    {(opt) => <option value={String(opt.value ?? '')}>{t(opt.label)}</option>}
+                    {(option) => (
+                      <option value={String(option.value ?? '')}>
+                        {controller.t(option.label)}
+                      </option>
+                    )}
                   </For>
                 </select>
               </label>
             </Show>
 
-            <Show when={specialWarning()} keyed>
+            <Show when={controller.specialWarning()} keyed>
               {(warning) => (
                 <div class="gt-truncated" data-testid="go-to-truncated">
                   <Show
                     when={warning.reason === 'regions'}
-                    fallback={t('goTo.truncated.cells', { limit: warning.limit })}
+                    fallback={controller.t('goTo.truncated.cells', { limit: warning.limit })}
                   >
-                    {t('goTo.truncated.regions', { limit: warning.limit })}
+                    {controller.t('goTo.truncated.regions', { limit: warning.limit })}
                   </Show>
                 </div>
               )}
@@ -393,9 +238,9 @@ export function SpreadsheetGoToDialog(props: SpreadsheetGoToDialogProps) {
           </div>
         </Show>
 
-        <Show when={errorText()}>
+        <Show when={controller.errorText()}>
           <div class="gt-error" data-testid="go-to-error-text" role="alert">
-            {errorText()}
+            {controller.errorText()}
           </div>
         </Show>
 
@@ -404,20 +249,21 @@ export function SpreadsheetGoToDialog(props: SpreadsheetGoToDialogProps) {
             type="button"
             class="gt-btn"
             data-testid="go-to-cancel-button"
-            onClick={() => store.setter(closeGoToAtom)}
+            onClick={controller.close}
           >
-            {t('goTo.cancel')}
+            {controller.t('goTo.cancel')}
           </button>
           <button
             type="button"
             class="gt-btn gt-btn-primary"
             data-testid="go-to-confirm-button"
             disabled={
-              specialPending() || (mode() === 'special' && specialCapability() === 'unavailable')
+              controller.specialPending() ||
+              (controller.mode() === 'special' && controller.specialCapability() === 'unavailable')
             }
-            onClick={onConfirm}
+            onClick={controller.onConfirm}
           >
-            {t('goTo.confirm')}
+            {controller.t('goTo.confirm')}
           </button>
         </div>
       </div>

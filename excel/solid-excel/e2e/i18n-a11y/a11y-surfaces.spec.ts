@@ -11,7 +11,7 @@ import { cellDisplay, gotoRoot, typeIntoCell, withEnglishLocale } from '../helpe
  * and fails on any `critical` or `serious` violation. `moderate` / `minor`
  * findings are reported in the failure message but do not fail the run — see
  * `docs/archive/online-excel-parity/A11Y_BASELINE.md` for the baseline numbers and the
- * rationale behind every entry in `KNOWN_ISSUES` below.
+ * rationale behind any future entry in `KNOWN_ISSUES` below.
  *
  * Deliberate non-goals:
  *   - No `disableRules()` anywhere. Suppressing a rule hides every current AND
@@ -37,23 +37,7 @@ const BLOCKING = new Set(['critical', 'serious'])
  * (rule id, exact node target) so it can never mask a different element or a
  * different rule. Every entry must name the tracking follow-up.
  */
-const KNOWN_ISSUES: Array<{ rule: string; target: string; why: string }> = [
-  {
-    rule: 'aria-required-children',
-    target: '.sheet-tabs',
-    // TODO(a11y-1): the sheet-tab strip carries `role="tablist"`, but it also
-    // renders a per-tab drag-reorder grip (`button[aria-label="Move <sheet>"]`)
-    // and a trailing `button[aria-label="Add sheet"]`. ARIA allows a tablist to
-    // own nothing but `tab`, so both are illegal children. Fixing it properly
-    // means either folding the reorder grip into the tab button (pointer-drag
-    // on the tab itself, as Excel does) or hoisting the grips and the add
-    // button out of the tablist subtree. Both are behavioural changes that
-    // touch `sheet-tab-reorder-*` in 3 e2e specs plus a unit test, so it is out
-    // of scope for the slice that introduced this gate.
-    // Reproduced by the `test.fixme` at the bottom of this file.
-    why: 'sheet-tab reorder grip + add-sheet button live inside role="tablist"',
-  },
-]
+const KNOWN_ISSUES: Array<{ rule: string; target: string; why: string }> = []
 
 type Surface = { name: string; open: (page: Page) => Promise<void>; wasmOnly?: boolean }
 
@@ -218,19 +202,17 @@ test.describe('a11y — vNext surfaces (WCAG 2.1 AA)', () => {
   }
 })
 
-test.describe('a11y — known defects', () => {
-  // TODO(a11y-1): un-fixme once the sheet-tab strip stops nesting non-tab
-  // controls inside `role="tablist"`. See KNOWN_ISSUES above for the two
-  // candidate fixes and why neither landed with this slice.
-  test.fixme('sheet-tab strip: role="tablist" owns non-tab buttons', async ({ page }) => {
+test.describe('a11y — sheet tabs', () => {
+  test('sheet-tab strip: tablist owns only tabs', async ({ page }) => {
     await gotoWorkerDemo(page)
     const results = await new AxeBuilder({ page })
       .withTags(WCAG_TAGS)
       .include('.sheet-tabs')
       .analyze()
+    const [firstViolation] = results.violations
     expect(
       results.violations,
-      describe(results.violations[0] ?? ({} as Result)).join('\n'),
+      firstViolation === undefined ? '' : describe(firstViolation).join('\n'),
     ).toEqual([])
   })
 })

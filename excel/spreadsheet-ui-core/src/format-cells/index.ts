@@ -7,9 +7,11 @@ import type {
   RunFormatCellsSaveInput,
 } from './types'
 import { createFormatCellsSaveController } from './number-format-dialog'
+import { detectFormatCellsNumberCategory, formatCellsPreviewText } from './preview'
 
 export * from './types'
 export * from './number-format-dialog'
+export * from './preview'
 
 /** Deep clone a draft so mutations to the editor don't bleed into the seed. */
 function cloneDraft(seed: FormatCellsDraft | undefined | null): FormatCellsDraft {
@@ -34,6 +36,9 @@ const formatCellsSessionSequenceAtom = atom(0)
 export const formatCellsEditorAtom = atom((get) => get(formatCellsEditorSourceAtom))
 formatCellsEditorAtom.debugLabel = 'spreadsheet.formatCells.editor'
 
+export const formatCellsDialogOpenAtom = atom((get) => get(formatCellsEditorAtom).status === 'open')
+formatCellsDialogOpenAtom.debugLabel = 'spreadsheet.formatCells.isOpen'
+
 /**
  * Derived: the current active tab id. Reads `formatCellsEditorAtom`; falls
  * back to `'number'` when the dialog is closed so consumers can read freely
@@ -54,6 +59,22 @@ export const formatCellsDraftAtom = atom<FormatCellsDraft | null>((get) => {
   return state.status === 'open' ? state.draft : null
 })
 formatCellsDraftAtom.debugLabel = 'spreadsheet.formatCells.draft'
+
+export const formatCellsNumberCategoryAtom = atom((get) =>
+  detectFormatCellsNumberCategory(get(formatCellsDraftAtom)),
+)
+formatCellsNumberCategoryAtom.debugLabel = 'spreadsheet.formatCells.numberCategory'
+
+export const formatCellsPreviewTextAtom = atom((get) =>
+  formatCellsPreviewText(get(formatCellsDraftAtom)),
+)
+formatCellsPreviewTextAtom.debugLabel = 'spreadsheet.formatCells.previewText'
+
+export const formatCellsCanSubmitAtom = atom((get) => {
+  const state = get(formatCellsEditorAtom)
+  return state.status === 'open' && !state.pending && state.phase !== 'outcome-unknown-blocked'
+})
+formatCellsCanSubmitAtom.debugLabel = 'spreadsheet.formatCells.canSubmit'
 
 // --- Command atoms ---
 

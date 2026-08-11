@@ -1,0 +1,154 @@
+/* Format Cells domain panels: Number category picker and Border controls. */
+
+.format-cells-dialog .format-cells-section[data-testid='format-cells-number'] {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  grid-template-rows: auto 1fr;
+  column-gap: 18px;
+  row-gap: 12px;
+  align-items: start;
+}
+
+.format-cells-dialog .format-cells-category-list {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  border: 1px solid var(--border, #d4d4d4);
+  border-radius: 4px;
+  background: #ffffff;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.format-cells-dialog .format-cells-category-list li {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.format-cells-dialog .format-cells-category-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-default, #1a1a1a);
+  line-height: 1.4;
+  user-select: none;
+  position: relative;
+}
+
+.format-cells-dialog .format-cells-category-row:hover {
+  background: var(--hover, #e8e8e8);
+}
+
+.format-cells-dialog .format-cells-category-row:has(input[type='radio']:disabled) {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.format-cells-dialog .format-cells-category-row:has(input[type='radio']:disabled):hover {
+  background: transparent;
+}
+
+.format-cells-dialog .format-cells-category-row input[type='radio'] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  appearance: none;
+  cursor: pointer;
+}
+
+.format-cells-dialog .format-cells-category-row:has(input[type='radio']:checked) {
+  background: rgba(0, 120, 212, 0.12);
+  color: var(--office-blue-text, #0067b8);
+  font-weight: 600;
+}
+
+.format-cells-dialog .format-cells-category-row:has(input[type='radio']:focus-visible) {
+  outline: 2px solid var(--office-blue, #0078d4);
+  outline-offset: -2px;
+}
+
+.format-cells-dialog .format-cells-coming-soon {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-muted, #6a6a6a);
+  padding: 1px 6px;
+  border: 1px solid var(--border, #d4d4d4);
+  border-radius: 8px;
+  background: var(--bg-chrome-light, #fafafa);
+}
+
+.format-cells-dialog .format-cells-preview {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 48px;
+  padding: 10px 14px;
+  border: 1px solid var(--border, #d4d4d4);
+  border-radius: 4px;
+  background: var(--bg-chrome-light, #fafafa);
+  font-size: 14px;
+  color: var(--text-default, #1a1a1a);
+  font-variant-numeric: tabular-nums;
+}
+
+.format-cells-dialog .format-cells-section[data-testid='format-cells-number'] > .format-cells-row {
+  grid-column: 2;
+  grid-row: 2;
+  align-self: start;
+}
+
+.format-cells-dialog .format-cells-side,
+.format-cells-dialog .format-cells-side-active,
+.format-cells-dialog
+  .format-cells-section[data-testid='format-cells-border']
+  > .format-cells-row
+  > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  padding: 0 10px;
+  border: 1px solid var(--border, #d4d4d4);
+  border-radius: 3px;
+  background: #ffffff;
+  color: var(--text-default, #1a1a1a);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.format-cells-dialog .format-cells-side:hover,
+.format-cells-dialog
+  .format-cells-section[data-testid='format-cells-border']
+  > .format-cells-row
+  > button:hover {
+  background: var(--hover, #e8e8e8);
+}
+
+.format-cells-dialog .format-cells-side-active {
+  background: rgba(0, 120, 212, 0.12);
+  border-color: var(--office-blue, #0078d4);
+  color: var(--office-blue, #0078d4);
+}
+
+.format-cells-dialog .format-cells-border-preview {
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 12px 20px;
+  display: inline-block;
+  background: var(--bg-chrome-light, #fafafa);
+}

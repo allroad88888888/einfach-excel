@@ -6,8 +6,11 @@ import {
   selectCellAtom,
   selectionSnapshotAtom,
   setSelectionAtom,
+  type CellCoord,
+  type CellSelection,
   type CellRange,
   type DisplayCell,
+  type RangeSelection,
   type SelectionRegion,
   type SelectionState,
 } from '@einfach/spreadsheet-ui-core'
@@ -17,8 +20,14 @@ import type { GridFocusPort, GridMergeRangePort } from './grid-runtime-ports'
 import type { GridViewStateApi } from './grid-view-state'
 
 type GridSelectionRuntime = GridRuntimeBase &
-  Pick<GridViewStateApi, 'projectionSnapshot' | 'visibleWindow' | 'hiddenState' | 'selectionRegions'> &
-  GridMergeRangePort & GridFocusPort
+  Pick<
+    GridViewStateApi,
+    'projectionSnapshot' | 'visibleWindow' | 'hiddenState' | 'selectionRegions'
+  > &
+  GridMergeRangePort &
+  GridFocusPort
+
+type GridCellSpanSelection = CellSelection | RangeSelection
 
 export function installGridSelection(runtime: GridSelectionRuntime) {
   const { props, store, projectionSnapshot, visibleWindow, hiddenState } = runtime
@@ -61,7 +70,9 @@ export function installGridSelection(runtime: GridSelectionRuntime) {
   }
 
   function getSelectionRegionsForSheet() {
-    return runtime.selectionRegions().filter((selection: SelectionState) => selection.sheetId === props.sheetId)
+    return runtime
+      .selectionRegions()
+      .filter((selection: SelectionState) => selection.sheetId === props.sheetId)
   }
 
   function getSelectionRangeContaining(row: number, col: number): CellRange | null {
@@ -97,14 +108,74 @@ export function installGridSelection(runtime: GridSelectionRuntime) {
   }
 
   function appendCellSelection(row: number, col: number) {
-    store.setter(addSelectionRegionAtom, { region: { kind: 'cell', sheetId: props.sheetId, anchor: { row, col }, focus: { row, col } } })
+    store.setter(addSelectionRegionAtom, {
+      region: { kind: 'cell', sheetId: props.sheetId, anchor: { row, col }, focus: { row, col } },
+    })
+  }
+
+  function createSelectionForCoords(anchor: CellCoord, focus: CellCoord): GridCellSpanSelection {
+    if (anchor.row === focus.row && anchor.col === focus.col) {
+      return { kind: 'cell', sheetId: props.sheetId, anchor, focus }
+    }
+    return { kind: 'range', sheetId: props.sheetId, anchor, focus }
   }
 
   function createSelectionForRange(range: CellRange): SelectionRegion {
-    if (range.rowStart === range.rowEnd && range.colStart === range.colEnd) {
-      return { kind: 'cell', sheetId: props.sheetId, anchor: { row: range.rowStart, col: range.colStart }, focus: { row: range.rowStart, col: range.colStart } }
+    return createSelectionForCoords(
+      { row: range.rowStart, col: range.colStart },
+      { row: range.rowEnd, col: range.colEnd },
+    )
+  }
+
+  function getCellRangeIncludingMerge(coord: CellCoord): CellRange {
+    return (
+      runtime.getMergeRangeForCoord(coord.row, coord.col) ?? {
+        rowStart: coord.row,
+        rowEnd: coord.row,
+        colStart: coord.col,
+        colEnd: coord.col,
+      }
+    )
+  }
+
+  function createCellSpanSelection(anchor: CellCoord, focus: CellCoord): GridCellSpanSelection {
+    const anchorRange = getCellRangeIncludingMerge(anchor)
+    const focusRange = getCellRangeIncludingMerge(focus)
+    const range = {
+      rowStart: Math.min(anchorRange.rowStart, focusRange.rowStart),
+      rowEnd: Math.max(anchorRange.rowEnd, focusRange.rowEnd),
+      colStart: Math.min(anchorRange.colStart, focusRange.colStart),
+      colEnd: Math.max(anchorRange.colEnd, focusRange.colEnd),
     }
-    return { kind: 'range', sheetId: props.sheetId, anchor: { row: range.rowStart, col: range.colStart }, focus: { row: range.rowEnd, col: range.colEnd } }
+    const selectionAnchor = {
+      row: focus.row >= anchor.row ? range.rowStart : range.rowEnd,
+      col: focus.col >= anchor.col ? range.colStart : range.colEnd,
+    }
+    const selectionFocus = {
+      row: focus.row >= anchor.row ? range.rowEnd : range.rowStart,
+      col: focus.col >= anchor.col ? range.colEnd : range.colStart,
+    }
+    return createSelectionForCoords(selectionAnchor, selectionFocus)
+  }
+
+  function selectCellSpan(anchor: CellCoord, focus: CellCoord) {
+    const selection = createCellSpanSelection(anchor, focus)
+    store.setter(setSelectionAtom, selection)
+    return selection
+  }
+
+  function getSelectionAnchor(selection: SelectionState): CellCoord {
+    switch (selection.kind) {
+      case 'cell':
+      case 'range':
+        return selection.anchor
+      case 'row':
+        return { row: selection.rowAnchor, col: 0 }
+      case 'column':
+        return { row: 0, col: selection.colAnchor }
+      case 'all':
+        return { row: 0, col: 0 }
+    }
   }
 
   function selectCellRange(range: CellRange) {
@@ -117,11 +188,13 @@ export function installGridSelection(runtime: GridSelectionRuntime) {
 
   function appendRangeSelection(row: number, col: number) {
     const snapshot = store.getter(selectionSnapshotAtom)
-    const anchor = snapshot.selection.sheetId === props.sheetId ? snapshot.activeCell : { row, col }
-    store.setter(addSelectionRegionAtom, { region: { kind: 'range', sheetId: props.sheetId, anchor, focus: { row, col } } })
+    const focus = { row, col }
+    const anchor = snapshot.selection.sheetId === props.sheetId ? snapshot.activeCell : focus
+    store.setter(addSelectionRegionAtom, { region: createCellSpanSelection(anchor, focus) })
   }
 
   function selectCellFromEvent(row: number, col: number, event: MouseEvent) {
+    const coord = { row, col }
     const mergeRange = runtime.getMergeRangeForCoord(row, col)
     if (event.ctrlKey || event.metaKey) {
       if (event.shiftKey) appendRangeSelection(row, col)
@@ -130,12 +203,42 @@ export function installGridSelection(runtime: GridSelectionRuntime) {
       runtime.focusGrid()
       return
     }
-    if (!event.shiftKey && mergeRange) selectCellRange(mergeRange)
-    else store.setter(selectCellAtom, { sheetId: props.sheetId, coord: { row, col }, extend: event.shiftKey })
+    if (event.shiftKey) {
+      const snapshot = store.getter(selectionSnapshotAtom)
+      if (snapshot.selection.sheetId === props.sheetId) {
+        selectCellSpan(getSelectionAnchor(snapshot.selection), coord)
+      } else {
+        store.setter(selectCellAtom, { sheetId: props.sheetId, coord, extend: false })
+      }
+    } else if (mergeRange) {
+      selectCellRange(mergeRange)
+    } else {
+      store.setter(selectCellAtom, { sheetId: props.sheetId, coord, extend: false })
+    }
     runtime.focusGrid()
   }
 
-  return installGridFeature(runtime, { getCellMap, getRows, getCols, getSelectionBounds, getSelectionStateRange, getSelectionRegionsForSheet, getSelectionRangeContaining, isSelected, isRowSelected, isColumnSelected, isAllSelected, appendCellSelection, createSelectionForRange, selectCellRange, appendCellRangeSelection, appendRangeSelection, selectCellFromEvent })
+  return installGridFeature(runtime, {
+    getCellMap,
+    getRows,
+    getCols,
+    getSelectionBounds,
+    getSelectionStateRange,
+    getSelectionRegionsForSheet,
+    getSelectionRangeContaining,
+    isSelected,
+    isRowSelected,
+    isColumnSelected,
+    isAllSelected,
+    appendCellSelection,
+    createSelectionForRange,
+    createCellSpanSelection,
+    selectCellRange,
+    selectCellSpan,
+    appendCellRangeSelection,
+    appendRangeSelection,
+    selectCellFromEvent,
+  })
 }
 
 export type GridSelectionApi = ReturnType<typeof installGridSelection>

@@ -1,16 +1,17 @@
 import {
   commitPointerAtom,
   pickFormulaReferenceAtom,
-  selectCellAtom,
   startPointerAtom,
   updatePointerAtom,
   type CellCoord,
 } from '@einfach/spreadsheet-ui-core'
 import type { GridContextMenuApi } from './grid-context-menu'
 import { installGridFeature, type GridRuntimeBase } from './grid-runtime'
+import type { GridSelectionApi } from './grid-selection'
 
 type GridPointerSelectionRuntime = GridRuntimeBase &
-  Pick<GridContextMenuApi, 'focusGrid' | 'getCellCoordFromPoint'>
+  Pick<GridContextMenuApi, 'focusGrid' | 'getCellCoordFromPoint'> &
+  Pick<GridSelectionApi, 'selectCellSpan'>
 
 export function installGridPointerSelection(runtime: GridPointerSelectionRuntime) {
   const { props, store, dom, focusGrid, getCellCoordFromPoint } = runtime
@@ -18,18 +19,37 @@ export function installGridPointerSelection(runtime: GridPointerSelectionRuntime
   function startFormulaReferenceDragPick(event: PointerEvent, row: number, col: number) {
     const activeInput = document.activeElement as HTMLInputElement | null
     const anchor: CellCoord = { row, col }
-    store.setter(pickFormulaReferenceAtom, { pickAnchor: anchor, pickFocus: anchor, sheetId: props.sheetId, dragging: true })
+    store.setter(pickFormulaReferenceAtom, {
+      pickAnchor: anchor,
+      pickFocus: anchor,
+      sheetId: props.sheetId,
+      dragging: true,
+    })
     let lastFocus = anchor
     const onPointerMove = (moveEvent: PointerEvent) => {
       const focus = getCellCoordFromPoint(moveEvent)
       if (!focus || (focus.row === lastFocus.row && focus.col === lastFocus.col)) return
       lastFocus = focus
-      store.setter(pickFormulaReferenceAtom, { pickAnchor: anchor, pickFocus: focus, sheetId: props.sheetId, dragging: true })
+      store.setter(pickFormulaReferenceAtom, {
+        pickAnchor: anchor,
+        pickFocus: focus,
+        sheetId: props.sheetId,
+        dragging: true,
+      })
     }
     const onPointerUp = () => {
-      store.setter(pickFormulaReferenceAtom, { pickAnchor: anchor, pickFocus: lastFocus, sheetId: props.sheetId, dragging: false })
+      store.setter(pickFormulaReferenceAtom, {
+        pickAnchor: anchor,
+        pickFocus: lastFocus,
+        sheetId: props.sheetId,
+        dragging: false,
+      })
       cleanup()
-      if (activeInput && (activeInput.classList.contains('cell-input') || activeInput.classList.contains('formula-bar-input'))) {
+      if (
+        activeInput &&
+        (activeInput.classList.contains('cell-input') ||
+          activeInput.classList.contains('formula-bar-input'))
+      ) {
         queueMicrotask(() => {
           activeInput.focus()
           const length = activeInput.value.length
@@ -51,17 +71,39 @@ export function installGridPointerSelection(runtime: GridPointerSelectionRuntime
     dom.cancelDragSelection()
     dom.cancelFill()
     dom.cancelResize()
-    const anchor: CellCoord = { row, col }
-    store.setter(selectCellAtom, { sheetId: props.sheetId, coord: anchor, extend: false })
-    store.setter(startPointerAtom, { kind: 'drag-selection', sheetId: props.sheetId, anchor, focus: anchor, source: 'pointer' })
+    const anchorHit: CellCoord = { row, col }
+    const initialSelection = runtime.selectCellSpan(anchorHit, anchorHit)
+    let pointerAnchor = initialSelection.anchor
+    store.setter(startPointerAtom, {
+      kind: 'drag-selection',
+      sheetId: props.sheetId,
+      anchor: pointerAnchor,
+      focus: initialSelection.focus,
+      source: 'pointer',
+    })
     focusGrid()
-    let lastFocus = anchor
+    let lastFocusHit = anchorHit
     const onPointerMove = (moveEvent: PointerEvent) => {
-      const focus = getCellCoordFromPoint(moveEvent)
-      if (!focus || (focus.row === lastFocus.row && focus.col === lastFocus.col)) return
-      lastFocus = focus
-      store.setter(selectCellAtom, { sheetId: props.sheetId, coord: focus, extend: true })
-      store.setter(updatePointerAtom, { kind: 'drag-selection', focus })
+      const focusHit = getCellCoordFromPoint(moveEvent)
+      if (!focusHit || (focusHit.row === lastFocusHit.row && focusHit.col === lastFocusHit.col))
+        return
+      lastFocusHit = focusHit
+      const selection = runtime.selectCellSpan(anchorHit, focusHit)
+      if (
+        selection.anchor.row !== pointerAnchor.row ||
+        selection.anchor.col !== pointerAnchor.col
+      ) {
+        pointerAnchor = selection.anchor
+        store.setter(startPointerAtom, {
+          kind: 'drag-selection',
+          sheetId: props.sheetId,
+          anchor: pointerAnchor,
+          focus: selection.focus,
+          source: 'pointer',
+        })
+        return
+      }
+      store.setter(updatePointerAtom, { kind: 'drag-selection', focus: selection.focus })
     }
     const onPointerUp = () => {
       store.setter(commitPointerAtom)

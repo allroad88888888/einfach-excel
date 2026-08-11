@@ -1,14 +1,12 @@
-import { createContext } from 'solid-js'
+import { createContext, useContext } from 'solid-js'
 import type { SpreadsheetUiCore } from './types'
-import { useSpreadsheetUiCore } from './hooks'
 
-/**
- * @deprecated Kept as an export compatibility marker. Workbook state is no
- * longer injected through this context; use `useSpreadsheetUiCore` instead.
- */
+/** Context owns the stable runtime workbook port for this Provider subtree. */
 export const SpreadsheetUiContext = createContext<SpreadsheetUiCore | undefined>(undefined)
 
 /** @deprecated Use `useSpreadsheetUiCore` instead. */
 export function useSpreadsheetUiCoreContext(): SpreadsheetUiCore {
-  return useSpreadsheetUiCore()
+  const core = useContext(SpreadsheetUiContext)
+  if (!core) throw new Error('SpreadsheetUiProvider is required.')
+  return core
 }

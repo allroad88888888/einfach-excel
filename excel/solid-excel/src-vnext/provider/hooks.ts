@@ -1,24 +1,15 @@
-import { useAtomValue, useStore } from '@einfach/solid'
 import type { Store } from '@einfach/core'
 import type { SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
-import { spreadsheetBackendAtom } from './atoms'
+import { useSpreadsheetUiCoreContext } from './context'
 
 export function useSpreadsheetUiCore() {
-  return {
-    backend: useSpreadsheetBackend(),
-    store: useSpreadsheetUiStore(),
-  }
+  return useSpreadsheetUiCoreContext()
 }
 
 export function useSpreadsheetUiStore(): Store {
-  return useStore()
+  return useSpreadsheetUiCore().store
 }
 
 export function useSpreadsheetBackend(): SpreadsheetBackend {
-  const backend = useAtomValue(spreadsheetBackendAtom)
-  const resolvedBackend = backend()
-  if (!resolvedBackend) {
-    throw new Error('SpreadsheetUiProvider is required.')
-  }
-  return resolvedBackend
+  return useSpreadsheetUiCore().backend
 }

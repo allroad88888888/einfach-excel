@@ -1,20 +1,34 @@
 import { createStore } from '@einfach/core'
 import { Provider as SolidProvider } from '@einfach/solid'
 import {
-  capturePasteSpecialCapabilityAtom,
-  captureSpillRegionCapabilityAtom,
+  clearPresenceAtom,
   createSpreadsheetUi,
   normalizeCustomFillSeriesListWitness,
   setFillSeriesLocaleAtom,
+  type SpreadsheetBackend,
 } from '@einfach/spreadsheet-ui-core'
 import { createEffect, onCleanup } from 'solid-js'
 import { useLocale, type Locale } from '../../src/i18n'
-import { spreadsheetBackendAtom } from './atoms'
+import {
+  beginSpreadsheetWorkbookLifecycleAtom,
+  clearSpreadsheetWorkbookLifecycleAtom,
+  rejectSpreadsheetWorkbookLifecycleAtom,
+  resolveSpreadsheetWorkbookLifecycleAtom,
+  spreadsheetWorkbookLifecycleAtom,
+} from './atoms'
+import { createSpreadsheetBackendHandle } from './backend-handle'
+import { captureWorkbookCapabilities } from './capability-capture'
 import { attachCustomFormulaReconciliationBridge } from './custom-formula-reconciliation-bridge'
 import { attachHiddenRowsRefreshBridge } from './hidden-rows-refresh-bridge'
 import { attachNamedRangeFeaturePort } from './named-range-feature-port'
+import { attachPresenceSubscriptionBridge } from './presence-subscription-bridge'
 import { attachStatusBarProjectionBridge } from './status-bar-projection-bridge'
-import type { SpreadsheetUiProviderProps } from './types'
+import { SpreadsheetUiContext } from './context'
+import type {
+  NamedRangeCapabilityPort,
+  SpreadsheetUiCore,
+  SpreadsheetUiProviderProps,
+} from './types'
 
 const HOST_FILL_SERIES_NAMES: Readonly<
   Record<
@@ -110,16 +124,105 @@ function normalizeProviderCustomFillSeriesLists(
   return normalized
 }
 
+interface WorkbookBinding {
+  dispose(): void
+}
+
+interface ReadyableSpreadsheetBackend extends SpreadsheetBackend {
+  ready?: () => Promise<unknown> | unknown
+}
+
+let nextWorkbookSessionId = 0
+
+function createWorkbookSessionId(): number {
+  nextWorkbookSessionId += 1
+  return nextWorkbookSessionId
+}
+
+function bindWorkbookBackend(
+  core: SpreadsheetUiCore,
+  backend: SpreadsheetBackend,
+  namedRangeCapabilityPort: NamedRangeCapabilityPort | undefined,
+): WorkbookBinding {
+  const sessionId = createWorkbookSessionId()
+  let disposed = false
+  const isCurrentSession = (): boolean =>
+    !disposed && core.store.getter(spreadsheetWorkbookLifecycleAtom).sessionId === sessionId
+
+  core.store.setter(clearPresenceAtom)
+  core.store.setter(beginSpreadsheetWorkbookLifecycleAtom, sessionId)
+  captureWorkbookCapabilities(core.store, backend)
+
+  const detachNamedRangeFeaturePort = attachNamedRangeFeaturePort(
+    core.store,
+    backend,
+    namedRangeCapabilityPort,
+  )
+  const detachHiddenRowsRefreshBridge = attachHiddenRowsRefreshBridge(core.store, backend)
+  const detachCustomFormulaReconciliationBridge = attachCustomFormulaReconciliationBridge(
+    core.store,
+    backend,
+  )
+  let detachPresenceSubscription = attachPresenceSubscriptionBridge(
+    core.store,
+    backend,
+    isCurrentSession,
+  )
+
+  const recaptureAfterReady = (refreshPresenceSubscription: boolean): void => {
+    if (!core.store.setter(resolveSpreadsheetWorkbookLifecycleAtom, sessionId)) return
+    captureWorkbookCapabilities(core.store, backend)
+    if (!refreshPresenceSubscription) return
+    detachPresenceSubscription()
+    detachPresenceSubscription = attachPresenceSubscriptionBridge(
+      core.store,
+      backend,
+      isCurrentSession,
+    )
+  }
+
+  try {
+    const ready = (backend as ReadyableSpreadsheetBackend).ready
+    if (typeof ready === 'function') {
+      void Promise.resolve()
+        .then(() => ready.call(backend))
+        .then(() => recaptureAfterReady(true))
+        .catch((error: unknown) => {
+          core.store.setter(rejectSpreadsheetWorkbookLifecycleAtom, { error, sessionId })
+        })
+    } else {
+      recaptureAfterReady(false)
+    }
+  } catch (error) {
+    core.store.setter(rejectSpreadsheetWorkbookLifecycleAtom, { error, sessionId })
+  }
+
+  return {
+    dispose() {
+      if (disposed) return
+      disposed = true
+      if (core.store.getter(spreadsheetWorkbookLifecycleAtom).sessionId === sessionId) {
+        core.store.setter(clearPresenceAtom)
+      }
+      detachPresenceSubscription()
+      detachNamedRangeFeaturePort()
+      detachHiddenRowsRefreshBridge()
+      detachCustomFormulaReconciliationBridge()
+      core.store.setter(clearSpreadsheetWorkbookLifecycleAtom, sessionId)
+    },
+  }
+}
+
 export function SpreadsheetUiProvider(props: SpreadsheetUiProviderProps) {
   const activeLocale = useLocale()
+  const backendHandle = createSpreadsheetBackendHandle(props.backend)
   const core = createSpreadsheetUi({
-    backend: props.backend,
+    backend: backendHandle.backend,
     store: props.store ?? createStore(),
   })
-  core.store.setter(spreadsheetBackendAtom, props.backend)
-  core.store.setter(capturePasteSpecialCapabilityAtom, props.backend)
-  // ADR 0006 阶段 3：后端没实现 `readSpillRegion` 时溢出边框整体隐身。
-  core.store.setter(captureSpillRegionCapabilityAtom, props.backend)
+  let boundBackend = props.backend
+  let boundNamedRangeCapabilityPort = props.namedRangeCapabilityPort
+  let workbookBinding = bindWorkbookBackend(core, boundBackend, boundNamedRangeCapabilityPort)
 
   // The host locale lives in its dedicated Einfach store. Mirror its
   // workbook-facing fill-series facts into this provider's actual core store
@@ -138,38 +241,32 @@ export function SpreadsheetUiProvider(props: SpreadsheetUiProviderProps) {
   syncFillSeriesLocale(activeLocale())
   createEffect(() => syncFillSeriesLocale(activeLocale()))
 
-  // Worker backends resolve their fail-closed runtime capability witness
-  // asynchronously (describeCapabilities lands after initWorkbook);
-  // ports sampled synchronously above can be pre-witness. Recapture once
-  // the backend reports ready so capability atoms hold post-witness
-  // truth. Backends without ready() (static, test doubles) skip this.
-  const readyableBackend = props.backend as typeof props.backend & {
-    ready?: () => Promise<unknown>
-  }
-  void readyableBackend.ready
-    ?.call(props.backend)
-    .then(() => {
-      core.store.setter(capturePasteSpecialCapabilityAtom, props.backend)
-      core.store.setter(captureSpillRegionCapabilityAtom, props.backend)
-    })
-    .catch(() => {})
-  const detachNamedRangeFeaturePort = attachNamedRangeFeaturePort(
-    core.store,
-    props.backend,
-    props.namedRangeCapabilityPort,
-  )
-  const detachStatusBarProjectionBridge = attachStatusBarProjectionBridge(core.store)
-  const detachHiddenRowsRefreshBridge = attachHiddenRowsRefreshBridge(core.store, props.backend)
-  const detachCustomFormulaReconciliationBridge = attachCustomFormulaReconciliationBridge(
-    core.store,
-    props.backend,
-  )
-  onCleanup(() => {
-    detachNamedRangeFeaturePort()
-    detachStatusBarProjectionBridge()
-    detachHiddenRowsRefreshBridge()
-    detachCustomFormulaReconciliationBridge()
+  createEffect(() => {
+    const nextBackend = props.backend
+    const nextNamedRangeCapabilityPort = props.namedRangeCapabilityPort
+    if (
+      nextBackend === boundBackend &&
+      nextNamedRangeCapabilityPort === boundNamedRangeCapabilityPort
+    ) {
+      return
+    }
+
+    workbookBinding.dispose()
+    backendHandle.replace(nextBackend)
+    boundBackend = nextBackend
+    boundNamedRangeCapabilityPort = nextNamedRangeCapabilityPort
+    workbookBinding = bindWorkbookBackend(core, nextBackend, nextNamedRangeCapabilityPort)
   })
 
-  return <SolidProvider store={core.store}>{props.children}</SolidProvider>
+  const detachStatusBarProjectionBridge = attachStatusBarProjectionBridge(core.store)
+  onCleanup(() => {
+    workbookBinding.dispose()
+    detachStatusBarProjectionBridge()
+  })
+
+  return (
+    <SpreadsheetUiContext.Provider value={core}>
+      <SolidProvider store={core.store}>{props.children}</SolidProvider>
+    </SpreadsheetUiContext.Provider>
+  )
 }

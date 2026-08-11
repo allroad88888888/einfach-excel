@@ -36,30 +36,73 @@ export function SpreadsheetGridTable(props: { runtime: GridRuntime }) {
     openContextMenu,
   } = runtime
   return (
-    <table class="spreadsheet-grid-table" style={{ width: `${getTotalTableWidth()}px`, 'min-width': `${getTotalTableWidth()}px` }}>
-      <tbody>
+    <table
+      role="presentation"
+      class="spreadsheet-grid-table"
+      style={{ width: `${getTotalTableWidth()}px`, 'min-width': `${getTotalTableWidth()}px` }}
+    >
+      <tbody role="rowgroup">
         <Show when={getRows().length > 0 && getCols().length > 0}>
           <Show when={hasColOutline()}>
-            <tr class="spreadsheet-grid-outline-col-row" data-testid="outline-col-band">
+            <tr role="row" class="spreadsheet-grid-outline-col-row" data-testid="outline-col-band">
               <Show when={hasRowOutline() || showHeadings()}>
-                <th class="spreadsheet-grid-outline-corner" data-testid="outline-col-levels" colSpan={(hasRowOutline() ? 1 : 0) + (showHeadings() ? 1 : 0)} style={{ height: `${getColOutlineBandHeight()}px` }}>
+                <th
+                  role="columnheader"
+                  class="spreadsheet-grid-outline-corner"
+                  data-testid="outline-col-levels"
+                  colSpan={(hasRowOutline() ? 1 : 0) + (showHeadings() ? 1 : 0)}
+                  style={{ height: `${getColOutlineBandHeight()}px` }}
+                >
                   <SpreadsheetGridOutline runtime={runtime} axis="column" />
                 </th>
               </Show>
-              <Show when={getLeftSpacerWidth() > 0}><th class="spreadsheet-grid-virtual-spacer" aria-hidden="true" style={{ width: `${getLeftSpacerWidth()}px` }} /></Show>
-              <For each={getCols()}>{(col) => <th class="spreadsheet-grid-outline-col-cell" data-outline-col={col} style={{ height: `${getColOutlineBandHeight()}px` }}><SpreadsheetGridOutline runtime={runtime} axis="column" index={col} /></th>}</For>
-              <Show when={getRightSpacerWidth() > 0}><th class="spreadsheet-grid-virtual-spacer" aria-hidden="true" style={{ width: `${getRightSpacerWidth()}px` }} /></Show>
+              <Show when={getLeftSpacerWidth() > 0}>
+                <th
+                  class="spreadsheet-grid-virtual-spacer"
+                  aria-hidden="true"
+                  style={{ width: `${getLeftSpacerWidth()}px` }}
+                />
+              </Show>
+              <For each={getCols()}>
+                {(col) => (
+                  <th
+                    role="columnheader"
+                    class="spreadsheet-grid-outline-col-cell"
+                    data-outline-col={col}
+                    style={{ height: `${getColOutlineBandHeight()}px` }}
+                  >
+                    <SpreadsheetGridOutline runtime={runtime} axis="column" index={col} />
+                  </th>
+                )}
+              </For>
+              <Show when={getRightSpacerWidth() > 0}>
+                <th
+                  class="spreadsheet-grid-virtual-spacer"
+                  aria-hidden="true"
+                  style={{ width: `${getRightSpacerWidth()}px` }}
+                />
+              </Show>
             </tr>
           </Show>
           <Show when={showHeadings()}>
-            <tr>
+            <tr role="row">
               <Show when={hasRowOutline()}>
-                <th class="spreadsheet-grid-outline-header" data-testid="outline-row-levels" style={{ width: `${getRowOutlineGutterWidth()}px`, ...(hasColOutline() ? { top: `${getColOutlineBandHeight()}px` } : {}) }}>
+                <th
+                  role="columnheader"
+                  class="spreadsheet-grid-outline-header"
+                  data-testid="outline-row-levels"
+                  style={{
+                    width: `${getRowOutlineGutterWidth()}px`,
+                    ...(hasColOutline() ? { top: `${getColOutlineBandHeight()}px` } : {}),
+                  }}
+                >
                   <SpreadsheetGridOutline runtime={runtime} axis="row" />
                 </th>
               </Show>
               <th
+                role="columnheader"
                 class="spreadsheet-grid-corner"
+                aria-label="Select all cells"
                 style={getCornerStyle()}
                 data-selected={isAllSelected() ? 'true' : 'false'}
                 onClick={() => {
@@ -68,17 +111,26 @@ export function SpreadsheetGridTable(props: { runtime: GridRuntime }) {
                 }}
                 onContextMenu={(event) => openContextMenu(event, { kind: 'all' })}
               />
-              <Show when={getLeftSpacerWidth() > 0}><th class="spreadsheet-grid-virtual-spacer" aria-hidden="true" style={{ width: `${getLeftSpacerWidth()}px` }} /></Show>
+              <Show when={getLeftSpacerWidth() > 0}>
+                <th
+                  class="spreadsheet-grid-virtual-spacer"
+                  aria-hidden="true"
+                  style={{ width: `${getLeftSpacerWidth()}px` }}
+                />
+              </Show>
               <For each={getCols()}>
                 {(col) => {
                   const selected = () => isColumnSelected(col)
                   return (
                     <th
+                      role="columnheader"
                       class={`spreadsheet-grid-col-header ${selected() ? 'is-selected' : ''}`.trim()}
                       data-col={col}
                       data-selected={selected() ? 'true' : 'false'}
                       data-frozen-col={col < freezeColCount() ? 'true' : undefined}
-                      data-freeze-boundary-right={freezeColCount() > 0 && col === freezeColCount() - 1 ? 'true' : undefined}
+                      data-freeze-boundary-right={
+                        freezeColCount() > 0 && col === freezeColCount() - 1 ? 'true' : undefined
+                      }
                       style={getColumnStyle(col)}
                       onClick={(event) =>
                         runtime.selectColumn(col, event.shiftKey, event.ctrlKey || event.metaKey)
@@ -120,17 +172,35 @@ export function SpreadsheetGridTable(props: { runtime: GridRuntime }) {
                   )
                 }}
               </For>
-              <Show when={getRightSpacerWidth() > 0}><th class="spreadsheet-grid-virtual-spacer" aria-hidden="true" style={{ width: `${getRightSpacerWidth()}px` }} /></Show>
+              <Show when={getRightSpacerWidth() > 0}>
+                <th
+                  class="spreadsheet-grid-virtual-spacer"
+                  aria-hidden="true"
+                  style={{ width: `${getRightSpacerWidth()}px` }}
+                />
+              </Show>
             </tr>
           </Show>
           <Show when={getTopSpacerHeight() > 0}>
-            <tr class="spreadsheet-grid-virtual-spacer-row" aria-hidden="true"><td class="spreadsheet-grid-virtual-spacer" colSpan={getVirtualColumnSpan()} style={{ height: `${getTopSpacerHeight()}px` }} /></tr>
+            <tr role="presentation" class="spreadsheet-grid-virtual-spacer-row" aria-hidden="true">
+              <td
+                class="spreadsheet-grid-virtual-spacer"
+                colSpan={getVirtualColumnSpan()}
+                style={{ height: `${getTopSpacerHeight()}px` }}
+              />
+            </tr>
           </Show>
           <For each={getRows()}>
             {(row) => <SpreadsheetGridDataRow runtime={runtime} row={row} />}
           </For>
           <Show when={getBottomSpacerHeight() > 0}>
-            <tr class="spreadsheet-grid-virtual-spacer-row" aria-hidden="true"><td class="spreadsheet-grid-virtual-spacer" colSpan={getVirtualColumnSpan()} style={{ height: `${getBottomSpacerHeight()}px` }} /></tr>
+            <tr role="presentation" class="spreadsheet-grid-virtual-spacer-row" aria-hidden="true">
+              <td
+                class="spreadsheet-grid-virtual-spacer"
+                colSpan={getVirtualColumnSpan()}
+                style={{ height: `${getBottomSpacerHeight()}px` }}
+              />
+            </tr>
           </Show>
         </Show>
       </tbody>

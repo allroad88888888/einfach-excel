@@ -97,6 +97,20 @@ describe('vNext grid focus and keyboard contract', () => {
     expect(grid.getAttribute('aria-rowcount')).toBe('3')
     expect(grid.getAttribute('aria-colcount')).toBe('3')
     expect(grid.getAttribute('aria-multiselectable')).toBe('true')
+    expect(container.querySelector('.spreadsheet-grid-table')?.getAttribute('role')).toBe(
+      'presentation',
+    )
+    expect(container.querySelector('.spreadsheet-grid-table > tbody')?.getAttribute('role')).toBe(
+      'rowgroup',
+    )
+    expect(container.querySelector('.spreadsheet-grid-col-header')?.getAttribute('role')).toBe(
+      'columnheader',
+    )
+    expect(container.querySelector('.spreadsheet-grid-row-header')?.getAttribute('role')).toBe(
+      'rowheader',
+    )
+    expect(container.querySelector('.spreadsheet-grid-row')?.getAttribute('role')).toBe('row')
+    expect(container.querySelector('.spreadsheet-grid-cell')?.getAttribute('role')).toBe('gridcell')
     await waitFor(() => {
       expect(store.getter(selectionSnapshotAtom).activeCell).toEqual({
         sheetId: 'sheet-1',

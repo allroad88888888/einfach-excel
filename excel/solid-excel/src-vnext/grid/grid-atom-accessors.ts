@@ -1,5 +1,6 @@
 import { useAtomValue } from '@einfach/solid'
 import {
+  activeSpillRegionAtom,
   editingDraftAtom,
   editingSessionAtom,
   effectiveHiddenAtom,
@@ -23,6 +24,7 @@ import { spreadsheetProjectionSnapshotAtom } from '../provider'
 export function useGridAtomAccessors() {
   return {
     projectionSnapshot: useAtomValue(spreadsheetProjectionSnapshotAtom),
+    activeSpillRegion: useAtomValue(activeSpillRegionAtom),
     viewportMetrics: useAtomValue(viewportMetricsAtom),
     selectionSnapshot: useAtomValue(selectionSnapshotAtom),
     selectionRegions: useAtomValue(selectionRegionsAtom),

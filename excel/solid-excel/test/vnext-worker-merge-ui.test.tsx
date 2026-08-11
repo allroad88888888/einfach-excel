@@ -97,7 +97,7 @@ describe('worker path merge — toolbar unlock and grid rendering (jsdom)', () =
       extend: true,
     })
 
-    const { container } = render(() => (
+    const { baseElement, container } = render(() => (
       <SpreadsheetUiProvider backend={backend} store={store}>
         <SpreadsheetToolbar />
         <SpreadsheetGrid sheetId="sheet-1" viewport={VIEWPORT} data-testid="grid" />
@@ -116,7 +116,7 @@ describe('worker path merge — toolbar unlock and grid rendering (jsdom)', () =
 
     fireEvent.click(mergeButton)
     const mergeCenter = (await waitFor(() => {
-      const item = container.querySelector('[data-testid="toolbar-merge-center"]')
+      const item = baseElement.querySelector('[data-testid="toolbar-merge-center"]')
       expect(item).not.toBeNull()
       return item
     })) as HTMLButtonElement

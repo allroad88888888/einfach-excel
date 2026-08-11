@@ -16,6 +16,7 @@
 | UI-509 键盘和读屏 | `model-509-a11y` | 修复 | `src-vnext/a11y/**`（新）与串行 surface adapters | IX-002、IX-005、UI-303 | 建立键盘/ARIA 契约并按 grid→menu→dialog 迁移。 |
 | UI-510 国际化和 IME | `model-510-i18n-ime` | 修复 | `src-vnext/i18n-adapter/**`（新）、相关翻译测试 | IX-001、UI-104 | 覆盖非中英 locale、输入法组合与格式化；保留 locale Atom 同步。 |
 | UI-511 窄屏、触控和触控板 | `model-511-responsive-input` | 重构后修复 | `src-vnext/responsive/**`（新）、专属 CSS | IX-002、IX-004、IX-005 | 定义响应式 shell 与 pointer/coarse 策略；不在各 dialog 分散硬编码。 |
+| UI-512 Sheet Tabs ARIA 结构 | `model-512-sheet-tabs-a11y` | 修复 | `src-vnext/sheet-tabs/**`、专属交互与 Axe 回归 | UI-301、UI-509 | 修正 `tablist` 内嵌非 tab 控件的结构，同时保留重排和键盘路径。 |
 
 ## 验收顺序
 
@@ -64,3 +65,35 @@
 - `SpreadsheetBackend` 运行时句柄移出 Atom，改由 Provider Context 的稳定转发端口承载；Atom 只持有工作簿 session、`idle/initializing/ready/failed` 生命周期、错误和九项 primitive capability 投影。
 - Provider 统一处理 initial/post-ready capability capture、旧异步结果代际守卫、Presence subscribe/rebind/unmount cleanup；不伪造本地 selection 到远端 Presence 的发布协议。
 - 38 项 Provider 回归、宿主 TypeScript、范围内 ESLint、Prettier 与 diff 检查通过。原 538 行 provider 测试迁出 backend-port 场景后为 474 行，仍是存量混合测试的独立拆分债务；六处功能叶子的重复 capability capture 已列入 provider README，留待拥有这些 feature 的迁移批次。
+
+### UI-505 通用 dialog / popover（Paste Special 批次）
+
+- Commit：`6d49a39`。
+- Paste Special 宿主移除局部 document Escape effect，改用既有 `useOverlayInteraction` 统一初始焦点、Tab 循环、Escape 与 opener 焦点归还；可关闭条件和关闭动作仍由 Paste Special Core Atom 判定。
+- 27 项 Paste Special 回归、宿主 TypeScript、范围内 ESLint、Prettier 与 diff 检查通过。两份存量 Paste 测试分别为 489/308 行，未在此次交互迁移中顺手拆分。
+
+### UI-508 加载、中断和恢复
+
+- Commit：`b18467a`。
+- 新 recovery 表面仅读取既有工作簿 lifecycle Atom：idle/ready 静默、initializing 呈现 loading、failed 呈现 error；不创建本地产品状态，也不虚构 retry/cancel 命令。
+- 13 项 recovery/Provider 定向回归、宿主 TypeScript、范围内 ESLint、Prettier 与 diff 检查通过，所有新增文件不超过 117 行。它尚未接到工作簿宿主入口：当前不存在可安全复用的后端重绑/retry Atom，需由拥有恢复动作的后续 Issue 明确接线。
+
+### UI-509 键盘和读屏（契约批次）
+
+- Commit：`b88c091`。
+- 建立无状态 DOM 审计契约，覆盖 Grid 唯一 tab stop、行列计数和 active descendant，Menu 的 trigger/item/popup 关联，以及 Dialog 的名称、模态和焦点入口；不接管既有 feature 焦点逻辑。
+- 6 项正反例、Core/宿主 TypeScript、范围内 ESLint、Prettier 与 diff 检查通过，所有新增文件不超过 194 行。
+- 审计发现 Sheet Tabs 的 `tablist` 含 Add Sheet 和 Move 等非 tab 子控件，现有 Axe 用例已标记 `aria-required-children`；该真实结构缺口交由 UI-512 串行修复，避免跨 feature 越界。
+
+### UI-510 国际化和 IME
+
+- Commit：`ddab37b`。
+- `localeAtom` 以 BCP-47 display tag 为唯一权威，Lingui catalog locale 仅是 en/zh 的派生；Provider 把 tag 投影到既有 Core workbook locale Atom，de-DE 格式化回归已覆盖。
+- Grid cell editor 与 Formula Bar 消费真实 composition DOM 生命周期，组合输入中不会由 Enter/Escape 误提交或误取消；DOM session 不进入产品 Atom。
+- 15 项 locale/IME/Provider 定向回归、宿主 TypeScript、范围内 ESLint、Prettier 与 diff 检查通过。Lingui 文案仍只带 en/zh，Core parser 也只覆盖部分 locale tag；本批不改 Core/backend/API。
+
+### UI-511 窄屏、触控和触控板
+
+- Commit：`9102d87`。
+- 审计确认 Grid viewport 和 Toolbar 已有原生滚动；真正的触控缺口在拖选 pointer 生命周期。拖选现锁定 initiating pointer，并对 `pointercancel`、blur、页面隐藏和 lost capture 清理，通过既有 `cancelPointerAtom` 回到 idle。
+- 7 项新旧 Grid 选择回归、宿主 TypeScript、范围内 ESLint、Prettier 与 diff 检查通过，最大本次文件 156 行。尚未做真实移动设备/桌面触控板 E2E，JSDOM 覆盖的是 DOM 生命周期。

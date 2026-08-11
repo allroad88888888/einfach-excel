@@ -64,6 +64,34 @@
 - 增加水平溢出滚动、前后滚动控件，并把边框、对齐、旋转、合并和排序的浮层改为锚定 portal，避免被滚动容器裁切；产品事实仍来自既有 formatting Atom。
 - 23 项工具栏回归、范围内 ESLint、Prettier 与 diff 检查通过；随后全项目 TypeScript 已由后续对话框 Issue 复验通过。未改的 `ToolbarIcons.tsx`（527 行）是存量文件拆分债务。
 
+### UI-306 文本和填充格式
+
+- Commit：`b05f596`。
+- 字体、字号与颜色控件补齐当前值回显、初始焦点、方向键、Home/End、Escape、选择后焦点归还和 `menuitemradio` 语义；调色板还支持 Tab 循环。
+- 颜色当前值直接从既有 `activeCellFormat()` 装配进 popover，没有由 DOM 推断或新增产品状态；错误与 refresh-only retry 继续消费工具栏 mutation lifecycle Atom。
+- 5 项专属回归、根 TypeScript、范围内 ESLint、Prettier 与 diff 检查通过。共享工具栏测试的一时失败来自同期 UI-403 未提交的排序改动，已在该 Issue 收口。
+
+### UI-307 对齐、边框和合并格式
+
+- Commit：`51297bf`。
+- H/V 对齐、边框和合并下拉框共用一个仅负责 DOM 监听和焦点的交互 helper，支持当前项/首个可用项聚焦、方向键、Home/End、禁用项跳过、Escape、外点关闭和焦点归还。
+- 选择、格式、operation、mutation lifecycle Atom 均保持既有权威；尺寸控件审计后归属 UI-105 表头交互，未重复实现。
+- 25 项定向回归与 Core/宿主/根 TypeScript 通过。边框预设没有可靠的单一当前预设，合并当前态继续由既有主按钮呈现。
+
+### UI-308 数字格式快捷入口
+
+- Commit：`05dd2ab`。
+- 数字格式下拉框会从活动单元格和打开中的格式对话框草稿同步回显，抽出纯映射模型；支持 `menuitemradio`、busy/error、键盘导航、焦点归还和 refresh-only retry。
+- 快捷操作仍通过原有 `onSelect` 进入 Core Atom 命令流；没有新增 Solid 产品状态。
+- 17 项专属/既有工具栏回归、Core/宿主/根 TypeScript、Prettier、ESLint 和 diff 检查通过。`WanYuan` 因 Core 未定义万元缩放语义而明确禁用。
+
+### UI-309 单元格格式对话框
+
+- Commit：`c354766`。
+- 原 848 行入口拆为控制器、tabs、各分类面板、配置和 DOM 焦点职责，入口降为 93 行；Core 新增只读预览 derived Atom，草稿/类别/保存生命周期仍由领域 Atom 持有。
+- 补齐 roving tabs、ARIA panel 引用、预览联动、原生表单提交、错误恢复、焦点循环与 Escape；后端写入结果未知仍沿用既有设计禁止盲重试。
+- 53 项定向回归和 Core/宿主/根 TypeScript 通过。未实现的分类明确为 Coming soon 并禁用；遗留 `number-format-dialog.ts`（1,334 行）不在本项范围。
+
 ### UI-401 查找、替换和定位
 
 - Commit：`e86ca1b`。
@@ -78,6 +106,13 @@
 - 打开自动聚焦搜索框，Escape 归还 opener，刷新失败聚焦 Retry，两个范围字段均可 Enter 提交；错误和 busy 状态有明确 ARIA 关联。
 - 120 项定向回归、Core/宿主/根 TypeScript、ESLint、Prettier 与 diff 检查通过。排序呈现保持原行为，待 UI-403 单独完善。
 
+### UI-403 排序
+
+- Commit：`b2c1920`。
+- 新增 Atom 排序确认会话，先冻结方向、Sheet、列、活动单元格和范围；只有显式确认才调用既有 `runPhysicalSortAtom`，准备范围失败可以 retry，过期异步结果由 sessionId 丢弃。
+- 工具栏入口补齐初始焦点、键盘、确认框焦点循环/Escape/焦点归还；不改 Core physical-sort 契约或后端端口。
+- 54 项定向回归与 Core/根 TypeScript 通过，宿主 TypeScript 后续已由 UI-309 全绿复验。菜单栏排序仍保持原直接执行路径，未在本项越权统一。
+
 ### UI-404 文本分列
 
 - Commit：`43bbdc3`。
@@ -90,6 +125,13 @@
 - Commit：`5db40f3`。
 - 对话框拆为控制器、内容与 CSS，保持既有扫描/预览/变更 Atom；新增表单提交、预览 live region、错误与 retry 的语义反馈，以及焦点循环、Escape 和焦点归还。
 - 126 项定向回归、宿主 TypeScript、格式和 diff 检查通过。超限的 Core 与遗留组件测试留作独立债务。
+
+### UI-406 命名区域和名称框
+
+- Commit：`db86cd1`。
+- 名称框地址解析、跨 Sheet 选择和视口定位已有完整 Atom 链，未改。名称管理器的表格重命名/删除确认从三个 Solid signal 迁到 `nameManagerTableEditorAtom`，并以 sessionId 防止过期写入。
+- 原 1,484 行 Core 模块和 582 行对话框均按职责拆分；唯一授权扩展是 Core 根入口显式 re-export 六个既有 table-editor Atom，供 Solid 宿主消费。
+- 108 项定向回归、Core/宿主/根 TypeScript、Prettier 和 diff 检查通过；无 `createSignal`/`createStore` 产品状态残留。
 
 ### UI-407 Excel 表格
 

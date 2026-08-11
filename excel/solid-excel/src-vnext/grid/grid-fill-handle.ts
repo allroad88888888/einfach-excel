@@ -7,6 +7,7 @@ import {
 } from '@einfach/spreadsheet-ui-core'
 import type { GridContextMenuApi } from './grid-context-menu'
 import type { GridFillControllerApi } from './grid-fill-controller'
+import { startFillPointerSession } from './grid-fill-pointer-session'
 import { installGridFeature, type GridRuntimeBase } from './grid-runtime'
 import type { GridViewStateApi } from './grid-view-state'
 
@@ -17,20 +18,18 @@ type GridFillHandleRuntime = GridRuntimeBase &
   Pick<GridFillControllerApi, 'executeFillHandle'>
 
 export function installGridFillHandle(runtime: GridFillHandleRuntime) {
-  const {
-    props,
-    store,
-    selectionSnapshot,
-    getCellCoordFromPoint,
-    executeFillHandle,
-    dom,
-  } = runtime
+  const { props, store, selectionSnapshot, getCellCoordFromPoint, executeFillHandle, dom } = runtime
 
   function startFillHandle(event: PointerEvent) {
+    if ((event.pointerType === 'mouse' && event.button !== 0) || event.isPrimary === false) {
+      return
+    }
     event.preventDefault()
     event.stopPropagation()
+    dom.cancelDragSelection()
     dom.cancelFill()
     dom.cancelResize()
+    store.setter(cancelPointerAtom)
 
     const selection = selectionSnapshot()
     if (selection.selection.sheetId !== props.sheetId) return
@@ -48,38 +47,30 @@ export function installGridFillHandle(runtime: GridFillHandleRuntime) {
       source: 'pointer',
     })
 
-    const onPointerMove = (moveEvent: PointerEvent) => {
-      const focus = getCellCoordFromPoint(moveEvent)
-      if (!focus) return
-      const nextPreview = createFillHandlePreview(sourceRange, focus)
-      store.setter(updatePointerAtom, {
-        kind: 'fill-handle',
-        focus,
-        previewRange: nextPreview.previewRange,
-        direction: nextPreview.direction,
-        copyOnly: moveEvent.ctrlKey || moveEvent.metaKey,
-      })
-    }
-
-    const cleanup = () => {
-      window.removeEventListener('pointermove', onPointerMove)
-      window.removeEventListener('pointerup', onPointerUp)
-      store.setter(cancelPointerAtom)
-      dom.setCancelFill(() => undefined)
-    }
-    const onPointerUp = (upEvent: PointerEvent) => {
-      store.setter(updatePointerAtom, {
-        kind: 'fill-handle',
-        copyOnly: upEvent.ctrlKey || upEvent.metaKey,
-      })
-      const intent = store.setter(commitPointerAtom)
-      cleanup()
-      if (intent?.type === 'pointer.fill-handle.commit') void executeFillHandle(intent)
-    }
-
-    window.addEventListener('pointermove', onPointerMove)
-    window.addEventListener('pointerup', onPointerUp, { once: true })
-    dom.setCancelFill(cleanup)
+    startFillPointerSession(event, {
+      move: (moveEvent) => {
+        const focus = getCellCoordFromPoint(moveEvent)
+        if (!focus) return
+        const nextPreview = createFillHandlePreview(sourceRange, focus)
+        store.setter(updatePointerAtom, {
+          kind: 'fill-handle',
+          focus,
+          previewRange: nextPreview.previewRange,
+          direction: nextPreview.direction,
+          copyOnly: moveEvent.ctrlKey || moveEvent.metaKey,
+        })
+      },
+      commit: (upEvent) => {
+        store.setter(updatePointerAtom, {
+          kind: 'fill-handle',
+          copyOnly: upEvent.ctrlKey || upEvent.metaKey,
+        })
+        const intent = store.setter(commitPointerAtom)
+        if (intent?.type === 'pointer.fill-handle.commit') void executeFillHandle(intent)
+      },
+      cancel: () => store.setter(cancelPointerAtom),
+      setCancel: dom.setCancelFill,
+    })
   }
 
   return installGridFeature(runtime, { startFillHandle })

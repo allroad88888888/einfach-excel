@@ -97,3 +97,9 @@
 - Commit：`9102d87`。
 - 审计确认 Grid viewport 和 Toolbar 已有原生滚动；真正的触控缺口在拖选 pointer 生命周期。拖选现锁定 initiating pointer，并对 `pointercancel`、blur、页面隐藏和 lost capture 清理，通过既有 `cancelPointerAtom` 回到 idle。
 - 7 项新旧 Grid 选择回归、宿主 TypeScript、范围内 ESLint、Prettier 与 diff 检查通过，最大本次文件 156 行。尚未做真实移动设备/桌面触控板 E2E，JSDOM 覆盖的是 DOM 生命周期。
+
+### UI-512 Sheet Tabs ARIA 结构
+
+- Commit：`eeab5d7`。
+- `tablist` 现只含 tab；新增、移动和临时重命名编辑器移到相邻的命名操作区。每个 Move 控件带目标 Sheet 名称，保留既有 Atom controller、roving focus、拖拽数据属性、上下文菜单和键盘命令。
+- 15 项 Sheet Tabs 定向回归、宿主 TypeScript、范围内 ESLint、Prettier 与 diff 检查通过；WASM Playwright Axe 的 Sheet Tab strip 已移除历史 `aria-required-children` 豁免并通过真实断言。e2e 目录不在 typed ESLint 的 tsconfig include 内，未为该配置边界扩改 lint 配置。

@@ -17,6 +17,8 @@
 | UI-510 国际化和 IME | `model-510-i18n-ime` | 修复 | `src-vnext/i18n-adapter/**`（新）、相关翻译测试 | IX-001、UI-104 | 覆盖非中英 locale、输入法组合与格式化；保留 locale Atom 同步。 |
 | UI-511 窄屏、触控和触控板 | `model-511-responsive-input` | 重构后修复 | `src-vnext/responsive/**`（新）、专属 CSS | IX-002、IX-004、IX-005 | 定义响应式 shell 与 pointer/coarse 策略；不在各 dialog 分散硬编码。 |
 | UI-512 Sheet Tabs ARIA 结构 | `model-512-sheet-tabs-a11y` | 修复 | `src-vnext/sheet-tabs/**`、专属交互与 Axe 回归 | UI-301、UI-509 | 修正 `tablist` 内嵌非 tab 控件的结构，同时保留重排和键盘路径。 |
+| UI-513 Grid ARIA 结构 | `model-513-grid-a11y` | 修复 | `src-vnext/grid/**`、Grid Axe 回归 | UI-101、UI-509 | 修正 `role=grid` 的 table/row/cell 语义层级，保留 Atom 选择和虚拟化。 |
+| UI-514 Find/Replace locale 语义 | `model-514-find-replace-a11y` | 修复或校正回归 | `src-vnext/find-replace/**`、对应 locale e2e | UI-401、UI-510 | 统一对话框可访问名称契约与 locale E2E，不制造第二份文案状态。 |
 
 ## 验收顺序
 

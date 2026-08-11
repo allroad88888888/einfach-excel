@@ -70,3 +70,5 @@
     - UI-510 国际化、输入法与本地化输入
     - UI-511 窄屏、触控与触控板使用
     - UI-512 Sheet Tabs ARIA 结构与键盘可达性
+    - UI-513 Grid ARIA 行列语义与 Axe 结构
+    - UI-514 Find/Replace locale 对话框语义契约

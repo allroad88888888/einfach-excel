@@ -1,5 +1,6 @@
-import { For, createEffect, onCleanup } from 'solid-js'
+import { For } from 'solid-js'
 import { useT } from '../../src/i18n'
+import { createLayoutFormatMenuInteraction } from './LayoutFormatMenuInteraction'
 import { ToolbarAnchoredMenu } from './ToolbarAnchoredMenu'
 
 /**
@@ -39,43 +40,17 @@ const OPTIONS: OptionDescriptor[] = [
 
 export function VAlignDropdown(props: VAlignDropdownProps) {
   const t = useT()
-  let rootRef: HTMLDivElement | undefined
-
-  function onDocPointerDown(event: MouseEvent) {
-    if (!rootRef) return
-    const target = event.target as Node | null
-    if (!target) return
-    if (rootRef.contains(target)) return
-    if (props.anchorRef && props.anchorRef.contains(target)) return
-    props.onRequestClose()
-  }
-
-  function onDocKeyDown(event: KeyboardEvent) {
-    if (event.key === 'Escape') {
-      event.preventDefault()
-      props.onRequestClose()
-    }
-  }
-
-  // Attach the document-level dismiss listeners only while the dropdown is
-  // open — see BordersDropdown for the stale-`rootRef` failure mode this
-  // gating prevents.
-  createEffect(() => {
-    if (!props.isOpen) return
-    document.addEventListener('mousedown', onDocPointerDown, true)
-    document.addEventListener('keydown', onDocKeyDown)
-    onCleanup(() => {
-      document.removeEventListener('mousedown', onDocPointerDown, true)
-      document.removeEventListener('keydown', onDocKeyDown)
-    })
+  const interaction = createLayoutFormatMenuInteraction<VAlignValue>({
+    anchor: () => props.anchorRef,
+    isOpen: () => props.isOpen,
+    onClose: props.onRequestClose,
+    onSelect: props.onSelect,
   })
 
   return (
     <ToolbarAnchoredMenu
       anchorRef={props.anchorRef}
-      rootRef={(element) => {
-        rootRef = element
-      }}
+      rootRef={interaction.setRoot}
       class="spreadsheet-toolbar-v-align-dropdown"
       role="menu"
       data-testid="toolbar-v-align-dropdown"
@@ -89,9 +64,10 @@ export function VAlignDropdown(props: VAlignDropdownProps) {
             <button
               type="button"
               class="spreadsheet-toolbar-v-align-option"
-              role="menuitem"
+              role="menuitemradio"
               data-testid={descriptor.testId}
-              aria-pressed={isActive()}
+              aria-checked={isActive()}
+              tabIndex={-1}
               style={{
                 padding: '4px 12px',
                 'text-align': 'left',
@@ -100,7 +76,7 @@ export function VAlignDropdown(props: VAlignDropdownProps) {
                 cursor: 'pointer',
                 font: 'inherit',
               }}
-              onClick={() => props.onSelect(descriptor.value)}
+              onClick={() => interaction.select(descriptor.value)}
             >
               {t(descriptor.labelKey)}
             </button>

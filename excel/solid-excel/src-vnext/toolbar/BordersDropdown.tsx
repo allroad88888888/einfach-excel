@@ -1,5 +1,6 @@
-import { For, createEffect, onCleanup } from 'solid-js'
+import { For } from 'solid-js'
 import { useT } from '../../src/i18n'
+import { createLayoutFormatMenuInteraction } from './LayoutFormatMenuInteraction'
 import { ToolbarAnchoredMenu } from './ToolbarAnchoredMenu'
 
 /**
@@ -88,40 +89,11 @@ const PRESETS: PresetDescriptor[] = [
 
 export function BordersDropdown(props: BordersDropdownProps) {
   const t = useT()
-  let rootRef: HTMLDivElement | undefined
-
-  function onDocPointerDown(event: MouseEvent) {
-    if (!rootRef) return
-    const target = event.target as Node | null
-    if (!target) return
-    if (rootRef.contains(target)) return
-    if (props.anchorRef && props.anchorRef.contains(target)) return
-    props.onRequestClose()
-  }
-
-  function onDocKeyDown(event: KeyboardEvent) {
-    if (event.key === 'Escape') {
-      event.preventDefault()
-      props.onRequestClose()
-    }
-  }
-
-  // Attach the document-level dismiss listeners only while the dropdown is
-  // open (canonical toolbar popup pattern, see NumberFormatDropdown). A
-  // permanently-attached listener is a landmine: after one open/close cycle
-  // `rootRef` points at a detached node, so every later outside mousedown
-  // (e.g. inside a sibling popup) called `onRequestClose()` and cleared the
-  // shared toolbar surface between mousedown and click — real clicks inside
-  // the sibling popup never landed. Pinned by toolbar-number-format e2e
-  // ("percent dropdown applies to the selected visible row after sorting").
-  createEffect(() => {
-    if (!props.isOpen) return
-    document.addEventListener('mousedown', onDocPointerDown, true)
-    document.addEventListener('keydown', onDocKeyDown)
-    onCleanup(() => {
-      document.removeEventListener('mousedown', onDocPointerDown, true)
-      document.removeEventListener('keydown', onDocKeyDown)
-    })
+  const interaction = createLayoutFormatMenuInteraction<BordersPreset>({
+    anchor: () => props.anchorRef,
+    isOpen: () => props.isOpen,
+    onClose: props.onRequestClose,
+    onSelect: props.onSelect,
   })
 
   function isEnabled(descriptor: PresetDescriptor): boolean {
@@ -132,9 +104,7 @@ export function BordersDropdown(props: BordersDropdownProps) {
   return (
     <ToolbarAnchoredMenu
       anchorRef={props.anchorRef}
-      rootRef={(element) => {
-        rootRef = element
-      }}
+      rootRef={interaction.setRoot}
       class="spreadsheet-toolbar-borders-dropdown"
       role="menu"
       data-testid="toolbar-borders-dropdown"
@@ -149,6 +119,7 @@ export function BordersDropdown(props: BordersDropdownProps) {
             role="menuitem"
             data-testid={descriptor.testId}
             disabled={!isEnabled(descriptor)}
+            tabIndex={-1}
             style={{
               padding: '4px 12px',
               'text-align': 'left',
@@ -160,7 +131,7 @@ export function BordersDropdown(props: BordersDropdownProps) {
             }}
             onClick={() => {
               if (!isEnabled(descriptor)) return
-              props.onSelect(descriptor.preset)
+              interaction.select(descriptor.preset)
             }}
           >
             {t(descriptor.labelKey)}

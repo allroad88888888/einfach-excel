@@ -1,9 +1,5 @@
-import { createEffect, createMemo, onCleanup } from 'solid-js'
+import { createEffect, createMemo, onCleanup, Show } from 'solid-js'
 import { useAtomValue } from '@einfach/solid'
-import type {
-  CellCoord,
-  VisibleProjectionResult,
-} from '@einfach/spreadsheet-ui-core'
 import {
   editingDraftAtom,
   editingSessionAtom,
@@ -28,32 +24,13 @@ import {
 import { spreadsheetProjectionSnapshotAtom } from '../provider/atoms'
 import { useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider/hooks'
 import { SpreadsheetNameBox } from '../name-box'
+import { useFormulaBarCommitFeedback } from './formula-bar-commit-feedback'
 import { createFormulaBarKeyHandler } from './formula-bar-keys'
+import { getSourceTextFromProjection } from './projection-source-text'
 
 export interface SpreadsheetFormulaBarProps {
   class?: string
   'data-testid'?: string
-}
-
-function getSourceTextFromProjection(
-  result: VisibleProjectionResult | undefined,
-  cell: CellCoord,
-  activeSheetId: string,
-): string | undefined {
-  if (!result || result.sheetId !== activeSheetId) return undefined
-  if (
-    cell.row < result.window.rowStart ||
-    cell.row > result.window.rowEnd ||
-    cell.col < result.window.colStart ||
-    cell.col > result.window.colEnd
-  ) {
-    return undefined
-  }
-
-  const draftCell = result.cells.find(
-    (projectionCell) => projectionCell.row === cell.row && projectionCell.col === cell.col,
-  )
-  return draftCell ? (draftCell.formula ?? draftCell.displayValue ?? '') : ''
 }
 
 export function SpreadsheetFormulaBar(props: SpreadsheetFormulaBarProps) {
@@ -67,6 +44,7 @@ export function SpreadsheetFormulaBar(props: SpreadsheetFormulaBarProps) {
   const projectionSnapshot = useAtomValue(spreadsheetProjectionSnapshotAtom)
   const spillProjectedFormula = useAtomValue(spillProjectedFormulaAtom)
   const workspace = useAtomValue(workspaceSessionAtom)
+  const commitFeedback = useFormulaBarCommitFeedback()
   let inputRef: HTMLInputElement | undefined
 
   function resolveActiveSheetId() {
@@ -85,9 +63,7 @@ export function SpreadsheetFormulaBar(props: SpreadsheetFormulaBarProps) {
     if (editingSession().status === 'drafting') return
     const selection = selectionSnapshot()
     const snapshot = projectionSnapshot()
-    const visibleResult = isVisibleProjectionResult(snapshot.result)
-      ? snapshot.result
-      : undefined
+    const visibleResult = isVisibleProjectionResult(snapshot.result) ? snapshot.result : undefined
     const activeSheetId = resolveActiveSheetId()
     const draft = getSourceTextFromProjection(visibleResult, selection.activeCell, activeSheetId)
     if (draft === undefined) {
@@ -185,7 +161,11 @@ export function SpreadsheetFormulaBar(props: SpreadsheetFormulaBarProps) {
     isReadonly: () => spillReadonly() !== null,
     async commit() {
       if (editingSession().status === 'drafting') {
-        await dispatchEditingCommit(store, backend, { source: 'formula-bar', move: 'none' })
+        const outcome = await dispatchEditingCommit(store, backend, {
+          source: 'formula-bar',
+          move: 'none',
+        })
+        if (outcome !== 'completed') return
       }
       inputRef?.blur()
     },
@@ -250,6 +230,10 @@ export function SpreadsheetFormulaBar(props: SpreadsheetFormulaBarProps) {
         // `label`, critical). Screen readers announced it as an unlabeled
         // edit box. Matches Excel's own "Formula bar" announcement.
         aria-label="Formula bar"
+        aria-invalid={commitFeedback.isRejected() ? 'true' : undefined}
+        aria-errormessage={
+          commitFeedback.isRejected() ? 'spreadsheet-formula-bar-editing-error' : undefined
+        }
         // 投影格：显示锚点的公式，但不接受编辑 —— 在这里敲一个字就会把这条公式
         // 提交进投影格，按 ADR 0006 的写入语义整个数组会塌成 `#SPILL!`。Excel 同样
         // 把它做成灰色只读。`data-*` 是这条性质的测试抓手。
@@ -289,6 +273,11 @@ export function SpreadsheetFormulaBar(props: SpreadsheetFormulaBarProps) {
           bindInputRef(node)
         }}
       />
+      <Show when={commitFeedback.isRejected()}>
+        <span class="formula-bar-error" id="spreadsheet-formula-bar-editing-error" role="alert">
+          {commitFeedback.error()}
+        </span>
+      </Show>
     </div>
   )
 }

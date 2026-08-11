@@ -48,6 +48,9 @@ export function createFormulaBarKeyHandler(
   const { store } = deps
 
   return async function handleKeyDown(event: KeyboardEvent): Promise<void> {
+    // The IME owns Enter/Escape while it is finalizing a composition. Routing
+    // either key here would commit or cancel text that is not finalized yet.
+    if (event.isComposing || event.key === 'Process') return
     if (deps.isReadonly()) return
 
     // Autocomplete first: when the dropdown has rows, ArrowUp/Down move

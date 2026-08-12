@@ -18,6 +18,7 @@ import { useAtomValue } from '@einfach/solid'
 import { createMemo } from 'solid-js'
 import {
   clipboardIntentAtom,
+  clipboardStateAtom,
   menuCommandIntentAtom,
   toolbarIntentAtom,
   visibleWindowAtom,
@@ -46,6 +47,7 @@ export function SpreadsheetDiagnosticsReadout(props: SpreadsheetDiagnosticsReado
   const toolbarIntent = useAtomValue(toolbarIntentAtom)
   const menuCommandIntent = useAtomValue(menuCommandIntentAtom)
   const clipboardIntent = useAtomValue(clipboardIntentAtom)
+  const clipboardState = useAtomValue(clipboardStateAtom)
 
   const projectionText = createMemo(() => formatProjectionStatus(projectionSnapshot(), t))
   const visibleCellsText = createMemo(() =>
@@ -54,6 +56,7 @@ export function SpreadsheetDiagnosticsReadout(props: SpreadsheetDiagnosticsReado
   const loadedValuesText = createMemo(() => formatLoadedValues(projectionSnapshot(), t))
   const commandText = createMemo(
     () =>
+      (clipboardState().status === 'error' ? clipboardState().error?.message : null) ??
       formatClipboardIntent(clipboardIntent(), t) ??
       formatMenuIntent(menuCommandIntent(), t) ??
       formatToolbarIntent(toolbarIntent(), t) ??

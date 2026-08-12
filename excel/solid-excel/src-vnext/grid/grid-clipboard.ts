@@ -29,9 +29,16 @@ import { installGridFeature, type GridRuntimeBase } from './grid-runtime'
 import type { GridViewStateApi } from './grid-view-state'
 
 type GridClipboardRuntime = GridRuntimeBase &
-  Pick<GridViewStateApi, 'selectionSnapshot'> &
+  Pick<GridViewStateApi, 'selectionSnapshot' | 'selectionRegions'> &
   Pick<GridProjectionControllerApi, 'readRangeProjection' | 'requestProjection' | 'loadProjection'> &
   Pick<GridEditingControllerApi, 'clearSelectionRange'>
+
+const multiRegionClipboardError = {
+  code: 'CLIPBOARD_MULTI_REGION_UNSUPPORTED',
+  message: 'Copying multiple selection regions is not supported. Select one region and try again.',
+  severity: 'warning',
+  source: 'validation',
+} as const
 
 export function installGridClipboard(runtime: GridClipboardRuntime) {
   const {
@@ -39,6 +46,7 @@ export function installGridClipboard(runtime: GridClipboardRuntime) {
     store,
     backend,
     selectionSnapshot,
+    selectionRegions,
     readRangeProjection,
     clearSelectionRange,
     requestProjection,
@@ -73,6 +81,10 @@ export function installGridClipboard(runtime: GridClipboardRuntime) {
   async function copySelectionToClipboard(operation: 'copy' | 'cut' = 'copy') {
     const selection = selectionSnapshot()
     if (selection.selection.sheetId !== props.sheetId) return
+    if (selectionRegions().filter((region) => region.sheetId === props.sheetId).length > 1) {
+      store.setter(setClipboardErrorAtom, multiRegionClipboardError)
+      return
+    }
     const range = selection.range
     const cellCount = (range.rowEnd - range.rowStart + 1) * (range.colEnd - range.colStart + 1)
     const hiddenRows = getFilterHiddenRowsForSheet(

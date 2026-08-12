@@ -7,6 +7,7 @@ import {
   dispatchToolbarFormatCommandAtom,
   rejectProjectionAtom,
   selectCellAtom,
+  setClipboardErrorAtom,
 } from '@einfach/spreadsheet-ui-core'
 import { SpreadsheetDiagnosticsReadout } from '../src-vnext/diagnostics'
 import { SpreadsheetUiProvider } from '../src-vnext/provider'
@@ -134,6 +135,30 @@ describe('SpreadsheetDiagnosticsReadout', () => {
     expect(getByTestId('status-projection').getAttribute('aria-label')).toBe('投影状态')
     expect(getByTestId('status-visible-cells').textContent).toBe('1 个单元格')
     expect(getByTestId('status-loaded-values').textContent).toBe('已加载 1 个值')
+  })
+
+  it('surfaces the latest clipboard error through the existing command readout', async () => {
+    const store = createStore()
+    const backend = createFakeBackend()
+    const { getByTestId } = render(() => (
+      <SpreadsheetUiProvider backend={backend} store={store}>
+        <SpreadsheetDiagnosticsReadout />
+      </SpreadsheetUiProvider>
+    ))
+
+    store.setter(setClipboardErrorAtom, {
+      code: 'CLIPBOARD_MULTI_REGION_UNSUPPORTED',
+      message:
+        'Copying multiple selection regions is not supported. Select one region and try again.',
+      severity: 'warning',
+      source: 'validation',
+    })
+
+    await waitFor(() =>
+      expect(getByTestId('status-last-command').textContent).toBe(
+        'Copying multiple selection regions is not supported. Select one region and try again.',
+      ),
+    )
   })
 
   it('stays out of the diagnostics log live region', () => {

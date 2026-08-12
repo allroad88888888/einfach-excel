@@ -47,7 +47,7 @@
 | CB-28 | 外部 text/html flavour 粘贴解析             | 注入 HTML 表格                                          | —                                      | ⏳ P2 延后 | —（pasteFromClipboard 仅 readText 消费 TSV，产品无 HTML 解析路径）                                     |
 | CB-29 | 超 CLIPBOARD_CELL_LIMIT 流式导出            | 超大选区 Ctrl+C                                         | —                                      | ⏳ P2 延后 | —（需 1M 级表面，归 perf-virtual/worker-backend 专项）                                                 |
 | CB-30 | backend 缺 pasteRange 时 paste-special 隐藏 | —                                                       | —                                      | ⏳ P2 延后 | —（Wave 5 静态后端恒有该 port；单测 vnext-grid.test.tsx 已覆盖 pasteSpecialSupportedAtom）             |
-| CB-31 | 多 range（Ctrl+Click 不连续）选区复制       | —                                                       | —                                      | ⏳ P2 延后 | —（网格尚无多 range 选区，归 selection/ A4 缺口）                                                      |
+| CB-31 | 多区域 Ctrl/⌘ 选区 Copy/Cut 安全降级        | B2 + Ctrl/⌘ E5 → Ctrl/⌘ C/X；覆盖 merged B2:C3 主区域  | 明确错误，系统剪贴板、选区和源值不变   | ✅ 本轮    | multi-range-clipboard（wasm+ts）                                                                       |
 
 ## 备注
 

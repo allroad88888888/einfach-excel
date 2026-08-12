@@ -1,5 +1,6 @@
 import {
   dismissFormulaSuggestionsAtom,
+  dispatchKeyboardInputAtom,
   editingCommitLifecycleAtom,
   editingDraftAtom,
   editingSessionAtom,
@@ -17,6 +18,7 @@ import {
   syncFormulaReferenceCaret,
 } from '../provider'
 import { createInputCompositionGuard } from '../i18n-adapter/input-composition'
+import { applyFormulaReferenceArrowPick } from './grid-formula-reference-keyboard'
 import { type GridRuntime } from './grid-runtime'
 
 interface SpreadsheetGridCellEditorProps {
@@ -103,6 +105,21 @@ export function SpreadsheetGridCellEditor(props: SpreadsheetGridCellEditorProps)
                 event.preventDefault()
                 store.setter(dismissFormulaSuggestionsAtom)
                 store.setter(formulaFunctionSuggestionCursorAtom, 0)
+                return
+              }
+            }
+            if (store.getter(formulaReferenceSessionAtom)) {
+              const intent = store.setter(dispatchKeyboardInputAtom, {
+                key: event.key,
+                shiftKey: event.shiftKey,
+                ctrlKey: event.ctrlKey,
+                metaKey: event.metaKey,
+                altKey: event.altKey,
+                isComposing: event.isComposing,
+              })
+              if (intent.type === 'formulaReference.arrowPick') {
+                event.preventDefault()
+                applyFormulaReferenceArrowPick(store, intent)
                 return
               }
             }

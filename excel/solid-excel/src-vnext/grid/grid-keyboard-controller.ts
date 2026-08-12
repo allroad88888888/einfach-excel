@@ -4,7 +4,6 @@ import {
   clipboardStateAtom,
   dispatchKeyboardInputAtom,
   exitFormulaReferenceAtom,
-  formulaReferenceSessionAtom,
   getAdjacentSheetId,
   openFindReplaceAtom,
   openFormatCellsAtom,
@@ -12,7 +11,6 @@ import {
   openMenuAtom,
   openPasteSpecialAtom,
   pasteSpecialCapabilityAtom,
-  pickFormulaReferenceAtom,
   reapplyFilterAtom,
   scrollToCellAtom,
   selectionSnapshotAtom,
@@ -31,6 +29,7 @@ import type { GridContextMenuApi } from './grid-context-menu'
 import type { GridEditNavigationApi } from './grid-edit-navigation'
 import type { GridEditingControllerApi } from './grid-editing-controller'
 import type { GridFormatControllerApi } from './grid-format-controller'
+import { applyFormulaReferenceArrowPick } from './grid-formula-reference-keyboard'
 import { installGridFeature, type GridRuntimeBase } from './grid-runtime'
 import type { GridViewStateApi } from './grid-view-state'
 
@@ -220,18 +219,7 @@ export function installGridKeyboardController(runtime: GridKeyboardControllerRun
         return
       case 'formulaReference.arrowPick': {
         event.preventDefault()
-        const session = store.getter(formulaReferenceSessionAtom)
-        if (!session) return
-        const next = {
-          row: Math.max(0, session.anchorCell.row + intent.rowDelta),
-          col: Math.max(0, session.anchorCell.col + intent.colDelta),
-        }
-        store.setter(pickFormulaReferenceAtom, {
-          pickAnchor: next,
-          pickFocus: next,
-          sheetId: session.sheetId,
-          dragging: false,
-        })
+        applyFormulaReferenceArrowPick(store, intent)
         return
       }
       case 'formulaReference.exit':

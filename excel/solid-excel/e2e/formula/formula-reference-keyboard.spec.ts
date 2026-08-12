@@ -21,16 +21,6 @@ import { gotoRoot } from '../helpers'
  * pick focus, so repeated arrow presses re-pick anchor±1 rather than
  * walking further — these tests only press each arrow once per pick.
  *
- * ⚠️ ALL THREE TESTS ARE test.fixme — verified 2026-07-29 on the wasm
- * project: the draft stays `=` after ArrowLeft/ArrowUp. Root cause: the
- * arrow keys land on the cell editor `<input>`, whose onKeyDown has no
- * ref-pick branch, and `handleGridKeyDown` (SpreadsheetGrid.tsx:2499)
- * early-returns for INPUT targets — so the `formulaReference.arrowPick`
- * case in the grid switch (SpreadsheetGrid.tsx:2732) and the arrow arms
- * of `getFormulaReferenceModeIntent` (keyboard/index.ts:215) are
- * unreachable while an editor owns focus, i.e. always. The plumbing
- * exists end-to-end but is wired off; see CASES.md FML-32…34.
- *
  * Wave 5 seed (VNextWave5Demo.tsx): A1:F9 matrix, row 2 North … F2=840,
  * row 3 South … F3=800, row 9 Total B9=870. Columns G/H are empty.
  */
@@ -57,7 +47,7 @@ function cellInput(page: Page, addr: string) {
 }
 
 test.describe('formula reference — keyboard arrow picking', () => {
-  test.fixme('"=" then ArrowLeft splices the left neighbor and Enter commits', async ({ page }) => {
+  test('"=" then ArrowLeft splices the left neighbor and Enter commits', async ({ page }) => {
     await gotoWave5(page)
     await cell(page, 'G2').click()
     await page.keyboard.press('=')
@@ -76,7 +66,7 @@ test.describe('formula reference — keyboard arrow picking', () => {
     await expect(display(page, 'G2')).toHaveText('840')
   })
 
-  test.fixme('"=" then ArrowUp splices the cell above and Enter commits', async ({ page }) => {
+  test('"=" then ArrowUp splices the cell above and Enter commits', async ({ page }) => {
     await gotoWave5(page)
     await cell(page, 'B10').click()
     await page.keyboard.press('=')
@@ -91,7 +81,7 @@ test.describe('formula reference — keyboard arrow picking', () => {
     await expect(display(page, 'B10')).toHaveText('870')
   })
 
-  test.fixme('operator after a keyboard pick appends a second ref instead of replacing', async ({
+  test('operator after a keyboard pick appends a second ref instead of replacing', async ({
     page,
   }) => {
     await gotoWave5(page)

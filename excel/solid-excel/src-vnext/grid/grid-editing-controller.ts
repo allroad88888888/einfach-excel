@@ -2,12 +2,11 @@ import {
   editingSessionAtom,
   getSelectionRange,
   nextHistoryTransactionId,
-  pushHistoryAtom,
   resolveContentMutationAtom,
   selectCellAtom,
   type CellRange,
 } from '@einfach/spreadsheet-ui-core'
-import { dispatchEditingCommit, reportCommandFailure } from '../provider'
+import { dispatchEditingCommit, recordHistoryEntry, reportCommandFailure } from '../provider'
 import type { GridContextMenuApi } from './grid-context-menu'
 import type { GridProjectionControllerApi } from './grid-projection-controller'
 import { installGridFeature, type GridRuntimeBase } from './grid-runtime'
@@ -63,7 +62,7 @@ export function installGridEditingController(runtime: GridEditingControllerRunti
           return
         }
         const revision = typeof result?.revision === 'number' ? result.revision : Number(result?.revision ?? 0) || 0
-        store.setter(pushHistoryAtom, { transactionId: nextHistoryTransactionId(), kind: 'cell.set-input', sheetId: props.sheetId, projectionRevision: revision, affectedRange: result?.affectedRange ?? sourceRange })
+        recordHistoryEntry(store, backend, { transactionId: nextHistoryTransactionId(), kind: 'cell.set-input', sheetId: props.sheetId, projectionRevision: revision, affectedRange: result?.affectedRange ?? sourceRange })
         await loadProjection(requestProjection())
         return
       }
@@ -72,7 +71,7 @@ export function installGridEditingController(runtime: GridEditingControllerRunti
     for (const range of resolvedRanges.flat()) {
       const result = await backend.clearRange({ kind: 'clear-range', sheetId: props.sheetId, range, target })
       const revision = typeof result?.revision === 'number' ? result.revision : Number(result?.revision ?? 0) || 0
-      store.setter(pushHistoryAtom, { transactionId: nextHistoryTransactionId(), kind: 'range.clear', sheetId: props.sheetId, projectionRevision: revision, affectedRange: result?.affectedRange ? { ...result.affectedRange } : { ...range } })
+      recordHistoryEntry(store, backend, { transactionId: nextHistoryTransactionId(), kind: 'range.clear', sheetId: props.sheetId, projectionRevision: revision, affectedRange: result?.affectedRange ? { ...result.affectedRange } : { ...range } })
     }
     await loadProjection(requestProjection())
   }

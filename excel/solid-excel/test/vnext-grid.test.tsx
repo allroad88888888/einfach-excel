@@ -3158,6 +3158,16 @@ describe('vNext SpreadsheetGrid', () => {
       setFormatRangeRequests.push(request)
       return { sheetId: request.sheetId, revision: 32, affectedRange: request.range }
     }
+    backend.undoTransaction = async (request) => ({
+      transactionId: request.transactionId,
+      requestId: request.requestId,
+      revision: request.revision ?? 0,
+    })
+    backend.redoTransaction = async (request) => ({
+      transactionId: request.transactionId,
+      requestId: request.requestId,
+      revision: request.revision ?? 0,
+    })
 
     const viewport = {
       scrollTop: 0,

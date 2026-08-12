@@ -1,10 +1,10 @@
 import {
   nextHistoryTransactionId,
-  pushHistoryAtom,
   resolveContentMutationAtom,
   type FormatToggleField,
   type SpreadsheetCellFormat,
 } from '@einfach/spreadsheet-ui-core'
+import { recordHistoryEntry } from '../provider'
 import type { GridProjectionControllerApi } from './grid-projection-controller'
 import { installGridFeature, type GridRuntimeBase } from './grid-runtime'
 import type { GridViewStateApi } from './grid-view-state'
@@ -39,7 +39,7 @@ export function installGridFormatController(runtime: GridFormatControllerRuntime
     for (const sourceRange of sourceRanges) {
       const result = await backend.setFormatRange({ kind: 'set-format-range', sheetId, range: { ...sourceRange }, format: nextFormat })
       const revision = typeof result?.revision === 'number' ? result.revision : Number(result?.revision ?? 0) || 0
-      store.setter(pushHistoryAtom, { transactionId: nextHistoryTransactionId(), kind: 'format.set', sheetId, projectionRevision: revision, affectedRange: { ...(result?.affectedRange ?? sourceRange) } })
+      recordHistoryEntry(store, backend, { transactionId: nextHistoryTransactionId(), kind: 'format.set', sheetId, projectionRevision: revision, affectedRange: { ...(result?.affectedRange ?? sourceRange) } })
     }
     await loadProjection(requestProjection())
   }

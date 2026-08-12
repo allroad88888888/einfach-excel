@@ -77,6 +77,16 @@ describe('grid — refused paste fallback write', () => {
     restoreClipboard = installClipboard('a\tb')
     const store = createStore()
     const { backend, setCellInputRequests, readVisibleRequests } = createRefusingBackend(1)
+    backend.undoTransaction = async (request) => ({
+      transactionId: request.transactionId,
+      requestId: request.requestId,
+      revision: request.revision ?? 0,
+    })
+    backend.redoTransaction = async (request) => ({
+      transactionId: request.transactionId,
+      requestId: request.requestId,
+      revision: request.revision ?? 0,
+    })
 
     const leaked = await withUnhandledRejectionWatch(async () => {
       const { container } = renderGrid(backend, store)

@@ -9,14 +9,13 @@ import {
   markClipboardReadyAtom,
   nextHistoryTransactionId,
   pasteClipboardAtom,
-  pushHistoryAtom,
   resolveContentMutationAtom,
   serializeClipboardTsv,
   setClipboardErrorAtom,
   viewportFilterHiddenAtom,
   type ClipboardTransferInput,
 } from '@einfach/spreadsheet-ui-core'
-import { reportCommandFailure } from '../provider'
+import { recordHistoryEntry, reportCommandFailure } from '../provider'
 import {
   readBrowserClipboardText,
   writeBrowserClipboard,
@@ -184,7 +183,7 @@ export function installGridClipboard(runtime: GridClipboardRuntime) {
     if (writes.length > 0 && backend.importCells) {
       const result = await backend.importCells({ kind: 'import-cells', sheetId: props.sheetId, cells: writes, range: affectedRange })
       const revision = typeof result?.revision === 'number' ? result.revision : Number(result?.revision ?? 0) || 0
-      store.setter(pushHistoryAtom, { transactionId: nextHistoryTransactionId(), kind: 'cells.import', sheetId: props.sheetId, projectionRevision: revision, affectedRange: result?.affectedRange ? { ...result.affectedRange } : affectedRange })
+      recordHistoryEntry(store, backend, { transactionId: nextHistoryTransactionId(), kind: 'cells.import', sheetId: props.sheetId, projectionRevision: revision, affectedRange: result?.affectedRange ? { ...result.affectedRange } : affectedRange })
     } else if (writes.length > 0) for (const write of writes) {
       let result: Awaited<ReturnType<typeof backend.setCellInput>>
       try {
@@ -195,7 +194,7 @@ export function installGridClipboard(runtime: GridClipboardRuntime) {
         return
       }
       const revision = typeof result?.revision === 'number' ? result.revision : Number(result?.revision ?? 0) || 0
-      store.setter(pushHistoryAtom, { transactionId: nextHistoryTransactionId(), kind: 'cell.set-input', sheetId: props.sheetId, projectionRevision: revision, affectedRange: result?.affectedRange ? { ...result.affectedRange } : { rowStart: write.row, rowEnd: write.row, colStart: write.col, colEnd: write.col } })
+      recordHistoryEntry(store, backend, { transactionId: nextHistoryTransactionId(), kind: 'cell.set-input', sheetId: props.sheetId, projectionRevision: revision, affectedRange: result?.affectedRange ? { ...result.affectedRange } : { rowStart: write.row, rowEnd: write.row, colStart: write.col, colEnd: write.col } })
     }
     store.setter(markClipboardReadyAtom)
     await loadProjection(requestProjection())

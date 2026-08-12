@@ -42,8 +42,11 @@ IX-000 Atom 主线下的交互重整
 │   └── UI-516 页面设置编辑与打印预览衔接（已完成；见下表）
 ├── W6 PrintConfig 后端权威存储（已完成）
 │   └── UI-517 PrintConfig 后端持久化与 Worker RPC（已完成；见下表）
-└── W7 远端协作定位（已完成）
-    └── UI-518 Presence 网格几何与身份呈现（已完成；见下表）
+├── W7 远端协作定位（已完成）
+│   └── UI-518 Presence 网格几何与身份呈现（已完成；见下表）
+└── W8 历史记录能力收敛（实施中）
+    ├── UI-519a Grid 直接 mutation 的 History capability guard（已完成；见下表）
+    └── UI-519b…UI-519f Core producer recorder port 与分域迁移（UI-519b 设计完成，待实施；见下表）
 ```
 
 | 波次 | 进入条件                    | 允许的并行度                         | 解锁条件                                      |
@@ -56,6 +59,7 @@ IX-000 Atom 主线下的交互重整
 | W5   | UI-504 完成                 | 一个 print 表面改动者                | 页面设置以严格 ACK/read-back 安全提交         |
 | W6   | UI-516 完成                 | 一个 runtime/adapter 所有者          | PrintConfig 权威层与持久化语义已明确          |
 | W7   | W3 Presence 订阅完成        | 一个 Presence/Grid 改动者            | 远端光标在当前 Sheet 的真实单元格几何中可辨识 |
+| W8   | UI-209 的已知残余           | 一次一个 producer 域                 | 每个后端 mutation 入口经过同一能力保护        |
 
 ## 详细执行页
 
@@ -67,6 +71,7 @@ IX-000 Atom 主线下的交互重整
 - [W5：打印设置入口](interaction-execution/W5-page-setup.md)
 - [W6：PrintConfig 后端权威存储](interaction-execution/W6-print-config-backend.md)
 - [W7：远端协作定位](interaction-execution/W7-presence-grid-placement.md)
+- [W8：历史记录能力收敛](interaction-execution/W8-history-producer-guard.md)
 
 ## 通用交付证据
 

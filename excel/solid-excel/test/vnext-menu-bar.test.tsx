@@ -174,6 +174,18 @@ function createBaseBackend(): SpreadsheetBackend {
   }
 }
 
+function addFullHistoryCapability(backend: SpreadsheetBackend): SpreadsheetBackend {
+  return {
+    ...backend,
+    async undoTransaction(request) {
+      return { transactionId: request.transactionId, requestId: request.requestId }
+    },
+    async redoTransaction(request) {
+      return { transactionId: request.transactionId, requestId: request.requestId }
+    },
+  }
+}
+
 function setupSelection(store: ReturnType<typeof createStore>) {
   store.setter(selectionAtom, {
     kind: 'cell',
@@ -431,7 +443,7 @@ describe('SpreadsheetMenuBar', () => {
       const visibleRequests: VisibleProjectionRequest[] = []
       let rangeReads = 0
       let fallbackMutations = 0
-      const backend: SpreadsheetBackend = {
+      const backend = addFullHistoryCapability({
         ...createBaseBackend(),
         async readVisibleProjection(request) {
           visibleRequests.push(request)
@@ -471,7 +483,7 @@ describe('SpreadsheetMenuBar', () => {
           fallbackMutations += 1
           throw new Error('compact fillRange must win over setCellInput')
         },
-      }
+      })
       const selectionRange = { rowStart: 2, rowEnd: 4, colStart: 3, colEnd: 5 }
       const window = { rowStart: 0, rowEnd: 9, colStart: 0, colEnd: 9 }
       store.setter(setWorkspaceActiveSheetAtom, { sheetId: 'sheet-1' })
@@ -551,7 +563,7 @@ describe('SpreadsheetMenuBar', () => {
     const affectedRange = { rowStart: 3, rowEnd: 3, colStart: 3, colEnd: 3 }
     const selectionRange = { rowStart: 2, rowEnd: 3, colStart: 3, colEnd: 3 }
     const window = { rowStart: 0, rowEnd: 9, colStart: 0, colEnd: 9 }
-    const backend: SpreadsheetBackend = {
+    const backend = addFullHistoryCapability({
       ...createBaseBackend(),
       async readVisibleProjection(request) {
         visibleRequests.push(request)
@@ -593,7 +605,7 @@ describe('SpreadsheetMenuBar', () => {
       async setCellInput() {
         throw new Error('importCells must win over setCellInput')
       },
-    }
+    })
     store.setter(setWorkspaceActiveSheetAtom, { sheetId: 'sheet-1' })
     store.setter(selectionAtom, {
       kind: 'range',
@@ -984,7 +996,7 @@ describe('SpreadsheetMenuBar', () => {
       const insertRowsRequests: InsertRowsRequest[] = []
       const insertColumnsRequests: InsertColumnsRequest[] = []
       const readVisibleRequests: VisibleProjectionRequest[] = []
-      const backend: SpreadsheetBackend = {
+      const backend = addFullHistoryCapability({
         ...createBaseBackend(),
         async readVisibleProjection(request) {
           readVisibleRequests.push(request)
@@ -1013,7 +1025,7 @@ describe('SpreadsheetMenuBar', () => {
             revision: 11,
           }
         },
-      }
+      })
       const window = { rowStart: 0, rowEnd: 9, colStart: 0, colEnd: 9 }
       store.setter(setWorkspaceActiveSheetAtom, { sheetId: 'sheet-1' })
       store.setter(selectionAtom, {

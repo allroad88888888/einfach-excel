@@ -17,7 +17,7 @@
 | RC-06 | 行头右键菜单含 Delete | 右键行头 | 菜单含 delete | ✅ 存量 | audit-structural #"6. row header right-click…" |
 | RC-07 | 列头右键菜单含 Delete | 右键列头 | 菜单含 delete | ✅ 存量 | audit-structural #"7. column header right-click…" |
 | RC-08 | Data→Sort 升序物理重排 | 选 A2 → Data → Sort A→Z | 首个数据行变 Central（与 filter-sort/ 覆盖重叠） | ✅ 存量 | audit-structural #"8. Data → Sort A→Z…" |
-| RC-09 | filter dropdown equals 过滤 | — | — | ⏳ 延后 | audit-structural #9 存量 test.skip：menubar 移除后 Wave 5 无 filter dropdown 触发面，待 header funnel icon |
+| RC-09 | 工具栏 filter dropdown equals 过滤 | Wave5 选列 → Filter → equals 120 | 下拉打开并应用规则；不匹配行隐藏、列 chevron 保留规则 | ✅ 存量 | filter-sort/toolbar-filter-sort #"toolbar-btn-filter is visible, localized, and conditionally opens filter dropdown" |
 | RC-10 | 隐藏行：header 跳号 + undo 复原 | 行头右键 Hide → undo | 序号跳 2、窗口回填、`viewport.hidden` local 条目 | ✅ 存量 | vnext-hidden-rows-real-backend #"row header context menu hides row 2…" |
 | RC-11 | 隐藏行 SUBTOTAL 109/9 差异 | 藏一行数据 | 109 剔除、9 保留、undo 复原 | ✅ 存量 | vnext-subtotal-hidden-real-backend #"hiding a data row excludes it…" |
 | RC-12 | 单层行分组/折叠/展开 | Data→Group Rows → gutter 折叠/展开 | gutter 出现、序号跳段、history `outline` local 条目 | ✅ 存量 | vnext-outline-real-backend #"group rows 2-4 via Data menu…" |

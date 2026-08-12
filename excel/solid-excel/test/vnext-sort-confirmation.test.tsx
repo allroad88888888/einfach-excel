@@ -183,4 +183,21 @@ describe('toolbar sort confirmation', () => {
     await waitFor(() => expect(document.activeElement).toBe(trigger))
     expect(document.body.querySelector('[data-testid="sort-confirmation-dialog"]')).toBeNull()
   })
+
+  it('restores the sort trigger when Escape dismisses the menu', async () => {
+    const store = createStore()
+    setTarget(store, 0)
+    const { container } = renderToolbar(store, createBackend())
+    const trigger = container.querySelector('[data-testid="toolbar-btn-sort"]') as HTMLButtonElement
+    await waitFor(() => expect(trigger.disabled).toBe(false))
+
+    fireEvent.click(trigger)
+    await waitFor(() => expect(document.activeElement).toBe(byTestId('toolbar-sort-asc')))
+    fireEvent.keyDown(document.activeElement!, { key: 'Escape' })
+
+    await waitFor(() =>
+      expect(document.body.querySelector('[data-testid="toolbar-sort-dropdown"]')).toBeNull(),
+    )
+    expect(document.activeElement).toBe(trigger)
+  })
 })

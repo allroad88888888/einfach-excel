@@ -5,6 +5,7 @@ import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import { BordersDropdown } from '../src-vnext/toolbar/BordersDropdown'
 import { HAlignDropdown } from '../src-vnext/toolbar/HAlignDropdown'
 import { MergeDropdown } from '../src-vnext/toolbar/MergeDropdown'
+import { RotationDropdown } from '../src-vnext/toolbar/RotationDropdown'
 import { VAlignDropdown } from '../src-vnext/toolbar/VAlignDropdown'
 
 afterEach(() => cleanup())
@@ -146,6 +147,39 @@ describe('layout-format toolbar dropdown interactions', () => {
 
     fireEvent.click(unmerge)
     expect(onSelect).toHaveBeenCalledWith('unmerge')
+    expect(document.activeElement).toBe(anchor)
+  })
+
+  it('gives rotation a roving menu focus lifecycle', async () => {
+    const onSelect = jest.fn()
+    const onClose = jest.fn()
+    let anchor!: HTMLButtonElement
+    render(() => (
+      <>
+        <button ref={anchor} type="button">
+          Rotation
+        </button>
+        <RotationDropdown
+          isOpen={true}
+          anchorRef={anchor}
+          onSelect={onSelect}
+          onRequestClose={onClose}
+        />
+      </>
+    ))
+
+    const zero = getButton('toolbar-rotation-0')
+    const fortyFive = getButton('toolbar-rotation-45')
+    await waitFor(() => expect(document.activeElement).toBe(zero))
+
+    fireEvent.keyDown(zero, { key: 'ArrowDown' })
+    expect(document.activeElement).toBe(fortyFive)
+    fireEvent.click(fortyFive)
+    expect(onSelect).toHaveBeenCalledWith(45)
+    expect(document.activeElement).toBe(anchor)
+
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(onClose).toHaveBeenCalledTimes(1)
     expect(document.activeElement).toBe(anchor)
   })
 })

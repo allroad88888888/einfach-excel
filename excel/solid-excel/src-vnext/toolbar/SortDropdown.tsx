@@ -26,10 +26,16 @@ export function SortDropdown(props: SortDropdownProps) {
     props.onRequestClose()
   }
 
+  function closeAndRestoreFocus() {
+    props.onRequestClose()
+    props.anchorRef?.focus()
+  }
+
   function onDocKeyDown(event: KeyboardEvent) {
     if (event.key === 'Escape') {
       event.preventDefault()
-      props.onRequestClose()
+      event.stopPropagation()
+      closeAndRestoreFocus()
       return
     }
     if (!rootRef || !['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return

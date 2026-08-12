@@ -176,6 +176,7 @@ describe('NumberFormatDropdown', () => {
       affectedRange: RANGE,
       steps: [{ kind: 'set-format-range', range: RANGE, format: { bold: true } }],
       refreshProjection,
+      historyEntryRecorder: (entry, append) => (append(entry) ? 'recorded' : 'rejected'),
     })
     mountDropdown(store)
 

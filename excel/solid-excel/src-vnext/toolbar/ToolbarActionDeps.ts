@@ -1,6 +1,7 @@
 import type { Accessor } from 'solid-js'
 import type {
   ProjectionSnapshot,
+  HistoryEntryRecorder,
   SpreadsheetBackend,
   SpreadsheetCellFormat,
   SelectionSnapshot,
@@ -15,6 +16,7 @@ export interface ToolbarActionDeps {
   backend: SpreadsheetBackend
   closeSurface: () => void
   getMutationSheetId: () => string | null | undefined
+  historyEntryRecorder: HistoryEntryRecorder
   projectionSnapshot: Accessor<ProjectionSnapshot>
   selectionSnapshot: Accessor<SelectionSnapshot>
   store: ReturnType<typeof useSpreadsheetUiStore>

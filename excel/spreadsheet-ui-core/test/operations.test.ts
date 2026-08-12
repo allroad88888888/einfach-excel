@@ -11,6 +11,7 @@ import {
   pushReservedHistoryAtom,
   releaseHistoryProducerReservationAtom,
 } from '../src/history'
+import type { HistoryEntryRecorder } from '../src/history'
 import { setFreezeConfigAtom, viewportFreezeAtom } from '../src/viewport/freeze'
 import { hideRowsAtom, viewportHiddenAtom } from '../src/viewport/hidden'
 import {
@@ -46,6 +47,9 @@ function expectHistoryProducerLaneAvailable(store: ReturnType<typeof createStore
   if (reservation === null) throw new Error('expected the history producer lane to be available')
   expect(store.setter(releaseHistoryProducerReservationAtom, reservation)).toBe(true)
 }
+
+const recordHistoryEntry: HistoryEntryRecorder = (entry, append) =>
+  append(entry) ? 'recorded' : 'rejected'
 
 describe('operations core', () => {
   test('creates normalized intents for the common spreadsheet mutations', () => {
@@ -205,7 +209,12 @@ describe('operations core', () => {
 
     for (const intent of intents) {
       await expect(
-        store.setter(runStructureOperationAtom, { intent, source, refreshProjection }),
+        store.setter(runStructureOperationAtom, {
+          intent,
+          source,
+          refreshProjection,
+          historyEntryRecorder: recordHistoryEntry,
+        }),
       ).resolves.toBe('completed')
     }
 
@@ -276,6 +285,7 @@ describe('operations core', () => {
         } as never,
         source: {},
         refreshProjection,
+        historyEntryRecorder: recordHistoryEntry,
       }),
     ).resolves.toBe('rejected')
     expect(store.getter(structureOperationLifecycleAtom).status).toBe('rejected')
@@ -289,6 +299,7 @@ describe('operations core', () => {
         }),
         source: {},
         refreshProjection,
+        historyEntryRecorder: recordHistoryEntry,
       }),
     ).resolves.toBe('unsupported')
     expect(store.getter(structureOperationLifecycleAtom)).toMatchObject({
@@ -299,9 +310,7 @@ describe('operations core', () => {
     expect(store.getter(historyStackAtom).entries).toEqual([])
   })
 
-  test(
-    'validates before acquisition and launches zero transport when another producer owns history',
-    async () => {
+  test('validates before acquisition and launches zero transport when another producer owns history', async () => {
     const store = createStore()
     const foreignStore = createStore()
     const reservation = store.setter(acquireHistoryProducerReservationAtom)
@@ -331,6 +340,7 @@ describe('operations core', () => {
         } as never,
         source,
         refreshProjection: async () => undefined,
+        historyEntryRecorder: recordHistoryEntry,
       }),
     ).resolves.toBe('rejected')
     await expect(
@@ -342,6 +352,7 @@ describe('operations core', () => {
         }),
         source,
         refreshProjection: async () => undefined,
+        historyEntryRecorder: recordHistoryEntry,
       }),
     ).resolves.toBe('stale')
 
@@ -404,6 +415,7 @@ describe('operations core', () => {
       refreshProjection: async () => {
         refreshCount += 1
       },
+      historyEntryRecorder: recordHistoryEntry,
     }
 
     await expect(store.setter(runStructureOperationAtom, input)).resolves.toBe('outcome-unknown')
@@ -501,6 +513,7 @@ describe('operations core', () => {
         refreshProjection: async () => {
           refreshCount += 1
         },
+        historyEntryRecorder: recordHistoryEntry,
       }),
     ).resolves.toBe('completed')
 
@@ -582,6 +595,7 @@ describe('operations core', () => {
           refreshProjection: async () => {
             refreshCount += 1
           },
+          historyEntryRecorder: recordHistoryEntry,
         }),
       ).resolves.toBe('outcome-unknown')
 
@@ -614,6 +628,7 @@ describe('operations core', () => {
       refreshProjection: async () => {
         refreshCount += 1
       },
+      historyEntryRecorder: recordHistoryEntry,
     }
     const pushReservedHistoryWrite = pushReservedHistoryAtom.write
     pushReservedHistoryAtom.write = () => false
@@ -660,6 +675,7 @@ describe('operations core', () => {
           refreshCount += 1
           throw new Error('projection offline')
         },
+        historyEntryRecorder: recordHistoryEntry,
       }),
     ).resolves.toBe('refresh-failed')
 
@@ -679,6 +695,7 @@ describe('operations core', () => {
         refreshProjection: async () => {
           refreshCount += 1
         },
+        historyEntryRecorder: recordHistoryEntry,
       }),
     ).resolves.toBe('stale')
     expect(mutationCount).toBe(1)
@@ -701,9 +718,7 @@ describe('operations core', () => {
     expectHistoryProducerLaneAvailable(store)
   })
 
-  test(
-    'fails reset closed while transport is pending and releases only after it settles',
-    async () => {
+  test('fails reset closed while transport is pending and releases only after it settles', async () => {
     const store = createStore()
     let capturedRequest: StructureOperationRequest | null = null
     let rejectMutation!: (reason?: unknown) => void
@@ -731,6 +746,7 @@ describe('operations core', () => {
       refreshProjection: async () => {
         refreshCount += 1
       },
+      historyEntryRecorder: recordHistoryEntry,
     }
     const run = store.setter(runStructureOperationAtom, input)
 
@@ -760,9 +776,7 @@ describe('operations core', () => {
     expectHistoryProducerLaneAvailable(store)
   })
 
-  test(
-    'keeps the mutation lane reserved after timeout until transport settles and reset succeeds',
-    async () => {
+  test('keeps the mutation lane reserved after timeout until transport settles and reset succeeds', async () => {
     const store = createStore()
     let capturedRequest: StructureOperationRequest | null = null
     let resolveMutation!: (result: BackendMutationResult) => void
@@ -790,6 +804,7 @@ describe('operations core', () => {
       refreshProjection: async () => {
         refreshCount += 1
       },
+      historyEntryRecorder: recordHistoryEntry,
       timeoutMs: 1,
     }
 
@@ -837,6 +852,7 @@ describe('operations core', () => {
       intent: createInsertRowsOperation({ sheetId: 'sheet-1', rowIndex: 1, count: 1 }),
       source,
       refreshProjection: async () => undefined,
+      historyEntryRecorder: recordHistoryEntry,
     }
 
     const first = store.setter(runStructureOperationAtom, input)
@@ -903,6 +919,7 @@ describe('structural shift → local view facts + history side payloads', () => 
         intent,
         source,
         refreshProjection: async () => undefined,
+        historyEntryRecorder: recordHistoryEntry,
       }),
     ).resolves.toBe('completed')
   }
@@ -969,6 +986,7 @@ describe('structural shift → local view facts + history side payloads', () => 
         intent: createInsertRowsOperation({ sheetId: 'sheet-1', rowIndex: 0, count: 1 }),
         source,
         refreshProjection: async () => undefined,
+        historyEntryRecorder: recordHistoryEntry,
       }),
     ).resolves.toBe('completed')
     expect(store.getter(viewportHiddenAtom).rowsBySheet['sheet-1']).toEqual([3])
@@ -1068,6 +1086,7 @@ describe('structural shift → local view facts + history side payloads', () => 
         intent: createInsertColumnsOperation({ sheetId: 'sheet-1', colIndex: 0, count: 2 }),
         source,
         refreshProjection: async () => undefined,
+        historyEntryRecorder: recordHistoryEntry,
       }),
     ).resolves.toBe('completed')
 
@@ -1146,6 +1165,7 @@ describe('operations / delete rows over a filtered region (§8.3)', () => {
         intent: createDeleteRowsOperation({ sheetId: 'sheet-1', rowIndex: 2, count: 5 }),
         source,
         refreshProjection,
+        historyEntryRecorder: recordHistoryEntry,
       }),
     ).resolves.toBe('completed')
 
@@ -1166,6 +1186,7 @@ describe('operations / delete rows over a filtered region (§8.3)', () => {
         count: 5,
         source,
         refreshProjection,
+        historyEntryRecorder: recordHistoryEntry,
       }),
     ).resolves.toBe('completed')
 
@@ -1246,6 +1267,7 @@ describe('operations / delete rows over a filtered region (§8.3)', () => {
         count: 3,
         source,
         refreshProjection,
+        historyEntryRecorder: recordHistoryEntry,
       }),
     ).resolves.toBe('no-visible-rows')
     // The one thing that must never happen: falling back to the raw span.
@@ -1266,6 +1288,7 @@ describe('operations / delete rows over a filtered region (§8.3)', () => {
         count: 5,
         source,
         refreshProjection,
+        historyEntryRecorder: recordHistoryEntry,
       }),
     ).resolves.toBe('completed')
 
@@ -1285,6 +1308,7 @@ describe('operations / delete rows over a filtered region (§8.3)', () => {
         operationSource: 'selection',
         source,
         refreshProjection,
+        historyEntryRecorder: recordHistoryEntry,
       }),
     ).resolves.toBe('completed')
 
@@ -1306,6 +1330,7 @@ describe('operations / delete rows over a filtered region (§8.3)', () => {
         count: 3,
         source,
         refreshProjection,
+        historyEntryRecorder: recordHistoryEntry,
       }),
     ).resolves.toBe('completed')
 
@@ -1342,6 +1367,7 @@ describe('operations / delete rows over a filtered region (§8.3)', () => {
         count: 3,
         source,
         refreshProjection: async () => {},
+        historyEntryRecorder: recordHistoryEntry,
       }),
     ).resolves.toBe('outcome-unknown')
     expect(requests).toHaveLength(2)
@@ -1357,6 +1383,7 @@ describe('operations / delete rows over a filtered region (§8.3)', () => {
         count: 1,
         source,
         refreshProjection,
+        historyEntryRecorder: recordHistoryEntry,
       }),
     ).resolves.toBe('rejected')
     expect(requests).toEqual([])
@@ -1374,6 +1401,7 @@ describe('operations / delete rows over a filtered region (§8.3)', () => {
         count: 3,
         source,
         refreshProjection,
+        historyEntryRecorder: recordHistoryEntry,
       }),
     ).resolves.toBe('completed')
     expect(requests).toHaveLength(1)

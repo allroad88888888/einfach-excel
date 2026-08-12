@@ -17,7 +17,11 @@ import {
   type ViewportHiddenContextMenuCommandKind,
 } from '@einfach/spreadsheet-ui-core'
 
-import { refreshVisibleProjection, reportCommandFailure } from '../provider'
+import {
+  createHistoryEntryRecorder,
+  refreshVisibleProjection,
+  reportCommandFailure,
+} from '../provider'
 import { createContextMenuClipboardExecutor } from './context-menu-clipboard-executor'
 import { targetToRange } from './context-menu-clipboard-text'
 import type { ContextMenuCommandKind } from './context-menu-types'
@@ -50,6 +54,7 @@ export function createContextMenuCommandExecutor(
       source: backend,
       refreshProjection: (sheetId) =>
         refreshVisibleProjection(store, backend, sheetId, 'selection'),
+      historyEntryRecorder: createHistoryEntryRecorder(backend),
     })
   }
 
@@ -90,6 +95,7 @@ export function createContextMenuCommandExecutor(
           source: backend,
           refreshProjection: (sheetId) =>
             refreshVisibleProjection(store, backend, sheetId, 'selection'),
+          historyEntryRecorder: createHistoryEntryRecorder(backend),
         })
         return
       case 'column.insert':

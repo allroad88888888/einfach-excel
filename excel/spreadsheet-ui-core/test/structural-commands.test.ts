@@ -2,6 +2,7 @@ import { createStore } from '@einfach/core'
 import { describe, expect, test } from '@jest/globals'
 import type { BackendMutationResult } from '../src/backend/types'
 import { getOutlineGroupsForSheet, outlineAtom, viewportHiddenAtom } from '../src'
+import type { HistoryEntryRecorder } from '../src/history'
 import type { StructureOperationRequest } from '../src/operations'
 import { setViewportFilterHiddenRowsAtom } from '../src/viewport/effective-hidden'
 import { selectColumnsAtom, selectRowsAtom } from '../src/selection'
@@ -36,6 +37,9 @@ function createStructureSource() {
   return { requests, source }
 }
 
+const recordHistoryEntry: HistoryEntryRecorder = (entry, append) =>
+  append(entry) ? 'recorded' : 'rejected'
+
 describe('structural command routing', () => {
   test('fails closed without a selected sheet', async () => {
     const store = createStore()
@@ -46,6 +50,7 @@ describe('structural command routing', () => {
         command: 'insert-rows-above',
         source,
         refreshProjection: async () => undefined,
+        historyEntryRecorder: recordHistoryEntry,
       }),
     ).resolves.toBe('invalid')
   })
@@ -60,6 +65,7 @@ describe('structural command routing', () => {
         command: 'insert-rows-above',
         source,
         refreshProjection: async () => undefined,
+        historyEntryRecorder: recordHistoryEntry,
       }),
     ).resolves.toBe('completed')
     await expect(
@@ -67,6 +73,7 @@ describe('structural command routing', () => {
         command: 'insert-rows-below',
         source,
         refreshProjection: async () => undefined,
+        historyEntryRecorder: recordHistoryEntry,
       }),
     ).resolves.toBe('completed')
 
@@ -87,6 +94,7 @@ describe('structural command routing', () => {
         command: 'delete-rows',
         source,
         refreshProjection: async () => undefined,
+        historyEntryRecorder: recordHistoryEntry,
       }),
     ).resolves.toBe('completed')
 
@@ -129,6 +137,7 @@ describe('structural command routing', () => {
         command: 'insert-columns-right',
         source,
         refreshProjection: async () => undefined,
+        historyEntryRecorder: recordHistoryEntry,
       }),
     ).resolves.toBe('completed')
     await expect(
@@ -136,6 +145,7 @@ describe('structural command routing', () => {
         command: 'delete-columns',
         source,
         refreshProjection: async () => undefined,
+        historyEntryRecorder: recordHistoryEntry,
       }),
     ).resolves.toBe('completed')
     await expect(store.setter(runStructuralCommandAtom, { command: 'hide-columns' })).resolves.toBe(

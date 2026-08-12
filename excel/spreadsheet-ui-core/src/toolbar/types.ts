@@ -10,6 +10,7 @@ import type {
   UnmergeRangeRequest,
 } from '../backend/types'
 import type { CellRange } from '../shared'
+import type { HistoryEntryRecorder } from '../history'
 
 export type ToolbarSurfaceKind = 'dropdown' | 'palette'
 
@@ -196,6 +197,8 @@ export interface RunToolbarMutationInput {
   readonly affectedRange: Readonly<CellRange>
   readonly steps: readonly ToolbarMutationStep[]
   readonly refreshProjection: (sheetId: string) => Promise<void>
+  /** Host capability guard retained by the immutable mutation ticket after ACK. */
+  readonly historyEntryRecorder: HistoryEntryRecorder
 }
 
 export type ToolbarMutationOutcome =

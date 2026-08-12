@@ -1,6 +1,6 @@
 # W8：历史记录能力收敛
 
-> 状态：UI-519a 至 UI-519d 已完成；下一步为 UI-519e 的 operations 与 toolbar 迁移
+> 状态：UI-519a 至 UI-519e 已完成；下一步为 UI-519f 的 tables、filter-sort 与 remove-duplicates 迁移
 
 ## 目标
 
@@ -38,7 +38,7 @@ history Atom。继续保留既有 history Atom 作为历史事实的唯一权威
 | UI-519b | Core command 的 `recordHistory(entry, append)` callback port | UI-519a | 已完成：recorded / unavailable / rejected 三态 ABI；不把 backend 放进 Atom 或单例。 |
 | UI-519c | editing 与 auto-fill | UI-519b | 已完成：在 ACK 后经 required recorder 执行 reserved append；保留 reservation、transaction、revision、refresh。 |
 | UI-519d | paste-special 与 text-to-columns | UI-519b | 已完成：保留 reserved/direct 的原有差异；无能力时只跳过 history。 |
-| UI-519e | operations 与 toolbar | UI-519b | 高风险结构事务，单独处理 cross-sheet/localSidePayload。 |
+| UI-519e | operations 与 toolbar | UI-519b | 已完成：结构事务保留 reservation/localSidePayload，工具栏在完整 ACK 后记录。 |
 | UI-519f | tables、filter-sort、remove-duplicates | UI-519b | 最后处理多入口表格与筛选命令。 |
 
 ### UI-519a 交付（已完成）
@@ -106,6 +106,23 @@ check 均通过。
 单体测试；本次仅在共同输入 seam 注入默认 recorder 以保持既有 fixture，未扩大为测试重构。完整 touched lint
 仍显示 `text-to-columns/state.ts` 的 19 条存量 max-len 和测试依赖 warning；完整 touched Prettier 仅显示四份
 存量未格式化文件，新增文件和原本合规的改动文件均通过检查。
+
+### UI-519e operations 与 toolbar（已完成）
+
+结构操作的 ticket 在 transport 之前捕获必填 `HistoryEntryRecorder`，严格 ACK 后仅将既有
+`pushReservedHistoryAtom` 封装为 append callback。因此 cross-sheet target、transaction、revision、冻结/
+隐藏/outline 的 `localSidePayload` 与 reservation 生命周期全部保持原状。`unavailable` 只跳过 history 并继续
+refresh；`rejected` 保持 outcome-unknown，不重发结构 mutation。`structural-commands` 只为会发起 transport 的
+路径转发 recorder；`viewport/freeze.ts`、`viewport/hidden.ts` 与 `outline/index.ts` 的 localReplay 没有改动。
+
+toolbar 的 format、merge 与 unmerge ticket 同样在每个精确 ACK 后，经 recorder 调用原有
+`pushHistoryAtom` append callback。菜单、右键与 toolbar 三个真实宿主入口均从 Provider 稳定 backend forwarding
+handle 创建 recorder；Core ticket 不持有 backend。定向 8 个 Jest 套件、134 个断言，Core/Solid TypeScript、
+范围 ESLint（0 error，1 条项目既有 Jest dependency warning）、Prettier 和 diff check 均通过。
+
+`operations/index.ts`（1,456→1,501 行）、`toolbar/index.ts`（980→1,010 行）与 operations/toolbar 的既有
+测试已在本 issue 前超过普通文件上限；本次只在既有 mutation ticket 和共享 fixture seam 窄改。后续若再次修改
+这些域，应独立按 mutation-history 职责拆分，而不是继续扩张这些单体文件。
 
 ## D：实施门槛
 

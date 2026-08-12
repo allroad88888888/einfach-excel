@@ -27,7 +27,7 @@ import type {
   ToolbarBackendMutationResult,
   UnmergeRangeRequest,
 } from '../src'
-import { historyStackAtom } from '../src/history'
+import { historyStackAtom, type HistoryEntryRecorder } from '../src/history'
 import { selectAllAtom, selectCellAtom, selectRowsAtom } from '../src/selection'
 import { startEditingAtom } from '../src/editing'
 import { setWorkspaceActiveSheetAtom } from '../src/workspace'
@@ -118,6 +118,9 @@ const MALFORMED_TOOLBAR_ACK_CASES: ReadonlyArray<
     (request) => ({ ...strictFormatAcknowledgement(request, 21), kind: 'merge-range' }),
   ],
 ]
+
+const recordHistoryEntry: HistoryEntryRecorder = (entry, append) =>
+  append(entry) ? 'recorded' : 'rejected'
 
 describe('toolbar core', () => {
   test('exports read-only Core toolbar state while typed commands own every surface transition', () => {
@@ -399,6 +402,7 @@ describe('toolbar core', () => {
         },
       ],
       refreshProjection,
+      historyEntryRecorder: recordHistoryEntry,
     })
 
     expect(outcome).toBe('blocked')
@@ -433,6 +437,7 @@ describe('toolbar core', () => {
         },
       ],
       refreshProjection: async () => undefined,
+      historyEntryRecorder: recordHistoryEntry,
     })
 
     expect(outcome).toBe('blocked')
@@ -461,6 +466,7 @@ describe('toolbar core', () => {
         },
       ],
       refreshProjection,
+      historyEntryRecorder: recordHistoryEntry,
     })
 
     expect(outcome).toBe('completed')
@@ -507,6 +513,7 @@ describe('toolbar core', () => {
         affectedRange: range,
         steps: [{ kind: 'merge-range', range }],
         refreshProjection,
+        historyEntryRecorder: recordHistoryEntry,
       }),
     ).resolves.toBe('completed')
     await expect(
@@ -517,6 +524,7 @@ describe('toolbar core', () => {
         affectedRange: range,
         steps: [{ kind: 'unmerge-range', range }],
         refreshProjection,
+        historyEntryRecorder: recordHistoryEntry,
       }),
     ).resolves.toBe('completed')
 
@@ -553,6 +561,7 @@ describe('toolbar core', () => {
           },
         ],
         refreshProjection,
+        historyEntryRecorder: recordHistoryEntry,
       }),
     ).toBe('outcome-unknown')
 
@@ -599,6 +608,7 @@ describe('toolbar core', () => {
           },
         ],
         refreshProjection,
+        historyEntryRecorder: recordHistoryEntry,
       }),
     ).resolves.toBe('completed')
     expect(confirmedTransport).toHaveBeenCalledTimes(1)
@@ -634,6 +644,7 @@ describe('toolbar core', () => {
         },
       ],
       refreshProjection,
+      historyEntryRecorder: recordHistoryEntry,
     }
 
     const running = store.setter(runToolbarMutationAtom, input)
@@ -681,6 +692,7 @@ describe('toolbar core', () => {
         },
       ],
       refreshProjection,
+      historyEntryRecorder: recordHistoryEntry,
     }
 
     const running = store.setter(runToolbarMutationAtom, input)
@@ -729,6 +741,7 @@ describe('toolbar core', () => {
         },
       ],
       refreshProjection,
+      historyEntryRecorder: recordHistoryEntry,
     })
 
     expect(outcome).toBe('outcome-unknown')
@@ -775,6 +788,7 @@ describe('toolbar core', () => {
           },
         ],
         refreshProjection,
+        historyEntryRecorder: recordHistoryEntry,
       }),
     ).toBe('outcome-unknown')
     expect(store.getter(toolbarMutationLifecycleAtom)).toMatchObject({
@@ -812,6 +826,7 @@ describe('toolbar core', () => {
             },
           ],
           refreshProjection,
+          historyEntryRecorder: recordHistoryEntry,
         }),
       ).toBe('outcome-unknown')
       expect(store.getter(toolbarMutationLifecycleAtom)).toMatchObject({
@@ -861,6 +876,7 @@ describe('toolbar core', () => {
           },
         ],
         refreshProjection,
+        historyEntryRecorder: recordHistoryEntry,
       }),
     ).toBe('refresh-failed')
     expect(store.getter(historyStackAtom).entries).toHaveLength(1)

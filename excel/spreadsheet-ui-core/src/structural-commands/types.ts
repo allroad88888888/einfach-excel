@@ -4,6 +4,7 @@ import type {
   StructureOperationCommandOutcome,
   StructureOperationControllerPort,
 } from '../operations'
+import type { HistoryEntryRecorder } from '../history'
 import type { OutlineCommandOutcome } from '../outline'
 import type {
   ViewportHiddenCommandOutcome,
@@ -42,6 +43,8 @@ export interface RunStructuralCommandInput {
   readonly source?: StructuralCommandSource
   /** Required by transport-backed insert/delete commands to reveal the new projection. */
   readonly refreshProjection?: (sheetId: string) => Promise<void>
+  /** Required only by transport-backed insert/delete commands after their ACK. */
+  readonly historyEntryRecorder?: HistoryEntryRecorder
   readonly timeoutMs?: number
   readonly operationSource?: SpreadsheetOperationSource
 }

@@ -86,7 +86,7 @@ const inProcessWorker: WorkerLike = {
 let createBackend: (() => WorkerWorkbookSpreadsheetBackend) | undefined
 
 beforeAll(async () => {
-  (globalThis as Record<string, unknown>).self = {
+  ;(globalThis as Record<string, unknown>).self = {
     postMessage(msg: unknown) {
       for (const listener of [...toClient]) listener({ data: msg } as MessageEvent)
     },
@@ -493,6 +493,7 @@ describe('worker adapter: an active filter reaches the engine (#27 S4)', () => {
         intent: createInsertRowsOperation({ sheetId: SHEET, rowIndex: 0, count: 1 }),
         source: backend,
         refreshProjection: async () => {},
+        historyEntryRecorder: (entry, append) => (append(entry) ? 'recorded' : 'rejected'),
       }),
     ).resolves.toBe('completed')
     await pushManualToEngine()
@@ -614,8 +615,10 @@ describe('worker adapter: filter apply/clear is undoable (Excel parity)', () => 
       requestId: requestId++,
       range: { rowStart: row, rowEnd: row, colStart: col, colEnd: col },
     })
-    return result.cells.find((cell: DisplayCell) => cell.row === row && cell.col === col)
-      ?.displayValue ?? ''
+    return (
+      result.cells.find((cell: DisplayCell) => cell.row === row && cell.col === col)
+        ?.displayValue ?? ''
+    )
   }
   const applyNorth = (backend: WorkerWorkbookSpreadsheetBackend, recordHistory: boolean) =>
     backend.setFilterSort!({

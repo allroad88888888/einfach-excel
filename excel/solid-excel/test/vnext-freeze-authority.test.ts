@@ -223,6 +223,7 @@ describe('vNext freeze — local canonical with static persistence hook', () => 
           source: 'test',
         }),
         refreshProjection: async () => undefined,
+        historyEntryRecorder: (entry, append) => (append(entry) ? 'recorded' : 'rejected'),
       }),
     ).resolves.toBe('completed')
 

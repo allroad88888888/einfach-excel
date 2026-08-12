@@ -9,7 +9,7 @@ import {
   type MenuItemDispatch,
   type StructureOperationIntent,
 } from '@einfach/spreadsheet-ui-core'
-import { refreshVisibleProjection } from '../provider'
+import { createHistoryEntryRecorder, refreshVisibleProjection } from '../provider'
 import type { MenuBarCommandContext } from './menu-bar-command-context'
 
 /** Dispatches insert-menu commands while leaving mutations to Core command atoms. */
@@ -23,6 +23,7 @@ export function dispatchMenuBarInsertCommand(
       intent,
       source: backend,
       refreshProjection: (sheetId) => refreshVisibleProjection(store, backend, sheetId),
+      historyEntryRecorder: createHistoryEntryRecorder(backend),
     })
   }
 

@@ -92,7 +92,7 @@ let createBackendImpl:
 beforeAll(async () => {
   // Worker context the wasm dispatcher installs onto — must exist BEFORE
   // worker-runtime.ts is imported (its module scope reads `self`).
-  (globalThis as Record<string, unknown>).self = {
+  ;(globalThis as Record<string, unknown>).self = {
     postMessage(msg: unknown) {
       for (const listener of [...toClient]) listener({ data: msg } as MessageEvent)
     },
@@ -380,6 +380,7 @@ describe('worker adapter host-orchestrated undo — real WASM engine + real disp
       intent: createDeleteRowsOperation({ sheetId: SHEET, rowIndex: 1, count: 1 }),
       source: backend,
       refreshProjection: async () => {},
+      historyEntryRecorder: (entry, append) => (append(entry) ? 'recorded' : 'rejected'),
     })
     expect(outcome).toBe('completed')
     expect(await displayAt(backend, 1, 0)).toBe('tail')

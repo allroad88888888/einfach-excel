@@ -78,13 +78,15 @@ export const runStructuralCommandAtom = atom(
           }),
         })
       case 'delete-rows':
-        if (!input.refreshProjection) return 'invalid'
+        if (!input.refreshProjection || typeof input.historyEntryRecorder !== 'function')
+          return 'invalid'
         return set(runFilterVisibleRowDeleteAtom, {
           sheetId: target.sheetId,
           rowIndex: target.rowStart,
           count: selectedAxisCount(target.rowStart, target.rowEnd),
           source,
           refreshProjection: input.refreshProjection,
+          historyEntryRecorder: input.historyEntryRecorder,
           timeoutMs: input.timeoutMs,
           operationSource,
         })
@@ -162,11 +164,14 @@ function runStructureCommand(
     readonly intent: Parameters<typeof runStructureOperationAtom.write>[2]['intent']
   },
 ): Promise<StructuralCommandOutcome> {
-  if (!input.refreshProjection) return Promise.resolve('invalid')
+  if (!input.refreshProjection || typeof input.historyEntryRecorder !== 'function') {
+    return Promise.resolve('invalid')
+  }
   return set(runStructureOperationAtom, {
     intent,
     source,
     refreshProjection: input.refreshProjection,
+    historyEntryRecorder: input.historyEntryRecorder,
     timeoutMs: input.timeoutMs,
   })
 }

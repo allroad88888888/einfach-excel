@@ -35,12 +35,13 @@ function isDecimalCapableFormat(
 /** Runs non-border toolbar format mutations through the existing Core gateway. */
 export function useToolbarFormatCommands(deps: ToolbarActionDeps) {
   function dispatchToolbarMutation(
-    input: Omit<RunToolbarMutationInput, 'source' | 'refreshProjection'>,
+    input: Omit<RunToolbarMutationInput, 'source' | 'refreshProjection' | 'historyEntryRecorder'>,
   ) {
     void deps.store.setter(runToolbarMutationAtom, {
       ...input,
       source: deps.backend,
       refreshProjection: (sheetId) => refreshVisibleProjection(deps.store, deps.backend, sheetId),
+      historyEntryRecorder: deps.historyEntryRecorder,
     })
   }
 

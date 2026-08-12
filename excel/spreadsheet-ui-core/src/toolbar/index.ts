@@ -2,6 +2,7 @@ import { atom } from '@einfach/core'
 import type { Atom, Getter, Setter } from '@einfach/core'
 import { editingSessionAtom } from '../editing'
 import { nextHistoryTransactionId, pushHistoryAtom } from '../history'
+import type { HistoryEntry, HistoryEntryRecorder, HistoryRecordResult } from '../history'
 import { selectionAtom } from '../selection'
 import { workspaceSessionAtom } from '../workspace'
 import type {
@@ -324,6 +325,7 @@ interface ToolbarMutationTicket {
   readonly steps: readonly CapturedToolbarMutationStep[]
   readonly historyKind: ToolbarMutationHistoryKind
   readonly refreshProjection: (sheetId: string) => Promise<void>
+  readonly historyEntryRecorder: HistoryEntryRecorder
 }
 
 const INITIAL_TOOLBAR_MUTATION_LIFECYCLE: ToolbarMutationLifecycleState = Object.freeze({
@@ -565,6 +567,33 @@ function capturePort<K extends keyof ToolbarMutationControllerPort>(
   }
 }
 
+function captureToolbarHistoryEntryRecorder(
+  input: RunToolbarMutationInput,
+): HistoryEntryRecorder | null {
+  try {
+    const recorder = input.historyEntryRecorder
+    return typeof recorder === 'function' ? recorder : null
+  } catch {
+    return null
+  }
+}
+
+function recordToolbarMutationHistory(
+  set: Setter,
+  ticket: ToolbarMutationTicket,
+  entry: HistoryEntry,
+): HistoryRecordResult {
+  const append = (nextEntry: HistoryEntry): boolean => set(pushHistoryAtom, nextEntry)
+  try {
+    const result = ticket.historyEntryRecorder(entry, append)
+    return result === 'recorded' || result === 'unavailable' || result === 'rejected'
+      ? result
+      : 'rejected'
+  } catch {
+    return 'rejected'
+  }
+}
+
 function strictAcknowledgementRevision(
   result: unknown,
   ticket: ToolbarMutationTicket,
@@ -594,6 +623,7 @@ function buildMutationTicket(
   input: RunToolbarMutationInput,
 ): ToolbarMutationTicket | null {
   const historyKind = historyKindForOperation(input.operation)
+  const historyEntryRecorder = captureToolbarHistoryEntryRecorder(input)
   if (
     historyKind === null ||
     typeof input.sheetId !== 'string' ||
@@ -601,7 +631,8 @@ function buildMutationTicket(
     !isCellRange(input.affectedRange) ||
     !Array.isArray(input.steps) ||
     input.steps.length === 0 ||
-    typeof input.refreshProjection !== 'function'
+    typeof input.refreshProjection !== 'function' ||
+    historyEntryRecorder === null
   ) {
     return null
   }
@@ -699,6 +730,7 @@ function buildMutationTicket(
     steps: Object.freeze(capturedSteps),
     historyKind,
     refreshProjection: input.refreshProjection,
+    historyEntryRecorder,
   })
 }
 
@@ -741,8 +773,7 @@ async function executeMutationTicket(
             acknowledgedRevision,
             acknowledgedCount,
             canRetryRefresh: true,
-            error:
-              `${TOOLBAR_MUTATION_OUTCOME_UNKNOWN_ERROR} ${TOOLBAR_MUTATION_ACKNOWLEDGEMENT_ERROR}`,
+            error: `${TOOLBAR_MUTATION_OUTCOME_UNKNOWN_ERROR} ${TOOLBAR_MUTATION_ACKNOWLEDGEMENT_ERROR}`,
           }),
         )
         return 'outcome-unknown'
@@ -762,22 +793,21 @@ async function executeMutationTicket(
         acknowledgedCount,
       }),
     )
-    const historyRecorded = set(pushHistoryAtom, {
+    const historyRecordResult = recordToolbarMutationHistory(set, ticket, {
       transactionId: nextHistoryTransactionId('toolbar'),
       kind: ticket.historyKind,
       sheetId: ticket.sheetId,
       projectionRevision: acknowledgedRevision as ProjectionRevision,
       affectedRange: ticket.affectedRange,
     })
-    if (!historyRecorded) {
+    if (historyRecordResult === 'rejected') {
       set(
         toolbarMutationLifecycleBackingAtom,
         lifecycleForTicket('outcome-unknown', ticket, {
           acknowledgedRevision,
           acknowledgedCount,
           canRetryRefresh: true,
-          error:
-            `${TOOLBAR_MUTATION_OUTCOME_UNKNOWN_ERROR} History rejected the acknowledged mutation.`,
+          error: `${TOOLBAR_MUTATION_OUTCOME_UNKNOWN_ERROR} History rejected the acknowledged mutation.`,
         }),
       )
       return 'outcome-unknown'

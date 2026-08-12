@@ -16,7 +16,13 @@ import {
   pushReservedHistoryAtom,
   releaseHistoryProducerReservationAtom,
 } from '../history'
-import type { HistoryLocalReplayPayload, HistoryProducerReservation } from '../history'
+import type {
+  HistoryEntry,
+  HistoryEntryRecorder,
+  HistoryLocalReplayPayload,
+  HistoryProducerReservation,
+  HistoryRecordResult,
+} from '../history'
 import {
   applyOutlineStructuralShiftAtom,
   getOutlineGroupsForSheet,
@@ -460,6 +466,8 @@ export interface RunStructureOperationInput {
   readonly intent: StructureOperationIntent
   readonly source: StructureOperationControllerPort
   readonly refreshProjection: (sheetId: string) => Promise<void>
+  /** Host capability guard retained by the immutable mutation ticket after ACK. */
+  readonly historyEntryRecorder: HistoryEntryRecorder
   /** Mutation and refresh timeout. Defaults to `DEFAULT_STRUCTURE_OPERATION_TIMEOUT_MS`. */
   readonly timeoutMs?: number
 }
@@ -489,6 +497,7 @@ interface StructureOperationTicket {
   readonly requestId: ProjectionRequestId
   readonly transactionId: string
   readonly historyReservation: HistoryProducerReservation
+  readonly historyEntryRecorder: HistoryEntryRecorder
 }
 
 interface StructureOperationAcknowledgement {
@@ -892,6 +901,34 @@ function structureOperationTicketIsCurrent(get: Getter, ticket: StructureOperati
   )
 }
 
+function captureStructureOperationHistoryEntryRecorder(
+  input: RunStructureOperationInput,
+): HistoryEntryRecorder | null {
+  try {
+    const recorder = input.historyEntryRecorder
+    return typeof recorder === 'function' ? recorder : null
+  } catch {
+    return null
+  }
+}
+
+function recordStructureOperationHistory(
+  set: Setter,
+  ticket: StructureOperationTicket,
+  entry: HistoryEntry,
+): HistoryRecordResult {
+  const append = (nextEntry: HistoryEntry): boolean =>
+    set(pushReservedHistoryAtom, { reservation: ticket.historyReservation, entry: nextEntry })
+  try {
+    const result = ticket.historyEntryRecorder(entry, append)
+    return result === 'recorded' || result === 'unavailable' || result === 'rejected'
+      ? result
+      : 'rejected'
+  } catch {
+    return 'rejected'
+  }
+}
+
 const completeStructureOperationTicketAtom = atom(
   null,
   (
@@ -928,7 +965,15 @@ async function runStructureOperation(
   }
 
   const intent = snapshotStructureOperationIntent(input?.intent)
-  if (intent === null || typeof input?.refreshProjection !== 'function') {
+  const historyEntryRecorder =
+    input === null || input === undefined
+      ? null
+      : captureStructureOperationHistoryEntryRecorder(input)
+  if (
+    intent === null ||
+    typeof input?.refreshProjection !== 'function' ||
+    historyEntryRecorder === null
+  ) {
     set(
       structureOperationLifecycleBackingAtom,
       structureLifecycleFor('rejected', { error: STRUCTURE_OPERATION_REJECTED_ERROR }),
@@ -976,6 +1021,7 @@ async function runStructureOperation(
     requestId,
     transactionId,
     historyReservation,
+    historyEntryRecorder,
   })
   set(structureOperationRequestSequenceAtom, requestId)
   set(activeStructureOperationTicketAtom, ticket)
@@ -1013,7 +1059,7 @@ async function runStructureOperation(
         ticket,
         null,
         `${STRUCTURE_OPERATION_OUTCOME_UNKNOWN_ERROR} ` +
-        `Backend detail: ${structureOperationErrorMessage(error)}`,
+          `Backend detail: ${structureOperationErrorMessage(error)}`,
       ),
     )
     return 'outcome-unknown'
@@ -1118,18 +1164,15 @@ async function runStructureOperation(
   }
 
   if (!structureOperationTicketIsCurrent(get, ticket)) return 'stale'
-  const historyRecorded = set(pushReservedHistoryAtom, {
-    reservation: ticket.historyReservation,
-    entry: {
-      transactionId: ticket.transactionId,
-      kind: ticket.intent.kind,
-      sheetId: ticket.intent.sheetId,
-      projectionRevision: acknowledgement.revision,
-      ...(acknowledgement.affectedRange ? { affectedRange: acknowledgement.affectedRange } : {}),
-      ...(localSidePayloads.length > 0 ? { localSidePayloads } : {}),
-    },
+  const historyRecordResult = recordStructureOperationHistory(set, ticket, {
+    transactionId: ticket.transactionId,
+    kind: ticket.intent.kind,
+    sheetId: ticket.intent.sheetId,
+    projectionRevision: acknowledgement.revision,
+    ...(acknowledgement.affectedRange ? { affectedRange: acknowledgement.affectedRange } : {}),
+    ...(localSidePayloads.length > 0 ? { localSidePayloads } : {}),
   })
-  if (!historyRecorded) {
+  if (historyRecordResult === 'rejected') {
     if (!structureOperationTicketIsCurrent(get, ticket)) return 'stale'
     set(
       structureOperationLifecycleBackingAtom,
@@ -1170,7 +1213,7 @@ async function runStructureOperation(
         ticket,
         acknowledgement.revision,
         'Structure operation was acknowledged, ' +
-        `but refresh failed: ${structureOperationErrorMessage(error)}`,
+          `but refresh failed: ${structureOperationErrorMessage(error)}`,
       ),
     )
     return 'refresh-failed'
@@ -1303,6 +1346,7 @@ export interface RunFilterVisibleRowDeleteInput {
   readonly count: number
   readonly source: StructureOperationControllerPort
   readonly refreshProjection: (sheetId: string) => Promise<void>
+  readonly historyEntryRecorder: HistoryEntryRecorder
   readonly timeoutMs?: number
   readonly operationSource?: SpreadsheetOperationSource
   readonly revision?: number | string
@@ -1359,6 +1403,7 @@ export const runFilterVisibleRowDeleteAtom = atom(
         }),
         source: input.source,
         refreshProjection: input.refreshProjection,
+        historyEntryRecorder: input.historyEntryRecorder,
         timeoutMs: input.timeoutMs,
       })
       if (outcome !== 'completed') return outcome
@@ -1411,7 +1456,7 @@ export const retryStructureOperationRefreshAtom = atom(
           ticket,
           acknowledgedRevision,
           'Structure operation was acknowledged, ' +
-        `but refresh failed: ${structureOperationErrorMessage(error)}`,
+            `but refresh failed: ${structureOperationErrorMessage(error)}`,
         ),
       )
       return 'refresh-failed'

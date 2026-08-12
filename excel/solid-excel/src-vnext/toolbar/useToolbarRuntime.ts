@@ -23,6 +23,7 @@ import {
 } from '@einfach/spreadsheet-ui-core'
 import { openNumberFormatDialogAtom } from '../format-cells'
 import {
+  createHistoryEntryRecorder,
   isVisibleProjectionResult,
   spreadsheetProjectionSnapshotAtom,
   useSpreadsheetBackend,
@@ -118,6 +119,7 @@ export function useToolbarRuntime() {
     backend,
     closeSurface: surface.closeSurface,
     getMutationSheetId,
+    historyEntryRecorder: createHistoryEntryRecorder(backend),
     projectionSnapshot,
     selectionSnapshot,
     store,

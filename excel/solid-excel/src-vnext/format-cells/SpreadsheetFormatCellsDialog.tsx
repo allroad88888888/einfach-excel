@@ -50,7 +50,7 @@ export function SpreadsheetFormatCellsDialog(props: SpreadsheetFormatCellsDialog
       >
         <div class="format-cells-header">
           <span id="format-cells-title" class="format-cells-title">
-            Format Cells
+            {t('formatCells.title')}
           </span>
           <button
             type="button"

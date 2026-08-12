@@ -689,6 +689,8 @@ export const messages: Record<string, string> = {
   'protection.unlock.refresh': 'Refresh status',
   'protection.unlock.cancel': 'Cancel',
 
+  // Format Cells dialog
+  'formatCells.title': 'Format Cells',
   // Format Cells dialog — tabs
   'formatCells.tab.number': 'Number',
   'formatCells.tab.alignment': 'Alignment',

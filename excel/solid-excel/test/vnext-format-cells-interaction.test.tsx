@@ -58,6 +58,23 @@ function successfulSave(request: SetFormatRangeRequest) {
 }
 
 describe('Format Cells interactions', () => {
+  it('keeps its accessible dialog name synchronized with the active locale', async () => {
+    setLocale('en')
+    const store = createStore()
+    store.setter(openFormatCellsAtom, { sheetId: 'sheet-1', range: RANGE })
+    const view = render(() => (
+      <SpreadsheetUiProvider backend={backendWithSave(successfulSave)} store={store}>
+        <SpreadsheetFormatCellsDialog />
+      </SpreadsheetUiProvider>
+    ))
+
+    await waitFor(() => expect(view.getByRole('dialog', { name: 'Format Cells' })).toBeTruthy())
+    setLocale('zh')
+    await waitFor(() => expect(view.getByRole('dialog', { name: '设置单元格格式' })).toBeTruthy())
+    setLocale('en')
+    await waitFor(() => expect(view.getByRole('dialog', { name: 'Format Cells' })).toBeTruthy())
+  })
+
   it('uses roving tabs with linked tabpanel semantics', async () => {
     const store = createStore()
     store.setter(openFormatCellsAtom, { sheetId: 'sheet-1', range: RANGE })

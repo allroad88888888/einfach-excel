@@ -662,6 +662,8 @@ export const messages: Record<string, string> = {
   'protection.unlock.refresh': '刷新状态',
   'protection.unlock.cancel': '取消',
 
+  // 设置单元格格式 — 对话框
+  'formatCells.title': '设置单元格格式',
   // 设置单元格格式 — 选项卡
   'formatCells.tab.number': '数字',
   'formatCells.tab.alignment': '对齐',

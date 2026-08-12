@@ -79,6 +79,25 @@ test.describe('i18n — vNext 表面 locale 切换', () => {
     await expect(needle).toHaveValue('North')
   })
 
+  test('打开中的 Format Cells 对话框名称随 locale 切换', async ({ page }) => {
+    await gotoWave5English(page)
+
+    await page.locator('[data-testid="wave5-grid"] td.cell[data-cell-addr="B2"]').click()
+    await page.getByTestId('toolbar-btn-number-format').click()
+    await page.getByTestId('number-format-item-Custom').click()
+
+    const dialog = page.getByTestId('wave5-format-cells')
+    await expect(dialog).toBeVisible()
+    await expect(dialog).toHaveAccessibleName('Format Cells')
+
+    await localeBtn(page, '中').click()
+    await expect(dialog).toBeVisible()
+    await expect(dialog).toHaveAccessibleName('设置单元格格式')
+
+    await localeBtn(page, 'EN').click()
+    await expect(dialog).toHaveAccessibleName('Format Cells')
+  })
+
   test('vNext Worker demo 默认 ZH 启动，切 EN 生效', async ({ page }) => {
     guardConsoleErrors(page)
     // 不带 locale 参数：App 以 DEFAULT_LOCALE=zh 启动（i18n/index.ts）。

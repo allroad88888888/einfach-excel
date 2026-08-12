@@ -265,6 +265,8 @@ describe('vNext filter/sort entrypoints', () => {
     await waitForEntrypointsEnabled(container)
 
     clickMenuSort(container, 'desc')
+    await waitFor(() => expect(button(document.body, 'sort-confirmation-confirm')).not.toBeNull())
+    fireEvent.click(button(document.body, 'sort-confirmation-confirm'))
     await waitFor(() =>
       expect(store.getter(filterSortEntrypointStateAtom).status).toBe('outcome-unknown'),
     )

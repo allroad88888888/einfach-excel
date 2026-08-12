@@ -1,6 +1,6 @@
 import { Show, createEffect, onCleanup } from 'solid-js'
 import { Portal } from 'solid-js/web'
-import type { SortConfirmationState } from './sort-confirmation-state'
+import type { SortConfirmationEntrypoint, SortConfirmationState } from './sort-confirmation-state'
 import { formatSortColumn, formatSortRange } from './sort-range-label'
 
 if (typeof process === 'undefined' || !process.env.JEST_WORKER_ID) {
@@ -9,6 +9,7 @@ if (typeof process === 'undefined' || !process.env.JEST_WORKER_ID) {
 
 interface SortConfirmationDialogProps {
   readonly anchorRef?: HTMLElement | null
+  readonly owner?: SortConfirmationEntrypoint
   readonly onCancel: () => void
   readonly onConfirm: () => void
   readonly onRetry: () => void
@@ -19,12 +20,23 @@ interface SortConfirmationDialogProps {
 export function SortConfirmationDialog(props: SortConfirmationDialogProps) {
   let dialogRef: HTMLDivElement | undefined
   let primaryActionRef: HTMLButtonElement | undefined
+  const owner = () => props.owner ?? 'toolbar'
+  const ownsSession = () => {
+    const state = props.state
+    return state.status !== 'closed' && state.entrypoint === owner()
+  }
 
   const directionLabel = () =>
     props.state.status === 'closed' ? '' : props.t(`toolbar.sort.${props.state.direction}`)
 
+  function anchor(): HTMLElement | null | undefined {
+    if (props.anchorRef) return props.anchorRef
+    if (owner() !== 'menu-bar') return null
+    return document.querySelector<HTMLButtonElement>('[data-menu-bar-top-button="data"]')
+  }
+
   function restoreAnchorFocus(): void {
-    queueMicrotask(() => props.anchorRef?.focus())
+    queueMicrotask(() => anchor()?.focus())
   }
 
   function cancel(): void {
@@ -56,14 +68,14 @@ export function SortConfirmationDialog(props: SortConfirmationDialogProps) {
   }
 
   createEffect(() => {
-    if (props.state.status === 'closed') return
+    if (!ownsSession()) return
     document.addEventListener('keydown', onKeyDown)
     queueMicrotask(() => primaryActionRef?.focus())
     onCleanup(() => document.removeEventListener('keydown', onKeyDown))
   })
 
   return (
-    <Show when={props.state.status !== 'closed'}>
+    <Show when={ownsSession()}>
       <Portal>
         <div
           class="spreadsheet-sort-confirmation-backdrop"

@@ -2,6 +2,7 @@ import { atom } from '@einfach/core'
 import type {
   CellCoord,
   CellRange,
+  FilterSortEntrypoint,
   FilterSortEntrypointTarget,
   SortDirection,
 } from '@einfach/spreadsheet-ui-core'
@@ -9,10 +10,13 @@ import type {
 export const SORT_RANGE_UNAVAILABLE_ERROR =
   'The sortable data range could not be determined. Check the sheet data and try again.'
 
+export type SortConfirmationEntrypoint = FilterSortEntrypoint
+
 interface SortConfirmationContext {
   readonly active: CellCoord
   readonly attempt: number
   readonly direction: SortDirection
+  readonly entrypoint: SortConfirmationEntrypoint
   readonly sessionId: number
   readonly target: FilterSortEntrypointTarget
 }
@@ -28,6 +32,7 @@ export type SortConfirmationTicket = SortConfirmationContext & { readonly status
 interface BeginSortConfirmationInput {
   readonly active: CellCoord
   readonly direction: SortDirection
+  readonly entrypoint: SortConfirmationEntrypoint
   readonly target: FilterSortEntrypointTarget
 }
 
@@ -59,6 +64,7 @@ function preparingState(
     sessionId,
     attempt,
     direction: input.direction,
+    entrypoint: input.entrypoint,
     target: Object.freeze({ ...input.target }),
     active: Object.freeze({ ...input.active }),
   })

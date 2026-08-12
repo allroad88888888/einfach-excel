@@ -1733,6 +1733,12 @@ describe('SpreadsheetMenuBar', () => {
     ) as HTMLButtonElement
     await waitFor(() => expect(sortAsc.disabled).toBe(false))
     fireEvent.click(sortAsc)
+    await waitFor(() =>
+      expect(
+        document.body.querySelector('[data-testid="sort-confirmation-confirm"]'),
+      ).not.toBeNull(),
+    )
+    fireEvent.click(document.body.querySelector('[data-testid="sort-confirmation-confirm"]')!)
 
     await waitFor(() => expect(sortRequests).toHaveLength(1))
     expect(sortRequests[0]!.keys).toEqual([{ col: 3, direction: 'asc' }])
@@ -1764,6 +1770,12 @@ describe('SpreadsheetMenuBar', () => {
     ) as HTMLButtonElement
     await waitFor(() => expect(sortDesc.disabled).toBe(false))
     fireEvent.click(sortDesc)
+    await waitFor(() =>
+      expect(
+        document.body.querySelector('[data-testid="sort-confirmation-confirm"]'),
+      ).not.toBeNull(),
+    )
+    fireEvent.click(document.body.querySelector('[data-testid="sort-confirmation-confirm"]')!)
 
     await waitFor(() => expect(sortRequests).toHaveLength(1))
     expect(sortRequests[0]!.keys).toEqual([{ col: 1, direction: 'desc' }])

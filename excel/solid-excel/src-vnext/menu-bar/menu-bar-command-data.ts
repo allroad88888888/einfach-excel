@@ -7,13 +7,12 @@ import {
   openValidationRuleEditorAtom,
   reapplyFilterAtom,
   runCreateTableAtom,
-  runPhysicalSortAtom,
   runTextToColumnsEntrypointAtom,
   runToggleTableTotalsAtSelectionAtom,
   selectionSnapshotAtom,
   type MenuItemDispatch,
 } from '@einfach/spreadsheet-ui-core'
-import { createHistoryEntryRecorder, refreshVisibleProjection, resolveSortRange } from '../provider'
+import { createHistoryEntryRecorder, refreshVisibleProjection } from '../provider'
 import type { MenuBarCommandContext } from './menu-bar-command-context'
 
 function runTextToColumnsEntrypoint(context: MenuBarCommandContext) {
@@ -98,24 +97,11 @@ export function dispatchMenuBarDataCommand(
       })
       return true
     case 'sort-asc':
-    case 'sort-desc': {
-      const direction = dispatch.kind === 'sort-asc' ? 'asc' : 'desc'
-      void (async () => {
-        const snapshot = store.getter(selectionSnapshotAtom)
-        const sheetId = snapshot.activeCell.sheetId || getActiveSheetId()
-        if (!sheetId || typeof backend.sortRange !== 'function') return
-        const range = await resolveSortRange(store, backend, sheetId, snapshot.activeCell)
-        void store.setter(runPhysicalSortAtom, {
-          source: backend,
-          historyEntryRecorder: createHistoryEntryRecorder(backend),
-          entrypoint: 'menu-bar',
-          direction,
-          range,
-          refreshProjection: (target) => refreshVisibleProjection(store, backend, target),
-        })
-      })()
+      context.requestSortConfirmation('asc')
       return true
-    }
+    case 'sort-desc':
+      context.requestSortConfirmation('desc')
+      return true
     default:
       return false
   }

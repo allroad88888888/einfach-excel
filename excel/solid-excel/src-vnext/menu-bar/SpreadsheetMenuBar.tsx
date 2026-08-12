@@ -33,6 +33,9 @@ import {
   useSpreadsheetBackend,
   useSpreadsheetUiStore,
 } from '../provider'
+import { useT } from '../../src/i18n'
+import { SortConfirmationDialog } from '../sort/SortConfirmationDialog'
+import { useSortConfirmation } from '../sort/useSortConfirmation'
 import { dispatchMenuBarCommand } from './menu-bar-command-router'
 import { createMenuBarCommandContext } from './menu-bar-command-context'
 import { MenuBarHelpDialog } from './menu-bar-help-dialog'
@@ -50,7 +53,9 @@ export interface SpreadsheetMenuBarProps {
 export function SpreadsheetMenuBar(props: SpreadsheetMenuBarProps) {
   const store = useSpreadsheetUiStore()
   const backend = useSpreadsheetBackend()
-  const commandContext = createMenuBarCommandContext(store, backend)
+  const t = useT()
+  const sortConfirmation = useSortConfirmation('menu-bar')
+  const commandContext = createMenuBarCommandContext(store, backend, sortConfirmation.begin)
   const keyboard = createMenuBarKeyboardController(store)
   const openState = useAtomValue(topMenuOpenAtom)
   const helpOverlay = useAtomValue(helpOverlayAtom)
@@ -203,6 +208,14 @@ export function SpreadsheetMenuBar(props: SpreadsheetMenuBarProps) {
         onRetryTextToColumns={retryTextToColumns}
       />
       <MenuBarHelpDialog kind={helpOverlay()} onClose={() => store.setter(closeHelpOverlayAtom)} />
+      <SortConfirmationDialog
+        owner="menu-bar"
+        state={sortConfirmation.state()}
+        t={t}
+        onCancel={sortConfirmation.cancel}
+        onConfirm={sortConfirmation.confirm}
+        onRetry={sortConfirmation.retry}
+      />
     </>
   )
 }

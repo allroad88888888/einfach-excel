@@ -8,6 +8,7 @@ import {
   type AutoFillControllerPort,
   type CellRange,
   type RangeProjectionResult,
+  type SortDirection,
   type SpreadsheetBackend,
 } from '@einfach/spreadsheet-ui-core'
 
@@ -16,12 +17,14 @@ export interface MenuBarCommandContext {
   readonly store: Store
   getActiveSheetId: () => string | null
   createAutoFillController: () => AutoFillControllerPort
+  requestSortConfirmation: (direction: SortDirection) => void
 }
 
 /** Builds the shared Core-backed facts needed by menu command adapters. */
 export function createMenuBarCommandContext(
   store: Store,
   backend: SpreadsheetBackend,
+  requestSortConfirmation: (direction: SortDirection) => void,
 ): MenuBarCommandContext {
   function getActiveSheetId(): string | null {
     const snapshot = store.getter(selectionSnapshotAtom)
@@ -67,5 +70,5 @@ export function createMenuBarCommandContext(
     }
   }
 
-  return { backend, store, getActiveSheetId, createAutoFillController }
+  return { backend, store, getActiveSheetId, createAutoFillController, requestSortConfirmation }
 }

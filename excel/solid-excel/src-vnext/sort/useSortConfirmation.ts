@@ -21,6 +21,7 @@ import {
   retrySortConfirmationAtom,
   settleSortConfirmationAtom,
   sortConfirmationAtom,
+  type SortConfirmationEntrypoint,
   type SortConfirmationState,
   type SortConfirmationTicket,
 } from './sort-confirmation-state'
@@ -33,7 +34,9 @@ interface SortConfirmationController {
   readonly retry: () => void
 }
 
-export function useSortConfirmation(): SortConfirmationController {
+export function useSortConfirmation(
+  entrypoint: SortConfirmationEntrypoint = 'toolbar',
+): SortConfirmationController {
   const store = useSpreadsheetUiStore()
   const backend = useSpreadsheetBackend()
   const state = useAtomValue(sortConfirmationAtom)
@@ -62,6 +65,7 @@ export function useSortConfirmation(): SortConfirmationController {
     if (!sheetId || typeof backend.sortRange !== 'function') return
     const ticket = store.setter(beginSortConfirmationAtom, {
       direction,
+      entrypoint,
       target: { sheetId, colIndex: snapshot.activeCell.col },
       active: { row: snapshot.activeCell.row, col: snapshot.activeCell.col },
     })
@@ -83,7 +87,7 @@ export function useSortConfirmation(): SortConfirmationController {
     void store.setter(runPhysicalSortAtom, {
       source: backend,
       historyEntryRecorder: createHistoryEntryRecorder(backend),
-      entrypoint: 'toolbar',
+      entrypoint: confirmed.entrypoint,
       direction: confirmed.direction,
       range: confirmed.range,
       target: confirmed.target,

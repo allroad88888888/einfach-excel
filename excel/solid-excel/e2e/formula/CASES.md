@@ -51,6 +51,6 @@ keyboard/index.ts `getFormulaReferenceModeIntent`）——后者此前零 e2e。
 FML-32…34 曾因单元格编辑器直接消费方向键而不可达；UI-526 现仅在活动
 `formulaReferenceSessionAtom` 中把已解析的 `formulaReference.arrowPick` intent 交给同一
 Atom 取引用链路。自动补全与 IME 组合态仍优先处理，避免把普通编辑光标移动误当作引用。
-| FML-35 | 键盘连按方向键推进引用游标（Excel 语义） | `=` + ArrowDown×2 | 引用推进到 anchor+2 | ⏳ P2 延后 | — 实现明确未存 pick focus（SpreadsheetGrid `formulaReference.arrowPick` 分支注释），连按仍取 anchor±1，非 bug 是简化；补齐语义前无从断言 |
-| FML-36 | Shift+方向键扩展引用为区间 | `=` + Shift+Arrow | 拼入 `A1:B2` 型 range | ⏳ P2 延后 | — keyboard intent 带 `extend` 位但 grid 侧忽略（pickAnchor==pickFocus），UI 未支持 |
+| FML-35 | 键盘连按方向键推进引用游标（Excel 语义） | `=` + ArrowDown×2 | 引用推进到 anchor+2 | ✅ UI-553 | formula-reference-keyboard.spec.ts #"consecutive arrows advance…" |
+| FML-36 | Shift+方向键扩展引用为区间 | `=` + Arrow 取首格 + Shift+Arrow | 拼入 `A1:B2` 型 range | ✅ UI-553 | formula-reference-keyboard.spec.ts #"Shift plus an arrow extends…" |
 | FML-37 | 引用模式高亮颜色与 token 对位 | 多引用草稿 | overlay 每 token 一色 | ⏳ P2 延后 | — 高亮为 canvas 光栅，DOM 无可断言表面（FML-19 仅耦合输入侧） |

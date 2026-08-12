@@ -17,10 +17,6 @@ import { gotoRoot } from '../helpers'
  *    caret (`notifyDraftTypedChar`), so the next arrow press splices a
  *    fresh ref instead of replacing the previous one.
  *
- * Known simplification (CASES.md FML-35): the grid does not persist the
- * pick focus, so repeated arrow presses re-pick anchor±1 rather than
- * walking further — these tests only press each arrow once per pick.
- *
  * Wave 5 seed (VNextWave5Demo.tsx): A1:F9 matrix, row 2 North … F2=840,
  * row 3 South … F3=800, row 9 Total B9=870. Columns G/H are empty.
  */
@@ -101,5 +97,33 @@ test.describe('formula reference — keyboard arrow picking', () => {
     await page.keyboard.press('Enter')
     // F3 = 800 (South total) → 800 + 800.
     await expect(display(page, 'G3')).toHaveText('1600')
+  })
+
+  test('consecutive arrows advance the current reference focus', async ({ page }) => {
+    await gotoWave5(page)
+    await cell(page, 'G2').click()
+    await page.keyboard.press('=')
+
+    await page.keyboard.press('ArrowDown')
+    await expect(cellInput(page, 'G2')).toHaveValue('=G3')
+    await page.keyboard.press('ArrowDown')
+    await expect(cellInput(page, 'G2')).toHaveValue('=G4')
+
+    await page.keyboard.press('Escape')
+    await expect(cellInput(page, 'G2')).toHaveCount(0)
+  })
+
+  test('Shift plus an arrow extends the current reference into a range', async ({ page }) => {
+    await gotoWave5(page)
+    await cell(page, 'G3').click()
+    await page.keyboard.press('=')
+    await page.keyboard.press('ArrowLeft')
+    await expect(cellInput(page, 'G3')).toHaveValue('=F3')
+
+    await page.keyboard.press('Shift+ArrowUp')
+    await expect(cellInput(page, 'G3')).toHaveValue('=F2:F3')
+
+    await page.keyboard.press('Escape')
+    await expect(cellInput(page, 'G3')).toHaveCount(0)
   })
 })

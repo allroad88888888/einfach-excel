@@ -11,6 +11,10 @@ export interface FormulaReferenceSession {
    * Null until the first pick resolves.
    */
   tokenRange: FormulaReferenceTokenRange | null
+  /** Current reference range anchor. Null until the first pick resolves. */
+  pickAnchor: CellCoord | null
+  /** Current reference range focus. Null until the first pick resolves. */
+  pickFocus: CellCoord | null
   /** Whether the pointer is currently being dragged (range pick in progress). */
   dragging: boolean
 }

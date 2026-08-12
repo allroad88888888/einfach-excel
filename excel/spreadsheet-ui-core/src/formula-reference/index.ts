@@ -108,9 +108,7 @@ formulaReferenceCaretAtom.debugLabel = 'spreadsheet.formulaReference.caret'
 // Derived atoms
 // ---------------------------------------------------------------------------
 
-export const formulaReferenceActiveAtom = atom(
-  (get) => get(formulaReferenceSessionAtom) !== null,
-)
+export const formulaReferenceActiveAtom = atom((get) => get(formulaReferenceSessionAtom) !== null)
 formulaReferenceActiveAtom.debugLabel = 'spreadsheet.formulaReference.active'
 
 export const formulaReferenceTokenRangeAtom = atom(
@@ -152,6 +150,8 @@ export const enterFormulaReferenceAtom = atom(
       sheetId: input.sheetId,
       insertionCaret: input.insertionCaret,
       tokenRange: null,
+      pickAnchor: null,
+      pickFocus: null,
       dragging: false,
     })
     set(keyboardModeAtom, 'formula-reference')
@@ -159,25 +159,24 @@ export const enterFormulaReferenceAtom = atom(
 )
 enterFormulaReferenceAtom.debugLabel = 'spreadsheet.formulaReference.enter'
 
-export const pickFormulaReferenceAtom = atom(
-  null,
-  (get, set, input: FormulaReferencePickInput) => {
-    const session = get(formulaReferenceSessionBackingAtom)
-    if (session === null) return
+export const pickFormulaReferenceAtom = atom(null, (get, set, input: FormulaReferencePickInput) => {
+  const session = get(formulaReferenceSessionBackingAtom)
+  if (session === null) return
 
-    const token = serializeRangeRef(input.pickAnchor, input.pickFocus)
-    const currentDraft = get(editingSessionAtom).draft
-    const spliced = spliceDraft(currentDraft, session.tokenRange, session.insertionCaret, token)
+  const token = serializeRangeRef(input.pickAnchor, input.pickFocus)
+  const currentDraft = get(editingSessionAtom).draft
+  const spliced = spliceDraft(currentDraft, session.tokenRange, session.insertionCaret, token)
 
-    set(editingDraftAtom, { draft: spliced.draft })
+  set(editingDraftAtom, { draft: spliced.draft })
 
-    set(formulaReferenceSessionBackingAtom, {
-      ...session,
-      tokenRange: { start: session.tokenRange?.start ?? session.insertionCaret, end: spliced.end },
-      dragging: input.dragging,
-    })
-  },
-)
+  set(formulaReferenceSessionBackingAtom, {
+    ...session,
+    tokenRange: { start: session.tokenRange?.start ?? session.insertionCaret, end: spliced.end },
+    pickAnchor: { ...input.pickAnchor },
+    pickFocus: { ...input.pickFocus },
+    dragging: input.dragging,
+  })
+})
 pickFormulaReferenceAtom.debugLabel = 'spreadsheet.formulaReference.pick'
 
 export const exitFormulaReferenceAtom = atom(

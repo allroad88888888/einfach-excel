@@ -1,5 +1,7 @@
 import {
   CLIPBOARD_ORIGIN_MARKER_PREFIX,
+  encodeSelectionAsHtml,
+  serializeClipboardTsv,
   type CellCoord,
   type CellRange,
   type ClipboardTextData,
@@ -8,7 +10,13 @@ import {
   type SpreadsheetError,
 } from '@einfach/spreadsheet-ui-core'
 
+import type { BrowserClipboardWrite } from '../clipboard/browser-clipboard'
+
 export const CLIPBOARD_CELL_LIMIT = 10_000
+
+interface ContextMenuBrowserClipboardWrite extends BrowserClipboardWrite {
+  readonly data: ClipboardTextData
+}
 
 export function targetToRange(target: MenuTarget): CellRange | null {
   if (target.kind === 'cell') {
@@ -87,19 +95,25 @@ export function resultToClipboardText(
   }
 }
 
-export async function writeClipboardText(text: string): Promise<boolean> {
-  try {
-    await navigator.clipboard.writeText(text)
-    return true
-  } catch {
-    return false
-  }
-}
-
-export async function readClipboardText(): Promise<string | null> {
-  try {
-    return await navigator.clipboard.readText()
-  } catch {
-    return null
+/** Builds the browser transport payload for an already projected menu range. */
+export function resultToBrowserClipboardWrite(
+  result: RangeProjectionResult,
+  range: CellRange,
+  hiddenRows: ReadonlySet<number>,
+): ContextMenuBrowserClipboardWrite {
+  const data = resultToClipboardText(result, range, hiddenRows)
+  return {
+    data,
+    plainText: serializeClipboardTsv(data),
+    html: encodeSelectionAsHtml({
+      cells: result.cells,
+      rect: {
+        startRow: range.rowStart,
+        endRow: range.rowEnd,
+        startCol: range.colStart,
+        endCol: range.colEnd,
+      },
+      hiddenRows,
+    }),
   }
 }

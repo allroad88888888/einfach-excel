@@ -11,7 +11,6 @@ import {
   rejectProjectionAtom,
   resolveContentMutationAtom,
   resolveProjectionAtom,
-  serializeClipboardTsv,
   setClipboardErrorAtom,
   viewportFilterHiddenAtom,
   type CellRange,
@@ -23,17 +22,16 @@ import {
 } from '@einfach/spreadsheet-ui-core'
 
 import { refreshVisibleProjection, reportCommandFailure } from '../provider'
+import { readBrowserClipboardText, writeBrowserClipboard } from '../clipboard/browser-clipboard'
 import {
   addClipboardOriginMarker,
   CLIPBOARD_CELL_LIMIT,
   clipboardError,
   dataRangeFromOrigin,
   rangeCellCount,
-  readClipboardText,
-  resultToClipboardText,
+  resultToBrowserClipboardWrite,
   targetToRange,
   toA1,
-  writeClipboardText,
 } from './context-menu-clipboard-text'
 
 interface ClipboardExecutorOptions {
@@ -119,6 +117,7 @@ export function createContextMenuClipboardExecutor(
     operation: 'copy' | 'cut' = 'copy',
   ): Promise<boolean> {
     let text: string
+    let html: string | undefined
     let transferInput: ClipboardTransferInput
     if (rangeCellCount(range) > CLIPBOARD_CELL_LIMIT) {
       const chunks: string[] = []
@@ -143,8 +142,11 @@ export function createContextMenuClipboardExecutor(
     } else {
       const result = await readClipboardSource(sheetId, range)
       if (!result) return false
-      const data = resultToClipboardText(result, range, filterHiddenRowsFor(sheetId))
-      text = serializeClipboardTsv(data)
+      const hiddenRows = filterHiddenRowsFor(sheetId)
+      const browserWrite = resultToBrowserClipboardWrite(result, range, hiddenRows)
+      const { data } = browserWrite
+      text = browserWrite.plainText
+      html = browserWrite.html
       transferInput = {
         source: { sheetId, range },
         serialization: 'tab-separated',
@@ -155,7 +157,7 @@ export function createContextMenuClipboardExecutor(
       }
     }
     store.setter(operation === 'cut' ? cutClipboardAtom : copyClipboardAtom, transferInput)
-    if (!(await writeClipboardText(text))) {
+    if ((await writeBrowserClipboard({ plainText: text, html })) === null) {
       store.setter(setClipboardErrorAtom, clipboardError('Clipboard write failed.'))
       return false
     }
@@ -190,7 +192,7 @@ export function createContextMenuClipboardExecutor(
   }
 
   async function pasteClipboardRange(sheetId: string, targetRange: CellRange): Promise<void> {
-    const text = await readClipboardText()
+    const text = await readBrowserClipboardText()
     if (text === null || text.length === 0) {
       store.setter(setClipboardErrorAtom, clipboardError('Clipboard read failed.'))
       return

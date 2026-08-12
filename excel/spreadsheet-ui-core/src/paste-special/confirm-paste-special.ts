@@ -1,5 +1,12 @@
 import { atom } from '@einfach/core'
-import { acquireHistoryProducerReservationAtom, pushReservedHistoryAtom } from '../history'
+import type { Setter } from '@einfach/core'
+import {
+  acquireHistoryProducerReservationAtom,
+  pushReservedHistoryAtom,
+  type HistoryEntry,
+  type HistoryEntryRecorder,
+  type HistoryRecordResult,
+} from '../history'
 import {
   PASTE_SPECIAL_ACKNOWLEDGEMENT_ERROR,
   PASTE_SPECIAL_CAPABILITY_ERROR,
@@ -37,6 +44,23 @@ import type {
 } from './types'
 import type { PasteSpecialMutationTicket } from './mutation-ticket'
 
+function recordPasteSpecialHistory(
+  set: Setter,
+  ticket: PasteSpecialMutationTicket,
+  entry: HistoryEntry,
+): HistoryRecordResult {
+  const append = (nextEntry: HistoryEntry): boolean =>
+    set(pushReservedHistoryAtom, { reservation: ticket.historyReservation, entry: nextEntry })
+  try {
+    const result = ticket.historyEntryRecorder(entry, append)
+    return result === 'recorded' || result === 'unavailable' || result === 'rejected'
+      ? result
+      : 'rejected'
+  } catch {
+    return 'rejected'
+  }
+}
+
 /** Core owns transport reservation, strict acknowledgement, history, refresh and retry. */
 export const confirmPasteSpecialAtom = atom(
   null,
@@ -44,10 +68,12 @@ export const confirmPasteSpecialAtom = atom(
     let source: PasteSpecialControllerPort
     let inputSessionId: number
     let refreshProjection: ((sheetId: string) => Promise<void>) | undefined
+    let historyEntryRecorder: HistoryEntryRecorder
     try {
       source = input.source
       inputSessionId = input.sessionId
       refreshProjection = input.refreshProjection
+      historyEntryRecorder = input.historyEntryRecorder
     } catch {
       return 'stale'
     }
@@ -92,6 +118,14 @@ export const confirmPasteSpecialAtom = atom(
     )
     if (reason !== null || typeof refreshProjection !== 'function') {
       set(pasteSpecialErrorBackingAtom, reason ?? PASTE_SPECIAL_CONTEXT_ERROR)
+      set(
+        pasteSpecialLifecycleBackingAtom,
+        pasteSpecialLifecycle('blocked', session.sessionId, session.sheetId),
+      )
+      return 'blocked'
+    }
+    if (typeof historyEntryRecorder !== 'function') {
+      set(pasteSpecialErrorBackingAtom, PASTE_SPECIAL_CONTEXT_ERROR)
       set(
         pasteSpecialLifecycleBackingAtom,
         pasteSpecialLifecycle('blocked', session.sessionId, session.sheetId),
@@ -158,6 +192,7 @@ export const confirmPasteSpecialAtom = atom(
       target: session.target!,
       request,
       historyReservation,
+      historyEntryRecorder,
       acknowledgement: null,
     })
     set(pasteSpecialRequestIdBackingAtom, requestId)
@@ -207,18 +242,15 @@ export const confirmPasteSpecialAtom = atom(
       acknowledgement: acknowledgementSnapshot,
     })
     set(activePasteSpecialMutationAtom, acknowledgedTicket)
-    const historyRecorded = set(pushReservedHistoryAtom, {
-      reservation: ticket.historyReservation,
-      entry: {
-        transactionId: `paste-special-${ticket.sessionId}-${ticket.requestId}`,
-        kind: 'cells.import',
-        sheetId: ticket.sheetId,
-        projectionRevision: acknowledgementSnapshot.revision,
-        affectedRange: acknowledgementSnapshot.affectedRange,
-      },
+    const historyResult = recordPasteSpecialHistory(set, acknowledgedTicket, {
+      transactionId: `paste-special-${ticket.sessionId}-${ticket.requestId}`,
+      kind: 'cells.import',
+      sheetId: ticket.sheetId,
+      projectionRevision: acknowledgementSnapshot.revision,
+      affectedRange: acknowledgementSnapshot.affectedRange,
     })
     if (!pasteSpecialTicketIsCurrent(get, acknowledgedTicket)) return 'stale'
-    if (!historyRecorded) {
+    if (historyResult === 'rejected') {
       set(
         pasteSpecialErrorBackingAtom,
         `${PASTE_SPECIAL_OUTCOME_UNKNOWN_ERROR} History ownership was unavailable after acknowledgement.`,

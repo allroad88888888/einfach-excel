@@ -1,4 +1,4 @@
-import { describe, expect, test } from '@jest/globals'
+import { afterAll, beforeAll, describe, expect, test } from '@jest/globals'
 import { createStore, type Store } from '@einfach/core'
 import {
   captureTextToColumnsCapabilityAtom,
@@ -44,6 +44,7 @@ import {
   type TextToColumnsDelimitedConfig,
   type TextToColumnsDelimiter,
   type TextToColumnsSourceRow,
+  type RunTextToColumnsFinishInput,
 } from '../src/text-to-columns'
 import type {
   BackendMutationResult,
@@ -51,7 +52,7 @@ import type {
   RangeProjectionRequest,
   RangeProjectionResult,
 } from '../src/backend/types'
-import { historyStackAtom } from '../src/history'
+import { historyStackAtom, type HistoryEntryRecorder } from '../src/history'
 import { selectionAtom } from '../src/selection'
 import { hideRowsAtom, setViewportFilterHiddenRowsAtom } from '../src/viewport'
 import { setWorkspaceActiveSheetAtom } from '../src/workspace'
@@ -79,6 +80,29 @@ const ENTRYPOINT_STATE_IS_READ_ONLY: AtomHasPublicWrite<typeof textToColumnsEntr
 // so the assertion type widens to `boolean` here; the actual no-write
 // behavior is verified at runtime below via `.toEqual([false, false])`.
 const ENTRYPOINT_PROJECTION_IS_READ_ONLY: boolean = false
+
+const recordTestHistory: HistoryEntryRecorder = (entry, append) =>
+  append(entry) ? 'recorded' : 'rejected'
+
+function withTestHistoryRecorder(
+  input: RunTextToColumnsFinishInput,
+): RunTextToColumnsFinishInput {
+  if (Object.hasOwn(input, 'historyEntryRecorder')) return input
+  return Object.create(input, {
+    historyEntryRecorder: { enumerable: true, value: recordTestHistory },
+  }) as RunTextToColumnsFinishInput
+}
+
+const runTextToColumnsFinishWrite = runTextToColumnsFinishAtom.write
+
+beforeAll(() => {
+  runTextToColumnsFinishAtom.write = (get, set, input) =>
+    runTextToColumnsFinishWrite(get, set, withTestHistoryRecorder(input))
+})
+
+afterAll(() => {
+  runTextToColumnsFinishAtom.write = runTextToColumnsFinishWrite
+})
 
 function configureDelimitedWizard(
   store: Store,

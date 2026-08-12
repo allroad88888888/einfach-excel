@@ -1,7 +1,12 @@
 import { atom } from '@einfach/core'
 import type { Getter, Setter } from '@einfach/core'
 import { resolveContentMutationAtom } from '../editing/mutation-gateway'
-import { pushHistoryAtom } from '../history'
+import {
+  pushHistoryAtom,
+  type HistoryEntry,
+  type HistoryEntryRecorder,
+  type HistoryRecordResult,
+} from '../history'
 import {
   TEXT_TO_COLUMNS_ACKNOWLEDGEMENT_ERROR,
   TEXT_TO_COLUMNS_CAPABILITY_ERROR,
@@ -40,6 +45,33 @@ function importCellChunksPort(input: RunTextToColumnsFinishInput) {
   try { return input.source?.importCellChunks } catch { return undefined }
 }
 
+function captureTextToColumnsHistoryEntryRecorder(
+  input: RunTextToColumnsFinishInput,
+): HistoryEntryRecorder | null {
+  try {
+    const recorder = input.historyEntryRecorder
+    return typeof recorder === 'function' ? recorder : null
+  } catch {
+    return null
+  }
+}
+
+function recordTextToColumnsHistory(
+  set: Setter,
+  ticket: TextToColumnsMutationTicket,
+  entry: HistoryEntry,
+): HistoryRecordResult {
+  const append = (nextEntry: HistoryEntry): boolean => set(pushHistoryAtom, nextEntry)
+  try {
+    const result = ticket.historyEntryRecorder(entry, append)
+    return result === 'recorded' || result === 'unavailable' || result === 'rejected'
+      ? result
+      : 'rejected'
+  } catch {
+    return 'rejected'
+  }
+}
+
 function setTextToColumnsLifecycleError(
   set: Setter,
   ticket: TextToColumnsMutationTicket,
@@ -62,6 +94,12 @@ export const runTextToColumnsFinishAtom = atom(
       lifecycle.status === 'local-acknowledged' || lifecycle.status === 'refreshing' ||
       lifecycle.status === 'outcome-unknown'
     ) return 'stale'
+    const historyEntryRecorder = captureTextToColumnsHistoryEntryRecorder(input)
+    if (historyEntryRecorder === null) {
+      set(textToColumnsErrorStateAtom, TEXT_TO_COLUMNS_CONTEXT_ERROR)
+      set(textToColumnsLifecycleStateAtom, lifecycleFor('blocked', session.sessionId, session.sheetId))
+      return 'blocked'
+    }
     const execute = importCellChunksPort(input)
     if (typeof execute !== 'function') {
       set(textToColumnsCapabilityStateAtom, false)
@@ -97,6 +135,7 @@ export const runTextToColumnsFinishAtom = atom(
     })
     const ticket: TextToColumnsMutationTicket = Object.freeze({
       sessionId: session.sessionId, requestId, sheetId: session.sheetId, target, request,
+      historyEntryRecorder,
       acknowledgement: null,
     })
     set(textToColumnsRequestIdStateAtom, requestId)
@@ -121,13 +160,27 @@ export const runTextToColumnsFinishAtom = atom(
       set(textToColumnsLifecycleStateAtom, lifecycleFor('outcome-unknown', ticket.sessionId, ticket.sheetId, ticket.requestId))
       return 'outcome-unknown'
     }
-    const acknowledgedTicket: TextToColumnsMutationTicket = Object.freeze({ ...ticket, acknowledgement })
+    const acknowledgedTicket: TextToColumnsMutationTicket = Object.freeze({
+      ...ticket,
+      acknowledgement,
+    })
     set(activeTextToColumnsMutationAtom, acknowledgedTicket)
     const projectionRevision = numericTextToColumnsHistoryRevision(acknowledgement)
-    if (projectionRevision !== null) set(pushHistoryAtom, {
-      transactionId: `text-to-columns-${ticket.sessionId}-${ticket.requestId}`,
-      kind: 'cells.import', sheetId: ticket.sheetId, projectionRevision, affectedRange: ticket.target,
-    })
+    if (projectionRevision !== null) {
+      const historyResult = recordTextToColumnsHistory(set, acknowledgedTicket, {
+        transactionId: `text-to-columns-${ticket.sessionId}-${ticket.requestId}`,
+        kind: 'cells.import', sheetId: ticket.sheetId, projectionRevision, affectedRange: ticket.target,
+      })
+      if (!textToColumnsMutationTicketIsCurrent(get, acknowledgedTicket)) return 'stale'
+      if (historyResult === 'rejected') {
+        set(
+          textToColumnsErrorStateAtom,
+          `${TEXT_TO_COLUMNS_OUTCOME_UNKNOWN_ERROR} History ownership was unavailable after acknowledgement.`,
+        )
+        set(textToColumnsLifecycleStateAtom, lifecycleFor('outcome-unknown', ticket.sessionId, ticket.sheetId, ticket.requestId))
+        return 'outcome-unknown'
+      }
+    }
     set(textToColumnsLifecycleStateAtom, lifecycleFor('local-acknowledged', ticket.sessionId, ticket.sheetId, ticket.requestId))
     await Promise.resolve()
     if (!textToColumnsMutationTicketIsCurrent(get, acknowledgedTicket)) return 'stale'

@@ -5,6 +5,7 @@ import type {
   RangeProjectionRequest,
   RangeProjectionResult,
 } from '../backend/types'
+import type { HistoryEntryRecorder } from '../history'
 import type { CellCoord, CellRange } from '../shared'
 
 export type TextToColumnsMode = 'delimited' | 'fixed'
@@ -199,6 +200,8 @@ export interface RunTextToColumnsFinishInput {
   readonly source: TextToColumnsControllerPort
   readonly sessionId: number
   readonly refreshProjection: (sheetId: string) => Promise<void>
+  /** Host capability guard retained by the frozen mutation ticket after ACK. */
+  readonly historyEntryRecorder: HistoryEntryRecorder
 }
 
 export type TextToColumnsMutationOutcome =

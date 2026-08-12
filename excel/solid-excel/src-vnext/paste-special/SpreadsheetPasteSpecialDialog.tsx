@@ -23,7 +23,12 @@ import {
   type PasteSpecialKind,
   type PasteSpecialOp,
 } from '@einfach/spreadsheet-ui-core'
-import { refreshVisibleProjection, useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider'
+import {
+  createHistoryEntryRecorder,
+  refreshVisibleProjection,
+  useSpreadsheetBackend,
+  useSpreadsheetUiStore,
+} from '../provider'
 import { useOverlayInteraction } from '../overlay'
 
 // Pull in the dialog stylesheet as a side-effect import. Vite picks the
@@ -93,6 +98,7 @@ export function SpreadsheetPasteSpecialDialog(props: SpreadsheetPasteSpecialDial
     await store.setter(confirmPasteSpecialAtom, {
       source: backend,
       sessionId: currentSession.sessionId,
+      historyEntryRecorder: createHistoryEntryRecorder(backend),
       refreshProjection: (sheetId) => refreshVisibleProjection(store, backend, sheetId, 'toolbar'),
     })
   }

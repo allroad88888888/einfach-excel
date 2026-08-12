@@ -1,4 +1,4 @@
-import { describe, expect, jest, test } from '@jest/globals'
+import { afterAll, beforeAll, describe, expect, jest, test } from '@jest/globals'
 import { createStore } from '@einfach/core'
 import type { Atom } from '@einfach/core'
 import { copyClipboardAtom } from '../src/clipboard'
@@ -7,6 +7,7 @@ import {
   historyStackAtom,
   pushReservedHistoryAtom,
   releaseHistoryProducerReservationAtom,
+  type HistoryEntryRecorder,
 } from '../src/history'
 import {
   PASTE_SPECIAL_ACKNOWLEDGEMENT_ERROR,
@@ -39,11 +40,33 @@ import {
   type PasteRangeRequest,
   type PasteRangeResult,
   type PasteSpecialControllerPort,
+  type ConfirmPasteSpecialInput,
 } from '../src/paste-special'
 import { selectionAtom } from '../src/selection'
 import { setWorkspaceActiveSheetAtom } from '../src/workspace'
 
 type Store = ReturnType<typeof createStore>
+
+const recordTestHistory: HistoryEntryRecorder = (entry, append) =>
+  append(entry) ? 'recorded' : 'rejected'
+
+function withTestHistoryRecorder(input: ConfirmPasteSpecialInput): ConfirmPasteSpecialInput {
+  if (Object.hasOwn(input, 'historyEntryRecorder')) return input
+  return Object.create(input, {
+    historyEntryRecorder: { enumerable: true, value: recordTestHistory },
+  }) as ConfirmPasteSpecialInput
+}
+
+const confirmPasteSpecialWrite = confirmPasteSpecialAtom.write
+
+beforeAll(() => {
+  confirmPasteSpecialAtom.write = (get, set, input) =>
+    confirmPasteSpecialWrite(get, set, withTestHistoryRecorder(input))
+})
+
+afterAll(() => {
+  confirmPasteSpecialAtom.write = confirmPasteSpecialWrite
+})
 
 function deferred<T>() {
   let resolve!: (value: T) => void

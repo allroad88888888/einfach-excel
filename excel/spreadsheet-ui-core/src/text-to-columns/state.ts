@@ -1,6 +1,7 @@
 import { atom } from '@einfach/core'
 import type { Atom, Getter, Setter } from '@einfach/core'
 import type { BackendMutationResult, ImportCellChunksRequest, ProjectionRequestId, RangeProjectionRequest } from '../backend/types'
+import type { HistoryEntryRecorder } from '../history'
 import type { CellCoord, CellRange } from '../shared'
 import type { SelectionAuthorityWitness } from '../selection'
 import type { WorkspaceActiveSheetAuthorityWitness } from '../workspace'
@@ -23,6 +24,7 @@ export interface TextToColumnsMutationTicket {
   readonly sheetId: string
   readonly target: CellRange
   readonly request: ImportCellChunksRequest
+  readonly historyEntryRecorder: HistoryEntryRecorder
   readonly acknowledgement: BackendMutationResult | null
 }
 

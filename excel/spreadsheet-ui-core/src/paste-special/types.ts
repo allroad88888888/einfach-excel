@@ -1,6 +1,7 @@
 import type { CellRange, SheetRef } from '../shared'
 import type { ProjectionRevision, ProjectionRequestId } from '../backend/types'
 import type { ClipboardPayloadDescriptor, ClipboardRangeDescriptor } from '../clipboard/types'
+import type { HistoryEntryRecorder } from '../history'
 
 /**
  * What aspect of the clipboard payload to apply to the target range.
@@ -130,6 +131,8 @@ export interface ConfirmPasteSpecialInput {
   readonly source: PasteSpecialControllerPort
   readonly sessionId: number
   readonly refreshProjection: (sheetId: string) => Promise<void>
+  /** Host capability guard retained by the frozen mutation ticket after ACK. */
+  readonly historyEntryRecorder: HistoryEntryRecorder
 }
 
 export type PasteSpecialMutationOutcome =

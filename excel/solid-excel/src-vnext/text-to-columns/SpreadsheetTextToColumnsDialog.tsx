@@ -25,6 +25,7 @@ import {
   type TextToColumnsIntent,
 } from '@einfach/spreadsheet-ui-core'
 import { useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider/hooks'
+import { createHistoryEntryRecorder } from '../provider/history-entry-recorder'
 import { refreshVisibleProjection } from '../provider/projection-refresh'
 import { TextToColumnsDialogContent } from './TextToColumnsDialogContent'
 import {
@@ -131,6 +132,7 @@ export function SpreadsheetTextToColumnsDialog(props: SpreadsheetTextToColumnsDi
     await store.setter(runTextToColumnsFinishAtom, {
       source: backend,
       sessionId: current.sessionId,
+      historyEntryRecorder: createHistoryEntryRecorder(backend),
       refreshProjection: (sheetId) => refreshVisibleProjection(store, backend, sheetId),
     })
   }

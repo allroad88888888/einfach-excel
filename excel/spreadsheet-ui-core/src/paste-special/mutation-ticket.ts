@@ -1,5 +1,5 @@
 import type { ProjectionRequestId, ProjectionRevision } from '../backend/types'
-import type { HistoryProducerReservation } from '../history'
+import type { HistoryEntryRecorder, HistoryProducerReservation } from '../history'
 import type { CellRange } from '../shared'
 import { isValidPasteSpecialRange, snapshotRange } from './session-snapshot'
 import type { PasteRangeRequest, PasteRangeResult, PasteSpecialSessionSnapshot } from './types'
@@ -12,6 +12,7 @@ export interface PasteSpecialMutationTicket {
   readonly target: CellRange
   readonly request: PasteRangeRequest
   readonly historyReservation: HistoryProducerReservation
+  readonly historyEntryRecorder: HistoryEntryRecorder
   readonly acknowledgement: PasteSpecialAcknowledgement | null
 }
 

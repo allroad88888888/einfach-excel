@@ -1,6 +1,6 @@
 # W8：历史记录能力收敛
 
-> 状态：UI-519a、UI-519b、UI-519c 已完成；下一步为 UI-519d 的 paste-special 与 text-to-columns 迁移
+> 状态：UI-519a 至 UI-519d 已完成；下一步为 UI-519e 的 operations 与 toolbar 迁移
 
 ## 目标
 
@@ -37,7 +37,7 @@ history Atom。继续保留既有 history Atom 作为历史事实的唯一权威
 | UI-519a | Grid editing、clipboard、format 的直接后端 mutation | 无 | 已完成：三个 host controller 在 ACK 后经同一 Provider guard 记录 history。 |
 | UI-519b | Core command 的 `recordHistory(entry, append)` callback port | UI-519a | 已完成：recorded / unavailable / rejected 三态 ABI；不把 backend 放进 Atom 或单例。 |
 | UI-519c | editing 与 auto-fill | UI-519b | 已完成：在 ACK 后经 required recorder 执行 reserved append；保留 reservation、transaction、revision、refresh。 |
-| UI-519d | paste-special 与 text-to-columns | UI-519b | 保留 reserved/direct 的原有差异；无能力时只跳过 history。 |
+| UI-519d | paste-special 与 text-to-columns | UI-519b | 已完成：保留 reserved/direct 的原有差异；无能力时只跳过 history。 |
 | UI-519e | operations 与 toolbar | UI-519b | 高风险结构事务，单独处理 cross-sheet/localSidePayload。 |
 | UI-519f | tables、filter-sort、remove-duplicates | UI-519b | 最后处理多入口表格与筛选命令。 |
 
@@ -88,6 +88,24 @@ editing、auto-fill、mutation gateway 与 host feedback。7 个 Jest 套件、1
 Solid TypeScript、Prettier 和 diff check 全部通过；范围 ESLint 为 0 error（7 条既有测试依赖声明 warning）。
 `editing/index.ts`（1,300 行）、`auto-fill/command.ts`（1,699 行）及三份历史 Core 测试均是存量超限文件；
 本次只在已有状态机和测试公共输入 seam 做窄改，未借此跨职责重构。
+
+### UI-519d Paste Special 与 Text-to-Columns（已完成）
+
+Paste Special 保留其在 dispatch 前取得的 `HistoryProducerReservation`。严格 ACK 后，ticket 中必填的
+`HistoryEntryRecorder` 只接收现有 `pushReservedHistoryAtom` append callback：`unavailable` 仍刷新 projection
+并释放 reservation；`rejected` 保持 outcome-unknown、不可重发且不刷新。Text-to-Columns 同样在 ACK 后
+通过必填 recorder 调用其原有 `pushHistoryAtom` append callback；无能力时正常刷新，append 被拒绝时进入
+outcome-unknown，绝不重发写入。
+
+两个实际 Solid dialog launch 都在启动命令时用 Provider 的稳定 backend forwarding handle 创建 recorder；
+Core ticket 只保存 callback，不保存 backend。聚焦回归覆盖两域的完整能力、无能力、append rejected，以及
+Paste Special ACK 后 runtime capability 替换。5 个 Jest 套件、136 个断言、Core/Solid TypeScript 和 diff
+check 均通过。
+
+`paste-special.test.ts`（1,045→1,068 行）与 `text-to-columns.test.ts`（1,807→1,831 行）原本已是超限的
+单体测试；本次仅在共同输入 seam 注入默认 recorder 以保持既有 fixture，未扩大为测试重构。完整 touched lint
+仍显示 `text-to-columns/state.ts` 的 19 条存量 max-len 和测试依赖 warning；完整 touched Prettier 仅显示四份
+存量未格式化文件，新增文件和原本合规的改动文件均通过检查。
 
 ## D：实施门槛
 

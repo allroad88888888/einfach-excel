@@ -2,11 +2,17 @@ import {
   editingSessionAtom,
   getSelectionRange,
   nextHistoryTransactionId,
+  pushHistoryAtom,
   resolveContentMutationAtom,
   selectCellAtom,
   type CellRange,
+  type HistoryEntry,
 } from '@einfach/spreadsheet-ui-core'
-import { dispatchEditingCommit, recordHistoryEntry, reportCommandFailure } from '../provider'
+import {
+  createHistoryEntryRecorder,
+  dispatchEditingCommit,
+  reportCommandFailure,
+} from '../provider'
 import type { GridContextMenuApi } from './grid-context-menu'
 import type { GridProjectionControllerApi } from './grid-projection-controller'
 import { installGridFeature, type GridRuntimeBase } from './grid-runtime'
@@ -20,7 +26,29 @@ type GridEditingControllerRuntime = GridRuntimeBase &
   Pick<GridProjectionControllerApi, 'requestProjection' | 'loadProjection'>
 
 export function installGridEditingController(runtime: GridEditingControllerRuntime) {
-  const { props, store, backend, selectionRegions, getSelectionBounds, requestProjection, loadProjection } = runtime
+  const {
+    props,
+    store,
+    backend,
+    selectionRegions,
+    getSelectionBounds,
+    requestProjection,
+    loadProjection,
+  } = runtime
+  const historyEntryRecorder = createHistoryEntryRecorder(backend)
+
+  function recordAcknowledgedHistory(entry: HistoryEntry) {
+    return historyEntryRecorder(entry, (nextEntry) => store.setter(pushHistoryAtom, nextEntry))
+  }
+
+  function reportUnknownClearOutcome() {
+    reportCommandFailure(
+      store,
+      new Error(
+        'The acknowledged clear mutation could not be recorded in history. Reload or reconcile workbook data before continuing.',
+      ),
+    )
+  }
 
   async function commitCellEdit(move: 'none' | 'down' | 'up' | 'left' | 'right' = 'none') {
     const session = store.getter(editingSessionAtom)
@@ -40,15 +68,21 @@ export function installGridEditingController(runtime: GridEditingControllerRunti
   }
 
   async function clearSelectionRange(target: 'values' | 'formats' | 'all' = 'all') {
-    const regions = selectionRegions().filter((region: { sheetId: string }) => region.sheetId === props.sheetId)
+    const regions = selectionRegions().filter(
+      (region: { sheetId: string }) => region.sheetId === props.sheetId,
+    )
     if (regions.length === 0) return
     const bounds = getSelectionBounds()
-    const ranges = regions.map((region: Parameters<typeof getSelectionRange>[0]) => getSelectionRange(region, bounds))
+    const ranges = regions.map((region: Parameters<typeof getSelectionRange>[0]) =>
+      getSelectionRange(region, bounds),
+    )
     const resolvedRanges: CellRange[][] = []
     for (const range of ranges) {
       const resolution = store.setter(resolveContentMutationAtom, { kind: 'clear-range', sheetId: props.sheetId, range, protectionGate: target !== 'formats' })
       if (resolution.status === 'blocked') return
-      resolvedRanges.push((resolution.ranges ?? [range]).map((sourceRange: CellRange) => ({ ...sourceRange })))
+      resolvedRanges.push(
+        (resolution.ranges ?? [range]).map((sourceRange: CellRange) => ({ ...sourceRange })),
+      )
     }
     if (regions.length === 1 && target === 'values') {
       const range = ranges[0]
@@ -62,7 +96,18 @@ export function installGridEditingController(runtime: GridEditingControllerRunti
           return
         }
         const revision = typeof result?.revision === 'number' ? result.revision : Number(result?.revision ?? 0) || 0
-        recordHistoryEntry(store, backend, { transactionId: nextHistoryTransactionId(), kind: 'cell.set-input', sheetId: props.sheetId, projectionRevision: revision, affectedRange: result?.affectedRange ?? sourceRange })
+        if (
+          recordAcknowledgedHistory({
+            transactionId: nextHistoryTransactionId(),
+            kind: 'cell.set-input',
+            sheetId: props.sheetId,
+            projectionRevision: revision,
+            affectedRange: result?.affectedRange ?? sourceRange,
+          }) === 'rejected'
+        ) {
+          reportUnknownClearOutcome()
+          return
+        }
         await loadProjection(requestProjection())
         return
       }
@@ -71,7 +116,18 @@ export function installGridEditingController(runtime: GridEditingControllerRunti
     for (const range of resolvedRanges.flat()) {
       const result = await backend.clearRange({ kind: 'clear-range', sheetId: props.sheetId, range, target })
       const revision = typeof result?.revision === 'number' ? result.revision : Number(result?.revision ?? 0) || 0
-      recordHistoryEntry(store, backend, { transactionId: nextHistoryTransactionId(), kind: 'range.clear', sheetId: props.sheetId, projectionRevision: revision, affectedRange: result?.affectedRange ? { ...result.affectedRange } : { ...range } })
+      if (
+        recordAcknowledgedHistory({
+          transactionId: nextHistoryTransactionId(),
+          kind: 'range.clear',
+          sheetId: props.sheetId,
+          projectionRevision: revision,
+          affectedRange: result?.affectedRange ? { ...result.affectedRange } : { ...range },
+        }) === 'rejected'
+      ) {
+        reportUnknownClearOutcome()
+        return
+      }
     }
     await loadProjection(requestProjection())
   }

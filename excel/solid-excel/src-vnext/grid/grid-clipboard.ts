@@ -9,13 +9,15 @@ import {
   markClipboardReadyAtom,
   nextHistoryTransactionId,
   pasteClipboardAtom,
+  pushHistoryAtom,
   resolveContentMutationAtom,
   serializeClipboardTsv,
   setClipboardErrorAtom,
   viewportFilterHiddenAtom,
   type ClipboardTransferInput,
+  type HistoryEntry,
 } from '@einfach/spreadsheet-ui-core'
-import { recordHistoryEntry, reportCommandFailure } from '../provider'
+import { createHistoryEntryRecorder, reportCommandFailure } from '../provider'
 import {
   readBrowserClipboardText,
   writeBrowserClipboard,
@@ -42,6 +44,23 @@ export function installGridClipboard(runtime: GridClipboardRuntime) {
     requestProjection,
     loadProjection,
   } = runtime
+  const historyEntryRecorder = createHistoryEntryRecorder(backend)
+
+  function recordAcknowledgedHistory(entry: HistoryEntry) {
+    return historyEntryRecorder(entry, (nextEntry) => store.setter(pushHistoryAtom, nextEntry))
+  }
+
+  function reportUnknownPasteOutcome() {
+    store.setter(
+      setClipboardErrorAtom,
+      reportCommandFailure(
+        store,
+        new Error(
+          'The acknowledged paste mutation could not be recorded in history. Reload or reconcile workbook data before continuing.',
+        ),
+      ),
+    )
+  }
 
   async function writeClipboardText(text: string, html?: string): Promise<boolean> {
     return (await writeBrowserClipboard({ plainText: text, html })) !== null
@@ -183,7 +202,18 @@ export function installGridClipboard(runtime: GridClipboardRuntime) {
     if (writes.length > 0 && backend.importCells) {
       const result = await backend.importCells({ kind: 'import-cells', sheetId: props.sheetId, cells: writes, range: affectedRange })
       const revision = typeof result?.revision === 'number' ? result.revision : Number(result?.revision ?? 0) || 0
-      recordHistoryEntry(store, backend, { transactionId: nextHistoryTransactionId(), kind: 'cells.import', sheetId: props.sheetId, projectionRevision: revision, affectedRange: result?.affectedRange ? { ...result.affectedRange } : affectedRange })
+      if (
+        recordAcknowledgedHistory({
+          transactionId: nextHistoryTransactionId(),
+          kind: 'cells.import',
+          sheetId: props.sheetId,
+          projectionRevision: revision,
+          affectedRange: result?.affectedRange ? { ...result.affectedRange } : affectedRange,
+        }) === 'rejected'
+      ) {
+        reportUnknownPasteOutcome()
+        return
+      }
     } else if (writes.length > 0) for (const write of writes) {
       let result: Awaited<ReturnType<typeof backend.setCellInput>>
       try {
@@ -194,7 +224,20 @@ export function installGridClipboard(runtime: GridClipboardRuntime) {
         return
       }
       const revision = typeof result?.revision === 'number' ? result.revision : Number(result?.revision ?? 0) || 0
-      recordHistoryEntry(store, backend, { transactionId: nextHistoryTransactionId(), kind: 'cell.set-input', sheetId: props.sheetId, projectionRevision: revision, affectedRange: result?.affectedRange ? { ...result.affectedRange } : { rowStart: write.row, rowEnd: write.row, colStart: write.col, colEnd: write.col } })
+      if (
+        recordAcknowledgedHistory({
+          transactionId: nextHistoryTransactionId(),
+          kind: 'cell.set-input',
+          sheetId: props.sheetId,
+          projectionRevision: revision,
+          affectedRange: result?.affectedRange
+            ? { ...result.affectedRange }
+            : { rowStart: write.row, rowEnd: write.row, colStart: write.col, colEnd: write.col },
+        }) === 'rejected'
+      ) {
+        reportUnknownPasteOutcome()
+        return
+      }
     }
     store.setter(markClipboardReadyAtom)
     await loadProjection(requestProjection())

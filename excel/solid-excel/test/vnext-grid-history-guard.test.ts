@@ -1,18 +1,23 @@
 import { afterEach, describe, expect, it } from '@jest/globals'
 import { createStore } from '@einfach/core'
-import { historyStackAtom, type SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
+import {
+  acquireHistoryProducerReservationAtom,
+  historyStackAtom,
+  type SpreadsheetBackend,
+} from '@einfach/spreadsheet-ui-core'
 
 import { installGridClipboard } from '../src-vnext/grid/grid-clipboard'
 import { installGridEditingController } from '../src-vnext/grid/grid-editing-controller'
 import { installGridFormatController } from '../src-vnext/grid/grid-format-controller'
+import { spreadsheetProjectionSnapshotAtom } from '../src-vnext/provider'
 
 const SHEET_ID = 'sheet-1'
 const RANGE = { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 0 }
 
 type HistoryCapability = 'full' | 'undo-only' | 'redo-only' | 'none'
 
-function createBackend(capability: HistoryCapability) {
-  const calls = { clear: 0, import: 0, format: 0 }
+function createBackend(capability: HistoryCapability, withImportCells = true) {
+  const calls = { input: 0, clear: 0, import: 0, format: 0 }
   const backend: SpreadsheetBackend = {
     async readVisibleProjection(request) {
       return {
@@ -33,20 +38,23 @@ function createBackend(capability: HistoryCapability) {
       }
     },
     async setCellInput(request) {
+      calls.input += 1
       return { sheetId: request.sheetId, revision: 11 }
     },
     async clearRange(request) {
       calls.clear += 1
       return { sheetId: request.sheetId, revision: 12, affectedRange: request.range }
     },
-    async importCells(request) {
-      calls.import += 1
-      return { sheetId: request.sheetId, revision: 13, affectedRange: request.range }
-    },
     async setFormatRange(request) {
       calls.format += 1
       return { sheetId: request.sheetId, revision: 14, affectedRange: request.range }
     },
+  }
+  if (withImportCells) {
+    backend.importCells = async (request) => {
+      calls.import += 1
+      return { sheetId: request.sheetId, revision: 13, affectedRange: request.range }
+    }
   }
   if (capability === 'full' || capability === 'undo-only') {
     backend.undoTransaction = async (request) => ({
@@ -115,8 +123,26 @@ function setClipboardText(text: string) {
   }
 }
 
+function blockHistoryProducer(store: ReturnType<typeof createStore>) {
+  const reservation = store.setter(acquireHistoryProducerReservationAtom)
+  if (reservation === null)
+    throw new Error('expected the test to reserve the history producer lane')
+}
+
+function expectUnknownHistoryOutcome(
+  store: ReturnType<typeof createStore>,
+  runtime: ReturnType<typeof createRuntime>,
+) {
+  expect(store.getter(historyStackAtom).entries).toEqual([])
+  expect(runtime.refreshCount()).toBe(0)
+  expect(store.getter(spreadsheetProjectionSnapshotAtom)).toMatchObject({
+    status: 'error',
+    error: { message: expect.stringContaining('could not be recorded in history') },
+  })
+}
+
 describe('grid history producer guard', () => {
-  it('records an acknowledged editing mutation only with full undo and redo support', async () => {
+  it('records a full-capability range clear', async () => {
     const store = createStore()
     const { backend, calls } = createBackend('full')
     const runtime = createRuntime(store, backend)
@@ -136,14 +162,79 @@ describe('grid history producer guard', () => {
     ])
   })
 
-  it('keeps an acknowledged clipboard import successful without an undo-only history contract', async () => {
+  it('records a full-capability single-cell values clear', async () => {
     const store = createStore()
-    const { backend, calls } = createBackend('undo-only')
+    const { backend, calls } = createBackend('full')
+    const runtime = createRuntime(store, backend)
+    const controller = installGridEditingController(runtime as never)
+
+    await controller.clearSelectionRange('values')
+
+    expect(calls.input).toBe(1)
+    expect(runtime.refreshCount()).toBe(1)
+    expect(store.getter(historyStackAtom).entries[0]).toMatchObject({ kind: 'cell.set-input' })
+  })
+
+  it('records a full-capability clipboard import', async () => {
+    const store = createStore()
+    const { backend, calls } = createBackend('full')
     const runtime = createRuntime(store, backend)
     const controller = installGridClipboard(runtime as never)
     setClipboardText('paste value')
 
-    await expect(controller.pasteFromClipboard()).resolves.toBeUndefined()
+    await controller.pasteFromClipboard()
+
+    expect(calls.import).toBe(1)
+    expect(runtime.refreshCount()).toBe(1)
+    expect(store.getter(historyStackAtom).entries[0]).toMatchObject({ kind: 'cells.import' })
+  })
+
+  it('records a full-capability clipboard cell-write fallback', async () => {
+    const store = createStore()
+    const { backend, calls } = createBackend('full', false)
+    const runtime = createRuntime(store, backend)
+    const controller = installGridClipboard(runtime as never)
+    setClipboardText('paste value')
+
+    await controller.pasteFromClipboard()
+
+    expect(calls.input).toBe(1)
+    expect(runtime.refreshCount()).toBe(1)
+    expect(store.getter(historyStackAtom).entries[0]).toMatchObject({ kind: 'cell.set-input' })
+  })
+
+  it('records a full-capability format change', async () => {
+    const store = createStore()
+    const { backend, calls } = createBackend('full')
+    const runtime = createRuntime(store, backend)
+    const controller = installGridFormatController(runtime as never)
+
+    await controller.toggleActiveFormatField('bold')
+
+    expect(calls.format).toBe(1)
+    expect(runtime.refreshCount()).toBe(1)
+    expect(store.getter(historyStackAtom).entries[0]).toMatchObject({ kind: 'format.set' })
+  })
+
+  it('keeps an acknowledged editing mutation successful without an undo-only history contract', async () => {
+    const store = createStore()
+    const { backend, calls } = createBackend('undo-only')
+    const controller = installGridEditingController(createRuntime(store, backend) as never)
+
+    await controller.clearSelectionRange()
+
+    expect(calls.clear).toBe(1)
+    expect(store.getter(historyStackAtom).entries).toEqual([])
+  })
+
+  it('keeps an acknowledged clipboard import successful without a history contract', async () => {
+    const store = createStore()
+    const { backend, calls } = createBackend('none')
+    const runtime = createRuntime(store, backend)
+    const controller = installGridClipboard(runtime as never)
+    setClipboardText('paste value')
+
+    await controller.pasteFromClipboard()
 
     expect(calls.import).toBe(1)
     expect(runtime.refreshCount()).toBe(1)
@@ -156,24 +247,47 @@ describe('grid history producer guard', () => {
     const runtime = createRuntime(store, backend)
     const controller = installGridFormatController(runtime as never)
 
-    await expect(controller.toggleActiveFormatField('bold')).resolves.toBeUndefined()
+    await controller.toggleActiveFormatField('bold')
 
     expect(calls.format).toBe(1)
     expect(runtime.refreshCount()).toBe(1)
     expect(store.getter(historyStackAtom).entries).toEqual([])
   })
 
-  it('keeps an acknowledged clipboard import successful when neither history port exists', async () => {
+  it('treats rejected editing history as an unknown outcome', async () => {
     const store = createStore()
-    const { backend, calls } = createBackend('none')
+    const { backend, calls } = createBackend('full')
     const runtime = createRuntime(store, backend)
-    const controller = installGridClipboard(runtime as never)
+    blockHistoryProducer(store)
+
+    await installGridEditingController(runtime as never).clearSelectionRange()
+
+    expect(calls.clear).toBe(1)
+    expectUnknownHistoryOutcome(store, runtime)
+  })
+
+  it('treats rejected clipboard history as an unknown outcome', async () => {
+    const store = createStore()
+    const { backend, calls } = createBackend('full')
+    const runtime = createRuntime(store, backend)
+    blockHistoryProducer(store)
     setClipboardText('paste value')
 
-    await expect(controller.pasteFromClipboard()).resolves.toBeUndefined()
+    await installGridClipboard(runtime as never).pasteFromClipboard()
 
     expect(calls.import).toBe(1)
-    expect(runtime.refreshCount()).toBe(1)
-    expect(store.getter(historyStackAtom).entries).toEqual([])
+    expectUnknownHistoryOutcome(store, runtime)
+  })
+
+  it('treats rejected format history as an unknown outcome', async () => {
+    const store = createStore()
+    const { backend, calls } = createBackend('full')
+    const runtime = createRuntime(store, backend)
+    blockHistoryProducer(store)
+
+    await installGridFormatController(runtime as never).toggleActiveFormatField('bold')
+
+    expect(calls.format).toBe(1)
+    expectUnknownHistoryOutcome(store, runtime)
   })
 })

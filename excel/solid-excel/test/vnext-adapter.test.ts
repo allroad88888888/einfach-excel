@@ -12,6 +12,7 @@ import {
   runRemoveDuplicatesConfirmAtom,
   selectionAtom,
   setWorkspaceActiveSheetAtom,
+  type ConditionalFormatRuleEntry,
   type HistoryEntryRecorder,
   type RemoveDuplicatesControllerPort,
   type RemoveRowsExactRequest,
@@ -32,6 +33,9 @@ import type {
   WorkerWorkbookClient,
   WorkbookImportStatsWire,
   WorkbookSheetMeta,
+  ConditionalFormatConfigSnapshotWire,
+  RemoveConditionalFormatRuleWire,
+  SetConditionalFormatRuleWire,
 } from '../src-vnext/adapter'
 import { buildFilterSortDisplayRows } from '../src-vnext/adapter/filter-predicate'
 import { filterHiddenRowsFromDisplayRows } from '../src-vnext/adapter/filter-hidden-rows'
@@ -146,6 +150,13 @@ function createFakeWorkerWorkbookClient(): FakeWorkerWorkbookClient {
   const rangeFormats: Array<SparseRangeWire & { format: CellFormatJSON }> = []
   const rowHeights = new Map<number, Map<number, number>>()
   const colWidths = new Map<number, Map<number, number>>()
+  const conditionalFormats = new Map<
+    number,
+    {
+      revision: number
+      rules: ConditionalFormatRuleEntry[]
+    }
+  >()
   const dirtyListeners = new Set<(cells: CellRefWire[]) => void>()
   const hydratedListeners = new Set<(cells: CellSnapshotWire[]) => void>()
   const calls: FakeWorkerWorkbookClient['calls'] = {
@@ -188,6 +199,23 @@ function createFakeWorkerWorkbookClient(): FakeWorkerWorkbookClient {
 
   function key(sheet: number, addr: string) {
     return `${sheet}:${addr.toUpperCase()}`
+  }
+
+  function conditionalFormatConfig(sheet: number) {
+    return conditionalFormats.get(sheet) ?? { revision: 0, rules: [] }
+  }
+
+  function conditionalFormatSnapshot(sheet: number): ConditionalFormatConfigSnapshotWire {
+    const config = conditionalFormatConfig(sheet)
+    return {
+      sheet,
+      revision: config.revision,
+      rules: config.rules.map((rule) => ({
+        ...rule,
+        scope: { range: { ...rule.scope.range } },
+        rule: { ...rule.rule },
+      })),
+    }
   }
 
   function parseCellAddress(addr: string): { row: number; col: number } {
@@ -416,6 +444,7 @@ function createFakeWorkerWorkbookClient(): FakeWorkerWorkbookClient {
     async initWorkbook(sheets = ['Sheet1']) {
       calls.initWorkbook.push([...sheets])
       metas = sheets.map((name, idx) => ({ idx, name }))
+      conditionalFormats.clear()
       return metas
     },
     async sheetList() {
@@ -482,6 +511,46 @@ function createFakeWorkerWorkbookClient(): FakeWorkerWorkbookClient {
         formula,
       })
       return { ok: true }
+    },
+    async listConditionalFormats(sheet) {
+      return conditionalFormatSnapshot(sheet)
+    },
+    async setConditionalFormatRule(sheet, request: SetConditionalFormatRuleWire) {
+      const config = conditionalFormatConfig(sheet)
+      if (request.revision !== config.revision) {
+        throw Object.assign(new Error('stale conditional-format revision'), {
+          code: 'STALE_CONDITIONAL_FORMAT_REVISION',
+        })
+      }
+      const existing = request.ruleId
+        ? config.rules.findIndex((rule) => rule.id === request.ruleId)
+        : -1
+      const id = request.ruleId ?? `conditional-format-${config.rules.length + 1}`
+      const entry: ConditionalFormatRuleEntry = {
+        id,
+        scope: { range: { ...request.scope.range } },
+        priority: request.priority ?? config.rules.length,
+        rule: { ...request.rule },
+      }
+      const rules =
+        existing < 0
+          ? [...config.rules, entry]
+          : config.rules.map((rule, index) => (index === existing ? entry : rule))
+      conditionalFormats.set(sheet, { revision: config.revision + 1, rules })
+      return conditionalFormatSnapshot(sheet)
+    },
+    async removeConditionalFormatRule(sheet, request: RemoveConditionalFormatRuleWire) {
+      const config = conditionalFormatConfig(sheet)
+      if (request.revision !== config.revision) {
+        throw Object.assign(new Error('stale conditional-format revision'), {
+          code: 'STALE_CONDITIONAL_FORMAT_REVISION',
+        })
+      }
+      conditionalFormats.set(sheet, {
+        revision: config.revision + 1,
+        rules: config.rules.filter((rule) => rule.id !== request.ruleId),
+      })
+      return conditionalFormatSnapshot(sheet)
     },
     async clearCell(sheet, addr) {
       calls.clearCell.push({ sheet, addr: addr.toUpperCase() })
@@ -1054,6 +1123,8 @@ describe('vnext adapter', () => {
     await backend.setConditionalFormatRule?.({
       kind: 'set-conditional-format-rule',
       sheetId: 'sheet-1',
+      requestId: 25,
+      revision: 0,
       scope: { range },
       rule: {
         kind: 'cell-value',
@@ -1087,6 +1158,8 @@ describe('vnext adapter', () => {
       kind: 'remove-conditional-format-rule',
       sheetId: 'sheet-1',
       ruleId: rules!.rules[0].id,
+      requestId: 26,
+      revision: 1,
     })
     const afterRemove = await backend.listConditionalFormatRules?.({
       kind: 'list-conditional-format-rules',
@@ -2866,6 +2939,8 @@ describe('vnext adapter', () => {
     await backend.setConditionalFormatRule?.({
       kind: 'set-conditional-format-rule',
       sheetId: 'sheet-1',
+      requestId: 3,
+      revision: 0,
       scope: { range: { rowStart: 1, rowEnd: 3, colStart: 1, colEnd: 1 } },
       rule: {
         kind: 'cell-value',

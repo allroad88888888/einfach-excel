@@ -109,6 +109,15 @@ import type {
   WorkerRuntimeCapabilitiesWire,
 } from './worker-protocol'
 import {
+  listTsWorkerConditionalFormats,
+  preserveTsWorkerConditionalFormats,
+  removeTsWorkerConditionalFormatRule,
+  restoreTsWorkerConditionalFormats,
+  setTsWorkerConditionalFormatRule,
+  snapshotTsWorkerConditionalFormats,
+  type TsConditionalFormatConfigs,
+} from './worker-runtime-ts-conditional-format'
+import {
   preserveTsWorkerPrintConfigs,
   readTsWorkerPrintConfig,
   restoreTsWorkerPrintConfigs,
@@ -218,6 +227,8 @@ interface RuntimeState {
   customFormulas: Map<string, { source: string; isAsync: boolean; callable?: AsyncCustomCallable }>
   rowHeightsBySheetName: Map<string, Map<number, number>>
   colWidthsBySheetName: Map<string, Map<number, number>>
+  /** Canonical condition-format configuration, owned by the engine runtime. */
+  conditionalFormatsBySheetId: TsConditionalFormatConfigs
   importSessions: Map<number, { mode: 'atomic' | 'direct'; cells: ImportCellWire[] }>
   nextImportSessionId: number
   snapshotSessions: Map<number, SnapshotSession>
@@ -255,6 +266,7 @@ function createInitialState(): RuntimeState {
     customFormulas: new Map(),
     rowHeightsBySheetName: new Map(),
     colWidthsBySheetName: new Map(),
+    conditionalFormatsBySheetId: new Map(),
     importSessions: new Map(),
     nextImportSessionId: 1,
     snapshotSessions: new Map(),
@@ -1579,6 +1591,7 @@ export function createWorkerRuntimeTs(events?: WorkerRuntimeTsEvents): ExcelCore
         state.customFormulas = new Map()
         state.rowHeightsBySheetName = new Map()
         state.colWidthsBySheetName = new Map()
+        state.conditionalFormatsBySheetId = new Map()
         state.importSessions = new Map()
         state.nextImportSessionId = 1
         state.snapshotSessions = new Map()
@@ -1597,6 +1610,26 @@ export function createWorkerRuntimeTs(events?: WorkerRuntimeTsEvents): ExcelCore
           state.workbook,
           sheet,
           msg.config as Parameters<typeof setTsWorkerPrintConfig>[2],
+        )
+      }
+      case 'listConditionalFormats': {
+        const sheet = assertSheetIdx(state, Number(msg.sheet))
+        return listTsWorkerConditionalFormats(state.conditionalFormatsBySheetId, sheet)
+      }
+      case 'setConditionalFormatRule': {
+        const sheet = assertSheetIdx(state, Number(msg.sheet))
+        return setTsWorkerConditionalFormatRule(
+          state.conditionalFormatsBySheetId,
+          sheet,
+          msg.conditionalFormat as Parameters<typeof setTsWorkerConditionalFormatRule>[2],
+        )
+      }
+      case 'removeConditionalFormatRule': {
+        const sheet = assertSheetIdx(state, Number(msg.sheet))
+        return removeTsWorkerConditionalFormatRule(
+          state.conditionalFormatsBySheetId,
+          sheet,
+          msg.conditionalFormat as Parameters<typeof removeTsWorkerConditionalFormatRule>[2],
         )
       }
       case 'addSheet': {
@@ -1940,6 +1973,10 @@ export function createWorkerRuntimeTs(events?: WorkerRuntimeTsEvents): ExcelCore
           cells: snapshotSparse(state),
           sizes: snapshotPersistenceSizes(state),
           printConfigs: snapshotTsWorkerPrintConfigs(state.workbook, state.sheets),
+          conditionalFormats: snapshotTsWorkerConditionalFormats(
+            state.conditionalFormatsBySheetId,
+            state.sheets,
+          ),
         }
       case 'restorePersistenceV1': {
         // Reset + restore.
@@ -1954,6 +1991,10 @@ export function createWorkerRuntimeTs(events?: WorkerRuntimeTsEvents): ExcelCore
         const { wb, sheets } = makeWorkbookFor(names)
         validateTsWorkerPrintConfigRestore(sheets, snapshot?.printConfigs)
         const restoredPrintConfigs = restoreTsWorkerPrintConfigs(wb, sheets, snapshot?.printConfigs)
+        const restoredConditionalFormats = restoreTsWorkerConditionalFormats(
+          sheets,
+          snapshot?.conditionalFormats,
+        )
         // Registrations survive the engine swap (parity with the WASM
         // runtime, whose Workbook instance survives
         // restore_persistence_v1) — re-bind them on the new workbook
@@ -1964,6 +2005,7 @@ export function createWorkerRuntimeTs(events?: WorkerRuntimeTsEvents): ExcelCore
         state.customFormulas = new Map()
         state.rowHeightsBySheetName = new Map()
         state.colWidthsBySheetName = new Map()
+        state.conditionalFormatsBySheetId = restoredConditionalFormats
         state.importSessions = new Map()
         state.snapshotSessions = new Map()
         state.nextSnapshotSessionId = 1
@@ -1994,6 +2036,7 @@ export function createWorkerRuntimeTs(events?: WorkerRuntimeTsEvents): ExcelCore
         return {
           restored_cells: importable.length,
           restored_formats: 0,
+          restored_conditional_formats: restoredConditionalFormats.size,
           sheets: state.sheets.length,
           restored_print_configs: restoredPrintConfigs,
         }
@@ -2068,9 +2111,16 @@ function rebuildPreservingCells(
     sheets,
     removedIdx,
   )
+  const conditionalFormats = preserveTsWorkerConditionalFormats(
+    state.conditionalFormatsBySheetId,
+    previousSheets,
+    sheets,
+    removedIdx,
+  )
   restoreWorkbookPrintConfigs(wb, printConfigs)
   state.workbook = wb
   state.sheets = sheets
+  state.conditionalFormatsBySheetId = conditionalFormats
 
   // Re-apply each surviving sheet's cells under its replacement sheet id.
   // Names carry the identity through a move/reorder. A rename intentionally
@@ -2078,8 +2128,7 @@ function rebuildPreservingCells(
   // This mirrors the print-config transfer and never needs a name alias
   // sidecar: the lookup exists only during this one rebuild.
   for (const newSheet of sheets) {
-    const oldCells =
-      cellsBySheetName.get(newSheet.name) ?? cellsBySheetIndex.get(newSheet.idx)
+    const oldCells = cellsBySheetName.get(newSheet.name) ?? cellsBySheetIndex.get(newSheet.idx)
     if (!oldCells || oldCells.size === 0) continue
     const inputs: (BulkCellInput | BulkTypedCellInput)[] = []
     for (const [key, cell] of oldCells) {
@@ -2174,6 +2223,8 @@ function isMutatingCommand(cmd: unknown): boolean {
     cmd === 'restoreSparse' ||
     cmd === 'restorePersistenceV1' ||
     cmd === 'setPrintConfig' ||
+    cmd === 'setConditionalFormatRule' ||
+    cmd === 'removeConditionalFormatRule' ||
     cmd === 'insertRows' ||
     cmd === 'deleteRows' ||
     cmd === 'insertColumns' ||

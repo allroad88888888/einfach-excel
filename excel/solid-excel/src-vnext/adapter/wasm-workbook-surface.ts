@@ -21,6 +21,9 @@ import type {
   TableRegistrySnapshotWire,
   WorkbookImportStatsWire,
   PrintConfigSnapshotWire,
+  ConditionalFormatConfigSnapshotWire,
+  RemoveConditionalFormatRuleWire,
+  SetConditionalFormatRuleWire,
 } from './worker-protocol'
 
 /**
@@ -261,6 +264,15 @@ type WasmWorkbookCoreRuntime = {
     sheetIdx: number,
     config: PrintConfigSnapshotWire['config'],
   ) => PrintConfigSnapshotWire
+  listConditionalFormats?: (sheetIdx: number) => ConditionalFormatConfigSnapshotWire
+  setConditionalFormatRule?: (
+    sheetIdx: number,
+    request: Omit<SetConditionalFormatRuleWire, 'requestId'>,
+  ) => ConditionalFormatConfigSnapshotWire
+  removeConditionalFormatRule?: (
+    sheetIdx: number,
+    request: Omit<RemoveConditionalFormatRuleWire, 'requestId'>,
+  ) => ConditionalFormatConfigSnapshotWire
   snapshot_persistence_v1?: () => WorkbookPersistenceSnapshotWire
   restore_persistence_v1?: (
     snapshot: WorkbookPersistenceSnapshotWire,

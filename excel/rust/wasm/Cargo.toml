@@ -16,6 +16,7 @@ einfach-excel-core = { path = "../excel-core", default-features = false }
 wasm-bindgen = "0.2"
 js-sys = "0.3"
 serde = { version = "1", features = ["derive"] }
+serde_json = "1"
 serde-wasm-bindgen = "0.6"
 # Routes Rust panic messages to console.error in wasm — without this a panic
 # is an opaque trap and the whole wasm instance dies silently (C.10).
@@ -53,7 +54,6 @@ wasm-bindgen-test = "0.3"
 # envelope is a PERSISTED format, so its backward compatibility — a payload
 # written before the `tables` field existed must still deserialize — has to be
 # asserted at the JSON-text level, not just against the Rust struct.
-serde_json = "1"
 # Needed by `tests/web.rs` to await JS Promises (microtask drain) inside
 # `#[wasm_bindgen_test]` async fns. wasm-bindgen pulls a private copy via
 # its `futures` feature, but `JsFuture` lives in the public crate.

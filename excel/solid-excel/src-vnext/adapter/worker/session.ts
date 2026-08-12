@@ -29,7 +29,6 @@ export function createWorkerBackendState(
     autoFillOpaqueRevisionEpoch: 0n,
     disposed: false,
     validationRulesBySheetId: new Map(),
-    conditionalFormatRulesBySheetId: new Map(),
     mergeRangesBySheetId: new Map(),
     filterSortStateBySheetId: new Map(),
     filterHiddenRowsBySheetId: new Map(),

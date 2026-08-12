@@ -35,6 +35,7 @@ fn wasm_workbook_restore_persistence_v1_rejects_bad_size_without_mutating_workbo
         hidden: vec![],
         filters: vec![],
         print_configs: vec![],
+        conditional_formats: vec![],
     };
 
     assert!(wb.restore_persistence_v1_json(payload).is_err());
@@ -58,6 +59,7 @@ fn wasm_workbook_restore_persistence_v1_rejects_unsupported_version() {
         hidden: vec![],
         filters: vec![],
         print_configs: vec![],
+        conditional_formats: vec![],
     };
     assert!(wb.restore_persistence_v1_json(payload).is_err());
 }
@@ -87,6 +89,7 @@ fn wasm_workbook_restore_persistence_v1_accepts_default_sheet_name() {
         hidden: vec![],
         filters: vec![],
         print_configs: vec![],
+        conditional_formats: vec![],
     };
 
     let stats = wb.restore_persistence_v1_json(payload).unwrap();
@@ -129,6 +132,7 @@ fn wasm_workbook_restore_persistence_v1_rejects_bad_format_without_mutating_work
         hidden: vec![],
         filters: vec![],
         print_configs: vec![],
+        conditional_formats: vec![],
     };
 
     assert!(wb.restore_persistence_v1_json(payload).is_err());
@@ -154,6 +158,7 @@ fn wasm_workbook_restore_persistence_v1_resets_subscription_tokens() {
         hidden: vec![],
         filters: vec![],
         print_configs: vec![],
+        conditional_formats: vec![],
     };
 
     let stats = wb.restore_persistence_v1_json(payload).unwrap();
@@ -198,6 +203,7 @@ fn persistence_v1_workload(n: u32) -> WorkbookPersistenceV1JSON {
         hidden: vec![],
         filters: vec![],
         print_configs: vec![],
+        conditional_formats: vec![],
     }
 }
 

@@ -8,17 +8,13 @@ import type { WorkerBackendState } from './state'
  * `syncSheetLookup` re-issues `sheet-${idx+1}` ids, so a deleted
  * sheet's id IS reused by the next added sheet — stale entries are not
  * just leaks, they get inherited. Per-sheet-keyed state in this
- * backend: `validationRulesBySheetId`, `conditionalFormatRulesBySheetId`,
- * `mergeRangesBySheetId`, `filterSortStateBySheetId`,
+ * backend: `validationRulesBySheetId`, `mergeRangesBySheetId`,
+ * `filterSortStateBySheetId`,
  * `filterHiddenRowsBySheetId`, and the sheet-scoped entries of
  * `namedRanges`.
  */
-export function dropSheetOverlayState(
-  state: WorkerBackendState,
-  sheetId: string,
-): void {
+export function dropSheetOverlayState(state: WorkerBackendState, sheetId: string): void {
   state.validationRulesBySheetId.delete(sheetId)
-  state.conditionalFormatRulesBySheetId.delete(sheetId)
   state.mergeRangesBySheetId.delete(sheetId)
   state.filterSortStateBySheetId.delete(sheetId)
   state.filterHiddenRowsBySheetId.delete(sheetId)

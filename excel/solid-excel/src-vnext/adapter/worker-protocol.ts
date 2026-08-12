@@ -1,4 +1,8 @@
-import type { SpreadsheetCellFormat } from '@einfach/spreadsheet-ui-core'
+import type {
+  ConditionalFormatRule,
+  ConditionalFormatRuleEntry,
+  SpreadsheetCellFormat,
+} from '@einfach/spreadsheet-ui-core'
 
 export type CellFormatJSON = SpreadsheetCellFormat
 
@@ -578,6 +582,30 @@ export interface PrintConfigSnapshotWire {
   }
 }
 
+/** Engine-owned conditional-format configuration for one runtime sheet. */
+export interface ConditionalFormatConfigSnapshotWire {
+  sheet: number
+  revision: number
+  rules: ConditionalFormatRuleEntry[]
+}
+
+/** Mutation witness carried over the worker boundary. */
+export interface SetConditionalFormatRuleWire {
+  requestId: number
+  revision: number
+  ruleId?: string
+  scope: ConditionalFormatRuleEntry['scope']
+  priority?: number
+  rule: ConditionalFormatRule
+}
+
+/** Removal witness carried over the worker boundary. */
+export interface RemoveConditionalFormatRuleWire {
+  requestId: number
+  revision: number
+  ruleId: string
+}
+
 export interface WorkbookPersistenceSnapshotWire {
   version: 1
   sheets: WorkbookPersistenceSheetWire[]
@@ -586,6 +614,8 @@ export interface WorkbookPersistenceSnapshotWire {
   sizes?: ViewportSizeSnapshotWire[]
   /** Optional for backward-compatible schema-v1 restore. */
   printConfigs?: PrintConfigSnapshotWire[]
+  /** Optional for backward-compatible schema-v1 restore. */
+  conditionalFormats?: ConditionalFormatConfigSnapshotWire[]
 }
 
 export interface WorkbookPersistenceRestoreStatsWire {
@@ -593,6 +623,7 @@ export interface WorkbookPersistenceRestoreStatsWire {
   restored_formats: number
   sheets: number
   restored_print_configs?: number
+  restored_conditional_formats?: number
 }
 
 /**
@@ -732,6 +763,15 @@ export interface WorkerWorkbookClient {
     sheet: number,
     config: PrintConfigSnapshotWire['config'],
   ): Promise<PrintConfigSnapshotWire>
+  listConditionalFormats?(sheet: number): Promise<ConditionalFormatConfigSnapshotWire>
+  setConditionalFormatRule?(
+    sheet: number,
+    request: SetConditionalFormatRuleWire,
+  ): Promise<ConditionalFormatConfigSnapshotWire>
+  removeConditionalFormatRule?(
+    sheet: number,
+    request: RemoveConditionalFormatRuleWire,
+  ): Promise<ConditionalFormatConfigSnapshotWire>
   addSheet(name: string): Promise<number>
   renameSheet(sheet: number, name: string): Promise<boolean>
   removeSheet(sheet: number): Promise<boolean>
@@ -1135,6 +1175,21 @@ export function createWorkerWorkbook(opts: WorkerWorkbookOptions): WorkerWorkboo
     },
     setPrintConfig(sheet, config) {
       return request<PrintConfigSnapshotWire>('setPrintConfig', { sheet, config })
+    },
+    listConditionalFormats(sheet) {
+      return request<ConditionalFormatConfigSnapshotWire>('listConditionalFormats', { sheet })
+    },
+    setConditionalFormatRule(sheet, conditionalFormat) {
+      return request<ConditionalFormatConfigSnapshotWire>('setConditionalFormatRule', {
+        sheet,
+        conditionalFormat,
+      })
+    },
+    removeConditionalFormatRule(sheet, conditionalFormat) {
+      return request<ConditionalFormatConfigSnapshotWire>('removeConditionalFormatRule', {
+        sheet,
+        conditionalFormat,
+      })
     },
     addSheet(name) {
       return request<number>('addSheet', { name })

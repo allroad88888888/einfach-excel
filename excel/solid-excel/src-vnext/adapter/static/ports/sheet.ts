@@ -116,6 +116,7 @@ export function createSheetPorts(
       state.cellFormatsBySheetId.delete(request.sheetId)
       state.rangeFormatsBySheetId.delete(request.sheetId)
       state.conditionalFormatRulesBySheetId.delete(request.sheetId)
+      state.conditionalFormatRevisionBySheetId.delete(request.sheetId)
       state.namedRanges = state.namedRanges.filter((range) => {
         const scopedToDeletedSheet =
           range.scope !== 'workbook' && range.scope.sheetId === request.sheetId

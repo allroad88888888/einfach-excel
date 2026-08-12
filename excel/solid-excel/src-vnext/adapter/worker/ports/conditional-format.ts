@@ -1,23 +1,65 @@
-// 一句话：条件格式端口。
+// 一句话：将条件格式端口直连到引擎拥有的按 Sheet 配置。
 
 import type {
   BackendMutationResult,
-  ConditionalFormatRuleEntry,
   ConditionalFormatRulesResult,
   ListConditionalFormatRulesRequest,
   RemoveConditionalFormatRuleRequest,
   SetConditionalFormatRuleRequest,
 } from '@einfach/spreadsheet-ui-core'
+import { cloneRange } from '@einfach/spreadsheet-ui-core'
 import {
-  cloneConditionalFormatRule,
-  cloneConditionalFormatRuleEntry,
-  cloneRange,
-  nextConditionalFormatRuleId,
-  normalizeRange,
-} from '@einfach/spreadsheet-ui-core'
+  readConditionalFormatConfig,
+  requireConditionalFormatMethods,
+  snapshotConditionalFormatConfig,
+} from '../conditional-format-client'
 import { bumpRevision } from '../revision'
+import { resolveSheet } from '../sheet-ops'
 import type { WorkerWorkbookSpreadsheetBackend } from '../types'
 import type { WorkerBackendState } from '../state'
+
+type ConditionalFormatMutationRequest =
+  | SetConditionalFormatRuleRequest
+  | RemoveConditionalFormatRuleRequest
+
+function assertMutationWitness(request: ConditionalFormatMutationRequest): {
+  requestId: number
+  revision: number
+} {
+  if (
+    typeof request.requestId !== 'number' ||
+    !Number.isSafeInteger(request.requestId) ||
+    request.requestId < 0
+  ) {
+    throw Object.assign(
+      new Error('conditional-format mutations require a non-negative requestId'),
+      {
+        code: 'CONDITIONAL_FORMAT_REQUEST_ID_REQUIRED',
+      },
+    )
+  }
+  if (
+    typeof request.revision !== 'number' ||
+    !Number.isSafeInteger(request.revision) ||
+    request.revision < 0
+  ) {
+    throw Object.assign(new Error('conditional-format mutations require a non-negative revision'), {
+      code: 'CONDITIONAL_FORMAT_REVISION_REQUIRED',
+    })
+  }
+  return { requestId: request.requestId, revision: request.revision }
+}
+
+function assertAdvancedRevision(snapshotRevision: number, revision: number): void {
+  if (revision >= Number.MAX_SAFE_INTEGER || snapshotRevision !== revision + 1) {
+    throw Object.assign(
+      new Error('worker returned a non-matching conditional-format acknowledgement'),
+      {
+        code: 'CONDITIONAL_FORMAT_ACK_MISMATCH',
+      },
+    )
+  }
+}
 
 export function createConditionalFormatPorts(
   state: WorkerBackendState,
@@ -29,62 +71,61 @@ export function createConditionalFormatPorts(
     async listConditionalFormatRules(
       request: ListConditionalFormatRulesRequest,
     ): Promise<ConditionalFormatRulesResult> {
+      const sheet = await resolveSheet(state, request.sheetId)
+      const snapshot = await readConditionalFormatConfig(state, sheet.idx)
       return {
         sheetId: request.sheetId,
         requestId: request.requestId,
-        revision: request.revision ?? state.revision,
-        rules: (state.conditionalFormatRulesBySheetId.get(request.sheetId) ?? [])
-          .map(cloneConditionalFormatRuleEntry)
-          .sort((left, right) => left.priority - right.priority),
+        revision: snapshot.revision,
+        rules: snapshot.rules,
       }
     },
 
     async setConditionalFormatRule(
       request: SetConditionalFormatRuleRequest,
     ): Promise<BackendMutationResult> {
-      const current = state.conditionalFormatRulesBySheetId.get(request.sheetId) ?? []
-      const existingIndex = request.ruleId
-        ? current.findIndex((entry) => entry.id === request.ruleId)
-        : -1
-      const entry: ConditionalFormatRuleEntry = {
-        id:
-          existingIndex >= 0
-            ? current[existingIndex].id
-            : (request.ruleId ?? nextConditionalFormatRuleId(current)),
-        scope: { range: normalizeRange(request.scope.range) },
-        priority:
-          request.priority ??
-          (existingIndex >= 0 ? current[existingIndex].priority : current.length),
-        rule: cloneConditionalFormatRule(request.rule),
-      }
-      const next =
-        existingIndex >= 0
-          ? current.map((item, index) => (index === existingIndex ? entry : item))
-          : [...current, entry]
-      state.conditionalFormatRulesBySheetId.set(
-        request.sheetId,
-        next.map((item, index) => ({ ...item, priority: item.priority ?? index })),
+      const witness = assertMutationWitness(request)
+      const sheet = await resolveSheet(state, request.sheetId)
+      const snapshot = snapshotConditionalFormatConfig(
+        await requireConditionalFormatMethods(state).set(sheet.idx, {
+          requestId: witness.requestId,
+          revision: witness.revision,
+          ruleId: request.ruleId,
+          scope: request.scope,
+          priority: request.priority,
+          rule: request.rule,
+        }),
+        sheet.idx,
       )
+      assertAdvancedRevision(snapshot.revision, witness.revision)
+      bumpRevision(state)
       return {
         sheetId: request.sheetId,
-        requestId: request.requestId,
-        revision: request.revision ?? bumpRevision(state),
-        affectedRange: cloneRange(entry.scope.range),
+        requestId: witness.requestId,
+        revision: snapshot.revision,
+        affectedRange: cloneRange(request.scope.range),
       }
     },
 
     async removeConditionalFormatRule(
       request: RemoveConditionalFormatRuleRequest,
     ): Promise<BackendMutationResult> {
-      const current = state.conditionalFormatRulesBySheetId.get(request.sheetId) ?? []
-      state.conditionalFormatRulesBySheetId.set(
-        request.sheetId,
-        current.filter((entry) => entry.id !== request.ruleId),
+      const witness = assertMutationWitness(request)
+      const sheet = await resolveSheet(state, request.sheetId)
+      const snapshot = snapshotConditionalFormatConfig(
+        await requireConditionalFormatMethods(state).remove(sheet.idx, {
+          requestId: witness.requestId,
+          revision: witness.revision,
+          ruleId: request.ruleId,
+        }),
+        sheet.idx,
       )
+      assertAdvancedRevision(snapshot.revision, witness.revision)
+      bumpRevision(state)
       return {
         sheetId: request.sheetId,
-        requestId: request.requestId,
-        revision: request.revision ?? bumpRevision(state),
+        requestId: witness.requestId,
+        revision: snapshot.revision,
       }
     },
   }

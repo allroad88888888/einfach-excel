@@ -223,6 +223,15 @@ struct WorkbookPersistenceV1JSON {
         skip_serializing_if = "Vec::is_empty"
     )]
     print_configs: Vec<PrintConfigSnapshotJSON>,
+    /// Per-sheet conditional-format configuration. Optional keeps snapshots
+    /// written before engine ownership valid and restores their empty default.
+    #[serde(
+        default,
+        rename = "conditionalFormats",
+        alias = "conditional_formats",
+        skip_serializing_if = "Vec::is_empty"
+    )]
+    conditional_formats: Vec<ConditionalFormatConfigSnapshotJSON>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -241,6 +250,8 @@ struct WorkbookPersistenceRestoreStatsJSON {
     /// Print configurations restored into the fresh workbook. Additive key.
     #[serde(rename = "restored_print_configs")]
     restored_print_configs: u32,
+    #[serde(rename = "restored_conditional_formats")]
+    restored_conditional_formats: u32,
 }
 
 // === Engine physical sort (`sortRange`) wire — S2 of

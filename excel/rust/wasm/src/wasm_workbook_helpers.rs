@@ -91,6 +91,7 @@ impl WasmWorkbook {
             hidden: self.hidden_rows_json(),
             filters: self.filters_json(),
             print_configs: self.print_configs_json(),
+            conditional_formats: self.conditional_formats_json().unwrap_or_default(),
         }
     }
 

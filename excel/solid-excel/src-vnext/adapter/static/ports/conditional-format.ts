@@ -13,8 +13,12 @@ import {
   removeConditionalFormatRuleFromState,
   setConditionalFormatRuleInState,
 } from '../conditional-format'
+import {
+  advanceConditionalFormatRevision,
+  assertConditionalFormatMutation,
+  conditionalFormatRevision,
+} from '../conditional-format-revision'
 import { beginUndoableMutation, recordConditionalRulesBefore } from '../history-record'
-import { mutationResult } from '../mutation-result'
 import { bumpRevision } from '../revision'
 import type { StaticBackendState } from '../state'
 
@@ -31,27 +35,38 @@ export function createConditionalFormatPorts(
       return {
         sheetId: request.sheetId,
         requestId: request.requestId,
-        revision: request.revision ?? state.revision,
+        revision: conditionalFormatRevision(state, request.sheetId),
         rules: listConditionalFormatRulesForSheet(state, request.sheetId),
       }
     },
     async setConditionalFormatRule(
       request: SetConditionalFormatRuleRequest,
     ): Promise<BackendMutationResult> {
+      assertConditionalFormatMutation(state, request)
       beginUndoableMutation(state)
       recordConditionalRulesBefore(state, request.sheetId)
-      setConditionalFormatRuleInState(state, request)
+      const entry = setConditionalFormatRuleInState(state, request)
       state.revision = bumpRevision(state.revision)
-      return mutationResult(request, state.revision, request.scope.range)
+      return {
+        sheetId: request.sheetId,
+        requestId: request.requestId,
+        revision: advanceConditionalFormatRevision(state, request.sheetId),
+        affectedRange: entry.scope.range,
+      }
     },
     async removeConditionalFormatRule(
       request: RemoveConditionalFormatRuleRequest,
     ): Promise<BackendMutationResult> {
+      assertConditionalFormatMutation(state, request)
       beginUndoableMutation(state)
       recordConditionalRulesBefore(state, request.sheetId)
       removeConditionalFormatRuleFromState(state, request)
       state.revision = bumpRevision(state.revision)
-      return mutationResult(request, state.revision)
+      return {
+        sheetId: request.sheetId,
+        requestId: request.requestId,
+        revision: advanceConditionalFormatRevision(state, request.sheetId),
+      }
     },
   }
 }

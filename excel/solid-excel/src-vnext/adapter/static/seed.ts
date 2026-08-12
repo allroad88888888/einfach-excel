@@ -107,6 +107,7 @@ export function buildState(
     cellFormatsBySheetId,
     rangeFormatsBySheetId: new Map(),
     conditionalFormatRulesBySheetId: new Map(),
+    conditionalFormatRevisionBySheetId: new Map(),
     filterSortBySheetId: new Map(),
     namedRanges: [],
     tablesByKey: new Map(),

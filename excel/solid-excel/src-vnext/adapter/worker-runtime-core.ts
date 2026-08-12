@@ -1,6 +1,7 @@
 import type { WorkerWasmModule } from './wasm-workbook-surface'
 import type { RequestMessage, WorkerCommandHandler } from './worker-command'
 import { handleCellCommand } from './worker-commands-cells'
+import { handleConditionalFormatCommand } from './worker-commands-conditional-format'
 import { handleFilterSortCommand } from './worker-commands-filter-sort'
 import { handleFormatCommand } from './worker-commands-format'
 import { handlePrintConfigCommand } from './worker-commands-print-config'
@@ -36,6 +37,7 @@ export function installWorkerRuntime(wasm: WorkerWasmModule) {
     handleCellCommand,
     handleStructureCommand,
     handleFormatCommand,
+    handleConditionalFormatCommand,
     handlePrintConfigCommand,
     handleFilterSortCommand,
     handleTableCommand,

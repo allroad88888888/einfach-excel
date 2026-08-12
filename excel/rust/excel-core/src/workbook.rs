@@ -30,6 +30,10 @@ mod workbook_bulk;
 mod workbook_bulk_types;
 #[path = "workbook_custom.rs"]
 mod workbook_custom;
+#[path = "workbook_conditional_format.rs"]
+mod workbook_conditional_format;
+#[path = "workbook_conditional_format_types.rs"]
+mod workbook_conditional_format_types;
 #[path = "workbook_cycles.rs"]
 mod workbook_cycles;
 #[path = "workbook_errors.rs"]
@@ -77,6 +81,9 @@ mod workbook_write;
 
 pub(crate) use self::workbook_bulk_types::CustomCallScope;
 pub use self::workbook_bulk_types::{BulkInstallStats, InstallError};
+pub use self::workbook_conditional_format_types::{
+    ConditionalFormatConfigSnapshot, ConditionalFormatError, ConditionalFormatRuleEntry,
+};
 pub use self::workbook_errors::{HiddenRowsError, TableError, TotalsFunction};
 pub use self::workbook_loader::WorkbookLoader;
 pub use self::workbook_named::WorkbookError;
@@ -108,6 +115,7 @@ pub struct Workbook {
     pub(super) tables: BTreeMap<String, TableEntry>,
     pub(super) tables_epoch: u64,
     print_configs: Vec<workbook_print_config::SheetPrintConfig>,
+    conditional_formats: Vec<workbook_conditional_format_types::SheetConditionalFormatConfig>,
 }
 
 #[cfg(test)]
@@ -119,6 +127,9 @@ mod workbook_tests_basics;
 #[cfg(test)]
 #[path = "workbook_tests/custom.rs"]
 mod workbook_tests_custom;
+#[cfg(test)]
+#[path = "workbook_tests/conditional_format.rs"]
+mod workbook_tests_conditional_format;
 #[cfg(test)]
 #[path = "workbook_tests/dependencies.rs"]
 mod workbook_tests_dependencies;

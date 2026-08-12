@@ -8,6 +8,7 @@ import {
   cloneNamedRange,
 } from '@einfach/spreadsheet-ui-core'
 import type { SheetDelta, StateDelta } from './history-delta'
+import { advanceConditionalFormatRevision } from './conditional-format-revision'
 import { captureFullSheet, cloneRangeFormatLayers, restoreFullSheet } from './sheet-snapshot'
 import type { StaticBackendState } from './state'
 import { getDimensionMap, getOrCreateCellFormats, getOrCreateSheetCells } from './state'
@@ -120,6 +121,7 @@ export function applyStateDelta(state: StaticBackendState, delta: StateDelta): S
           sheetId,
           sheet.conditionalFormatRules.map(cloneConditionalFormatRuleEntry),
         )
+        advanceConditionalFormatRevision(state, sheetId)
       }
       if (sheet.mergeRanges) {
         inverseSheet.mergeRanges = (state.mergeRangesBySheetId.get(sheetId) ?? []).map((r) => ({

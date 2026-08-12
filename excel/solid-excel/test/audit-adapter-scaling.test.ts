@@ -361,6 +361,8 @@ describe('audit D-4 · P-D · FIXED — worker backend deleteSheet drops per-she
     await backend.setConditionalFormatRule?.({
       kind: 'set-conditional-format-rule',
       sheetId: 'sheet-2',
+      requestId: 1,
+      revision: 0,
       scope: { range: { rowStart: 0, rowEnd: 9, colStart: 0, colEnd: 0 } },
       rule: { kind: 'cell-value', operator: 'gt', value: '0', format: { bgColor: '#ff0000' } },
     })
@@ -718,10 +720,12 @@ describe('audit D-11 · P-A · FIXED — conditional-format rules are pre-filter
       cells: new Array(5).fill(null).map((_, row) => ({ row, col: 0, input: String(row + 1) })),
       range: { rowStart: 0, rowEnd: 4, colStart: 0, colEnd: 0 },
     })
-    for (const rule of rules) {
+    for (const [revision, rule] of rules.entries()) {
       await backend.setConditionalFormatRule?.({
         kind: 'set-conditional-format-rule',
         sheetId: 'sheet-1',
+        requestId: revision + 1,
+        revision,
         scope: { range: rule.range },
         priority: rule.priority,
         rule: {
@@ -818,6 +822,8 @@ describe('audit D-11 · P-A · FIXED — conditional-format rules are pre-filter
     await backend.setConditionalFormatRule?.({
       kind: 'set-conditional-format-rule',
       sheetId: 'sheet-1',
+      requestId: 3,
+      revision: 0,
       scope: { range: { rowStart: 0, rowEnd: 1_048_575, colStart: 0, colEnd: 0 } },
       priority: 0,
       rule: { kind: 'cell-value', operator: 'gt', value: '0', format: { bgColor: '#f00' } },
@@ -827,6 +833,8 @@ describe('audit D-11 · P-A · FIXED — conditional-format rules are pre-filter
     await backend.setConditionalFormatRule?.({
       kind: 'set-conditional-format-rule',
       sheetId: 'sheet-1',
+      requestId: 4,
+      revision: 1,
       scope: { range: { rowStart: 0, rowEnd: 10, colStart: 0, colEnd: 0 } },
       priority: 1,
       rule: { kind: 'cell-value', operator: 'gt', value: '0', format: { bgColor: '#00f' } },

@@ -10,7 +10,8 @@ use einfach_excel_core::{
     CellSubscription, ColumnFilterRule, CustomFunctionRegistry, DepGraphStats, FilterApplyReport,
     FilterError, FilterSnapshot, FormatRangeSnapshot, HiddenRowsSnapshot, NumberFormat,
     RangeFormatSnapshotLayer, Rotation, Sheet, SheetError, SheetFilterState, SheetHiddenRows,
-    SortDirection, SortKey, SortRangeError, SortRangeReport, TableEntry, TableError,
+    ConditionalFormatConfigSnapshot, ConditionalFormatRuleEntry, SortDirection, SortKey,
+    SortRangeError, SortRangeReport, TableEntry, TableError,
     TableRegistrySnapshot, TotalsFunction, VerticalAlign, Workbook, WorkbookError,
     MAX_FILTER_PREDICATE_CELLS,
 };
@@ -32,6 +33,7 @@ include!("wasm_format_snapshot_wire.rs");
 include!("wasm_import_value_wire.rs");
 include!("wasm_import_cells_wire.rs");
 include!("wasm_bulk_wire.rs");
+include!("wasm_conditional_format_wire.rs");
 include!("wasm_print_config_wire.rs");
 include!("wasm_sort_wire.rs");
 include!("wasm_table_wire.rs");
@@ -113,6 +115,7 @@ include!("wasm_workbook_diagnostics.rs");
 include!("wasm_workbook_autofill_format.rs");
 include!("wasm_workbook_viewport_persistence.rs");
 include!("wasm_workbook_print_config.rs");
+include!("wasm_workbook_conditional_format.rs");
 
 impl Default for WasmWorkbook {
     fn default() -> Self {
@@ -147,5 +150,6 @@ mod tests {
     include!("wasm_tests/persistence_roundtrip.rs");
     include!("wasm_tests/persistence_validation.rs");
     include!("wasm_tests/print_config.rs");
+    include!("wasm_tests/conditional_format.rs");
     include!("wasm_tests/diagnostics.rs");
 }

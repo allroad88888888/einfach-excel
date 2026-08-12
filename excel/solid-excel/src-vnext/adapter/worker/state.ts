@@ -2,7 +2,6 @@
 
 import type {
   CellRange,
-  ConditionalFormatRuleEntry,
   FilterSortState,
   NamedRange,
   ProjectionRevision,
@@ -33,15 +32,14 @@ export interface WorkerBackendState {
   autoFillOpaqueRevisionEpoch: bigint
   disposed: boolean
 
-  // Adapter host-overlay metadata (data validation, conditional format, merge,
-  // named ranges) lives on the main thread: neither engine models these facts.
+  // Adapter host-overlay metadata (data validation, merge, named ranges) lives
+  // on the main thread: neither engine models these facts.
   // CANONICAL_OWNERSHIP (2026-07-19) transposed this pattern from "temporary
   // until the Rust workbook grows native support" to the sanctioned final form
-  // for the overlay-class items (#04 merge, #21 conditional format, #22
-  // validation rule storage) — the contract shape stays backend-canonical
+  // for the overlay-class items (#04 merge and #22 validation rule storage) —
+  // the contract shape stays backend-canonical
   // while the facts live here.
   readonly validationRulesBySheetId: Map<string, WorkerValidationRuleLayer[]>
-  readonly conditionalFormatRulesBySheetId: Map<string, ConditionalFormatRuleEntry[]>
   /**
    * Parity #04 — merge/unmerge on the worker path (adapter host-overlay).
    * The contract shape stays backend canonical (`DisplayCell.mergedSpan`
@@ -52,8 +50,8 @@ export interface WorkerBackendState {
    *
    * SESSION-ONLY boundary: persistence v1 snapshots do not carry merge
    * ranges, so workbook save/restore drops them by design (consistent
-   * with the overlay definition — same boundary as the validation and
-   * conditional-format overlays above). Bounded by sheet count × merges
+   * with the overlay definition — same boundary as the validation overlay
+   * above). Bounded by sheet count × merges
    * per sheet; structural insert/delete remaps entries in place via
    * `shiftMergeRangeList` (W3 semantics) and undo/redo replays the
    * per-mutation before/after images recorded on the transaction log.

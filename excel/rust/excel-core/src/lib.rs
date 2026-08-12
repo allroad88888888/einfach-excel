@@ -46,8 +46,10 @@ pub use sort::{
 };
 pub use undo::{CellSnapshot, Edit, UndoStack};
 pub use workbook::{
-    BulkInstallStats, FilterSnapshot, HeaderFooterFields, HiddenRowsError, HiddenRowsSnapshot,
-    InstallError, ManualPageBreak, ManualPageBreakAxis, PrintConfig, PrintConfigError,
-    PrintConfigSnapshot, PrintOrientation, PrintScale, SheetFilterState, SheetHiddenRows,
-    TableEntry, TableError, TableRegistrySnapshot, TotalsFunction, Workbook, WorkbookError,
+    BulkInstallStats, ConditionalFormatConfigSnapshot, ConditionalFormatError,
+    ConditionalFormatRuleEntry, FilterSnapshot, HeaderFooterFields, HiddenRowsError,
+    HiddenRowsSnapshot, InstallError, ManualPageBreak, ManualPageBreakAxis, PrintConfig,
+    PrintConfigError, PrintConfigSnapshot, PrintOrientation, PrintScale, SheetFilterState,
+    SheetHiddenRows, TableEntry, TableError, TableRegistrySnapshot, TotalsFunction, Workbook,
+    WorkbookError,
 };

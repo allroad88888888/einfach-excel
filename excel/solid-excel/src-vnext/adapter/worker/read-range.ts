@@ -3,6 +3,7 @@
 import type { CellRange, DisplayCell, ProjectionRevision } from '@einfach/spreadsheet-ui-core'
 import { runtimeSupports } from './capabilities'
 import { applyConditionalFormatOverlay } from './conditional-format-overlay'
+import { readConditionalFormatConfig } from './conditional-format-client'
 import { emptyFormatRangeSnapshot, mergeFormatsIntoCells } from './format-overlay'
 import { applyMergeOverlay } from './merge-overlay'
 import { applyNumberFormatsToCells } from './number-format'
@@ -20,7 +21,7 @@ export async function readRange(
 ): Promise<{ cells: DisplayCell[]; revision?: ProjectionRevision }> {
   const sheet = await resolveSheet(state, sheetId)
   const sparseRange = toSparseRange(sheet.idx, range)
-  const [snapshots, formatSnapshot] = await Promise.all([
+  const [snapshots, formatSnapshot, conditionalConfig] = await Promise.all([
     state.client.readSparseRange(sparseRange),
     // Runtimes that declare `formatSnapshots: false` model no formats
     // at all, so the truthful overlay is empty — never ask them to
@@ -28,6 +29,7 @@ export async function readRange(
     runtimeSupports(state, 'formatSnapshots')
       ? state.client.snapshotFormatRange(sparseRange)
       : Promise.resolve(emptyFormatRangeSnapshot(sparseRange)),
+    readConditionalFormatConfig(state, sheet.idx),
   ])
   const cells = snapshots
     .map(snapshotToDisplayCell)
@@ -44,7 +46,7 @@ export async function readRange(
 
   const conditionalCells = applyConditionalFormatOverlay(
     validatedCells,
-    state.conditionalFormatRulesBySheetId.get(sheetId) ?? [],
+    conditionalConfig.rules,
     range,
   )
   // #04 merge overlay joins last. Source coordinates == display coordinates on

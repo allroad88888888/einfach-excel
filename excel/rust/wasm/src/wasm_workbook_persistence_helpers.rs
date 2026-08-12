@@ -50,7 +50,6 @@ impl WasmWorkbook {
                 .map_err(|_| "invalid format snapshot".to_string())?;
             format_snapshots.push((sheet_idx, snapshot));
         }
-
         let mut size_snapshots = Vec::with_capacity(payload.sizes.len());
         for snapshot in payload.sizes {
             let sheet_idx = snapshot
@@ -65,7 +64,6 @@ impl WasmWorkbook {
             let (row_heights, col_widths) = snapshot.into_size_facts()?;
             size_snapshots.push((sheet_idx, row_heights, col_widths));
         }
-
         // Parse the Table registry BEFORE the workbook is swapped, so a
         // malformed range string joins the other reject-without-mutating
         // failures rather than stranding a half-restored workbook.
@@ -74,6 +72,8 @@ impl WasmWorkbook {
         let filter_snapshot = Self::filter_snapshot_from_json(payload.filters);
         let print_configs =
             Self::print_config_snapshots_from_json(payload.print_configs, sheet_count)?;
+        let conditional_formats =
+            Self::conditional_format_snapshots_from_json(payload.conditional_formats, sheet_count)?;
 
         let mut workbook = Workbook::new();
         let first_name = payload.sheets[0].name.clone();
@@ -91,11 +91,13 @@ impl WasmWorkbook {
             .restore_print_configs(print_configs)
             .map_err(|error| format!("persistence restore print configs failed: {error}"))?
             as u32;
-
+        let restored_conditional_formats = workbook
+            .restore_conditional_formats(conditional_formats)
+            .map_err(|error| format!("persistence restore conditional formats failed: {error}"))?
+            as u32;
         self.subscriptions.clear();
         self.next_token = 0;
         self.workbook = workbook;
-
         // W2.3 (audit B-1): fresh-shell restore is exactly the
         // full-sheet-replace shape `install_workbook_bulk` implements —
         // group the records into per-sheet primitive/formula maps and
@@ -133,7 +135,6 @@ impl WasmWorkbook {
                 sheet.set_col_width(col_index, width_px);
             }
         }
-
         // Registry last: entries anchor by sheet NAME, so every sheet must
         // already exist and be named. REPLACE semantics make this exact —
         // the fresh workbook starts empty, so restore installs precisely the
@@ -143,7 +144,6 @@ impl WasmWorkbook {
             .restore_tables(table_snapshot)
             .map_err(|err| format!("persistence restore tables failed: {}", table_error_id(err)))?
             as u32;
-
         // Hidden rows last as well, and for the same reason as the registry:
         // every sheet must exist first. REPLACE semantics are exact against
         // the fresh workbook, and entries for sheets the payload does not
@@ -170,6 +170,7 @@ impl WasmWorkbook {
             restored_hidden_sheets,
             restored_filter_sheets,
             restored_print_configs,
+            restored_conditional_formats,
         };
         Ok(stats)
     }

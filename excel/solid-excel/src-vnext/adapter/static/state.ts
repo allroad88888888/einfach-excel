@@ -45,6 +45,7 @@ export interface StaticBackendState {
   cellFormatsBySheetId: Map<string, Map<string, SpreadsheetCellFormat>>
   rangeFormatsBySheetId: Map<string, RangeFormatLayer[]>
   conditionalFormatRulesBySheetId: Map<string, ConditionalFormatRuleEntry[]>
+  conditionalFormatRevisionBySheetId: Map<string, number>
   filterSortBySheetId: Map<string, FilterSortState>
   namedRanges: NamedRange[]
   /**

@@ -6,6 +6,7 @@
 | 来源 Issue | 唯一模型 | 状态 | 独占范围 | 前置 | 交付 |
 | --- | --- | --- | --- | --- | --- |
 | UI-527 菜单栏排序确认会话 | `model-527-menu-sort-confirmation` | 已完成（`a9f0196`） | `src-vnext/menu-bar/**`，必要时 `src-vnext/sort/useSortConfirmation.ts`，聚焦测试 | UI-403、UI-303 | 菜单栏升序/降序复用既有排序确认会话；不在确认前提交 mutation。 |
+| UI-529 菜单栏排序浏览器闭环 | `model-529-menu-sort-e2e` | 已完成（`1f20d1a`） | 菜单排序 Playwright 回归与既有结构审计 | UI-527 | 在 WASM/TS 的真实浏览器中验证取消、Escape、确认和能力缺失路径。 |
 
 ## UI-527 执行树
 
@@ -25,6 +26,13 @@
     └── `a9f0196 fix(menu-bar): confirm sort before execution`
 ```
 
+## UI-529 浏览器闭环
+
+- WASM：取消或 Escape 不发出 `range.sort`，焦点返回 Data 菜单；确认降序只发出一次
+  `range.sort`，随后关闭确认对话框。
+- TS：物理排序能力缺失时不显示排序菜单项或确认对话框，也不发送 mutation。
+- 既有 Wave5 Data > Sort 审计已改为“打开确认 → 确认 → 断言排序”，不再把点击菜单项误当作直接执行。
+
 ## 边界
 
 - 排序范围、方向、会话、加载和错误继续由既有 `@einfach` Atom 持有。
@@ -38,5 +46,7 @@
   `vnext-filter-sort-entrypoints`，共 3 suites / 9 tests 通过。
 - `npx tsc --noEmit -p excel/solid-excel/tsconfig.json`、范围 ESLint（0 errors）、范围
   Prettier 与 `git diff --check` 均通过；测试依赖路径仍有仓库配置造成的 2 条 warnings。
-- 全量 `vnext-menu-bar.test.tsx` 的 9 条非排序 historyStack 断言失败，已在 `5e5339d`
-  的独立 worktree 原样复现；本项未扩大范围处理该既有测试夹具问题。
+- UI-528（`ccd1292`）只为明确断言历史入栈的菜单测试后端补齐 undo/redo capability；
+  `vnext-menu-bar`、history recorder、history dispatch 共 3 suites / 90 tests 通过，未改产品行为。
+- Playwright：菜单排序确认新回归在 WASM 3 条通过、TS 3 条因 capability 缺失跳过；更新后的
+  Wave5 结构审计在两个后端各 1 条通过。

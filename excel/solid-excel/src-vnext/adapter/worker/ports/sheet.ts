@@ -3,7 +3,11 @@
 import type { ReorderSheetRequest, SheetMutationResult } from '@einfach/spreadsheet-ui-core'
 import { reorderSheetMetadata } from '@einfach/spreadsheet-ui-core'
 import { createBackendError } from '../backend-error'
-import { beginSheetIndexRemap, finishSheetIndexRemap } from '../content-change'
+import {
+  beginSheetIndexRemap,
+  finishSheetIndexRemap,
+  requestContentChange,
+} from '../content-change'
 import { dropSheetOverlayState } from '../overlay-shift'
 import { bumpRevision } from '../revision'
 import { toSheetMetadata } from '../sheet-lookup'
@@ -92,27 +96,39 @@ export function createSheetPorts(
         throw createBackendError('SHEET_DELETE_FAILED', 'cannot delete the last sheet')
       }
 
-      const ok = await state.client.removeSheet(sheet.idx)
-      if (!ok) {
-        throw createBackendError('SHEET_DELETE_FAILED', `cannot delete sheet: ${request.sheetId}`)
-      }
+      let nextRevision = state.revision
+      beginSheetIndexRemap(state)
+      try {
+        const ok = await state.client.removeSheet(sheet.idx)
+        if (!ok) {
+          throw createBackendError('SHEET_DELETE_FAILED', `cannot delete sheet: ${request.sheetId}`)
+        }
 
-      // Audit D-4 (FIXED): the deleted sheet's id will be reused by the
-      // next added sheet — drop every host-side overlay keyed by it so
-      // the new sheet starts clean instead of inheriting dead state.
-      dropSheetOverlayState(state, request.sheetId)
-      // Design point D: sheet lifecycle is not undoable, and the delete
-      // shifts positional sheet indices — recorded transactions would
-      // replay into the wrong sheet, so the log is dropped wholesale.
-      dropTransactionRecords(state)
-      const nextRevision = bumpRevision(state)
-      const remainingSheets = state.lookup.sheets.filter((item) => item.id !== request.sheetId)
-      await refreshSheetLookup(state, remainingSheets)
+        // Audit D-4 (FIXED): the deleted sheet's id will be reused by the
+        // next added sheet — drop every host-side overlay keyed by it so
+        // the new sheet starts clean instead of inheriting dead state.
+        dropSheetOverlayState(state, request.sheetId)
+        // Design point D: sheet lifecycle is not undoable, and the delete
+        // shifts positional sheet indices — recorded transactions would
+        // replay into the wrong sheet, so the log is dropped wholesale.
+        dropTransactionRecords(state)
+        nextRevision = bumpRevision(state)
+        const remainingSheets = state.lookup.sheets.filter((item) => item.id !== request.sheetId)
+        await refreshSheetLookup(state, remainingSheets)
+
+        // Removing a sheet can invalidate formulas on a still-visible
+        // sheet. WASM drops sheet-indexed subscriptions during removal, so
+        // a worker cellsDirty event is not a reliable source of this refresh.
+        // Queue the shared adapter event only after the stable-id lookup is
+        // current; the remap gate coalesces any native dirty event with it.
+        requestContentChange(state)
+      } finally {
+        finishSheetIndexRemap(state)
+      }
       const activeSheetId =
         state.lookup.sheets[
           Math.min(Math.max(deleteDisplayIndex, 0), state.lookup.sheets.length - 1)
-        ]?.id ??
-        null
+        ]?.id ?? null
 
       return sheetMutationResult(state, request.requestId, {
         sheetId: request.sheetId,

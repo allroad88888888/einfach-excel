@@ -3755,6 +3755,71 @@ describe('vnext adapter', () => {
     backend.dispose()
   })
 
+  it('refreshes visible dependents after deleting a non-active sheet without worker dirty', async () => {
+    const client = createFakeWorkerWorkbookClient()
+    const removeSheet = client.removeSheet.bind(client)
+    client.removeSheet = async (sheet) => {
+      const removed = await removeSheet(sheet)
+      if (removed) {
+        client.putCell({
+          sheet: 1,
+          addr: 'C5',
+          display: '#REF!',
+          type: 'error',
+          isError: true,
+          formula: '=Sheet3!B4+5',
+        })
+      }
+      return removed
+    }
+    const backend = createWorkerWorkbookSpreadsheetBackend({
+      client,
+      sheets: [
+        { id: 'sheet-1', name: 'Sheet1' },
+        { id: 'sheet-2', name: 'Sheet2' },
+        { id: 'sheet-3', name: 'Sheet3' },
+      ],
+      revision: 20,
+    })
+
+    await backend.ready()
+    client.putCell({
+      sheet: 1,
+      addr: 'C5',
+      display: '105',
+      type: 'number',
+      isError: false,
+      formula: '=Sheet3!B4+5',
+    })
+    const observerReads: Array<Promise<string | undefined>> = []
+    const unsubscribe = backend.subscribeContentChanges?.(() => {
+      observerReads.push(
+        backend
+          .readRangeProjection(
+            createRangeProjectionRequest({
+              sheetId: 'sheet-2',
+              requestId: 90,
+              reason: 'test',
+              range: { rowStart: 4, rowEnd: 4, colStart: 2, colEnd: 2 },
+            }),
+          )
+          .then((projection) => projection.cells[0]?.displayValue),
+      )
+    })
+
+    await backend.deleteSheet?.({
+      kind: 'delete-sheet',
+      sheetId: 'sheet-3',
+      requestId: 89,
+    })
+
+    await expect(Promise.all(observerReads)).resolves.toEqual(['#REF!'])
+    expect(client.calls.readSparseRange.at(-1)?.sheet).toBe(1)
+
+    unsubscribe?.()
+    backend.dispose()
+  })
+
   it('defers reorder dirty observers until stable sheet ids use refreshed worker indices', async () => {
     const client = createFakeWorkerWorkbookClient()
     const moveSheet = client.moveSheet.bind(client)

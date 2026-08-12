@@ -10,6 +10,19 @@ export function notifyContentChangeHandlers(state: WorkerBackendState): void {
 }
 
 /**
+ * Request a visible-projection refresh. Sheet topology operations call this
+ * after rebuilding the stable-id lookup; worker cellsDirty events use the
+ * same boundary while a sheet-index remap is in flight.
+ */
+export function requestContentChange(state: WorkerBackendState): void {
+  if (state.sheetIndexRemapDepth > 0) {
+    state.deferredContentChange = true
+    return
+  }
+  notifyContentChangeHandlers(state)
+}
+
+/**
  * AutoFill-only notify. Scoped deliberately: every other mutation family
  * calls the plain `notifyContentChangeHandlers` above and an observer
  * exception propagates exactly as it did before AutoFill existed. AutoFill
@@ -112,10 +125,6 @@ export function subscribeCellsDirty(state: WorkerBackendState): () => void {
     // Its refresh covers any earlier deferred in-range event as well.
     state.deferredAutoFillContentChange = false
     bumpRevision(state)
-    if (state.sheetIndexRemapDepth > 0) {
-      state.deferredContentChange = true
-      return
-    }
-    notifyContentChangeHandlers(state)
+    requestContentChange(state)
   })
 }

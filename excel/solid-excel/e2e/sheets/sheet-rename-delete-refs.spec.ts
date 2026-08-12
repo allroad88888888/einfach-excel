@@ -134,10 +134,8 @@ test.describe('Sheet rename/delete — cross-sheet formula reference behavior', 
     // Deleting a NON-active sheet keeps the current sheet active.
     await expect(tab(page, 'Sheet2')).toHaveAttribute('data-active', 'true')
 
-    // Verified 2026-07-29: the still-open sheet keeps showing the stale
-    // 105/12 until a reprojection is forced (see the fixme below / CASES.md
-    // MS-19). A sheet switch round-trip repaints the direct references to
-    // the deleted sheet as #REF!.
+    // A sheet switch still obtains the invalid-reference values after the
+    // deletion. The next test pins the stronger in-place refresh contract.
     await selectSheet(page, 'Sheet1')
     await selectSheet(page, 'Sheet2')
     await expect(cellDisplay(page, 'C5')).toHaveText('#REF!')
@@ -145,28 +143,18 @@ test.describe('Sheet rename/delete — cross-sheet formula reference behavior', 
     await expectNoConsoleErrors(page)
   })
 
-  // ⚠️ CASES.md MS-19: deleting a referenced sheet does NOT refresh the
-  // visible sheet in place — Sheet2!C5 kept showing 105 (and C2 kept 12)
-  // for seconds after the delete, until a sheet switch forced a new
-  // visible-window read. The revision bump from deleteSheet should dirty
-  // the dependents' projection like rename does (the rename path repaints
-  // after a switch too, but delete leaves the CURRENT sheet stale with no
-  // user hint at all). Product fix needed; do not work around in UI specs.
-  test.fixme(
-    'deleting a referenced sheet refreshes the visible sheet in place (currently stale)',
-    async ({ page }) => {
-      await gotoWorkerDemo(page)
-      await selectSheet(page, 'Sheet2')
-      await expect(cellDisplay(page, 'C5')).toHaveText('105')
+  test('deleting a referenced sheet refreshes the visible sheet in place', async ({ page }) => {
+    await gotoWorkerDemo(page)
+    await selectSheet(page, 'Sheet2')
+    await expect(cellDisplay(page, 'C5')).toHaveText('105')
 
-      await tab(page, 'Sheet3').click({ button: 'right' })
-      await page.getByTestId('sheet-tab-menu-delete').click()
-      await page.getByTestId('sheet-tab-delete-confirm').click()
-      await expect(tab(page, 'Sheet3')).toHaveCount(0)
+    await tab(page, 'Sheet3').click({ button: 'right' })
+    await page.getByTestId('sheet-tab-menu-delete').click()
+    await page.getByTestId('sheet-tab-delete-confirm').click()
+    await expect(tab(page, 'Sheet3')).toHaveCount(0)
 
-      // No sheet switch — the in-place projection should repaint.
-      await expect(cellDisplay(page, 'C5')).toHaveText('#REF!')
-      await expect(cellDisplay(page, 'C2')).toHaveText('#REF!')
-    },
-  )
+    // No sheet switch — the in-place projection should repaint.
+    await expect(cellDisplay(page, 'C5')).toHaveText('#REF!')
+    await expect(cellDisplay(page, 'C2')).toHaveText('#REF!')
+  })
 })

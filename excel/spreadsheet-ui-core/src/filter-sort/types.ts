@@ -82,7 +82,7 @@ export interface FilterSortControllerPort {
   setFilterSort?: (request: SetFilterSortRequest) => Promise<FilterSortMutationResult>
 }
 
-export type FilterSortEntrypoint = 'toolbar' | 'menu-bar'
+export type FilterSortEntrypoint = 'toolbar' | 'menu-bar' | 'filter-dropdown'
 
 export interface FilterSortEntrypointTarget {
   readonly sheetId: string

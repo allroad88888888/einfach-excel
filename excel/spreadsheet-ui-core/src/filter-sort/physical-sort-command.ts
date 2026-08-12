@@ -81,7 +81,10 @@ export const runPhysicalSortAtom = atom(
       target.colIndex >= range!.colStart &&
       target.colIndex <= range!.colEnd
     const directionValid = captured.direction === 'asc' || captured.direction === 'desc'
-    const entrypointValid = captured.entrypoint === 'toolbar' || captured.entrypoint === 'menu-bar'
+    const entrypointValid =
+      captured.entrypoint === 'toolbar' ||
+      captured.entrypoint === 'menu-bar' ||
+      captured.entrypoint === 'filter-dropdown'
     const payloadValid =
       captured.target.kind !== 'invalid' &&
       captured.range.kind !== 'invalid' &&

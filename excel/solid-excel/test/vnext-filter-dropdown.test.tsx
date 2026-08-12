@@ -601,9 +601,7 @@ describe('vNext SpreadsheetFilterDropdown', () => {
     // An invalid custom filter is rejected before any transport and leaves the
     // lifecycle 'blocked' with the error visible — the dropdown stays open so
     // the user can correct the input (Excel's custom-filter validation).
-    await waitFor(() =>
-      expect(store.getter(filterSortLifecycleAtom).status).toBe('blocked'),
-    )
+    await waitFor(() => expect(store.getter(filterSortLifecycleAtom).status).toBe('blocked'))
     expect(store.getter(filterDropdownAtom).status).toBe('open')
     expect(container.querySelector('[data-testid="filter-error-text"]')?.textContent).toBe(
       FILTER_SORT_INVALID_INPUT_ERROR,
@@ -652,7 +650,7 @@ describe('vNext SpreadsheetFilterDropdown — physical sort (design-engine-sort 
     })
   }
 
-  it('dispatches a physical sort keyed by the dropdown column and closes the dropdown', async () => {
+  it('confirms a physical sort keyed by the dropdown column and closes the dropdown', async () => {
     const store = createStore()
     const sortRequests: SortRangeRequest[] = []
     const filterRequests: SetFilterSortRequest[] = []
@@ -672,6 +670,9 @@ describe('vNext SpreadsheetFilterDropdown — physical sort (design-engine-sort 
 
     fireEvent.click(button(container, 'filter-sort-desc'))
 
+    await waitFor(() => expect(button(document.body, 'sort-confirmation-confirm')).not.toBeNull())
+    expect(sortRequests).toHaveLength(0)
+    fireEvent.click(button(document.body, 'sort-confirmation-confirm'))
     await waitFor(() => expect(sortRequests).toHaveLength(1))
     expect(sortRequests[0]).toMatchObject({
       kind: 'sort-range',
@@ -707,6 +708,9 @@ describe('vNext SpreadsheetFilterDropdown — physical sort (design-engine-sort 
 
     fireEvent.click(button(container, 'filter-sort-asc'))
 
+    await waitFor(() => expect(button(document.body, 'sort-confirmation-confirm')).not.toBeNull())
+    expect(sortRequests).toHaveLength(0)
+    fireEvent.click(button(document.body, 'sort-confirmation-confirm'))
     await waitFor(() => expect(sortRequests).toHaveLength(1))
     expect(sortRequests[0].keys).toEqual([{ col: 1, direction: 'asc' }])
     expect(sortRequests[0].excludedRows).toEqual([2, 4])

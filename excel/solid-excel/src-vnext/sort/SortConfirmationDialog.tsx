@@ -8,7 +8,7 @@ if (typeof process === 'undefined' || !process.env.JEST_WORKER_ID) {
 }
 
 interface SortConfirmationDialogProps {
-  readonly anchorRef?: HTMLElement | null
+  readonly anchorRef?: HTMLElement | null | (() => HTMLElement | null | undefined)
   readonly owner?: SortConfirmationEntrypoint
   readonly onCancel: () => void
   readonly onConfirm: () => void
@@ -30,6 +30,7 @@ export function SortConfirmationDialog(props: SortConfirmationDialogProps) {
     props.state.status === 'closed' ? '' : props.t(`toolbar.sort.${props.state.direction}`)
 
   function anchor(): HTMLElement | null | undefined {
+    if (typeof props.anchorRef === 'function') return props.anchorRef()
     if (props.anchorRef) return props.anchorRef
     if (owner() !== 'menu-bar') return null
     return document.querySelector<HTMLButtonElement>('[data-menu-bar-top-button="data"]')

@@ -11,8 +11,11 @@ interface FilterDropdownFocusOptions {
 }
 
 /** Keeps DOM focus inside the interaction contract without creating UI state. */
-export function useFilterDropdownFocus(options: FilterDropdownFocusOptions) {
+export function useFilterDropdownFocus(
+  options: FilterDropdownFocusOptions,
+): () => HTMLElement | undefined {
   let opener: HTMLElement | undefined
+  let lastOpener: HTMLElement | undefined
   let openedSessionId: number | undefined
 
   createEffect(() => {
@@ -32,6 +35,7 @@ export function useFilterDropdownFocus(options: FilterDropdownFocusOptions) {
     openedSessionId = sessionId
     const activeElement = document.activeElement
     opener = activeElement instanceof HTMLElement ? activeElement : undefined
+    lastOpener = opener
     queueMicrotask(() => {
       if (options.isOpen() && options.sessionId() === sessionId) options.focusSearch()
     })
@@ -63,4 +67,6 @@ export function useFilterDropdownFocus(options: FilterDropdownFocusOptions) {
     document.addEventListener('keydown', onKeyDown)
     onCleanup(() => document.removeEventListener('keydown', onKeyDown))
   })
+
+  return () => opener ?? lastOpener
 }

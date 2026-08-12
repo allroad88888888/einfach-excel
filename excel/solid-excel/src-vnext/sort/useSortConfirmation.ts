@@ -4,6 +4,8 @@ import {
   runPhysicalSortAtom,
   selectionSnapshotAtom,
   workspaceSessionAtom,
+  type CellCoord,
+  type FilterSortEntrypointTarget,
   type SortDirection,
 } from '@einfach/spreadsheet-ui-core'
 import {
@@ -28,10 +30,15 @@ import {
 
 interface SortConfirmationController {
   readonly state: Accessor<SortConfirmationState>
-  readonly begin: (direction: SortDirection) => void
+  readonly begin: (direction: SortDirection, target?: SortConfirmationTarget) => void
   readonly cancel: () => void
   readonly confirm: () => void
   readonly retry: () => void
+}
+
+interface SortConfirmationTarget {
+  readonly active: CellCoord
+  readonly target: FilterSortEntrypointTarget
 }
 
 export function useSortConfirmation(
@@ -59,15 +66,21 @@ export function useSortConfirmation(
     }
   }
 
-  function begin(direction: SortDirection): void {
+  function begin(direction: SortDirection, explicitTarget?: SortConfirmationTarget): void {
     const snapshot = store.getter(selectionSnapshotAtom)
     const sheetId = snapshot.activeCell.sheetId || store.getter(workspaceSessionAtom).activeSheetId
-    if (!sheetId || typeof backend.sortRange !== 'function') return
+    const target =
+      explicitTarget?.target ?? (sheetId ? { sheetId, colIndex: snapshot.activeCell.col } : null)
+    const active = explicitTarget?.active ?? {
+      row: snapshot.activeCell.row,
+      col: snapshot.activeCell.col,
+    }
+    if (!target || typeof backend.sortRange !== 'function') return
     const ticket = store.setter(beginSortConfirmationAtom, {
       direction,
       entrypoint,
-      target: { sheetId, colIndex: snapshot.activeCell.col },
-      active: { row: snapshot.activeCell.row, col: snapshot.activeCell.col },
+      target,
+      active,
     })
     if (ticket) void resolve(ticket)
   }

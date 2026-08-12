@@ -14,7 +14,6 @@ import {
   filterSortStateAtom,
   getColumnLabel,
   runFilterSortMutationAtom,
-  runPhysicalSortAtom,
   retryFilterSortRefreshAtom,
   sortRangeSupportedAtom,
   updateFilterSortAvailableValuesAtom,
@@ -28,11 +27,12 @@ import {
 import {
   createHistoryEntryRecorder,
   refreshVisibleProjection,
-  resolveSortRange,
   spreadsheetProjectionSnapshotAtom,
   useSpreadsheetBackend,
   useSpreadsheetUiStore,
 } from '../provider'
+import { SortConfirmationDialog } from '../sort/SortConfirmationDialog'
+import { useSortConfirmation } from '../sort/useSortConfirmation'
 import { FilterDropdownPresentation } from './FilterDropdownPresentation'
 import { useFilterDropdownFocus } from './filter-dropdown-focus'
 
@@ -58,6 +58,7 @@ export function SpreadsheetFilterDropdown(props: SpreadsheetFilterDropdownProps)
   const t = useT()
   const store = useSpreadsheetUiStore()
   const backend = useSpreadsheetBackend()
+  const sortConfirmation = useSortConfirmation('filter-dropdown')
   const dropdown = useAtomValue(filterDropdownAtom)
   const filterSortState = useAtomValue(filterSortStateAtom)
   const draft = useAtomValue(filterSortDraftAtom)
@@ -174,23 +175,14 @@ export function SpreadsheetFilterDropdown(props: SpreadsheetFilterDropdownProps)
     if (settled.status === 'editing' && settled.sessionId === sessionId) close()
   }
 
-  async function runSort(direction: SortDirection) {
+  function runSort(direction: SortDirection) {
     const currentSheetId = sheetId()
     const currentCol = colIndex()
     if (!currentSheetId || currentCol < 0 || typeof backend.sortRange !== 'function') return
-    const range = await resolveSortRange(store, backend, currentSheetId, {
-      row: 0,
-      col: currentCol,
-    })
     store.setter(closeFilterDropdownAtom)
-    void store.setter(runPhysicalSortAtom, {
-      source: backend,
-      historyEntryRecorder: createHistoryEntryRecorder(backend),
-      entrypoint: 'toolbar',
-      direction,
-      range,
+    sortConfirmation.begin(direction, {
       target: { sheetId: currentSheetId, colIndex: currentCol },
-      refreshProjection: (targetSheetId) => refreshVisibleProjection(store, backend, targetSheetId),
+      active: { row: 0, col: currentCol },
     })
   }
 
@@ -220,7 +212,7 @@ export function SpreadsheetFilterDropdown(props: SpreadsheetFilterDropdownProps)
     })
   }
 
-  useFilterDropdownFocus({
+  const getOpener = useFilterDropdownFocus({
     isOpen,
     sessionId: () => draft().sessionId,
     lifecycleStatus: () => lifecycle().status,
@@ -231,37 +223,48 @@ export function SpreadsheetFilterDropdown(props: SpreadsheetFilterDropdownProps)
   })
 
   return (
-    <Show when={isOpen()}>
-      <FilterDropdownPresentation
-        class={props.class}
-        testId={props['data-testid'] ?? 'filter-dropdown'}
-        sheetId={sheetId}
-        colIndex={colIndex}
-        columnLabel={columnLabel}
-        lifecycleStatus={() => lifecycle().status}
-        canClose={canClose}
-        sortSupported={sortSupported}
-        mutationDisabled={mutationDisabled}
-        mutationBusy={mutationBusy}
-        currentRulesForCol={currentRulesForCol}
-        draft={draft}
-        filteredValues={filteredValues}
-        selectedValueSet={selectedValueSet}
-        availableValues={availableValues}
-        allValuesSelected={allValuesSelected}
-        visibleValuesSelected={visibleValuesSelected}
-        errorText={errorText}
-        updateDraft={updateDraft}
-        toggleValue={toggleValue}
-        toggleVisibleValues={toggleVisibleValues}
-        run={run}
-        runSort={runSort}
-        applyDraftAndClose={applyDraftAndClose}
-        retryRefresh={retryRefresh}
-        close={close}
-        setSearchInput={(node) => (searchInput = node)}
-        setRetryButton={(node) => (retryButton = node)}
+    <>
+      <Show when={isOpen()}>
+        <FilterDropdownPresentation
+          class={props.class}
+          testId={props['data-testid'] ?? 'filter-dropdown'}
+          sheetId={sheetId}
+          colIndex={colIndex}
+          columnLabel={columnLabel}
+          lifecycleStatus={() => lifecycle().status}
+          canClose={canClose}
+          sortSupported={sortSupported}
+          mutationDisabled={mutationDisabled}
+          mutationBusy={mutationBusy}
+          currentRulesForCol={currentRulesForCol}
+          draft={draft}
+          filteredValues={filteredValues}
+          selectedValueSet={selectedValueSet}
+          availableValues={availableValues}
+          allValuesSelected={allValuesSelected}
+          visibleValuesSelected={visibleValuesSelected}
+          errorText={errorText}
+          updateDraft={updateDraft}
+          toggleValue={toggleValue}
+          toggleVisibleValues={toggleVisibleValues}
+          run={run}
+          runSort={runSort}
+          applyDraftAndClose={applyDraftAndClose}
+          retryRefresh={retryRefresh}
+          close={close}
+          setSearchInput={(node) => (searchInput = node)}
+          setRetryButton={(node) => (retryButton = node)}
+        />
+      </Show>
+      <SortConfirmationDialog
+        anchorRef={getOpener}
+        owner="filter-dropdown"
+        state={sortConfirmation.state()}
+        t={t}
+        onCancel={sortConfirmation.cancel}
+        onConfirm={sortConfirmation.confirm}
+        onRetry={sortConfirmation.retry}
       />
-    </Show>
+    </>
   )
 }

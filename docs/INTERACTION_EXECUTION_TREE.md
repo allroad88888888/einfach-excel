@@ -61,8 +61,10 @@ IX-000 Atom 主线下的交互重整
     └── UI-530 筛选下拉排序确认会话（已完成；见下表）
 ├── W10 剪贴板快捷键契约（已完成）
 │   └── UI-542 Paste Special 快捷键浏览器闭环（已完成；见下表）
-└── W11 剪贴板投影可见性（已完成，待提交）
+├── W11 剪贴板投影可见性（已完成，待提交）
     └── UI-543 大范围粘贴浏览器闭环（已完成，待提交；见下表）
+└── W12 打印预览菜单闭环（已完成）
+    └── UI-544 菜单栏打印预览浏览器回归（已完成；见下表）
 ```
 
 | 波次 | 进入条件                    | 允许的并行度                         | 解锁条件                                         |
@@ -79,6 +81,7 @@ IX-000 Atom 主线下的交互重整
 | W9   | W2 排序确认会话             | 一个排序宿主改动者                   | 菜单栏、工具栏与筛选下拉的排序均先确认、再执行   |
 | W10  | W3 键盘意图与 Wave5 对话框  | 一个剪贴板快捷键改动者               | Ctrl/⌘+Alt+V 在真实后端打开 Paste Special 对话框 |
 | W11  | W10 与 Worker 名称框导航    | 一个剪贴板投影改动者                 | B2:E8 粘贴到 G2 后，经名称框可见地验证 G2:J8     |
+| W12  | W5/W6 的打印设置与 Wave5 菜单栏 | 一个打印预览 E2E 改动者 | TS/WASM 均验证真实菜单入口、关闭路径与 File 焦点返回 |
 
 ## 详细执行页
 
@@ -94,6 +97,7 @@ IX-000 Atom 主线下的交互重整
 - [W9：命令入口一致性](interaction-execution/W9-command-surface-consistency.md)
 - [W10：剪贴板快捷键契约](interaction-execution/W10-clipboard-shortcuts.md)
 - [W11：剪贴板投影可见性](interaction-execution/W11-clipboard-projection.md)
+- [W12：打印预览菜单闭环](interaction-execution/W12-print-preview-menu.md)
 
 ## 通用交付证据
 

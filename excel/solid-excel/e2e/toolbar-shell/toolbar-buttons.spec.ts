@@ -31,7 +31,6 @@ import { cell, cellDisplay, guardConsoleErrors, withEnglishLocale } from '../hel
  *   - toolbar-more-number-formats.spec.ts extended catalog dialogs (currency / date / number)
  *
  * What THIS spec adds:
- *   - print-preview overlay open/close (no existing spec)
  *   - keyboard shortcuts Ctrl+I / Ctrl+U / Ctrl+Z / Ctrl+Y mirror their buttons
  *   - border presets top / right / bottom / left (only all/outer/inner/none in toolbar-borders)
  *   - rotation presets 0, 45, -45, -90 (only 90 + vertical in toolbar-alignment)
@@ -107,69 +106,6 @@ test.describe('toolbar — sanity', () => {
     for (const id of buttonTestIds) {
       await expect(page.getByTestId(id), `${id} should be visible`).toBeVisible()
     }
-  })
-})
-
-// Wave 5 removed the print-preview toolbar button. The print surface stays
-// available via the menu bar; the dedicated print-preview spec covers the
-// overlay contract. The block below stays as a `describe.skip` so the
-// intent is preserved if a future wave re-introduces the button.
-test.describe.skip('toolbar — print preview (button removed in Wave 5)', () => {
-  test.beforeEach(async ({ page }) => {
-    guardConsoleErrors(page)
-  })
-
-  test('clicking toolbar-btn-print-preview opens the wave5 overlay', async ({ page }) => {
-    await gotoWave5(page)
-    await cell(page, 'A1').click()
-
-    const overlay = page.getByTestId('wave5-print-preview')
-    await expect(overlay).toHaveCount(0)
-
-    await page.getByTestId('toolbar-btn-print-preview').click()
-
-    await expect(overlay).toBeVisible()
-    await expect(overlay).toHaveAttribute('role', 'dialog')
-    await expect(overlay).toHaveAttribute('aria-label', 'Print preview')
-  })
-
-  test('Escape closes the print preview overlay', async ({ page }) => {
-    await gotoWave5(page)
-    await cell(page, 'A1').click()
-
-    await page.getByTestId('toolbar-btn-print-preview').click()
-    const overlay = page.getByTestId('wave5-print-preview')
-    await expect(overlay).toBeVisible()
-
-    await page.keyboard.press('Escape')
-    await expect(overlay).toHaveCount(0)
-  })
-
-  test('print preview Close preview button dismisses the overlay', async ({ page }) => {
-    await gotoWave5(page)
-    await cell(page, 'A1').click()
-
-    await page.getByTestId('toolbar-btn-print-preview').click()
-    const overlay = page.getByTestId('wave5-print-preview')
-    await expect(overlay).toBeVisible()
-
-    await overlay.getByTestId('print-close-button').click()
-    await expect(overlay).toHaveCount(0)
-  })
-
-  test('print preview surfaces orientation and scale text', async ({ page }) => {
-    await gotoWave5(page)
-    await cell(page, 'A1').click()
-
-    await page.getByTestId('toolbar-btn-print-preview').click()
-    const overlay = page.getByTestId('wave5-print-preview')
-    await expect(overlay).toBeVisible()
-
-    const orientation = (await overlay.getByTestId('print-orientation-text').textContent())?.trim()
-    expect(orientation === 'portrait' || orientation === 'landscape').toBe(true)
-
-    const scale = (await overlay.getByTestId('print-scale-text').textContent())?.trim() ?? ''
-    expect(scale).toBeTruthy()
   })
 })
 

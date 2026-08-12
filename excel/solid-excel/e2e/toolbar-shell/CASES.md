@@ -15,7 +15,7 @@
 | ID | 场景 | 步骤概要 | 关键断言 | 状态 | spec |
 |---|---|---|---|---|---|
 | SH-01 | 全量工具栏按钮挂载 | 打开 wave5 | 每个登记按钮可见 | ✅ 存量 | toolbar-buttons #"every documented toolbar button mounts and is visible" |
-| SH-02 | 打印预览开/关（按钮、Escape、Close、方向/缩放文案） | 点 print-preview → 各关闭路径 | overlay 出现/消失 | ✅ 存量 | toolbar-buttons #"clicking toolbar-btn-print-preview…" 等 4 条 |
+| SH-02 | 菜单栏打印预览开/关（双 Worker） | File → Print Preview → Escape / Close preview | 语义 dialog、方向/缩放/分页摘要消失，焦点回 File | ✅ 新增 | ../print/print-preview-menu.spec.ts |
 | SH-03 | Ctrl+I/U/Z/Y 快捷键镜像工具栏 | 快捷键后查按钮态 | aria-pressed / 样式回滚 | ✅ 存量 | toolbar-buttons #"Ctrl+I mirrors italic…" 等 4 条 |
 | SH-04 | 对齐预设（h-align left / v-align bottom） | 先设 center 再复位 | text-align / --cell-vertical-align | ✅ 存量 | toolbar-buttons #"toolbar-h-align-left resets…" 等 2 条 |
 | SH-05 | 边框单边预设 top/bottom/left/right | 范围选择后逐预设 | 只画对应边 | ✅ 存量 | toolbar-buttons #"top preset only paints…" 等 4 条 |

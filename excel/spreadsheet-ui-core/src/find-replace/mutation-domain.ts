@@ -1,4 +1,5 @@
 import type { Getter, Setter } from '@einfach/core'
+import type { HistoryEntryRecorder } from '../history'
 import type { SpreadsheetError } from '../shared'
 import type { FindReplaceOperationAttempt, MutationPreparation, PendingMutation, RefreshRecoveryInternal } from './internal-types'
 import { attemptBlocksMutationForTarget, reconciliationTarget, reserveAttempt, settleAttempt } from './ledger-domain'
@@ -7,6 +8,17 @@ import { findReplaceCommandErrorStateAtom, findReplaceCursorStateAtom, findRepla
 import { isResultTicketCurrent, publicCursor, ticketInputsCurrent } from './target-domain'
 import { error, isProjectionRevision, isRecord, isSafeIndex, normalizeError, normalizeTimeoutMs, planFindReplaceMutationIdentity } from './value-domain'
 import type { ReplaceMatchesNotAppliedResult, ReplaceMatchesRequest, ReplaceMatchesResponse, ReplaceMatchesResult, RunFindReplaceMutationInput } from './types'
+
+const unavailableHistoryEntryRecorder: HistoryEntryRecorder = () => 'unavailable'
+
+function captureHistoryEntryRecorder(input: RunFindReplaceMutationInput): HistoryEntryRecorder {
+  try {
+    if (typeof input.historyEntryRecorder === 'function') return input.historyEntryRecorder
+  } catch {
+    // Fall through to an unavailable capability rather than fabricate history.
+  }
+  return unavailableHistoryEntryRecorder
+}
 
 export function validateNotAppliedResult(value: unknown, requestId: number): ReplaceMatchesNotAppliedResult | null {
   if (!isRecord(value) || value.kind !== 'replace-matches-not-applied' || value.applied !== false || value.requestId !== requestId || !isRecord(value.error) || typeof value.error.code !== 'string' || typeof value.error.message !== 'string') return null
@@ -31,6 +43,7 @@ export function prepareMutation(get: Getter, set: Setter, input: RunFindReplaceM
     return null
   }
   if (input.action !== 'replace-current' && input.action !== 'replace-all') return null
+  const historyEntryRecorder = captureHistoryEntryRecorder(input)
   if (typeof input.replaceMatches !== 'function') { setCommandError(set, error('FIND_REPLACE_REPLACE_UNAVAILABLE', 'The replace backend port is unavailable', 'validation')); return null }
   if (typeof input.searchRange !== 'function') { setCommandError(set, error('FIND_REPLACE_SEARCH_UNAVAILABLE', 'Replace requires the refresh search port', 'validation')); return null }
   const resultTicket = session.resultTicket
@@ -49,7 +62,7 @@ export function prepareMutation(get: Getter, set: Setter, input: RunFindReplaceM
   const nextLedger = reserveAttempt(get(findReplaceOperationAttemptLedgerStateAtom), attempt)
   if (nextLedger === null) { setCommandError(set, error('FIND_REPLACE_LEDGER_FULL', 'Replace evidence ledger is full; unresolved entries prevent dispatch', 'transport')); return null }
   const request: ReplaceMatchesRequest = { kind: 'replace-matches', coords: selectedMatches.map((match) => ({ sheetId: match.sheetId, coord: { ...match.coord }, matchStart: match.matchStart, matchEnd: match.matchEnd, target: match.target! })), replacement: get(findReplaceFormStateAtom).replacement, requestId: plan.requestId, revision: resultTicket.revision }
-  const ticket: PendingMutation = { operationId: plan.operationId, requestId: plan.requestId, action: input.action, requestedCount: selectedMatches.length, request: Object.freeze(request), resultTicket, dispatched: false }
+  const ticket: PendingMutation = { operationId: plan.operationId, requestId: plan.requestId, action: input.action, requestedCount: selectedMatches.length, request: Object.freeze(request), resultTicket, historyEntryRecorder, dispatched: false }
   set(findReplaceRequestSequenceAtom, plan.requestId)
   set(findReplaceOperationAttemptLedgerStateAtom, nextLedger)
   set(findReplaceCommandErrorStateAtom, null)

@@ -1,5 +1,6 @@
 import type { CellCoord, CellRange, SheetRef, SpreadsheetError } from '../shared'
 import type { ProjectionRevision } from '../backend/types'
+import type { HistoryEntryRecorder } from '../history'
 
 export type FindReplaceStatus = 'idle' | 'searching' | 'ready' | 'error'
 
@@ -216,6 +217,8 @@ export interface RunFindReplaceSearchInput {
 
 export interface RunFindReplaceMutationInput {
   readonly action: FindReplaceOperationAction
+  /** Required Host capability guard retained only until the exact mutation acknowledgement. */
+  readonly historyEntryRecorder: HistoryEntryRecorder
   readonly replaceMatches?: (request: ReplaceMatchesRequest) => Promise<ReplaceMatchesResponse>
   /** Required for the guarded post-acknowledgement re-search. */
   readonly searchRange?: (request: SearchRangeRequest) => Promise<SearchRangeResult>

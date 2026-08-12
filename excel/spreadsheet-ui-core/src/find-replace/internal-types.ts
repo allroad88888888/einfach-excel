@@ -1,11 +1,24 @@
 import type { ProjectionRevision } from '../backend/types'
-import type { SelectionAuthorityReceipt, SelectionAuthorityWitness, SelectionState } from '../selection'
+import type { HistoryEntryRecorder } from '../history'
+import type {
+  SelectionAuthorityReceipt,
+  SelectionAuthorityWitness,
+  SelectionState,
+} from '../selection'
 import type { CellRange, SpreadsheetError } from '../shared'
 import type { WorkspaceActiveSheetAuthorityWitness } from '../workspace'
 import type {
-  FindMatch, FindReplaceOperationAction, FindReplaceOperationDiagnosticStatus, FindReplaceQuery,
-  FindReplaceRefreshRecoveryPhase, FindReplaceTarget, ReplaceMatchesRequest, ReplaceMatchesResult,
-  RunFindReplaceMutationInput, RunFindReplaceRefreshRecoveryInput, SearchRangeRequest,
+  FindMatch,
+  FindReplaceOperationAction,
+  FindReplaceOperationDiagnosticStatus,
+  FindReplaceQuery,
+  FindReplaceRefreshRecoveryPhase,
+  FindReplaceTarget,
+  ReplaceMatchesRequest,
+  ReplaceMatchesResult,
+  RunFindReplaceMutationInput,
+  RunFindReplaceRefreshRecoveryInput,
+  SearchRangeRequest,
 } from './types'
 
 export interface SearchTicket {
@@ -19,7 +32,9 @@ export interface SearchTicket {
   readonly selectionWitness: SelectionAuthorityWitness
 }
 
-export type TicketedFindMatch = Omit<FindMatch, 'target'> & { readonly target: FindReplaceTarget | null }
+export type TicketedFindMatch = Omit<FindMatch, 'target'> & {
+  readonly target: FindReplaceTarget | null
+}
 
 export interface SearchResultTicket {
   readonly search: SearchTicket
@@ -28,7 +43,10 @@ export interface SearchResultTicket {
   readonly totalCount: number
 }
 
-export interface OwnedFocus { readonly searchRequestId: number; readonly receipt: SelectionAuthorityReceipt }
+export interface OwnedFocus {
+  readonly searchRequestId: number
+  readonly receipt: SelectionAuthorityReceipt
+}
 
 export interface PendingMutation {
   readonly operationId: string
@@ -37,6 +55,7 @@ export interface PendingMutation {
   readonly requestedCount: number
   readonly request: Readonly<ReplaceMatchesRequest>
   readonly resultTicket: SearchResultTicket
+  readonly historyEntryRecorder: HistoryEntryRecorder
   readonly dispatched: boolean
 }
 
@@ -49,10 +68,11 @@ export interface RefreshRecoveryBase {
   readonly error: SpreadsheetError | null
 }
 
-export type RefreshRecoveryInternal = RefreshRecoveryBase & (
-  | { readonly kind: 'acknowledged'; readonly mutationResult: Readonly<ReplaceMatchesResult> }
-  | { readonly kind: 'outcome-unknown'; readonly phase: 'search'; readonly mutationResult: null }
-)
+export type RefreshRecoveryInternal = RefreshRecoveryBase &
+  (
+    | { readonly kind: 'acknowledged'; readonly mutationResult: Readonly<ReplaceMatchesResult> }
+    | { readonly kind: 'outcome-unknown'; readonly phase: 'search'; readonly mutationResult: null }
+  )
 
 export interface FindReplaceSessionState {
   readonly open: boolean
@@ -102,7 +122,15 @@ export type TransportOutcome<T> =
   | { readonly kind: 'timeout' }
 
 export const INITIAL_SESSION: Readonly<FindReplaceSessionState> = Object.freeze({
-  open: false, sessionId: 0, activeSearchTicket: null, resultTicket: null,
-  cursorOwnerTicket: null, compatibilityCursor: false, pendingMutation: null,
-  recovery: null, ownedFocus: null, availabilityError: null, authorityUnavailable: false,
+  open: false,
+  sessionId: 0,
+  activeSearchTicket: null,
+  resultTicket: null,
+  cursorOwnerTicket: null,
+  compatibilityCursor: false,
+  pendingMutation: null,
+  recovery: null,
+  ownedFocus: null,
+  availabilityError: null,
+  authorityUnavailable: false,
 })

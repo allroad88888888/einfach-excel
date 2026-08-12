@@ -9,8 +9,8 @@ import {
 } from '../helpers'
 
 /**
- * FR-13 / FR-14 (CASES.md): the MAX_FIND_PAGE = 500 cap on replace-all,
- * and the (currently missing) single-undo-step contract.
+ * FR-13 / FR-14 (CASES.md): the MAX_FIND_PAGE = 500 cap on replace-all
+ * and the single-undo-step contract.
  *
  * The 640-hit corpus is built with ONE external-TSV paste (40 rows x 16
  * cols of "zz" anchored at A1) instead of 640 cell edits — the unmarked
@@ -102,21 +102,7 @@ test.describe('Replace-all — 500-match page cap', () => {
 })
 
 test.describe('Replace-all — undo integration', () => {
-  /**
-   * FR-14 ⚠️ (CASES.md): Excel semantics say one replace-all is ONE undo
-   * step. The vNext replace flow acknowledges through the backend
-   * `replaceMatches` port but records NO ui-core history entry
-   * (`recordHistoryEntry` has zero call sites; the find-replace module
-   * has zero history integration), so `canUndoAtom` never learns about
-   * the mutation: the toolbar undo button stays disabled and the
-   * replacement cannot be reverted at all. Static backend even journals
-   * the delta (`beginUndoableMutation`) — the wiring gap is UI-side.
-   * Fixme until the product records the entry; the body encodes the
-   * expected contract.
-   */
-  test.fixme('replace-all is one undo step: a single undo restores every match', async ({
-    page,
-  }) => {
+  test('replace-all is one undo step: a single undo restores every match', async ({ page }) => {
     guardConsoleErrors(page)
     await page.goto(withEnglishLocale())
     await page.getByTestId('nav-tab-vnext-wave5').click()
@@ -144,5 +130,6 @@ test.describe('Replace-all — undo integration', () => {
     // One undo restores BOTH cells (single transaction semantics).
     await expect(cellDisplay(page, 'D2')).toHaveText('240')
     await expect(cellDisplay(page, 'D3')).toHaveText('240')
+    await expectNoConsoleErrors(page)
   })
 })

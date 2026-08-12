@@ -24,6 +24,7 @@ import {
 } from '@einfach/spreadsheet-ui-core'
 import { useT } from '../../src/i18n'
 import { useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider/hooks'
+import { createHistoryEntryRecorder } from '../provider/history-entry-recorder'
 import { refreshVisibleProjection } from '../provider/projection-refresh'
 import { FindReplaceDialogContent } from './FindReplaceDialogContent'
 import { useDialogInteractions } from './dialog-interactions'
@@ -40,6 +41,7 @@ export function SpreadsheetFindReplaceDialog(props: SpreadsheetFindReplaceDialog
   const backend = useSpreadsheetBackend()
   const searchRange = backend.searchRange?.bind(backend)
   const replaceMatches = backend.replaceMatches?.bind(backend)
+  const historyEntryRecorder = createHistoryEntryRecorder(backend)
   const capability = useAtomValue(findReplaceCapabilityProjectionAtom)
   const isOpen = useAtomValue(findReplaceOpenAtom)
   const cursor = useAtomValue(findReplaceCursorAtom)
@@ -95,7 +97,13 @@ export function SpreadsheetFindReplaceDialog(props: SpreadsheetFindReplaceDialog
 
   function handleReplace(action: 'replace-current' | 'replace-all') {
     if (!capability().replaceEnabled) return
-    return runMutation({ action, replaceMatches, searchRange, acceptAcknowledgedResult })
+    return runMutation({
+      action,
+      historyEntryRecorder,
+      replaceMatches,
+      searchRange,
+      acceptAcknowledgedResult,
+    })
   }
 
   function handleRefreshRecovery() {

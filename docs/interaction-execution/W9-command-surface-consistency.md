@@ -7,6 +7,7 @@
 | --- | --- | --- | --- | --- | --- |
 | UI-527 菜单栏排序确认会话 | `model-527-menu-sort-confirmation` | 已完成（`a9f0196`） | `src-vnext/menu-bar/**`，必要时 `src-vnext/sort/useSortConfirmation.ts`，聚焦测试 | UI-403、UI-303 | 菜单栏升序/降序复用既有排序确认会话；不在确认前提交 mutation。 |
 | UI-529 菜单栏排序浏览器闭环 | `model-529-menu-sort-e2e` | 已完成（`1f20d1a`） | 菜单排序 Playwright 回归与既有结构审计 | UI-527 | 在 WASM/TS 的真实浏览器中验证取消、Escape、确认和能力缺失路径。 |
+| UI-530 筛选下拉排序确认会话 | `model-530-filter-dropdown-sort-confirmation` | 已完成（`5c7b77d`） | `filter-sort` 宿主、确认桥、物理排序入口校验与聚焦测试 | UI-527 | 下拉排序先捕获 sheet/列目标再进入同一确认会话；不受后续选区变化影响。 |
 
 ## UI-527 执行树
 
@@ -33,11 +34,19 @@
 - TS：物理排序能力缺失时不显示排序菜单项或确认对话框，也不发送 mutation。
 - 既有 Wave5 Data > Sort 审计已改为“打开确认 → 确认 → 断言排序”，不再把点击菜单项误当作直接执行。
 
+## UI-530 筛选下拉排序确认
+
+- 筛选下拉的升序/降序不再直接调用 physical sort：点击时关闭下拉并写入
+  `filter-dropdown` 归属的确认 ticket，确认前没有后端排序写入。
+- ticket 捕获打开下拉时的 `sheetId` 与 `colIndex`；确认时即使活动 Sheet 或选区已经改变，仍只排序
+  原下拉对应的列。
+- `Escape` / 取消回到原筛选触发点；下拉和工具栏同时挂载时，owner 过滤保证只有一个确认对话框。
+
 ## 边界
 
 - 排序范围、方向、会话、加载和错误继续由既有 `@einfach` Atom 持有。
 - DOM ref 只用于对话框锚定与焦点归还；不得引入 Solid 产品状态或后台句柄 Atom。
-- 不改 physical-sort Core、工具栏入口、公开导出或文档以外的功能面。
+- Core 只扩展排序入口联合类型与既有 payload 校验；不复制排序会话或引入后台句柄 Atom。
 - 完成前需要由根节点独立复核 diff、文件行数、焦点路径和失败路径，再按 Issue 单独提交。
 
 ## 交付证据
@@ -50,3 +59,7 @@
   `vnext-menu-bar`、history recorder、history dispatch 共 3 suites / 90 tests 通过，未改产品行为。
 - Playwright：菜单排序确认新回归在 WASM 3 条通过、TS 3 条因 capability 缺失跳过；更新后的
   Wave5 结构审计在两个后端各 1 条通过。
+- UI-530：聚焦 Jest 7 suites / 150 tests、Core build/no-emit、Solid no-emit、范围 Prettier、
+  ESLint（0 errors，旧测试依赖 2 条 warnings）与 `git diff --check` 通过。
+  新增确认回归覆盖确认前零排序、目标快照、Escape 焦点归还和单一对话框。
+  既有 `vnext-filter-dropdown.test.tsx` 为必要断言迁移从约 745 至 749 行，仍是历史超限文件，未在本波顺手拆分。

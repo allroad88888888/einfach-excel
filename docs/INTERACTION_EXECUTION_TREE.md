@@ -50,7 +50,10 @@ IX-000 Atom 主线下的交互重整
     ├── UI-519c editing 与 auto-fill 的 reserved history 迁移（已完成；见下表）
     ├── UI-519d Paste Special 与 Text-to-Columns 的 history 迁移（已完成；见下表）
     ├── UI-519e operations 与 toolbar 的 history 迁移（已完成；见下表）
-    └── UI-519f tables、filter-sort 与 remove-duplicates 迁移（已完成；见下表）
+    ├── UI-519f tables、filter-sort 与 remove-duplicates 迁移（已完成；见下表）
+    ├── UI-519g Grid legacy recorder 三态收敛（已完成；见下表）
+    ├── UI-519h tables recorder rejected 恢复顺序（已完成；见下表）
+    └── UI-519i Remove Duplicates history-capability 测试夹具（已完成；见下表）
 ```
 
 | 波次 | 进入条件                    | 允许的并行度                         | 解锁条件                                      |

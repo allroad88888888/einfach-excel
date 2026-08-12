@@ -145,6 +145,11 @@ test.describe('audit: structural ops on the Wave 5 demo', () => {
     const sortAsc = page.getByTestId('menu-bar-item-data.sortAsc')
     await expect(sortAsc).toBeVisible({ timeout: 2_000 })
     await sortAsc.click()
+    await expect(page.getByTestId('sort-confirmation-dialog')).toHaveAttribute(
+      'data-status',
+      'ready',
+    )
+    await page.getByTestId('sort-confirmation-confirm').click()
 
     // After ascending sort by column A, the first data row should be "Central".
     await expect(cell(page, 'A2').locator('.cell-display')).toHaveText('Central')

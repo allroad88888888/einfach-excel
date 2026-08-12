@@ -10,10 +10,15 @@ import {
   type TopMenuId,
 } from '@einfach/spreadsheet-ui-core'
 
+type MenuItemActivation = (
+  item: MenuItemDescriptor,
+  focusReturnTarget: HTMLElement | undefined,
+) => void
+
 export interface MenuBarPresentationProps {
   isOpen: (menuId: TopMenuId) => boolean
   onDropdownKeyDown: (menuId: TopMenuId, event: KeyboardEvent) => void
-  onItemActivate: (item: MenuItemDescriptor) => void
+  onItemActivate: MenuItemActivation
   onTopButtonClick: (menuId: TopMenuId) => void
   onTopButtonHover: (menuId: TopMenuId) => void
   onTopButtonKeyDown: (menuId: TopMenuId, event: KeyboardEvent) => void
@@ -53,7 +58,7 @@ interface MenuBarTopButtonProps {
   onHover: () => void
   onKeyDown: (event: KeyboardEvent) => void
   onDropdownKeyDown: (event: KeyboardEvent) => void
-  onItemActivate: (item: MenuItemDescriptor) => void
+  onItemActivate: MenuItemActivation
   getChecked: (dispatch: MenuItemDispatch) => boolean | undefined
   getDisabledReason: (dispatch: MenuItemDispatch) => string | null
   resolveCapability: (key: string | undefined) => boolean
@@ -61,6 +66,7 @@ interface MenuBarTopButtonProps {
 }
 
 function MenuBarTopButton(props: MenuBarTopButtonProps) {
+  let topButton: HTMLButtonElement | undefined
   const t = useT()
   const entries = createMemo(() =>
     filterHostVisibleEntries(props.menu.items, props.hiddenItemIds ?? []),
@@ -68,6 +74,9 @@ function MenuBarTopButton(props: MenuBarTopButtonProps) {
   return (
     <div class="menu-bar-top" role="none" data-testid={`menu-bar-top-${props.menu.id}`}>
       <button
+        ref={(element) => {
+          topButton = element
+        }}
         type="button"
         class={`menu-bar-button ${props.isOpen ? 'menu-bar-button-open' : ''}`.trim()}
         data-testid={`menu-bar-button-${props.menu.id}`}
@@ -94,6 +103,7 @@ function MenuBarTopButton(props: MenuBarTopButtonProps) {
             {(entry) => (
               <MenuBarDropdownEntry
                 entry={entry}
+                focusReturnTarget={topButton}
                 onActivate={props.onItemActivate}
                 getChecked={props.getChecked}
                 getDisabledReason={props.getDisabledReason}
@@ -132,7 +142,8 @@ function filterHostVisibleEntries(
 
 function MenuBarDropdownEntry(props: {
   entry: MenuBarEntry
-  onActivate: (item: MenuItemDescriptor) => void
+  focusReturnTarget: HTMLElement | undefined
+  onActivate: MenuItemActivation
   getChecked: (dispatch: MenuItemDispatch) => boolean | undefined
   getDisabledReason: (dispatch: MenuItemDispatch) => string | null
   resolveCapability: (key: string | undefined) => boolean
@@ -155,6 +166,7 @@ function MenuBarDropdownEntry(props: {
       >
         <DropdownItemButton
           item={props.entry as MenuItemDescriptor}
+          focusReturnTarget={props.focusReturnTarget}
           onActivate={props.onActivate}
           getChecked={props.getChecked}
           getDisabledReason={props.getDisabledReason}
@@ -166,7 +178,8 @@ function MenuBarDropdownEntry(props: {
 
 function DropdownItemButton(props: {
   item: MenuItemDescriptor
-  onActivate: (item: MenuItemDescriptor) => void
+  focusReturnTarget: HTMLElement | undefined
+  onActivate: MenuItemActivation
   getChecked: (dispatch: MenuItemDispatch) => boolean | undefined
   getDisabledReason: (dispatch: MenuItemDispatch) => string | null
 }) {
@@ -193,7 +206,7 @@ function DropdownItemButton(props: {
             : ''
           : (props.item.shortcut ?? ''))
       }
-      onClick={() => props.onActivate(props.item)}
+      onClick={() => props.onActivate(props.item, props.focusReturnTarget)}
     >
       <span class="menu-bar-item-label">{t(props.item.label)}</span>
       <Show when={props.item.shortcut}>

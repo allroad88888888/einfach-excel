@@ -150,8 +150,9 @@ export function SpreadsheetMenuBar(props: SpreadsheetMenuBarProps) {
     }
   }
 
-  function dispatchItem(item: MenuItemDescriptor) {
+  function dispatchItem(item: MenuItemDescriptor, focusReturnTarget: HTMLElement | undefined) {
     if (item.isAvailable === 'placeholder' || disabledReasonForDispatch(item.dispatch)) return
+    if (item.dispatch.kind === 'toggle-print-preview') focusReturnTarget?.focus()
     dispatchMenuBarCommand(commandContext, item.dispatch)
     store.setter(closeTopMenuAtom)
   }

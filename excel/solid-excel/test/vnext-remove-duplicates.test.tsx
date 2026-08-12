@@ -158,6 +158,18 @@ function createBackend(overrides: BackendOverrides = {}): RemoveDuplicatesBacken
   }
 }
 
+function createHistoryCapableBackend(overrides: BackendOverrides = {}): RemoveDuplicatesBackend {
+  return {
+    ...createBackend(overrides),
+    async undoTransaction(request) {
+      return { transactionId: request.transactionId }
+    },
+    async redoTransaction(request) {
+      return { transactionId: request.transactionId }
+    },
+  }
+}
+
 function seedWorkbookContext(store: Store): void {
   store.setter(setWorkspaceActiveSheetAtom, { sheetId: SHEET_ID })
   store.setter(selectionAtom, {
@@ -249,7 +261,7 @@ describe('SpreadsheetRemoveDuplicatesDialog Core lifecycle binding', () => {
     const store = createStore()
     const mutationRequests: RemoveRowsExactRequest[] = []
     const refreshRequests: VisibleProjectionRequest[] = []
-    const backend = createBackend({
+    const backend = createHistoryCapableBackend({
       async removeRowsExact(request) {
         mutationRequests.push(request)
         return mutationAcknowledgement(request)
@@ -283,7 +295,7 @@ describe('SpreadsheetRemoveDuplicatesDialog Core lifecycle binding', () => {
     const mutation = deferred<RemoveRowsExactResult>()
     let mutationRequest: RemoveRowsExactRequest | undefined
     let mutationCalls = 0
-    const backend = createBackend({
+    const backend = createHistoryCapableBackend({
       removeRowsExact(request) {
         mutationCalls += 1
         mutationRequest = request
@@ -341,7 +353,7 @@ describe('SpreadsheetRemoveDuplicatesDialog Core lifecycle binding', () => {
     const store = createStore()
     let mutationCalls = 0
     let refreshCalls = 0
-    const backend = createBackend({
+    const backend = createHistoryCapableBackend({
       async removeRowsExact(request) {
         mutationCalls += 1
         return mutationAcknowledgement(request)

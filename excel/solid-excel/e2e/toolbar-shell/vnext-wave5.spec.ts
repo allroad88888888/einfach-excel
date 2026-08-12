@@ -61,7 +61,7 @@ test.describe('vNext Wave 5 — shell + canvas overlay', () => {
     await nameBox.press('Enter')
 
     await expect(nameBox).toHaveValue('C4')
-    await expect(page.getByTestId('status-active-cell')).toHaveText('C4')
+    await expect(page.getByTestId('status-selection')).toHaveText('C4')
   })
 
   test('status bar surfaces selection aggregates over a numeric range', async ({ page }) => {
@@ -80,18 +80,24 @@ test.describe('vNext Wave 5 — shell + canvas overlay', () => {
     await expect(count).toContainText(/\d+/)
   })
 
-  test('zoom slider shows current zoom level', async ({ page }) => {
+  test('right-clicking the aggregate group picks which aggregates show', async ({ page }) => {
     await gotoWave5(page)
-    const zoom = page.getByTestId('status-zoom-value')
-    await expect(zoom).toHaveText('100%')
 
-    const preset125 = page.getByTestId('status-zoom-preset-125')
-    await preset125.click()
-    await expect(zoom).toHaveText('125%')
+    await cell(page, 'B2').click()
+    await cell(page, 'E8').click({ modifiers: ['Shift'] })
 
-    const preset100 = page.getByTestId('status-zoom-preset-100')
-    await preset100.click()
-    await expect(zoom).toHaveText('100%')
+    // 关掉的聚合项整个不渲染 —— 打开入口是右键状态栏聚合区。
+    await expect(page.getByTestId('status-aggregate-min')).toHaveCount(0)
+
+    await page.getByTestId('status-aggregates').click({ button: 'right' })
+    const menu = page.getByTestId('status-aggregate-menu')
+    await expect(menu).toBeVisible()
+
+    await page.getByTestId('status-aggregate-menu-min').click()
+    await expect(page.getByTestId('status-aggregate-min-value')).toBeVisible()
+
+    await page.keyboard.press('Escape')
+    await expect(menu).toHaveCount(0)
   })
 
   test('canvas overlay mounts with pointer-events: none', async ({ page }) => {

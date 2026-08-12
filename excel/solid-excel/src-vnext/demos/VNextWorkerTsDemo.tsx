@@ -20,6 +20,7 @@ import { SpreadsheetCommentThread } from '../comments'
 import { SpreadsheetConditionalFormatDialog } from '../conditional-formatting'
 import { SpreadsheetContextMenu } from '../context-menu'
 import { SpreadsheetDataValidationDialog } from '../data-validation'
+import { SpreadsheetDiagnosticsReadout } from '../diagnostics'
 import { SpreadsheetFilterDropdown } from '../filter-sort'
 import { SpreadsheetFindReplaceDialog } from '../find-replace'
 import { SpreadsheetFormatPainter } from '../format-painter'
@@ -146,6 +147,7 @@ function VNextWorkerTsWorkbook() {
       </Show>
       <SpreadsheetSheetTabs sheets={sheets} data-testid="vnext-worker-ts-sheet-tabs" />
       <SpreadsheetStatusBar data-testid="vnext-worker-ts-status-bar" />
+      <SpreadsheetDiagnosticsReadout data-testid="vnext-worker-ts-diagnostics-readout" />
       <SpreadsheetContextMenu data-testid="vnext-worker-ts-context-menu" />
       <SpreadsheetFormatPainter data-testid="vnext-worker-ts-format-painter" />
       <SpreadsheetFindReplaceDialog data-testid="vnext-worker-ts-find-replace" />

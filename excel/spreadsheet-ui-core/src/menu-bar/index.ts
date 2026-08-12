@@ -546,28 +546,6 @@ const DATA_ITEMS: readonly MenuBarEntry[] = [
 
 const VIEW_ITEMS: readonly MenuBarEntry[] = [
   {
-    id: 'view.zoomIn',
-    label: 'menuBar.view.zoomIn',
-    accessKey: 'I',
-    dispatch: { kind: 'zoom-in' },
-    isAvailable: 'always',
-  },
-  {
-    id: 'view.zoomOut',
-    label: 'menuBar.view.zoomOut',
-    accessKey: 'O',
-    dispatch: { kind: 'zoom-out' },
-    isAvailable: 'always',
-  },
-  {
-    id: 'view.zoomReset',
-    label: 'menuBar.view.zoomReset',
-    accessKey: 'R',
-    dispatch: { kind: 'zoom-reset' },
-    isAvailable: 'always',
-  },
-  { kind: 'separator', id: 'view.sep-1' },
-  {
     id: 'view.formulaBar',
     label: 'menuBar.view.formulaBar',
     accessKey: 'F',

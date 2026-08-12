@@ -3,8 +3,14 @@
 > 功能源码：excel/spreadsheet-ui-core/src/menu-bar/ + toolbar/ + status-bar/ + name-box/ +
 > backend/types.ts（可选 port → fail-closed 契约）；src-vnext/menu-bar/、toolbar/、status-bar/、
 > name-box/、adapter/worker-runtime-ts.ts（TS_WORKER_RUNTIME_CAPABILITIES 见证）
-> 存量 spec 行数超限登记（如有）：toolbar-buttons.spec.ts 490 行、vnext-wave5.spec.ts 480 行
+> 存量 spec 行数超限登记（如有）：toolbar-buttons.spec.ts 490 行、vnext-wave5.spec.ts 486 行
 > （历史文件，只登记不拆）
+>
+> testid 变更（状态栏重设计）：`status-active-cell` 已移除 —— 单格选区下它与
+> `status-selection` 逐字相同，全仓断言统一改用后者；`status-projection` /
+> `status-visible-cells` / `status-loaded-values` / `status-last-command` 四个读数
+> 迁到 `SpreadsheetDiagnosticsReadout`（testid 不变，各 demo 已挂载）；
+> `status-zoom-*` / `status-view-mode-*` 随缩放与视图模式一并删除。
 
 | ID | 场景 | 步骤概要 | 关键断言 | 状态 | spec |
 |---|---|---|---|---|---|
@@ -18,9 +24,9 @@
 | SH-08 | 下拉菜单不溢出视口（720/560/440 三高度） | 开 number-format 菜单 | 无溢出且末项可点 | ✅ 存量 | toolbar-dropdown-viewport #"number-format 菜单末项可点并打开 Format Cells" |
 | SH-09 | Wave5 全表面挂载（菜单栏 7 项/工具栏/公式栏/状态栏/canvas） | 打开 wave5 | 各 testid 可见 | ✅ 存量 | vnext-wave5 #"demo loads with all Wave 5 surfaces mounted" |
 | SH-10 | host 缺 print port 时 File 菜单隐藏条目 | 开 File/Format 菜单 | printPreview count 0，unhide 可用 | ✅ 存量 | vnext-wave5 #"host defers print while Format exposes…" |
-| SH-11 | Name Box 回显活动单元格 + 提交跳转 | name box 填 C4 回车 | value C4，status-active-cell C4 | ✅ 存量 | vnext-wave5 #"name box reflects active cell and jumps on commit" |
+| SH-11 | Name Box 回显活动单元格 + 提交跳转 | name box 填 C4 回车 | value C4，status-selection C4 | ✅ 存量 | vnext-wave5 #"name box reflects active cell and jumps on commit" |
 | SH-12 | 状态栏数字选区聚合可见 | B2:E8 shift 选择 | sum/avg/count 可见 | ✅ 存量 | vnext-wave5 #"status bar surfaces selection aggregates…" |
-| SH-13 | 缩放滑块与预设 | 点 125/100 预设 | status-zoom-value 跟随 | ✅ 存量 | vnext-wave5 #"zoom slider shows current zoom level" |
+| SH-13 | 聚合项右键勾选 | 右键 status-aggregates → 勾最小值 → Escape | 菜单出现、min 值出现、Escape 关闭 | 🔁 改写 | vnext-wave5 #"right-clicking the aggregate group picks which aggregates show" |
 | SH-14 | canvas overlay pointer-events none / 视口滚动 / 公式栏保值 / 填充色 / 列宽 | 各单测 | 相应 DOM 断言 | ✅ 存量 | vnext-wave5 #"canvas overlay mounts…" 等 5 条 |
 | SH-15 | 行/列头点击选择、Find next 导航、Bold 按钮与 Ctrl+B | 各单测 | 选区/aria-pressed | ✅ 存量 | vnext-wave5 #"row header click selects the row" 等 5 条 |
 | SH-16 | 编辑流 Excel parity（单击输入/Tab/F2/Esc/Backspace） | 逐键路径 | 提交/取消/追加语义 | ✅ 存量 | vnext-wave5 #"editing flow (Excel parity)" 5 条 |
@@ -37,9 +43,9 @@
 | SH-27 | Name Box 回显 shift-click 范围地址并在单击后回落单格 | B2 → shift D3 → C5 | value B2 / B2:D3 / C5 | 🆕 本轮 | status-name-box.spec.ts |
 | SH-28 | Name Box 提交范围地址驱动选区与状态栏精确聚合 | 填 B2:C3 回车 | status-selection B2:C3，sum 540 avg 135 count 4 | 🆕 本轮 | status-name-box.spec.ts |
 | SH-29 | 状态栏聚合随选区扩展/收缩重算 | B2:C2 → B2:C3 → B2 | sum 300→540→120，count 2→4→1 | 🆕 本轮 | status-name-box.spec.ts |
-| SH-30 | Name Box 非法输入报错（role=alert）且选区不动，成功提交后错误清除 | 填 "!!!" 回车再填 A1 | name-box-error 可见→消失，active-cell 不变→A1 | 🆕 本轮 | status-name-box.spec.ts |
+| SH-30 | Name Box 非法输入报错（role=alert）且选区不动，成功提交后错误清除 | 填 "!!!" 回车再填 A1 | name-box-error 可见→消失，选区不变→A1 | 🆕 本轮 | status-name-box.spec.ts |
 | SH-31 | 菜单 accessKey / 方向键遍历（Alt+字母开菜单、↑↓ 高亮） | — | — | ⏳ P2 延后 | 键盘导航矩阵大，独立专项更合适 |
-| SH-32 | zoom 滑块拖动（非预设点击）与 view.fullScreen | — | — | ⏳ P2 延后 | 拖动交互 flake 风险高，预设路径已覆盖 |
+| SH-32 | 聚合勾选菜单的方向键遍历（↑↓/Home/End） | — | — | ⏳ P2 延后 | 已由 jest 组件测覆盖键盘分支，e2e 只钉右键→勾选→Escape 主路径 |
 | SH-33 | edit.pasteSpecial / data.textToColumns 的 port 撤除矩阵 | — | — | ⏳ P2 延后 | worker 后端两端口均无条件实现，当前无法构造缺失端；待出现真实缺端 host 再补 |
 
 状态说明：fail-closed 矩阵按 `test.info().project.name` 分支（参考

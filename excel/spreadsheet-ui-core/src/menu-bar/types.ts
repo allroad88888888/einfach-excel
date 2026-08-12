@@ -117,9 +117,6 @@ export type MenuItemDispatch =
   | { kind: 'toggle-gridlines' }
   | { kind: 'toggle-headings' }
   | { kind: 'toggle-full-screen' }
-  | { kind: 'zoom-in' }
-  | { kind: 'zoom-out' }
-  | { kind: 'zoom-reset' }
   | { kind: 'open-about' }
   | { kind: 'open-keyboard-shortcuts' }
   | { kind: 'placeholder'; reason: string }

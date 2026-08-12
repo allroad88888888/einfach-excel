@@ -15,7 +15,6 @@ async function expectSingleCellSelection(page: Page, address: string, formulaInp
   await expect(page.getByTestId('name-box-input')).toHaveValue(address)
   await expect(page.getByTestId('formula-bar-addr')).toHaveText(address)
   await expect(page.getByTestId('formula-bar-input')).toHaveValue(formulaInput)
-  await expect(page.getByTestId('status-active-cell')).toHaveText(address)
   await expect(page.getByTestId('status-selection')).toHaveText(address)
 }
 

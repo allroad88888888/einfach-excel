@@ -14,6 +14,7 @@ import { SpreadsheetCommentThread } from '../comments'
 import { SpreadsheetConditionalFormatDialog } from '../conditional-formatting'
 import { SpreadsheetContextMenu } from '../context-menu'
 import { SpreadsheetDataValidationDialog } from '../data-validation'
+import { SpreadsheetDiagnosticsReadout } from '../diagnostics'
 import { SpreadsheetFilterDropdown } from '../filter-sort'
 import { SpreadsheetFindReplaceDialog } from '../find-replace'
 import { SpreadsheetFormatPainter } from '../format-painter'
@@ -141,6 +142,7 @@ function VNextSmokeWorkbook() {
       </Show>
       <SpreadsheetSheetTabs sheets={sheets} data-testid="vnext-sheet-tabs" />
       <SpreadsheetStatusBar data-testid="vnext-status-bar" />
+      <SpreadsheetDiagnosticsReadout data-testid="vnext-diagnostics-readout" />
       <SpreadsheetContextMenu data-testid="vnext-context-menu" />
       <SpreadsheetFormatPainter data-testid="vnext-format-painter" />
       <SpreadsheetFindReplaceDialog data-testid="vnext-find-replace" />

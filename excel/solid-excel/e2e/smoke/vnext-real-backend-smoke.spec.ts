@@ -147,7 +147,7 @@ test.describe('vNext real-backend parity smoke', () => {
     await nameBox.fill('C4')
     await nameBox.press('Enter')
     await expect(nameBox).toHaveValue('C4')
-    await expect(page.getByTestId('status-active-cell')).toHaveText('C4')
+    await expect(page.getByTestId('status-selection')).toHaveText('C4')
     await expectNoConsoleErrors(page)
   })
 
@@ -268,7 +268,7 @@ test.describe('vNext real-backend parity smoke', () => {
 
     await expect(goToDialog).toHaveCount(0)
     await expect(page.getByTestId('name-box-input')).toHaveValue('C4')
-    await expect(page.getByTestId('status-active-cell')).toHaveText('C4')
+    await expect(page.getByTestId('status-selection')).toHaveText('C4')
     await expect(cell(page, 'C4')).toHaveAttribute('data-active', 'true')
     await expect(cell(page, 'C4')).toHaveAttribute('data-selected', 'true')
 

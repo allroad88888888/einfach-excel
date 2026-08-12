@@ -24,9 +24,6 @@ export function dispatchMenuBarViewCommand(
       store.setter(toggleHeadingsAtom)
       return true
     case 'toggle-full-screen':
-    case 'zoom-in':
-    case 'zoom-out':
-    case 'zoom-reset':
     case 'placeholder':
       return true
     case 'open-about':

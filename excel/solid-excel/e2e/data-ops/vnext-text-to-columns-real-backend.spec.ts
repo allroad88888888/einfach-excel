@@ -12,7 +12,6 @@ async function gotoWorkerDemo(page: Page) {
 
 async function expectCanonicalA4Selection(page: Page) {
   await expect(page.getByTestId('name-box-input')).toHaveValue('A4')
-  await expect(page.getByTestId('status-active-cell')).toHaveText('A4')
   await expect(page.getByTestId('status-selection')).toHaveText('A4')
   await expect(page.getByTestId('status-mode-badge')).toHaveAttribute('data-mode', 'ready')
   await expect(page.getByTestId('status-aggregate-count-value')).toHaveText('1')

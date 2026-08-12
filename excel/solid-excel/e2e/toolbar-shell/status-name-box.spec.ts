@@ -91,7 +91,7 @@ test.describe('状态栏聚合 + Name Box（wave5 静态 host）', () => {
     const nameBox = page.getByTestId('name-box-input')
 
     await cell(page, 'B3').click()
-    await expect(page.getByTestId('status-active-cell')).toHaveText('B3')
+    await expect(page.getByTestId('status-selection')).toHaveText('B3')
 
     // "!!!" 既非 A1 地址也非合法名称 → classifyNameBoxInput 判 invalid。
     await nameBox.click()
@@ -101,7 +101,7 @@ test.describe('状态栏聚合 + Name Box（wave5 静态 host）', () => {
     const errorMessage = page.getByTestId('name-box-error')
     await expect(errorMessage).toBeVisible()
     await expect(page.getByTestId('name-box')).toHaveAttribute('data-error', 'true')
-    await expect(page.getByTestId('status-active-cell')).toHaveText('B3')
+    await expect(page.getByTestId('status-selection')).toHaveText('B3')
 
     // 合法地址提交：错误清除，选区跳转。
     await nameBox.click()
@@ -109,6 +109,6 @@ test.describe('状态栏聚合 + Name Box（wave5 静态 host）', () => {
     await nameBox.press('Enter')
     await expect(errorMessage).toHaveCount(0)
     await expect(page.getByTestId('name-box')).toHaveAttribute('data-error', 'false')
-    await expect(page.getByTestId('status-active-cell')).toHaveText('A1')
+    await expect(page.getByTestId('status-selection')).toHaveText('A1')
   })
 })

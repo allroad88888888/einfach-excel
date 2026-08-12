@@ -1,6 +1,6 @@
 /* === C. Bottom chrome — status bar sections + sheet tabs =============== */
 
-/* C.1 Status bar — Excel-like sectioned layout, zoom controls on the right */
+/* C.1 Status bar — 三段：选区地址 / 聚合读数 / 输入模式徽章 */
 .spreadsheet-status-bar {
   display: flex;
   align-items: center;
@@ -13,7 +13,7 @@
   color: var(--text-default);
   font-family: var(--excel-font);
   font-size: 12px;
-  /* 数字等宽：聚合值/缩放百分比变化时不改变字符宽度，状态栏不随之抖动 */
+  /* 数字等宽：聚合值变化时不改变字符宽度，状态栏不随之抖动 */
   font-variant-numeric: tabular-nums;
   overflow-x: auto;
   white-space: nowrap;
@@ -25,10 +25,6 @@
   height: 22px;
   padding: 0 8px;
   border-right: 1px solid var(--border);
-  color: var(--text-default);
-}
-
-.spreadsheet-status-bar .spreadsheet-status-bar-item:first-child {
   color: var(--excel-green);
   font-weight: 600;
   background: #ffffff;
@@ -38,8 +34,8 @@
   display: inline-flex;
   align-items: center;
   height: 22px;
-  gap: 2px;
-  padding: 0 4px;
+  gap: 12px;
+  padding: 0 8px;
   border-right: 1px solid var(--border);
 }
 
@@ -61,25 +57,7 @@
   flex-shrink: 0;
   gap: 4px;
   height: 18px;
-  padding: 0 6px;
-  border: 1px solid transparent;
-  border-radius: 2px;
-  background: transparent;
   color: var(--text-default);
-  font: inherit;
-  cursor: pointer;
-  transition: background 100ms ease-out, border-color 100ms ease-out;
-}
-
-.spreadsheet-status-bar .spreadsheet-status-bar-aggregate:hover {
-  background: var(--hover);
-  border-color: var(--border);
-}
-
-.spreadsheet-status-bar .spreadsheet-status-bar-aggregate[aria-pressed='true'] {
-  background: var(--select-bg);
-  border-color: var(--excel-green);
-  color: var(--excel-green);
 }
 
 .spreadsheet-status-bar .spreadsheet-status-bar-aggregate-label {
@@ -91,101 +69,22 @@
 }
 
 .spreadsheet-status-bar .spreadsheet-status-bar-aggregate-empty {
-  padding: 0 8px;
   color: var(--text-muted);
   font-style: italic;
 }
 
-.spreadsheet-status-bar .spreadsheet-status-bar-view-modes {
-  display: inline-flex;
-  align-items: center;
-  height: 22px;
-  gap: 1px;
-  padding: 0 4px;
-  border-right: 1px solid var(--border);
+.spreadsheet-status-bar .spreadsheet-status-bar-aggregate-truncated {
+  color: var(--text-muted);
 }
 
-.spreadsheet-status-bar .spreadsheet-status-bar-view-mode {
-  display: inline-flex;
-  align-items: center;
-  flex-shrink: 0;
-  height: 18px;
-  padding: 0 6px;
-  border: 1px solid transparent;
-  border-radius: 2px;
-  background: transparent;
-  color: var(--text-default);
-  font: inherit;
-  cursor: pointer;
-  transition: background 100ms ease-out, border-color 100ms ease-out;
-}
-
-.spreadsheet-status-bar .spreadsheet-status-bar-view-mode:hover {
-  background: var(--hover);
-  border-color: var(--border);
-}
-
-.spreadsheet-status-bar .spreadsheet-status-bar-view-mode[aria-pressed='true'] {
-  background: var(--active-bg);
-  border-color: var(--border-strong);
-}
-
-/* Zoom block — right-aligned via margin-left: auto */
-.spreadsheet-status-bar .spreadsheet-status-bar-zoom {
-  display: inline-flex;
-  align-items: center;
-  height: 22px;
-  gap: 1px;
-  padding: 0 8px;
-  margin-left: auto;
-  border-left: 1px solid var(--border);
-}
-
-.spreadsheet-status-bar .spreadsheet-status-bar-zoom-preset {
-  display: inline-flex;
-  align-items: center;
-  flex-shrink: 0;
-  height: 18px;
-  padding: 0 6px;
-  border: 1px solid transparent;
-  border-radius: 2px;
-  background: transparent;
-  color: var(--text-default);
-  font: inherit;
-  font-size: 11px;
-  cursor: pointer;
-}
-
-.spreadsheet-status-bar .spreadsheet-status-bar-zoom-preset:hover {
-  background: var(--hover);
-  border-color: var(--border);
-}
-
-.spreadsheet-status-bar .spreadsheet-status-bar-zoom-slider {
-  margin: 0 4px;
-  width: 88px;
-  height: 12px;
-  cursor: pointer;
-}
-
-.spreadsheet-status-bar .spreadsheet-status-bar-zoom-value {
-  display: inline-flex;
-  align-items: center;
-  min-width: 42px;
-  height: 18px;
-  padding: 0 6px;
-  justify-content: center;
-  color: var(--text-default);
-  font-variant-numeric: tabular-nums;
-}
-
+/* 输入模式徽章靠右 */
 .spreadsheet-status-bar .spreadsheet-status-bar-mode-badge {
   display: inline-flex;
   align-items: center;
   flex-shrink: 0;
   height: 18px;
   padding: 0 8px;
-  margin: 0 4px;
+  margin: 0 8px 0 auto;
   border-radius: 2px;
   background: var(--office-blue);
   color: #ffffff;
@@ -194,3 +93,72 @@
   text-transform: uppercase;
 }
 
+.spreadsheet-status-bar--vertical .spreadsheet-status-bar-mode-badge {
+  margin-left: 8px;
+}
+
+/* C.2 聚合项勾选菜单（右键状态栏聚合区） */
+.spreadsheet-status-bar-aggregate-menu {
+  position: fixed;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  min-width: 132px;
+  padding: 4px 0;
+  border: 1px solid var(--border-strong);
+  border-radius: 3px;
+  background: var(--bg-surface, #ffffff);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 18%);
+  font-family: var(--excel-font);
+  font-size: 12px;
+}
+
+.spreadsheet-status-bar-aggregate-menu-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 12px 0 6px;
+  border: none;
+  background: transparent;
+  color: var(--text-default);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.spreadsheet-status-bar-aggregate-menu-item:hover,
+.spreadsheet-status-bar-aggregate-menu-item:focus-visible {
+  background: var(--hover);
+  outline: none;
+}
+
+.spreadsheet-status-bar-aggregate-menu-check {
+  display: inline-block;
+  width: 12px;
+  color: var(--excel-green);
+  text-align: center;
+}
+
+/* C.3 诊断读数条 —— 仅开发/演示宿主挂载，见 SpreadsheetDiagnosticsReadout.tsx */
+.spreadsheet-diagnostics-readout {
+  display: flex;
+  align-items: center;
+  min-height: 22px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-chrome);
+  color: var(--text-muted);
+  font-family: var(--excel-font);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.spreadsheet-diagnostics-readout .spreadsheet-diagnostics-readout-item {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border-right: 1px solid var(--border);
+}

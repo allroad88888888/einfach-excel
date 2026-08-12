@@ -23,7 +23,7 @@ function commentThread(page: Page) {
 }
 
 function statusActiveCell(page: Page) {
-  return page.getByTestId('status-active-cell')
+  return page.getByTestId('status-selection')
 }
 
 test.describe('Toolbar — Comment button', () => {

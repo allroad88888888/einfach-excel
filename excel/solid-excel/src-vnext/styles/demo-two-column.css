@@ -26,12 +26,6 @@
   border-top: none;
 }
 
-.vnext-demo-bottom-row .vnext-demo-zoom-bar {
-  flex: 0 0 auto;
-  border-top: none;
-  border-left: 1px solid var(--border);
-}
-
 .vnext-demo-sidebar {
   display: flex;
   flex-direction: column;

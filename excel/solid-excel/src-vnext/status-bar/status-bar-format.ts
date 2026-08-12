@@ -1,15 +1,10 @@
 import type {
   CellCoord,
   CellRange,
-  ClipboardIntent,
   KeyboardMode,
-  MenuCommandIntent,
-  ProjectionSnapshot,
   SelectionState,
   StatusBarAggregateKey,
   StatusBarInputMode,
-  StatusBarViewMode,
-  ToolbarIntent,
 } from '@einfach/spreadsheet-ui-core'
 import type { useT } from '../../src/i18n'
 
@@ -34,14 +29,13 @@ export function toA1(cell: CellCoord): string {
   return `${getColumnLabel(cell.col)}${cell.row + 1}`
 }
 
-export function countRange(range: CellRange): number {
-  if (range.rowEnd < range.rowStart || range.colEnd < range.colStart) {
-    return 0
-  }
-
-  return (range.rowEnd - range.rowStart + 1) * (range.colEnd - range.colStart + 1)
-}
-
+/**
+ * The status bar's single address readout. A one-cell selection renders the
+ * cell itself, so there is nothing left to duplicate — the separate
+ * "active cell" segment that used to sit beside this one printed the exact
+ * same string for every single-cell selection. The active cell of a *range*
+ * still has a home: the Name Box left of the formula bar.
+ */
 export function formatRange(
   selection: SelectionState,
   range: CellRange,
@@ -63,82 +57,6 @@ export function formatRange(
       return t('status.selection.all')
     default:
       return ''
-  }
-}
-
-export function formatProjectionStatus(
-  snapshot: ProjectionSnapshot,
-  t: StatusBarTranslate,
-): string {
-  switch (snapshot.status) {
-    case 'idle':
-      return t('status.projection.idle')
-    case 'loading':
-      return t('status.projection.loading')
-    case 'ready':
-      return t('status.projection.ready')
-    case 'error':
-      return snapshot.error?.message ?? t('status.projection.error')
-    default:
-      return t('status.projection.unknown')
-  }
-}
-
-export function formatVisibleWindow(
-  snapshot: ProjectionSnapshot,
-  fallbackWindow: CellRange,
-  t: StatusBarTranslate,
-): string {
-  const window =
-    snapshot.result?.kind === 'visible-window' ? snapshot.result.window : fallbackWindow
-  return t('status.visibleCells', { count: countRange(window) })
-}
-
-export function formatLoadedValues(snapshot: ProjectionSnapshot, t: StatusBarTranslate): string {
-  const loaded = snapshot.result?.cells.length ?? 0
-  return t('status.loadedValues', { count: loaded })
-}
-
-export function formatToolbarIntent(
-  intent: ToolbarIntent | null,
-  t: StatusBarTranslate,
-): string | null {
-  if (intent?.type === 'toolbar.format.command') {
-    return t('status.lastCommand.toolbar', { command: intent.command })
-  }
-
-  if (intent?.type === 'toolbar.surface.open') {
-    return t('status.lastCommand.toolbar', { command: intent.surface.id })
-  }
-
-  return null
-}
-
-export function formatMenuIntent(
-  intent: MenuCommandIntent | null,
-  t: StatusBarTranslate,
-): string | null {
-  if (!intent) {
-    return null
-  }
-
-  return t('status.lastCommand.menu', { command: intent.command })
-}
-
-export function formatClipboardIntent(
-  intent: ClipboardIntent | null,
-  t: StatusBarTranslate,
-): string | null {
-  if (!intent) return null
-  switch (intent.type) {
-    case 'clipboard.copy':
-      return t('status.lastCommand.clipboardCopy')
-    case 'clipboard.cut':
-      return t('status.lastCommand.clipboardCut')
-    case 'clipboard.paste':
-      return t('status.lastCommand.clipboardPaste')
-    default:
-      return null
   }
 }
 
@@ -187,9 +105,3 @@ export const INPUT_MODE_LABEL_KEY: Record<StatusBarInputMode, string> = {
   enter: 'status.inputMode.enter',
   point: 'status.inputMode.point',
 }
-
-export const VIEW_MODE_BUTTONS: ReadonlyArray<{ value: StatusBarViewMode; label: string }> = [
-  { value: 'normal', label: 'status.viewMode.normal' },
-  { value: 'page-break-preview', label: 'status.viewMode.pageBreak' },
-  { value: 'page-layout', label: 'status.viewMode.pageLayout' },
-]

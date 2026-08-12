@@ -57,7 +57,6 @@ test.describe('vNext clipboard real-backend evidence', () => {
     await expect(cell(page, 'D4')).toHaveAttribute('data-active', 'true')
     await expect(page.getByTestId('name-box-input')).toHaveValue('D4')
     await expect(page.getByTestId('formula-bar-input')).toHaveValue('10')
-    await expect(page.getByTestId('status-active-cell')).toHaveText('D4')
     await expect(page.getByTestId('status-selection')).toHaveText('D4')
     await expect(page.getByTestId('status-last-command')).toHaveText('Clipboard paste')
     await expect(page.getByTestId('status-aggregate-sum-value')).toHaveText('10')
@@ -75,7 +74,6 @@ test.describe('vNext clipboard real-backend evidence', () => {
 
     await expect(cell(page, 'C4')).toHaveAttribute('data-selected', 'true')
     await expect(cell(page, 'C4')).toHaveAttribute('data-active', 'true')
-    await expect(page.getByTestId('status-active-cell')).toHaveText('C4')
     await expect(page.getByTestId('status-selection')).toHaveText('C4')
     await expect(page.getByTestId('status-last-command')).toHaveText('Clipboard cut')
 
@@ -89,7 +87,6 @@ test.describe('vNext clipboard real-backend evidence', () => {
     await expect(cell(page, 'E4')).toHaveAttribute('data-active', 'true')
     await expect(page.getByTestId('name-box-input')).toHaveValue('E4')
     await expect(page.getByTestId('formula-bar-input')).toHaveValue('source')
-    await expect(page.getByTestId('status-active-cell')).toHaveText('E4')
     await expect(page.getByTestId('status-selection')).toHaveText('E4')
     await expect(page.getByTestId('status-last-command')).toHaveText('Clipboard paste')
     await expect(page.getByTestId('status-aggregate-count-value')).toHaveText('1')

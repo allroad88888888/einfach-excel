@@ -27,7 +27,6 @@ async function expectCanonicalCellState(
   await expect(cell(page, address)).toHaveAttribute('data-active', 'true')
   await expect(page.getByTestId('name-box-input')).toHaveValue(address)
   await expect(page.getByTestId('formula-bar-input')).toHaveValue(formulaBarValue)
-  await expect(page.getByTestId('status-active-cell')).toHaveText(address)
   await expect(page.getByTestId('status-selection')).toHaveText(address)
   await expect(page.getByTestId('status-mode-badge')).toHaveAttribute('data-mode', mode)
 }

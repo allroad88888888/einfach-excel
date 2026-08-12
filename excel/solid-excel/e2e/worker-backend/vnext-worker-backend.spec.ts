@@ -121,7 +121,7 @@ test.describe('Solid Excel vNext worker backend', () => {
     const visibleCells = await page.locator('[data-testid="vnext-worker-grid"] td.cell').count()
     expect(visibleCells).toBeGreaterThan(0)
     await expect(cell(page, 'J20')).toHaveCount(0)
-    await expect(page.getByTestId('status-active-cell')).toHaveText('A1')
+    await expect(page.getByTestId('status-selection')).toHaveText('A1')
     // Status bar reflects the live visible window which depends on the
     // rendered scroll-viewport size (CSS `max-height: 70vh` + browser
     // viewport). Asserting the exact count made the suite brittle across
@@ -346,7 +346,7 @@ test.describe('Solid Excel vNext worker backend', () => {
     await page.keyboard.press('Control+ArrowRight')
 
     await expect(page.getByTestId('formula-bar-addr')).toHaveText('C4')
-    await expect(page.getByTestId('status-active-cell')).toHaveText('C4')
+    await expect(page.getByTestId('status-selection')).toHaveText('C4')
     await expect(cell(page, 'C4')).toHaveClass(/cell-active/)
     await expect(page.getByTestId('status-visible-cells')).toHaveText(/^\d+ cells$/)
     await expect(cell(page, 'J20')).toHaveCount(0)

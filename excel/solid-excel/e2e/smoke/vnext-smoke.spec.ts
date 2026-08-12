@@ -43,7 +43,7 @@ test.describe('Solid Excel vNext smoke', () => {
     expect(visibleCells).toBeLessThan(80)
     await expect(cell(page, 'A1')).toBeVisible()
     await expect(cell(page, 'J20')).toHaveCount(0)
-    await expect(page.getByTestId('status-active-cell')).toHaveText('A1')
+    await expect(page.getByTestId('status-selection')).toHaveText('A1')
     await expect(page.getByTestId('status-projection')).toHaveText('Ready')
     // Status bar mirrors the live visible window which depends on the
     // rendered scroll-viewport size (CSS `max-height: 70vh` + the browser's
@@ -206,7 +206,7 @@ test.describe('Solid Excel vNext smoke', () => {
     await cell(page, 'B2').click()
     await page.keyboard.press('Control+ArrowRight')
     await expect(page.getByTestId('formula-bar-addr')).toHaveText('E2')
-    await expect(page.getByTestId('status-active-cell')).toHaveText('E2')
+    await expect(page.getByTestId('status-selection')).toHaveText('E2')
     await expect(cell(page, 'E2')).toHaveClass(/cell-active/)
     await expect(page.getByTestId('status-visible-cells')).toHaveText(/^\d+ cells$/)
     await expect(cell(page, 'J20')).toHaveCount(0)
@@ -218,13 +218,13 @@ test.describe('Solid Excel vNext smoke', () => {
     await cell(page, 'B2').click()
     await page.keyboard.press('Alt+PageDown')
     await expect(page.getByTestId('formula-bar-addr')).toHaveText('G2')
-    await expect(page.getByTestId('status-active-cell')).toHaveText('G2')
+    await expect(page.getByTestId('status-selection')).toHaveText('G2')
     await expect(cell(page, 'G2')).toHaveClass(/cell-active/)
     await expect(page.getByTestId('status-visible-cells')).toHaveText(/^\d+ cells$/)
 
     await page.keyboard.press('Alt+PageUp')
     await expect(page.getByTestId('formula-bar-addr')).toHaveText('B2')
-    await expect(page.getByTestId('status-active-cell')).toHaveText('B2')
+    await expect(page.getByTestId('status-selection')).toHaveText('B2')
     await expect(cell(page, 'B2')).toHaveClass(/cell-active/)
     await expect(page.getByTestId('status-visible-cells')).toHaveText(/^\d+ cells$/)
   })

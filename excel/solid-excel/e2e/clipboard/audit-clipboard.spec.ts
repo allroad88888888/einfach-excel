@@ -177,7 +177,7 @@ test.describe('audit: clipboard (Ctrl+C / Ctrl+V / Ctrl+X) on Wave 5', () => {
     await nameBox.click()
     await nameBox.fill('J2')
     await nameBox.press('Enter')
-    await expect(page.getByTestId('status-active-cell')).toHaveText('J2')
+    await expect(page.getByTestId('status-selection')).toHaveText('J2')
 
     await pressClipboardKey(page, 'v')
 

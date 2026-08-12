@@ -20,6 +20,7 @@ import { SpreadsheetCommentThread } from '../comments'
 import { SpreadsheetConditionalFormatDialog } from '../conditional-formatting'
 import { SpreadsheetContextMenu } from '../context-menu'
 import { SpreadsheetDataValidationDialog } from '../data-validation'
+import { SpreadsheetDiagnosticsReadout } from '../diagnostics'
 import { SpreadsheetFilterDropdown } from '../filter-sort'
 import { SpreadsheetFindReplaceDialog } from '../find-replace'
 import { SpreadsheetGoToDialog } from '../go-to'
@@ -258,29 +259,11 @@ function VNextWave5Workbook() {
           </Show>
           <div class="vnext-demo-bottom-row">
             <SpreadsheetSheetTabs sheets={sheets} data-testid="wave5-sheet-tabs" />
-            <SpreadsheetStatusBar
-              sections={['zoom']}
-              data-testid="wave5-status-bar-zoom"
-              class="vnext-demo-zoom-bar"
-            />
           </div>
+          <SpreadsheetDiagnosticsReadout data-testid="wave5-diagnostics-readout" />
         </div>
         <aside class="vnext-demo-sidebar" data-testid="wave5-sidebar">
-          <SpreadsheetStatusBar
-            sections={[
-              'cell-address',
-              'selection',
-              'projection',
-              'visible-cells',
-              'loaded-values',
-              'last-command',
-              'aggregates',
-              'view-modes',
-              'mode-badge',
-            ]}
-            orientation="vertical"
-            data-testid="wave5-status-bar"
-          />
+          <SpreadsheetStatusBar orientation="vertical" data-testid="wave5-status-bar" />
           <SpreadsheetHistoryTimeline data-testid="wave5-history-timeline" />
         </aside>
       </div>
@@ -328,8 +311,8 @@ export function VNextWave5Demo() {
       <div class="demo-header">
         <h3>Wave 5 — 完整 Excel 壳 + Canvas 装饰层</h3>
         <p class="demo-desc">
-          演示菜单条、名称框、状态栏聚合（选区的求和/平均/计数）、缩放滑块、格式刷以及画布
-          装饰层。预置一张季度销售表，选中 B2:E8 即可看到非平凡的聚合结果。
+          演示菜单条、名称框、状态栏聚合（选区的求和/平均/计数，右键聚合区可改显示哪几项）、
+          格式刷以及画布装饰层。预置一张季度销售表，选中 B2:E8 即可看到非平凡的聚合结果。
         </p>
         <p class="demo-desc" data-testid="wave5-custom-formulas-banner">
           Custom formulas registered: <code>MYTAX</code>, <code>GREET</code>,{' '}

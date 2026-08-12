@@ -31,9 +31,11 @@ import type { GridEditingControllerApi } from './grid-editing-controller'
 import type { GridFormatControllerApi } from './grid-format-controller'
 import { applyFormulaReferenceArrowPick } from './grid-formula-reference-keyboard'
 import { installGridFeature, type GridRuntimeBase } from './grid-runtime'
+import type { GridMergeRangePort } from './grid-runtime-ports'
 import type { GridViewStateApi } from './grid-view-state'
 
 type GridKeyboardControllerRuntime = GridRuntimeBase &
+  GridMergeRangePort &
   Pick<GridContextMenuApi, 'getKeyboardContextMenuInput'> &
   Pick<
     GridEditNavigationApi,
@@ -49,6 +51,7 @@ export function installGridKeyboardController(runtime: GridKeyboardControllerRun
     props,
     store,
     backend,
+    getMergeRangeForCoord,
     getKeyboardContextMenuInput,
     getDataEdgeDirection,
     moveSelectionToDataEdge,
@@ -117,6 +120,7 @@ export function installGridKeyboardController(runtime: GridKeyboardControllerRun
       isComposing: event.isComposing,
       pageRowDelta: pageRows,
       pageColDelta: pageCols,
+      resolveMergeRange: getMergeRangeForCoord,
     })
     switch (intent.type) {
       case 'context-menu.open': {

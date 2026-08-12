@@ -178,10 +178,6 @@ export function installGridSelection(runtime: GridSelectionRuntime) {
     }
   }
 
-  function selectCellRange(range: CellRange) {
-    store.setter(setSelectionAtom, createSelectionForRange(range))
-  }
-
   function appendCellRangeSelection(range: CellRange) {
     store.setter(addSelectionRegionAtom, { region: createSelectionForRange(range) })
   }
@@ -211,7 +207,11 @@ export function installGridSelection(runtime: GridSelectionRuntime) {
         store.setter(selectCellAtom, { sheetId: props.sheetId, coord, extend: false })
       }
     } else if (mergeRange) {
-      selectCellRange(mergeRange)
+      store.setter(selectCellAtom, {
+        sheetId: props.sheetId,
+        coord: { row: mergeRange.rowStart, col: mergeRange.colStart },
+        extend: false,
+      })
     } else {
       store.setter(selectCellAtom, { sheetId: props.sheetId, coord, extend: false })
     }
@@ -233,7 +233,6 @@ export function installGridSelection(runtime: GridSelectionRuntime) {
     appendCellSelection,
     createSelectionForRange,
     createCellSpanSelection,
-    selectCellRange,
     selectCellSpan,
     appendCellRangeSelection,
     appendRangeSelection,

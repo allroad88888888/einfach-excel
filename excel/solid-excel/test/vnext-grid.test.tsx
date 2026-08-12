@@ -796,7 +796,7 @@ describe('vNext SpreadsheetGrid', () => {
     expect(table.style.width).toBe('53px')
   })
 
-  it('renders merged projection cells as one spanned anchor and selects the full merge', async () => {
+  it('renders merged projection cells as one spanned active anchor', async () => {
     const store = createStore()
     const { backend } = createFakeBackend({
       cells: [
@@ -852,19 +852,14 @@ describe('vNext SpreadsheetGrid', () => {
 
     fireEvent.click(anchor.querySelector('.spreadsheet-grid-cell-button')!)
 
-    // After clicking a merged-cell anchor, the selection covers the full
-    // merge range with `anchor` at the top-left and `focus` at the bottom-
-    // right. Anchor stays fixed when a subsequent Shift+click extends the
-    // selection, so this layout lets the user grow the merge selection by
-    // clicking past the bottom-right corner (Excel parity). Pinned by
-    // `copy-as.spec.ts:210` 'emits rowspan/colspan on the anchor of a
-    // merged A1:B2 region' — without this, Shift+click outside the merge
-    // shrinks back through the anchor instead of extending past the focus.
+    // The spanned td supplies the visual merged rectangle. The core
+    // selection remains its top-left anchor so address and formula inputs
+    // refer to the cell that owns the merged value.
     expect(store.getter(selectionAtom)).toEqual({
-      kind: 'range',
+      kind: 'cell',
       sheetId: 'sheet-1',
       anchor: { row: 0, col: 0 },
-      focus: { row: 1, col: 1 },
+      focus: { row: 0, col: 0 },
     })
     expect(anchor.getAttribute('data-selected')).toBe('true')
   })

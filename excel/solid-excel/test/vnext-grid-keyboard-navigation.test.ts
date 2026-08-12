@@ -1,6 +1,6 @@
 import { describe, expect, it, jest } from '@jest/globals'
 import { createStore } from '@einfach/core'
-import type { SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
+import type { CellRange, SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
 import {
   selectCellAtom,
   selectionSnapshotAtom,
@@ -38,7 +38,7 @@ function setActiveCell(store: ReturnType<typeof createStore>, coord: CellCoord) 
   })
 }
 
-function createKeyboardHarness() {
+function createKeyboardHarness(mergeRanges: readonly CellRange[] = []) {
   const store = createStore()
   store.setter(setSelectionBoundsAtom, {
     rowCount: VIEWPORT.rowCount,
@@ -64,6 +64,14 @@ function createKeyboardHarness() {
     atoms: {},
     dom: createGridDomAdapter(),
     getKeyboardContextMenuInput: () => null,
+    getMergeRangeForCoord: (row: number, col: number) =>
+      mergeRanges.find(
+        (range) =>
+          row >= range.rowStart &&
+          row <= range.rowEnd &&
+          col >= range.colStart &&
+          col <= range.colEnd,
+      ) ?? null,
     getDataEdgeDirection: (key: string) => {
       if (key === 'ArrowUp') return 'up' as const
       if (key === 'ArrowDown') return 'down' as const
@@ -161,6 +169,22 @@ describe('vNext grid keyboard navigation controller', () => {
       colStart: 3,
       colEnd: 3,
     })
+  })
+
+  it('uses the rendered merge geometry for plain-arrow entry and exit', async () => {
+    const { controller, store } = createKeyboardHarness([
+      { rowStart: 1, rowEnd: 2, colStart: 1, colEnd: 2 },
+    ])
+
+    setActiveCell(store, { row: 1, col: 1 })
+    await controller.handleGridKeyDown(keyboardEvent('ArrowRight'))
+    expect(store.getter(selectionSnapshotAtom).activeCell).toMatchObject({ row: 1, col: 3 })
+
+    await controller.handleGridKeyDown(keyboardEvent('ArrowLeft'))
+    expect(store.getter(selectionSnapshotAtom).activeCell).toMatchObject({ row: 1, col: 1 })
+
+    await controller.handleGridKeyDown(keyboardEvent('ArrowDown'))
+    expect(store.getter(selectionSnapshotAtom).activeCell).toMatchObject({ row: 3, col: 1 })
   })
 
   it('scrolls the Atom viewport after Ctrl+Arrow reaches a data edge', async () => {

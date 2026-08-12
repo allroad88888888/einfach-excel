@@ -1,7 +1,10 @@
-import type { CellCoord } from '../shared'
-import type { SelectionState } from '../selection'
+import type { CellCoord, CellRange } from '../shared'
+import type { SelectionBounds, SelectionState } from '../selection'
 
 export type KeyboardMode = 'navigation' | 'editing' | 'formula-reference'
+
+/** Host-owned merge geometry used only while interpreting one key event. */
+export type KeyboardMergeRangeResolver = (row: number, col: number) => CellRange | null
 
 export interface KeyboardInput {
   key: string
@@ -12,6 +15,18 @@ export interface KeyboardInput {
   isComposing?: boolean
   pageRowDelta?: number
   pageColDelta?: number
+  /**
+   * A transient lookup supplied by a rendered host. It is intentionally not
+   * part of any keyboard intent or Atom state.
+   */
+  resolveMergeRange?: KeyboardMergeRangeResolver
+}
+
+export interface KeyboardCommandState {
+  mode: KeyboardMode
+  selection: SelectionState
+  bounds: SelectionBounds
+  selectionRegionCount?: number
 }
 
 export type KeyboardMoveReason = 'arrow' | 'tab' | 'enter' | 'home' | 'end' | 'page'

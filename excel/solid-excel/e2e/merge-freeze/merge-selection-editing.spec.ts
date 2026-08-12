@@ -40,7 +40,7 @@ test.describe('Wave 5 merge region interaction', () => {
     guardConsoleErrors(page)
   })
 
-  test('clicking the merged anchor snaps the selection to the whole region and Shift+click extends from it', async ({
+  test('clicking the merged anchor selects it and Shift+click extends from it', async ({
     page,
   }) => {
     await gotoWave5(page)
@@ -50,7 +50,7 @@ test.describe('Wave 5 merge region interaction', () => {
     await cell(page, 'E5').click()
     await expect(cell(page, 'E5')).toHaveAttribute('data-active', 'true')
 
-    // Clicking the anchor selects exactly the merged rect — nothing outside.
+    // The anchor's spanned td represents the merged rectangle — nothing outside is selected.
     await cell(page, 'B2').click()
     await expect(cell(page, 'B2')).toHaveClass(/is-selected/)
     await expect(cell(page, 'E5')).not.toHaveClass(/is-selected/)
@@ -98,37 +98,29 @@ test.describe('Wave 5 merge region interaction', () => {
     await expect(cell(page, 'C3')).toBeVisible()
   })
 
-  // KNOWN GAP (source-verified — see CASES.md MF-11): the keyboard dispatcher
-  // moves the active cell by ±1 with no merge awareness
-  // (`spreadsheet-ui-core/src/keyboard/index.ts` createMoveIntent /
-  // moveSelection never see merge facts), and clicking a merge selects a
-  // range whose focus — thus the active cell — is the covered bottom-right
-  // corner. Excel treats the merged region as ONE cell: the address box and
-  // formula bar follow the anchor, and one arrow keystroke leaves the region.
-  test.fixme(
-    'the merged region acts as ONE cell for the active cell and arrow navigation',
-    async ({ page }) => {
-      await gotoWave5(page)
-      await mergeB2C3(page)
+  test('the merged region acts as ONE cell for the active cell and arrow navigation', async ({
+    page,
+  }) => {
+    await gotoWave5(page)
+    await mergeB2C3(page)
 
-      // Clicking anywhere on the merge puts the ANCHOR in the address box and
-      // the anchor's content in the formula bar (today: 'C3' + empty input).
-      await cell(page, 'B2').click()
-      await expect(addrBox(page)).toHaveText('B2')
-      await expect(page.getByTestId('formula-bar-input')).toHaveValue('120')
+    // Clicking anywhere on the merge puts the ANCHOR in the address box and
+    // the anchor's content in the formula bar.
+    await cell(page, 'B2').click()
+    await expect(addrBox(page)).toHaveText('B2')
+    await expect(page.getByTestId('formula-bar-input')).toHaveValue('120')
 
-      // Entering the merge from the right lands on the anchor in one keystroke.
-      await cell(page, 'D2').click()
-      await expect(addrBox(page)).toHaveText('D2')
-      await page.keyboard.press('ArrowLeft')
-      await expect(addrBox(page)).toHaveText('B2')
+    // Entering the merge from the right lands on the anchor in one keystroke.
+    await cell(page, 'D2').click()
+    await expect(addrBox(page)).toHaveText('D2')
+    await page.keyboard.press('ArrowLeft')
+    await expect(addrBox(page)).toHaveText('B2')
 
-      // Leaving the merge skips the covered column/row in one keystroke.
-      await page.keyboard.press('ArrowRight')
-      await expect(addrBox(page)).toHaveText('D2')
-      await page.keyboard.press('ArrowLeft')
-      await page.keyboard.press('ArrowDown')
-      await expect(addrBox(page)).toHaveText('B4')
-    },
-  )
+    // Leaving the merge skips the covered column/row in one keystroke.
+    await page.keyboard.press('ArrowRight')
+    await expect(addrBox(page)).toHaveText('D2')
+    await page.keyboard.press('ArrowLeft')
+    await page.keyboard.press('ArrowDown')
+    await expect(addrBox(page)).toHaveText('B4')
+  })
 })

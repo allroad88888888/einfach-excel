@@ -3,9 +3,11 @@ import {
   cell,
   cellDisplay,
   expectNoConsoleErrors,
+  expectNoPageErrors,
   gotoDemo,
   gotoRoot,
   guardConsoleErrors,
+  guardPageErrors,
 } from '../helpers'
 
 /**
@@ -142,9 +144,11 @@ test.describe('Demo first-screen console guard', () => {
   for (const demo of DEMOS) {
     test(`${demo.name} first screen boots without console errors`, async ({ page }) => {
       guardConsoleErrors(page)
+      guardPageErrors(page)
       await gotoDemo(page, demo.name)
       await demo.settled(page)
       await expectNoConsoleErrors(page)
+      await expectNoPageErrors(page)
     })
   }
 
@@ -155,10 +159,12 @@ test.describe('Demo first-screen console guard', () => {
     // This is the one sweep entry that must NOT force locale=en — it guards
     // the literal cold-boot path every visitor hits.
     guardConsoleErrors(page)
+    guardPageErrors(page)
     await gotoRoot(page)
     await expect(page.getByTestId('nav-tab-vnext-wave5')).toHaveClass(/tab-active/)
     await expect(page.getByTestId('wave5-grid')).toBeVisible(T)
     await expect(cellDisplay(page, 'A1')).toHaveText('Region', T)
     await expectNoConsoleErrors(page)
+    await expectNoPageErrors(page)
   })
 })

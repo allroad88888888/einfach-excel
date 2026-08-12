@@ -37,5 +37,5 @@
 |---|---|---|---|---|---|
 | SM-22 | 全部 14 个 demo 首屏 console.error 守卫 | 逐 demo 导航→等首屏结算（签名格/状态栏） | guardConsoleErrors 零泄漏 | 🆕 本轮 | demo-first-screen-guard.spec.ts（14 用例，数据驱动） |
 | SM-23 | 冷启动路径（zh locale、无导航）首屏守卫 | `goto /` 不带 locale=en | wave5 active + A1="Region" + 零 console.error | 🆕 本轮 | demo-first-screen-guard.spec.ts #"default boot…" |
-| SM-24 | 首屏 pageerror（未捕获异常）守卫 | 同 SM-22 但监听 `pageerror` | 零未捕获异常 | ⏳ P2 延后 | — 理由：helpers 守卫契约只覆盖 console.error；扩 pageerror 需评估 wasm worker 噪声面并新增公共 helper（本轮禁改 helpers.ts），另立专项 |
+| SM-24 | 首屏 pageerror（未捕获异常）守卫 | 同 SM-22 但监听 `pageerror` | 零未捕获异常 | 🆕 本轮 | demo-first-screen-guard.spec.ts（15 用例，数据驱动） |
 | SM-25 | demo 首屏耗时预算（冷启动性能钉） | `?debug=1` 探针计时 | 首屏耗时 < 阈值 | ⏳ P2 延后 | — 理由：探针类断言按计划 §5 仅限 perf-virtual/；阈值在 CI 共享 runner 上难稳定，归 perf-virtual 专项 |

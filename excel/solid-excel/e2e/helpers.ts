@@ -273,51 +273,9 @@ export function queueDialogs(page: Page, responses: Array<string | null>) {
   })
 }
 
-// ============================================================================
-// Console error guard
-// ============================================================================
-
-const DEFAULT_CONSOLE_ALLOWLIST = [
-  /^\[vite\]/, // HMR / connection chatter
-  /^\[lazy-demo\] /, // DemoCrossSheetChain probe
-  /Download the React DevTools/, // dev tools nag
-]
-
-/**
- * Fail the test if the page emits any `console.error` not matched by the
- * allowlist. Call once at the top of a test (or once per spec via a
- * `test.beforeEach`). Returns the unsubscribe function in case a single
- * scenario needs to opt out (e.g. parse-error specs that expect the
- * UI to log).
- */
-export function guardConsoleErrors(page: Page, extraAllow: RegExp[] = []): () => void {
-  const allow = [...DEFAULT_CONSOLE_ALLOWLIST, ...extraAllow]
-  const errors: string[] = []
-  const handler = (msg: import('@playwright/test').ConsoleMessage) => {
-    if (msg.type() !== 'error') return
-    const text = msg.text()
-    if (allow.some((re) => re.test(text))) return
-    errors.push(text)
-  }
-  page.on('console', handler)
-
-  // Fail the test on teardown if any unallowed errors leaked through.
-  // Runs after the test body via Playwright's `test.afterEach`-equivalent
-  // mechanism: we expose a cleanup the spec can call manually if it needs
-  // earlier assertion, or rely on the implicit afterAll.
-  // Simplest contract: the spec calls `await expectNoConsoleErrors(page)`
-  // explicitly before its last assertion.
-  ;(page as unknown as { __einfachConsoleErrors?: string[] }).__einfachConsoleErrors = errors
-  return () => page.off('console', handler)
-}
-
-/**
- * Assert no unallowed console errors have accumulated since the matching
- * `guardConsoleErrors(page)` call. Convenience for the explicit-assertion
- * style the helper docs above.
- */
-export async function expectNoConsoleErrors(page: Page) {
-  const errors =
-    (page as unknown as { __einfachConsoleErrors?: string[] }).__einfachConsoleErrors ?? []
-  expect(errors, `console.error leaked: ${errors.join('\n')}`).toEqual([])
-}
+export {
+  expectNoConsoleErrors,
+  expectNoPageErrors,
+  guardConsoleErrors,
+  guardPageErrors,
+} from './browser-runtime-error-guard'

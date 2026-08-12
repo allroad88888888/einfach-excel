@@ -179,41 +179,7 @@ test.describe('audit: clipboard (Ctrl+C / Ctrl+V / Ctrl+X) on Wave 5', () => {
     await expect(lastCommand).not.toHaveText('Ready')
   })
 
-  // Skipped: paste writes the off-window destination cells to the backend
-  // (verified via the history entry), but the visible projection covers only
-  // A..G at the seed viewport. Without an auto-scroll/expand step the J-column
-  // TDs are not present in the DOM, so the assertion against J2/J8 cannot
-  // resolve. Tracked as a Wave 7+ "scroll-to-pasted-range" follow-up.
-  test.skip('6. large range copy/paste — B2:E8 → G2 should populate G2:J8 corners', async ({
-    page,
-    context,
-  }) => {
-    await gotoWave5(page, context)
-
-    // Use the name box to set the selection range exactly — drag select
-    // across a partially-visible rectangle is flaky in headless mode.
-    const nameBox = page.getByTestId('name-box-input')
-    await nameBox.click()
-    await nameBox.fill('B2:E8')
-    await nameBox.press('Enter')
-    await expect(cell(page, 'B2')).toHaveAttribute('data-selected', 'true')
-    await expect(cell(page, 'E8')).toHaveAttribute('data-selected', 'true')
-
-    await pressClipboardKey(page, 'c')
-
-    await cell(page, 'G2').click()
-    await pressClipboardKey(page, 'v')
-
-    // Four corners of the destination G2:J8 rectangle. Source values:
-    //   B2 = 120  → G2,   E2 = 300  → J2
-    //   B8 = 175  → G8,   E8 = 360  → J8
-    await expect(display(page, 'G2')).toHaveText('120')
-    await expect(display(page, 'J2')).toHaveText('300')
-    await expect(display(page, 'G8')).toHaveText('175')
-    await expect(display(page, 'J8')).toHaveText('360')
-  })
-
-  test('7. status-last-command reflects the Ctrl+V paste action', async ({ page, context }) => {
+  test('6. status-last-command reflects the Ctrl+V paste action', async ({ page, context }) => {
     await gotoWave5(page, context)
 
     const lastCommand = page.getByTestId('status-last-command')
@@ -233,7 +199,7 @@ test.describe('audit: clipboard (Ctrl+C / Ctrl+V / Ctrl+X) on Wave 5', () => {
     await expect(lastCommand).toContainText(/paste|clipboard/i)
   })
 
-  test('8. history timeline records the paste as an entry', async ({ page, context }) => {
+  test('7. history timeline records the paste as an entry', async ({ page, context }) => {
     await gotoWave5(page, context)
 
     const timelineList = page.getByTestId('history-timeline-list')

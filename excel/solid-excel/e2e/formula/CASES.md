@@ -44,17 +44,13 @@ keyboard/index.ts `getFormulaReferenceModeIntent`）——后者此前零 e2e。
 | FML-29 | Enter 接受候选而非提交单元格 | `=SU` + Enter | 值变 `=SUM(`、编辑仍活跃、未提交 | 🆕 本轮 | formula-autocomplete-keys.spec.ts |
 | FML-30 | ArrowUp 候选游标回绕到列表尾 | `=SU` + ArrowUp | SUMIF selected（wrap）、再 ArrowDown 回 SUM | 🆕 本轮 | formula-autocomplete-keys.spec.ts |
 | FML-31 | 片段无匹配时候选静默收起 | 键入 `=SUMZ` | 列表消失、编辑不受影响 | 🆕 本轮 | formula-autocomplete-keys.spec.ts |
-| FML-32 | 键盘方向键取引用（左邻） | `=` + ArrowLeft + Enter | 草稿 `=F2`、提交显示 840 | ⚠️ 疑似 bug | formula-reference-keyboard.spec.ts（test.fixme） |
-| FML-33 | 键盘方向键取引用（上邻） | `=` + ArrowUp + Enter | 草稿 `=B9`、提交显示 870 | ⚠️ 疑似 bug | formula-reference-keyboard.spec.ts（test.fixme） |
-| FML-34 | 运算符后第二次键盘取引用是追加 | `=`←、`+`、← | `=F3+F3` → 1600 | ⚠️ 疑似 bug | formula-reference-keyboard.spec.ts（test.fixme） |
+| FML-32 | 键盘方向键取引用（左邻） | `=` + ArrowLeft + Enter | 草稿 `=F2`、提交显示 840 | ✅ UI-526 | formula-reference-keyboard.spec.ts |
+| FML-33 | 键盘方向键取引用（上邻） | `=` + ArrowUp + Enter | 草稿 `=B9`、提交显示 870 | ✅ UI-526 | formula-reference-keyboard.spec.ts |
+| FML-34 | 运算符后第二次键盘取引用是追加 | `=`←、`+`、← | `=F3+F3` → 1600 | ✅ UI-526 | formula-reference-keyboard.spec.ts |
 
-⚠️ FML-32…34 实测（2026-07-29，wasm project）：`=` 后按方向键草稿不变，仅移动输入框光标。
-根因：方向键落在单元格编辑器 `<input>` 上，编辑器 onKeyDown 无取引用分支；而
-`handleGridKeyDown`（SpreadsheetGrid.tsx:2499）对 INPUT target 直接 return——导致
-`formulaReference.arrowPick` case（SpreadsheetGrid.tsx:2732）与
-`getFormulaReferenceModeIntent` 的方向键分支（keyboard/index.ts:215）在编辑器持焦时
-（即永远）不可达。core intent + grid 处理链路两头都实现了，中间接线被 target 守卫挡死。
-三条用例按规程挂 test.fixme，产品侧修复后去掉 fixme 即可转绿。
+FML-32…34 曾因单元格编辑器直接消费方向键而不可达；UI-526 现仅在活动
+`formulaReferenceSessionAtom` 中把已解析的 `formulaReference.arrowPick` intent 交给同一
+Atom 取引用链路。自动补全与 IME 组合态仍优先处理，避免把普通编辑光标移动误当作引用。
 | FML-35 | 键盘连按方向键推进引用游标（Excel 语义） | `=` + ArrowDown×2 | 引用推进到 anchor+2 | ⏳ P2 延后 | — 实现明确未存 pick focus（SpreadsheetGrid `formulaReference.arrowPick` 分支注释），连按仍取 anchor±1，非 bug 是简化；补齐语义前无从断言 |
 | FML-36 | Shift+方向键扩展引用为区间 | `=` + Shift+Arrow | 拼入 `A1:B2` 型 range | ⏳ P2 延后 | — keyboard intent 带 `extend` 位但 grid 侧忽略（pickAnchor==pickFocus），UI 未支持 |
 | FML-37 | 引用模式高亮颜色与 token 对位 | 多引用草稿 | overlay 每 token 一色 | ⏳ P2 延后 | — 高亮为 canvas 光栅，DOM 无可断言表面（FML-19 仅耦合输入侧） |

@@ -14,12 +14,23 @@ import type {
 } from './types'
 import {
   closeEditorState,
+  defaultRuleForKind,
+  editorDraftFromEntry,
   freezeEditorState,
   freezeLedger,
   freezeRulesLoadState,
   freezeRulesState,
   nextConditionalFormatSessionId,
 } from './value-domain'
+
+function emptyEditorDraft() {
+  return {
+    // An unset scope keeps the established save-time selection witness intact.
+    scope: null,
+    priority: null,
+    rule: defaultRuleForKind('cell-value'),
+  }
+}
 
 export const conditionalFormatRulesCacheStateAtom = atom<ConditionalFormatRulesState>(
   freezeRulesState({ sheetId: null, rules: [] }),
@@ -132,7 +143,7 @@ export const syncConditionalFormatRulesSheetAtom = atom(
         ...editor,
         sheetId: normalizedSheetId,
         ruleId: null,
-        draft: null,
+        draft: emptyEditorDraft(),
         selectedKind: 'cell-value',
         error: null,
       }),
@@ -184,14 +195,18 @@ export const openConditionalFormatEditorAtom = atom(
       )
       return
     }
-    const draft =
+    const entrySnapshot =
       cachedEntry === null
         ? entry === null
           ? null
           : snapshotEntry(entry)
         : snapshotEntry(cachedEntry)
-    if ((entry !== null && draft === null) || get(conditionalFormatEditorStateAtom) !== previous)
+    if (
+      (entry !== null && entrySnapshot === null) ||
+      get(conditionalFormatEditorStateAtom) !== previous
+    )
       return
+    const draft = entrySnapshot === null ? emptyEditorDraft() : editorDraftFromEntry(entrySnapshot)
     set(
       conditionalFormatEditorStateAtom,
       freezeEditorState({
@@ -199,9 +214,9 @@ export const openConditionalFormatEditorAtom = atom(
         sessionId,
         sheetId,
         requestId: null,
-        ruleId: draft?.id ?? null,
+        ruleId: entrySnapshot?.id ?? null,
         draft,
-        selectedKind: draft?.rule.kind ?? 'cell-value',
+        selectedKind: draft.rule.kind,
         pending: false,
         error: null,
       }),
@@ -223,9 +238,28 @@ export const setConditionalFormatEditorKindAtom = atom(
   (get, set, selectedKind: ConditionalFormatRuleKind) => {
     const editor = get(conditionalFormatEditorStateAtom)
     if (!editor.open || editor.pending || !isOneOf(selectedKind, RULE_KINDS)) return
+    const cache = get(conditionalFormatRulesCacheStateAtom)
+    try {
+      if (
+        editor.sheetId === null ||
+        get(workspaceSessionAtom).activeSheetId !== editor.sheetId ||
+        cache.sheetId !== editor.sheetId
+      )
+        return
+    } catch {
+      return
+    }
     set(
       conditionalFormatEditorStateAtom,
-      freezeEditorState({ ...editor, selectedKind, error: null }),
+      freezeEditorState({
+        ...editor,
+        selectedKind,
+        draft:
+          editor.draft === null
+            ? null
+            : { ...editor.draft, rule: defaultRuleForKind(selectedKind) },
+        error: null,
+      }),
     )
   },
 )

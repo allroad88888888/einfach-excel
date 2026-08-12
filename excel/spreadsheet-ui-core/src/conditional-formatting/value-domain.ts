@@ -11,6 +11,7 @@ import {
 } from './constants'
 import type {
   ConditionalFormatEditorState,
+  ConditionalFormatEditorDraft,
   ConditionalFormatOperationAttempt,
   ConditionalFormatOperationAttemptStatus,
   ConditionalFormatRule,
@@ -97,6 +98,26 @@ export function freezeEntry(entry: ConditionalFormatRuleEntry): ConditionalForma
   })
 }
 
+export function freezeEditorDraft(
+  draft: ConditionalFormatEditorDraft,
+): ConditionalFormatEditorDraft {
+  return Object.freeze({
+    priority: draft.priority,
+    scope: draft.scope === null ? null : freezeScope(draft.scope),
+    rule: freezeRule(draft.rule),
+  })
+}
+
+export function editorDraftFromEntry(
+  entry: ConditionalFormatRuleEntry,
+): ConditionalFormatEditorDraft {
+  return freezeEditorDraft({
+    priority: entry.priority,
+    scope: entry.scope,
+    rule: entry.rule,
+  })
+}
+
 export function freezeRulesState(state: ConditionalFormatRulesState): ConditionalFormatRulesState {
   return Object.freeze({
     sheetId: state.sheetId,
@@ -114,7 +135,10 @@ export function freezeRulesLoadState(
 export function freezeEditorState(
   state: ConditionalFormatEditorState,
 ): ConditionalFormatEditorState {
-  return Object.freeze({ ...state, draft: state.draft === null ? null : freezeEntry(state.draft) })
+  return Object.freeze({
+    ...state,
+    draft: state.draft === null ? null : freezeEditorDraft(state.draft),
+  })
 }
 
 export function freezeAttempt(

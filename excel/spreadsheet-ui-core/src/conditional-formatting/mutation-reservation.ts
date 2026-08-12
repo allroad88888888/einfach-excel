@@ -22,6 +22,7 @@ import type {
   RunConditionalFormatMutationInput,
   SetConditionalFormatRuleRequest,
 } from './types'
+import { conditionalFormatEditorDraftError } from './editor-draft'
 import {
   defaultRuleForKind,
   freezeAttempt,
@@ -91,6 +92,10 @@ export const reserveConditionalFormatMutationLaunchAtom = atom(
         capture,
         `Conditional formatting ${inputSnapshot.action} is unavailable`,
       )
+    if (inputSnapshot.action === 'save') {
+      const validationError = conditionalFormatEditorDraftError(editor.draft)
+      if (validationError !== null) return releaseCapture(get, set, capture, validationError)
+    }
     const ruleId = editor.ruleId && editor.ruleId.length > 0 ? editor.ruleId : null
     if (inputSnapshot.action === 'remove' && ruleId === null)
       return releaseCapture(get, set, capture, 'Conditional formatting remove requires a rule id')
@@ -184,7 +189,9 @@ export const reserveConditionalFormatMutationLaunchAtom = atom(
             sheetId: ticket.sheetId,
             ...(ruleId === null ? {} : { ruleId }),
             scope: targetScope,
-            ...(editor.draft?.priority === undefined ? {} : { priority: editor.draft.priority }),
+            ...(editor.draft?.priority === null || editor.draft?.priority === undefined
+              ? {}
+              : { priority: editor.draft.priority }),
             rule: selectedRule,
             requestId,
             ...(baseRevision === undefined ? {} : { revision: baseRevision }),

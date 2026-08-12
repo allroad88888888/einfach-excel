@@ -21,5 +21,11 @@ export {
 
 export { runConditionalFormatMutationAtom } from './mutation-executor'
 export { loadConditionalFormatRulesAtom } from './rules-load'
+export {
+  conditionalFormatEditorValidationAtom,
+  updateConditionalFormatEditorDraftAtom,
+  useSelectionForConditionalFormatEditorScopeAtom,
+} from './editor-draft'
+export type { ConditionalFormatEditorDraftUpdate } from './editor-draft'
 
 export { nextConditionalFormatRequestId, nextConditionalFormatSessionId } from './value-domain'

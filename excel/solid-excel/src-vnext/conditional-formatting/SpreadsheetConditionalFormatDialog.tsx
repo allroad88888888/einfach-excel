@@ -5,6 +5,7 @@ import { useAtomValue } from '@einfach/solid'
 import { useT } from '../../src/i18n'
 import {
   conditionalFormatEditorAtom,
+  conditionalFormatEditorValidationAtom,
   conditionalFormatRulesCacheAtom,
   conditionalFormatRulesLoadAtom,
   closeConditionalFormatEditorAtom,
@@ -13,9 +14,12 @@ import {
   runConditionalFormatMutationAtom,
   setConditionalFormatEditorKindAtom,
   syncConditionalFormatRulesSheetAtom,
+  updateConditionalFormatEditorDraftAtom,
+  useSelectionForConditionalFormatEditorScopeAtom,
   workspaceSessionAtom,
   type ConditionalFormatRuleKind,
 } from '@einfach/spreadsheet-ui-core'
+import { ConditionalFormatRuleFields } from './ConditionalFormatRuleFields'
 import { useOverlayInteraction } from '../overlay'
 import { refreshVisibleProjection, useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider'
 
@@ -26,6 +30,7 @@ import { refreshVisibleProjection, useSpreadsheetBackend, useSpreadsheetUiStore 
 // `.css.d.ts` keeps tsc satisfied under the Bundler moduleResolution.
 if (typeof process === 'undefined' || !process.env.JEST_WORKER_ID) {
   void import('./conditional-format-dialog.css')
+  void import('./conditional-format-fields.css')
 }
 
 export interface SpreadsheetConditionalFormatDialogProps {
@@ -51,6 +56,7 @@ export function SpreadsheetConditionalFormatDialog(props: SpreadsheetConditional
   const store = useSpreadsheetUiStore()
   const backend = useSpreadsheetBackend()
   const editor = useAtomValue(conditionalFormatEditorAtom)
+  const editorValidation = useAtomValue(conditionalFormatEditorValidationAtom)
   const rulesCache = useAtomValue(conditionalFormatRulesCacheAtom)
   const rulesLoad = useAtomValue(conditionalFormatRulesLoadAtom)
   const workspace = useAtomValue(workspaceSessionAtom)
@@ -83,6 +89,8 @@ export function SpreadsheetConditionalFormatDialog(props: SpreadsheetConditional
       load.sessionId === state.sessionId
     )
   }
+  const fieldsDisabled = () => editor().pending || rulesAreLoading()
+  const visibleError = () => editorValidation() ?? editor().error
 
   function kindLabel(kind: ConditionalFormatRuleKind): string {
     return t(`conditionalFormat.kind.${kind}`)
@@ -148,7 +156,7 @@ export function SpreadsheetConditionalFormatDialog(props: SpreadsheetConditional
         role="dialog"
         aria-modal="true"
         aria-labelledby={DIALOG_TITLE_ID}
-        aria-describedby={editor().error ? ERROR_ID : PREVIEW_ID}
+        aria-describedby={visibleError() ? ERROR_ID : PREVIEW_ID}
         aria-busy={editor().pending}
         onSubmit={(event) => {
           event.preventDefault()
@@ -191,7 +199,7 @@ export function SpreadsheetConditionalFormatDialog(props: SpreadsheetConditional
                       data-testid={`cf-rule-entry-${entry.id}`}
                       data-rule-id={entry.id}
                       data-rule-kind={entry.rule.kind}
-                      disabled={editor().pending || rulesAreLoading()}
+                      disabled={fieldsDisabled()}
                       aria-current={editor().ruleId === entry.id ? 'true' : undefined}
                       onClick={() => store.setter(openConditionalFormatEditorAtom, entry)}
                     >
@@ -213,7 +221,7 @@ export function SpreadsheetConditionalFormatDialog(props: SpreadsheetConditional
                 id="cf-rule-kind-select"
                 data-testid="cf-rule-kind-select"
                 value={currentKind()}
-                disabled={editor().pending}
+                disabled={fieldsDisabled()}
                 onChange={onKindChange}
               >
                 <For each={ruleKinds}>
@@ -221,6 +229,13 @@ export function SpreadsheetConditionalFormatDialog(props: SpreadsheetConditional
                 </For>
               </select>
             </div>
+
+            <ConditionalFormatRuleFields
+              draft={() => editor().draft}
+              disabled={fieldsDisabled}
+              onUpdate={(update) => store.setter(updateConditionalFormatEditorDraftAtom, update)}
+              onUseSelection={() => store.setter(useSelectionForConditionalFormatEditorScopeAtom)}
+            />
 
             <div id={PREVIEW_ID} class="cf-rule-preview" aria-live="polite">
               <span class="cf-rule-preview-swatch" />
@@ -231,9 +246,9 @@ export function SpreadsheetConditionalFormatDialog(props: SpreadsheetConditional
           </div>
         </div>
 
-        <Show when={editor().error}>
+        <Show when={visibleError()}>
           <div id={ERROR_ID} class="cf-error" data-testid="cf-error-text" role="alert">
-            {editor().error}
+            {visibleError()}
           </div>
         </Show>
 
@@ -242,7 +257,7 @@ export function SpreadsheetConditionalFormatDialog(props: SpreadsheetConditional
             type="button"
             data-testid="cf-remove-button"
             data-variant="danger"
-            disabled={!editor().draft || editor().pending || rulesAreLoading()}
+            disabled={editor().ruleId === null || fieldsDisabled()}
             onClick={() => {
               void handleRemove()
             }}
@@ -257,7 +272,7 @@ export function SpreadsheetConditionalFormatDialog(props: SpreadsheetConditional
             type="submit"
             data-testid="cf-save-button"
             data-variant="primary"
-            disabled={editor().pending || rulesAreLoading()}
+            disabled={fieldsDisabled() || editorValidation() !== null}
           >
             {t('conditionalFormat.save')}
           </button>

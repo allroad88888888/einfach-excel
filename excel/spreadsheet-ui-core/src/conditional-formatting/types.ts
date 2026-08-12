@@ -63,6 +63,16 @@ export interface ConditionalFormatRuleEntry {
   rule: ConditionalFormatRule
 }
 
+/**
+ * Editable dialog values are intentionally distinct from persisted entries:
+ * a new rule has no id and may not have a range until the user selects one.
+ */
+export interface ConditionalFormatEditorDraft {
+  readonly scope: ConditionalFormatScope | null
+  readonly priority: number | null
+  readonly rule: ConditionalFormatRule
+}
+
 export interface ConditionalFormatRulesState {
   readonly sheetId: string | null
   readonly rules: readonly ConditionalFormatRuleEntry[]
@@ -77,7 +87,7 @@ export interface ConditionalFormatEditorState {
   readonly sheetId: string | null
   readonly requestId: ProjectionRequestId | null
   readonly ruleId: ConditionalFormatRuleId | null
-  readonly draft: ConditionalFormatRuleEntry | null
+  readonly draft: ConditionalFormatEditorDraft | null
   readonly selectedKind: ConditionalFormatRuleKind
   readonly pending: boolean
   readonly error: string | null

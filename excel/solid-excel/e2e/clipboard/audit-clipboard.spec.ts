@@ -61,10 +61,9 @@ function display(page: Page, addr: string) {
  * (Meta on macOS, Control elsewhere). Wave 5 wires both via
  * keyboard/index.ts → 'clipboard.copy' | 'clipboard.cut' | 'clipboard.paste'.
  */
-async function pressClipboardKey(page: Page, key: 'c' | 'v' | 'x', shift = false) {
+async function pressClipboardKey(page: Page, key: 'c' | 'v' | 'x') {
   const meta = process.platform === 'darwin' ? 'Meta' : 'Control'
-  const combo = shift ? `${meta}+Shift+${key}` : `${meta}+${key}`
-  await page.keyboard.press(combo)
+  await page.keyboard.press(`${meta}+${key}`)
 }
 
 async function dragSelect(page: Page, fromAddr: string, toAddr: string) {
@@ -80,10 +79,7 @@ async function dragSelect(page: Page, fromAddr: string, toAddr: string) {
 }
 
 test.describe('audit: clipboard (Ctrl+C / Ctrl+V / Ctrl+X) on Wave 5', () => {
-  test('1. single-cell copy/paste — B2 (120) → D2 should show 120', async ({
-    page,
-    context,
-  }) => {
+  test('1. single-cell copy/paste — B2 (120) → D2 should show 120', async ({ page, context }) => {
     await gotoWave5(page, context)
 
     await cell(page, 'B2').click()
@@ -98,10 +94,7 @@ test.describe('audit: clipboard (Ctrl+C / Ctrl+V / Ctrl+X) on Wave 5', () => {
     await expect(display(page, 'D2')).toHaveText('120')
   })
 
-  test('2. range copy/paste — B2:C3 → G2 should populate G2:H3', async ({
-    page,
-    context,
-  }) => {
+  test('2. range copy/paste — B2:C3 → G2 should populate G2:H3', async ({ page, context }) => {
     await gotoWave5(page, context)
 
     // Source range B2:C3 = [[120, 180], [80, 160]].
@@ -120,10 +113,7 @@ test.describe('audit: clipboard (Ctrl+C / Ctrl+V / Ctrl+X) on Wave 5', () => {
     await expect(display(page, 'H3')).toHaveText('160')
   })
 
-  test('3. cut/paste — B2 → D2 should empty B2 and land 120 in D2', async ({
-    page,
-    context,
-  }) => {
+  test('3. cut/paste — B2 → D2 should empty B2 and land 120 in D2', async ({ page, context }) => {
     await gotoWave5(page, context)
 
     await cell(page, 'B2').click()
@@ -223,38 +213,7 @@ test.describe('audit: clipboard (Ctrl+C / Ctrl+V / Ctrl+X) on Wave 5', () => {
     await expect(display(page, 'J8')).toHaveText('360')
   })
 
-  // Skipped: Ctrl+Shift+V → Paste Special is a missing feature on Wave 5.
-  // excel/spreadsheet-ui-core/src/keyboard/index.ts has no branch on shiftKey
-  // for the 'v' case and the grid has no paste-special dialog component.
-  // Tracked as a Wave 7 task (alongside Text-to-Columns / Remove Duplicates).
-  test.skip('7. Ctrl+Shift+V paste-special invokes a distinct paste-special UI', async ({
-    page,
-    context,
-  }) => {
-    await gotoWave5(page, context)
-
-    await cell(page, 'B2').click()
-    await pressClipboardKey(page, 'c')
-
-    await cell(page, 'D2').click()
-    await pressClipboardKey(page, 'v', /* shift */ true)
-
-    // A wired Ctrl+Shift+V should open a paste-special dialog/menu, or at
-    // minimum tag the recent-command with "Paste Special". Wave 5's
-    // keyboard dispatcher (excel/spreadsheet-ui-core/src/keyboard/index.ts)
-    // does not branch on shiftKey for 'v', so this test pins the missing
-    // wiring. We accept either a visible dialog or a recognizable status
-    // text — the current code surfaces neither.
-    const dialog = page.locator('[data-testid*="paste-special"]')
-    const lastCommand = page.getByTestId('status-last-command')
-    await expect.soft(dialog).toBeVisible()
-    await expect(lastCommand).toContainText(/Paste Special|paste-special|pasteSpecial/i)
-  })
-
-  test('8. status-last-command reflects the Ctrl+V paste action', async ({
-    page,
-    context,
-  }) => {
+  test('7. status-last-command reflects the Ctrl+V paste action', async ({ page, context }) => {
     await gotoWave5(page, context)
 
     const lastCommand = page.getByTestId('status-last-command')
@@ -274,7 +233,7 @@ test.describe('audit: clipboard (Ctrl+C / Ctrl+V / Ctrl+X) on Wave 5', () => {
     await expect(lastCommand).toContainText(/paste|clipboard/i)
   })
 
-  test('9. history timeline records the paste as an entry', async ({ page, context }) => {
+  test('8. history timeline records the paste as an entry', async ({ page, context }) => {
     await gotoWave5(page, context)
 
     const timelineList = page.getByTestId('history-timeline-list')

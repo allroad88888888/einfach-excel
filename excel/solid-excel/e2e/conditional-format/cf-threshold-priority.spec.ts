@@ -137,9 +137,8 @@ test.describe('Conditional format — thresholds, priority, rule list', () => {
   }) => {
     await gotoWave5(page)
 
-    // Even with rules saved on the sheet, the toolbar entry opens the
-    // editor with a null draft, so remove has nothing to target (CF-09
-    // stays P2 until an existing-rule entry point exists).
+    // The toolbar entry starts a new-rule draft, so remove has nothing to
+    // target until a persisted-rule list entry is selected.
     await cell(page, 'D6').click()
     await saveRuleOfKind(page, 'cell-value')
 
@@ -147,5 +146,23 @@ test.describe('Conditional format — thresholds, priority, rule list', () => {
     await openDialog(page)
     await expect(dialog(page).getByTestId('cf-remove-button')).toBeDisabled()
     await expect(dialog(page).getByTestId('cf-save-button')).toBeEnabled()
+  })
+
+  test('reopening hydrates a persisted rule that can be selected and removed', async ({ page }) => {
+    await gotoWave5(page)
+
+    await cell(page, 'B2').click()
+    await saveRuleOfKind(page, 'cell-value')
+    await expect(cell(page, 'B2')).toHaveAttribute('data-has-conditional-format', 'true')
+
+    await cell(page, 'B2').click()
+    await openDialog(page)
+    const entries = dialog(page).getByTestId('cf-rule-list').getByRole('button')
+    await expect(entries).toHaveCount(1)
+    await entries.first().click()
+    await expect(dialog(page).getByTestId('cf-remove-button')).toBeEnabled()
+    await dialog(page).getByTestId('cf-remove-button').click()
+    await expect(dialog(page)).toBeHidden()
+    await expect(cell(page, 'B2')).toHaveAttribute('data-has-conditional-format', 'false')
   })
 })

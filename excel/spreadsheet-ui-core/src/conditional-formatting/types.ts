@@ -73,11 +73,21 @@ export interface ConditionalFormatRulesState {
 export interface ConditionalFormatEditorState {
   readonly open: boolean
   readonly sessionId: number
+  /** Sheet identity captured when this dialog session was opened. */
+  readonly sheetId: string | null
   readonly requestId: ProjectionRequestId | null
   readonly ruleId: ConditionalFormatRuleId | null
   readonly draft: ConditionalFormatRuleEntry | null
   readonly selectedKind: ConditionalFormatRuleKind
   readonly pending: boolean
+  readonly error: string | null
+}
+
+export interface ConditionalFormatRulesLoadState {
+  readonly phase: 'idle' | 'pending' | 'ready' | 'error'
+  readonly sheetId: string | null
+  readonly sessionId: number | null
+  readonly requestId: ProjectionRequestId | null
   readonly error: string | null
 }
 
@@ -133,6 +143,14 @@ export interface RunConditionalFormatMutationInput {
   ) => Promise<void> | void
 }
 
+/**
+ * Ephemeral input port for one guarded persisted-rules read. The port is
+ * intentionally supplied by the view and never retained by an atom.
+ */
+export interface LoadConditionalFormatRulesInput {
+  listRules?: (request: ListConditionalFormatRulesRequest) => Promise<ConditionalFormatRulesResult>
+}
+
 export interface SetConditionalFormatRuleRequest extends SheetRef {
   kind: 'set-conditional-format-rule'
   ruleId?: ConditionalFormatRuleId
@@ -160,4 +178,9 @@ export interface ConditionalFormatRulesResult extends SheetRef {
   readonly rules: readonly ConditionalFormatRuleEntry[]
   readonly requestId?: ProjectionRequestId
   readonly revision?: ProjectionRevision
+}
+
+export interface ConditionalFormatRulesResponseTicket {
+  readonly sheetId: string
+  readonly requestId: ProjectionRequestId
 }

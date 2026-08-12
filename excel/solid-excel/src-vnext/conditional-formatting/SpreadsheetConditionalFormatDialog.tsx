@@ -1,15 +1,19 @@
 /** @jsxImportSource solid-js */
 
-import { Show, For } from 'solid-js'
+import { Show, For, createEffect } from 'solid-js'
 import { useAtomValue } from '@einfach/solid'
 import { useT } from '../../src/i18n'
 import {
   conditionalFormatEditorAtom,
   conditionalFormatRulesCacheAtom,
+  conditionalFormatRulesLoadAtom,
   closeConditionalFormatEditorAtom,
+  loadConditionalFormatRulesAtom,
   openConditionalFormatEditorAtom,
   runConditionalFormatMutationAtom,
   setConditionalFormatEditorKindAtom,
+  syncConditionalFormatRulesSheetAtom,
+  workspaceSessionAtom,
   type ConditionalFormatRuleKind,
 } from '@einfach/spreadsheet-ui-core'
 import { useOverlayInteraction } from '../overlay'
@@ -48,9 +52,37 @@ export function SpreadsheetConditionalFormatDialog(props: SpreadsheetConditional
   const backend = useSpreadsheetBackend()
   const editor = useAtomValue(conditionalFormatEditorAtom)
   const rulesCache = useAtomValue(conditionalFormatRulesCacheAtom)
+  const rulesLoad = useAtomValue(conditionalFormatRulesLoadAtom)
+  const workspace = useAtomValue(workspaceSessionAtom)
   let closeButton: HTMLButtonElement | undefined
 
+  // The view owns the stable forwarding backend port. Core atoms retain only
+  // data snapshots and request identities, never backend functions.
+  createEffect(() => {
+    store.setter(syncConditionalFormatRulesSheetAtom, workspace().activeSheetId)
+  })
+
+  createEffect(() => {
+    const state = editor()
+    const activeSheetId = workspace().activeSheetId
+    if (!state.open || activeSheetId === null) return
+    void store.setter(loadConditionalFormatRulesAtom, {
+      listRules: backend.listConditionalFormatRules
+        ? (request) => backend.listConditionalFormatRules!(request)
+        : undefined,
+    })
+  })
+
   const isEditing = () => editor().open
+  const rulesAreLoading = () => {
+    const state = editor()
+    const load = rulesLoad()
+    return (
+      load.phase === 'pending' &&
+      load.sheetId === state.sheetId &&
+      load.sessionId === state.sessionId
+    )
+  }
 
   function kindLabel(kind: ConditionalFormatRuleKind): string {
     return t(`conditionalFormat.kind.${kind}`)
@@ -152,14 +184,14 @@ export function SpreadsheetConditionalFormatDialog(props: SpreadsheetConditional
             >
               <For each={rulesCache().rules}>
                 {(entry) => (
-                  <li>
+                  <li data-rule-id={entry.id} data-rule-kind={entry.rule.kind}>
                     <button
                       type="button"
                       class="cf-rule-select"
                       data-testid={`cf-rule-entry-${entry.id}`}
                       data-rule-id={entry.id}
                       data-rule-kind={entry.rule.kind}
-                      disabled={editor().pending}
+                      disabled={editor().pending || rulesAreLoading()}
                       aria-current={editor().ruleId === entry.id ? 'true' : undefined}
                       onClick={() => store.setter(openConditionalFormatEditorAtom, entry)}
                     >
@@ -210,7 +242,7 @@ export function SpreadsheetConditionalFormatDialog(props: SpreadsheetConditional
             type="button"
             data-testid="cf-remove-button"
             data-variant="danger"
-            disabled={!editor().draft || editor().pending}
+            disabled={!editor().draft || editor().pending || rulesAreLoading()}
             onClick={() => {
               void handleRemove()
             }}
@@ -225,7 +257,7 @@ export function SpreadsheetConditionalFormatDialog(props: SpreadsheetConditional
             type="submit"
             data-testid="cf-save-button"
             data-variant="primary"
-            disabled={editor().pending}
+            disabled={editor().pending || rulesAreLoading()}
           >
             {t('conditionalFormat.save')}
           </button>

@@ -66,9 +66,10 @@ function makeEntry(
 }
 
 function prepareOpenStore(store: Store, entry: ConditionalFormatRuleEntry | null = null): void {
+  store.setter(setWorkspaceActiveSheetAtom, { sheetId: 'sheet-1' })
   store.setter(setConditionalFormatRulesAtom, {
     sheetId: 'sheet-1',
-    rules: [],
+    rules: entry === null ? [] : [entry],
     revision: 7,
   })
   store.setter(openConditionalFormatEditorAtom, entry)
@@ -103,11 +104,12 @@ describe('conditional-formatting core state machine', () => {
     const first = createStore()
     const second = createStore()
 
+    first.setter(setWorkspaceActiveSheetAtom, { sheetId: 'sheet-1' })
     first.setter(setConditionalFormatRulesAtom, {
       sheetId: 'sheet-1',
       rules: [makeEntry('first')],
     })
-    first.setter(openConditionalFormatEditorAtom, makeEntry('draft'))
+    first.setter(openConditionalFormatEditorAtom, makeEntry('first'))
 
     expect(first.getter(conditionalFormatRulesCacheAtom).sheetId).toBe('sheet-1')
     expect(first.getter(conditionalFormatEditorAtom)).toMatchObject({ open: true, sessionId: 1 })
@@ -115,6 +117,7 @@ describe('conditional-formatting core state machine', () => {
     expect(second.getter(conditionalFormatEditorAtom)).toEqual({
       open: false,
       sessionId: 0,
+      sheetId: null,
       requestId: null,
       ruleId: null,
       draft: null,
@@ -359,7 +362,13 @@ describe('conditional-formatting core state machine', () => {
 
     const pending = store.setter(runConditionalFormatMutationAtom, saveInput(setRule))
     store.setter(closeConditionalFormatEditorAtom)
-    store.setter(openConditionalFormatEditorAtom, makeEntry('new-session'))
+    const reopened = makeEntry('new-session')
+    store.setter(setConditionalFormatRulesAtom, {
+      sheetId: 'sheet-1',
+      rules: [reopened],
+      revision: 7,
+    })
+    store.setter(openConditionalFormatEditorAtom, reopened)
     await pending
 
     expect(setRule).not.toHaveBeenCalled()
@@ -614,9 +623,10 @@ describe('conditional-formatting core state machine', () => {
       requestId: 1,
       rules: [makeEntry('stale-list')],
     }))
+    store.setter(setWorkspaceActiveSheetAtom, { sheetId: 'sheet-a' })
     store.setter(setConditionalFormatRulesAtom, {
       sheetId: 'sheet-a',
-      rules: [makeEntry('a-before')],
+      rules: [makeEntry('a-draft')],
       revision: 1,
     })
     store.setter(openConditionalFormatEditorAtom, makeEntry('a-draft'))
@@ -634,9 +644,10 @@ describe('conditional-formatting core state machine', () => {
     })
     const request = await started.promise
     store.setter(closeConditionalFormatEditorAtom)
+    store.setter(setWorkspaceActiveSheetAtom, { sheetId: 'sheet-b' })
     store.setter(setConditionalFormatRulesAtom, {
       sheetId: 'sheet-b',
-      rules: [makeEntry('b-current')],
+      rules: [makeEntry('b-current'), makeEntry('new-session')],
       revision: 8,
     })
     store.setter(openConditionalFormatEditorAtom, makeEntry('new-session'))
@@ -653,7 +664,7 @@ describe('conditional-formatting core state machine', () => {
     expect(store.getter(conditionalFormatRulesCacheAtom)).toMatchObject({
       sheetId: 'sheet-b',
       revision: 8,
-      rules: [{ id: 'b-current' }],
+      rules: expect.arrayContaining([expect.objectContaining({ id: 'b-current' })]),
     })
     expect(store.getter(conditionalFormatEditorAtom)).toMatchObject({
       open: true,
@@ -678,7 +689,13 @@ describe('conditional-formatting core state machine', () => {
     )
     await started.promise
     store.setter(closeConditionalFormatEditorAtom)
-    store.setter(openConditionalFormatEditorAtom, makeEntry('new-session'))
+    const reopened = makeEntry('new-session')
+    store.setter(setConditionalFormatRulesAtom, {
+      sheetId: 'sheet-1',
+      rules: [reopened],
+      revision: 7,
+    })
+    store.setter(openConditionalFormatEditorAtom, reopened)
     gate.reject(new Error('late outcome unknown'))
     await pending
 
@@ -755,9 +772,10 @@ describe('conditional-formatting core state machine', () => {
     )
     await listStarted.promise
     store.setter(closeConditionalFormatEditorAtom)
+    store.setter(setWorkspaceActiveSheetAtom, { sheetId: 'sheet-b' })
     store.setter(setConditionalFormatRulesAtom, {
       sheetId: 'sheet-b',
-      rules: [makeEntry('b-current')],
+      rules: [makeEntry('b-current'), makeEntry('new-session')],
       revision: 20,
     })
     store.setter(openConditionalFormatEditorAtom, makeEntry('new-session'))
@@ -772,7 +790,7 @@ describe('conditional-formatting core state machine', () => {
     expect(store.getter(conditionalFormatRulesCacheAtom)).toMatchObject({
       sheetId: 'sheet-b',
       revision: 20,
-      rules: [{ id: 'b-current' }],
+      rules: expect.arrayContaining([expect.objectContaining({ id: 'b-current' })]),
     })
     expect(store.getter(conditionalFormatEditorAtom)).toMatchObject({
       open: true,

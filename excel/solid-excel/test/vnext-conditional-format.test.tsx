@@ -256,9 +256,8 @@ describe('SpreadsheetConditionalFormatDialog', () => {
     expect(store.getter(conditionalFormatEditorAtom).open).toBe(true)
   })
 
-  it('prefers workspace active sheet id over rules cache when present', async () => {
+  it('refuses a stale cached rule instead of retargeting it to the active sheet', () => {
     const store = createStore()
-    const { backend, setConditionalFormatRuleRequests } = createFakeBackend()
 
     store.setter(workspaceSessionAtom, {
       activeSheetId: 'active-sheet',
@@ -272,19 +271,7 @@ describe('SpreadsheetConditionalFormatDialog', () => {
     })
     store.setter(openConditionalFormatEditorAtom, sampleEntry)
 
-    const { getByTestId } = render(() => (
-      <SpreadsheetUiProvider backend={backend} store={store}>
-        <SpreadsheetConditionalFormatDialog />
-      </SpreadsheetUiProvider>
-    ))
-
-    await waitFor(() => expect(getByTestId('cf-save-button')).toBeTruthy())
-    fireEvent.click(getByTestId('cf-save-button'))
-
-    await waitFor(() => expect(setConditionalFormatRuleRequests).toHaveLength(1))
-    expect(setConditionalFormatRuleRequests[0]).toMatchObject({
-      sheetId: 'active-sheet',
-    })
+    expect(store.getter(conditionalFormatEditorAtom).open).toBe(false)
   })
 
   it('falls back to rules cache sheet id when workspace active sheet is unset', async () => {
@@ -350,6 +337,7 @@ describe('SpreadsheetConditionalFormatDialog', () => {
       projectionRequestRevision: 0,
       committedProjectionRequestRevision: 0,
     })
+    store.setter(setConditionalFormatRulesAtom, { sheetId: 'sheet-1', rules: [sampleEntry] })
 
     store.setter(openConditionalFormatEditorAtom, sampleEntry)
 

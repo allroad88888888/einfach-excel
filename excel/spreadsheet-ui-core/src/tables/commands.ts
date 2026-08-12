@@ -552,14 +552,19 @@ export const runCreateTableAtom = atom(
     }
 
     // Applied — pair the adapter's transaction record with a UI-core entry
-    // before anything else, then refresh the bounded cache from the
-    // canonical engine registry.
+    // before publishing any local acknowledgement or refreshing the canonical
+    // projection. A rejected recorder leaves the mutation outcome unknown.
     const historyResult = recordTableHistory(
       set,
       historyEntryRecorder,
       input.sheetId,
       result.revision,
     )
+    if (historyResult === 'rejected') {
+      set(activeCreateTableAtom, false)
+      setDiagnostic(set, 'outcome-unknown', TABLE_HISTORY_SKEW_MESSAGE)
+      return
+    }
     set(lastCreatedTableNameBackingAtom, result.name)
     await set(refreshTableCatalogAtom, input.source)
     if (typeof input.refreshProjection === 'function') {
@@ -570,10 +575,6 @@ export const runCreateTableAtom = atom(
       }
     }
     set(activeCreateTableAtom, false)
-    if (historyResult === 'rejected') {
-      setDiagnostic(set, 'outcome-unknown', TABLE_HISTORY_SKEW_MESSAGE)
-      return
-    }
     set(tableDiagnosticBackingAtom, null)
   },
 )
@@ -688,15 +689,19 @@ export const runToggleTableTotalsAtom = atom(
       return
     }
 
-    // Applied — pair the adapter's transaction record with a UI-core entry,
-    // then refresh the bounded cache (hasTotals + grown range) and publish
-    // the visible witness.
+    // Applied — record before publishing a local acknowledgement or refreshing
+    // the bounded cache. A rejected recorder leaves the mutation outcome unknown.
     const historyResult = recordTableHistory(
       set,
       historyEntryRecorder,
       input.sheetId ?? null,
       result.revision,
     )
+    if (historyResult === 'rejected') {
+      set(activeToggleTotalsAtom, false)
+      setDiagnostic(set, 'outcome-unknown', TABLE_HISTORY_SKEW_MESSAGE)
+      return
+    }
     set(
       lastToggledTableTotalsBackingAtom,
       Object.freeze({ name: result.name, hasTotals: input.enabled }),
@@ -710,10 +715,6 @@ export const runToggleTableTotalsAtom = atom(
       }
     }
     set(activeToggleTotalsAtom, false)
-    if (historyResult === 'rejected') {
-      setDiagnostic(set, 'outcome-unknown', TABLE_HISTORY_SKEW_MESSAGE)
-      return
-    }
     set(tableDiagnosticBackingAtom, null)
   },
 )
@@ -880,6 +881,10 @@ export const runSetTableTotalFunctionAtom = atom(
       input.sheetId ?? null,
       result.revision,
     )
+    if (historyResult === 'rejected') {
+      setDiagnostic(set, 'outcome-unknown', TABLE_HISTORY_SKEW_MESSAGE)
+      return
+    }
     await set(refreshTableCatalogAtom, input.source)
     if (typeof input.refreshProjection === 'function') {
       try {
@@ -887,10 +892,6 @@ export const runSetTableTotalFunctionAtom = atom(
       } catch {
         // Projection refresh failure is non-fatal; the totals write landed.
       }
-    }
-    if (historyResult === 'rejected') {
-      setDiagnostic(set, 'outcome-unknown', TABLE_HISTORY_SKEW_MESSAGE)
-      return
     }
     set(tableDiagnosticBackingAtom, null)
   },
@@ -1084,6 +1085,11 @@ export const runRenameTableAtom = atom(
       input.sheetId ?? null,
       result.revision,
     )
+    if (historyResult === 'rejected') {
+      set(activeRenameTableAtom, false)
+      setDiagnostic(set, 'outcome-unknown', TABLE_HISTORY_SKEW_MESSAGE)
+      return
+    }
     set(lastRenamedTableBackingAtom, Object.freeze({ from: name, to: result.name }))
     await set(refreshTableCatalogAtom, input.source)
     if (typeof input.refreshProjection === 'function') {
@@ -1094,10 +1100,6 @@ export const runRenameTableAtom = atom(
       }
     }
     set(activeRenameTableAtom, false)
-    if (historyResult === 'rejected') {
-      setDiagnostic(set, 'outcome-unknown', TABLE_HISTORY_SKEW_MESSAGE)
-      return
-    }
     set(tableDiagnosticBackingAtom, null)
   },
 )
@@ -1195,6 +1197,10 @@ export const runRenameTableColumnAtom = atom(
       input.sheetId ?? null,
       result.revision,
     )
+    if (historyResult === 'rejected') {
+      setDiagnostic(set, 'outcome-unknown', TABLE_HISTORY_SKEW_MESSAGE)
+      return
+    }
     await set(refreshTableCatalogAtom, input.source)
     if (typeof input.refreshProjection === 'function') {
       try {
@@ -1202,10 +1208,6 @@ export const runRenameTableColumnAtom = atom(
       } catch {
         // Projection refresh failure is non-fatal; the rename landed.
       }
-    }
-    if (historyResult === 'rejected') {
-      setDiagnostic(set, 'outcome-unknown', TABLE_HISTORY_SKEW_MESSAGE)
-      return
     }
     set(tableDiagnosticBackingAtom, null)
   },
@@ -1284,6 +1286,11 @@ export const runDeleteTableAtom = atom(
       input.sheetId ?? null,
       result.revision,
     )
+    if (historyResult === 'rejected') {
+      set(activeDeleteTableAtom, false)
+      setDiagnostic(set, 'outcome-unknown', TABLE_HISTORY_SKEW_MESSAGE)
+      return
+    }
     set(lastDeletedTableNameBackingAtom, result.name || name)
     await set(refreshTableCatalogAtom, input.source)
     if (typeof input.refreshProjection === 'function') {
@@ -1294,10 +1301,6 @@ export const runDeleteTableAtom = atom(
       }
     }
     set(activeDeleteTableAtom, false)
-    if (historyResult === 'rejected') {
-      setDiagnostic(set, 'outcome-unknown', TABLE_HISTORY_SKEW_MESSAGE)
-      return
-    }
     set(tableDiagnosticBackingAtom, null)
   },
 )

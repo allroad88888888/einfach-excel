@@ -26,6 +26,7 @@ import {
   type SortDirection,
 } from '@einfach/spreadsheet-ui-core'
 import {
+  createHistoryEntryRecorder,
   refreshVisibleProjection,
   resolveSortRange,
   spreadsheetProjectionSnapshotAtom,
@@ -153,6 +154,7 @@ export function SpreadsheetFilterDropdown(props: SpreadsheetFilterDropdownProps)
   function run(intent: FilterSortMutationIntent) {
     void store.setter(runFilterSortMutationAtom, {
       source: backend,
+      historyEntryRecorder: createHistoryEntryRecorder(backend),
       sessionId: draft().sessionId,
       intent,
       refreshProjection: (targetSheetId) => refreshVisibleProjection(store, backend, targetSheetId),
@@ -163,6 +165,7 @@ export function SpreadsheetFilterDropdown(props: SpreadsheetFilterDropdownProps)
     const sessionId = draft().sessionId
     await store.setter(runFilterSortMutationAtom, {
       source: backend,
+      historyEntryRecorder: createHistoryEntryRecorder(backend),
       sessionId,
       intent: { kind: 'apply-draft' },
       refreshProjection: (targetSheetId) => refreshVisibleProjection(store, backend, targetSheetId),
@@ -182,6 +185,7 @@ export function SpreadsheetFilterDropdown(props: SpreadsheetFilterDropdownProps)
     store.setter(closeFilterDropdownAtom)
     void store.setter(runPhysicalSortAtom, {
       source: backend,
+      historyEntryRecorder: createHistoryEntryRecorder(backend),
       entrypoint: 'toolbar',
       direction,
       range,

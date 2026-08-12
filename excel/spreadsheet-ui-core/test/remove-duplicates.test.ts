@@ -1,4 +1,4 @@
-import { describe, expect, jest, test } from '@jest/globals'
+import { afterAll, beforeAll, describe, expect, jest, test } from '@jest/globals'
 import { createStore } from '@einfach/core'
 import type { Store } from '@einfach/core'
 import type {
@@ -14,6 +14,7 @@ import {
   releaseHistoryProducerReservationAtom,
   type HistoryProducerReservation,
 } from '../src/history'
+import type { HistoryEntryRecorder } from '../src/history'
 import { setSheetProtectionAtom } from '../src/protection'
 import { selectionAtom } from '../src/selection'
 import type { CellRange } from '../src/shared'
@@ -83,6 +84,29 @@ function range(
 ): RemoveDuplicatesRange {
   return { startRow, startCol, endRow, endCol }
 }
+
+const recordHistory: HistoryEntryRecorder = (entry, append) =>
+  append(entry) ? 'recorded' : 'rejected'
+
+function withTestHistoryRecorder(
+  input: RunRemoveDuplicatesConfirmInput,
+): RunRemoveDuplicatesConfirmInput {
+  if (Object.hasOwn(input, 'historyEntryRecorder')) return input
+  return Object.create(input, {
+    historyEntryRecorder: { enumerable: true, value: recordHistory },
+  }) as RunRemoveDuplicatesConfirmInput
+}
+
+const runRemoveDuplicatesConfirmWrite = runRemoveDuplicatesConfirmAtom.write
+
+beforeAll(() => {
+  runRemoveDuplicatesConfirmAtom.write = (get, set, input) =>
+    runRemoveDuplicatesConfirmWrite(get, set, withTestHistoryRecorder(input))
+})
+
+afterAll(() => {
+  runRemoveDuplicatesConfirmAtom.write = runRemoveDuplicatesConfirmWrite
+})
 
 describe('findDuplicateRows', () => {
   test('3 unique rows produce 0 duplicates', () => {
@@ -1582,6 +1606,7 @@ describe('remove-duplicates Core lifecycle', () => {
         sourceReads += 1
         innerConfirmation = store.setter(runRemoveDuplicatesConfirmAtom, {
           source: innerSource,
+          historyEntryRecorder: recordHistory,
           sessionId,
           refreshProjection: innerRefresh,
         })

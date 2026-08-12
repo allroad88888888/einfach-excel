@@ -44,13 +44,13 @@ IX-000 Atom 主线下的交互重整
 │   └── UI-517 PrintConfig 后端持久化与 Worker RPC（已完成；见下表）
 ├── W7 远端协作定位（已完成）
 │   └── UI-518 Presence 网格几何与身份呈现（已完成；见下表）
-└── W8 历史记录能力收敛（实施中）
+└── W8 历史记录能力收敛（已完成）
     ├── UI-519a Grid 直接 mutation 的 History capability guard（已完成；见下表）
     ├── UI-519b Core producer recorder port（已完成；见下表）
     ├── UI-519c editing 与 auto-fill 的 reserved history 迁移（已完成；见下表）
     ├── UI-519d Paste Special 与 Text-to-Columns 的 history 迁移（已完成；见下表）
     ├── UI-519e operations 与 toolbar 的 history 迁移（已完成；见下表）
-    └── UI-519f tables、filter-sort 与 remove-duplicates 迁移（实施中；见下表）
+    └── UI-519f tables、filter-sort 与 remove-duplicates 迁移（已完成；见下表）
 ```
 
 | 波次 | 进入条件                    | 允许的并行度                         | 解锁条件                                      |

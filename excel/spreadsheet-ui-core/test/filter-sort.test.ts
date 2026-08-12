@@ -1,4 +1,4 @@
-import { describe, expect, jest, test } from '@jest/globals'
+import { afterAll, beforeAll, describe, expect, jest, test } from '@jest/globals'
 import { createStore } from '@einfach/core'
 import {
   FILTER_SORT_ACKNOWLEDGEMENT_ERROR,
@@ -56,6 +56,7 @@ import type {
   FilterSortControllerPort,
   FilterSortMutationResult,
   FilterSortState,
+  HistoryEntryRecorder,
   PhysicalSortControllerPort,
   ReapplyFilterInput,
   RetryFilterSortRefreshInput,
@@ -69,6 +70,33 @@ import type {
 function makeStore() {
   return createStore()
 }
+
+const recordHistory: HistoryEntryRecorder = (entry, append) =>
+  append(entry) ? 'recorded' : 'rejected'
+
+function withTestHistoryRecorder<
+  T extends { readonly historyEntryRecorder: HistoryEntryRecorder },
+>(input: T): T {
+  if (Object.hasOwn(input, 'historyEntryRecorder')) return input
+  return Object.create(input, {
+    historyEntryRecorder: { enumerable: true, value: recordHistory },
+  }) as T
+}
+
+const runFilterSortMutationWrite = runFilterSortMutationAtom.write
+const runPhysicalSortWrite = runPhysicalSortAtom.write
+
+beforeAll(() => {
+  runFilterSortMutationAtom.write = (get, set, input) =>
+    runFilterSortMutationWrite(get, set, withTestHistoryRecorder(input))
+  runPhysicalSortAtom.write = (get, set, input) =>
+    runPhysicalSortWrite(get, set, withTestHistoryRecorder(input))
+})
+
+afterAll(() => {
+  runFilterSortMutationAtom.write = runFilterSortMutationWrite
+  runPhysicalSortAtom.write = runPhysicalSortWrite
+})
 
 function expectHistoryProducerLaneAvailable(store: ReturnType<typeof makeStore>): void {
   const reservation = store.setter(acquireHistoryProducerReservationAtom)
@@ -1328,12 +1356,14 @@ describe('Core-owned filter/sort mutation lifecycle', () => {
     await Promise.all([
       storeA.setter(runFilterSortMutationAtom, {
         source: sourceA,
+        historyEntryRecorder: recordHistory,
         sessionId: sessionA,
         intent: applyDraft,
         refreshProjection: async () => undefined,
       }),
       storeB.setter(runFilterSortMutationAtom, {
         source: sourceB,
+        historyEntryRecorder: recordHistory,
         sessionId: sessionB,
         intent: applyDraft,
         refreshProjection: async () => undefined,

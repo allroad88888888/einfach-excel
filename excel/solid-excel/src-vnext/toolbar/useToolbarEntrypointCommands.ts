@@ -46,6 +46,7 @@ export function useToolbarEntrypointCommands(deps: ToolbarActionDeps) {
     const range = await resolveSortRange(deps.store, deps.backend, sheetId, snapshot.activeCell)
     void deps.store.setter(runPhysicalSortAtom, {
       source: deps.backend,
+      historyEntryRecorder: deps.historyEntryRecorder,
       entrypoint: 'toolbar',
       direction,
       range,

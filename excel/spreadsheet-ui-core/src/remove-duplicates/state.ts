@@ -1,7 +1,7 @@
 import { atom } from '@einfach/core'
 import type { Atom } from '@einfach/core'
 import type { DisplayCell, ProjectionRequestId, RangeProjectionRequest } from '../backend/types'
-import type { HistoryProducerReservation } from '../history'
+import type { HistoryEntryRecorder, HistoryProducerReservation } from '../history'
 import type { SelectionAuthorityWitness } from '../selection'
 import { getFilterHiddenRowsForSheet, viewportFilterHiddenAtom } from '../viewport/effective-hidden'
 import type { WorkspaceActiveSheetAuthorityWitness } from '../workspace'
@@ -10,7 +10,7 @@ import { EMPTY_CELLS, EMPTY_KEY_COLUMNS, immutableReadonlySet, lifecycleFor, sna
 import type { RemoveDuplicatesCapabilityState, RemoveDuplicatesComparison, RemoveDuplicatesControllerPort, RemoveDuplicatesLifecycleState, RemoveDuplicatesMutationTarget, RemoveDuplicatesRange, RemoveDuplicatesScanResult, RemoveDuplicatesSessionSnapshot, RemoveRowsExactRequest, RemoveRowsExactResult } from './types'
 
 export interface RemoveDuplicatesReadTicket { readonly sessionId: number; readonly requestId: ProjectionRequestId; readonly sheetId: string; readonly range: Readonly<{ rowStart: number; rowEnd: number; colStart: number; colEnd: number }>; readonly selectionWitness: SelectionAuthorityWitness; readonly workspaceActiveSheetWitness: WorkspaceActiveSheetAuthorityWitness; readonly source: RemoveDuplicatesControllerPort; readonly execute: NonNullable<RemoveDuplicatesControllerPort['readRangeProjection']>; readonly request: Readonly<RangeProjectionRequest>; readonly timeoutMs: number }
-export interface RemoveDuplicatesMutationTicket { readonly sessionId: number; readonly selectionWitness: SelectionAuthorityWitness; readonly workspaceActiveSheetWitness: WorkspaceActiveSheetAuthorityWitness; readonly target: RemoveDuplicatesMutationTarget; readonly request: RemoveRowsExactRequest; readonly historyReservation: HistoryProducerReservation; readonly acknowledgement: RemoveRowsExactResult | null; readonly source: RemoveDuplicatesControllerPort; readonly execute: NonNullable<RemoveDuplicatesControllerPort['removeRowsExact']>; readonly refreshProjection: (sheetId: string) => Promise<void>; readonly timeoutMs: number; readonly readRequestId: ProjectionRequestId | null }
+export interface RemoveDuplicatesMutationTicket { readonly sessionId: number; readonly selectionWitness: SelectionAuthorityWitness; readonly workspaceActiveSheetWitness: WorkspaceActiveSheetAuthorityWitness; readonly target: RemoveDuplicatesMutationTarget; readonly request: RemoveRowsExactRequest; readonly historyEntryRecorder: HistoryEntryRecorder; readonly historyReservation: HistoryProducerReservation; readonly acknowledgement: RemoveRowsExactResult | null; readonly source: RemoveDuplicatesControllerPort; readonly execute: NonNullable<RemoveDuplicatesControllerPort['removeRowsExact']>; readonly refreshProjection: (sheetId: string) => Promise<void>; readonly timeoutMs: number; readonly readRequestId: ProjectionRequestId | null }
 
 const INITIAL_CAPABILITY: RemoveDuplicatesCapabilityState = Object.freeze({ canRead: false, canRemove: false })
 const INITIAL_LIFECYCLE: RemoveDuplicatesLifecycleState = Object.freeze({ status: 'closed', sessionId: 0, readRequestId: null, mutationRequestId: null, sheetId: null })

@@ -7,6 +7,7 @@ import {
   type SortDirection,
 } from '@einfach/spreadsheet-ui-core'
 import {
+  createHistoryEntryRecorder,
   refreshVisibleProjection,
   resolveSortRange,
   useSpreadsheetBackend,
@@ -81,6 +82,7 @@ export function useSortConfirmation(): SortConfirmationController {
     if (!confirmed) return
     void store.setter(runPhysicalSortAtom, {
       source: backend,
+      historyEntryRecorder: createHistoryEntryRecorder(backend),
       entrypoint: 'toolbar',
       direction: confirmed.direction,
       range: confirmed.range,

@@ -13,7 +13,7 @@ import {
   selectionSnapshotAtom,
   type MenuItemDispatch,
 } from '@einfach/spreadsheet-ui-core'
-import { refreshVisibleProjection, resolveSortRange } from '../provider'
+import { createHistoryEntryRecorder, refreshVisibleProjection, resolveSortRange } from '../provider'
 import type { MenuBarCommandContext } from './menu-bar-command-context'
 
 function runTextToColumnsEntrypoint(context: MenuBarCommandContext) {
@@ -51,6 +51,7 @@ export function dispatchMenuBarDataCommand(
       if (!sheetId) return true
       void store.setter(runCreateTableAtom, {
         source: backend,
+        historyEntryRecorder: createHistoryEntryRecorder(backend),
         sheetId,
         range: snapshot.range,
         refreshProjection: (target: string) => refreshVisibleProjection(store, backend, target),
@@ -63,6 +64,7 @@ export function dispatchMenuBarDataCommand(
       if (!sheetId) return true
       void store.setter(runToggleTableTotalsAtSelectionAtom, {
         source: backend,
+        historyEntryRecorder: createHistoryEntryRecorder(backend),
         sheetId,
         cell: { row: snapshot.activeCell.row, col: snapshot.activeCell.col },
         refreshProjection: (target?: string) =>
@@ -105,6 +107,7 @@ export function dispatchMenuBarDataCommand(
         const range = await resolveSortRange(store, backend, sheetId, snapshot.activeCell)
         void store.setter(runPhysicalSortAtom, {
           source: backend,
+          historyEntryRecorder: createHistoryEntryRecorder(backend),
           entrypoint: 'menu-bar',
           direction,
           range,

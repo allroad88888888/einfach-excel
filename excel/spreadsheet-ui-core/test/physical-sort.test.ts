@@ -1,4 +1,4 @@
-import { describe, expect, test } from '@jest/globals'
+import { afterAll, beforeAll, describe, expect, test } from '@jest/globals'
 import { createStore } from '@einfach/core'
 import {
   PHYSICAL_SORT_CAPABILITY_ERROR,
@@ -26,6 +26,7 @@ import {
 import type {
   CellRange,
   DisplayCell,
+  HistoryEntryRecorder,
   PhysicalSortControllerPort,
   SetFilterSortRequest,
   SortRangeRejectionCode,
@@ -37,6 +38,29 @@ import type {
 function makeStore() {
   return createStore()
 }
+
+const recordHistory: HistoryEntryRecorder = (entry, append) =>
+  append(entry) ? 'recorded' : 'rejected'
+
+function withTestHistoryRecorder<
+  T extends { readonly historyEntryRecorder: HistoryEntryRecorder },
+>(input: T): T {
+  if (Object.hasOwn(input, 'historyEntryRecorder')) return input
+  return Object.create(input, {
+    historyEntryRecorder: { enumerable: true, value: recordHistory },
+  }) as T
+}
+
+const runPhysicalSortWrite = runPhysicalSortAtom.write
+
+beforeAll(() => {
+  runPhysicalSortAtom.write = (get, set, input) =>
+    runPhysicalSortWrite(get, set, withTestHistoryRecorder(input))
+})
+
+afterAll(() => {
+  runPhysicalSortAtom.write = runPhysicalSortWrite
+})
 
 function setActiveCell(
   store: ReturnType<typeof makeStore>,
@@ -536,6 +560,7 @@ describe('runPhysicalSortAtom — structured rejections', () => {
     const rejectingSource = makePhysicalSource({ result: rejected('source-too-large') })
     await store.setter(runPhysicalSortAtom, {
       source: rejectingSource.source,
+      historyEntryRecorder: recordHistory,
       entrypoint: 'toolbar',
       direction: 'asc',
       range: RANGE,
@@ -546,6 +571,7 @@ describe('runPhysicalSortAtom — structured rejections', () => {
     const applyingSource = makePhysicalSource()
     await store.setter(runPhysicalSortAtom, {
       source: applyingSource.source,
+      historyEntryRecorder: recordHistory,
       entrypoint: 'toolbar',
       direction: 'asc',
       range: RANGE,

@@ -5,6 +5,7 @@ import { Provider } from '@einfach/solid'
 import {
   runCreateTableAtom,
   runToggleTableTotalsAtom,
+  type HistoryEntryRecorder,
   type TablesControllerPort,
 } from '@einfach/spreadsheet-ui-core'
 import { afterEach, describe, expect, it } from '@jest/globals'
@@ -13,6 +14,9 @@ import { cleanup, fireEvent, render } from '@solidjs/testing-library'
 import { SpreadsheetTablesFeedback } from '../src-vnext/tables'
 
 const A1_C4 = { rowStart: 0, rowEnd: 3, colStart: 0, colEnd: 2 }
+
+const recordHistory: HistoryEntryRecorder = (entry, append) =>
+  append(entry) ? 'recorded' : 'rejected'
 
 function mount(store: Store) {
   return render(() => (
@@ -53,6 +57,7 @@ describe('SpreadsheetTablesFeedback', () => {
 
     await store.setter(runCreateTableAtom, {
       source: tableSource(),
+      historyEntryRecorder: recordHistory,
       sheetId: 'sheet-1',
       range: A1_C4,
       name: 'Sales',
@@ -70,6 +75,7 @@ describe('SpreadsheetTablesFeedback', () => {
 
     await store.setter(runToggleTableTotalsAtom, {
       source: tableSource(),
+      historyEntryRecorder: recordHistory,
       name: 'Sales',
       enabled: true,
       sheetId: 'sheet-1',
@@ -88,6 +94,7 @@ describe('SpreadsheetTablesFeedback', () => {
 
     await store.setter(runCreateTableAtom, {
       source: tableSource(),
+      historyEntryRecorder: recordHistory,
       sheetId: 'sheet-1',
       range: { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 0 },
     })

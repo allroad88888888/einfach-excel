@@ -16,7 +16,12 @@ import {
   type SpreadsheetTableDescriptor,
 } from '@einfach/spreadsheet-ui-core'
 import { useT } from '../../src/i18n'
-import { refreshVisibleProjection, useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider'
+import {
+  createHistoryEntryRecorder,
+  refreshVisibleProjection,
+  useSpreadsheetBackend,
+  useSpreadsheetUiStore,
+} from '../provider'
 import { TABLE_DIAGNOSTIC_COPY_KEY } from './name-manager-dialog-copy'
 
 export function NameManagerTables() {
@@ -47,6 +52,7 @@ export function NameManagerTables() {
   function commitRename(table: SpreadsheetTableDescriptor): void {
     void store.setter(runRenameTableAtom, {
       source: backend,
+      historyEntryRecorder: createHistoryEntryRecorder(backend),
       name: table.name,
       newName: editor().renameDraft,
       sheetId: table.sheetId,
@@ -59,6 +65,7 @@ export function NameManagerTables() {
     store.setter(setNameManagerTablePendingDeleteAtom, { sessionId: sessionId(), name: null })
     void store.setter(runDeleteTableAtom, {
       source: backend,
+      historyEntryRecorder: createHistoryEntryRecorder(backend),
       name: table.name,
       sheetId: table.sheetId,
       refreshProjection: (sheetId?: string) =>

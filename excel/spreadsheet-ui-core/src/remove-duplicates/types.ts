@@ -5,6 +5,7 @@ import type {
   RangeProjectionRequest,
   RangeProjectionResult,
 } from '../backend/types'
+import type { HistoryEntryRecorder } from '../history'
 import type { SelectionAuthorityWitness } from '../selection'
 import type { CellRange } from '../shared'
 import type { WorkspaceActiveSheetAuthorityWitness } from '../workspace'
@@ -215,6 +216,7 @@ export interface OpenRemoveDuplicatesInput {
 
 export interface RunRemoveDuplicatesConfirmInput {
   readonly source: RemoveDuplicatesControllerPort
+  readonly historyEntryRecorder: HistoryEntryRecorder
   readonly sessionId: number
   readonly refreshProjection: (sheetId: string) => Promise<void>
   /** Per-attempt mutation/refresh deadline. Defaults to 15 seconds. */

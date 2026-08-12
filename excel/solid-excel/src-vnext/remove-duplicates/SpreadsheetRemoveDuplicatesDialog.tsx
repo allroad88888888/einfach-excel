@@ -26,7 +26,12 @@ import {
   type RemoveDuplicatesComparison,
 } from '@einfach/spreadsheet-ui-core'
 import { useOverlayInteraction } from '../overlay'
-import { refreshVisibleProjection, useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider'
+import {
+  createHistoryEntryRecorder,
+  refreshVisibleProjection,
+  useSpreadsheetBackend,
+  useSpreadsheetUiStore,
+} from '../provider'
 import {
   REMOVE_DUPLICATES_DIALOG_ERROR_ID,
   REMOVE_DUPLICATES_DIALOG_PREVIEW_ID,
@@ -84,6 +89,7 @@ export function SpreadsheetRemoveDuplicatesDialog(props: SpreadsheetRemoveDuplic
     if (sessionId === undefined) return
     void store.setter(runRemoveDuplicatesConfirmAtom, {
       source: backend,
+      historyEntryRecorder: createHistoryEntryRecorder(backend),
       sessionId,
       refreshProjection: (sheetId) => refreshVisibleProjection(store, backend, sheetId, 'toolbar'),
     })

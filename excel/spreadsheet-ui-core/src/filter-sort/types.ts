@@ -6,6 +6,7 @@ import type {
   SortRangeRequest,
   SortRangeResult,
 } from '../backend/types'
+import type { HistoryEntryRecorder } from '../history'
 
 export type SortDirection = 'asc' | 'desc'
 
@@ -206,6 +207,7 @@ export type FilterSortMutationIntent =
 
 export interface RunFilterSortMutationInput {
   readonly source: FilterSortControllerPort
+  readonly historyEntryRecorder: HistoryEntryRecorder
   readonly sessionId: number
   readonly intent: FilterSortMutationIntent
   readonly refreshProjection: (sheetId: string) => Promise<void>
@@ -245,6 +247,7 @@ export interface PhysicalSortControllerPort {
 
 export interface RunPhysicalSortInput {
   readonly source: PhysicalSortControllerPort
+  readonly historyEntryRecorder: HistoryEntryRecorder
   readonly entrypoint: FilterSortEntrypoint
   readonly direction: SortDirection
   /**

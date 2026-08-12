@@ -1,6 +1,6 @@
 # W8：历史记录能力收敛
 
-> 状态：UI-519a 至 UI-519e 已完成；下一步为 UI-519f 的 tables、filter-sort 与 remove-duplicates 迁移
+> 状态：UI-519a 至 UI-519f 已完成
 
 ## 目标
 
@@ -39,7 +39,7 @@ history Atom。继续保留既有 history Atom 作为历史事实的唯一权威
 | UI-519c | editing 与 auto-fill | UI-519b | 已完成：在 ACK 后经 required recorder 执行 reserved append；保留 reservation、transaction、revision、refresh。 |
 | UI-519d | paste-special 与 text-to-columns | UI-519b | 已完成：保留 reserved/direct 的原有差异；无能力时只跳过 history。 |
 | UI-519e | operations 与 toolbar | UI-519b | 已完成：结构事务保留 reservation/localSidePayload，工具栏在完整 ACK 后记录。 |
-| UI-519f | tables、filter-sort、remove-duplicates | UI-519b | 最后处理多入口表格与筛选命令。 |
+| UI-519f | tables、filter-sort、remove-duplicates | UI-519b | 已完成：多入口表格、筛选、物理排序与去重都在 ACK 后经 required recorder 写入原有账本。 |
 
 ### UI-519a 交付（已完成）
 
@@ -123,6 +123,23 @@ handle 创建 recorder；Core ticket 不持有 backend。定向 8 个 Jest 套�
 `operations/index.ts`（1,456→1,501 行）、`toolbar/index.ts`（980→1,010 行）与 operations/toolbar 的既有
 测试已在本 issue 前超过普通文件上限；本次只在既有 mutation ticket 和共享 fixture seam 窄改。后续若再次修改
 这些域，应独立按 mutation-history 职责拆分，而不是继续扩张这些单体文件。
+
+### UI-519f tables、filter-sort 与 remove-duplicates（已完成）
+
+表格的 create、totals、total-function、rename、rename-column 与 delete，filter-sort mutation、physical sort
+与 Remove Duplicates 都在 transport 前捕获必填 `HistoryEntryRecorder`。Core ticket 只保存该 callback，绝不保存
+backend；严格 ACK 后才把既有 `pushHistoryAtom` 或 `pushReservedHistoryAtom` 包装为 append callback。完整 undo/redo
+能力会记录历史；`unavailable` 只跳过历史并继续既有 refresh；`rejected` 保持 outcome-unknown、预约和不重发语义。
+
+Filter dropdown、数据菜单、名称管理器表格、去重对话框、排序确认与 toolbar 的真实启动入口均从 Provider 的稳定
+forwarding backend handle 创建 recorder。filter-sort 与 Remove Duplicates 保留原有 reservation、transaction、
+revision、authority witness 和 refresh-only retry；没有改动 `viewport/freeze.ts`、`viewport/hidden.ts` 或
+`outline/index.ts` 的 localReplay。
+
+根节点复跑四个 Core 和三个 Solid 定向套件共 420 个断言，加上 Core 声明构建、Solid TypeScript 与 diff check
+均通过；agent 的范围 ESLint/Prettier 亦为 0 error。`tables/commands.ts`（1,304 行）、四份既有 Core 测试
+（719–3,204 行）和 `vnext-adapter.test.ts`（5,853 行）均是本次前已超限的单体文件；只在公共 fixture 或既有
+命令 seam 作必要窄改，未在 history issue 中做无关的大拆分。
 
 ## D：实施门槛
 

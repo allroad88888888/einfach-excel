@@ -1,7 +1,7 @@
 import { atom } from '@einfach/core'
 import type { Atom } from '@einfach/core'
 import { nextHistoryTransactionId, pushHistoryAtom } from '../history'
-import type { HistoryEntry } from '../history'
+import type { HistoryEntry, HistoryEntryRecorder, HistoryRecordResult } from '../history'
 import { parseA1Cell, parseA1Range } from '../name-box'
 import type { CellCoord, CellRange } from '../shared'
 import type {
@@ -461,6 +461,8 @@ refreshTableCatalogAtom.debugLabel = 'spreadsheet.tables.refreshCatalog'
 
 export interface RunCreateTableInput {
   readonly source: TablesControllerPort
+  /** Host capability guard captured before the backend mutation starts. */
+  readonly historyEntryRecorder: HistoryEntryRecorder
   readonly sheetId: string
   readonly range: CellRange
   /** Optional explicit name; omit to let the engine auto-generate `Table1..N`. */
@@ -499,6 +501,12 @@ export const runCreateTableAtom = atom(
         tableDiagnosticBackingAtom,
         Object.freeze({ code: 'invalid-selection', message: TABLE_INVALID_SELECTION_ERROR }),
       )
+      return
+    }
+
+    const historyEntryRecorder = captureTableHistoryEntryRecorder(input)
+    if (historyEntryRecorder === null) {
+      setDiagnostic(set, 'invalid-payload', TABLE_HISTORY_SKEW_MESSAGE)
       return
     }
 
@@ -546,7 +554,12 @@ export const runCreateTableAtom = atom(
     // Applied — pair the adapter's transaction record with a UI-core entry
     // before anything else, then refresh the bounded cache from the
     // canonical engine registry.
-    const recorded = recordTableHistory(set, input.sheetId, result.revision)
+    const historyResult = recordTableHistory(
+      set,
+      historyEntryRecorder,
+      input.sheetId,
+      result.revision,
+    )
     set(lastCreatedTableNameBackingAtom, result.name)
     await set(refreshTableCatalogAtom, input.source)
     if (typeof input.refreshProjection === 'function') {
@@ -557,7 +570,7 @@ export const runCreateTableAtom = atom(
       }
     }
     set(activeCreateTableAtom, false)
-    if (!recorded) {
+    if (historyResult === 'rejected') {
       setDiagnostic(set, 'outcome-unknown', TABLE_HISTORY_SKEW_MESSAGE)
       return
     }
@@ -585,6 +598,8 @@ lastToggledTableTotalsAtom.debugLabel = 'spreadsheet.tables.lastToggledTotals'
 
 export interface RunToggleTableTotalsInput {
   readonly source: TablesControllerPort
+  /** Host capability guard captured before the backend mutation starts. */
+  readonly historyEntryRecorder: HistoryEntryRecorder
   /** Canonical table name to toggle. */
   readonly name: string
   /** Target state: `true` grows a totals row, `false` removes it. */
@@ -631,6 +646,12 @@ export const runToggleTableTotalsAtom = atom(
       return
     }
 
+    const historyEntryRecorder = captureTableHistoryEntryRecorder(input)
+    if (historyEntryRecorder === null) {
+      setDiagnostic(set, 'invalid-payload', TABLE_HISTORY_SKEW_MESSAGE)
+      return
+    }
+
     const requestId = nextRequestId(get(tableRequestIdBackingAtom))
     set(tableRequestIdBackingAtom, requestId)
     set(activeToggleTotalsAtom, true)
@@ -670,7 +691,12 @@ export const runToggleTableTotalsAtom = atom(
     // Applied — pair the adapter's transaction record with a UI-core entry,
     // then refresh the bounded cache (hasTotals + grown range) and publish
     // the visible witness.
-    const recorded = recordTableHistory(set, input.sheetId ?? null, result.revision)
+    const historyResult = recordTableHistory(
+      set,
+      historyEntryRecorder,
+      input.sheetId ?? null,
+      result.revision,
+    )
     set(
       lastToggledTableTotalsBackingAtom,
       Object.freeze({ name: result.name, hasTotals: input.enabled }),
@@ -684,7 +710,7 @@ export const runToggleTableTotalsAtom = atom(
       }
     }
     set(activeToggleTotalsAtom, false)
-    if (!recorded) {
+    if (historyResult === 'rejected') {
       setDiagnostic(set, 'outcome-unknown', TABLE_HISTORY_SKEW_MESSAGE)
       return
     }
@@ -695,6 +721,7 @@ runToggleTableTotalsAtom.debugLabel = 'spreadsheet.tables.runToggleTotals'
 
 export interface RunToggleTableTotalsAtSelectionInput {
   readonly source: TablesControllerPort
+  readonly historyEntryRecorder: HistoryEntryRecorder
   readonly sheetId: string
   /** Active cell used to resolve the owning table. */
   readonly cell: CellCoord
@@ -732,6 +759,12 @@ export const runToggleTableTotalsAtSelectionAtom = atom(
       return
     }
 
+    const historyEntryRecorder = captureTableHistoryEntryRecorder(input)
+    if (historyEntryRecorder === null) {
+      setDiagnostic(set, 'invalid-payload', TABLE_HISTORY_SKEW_MESSAGE)
+      return
+    }
+
     // Refresh the catalog so geometry / hasTotals are fresh before resolving.
     await set(refreshTableCatalogAtom, input.source)
     const tables = get(tableCatalogBackingAtom).filter((table) => table.sheetId === input.sheetId)
@@ -749,6 +782,7 @@ export const runToggleTableTotalsAtSelectionAtom = atom(
 
     await set(runToggleTableTotalsAtom, {
       source: input.source,
+      historyEntryRecorder,
       name: target.name,
       enabled: !target.hasTotals,
       sheetId: input.sheetId,
@@ -760,6 +794,8 @@ runToggleTableTotalsAtSelectionAtom.debugLabel = 'spreadsheet.tables.runToggleTo
 
 export interface RunSetTableTotalFunctionInput {
   readonly source: TablesControllerPort
+  /** Host capability guard captured before the backend mutation starts. */
+  readonly historyEntryRecorder: HistoryEntryRecorder
   readonly name: string
   readonly column: string
   readonly func: TableTotalsFunction
@@ -799,6 +835,12 @@ export const runSetTableTotalFunctionAtom = atom(
       return
     }
 
+    const historyEntryRecorder = captureTableHistoryEntryRecorder(input)
+    if (historyEntryRecorder === null) {
+      setDiagnostic(set, 'invalid-payload', TABLE_HISTORY_SKEW_MESSAGE)
+      return
+    }
+
     const requestId = nextRequestId(get(tableRequestIdBackingAtom))
     set(tableRequestIdBackingAtom, requestId)
     set(tableDiagnosticBackingAtom, null)
@@ -832,7 +874,12 @@ export const runSetTableTotalFunctionAtom = atom(
       return
     }
 
-    const recorded = recordTableHistory(set, input.sheetId ?? null, result.revision)
+    const historyResult = recordTableHistory(
+      set,
+      historyEntryRecorder,
+      input.sheetId ?? null,
+      result.revision,
+    )
     await set(refreshTableCatalogAtom, input.source)
     if (typeof input.refreshProjection === 'function') {
       try {
@@ -841,7 +888,7 @@ export const runSetTableTotalFunctionAtom = atom(
         // Projection refresh failure is non-fatal; the totals write landed.
       }
     }
-    if (!recorded) {
+    if (historyResult === 'rejected') {
       setDiagnostic(set, 'outcome-unknown', TABLE_HISTORY_SKEW_MESSAGE)
       return
     }
@@ -904,18 +951,38 @@ function setDiagnostic(
  * backend returned no parseable revision); callers surface that as
  * `outcome-unknown` rather than leaving a silently skewed stack.
  */
+function captureTableHistoryEntryRecorder(input: {
+  readonly historyEntryRecorder: HistoryEntryRecorder
+}): HistoryEntryRecorder | null {
+  try {
+    const recorder = input.historyEntryRecorder
+    return typeof recorder === 'function' ? recorder : null
+  } catch {
+    return null
+  }
+}
+
 function recordTableHistory(
   set: (atomToSet: typeof pushHistoryAtom, value: HistoryEntry) => boolean,
+  recorder: HistoryEntryRecorder,
   sheetId: string | null,
   revision: number | string | undefined,
-): boolean {
-  if (revision === undefined) return false
-  return set(pushHistoryAtom, {
+): HistoryRecordResult {
+  if (revision === undefined) return 'rejected'
+  const entry: HistoryEntry = {
     transactionId: nextHistoryTransactionId(),
     kind: 'table.define',
     sheetId,
     projectionRevision: revision,
-  })
+  }
+  try {
+    const result = recorder(entry, (nextEntry) => set(pushHistoryAtom, nextEntry))
+    return result === 'recorded' || result === 'unavailable' || result === 'rejected'
+      ? result
+      : 'rejected'
+  } catch {
+    return 'rejected'
+  }
 }
 
 /** Shared `outcome-unknown` copy for a mutation whose history push failed. */
@@ -924,6 +991,8 @@ const TABLE_HISTORY_SKEW_MESSAGE =
 
 export interface RunRenameTableInput {
   readonly source: TablesControllerPort
+  /** Host capability guard captured before the backend mutation starts. */
+  readonly historyEntryRecorder: HistoryEntryRecorder
   /** Current canonical table name. */
   readonly name: string
   /** Requested new name. */
@@ -978,6 +1047,12 @@ export const runRenameTableAtom = atom(
       return
     }
 
+    const historyEntryRecorder = captureTableHistoryEntryRecorder(input)
+    if (historyEntryRecorder === null) {
+      setDiagnostic(set, 'invalid-payload', TABLE_HISTORY_SKEW_MESSAGE)
+      return
+    }
+
     const requestId = nextRequestId(get(tableRequestIdBackingAtom))
     set(tableRequestIdBackingAtom, requestId)
     set(activeRenameTableAtom, true)
@@ -1003,7 +1078,12 @@ export const runRenameTableAtom = atom(
       return
     }
 
-    const recorded = recordTableHistory(set, input.sheetId ?? null, result.revision)
+    const historyResult = recordTableHistory(
+      set,
+      historyEntryRecorder,
+      input.sheetId ?? null,
+      result.revision,
+    )
     set(lastRenamedTableBackingAtom, Object.freeze({ from: name, to: result.name }))
     await set(refreshTableCatalogAtom, input.source)
     if (typeof input.refreshProjection === 'function') {
@@ -1014,7 +1094,7 @@ export const runRenameTableAtom = atom(
       }
     }
     set(activeRenameTableAtom, false)
-    if (!recorded) {
+    if (historyResult === 'rejected') {
       setDiagnostic(set, 'outcome-unknown', TABLE_HISTORY_SKEW_MESSAGE)
       return
     }
@@ -1025,6 +1105,8 @@ runRenameTableAtom.debugLabel = 'spreadsheet.tables.runRename'
 
 export interface RunRenameTableColumnInput {
   readonly source: TablesControllerPort
+  /** Host capability guard captured before the backend mutation starts. */
+  readonly historyEntryRecorder: HistoryEntryRecorder
   readonly name: string
   readonly oldColumn: string
   readonly newColumn: string
@@ -1069,6 +1151,12 @@ export const runRenameTableColumnAtom = atom(
       return
     }
 
+    const historyEntryRecorder = captureTableHistoryEntryRecorder(input)
+    if (historyEntryRecorder === null) {
+      setDiagnostic(set, 'invalid-payload', TABLE_HISTORY_SKEW_MESSAGE)
+      return
+    }
+
     const requestId = nextRequestId(get(tableRequestIdBackingAtom))
     set(tableRequestIdBackingAtom, requestId)
     set(tableDiagnosticBackingAtom, null)
@@ -1101,7 +1189,12 @@ export const runRenameTableColumnAtom = atom(
       return
     }
 
-    const recorded = recordTableHistory(set, input.sheetId ?? null, result.revision)
+    const historyResult = recordTableHistory(
+      set,
+      historyEntryRecorder,
+      input.sheetId ?? null,
+      result.revision,
+    )
     await set(refreshTableCatalogAtom, input.source)
     if (typeof input.refreshProjection === 'function') {
       try {
@@ -1110,7 +1203,7 @@ export const runRenameTableColumnAtom = atom(
         // Projection refresh failure is non-fatal; the rename landed.
       }
     }
-    if (!recorded) {
+    if (historyResult === 'rejected') {
       setDiagnostic(set, 'outcome-unknown', TABLE_HISTORY_SKEW_MESSAGE)
       return
     }
@@ -1121,6 +1214,8 @@ runRenameTableColumnAtom.debugLabel = 'spreadsheet.tables.runRenameColumn'
 
 export interface RunDeleteTableInput {
   readonly source: TablesControllerPort
+  /** Host capability guard captured before the backend mutation starts. */
+  readonly historyEntryRecorder: HistoryEntryRecorder
   /** Canonical name of the table definition to drop. */
   readonly name: string
   readonly sheetId?: string
@@ -1152,6 +1247,12 @@ export const runDeleteTableAtom = atom(
       return
     }
 
+    const historyEntryRecorder = captureTableHistoryEntryRecorder(input)
+    if (historyEntryRecorder === null) {
+      setDiagnostic(set, 'invalid-payload', TABLE_HISTORY_SKEW_MESSAGE)
+      return
+    }
+
     const requestId = nextRequestId(get(tableRequestIdBackingAtom))
     set(tableRequestIdBackingAtom, requestId)
     set(activeDeleteTableAtom, true)
@@ -1177,7 +1278,12 @@ export const runDeleteTableAtom = atom(
       return
     }
 
-    const recorded = recordTableHistory(set, input.sheetId ?? null, result.revision)
+    const historyResult = recordTableHistory(
+      set,
+      historyEntryRecorder,
+      input.sheetId ?? null,
+      result.revision,
+    )
     set(lastDeletedTableNameBackingAtom, result.name || name)
     await set(refreshTableCatalogAtom, input.source)
     if (typeof input.refreshProjection === 'function') {
@@ -1188,7 +1294,7 @@ export const runDeleteTableAtom = atom(
       }
     }
     set(activeDeleteTableAtom, false)
-    if (!recorded) {
+    if (historyResult === 'rejected') {
       setDiagnostic(set, 'outcome-unknown', TABLE_HISTORY_SKEW_MESSAGE)
       return
     }

@@ -34,7 +34,7 @@ import {
   updateFilterSortDraftAtom,
   viewportFilterHiddenAtom,
 } from '@einfach/spreadsheet-ui-core'
-import type { SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
+import type { HistoryEntryRecorder, SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
 import { createStaticSpreadsheetBackend } from '../src-vnext/adapter'
 
 const SHEET = 'sheet-1'
@@ -54,6 +54,9 @@ function makeBackend() {
 }
 
 let requestId = 100
+
+const recordHistory: HistoryEntryRecorder = (entry, append) =>
+  append(entry) ? 'recorded' : 'rejected'
 
 /** The regions the projection is currently painting, in row order. */
 async function visibleRegions(backend: SpreadsheetBackend): Promise<string[]> {
@@ -90,6 +93,7 @@ async function applyFilter(store: ReturnType<typeof createStore>, backend: Sprea
   })
   await store.setter(runFilterSortMutationAtom, {
     source: backend,
+    historyEntryRecorder: recordHistory,
     sessionId: draftSessionId,
     intent: { kind: 'apply-draft' },
     refreshProjection: async () => undefined,

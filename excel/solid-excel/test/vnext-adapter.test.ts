@@ -12,6 +12,7 @@ import {
   runRemoveDuplicatesConfirmAtom,
   selectionAtom,
   setWorkspaceActiveSheetAtom,
+  type HistoryEntryRecorder,
   type RemoveDuplicatesControllerPort,
   type RemoveRowsExactRequest,
 } from '@einfach/spreadsheet-ui-core'
@@ -45,6 +46,9 @@ import {
   sparseCellsToDisplayCells,
   sparseCellsToRangeProjectionResult,
 } from '../src-vnext/adapter'
+
+const recordHistory: HistoryEntryRecorder = (entry, append) =>
+  append(entry) ? 'recorded' : 'rejected'
 
 type FakeWorkerWorkbookClient = WorkerWorkbookClient & {
   calls: {
@@ -4745,6 +4749,7 @@ describe('vnext adapter', () => {
     await expect(
       store.setter(runRemoveDuplicatesConfirmAtom, {
         source,
+        historyEntryRecorder: recordHistory,
         sessionId,
         refreshProjection: async () => {},
       }),

@@ -1,4 +1,4 @@
-import { describe, expect, test } from '@jest/globals'
+import { afterAll, beforeAll, describe, expect, test } from '@jest/globals'
 import { createStore } from '@einfach/core'
 import {
   MAX_TABLE_CATALOG_ENTRIES,
@@ -60,11 +60,59 @@ import type {
   TableMutationRejectionCode,
   TableMutationResult,
   TablesControllerPort,
+  HistoryEntryRecorder,
 } from '../src'
 
 function makeStore() {
   return createStore()
 }
+
+const recordHistory: HistoryEntryRecorder = (entry, append) =>
+  append(entry) ? 'recorded' : 'rejected'
+
+function withTestHistoryRecorder<
+  T extends { readonly historyEntryRecorder: HistoryEntryRecorder },
+>(input: T): T {
+  if (Object.hasOwn(input, 'historyEntryRecorder')) return input
+  return Object.create(input, {
+    historyEntryRecorder: { enumerable: true, value: recordHistory },
+  }) as T
+}
+
+const runCreateTableWrite = runCreateTableAtom.write
+const runDeleteTableWrite = runDeleteTableAtom.write
+const runRenameTableWrite = runRenameTableAtom.write
+const runRenameTableColumnWrite = runRenameTableColumnAtom.write
+const runSetTableTotalFunctionWrite = runSetTableTotalFunctionAtom.write
+const runToggleTableTotalsWrite = runToggleTableTotalsAtom.write
+const runToggleTableTotalsAtSelectionWrite = runToggleTableTotalsAtSelectionAtom.write
+
+beforeAll(() => {
+  runCreateTableAtom.write = (get, set, input) =>
+    runCreateTableWrite(get, set, withTestHistoryRecorder(input))
+  runDeleteTableAtom.write = (get, set, input) =>
+    runDeleteTableWrite(get, set, withTestHistoryRecorder(input))
+  runRenameTableAtom.write = (get, set, input) =>
+    runRenameTableWrite(get, set, withTestHistoryRecorder(input))
+  runRenameTableColumnAtom.write = (get, set, input) =>
+    runRenameTableColumnWrite(get, set, withTestHistoryRecorder(input))
+  runSetTableTotalFunctionAtom.write = (get, set, input) =>
+    runSetTableTotalFunctionWrite(get, set, withTestHistoryRecorder(input))
+  runToggleTableTotalsAtom.write = (get, set, input) =>
+    runToggleTableTotalsWrite(get, set, withTestHistoryRecorder(input))
+  runToggleTableTotalsAtSelectionAtom.write = (get, set, input) =>
+    runToggleTableTotalsAtSelectionWrite(get, set, withTestHistoryRecorder(input))
+})
+
+afterAll(() => {
+  runCreateTableAtom.write = runCreateTableWrite
+  runDeleteTableAtom.write = runDeleteTableWrite
+  runRenameTableAtom.write = runRenameTableWrite
+  runRenameTableColumnAtom.write = runRenameTableColumnWrite
+  runSetTableTotalFunctionAtom.write = runSetTableTotalFunctionWrite
+  runToggleTableTotalsAtom.write = runToggleTableTotalsWrite
+  runToggleTableTotalsAtSelectionAtom.write = runToggleTableTotalsAtSelectionWrite
+})
 
 const A1_C4 = { rowStart: 0, rowEnd: 3, colStart: 0, colEnd: 2 }
 
@@ -418,6 +466,7 @@ describe('tables — runToggleTableTotalsAtom', () => {
     let refreshedSheet: string | undefined
     await store.setter(runToggleTableTotalsAtom, {
       source: harness.source,
+      historyEntryRecorder: recordHistory,
       name: 'Table1',
       enabled: true,
       sheetId: 'sheet-1',
@@ -486,6 +535,7 @@ describe('tables — runToggleTableTotalsAtSelectionAtom', () => {
 
     await store.setter(runToggleTableTotalsAtSelectionAtom, {
       source: harness.source,
+      historyEntryRecorder: recordHistory,
       sheetId: 'sheet-1',
       cell: { row: 2, col: 1 },
     })
@@ -501,6 +551,7 @@ describe('tables — runToggleTableTotalsAtSelectionAtom', () => {
 
     await store.setter(runToggleTableTotalsAtSelectionAtom, {
       source: harness.source,
+      historyEntryRecorder: recordHistory,
       sheetId: 'sheet-1',
       cell: { row: 20, col: 20 },
     })
@@ -533,6 +584,7 @@ describe('tables — runSetTableTotalFunctionAtom', () => {
 
     await store.setter(runSetTableTotalFunctionAtom, {
       source: harness.source,
+      historyEntryRecorder: recordHistory,
       name: 'Table1',
       column: 'Age',
       func: 'average',
@@ -557,6 +609,7 @@ describe('tables — runSetTableTotalFunctionAtom', () => {
     })
     await store.setter(runSetTableTotalFunctionAtom, {
       source: rejectHarness.source,
+      historyEntryRecorder: recordHistory,
       name: 'Table1',
       column: 'Age',
       func: 'sum',
@@ -696,6 +749,7 @@ describe('tables — runRenameTableAtom', () => {
 
     await store.setter(runRenameTableAtom, {
       source: harness.source,
+      historyEntryRecorder: recordHistory,
       name: 'Table1',
       newName: 'Sales',
     })
@@ -717,6 +771,7 @@ describe('tables — runRenameTableAtom', () => {
     let refreshedSheet: string | undefined | null = null
     await store.setter(runRenameTableAtom, {
       source: harness.source,
+      historyEntryRecorder: recordHistory,
       name: '  Table1  ',
       newName: '  Sales  ',
       sheetId: 'sheet-1',
@@ -750,6 +805,7 @@ describe('tables — runRenameTableAtom', () => {
 
     await store.setter(runRenameTableAtom, {
       source: harness.source,
+      historyEntryRecorder: recordHistory,
       name: 'Table1',
       newName,
     })
@@ -763,7 +819,8 @@ describe('tables — runRenameTableAtom', () => {
     const store = makeStore()
     const harness = makeLifecycleSource()
 
-    await store.setter(runRenameTableAtom, { source: harness.source, name: '  ', newName: 'Sales' })
+    await store.setter(runRenameTableAtom, { source: harness.source,
+historyEntryRecorder: recordHistory, name: '  ', newName: 'Sales' })
 
     expect(harness.renameRequests).toHaveLength(0)
     expect(store.getter(tableDiagnosticAtom)).toEqual({
@@ -778,6 +835,7 @@ describe('tables — runRenameTableAtom', () => {
 
     await store.setter(runRenameTableAtom, {
       source: harness.source,
+      historyEntryRecorder: recordHistory,
       name: 'Table1',
       newName: 'TABLE1',
     })
@@ -802,6 +860,7 @@ describe('tables — runRenameTableAtom', () => {
 
     await store.setter(runRenameTableAtom, {
       source: harness.source,
+      historyEntryRecorder: recordHistory,
       name: 'Table1',
       newName: 'Sales',
     })
@@ -821,6 +880,7 @@ describe('tables — runRenameTableAtom', () => {
 
     await store.setter(runRenameTableAtom, {
       source: harness.source,
+      historyEntryRecorder: recordHistory,
       name: 'Table1',
       newName: 'Sales',
     })
@@ -836,7 +896,8 @@ describe('tables — runDeleteTableAtom', () => {
     const store = makeStore()
     const harness = makeLifecycleSource({ withoutDelete: true })
 
-    await store.setter(runDeleteTableAtom, { source: harness.source, name: 'Table1' })
+    await store.setter(runDeleteTableAtom, { source: harness.source,
+historyEntryRecorder: recordHistory, name: 'Table1' })
 
     expect(harness.deleteRequests).toHaveLength(0)
     expect(harness.listCalls).toBe(0)
@@ -870,6 +931,7 @@ describe('tables — runDeleteTableAtom', () => {
 
     await store.setter(runDeleteTableAtom, {
       source: harness.source,
+      historyEntryRecorder: recordHistory,
       name: 'Table1',
       sheetId: 'sheet-1',
     })
@@ -886,7 +948,8 @@ describe('tables — runDeleteTableAtom', () => {
     const store = makeStore()
     const harness = makeLifecycleSource()
 
-    await store.setter(runDeleteTableAtom, { source: harness.source, name: '   ' })
+    await store.setter(runDeleteTableAtom, { source: harness.source,
+historyEntryRecorder: recordHistory, name: '   ' })
 
     expect(harness.deleteRequests).toHaveLength(0)
     expect(harness.listCalls).toBe(0)
@@ -909,7 +972,8 @@ describe('tables — runDeleteTableAtom', () => {
       }),
     })
 
-    await store.setter(runDeleteTableAtom, { source: harness.source, name: 'Ghost' })
+    await store.setter(runDeleteTableAtom, { source: harness.source,
+historyEntryRecorder: recordHistory, name: 'Ghost' })
 
     expect(harness.listCalls).toBe(0)
     expect(store.getter(lastDeletedTableNameAtom)).toBeNull()
@@ -923,7 +987,8 @@ describe('tables — runDeleteTableAtom', () => {
     const store = makeStore()
     const harness = makeLifecycleSource({ throwOnDelete: 'transport gone' })
 
-    await store.setter(runDeleteTableAtom, { source: harness.source, name: 'Table1' })
+    await store.setter(runDeleteTableAtom, { source: harness.source,
+historyEntryRecorder: recordHistory, name: 'Table1' })
 
     const diagnostic = store.getter(tableDiagnosticAtom)
     expect(diagnostic?.code).toBe('outcome-unknown')
@@ -938,6 +1003,7 @@ describe('tables — runRenameTableColumnAtom', () => {
 
     await store.setter(runRenameTableColumnAtom, {
       source: harness.source,
+      historyEntryRecorder: recordHistory,
       name: 'Table1',
       oldColumn: 'Q1',
       newColumn: 'Quarter 1',
@@ -958,6 +1024,7 @@ describe('tables — runRenameTableColumnAtom', () => {
 
     await store.setter(runRenameTableColumnAtom, {
       source: harness.source,
+      historyEntryRecorder: recordHistory,
       name: 'Table1',
       oldColumn: ' Q1 ',
       newColumn: ' Quarter 1 ',
@@ -979,6 +1046,7 @@ describe('tables — runRenameTableColumnAtom', () => {
 
     await store.setter(runRenameTableColumnAtom, {
       source: harness.source,
+      historyEntryRecorder: recordHistory,
       name: 'Table1',
       oldColumn: 'Q1',
       newColumn: 'Q1',
@@ -990,6 +1058,7 @@ describe('tables — runRenameTableColumnAtom', () => {
 
     await store.setter(runRenameTableColumnAtom, {
       source: harness.source,
+      historyEntryRecorder: recordHistory,
       name: 'Table1',
       oldColumn: 'Q1',
       newColumn: '  ',
@@ -1006,6 +1075,7 @@ describe('tables — runRenameTableColumnAtom', () => {
 
     await store.setter(runRenameTableColumnAtom, {
       source: harness.source,
+      historyEntryRecorder: recordHistory,
       name: 'Table1',
       oldColumn: 'Q1',
       newColumn: 'Q1 2024 (net)',

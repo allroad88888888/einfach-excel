@@ -7,8 +7,6 @@ import {
   filterSortStateAtom,
   outlineAtom,
   pointerSessionAtom,
-  presenceStateAtom,
-  remoteCursorsAtom,
   selectionRegionsAtom,
   selectionSnapshotAtom,
   viewportFreezeAtom,
@@ -37,8 +35,6 @@ export function useGridAtomAccessors() {
     outlineState: useAtomValue(outlineAtom),
     pointerSession: useAtomValue(pointerSessionAtom),
     filterSortState: useAtomValue(filterSortStateAtom),
-    remoteCursors: useAtomValue(remoteCursorsAtom),
-    presenceState: useAtomValue(presenceStateAtom),
     showGridlines: useAtomValue(viewportShowGridlinesAtom),
     showHeadings: useAtomValue(viewportShowHeadingsAtom),
   }

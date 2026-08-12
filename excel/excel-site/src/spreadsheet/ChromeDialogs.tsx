@@ -20,7 +20,6 @@ import {
   SpreadsheetGoToDialog,
   SpreadsheetNameManagerDialog,
   SpreadsheetPasteSpecialDialog,
-  SpreadsheetPresenceOverlay,
   SpreadsheetPrintPreviewOverlay,
   SpreadsheetProtectionUnlockDialog,
   SpreadsheetRemoveDuplicatesDialog,
@@ -43,7 +42,6 @@ export default function ChromeDialogs() {
       <SpreadsheetCommentThread />
       <SpreadsheetPrintPreviewOverlay />
       <SpreadsheetProtectionUnlockDialog />
-      <SpreadsheetPresenceOverlay />
     </>
   )
 }

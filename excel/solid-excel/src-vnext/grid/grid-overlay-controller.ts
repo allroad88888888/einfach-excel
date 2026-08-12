@@ -1,31 +1,15 @@
-import {
-  getSelectionRange,
-  type RemoteCursor,
-} from '@einfach/spreadsheet-ui-core'
-import type { JSX } from 'solid-js'
-import type { GridLayoutApi } from './grid-layout'
+import { getSelectionRange, type SelectionState } from '@einfach/spreadsheet-ui-core'
 import { installGridFeature, type GridRuntimeBase } from './grid-runtime'
 import type { GridSelectionApi } from './grid-selection'
 import type { GridViewStateApi } from './grid-view-state'
 
-/** Bridges rendered grid geometry and collaboration state to overlay components. */
+/** Bridges rendered grid DOM geometry to overlay components. */
 type GridOverlayControllerRuntime = GridRuntimeBase &
   Pick<GridViewStateApi, 'projectionSnapshot'> &
-  Pick<GridSelectionApi, 'getSelectionBounds' | 'getRows' | 'getCols'> &
-  Pick<GridLayoutApi, 'getRenderedRowHeight' | 'getRenderedColumnWidth'>
+  Pick<GridSelectionApi, 'getSelectionBounds' | 'getRows' | 'getCols'>
 
 export function installGridOverlayController(runtime: GridOverlayControllerRuntime) {
-  const {
-    props,
-    atoms,
-    dom,
-    projectionSnapshot,
-    getSelectionBounds,
-    getRows,
-    getCols,
-    getRenderedRowHeight,
-    getRenderedColumnWidth,
-  } = runtime
+  const { props, atoms, dom, projectionSnapshot, getSelectionBounds, getRows, getCols } = runtime
 
   function getFilterRulesForSheet() {
     return atoms.filterSortState()[props.sheetId]?.rules ?? []
@@ -33,16 +17,6 @@ export function installGridOverlayController(runtime: GridOverlayControllerRunti
 
   function colHasFilterRule(col: number): boolean {
     return getFilterRulesForSheet().some((rule: { colIndex: number }) => rule.colIndex === col)
-  }
-
-  function getRemoteCursorsForSheet() {
-    return atoms.remoteCursors().filter((cursor) => cursor.sheetId === props.sheetId)
-  }
-
-  function getParticipantColorHint(participantId: string): string | undefined {
-    const participants = atoms.presenceState().participants
-    return participants.find((participant) => participant.id === participantId)
-      ?.colorHint
   }
 
   function findMergeAnchorCovering(row: number, col: number) {
@@ -56,7 +30,12 @@ export function installGridOverlayController(runtime: GridOverlayControllerRunti
       const anchorCol = Number(element.dataset.col)
       const rowspan = Number(element.getAttribute('rowspan') ?? 1) || 1
       const colspan = Number(element.getAttribute('colspan') ?? 1) || 1
-      if (row >= anchorRow && row < anchorRow + rowspan && col >= anchorCol && col < anchorCol + colspan) {
+      if (
+        row >= anchorRow &&
+        row < anchorRow + rowspan &&
+        col >= anchorCol &&
+        col < anchorCol + colspan
+      ) {
         return { el: element, row: anchorRow, col: anchorCol, rowspan, colspan }
       }
     }
@@ -73,25 +52,42 @@ export function installGridOverlayController(runtime: GridOverlayControllerRunti
     if (td) {
       const rootRect = scrollRoot.getBoundingClientRect()
       const cellRect = td.getBoundingClientRect()
-      return { x: cellRect.left - rootRect.left, y: cellRect.top - rootRect.top, w: cellRect.width, h: cellRect.height }
+      return {
+        x: cellRect.left - rootRect.left,
+        y: cellRect.top - rootRect.top,
+        w: cellRect.width,
+        h: cellRect.height,
+      }
     }
     const anchor = findMergeAnchorCovering(row, col)
     if (anchor) {
       const rootRect = scrollRoot.getBoundingClientRect()
       const anchorRect = anchor.el.getBoundingClientRect()
-      return { x: anchorRect.left - rootRect.left, y: anchorRect.top - rootRect.top, w: anchorRect.width, h: anchorRect.height }
+      return {
+        x: anchorRect.left - rootRect.left,
+        y: anchorRect.top - rootRect.top,
+        w: anchorRect.width,
+        h: anchorRect.height,
+      }
     }
-    const rows = getRows() as readonly number[]
-    const cols = getCols() as readonly number[]
-    if (!rows.length || !cols.length || !rows.includes(row) || !cols.includes(col)) return null
-    const x = cols.filter((index) => index < col).reduce((sum, index) => sum + getRenderedColumnWidth(index), 0)
-    const y = rows.filter((index) => index < row).reduce((sum, index) => sum + getRenderedRowHeight(index), 0)
-    const corner = gridRoot.querySelector('.spreadsheet-grid-corner') as HTMLElement | null
-    const header = gridRoot.querySelector(`.spreadsheet-grid-col-header[data-col="${cols[0]}"]`) as HTMLElement | null
-    const rowHeader = gridRoot.querySelector(`.spreadsheet-grid-row-header[data-row="${rows[0]}"]`) as HTMLElement | null
-    const offsetX = corner?.getBoundingClientRect().width ?? rowHeader?.getBoundingClientRect().width ?? 0
-    const offsetY = corner?.getBoundingClientRect().height ?? header?.getBoundingClientRect().height ?? 0
-    return { x: offsetX + x, y: offsetY + y, w: getRenderedColumnWidth(col), h: getRenderedRowHeight(row) }
+    return null
+  }
+
+  function resolveSelectionRect(sheetId: string, selection: SelectionState) {
+    if (sheetId !== props.sheetId || selection.sheetId !== props.sheetId) return null
+    const range = getSelectionRange(selection, getSelectionBounds())
+    const rows = getRows().filter((row) => row >= range.rowStart && row <= range.rowEnd)
+    const cols = getCols().filter((col) => col >= range.colStart && col <= range.colEnd)
+    if (!rows.length || !cols.length) return null
+    const topLeft = getOverlayCellRect(rows[0], cols[0])
+    const bottomRight = getOverlayCellRect(rows[rows.length - 1], cols[cols.length - 1])
+    if (!topLeft || !bottomRight) return null
+    return {
+      left: topLeft.x,
+      top: topLeft.y,
+      width: Math.max(0, bottomRight.x + bottomRight.w - topLeft.x),
+      height: Math.max(0, bottomRight.y + bottomRight.h - topLeft.y),
+    }
   }
 
   function getOverlaySurfaceSize() {
@@ -116,29 +112,15 @@ export function installGridOverlayController(runtime: GridOverlayControllerRunti
     return { x: cornerRect.right - rootRect.left, y: cornerRect.bottom - rootRect.top }
   }
 
-  function getRemoteCursorStyle(cursor: RemoteCursor): JSX.CSSProperties {
-    const range = getSelectionRange(cursor.selection, getSelectionBounds())
-    const rows = getRows() as readonly number[]
-    const cols = getCols() as readonly number[]
-    const top = rows.filter((row) => row < range.rowStart).reduce((sum, row) => sum + getRenderedRowHeight(row), 0)
-    const left = cols.filter((col) => col < range.colStart).reduce((sum, col) => sum + getRenderedColumnWidth(col), 0)
-    const height = rows.filter((row) => row >= range.rowStart && row <= range.rowEnd).reduce((sum, row) => sum + getRenderedRowHeight(row), 0)
-    const width = cols.filter((col) => col >= range.colStart && col <= range.colEnd).reduce((sum, col) => sum + getRenderedColumnWidth(col), 0)
-    const color = getParticipantColorHint(cursor.participantId) ?? '#4f90f0'
-    return { position: 'absolute', top: `${top}px`, left: `${left}px`, height: `${Math.max(height, 1)}px`, width: `${Math.max(width, 1)}px`, border: `2px solid ${color}`, 'pointer-events': 'none', 'box-sizing': 'border-box' }
-  }
-
   return installGridFeature(runtime, {
     getFilterRulesForSheet,
     colHasFilterRule,
-    getRemoteCursorsForSheet,
-    getParticipantColorHint,
     findMergeAnchorCovering,
     getOverlayCellRect,
+    resolveSelectionRect,
     getOverlaySurfaceSize,
     getOverlayCells,
     getOverlayFreezeOrigin,
-    getRemoteCursorStyle,
   })
 }
 

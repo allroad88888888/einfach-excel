@@ -1,6 +1,7 @@
-import { createEffect, For, Show } from 'solid-js'
+import { createEffect, Show } from 'solid-js'
 import { selectCellAtom } from '@einfach/spreadsheet-ui-core'
 import { reportCommandFailure } from '../provider'
+import { SpreadsheetPresenceOverlay } from '../presence'
 import { syncGridActiveDescendant } from './focus-grid-active-descendant'
 import { shouldLeaveGridOnTab } from './focus-grid-tab-boundary'
 import { SpreadsheetGridFormatPainterCursor } from './SpreadsheetGridFormatPainterCursor'
@@ -39,8 +40,7 @@ export function SpreadsheetGridView(props: { runtime: GridRuntime }) {
     getOverlayFreezeOrigin,
     getRows,
     getCols,
-    getRemoteCursorsForSheet,
-    getRemoteCursorStyle,
+    resolveSelectionRect,
   } = runtime
   createEffect(() => {
     getRows()
@@ -156,15 +156,11 @@ export function SpreadsheetGridView(props: { runtime: GridRuntime }) {
           />
         </Show>
       </div>
-      <For each={getRemoteCursorsForSheet()}>
-        {(cursor) => (
-          <div
-            class="spreadsheet-remote-cursor"
-            data-testid={`remote-cursor-${cursor.participantId}`}
-            style={getRemoteCursorStyle(cursor)}
-          />
-        )}
-      </For>
+      <SpreadsheetPresenceOverlay
+        activeSheetId={gridProps.sheetId}
+        resolveSelectionRect={resolveSelectionRect}
+        cursorTestIdPrefix="remote-cursor"
+      />
     </div>
   )
 }

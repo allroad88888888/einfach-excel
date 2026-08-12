@@ -278,6 +278,21 @@ function createFakeBackend() {
   }
 }
 
+function createHistoryCapableFakeBackend() {
+  const fixture = createFakeBackend()
+  const backend: SpreadsheetBackend = {
+    ...fixture.backend,
+    async undoTransaction(request) {
+      return { transactionId: request.transactionId }
+    },
+    async redoTransaction(request) {
+      return { transactionId: request.transactionId }
+    },
+  }
+
+  return { ...fixture, backend }
+}
+
 async function hydrateFreeze(
   store: ReturnType<typeof createStore>,
   backend: SpreadsheetBackend,
@@ -1192,7 +1207,7 @@ describe('vNext SpreadsheetContextMenu', () => {
   it('dispatches row and column structural intents through the Core lifecycle', async () => {
     const store = createStore()
     const { backend, insertRowsRequests, deleteColumnsRequests, readVisibleRequests } =
-      createFakeBackend()
+      createHistoryCapableFakeBackend()
     const window = { rowStart: 0, rowEnd: 4, colStart: 0, colEnd: 4 }
 
     seedReadyVisibleProjection(store, {

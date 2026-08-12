@@ -2051,11 +2051,14 @@ function rebuildPreservingCells(
   const previousSheets = state.sheets
   const previousWorkbook = state.workbook
   const cellsBySheetName = new Map<string, ReadonlyMap<string, Cell>>()
+  const cellsBySheetIndex = new Map<number, ReadonlyMap<string, Cell>>()
   for (const sheet of previousSheets) {
     if (removedIdx !== undefined && sheet.idx === removedIdx) continue
     const handle = previousWorkbook.sheet(sheet.id)
     if (!handle) continue
-    cellsBySheetName.set(sheet.name, previousWorkbook.store.getter(handle.sheetAtom))
+    const cells = previousWorkbook.store.getter(handle.sheetAtom)
+    cellsBySheetName.set(sheet.name, cells)
+    cellsBySheetIndex.set(sheet.idx, cells)
   }
 
   const { wb, sheets } = makeWorkbookFor(nextNames)
@@ -2069,12 +2072,14 @@ function rebuildPreservingCells(
   state.workbook = wb
   state.sheets = sheets
 
-  // Re-apply each surviving sheet's cells under its (renamed) sheet id.
-  // We key by NAME — never by positional index — because move/reorder
-  // changes positions but keeps names. Zipping `survivingPreviousNames`
-  // against `nextNames` by index would swap contents on a move.
+  // Re-apply each surviving sheet's cells under its replacement sheet id.
+  // Names carry the identity through a move/reorder. A rename intentionally
+  // changes that name, so its same-position predecessor is the fallback.
+  // This mirrors the print-config transfer and never needs a name alias
+  // sidecar: the lookup exists only during this one rebuild.
   for (const newSheet of sheets) {
-    const oldCells = cellsBySheetName.get(newSheet.name)
+    const oldCells =
+      cellsBySheetName.get(newSheet.name) ?? cellsBySheetIndex.get(newSheet.idx)
     if (!oldCells || oldCells.size === 0) continue
     const inputs: (BulkCellInput | BulkTypedCellInput)[] = []
     for (const [key, cell] of oldCells) {

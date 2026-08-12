@@ -26,6 +26,7 @@ export function SpreadsheetGridOutline(props: SpreadsheetGridOutlineProps) {
         {(level) => (
           <button
             type="button"
+            tabIndex={-1}
             class="spreadsheet-outline-level-button"
             data-testid={`outline-${axis === 'row' ? 'row' : 'col'}-level-${level}`}
             aria-label={`Show ${axis === 'row' ? 'row' : 'column'} outline level ${level}`}
@@ -58,6 +59,7 @@ export function SpreadsheetGridOutline(props: SpreadsheetGridOutlineProps) {
                 {(group) => (
                   <button
                     type="button"
+                    tabIndex={-1}
                     class="spreadsheet-outline-toggle"
                     data-testid={`outline-${axis === 'row' ? 'row' : 'col'}-toggle-${group().start}-${group().end}`}
                     data-collapsed={group().collapsed ? 'true' : 'false'}

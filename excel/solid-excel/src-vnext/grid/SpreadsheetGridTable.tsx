@@ -141,6 +141,7 @@ export function SpreadsheetGridTable(props: { runtime: GridRuntime }) {
                       <Show when={colHasFilterRule(col)}>
                         <button
                           type="button"
+                          tabIndex={-1}
                           class="spreadsheet-grid-filter-chevron"
                           data-testid={`filter-chevron-${col}`}
                           aria-label={`Filter column ${getColumnLabel(col)}`}
@@ -157,6 +158,7 @@ export function SpreadsheetGridTable(props: { runtime: GridRuntime }) {
                       </Show>
                       <button
                         type="button"
+                        tabIndex={-1}
                         class="spreadsheet-grid-col-resize-handle"
                         data-testid={`col-resize-${col}`}
                         aria-label={`Resize column ${getColumnLabel(col)}`}

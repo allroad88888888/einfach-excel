@@ -97,6 +97,7 @@ export function SpreadsheetGridView(props: { runtime: GridRuntime }) {
       <div
         ref={runtime.dom.setScrollRoot}
         class="spreadsheet-grid-scroll-viewport"
+        tabIndex={-1}
         style={getScrollViewportStyle()}
         onScroll={handleViewportScroll}
       >

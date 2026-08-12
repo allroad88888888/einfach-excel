@@ -188,6 +188,22 @@ describe('vNext grid focus and keyboard contract', () => {
     })
   })
 
+  it('keeps rendered nonediting grid affordances out of sequential Tab navigation', async () => {
+    const { grid } = await mountGrid()
+    const scrollViewport = grid.querySelector<HTMLElement>('.spreadsheet-grid-scroll-viewport')
+    const affordances = Array.from(
+      grid.querySelectorAll<HTMLButtonElement>(
+        '.spreadsheet-grid-col-resize-handle, .spreadsheet-grid-row-resize-handle, .spreadsheet-grid-fill-handle',
+      ),
+    )
+
+    expect(scrollViewport?.tabIndex).toBe(-1)
+    expect(affordances.length).toBeGreaterThan(0)
+    for (const affordance of affordances) {
+      expect(affordance.tabIndex).toBe(-1)
+    }
+  })
+
   it('restores the grid focus surface after a cell click', async () => {
     const { container, grid } = await mountGrid()
     const cell = container.querySelector<HTMLElement>('[data-cell-addr="B2"]')

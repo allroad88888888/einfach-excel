@@ -59,6 +59,7 @@ export function SpreadsheetGridDataRow(props: SpreadsheetGridDataRowProps) {
           <span class="spreadsheet-grid-header-label">{row + 1}</span>
           <button
             type="button"
+            tabIndex={-1}
             class="spreadsheet-grid-row-resize-handle"
             data-testid={`row-resize-${row}`}
             aria-label={`Resize row ${row + 1}`}

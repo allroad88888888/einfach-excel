@@ -68,8 +68,12 @@ export function SpreadsheetGridCell(props: SpreadsheetGridCellProps) {
         data-cell-addr={addr}
         data-frozen-row={row < freezeRowCount() ? 'true' : undefined}
         data-frozen-col={col < freezeColCount() ? 'true' : undefined}
-        data-freeze-boundary-bottom={freezeRowCount() > 0 && row === freezeRowCount() - 1 ? 'true' : undefined}
-        data-freeze-boundary-right={freezeColCount() > 0 && col === freezeColCount() - 1 ? 'true' : undefined}
+        data-freeze-boundary-bottom={
+          freezeRowCount() > 0 && row === freezeRowCount() - 1 ? 'true' : undefined
+        }
+        data-freeze-boundary-right={
+          freezeColCount() > 0 && col === freezeColCount() - 1 ? 'true' : undefined
+        }
         data-selected={selected() ? 'true' : 'false'}
         data-active={active() ? 'true' : 'false'}
         data-merge-anchor={mergeAnchor() ? 'true' : 'false'}
@@ -93,7 +97,11 @@ export function SpreadsheetGridCell(props: SpreadsheetGridCellProps) {
         onMouseDown={(event) => {
           if (!event.shiftKey || event.ctrlKey || event.metaKey) return
           event.preventDefault()
-          store.setter(selectCellAtom, { sheetId: gridProps.sheetId, coord: { row, col }, extend: true })
+          store.setter(selectCellAtom, {
+            sheetId: gridProps.sheetId,
+            coord: { row, col },
+            extend: true,
+          })
           focusGrid()
         }}
         onPointerDown={(event) => {
@@ -126,6 +134,7 @@ export function SpreadsheetGridCell(props: SpreadsheetGridCellProps) {
         <Show when={isFillHandleHost(row, col) && !isSheetEditing()}>
           <button
             type="button"
+            tabIndex={-1}
             class="spreadsheet-grid-fill-handle"
             data-testid={`fill-handle-${addr}`}
             aria-label={`Fill from ${addr}`}

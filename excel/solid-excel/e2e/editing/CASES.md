@@ -19,4 +19,4 @@
 | ED-09 | Shift+Enter 提交并上移 | 编辑 B4 填 8 + Shift+Enter | B4=8、选区落 B3 | 🆕 本轮 | editing-session-keys.spec.ts |
 | ED-10 | Backspace 清空进入编辑 / Delete 直接清值 | 选中 C4 按 Backspace；选中 B4 按 Delete | 空草稿输入框开启并可提交新值；B4 显示清空 | 🆕 本轮 | editing-session-keys.spec.ts |
 | ED-11 | 只读/锁定态编辑拦截 | 保护开启后尝试编辑 | 拦截 toast、值不变 | ⏳ P2 延后 | — 属 protection/ 文件夹职责（mutation-gateway 锁定门已有 vnext-protection-real-backend 覆盖），本文件夹不重复 |
-| ED-12 | IME 组合输入不触发 intent（isComposing） | 中文输入法组合期按键 | 组合期不误提交/误覆写 | ⏳ P2 延后 | — Playwright 对 composition 事件仿真能力有限，需专项调研 CDP Input.imeSetComposition 后再立用例 |
+| ED-12 | IME 组合输入不触发 intent（isComposing） | CDP `Input.imeSetComposition` 组合期按 Enter/Escape，完成组合后再 Enter | 组合期不误提交/取消；完成后 Enter 提交最终文本 | ✅ 本轮实测 | grid-cell-editor-ime.spec.ts（Wave 5，TS + WASM） |

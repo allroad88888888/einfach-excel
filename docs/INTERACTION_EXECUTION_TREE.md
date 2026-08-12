@@ -46,7 +46,7 @@ IX-000 Atom 主线下的交互重整
 │   └── UI-518 Presence 网格几何与身份呈现（已完成；见下表）
 └── W8 历史记录能力收敛（实施中）
     ├── UI-519a Grid 直接 mutation 的 History capability guard（已完成；见下表）
-    └── UI-519b…UI-519f Core producer recorder port 与分域迁移（UI-519b 设计完成，待实施；见下表）
+    └── UI-519b…UI-519f Core producer recorder port 与分域迁移（UI-519b 已完成；见下表）
 ```
 
 | 波次 | 进入条件                    | 允许的并行度                         | 解锁条件                                      |

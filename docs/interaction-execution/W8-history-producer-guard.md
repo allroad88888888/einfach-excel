@@ -1,6 +1,6 @@
 # W8：历史记录能力收敛
 
-> 状态：UI-519a 已完成；UI-519b 的 recorder ABI 已审计，待独立实施
+> 状态：UI-519a、UI-519b 已完成；下一步为 UI-519c 的 editing 与 auto-fill 迁移
 
 ## 目标
 
@@ -35,7 +35,7 @@ history Atom。继续保留既有 history Atom 作为历史事实的唯一权威
 | 子 Issue | 范围 | 前置 | 判定 |
 | --- | --- | --- | --- |
 | UI-519a | Grid editing、clipboard、format 的直接后端 mutation | 无 | 已完成：三个 host controller 在 ACK 后经同一 Provider guard 记录 history。 |
-| UI-519b | Core command 的 `recordHistory(entry, append)` callback port | UI-519a | ABI 已审计，待实施；不把 backend 放进 Atom 或单例。 |
+| UI-519b | Core command 的 `recordHistory(entry, append)` callback port | UI-519a | 已完成：recorded / unavailable / rejected 三态 ABI；不把 backend 放进 Atom 或单例。 |
 | UI-519c | editing 与 auto-fill | UI-519b | 保留已有 reservation、transaction、revision、refresh。 |
 | UI-519d | paste-special 与 text-to-columns | UI-519b | 保留 reserved/direct 的原有差异；无能力时只跳过 history。 |
 | UI-519e | operations 与 toolbar | UI-519b | 高风险结构事务，单独处理 cross-sheet/localSidePayload。 |
@@ -54,13 +54,23 @@ revision、affectedRange 与错误分支没有变化，guard 的 `false` 不会�
 95 tests、Solid TypeScript 与 diff check 均通过；受影响的两个生产 controller 原有 6 条 max-len lint
 错误未随本次窄改格式化，新增差异没有 lint error。
 
-### UI-519b recorder ABI（已审计，待实施）
+### UI-519b recorder ABI（已完成）
 
 不能让 Core reserved producer 直接调用 `recordHistoryEntry`：它们已持有 `HistoryProducerReservation`，
 再次 `pushHistoryAtom` 会二次 acquire。UI-519b 将只定义同步 `HistoryEntryRecorder(entry, append)`：Host
 先以同一个 capability guard 决定 `recorded`、`unavailable` 或 `rejected`，Core 再通过传入的 `append`
 保持 `pushReservedHistoryAtom` 或 `pushHistoryAtom` 的原有账本语义。后续 production producer 按 UI-519c
 至 UI-519f 串行接入，避免与此 ABI 设计混改。
+
+Core 现在导出同步的 `HistoryEntryRecorder(entry, append)`、`HistoryEntryAppender` 与
+`HistoryRecordResult`。Provider 的 `createHistoryEntryRecorder` 在调用时才通过既有
+`backendSupportsHistory` 检查稳定转发 backend 的完整 undo/redo 能力：完整能力时调用 Core append；
+不完整时返回 `unavailable` 而不调用 append；append 返回 false 或抛异常时返回 `rejected`。它不写 Atom、
+不缓存 backend method，也不调用会再次申请 reservation 的 `recordHistoryEntry`。
+
+聚焦回归覆盖 full、undo-only、redo-only、none、append false/throw，以及同一 workbook 中 mutation ACK
+之后 runtime backend capability 替换。Core 和 Solid TypeScript、Prettier、diff check 均通过；范围 ESLint
+为 0 error（仅项目既有 Jest dependency 规则 warning）。
 
 ## D：实施门槛
 
@@ -80,5 +90,5 @@ revision、affectedRange 与错误分支没有变化，guard 的 `false` 不会�
 ## 保留边界
 
 - `pushHistoryAtom` 继续是 Core history stack 的账本权威；它不会被做成全局 backend guard。
-- UI-519b 之前，Core command 不得透传或缓存 `SpreadsheetBackend`。后续只接受当前 dispatch 的 recorder
-  callback，并在 mutation ACK 后调用，以支持 runtime capability replacement。
+- 后续 Core command 只接受当前 dispatch 捕获的 recorder callback，并在 mutation ACK 后调用，以支持同一
+  workbook 的 runtime capability replacement；它不得透传或缓存 `SpreadsheetBackend`。

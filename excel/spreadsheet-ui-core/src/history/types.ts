@@ -108,6 +108,25 @@ export interface PushReservedHistoryInput {
   readonly entry: HistoryEntry
 }
 
+/** Result of attempting to append an acknowledged backend mutation to history. */
+export type HistoryRecordResult = 'recorded' | 'unavailable' | 'rejected'
+
+/**
+ * Core-owned history append boundary. Reserved producers preserve their
+ * existing reservation by supplying the appropriate history Atom write here.
+ */
+export type HistoryEntryAppender = (entry: HistoryEntry) => boolean
+
+/**
+ * Host-owned capability guard invoked by Core only after a mutation ACK.
+ * The host decides whether the current backend can replay the entry; Core
+ * remains the owner of the actual history append semantics.
+ */
+export type HistoryEntryRecorder = (
+  entry: HistoryEntry,
+  append: HistoryEntryAppender,
+) => HistoryRecordResult
+
 export interface HistoryStackState {
   readonly entries: readonly HistoryEntry[]
   readonly cursor: number

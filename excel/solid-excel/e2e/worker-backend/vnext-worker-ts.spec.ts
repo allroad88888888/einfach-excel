@@ -166,25 +166,6 @@ test.describe('Solid Excel vNext — TS-core worker backend (F2 parity probe)', 
     },
   )
 
-  // The Name Manager dialog (the only host-side surface for `defineName`)
-  // only exposes `kind: 'range'` and `kind: 'value'` — there is no UI affordance
-  // to register a LAMBDA from inside the running app. The TS engine *does*
-  // support LAMBDA (see Wave E/E3 handoff: 16 specs in
-  // `excel/excel-core-ts/test/lambda.test.ts`) and `excel-core-ts-custom-formulas.test.ts`
-  // exercises the worker-runtime dispatch order (builtin → workbook LAMBDA →
-  // host custom), but neither path is reachable from playwright today.
-  //
-  // Wave F follow-up: either (a) extend SpreadsheetNameManagerDialog to accept a
-  // LAMBDA refersTo kind, or (b) add a `defineName` debug RPC mirroring the
-  // wasm worker's debug client. Until either lands, this scenario stays as
-  // a structural fixme rather than a silent drop.
-  test.fixme(
-    'LAMBDA registration round-trips through the TS worker (no host UI surface yet)',
-    async ({ page }) => {
-      await gotoVNextWorkerTsDemo(page)
-    },
-  )
-
   test('no console errors leak from the TS worker boot or formula edits', async ({ page }) => {
     await gotoVNextWorkerTsDemo(page)
     await typeFormulaAtCell(page, 'A6', '=B5*2')

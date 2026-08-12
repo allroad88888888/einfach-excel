@@ -491,11 +491,7 @@ test.describe('Solid Excel vNext worker backend', () => {
     await expectNoConsoleErrors(page)
   })
 
-  // Row autofit (dblclick on a manually-compacted row) currently does not
-  // grow the row back — the worker backend's autofit pipeline only fires
-  // for column width. Tracked separately; the column arm above keeps the
-  // viewport-clamp + persistence coverage.
-  test.fixme(
+  test(
     'autofit on a compacted row grows it back to fit content',
     async ({ page }) => {
       await gotoVNextWorkerDemo(page)
@@ -522,6 +518,12 @@ test.describe('Solid Excel vNext worker backend', () => {
       await expect
         .poll(async () => (await rowHeader.boundingBox())?.height ?? 0)
         .toBeGreaterThan(compactRow!.height)
+      const sizeFacts = await page.evaluate(async () => {
+        const snapshot = await window.__einfachWorkbookDebugClient!.snapshotPersistenceV1()
+        const sheetSizes = snapshot.sizes?.find((entry) => entry.sheet === 0)
+        return sheetSizes?.rowHeights ?? []
+      })
+      expect(sizeFacts).toEqual(expect.arrayContaining([expect.objectContaining({ rowIndex: 1 })]))
     },
   )
 })

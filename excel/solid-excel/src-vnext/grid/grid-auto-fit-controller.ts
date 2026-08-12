@@ -61,7 +61,8 @@ export function installGridAutoFitController(runtime: GridRuntimeBase) {
     const rowLabel = gridRoot?.querySelector(
       `.spreadsheet-grid-row-header[data-row="${row}"] .spreadsheet-grid-header-label`,
     ) as HTMLElement | null
-    let height = rowLabel ? measureAutoFitHeight(rowLabel) : props.viewport.rowHeight
+    let height = props.viewport.rowHeight
+    if (rowLabel) height = Math.max(height, measureAutoFitHeight(rowLabel))
     const cells = gridRoot?.querySelectorAll(
       `td.spreadsheet-grid-cell[data-row="${row}"] .cell-display`,
     )

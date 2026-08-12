@@ -188,4 +188,23 @@ describe('vnext grid header resize', () => {
       error: { code: 'BACKEND_ERROR', message: 'auto-fit is disabled' },
     })
   })
+
+  it('restores a compacted row to at least the default viewport height', async () => {
+    const { autoFit, dom, rowHeightCalls, store } = createResizeFixture()
+    const root = document.createElement('div')
+    root.innerHTML = [
+      '<div class="spreadsheet-grid-row-header" data-row="1">',
+      '<span class="spreadsheet-grid-header-label">2</span>',
+      '</div>',
+    ].join('')
+    document.body.appendChild(root)
+    dom.setGridRoot(root)
+
+    await autoFit.autoFitRow(1)
+
+    expect(rowHeightCalls).toEqual([{ rowIndex: 1, heightPx: 24 }])
+    expect(store.getter(viewportSizeOverridesAtom).rowHeightsBySheet['sheet-1']).toEqual({
+      '1': 24,
+    })
+  })
 })

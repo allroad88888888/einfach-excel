@@ -288,16 +288,20 @@ test.describe('copy-as — Ctrl+Shift+C writes HTML + Markdown + Plain text', ()
   // Coverage notes — items left to dedicated unit suites
   // ---------------------------------------------------------------------------
 
-  // Menu entry (Edit → Copy as) parity with Ctrl+Shift+C: the Wave 5 demo
-  // intentionally omits the menubar (Univer parity, see VNextWave5Demo.tsx
-  // comment block). The production code path is exercised via the
-  // `SpreadsheetMenuBar` unit test in `test/vnext-copy-as.test.tsx` and the
-  // `edit.copyAs` dispatch arm in `menu-bar/SpreadsheetMenuBar.tsx`. Adding
-  // an e2e arm would require mounting the menubar inside the demo for the
-  // sole benefit of one walk — tracked as TODO.
-  test.fixme('menu entry triggers same flow as Ctrl+Shift+C', async () => {
-    // TODO: needs SpreadsheetMenuBar mounted in the Wave 5 demo (currently
-    // omitted for Univer parity). Unit coverage: `test/vnext-copy-as.test.tsx`.
+  test('menu entry triggers the Ctrl+Shift+C copy-as flow', async ({ page, context }) => {
+    await gotoWave5(page, context)
+
+    await cell(page, 'B2').click()
+    await cell(page, 'C3').click({ modifiers: ['Shift'] })
+    await page.getByTestId('menu-bar-button-edit').click()
+    await page.getByTestId('menu-bar-item-edit.copyAs').click()
+
+    await expect.poll(() => readCopyAsMirror(page), { timeout: 5_000 }).not.toBeNull()
+    const mirror = await readCopyAsMirror(page)
+    expect(mirror).not.toBeNull()
+    expect(mirror!.plainText).toBe('120\t180\n80\t160')
+    expect(mirror!.html).toContain('<table')
+    expect(mirror!.markdown).toContain('|')
   })
 
   // Oversize cap fallback (selection > 100k cells): the Wave 5 demo's

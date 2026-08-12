@@ -21,7 +21,7 @@
 | MF-09 | 点击合并锚点的选区形状             | 合并 B2:C3 → 点锚点；Shift+click D4             | 选区吸附整个合并区（区外不选）；Shift 从左上锚点扩成 B2:D4 矩形 | 🆕 本轮    | merge-selection-editing.spec.ts #"clicking the merged anchor…"                                                            |
 | MF-10 | 合并后编辑落在锚点                 | 双击锚点 → 改值 → Enter                         | 编辑器挂在锚点 td、提交后锚点显示新值、合并存活                 | 🆕 本轮    | merge-selection-editing.spec.ts #"double-clicking the merged anchor edits…"                                               |
 | MF-11 | 合并区 active cell 视作锚点        | 点合并区看地址栏；D2 按 ← 进入、锚点按 →/↓ 离开 | 地址/公式栏跟随锚点；方向键一步跳过覆盖格                       | ✅ 已修复  | merge-selection-editing.spec.ts #"the merged region acts as ONE cell for the active cell and arrow navigation"（0bc9340） |
-| MF-12 | Ctrl+Click 将合并区追加为独立选区  | 合并后 Ctrl+点锚点                              | 追加 region 吸附合并区                                          | ⏳ P2 延后 | —（源码 `appendCellRangeSelection` 已实现，本轮控规模）                                                                   |
+| MF-12 | Ctrl+Click 将合并区追加为独立选区  | 合并 B2:C3 后 Ctrl/Cmd+点锚点；已有 E5 选区     | B2:C3 整区追加并成为 active；E5 选区保留                        | 🆕 本轮    | merge-selection-editing.spec.ts #"Ctrl/Cmd+click appends the complete merged region…"                                     |
 | MF-13 | 合并区横跨冻结线时的渲染           | 合并 A1:B4 后 freeze 2 行                       | 待定                                                            | ⏳ P2 延后 | —（产品口径未定义，先补规格再写用例）                                                                                     |
 
 ### ✅ MF-11 修复与回归
@@ -29,6 +29,13 @@
 `0bc9340` 将选区和键盘导航都归一到合并锚点；原来的 `test.fixme` 已转为
 正常浏览器用例。它验证点击后地址栏/公式栏指向 B2，并验证从 D2 进入合并区、再从
 锚点离开时均一次跳过覆盖坐标。
+
+### ✅ MF-12 回归
+
+`grid-selection.ts` 在 Ctrl/Cmd 点击命中合并区时读取 merge range，并通过 Core
+`addSelectionRegionAtom` 追加完整 `SelectionRegion`；没有引入组件本地状态。浏览器
+用例在 WASM 与 TS 后端均先建立 E5 选区，再追加 B2:C3，验证新 region 成为 active、
+合并锚点仍跨 2×2，且 E5 保留为非 active 的已选区。
 
 ## 冻结（freeze panes）
 

@@ -69,6 +69,29 @@ test.describe('Wave 5 merge region interaction', () => {
     await expect(cell(page, 'E2')).not.toHaveClass(/is-selected/)
   })
 
+  test('Ctrl/Cmd+click appends the complete merged region without clearing the first range', async ({
+    page,
+  }) => {
+    await gotoWave5(page)
+    await mergeB2C3(page)
+
+    // Establish a first region, then append the B2:C3 merge as a second one.
+    await cell(page, 'E5').click()
+    await expect(cell(page, 'E5')).toHaveAttribute('data-active', 'true')
+    await cell(page, 'B2').click({ modifiers: ['ControlOrMeta'] })
+
+    // The new region is active and still renders as the complete B2:C3 anchor.
+    await expect(cell(page, 'B2')).toHaveAttribute('data-selected', 'true')
+    await expect(cell(page, 'B2')).toHaveAttribute('data-active', 'true')
+    await expect(cell(page, 'B2')).toHaveAttribute('rowspan', '2')
+    await expect(cell(page, 'B2')).toHaveAttribute('colspan', '2')
+
+    // Atom append semantics preserve the pre-existing disjoint selection.
+    await expect(cell(page, 'E5')).toHaveAttribute('data-selected', 'true')
+    await expect(cell(page, 'E5')).toHaveAttribute('data-active', 'false')
+    await expect(cell(page, 'D2')).toHaveAttribute('data-selected', 'false')
+  })
+
   test('double-clicking the merged anchor edits in place and the commit lands on the anchor', async ({
     page,
   }) => {

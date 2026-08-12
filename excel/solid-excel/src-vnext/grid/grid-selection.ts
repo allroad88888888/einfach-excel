@@ -179,7 +179,13 @@ export function installGridSelection(runtime: GridSelectionRuntime) {
   }
 
   function appendCellRangeSelection(range: CellRange) {
-    store.setter(addSelectionRegionAtom, { region: createSelectionForRange(range) })
+    // The Core active cell is a region's focus. Keep it on the visible merge
+    // anchor while the reversed endpoints still describe the entire merge.
+    const region = createSelectionForCoords(
+      { row: range.rowEnd, col: range.colEnd },
+      { row: range.rowStart, col: range.colStart },
+    )
+    store.setter(addSelectionRegionAtom, { region })
   }
 
   function appendRangeSelection(row: number, col: number) {

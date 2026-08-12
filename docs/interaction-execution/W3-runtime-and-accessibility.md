@@ -45,21 +45,21 @@
 
 - Commit：`5645202`。
 - 打印预览补齐模态语义、初始焦点、Tab 循环、Escape/焦点归还和明确的浏览器 `window.print()` 动作；开关与打印配置仍消费既有 print Atom，DOM helper 不保存产品状态。
-- 27 项 print Core/宿主回归、范围内 ESLint、Prettier 与 diff 检查通过，所有本次文件不超过 300 行。`pageSetupDialogOpenAtom` 目前没有已挂载的页面设置编辑器，故该按钮只安全写入现有状态；页面设置 UI 需独立 Issue 实现。
+- 27 项 print Core/宿主回归、范围内 ESLint、Prettier 与 diff 检查通过，所有本次文件不超过 300 行。原先只有 `pageSetupDialogOpenAtom` 的入口已由后续 [W5 / UI-516](W5-page-setup.md) 接为正式 Page Setup，并由 [W6 / UI-517](W6-print-config-backend.md) 提供 Static、WASM Worker 与 TS Worker 的真实配置端口和持久化。
 
 ### UI-502 协作 Presence
 
 - Commit：`a9456a1`。
 - Core 只接受已 join 且 Sheet 与选区一致的远端 cursor；覆盖层默认投影 `workspaceSessionAtom.activeSheetId`，并以 `aria-hidden` 保持纯视觉装饰不干扰读屏。
 - 24 项 Core/宿主定向回归、Core TypeScript、范围内 ESLint、Prettier 与 diff 检查通过，改动均不超过 300 行。
-- Provider 的实际订阅/解绑不在 Presence presenter 重造，已经由 UI-507 接管；Chrome 没有 canonical 几何 resolver、grid marker 没有身份标签，留给拥有接线范围的后续 Issue。
+- Provider 的实际订阅/解绑不在 Presence presenter 重造，已经由 UI-507 接管；后续 [W7 / UI-518](W7-presence-grid-placement.md) 已关闭几何与身份呈现：Grid 是唯一正式 Atom reader，使用真实 TD/scroll-root 几何定位，移除了 Chrome 全局挂载，并呈现 `displayName` 与 `colorHint`。
 
 ### UI-506 状态栏、通知和诊断
 
 - Commit：`c25f699`。
 - 新增 `dismissDiagnosticAtom`，按对象身份只关闭一条诊断，避免相同 ID 的多条记录被误清；反馈表面接受调用方持有的 lifecycle dismiss 回调，retry 仍由调用方持有。
 - 36 项诊断/反馈/状态栏定向回归、Core 构建和宿主 TypeScript、范围内 ESLint、Prettier 与 diff 检查通过，所有本次文件不超过 300 行。
-- 当前没有 Provider 或功能入口挂载诊断/反馈组件；该全局可见性装配必须由拥有入口的后续 Issue 负责，不能让状态栏冒充隐式 toast。
+- 诊断与工作簿 lifecycle 已由后续 [W4 / UI-515](W4-feedback-host-integration.md) 在正式 Wave5 host 挂载；各功能自己的 lifecycle feedback 仍由其调用方持有和显式接入，状态栏不冒充隐式 toast。
 
 ### UI-507 初始化、切换和能力呈现
 
@@ -78,14 +78,14 @@
 
 - Commit：`b18467a`。
 - 新 recovery 表面仅读取既有工作簿 lifecycle Atom：idle/ready 静默、initializing 呈现 loading、failed 呈现 error；不创建本地产品状态，也不虚构 retry/cancel 命令。
-- 13 项 recovery/Provider 定向回归、宿主 TypeScript、范围内 ESLint、Prettier 与 diff 检查通过，所有新增文件不超过 117 行。它尚未接到工作簿宿主入口：当前不存在可安全复用的后端重绑/retry Atom，需由拥有恢复动作的后续 Issue 明确接线。
+- 13 项 recovery/Provider 定向回归、宿主 TypeScript、范围内 ESLint、Prettier 与 diff 检查通过，所有新增文件不超过 117 行。后续 [W4 / UI-515](W4-feedback-host-integration.md) 已将其接到工作簿正式 host；静态 Wave5 host 仍没有可安全复用的后端重绑动作，故失败状态不伪造 Retry，动态 host 必须自行提供该动作。
 
 ### UI-509 键盘和读屏（契约批次）
 
 - Commit：`b88c091`。
 - 建立无状态 DOM 审计契约，覆盖 Grid 唯一 tab stop、行列计数和 active descendant，Menu 的 trigger/item/popup 关联，以及 Dialog 的名称、模态和焦点入口；不接管既有 feature 焦点逻辑。
 - 6 项正反例、Core/宿主 TypeScript、范围内 ESLint、Prettier 与 diff 检查通过，所有新增文件不超过 194 行。
-- 审计发现 Sheet Tabs 的 `tablist` 含 Add Sheet 和 Move 等非 tab 子控件，现有 Axe 用例已标记 `aria-required-children`；该真实结构缺口交由 UI-512 串行修复，避免跨 feature 越界。
+- 审计发现 Sheet Tabs 的 `tablist` 含 Add Sheet 和 Move 等非 tab 子控件，现有 Axe 用例已标记 `aria-required-children`；该结构缺口已由后续 UI-512 串行修复，避免在此契约批次跨 feature 越界。
 
 ### UI-510 国际化和 IME
 
@@ -98,7 +98,7 @@
 
 - Commit：`9102d87`。
 - 审计确认 Grid viewport 和 Toolbar 已有原生滚动；真正的触控缺口在拖选 pointer 生命周期。拖选现锁定 initiating pointer，并对 `pointercancel`、blur、页面隐藏和 lost capture 清理，通过既有 `cancelPointerAtom` 回到 idle。
-- 7 项新旧 Grid 选择回归、宿主 TypeScript、范围内 ESLint、Prettier 与 diff 检查通过，最大本次文件 156 行。尚未做真实移动设备/桌面触控板 E2E，JSDOM 覆盖的是 DOM 生命周期。
+- 7 项新旧 Grid 选择回归、宿主 TypeScript、范围内 ESLint、Prettier 与 diff 检查通过，最大本次文件 156 行。后续 [W1 / UI-524](W1-grid-and-editing.md) 已在 WASM/TS 浏览器覆盖正常拖选、`pointercancel` 与外来 pointer；它仍不替代物理设备上的 OS 触控板/输入法验证。
 
 ### UI-512 Sheet Tabs ARIA 结构
 

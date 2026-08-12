@@ -22,6 +22,6 @@
 - Page Setup 在 Print Preview 上层打开，复用通用 overlay 焦点协议；取消、Escape、Tab 焦点循环、关闭归还和失败停留均有聚焦回归。
 - 定向验证为 4 个 Jest suite、35 个测试；Core 和 Solid TypeScript 均通过，范围 ESLint 无错误，Prettier 与 diff 检查通过。
 
-## 已知后续边界
+## 后续边界（已由 W6 收口）
 
-当前 backend 类型虽声明 `readPrintConfig` 与 `setPrintConfig`，但 Static、WASM 和 TS Worker 没有任何运行时实现。缺少端口时页面设置会安全地显示为不可提交，而不会伪造保存成功。其后端权威存储、持久化和跨运行时一致性另列为 [W6 / UI-517](W6-print-config-backend.md)，须先由产品决定最终权威层。
+UI-516 完成时，backend 类型虽声明 `readPrintConfig` 与 `setPrintConfig`，但 Static、WASM 和 TS Worker 尚无运行时实现；缺少端口时页面设置只会安全地显示为不可提交。后续 [W6 / UI-517](W6-print-config-backend.md) 已以引擎原生权威存储补齐 Static、WASM Worker、TS Worker 的 read/set、精确 ACK/read-back 及持久化。Static 仍没有导入/导出 API，因此只保证同一 workbook 生命周期内的配置保持。

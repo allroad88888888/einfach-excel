@@ -32,22 +32,14 @@
 | MS-16 | 改名后公式文本重写跟随（Excel 语义） | — | =Sheet3!… 自动变 =Data!… | ⏳ P2 延后 | —（引擎设计为 AST 存名不重写，需引擎公式重写能力，超出 e2e 范畴；与 MS-13 互为对照） |
 | MS-17 | 拖拽排序进行中的 drop 指示线 / Escape、pointercancel 取消 | — | data-reorder-drop 标记、取消恢复原序 | 🆕 本轮 | sheet-tab-reorder-lifecycle.spec.ts #"Escape cancels…"、#"pointercancel clears…" |
 | MS-18 | Ctrl+PageUp 反向切 sheet | Worker demo 从 Sheet2 tab 获焦后 Ctrl+PageUp | Sheet1 aria-selected/data-active、roving tabindex；焦点转移至 Sheet1 tab | 🆕 本轮 | sheet-tab-pageup-navigation.spec.ts #"Ctrl+PageUp activates the previous sheet and moves tab focus" |
-| MS-19 | 删除被引用 sheet 后当前 sheet 原地刷新 | 删 Sheet3 后不切表 | C5/C2 原地变 #REF! | ⚠️ 疑似 bug | sheet-rename-delete-refs.spec.ts fixme #"deleting a referenced sheet refreshes the visible sheet in place (currently stale)" |
+| MS-19 | 删除被引用 sheet 后当前 sheet 原地刷新 | 删 Sheet3 后不切表 | C5/C2 原地变 #REF! | ✅ 已修复 | sheet-rename-delete-refs.spec.ts #"deleting a referenced sheet refreshes the visible sheet in place"（37edd18） |
+| MS-20 | 改名后被改名 sheet 自身的单元格保留 | 改名 Sheet3→Data，读 Data!C2 | 仍为 11 | ✅ 已修复 | sheet-rename-delete-refs.spec.ts #"renaming a referenced sheet breaks old-name refs to #REF! until renamed back"（240865c） |
 
-| MS-20 | 改名后被改名 sheet 自身的单元格保留 | 改名 Sheet3→Data，读 Data!C2 | 仍为 11 | ⚠️ 疑似 bug（仅 ts 后端） | sheet-rename-delete-refs.spec.ts MS-13 内 `test.fixme(project==='ts')` |
+### ✅ MS-19 / MS-20 修复与回归
 
-⚠️ MS-19 实测（2026-07-29，wasm）：删除被引用的 Sheet3 后，仍停留的 Sheet2 上 C5/C2 持续显示
-陈旧的 105/12（>2s，无任何提示），直到切表触发新的 visible-window 读取才变 #REF!。
-deleteSheet 的 revision bump 未带动当前 sheet 的重投影；产品侧修复前用 `test.fixme` 挂起。
+`37edd18` 使删除被引用 sheet 后的当前可见投影立即重读依赖值；MS-19 已从 `test.fixme`
+转为在不切表条件下断言 `#REF!` 的正常双后端 E2E。`240865c` 保留 TS worker 改名 sheet
+的数据；MS-20 的 `Data!C2 = 11` 断言同样已纳入正常双后端 E2E。
 
-⚠️ MS-20 实测（2026-07-30，**CI 分片 4/4 暴露，仅 `[ts]` project**；wasm 正常）：改名
-Sheet3→Data 后 `Data!C2` 读到 `""` 而非 11 —— 被改名那张表的**全部单元格丢失**（非仅公式）。
-根因在 `src-vnext/adapter/worker-runtime-ts.ts::rebuildPreservingCells`：快照存活单元格时以
-sheet 的**旧名**为 key（`cellsBySheetName.set(sheet.name, …)`），重建后却用**新名**回查
-（`get(newSheet.name)`），renamed sheet 的快照永远查不中，`continue` 掉即静默丢弃。
-addSheet/removeSheet/moveSheet 都不改名字故不受影响（该函数注释解释的正是 move 不能按下标
-zip），rename 是唯一改名的操作。修法：把 old→new 的改名映射传进该函数，快照时按新名落键
-（3 行内），move 的按名匹配语义不变。本轮只钉不改（产品代码改动不混进 e2e 重组 PR）。
-
-统计：存量 12（MS-01..12，含 1 条跨文件夹引用）/ 本轮新增 5 + 2 fixme（MS-13..15、MS-17、
-MS-18、MS-19、MS-20，3 个新 spec 文件，TS+wasm 全绿）/ 延后 1（MS-16）。
+统计：存量 12（MS-01..12，含 1 条跨文件夹引用）/ 本轮新增 5（MS-13..15、MS-17、MS-18）+
+已修复 2（MS-19、MS-20；原 fixme 已转为正常双后端 E2E）/ 延后 1（MS-16）。

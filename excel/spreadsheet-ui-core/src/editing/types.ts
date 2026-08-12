@@ -4,6 +4,7 @@ import type {
   ProjectionRevision,
   SetCellInputRequest,
 } from '../backend/types'
+import type { HistoryEntryRecorder } from '../history'
 import type { CellCoord, SpreadsheetError } from '../shared'
 
 export type EditingInputSource = 'cell' | 'formula-bar' | 'keyboard' | 'paste'
@@ -106,6 +107,8 @@ export interface RunEditingCommitInput {
   readonly commitSource?: EditingInputSource
   readonly move?: EditingCommitMove
   readonly refreshProjection: (sheetId: string) => Promise<void>
+  /** Host capability guard captured with the commit ticket after backend ACK. */
+  readonly historyEntryRecorder: HistoryEntryRecorder
   /**
    * Finite mutation and refresh deadline. Missing or invalid values fall back
    * to the editing command's 15 second default.

@@ -6,6 +6,9 @@ import {
   nextHistoryTransactionId,
   pushReservedHistoryAtom,
   releaseHistoryProducerReservationAtom,
+  type HistoryEntry,
+  type HistoryEntryRecorder,
+  type HistoryRecordResult,
   type HistoryProducerReservation,
 } from '../history'
 import { keyboardModeAtom } from '../keyboard'
@@ -46,6 +49,7 @@ interface EditingCommitTicket {
   readonly source: EditingControllerPort
   readonly execute: NonNullable<EditingControllerPort['setCellInput']>
   readonly refreshProjection: RunEditingCommitInput['refreshProjection']
+  readonly historyEntryRecorder: HistoryEntryRecorder
   readonly timeoutMs: number
   readonly historyReservation: HistoryProducerReservation
 }
@@ -276,6 +280,7 @@ type CapturedEditingCommitInput =
       readonly commitSource: EditingInputSource | undefined
       readonly move: EditingCommitMove | undefined
       readonly refreshProjection: RunEditingCommitInput['refreshProjection']
+      readonly historyEntryRecorder: HistoryEntryRecorder
       readonly timeoutMs: number
     }
   | { readonly kind: 'invalid' }
@@ -297,6 +302,7 @@ function captureEditingCommitInput(input: RunEditingCommitInput): CapturedEditin
     const commitSource = input.commitSource
     const move = input.move
     const refreshProjection = input.refreshProjection
+    const historyEntryRecorder = input.historyEntryRecorder
     const timeoutValue = input.timeoutMs
     const timeoutMs = normalizeEditingTimeout(timeoutValue)
     if (
@@ -305,7 +311,8 @@ function captureEditingCommitInput(input: RunEditingCommitInput): CapturedEditin
       typeof execute !== 'function' ||
       (commitSource !== undefined && !isEditingInputSource(commitSource)) ||
       (move !== undefined && !isEditingCommitMove(move)) ||
-      typeof refreshProjection !== 'function'
+      typeof refreshProjection !== 'function' ||
+      typeof historyEntryRecorder !== 'function'
     ) {
       return Object.freeze({ kind: 'invalid' })
     }
@@ -316,6 +323,7 @@ function captureEditingCommitInput(input: RunEditingCommitInput): CapturedEditin
       commitSource,
       move,
       refreshProjection,
+      historyEntryRecorder,
       timeoutMs,
     })
   } catch {
@@ -656,6 +664,26 @@ function completeEditingTicket(
   return 'completed'
 }
 
+function recordEditingHistory(
+  set: Setter,
+  ticket: EditingCommitTicket,
+  entry: HistoryEntry,
+): HistoryRecordResult {
+  const append = (nextEntry: HistoryEntry): boolean =>
+    set(pushReservedHistoryAtom, {
+      reservation: ticket.historyReservation,
+      entry: nextEntry,
+    })
+  try {
+    const result = ticket.historyEntryRecorder(entry, append)
+    return result === 'recorded' || result === 'unavailable' || result === 'rejected'
+      ? result
+      : 'rejected'
+  } catch {
+    return 'rejected'
+  }
+}
+
 /**
  * A transport rejection (thrown synchronously or as a rejected promise)
  * before any acknowledgement is observed is a KNOWN failure: the backend
@@ -911,6 +939,7 @@ export const runEditingCommitAtom = atom(
       source: captured.source,
       execute: captured.execute,
       refreshProjection: captured.refreshProjection,
+      historyEntryRecorder: captured.historyEntryRecorder,
       timeoutMs: captured.timeoutMs,
       historyReservation,
     })
@@ -1069,19 +1098,20 @@ export const runEditingCommitAtom = atom(
         colStart: ticket.request.col,
         colEnd: ticket.request.col,
       })
-    const historyRecorded = set(pushReservedHistoryAtom, {
-      reservation: ticket.historyReservation,
-      entry: Object.freeze({
+    const historyResult = recordEditingHistory(
+      set,
+      ticket,
+      Object.freeze({
         transactionId: nextHistoryTransactionId('edit'),
         kind: 'cell.set-input',
         sheetId: ticket.request.sheetId,
         projectionRevision: acknowledgement.revision,
         affectedRange,
       }),
-    })
-    // Reserved push is observable and may execute hostile subscribers.
+    )
+    // The supplied recorder and reserved append may execute hostile subscribers.
     if (!editingTicketAuthorityIsCurrent(get, ticket, pendingLifecycle)) return 'blocked'
-    if (!historyRecorded) {
+    if (historyResult === 'rejected') {
       set(
         editingCommitLifecycleBackingAtom,
         lifecycleForTicket(

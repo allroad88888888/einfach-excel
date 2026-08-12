@@ -15,7 +15,13 @@ import {
   workspaceSessionAtom,
   type MenuItemDispatch,
 } from '@einfach/spreadsheet-ui-core'
-import { dispatchCopyAs, dispatchRedo, dispatchUndo, refreshVisibleProjection } from '../provider'
+import {
+  createHistoryEntryRecorder,
+  dispatchCopyAs,
+  dispatchRedo,
+  dispatchUndo,
+  refreshVisibleProjection,
+} from '../provider'
 import type { MenuBarCommandContext } from './menu-bar-command-context'
 
 /** Dispatches edit-menu commands through existing Core atoms and provider adapters. */
@@ -65,6 +71,7 @@ export function dispatchMenuBarEditCommand(
         selectionRange: { ...snapshot.range },
         direction: dispatch.direction,
         source: createAutoFillController(),
+        historyEntryRecorder: createHistoryEntryRecorder(backend),
         refreshProjection: (target) => refreshVisibleProjection(store, backend, target, 'toolbar'),
       })
       return true

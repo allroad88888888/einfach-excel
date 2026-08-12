@@ -1,6 +1,6 @@
 # W8：历史记录能力收敛
 
-> 状态：UI-519a、UI-519b 已完成；下一步为 UI-519c 的 editing 与 auto-fill 迁移
+> 状态：UI-519a、UI-519b、UI-519c 已完成；下一步为 UI-519d 的 paste-special 与 text-to-columns 迁移
 
 ## 目标
 
@@ -36,7 +36,7 @@ history Atom。继续保留既有 history Atom 作为历史事实的唯一权威
 | --- | --- | --- | --- |
 | UI-519a | Grid editing、clipboard、format 的直接后端 mutation | 无 | 已完成：三个 host controller 在 ACK 后经同一 Provider guard 记录 history。 |
 | UI-519b | Core command 的 `recordHistory(entry, append)` callback port | UI-519a | 已完成：recorded / unavailable / rejected 三态 ABI；不把 backend 放进 Atom 或单例。 |
-| UI-519c | editing 与 auto-fill | UI-519b | 保留已有 reservation、transaction、revision、refresh。 |
+| UI-519c | editing 与 auto-fill | UI-519b | 已完成：在 ACK 后经 required recorder 执行 reserved append；保留 reservation、transaction、revision、refresh。 |
 | UI-519d | paste-special 与 text-to-columns | UI-519b | 保留 reserved/direct 的原有差异；无能力时只跳过 history。 |
 | UI-519e | operations 与 toolbar | UI-519b | 高风险结构事务，单独处理 cross-sheet/localSidePayload。 |
 | UI-519f | tables、filter-sort、remove-duplicates | UI-519b | 最后处理多入口表格与筛选命令。 |
@@ -71,6 +71,23 @@ Core 现在导出同步的 `HistoryEntryRecorder(entry, append)`、`HistoryEntry
 聚焦回归覆盖 full、undo-only、redo-only、none、append false/throw，以及同一 workbook 中 mutation ACK
 之后 runtime backend capability 替换。Core 和 Solid TypeScript、Prettier、diff check 均通过；范围 ESLint
 为 0 error（仅项目既有 Jest dependency 规则 warning）。
+
+### UI-519c editing 与 auto-fill（已完成）
+
+`runEditingCommitAtom` 与 `runAutoFillAtom` 的 production input/ticket 现在都要求
+`HistoryEntryRecorder`；三个 Solid dispatch 入口在启动命令时注入 Provider 稳定 backend handle 创建的
+recorder。Core 不保存 backend，也不存在 optional direct-history fallback。
+
+每条 mutation 在精确 ACK 后才调用 recorder，并把既有 reservation 的 `pushReservedHistoryAtom` 包装为
+append callback：`recorded` 保留历史；`unavailable` 让 mutation 和 projection refresh 成功，但 history
+entries 为零；`rejected` 则保留原有 outcome-unknown、reservation 和不 refresh 的恢复语义，绝不重发写入。
+auto-fill 的 compact series、fill range、import 与逐格 fallback 都走同一条 callback 路径。
+
+聚焦回归覆盖 editing ACK 后 runtime capability 替换、auto-fill 的完整/无能力/rejected append，以及既有
+editing、auto-fill、mutation gateway 与 host feedback。7 个 Jest 套件、183 个断言，Core build/TypeScript、
+Solid TypeScript、Prettier 和 diff check 全部通过；范围 ESLint 为 0 error（7 条既有测试依赖声明 warning）。
+`editing/index.ts`（1,300 行）、`auto-fill/command.ts`（1,699 行）及三份历史 Core 测试均是存量超限文件；
+本次只在已有状态机和测试公共输入 seam 做窄改，未借此跨职责重构。
 
 ## D：实施门槛
 

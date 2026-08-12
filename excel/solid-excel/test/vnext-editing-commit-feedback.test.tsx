@@ -25,7 +25,10 @@ function mount(store: Store) {
   ))
 }
 
-function lifecycle(status: EditingCommitLifecycleState['status'], error = ''): EditingCommitLifecycleState {
+function lifecycle(
+  status: EditingCommitLifecycleState['status'],
+  error = '',
+): EditingCommitLifecycleState {
   return {
     status,
     sessionId: 1,
@@ -47,6 +50,7 @@ async function commitAgainstAStalledBackend(store: Store) {
   })
   return store.setter(runEditingCommitAtom, {
     source: { setCellInput: () => new Promise<never>(() => {}) },
+    historyEntryRecorder: () => 'unavailable',
     refreshProjection: async () => {},
     // The production default is 15s; the deadline itself is not what this
     // test is about, only what the UI does once it fires.

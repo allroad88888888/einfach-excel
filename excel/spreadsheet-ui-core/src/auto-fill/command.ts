@@ -19,7 +19,10 @@ import {
   nextHistoryTransactionId,
   pushReservedHistoryAtom,
   releaseHistoryProducerReservationAtom,
+  type HistoryEntry,
+  type HistoryEntryRecorder,
   type HistoryProducerReservation,
+  type HistoryRecordResult,
 } from '../history'
 import { getFillHandleSourceCoord, getFillHandleWriteRange } from '../pointer'
 import {
@@ -68,6 +71,8 @@ export interface AutoFillControllerPort {
 interface AutoFillCommandBase {
   source: AutoFillControllerPort
   refreshProjection(sheetId: string): Promise<void>
+  /** Host guard captured with the mutation ticket after a backend ACK. */
+  historyEntryRecorder: HistoryEntryRecorder
 }
 
 export interface RunAutoFillIntentInput extends AutoFillCommandBase {
@@ -151,6 +156,7 @@ interface AutoFillTicket {
   readonly requiresUnfiltered: boolean
   readonly selectionWitness: SelectionAuthorityWitness
   readonly workspaceWitness: WorkspaceActiveSheetAuthorityWitness
+  readonly historyEntryRecorder: HistoryEntryRecorder
   readonly historyReservation: HistoryProducerReservation
 }
 
@@ -480,6 +486,35 @@ function finishTicket(set: Setter, get: Getter, ticket: AutoFillTicket): boolean
   return true
 }
 
+function captureAutoFillHistoryEntryRecorder(input: RunAutoFillInput): HistoryEntryRecorder | null {
+  try {
+    const recorder = input.historyEntryRecorder
+    return typeof recorder === 'function' ? recorder : null
+  } catch {
+    return null
+  }
+}
+
+function recordAutoFillHistory(
+  set: Setter,
+  ticket: AutoFillTicket,
+  entry: HistoryEntry,
+): HistoryRecordResult {
+  const append = (nextEntry: HistoryEntry): boolean =>
+    set(pushReservedHistoryAtom, {
+      reservation: ticket.historyReservation,
+      entry: nextEntry,
+    })
+  try {
+    const result = ticket.historyEntryRecorder(entry, append)
+    return result === 'recorded' || result === 'unavailable' || result === 'rejected'
+      ? result
+      : 'rejected'
+  } catch {
+    return 'rejected'
+  }
+}
+
 function snapshotMutationSuccess(success: MutationSuccess): MutationSuccess {
   return Object.freeze({
     path: success.path,
@@ -703,16 +738,13 @@ function pushCompactHistory(
   sheetId: string,
   result: Extract<AutoFillMutationResult, { readonly applied: true }>,
   revision: ProjectionRevision,
-): boolean {
-  return set(pushReservedHistoryAtom, {
-    reservation: ticket.historyReservation,
-    entry: {
-      transactionId: nextHistoryTransactionId(),
-      kind: 'range.fill',
-      sheetId,
-      projectionRevision: revision,
-      affectedRange: copyRange(result.affectedRange),
-    },
+): HistoryRecordResult {
+  return recordAutoFillHistory(set, ticket, {
+    transactionId: nextHistoryTransactionId(),
+    kind: 'range.fill',
+    sheetId,
+    projectionRevision: revision,
+    affectedRange: copyRange(result.affectedRange),
   })
 }
 
@@ -836,15 +868,14 @@ async function trySeries(
       ? { kind: 'terminal', outcome: { status: 'no-op', reason: 'backend-no-op' } }
       : { kind: 'terminal', outcome: { status: 'stale' } }
   }
-  if (
-    !pushCompactHistory(
-      set,
-      ticket,
-      intent.sheetId,
-      acknowledgement.result,
-      acknowledgement.revision,
-    )
-  ) {
+  const historyResult = pushCompactHistory(
+    set,
+    ticket,
+    intent.sheetId,
+    acknowledgement.result,
+    acknowledgement.revision,
+  )
+  if (historyResult === 'rejected') {
     return {
       kind: 'terminal',
       outcome: {
@@ -859,7 +890,7 @@ async function trySeries(
     value: {
       path: 'fill-series',
       affectedRange: copyRange(acknowledgement.result.affectedRange!),
-      historyEntries: 1,
+      historyEntries: historyResult === 'recorded' ? 1 : 0,
       committedStale: !authorityCurrent,
     },
   }
@@ -1040,18 +1071,14 @@ async function runFallback(
         },
       }
     }
-    if (
-      !set(pushReservedHistoryAtom, {
-        reservation: ticket.historyReservation,
-        entry: {
-          transactionId: nextHistoryTransactionId(),
-          kind: 'range.fill',
-          sheetId: intent.sheetId,
-          projectionRevision: acknowledgement.revision,
-          affectedRange: copyRange(acknowledgement.affectedRange),
-        },
-      })
-    ) {
+    const historyResult = recordAutoFillHistory(set, ticket, {
+      transactionId: nextHistoryTransactionId(),
+      kind: 'range.fill',
+      sheetId: intent.sheetId,
+      projectionRevision: acknowledgement.revision,
+      affectedRange: copyRange(acknowledgement.affectedRange),
+    })
+    if (historyResult === 'rejected') {
       return {
         kind: 'terminal',
         outcome: {
@@ -1066,20 +1093,21 @@ async function runFallback(
       value: {
         path: 'import-cells',
         affectedRange: copyRange(acknowledgement.affectedRange),
-        historyEntries: 1,
+        historyEntries: historyResult === 'recorded' ? 1 : 0,
         committedStale: !authorityCurrent,
       },
     }
   }
 
+  let committedWriteCount = 0
   let historyEntries = 0
   for (const write of writes) {
     const authorityCurrentBeforeWrite =
       ticketIsCurrent(get, ticket) && ticketAuthorityIsCurrent(get, ticket)
     const filterAllowsWrite = ticketFilterAllowsMutation(get, ticket)
     if (!authorityCurrentBeforeWrite || !filterAllowsWrite) {
-      if (historyEntries > 0) {
-        const committedRange = affectedRangeForWrites(writes.slice(0, historyEntries))
+      if (committedWriteCount > 0) {
+        const committedRange = affectedRangeForWrites(writes.slice(0, committedWriteCount))
         return {
           kind: 'success',
           value: {
@@ -1142,18 +1170,14 @@ async function runFallback(
         },
       }
     }
-    if (
-      !set(pushReservedHistoryAtom, {
-        reservation: ticket.historyReservation,
-        entry: {
-          transactionId: nextHistoryTransactionId(),
-          kind: 'cell.set-input',
-          sheetId: intent.sheetId,
-          projectionRevision: acknowledgement.revision,
-          affectedRange: copyRange(acknowledgement.affectedRange),
-        },
-      })
-    ) {
+    const historyResult = recordAutoFillHistory(set, ticket, {
+      transactionId: nextHistoryTransactionId(),
+      kind: 'cell.set-input',
+      sheetId: intent.sheetId,
+      projectionRevision: acknowledgement.revision,
+      affectedRange: copyRange(acknowledgement.affectedRange),
+    })
+    if (historyResult === 'rejected') {
       return {
         kind: 'terminal',
         outcome: {
@@ -1163,9 +1187,10 @@ async function runFallback(
         },
       }
     }
-    historyEntries += 1
+    committedWriteCount += 1
+    if (historyResult === 'recorded') historyEntries += 1
     if (!authorityCurrent) {
-      const committedRange = affectedRangeForWrites(writes.slice(0, historyEntries))
+      const committedRange = affectedRangeForWrites(writes.slice(0, committedWriteCount))
       return {
         kind: 'success',
         value: {
@@ -1302,15 +1327,14 @@ async function executeIntent(
         ? { kind: 'terminal', outcome: { status: 'no-op', reason: 'backend-no-op' } }
         : { kind: 'terminal', outcome: { status: 'stale' } }
     }
-    if (
-      !pushCompactHistory(
-        set,
-        ticket,
-        intent.sheetId,
-        acknowledgement.result,
-        acknowledgement.revision,
-      )
-    ) {
+    const historyResult = pushCompactHistory(
+      set,
+      ticket,
+      intent.sheetId,
+      acknowledgement.result,
+      acknowledgement.revision,
+    )
+    if (historyResult === 'rejected') {
       return {
         kind: 'terminal',
         outcome: {
@@ -1325,7 +1349,7 @@ async function executeIntent(
       value: {
         path: 'fill-range',
         affectedRange: copyRange(acknowledgement.result.affectedRange!),
-        historyEntries: 1,
+        historyEntries: historyResult === 'recorded' ? 1 : 0,
         committedStale: !authorityCurrent,
       },
     }
@@ -1541,6 +1565,11 @@ export const runAutoFillAtom = atom(
       return { status: 'blocked', reason: 'busy' }
     }
 
+    const historyEntryRecorder = captureAutoFillHistoryEntryRecorder(input)
+    if (historyEntryRecorder === null) {
+      return { status: 'blocked', reason: 'busy' }
+    }
+
     const fillCommandIntent =
       input.entrypoint === 'fill-command'
         ? createFillCommandIntent(input.sheetId, input.selectionRange, input.direction)
@@ -1575,6 +1604,7 @@ export const runAutoFillAtom = atom(
         requiresUnfiltered: input.entrypoint === 'double-click',
         selectionWitness: get(selectionAuthorityWitnessAtom),
         workspaceWitness: get(workspaceActiveSheetAuthorityWitnessAtom),
+        historyEntryRecorder,
         historyReservation,
       })
       ownedTicket = ticket

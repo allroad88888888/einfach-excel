@@ -8,7 +8,7 @@ import {
   type PointerFillHandleCommitIntent,
   type RunAutoFillInput,
 } from '@einfach/spreadsheet-ui-core'
-import { reportCommandFailure } from '../provider'
+import { createHistoryEntryRecorder, reportCommandFailure } from '../provider'
 import type { GridContextMenuApi } from './grid-context-menu'
 import type { GridProjectionControllerApi } from './grid-projection-controller'
 import { installGridFeature, type GridRuntimeBase } from './grid-runtime'
@@ -21,6 +21,10 @@ type GridFillControllerRuntime = GridRuntimeBase &
     'readRangeProjection' | 'requestProjection' | 'loadProjection'
   > &
   Pick<GridContextMenuApi, 'focusGrid'>
+
+type AutoFillInputWithoutHistory<T extends RunAutoFillInput = RunAutoFillInput> = T extends unknown
+  ? Omit<T, 'historyEntryRecorder'>
+  : never
 
 export function installGridFillController(runtime: GridFillControllerRuntime) {
   const {
@@ -69,9 +73,13 @@ export function installGridFillController(runtime: GridFillControllerRuntime) {
     }
   }
 
-  async function dispatchAutoFill(input: RunAutoFillInput) {
+  async function dispatchAutoFill(input: AutoFillInputWithoutHistory) {
     try {
-      return await store.setter(runAutoFillAtom, input)
+      const commandInput: RunAutoFillInput = {
+        ...input,
+        historyEntryRecorder: createHistoryEntryRecorder(backend),
+      }
+      return await store.setter(runAutoFillAtom, commandInput)
     } catch (error) {
       reportCommandFailure(store, error, 'Filling cells failed.')
       return null

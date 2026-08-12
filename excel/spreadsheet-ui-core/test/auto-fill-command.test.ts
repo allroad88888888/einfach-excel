@@ -1,5 +1,5 @@
 import { createStore } from '@einfach/core'
-import { describe, expect, test } from '@jest/globals'
+import { afterAll, beforeAll, describe, expect, test } from '@jest/globals'
 import {
   retryAutoFillRefreshAtom,
   runAutoFillAtom,
@@ -9,6 +9,7 @@ import {
   type RunAutoFillCommandInput,
   type RunAutoFillDoubleClickInput,
   type RunAutoFillIntentInput,
+  type RunAutoFillInput,
 } from '../src/auto-fill'
 import type {
   AutoFillMutationResult,
@@ -25,6 +26,7 @@ import {
   releaseHistoryProducerReservationAtom,
   runRedoHistoryAtom,
   runUndoHistoryAtom,
+  type HistoryEntryRecorder,
   type HistoryMutationResult,
   type HistoryRedoRequest,
   type HistoryUndoRequest,
@@ -32,6 +34,26 @@ import {
 import { setSelectionAtom } from '../src/selection'
 import type { CellRange } from '../src/shared'
 import { setWorkspaceActiveSheetAtom } from '../src/workspace'
+
+const recordTestHistory: HistoryEntryRecorder = (entry, append) =>
+  append(entry) ? 'recorded' : 'rejected'
+
+function withTestHistoryRecorder(input: RunAutoFillInput): RunAutoFillInput {
+  return Object.create(input, {
+    historyEntryRecorder: { enumerable: true, value: recordTestHistory },
+  }) as RunAutoFillInput
+}
+
+const runAutoFillWrite = runAutoFillAtom.write
+
+beforeAll(() => {
+  runAutoFillAtom.write = (get, set, input) =>
+    runAutoFillWrite(get, set, withTestHistoryRecorder(input))
+})
+
+afterAll(() => {
+  runAutoFillAtom.write = runAutoFillWrite
+})
 
 const SHEET_ID = 'sheet-1'
 const SOURCE: CellRange = {

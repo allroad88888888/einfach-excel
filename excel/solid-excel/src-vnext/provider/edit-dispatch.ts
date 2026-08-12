@@ -19,6 +19,7 @@ import {
   type SpreadsheetBackend,
 } from '@einfach/spreadsheet-ui-core'
 
+import { createHistoryEntryRecorder } from './history-entry-recorder'
 import { refreshVisibleProjection } from './projection-refresh'
 
 /**
@@ -33,7 +34,10 @@ import { refreshVisibleProjection } from './projection-refresh'
 export async function dispatchEditingCommit(
   store: Store,
   backend: SpreadsheetBackend,
-  options: { move?: EditingCommitMove; source?: 'cell' | 'formula-bar' | 'keyboard' | 'paste' } = {},
+  options: {
+    move?: EditingCommitMove
+    source?: 'cell' | 'formula-bar' | 'keyboard' | 'paste'
+  } = {},
 ): Promise<EditingCommitOutcome> {
   // Clear any active formula-reference pick session before committing —
   // otherwise the next pointer click after commit would still route to
@@ -45,6 +49,7 @@ export async function dispatchEditingCommit(
     source: backend,
     move: options.move ?? 'none',
     commitSource: options.source ?? 'cell',
+    historyEntryRecorder: createHistoryEntryRecorder(backend),
     refreshProjection: (sheetId) =>
       refreshVisibleProjection(store, backend, sheetId, 'formula-bar'),
   })
@@ -144,9 +149,7 @@ export function acceptFormulaSuggestion(
   const draft = store.getter(editingDraftAtom)
   const replacement = `${suggestion.spec.name}(`
   const next =
-    draft.slice(0, suggestion.fragmentStart) +
-    replacement +
-    draft.slice(suggestion.fragmentEnd)
+    draft.slice(0, suggestion.fragmentStart) + replacement + draft.slice(suggestion.fragmentEnd)
   const caret = suggestion.fragmentStart + replacement.length
   store.setter(editingDraftAtom, { draft: next })
   // Reset the cursor so the next ArrowDown lands on the first suggestion.

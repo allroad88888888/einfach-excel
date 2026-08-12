@@ -1,4 +1,4 @@
-import { describe, expect, jest, test } from '@jest/globals'
+import { afterAll, beforeAll, describe, expect, jest, test } from '@jest/globals'
 import { createStore } from '@einfach/core'
 
 import {
@@ -28,7 +28,28 @@ import {
   pushHistoryAtom,
   pushReservedHistoryAtom,
   releaseHistoryProducerReservationAtom,
+  type HistoryEntryRecorder,
 } from '../src/history'
+
+const recordTestHistory: HistoryEntryRecorder = (entry, append) =>
+  append(entry) ? 'recorded' : 'rejected'
+
+function withTestHistoryRecorder(input: RunEditingCommitInput): RunEditingCommitInput {
+  return Object.create(input, {
+    historyEntryRecorder: { enumerable: true, value: recordTestHistory },
+  }) as RunEditingCommitInput
+}
+
+const runEditingCommitWrite = runEditingCommitAtom.write
+
+beforeAll(() => {
+  runEditingCommitAtom.write = (get, set, input) =>
+    runEditingCommitWrite(get, set, withTestHistoryRecorder(input))
+})
+
+afterAll(() => {
+  runEditingCommitAtom.write = runEditingCommitWrite
+})
 
 function deferred<T>() {
   let resolve!: (value: T | PromiseLike<T>) => void
@@ -195,9 +216,7 @@ describe('editing core', () => {
     expect(store.getter(editingIntentAtom)).toBeNull()
   })
 
-  test(
-    'does not publish a ticket or launch transport while another history producer owns the lane',
-    async () => {
+  test('does not publish a ticket or launch transport while another history producer owns the lane', async () => {
     const store = createStore()
     let transportCalls = 0
     startCellEdit(store, 'blocked by history')
@@ -473,9 +492,7 @@ describe('editing core', () => {
     expectHistoryLaneAvailable(store)
   })
 
-  test(
-    'reads an accessor acknowledgement exactly once and rejects an out-of-target range',
-    async () => {
+  test('reads an accessor acknowledgement exactly once and rejects an out-of-target range', async () => {
     const store = createStore()
     startCellEdit(store, 'ack accessors')
     const ackReads: Record<string, number> = {}
@@ -682,9 +699,7 @@ describe('editing core', () => {
     },
   )
 
-  test(
-    'retains the ticket and reservation when the exact ACK cannot be mirrored into history',
-    async () => {
+  test('retains the ticket and reservation when the exact ACK cannot be mirrored into history', async () => {
     const store = createStore()
     let transportCalls = 0
     startCellEdit(store, 'history failure')
@@ -780,9 +795,7 @@ describe('editing core', () => {
     expectHistoryLaneAvailable(store)
   })
 
-  test(
-    'uses finite custom/default mutation deadlines and ignores late fulfilment or rejection',
-    async () => {
+  test('uses finite custom/default mutation deadlines and ignores late fulfilment or rejection', async () => {
     jest.useFakeTimers()
     try {
       const fulfilledStore = createStore()
@@ -848,9 +861,7 @@ describe('editing core', () => {
     }
   })
 
-  test(
-    'retry freezes its getters, times out only refresh, and never resends or re-pushes',
-    async () => {
+  test('retry freezes its getters, times out only refresh, and never resends or re-pushes', async () => {
     jest.useFakeTimers()
     try {
       const store = createStore()
@@ -968,9 +979,7 @@ describe('editing core', () => {
     }
   })
 
-  test(
-    'push/release/session subscribers cannot replace a ticket before active clears last',
-    async () => {
+  test('push/release/session subscribers cannot replace a ticket before active clears last', async () => {
     const store = createStore()
     startCellEdit(store, 'clear active last')
     let pushReplacementAttempts = 0

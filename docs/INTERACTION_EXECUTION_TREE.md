@@ -44,7 +44,7 @@ IX-000 Atom 主线下的交互重整
 │   └── UI-517 PrintConfig 后端持久化与 Worker RPC（已完成；见下表）
 ├── W7 远端协作定位（已完成）
 │   └── UI-518 Presence 网格几何与身份呈现（已完成；见下表）
-└── W8 历史记录能力收敛（已完成）
+├── W8 历史记录能力收敛（已完成）
     ├── UI-519a Grid 直接 mutation 的 History capability guard（已完成；见下表）
     ├── UI-519b Core producer recorder port（已完成；见下表）
     ├── UI-519c editing 与 auto-fill 的 reserved history 迁移（已完成；见下表）
@@ -55,6 +55,8 @@ IX-000 Atom 主线下的交互重整
     ├── UI-519h tables recorder rejected 恢复顺序（已完成；见下表）
     ├── UI-519i Remove Duplicates history-capability 测试夹具（已完成；见下表）
     └── UI-521 Context menu structural-history 测试夹具（已完成；见下表）
+└── W9 命令入口一致性（已完成）
+    └── UI-527 菜单栏排序确认会话（已完成；见下表）
 ```
 
 | 波次 | 进入条件                    | 允许的并行度                         | 解锁条件                                      |
@@ -68,6 +70,7 @@ IX-000 Atom 主线下的交互重整
 | W6   | UI-516 完成                 | 一个 runtime/adapter 所有者          | PrintConfig 权威层与持久化语义已明确          |
 | W7   | W3 Presence 订阅完成        | 一个 Presence/Grid 改动者            | 远端光标在当前 Sheet 的真实单元格几何中可辨识 |
 | W8   | UI-209 的已知残余           | 一次一个 producer 域                 | 每个后端 mutation 入口经过同一能力保护        |
+| W9   | W2 排序确认会话              | 一个菜单栏/排序宿主改动者            | 菜单栏与工具栏的排序均先确认、再执行          |
 
 ## 详细执行页
 
@@ -80,6 +83,7 @@ IX-000 Atom 主线下的交互重整
 - [W6：PrintConfig 后端权威存储](interaction-execution/W6-print-config-backend.md)
 - [W7：远端协作定位](interaction-execution/W7-presence-grid-placement.md)
 - [W8：历史记录能力收敛](interaction-execution/W8-history-producer-guard.md)
+- [W9：命令入口一致性](interaction-execution/W9-command-surface-consistency.md)
 
 ## 通用交付证据
 

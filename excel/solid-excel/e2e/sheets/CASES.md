@@ -31,7 +31,7 @@
 | MS-15 | 删除被公式引用的 sheet → #REF!（需一次重投影） | 在 Sheet2 上删 Sheet3，切 Sheet1 再切回 | Sheet2!C5/C2 → #REF! | 🆕 本轮 | sheet-rename-delete-refs.spec.ts |
 | MS-16 | 改名后公式文本重写跟随（Excel 语义） | — | =Sheet3!… 自动变 =Data!… | ⏳ P2 延后 | —（引擎设计为 AST 存名不重写，需引擎公式重写能力，超出 e2e 范畴；与 MS-13 互为对照） |
 | MS-17 | 拖拽排序进行中的 drop 指示线 / Escape、pointercancel 取消 | — | data-reorder-drop 标记、取消恢复原序 | 🆕 本轮 | sheet-tab-reorder-lifecycle.spec.ts #"Escape cancels…"、#"pointercancel clears…" |
-| MS-18 | Ctrl+PageUp 反向切 sheet | — | 激活前一个 sheet | ⏳ P2 延后 | —（MS-11 只覆盖 Ctrl+PageDown） |
+| MS-18 | Ctrl+PageUp 反向切 sheet | Worker demo 从 Sheet2 tab 获焦后 Ctrl+PageUp | Sheet1 aria-selected/data-active、roving tabindex；焦点转移至 Sheet1 tab | 🆕 本轮 | sheet-tab-pageup-navigation.spec.ts #"Ctrl+PageUp activates the previous sheet and moves tab focus" |
 | MS-19 | 删除被引用 sheet 后当前 sheet 原地刷新 | 删 Sheet3 后不切表 | C5/C2 原地变 #REF! | ⚠️ 疑似 bug | sheet-rename-delete-refs.spec.ts fixme #"deleting a referenced sheet refreshes the visible sheet in place (currently stale)" |
 
 | MS-20 | 改名后被改名 sheet 自身的单元格保留 | 改名 Sheet3→Data，读 Data!C2 | 仍为 11 | ⚠️ 疑似 bug（仅 ts 后端） | sheet-rename-delete-refs.spec.ts MS-13 内 `test.fixme(project==='ts')` |
@@ -49,5 +49,5 @@ addSheet/removeSheet/moveSheet 都不改名字故不受影响（该函数注释�
 zip），rename 是唯一改名的操作。修法：把 old→new 的改名映射传进该函数，快照时按新名落键
 （3 行内），move 的按名匹配语义不变。本轮只钉不改（产品代码改动不混进 e2e 重组 PR）。
 
-统计：存量 12（MS-01..12，含 1 条跨文件夹引用）/ 本轮新增 4 + 2 fixme（MS-13..15、MS-17、
-MS-19、MS-20，2 个新 spec 文件，wasm 全绿）/ 延后 2（MS-16、MS-18）。
+统计：存量 12（MS-01..12，含 1 条跨文件夹引用）/ 本轮新增 5 + 2 fixme（MS-13..15、MS-17、
+MS-18、MS-19、MS-20，3 个新 spec 文件，TS+wasm 全绿）/ 延后 1（MS-16）。

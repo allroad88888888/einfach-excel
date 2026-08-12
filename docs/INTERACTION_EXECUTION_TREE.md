@@ -31,7 +31,7 @@ IX-000 Atom 主线下的交互重整
 │   ├── IX-005 Overlay 焦点与关闭契约
 │   └── IX-006 用户反馈与恢复状态面
 ├── W1 网格与输入链路（已完成）
-│   └── UI-101…UI-107、UI-201…UI-210 已完成；交付和保留边界见下表
+│   └── UI-101…UI-107、UI-201…UI-210、UI-520 已完成；交付和保留边界见下表
 ├── W2 命令、结构与数据工作流（已完成）
 │   └── UI-301…UI-309、UI-401…UI-409 已完成；交付和保留边界见下表
 ├── W3 运行时、可访问性与适配（已完成）
@@ -53,7 +53,8 @@ IX-000 Atom 主线下的交互重整
     ├── UI-519f tables、filter-sort 与 remove-duplicates 迁移（已完成；见下表）
     ├── UI-519g Grid legacy recorder 三态收敛（已完成；见下表）
     ├── UI-519h tables recorder rejected 恢复顺序（已完成；见下表）
-    └── UI-519i Remove Duplicates history-capability 测试夹具（已完成；见下表）
+    ├── UI-519i Remove Duplicates history-capability 测试夹具（已完成；见下表）
+    └── UI-521 Context menu structural-history 测试夹具（已完成；见下表）
 ```
 
 | 波次 | 进入条件                    | 允许的并行度                         | 解锁条件                                      |

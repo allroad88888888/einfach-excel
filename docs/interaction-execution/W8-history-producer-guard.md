@@ -1,6 +1,6 @@
 # W8：历史记录能力收敛
 
-> 状态：已完成；UI-519a 至 UI-519i 已独立提交，最终只读验收通过
+> 状态：已完成；UI-519a 至 UI-519i、UI-521 已独立提交，最终只读验收通过
 
 ## 目标
 
@@ -32,17 +32,18 @@ history Atom。继续保留既有 history Atom 作为历史事实的唯一权威
 
 ## C：实施分片
 
-| 子 Issue | 范围 | 前置 | 判定 |
-| --- | --- | --- | --- |
-| UI-519a | Grid editing、clipboard、format 的直接后端 mutation | 无 | 已完成：三个 host controller 在 ACK 后经同一 Provider guard 记录 history。 |
-| UI-519b | Core command 的 `recordHistory(entry, append)` callback port | UI-519a | 已完成：recorded / unavailable / rejected 三态 ABI；不把 backend 放进 Atom 或单例。 |
-| UI-519c | editing 与 auto-fill | UI-519b | 已完成：在 ACK 后经 required recorder 执行 reserved append；保留 reservation、transaction、revision、refresh。 |
-| UI-519d | paste-special 与 text-to-columns | UI-519b | 已完成：保留 reserved/direct 的原有差异；无能力时只跳过 history。 |
-| UI-519e | operations 与 toolbar | UI-519b | 已完成：结构事务保留 reservation/localSidePayload，工具栏在完整 ACK 后记录。 |
-| UI-519f | tables、filter-sort、remove-duplicates | UI-519b | 已完成：多入口表格、筛选、物理排序与去重都在 ACK 后经 required recorder 写入原有账本。 |
-| UI-519g | Grid editing、clipboard、format | UI-519a、UI-519b | 已完成：五条 ACK 后路径统一到 recorder 三态；rejected 不刷新并呈现 outcome-unknown。 |
-| UI-519h | tables recorder rejected 恢复顺序 | UI-519f | 已完成：六类表格命令的 rejected/throw 在 catalog 或 projection 刷新前停止。 |
-| UI-519i | Remove Duplicates history-capability 测试夹具 | UI-519f | 已完成：成功历史场景明确提供配对 undo/redo port；无能力场景仍验证无 history 降级。 |
+| 子 Issue | 范围                                                         | 前置             | 判定                                                                                                           |
+| -------- | ------------------------------------------------------------ | ---------------- | -------------------------------------------------------------------------------------------------------------- |
+| UI-519a  | Grid editing、clipboard、format 的直接后端 mutation          | 无               | 已完成：三个 host controller 在 ACK 后经同一 Provider guard 记录 history。                                     |
+| UI-519b  | Core command 的 `recordHistory(entry, append)` callback port | UI-519a          | 已完成：recorded / unavailable / rejected 三态 ABI；不把 backend 放进 Atom 或单例。                            |
+| UI-519c  | editing 与 auto-fill                                         | UI-519b          | 已完成：在 ACK 后经 required recorder 执行 reserved append；保留 reservation、transaction、revision、refresh。 |
+| UI-519d  | paste-special 与 text-to-columns                             | UI-519b          | 已完成：保留 reserved/direct 的原有差异；无能力时只跳过 history。                                              |
+| UI-519e  | operations 与 toolbar                                        | UI-519b          | 已完成：结构事务保留 reservation/localSidePayload，工具栏在完整 ACK 后记录。                                   |
+| UI-519f  | tables、filter-sort、remove-duplicates                       | UI-519b          | 已完成：多入口表格、筛选、物理排序与去重都在 ACK 后经 required recorder 写入原有账本。                         |
+| UI-519g  | Grid editing、clipboard、format                              | UI-519a、UI-519b | 已完成：五条 ACK 后路径统一到 recorder 三态；rejected 不刷新并呈现 outcome-unknown。                           |
+| UI-519h  | tables recorder rejected 恢复顺序                            | UI-519f          | 已完成：六类表格命令的 rejected/throw 在 catalog 或 projection 刷新前停止。                                    |
+| UI-519i  | Remove Duplicates history-capability 测试夹具                | UI-519f          | 已完成：成功历史场景明确提供配对 undo/redo port；无能力场景仍验证无 history 降级。                             |
+| UI-521   | Context menu structural-history 测试夹具                     | UI-519e          | 已完成：结构操作成功场景明确提供配对 undo/redo port；默认无能力夹具保持无 history。                            |
 
 ### UI-519a 交付（已完成）
 
@@ -144,7 +145,7 @@ revision、authority witness 和 refresh-only retry；没有改动 `viewport/fre
 （719–3,204 行）和 `vnext-adapter.test.ts`（5,853 行）均是本次前已超限的单体文件；只在公共 fixture 或既有
 命令 seam 作必要窄改，未在 history issue 中做无关的大拆分。
 
-### UI-519g、UI-519h、UI-519i 验收收口（已完成）
+### UI-519g、UI-519h、UI-519i、UI-521 验收收口（已完成）
 
 独立验收发现两处需要收口的契约偏差：Grid 的 editing、clipboard 与 format 五条 ACK 后路径仍调用旧
 `recordHistoryEntry`，没有表达 recorder 的 `recorded` / `unavailable` / `rejected` 三态；tables 六类命令在
@@ -155,8 +156,10 @@ outcome-unknown 且停止刷新。UI-519h 只改 tables Core 状态机及参数�
 
 第二轮只读验收又发现 Remove Duplicates 的三条“应记录历史”测试 fixture 没有完整 undo/redo port，因而按新
 guard 正确降级成 `unavailable`，但旧断言仍期待 history。UI-519i 仅为这三条成功路径提供配对 port；不支持
-history 的场景没有改变。最终只读验收通过：Core W8 回归 16 个 suites / 690 tests，Solid W8/宿主回归 11 个
-suites / 257 tests，Core 与 Solid TypeScript、`git diff --check` 均通过；未运行也不主张全局 lint 通过。
+history 的场景没有改变。最后一轮在 Context menu 的结构操作成功用例发现同类 fixture 缺口；UI-521 同样只为
+该成功路径提供配对 port，默认 fake backend 继续覆盖无 history 的降级语义。最终只读验收通过：Core W8 回归
+16 个 suites / 690 tests，Solid W8/宿主回归 12 个 suites / 287 tests，Core 与 Solid TypeScript、`git diff --check`
+均通过；未运行也不主张全局 lint 通过。
 
 `tables/commands.ts`（1,307 行）及 `vnext-remove-duplicates.test.tsx`（399 行）均为存量超限文件，本轮仅作
 必要窄改。三个 Grid controller 的 HEAD 基线不符合 Prettier；完整格式化会把 `grid-clipboard.ts` 扩至 352 行，

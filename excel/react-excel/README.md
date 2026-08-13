@@ -10,8 +10,8 @@ spreadsheet application.
 
 ## What it provides
 
-- `SpreadsheetUiProvider` creates an isolated UI-core store around a caller
-  supplied `SpreadsheetBackend`.
+- `SpreadsheetUiProvider` creates a UI core around a caller-supplied
+  `SpreadsheetBackend`; it uses a caller-supplied store when one is provided.
 - `SpreadsheetGridView` and `SpreadsheetFrozenGridView` render caller-owned,
   read-only cell projections.
 - Hooks cover selection, viewport, pointer selection, keyboard navigation,
@@ -44,10 +44,11 @@ export function SpreadsheetShell({ backend }: { backend: SpreadsheetBackend }) {
 }
 ```
 
-Every adapter hook must run below `SpreadsheetUiProvider`; the hook fails fast
-when no provider is present. Keep a stable backend instance for the lifetime of
-one workbook. Replacing it intentionally creates a new UI core for that
-provider boundary.
+Most adapter hooks read or dispatch the nearest `SpreadsheetUiProvider` core
+and fail fast when no provider is present. `useSpreadsheetValue` is the
+exception: it observes any supplied `SpreadsheetValueSource`. Keep a stable
+backend instance for the lifetime of one workbook. Replacing it intentionally
+creates a new UI core for that provider boundary.
 
 ## Controlled grid rendering
 

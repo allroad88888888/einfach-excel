@@ -1,5 +1,6 @@
 ---
 import DemoIsland from '../islands/DemoIsland'
+import ReactAdapterDemoIsland from '../islands/ReactAdapterDemoIsland'
 import { findDemo } from '../data/demo-catalog'
 import { sitePath } from '../data/site-path'
 import SiteLayout from '../layouts/SiteLayout.astro'
@@ -10,6 +11,7 @@ import customFormulasSeedSource from '../demos/seeds/seed-custom-formulas.ts?raw
 import formulaEngineSeedSource from '../demos/seeds/seed-formula-engine.ts?raw'
 import handOffFormSeedSource from '../demos/seeds/seed-hand-off-form.ts?raw'
 import performanceSeedSource from '../demos/seeds/seed-performance.ts?raw'
+import reactAdapterDemoSource from '../islands/ReactAdapterDemoIsland.tsx?raw'
 
 interface Props {
   id: string
@@ -23,11 +25,12 @@ interface Props {
 
 const { id, locale, Content, frontmatter } = Astro.props
 const demo = findDemo(id)
-const seedSource = seedSourceFor(id, demo.runtime)
+const previewSource = previewSourceFor(id, demo.runtime)
 const sourceBase = 'https://github.com/allroad88888888/einfach-excel/blob/main/'
 const alternateLocaleHref = sitePath(locale === 'zh' ? 'demos/' + id + '/' : 'zh/demos/' + id + '/')
 
-function seedSourceFor(demoId: string, runtime: 'worker-wasm' | 'static'): string {
+function previewSourceFor(demoId: string, runtime: 'worker-wasm' | 'static'): string {
+  if (demoId === 'react-controlled-projection') return reactAdapterDemoSource
   if (demoId === 'formula-engine') return formulaEngineSeedSource
   if (demoId === 'custom-formulas') return customFormulasSeedSource
   if (demoId === 'clean-messy-data') return cleanMessyDataSeedSource
@@ -54,7 +57,13 @@ function seedSourceFor(demoId: string, runtime: 'worker-wasm' | 'static'): strin
     <article class="demo-narrative">
       <Content />
     </article>
-    <DemoIsland client:only="solid-js" demoId={id} locale={locale} />
+    {
+      id === 'react-controlled-projection' ? (
+        <ReactAdapterDemoIsland client:only="react" locale={locale} />
+      ) : (
+        <DemoIsland client:only="solid-js" demoId={id} locale={locale} />
+      )
+    }
     <section class="source-section" aria-labelledby="source-heading">
       <h2 id="source-heading">{locale === 'zh' ? '查看源码' : 'View source'}</h2>
       <ul>
@@ -64,7 +73,7 @@ function seedSourceFor(demoId: string, runtime: 'worker-wasm' | 'static'): strin
           ))
         }
       </ul>
-      <pre><code>{seedSource.split('\n').slice(0, 24).join('\n')}</code></pre>
+      <pre><code>{previewSource.split('\n').slice(0, 24).join('\n')}</code></pre>
     </section>
   </main>
 </SiteLayout>

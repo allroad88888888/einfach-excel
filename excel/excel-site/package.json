@@ -14,15 +14,21 @@
   "dependencies": {
     "@einfach/core": "^0.4.0",
     "@einfach/excel-core-ts": "workspace:*",
+    "@einfach/react-excel": "workspace:*",
     "@einfach/solid": "^0.4.0",
     "@einfach/solid-excel": "workspace:*",
     "@einfach/spreadsheet-ui-core": "workspace:*",
     "@einfach/spreadsheet-ui-styles": "workspace:*",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "solid-js": "^1.9.12"
   },
   "devDependencies": {
+    "@astrojs/react": "^3.6.3",
     "@astrojs/solid-js": "^7.0.1",
     "@types/node": "^20.19.0",
+    "@types/react": "^18.3.20",
+    "@types/react-dom": "^18.3.6",
     "astro": "^7.1.6",
     "typedoc": "^0.28.20",
     "typedoc-plugin-markdown": "^4.12.0",

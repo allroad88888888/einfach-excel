@@ -1,16 +1,21 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'astro/config'
+import react from '@astrojs/react'
 import solid from '@astrojs/solid-js'
 import topLevelAwait from 'vite-plugin-top-level-await'
 import wasm from 'vite-plugin-wasm'
 
 const siteRoot = path.dirname(fileURLToPath(import.meta.url))
 const repoRoot = path.resolve(siteRoot, '../..')
+const reactSources = [
+  path.resolve(siteRoot, 'src/islands/ReactAdapterDemoIsland.tsx'),
+  path.resolve(repoRoot, 'excel/react-excel/src/**'),
+]
 
 export default defineConfig({
   base: process.env.GITHUB_ACTIONS === 'true' ? '/einfach-excel' : '',
-  integrations: [solid()],
+  integrations: [solid({ exclude: reactSources }), react({ include: reactSources })],
   vite: {
     plugins: [wasm(), topLevelAwait()],
     resolve: {

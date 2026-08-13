@@ -64,6 +64,16 @@ export const demos: readonly DemoDefinition[] = [
     sourceFiles: ['excel/excel-site/src/islands/DemoIsland.tsx', 'excel/excel-site/src/demos/seeds/seed-basics.ts'],
   },
   {
+    id: 'react-controlled-projection',
+    runtime: 'static',
+    scenario: 'roster',
+    sourceFiles: [
+      'excel/excel-site/src/islands/ReactAdapterDemoIsland.tsx',
+      'excel/react-excel/src/index.ts',
+      'excel/react-excel/src/use-spreadsheet-pointer-selection.ts',
+    ],
+  },
+  {
     id: 'collaboration',
     runtime: 'static',
     scenario: 'collaboration',

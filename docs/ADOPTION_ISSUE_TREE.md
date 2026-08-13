@@ -34,7 +34,7 @@
 
 | 总叶子 | 完成并独立验收 |               验收契约阻塞 | 未开始（含待决策） |        其中待决策 |
 | -----: | -------------: | -------------------------: | -----------------: | ----------------: |
-|    235 |             36 | 1（AD-505 验收契约待明确） |                198 | 5（AD-100/D1~D5） |
+|    235 |             39 | 1（AD-505 验收契约待明确） |                195 | 5（AD-100/D1~D5） |
 
 “其中待决策”是“未开始”的子集，不额外计入总叶子。AD-505 在明确基准页路由、启动方式、场景登记与无场景行为的验收契约前保持阻塞，不能记为完成。
 
@@ -48,9 +48,9 @@
     - AD-129~135 版本与发布流程
     - AD-136~142 本地 registry 与装机冒烟
   - [**AD-200 让人五分钟内跑起来**](adoption-issues/AD-200-onboarding.md) —— 受 AD-100 全组阻塞
-  - [**AD-300 框架适配层（React / Vue）**](adoption-issues/AD-300-framework-adapters.md) —— AD-311~314、AD-320、AD-325 完成；其余独立长线
+  - [**AD-300 框架适配层（React / Vue）**](adoption-issues/AD-300-framework-adapters.md) —— AD-311~315、AD-320~321、AD-325 完成；其余独立长线
   - [**AD-400 定位与可信度**](adoption-issues/AD-400-positioning.md) —— AD-401、AD-403、AD-404、AD-405、AD-408、AD-410、AD-411、AD-412、AD-420 完成；其余可与 AD-100 并行
-  - [**AD-500 可验证的性能证据**](adoption-issues/AD-500-performance.md) —— AD-501~504 完成；AD-505 等待验收契约明确，其余未开始
+  - [**AD-500 可验证的性能证据**](adoption-issues/AD-500-performance.md) —— AD-501~504、AD-514 完成；AD-505 等待验收契约明确，其余未开始
   - [**AD-600 内容与渠道**](adoption-issues/AD-600-content-channels.md) —— 依赖 AD-100、AD-400
   - [**AD-700 承接进来的人**](adoption-issues/AD-700-community.md) —— AD-701、AD-702、AD-706、AD-708、AD-709、AD-713 完成
   - [**AD-800 规模能力与技术差异化**](adoption-issues/AD-800-scale-differentiation.md) —— AD-801~805、AD-814、AD-815、AD-821~824 完成
@@ -63,7 +63,9 @@
 | AD-312 | Grid 可移植性边界         | `77a692eae9e1e19ab5ee5138f9941e5094736848` |
 | AD-313 | 编辑与选区可移植性边界    | `9660fb8`                                  |
 | AD-314 | 非 grid 交互可移植性边界  | `b291fbb`                                  |
+| AD-315 | 下沉目标位置裁决          | `96a3b96b7feb0b697e91e004a772092a2b3fe700` |
 | AD-320 | Headless 挂载契约         | `e8a07366ed4a7d57cecb56087ddc40e9b6a4d3bb` |
+| AD-321 | DOM 测量抽象              | `8c6ab2df3fc35fc90db8ea50cf6d89c8e685bc07` |
 | AD-325 | 档 1 范围冻结             | `41ddb19`                                  |
 | AD-401 | 一句话定位定稿            | `a908ba8`                                  |
 | AD-403 | 定位的诚实边界            | `639934abcaed18f0f9cfd839160634cd19ad8f1b` |
@@ -78,6 +80,7 @@
 | AD-502 | 对外性能测量方法          | `bb64fe9`                                  |
 | AD-503 | 对外性能非承诺            | `47baf17`                                  |
 | AD-504 | 对外性能环境记录格式      | `3422994`                                  |
+| AD-514 | WASM 瘦身可行性评估       | `ba7272d`                                  |
 | AD-701 | Bug issue 模板            | `a124092`                                  |
 | AD-702 | 功能请求 issue 模板       | `e1413c4`                                  |
 | AD-706 | 无 Rust 工具链贡献路径    | `0625229`                                  |

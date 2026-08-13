@@ -34,7 +34,7 @@
 
 | 总叶子 | 完成并独立验收 |               验收契约阻塞 | 未开始（含待决策） |        其中待决策 |
 | -----: | -------------: | -------------------------: | -----------------: | ----------------: |
-|    235 |             78 | 1（AD-505 验收契约待明确） |                156 | 5（AD-100/D1~D5） |
+|    235 |             81 | 1（AD-505 验收契约待明确） |                153 | 5（AD-100/D1~D5） |
 
 “其中待决策”是“未开始”的子集，不额外计入总叶子。AD-505 在明确基准页路由、启动方式、场景登记与无场景行为的验收契约前保持阻塞，不能记为完成。
 
@@ -48,12 +48,12 @@
     - AD-129~135 版本与发布流程
     - AD-136~142 本地 registry 与装机冒烟
   - [**AD-200 让人五分钟内跑起来**](adoption-issues/AD-200-onboarding.md) —— 受 AD-100 全组阻塞
-  - [**AD-300 框架适配层（React / Vue）**](adoption-issues/AD-300-framework-adapters.md) —— AD-311~325、AD-331~335、AD-361~365 完成；其余独立长线
+  - [**AD-300 框架适配层（React / Vue）**](adoption-issues/AD-300-framework-adapters.md) —— AD-311~325、AD-331~335、AD-337、AD-361~365、AD-367 完成；其余独立长线
   - [**AD-400 定位与可信度**](adoption-issues/AD-400-positioning.md) —— AD-401~407、AD-408~412、AD-416~420 完成；其余可与 AD-100 并行
   - [**AD-500 可验证的性能证据**](adoption-issues/AD-500-performance.md) —— AD-501~504、AD-509、AD-511~514、AD-516、AD-517 完成；AD-505 等待验收契约明确，其余未开始
   - [**AD-600 内容与渠道**](adoption-issues/AD-600-content-channels.md) —— 依赖 AD-100、AD-400
   - [**AD-700 承接进来的人**](adoption-issues/AD-700-community.md) —— AD-701、AD-702、AD-705、AD-706、AD-708~710、AD-713 完成
-  - [**AD-800 规模能力与技术差异化**](adoption-issues/AD-800-scale-differentiation.md) —— AD-801~806、AD-811、AD-814~817、AD-819~824 完成
+  - [**AD-800 规模能力与技术差异化**](adoption-issues/AD-800-scale-differentiation.md) —— AD-801~806、AD-811、AD-814~817、AD-819~825 完成
 
 ## 已完成叶子
 
@@ -79,11 +79,13 @@
 | AD-333 | React 并发正确性验证      | `5a780b5`                                  |
 | AD-334 | React UI Provider         | `5cc47852b2522748bee5bcadfd8873c695411cd7` |
 | AD-335 | React worker backend port | `6b17a0a`                                  |
+| AD-337 | React 只读网格视图        | `bdb9b85`                                  |
 | AD-361 | Vue 包骨架                | `a95b0b0`                                  |
 | AD-362 | Vue 订阅桥                | `0434370`                                  |
 | AD-363 | Vue 订阅回收验证          | `8462820`                                  |
 | AD-364 | Vue Provider/context      | `cfaabbb`                                  |
 | AD-365 | Vue worker backend port   | `4292868d9f598100c612f262a6577eae4f186351` |
+| AD-367 | Vue 只读网格视图          | `1ee0f44`                                  |
 | AD-401 | 一句话定位定稿            | `a908ba8`                                  |
 | AD-402 | 与 Univer 的差异段        | `d3f9504`                                  |
 | AD-403 | 定位的诚实边界            | `639934abcaed18f0f9cfd839160634cd19ad8f1b` |
@@ -137,6 +139,7 @@
 | AD-822 | 跨 sheet 按需求值成文     | `ae7f5bc`                                  |
 | AD-823 | 懒求值归档件与现状复核    | `62755dc`、`fbdf800`                       |
 | AD-824 | 投影边界约束成文          | `336c449`                                  |
+| AD-825 | Worker 载荷字节遥测       | `b8c4e226`、`56ca8bb`                      |
 
 ## 关键路径
 

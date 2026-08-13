@@ -39,27 +39,27 @@ Layering rules: components read atoms via `@einfach/solid`; mutations dispatch a
 
 ## Components under `src-vnext/`
 
-| Folder                    | Surface                                                                                                              |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `provider/`               | `SpreadsheetUiProvider`, `SpreadsheetUiContext`, `useSpreadsheetBackend`, `useSpreadsheetUiStore`                    |
+| Folder                    | Surface                                                                                                                                                                                                                                                                       |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `provider/`               | `SpreadsheetUiProvider`, `SpreadsheetUiContext`, `useSpreadsheetBackend`, `useSpreadsheetUiStore`                                                                                                                                                                             |
 | `adapter/`                | `static-backend`, `worker-workbook-backend`, `worker-protocol`, `worker-factory`, range-TSV helper；WASM worker 拆成 `worker-runtime-core`（消息循环）+ `worker-commands-*`（命令族）+ `worker-runtime` / `worker-runtime-full`（分别静态 import lite / full 产物的叶子入口） |
-| `grid/`                   | `SpreadsheetGrid` — virtualized cells, selection rendering, fill handle                                              |
-| `formula-bar/`            | `SpreadsheetFormulaBar`                                                                                              |
-| `toolbar/`                | `SpreadsheetToolbar` plus toolbar command types                                                                      |
-| `status-bar/`             | `SpreadsheetStatusBar`                                                                                               |
-| `sheet-tabs/`             | `SpreadsheetSheetTabs`                                                                                               |
-| `context-menu/`           | `SpreadsheetContextMenu`                                                                                             |
-| `find-replace/`           | `SpreadsheetFindReplaceDialog`（现有实现，属于状态迁移目标）                                                         |
-| `conditional-formatting/` | `SpreadsheetConditionalFormatDialog`                                                                                 |
-| `data-validation/`        | `SpreadsheetDataValidationDialog`                                                                                    |
-| `named-ranges/`           | `SpreadsheetNameManagerDialog`                                                                                       |
-| `comments/`               | `SpreadsheetCommentThread`                                                                                           |
-| `print/`                  | `SpreadsheetPrintPreviewOverlay`                                                                                     |
-| `filter-sort/`            | `SpreadsheetFilterDropdown`                                                                                          |
-| `presence/`               | `SpreadsheetPresenceOverlay`                                                                                         |
-| `protection/`             | `SpreadsheetProtectionUnlockDialog`                                                                                  |
-| `history/`                | `SpreadsheetHistoryTimeline`                                                                                         |
-| `demos/`                  | `VNextSmokeDemo` (static), `VNextWorkerDemo` (worker + WASM)                                                         |
+| `grid/`                   | `SpreadsheetGrid` — virtualized cells, selection rendering, fill handle                                                                                                                                                                                                       |
+| `formula-bar/`            | `SpreadsheetFormulaBar`                                                                                                                                                                                                                                                       |
+| `toolbar/`                | `SpreadsheetToolbar` plus toolbar command types                                                                                                                                                                                                                               |
+| `status-bar/`             | `SpreadsheetStatusBar`                                                                                                                                                                                                                                                        |
+| `sheet-tabs/`             | `SpreadsheetSheetTabs`                                                                                                                                                                                                                                                        |
+| `context-menu/`           | `SpreadsheetContextMenu`                                                                                                                                                                                                                                                      |
+| `find-replace/`           | `SpreadsheetFindReplaceDialog`（现有实现，属于状态迁移目标）                                                                                                                                                                                                                  |
+| `conditional-formatting/` | `SpreadsheetConditionalFormatDialog`                                                                                                                                                                                                                                          |
+| `data-validation/`        | `SpreadsheetDataValidationDialog`                                                                                                                                                                                                                                             |
+| `named-ranges/`           | `SpreadsheetNameManagerDialog`                                                                                                                                                                                                                                                |
+| `comments/`               | `SpreadsheetCommentThread`                                                                                                                                                                                                                                                    |
+| `print/`                  | `SpreadsheetPrintPreviewOverlay`                                                                                                                                                                                                                                              |
+| `filter-sort/`            | `SpreadsheetFilterDropdown`                                                                                                                                                                                                                                                   |
+| `presence/`               | `SpreadsheetPresenceOverlay`                                                                                                                                                                                                                                                  |
+| `protection/`             | `SpreadsheetProtectionUnlockDialog`                                                                                                                                                                                                                                           |
+| `history/`                | `SpreadsheetHistoryTimeline`                                                                                                                                                                                                                                                  |
+| `demos/`                  | `VNextSmokeDemo` (static), `VNextWorkerDemo` (worker + WASM)                                                                                                                                                                                                                  |
 
 Public exports flow through `src-vnext/public.ts`. Import via the `@einfach/solid-excel/vnext` subpath:
 
@@ -82,9 +82,27 @@ import { createWorker } from '@einfach/solid-excel/vnext-worker-factory'
 
 Some existing `*Dialog.tsx` components still read an open atom via `useAtomValue` but keep form state in `createSignal`. Treat that as migration debt, not as the pattern for new work. New or migrated dialogs must keep product, form draft, dirty, validation, pending, and error state in Einfach source/derived/command atoms; Solid-local state is limited to DOM references, one-off measurements, and animation handles. The feature plans linked above define the required state ownership and transitions.
 
-### Provider caveat
+### Solid runtime instance invariant
 
-`solid-js@1.9.12` re-executes consumer component bodies inside `Provider` when atoms mutate. Per-instance state must live in atoms or be re-derivable from atoms, not in `let` locals at the top of a component. See the root `CLAUDE.md` for the pinned contract test and the open version-alignment item.
+This package requires one physical `solid-js` runtime per process. The root
+`pnpm.overrides` pins `solid-js` to `1.9.12`; it prevents the historical
+Provider remount symptom caused by a split resolver graph. A normal atom update
+does not itself re-execute a consumer component body. If that symptom returns,
+or the check below prints anything other than `solid-js@1.9.12`, repair the
+dependency graph instead of adding a component-level workaround:
+
+```bash
+grep -oE '^  solid-js@[0-9.]+' pnpm-lock.yaml | sort -u
+npx jest excel/solid-excel/test/provider-remount-1912.test.tsx --runInBand
+```
+
+The package runtime cannot reliably discover another `solid-js` branch in the
+resolver graph, so it intentionally has no development-time duplicate-instance
+warning: such a warning would produce false positives and false negatives.
+
+This invariant does not relax state ownership. Product state remains in
+Einfach atoms; Solid-local state is only for non-product DOM references,
+one-off measurements, and animation handles.
 
 ## Build
 

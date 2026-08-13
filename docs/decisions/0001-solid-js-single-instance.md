@@ -7,8 +7,8 @@
 ## 背景
 
 一个长期被归因为「solid-js 1.9.12 与 Provider 交互有 bug」的现象：`Provider` 下的消费者组件函数体
-在每次 atom 变更时都重新执行，而不是只在挂载时执行一次。这会让「把每实例状态放在 `createSignal`
-局部变量里」的写法失效，当时的规避手段是把对话框状态一律搬进 atom。
+会在普通 atom 变更时重新执行，而不是只在挂载时执行一次。普通 atom 更新本身不会造成这种重执行；
+当时把所有每实例状态搬进 `createSignal` 局部变量或 atom 的做法也没有触及根因。
 
 ## 根因
 
@@ -23,17 +23,19 @@
 
 ## 决策
 
-根 `pnpm.overrides` 钉死 `solid-js: 1.9.12`，并把「lockfile 里只能有一个 solid-js 版本」作为
-不变式来守。
+根 `pnpm.overrides` 钉死 `solid-js: 1.9.12`，并把「依赖图只能解析到一个物理的 solid-js 运行时」
+作为不变式来守。
 
 ## 后果
 
-- 校验方式：`grep -oE 'solid-js@[0-9.]+' pnpm-lock.yaml | sort -u` 必须只回一行。
-  （同一版本在 `packages:` 与 `snapshots:` 两节各出现一次是 pnpm lockfile v9 的正常形态，
-  不是两份实例。）
+- 校验方式：`grep -oE '^  solid-js@[0-9.]+' pnpm-lock.yaml | sort -u` 必须只输出
+  `solid-js@1.9.12`。锚定依赖 stanza 可避免把 `@astrojs/solid-js` 误算成 solid-js 运行时。
 - 契约测试 `excel/solid-excel/test/provider-remount-1912.test.tsx` 断言消费者函数体每次挂载
   只执行一次。它失败、或出现第二个 solid-js 版本时，**去修依赖图，不要在组件里绕**。
-- 把每实例的对话框状态放 atom 从「必须」降级为「约定」—— 现在 `createSignal` 局部变量是安全的。
+- 包内运行时无法可靠发现 resolver graph 中的第二个 Solid 分支，因此不新增开发期重复实例告警；
+  这类告警必然存在假阳性或假阴性。
+- 本决策不放宽状态归属：产品状态必须保留在 Einfach atoms。Solid 本地状态只可承载 DOM 引用、
+  一次性测量值或动画帧临时变量等非产品性状态。
 - 引入任何新的 Solid 相关依赖时，要确认它没有把 solid-js 拖成第二个版本。
 
 ## 备注

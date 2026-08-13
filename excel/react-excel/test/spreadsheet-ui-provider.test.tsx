@@ -1,4 +1,4 @@
-import { createStore, type Store } from '@einfach/core'
+import { atom, createStore, type Store } from '@einfach/core'
 import type { SpreadsheetBackend, SpreadsheetUiCore } from '@einfach/spreadsheet-ui-core'
 import { describe, expect, it, jest } from '@jest/globals'
 import { render } from '@testing-library/react'
@@ -20,6 +20,8 @@ function renderProvider(
     </SpreadsheetUiProvider>,
   )
 }
+
+const providerIsolationAtom = atom('initial')
 
 describe('SpreadsheetUiProvider', () => {
   it('supplies the caller-owned backend and store to descendants', () => {
@@ -53,6 +55,40 @@ describe('SpreadsheetUiProvider', () => {
     expect(firstCore?.store).toBeDefined()
     expect(secondCore?.store).toBeDefined()
     expect(firstCore?.store).not.toBe(secondCore?.store)
+  })
+
+  it('keeps sibling default cores isolated across a rerender', () => {
+    const firstBackend = {} as SpreadsheetBackend
+    const secondBackend = {} as SpreadsheetBackend
+    let firstCore: SpreadsheetUiCore | undefined
+    let secondCore: SpreadsheetUiCore | undefined
+    const children = (
+      <>
+        <SpreadsheetUiProvider backend={firstBackend}>
+          <CoreCapture onCore={(core) => (firstCore = core)} />
+        </SpreadsheetUiProvider>
+        <SpreadsheetUiProvider backend={secondBackend}>
+          <CoreCapture onCore={(core) => (secondCore = core)} />
+        </SpreadsheetUiProvider>
+      </>
+    )
+    const view = render(children)
+    const firstStore = firstCore?.store
+    const secondStore = secondCore?.store
+
+    expect(firstStore).toBeDefined()
+    expect(secondStore).toBeDefined()
+    expect(firstStore).not.toBe(secondStore)
+
+    firstStore?.setter(providerIsolationAtom, 'first')
+    expect(secondStore?.getter(providerIsolationAtom)).toBe('initial')
+
+    view.rerender(children)
+
+    expect(firstCore?.store).toBe(firstStore)
+    expect(secondCore?.store).toBe(secondStore)
+    expect(firstCore?.store.getter(providerIsolationAtom)).toBe('first')
+    expect(secondCore?.store.getter(providerIsolationAtom)).toBe('initial')
   })
 
   it('updates the supplied core when its controlled backend changes', () => {

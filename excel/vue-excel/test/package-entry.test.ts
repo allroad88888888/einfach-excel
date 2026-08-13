@@ -12,7 +12,7 @@ interface VueExcelPackageJson {
 const packageJson = jest.requireActual('../package.json') as VueExcelPackageJson
 
 describe('@einfach/vue-excel package entry', () => {
-  it('keeps the package private while exposing the subscription bridge', () => {
+  it('keeps the package private while exposing the Vue bridges', () => {
     expect(packageJson.name).toBe('@einfach/vue-excel')
     expect(packageJson.private).toBe(true)
     expect(packageJson.peerDependencies).toEqual({ vue: '>=3.3.0' })
@@ -22,6 +22,8 @@ describe('@einfach/vue-excel package entry', () => {
       default: './src/index.ts',
     })
     expect(packageEntry).toEqual({
+      SpreadsheetUiProvider: expect.objectContaining({ setup: expect.any(Function) }),
+      useSpreadsheetUiCore: expect.any(Function),
       useSpreadsheetValue: expect.any(Function),
     })
   })

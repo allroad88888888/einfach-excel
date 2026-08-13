@@ -267,6 +267,13 @@ importers:
   excel/spreadsheet-ui-styles: {}
 
   excel/vue-excel:
+    dependencies:
+      '@einfach/core':
+        specifier: ^0.4.0
+        version: 0.4.0
+      '@einfach/spreadsheet-ui-core':
+        specifier: workspace:*
+        version: link:../spreadsheet-ui-core
     devDependencies:
       vue:
         specifier: ^3.5.41

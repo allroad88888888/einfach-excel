@@ -48,11 +48,11 @@
     - AD-129~135 版本与发布流程
     - AD-136~142 本地 registry 与装机冒烟
   - [**AD-200 让人五分钟内跑起来**](adoption-issues/AD-200-onboarding.md) —— 受 AD-100 全组阻塞
-  - [**AD-300 框架适配层（React / Vue）**](adoption-issues/AD-300-framework-adapters.md) —— AD-311~325、AD-331~332、AD-361~363 完成；其余独立长线
-  - [**AD-400 定位与可信度**](adoption-issues/AD-400-positioning.md) —— AD-401~407、AD-408~412、AD-416~420 完成；其余可与 AD-100 并行
+  - [**AD-300 框架适配层（React / Vue）**](adoption-issues/AD-300-framework-adapters.md) —— AD-311~325、AD-331~332、AD-334、AD-361~363 完成；其余独立长线
+  - [**AD-400 定位与可信度**](adoption-issues/AD-400-positioning.md) —— AD-401、AD-403~406、AD-408~412、AD-416~420 完成；其余可与 AD-100 并行
   - [**AD-500 可验证的性能证据**](adoption-issues/AD-500-performance.md) —— AD-501~504、AD-509、AD-514、AD-516、AD-517 完成；AD-505 等待验收契约明确，其余未开始
   - [**AD-600 内容与渠道**](adoption-issues/AD-600-content-channels.md) —— 依赖 AD-100、AD-400
-  - [**AD-700 承接进来的人**](adoption-issues/AD-700-community.md) —— AD-701、AD-702、AD-706、AD-708~710、AD-713 完成
+  - [**AD-700 承接进来的人**](adoption-issues/AD-700-community.md) —— AD-701、AD-702、AD-705、AD-706、AD-708~710、AD-713 完成
   - [**AD-800 规模能力与技术差异化**](adoption-issues/AD-800-scale-differentiation.md) —— AD-801~806、AD-811、AD-814~817、AD-819~824 完成
 
 ## 已完成叶子
@@ -76,16 +76,15 @@
 | AD-325 | 档 1 范围冻结             | `41ddb19`                                  |
 | AD-331 | React 包骨架              | `db0637c`                                  |
 | AD-332 | React 订阅桥              | `44be7f3`、`dd2afcd`                       |
+| AD-334 | React UI Provider         | `5cc47852b2522748bee5bcadfd8873c695411cd7` |
 | AD-361 | Vue 包骨架                | `a95b0b0`                                  |
 | AD-362 | Vue 订阅桥                | `0434370`                                  |
 | AD-363 | Vue 订阅回收验证          | `8462820`                                  |
 | AD-401 | 一句话定位定稿            | `a908ba8`                                  |
-| AD-402 | 与 Univer 的差异段        | `3a66f14`                                  |
 | AD-403 | 定位的诚实边界            | `639934abcaed18f0f9cfd839160634cd19ad8f1b` |
 | AD-404 | 非规模产品对比维度        | `e951719`                                  |
 | AD-405 | Univer 产品事实证据       | `29e921d`                                  |
 | AD-406 | Handsontable 产品事实证据 | `af70c3c`、`8eb91a8`                       |
-| AD-407 | 带核实日期的对比表        | `d91e209`                                  |
 | AD-408 | 对比证据维护规程          | `a2dfa0280dbf484a106c04d652f1d98931532b06` |
 | AD-409 | README 采用旅程重排       | `18d26279eca888298129c0d183319e870e9585f4` |
 | AD-410 | 可复跑可信度验证命令      | `74d04d6`                                  |
@@ -106,6 +105,7 @@
 | AD-517 | 竞品同口径对照决策        | `a54de02`                                  |
 | AD-701 | Bug issue 模板            | `a124092`                                  |
 | AD-702 | 功能请求 issue 模板       | `e1413c4`                                  |
+| AD-705 | 社区行为准则范围          | `d9bcdc2544ec5b3ad266d2aa4703276b695a114e` |
 | AD-706 | 无 Rust 工具链贡献路径    | `0625229`                                  |
 | AD-708 | fork 到 PR 最短路径引导   | `f0a6c52`                                  |
 | AD-709 | 贡献指南外部可读性走查    | `21812bc`                                  |

@@ -1,0 +1,174 @@
+{
+  "observationId": "ad826-first-screen-formula-evaluation-2026-08-13",
+  "recordedAt": "2026-08-13T19:15:25+08:00",
+  "repositoryRevision": "3910c6152d92dfb6519284ff5b9af0ebaf723957",
+  "sourceTest": "excel/solid-excel/e2e/perf-virtual/ad826-first-screen-evaluation.spec.ts",
+  "environment": {
+    "hostOperatingSystem": "macOS 26.5.2 (25F84)",
+    "node": "v24.14.0",
+    "playwright": "1.59.1",
+    "browserUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.7727.15 Safari/537.36"
+  },
+  "fixture": {
+    "worksheet": "AD826",
+    "populatedCellCount": 96,
+    "shape": "24 rows x 4 populated cells: A number, B =A(row)+1, C text, D =A(row)+2",
+    "formulaShape": "48 shallow same-row direct-reference formulas"
+  },
+  "firstScreen": {
+    "range": {
+      "sheet": 0,
+      "startRow": 0,
+      "startCol": 0,
+      "endRow": 11,
+      "endCol": 3
+    },
+    "settledCondition": "commitImport resolved; debugCounters was read; readSparseRange for this range resolved; debugCounters was read again."
+  },
+  "runs": [
+    {
+      "project": "wasm",
+      "command": "EINFACH_E2E_PORT=5192 pnpm exec playwright test e2e/perf-virtual/ad826-first-screen-evaluation.spec.ts --project=wasm",
+      "rawConsolePayload": {
+        "backend": "wasm",
+        "commit": {
+          "accepted": 96,
+          "errors": 0,
+          "formulas": 48,
+          "rejectedFormulas": 0
+        },
+        "fixture": {
+          "populatedCellCount": 96,
+          "rows": 24,
+          "shallowFormulaCount": 48
+        },
+        "firstScreen": {
+          "cellCount": 48,
+          "range": {
+            "sheet": 0,
+            "startRow": 0,
+            "startCol": 0,
+            "endRow": 11,
+            "endCol": 3
+          },
+          "sampleDisplays": ["2", "3", "3", "4"]
+        },
+        "counters": {
+          "beforeFirstScreenRead": {
+            "sheetCount": 1,
+            "crossSheetDependents": 0,
+            "formulaCount": 48,
+            "formulaEvalCountTotal": 0,
+            "liveSubscriptionCount": 0,
+            "workerSubscriptionCount": 0,
+            "importSessionCount": 0,
+            "exportSessionCount": 0,
+            "snapshotSessionCount": 0,
+            "sheets": [
+              {
+                "idx": 0,
+                "name": "AD826",
+                "formulaCount": 48,
+                "formulaEvalCount": 0,
+                "liveSubscriptionCount": 0
+              }
+            ]
+          },
+          "afterFirstScreenRead": {
+            "sheetCount": 1,
+            "crossSheetDependents": 0,
+            "formulaCount": 48,
+            "formulaEvalCountTotal": 24,
+            "liveSubscriptionCount": 0,
+            "workerSubscriptionCount": 0,
+            "importSessionCount": 0,
+            "exportSessionCount": 0,
+            "snapshotSessionCount": 0,
+            "sheets": [
+              {
+                "idx": 0,
+                "name": "AD826",
+                "formulaCount": 48,
+                "formulaEvalCount": 24,
+                "liveSubscriptionCount": 0
+              }
+            ]
+          }
+        },
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.7727.15 Safari/537.36"
+      }
+    },
+    {
+      "project": "ts",
+      "command": "EINFACH_E2E_PORT=5193 pnpm exec playwright test e2e/perf-virtual/ad826-first-screen-evaluation.spec.ts --project=ts",
+      "rawConsolePayload": {
+        "backend": "ts",
+        "commit": {
+          "accepted": 96,
+          "errors": 0,
+          "formulas": 48,
+          "rejectedFormulas": 0
+        },
+        "fixture": {
+          "populatedCellCount": 96,
+          "rows": 24,
+          "shallowFormulaCount": 48
+        },
+        "firstScreen": {
+          "cellCount": 48,
+          "range": {
+            "sheet": 0,
+            "startRow": 0,
+            "startCol": 0,
+            "endRow": 11,
+            "endCol": 3
+          },
+          "sampleDisplays": ["2", "3", "3", "4"]
+        },
+        "counters": {
+          "beforeFirstScreenRead": {
+            "sheetCount": 1,
+            "crossSheetDependents": 0,
+            "formulaCount": 48,
+            "formulaEvalCountTotal": 0,
+            "liveSubscriptionCount": 0,
+            "workerSubscriptionCount": 0,
+            "importSessionCount": 0,
+            "exportSessionCount": 0,
+            "snapshotSessionCount": 0,
+            "sheets": [
+              {
+                "idx": 0,
+                "name": "AD826",
+                "formulaCount": 48,
+                "formulaEvalCount": 0,
+                "liveSubscriptionCount": 0
+              }
+            ]
+          },
+          "afterFirstScreenRead": {
+            "sheetCount": 1,
+            "crossSheetDependents": 0,
+            "formulaCount": 48,
+            "formulaEvalCountTotal": 24,
+            "liveSubscriptionCount": 0,
+            "workerSubscriptionCount": 0,
+            "importSessionCount": 0,
+            "exportSessionCount": 0,
+            "snapshotSessionCount": 0,
+            "sheets": [
+              {
+                "idx": 0,
+                "name": "AD826",
+                "formulaCount": 48,
+                "formulaEvalCount": 24,
+                "liveSubscriptionCount": 0
+              }
+            ]
+          }
+        },
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.7727.15 Safari/537.36"
+      }
+    }
+  ]
+}

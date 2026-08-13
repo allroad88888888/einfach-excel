@@ -45,6 +45,7 @@
 | PV-29 | 滚动进行中（惯性/连续 wheel）提交 | — | — | ⏳ P2 延后 | —（Playwright 难以稳定模拟惯性滚动，易 flake） |
 | PV-30 | 裸滚动离开选中格后位置保持（不回弹） | scrollLeft/scrollTop 直写离开选区 | 滚动位置保持 | ⏳ P2 延后 | —（实测 2026-07-29：1M demo 上把选中格滚出视口的裸滚动会被 keep-selection-in-view 回弹，如 x=0 → 回 69226；million-demo 粘贴存量 spec 早已按此绕行。是否算产品 bug 需产品决策——本轮新增 spec 一律经 setSelectionAnchor 导航） |
 | PV-31 | AD-807 真实千万已填充 TSV 导入边界 | DemoMillion 上传 AD-806 10,000×1,000 TSV | 记录 200,001 格原子会话失败前后的 DOM、订阅、内存可用性与原始错误；不把失败当成容量结论 | 🧪 观察 | ad807-ten-million-load.spec.ts |
+| PV-32 | AD-810 原子导入会话精确边界 | DemoMillion 上传确定性 200×1,000 与 200×1,000+1 TSV | 200,000 格提交；第 200,001 个归一化单元格被拒绝；记录 UI、worker、DOM、订阅、内存可用性；不作性能、容量或 SLO 结论 | 🧪 观察 | ad810-import-boundary.spec.ts |
 
 统计：存量 21（PV-01..21，多 test 合并行按文件计全覆盖）/ 本轮新增 6（PV-22..27，
-3 个新 spec 文件，wasm 全绿）/ 延后 3（PV-28..30）/ 真实失败观察 1（PV-31）。
+3 个新 spec 文件，wasm 全绿）/ 延后 3（PV-28..30）/ 真实失败观察 1（PV-31）/ 真实边界观察 1（PV-32）。

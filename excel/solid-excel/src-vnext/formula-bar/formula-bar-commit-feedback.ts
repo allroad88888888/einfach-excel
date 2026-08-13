@@ -1,6 +1,5 @@
 import { useAtomValue } from '@einfach/solid'
-import { editingCommitLifecycleAtom } from '@einfach/spreadsheet-ui-core'
-import { editingCommitFeedback } from '../feedback/editing-commit-feedback'
+import { editingCommitFeedback, editingCommitLifecycleAtom } from '@einfach/spreadsheet-ui-core'
 
 /**
  * Projects the shared editing lifecycle into formula-bar error feedback.

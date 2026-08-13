@@ -1,6 +1,7 @@
 import {
   activateSheetTabAtom,
   activeCellFormatAtom,
+  applyFormulaReferenceArrowPick,
   clipboardStateAtom,
   dispatchKeyboardInputAtom,
   exitFormulaReferenceAtom,
@@ -29,7 +30,6 @@ import type { GridContextMenuApi } from './grid-context-menu'
 import type { GridEditNavigationApi } from './grid-edit-navigation'
 import type { GridEditingControllerApi } from './grid-editing-controller'
 import type { GridFormatControllerApi } from './grid-format-controller'
-import { applyFormulaReferenceArrowPick } from './grid-formula-reference-keyboard'
 import { installGridFeature, type GridRuntimeBase } from './grid-runtime'
 import type { GridMergeRangePort } from './grid-runtime-ports'
 import type { GridViewStateApi } from './grid-view-state'

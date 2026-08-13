@@ -1,15 +1,13 @@
 import { useAtomValue } from '@einfach/solid'
 import { onMount, Show } from 'solid-js'
 import {
+  acceptFormulaSuggestion,
   selectCellAtom,
   selectionAtom,
   setWorkspaceActiveSheetAtom,
   workspaceSessionAtom,
 } from '@einfach/spreadsheet-ui-core'
-import {
-  createStaticNamedRangeCapabilityPort,
-  createStaticSpreadsheetBackend,
-} from '../adapter'
+import { createStaticNamedRangeCapabilityPort, createStaticSpreadsheetBackend } from '../adapter'
 import { SpreadsheetCommentThread } from '../comments'
 import { SpreadsheetConditionalFormatDialog } from '../conditional-formatting'
 import { SpreadsheetContextMenu } from '../context-menu'
@@ -30,7 +28,7 @@ import { SpreadsheetProtectionUnlockDialog } from '../protection'
 import { SpreadsheetSheetTabs } from '../sheet-tabs'
 import { SpreadsheetStatusBar } from '../status-bar'
 import { SpreadsheetToolbar } from '../toolbar'
-import { acceptFormulaSuggestion, SpreadsheetUiProvider, useSpreadsheetUiStore } from '../provider'
+import { SpreadsheetUiProvider, useSpreadsheetUiStore } from '../provider'
 
 const sheets = [
   { id: 'sheet-1', name: 'Sheet1' },
@@ -120,8 +118,7 @@ function VNextSmokeWorkbook() {
   const activeSheetId = () => workspace().activeSheetId ?? sheets[0].id
 
   onMount(() => {
-    const sid =
-      store.getter(workspaceSessionAtom).activeSheetId ?? sheets[0].id
+    const sid = store.getter(workspaceSessionAtom).activeSheetId ?? sheets[0].id
     if (!store.getter(workspaceSessionAtom).activeSheetId) {
       store.setter(setWorkspaceActiveSheetAtom, { sheetId: sheets[0].id })
     }
@@ -187,10 +184,7 @@ export function VNextSmokeDemo() {
         </p>
       </div>
 
-      <SpreadsheetUiProvider
-        backend={backend}
-        namedRangeCapabilityPort={namedRangeCapabilityPort}
-      >
+      <SpreadsheetUiProvider backend={backend} namedRangeCapabilityPort={namedRangeCapabilityPort}>
         <VNextSmokeWorkbook />
       </SpreadsheetUiProvider>
     </div>

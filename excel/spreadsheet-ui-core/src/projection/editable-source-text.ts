@@ -1,4 +1,5 @@
-import type { CellCoord, VisibleProjectionResult } from '@einfach/spreadsheet-ui-core'
+import type { VisibleProjectionResult } from '../backend'
+import type { CellCoord } from '../shared'
 
 /** Resolves the active cell's editable source from the current projection. */
 export function getSourceTextFromProjection(
@@ -16,8 +17,8 @@ export function getSourceTextFromProjection(
     return undefined
   }
 
-  const draftCell = result.cells.find(
-    (projectionCell) => projectionCell.row === cell.row && projectionCell.col === cell.col,
+  const projectionCell = result.cells.find(
+    (candidate) => candidate.row === cell.row && candidate.col === cell.col,
   )
-  return draftCell ? (draftCell.formula ?? draftCell.displayValue ?? '') : ''
+  return projectionCell ? (projectionCell.formula ?? projectionCell.displayValue ?? '') : ''
 }

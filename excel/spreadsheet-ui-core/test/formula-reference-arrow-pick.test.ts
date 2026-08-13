@@ -1,12 +1,8 @@
 import { createStore } from '@einfach/core'
 import { describe, expect, it } from '@jest/globals'
-import {
-  applyFormulaReferenceArrowPick,
-  editingSessionAtom,
-  enterFormulaReferenceAtom,
-  formulaReferenceSessionAtom,
-  startEditingAtom,
-} from '@einfach/spreadsheet-ui-core'
+import { applyFormulaReferenceArrowPick } from '../src'
+import { editingSessionAtom, startEditingAtom } from '../src/editing'
+import { enterFormulaReferenceAtom, formulaReferenceSessionAtom } from '../src/formula-reference'
 
 function makeStore() {
   const store = createStore()
@@ -25,10 +21,9 @@ function makeStore() {
   return store
 }
 
-describe('vNext formula-reference keyboard picking', () => {
+describe('formula-reference arrow picking', () => {
   it('moves from the latest focus across consecutive arrows', () => {
     const store = makeStore()
-
     applyFormulaReferenceArrowPick(store, {
       type: 'formulaReference.arrowPick',
       rowDelta: 1,
@@ -51,7 +46,6 @@ describe('vNext formula-reference keyboard picking', () => {
 
   it('holds the existing pick anchor while Shift extends its focus', () => {
     const store = makeStore()
-
     applyFormulaReferenceArrowPick(store, {
       type: 'formulaReference.arrowPick',
       rowDelta: 0,

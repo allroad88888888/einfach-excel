@@ -5,7 +5,10 @@ import {
   editingSessionAtom,
   focusFormulaBarAtom,
   formulaBarStateAtom,
+  getSourceTextFromProjection,
+  notifyDraftTypedChar,
   startEditingAtom,
+  syncFormulaReferenceCaret,
   syncFormulaBarAtom,
   selectionSnapshotAtom,
   spillProjectedFormulaAtom,
@@ -15,18 +18,12 @@ import {
 } from '@einfach/spreadsheet-ui-core'
 import { useT } from '../../src/i18n'
 import { isVisibleProjectionResult } from '../provider'
-import {
-  dispatchEditingCancel,
-  dispatchEditingCommit,
-  notifyDraftTypedChar,
-  syncFormulaReferenceCaret,
-} from '../provider/edit-dispatch'
+import { dispatchEditingCancel, dispatchEditingCommit } from '../provider/edit-dispatch'
 import { spreadsheetProjectionSnapshotAtom } from '../provider/atoms'
 import { useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider/hooks'
 import { SpreadsheetNameBox } from '../name-box'
 import { useFormulaBarCommitFeedback } from './formula-bar-commit-feedback'
 import { createFormulaBarKeyHandler } from './formula-bar-keys'
-import { getSourceTextFromProjection } from './projection-source-text'
 import { createInputCompositionGuard } from '../i18n-adapter/input-composition'
 
 export interface SpreadsheetFormulaBarProps {

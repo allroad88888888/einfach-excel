@@ -5,8 +5,8 @@ import {
   formulaReferenceSessionAtom,
   keyboardModeAtom,
   startEditingAtom,
+  syncFormulaReferenceCaret,
 } from '@einfach/spreadsheet-ui-core'
-import { syncFormulaReferenceCaret } from '../src-vnext/provider/edit-dispatch'
 
 describe('vNext formula-reference state bridge', () => {
   it('routes a DOM caret update through UI-core and enters reference mode', () => {

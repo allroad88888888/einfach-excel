@@ -4,8 +4,8 @@ import {
   reportLockedEditFeedbackAtom,
   selectCellAtom,
   startEditingAtom,
+  syncFormulaReferenceCaret,
 } from '@einfach/spreadsheet-ui-core'
-import { syncFormulaReferenceCaret } from '../provider'
 import type { GridLayoutApi } from './grid-layout'
 import { installGridFeature, type GridRuntimeBase } from './grid-runtime'
 import type { GridViewStateApi } from './grid-view-state'

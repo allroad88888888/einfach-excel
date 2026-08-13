@@ -1,6 +1,6 @@
 export { SpreadsheetEditingCommitFeedback } from './SpreadsheetEditingCommitFeedback'
 export type { SpreadsheetEditingCommitFeedbackProps } from './SpreadsheetEditingCommitFeedback'
-export { editingCommitFeedback, isUnresolvedEditingCommit } from './editing-commit-feedback'
+export { editingCommitFeedback, isUnresolvedEditingCommit } from '@einfach/spreadsheet-ui-core'
 export { SpreadsheetFeedbackSurface } from './SpreadsheetFeedbackSurface'
 export { SpreadsheetWorkbookFeedbackHost } from './SpreadsheetWorkbookFeedbackHost'
 export type { SpreadsheetWorkbookFeedbackHostProps } from './SpreadsheetWorkbookFeedbackHost'

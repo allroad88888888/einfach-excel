@@ -3,6 +3,12 @@ export * from './command-failure'
 export * from './context'
 export * from './copy-as-dispatch'
 export * from './edit-dispatch'
+export {
+  acceptFormulaSuggestion,
+  notifyDraftTypedChar,
+  readActiveFormulaSuggestion,
+  syncFormulaReferenceCaret,
+} from '@einfach/spreadsheet-ui-core'
 export * from './history-entry-recorder'
 export * from './history-dispatch'
 export * from './hooks'

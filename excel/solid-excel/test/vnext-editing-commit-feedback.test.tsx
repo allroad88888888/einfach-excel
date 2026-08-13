@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it } from '@jest/globals'
 import { cleanup, render, waitFor } from '@solidjs/testing-library'
 import type { EditingCommitLifecycleState } from '@einfach/spreadsheet-ui-core'
 import {
+  editingCommitFeedback,
   editingCommitLifecycleAtom,
   editingSessionAtom,
   runEditingCommitAtom,
@@ -13,7 +14,6 @@ import {
 } from '@einfach/spreadsheet-ui-core'
 
 import { SpreadsheetWorkbookFeedbackHost } from '../src-vnext/feedback'
-import { editingCommitFeedback } from '../src-vnext/feedback/editing-commit-feedback'
 
 afterEach(cleanup)
 

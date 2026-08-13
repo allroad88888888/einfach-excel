@@ -1,17 +1,15 @@
 import type { Store } from '@einfach/core'
-import {
-  formulaReferenceSessionAtom,
-  pickFormulaReferenceAtom,
-  type FormulaReferenceArrowPickIntent,
-} from '@einfach/spreadsheet-ui-core'
+import type { FormulaReferenceArrowPickIntent } from '../keyboard'
+import { formulaReferenceSessionAtom, pickFormulaReferenceAtom } from './index'
 
-/** Applies one already-resolved formula-reference arrow intent through the shared Atom session. */
+/** Applies a keyboard arrow intent to the active formula-reference pick. */
 export function applyFormulaReferenceArrowPick(
   store: Store,
   intent: FormulaReferenceArrowPickIntent,
 ): void {
   const session = store.getter(formulaReferenceSessionAtom)
-  if (!session) return
+  if (session === null) return
+
   const currentFocus = session.pickFocus ?? session.anchorCell
   const next = {
     row: Math.max(0, currentFocus.row + intent.rowDelta),

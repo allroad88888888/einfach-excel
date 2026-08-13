@@ -51,6 +51,7 @@ export type FormulaReferenceExitReason =
   | 'operator-typed'
   | 'separator-typed'
   | 'close-paren-typed'
+  | 'type-after-pick'
 
 export interface FormulaReferenceInsertIntent {
   type: 'formulaReference.insert'

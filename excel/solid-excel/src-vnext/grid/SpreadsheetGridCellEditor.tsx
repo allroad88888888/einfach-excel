@@ -1,4 +1,6 @@
 import {
+  acceptFormulaSuggestion,
+  applyFormulaReferenceArrowPick,
   dismissFormulaSuggestionsAtom,
   dispatchKeyboardInputAtom,
   editingCommitLifecycleAtom,
@@ -7,18 +9,14 @@ import {
   formulaFunctionSuggestionCursorAtom,
   formulaFunctionSuggestionsAtom,
   formulaReferenceSessionAtom,
-} from '@einfach/spreadsheet-ui-core'
-import { useAtomValue } from '@einfach/solid'
-import { Show } from 'solid-js'
-import {
-  acceptFormulaSuggestion,
-  dispatchEditingCancel,
   notifyDraftTypedChar,
   readActiveFormulaSuggestion,
   syncFormulaReferenceCaret,
-} from '../provider'
+} from '@einfach/spreadsheet-ui-core'
+import { useAtomValue } from '@einfach/solid'
+import { Show } from 'solid-js'
+import { dispatchEditingCancel } from '../provider'
 import { createInputCompositionGuard } from '../i18n-adapter/input-composition'
-import { applyFormulaReferenceArrowPick } from './grid-formula-reference-keyboard'
 import { type GridRuntime } from './grid-runtime'
 
 interface SpreadsheetGridCellEditorProps {

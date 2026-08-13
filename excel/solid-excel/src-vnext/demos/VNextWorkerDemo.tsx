@@ -1,6 +1,7 @@
 import { createEffect, onCleanup, onMount, Show } from 'solid-js'
 import { useAtomValue } from '@einfach/solid'
 import {
+  acceptFormulaSuggestion,
   registerCustomFormulaAtom,
   selectCellAtom,
   selectionAtom,
@@ -43,7 +44,7 @@ import { SpreadsheetSheetTabs } from '../sheet-tabs'
 import { SpreadsheetStatusBar } from '../status-bar'
 import { SpreadsheetTextToColumnsDialog } from '../text-to-columns'
 import { SpreadsheetToolbar } from '../toolbar'
-import { acceptFormulaSuggestion, SpreadsheetUiProvider, useSpreadsheetUiStore } from '../provider'
+import { SpreadsheetUiProvider, useSpreadsheetUiStore } from '../provider'
 
 const viewport: ViewportMetrics = {
   scrollTop: 0,
@@ -178,8 +179,7 @@ function VNextWorkerWorkbook() {
   const activeSheetId = () => workspace().activeSheetId ?? sheets[0].id
 
   onMount(() => {
-    const sid =
-      store.getter(workspaceSessionAtom).activeSheetId ?? sheets[0].id
+    const sid = store.getter(workspaceSessionAtom).activeSheetId ?? sheets[0].id
     if (!store.getter(workspaceSessionAtom).activeSheetId) {
       store.setter(setWorkspaceActiveSheetAtom, { sheetId: sheets[0].id })
     }
@@ -190,7 +190,11 @@ function VNextWorkerWorkbook() {
     const customFormulas = [
       { name: 'MYTAX', source: 'return Number(args[0]) * 0.2', paramLabels: ['amount'] },
       { name: 'GREET', source: "return 'Hello, ' + String(args[0] ?? '')", paramLabels: ['name'] },
-      { name: 'CELSIUS', source: 'return (Number(args[0]) - 32) * 5 / 9', paramLabels: ['fahrenheit'] },
+      {
+        name: 'CELSIUS',
+        source: 'return (Number(args[0]) - 32) * 5 / 9',
+        paramLabels: ['fahrenheit'],
+      },
       // Exercises the 2-D array marshaling path: a range arg like
       // `=SUMSQ2(A1:A10)` arrives as `[[v0],[v1],...]`. `.flat()`
       // flattens to a 1-D scalar list, then sums squares. Named

@@ -1,6 +1,7 @@
 import { useAtomValue } from '@einfach/solid'
 import { onCleanup, onMount, Show } from 'solid-js'
 import {
+  acceptFormulaSuggestion,
   openRemoveDuplicatesFromSelectionAtom,
   registerCustomFormulaAtom,
   runTextToColumnsEntrypointAtom,
@@ -12,10 +13,7 @@ import {
   viewportShowFormulaBarAtom,
   workspaceSessionAtom,
 } from '@einfach/spreadsheet-ui-core'
-import {
-  createStaticNamedRangeCapabilityPort,
-  createStaticSpreadsheetBackend,
-} from '../adapter'
+import { createStaticNamedRangeCapabilityPort, createStaticSpreadsheetBackend } from '../adapter'
 import { SpreadsheetCommentThread } from '../comments'
 import { SpreadsheetConditionalFormatDialog } from '../conditional-formatting'
 import { SpreadsheetContextMenu } from '../context-menu'
@@ -42,7 +40,7 @@ import { SpreadsheetSheetTabs } from '../sheet-tabs'
 import { SpreadsheetStatusBar } from '../status-bar'
 import { SpreadsheetTextToColumnsDialog } from '../text-to-columns'
 import { SpreadsheetToolbar } from '../toolbar'
-import { acceptFormulaSuggestion, SpreadsheetUiProvider, useSpreadsheetUiStore } from '../provider'
+import { SpreadsheetUiProvider, useSpreadsheetUiStore } from '../provider'
 
 const sheets = [
   { id: 'sheet-1', name: 'Sales' },
@@ -150,8 +148,7 @@ function VNextWave5Workbook() {
    */
   async function triggerRemoveDuplicatesForSelection() {
     const snap = store.getter(selectionSnapshotAtom)
-    const sheetId =
-      snap.selection.sheetId || store.getter(workspaceSessionAtom).activeSheetId || ''
+    const sheetId = snap.selection.sheetId || store.getter(workspaceSessionAtom).activeSheetId || ''
     if (!sheetId) return
     const range = snap.range
     if (range.rowStart > range.rowEnd || range.colStart > range.colEnd) return
@@ -159,8 +156,7 @@ function VNextWave5Workbook() {
   }
 
   onMount(() => {
-    const mountSheetId =
-      store.getter(workspaceSessionAtom).activeSheetId ?? sheets[0].id
+    const mountSheetId = store.getter(workspaceSessionAtom).activeSheetId ?? sheets[0].id
     if (!store.getter(workspaceSessionAtom).activeSheetId) {
       store.setter(setWorkspaceActiveSheetAtom, { sheetId: sheets[0].id })
     }
@@ -233,19 +229,13 @@ function VNextWave5Workbook() {
     }
     window.addEventListener('spreadsheet:open-remove-duplicates', onOpenRequest)
     onCleanup(() => {
-      window.removeEventListener(
-        'spreadsheet:open-remove-duplicates',
-        onOpenRequest,
-      )
+      window.removeEventListener('spreadsheet:open-remove-duplicates', onOpenRequest)
     })
   })
 
   return (
     <>
-      <SpreadsheetMenuBar
-        data-testid="wave5-menu-bar"
-        hiddenItemIds={['file.printPreview']}
-      />
+      <SpreadsheetMenuBar data-testid="wave5-menu-bar" hiddenItemIds={['file.printPreview']} />
       <SpreadsheetToolbar data-testid="wave5-toolbar" />
       <Show when={showFormulaBar()}>
         <SpreadsheetFormulaBar data-testid="wave5-formula-bar" />
@@ -315,15 +305,12 @@ export function VNextWave5Demo() {
           格式刷以及画布装饰层。预置一张季度销售表，选中 B2:E8 即可看到非平凡的聚合结果。
         </p>
         <p class="demo-desc" data-testid="wave5-custom-formulas-banner">
-          Custom formulas registered: <code>MYTAX</code>, <code>GREET</code>,{' '}
-          <code>CELSIUS</code>. Try <code>=MYTAX(B2)</code> in any cell.
+          Custom formulas registered: <code>MYTAX</code>, <code>GREET</code>, <code>CELSIUS</code>.
+          Try <code>=MYTAX(B2)</code> in any cell.
         </p>
       </div>
 
-      <SpreadsheetUiProvider
-        backend={backend}
-        namedRangeCapabilityPort={namedRangeCapabilityPort}
-      >
+      <SpreadsheetUiProvider backend={backend} namedRangeCapabilityPort={namedRangeCapabilityPort}>
         <VNextWave5Workbook />
       </SpreadsheetUiProvider>
     </div>

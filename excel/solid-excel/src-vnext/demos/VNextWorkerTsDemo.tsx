@@ -1,15 +1,14 @@
 import { createEffect, onCleanup, onMount, Show } from 'solid-js'
 import { useAtomValue } from '@einfach/solid'
 import {
+  acceptFormulaSuggestion,
   selectCellAtom,
   selectionAtom,
   setWorkspaceActiveSheetAtom,
   workspaceSessionAtom,
   type ViewportMetrics,
 } from '@einfach/spreadsheet-ui-core'
-import {
-  defaultExcelCoreTsWorkerFactory,
-} from '../adapter/worker-factory'
+import { defaultExcelCoreTsWorkerFactory } from '../adapter/worker-factory'
 import {
   createWorkerNamedRangeCapabilityPort,
   createWorkerWorkbookSpreadsheetBackend,
@@ -40,7 +39,7 @@ import { SpreadsheetSheetTabs } from '../sheet-tabs'
 import { SpreadsheetStatusBar } from '../status-bar'
 import { SpreadsheetTextToColumnsDialog } from '../text-to-columns'
 import { SpreadsheetToolbar } from '../toolbar'
-import { acceptFormulaSuggestion, SpreadsheetUiProvider, useSpreadsheetUiStore } from '../provider'
+import { SpreadsheetUiProvider, useSpreadsheetUiStore } from '../provider'
 
 /**
  * Wave D demo — same vnext UI surface as `VNextWorkerDemo` but backed by
@@ -201,9 +200,9 @@ export function VNextWorkerTsDemo() {
       <div class="demo-header">
         <h3>vNext Worker Spreadsheet — TS core</h3>
         <p class="demo-desc" data-testid="vnext-worker-ts-banner">
-          vNext UI backed by <code>@einfach/excel-core-ts</code> (the TypeScript port of
-          the Rust formula engine) running inside a dedicated worker. Toggle via{' '}
-          <code>?backend=ts</code> in the URL.
+          vNext UI backed by <code>@einfach/excel-core-ts</code> (the TypeScript port of the Rust
+          formula engine) running inside a dedicated worker. Toggle via <code>?backend=ts</code> in
+          the URL.
         </p>
         <p class="demo-desc">
           Try <code>=SUM(B2:B4)</code>, <code>=IF(B2&gt;15,"high","low")</code>,{' '}

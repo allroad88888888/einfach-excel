@@ -1,0 +1,70 @@
+name: Bug 报告
+description: 提交一个可复现的问题，帮助我们更快定位。
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈。请尽量填写下面的信息；可复现的最小示例最有帮助。
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 复现步骤
+      description: 请从一个干净的起点开始，按顺序写出每一步。
+      placeholder: |
+        1. 打开……
+        2. 点击……
+        3. 输入……
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-actual
+    attributes:
+      label: 预期结果与实际结果
+      description: 请分别说明你认为应该发生什么，以及实际看到了什么。
+      placeholder: |
+        预期：……
+        实际：……
+    validations:
+      required: true
+
+  - type: textarea
+    id: minimal-reproduction
+    attributes:
+      label: 最小复现
+      description: 请提供仓库、在线示例或能复现问题的最小代码；没有时说明原因。
+      placeholder: https://github.com/… 或粘贴最小代码
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: 运行环境
+      description: 请写明相关包版本、操作系统、浏览器或 Node.js 版本。
+      placeholder: |
+        @einfach/solid-excel：
+        操作系统：
+        浏览器：
+        Node.js：
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志、截图或补充信息
+      description: 可以贴关键日志或截图。请先移除令牌、账号、客户数据等敏感信息。
+      render: shell
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: 提交前确认
+      options:
+        - label: 我已搜索现有 issue，并确认没有重复报告。
+          required: true

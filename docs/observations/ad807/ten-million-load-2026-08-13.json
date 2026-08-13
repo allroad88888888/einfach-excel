@@ -1,0 +1,182 @@
+{
+  "observationId": "ad807-ten-million-load-2026-08-13",
+  "recordedAt": "2026-08-13T21:10:31+08:00",
+  "repositoryRevision": "030681cc62306a1b6b42b97cf6c3ef1943e18618 + uncommitted AD-807 observation files",
+  "sourceTest": "excel/solid-excel/e2e/perf-virtual/ad807-ten-million-load.spec.ts",
+  "command": "AD807_TEN_MILLION_TSV=/tmp/ad806-filled-10000x1000.tsv EINFACH_E2E_PORT=5187 pnpm --dir excel/solid-excel exec playwright test e2e/perf-virtual/ad807-ten-million-load.spec.ts --project=wasm --reporter=line",
+  "environment": {
+    "hostOperatingSystem": "macOS 26.5.2 (25F84)",
+    "hostArchitecture": "arm64",
+    "hostCpu": "Apple M4",
+    "hostMemoryBytes": 17179869184,
+    "node": "v24.14.0",
+    "pnpm": "10.15.1",
+    "playwright": "1.59.1",
+    "browserUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.7727.15 Safari/537.36",
+    "project": "wasm",
+    "e2ePort": 5187
+  },
+  "fixture": {
+    "generator": "node scripts/generate-ad806-filled-tsv.mjs > /tmp/ad806-filled-10000x1000.tsv",
+    "path": "/tmp/ad806-filled-10000x1000.tsv",
+    "sha256": "5a72c35b7a68cadf267ce7416cbd54041b510f159a5fa05ed0742c18319c0936",
+    "byteLength": 97790000,
+    "rows": 10000,
+    "columns": 1000,
+    "populatedCellCount": 10000000,
+    "valuePattern": "r{zero-based-row}c{zero-based-column}"
+  },
+  "run": {
+    "runnerOutcome": "passed (1 test, 5.3s including web-server preparation)",
+    "warmupRuns": [],
+    "settledCondition": "The actual DemoMillion file input reached UI status 'failed'; its visible error text, instrumented importChunk trace, debug counters, DOM/subscription count, and available memory fields were then read.",
+    "outcome": "failed at the atomic import-session boundary",
+    "committedImportResult": {
+      "accepted": null,
+      "errors": null,
+      "reason": "No commit result exists: chunk 201 threw, and the UI import helper cancelled the session."
+    },
+    "rawConsolePayload": {
+      "atomicSessionLimit": 200000,
+      "elapsedMs": 383,
+      "error": "import session exceeded normalized cell limit",
+      "fixture": {
+        "byteLength": 97790000,
+        "columns": 1000,
+        "populatedCellCount": 10000000,
+        "rows": 10000
+      },
+      "project": "wasm",
+      "samples": [
+        {
+          "boundary": {
+            "activeSubscriptionCount": 630,
+            "dom": {
+              "cellElements": 630,
+              "elements": 1471
+            },
+            "memory": {
+              "legacyUsedJsHeapSize": 53500000,
+              "measureUserAgentSpecificMemory": {
+                "bytes": null,
+                "error": null,
+                "supported": false
+              }
+            },
+            "workerCounters": {
+              "sheetCount": 1,
+              "crossSheetDependents": 0,
+              "formulaCount": 49,
+              "formulaEvalCountTotal": 29,
+              "liveSubscriptionCount": 630,
+              "workerSubscriptionCount": 630,
+              "importSessionCount": 0,
+              "exportSessionCount": 0,
+              "snapshotSessionCount": 0,
+              "sheets": [
+                {
+                  "idx": 0,
+                  "name": "Sheet1",
+                  "formulaCount": 49,
+                  "formulaEvalCount": 29,
+                  "liveSubscriptionCount": 630
+                }
+              ]
+            }
+          },
+          "phase": "ready",
+          "timestamp": "2026-08-13T13:10:10.902Z"
+        },
+        {
+          "boundary": {
+            "activeSubscriptionCount": 630,
+            "dom": {
+              "cellElements": 630,
+              "elements": 1474
+            },
+            "memory": {
+              "legacyUsedJsHeapSize": 53500000,
+              "measureUserAgentSpecificMemory": {
+                "bytes": null,
+                "error": null,
+                "supported": false
+              }
+            },
+            "workerCounters": {
+              "sheetCount": 1,
+              "crossSheetDependents": 0,
+              "formulaCount": 49,
+              "formulaEvalCountTotal": 29,
+              "liveSubscriptionCount": 630,
+              "workerSubscriptionCount": 630,
+              "importSessionCount": 1,
+              "exportSessionCount": 0,
+              "snapshotSessionCount": 0,
+              "sheets": [
+                {
+                  "idx": 0,
+                  "name": "Sheet1",
+                  "formulaCount": 49,
+                  "formulaEvalCount": 29,
+                  "liveSubscriptionCount": 630
+                }
+              ]
+            }
+          },
+          "phase": "after-input-selected",
+          "timestamp": "2026-08-13T13:10:10.915Z"
+        },
+        {
+          "boundary": {
+            "activeSubscriptionCount": 630,
+            "dom": {
+              "cellElements": 630,
+              "elements": 1474
+            },
+            "memory": {
+              "legacyUsedJsHeapSize": 53500000,
+              "measureUserAgentSpecificMemory": {
+                "bytes": null,
+                "error": null,
+                "supported": false
+              }
+            },
+            "workerCounters": {
+              "sheetCount": 1,
+              "crossSheetDependents": 0,
+              "formulaCount": 49,
+              "formulaEvalCountTotal": 29,
+              "liveSubscriptionCount": 630,
+              "workerSubscriptionCount": 630,
+              "importSessionCount": 0,
+              "exportSessionCount": 0,
+              "snapshotSessionCount": 0,
+              "sheets": [
+                {
+                  "idx": 0,
+                  "name": "Sheet1",
+                  "formulaCount": 49,
+                  "formulaEvalCount": 29,
+                  "liveSubscriptionCount": 630
+                }
+              ]
+            }
+          },
+          "phase": "failed",
+          "timestamp": "2026-08-13T13:10:11.286Z"
+        }
+      ],
+      "startedAt": "2026-08-13T13:10:10.903Z",
+      "statsText": "200 rows, 20100000 cells, 200 chunks, 0 errors",
+      "trace": {
+        "chunksAttempted": 201,
+        "chunksSucceeded": 200,
+        "lastSuccessfulCumulativeAccepted": 200000,
+        "requestedCellCount": 201000
+      },
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.7727.15 Safari/537.36",
+      "warmupRuns": []
+    }
+  },
+  "interpretationBoundary": "This is a real 10,000,000-cell input run, but it is a reproducible failure observation. The elapsed time ends at the 200,001st-cell guard failure, not at a successful ten-million-cell load. The visible stats string is preserved verbatim and is not treated as accepted/errors because no commit occurred."
+}

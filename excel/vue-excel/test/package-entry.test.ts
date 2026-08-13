@@ -22,6 +22,7 @@ describe('@einfach/vue-excel package entry', () => {
       default: './src/index.ts',
     })
     expect(packageEntry).toEqual({
+      SpreadsheetGridView: expect.objectContaining({ setup: expect.any(Function) }),
       SpreadsheetUiProvider: expect.objectContaining({ setup: expect.any(Function) }),
       useSpreadsheetUiCore: expect.any(Function),
       useSpreadsheetValue: expect.any(Function),

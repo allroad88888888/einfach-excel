@@ -8,6 +8,7 @@ export { useSpreadsheetImeComposition } from './use-spreadsheet-ime-composition'
 export { useSpreadsheetEditing } from './use-spreadsheet-editing'
 export { useSpreadsheetFormulaBar } from './use-spreadsheet-formula-bar'
 export { useSpreadsheetNameBox } from './use-spreadsheet-name-box'
+export { useSpreadsheetSheetTabs } from './use-spreadsheet-sheet-tabs'
 export { useSpreadsheetSelection } from './use-spreadsheet-selection'
 export { useSpreadsheetValue } from './use-spreadsheet-value'
 export { useSpreadsheetViewport } from './use-spreadsheet-viewport'
@@ -36,6 +37,11 @@ export type {
   SpreadsheetNameBoxState,
   UseSpreadsheetNameBoxOptions,
 } from './use-spreadsheet-name-box'
+export type {
+  SpreadsheetSheetTabMetadataInput,
+  SpreadsheetSheetTabs,
+  UseSpreadsheetSheetTabsOptions,
+} from './use-spreadsheet-sheet-tabs'
 export type { SpreadsheetValueSource, SpreadsheetValueSubscription } from './use-spreadsheet-value'
 export type {
   UseSpreadsheetViewportOptions,

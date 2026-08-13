@@ -30,6 +30,7 @@ describe('@einfach/vue-excel package entry', () => {
       useSpreadsheetFormulaBar: expect.any(Function),
       useSpreadsheetImeComposition: expect.any(Function),
       useSpreadsheetKeyboardNavigation: expect.any(Function),
+      useSpreadsheetNameBox: expect.any(Function),
       useSpreadsheetSelection: expect.any(Function),
       useSpreadsheetUiCore: expect.any(Function),
       useSpreadsheetValue: expect.any(Function),

@@ -7,6 +7,7 @@ export { useSpreadsheetKeyboardNavigation } from './use-spreadsheet-keyboard-nav
 export { useSpreadsheetImeComposition } from './use-spreadsheet-ime-composition'
 export { useSpreadsheetEditing } from './use-spreadsheet-editing'
 export { useSpreadsheetFormulaBar } from './use-spreadsheet-formula-bar'
+export { useSpreadsheetNameBox } from './use-spreadsheet-name-box'
 export { useSpreadsheetSelection } from './use-spreadsheet-selection'
 export { useSpreadsheetValue } from './use-spreadsheet-value'
 export { useSpreadsheetViewport } from './use-spreadsheet-viewport'
@@ -29,6 +30,12 @@ export type {
 } from './use-spreadsheet-ime-composition'
 export type { SpreadsheetEditing } from './use-spreadsheet-editing'
 export type { SpreadsheetFormulaBar } from './use-spreadsheet-formula-bar'
+export type {
+  SpreadsheetNameBox,
+  SpreadsheetNameBoxScrollTarget,
+  SpreadsheetNameBoxState,
+  UseSpreadsheetNameBoxOptions,
+} from './use-spreadsheet-name-box'
 export type { SpreadsheetValueSource, SpreadsheetValueSubscription } from './use-spreadsheet-value'
 export type {
   UseSpreadsheetViewportOptions,

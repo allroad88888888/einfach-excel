@@ -11,6 +11,7 @@ import { applyMergeOverlay } from './merge-overlay'
 import { applyNumberFormatsToCells } from './number-format'
 import { resolveSheet } from './sheet-ops'
 import { snapshotToDisplayCell } from './snapshot-to-cell'
+import { readTopBottomMatches } from './top-bottom-domains'
 import { applyValidationOverlay } from './validation-overlay'
 import { toSparseRange } from './wire-range'
 import type { WorkerBackendState } from './state'
@@ -45,9 +46,10 @@ export async function readRange(
     range,
     state.validationRulesBySheetId.get(sheetId) ?? [],
   )
-  const [colorScaleDomains, dataBarDomains] = await Promise.all([
+  const [colorScaleDomains, dataBarDomains, topBottomMatches] = await Promise.all([
     readColorScaleDomains(state, sheet.idx, conditionalConfig.rules, range),
     readDataBarDomains(state, sheet.idx, conditionalConfig.rules, range),
+    readTopBottomMatches(state, sheet.idx, conditionalConfig.rules, range),
   ])
 
   const conditionalCells = applyConditionalFormatOverlay(
@@ -56,6 +58,7 @@ export async function readRange(
     range,
     colorScaleDomains,
     dataBarDomains,
+    topBottomMatches,
   )
   // #04 merge overlay joins last. Source coordinates == display coordinates on
   // every path now, so merges are no longer withheld under an active filter:

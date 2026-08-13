@@ -8,6 +8,7 @@ import type {
 import { DEFAULT_WORKBOOK_LOCALE, cloneFormat, keyFor } from '@einfach/spreadsheet-ui-core'
 import { collectColorScaleDomains } from '../color-scale-projection'
 import { collectDataBarDomains, withDataBarProjection } from '../data-bar-projection'
+import { collectTopBottomMatches } from '../top-bottom-projection'
 import type { EvalCellLookup } from '../static-formula-eval'
 import type { StaticProjectionRequest, StaticProjectionResult } from '../types'
 import { compareCells, isCellInsideRange } from './cell-map'
@@ -55,6 +56,9 @@ export function buildProjectionResult(
   const dataBarDomains = conditionalRules.some((entry) => entry.rule.kind === 'data-bar')
     ? collectDataBarDomains(conditionalRules, [...sheetCells.values()].map(projectCell))
     : new Map()
+  const topBottomMatches = conditionalRules.some((entry) => entry.rule.kind === 'top-bottom')
+    ? collectTopBottomMatches(conditionalRules, [...sheetCells.values()].map(projectCell))
+    : new Map()
 
   // Excel hidden-row semantics: display row IS source row. A filter no longer
   // compacts survivors into consecutive slots; it withholds the hidden rows and
@@ -77,6 +81,7 @@ export function buildProjectionResult(
       conditionalRules,
       colorScaleDomains,
       dataBarDomains,
+      topBottomMatches,
     )
     if (visual?.conditionalFormat) {
       const formatted = {

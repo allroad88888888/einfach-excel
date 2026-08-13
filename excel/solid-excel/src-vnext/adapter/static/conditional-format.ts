@@ -17,7 +17,6 @@ import {
   isCoordInsideRange,
   nextConditionalFormatRuleId,
   normalizeRange,
-  numericValue,
 } from '@einfach/spreadsheet-ui-core'
 import {
   colorScaleFormat,
@@ -30,10 +29,12 @@ import {
   type DataBarDomains,
   type DataBarProjection,
 } from '../data-bar-projection'
+import { topBottomNumericValue, type TopBottomMatches } from '../top-bottom-projection'
 import type { StaticBackendState } from './state'
 
 const EMPTY_COLOR_SCALE_DOMAINS: ColorScaleDomains = new Map()
 const EMPTY_DATA_BAR_DOMAINS: DataBarDomains = new Map()
+const EMPTY_TOP_BOTTOM_MATCHES: TopBottomMatches = new Map()
 
 export interface ConditionalCellVisual {
   readonly conditionalFormat?: SpreadsheetCellFormat
@@ -55,7 +56,7 @@ function conditionalRuleAppliesToCell(
     case 'data-bar':
       return dataBarNumericValue(cell) !== null
     case 'top-bottom':
-      return numericValue(value) !== null
+      return topBottomNumericValue(cell) !== null
   }
 }
 
@@ -66,11 +67,15 @@ export function getConditionalVisualForCell(
   rules: readonly ConditionalFormatRuleEntry[],
   colorScaleDomains: ColorScaleDomains = EMPTY_COLOR_SCALE_DOMAINS,
   dataBarDomains: DataBarDomains = EMPTY_DATA_BAR_DOMAINS,
+  topBottomMatches: TopBottomMatches = EMPTY_TOP_BOTTOM_MATCHES,
 ): ConditionalCellVisual | undefined {
   const ordered = [...rules].sort((left, right) => left.priority - right.priority)
   for (const entry of ordered) {
     if (!isCoordInsideRange(row, col, entry.scope.range)) continue
     if (!conditionalRuleAppliesToCell(entry.rule, cell)) continue
+    if (entry.rule.kind === 'top-bottom' && !topBottomMatches.get(entry.id)?.has(`${row}:${col}`)) {
+      continue
+    }
     if (entry.rule.kind === 'data-bar') {
       const dataBar = dataBarProjection(
         entry.rule,
@@ -98,8 +103,17 @@ export function getConditionalFormatForCell(
   cell: DisplayCell | undefined,
   rules: readonly ConditionalFormatRuleEntry[],
   colorScaleDomains: ColorScaleDomains = EMPTY_COLOR_SCALE_DOMAINS,
+  topBottomMatches: TopBottomMatches = EMPTY_TOP_BOTTOM_MATCHES,
 ): SpreadsheetCellFormat | undefined {
-  return getConditionalVisualForCell(row, col, cell, rules, colorScaleDomains)?.conditionalFormat
+  return getConditionalVisualForCell(
+    row,
+    col,
+    cell,
+    rules,
+    colorScaleDomains,
+    EMPTY_DATA_BAR_DOMAINS,
+    topBottomMatches,
+  )?.conditionalFormat
 }
 
 export function listConditionalFormatRulesForSheet(

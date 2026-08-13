@@ -12,7 +12,6 @@ import {
   compareCellValue,
   conditionalRuleFormat,
   isCoordInsideRange,
-  numericValue,
 } from '@einfach/spreadsheet-ui-core'
 import {
   colorScaleFormat,
@@ -26,10 +25,12 @@ import {
   type DataBarProjection,
   withDataBarProjection,
 } from '../data-bar-projection'
+import { topBottomNumericValue, type TopBottomMatches } from '../top-bottom-projection'
 import { rangesIntersect } from './range-overlap'
 
 const EMPTY_COLOR_SCALE_DOMAINS: ColorScaleDomains = new Map()
 const EMPTY_DATA_BAR_DOMAINS: DataBarDomains = new Map()
+const EMPTY_TOP_BOTTOM_MATCHES: TopBottomMatches = new Map()
 
 interface ConditionalCellVisual {
   readonly conditionalFormat?: SpreadsheetCellFormat
@@ -51,7 +52,7 @@ function conditionalRuleAppliesToCell(
     case 'data-bar':
       return dataBarNumericValue(cell) !== null
     case 'top-bottom':
-      return numericValue(value) !== null
+      return topBottomNumericValue(cell) !== null
   }
 }
 
@@ -65,10 +66,14 @@ function getConditionalVisualForCell(
   orderedRules: readonly ConditionalFormatRuleEntry[],
   colorScaleDomains: ColorScaleDomains,
   dataBarDomains: DataBarDomains,
+  topBottomMatches: TopBottomMatches,
 ): ConditionalCellVisual | undefined {
   for (const entry of orderedRules) {
     if (!isCoordInsideRange(row, col, entry.scope.range)) continue
     if (!conditionalRuleAppliesToCell(entry.rule, cell)) continue
+    if (entry.rule.kind === 'top-bottom' && !topBottomMatches.get(entry.id)?.has(`${row}:${col}`)) {
+      continue
+    }
     if (entry.rule.kind === 'data-bar') {
       const dataBar = dataBarProjection(
         entry.rule,
@@ -105,6 +110,7 @@ export function applyConditionalFormatOverlay(
   window: CellRange,
   colorScaleDomains: ColorScaleDomains = EMPTY_COLOR_SCALE_DOMAINS,
   dataBarDomains: DataBarDomains = EMPTY_DATA_BAR_DOMAINS,
+  topBottomMatches: TopBottomMatches = EMPTY_TOP_BOTTOM_MATCHES,
 ): DisplayCell[] {
   if (rules.length === 0) return cells
   const ordered = rules
@@ -119,6 +125,7 @@ export function applyConditionalFormatOverlay(
       ordered,
       colorScaleDomains,
       dataBarDomains,
+      topBottomMatches,
     )
     if (visual?.conditionalFormat) {
       const formatted = {

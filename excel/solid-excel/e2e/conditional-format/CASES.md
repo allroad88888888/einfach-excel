@@ -35,6 +35,7 @@
 | CF-10A | Color Scale 完整范围色阶                        | 窗口内读完整规则范围的一段                                         | 中间值按 min/mid/max 插值为 `bgColor`                                              | ✅ 已完成（ID 待分配）                 | `ae2ea68`；vnext-conditional-format-wasm #"projects a Color Scale from the full canonical rule range" |
 | CF-10B | Data Bar 完整范围长度条                         | Worker 选区保存 data-bar → 滚动/冻结/编辑                          | TS/WASM 比例一致；bar `aria-hidden`、`pointer-events:none`、文本和编辑仍可用       | ✅ UI-557                              | data-bar-projection.spec.ts                                                                           |
 | CF-11  | 规则参数编辑                                    | 选择已持久化规则 → 修改 condition/operator/value/background → 保存 | 发送更新操作；严格 ACK 失败则保持可诊断状态                                        | 🟡 UI-556B 组件验证；浏览器 E2E 待单列 | `cb18c4e`；vnext-conditional-format-editor.test.tsx                                                   |
+| CF-12  | Top/Bottom 完整范围排名                         | Worker 选区保存 Top count 与 Bottom percent → 编辑/滚动/冻结       | 有限数值按完整范围排名；同值 row/col 稳定裁决；priority 首命中；TS/WASM 同步       | ✅ 本轮                                | top-bottom-projection.spec.ts                                                                         |
 
 ## 备注
 
@@ -45,5 +46,8 @@
 - Data Bar 为避免 adapter sidecar，每次相关 read 都从完整 canonical rule range 读取有限
   numericValue 求域；超大/整表范围会带来全范围读取与扫描成本，后续若要优化应由引擎提供
   canonical 聚合投影，不能改为 UI 本地缓存。
+- Top/Bottom 同样在每次相关 read 扫描完整 canonical rule range 的有限 `numericValue`；percent
+  取 `ceil(数量 × 百分比 / 100)`，同值按 source row、再 source column 截断。全范围读取/排序是
+  明确的性能残余，后续应由引擎提供 canonical 排名投影，不能改为 UI 本地缓存。
 - CF-11 的已完成状态仅指 Atom/editor 与组件测试；它不等同于浏览器 E2E 验收，后者应作为
   独立叶子排期。

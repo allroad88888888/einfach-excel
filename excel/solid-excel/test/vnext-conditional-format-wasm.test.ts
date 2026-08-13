@@ -224,4 +224,44 @@ describe('conditional-format — real WASM worker engine', () => {
     expect(result.cells.every((cell) => cell.conditionalFormat === undefined)).toBe(true)
     client.dispose()
   })
+
+  test('projects Top/Bottom from the complete range before lower priorities', async () => {
+    const client = createClient!()
+    const backend = createBackend!(client)
+    await backend.ready()
+    for (const [row, input] of ['100', '90', '90', '80'].entries()) {
+      await backend.setCellInput({ kind: 'set-cell-input', sheetId: SHEET, row, col: 0, input })
+    }
+    const top = await backend.setConditionalFormatRule!({
+      kind: 'set-conditional-format-rule',
+      sheetId: SHEET,
+      requestId: 91,
+      revision: 0,
+      scope: { range: { rowStart: 0, rowEnd: 3, colStart: 0, colEnd: 0 } },
+      priority: 0,
+      rule: { kind: 'top-bottom', direction: 'top', count: 2, format: { bgColor: '#ef4444' } },
+    })
+    await backend.setConditionalFormatRule!({
+      kind: 'set-conditional-format-rule',
+      sheetId: SHEET,
+      requestId: 92,
+      revision: top.revision,
+      scope: { range: { rowStart: 0, rowEnd: 3, colStart: 0, colEnd: 0 } },
+      priority: 1,
+      rule: { kind: 'cell-value', operator: 'gt', value: '-1000', format: { bgColor: '#22c55e' } },
+    })
+    const result = await backend.readRangeProjection({
+      kind: 'range',
+      sheetId: SHEET,
+      requestId: 93,
+      reason: 'viewport',
+      range: { rowStart: 1, rowEnd: 3, colStart: 0, colEnd: 0 },
+    })
+    expect(result.cells.map((cell) => cell.conditionalFormat?.bgColor)).toEqual([
+      '#ef4444',
+      '#22c55e',
+      '#22c55e',
+    ])
+    client.dispose()
+  })
 })

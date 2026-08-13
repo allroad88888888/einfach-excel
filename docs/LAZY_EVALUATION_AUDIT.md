@@ -1,0 +1,69 @@
+# Lazy-evaluation archive audit
+
+**Audit date:** 2026-08-13
+**Scope:** current Rust source in this checkout, compared with the frozen records
+`excel/rust/docs/archive/LAZY_FORMULA_EVAL.md` and
+`excel/rust/excel-core/docs/archive/LAZY_FORMULA_INDEXING_PLAN.md`.
+
+Both records declare themselves frozen at lines 1–2. This is a source-state audit,
+not a correction of their historical account, benchmark data, or commit history.
+“Confirmed” means the cited current source supports the implementation shape; it
+does not reproduce a historical measurement.
+
+## Result summary
+
+| Archive claim                                                                                             | Archive location                                    | Result against current source                                                                                                                                                                                                                                                    | Current-source evidence                                                                                                                                                  |
+| --------------------------------------------------------------------------------------------------------- | --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Bulk formulas park raw source and defer `FormulaRecord`/static-index installation until a read.           | Eval §Step 3, 498–560; Indexing §Phase 2–3, 133–170 | **Partly confirmed.** `formula_source` and `needs_parse` exist, and hydration drains them into parsed state; the bulk path nevertheless calls `parse_formula` once before parking.                                                                                               | `excel/rust/excel-core/src/sheet.rs:277-309`; `excel/rust/excel-core/src/sheet_bulk_formula.rs:118-132`; `excel/rust/excel-core/src/sheet_hydrate.rs:32-55,125-149`      |
+| A bulk import performs no formula-value evaluation before first read.                                     | Eval 450–453, 557–560; Indexing 78–94               | **Confirmed by implementation shape.** The bulk writer parks/invalidate state; the formula read closure performs evaluation.                                                                                                                                                     | `excel/rust/excel-core/src/sheet_bulk_formula.rs:118-145`; `excel/rust/excel-core/src/sheet.rs:1504-1526`                                                                |
+| Source-only bulk import creates neither AST, record, nor formula-inner atom.                              | Indexing 80–94, 133–143                             | **Stale / over-broad.** Structural records and ASTs are deferred, but a successfully parsed bulk formula calls `materialize_formula_inner` during import.                                                                                                                        | `excel/rust/excel-core/src/sheet_bulk_formula.rs:118-132`; `excel/rust/excel-core/src/sheet_hydrate.rs:125-149`                                                          |
+| Direct formula writes use the same lazy parse behavior as bulk writes.                                    | Indexing 103–113, 178–190                           | **Stale.** The direct API preserves parse-on-write; only bulk uses the parked-source path.                                                                                                                                                                                       | `excel/rust/excel-core/src/sheet_bulk_formula.rs:79-90`; `excel/rust/excel-core/src/sheet_write_formula.rs:68-127`                                                       |
+| `set_formula` never evaluates a formula.                                                                  | Eval 38–45, 483–485                                 | **Needs qualification.** Its ordinary formula-inner is lazy, but direct writes eagerly recompute array/spill state.                                                                                                                                                              | `excel/rust/excel-core/src/sheet.rs:1437-1453`; `excel/rust/excel-core/src/sheet_write_formula.rs:140-146`                                                               |
+| `bulk_load` has closure-scoped RAII flushing.                                                             | Eval 500–507                                        | **Confirmed.** The loader is scoped to the closure and `flush()` runs after the Store batch.                                                                                                                                                                                     | `excel/rust/excel-core/src/sheet_batch.rs:101-120`; `excel/rust/excel-core/src/sheet_bulk_loader.rs:14-18`                                                               |
+| Formulas are `FormulaRecord` plus `FormulaCache`, with reverse dependency maps and BFS dirty propagation. | Eval 10–15, 476–487, 526–548; Indexing 38–45        | **Stale / superseded architecture.** `FormulaRecord` remains structural; Store edges exclusively own same-sheet reactivity, and formula inners record dependencies when read.                                                                                                    | `excel/rust/excel-core/src/sheet.rs:155-169,1437-1453,1504-1526`                                                                                                         |
+| An interval-tree `range_dependents` index is the planned missing range mechanism.                         | Eval 8–9, 598–607; Indexing 43–45, 174–177          | **Superseded as a description of current code.** Large ranges use Store-backed band, column, and sheet geometry epochs.                                                                                                                                                          | `excel/rust/excel-core/src/sheet.rs:360-367,1474-1502`                                                                                                                   |
+| Range evaluation streams sparse stored cells.                                                             | Eval 13–15, 570–585                                 | **Confirmed.** The sheet and workbook providers route range walks through sparse iteration.                                                                                                                                                                                      | `excel/rust/excel-core/src/sheet_eval_provider.rs:49-62`; `excel/rust/excel-core/src/workbook_eval_provider.rs:74-116`                                                   |
+| The parser does not accept whole-column `A:A` syntax.                                                     | Eval 586                                            | **Stale.** The AST explicitly represents whole-column/row ranges and documents no coordinate-space expansion.                                                                                                                                                                    | `excel/rust/excel-core/src/formula/ast.rs:9-33,175-186`                                                                                                                  |
+| Each named aggregate has no `Vec` allocation on its hot path.                                             | Eval 579–592                                        | **Unverified.** Sparse traversal is source-backed, but an allocation guarantee for every named evaluator requires a function-by-function implementation and runtime/allocation audit.                                                                                            | Sparse traversal only: `excel/rust/excel-core/src/sheet_eval_provider.rs:49-62`                                                                                          |
+| `Workbook::get_cell` evaluates cross-sheet formulas through a provider.                                   | Eval 10–15, 455–464, 700                            | **Confirmed.** It constructs `WorkbookEvalProvider`, reads through it, then settles the shared Store.                                                                                                                                                                            | `excel/rust/excel-core/src/workbook_read.rs:16-24`; `excel/rust/excel-core/src/workbook_eval_provider.rs:41-116`                                                         |
+| The old resolver identifiers were removed.                                                                | Eval 463–470, 701                                   | **Partly corroborated.** A scoped current-source search found no occurrences of `with_cross_resolver`, `CrossSheetResolver`, `CROSS_RESOLVER`, `CURRENT_SHEET`, `CROSS_SHEET_VISITED`, or `mem::transmute`. This is a name-based check, not proof of every historical mechanism. | Search method recorded below; provider replacement: `excel/rust/excel-core/src/workbook_read.rs:16-24`                                                                   |
+| `thread_local!` has zero `excel-core/src` hits.                                                           | Eval 463, 470, 701                                  | **Stale / false literally.** Current source has thread-local declarations; this audit makes no claim that they implement the retired resolver.                                                                                                                                   | `excel/rust/excel-core/src/bulk_import_trace.rs:60,379`; `excel/rust/excel-core/src/eval_core_lambda_scope.rs:38`; `excel/rust/excel-core/src/eval_regex_cache.rs:31,68` |
+| Formula paths no longer use generic Store derived atoms / lazy is not sunk to Store.                      | Eval 10–11, 609–628, 676–678, 702                   | **Stale / needs qualification.** Formula inners are `create_derived_ctx` atoms, while spill projection uses `create_derived`; Excel-specific facades/providers still remain in the Sheet layer.                                                                                  | `excel/rust/excel-core/src/sheet.rs:1325-1329,1437-1453`; `excel/rust/excel-core/src/sheet_atom_gc.rs:25-31`; `excel/rust/excel-core/src/sheet_spill.rs:184`             |
+| Cross-sheet static cycle detection is out of scope / absent.                                              | Eval 684; Indexing 235–238                          | **Stale.** Workbook cycle traversal walks formula references across sheets, and the loader rejects a queued formula that closes such a cycle.                                                                                                                                    | `excel/rust/excel-core/src/workbook_cycles.rs:10-87`; `excel/rust/excel-core/src/workbook_loader.rs:82-125`                                                              |
+| Clearing a cell cannot reclaim primitive atoms.                                                           | Eval 685                                            | **Stale.** Null cells can release a primitive atom when no non-facade dependent remains; family cleanup also evicts no-longer-live formula dependencies.                                                                                                                         | `excel/rust/excel-core/src/sheet_write_clear.rs:31-121`; `excel/rust/excel-core/src/sheet_atom_gc.rs:56-145`                                                             |
+
+## Claims not verifiable from the current source alone
+
+The following archived statements are historical measurements, test-run results,
+or release/process facts. They are **unverified**, rather than marked false,
+because current source inspection cannot establish them:
+
+- Commit IDs, review findings, timings, RSS figures, and cap-removal statements
+  in the Indexing record 6–30 and 47–52.
+- Exact test totals, demo runs, and “all tests green” assertions in Eval 468,
+  489–496, 555–561, and Indexing 147–150, 168–170, 206–218.
+- Numeric viewport/import/recompute gates in Eval 450–453, 491–495, 689–704;
+  they require executing the named tests against a defined build.
+- “No allocation” claims beyond the sparse traversal evidence noted above, and
+  all performance SLOs in Indexing 202–218.
+- The archived `FormulaCache`, `cell_dependents`, `range_dependents`, and
+  `propagate_force` name-based zero-hit claims. The current Store-edge design is
+  source-backed, but absence of a spelling is not a behavioral proof.
+
+## Read-only verification record
+
+The conclusions above were checked with current-source reads and these scoped
+identifier searches (all under `excel/rust/excel-core/src`, Rust files only):
+
+```text
+FormulaCache|cell_dependents|range_dependents|propagate_force
+with_cross_resolver|CrossSheetResolver|CROSS_RESOLVER|CURRENT_SHEET
+CROSS_SHEET_VISITED|mem::transmute
+thread_local!
+create_derived
+```
+
+The first two groups returned no matches in the current source tree; the latter
+two are evidenced in the table. This audit deliberately does not infer historical
+truth from current absence, run benchmarks, execute tests, or alter either frozen
+record.

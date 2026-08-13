@@ -5,17 +5,24 @@
   "type": "module",
   "main": "./cjs/index.cjs",
   "module": "./esm/index.mjs",
-  "typings": "./@types/index.d.ts",
+  "types": "./@types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./@types/index.d.ts",
+      "import": "./esm/index.mjs",
+      "require": "./cjs/index.cjs"
+    }
+  },
   "license": "MIT",
   "author": "dol",
   "repository": {
     "type": "git",
-    "url": "https://github.com/allroad88888888/einfach.git",
+    "url": "https://github.com/allroad88888888/einfach-excel.git",
     "directory": "excel/spreadsheet-ui-core"
   },
-  "homepage": "https://github.com/allroad88888888/einfach/tree/main/excel/spreadsheet-ui-core",
+  "homepage": "https://github.com/allroad88888888/einfach-excel/tree/main/excel/spreadsheet-ui-core",
   "bugs": {
-    "url": "https://github.com/allroad88888888/einfach/issues"
+    "url": "https://github.com/allroad88888888/einfach-excel/issues"
   },
   "publishConfig": {
     "access": "public"
@@ -35,8 +42,10 @@
   },
   "keywords": [
     "spreadsheet",
+    "headless",
     "ui",
-    "atom"
+    "atom",
+    "einfach"
   ],
   "dependencies": {
     "@einfach/core": "^0.4.0"

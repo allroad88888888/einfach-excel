@@ -19,10 +19,9 @@ is `unknown` rather than inferred.
   statement changes scope or is questioned.
 
 This follows [the comparison-evidence maintenance procedure](COMPARISON_EVIDENCE_MAINTENANCE.md).
-These staging records currently support no public statement. Before one is
-used in a public comparison, the maintenance owner must add the exact
-public-statement reference and apply that procedure's review, stale, and
-withdrawal path.
+The records below support only the exact public table locations recorded in
+each lifecycle entry. They remain subject to that procedure's review, stale,
+and withdrawal path.
 
 ## E3 records
 
@@ -42,8 +41,10 @@ withdrawal path.
 - **Limitations:** this does not establish commercial terms, redistribution
   rights, license compatibility, separately licensed components, or the terms
   of any package or edition not covered by that file.
-- **Public-statement reference and lifecycle:** none; current; owner AD-405
-  evidence maintainer; next review due 2026-11-11.
+- **Public-statement reference and lifecycle:** `README.md`, “Dated product
+  facts”; `README.zh-CN.md`, “已核实的产品事实”; site English
+  `/#dated-product-facts`; site Chinese `/zh/#dated-product-facts`; current;
+  owner AD-405 evidence maintainer; next review due 2026-11-11.
 
 ### E3-UNIVER-PRODUCT-002 — documented UMD delivery form
 
@@ -63,8 +64,10 @@ withdrawal path.
 - **Limitations:** the guide does not pin a Univer package version for those
   paths or establish present access, installation, purchase, self-hosting, or
   use in any particular environment.
-- **Public-statement reference and lifecycle:** none; current; owner AD-405
-  evidence maintainer; next review due 2026-11-11.
+- **Public-statement reference and lifecycle:** `README.md`, “Dated product
+  facts”; `README.zh-CN.md`, “已核实的产品事实”; site English
+  `/#dated-product-facts`; site Chinese `/zh/#dated-product-facts`; current;
+  owner AD-405 evidence maintainer; next review due 2026-11-11.
 
 ### E3-UNIVER-PRODUCT-003 — Web Worker data boundary
 
@@ -85,8 +88,10 @@ withdrawal path.
 - **Limitations:** this does not establish a storage or server-backend
   boundary, interchangeability, migration cost, remote operation, or an
   absence of coupling outside the documented configuration.
-- **Public-statement reference and lifecycle:** none; current; owner AD-405
-  evidence maintainer; next review due 2026-11-11.
+- **Public-statement reference and lifecycle:** `README.md`, “Dated product
+  facts”; `README.zh-CN.md`, “已核实的产品事实”; site English
+  `/#dated-product-facts`; site Chinese `/zh/#dated-product-facts`; current;
+  owner AD-405 evidence maintainer; next review due 2026-11-11.
 
 ### E3-UNIVER-PRODUCT-004 — Web Worker formula computation location
 
@@ -105,8 +110,10 @@ withdrawal path.
   main-thread/Web Worker setup.
 - **Limitations:** this does not describe the default configuration, other
   calculation paths, latency, cost, privacy, availability, or performance.
-- **Public-statement reference and lifecycle:** none; current; owner AD-405
-  evidence maintainer; next review due 2026-11-11.
+- **Public-statement reference and lifecycle:** `README.md`, “Dated product
+  facts”; `README.zh-CN.md`, “已核实的产品事实”; site English
+  `/#dated-product-facts`; site Chinese `/zh/#dated-product-facts`; current;
+  owner AD-405 evidence maintainer; next review due 2026-11-11.
 
 ### E3-UNIVER-PRODUCT-005 — React lifecycle integration boundary
 
@@ -126,14 +133,17 @@ withdrawal path.
 - **Limitations:** this documents one example boundary only; it does not
   establish framework support, compatibility, parity, maintenance level, or
   suitability for any React version or another framework.
-- **Public-statement reference and lifecycle:** none; current; owner AD-405
-  evidence maintainer; next review due 2026-11-11.
+- **Public-statement reference and lifecycle:** `README.md`, “Dated product
+  facts”; `README.zh-CN.md`, “已核实的产品事实”; site English
+  `/#dated-product-facts`; site Chinese `/zh/#dated-product-facts`; current;
+  owner AD-405 evidence maintainer; next review due 2026-11-11.
 
 ## Explicit unknowns
 
-| Subject         | Dimension          | Stated value   | Verification date and verifier         | Scope and missing evidence                                                                                                                                                                                                                                                                                 |
-| --------------- | ------------------ | -------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Univer packages | Package-size basis | E0 / `unknown` | 2026-08-13; AD-405 evidence maintainer | No primary artifact record supplies an exact package version or revision, included files, compressed or unpacked form, compression settings, measurement command or artifact, and measurement date. The AD-405 maintenance owner must recheck this unknown by 2026-11-11; it supports no public statement. |
+| Subject         | Dimension          | Stated value   | Verification date and verifier         | Scope and missing evidence                                                                                                                                                                          | Public-statement reference and lifecycle                                                                                                                                                         |
+| --------------- | ------------------ | -------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Univer packages | Package-size basis | E0 / `unknown` | 2026-08-13; AD-405 evidence maintainer | No primary artifact record supplies an exact package version or revision, included files, compressed or unpacked form, compression settings, measurement command or artifact, and measurement date. | `README.md`, “Dated product facts”; `README.zh-CN.md`, “已核实的产品事实”; site English `/#dated-product-facts`; site Chinese `/zh/#dated-product-facts`; current; owner AD-405; due 2026-11-11. |
 
-The E3 records and E0 unknown above do not create a product comparison or a
-conclusion about another product.
+The E3 records and E0 unknown above support only descriptive public facts. They
+do not create a performance conclusion, recommendation, compatibility claim,
+or product ranking.

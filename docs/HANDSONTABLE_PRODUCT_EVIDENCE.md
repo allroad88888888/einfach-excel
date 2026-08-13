@@ -21,10 +21,9 @@ evidence is `unknown` rather than inferred.
   current; next review due 2026-11-11.
 
 This follows [the comparison-evidence maintenance procedure](COMPARISON_EVIDENCE_MAINTENANCE.md).
-These staging records currently support no public statement. Before one is
-used in a public comparison, the maintenance owner must add the exact
-public-statement reference and apply that procedure's review, stale, and
-withdrawal path.
+The records below support only the exact public table locations recorded in
+each lifecycle entry. They remain subject to that procedure's review, stale,
+and withdrawal path.
 
 ## E3 records
 
@@ -45,9 +44,11 @@ withdrawal path.
 - **Limitations:** this only records the cited text. It does not determine
   commercial terms, redistribution rights, license compatibility, separately
   licensed artifacts, or terms for any package or edition not covered by it.
-- **Public-statement reference and lifecycle:** none; current; owner AD-406
-  evidence maintainer; review log 2026-08-13, sources verified; next review
-  due 2026-11-11.
+- **Public-statement reference and lifecycle:** `README.md`, “Dated product
+  facts”; `README.zh-CN.md`, “已核实的产品事实”; site English
+  `/#dated-product-facts`; site Chinese `/zh/#dated-product-facts`; current;
+  owner AD-406 evidence maintainer; review log 2026-08-13, sources verified;
+  next review due 2026-11-11.
 
 ### E3-HANDSONTABLE-PRODUCT-002 — React wrapper delivery metadata
 
@@ -63,9 +64,11 @@ withdrawal path.
   its listed entry-path metadata.
 - **Limitations:** manifest fields do not establish current availability,
   installation, access, purchase, self-hosting, or behavior in an environment.
-- **Public-statement reference and lifecycle:** none; current; owner AD-406
-  evidence maintainer; review log 2026-08-13, sources verified; next review
-  due 2026-11-11.
+- **Public-statement reference and lifecycle:** `README.md`, “Dated product
+  facts”; `README.zh-CN.md`, “已核实的产品事实”; site English
+  `/#dated-product-facts`; site Chinese `/zh/#dated-product-facts`; current;
+  owner AD-406 evidence maintainer; review log 2026-08-13, sources verified;
+  next review due 2026-11-11.
 
 ### E3-HANDSONTABLE-PRODUCT-003 — React wrapper interface boundary
 
@@ -85,17 +88,20 @@ withdrawal path.
 - **Limitations:** this records a declared package interface only. It does not
   establish framework support, compatibility, parity, maintenance level, or
   suitability for a React version or another framework.
-- **Public-statement reference and lifecycle:** none; current; owner AD-406
-  evidence maintainer; review log 2026-08-13, sources verified; next review
-  due 2026-11-11.
+- **Public-statement reference and lifecycle:** `README.md`, “Dated product
+  facts”; `README.zh-CN.md`, “已核实的产品事实”; site English
+  `/#dated-product-facts`; site Chinese `/zh/#dated-product-facts`; current;
+  owner AD-406 evidence maintainer; review log 2026-08-13, sources verified;
+  next review due 2026-11-11.
 
 ## Explicit unknowns
 
-| Subject                    | Dimension                  | Stated value   | Verification date and verifier         | Scope, limitation, and lifecycle                                                                                                                                                                                                                           |
-| -------------------------- | -------------------------- | -------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Handsontable documentation | Data or backend decoupling | E0 / `unknown` | 2026-08-13; AD-406 evidence maintainer | No primary record reviewed for this leaf identifies a data, storage, transport, or backend boundary. This unknown supports no public statement; owner AD-406 evidence maintainer must recheck it by 2026-11-11.                                            |
-| Handsontable documentation | Computation location       | E0 / `unknown` | 2026-08-13; AD-406 evidence maintainer | No primary record reviewed for this leaf identifies a calculation path, runtime, device, worker, or service boundary. This unknown supports no public statement; owner AD-406 evidence maintainer must recheck it by 2026-11-11.                           |
-| Handsontable packages      | Package-size basis         | E0 / `unknown` | 2026-08-13; AD-406 evidence maintainer | No primary artifact record reviewed for this leaf supplies a complete version, included-file, compression, measurement-command, and date basis. This unknown supports no public statement; owner AD-406 evidence maintainer must recheck it by 2026-11-11. |
+| Subject                    | Dimension                  | Stated value   | Verification date and verifier         | Scope and missing evidence                                                                                                                      | Public-statement reference and lifecycle                                                                                                                                                         |
+| -------------------------- | -------------------------- | -------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Handsontable documentation | Data or backend decoupling | E0 / `unknown` | 2026-08-13; AD-406 evidence maintainer | No primary record reviewed for this leaf identifies a data, storage, transport, or backend boundary.                                            | `README.md`, “Dated product facts”; `README.zh-CN.md`, “已核实的产品事实”; site English `/#dated-product-facts`; site Chinese `/zh/#dated-product-facts`; current; owner AD-406; due 2026-11-11. |
+| Handsontable documentation | Computation location       | E0 / `unknown` | 2026-08-13; AD-406 evidence maintainer | No primary record reviewed for this leaf identifies a calculation path, runtime, device, worker, or service boundary.                           | `README.md`, “Dated product facts”; `README.zh-CN.md`, “已核实的产品事实”; site English `/#dated-product-facts`; site Chinese `/zh/#dated-product-facts`; current; owner AD-406; due 2026-11-11. |
+| Handsontable packages      | Package-size basis         | E0 / `unknown` | 2026-08-13; AD-406 evidence maintainer | No primary artifact record reviewed for this leaf supplies a complete version, included-file, compression, measurement-command, and date basis. | `README.md`, “Dated product facts”; `README.zh-CN.md`, “已核实的产品事实”; site English `/#dated-product-facts`; site Chinese `/zh/#dated-product-facts`; current; owner AD-406; due 2026-11-11. |
 
-The E3 records and E0 unknowns above do not create a product comparison or a
-conclusion about Handsontable or another product.
+The E3 records and E0 unknowns above support only descriptive public facts.
+They do not create a performance conclusion, recommendation, compatibility
+claim, or product ranking.

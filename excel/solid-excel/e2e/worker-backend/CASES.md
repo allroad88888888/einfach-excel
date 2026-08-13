@@ -42,6 +42,9 @@
 | WB-27 | 快速连续切 sheet 无陈旧投影串页                   | 连点 Sheet2/3/2/1 不等待                          | 终态整窗属 Sheet1（A1/A2/C2/B4），再切 Sheet3 干净落位 | 🆕 本轮    | stale-request-consistency.spec.ts                                                                                                                      |
 | WB-28 | worker 崩溃/重启恢复                              | —                                                 | —                                                      | ⏳ P2 延后 | —（adapter 无 terminate/restart 入口，需先加 debug 钩子才能注入崩溃）                                                                                  |
 | WB-29 | cancelToken 主动取消的用户可观察面                | —                                                 | —                                                      | ⏳ P2 延后 | —（cancelToken 仅在 projection 请求内部流转，无 UI 直接触发口；快照会话取消已由 WB-12 覆盖）                                                           |
+| WB-30 | DOM-free projection 来源与键盘取引用跨真实 worker | 选 C2，再在 D2 输入 `=`、←、Enter                 | 公式栏 `=Sheet2!C2+1`；D2 显示 13 且来源 `=C2`         | 🆕 AD-319  | portable-editing-worker-contract.spec.ts                                                                                                               |
+| WB-31 | DOM-free 公式栏候选接受跨真实 worker              | E4 公式栏输入 `=SU` 后 Tab                        | `=SUM(`，焦点留在公式栏，格内草稿同步                  | 🆕 AD-319  | portable-editing-worker-contract.spec.ts                                                                                                               |
 
 统计：存量 25（WB-01..25；WB-17 的行/列 autofit 与 WB-22 的 LAMBDA 均有正常浏览器回归）/
 本轮新增 2（WB-26..27，1 个新 spec 文件，wasm 全绿）/ 延后 2（WB-28..29）。
+AD-319 新增 2（WB-30..31，双后端真实 Worker 回归）。

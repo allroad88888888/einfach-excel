@@ -11,6 +11,7 @@ export { useSpreadsheetEditing } from './use-spreadsheet-editing'
 export { useSpreadsheetImeComposition } from './use-spreadsheet-ime-composition'
 export { useSpreadsheetFormulaBar } from './use-spreadsheet-formula-bar'
 export { useSpreadsheetNameBox } from './use-spreadsheet-name-box'
+export { useSpreadsheetSheetTabs } from './use-spreadsheet-sheet-tabs'
 export type { SpreadsheetGridViewProps } from './SpreadsheetGridView'
 export type { SpreadsheetFrozenGridViewProps } from './SpreadsheetFrozenGridView'
 export type {
@@ -33,6 +34,11 @@ export type {
   SpreadsheetNameBoxState,
   UseSpreadsheetNameBoxOptions,
 } from './use-spreadsheet-name-box'
+export type {
+  SpreadsheetSheetTabMetadataInput,
+  SpreadsheetSheetTabs,
+  UseSpreadsheetSheetTabsOptions,
+} from './use-spreadsheet-sheet-tabs'
 export type {
   SpreadsheetImeCompositionHandlers,
   UseSpreadsheetImeCompositionOptions,

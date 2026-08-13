@@ -21,9 +21,9 @@ export default defineConfig({
           repoRoot,
           'excel/solid-excel/src-vnext/adapter/worker-factory.ts',
         ),
-        '@einfach/solid-excel/vnext-styles.css': path.resolve(
+        '@einfach/spreadsheet-ui-styles/styles.css': path.resolve(
           repoRoot,
-          'excel/solid-excel/src-vnext/styles/index.css',
+          'excel/spreadsheet-ui-styles/styles/index.css',
         ),
       },
       dedupe: ['solid-js'],

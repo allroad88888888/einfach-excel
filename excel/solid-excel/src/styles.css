@@ -387,6 +387,6 @@ thead .row-header {
 }
 
 
-/* The vNext chrome styles (formerly lines 389+ of this file) now live in
- * src-vnext/styles/ — one file per component, aggregated by
- * src-vnext/styles/index.css. Import that aggregator alongside this file. */
+/* VNext surface styles live in the framework-neutral
+ * @einfach/spreadsheet-ui-styles package. Import its styles.css entry
+ * alongside this legacy demo shell stylesheet. */

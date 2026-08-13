@@ -29,8 +29,8 @@ import { refreshVisibleProjection, useSpreadsheetBackend, useSpreadsheetUiStore 
 // blocked when no CSS transform is configured. The co-located
 // `.css.d.ts` keeps tsc satisfied under the Bundler moduleResolution.
 if (typeof process === 'undefined' || !process.env.JEST_WORKER_ID) {
-  void import('./conditional-format-dialog.css')
-  void import('./conditional-format-fields.css')
+  void import('@einfach/spreadsheet-ui-styles/features/conditional-format-dialog.css')
+  void import('@einfach/spreadsheet-ui-styles/features/conditional-format-fields.css')
 }
 
 export interface SpreadsheetConditionalFormatDialogProps {

@@ -1,6 +1,6 @@
 /* @refresh reload */
 // Import only vnext styles exported from solid-excel package.
-import '@einfach/solid-excel/vnext-styles.css'
+import '@einfach/spreadsheet-ui-styles/styles.css'
 import './styles/site-theme.css'
 import './styles/site-layout.css'
 import { render } from 'solid-js/web'

@@ -28,7 +28,7 @@ import { createHistoryEntryRecorder } from '../provider/history-entry-recorder'
 import { refreshVisibleProjection } from '../provider/projection-refresh'
 import { FindReplaceDialogContent } from './FindReplaceDialogContent'
 import { useDialogInteractions } from './dialog-interactions'
-import './find-replace-dialog.css'
+import '@einfach/spreadsheet-ui-styles/features/find-replace-dialog.css'
 
 export interface SpreadsheetFindReplaceDialogProps {
   class?: string

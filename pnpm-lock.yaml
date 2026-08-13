@@ -157,6 +157,9 @@ importers:
       '@einfach/spreadsheet-ui-core':
         specifier: workspace:*
         version: link:../spreadsheet-ui-core
+      '@einfach/spreadsheet-ui-styles':
+        specifier: workspace:*
+        version: link:../spreadsheet-ui-styles
       solid-js:
         specifier: 1.9.12
         version: 1.9.12
@@ -203,6 +206,9 @@ importers:
       '@einfach/spreadsheet-ui-core':
         specifier: workspace:*
         version: link:../spreadsheet-ui-core
+      '@einfach/spreadsheet-ui-styles':
+        specifier: workspace:*
+        version: link:../spreadsheet-ui-styles
       '@lingui/core':
         specifier: ^6.0.1
         version: 6.0.1
@@ -241,6 +247,8 @@ importers:
       '@types/node':
         specifier: ^20.11.30
         version: 20.17.30
+
+  excel/spreadsheet-ui-styles: {}
 
 packages:
 

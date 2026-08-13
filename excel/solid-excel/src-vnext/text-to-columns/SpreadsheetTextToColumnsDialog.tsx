@@ -33,7 +33,7 @@ import {
   restoreTextToColumnsFocus,
   trapTextToColumnsDialogTab,
 } from './text-to-columns-dialog-focus'
-import './text-to-columns-dialog.css'
+import '@einfach/spreadsheet-ui-styles/features/text-to-columns-dialog.css'
 
 export interface SpreadsheetTextToColumnsDialogProps {
   class?: string

@@ -98,6 +98,7 @@
     "@einfach/excel-core-ts": "workspace:*",
     "@einfach/solid": "^0.4.0",
     "@einfach/spreadsheet-ui-core": "workspace:*",
+    "@einfach/spreadsheet-ui-styles": "workspace:*",
     "@lingui/core": "^6.0.1",
     "solid-js": "^1.9.12"
   },

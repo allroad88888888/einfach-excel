@@ -37,7 +37,7 @@ import { useOverlayInteraction } from '../overlay'
 // blocked when no CSS transform is configured. The co-located
 // `.css.d.ts` keeps tsc satisfied under the Bundler moduleResolution.
 if (typeof process === 'undefined' || !process.env.JEST_WORKER_ID) {
-  void import('./paste-special-dialog.css')
+  void import('@einfach/spreadsheet-ui-styles/features/paste-special-dialog.css')
 }
 
 export interface SpreadsheetPasteSpecialDialogProps {

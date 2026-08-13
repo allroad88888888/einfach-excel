@@ -18,7 +18,7 @@ import { useOverlayInteraction } from '../overlay'
 import { useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider'
 
 if (typeof process === 'undefined' || !process.env.JEST_WORKER_ID) {
-  void import('./page-setup-dialog.css')
+  void import('@einfach/spreadsheet-ui-styles/features/page-setup-dialog.css')
 }
 
 const PAGE_SETUP_DIALOG_TITLE_ID = 'spreadsheet-page-setup-title'

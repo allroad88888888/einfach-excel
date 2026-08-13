@@ -20,7 +20,7 @@ import CustomFormulaRegistrations from './custom-formulas/CustomFormulaRegistrat
 import PerformanceHud from './performance-hud/PerformanceHud'
 import { makeMeasuredWasmWorkerBackend } from './performance-hud/measured-worker-backend'
 import { createPerformanceMetricsAtom } from './performance-hud/performance-metrics'
-import '@einfach/solid-excel/vnext-styles.css'
+import '@einfach/spreadsheet-ui-styles/styles.css'
 
 interface DemoIslandProps {
   demoId: string

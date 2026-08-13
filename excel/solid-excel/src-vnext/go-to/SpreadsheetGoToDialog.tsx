@@ -8,7 +8,7 @@ import {
   LOCATOR_KIND_ORDER,
   VALUE_KIND_FILTERS,
 } from './go-to-dialog-locators'
-import './go-to-dialog.css'
+import '@einfach/spreadsheet-ui-styles/features/go-to-dialog.css'
 
 export interface SpreadsheetGoToDialogProps {
   class?: string

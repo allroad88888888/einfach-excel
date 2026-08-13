@@ -6,8 +6,8 @@ import { FormatCellsPanel } from './FormatCellsPanel'
 import { FormatCellsTabs } from './FormatCellsTabs'
 import { useFormatCellsDialogController } from './format-cells-dialog-controller'
 import { useFormatCellsDialogFocus } from './format-cells-dialog-focus'
-import './format-cells-dialog.css'
-import './format-cells-panels.css'
+import '@einfach/spreadsheet-ui-styles/features/format-cells-dialog.css'
+import '@einfach/spreadsheet-ui-styles/features/format-cells-panels.css'
 
 export interface SpreadsheetFormatCellsDialogProps {
   class?: string

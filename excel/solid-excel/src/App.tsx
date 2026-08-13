@@ -15,7 +15,7 @@ import { VNextSmokeDemo, VNextWorkerDemo, VNextWorkerTsDemo, VNextWave5Demo } fr
 import { LocaleSwitcher } from './LocaleSwitcher'
 import { useT } from './i18n'
 import './styles.css'
-import '../src-vnext/styles/index.css'
+import '@einfach/spreadsheet-ui-styles/styles.css'
 
 interface DemoTab {
   id: string

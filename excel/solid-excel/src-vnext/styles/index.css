@@ -1,26 +1,3 @@
-@import './grid-frame.css';
-@import './grid-overlays.css';
-@import './formula-bar-row.css';
-@import './shared-format-toolbar.css';
-@import './shared-sheet-tabs.css';
-@import './shared-context-menu.css';
-@import './chrome-tokens.css';
-@import './menu-bar.css';
-@import './toolbar.css';
-@import './toolbar-popovers.css';
-@import './name-box.css';
-@import './status-bar.css';
-@import './sheet-tabs.css';
-@import './demo-two-column.css';
-@import './history-panel.css';
-@import './button-states.css';
-@import './dialog-skin.css';
-@import './grid-headers.css';
-@import './grid-cells.css';
-@import './demo-header.css';
-@import './help-overlay.css';
-@import './formula-autocomplete.css';
-@import './marching-ants.css';
-@import './diagnostics.css';
-@import './locked-edit-feedback.css';
-@import './presence-overlay.css';
+/* Backwards-compatible Solid package subpath. New consumers import the
+ * framework-neutral package directly. */
+@import '@einfach/spreadsheet-ui-styles/styles.css';

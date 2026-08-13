@@ -1,0 +1,40 @@
+{
+  "name": "@einfach/spreadsheet-ui-styles",
+  "version": "0.1.0",
+  "description": "Framework-neutral CSS layer for Einfach spreadsheet surfaces",
+  "type": "module",
+  "exports": {
+    ".": "./styles/index.css",
+    "./styles.css": "./styles/index.css",
+    "./styles/*.css": "./styles/*.css",
+    "./features/*.css": {
+      "types": "./features/*.css.d.ts",
+      "default": "./features/*.css"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "styles",
+    "features",
+    "README.md"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/allroad88888888/einfach-excel.git",
+    "directory": "excel/spreadsheet-ui-styles"
+  },
+  "homepage": "https://github.com/allroad88888888/einfach-excel/tree/main/excel/spreadsheet-ui-styles",
+  "bugs": {
+    "url": "https://github.com/allroad88888888/einfach-excel/issues"
+  },
+  "keywords": [
+    "spreadsheet",
+    "css",
+    "styles",
+    "framework-agnostic"
+  ]
+}

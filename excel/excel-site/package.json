@@ -17,6 +17,7 @@
     "@einfach/solid": "^0.4.0",
     "@einfach/solid-excel": "workspace:*",
     "@einfach/spreadsheet-ui-core": "workspace:*",
+    "@einfach/spreadsheet-ui-styles": "workspace:*",
     "solid-js": "^1.9.12"
   },
   "devDependencies": {

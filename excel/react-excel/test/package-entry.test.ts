@@ -26,6 +26,7 @@ describe('@einfach/react-excel package entry', () => {
       SpreadsheetUiProvider: expect.any(Function),
       useSpreadsheetUiCore: expect.any(Function),
       useSpreadsheetValue: expect.any(Function),
+      useSpreadsheetViewport: expect.any(Function),
     })
   })
 })

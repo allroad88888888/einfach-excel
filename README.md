@@ -19,7 +19,7 @@ Scale-related behavior is expressed as current code contracts rather than headli
 - **Select range dependencies by geometry.** Formula ranges choose cell, row-band, column, or sheet invalidation roots through source-defined geometry rules.
 - **Keep oversized commands rectangular.** Clear and formatting attempt backend range capabilities above their address-expansion limits; unsupported requests are refused instead of expanded into cell actions.
 
-Read [scale facts](./docs/SCALE_FACTS.md) for code citations and [scale architecture](./docs/SCALE_ARCHITECTURE.md) for layer boundaries. These mechanisms make no performance, memory, capacity, transport, or production-SLA claim.
+Read [scale facts](./docs/SCALE_FACTS.md) for code citations, [scale architecture](./docs/SCALE_ARCHITECTURE.md) for layer boundaries, and [dated scale observations](./docs/SCALE_OBSERVATIONS.md) for revision-scoped E2 records. These mechanisms make no performance, memory, capacity, transport, or production-SLA claim.
 
 - **Keep calculation off the main thread.** The provided worker-backed Solid integration runs Rust/WASM workbook work in a Web Worker.
 - **Choose your runtime.** `spreadsheet-ui-core` has no dependency on a DOM, Solid, React, a worker, or WASM. Connect it to the backend that fits your product.

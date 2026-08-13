@@ -34,7 +34,7 @@
 
 | 总叶子 | 完成并独立验收 |               验收契约阻塞 | 未开始（含待决策） |        其中待决策 |
 | -----: | -------------: | -------------------------: | -----------------: | ----------------: |
-|    235 |             53 | 1（AD-505 验收契约待明确） |                181 | 5（AD-100/D1~D5） |
+|    235 |             55 | 1（AD-505 验收契约待明确） |                179 | 5（AD-100/D1~D5） |
 
 “其中待决策”是“未开始”的子集，不额外计入总叶子。AD-505 在明确基准页路由、启动方式、场景登记与无场景行为的验收契约前保持阻塞，不能记为完成。
 
@@ -48,12 +48,12 @@
     - AD-129~135 版本与发布流程
     - AD-136~142 本地 registry 与装机冒烟
   - [**AD-200 让人五分钟内跑起来**](adoption-issues/AD-200-onboarding.md) —— 受 AD-100 全组阻塞
-  - [**AD-300 框架适配层（React / Vue）**](adoption-issues/AD-300-framework-adapters.md) —— AD-311~317、AD-320~321、AD-324~325 完成；其余独立长线
+  - [**AD-300 框架适配层（React / Vue）**](adoption-issues/AD-300-framework-adapters.md) —— AD-311~318、AD-320~321、AD-324~325 完成；其余独立长线
   - [**AD-400 定位与可信度**](adoption-issues/AD-400-positioning.md) —— AD-401、AD-403~405、AD-408~412、AD-416~420 完成；其余可与 AD-100 并行
   - [**AD-500 可验证的性能证据**](adoption-issues/AD-500-performance.md) —— AD-501~504、AD-509、AD-514 完成；AD-505 等待验收契约明确，其余未开始
   - [**AD-600 内容与渠道**](adoption-issues/AD-600-content-channels.md) —— 依赖 AD-100、AD-400
   - [**AD-700 承接进来的人**](adoption-issues/AD-700-community.md) —— AD-701、AD-702、AD-706、AD-708~710、AD-713 完成
-  - [**AD-800 规模能力与技术差异化**](adoption-issues/AD-800-scale-differentiation.md) —— AD-801~806、AD-811、AD-814~817、AD-821~824 完成
+  - [**AD-800 规模能力与技术差异化**](adoption-issues/AD-800-scale-differentiation.md) —— AD-801~806、AD-811、AD-814~819、AD-821~824 完成
 
 ## 已完成叶子
 
@@ -66,6 +66,7 @@
 | AD-315 | 下沉目标位置裁决          | `96a3b96b7feb0b697e91e004a772092a2b3fe700` |
 | AD-316 | viewport 滚动几何下沉     | `bc0ad7d5172b76d11a4446448c3c14fbc514b031` |
 | AD-317 | grid 坐标辅助函数下沉     | `bca3d51`                                  |
+| AD-318 | 非 grid 交互下沉          | `e62105f`                                  |
 | AD-320 | Headless 挂载契约         | `e8a07366ed4a7d57cecb56087ddc40e9b6a4d3bb` |
 | AD-321 | DOM 测量抽象              | `8c6ab2df3fc35fc90db8ea50cf6d89c8e685bc07` |
 | AD-324 | 框架无关样式层独立        | `96fb693`、`36abe08`                       |
@@ -108,6 +109,7 @@
 | AD-815 | Univer 规模与架构事实证据 | `7d87edd`                                  |
 | AD-816 | Handsontable 规模事实证据 | `3c5aa0a`                                  |
 | AD-817 | 规模对比证据矩阵          | `8c01935`                                  |
+| AD-819 | 技术白皮书                | `5d4fa41`                                  |
 | AD-821 | 按需求值机制成文          | `fe8e6a1`                                  |
 | AD-822 | 跨 sheet 按需求值成文     | `ae7f5bc`                                  |
 | AD-823 | 懒求值归档件与现状复核    | `62755dc`、`fbdf800`                       |

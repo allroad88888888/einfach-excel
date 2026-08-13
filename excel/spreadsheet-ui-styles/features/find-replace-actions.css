@@ -1,0 +1,44 @@
+/* Footer layout and action buttons for the Find & Replace dialog. */
+
+.find-replace-dialog .fr-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  height: 48px;
+  padding: 0 16px !important;
+  border-top: 1px solid var(--border, #e5e5e5);
+  background: var(--bg-chrome-light, #fafafa);
+}
+
+.find-replace-dialog .fr-btn {
+  height: 28px;
+  min-width: 64px;
+  padding: 0 14px;
+  border: 1px solid var(--border, #d4d4d4);
+  border-radius: 4px;
+  background: #ffffff;
+  color: var(--text-default, #1a1a1a);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    background 100ms ease-out,
+    border-color 100ms ease-out;
+}
+
+.find-replace-dialog .fr-btn:hover:not(:disabled) {
+  background: var(--hover, #f0f0f0);
+  border-color: var(--border-strong, #b0b0b0);
+}
+
+.find-replace-dialog .fr-btn-primary {
+  background: var(--office-blue, #0078d4);
+  border-color: var(--office-blue, #0078d4);
+  color: #ffffff;
+}
+
+.find-replace-dialog .fr-btn-primary:hover:not(:disabled) {
+  background: #006cbe;
+  border-color: #006cbe;
+}

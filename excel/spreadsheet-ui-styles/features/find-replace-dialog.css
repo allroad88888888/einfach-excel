@@ -21,6 +21,9 @@
  * child of [role=dialog]; we override that per-section below so the header,
  * tab strip, and footer can carry their own bottom border / background. */
 
+@import './find-replace-status-messages.css';
+@import './find-replace-actions.css';
+
 .find-replace-dialog {
   /* Reshape the shared dialog card to Univer's tighter footprint. */
   width: 480px;
@@ -157,7 +160,9 @@
   background: #ffffff;
   font: inherit;
   color: var(--text-default, #1a1a1a);
-  transition: border-color 100ms ease-out, box-shadow 100ms ease-out;
+  transition:
+    border-color 100ms ease-out,
+    box-shadow 100ms ease-out;
 }
 
 .find-replace-dialog .fr-input:focus {
@@ -186,7 +191,9 @@
   font-size: 14px;
   line-height: 1;
   cursor: pointer;
-  transition: background 100ms ease-out, border-color 100ms ease-out;
+  transition:
+    background 100ms ease-out,
+    border-color 100ms ease-out;
 }
 
 .find-replace-dialog .fr-step-btn:hover:not(:disabled) {
@@ -248,74 +255,6 @@
   outline: none;
   border-color: var(--office-blue, #0078d4);
   box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.18);
-}
-
-/* === Status / error ==================================================== */
-
-.find-replace-dialog .fr-status {
-  min-height: 16px;
-  padding: 0 16px 8px !important;
-  font-size: 12px;
-  color: var(--text-muted, #6a6a6a);
-  background: #ffffff;
-}
-
-.find-replace-dialog .fr-error {
-  padding: 0 16px 8px !important;
-  font-size: 12px;
-  color: #c0392b;
-  background: #ffffff;
-}
-
-/* Replace-all hit the 500-match page cap (audit D-12). */
-.find-replace-dialog .fr-capped {
-  padding: 0 16px 8px !important;
-  font-size: 12px;
-  color: #8a6d1a;
-  background: #ffffff;
-}
-
-/* === Footer ============================================================ */
-
-.find-replace-dialog .fr-footer {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  height: 48px;
-  padding: 0 16px !important;
-  border-top: 1px solid var(--border, #e5e5e5);
-  background: var(--bg-chrome-light, #fafafa);
-}
-
-.find-replace-dialog .fr-btn {
-  height: 28px;
-  min-width: 64px;
-  padding: 0 14px;
-  border: 1px solid var(--border, #d4d4d4);
-  border-radius: 4px;
-  background: #ffffff;
-  color: var(--text-default, #1a1a1a);
-  font: inherit;
-  font-size: 13px;
-  cursor: pointer;
-  transition: background 100ms ease-out, border-color 100ms ease-out;
-}
-
-.find-replace-dialog .fr-btn:hover:not(:disabled) {
-  background: var(--hover, #f0f0f0);
-  border-color: var(--border-strong, #b0b0b0);
-}
-
-.find-replace-dialog .fr-btn-primary {
-  background: var(--office-blue, #0078d4);
-  border-color: var(--office-blue, #0078d4);
-  color: #ffffff;
-}
-
-.find-replace-dialog .fr-btn-primary:hover:not(:disabled) {
-  background: #006cbe;
-  border-color: #006cbe;
 }
 
 /* === Tab-driven visibility ============================================ *

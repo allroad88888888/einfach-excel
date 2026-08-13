@@ -1,0 +1,171 @@
+{
+  "observationId": "ad827-bounded-vs-full-range-read-2026-08-13",
+  "recordedAt": "2026-08-13T19:43:02+08:00",
+  "repositoryRevision": "bbbe23a9de4a26df96594e4d601dc24130aab40e + uncommitted AD-827 new-file observation",
+  "sourceTest": "excel/solid-excel/e2e/perf-virtual/ad827-bounded-vs-full-range-read.spec.ts",
+  "environment": {
+    "hostOperatingSystem": "macOS 26.5.2 (25F84)",
+    "node": "v24.14.0",
+    "playwright": "1.59.1",
+    "browserUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.7727.15 Safari/537.36"
+  },
+  "fixture": {
+    "worksheet": "AD827",
+    "populatedCellCount": 96,
+    "shape": "24 rows x 4 populated cells: A number, B =A(row)+1, C text, D =A(row)+2",
+    "formulaShape": "48 shallow same-row direct-reference formulas"
+  },
+  "measurementBoundary": {
+    "method": "canonical-json-utf8-v1",
+    "scope": "One reset worker-message window around one readSparseRange request and its settled response.",
+    "excluded": [
+      "structured-clone bytes",
+      "network transfer",
+      "all-workbook loading",
+      "latency or throughput",
+      "memory or capacity",
+      "performance or generic implementation claims"
+    ]
+  },
+  "rawSnapshotEncoding": {
+    "description": "A lossless compact representation of every WorkerWireTelemetrySnapshot bucket. Each tuple is [direction, kind, messageCount, normalizedPayloadBytes, unmeasurableMessageCount].",
+    "totalFields": ["messageCount", "normalizedPayloadBytes", "unmeasurableMessageCount"]
+  },
+  "runs": [
+    {
+      "project": "wasm",
+      "command": "EINFACH_E2E_PORT=5247 pnpm exec playwright test e2e/perf-virtual/ad827-bounded-vs-full-range-read.spec.ts --project=wasm --project=ts --reporter=json",
+      "backend": {
+        "factory": "defaultVNextWorkbookWorkerFactory",
+        "runtimeCapabilities": {
+          "scope": "auto-fill",
+          "autoFill": true
+        }
+      },
+      "bounded": {
+        "commit": [96, 0, 48, 0],
+        "commitFields": ["accepted", "errors", "formulas", "rejectedFormulas"],
+        "range": [0, 0, 0, 11, 3],
+        "rangeFields": ["sheet", "startRow", "startCol", "endRow", "endCol"],
+        "resultCount": 48,
+        "formulaEvalCountTotal": [0, 24],
+        "telemetry": {
+          "method": "canonical-json-utf8-v1",
+          "total": [2, 4291, 0],
+          "buckets": [
+            ["host-to-worker", "request", 1, 101, 0],
+            ["host-to-worker", "response", 0, 0, 0],
+            ["host-to-worker", "error", 0, 0, 0],
+            ["host-to-worker", "dirty", 0, 0, 0],
+            ["host-to-worker", "hydrated", 0, 0, 0],
+            ["host-to-worker", "unclassified", 0, 0, 0],
+            ["worker-to-host", "request", 0, 0, 0],
+            ["worker-to-host", "response", 1, 4190, 0],
+            ["worker-to-host", "error", 0, 0, 0],
+            ["worker-to-host", "dirty", 0, 0, 0],
+            ["worker-to-host", "hydrated", 0, 0, 0],
+            ["worker-to-host", "unclassified", 0, 0, 0]
+          ]
+        }
+      },
+      "explicitFullFixture": {
+        "commit": [96, 0, 48, 0],
+        "commitFields": ["accepted", "errors", "formulas", "rejectedFormulas"],
+        "range": [0, 0, 0, 23, 3],
+        "rangeFields": ["sheet", "startRow", "startCol", "endRow", "endCol"],
+        "resultCount": 96,
+        "formulaEvalCountTotal": [0, 48],
+        "telemetry": {
+          "method": "canonical-json-utf8-v1",
+          "total": [2, 8539, 0],
+          "buckets": [
+            ["host-to-worker", "request", 1, 101, 0],
+            ["host-to-worker", "response", 0, 0, 0],
+            ["host-to-worker", "error", 0, 0, 0],
+            ["host-to-worker", "dirty", 0, 0, 0],
+            ["host-to-worker", "hydrated", 0, 0, 0],
+            ["host-to-worker", "unclassified", 0, 0, 0],
+            ["worker-to-host", "request", 0, 0, 0],
+            ["worker-to-host", "response", 1, 8438, 0],
+            ["worker-to-host", "error", 0, 0, 0],
+            ["worker-to-host", "dirty", 0, 0, 0],
+            ["worker-to-host", "hydrated", 0, 0, 0],
+            ["worker-to-host", "unclassified", 0, 0, 0]
+          ]
+        }
+      }
+    },
+    {
+      "project": "ts",
+      "command": "EINFACH_E2E_PORT=5247 pnpm exec playwright test e2e/perf-virtual/ad827-bounded-vs-full-range-read.spec.ts --project=wasm --project=ts --reporter=json",
+      "backend": {
+        "factory": "defaultExcelCoreTsWorkerFactory",
+        "runtimeCapabilities": {
+          "structuralEdits": false,
+          "formats": false,
+          "formatSnapshots": false,
+          "tsvChunkExport": false,
+          "persistenceFormats": false,
+          "autoFill": false,
+          "sortRange": false,
+          "evalHiddenRows": false,
+          "evalFilterHiddenRows": false,
+          "structuredTables": false,
+          "engineHiddenState": false
+        }
+      },
+      "bounded": {
+        "commit": [96, 0, 48, 0],
+        "commitFields": ["accepted", "errors", "formulas", "rejectedFormulas"],
+        "range": [0, 0, 0, 11, 3],
+        "rangeFields": ["sheet", "startRow", "startCol", "endRow", "endCol"],
+        "resultCount": 48,
+        "formulaEvalCountTotal": [0, 24],
+        "telemetry": {
+          "method": "canonical-json-utf8-v1",
+          "total": [2, 4291, 0],
+          "buckets": [
+            ["host-to-worker", "request", 1, 101, 0],
+            ["host-to-worker", "response", 0, 0, 0],
+            ["host-to-worker", "error", 0, 0, 0],
+            ["host-to-worker", "dirty", 0, 0, 0],
+            ["host-to-worker", "hydrated", 0, 0, 0],
+            ["host-to-worker", "unclassified", 0, 0, 0],
+            ["worker-to-host", "request", 0, 0, 0],
+            ["worker-to-host", "response", 1, 4190, 0],
+            ["worker-to-host", "error", 0, 0, 0],
+            ["worker-to-host", "dirty", 0, 0, 0],
+            ["worker-to-host", "hydrated", 0, 0, 0],
+            ["worker-to-host", "unclassified", 0, 0, 0]
+          ]
+        }
+      },
+      "explicitFullFixture": {
+        "commit": [96, 0, 48, 0],
+        "commitFields": ["accepted", "errors", "formulas", "rejectedFormulas"],
+        "range": [0, 0, 0, 23, 3],
+        "rangeFields": ["sheet", "startRow", "startCol", "endRow", "endCol"],
+        "resultCount": 96,
+        "formulaEvalCountTotal": [0, 48],
+        "telemetry": {
+          "method": "canonical-json-utf8-v1",
+          "total": [2, 8539, 0],
+          "buckets": [
+            ["host-to-worker", "request", 1, 101, 0],
+            ["host-to-worker", "response", 0, 0, 0],
+            ["host-to-worker", "error", 0, 0, 0],
+            ["host-to-worker", "dirty", 0, 0, 0],
+            ["host-to-worker", "hydrated", 0, 0, 0],
+            ["host-to-worker", "unclassified", 0, 0, 0],
+            ["worker-to-host", "request", 0, 0, 0],
+            ["worker-to-host", "response", 1, 8438, 0],
+            ["worker-to-host", "error", 0, 0, 0],
+            ["worker-to-host", "dirty", 0, 0, 0],
+            ["worker-to-host", "hydrated", 0, 0, 0],
+            ["worker-to-host", "unclassified", 0, 0, 0]
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -17,15 +17,6 @@
 - **运行时由你选择。** `spreadsheet-ui-core` 不依赖 DOM、Solid、React、worker 或 WASM；可连接符合产品需求的任意后端。
 - **具备真实的表格行为。** 栈内覆盖选区、编辑、键盘交互、剪贴板、公式、历史记录、查找替换、验证、筛选、排序、评论等能力。
 
-## 在线体验
-
-[交互式 Demo](https://allroad88888888.github.io/einfach-excel/) 与库使用同一套组件与 worker 边界，包含下列针对性示例：
-
-- 公式计算、动态数组、命名区域和自定义公式（包括异步公式）；
-- 一个以 Rust/WASM worker 驱动的虚拟化大工作表；
-- 数据验证、条件格式、筛选、排序、查找替换和剪贴板工具；
-- 撤销/重做、评论、工作表保护、打印，以及完整的表格工作台。
-
 ## 架构概览
 
 ```text
@@ -89,44 +80,76 @@ npm run lint:check
 
 `npm run build` 会在需要时生成 WASM 包，随后构建 TypeScript 包和 bundle。
 
-### 运行演示站
+### 最小仓库 checkout 示例
 
-```bash
-npm run dev -w @einfach/excel-site
+当前 UI 集成只提供 Solid 版本，项目文档也只覆盖从仓库 checkout 使用的方式。落地页示例使用工作区内的 `@einfach/solid-excel/vnext` 接口；这不是 npm 安装路径：
+
+```tsx
+import {
+  createStaticSpreadsheetBackend,
+  SpreadsheetUiProvider,
+  SpreadsheetGrid,
+  SpreadsheetToolbar,
+} from '@einfach/solid-excel/vnext'
+
+const backend = createStaticSpreadsheetBackend({
+  sheets: [{ id: 'sheet-1', name: 'Sheet1' }],
+  matrix: [
+    ['Item', 'Qty', 'Price'],
+    ['Widget', 4, 9.5],
+  ],
+})
+
+const viewport = {
+  scrollTop: 0,
+  scrollLeft: 0,
+  viewportHeight: 320,
+  viewportWidth: 640,
+  rowHeight: 24,
+  colWidth: 96,
+  rowCount: 50,
+  colCount: 16,
+  overscanRows: 1,
+  overscanCols: 1,
+}
+
+function Sheet() {
+  return (
+    <SpreadsheetUiProvider backend={backend}>
+      <SpreadsheetToolbar />
+      <SpreadsheetGrid sheetId="sheet-1" viewport={viewport} />
+    </SpreadsheetUiProvider>
+  )
+}
 ```
 
-运行库本身的开发界面：
-
-```bash
-npm run dev -w @einfach/solid-excel
-```
-
-### 测试指定范围
-
-```bash
-npx jest excel/spreadsheet-ui-core --no-coverage
-npx jest excel/solid-excel --no-coverage
-
-npm run e2e:install -w @einfach/solid-excel
-NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach/solid-excel
-```
-
-每个端到端功能目录中的 `CASES.md` 都是该功能测试范围的权威说明。
-
-### 可复跑验证
+## 可复跑验证
 
 在仓库 checkout 中先执行 `pnpm install`，再运行以下命令。这些命令提供可复跑的执行路径，并不表示当前结果；结果取决于所 checkout 的修订版本与本机环境。
 
 ```bash
 npm test
 
+# 运行聚焦的包测试。
+npx jest excel/spreadsheet-ui-core --no-coverage
+npx jest excel/solid-excel --no-coverage
+
 # 运行浏览器端到端测试前安装 Chromium。
-pnpm --dir excel/solid-excel run e2e:install
-NO_PROXY=localhost,127.0.0.1 pnpm --dir excel/solid-excel run e2e -- --project=wasm
-NO_PROXY=localhost,127.0.0.1 pnpm --dir excel/solid-excel run e2e -- --project=ts
+npm run e2e:install -w @einfach/solid-excel
+NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach/solid-excel -- --project=wasm
+NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach/solid-excel -- --project=ts
 ```
 
 验证证据的范围、测量方法、非保证事项与环境记录分别见[决策 0008](./docs/decisions/0008-public-performance-evidence-scope.md)、[决策 0009](./docs/decisions/0009-public-performance-measurement-methodology.md)、[决策 0010](./docs/decisions/0010-public-performance-non-guarantees.md)与[决策 0011](./docs/decisions/0011-public-performance-environment-record.md)。两种后端的 E2E 覆盖范围与已记录例外见[后端一致性矩阵](./excel/solid-excel/e2e/BACKEND_PARITY.md)。
+
+## 在线体验
+
+[交互式 Demo](https://allroad88888888.github.io/einfach-excel/) 与库使用同一套组件与 worker 边界，包含下列针对性示例：
+
+- 公式计算、动态数组、命名区域和自定义公式（包括异步公式）；
+- 一个以 Rust/WASM worker 驱动的虚拟化大工作表；
+- 数据验证、条件格式、筛选、排序、查找替换和剪贴板工具；
+- 撤销/重做、评论、工作表保护、打印，以及完整的表格工作台。
 
 ## 文档
 

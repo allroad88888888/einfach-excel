@@ -17,15 +17,6 @@ Spreadsheet interfaces are deceptively hard: a useful one must keep rendering, i
 - **Choose your runtime.** `spreadsheet-ui-core` has no dependency on a DOM, Solid, React, a worker, or WASM. Connect it to the backend that fits your product.
 - **Start with real spreadsheet behavior.** The stack covers selection, editing, keyboard interaction, clipboard operations, formulas, history, find/replace, validation, filtering, sorting, comments, and more.
 
-## See it in action
-
-The [interactive demo](https://allroad88888888.github.io/einfach-excel/) uses the same components and worker boundary as the library. It includes focused examples for:
-
-- formula evaluation, dynamic arrays, named ranges, and custom (including async) formulas;
-- a virtualized large-sheet view backed by Rust/WASM in a worker;
-- data validation, conditional formatting, filtering, sorting, find/replace, and clipboard tools;
-- undo/redo, comments, protected sheets, printing, and the full spreadsheet workbench.
-
 ## How it fits together
 
 ```text
@@ -89,31 +80,52 @@ npm run lint:check
 
 `npm run build` generates the WASM package when needed, then builds the TypeScript packages and bundles.
 
-### Run the demos
+### Minimal repository-checkout example
 
-```bash
-npm run dev -w @einfach/excel-site
+The current UI integration is Solid-only and the project is documented for use
+from a repository checkout. The landing-page example uses the workspace's
+`@einfach/solid-excel/vnext` surface; it is not an npm-installation path:
+
+```tsx
+import {
+  createStaticSpreadsheetBackend,
+  SpreadsheetUiProvider,
+  SpreadsheetGrid,
+  SpreadsheetToolbar,
+} from '@einfach/solid-excel/vnext'
+
+const backend = createStaticSpreadsheetBackend({
+  sheets: [{ id: 'sheet-1', name: 'Sheet1' }],
+  matrix: [
+    ['Item', 'Qty', 'Price'],
+    ['Widget', 4, 9.5],
+  ],
+})
+
+const viewport = {
+  scrollTop: 0,
+  scrollLeft: 0,
+  viewportHeight: 320,
+  viewportWidth: 640,
+  rowHeight: 24,
+  colWidth: 96,
+  rowCount: 50,
+  colCount: 16,
+  overscanRows: 1,
+  overscanCols: 1,
+}
+
+function Sheet() {
+  return (
+    <SpreadsheetUiProvider backend={backend}>
+      <SpreadsheetToolbar />
+      <SpreadsheetGrid sheetId="sheet-1" viewport={viewport} />
+    </SpreadsheetUiProvider>
+  )
+}
 ```
 
-For the library surface itself:
-
-```bash
-npm run dev -w @einfach/solid-excel
-```
-
-### Test one area
-
-```bash
-npx jest excel/spreadsheet-ui-core --no-coverage
-npx jest excel/solid-excel --no-coverage
-
-npm run e2e:install -w @einfach/solid-excel
-NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach/solid-excel
-```
-
-Each end-to-end feature directory has a `CASES.md` file that defines its test coverage.
-
-### Reproducible verification
+## Reproducible verification
 
 Run these commands from a repository checkout after `pnpm install`. They are
 repeatable execution paths, not a statement about the current result: outcomes
@@ -121,6 +133,10 @@ depend on the revision you check out and on the local environment.
 
 ```bash
 npm test
+
+# Run focused package tests.
+npx jest excel/spreadsheet-ui-core --no-coverage
+npx jest excel/solid-excel --no-coverage
 
 # Install Chromium before running browser E2E.
 npm run e2e:install -w @einfach/solid-excel
@@ -131,6 +147,15 @@ NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach/solid-excel -- --project=ts
 Read the [architecture decisions](./docs/decisions/) for the recorded design
 rationale and the [backend parity matrix](./excel/solid-excel/e2e/BACKEND_PARITY.md)
 for the two-backend E2E scope and its documented exceptions.
+
+## See it in action
+
+The [interactive demo](https://allroad88888888.github.io/einfach-excel/) uses the same components and worker boundary as the library. It includes focused examples for:
+
+- formula evaluation, dynamic arrays, named ranges, and custom (including async) formulas;
+- a virtualized large-sheet view backed by Rust/WASM in a worker;
+- data validation, conditional formatting, filtering, sorting, find/replace, and clipboard tools;
+- undo/redo, comments, protected sheets, printing, and the full spreadsheet workbench.
 
 ## Documentation
 

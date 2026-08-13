@@ -109,6 +109,25 @@ NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach/solid-excel
 
 Each end-to-end feature directory has a `CASES.md` file that defines its test coverage.
 
+### Reproducible verification
+
+Run these commands from a repository checkout after `pnpm install`. They are
+repeatable execution paths, not a statement about the current result: outcomes
+depend on the revision you check out and on the local environment.
+
+```bash
+npm test
+
+# Install Chromium before running browser E2E.
+npm run e2e:install -w @einfach/solid-excel
+NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach/solid-excel -- --project=wasm
+NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach/solid-excel -- --project=ts
+```
+
+Read the [architecture decisions](./docs/decisions/) for the recorded design
+rationale and the [backend parity matrix](./excel/solid-excel/e2e/BACKEND_PARITY.md)
+for the two-backend E2E scope and its documented exceptions.
+
 ## Documentation
 
 - [Architecture](./docs/ARCHITECTURE.md) explains the layering, data flow, and backend-port contract.

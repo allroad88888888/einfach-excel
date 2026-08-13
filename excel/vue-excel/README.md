@@ -56,6 +56,10 @@ component and pass the same controlled props through `h(SpreadsheetGridView, …
 Both paths retain the adapter boundary: they render projections and do not create
 or own spreadsheet product state.
 
+The repository evidence compiles the representative SFC with `vue/compiler-sfc`
+and mounts it in jsdom. It is not Vite validation, does not claim browser
+end-to-end coverage, and does not satisfy AD-382.
+
 ## Current adapter surface
 
 The exported hooks are narrow bridges to existing UI-core commands. They expose

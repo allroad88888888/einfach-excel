@@ -65,9 +65,11 @@ and withdrawal path.
   paths or establish present access, installation, purchase, self-hosting, or
   use in any particular environment.
 - **Public-statement reference and lifecycle:** `README.md`, “Dated product
-  facts”; `README.zh-CN.md`, “已核实的产品事实”; site English
-  `/#dated-product-facts`; site Chinese `/zh/#dated-product-facts`; current;
-  owner AD-405 evidence maintainer; next review due 2026-11-11.
+  facts” (Delivery form) and “Documented entry-path records” (UMD example);
+  `README.zh-CN.md`, “已核实的产品事实” (交付形态) and “已记录的入口路径”
+  (UMD 示例); site English `/#dated-product-facts`; site Chinese
+  `/zh/#dated-product-facts`; current; owner AD-405 evidence maintainer; next
+  review due 2026-11-11.
 
 ### E3-UNIVER-PRODUCT-003 — Web Worker data boundary
 
@@ -134,9 +136,11 @@ and withdrawal path.
   establish framework support, compatibility, parity, maintenance level, or
   suitability for any React version or another framework.
 - **Public-statement reference and lifecycle:** `README.md`, “Dated product
-  facts”; `README.zh-CN.md`, “已核实的产品事实”; site English
-  `/#dated-product-facts`; site Chinese `/zh/#dated-product-facts`; current;
-  owner AD-405 evidence maintainer; next review due 2026-11-11.
+  facts” (Framework integration) and “Documented entry-path records” (React
+  example); `README.zh-CN.md`, “已核实的产品事实” (框架集成) and “已记录的
+  入口路径” (React 示例); site English `/#dated-product-facts`; site Chinese
+  `/zh/#dated-product-facts`; current; owner AD-405 evidence maintainer; next
+  review due 2026-11-11.
 
 ## Explicit unknowns
 

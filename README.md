@@ -78,17 +78,19 @@ remain subject to the recorded review and withdrawal process.
 
 The [Univer evidence ledger](./docs/UNIVER_PRODUCT_EVIDENCE.md) and [Handsontable evidence ledger](./docs/HANDSONTABLE_PRODUCT_EVIDENCE.md) record each fact's scope, limitation, verifier, owner, and next review date. Do not infer a product advantage from this table.
 
-## Choosing between Einfach Excel and Univer
+## Documented entry-path records
 
-Choose Univer when its documented delivery or React integration path is what you
-need now. The cited records cover UMD browser-script delivery and a React
-effect/cleanup integration; they do not establish a general product ranking.
+The dated records above identify two Univer documentation examples: UMD global
+builds used through HTML `<script>` tags, and a React 18/19 example with effect
+initialization, a ref container, and cleanup disposal. The Univer evidence
+ledger records the source scope and limitations for both examples.
 
-Choose Einfach Excel when a source-checkout UI core with explicit backend and
-projection boundaries plus the existing Solid binding fit the host application.
-It is not a fit when you need a verified offline npm installation or a ready
-React/Vue adapter. This is a scope boundary, not a performance or feature
-recommendation.
+Einfach Excel's release-status section separately records the repository
+checkout context. It is not part of a comparison between the products.
+
+This section only indexes the cited documentation records. It does not
+establish product availability, package installation, framework support,
+compatibility, suitability, feature parity, performance, or ranking.
 
 ## Use it when you need
 

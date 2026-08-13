@@ -66,14 +66,16 @@ UI 核心负责交互状态和投影契约，后端负责工作簿数据和写�
 
 [Univer 证据账本](./docs/UNIVER_PRODUCT_EVIDENCE.md)与 [Handsontable 证据账本](./docs/HANDSONTABLE_PRODUCT_EVIDENCE.md)记录了每项事实的范围、限制、核实者、责任人和下次复核日期。不得从本表推断任何产品优势。
 
-## 在 Einfach Excel 与 Univer 之间选择
+## 已记录的入口路径
 
-当你现在需要的是 Univer 已记录的交付方式或 React 集成路径时，选择 Univer。所引记录覆盖
-UMD 浏览器 script 交付及 React 的 effect/cleanup 集成；它们不构成通用的产品排名。
+上面的带日期记录列出两个 Univer 文档示例：通过 HTML `<script>` 标签使用的 UMD 全局
+构建，以及 React 18/19 示例中的 effect 初始化、ref 容器与清理时 disposal。Univer
+证据账本记录了这两个示例的来源范围与限制。
 
-当宿主应用适合从源码 checkout 评估、需要具备明确后端与投影边界的 UI 核心，并且现有
-Solid 绑定足够时，选择 Einfach Excel。若你需要已经离线验证的 npm 安装路径或现成的
-React/Vue 适配器，它并不适合。这是范围边界，不是性能或功能推荐。
+Einfach Excel 的发布状态章节另行记录仓库 checkout 背景；它不属于两个产品之间的比较。
+
+本节只索引所引文档记录，不确立产品可用性、包安装、框架支持、兼容性、适用性、功能
+对等性、性能或排名。
 
 ## 适合的场景
 

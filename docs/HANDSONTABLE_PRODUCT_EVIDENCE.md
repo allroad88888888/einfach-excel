@@ -72,15 +72,16 @@ withdrawal path.
 - **Subject and dimension:** `@handsontable/react-wrapper`; framework
   integration.
 - **Fact:** the package manifest names the package `@handsontable/react-wrapper`,
-  maps its root export to type, ESM-import, and CommonJS-require entries, and
-  declares `handsontable` `^18.0.0` and React `^18.2.0` as peer dependencies.
+  maps its root export to type, ESM-import, and CommonJS-require entries,
+  declares `handsontable` `^18.0.0` as a peer dependency, and lists React
+  `^18.2.0` in its development dependencies.
 - **Evidence level:** E3 — verified product fact.
 - **Primary source:** [Handsontable React wrapper manifest](https://github.com/handsontable/handsontable/blob/95657194616688831eb689a531e4d6c7580ab7be/wrappers/react-wrapper/package.json).
 - **Source version or date:** package version `18.0.0` in repository commit
   `95657194616688831eb689a531e4d6c7580ab7be`, authored 2026-08-13 (UTC).
 - **Verification date and verifier:** 2026-08-13; AD-406 evidence maintainer.
-- **Applicable scope:** the named wrapper's root-export and peer-dependency
-  declarations in the cited manifest revision.
+- **Applicable scope:** the named wrapper's root-export, peer-dependency, and
+  development-dependency declarations in the cited manifest revision.
 - **Limitations:** this records a declared package interface only. It does not
   establish framework support, compatibility, parity, maintenance level, or
   suitability for a React version or another framework.

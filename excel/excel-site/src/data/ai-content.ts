@@ -3,6 +3,10 @@ import { publicUrl } from './site-publication'
 import { atomFeatureDocs } from './source-projection'
 import { renderAtomFeatureMarkdown, renderDocumentationMarkdown } from './document-markdown'
 
+const agentIntegrationGuidance = `## Agent integration
+
+Implement the required backend ports: \`readVisibleProjection\`, \`readRangeProjection\`, and \`setCellInput\`. Keep workbook facts and authoritative mutations in the backend; the UI renders bounded projections. A Worker is an implementation choice for that backend boundary, not a required owner of UI state.`
+
 /** Renders concise and expanded AI-readable indexes from the same site catalogue and source projections. */
 export function renderLlmsIndex(): string {
   const demoLinks = demos
@@ -19,6 +23,8 @@ export function renderLlmsIndex(): string {
 - [API reference](${publicUrl('/api/')})
 - [Generated API Markdown](${publicUrl('/api-reference/globals.md')})
 
+${agentIntegrationGuidance}
+
 ## Demos
 
 ${demoLinks}
@@ -31,7 +37,9 @@ Worker message counters measure visible-projection transport. They are not engin
 
 /** Renders the detailed AI-readable document from source-projected contract content. */
 export function renderLlmsFull(): string {
-  const atomGuides = atomFeatureDocs.map((feature) => renderAtomFeatureMarkdown(feature.id)).join('\n\n')
+  const atomGuides = atomFeatureDocs
+    .map((feature) => renderAtomFeatureMarkdown(feature.id))
+    .join('\n\n')
   const demoDetails = demos
     .map(
       (demo) =>
@@ -45,6 +53,8 @@ export function renderLlmsFull(): string {
 ${renderDocumentationMarkdown('getting-started')}
 
 ${renderDocumentationMarkdown('backend-port')}
+
+${agentIntegrationGuidance}
 
 ${renderDocumentationMarkdown('api')}
 

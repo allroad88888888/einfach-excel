@@ -1,0 +1,13 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "noEmit": true,
+    "paths": {
+      "@einfach/vue-excel": ["../src/index.ts"],
+      "@einfach/vue-excel/pointer-selection": ["../src/use-spreadsheet-pointer-selection.ts"]
+    },
+    "types": ["node"]
+  },
+  "include": ["../src/**/*.ts", "./**/*.ts", "./**/*.spec.ts"]
+}

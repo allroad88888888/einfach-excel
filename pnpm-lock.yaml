@@ -287,6 +287,12 @@ importers:
         specifier: workspace:*
         version: link:../spreadsheet-ui-core
     devDependencies:
+      '@playwright/test':
+        specifier: ^1.48.0
+        version: 1.59.1
+      vite:
+        specifier: ^5.0.0
+        version: 5.4.21(@types/node@20.19.43)(lightningcss@1.33.0)(terser@5.39.0)
       vue:
         specifier: ^3.5.41
         version: 3.5.41(typescript@5.8.3)

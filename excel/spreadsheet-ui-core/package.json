@@ -34,7 +34,8 @@
     "README.md"
   ],
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "verify:package-artifact": "node scripts/verify-package-artifact.mjs"
   },
   "sideEffects": false,
   "engines": {

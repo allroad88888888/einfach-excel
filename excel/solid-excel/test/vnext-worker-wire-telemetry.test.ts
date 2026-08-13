@@ -1,4 +1,5 @@
 import { describe, expect, jest, test } from '@jest/globals'
+import type * as WorkerPost from '../src-vnext/adapter/worker-post'
 import {
   NORMALIZED_WIRE_PAYLOAD_METHOD,
   classifyWorkerWireMessage,
@@ -77,13 +78,12 @@ describe('worker normalized payload telemetry', () => {
     Object.defineProperty(globalThis, 'self', { configurable: true, value: scope })
 
     try {
-      let workerPost: typeof import('../src-vnext/adapter/worker-post') | undefined
+      let workerPost: typeof WorkerPost | undefined
       jest.isolateModules(() => {
         // `worker-post` binds `self` at module initialization, so it must load
         // inside this isolated Worker-scope fixture.
         // eslint-disable-next-line @typescript-eslint/no-require-imports
-        workerPost =
-          require('../src-vnext/adapter/worker-post') as typeof import('../src-vnext/adapter/worker-post')
+        workerPost = require('../src-vnext/adapter/worker-post') as typeof WorkerPost
       })
       const post = workerPost!
 

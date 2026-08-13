@@ -8,6 +8,7 @@ export { useSpreadsheetValue } from './use-spreadsheet-value'
 export { useSpreadsheetViewport } from './use-spreadsheet-viewport'
 export { useSpreadsheetKeyboardNavigation } from './use-spreadsheet-keyboard-navigation'
 export { useSpreadsheetEditing } from './use-spreadsheet-editing'
+export { useSpreadsheetImeComposition } from './use-spreadsheet-ime-composition'
 export type { SpreadsheetGridViewProps } from './SpreadsheetGridView'
 export type { SpreadsheetFrozenGridViewProps } from './SpreadsheetFrozenGridView'
 export type {
@@ -23,6 +24,10 @@ export type {
   UseSpreadsheetKeyboardNavigationOptions,
 } from './use-spreadsheet-keyboard-navigation'
 export type { SpreadsheetEditing } from './use-spreadsheet-editing'
+export type {
+  SpreadsheetImeCompositionHandlers,
+  UseSpreadsheetImeCompositionOptions,
+} from './use-spreadsheet-ime-composition'
 export type {
   UseSpreadsheetViewportOptions,
   UseSpreadsheetViewportResult,

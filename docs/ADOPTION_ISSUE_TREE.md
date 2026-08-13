@@ -34,7 +34,7 @@
 
 | 总叶子 | 完成并独立验收 |               验收契约阻塞 | 未开始（含待决策） |        其中待决策 |
 | -----: | -------------: | -------------------------: | -----------------: | ----------------: |
-|    235 |            110 | 1（AD-505 验收契约待明确） |                124 | 5（AD-100/D1~D5） |
+|    235 |            112 | 1（AD-505 验收契约待明确） |                122 | 5（AD-100/D1~D5） |
 
 “其中待决策”是“未开始”的子集，不额外计入总叶子。AD-505 在明确基准页路由、启动方式、场景登记与无场景行为的验收契约前保持阻塞，不能记为完成。
 
@@ -48,7 +48,7 @@
     - AD-129~135 版本与发布流程
     - AD-136~142 本地 registry 与装机冒烟
   - [**AD-200 让人五分钟内跑起来**](adoption-issues/AD-200-onboarding.md) —— 受 AD-100 全组阻塞
-  - [**AD-300 框架适配层（React / Vue）**](adoption-issues/AD-300-framework-adapters.md) —— AD-311~325、AD-331~347、AD-351、AD-361~377、AD-391、AD-394 完成；其余独立长线
+  - [**AD-300 框架适配层（React / Vue）**](adoption-issues/AD-300-framework-adapters.md) —— AD-311~325、AD-331~348、AD-351、AD-361~378、AD-391、AD-394 完成；其余独立长线
   - [**AD-400 定位与可信度**](adoption-issues/AD-400-positioning.md) —— AD-401~407、AD-408~412、AD-416~420 完成；其余可与 AD-100 并行
   - [**AD-500 可验证的性能证据**](adoption-issues/AD-500-performance.md) —— AD-501~504、AD-509、AD-511~514、AD-516、AD-517 完成；AD-505 等待验收契约明确，其余未开始
   - [**AD-600 内容与渠道**](adoption-issues/AD-600-content-channels.md) —— 依赖 AD-100、AD-400
@@ -91,6 +91,7 @@
 | AD-345 | React IME 组合输入绑定    | `20fd61e`                                  |
 | AD-346 | React 公式栏绑定          | `197e219`                                  |
 | AD-347 | React 名称框绑定          | `894473d`                                  |
+| AD-348 | React Sheet Tabs 绑定     | `05baa4803ea9ac4fa1f8b55257232e0f1cf049e4` |
 | AD-351 | React 默认 Provider 隔离  | `2afdb5ff709e44f05cec0de7d6112c6c4a9e57d4` |
 | AD-361 | Vue 包骨架                | `a95b0b0`                                  |
 | AD-362 | Vue 订阅桥                | `0434370`                                  |
@@ -109,6 +110,7 @@
 | AD-375 | Vue IME 组合输入绑定      | `667eb88`                                  |
 | AD-376 | Vue 公式栏绑定            | `fa0d5c731c15831cc56041e6e5551743b23d98ed` |
 | AD-377 | Vue 名称框绑定            | `4b2e57a6729923e805863c5919d367cce40ea542` |
+| AD-378 | Vue Sheet Tabs 绑定       | `ff623c0f4d5532ecd1be4f987c3a81c189b1eb87` |
 | AD-391 | 适配器行为分歧裁决规程    | `a99e3fbb2ff7e154cd6c3bc6d8f709e0e4704eaf` |
 | AD-394 | 宿主适配器信息架构        | `960feb46202e5301d6fe630990895bf3c0ae0b4a` |
 | AD-401 | 一句话定位定稿            | `a908ba8`                                  |

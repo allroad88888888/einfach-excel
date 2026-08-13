@@ -34,7 +34,7 @@
 
 | 总叶子 | 完成并独立验收 |               验收契约阻塞 | 未开始（含待决策） |        其中待决策 |
 | -----: | -------------: | -------------------------: | -----------------: | ----------------: |
-|    235 |             92 | 1（AD-505 验收契约待明确） |                142 | 5（AD-100/D1~D5） |
+|    235 |             94 | 1（AD-505 验收契约待明确） |                140 | 5（AD-100/D1~D5） |
 
 “其中待决策”是“未开始”的子集，不额外计入总叶子。AD-505 在明确基准页路由、启动方式、场景登记与无场景行为的验收契约前保持阻塞，不能记为完成。
 
@@ -48,7 +48,7 @@
     - AD-129~135 版本与发布流程
     - AD-136~142 本地 registry 与装机冒烟
   - [**AD-200 让人五分钟内跑起来**](adoption-issues/AD-200-onboarding.md) —— 受 AD-100 全组阻塞
-  - [**AD-300 框架适配层（React / Vue）**](adoption-issues/AD-300-framework-adapters.md) —— AD-311~325、AD-331~340、AD-351、AD-361~370 完成；其余独立长线
+  - [**AD-300 框架适配层（React / Vue）**](adoption-issues/AD-300-framework-adapters.md) —— AD-311~325、AD-331~341、AD-351、AD-361~371 完成；其余独立长线
   - [**AD-400 定位与可信度**](adoption-issues/AD-400-positioning.md) —— AD-401~407、AD-408~412、AD-416~420 完成；其余可与 AD-100 并行
   - [**AD-500 可验证的性能证据**](adoption-issues/AD-500-performance.md) —— AD-501~504、AD-509、AD-511~514、AD-516、AD-517 完成；AD-505 等待验收契约明确，其余未开始
   - [**AD-600 内容与渠道**](adoption-issues/AD-600-content-channels.md) —— 依赖 AD-100、AD-400
@@ -84,6 +84,7 @@
 | AD-338 | React 受控 viewport hook  | `a835f24d1e98e318f83b016fda09f3ccbe996d2c` |
 | AD-339 | React 冻结网格投影        | `754a005df83996f54595ed22ffd01fbf0aeaf304` |
 | AD-340 | React 投影格式渲染        | `dec38531065021058c780f6ff0b5768b27e35daa` |
+| AD-341 | React 选区快照桥          | `aca65df`                                  |
 | AD-351 | React 默认 Provider 隔离  | `2afdb5ff709e44f05cec0de7d6112c6c4a9e57d4` |
 | AD-361 | Vue 包骨架                | `a95b0b0`                                  |
 | AD-362 | Vue 订阅桥                | `0434370`                                  |
@@ -95,6 +96,7 @@
 | AD-368 | Vue viewport controller   | `729760428eefde1bebf452c58fa1620121b7cfd2` |
 | AD-369 | Vue 冻结网格投影          | `e2afa2be43db6a36b9836fc73f7807f2a2fa8c06` |
 | AD-370 | Vue 投影格式渲染          | `7c509c2a7afe18442ece749a6be2fff5751d3af5` |
+| AD-371 | Vue 选区快照桥            | `7e70d2f`                                  |
 | AD-401 | 一句话定位定稿            | `a908ba8`                                  |
 | AD-402 | 与 Univer 的差异段        | `d3f9504`                                  |
 | AD-403 | 定位的诚实边界            | `639934abcaed18f0f9cfd839160634cd19ad8f1b` |

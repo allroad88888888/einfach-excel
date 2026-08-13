@@ -5,18 +5,24 @@ import { useSpreadsheetValue } from '../src/use-spreadsheet-value'
 
 interface TestValueSource<T> extends SpreadsheetValueSource<T> {
   listenerCount: () => number
+  replaceValueBeforeSubscribe: (nextValue: T) => void
   setValue: (nextValue: T) => void
   unsubscribeCalls: () => number
 }
 
 function createValueSource<T>(initialValue: T): TestValueSource<T> {
   let value = initialValue
+  let pendingValueBeforeSubscribe: { nextValue: T } | undefined
   let unsubscribeCount = 0
   const listeners = new Set<() => void>()
 
   return {
     getSnapshot: () => value,
     subscribe: (listener) => {
+      if (pendingValueBeforeSubscribe !== undefined) {
+        value = pendingValueBeforeSubscribe.nextValue
+        pendingValueBeforeSubscribe = undefined
+      }
       listeners.add(listener)
       return () => {
         unsubscribeCount += 1
@@ -24,6 +30,9 @@ function createValueSource<T>(initialValue: T): TestValueSource<T> {
       }
     },
     listenerCount: () => listeners.size,
+    replaceValueBeforeSubscribe: (nextValue) => {
+      pendingValueBeforeSubscribe = { nextValue }
+    },
     setValue: (nextValue) => {
       value = nextValue
       for (const listener of listeners) listener()
@@ -44,6 +53,15 @@ describe('useSpreadsheetValue', () => {
     expect(screen.getByTestId('value')).toHaveTextContent('A1')
 
     act(() => source.setValue('B2'))
+    expect(screen.getByTestId('value')).toHaveTextContent('B2')
+  })
+
+  it('rechecks a snapshot changed before the initial subscription attaches', () => {
+    const source = createValueSource('A1')
+    source.replaceValueBeforeSubscribe('B2')
+
+    render(<ValueView source={source} />)
+
     expect(screen.getByTestId('value')).toHaveTextContent('B2')
   })
 

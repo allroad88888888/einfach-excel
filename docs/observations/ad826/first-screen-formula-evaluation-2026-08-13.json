@@ -1,7 +1,7 @@
 {
   "observationId": "ad826-first-screen-formula-evaluation-2026-08-13",
-  "recordedAt": "2026-08-13T19:15:25+08:00",
-  "repositoryRevision": "3910c6152d92dfb6519284ff5b9af0ebaf723957",
+  "recordedAt": "2026-08-13T19:23:36+08:00",
+  "repositoryRevision": "db5a2a8 + uncommitted AD-826 backend-factory correction",
   "sourceTest": "excel/solid-excel/e2e/perf-virtual/ad826-first-screen-evaluation.spec.ts",
   "environment": {
     "hostOperatingSystem": "macOS 26.5.2 (25F84)",
@@ -28,9 +28,16 @@
   "runs": [
     {
       "project": "wasm",
-      "command": "EINFACH_E2E_PORT=5192 pnpm exec playwright test e2e/perf-virtual/ad826-first-screen-evaluation.spec.ts --project=wasm",
+      "command": "pnpm exec playwright test e2e/perf-virtual/ad826-first-screen-evaluation.spec.ts --project=wasm --reporter=line",
       "rawConsolePayload": {
-        "backend": "wasm",
+        "backend": {
+          "factory": "defaultVNextWorkbookWorkerFactory",
+          "requested": "wasm",
+          "runtimeCapabilities": {
+            "scope": "auto-fill",
+            "autoFill": true
+          }
+        },
         "commit": {
           "accepted": 96,
           "errors": 0,
@@ -100,9 +107,25 @@
     },
     {
       "project": "ts",
-      "command": "EINFACH_E2E_PORT=5193 pnpm exec playwright test e2e/perf-virtual/ad826-first-screen-evaluation.spec.ts --project=ts",
+      "command": "pnpm exec playwright test e2e/perf-virtual/ad826-first-screen-evaluation.spec.ts --project=ts --reporter=line",
       "rawConsolePayload": {
-        "backend": "ts",
+        "backend": {
+          "factory": "defaultExcelCoreTsWorkerFactory",
+          "requested": "ts",
+          "runtimeCapabilities": {
+            "structuralEdits": false,
+            "formats": false,
+            "formatSnapshots": false,
+            "tsvChunkExport": false,
+            "persistenceFormats": false,
+            "autoFill": false,
+            "sortRange": false,
+            "evalHiddenRows": false,
+            "evalFilterHiddenRows": false,
+            "structuredTables": false,
+            "engineHiddenState": false
+          }
+        },
         "commit": {
           "accepted": 96,
           "errors": 0,

@@ -7,7 +7,11 @@ type DebugCounters = {
 }
 
 type FirstScreenMeasurement = {
-  backend: string
+  backend: {
+    factory: 'defaultExcelCoreTsWorkerFactory' | 'defaultVNextWorkbookWorkerFactory'
+    requested: 'ts' | 'wasm'
+    runtimeCapabilities: unknown
+  }
   commit: {
     accepted: number
     errors: number
@@ -69,13 +73,26 @@ test.describe('AD-826 first-screen formula evaluation observation', () => {
     const fixture = shallowFormulaFixture()
     const measurement = await page.evaluate(
       async ({ fixtureCells, firstScreenRange }): Promise<FirstScreenMeasurement> => {
-        const { createWorkerWorkbook } = await import('/src/wasm-workbook-proxy.ts')
-        const { defaultWorkbookWorkerFactory } = await import(
-          '/src/wasm-workbook-worker-factory.ts'
+        const requested = new URLSearchParams(window.location.search).get('backend')
+        if (requested !== 'ts' && requested !== 'wasm') {
+          throw new Error(`AD-826 requires a ts or wasm backend, received ${requested}`)
+        }
+
+        const { createWorkerWorkbook } = await import('/src-vnext/adapter/worker-protocol.ts')
+        const { defaultExcelCoreTsWorkerFactory, defaultVNextWorkbookWorkerFactory } = await import(
+          '/src-vnext/adapter/worker-factory.ts'
         )
-        const workbook = createWorkerWorkbook({ workerFactory: defaultWorkbookWorkerFactory })
+        const workerFactory =
+          requested === 'ts' ? defaultExcelCoreTsWorkerFactory : defaultVNextWorkbookWorkerFactory
+        const factory =
+          requested === 'ts'
+            ? 'defaultExcelCoreTsWorkerFactory'
+            : 'defaultVNextWorkbookWorkerFactory'
+        const workbook = createWorkerWorkbook({ workerFactory })
+
         try {
           await workbook.initWorkbook(['AD826'])
+          const runtimeCapabilities = await workbook.describeCapabilities()
           const session = await workbook.beginImport()
           await workbook.importChunk(session, fixtureCells)
           const commit = await workbook.commitImport(session)
@@ -84,7 +101,7 @@ test.describe('AD-826 first-screen formula evaluation observation', () => {
           const afterFirstScreenRead = await workbook.debugCounters()
 
           return {
-            backend: new URLSearchParams(window.location.search).get('backend') ?? 'default',
+            backend: { factory, requested, runtimeCapabilities },
             commit: {
               accepted: commit.accepted,
               errors: commit.errors,
@@ -129,6 +146,32 @@ test.describe('AD-826 first-screen formula evaluation observation', () => {
       FIRST_SCREEN_ROWS * 2,
     )
     expect(measurement.firstScreen.sampleDisplays).toEqual(['2', '3', '3', '4'])
+
+    const expectedBackend = test.info().project.name
+    expect(measurement.backend.requested).toBe(expectedBackend)
+    if (expectedBackend === 'ts') {
+      expect(measurement.backend.factory).toBe('defaultExcelCoreTsWorkerFactory')
+      expect(measurement.backend.runtimeCapabilities).toEqual({
+        autoFill: false,
+        engineHiddenState: false,
+        evalFilterHiddenRows: false,
+        evalHiddenRows: false,
+        formatSnapshots: false,
+        formats: false,
+        persistenceFormats: false,
+        sortRange: false,
+        structuralEdits: false,
+        structuredTables: false,
+        tsvChunkExport: false,
+      })
+    } else {
+      expect(expectedBackend).toBe('wasm')
+      expect(measurement.backend.factory).toBe('defaultVNextWorkbookWorkerFactory')
+      expect(measurement.backend.runtimeCapabilities).toMatchObject({
+        autoFill: expect.any(Boolean),
+        scope: 'auto-fill',
+      })
+    }
     console.info(`AD826_FIRST_SCREEN_OBSERVATION ${JSON.stringify(measurement)}`)
     await expectNoConsoleErrors(page)
   })

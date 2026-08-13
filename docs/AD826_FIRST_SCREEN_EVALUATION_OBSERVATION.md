@@ -2,7 +2,7 @@
 
 ## 范围
 
-本记录是仓库修订 `3910c6152d92dfb6519284ff5b9af0ebaf723957` 在 2026-08-13 的一次实际 E2 观察。测试与完整原始载荷分别在：
+本记录是以仓库修订 `db5a2a8` 为基线、包含本次 AD-826 backend-factory 修复的工作树，在 2026-08-13 的一次实际 E2 观察。测试与完整原始载荷分别在：
 
 - `excel/solid-excel/e2e/perf-virtual/ad826-first-screen-evaluation.spec.ts`
 - [原始观察记录](observations/ad826/first-screen-formula-evaluation-2026-08-13.json)
@@ -17,12 +17,18 @@
 
 两次运行的导入结果都是 `accepted=N=96`、`errors=0`、`formulas=48`、`rejectedFormulas=0`。
 
+## 后端身份
+
+`--project` 只负责把 `?backend=ts` 或 `?backend=wasm` 交给页面；它本身不能证明 Worker 类型。此测试读取该参数后实际选择 vNext 的 Worker factory：`ts` 使用 `defaultExcelCoreTsWorkerFactory`（`worker-entry-ts.ts`），`wasm` 使用 `defaultVNextWorkbookWorkerFactory`（`worker-runtime.ts`）。它不再使用会固定创建 legacy WASM Worker 的 `defaultWorkbookWorkerFactory`。
+
+在 `initWorkbook` 后、导入前，测试还记录 Worker RPC `describeCapabilities` 的原始返回值。该返回来自已启动的 Worker，而不是 URL 标签：TS Worker 返回完整 capability 对象且各项为 `false`；WASM Worker 返回 `{ "scope": "auto-fill", "autoFill": true }`。测试会断言 factory 名称、请求的项目和对应运行时返回值；完整原始载荷见下方链接。
+
 ## 实际观察
 
-| 后端项目 | 读取前 `formulaCount` | 读取前 `formulaEvalCountTotal` | 读取后 `formulaCount` | 读取后 `formulaEvalCountTotal` |
-| -------- | --------------------: | -----------------------------: | --------------------: | -----------------------------: |
-| `wasm`   |                    48 |                              0 |                    48 |                             24 |
-| `ts`     |                    48 |                              0 |                    48 |                             24 |
+| 后端项目 | 实际 factory                        | Worker 运行时标记                            | 读取前 `formulaEvalCountTotal` | 读取后 `formulaEvalCountTotal` |
+| -------- | ----------------------------------- | -------------------------------------------- | -----------------------------: | -----------------------------: |
+| `wasm`   | `defaultVNextWorkbookWorkerFactory` | `{ scope: "auto-fill", autoFill: true }`     |                              0 |                             24 |
+| `ts`     | `defaultExcelCoreTsWorkerFactory`   | 完整 TS capability 对象（11 项均为 `false`） |                              0 |                             24 |
 
 在这一次 revision、该夹具与上述 settled 定义下，两种项目的首屏读取后累计公式求值数均从 0 变为 24。原始记录保留了两个项目的完整 commit 结果、首屏范围、显示样本、前后全部 `debugCounters` 快照和执行命令。
 

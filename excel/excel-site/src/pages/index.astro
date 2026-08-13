@@ -16,17 +16,19 @@ const cards = demos.map((demo) => ({
 }))
 ---
 
-<SiteLayout locale="en" title="einfach excel · spreadsheet engine demos">
+<SiteLayout locale="en" title="einfach excel · Solid spreadsheet demos">
   <main class="page">
     <section class="hero">
       <p class="eyebrow">EINFACH · SPREADSHEET STACK</p>
       <h1>
-        Einfach Excel is a spreadsheet UI core with a bounded projection contract and a Rust/WASM
+        Einfach Excel is a Solid spreadsheet UI with a bounded projection contract and a Rust/WASM
         workbook engine.
       </h1>
       <p>
-        A real spreadsheet grid powered by the Rust/WASM workbook engine in a Web Worker. The static
-        page explains the architecture; the island below runs it.
+        This pre-release site presents repository source and interactive demos. The current framework
+        surface is Solid only; React and Vue adapters are future work and are not available. Public npm
+        distribution is not verified here: no independently verified offline npm installation has been
+        confirmed.
       </p>
       <div class="hero-links">
         <a class="button-link" href={sitePath('demos/viewport-projection/')}

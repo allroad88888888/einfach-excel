@@ -55,6 +55,83 @@ describe('SpreadsheetGridView', () => {
     app.unmount()
   })
 
+  it('maps projected cell format to safe styles without recomputing the display value', () => {
+    const { app, host } = mountGrid([
+      {
+        row: 2,
+        col: 4,
+        displayValue: '3',
+        formula: '=1+2',
+        numericValue: 3,
+        format: {
+          align: 'right',
+          bgColor: '#ffeecc',
+          bold: true,
+          borders: { top: { style: 'dashed', color: '#ff0000' } },
+          fgColor: '#112233',
+          fontFamily: 'Aptos, Arial',
+          fontSize: 14,
+          indent: 2,
+          italic: true,
+          overflow: 'clip',
+          rotation: 45,
+          strikethrough: true,
+          underline: true,
+          verticalAlign: 'center',
+        },
+      },
+    ])
+
+    const formatted = cell(host, 2, 4)
+    expect(formatted).toHaveTextContent('3')
+    expect(formatted.textContent).not.toContain('=1+2')
+    expect(formatted.style.fontWeight).toBe('bold')
+    expect(formatted.style.fontStyle).toBe('italic')
+    expect(formatted.style.textDecoration).toBe('underline line-through')
+    expect(formatted.style.textAlign).toBe('right')
+    expect(formatted.style.verticalAlign).toBe('middle')
+    expect(formatted.style.color).toBe('rgb(17, 34, 51)')
+    expect(formatted.style.backgroundColor).toBe('rgb(255, 238, 204)')
+    expect(formatted.style.fontFamily).toBe('Aptos, Arial')
+    expect(formatted.style.fontSize).toBe('14px')
+    expect(formatted.style.paddingLeft).toBe('16px')
+    expect(formatted.style.borderTopStyle).toBe('dashed')
+    expect(formatted.style.borderTopColor).toBe('#ff0000')
+    expect(formatted.style.transform).toBe('rotate(45deg)')
+    expect(formatted.style.whiteSpace).toBe('nowrap')
+    expect(formatted.style.overflow).toBe('hidden')
+    expect(formatted.style.textOverflow).toBe('ellipsis')
+
+    app.unmount()
+  })
+
+  it('ignores conditional formatting and unsafe presentation values', () => {
+    const { app, host } = mountGrid([
+      {
+        row: 2,
+        col: 4,
+        displayValue: 'safe',
+        conditionalFormat: { bgColor: '#000000', bold: true },
+        format: {
+          bgColor: 'red; background-image: url(https://example.test/pixel)',
+          fgColor: 'url(https://example.test/pixel)',
+          fontFamily: 'Aptos; color: red',
+          fontSize: Number.POSITIVE_INFINITY,
+        },
+      },
+    ])
+
+    const formatted = cell(host, 2, 4)
+    expect(formatted).toHaveTextContent('safe')
+    expect(formatted.style.backgroundColor).toBe('')
+    expect(formatted.style.color).toBe('')
+    expect(formatted.style.fontFamily).toBe('')
+    expect(formatted.style.fontSize).toBe('')
+    expect(formatted.style.fontWeight).toBe('')
+
+    app.unmount()
+  })
+
   it('removes the grid DOM when its Vue app unmounts', () => {
     const { app, host } = mountGrid([])
 

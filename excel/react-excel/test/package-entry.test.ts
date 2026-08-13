@@ -31,6 +31,7 @@ describe('@einfach/react-excel package entry', () => {
       useSpreadsheetValue: expect.any(Function),
       useSpreadsheetViewport: expect.any(Function),
       useSpreadsheetKeyboardNavigation: expect.any(Function),
+      useSpreadsheetEditing: expect.any(Function),
     })
   })
 })

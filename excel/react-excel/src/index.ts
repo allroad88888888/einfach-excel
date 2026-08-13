@@ -7,6 +7,7 @@ export { useSpreadsheetSelection } from './use-spreadsheet-selection'
 export { useSpreadsheetValue } from './use-spreadsheet-value'
 export { useSpreadsheetViewport } from './use-spreadsheet-viewport'
 export { useSpreadsheetKeyboardNavigation } from './use-spreadsheet-keyboard-navigation'
+export { useSpreadsheetEditing } from './use-spreadsheet-editing'
 export type { SpreadsheetGridViewProps } from './SpreadsheetGridView'
 export type { SpreadsheetFrozenGridViewProps } from './SpreadsheetFrozenGridView'
 export type {
@@ -21,6 +22,7 @@ export type {
   SpreadsheetKeyboardNavigationHandlers,
   UseSpreadsheetKeyboardNavigationOptions,
 } from './use-spreadsheet-keyboard-navigation'
+export type { SpreadsheetEditing } from './use-spreadsheet-editing'
 export type {
   UseSpreadsheetViewportOptions,
   UseSpreadsheetViewportResult,

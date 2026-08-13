@@ -16,6 +16,24 @@ cd einfach-excel
 pnpm install
 ```
 
+## 没有 Rust/wasm 工具链时的贡献
+
+Rust 工具链、`wasm32-unknown-unknown` target 和 `wasm-pack` 只在改动需要构建 Rust/WASM Worker 时必需。未安装这些
+工具的贡献者仍可处理文档、链接、契约说明，以及不依赖生成 Worker 产物的 TypeScript/Solid 代码或定向测试。
+
+提交前，请按改动范围运行不需要 Worker 构建的检查，例如：
+
+```bash
+pnpm check:docs
+pnpm lint:check
+pnpm typecheck:apps
+pnpm exec jest path/to/file.test.ts --no-coverage
+```
+
+只运行与改动相关且可在本机执行的命令；完整 `pnpm build` 会通过 `ensureWasm` 构建 Worker，不适用于此路径。若改动或其
+验证需要生成的 Worker，请在 PR 中说明未运行的 Rust/WASM 验证，并请求具备该工具链的维护者或 CI 补跑。提交 PR 时列出已运行
+命令及结果，随后遵循下方开发流程。
+
 ## 开发流程
 
 1. Fork 并克隆仓库
@@ -59,12 +77,12 @@ npm run eslint       # 检查并自动修
 文档腐坏的根因是「契约」和「某次会话的现场记录」混在同一层，读者无法分辨。本仓因此把文档分成四类，
 **每类有不同的生命周期**：
 
-| 类型 | 是什么 | 住哪 | 生命周期 |
-|---|---|---|---|
-| **契约** (reference) | 描述**现状**，贴着代码放 | `src/<feature>/README.md`、`e2e/<feature>/CASES.md`、`CUSTOM_FORMULAS.md` | 随代码 PR 同步更新 |
-| **决策** (ADR) | 一次技术裁决 + 理由 | `docs/decisions/NNNN-*.md` | 接受后**不改内容**，只能被新 ADR 标记 superseded |
-| **提案** (plan) | 前瞻计划，文件名带日期 | `<pkg>/docs/*_YYYY-MM-DD.md` | 落地时：结论上移进契约或 ADR，本体 `git mv` 进 `archive/` |
-| **记录** (record) | handoff / audit / perf 报告 / 协作看板 | `<pkg>/docs/archive/` | 生成即冻结，直接住归档区 |
+| 类型                 | 是什么                                 | 住哪                                                                      | 生命周期                                                  |
+| -------------------- | -------------------------------------- | ------------------------------------------------------------------------- | --------------------------------------------------------- |
+| **契约** (reference) | 描述**现状**，贴着代码放               | `src/<feature>/README.md`、`e2e/<feature>/CASES.md`、`CUSTOM_FORMULAS.md` | 随代码 PR 同步更新                                        |
+| **决策** (ADR)       | 一次技术裁决 + 理由                    | `docs/decisions/NNNN-*.md`                                                | 接受后**不改内容**，只能被新 ADR 标记 superseded          |
+| **提案** (plan)      | 前瞻计划，文件名带日期                 | `<pkg>/docs/*_YYYY-MM-DD.md`                                              | 落地时：结论上移进契约或 ADR，本体 `git mv` 进 `archive/` |
+| **记录** (record)    | handoff / audit / perf 报告 / 协作看板 | `<pkg>/docs/archive/`                                                     | 生成即冻结，直接住归档区                                  |
 
 硬规则：
 
@@ -72,7 +90,7 @@ npm run eslint       # 检查并自动修
 2. **文档里禁写会腐坏的全局计数。** 不写「本包有 419 个测试」，写出「怎么算」的命令。
    需要登记规模时，用 `CASES.md` 那种「源码路径引用 + 单文件行数」的口径。
 3. **归档一律 `git mv`** 以保留历史；并做三件事：加状态横幅（`> ⚠️ 冻结记录（YYYY-MM），
-   仅供考古，现行契约见 <指针>`）、在 `archive/INDEX.md` 登记一行、**清扫反向引用**
+仅供考古，现行契约见 <指针>`）、在 `archive/INDEX.md` 登记一行、**清扫反向引用**
    （源码注释和 CI 里可能有指向该文档的路径）。
 4. **改了公共 API、目录结构或后端 port，就要同步对应的契约文档**，与代码在同一个 PR 里。
 

@@ -32,9 +32,9 @@
 
 ## 当前汇总
 
-| 总叶子 | 完成并独立验收 |      进行中 | 未开始 |          阻塞决策 |
-| -----: | -------------: | ----------: | -----: | ----------------: |
-|    235 |              9 | 1（AD-311） |    225 | 5（AD-100/D1~D5） |
+| 总叶子 | 完成并独立验收 |           进行中 | 未开始 |          阻塞决策 |
+| -----: | -------------: | ---------------: | -----: | ----------------: |
+|    235 |             12 | 1（AD-311 修正） |    222 | 5（AD-100/D1~D5） |
 
 ## 树
 
@@ -46,21 +46,24 @@
     - AD-129~135 版本与发布流程
     - AD-136~142 本地 registry 与装机冒烟
   - [**AD-200 让人五分钟内跑起来**](adoption-issues/AD-200-onboarding.md) —— 受 AD-100 全组阻塞
-  - [**AD-300 框架适配层（React / Vue）**](adoption-issues/AD-300-framework-adapters.md) —— AD-311 进行中；其余独立长线
+  - [**AD-300 框架适配层（React / Vue）**](adoption-issues/AD-300-framework-adapters.md) —— AD-311 独立验收发现覆盖不全，正在修正；其余独立长线
   - [**AD-400 定位与可信度**](adoption-issues/AD-400-positioning.md) —— AD-420 完成；其余可与 AD-100 并行
-  - [**AD-500 可验证的性能证据**](adoption-issues/AD-500-performance.md) —— 未开始
+  - [**AD-500 可验证的性能证据**](adoption-issues/AD-500-performance.md) —— AD-501 完成；其余未开始
   - [**AD-600 内容与渠道**](adoption-issues/AD-600-content-channels.md) —— 依赖 AD-100、AD-400
-  - [**AD-700 承接进来的人**](adoption-issues/AD-700-community.md) —— AD-701、AD-702 完成
-  - [**AD-800 规模能力与技术差异化**](adoption-issues/AD-800-scale-differentiation.md) —— AD-802、804、821~824 完成
+  - [**AD-700 承接进来的人**](adoption-issues/AD-700-community.md) —— AD-701、AD-702、AD-706 完成
+  - [**AD-800 规模能力与技术差异化**](adoption-issues/AD-800-scale-differentiation.md) —— AD-802、AD-803、AD-804、AD-821~824 完成
 
 ## 已完成叶子
 
 | 叶子   | 交付                   | 独立验收的提交       |
 | ------ | ---------------------- | -------------------- |
 | AD-420 | agent 集成说明         | `d39f61d`            |
+| AD-501 | 对外性能证据范围       | `9453733`            |
 | AD-701 | Bug issue 模板         | `a124092`            |
 | AD-702 | 功能请求 issue 模板    | `e1413c4`            |
+| AD-706 | 无 Rust 工具链贡献路径 | `0625229`            |
 | AD-802 | Tier 分层机制说明      | `2134b04`            |
+| AD-803 | 稀疏存储模型说明       | `2919fed`            |
 | AD-804 | 有界性契约映射         | `61bf5c1`            |
 | AD-821 | 按需求值机制成文       | `fe8e6a1`            |
 | AD-822 | 跨 sheet 按需求值成文  | `ae7f5bc`            |

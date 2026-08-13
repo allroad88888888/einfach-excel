@@ -22,4 +22,5 @@
 @import './formula-autocomplete.css';
 @import './marching-ants.css';
 @import './diagnostics.css';
+@import './locked-edit-feedback.css';
 @import './presence-overlay.css';

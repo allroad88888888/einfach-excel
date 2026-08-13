@@ -12,10 +12,13 @@ import type {
 import {
   editingCommitLifecycleAtom,
   editingSessionAtom,
+  protectionUnlockStateAtom,
   selectionSnapshotAtom,
+  setSheetProtectionAtom,
 } from '@einfach/spreadsheet-ui-core'
 import { SpreadsheetGrid } from '../src-vnext/grid'
 import { SpreadsheetUiProvider } from '../src-vnext/provider'
+import { SpreadsheetProtectionUnlockDialog } from '../src-vnext/protection'
 
 afterEach(() => {
   cleanup()
@@ -61,13 +64,20 @@ function createBackend(rejectWrite = false) {
   return { backend, writes }
 }
 
-async function mountGrid(rejectWrite = false) {
+async function mountGrid(rejectWrite = false, protectedSheet = false) {
   const store = createStore()
   const { backend, writes } = createBackend(rejectWrite)
+  if (protectedSheet) {
+    store.setter(setSheetProtectionAtom, {
+      sheetId: 'sheet-1',
+      state: { mode: 'protected', unlockedRanges: [] },
+    })
+  }
   window.history.replaceState(null, '', '/?svgOverlay=1')
   const result = render(() => (
     <SpreadsheetUiProvider backend={backend} store={store}>
       <SpreadsheetGrid sheetId="sheet-1" viewport={viewport} data-testid="grid" />
+      <SpreadsheetProtectionUnlockDialog />
     </SpreadsheetUiProvider>
   ))
   await waitFor(() => {
@@ -169,5 +179,38 @@ describe('vNext direct cell editor interaction', () => {
     })
     expect(writes).toHaveLength(1)
     expect(document.activeElement).not.toBe(grid)
+  })
+
+  it('announces a locked direct edit and lets its focused recovery action unlock that cell', async () => {
+    const { cell, getByTestId, store } = await mountGrid(false, true)
+
+    fireEvent.dblClick(cell)
+    const alert = getByTestId('locked-edit-feedback')
+    const unlock = getByTestId('locked-edit-feedback-unlock')
+    await waitFor(() => expect(alert.getAttribute('role')).toBe('alert'))
+    expect(cell.querySelector('.cell-input')).toBeNull()
+
+    fireEvent.click(unlock)
+    const password = getByTestId('protection-unlock-password')
+    await waitFor(() => {
+      expect(store.getter(protectionUnlockStateAtom)).toMatchObject({
+        phase: 'editing',
+        target: {
+          sheetId: 'sheet-1',
+          range: { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 0 },
+        },
+      })
+      expect(document.activeElement).toBe(password)
+    })
+    fireEvent.click(getByTestId('protection-unlock-cancel'))
+    await waitFor(() => expect(document.activeElement).toBe(unlock))
+
+    fireEvent.click(unlock)
+    fireEvent.click(getByTestId('protection-unlock-confirm'))
+    await waitFor(() => expect(store.getter(protectionUnlockStateAtom).phase).toBe('closed'))
+    const input = await startDirectEditing(cell)
+
+    await waitFor(() => expect(alert.isConnected).toBe(false))
+    expect(input.value).toBe('before')
   })
 })

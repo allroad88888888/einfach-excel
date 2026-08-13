@@ -8,6 +8,7 @@ import {
   type ViewportMetrics,
 } from '@einfach/spreadsheet-ui-core'
 import { SpreadsheetFormatPainter } from '../format-painter'
+import { SpreadsheetLockedEditFeedback } from './SpreadsheetLockedEditFeedback'
 import { useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider'
 import { SpreadsheetGridView } from './SpreadsheetGridView'
 import { installGridAutoFitController } from './grid-auto-fit-controller'
@@ -104,6 +105,7 @@ export function SpreadsheetGrid(props: SpreadsheetGridProps) {
     <>
       <SpreadsheetFormatPainter />
       <SpreadsheetGridView runtime={runtime} />
+      <SpreadsheetLockedEditFeedback sheetId={props.sheetId} />
     </>
   )
 }

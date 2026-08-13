@@ -1,6 +1,13 @@
 import { expect, test, type Page } from '@playwright/test'
 
-import { cell, cellDisplay, cellInput, expectNoConsoleErrors, gotoRoot, guardConsoleErrors } from '../helpers'
+import {
+  cell,
+  cellDisplay,
+  cellInput,
+  expectNoConsoleErrors,
+  gotoRoot,
+  guardConsoleErrors,
+} from '../helpers'
 
 /**
  * Sheet protection on the worker demos (UI-core canonical, phase 2/3).
@@ -66,5 +73,26 @@ test.describe('vNext sheet protection real-backend evidence', () => {
     await editor.press('Escape')
     await expect(editor).toHaveCount(0)
     await expect(cellDisplay(page, 'B4')).toHaveText('10')
+  })
+
+  test('a locked direct edit gives a visible range-unlock recovery path', async ({ page }) => {
+    await gotoWorkerDemo(page)
+    await clickFormatMenuItem(page, 'format.protectSheet')
+
+    await cell(page, 'B4').dblclick()
+    const feedback = page.getByTestId('locked-edit-feedback')
+    await expect(feedback).toBeVisible()
+    await expect(feedback).toHaveAttribute('role', 'alert')
+    await expect(cellInput(page, 'B4')).toHaveCount(0)
+
+    await page.getByTestId('locked-edit-feedback-unlock').click()
+    await expect(page.getByTestId('vnext-worker-protection-unlock')).toBeVisible()
+    await expect(page.getByTestId('protection-unlock-target')).not.toHaveText('')
+    await page.getByTestId('protection-unlock-confirm').click()
+    await expect(page.getByTestId('vnext-worker-protection-unlock')).toHaveCount(0)
+
+    await cell(page, 'B4').dblclick()
+    await expect(cellInput(page, 'B4')).toBeVisible()
+    await expect(feedback).toHaveCount(0)
   })
 })

@@ -26,6 +26,7 @@ export {
 export * from './name-box'
 export * from './diagnostics'
 export * from './editing'
+export * from './editing/locked-edit-feedback'
 export * from './formula-bar'
 export * from './formula-functions'
 export * from './formula-reference'

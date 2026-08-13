@@ -24,6 +24,7 @@ describe('@einfach/react-excel package entry', () => {
     expect(packageEntry).toEqual({
       SpreadsheetGridView: expect.any(Function),
       SpreadsheetUiProvider: expect.any(Function),
+      getSpreadsheetGridGeometry: expect.any(Function),
       useSpreadsheetUiCore: expect.any(Function),
       useSpreadsheetValue: expect.any(Function),
       useSpreadsheetViewport: expect.any(Function),

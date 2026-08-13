@@ -1,8 +1,7 @@
-import { openFilterDropdownAtom, selectAllAtom } from '@einfach/spreadsheet-ui-core'
+import { getColumnLabel, openFilterDropdownAtom, selectAllAtom } from '@einfach/spreadsheet-ui-core'
 import { For, Show } from 'solid-js'
 import { SpreadsheetGridDataRow } from './SpreadsheetGridDataRow'
 import { SpreadsheetGridOutline } from './SpreadsheetGridOutline'
-import { getColumnLabel } from './grid-constants'
 import { type GridRuntime } from './grid-runtime'
 
 /** Renders the virtualized table, including row and column headers. */

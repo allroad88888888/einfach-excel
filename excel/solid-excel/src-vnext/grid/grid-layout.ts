@@ -3,11 +3,12 @@ import {
   getSurfaceSpanPx,
   getViewportColumnWidth,
   getViewportRowHeight,
+  keyFor,
   spillCellRoleAtom,
   type SpillCellRole,
 } from '@einfach/spreadsheet-ui-core'
 import { getCellBackgroundStyle, getDisplayCellFormat } from './cell-format'
-import { GRID_ROW_HEADER_WIDTH, makeCellKey } from './grid-constants'
+import { GRID_ROW_HEADER_WIDTH } from './grid-constants'
 import { createGridFreezeLayout } from './grid-freeze-layout'
 import { createGridMergeLayout } from './grid-merge-layout'
 import { installGridFeature, type GridRuntimeBase } from './grid-runtime'
@@ -51,7 +52,7 @@ export function installGridLayout(runtime: GridLayoutRuntime) {
   } = runtime
 
   function getCell(row: number, col: number) {
-    return getCellMap().get(makeCellKey(row, col))
+    return getCellMap().get(keyFor(row, col))
   }
 
   function getSpillRole(row: number, col: number): SpillCellRole | undefined {

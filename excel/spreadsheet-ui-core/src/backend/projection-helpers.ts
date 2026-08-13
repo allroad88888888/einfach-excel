@@ -1,4 +1,6 @@
 import type { CellRange, SpreadsheetErrorSeverity } from '../shared'
+import { isCoordInsideRange, keyFor } from '../shared/grid-coordinates'
+export { getColumnLabel, isCoordInsideRange, keyFor, toA1 } from '../shared/grid-coordinates'
 import type { ColumnFilterRule, FilterSortState } from '../filter-sort/types'
 import type {
   ConditionalFormatRule,
@@ -63,20 +65,6 @@ export function cloneFilterSortState(state: FilterSortState): FilterSortState {
 
 export function filterSortHasEffect(state: FilterSortState | undefined): boolean {
   return !!state && state.rules.length > 0
-}
-
-export function keyFor(row: number, col: number): string {
-  return `${row}:${col}`
-}
-
-export function isCoordInsideRange(
-  row: number,
-  col: number,
-  range: { rowStart: number; rowEnd: number; colStart: number; colEnd: number },
-): boolean {
-  return (
-    row >= range.rowStart && row <= range.rowEnd && col >= range.colStart && col <= range.colEnd
-  )
 }
 
 export function numericValue(text: string): number | null {
@@ -240,23 +228,6 @@ export function cloneConditionalFormatRuleEntry(
     scope: { range: cloneRange(entry.scope.range) },
     rule: cloneConditionalFormatRule(entry.rule),
   }
-}
-
-export function getColumnLabel(index: number): string {
-  let value = index + 1
-  let label = ''
-
-  while (value > 0) {
-    const remainder = (value - 1) % 26
-    label = String.fromCharCode(65 + remainder) + label
-    value = Math.floor((value - 1) / 26)
-  }
-
-  return label
-}
-
-export function toA1(row: number, col: number): string {
-  return `${getColumnLabel(col)}${row + 1}`
 }
 
 export function conditionalRuleFormat(

@@ -4,6 +4,7 @@ import {
   createClipboardTsvPastePlan,
   cutClipboardAtom,
   encodeSelectionAsHtml,
+  getColumnLabel,
   getFilterHiddenRowsForSheet,
   issueProjectionRequestIdAtom,
   markClipboardReadyAtom,
@@ -22,7 +23,7 @@ import {
   readBrowserClipboardText,
   writeBrowserClipboard,
 } from '../clipboard/browser-clipboard'
-import { CLIPBOARD_CELL_LIMIT, getColumnLabel } from './grid-constants'
+import { CLIPBOARD_CELL_LIMIT } from './grid-constants'
 import type { GridEditingControllerApi } from './grid-editing-controller'
 import type { GridProjectionControllerApi } from './grid-projection-controller'
 import { installGridFeature, type GridRuntimeBase } from './grid-runtime'

@@ -1,4 +1,5 @@
 import {
+  isCoordInsideRange,
   openMenuAtom,
   selectAllAtom,
   selectCellAtom,
@@ -10,7 +11,6 @@ import {
   type CellRange,
   type MenuOpenInput,
 } from '@einfach/spreadsheet-ui-core'
-import { isCoordInRange } from './grid-constants'
 import { installGridFeature, type GridRuntimeBase } from './grid-runtime'
 import type { GridMergeAnchorPort, GridSelectionContextPort } from './grid-runtime-ports'
 import type { GridViewStateApi } from './grid-view-state'
@@ -115,7 +115,7 @@ export function installGridContextMenu(runtime: GridContextMenuRuntime) {
 
   function isFillPreviewCell(row: number, col: number) {
     const previewRange = getFillPreviewRange()
-    return previewRange ? isCoordInRange(row, col, previewRange) : false
+    return previewRange ? isCoordInsideRange(row, col, previewRange) : false
   }
 
   return installGridFeature(runtime, { isActive, isFillHandleHost, isSheetEditing, isEditing, focusGrid, getKeyboardContextMenuInput, targetFallsWithinSingleAxisSelection, openContextMenu, getCellContextTarget, getCellCoordFromPoint, getFillPreviewRange, isFillPreviewCell })

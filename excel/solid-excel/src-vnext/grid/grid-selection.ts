@@ -3,6 +3,9 @@ import {
   getHiddenColumnsForSheet,
   getHiddenRowsForSheet,
   getSelectionRange,
+  getWindowIndexes,
+  isCoordInsideRange,
+  keyFor,
   selectCellAtom,
   selectionSnapshotAtom,
   setSelectionAtom,
@@ -14,7 +17,6 @@ import {
   type SelectionRegion,
   type SelectionState,
 } from '@einfach/spreadsheet-ui-core'
-import { getWindowIndexes, isCoordInRange, makeCellKey } from './grid-constants'
 import { installGridFeature, type GridRuntimeBase } from './grid-runtime'
 import type { GridFocusPort, GridMergeRangePort } from './grid-runtime-ports'
 import type { GridViewStateApi } from './grid-view-state'
@@ -42,7 +44,7 @@ export function installGridSelection(runtime: GridSelectionRuntime) {
     const cells = projectionSnapshot().result?.cells ?? []
     if (cells !== cellMapSource) {
       const map = new Map<string, DisplayCell>()
-      for (const cell of cells) map.set(makeCellKey(cell.row, cell.col), cell)
+      for (const cell of cells) map.set(keyFor(cell.row, cell.col), cell)
       cellMapSource = cells
       cellMapCache = map
     }
@@ -78,7 +80,7 @@ export function installGridSelection(runtime: GridSelectionRuntime) {
   function getSelectionRangeContaining(row: number, col: number): CellRange | null {
     for (const region of getSelectionRegionsForSheet()) {
       const range = getSelectionStateRange(region)
-      if (isCoordInRange(row, col, range)) return range
+      if (isCoordInsideRange(row, col, range)) return range
     }
     return null
   }

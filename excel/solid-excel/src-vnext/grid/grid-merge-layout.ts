@@ -1,5 +1,9 @@
-import { isMergeCovered, type CellRange, type DisplayCell } from '@einfach/spreadsheet-ui-core'
-import { isCoordInRange } from './grid-constants'
+import {
+  isCoordInsideRange,
+  isMergeCovered,
+  type CellRange,
+  type DisplayCell,
+} from '@einfach/spreadsheet-ui-core'
 
 interface GridMergeLayoutInput {
   getCell: (row: number, col: number) => DisplayCell | undefined
@@ -51,7 +55,7 @@ export function createGridMergeLayout(input: GridMergeLayoutInput) {
       const anchorRange = getRangeForCell(input.getCell(cell.mergeAnchor.row, cell.mergeAnchor.col))
       if (anchorRange) return anchorRange
     }
-    return getMergeRanges().find((range) => isCoordInRange(row, col, range)) ?? null
+    return getMergeRanges().find((range) => isCoordInsideRange(row, col, range)) ?? null
   }
 
   function isCellCoveredByMerge(row: number, col: number) {

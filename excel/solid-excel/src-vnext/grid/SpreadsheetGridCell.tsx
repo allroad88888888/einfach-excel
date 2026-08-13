@@ -1,4 +1,4 @@
-import { formulaReferenceSessionAtom, selectCellAtom } from '@einfach/spreadsheet-ui-core'
+import { formulaReferenceSessionAtom, selectCellAtom, toA1 } from '@einfach/spreadsheet-ui-core'
 import { Show } from 'solid-js'
 import { getDataBarProjection } from '../adapter/data-bar-projection'
 import { SpreadsheetCellBorders } from './SpreadsheetCellBorders'
@@ -13,7 +13,6 @@ import {
   getCellValidationSeverity,
   getDisplayCellFormat,
 } from './cell-format'
-import { getCellAddress } from './grid-constants'
 import { type GridRuntime } from './grid-runtime'
 
 export interface SpreadsheetGridCellProps {
@@ -52,7 +51,7 @@ export function SpreadsheetGridCell(props: SpreadsheetGridCellProps) {
     startFillHandle,
     executeFillHandleDoubleClick,
   } = runtime
-  const addr = getCellAddress(row, col)
+  const addr = toA1(row, col)
   const cell = () => getCell(row, col)
   const selected = () => isSelected(row, col)
   const active = () => isActive(row, col)

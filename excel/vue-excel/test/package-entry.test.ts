@@ -28,6 +28,7 @@ describe('@einfach/vue-excel package entry', () => {
       getSpreadsheetGridGeometry: expect.any(Function),
       useSpreadsheetEditing: expect.any(Function),
       useSpreadsheetClipboard: expect.any(Function),
+      useSpreadsheetHistory: expect.any(Function),
       useSpreadsheetFormulaBar: expect.any(Function),
       useSpreadsheetImeComposition: expect.any(Function),
       useSpreadsheetKeyboardNavigation: expect.any(Function),

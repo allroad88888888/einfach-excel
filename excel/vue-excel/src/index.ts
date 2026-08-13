@@ -7,6 +7,7 @@ export { useSpreadsheetKeyboardNavigation } from './use-spreadsheet-keyboard-nav
 export { useSpreadsheetImeComposition } from './use-spreadsheet-ime-composition'
 export { useSpreadsheetEditing } from './use-spreadsheet-editing'
 export { useSpreadsheetClipboard } from './use-spreadsheet-clipboard'
+export { useSpreadsheetHistory } from './use-spreadsheet-history'
 export { useSpreadsheetFormulaBar } from './use-spreadsheet-formula-bar'
 export { useSpreadsheetNameBox } from './use-spreadsheet-name-box'
 export { useSpreadsheetSheetTabs } from './use-spreadsheet-sheet-tabs'
@@ -32,6 +33,7 @@ export type {
 } from './use-spreadsheet-ime-composition'
 export type { SpreadsheetEditing } from './use-spreadsheet-editing'
 export type { SpreadsheetClipboard } from './use-spreadsheet-clipboard'
+export type { SpreadsheetHistory, SpreadsheetHistoryCommandInput } from './use-spreadsheet-history'
 export type { SpreadsheetFormulaBar } from './use-spreadsheet-formula-bar'
 export type {
   SpreadsheetNameBox,

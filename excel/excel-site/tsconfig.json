@@ -5,6 +5,7 @@
   },
   "include": [".astro/types.d.ts", "src/**/*"],
   "exclude": [
+    "src/islands/ReactAdapterDemoIsland.tsx",
     "src/main.tsx",
     "src/routes.tsx",
     "src/landing/**/*",

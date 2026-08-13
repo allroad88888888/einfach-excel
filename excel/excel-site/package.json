@@ -9,6 +9,7 @@
     "build:api": "typedoc --options typedoc.json",
     "check:docs": "node scripts/check-docs.mjs",
     "check:solid": "node scripts/check-solid-singleton.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.react-island.json && vue-tsc --noEmit -p tsconfig.vue-island.json",
     "preview": "astro preview"
   },
   "dependencies": {
@@ -19,13 +20,16 @@
     "@einfach/solid-excel": "workspace:*",
     "@einfach/spreadsheet-ui-core": "workspace:*",
     "@einfach/spreadsheet-ui-styles": "workspace:*",
+    "@einfach/vue-excel": "workspace:*",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "solid-js": "^1.9.12"
+    "solid-js": "^1.9.12",
+    "vue": "^3.5.41"
   },
   "devDependencies": {
     "@astrojs/react": "^3.6.3",
     "@astrojs/solid-js": "^7.0.1",
+    "@astrojs/vue": "^7.0.2",
     "@types/node": "^20.19.0",
     "@types/react": "^18.3.20",
     "@types/react-dom": "^18.3.6",
@@ -34,6 +38,7 @@
     "typedoc-plugin-markdown": "^4.12.0",
     "typescript": "^5.7.2",
     "vite": "^5.4.21",
+    "vue-tsc": "^2.2.12",
     "vite-plugin-top-level-await": "^1.4.4",
     "vite-plugin-wasm": "^3.3.0"
   }

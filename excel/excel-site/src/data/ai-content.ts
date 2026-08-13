@@ -12,7 +12,7 @@ const projectPositioning =
 
 const availabilityBoundary = `## Availability and adoption boundary
 
-The only currently supported UI binding is Solid. React and Vue are not currently available. This project is available as repository source in a pre-release stage; no npm-published package has been independently verified for offline installation.`
+Solid has the established UI surface. The site also includes local React and Vue controlled-projection demos, which demonstrate the public adapter APIs only. This project is available as repository source in a pre-release stage; no npm-published package or independently verified offline installation is available. The demos make no support, compatibility, or performance promises.`
 
 /** Renders concise and expanded AI-readable indexes from the same site catalogue and source projections. */
 export function renderLlmsIndex(): string {

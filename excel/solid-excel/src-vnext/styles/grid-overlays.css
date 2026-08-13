@@ -91,6 +91,25 @@
   color: inherit;
   font: inherit;
   text-align: left;
+  position: relative;
+}
+
+.spreadsheet-grid-data-bar {
+  position: absolute;
+  top: 20%;
+  left: 2px;
+  z-index: 0;
+  height: 60%;
+  max-width: calc(100% - 4px);
+  border-radius: 2px;
+  pointer-events: none;
+  background: linear-gradient(90deg, var(--data-bar-min-color), var(--data-bar-max-color));
+  opacity: 0.58;
+}
+
+.spreadsheet-grid-cell-button > .cell-display {
+  position: relative;
+  z-index: 1;
 }
 
 .cell-rich-link {
@@ -140,4 +159,3 @@
 .cell-spill {
   background: rgba(43, 87, 154, 0.05);
 }
-

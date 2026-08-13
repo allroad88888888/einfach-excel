@@ -9,8 +9,8 @@
 ## 语义要点（按实现核实）
 
 - 对话框只有 kind 选择器，规则体取 `defaultRuleForKind`：cell-value = `gt 0` →
-  bgColor #fef3c7；color-scale → bgColor = maxColor #00ff00（**单色**，非渐变）；
-  data-bar → #bfdbfe（单色，非长度条）。operator/value/format 无编辑 UI。
+  bgColor #fef3c7；color-scale 按完整规则范围输出单元格背景色渐变；data-bar
+  按完整规则范围输出不可聚焦的装饰性长度条。operator/value/format 无编辑 UI。
 - 求值发生在投影读取时 → 编辑单元格值即触发重求值，样式实时切换。
 - 多规则按 priority 升序**首个命中生效**（fall-through：前面的不命中才轮到后面）；
   新保存的规则追加在队尾（priority = 当前条数）。
@@ -19,23 +19,27 @@
 
 ## 场景表
 
-| ID    | 场景                                            | 步骤概要                                         | 关键断言                                                                           | 状态       | spec                                                                                                |
-| ----- | ----------------------------------------------- | ------------------------------------------------ | ---------------------------------------------------------------------------------- | ---------- | --------------------------------------------------------------------------------------------------- |
-| CF-01 | 工具栏按钮可见/本地化并打开对话框               | Wave5 → 查属性 → 点击                            | 非 raw key；对话框可见                                                             | ✅ 存量    | toolbar-conditional-format #"toolbar-btn-conditional-format is visible, enabled, and not raw keys"  |
-| CF-02 | 对话框控件齐备 + save 落规则                    | 打开 → save                                      | kind/list/save/cancel/remove/close-x 可见；目标格 data-has-conditional-format=true | ✅ 存量    | toolbar-conditional-format #"conditional-format dialog opens and basic controls exist"              |
-| CF-03 | Escape 与标题栏 X 关闭                          | Escape；再开点 X                                 | 两种路径均隐藏                                                                     | ✅ 存量    | toolbar-conditional-format #"conditional-format dialog closes with Escape and header close X"       |
-| CF-04 | 默认规则命中着色                                | B2(=120) save 默认规则                           | 计算样式 rgb(254,243,199)                                                          | ✅ 存量    | toolbar-conditional-format #"saving the default rule paints the matching cell with bgColor #fef3c7" |
-| CF-05 | 编辑值跨越阈值样式实时切换                      | B2 建默认规则 → 输 -8 → 再输 55                  | 命中→不命中→命中：data-has-conditional-format 与 bg 同步翻转                       | 🆕 本轮    | cf-threshold-priority.spec.ts                                                                       |
-| CF-06 | 多规则叠加优先级（首个命中生效 + fall-through） | B2 依次存 cell-value、color-scale 两规则 → 输 -8 | 双命中时首规则色 #fef3c7；首规则失配后落到 #00ff00                                 | 🆕 本轮    | cf-threshold-priority.spec.ts                                                                       |
-| CF-07 | 规则列表随保存增长并展示 priority               | 存两规则后重开对话框                             | cf-rule-list 两条 li，data-rule-kind 正确、文本含 priority                         | 🆕 本轮    | cf-threshold-priority.spec.ts                                                                       |
-| CF-08 | 工具栏新规则入口 remove 禁用                    | 打开对话框查 remove                              | cf-remove-button disabled，直到选中持久化规则                                      | 🆕 本轮    | cf-threshold-priority.spec.ts                                                                       |
-| CF-09 | 重开水合后删除规则                              | B2 保存规则 → 重开 → 选列表项 → 删除             | 已持久化规则出现、删除可用、样式移除                                               | 🆕 本轮    | cf-threshold-priority.spec.ts                                                                       |
-| CF-10 | 色阶/数据条真实渐变渲染                         | —                                                | —                                                                                  | ⏳ P2 延后 | —（实现为单色 bgColor 占位，无渐变/条长渲染面可断言）                                               |
-| CF-11 | 规则参数编辑                                    | —                                                | —                                                                                  | ⏳ P2 延后 | —（列表项可选择/删除，但本轮明确不做 operator、value、format 等规则参数编辑）                       |
+| ID     | 场景                                            | 步骤概要                                         | 关键断言                                                                           | 状态       | spec                                                                                                |
+| ------ | ----------------------------------------------- | ------------------------------------------------ | ---------------------------------------------------------------------------------- | ---------- | --------------------------------------------------------------------------------------------------- |
+| CF-01  | 工具栏按钮可见/本地化并打开对话框               | Wave5 → 查属性 → 点击                            | 非 raw key；对话框可见                                                             | ✅ 存量    | toolbar-conditional-format #"toolbar-btn-conditional-format is visible, enabled, and not raw keys"  |
+| CF-02  | 对话框控件齐备 + save 落规则                    | 打开 → save                                      | kind/list/save/cancel/remove/close-x 可见；目标格 data-has-conditional-format=true | ✅ 存量    | toolbar-conditional-format #"conditional-format dialog opens and basic controls exist"              |
+| CF-03  | Escape 与标题栏 X 关闭                          | Escape；再开点 X                                 | 两种路径均隐藏                                                                     | ✅ 存量    | toolbar-conditional-format #"conditional-format dialog closes with Escape and header close X"       |
+| CF-04  | 默认规则命中着色                                | B2(=120) save 默认规则                           | 计算样式 rgb(254,243,199)                                                          | ✅ 存量    | toolbar-conditional-format #"saving the default rule paints the matching cell with bgColor #fef3c7" |
+| CF-05  | 编辑值跨越阈值样式实时切换                      | B2 建默认规则 → 输 -8 → 再输 55                  | 命中→不命中→命中：data-has-conditional-format 与 bg 同步翻转                       | 🆕 本轮    | cf-threshold-priority.spec.ts                                                                       |
+| CF-06  | 多规则叠加优先级（首个命中生效 + fall-through） | B2 依次存 cell-value、color-scale 两规则 → 输 -8 | 双命中时首规则色 #fef3c7；首规则失配后落到 #00ff00                                 | 🆕 本轮    | cf-threshold-priority.spec.ts                                                                       |
+| CF-07  | 规则列表随保存增长并展示 priority               | 存两规则后重开对话框                             | cf-rule-list 两条 li，data-rule-kind 正确、文本含 priority                         | 🆕 本轮    | cf-threshold-priority.spec.ts                                                                       |
+| CF-08  | 工具栏新规则入口 remove 禁用                    | 打开对话框查 remove                              | cf-remove-button disabled，直到选中持久化规则                                      | 🆕 本轮    | cf-threshold-priority.spec.ts                                                                       |
+| CF-09  | 重开水合后删除规则                              | B2 保存规则 → 重开 → 选列表项 → 删除             | 已持久化规则出现、删除可用、样式移除                                               | 🆕 本轮    | cf-threshold-priority.spec.ts                                                                       |
+| CF-10A | Color Scale 完整范围色阶                        | 窗口内读完整规则范围的一段                       | 中间值按 min/mid/max 插值为 `bgColor`                                              | ✅ UI-556C | vnext-conditional-format-wasm #"projects a Color Scale from the full canonical rule range"          |
+| CF-10B | Data Bar 完整范围长度条                         | Worker 选区保存 data-bar → 滚动/冻结/编辑        | TS/WASM 比例一致；bar `aria-hidden`、`pointer-events:none`、文本和编辑仍可用       | ✅ UI-557  | data-bar-projection.spec.ts                                                                         |
+| CF-11  | 规则参数编辑                                    | —                                                | —                                                                                  | ⏳ P2 延后 | —（列表项可选择/删除，但本轮明确不做 operator、value、format 等规则参数编辑）                       |
 
 ## 备注
 
-- 全部跑 Wave5 静态 demo；worker 后端的 overlay 求值逻辑同构
-  （worker-workbook-backend.ts::applyConditionalFormatOverlay），双端行为一致。
+- CF-01 至 CF-09 跑 Wave5 静态 demo；CF-10B 额外跑真实 TS/WASM Worker，
+  两端都验证 Data Bar 的只读 Grid 投影。
 - CF-06 的 fall-through 构造：cell-value `gt 0` 对 -8 失配，而 color-scale 只要求
   数值（numericValue !== null）→ 次序生效可被唯一区分。
+- Data Bar 为避免 adapter sidecar，每次相关 read 都从完整 canonical rule range 读取有限
+  numericValue 求域；超大/整表范围会带来全范围读取与扫描成本，后续若要优化应由引擎提供
+  canonical 聚合投影，不能改为 UI 本地缓存。

@@ -19,9 +19,22 @@ import {
   colorScaleNumericValue,
   type ColorScaleDomains,
 } from '../color-scale-projection'
+import {
+  dataBarNumericValue,
+  dataBarProjection,
+  type DataBarDomains,
+  type DataBarProjection,
+  withDataBarProjection,
+} from '../data-bar-projection'
 import { rangesIntersect } from './range-overlap'
 
 const EMPTY_COLOR_SCALE_DOMAINS: ColorScaleDomains = new Map()
+const EMPTY_DATA_BAR_DOMAINS: DataBarDomains = new Map()
+
+interface ConditionalCellVisual {
+  readonly conditionalFormat?: SpreadsheetCellFormat
+  readonly dataBar?: DataBarProjection
+}
 
 function conditionalRuleAppliesToCell(
   rule: ConditionalFormatRule,
@@ -36,6 +49,7 @@ function conditionalRuleAppliesToCell(
     case 'color-scale':
       return colorScaleNumericValue(cell) !== null
     case 'data-bar':
+      return dataBarNumericValue(cell) !== null
     case 'top-bottom':
       return numericValue(value) !== null
   }
@@ -44,16 +58,25 @@ function conditionalRuleAppliesToCell(
 // Expects `orderedRules` already sorted by priority — the sort is
 // hoisted into `applyConditionalFormatOverlay` so a window read pays it
 // once per overlay, not once per projected cell (audit D-11).
-function getConditionalFormatForCell(
+function getConditionalVisualForCell(
   row: number,
   col: number,
   cell: DisplayCell | undefined,
   orderedRules: readonly ConditionalFormatRuleEntry[],
   colorScaleDomains: ColorScaleDomains,
-): SpreadsheetCellFormat | undefined {
+  dataBarDomains: DataBarDomains,
+): ConditionalCellVisual | undefined {
   for (const entry of orderedRules) {
     if (!isCoordInsideRange(row, col, entry.scope.range)) continue
     if (!conditionalRuleAppliesToCell(entry.rule, cell)) continue
+    if (entry.rule.kind === 'data-bar') {
+      const dataBar = dataBarProjection(
+        entry.rule,
+        dataBarNumericValue(cell)!,
+        dataBarDomains.get(entry.id),
+      )
+      return dataBar ? { dataBar } : {}
+    }
     const format =
       entry.rule.kind === 'color-scale'
         ? colorScaleFormat(
@@ -62,7 +85,7 @@ function getConditionalFormatForCell(
             colorScaleDomains.get(entry.id),
           )
         : conditionalRuleFormat(entry.rule)
-    if (format) return format
+    if (format) return { conditionalFormat: format }
   }
   return undefined
 }
@@ -81,6 +104,7 @@ export function applyConditionalFormatOverlay(
   rules: readonly ConditionalFormatRuleEntry[],
   window: CellRange,
   colorScaleDomains: ColorScaleDomains = EMPTY_COLOR_SCALE_DOMAINS,
+  dataBarDomains: DataBarDomains = EMPTY_DATA_BAR_DOMAINS,
 ): DisplayCell[] {
   if (rules.length === 0) return cells
   const ordered = rules
@@ -88,20 +112,24 @@ export function applyConditionalFormatOverlay(
     .sort((left, right) => left.priority - right.priority)
   if (ordered.length === 0) return cells
   return cells.map((cell) => {
-    const conditionalFormat = getConditionalFormatForCell(
+    const visual = getConditionalVisualForCell(
       cell.row,
       cell.col,
       cell,
       ordered,
       colorScaleDomains,
+      dataBarDomains,
     )
-    if (!conditionalFormat) return cell
-    return {
-      ...cell,
-      conditionalFormat: {
-        ...(cell.conditionalFormat ? cloneFormat(cell.conditionalFormat) : {}),
-        ...conditionalFormat,
-      },
+    if (visual?.conditionalFormat) {
+      const formatted = {
+        ...cell,
+        conditionalFormat: {
+          ...(cell.conditionalFormat ? cloneFormat(cell.conditionalFormat) : {}),
+          ...visual.conditionalFormat,
+        },
+      }
+      return visual.dataBar ? withDataBarProjection(formatted, visual.dataBar) : formatted
     }
+    return visual?.dataBar ? withDataBarProjection(cell, visual.dataBar) : cell
   })
 }

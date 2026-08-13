@@ -2,7 +2,7 @@
 
 ## 状态
 
-待实施。此 issue 独立于 Color Scale 的渐变颜色投影，不包含其代码或测试。
+已完成（UI-557）。此 issue 独立于 Color Scale 的渐变颜色投影，未修改其代码或测试。
 
 ## 目标
 
@@ -29,11 +29,15 @@
 
 ## 验收
 
-- 相同 canonical 规则在 Static、TS Worker、WASM Worker 产生等价条形比例。
-- 非数值、范围外单元格和无规则单元格不产生条形元数据。
-- 渲染层仅消费投影事实；规则更新、切 Sheet 和 stale response 仍受既有 atom/session/revision 守卫。
-- 真实浏览器在 TS 与 WASM 后端均验证条形比例和可访问性不回归。
+- 已验证相同 canonical 规则在 Static、TS Worker、真实 WASM Worker 产生等价条形比例；读取窗口只取范围中段时，比例仍按完整规则范围的 min/max 计算。
+- 已验证最小/最大、负值、全相同值、非数值、范围外单元格、无规则单元格和首条匹配优先级；WASM 用例证明后续命中的 cell-value 规则不会替换 Data Bar。
+- Grid 只消费 adapter→Grid 的瞬态读取投影；条形为 `aria-hidden`、无 `tabindex`、`pointer-events: none`，层级在文字下方。浏览器用例验证编辑时条形隐藏后重现，以及冻结与滚动后比例保持正确。
+- 已运行 Static/TS projection 单测、真实 WASM Worker 单测和真实浏览器 TS/WASM E2E；规则更新、切 Sheet 和 stale response 继续使用既有 atom/session/revision 守卫，未新增本地产品状态或 sidecar。
+
+## 性能残余
+
+为保证数值域不依赖当前视口，每次读取与当前窗口相交的 Data Bar 规则都会读取并扫描其完整 canonical scope 的稀疏单元格。因此成本为 `O(相关规则 × 范围内非空单元格)`；后续优化应由引擎提供 canonical 聚合投影，不能以 UI 本地缓存或视口域替代。
 
 ## 提交边界
 
-该文档先独立提交。后续实现必须以单独功能提交落地，且不得混入 Color Scale 的提交。
+本 issue 的文档与功能实现作为单一独立提交收口，且不得混入 Color Scale 的提交。

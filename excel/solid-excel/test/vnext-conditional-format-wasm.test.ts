@@ -8,6 +8,7 @@ import type {
   WorkerWorkbookClient,
   WorkerWorkbookSpreadsheetBackend,
 } from '../src-vnext/adapter'
+import { getDataBarProjection } from '../src-vnext/adapter/data-bar-projection'
 
 jest.mock('../wasm-pkg/einfach_wasm.js', () => {
   /* eslint-disable @typescript-eslint/no-var-requires */
@@ -183,6 +184,44 @@ describe('conditional-format — real WASM worker engine', () => {
       '#ffff00',
       'rgb(128, 255, 0)',
     ])
+    client.dispose()
+  })
+
+  test('projects Data Bar ratios from the complete canonical rule range', async () => {
+    const client = createClient!()
+    const backend = createBackend!(client)
+    await backend.ready()
+    for (const [row, input] of ['-100', '-50', '0', '50', '100', 'text'].entries()) {
+      await backend.setCellInput({ kind: 'set-cell-input', sheetId: SHEET, row, col: 0, input })
+    }
+    const dataBar = await backend.setConditionalFormatRule!({
+      kind: 'set-conditional-format-rule',
+      sheetId: SHEET,
+      requestId: 81,
+      revision: 0,
+      scope: { range: { rowStart: 0, rowEnd: 4, colStart: 0, colEnd: 0 } },
+      priority: 0,
+      rule: { kind: 'data-bar', minColor: '#eff6ff', maxColor: '#1d4ed8' },
+    })
+    await backend.setConditionalFormatRule!({
+      kind: 'set-conditional-format-rule',
+      sheetId: SHEET,
+      requestId: 811,
+      revision: dataBar.revision,
+      scope: { range: { rowStart: 0, rowEnd: 4, colStart: 0, colEnd: 0 } },
+      priority: 1,
+      rule: { kind: 'cell-value', operator: 'gt', value: '-1000', format: { bgColor: '#111111' } },
+    })
+    const result = await backend.readRangeProjection({
+      kind: 'range',
+      sheetId: SHEET,
+      requestId: 82,
+      reason: 'viewport',
+      range: { rowStart: 1, rowEnd: 3, colStart: 0, colEnd: 0 },
+    })
+    expect(result.cells.map((cell) => getDataBarProjection(cell)?.ratio)).toEqual([0.25, 0.5, 0.75])
+    // A later matching rule cannot replace the first Data Bar visual.
+    expect(result.cells.every((cell) => cell.conditionalFormat === undefined)).toBe(true)
     client.dispose()
   })
 })

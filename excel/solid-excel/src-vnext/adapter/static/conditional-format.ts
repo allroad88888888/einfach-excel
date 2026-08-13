@@ -24,9 +24,21 @@ import {
   colorScaleNumericValue,
   type ColorScaleDomains,
 } from '../color-scale-projection'
+import {
+  dataBarNumericValue,
+  dataBarProjection,
+  type DataBarDomains,
+  type DataBarProjection,
+} from '../data-bar-projection'
 import type { StaticBackendState } from './state'
 
 const EMPTY_COLOR_SCALE_DOMAINS: ColorScaleDomains = new Map()
+const EMPTY_DATA_BAR_DOMAINS: DataBarDomains = new Map()
+
+export interface ConditionalCellVisual {
+  readonly conditionalFormat?: SpreadsheetCellFormat
+  readonly dataBar?: DataBarProjection
+}
 
 function conditionalRuleAppliesToCell(
   rule: ConditionalFormatRule,
@@ -41,9 +53,43 @@ function conditionalRuleAppliesToCell(
     case 'color-scale':
       return colorScaleNumericValue(cell) !== null
     case 'data-bar':
+      return dataBarNumericValue(cell) !== null
     case 'top-bottom':
       return numericValue(value) !== null
   }
+}
+
+export function getConditionalVisualForCell(
+  row: number,
+  col: number,
+  cell: DisplayCell | undefined,
+  rules: readonly ConditionalFormatRuleEntry[],
+  colorScaleDomains: ColorScaleDomains = EMPTY_COLOR_SCALE_DOMAINS,
+  dataBarDomains: DataBarDomains = EMPTY_DATA_BAR_DOMAINS,
+): ConditionalCellVisual | undefined {
+  const ordered = [...rules].sort((left, right) => left.priority - right.priority)
+  for (const entry of ordered) {
+    if (!isCoordInsideRange(row, col, entry.scope.range)) continue
+    if (!conditionalRuleAppliesToCell(entry.rule, cell)) continue
+    if (entry.rule.kind === 'data-bar') {
+      const dataBar = dataBarProjection(
+        entry.rule,
+        dataBarNumericValue(cell)!,
+        dataBarDomains.get(entry.id),
+      )
+      return dataBar ? { dataBar } : {}
+    }
+    const format =
+      entry.rule.kind === 'color-scale'
+        ? colorScaleFormat(
+            entry.rule,
+            colorScaleNumericValue(cell)!,
+            colorScaleDomains.get(entry.id),
+          )
+        : conditionalRuleFormat(entry.rule)
+    if (format) return { conditionalFormat: format }
+  }
+  return undefined
 }
 
 export function getConditionalFormatForCell(
@@ -53,21 +99,7 @@ export function getConditionalFormatForCell(
   rules: readonly ConditionalFormatRuleEntry[],
   colorScaleDomains: ColorScaleDomains = EMPTY_COLOR_SCALE_DOMAINS,
 ): SpreadsheetCellFormat | undefined {
-  const ordered = [...rules].sort((left, right) => left.priority - right.priority)
-  for (const entry of ordered) {
-    if (!isCoordInsideRange(row, col, entry.scope.range)) continue
-    if (!conditionalRuleAppliesToCell(entry.rule, cell)) continue
-    const format =
-      entry.rule.kind === 'color-scale'
-        ? colorScaleFormat(
-            entry.rule,
-            colorScaleNumericValue(cell)!,
-            colorScaleDomains.get(entry.id),
-          )
-        : conditionalRuleFormat(entry.rule)
-    if (format) return format
-  }
-  return undefined
+  return getConditionalVisualForCell(row, col, cell, rules, colorScaleDomains)?.conditionalFormat
 }
 
 export function listConditionalFormatRulesForSheet(

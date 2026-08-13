@@ -1,7 +1,9 @@
 import { formulaReferenceSessionAtom, selectCellAtom } from '@einfach/spreadsheet-ui-core'
 import { Show } from 'solid-js'
+import { getDataBarProjection } from '../adapter/data-bar-projection'
 import { SpreadsheetCellBorders } from './SpreadsheetCellBorders'
 import { SpreadsheetCellDisplayValue } from './SpreadsheetCellDisplayValue'
+import { SpreadsheetGridDataBar } from './SpreadsheetGridDataBar'
 import { SpreadsheetGridCellEditor } from './SpreadsheetGridCellEditor'
 import {
   getCellBordersAttr,
@@ -58,6 +60,7 @@ export function SpreadsheetGridCell(props: SpreadsheetGridCellProps) {
   const mergeAnchor = () => isCellMergeAnchor(row, col)
   const validationSeverity = () => getCellValidationSeverity(cell())
   const spillRole = () => getSpillRole(row, col)
+  const hasDataBar = () => getDataBarProjection(cell()) !== undefined
 
   return (
     <Show when={!isCellCoveredByMerge(row, col)}>
@@ -81,6 +84,7 @@ export function SpreadsheetGridCell(props: SpreadsheetGridCellProps) {
         data-validation-code={cell()?.validation?.code}
         data-validation-severity={validationSeverity()}
         data-has-conditional-format={cell()?.conditionalFormat ? 'true' : 'false'}
+        data-has-data-bar={hasDataBar() ? 'true' : undefined}
         data-rich-kind={cell()?.richValue?.kind}
         data-rich-url={getCellRichUrl(cell())}
         data-borders={getCellBordersAttr(cell())}
@@ -123,6 +127,7 @@ export function SpreadsheetGridCell(props: SpreadsheetGridCellProps) {
           when={editing()}
           fallback={
             <div class="spreadsheet-grid-cell-button">
+              <SpreadsheetGridDataBar cell={cell()} />
               <span class="cell-display" style={getCellFormatStyle(getDisplayCellFormat(cell()))}>
                 <SpreadsheetCellDisplayValue cell={cell()} />
               </span>

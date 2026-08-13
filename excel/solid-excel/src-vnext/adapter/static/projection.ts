@@ -7,10 +7,11 @@ import type {
 } from '@einfach/spreadsheet-ui-core'
 import { DEFAULT_WORKBOOK_LOCALE, cloneFormat, keyFor } from '@einfach/spreadsheet-ui-core'
 import { collectColorScaleDomains } from '../color-scale-projection'
+import { collectDataBarDomains, withDataBarProjection } from '../data-bar-projection'
 import type { EvalCellLookup } from '../static-formula-eval'
 import type { StaticProjectionRequest, StaticProjectionResult } from '../types'
 import { compareCells, isCellInsideRange } from './cell-map'
-import { getConditionalFormatForCell } from './conditional-format'
+import { getConditionalVisualForCell } from './conditional-format'
 import { evalHiddenRowsForSheet, filterHiddenRowsForSheet } from './hidden-rows'
 import { applyMergeMetadata } from './merge-overlay'
 import { addFormatOnlyCells, projectSourceCell } from './projection-cell'
@@ -51,6 +52,9 @@ export function buildProjectionResult(
   const colorScaleDomains = conditionalRules.some((entry) => entry.rule.kind === 'color-scale')
     ? collectColorScaleDomains(conditionalRules, [...sheetCells.values()].map(projectCell))
     : new Map()
+  const dataBarDomains = conditionalRules.some((entry) => entry.rule.kind === 'data-bar')
+    ? collectDataBarDomains(conditionalRules, [...sheetCells.values()].map(projectCell))
+    : new Map()
 
   // Excel hidden-row semantics: display row IS source row. A filter no longer
   // compacts survivors into consecutive slots; it withholds the hidden rows and
@@ -66,21 +70,28 @@ export function buildProjectionResult(
 
   addFormatOnlyCells(resultCellMap, range, cellFormats, rangeFormats, filterHiddenRows)
   for (const [cellKey, cell] of resultCellMap) {
-    const conditionalFormat = getConditionalFormatForCell(
+    const visual = getConditionalVisualForCell(
       cell.row,
       cell.col,
       cell,
       conditionalRules,
       colorScaleDomains,
+      dataBarDomains,
     )
-    if (conditionalFormat) {
-      resultCellMap.set(cellKey, {
+    if (visual?.conditionalFormat) {
+      const formatted = {
         ...cell,
         conditionalFormat: {
           ...(cell.conditionalFormat ? cloneFormat(cell.conditionalFormat) : {}),
-          ...conditionalFormat,
+          ...visual.conditionalFormat,
         },
-      })
+      }
+      resultCellMap.set(
+        cellKey,
+        visual.dataBar ? withDataBarProjection(formatted, visual.dataBar) : formatted,
+      )
+    } else if (visual?.dataBar) {
+      resultCellMap.set(cellKey, withDataBarProjection(cell, visual.dataBar))
     }
   }
   // #04 x #29: merge metadata used to be suppressed WHOLESALE under an active

@@ -4,6 +4,7 @@ export { SpreadsheetGridView } from './SpreadsheetGridView'
 export { getSpreadsheetGridGeometry } from './spreadsheet-grid-geometry'
 export { useSpreadsheetUiCore } from './spreadsheet-ui-context'
 export { useSpreadsheetKeyboardNavigation } from './use-spreadsheet-keyboard-navigation'
+export { useSpreadsheetImeComposition } from './use-spreadsheet-ime-composition'
 export { useSpreadsheetEditing } from './use-spreadsheet-editing'
 export { useSpreadsheetSelection } from './use-spreadsheet-selection'
 export { useSpreadsheetValue } from './use-spreadsheet-value'
@@ -21,6 +22,10 @@ export type {
   SpreadsheetKeyboardNavigationHandlers,
   UseSpreadsheetKeyboardNavigationOptions,
 } from './use-spreadsheet-keyboard-navigation'
+export type {
+  SpreadsheetImeCompositionHandlers,
+  UseSpreadsheetImeCompositionOptions,
+} from './use-spreadsheet-ime-composition'
 export type { SpreadsheetEditing } from './use-spreadsheet-editing'
 export type { SpreadsheetValueSource, SpreadsheetValueSubscription } from './use-spreadsheet-value'
 export type {

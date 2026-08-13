@@ -3,18 +3,20 @@
 这份文档是**代码地图**，故意保持粗粒度：只写不易变的层次、边界与数据流。具体到某个 feature 的
 atom 清单、端口形状、用例覆盖，都在贴着代码的文档里（见文末「细节去哪查」）。
 
-## 三层
+## 宿主适配器与无头 UI core
 
 ```
         ┌─────────────────────────────────────────────┐
         │  excel/excel-site        演示 / 门面站       │
         └───────────────────┬─────────────────────────┘
                             │ 组装
-        ┌───────────────────▼─────────────────────────┐
-        │  excel/solid-excel/src-vnext                │
-        │  Solid 组件、Provider、adapter（worker 胶水）│
-        └───────────────────┬─────────────────────────┘
-                            │ 依赖 atoms / 类型
+        ┌───────────────────▼─────────────────────────────────────┐
+        │ 宿主适配器                                               │
+        │ ├── excel/solid-excel/src-vnext  Solid 组件 / worker 胶水│
+        │ ├── excel/react-excel             React 私有部分适配器  │
+        │ └── excel/vue-excel               Vue 私有部分适配器    │
+        └───────────────────┬─────────────────────────────────────┘
+                            │ 都依赖 atoms / 类型
         ┌───────────────────▼─────────────────────────┐
         │  excel/spreadsheet-ui-core                  │
         │  atoms、类型、投影契约                       │
@@ -31,6 +33,19 @@ atom 清单、端口形状、用例覆盖，都在贴着代码的文档里（见
 上游 atom 引擎 `@einfach/core` / `@einfach/solid` 从 **npm** 安装，源码在
 [einfach 主仓](https://github.com/allroad88888888/einfach)，不在本仓。见
 [ADR 0002](decisions/0002-upstream-core-via-npm.md)。
+
+### 宿主适配器的包边界
+
+三个宿主包都以 workspace 依赖指向 `@einfach/spreadsheet-ui-core`；这个包是框架无关的 atom、
+类型与投影契约层。真实包名与源码路径如下：
+
+| 宿主  | 包名                   | 源码路径                      | 边界事实                                                      |
+| ----- | ---------------------- | ----------------------------- | ------------------------------------------------------------- |
+| Solid | `@einfach/solid-excel` | `excel/solid-excel/src-vnext` | Solid 的组件、Provider 与 worker adapter 在这里消费 UI core。 |
+| React | `@einfach/react-excel` | `excel/react-excel`           | 仓内私有 workspace，只实现了部分适配面。                      |
+| Vue   | `@einfach/vue-excel`   | `excel/vue-excel`             | 仓内私有 workspace，只实现了部分适配面。                      |
+
+React 与 Vue 两项仅用于记录仓内依赖和代码位置；它们不构成对外安装、发布就绪、功能完整度或支持状态的声明。
 
 ### 层的硬约束
 
@@ -58,10 +73,10 @@ grep -cE '^\s+[a-zA-Z][a-zA-Z0-9]*\?[(:]' excel/spreadsheet-ui-core/src/backend/
 
 两个参考实现都在 `excel/solid-excel/src-vnext/adapter/`：
 
-| 实现 | 用途 |
-|---|---|
-| `static-backend.ts` | 内存实现，供 smoke 测试与静态演示；同时是 parity 对照的「第二引擎」 |
-| `worker-workbook-backend.ts` | RPC 到持有 WASM `Workbook` 的 Web Worker |
+| 实现                         | 用途                                                                |
+| ---------------------------- | ------------------------------------------------------------------- |
+| `static-backend.ts`          | 内存实现，供 smoke 测试与静态演示；同时是 parity 对照的「第二引擎」 |
+| `worker-workbook-backend.ts` | RPC 到持有 WASM `Workbook` 的 Web Worker                            |
 
 变更请求带可选的 `requestId` / `revision` / `cancelToken`，worker 用它们丢弃过期工作。
 
@@ -73,7 +88,7 @@ grep -cE '^\s+[a-zA-Z][a-zA-Z0-9]*\?[(:]' excel/spreadsheet-ui-core/src/backend/
         → worker RPC → WASM → excel-core 重算依赖图
         → worker 回 ACK + 失效窗口
         → readVisibleProjection 重取可见窗口
-        → 投影 atom 更新 → Solid 组件重渲染
+        → 投影 atom 更新 → 对应宿主组件重渲染
 ```
 
 关键点：UI 侧**不预测**计算结果。乐观更新只发生在编辑缓冲区，落库值一律等引擎回话。
@@ -120,12 +135,12 @@ Rust/WASM 那侧的 dispatcher 与"用哪份 wasm 产物"是解耦的：消息�
 
 ## 细节去哪查
 
-| 想知道 | 去读 |
-|---|---|
+| 想知道                          | 去读                                                |
+| ------------------------------- | --------------------------------------------------- |
 | 某个 feature 的 atom 清单与归属 | `excel/spreadsheet-ui-core/src/<feature>/README.md` |
-| 某个功能点的 e2e 用例覆盖 | `excel/solid-excel/e2e/<feature>/CASES.md` |
-| feature 归引擎还是归 UI core | `excel/solid-excel/docs/CANONICAL_OWNERSHIP.md` |
-| 自定义公式引擎契约 | `excel/rust/excel-core/src/CUSTOM_FORMULAS.md` |
-| 双后端 parity 矩阵 | `excel/solid-excel/e2e/BACKEND_PARITY.md` |
-| 重大技术裁决及其理由 | `docs/decisions/` |
-| 历史战役记录（考古用） | 各包的 `docs/archive/INDEX.md` |
+| 某个功能点的 e2e 用例覆盖       | `excel/solid-excel/e2e/<feature>/CASES.md`          |
+| feature 归引擎还是归 UI core    | `excel/solid-excel/docs/CANONICAL_OWNERSHIP.md`     |
+| 自定义公式引擎契约              | `excel/rust/excel-core/src/CUSTOM_FORMULAS.md`      |
+| 双后端 parity 矩阵              | `excel/solid-excel/e2e/BACKEND_PARITY.md`           |
+| 重大技术裁决及其理由            | `docs/decisions/`                                   |
+| 历史战役记录（考古用）          | 各包的 `docs/archive/INDEX.md`                      |

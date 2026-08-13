@@ -10,10 +10,18 @@
 
 ## Why Einfach Excel?
 
-Spreadsheet interfaces are deceptively hard: a useful one must keep rendering, interaction, calculation, and data access responsive as workbooks grow. Einfach Excel keeps those responsibilities separate, so hosts can use the UI independently of the workbook implementation while the production integration runs calculation off the main thread.
+Spreadsheet interfaces are deceptively hard: rendering, interaction, calculation, and data access need distinct ownership. Einfach Excel keeps the UI separate from the workbook implementation through explicit backend and projection boundaries.
 
-- **Stay responsive at scale.** The UI requests a bounded visible-window projection instead of rendering the entire workbook. The live demo includes a 100,000-row sheet.
-- **Keep calculation off the main thread.** The Rust/WASM engine runs in a Web Worker, leaving the browser free for scrolling and editing.
+Scale-related behavior is expressed as current code contracts rather than headline measurements:
+
+- **Store records, not a geometric grid.** The workbook's row-and-column keyed storage and range traversal work from stored entries within the requested bounds.
+- **Keep display data inside an explicit rectangle.** The UI core validates visible-viewport and explicit-range requests, then rejects results that do not match the request or exceed its rectangle.
+- **Select range dependencies by geometry.** Formula ranges choose cell, row-band, column, or sheet invalidation roots through source-defined geometry rules.
+- **Keep oversized commands rectangular.** Clear and formatting attempt backend range capabilities above their address-expansion limits; unsupported requests are refused instead of expanded into cell actions.
+
+Read [scale facts](./docs/SCALE_FACTS.md) for code citations and [scale architecture](./docs/SCALE_ARCHITECTURE.md) for layer boundaries. These mechanisms make no performance, memory, capacity, transport, or production-SLA claim.
+
+- **Keep calculation off the main thread.** The provided worker-backed Solid integration runs Rust/WASM workbook work in a Web Worker.
 - **Choose your runtime.** `spreadsheet-ui-core` has no dependency on a DOM, Solid, React, a worker, or WASM. Connect it to the backend that fits your product.
 - **Start with real spreadsheet behavior.** The stack covers selection, editing, keyboard interaction, clipboard operations, formulas, history, find/replace, validation, filtering, sorting, comments, and more.
 

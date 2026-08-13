@@ -42,15 +42,19 @@ The UI core owns interaction state and the projection contract. A backend owns w
 
 ## Packages and crates
 
-| Location | Name | Purpose |
-| --- | --- | --- |
+| Location                     | Name                           | Purpose                                                                                      |
+| ---------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------- |
 | `excel/spreadsheet-ui-core/` | `@einfach/spreadsheet-ui-core` | Framework-agnostic atoms, types, interaction state, and visible-window projection contracts. |
-| `excel/solid-excel/` | `@einfach/solid-excel` | Solid.js spreadsheet components and static or worker-backed adapters. |
-| `excel/excel-core-ts/` | `@einfach/excel-core-ts` | TypeScript formula engine used for parity and as an alternate worker backend. |
-| `excel/rust/core/` | `einfach-core` | Rust implementation of the atom store. |
-| `excel/rust/excel-core/` | `einfach-excel-core` | Rust workbook and formula engine. |
-| `excel/rust/wasm/` | `einfach-wasm` | WASM bindings consumed by the Solid worker integration. |
-| `excel/excel-site/` | `@einfach/excel-site` | The static documentation and interactive demo site. |
+| `excel/solid-excel/`         | `@einfach/solid-excel`         | Solid.js spreadsheet components and static or worker-backed adapters.                        |
+| `excel/excel-core-ts/`       | `@einfach/excel-core-ts`       | TypeScript formula engine used for parity and as an alternate worker backend.                |
+| `excel/rust/core/`           | `einfach-core`                 | Rust implementation of the atom store.                                                       |
+| `excel/rust/excel-core/`     | `einfach-excel-core`           | Rust workbook and formula engine.                                                            |
+| `excel/rust/wasm/`           | `einfach-wasm`                 | WASM bindings consumed by the Solid worker integration.                                      |
+| `excel/excel-site/`          | `@einfach/excel-site`          | The static documentation and interactive demo site.                                          |
+
+### Framework integrations
+
+`@einfach/solid-excel` is the only currently provided UI-framework binding. `@einfach/spreadsheet-ui-core` is framework-agnostic, but that does not constitute an existing React or Vue integration: no React/Vue adapter package or usable integration path is currently provided.
 
 ## Use it when you need
 

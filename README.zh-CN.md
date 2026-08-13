@@ -42,15 +42,19 @@ UI 核心负责交互状态和投影契约，后端负责工作簿数据和写�
 
 ## 包与 crate
 
-| 位置 | 名称 | 职责 |
-| --- | --- | --- |
-| `excel/spreadsheet-ui-core/` | `@einfach/spreadsheet-ui-core` | 框架无关的 atoms、类型、交互状态与可视窗口投影契约。 |
-| `excel/solid-excel/` | `@einfach/solid-excel` | Solid.js 表格组件，以及 static / worker 后端适配器。 |
-| `excel/excel-core-ts/` | `@einfach/excel-core-ts` | TypeScript 公式引擎，用于一致性验证及另一种 worker 后端。 |
-| `excel/rust/core/` | `einfach-core` | atom store 的 Rust 实现。 |
-| `excel/rust/excel-core/` | `einfach-excel-core` | Rust 工作簿与公式引擎。 |
-| `excel/rust/wasm/` | `einfach-wasm` | 供 Solid worker 集成使用的 WASM 绑定。 |
-| `excel/excel-site/` | `@einfach/excel-site` | 静态文档和交互式演示站。 |
+| 位置                         | 名称                           | 职责                                                      |
+| ---------------------------- | ------------------------------ | --------------------------------------------------------- |
+| `excel/spreadsheet-ui-core/` | `@einfach/spreadsheet-ui-core` | 框架无关的 atoms、类型、交互状态与可视窗口投影契约。      |
+| `excel/solid-excel/`         | `@einfach/solid-excel`         | Solid.js 表格组件，以及 static / worker 后端适配器。      |
+| `excel/excel-core-ts/`       | `@einfach/excel-core-ts`       | TypeScript 公式引擎，用于一致性验证及另一种 worker 后端。 |
+| `excel/rust/core/`           | `einfach-core`                 | atom store 的 Rust 实现。                                 |
+| `excel/rust/excel-core/`     | `einfach-excel-core`           | Rust 工作簿与公式引擎。                                   |
+| `excel/rust/wasm/`           | `einfach-wasm`                 | 供 Solid worker 集成使用的 WASM 绑定。                    |
+| `excel/excel-site/`          | `@einfach/excel-site`          | 静态文档和交互式演示站。                                  |
+
+### 框架集成
+
+`@einfach/solid-excel` 是当前唯一已提供的 UI 框架绑定。`@einfach/spreadsheet-ui-core` 保持框架无关，但这不表示已经提供 React 或 Vue 集成：目前没有 React/Vue 适配器包或可用的集成路径。
 
 ## 适合的场景
 

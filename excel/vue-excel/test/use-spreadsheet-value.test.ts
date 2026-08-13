@@ -56,4 +56,17 @@ describe('useSpreadsheetValue', () => {
     expect(source.listenerCount()).toBe(0)
     expect(source.unsubscribeCalls()).toBe(1)
   })
+
+  it('disposes an unscoped bridge once and stops projecting later source updates', () => {
+    const source = createValueSource('A1')
+    const subscription = useSpreadsheetValue(source)
+
+    subscription.dispose()
+    subscription.dispose()
+    source.setValue('B2')
+
+    expect(source.listenerCount()).toBe(0)
+    expect(source.unsubscribeCalls()).toBe(1)
+    expect(subscription.value.value).toBe('A1')
+  })
 })

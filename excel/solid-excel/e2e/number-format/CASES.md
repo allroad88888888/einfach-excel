@@ -29,12 +29,14 @@ Wave 5 demo 走 static backend（TS 渲染管线，全类支持），双 project
 | NF-16 | Percent 的零/负分数 | 0 / −0.25 应用 Percent | "0%" / "-25%" | 🆕 本轮 | number-format-values.spec.ts #"percent format renders zero and negative fractions" |
 | NF-17 | Currency 的零/负数 | 0 / −1234.5 应用 Currency | "$0.00" / "$-1,234.50"（$ 字面量在符号前） | 🆕 本轮 | number-format-values.spec.ts #"currency format renders zero and negatives with grouping" |
 | NF-18 | 千分位→百分比整体替换 | NumberThousands 后再应用 Percent | "123450%"，无残留分组符 | 🆕 本轮 | number-format-values.spec.ts #"switching thousands to percent replaces the format wholesale" |
-| NF-20 | 自定义格式串自由输入→应用→重开保持 | 输入任意 pattern（如 `0.0"件"`）→应用→重开 | — | ⏳ P2 延后 | — Wave 5 UI 无自定义 pattern 输入入口：Format Cells 数字页 custom 类目为 "coming soon"（映射 general），轻量 more-formats 对话框未在 demo 接线（见 NF-08） |
+| NF-20 | 自定义格式串自由输入→应用→重开保持 | 输入 `0.0"件"`→检查预览→Save→重开 | 预览/单元格均为 `1234.5件`；重开 custom 选中且 pattern 保持 | 🆕 本轮（同一会话） | format-cells-roundtrip.spec.ts #"custom pattern edited in the dialog previews, saves, and reopens intact"（TS/WASM project） |
 | NF-21 | 正/负/零/文本四段式格式串 | `#,##0.00_);[Red](#,##0.00);"-";@` 类分段 | — | ⏳ P2 延后 | — 渲染管线（numberFormatParser splitSections）已支持分段与 [Red]，缺 NF-20 的输入入口；红色负数经 `negative: 'red'` 变体同样无 UI 入口 |
 | NF-22 | locale 相关渲染 | 切 locale 后千分位符/小数点符变化 | — | ⏳ P2 延后 | — resolveLocale 已实现，demo 未暴露数字格式 locale 切换入口（`?locale=` 只切 i18n 文案） |
 
 覆盖统计：存量 8 行（映射 2 个 spec 文件；其中 toolbar-more-number-formats 全档挂起）、本轮
-新增 9（2 个新 spec 文件、9 用例）、延后 3。
+新增 10（2 个新 spec 文件、10 用例）、延后 2。
+
+NF-20 仅验证当前会话的保存/重开；TS backend 的跨重启格式持久化不属于本项交付，不能据此宣称与 WASM persistence parity。
 
 关联：数字格式的下拉 16 行结构、Esc/外点、%$ 快捷键在 `../format/audit-format.spec.ts`
 （#"Format audit — number format"、#"Univer-parity shortcuts"）也有覆盖，登记见

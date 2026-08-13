@@ -124,6 +124,31 @@ test.describe('Number format — Format Cells dialog round trip', () => {
     await expect(cellDisplay(page, 'B2')).toHaveText('1234.500')
   })
 
+  test('custom pattern edited in the dialog previews, saves, and reopens intact', async ({
+    page,
+  }) => {
+    await gotoWave5(page)
+    await typeIntoCell(page, 'B2', '1234.5')
+    await cell(page, 'B2').click()
+
+    await openDialogViaCustomRow(page)
+    const custom = page.getByTestId('format-cells-category-custom')
+    await expect(custom).toBeEnabled()
+    await custom.check()
+    const pattern = page.getByTestId('format-cells-custom-pattern')
+    await expect(pattern).toHaveValue('#,##0.00')
+    await pattern.fill('0.0"件"')
+    await expect(page.getByTestId('format-cells-number-preview')).toHaveText('1234.5件')
+    await saveDialog(page)
+    await expect(cellDisplay(page, 'B2')).toHaveText('1234.5件')
+
+    await openDialogViaCustomRow(page)
+    await expect(custom).toBeChecked()
+    await expect(pattern).toHaveValue('0.0"件"')
+    await cancelDialog(page)
+    await expectNoConsoleErrors(page)
+  })
+
   test('percent applied from the dropdown reopens as percentage and Save keeps digits', async ({
     page,
   }) => {

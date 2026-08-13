@@ -106,6 +106,24 @@ export function FormatCellsNumberPanel(props: FormatCellsNumberPanelProps) {
           />
         </label>
       </Show>
+      <Show when={props.category() === 'custom'}>
+        <label class="format-cells-row">
+          <span>{props.t('formatCells.number.pattern')}</span>
+          <input
+            type="text"
+            data-testid="format-cells-custom-pattern"
+            value={(() => {
+              const format = props.draft()?.numberFormat
+              return format?.kind === 'custom' ? format.pattern : '#,##0.00'
+            })()}
+            onInput={(event) =>
+              props.patch({
+                numberFormat: { kind: 'custom', pattern: event.currentTarget.value },
+              })
+            }
+          />
+        </label>
+      </Show>
     </div>
   )
 }

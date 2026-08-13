@@ -1,4 +1,5 @@
 import type { FormatCellsDraft, FormatCellsNumberCategory, SpreadsheetNumberFormat } from './types'
+import { formatNumberValue } from '../operations/format/numberFormat'
 
 /** Resolve the editor category without narrowing forward-compatible format kinds. */
 export function detectFormatCellsNumberCategory(
@@ -40,6 +41,8 @@ export function numberFormatForCategory(
       return { kind: 'percent', digits: 2 }
     case 'date':
       return { kind: 'date', pattern: 'yyyy-MM-dd' }
+    case 'custom':
+      return { kind: 'custom', pattern: '#,##0.00' }
     default:
       return { kind: 'general' }
   }
@@ -58,6 +61,7 @@ export function formatCellsPreviewText(draft: FormatCellsDraft | null): string {
   const category = detectFormatCellsNumberCategory(draft)
   const format = draft?.numberFormat
   const digits = safeDigits(format)
+  if (format?.kind === 'custom') return formatNumberValue(format, sample).text
   switch (category) {
     case 'number':
       return sample.toFixed(digits)

@@ -40,6 +40,7 @@ export const SUPPORTED_CATEGORIES: ReadonlySet<FormatCellsNumberCategory> = new 
   'currency',
   'date',
   'percentage',
+  'custom',
 ])
 
 export const BORDER_STYLES: readonly SpreadsheetBorderStyle[] = [

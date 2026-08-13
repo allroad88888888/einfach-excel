@@ -1,2 +1,5 @@
+export { SpreadsheetUiProvider } from './spreadsheet-ui-provider'
+export { useSpreadsheetUiCore } from './spreadsheet-ui-context'
 export { useSpreadsheetValue } from './use-spreadsheet-value'
+export type { SpreadsheetUiProviderProps } from './spreadsheet-ui-provider'
 export type { SpreadsheetValueSource } from './use-spreadsheet-value'

@@ -12,6 +12,10 @@
     }
   },
   "sideEffects": false,
+  "dependencies": {
+    "@einfach/core": "^0.4.0",
+    "@einfach/spreadsheet-ui-core": "workspace:*"
+  },
   "peerDependencies": {
     "react": ">=18.0.0"
   },

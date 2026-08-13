@@ -194,6 +194,12 @@ importers:
 
   excel/react-excel:
     dependencies:
+      '@einfach/core':
+        specifier: ^0.4.0
+        version: 0.4.0
+      '@einfach/spreadsheet-ui-core':
+        specifier: workspace:*
+        version: link:../spreadsheet-ui-core
       react:
         specifier: '>=18.0.0'
         version: 18.3.1

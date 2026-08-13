@@ -12,7 +12,7 @@ interface ReactExcelPackageJson {
 const packageJson = jest.requireActual('../package.json') as ReactExcelPackageJson
 
 describe('@einfach/react-excel package entry', () => {
-  it('keeps the package private while exposing the subscription bridge', () => {
+  it('keeps the package private while exposing the React bridges', () => {
     expect(packageJson.name).toBe('@einfach/react-excel')
     expect(packageJson.private).toBe(true)
     expect(packageJson.peerDependencies).toEqual({ react: '>=18.0.0' })
@@ -22,6 +22,8 @@ describe('@einfach/react-excel package entry', () => {
       default: './src/index.ts',
     })
     expect(packageEntry).toEqual({
+      SpreadsheetUiProvider: expect.any(Function),
+      useSpreadsheetUiCore: expect.any(Function),
       useSpreadsheetValue: expect.any(Function),
     })
   })

@@ -1,9 +1,11 @@
 export { SpreadsheetUiProvider } from './spreadsheet-ui-provider'
+export { SpreadsheetFrozenGridView } from './SpreadsheetFrozenGridView'
 export { SpreadsheetGridView } from './SpreadsheetGridView'
 export { getSpreadsheetGridGeometry } from './spreadsheet-grid-geometry'
 export { useSpreadsheetUiCore } from './spreadsheet-ui-context'
 export { useSpreadsheetValue } from './use-spreadsheet-value'
 export { useSpreadsheetViewport } from './use-spreadsheet-viewport'
+export type { SpreadsheetFrozenGridViewProps } from './SpreadsheetFrozenGridView'
 export type { SpreadsheetGridViewProps } from './SpreadsheetGridView'
 export type {
   SpreadsheetGridAxisInterval,

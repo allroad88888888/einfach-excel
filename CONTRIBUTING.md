@@ -6,20 +6,27 @@
 
 - Node.js >= 18（CI 覆盖 18 与 20）
 - [pnpm](https://pnpm.io/) 10
-- Rust 工具链 + `wasm32-unknown-unknown` target + [wasm-pack](https://rustwasm.github.io/wasm-pack/)
+- 完整构建或涉及 Worker 的验证还需要 Rust 工具链、`wasm32-unknown-unknown` target 与
+  [wasm-pack](https://rustwasm.github.io/wasm-pack/)
 
 ## 开始
 
 ```bash
-git clone git@github.com:allroad88888888/einfach-excel.git
+git clone https://github.com/allroad88888888/einfach-excel.git
 cd einfach-excel
 pnpm install
 ```
 
+已配置 GitHub SSH 的贡献者也可以使用：
+
+```bash
+git clone git@github.com:allroad88888888/einfach-excel.git
+```
+
 ## 没有 Rust/wasm 工具链时的贡献
 
-Rust 工具链、`wasm32-unknown-unknown` target 和 `wasm-pack` 只在改动需要构建 Rust/WASM Worker 时必需。未安装这些
-工具的贡献者仍可处理文档、链接、契约说明，以及不依赖生成 Worker 产物的 TypeScript/Solid 代码或定向测试。
+未安装 Rust 工具链、`wasm32-unknown-unknown` target 和 `wasm-pack` 的贡献者，仍可处理文档、链接、契约说明，以及不依赖
+生成 Worker 产物的 TypeScript/Solid 代码或定向测试。
 
 提交前，请按改动范围运行不需要 Worker 构建的检查，例如：
 
@@ -30,18 +37,18 @@ pnpm typecheck:apps
 pnpm exec jest path/to/file.test.ts --no-coverage
 ```
 
-只运行与改动相关且可在本机执行的命令；完整 `pnpm build` 会通过 `ensureWasm` 构建 Worker，不适用于此路径。若改动或其
-验证需要生成的 Worker，请在 PR 中说明未运行的 Rust/WASM 验证，并请求具备该工具链的维护者或 CI 补跑。提交 PR 时列出已运行
-命令及结果，随后遵循下方开发流程。
+只运行与改动相关且可在本机执行的命令。完整 `pnpm build` 会先通过 `ensureWasm` 检查 Worker 产物，缺失时调用
+`build:wasm`；它不属于本路径。任何 Worker、浏览器 Worker 或生成 WASM 产物相关的验证，都必须在具备该工具链的本机或 CI 中
+执行。若本地不具备工具链，请在 PR 中列出未运行的 Rust/WASM 验证和已运行命令，交由具备工具链的维护者或 CI 补跑。
 
 ## 开发流程
 
 1. Fork 并克隆仓库
 2. 创建特性分支：`git checkout -b feat/my-feature`
-3. 构建：`npm run build`
-4. 运行测试：`npm test`；lint：`npm run lint:check`
-5. 需要发版的改动：`npx changeset`
-6. 提交变更并创建 Pull Request
+3. 按可用的验证路径执行检查：具备 Rust/WASM 工具链时运行 `pnpm build`、`pnpm test` 和
+   `pnpm lint:check`；否则仅运行上一节列出的不依赖 Worker 的定向检查
+4. 需要发版的改动：`pnpm exec changeset`
+5. 提交变更并创建 Pull Request，列出已运行和未运行的验证
 
 ## 项目结构
 
@@ -68,8 +75,8 @@ excel/rust/wasm/           → einfach-wasm (crate)          # WASM 绑定
   拆分就是本次改动的一部分
 
 ```bash
-npm run lint:check   # 只检查
-npm run eslint       # 检查并自动修
+pnpm lint:check   # 只检查
+pnpm eslint       # 检查并自动修
 ```
 
 ## 文档规则
@@ -97,7 +104,7 @@ npm run eslint       # 检查并自动修
 这两件事有门禁，本地和 CI 跑同一份（pre-commit 也会跑）：
 
 ```bash
-npm run check:docs
+pnpm check:docs
 ```
 
 它检查活文档的相对链接是否存在，以及是否出现已知的失效路径形态（拆仓迁出的 `core/*`、
@@ -110,21 +117,21 @@ npm run check:docs
 使用 [Changesets](https://github.com/changesets/changesets)：
 
 ```bash
-npx changeset          # 创建变更集
-npx changeset version  # 更新版本号
-npx changeset publish  # 发布到 npm
+pnpm exec changeset          # 创建变更集
+pnpm exec changeset version  # 更新版本号
+pnpm exec changeset publish  # 发布到 npm
 ```
 
 ## 测试
 
 ```bash
-npm test                                              # 全量（含覆盖率）
-npx jest path/to/file.test.ts                         # 单个文件
-npx jest excel/spreadsheet-ui-core --no-coverage      # 分区套件
-npx jest excel/solid-excel --no-coverage
+pnpm test                                                   # 全量（含覆盖率）
+pnpm exec jest path/to/file.test.ts --no-coverage           # 单个文件
+pnpm exec jest excel/spreadsheet-ui-core --no-coverage       # 分区套件
+pnpm exec jest excel/solid-excel --no-coverage
 
-npm run e2e:install -w @einfach/solid-excel           # 首次装浏览器
-NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach/solid-excel
+pnpm --filter @einfach/solid-excel e2e:install              # 首次装浏览器
+NO_PROXY=localhost,127.0.0.1 pnpm --filter @einfach/solid-excel e2e
 ```
 
 ## 许可证

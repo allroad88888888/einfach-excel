@@ -6,7 +6,7 @@
     "jsxImportSource": "solid-js",
     "moduleResolution": "Bundler"
   },
-  "include": ["src/**/*", "src-vnext/**/*", "test/**/*"],
+  "include": ["src/**/*", "src-vnext/**/*", "test/**/*", "vanilla-editing-poc/**/*"],
   "references": [
     {
       "path": "../../excel/spreadsheet-ui-core"

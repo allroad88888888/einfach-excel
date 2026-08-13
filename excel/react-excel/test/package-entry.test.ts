@@ -23,6 +23,7 @@ describe('@einfach/react-excel package entry', () => {
     })
     expect(packageEntry).toEqual({
       SpreadsheetGridView: expect.any(Function),
+      SpreadsheetFrozenGridView: expect.any(Function),
       SpreadsheetUiProvider: expect.any(Function),
       getSpreadsheetGridGeometry: expect.any(Function),
       useSpreadsheetUiCore: expect.any(Function),

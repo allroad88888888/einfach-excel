@@ -17,8 +17,8 @@ import {
  *
  * Rule templates pinned from `defaultRuleForKind`:
  * - cell-value → `gt 0`, bgColor #fef3c7 → rgb(254, 243, 199)
- * - color-scale → matches any numeric cell, bgColor = maxColor #00ff00
- *   → rgb(0, 255, 0) (flat color, no gradient in this wave)
+ * - color-scale → matches numeric cells, interpolates over its complete
+ *   scoped range, and uses maxColor #00ff00 for a one-value range
  */
 
 const RULE1_BG = 'rgb(254, 243, 199)' // #fef3c7 (cell-value gt 0)
@@ -105,6 +105,24 @@ test.describe('Conditional format — thresholds, priority, rule list', () => {
     // Non-numeric text matches neither rule → unpainted.
     await typeIntoCell(page, 'B2', 'north-ish')
     await expect(cell(page, 'B2')).toHaveAttribute('data-has-conditional-format', 'false')
+  })
+
+  test('a color scale visibly interpolates across every numeric cell in its selected range', async ({
+    page,
+  }) => {
+    await gotoWave5(page)
+
+    // B2:B5 contains 120, 80, 200 and 140. Its full domain is 80..200;
+    // the defaults therefore paint min/mid/max as red/olive/green.
+    await cell(page, 'B2').click()
+    await cell(page, 'B5').click({ modifiers: ['Shift'] })
+    await saveRuleOfKind(page, 'color-scale')
+
+    await expect(cell(page, 'B3')).toHaveAttribute('data-has-conditional-format', 'true')
+    await expect(cell(page, 'B4')).toHaveAttribute('data-has-conditional-format', 'true')
+    expect(await backgroundOf(page, 'B3')).toBe('rgb(255, 0, 0)')
+    expect(await backgroundOf(page, 'B5')).toBe('rgb(128, 128, 0)')
+    expect(await backgroundOf(page, 'B4')).toBe(RULE2_BG)
   })
 
   test('the dialog rule list grows with each save and shows kind + priority', async ({ page }) => {

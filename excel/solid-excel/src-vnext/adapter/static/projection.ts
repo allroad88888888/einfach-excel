@@ -6,6 +6,7 @@ import type {
   VisibleProjectionResult,
 } from '@einfach/spreadsheet-ui-core'
 import { DEFAULT_WORKBOOK_LOCALE, cloneFormat, keyFor } from '@einfach/spreadsheet-ui-core'
+import { collectColorScaleDomains } from '../color-scale-projection'
 import type { EvalCellLookup } from '../static-formula-eval'
 import type { StaticProjectionRequest, StaticProjectionResult } from '../types'
 import { compareCells, isCellInsideRange } from './cell-map'
@@ -38,6 +39,18 @@ export function buildProjectionResult(
     hiddenRows: evalHiddenRowsForSheet(state, request.sheetId),
     filterHiddenRows,
   }
+  const projectCell = (cell: DisplayCell) =>
+    projectSourceCell(cell, {
+      displayRow: cell.row,
+      displayCol: cell.col,
+      lookup,
+      cellFormats,
+      rangeFormats,
+      workbookLocale,
+    })
+  const colorScaleDomains = conditionalRules.some((entry) => entry.rule.kind === 'color-scale')
+    ? collectColorScaleDomains(conditionalRules, [...sheetCells.values()].map(projectCell))
+    : new Map()
 
   // Excel hidden-row semantics: display row IS source row. A filter no longer
   // compacts survivors into consecutive slots; it withholds the hidden rows and
@@ -47,14 +60,7 @@ export function buildProjectionResult(
   for (const cell of sheetCells.values()) {
     if (!isCellInsideRange(cell, range)) continue
     if (filterHiddenRows?.has(cell.row)) continue
-    const clone = projectSourceCell(cell, {
-      displayRow: cell.row,
-      displayCol: cell.col,
-      lookup,
-      cellFormats,
-      rangeFormats,
-      workbookLocale,
-    })
+    const clone = projectCell(cell)
     resultCellMap.set(keyFor(clone.row, clone.col), clone)
   }
 
@@ -65,6 +71,7 @@ export function buildProjectionResult(
       cell.col,
       cell,
       conditionalRules,
+      colorScaleDomains,
     )
     if (conditionalFormat) {
       resultCellMap.set(cellKey, {

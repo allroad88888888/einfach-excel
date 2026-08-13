@@ -58,7 +58,8 @@ impl WasmWorkbook {
     /// Formula cells are serialized using their source (`=...`), preserving lazy
     /// evaluation contracts during restore.
     pub fn snapshot_persistence_v1(&self) -> Result<JsValue, JsValue> {
-        serde_wasm_bindgen::to_value(&self.snapshot_persistence_v1_json())
+        self.snapshot_persistence_v1_json()
+            .serialize(&serde_wasm_bindgen::Serializer::json_compatible())
             .map_err(|err| JsValue::from_str(&format!("serialize persistence v1 snapshot: {err}")))
     }
 

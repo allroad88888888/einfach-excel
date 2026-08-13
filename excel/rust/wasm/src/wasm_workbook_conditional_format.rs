@@ -10,8 +10,7 @@ impl WasmWorkbook {
             .map_err(|error| JsValue::from_str(&error.to_string()))?;
         let wire = ConditionalFormatConfigSnapshotJSON::from_snapshot(&snapshot)
             .map_err(|error| JsValue::from_str(&error))?;
-        serde_wasm_bindgen::to_value(&wire)
-            .map_err(|error| JsValue::from_str(&format!("serialize conditional formats: {error}")))
+        conditional_format_wire_to_js(&wire)
     }
 
     #[wasm_bindgen(js_name = setConditionalFormatRule)]
@@ -42,8 +41,7 @@ impl WasmWorkbook {
             .map_err(|error| JsValue::from_str(&error.to_string()))?;
         let wire = ConditionalFormatConfigSnapshotJSON::from_snapshot(&snapshot)
             .map_err(|error| JsValue::from_str(&error))?;
-        serde_wasm_bindgen::to_value(&wire)
-            .map_err(|error| JsValue::from_str(&format!("serialize conditional formats: {error}")))
+        conditional_format_wire_to_js(&wire)
     }
 
     #[wasm_bindgen(js_name = removeConditionalFormatRule)]
@@ -62,8 +60,7 @@ impl WasmWorkbook {
             .map_err(|error| JsValue::from_str(&error.to_string()))?;
         let wire = ConditionalFormatConfigSnapshotJSON::from_snapshot(&snapshot)
             .map_err(|error| JsValue::from_str(&error))?;
-        serde_wasm_bindgen::to_value(&wire)
-            .map_err(|error| JsValue::from_str(&format!("serialize conditional formats: {error}")))
+        conditional_format_wire_to_js(&wire)
     }
 
     fn conditional_formats_json(&self) -> Result<Vec<ConditionalFormatConfigSnapshotJSON>, String> {
@@ -90,6 +87,13 @@ impl WasmWorkbook {
         }
         Ok(parsed)
     }
+}
+
+fn conditional_format_wire_to_js(
+    wire: &ConditionalFormatConfigSnapshotJSON,
+) -> Result<JsValue, JsValue> {
+    wire.serialize(&serde_wasm_bindgen::Serializer::json_compatible())
+        .map_err(|error| JsValue::from_str(&format!("serialize conditional formats: {error}")))
 }
 
 fn next_conditional_format_rule_id(snapshot: &ConditionalFormatConfigSnapshot) -> String {

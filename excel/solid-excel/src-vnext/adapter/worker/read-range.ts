@@ -4,6 +4,7 @@ import type { CellRange, DisplayCell, ProjectionRevision } from '@einfach/spread
 import { runtimeSupports } from './capabilities'
 import { applyConditionalFormatOverlay } from './conditional-format-overlay'
 import { readConditionalFormatConfig } from './conditional-format-client'
+import { readColorScaleDomains } from './color-scale-domains'
 import { emptyFormatRangeSnapshot, mergeFormatsIntoCells } from './format-overlay'
 import { applyMergeOverlay } from './merge-overlay'
 import { applyNumberFormatsToCells } from './number-format'
@@ -43,11 +44,18 @@ export async function readRange(
     range,
     state.validationRulesBySheetId.get(sheetId) ?? [],
   )
+  const colorScaleDomains = await readColorScaleDomains(
+    state,
+    sheet.idx,
+    conditionalConfig.rules,
+    range,
+  )
 
   const conditionalCells = applyConditionalFormatOverlay(
     validatedCells,
     conditionalConfig.rules,
     range,
+    colorScaleDomains,
   )
   // #04 merge overlay joins last. Source coordinates == display coordinates on
   // every path now, so merges are no longer withheld under an active filter:

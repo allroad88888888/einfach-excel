@@ -14,7 +14,14 @@ import {
   isCoordInsideRange,
   numericValue,
 } from '@einfach/spreadsheet-ui-core'
+import {
+  colorScaleFormat,
+  colorScaleNumericValue,
+  type ColorScaleDomains,
+} from '../color-scale-projection'
 import { rangesIntersect } from './range-overlap'
+
+const EMPTY_COLOR_SCALE_DOMAINS: ColorScaleDomains = new Map()
 
 function conditionalRuleAppliesToCell(
   rule: ConditionalFormatRule,
@@ -26,8 +33,9 @@ function conditionalRuleAppliesToCell(
       return compareCellValue(value, rule.operator, rule.value, rule.value2)
     case 'formula':
       return rule.formula.trim().length > 0
-    case 'data-bar':
     case 'color-scale':
+      return colorScaleNumericValue(cell) !== null
+    case 'data-bar':
     case 'top-bottom':
       return numericValue(value) !== null
   }
@@ -41,11 +49,19 @@ function getConditionalFormatForCell(
   col: number,
   cell: DisplayCell | undefined,
   orderedRules: readonly ConditionalFormatRuleEntry[],
+  colorScaleDomains: ColorScaleDomains,
 ): SpreadsheetCellFormat | undefined {
   for (const entry of orderedRules) {
     if (!isCoordInsideRange(row, col, entry.scope.range)) continue
     if (!conditionalRuleAppliesToCell(entry.rule, cell)) continue
-    const format = conditionalRuleFormat(entry.rule)
+    const format =
+      entry.rule.kind === 'color-scale'
+        ? colorScaleFormat(
+            entry.rule,
+            colorScaleNumericValue(cell)!,
+            colorScaleDomains.get(entry.id),
+          )
+        : conditionalRuleFormat(entry.rule)
     if (format) return format
   }
   return undefined
@@ -64,6 +80,7 @@ export function applyConditionalFormatOverlay(
   cells: DisplayCell[],
   rules: readonly ConditionalFormatRuleEntry[],
   window: CellRange,
+  colorScaleDomains: ColorScaleDomains = EMPTY_COLOR_SCALE_DOMAINS,
 ): DisplayCell[] {
   if (rules.length === 0) return cells
   const ordered = rules
@@ -71,7 +88,13 @@ export function applyConditionalFormatOverlay(
     .sort((left, right) => left.priority - right.priority)
   if (ordered.length === 0) return cells
   return cells.map((cell) => {
-    const conditionalFormat = getConditionalFormatForCell(cell.row, cell.col, cell, ordered)
+    const conditionalFormat = getConditionalFormatForCell(
+      cell.row,
+      cell.col,
+      cell,
+      ordered,
+      colorScaleDomains,
+    )
     if (!conditionalFormat) return cell
     return {
       ...cell,

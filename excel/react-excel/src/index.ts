@@ -10,6 +10,7 @@ export { useSpreadsheetKeyboardNavigation } from './use-spreadsheet-keyboard-nav
 export { useSpreadsheetEditing } from './use-spreadsheet-editing'
 export { useSpreadsheetImeComposition } from './use-spreadsheet-ime-composition'
 export { useSpreadsheetFormulaBar } from './use-spreadsheet-formula-bar'
+export { useSpreadsheetNameBox } from './use-spreadsheet-name-box'
 export type { SpreadsheetGridViewProps } from './SpreadsheetGridView'
 export type { SpreadsheetFrozenGridViewProps } from './SpreadsheetFrozenGridView'
 export type {
@@ -26,6 +27,12 @@ export type {
 } from './use-spreadsheet-keyboard-navigation'
 export type { SpreadsheetEditing } from './use-spreadsheet-editing'
 export type { SpreadsheetFormulaBar } from './use-spreadsheet-formula-bar'
+export type {
+  NameBoxScrollTarget,
+  SpreadsheetNameBox,
+  SpreadsheetNameBoxState,
+  UseSpreadsheetNameBoxOptions,
+} from './use-spreadsheet-name-box'
 export type {
   SpreadsheetImeCompositionHandlers,
   UseSpreadsheetImeCompositionOptions,

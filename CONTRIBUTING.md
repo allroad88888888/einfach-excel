@@ -43,12 +43,42 @@ pnpm exec jest path/to/file.test.ts --no-coverage
 
 ## 开发流程
 
-1. Fork 并克隆仓库
-2. 创建特性分支：`git checkout -b feat/my-feature`
+面向外部 Pull Request，请从自己的 fork 开始，而不是向 canonical 仓库直接推送：
+
+1. 在 GitHub 上 fork
+   [`allroad88888888/einfach-excel`](https://github.com/allroad88888888/einfach-excel)，然后克隆自己的
+   fork 并配置 canonical 仓库为 `upstream`：
+
+   ```bash
+   git clone https://github.com/<你的账号>/einfach-excel.git
+   cd einfach-excel
+   git remote add upstream https://github.com/allroad88888888/einfach-excel.git
+   git fetch upstream
+   ```
+
+2. 从 canonical 的 `main` 创建特性分支，并安装依赖：
+
+   ```bash
+   git switch --create feat/my-feature upstream/main
+   pnpm install
+   ```
+
 3. 按可用的验证路径执行检查：具备 Rust/WASM 工具链时运行 `pnpm build`、`pnpm test` 和
-   `pnpm lint:check`；否则仅运行上一节列出的不依赖 Worker 的定向检查
-4. 需要发版的改动：`pnpm exec changeset`
-5. 提交变更并创建 Pull Request，列出已运行和未运行的验证
+   `pnpm lint:check`；否则仅运行上一节列出的不依赖 Worker 的定向检查。
+
+4. 需要发版的改动：`pnpm exec changeset`。
+
+5. 提交并推送特性分支：
+
+   ```bash
+   git add <改动文件>
+   git commit -m "简要说明改动"
+   git push --set-upstream origin feat/my-feature
+   ```
+
+6. 在 GitHub 创建 Pull Request：base repository 选择
+   `allroad88888888/einfach-excel`、base branch 选择 `main`，head repository 选择自己的 fork，head branch
+   选择 `feat/my-feature`。PR 描述应列出已运行和未运行的验证；面向 `main` 的 PR 会触发仓库的 CI。
 
 ## 项目结构
 

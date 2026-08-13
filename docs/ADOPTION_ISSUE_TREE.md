@@ -34,7 +34,7 @@
 
 | 总叶子 | 完成并独立验收 |               验收契约阻塞 | 未开始（含待决策） |        其中待决策 |
 | -----: | -------------: | -------------------------: | -----------------: | ----------------: |
-|    235 |             69 | 1（AD-505 验收契约待明确） |                165 | 5（AD-100/D1~D5） |
+|    235 |             72 | 1（AD-505 验收契约待明确） |                162 | 5（AD-100/D1~D5） |
 
 “其中待决策”是“未开始”的子集，不额外计入总叶子。AD-505 在明确基准页路由、启动方式、场景登记与无场景行为的验收契约前保持阻塞，不能记为完成。
 
@@ -48,8 +48,8 @@
     - AD-129~135 版本与发布流程
     - AD-136~142 本地 registry 与装机冒烟
   - [**AD-200 让人五分钟内跑起来**](adoption-issues/AD-200-onboarding.md) —— 受 AD-100 全组阻塞
-  - [**AD-300 框架适配层（React / Vue）**](adoption-issues/AD-300-framework-adapters.md) —— AD-311~325、AD-331~332、AD-334、AD-361~363 完成；其余独立长线
-  - [**AD-400 定位与可信度**](adoption-issues/AD-400-positioning.md) —— AD-401、AD-403~406、AD-408~412、AD-416~420 完成；其余可与 AD-100 并行
+  - [**AD-300 框架适配层（React / Vue）**](adoption-issues/AD-300-framework-adapters.md) —— AD-311~325、AD-331~334、AD-361~364 完成；其余独立长线
+  - [**AD-400 定位与可信度**](adoption-issues/AD-400-positioning.md) —— AD-401~406、AD-408~412、AD-416~420 完成；其余可与 AD-100 并行
   - [**AD-500 可验证的性能证据**](adoption-issues/AD-500-performance.md) —— AD-501~504、AD-509、AD-514、AD-516、AD-517 完成；AD-505 等待验收契约明确，其余未开始
   - [**AD-600 内容与渠道**](adoption-issues/AD-600-content-channels.md) —— 依赖 AD-100、AD-400
   - [**AD-700 承接进来的人**](adoption-issues/AD-700-community.md) —— AD-701、AD-702、AD-705、AD-706、AD-708~710、AD-713 完成
@@ -76,11 +76,14 @@
 | AD-325 | 档 1 范围冻结             | `41ddb19`                                  |
 | AD-331 | React 包骨架              | `db0637c`                                  |
 | AD-332 | React 订阅桥              | `44be7f3`、`dd2afcd`                       |
+| AD-333 | React 并发正确性验证      | `5a780b5`                                  |
 | AD-334 | React UI Provider         | `5cc47852b2522748bee5bcadfd8873c695411cd7` |
 | AD-361 | Vue 包骨架                | `a95b0b0`                                  |
 | AD-362 | Vue 订阅桥                | `0434370`                                  |
 | AD-363 | Vue 订阅回收验证          | `8462820`                                  |
+| AD-364 | Vue Provider/context      | `cfaabbb`                                  |
 | AD-401 | 一句话定位定稿            | `a908ba8`                                  |
+| AD-402 | 与 Univer 的差异段        | `d3f9504`                                  |
 | AD-403 | 定位的诚实边界            | `639934abcaed18f0f9cfd839160634cd19ad8f1b` |
 | AD-404 | 非规模产品对比维度        | `e951719`                                  |
 | AD-405 | Univer 产品事实证据       | `29e921d`                                  |

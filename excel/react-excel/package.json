@@ -9,6 +9,11 @@
       "types": "./src/index.ts",
       "import": "./src/index.ts",
       "default": "./src/index.ts"
+    },
+    "./pointer-selection": {
+      "types": "./src/use-spreadsheet-pointer-selection.ts",
+      "import": "./src/use-spreadsheet-pointer-selection.ts",
+      "default": "./src/use-spreadsheet-pointer-selection.ts"
     }
   },
   "sideEffects": false,

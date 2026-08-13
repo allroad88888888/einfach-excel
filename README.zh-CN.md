@@ -109,6 +109,21 @@ NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach/solid-excel
 
 每个端到端功能目录中的 `CASES.md` 都是该功能测试范围的权威说明。
 
+### 可复跑验证
+
+在仓库 checkout 中先执行 `pnpm install`，再运行以下命令。这些命令提供可复跑的执行路径，并不表示当前结果；结果取决于所 checkout 的修订版本与本机环境。
+
+```bash
+npm test
+
+# 运行浏览器端到端测试前安装 Chromium。
+pnpm --dir excel/solid-excel run e2e:install
+NO_PROXY=localhost,127.0.0.1 pnpm --dir excel/solid-excel run e2e -- --project=wasm
+NO_PROXY=localhost,127.0.0.1 pnpm --dir excel/solid-excel run e2e -- --project=ts
+```
+
+验证证据的范围、测量方法、非保证事项与环境记录分别见[决策 0008](./docs/decisions/0008-public-performance-evidence-scope.md)、[决策 0009](./docs/decisions/0009-public-performance-measurement-methodology.md)、[决策 0010](./docs/decisions/0010-public-performance-non-guarantees.md)与[决策 0011](./docs/decisions/0011-public-performance-environment-record.md)。两种后端的 E2E 覆盖范围与已记录例外见[后端一致性矩阵](./excel/solid-excel/e2e/BACKEND_PARITY.md)。
+
 ## 文档
 
 - [架构](./docs/ARCHITECTURE.md)：分层、数据流和 backend-port 契约。

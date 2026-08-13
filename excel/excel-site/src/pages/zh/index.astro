@@ -6,7 +6,10 @@ import { demos } from '../../data/demo-catalog'
 import { sitePath } from '../../data/site-path'
 
 type ContentModule = { frontmatter: { title: string; summary: string } }
-const documents = import.meta.glob('../../content/demos/zh/*.md', { eager: true }) as Record<string, ContentModule>
+const documents = import.meta.glob('../../content/demos/zh/*.md', { eager: true }) as Record<
+  string,
+  ContentModule
+>
 const cards = demos.map((demo) => ({
   ...demo,
   ...documents['../../content/demos/zh/' + demo.id + '.md'].frontmatter,
@@ -17,9 +20,10 @@ const cards = demos.map((demo) => ({
   <main class="page">
     <section class="hero">
       <p class="eyebrow">EINFACH · SPREADSHEET STACK</p>
-      <h1>只画看得见的，只算用得着的。</h1>
+      <h1>Einfach Excel 是一个具备有界投影契约和 Rust/WASM 工作簿引擎的电子表格 UI 核心。</h1>
       <p>
-        Rust/WASM 工作簿引擎运行在 Web Worker 中。静态页面解释架构，下面的 island 则直接运行真实表格。
+        Rust/WASM 工作簿引擎运行在 Web Worker 中。静态页面解释架构，下面的 island
+        则直接运行真实表格。
       </p>
       <div class="hero-links">
         <a class="button-link" href={sitePath('zh/demos/viewport-projection/')}>看投影视口</a>

@@ -4,7 +4,7 @@
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Live demo](https://img.shields.io/badge/demo-live-0a7f5a.svg)](https://allroad88888888.github.io/einfach-excel/)
 
-**Build responsive spreadsheet experiences for the web.** Einfach Excel combines a framework-agnostic spreadsheet UI core, a Rust/WASM workbook and formula engine, and a production-ready Solid.js surface.
+**Einfach Excel is a spreadsheet UI core with a bounded projection contract and a Rust/WASM workbook engine.**
 
 [Explore the live demo](https://allroad88888888.github.io/einfach-excel/) · [中文文档](./README.zh-CN.md) · [Architecture](./docs/ARCHITECTURE.md) · [Contributing](./CONTRIBUTING.md)
 

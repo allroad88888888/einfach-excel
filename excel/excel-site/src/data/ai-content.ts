@@ -7,6 +7,9 @@ const agentIntegrationGuidance = `## Agent integration
 
 Implement the required backend ports: \`readVisibleProjection\`, \`readRangeProjection\`, and \`setCellInput\`. Keep workbook facts and authoritative mutations in the backend; the UI renders bounded projections. A Worker is an implementation choice for that backend boundary, not a required owner of UI state.`
 
+const projectPositioning =
+  'Einfach Excel is a spreadsheet UI core with a bounded projection contract and a Rust/WASM workbook engine.'
+
 /** Renders concise and expanded AI-readable indexes from the same site catalogue and source projections. */
 export function renderLlmsIndex(): string {
   const demoLinks = demos
@@ -14,7 +17,7 @@ export function renderLlmsIndex(): string {
     .join('\n')
   return `# einfach excel
 
-> A spreadsheet UI stack with Atom state, pluggable backends, and a Solid/WASM surface.
+> ${projectPositioning}
 
 ## Documentation
 
@@ -49,6 +52,8 @@ export function renderLlmsFull(): string {
     )
     .join('\n\n')
   return `# einfach excel: full documentation
+
+${projectPositioning}
 
 ${renderDocumentationMarkdown('getting-started')}
 

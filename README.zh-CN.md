@@ -4,7 +4,7 @@
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![在线演示](https://img.shields.io/badge/demo-live-0a7f5a.svg)](https://allroad88888888.github.io/einfach-excel/)
 
-**为 Web 构建始终流畅的电子表格体验。** Einfach Excel 将框架无关的表格 UI 核心、Rust/WASM 工作簿与公式引擎，以及可直接使用的 Solid.js 界面组合在一起。
+**Einfach Excel 是一个具备有界投影契约和 Rust/WASM 工作簿引擎的电子表格 UI 核心。**
 
 [体验在线 Demo](https://allroad88888888.github.io/einfach-excel/) · [English](./README.md) · [架构说明](./docs/ARCHITECTURE.md) · [参与贡献](./CONTRIBUTING.md)
 

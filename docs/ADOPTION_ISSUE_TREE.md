@@ -34,7 +34,7 @@
 
 | 总叶子 | 完成并独立验收 |               验收契约阻塞 | 未开始（含待决策） |        其中待决策 |
 | -----: | -------------: | -------------------------: | -----------------: | ----------------: |
-|    235 |            113 | 1（AD-505 验收契约待明确） |                121 | 5（AD-100/D1~D5） |
+|    235 |            116 | 1（AD-505 验收契约待明确） |                118 | 5（AD-100/D1~D5） |
 
 “其中待决策”是“未开始”的子集，不额外计入总叶子。AD-505 在明确基准页路由、启动方式、场景登记与无场景行为的验收契约前保持阻塞，不能记为完成。
 
@@ -48,12 +48,12 @@
     - AD-129~135 版本与发布流程
     - AD-136~142 本地 registry 与装机冒烟
   - [**AD-200 让人五分钟内跑起来**](adoption-issues/AD-200-onboarding.md) —— 受 AD-100 全组阻塞
-  - [**AD-300 框架适配层（React / Vue）**](adoption-issues/AD-300-framework-adapters.md) —— AD-311~325、AD-331~349、AD-351、AD-361~378、AD-391、AD-394 完成；其余独立长线
+  - [**AD-300 框架适配层（React / Vue）**](adoption-issues/AD-300-framework-adapters.md) —— AD-311~325、AD-331~351、AD-361~379、AD-391、AD-394 完成；其余独立长线
   - [**AD-400 定位与可信度**](adoption-issues/AD-400-positioning.md) —— AD-401~407、AD-408~412、AD-416~420 完成；其余可与 AD-100 并行
   - [**AD-500 可验证的性能证据**](adoption-issues/AD-500-performance.md) —— AD-501~504、AD-509、AD-511~514、AD-516、AD-517 完成；AD-505 等待验收契约明确，其余未开始
   - [**AD-600 内容与渠道**](adoption-issues/AD-600-content-channels.md) —— 依赖 AD-100、AD-400
   - [**AD-700 承接进来的人**](adoption-issues/AD-700-community.md) —— AD-701、AD-702、AD-705、AD-706、AD-708~710、AD-713 完成
-  - [**AD-800 规模能力与技术差异化**](adoption-issues/AD-800-scale-differentiation.md) —— AD-801~807、AD-810~811、AD-814~817、AD-819~827 完成
+  - [**AD-800 规模能力与技术差异化**](adoption-issues/AD-800-scale-differentiation.md) —— AD-801~807、AD-810~811、AD-813~817、AD-819~827 完成
 
 ## 已完成叶子
 
@@ -93,6 +93,7 @@
 | AD-347 | React 名称框绑定          | `894473d`                                  |
 | AD-348 | React Sheet Tabs 绑定     | `05baa4803ea9ac4fa1f8b55257232e0f1cf049e4` |
 | AD-349 | React 剪贴板桥            | `b604a100d8f11de2a14535eb99611cb159164587` |
+| AD-350 | React 历史桥              | `c905c658286db96da52c8e87ccf562dd879677db` |
 | AD-351 | React 默认 Provider 隔离  | `2afdb5ff709e44f05cec0de7d6112c6c4a9e57d4` |
 | AD-361 | Vue 包骨架                | `a95b0b0`                                  |
 | AD-362 | Vue 订阅桥                | `0434370`                                  |
@@ -112,6 +113,7 @@
 | AD-376 | Vue 公式栏绑定            | `fa0d5c731c15831cc56041e6e5551743b23d98ed` |
 | AD-377 | Vue 名称框绑定            | `4b2e57a6729923e805863c5919d367cce40ea542` |
 | AD-378 | Vue Sheet Tabs 绑定       | `ff623c0f4d5532ecd1be4f987c3a81c189b1eb87` |
+| AD-379 | Vue 剪贴板桥              | `f25a1b8b42253ba17ab02c49df9d97e42072e711` |
 | AD-391 | 适配器行为分歧裁决规程    | `a99e3fbb2ff7e154cd6c3bc6d8f709e0e4704eaf` |
 | AD-394 | 宿主适配器信息架构        | `960feb46202e5301d6fe630990895bf3c0ae0b4a` |
 | AD-401 | 一句话定位定稿            | `a908ba8`                                  |
@@ -159,6 +161,7 @@
 | AD-807 | 千万级加载边界观察        | `4a2ab4e`、`c815e39`                       |
 | AD-810 | 原子导入 session 边界观察 | `bcfc527d0c858cded939b23427aac07feb26b638` |
 | AD-811 | 规模内存测量规程          | `c96547e63234b6bfe64b2930ab7263b94a903c62` |
+| AD-813 | 规模实测结论回写          | `11a2a4aecaadde88e4059124c995a0412bd05064` |
 | AD-814 | 规模与架构对比维度        | `fa834e2a51e98e8ee86f0a3ddc1ca44cf5a76b17` |
 | AD-815 | Univer 规模与架构事实证据 | `7d87edd`                                  |
 | AD-816 | Handsontable 规模事实证据 | `3c5aa0a`                                  |

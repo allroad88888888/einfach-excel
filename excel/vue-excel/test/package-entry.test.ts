@@ -26,6 +26,7 @@ describe('@einfach/vue-excel package entry', () => {
       SpreadsheetUiProvider: expect.objectContaining({ setup: expect.any(Function) }),
       useSpreadsheetUiCore: expect.any(Function),
       useSpreadsheetValue: expect.any(Function),
+      useSpreadsheetViewport: expect.any(Function),
     })
   })
 })

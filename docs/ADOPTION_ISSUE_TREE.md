@@ -34,7 +34,7 @@
 
 | 总叶子 | 完成并独立验收 |               验收契约阻塞 | 未开始（含待决策） |        其中待决策 |
 | -----: | -------------: | -------------------------: | -----------------: | ----------------: |
-|    235 |             87 | 1（AD-505 验收契约待明确） |                147 | 5（AD-100/D1~D5） |
+|    235 |             89 | 1（AD-505 验收契约待明确） |                145 | 5（AD-100/D1~D5） |
 
 “其中待决策”是“未开始”的子集，不额外计入总叶子。AD-505 在明确基准页路由、启动方式、场景登记与无场景行为的验收契约前保持阻塞，不能记为完成。
 
@@ -48,7 +48,7 @@
     - AD-129~135 版本与发布流程
     - AD-136~142 本地 registry 与装机冒烟
   - [**AD-200 让人五分钟内跑起来**](adoption-issues/AD-200-onboarding.md) —— 受 AD-100 全组阻塞
-  - [**AD-300 框架适配层（React / Vue）**](adoption-issues/AD-300-framework-adapters.md) —— AD-311~325、AD-331~338、AD-340、AD-361~365、AD-367~368 完成；其余独立长线
+  - [**AD-300 框架适配层（React / Vue）**](adoption-issues/AD-300-framework-adapters.md) —— AD-311~325、AD-331~338、AD-340、AD-361~368、AD-370 完成；其余独立长线
   - [**AD-400 定位与可信度**](adoption-issues/AD-400-positioning.md) —— AD-401~407、AD-408~412、AD-416~420 完成；其余可与 AD-100 并行
   - [**AD-500 可验证的性能证据**](adoption-issues/AD-500-performance.md) —— AD-501~504、AD-509、AD-511~514、AD-516、AD-517 完成；AD-505 等待验收契约明确，其余未开始
   - [**AD-600 内容与渠道**](adoption-issues/AD-600-content-channels.md) —— 依赖 AD-100、AD-400
@@ -88,8 +88,10 @@
 | AD-363 | Vue 订阅回收验证          | `8462820`                                  |
 | AD-364 | Vue Provider/context      | `cfaabbb`                                  |
 | AD-365 | Vue worker backend port   | `4292868d9f598100c612f262a6577eae4f186351` |
+| AD-366 | Vue 网格几何适配器        | `602bc864f451a4c085f1e9e3b4862d4336241de2` |
 | AD-367 | Vue 只读网格视图          | `1ee0f44`                                  |
 | AD-368 | Vue viewport controller   | `729760428eefde1bebf452c58fa1620121b7cfd2` |
+| AD-370 | Vue 投影格式渲染          | `7c509c2a7afe18442ece749a6be2fff5751d3af5` |
 | AD-401 | 一句话定位定稿            | `a908ba8`                                  |
 | AD-402 | 与 Univer 的差异段        | `d3f9504`                                  |
 | AD-403 | 定位的诚实边界            | `639934abcaed18f0f9cfd839160634cd19ad8f1b` |

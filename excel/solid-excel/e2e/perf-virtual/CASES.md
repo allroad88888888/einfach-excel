@@ -11,6 +11,7 @@
 （A1=1、A2..A50 公式链、每 500 平铺地址一个数字、远角锚点 AAA500 / ALL999）。
 列 AAA = 0 基 702 列 → scrollLeft ≈ 70200。
 
+<!-- prettier-ignore -->
 | ID | 场景 | 步骤概要 | 关键断言 | 状态 | spec |
 |---|---|---|---|---|---|
 | PV-01 | 1M demo 加载 A1 可见 | 打开 demo | A1 可见（30s 内） | ✅ 存量 | million-demo #"million_demo_loads_and_a1_visible" |

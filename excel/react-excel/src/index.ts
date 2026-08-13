@@ -9,6 +9,7 @@ export { useSpreadsheetViewport } from './use-spreadsheet-viewport'
 export { useSpreadsheetKeyboardNavigation } from './use-spreadsheet-keyboard-navigation'
 export { useSpreadsheetEditing } from './use-spreadsheet-editing'
 export { useSpreadsheetImeComposition } from './use-spreadsheet-ime-composition'
+export { useSpreadsheetFormulaBar } from './use-spreadsheet-formula-bar'
 export type { SpreadsheetGridViewProps } from './SpreadsheetGridView'
 export type { SpreadsheetFrozenGridViewProps } from './SpreadsheetFrozenGridView'
 export type {
@@ -24,6 +25,7 @@ export type {
   UseSpreadsheetKeyboardNavigationOptions,
 } from './use-spreadsheet-keyboard-navigation'
 export type { SpreadsheetEditing } from './use-spreadsheet-editing'
+export type { SpreadsheetFormulaBar } from './use-spreadsheet-formula-bar'
 export type {
   SpreadsheetImeCompositionHandlers,
   UseSpreadsheetImeCompositionOptions,

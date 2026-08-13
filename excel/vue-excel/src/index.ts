@@ -3,6 +3,7 @@ export { SpreadsheetFrozenGridView } from './SpreadsheetFrozenGridView'
 export { SpreadsheetGridView } from './SpreadsheetGridView'
 export { getSpreadsheetGridGeometry } from './spreadsheet-grid-geometry'
 export { useSpreadsheetUiCore } from './spreadsheet-ui-context'
+export { useSpreadsheetKeyboardNavigation } from './use-spreadsheet-keyboard-navigation'
 export { useSpreadsheetSelection } from './use-spreadsheet-selection'
 export { useSpreadsheetValue } from './use-spreadsheet-value'
 export { useSpreadsheetViewport } from './use-spreadsheet-viewport'
@@ -15,6 +16,10 @@ export type {
   SpreadsheetGridScrollOffset,
 } from './spreadsheet-grid-geometry'
 export type { SpreadsheetUiProviderProps } from './spreadsheet-ui-provider'
+export type {
+  SpreadsheetKeyboardNavigationHandlers,
+  UseSpreadsheetKeyboardNavigationOptions,
+} from './use-spreadsheet-keyboard-navigation'
 export type { SpreadsheetValueSource, SpreadsheetValueSubscription } from './use-spreadsheet-value'
 export type {
   UseSpreadsheetViewportOptions,

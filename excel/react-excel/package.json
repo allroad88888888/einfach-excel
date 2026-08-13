@@ -24,7 +24,17 @@
   "peerDependencies": {
     "react": ">=18.0.0"
   },
+  "scripts": {
+    "e2e": "playwright test",
+    "e2e:install": "playwright install --with-deps chromium",
+    "typecheck:e2e": "tsc -p e2e/tsconfig.json --noEmit --pretty false"
+  },
   "devDependencies": {
-    "@types/react": "^18.3.20"
+    "@playwright/test": "^1.48.0",
+    "@types/react": "^18.3.20",
+    "@types/react-dom": "^18.3.6",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "vite": "^5.0.0"
   }
 }

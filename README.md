@@ -56,6 +56,10 @@ The UI core owns interaction state and the projection contract. A backend owns w
 
 `@einfach/solid-excel` is the only currently provided UI-framework binding. `@einfach/spreadsheet-ui-core` is framework-agnostic, but that does not constitute an existing React or Vue integration: no React/Vue adapter package or usable integration path is currently provided.
 
+### Release status
+
+This project is currently available as repository source and is in a pre-release stage. No npm-published package has been verified for offline installation. Use a repository checkout for the documented local build and verification paths.
+
 ## Use it when you need
 
 - an embeddable spreadsheet UI for a SaaS product or internal tool;

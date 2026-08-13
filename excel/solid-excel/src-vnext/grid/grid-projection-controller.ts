@@ -1,21 +1,21 @@
 import {
   beginProjectionAtom,
+  getAxisOffsetForIndex,
+  getAxisStartIndexAtOffset,
+  needsReanchor,
+  planSnappedScrollPlacement,
   rejectProjectionAtom,
   resetProjectionAtom,
   resolveProjectionAtom,
   viewportMetricsAtom,
-  type CellRange,
-  type RangeProjectionResult,
+  type AxisScrollGeometry, type CellRange, type RangeProjectionResult,
 } from '@einfach/spreadsheet-ui-core'
 import { createEffect, untrack } from 'solid-js'
 import { runVisibleProjectionTransport, spreadsheetProjectionSnapshotAtom } from '../provider'
-import { getAxisOffsetForIndex, getAxisStartIndexAtOffset } from './axis-geometry'
 import { GRID_ROW_HEADER_WIDTH } from './grid-constants'
 import type { GridLayoutApi } from './grid-layout'
 import { installGridFeature, type GridHydrationApi, type GridRuntimeBase } from './grid-runtime'
 import type { GridViewStateApi } from './grid-view-state'
-import { needsReanchor, type AxisScrollGeometry } from './scroll-anchor'
-import { planSnappedScrollPlacement } from './scroll-placement'
 
 interface GridScrollStats {
   scrollEvents: number

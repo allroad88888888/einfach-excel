@@ -6,8 +6,8 @@ import {
 } from './scroll-anchor'
 
 /**
- * Restores a logical scroll offset after the anchor is snapped to grid bounds.
- * The adjusted anchor keeps the DOM offset inside the current scroll surface.
+ * Restores a logical scroll offset after a caller snaps its anchor to grid
+ * bounds while keeping the physical offset inside the current surface.
  */
 export function planSnappedScrollPlacement(
   logicalPx: number,

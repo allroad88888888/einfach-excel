@@ -9,10 +9,9 @@ import type {
   VisibleProjectionRequest,
   VisibleProjectionResult,
 } from '@einfach/spreadsheet-ui-core'
-import { setViewportRowHeightAtom } from '@einfach/spreadsheet-ui-core'
+import { planSnappedScrollPlacement, setViewportRowHeightAtom } from '@einfach/spreadsheet-ui-core'
 import { createSignal } from 'solid-js'
 import { SpreadsheetGrid } from '../src-vnext/grid'
-import { planSnappedScrollPlacement } from '../src-vnext/grid/scroll-placement'
 import { SpreadsheetUiProvider } from '../src-vnext/provider'
 
 afterEach(cleanup)

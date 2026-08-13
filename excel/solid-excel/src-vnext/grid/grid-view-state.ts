@@ -1,14 +1,12 @@
 import {
+  getAxisEndIndexAtOffset,
+  getAxisStartIndexAtOffset,
   getHiddenColumnsForSheet,
   getHiddenRowsForSheet,
   refreshSpillRegionAtom,
   spillRegionSupportedAtom,
   type CellRange,
 } from '@einfach/spreadsheet-ui-core'
-import {
-  getAxisEndIndexAtOffset,
-  getAxisStartIndexAtOffset,
-} from './axis-geometry'
 import { installGridFeature, type GridRuntimeBase } from './grid-runtime'
 import type { GridScrollSurfacePort } from './grid-runtime-ports'
 

@@ -1,3 +1,4 @@
+/** Calculates pixel geometry for a sparse, optionally hidden spreadsheet axis. */
 export function getAxisOffsetForIndex(
   index: number,
   count: number,
@@ -9,7 +10,9 @@ export function getAxisOffsetForIndex(
   let offset = clampedIndex * fallbackSize
   for (const [key, size] of Object.entries(overrides ?? {})) {
     const overrideIndex = Number(key)
-    if (!Number.isInteger(overrideIndex) || overrideIndex < 0 || overrideIndex >= clampedIndex) continue
+    if (!Number.isInteger(overrideIndex) || overrideIndex < 0 || overrideIndex >= clampedIndex) {
+      continue
+    }
     if (hidden?.has(overrideIndex)) continue
     offset += size - fallbackSize
   }
@@ -35,7 +38,10 @@ export function getAxisSpanSize(
   const clampedStart = Math.max(0, Math.min(count, Math.trunc(start)))
   const clampedEnd = Math.max(0, Math.min(count - 1, Math.trunc(end)))
   if (clampedEnd < clampedStart) return 0
-  return getAxisOffsetForIndex(clampedEnd + 1, count, fallbackSize, overrides, hidden) - getAxisOffsetForIndex(clampedStart, count, fallbackSize, overrides, hidden)
+  return (
+    getAxisOffsetForIndex(clampedEnd + 1, count, fallbackSize, overrides, hidden) -
+    getAxisOffsetForIndex(clampedStart, count, fallbackSize, overrides, hidden)
+  )
 }
 
 export function getAxisStartIndexAtOffset(

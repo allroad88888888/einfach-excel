@@ -7,7 +7,7 @@ import {
   needsReanchor,
   planAnchorPlacement,
   type AxisScrollGeometry,
-} from '../src-vnext/grid/scroll-anchor'
+} from '@einfach/spreadsheet-ui-core'
 
 const VIEWPORT = 480
 const ROW_HEIGHT = 24

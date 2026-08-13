@@ -1,5 +1,9 @@
-import { viewportMetricsAtom, type OutlineAxis } from '@einfach/spreadsheet-ui-core'
-import { getAxisOffsetForIndex, getAxisStartIndexAtOffset } from './axis-geometry'
+import {
+  getAxisOffsetForIndex,
+  getAxisStartIndexAtOffset,
+  viewportMetricsAtom,
+  type OutlineAxis,
+} from '@einfach/spreadsheet-ui-core'
 import type { GridRuntime } from './grid-runtime'
 
 type OutlineScrollAnchorRuntime = Pick<

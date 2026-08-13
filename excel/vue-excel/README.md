@@ -47,6 +47,15 @@ from the caller. It renders projections without reading the backend or retaining
 a second cell model. `SpreadsheetFrozenGridView` composes those projections into
 core-derived frozen windows; callers retain the viewport and freeze settings.
 
+## Vue consumption paths
+
+Use `SpreadsheetGridView` from a Vue SFC by importing it in
+`<script setup lang="ts">`, then bind caller-owned `cells`, `range`, and
+`selected` values in the template. A render-function host can import the same
+component and pass the same controlled props through `h(SpreadsheetGridView, …)`.
+Both paths retain the adapter boundary: they render projections and do not create
+or own spreadsheet product state.
+
 ## Current adapter surface
 
 The exported hooks are narrow bridges to existing UI-core commands. They expose
@@ -60,8 +69,7 @@ workbook semantics or a second command protocol.
   installation path.
 - A default Worker or WASM factory. Callers own backend construction and supply
   the resulting `SpreadsheetBackend`.
-- A browser end-to-end suite, demo route, or Vue SFC compilation path for this
-  package.
+- A browser end-to-end suite or demo route for this package.
 - A turnkey spreadsheet shell, toolbar, formula editor, or product-level
   interaction policy beyond the exported controlled views and hooks.
 - A public compatibility, support, or service commitment.

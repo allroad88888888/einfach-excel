@@ -53,7 +53,7 @@
   - [**AD-500 可验证的性能证据**](adoption-issues/AD-500-performance.md) —— AD-501~504、AD-509、AD-514 完成；AD-505 等待验收契约明确，其余未开始
   - [**AD-600 内容与渠道**](adoption-issues/AD-600-content-channels.md) —— 依赖 AD-100、AD-400
   - [**AD-700 承接进来的人**](adoption-issues/AD-700-community.md) —— AD-701、AD-702、AD-706、AD-708~710、AD-713 完成
-  - [**AD-800 规模能力与技术差异化**](adoption-issues/AD-800-scale-differentiation.md) —— AD-801~806、AD-811、AD-814~824 完成
+  - [**AD-800 规模能力与技术差异化**](adoption-issues/AD-800-scale-differentiation.md) —— AD-801~806、AD-811、AD-814~817、AD-819~824 完成
 
 ## 已完成叶子
 

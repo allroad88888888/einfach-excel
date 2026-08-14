@@ -89,6 +89,20 @@ function createRecordingBackend() {
     async setCellInput() {
       throw new Error('not used')
     },
+    async undoTransaction(request) {
+      return {
+        transactionId: request.transactionId,
+        requestId: request.requestId,
+        revision: 4,
+      }
+    },
+    async redoTransaction(request) {
+      return {
+        transactionId: request.transactionId,
+        requestId: request.requestId,
+        revision: 4,
+      }
+    },
     async setFormatRange(request) {
       setFormatRangeCalls.push(request)
       return {

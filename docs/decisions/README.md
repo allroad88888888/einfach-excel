@@ -19,4 +19,14 @@
 | [0005](0005-e2e-feature-folders.md)                       | e2e 按功能点分目录，每目录一份 CASES.md          | accepted |
 | [0006](0006-spill-region-write-semantics.md)              | 溢出区的写入语义以 Excel 为准                    | accepted |
 | [0007](0007-astro-static-site-with-solid-wasm-islands.md) | 文档站采用 Astro 静态壳与 Solid/WASM islands     | accepted |
+| [0008](0008-public-performance-evidence-scope.md)         | 公共性能证据范围                                 | accepted |
+| [0009](0009-public-performance-measurement-methodology.md) | 公共性能测量方法                                | accepted |
+| [0010](0010-public-performance-non-guarantees.md)         | 公共性能表述的非承诺边界                         | accepted |
+| [0011](0011-public-performance-environment-record.md)     | 公共性能环境记录                                 | accepted |
 | [0012](0012-ui-core-extraction-target.md)                 | UI-core 下沉目标                                 | accepted |
+| [0013](0013-community-conduct-scope.md)                   | 社区行为准则的采用边界                           | accepted |
+| [0014](0014-publish-excel-core-ts.md)                     | `@einfach/excel-core-ts` 公开发布                | accepted |
+| [0015](0015-wasm-distribution-single-package.md)          | WASM 以单包双入口分发，产物由 CI 预构建          | accepted |
+| [0016](0016-ci-only-npm-publish.md)                       | 发布只走 CI，凭据由维护者填入仓库 secret         | accepted |
+| [0017](0017-initial-release-version-0-1-0.md)             | 首发版本为 `0.1.0`                               | accepted |
+| [0018](0018-node-baseline-22-12.md)                       | 对外 Node.js 基线为 `>=22.12.0`                  | accepted |

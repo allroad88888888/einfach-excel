@@ -77,7 +77,7 @@ export function WasmCell() {
 }
 ```
 
-UI core（stub backend，三必选方法契约见 `ui-core-only.md`）：
+UI core（stub backend，三必选方法契约见 [UI-core-only 路径](../UI_CORE_ONLY.md)）：
 `createSpreadsheetUi({ backend })` 在 `'use client'` 组件里直接调用即可。
 
 ## 关键注意点

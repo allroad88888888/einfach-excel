@@ -109,7 +109,7 @@ Einfach Excel 的发布状态章节另行记录自身的发布状态；它不属
 
 ### 前置条件
 
-- Node.js 18 或更高版本（CI 覆盖 Node.js 18 和 20）
+- Node.js **>=22.12.0**(消费包的基线,ADR 0018;仓库 CI 矩阵对齐中)
 - pnpm 10
 - 已安装 `wasm32-unknown-unknown` target 与 [wasm-pack](https://rustwasm.github.io/wasm-pack/) 的 Rust 工具链
 

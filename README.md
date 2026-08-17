@@ -113,7 +113,9 @@ initialization, a ref container, and cleanup disposal. The Univer evidence
 ledger records the source scope and limitations for both examples.
 
 Einfach Excel's release-status section separately records its own publish
-status. It is not part of a comparison between the products.
+status; installing from npm is the supported consumption path, and a repository
+checkout is only needed for contributing. It is not part of a comparison
+between the products.
 
 This section only indexes the cited documentation records. It does not
 establish product availability, package installation, framework support,
@@ -130,7 +132,7 @@ compatibility, suitability, feature parity, performance, or ranking.
 
 ### Prerequisites
 
-- Node.js 18 or later (CI covers Node.js 18 and 20)
+- Node.js **>=22.12.0** for consuming the packages (ADR 0018; the repo CI matrix is being aligned)
 - pnpm 10
 - Rust with the `wasm32-unknown-unknown` target and [wasm-pack](https://rustwasm.github.io/wasm-pack/)
 
@@ -148,7 +150,7 @@ npm run lint:check
 
 `npm run build` generates the WASM package when needed, then builds the TypeScript packages and bundles.
 
-### Minimal repository-checkout example
+### Minimal repository-checkout example (contributors)
 
 The current UI integration is Solid-only and the project is documented for use
 from a repository checkout. The landing-page example uses the workspace's

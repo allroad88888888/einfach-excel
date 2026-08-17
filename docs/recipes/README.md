@@ -13,8 +13,8 @@
 | 静态文档站里嵌交互表格 | Astro + Solid island | `recipe-astro.md` |
 | React（Next）项目里要公式引擎 / headless 状态层 | 引擎包 + UI core，**不挂 Solid 组件** | `recipe-next.md` |
 | Vue（Nuxt）项目里要公式引擎 / headless 状态层 | 同上 | `recipe-nuxt.md` |
-| 只要框架无关状态层，数据源自己接 | 单包 `@einfach/spreadsheet-ui-core` | `ui-core-only.md` |
-| 五分钟先跑起来 | Vite + 20 行示例 | `quickstart.md` |
+| 只要框架无关状态层，数据源自己接 | 单包 `@einfach/spreadsheet-ui-core` | [UI-core-only](../UI_CORE_ONLY.md) |
+| 五分钟先跑起来 | Vite + 20 行示例 | [Quickstart](../QUICKSTART.md) |
 
 一条硬边界，四份配方各自重复过，这里再说一次：**`@einfach/solid-excel` 的组件只能
 挂在 Solid 运行时里**。React/Vue 框架下它仅「可安装解析」（peer 可消解），组件不渲染；

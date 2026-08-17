@@ -2,6 +2,16 @@ import fs from 'node:fs'
 //  typescript转js配置（采用swc包转）
 const config = JSON.parse(fs.readFileSync(`${process.cwd()}/.swcrc`, 'utf-8'))
 
+// 缺 WASM 产物时,jest 默认只报「Could not locate module … mapped as …」——
+// 说了哪坏了,不说怎么修(AD-142 走查发现的缺口)。在配置加载期定向报错。
+if (!fs.existsSync(`${process.cwd()}/excel/excel-wasm/lite/einfach_wasm.js`)) {
+  throw new Error(
+    'excel/excel-wasm/lite 缺失(WASM 产物未构建)。先跑:\n' +
+      '  npm run build:wasm -w @einfach/excel-wasm   # 或根目录 npm run ensureWasm\n' +
+      '需要 Rust 工具链 + wasm-pack,见 excel/excel-wasm/README.md。',
+  )
+}
+
 // 引入一份ts类型，对标typescript开发体验
 /** @type {import('jest').Config} */
 const jestConfig = {

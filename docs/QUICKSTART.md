@@ -93,3 +93,10 @@ npm run dev
   回调里 `client.setCell` / `client.setFormulaDetailed`。
 - 不用 Solid、只要 headless UI core：`ui-core-only.md`。
 - 其它打包器 / 框架：`recipes-index.md`。
+
+
+## 一键起步(模板)
+
+- `npx degit allroad88888888/einfach-excel/templates/vite-starter my-sheet && cd my-sheet && npm i && npm run dev`
+- 在线打开:[StackBlitz](https://stackblitz.com/github/allroad88888888/einfach-excel/tree/main/templates/vite-starter) · [CodeSandbox](https://codesandbox.io/s/github/allroad88888888/einfach-excel/tree/main/templates/vite-starter)
+- 模板即本页 20 行示例,已在 Node 22.12.0 + 官方 registry 上离体验证构建。

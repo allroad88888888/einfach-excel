@@ -120,7 +120,7 @@ See `excel/spreadsheet-ui-core/docs/ROADMAP.md` for the four-wave feature breakd
 
 ### Backend port (`SpreadsheetBackend`)
 
-The contract between UI core and any data source lives in `excel/spreadsheet-ui-core/src/backend/types.ts`. Exactly three methods are required — `readVisibleProjection`, `readRangeProjection`, `setCellInput` — every other member is optional (count them with `grep -cE '^\s+[a-zA-Z][a-zA-Z0-9]*\?[(:]' excel/spreadsheet-ui-core/src/backend/types.ts`). UI core hides a toolbar item, menu entry, or keyboard intent when the host backend omits the relevant port — features degrade without UI core knowing the difference between "host does not implement it" and "feature does not exist".
+The contract between UI core and any data source lives in `excel/spreadsheet-ui-core/src/backend/types.ts`. Exactly three methods are required — `readVisibleProjection`, `readRangeProjection`, `setCellInput` — every other member is optional (count them scoped to the interface: `awk '/^export interface SpreadsheetBackend/,/^}$/' excel/spreadsheet-ui-core/src/backend/types.ts | grep -cE '^\s+[a-zA-Z][a-zA-Z0-9]*\?[(:]'`). When the host backend omits a port, features degrade in one of three forms — hidden entry, disabled control, or starved state (e.g. history entries dropped so undo never enables) — without UI core knowing the difference between "host does not implement it" and "feature does not exist"; the walkthrough with code citations is `docs/BACKEND_DEGRADATION.md`.
 
 Two reference implementations ship under `excel/solid-excel/src-vnext/adapter/`:
 

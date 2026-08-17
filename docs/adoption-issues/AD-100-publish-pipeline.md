@@ -7,7 +7,7 @@
 
 ## 当前状态
 
-状态：**首发完成；AD-101~126、AD-128~130、AD-132~139、AD-141~142 已完成并独立验收（`38d7d5b` WASM 分发迁移、`8aadfff` 双形态交付与版本落地、`1b08a6a` 本地 registry dry-run、`3be70d7`/`93f7492`/`6ddc17a` 发布流并实跑上线，提交号见 [Issue 树](../ADOPTION_ISSUE_TREE.md)）；剩余 AD-127（被 AD-414 阻塞）、AD-131（判定待重定义）、AD-140、AD-143**。
+状态：**首发完成；AD-101~126、AD-128~130、AD-132~142 已完成并独立验收（`38d7d5b` WASM 分发迁移、`8aadfff` 双形态交付与版本落地、`1b08a6a` 本地 registry dry-run、`3be70d7`/`93f7492`/`6ddc17a` 发布流并实跑上线，提交号见 [Issue 树](../ADOPTION_ISSUE_TREE.md)）；剩余 AD-127（被 AD-414 阻塞）、AD-131（判定待重定义）、AD-143**；四框架冒烟矩阵（AD-138~141）收官。
 
 原先阻塞本组的五项决策已落成 [ADR 0014~0018](#已裁决的口径)，“该做什么”不再是未知数；
 裁决本身不构成完成判定 —— 已完成的叶子各有独立验收的交付物。
@@ -93,7 +93,7 @@
 - **AD-137 全链路 dry-run** —— **完成**（`1b08a6a`）：五包经 `pnpm publish` 全部上 registry（无部分发布残留），仓外消费者一次 `npm install` 解析全链（含 peer 自动装自 npmjs 代理），运行时与类型探针见[观察记录](../AD137_LOCAL_REGISTRY_DRYRUN_OBSERVATION.md)。裸 node 下 `vnext` 入口因 CSS import 报错属设计内行为，打包器实跑归 AD-138~141。
 - **AD-138 Vite 仓外冒烟** —— **完成**（`c423d1a`）：真 registry 安装 + Node `22.12.0` 基线下界构建 + 浏览器实跑，跨三表公式链经真实 WASM worker 求值显示，零运行时错误；见[观察记录](../AD138_VITE_SMOKE_OBSERVATION.md)。
 - **AD-139 webpack 仓外冒烟** —— **完成**（`8e05c1d`）：**零配置改动**跑通预编译 ESM 路径（webpack 5.109.2 + Node 22.12.0 下界）——worker chunk 自动切出、wasm asset 自动发射、CSS 副作用保留；跨三表公式链在 C2 数据单元格严格断言为 13，零运行时错误；见[观察记录](../AD139_WEBPACK_SMOKE_OBSERVATION.md)。
-- **AD-140 Next 仓外冒烟** —— 验证五包安装解析与框架中立三包的真实可用，Node `22.12.0` 基线下界。
+- **AD-140 Next 仓外冒烟** —— **完成**（`af43c2d`）：Next 15.5（webpack 生产构建）下五包安装解析,三个中立包实跑（excel-core-ts 服务端 prerender 求值 42、excel-wasm 客户端 init 后 63、ui-core loaded），零 pageerror；顺带发现并补上 excel-core-ts 缺失的 `exports` 字段（随下个版本发布）；见[观察记录](../AD140_NEXT_SMOKE_OBSERVATION.md)。
 - **AD-141 Nuxt 仓外冒烟** —— **完成**（`3a0741a`）：Nuxt 3.21/Vite 7/Nitro 下五包安装解析,三个中立包实跑（excel-core-ts SSR+客户端求值 43、excel-wasm 客户端 init 后 C1=43、ui-core createSpreadsheetUi loaded），wasm 资产零配置发射，零 pageerror；见[观察记录](../AD141_NUXT_SMOKE_OBSERVATION.md)。
 - **AD-142 失败路径可读性走查** —— **完成**（`e12b416`）：三场景走查见[走查记录](../AD142_FAILURE_PATH_WALKTHROUGH.md)。缺 WASM → jest 配置加载期定向报错（含重建命令，两态复验）；worker 启动失败 → 发现零 `onerror` 的静默挂死缺口，立叶 AD-143；重复 solid-js → README/release notes/ADR 0001 事前声明 + 仓内契约测试覆盖。
 - **AD-143 worker 启动失败的错误面** —— 由 AD-142 走查立叶：`WorkerLike` 连接层监听 `error`/`messageerror`，启动失败时 reject 全部 pending 并给出指向部署/CSP 排查的错误信息；需构造 `.wasm` 404 与 CSP 拦截两个复现验证。

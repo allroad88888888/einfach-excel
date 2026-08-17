@@ -6,7 +6,7 @@
 
 ## 当前状态
 
-状态：**口径已裁决（ADR 0014~0018）；AD-122、AD-123、AD-125、AD-126、AD-128 已完成并独立验收（提交号见 [Issue 树](../ADOPTION_ISSUE_TREE.md)）；其余叶子未开始**。
+状态：**口径已裁决（ADR 0014~0018）；AD-101~110、AD-112~114（WASM 分发迁移，`38d7d5b`）与 AD-122、AD-123、AD-125、AD-126、AD-128 已完成并独立验收（提交号见 [Issue 树](../ADOPTION_ISSUE_TREE.md)）；AD-111 局部进展；其余叶子未开始**。
 
 原先阻塞本组的五项决策已落成 [ADR 0014~0018](#已裁决的口径)，“该做什么”不再是未知数；
 裁决本身不构成完成判定 —— 已完成的叶子各有独立验收的交付物。
@@ -16,7 +16,7 @@
 
 ## 已裁决的口径
 
-原 D1~D5 已由维护者裁决，各自落成 ADR。裁决不构成任何叶子的完成判定；下表受影响的叶子截至本次更新仍未开始。
+原 D1~D5 已由维护者裁决，各自落成 ADR。裁决不构成任何叶子的完成判定；受影响叶子的实施进度以「叶子」一节与 Issue 树为准（D2 的 AD-101~110 已按 ADR 0015 实施并验收）。
 
 | 原编号 | 裁决                                                                                   | 影响的叶子             |
 | ------ | -------------------------------------------------------------------------------------- | ---------------------- |
@@ -29,31 +29,33 @@
 ## 开工前事实
 
 1. `@einfach/solid-excel` 尚没有经离体验证的库构建产物；当前导出仍指向源码形态。
-2. `wasm-pkg/.gitignore` 会影响打包候选文件；必须用实际 `npm pack --dry-run` 验证，而不是假定产物会进 tarball。
+2. ~~`wasm-pkg/.gitignore` 会影响打包候选文件~~ 已解决（`38d7d5b`）：excel-wasm 的构建链
+   末尾清掉 wasm-pack 生成的 `.gitignore`（`wasm:tidy`），`npm pack --dry-run` 实测两份
+   `.wasm` 均进 tarball。
 3. `@einfach/solid-excel` 仍声明 `workspace:*` 依赖（`@einfach/excel-core-ts`、
-   `@einfach/spreadsheet-ui-core`、`@einfach/spreadsheet-ui-styles`）；在 ADR 0014 落地并
-   替换成真实版本号之前，外部安装不能视为可用。
-4. 各包 `engines.node` 当前仍是未经验证的 `>=14.18.0`，与 ADR 0018 的 `>=22.12.0` 不一致，
-   须在 AD-121 中统一改写。
+   `@einfach/spreadsheet-ui-core`、`@einfach/spreadsheet-ui-styles`、`@einfach/excel-wasm`）；
+   在 ADR 0014 落地并替换成真实版本号之前，外部安装不能视为可用。
+4. 除 `@einfach/excel-wasm`（已按 ADR 0018 写 `>=22.12.0`）外，其余包 `engines.node`
+   仍是未经验证的 `>=14.18.0`，须在 AD-121 中统一改写。
 
 ## 叶子
 
 ### WASM 分发、引用与回归
 
-- **AD-101 新包骨架** —— 按 [ADR 0015](../decisions/0015-wasm-distribution-single-package.md) 建 `excel/excel-wasm/`（包名 `@einfach/excel-wasm`），写 package.json 与 README 占位，确认被 `excel/*` workspace glob 纳入。完成判定：`pnpm install` 后该包出现在 workspace 列表。
-- **AD-102 lite 产物落位** —— `build:wasm` 的 `--out-dir` 改指 `@einfach/excel-wasm` 的默认入口目录；验证旧路径不再生成。
-- **AD-103 full 产物落位** —— `build:wasm:full` 落到同包的 `./full` 入口目录，并能被独立消费。
-- **AD-104 打包候选核对** —— 处理 wasm-pack 生成的 gitignore 与 npm 打包的冲突；完成判定：`npm pack --dry-run` 列出 `.wasm`。
-- **AD-105 exports 面** —— 按单包双入口写出可消费导出：`.` 为 lite、`./full` 为 full，各自带类型入口。
-- **AD-106 strip 脚本接入** —— `strip-wasm-names.mjs` 调用路径随构建链迁移。
-- **AD-107 类型导出核对** —— `einfach_wasm.d.ts` 能被消费者 tsc 解析，无悬空引用。
-- **AD-108 产物离体核对** —— 解包后文件齐全且无多余源码。
-- **AD-109 lite 引用切换** —— `worker-runtime.ts` 改为消费 `@einfach/excel-wasm`。
-- **AD-110 full 引用切换** —— `worker-runtime-full.ts` 改为消费 `@einfach/excel-wasm/full`。
-- **AD-111 ensureWasm 与 CI 同步** —— 探测和缓存路径随迁移，并验证 CI 使用它们。
-- **AD-112 构建工具路径同步** —— Vite/Astro 别名与 `fs.allow` 随迁移。
-- **AD-113 测试侧路径同步** —— mock/映射随迁移，并回归 worker 测试。
-- **AD-114 e2e 回归** —— 新路径下回归 worker 后端相关用例。
+- **AD-101 新包骨架** —— **完成**（`38d7d5b`）：`excel/excel-wasm/` 已建（`@einfach/excel-wasm@0.1.0`，`engines >=22.12.0`），`pnpm install` 后出现在 workspace 列表。
+- **AD-102 lite 产物落位** —— **完成**（`38d7d5b`）：`--out-dir` 改指 `excel/excel-wasm/lite/`，旧 `wasm-pkg*` 路径已删除且无脚本再写入。
+- **AD-103 full 产物落位** —— **完成**（`38d7d5b`）：full 落 `excel/excel-wasm/full/`，经 `./full` 入口离体消费验证。
+- **AD-104 打包候选核对** —— **完成**（`38d7d5b`）：构建链 `wasm:tidy` 清掉 wasm-pack 生成的 `.gitignore`，`npm pack --dry-run` 实测列出两份 `.wasm`。
+- **AD-105 exports 面** —— **完成**（`38d7d5b`）：`.` = lite、`./full` = full，各带 `types` 条目，另留 `./package.json`。
+- **AD-106 strip 脚本接入** —— **完成**（`38d7d5b`）：`strip-wasm-names.mjs` 挂在 excel-wasm 构建链末尾（lite 实测 2360.6→1848.5 KB）。
+- **AD-107 类型导出核对** —— **完成**（`38d7d5b`）：仓外消费者 tsc 对两入口零错（要求 `lib ["ESNext","DOM"]`，已写进包 README）。
+- **AD-108 产物离体核对** —— **完成**（`38d7d5b`）：tarball 解包仅 `lite/`、`full/`、`package.json`、`README.md`，入口齐全无源码。
+- **AD-109 lite 引用切换** —— **完成**（`38d7d5b`）：`worker-runtime.ts` 消费 `@einfach/excel-wasm`，e2e 真 worker 回归通过。
+- **AD-110 full 引用切换** —— **完成**（`38d7d5b`）：`worker-runtime-full.ts` 消费 `@einfach/excel-wasm/full`；类型兜底迁至 `excel-wasm-full-fallback.d.ts`（通配声明，产物在场/缺席 tsc 均过）。
+- **AD-111 ensureWasm 与 CI 同步** —— **局部进展**（`38d7d5b`）：根 `ensureWasm` 探测 `excel/excel-wasm/lite/`（缺失自动重建已本地实测），ci/e2e/pages 三个 workflow 已改指 `-w @einfach/excel-wasm`；完成判定等推送后 CI 首绿。
+- **AD-112 构建工具路径同步** —— **完成**（`38d7d5b`）：Vite dev/build（e2e webServer 实跑）与 Astro 站（typecheck:apps 三段）经 workspace 解析新包，无需额外 alias/fs.allow。
+- **AD-113 测试侧路径同步** —— **完成**（`38d7d5b`）：jest 增加 `@einfach/excel-wasm(/full)` 映射，24 个测试文件的 mock/夹具路径迁移，worker 测试回归零新增失败。
+- **AD-114 e2e 回归** —— **完成**（`38d7d5b`）：新路径下 `e2e/perf-virtual/`（wasm+ts 双后端）70 过 0 挂、`e2e/smoke/` 110 过 0 挂。
 
 ### `@einfach/solid-excel` 可发布性
 

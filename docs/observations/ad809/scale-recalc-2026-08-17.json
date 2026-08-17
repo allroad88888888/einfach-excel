@@ -1,0 +1,171 @@
+{
+  "observationId": "ad809-scale-recalc-2026-08-17",
+  "recordedAt": "2026-08-17T00:00:00+08:00",
+  "schemaNote": "environment fields follow ADR 0011 (einfach.performance-environment/v1) semantics inline",
+  "repositoryRevision": "986cd74e564da8e998cef7956ae41b741bab4895 + uncommitted AD-808/AD-809/AD-812 spec, helper, DemoMillion grid-override and observation files",
+  "sourceTests": [
+    "excel/solid-excel/e2e/perf-virtual/ad809-scale-recalc.spec.ts",
+    "excel/solid-excel/e2e/perf-virtual/ad808-fill-boundary.spec.ts"
+  ],
+  "commands": [
+    "NO_PROXY=localhost,127.0.0.1 EINFACH_E2E_PORT=5187 AD809_SCALE_ROWS=7000 npx playwright test ad809-scale-recalc --project=wasm --reporter=line"
+  ],
+  "environment": {
+    "hostOperatingSystem": "macOS 26.5.2 (25F84)",
+    "hostArchitecture": "arm64",
+    "hostCpu": "Apple M4 (10 logical cores)",
+    "hostMemoryBytes": 17179869184,
+    "node": "v24.14.0",
+    "pnpm": "10.15.1",
+    "playwright": "1.59.1",
+    "browserUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.7727.15 Safari/537.36",
+    "project": "wasm",
+    "e2ePort": 5187,
+    "powerState": "unknown (not captured)",
+    "displayRefreshHz": "unknown (headed defaults, not captured)",
+    "conditions": {
+      "cacheState": "warm dev-server, cold browser context per run",
+      "network": "loopback only (NO_PROXY=localhost,127.0.0.1)",
+      "backgroundLoad": "no-known-competing-workload"
+    }
+  },
+  "fixture": {
+    "definition": "AD-806-patterned fill with two recalc probes: column A numeric 1 per row; column B an R-deep chain (B1 =A1, B(r) =B(r-1)+A(r)); C1 =SUM(A:A); all other cells AD-806 text r{row}c{col}; direct-mode import, 10,000-cell chunks",
+    "recordedTier": {
+      "rows": 7000,
+      "columns": 1000,
+      "populatedCellCount": 7000000,
+      "formulaCount": 7001,
+      "chainLength": 7000
+    },
+    "requestedTenMillionTier": {
+      "rows": 10000,
+      "columns": 1000,
+      "populatedCellCount": 10000000,
+      "outcome": "not reachable: the same direct fill traps at cumulative accepted 7340000 (see tenMillionAttempts)"
+    }
+  },
+  "tenMillionAttempts": {
+    "headlessDirectFill": {
+      "attempts": 3,
+      "outcome": "WASM engine trap ('unreachable'), cumulative accepted exactly 7340000 in all three attempts",
+      "lastRunRawPayload": {
+        "fixture": {
+          "cols": 1000,
+          "requestedCellCount": 10000000,
+          "rows": 10000,
+          "valuePattern": "r{zero-based-row}c{zero-based-column}"
+        },
+        "importMode": "direct",
+        "chunkCells": 10000,
+        "project": "wasm",
+        "result": {
+          "acceptedAtSettle": 7340000,
+          "counters": null,
+          "elapsedMs": 19348.5,
+          "error": "direct import failed; import is non-atomic and may contain partial writes: unreachable",
+          "farDisplay": null,
+          "outcome": "trapped",
+          "stats": null
+        },
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.7727.15 Safari/537.36"
+      }
+    }
+  },
+  "run": {
+    "runnerOutcome": "passed (1 test, 29.7s including web-server preparation) at AD809_SCALE_ROWS=7000",
+    "warmupRuns": [],
+    "settledCondition": "each phase settles when its worker RPC promise resolves; debugCounters are read immediately before and after every phase, including a dedicated sample directly after the setCell(A1) write",
+    "rawConsolePayload": {
+      "counters": {
+        "afterCommit": {
+          "sheetCount": 1,
+          "crossSheetDependents": 0,
+          "formulaCount": 7001,
+          "formulaEvalCountTotal": 0,
+          "liveSubscriptionCount": 0,
+          "workerSubscriptionCount": 0,
+          "importSessionCount": 0,
+          "exportSessionCount": 0,
+          "snapshotSessionCount": 0,
+          "sheets": [
+            {
+              "idx": 0,
+              "name": "AD809",
+              "formulaCount": 7001,
+              "formulaEvalCount": 0,
+              "liveSubscriptionCount": 0
+            }
+          ]
+        },
+        "final": {
+          "sheetCount": 1,
+          "crossSheetDependents": 0,
+          "formulaCount": 7001,
+          "formulaEvalCountTotal": 20861,
+          "liveSubscriptionCount": 0,
+          "workerSubscriptionCount": 0,
+          "importSessionCount": 0,
+          "exportSessionCount": 0,
+          "snapshotSessionCount": 0,
+          "sheets": [
+            {
+              "idx": 0,
+              "name": "AD809",
+              "formulaCount": 7001,
+              "formulaEvalCount": 20861,
+              "liveSubscriptionCount": 0
+            }
+          ]
+        }
+      },
+      "fixture": {
+        "chainLength": 7000,
+        "cols": 1000,
+        "formulaCount": 7001,
+        "populatedCellCount": 7000000,
+        "rows": 7000
+      },
+      "importStats": {
+        "accepted": 7000000,
+        "errors": 0,
+        "formulas": 7001,
+        "rejectedFormulas": 0
+      },
+      "phases": {
+        "chainRepeatRead": {
+          "display": "7000",
+          "elapsedMs": 0.09999990463256836,
+          "evalDelta": 0
+        },
+        "chainTailAfterEdit": {
+          "display": "7001",
+          "elapsedMs": 0,
+          "evalDelta": 0
+        },
+        "chainTailFirstRead": {
+          "display": "7000",
+          "elapsedMs": 77,
+          "evalDelta": 13847
+        },
+        "editA1": {
+          "elapsedMs": 71.7999997138977,
+          "evalDelta": 7001
+        },
+        "importElapsedMs": 22088.5,
+        "sumAfterEdit": {
+          "display": "7001",
+          "elapsedMs": 0.09999990463256836,
+          "evalDelta": 0
+        },
+        "windowRead": {
+          "cellCount": 48,
+          "elapsedMs": 38.59999990463257,
+          "evalDelta": 13
+        }
+      },
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.7727.15 Safari/537.36"
+    }
+  },
+  "interpretationBoundary": "This record documents one revision- and environment-specific run at the 7,000,000-cell tier. Eval-counter deltas use this engine's accounting (per transitive cell evaluation plus deep-chain FAULT replays; the TS worker engine counts top-level derive runs and reports different numbers for the same reads). Wall-clock values are single-run host-observed RPC latencies, not benchmarks. No capacity, throughput, SLO, cross-environment, or competitive conclusion is stated."
+}

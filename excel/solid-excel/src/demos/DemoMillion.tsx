@@ -90,6 +90,25 @@ function clearStoreForDebug(
 const ROWS = 1000
 const COLS = 1000
 
+/**
+ * Debug-only grid-size override: `?rows=10000&cols=1000` lets the AD-808
+ * scale e2e address the full AD-806 10,000×1,000 fixture through the real
+ * Table surface. Values are bounds-checked; the shipped demo (no params)
+ * keeps the exact 1000×1000 layout. The seed below intentionally still
+ * targets the 1M flat-address space regardless of the override.
+ */
+function gridSizeFromUrl(): { rows: number; cols: number } {
+  if (typeof window === 'undefined') return { rows: ROWS, cols: COLS }
+  const params = new URLSearchParams(window.location.search)
+  const dimension = (key: string, fallback: number) => {
+    const raw = params.get(key)
+    if (!raw || !/^\d+$/.test(raw)) return fallback
+    const value = Number(raw)
+    return value >= 1 && value <= 100_000 ? value : fallback
+  }
+  return { rows: dimension('rows', ROWS), cols: dimension('cols', COLS) }
+}
+
 type ImportUiState = ImportProgress & {
   fileName: string
   stats?: WorkbookImportStatsWire
@@ -107,6 +126,7 @@ const EMPTY_IMPORT_STATE: ImportUiState = {
 
 export function DemoMillion() {
   const t = useT()
+  const grid = gridSizeFromUrl()
   const [importState, setImportState] = createSignal<ImportUiState | null>(null)
   let importClient: WorkerWorkbookClient | undefined
   let importAbort: AbortController | undefined
@@ -283,8 +303,8 @@ export function DemoMillion() {
           </div>
           <Table
             store={workbook().activeStore()}
-            rows={ROWS}
-            cols={COLS}
+            rows={grid.rows}
+            cols={grid.cols}
             virtualize
             formulaBar
             toolbar

@@ -46,6 +46,12 @@
 | PV-30 | 裸滚动离开选中格后位置保持（不回弹） | scrollLeft/scrollTop 直写离开选区 | 滚动位置保持 | ⏳ P2 延后 | —（实测 2026-07-29：1M demo 上把选中格滚出视口的裸滚动会被 keep-selection-in-view 回弹，如 x=0 → 回 69226；million-demo 粘贴存量 spec 早已按此绕行。是否算产品 bug 需产品决策——本轮新增 spec 一律经 setSelectionAnchor 导航） |
 | PV-31 | AD-807 真实千万已填充 TSV 导入边界 | DemoMillion 上传 AD-806 10,000×1,000 TSV | 记录 200,001 格原子会话失败前后的 DOM、订阅、内存可用性与原始错误；不把失败当成容量结论 | 🧪 观察 | ad807-ten-million-load.spec.ts |
 | PV-32 | AD-810 原子导入会话精确边界 | DemoMillion 上传确定性 200×1,000 与 200×1,000+1 TSV | 200,000 格提交；第 200,001 个归一化单元格被拒绝；记录 UI、worker、DOM、订阅、内存可用性；不作性能、容量或 SLO 结论 | 🧪 观察 | ad810-import-boundary.spec.ts |
+| PV-33 | AD-808 大规模已填充交互观察 | `AD808_SCALE_ROWS` 档位 AD-806 direct 灌入 DemoMillion（`?rows=` 覆写）→ 视口推进阶梯 / 远角跳转 / 全表选区 | 灌入全接受、逐步 DOM `.cell`<2200、订阅增量<200、远窗投影逐格等于 AD-806 值、`selectionAddrs===null`、纯值浏览零求值增量；耗时只进 JSON 记录 | 🧪 观察 | ad808-scale-interaction.spec.ts |
+| PV-34 | AD-809 大规模已填充重算观察 | `AD809_SCALE_ROWS`×1,000 灌入 + 7,000 深链 + `SUM(A:A)`，headless 直连 wasm worker | 导入后求值=0；窗口读求值增量=窗口公式数（精确）；链尾读/编辑后重算 O(链长) 有界；重复读=0；累计求值<总格数/100；耗时只进 JSON | 🧪 观察 | ad809-scale-recalc.spec.ts |
+| PV-35 | AD-808/809 direct 灌入容量边界 | `AD808_FILL_BOUNDARY_ROWS`×1,000 AD-806 direct 灌入 headless wasm 工作簿 | 完成则 accepted=全量且远角投影正确；trap 则原样记录累计接受数与错误（实测 10,000 行档三次均 7,340,000 后 `unreachable`），不作容量判定 | 🧪 观察 | ad808-fill-boundary.spec.ts |
+| PV-36 | AD-812 密集视口远角往返契约 | DemoMillion 原子导入两个 60×40 密集块 → 远角↔回家 | 每步 DOM `.cell`<2200、订阅增量<200、密集角格值正确、回家后角格卸载、`importSessionCount=0` | ✅ 常驻 | ad812-scale-contracts.spec.ts |
+| PV-37 | AD-812 求值数跟随访问范围契约 | headless 512 深链+整列 SUM+11,265 填充格，双后端 | 导入后求值=0；12 行窗口读增量恰为 13；链尾读 O(链长) 上界（≤3×链长且＜总格数/4，计数口径引擎特定）；重复读=0；值精确 | ✅ 常驻 | ad812-scale-contracts.spec.ts |
 
 统计：存量 21（PV-01..21，多 test 合并行按文件计全覆盖）/ 本轮新增 6（PV-22..27，
-3 个新 spec 文件，wasm 全绿）/ 延后 3（PV-28..30）/ 真实失败观察 1（PV-31）/ 真实边界观察 1（PV-32）。
+3 个新 spec 文件，wasm 全绿）/ 延后 3（PV-28..30）/ 真实失败观察 1（PV-31）/ 真实边界观察 1（PV-32）/
+规模观察 3（PV-33..35，env 门控，档位与边界见 docs/AD808、AD809 观察记录）/ 规模契约 2（PV-36..37，双 project 常驻绿）。

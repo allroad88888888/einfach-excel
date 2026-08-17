@@ -1,0 +1,592 @@
+{
+  "observationId": "ad808-scale-interaction-2026-08-17",
+  "recordedAt": "2026-08-17T00:00:00+08:00",
+  "schemaNote": "environment fields follow ADR 0011 (einfach.performance-environment/v1) semantics inline",
+  "repositoryRevision": "986cd74e564da8e998cef7956ae41b741bab4895 + uncommitted AD-808/AD-809/AD-812 spec, helper, DemoMillion grid-override and observation files",
+  "sourceTests": [
+    "excel/solid-excel/e2e/perf-virtual/ad808-scale-interaction.spec.ts",
+    "excel/solid-excel/e2e/perf-virtual/ad808-fill-boundary.spec.ts"
+  ],
+  "commands": [
+    "NO_PROXY=localhost,127.0.0.1 EINFACH_E2E_PORT=5187 AD808_SCALE_ROWS=6000 npx playwright test ad808-scale-interaction --project=wasm --reporter=line",
+    "NO_PROXY=localhost,127.0.0.1 EINFACH_E2E_PORT=5187 AD808_FILL_BOUNDARY_ROWS=10000 npx playwright test ad808-fill-boundary --project=wasm --reporter=line"
+  ],
+  "environment": {
+    "hostOperatingSystem": "macOS 26.5.2 (25F84)",
+    "hostArchitecture": "arm64",
+    "hostCpu": "Apple M4 (10 logical cores)",
+    "hostMemoryBytes": 17179869184,
+    "node": "v24.14.0",
+    "pnpm": "10.15.1",
+    "playwright": "1.59.1",
+    "browserUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.7727.15 Safari/537.36",
+    "project": "wasm",
+    "e2ePort": 5187,
+    "powerState": "unknown (not captured)",
+    "displayRefreshHz": "unknown (headed defaults, not captured)",
+    "conditions": {
+      "cacheState": "warm dev-server, cold browser context per run",
+      "network": "loopback only (NO_PROXY=localhost,127.0.0.1)",
+      "backgroundLoad": "no-known-competing-workload"
+    }
+  },
+  "fixture": {
+    "definition": "AD-806 deterministic fill r{zero-based-row}c{zero-based-column}, generated in-page and pumped through the wire protocol's non-atomic direct import (10,000-cell chunks); not the file-input path",
+    "recordedInteractionTier": {
+      "rows": 6000,
+      "columns": 1000,
+      "populatedCellCount": 6000000
+    },
+    "requestedTenMillionTier": {
+      "rows": 10000,
+      "columns": 1000,
+      "populatedCellCount": 10000000
+    }
+  },
+  "tenMillionAttempts": {
+    "headlessDirectFill": {
+      "attempts": 3,
+      "outcome": "WASM engine trap ('unreachable') during chunk insertion, cumulative accepted exactly 7340000 in all three attempts",
+      "lastRunRawPayload": {
+        "fixture": {
+          "cols": 1000,
+          "requestedCellCount": 10000000,
+          "rows": 10000,
+          "valuePattern": "r{zero-based-row}c{zero-based-column}"
+        },
+        "importMode": "direct",
+        "chunkCells": 10000,
+        "project": "wasm",
+        "result": {
+          "acceptedAtSettle": 7340000,
+          "counters": null,
+          "elapsedMs": 19348.5,
+          "error": "direct import failed; import is non-atomic and may contain partial writes: unreachable",
+          "farDisplay": null,
+          "outcome": "trapped",
+          "stats": null
+        },
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.7727.15 Safari/537.36"
+      }
+    },
+    "liveDemoMillionSeeding": {
+      "attempts": 2,
+      "rows": 7000,
+      "outcome": "browser page (renderer) closed during in-page seeding of the live DemoMillion surface in both attempts; no interaction observation exists at or above 7,000,000 populated cells on the interactive surface"
+    }
+  },
+  "run": {
+    "runnerOutcome": "passed (1 test, 32.8s including web-server preparation) at AD808_SCALE_ROWS=6000",
+    "warmupRuns": [],
+    "settledCondition": "each travel step settles when the target cell's .cell-display text equals its deterministic AD-806 value; samples read DOM counts, activeSubscriptionCount, worker debugCounters, and available memory fields after settling",
+    "rawConsolePayload": {
+      "fixture": {
+        "cols": 1000,
+        "populatedCellCount": 6000000,
+        "rows": 6000,
+        "valuePattern": "r{zero-based-row}c{zero-based-column}"
+      },
+      "grid": {
+        "cols": 1000,
+        "rows": 6000
+      },
+      "phases": {
+        "corner": {
+          "addr": "ALL6000",
+          "col": 999,
+          "elapsedMs": 305,
+          "row": 5999,
+          "sample": {
+            "activeSubscriptionCount": 384,
+            "dom": {
+              "cellElements": 384,
+              "elements": 956
+            },
+            "memory": {
+              "legacyUsedJsHeapSize": 53500000,
+              "measureUserAgentSpecificMemory": {
+                "bytes": null,
+                "error": null,
+                "supported": false
+              }
+            },
+            "workerCounters": {
+              "sheetCount": 1,
+              "crossSheetDependents": 0,
+              "formulaCount": 0,
+              "formulaEvalCountTotal": 50,
+              "liveSubscriptionCount": 384,
+              "workerSubscriptionCount": 384,
+              "importSessionCount": 0,
+              "exportSessionCount": 0,
+              "snapshotSessionCount": 0,
+              "sheets": [
+                {
+                  "idx": 0,
+                  "name": "Sheet1",
+                  "formulaCount": 0,
+                  "formulaEvalCount": 50,
+                  "liveSubscriptionCount": 384
+                }
+              ]
+            }
+          }
+        },
+        "home": {
+          "addr": "A1",
+          "col": 0,
+          "elapsedMs": 672,
+          "row": 0,
+          "sample": {
+            "activeSubscriptionCount": 630,
+            "dom": {
+              "cellElements": 630,
+              "elements": 1471
+            },
+            "memory": {
+              "legacyUsedJsHeapSize": 53500000,
+              "measureUserAgentSpecificMemory": {
+                "bytes": null,
+                "error": null,
+                "supported": false
+              }
+            },
+            "workerCounters": {
+              "sheetCount": 1,
+              "crossSheetDependents": 0,
+              "formulaCount": 0,
+              "formulaEvalCountTotal": 50,
+              "liveSubscriptionCount": 630,
+              "workerSubscriptionCount": 630,
+              "importSessionCount": 0,
+              "exportSessionCount": 0,
+              "snapshotSessionCount": 0,
+              "sheets": [
+                {
+                  "idx": 0,
+                  "name": "Sheet1",
+                  "formulaCount": 0,
+                  "formulaEvalCount": 50,
+                  "liveSubscriptionCount": 630
+                }
+              ]
+            }
+          }
+        },
+        "ladder": [
+          {
+            "addr": "F301",
+            "col": 5,
+            "elapsedMs": 747,
+            "row": 300,
+            "sample": {
+              "activeSubscriptionCount": 630,
+              "dom": {
+                "cellElements": 630,
+                "elements": 1473
+              },
+              "memory": {
+                "legacyUsedJsHeapSize": 53500000,
+                "measureUserAgentSpecificMemory": {
+                  "bytes": null,
+                  "error": null,
+                  "supported": false
+                }
+              },
+              "workerCounters": {
+                "sheetCount": 1,
+                "crossSheetDependents": 0,
+                "formulaCount": 0,
+                "formulaEvalCountTotal": 50,
+                "liveSubscriptionCount": 630,
+                "workerSubscriptionCount": 630,
+                "importSessionCount": 0,
+                "exportSessionCount": 0,
+                "snapshotSessionCount": 0,
+                "sheets": [
+                  {
+                    "idx": 0,
+                    "name": "Sheet1",
+                    "formulaCount": 0,
+                    "formulaEvalCount": 50,
+                    "liveSubscriptionCount": 630
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "addr": "F901",
+            "col": 5,
+            "elapsedMs": 679,
+            "row": 900,
+            "sample": {
+              "activeSubscriptionCount": 630,
+              "dom": {
+                "cellElements": 630,
+                "elements": 1473
+              },
+              "memory": {
+                "legacyUsedJsHeapSize": 53500000,
+                "measureUserAgentSpecificMemory": {
+                  "bytes": null,
+                  "error": null,
+                  "supported": false
+                }
+              },
+              "workerCounters": {
+                "sheetCount": 1,
+                "crossSheetDependents": 0,
+                "formulaCount": 0,
+                "formulaEvalCountTotal": 50,
+                "liveSubscriptionCount": 630,
+                "workerSubscriptionCount": 630,
+                "importSessionCount": 0,
+                "exportSessionCount": 0,
+                "snapshotSessionCount": 0,
+                "sheets": [
+                  {
+                    "idx": 0,
+                    "name": "Sheet1",
+                    "formulaCount": 0,
+                    "formulaEvalCount": 50,
+                    "liveSubscriptionCount": 630
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "addr": "F1801",
+            "col": 5,
+            "elapsedMs": 720,
+            "row": 1800,
+            "sample": {
+              "activeSubscriptionCount": 630,
+              "dom": {
+                "cellElements": 630,
+                "elements": 1473
+              },
+              "memory": {
+                "legacyUsedJsHeapSize": 53500000,
+                "measureUserAgentSpecificMemory": {
+                  "bytes": null,
+                  "error": null,
+                  "supported": false
+                }
+              },
+              "workerCounters": {
+                "sheetCount": 1,
+                "crossSheetDependents": 0,
+                "formulaCount": 0,
+                "formulaEvalCountTotal": 50,
+                "liveSubscriptionCount": 630,
+                "workerSubscriptionCount": 630,
+                "importSessionCount": 0,
+                "exportSessionCount": 0,
+                "snapshotSessionCount": 0,
+                "sheets": [
+                  {
+                    "idx": 0,
+                    "name": "Sheet1",
+                    "formulaCount": 0,
+                    "formulaEvalCount": 50,
+                    "liveSubscriptionCount": 630
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "addr": "F3001",
+            "col": 5,
+            "elapsedMs": 802,
+            "row": 3000,
+            "sample": {
+              "activeSubscriptionCount": 630,
+              "dom": {
+                "cellElements": 630,
+                "elements": 1473
+              },
+              "memory": {
+                "legacyUsedJsHeapSize": 53500000,
+                "measureUserAgentSpecificMemory": {
+                  "bytes": null,
+                  "error": null,
+                  "supported": false
+                }
+              },
+              "workerCounters": {
+                "sheetCount": 1,
+                "crossSheetDependents": 0,
+                "formulaCount": 0,
+                "formulaEvalCountTotal": 50,
+                "liveSubscriptionCount": 630,
+                "workerSubscriptionCount": 630,
+                "importSessionCount": 0,
+                "exportSessionCount": 0,
+                "snapshotSessionCount": 0,
+                "sheets": [
+                  {
+                    "idx": 0,
+                    "name": "Sheet1",
+                    "formulaCount": 0,
+                    "formulaEvalCount": 50,
+                    "liveSubscriptionCount": 630
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "addr": "F4201",
+            "col": 5,
+            "elapsedMs": 728,
+            "row": 4200,
+            "sample": {
+              "activeSubscriptionCount": 630,
+              "dom": {
+                "cellElements": 630,
+                "elements": 1473
+              },
+              "memory": {
+                "legacyUsedJsHeapSize": 53500000,
+                "measureUserAgentSpecificMemory": {
+                  "bytes": null,
+                  "error": null,
+                  "supported": false
+                }
+              },
+              "workerCounters": {
+                "sheetCount": 1,
+                "crossSheetDependents": 0,
+                "formulaCount": 0,
+                "formulaEvalCountTotal": 50,
+                "liveSubscriptionCount": 630,
+                "workerSubscriptionCount": 630,
+                "importSessionCount": 0,
+                "exportSessionCount": 0,
+                "snapshotSessionCount": 0,
+                "sheets": [
+                  {
+                    "idx": 0,
+                    "name": "Sheet1",
+                    "formulaCount": 0,
+                    "formulaEvalCount": 50,
+                    "liveSubscriptionCount": 630
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "addr": "F5101",
+            "col": 5,
+            "elapsedMs": 782,
+            "row": 5100,
+            "sample": {
+              "activeSubscriptionCount": 630,
+              "dom": {
+                "cellElements": 630,
+                "elements": 1473
+              },
+              "memory": {
+                "legacyUsedJsHeapSize": 53500000,
+                "measureUserAgentSpecificMemory": {
+                  "bytes": null,
+                  "error": null,
+                  "supported": false
+                }
+              },
+              "workerCounters": {
+                "sheetCount": 1,
+                "crossSheetDependents": 0,
+                "formulaCount": 0,
+                "formulaEvalCountTotal": 50,
+                "liveSubscriptionCount": 630,
+                "workerSubscriptionCount": 630,
+                "importSessionCount": 0,
+                "exportSessionCount": 0,
+                "snapshotSessionCount": 0,
+                "sheets": [
+                  {
+                    "idx": 0,
+                    "name": "Sheet1",
+                    "formulaCount": 0,
+                    "formulaEvalCount": 50,
+                    "liveSubscriptionCount": 630
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "addr": "F6000",
+            "col": 5,
+            "elapsedMs": 468,
+            "row": 5999,
+            "sample": {
+              "activeSubscriptionCount": 504,
+              "dom": {
+                "cellElements": 504,
+                "elements": 1201
+              },
+              "memory": {
+                "legacyUsedJsHeapSize": 53500000,
+                "measureUserAgentSpecificMemory": {
+                  "bytes": null,
+                  "error": null,
+                  "supported": false
+                }
+              },
+              "workerCounters": {
+                "sheetCount": 1,
+                "crossSheetDependents": 0,
+                "formulaCount": 0,
+                "formulaEvalCountTotal": 50,
+                "liveSubscriptionCount": 504,
+                "workerSubscriptionCount": 504,
+                "importSessionCount": 0,
+                "exportSessionCount": 0,
+                "snapshotSessionCount": 0,
+                "sheets": [
+                  {
+                    "idx": 0,
+                    "name": "Sheet1",
+                    "formulaCount": 0,
+                    "formulaEvalCount": 50,
+                    "liveSubscriptionCount": 504
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "ready": {
+          "activeSubscriptionCount": 630,
+          "dom": {
+            "cellElements": 630,
+            "elements": 1471
+          },
+          "memory": {
+            "legacyUsedJsHeapSize": 53500000,
+            "measureUserAgentSpecificMemory": {
+              "bytes": null,
+              "error": null,
+              "supported": false
+            }
+          },
+          "workerCounters": {
+            "sheetCount": 1,
+            "crossSheetDependents": 0,
+            "formulaCount": 49,
+            "formulaEvalCountTotal": 29,
+            "liveSubscriptionCount": 630,
+            "workerSubscriptionCount": 630,
+            "importSessionCount": 0,
+            "exportSessionCount": 0,
+            "snapshotSessionCount": 0,
+            "sheets": [
+              {
+                "idx": 0,
+                "name": "Sheet1",
+                "formulaCount": 49,
+                "formulaEvalCount": 29,
+                "liveSubscriptionCount": 630
+              }
+            ]
+          }
+        },
+        "seed": {
+          "accepted": 6000000,
+          "elapsedMs": 18736.900000095367,
+          "stats": {
+            "accepted": 6000000,
+            "formulas": 0,
+            "rejectedFormulas": 0,
+            "cleared": 0,
+            "errors": 0
+          },
+          "afterSeedSample": {
+            "activeSubscriptionCount": 630,
+            "dom": {
+              "cellElements": 630,
+              "elements": 1471
+            },
+            "memory": {
+              "legacyUsedJsHeapSize": 53500000,
+              "measureUserAgentSpecificMemory": {
+                "bytes": null,
+                "error": null,
+                "supported": false
+              }
+            },
+            "workerCounters": {
+              "sheetCount": 1,
+              "crossSheetDependents": 0,
+              "formulaCount": 0,
+              "formulaEvalCountTotal": 50,
+              "liveSubscriptionCount": 630,
+              "workerSubscriptionCount": 630,
+              "importSessionCount": 0,
+              "exportSessionCount": 0,
+              "snapshotSessionCount": 0,
+              "sheets": [
+                {
+                  "idx": 0,
+                  "name": "Sheet1",
+                  "formulaCount": 0,
+                  "formulaEvalCount": 50,
+                  "liveSubscriptionCount": 630
+                }
+              ]
+            }
+          }
+        },
+        "selection": {
+          "addrs": null,
+          "elapsedMs": 10.100000381469727,
+          "afterSelectionSample": {
+            "activeSubscriptionCount": 384,
+            "dom": {
+              "cellElements": 384,
+              "elements": 956
+            },
+            "memory": {
+              "legacyUsedJsHeapSize": 53500000,
+              "measureUserAgentSpecificMemory": {
+                "bytes": null,
+                "error": null,
+                "supported": false
+              }
+            },
+            "workerCounters": {
+              "sheetCount": 1,
+              "crossSheetDependents": 0,
+              "formulaCount": 0,
+              "formulaEvalCountTotal": 50,
+              "liveSubscriptionCount": 384,
+              "workerSubscriptionCount": 384,
+              "importSessionCount": 0,
+              "exportSessionCount": 0,
+              "snapshotSessionCount": 0,
+              "sheets": [
+                {
+                  "idx": 0,
+                  "name": "Sheet1",
+                  "formulaCount": 0,
+                  "formulaEvalCount": 50,
+                  "liveSubscriptionCount": 384
+                }
+              ]
+            }
+          }
+        }
+      },
+      "project": "wasm",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.7727.15 Safari/537.36",
+      "warmupRuns": []
+    }
+  },
+  "interpretationBoundary": "This record documents one revision- and environment-specific run at the 6,000,000-cell interactive tier plus deterministic seeding boundaries observed on the way to the requested ten-million tier. Wall-clock values include Playwright polling overhead and are not benchmarks. Nothing here states a capacity, throughput, SLO, cross-environment, or competitive conclusion, and the boundaries are properties of this build's seeding path, not of the address space or of other import paths."
+}

@@ -2,11 +2,12 @@
 
 父节点：[对外采用与推广：Issue 树](../ADOPTION_ISSUE_TREE.md)
 
-本组把「npm 上没有可用包」这条断路接通。它仍是发布与上手路径的硬阻塞。
+本组把「npm 上没有可用包」这条断路接通。**断路已于 2026-08-17 接通**：五包以 `0.1.0`
+上线 registry.npmjs.org，仓外真实 `npm install` 验证通过；余项为发布质量收尾。
 
 ## 当前状态
 
-状态：**口径已裁决（ADR 0014~0019）；AD-101~126、AD-128~130、AD-133、AD-136~137 已完成并独立验收（`38d7d5b` WASM 分发迁移、`8aadfff` 双形态交付与版本落地、`1b08a6a` 本地 registry 全链路 dry-run，提交号见 [Issue 树](../ADOPTION_ISSUE_TREE.md)）；AD-132 局部进展；剩余 AD-127（被 AD-414 阻塞）、AD-131、AD-134~135、AD-138~142**。
+状态：**首发完成；AD-101~126、AD-128~130、AD-132~133、AD-136~137 已完成并独立验收（`38d7d5b` WASM 分发迁移、`8aadfff` 双形态交付与版本落地、`1b08a6a` 本地 registry dry-run、`3be70d7`/`93f7492`/`6ddc17a` 发布流并实跑上线，提交号见 [Issue 树](../ADOPTION_ISSUE_TREE.md)）；剩余 AD-127（被 AD-414 阻塞）、AD-131、AD-134~135、AD-138~142**。
 
 原先阻塞本组的五项决策已落成 [ADR 0014~0018](#已裁决的口径)，“该做什么”不再是未知数；
 裁决本身不构成完成判定 —— 已完成的叶子各有独立验收的交付物。
@@ -37,9 +38,8 @@
    安装；`pnpm pack` 重写为 `0.1.0`）。发布链因此必须使用 pnpm 的打包/发布路径，
    AD-132/137 落地时以此为硬约束。
 4. ~~各包 `engines.node` 不一致~~ 已解决（`8aadfff`）：五个待发包统一 `>=22.12.0`。
-5. `.changeset/lucky-pandas-clap.md`（状态栏收窄，minor）在途：一旦在首发前执行
-   `changeset version`，fixed 组会被推到 `0.2.0`，与 [ADR 0017](../decisions/0017-initial-release-version-0-1-0.md)
-   的首发 `0.1.0` 冲突。首发必须先于该 changeset 的 version，或由维护者另行裁决。
+5. ~~在途 changeset 与首发顺序冲突~~ 已解除：首发（0.1.0）于 2026-08-17 先行完成，
+   `lucky-pandas-clap.md` 此后走常规 Version PR 升 `0.2.0` 即为正当流转。
 
 ## 叶子
 
@@ -85,7 +85,7 @@
 - **AD-129 版本策略落地** —— **完成**（`8aadfff`）：五个待发包全部对齐 `0.1.0`（excel-core-ts 从 `0.0.0` 提上来）。
 - **AD-130 fixed 组配置** —— **完成**（`8aadfff`）：fixed 组扩为五包；用临时 changeset 经 `changeset status` 实测联动（任一成员 bump，五包同升）。
 - **AD-131 首发 changeset** —— 覆盖全部待发包，且不得把任何包推过 `0.1.0`。**前置警示**：在途的 `lucky-pandas-clap.md`（minor）若先于首发被 version，fixed 组直接到 `0.2.0`，见「开工前事实」第 5 条。
-- **AD-132 发布 workflow** —— **局部进展**：`publish.yml` 已按 ADR 0016/0017/0018 改造（Node 钉 22.12.0、发布前显式构建 full 变体、publish 命令换 `pnpm run release:publish` 以保证 `workspace:*` 重写、首发顺序约束写入头注）；完成判定 = secret 就位后真实跑通一次,以及按裁决恢复 push 触发。
+- **AD-132 发布 workflow** —— **完成**（`3be70d7`、`93f7492`、`6ddc17a`）：`publish.yml` 按 ADR 0016~0018 改造（Node 钉 22.12.0、`pnpm run release:publish` 保证 `workspace:*` 重写、`build:publish` 只建三个发包项目、`first-publish` 应急档）；2026-08-17 以 NPM_TOKEN 实跑 run `32003823855`，五包上线；push 触发已恢复走常规 changesets 流。
 - **AD-133 发布流程文档化** —— **完成**：[docs/RELEASING.md](../RELEASING.md)——谁能发、凭据配置与轮换、pnpm-only 约束、首发 0.1.0 的顺序纪律与发布前自检。
 - **AD-134 稳定性声明** —— README 准确说明所选版本阶段的兼容性预期。
 - **AD-135 首条 release notes** —— 说明成熟度、已知边界与非目标。

@@ -7,7 +7,7 @@
 
 ## 当前状态
 
-状态：**首发完成；AD-101~126、AD-128~130、AD-132~137 已完成并独立验收（`38d7d5b` WASM 分发迁移、`8aadfff` 双形态交付与版本落地、`1b08a6a` 本地 registry dry-run、`3be70d7`/`93f7492`/`6ddc17a` 发布流并实跑上线，提交号见 [Issue 树](../ADOPTION_ISSUE_TREE.md)）；剩余 AD-127（被 AD-414 阻塞）、AD-131（判定待重定义）、AD-138~142**。
+状态：**首发完成；AD-101~126、AD-128~130、AD-132~138 已完成并独立验收（`38d7d5b` WASM 分发迁移、`8aadfff` 双形态交付与版本落地、`1b08a6a` 本地 registry dry-run、`3be70d7`/`93f7492`/`6ddc17a` 发布流并实跑上线，提交号见 [Issue 树](../ADOPTION_ISSUE_TREE.md)）；剩余 AD-127（被 AD-414 阻塞）、AD-131（判定待重定义）、AD-139~142**。
 
 原先阻塞本组的五项决策已落成 [ADR 0014~0018](#已裁决的口径)，“该做什么”不再是未知数；
 裁决本身不构成完成判定 —— 已完成的叶子各有独立验收的交付物。
@@ -91,5 +91,6 @@
 - **AD-135 首条 release notes** —— **完成**：五个 `0.1.0` tag 的 GitHub Releases（tag 落发布提交 `6ddc17a`）；主 note 挂 `solid-excel@0.1.0`，覆盖成熟度、已知边界（打包器环境、peer 单实例、lite/full 语义差异、规模表述纪律）与非目标（非托管服务、无 SSR 承诺、无 React/Vue 已发布适配、非 Excel 平替）。
 - **AD-136 本地 registry** —— **完成**（`1b08a6a`）：verdaccio 6.9.2，本仓五包 scope 不设 uplink、其余代理 npmjs；配置要点见[观察记录](../AD137_LOCAL_REGISTRY_DRYRUN_OBSERVATION.md)。
 - **AD-137 全链路 dry-run** —— **完成**（`1b08a6a`）：五包经 `pnpm publish` 全部上 registry（无部分发布残留），仓外消费者一次 `npm install` 解析全链（含 peer 自动装自 npmjs 代理），运行时与类型探针见[观察记录](../AD137_LOCAL_REGISTRY_DRYRUN_OBSERVATION.md)。裸 node 下 `vnext` 入口因 CSS import 报错属设计内行为，打包器实跑归 AD-138~141。
-- **AD-138 / AD-139 / AD-140 / AD-141** —— Vite、webpack、Next、Nuxt 的仓外安装冒烟，在 Node `22.12.0` 基线下界上执行（只在更高版本跑通不算数）。
+- **AD-138 Vite 仓外冒烟** —— **完成**（`c423d1a`）：真 registry 安装 + Node `22.12.0` 基线下界构建 + 浏览器实跑，跨三表公式链经真实 WASM worker 求值显示，零运行时错误；见[观察记录](../AD138_VITE_SMOKE_OBSERVATION.md)。
+- **AD-139 / AD-140 / AD-141** —— webpack、Next、Nuxt 的仓外安装冒烟，在 Node `22.12.0` 基线下界上执行（只在更高版本跑通不算数）；须覆盖预编译 ESM（`import` 条件）路径。
 - **AD-142 失败路径可读性走查** —— 验证缺 WASM、worker 失败、重复 solid-js 时的错误指向明确解法。

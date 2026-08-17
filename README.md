@@ -55,9 +55,36 @@ The UI core owns interaction state and the projection contract. A backend owns w
 
 `@einfach/solid-excel` is the only currently provided UI-framework binding. `@einfach/spreadsheet-ui-core` is framework-agnostic, but that does not constitute an existing React or Vue integration: no React/Vue adapter package or usable integration path is currently provided.
 
-### Release status
+### Release status and stability
 
-This project is currently available as repository source and is in a pre-release stage. No npm-published package has been verified for offline installation. Use a repository checkout for the documented local build and verification paths.
+Five packages were first published to npm on **2026-08-17** at version `0.1.0`:
+`@einfach/spreadsheet-ui-core`, `@einfach/spreadsheet-ui-styles`,
+`@einfach/excel-core-ts`, `@einfach/excel-wasm`, and `@einfach/solid-excel`.
+They version as a fixed group — all five always move together.
+
+```bash
+npm install @einfach/solid-excel solid-js
+```
+
+Compatibility expectations for the `0.x` stage
+([ADR 0017](./docs/decisions/0017-initial-release-version-0-1-0.md)):
+
+- **Minor releases (`0.1` → `0.2`) may contain breaking changes.** Pin the
+  minor (`~0.1.0`) if you need a stable API surface; each package ships a
+  `CHANGELOG.md` that lists removals explicitly.
+- Patch releases are fixes only.
+- Supported Node.js baseline: **`>=22.12.0`**
+  ([ADR 0018](./docs/decisions/0018-node-baseline-22-12.md)).
+- `@einfach/solid-excel` ships dual-form artifacts
+  ([ADR 0019](./docs/decisions/0019-solid-excel-dual-form-artifacts.md)):
+  Vite + `vite-plugin-solid` consumers compile from source via the `solid`
+  export condition; other bundlers get precompiled ESM. It targets bundler
+  environments — bare-Node import is not supported. `solid-js`,
+  `@einfach/core`, and `@einfach/solid` are peer dependencies: your app must
+  hold exactly one copy of each (see
+  [ADR 0001](./docs/decisions/0001-solid-js-single-instance.md)).
+- TypeScript consumers of `@einfach/excel-wasm` need `lib` ≥ ES2023 plus DOM
+  (or `skipLibCheck`); `moduleResolution: "bundler"` is the verified setup.
 
 ## Dated product facts
 
@@ -85,8 +112,8 @@ builds used through HTML `<script>` tags, and a React 18/19 example with effect
 initialization, a ref container, and cleanup disposal. The Univer evidence
 ledger records the source scope and limitations for both examples.
 
-Einfach Excel's release-status section separately records the repository
-checkout context. It is not part of a comparison between the products.
+Einfach Excel's release-status section separately records its own publish
+status. It is not part of a comparison between the products.
 
 This section only indexes the cited documentation records. It does not
 establish product availability, package installation, framework support,

@@ -47,9 +47,30 @@ UI 核心负责交互状态和投影契约，后端负责工作簿数据和写�
 
 `@einfach/solid-excel` 是当前唯一已提供的 UI 框架绑定。`@einfach/spreadsheet-ui-core` 保持框架无关，但这不表示已经提供 React 或 Vue 集成：目前没有 React/Vue 适配器包或可用的集成路径。
 
-### 发布状态
+### 发布状态与稳定性
 
-本项目当前以仓库源码形式提供，仍处于预发布阶段。尚无经验证、可离线安装的 npm 已发布包；请使用仓库 checkout 中已记录的本地构建与验证路径。
+五个包已于 **2026-08-17** 以 `0.1.0` 首发 npm：`@einfach/spreadsheet-ui-core`、
+`@einfach/spreadsheet-ui-styles`、`@einfach/excel-core-ts`、`@einfach/excel-wasm`、
+`@einfach/solid-excel`。五包按 fixed 组管理版本 —— 永远一起升。
+
+```bash
+npm install @einfach/solid-excel solid-js
+```
+
+`0.x` 阶段的兼容性预期（[ADR 0017](./docs/decisions/0017-initial-release-version-0-1-0.md)）：
+
+- **次版本（`0.1` → `0.2`）可能包含破坏性变更。** 需要稳定 API 面就锁定次版本
+  （`~0.1.0`）；每个包的 `CHANGELOG.md` 会显式列出移除项。
+- 补丁版本只含修复。
+- Node.js 支持基线：**`>=22.12.0`**（[ADR 0018](./docs/decisions/0018-node-baseline-22-12.md)）。
+- `@einfach/solid-excel` 是双形态交付
+  （[ADR 0019](./docs/decisions/0019-solid-excel-dual-form-artifacts.md)）：
+  Vite + `vite-plugin-solid` 用户经 `solid` 导出条件走源码编译，其它打包器拿预编译
+  ESM；它面向打包器环境，不支持裸 Node import。`solid-js`、`@einfach/core`、
+  `@einfach/solid` 是 peer 依赖：应用里每个只能有一份物理副本
+  （见 [ADR 0001](./docs/decisions/0001-solid-js-single-instance.md)）。
+- `@einfach/excel-wasm` 的 TS 消费者需要 `lib` ≥ ES2023 加 DOM（或 `skipLibCheck`）；
+  已验证的组合是 `moduleResolution: "bundler"`。
 
 ## 已核实的产品事实
 
@@ -72,7 +93,7 @@ UI 核心负责交互状态和投影契约，后端负责工作簿数据和写�
 构建，以及 React 18/19 示例中的 effect 初始化、ref 容器与清理时 disposal。Univer
 证据账本记录了这两个示例的来源范围与限制。
 
-Einfach Excel 的发布状态章节另行记录仓库 checkout 背景；它不属于两个产品之间的比较。
+Einfach Excel 的发布状态章节另行记录自身的发布状态；它不属于两个产品之间的比较。
 
 本节只索引所引文档记录，不确立产品可用性、包安装、框架支持、兼容性、适用性、功能
 对等性、性能或排名。

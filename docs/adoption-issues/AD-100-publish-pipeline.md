@@ -92,6 +92,7 @@
 - **AD-136 本地 registry** —— **完成**（`1b08a6a`）：verdaccio 6.9.2，本仓五包 scope 不设 uplink、其余代理 npmjs；配置要点见[观察记录](../AD137_LOCAL_REGISTRY_DRYRUN_OBSERVATION.md)。
 - **AD-137 全链路 dry-run** —— **完成**（`1b08a6a`）：五包经 `pnpm publish` 全部上 registry（无部分发布残留），仓外消费者一次 `npm install` 解析全链（含 peer 自动装自 npmjs 代理），运行时与类型探针见[观察记录](../AD137_LOCAL_REGISTRY_DRYRUN_OBSERVATION.md)。裸 node 下 `vnext` 入口因 CSS import 报错属设计内行为，打包器实跑归 AD-138~141。
 - **AD-138 Vite 仓外冒烟** —— **完成**（`c423d1a`）：真 registry 安装 + Node `22.12.0` 基线下界构建 + 浏览器实跑，跨三表公式链经真实 WASM worker 求值显示，零运行时错误；见[观察记录](../AD138_VITE_SMOKE_OBSERVATION.md)。
-- **AD-139 / AD-140 / AD-141** —— webpack、Next、Nuxt 的仓外安装冒烟，在 Node `22.12.0` 基线下界上执行（只在更高版本跑通不算数）；须覆盖预编译 ESM（`import` 条件）路径。
+- **AD-139 webpack 仓外冒烟** —— **完成**（`8e05c1d`）：**零配置改动**跑通预编译 ESM 路径（webpack 5.109.2 + Node 22.12.0 下界）——worker chunk 自动切出、wasm asset 自动发射、CSS 副作用保留；跨三表公式链在 C2 数据单元格严格断言为 13，零运行时错误；见[观察记录](../AD139_WEBPACK_SMOKE_OBSERVATION.md)。
+- **AD-140 / AD-141** —— Next、Nuxt 的仓外安装冒烟，在 Node `22.12.0` 基线下界上执行（只在更高版本跑通不算数）；验证五包安装解析与框架中立三包（ui-core、excel-core-ts、excel-wasm）的真实可用。
 - **AD-142 失败路径可读性走查** —— **完成**（`e12b416`）：三场景走查见[走查记录](../AD142_FAILURE_PATH_WALKTHROUGH.md)。缺 WASM → jest 配置加载期定向报错（含重建命令，两态复验）；worker 启动失败 → 发现零 `onerror` 的静默挂死缺口，立叶 AD-143；重复 solid-js → README/release notes/ADR 0001 事前声明 + 仓内契约测试覆盖。
 - **AD-143 worker 启动失败的错误面** —— 由 AD-142 走查立叶：`WorkerLike` 连接层监听 `error`/`messageerror`，启动失败时 reject 全部 pending 并给出指向部署/CSP 排查的错误信息；需构造 `.wasm` 404 与 CSP 拦截两个复现验证。

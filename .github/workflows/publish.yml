@@ -20,6 +20,12 @@ on:
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
+# 仓库默认 GITHUB_TOKEN 只读；changesets/action 要推 changeset-release 分支、
+# 开 Version PR、（发布后）推 tags,都需要写权限。
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   publish:
     runs-on: ubuntu-latest

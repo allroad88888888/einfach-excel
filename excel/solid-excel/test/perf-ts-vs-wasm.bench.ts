@@ -74,13 +74,17 @@ function logPerfOutcome(name: string, backend: 'TS' | 'WASM', outcome: unknown):
 const WASM_PKG_JS = path.join(
   __dirname,
   '..',
-  'wasm-pkg',
+  '..',
+  'excel-wasm',
+  'lite',
   'einfach_wasm.js',
 )
 const WASM_PKG_BIN = path.join(
   __dirname,
   '..',
-  'wasm-pkg',
+  '..',
+  'excel-wasm',
+  'lite',
   'einfach_wasm_bg.wasm',
 )
 

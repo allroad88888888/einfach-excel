@@ -14,7 +14,7 @@ const mockWorkbook = {
   drainAsyncCustomRequests: () => [],
 }
 
-jest.mock('../wasm-pkg/einfach_wasm.js', () => ({
+jest.mock('@einfach/excel-wasm', () => ({
   __esModule: true,
   default: jest.fn(async () => undefined),
   WasmWorkbook: jest.fn(() => mockWorkbook),

@@ -107,17 +107,21 @@ one-off measurements, and animation handles.
 ## Build
 
 ```bash
-# Refresh wasm-pkg from excel/rust/wasm, then run Vite
+# Refresh the WASM artifacts from excel/rust/wasm, then run Vite
 npm run build -w @einfach/solid-excel
 
-# Dev server (assumes wasm-pkg is built)
+# Dev server (assumes excel/excel-wasm/lite is built)
 npm run dev -w @einfach/solid-excel
 
 # Rebuild only the WASM bundle
-npm run build:wasm -w @einfach/solid-excel
+npm run build:wasm -w @einfach/excel-wasm
 ```
 
-`build:wasm` runs `wasm-pack build --target web --out-dir ../../solid-excel/wasm-pkg ../../excel/rust/wasm` —— `--out-dir` 相对 **crate 目录**解析，产物落在 `excel/solid-excel/wasm-pkg/`。 The repo-level `npm run build` invokes the same step before `tsc -build`, so a fresh clone must have `wasm-pack` and a working Rust toolchain on `PATH`.
+WASM 产物归 `@einfach/excel-wasm`（`excel/excel-wasm/lite/` 与 `full/`）；本包的
+`build:wasm` 只是它的委托。真正的构建是 `wasm-pack build --target web --out-dir
+../../excel-wasm/lite ../rust/wasm` —— `--out-dir` 相对 **crate 目录**解析。 The
+repo-level `npm run build` invokes the same step before `tsc -build`, so a fresh
+clone must have `wasm-pack` and a working Rust toolchain on `PATH`.
 
 ## Testing
 

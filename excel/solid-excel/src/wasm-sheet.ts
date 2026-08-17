@@ -66,7 +66,7 @@ let wasmModulePromise: Promise<WasmModule> | undefined
 async function loadWasmModule(): Promise<WasmModule> {
   if (!wasmModulePromise) {
     wasmModulePromise = (async () => {
-      const wasm = await import('../wasm-pkg/einfach_wasm.js')
+      const wasm = await import('@einfach/excel-wasm')
       const mod = wasm as unknown as WasmModule
       await mod.default()
       return mod
@@ -78,7 +78,7 @@ async function loadWasmModule(): Promise<WasmModule> {
 /**
  * Real Rust + WASM backend for the Excel demos.
  *
- * The wasm-pack output (../wasm-pkg) is a normal ES module — `init()` returns
+ * The wasm-pack output (`@einfach/excel-wasm`) is a normal ES module — `init()` returns
  * a promise that resolves once the .wasm binary is fetched + instantiated.
  * We hide that wait inside this factory and return an `ISheet`-shaped object
  * once it's ready, so call sites can `await createWasmSheet()` and forget.
@@ -92,7 +92,7 @@ async function loadWasmModule(): Promise<WasmModule> {
  *
  * Build prerequisites (run from repo root):
  *   1. `rustup target add wasm32-unknown-unknown` (one-time)
- *   2. `npm run build:wasm -w @einfach/solid-excel` — emits `wasm-pkg/`
+ *   2. `npm run build:wasm -w @einfach/excel-wasm` — emits `excel/excel-wasm/lite/`
  *
  * Other demos (Budget / Grades / Sales / Blank) still use `createJSSheet`
  * for now; switching is a one-line swap of the factory passed to

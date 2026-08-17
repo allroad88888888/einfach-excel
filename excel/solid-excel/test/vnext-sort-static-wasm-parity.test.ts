@@ -26,15 +26,15 @@ import type { WorkerLike, WorkerWorkbookClient } from '../src-vnext/adapter'
 import { createStaticSpreadsheetBackend } from '../src-vnext/adapter/static-backend'
 import type { DisplayCell, SortDirection } from '@einfach/spreadsheet-ui-core'
 
-jest.mock('../wasm-pkg/einfach_wasm.js', () => {
+jest.mock('@einfach/excel-wasm', () => {
   /* eslint-disable @typescript-eslint/no-var-requires */
   const { readFileSync } = require('node:fs') as typeof NodeFsModule
   const nodePath = require('node:path') as typeof NodePathModule
-  const real = jest.requireActual('../wasm-pkg/einfach_wasm.js') as {
+  const real = jest.requireActual('@einfach/excel-wasm') as {
     initSync: (input: { module: ArrayBufferLike }) => unknown
     WasmWorkbook: unknown
   }
-  const bytes = readFileSync(nodePath.join(__dirname, '..', 'wasm-pkg', 'einfach_wasm_bg.wasm'))
+  const bytes = readFileSync(nodePath.join(__dirname, '..', '..', 'excel-wasm', 'lite', 'einfach_wasm_bg.wasm'))
   real.initSync({
     module: bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength),
   })

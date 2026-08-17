@@ -44,8 +44,8 @@ const g = globalThis as unknown as {
 if (!g.TextDecoder) g.TextDecoder = TextDecoder
 if (!g.TextEncoder) g.TextEncoder = TextEncoder
 
-const WASM_PKG_JS = path.join(__dirname, '..', 'wasm-pkg', 'einfach_wasm.js')
-const WASM_PKG_BIN = path.join(__dirname, '..', 'wasm-pkg', 'einfach_wasm_bg.wasm')
+const WASM_PKG_JS = path.join(__dirname, '..', '..', 'excel-wasm', 'lite', 'einfach_wasm.js')
+const WASM_PKG_BIN = path.join(__dirname, '..', '..', 'excel-wasm', 'lite', 'einfach_wasm_bg.wasm')
 
 /**
  * 表名按索引排开。工作负载**只在用得着时**才拉起第 1 张之后的表（见

@@ -81,7 +81,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: Build WASM bundle
-        run: npm run build:wasm -w @einfach/solid-excel
+        run: npm run build:wasm -w @einfach/excel-wasm
 
       # 必须经 workspace 调用:@playwright/test 是 excel/solid-excel 的
       # devDependency,不在根上。pnpm 不做提升,根目录的 npx 找不到它

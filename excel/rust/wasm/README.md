@@ -3,10 +3,10 @@
 `einfach-excel-core` 的 WASM 绑定。把 `Sheet` / `Workbook` 以 `WasmSheet` / `WasmWorkbook`
 暴露给 JS。
 
-由 `wasm-pack` 构建：默认 lite 产物落在 **`excel/solid-excel/wasm-pkg/`**，full
-产物落在同目录的 `wasm-pkg-full/`（都不在本 crate 目录里 —— `wasm-pack` 的
-`--out-dir` 相对 crate 目录解析，见根 `package.json` 的 `ensureWasm` 与 solid-excel 的
-`build:wasm*` 那几条）。
+由 `wasm-pack` 构建：产物归 `@einfach/excel-wasm` 包，lite 落在
+**`excel/excel-wasm/lite/`**，full 落在 `excel/excel-wasm/full/`（都不在本 crate 目录里
+—— `wasm-pack` 的 `--out-dir` 相对 crate 目录解析，见根 `package.json` 的 `ensureWasm`
+与 excel-wasm 的 `build:wasm*` 那几条）。
 
 这条链路是 `wasm-pack build` 之后接一步 `scripts/strip-wasm-names.mjs`，把 `name` custom
 section（函数符号表，占产物 18–20%）剥掉 —— 本仓关了 wasm-opt（见 `Cargo.toml` 里
@@ -20,15 +20,15 @@ REGEX* 三个内建（`REGEXTEST` / `REGEXEXTRACT` / `REGEXREPLACE`）靠 `regex
 
 | | **lite** | **full** |
 |---|---|---|
-| 目录 | `excel/solid-excel/wasm-pkg/` | `excel/solid-excel/wasm-pkg-full/` |
-| 构建 | `npm run build:wasm -w @einfach/solid-excel` | `npm run build:wasm:full -w @einfach/solid-excel` |
+| 目录 | `excel/excel-wasm/lite/` | `excel/excel-wasm/full/` |
+| 构建 | `npm run build:wasm -w @einfach/excel-wasm` | `npm run build:wasm:full -w @einfach/excel-wasm` |
 | cargo feature | 无（默认） | `--features regex-formulas` |
 | REGEX* | 不存在，求值为 `#NAME?` | 可用 |
 
-两份一起构建用 `npm run build:wasm:both -w @einfach/solid-excel`。
+两份一起构建用 `npm run build:wasm:both -w @einfach/excel-wasm`。
 
 **lite 是默认**：`wasm-pack build` 不带参数出的就是它，`ensureWasm`、playwright 的
-`webServer`、以及 vnext worker 的默认 factory 全都指向 `wasm-pkg/`。full 有一个现成的
+`webServer`、以及 vnext worker 的默认 factory 全都指向 `@einfach/excel-wasm`（lite 入口）。full 有一个现成的
 worker 入口（`worker-runtime-full.ts`），但没有任何库内代码引用它 —— 见下面「怎么选 full」。
 
 极性是刻意反的：`einfach-excel-core` 那侧 `regex-formulas` 在 `default` 里（Rust 消费者
@@ -53,8 +53,8 @@ worker 入口（`worker-runtime-full.ts`），但没有任何库内代码引用�
 把代码归到哪个 crate 的噪声影响。现场复算：
 
 ```bash
-ls -l excel/solid-excel/wasm-pkg{,-full}/einfach_wasm_bg.wasm
-gzip -9 -c excel/solid-excel/wasm-pkg/einfach_wasm_bg.wasm | wc -c
+ls -l excel/excel-wasm/{lite,full}/einfach_wasm_bg.wasm
+gzip -9 -c excel/excel-wasm/lite/einfach_wasm_bg.wasm | wc -c
 ```
 
 ### 语义差异：两种构建只差"少三个函数"，不差别的
@@ -185,8 +185,8 @@ dispatcher 与"用哪份 wasm"已经解耦：worker 的消息循环住在
 
 | 入口 | import | 包子路径 |
 |---|---|---|
-| `worker-runtime.ts` | `wasm-pkg/` | `@einfach/solid-excel/vnext-worker-runtime` |
-| `worker-runtime-full.ts` | `wasm-pkg-full/` | `@einfach/solid-excel/vnext-worker-runtime-full` |
+| `worker-runtime.ts` | `@einfach/excel-wasm` | `@einfach/solid-excel/vnext-worker-runtime` |
+| `worker-runtime-full.ts` | `@einfach/excel-wasm/full` | `@einfach/solid-excel/vnext-worker-runtime-full` |
 
 宿主侧三选一：
 
@@ -194,7 +194,7 @@ dispatcher 与"用哪份 wasm"已经解耦：worker 的消息循环住在
 // 1) 默认 lite —— 什么都不用做，defaultVNextWorkbookWorkerFactory 就是它
 import { defaultVNextWorkbookWorkerFactory } from '@einfach/solid-excel/vnext-worker-factory'
 
-// 2) 换 full —— 先 `npm run build:wasm:full -w @einfach/solid-excel`，再自己 import 入口
+// 2) 换 full —— 先 `npm run build:wasm:full -w @einfach/excel-wasm`，再自己 import 入口
 import FullWorkbookWorker from '@einfach/solid-excel/vnext-worker-runtime-full?worker'
 createWorkerWorkbookSpreadsheetBackend({ workerFactory: () => new FullWorkbookWorker() })
 
@@ -206,13 +206,13 @@ installWorkerRuntime(wasm)
 
 **为什么是"宿主自己 import"而不是库里多一个 factory**：Vite 会静态分析
 `new Worker(new URL('./x', import.meta.url))` 并在构建期解析 `x`。只要
-`worker-factory.ts`（或任何 barrel / index）提到 full 入口，`wasm-pkg-full/` 就进了每个
-消费者的构建图 —— 而它是 gitignore 且默认不构建的目录，于是 full 变成**构建期必需产物**，
+`worker-factory.ts`（或任何 barrel / index）提到 full 入口，`@einfach/excel-wasm/full` 就进了
+每个消费者的构建图 —— 而它是 gitignore 且默认不构建的目录，于是 full 变成**构建期必需产物**，
 每个只想要 lite 的人都得先花 2.5 MB 的构建。所以硬约束是：**库的 barrel / factory 不引用
-任何一份 `wasm-pkg*`，两个薄入口都是叶子**。代价因此只落在真正选了 full 的宿主身上。
+任何一个 WASM 入口，两个薄入口都是叶子**。代价因此只落在真正选了 full 的宿主身上。
 
 类型检查侧同理：`worker-runtime-full.ts` 会被本包的 `tsc` 编进程序，靠
-`src-vnext/adapter/wasm-pkg-full-fallback.d.ts` 那条通配 `declare module` 兜底 —— 目录在场
+`src-vnext/adapter/excel-wasm-full-fallback.d.ts` 那条通配 `declare module` 兜底 —— 产物在场
 时 TS 用 wasm-pack 生成的真 d.ts，缺席时才落到兜底，两种情况 `tsc --noEmit` 都通过。
 
 `WasmWorkbook` 是现役接口，`WasmSheet` 是更早的单表接口。JS 侧的消费者是上面那两个薄入口

@@ -26,8 +26,8 @@ const g = globalThis as unknown as {
 if (!g.TextDecoder) g.TextDecoder = TextDecoder
 if (!g.TextEncoder) g.TextEncoder = TextEncoder
 
-const WASM_PKG_JS = path.join(__dirname, '..', 'wasm-pkg', 'einfach_wasm.js')
-const WASM_PKG_BIN = path.join(__dirname, '..', 'wasm-pkg', 'einfach_wasm_bg.wasm')
+const WASM_PKG_JS = path.join(__dirname, '..', '..', 'excel-wasm', 'lite', 'einfach_wasm.js')
+const WASM_PKG_BIN = path.join(__dirname, '..', '..', 'excel-wasm', 'lite', 'einfach_wasm_bg.wasm')
 
 interface WasmWorkbookLike {
   rename_sheet(idx: number, name: string): boolean

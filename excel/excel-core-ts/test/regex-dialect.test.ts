@@ -3,7 +3,7 @@
  *
  * 对称的另一半是 `excel/rust/excel-core/tests/regex_dialect_parity.rs`，两个
  * 文件逐条对应、断言同一批可观察结果。**没有走 `cross-engine-parity-*` 那张
- * 网**：那张网的 WASM 侧加载 `excel/solid-excel/wasm-pkg/`，即 lite 构建，而
+ * 网**：那张网的 WASM 侧加载 `excel/excel-wasm/lite/`，即 lite 构建，而
  * REGEX* 受 `regex-formulas` feature 门控，lite 下这三个名字不是内建、一律求值
  * 成 `#NAME?`，进网只会得到满屏假分歧。两侧各钉一份是既有先例。
  *

@@ -18,10 +18,10 @@
 从仓库根目录以当前标准构建生成候选物。标准脚本会在 `wasm-pack` 后执行
 名称段剥离；测量对象是剥离后的文件，而不是 `*:keep-names` 调试构建。
 
-| mode | 生成命令                                          | 候选文件                                               |
-| ---- | ------------------------------------------------- | ------------------------------------------------------ |
-| lite | `npm run build:wasm -w @einfach/solid-excel`      | `excel/solid-excel/wasm-pkg/einfach_wasm_bg.wasm`      |
-| full | `npm run build:wasm:full -w @einfach/solid-excel` | `excel/solid-excel/wasm-pkg-full/einfach_wasm_bg.wasm` |
+| mode | 生成命令                                        | 候选文件                                     |
+| ---- | ----------------------------------------------- | -------------------------------------------- |
+| lite | `npm run build:wasm -w @einfach/excel-wasm`     | `excel/excel-wasm/lite/einfach_wasm_bg.wasm` |
+| full | `npm run build:wasm:full -w @einfach/excel-wasm` | `excel/excel-wasm/full/einfach_wasm_bg.wasm` |
 
 不要以目录是否已存在替代对应生成命令。每次记录先执行表中该 mode 的命令，再对
 该命令刚生成的精确路径采集。
@@ -33,7 +33,7 @@
 
 ```bash
 set -o pipefail
-candidate='excel/solid-excel/wasm-pkg/einfach_wasm_bg.wasm'
+candidate='excel/excel-wasm/lite/einfach_wasm_bg.wasm'
 test -f "$candidate"
 raw_bytes=$(wc -c < "$candidate" | tr -d '[:space:]')
 gzip_bytes=$(gzip -n -9 -c "$candidate" | wc -c | tr -d '[:space:]')

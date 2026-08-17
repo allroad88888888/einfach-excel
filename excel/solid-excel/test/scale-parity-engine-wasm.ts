@@ -31,8 +31,8 @@ const g = globalThis as unknown as {
 if (!g.TextDecoder) g.TextDecoder = TextDecoder
 if (!g.TextEncoder) g.TextEncoder = TextEncoder
 
-const WASM_PKG_JS = path.join(__dirname, '..', 'wasm-pkg', 'einfach_wasm.js')
-const WASM_PKG_BIN = path.join(__dirname, '..', 'wasm-pkg', 'einfach_wasm_bg.wasm')
+const WASM_PKG_JS = path.join(__dirname, '..', '..', 'excel-wasm', 'lite', 'einfach_wasm.js')
+const WASM_PKG_BIN = path.join(__dirname, '..', '..', 'excel-wasm', 'lite', 'einfach_wasm_bg.wasm')
 
 type WasmWorkbookCtor = new () => WasmWorkbookLike
 interface WasmModuleShape {
@@ -78,7 +78,7 @@ export async function loadWasmModule(): Promise<WasmModuleShape> {
   if (WasmModule) return WasmModule
   if (!existsSync(WASM_PKG_JS) || !existsSync(WASM_PKG_BIN)) {
     throw new Error(
-      `scale-parity: wasm-pkg missing at ${WASM_PKG_JS} — run \`npm --prefix excel/solid-excel run build:wasm\``,
+      `scale-parity: wasm artifacts missing at ${WASM_PKG_JS} — run \`npm run build:wasm -w @einfach/excel-wasm\``,
     )
   }
   const mod = (await import(WASM_PKG_JS)) as WasmModuleShape

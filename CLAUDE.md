@@ -11,7 +11,7 @@ Rust/WASM 公式引擎（`excel/rust/`）+ 基于两者的 Solid.js 表格界面
 ## Commands
 
 ```bash
-npm run build            # clearTypes → ensureWasm → tsc -build → rollup（缺 wasm-pkg 时会调 wasm-pack，需要 Rust 工具链）
+npm run build            # clearTypes → ensureWasm → tsc -build → rollup（缺 excel/excel-wasm/lite 时会调 wasm-pack，需要 Rust 工具链）
 npm test                 # 全量 jest（含覆盖率）
 npx jest path/to/file.test.ts                      # 单个测试文件
 npx jest excel/spreadsheet-ui-core --no-coverage   # 分区套件（solid-excel 同理）
@@ -34,8 +34,8 @@ cd excel/rust/excel-core && cargo test               # core / wasm 同理
 cd excel/rust/excel-core && cargo bench              # criterion 基准，口径见 excel/rust/docs/PERF.md
 
 # 改了 excel/rust/ 之后刷新 WASM 产物
-npm run build:wasm -w @einfach/solid-excel           # 产物落 excel/solid-excel/wasm-pkg/
-npm run build:wasm:full -w @einfach/solid-excel      # full 变体（--features regex-formulas）→ wasm-pkg-full/
+npm run build:wasm -w @einfach/excel-wasm            # 产物落 excel/excel-wasm/lite/
+npm run build:wasm:full -w @einfach/excel-wasm       # full 变体（--features regex-formulas）→ excel/excel-wasm/full/
 ```
 
 pre-commit（husky）依次跑 `check:docs`、`lint:check`、`typecheck:apps`、`build`、`test` —— 提交前本地跑全量 `npm test` 可以省一轮返工。
@@ -51,14 +51,16 @@ pre-commit（husky）依次跑 `check:docs`、`lint:check`、`typecheck:apps`、
 ```
 excel/spreadsheet-ui-core/ → @einfach/spreadsheet-ui-core # Framework-agnostic spreadsheet UI atoms + types (vnext)
 excel/excel-core-ts/       → @einfach/excel-core-ts       # TS formula engine (private) — parity 参照，同时是第二个 worker 后端
+excel/excel-wasm/          → @einfach/excel-wasm          # Prebuilt WASM engine artifacts（lite/ + full/，wasm-pack 产物，ADR 0015）
 excel/solid-excel/         → @einfach/solid-excel         # Solid.js spreadsheet surface (legacy + vnext)
 excel/excel-site/          → @einfach/excel-site           # Static docs site with Solid/WASM islands (private, Astro)
 excel/rust/core/           → einfach-core (Rust)          # Rust atom store（TS 版 core 的孪生实现）
 excel/rust/excel-core/     → einfach-excel-core           # Rust formula / workbook engine
-excel/rust/wasm/           → einfach-wasm                 # WASM bindings exposed to excel/solid-excel
+excel/rust/wasm/           → einfach-wasm                 # WASM bindings，经 @einfach/excel-wasm 分发
 ```
 
-pnpm workspace 的 glob 是 `excel/*`；`excel/rust/` 不是 npm 包，靠 `build:wasm` 接入
+pnpm workspace 的 glob 是 `excel/*`；`excel/rust/` 不是 npm 包，产物经
+`@einfach/excel-wasm`（`excel/excel-wasm/`）的 `build:wasm` 接入
 （`wasm-pack` 的 `--out-dir` 相对 crate 目录而非 cwd，改动那条 script 时注意）。
 
 **上游依赖**：`@einfach/core` 与 `@einfach/solid` 从 npm 安装，jest 不再对它们做 `moduleNameMapper`
@@ -66,8 +68,9 @@ pnpm workspace 的 glob 是 `excel/*`；`excel/rust/` 不是 npm 包，靠 `buil
 工作区的版本。当前基线 `@einfach/core@^0.4.0` + `@einfach/solid@^0.4.0`，全套测试在其上通过。
 
 **solid-js 单实例不变式**：根 `pnpm.overrides` 钉死 `solid-js: 1.9.12`，lockfile 里**只能有一个
-`solid-js@` 版本**（`grep -oE 'solid-js@[0-9.]+' pnpm-lock.yaml | sort -u` 必须只回一行；
-`packages:` 与 `snapshots:` 两节各出现一次是正常的）。出现第二个版本就会复发 Provider 重挂 bug
+`solid-js@` 版本**（`grep -oE "^  '?solid-js@[0-9.]+" pnpm-lock.yaml | sort -u` 必须只回一行；
+`packages:` 与 `snapshots:` 两节各出现一次是正常的。锚定行首是为了排除
+`@astrojs/solid-js@…` 这类**包名后缀撞车**的误报）。出现第二个版本就会复发 Provider 重挂 bug
 —— 见 [ADR 0001](docs/decisions/0001-solid-js-single-instance.md)，契约测试
 `excel/solid-excel/test/provider-remount-1912.test.tsx`。
 
@@ -127,7 +130,7 @@ Two reference implementations ship under `excel/solid-excel/src-vnext/adapter/`:
 ### Worker runtimes（双后端 parity）
 
 Worker 侧有两套运行时实现同一协议：`worker-runtime.ts` / `worker-runtime-full.ts`（Rust/WASM，
-两者只是各自静态 import `wasm-pkg/` 与 `wasm-pkg-full/` 的叶子入口，消息循环在
+两者只是各自静态 import `@einfach/excel-wasm` 与 `@einfach/excel-wasm/full` 的叶子入口，消息循环在
 `worker-runtime-core.ts`）与 `worker-runtime-ts.ts`（`@einfach/excel-core-ts`）。Rust 是现役主引擎；
 TS 版是 parity 参照兼纯 JS 部署路径，e2e 双后端跑同一批用例钉 parity
 （矩阵见 `excel/solid-excel/e2e/BACKEND_PARITY.md`）。worker 工厂**刻意不从** `src-vnext` barrel
@@ -167,7 +170,7 @@ Every modal under `excel/solid-excel/src-vnext/*/Spreadsheet*Dialog.tsx` follows
 - Rollup bundles to `cjs/` (.cjs), `esm/` (.mjs), and `dist/`
 - SWC transforms plain TS; Babel transforms Solid.js (for JSX)
 - All packages have `sideEffects: false` for tree-shaking
-- `excel/solid-excel` runs `npm run build:wasm` before `vite build` to refresh `excel/solid-excel/wasm-pkg/` from `excel/rust/wasm`; `build:wasm` 末尾会跑 `strip-wasm-names.mjs` 剥调试名
+- WASM 产物归 `@einfach/excel-wasm`（`excel/excel-wasm/lite/` 与 `full/`，由 `excel/rust/wasm` 构建）；`excel/solid-excel` 的 `build`/`build:wasm` 委托给它，`build:wasm` 末尾会跑 `strip-wasm-names.mjs` 剥调试名并清掉 wasm-pack 生成的 `.gitignore`
 - `excel/excel-site` 是 Astro 静态站 + Solid/WASM islands（[ADR 0007](docs/decisions/0007-astro-static-site-with-solid-wasm-islands.md)），`dev`/`build` 前置 `build:api`（typedoc）
 
 ## Testing

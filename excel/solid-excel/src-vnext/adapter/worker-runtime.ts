@@ -1,14 +1,14 @@
 /// <reference lib="WebWorker" />
 
-import * as wasm from '../../wasm-pkg/einfach_wasm.js'
+import * as wasm from '@einfach/excel-wasm'
 import { installWorkerRuntime } from './worker-runtime-core'
 
 /**
- * WASM worker 的 **lite 入口** —— 现役默认路径，静态 import `wasm-pkg/`
+ * WASM worker 的 **lite 入口** —— 现役默认路径，静态 import `@einfach/excel-wasm`
  * （`wasm-pack build` 不带 feature 出的那份，REGEX* 求值为 `#NAME?`）。
  *
  * 这个文件是一片**叶子**：`worker-factory.ts`、`./index.ts` 和任何 barrel 都不
- * 引用 `wasm-pkg-full/`，所以只想要 lite 的消费者不会被拽去构建 2.5 MB 的 full。
+ * 引用 `@einfach/excel-wasm/full`，所以只想要 lite 的消费者不会被拽去构建 2.5 MB 的 full。
  * 想换 full 的宿主自己 import `./worker-runtime-full`（或照它写一个入口，喂进
  * 自建的 wasm-pack 产物），见 `excel/rust/wasm/README.md` §「怎么选 full」。
  *

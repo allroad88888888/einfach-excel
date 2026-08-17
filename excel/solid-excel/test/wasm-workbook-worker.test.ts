@@ -24,9 +24,9 @@ import type {
   CellWriteOutcomeWire,
   FormulaWriteOutcomeWire,
 } from '../src-vnext/adapter/cell-write-reject'
-import { WasmWorkbook } from '../wasm-pkg/einfach_wasm.js'
+import { WasmWorkbook } from '@einfach/excel-wasm'
 
-jest.mock('../wasm-pkg/einfach_wasm.js', () => ({
+jest.mock('@einfach/excel-wasm', () => ({
   __esModule: true,
   default: jest.fn(async () => undefined),
   WasmWorkbook: jest.fn(),

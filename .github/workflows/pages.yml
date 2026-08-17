@@ -54,7 +54,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: Build WASM bundle
-        run: npm run build:wasm -w @einfach/solid-excel
+        run: npm run build:wasm -w @einfach/excel-wasm
 
       - name: Build site
         run: pnpm --filter @einfach/excel-site build

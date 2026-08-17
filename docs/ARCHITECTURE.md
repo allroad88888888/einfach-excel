@@ -118,8 +118,8 @@ worker 工厂**刻意不从** `src-vnext` barrel 导出（`import.meta` 会炸 j
 
 Rust/WASM 那侧的 dispatcher 与"用哪份 wasm 产物"是解耦的：消息循环在
 `worker-runtime-core.ts`（`installWorkerRuntime(wasm)`，命令族分在 `worker-commands-*.ts`），
-`worker-runtime.ts` / `worker-runtime-full.ts` 只是各自静态 import `wasm-pkg/` 与
-`wasm-pkg-full/` 的**叶子**入口。库的 barrel 与 factory 不引用任何一份 `wasm-pkg*`，所以
+`worker-runtime.ts` / `worker-runtime-full.ts` 只是各自静态 import `@einfach/excel-wasm` 与
+`@einfach/excel-wasm/full` 的**叶子**入口。库的 barrel 与 factory 不引用任何一个 WASM 入口，所以
 默认不构建的 full 产物不会变成构建期必需项 —— 选型见 `excel/rust/wasm/README.md`
 §「怎么选 full」。
 
@@ -130,7 +130,7 @@ Rust/WASM 那侧的 dispatcher 与"用哪份 wasm 产物"是解耦的：消息�
 - SWC 转 React/Vanilla；Babel 转 Solid（为了 JSX）
 - 所有包 `sideEffects: false`
 - `npm run build` 链条：`clearTypes` → `ensureWasm` → `tsc -build` → `rollup`。
-  `ensureWasm` 在缺 `excel/solid-excel/wasm-pkg/` 时调 `wasm-pack`，所以构建环境需要 Rust 工具链。
+  `ensureWasm` 在缺 `excel/excel-wasm/lite/` 时调 `wasm-pack`（产物归 `@einfach/excel-wasm`），所以构建环境需要 Rust 工具链。
   `wasm-pack` 的 `--out-dir` 相对 **crate 目录**而非 cwd。
 
 ## 细节去哪查

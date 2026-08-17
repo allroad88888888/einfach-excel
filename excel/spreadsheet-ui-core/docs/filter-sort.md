@@ -320,7 +320,7 @@ Note that export filtering (TSV / image) deliberately does **not** cross the eng
 the hidden set is applied at the main-thread adapter boundary
 (`RangeTsvExportRequest.hiddenRows` / `RangeImageExportRequest.hiddenRows`), so it
 works identically on the WASM worker, the TS worker's single-shot fallback, and the
-static backend, with no capability gate and no wasm-pkg version skew.
+static backend, with no capability gate and no WASM artifact version skew.
 
 ---
 

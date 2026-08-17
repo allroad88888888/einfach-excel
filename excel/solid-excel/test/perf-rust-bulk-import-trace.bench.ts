@@ -59,8 +59,8 @@ if (!g.TextEncoder) g.TextEncoder = TextEncoder
 const PERF_ENABLED = process.env.EINFACH_PERF === '1'
 const describePerf = PERF_ENABLED ? describe : describe.skip
 
-const WASM_PKG_JS = path.join(__dirname, '..', 'wasm-pkg', 'einfach_wasm.js')
-const WASM_PKG_BIN = path.join(__dirname, '..', 'wasm-pkg', 'einfach_wasm_bg.wasm')
+const WASM_PKG_JS = path.join(__dirname, '..', '..', 'excel-wasm', 'lite', 'einfach_wasm.js')
+const WASM_PKG_BIN = path.join(__dirname, '..', '..', 'excel-wasm', 'lite', 'einfach_wasm_bg.wasm')
 
 type ImportCell =
   | { sheet: number; row: number; col: number; kind: 'number'; value: number }

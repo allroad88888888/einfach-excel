@@ -1,0 +1,57 @@
+{
+  "name": "@einfach/excel-wasm",
+  "version": "0.1.0",
+  "description": "Prebuilt WASM formula engine for the einfach spreadsheet stack (lite and full variants)",
+  "type": "module",
+  "main": "./lite/einfach_wasm.js",
+  "types": "./lite/einfach_wasm.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lite/einfach_wasm.d.ts",
+      "import": "./lite/einfach_wasm.js",
+      "default": "./lite/einfach_wasm.js"
+    },
+    "./full": {
+      "types": "./full/einfach_wasm.d.ts",
+      "import": "./full/einfach_wasm.js",
+      "default": "./full/einfach_wasm.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lite",
+    "full",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/allroad88888888/einfach-excel.git",
+    "directory": "excel/excel-wasm"
+  },
+  "homepage": "https://github.com/allroad88888888/einfach-excel/tree/main/excel/excel-wasm",
+  "bugs": {
+    "url": "https://github.com/allroad88888888/einfach-excel/issues"
+  },
+  "keywords": [
+    "spreadsheet",
+    "excel",
+    "wasm",
+    "formula-engine",
+    "einfach"
+  ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "build:wasm": "npm run build:wasm:keep-names && npm run wasm:strip && npm run wasm:tidy",
+    "build:wasm:keep-names": "wasm-pack build --target web --out-dir ../../excel-wasm/lite ../rust/wasm",
+    "wasm:strip": "node ../../scripts/strip-wasm-names.mjs lite/einfach_wasm_bg.wasm",
+    "build:wasm:full": "npm run build:wasm:full:keep-names && npm run wasm:strip:full && npm run wasm:tidy",
+    "build:wasm:full:keep-names": "wasm-pack build --target web --out-dir ../../excel-wasm/full ../rust/wasm -- --features regex-formulas",
+    "wasm:strip:full": "node ../../scripts/strip-wasm-names.mjs full/einfach_wasm_bg.wasm",
+    "build:wasm:both": "npm run build:wasm && npm run build:wasm:full",
+    "wasm:tidy": "rm -f lite/.gitignore full/.gitignore"
+  }
+}

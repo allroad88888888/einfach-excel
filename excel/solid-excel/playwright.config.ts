@@ -56,12 +56,12 @@ export default defineConfig({
   ],
   webServer: {
     // build:wasm prepends so DemoFormulas / DemoCrossSheetChain don't render
-    // "Loading WASM…" forever on a clean checkout (no `excel/solid-excel/wasm-pkg/`
+    // "Loading WASM…" forever on a clean checkout (no `excel/excel-wasm/lite/`
     // yet). Local re-runs are fast — wasm-pack short-circuits when nothing
     // in excel/rust/wasm changed.
     //
     // Deliberately the LITE artifact (no REGEXTEST / REGEXEXTRACT /
-    // REGEXREPLACE) — that is what `wasm-pkg/` holds and what every demo
+    // REGEXREPLACE) — that is what `@einfach/excel-wasm` holds and what every demo
     // statically imports. No e2e spec writes a regex formula. Building the
     // full artifact here would double a cold run's wasm-pack time for an
     // engine no spec loads; use `build:wasm:full` if a spec ever needs it.

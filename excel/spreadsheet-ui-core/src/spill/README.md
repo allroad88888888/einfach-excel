@@ -42,7 +42,7 @@ atom 家族** —— `spillCellRoleAtom` 返回的是一个选择器**函数**�
    等于可见窗口每一个非空格、每一次滚动都付这两个字段的序列化代价，而绝大多数时刻一个
    框都不画。按需查询是每次选区移动一次 RPC。
 2. **WASM 侧要改 Rust**。`read_sparse_range` 的 `CellSnapshotJSON` 得加字段，意味着重建
-   wasm-pkg；而现成的 `spillInfo` / `spillAnchor` 两个导出**已经在产物里**，按需查询一行
+   WASM 产物；而现成的 `spillInfo` / `spillAnchor` 两个导出**已经在产物里**，按需查询一行
    Rust 都不用改。
 3. **锚点可能在窗口外**。真要在投影里做，每个投影格都得反查锚点；`spillAnchor` 导出的
    注释本身就写着它是为「锚点落在可见窗口之外时仍能画出边框」准备的。
@@ -95,7 +95,7 @@ atom 家族** —— `spillCellRoleAtom` 返回的是一个选择器**函数**�
 
 `blockedByArray` **不需要新的 WASM 导出**：引擎已经把答案翻译成了锚点，而锚点是唯一持有
 `Value::Array` 的地址，所以 worker 拿它的地址回头问一次现成的 `spillInfo` 就够了
-（`worker-commands-spill.ts`）。旧 wasm-pkg 上 `spillBlocker` 回的是没翻译过的投影格，那一格
+（`worker-commands-spill.ts`）。旧 WASM 产物上 `spillBlocker` 回的是没翻译过的投影格，那一格
 `spillInfo` 答不出形状 → 标志缺席 → 文案退回朴素说法，正是它落地前的样子。
 
 ## 投影格的公式栏：显示锚点的公式，且不接受输入

@@ -64,7 +64,9 @@ jobs:
         if: ${{ inputs.mode != 'first-publish' }}
         uses: changesets/action@v1
         with:
-          version: pnpm changeset version
+          # version 后补 lockfile-only install：changeset version 改版本号后
+          # 不刷新 pnpm-lock.yaml，Version PR 的 CI 会死在 --frozen-lockfile。
+          version: pnpm run release:version
           # 必须走 pnpm 的发布路径：只有 pnpm 会在打包时把 workspace:* 重写成
           # 真实版本号（实测 npm pack 原样保留，产物不可安装 —— 见
           # docs/AD137_LOCAL_REGISTRY_DRYRUN_OBSERVATION.md）。

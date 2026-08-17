@@ -23,6 +23,7 @@
     "ensureWasm": "test -f excel/excel-wasm/lite/einfach_wasm.js || npm run build:wasm -w @einfach/excel-wasm",
     "build": "npm run clearTypes&&npm run ensureWasm&&tsc -build&&npx rollup -c ./rollup.config.mjs",
     "release:publish": "pnpm publish -r --access public --no-git-checks && pnpm changeset tag",
+    "release:version": "changeset version && pnpm install --lockfile-only",
     "build:publish": "npm run clearTypes&&npm run ensureWasm&&tsc -build excel/spreadsheet-ui-core excel/excel-core-ts excel/solid-excel&&npx rollup -c ./rollup.config.mjs",
     "prepare": "husky"
   },

@@ -10,6 +10,13 @@ import { sitePath } from '../../../data/site-path'
   summary="创建一个 backend，挂载一个 provider，让网格只请求它需要的投影。"
   alternateLocaleHref={sitePath('docs/getting-started/')}
 >
+  <h2>0. 安装</h2>
+  <pre><code>{`npm install @einfach/solid-excel solid-js @einfach/core @einfach/solid`}</code></pre>
+  <p>
+    2026-08-17 起已发布 npm（五包按 fixed 组同版本）。从安装到第一个公式的权威单页是仓库的
+    <a href="https://github.com/allroad88888888/einfach-excel/blob/main/docs/QUICKSTART.md">Quickstart</a>——
+    本页保持概念性，避免与其漂移。
+  </p>
   <h2>1. 选择 backend</h2>
   <p>
     内置的 Worker + Rust/WASM backend 是一个实用默认值。宿主自有的 backend 也可以，只要实现

@@ -9,6 +9,14 @@ import { sitePath } from '../../data/site-path'
   summary="Create one backend, mount one provider, and let the grid request only the projection it needs."
   alternateLocaleHref={sitePath('zh/docs/getting-started/')}
 >
+  <h2>0. Install</h2>
+  <pre><code>{`npm install @einfach/solid-excel solid-js @einfach/core @einfach/solid`}</code></pre>
+  <p>
+    Published on npm since 2026-08-17 (five packages, versioned as a fixed group). The authoritative
+    install-to-first-formula page is the repository
+    <a href="https://github.com/allroad88888888/einfach-excel/blob/main/docs/QUICKSTART.md">Quickstart</a> —
+    this page stays conceptual to avoid drifting from it.
+  </p>
   <h2>1. Choose a backend</h2>
   <p>
     The bundled Worker + Rust/WASM backend is a useful default. A host-owned backend works too when it implements the

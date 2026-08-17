@@ -6,7 +6,7 @@
 
 ## 当前状态
 
-状态：**口径已裁决（ADR 0014~0019）；AD-101~118、AD-120~126、AD-128~130 已完成并独立验收（`38d7d5b` WASM 分发迁移、`8aadfff` 双形态交付与版本落地，提交号见 [Issue 树](../ADOPTION_ISSUE_TREE.md)）；AD-119 局部进展；剩余为发布 workflow 与离体冒烟（AD-127、AD-131~142）**。
+状态：**口径已裁决（ADR 0014~0019）；AD-101~126、AD-128~130、AD-136~137 已完成并独立验收（`38d7d5b` WASM 分发迁移、`8aadfff` 双形态交付与版本落地、`1b08a6a` 本地 registry 全链路 dry-run，提交号见 [Issue 树](../ADOPTION_ISSUE_TREE.md)）；剩余 AD-127、AD-131~135、AD-138~142**。
 
 原先阻塞本组的五项决策已落成 [ADR 0014~0018](#已裁决的口径)，“该做什么”不再是未知数；
 裁决本身不构成完成判定 —— 已完成的叶子各有独立验收的交付物。
@@ -66,7 +66,7 @@
 - **AD-116 构建管线接入** —— **完成**（`8aadfff`）：`rollup.solid-excel.mjs` 独立管线（仅 ESM；CSS 副作用保留并按原路径拷入产物树；worker URL 字面量 `.ts`→`.mjs` 改写）。
 - **AD-117 exports 重写** —— **完成**（`8aadfff`）：全部子路径 `solid`/`types`/`import`/`default` 四条件成对；`vnext-worker-factory` 不进 barrel 的约束保持，契约测试 `package-entry.test.ts` 同步钉住新形态。
 - **AD-118 `files` 字段** —— **完成**（`8aadfff`）：白名单 `src`/`src-vnext`/`esm`/`@types/src*`；`npm pack --dry-run` 实测无 e2e、test。偏差说明：`src/demos` 保留 —— 它是公开导出面（`./demos` 子路径）的一部分，不属判定中的 dev 专用 demo 壳。
-- **AD-119 内部依赖可解析** —— **局部进展**（`8aadfff`）：`@einfach/excel-core-ts` 已移除 `private` 并对齐 `0.1.0`（ADR 0014 的仓内半场）；「外部安装可从 npm 解析」要等 AD-136/137 的 registry 验证或真实发布。
+- **AD-119 内部依赖可解析** —— **完成**（`8aadfff`、`1b08a6a`）：`@einfach/excel-core-ts` 移除 `private` 并对齐 `0.1.0`；registry dry-run 中作为 solid-excel 依赖被外部消费者解析并可 import（[观察记录](../AD137_LOCAL_REGISTRY_DRYRUN_OBSERVATION.md)）。
 - **AD-120 workspace 协议替换验证** —— **完成**（`8aadfff`）：实测 `pnpm pack` 把四个 `workspace:*` 全部重写为 `0.1.0`；`npm pack` **不重写**（产物不可安装），发布链因此锁定 pnpm 路径。
 - **AD-121 依赖边界与运行环境口径** —— **完成**（`8aadfff`）：`solid-js`/`@einfach/core`/`@einfach/solid` 移入 peerDependencies（复制到 devDependencies 保本地开发），范围 `^1.9.12`/`^0.4.0`/`^0.4.0` —— 单实例不变式（ADR 0001）要求消费者持有唯一副本；五个待发包 `engines` 统一 `>=22.12.0`。
 - **AD-122 sideEffects 与 CSS 导出核对** —— **完成**：`vnext-styles.css` 在 tree-shaking 下可被引入（`da50614`）。
@@ -89,7 +89,7 @@
 - **AD-133 发布流程文档化** —— 写明谁能发、怎么发、secret 如何配置与轮换。
 - **AD-134 稳定性声明** —— README 准确说明所选版本阶段的兼容性预期。
 - **AD-135 首条 release notes** —— 说明成熟度、已知边界与非目标。
-- **AD-136 本地 registry** —— 起 verdaccio 或等价方案。
-- **AD-137 全链路 dry-run** —— 所有待发包经本地 registry 验证，不留下部分发布。
+- **AD-136 本地 registry** —— **完成**（`1b08a6a`）：verdaccio 6.9.2，本仓五包 scope 不设 uplink、其余代理 npmjs；配置要点见[观察记录](../AD137_LOCAL_REGISTRY_DRYRUN_OBSERVATION.md)。
+- **AD-137 全链路 dry-run** —— **完成**（`1b08a6a`）：五包经 `pnpm publish` 全部上 registry（无部分发布残留），仓外消费者一次 `npm install` 解析全链（含 peer 自动装自 npmjs 代理），运行时与类型探针见[观察记录](../AD137_LOCAL_REGISTRY_DRYRUN_OBSERVATION.md)。裸 node 下 `vnext` 入口因 CSS import 报错属设计内行为，打包器实跑归 AD-138~141。
 - **AD-138 / AD-139 / AD-140 / AD-141** —— Vite、webpack、Next、Nuxt 的仓外安装冒烟，在 Node `22.12.0` 基线下界上执行（只在更高版本跑通不算数）。
 - **AD-142 失败路径可读性走查** —— 验证缺 WASM、worker 失败、重复 solid-js 时的错误指向明确解法。

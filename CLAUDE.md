@@ -125,7 +125,7 @@ The contract between UI core and any data source lives in `excel/spreadsheet-ui-
 Two reference implementations ship under `excel/solid-excel/src-vnext/adapter/`:
 
 - `static-backend.ts` — in-memory implementation used by smoke tests and the static demo.
-- `worker-workbook-backend.ts` — RPC to a Web Worker that owns the WASM `Workbook` from `excel/rust/wasm`.
+- `worker/backend.ts`（`createWorkerWorkbookSpreadsheetBackend`）— RPC to a Web Worker that owns the WASM `Workbook` from `excel/rust/wasm`.
 
 ### Worker runtimes（双后端 parity）
 

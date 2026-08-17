@@ -54,7 +54,9 @@ jobs:
       - run: pnpm install --frozen-lockfile
       # build 链含 ensureWasm（lite）；full 变体不是 build 的一部分，发布前显式构建。
       - run: npm run build:wasm:full -w @einfach/excel-wasm
-      - run: npm run build
+      # build:publish 只构建三个发包项目的声明 + rollup 产物，不含根项目的全仓
+      # 测试型检查 —— 那是 ci.yml 的门禁职责，不是发布物的组成部分。
+      - run: npm run build:publish
       - name: Create Release PR or Publish
         if: ${{ inputs.mode != 'first-publish' }}
         uses: changesets/action@v1

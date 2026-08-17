@@ -7,7 +7,7 @@
 
 ## 当前状态
 
-状态：**首发完成；AD-101~126、AD-128~130、AD-132~133、AD-136~137 已完成并独立验收（`38d7d5b` WASM 分发迁移、`8aadfff` 双形态交付与版本落地、`1b08a6a` 本地 registry dry-run、`3be70d7`/`93f7492`/`6ddc17a` 发布流并实跑上线，提交号见 [Issue 树](../ADOPTION_ISSUE_TREE.md)）；剩余 AD-127（被 AD-414 阻塞）、AD-131、AD-134~135、AD-138~142**。
+状态：**首发完成；AD-101~126、AD-128~130、AD-132~137 已完成并独立验收（`38d7d5b` WASM 分发迁移、`8aadfff` 双形态交付与版本落地、`1b08a6a` 本地 registry dry-run、`3be70d7`/`93f7492`/`6ddc17a` 发布流并实跑上线，提交号见 [Issue 树](../ADOPTION_ISSUE_TREE.md)）；剩余 AD-127（被 AD-414 阻塞）、AD-131（判定待重定义）、AD-138~142**。
 
 原先阻塞本组的五项决策已落成 [ADR 0014~0018](#已裁决的口径)，“该做什么”不再是未知数；
 裁决本身不构成完成判定 —— 已完成的叶子各有独立验收的交付物。
@@ -84,11 +84,11 @@
 
 - **AD-129 版本策略落地** —— **完成**（`8aadfff`）：五个待发包全部对齐 `0.1.0`（excel-core-ts 从 `0.0.0` 提上来）。
 - **AD-130 fixed 组配置** —— **完成**（`8aadfff`）：fixed 组扩为五包；用临时 changeset 经 `changeset status` 实测联动（任一成员 bump，五包同升）。
-- **AD-131 首发 changeset** —— 覆盖全部待发包，且不得把任何包推过 `0.1.0`。**前置警示**：在途的 `lucky-pandas-clap.md`（minor）若先于首发被 version，fixed 组直接到 `0.2.0`，见「开工前事实」第 5 条。
+- **AD-131 首发 changeset** —— **判定已被实际首发路径吸收，待维护者重定义或关闭**：首发按 ADR 0017 无 changeset 直发 `0.1.0`（changeset version 会把版本推过 0.1.0，与判定自相矛盾）；「说明成熟度与边界」的载体落在 GitHub Releases（AD-135）。原判定不再有可执行语义。
 - **AD-132 发布 workflow** —— **完成**（`3be70d7`、`93f7492`、`6ddc17a`）：`publish.yml` 按 ADR 0016~0018 改造（Node 钉 22.12.0、`pnpm run release:publish` 保证 `workspace:*` 重写、`build:publish` 只建三个发包项目、`first-publish` 应急档）；2026-08-17 以 NPM_TOKEN 实跑 run `32003823855`，五包上线；push 触发已恢复走常规 changesets 流。
 - **AD-133 发布流程文档化** —— **完成**：[docs/RELEASING.md](../RELEASING.md)——谁能发、凭据配置与轮换、pnpm-only 约束、首发 0.1.0 的顺序纪律与发布前自检。
-- **AD-134 稳定性声明** —— README 准确说明所选版本阶段的兼容性预期。
-- **AD-135 首条 release notes** —— 说明成熟度、已知边界与非目标。
+- **AD-134 稳定性声明** —— **完成**（`de98cf6`）：中英 README 的「发布状态与稳定性」按 ADR 0017/0018/0019/0001 写清 0.x 语义（次版本可破坏、锁定 `~0.1.0`）、Node 基线、双形态与 peer 单实例要求、TS lib 要求。
+- **AD-135 首条 release notes** —— **完成**：五个 `0.1.0` tag 的 GitHub Releases（tag 落发布提交 `6ddc17a`）；主 note 挂 `solid-excel@0.1.0`，覆盖成熟度、已知边界（打包器环境、peer 单实例、lite/full 语义差异、规模表述纪律）与非目标（非托管服务、无 SSR 承诺、无 React/Vue 已发布适配、非 Excel 平替）。
 - **AD-136 本地 registry** —— **完成**（`1b08a6a`）：verdaccio 6.9.2，本仓五包 scope 不设 uplink、其余代理 npmjs；配置要点见[观察记录](../AD137_LOCAL_REGISTRY_DRYRUN_OBSERVATION.md)。
 - **AD-137 全链路 dry-run** —— **完成**（`1b08a6a`）：五包经 `pnpm publish` 全部上 registry（无部分发布残留），仓外消费者一次 `npm install` 解析全链（含 peer 自动装自 npmjs 代理），运行时与类型探针见[观察记录](../AD137_LOCAL_REGISTRY_DRYRUN_OBSERVATION.md)。裸 node 下 `vnext` 入口因 CSS import 报错属设计内行为，打包器实跑归 AD-138~141。
 - **AD-138 / AD-139 / AD-140 / AD-141** —— Vite、webpack、Next、Nuxt 的仓外安装冒烟，在 Node `22.12.0` 基线下界上执行（只在更高版本跑通不算数）。

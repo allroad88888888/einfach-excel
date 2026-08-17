@@ -23,6 +23,10 @@ concurrency: ${{ github.workflow }}-${{ github.ref }}
 jobs:
   publish:
     runs-on: ubuntu-latest
+    env:
+      # changesets/action 会在 runner 里 git commit（Version 分支）；husky 的
+      # pre-commit 是本地开发门禁，不该拦自动化提交 —— PR 上的把关归 ci.yml。
+      HUSKY: "0"
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4

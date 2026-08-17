@@ -31,6 +31,7 @@ export const messages: Record<string, string> = {
   'nav.vnextWorker': 'vNext Worker',
   'nav.vnextWorkerTs': 'Worker (TS 核)',
   'nav.vnextWave5': 'Wave 5 完整版',
+  'nav.vnextRemote': '远程 HTTP 后端',
 
   // Demo headings + descriptions.
   'demo.blank.title': '空白表格',

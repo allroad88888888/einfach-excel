@@ -1,0 +1,173 @@
+{
+  "date": "2026-08-17T08:54:48.667Z",
+  "pageUrl": "http://127.0.0.1:5186/?backend=remote&locale=en",
+  "statsUrl": "http://127.0.0.1:5303/api/stats",
+  "phases": {
+    "firstScreen": {
+      "delta": {
+        "endpoints": {
+          "read-visible-projection": {
+            "requests": 1,
+            "responseBytes": 44707
+          },
+          "read-range-projection": {
+            "requests": 0,
+            "responseBytes": 0
+          },
+          "set-cell-input": {
+            "requests": 0,
+            "responseBytes": 0
+          }
+        },
+        "totals": {
+          "requests": 1,
+          "responseBytes": 44707
+        }
+      },
+      "dom": {
+        "renderedCellCount": 600,
+        "renderedRowRange": {
+          "minRow": 0,
+          "maxRow": 99
+        },
+        "samples": {
+          "firstRenderedRowCol0": "R1",
+          "firstRenderedRowCol4": "north",
+          "lastRenderedRowCol0": "R100"
+        }
+      }
+    },
+    "scrollThreeScreens": {
+      "scrolls": [
+        {
+          "scrollTop": 504,
+          "clientHeight": 504,
+          "scrollHeight": 2426
+        },
+        {
+          "scrollTop": 1008,
+          "clientHeight": 504,
+          "scrollHeight": 2426
+        },
+        {
+          "scrollTop": 1512,
+          "clientHeight": 504,
+          "scrollHeight": 2426
+        }
+      ],
+      "delta": {
+        "endpoints": {
+          "read-visible-projection": {
+            "requests": 1,
+            "responseBytes": 45251
+          },
+          "read-range-projection": {
+            "requests": 0,
+            "responseBytes": 0
+          },
+          "set-cell-input": {
+            "requests": 0,
+            "responseBytes": 0
+          }
+        },
+        "totals": {
+          "requests": 1,
+          "responseBytes": 45251
+        }
+      },
+      "dom": {
+        "renderedCellCount": 600,
+        "renderedRowRange": {
+          "minRow": 43,
+          "maxRow": 142
+        },
+        "samples": {
+          "firstRenderedRowCol0": "R44",
+          "firstRenderedRowCol4": "west",
+          "lastRenderedRowCol0": "R143"
+        }
+      }
+    },
+    "scrollThreeEdgePushes": {
+      "scrolls": [
+        {
+          "scrollTop": 1922,
+          "clientHeight": 504,
+          "scrollHeight": 2426
+        },
+        {
+          "scrollTop": 1922,
+          "clientHeight": 504,
+          "scrollHeight": 2426
+        },
+        {
+          "scrollTop": 1922,
+          "clientHeight": 504,
+          "scrollHeight": 2426
+        }
+      ],
+      "delta": {
+        "endpoints": {
+          "read-visible-projection": {
+            "requests": 3,
+            "responseBytes": 137214
+          },
+          "read-range-projection": {
+            "requests": 0,
+            "responseBytes": 0
+          },
+          "set-cell-input": {
+            "requests": 0,
+            "responseBytes": 0
+          }
+        },
+        "totals": {
+          "requests": 3,
+          "responseBytes": 137214
+        }
+      },
+      "dom": {
+        "renderedCellCount": 600,
+        "renderedRowRange": {
+          "minRow": 223,
+          "maxRow": 322
+        },
+        "samples": {
+          "firstRenderedRowCol0": "R224",
+          "firstRenderedRowCol4": "direct",
+          "lastRenderedRowCol0": "R323"
+        }
+      }
+    }
+  },
+  "consoleErrors": [],
+  "pageErrors": [],
+  "workbook": {
+    "sheetId": "remote-sheet",
+    "rowCount": 100000,
+    "colCount": 6,
+    "populatedCellCount": 600000,
+    "fullWorkbookCellsJsonBytes": 47285608,
+    "revision": 1
+  },
+  "browserVersion": "147.0.7727.15",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.7727.15 Safari/537.36",
+  "finalTotals": {
+    "requests": 5,
+    "responseBytes": 227172
+  },
+  "finalEndpoints": {
+    "read-visible-projection": {
+      "requests": 5,
+      "responseBytes": 227172
+    },
+    "read-range-projection": {
+      "requests": 0,
+      "responseBytes": 0
+    },
+    "set-cell-input": {
+      "requests": 0,
+      "responseBytes": 0
+    }
+  }
+}

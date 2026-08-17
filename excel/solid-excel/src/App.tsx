@@ -12,6 +12,7 @@ import { DemoLarge } from './demos/DemoLarge'
 import { DemoWorker } from './demos/DemoWorker'
 import { DemoMillion } from './demos/DemoMillion'
 import { VNextSmokeDemo, VNextWorkerDemo, VNextWorkerTsDemo, VNextWave5Demo } from '../src-vnext'
+import { RemoteViewportDemo } from '../demo-remote/RemoteViewportDemo'
 import { LocaleSwitcher } from './LocaleSwitcher'
 import { useT } from './i18n'
 import './styles.css'
@@ -71,14 +72,23 @@ const demoGroups: DemoGroup[] = [
       { id: 'vnext-worker', labelKey: 'nav.vnextWorker', component: VNextWorkerDemo },
       { id: 'vnext-worker-ts', labelKey: 'nav.vnextWorkerTs', component: VNextWorkerTsDemo },
       { id: 'vnext-wave5', labelKey: 'nav.vnextWave5', component: VNextWave5Demo },
+      { id: 'vnext-remote', labelKey: 'nav.vnextRemote', component: RemoteViewportDemo },
     ],
   },
 ]
 
 const allDemos: DemoTab[] = demoGroups.flatMap((g) => g.demos)
 
+/** `?backend=remote` 直达远程后端演示（AD-828），与 `?backend=ts/wasm` 在
+ *  worker demo 内换 factory 的通道并存；其余取值不改默认 tab。 */
+function initialTabId(): string {
+  if (typeof window === 'undefined') return 'vnext-wave5'
+  const backend = new URLSearchParams(window.location.search).get('backend')
+  return backend === 'remote' ? 'vnext-remote' : 'vnext-wave5'
+}
+
 export function App() {
-  const [activeTab, setActiveTab] = createSignal('vnext-wave5')
+  const [activeTab, setActiveTab] = createSignal(initialTabId())
   const t = useT()
 
   const activeDemo = () => allDemos.find((d) => d.id === activeTab())

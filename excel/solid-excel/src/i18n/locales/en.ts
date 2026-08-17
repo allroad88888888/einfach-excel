@@ -37,6 +37,7 @@ export const messages: Record<string, string> = {
   'nav.vnextWorker': 'vNext Worker',
   'nav.vnextWorkerTs': 'Worker (TS core)',
   'nav.vnextWave5': 'vNext Wave 5',
+  'nav.vnextRemote': 'Remote HTTP',
 
   // Demo headings + descriptions.
   'demo.blank.title': 'Blank Spreadsheet',

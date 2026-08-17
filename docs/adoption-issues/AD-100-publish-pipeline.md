@@ -6,7 +6,7 @@
 
 ## 当前状态
 
-状态：**口径已裁决（ADR 0014~0019）；AD-101~126、AD-128~130、AD-136~137 已完成并独立验收（`38d7d5b` WASM 分发迁移、`8aadfff` 双形态交付与版本落地、`1b08a6a` 本地 registry 全链路 dry-run，提交号见 [Issue 树](../ADOPTION_ISSUE_TREE.md)）；剩余 AD-127、AD-131~135、AD-138~142**。
+状态：**口径已裁决（ADR 0014~0019）；AD-101~126、AD-128~130、AD-133、AD-136~137 已完成并独立验收（`38d7d5b` WASM 分发迁移、`8aadfff` 双形态交付与版本落地、`1b08a6a` 本地 registry 全链路 dry-run，提交号见 [Issue 树](../ADOPTION_ISSUE_TREE.md)）；AD-132 局部进展；剩余 AD-127（被 AD-414 阻塞）、AD-131、AD-134~135、AD-138~142**。
 
 原先阻塞本组的五项决策已落成 [ADR 0014~0018](#已裁决的口径)，“该做什么”不再是未知数；
 裁决本身不构成完成判定 —— 已完成的叶子各有独立验收的交付物。
@@ -77,7 +77,7 @@
 
 - **AD-125 仓库指向修正** —— **完成**：`repository`、`homepage`、`bugs` 指向当前仓库（`20ff465`）。
 - **AD-126 exports 字段补齐** —— **完成**：现代 `exports` 已声明（`20ff465`）。
-- **AD-127 keywords 补齐** —— 与 AD-405 的 topics 使用同一批词。
+- **AD-127 keywords 补齐** —— 与 GitHub topics 使用同一批词。**被 AD-414 阻塞**：topics 词表归 AD-414（原文引 AD-405 是错漏），词表定稿前本叶子无对齐目标。
 - **AD-128 ui-core 产物离体核对** —— **完成**：ui-core 产物已经解包核对（`20ff465`）。
 
 ### 版本、发布与离体验证
@@ -85,8 +85,8 @@
 - **AD-129 版本策略落地** —— **完成**（`8aadfff`）：五个待发包全部对齐 `0.1.0`（excel-core-ts 从 `0.0.0` 提上来）。
 - **AD-130 fixed 组配置** —— **完成**（`8aadfff`）：fixed 组扩为五包；用临时 changeset 经 `changeset status` 实测联动（任一成员 bump，五包同升）。
 - **AD-131 首发 changeset** —— 覆盖全部待发包，且不得把任何包推过 `0.1.0`。**前置警示**：在途的 `lucky-pandas-clap.md`（minor）若先于首发被 version，fixed 组直接到 `0.2.0`，见「开工前事实」第 5 条。
-- **AD-132 发布 workflow** —— 按 [ADR 0016](../decisions/0016-ci-only-npm-publish.md) 恢复触发，从仓库 secret 读取 npm token，并在 publish 前跑完 WASM 构建。
-- **AD-133 发布流程文档化** —— 写明谁能发、怎么发、secret 如何配置与轮换。
+- **AD-132 发布 workflow** —— **局部进展**：`publish.yml` 已按 ADR 0016/0017/0018 改造（Node 钉 22.12.0、发布前显式构建 full 变体、publish 命令换 `pnpm run release:publish` 以保证 `workspace:*` 重写、首发顺序约束写入头注）；完成判定 = secret 就位后真实跑通一次,以及按裁决恢复 push 触发。
+- **AD-133 发布流程文档化** —— **完成**：[docs/RELEASING.md](../RELEASING.md)——谁能发、凭据配置与轮换、pnpm-only 约束、首发 0.1.0 的顺序纪律与发布前自检。
 - **AD-134 稳定性声明** —— README 准确说明所选版本阶段的兼容性预期。
 - **AD-135 首条 release notes** —— 说明成熟度、已知边界与非目标。
 - **AD-136 本地 registry** —— **完成**（`1b08a6a`）：verdaccio 6.9.2，本仓五包 scope 不设 uplink、其余代理 npmjs；配置要点见[观察记录](../AD137_LOCAL_REGISTRY_DRYRUN_OBSERVATION.md)。

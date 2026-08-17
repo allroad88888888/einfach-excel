@@ -3,53 +3,62 @@
   "version": "0.1.0",
   "description": "SolidJS Excel table component powered by Rust WASM engine",
   "type": "module",
-  "main": "./src/index.tsx",
-  "types": "./src/index.tsx",
+  "main": "./esm/src/index.mjs",
+  "types": "./@types/src/index.d.ts",
   "exports": {
     ".": {
-      "types": "./src/index.tsx",
-      "import": "./src/index.tsx",
-      "default": "./src/index.tsx"
+      "solid": "./src/index.tsx",
+      "types": "./@types/src/index.d.ts",
+      "import": "./esm/src/index.mjs",
+      "default": "./esm/src/index.mjs"
     },
     "./vnext": {
-      "types": "./src-vnext/public.ts",
-      "import": "./src-vnext/public.ts",
-      "default": "./src-vnext/public.ts"
+      "solid": "./src-vnext/public.ts",
+      "types": "./@types/src-vnext/public.d.ts",
+      "import": "./esm/src-vnext/public.mjs",
+      "default": "./esm/src-vnext/public.mjs"
     },
     "./vnext-worker-factory": {
-      "types": "./src-vnext/adapter/worker-factory.ts",
-      "import": "./src-vnext/adapter/worker-factory.ts",
-      "default": "./src-vnext/adapter/worker-factory.ts"
+      "solid": "./src-vnext/adapter/worker-factory.ts",
+      "types": "./@types/src-vnext/adapter/worker-factory.d.ts",
+      "import": "./esm/src-vnext/adapter/worker-factory.mjs",
+      "default": "./esm/src-vnext/adapter/worker-factory.mjs"
     },
     "./vnext-worker-runtime": {
-      "types": "./src-vnext/adapter/worker-runtime.ts",
-      "import": "./src-vnext/adapter/worker-runtime.ts",
-      "default": "./src-vnext/adapter/worker-runtime.ts"
+      "solid": "./src-vnext/adapter/worker-runtime.ts",
+      "types": "./@types/src-vnext/adapter/worker-runtime.d.ts",
+      "import": "./esm/src-vnext/adapter/worker-runtime.mjs",
+      "default": "./esm/src-vnext/adapter/worker-runtime.mjs"
     },
     "./vnext-worker-runtime-full": {
-      "types": "./src-vnext/adapter/worker-runtime-full.ts",
-      "import": "./src-vnext/adapter/worker-runtime-full.ts",
-      "default": "./src-vnext/adapter/worker-runtime-full.ts"
+      "solid": "./src-vnext/adapter/worker-runtime-full.ts",
+      "types": "./@types/src-vnext/adapter/worker-runtime-full.d.ts",
+      "import": "./esm/src-vnext/adapter/worker-runtime-full.mjs",
+      "default": "./esm/src-vnext/adapter/worker-runtime-full.mjs"
     },
     "./vnext-worker-runtime-core": {
-      "types": "./src-vnext/adapter/worker-runtime-core.ts",
-      "import": "./src-vnext/adapter/worker-runtime-core.ts",
-      "default": "./src-vnext/adapter/worker-runtime-core.ts"
+      "solid": "./src-vnext/adapter/worker-runtime-core.ts",
+      "types": "./@types/src-vnext/adapter/worker-runtime-core.d.ts",
+      "import": "./esm/src-vnext/adapter/worker-runtime-core.mjs",
+      "default": "./esm/src-vnext/adapter/worker-runtime-core.mjs"
     },
     "./legacy": {
-      "types": "./src/index.tsx",
-      "import": "./src/index.tsx",
-      "default": "./src/index.tsx"
+      "solid": "./src/index.tsx",
+      "types": "./@types/src/index.d.ts",
+      "import": "./esm/src/index.mjs",
+      "default": "./esm/src/index.mjs"
     },
     "./demos": {
-      "types": "./src/demos/index.ts",
-      "import": "./src/demos/index.ts",
-      "default": "./src/demos/index.ts"
+      "solid": "./src/demos/index.ts",
+      "types": "./@types/src/demos/index.d.ts",
+      "import": "./esm/src/demos/index.mjs",
+      "default": "./esm/src/demos/index.mjs"
     },
     "./i18n": {
-      "types": "./src/i18n/index.ts",
-      "import": "./src/i18n/index.ts",
-      "default": "./src/i18n/index.ts"
+      "solid": "./src/i18n/index.ts",
+      "types": "./@types/src/i18n/index.d.ts",
+      "import": "./esm/src/i18n/index.mjs",
+      "default": "./esm/src/i18n/index.mjs"
     },
     "./vnext-styles.css": "./src-vnext/styles/index.css",
     "./package.json": "./package.json"
@@ -67,8 +76,14 @@
   "files": [
     "src",
     "src-vnext",
+    "esm",
+    "@types/src",
+    "@types/src-vnext",
     "README.md"
   ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "npm run build:wasm && vite build",
@@ -90,16 +105,21 @@
     "einfach"
   ],
   "dependencies": {
-    "@einfach/core": "^0.4.0",
     "@einfach/excel-core-ts": "workspace:*",
     "@einfach/excel-wasm": "workspace:*",
-    "@einfach/solid": "^0.4.0",
     "@einfach/spreadsheet-ui-core": "workspace:*",
     "@einfach/spreadsheet-ui-styles": "workspace:*",
-    "@lingui/core": "^6.0.1",
+    "@lingui/core": "^6.0.1"
+  },
+  "peerDependencies": {
+    "@einfach/core": "^0.4.0",
+    "@einfach/solid": "^0.4.0",
     "solid-js": "^1.9.12"
   },
   "devDependencies": {
+    "@einfach/core": "^0.4.0",
+    "@einfach/solid": "^0.4.0",
+    "solid-js": "^1.9.12",
     "@axe-core/playwright": "^4.12.1",
     "@playwright/test": "^1.48.0",
     "typescript": "^5.3.0",

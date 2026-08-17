@@ -30,3 +30,4 @@
 | [0016](0016-ci-only-npm-publish.md)                       | 发布只走 CI，凭据由维护者填入仓库 secret         | accepted |
 | [0017](0017-initial-release-version-0-1-0.md)             | 首发版本为 `0.1.0`                               | accepted |
 | [0018](0018-node-baseline-22-12.md)                       | 对外 Node.js 基线为 `>=22.12.0`                  | accepted |
+| [0019](0019-solid-excel-dual-form-artifacts.md)           | `@einfach/solid-excel` 以双形态交付              | accepted |

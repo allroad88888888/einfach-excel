@@ -16,21 +16,26 @@ const packageJson = jest.requireActual(
 describe('@einfach/solid-excel package entry', () => {
   it('imports the root, vNext, legacy, demos, and package.json public entrypoints', () => {
     expect(packageJson.name).toBe('@einfach/solid-excel')
+    // 双形态契约（ADR 0019）：solid 条件给源码，types 给 tsc 声明，
+    // import/default 给 babel-preset-solid 预编译的 ESM。
     expect(packageJson.exports['.']).toEqual({
-      types: './src/index.tsx',
-      import: './src/index.tsx',
-      default: './src/index.tsx',
+      solid: './src/index.tsx',
+      types: './@types/src/index.d.ts',
+      import: './esm/src/index.mjs',
+      default: './esm/src/index.mjs',
     })
     expect(packageJson.exports['./legacy']).toEqual(packageJson.exports['.'])
     expect(packageJson.exports['./demos']).toEqual({
-      types: './src/demos/index.ts',
-      import: './src/demos/index.ts',
-      default: './src/demos/index.ts',
+      solid: './src/demos/index.ts',
+      types: './@types/src/demos/index.d.ts',
+      import: './esm/src/demos/index.mjs',
+      default: './esm/src/demos/index.mjs',
     })
     expect(packageJson.exports['./vnext']).toEqual({
-      types: './src-vnext/public.ts',
-      import: './src-vnext/public.ts',
-      default: './src-vnext/public.ts',
+      solid: './src-vnext/public.ts',
+      types: './@types/src-vnext/public.d.ts',
+      import: './esm/src-vnext/public.mjs',
+      default: './esm/src-vnext/public.mjs',
     })
     expect(packageJson.exports['./package.json']).toBe('./package.json')
 

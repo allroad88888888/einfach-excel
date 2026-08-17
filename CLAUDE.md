@@ -168,6 +168,9 @@ Every modal under `excel/solid-excel/src-vnext/*/Spreadsheet*Dialog.tsx` follows
 
 - TypeScript composite project with `tsc -build` for declarations
 - Rollup bundles to `cjs/` (.cjs), `esm/` (.mjs), and `dist/`
+- `@einfach/solid-excel` 走独立的双形态管线（[ADR 0019](docs/decisions/0019-solid-excel-dual-form-artifacts.md)，
+  `rollup.solid-excel.mjs`）：exports 的 `solid` 条件给源码、`import`/`default` 给 babel 预编译的
+  **仅 ESM** 产物（worker-factory 依赖 `import.meta`，无 CJS 形态）
 - SWC transforms plain TS; Babel transforms Solid.js (for JSX)
 - All packages have `sideEffects: false` for tree-shaking
 - WASM 产物归 `@einfach/excel-wasm`（`excel/excel-wasm/lite/` 与 `full/`，由 `excel/rust/wasm` 构建）；`excel/solid-excel` 的 `build`/`build:wasm` 委托给它，`build:wasm` 末尾会跑 `strip-wasm-names.mjs` 剥调试名并清掉 wasm-pack 生成的 `.gitignore`

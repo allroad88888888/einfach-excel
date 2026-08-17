@@ -127,6 +127,9 @@ Rust/WASM 那侧的 dispatcher 与"用哪份 wasm 产物"是解耦的：消息�
 
 - TypeScript composite project，`tsc -build` 出声明
 - Rollup 打到 `cjs/`（.cjs）、`esm/`（.mjs）、`dist/`
+- `@einfach/solid-excel` 是双形态（[ADR 0019](decisions/0019-solid-excel-dual-form-artifacts.md)，
+  `rollup.solid-excel.mjs`）：`solid` 条件交源码给消费者的 vite-plugin-solid 编译，
+  `import`/`default` 交 babel 预编译的仅-ESM 产物
 - SWC 转 React/Vanilla；Babel 转 Solid（为了 JSX）
 - 所有包 `sideEffects: false`
 - `npm run build` 链条：`clearTypes` → `ensureWasm` → `tsc -build` → `rollup`。

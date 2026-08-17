@@ -6,6 +6,14 @@
   "main": "./cjs/index.cjs",
   "module": "./esm/index.mjs",
   "typings": "./@types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./@types/index.d.ts",
+      "import": "./esm/index.mjs",
+      "default": "./cjs/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
   "license": "MIT",
   "author": "dol",
   "repository": {

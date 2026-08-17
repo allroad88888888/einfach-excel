@@ -390,6 +390,9 @@ describe('TS worker runtime — structured UNSUPPORTED instead of success-shaped
     // config.ts), and this snapshot simply carries none.
     expect(stats).toEqual({
       restored_cells: 2,
+      // Real count, not a success-shaped fake — the TS runtime validates and
+      // restores conditional formats (worker-runtime-ts-conditional-format.ts).
+      restored_conditional_formats: 0,
       restored_formats: 0,
       restored_print_configs: 0,
       sheets: 1,

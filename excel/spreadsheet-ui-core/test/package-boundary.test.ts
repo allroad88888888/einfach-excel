@@ -181,7 +181,10 @@ describe('package boundary', () => {
   test('does not import UI frameworks, DOM runtime, workers, or wasm glue', () => {
     const forbiddenImport =
       /from ['"](?:solid-js|react|@einfach\/solid|@einfach\/react|.*worker.*|.*wasm.*)['"]/
-    const forbiddenRuntime = /\b(?:document\.|window\.|new Worker\(|HTMLElement|HTMLDivElement)\b/
+    // 负向后顾排除属性访问:投影结果的领域字段就叫 `window`(`result.window.rowStart`),
+    // 只有裸的全局 `window.` / `document.` 才是越界。
+    const forbiddenRuntime =
+      /(?<!\.)\b(?:document\.|window\.|new Worker\(|HTMLElement|HTMLDivElement)\b/
     const offenders = readSourceFiles(SRC_ROOT).flatMap(({ path, text }) => {
       const matches = []
 

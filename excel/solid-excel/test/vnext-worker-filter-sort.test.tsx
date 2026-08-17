@@ -138,6 +138,11 @@ function createFilterFakeClient(
     async describeCapabilities() {
       return null
     },
+    // filter/sort 流程现在会顺带读条件格式快照(见 worker-protocol 的
+    // listConditionalFormats);本夹具没有条件格式,诚实回空集而非 unused 抛错。
+    async listConditionalFormats(sheet) {
+      return { sheet, revision: 0, rules: [] }
+    },
     async sheetList() {
       return [{ idx: 0, name: 'Sheet1' }]
     },

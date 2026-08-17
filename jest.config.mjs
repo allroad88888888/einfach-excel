@@ -48,7 +48,7 @@ const jestConfig = {
    * Also skip Playwright e2e specs (`excel/solid-excel/e2e/`) — those run under
    * `npm run e2e` from `excel/solid-excel/`, not jest.
    */
-  testPathIgnorePatterns: ['/node_modules/', '/@types/', '/excel/solid-excel/e2e/'],
+  testPathIgnorePatterns: ['/node_modules/', '/@types/', '/excel/solid-excel/e2e/', '/excel/react-excel/e2e/', '/excel/vue-excel/e2e/'],
 
   /**
    * - excel-wasm/lite/ + excel-wasm/full/: each ships its own package.json

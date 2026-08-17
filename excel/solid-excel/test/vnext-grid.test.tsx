@@ -32,6 +32,7 @@ import {
   selectionAtom,
   selectionRegionsAtom,
   addSelectionRegionAtom,
+  selectCellAtom,
   selectRowsAtom,
   setSheetTabsSheetsAtom,
   setWorkspaceActiveSheetAtom,
@@ -3538,15 +3539,10 @@ describe('vNext SpreadsheetGrid', () => {
       expect(container.querySelectorAll('td.spreadsheet-grid-cell').length).toBeGreaterThan(0)
     })
 
-    // Select cell at col index 26 (AA) row 0
-    store.setter(addSelectionRegionAtom, {
-      region: {
-        kind: 'cell',
-        sheetId: 'sheet-1',
-        anchor: { row: 0, col: 26 },
-        focus: { row: 0, col: 26 },
-      },
-    })
+    // Select cell at col index 26 (AA) row 0 — copy 只认主选区
+    // (grid-clipboard 的 selectionSnapshot),addSelectionRegionAtom 只加
+    // region 不设主选区,会被 sheetId 守卫静默早退。
+    store.setter(selectCellAtom, { sheetId: 'sheet-1', coord: { row: 0, col: 26 } })
 
     fireEvent.keyDown(container.querySelector('[data-testid="grid"]')!, {
       key: 'c',

@@ -80,6 +80,14 @@ function createBackend(
     async setCellInput() {
       throw new Error('not used')
     },
+    // 历史入栈只在后端能重放时发生(history-dispatch 的 backendSupportsHistory
+    // 门,缺席即"饿死"降级)。本套件断言的就是历史被记录,故夹具声明重放端口。
+    async undoTransaction() {
+      throw new Error('not replayed in this suite')
+    },
+    async redoTransaction() {
+      throw new Error('not replayed in this suite')
+    },
   }
   return input.pasteRange === undefined ? base : { ...base, pasteRange: input.pasteRange }
 }

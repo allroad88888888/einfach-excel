@@ -22,25 +22,20 @@
 ## 怎么发
 
 1. 日常变更随 PR 附 changeset（`npx changeset`）。
-2. changesets/action 在 main 上聚合出 Release PR；合并该 PR 即触发发布。
-   在 push 触发恢复前（见 `publish.yml` 头注），发布 = 手动跑 `Publish` workflow
-   （Actions → Publish → Run workflow）。
+2. changesets/action 在 main 上聚合出 Release PR；合并该 PR 即触发发布
+   （push 触发已于首发后恢复）。
 3. 发布命令是 `pnpm run release:publish`（`pnpm publish -r` + `changeset tag`）。
    **必须走 pnpm 路径**：只有 pnpm 在打包时把 `workspace:*` 重写为真实版本号，
    `npm pack/publish` 会原样保留、产物不可安装（实测见
    [dry-run 观察记录](AD137_LOCAL_REGISTRY_DRYRUN_OBSERVATION.md)）。
 
-## 首发的特殊约束（ADR 0017）
+## 首发（已完成）
 
-首发必须以 **`0.1.0`** 出场：
-
-- 首发**不需要也不允许**先跑 `changeset version` —— 五包当前版本就是 0.1.0，
-  `pnpm publish -r` 直接发布现版本。
-- 仓内若有在途 changeset（会把 fixed 组推过 0.1.0），必须**先发布 0.1.0 再合并
-  Release PR**；顺序颠倒即违反 ADR 0017，需要维护者以新 ADR 裁决。
-- **首发操作**：手动跑 `Publish` workflow 时把 `mode` 选成 **`first-publish`**。
-  默认的 `changesets` 档在树里有在途 changeset 时只会开 Version PR、不执行
-  publish —— 那不是首发，还会把版本推过 0.1.0。
+首发以 `0.1.0` 出场（[ADR 0017](decisions/0017-initial-release-version-0-1-0.md)）
+已于 **2026-08-17** 经 `Publish` workflow 的 `first-publish` 档完成，五包均在
+registry.npmjs.org 可查且经仓外真实安装验证。ADR 0017 的顺序约束就此解除，
+此后的版本流转全部走常规 changesets 流。`first-publish` 档保留仅作应急
+（如某包被撤后按当前版本重发）；日常发布**不要**用它。
 
 ## 发布前自检
 

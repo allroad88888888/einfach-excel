@@ -1,24 +1,17 @@
 name: Publish
 
-# 暂时只允许手动触发。
-#
-# NPM_TOKEN 尚未配入仓库 secret（ADR 0016：只走 CI 发布，凭据由维护者填入
-# secret）。配好 token 并确认首发后，把 push 触发放回来：
-#   on:
-#     push:
-#       branches: [main]
-#
-# 首发顺序硬约束（ADR 0017）：首发必须以 0.1.0 出场。仓内若有在途 changeset
-# （会把 fixed 组推过 0.1.0），要么先发布再 version，要么由维护者另行裁决 ——
-# 不要在首发前跑 `changeset version`。
+# 常规流：push 到 main 时 changesets/action 聚合在途 changeset 开 Version PR，
+# 合并该 PR 的 push 触发真实发布。首发（0.1.0，ADR 0017）已于 2026-08-17 完成，
+# 顺序约束解除；手动档保留 first-publish 仅作应急（例如某包被撤后重发）。
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       mode:
         description: >-
           changesets = 常规流（有在途 changeset 时只开 Version PR，不发布）；
-          first-publish = 按当前版本直接发布（ADR 0017 的首发路径，绕过
-          changesets/action，因为它在树里有 changeset 时不会执行 publish）
+          first-publish = 按当前版本直接发布（绕过 changesets/action）
         type: choice
         options:
           - changesets

@@ -6,7 +6,7 @@
 
 **Einfach Excel 是一个具备有界投影契约和 Rust/WASM 工作簿引擎的电子表格 UI 核心。**
 
-[体验在线 Demo](https://allroad88888888.github.io/einfach-excel/) · [English](./README.md) · [架构说明](./docs/ARCHITECTURE.md) · [参与贡献](./CONTRIBUTING.md)
+[体验在线 Demo](https://allroad88888888.github.io/einfach-excel/) · [五分钟上手](./docs/QUICKSTART.md) · [English](./README.md) · [架构说明](./docs/ARCHITECTURE.md) · [参与贡献](./CONTRIBUTING.md)
 
 ## 为什么选择 Einfach Excel？
 

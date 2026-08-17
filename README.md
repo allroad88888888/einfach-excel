@@ -6,7 +6,7 @@
 
 **Einfach Excel is a spreadsheet UI core with a bounded projection contract and a Rust/WASM workbook engine.**
 
-[Explore the live demo](https://allroad88888888.github.io/einfach-excel/) · [中文文档](./README.zh-CN.md) · [Architecture](./docs/ARCHITECTURE.md) · [Contributing](./CONTRIBUTING.md)
+[Explore the live demo](https://allroad88888888.github.io/einfach-excel/) · [Quickstart](./docs/QUICKSTART.md) · [中文文档](./README.zh-CN.md) · [Architecture](./docs/ARCHITECTURE.md) · [Contributing](./CONTRIBUTING.md)
 
 ## Why Einfach Excel?
 
@@ -227,6 +227,7 @@ The [interactive demo](https://allroad88888888.github.io/einfach-excel/) uses th
 
 ## Documentation
 
+- [Quickstart](./docs/QUICKSTART.md) goes from install to a first formula on one page; [integration recipes](./docs/recipes/README.md) cover Vite, webpack, Next, Nuxt, and Astro; [UI-core-only consumption](./docs/UI_CORE_ONLY.md) needs neither Solid nor WASM.
 - [Architecture](./docs/ARCHITECTURE.md) explains the layering, data flow, and backend-port contract.
 - [Architecture decisions](./docs/decisions/) records the decisions behind worker boundaries and engine behavior.
 - Package-level READMEs describe [the UI core](./excel/spreadsheet-ui-core/README.md), [the Solid integration](./excel/solid-excel/README.md), and [the demo site](./excel/excel-site/README.md).

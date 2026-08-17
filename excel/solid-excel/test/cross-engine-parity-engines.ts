@@ -6,7 +6,7 @@
  *   - TS   — `createWorkerRuntimeTs().handle()`, the same RPC surface the
  *            real Worker runs. Bulk path: beginImport → importChunk →
  *            commitImport.
- *   - WASM — `WasmWorkbook` from `excel/solid-excel/wasm-pkg/`, called
+ *   - WASM — `WasmWorkbook` from `excel/excel-wasm/lite/`, called
  *            through the wasm-bindgen methods DIRECTLY rather than through
  *            `worker-runtime.ts`: that dispatcher auto-installs onto `self`
  *            at module load and cannot be instantiated twice cleanly under
@@ -14,7 +14,7 @@
  *            `scale-parity.test.ts` / `perf-ts-vs-wasm.bench.ts`). Bulk
  *            path: `bulk_install_workbook`.
  *
- * Both drivers are node-side: no browser, no real Worker. `wasm-pkg/` is
+ * Both drivers are node-side: no browser, no real Worker. The wasm artifact dir is
  * the LITE build (no REGEX* functions) — keep workloads off them.
  *
  * Scope note: single-cell writes may target ANY address, spill projections

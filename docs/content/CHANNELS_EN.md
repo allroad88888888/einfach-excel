@@ -56,6 +56,6 @@
 
 ## 横向纪律（适用所有英文渠道）
 
-1. 同一篇文章在不同渠道投放要错开日期（详见 [schedule.md](./schedule.md)）。
-2. 所有涉及 Univer/Handsontable 的对比表述，只用 README「Dated product facts」与 `docs/UNIVER_PRODUCT_EVIDENCE.md` 的带来源口径，不说优劣（见 [showhn-checklist.md](./showhn-checklist.md) FAQ 节）。
+1. 同一篇文章在不同渠道投放要错开日期（详见 [schedule.md](./SCHEDULE.md)）。
+2. 所有涉及 Univer/Handsontable 的对比表述，只用 README「Dated product facts」与 `docs/UNIVER_PRODUCT_EVIDENCE.md` 的带来源口径，不说优劣（见 [showhn-checklist.md](./SHOWHN_CHECKLIST.md) FAQ 节）。
 3. 规模/性能话题一律回到「代码契约，不做性能/容量/SLA 主张」的 README 原话边界。

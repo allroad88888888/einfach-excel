@@ -1,7 +1,7 @@
 # AD-620 Show HN 落地检查单
 
 > **性质**：发布「弹药」。逐项确认全绿后，由维护者亲手发布；任何一项红灯即推迟。
-> 正文与标题见 [showhn-post.md](./showhn-post.md)，时点见 [schedule.md](./schedule.md)。
+> 正文与标题见 [showhn-post.md](./SHOWHN_POST.md)，时点见 [schedule.md](./SCHEDULE.md)。
 
 ## A. 安装链路（已有背书 + 当日复验）
 

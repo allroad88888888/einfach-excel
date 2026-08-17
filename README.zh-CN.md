@@ -204,6 +204,15 @@ NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach/solid-excel -- --project=ts
 - [架构决策](./docs/decisions/)：worker 边界与引擎行为背后的取舍。
 - 包级 README：[UI 核心](./excel/spreadsheet-ui-core/README.md)、[Solid 集成](./excel/solid-excel/README.md)、[演示站](./excel/excel-site/README.md)。
 
+## 维护者与响应预期
+
+单维护者项目（[@allroad88888888](https://github.com/allroad88888888)），无付费支持 SLA。现实预期：
+
+- Bug 与提问（[issues](https://github.com/allroad88888888/einfach-excel/issues) / [discussions](https://github.com/allroad88888888/einfach-excel/discussions)）：尽力 **7 天**内首次响应；可复现的引擎正确性 bug 优先。
+- Pull Request：尽力 **14 天**内首次 review；小而聚焦的 PR 远快于大 PR。
+- 安全报告：见 [SECURITY.md](./.github/SECURITY.md)——走私密漏洞上报，不要开公开 issue。
+- 不支持混用不同版本的 `@einfach/*` 包——五包按 fixed 组同升，升级请五包一起（见[发布状态与稳定性](#发布状态与稳定性)）。
+
 ## 参与贡献
 
 欢迎贡献。代码风格、changesets 和文档规范请见 [CONTRIBUTING.md](./CONTRIBUTING.md)。

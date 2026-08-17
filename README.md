@@ -231,6 +231,15 @@ The [interactive demo](https://allroad88888888.github.io/einfach-excel/) uses th
 - [Architecture decisions](./docs/decisions/) records the decisions behind worker boundaries and engine behavior.
 - Package-level READMEs describe [the UI core](./excel/spreadsheet-ui-core/README.md), [the Solid integration](./excel/solid-excel/README.md), and [the demo site](./excel/excel-site/README.md).
 
+## Maintainer and response expectations
+
+This is a single-maintainer project ([@allroad88888888](https://github.com/allroad88888888)) without a paid support SLA. Realistic expectations:
+
+- Bug reports and questions ([issues](https://github.com/allroad88888888/einfach-excel/issues) / [discussions](https://github.com/allroad88888888/einfach-excel/discussions)): best-effort first response within **7 days**; reproducible engine-correctness bugs get priority.
+- Pull requests: best-effort first review within **14 days**; small focused PRs move much faster than large ones.
+- Security reports: see [SECURITY.md](./.github/SECURITY.md) — use private vulnerability reporting, not public issues.
+- Mixing different versions of `@einfach/*` packages is unsupported — they version as a fixed group; upgrade all five together (see [Release status and stability](#release-status-and-stability)).
+
 ## Contributing
 
 Contributions are welcome. Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for code style, changesets, and documentation conventions.

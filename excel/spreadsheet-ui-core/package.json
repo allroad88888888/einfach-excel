@@ -43,9 +43,10 @@
   },
   "keywords": [
     "spreadsheet",
-    "headless",
-    "ui",
-    "atom",
+    "excel",
+    "headless-ui",
+    "typescript",
+    "virtual-scroll",
     "einfach"
   ],
   "dependencies": {

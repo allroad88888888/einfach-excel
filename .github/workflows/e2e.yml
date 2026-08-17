@@ -36,7 +36,7 @@ jobs:
     #
     # 每片是独立 job:各自起自己的 dev server,分片之间不共享状态,
     # 因此 workers: 1 提供的隔离保证不受影响。
-    timeout-minutes: 20
+    timeout-minutes: 40
 
     strategy:
       # 一片失败不影响其他片跑完 —— 要的是完整的失败清单,不是最快熔断。

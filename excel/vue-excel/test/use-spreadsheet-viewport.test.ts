@@ -55,7 +55,7 @@ function createBackend() {
   })
 
   return {
-    backend: { readVisibleProjection } as SpreadsheetBackend,
+    backend: { readVisibleProjection } as unknown as SpreadsheetBackend,
     gates,
     requests,
   }

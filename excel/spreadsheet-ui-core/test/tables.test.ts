@@ -201,7 +201,12 @@ describe('tables — capability', () => {
     const store = makeStore()
     const { source, createRequests } = makeSource({ withoutCreate: true })
 
-    await store.setter(runCreateTableAtom, { source, sheetId: 'sheet-1', range: A1_C4 })
+    await store.setter(runCreateTableAtom, {
+      source,
+      historyEntryRecorder: recordHistory,
+      sheetId: 'sheet-1',
+      range: A1_C4,
+    })
 
     expect(createRequests).toHaveLength(0)
     expect(store.getter(createTableSupportedAtom)).toBe(false)
@@ -222,6 +227,7 @@ describe('tables — runCreateTableAtom applied', () => {
     let refreshedSheet: string | null = null
     await store.setter(runCreateTableAtom, {
       source,
+      historyEntryRecorder: recordHistory,
       sheetId: 'sheet-1',
       range: A1_C4,
       refreshProjection: (sheetId: string) => {
@@ -252,6 +258,7 @@ describe('tables — runCreateTableAtom applied', () => {
 
     await store.setter(runCreateTableAtom, {
       source,
+      historyEntryRecorder: recordHistory,
       sheetId: 'sheet-1',
       range: A1_C4,
       name: '  Sales  ',
@@ -269,6 +276,7 @@ describe('tables — runCreateTableAtom rejected / invalid', () => {
 
     await store.setter(runCreateTableAtom, {
       source,
+      historyEntryRecorder: recordHistory,
       sheetId: 'sheet-1',
       range: { rowStart: 2, rowEnd: 2, colStart: 1, colEnd: 1 },
     })
@@ -293,7 +301,12 @@ describe('tables — runCreateTableAtom rejected / invalid', () => {
       }),
     })
 
-    await store.setter(runCreateTableAtom, { source, sheetId: 'sheet-1', range: A1_C4 })
+    await store.setter(runCreateTableAtom, {
+      source,
+      historyEntryRecorder: recordHistory,
+      sheetId: 'sheet-1',
+      range: A1_C4,
+    })
 
     expect(store.getter(allTablesAtom)).toEqual([])
     expect(store.getter(lastCreatedTableNameAtom)).toBeNull()
@@ -307,7 +320,12 @@ describe('tables — runCreateTableAtom rejected / invalid', () => {
     const store = makeStore()
     const { source } = makeSource({ throwOnCreate: new Error('worker died') })
 
-    await store.setter(runCreateTableAtom, { source, sheetId: 'sheet-1', range: A1_C4 })
+    await store.setter(runCreateTableAtom, {
+      source,
+      historyEntryRecorder: recordHistory,
+      sheetId: 'sheet-1',
+      range: A1_C4,
+    })
 
     const diagnostic = store.getter(tableDiagnosticAtom)
     expect(diagnostic?.code).toBe('outcome-unknown')
@@ -317,7 +335,12 @@ describe('tables — runCreateTableAtom rejected / invalid', () => {
   test('clearTableDiagnosticAtom resets the diagnostic', async () => {
     const store = makeStore()
     const { source } = makeSource({ withoutCreate: true })
-    await store.setter(runCreateTableAtom, { source, sheetId: 'sheet-1', range: A1_C4 })
+    await store.setter(runCreateTableAtom, {
+      source,
+      historyEntryRecorder: recordHistory,
+      sheetId: 'sheet-1',
+      range: A1_C4,
+    })
     expect(store.getter(tableDiagnosticAtom)).not.toBeNull()
 
     store.setter(clearTableDiagnosticAtom)
@@ -434,7 +457,12 @@ describe('tables — totals capability', () => {
     const store = makeStore()
     const { source, totalsRequests } = makeTotalsSource({ withoutTotals: true })
 
-    await store.setter(runToggleTableTotalsAtom, { source, name: 'Table1', enabled: true })
+    await store.setter(runToggleTableTotalsAtom, {
+      source,
+      historyEntryRecorder: recordHistory,
+      name: 'Table1',
+      enabled: true,
+    })
 
     expect(totalsRequests).toHaveLength(0)
     expect(store.getter(toggleTableTotalsSupportedAtom)).toBe(false)
@@ -500,7 +528,12 @@ describe('tables — runToggleTableTotalsAtom', () => {
       tables: () => [descriptor('Table1', 'sheet-1')],
     })
 
-    await store.setter(runToggleTableTotalsAtom, { source, name: 'Table1', enabled: true })
+    await store.setter(runToggleTableTotalsAtom, {
+      source,
+      historyEntryRecorder: recordHistory,
+      name: 'Table1',
+      enabled: true,
+    })
 
     expect(totalsRequests).toHaveLength(1)
     // A structured reject never refreshes the catalog — it stays empty.
@@ -520,7 +553,12 @@ describe('tables — runToggleTableTotalsAtom', () => {
       },
     }
 
-    await store.setter(runToggleTableTotalsAtom, { source, name: 'Table1', enabled: true })
+    await store.setter(runToggleTableTotalsAtom, {
+      source,
+      historyEntryRecorder: recordHistory,
+      name: 'Table1',
+      enabled: true,
+    })
 
     const diagnostic = store.getter(tableDiagnosticAtom)
     expect(diagnostic?.code).toBe('outcome-unknown')
@@ -819,8 +857,12 @@ describe('tables — runRenameTableAtom', () => {
     const store = makeStore()
     const harness = makeLifecycleSource()
 
-    await store.setter(runRenameTableAtom, { source: harness.source,
-historyEntryRecorder: recordHistory, name: '  ', newName: 'Sales' })
+    await store.setter(runRenameTableAtom, {
+      source: harness.source,
+      historyEntryRecorder: recordHistory,
+      name: '  ',
+      newName: 'Sales',
+    })
 
     expect(harness.renameRequests).toHaveLength(0)
     expect(store.getter(tableDiagnosticAtom)).toEqual({
@@ -896,8 +938,11 @@ describe('tables — runDeleteTableAtom', () => {
     const store = makeStore()
     const harness = makeLifecycleSource({ withoutDelete: true })
 
-    await store.setter(runDeleteTableAtom, { source: harness.source,
-historyEntryRecorder: recordHistory, name: 'Table1' })
+    await store.setter(runDeleteTableAtom, {
+      source: harness.source,
+      historyEntryRecorder: recordHistory,
+      name: 'Table1',
+    })
 
     expect(harness.deleteRequests).toHaveLength(0)
     expect(harness.listCalls).toBe(0)
@@ -948,8 +993,11 @@ historyEntryRecorder: recordHistory, name: 'Table1' })
     const store = makeStore()
     const harness = makeLifecycleSource()
 
-    await store.setter(runDeleteTableAtom, { source: harness.source,
-historyEntryRecorder: recordHistory, name: '   ' })
+    await store.setter(runDeleteTableAtom, {
+      source: harness.source,
+      historyEntryRecorder: recordHistory,
+      name: '   ',
+    })
 
     expect(harness.deleteRequests).toHaveLength(0)
     expect(harness.listCalls).toBe(0)
@@ -972,8 +1020,11 @@ historyEntryRecorder: recordHistory, name: '   ' })
       }),
     })
 
-    await store.setter(runDeleteTableAtom, { source: harness.source,
-historyEntryRecorder: recordHistory, name: 'Ghost' })
+    await store.setter(runDeleteTableAtom, {
+      source: harness.source,
+      historyEntryRecorder: recordHistory,
+      name: 'Ghost',
+    })
 
     expect(harness.listCalls).toBe(0)
     expect(store.getter(lastDeletedTableNameAtom)).toBeNull()
@@ -987,8 +1038,11 @@ historyEntryRecorder: recordHistory, name: 'Ghost' })
     const store = makeStore()
     const harness = makeLifecycleSource({ throwOnDelete: 'transport gone' })
 
-    await store.setter(runDeleteTableAtom, { source: harness.source,
-historyEntryRecorder: recordHistory, name: 'Table1' })
+    await store.setter(runDeleteTableAtom, {
+      source: harness.source,
+      historyEntryRecorder: recordHistory,
+      name: 'Table1',
+    })
 
     const diagnostic = store.getter(tableDiagnosticAtom)
     expect(diagnostic?.code).toBe('outcome-unknown')
@@ -1095,7 +1149,12 @@ describe('tables — history pairing', () => {
     const { source } = makeSource()
     expect(store.getter(historyStackAtom).entries).toHaveLength(0)
 
-    await store.setter(runCreateTableAtom, { source, sheetId: 'sheet-1', range: A1_C4 })
+    await store.setter(runCreateTableAtom, {
+      source,
+      historyEntryRecorder: recordHistory,
+      sheetId: 'sheet-1',
+      range: A1_C4,
+    })
 
     const { entries } = store.getter(historyStackAtom)
     expect(entries).toHaveLength(1)
@@ -1114,7 +1173,12 @@ describe('tables — history pairing', () => {
       }),
     })
 
-    await store.setter(runCreateTableAtom, { source, sheetId: 'sheet-1', range: A1_C4 })
+    await store.setter(runCreateTableAtom, {
+      source,
+      historyEntryRecorder: recordHistory,
+      sheetId: 'sheet-1',
+      range: A1_C4,
+    })
 
     expect(store.getter(historyStackAtom).entries).toHaveLength(0)
     expect(store.getter(tableDiagnosticAtom)?.code).toBe('name-conflict')
@@ -1131,7 +1195,12 @@ describe('tables — history pairing', () => {
       }),
     })
 
-    await store.setter(runCreateTableAtom, { source, sheetId: 'sheet-1', range: A1_C4 })
+    await store.setter(runCreateTableAtom, {
+      source,
+      historyEntryRecorder: recordHistory,
+      sheetId: 'sheet-1',
+      range: A1_C4,
+    })
 
     expect(store.getter(historyStackAtom).entries).toHaveLength(0)
     expect(store.getter(tableDiagnosticAtom)?.code).toBe('outcome-unknown')

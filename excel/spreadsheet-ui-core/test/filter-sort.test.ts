@@ -576,6 +576,7 @@ describe('Core-owned filter/sort mutation lifecycle', () => {
     const sessionId = openWithEqualsDraft(store, source, 'x')
 
     await store.setter(runFilterSortMutationAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       sessionId,
       intent: applyDraft,
@@ -608,6 +609,7 @@ describe('Core-owned filter/sort mutation lifecycle', () => {
     expect(externalReservation).not.toBeNull()
 
     await store.setter(runFilterSortMutationAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       sessionId,
       intent: applyDraft,
@@ -636,6 +638,7 @@ describe('Core-owned filter/sort mutation lifecycle', () => {
     }
     const sessionId = openWithEqualsDraft(store, source, 'x')
     const input = {
+      historyEntryRecorder: recordHistory,
       source,
       sessionId,
       intent: applyDraft,
@@ -684,6 +687,7 @@ describe('Core-owned filter/sort mutation lifecycle', () => {
     }
     const sessionId = openWithEqualsDraft(store, source, 'replacement')
     const stableInput: RunFilterSortMutationInput = {
+      historyEntryRecorder: recordHistory,
       source,
       sessionId,
       intent: applyDraft,
@@ -727,6 +731,7 @@ describe('Core-owned filter/sort mutation lifecycle', () => {
     }
     const sessionId = openWithEqualsDraft(store, source, 'x')
     await store.setter(runFilterSortMutationAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       sessionId,
       intent: applyDraft,
@@ -759,6 +764,7 @@ describe('Core-owned filter/sort mutation lifecycle', () => {
     }
     const sessionId = openWithEqualsDraft(store, source, 'x')
     await store.setter(runFilterSortMutationAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       sessionId,
       intent: applyDraft,
@@ -831,6 +837,7 @@ describe('Core-owned filter/sort mutation lifecycle', () => {
     const sessionId = openWithEqualsDraft(store, source, 'x')
 
     await store.setter(runFilterSortMutationAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       sessionId,
       intent: applyDraft,
@@ -944,6 +951,7 @@ describe('Core-owned filter/sort mutation lifecycle', () => {
     const sessionId = openWithEqualsDraft(store, source, 'x')
 
     await store.setter(runFilterSortMutationAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       sessionId,
       intent: applyDraft,
@@ -973,6 +981,7 @@ describe('Core-owned filter/sort mutation lifecycle', () => {
     const sessionId = openWithEqualsDraft(store, source, 'x')
 
     await store.setter(runFilterSortMutationAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       sessionId,
       intent: applyDraft,
@@ -986,6 +995,7 @@ describe('Core-owned filter/sort mutation lifecycle', () => {
     expect(store.setter(acquireHistoryProducerReservationAtom)).toBeNull()
 
     await store.setter(runFilterSortMutationAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       sessionId,
       intent: applyDraft,
@@ -1012,6 +1022,7 @@ describe('Core-owned filter/sort mutation lifecycle', () => {
     const sessionId = openWithEqualsDraft(store, source, 'x')
 
     await store.setter(runFilterSortMutationAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       sessionId,
       intent: applyDraft,
@@ -1060,6 +1071,7 @@ describe('Core-owned filter/sort mutation lifecycle', () => {
       const draftBefore = store.getter(filterSortDraftAtom)
 
       await store.setter(runFilterSortMutationAtom, {
+        historyEntryRecorder: recordHistory,
         source,
         sessionId,
         intent: applyDraft,
@@ -1075,6 +1087,7 @@ describe('Core-owned filter/sort mutation lifecycle', () => {
       expect(store.setter(acquireHistoryProducerReservationAtom)).toBeNull()
 
       await store.setter(runFilterSortMutationAtom, {
+        historyEntryRecorder: recordHistory,
         source,
         sessionId,
         intent: applyDraft,
@@ -1110,6 +1123,7 @@ describe('Core-owned filter/sort mutation lifecycle', () => {
     const draftBefore = store.getter(filterSortDraftAtom)
 
     await store.setter(runFilterSortMutationAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       sessionId,
       intent: applyDraft,
@@ -1125,6 +1139,7 @@ describe('Core-owned filter/sort mutation lifecycle', () => {
     expect(store.setter(acquireHistoryProducerReservationAtom)).toBeNull()
 
     await store.setter(runFilterSortMutationAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       sessionId,
       intent: applyDraft,
@@ -1145,6 +1160,7 @@ describe('Core-owned filter/sort mutation lifecycle', () => {
     }
     const oldSessionId = openWithEqualsDraft(store, source, 'x')
     const pending = store.setter(runFilterSortMutationAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       sessionId: oldSessionId,
       intent: applyDraft,
@@ -1211,6 +1227,7 @@ describe('Core-owned filter/sort mutation lifecycle', () => {
     let refreshCalls = 0
 
     await store.setter(runFilterSortMutationAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       sessionId,
       intent: applyDraft,
@@ -1259,6 +1276,7 @@ describe('Core-owned filter/sort mutation lifecycle', () => {
     }
     const sessionId = openWithEqualsDraft(store, source, 'x')
     await store.setter(runFilterSortMutationAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       sessionId,
       intent: applyDraft,
@@ -1310,6 +1328,7 @@ describe('Core-owned filter/sort mutation lifecycle', () => {
     })
 
     await store.setter(runFilterSortMutationAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       sessionId,
       intent: { kind: 'apply-draft' },
@@ -1428,6 +1447,7 @@ describe('shared history producer lane — physical sort', () => {
   }
 
   const runInput = (source: PhysicalSortControllerPort) => ({
+    historyEntryRecorder: recordHistory,
     source,
     entrypoint: 'toolbar' as const,
     direction: 'asc' as const,
@@ -1728,6 +1748,7 @@ describe('shared history producer lane — physical sort', () => {
     const { source, requests } = sourceFor((request) => appliedResult(request, 0))
 
     const pending = store.setter(runPhysicalSortAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       entrypoint: 'toolbar',
       direction: 'asc',
@@ -2396,6 +2417,7 @@ describe('shared history producer lane — Reapply', () => {
     expect(store.setter(acquireHistoryProducerReservationAtom)).toBeNull()
 
     await store.setter(runPhysicalSortAtom, {
+      historyEntryRecorder: recordHistory,
       source: {
         async sortRange(request: any) {
           physicalRequests.push(request)

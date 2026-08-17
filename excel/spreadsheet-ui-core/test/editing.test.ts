@@ -227,6 +227,7 @@ describe('editing core', () => {
 
     await expect(
       store.setter(runEditingCommitAtom, {
+        historyEntryRecorder: recordTestHistory,
         source: {
           async setCellInput(request) {
             transportCalls += 1
@@ -318,6 +319,7 @@ describe('editing core', () => {
     let methodReads = 0
 
     const replacementInput: RunEditingCommitInput = {
+      historyEntryRecorder: recordTestHistory,
       source: {
         async setCellInput(request) {
           replacementTransportCalls += 1
@@ -405,6 +407,7 @@ describe('editing core', () => {
     })
 
     const outcome = await store.setter(runEditingCommitAtom, {
+      historyEntryRecorder: recordTestHistory,
       source: {
         async setCellInput(request) {
           transportCalls += 1
@@ -440,6 +443,7 @@ describe('editing core', () => {
     startCellEdit(store)
 
     const first = store.setter(runEditingCommitAtom, {
+      historyEntryRecorder: recordTestHistory,
       source: {
         setCellInput(request) {
           requests.push(request)
@@ -470,6 +474,7 @@ describe('editing core', () => {
 
     await expect(
       store.setter(runEditingCommitAtom, {
+        historyEntryRecorder: recordTestHistory,
         source: {
           async setCellInput(request) {
             return { sheetId: request.sheetId }
@@ -507,6 +512,7 @@ describe('editing core', () => {
     })
 
     const outcome = await store.setter(runEditingCommitAtom, {
+      historyEntryRecorder: recordTestHistory,
       source: {
         async setCellInput(request) {
           const affectedRange = Object.defineProperties(
@@ -551,6 +557,7 @@ describe('editing core', () => {
     startCellEdit(uncertainStore, 'outside range')
     await expect(
       uncertainStore.setter(runEditingCommitAtom, {
+        historyEntryRecorder: recordTestHistory,
         source: {
           async setCellInput(request) {
             return {
@@ -590,6 +597,7 @@ describe('editing core', () => {
 
     await expect(
       store.setter(runEditingCommitAtom, {
+        historyEntryRecorder: recordTestHistory,
         source,
         refreshProjection: async () => undefined,
       }),
@@ -600,6 +608,7 @@ describe('editing core', () => {
     expect(store.setter(acquireHistoryProducerReservationAtom)).toBeNull()
     await expect(
       store.setter(runEditingCommitAtom, {
+        historyEntryRecorder: recordTestHistory,
         source,
         refreshProjection: async () => undefined,
       }),
@@ -628,6 +637,7 @@ describe('editing core', () => {
 
     await expect(
       store.setter(runEditingCommitAtom, {
+        historyEntryRecorder: recordTestHistory,
         source,
         refreshProjection: async () => undefined,
       }),
@@ -646,6 +656,7 @@ describe('editing core', () => {
 
     await expect(
       store.setter(runEditingCommitAtom, {
+        historyEntryRecorder: recordTestHistory,
         source,
         refreshProjection: async () => undefined,
       }),
@@ -677,6 +688,7 @@ describe('editing core', () => {
 
       await expect(
         store.setter(runEditingCommitAtom, {
+          historyEntryRecorder: recordTestHistory,
           source,
           refreshProjection: async () => undefined,
         }),
@@ -690,6 +702,7 @@ describe('editing core', () => {
       expect(store.setter(acquireHistoryProducerReservationAtom)).toBeNull()
       await expect(
         store.setter(runEditingCommitAtom, {
+          historyEntryRecorder: recordTestHistory,
           source,
           refreshProjection: async () => undefined,
         }),
@@ -708,6 +721,7 @@ describe('editing core', () => {
     try {
       await expect(
         store.setter(runEditingCommitAtom, {
+          historyEntryRecorder: recordTestHistory,
           source: {
             async setCellInput(request) {
               transportCalls += 1
@@ -734,6 +748,7 @@ describe('editing core', () => {
     expect(store.setter(acquireHistoryProducerReservationAtom)).toBeNull()
     await expect(
       store.setter(runEditingCommitAtom, {
+        historyEntryRecorder: recordTestHistory,
         source: {
           async setCellInput() {
             transportCalls += 1
@@ -758,6 +773,7 @@ describe('editing core', () => {
 
     await expect(
       store.setter(runEditingCommitAtom, {
+        historyEntryRecorder: recordTestHistory,
         source: {
           async setCellInput(request) {
             transportCalls += 1
@@ -781,6 +797,7 @@ describe('editing core', () => {
 
     await expect(
       store.setter(runEditingCommitAtom, {
+        historyEntryRecorder: recordTestHistory,
         source: {},
         refreshProjection,
       }),
@@ -803,6 +820,7 @@ describe('editing core', () => {
       const fulfilledRequests: EditingCommitRequest[] = []
       startCellEdit(fulfilledStore, 'late fulfilment')
       const fulfilledCommit = fulfilledStore.setter(runEditingCommitAtom, {
+        historyEntryRecorder: recordTestHistory,
         source: {
           setCellInput(request) {
             fulfilledRequests.push(request)
@@ -834,6 +852,7 @@ describe('editing core', () => {
       let rejectedTransportCalls = 0
       startCellEdit(rejectedStore, 'late rejection')
       const rejectedCommit = rejectedStore.setter(runEditingCommitAtom, {
+        historyEntryRecorder: recordTestHistory,
         source: {
           setCellInput() {
             rejectedTransportCalls += 1
@@ -870,6 +889,7 @@ describe('editing core', () => {
       startCellEdit(store, 'refresh retry')
       await expect(
         store.setter(runEditingCommitAtom, {
+          historyEntryRecorder: recordTestHistory,
           source: {
             async setCellInput(request) {
               transportCalls += 1
@@ -1012,6 +1032,7 @@ describe('editing core', () => {
 
     await expect(
       store.setter(runEditingCommitAtom, {
+        historyEntryRecorder: recordTestHistory,
         source: {
           async setCellInput(request) {
             return {

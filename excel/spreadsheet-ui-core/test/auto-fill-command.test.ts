@@ -591,6 +591,7 @@ function fillInput(
   targetRange: Readonly<CellRange> = TARGET,
 ): RunAutoFillIntentInput {
   return {
+    historyEntryRecorder: recordTestHistory,
     entrypoint: 'fill-handle',
     source,
     refreshProjection,
@@ -625,6 +626,7 @@ function fillCommandInput(
   direction: RunAutoFillCommandInput['direction'],
 ): RunAutoFillCommandInput {
   return {
+    historyEntryRecorder: recordTestHistory,
     entrypoint: 'fill-command',
     source,
     refreshProjection,
@@ -641,6 +643,7 @@ function doubleClickInput(
   bounds: RunAutoFillDoubleClickInput['bounds'] = { rowCount: 20, colCount: 10 },
 ): RunAutoFillDoubleClickInput {
   return {
+    historyEntryRecorder: recordTestHistory,
     entrypoint: 'double-click',
     source,
     refreshProjection,

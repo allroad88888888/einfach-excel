@@ -39,7 +39,7 @@ function createBackend() {
   )
 
   return {
-    backend: { undoTransaction, redoTransaction } as SpreadsheetBackend,
+    backend: { undoTransaction, redoTransaction } as unknown as SpreadsheetBackend,
     undoTransaction,
     redoTransaction,
   }

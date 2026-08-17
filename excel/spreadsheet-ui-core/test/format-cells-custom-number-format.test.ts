@@ -37,7 +37,7 @@ describe('Format Cells custom number format', () => {
           receivedFormat = request.format
           return {
             sheetId: request.sheetId,
-            requestId: request.requestId + 1,
+            requestId: request.requestId! + 1,
             affectedRange: request.range,
           }
         },

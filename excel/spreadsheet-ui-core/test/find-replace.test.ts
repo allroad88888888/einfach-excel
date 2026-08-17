@@ -49,6 +49,14 @@ import {
   setSelectionBoundsAtom,
   setWorkspaceActiveSheetAtom,
 } from '../src'
+import type { HistoryEntryRecorder } from '../src/history'
+
+/**
+ * Mirrors the engine-side fallback these suites ran on before the recorder
+ * became a required input: mutations complete but never enter history.
+ * History-recording behavior is asserted in find-replace-history.test.ts.
+ */
+const unavailableHistoryRecorder: HistoryEntryRecorder = () => 'unavailable'
 
 interface Deferred<T> {
   readonly promise: Promise<T>
@@ -326,6 +334,7 @@ describe('find/replace Core lifecycle and compatibility views', () => {
       exactAcknowledgement(request),
     )
     await store.setter(runFindReplaceMutationAtom, {
+      historyEntryRecorder: unavailableHistoryRecorder,
       action: 'replace-current',
       replaceMatches,
       searchRange: async (request) => resultFor(request),
@@ -543,6 +552,7 @@ describe('find/replace search correlation and focus', () => {
       expect(store.getter(findReplaceSessionAtom).hasTicketedResult).toBe(false)
 
       await store.setter(runFindReplaceMutationAtom, {
+        historyEntryRecorder: unavailableHistoryRecorder,
         action: 'replace-current',
         replaceMatches,
         searchRange,
@@ -633,6 +643,7 @@ describe('find/replace search correlation and focus', () => {
       exactAcknowledgement(request),
     )
     await store.setter(runFindReplaceMutationAtom, {
+      historyEntryRecorder: unavailableHistoryRecorder,
       action: 'replace-current',
       replaceMatches,
       searchRange: async (request) => resultFor(request),
@@ -655,6 +666,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
       resultFor(request, [match(1, 1, 'formula')], 1, request.revision),
     )
     await store.setter(runFindReplaceMutationAtom, {
+      historyEntryRecorder: unavailableHistoryRecorder,
       action: 'replace-current',
       revision: 'rev-1',
       replaceMatches,
@@ -698,6 +710,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
     store.setter(captureFindReplaceCapabilityAtom, { searchRange, replaceMatches })
 
     const pending = store.setter(runFindReplaceMutationAtom, {
+      historyEntryRecorder: unavailableHistoryRecorder,
       action: 'replace-current',
       replaceMatches,
       searchRange,
@@ -733,6 +746,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
     prepareStore(store)
     await establishTicket(store)
     await store.setter(runFindReplaceMutationAtom, {
+      historyEntryRecorder: unavailableHistoryRecorder,
       action: 'replace-current',
       replaceMatches: async (request) => exactAcknowledgement(request, 2),
       searchRange: async () => {
@@ -781,6 +795,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
       exactAcknowledgement(request, 2),
     )
     await store.setter(runFindReplaceMutationAtom, {
+      historyEntryRecorder: unavailableHistoryRecorder,
       action: 'replace-all',
       replaceMatches,
       searchRange: async (request) => resultFor(request, [], 0, request.revision),
@@ -801,6 +816,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
       exactAcknowledgement(request),
     )
     const input = {
+      historyEntryRecorder: unavailableHistoryRecorder,
       action: 'replace-current' as const,
       replaceMatches,
       searchRange: async (request: SearchRangeRequest) =>
@@ -826,6 +842,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
       }),
     )
     const input = {
+      historyEntryRecorder: unavailableHistoryRecorder,
       action: 'replace-current' as const,
       replaceMatches,
       searchRange: async (request: SearchRangeRequest) => resultFor(request),
@@ -850,6 +867,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
       resultFor(request),
     )
     const originalInput = {
+      historyEntryRecorder: unavailableHistoryRecorder,
       action: 'replace-current' as const,
       replaceMatches: oldReplaceTransport,
       searchRange: originalSearchTransport,
@@ -896,6 +914,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
       exactAcknowledgement(request, 3),
     )
     await store.setter(runFindReplaceMutationAtom, {
+      historyEntryRecorder: unavailableHistoryRecorder,
       action: 'replace-current',
       replaceMatches: newReplaceTransport,
       searchRange: async (request) => resultFor(request, [match(0, 0)], 1, request.revision),
@@ -910,6 +929,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
     prepareStore(store)
     await establishTicket(store)
     await store.setter(runFindReplaceMutationAtom, {
+      historyEntryRecorder: unavailableHistoryRecorder,
       action: 'replace-current',
       replaceMatches: async () => {
         throw new Error('unknown after dispatch')
@@ -945,6 +965,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
       throw new Error('unknown after dispatch')
     })
     await store.setter(runFindReplaceMutationAtom, {
+      historyEntryRecorder: unavailableHistoryRecorder,
       action: 'replace-current',
       replaceMatches: replaceA,
       searchRange: async (request) => resultFor(request),
@@ -980,6 +1001,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
       exactAcknowledgement(request, 3),
     )
     await store.setter(runFindReplaceMutationAtom, {
+      historyEntryRecorder: unavailableHistoryRecorder,
       action: 'replace-current',
       replaceMatches: replaceB,
       searchRange: async (request) =>
@@ -1037,6 +1059,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
       await establishTicket(store)
       const replaceMatches = jest.fn(async () => response as ReplaceMatchesResponse)
       await store.setter(runFindReplaceMutationAtom, {
+        historyEntryRecorder: unavailableHistoryRecorder,
         action: 'replace-current',
         replaceMatches,
         searchRange: async (request) => resultFor(request),
@@ -1063,6 +1086,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
         exactAcknowledgement(request),
       )
       await store.setter(runFindReplaceMutationAtom, {
+        historyEntryRecorder: unavailableHistoryRecorder,
         action: 'replace-current',
         replaceMatches,
         searchRange: async (request) => resultFor(request),
@@ -1076,6 +1100,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
     prepareStore(store)
     await establishTicket(store)
     await store.setter(runFindReplaceMutationAtom, {
+      historyEntryRecorder: unavailableHistoryRecorder,
       action: 'replace-current',
       searchRange: async (request) => resultFor(request),
     })
@@ -1095,6 +1120,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
         return result.promise
       })
       const pending = store.setter(runFindReplaceMutationAtom, {
+        historyEntryRecorder: unavailableHistoryRecorder,
         action: 'replace-current',
         replaceMatches,
         searchRange: async (request) => resultFor(request),
@@ -1136,6 +1162,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
       resultFor(request, [match(1, 1)], 1, request.revision),
     )
     await store.setter(runFindReplaceMutationAtom, {
+      historyEntryRecorder: unavailableHistoryRecorder,
       action: 'replace-current',
       replaceMatches,
       acceptAcknowledgedResult,
@@ -1172,6 +1199,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
       return resultFor(request, [match(2, 2)], 1, request.revision)
     })
     await store.setter(runFindReplaceMutationAtom, {
+      historyEntryRecorder: unavailableHistoryRecorder,
       action: 'replace-current',
       replaceMatches,
       searchRange,
@@ -1199,6 +1227,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
       return late.promise
     })
     await store.setter(runFindReplaceMutationAtom, {
+      historyEntryRecorder: unavailableHistoryRecorder,
       action: 'replace-current',
       replaceMatches,
       searchRange: async (nextRequest) => resultFor(nextRequest),
@@ -1235,6 +1264,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
       return late.promise
     })
     await store.setter(runFindReplaceMutationAtom, {
+      historyEntryRecorder: unavailableHistoryRecorder,
       action: 'replace-current',
       replaceMatches,
       searchRange: async (nextRequest) => resultFor(nextRequest),
@@ -1262,6 +1292,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
       resultFor(request, [match(0, 0)], 1, request.revision)
     for (let index = 0; index < 33; index += 1) {
       await store.setter(runFindReplaceMutationAtom, {
+        historyEntryRecorder: unavailableHistoryRecorder,
         action: 'replace-current',
         replaceMatches,
         searchRange,
@@ -1278,11 +1309,13 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
       throw new Error('unknown outcome')
     })
     await store.setter(runFindReplaceMutationAtom, {
+      historyEntryRecorder: unavailableHistoryRecorder,
       action: 'replace-current',
       replaceMatches: unknown,
       searchRange,
     })
     await store.setter(runFindReplaceMutationAtom, {
+      historyEntryRecorder: unavailableHistoryRecorder,
       action: 'replace-current',
       replaceMatches: unknown,
       searchRange,

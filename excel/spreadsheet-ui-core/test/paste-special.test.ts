@@ -261,6 +261,7 @@ describe('paste-special Core state machine', () => {
 
     await expect(
       store.setter(confirmPasteSpecialAtom, {
+        historyEntryRecorder: recordTestHistory,
         source: port,
         sessionId: session.sessionId,
         refreshProjection: async () => {},
@@ -291,6 +292,7 @@ describe('paste-special Core state machine', () => {
     expect(store.getter(pasteSpecialCanConfirmAtom)).toBe(false)
     await expect(
       store.setter(confirmPasteSpecialAtom, {
+        historyEntryRecorder: recordTestHistory,
         source,
         sessionId: session.sessionId,
         refreshProjection: async () => {},
@@ -312,6 +314,7 @@ describe('paste-special Core state machine', () => {
       expect(store.getter(pasteSpecialErrorAtom)).toBe(PASTE_SPECIAL_UNSUPPORTED_KIND_ERROR)
       await expect(
         store.setter(confirmPasteSpecialAtom, {
+          historyEntryRecorder: recordTestHistory,
           source: port,
           sessionId: session.sessionId,
           refreshProjection: async () => {},
@@ -338,6 +341,7 @@ describe('paste-special Core state machine', () => {
 
     await expect(
       store.setter(confirmPasteSpecialAtom, {
+        historyEntryRecorder: recordTestHistory,
         source: port,
         sessionId: session.sessionId,
         refreshProjection: async () => {},
@@ -366,6 +370,7 @@ describe('paste-special Core state machine', () => {
 
     await expect(
       store.setter(confirmPasteSpecialAtom, {
+        historyEntryRecorder: recordTestHistory,
         source: port,
         sessionId: session.sessionId,
         refreshProjection: async () => {},
@@ -388,6 +393,7 @@ describe('paste-special Core state machine', () => {
 
       await expect(
         store.setter(confirmPasteSpecialAtom, {
+          historyEntryRecorder: recordTestHistory,
           source: port,
           sessionId: session.sessionId,
           refreshProjection: async () => {},
@@ -407,6 +413,7 @@ describe('paste-special Core state machine', () => {
 
       await expect(
         store.setter(confirmPasteSpecialAtom, {
+          historyEntryRecorder: recordTestHistory,
           source: port,
           sessionId: session.sessionId,
           refreshProjection: async () => {},
@@ -439,6 +446,7 @@ describe('paste-special Core state machine', () => {
 
     await expect(
       store.setter(confirmPasteSpecialAtom, {
+        historyEntryRecorder: recordTestHistory,
         source: port,
         sessionId: session.sessionId,
         refreshProjection,
@@ -469,6 +477,7 @@ describe('paste-special Core state machine', () => {
 
       await expect(
         store.setter(confirmPasteSpecialAtom, {
+          historyEntryRecorder: recordTestHistory,
           source: port,
           sessionId: session.sessionId,
           refreshProjection: async () => {},
@@ -503,6 +512,7 @@ describe('paste-special Core state machine', () => {
 
       await expect(
         store.setter(confirmPasteSpecialAtom, {
+          historyEntryRecorder: recordTestHistory,
           source: port,
           sessionId: session.sessionId,
           refreshProjection,
@@ -537,6 +547,7 @@ describe('paste-special Core state machine', () => {
 
       await expect(
         store.setter(confirmPasteSpecialAtom, {
+          historyEntryRecorder: recordTestHistory,
           source: port,
           sessionId: session.sessionId,
           refreshProjection,
@@ -583,6 +594,7 @@ describe('paste-special Core state machine', () => {
 
     await expect(
       store.setter(confirmPasteSpecialAtom, {
+        historyEntryRecorder: recordTestHistory,
         source: port,
         sessionId: session.sessionId,
         refreshProjection: async () => {},
@@ -646,6 +658,7 @@ describe('paste-special Core state machine', () => {
 
     await expect(
       store.setter(confirmPasteSpecialAtom, {
+        historyEntryRecorder: recordTestHistory,
         source: port,
         sessionId: session.sessionId,
         refreshProjection,
@@ -677,6 +690,7 @@ describe('paste-special Core state machine', () => {
 
     await expect(
       store.setter(confirmPasteSpecialAtom, {
+        historyEntryRecorder: recordTestHistory,
         source: port,
         sessionId: session.sessionId,
         refreshProjection,
@@ -701,6 +715,7 @@ describe('paste-special Core state machine', () => {
       pushReservedHistoryAtom.write = () => false
       await expect(
         store.setter(confirmPasteSpecialAtom, {
+          historyEntryRecorder: recordTestHistory,
           source: port,
           sessionId: session.sessionId,
           refreshProjection,
@@ -719,6 +734,7 @@ describe('paste-special Core state machine', () => {
     expect(store.setter(acquireHistoryProducerReservationAtom)).toBeNull()
     await expect(
       store.setter(confirmPasteSpecialAtom, {
+        historyEntryRecorder: recordTestHistory,
         source: port,
         sessionId: session.sessionId,
         refreshProjection,
@@ -736,6 +752,7 @@ describe('paste-special Core state machine', () => {
 
     await expect(
       store.setter(confirmPasteSpecialAtom, {
+        historyEntryRecorder: recordTestHistory,
         source: port,
         sessionId: session.sessionId,
         refreshProjection: async () => {},
@@ -746,6 +763,7 @@ describe('paste-special Core state machine', () => {
 
     await expect(
       store.setter(confirmPasteSpecialAtom, {
+        historyEntryRecorder: recordTestHistory,
         source: port,
         sessionId: session.sessionId,
         refreshProjection: async () => {},
@@ -778,6 +796,7 @@ describe('paste-special Core state machine', () => {
 
     await expect(
       store.setter(confirmPasteSpecialAtom, {
+        historyEntryRecorder: recordTestHistory,
         source: port,
         sessionId: session.sessionId,
         refreshProjection,
@@ -796,6 +815,7 @@ describe('paste-special Core state machine', () => {
 
     await expect(
       store.setter(confirmPasteSpecialAtom, {
+        historyEntryRecorder: recordTestHistory,
         source: port,
         sessionId: session.sessionId,
         refreshProjection,
@@ -819,6 +839,7 @@ describe('paste-special Core state machine', () => {
     const first = openReadySession(store, port)
     const refreshProjection = jest.fn(async () => {})
     const pending = store.setter(confirmPasteSpecialAtom, {
+      historyEntryRecorder: recordTestHistory,
       source: port,
       sessionId: first.sessionId,
       refreshProjection,
@@ -851,6 +872,7 @@ describe('paste-special Core state machine', () => {
     })
     const session = openReadySession(store, port)
     const pending = store.setter(confirmPasteSpecialAtom, {
+      historyEntryRecorder: recordTestHistory,
       source: port,
       sessionId: session.sessionId,
       refreshProjection: () => refresh.promise,
@@ -889,6 +911,7 @@ describe('paste-special Core state machine', () => {
 
     await expect(
       store.setter(confirmPasteSpecialAtom, {
+        historyEntryRecorder: recordTestHistory,
         source: port,
         sessionId: session.sessionId + 1,
         refreshProjection: async () => {},
@@ -916,6 +939,7 @@ describe('paste-special Core state machine', () => {
 
     await expect(
       store.setter(confirmPasteSpecialAtom, {
+        historyEntryRecorder: recordTestHistory,
         source,
         sessionId: session.sessionId,
         refreshProjection: async () => {},
@@ -939,6 +963,7 @@ describe('paste-special Core state machine', () => {
     })
     const session = openReadySession(store, port)
     const input = {
+      historyEntryRecorder: recordTestHistory,
       source: port,
       sessionId: session.sessionId,
       refreshProjection: async () => {},
@@ -1035,6 +1060,7 @@ describe('paste-special backend supported-kinds subdivision', () => {
 
     const sessionId = store.getter(pasteSpecialSessionAtom)!.sessionId
     void store.setter(confirmPasteSpecialAtom, {
+      historyEntryRecorder: recordTestHistory,
       source: declaring,
       sessionId,
       refreshProjection: async () => {},

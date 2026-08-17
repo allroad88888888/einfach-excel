@@ -30,7 +30,7 @@ function dispatchKey(
 ): KeyboardEvent {
   const event = createEvent.keyDown(target, { bubbles: true, cancelable: true, key, ...init })
   fireEvent(target, event)
-  return event
+  return event as KeyboardEvent
 }
 
 describe('useSpreadsheetImeComposition', () => {

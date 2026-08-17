@@ -157,7 +157,7 @@ describe('useSpreadsheetNameBox', () => {
     commitInput(view, 'name-box', 'C3:E5')
     commitInput(view, 'name-box', 'Budget')
 
-    expect(onCommit.mock.calls.map(([target]) => target.kind)).toEqual([
+    expect(onCommit.mock.calls.map(([target]) => (target as NameBoxCommitTarget).kind)).toEqual([
       'cell',
       'range',
       'named-range',

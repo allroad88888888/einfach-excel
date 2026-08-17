@@ -1415,6 +1415,7 @@ describe('remove-duplicates Core lifecycle', () => {
 
     await expect(
       store.setter(runRemoveDuplicatesConfirmAtom, {
+        historyEntryRecorder: recordHistory,
         source,
         sessionId,
         refreshProjection: async () => {},
@@ -1552,6 +1553,7 @@ describe('remove-duplicates Core lifecycle', () => {
       )
       const input = new Proxy<RunRemoveDuplicatesConfirmInput>(
         {
+          historyEntryRecorder: recordHistory,
           source,
           sessionId,
           refreshProjection: async () => undefined,
@@ -1602,6 +1604,7 @@ describe('remove-duplicates Core lifecycle', () => {
     let innerConfirmation: Promise<unknown> | undefined
     let sourceReads = 0
     const outerInput: RunRemoveDuplicatesConfirmInput = {
+      historyEntryRecorder: recordHistory,
       get source() {
         sourceReads += 1
         innerConfirmation = store.setter(runRemoveDuplicatesConfirmAtom, {
@@ -1649,6 +1652,7 @@ describe('remove-duplicates Core lifecycle', () => {
 
     await expect(
       store.setter(runRemoveDuplicatesConfirmAtom, {
+        historyEntryRecorder: recordHistory,
         source,
         sessionId,
         refreshProjection: async () => undefined,
@@ -1679,6 +1683,7 @@ describe('remove-duplicates Core lifecycle', () => {
     selectRegionColumnOnly(store)
 
     const outcome = store.setter(runRemoveDuplicatesConfirmAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       sessionId,
       refreshProjection: async () => undefined,
@@ -1716,6 +1721,7 @@ describe('remove-duplicates Core lifecycle', () => {
     releaseHistoryProducerReservationAtom.write = () => false
     try {
       const outcome = store.setter(runRemoveDuplicatesConfirmAtom, {
+        historyEntryRecorder: recordHistory,
         source,
         sessionId,
         refreshProjection: async () => undefined,
@@ -1773,6 +1779,7 @@ describe('remove-duplicates Core lifecycle', () => {
 
       await expect(
         store.setter(runRemoveDuplicatesConfirmAtom, {
+          historyEntryRecorder: recordHistory,
           source,
           sessionId,
           refreshProjection: async () => undefined,
@@ -1838,6 +1845,7 @@ describe('remove-duplicates Core lifecycle', () => {
 
       await expect(
         store.setter(runRemoveDuplicatesConfirmAtom, {
+          historyEntryRecorder: recordHistory,
           source,
           sessionId,
           refreshProjection,
@@ -1882,11 +1890,13 @@ describe('remove-duplicates Core lifecycle', () => {
     selectRegionColumnOnly(store)
 
     const first = store.setter(runRemoveDuplicatesConfirmAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       sessionId,
       refreshProjection: () => refresh.promise,
     })
     const second = store.setter(runRemoveDuplicatesConfirmAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       sessionId,
       refreshProjection: () => refresh.promise,
@@ -1946,6 +1956,7 @@ describe('remove-duplicates Core lifecycle', () => {
 
       await expect(
         store.setter(runRemoveDuplicatesConfirmAtom, {
+          historyEntryRecorder: recordHistory,
           source,
           sessionId,
           refreshProjection: async () => undefined,
@@ -1987,6 +1998,7 @@ describe('remove-duplicates Core lifecycle', () => {
       selectRegionColumnOnly(store)
       await expect(
         store.setter(runRemoveDuplicatesConfirmAtom, {
+          historyEntryRecorder: recordHistory,
           source,
           sessionId,
           refreshProjection: async () => {},
@@ -2000,6 +2012,7 @@ describe('remove-duplicates Core lifecycle', () => {
 
       await expect(
         store.setter(runRemoveDuplicatesConfirmAtom, {
+          historyEntryRecorder: recordHistory,
           source,
           sessionId,
           refreshProjection: async () => {},
@@ -2044,6 +2057,7 @@ describe('remove-duplicates Core lifecycle', () => {
 
     await expect(
       store.setter(runRemoveDuplicatesConfirmAtom, {
+        historyEntryRecorder: recordHistory,
         source,
         sessionId,
         refreshProjection: async () => undefined,
@@ -2096,6 +2110,7 @@ describe('remove-duplicates Core lifecycle', () => {
 
       await expect(
         store.setter(runRemoveDuplicatesConfirmAtom, {
+          historyEntryRecorder: recordHistory,
           source,
           sessionId,
           refreshProjection: async () => {
@@ -2139,6 +2154,7 @@ describe('remove-duplicates Core lifecycle', () => {
 
       await expect(
         store.setter(runRemoveDuplicatesConfirmAtom, {
+          historyEntryRecorder: recordHistory,
           source,
           sessionId,
           refreshProjection: async () => {
@@ -2188,6 +2204,7 @@ describe('remove-duplicates Core lifecycle', () => {
 
     await expect(
       store.setter(runRemoveDuplicatesConfirmAtom, {
+        historyEntryRecorder: recordHistory,
         source,
         sessionId,
         refreshProjection: async () => {
@@ -2227,6 +2244,7 @@ describe('remove-duplicates Core lifecycle', () => {
       const sessionId = await hydrate(store, source)
       selectRegionColumnOnly(store)
       const input = {
+        historyEntryRecorder: recordHistory,
         source,
         sessionId,
         refreshProjection: async () => {
@@ -2287,6 +2305,7 @@ describe('remove-duplicates Core lifecycle', () => {
     const sessionId = await hydrate(store, source)
     selectRegionColumnOnly(store)
     const input = {
+      historyEntryRecorder: recordHistory,
       source,
       sessionId,
       refreshProjection: async () => {
@@ -2340,6 +2359,7 @@ describe('remove-duplicates Core lifecycle', () => {
     try {
       await expect(
         store.setter(runRemoveDuplicatesConfirmAtom, {
+          historyEntryRecorder: recordHistory,
           source,
           sessionId,
           refreshProjection: async () => undefined,
@@ -2392,6 +2412,7 @@ describe('remove-duplicates Core lifecycle', () => {
     try {
       await expect(
         store.setter(runRemoveDuplicatesConfirmAtom, {
+          historyEntryRecorder: recordHistory,
           source,
           sessionId,
           refreshProjection: async () => {
@@ -2431,6 +2452,7 @@ describe('remove-duplicates Core lifecycle', () => {
     const sessionId = await hydrate(store, source)
     selectRegionColumnOnly(store)
     const result = store.setter(runRemoveDuplicatesConfirmAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       sessionId,
       refreshProjection: async () => {},
@@ -2468,6 +2490,7 @@ describe('remove-duplicates Core lifecycle', () => {
     const sessionId = await hydrate(store, source)
     selectRegionColumnOnly(store)
     const result = store.setter(runRemoveDuplicatesConfirmAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       sessionId,
       refreshProjection: async () => {
@@ -2513,6 +2536,7 @@ describe('remove-duplicates Core lifecycle', () => {
     const sessionId = await hydrate(store, source)
     selectRegionColumnOnly(store)
     const result = store.setter(runRemoveDuplicatesConfirmAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       sessionId,
       refreshProjection: async () => {},
@@ -2544,6 +2568,7 @@ describe('remove-duplicates Core lifecycle', () => {
     selectRegionColumnOnly(store)
     await expect(
       store.setter(runRemoveDuplicatesConfirmAtom, {
+        historyEntryRecorder: recordHistory,
         source,
         sessionId,
         refreshProjection: async () => {
@@ -2560,6 +2585,7 @@ describe('remove-duplicates Core lifecycle', () => {
 
     await expect(
       store.setter(runRemoveDuplicatesConfirmAtom, {
+        historyEntryRecorder: recordHistory,
         source,
         sessionId,
         refreshProjection: async () => {
@@ -2595,6 +2621,7 @@ describe('remove-duplicates Core lifecycle', () => {
     selectRegionColumnOnly(store)
     await expect(
       store.setter(runRemoveDuplicatesConfirmAtom, {
+        historyEntryRecorder: recordHistory,
         source,
         sessionId,
         refreshProjection: async () => {
@@ -2691,6 +2718,7 @@ describe('remove-duplicates Core lifecycle', () => {
     selectRegionColumnOnly(store)
     await expect(
       store.setter(runRemoveDuplicatesConfirmAtom, {
+        historyEntryRecorder: recordHistory,
         source,
         sessionId,
         refreshProjection: async () => {
@@ -2721,6 +2749,7 @@ describe('remove-duplicates Core lifecycle', () => {
           get() {
             refreshGetterReads += 1
             innerRetry = store.setter(runRemoveDuplicatesConfirmAtom, {
+              historyEntryRecorder: recordHistory,
               source,
               sessionId,
               refreshProjection: async () => {
@@ -2816,6 +2845,7 @@ describe('remove-duplicates Core lifecycle', () => {
     try {
       await expect(
         store.setter(runRemoveDuplicatesConfirmAtom, {
+          historyEntryRecorder: recordHistory,
           source,
           sessionId,
           refreshProjection: async () => undefined,
@@ -2864,6 +2894,7 @@ describe('remove-duplicates Core lifecycle', () => {
     selectRegionColumnOnly(store)
     await expect(
       store.setter(runRemoveDuplicatesConfirmAtom, {
+        historyEntryRecorder: recordHistory,
         source,
         sessionId,
         refreshProjection: async () => {
@@ -2874,6 +2905,7 @@ describe('remove-duplicates Core lifecycle', () => {
     ).resolves.toBe('refresh-failed')
 
     const retryResult = store.setter(runRemoveDuplicatesConfirmAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       sessionId,
       refreshProjection: async () => {
@@ -2945,6 +2977,7 @@ describe('remove-duplicates structural remap of local view facts', () => {
 
     await expect(
       store.setter(runRemoveDuplicatesConfirmAtom, {
+        historyEntryRecorder: recordHistory,
         source,
         sessionId,
         refreshProjection: async () => {},
@@ -3026,6 +3059,7 @@ describe('remove-duplicates structural remap of local view facts', () => {
 
     await expect(
       store.setter(runRemoveDuplicatesConfirmAtom, {
+        historyEntryRecorder: recordHistory,
         source,
         sessionId,
         refreshProjection: async () => {},
@@ -3066,6 +3100,7 @@ describe('remove-duplicates structural remap of local view facts', () => {
 
     await expect(
       store.setter(runRemoveDuplicatesConfirmAtom, {
+        historyEntryRecorder: recordHistory,
         source,
         sessionId,
         refreshProjection: async () => {},

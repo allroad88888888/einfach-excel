@@ -1264,6 +1264,7 @@ describe('text-to-columns', () => {
       expect(store.getter(textToColumnsCanFinishAtom)).toBe(false)
       await expect(
         store.setter(runTextToColumnsFinishAtom, {
+          historyEntryRecorder: recordTestHistory,
           source,
           sessionId,
           refreshProjection: async () => undefined,
@@ -1290,6 +1291,7 @@ describe('text-to-columns', () => {
       expect(store.getter(textToColumnsCanFinishAtom)).toBe(true)
       await expect(
         store.setter(runTextToColumnsFinishAtom, {
+          historyEntryRecorder: recordTestHistory,
           source,
           sessionId,
           refreshProjection: async (sheetId) => {
@@ -1334,6 +1336,7 @@ describe('text-to-columns', () => {
 
       await expect(
         store.setter(runTextToColumnsFinishAtom, {
+          historyEntryRecorder: recordTestHistory,
           source,
           sessionId,
           refreshProjection: async () => {
@@ -1363,6 +1366,7 @@ describe('text-to-columns', () => {
       store.setter(captureTextToColumnsCapabilityAtom, source)
 
       const outcome = store.setter(runTextToColumnsFinishAtom, {
+        historyEntryRecorder: recordTestHistory,
         source,
         sessionId,
         refreshProjection: async () => refresh.promise,
@@ -1437,6 +1441,7 @@ describe('text-to-columns', () => {
       }
       store.setter(captureTextToColumnsCapabilityAtom, source)
       const input = {
+        historyEntryRecorder: recordTestHistory,
         source,
         sessionId,
         refreshProjection: async () => undefined,
@@ -1476,6 +1481,7 @@ describe('text-to-columns', () => {
       }
       store.setter(captureTextToColumnsCapabilityAtom, source)
       const input = {
+        historyEntryRecorder: recordTestHistory,
         source,
         sessionId,
         refreshProjection: async () => undefined,
@@ -1609,6 +1615,7 @@ describe('text-to-columns', () => {
         }
         store.setter(captureTextToColumnsCapabilityAtom, source)
         const input = {
+          historyEntryRecorder: recordTestHistory,
           source,
           sessionId,
           refreshProjection: async () => {
@@ -1650,6 +1657,7 @@ describe('text-to-columns', () => {
       }
       store.setter(captureTextToColumnsCapabilityAtom, source)
       const input = {
+        historyEntryRecorder: recordTestHistory,
         source,
         sessionId,
         refreshProjection: async () => {
@@ -1700,6 +1708,7 @@ describe('text-to-columns', () => {
       }
       store.setter(captureTextToColumnsCapabilityAtom, source)
       const input = {
+        historyEntryRecorder: recordTestHistory,
         source,
         sessionId,
         refreshProjection: async () => undefined,

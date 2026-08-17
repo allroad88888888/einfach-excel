@@ -155,6 +155,7 @@ describe('runPhysicalSortAtom — fail-closed capability gate', () => {
     const { source, sortRequests, filterRequests } = makePhysicalSource()
 
     await store.setter(runPhysicalSortAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       entrypoint: 'toolbar',
       direction: 'desc',
@@ -183,6 +184,7 @@ describe('runPhysicalSortAtom — fail-closed capability gate', () => {
     const { source, filterRequests } = makePhysicalSource({ withoutSortRange: true })
 
     await store.setter(runPhysicalSortAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       entrypoint: 'toolbar',
       direction: 'asc',
@@ -209,6 +211,7 @@ describe('runPhysicalSortAtom — fail-closed capability gate', () => {
     const { source, sortRequests, filterRequests } = makePhysicalSource()
 
     await store.setter(runPhysicalSortAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       entrypoint: 'toolbar',
       direction: 'asc',
@@ -229,6 +232,7 @@ describe('runPhysicalSortAtom — fail-closed capability gate', () => {
     const { source, sortRequests, filterRequests } = makePhysicalSource()
 
     await store.setter(runPhysicalSortAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       entrypoint: 'toolbar',
       direction: 'asc',
@@ -256,6 +260,7 @@ describe('runPhysicalSortAtom — fail-closed capability gate', () => {
     const { source, sortRequests } = makePhysicalSource()
 
     await store.setter(runPhysicalSortAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       entrypoint: 'toolbar',
       direction: 'asc',
@@ -290,6 +295,7 @@ describe('runPhysicalSortAtom — filter-hidden excluded rows', () => {
     const { source, sortRequests } = makePhysicalSource()
 
     await store.setter(runPhysicalSortAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       entrypoint: 'toolbar',
       direction: 'asc',
@@ -327,6 +333,7 @@ describe('runPhysicalSortAtom — filter-hidden excluded rows', () => {
     const { source, sortRequests } = makePhysicalSource()
 
     await store.setter(runPhysicalSortAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       entrypoint: 'toolbar',
       direction: 'asc',
@@ -347,6 +354,7 @@ describe('runPhysicalSortAtom — filter-hidden excluded rows', () => {
     const { source, sortRequests } = makePhysicalSource()
 
     await store.setter(runPhysicalSortAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       entrypoint: 'toolbar',
       direction: 'asc',
@@ -371,6 +379,7 @@ describe('runPhysicalSortAtom — filter-hidden excluded rows', () => {
     const { source, sortRequests } = makePhysicalSource()
 
     await store.setter(runPhysicalSortAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       entrypoint: 'toolbar',
       direction: 'asc',
@@ -388,6 +397,7 @@ describe('runPhysicalSortAtom — filter-hidden excluded rows', () => {
     const { source, sortRequests } = makePhysicalSource()
 
     await store.setter(runPhysicalSortAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       entrypoint: 'toolbar',
       direction: 'desc',
@@ -410,6 +420,7 @@ describe('runPhysicalSortAtom — excluded rows', () => {
     const { source, sortRequests } = makePhysicalSource()
 
     await store.setter(runPhysicalSortAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       entrypoint: 'toolbar',
       direction: 'asc',
@@ -427,6 +438,7 @@ describe('runPhysicalSortAtom — excluded rows', () => {
     const { source, sortRequests } = makePhysicalSource()
 
     await store.setter(runPhysicalSortAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       entrypoint: 'toolbar',
       direction: 'asc',
@@ -445,6 +457,7 @@ describe('runPhysicalSortAtom — history & no-op', () => {
     const { source } = makePhysicalSource({ result: (request) => appliedResult(request, 4) })
 
     await store.setter(runPhysicalSortAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       entrypoint: 'toolbar',
       direction: 'asc',
@@ -467,6 +480,7 @@ describe('runPhysicalSortAtom — history & no-op', () => {
     const { source } = makePhysicalSource({ result: (request) => appliedResult(request, 0) })
 
     await store.setter(runPhysicalSortAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       entrypoint: 'toolbar',
       direction: 'asc',
@@ -500,6 +514,7 @@ describe('runPhysicalSortAtom — structured rejections', () => {
     const { source } = makePhysicalSource({ result: rejected('source-too-large') })
 
     await store.setter(runPhysicalSortAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       entrypoint: 'toolbar',
       direction: 'asc',
@@ -521,6 +536,7 @@ describe('runPhysicalSortAtom — structured rejections', () => {
     const { source } = makePhysicalSource({ result: rejected('merge-in-range') })
 
     await store.setter(runPhysicalSortAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       entrypoint: 'toolbar',
       direction: 'asc',
@@ -541,6 +557,7 @@ describe('runPhysicalSortAtom — structured rejections', () => {
     })
 
     await store.setter(runPhysicalSortAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       entrypoint: 'toolbar',
       direction: 'asc',
@@ -585,6 +602,7 @@ describe('runPhysicalSortAtom — structured rejections', () => {
     setActiveCell(store, 'sheet-1', 2, 1)
     const { source } = makePhysicalSource({ result: rejected('source-too-large') })
     await store.setter(runPhysicalSortAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       entrypoint: 'toolbar',
       direction: 'asc',
@@ -604,6 +622,7 @@ describe('runPhysicalSortAtom — transport failure', () => {
     const { source } = makePhysicalSource({ throwError: new Error('worker crashed') })
 
     await store.setter(runPhysicalSortAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       entrypoint: 'toolbar',
       direction: 'asc',
@@ -634,6 +653,7 @@ describe('runPhysicalSortAtom — single backend lane', () => {
     store.setter(openFilterDropdownAtom, { sheetId: 'sheet-1', colIndex: 1 })
 
     await store.setter(runPhysicalSortAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       entrypoint: 'toolbar',
       direction: 'asc',
@@ -649,6 +669,7 @@ describe('runPhysicalSortAtom — single backend lane', () => {
     setActiveCell(store, 'sheet-1', 2, 1)
     const { source, sortRequests } = makePhysicalSource()
     const input = {
+      historyEntryRecorder: recordHistory,
       source,
       entrypoint: 'toolbar' as const,
       direction: 'asc' as const,
@@ -671,6 +692,7 @@ describe('runPhysicalSortAtom — single backend lane', () => {
     let refreshCalls = 0
 
     await store.setter(runPhysicalSortAtom, {
+      historyEntryRecorder: recordHistory,
       source,
       entrypoint: 'toolbar',
       direction: 'asc',

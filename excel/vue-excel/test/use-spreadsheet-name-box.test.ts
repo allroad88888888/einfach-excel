@@ -145,7 +145,7 @@ describe('useSpreadsheetNameBox', () => {
         refersTo: { kind: 'range', sheetId: 'sheet-2', address: 'Z100:AA101' },
       },
     ])
-    const activeSheetsWhenScrolled: string[] = []
+    const activeSheetsWhenScrolled: Array<string | null> = []
     const scrollTargets: Array<{ sheetId: string; coord: CellCoord }> = []
     const mounted = mountNameBox(store, {
       onScrollToCell: (target) => {

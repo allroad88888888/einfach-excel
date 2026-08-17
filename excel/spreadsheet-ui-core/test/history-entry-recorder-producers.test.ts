@@ -2,6 +2,7 @@ import { createStore } from '@einfach/core'
 import { describe, expect, test } from '@jest/globals'
 import { historyStackAtom, type HistoryEntryRecorder } from '../src/history'
 import { createInsertRowsOperation, runStructureOperationAtom } from '../src/operations'
+import type { InsertRowsRequest } from '../src/backend/types'
 import {
   retryToolbarMutationAtom,
   runToolbarMutationAtom,
@@ -45,7 +46,7 @@ describe('history entry recorder producer contract', () => {
     const input = {
       intent: createInsertRowsOperation({ sheetId: 'sheet-1', rowIndex: 0, count: 1 }),
       source: {
-        async insertRows(request: { readonly sheetId: string; readonly requestId: number }) {
+        async insertRows(request: InsertRowsRequest) {
           writes += 1
           return { sheetId: request.sheetId, requestId: request.requestId, revision: 4 }
         },

@@ -1061,8 +1061,26 @@ export function createWorkerWorkbook(opts: WorkerWorkbookOptions): WorkerWorkboo
   const dirtyListeners = new Set<(cells: CellRefWire[]) => void>()
   const hydratedListeners = new Set<(cells: CellSnapshotWire[]) => void>()
 
+  // worker 启动失败(生产环境 .wasm 未部署/404、CSP 拦截、二进制被代理改写)时,
+  // 没有这条通道的话所有 RPC promise 会永远 pending —— UI 静默挂死且零报错
+  // (AD-142 走查发现,AD-143 修复)。一旦失败,拒绝全部在途请求并让后续请求快速失败。
+  let workerFailure: Error | null = null
+
+  function failWorker(detail: string): void {
+    if (workerFailure) return
+    workerFailure = new Error(
+      `spreadsheet worker failed to start or crashed (${detail}). ` +
+        'If this is a deployed app, verify einfach_wasm_bg.wasm is published and reachable ' +
+        '(Network tab: HTTP 200), and that CSP allows worker-src and WebAssembly. ' +
+        'See the @einfach/solid-excel README on worker backends.',
+    )
+    for (const entry of pending.values()) entry.reject(workerFailure)
+    pending.clear()
+  }
+
   function request<T>(cmd: string, payload: Record<string, unknown> = {}): Promise<T> {
     if (disposed) return Promise.reject(new Error('worker workbook disposed'))
+    if (workerFailure) return Promise.reject(workerFailure)
     const id = nextId++
     worker.postMessage({ id, cmd, ...payload })
     return new Promise<T>((resolve, reject) => {
@@ -1118,6 +1136,28 @@ export function createWorkerWorkbook(opts: WorkerWorkbookOptions): WorkerWorkboo
   }
 
   worker.addEventListener('message', onWorkerMessage)
+
+  // 经能力探测挂 error/messageerror:WorkerLike 契约刻意只声明 'message'
+  // (测试 doubles 无需变),真实 Worker 是 EventTarget,同一方法可挂错误通道。
+  // 守卫 e.type —— 部分测试 double 无视 type 参数把所有 listener 当 message
+  // listener 调用,普通消息不能误触发失败路径。
+  const onWorkerFailure = (e: Event) => {
+    const type = (e as { type?: string } | null)?.type
+    if (type !== 'error' && type !== 'messageerror') return
+    if (type === 'messageerror') {
+      failWorker('messageerror: worker reply could not be deserialized')
+      return
+    }
+    const err = e as ErrorEvent
+    const detail = [err.message, err.filename].filter(Boolean).join(' @ ') || 'error event'
+    failWorker(detail)
+  }
+  const workerEvents = worker as unknown as {
+    addEventListener?: (type: string, listener: (e: Event) => void) => void
+    removeEventListener?: (type: string, listener: (e: Event) => void) => void
+  }
+  workerEvents.addEventListener?.('error', onWorkerFailure)
+  workerEvents.addEventListener?.('messageerror', onWorkerFailure)
 
   function clampRowsPerChunk(rowsPerChunk: number | undefined): number {
     const normalized = Math.floor(Number(rowsPerChunk))
@@ -1490,6 +1530,8 @@ export function createWorkerWorkbook(opts: WorkerWorkbookOptions): WorkerWorkboo
       if (disposed) return
       disposed = true
       worker.removeEventListener('message', onWorkerMessage)
+      workerEvents.removeEventListener?.('error', onWorkerFailure)
+      workerEvents.removeEventListener?.('messageerror', onWorkerFailure)
       for (const entry of pending.values()) entry.reject(new Error('worker workbook disposed'))
       pending.clear()
       subscribers.clear()

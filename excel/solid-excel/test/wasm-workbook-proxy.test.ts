@@ -986,7 +986,8 @@ describe('wasm-workbook-proxy (Phase 5 Track A)', () => {
     const fake = makeFakeWorker()
     const workbook = createWorkerWorkbook({ workerFactory: () => fake })
     const promise = workbook.sheetList()
-    expect(fake._listenerCount()).toBe(1)
+    // message 处理器 + 启动失败处理器(error/messageerror 复用同一个函数,AD-143)。
+    expect(fake._listenerCount()).toBe(2)
 
     workbook.dispose()
 

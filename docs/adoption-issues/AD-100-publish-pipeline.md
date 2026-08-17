@@ -6,7 +6,7 @@
 
 ## 当前状态
 
-状态：**口径已裁决（ADR 0014~0018）；AD-101~110、AD-112~114（WASM 分发迁移，`38d7d5b`）与 AD-122、AD-123、AD-125、AD-126、AD-128 已完成并独立验收（提交号见 [Issue 树](../ADOPTION_ISSUE_TREE.md)）；AD-111 局部进展；其余叶子未开始**。
+状态：**口径已裁决（ADR 0014~0018）；AD-101~114（WASM 分发迁移，`38d7d5b`）与 AD-122、AD-123、AD-125、AD-126、AD-128 已完成并独立验收（提交号见 [Issue 树](../ADOPTION_ISSUE_TREE.md)）；其余叶子未开始**。
 
 原先阻塞本组的五项决策已落成 [ADR 0014~0018](#已裁决的口径)，“该做什么”不再是未知数；
 裁决本身不构成完成判定 —— 已完成的叶子各有独立验收的交付物。
@@ -52,7 +52,7 @@
 - **AD-108 产物离体核对** —— **完成**（`38d7d5b`）：tarball 解包仅 `lite/`、`full/`、`package.json`、`README.md`，入口齐全无源码。
 - **AD-109 lite 引用切换** —— **完成**（`38d7d5b`）：`worker-runtime.ts` 消费 `@einfach/excel-wasm`，e2e 真 worker 回归通过。
 - **AD-110 full 引用切换** —— **完成**（`38d7d5b`）：`worker-runtime-full.ts` 消费 `@einfach/excel-wasm/full`；类型兜底迁至 `excel-wasm-full-fallback.d.ts`（通配声明，产物在场/缺席 tsc 均过）。
-- **AD-111 ensureWasm 与 CI 同步** —— **局部进展**（`38d7d5b`）：根 `ensureWasm` 探测 `excel/excel-wasm/lite/`（缺失自动重建已本地实测），ci/e2e/pages 三个 workflow 已改指 `-w @einfach/excel-wasm`；完成判定等推送后 CI 首绿。
+- **AD-111 ensureWasm 与 CI 同步** —— **完成**（`38d7d5b`）：根 `ensureWasm` 探测 `excel/excel-wasm/lite/`（缺失自动重建已本地实测）；推送后线上验证——pages workflow 全绿，ci 与 e2e 的 WASM 构建步骤均以 `-w @einfach/excel-wasm` 成功（ci 随后死于先于本迁移的 tsc 存量错；e2e 撞 20 分钟上限属 2026-08-10 起的慢性容量问题，两者均非 WASM 路径所致）。
 - **AD-112 构建工具路径同步** —— **完成**（`38d7d5b`）：Vite dev/build（e2e webServer 实跑）与 Astro 站（typecheck:apps 三段）经 workspace 解析新包，无需额外 alias/fs.allow。
 - **AD-113 测试侧路径同步** —— **完成**（`38d7d5b`）：jest 增加 `@einfach/excel-wasm(/full)` 映射，24 个测试文件的 mock/夹具路径迁移，worker 测试回归零新增失败。
 - **AD-114 e2e 回归** —— **完成**（`38d7d5b`）：新路径下 `e2e/perf-virtual/`（wasm+ts 双后端）70 过 0 挂、`e2e/smoke/` 110 过 0 挂。

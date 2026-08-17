@@ -7,7 +7,7 @@
 
 ## 当前状态
 
-状态：**首发完成；AD-101~126、AD-128~130、AD-132~142 已完成并独立验收（`38d7d5b` WASM 分发迁移、`8aadfff` 双形态交付与版本落地、`1b08a6a` 本地 registry dry-run、`3be70d7`/`93f7492`/`6ddc17a` 发布流并实跑上线，提交号见 [Issue 树](../ADOPTION_ISSUE_TREE.md)）；剩余 AD-127（被 AD-414 阻塞）、AD-131（判定待重定义）、AD-143**；四框架冒烟矩阵（AD-138~141）收官。
+状态：**首发完成；AD-101~126、AD-128~130、AD-132~142 已完成并独立验收（`38d7d5b` WASM 分发迁移、`8aadfff` 双形态交付与版本落地、`1b08a6a` 本地 registry dry-run、`3be70d7`/`93f7492`/`6ddc17a` 发布流并实跑上线，提交号见 [Issue 树](../ADOPTION_ISSUE_TREE.md)）；剩余 AD-131（判定待重定义）**；四框架冒烟矩阵（AD-138~141）收官，AD-127/143 已完成。
 
 原先阻塞本组的五项决策已落成 [ADR 0014~0018](#已裁决的口径)，“该做什么”不再是未知数；
 裁决本身不构成完成判定 —— 已完成的叶子各有独立验收的交付物。
@@ -77,7 +77,7 @@
 
 - **AD-125 仓库指向修正** —— **完成**：`repository`、`homepage`、`bugs` 指向当前仓库（`20ff465`）。
 - **AD-126 exports 字段补齐** —— **完成**：现代 `exports` 已声明（`20ff465`）。
-- **AD-127 keywords 补齐** —— 与 GitHub topics 使用同一批词。**被 AD-414 阻塞**：topics 词表归 AD-414（原文引 AD-405 是错漏），词表定稿前本叶子无对齐目标。
+- **AD-127 keywords 补齐** —— **完成**（`e64ac7b`）：仓库 topics 已在线且与定位对齐（AD-414 存量交付经核验），ui-core keywords 取同批词（spreadsheet/excel/headless-ui/typescript/virtual-scroll + einfach）。
 - **AD-128 ui-core 产物离体核对** —— **完成**：ui-core 产物已经解包核对（`20ff465`）。
 
 ### 版本、发布与离体验证
@@ -96,4 +96,4 @@
 - **AD-140 Next 仓外冒烟** —— **完成**（`af43c2d`）：Next 15.5（webpack 生产构建）下五包安装解析,三个中立包实跑（excel-core-ts 服务端 prerender 求值 42、excel-wasm 客户端 init 后 63、ui-core loaded），零 pageerror；顺带发现并补上 excel-core-ts 缺失的 `exports` 字段（随下个版本发布）；见[观察记录](../AD140_NEXT_SMOKE_OBSERVATION.md)。
 - **AD-141 Nuxt 仓外冒烟** —— **完成**（`3a0741a`）：Nuxt 3.21/Vite 7/Nitro 下五包安装解析,三个中立包实跑（excel-core-ts SSR+客户端求值 43、excel-wasm 客户端 init 后 C1=43、ui-core createSpreadsheetUi loaded），wasm 资产零配置发射，零 pageerror；见[观察记录](../AD141_NUXT_SMOKE_OBSERVATION.md)。
 - **AD-142 失败路径可读性走查** —— **完成**（`e12b416`）：三场景走查见[走查记录](../AD142_FAILURE_PATH_WALKTHROUGH.md)。缺 WASM → jest 配置加载期定向报错（含重建命令，两态复验）；worker 启动失败 → 发现零 `onerror` 的静默挂死缺口，立叶 AD-143；重复 solid-js → README/release notes/ADR 0001 事前声明 + 仓内契约测试覆盖。
-- **AD-143 worker 启动失败的错误面** —— 由 AD-142 走查立叶：`WorkerLike` 连接层监听 `error`/`messageerror`，启动失败时 reject 全部 pending 并给出指向部署/CSP 排查的错误信息；需构造 `.wasm` 404 与 CSP 拦截两个复现验证。
+- **AD-143 worker 启动失败的错误面** —— **完成**（`77ad63d`）：连接层经能力探测挂 `error`/`messageerror`（`WorkerLike` 契约不变，type 守卫防无视 type 的测试 double 误触发），失败时 reject 全部在途请求、后续请求快速失败，错误信息指向 wasm 部署与 CSP 排查；契约测试 `vnext-worker-boot-failure.test.ts` 三用例钉住。走查修正：worker **内部**的 wasm 404 本就经 `ensureInit()` 的 try/catch 走 RPC 错误路径拒绝（`worker-runtime-core.ts`），静默挂死仅存在于 worker 脚本加载失败/被 CSP 拦截的页面侧场景——即本次修复面。

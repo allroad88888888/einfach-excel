@@ -6,7 +6,7 @@
 
 ## 当前状态
 
-状态：**口径已裁决（ADR 0014~0018）；AD-101~114（WASM 分发迁移，`38d7d5b`）与 AD-122、AD-123、AD-125、AD-126、AD-128 已完成并独立验收（提交号见 [Issue 树](../ADOPTION_ISSUE_TREE.md)）；其余叶子未开始**。
+状态：**口径已裁决（ADR 0014~0019）；AD-101~118、AD-120~126、AD-128~130 已完成并独立验收（`38d7d5b` WASM 分发迁移、`8aadfff` 双形态交付与版本落地，提交号见 [Issue 树](../ADOPTION_ISSUE_TREE.md)）；AD-119 局部进展；剩余为发布 workflow 与离体冒烟（AD-127、AD-131~142）**。
 
 原先阻塞本组的五项决策已落成 [ADR 0014~0018](#已裁决的口径)，“该做什么”不再是未知数；
 裁决本身不构成完成判定 —— 已完成的叶子各有独立验收的交付物。
@@ -28,15 +28,18 @@
 
 ## 开工前事实
 
-1. `@einfach/solid-excel` 尚没有经离体验证的库构建产物；当前导出仍指向源码形态。
+1. ~~`@einfach/solid-excel` 尚没有经离体验证的库构建产物~~ 已解决（`8aadfff`）：双形态
+   产物落地（ADR 0019），tarball 结构经解包核对。
 2. ~~`wasm-pkg/.gitignore` 会影响打包候选文件~~ 已解决（`38d7d5b`）：excel-wasm 的构建链
    末尾清掉 wasm-pack 生成的 `.gitignore`（`wasm:tidy`），`npm pack --dry-run` 实测两份
    `.wasm` 均进 tarball。
-3. `@einfach/solid-excel` 仍声明 `workspace:*` 依赖（`@einfach/excel-core-ts`、
-   `@einfach/spreadsheet-ui-core`、`@einfach/spreadsheet-ui-styles`、`@einfach/excel-wasm`）；
-   在 ADR 0014 落地并替换成真实版本号之前，外部安装不能视为可用。
-4. 除 `@einfach/excel-wasm`（已按 ADR 0018 写 `>=22.12.0`）外，其余包 `engines.node`
-   仍是未经验证的 `>=14.18.0`，须在 AD-121 中统一改写。
+3. `workspace:*` 依赖的重写**只有 pnpm pack 会做**（实测 `npm pack` 原样保留、产物不可
+   安装；`pnpm pack` 重写为 `0.1.0`）。发布链因此必须使用 pnpm 的打包/发布路径，
+   AD-132/137 落地时以此为硬约束。
+4. ~~各包 `engines.node` 不一致~~ 已解决（`8aadfff`）：五个待发包统一 `>=22.12.0`。
+5. `.changeset/lucky-pandas-clap.md`（状态栏收窄，minor）在途：一旦在首发前执行
+   `changeset version`，fixed 组会被推到 `0.2.0`，与 [ADR 0017](../decisions/0017-initial-release-version-0-1-0.md)
+   的首发 `0.1.0` 冲突。首发必须先于该 changeset 的 version，或由维护者另行裁决。
 
 ## 叶子
 
@@ -59,16 +62,16 @@
 
 ### `@einfach/solid-excel` 可发布性
 
-- **AD-115 Solid 产物形态裁决** —— 在 `solid` 条件源码、编译产物或双形态之间裁决，明确消费者编译责任。
-- **AD-116 构建管线接入** —— 按 AD-115 的裁决接入构建，并更新失效注释。
-- **AD-117 exports 重写** —— 重排子路径导出，保留 `vnext-worker-factory` 不进 barrel 的约束。
-- **AD-118 `files` 字段** —— 收敛为可验证的发布白名单；`npm pack --dry-run` 不得含 e2e、test、demo 源码。
-- **AD-119 内部依赖可解析** —— 按 [ADR 0014](../decisions/0014-publish-excel-core-ts.md) 公开发布 `@einfach/excel-core-ts`（移除 `private`），使外部安装能解析该依赖。
-- **AD-120 workspace 协议替换验证** —— 打包时三个 `workspace:*` 依赖全部变为真实、可安装的版本号。
-- **AD-121 依赖边界与运行环境口径** —— 为 `solid-js`、`@einfach/core`、`@einfach/solid` 定 peer 边界与版本范围；同时按 [ADR 0018](../decisions/0018-node-baseline-22-12.md) 把各包 `engines.node` 统一改写为 `>=22.12.0`。
+- **AD-115 Solid 产物形态裁决** —— **完成**（`8aadfff`）：裁定双形态，见 [ADR 0019](../decisions/0019-solid-excel-dual-form-artifacts.md)。
+- **AD-116 构建管线接入** —— **完成**（`8aadfff`）：`rollup.solid-excel.mjs` 独立管线（仅 ESM；CSS 副作用保留并按原路径拷入产物树；worker URL 字面量 `.ts`→`.mjs` 改写）。
+- **AD-117 exports 重写** —— **完成**（`8aadfff`）：全部子路径 `solid`/`types`/`import`/`default` 四条件成对；`vnext-worker-factory` 不进 barrel 的约束保持，契约测试 `package-entry.test.ts` 同步钉住新形态。
+- **AD-118 `files` 字段** —— **完成**（`8aadfff`）：白名单 `src`/`src-vnext`/`esm`/`@types/src*`；`npm pack --dry-run` 实测无 e2e、test。偏差说明：`src/demos` 保留 —— 它是公开导出面（`./demos` 子路径）的一部分，不属判定中的 dev 专用 demo 壳。
+- **AD-119 内部依赖可解析** —— **局部进展**（`8aadfff`）：`@einfach/excel-core-ts` 已移除 `private` 并对齐 `0.1.0`（ADR 0014 的仓内半场）；「外部安装可从 npm 解析」要等 AD-136/137 的 registry 验证或真实发布。
+- **AD-120 workspace 协议替换验证** —— **完成**（`8aadfff`）：实测 `pnpm pack` 把四个 `workspace:*` 全部重写为 `0.1.0`；`npm pack` **不重写**（产物不可安装），发布链因此锁定 pnpm 路径。
+- **AD-121 依赖边界与运行环境口径** —— **完成**（`8aadfff`）：`solid-js`/`@einfach/core`/`@einfach/solid` 移入 peerDependencies（复制到 devDependencies 保本地开发），范围 `^1.9.12`/`^0.4.0`/`^0.4.0` —— 单实例不变式（ADR 0001）要求消费者持有唯一副本；五个待发包 `engines` 统一 `>=22.12.0`。
 - **AD-122 sideEffects 与 CSS 导出核对** —— **完成**：`vnext-styles.css` 在 tree-shaking 下可被引入（`da50614`）。
 - **AD-123 单实例风险表达** —— **完成**：ADR 0001 的不变式已进入消费者文档（`5d97a76`）。
-- **AD-124 产物离体核对** —— 解包验证 ESM/CJS 入口与 `.d.ts`。
+- **AD-124 产物离体核对** —— **完成**（`8aadfff`）：tarball 解包仅 `src`/`src-vnext`/`esm`/`@types`/`package.json`/`README.md`，ESM 入口与 `.d.ts` 齐全，零 test/e2e 文件；按 ADR 0019 无 CJS 形态。
 
 ### UI core 元数据
 
@@ -79,9 +82,9 @@
 
 ### 版本、发布与离体验证
 
-- **AD-129 版本策略落地** —— 按 [ADR 0017](../decisions/0017-initial-release-version-0-1-0.md) 把全部待发包对齐 `0.1.0`；`@einfach/excel-core-ts` 需从 `0.0.0` 提上来。
-- **AD-130 fixed 组配置** —— 按发布包集合配置 changeset fixed 组（现只含 ui-core 与 solid-excel，需覆盖新增的 excel-wasm、excel-core-ts、ui-styles），并验证一次联动。
-- **AD-131 首发 changeset** —— 覆盖全部待发包，且不得把任何包推过 `0.1.0`。
+- **AD-129 版本策略落地** —— **完成**（`8aadfff`）：五个待发包全部对齐 `0.1.0`（excel-core-ts 从 `0.0.0` 提上来）。
+- **AD-130 fixed 组配置** —— **完成**（`8aadfff`）：fixed 组扩为五包；用临时 changeset 经 `changeset status` 实测联动（任一成员 bump，五包同升）。
+- **AD-131 首发 changeset** —— 覆盖全部待发包，且不得把任何包推过 `0.1.0`。**前置警示**：在途的 `lucky-pandas-clap.md`（minor）若先于首发被 version，fixed 组直接到 `0.2.0`，见「开工前事实」第 5 条。
 - **AD-132 发布 workflow** —— 按 [ADR 0016](../decisions/0016-ci-only-npm-publish.md) 恢复触发，从仓库 secret 读取 npm token，并在 publish 前跑完 WASM 构建。
 - **AD-133 发布流程文档化** —— 写明谁能发、怎么发、secret 如何配置与轮换。
 - **AD-134 稳定性声明** —— README 准确说明所选版本阶段的兼容性预期。

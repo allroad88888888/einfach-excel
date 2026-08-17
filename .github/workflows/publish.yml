@@ -13,6 +13,17 @@ name: Publish
 # 不要在首发前跑 `changeset version`。
 on:
   workflow_dispatch:
+    inputs:
+      mode:
+        description: >-
+          changesets = 常规流（有在途 changeset 时只开 Version PR，不发布）；
+          first-publish = 按当前版本直接发布（ADR 0017 的首发路径，绕过
+          changesets/action，因为它在树里有 changeset 时不会执行 publish）
+        type: choice
+        options:
+          - changesets
+          - first-publish
+        default: changesets
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
@@ -45,6 +56,7 @@ jobs:
       - run: npm run build:wasm:full -w @einfach/excel-wasm
       - run: npm run build
       - name: Create Release PR or Publish
+        if: ${{ inputs.mode != 'first-publish' }}
         uses: changesets/action@v1
         with:
           version: pnpm changeset version
@@ -54,5 +66,15 @@ jobs:
           publish: pnpm run release:publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: First publish at current versions
+        if: ${{ inputs.mode == 'first-publish' }}
+        # 按当前 package.json 版本（首发 = 0.1.0，ADR 0017）直接发布，不跑
+        # changeset version。tags 推送失败不回滚发布，手动补推即可。
+        run: |
+          pnpm run release:publish
+          git push --tags || echo "::warning::tags 推送失败，请手动 git push --tags"
+        env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

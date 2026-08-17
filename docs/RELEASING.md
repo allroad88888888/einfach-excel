@@ -38,6 +38,9 @@
   `pnpm publish -r` 直接发布现版本。
 - 仓内若有在途 changeset（会把 fixed 组推过 0.1.0），必须**先发布 0.1.0 再合并
   Release PR**；顺序颠倒即违反 ADR 0017，需要维护者以新 ADR 裁决。
+- **首发操作**：手动跑 `Publish` workflow 时把 `mode` 选成 **`first-publish`**。
+  默认的 `changesets` 档在树里有在途 changeset 时只会开 Version PR、不执行
+  publish —— 那不是首发，还会把版本推过 0.1.0。
 
 ## 发布前自检
 

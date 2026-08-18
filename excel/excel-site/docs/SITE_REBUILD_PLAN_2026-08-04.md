@@ -12,8 +12,8 @@ API 文档从代码契约生成，不手抄。**demo 层不原样迁移**——�
 ## 1. 骨架诊断：效果差不是样式问题，是五个结构性缺陷
 
 现有资产（`src/`）：landing 四节、demo gallery（registry 驱动，见
-[`src/demos/registry.ts`](../src/demos/registry.ts)）、workbench、en/zh 双语、明暗主题、
-静态/worker-ts/worker-wasm 三种后端接线。
+`src/demos/registry.ts`——该 SPA 链路已于 2026-08-18 整体删除，本节描述的是重建时点的旧资产）、
+workbench、en/zh 双语、明暗主题、静态/worker-ts/worker-wasm 三种后端接线。
 
 1. **没有部署管线。** 四个 workflow（ci / docs / e2e / publish）没有一个发布站点，
    站点效果只存在于本地 dev。一切「效果糟糕」的讨论都发生在没有线上基准的真空里。

@@ -8,17 +8,3 @@ esm
 wasm-pkg
 .agent-archive
 .codex-artifacts
-# excel-site 的旧 SPA 残留(main.tsx 入口链)。已被 Astro 站取代:无脚本引用、
-# @solidjs/router 未安装、被全部三个 tsconfig 排除,typed lint 无法解析。
-# 去留待裁决;恢复前先让它重新通过 typecheck,再从这里移除。
-excel/excel-site/src/main.tsx
-excel/excel-site/src/routes.tsx
-excel/excel-site/src/landing
-excel/excel-site/src/shell
-excel/excel-site/src/workbench
-excel/excel-site/src/demos/DemoGalleryPage.tsx
-excel/excel-site/src/demos/DemoPage.tsx
-excel/excel-site/src/demos/DemoShell.tsx
-excel/excel-site/src/demos/registry.ts
-excel/excel-site/src/demos/registry-types.ts
-excel/excel-site/src/demos/pages

@@ -1,5 +1,7 @@
 import { atom } from '@einfach/core'
-import { CLOSED_FILTER_DROPDOWN_STATE, EMPTY_FILTER_SORT_STATE_STORE, INITIAL_FILTER_SORT_DRAFT, INITIAL_FILTER_SORT_ENTRYPOINT_STATE, INITIAL_FILTER_SORT_LIFECYCLE } from './value-domain'
+import { CLOSED_FILTER_DROPDOWN_STATE, INITIAL_FILTER_SORT_DRAFT } from './draft-values'
+import { INITIAL_FILTER_SORT_ENTRYPOINT_STATE, INITIAL_FILTER_SORT_LIFECYCLE } from './operation-state'
+import { EMPTY_FILTER_SORT_STATE_STORE } from './rules-store'
 import type { FilterSortMutationTicket, FilterSortEntrypointTicket } from './internal-types'
 import type { FilterDropdownState, FilterSortDraftState, FilterSortEntrypointState, FilterSortLifecycleState } from './types'
 

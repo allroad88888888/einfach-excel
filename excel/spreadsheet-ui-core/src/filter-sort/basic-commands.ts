@@ -11,21 +11,21 @@ import type {
 import { FILTER_SORT_CAPABILITY_ERROR, FILTER_SORT_TARGET_ERROR } from './constants'
 import {
   CLOSED_FILTER_DROPDOWN_STATE,
-  EMPTY_FILTER_SORT_STATE,
   closedFilterSortDraft,
   draftFromState,
-  errorMessage,
+  openFilterDropdownState,
+  sameValues,
+  snapshotFilterSortDraft,
+  sortFilterValues,
+} from './draft-values'
+import {
+  entrypointStateFor,
   lifecycleFor,
   nextFilterSortRequestId,
   nextFilterSortSessionId,
-  openFilterDropdownState,
-  snapshotFilterSortDraft,
-  sortFilterValues,
-  sameValues,
-  stateStoreWith,
-  stateStoreWithout,
-  entrypointStateFor,
-} from './value-domain'
+} from './operation-state'
+import { EMPTY_FILTER_SORT_STATE, stateStoreWith, stateStoreWithout } from './rules-store'
+import { errorMessage } from './transport-values'
 import { resolveFilterSortEntrypointTarget } from './authority-domain'
 import {
   activeFilterSortEntrypointAtom,

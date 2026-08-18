@@ -1,3 +1,6 @@
+// 复杂文件资格(≤500):单一 Reapply Filter 命令状态机 —— 捕获、票据、传输、回执、
+// 结构应用、刷新各阶段之间都要以同一票据复查所有权/authority,切开会迫使读者
+// 跨文件追一条事务流。disabled-reason 投影(15 行)与命令同生命周期,一并保留。
 import { atom } from '@einfach/core'
 import {
   acquireHistoryProducerReservationAtom,
@@ -40,16 +43,18 @@ import {
 import {
   entrypointStateFor,
   entrypointStateForTicket,
-  errorMessage,
   nextEntrypointAttempt,
   nextFilterSortOperationId,
   nextFilterSortRequestId,
-  normalizeState,
+} from './operation-state'
+import { normalizeState } from './rules-store'
+import {
+  errorMessage,
   outcomeUnknownError,
   refreshFailureError,
   runBoundedOperation,
   snapshotTimeoutMs,
-} from './value-domain'
+} from './transport-values'
 import type { ReapplyFilterTicket } from './internal-types'
 
 const hasRules = (get: Parameters<Parameters<typeof atom>[1]>[0], sheetId: string): boolean => {

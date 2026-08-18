@@ -15,7 +15,7 @@ import { PHYSICAL_SORT_CAPABILITY_ERROR } from './constants'
 import { filterSortStateAtom } from './projection-atoms'
 import type { PhysicalSortAcknowledgement } from './internal-types'
 import { isValidProjectionRevision } from './acknowledgement-domain'
-import { snapshotTimeoutMs } from './value-domain'
+import { snapshotTimeoutMs } from './transport-values'
 
 export const PHYSICAL_SORT_REJECTION_MESSAGES: Readonly<
   Record<PhysicalSortDiagnosticCode, string>

@@ -36,18 +36,10 @@ import {
   filterSortStateAtom,
   filterSortSyncTicketAtom,
 } from './projection-atoms'
-import {
-  EMPTY_FILTER_SORT_STATE,
-  deriveMutationState,
-  draftFromState,
-  errorMessage,
-  lifecycleFor,
-  nextFilterSortRequestId,
-  normalizeState,
-  refreshFailureError,
-  runBoundedOperation,
-  stateStoreWith,
-} from './value-domain'
+import { deriveMutationState, draftFromState } from './draft-values'
+import { lifecycleFor, nextFilterSortRequestId } from './operation-state'
+import { EMPTY_FILTER_SORT_STATE, normalizeState, stateStoreWith } from './rules-store'
+import { errorMessage, refreshFailureError, runBoundedOperation } from './transport-values'
 import type { FilterSortMutationTicket } from './internal-types'
 import { captureFilterSortMutationInput } from './filter-sort-mutation-input'
 import { createFilterSortMutationTicketControl } from './filter-sort-mutation-ticket-control'

@@ -3,7 +3,8 @@ import { releaseHistoryProducerReservationAtom } from '../history'
 import { FILTER_SORT_ACKNOWLEDGEMENT_ERROR, FILTER_SORT_STALE_OPERATION_ERROR } from './constants'
 import type { PhysicalSortTicket } from './internal-types'
 import { activeFilterSortEntrypointAtom, filterSortEntrypointStateBackingAtom } from './state'
-import { entrypointStateForTicket, outcomeUnknownError } from './value-domain'
+import { entrypointStateForTicket } from './operation-state'
+import { outcomeUnknownError } from './transport-values'
 
 export interface PhysicalSortTicketControl {
   readonly owns: () => boolean

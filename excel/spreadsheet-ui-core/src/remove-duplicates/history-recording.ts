@@ -4,7 +4,7 @@ import {
   type HistoryLocalReplayPayload,
   type HistoryRecordResult,
 } from '../history'
-import type { ExactRemoveRowsAcknowledgement } from './mutation-domain'
+import type { ExactRemoveRowsAcknowledgement } from './mutation-acknowledgement'
 import type { RemoveDuplicatesMutationTicket } from './state'
 
 function normalizeHistoryRecordResult(value: unknown): HistoryRecordResult {

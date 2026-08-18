@@ -1,5 +1,5 @@
 import type { FilterSortControllerPort, RunFilterSortMutationInput } from './types'
-import { snapshotTimeoutMs } from './value-domain'
+import { snapshotTimeoutMs } from './transport-values'
 
 export type CapturedFilterSortMutationInput =
   | {

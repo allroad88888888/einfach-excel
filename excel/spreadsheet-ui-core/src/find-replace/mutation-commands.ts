@@ -13,11 +13,11 @@ import {
   copyReplaceRequest,
   currentMutationMatches,
   markMutationUnknown,
-  prepareMutation,
   settleLateExactAcknowledgement,
   validateAcknowledgement,
   validateNotAppliedResult,
 } from './mutation-domain'
+import { prepareMutation } from './mutation-preparation'
 import { continueRefreshRecovery, requireRefreshRecovery } from './refresh-recovery'
 import {
   findReplaceCommandErrorStateAtom,

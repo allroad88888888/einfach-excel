@@ -7,7 +7,8 @@ import {
   filterSortErrorBackingAtom,
   filterSortLifecycleBackingAtom,
 } from './state'
-import { lifecycleFor, outcomeUnknownError } from './value-domain'
+import { lifecycleFor } from './operation-state'
+import { outcomeUnknownError } from './transport-values'
 
 export interface FilterSortMutationTicketControl {
   readonly owns: () => boolean

@@ -1,3 +1,6 @@
+// 复杂文件资格(≤500):单一 confirm 命令状态机 —— 每个 await/set 之间都要以同一票据
+// 复查 staleness/authority,切开任何一段都会迫使读者跨文件追一条事务流。值域与
+// 生命周期辅助已析出至 mutation-target / mutation-acknowledgement / mutation-domain。
 import { atom } from '@einfach/core'
 import { resolveContentMutationAtom } from '../editing/mutation-gateway'
 import {
@@ -33,20 +36,22 @@ import {
   validRevision,
   withRemoveDuplicatesTimeout,
 } from './domain'
+import { snapshotAcknowledgement } from './mutation-acknowledgement'
 import {
-  canonicalRows,
-  descendingRowDeleteShifts,
   markMutationStaleBeforeTransport,
   markOutcomeUnknown,
   mutationTicketAuthorityIsCurrent,
   mutationTicketIsCurrent,
   refreshAcknowledgedMutation,
   sessionAuthorityIsCurrent,
-  snapshotAcknowledgement,
+} from './mutation-domain'
+import {
+  canonicalRows,
+  descendingRowDeleteShifts,
   snapshotCellRangeValue,
   targetKeyFor,
   targetRangeFor,
-} from './mutation-domain'
+} from './mutation-target'
 import { recordRemoveDuplicatesHistory } from './history-recording'
 import {
   activeRemoveDuplicatesMutationAtom,

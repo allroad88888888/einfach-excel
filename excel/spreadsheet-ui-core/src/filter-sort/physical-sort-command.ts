@@ -37,13 +37,11 @@ import {
 import {
   entrypointStateFor,
   entrypointStateForTicket,
-  errorMessage,
   nextEntrypointAttempt,
   nextFilterSortOperationId,
   nextFilterSortRequestId,
-  refreshFailureError,
-  runBoundedOperation,
-} from './value-domain'
+} from './operation-state'
+import { errorMessage, refreshFailureError, runBoundedOperation } from './transport-values'
 import type { PhysicalSortTicket } from './internal-types'
 import { createPhysicalSortTicketControl } from './physical-sort-ticket-control'
 

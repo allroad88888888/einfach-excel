@@ -5,7 +5,7 @@ export {
   nextFilterSortOperationId,
   nextFilterSortRequestId,
   nextFilterSortSessionId,
-} from './value-domain'
+} from './operation-state'
 export * from './projection-atoms'
 export * from './basic-commands'
 export { runFilterSortMutationAtom } from './mutation-command'

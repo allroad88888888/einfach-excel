@@ -1,31 +1,18 @@
 import type { Getter, Setter } from '@einfach/core'
-import type {
-  BackendStructuralShift,
-  ProjectionRequestId,
-  ProjectionRevision,
-} from '../backend/types'
+import type { ProjectionRequestId } from '../backend/types'
 import { releaseHistoryProducerReservationAtom } from '../history'
 import {
   primarySelectionRegionAtom,
   selectionAuthorityWitnessAtom,
   selectionRangeAtom,
 } from '../selection'
-import type { CellRange } from '../shared'
 import { workspaceActiveSheetAuthorityWitnessAtom, workspaceSessionAtom } from '../workspace'
 import {
   REMOVE_DUPLICATES_OUTCOME_UNKNOWN_ERROR,
   REMOVE_DUPLICATES_READ_STALE_ERROR,
   REMOVE_DUPLICATES_REFRESH_ERROR_PREFIX,
 } from './constants'
-import {
-  errorMessage,
-  lifecycleFor,
-  sameRange,
-  snapshotRange,
-  validRange,
-  validRevision,
-  withRemoveDuplicatesTimeout,
-} from './domain'
+import { errorMessage, lifecycleFor, withRemoveDuplicatesTimeout } from './domain'
 import { closeSession } from './dialog-commands'
 import {
   activeRemoveDuplicatesMutationAtom,
@@ -36,50 +23,8 @@ import {
   removeDuplicatesSessionAtom,
 } from './state'
 import type { RemoveDuplicatesMutationTicket } from './state'
-import type {
-  RemoveDuplicatesMutationOutcome,
-  RemoveDuplicatesRange,
-  RemoveDuplicatesSessionSnapshot,
-  RemoveRowsExactResult,
-} from './types'
+import type { RemoveDuplicatesMutationOutcome, RemoveDuplicatesSessionSnapshot } from './types'
 
-export type ExactRemoveRowsAcknowledgement = Omit<RemoveRowsExactResult, 'affectedRange'> & {
-  readonly affectedRange: NonNullable<RemoveRowsExactResult['affectedRange']>
-  readonly historyRecorded: boolean
-}
-export function canonicalRows(rows: readonly number[]): readonly number[] | null {
-  if (rows.some((row) => !Number.isSafeInteger(row) || row < 0)) return null
-  return Object.freeze(Array.from(new Set(rows)).sort((left, right) => left - right))
-}
-export function targetRangeFor(
-  range: RemoveDuplicatesRange,
-  rows: readonly number[],
-): Readonly<CellRange> | null {
-  if (rows.length === 0) return null
-  return snapshotRange({
-    rowStart: Math.min(range.startRow, rows[0]),
-    rowEnd: Math.max(range.endRow, rows[rows.length - 1]),
-    colStart: range.startCol,
-    colEnd: range.endCol,
-  })
-}
-export function targetKeyFor(
-  sheetId: string,
-  targetRange: CellRange,
-  revision: ProjectionRevision,
-  rows: readonly number[],
-): string {
-  return JSON.stringify([
-    sheetId,
-    targetRange.rowStart,
-    targetRange.rowEnd,
-    targetRange.colStart,
-    targetRange.colEnd,
-    typeof revision,
-    revision,
-    rows,
-  ])
-}
 export function mutationTicketIsCurrent(
   get: Getter,
   ticket: RemoveDuplicatesMutationTicket,
@@ -94,6 +39,7 @@ export function mutationTicketIsCurrent(
     lifecycle.mutationRequestId === ticket.target.requestId
   )
 }
+
 export function sessionAuthorityIsCurrent(
   get: Getter,
   session: RemoveDuplicatesSessionSnapshot,
@@ -110,6 +56,7 @@ export function sessionAuthorityIsCurrent(
     selectionRange.colEnd === session.range.endCol
   )
 }
+
 export function mutationTicketAuthorityIsCurrent(
   get: Getter,
   ticket: RemoveDuplicatesMutationTicket,
@@ -121,6 +68,7 @@ export function mutationTicketAuthorityIsCurrent(
     get(workspaceSessionAtom).activeSheetId === ticket.target.sheetId
   )
 }
+
 export function markMutationStaleBeforeTransport(
   get: Getter,
   set: Setter,
@@ -142,130 +90,7 @@ export function markMutationStaleBeforeTransport(
   set(activeRemoveDuplicatesMutationAtom, null)
   return 'stale'
 }
-export function sameNumberList(left: readonly number[], right: readonly number[]): boolean {
-  return left.length === right.length && left.every((value, index) => value === right[index])
-}
-export function descendingRowDeleteShifts(
-  rows: readonly number[],
-): readonly Readonly<BackendStructuralShift>[] {
-  const shifts: BackendStructuralShift[] = []
-  for (const row of rows) {
-    const band = shifts[0]
-    if (band !== undefined && row === band.index + band.count) band.count += 1
-    else shifts.unshift({ axis: 'row', kind: 'delete', index: row, count: 1 })
-  }
-  return shifts
-}
-export function snapshotCellRangeValue(value: unknown): Readonly<CellRange> | null {
-  try {
-    if (typeof value !== 'object' || value === null) return null
-    const range = value as CellRange
-    const rowStart = range.rowStart
-    const rowEnd = range.rowEnd
-    const colStart = range.colStart
-    const colEnd = range.colEnd
-    const snapshot = Object.freeze({ rowStart, rowEnd, colStart, colEnd })
-    return validRange(snapshot) ? snapshot : null
-  } catch {
-    return null
-  }
-}
-function snapshotRemovedRows(value: unknown): readonly number[] | null {
-  try {
-    if (!Array.isArray(value)) return null
-    const length = value.length
-    if (!Number.isSafeInteger(length) || length < 0) return null
-    const rows: number[] = []
-    let previous = -1
-    for (let index = 0; index < length; index += 1) {
-      const row = value[index]
-      if (!Number.isSafeInteger(row) || row < 0 || row <= previous) return null
-      rows.push(row)
-      previous = row
-    }
-    return Object.freeze(rows)
-  } catch {
-    return null
-  }
-}
-function snapshotAffectedRangeValue(value: unknown): RemoveRowsExactResult['affectedRange'] {
-  try {
-    if (typeof value !== 'object' || value === null) return null
-    const range = value as NonNullable<RemoveRowsExactResult['affectedRange']>
-    const startRow = range.startRow
-    const endRow = range.endRow
-    const startCol = range.startCol
-    const endCol = range.endCol
-    if (
-      !Number.isSafeInteger(startRow) ||
-      !Number.isSafeInteger(endRow) ||
-      !Number.isSafeInteger(startCol) ||
-      !Number.isSafeInteger(endCol) ||
-      startRow < 0 ||
-      startCol < 0 ||
-      startRow > endRow ||
-      startCol > endCol
-    )
-      return null
-    return Object.freeze({ startRow, endRow, startCol, endCol })
-  } catch {
-    return null
-  }
-}
-export function snapshotAcknowledgement(
-  acknowledgement: unknown,
-  ticket: RemoveDuplicatesMutationTicket,
-): ExactRemoveRowsAcknowledgement | null {
-  try {
-    if (typeof acknowledgement !== 'object' || acknowledgement === null) return null
-    const result = acknowledgement as RemoveRowsExactResult
-    const requestId = result.requestId
-    const sheetId = result.sheetId
-    const targetRangeValue = result.targetRange
-    const removedRowIndicesValue = result.removedRowIndices
-    const removedRows = result.removedRows
-    const affectedRangeValue = result.affectedRange
-    const revision = result.revision
-    const historyRecordedValue = result.historyRecorded
-    const targetRange = snapshotCellRangeValue(targetRangeValue)
-    const rows = snapshotRemovedRows(removedRowIndicesValue)
-    const affectedRange = snapshotAffectedRangeValue(affectedRangeValue)
-    if (
-      requestId !== ticket.target.requestId ||
-      sheetId !== ticket.target.sheetId ||
-      targetRange === null ||
-      !sameRange(targetRange, ticket.target.targetRange) ||
-      rows === null ||
-      !sameNumberList(rows, ticket.target.removedRowIndices) ||
-      removedRows !== rows.length ||
-      affectedRange === null ||
-      !validRevision(revision) ||
-      (historyRecordedValue !== undefined && typeof historyRecordedValue !== 'boolean') ||
-      Object.is(revision, ticket.target.projectionRevision)
-    )
-      return null
-    if (
-      rows.length === 0 ||
-      affectedRange.startRow !== rows[0] ||
-      affectedRange.endRow !== ticket.target.targetRange.rowEnd ||
-      affectedRange.startCol !== ticket.target.targetRange.colStart ||
-      affectedRange.endCol !== ticket.target.targetRange.colEnd
-    )
-      return null
-    return Object.freeze({
-      requestId,
-      sheetId,
-      targetRange,
-      removedRowIndices: rows,
-      removedRows,
-      affectedRange,
-      revision,
-      historyRecorded: historyRecordedValue ?? true,
-    })
-  } catch {
-    return null
-  }
-}
+
 export function markOutcomeUnknown(
   set: Setter,
   ticket: RemoveDuplicatesMutationTicket,
@@ -287,6 +112,7 @@ export function markOutcomeUnknown(
   )
   return 'outcome-unknown'
 }
+
 export async function refreshAcknowledgedMutation(
   get: Getter,
   set: Setter,

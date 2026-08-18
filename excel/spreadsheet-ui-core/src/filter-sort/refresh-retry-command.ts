@@ -15,14 +15,13 @@ import {
   filterSortLifecycleBackingAtom,
 } from './state'
 import { filterSortLifecycleAtom } from './projection-atoms'
+import { entrypointStateForTicket, lifecycleFor } from './operation-state'
 import {
-  entrypointStateForTicket,
   outcomeUnknownError,
   refreshFailureError,
   runBoundedOperation,
   snapshotTimeoutMs,
-  lifecycleFor,
-} from './value-domain'
+} from './transport-values'
 
 type Captured =
   | {

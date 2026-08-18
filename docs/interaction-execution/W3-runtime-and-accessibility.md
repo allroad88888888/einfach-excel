@@ -128,3 +128,7 @@ canvas console 输出，未造成失败或本轮波动。
 全仓 `npm run lint:check` 仍报 512 个 error 和 396 个 warning，且均不在 UI-513/UI-514 路径；范围内
 ESLint 为 0 error。故 W3 的功能验收已完成，但不能将整个仓库表述为 lint 全绿；lint 存量须由独立治理
 Issue 接手，避免把无关大范围格式改动混入交互波次。
+
+> 2026-08-18 续记：上述存量已由独立治理提交 `299db4d` 清零（433 error → 0；治理时点计数与本节
+> 记录的 512 差额来自其间波次的增删）。全量 jest 与强制 tsc -build 在治理后保持绿。剩余 532 个
+> warning 全部为 `import/no-extraneous-dependencies`，不拦 `lint:check` 门禁。

@@ -53,7 +53,8 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # engines 基线下限(ADR 0018),与 ci.yml 的钉版一致。
+          node-version: '22.12.0'
           cache: pnpm
 
       - uses: dtolnay/rust-toolchain@stable

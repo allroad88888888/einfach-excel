@@ -11,7 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18, 20]
+        # 22.12.0 是 engines 基线下限(ADR 0018),必须精确钉住;24 验证当前主流版本。
+        node-version: ['22.12.0', 24]
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4

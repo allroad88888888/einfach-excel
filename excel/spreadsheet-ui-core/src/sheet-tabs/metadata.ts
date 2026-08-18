@@ -6,7 +6,11 @@ export function normalizeSheetTabDraftName(name: string): string | null {
   return normalized.length === 0 ? null : normalized
 }
 
-export function getAdjacentSheetId(sheets: readonly SpreadsheetSheetMetadata[], activeSheetId: string | null, direction: 'previous' | 'next'): string | null {
+export function getAdjacentSheetId(
+  sheets: readonly SpreadsheetSheetMetadata[],
+  activeSheetId: string | null,
+  direction: 'previous' | 'next',
+): string | null {
   if (sheets.length === 0) return null
   const activeIndex = activeSheetId ? sheets.findIndex((sheet) => sheet.id === activeSheetId) : -1
   if (activeIndex < 0) return sheets[0]?.id ?? null
@@ -14,7 +18,10 @@ export function getAdjacentSheetId(sheets: readonly SpreadsheetSheetMetadata[], 
   return sheets[(activeIndex + step + sheets.length) % sheets.length]?.id ?? null
 }
 
-export function reorderSheetMetadata(sheets: readonly SpreadsheetSheetMetadata[], input: ReorderSheetMetadataInput): SpreadsheetSheetMetadata[] {
+export function reorderSheetMetadata(
+  sheets: readonly SpreadsheetSheetMetadata[],
+  input: ReorderSheetMetadataInput,
+): SpreadsheetSheetMetadata[] {
   const normalized = normalizeSheetMetadataList(sheets)
   const sourceIndex = normalized.findIndex((sheet) => sheet.id === input.sheetId)
   if (sourceIndex < 0) return normalized
@@ -32,10 +39,16 @@ export function reorderSheetMetadata(sheets: readonly SpreadsheetSheetMetadata[]
   }
   if (targetIndex === null) return reindexSheetMetadata(normalized)
   const clampedIndex = Math.max(0, Math.min(targetIndex, remaining.length))
-  return reindexSheetMetadata([...remaining.slice(0, clampedIndex), source, ...remaining.slice(clampedIndex)])
+  return reindexSheetMetadata([
+    ...remaining.slice(0, clampedIndex),
+    source,
+    ...remaining.slice(clampedIndex),
+  ])
 }
 
-export function normalizeSheetMetadataList(sheets: readonly SpreadsheetSheetMetadata[]): SpreadsheetSheetMetadata[] {
+export function normalizeSheetMetadataList(
+  sheets: readonly SpreadsheetSheetMetadata[],
+): SpreadsheetSheetMetadata[] {
   const normalized: SpreadsheetSheetMetadata[] = []
   const seen = new Set<string>()
   sheets.forEach((sheet, index) => {
@@ -43,7 +56,11 @@ export function normalizeSheetMetadataList(sheets: readonly SpreadsheetSheetMeta
     const name = normalizeSheetTabDraftName(sheet.name)
     if (id.length === 0 || name === null || seen.has(id)) return
     seen.add(id)
-    normalized.push({ id, name, index: Number.isInteger(sheet.index) && sheet.index >= 0 ? sheet.index : index })
+    normalized.push({
+      id,
+      name,
+      index: Number.isInteger(sheet.index) && sheet.index >= 0 ? sheet.index : index,
+    })
   })
   return normalized
 }
@@ -55,9 +72,15 @@ export function nextSheetTabName(sheets: readonly SpreadsheetSheetMetadata[]): s
   return `Sheet${suffix}`
 }
 
-export function normalizeCoordinate(value: number): number { return Number.isFinite(value) ? Math.trunc(value) : 0 }
-export function normalizeOptionalIndex(value: number | null): number | null { return Number.isInteger(value) && value !== null && value >= 0 ? value : null }
+export function normalizeCoordinate(value: number): number {
+  return Number.isFinite(value) ? Math.trunc(value) : 0
+}
+export function normalizeOptionalIndex(value: number | null): number | null {
+  return Number.isInteger(value) && value !== null && value >= 0 ? value : null
+}
 
-function reindexSheetMetadata(sheets: readonly SpreadsheetSheetMetadata[]): SpreadsheetSheetMetadata[] {
+function reindexSheetMetadata(
+  sheets: readonly SpreadsheetSheetMetadata[],
+): SpreadsheetSheetMetadata[] {
   return sheets.map((sheet, index) => ({ ...sheet, index }))
 }

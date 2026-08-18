@@ -24,8 +24,12 @@ class ImmutableReadonlySet<Value> {
     return this.items.includes(value)
   }
 
-  forEach(callback: (value: Value, valueAgain: Value, set: ReadonlySet<Value>) => void, thisArg?: unknown): void {
-    for (const value of this.items) callback.call(thisArg, value, value, this as unknown as ReadonlySet<Value>)
+  forEach(
+    callback: (value: Value, valueAgain: Value, set: ReadonlySet<Value>) => void,
+    thisArg?: unknown,
+  ): void {
+    for (const value of this.items)
+      callback.call(thisArg, value, value, this as unknown as ReadonlySet<Value>)
   }
 
   entries(): IterableIterator<[Value, Value]> {
@@ -51,7 +55,9 @@ export function immutableReadonlySet<Value>(values: Iterable<Value>): ReadonlySe
   return new ImmutableReadonlySet(values) as unknown as ReadonlySet<Value>
 }
 
-function snapshotDelimitedConfig(config: TextToColumnsDelimitedConfig): TextToColumnsDelimitedConfig {
+function snapshotDelimitedConfig(
+  config: TextToColumnsDelimitedConfig,
+): TextToColumnsDelimitedConfig {
   return Object.freeze({
     delimiters: immutableReadonlySet(config.delimiters),
     otherChar: config.otherChar,
@@ -69,13 +75,24 @@ export function snapshotWizardState(state: TextToColumnsWizardState): TextToColu
     case 'step-1':
       return Object.freeze({ step: 'step-1', mode: state.mode })
     case 'step-2-delimited':
-      return Object.freeze({ step: 'step-2-delimited', mode: 'delimited', delimited: snapshotDelimitedConfig(state.delimited) })
+      return Object.freeze({
+        step: 'step-2-delimited',
+        mode: 'delimited',
+        delimited: snapshotDelimitedConfig(state.delimited),
+      })
     case 'step-2-fixed':
-      return Object.freeze({ step: 'step-2-fixed', mode: 'fixed', fixed: snapshotFixedConfig(state.fixed) })
+      return Object.freeze({
+        step: 'step-2-fixed',
+        mode: 'fixed',
+        fixed: snapshotFixedConfig(state.fixed),
+      })
     case 'step-3':
       return Object.freeze({
-        step: 'step-3', mode: state.mode, delimited: snapshotDelimitedConfig(state.delimited),
-        fixed: snapshotFixedConfig(state.fixed), formats: Object.freeze(Array.from(state.formats)),
+        step: 'step-3',
+        mode: state.mode,
+        delimited: snapshotDelimitedConfig(state.delimited),
+        fixed: snapshotFixedConfig(state.fixed),
+        formats: Object.freeze(Array.from(state.formats)),
       })
   }
 }
@@ -100,14 +117,21 @@ export function nextBlockReason(state: TextToColumnsWizardState): TextToColumnsN
   if (state.step === 'step-3') return 'already-final'
   if (state.step === 'step-2-delimited') {
     const hasOther = state.delimited.delimiters.has('other') && state.delimited.otherChar.length > 0
-    const hasNonOther = Array.from(state.delimited.delimiters).some((delimiter) => delimiter !== 'other')
+    const hasNonOther = Array.from(state.delimited.delimiters).some(
+      (delimiter) => delimiter !== 'other',
+    )
     return hasOther || hasNonOther ? null : 'delimiter-required'
   }
-  if (state.step === 'step-2-fixed') return state.fixed.breakpoints.length > 0 ? null : 'breakpoint-required'
+  if (state.step === 'step-2-fixed')
+    return state.fixed.breakpoints.length > 0 ? null : 'breakpoint-required'
   return null
 }
 
-export function makeStepTwoState(mode: TextToColumnsMode, delimited = DEFAULT_DELIMITED_CONFIG, fixed = DEFAULT_FIXED_CONFIG): TextToColumnsWizardState {
+export function makeStepTwoState(
+  mode: TextToColumnsMode,
+  delimited = DEFAULT_DELIMITED_CONFIG,
+  fixed = DEFAULT_FIXED_CONFIG,
+): TextToColumnsWizardState {
   return mode === 'delimited'
     ? snapshotWizardState({ step: 'step-2-delimited', mode, delimited })
     : snapshotWizardState({ step: 'step-2-fixed', mode, fixed })
@@ -121,6 +145,7 @@ export function makeStepThreeState(
   previousFormats?: readonly TextToColumnsColumnFormat[],
 ): TextToColumnsWizardState {
   const formats: TextToColumnsColumnFormat[] = []
-  for (let index = 0; index < columnCount; index += 1) formats.push(previousFormats?.[index] ?? 'general')
+  for (let index = 0; index < columnCount; index += 1)
+    formats.push(previousFormats?.[index] ?? 'general')
   return snapshotWizardState({ step: 'step-3', mode, delimited, fixed, formats })
 }

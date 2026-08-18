@@ -17,10 +17,32 @@ import type { GridViewStateApi } from './grid-view-state'
 
 type GridLifecycleRuntime = GridRuntimeBase &
   Pick<GridViewStateApi, 'refreshSpillRegion'> &
-  Pick<GridProjectionControllerApi, 'requestProjection' | 'loadProjection' | 'refreshViewportProjection' | 'refreshEffectiveFreezeProjection' | 'initializeFreezeProjection' | 'syncViewportSizeFromElement' | 'syncScrollElementToViewport'>
+  Pick<
+    GridProjectionControllerApi,
+    | 'requestProjection'
+    | 'loadProjection'
+    | 'refreshViewportProjection'
+    | 'refreshEffectiveFreezeProjection'
+    | 'initializeFreezeProjection'
+    | 'syncViewportSizeFromElement'
+    | 'syncScrollElementToViewport'
+  >
 
 export function installGridLifecycle(runtime: GridLifecycleRuntime) {
-  const { props, store, backend, dom, refreshSpillRegion, requestProjection, loadProjection, refreshViewportProjection, refreshEffectiveFreezeProjection, initializeFreezeProjection, syncViewportSizeFromElement, syncScrollElementToViewport } = runtime
+  const {
+    props,
+    store,
+    backend,
+    dom,
+    refreshSpillRegion,
+    requestProjection,
+    loadProjection,
+    refreshViewportProjection,
+    refreshEffectiveFreezeProjection,
+    initializeFreezeProjection,
+    syncViewportSizeFromElement,
+    syncScrollElementToViewport,
+  } = runtime
   let resizeObserver: ResizeObserver | null = null
   const unsubscribers: Array<() => void> = []
 
@@ -33,23 +55,30 @@ export function installGridLifecycle(runtime: GridLifecycleRuntime) {
     unsubscribers.push(store.sub(spreadsheetProjectionSnapshotAtom, refreshSpillRegion))
     unsubscribers.push(store.sub(viewportMetricsAtom, refreshViewportProjection))
     unsubscribers.push(store.sub(viewportFreezeAtom, refreshEffectiveFreezeProjection))
-    const unsubscribeContentChanges = backend.subscribeContentChanges?.(() => void loadProjection(requestProjection()))
+    const unsubscribeContentChanges = backend.subscribeContentChanges?.(
+      () => void loadProjection(requestProjection()),
+    )
     if (unsubscribeContentChanges) unsubscribers.push(unsubscribeContentChanges)
 
     if (store.getter(workspaceSessionAtom).activeSheetId === null) {
       store.setter(setWorkspaceActiveSheetAtom, { sheetId: props.sheetId })
     }
     let lastActiveSheetId = store.getter(workspaceSessionAtom).activeSheetId
-    unsubscribers.push(store.sub(workspaceSessionAtom, () => {
-      const nextSheetId = store.getter(workspaceSessionAtom).activeSheetId
-      if (nextSheetId !== lastActiveSheetId) {
-        lastActiveSheetId = nextSheetId
-        store.setter(notifyActiveSheetChangedAtom, nextSheetId)
-      }
-    }))
+    unsubscribers.push(
+      store.sub(workspaceSessionAtom, () => {
+        const nextSheetId = store.getter(workspaceSessionAtom).activeSheetId
+        if (nextSheetId !== lastActiveSheetId) {
+          lastActiveSheetId = nextSheetId
+          store.setter(notifyActiveSheetChangedAtom, nextSheetId)
+        }
+      }),
+    )
 
     store.setter(setViewportMetricsAtom, props.viewport)
-    store.setter(setSelectionBoundsAtom, { rowCount: props.viewport.rowCount, colCount: props.viewport.colCount })
+    store.setter(setSelectionBoundsAtom, {
+      rowCount: props.viewport.rowCount,
+      colCount: props.viewport.colCount,
+    })
     refreshViewportProjection()
     syncViewportSizeFromElement()
     syncScrollElementToViewport()

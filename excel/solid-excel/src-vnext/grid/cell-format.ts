@@ -1,6 +1,12 @@
-import type { DisplayCell, RichTextRunFormat, SpreadsheetCellFormat } from '@einfach/spreadsheet-ui-core'
+import type {
+  DisplayCell,
+  RichTextRunFormat,
+  SpreadsheetCellFormat,
+} from '@einfach/spreadsheet-ui-core'
 
-export function getCellFormatStyle(format: SpreadsheetCellFormat | undefined): Record<string, string> {
+export function getCellFormatStyle(
+  format: SpreadsheetCellFormat | undefined,
+): Record<string, string> {
   if (!format) return {}
   const style: Record<string, string> = {}
   if (format.fgColor) style.color = format.fgColor
@@ -65,18 +71,32 @@ export function getCellFormatStyle(format: SpreadsheetCellFormat | undefined): R
   return style
 }
 
-export function getCellBackgroundStyle(format: SpreadsheetCellFormat | undefined): Record<string, string> {
+export function getCellBackgroundStyle(
+  format: SpreadsheetCellFormat | undefined,
+): Record<string, string> {
   return format?.bgColor ? { background: format.bgColor } : {}
 }
 
-export function getDisplayCellFormat(cell: DisplayCell | undefined): SpreadsheetCellFormat | undefined {
+export function getDisplayCellFormat(
+  cell: DisplayCell | undefined,
+): SpreadsheetCellFormat | undefined {
   if (!cell?.format && !cell?.conditionalFormat) return undefined
-  return { ...cell.format, ...cell.conditionalFormat, numberFormat: cell.conditionalFormat?.numberFormat ?? cell.format?.numberFormat }
+  return {
+    ...cell.format,
+    ...cell.conditionalFormat,
+    numberFormat: cell.conditionalFormat?.numberFormat ?? cell.format?.numberFormat,
+  }
 }
 
-export function getCellValidationSeverity(cell: DisplayCell | undefined): string | undefined { return cell?.validation?.severity }
-export function getCellValidationMessage(cell: DisplayCell | undefined): string | undefined { return cell?.validation?.message }
-export function getCellRichUrl(cell: DisplayCell | undefined): string | undefined { return cell?.richValue?.kind === 'hyperlink' ? cell.richValue.url : undefined }
+export function getCellValidationSeverity(cell: DisplayCell | undefined): string | undefined {
+  return cell?.validation?.severity
+}
+export function getCellValidationMessage(cell: DisplayCell | undefined): string | undefined {
+  return cell?.validation?.message
+}
+export function getCellRichUrl(cell: DisplayCell | undefined): string | undefined {
+  return cell?.richValue?.kind === 'hyperlink' ? cell.richValue.url : undefined
+}
 
 export function getCellBordersAttr(cell: DisplayCell | undefined): string | undefined {
   const borders = cell?.format?.borders

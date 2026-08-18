@@ -74,7 +74,7 @@ function convertUnitFactor(unit: string): ConvertUnit | null {
     case 'wh':
       return { category: 'energy', factor: 3600 }
     case 'flb':
-      return { category: 'energy', factor: 1.3558179483314004 }
+      return { category: 'energy', factor: 1.3558179483314003 }
     case 'BTU':
     case 'btu':
       return { category: 'energy', factor: 1055.05585262 }
@@ -87,7 +87,7 @@ function convertUnitFactor(unit: string): ConvertUnit | null {
       return { category: 'power', factor: 1 }
     case 'HP':
     case 'h':
-      return { category: 'power', factor: 745.69987158227022 }
+      return { category: 'power', factor: 745.6998715822702 }
     case 'PS': return { category: 'power', factor: 735.49875 }
 
     case 'C':

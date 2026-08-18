@@ -8,7 +8,8 @@
     "sourceType": "module",
     "project": [
       "./tsconfig.json",
-      "./excel/*/tsconfig.json"
+      "./excel/*/tsconfig.json",
+      "./excel/excel-site/tsconfig.react-island.json"
     ]
   },
   "plugins": [
@@ -291,7 +292,8 @@
     },
     {
       "files": [
-        "excel/solid-excel/**"
+        "excel/solid-excel/**",
+        "excel/vue-excel/**"
       ],
       "rules": {
         "react-hooks/rules-of-hooks": "off",

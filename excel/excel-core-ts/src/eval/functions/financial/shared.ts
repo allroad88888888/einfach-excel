@@ -71,23 +71,41 @@ export function rateResidualConverged(residual: number, scale: number): boolean 
  *
  * `compute` solves for whichever variable is left as `undefined`.
  */
-export function presentValue(rate: number, nper: number, pmt: number, fv: number, type: number): number {
+export function presentValue(
+  rate: number,
+  nper: number,
+  pmt: number,
+  fv: number,
+  type: number,
+): number {
   if (rate === 0) {
     return -(fv + pmt * nper)
   }
   const pow = Math.pow(1 + rate, nper)
-  return -(fv + pmt * (1 + rate * type) * (pow - 1) / rate) / pow
+  return -(fv + (pmt * (1 + rate * type) * (pow - 1)) / rate) / pow
 }
 
-export function futureValue(rate: number, nper: number, pmt: number, pv: number, type: number): number {
+export function futureValue(
+  rate: number,
+  nper: number,
+  pmt: number,
+  pv: number,
+  type: number,
+): number {
   if (rate === 0) {
     return -(pv + pmt * nper)
   }
   const pow = Math.pow(1 + rate, nper)
-  return -(pv * pow + pmt * (1 + rate * type) * (pow - 1) / rate)
+  return -(pv * pow + (pmt * (1 + rate * type) * (pow - 1)) / rate)
 }
 
-export function periodicPayment(rate: number, nper: number, pv: number, fv: number, type: number): number {
+export function periodicPayment(
+  rate: number,
+  nper: number,
+  pv: number,
+  fv: number,
+  type: number,
+): number {
   if (rate === 0) {
     return -(pv + fv) / nper
   }
@@ -95,7 +113,13 @@ export function periodicPayment(rate: number, nper: number, pv: number, fv: numb
   return -(pv * pow + fv) / ((1 + rate * type) * ((pow - 1) / rate))
 }
 
-export function numberOfPeriods(rate: number, pmt: number, pv: number, fv: number, type: number): number {
+export function numberOfPeriods(
+  rate: number,
+  pmt: number,
+  pv: number,
+  fv: number,
+  type: number,
+): number {
   if (rate === 0) {
     return -(pv + fv) / pmt
   }
@@ -104,7 +128,7 @@ export function numberOfPeriods(rate: number, pmt: number, pv: number, fv: numbe
   //   pv*X + A*(X - 1) + fv = 0
   //   X*(pv + A) = A - fv
   //   X = (A - fv) / (pv + A)
-  const a = pmt * (1 + rate * type) / rate
+  const a = (pmt * (1 + rate * type)) / rate
   const numerator = a - fv
   const denominator = pv + a
   if (denominator === 0) return NaN

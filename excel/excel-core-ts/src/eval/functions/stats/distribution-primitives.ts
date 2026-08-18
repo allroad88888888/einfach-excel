@@ -1,4 +1,9 @@
-import { logGamma, regularizedBeta, regularizedGammaContinuedFractionQ, regularizedGammaSeriesP } from './special-functions'
+import {
+  logGamma,
+  regularizedBeta,
+  regularizedGammaContinuedFractionQ,
+  regularizedGammaSeriesP,
+} from './special-functions'
 
 export function regularizedGammaP(a: number, x: number): number {
   if (x < 0 || a <= 0) return Number.NaN
@@ -133,7 +138,6 @@ export function inversePositiveCdfNewton(
   return inversePositiveCdf(p, cdf)
 }
 
-
 export function fCdf(x: number, df1: number, df2: number): number {
   if (x <= 0) return 0
   const ratio = (df1 * x) / (df1 * x + df2)
@@ -187,7 +191,12 @@ export function binomCdf(k: number, n: number, p: number): number {
   return total
 }
 
-export function hypergeomPmf(sampleS: number, numSample: number, popS: number, numPop: number): number {
+export function hypergeomPmf(
+  sampleS: number,
+  numSample: number,
+  popS: number,
+  numPop: number,
+): number {
   const logP =
     logChoose(popS, sampleS) +
     logChoose(numPop - popS, numSample - sampleS) -
@@ -195,7 +204,12 @@ export function hypergeomPmf(sampleS: number, numSample: number, popS: number, n
   return Number.isFinite(logP) ? Math.exp(logP) : 0
 }
 
-export function hypergeomCdf(sampleS: number, numSample: number, popS: number, numPop: number): number {
+export function hypergeomCdf(
+  sampleS: number,
+  numSample: number,
+  popS: number,
+  numPop: number,
+): number {
   const min = Math.max(0, numSample - (numPop - popS))
   const max = Math.min(sampleS, numSample, popS)
   let total = 0

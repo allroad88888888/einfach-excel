@@ -4,8 +4,10 @@ import type {
 import type { WorkspaceActiveSheetAuthorityWitness } from '../workspace'
 import type {
   ConditionalFormatEditorState,
+  ConditionalFormatMutationAcknowledgement,
   ConditionalFormatOperationAttempt,
   ConditionalFormatRuleKind,
+  ConditionalFormatRulesResult,
   ConditionalFormatRulesState,
   ConditionalFormatScope,
   RemoveConditionalFormatRuleRequest,
@@ -62,11 +64,11 @@ export type ConditionalFormatMutationLaunchState =
   | null
 
 export interface AcknowledgementSnapshot {
-  readonly acknowledgement: import('./types').ConditionalFormatMutationAcknowledgement | null
+  readonly acknowledgement: ConditionalFormatMutationAcknowledgement | null
   readonly error: string | null
 }
 
 export interface RulesResultSnapshot {
-  readonly result: import('./types').ConditionalFormatRulesResult | null
+  readonly result: ConditionalFormatRulesResult | null
   readonly error: string | null
 }

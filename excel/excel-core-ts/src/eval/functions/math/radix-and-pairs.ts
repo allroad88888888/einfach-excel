@@ -99,4 +99,10 @@ export const SUMX2MY2: FunctionImpl = (args) => sumPairImpl(args, (x, y) => x * 
 export const SUMX2PY2: FunctionImpl = (args) => sumPairImpl(args, (x, y) => x * x + y * y)
 export const SUMXMY2: FunctionImpl = (args) => sumPairImpl(args, (x, y) => (x - y) * (x - y))
 
-export const FUNCTIONS: Record<string, FunctionImpl> = { BASE, DECIMAL, SUMX2MY2, SUMX2PY2, SUMXMY2 }
+export const FUNCTIONS: Record<string, FunctionImpl> = {
+  BASE,
+  DECIMAL,
+  SUMX2MY2,
+  SUMX2PY2,
+  SUMXMY2,
+}

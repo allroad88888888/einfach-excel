@@ -25,12 +25,23 @@ export function snapshotRange(range: CellRange): CellRange {
 }
 
 export function sameRange(left: CellRange, right: CellRange): boolean {
-  return left.rowStart === right.rowStart && left.rowEnd === right.rowEnd &&
-    left.colStart === right.colStart && left.colEnd === right.colEnd
+  return (
+    left.rowStart === right.rowStart &&
+    left.rowEnd === right.rowEnd &&
+    left.colStart === right.colStart &&
+    left.colEnd === right.colEnd
+  )
 }
 
 export function isValidCellRange(range: CellRange): boolean {
-  return Number.isSafeInteger(range.rowStart) && Number.isSafeInteger(range.rowEnd) &&
-    Number.isSafeInteger(range.colStart) && Number.isSafeInteger(range.colEnd) &&
-    range.rowStart >= 0 && range.colStart >= 0 && range.rowStart <= range.rowEnd && range.colStart <= range.colEnd
+  return (
+    Number.isSafeInteger(range.rowStart) &&
+    Number.isSafeInteger(range.rowEnd) &&
+    Number.isSafeInteger(range.colStart) &&
+    Number.isSafeInteger(range.colEnd) &&
+    range.rowStart >= 0 &&
+    range.colStart >= 0 &&
+    range.rowStart <= range.rowEnd &&
+    range.colStart <= range.colEnd
+  )
 }

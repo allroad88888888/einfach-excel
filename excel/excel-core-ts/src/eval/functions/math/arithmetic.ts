@@ -175,5 +175,10 @@ export const PRODUCT: FunctionImpl = (args) => {
   return finiteOrNum(total)
 }
 
-
-export const FUNCTIONS: Record<string, FunctionImpl> = { CEILING, FLOOR, TRUNC, SUMPRODUCT, PRODUCT }
+export const FUNCTIONS: Record<string, FunctionImpl> = {
+  CEILING,
+  FLOOR,
+  TRUNC,
+  SUMPRODUCT,
+  PRODUCT,
+}

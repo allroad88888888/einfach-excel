@@ -1,4 +1,9 @@
 /** Error-function approximations and Excel wrappers. */
+/* eslint-disable @typescript-eslint/no-loss-of-precision --
+   Cody's rational-approximation coefficients keep their published fixed-width
+   form so they can be audited digit-for-digit against the reference tables.
+   The parsed doubles are identical to the shortest-form spellings, so the
+   extra digits carry no runtime difference. */
 
 import type { FunctionImpl } from '../../../types'
 import { propagateError, toNumber } from '../../coerce'

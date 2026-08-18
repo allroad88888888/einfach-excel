@@ -66,7 +66,8 @@ export function snapshotRange(value: unknown): CellRange | null {
       typeof colEnd !== 'number' ||
       !Number.isSafeInteger(colEnd) ||
       colEnd < colStart
-    ) return null
+    )
+      return null
     return { rowStart, rowEnd, colStart, colEnd }
   } catch {
     return null
@@ -102,47 +103,94 @@ function snapshotNumberFormat(value: unknown): SpreadsheetNumberFormat | null {
     const kind = value.kind
     const digits = value.digits
     const negative = value.negative
-    const validDigits = digits === undefined || (typeof digits === 'number' && Number.isFinite(digits))
+    const validDigits =
+      digits === undefined || (typeof digits === 'number' && Number.isFinite(digits))
     const validNegative = negative === undefined || isOneOf(negative, NEGATIVE_FORMATS)
     switch (kind) {
-      case 'general': case 'text': return { kind }
-      case 'number': case 'decimal': {
+      case 'general':
+      case 'text':
+        return { kind }
+      case 'number':
+      case 'decimal': {
         const thousands = value.thousands
-        if (!validDigits || !validNegative || (thousands !== undefined && typeof thousands !== 'boolean')) return null
-        return { kind, ...(digits === undefined ? {} : { digits }), ...(thousands === undefined ? {} : { thousands }), ...(negative === undefined ? {} : { negative }) }
+        if (
+          !validDigits ||
+          !validNegative ||
+          (thousands !== undefined && typeof thousands !== 'boolean')
+        )
+          return null
+        return {
+          kind,
+          ...(digits === undefined ? {} : { digits }),
+          ...(thousands === undefined ? {} : { thousands }),
+          ...(negative === undefined ? {} : { negative }),
+        }
       }
       case 'currency': {
         const symbol = value.symbol
-        if (!validDigits || !validNegative || (symbol !== undefined && typeof symbol !== 'string')) return null
-        return { kind, ...(symbol === undefined ? {} : { symbol }), ...(digits === undefined ? {} : { digits }), ...(negative === undefined ? {} : { negative }) }
+        if (!validDigits || !validNegative || (symbol !== undefined && typeof symbol !== 'string'))
+          return null
+        return {
+          kind,
+          ...(symbol === undefined ? {} : { symbol }),
+          ...(digits === undefined ? {} : { digits }),
+          ...(negative === undefined ? {} : { negative }),
+        }
       }
       case 'accounting': {
         const symbol = value.symbol
         if (!validDigits || (symbol !== undefined && typeof symbol !== 'string')) return null
-        return { kind, ...(symbol === undefined ? {} : { symbol }), ...(digits === undefined ? {} : { digits }) }
+        return {
+          kind,
+          ...(symbol === undefined ? {} : { symbol }),
+          ...(digits === undefined ? {} : { digits }),
+        }
       }
-      case 'date': case 'time': {
+      case 'date':
+      case 'time': {
         const pattern = value.pattern
-        return pattern !== undefined && typeof pattern !== 'string' ? null : { kind, ...(pattern === undefined ? {} : { pattern }) }
+        return pattern !== undefined && typeof pattern !== 'string'
+          ? null
+          : { kind, ...(pattern === undefined ? {} : { pattern }) }
       }
-      case 'percent': case 'percentage':
-        return !validDigits || !validNegative ? null : { kind, ...(digits === undefined ? {} : { digits }), ...(negative === undefined ? {} : { negative }) }
+      case 'percent':
+      case 'percentage':
+        return !validDigits || !validNegative
+          ? null
+          : {
+              kind,
+              ...(digits === undefined ? {} : { digits }),
+              ...(negative === undefined ? {} : { negative }),
+            }
       case 'fraction': {
         const denominator = value.denominator
-        if (denominator !== undefined && denominator !== 'one-digit' && denominator !== 'two-digit' && denominator !== 'three-digit' && (typeof denominator !== 'number' || !Number.isFinite(denominator))) return null
+        if (
+          denominator !== undefined &&
+          denominator !== 'one-digit' &&
+          denominator !== 'two-digit' &&
+          denominator !== 'three-digit' &&
+          (typeof denominator !== 'number' || !Number.isFinite(denominator))
+        )
+          return null
         return { kind, ...(denominator === undefined ? {} : { denominator }) }
       }
-      case 'scientific': return !validDigits ? null : { kind, ...(digits === undefined ? {} : { digits }) }
+      case 'scientific':
+        return !validDigits ? null : { kind, ...(digits === undefined ? {} : { digits }) }
       case 'special': {
         const preset = value.preset
         const locale = value.locale
-        if (typeof preset !== 'string' || (locale !== undefined && typeof locale !== 'string')) return null
+        if (typeof preset !== 'string' || (locale !== undefined && typeof locale !== 'string'))
+          return null
         return { kind, preset, ...(locale === undefined ? {} : { locale }) }
       }
-      case 'custom': return typeof value.pattern === 'string' ? { kind, pattern: value.pattern } : null
-      default: return null
+      case 'custom':
+        return typeof value.pattern === 'string' ? { kind, pattern: value.pattern } : null
+      default:
+        return null
     }
-  } catch { return null }
+  } catch {
+    return null
+  }
 }
 
 export function snapshotFormat(value: unknown): SpreadsheetCellFormat | null {
@@ -154,7 +202,14 @@ export function snapshotFormat(value: unknown): SpreadsheetCellFormat | null {
       if (numberFormat === null) return null
       result.numberFormat = numberFormat
     }
-    for (const field of ['bold', 'italic', 'underline', 'strikethrough', 'wrap', 'shrinkToFit'] as const) {
+    for (const field of [
+      'bold',
+      'italic',
+      'underline',
+      'strikethrough',
+      'wrap',
+      'shrinkToFit',
+    ] as const) {
       if (value[field] !== undefined) {
         if (typeof value[field] !== 'boolean') return null
         result[field] = value[field]
@@ -185,7 +240,14 @@ export function snapshotFormat(value: unknown): SpreadsheetCellFormat | null {
       result.overflow = value.overflow
     }
     if (value.rotation !== undefined) {
-      if (value.rotation !== 'vertical' && (typeof value.rotation !== 'number' || !Number.isFinite(value.rotation) || value.rotation < -90 || value.rotation > 90)) return null
+      if (
+        value.rotation !== 'vertical' &&
+        (typeof value.rotation !== 'number' ||
+          !Number.isFinite(value.rotation) ||
+          value.rotation < -90 ||
+          value.rotation > 90)
+      )
+        return null
       result.rotation = value.rotation
     }
     if (value.borders !== undefined) {
@@ -200,5 +262,7 @@ export function snapshotFormat(value: unknown): SpreadsheetCellFormat | null {
       result.borders = borders
     }
     return result
-  } catch { return null }
+  } catch {
+    return null
+  }
 }

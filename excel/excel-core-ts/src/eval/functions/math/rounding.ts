@@ -19,7 +19,7 @@ function roundScaledHalfAwayFromZero(abs: number, factor: number): number {
 function roundHalfAwayFromZero(x: number, digits: number): number {
   if (!Number.isFinite(x)) return x
   const factor = Math.pow(10, digits)
-  return (x >= 0 ? 1 : -1) * roundScaledHalfAwayFromZero(Math.abs(x), factor) / factor
+  return ((x >= 0 ? 1 : -1) * roundScaledHalfAwayFromZero(Math.abs(x), factor)) / factor
 }
 
 function roundAwayFromZero(x: number, digits: number): number {
@@ -131,5 +131,14 @@ export const SIGN: FunctionImpl = (args) => {
   return NUM(0)
 }
 
-
-export const FUNCTIONS: Record<string, FunctionImpl> = { ROUND, ROUNDUP, ROUNDDOWN, INT, MOD, ABS, POWER, SQRT, SIGN }
+export const FUNCTIONS: Record<string, FunctionImpl> = {
+  ROUND,
+  ROUNDUP,
+  ROUNDDOWN,
+  INT,
+  MOD,
+  ABS,
+  POWER,
+  SQRT,
+  SIGN,
+}

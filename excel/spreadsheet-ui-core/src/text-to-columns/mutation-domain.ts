@@ -20,14 +20,22 @@ export function textToColumnsAcknowledgementMatches(
     const revisionIsWitness =
       (typeof result.revision === 'number' && Number.isFinite(result.revision)) ||
       (typeof result.revision === 'string' && result.revision.length > 0)
-    return result.sheetId === ticket.sheetId && result.requestId === ticket.requestId &&
-      result.affectedRange !== undefined && sameRange(result.affectedRange, ticket.target) &&
+    return (
+      result.sheetId === ticket.sheetId &&
+      result.requestId === ticket.requestId &&
+      result.affectedRange !== undefined &&
+      sameRange(result.affectedRange, ticket.target) &&
       revisionIsWitness
-  } catch { return false }
+    )
+  } catch {
+    return false
+  }
 }
 
 export function numericTextToColumnsHistoryRevision(result: BackendMutationResult): number | null {
-  return typeof result.revision === 'number' && Number.isFinite(result.revision) ? result.revision : null
+  return typeof result.revision === 'number' && Number.isFinite(result.revision)
+    ? result.revision
+    : null
 }
 
 export function textToColumnsMutationTicketIsCurrent(
@@ -37,8 +45,15 @@ export function textToColumnsMutationTicketIsCurrent(
   const active = get(activeTextToColumnsMutationAtom)
   const lifecycle = get(textToColumnsLifecycleAtom)
   const session = get(textToColumnsSessionAtom)
-  return active !== null && active.sessionId === ticket.sessionId && active.requestId === ticket.requestId &&
-    get(textToColumnsOpenAtom) && get(textToColumnsSessionIdAtom) === ticket.sessionId &&
-    session?.sessionId === ticket.sessionId && session.sheetId === ticket.sheetId &&
-    lifecycle.sessionId === ticket.sessionId && lifecycle.requestId === ticket.requestId
+  return (
+    active !== null &&
+    active.sessionId === ticket.sessionId &&
+    active.requestId === ticket.requestId &&
+    get(textToColumnsOpenAtom) &&
+    get(textToColumnsSessionIdAtom) === ticket.sessionId &&
+    session?.sessionId === ticket.sessionId &&
+    session.sheetId === ticket.sheetId &&
+    lifecycle.sessionId === ticket.sessionId &&
+    lifecycle.requestId === ticket.requestId
+  )
 }

@@ -115,8 +115,9 @@ function assertEntry(entry: ConditionalFormatRuleEntry): void {
 }
 
 function nextRuleId(rules: readonly ConditionalFormatRuleEntry[]): string {
+  const taken = new Set(rules.map((entry) => entry.id))
   let suffix = rules.length + 1
-  while (rules.some((entry) => entry.id === `conditional-format-${suffix}`)) suffix += 1
+  while (taken.has(`conditional-format-${suffix}`)) suffix += 1
   return `conditional-format-${suffix}`
 }
 

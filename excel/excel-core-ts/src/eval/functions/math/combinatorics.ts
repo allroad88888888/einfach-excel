@@ -150,5 +150,12 @@ export const MULTINOMIAL: FunctionImpl = (args) => {
   return NUM(numerator / denominator)
 }
 
-
-export const FUNCTIONS: Record<string, FunctionImpl> = { FACT, FACTDOUBLE, COMBIN, PERMUT, COMBINA, PERMUTATIONA, MULTINOMIAL }
+export const FUNCTIONS: Record<string, FunctionImpl> = {
+  FACT,
+  FACTDOUBLE,
+  COMBIN,
+  PERMUT,
+  COMBINA,
+  PERMUTATIONA,
+  MULTINOMIAL,
+}

@@ -85,6 +85,7 @@ fn eval_info_known_subtypes() {
 }
 
 #[test]
+#[cfg(target_os = "macos")]
 fn eval_info_system_on_mac() {
     assert_eq!(ev("=INFO(\"system\")"), Value::Text("mac".into()));
 }
@@ -93,6 +94,14 @@ fn eval_info_system_on_mac() {
 #[cfg(target_os = "windows")]
 fn eval_info_system_on_windows() {
     assert_eq!(ev("=INFO(\"system\")"), Value::Text("pc".into()));
+}
+
+#[test]
+#[cfg(not(any(target_os = "macos", target_os = "windows")))]
+fn eval_info_system_on_other_platforms() {
+    // Linux CI lands here — the implementation folds every non-mac,
+    // non-windows target to "other".
+    assert_eq!(ev("=INFO(\"system\")"), Value::Text("other".into()));
 }
 
 #[test]

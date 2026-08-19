@@ -37,7 +37,7 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            excel/rust/target
+            excel/rust/wasm/target
           key: ${{ runner.os }}-cargo-ci-${{ hashFiles('excel/rust/**/Cargo.lock', 'excel/rust/**/Cargo.toml') }}
           restore-keys: |
             ${{ runner.os }}-cargo-ci-
@@ -52,3 +52,66 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: npm run build
       - run: npm test
+
+  # Rust 引擎门禁。三个 crate 的 2700+ 个 #[test] 此前不在任何 workflow 里,
+  # 纯靠人工本地跑。命令口径来自 excel/rust/docs/archive/RELEASE_GATE_PLAN.md
+  # 的 blocking gate 与 docs/PARITY_BACKLOG_HANDOFF_2026-08-04.md 的验证纪律:
+  # excel-core 双跑 default 与 --no-default-features(对应 full/lite 两份 WASM
+  # 产物的 feature 面);bench --no-run 抓 bench harness 与引擎 API 签名漂移;
+  # wasm-pack test 是 WASM 浏览器行为的门禁(#[wasm_bindgen_test])。
+  rust:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      # 三个 crate 没有 workspace 根,target 目录各自独立。
+      - name: Cache cargo registry + build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            excel/rust/core/target
+            excel/rust/excel-core/target
+            excel/rust/wasm/target
+          key: ${{ runner.os }}-cargo-rust-${{ hashFiles('excel/rust/**/Cargo.lock', 'excel/rust/**/Cargo.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-rust-
+
+      - name: cargo test (einfach-core)
+        run: cargo test --locked --manifest-path excel/rust/core/Cargo.toml
+
+      - name: cargo test (einfach-excel-core, default features)
+        run: cargo test --locked --manifest-path excel/rust/excel-core/Cargo.toml
+
+      - name: cargo test (einfach-excel-core, lite --no-default-features)
+        run: cargo test --locked --manifest-path excel/rust/excel-core/Cargo.toml --no-default-features
+
+      - name: cargo bench --no-run (bench harness compile gate)
+        run: cargo bench --locked --manifest-path excel/rust/excel-core/Cargo.toml --no-run
+
+      - name: cargo test (einfach-wasm, native)
+        run: cargo test --locked --manifest-path excel/rust/wasm/Cargo.toml
+
+      - name: Install wasm-pack
+        run: |
+          if ! command -v wasm-pack >/dev/null; then
+            curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+          fi
+          wasm-pack --version
+
+      # runner 镜像自带配套的 Chrome + chromedriver(CHROMEWEBDRIVER 指向其目录)。
+      # 必须用 --chromedriver 参数喂给 wasm-pack —— 它不读 CHROMEDRIVER 环境变量,
+      # 找不到时会自行下载一份,版本可能与镜像里的 Chrome 不配
+      # (本地实测 152 driver 驱动 151 Chrome 时以 `http status: 404` 挂掉)。
+      - name: wasm-pack test (einfach-wasm, headless Chrome)
+        run: |
+          if [ -n "$CHROMEWEBDRIVER" ] && [ -x "$CHROMEWEBDRIVER/chromedriver" ]; then
+            wasm-pack test --headless --chrome --chromedriver "$CHROMEWEBDRIVER/chromedriver" excel/rust/wasm
+          else
+            wasm-pack test --headless --chrome excel/rust/wasm
+          fi

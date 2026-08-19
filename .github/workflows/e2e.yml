@@ -67,7 +67,7 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            excel/rust/target
+            excel/rust/wasm/target
           key: ${{ runner.os }}-cargo-e2e-${{ hashFiles('excel/rust/**/Cargo.lock', 'excel/rust/**/Cargo.toml') }}
           restore-keys: |
             ${{ runner.os }}-cargo-e2e-

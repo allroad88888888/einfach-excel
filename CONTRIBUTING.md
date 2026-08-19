@@ -164,7 +164,7 @@ pnpm exec changeset publish  # 发布到 npm
 ## 测试
 
 ```bash
-pnpm test                                                   # 全量（含覆盖率）
+pnpm test                                                   # 全量（不采覆盖率；报告用 pnpm run test:coverage）
 pnpm exec jest path/to/file.test.ts --no-coverage           # 单个文件
 pnpm exec jest excel/spreadsheet-ui-core --no-coverage       # 分区套件
 pnpm exec jest excel/solid-excel --no-coverage

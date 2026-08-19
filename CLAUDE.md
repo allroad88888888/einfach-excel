@@ -12,7 +12,7 @@ Rust/WASM 公式引擎（`excel/rust/`）+ 基于两者的 Solid.js 表格界面
 
 ```bash
 npm run build            # clearTypes → ensureWasm → tsc -build → rollup（缺 excel/excel-wasm/lite 时会调 wasm-pack，需要 Rust 工具链）
-npm test                 # 全量 jest（含覆盖率）
+npm test                 # 全量 jest（不采覆盖率；报告用 npm run test:coverage）
 npx jest path/to/file.test.ts                      # 单个测试文件
 npx jest excel/spreadsheet-ui-core --no-coverage   # 分区套件（solid-excel 同理）
 
@@ -38,7 +38,7 @@ npm run build:wasm -w @einfach/excel-wasm            # 产物落 excel/excel-was
 npm run build:wasm:full -w @einfach/excel-wasm       # full 变体（--features regex-formulas）→ excel/excel-wasm/full/
 ```
 
-pre-commit（husky）依次跑 `check:docs`、`lint:check`、`typecheck:apps`、`build`、`test` —— 提交前本地跑全量 `npm test` 可以省一轮返工。
+pre-commit（husky）依次跑 `check:docs`、`lint:check`、`typecheck:apps`、增量 `tsc -build`、`jest --onlyChanged` —— 全量 clean build + 全量 jest 的门禁在 CI（ci.yml）；大改动提交前手动跑一次全量 `npm test` 可以省一轮 CI 返工。
 
 ## Monorepo Structure (pnpm workspaces)
 

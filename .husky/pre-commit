@@ -1,8 +1,9 @@
-# Fast checks first: they fail in seconds, and `build` starts by deleting
-# every package's @types, so a later failure would leave the tree without
-# declaration output.
+# 快检查在前(秒级失败)。全量 clean build + 全量 jest 的门禁在 CI
+# (ci.yml 每次 push/PR 都跑 `npm run build` + `npm test`);提交门禁只保留
+# 文档/lint/类型检查 + 受本次改动影响的 jest。这里的 `tsc -build` 是增量的
+# (不过 clearTypes),.tsbuildinfo 热的时候只要几秒。
 npm run check:docs
 npm run lint:check
 npm run typecheck:apps
-npm run build
-npm test
+npx tsc -build
+npx jest --onlyChanged --no-coverage --passWithNoTests

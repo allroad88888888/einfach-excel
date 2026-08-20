@@ -7,12 +7,19 @@ import { collaborationSeed } from '../demos/seeds/seed-collaboration'
 import { customFormulaSheets, seedCustomFormulasWorkbook } from '../demos/seeds/seed-custom-formulas'
 import { formulaEngineSheets, seedFormulaEngineWorkbook } from '../demos/seeds/seed-formula-engine'
 import { handOffFormSeed } from '../demos/seeds/seed-hand-off-form'
+import type {
+  WorkerWorkbookBackendSheet,
+  WorkerWorkbookClient,
+} from '@einfach/solid-excel/vnext'
 import {
   PERFORMANCE_COLS,
   PERFORMANCE_SHEET_ROWS,
+  PERFORMANCE_TOTAL_CELLS,
   performanceSheets,
   seedPerformanceWorkbook,
 } from '../demos/seeds/seed-performance'
+import ImportProgress from './import-progress/ImportProgress'
+import { createImportProgressAtom } from './import-progress/import-progress-state'
 import { makeStaticBackend, makeWasmWorkerBackend } from '../spreadsheet/backends'
 import DemoGrid from './demo-grid/DemoGrid'
 import DemoTour from './demo-tour/DemoTour'
@@ -35,14 +42,27 @@ export default function DemoIsland(props: DemoIslandProps) {
   const isStaticBackend = demo.runtime === 'static'
   const isPerformanceDemo = demo.id === 'viewport-projection'
   const isCustomFormulaDemo = demo.id === 'custom-formulas'
+  // 走 10 万行 performance seed 的 demo(分块导入需要数秒),给可见进度 ——
+  // 没有它,格子出现前用户只能看到一句静止的 "Loading workbook…"。
+  const usesPerformanceSeed =
+    !isStaticBackend && !isCustomFormulaDemo && demo.scenario !== 'formula-engine'
   const metricsAtom = createPerformanceMetricsAtom(PERFORMANCE_SHEET_ROWS)
   const setMetrics = useSetAtom(metricsAtom)
+  const importProgressAtom = createImportProgressAtom(PERFORMANCE_TOTAL_CELLS)
+  const setImportProgress = useSetAtom(importProgressAtom)
+  const seedPerformanceWithProgress = (
+    client: WorkerWorkbookClient,
+    sheets: WorkerWorkbookBackendSheet[],
+  ) =>
+    seedPerformanceWorkbook(client, sheets, (importedCells, totalCells) => {
+      setImportProgress({ importedCells, totalCells, done: importedCells >= totalCells })
+    })
   const backend = isStaticBackend
     ? makeStaticBackend(staticSeedFor(demo.scenario))
     : isPerformanceDemo
       ? makeMeasuredWasmWorkerBackend({
           sheets: performanceSheets,
-          afterInit: seedPerformanceWorkbook,
+          afterInit: seedPerformanceWithProgress,
           setMetrics,
         })
       : makeWasmWorkerBackend({
@@ -50,7 +70,7 @@ export default function DemoIsland(props: DemoIslandProps) {
             ? { sheets: customFormulaSheets, afterInit: seedCustomFormulasWorkbook }
             : demo.scenario === 'formula-engine'
             ? { sheets: formulaEngineSheets, afterInit: seedFormulaEngineWorkbook }
-            : { sheets: performanceSheets, afterInit: seedPerformanceWorkbook }),
+            : { sheets: performanceSheets, afterInit: seedPerformanceWithProgress }),
         })
 
   if ('dispose' in backend) onCleanup(() => backend.dispose())
@@ -66,6 +86,9 @@ export default function DemoIsland(props: DemoIslandProps) {
         </span>
       </aside>
       {isPerformanceDemo && <PerformanceHud metricsAtom={metricsAtom} />}
+      {usesPerformanceSeed && (
+        <ImportProgress progressAtom={importProgressAtom} locale={props.locale} />
+      )}
       <DemoTour stepCount={3} locale={props.locale} />
       <DemoGrid
         backend={backend}

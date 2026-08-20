@@ -193,9 +193,13 @@ function rowCells(sheet: number, row: number): ImportCellWire[] {
  * Opens one `direct`-mode import session, streams every grid row through
  * `importChunk` in `ROWS_PER_CHUNK`-sized batches, then commits once.
  */
+/** 本 seed 的总格数(1 汇总行 + 1 表头行 + 100,000 数据行,各 8 列)。 */
+export const PERFORMANCE_TOTAL_CELLS = PERFORMANCE_SHEET_ROWS * PERFORMANCE_COLS
+
 export async function seedPerformanceWorkbook(
   client: WorkerWorkbookClient,
   sheets: WorkerWorkbookBackendSheet[],
+  onProgress?: (importedCells: number, totalCells: number) => void,
 ): Promise<void> {
   const sheet = sheets.find((entry) => entry.id === 'data')?.idx ?? 0
 
@@ -206,9 +210,13 @@ export async function seedPerformanceWorkbook(
     const atChunkBoundary = (row + 1) % ROWS_PER_CHUNK === 0
     const atLastRow = row === PERFORMANCE_SHEET_ROWS - 1
     if (atChunkBoundary || atLastRow) {
-      await client.importChunk(sessionId, buffer)
+      // importChunk 的 resolve 值 = 本 session 引擎侧累计已归一化的格数 ——
+      // 这是唯一"后端真实确认"的进度数,直接透传给宿主的进度 UI。
+      const normalizedCount = await client.importChunk(sessionId, buffer)
+      onProgress?.(normalizedCount, PERFORMANCE_TOTAL_CELLS)
       buffer = []
     }
   }
   await client.commitImport(sessionId)
+  onProgress?.(PERFORMANCE_TOTAL_CELLS, PERFORMANCE_TOTAL_CELLS)
 }

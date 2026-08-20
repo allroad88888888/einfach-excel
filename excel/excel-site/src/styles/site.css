@@ -291,3 +291,30 @@ pre {
 
   .demo-grid-frame { min-height: 340px; }
 }
+
+.import-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  border-radius: 7px;
+  color: #dce9e3;
+  background: var(--hud);
+  font-size: 0.82rem;
+}
+
+.import-progress progress {
+  flex: 1;
+  min-width: 0;
+  height: 8px;
+  accent-color: #60d3a5;
+}
+
+.import-progress-label { font-weight: 700; white-space: nowrap; }
+
+.import-progress-count {
+  font-feature-settings: "tnum" 1;
+  white-space: nowrap;
+  color: #a7bbb1;
+}

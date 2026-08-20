@@ -123,10 +123,13 @@ export const demos: readonly DemoDefinition[] = [
   {
     id: 'workbench',
     runtime: 'worker-wasm',
-    scenario: 'performance',
+    // formula-engine 而非 performance:workbench 的文案卖点是"完整外壳组合"
+    // (toolbar/多 sheet 页签/状态栏),3 sheet + 跨表公式的小 seed 秒级加载,
+    // 也比单 sheet 大数据集更贴题;10 万行的规模展示归 viewport-projection。
+    scenario: 'formula-engine',
     sourceFiles: [
       'excel/excel-site/src/islands/DemoIsland.tsx',
-      'excel/excel-site/src/demos/seeds/seed-performance.ts',
+      'excel/excel-site/src/demos/seeds/seed-formula-engine.ts',
     ],
   },
 ]

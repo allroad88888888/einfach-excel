@@ -87,6 +87,13 @@ function initialTabId(): string {
   return backend === 'remote' ? 'vnext-remote' : 'vnext-wave5'
 }
 
+/** `?theme=dark` 给 demo 壳挂 data-spreadsheet-theme,启用 chrome 暗色
+ *  token(e2e 暗色守卫和人工查色都走这个入口)。 */
+function initialTheme(): 'dark' | undefined {
+  if (typeof window === 'undefined') return undefined
+  return new URLSearchParams(window.location.search).get('theme') === 'dark' ? 'dark' : undefined
+}
+
 export function App() {
   const [activeTab, setActiveTab] = createSignal(initialTabId())
   const t = useT()
@@ -94,7 +101,7 @@ export function App() {
   const activeDemo = () => allDemos.find((d) => d.id === activeTab())
 
   return (
-    <div class="app">
+    <div class="app" data-spreadsheet-theme={initialTheme()}>
       <header class="app-header">
         <h1 class="app-title">{t('app.title')}</h1>
         <span class="app-subtitle">{t('app.subtitle')}</span>

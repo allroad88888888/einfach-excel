@@ -82,3 +82,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* data-uri 里的 fx 字形吃不到 CSS 变量,暗色下单独换亮灰填充的一份。 */
+[data-spreadsheet-theme='dark'] .spreadsheet-formula-bar-input {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ctext x='12' y='17' text-anchor='middle' font-family='serif' font-style='italic' font-size='14' fill='%23a8a6a3'%3Efx%3C/text%3E%3C/svg%3E");
+}

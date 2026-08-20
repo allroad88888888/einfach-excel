@@ -47,8 +47,11 @@
   --select-bg: rgba(16, 124, 65, 0.08); /* 选区范围淡绿填充 */
   --spill-tint: rgba(43, 87, 154, 0.06); /* 动态数组溢出区淡蓝 */
   --resize-hint: rgba(0, 120, 212, 0.3); /* 行列缩放把手 hover */
-  --header-selected-bg: #caead8; /* 选中行/列对应表头 */
+  --header-selected-bg: #caead8; /* 选区触及的表头 */
   --header-selected-text: #0f703b;
+  /* 整行/列选中的实心表头。两主题都用 #107c41:白字 5.27:1,
+     暗色下不用更亮的 #21a366 —— 白字在其上只有 3.4:1,过不了 AA。 */
+  --header-full-selected-bg: #107c41;
 
   /* --- 尺寸 --- */
   --control-h: 28px; /* 工具栏控件统一高度 */
@@ -66,4 +69,45 @@
   --cell-font-size: 14px;
 
   --shadow-popover: 0 4px 14px rgba(0, 0, 0, 0.14);
+}
+
+/* ============================================================================
+ * 暗色皮肤 —— 宿主在组件任意祖先上放 data-spreadsheet-theme="dark" 即生效
+ * (CSS 变量沿 DOM 继承,子树内所有 chrome 就地换色)。
+ * 参照 Office 暗色:画布 #212121、chrome #252423、网格线 #404040。
+ * 对比度(AA,核算于 2026-08-20):text/cell 14.4、muted/chrome 6.38、
+ * green-text/cell 8.11、green-text/header-selected 6.28、error 5.15、
+ * 绿边框图形对比 4.98(#21a366 vs #212121)。
+ * ========================================================================= */
+[data-spreadsheet-theme='dark'] {
+  --excel-green: #21a366; /* 暗底上边框/下划线需要更亮的绿 */
+  --excel-green-text: #6ccb8f;
+  --office-blue: #479ef5;
+  --office-blue-text: #62abf5;
+
+  --bg-toolbar: #292827;
+  --bg-chrome: #252423;
+  --bg-chrome-light: #2d2c2b;
+  --bg-surface: #363534;
+  --bg-cell: #212121;
+
+  --text-default: #f3f2f1;
+  --text-muted: #a8a6a3;
+  --text-disabled: #6b6966;
+  --error-text: #f1707b;
+  --error-bg: rgba(241, 112, 123, 0.16);
+
+  --border: #484644;
+  --border-strong: #6b6966;
+  --gridline: #404040;
+
+  --hover: #3a3938;
+  --active-bg: #484644;
+  --select-bg: rgba(76, 194, 123, 0.12);
+  --spill-tint: rgba(96, 130, 182, 0.14);
+  --resize-hint: rgba(71, 158, 245, 0.4);
+  --header-selected-bg: #143b26;
+  --header-selected-text: #6ccb8f;
+
+  --shadow-popover: 0 4px 14px rgba(0, 0, 0, 0.55);
 }

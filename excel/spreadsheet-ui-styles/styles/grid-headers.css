@@ -41,7 +41,7 @@
 
 /* 整列选中(点击列字母):实心品牌绿,Excel 口径。 */
 .spreadsheet-grid .spreadsheet-grid-col-header.is-selected {
-  background: var(--excel-green);
+  background: var(--header-full-selected-bg);
   color: var(--text-on-accent);
   font-weight: 600;
   border-bottom: 2px solid var(--excel-green);
@@ -91,7 +91,7 @@
 
 /* 整行选中(点击行号):实心品牌绿。 */
 .spreadsheet-grid .spreadsheet-grid-row-header.is-selected {
-  background: var(--excel-green);
+  background: var(--header-full-selected-bg);
   color: var(--text-on-accent);
   font-weight: 600;
   border-right: 2px solid var(--excel-green);

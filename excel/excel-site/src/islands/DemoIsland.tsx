@@ -1,4 +1,4 @@
-import { onCleanup } from 'solid-js'
+import { createSignal, onCleanup } from 'solid-js'
 import { useSetAtom } from '@einfach/solid'
 import { setLocale } from '@einfach/solid-excel/i18n'
 import { findDemo } from '../data/demo-catalog'
@@ -42,6 +42,15 @@ export default function DemoIsland(props: DemoIslandProps) {
   // 表格 chrome 的文案 locale 跟随页面 locale。缺了这句,组件库的默认
   // locale(zh)会出现在英文页面上 —— 状态栏"求和/就绪"混进英文站。
   setLocale(props.locale)
+  // 表格 chrome 跟随站点主题:镜像 <html data-theme> 到岛根的
+  // data-spreadsheet-theme(spreadsheet-ui-styles 的暗色 token 作用域)。
+  // client:only 岛,document 在此可用;observer 随组件卸载断开。
+  const [siteTheme, setSiteTheme] = createSignal(document.documentElement.dataset.theme)
+  const themeObserver = new MutationObserver(() =>
+    setSiteTheme(document.documentElement.dataset.theme),
+  )
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+  onCleanup(() => themeObserver.disconnect())
   const demo = findDemo(props.demoId)
   const isStaticBackend = demo.runtime === 'static'
   const isPerformanceDemo = demo.id === 'viewport-projection'
@@ -80,7 +89,11 @@ export default function DemoIsland(props: DemoIslandProps) {
   if ('dispose' in backend) onCleanup(() => backend.dispose())
 
   return (
-    <section class="demo-island" data-runtime={demo.runtime}>
+    <section
+      class="demo-island"
+      data-runtime={demo.runtime}
+      data-spreadsheet-theme={siteTheme() === 'dark' ? 'dark' : undefined}
+    >
       <aside class="demo-runtime-note" aria-label="Demo runtime">
         <strong>{isStaticBackend ? 'In-memory backend' : 'Worker + Rust/WASM'}</strong>
         <span>

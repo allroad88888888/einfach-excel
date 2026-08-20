@@ -35,7 +35,9 @@ test.describe('deployed-artifact smoke — every demo shows real cells in budget
     test(`/demos/${demo.id}/ renders the grid within ${demo.budgetMs / 1000}s`, async ({
       page,
     }) => {
-      await page.goto(`/demos/${demo.id}/`)
+      // 相对路径(无前导斜杠):CI 下 baseURL 带 /einfach-excel base,
+      // 绝对路径会把它丢掉。
+      await page.goto(`demos/${demo.id}/`)
       await expectGridReady(page, demo.budgetMs)
       if (demo.expectProgress) {
         // 大 seed 导入完成后进度条必须卸载(不残留在 ready 页面上)。
@@ -45,14 +47,14 @@ test.describe('deployed-artifact smoke — every demo shows real cells in budget
   }
 
   test('the zh workbench page serves the same island', async ({ page }) => {
-    await page.goto('/zh/demos/workbench/')
+    await page.goto('zh/demos/workbench/')
     await expectGridReady(page, 15_000)
   })
 
   test('the homepage hero island reaches ready with its import progress gone', async ({
     page,
   }) => {
-    await page.goto('/')
+    await page.goto('.')
     await expectGridReady(page, 45_000)
     await expect(page.getByTestId('demo-import-progress')).toHaveCount(0)
   })

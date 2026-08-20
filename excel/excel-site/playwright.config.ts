@@ -40,7 +40,10 @@ export default defineConfig({
   reporter: 'list',
   use: {
     ...devices['Desktop Chrome'],
-    baseURL: `${BASE_URL}${SITE_BASE_PATH}`,
+    // 尾斜杠是必须的:spec 里的相对路径靠 URL 解析拼接,没有它 base 的
+    // 末段会被丢掉;而 spec 里也绝不能写前导斜杠(绝对路径会丢掉
+    // /einfach-excel base 前缀 —— 首轮 CI 就是这么 12 全挂的)。
+    baseURL: `${BASE_URL}${SITE_BASE_PATH}/`,
     trace: 'on-first-retry',
   },
   webServer: {

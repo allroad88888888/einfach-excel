@@ -1,9 +1,4 @@
-import {
-  atomFeatureDocs,
-  backendContract,
-  backendTypesPath,
-  sourceUrl,
-} from './source-projection'
+import { atomFeatureDocs, backendContract, backendTypesPath, sourceUrl } from './source-projection'
 import { publicUrl } from './site-publication'
 
 export type DocumentationMarkdownPage = 'getting-started' | 'backend-port' | 'api'
@@ -32,24 +27,27 @@ ${backendContract}
 `
   }
 
-  const featureLinks = atomFeatureDocs
-    .map((feature) => `- [${feature.title}](${publicUrl(`/docs/atoms/${feature.id}/`)})`)
-    .join('\n')
-  return `# API reference
+  const featureLinks = atomFeatureDocs.map((feature) => `- [${feature.title}](${publicUrl(`/docs/atoms/${feature.id}/`)})`).join('\n')
+  return `# UI operation API
 
-The live contract comes from [${backendTypesPath}](${sourceUrl(backendTypesPath)}).
+The [UI operation reference](${publicUrl('/api/')}) documents frontend spreadsheet interactions.
 
-\`\`\`ts
-${backendContract}
-\`\`\`
+## Set one cell
 
-## Atom feature guides
+1. \`selectCellAtom\` makes the target cell active.
+2. \`startEditingAtom\` opens its editing session.
+3. \`editingDraftAtom\` holds the value or formula being typed.
+4. \`runEditingCommitAtom\` commits that draft.
+
+## More UI operations
+
+- \`setSelectionAtom\`, \`getActiveCell\`, and \`moveSelection\` control selection.
+- \`copyClipboardAtom\` and \`pasteClipboardAtom\` coordinate clipboard interaction.
+- \`runUndoHistoryAtom\` and \`runRedoHistoryAtom\` move through user history.
+
+## State guides
 
 ${featureLinks}
-
-## Generated reference
-
-[TypeDoc Markdown](${publicUrl('/api-reference/globals.md')}) is generated at build time from the public package entry points.
 `
 }
 

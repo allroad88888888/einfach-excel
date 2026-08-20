@@ -5,17 +5,77 @@ import { sitePath } from '../../data/site-path'
 ---
 
 <DocsPage
-  title="Backend port"
-  eyebrow="SOURCE-PROJECTED CONTRACT"
-  summary="Implement the required projection and edit methods; optional ports progressively enrich the same spreadsheet UI."
+  title="Connect your backend"
+  eyebrow="INTEGRATION CONTRACT"
+  summary="Keep workbook data and compute in your product while the grid stays bounded."
   alternateLocaleHref={sitePath('zh/docs/backend-port/')}
 >
-  <p>
-    This block is extracted at build time from
-    <a href={sourceUrl(backendTypesPath)}>{backendTypesPath}</a>. It is not a hand-maintained copy.
-  </p>
-  <h2 id="required-methods">Required methods</h2>
-  <pre><code>{backendContract}</code></pre>
-  <h2 id="contract-notes">Contract notes from source</h2>
-  <pre><code>{backendOverview}</code></pre>
+  <div class="docs-guide">
+    <section class="docs-guide-callout" aria-label="When to implement a backend port">
+      <p class="docs-guide-label">DECISION</p>
+      <p>
+        Use this route when your application already owns the workbook, storage, permissions, or compute runtime. If you
+        only need a working Solid grid, start with the <a href={sitePath('docs/getting-started/')}>Solid quick start</a> instead.
+      </p>
+    </section>
+
+    <h2>What you must implement first</h2>
+    <p>The UI does not request a full workbook. A minimal editable backend has three responsibilities:</p>
+    <div class="docs-guide-terms">
+      <article><strong>Visible projection</strong><span>Given a window, return only its display cells.</span></article>
+      <article><strong>Range projection</strong><span>Given an explicit finite range, return only that range.</span></article>
+      <article><strong>Cell input</strong><span>Persist an edit, then acknowledge the bounded affected range.</span></article>
+    </div>
+    <pre><code>{`import type { SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
+
+type MinimumEditableBackend = Pick<
+  SpreadsheetBackend,
+  'readVisibleProjection' | 'readRangeProjection' | 'setCellInput'
+>`}</code></pre>
+    <p>
+      Every other method in the contract is optional capability surface. Add it only when the product exposes its matching
+      UI feature; omitted capabilities degrade by hiding or disabling that feature.
+    </p>
+
+    <h2>Implement in this order</h2>
+    <ol class="docs-guide-steps">
+      <li>Map the requested <code>window</code> or <code>range</code> to your storage query; never hydrate an entire sheet for a scroll.</li>
+      <li>Return display-ready cells with their row, column, displayed value, and any formula or format facts your renderer needs.</li>
+      <li>On <code>setCellInput</code>, make the authoritative write first. Resolve only after it lands, then return the changed range and revision.</li>
+    </ol>
+
+    <h2>Grow capability by capability</h2>
+    <table class="docs-guide-table">
+      <thead><tr><th>Need</th><th>Add to the port</th><th>Do not do</th></tr></thead>
+      <tbody>
+        <tr><td>Large-sheet scrolling</td><td><code>readVisibleProjection</code></td><td>Send a sparse-sheet dump to the browser.</td></tr>
+        <tr><td>Selection and clipboard</td><td><code>readRangeProjection</code>, then export/import methods as needed</td><td>Turn selection into an unbounded read.</td></tr>
+        <tr><td>Editing and formulas</td><td><code>setCellInput</code></td><td>Acknowledge a write that your backend rejected.</td></tr>
+        <tr><td>Workbook features</td><td>Add the relevant optional method</td><td>Implement every optional capability before shipping.</td></tr>
+      </tbody>
+    </table>
+
+    <section class="docs-guide-callout docs-guide-callout-warning">
+      <p class="docs-guide-label">THE BOUNDARY</p>
+      <p>
+        The backend owns authoritative workbook facts. The UI owns only interaction state such as selection, editing, and
+        viewport. Keeping this boundary intact is what allows static, Worker, remote, and product-owned backends to share one grid.
+      </p>
+    </section>
+
+    <h2>Use the source as the exact reference</h2>
+    <p>
+      The full interface below is extracted at build time from
+      <a href={sourceUrl(backendTypesPath)}>{backendTypesPath}</a>, so it cannot drift from the implementation. The bundled
+      <a href={sourceUrl('excel/solid-excel/src-vnext/adapter/static/backend.ts')}>static backend</a> is the smallest concrete reference.
+    </p>
+    <details class="docs-guide-details docs-guide-contract">
+      <summary>Open the complete <code>SpreadsheetBackend</code> interface</summary>
+      <pre><code>{backendContract}</code></pre>
+    </details>
+    <details class="docs-guide-details">
+      <summary>Read the source-level design notes</summary>
+      <pre><code>{backendOverview}</code></pre>
+    </details>
+  </div>
 </DocsPage>

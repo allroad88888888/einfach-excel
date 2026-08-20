@@ -1,0 +1,75 @@
+/* Integration proof — the smallest credible API surface and technology boundary. */
+.integration-section {
+  display: grid;
+  grid-template-columns: 0.82fr 1.18fr;
+  gap: 90px;
+  align-items: center;
+  padding: 130px 0;
+}
+.integration-copy > p:not(.section-index) {
+  max-width: 360px;
+  margin: 21px 0 26px;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+.framework-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 23px;
+}
+.framework-list span {
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.text-action {
+  border-bottom: 1px solid var(--ink);
+  padding-bottom: 3px;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+.text-action span {
+  margin-left: 5px;
+}
+.code-card {
+  margin: 0;
+  overflow: auto;
+  padding: 28px;
+  border-radius: var(--radius);
+  color: #e8eee9;
+  background: #10201b;
+  box-shadow: 8px 8px 0 var(--blue);
+  font:
+    0.8rem/1.8 ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    monospace;
+}
+.code-dim {
+  color: #a7b9b0;
+}
+.code-string {
+  color: #e8c577;
+}
+.code-function {
+  color: #8bcced;
+}
+.code-tag {
+  color: #e897cf;
+}
+@media (max-width: 860px) {
+  .integration-section {
+    gap: 40px;
+  }
+}
+@media (max-width: 640px) {
+  .integration-section {
+    grid-template-columns: 1fr;
+    gap: 15px;
+    padding: 78px 0;
+  }
+}

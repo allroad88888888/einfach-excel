@@ -1,0 +1,94 @@
+---
+import { apiReferenceContent, type ApiReferenceLocale } from '../data/api-reference-content'
+import { sitePath } from '../data/site-path'
+import '../styles/api-reference.css'
+import '../styles/api-reference-spotlight.css'
+import DocsPage from './DocsPage.astro'
+
+interface Props {
+  locale: ApiReferenceLocale
+}
+
+const { locale } = Astro.props
+const content = apiReferenceContent[locale]
+const labels = locale === 'zh'
+  ? { contents: '本页目录', task: '最常用操作', input: '传入', output: '结果', usage: '何时使用', active: '当前单元格', draft: '编辑草稿', complete: '提交完成' }
+  : { contents: 'On this page', task: 'Most common operation', input: 'Give it', output: 'Result', usage: 'Use it when', active: 'Active cell', draft: 'Editing draft', complete: 'Committed' }
+---
+
+<DocsPage
+  locale={locale}
+  title={content.title}
+  eyebrow={content.eyebrow}
+  summary={content.summary}
+  alternateLocaleHref={sitePath(locale === 'zh' ? 'api/' : 'zh/api/')}
+  wide
+>
+  <div class="api-reference-page">
+    <section class="api-spotlight" aria-labelledby="api-spotlight-title">
+      <div class="api-spotlight-copy">
+        <p>{labels.task}</p>
+        <h2 id="api-spotlight-title">{content.task.title}</h2>
+        <p>{content.task.description}</p>
+        <ol>
+          {content.task.steps.map((step) => <li><a href={`#${step.symbol}`}>{step.symbol}</a><span>{step.detail}</span></li>)}
+        </ol>
+      </div>
+      <div class="api-spotlight-sheet" aria-label={content.task.title}>
+        <div class="api-spotlight-sheet-head"><span>Sheet 01</span><span>•••</span></div>
+        <div class="api-spotlight-formula"><span>A1</span><i>fx</i><strong>12,500</strong></div>
+        <div class="api-spotlight-cells" aria-hidden="true">
+          <span></span><span>A</span><span>B</span><span>C</span>
+          <span>1</span><strong>12,500</strong><span>North</span><span>Q3</span>
+          <span>2</span><span>8,400</span><span>East</span><span>Q3</span>
+          <span>3</span><span>9,100</span><span>West</span><span>Q3</span>
+        </div>
+        <div class="api-spotlight-status"><span>{labels.active}: A1</span><span>{labels.draft}: 12,500</span><strong>{labels.complete} ✓</strong></div>
+      </div>
+    </section>
+    <div class="api-reference-shell">
+      <nav class="api-reference-nav" aria-label={labels.contents}>
+        <p>{labels.contents}</p>
+        {
+          content.groups.map((group, groupIndex) => (
+            <div>
+              <a class="api-reference-nav-group" href={`#api-group-${groupIndex}`}>{group.title}</a>
+              {group.symbols.map((symbol) => <a href={`#${symbol.name}`}>{symbol.name}</a>)}
+            </div>
+          ))
+        }
+      </nav>
+      <div class="api-reference-main">
+        <p class="api-reference-intro">{content.intro}</p>
+      {
+        content.groups.map((group, groupIndex) => (
+          <section class="api-symbol-group" aria-labelledby={`api-group-${groupIndex}`}>
+            <header>
+              <h2 id={`api-group-${groupIndex}`}>{group.title}</h2>
+              <p>{group.description}</p>
+            </header>
+            <div class="api-symbol-list">
+              {group.symbols.map((symbol) => (
+                <article class="api-symbol" id={symbol.name}>
+                  <header>
+                    <p class="api-symbol-kind">{symbol.kind}</p>
+                    <h3>{symbol.name}</h3>
+                  </header>
+                  <div class="api-symbol-details">
+                    <p class="api-symbol-description">{symbol.description}</p>
+                    <dl>
+                      <div><dt>{labels.input}</dt><dd>{symbol.input}</dd></div>
+                      <div><dt>{labels.output}</dt><dd>{symbol.output}</dd></div>
+                      <div><dt>{labels.usage}</dt><dd>{symbol.usage}</dd></div>
+                    </dl>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        ))
+      }
+      </div>
+    </div>
+  </div>
+</DocsPage>

@@ -14,3 +14,7 @@ summary: 一个本地 React island 通过公开的 provider、grid、selection �
 调用方拥有固定的 4×4 投影、确定性 backend 对象和隔离的 Einfach store。网格以受控输入接收单元格与选择范围；pointer-selection hook 将范围写入该 store。
 
 这个本地演示不读取、持久化、编辑或计算工作簿数据。backend 方法如果被调用就会抛错，因此展示的投影始终是显式的。
+
+## 可用性边界
+
+React 适配器是私有仓库源码，不是已发布 npm 包或可用于生产的集成路径。在把这个受控示例当成应用架构前，请先阅读 React 适配器源码参考。

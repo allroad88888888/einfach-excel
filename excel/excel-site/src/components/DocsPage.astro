@@ -1,5 +1,6 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro'
+import '../styles/docs-guide.css'
 
 interface Props {
   title: string
@@ -7,17 +8,20 @@ interface Props {
   summary: string
   locale?: 'en' | 'zh'
   alternateLocaleHref?: string
+  wide?: boolean
 }
 
-const { title, eyebrow, summary, locale = 'en', alternateLocaleHref } = Astro.props
+const { title, eyebrow, summary, locale = 'en', alternateLocaleHref, wide = false } = Astro.props
 ---
 
 <SiteLayout locale={locale} title={title + ' · einfach excel'} alternateLocaleHref={alternateLocaleHref}>
-  <main class="page docs-page">
-    <p class="eyebrow">{eyebrow}</p>
-    <h1>{title}</h1>
-    <p class="page-intro">{summary}</p>
-    <article class="demo-narrative">
+  <main class:list={{ 'product-page': true, 'product-docs-page': true, 'product-docs-page-wide': wide }}>
+    <header class="product-intro">
+      <p class="product-eyebrow">{eyebrow}</p>
+      <h1>{title}</h1>
+      <p>{summary}</p>
+    </header>
+    <article class="product-narrative">
       <slot />
     </article>
   </main>

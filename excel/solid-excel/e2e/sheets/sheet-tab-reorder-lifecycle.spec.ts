@@ -96,13 +96,11 @@ test.describe('Sheet tab reorder pointer lifecycle', () => {
   }) => {
     await gotoWorkerDemo(page)
 
-    const handle = page.getByTestId('sheet-tab-reorder-sheet-3')
-    await handle.focus()
+    // 拖页签本体(把手已删除);Escape 由 reorder 会话挂的 window 监听接住。
+    const handle = tabItem(page, 'sheet-3').getByRole('tab')
     await startNativePointer(page, handle)
     await moveOverFirstTab(page)
 
-    // Pointerdown prevents default, so preserving the existing focused handle
-    // is the browser route that exposes the Escape cancellation affordance.
     await page.keyboard.press('Escape')
     await page.mouse.up()
 
@@ -113,7 +111,7 @@ test.describe('Sheet tab reorder pointer lifecycle', () => {
   test('pointercancel clears the drop marker without committing a reorder', async ({ page }) => {
     await gotoWorkerDemo(page)
 
-    const handle = page.getByTestId('sheet-tab-reorder-sheet-3')
+    const handle = tabItem(page, 'sheet-3').getByRole('tab')
     await startNativePointer(page, handle)
     const target = await moveOverFirstTab(page)
 

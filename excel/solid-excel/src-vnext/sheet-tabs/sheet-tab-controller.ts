@@ -218,13 +218,52 @@ export function createSheetTabInteractionController(options: SheetTabInteraction
     }
   }
 
-  function beginReorder(sheetId: string, event: PointerEvent): void {
+  let suppressClickAfterDrag = false
+
+  /* Excel 口径:直接拖页签本体重排,没有独立把手。4px 阈值区分点击与
+     拖拽 —— 阈值内仍是点击(激活/双击重命名),越过阈值才进入 reorder
+     会话;拖拽结束后浏览器补发的 click 被吞掉,避免"拖完顺带激活"。 */
+  function beginTabReorder(sheetId: string, event: PointerEvent): void {
+    // button > 0 而非 !== 0:jsdom 的 PointerEvent 兜底不带 button 字段。
+    if (event.button > 0 || commandDisabled('reorder') || sheets().length <= 1) return
+    suppressClickAfterDrag = false
+    const handle = event.currentTarget as HTMLElement
+    const pointerId = event.pointerId
+    const startX = event.clientX
+    const startY = event.clientY
+    const cleanup = () => {
+      window.removeEventListener('pointermove', onThresholdMove)
+      window.removeEventListener('pointerup', cleanup)
+      window.removeEventListener('pointercancel', cleanup)
+    }
+    const onThresholdMove = (moveEvent: PointerEvent) => {
+      if (moveEvent.pointerId !== pointerId) return
+      if (Math.abs(moveEvent.clientX - startX) + Math.abs(moveEvent.clientY - startY) < 4) return
+      cleanup()
+      suppressClickAfterDrag = true
+      beginReorder(sheetId, moveEvent, handle)
+      updateReorder(sheetId, moveEvent)
+    }
+    window.addEventListener('pointermove', onThresholdMove)
+    window.addEventListener('pointerup', cleanup)
+    window.addEventListener('pointercancel', cleanup)
+  }
+
+  function handleTabClick(sheetId: string): void {
+    if (suppressClickAfterDrag) {
+      suppressClickAfterDrag = false
+      return
+    }
+    activate(sheetId)
+  }
+
+  function beginReorder(sheetId: string, event: PointerEvent, handleOverride?: HTMLElement): void {
     if (commandDisabled('reorder') || sheets().length <= 1) return
     event.preventDefault()
     event.stopPropagation()
     clearReorderListeners()
     closeContextMenu('sheet-changed')
-    const handle = event.currentTarget as HTMLElement
+    const handle = handleOverride ?? (event.currentTarget as HTMLElement)
     try {
       handle.setPointerCapture?.(event.pointerId)
       reorderCapture = { element: handle, pointerId: event.pointerId }
@@ -239,15 +278,24 @@ export function createSheetTabInteractionController(options: SheetTabInteraction
       commitReorder(sheetId, upEvent)
     }
     const onPointerCancel = () => cancelReorder(sheetId)
+    // 拖拽中 Escape 取消:把手没了,快捷键挂 window,随会话进出。
+    const onKeyDown = (keyEvent: KeyboardEvent) => {
+      if (keyEvent.key === 'Escape') {
+        keyEvent.preventDefault()
+        cancelReorder(sheetId, 'escape')
+      }
+    }
     const cleanup = () => {
       window.removeEventListener('pointermove', onPointerMove)
       window.removeEventListener('pointerup', onPointerUp)
       window.removeEventListener('pointercancel', onPointerCancel)
+      window.removeEventListener('keydown', onKeyDown)
     }
     reorderListeners = cleanup
     window.addEventListener('pointermove', onPointerMove)
     window.addEventListener('pointerup', onPointerUp)
     window.addEventListener('pointercancel', onPointerCancel)
+    window.addEventListener('keydown', onKeyDown)
   }
 
   return {
@@ -279,14 +327,9 @@ export function createSheetTabInteractionController(options: SheetTabInteraction
     closeContextMenu,
     cancelDelete: () => store.setter(cancelSheetTabDeleteAtom),
     confirmDelete: () => void store.setter(confirmSheetTabDeleteAtom),
-    beginReorder,
+    beginTabReorder,
+    handleTabClick,
     cancelReorder,
-    handleReorderKeyDown(sheetId: string, event: KeyboardEvent): void {
-      if (event.key === 'Escape') {
-        event.preventDefault()
-        cancelReorder(sheetId, 'escape')
-      }
-    },
     reorderDropSide(sheetId: string): 'before' | 'after' | null {
       const reorder = sheetTabs().reorder
       if (!reorder) return null

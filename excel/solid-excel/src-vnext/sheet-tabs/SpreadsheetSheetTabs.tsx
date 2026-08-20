@@ -78,7 +78,7 @@ export function SpreadsheetSheetTabs(props: SpreadsheetSheetTabsProps) {
         sheets={sheets}
         controller={controller}
       />
-      <SpreadsheetSheetTabActions sheets={sheets} controller={controller} />
+      <SpreadsheetSheetTabActions controller={controller} />
       <SpreadsheetSheetTabOverlays sheetTabs={sheetTabs} sheets={sheets} controller={controller} />
       <Show when={sheetTabs().error}>
         {(error) => (

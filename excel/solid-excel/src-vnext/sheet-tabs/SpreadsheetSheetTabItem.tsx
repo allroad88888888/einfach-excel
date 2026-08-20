@@ -12,7 +12,7 @@ interface SpreadsheetSheetTabItemProps {
   readonly controller: ReturnType<typeof createSheetTabInteractionController>
 }
 
-/** Renders one semantic tab while sibling controls remain outside the tablist. */
+/** Renders one semantic tab; the tab itself is the drag handle (Excel 口径)。 */
 export function SpreadsheetSheetTabItem(props: SpreadsheetSheetTabItemProps) {
   onCleanup(() => props.controller.bindTabButton(props.sheet.id, null))
 
@@ -34,7 +34,8 @@ export function SpreadsheetSheetTabItem(props: SpreadsheetSheetTabItemProps) {
         aria-selected={props.active()}
         tabindex={props.active() ? 0 : -1}
         ref={(element) => props.controller.bindTabButton(props.sheet.id, element)}
-        onClick={() => props.controller.activate(props.sheet.id)}
+        onPointerDown={(event) => props.controller.beginTabReorder(props.sheet.id, event)}
+        onClick={() => props.controller.handleTabClick(props.sheet.id)}
         onDblClick={() => props.controller.beginRename(props.sheet.id, props.sheet.name, 'pointer')}
         onContextMenu={(event) => props.controller.handleTabContextMenu(props.sheet.id, event)}
         onKeyDown={(event) => props.controller.handleTabKeyDown(props.sheet, event)}

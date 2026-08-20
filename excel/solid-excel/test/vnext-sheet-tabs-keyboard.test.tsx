@@ -133,12 +133,22 @@ describe('vNext SpreadsheetSheetTabs keyboard interaction', () => {
   })
 
   it('cancels the pointer reorder session when its handle loses the pointer stream', async () => {
-    const { getByTestId, store } = renderSheetTabs()
+    const { getByRole, store } = renderSheetTabs()
     await flushAsyncWork()
 
-    const handle = getByTestId('sheet-tab-reorder-sheet-1')
-    fireEvent.pointerDown(handle, { pointerId: 4, clientX: 10, clientY: 10 })
-    expect(store.getter(sheetTabsAtom).reorder?.sheetId).toBe('sheet-1')
+    // 拖页签本体:down 不进 reorder,越过 4px 阈值的 move 才进。
+    const handle = getByRole('tab', { name: 'Sheet One' })
+    // jsdom 没有 elementFromPoint;返回 null = 本次 move 无落点,不影响会话。
+    const originalElementFromPoint = document.elementFromPoint
+    document.elementFromPoint = () => null
+    try {
+      fireEvent.pointerDown(handle, { pointerId: 4, clientX: 10, clientY: 10 })
+      expect(store.getter(sheetTabsAtom).reorder).toBeNull()
+      fireEvent.pointerMove(window, { pointerId: 4, clientX: 30, clientY: 10 })
+      expect(store.getter(sheetTabsAtom).reorder?.sheetId).toBe('sheet-1')
+    } finally {
+      document.elementFromPoint = originalElementFromPoint
+    }
 
     fireEvent.pointerCancel(handle, { pointerId: 4 })
     expect(store.getter(sheetTabsAtom).reorder).toBeNull()

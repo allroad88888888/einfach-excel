@@ -14,6 +14,33 @@
 .spreadsheet-sheet-tabs .spreadsheet-sheet-tab-item {
   display: inline-flex;
   align-items: stretch;
+  position: relative;
+}
+
+/* 拖拽中的页签压暗;插入位置画一道品牌绿细线(Excel 的落点指示)。 */
+.spreadsheet-sheet-tab-item[data-reorder-active='true'] .spreadsheet-sheet-tab {
+  opacity: 0.72;
+  cursor: grabbing;
+}
+
+.spreadsheet-sheet-tab-item[data-reorder-drop='before']::before,
+.spreadsheet-sheet-tab-item[data-reorder-drop='after']::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  width: 2px;
+  background: var(--excel-green);
+  border-radius: 1px;
+  z-index: 1;
+}
+
+.spreadsheet-sheet-tab-item[data-reorder-drop='before']::before {
+  left: -1px;
+}
+
+.spreadsheet-sheet-tab-item[data-reorder-drop='after']::after {
+  right: -1px;
 }
 
 .spreadsheet-sheet-tabs .spreadsheet-sheet-tab {
@@ -65,32 +92,7 @@
   color: var(--text-default);
 }
 
-.spreadsheet-sheet-tabs .spreadsheet-sheet-tab-reorder {
-  display: inline-flex;
-  align-items: center;
-  padding: 0 3px;
-  border: 1px solid transparent;
-  border-bottom: none;
-  background: transparent;
-  color: var(--text-muted);
-  cursor: grab;
-  user-select: none;
-  line-height: 1;
-}
 
-.spreadsheet-sheet-tabs .spreadsheet-sheet-tab-reorder:not(:disabled):hover {
-  background: var(--hover);
-  color: var(--text-default);
-}
 
-.spreadsheet-sheet-tabs .spreadsheet-sheet-tab-reorder:disabled {
-  opacity: 0.3;
-  cursor: default;
-}
 
-.spreadsheet-sheet-tab-reorder-grip {
-  font-size: 13px;
-  letter-spacing: -2px;
-  pointer-events: none;
-}
 

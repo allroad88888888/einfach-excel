@@ -66,8 +66,8 @@ describe('vNext SpreadsheetSheetTabs accessibility structure', () => {
     expect(tablist.querySelector('[data-testid="sheet-tab-add"]')).toBeNull()
 
     const actions = getByRole('group', { name: 'Sheet actions' })
-    expect(actions.contains(getByRole('button', { name: 'Move Sheet One' }))).toBe(true)
-    expect(actions.contains(getByRole('button', { name: 'Move Sheet Two' }))).toBe(true)
+    // 重排把手已删除(拖页签本体即重排),动作簇只剩"新建 sheet"。
+    expect(document.querySelector('[data-testid^="sheet-tab-reorder-"]')).toBeNull()
     expect(actions.contains(getByTestId('sheet-tab-add'))).toBe(true)
   })
 

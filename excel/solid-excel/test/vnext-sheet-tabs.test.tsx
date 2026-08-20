@@ -323,7 +323,8 @@ describe('vNext SpreadsheetSheetTabs', () => {
     fireEvent.click(getByRole('tab', { name: 'Sheet Two' }))
     expect(store.getter(workspaceSessionAtom).activeSheetId).toBe('sheet-2')
 
-    const handle = getByTestId('sheet-tab-reorder-sheet-3')
+    // 拖页签本体(无独立把手):pointerdown 后越过 4px 阈值才进入 reorder。
+    const handle = getByRole('tab', { name: 'Sheet Three' })
     const firstTabItem = getByRole('tab', { name: 'Sheet One' }).closest(
       '[data-sheet-tab-item]',
     ) as HTMLElement

@@ -1,5 +1,6 @@
 import { onCleanup } from 'solid-js'
 import { useSetAtom } from '@einfach/solid'
+import { setLocale } from '@einfach/solid-excel/i18n'
 import { findDemo } from '../data/demo-catalog'
 import { basicsSeed } from '../demos/seeds/seed-basics'
 import { cleanMessyDataSeed } from '../demos/seeds/seed-clean-messy-data'
@@ -38,6 +39,9 @@ interface DemoIslandProps {
  * Selects the real backend once for every interactive demo island.
  */
 export default function DemoIsland(props: DemoIslandProps) {
+  // 表格 chrome 的文案 locale 跟随页面 locale。缺了这句,组件库的默认
+  // locale(zh)会出现在英文页面上 —— 状态栏"求和/就绪"混进英文站。
+  setLocale(props.locale)
   const demo = findDemo(props.demoId)
   const isStaticBackend = demo.runtime === 'static'
   const isPerformanceDemo = demo.id === 'viewport-projection'

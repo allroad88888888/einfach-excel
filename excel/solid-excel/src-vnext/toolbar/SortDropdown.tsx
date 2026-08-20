@@ -10,7 +10,6 @@ interface SortDropdownProps {
   disabledReason: string | null
   isOpen: boolean
   onRequestClose: () => void
-  onSelect: (direction: SortDirection) => void
   t: (key: string) => string
 }
 

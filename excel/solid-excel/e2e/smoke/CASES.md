@@ -14,7 +14,7 @@
 | SM-03 | FormulaBar 显示公式源 | 选中公式格 | bar 值 `=A1+1`、addr | ✅ 存量 | smoke #"FormulaBar shows formula source…" |
 | SM-04 | 键盘导航 Arrow / Tab / Shift+Tab | 逐键移动 | `.cell-selected` 迁移 | ✅ 存量 | smoke #"keyboard navigation moves selection…" |
 | SM-05 | 默认启动直达 Wave 5 | `goto /` | wave5 tab active + grid 可见 | ✅ 存量 | vnext-smoke #"app boots directly into the Wave 5 demo…" |
-| SM-06 | vNext 可见窗口渲染 + rich cell 投影 | 开 vNext demo | 窗口内 cell 数、J20 不存在、rich 属性 | ✅ 存量 | vnext-smoke #"renders only the visible window" #"renders projected rich cells…" |
+| SM-06 | vNext 滚动表面渲染 + rich cell 投影 | 开 vNext demo | 渲染 cell 数在表面量级(<5000)、表面外 A200 不存在、rich 属性 | ✅ 存量 | vnext-smoke #"renders only the anchored scroll surface, not the whole sheet" #"renders projected rich cells…" |
 | SM-07 | vNext 选择 / 填充柄 / 双击编辑 / 公式栏 | 逐交互 | active class、提交值 | ✅ 存量 | vnext-smoke #"click selection…" #"fill handle…" #"double-click edit…" #"formula bar edits…" |
 | SM-08 | vNext sheet tab 生命周期 + 拖拽排序 + Ctrl 翻页 | 增删改名、拖拽、Ctrl+PgUp/Dn | tab 列表与元数据 | ✅ 存量 | vnext-smoke #"sheet tabs keep active…" #"sheet tab add rename and delete…" #"sheet tab drag reorder…" #"ctrl page keys…" |
 | SM-09 | vNext 数据感知导航 | Ctrl+Arrow、Alt+Page | 落点地址 | ✅ 存量 | vnext-smoke #"data-aware ctrl arrow…" #"alt page keys…" |

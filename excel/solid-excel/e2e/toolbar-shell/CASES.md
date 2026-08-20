@@ -35,7 +35,7 @@
 | SH-19 | 千分位显示格式不污染原始聚合（ts skip：无 formats 传输） | 应用 NumberThousands | 回读 1234.5，sum 1234.5 | ✅ 存量 | vnext-status-bar-real-backend #"formatted numeric display preserves…" |
 | SH-20 | 聚合配置可达可逆（numericCount/min/max/sum 开关） | 逐按钮 toggle | aria-pressed + 值出现/消失 | ✅ 存量 | vnext-status-bar-real-backend #"aggregate configuration is reachable…" |
 | SH-21 | 切换 sheet 后聚合不残留 | Sheet1↔Sheet3 | sum 10/100 互不污染 | ✅ 存量 | vnext-status-bar-real-backend #"sheet changes replace aggregate truth…" |
-| SH-22 | 超出投影选区披露截断 | name box 填 A1:J20 | data-truncated true | ✅ 存量 | vnext-status-bar-real-backend #"a selection outside the loaded projection…" |
+| SH-22 | 表面内全表选区报告完整覆盖 | name box 填 A1:J20 | data-truncated false(474f519 后整表在窗口内;truncated=true 语义由 ui-core status-bar-projection-truncation 单测钉) | ✅ 存量 | vnext-status-bar-real-backend #"a full-sheet selection inside the rendered surface…" |
 | SH-23 | Insert 结构条目跟随后端能力见证（ts 隐藏 / wasm 可见） | 开 Insert 菜单 | 4 结构条目 count 0 / 可见 | ✅ 存量 | vnext-ts-failclosed-menu #"Insert structural entries follow…" |
 | SH-24 | Data 菜单 fail-closed 矩阵：ts 隐藏 sortAsc/sortDesc/removeDuplicates/createTable/toggleTotals，wasm 全可见，控制项双端可见 | 开 Data 菜单按 project 分支 | 能力条目 count 0 / 可见 | 🆕 本轮 | failclosed-port-matrix.spec.ts |
 | SH-25 | 工具栏 sort 入口随 sortRange 端口出现/消失；ts 上 filter 禁用（post-ready 见证） | worker demo 看工具栏 | ts: sort count 0 + filter disabled；wasm: sort 可见 | 🆕 本轮 | failclosed-port-matrix.spec.ts |

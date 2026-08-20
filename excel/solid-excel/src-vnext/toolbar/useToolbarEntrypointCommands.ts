@@ -6,11 +6,9 @@ import {
   openNameManagerAtom,
   openValidationRuleEditorAtom,
   retryFilterSortRefreshAtom,
-  runPhysicalSortAtom,
   selectionSnapshotAtom,
-  type SortDirection,
 } from '@einfach/spreadsheet-ui-core'
-import { refreshVisibleProjection, resolveSortRange } from '../provider'
+import { refreshVisibleProjection } from '../provider'
 import { dispatchRedo, dispatchUndo } from '../provider/history-dispatch'
 import type { ToolbarActionDeps } from './ToolbarActionDeps'
 
@@ -38,21 +36,9 @@ export function useToolbarEntrypointCommands(deps: ToolbarActionDeps) {
     })
   }
 
-  async function handleSortSelect(direction: SortDirection) {
-    deps.closeSurface()
-    const snapshot = deps.store.getter(selectionSnapshotAtom)
-    const sheetId = snapshot.activeCell.sheetId || deps.availability().sheetId
-    if (!sheetId || typeof deps.backend.sortRange !== 'function') return
-    const range = await resolveSortRange(deps.store, deps.backend, sheetId, snapshot.activeCell)
-    void deps.store.setter(runPhysicalSortAtom, {
-      source: deps.backend,
-      historyEntryRecorder: deps.historyEntryRecorder,
-      entrypoint: 'toolbar',
-      direction,
-      range,
-      refreshProjection: (target) => refreshVisibleProjection(deps.store, deps.backend, target),
-    })
-  }
+  // 工具栏排序的执行已收进确认弹窗流(b2c1920):SortDropdown 只 begin 确认,
+  // 真正下发 runPhysicalSortAtom 的是 useSortConfirmation.confirm() —— 这里
+  // 曾经的 handleSortSelect 直发路径已删除,不要复活它绕过确认。
 
   function retryFilterSortRefresh() {
     void deps.store.setter(retryFilterSortRefreshAtom, {
@@ -80,7 +66,6 @@ export function useToolbarEntrypointCommands(deps: ToolbarActionDeps) {
 
   return {
     handleRedo,
-    handleSortSelect,
     handleUndo,
     openComment,
     openConditionalFormat,

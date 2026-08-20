@@ -96,7 +96,6 @@ export function ToolbarEntrypointGroup(props: ToolbarGroupProps) {
             anchorRef={surface.sortAnchorRef() ?? null}
             disabled={capability().disabled}
             disabledReason={capability().disabledReason}
-            onSelect={runtime.entrypoints.handleSortSelect}
             onRequestClose={surface.closeSurface}
             t={t}
           />

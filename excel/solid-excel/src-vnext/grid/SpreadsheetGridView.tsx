@@ -94,6 +94,15 @@ export function SpreadsheetGridView(props: { runtime: GridRuntime }) {
       }}
     >
       <SpreadsheetGridFormatPainterCursor gridRoot={runtime.dom.gridRoot} />
+      {/*
+        tabIndex={-1}:Chrome 会把可滚动容器默认纳入 Tab 序,-1 把它按 Tab
+        边界契约(94c269f,grid-tab-boundary.spec.ts)摘出来 —— 键盘滚动由
+        grid 本体(role=grid, tabIndex=0)的方向键导航代理。代价是 axe 把
+        "可编程聚焦的无角色 div"记为 grid 的非法子节点 + 不可聚焦滚动区,
+        两条以设计冲突登记在 a11y-surfaces.spec.ts 的 KNOWN_ISSUES(带撤销
+        条件),不要在这里加 role 绕 —— rowgroup/presentation 都会把违规
+        转移到 tbody 的 required-parent 上。
+      */}
       <div
         ref={runtime.dom.setScrollRoot}
         class="spreadsheet-grid-scroll-viewport"

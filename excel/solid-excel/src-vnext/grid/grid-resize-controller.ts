@@ -14,11 +14,12 @@ import { reportCommandFailure } from '../provider/command-failure'
 import { clampDimension } from './grid-auto-fit'
 import type { GridAutoFitControllerApi } from './grid-auto-fit-controller'
 import type { GridLayoutApi } from './grid-layout'
-import { installGridFeature, type GridRuntimeBase } from './grid-runtime'
+import { installGridFeature, type GridHydrationApi, type GridRuntimeBase } from './grid-runtime'
 
 type GridResizeControllerRuntime = GridRuntimeBase &
   Pick<GridLayoutApi, 'getRenderedColumnWidth' | 'getRenderedRowHeight'> &
-  Pick<GridAutoFitControllerApi, 'persistColumnWidth' | 'persistRowHeight'>
+  Pick<GridAutoFitControllerApi, 'persistColumnWidth' | 'persistRowHeight'> &
+  Pick<GridHydrationApi, 'hydrateViewportSizeProjection'>
 
 type ResizeAxis = 'horizontal' | 'vertical'
 
@@ -104,7 +105,16 @@ export function installGridResizeController(runtime: GridResizeControllerRuntime
     getRenderedRowHeight,
     persistColumnWidth,
     persistRowHeight,
+    hydrateViewportSizeProjection,
   } = runtime
+
+  // 竞态收敛:resize 的本地覆盖会改渲染窗口 key,触发一次 size hydrate;若该
+  // hydrate 的后端读抢在 persist 落库之前,reconcile 会把尚未落库的本地覆盖抹回
+  // 默认值(reconcile 的删除语义要保留 —— undo 撤销 resize 靠 canonical 缺项清
+  // 本地项)。persist 成功后补一次 hydrate,canonical 此时已含新尺寸,把可能被
+  // 抹掉的值拉回来,状态收敛到后端事实。hydrate 是机会性收敛,失败静默(它有
+  // 自己的 ticket 失效机制,下一次窗口变化会重试)。
+  const rehydrateAfterPersist = () => hydrateViewportSizeProjection().catch(() => undefined)
 
   function cancelConflictingPointerInteractions(): void {
     dom.cancelDragSelection()
@@ -154,9 +164,12 @@ export function installGridResizeController(runtime: GridResizeControllerRuntime
           colIndex: intent.colIndex,
           widthPx: intent.previewSizePx,
         })
-        void persistColumnWidth(intent.colIndex, intent.previewSizePx).catch((error) => {
-          reportCommandFailure(store, error, 'Resizing the column failed.')
-        })
+        void persistColumnWidth(intent.colIndex, intent.previewSizePx).then(
+          rehydrateAfterPersist,
+          (error) => {
+            reportCommandFailure(store, error, 'Resizing the column failed.')
+          },
+        )
       },
       onCancel: () => {
         store.setter(setViewportColumnWidthAtom, {
@@ -211,9 +224,12 @@ export function installGridResizeController(runtime: GridResizeControllerRuntime
           rowIndex: intent.rowIndex,
           heightPx: intent.previewSizePx,
         })
-        void persistRowHeight(intent.rowIndex, intent.previewSizePx).catch((error) => {
-          reportCommandFailure(store, error, 'Resizing the row failed.')
-        })
+        void persistRowHeight(intent.rowIndex, intent.previewSizePx).then(
+          rehydrateAfterPersist,
+          (error) => {
+            reportCommandFailure(store, error, 'Resizing the row failed.')
+          },
+        )
       },
       onCancel: () => {
         store.setter(setViewportRowHeightAtom, {

@@ -47,6 +47,7 @@ function createResizeFixture(options: ResizeFixtureOptions = {}) {
   const columnWidthCalls: Array<{ colIndex: number; widthPx: number }> = []
   const rowHeightCalls: Array<{ rowIndex: number; heightPx: number }> = []
   let columnWriteFailure = options.rejectColumnWrite
+  let hydrateSizeCalls = 0
   const dom = createGridDomAdapter()
   const runtime = {
     props: {
@@ -84,6 +85,10 @@ function createResizeFixture(options: ResizeFixtureOptions = {}) {
     dom,
     getRenderedColumnWidth: () => 96,
     getRenderedRowHeight: () => 24,
+    // persist 成功后的收敛 hydrate(grid-resize-controller)——计数供断言。
+    hydrateViewportSizeProjection: async () => {
+      hydrateSizeCalls += 1
+    },
   }
   const autoFit = installGridAutoFitController(runtime as unknown as AutoFitRuntime)
   const resize = installGridResizeController({ ...runtime, ...autoFit } as unknown as ResizeRuntime)
@@ -91,6 +96,7 @@ function createResizeFixture(options: ResizeFixtureOptions = {}) {
     autoFit,
     columnWidthCalls,
     dom,
+    getHydrateSizeCalls: () => hydrateSizeCalls,
     resize,
     rowHeightCalls,
     setColumnWriteFailure: (error: Error | undefined) => {

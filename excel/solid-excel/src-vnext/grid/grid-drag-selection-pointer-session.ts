@@ -28,6 +28,14 @@ export function startGridDragSelectionPointerSession(
 ): () => void {
   const pointerId = event.pointerId
   const captureTarget = getPointerCaptureTarget(event)
+  // 指针捕获只给触摸/笔:它治的是"触摸流被浏览器接管后 pointerup 丢失"的悬挂
+  // 会话(9102d87 的初衷)。鼠标绝不能捕获 —— 捕获目标是锚点 <td>:
+  // (1) pointerdown 当帧写选区触发该 <td> 重渲染,capture 随节点失效发出
+  //     lostpointercapture,把会话开局即杀;
+  // (2) 捕获会把 mouseup 重定向回锚点格,浏览器在锚点上派发 click,
+  //     SpreadsheetGridCell 的 onClick 以 extend:false 把刚拖出的区域塌回 1×1。
+  // 两条都表现为"拖拽选区只剩锚格"(e2e 契约: vnext-wave5 "pointer drag")。
+  const capturable = event.pointerType !== 'mouse'
   let settled = false
   let captured = false
 
@@ -88,9 +96,9 @@ export function startGridDragSelectionPointerSession(
   window.addEventListener('pointercancel', onPointerCancel)
   window.addEventListener('blur', onWindowBlur)
   document.addEventListener('visibilitychange', onVisibilityChange)
-  captureTarget?.addEventListener('lostpointercapture', onLostPointerCapture)
+  if (capturable) captureTarget?.addEventListener('lostpointercapture', onLostPointerCapture)
   try {
-    if (pointerId !== undefined && captureTarget?.setPointerCapture) {
+    if (capturable && pointerId !== undefined && captureTarget?.setPointerCapture) {
       captureTarget.setPointerCapture(pointerId)
       captured = true
     }

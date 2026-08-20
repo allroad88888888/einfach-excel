@@ -153,4 +153,33 @@ describe('vnext grid drag-selection pointer lifecycle', () => {
       interaction: null,
     })
   })
+
+  it('never captures a mouse pointer, so anchor-cell rerender cannot kill the drag', () => {
+    // 回归护栏:9102d87 曾对鼠标也 setPointerCapture,捕获目标(锚点 <td>)在
+    // pointerdown 当帧因选区写入被重渲染,lostpointercapture/click 重定向把拖拽
+    // 塌回单格。鼠标必须走纯 window 监听流。
+    const { pointer, store, selectCellSpan, setPoint } = createFixture()
+    const target = document.createElement('div')
+    const setPointerCapture = jest.fn()
+    Object.assign(target, { releasePointerCapture: jest.fn(), setPointerCapture })
+    target.addEventListener('pointerdown', (event) => {
+      pointer.startDragSelection(event as PointerEvent, 0, 0)
+    })
+    target.dispatchEvent(pointerEvent('pointerdown', { pointerId: 7, pointerType: 'mouse' }))
+
+    expect(setPointerCapture).not.toHaveBeenCalled()
+
+    // 即使浏览器随后对该目标发出 lostpointercapture,鼠标会话也不受影响。
+    target.dispatchEvent(pointerEvent('lostpointercapture', { pointerId: 7, pointerType: 'mouse' }))
+    setPoint({ row: 2, col: 3 })
+    window.dispatchEvent(pointerEvent('pointermove', { pointerId: 7, pointerType: 'mouse' }))
+    window.dispatchEvent(pointerEvent('pointerup', { pointerId: 7, pointerType: 'mouse' }))
+
+    expect(selectCellSpan).toHaveBeenLastCalledWith({ row: 0, col: 0 }, { row: 2, col: 3 })
+    expect(store.getter(pointerIntentAtom)).toMatchObject({
+      type: 'pointer.drag-selection.commit',
+      anchor: { row: 0, col: 0 },
+      focus: { row: 2, col: 3 },
+    })
+  })
 })

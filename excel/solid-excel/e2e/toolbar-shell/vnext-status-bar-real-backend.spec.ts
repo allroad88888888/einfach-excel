@@ -186,27 +186,36 @@ test.describe('vNext status bar real-backend feasibility gate', () => {
     await gotoWorkerDemo(page)
     await selectRange(page, 'B4', 'C4')
 
-    // Product configuration must remain operable without reaching into the
-    // Core atom. Disabled options therefore still need a visible UI entry.
+    // 9622ccd(BREAKING):聚合项配置改为右键状态栏聚合区弹出勾选菜单
+    // (Excel 口径),未勾选项不再渲染占位按钮。配置入口仍是可见的产品控件。
+    const aggregates = page.getByTestId('status-aggregates')
+    await aggregates.click({ button: 'right' })
+    const menu = page.getByTestId('status-aggregate-menu')
+    await expect(menu).toBeVisible()
     for (const key of ['numericCount', 'min', 'max']) {
-      const button = page.getByTestId(`status-aggregate-${key}`)
-      await expect(button).toHaveAttribute('aria-pressed', 'false')
-      await expect(button).toBeVisible()
-      await button.click()
-      await expect(button).toHaveAttribute('aria-pressed', 'true')
-      await expect(button).toHaveAttribute('data-enabled', 'true')
+      const item = page.getByTestId(`status-aggregate-menu-${key}`)
+      await expect(item).toHaveAttribute('aria-checked', 'false')
+      await item.click()
+      await expect(item).toHaveAttribute('aria-checked', 'true')
     }
+    await page.keyboard.press('Escape')
+    await expect(menu).toHaveCount(0)
     await expectAggregate(page, 'numericCount', '1')
     await expectAggregate(page, 'min', '10')
     await expectAggregate(page, 'max', '10')
 
-    const sumButton = page.getByTestId('status-aggregate-sum')
-    await sumButton.click()
-    await expect(sumButton).toHaveAttribute('aria-pressed', 'false')
-    await expect(sumButton).toBeVisible()
+    // 反向:取消勾选 sum 后该聚合项(含值)整体不渲染;再勾回恢复。
+    await aggregates.click({ button: 'right' })
+    const sumItem = page.getByTestId('status-aggregate-menu-sum')
+    await expect(sumItem).toHaveAttribute('aria-checked', 'true')
+    await sumItem.click()
+    await expect(sumItem).toHaveAttribute('aria-checked', 'false')
+    await page.keyboard.press('Escape')
     await expect(page.getByTestId('status-aggregate-sum-value')).toHaveCount(0)
-    await sumButton.click()
-    await expect(sumButton).toHaveAttribute('aria-pressed', 'true')
+
+    await aggregates.click({ button: 'right' })
+    await page.getByTestId('status-aggregate-menu-sum').click()
+    await page.keyboard.press('Escape')
     await expectAggregate(page, 'sum', '10')
   })
 
@@ -250,16 +259,20 @@ test.describe('vNext status bar real-backend feasibility gate', () => {
     await expectAggregate(page, 'count', '1')
   })
 
-  test('a selection outside the loaded projection discloses truncation', async ({ page }) => {
+  test('a full-sheet selection inside the rendered surface reports complete coverage', async ({
+    page,
+  }) => {
     await gotoWorkerDemo(page)
 
-    // The name box is a visible range-selection surface. A1:J20 exceeds
-    // this demo's current projection window, so the status bar must disclose
-    // incomplete coverage instead of presenting partial values as complete.
+    // 474f519 起渲染窗口=滚动表面(min(整表,5×视口))。本 demo 整表 20×10 落在
+    // 表面内,任何选区都被投影窗口完整包含,data-truncated 恒为 false ——
+    // 状态栏必须如实报告"覆盖完整",而不是残留旧的截断标记。
+    // (truncated=true 需要"整表 > 5×视口"的 real-backend demo,当前没有;
+    // 截断判定语义由 ui-core 的 status-bar-projection-truncation.test.ts 钉住。)
     const nameBox = page.getByTestId('name-box-input')
     await nameBox.fill('A1:J20')
     await nameBox.press('Enter')
     await expect(page.getByTestId('status-selection')).toHaveText('A1:J20')
-    await expect(page.getByTestId('status-aggregates')).toHaveAttribute('data-truncated', 'true')
+    await expect(page.getByTestId('status-aggregates')).toHaveAttribute('data-truncated', 'false')
   })
 })

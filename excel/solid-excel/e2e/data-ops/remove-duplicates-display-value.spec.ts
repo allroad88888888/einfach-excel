@@ -11,9 +11,11 @@ import { cell, cellDisplay, withEnglishLocale } from '../helpers'
  *
  *   1. number `1` vs formula text `="1"` — different kinds, SAME display
  *      ("1") → they ARE duplicates.
- *   2. `1` vs `1.0` — numerically equal, DIFFERENT display ("1" vs "1.0",
- *      the static backend keeps the raw input as the display) → they are
- *      NOT duplicates.
+ *   2. `1` vs percent-formatted `1` — numerically equal, DIFFERENT display
+ *      ("1" vs "100%") → they are NOT duplicates.
+ *
+ * 4015ec3 起数字字面量显示收口到 Excel General(键入 `1.0` 显示 `1`,与真
+ * Excel 一致),"同值异显"只能靠数字格式制造,不能再靠原样回显的键入文本。
  */
 
 async function gotoWave5(page: Page) {
@@ -47,12 +49,13 @@ test.describe('remove-duplicates — display-value equality (ROADMAP-locked)', (
   test('number 1 and text ="1" share a display so they ARE duplicates', async ({ page }) => {
     await gotoWave5(page)
 
-    // G2 is the number 1; G3 is a formula producing the TEXT "1"; G4 is the
-    // number 1 typed as `1.0`, whose display keeps the raw input.
+    // G2 is the number 1; G3 is a formula producing the TEXT "1"; G4 is a
+    // formula producing the TEXT "1.0"(4015ec3 后键入 `1.0` 会按 Excel
+    // General 显示成 `1`,靠公式文本才能保住 "1.0" 这个 display)。
     await seedCell(page, 'G1', 'k')
     await seedCell(page, 'G2', '1')
     await seedCell(page, 'G3', '="1"')
-    await seedCell(page, 'G4', '1.0')
+    await seedCell(page, 'G4', '="1.0"')
 
     // Sanity: the grid displays make the tuple keys visible. G2 and G3 read
     // identically; G4 does not.
@@ -86,10 +89,14 @@ test.describe('remove-duplicates — display-value equality (ROADMAP-locked)', (
 
     await seedCell(page, 'G1', 'k')
     await seedCell(page, 'G2', '1')
-    await seedCell(page, 'G3', '1.0')
+    await seedCell(page, 'G3', '1')
+
+    // 同值异显:G3 套 Percent 数字格式,数值仍是 1,显示变为 100%。
+    await cell(page, 'G3').click()
+    await page.getByTestId('toolbar-btn-percent-format').click()
 
     await expect(cellDisplay(page, 'G2')).toHaveText('1')
-    await expect(cellDisplay(page, 'G3')).toHaveText('1.0')
+    await expect(cellDisplay(page, 'G3')).toHaveText('100%')
 
     await selectRange(page, 'G1', 'G3')
     await openDialogFromDataMenu(page)
@@ -105,6 +112,6 @@ test.describe('remove-duplicates — display-value equality (ROADMAP-locked)', (
 
     // Nothing was touched.
     await expect(cellDisplay(page, 'G2')).toHaveText('1')
-    await expect(cellDisplay(page, 'G3')).toHaveText('1.0')
+    await expect(cellDisplay(page, 'G3')).toHaveText('100%')
   })
 })

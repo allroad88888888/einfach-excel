@@ -73,8 +73,9 @@ test.describe('vNext outline grouping real-backend evidence', () => {
     const headerCountBefore = await page.locator('th.spreadsheet-grid-row-header').count()
     expect(headerCountBefore).toBeGreaterThan(0)
 
-    // Collapse: rows 2-4 vanish, the header sequence jumps 1 → 5, the
-    // toggle flips to +, and the window backfills to the same row count.
+    // Collapse: rows 2-4 vanish, the header sequence jumps 1 → 5, and the
+    // toggle flips to +. 474f519 起渲染窗口=滚动表面,整表已在窗口内,折叠
+    // 3 行就是净减 3 行(没有窗口外的行可补位);窗口仍抵表尾。
     await toggle.click()
     await expect(rowHeader(page, 1)).toHaveCount(0)
     await expect(rowHeader(page, 2)).toHaveCount(0)
@@ -85,7 +86,8 @@ test.describe('vNext outline grouping real-backend evidence', () => {
       'data-collapsed',
       'true',
     )
-    await expect(page.locator('th.spreadsheet-grid-row-header')).toHaveCount(headerCountBefore)
+    await expect(page.locator('th.spreadsheet-grid-row-header')).toHaveCount(headerCountBefore - 3)
+    await expect(rowHeaderLabels(page).last()).toHaveText('20')
 
     // One gesture = one local history entry of kind `outline`.
     await expect(page.getByTestId('history-timeline-entry-1')).toHaveAttribute(

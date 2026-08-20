@@ -37,7 +37,26 @@ const BLOCKING = new Set(['critical', 'serious'])
  * (rule id, exact node target) so it can never mask a different element or a
  * different rule. Every entry must name the tracking follow-up.
  */
-const KNOWN_ISSUES: Array<{ rule: string; target: string; why: string }> = []
+const KNOWN_ISSUES: Array<{ rule: string; target: string; why: string }> = [
+  // 同一处设计冲突的两个 axe 侧面:滚动视口必须 tabIndex=-1(Tab 边界契约,
+  // 94c269f + grid-tab-boundary.spec.ts —— Chrome 默认把可滚动容器纳入 Tab 序),
+  // 键盘滚动由 grid 本体(role=grid, tabIndex=0)的方向键导航代理。axe 看不到
+  // "焦点在祖先、滚动被键盘接管"这层语义:它把可编程聚焦的无角色 div 记为
+  // grid 的非法子节点,又要求滚动区自身可聚焦。加 role(rowgroup/presentation)
+  // 只会把违规转移到 tbody 的 required-parent 上(实测)。
+  // 撤销条件:若滚动视口获得独立焦点位(tabIndex>=0),删除这两条并让
+  // grid-tab-boundary 与本门禁重判。
+  {
+    rule: 'aria-required-children',
+    target: '.spreadsheet-grid',
+    why: 'tabIndex=-1 的滚动视口被 axe 视为 grid 的 focusable 非法子节点;见上方说明。',
+  },
+  {
+    rule: 'scrollable-region-focusable',
+    target: '.spreadsheet-grid-scroll-viewport',
+    why: '滚动由 grid 本体的键盘导航代理,视口按 Tab 边界契约保持 tabIndex=-1;见上方说明。',
+  },
+]
 
 type Surface = { name: string; open: (page: Page) => Promise<void>; wasmOnly?: boolean }
 

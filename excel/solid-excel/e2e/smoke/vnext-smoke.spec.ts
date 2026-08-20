@@ -35,14 +35,17 @@ test.describe('Solid Excel vNext smoke', () => {
     await expect(page.getByTestId('wave5-grid')).toBeVisible({ timeout: 30_000 })
   })
 
-  test('renders only the visible window', async ({ page }) => {
+  test('renders only the anchored scroll surface, not the whole sheet', async ({ page }) => {
     await gotoVNextDemo(page)
 
+    // 474f519 起渲染窗口 = 锚定滚动表面(每轴 min(整表, 5×视口)),不再是
+    // "可视区 ± overscan"。demo 表 200×100=20000 格;虚拟化仍必须成立,
+    // 上界取表面量级(实测 ~1680)与整表之间。
     const visibleCells = await page.locator('[data-testid="vnext-grid"] td.cell').count()
     expect(visibleCells).toBeGreaterThan(0)
-    expect(visibleCells).toBeLessThan(80)
+    expect(visibleCells).toBeLessThan(5000)
     await expect(cell(page, 'A1')).toBeVisible()
-    await expect(cell(page, 'J20')).toHaveCount(0)
+    await expect(cell(page, 'A200')).toHaveCount(0)
     await expect(page.getByTestId('status-selection')).toHaveText('A1')
     await expect(page.getByTestId('status-projection')).toHaveText('Ready')
     // Status bar mirrors the live visible window which depends on the
@@ -64,7 +67,7 @@ test.describe('Solid Excel vNext smoke', () => {
     await expect(cellDisplay(page, 'D6')).toHaveText('Total 109')
     await expect(cell(page, 'D6')).toHaveAttribute('data-rich-kind', 'rich-text')
     await expect(page.getByTestId('status-visible-cells')).toHaveText(/^\d+ cells$/)
-    await expect(cell(page, 'J20')).toHaveCount(0)
+    await expect(cell(page, 'A200')).toHaveCount(0)
   })
 
   test('click selection toggles the active state', async ({ page }) => {
@@ -97,7 +100,7 @@ test.describe('Solid Excel vNext smoke', () => {
     await expect(cellDisplay(page, 'A2')).toHaveText('Alpha')
     await expect(cellDisplay(page, 'A3')).toHaveText('Alpha')
     await expect(page.getByTestId('status-visible-cells')).toHaveText(/^\d+ cells$/)
-    await expect(cell(page, 'J20')).toHaveCount(0)
+    await expect(cell(page, 'A200')).toHaveCount(0)
   })
 
   test('double-click edit commits the cell value', async ({ page }) => {
@@ -144,7 +147,7 @@ test.describe('Solid Excel vNext smoke', () => {
     await cell(page, 'A1').click()
     await page.keyboard.press('Control+PageUp')
     await expect(page.getByRole('tab', { name: 'Sheet2' })).toHaveAttribute('data-active', 'true')
-    await expect(cell(page, 'J20')).toHaveCount(0)
+    await expect(cell(page, 'A200')).toHaveCount(0)
   })
 
   test('sheet tab add rename and delete mutate workbook metadata', async ({ page }) => {
@@ -209,7 +212,7 @@ test.describe('Solid Excel vNext smoke', () => {
     await expect(page.getByTestId('status-selection')).toHaveText('E2')
     await expect(cell(page, 'E2')).toHaveClass(/cell-active/)
     await expect(page.getByTestId('status-visible-cells')).toHaveText(/^\d+ cells$/)
-    await expect(cell(page, 'J20')).toHaveCount(0)
+    await expect(cell(page, 'A200')).toHaveCount(0)
   })
 
   test('alt page keys move horizontally by the visible column window', async ({ page }) => {
@@ -336,12 +339,15 @@ test.describe('Solid Excel vNext smoke', () => {
       rowHandleBox!.y + rowHandleBox!.height / 2 + 24,
     )
     await page.mouse.up()
-    const afterRow = await rowHeader.boundingBox()
-    expect(afterRow).not.toBeNull()
-    expect(afterRow!.height).toBeGreaterThan(beforeRow!.height + 12)
+    // resize 提交后本地覆盖可能被一次 persist 前的 size hydrate 短暂抹回默认,
+    // persist 成功后的补 hydrate 会把它拉回(grid-resize-controller) —— 用 poll
+    // 等收敛而不是读单帧。
+    await expect
+      .poll(async () => (await rowHeader.boundingBox())?.height ?? 0)
+      .toBeGreaterThan(beforeRow!.height + 12)
 
     await expect(page.getByTestId('status-visible-cells')).toHaveText(/^\d+ cells$/)
-    await expect(cell(page, 'J20')).toHaveCount(0)
+    await expect(cell(page, 'A200')).toHaveCount(0)
   })
 
   test('context menu copy and paste mutate through the vNext backend', async ({
@@ -365,7 +371,7 @@ test.describe('Solid Excel vNext smoke', () => {
 
     await expect(cellDisplay(page, 'B3')).toHaveText('Alpha')
     await expect(page.getByTestId('status-visible-cells')).toHaveText(/^\d+ cells$/)
-    await expect(cell(page, 'J20')).toHaveCount(0)
+    await expect(cell(page, 'A200')).toHaveCount(0)
   })
 
   test('oversized range copy uses backend TSV export without mounting offscreen cells', async ({
@@ -391,6 +397,6 @@ test.describe('Solid Excel vNext smoke', () => {
     expect(text.startsWith('# einfach-clipboard-origin: A1\nAlpha\tBeta')).toBe(true)
     expect(text.split('\n')).toHaveLength(201)
     await expect(page.getByTestId('status-visible-cells')).toHaveText(/^\d+ cells$/)
-    await expect(cell(page, 'J20')).toHaveCount(0)
+    await expect(cell(page, 'A200')).toHaveCount(0)
   })
 })

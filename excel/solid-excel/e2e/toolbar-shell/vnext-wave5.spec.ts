@@ -124,7 +124,8 @@ test.describe('vNext Wave 5 — shell + canvas overlay', () => {
     })
 
     await expect(cell(page, 'F11')).toBeVisible()
-    await expect(cell(page, 'A1')).toHaveCount(0)
+    // 474f519 起渲染窗口=滚动表面(min(整表,5×视口));wave5 整表 50×16 小于
+    // 表面,所有格常驻 DOM,不再断言远端格卸载。
   })
 
   test('formula bar keeps selected value when the active cell scrolls out of view', async ({ page }) => {
@@ -139,7 +140,7 @@ test.describe('vNext Wave 5 — shell + canvas overlay', () => {
       el.dispatchEvent(new Event('scroll', { bubbles: true }))
     })
 
-    await expect(cell(page, 'E2')).toHaveCount(0)
+    // (474f519:整表常驻 DOM,远端格卸载断言已随渲染口径删除。)
     await expect(formulaInput).toHaveValue('300')
   })
 
@@ -182,6 +183,9 @@ test.describe('vNext Wave 5 — shell + canvas overlay', () => {
             cancelable: true,
             pointerId: 1,
             pointerType: 'mouse',
+            // PointerEventInit.isPrimary 默认 false;58ab5a5 起 resize 有主指针
+            // 门(canStartResize),合成事件必须显式声明主指针。
+            isPrimary: true,
             button: 0,
             buttons: type === 'pointerup' ? 0 : 1,
             clientX,
@@ -211,7 +215,7 @@ test.describe('vNext Wave 5 — shell + canvas overlay', () => {
     expect(result.newMax).toBeGreaterThan(result.oldMax + 100)
     expect(result.scrollLeft).toBeGreaterThan(result.oldMax + 100)
     await expect(cell(page, 'P1')).toBeVisible()
-    await expect(cell(page, 'A1')).toHaveCount(0)
+    // (474f519:整表常驻 DOM,A1 卸载断言已随渲染口径删除。)
   })
 
   test('format painter toolbar button arms the painter', async ({ page }) => {

@@ -57,8 +57,10 @@ test.describe('vNext hidden rows real-backend evidence', () => {
     await expect(rowHeaderLabels(page).nth(1)).toHaveText('3')
     await expect(cell(page, 'A2')).toHaveCount(0)
 
-    // The visible window backfills: the same number of rows stays rendered.
-    await expect(page.locator('th.spreadsheet-grid-row-header')).toHaveCount(headerCountBefore)
+    // 474f519 起渲染窗口=滚动表面,本 demo 整表(20 行)已在窗口内 —— 没有
+    // 窗口外的行可以"补位",藏一行就是净减一行;窗口仍抵表尾(末行标签 20)。
+    await expect(page.locator('th.spreadsheet-grid-row-header')).toHaveCount(headerCountBefore - 1)
+    await expect(rowHeaderLabels(page).last()).toHaveText('20')
 
     // Hidden state is UI-core canonical → local history entry.
     await expect(page.getByTestId('history-timeline-entry-0')).toHaveAttribute(

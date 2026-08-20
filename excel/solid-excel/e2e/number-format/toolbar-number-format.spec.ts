@@ -130,6 +130,12 @@ test.describe('Wave 5 — number-format toolbar', () => {
     await sortButton(page).click()
     await sortAsc(page).click()
 
+    // b2c1920 起工具栏排序走确认弹窗(Excel 口径),确认后才真正排序。
+    const sortDialog = page.getByTestId('sort-confirmation-dialog')
+    await expect(sortDialog).toHaveAttribute('data-status', 'ready')
+    await sortDialog.getByTestId('sort-confirmation-confirm').click()
+    await expect(sortDialog).toHaveCount(0)
+
     await expectCellText(page, 'A5', 'Central')
     await expectCellText(page, 'E5', '280')
     await expectCellText(page, 'A6', 'North')

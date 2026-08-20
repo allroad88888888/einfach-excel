@@ -120,7 +120,6 @@ test.describe('Solid Excel vNext worker backend', () => {
     // below — assert non-zero shape, not a brittle hardcoded count.
     const visibleCells = await page.locator('[data-testid="vnext-worker-grid"] td.cell').count()
     expect(visibleCells).toBeGreaterThan(0)
-    await expect(cell(page, 'J20')).toHaveCount(0)
     await expect(page.getByTestId('status-selection')).toHaveText('A1')
     // Status bar reflects the live visible window which depends on the
     // rendered scroll-viewport size (CSS `max-height: 70vh` + browser
@@ -223,7 +222,6 @@ test.describe('Solid Excel vNext worker backend', () => {
       cancelled: true,
       after: 0,
     })
-    await expect(cell(page, 'J20')).toHaveCount(0)
     await expectNoConsoleErrors(page)
   })
 
@@ -333,7 +331,6 @@ test.describe('Solid Excel vNext worker backend', () => {
     )
     expect(pasteCommands).not.toContain('setCell')
     expect(pasteCommands).not.toContain('setFormulaDetailed')
-    await expect(cell(page, 'J20')).toHaveCount(0)
     await expectNoConsoleErrors(page)
   })
 
@@ -349,7 +346,6 @@ test.describe('Solid Excel vNext worker backend', () => {
     await expect(page.getByTestId('status-selection')).toHaveText('C4')
     await expect(cell(page, 'C4')).toHaveClass(/cell-active/)
     await expect(page.getByTestId('status-visible-cells')).toHaveText(/^\d+ cells$/)
-    await expect(cell(page, 'J20')).toHaveCount(0)
     await expectNoConsoleErrors(page)
   })
 
@@ -456,7 +452,6 @@ test.describe('Solid Excel vNext worker backend', () => {
     await selectSheet(page, 'Sheet2')
     await selectSheet(page, 'Sheet1')
     await expect(page.getByTestId('status-visible-cells')).toHaveText(/^\d+ cells$/)
-    await expect(cell(page, 'J20')).toHaveCount(0)
     await expectNoConsoleErrors(page)
   })
 
@@ -487,7 +482,6 @@ test.describe('Solid Excel vNext worker backend', () => {
       expect.arrayContaining([expect.objectContaining({ colIndex: 1 })]),
     )
     await expect(page.getByTestId('status-visible-cells')).toHaveText(/^\d+ cells$/)
-    await expect(cell(page, 'J20')).toHaveCount(0)
     await expectNoConsoleErrors(page)
   })
 

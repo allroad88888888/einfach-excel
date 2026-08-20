@@ -183,6 +183,14 @@ test.describe('Wave 5 toolbar — filter and sort', () => {
     await expect(sortDropdown(page)).toBeVisible()
   })
 
+  // b2c1920 起工具栏排序走确认弹窗(Excel 口径),确认后才真正排序。
+  async function confirmSort(page: import('@playwright/test').Page) {
+    const sortDialog = page.getByTestId('sort-confirmation-dialog')
+    await expect(sortDialog).toHaveAttribute('data-status', 'ready')
+    await sortDialog.getByTestId('sort-confirmation-confirm').click()
+    await expect(sortDialog).toHaveCount(0)
+  }
+
   test('sort-asc / sort-desc actions close dropdown and reorder visible rows', async ({
     page,
   }) => {
@@ -202,6 +210,7 @@ test.describe('Wave 5 toolbar — filter and sort', () => {
     await expect(sortDropdown(page)).toBeVisible()
     await sortAsc(page).click()
     await expect(sortDropdown(page)).toBeHidden()
+    await confirmSort(page)
 
     const afterAsc = await readColumnTexts(page, 'A', 2, 8)
     expect(afterAsc).toEqual(['Mountain', 'South', 'Central', 'North', 'West', 'Pacific', 'East'])
@@ -210,6 +219,7 @@ test.describe('Wave 5 toolbar — filter and sort', () => {
     await expect(sortDropdown(page)).toBeVisible()
     await sortDesc(page).click()
     await expect(sortDropdown(page)).toBeHidden()
+    await confirmSort(page)
 
     // Physical sort: Total (870) is the descending max and rides to the top.
     const afterDesc = await readColumnTexts(page, 'A', 2, 8)
@@ -220,6 +230,7 @@ test.describe('Wave 5 toolbar — filter and sort', () => {
     await sortButton(page).click()
     await expect(sortDropdown(page)).toBeVisible()
     await sortAsc(page).click()
+    await confirmSort(page)
 
     const afterSwitchColumnAsc = await readColumnTexts(page, 'A', 2, 8)
     expect(afterSwitchColumnAsc).toEqual([

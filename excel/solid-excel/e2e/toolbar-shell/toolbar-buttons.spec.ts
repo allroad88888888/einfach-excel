@@ -399,28 +399,6 @@ test.describe('toolbar — rotation extended presets', () => {
   })
 })
 
-test.describe('toolbar — group coverage map (TODOs)', () => {
-  // These placeholders document where each toolbar group is already covered.
-  // They are .skip so the suite stays green but the cross-reference is in the
-  // test report.
-
-  test.skip('history — see toolbar-history.spec.ts', () => {})
-  test.skip('format painter — see toolbar-format-painter.spec.ts', () => {})
-  test.skip('clear formats — see toolbar-clear-format.spec.ts', () => {})
-  test.skip('comments — see toolbar-comment.spec.ts', () => {})
-  test.skip('font family — see toolbar-font-family.spec.ts', () => {})
-  test.skip('font size — see toolbar-font-size.spec.ts', () => {})
-  test.skip('text styles bold/italic/underline/strikethrough — see toolbar-text-style.spec.ts', () => {})
-  test.skip('font + fill color popovers — see toolbar-colors.spec.ts', () => {})
-  test.skip('borders all/outer/inner/none — see toolbar-borders.spec.ts', () => {})
-  test.skip('alignment h-center/right + v-top/middle + wrap + rotation 90/vertical — see toolbar-alignment.spec.ts', () => {})
-  test.skip('merge cells (center/across-rows/across-cols/unmerge) — see toolbar-merge.spec.ts', () => {})
-  test.skip('conditional format dialog — see toolbar-conditional-format.spec.ts', () => {})
-  test.skip('data validation dialog — see toolbar-data-validation.spec.ts', () => {})
-  test.skip('name manager dialog — see toolbar-name-manager.spec.ts', () => {})
-  test.skip('find / replace — see toolbar-find-replace.spec.ts', () => {})
-  test.skip('filter + sort — see toolbar-filter-sort.spec.ts', () => {})
-  test.skip('number format basics + inc/dec decimal — see toolbar-number-format.spec.ts', () => {})
-  test.skip('extended number format catalogs — see toolbar-more-number-formats.spec.ts', () => {})
-  test.skip('Ctrl+B bold shortcut — see vnext-wave5.spec.ts ("Ctrl+B keyboard shortcut")', () => {})
-})
+// 工具栏各功能组的覆盖索引在 CASES.md(ADR 0005 的用例清单权威),不再用
+// 19 个 test.skip 占位塞进测试报告 —— 占位 skip 是"无 owner 的常绿噪音",
+// 也让 skip 计数失去告警意义。

@@ -106,6 +106,12 @@ async function sortAscendingFromColumnE(page: Page) {
 
   await expect(page.getByTestId('toolbar-sort-dropdown')).toBeVisible()
   await page.getByTestId('toolbar-sort-asc').click()
+
+  // b2c1920 起工具栏排序走确认弹窗(Excel 口径),确认后才真正排序。
+  const sortDialog = page.getByTestId('sort-confirmation-dialog')
+  await expect(sortDialog).toHaveAttribute('data-status', 'ready')
+  await sortDialog.getByTestId('sort-confirmation-confirm').click()
+  await expect(sortDialog).toHaveCount(0)
 }
 
 const sortHistoryEntry = (page: Page) =>
@@ -227,6 +233,12 @@ test.describe('vNext engine physical sort real-backend evidence', () => {
     await expect(page.getByTestId('toolbar-sort-dropdown')).toBeVisible()
     await page.getByTestId('toolbar-sort-asc').click()
 
+    // b2c1920 起工具栏排序走确认弹窗(Excel 口径),确认后才真正排序。
+    const sortDialog = page.getByTestId('sort-confirmation-dialog')
+    await expect(sortDialog).toHaveAttribute('data-status', 'ready')
+    await sortDialog.getByTestId('sort-confirmation-confirm').click()
+    await expect(sortDialog).toHaveCount(0)
+
     // The visible rows reorder ascending AMONG THEMSELVES, each landing on one
     // of the rows they already occupied (2, 4, 5); the hidden row 3 is passed
     // over rather than written through, which is what excludedRows buys.
@@ -278,6 +290,13 @@ test.describe('vNext engine physical sort real-backend evidence', () => {
     // Excel closes the AutoFilter menu on sort; the engine physically reorders
     // and records one range.sort history entry.
     await expect(workerFilterDropdown(page)).toBeHidden()
+
+    // 5c7b77d 起筛选下拉的排序同样走确认弹窗。
+    const sortDialog = page.getByTestId('sort-confirmation-dialog')
+    await expect(sortDialog).toHaveAttribute('data-status', 'ready')
+    await sortDialog.getByTestId('sort-confirmation-confirm').click()
+    await expect(sortDialog).toHaveCount(0)
+
     await expect(cellDisplay(page, 'E2')).toHaveText('1')
     await expect(cellDisplay(page, 'E3')).toHaveText('2')
     await expect(cellDisplay(page, 'E4')).toHaveText('3')

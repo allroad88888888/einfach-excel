@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test'
+import { DUAL_BACKEND_SPECS, TS_ONLY_SPECS } from './e2e/dual-backend-manifest'
 
 /**
  * Playwright config for the Solid Excel demo smoke suite.
@@ -38,9 +39,13 @@ export default defineConfig({
   use: {
     trace: 'on-first-retry',
   },
+  // 双跑收缩:只有真正吃 `?backend=` 的 spec 才在 ts project 重跑一遍
+  // (清单与防腐守卫见 e2e/dual-backend-manifest.ts)。wasm 是现役主引擎,
+  // 跑除 TS 影子 spec 外的全部;ts 只跑双后端清单 + 专属 TS demo 影子 spec。
   projects: [
     {
       name: 'wasm',
+      testIgnore: TS_ONLY_SPECS,
       use: {
         ...devices['Desktop Chrome'],
         baseURL: `${BASE_URL}/?backend=wasm`,
@@ -48,6 +53,7 @@ export default defineConfig({
     },
     {
       name: 'ts',
+      testMatch: [...DUAL_BACKEND_SPECS, ...TS_ONLY_SPECS],
       use: {
         ...devices['Desktop Chrome'],
         baseURL: `${BASE_URL}/?backend=ts`,

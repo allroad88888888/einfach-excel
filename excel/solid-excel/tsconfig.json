@@ -12,6 +12,7 @@
     "demo-remote/**/*.ts",
     "demo-remote/**/*.tsx",
     "test/**/*",
+    "e2e/dual-backend-manifest.ts",
     "vanilla-editing-poc/**/*"
   ],
   "references": [

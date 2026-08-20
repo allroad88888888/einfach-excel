@@ -132,7 +132,9 @@ Two reference implementations ship under `excel/solid-excel/src-vnext/adapter/`:
 Worker 侧有两套运行时实现同一协议：`worker-runtime.ts` / `worker-runtime-full.ts`（Rust/WASM，
 两者只是各自静态 import `@einfach/excel-wasm` 与 `@einfach/excel-wasm/full` 的叶子入口，消息循环在
 `worker-runtime-core.ts`）与 `worker-runtime-ts.ts`（`@einfach/excel-core-ts`）。Rust 是现役主引擎；
-TS 版是 parity 参照兼纯 JS 部署路径，e2e 双后端跑同一批用例钉 parity
+TS 版是 parity 参照兼纯 JS 部署路径，e2e 对真正吃 `?backend=` 参数的 spec 双后端各跑一遍钉
+parity（清单 `excel/solid-excel/e2e/dual-backend-manifest.ts`，防腐守卫
+`excel/solid-excel/test/e2e-dual-backend-manifest.test.ts`）
 （矩阵见 `excel/solid-excel/e2e/BACKEND_PARITY.md`）。worker 工厂**刻意不从** `src-vnext` barrel
 导出（`import.meta` 会炸 jest）—— 宿主必须走 `@einfach/solid-excel/vnext-worker-factory` 子路径，
 见 [ADR 0004](docs/decisions/0004-worker-factory-out-of-barrel.md)。

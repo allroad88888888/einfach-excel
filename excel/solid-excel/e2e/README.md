@@ -45,6 +45,7 @@ CI 是 4 片矩阵（`.github/workflows/e2e.yml`，advisory 模式）。`--shard
 | `history/` | 撤销/重做 |
 | `toolbar-shell/` | 工具栏、菜单、外壳 |
 | `i18n-a11y/` | 国际化与可访问性 |
+| `visual-chrome/` | chrome 皮肤/对齐守卫(CSSOM 几何、暗色对比) |
 | `perf-virtual/` | 虚拟滚动与性能预算 |
 | `worker-backend/` | worker 后端、双运行时 parity |
 | `demos/` | 演示页 |

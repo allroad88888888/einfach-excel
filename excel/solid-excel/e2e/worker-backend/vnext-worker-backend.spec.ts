@@ -353,7 +353,8 @@ test.describe('Solid Excel vNext worker backend', () => {
     await gotoVNextWorkerDemo(page)
     await expect(cellDisplay(page, 'C2')).toHaveText('13')
 
-    const handle = page.getByTestId('sheet-tab-reorder-sheet-3')
+    // 拖页签本体重排(把手已删除)。
+    const handle = page.getByTestId('vnext-worker-sheet-tabs').getByRole('tab', { name: 'Sheet3' })
     const firstTab = page.getByRole('tab', { name: 'Sheet1' })
     const handleBox = await handle.boundingBox()
     const firstBox = await firstTab.boundingBox()

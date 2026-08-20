@@ -10,3 +10,4 @@
 | SS-02 | 大 seed demo 的进度条不残留        | 同上（perf seed 三页）        | ready 后 demo-import-progress 卸载                                  | ✅ 本轮 | demo-cold-load.spec.ts  |
 | SS-03 | zh 变体同岛可用                    | goto `/zh/demos/workbench/`   | 同 SS-01                                                            | ✅ 本轮 | demo-cold-load.spec.ts  |
 | SS-04 | 首页 hero 岛就绪                   | goto `/`                      | 同 SS-01 + 进度条卸载                                               | ✅ 本轮 | demo-cold-load.spec.ts  |
+| SS-05 | 暗色主题下表格可读                | workbench + 点 #theme-toggle  | 岛携带 data-spreadsheet-theme=dark;单元格文字/底色对比 ≥4.5        | 🆕 本轮 | demo-cold-load.spec.ts  |

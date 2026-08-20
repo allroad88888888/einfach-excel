@@ -181,7 +181,8 @@ test.describe('Solid Excel vNext smoke', () => {
   test('sheet tab drag reorder mutates displayed workbook metadata', async ({ page }) => {
     await gotoVNextDemo(page)
 
-    const handle = page.getByTestId('sheet-tab-reorder-sheet-3')
+    // 拖页签本体重排(把手已删除)。
+    const handle = page.getByRole('tab', { name: 'Sheet3' })
     const firstTab = page.getByRole('tab', { name: 'Sheet1' })
     const handleBox = await handle.boundingBox()
     const firstBox = await firstTab.boundingBox()

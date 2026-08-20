@@ -58,4 +58,33 @@ test.describe('deployed-artifact smoke — every demo shows real cells in budget
     await expectGridReady(page, 45_000)
     await expect(page.getByTestId('demo-import-progress')).toHaveCount(0)
   })
+
+  test('dark theme keeps the workbench grid readable', async ({ page }) => {
+    await page.goto('demos/workbench/')
+    await expectGridReady(page, 15_000)
+
+    // 站点主题切换必须传导到表格(data-spreadsheet-theme),且暗色下
+    // 单元格文字/底色对比过 AA —— 历史 bug:站点暗色文字色渗进浅色
+    // 表格,白底白字对比 ≈1,肉眼即"线上挂了"。
+    await page.locator('#theme-toggle').click()
+    await expect(page.locator('.demo-island')).toHaveAttribute('data-spreadsheet-theme', 'dark')
+
+    const contrast = await page.evaluate(() => {
+      const channel = (v: number) => {
+        const c = v / 255
+        return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
+      }
+      const luminance = (color: string) => {
+        const parts = color.match(/[\d.]+/g)!.map(Number)
+        return 0.2126 * channel(parts[0]) + 0.7152 * channel(parts[1]) + 0.0722 * channel(parts[2])
+      }
+      const cell = document.querySelector('td.cell')!
+      const style = getComputedStyle(cell)
+      const l1 = luminance(style.color)
+      const l2 = luminance(style.backgroundColor)
+      const [hi, lo] = l1 > l2 ? [l1, l2] : [l2, l1]
+      return (hi + 0.05) / (lo + 0.05)
+    })
+    expect(contrast).toBeGreaterThanOrEqual(4.5)
+  })
 })

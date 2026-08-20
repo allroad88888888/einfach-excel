@@ -111,7 +111,8 @@ test.describe('vNext real-backend parity smoke', () => {
     await gotoWorkerDemo(page)
 
     const sheetTabs = page.getByTestId('vnext-worker-sheet-tabs')
-    const handle = page.getByTestId('sheet-tab-reorder-sheet-3')
+    // 拖页签本体重排(把手已删除);越过 4px 阈值即进入 reorder 会话。
+    const handle = sheetTabs.getByRole('tab', { name: 'Sheet3', exact: true })
     const sheet1Tab = sheetTabs.getByRole('tab', { name: 'Sheet1', exact: true })
     const handleBox = await handle.boundingBox()
     const sheet1Box = await sheet1Tab.boundingBox()

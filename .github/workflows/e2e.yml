@@ -1,12 +1,12 @@
 name: e2e
 
-# Solid Excel browser tests. Separate from `ci.yml` (jest + build) so
-# e2e flake doesn't block the unit-test signal while the suite settles in.
+# Solid Excel browser tests. Separate from `ci.yml` (jest + build) so a
+# browser-infra failure is distinguishable from the unit-test signal.
 #
-# Gate policy (advisory — this workflow does NOT block PR merge yet):
-#   - Advisory for the first 2 weeks of green runs.
-#   - Failures upload `playwright-report/` + `test-results/` for triage.
-#   - Promote to PR-blocking once stable.
+# Gate policy: BLOCKING(2026-08-20 起)。advisory 期(continue-on-error)
+# 的教训:step 级失败被 job 级 success 掩盖,红灯从 21 个滚到 98 个而无人
+# 察觉 —— 清零过程见 dab17c1 / ae0325e。失败照旧上传 playwright-report/
+# + test-results/ 供排查;不许为了变绿重新加 continue-on-error。
 #
 # 套件结构（按功能点分目录）见 `excel/solid-excel/e2e/README.md`。
 #
@@ -92,10 +92,6 @@ jobs:
 
       - name: Run e2e (shard ${{ matrix.shard }}/4)
         run: npm run e2e -w @einfach/solid-excel -- --shard=${{ matrix.shard }}/4
-        # Advisory mode for the first 2 weeks. Flip `continue-on-error` to
-        # false (or just delete the line) once the suite is stable to make
-        # this a PR-blocking gate.
-        continue-on-error: true
 
       # 产物名必须带分片号:同名 artifact 在并行 job 之间会互相冲突。
       - name: Upload Playwright report on failure

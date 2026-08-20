@@ -169,8 +169,8 @@ export function FillColorPopover(props: FillColorPopoverProps) {
                     y="1.5"
                     width="11"
                     height="11"
-                    fill="#000000"
-                    stroke="#8a8a8a"
+                    fill="var(--text-default)"
+                    stroke="var(--border-strong)"
                     stroke-width="1"
                   />
                 </svg>
@@ -183,11 +183,11 @@ export function FillColorPopover(props: FillColorPopoverProps) {
                   y="1.5"
                   width="11"
                   height="11"
-                  fill="#ffffff"
-                  stroke="#8a8a8a"
+                  fill="var(--bg-surface)"
+                  stroke="var(--border-strong)"
                   stroke-width="1"
                 />
-                <line x1="2" y1="12" x2="12" y2="2" stroke="#d13438" stroke-width="1.5" />
+                <line x1="2" y1="12" x2="12" y2="2" stroke="var(--error-text)" stroke-width="1.5" />
               </svg>
             </Show>
           </span>
@@ -237,11 +237,18 @@ export function FillColorPopover(props: FillColorPopoverProps) {
         >
           <span class="spreadsheet-color-popover-more-icon" aria-hidden="true">
             <svg width="14" height="14" viewBox="0 0 14 14">
-              <circle cx="7" cy="7" r="5.5" fill="none" stroke="#8a8a8a" stroke-width="1" />
-              <path d="M7 1.5 A5.5 5.5 0 0 1 12.5 7 L7 7 Z" fill="#ffc000" />
-              <path d="M12.5 7 A5.5 5.5 0 0 1 7 12.5 L7 7 Z" fill="#92d050" />
-              <path d="M7 12.5 A5.5 5.5 0 0 1 1.5 7 L7 7 Z" fill="#0070c0" />
-              <path d="M1.5 7 A5.5 5.5 0 0 1 7 1.5 L7 7 Z" fill="#c00000" />
+              <circle
+                cx="7"
+                cy="7"
+                r="5.5"
+                fill="none"
+                stroke="var(--border-strong)"
+                stroke-width="1"
+              />
+              <path d="M7 1.5 A5.5 5.5 0 0 1 12.5 7 L7 7 Z" fill="var(--text-muted)" />
+              <path d="M12.5 7 A5.5 5.5 0 0 1 7 12.5 L7 7 Z" fill="var(--excel-green)" />
+              <path d="M7 12.5 A5.5 5.5 0 0 1 1.5 7 L7 7 Z" fill="var(--office-blue)" />
+              <path d="M1.5 7 A5.5 5.5 0 0 1 7 1.5 L7 7 Z" fill="var(--error-text)" />
             </svg>
           </span>
           <span class="spreadsheet-color-popover-more-label">

@@ -96,8 +96,8 @@ interface Step1Props {
 function Step1(props: Step1Props) {
   const t = useT()
   return (
-    <div class="ttc-section" data-testid="ttc-step-1">
-      <p class="ttc-section-title">{t('textToColumns.step1.title')}</p>
+    <fieldset class="ttc-section" data-testid="ttc-step-1" disabled={props.disabled}>
+      <legend class="ttc-section-title">{t('textToColumns.step1.title')}</legend>
       <label class="ttc-radio">
         <input
           type="radio"
@@ -120,7 +120,7 @@ function Step1(props: Step1Props) {
         />
         {t('textToColumns.step1.fixed')}
       </label>
-    </div>
+    </fieldset>
   )
 }
 
@@ -136,8 +136,8 @@ interface Step2DelimitedProps {
 function Step2Delimited(props: Step2DelimitedProps) {
   const t = useT()
   return (
-    <div class="ttc-section" data-testid="ttc-step-2-delimited">
-      <p class="ttc-section-title">{t('textToColumns.step2.delimited.title')}</p>
+    <fieldset class="ttc-section" data-testid="ttc-step-2-delimited" disabled={props.disabled}>
+      <legend class="ttc-section-title">{t('textToColumns.step2.delimited.title')}</legend>
       <div class="ttc-delim-grid">
         <For each={DELIMITER_KEYS}>
           {(delimiter) => (
@@ -192,7 +192,7 @@ function Step2Delimited(props: Step2DelimitedProps) {
           <option value="none">{t('textToColumns.step2.delimited.qualifier.none')}</option>
         </select>
       </label>
-    </div>
+    </fieldset>
   )
 }
 
@@ -205,8 +205,8 @@ interface Step2FixedProps {
 function Step2Fixed(props: Step2FixedProps) {
   const t = useT()
   return (
-    <div class="ttc-section" data-testid="ttc-step-2-fixed">
-      <p class="ttc-section-title">{t('textToColumns.step2.fixed.title')}</p>
+    <fieldset class="ttc-section" data-testid="ttc-step-2-fixed" disabled={props.disabled}>
+      <legend class="ttc-section-title">{t('textToColumns.step2.fixed.title')}</legend>
       <label class="ttc-field-row">
         {t('textToColumns.step2.fixed.breakpoints')}
         <input
@@ -220,7 +220,7 @@ function Step2Fixed(props: Step2FixedProps) {
         />
       </label>
       <p class="ttc-help">{t('textToColumns.step2.fixed.hint')}</p>
-    </div>
+    </fieldset>
   )
 }
 
@@ -236,8 +236,8 @@ function Step3(props: Step3Props) {
   const columnIndexes = () =>
     Array.from({ length: Math.max(props.columnCount, props.formats.length) }, (_, index) => index)
   return (
-    <div class="ttc-section" data-testid="ttc-step-3">
-      <p class="ttc-section-title">{t('textToColumns.step3.title')}</p>
+    <fieldset class="ttc-section" data-testid="ttc-step-3" disabled={props.disabled}>
+      <legend class="ttc-section-title">{t('textToColumns.step3.title')}</legend>
       <p class="ttc-help">{t('textToColumns.step3.hint')}</p>
       <div class="ttc-format-grid">
         <For each={columnIndexes()}>
@@ -272,6 +272,6 @@ function Step3(props: Step3Props) {
           )}
         </For>
       </div>
-    </div>
+    </fieldset>
   )
 }

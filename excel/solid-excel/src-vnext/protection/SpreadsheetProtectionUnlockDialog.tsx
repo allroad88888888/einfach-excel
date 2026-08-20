@@ -18,6 +18,7 @@ import {
   restoreProtectionUnlockFocus,
   trapProtectionUnlockDialogTab,
 } from './protection-unlock-dialog-focus'
+import '@einfach/spreadsheet-ui-styles/features/protection-unlock-dialog.css'
 
 export interface SpreadsheetProtectionUnlockDialogProps {
   class?: string
@@ -121,58 +122,67 @@ export function SpreadsheetProtectionUnlockDialog(props: SpreadsheetProtectionUn
         ref={dialogElement}
         class={`protection-unlock-dialog ${props.class ?? ''}`.trim()}
         data-testid={props['data-testid'] ?? 'protection-unlock-dialog'}
+        data-lock-state="locked"
+        data-phase={state().phase}
         role="dialog"
         aria-modal="true"
         aria-label={t('protection.unlock.ariaLabel')}
+        aria-busy={state().pending}
         onKeyDown={(event) => trapProtectionUnlockDialogTab(event, dialogElement)}
       >
-        <button
-          type="button"
-          class="dialog-close-x"
-          data-testid="dialog-close-x"
-          aria-label={t('dialog.close.label')}
-          onClick={handleClose}
-        >
-          ×
-        </button>
-        <div class="protection-unlock-row">
-          <span class="protection-unlock-target" data-testid="protection-unlock-target">
-            {targetLabel()}
-          </span>
-        </div>
-        <div class="protection-unlock-row">
-          <label class="protection-unlock-label" for="protection-unlock-password">
-            {t('protection.unlock.password')}
-          </label>
-          <input
-            id="protection-unlock-password"
-            class="protection-unlock-input"
-            data-testid="protection-unlock-password"
-            type="password"
-            value={password()}
-            disabled={state().pending}
-            aria-invalid={state().error ? 'true' : undefined}
-            aria-describedby={state().error ? 'protection-unlock-error' : undefined}
-            onInput={(e) => store.setter(setProtectionUnlockPasswordAtom, e.currentTarget.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault()
-                handleUnlock()
-              }
-            }}
-          />
+        <div class="protection-unlock-header">
+          <strong class="protection-unlock-title">{t('protection.unlock.ariaLabel')}</strong>
+          <button
+            type="button"
+            class="dialog-close-x"
+            data-testid="dialog-close-x"
+            aria-label={t('dialog.close.label')}
+            onClick={handleClose}
+          >
+            ×
+          </button>
         </div>
 
-        <Show when={state().error}>
-          <div class="protection-unlock-error" data-testid="protection-unlock-error" role="alert">
-            {state().error}
+        <div class="protection-unlock-body">
+          <div class="protection-unlock-row">
+            <span class="protection-unlock-target" data-testid="protection-unlock-target">
+              {targetLabel()}
+            </span>
           </div>
-        </Show>
+          <div class="protection-unlock-row">
+            <label class="protection-unlock-label" for="protection-unlock-password">
+              {t('protection.unlock.password')}
+            </label>
+            <input
+              id="protection-unlock-password"
+              class="protection-unlock-input"
+              data-testid="protection-unlock-password"
+              type="password"
+              value={password()}
+              disabled={state().pending}
+              aria-invalid={state().error ? 'true' : undefined}
+              aria-describedby={state().error ? 'protection-unlock-error' : undefined}
+              onInput={(e) => store.setter(setProtectionUnlockPasswordAtom, e.currentTarget.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  handleUnlock()
+                }
+              }}
+            />
+          </div>
+
+          <Show when={state().error}>
+            <div class="protection-unlock-error" data-testid="protection-unlock-error" role="alert">
+              {state().error}
+            </div>
+          </Show>
+        </div>
 
         <div class="protection-unlock-actions">
           <button
             type="button"
-            class="protection-unlock-btn"
+            class="protection-unlock-btn protection-unlock-btn-primary"
             data-testid="protection-unlock-confirm"
             disabled={state().pending}
             onClick={handleUnlock}

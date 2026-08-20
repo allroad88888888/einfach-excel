@@ -1,5 +1,12 @@
+import { readFile } from 'node:fs/promises'
+
 import { expect, test, type Page } from '@playwright/test'
 import { cell, guardConsoleErrors, withEnglishLocale } from '../helpers'
+
+const CONDITIONAL_FORMAT_STYLE_URL = new URL(
+  '../../../spreadsheet-ui-styles/features/conditional-format-dialog.css',
+  import.meta.url,
+)
 
 async function gotoWave5(page: Page) {
   await page.goto(withEnglishLocale())
@@ -21,6 +28,52 @@ function assertLocalizedLabel(label: string | null, rawKey: string, field: strin
   expect(label, `${field} has no translation token punctuation`).not.toContain('.')
 }
 
+async function dialogInteriorMetrics(page: Page, theme: 'light' | 'dark') {
+  return page.evaluate((nextTheme) => {
+    const host = document.querySelector<HTMLElement>('.vnext-demo')!
+    if (nextTheme === 'dark') host.dataset.spreadsheetTheme = 'dark'
+    else delete host.dataset.spreadsheetTheme
+
+    const dialog = host.querySelector<HTMLElement>('.conditional-format-dialog')!
+    const header = dialog.querySelector<HTMLElement>('.cf-dialog-header')!
+    const select = dialog.querySelector<HTMLSelectElement>('#cf-rule-kind-select')!
+    const list = dialog.querySelector<HTMLElement>('.cf-rule-list')!
+    const preview = dialog.querySelector<HTMLElement>('.cf-rule-preview')!
+    const primary = dialog.querySelector<HTMLElement>('[data-variant="primary"]')!
+    const danger = dialog.querySelector<HTMLButtonElement>('[data-variant="danger"]')!
+    danger.removeAttribute('disabled')
+    select.focus()
+
+    const resolveColor = (token: string) => {
+      const sample = document.createElement('span')
+      sample.style.color = `var(${token})`
+      dialog.append(sample)
+      const color = getComputedStyle(sample).color
+      sample.remove()
+      return color
+    }
+    const selectStyle = getComputedStyle(select)
+    const primaryStyle = getComputedStyle(primary)
+    const dangerStyle = getComputedStyle(danger)
+    return {
+      controlHeights: [select, primary, danger].map(
+        (element) => element.getBoundingClientRect().height,
+      ),
+      dangerBorder: dangerStyle.borderColor,
+      dangerColor: dangerStyle.color,
+      errorToken: resolveColor('--error-text'),
+      focusColor: selectStyle.outlineColor,
+      focusToken: resolveColor('--office-blue'),
+      headerHeight: header.getBoundingClientRect().height,
+      listBackground: getComputedStyle(list).backgroundColor,
+      previewBackground: getComputedStyle(preview).backgroundColor,
+      secondarySurfaceToken: resolveColor('--bg-chrome-light'),
+      primaryBackground: primaryStyle.backgroundColor,
+      primaryToken: resolveColor('--dialog-primary-bg'),
+    }
+  }, theme)
+}
+
 test.describe('Wave 5 toolbar — conditional formatting', () => {
   test.beforeEach(async ({ page }) => {
     guardConsoleErrors(page)
@@ -36,8 +89,16 @@ test.describe('Wave 5 toolbar — conditional formatting', () => {
 
     const tooltip = await button.getAttribute('data-tooltip')
     const ariaLabel = await button.getAttribute('aria-label')
-    assertLocalizedLabel(tooltip, 'toolbar.condFmt.title', 'toolbar-btn-conditional-format data-tooltip')
-    assertLocalizedLabel(ariaLabel, 'toolbar.condFmt.title', 'toolbar-btn-conditional-format aria-label')
+    assertLocalizedLabel(
+      tooltip,
+      'toolbar.condFmt.title',
+      'toolbar-btn-conditional-format data-tooltip',
+    )
+    assertLocalizedLabel(
+      ariaLabel,
+      'toolbar.condFmt.title',
+      'toolbar-btn-conditional-format aria-label',
+    )
 
     await button.click()
     await expect(conditionalFormatDialog(page)).toBeVisible()
@@ -61,6 +122,36 @@ test.describe('Wave 5 toolbar — conditional formatting', () => {
     await dialog.getByTestId('cf-save-button').click()
     await expect(dialog).toBeHidden()
     await expect(cell(page, target)).toHaveAttribute('data-has-conditional-format', 'true')
+  })
+
+  test('dialog interior is token-only and follows the Office web shell in both themes', async ({
+    page,
+  }) => {
+    const source = (await readFile(CONDITIONAL_FORMAT_STYLE_URL, 'utf8')).replace(
+      /\/\*[\s\S]*?\*\//g,
+      '',
+    )
+    expect(source.match(/#[\da-f]{3,8}\b|(?:rgb|hsl)a?\(/gi) ?? []).toEqual([])
+
+    await gotoWave5(page)
+    await cell(page, 'C3').click()
+    await conditionalFormatButton(page).click()
+    await expect(conditionalFormatDialog(page)).toHaveAttribute('aria-busy', 'false')
+
+    const light = await dialogInteriorMetrics(page, 'light')
+    const dark = await dialogInteriorMetrics(page, 'dark')
+    for (const metrics of [light, dark]) {
+      expect(metrics.headerHeight).toBe(40)
+      expect(metrics.controlHeights).toEqual([28, 28, 28])
+      expect(metrics.focusColor).toBe(metrics.focusToken)
+      expect(metrics.primaryBackground).toBe(metrics.primaryToken)
+      expect(metrics.dangerColor).toBe(metrics.errorToken)
+      expect(metrics.dangerBorder).toBe(metrics.errorToken)
+      expect(metrics.listBackground).toBe(metrics.secondarySurfaceToken)
+      expect(metrics.previewBackground).toBe(metrics.secondarySurfaceToken)
+    }
+    expect(dark.listBackground).not.toBe(light.listBackground)
+    expect(dark.dangerColor).not.toBe(light.dangerColor)
   })
 
   test('conditional-format dialog closes with Escape and header close X', async ({ page }) => {

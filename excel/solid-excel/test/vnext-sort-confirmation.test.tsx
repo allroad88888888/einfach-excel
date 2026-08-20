@@ -163,6 +163,27 @@ describe('toolbar sort confirmation', () => {
     expect(sortRange).not.toHaveBeenCalled()
   })
 
+  it('keeps the primary action disabled while its range is resolving', async () => {
+    const store = createStore()
+    setTarget(store, 1)
+    const backend = createBackend({
+      async resolveDataEdge() {
+        return new Promise(() => undefined)
+      },
+    })
+    const { container } = renderToolbar(store, backend)
+
+    await chooseDirection(container, 'asc')
+    await waitFor(() =>
+      expect(byTestId('sort-confirmation-dialog').dataset.status).toBe('preparing'),
+    )
+
+    const confirm = byTestId('sort-confirmation-confirm') as HTMLButtonElement
+    expect(confirm.disabled).toBe(true)
+    expect(confirm.getAttribute('data-variant')).toBe('primary')
+    expect(byTestId('sort-confirmation-close').classList.contains('dialog-close-x')).toBe(true)
+  })
+
   it('supports menu arrow navigation and restores trigger focus on Escape', async () => {
     const store = createStore()
     setTarget(store, 0)

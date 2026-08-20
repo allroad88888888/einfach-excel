@@ -43,9 +43,9 @@ export function ValidationRuleDialogContent(props: ValidationRuleDialogContentPr
       onKeyDown={props.onDialogKeyDown}
     >
       <div class="dv-dialog-header">
-        <span class="dv-dialog-title" id={TITLE_ID}>
+        <h2 class="dv-dialog-title" id={TITLE_ID}>
           {props.translate('dataValidation.title')}
-        </span>
+        </h2>
         <button
           type="button"
           class="dialog-close-x"
@@ -60,9 +60,9 @@ export function ValidationRuleDialogContent(props: ValidationRuleDialogContentPr
       <div class="dv-dialog-body">
         <div class="dv-range-row" id={RANGE_ID}>
           <span class="dv-range-label">{props.translate('dataValidation.range')}</span>
-          <span class="validation-range" data-testid="validation-range">
+          <output class="validation-range" data-testid="validation-range">
             {props.rangeLabel()}
-          </span>
+          </output>
         </div>
 
         <ValidationRuleFields
@@ -91,6 +91,14 @@ export function ValidationRuleDialogContent(props: ValidationRuleDialogContentPr
         >
           {props.translate('dataValidation.clear')}
         </button>
+        <span class="dv-footer-status" role="status" aria-live="polite">
+          <Show when={props.editor().pending}>
+            <span class="dv-pending-indicator" aria-hidden="true" />
+            <span data-testid="validation-pending-text">
+              {props.translate('status.projection.loading')}
+            </span>
+          </Show>
+        </span>
         <button
           type="button"
           class="validation-cancel-button"

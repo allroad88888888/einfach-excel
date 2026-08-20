@@ -38,6 +38,7 @@ interface TextToColumnsDialogContentProps {
 
 const TITLE_ID = 'text-to-columns-dialog-title'
 const ERROR_ID = 'text-to-columns-dialog-error'
+const PREVIEW_TITLE_ID = 'text-to-columns-preview-title'
 
 /** Renders the dialog shell and binds it to atom-derived presenter values. */
 export function TextToColumnsDialogContent(props: TextToColumnsDialogContentProps) {
@@ -45,6 +46,11 @@ export function TextToColumnsDialogContent(props: TextToColumnsDialogContentProp
   const isBusy = () => {
     const status = props.lifecycle().status
     return status === 'pending' || status === 'local-acknowledged' || status === 'refreshing'
+  }
+  const stepNumber = () => {
+    if (props.wizard().step === 'step-1') return 1
+    if (props.wizard().step === 'step-3') return 3
+    return 2
   }
 
   return (
@@ -65,8 +71,13 @@ export function TextToColumnsDialogContent(props: TextToColumnsDialogContentProp
         <span class="ttc-title" id={TITLE_ID}>
           {t('textToColumns.title')}
         </span>
-        <span class="ttc-step-label" data-testid="ttc-step-label">
-          {props.stepLabel()}
+        <span class="ttc-step-indicator" role="status" aria-live="polite">
+          <span class="ttc-step-count" aria-hidden="true">
+            {stepNumber()} / 3
+          </span>
+          <span class="ttc-step-label" data-testid="ttc-step-label">
+            {props.stepLabel()}
+          </span>
         </span>
         <button
           type="button"
@@ -99,8 +110,15 @@ export function TextToColumnsDialogContent(props: TextToColumnsDialogContentProp
           onIntent={props.onIntent}
         />
 
-        <div class="ttc-preview" data-testid="ttc-preview">
-          <div class="ttc-preview-header">{t('textToColumns.preview')}</div>
+        <div
+          class="ttc-preview"
+          data-testid="ttc-preview"
+          role="region"
+          aria-labelledby={PREVIEW_TITLE_ID}
+        >
+          <div class="ttc-preview-header" id={PREVIEW_TITLE_ID}>
+            {t('textToColumns.preview')}
+          </div>
           <div class="ttc-preview-scroll">
             <table>
               <tbody>
@@ -124,49 +142,53 @@ export function TextToColumnsDialogContent(props: TextToColumnsDialogContentProp
       </div>
 
       <div class="ttc-footer">
-        <button
-          type="button"
-          class="ttc-btn"
-          data-testid="ttc-back-button"
-          disabled={!props.canGoBack()}
-          onClick={props.onBack}
-        >
-          {t('textToColumns.back')}
-        </button>
-        <button
-          type="button"
-          class="ttc-btn"
-          data-testid="ttc-next-button"
-          disabled={!props.canGoNext()}
-          title={props.nextDisabledReason()}
-          onClick={props.onNext}
-        >
-          {t('textToColumns.next')}
-        </button>
-        <Show when={props.nextDisabledReason()}>
-          <span class="ttc-next-disabled-hint" data-testid="ttc-next-disabled-hint" role="status">
-            {props.nextDisabledReason()}
-          </span>
-        </Show>
-        <button
-          type="button"
-          class="ttc-btn"
-          data-testid="ttc-cancel-button"
-          disabled={!props.canClose()}
-          onClick={props.onClose}
-        >
-          {t('textToColumns.cancel')}
-        </button>
-        <button
-          type="button"
-          class="ttc-btn ttc-btn-primary"
-          data-testid="ttc-finish-button"
-          disabled={!props.canFinish()}
-          aria-describedby={props.error().length > 0 ? ERROR_ID : undefined}
-          onClick={props.onFinish}
-        >
-          {t('textToColumns.finish')}
-        </button>
+        <span class="ttc-footer-status">
+          <Show when={props.nextDisabledReason()}>
+            <span class="ttc-next-disabled-hint" data-testid="ttc-next-disabled-hint" role="status">
+              {props.nextDisabledReason()}
+            </span>
+          </Show>
+        </span>
+        <span class="ttc-footer-actions">
+          <button
+            type="button"
+            class="ttc-btn"
+            data-testid="ttc-back-button"
+            disabled={!props.canGoBack()}
+            onClick={props.onBack}
+          >
+            {t('textToColumns.back')}
+          </button>
+          <button
+            type="button"
+            class="ttc-btn"
+            data-testid="ttc-next-button"
+            disabled={!props.canGoNext()}
+            title={props.nextDisabledReason()}
+            onClick={props.onNext}
+          >
+            {t('textToColumns.next')}
+          </button>
+          <button
+            type="button"
+            class="ttc-btn"
+            data-testid="ttc-cancel-button"
+            disabled={!props.canClose()}
+            onClick={props.onClose}
+          >
+            {t('textToColumns.cancel')}
+          </button>
+          <button
+            type="button"
+            class="ttc-btn ttc-btn-primary"
+            data-testid="ttc-finish-button"
+            disabled={!props.canFinish()}
+            aria-describedby={props.error().length > 0 ? ERROR_ID : undefined}
+            onClick={props.onFinish}
+          >
+            {t('textToColumns.finish')}
+          </button>
+        </span>
       </div>
     </div>
   )

@@ -1,0 +1,82 @@
+/* Menu Help content layout for the shared Office Excel for web dialog shell. */
+
+.spreadsheet-help-overlay {
+  box-sizing: border-box;
+  width: min(420px, calc(100vw - 32px));
+  min-width: 360px;
+  max-width: min(720px, calc(100vw - 32px));
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-surface);
+  box-shadow: var(--dialog-shadow);
+  color: var(--text-default);
+  font-family: var(--excel-font);
+}
+
+.spreadsheet-help-overlay-header {
+  justify-content: space-between;
+}
+
+.spreadsheet-help-overlay-title {
+  user-select: none;
+}
+
+.spreadsheet-help-overlay-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 16px;
+  overflow: auto;
+  background: var(--bg-surface);
+}
+
+.spreadsheet-help-overlay-body {
+  margin: 0;
+  color: var(--text-default);
+  line-height: 1.5;
+}
+
+.spreadsheet-help-overlay-shortcut-list {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 6px 16px;
+  margin: 0;
+  padding: 0;
+}
+
+.spreadsheet-help-overlay-shortcut-item {
+  display: contents;
+}
+
+.spreadsheet-help-overlay-keys {
+  box-sizing: border-box;
+  min-height: var(--control-h);
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--control-radius);
+  background: var(--bg-chrome-light);
+  color: var(--text-default);
+  font-family: var(--excel-font);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.spreadsheet-help-overlay-label {
+  align-self: center;
+  color: var(--text-default);
+}
+
+.spreadsheet-help-overlay-actions {
+  min-height: 48px;
+}
+
+.spreadsheet-help-overlay-close {
+  min-width: 72px;
+  padding: 0 14px;
+  cursor: pointer;
+}
+
+.spreadsheet-help-overlay-close:hover:not(:disabled) {
+  border-color: var(--dialog-primary-hover);
+  background: var(--dialog-primary-hover);
+}

@@ -75,6 +75,21 @@ describe('Format Cells interactions', () => {
     await waitFor(() => expect(view.getByRole('dialog', { name: 'Format Cells' })).toBeTruthy())
   })
 
+  it('uses the shared Office web header, footer, and primary action contract', () => {
+    const store = createStore()
+    store.setter(openFormatCellsAtom, { sheetId: 'sheet-1', range: RANGE })
+    const view = render(() => (
+      <SpreadsheetUiProvider backend={backendWithSave(successfulSave)} store={store}>
+        <SpreadsheetFormatCellsDialog />
+      </SpreadsheetUiProvider>
+    ))
+
+    const dialog = view.getByTestId('format-cells-dialog')
+    expect(dialog.querySelector(':scope > header')?.classList).toContain('format-cells-header')
+    expect(dialog.querySelector(':scope > footer')?.classList).toContain('format-cells-actions')
+    expect(view.getByTestId('format-cells-save').getAttribute('data-variant')).toBe('primary')
+  })
+
   it('uses roving tabs with linked tabpanel semantics', async () => {
     const store = createStore()
     store.setter(openFormatCellsAtom, { sheetId: 'sheet-1', range: RANGE })

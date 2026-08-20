@@ -140,6 +140,8 @@ describe('conditional-format persisted-rule hydration', () => {
 
     store.setter(openConditionalFormatEditorAtom, null)
     await waitFor(() => expect(pending.has('sheet-a')).toBe(true))
+    expect(view.getByTestId('conditional-format-dialog').getAttribute('aria-busy')).toBe('true')
+    expect(view.getByTestId('cf-rule-list').getAttribute('aria-busy')).toBe('true')
     setActiveSheet(store, 'sheet-b')
     await waitFor(() => expect(pending.has('sheet-b')).toBe(true))
 
@@ -153,6 +155,8 @@ describe('conditional-format persisted-rule hydration', () => {
     const newRequest = listRules.mock.calls[1][0] as ListConditionalFormatRulesRequest
     pending.get('sheet-b')!.resolve(rulesResult(newRequest, [ruleFor('current-b')]))
     await waitFor(() => expect(view.getByTestId('cf-rule-entry-current-b')).toBeTruthy())
+    expect(view.getByTestId('conditional-format-dialog').getAttribute('aria-busy')).toBe('false')
+    expect(view.getByTestId('cf-rule-list').getAttribute('aria-busy')).toBe('false')
     expect(store.getter(conditionalFormatRulesCacheAtom).rules[0]?.id).toBe('current-b')
   })
 

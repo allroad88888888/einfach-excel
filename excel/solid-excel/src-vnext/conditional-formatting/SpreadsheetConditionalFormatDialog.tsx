@@ -157,7 +157,7 @@ export function SpreadsheetConditionalFormatDialog(props: SpreadsheetConditional
         aria-modal="true"
         aria-labelledby={DIALOG_TITLE_ID}
         aria-describedby={visibleError() ? ERROR_ID : PREVIEW_ID}
-        aria-busy={editor().pending}
+        aria-busy={fieldsDisabled()}
         onSubmit={(event) => {
           event.preventDefault()
           void handleSave()
@@ -189,6 +189,7 @@ export function SpreadsheetConditionalFormatDialog(props: SpreadsheetConditional
               class="cf-rule-list"
               data-testid="cf-rule-list"
               aria-label={t('conditionalFormat.existingRules')}
+              aria-busy={rulesAreLoading()}
             >
               <For each={rulesCache().rules}>
                 {(entry) => (
@@ -237,7 +238,12 @@ export function SpreadsheetConditionalFormatDialog(props: SpreadsheetConditional
               onUseSelection={() => store.setter(useSelectionForConditionalFormatEditorScopeAtom)}
             />
 
-            <div id={PREVIEW_ID} class="cf-rule-preview" aria-live="polite">
+            <div
+              id={PREVIEW_ID}
+              class="cf-rule-preview"
+              data-rule-kind={currentKind()}
+              aria-live="polite"
+            >
               <span class="cf-rule-preview-swatch" />
               <span class="cf-rule-preview-text">
                 {t('conditionalFormat.preview')} - {kindLabel(currentKind())}

@@ -100,10 +100,18 @@ export function FormatCellsBorderPanel(props: FormatCellsPanelProps) {
         class="format-cells-border-preview"
         data-testid="format-cells-border-preview"
         style={{
-          'border-top': props.draft()?.borders?.top ? '1px solid #333' : '1px dashed #ccc',
-          'border-right': props.draft()?.borders?.right ? '1px solid #333' : '1px dashed #ccc',
-          'border-bottom': props.draft()?.borders?.bottom ? '1px solid #333' : '1px dashed #ccc',
-          'border-left': props.draft()?.borders?.left ? '1px solid #333' : '1px dashed #ccc',
+          'border-top': props.draft()?.borders?.top
+            ? '1px solid var(--text-default)'
+            : '1px dashed var(--border-strong)',
+          'border-right': props.draft()?.borders?.right
+            ? '1px solid var(--text-default)'
+            : '1px dashed var(--border-strong)',
+          'border-bottom': props.draft()?.borders?.bottom
+            ? '1px solid var(--text-default)'
+            : '1px dashed var(--border-strong)',
+          'border-left': props.draft()?.borders?.left
+            ? '1px solid var(--text-default)'
+            : '1px dashed var(--border-strong)',
         }}
       >
         {props.t('formatCells.border.previewText')}

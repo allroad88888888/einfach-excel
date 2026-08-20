@@ -1,0 +1,64 @@
+/* Sheet-tab deletion owns this compact interior; dialog-skin.css owns the modal shell. */
+
+.sheet-tab-delete-dialog {
+  width: min(400px, calc(100vw - 32px));
+}
+
+.sheet-tab-delete-dialog .sheet-tab-delete-header {
+  justify-content: flex-start;
+}
+
+.sheet-tab-delete-dialog .sheet-tab-delete-header h2 {
+  margin: 0;
+  color: var(--text-default);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.sheet-tab-delete-dialog .sheet-tab-delete-body {
+  min-height: 68px;
+  padding: 16px;
+  background: var(--bg-surface);
+}
+
+.sheet-tab-delete-dialog .sheet-tab-delete-body p {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.sheet-tab-delete-dialog .sheet-tab-delete-footer {
+  min-height: 48px;
+}
+
+.sheet-tab-delete-dialog .sheet-tab-delete-footer button {
+  min-width: 72px;
+  padding: 0 12px;
+  cursor: pointer;
+}
+
+.sheet-tab-delete-dialog .sheet-tab-delete-footer button:hover:not(:disabled) {
+  border-color: var(--border-strong);
+  background: var(--hover);
+}
+
+.sheet-tab-delete-dialog .sheet-tab-delete-footer button[data-variant='danger'] {
+  border-color: var(--error-text);
+  background: var(--bg-surface);
+  color: var(--error-text);
+}
+
+.sheet-tab-delete-dialog
+  .sheet-tab-delete-footer
+  button[data-variant='danger']:hover:not(:disabled) {
+  border-color: var(--error-text);
+  background: var(--error-bg);
+  color: var(--error-text);
+}
+
+.sheet-tab-delete-dialog .sheet-tab-delete-footer button:disabled {
+  border-color: var(--border);
+  background: var(--bg-chrome);
+  color: var(--text-disabled);
+  cursor: default;
+}

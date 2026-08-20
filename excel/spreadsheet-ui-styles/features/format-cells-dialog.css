@@ -1,226 +1,296 @@
-/* Format Cells shell: dialog chrome, navigation, controls and actions. */
+/* Format Cells owns this interior; dialog-skin.css owns the Office web modal shell. */
 
 .format-cells-dialog {
-  width: 520px;
-  min-width: 520px;
-  max-width: 520px;
-  height: 460px;
-  border-radius: 6px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
-  overflow: hidden;
-}
-
-.format-cells-dialog > * {
-  padding: 0;
+  width: min(560px, calc(100vw - 32px));
+  height: min(440px, calc(100vh - 32px));
+  min-height: 360px;
 }
 
 .format-cells-dialog .format-cells-header {
-  display: flex;
-  align-items: center;
   justify-content: space-between;
-  height: 40px;
-  padding: 0 16px;
-  border-bottom: 1px solid var(--border, #d4d4d4);
-  background: #ffffff;
-  flex: 0 0 auto;
 }
 
 .format-cells-dialog .format-cells-title {
+  margin: 0;
+  color: var(--text-default);
   font-size: 14px;
   font-weight: 600;
-  color: var(--text-default, #1a1a1a);
-  line-height: 1;
-}
-
-.format-cells-dialog .dialog-close-x {
-  position: static;
-  width: 24px;
-  height: 24px;
-  font-size: 16px;
-  color: var(--text-muted, #6a6a6a);
-  border-radius: 4px;
-  flex: 0 0 auto;
+  user-select: none;
 }
 
 .format-cells-dialog .format-cells-tabs {
   display: flex;
+  flex: 0 0 36px;
   align-items: stretch;
-  height: 38px;
-  padding: 0 12px;
-  border-bottom: 1px solid var(--border, #d4d4d4);
-  background: #ffffff;
-  flex: 0 0 auto;
+  gap: 22px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-surface);
 }
 
-.format-cells-dialog .format-cells-tab {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  padding: 0 14px;
-  border: none;
-  background: transparent;
-  color: var(--text-default, #1a1a1a);
+form[role='dialog'].format-cells-dialog .format-cells-tabs > .format-cells-tab {
+  position: relative;
+  height: 36px;
+  padding: 0 2px;
+  border: 0;
+  border-radius: 0;
+  background: var(--bg-surface);
+  color: var(--text-muted);
+  cursor: pointer;
   font: inherit;
   font-size: 13px;
-  cursor: pointer;
-  position: relative;
-  outline: none;
 }
 
-.format-cells-dialog .format-cells-tab:hover,
-.format-cells-dialog .format-cells-tab-active {
-  color: var(--office-blue, #0078d4);
+form[role='dialog'].format-cells-dialog .format-cells-tabs > .format-cells-tab:hover {
+  color: var(--text-default);
 }
 
-.format-cells-dialog .format-cells-tab-active {
+form[role='dialog'].format-cells-dialog
+  .format-cells-tabs
+  > .format-cells-tab[aria-selected='true'] {
+  color: var(--office-blue-text);
   font-weight: 600;
 }
 
-.format-cells-dialog .format-cells-tab-active::after {
-  content: '';
+.format-cells-dialog .format-cells-tab[aria-selected='true']::after {
   position: absolute;
-  left: 10px;
-  right: 10px;
+  right: 0;
   bottom: -1px;
+  left: 0;
   height: 2px;
-  background: var(--office-blue, #0078d4);
-  border-radius: 1px;
-}
-
-.format-cells-dialog .format-cells-tab:focus-visible,
-.format-cells-dialog .format-cells-panel:focus-visible {
-  outline: 2px solid var(--office-blue, #0078d4);
-  outline-offset: -2px;
+  border-radius: var(--control-radius);
+  background: var(--office-blue);
+  content: '';
 }
 
 .format-cells-dialog .format-cells-panel {
   flex: 1 1 auto;
   min-height: 0;
+  padding: 14px 16px;
   overflow: auto;
-  padding: 16px 18px;
-  background: #ffffff;
+  background: var(--bg-surface);
+}
+
+.format-cells-dialog .format-cells-panel:focus-visible {
+  outline: 2px solid var(--office-blue);
+  outline-offset: -2px;
 }
 
 .format-cells-dialog .format-cells-section {
   display: flex;
+  height: 100%;
   flex-direction: column;
   gap: 10px;
-  height: 100%;
 }
 
 .format-cells-dialog .format-cells-row {
   display: flex;
   align-items: center;
   gap: 10px;
+  color: var(--text-default);
   font-size: 13px;
-  color: var(--text-default, #1a1a1a);
 }
 
 .format-cells-dialog .format-cells-row > span {
   min-width: 96px;
 }
 
-.format-cells-dialog .format-cells-row input[type='number'],
-.format-cells-dialog .format-cells-row input[type='text'],
-.format-cells-dialog .format-cells-row select {
-  height: 26px;
-  padding: 0 6px;
-  border: 1px solid var(--border, #d4d4d4);
-  border-radius: 3px;
-  background: #ffffff;
-  color: var(--text-default, #1a1a1a);
-  font: inherit;
-  font-size: 13px;
-  min-width: 140px;
+[role='dialog'].format-cells-dialog
+  .format-cells-row
+  :is(input[type='text'], input[type='number'], select) {
+  min-width: 144px;
+  padding: 0 8px;
 }
 
-.format-cells-dialog .format-cells-row input[type='number'] {
-  min-width: 80px;
+[role='dialog'].format-cells-dialog .format-cells-row input[type='number'] {
   width: 80px;
+  min-width: 80px;
 }
 
-.format-cells-dialog .format-cells-row input[type='color'] {
+[role='dialog'].format-cells-dialog .format-cells-row input[type='color'] {
   width: 36px;
-  height: 26px;
-  padding: 0;
-  border: 1px solid var(--border, #d4d4d4);
-  border-radius: 3px;
-  background: #ffffff;
+  min-width: 36px;
+  padding: 2px;
   cursor: pointer;
-}
-
-.format-cells-dialog .format-cells-row input:focus,
-.format-cells-dialog .format-cells-row select:focus {
-  outline: 1px solid var(--office-blue, #0078d4);
-  outline-offset: -1px;
-  border-color: var(--office-blue, #0078d4);
 }
 
 .format-cells-dialog .format-cells-row input[type='checkbox'] {
   width: 14px;
   height: 14px;
   margin: 0;
+  accent-color: var(--excel-green);
   cursor: pointer;
 }
 
-.format-cells-dialog .format-cells-actions {
+.format-cells-dialog .format-cells-section[data-testid='format-cells-number'] {
+  display: grid;
+  grid-template-columns: 164px minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+  gap: 12px 18px;
+  align-items: start;
+}
+
+.format-cells-dialog .format-cells-category-list {
+  grid-row: 1 / span 2;
+  margin: 0;
+  padding: 3px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--control-radius);
+  background: var(--bg-chrome-light);
+  list-style: none;
+}
+
+.format-cells-dialog .format-cells-category-list li {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.format-cells-dialog .format-cells-category-row {
+  position: relative;
   display: flex;
+  min-height: var(--control-h);
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  border-radius: var(--control-radius);
+  color: var(--text-default);
+  cursor: pointer;
+  font-size: 12px;
+  user-select: none;
+}
+
+.format-cells-dialog .format-cells-category-row:hover {
+  background: var(--hover);
+}
+
+.format-cells-dialog .format-cells-category-row:has(input:disabled) {
+  color: var(--text-disabled);
+  cursor: not-allowed;
+}
+
+.format-cells-dialog .format-cells-category-row input[type='radio'] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border: 0;
+  appearance: none;
+  cursor: inherit;
+  opacity: 0;
+}
+
+.format-cells-dialog .format-cells-category-row:has(input:checked) {
+  background: var(--select-bg);
+  color: var(--excel-green-text);
+  font-weight: 600;
+}
+
+.format-cells-dialog .format-cells-category-row:has(input:focus-visible) {
+  outline: 2px solid var(--office-blue);
+  outline-offset: -2px;
+}
+
+.format-cells-dialog .format-cells-coming-soon {
+  margin-left: auto;
+  color: var(--text-disabled);
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.format-cells-dialog .format-cells-preview {
+  display: flex;
+  min-height: 52px;
   align-items: center;
   justify-content: flex-end;
-  gap: 12px;
-  height: 48px;
-  padding: 0 16px;
-  border-top: 1px solid var(--border, #d4d4d4);
-  background: #ffffff;
-  flex: 0 0 auto;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-chrome-light);
+  color: var(--text-default);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.format-cells-dialog .format-cells-section[data-testid='format-cells-number'] > .format-cells-row {
+  align-self: start;
+}
+
+[role='dialog'].format-cells-dialog :is(.format-cells-side, .format-cells-side-active),
+[role='dialog'].format-cells-dialog
+  [data-testid='format-cells-border']
+  > .format-cells-row
+  > button {
+  padding: 0 10px;
+  cursor: pointer;
+}
+
+[role='dialog'].format-cells-dialog :is(.format-cells-side, .format-cells-side-active):hover,
+[role='dialog'].format-cells-dialog
+  [data-testid='format-cells-border']
+  > .format-cells-row
+  > button:hover {
+  border-color: var(--border-strong);
+  background: var(--hover);
+}
+
+[role='dialog'].format-cells-dialog .format-cells-side-active {
+  border-color: var(--excel-green);
+  background: var(--select-bg);
+  color: var(--excel-green-text);
+}
+
+.format-cells-dialog .format-cells-border-preview {
+  display: inline-block;
+  align-self: flex-start;
+  margin-top: 2px;
+  padding: 12px 20px;
+  background: var(--bg-chrome-light);
+}
+
+.format-cells-dialog .format-cells-actions {
+  min-height: 48px;
 }
 
 .format-cells-dialog .format-cells-actions [role='alert'] {
   margin-right: auto;
-  color: var(--danger, #b42318);
+  color: var(--error-text);
   font-size: 12px;
 }
 
-.format-cells-dialog .format-cells-actions button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 30px;
-  min-width: 76px;
-  padding: 0 16px;
-  border: 1px solid var(--border, #d4d4d4);
-  border-radius: 3px;
-  background: #ffffff;
-  color: var(--text-default, #1a1a1a);
-  font: inherit;
-  font-size: 13px;
+[role='dialog'].format-cells-dialog .format-cells-actions button {
+  min-width: 72px;
+  padding: 0 14px;
   cursor: pointer;
 }
 
-.format-cells-dialog .format-cells-actions button:hover:not(:disabled) {
-  background: var(--hover, #e8e8e8);
+[role='dialog'].format-cells-dialog .format-cells-actions button:hover:not(:disabled) {
+  border-color: var(--border-strong);
+  background: var(--hover);
 }
 
-.format-cells-dialog .format-cells-actions button:disabled {
+[role='dialog'].format-cells-dialog .format-cells-actions button:disabled {
+  border-color: var(--border);
+  background: var(--bg-chrome);
+  color: var(--text-disabled);
   cursor: default;
-  opacity: 0.55;
 }
 
-.format-cells-dialog .format-cells-actions button[data-testid='format-cells-save'] {
-  background: var(--office-blue, #0078d4);
-  border-color: var(--office-blue, #0078d4);
-  color: #ffffff;
-}
+@media (max-width: 520px) {
+  .format-cells-dialog .format-cells-tabs {
+    gap: 12px;
+    padding: 0 12px;
+    overflow-x: auto;
+  }
 
-.format-cells-dialog
-  .format-cells-actions
-  button[data-testid='format-cells-save']:hover:not(:disabled) {
-  background: #106ebe;
-  border-color: #106ebe;
-}
+  .format-cells-dialog .format-cells-panel {
+    padding: 12px;
+  }
 
-.format-cells-dialog .format-cells-actions button:focus-visible {
-  outline: 2px solid var(--office-blue, #0078d4);
-  outline-offset: 1px;
+  .format-cells-dialog .format-cells-section[data-testid='format-cells-number'] {
+    grid-template-columns: 132px minmax(0, 1fr);
+    gap: 10px 12px;
+  }
 }

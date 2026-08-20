@@ -36,6 +36,10 @@ import { useSortConfirmation } from '../sort/useSortConfirmation'
 import { FilterDropdownPresentation } from './FilterDropdownPresentation'
 import { useFilterDropdownFocus } from './filter-dropdown-focus'
 
+if (typeof process === 'undefined' || !process.env.JEST_WORKER_ID) {
+  void import('@einfach/spreadsheet-ui-styles/features/filter-dropdown.css')
+}
+
 export interface SpreadsheetFilterDropdownProps {
   class?: string
   'data-testid'?: string

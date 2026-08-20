@@ -53,6 +53,7 @@ export function CommentThreadPresentation(props: CommentThreadPresentationProps)
       class={`comment-thread spreadsheet-comment-thread ${props.class ?? ''}`.trim()}
       data-testid={props.testId}
       data-status={props.mutation().phase}
+      data-thread-kind={props.session()?.threadId === undefined ? 'new' : 'reply'}
       role="dialog"
       aria-modal="true"
       aria-labelledby={COMMENT_THREAD_TITLE_ID}
@@ -60,7 +61,7 @@ export function CommentThreadPresentation(props: CommentThreadPresentationProps)
       aria-busy={isPending()}
     >
       <header class="comment-thread-header">
-        <div>
+        <div class="comment-thread-heading">
           <h2 id={COMMENT_THREAD_TITLE_ID}>
             {props.session()?.threadId === undefined ? 'New comment' : 'Comment thread'}
           </h2>
@@ -79,33 +80,43 @@ export function CommentThreadPresentation(props: CommentThreadPresentationProps)
         </button>
       </header>
 
-      <label class="comment-thread-compose-label" for="spreadsheet-comment-thread-draft">
-        {props.session()?.threadId === undefined ? 'Comment' : 'Reply'}
-      </label>
-      <textarea
-        ref={props.setTextareaRef}
-        id="spreadsheet-comment-thread-draft"
-        class="comment-thread-textarea spreadsheet-comment-thread-textarea"
-        data-testid="comment-thread-textarea"
-        value={props.draft()}
-        disabled={isPending() || isUnknown()}
-        onInput={(event) => props.onDraftInput(event.currentTarget.value)}
-      />
+      <div class="comment-thread-body">
+        <label class="comment-thread-compose-label" for="spreadsheet-comment-thread-draft">
+          {props.session()?.threadId === undefined ? 'Comment' : 'Reply'}
+        </label>
+        <textarea
+          ref={props.setTextareaRef}
+          id="spreadsheet-comment-thread-draft"
+          class="comment-thread-textarea spreadsheet-comment-thread-textarea"
+          data-testid="comment-thread-textarea"
+          value={props.draft()}
+          disabled={isPending() || isUnknown()}
+          onInput={(event) => props.onDraftInput(event.currentTarget.value)}
+        />
 
-      <Show when={props.mutation().error !== null}>
-        <div id={COMMENT_THREAD_STATUS_ID} class="comment-thread-status" role="alert">
-          <p class="comment-mutation-error" data-testid="comment-mutation-error">
-            {props.mutation().error}
-          </p>
-          <Show when={isUnknown()}>
-            <p data-testid="comment-outcome-unknown-help">
-              The result is unknown. Verify the server state before trying again.
+        <Show when={props.mutation().error !== null}>
+          <div id={COMMENT_THREAD_STATUS_ID} class="comment-thread-status" role="alert">
+            <p class="comment-mutation-error" data-testid="comment-mutation-error">
+              {props.mutation().error}
             </p>
-          </Show>
-        </div>
-      </Show>
+            <Show when={isUnknown()}>
+              <p data-testid="comment-outcome-unknown-help">
+                The result is unknown. Verify the server state before trying again.
+              </p>
+            </Show>
+          </div>
+        </Show>
+      </div>
 
       <footer class="comment-thread-actions">
+        <button
+          type="button"
+          class="comment-close-button"
+          data-testid="comment-close-button"
+          onClick={props.onClose}
+        >
+          Close
+        </button>
         <Show when={canRetry()}>
           <button
             type="button"
@@ -130,19 +141,12 @@ export function CommentThreadPresentation(props: CommentThreadPresentationProps)
         <button
           type="button"
           class="comment-post-button"
+          data-variant="primary"
           data-testid="comment-post-button"
           disabled={props.submissionBlocked()}
           onClick={() => props.onRun('post')}
         >
           {props.session()?.threadId === undefined ? 'Post' : 'Reply'}
-        </button>
-        <button
-          type="button"
-          class="comment-close-button"
-          data-testid="comment-close-button"
-          onClick={props.onClose}
-        >
-          Close
         </button>
       </footer>
     </div>

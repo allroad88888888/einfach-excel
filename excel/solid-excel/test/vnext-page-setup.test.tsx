@@ -102,6 +102,16 @@ describe('vNext page setup dialog', () => {
         container.querySelector('[data-testid="page-setup-close-x"]'),
       ),
     )
+    const saveButton = container.querySelector(
+      '[data-testid="page-setup-save-button"]',
+    ) as HTMLButtonElement
+    saveButton.focus()
+    fireEvent.keyDown(document, { key: 'Tab' })
+    expect(document.activeElement).toBe(
+      container.querySelector('[data-testid="page-setup-close-x"]'),
+    )
+    fireEvent.keyDown(document, { key: 'Tab', shiftKey: true })
+    expect(document.activeElement).toBe(saveButton)
     fireEvent.click(container.querySelector('[data-testid="page-setup-orientation-landscape"]')!)
     fireEvent.input(container.querySelector('[data-testid="page-setup-scale-percent-input"]')!, {
       target: { value: '80' },
@@ -116,10 +126,54 @@ describe('vNext page setup dialog', () => {
       scale: { kind: 'percent', percent: 80 },
     })
     expect(container.querySelector('[data-testid="print-orientation-text"]')?.textContent).toBe(
-      'landscape',
+      '横向',
     )
     await Promise.resolve()
     expect(document.activeElement).toBe(pageSetupButton)
+  })
+
+  it('presents a visible pending state while an exact save is in flight', async () => {
+    let writeRequest: SetPrintConfigRequest | undefined
+    let releaseWrite:
+      | ((value: { sheetId: string; requestId: number; revision: string }) => void)
+      | undefined
+    const baseline = createPrintBackend()
+    const backend: PrintBackendHarness = {
+      ...baseline,
+      source: {
+        ...baseline.source,
+        setPrintConfig(request: SetPrintConfigRequest) {
+          writeRequest = request
+          return new Promise((resolve) => {
+            releaseWrite = resolve
+          })
+        },
+      } as SpreadsheetBackend,
+    }
+    const { container, store } = renderPreview(createStore(), backend)
+    await waitFor(() => expect(backend.reads).toHaveLength(1))
+    fireEvent.click(container.querySelector('[data-testid="print-page-setup-button"]')!)
+    fireEvent.click(container.querySelector('[data-testid="page-setup-save-button"]')!)
+
+    await waitFor(() => expect(store.getter(pageSetupSessionAtom)?.phase).toBe('saving'))
+    const dialog = container.querySelector('[data-testid="spreadsheet-page-setup-dialog"]')
+    const pending = container.querySelector('[data-testid="page-setup-pending"]')
+    expect(dialog?.getAttribute('aria-busy')).toBe('true')
+    expect(pending?.getAttribute('aria-hidden')).toBe('true')
+    expect(
+      container.querySelector('[data-testid="page-setup-save-button"]')?.hasAttribute('disabled'),
+    ).toBe(true)
+
+    await waitFor(() => expect(writeRequest?.requestId).toBeDefined())
+    if (writeRequest?.requestId === undefined || releaseWrite === undefined) {
+      throw new Error('save request did not reach the pending backend')
+    }
+    releaseWrite({
+      sheetId: writeRequest.sheetId,
+      requestId: writeRequest.requestId,
+      revision: 'write-1',
+    })
+    await waitFor(() => expect(store.getter(pageSetupDialogOpenAtom)).toBe(false))
   })
 
   it('hydrates on preview open and active-sheet changes using exact read receipts', async () => {

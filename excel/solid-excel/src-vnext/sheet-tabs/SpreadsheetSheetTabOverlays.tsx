@@ -4,6 +4,7 @@ import type { SpreadsheetSheetMetadata, SheetTabsState } from '@einfach/spreadsh
 
 import { useOverlayInteraction } from '../overlay'
 import type { createSheetTabInteractionController } from './sheet-tab-controller'
+import '@einfach/spreadsheet-ui-styles/features/sheet-tab-delete-dialog.css'
 
 interface SpreadsheetSheetTabOverlaysProps {
   readonly sheetTabs: Accessor<SheetTabsState>
@@ -63,7 +64,9 @@ export function SpreadsheetSheetTabOverlays(props: SpreadsheetSheetTabOverlaysPr
               data-testid="sheet-tab-menu-rename"
               title={props.controller.commandTitle('rename', 'Rename sheet')}
               disabled={props.controller.commandDisabled('rename')}
-              ref={(element) => { contextRenameButton = element }}
+              ref={(element) => {
+                contextRenameButton = element
+              }}
               onClick={() => props.controller.beginContextRename()}
             >
               Rename
@@ -84,30 +87,42 @@ export function SpreadsheetSheetTabOverlays(props: SpreadsheetSheetTabOverlaysPr
       <Show when={props.sheetTabs().deleteConfirmation}>
         {(confirmation) => (
           <div
+            class="sheet-tab-delete-dialog"
             role="dialog"
             aria-modal="true"
             aria-labelledby="sheet-tab-delete-title"
+            aria-describedby="sheet-tab-delete-description"
             data-testid="sheet-tab-delete-confirmation"
             ref={deleteOverlay.overlayRef}
           >
-            <p id="sheet-tab-delete-title">Delete sheet “{confirmation().sheetName}”?</p>
-            <button
-              type="button"
-              data-testid="sheet-tab-delete-cancel"
-              disabled={props.sheetTabs().mutation !== null}
-              ref={(element) => { deleteCancelButton = element }}
-              onClick={() => props.controller.cancelDelete()}
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              data-testid="sheet-tab-delete-confirm"
-              disabled={props.sheetTabs().mutation !== null}
-              onClick={() => props.controller.confirmDelete()}
-            >
-              Delete
-            </button>
+            <header class="sheet-tab-delete-header">
+              <h2 id="sheet-tab-delete-title">Delete sheet “{confirmation().sheetName}”?</h2>
+            </header>
+            <div class="sheet-tab-delete-body">
+              <p id="sheet-tab-delete-description">This action cannot be undone.</p>
+            </div>
+            <footer class="sheet-tab-delete-footer">
+              <button
+                type="button"
+                data-testid="sheet-tab-delete-cancel"
+                disabled={props.sheetTabs().mutation !== null}
+                ref={(element) => {
+                  deleteCancelButton = element
+                }}
+                onClick={() => props.controller.cancelDelete()}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                data-variant="danger"
+                data-testid="sheet-tab-delete-confirm"
+                disabled={props.sheetTabs().mutation !== null}
+                onClick={() => props.controller.confirmDelete()}
+              >
+                Delete
+              </button>
+            </footer>
           </div>
         )}
       </Show>

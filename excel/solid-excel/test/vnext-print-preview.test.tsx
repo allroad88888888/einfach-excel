@@ -61,6 +61,12 @@ describe('vNext SpreadsheetPrintPreviewOverlay', () => {
     expect(overlay.getAttribute('role')).toBe('dialog')
     expect(overlay.getAttribute('aria-modal')).toBe('true')
     expect(overlay.getAttribute('aria-label')).toBeTruthy()
+    expect(overlay.querySelector('.print-preview-dialog-header h2')?.textContent).toBe(
+      overlay.getAttribute('aria-label'),
+    )
+    expect(container.querySelector('[data-testid="print-preview-sheet"]')).not.toBeNull()
+    expect(container.querySelector('.print-preview-summary')).not.toBeNull()
+    expect(container.querySelector('.print-preview-actions')).not.toBeNull()
     expect(container.querySelector('[data-testid="print-orientation-text"]')).not.toBeNull()
     expect(container.querySelector('[data-testid="print-scale-text"]')).not.toBeNull()
     expect(container.querySelector('[data-testid="print-page-breaks-count"]')).not.toBeNull()
@@ -91,7 +97,7 @@ describe('vNext SpreadsheetPrintPreviewOverlay', () => {
     ))
 
     const orientationEl = container.querySelector('[data-testid="print-orientation-text"]')
-    expect(orientationEl?.textContent).toBe('landscape')
+    expect(orientationEl?.textContent).toBe('横向')
     const scaleEl = container.querySelector('[data-testid="print-scale-text"]')
     expect(scaleEl?.textContent).toBe('75%')
   })

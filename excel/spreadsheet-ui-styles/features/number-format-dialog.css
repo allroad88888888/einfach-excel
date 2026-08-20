@@ -1,78 +1,18 @@
 .number-format-dialog {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  z-index: 1100;
-  display: flex;
-  flex-direction: column;
   width: 440px;
   min-width: 440px;
   max-width: min(440px, calc(100vw - 32px));
   max-height: min(520px, calc(100vh - 32px));
-  padding: 0;
-  transform: translate(-50%, -50%);
-  background: #ffffff;
-  border: 1px solid var(--border-strong, #b8b8b8);
-  border-radius: 6px;
-  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.22);
-  color: var(--text-default, #1a1a1a);
-  font-family: var(--excel-font, system-ui, sans-serif);
-  font-size: 13px;
-  overflow: hidden;
-}
-
-.number-format-dialog::before {
-  content: '';
-  position: fixed;
-  inset: -100vmax;
-  z-index: -1;
-  background: rgba(0, 0, 0, 0.22);
-  pointer-events: none;
-}
-
-[role='dialog'].number-format-dialog > * {
-  padding: 0;
 }
 
 .number-format-dialog-header {
-  display: flex;
-  align-items: center;
   justify-content: space-between;
-  height: 40px;
-  padding: 0 12px 0 16px;
-  border-bottom: 1px solid var(--border, #d4d4d4);
-  background: #ffffff;
-  flex: 0 0 auto;
 }
 
 .number-format-dialog-title {
   margin: 0;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1;
-}
-
-.number-format-dialog .dialog-close-x {
-  position: static;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  border: none;
-  border-radius: 4px;
-  background: transparent;
-  color: var(--text-muted, #6a6a6a);
-  font: inherit;
-  font-size: 18px;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.number-format-dialog .dialog-close-x:hover {
-  background: var(--hover, #f2f2f2);
-  color: var(--text-default, #1a1a1a);
+  color: var(--text-default);
+  user-select: none;
 }
 
 .number-format-dialog-body {
@@ -82,7 +22,7 @@
   gap: 10px;
   min-height: 0;
   padding: 14px 16px 16px;
-  background: #ffffff;
+  background: var(--bg-surface);
 }
 
 .number-format-dialog-decimals {
@@ -90,7 +30,7 @@
   align-items: center;
   gap: 10px;
   min-height: 28px;
-  color: var(--text-default, #1a1a1a);
+  color: var(--text-default);
 }
 
 .number-format-dialog-decimals span {
@@ -99,21 +39,8 @@
 
 .number-format-dialog-decimals input {
   width: 72px;
-  height: 26px;
-  padding: 2px 6px;
-  border: 1px solid var(--border, #d4d4d4);
-  border-radius: 4px;
-  background: #ffffff;
-  color: inherit;
-  font: inherit;
+  padding: 0 6px;
   font-variant-numeric: tabular-nums;
-}
-
-.number-format-dialog-decimals input:focus,
-.number-format-dialog-row:focus-visible,
-.number-format-dialog-actions button:focus-visible {
-  outline: 2px solid rgba(0, 120, 212, 0.35);
-  outline-offset: 1px;
 }
 
 .number-format-dialog-list {
@@ -122,9 +49,9 @@
   min-height: 0;
   max-height: 300px;
   overflow: auto;
-  border: 1px solid var(--border, #d4d4d4);
-  border-radius: 4px;
-  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: var(--control-radius);
+  background: var(--bg-surface);
 }
 
 .number-format-dialog-currency-list {
@@ -140,9 +67,9 @@
   width: 100%;
   padding: 5px 10px;
   border: none;
-  border-bottom: 1px solid #f0f0f0;
-  background: transparent;
-  color: inherit;
+  border-bottom: 1px solid var(--gridline);
+  background: var(--bg-surface);
+  color: var(--text-default);
   font: inherit;
   text-align: left;
   cursor: pointer;
@@ -153,12 +80,12 @@
 }
 
 .number-format-dialog-row:hover {
-  background: var(--hover, #f2f6fb);
+  background: var(--hover);
 }
 
 .number-format-dialog-row-selected {
-  background: var(--select-bg, #e8f2ff);
-  box-shadow: inset 3px 0 0 var(--office-blue, #0078d4);
+  background: var(--select-bg);
+  box-shadow: inset 3px 0 0 var(--excel-green);
 }
 
 .number-format-dialog-row-label {
@@ -170,7 +97,7 @@
 
 .number-format-dialog-row-preview,
 .number-format-dialog-row-pattern {
-  color: var(--text-muted, #666666);
+  color: var(--text-muted);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -181,41 +108,31 @@
 }
 
 .number-format-dialog-actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  height: 48px;
-  padding: 8px 16px;
-  border-top: 1px solid var(--border, #d4d4d4);
-  background: var(--bg-chrome-light, #f7f7f7);
-  flex: 0 0 auto;
+  min-height: 48px;
 }
 
 .number-format-dialog-actions button {
   min-width: 72px;
-  height: 28px;
   padding: 0 14px;
-  border: 1px solid var(--border, #d4d4d4);
-  border-radius: 4px;
-  background: #ffffff;
-  color: var(--text-default, #1a1a1a);
-  font: inherit;
   cursor: pointer;
 }
 
-.number-format-dialog-actions button:hover {
-  background: var(--hover, #f2f2f2);
+.number-format-dialog-actions [role='alert'] {
+  margin-right: auto;
+  color: var(--error-text);
+  font-size: 12px;
 }
 
-.number-format-dialog-actions button[data-testid='number-format-dialog-save'] {
-  border-color: var(--office-blue, #0078d4);
-  background: var(--office-blue, #0078d4);
-  color: #ffffff;
+.number-format-dialog-actions button:hover:not(:disabled) {
+  border-color: var(--border-strong);
+  background: var(--hover);
 }
 
-.number-format-dialog-actions button[data-testid='number-format-dialog-save']:hover {
-  background: #106ebe;
+.number-format-dialog-actions button:disabled {
+  border-color: var(--border);
+  background: var(--bg-chrome);
+  color: var(--text-disabled);
+  cursor: default;
 }
 
 @media (max-width: 520px) {

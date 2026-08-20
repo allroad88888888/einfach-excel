@@ -97,9 +97,9 @@ export function RemoveDuplicatesDialogContent(props: RemoveDuplicatesDialogConte
   return (
     <>
       <div class="rd-header">
-        <span id={REMOVE_DUPLICATES_DIALOG_TITLE_ID} class="rd-title">
+        <h2 id={REMOVE_DUPLICATES_DIALOG_TITLE_ID} class="rd-title">
           {t('removeDuplicates.title')}
-        </span>
+        </h2>
         <button
           type="button"
           class="dialog-close-x"

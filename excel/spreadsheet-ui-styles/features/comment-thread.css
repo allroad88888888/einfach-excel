@@ -1,16 +1,22 @@
-.spreadsheet-comment-thread {
+/* Anchored comment surface. dialog-skin.css owns modal shells, so this file
+ * deliberately restores the cell-adjacent geometry for the comment workflow. */
+
+:is(.vnext-demo, .demo-page) [role='dialog'].spreadsheet-comment-thread.spreadsheet-comment-thread {
   position: fixed;
   z-index: 80;
   box-sizing: border-box;
-  width: min(320px, calc(100vw - 24px));
+  width: min(360px, calc(100vw - 24px));
+  min-width: 0;
   max-height: calc(100vh - 24px);
-  overflow: auto;
-  padding: 16px;
-  border: 1px solid #d0d7de;
-  border-radius: 10px;
-  background: #fff;
-  box-shadow: 0 8px 24px rgb(0 0 0 / 16%);
-  color: #1f2328;
+  padding: 0;
+  transform: none;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-popover);
+  color: var(--text-default);
+  font: 13px/1.4 var(--excel-font);
 }
 
 .comment-thread-header,
@@ -21,8 +27,8 @@
 }
 
 .comment-thread-header {
+  position: relative;
   justify-content: space-between;
-  margin-bottom: 14px;
 }
 
 .comment-thread-header h2 {
@@ -31,13 +37,23 @@
 }
 
 .comment-thread-cell {
-  color: #656d76;
+  color: var(--text-muted);
   font-size: 12px;
+}
+
+.comment-thread-body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px 16px;
+  overflow: auto;
+  background: var(--bg-surface);
 }
 
 .comment-thread-compose-label {
   display: block;
-  margin-bottom: 6px;
+  color: var(--text-default);
   font-size: 13px;
   font-weight: 600;
 }
@@ -45,25 +61,36 @@
 .spreadsheet-comment-thread-textarea {
   box-sizing: border-box;
   width: 100%;
-  min-height: 112px;
+  min-height: 96px;
   resize: vertical;
   padding: 8px;
-  border: 1px solid #8c959f;
-  border-radius: 6px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--control-radius);
+  background: var(--bg-surface);
+  color: var(--text-default);
   font: inherit;
 }
 
 .spreadsheet-comment-thread-textarea:focus-visible {
-  outline: 2px solid #0969da;
+  border-color: var(--office-blue);
+  outline: 2px solid var(--office-blue);
   outline-offset: 1px;
 }
 
+.spreadsheet-comment-thread-textarea:disabled {
+  border-color: var(--border);
+  background: var(--bg-chrome);
+  color: var(--text-disabled);
+  cursor: not-allowed;
+}
+
 .comment-thread-status {
-  margin-top: 10px;
-  padding: 8px;
-  border-radius: 6px;
-  background: #ffebe9;
-  color: #82071e;
+  margin-top: 4px;
+  padding: 8px 10px;
+  border: 1px solid var(--error-text);
+  border-radius: var(--control-radius);
+  background: var(--error-bg);
+  color: var(--error-text);
   font-size: 12px;
 }
 
@@ -78,10 +105,65 @@
 .comment-thread-actions {
   justify-content: flex-end;
   flex-wrap: wrap;
-  margin-top: 14px;
 }
 
 .comment-thread-actions button,
 .comment-thread-header button {
-  min-height: 32px;
+  box-sizing: border-box;
+  min-width: 72px;
+  height: var(--control-h);
+  padding: 0 12px;
+  cursor: pointer;
+}
+
+.comment-thread-header .dialog-close-x {
+  min-width: var(--control-h);
+  padding: 0;
+}
+
+.comment-thread-actions button:hover:not(:disabled) {
+  border-color: var(--border-strong);
+  background: var(--hover);
+}
+
+.comment-thread-actions .comment-post-button:hover:not(:disabled) {
+  border-color: var(--dialog-primary-hover);
+  background: var(--dialog-primary-hover);
+}
+
+.comment-thread-actions .comment-post-button:active:not(:disabled) {
+  border-color: var(--dialog-primary-active);
+  background: var(--dialog-primary-active);
+}
+
+.comment-thread-actions button:disabled {
+  border-color: var(--border);
+  background: var(--bg-chrome);
+  color: var(--text-disabled);
+  cursor: not-allowed;
+}
+
+.spreadsheet-comment-thread[data-status='PendingPublished'] .comment-post-button::before {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 6px;
+  animation: comment-thread-spin 800ms linear infinite;
+  border: 1px solid var(--text-on-accent-soft);
+  border-top-color: var(--text-on-accent);
+  border-radius: 50%;
+  content: '';
+  vertical-align: -1px;
+}
+
+@keyframes comment-thread-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spreadsheet-comment-thread[data-status='PendingPublished'] .comment-post-button::before {
+    animation: none;
+  }
 }

@@ -79,6 +79,9 @@ describe('SpreadsheetDataValidationDialog interactions', () => {
     expect(dialog.getAttribute('aria-modal')).toBe('true')
     expect(dialog.getAttribute('aria-labelledby')).toBe('data-validation-dialog-title')
     expect(dialog.getAttribute('aria-describedby')).toBe('data-validation-dialog-range')
+    expect(view.getByTestId('validation-range').tagName).toBe('OUTPUT')
+    expect(view.getByTestId('validation-rule-form')).toBeTruthy()
+    expect(view.getByTestId('validation-clear-button').getAttribute('data-variant')).toBe('danger')
 
     const save = view.getByTestId('validation-save-button')
     save.focus()
@@ -89,6 +92,28 @@ describe('SpreadsheetDataValidationDialog interactions', () => {
     await waitFor(() => expect(store.getter(validationRuleEditorAtom).status).toBe('closed'))
     await waitFor(() => expect(document.activeElement).toBe(trigger))
     trigger.remove()
+  })
+
+  it('announces mutation progress while rule actions are disabled', async () => {
+    const store = createStore()
+    const backend = createBackend()
+    backend.setValidationRule = () => new Promise(() => undefined)
+    store.setter(openValidationRuleEditorAtom, { range: testRange })
+
+    const view = render(() => (
+      <SpreadsheetUiProvider backend={backend} store={store}>
+        <SpreadsheetDataValidationDialog sheetId="sheet-1" />
+      </SpreadsheetUiProvider>
+    ))
+
+    fireEvent.click(await waitFor(() => view.getByTestId('validation-save-button')))
+
+    await waitFor(() =>
+      expect(view.getByTestId('validation-dialog').getAttribute('aria-busy')).toBe('true'),
+    )
+    expect(view.getByTestId('validation-pending-text').textContent).toBe('Loading')
+    expect((view.getByTestId('validation-save-button') as HTMLButtonElement).disabled).toBe(true)
+    expect((view.getByTestId('validation-clear-button') as HTMLButtonElement).disabled).toBe(true)
   })
 
   it('blocks more mutations after an unknown outcome but keeps cancellation available', async () => {

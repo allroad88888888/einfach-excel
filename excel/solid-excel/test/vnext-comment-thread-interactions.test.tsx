@@ -95,7 +95,7 @@ describe('SpreadsheetCommentThread interactions', () => {
     expect(dialog.getAttribute('data-anchor-state')).toBe('cell')
     expect((dialog as HTMLElement).style.left).toBe('188px')
 
-    const last = view.getByTestId('comment-close-button')
+    const last = view.getByTestId('comment-post-button')
     last.focus()
     fireEvent.keyDown(document, { key: 'Tab' })
     expect(document.activeElement).toBe(view.getByTestId('dialog-close-x'))

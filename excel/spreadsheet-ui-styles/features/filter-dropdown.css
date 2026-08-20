@@ -1,0 +1,177 @@
+/* Anchored filter menu. This deliberately owns only the non-modal popover
+ * surface; dialog-skin.css continues to exclude it from modal geometry. */
+
+:is(.vnext-demo, .demo-page) [role='dialog'].spreadsheet-filter-dropdown {
+  position: fixed;
+  top: 220px;
+  right: max(24px, calc((100vw - 1280px) / 2 + 40px));
+  left: auto;
+  z-index: 500;
+  box-sizing: border-box;
+  display: block;
+  width: 320px;
+  min-width: 0;
+  max-width: calc(100vw - 48px);
+  max-height: calc(100vh - 260px);
+  padding: 0;
+  transform: none;
+  overflow: auto;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-popover);
+  color: var(--text-default);
+  font: 12px/1.4 var(--excel-font);
+}
+
+.spreadsheet-filter-dropdown .filter-dropdown-header {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  min-height: var(--dialog-header-h);
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-surface);
+}
+
+.spreadsheet-filter-dropdown .filter-dropdown-title {
+  color: var(--text-default);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.spreadsheet-filter-dropdown .filter-dropdown-subtitle {
+  margin-top: 2px;
+  color: var(--text-muted);
+}
+
+.spreadsheet-filter-dropdown .dialog-close-x {
+  box-sizing: border-box;
+  display: inline-flex;
+  width: var(--control-h);
+  height: var(--control-h);
+  min-width: var(--control-h);
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--control-radius);
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.spreadsheet-filter-dropdown .filter-dropdown-rules,
+.spreadsheet-filter-dropdown .filter-section {
+  padding-right: 12px;
+  padding-left: 12px;
+}
+
+.spreadsheet-filter-dropdown .filter-dropdown-rules {
+  gap: 4px;
+  padding-top: 8px;
+}
+
+.spreadsheet-filter-dropdown .filter-rule {
+  border-color: var(--border);
+  border-radius: var(--control-radius);
+  background: var(--select-bg);
+  color: var(--excel-green-text);
+}
+
+.spreadsheet-filter-dropdown .filter-section {
+  padding-top: 10px;
+}
+
+.spreadsheet-filter-dropdown .filter-section-title {
+  color: var(--text-default);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.spreadsheet-filter-dropdown
+  :is(.filter-btn, .filter-search-input, .filter-condition-input, .filter-condition-select) {
+  box-sizing: border-box;
+  height: var(--control-h);
+  min-height: var(--control-h);
+  border: 1px solid var(--border);
+  border-radius: var(--control-radius);
+  background: var(--bg-surface);
+  color: var(--text-default);
+  font: inherit;
+}
+
+.spreadsheet-filter-dropdown .filter-btn {
+  padding: 0 10px;
+  cursor: pointer;
+}
+
+.spreadsheet-filter-dropdown
+  :is(.filter-search-input, .filter-condition-input, .filter-condition-select) {
+  padding: 0 8px;
+}
+
+.spreadsheet-filter-dropdown .filter-values-list,
+.spreadsheet-filter-dropdown .filter-value-option-all {
+  border-color: var(--border);
+  border-radius: var(--control-radius);
+}
+
+.spreadsheet-filter-dropdown .filter-value-option {
+  min-height: var(--control-h);
+}
+
+.spreadsheet-filter-dropdown .filter-footer {
+  padding: 10px 12px;
+  border-top-color: var(--border);
+  background: var(--bg-surface);
+}
+
+.spreadsheet-filter-dropdown .filter-btn-primary {
+  border-color: var(--dialog-primary-bg);
+  background: var(--dialog-primary-bg);
+  color: var(--text-on-accent);
+}
+
+.spreadsheet-filter-dropdown
+  :is(.filter-btn, .filter-value-option, .dialog-close-x):hover:not(:disabled) {
+  background: var(--hover);
+}
+
+.spreadsheet-filter-dropdown .filter-btn-primary:hover:not(:disabled) {
+  border-color: var(--dialog-primary-hover);
+  background: var(--dialog-primary-hover);
+}
+
+.spreadsheet-filter-dropdown .filter-btn-primary:active:not(:disabled) {
+  border-color: var(--dialog-primary-active);
+  background: var(--dialog-primary-active);
+}
+
+.spreadsheet-filter-dropdown :is(button, input, select):focus-visible {
+  border-color: var(--office-blue);
+  outline: 2px solid var(--office-blue);
+  outline-offset: 1px;
+}
+
+.spreadsheet-filter-dropdown :is(button, input, select):disabled {
+  border-color: var(--border);
+  background: var(--bg-chrome);
+  color: var(--text-disabled);
+  cursor: default;
+}
+
+.spreadsheet-filter-dropdown .filter-error {
+  margin: 0 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--error-text);
+  border-radius: var(--control-radius);
+  background: var(--error-bg);
+  color: var(--error-text);
+}

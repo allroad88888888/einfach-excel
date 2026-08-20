@@ -126,7 +126,7 @@ export function SpreadsheetPageSetupDialog(props: SpreadsheetPageSetupDialogProp
         </header>
 
         <div class="page-setup-body">
-          <fieldset disabled={!canEdit()}>
+          <fieldset class="page-setup-fieldset page-setup-orientation" disabled={!canEdit()}>
             <legend>Orientation</legend>
             <label>
               <input
@@ -152,7 +152,7 @@ export function SpreadsheetPageSetupDialog(props: SpreadsheetPageSetupDialogProp
             </label>
           </fieldset>
 
-          <fieldset disabled={!canEdit()}>
+          <fieldset class="page-setup-fieldset page-setup-scaling" disabled={!canEdit()}>
             <legend>Scaling</legend>
             <div class="page-setup-scale-choice">
               <label>
@@ -237,6 +237,11 @@ export function SpreadsheetPageSetupDialog(props: SpreadsheetPageSetupDialogProp
         </div>
 
         <footer class="page-setup-footer">
+          <Show when={busy()}>
+            <span class="page-setup-pending" data-testid="page-setup-pending" aria-hidden="true">
+              <span class="page-setup-pending-indicator" />
+            </span>
+          </Show>
           <Show when={canRetryRefresh()}>
             <button
               ref={retryButton}
@@ -261,6 +266,7 @@ export function SpreadsheetPageSetupDialog(props: SpreadsheetPageSetupDialogProp
             type="submit"
             class="page-setup-button page-setup-button-primary"
             data-testid="page-setup-save-button"
+            data-variant="primary"
             disabled={!canEdit()}
           >
             Save

@@ -41,6 +41,13 @@
   --border-strong: #a19f9d;
   --gridline: #e1e1e1; /* 单元格网格线,比 chrome 线更浅(Excel 口径) */
 
+  /* --- Dialog 壳 --- */
+  --dialog-overlay: rgba(0, 0, 0, 0.28);
+  --dialog-shadow: 0 12px 32px rgba(0, 0, 0, 0.24);
+  --dialog-primary-bg: #107c41;
+  --dialog-primary-hover: #0d6f3a;
+  --dialog-primary-active: #0a5c30;
+
   /* --- 交互状态底色 --- */
   --hover: #f0f0f0;
   --active-bg: #e4e4e4;
@@ -58,11 +65,12 @@
   --formula-row-h: 28px;
   --bottom-strip-h: 28px; /* 页签 + 状态栏共处的一条 */
   --radius: 4px;
+  --control-radius: 2px;
+  --dialog-header-h: 40px;
 
   /* --- 字体 --- */
   /* chrome 用 UI 字体(Windows 命中 Segoe UI,即 Office 原生观感) */
-  --excel-font:
-    'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', sans-serif;
+  --excel-font: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', sans-serif;
   /* 单元格用 Excel 的默认正文字体栈(Windows 命中 Calibri ≈ 11pt) */
   --cell-font:
     Calibri, 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', sans-serif;
@@ -100,6 +108,9 @@
   --border: #484644;
   --border-strong: #6b6966;
   --gridline: #404040;
+
+  --dialog-overlay: rgba(0, 0, 0, 0.56);
+  --dialog-shadow: 0 12px 32px rgba(0, 0, 0, 0.62);
 
   --hover: #3a3938;
   --active-bg: #484644;

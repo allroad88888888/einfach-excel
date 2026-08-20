@@ -124,6 +124,9 @@ describe('SpreadsheetConditionalFormatDialog interactions', () => {
       expect(store.getter(conditionalFormatEditorAtom).ruleId).toBe('rule-formula'),
     )
     expect(formulaRule.getAttribute('aria-current')).toBe('true')
+    expect(view.container.querySelector<HTMLElement>('.cf-rule-preview')?.dataset.ruleKind).toBe(
+      'formula',
+    )
 
     fireEvent.submit(view.getByTestId('conditional-format-dialog'))
     await waitFor(() => expect(setConditionalFormatRule).toHaveBeenCalledTimes(1))

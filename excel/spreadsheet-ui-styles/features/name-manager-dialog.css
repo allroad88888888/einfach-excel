@@ -1,0 +1,276 @@
+/* Name Manager content layout for the shared Office Excel for web dialog shell. */
+
+.name-manager-dialog {
+  width: min(680px, calc(100vw - 32px));
+}
+
+.name-manager-dialog .nm-header {
+  justify-content: space-between;
+}
+
+.name-manager-dialog .nm-title,
+.name-manager-dialog .nm-tables-title {
+  margin: 0;
+}
+
+.name-manager-dialog .nm-body {
+  display: grid;
+  grid-template-columns: minmax(152px, 0.8fr) minmax(276px, 1.2fr);
+  grid-template-areas:
+    'names editor'
+    'tables tables';
+  gap: 16px;
+  padding: 16px;
+  overflow: auto;
+  background: var(--bg-surface);
+}
+
+.name-manager-dialog .nm-name-list-section {
+  grid-area: names;
+  min-width: 0;
+}
+
+.name-manager-dialog .nm-name-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 188px;
+  margin: 0;
+  padding: 2px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--control-radius);
+  background: var(--bg-surface);
+  list-style: none;
+}
+
+.name-manager-dialog .nm-name-row {
+  min-width: 0;
+}
+
+.name-manager-dialog .nm-name-choice {
+  display: block;
+  width: 100%;
+  padding: 0 8px;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+  color: var(--text-default);
+  font: inherit;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.name-manager-dialog .nm-name-choice:hover:not(:disabled) {
+  background: var(--hover);
+}
+
+.name-manager-dialog .nm-name-choice[aria-pressed='true'] {
+  background: var(--select-bg);
+  color: var(--excel-green-text);
+  font-weight: 600;
+}
+
+.name-manager-dialog .nm-name-choice:disabled {
+  color: var(--text-disabled);
+  cursor: default;
+}
+
+.name-manager-dialog .nm-editor {
+  grid-area: editor;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 10px;
+}
+
+.name-manager-dialog .nm-form {
+  display: grid;
+  grid-template-columns: 82px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px 10px;
+}
+
+.name-manager-dialog .nm-form label {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.name-manager-dialog .nm-form :is(input, select) {
+  width: 100%;
+  padding: 0 8px;
+}
+
+.name-manager-dialog .nm-status,
+.name-manager-dialog .nm-tables-error {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--control-radius);
+  background: var(--bg-chrome-light);
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.name-manager-dialog .nm-status[data-pending='true'] {
+  border-color: var(--office-blue);
+  color: var(--office-blue-text);
+}
+
+.name-manager-dialog .nm-status[data-tone='error'],
+.name-manager-dialog .nm-tables-error {
+  border-color: var(--error-text);
+  background: var(--error-bg);
+  color: var(--error-text);
+}
+
+.name-manager-dialog .nm-tables {
+  grid-area: tables;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.name-manager-dialog .nm-tables-title {
+  color: var(--text-default);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.name-manager-dialog .nm-tables-empty {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.name-manager-dialog .nm-tables-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 160px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--control-radius);
+  background: var(--bg-surface);
+  list-style: none;
+}
+
+.name-manager-dialog .nm-table-row {
+  display: grid;
+  grid-template-columns: minmax(96px, 0.7fr) minmax(136px, 1fr) auto;
+  align-items: center;
+  gap: 4px 12px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.name-manager-dialog .nm-table-row:last-child {
+  border-bottom: 0;
+}
+
+.name-manager-dialog .nm-table-name {
+  color: var(--text-default);
+  font-weight: 600;
+}
+
+.name-manager-dialog :is(.nm-table-location, .nm-table-columns, .nm-table-totals) {
+  min-width: 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.name-manager-dialog .nm-table-totals {
+  color: var(--excel-green-text);
+}
+
+.name-manager-dialog :is(.nm-table-rename, .nm-table-delete-confirm, .nm-table-actions) {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.name-manager-dialog .nm-table-delete-confirm {
+  padding: 6px 8px;
+  border: 1px solid var(--error-text);
+  border-radius: var(--control-radius);
+  background: var(--error-bg);
+  color: var(--error-text);
+  font-size: 12px;
+}
+
+.name-manager-dialog :is(.nm-table-rename, .nm-table-delete-confirm) input {
+  width: min(220px, 100%);
+  padding: 0 8px;
+}
+
+.name-manager-dialog .nm-table-actions {
+  justify-content: flex-end;
+}
+
+.name-manager-dialog .nm-table-actions button {
+  min-height: auto;
+  height: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--office-blue-text);
+  font: inherit;
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.name-manager-dialog .nm-table-actions button:disabled {
+  color: var(--text-disabled);
+  cursor: default;
+}
+
+.name-manager-dialog .nm-actions {
+  min-height: 48px;
+}
+
+.name-manager-dialog .nm-btn {
+  min-width: 72px;
+  padding: 0 12px;
+  cursor: pointer;
+}
+
+.name-manager-dialog .nm-btn:hover:not(:disabled) {
+  border-color: var(--border-strong);
+  background: var(--hover);
+}
+
+.name-manager-dialog .nm-btn-primary:hover:not(:disabled) {
+  border-color: var(--dialog-primary-hover);
+  background: var(--dialog-primary-hover);
+}
+
+.name-manager-dialog .nm-btn:disabled {
+  color: var(--text-disabled);
+  cursor: default;
+}
+
+@media (max-width: 560px) {
+  .name-manager-dialog .nm-body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'names'
+      'editor'
+      'tables';
+  }
+
+  .name-manager-dialog .nm-name-list {
+    max-height: 112px;
+  }
+
+  .name-manager-dialog .nm-table-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

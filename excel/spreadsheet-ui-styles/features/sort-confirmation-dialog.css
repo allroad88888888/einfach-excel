@@ -1,48 +1,73 @@
 .spreadsheet-sort-confirmation-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 80;
+  z-index: 1000;
   display: grid;
   place-items: center;
-  padding: 24px;
-  background: rgb(15 23 42 / 28%);
+  padding: 16px;
+  background: var(--dialog-overlay);
 }
 
 .spreadsheet-sort-confirmation-dialog {
   width: min(360px, 100%);
-  border: 1px solid #d0d7de;
-  border-radius: 8px;
-  background: #fff;
-  box-shadow: 0 16px 40px rgb(15 23 42 / 24%);
-  color: #1f2328;
-  font:
-    13px/1.5 system-ui,
-    sans-serif;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-surface);
+  box-shadow: var(--dialog-shadow);
+  color: var(--text-default);
+  font: 13px/1.5 var(--excel-font);
 }
 
 .spreadsheet-sort-confirmation-header,
 .spreadsheet-sort-confirmation-actions {
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 16px;
 }
 
 .spreadsheet-sort-confirmation-header {
+  flex: 0 0 var(--dialog-header-h);
   justify-content: space-between;
-  border-bottom: 1px solid #d8dee4;
+  min-height: var(--dialog-header-h);
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-surface);
 }
 
-.spreadsheet-sort-confirmation-header button {
+.spreadsheet-sort-confirmation-header h2 {
+  margin: 0;
+  color: var(--text-default);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.spreadsheet-sort-confirmation-dialog .dialog-close-x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-h);
+  height: var(--control-h);
+  padding: 0;
   border: 0;
   background: transparent;
+  color: var(--text-muted);
   cursor: pointer;
+  font: inherit;
   font-size: 18px;
+  line-height: 1;
+}
+
+.spreadsheet-sort-confirmation-dialog .dialog-close-x:hover:not(:disabled) {
+  background: var(--hover);
+  color: var(--text-default);
 }
 
 .spreadsheet-sort-confirmation-body {
   min-height: 92px;
-  padding: 12px 16px;
+  padding: 16px;
+  background: var(--bg-surface);
 }
 
 .spreadsheet-sort-confirmation-body p {
@@ -61,7 +86,7 @@
 }
 
 .spreadsheet-sort-confirmation-body dt {
-  color: #59636e;
+  color: var(--text-muted);
 }
 
 .spreadsheet-sort-confirmation-body dd {
@@ -71,20 +96,62 @@
 
 .spreadsheet-sort-confirmation-actions {
   justify-content: flex-end;
-  border-top: 1px solid #d8dee4;
+  min-height: 48px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-surface);
 }
 
 .spreadsheet-sort-confirmation-actions button {
+  box-sizing: border-box;
+  height: var(--control-h);
   min-width: 72px;
-  padding: 6px 12px;
-  border: 1px solid #afb8c1;
-  border-radius: 6px;
-  background: #fff;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--control-radius);
+  background: var(--bg-surface);
+  color: var(--text-default);
   cursor: pointer;
+  font: inherit;
 }
 
-.spreadsheet-sort-confirmation-actions button:last-child {
-  border-color: #0969da;
-  background: #0969da;
-  color: #fff;
+.spreadsheet-sort-confirmation-actions button:hover:not(:disabled) {
+  background: var(--hover);
+}
+
+.spreadsheet-sort-confirmation-dialog :is(button):focus-visible {
+  border-color: var(--office-blue);
+  outline: 2px solid var(--office-blue);
+  outline-offset: 1px;
+}
+
+.spreadsheet-sort-confirmation-actions button[data-variant='primary'] {
+  border-color: var(--dialog-primary-bg);
+  background: var(--dialog-primary-bg);
+  color: var(--text-on-accent);
+}
+
+.spreadsheet-sort-confirmation-actions button[data-variant='primary']:hover:not(:disabled) {
+  border-color: var(--dialog-primary-hover);
+  background: var(--dialog-primary-hover);
+}
+
+.spreadsheet-sort-confirmation-actions button[data-variant='primary']:active:not(:disabled) {
+  border-color: var(--dialog-primary-active);
+  background: var(--dialog-primary-active);
+}
+
+.spreadsheet-sort-confirmation-actions button:disabled {
+  border-color: var(--border);
+  background: var(--bg-chrome);
+  color: var(--text-disabled);
+  cursor: default;
+}
+
+.spreadsheet-sort-confirmation-error {
+  padding: 8px 10px;
+  border: 1px solid var(--error-text);
+  border-radius: var(--radius);
+  background: var(--error-bg);
+  color: var(--error-text);
 }

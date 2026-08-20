@@ -93,9 +93,10 @@ export function SortConfirmationDialog(props: SortConfirmationDialogProps) {
             aria-describedby="sort-confirmation-description"
           >
             <div class="spreadsheet-sort-confirmation-header">
-              <strong id="sort-confirmation-title">{props.t('toolbar.sort.title')}</strong>
+              <h2 id="sort-confirmation-title">{props.t('toolbar.sort.title')}</h2>
               <button
                 type="button"
+                class="dialog-close-x"
                 data-testid="sort-confirmation-close"
                 aria-label="Close sort confirmation"
                 onClick={cancel}
@@ -133,7 +134,11 @@ export function SortConfirmationDialog(props: SortConfirmationDialogProps) {
               </Show>
               <Show when={props.state.status === 'error' && props.state}>
                 {(state) => (
-                  <p role="alert" data-testid="sort-confirmation-error">
+                  <p
+                    class="spreadsheet-sort-confirmation-error"
+                    role="alert"
+                    data-testid="sort-confirmation-error"
+                  >
                     {(state() as Extract<SortConfirmationState, { status: 'error' }>).error}
                   </p>
                 )}
@@ -143,11 +148,22 @@ export function SortConfirmationDialog(props: SortConfirmationDialogProps) {
               <button type="button" data-testid="sort-confirmation-cancel" onClick={cancel}>
                 Cancel
               </button>
+              <Show when={props.state.status === 'preparing'}>
+                <button
+                  type="button"
+                  data-testid="sort-confirmation-confirm"
+                  data-variant="primary"
+                  disabled
+                >
+                  {directionLabel()}
+                </button>
+              </Show>
               <Show when={props.state.status === 'error'}>
                 <button
                   ref={primaryActionRef}
                   type="button"
                   data-testid="sort-confirmation-retry"
+                  data-variant="primary"
                   onClick={props.onRetry}
                 >
                   Retry
@@ -158,6 +174,7 @@ export function SortConfirmationDialog(props: SortConfirmationDialogProps) {
                   ref={primaryActionRef}
                   type="button"
                   data-testid="sort-confirmation-confirm"
+                  data-variant="primary"
                   onClick={() => {
                     props.onConfirm()
                     restoreAnchorFocus()

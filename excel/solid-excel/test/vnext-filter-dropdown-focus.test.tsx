@@ -93,6 +93,9 @@ describe('vNext SpreadsheetFilterDropdown focus contract', () => {
       '[data-testid="filter-search-input"]',
     ) as HTMLInputElement
     await waitFor(() => expect(document.activeElement).toBe(search))
+    const dropdown = container.querySelector('[data-testid="filter-dropdown"]')
+    expect(dropdown?.getAttribute('role')).toBe('dialog')
+    expect(dropdown?.getAttribute('aria-modal')).toBeNull()
 
     fireEvent.keyDown(document, { key: 'Escape' })
     await waitFor(() => expect(store.getter(filterDropdownAtom).status).toBe('closed'))

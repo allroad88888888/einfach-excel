@@ -7,7 +7,6 @@ import { FormatCellsTabs } from './FormatCellsTabs'
 import { useFormatCellsDialogController } from './format-cells-dialog-controller'
 import { useFormatCellsDialogFocus } from './format-cells-dialog-focus'
 import '@einfach/spreadsheet-ui-styles/features/format-cells-dialog.css'
-import '@einfach/spreadsheet-ui-styles/features/format-cells-panels.css'
 
 export interface SpreadsheetFormatCellsDialogProps {
   class?: string
@@ -48,10 +47,10 @@ export function SpreadsheetFormatCellsDialog(props: SpreadsheetFormatCellsDialog
           if (controller.canSubmit()) controller.save()
         }}
       >
-        <div class="format-cells-header">
-          <span id="format-cells-title" class="format-cells-title">
+        <header class="format-cells-header">
+          <h2 id="format-cells-title" class="format-cells-title">
             {t('formatCells.title')}
-          </span>
+          </h2>
           <button
             type="button"
             class="dialog-close-x"
@@ -61,7 +60,7 @@ export function SpreadsheetFormatCellsDialog(props: SpreadsheetFormatCellsDialog
           >
             ×
           </button>
-        </div>
+        </header>
         <FormatCellsTabs activeTab={controller.activeTab} setTab={controller.setTab} t={t} />
         <FormatCellsPanel
           activeTab={controller.activeTab}
@@ -72,7 +71,7 @@ export function SpreadsheetFormatCellsDialog(props: SpreadsheetFormatCellsDialog
           patch={controller.patch}
           t={t}
         />
-        <div class="format-cells-actions">
+        <footer class="format-cells-actions">
           <Show when={openEditor()?.error}>
             {(message) => (
               <span id="format-cells-save-error" role="alert" data-testid="format-cells-save-error">
@@ -83,10 +82,15 @@ export function SpreadsheetFormatCellsDialog(props: SpreadsheetFormatCellsDialog
           <button type="button" data-testid="format-cells-cancel" onClick={controller.close}>
             {t('formatCells.cancel')}
           </button>
-          <button type="submit" data-testid="format-cells-save" disabled={!controller.canSubmit()}>
+          <button
+            type="submit"
+            data-variant="primary"
+            data-testid="format-cells-save"
+            disabled={!controller.canSubmit()}
+          >
             {t('formatCells.save')}
           </button>
-        </div>
+        </footer>
       </form>
     </Show>
   )

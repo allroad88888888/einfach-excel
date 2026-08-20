@@ -1,0 +1,127 @@
+/* Protection unlock owns this interior; dialog-skin.css owns the modal shell. */
+
+.protection-unlock-dialog {
+  width: min(400px, calc(100vw - 32px));
+}
+
+.protection-unlock-dialog .protection-unlock-header {
+  position: relative;
+  justify-content: space-between;
+}
+
+.protection-unlock-dialog .protection-unlock-title {
+  color: var(--text-default);
+  font-size: 14px;
+  font-weight: 600;
+  user-select: none;
+}
+
+.protection-unlock-dialog .protection-unlock-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: var(--bg-surface);
+}
+
+.protection-unlock-dialog .protection-unlock-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.protection-unlock-dialog .protection-unlock-target {
+  display: flex;
+  align-items: center;
+  min-height: var(--control-h);
+  gap: 8px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--control-radius);
+  background: var(--bg-chrome-light);
+  color: var(--text-default);
+  overflow-wrap: anywhere;
+}
+
+.protection-unlock-dialog .protection-unlock-target::before {
+  color: var(--excel-green-text);
+  content: '🔒';
+  font-size: 12px;
+  line-height: 1;
+}
+
+.protection-unlock-dialog .protection-unlock-label {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.protection-unlock-dialog .protection-unlock-input {
+  width: 100%;
+  padding: 0 8px;
+}
+
+.protection-unlock-dialog .protection-unlock-input[aria-invalid='true'] {
+  border-color: var(--error-text);
+}
+
+.protection-unlock-dialog .protection-unlock-error {
+  padding: 8px 10px;
+  border: 1px solid var(--error-text);
+  border-radius: var(--control-radius);
+  background: var(--error-bg);
+  color: var(--error-text);
+  font-size: 12px;
+}
+
+.protection-unlock-dialog .protection-unlock-actions {
+  min-height: 48px;
+}
+
+.protection-unlock-dialog .protection-unlock-btn {
+  min-width: 72px;
+  padding: 0 12px;
+  cursor: pointer;
+}
+
+.protection-unlock-dialog .protection-unlock-btn:hover:not(:disabled) {
+  border-color: var(--border-strong);
+  background: var(--hover);
+}
+
+.protection-unlock-dialog .protection-unlock-btn-primary:hover:not(:disabled) {
+  border-color: var(--dialog-primary-hover);
+  background: var(--dialog-primary-hover);
+}
+
+.protection-unlock-dialog :is(.protection-unlock-input, .protection-unlock-btn):disabled {
+  border-color: var(--border);
+  background: var(--bg-chrome);
+  color: var(--text-disabled);
+  cursor: not-allowed;
+}
+
+.protection-unlock-dialog[data-phase='verifying'] .protection-unlock-btn-primary::before {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 6px;
+  animation: protection-unlock-spin 800ms linear infinite;
+  border: 1px solid var(--text-disabled);
+  border-top-color: var(--office-blue);
+  border-radius: 50%;
+  content: '';
+  vertical-align: -1px;
+}
+
+@keyframes protection-unlock-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .protection-unlock-dialog[data-phase='verifying'] .protection-unlock-btn-primary::before {
+    animation: none;
+  }
+}

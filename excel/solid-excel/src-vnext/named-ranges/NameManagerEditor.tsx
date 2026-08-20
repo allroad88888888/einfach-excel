@@ -1,6 +1,7 @@
 /** @jsxImportSource solid-js */
 
 import { For, Show } from 'solid-js'
+import type { JSX } from 'solid-js'
 import { useAtomValue } from '@einfach/solid'
 import {
   nameManagerEditorAtom,
@@ -33,6 +34,7 @@ export interface NameManagerEditorProps {
   readonly onClose: () => void
   readonly onDelete: () => void
   readonly onSave: () => void
+  readonly tables?: JSX.Element
 }
 
 export function NameManagerEditor(props: NameManagerEditorProps) {
@@ -96,97 +98,126 @@ export function NameManagerEditor(props: NameManagerEditorProps) {
       return fallbackStatusCopy(locale(), 'capabilityUnavailable')
     return registry().status === 'refreshing' ? fallbackStatusCopy(locale(), 'refreshing') : null
   }
+  const statusTone = () => {
+    if (interactionLocked()) return 'pending'
+    if (mutation().error !== null || capability().status === 'unavailable') return 'error'
+    return 'info'
+  }
   return (
     <>
-      <ul data-testid="name-list">
-        <For each={registry().names}>
-          {(entry) => (
-            <li data-name={entry.name}>
-              <button
-                type="button"
-                aria-pressed={selectedEntry(entry)}
+      <main class="nm-body" aria-busy={interactionLocked()}>
+        <section class="nm-name-list-section" aria-label={t('nameManager.title')}>
+          <ul class="nm-name-list" data-testid="name-list">
+            <For each={registry().names}>
+              {(entry) => (
+                <li class="nm-name-row" data-name={entry.name}>
+                  <button
+                    type="button"
+                    class="nm-name-choice"
+                    aria-pressed={selectedEntry(entry)}
+                    disabled={interactionLocked()}
+                    onClick={() =>
+                      store.setter(openNameManagerAtom, {
+                        status: 'editing-existing',
+                        draft: entry,
+                      })
+                    }
+                  >
+                    {entry.name} ({scopeToString(entry.scope)})
+                  </button>
+                </li>
+              )}
+            </For>
+          </ul>
+        </section>
+        <section class="nm-editor" aria-label={t('nameManager.title')}>
+          <div class="nm-form">
+            <label for="name-input">{t('nameManager.name')}</label>
+            <input
+              id="name-input"
+              data-testid="name-input"
+              type="text"
+              value={name()}
+              disabled={interactionLocked()}
+              onInput={(event) => store.setter(nameManagerNameDraftAtom, event.currentTarget.value)}
+            />
+            <label for="name-scope-select">{t('nameManager.scope')}</label>
+            <select
+              id="name-scope-select"
+              data-testid="name-scope-select"
+              value={scope()}
+              disabled={interactionLocked()}
+              onChange={(event) =>
+                store.setter(nameManagerScopeDraftAtom, event.currentTarget.value)
+              }
+            >
+              <option value="workbook">{t('nameManager.scope.workbook')}</option>
+              <For each={sheets()}>
+                {(sheet) => <option value={`sheet:${sheet.id}`}>{sheet.name}</option>}
+              </For>
+            </select>
+            <label for="name-mgr-kind-select">{t('nameManager.kind')}</label>
+            <select
+              id="name-mgr-kind-select"
+              data-testid="name-mgr-kind-select"
+              value={kind()}
+              disabled={interactionLocked()}
+              onChange={(event) =>
+                store.setter(nameManagerKindDraftAtom, event.currentTarget.value as NameManagerKind)
+              }
+            >
+              <option value="range">{t('nameManager.kind.range')}</option>
+              <option value="value">{t('nameManager.kind.value')}</option>
+              <option value="lambda">{t('nameManager.kind.lambda')}</option>
+            </select>
+            <Show when={kind() === 'lambda'}>
+              <label for="name-mgr-params-input">{t('nameManager.params')}</label>
+              <input
+                id="name-mgr-params-input"
+                data-testid="name-mgr-params-input"
+                type="text"
+                placeholder="x, y, z"
+                value={params()}
                 disabled={interactionLocked()}
-                onClick={() =>
-                  store.setter(openNameManagerAtom, { status: 'editing-existing', draft: entry })
+                onInput={(event) =>
+                  store.setter(nameManagerParamsDraftAtom, event.currentTarget.value)
                 }
-              >
-                {entry.name} ({scopeToString(entry.scope)})
-              </button>
-            </li>
-          )}
-        </For>
-      </ul>
-      <div class="nm-form">
-        <label for="name-input">{t('nameManager.name')}</label>
-        <input
-          id="name-input"
-          data-testid="name-input"
-          type="text"
-          value={name()}
-          disabled={interactionLocked()}
-          onInput={(event) => store.setter(nameManagerNameDraftAtom, event.currentTarget.value)}
-        />
-        <label for="name-scope-select">{t('nameManager.scope')}</label>
-        <select
-          id="name-scope-select"
-          data-testid="name-scope-select"
-          value={scope()}
-          disabled={interactionLocked()}
-          onChange={(event) => store.setter(nameManagerScopeDraftAtom, event.currentTarget.value)}
-        >
-          <option value="workbook">{t('nameManager.scope.workbook')}</option>
-          <For each={sheets()}>
-            {(sheet) => <option value={`sheet:${sheet.id}`}>{sheet.name}</option>}
-          </For>
-        </select>
-        <label for="name-mgr-kind-select">{t('nameManager.kind')}</label>
-        <select
-          id="name-mgr-kind-select"
-          data-testid="name-mgr-kind-select"
-          value={kind()}
-          disabled={interactionLocked()}
-          onChange={(event) =>
-            store.setter(nameManagerKindDraftAtom, event.currentTarget.value as NameManagerKind)
-          }
-        >
-          <option value="range">{t('nameManager.kind.range')}</option>
-          <option value="value">{t('nameManager.kind.value')}</option>
-          <option value="lambda">{t('nameManager.kind.lambda')}</option>
-        </select>
-        <Show when={kind() === 'lambda'}>
-          <label for="name-mgr-params-input">{t('nameManager.params')}</label>
-          <input
-            id="name-mgr-params-input"
-            data-testid="name-mgr-params-input"
-            type="text"
-            placeholder="x, y, z"
-            value={params()}
-            disabled={interactionLocked()}
-            onInput={(event) => store.setter(nameManagerParamsDraftAtom, event.currentTarget.value)}
-          />
-        </Show>
-        <label for="name-refers-to">
-          {kind() === 'lambda' ? t('nameManager.lambdaBody') : t('nameManager.refersTo')}
-        </label>
-        <input
-          id="name-refers-to"
-          data-testid="name-refers-to"
-          type="text"
-          value={refersTo()}
-          disabled={interactionLocked()}
-          onInput={(event) => store.setter(nameManagerRefersToDraftAtom, event.currentTarget.value)}
-        />
-      </div>
-      <Show when={statusMessage()}>
-        {(message) => (
-          <div data-testid="name-error-text" role="status">
-            {message()}
+              />
+            </Show>
+            <label for="name-refers-to">
+              {kind() === 'lambda' ? t('nameManager.lambdaBody') : t('nameManager.refersTo')}
+            </label>
+            <input
+              id="name-refers-to"
+              data-testid="name-refers-to"
+              type="text"
+              value={refersTo()}
+              disabled={interactionLocked()}
+              onInput={(event) =>
+                store.setter(nameManagerRefersToDraftAtom, event.currentTarget.value)
+              }
+            />
           </div>
-        )}
-      </Show>
+          <Show when={statusMessage()}>
+            {(message) => (
+              <div
+                class="nm-status"
+                data-pending={String(statusTone() === 'pending')}
+                data-tone={statusTone()}
+                data-testid="name-error-text"
+                role="status"
+              >
+                {message()}
+              </div>
+            )}
+          </Show>
+        </section>
+        <Show when={props.tables}>{props.tables}</Show>
+      </main>
       <div class="nm-actions">
         <button
           type="button"
+          class="nm-btn nm-btn-primary"
           data-testid="name-save-button"
           disabled={!supportsSave()}
           onClick={props.onSave}
@@ -195,13 +226,19 @@ export function NameManagerEditor(props: NameManagerEditorProps) {
         </button>
         <button
           type="button"
+          class="nm-btn"
           data-testid="name-delete-button"
           disabled={!supportsDelete()}
           onClick={props.onDelete}
         >
           {t('nameManager.delete')}
         </button>
-        <button type="button" data-testid="name-close-button" onClick={props.onClose}>
+        <button
+          type="button"
+          class="nm-btn"
+          data-testid="name-close-button"
+          onClick={props.onClose}
+        >
           {t('nameManager.close')}
         </button>
       </div>

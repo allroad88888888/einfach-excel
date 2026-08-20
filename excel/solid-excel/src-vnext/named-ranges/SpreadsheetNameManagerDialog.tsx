@@ -21,6 +21,7 @@ import { useT } from '../../src/i18n'
 import { useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider'
 import { NameManagerEditor } from './NameManagerEditor'
 import { NameManagerTables } from './NameManagerTables'
+import '@einfach/spreadsheet-ui-styles/features/name-manager-dialog.css'
 
 export interface SpreadsheetNameManagerDialogProps {
   class?: string
@@ -86,21 +87,28 @@ export function SpreadsheetNameManagerDialog(props: SpreadsheetNameManagerDialog
         data-mutation-status={mutation().status}
         role="dialog"
         aria-modal="true"
-        aria-label={t('nameManager.title')}
+        aria-labelledby="name-manager-dialog-title"
       >
-        <button
-          type="button"
-          class="dialog-close-x"
-          data-testid="dialog-close-x"
-          aria-label={t('dialog.close.label')}
-          onClick={close}
-        >
-          ×
-        </button>
-        <NameManagerEditor onClose={close} onDelete={remove} onSave={save} />
-        <Show when={tablesSupported()}>
-          <NameManagerTables />
-        </Show>
+        <header class="nm-header">
+          <h2 id="name-manager-dialog-title" class="nm-title">
+            {t('nameManager.title')}
+          </h2>
+          <button
+            type="button"
+            class="dialog-close-x"
+            data-testid="dialog-close-x"
+            aria-label={t('dialog.close.label')}
+            onClick={close}
+          >
+            ×
+          </button>
+        </header>
+        <NameManagerEditor
+          onClose={close}
+          onDelete={remove}
+          onSave={save}
+          tables={tablesSupported() ? <NameManagerTables /> : undefined}
+        />
       </div>
     </Show>
   )

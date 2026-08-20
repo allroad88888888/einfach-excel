@@ -1,68 +1,41 @@
+/* Page Setup owns its form layout; dialog-skin.css owns the Office web modal shell. */
+
 .spreadsheet-page-setup-dialog {
   width: min(440px, calc(100vw - 32px));
-  margin: 0;
-  padding: 0 !important;
-  border-radius: 6px !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18) !important;
-}
-
-.spreadsheet-page-setup-dialog > * {
-  padding: 0;
-}
-
-.spreadsheet-page-setup-dialog .page-setup-header,
-.spreadsheet-page-setup-dialog .page-setup-footer {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  background: #f8fafc;
 }
 
 .spreadsheet-page-setup-dialog .page-setup-header {
   justify-content: space-between;
-  border-bottom: 1px solid #e6e8eb;
-}
-
-.spreadsheet-page-setup-dialog h2 {
-  margin: 0;
-  color: #0f172a;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.spreadsheet-page-setup-dialog .dialog-close-x {
-  display: flex;
-  width: 24px;
-  height: 24px;
-  align-items: center;
-  justify-content: center;
-  border: 0;
-  border-radius: 4px;
-  background: transparent;
-  color: #64748b;
-  cursor: pointer;
-  font-size: 18px;
 }
 
 .spreadsheet-page-setup-dialog .page-setup-body {
   display: grid;
-  gap: 14px;
-  padding: 14px 16px;
+  min-height: 0;
+  flex: 1 1 auto;
+  gap: 12px;
+  padding: 16px;
+  overflow-y: auto;
+  background: var(--bg-surface);
 }
 
-.spreadsheet-page-setup-dialog fieldset {
+.spreadsheet-page-setup-dialog .page-setup-fieldset {
   display: grid;
-  gap: 8px;
+  gap: 8px 16px;
+  min-width: 0;
   margin: 0;
-  padding: 10px 12px;
-  border: 1px solid #e2e8f0;
-  border-radius: 4px;
+  padding: 8px 12px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-surface);
+}
+
+.spreadsheet-page-setup-dialog .page-setup-orientation {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .spreadsheet-page-setup-dialog legend {
   padding: 0 4px;
-  color: #475569;
+  color: var(--text-muted);
   font-size: 12px;
   font-weight: 600;
 }
@@ -72,60 +45,123 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #1e293b;
+  color: var(--text-default);
   font-size: 13px;
 }
 
 .spreadsheet-page-setup-dialog .page-setup-scale-choice {
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 72px 64px minmax(0, 1fr) 64px minmax(0, 1fr);
+}
+
+.spreadsheet-page-setup-dialog label {
+  cursor: pointer;
+}
+
+.spreadsheet-page-setup-dialog label:has(input:disabled) {
+  color: var(--text-disabled);
+  cursor: default;
+}
+
+.spreadsheet-page-setup-dialog input[type='radio'] {
+  accent-color: var(--excel-green);
 }
 
 .spreadsheet-page-setup-dialog input[type='number'] {
   width: 64px;
-  height: 26px;
-  border: 1px solid #cbd5e1;
-  border-radius: 4px;
   padding: 0 6px;
 }
 
+.spreadsheet-page-setup-dialog input[type='number']:hover:not(:disabled) {
+  border-color: var(--border-strong);
+}
+
+.spreadsheet-page-setup-dialog input[type='number']:disabled {
+  background: var(--bg-chrome);
+  color: var(--text-disabled);
+  cursor: default;
+}
+
 .spreadsheet-page-setup-dialog output {
-  color: #64748b;
+  padding-top: 7px;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
   font-size: 12px;
 }
 
 .spreadsheet-page-setup-dialog .page-setup-error {
-  padding: 8px 12px;
-  border: 1px solid #fecaca;
-  border-radius: 4px;
-  background: #fef2f2;
-  color: #b91c1c;
-  font-size: 13px;
+  padding: 8px 10px;
+  border: 1px solid var(--error-text);
+  border-radius: var(--radius);
+  background: var(--error-bg);
+  color: var(--error-text);
+  font-size: 12px;
 }
 
 .spreadsheet-page-setup-dialog .page-setup-footer {
-  justify-content: flex-end;
-  border-top: 1px solid #e6e8eb;
+  min-height: 48px;
 }
 
 .spreadsheet-page-setup-dialog .page-setup-button {
-  height: 28px;
-  border: 1px solid #cbd5e1;
-  border-radius: 4px;
-  background: #fff;
-  color: #1e293b;
+  min-width: 72px;
   cursor: pointer;
-  font-size: 13px;
   padding: 0 12px;
 }
 
-.spreadsheet-page-setup-dialog .page-setup-button-primary {
-  border-color: #1d4ed8;
-  background: #1d4ed8;
-  color: #fff;
+.spreadsheet-page-setup-dialog
+  .page-setup-button:hover:not(:disabled):not([data-variant='primary']) {
+  border-color: var(--border-strong);
+  background: var(--hover);
 }
 
-.spreadsheet-page-setup-dialog button:disabled,
-.spreadsheet-page-setup-dialog fieldset:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
+.spreadsheet-page-setup-dialog .page-setup-button:disabled {
+  border-color: var(--border);
+  background: var(--bg-chrome);
+  color: var(--text-disabled);
+  cursor: default;
+}
+
+.spreadsheet-page-setup-dialog[aria-busy='true'] .page-setup-body {
+  cursor: progress;
+}
+
+.spreadsheet-page-setup-dialog[aria-busy='true'] .page-setup-fieldset {
+  opacity: 0.72;
+}
+
+.spreadsheet-page-setup-dialog .page-setup-pending {
+  display: inline-flex;
+  flex: 1 1 auto;
+  align-items: center;
+}
+
+.spreadsheet-page-setup-dialog .page-setup-pending-indicator {
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--border);
+  border-top-color: var(--office-blue);
+  border-radius: 50%;
+  animation: page-setup-pending-spin 800ms linear infinite;
+}
+
+@keyframes page-setup-pending-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 440px) {
+  .spreadsheet-page-setup-dialog .page-setup-scale-choice {
+    grid-template-columns: 72px 64px minmax(0, 1fr);
+  }
+
+  .spreadsheet-page-setup-dialog .page-setup-scale-choice > input:nth-of-type(2) {
+    grid-column: 2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spreadsheet-page-setup-dialog .page-setup-pending-indicator {
+    animation: none;
+  }
 }

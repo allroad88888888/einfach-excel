@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { For, Show, createEffect, onCleanup } from 'solid-js'
+import { For, Show } from 'solid-js'
 import type { JSX } from 'solid-js'
 import { useAtomValue } from '@einfach/solid'
 import { useT } from '../../src/i18n'
@@ -21,6 +21,7 @@ import {
   type NumberFormatDialogOpenState,
   type PatternFormatOption,
 } from './number-format-dialog-atoms'
+import { useFormatCellsDialogFocus } from './format-cells-dialog-focus'
 import type {
   CellRange,
   RunFormatCellsSaveInput,
@@ -70,22 +71,25 @@ export function SpreadsheetNumberFormatDialogs(
           ),
   })
   const state = useAtomValue(numberFormatDialogAtom)
+  let dialogRoot: HTMLFormElement | undefined
 
   const dialog = () => {
     const current = state()
     return current.status === 'open' ? current : null
   }
 
-  createEffect(() => {
-    if (!dialog()) return
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
-        event.stopPropagation()
-        store.setter(closeNumberFormatDialogAtom)
+  useFormatCellsDialogFocus({
+    isOpen: () => dialog() !== null,
+    root: () => dialogRoot,
+    close: closeDialog,
+    initialFocus: () => {
+      if (dialog()?.kind === 'currency') {
+        return dialogRoot?.querySelector<HTMLElement>(
+          '[data-testid="number-format-dialog-decimals"]',
+        )
       }
-    }
-    document.addEventListener('keydown', onKeyDown)
-    onCleanup(() => document.removeEventListener('keydown', onKeyDown))
+      return dialogRoot?.querySelector<HTMLElement>('[role="option"][aria-selected="true"]')
+    },
   })
 
   function setSelectedId(selectedId: string) {
@@ -197,15 +201,23 @@ export function SpreadsheetNumberFormatDialogs(
   return (
     <Show when={dialog()}>
       {(open) => (
-        <div
+        <form
+          ref={dialogRoot}
           class={`number-format-dialog ${props.class ?? ''}`.trim()}
           data-testid={props['data-testid'] ?? 'number-format-dialog'}
           data-dialog-kind={open().kind}
           role="dialog"
           aria-modal="true"
           aria-labelledby="number-format-dialog-title"
+          aria-describedby={open().error ? 'number-format-dialog-save-error' : undefined}
+          aria-busy={open().pending}
+          tabIndex={-1}
+          onSubmit={(event) => {
+            event.preventDefault()
+            if (!open().pending && open().phase !== 'outcome-unknown-blocked') saveDialog()
+          }}
         >
-          <div class="number-format-dialog-header">
+          <header class="number-format-dialog-header">
             <h2 class="number-format-dialog-title" id="number-format-dialog-title">
               {t(TITLE_KEYS[open().kind])}
             </h2>
@@ -218,14 +230,18 @@ export function SpreadsheetNumberFormatDialogs(
             >
               ×
             </button>
-          </div>
+          </header>
 
           <div class="number-format-dialog-body">{renderBody(open())}</div>
 
-          <div class="number-format-dialog-actions">
+          <footer class="number-format-dialog-actions">
             <Show when={open().error}>
               {(message) => (
-                <span role="alert" data-testid="number-format-dialog-save-error">
+                <span
+                  id="number-format-dialog-save-error"
+                  role="alert"
+                  data-testid="number-format-dialog-save-error"
+                >
                   {message()}
                 </span>
               )}
@@ -234,15 +250,15 @@ export function SpreadsheetNumberFormatDialogs(
               {t('formatCells.cancel')}
             </button>
             <button
-              type="button"
+              type="submit"
+              data-variant="primary"
               data-testid="number-format-dialog-save"
               disabled={open().pending || open().phase === 'outcome-unknown-blocked'}
-              onClick={saveDialog}
             >
               {t('formatCells.save')}
             </button>
-          </div>
-        </div>
+          </footer>
+        </form>
       )}
     </Show>
   )

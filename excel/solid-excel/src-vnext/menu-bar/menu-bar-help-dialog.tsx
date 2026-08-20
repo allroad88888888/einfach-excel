@@ -1,5 +1,6 @@
 import { For, Show } from 'solid-js'
 import { useT } from '../../src/i18n'
+import '@einfach/spreadsheet-ui-styles/features/menu-help-dialog.css'
 
 interface MenuBarHelpDialogProps {
   kind: 'closed' | 'shortcuts' | 'about'
@@ -29,6 +30,7 @@ export function MenuBarHelpDialog(props: MenuBarHelpDialogProps) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="spreadsheet-help-overlay-title"
+        aria-describedby="spreadsheet-help-overlay-content"
         data-testid={`spreadsheet-help-overlay-${props.kind}`}
         onKeyDown={(event) => {
           if (event.key === 'Escape') {
@@ -37,38 +39,43 @@ export function MenuBarHelpDialog(props: MenuBarHelpDialogProps) {
           }
         }}
       >
-        <h2 class="spreadsheet-help-overlay-title" id="spreadsheet-help-overlay-title">
-          {props.kind === 'shortcuts' ? t('help.shortcuts.title') : t('help.about.title')}
-        </h2>
-        <Show
-          when={props.kind === 'shortcuts'}
-          fallback={
-            <p
-              class="spreadsheet-help-overlay-body"
-              data-testid="spreadsheet-help-overlay-about-body"
-            >
-              {t('help.about.body')}
-            </p>
-          }
-        >
-          <ul
-            class="spreadsheet-help-overlay-shortcut-list"
-            data-testid="spreadsheet-help-overlay-shortcut-list"
+        <header class="spreadsheet-help-overlay-header">
+          <h2 class="spreadsheet-help-overlay-title" id="spreadsheet-help-overlay-title">
+            {props.kind === 'shortcuts' ? t('help.shortcuts.title') : t('help.about.title')}
+          </h2>
+        </header>
+        <div class="spreadsheet-help-overlay-content" id="spreadsheet-help-overlay-content">
+          <Show
+            when={props.kind === 'shortcuts'}
+            fallback={
+              <p
+                class="spreadsheet-help-overlay-body"
+                data-testid="spreadsheet-help-overlay-about-body"
+              >
+                {t('help.about.body')}
+              </p>
+            }
           >
-            <For each={KEYBOARD_SHORTCUTS}>
-              {(item) => (
-                <li class="spreadsheet-help-overlay-shortcut-item">
-                  <kbd class="spreadsheet-help-overlay-keys">{item.keys}</kbd>
-                  <span class="spreadsheet-help-overlay-label">{t(item.labelKey)}</span>
-                </li>
-              )}
-            </For>
-          </ul>
-        </Show>
+            <ul
+              class="spreadsheet-help-overlay-shortcut-list"
+              data-testid="spreadsheet-help-overlay-shortcut-list"
+            >
+              <For each={KEYBOARD_SHORTCUTS}>
+                {(item) => (
+                  <li class="spreadsheet-help-overlay-shortcut-item">
+                    <kbd class="spreadsheet-help-overlay-keys">{item.keys}</kbd>
+                    <span class="spreadsheet-help-overlay-label">{t(item.labelKey)}</span>
+                  </li>
+                )}
+              </For>
+            </ul>
+          </Show>
+        </div>
         <div class="spreadsheet-help-overlay-actions">
           <button
             type="button"
             class="spreadsheet-help-overlay-close"
+            data-variant="primary"
             data-testid="spreadsheet-help-overlay-close"
             onClick={props.onClose}
           >

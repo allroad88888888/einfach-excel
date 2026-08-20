@@ -59,6 +59,29 @@ jobs:
       - name: Build site
         run: pnpm --filter @einfach/excel-site build
 
+      # 部署门禁:对刚构建的 dist(astro preview,与线上同形态)跑冒烟 e2e ——
+      # 每个 demo 页预算内出真格子(excel/excel-site/e2e/site-smoke/CASES.md)。
+      # 挡的是"island 水合失败 / 资产路径断裂 / seed 卡死"这类部署后才可见的
+      # 观感故障;冒烟不过则不部署,线上保留上一个好版本。
+      - name: Install Playwright browsers
+        run: pnpm --filter @einfach/excel-site e2e:install
+
+      - name: Smoke-test the built site
+        run: pnpm --filter @einfach/excel-site e2e
+        env:
+          EINFACH_SITE_E2E_SKIP_BUILD: '1'
+
+      - name: Upload smoke report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-smoke-report
+          path: |
+            excel/excel-site/playwright-report/
+            excel/excel-site/test-results/
+          retention-days: 14
+          if-no-files-found: ignore
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: excel/excel-site/dist

@@ -10,7 +10,9 @@
     "check:docs": "node scripts/check-docs.mjs",
     "check:solid": "node scripts/check-solid-singleton.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.react-island.json && vue-tsc --noEmit -p tsconfig.vue-island.json",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "e2e": "playwright test",
+    "e2e:install": "playwright install --with-deps chromium"
   },
   "dependencies": {
     "@einfach/core": "^0.4.0",
@@ -30,6 +32,7 @@
     "@astrojs/react": "^3.6.3",
     "@astrojs/solid-js": "^7.0.1",
     "@astrojs/vue": "^7.0.2",
+    "@playwright/test": "^1.48.0",
     "@types/node": "^20.19.0",
     "@types/react": "^18.3.20",
     "@types/react-dom": "^18.3.6",
@@ -38,8 +41,8 @@
     "typedoc-plugin-markdown": "^4.12.0",
     "typescript": "^5.7.2",
     "vite": "^5.4.21",
-    "vue-tsc": "^2.2.12",
     "vite-plugin-top-level-await": "^1.4.4",
-    "vite-plugin-wasm": "^3.3.0"
+    "vite-plugin-wasm": "^3.3.0",
+    "vue-tsc": "^2.2.12"
   }
 }

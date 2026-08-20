@@ -9,21 +9,21 @@
   gap: 2px;
   min-height: 40px;
   padding: 4px 10px;
-  background: var(--bg-chrome-light);
+  background: var(--bg-toolbar);
   border-bottom: 1px solid var(--border);
   font-family: var(--excel-font);
   font-size: 13px;
   overflow-x: visible;
   white-space: nowrap;
-  color: #444;
+  color: var(--text-default);
 }
 
 .spreadsheet-toolbar .spreadsheet-toolbar-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 28px;
-  height: 28px;
+  min-width: var(--control-h);
+  height: var(--control-h);
   padding: 0 6px;
   margin: 0;
   border: 1px solid transparent;
@@ -51,7 +51,7 @@
   display: inline-block;
   width: 1px;
   height: 20px;
-  background: #d8d8d8;
+  background: var(--border);
   margin: 0 6px;
   flex-shrink: 0;
 }
@@ -83,7 +83,7 @@
 }
 
 .spreadsheet-toolbar .spreadsheet-toolbar-button:disabled {
-  color: #b0b0b0;
+  color: var(--text-disabled);
   cursor: default;
 }
 
@@ -94,7 +94,7 @@
   .spreadsheet-toolbar-button[data-format-painter-state='sticky'] {
   background: var(--select-bg);
   border-color: var(--excel-green);
-  color: var(--excel-green);
+  color: var(--excel-green-text);
 }
 
 /*
@@ -172,3 +172,42 @@
   }
 }
 
+/* Combo 形态的文本控件(字体/字号/数字格式开启器):白底 + 发丝边 + 尾部
+   下拉箭头,与 Excel for web 的组合框同构 —— 区别于纯图标按钮的隐形边框,
+   一眼可读"这是个下拉"。 */
+.spreadsheet-toolbar .spreadsheet-toolbar-combo,
+.spreadsheet-toolbar .spreadsheet-toolbar-currency-opener {
+  justify-content: flex-start;
+  gap: 4px;
+  border-color: var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-surface);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.spreadsheet-toolbar .spreadsheet-toolbar-combo::after {
+  content: '';
+  flex-shrink: 0;
+  width: 0;
+  height: 0;
+  margin-left: auto;
+  border-left: 3px solid transparent;
+  border-right: 3px solid transparent;
+  border-top: 4px solid var(--text-muted);
+}
+
+.spreadsheet-toolbar .spreadsheet-toolbar-combo--font {
+  width: 108px;
+}
+
+.spreadsheet-toolbar .spreadsheet-toolbar-combo--size {
+  width: 48px;
+}
+
+/* combo 的 hover 保持白底、只加深边框(Excel 口径),覆盖通用按钮 hover。 */
+.spreadsheet-toolbar .spreadsheet-toolbar-combo:hover:not(:disabled),
+.spreadsheet-toolbar .spreadsheet-toolbar-currency-opener:hover:not(:disabled) {
+  background: var(--bg-surface);
+  border-color: var(--border-strong);
+}

@@ -40,24 +40,24 @@ export const FORMULA_REFERENCE_PALETTE = [
 
 // Excel-ish accent colors. Single source of truth so tests can assert exactly.
 export const OVERLAY_COLORS = {
-  primarySelectionFill: 'rgba(33, 115, 70, 0.10)',
-  primarySelectionBorder: '#217346',
-  secondarySelectionFill: 'rgba(33, 115, 70, 0.06)',
-  secondarySelectionBorder: '#7fb89a',
-  activeCellBorder: '#217346',
-  fillHandle: '#217346',
+  primarySelectionFill: 'rgba(16, 124, 65, 0.10)',
+  primarySelectionBorder: '#107c41',
+  secondarySelectionFill: 'rgba(16, 124, 65, 0.06)',
+  secondarySelectionBorder: '#86c3a3',
+  activeCellBorder: '#107c41',
+  fillHandle: '#107c41',
   fillHandleStroke: '#ffffff',
   mergeBorder: '#8f8f8f',
   // 动态数组溢出区的细蓝框（ADR 0006 阶段 3）。Excel 用蓝色把「这一片是一个数组」
   // 与普通单元格区分开。
   spillBorder: '#2b579a',
   freezeDivider: '#a0a0a0',
-  marchingAnts: '#217346',
+  marchingAnts: '#107c41',
   marchingAntsBg: '#ffffff',
   dropIndicator: '#3478f6',
-  dataBarPositive: 'rgba(33, 115, 70, 0.35)',
+  dataBarPositive: 'rgba(16, 124, 65, 0.35)',
   dataBarNegative: 'rgba(192, 64, 64, 0.35)',
-  colorScaleFallback: 'rgba(33, 115, 70, 0.20)',
+  colorScaleFallback: 'rgba(16, 124, 65, 0.20)',
 } as const
 
 export const OVERLAY_BORDER_WIDTH = {

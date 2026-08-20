@@ -20,7 +20,7 @@
   z-index: 6;
 }
 .spreadsheet-grid-freeze-boundary line {
-  stroke: #5f6368;
+  stroke: var(--border-strong);
   stroke-width: 2;
   shape-rendering: crispEdges;
 }
@@ -61,14 +61,13 @@
 
 .spreadsheet-grid-col-resize-handle:hover,
 .spreadsheet-grid-row-resize-handle:hover {
-  background: rgb(26 115 232 / 18%);
+  background: var(--resize-hint);
 }
 
-.spreadsheet-grid-col-header.is-selected,
-.spreadsheet-grid-row-header.is-selected,
+/* 选中态表头的取色统一在 grid-headers.css(绿色系),这里不再另立蓝色系。 */
 .spreadsheet-grid-corner[data-selected='true'] {
-  background: #dbeafe;
-  color: #0b57d0;
+  background: var(--header-selected-bg);
+  color: var(--header-selected-text);
 }
 
 .spreadsheet-grid-cell-button {
@@ -113,7 +112,7 @@
 }
 
 .cell-rich-link {
-  color: #0b57d0;
+  color: var(--office-blue-text);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
@@ -129,26 +128,26 @@
   z-index: 3;
   width: 7px;
   height: 7px;
-  border: 1px solid #fff;
+  border: 1px solid var(--bg-cell);
   padding: 0;
-  background: #1a73e8;
+  background: var(--excel-green);
   cursor: crosshair;
 }
 
 .cell-fill-preview {
-  box-shadow: inset 0 0 0 1px #1a73e8;
+  box-shadow: inset 0 0 0 1px var(--excel-green);
 }
 
 /* Range cell highlight (every cell in the rectangle EXCEPT the focus cell).
  * Lighter blue so the focus cell's outline + tint still pop. */
 .cell-in-range {
-  background: #f1f6ff;
+  background: var(--select-bg);
 }
 
 /* Hover override inside a range — keep the range tint visible instead of
  * the generic hover blue, which would otherwise wipe the visual. */
 .cell-in-range:hover {
-  background: #e8f0fe;
+  background: var(--select-bg);
 }
 
 /* 动态数组溢出区（ADR 0006 阶段 3）。外圈的细蓝框由 overlay 画；这里只给区内每格
@@ -157,5 +156,5 @@
  * 刻意用低特异性的单类选择器：`.spreadsheet-grid .spreadsheet-grid-cell.cell-active`
  * 一类的选区底色特异性更高，所以选中态永远压得住这层。 */
 .cell-spill {
-  background: rgba(43, 87, 154, 0.05);
+  background: var(--spill-tint);
 }

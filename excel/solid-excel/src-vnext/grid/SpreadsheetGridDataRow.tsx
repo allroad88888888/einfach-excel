@@ -17,6 +17,7 @@ export function SpreadsheetGridDataRow(props: SpreadsheetGridDataRowProps) {
     getRowOutlineGutterWidth,
     getRenderedRowHeight,
     isRowSelected,
+    isRowInSelection,
     freezeRowCount,
     getRowHeaderStyle,
     selectRow,
@@ -45,7 +46,7 @@ export function SpreadsheetGridDataRow(props: SpreadsheetGridDataRowProps) {
       <Show when={showHeadings()}>
         <th
           role="rowheader"
-          class={`spreadsheet-grid-row-header ${isRowSelected(row) ? 'is-selected' : ''}`.trim()}
+          class={`spreadsheet-grid-row-header ${isRowSelected(row) ? 'is-selected' : isRowInSelection(row) ? 'is-in-selection' : ''}`.trim()}
           data-row={row}
           data-selected={isRowSelected(row) ? 'true' : 'false'}
           data-frozen-row={row < freezeRowCount() ? 'true' : undefined}

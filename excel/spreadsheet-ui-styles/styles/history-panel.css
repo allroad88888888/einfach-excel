@@ -25,7 +25,7 @@
   padding: 0 10px;
   border: 1px solid var(--border);
   border-radius: 2px;
-  background: #ffffff;
+  background: var(--bg-surface);
   color: var(--text-default);
   font: inherit;
   cursor: pointer;

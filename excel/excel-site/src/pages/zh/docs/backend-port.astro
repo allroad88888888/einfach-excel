@@ -6,17 +6,73 @@ import { sitePath } from '../../../data/site-path'
 
 <DocsPage
   locale="zh"
-  title="Backend port"
-  eyebrow="从源码投射的契约"
-  summary="实现必需的投影和编辑方法；可选 port 会逐步丰富同一个电子表格 UI。"
+  title="接入自有后端"
+  eyebrow="集成契约"
+  summary="让工作簿数据与计算继续留在你的产品中，而网格始终保持有界。"
   alternateLocaleHref={sitePath('docs/backend-port/')}
 >
-  <p>
-    此代码块在构建时从 <a href={sourceUrl(backendTypesPath)}>{backendTypesPath}</a> 提取，
-    不是手工维护的副本。
-  </p>
-  <h2 id="required-methods">必需方法</h2>
-  <pre><code>{backendContract}</code></pre>
-  <h2 id="contract-notes">源码中的契约说明</h2>
-  <pre><code>{backendOverview}</code></pre>
+  <div class="docs-guide">
+    <section class="docs-guide-callout" aria-label="何时实现后端端口">
+      <p class="docs-guide-label">先做判断</p>
+      <p>
+        当工作簿、存储、权限或计算运行时已经由你的应用掌控时，才走这条路。若只是想先运行一个 Solid 网格，
+        请先看<a href={sitePath('zh/docs/getting-started/')}> Solid 快速开始</a>。
+      </p>
+    </section>
+
+    <h2>先实现哪三件事</h2>
+    <p>UI 不会请求完整工作簿。一个最小的可编辑后端只有三项职责：</p>
+    <div class="docs-guide-terms">
+      <article><strong>可见投影</strong><span>给定一个窗口，只返回其中可显示的单元格。</span></article>
+      <article><strong>范围投影</strong><span>给定一个有限范围，只返回这个范围。</span></article>
+      <article><strong>单元格输入</strong><span>持久化一次编辑，再确认受影响的有限范围。</span></article>
+    </div>
+    <pre><code>{`import type { SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
+
+type MinimumEditableBackend = Pick<
+  SpreadsheetBackend,
+  'readVisibleProjection' | 'readRangeProjection' | 'setCellInput'
+>`}</code></pre>
+    <p>接口中其他方法都是可选能力。只有产品暴露了相应 UI 功能时才添加；未实现的能力会以隐藏或禁用方式降级。</p>
+
+    <h2>按这个顺序实现</h2>
+    <ol class="docs-guide-steps">
+      <li>将请求里的 <code>window</code> 或 <code>range</code> 映射为你的存储查询；滚动时绝不加载整张表。</li>
+      <li>返回可直接展示的单元格：行、列、显示值，以及渲染需要的公式或格式事实。</li>
+      <li>处理 <code>setCellInput</code> 时先完成权威写入。只有写入真正落地后才 resolve，并返回变更范围与 revision。</li>
+    </ol>
+
+    <h2>按能力逐步扩展</h2>
+    <table class="docs-guide-table">
+      <thead><tr><th>产品需要</th><th>向端口增加</th><th>不要这样做</th></tr></thead>
+      <tbody>
+        <tr><td>大表滚动</td><td><code>readVisibleProjection</code></td><td>把稀疏工作表整体搬到浏览器。</td></tr>
+        <tr><td>选区与剪贴板</td><td><code>readRangeProjection</code>，再按需加导入导出</td><td>将一次选区变成无边界读取。</td></tr>
+        <tr><td>编辑与公式</td><td><code>setCellInput</code></td><td>后端拒绝写入时仍返回成功确认。</td></tr>
+        <tr><td>工作簿功能</td><td>只添加对应的可选方法</td><td>上线前实现全部可选能力。</td></tr>
+      </tbody>
+    </table>
+
+    <section class="docs-guide-callout docs-guide-callout-warning">
+      <p class="docs-guide-label">核心边界</p>
+      <p>
+        backend 持有权威的工作簿事实；UI 只持有选区、编辑、视口等交互状态。正因这个边界清晰，静态、Worker、
+        远程与产品自有后端才能共用同一套网格。
+      </p>
+    </section>
+
+    <h2>精确类型以源码为准</h2>
+    <p>
+      下方完整接口在构建时直接从 <a href={sourceUrl(backendTypesPath)}>{backendTypesPath}</a> 提取，不会与实现漂移。
+      内置的<a href={sourceUrl('excel/solid-excel/src-vnext/adapter/static/backend.ts')}>静态后端</a>是最小的具体参考。
+    </p>
+    <details class="docs-guide-details docs-guide-contract">
+      <summary>展开完整 <code>SpreadsheetBackend</code> 接口</summary>
+      <pre><code>{backendContract}</code></pre>
+    </details>
+    <details class="docs-guide-details">
+      <summary>查看源码级设计说明</summary>
+      <pre><code>{backendOverview}</code></pre>
+    </details>
+  </div>
 </DocsPage>

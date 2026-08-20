@@ -14,7 +14,7 @@ export function ToolbarFontGroup(props: ToolbarGroupProps) {
       <button
         type="button"
         ref={surface.setFontFamilyAnchorEl}
-        class={`spreadsheet-toolbar-button ${surface.isDropdownOpen('font-family') ? 'is-active' : ''}`.trim()}
+        class={`spreadsheet-toolbar-button spreadsheet-toolbar-combo spreadsheet-toolbar-combo--font ${surface.isDropdownOpen('font-family') ? 'is-active' : ''}`.trim()}
         data-testid="toolbar-btn-font-family"
         data-tooltip={t('toolbar.fontFamily.title')}
         aria-label={t('toolbar.fontFamily.title')}
@@ -32,7 +32,7 @@ export function ToolbarFontGroup(props: ToolbarGroupProps) {
       <button
         type="button"
         ref={surface.setFontSizeAnchorEl}
-        class={`spreadsheet-toolbar-button ${surface.isDropdownOpen('font-size') ? 'is-active' : ''}`.trim()}
+        class={`spreadsheet-toolbar-button spreadsheet-toolbar-combo spreadsheet-toolbar-combo--size ${surface.isDropdownOpen('font-size') ? 'is-active' : ''}`.trim()}
         data-testid="toolbar-btn-font-size"
         data-tooltip={t('toolbar.fontSize.title')}
         aria-label={t('toolbar.fontSize.title')}

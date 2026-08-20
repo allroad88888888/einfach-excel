@@ -8,8 +8,7 @@
   overflow: hidden;
   max-height: 70vh;
   max-width: 100%;
-  border: 1px solid #d0d0d0;
-  border-radius: 4px;
+  border: 1px solid var(--border);
   font-size: 13px;
   outline: none;
 }
@@ -31,10 +30,8 @@
   pointer-events: none;
 }
 
-.spreadsheet-grid:focus {
-  border-color: #1a73e8;
-  box-shadow: 0 0 0 1px #1a73e8;
-}
+/* 刻意不给网格根画焦点光晕:焦点位置由活动单元格边框表达(Excel 口径),
+   键盘可见性由 overlay 的选区框保证。 */
 
 /*
  * Format-painter cursor feedback. SpreadsheetFormatPainter mirrors the
@@ -47,7 +44,7 @@
   cursor: copy;
 }
 .spreadsheet-grid[data-format-painter-active='sticky'] {
-  outline: 2px dashed #1a73e8;
+  outline: 2px dashed var(--office-blue);
   outline-offset: -2px;
 }
 
@@ -67,7 +64,7 @@
 .spreadsheet-grid-col-header,
 .spreadsheet-grid-row-header,
 .spreadsheet-grid-cell {
-  border: 1px solid #d8d8d8;
+  border: 1px solid var(--gridline);
   padding: 0;
   height: 24px;
 }
@@ -109,9 +106,9 @@
 .spreadsheet-grid-col-header,
 .spreadsheet-grid-row-header,
 .spreadsheet-grid-corner {
-  background: #f8f9fa;
-  color: #444;
-  font-weight: 500;
+  background: var(--bg-chrome);
+  color: var(--text-muted);
+  font-weight: 400;
   text-align: center;
   user-select: none;
   font-size: 12px;
@@ -151,12 +148,12 @@
 .spreadsheet-grid-cell[data-frozen-row] {
   position: sticky;
   z-index: 1;
-  background: #fff;
+  background: var(--bg-cell);
 }
 .spreadsheet-grid-cell[data-frozen-col] {
   position: sticky;
   z-index: 1;
-  background: #fff;
+  background: var(--bg-cell);
 }
 .spreadsheet-grid-cell[data-frozen-row][data-frozen-col] {
   z-index: 2;
@@ -182,9 +179,9 @@
 .spreadsheet-grid-outline-header,
 .spreadsheet-grid-outline-col-cell,
 .spreadsheet-grid-outline-corner {
-  border: 1px solid #d8d8d8;
+  border: 1px solid var(--gridline);
   padding: 0;
-  background: #eef1f4;
+  background: var(--bg-chrome);
   user-select: none;
 }
 .spreadsheet-grid-outline-row-cell {
@@ -229,7 +226,7 @@
 }
 .spreadsheet-outline-line {
   display: block;
-  background: #9aa4af;
+  background: var(--border-strong);
 }
 .spreadsheet-outline-slots[data-axis='row'] .spreadsheet-outline-line {
   width: 2px;
@@ -247,17 +244,17 @@
   width: 12px;
   height: 12px;
   padding: 0;
-  border: 1px solid #9aa4af;
+  border: 1px solid var(--border-strong);
   border-radius: 2px;
-  background: #fff;
-  color: #444;
+  background: var(--bg-surface);
+  color: var(--text-default);
   font-size: 9px;
   line-height: 1;
   cursor: pointer;
 }
 .spreadsheet-outline-toggle:hover,
 .spreadsheet-outline-level-button:hover {
-  background: #e8f0fe;
+  background: var(--hover);
 }
 .spreadsheet-grid-outline-header,
 .spreadsheet-grid-outline-corner {

@@ -1,24 +1,29 @@
 /* Cell baseline */
 .spreadsheet-grid .spreadsheet-grid-cell {
-  height: 22px;
-  padding: 0 4px;
-  border-right: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-  background: #ffffff;
+  height: 24px;
+  padding: 0 3px;
+  border-right: 1px solid var(--gridline);
+  border-bottom: 1px solid var(--gridline);
+  background: var(--bg-cell);
+  color: var(--text-default);
+  font-family: var(--cell-font);
+  font-size: var(--cell-font-size);
   font-variant-numeric: tabular-nums;
-  vertical-align: middle;
+  /* Excel 单元格默认底对齐(不是 UI 表格的垂直居中) */
+  vertical-align: bottom;
 }
 
 .spreadsheet-grid .spreadsheet-grid-cell.cell-in-range {
-  background: #f1f6ff;
+  background: var(--select-bg);
 }
 
 .spreadsheet-grid .spreadsheet-grid-cell.cell-in-range:hover {
-  background: #e8f0fe;
+  background: var(--select-bg);
 }
 
+/* 活动单元格保持画布底色(Excel 口径),绿色边框由 SVG overlay 绘制。 */
 .spreadsheet-grid .spreadsheet-grid-cell.cell-active {
-  background: #e8f0fe;
+  background: var(--bg-cell);
 }
 
 /* Numeric cells right-align by default (Excel convention) */
@@ -67,8 +72,8 @@
   padding: 12px;
   border: 1px solid var(--border-strong);
   border-radius: 4px;
-  background: #ffffff;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-popover);
   color: var(--text-default);
   font-size: 12px;
 }
@@ -105,7 +110,7 @@
   border: 1px solid var(--border);
   border-radius: 3px;
   background: var(--select-bg);
-  color: var(--excel-green);
+  color: var(--excel-green-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -133,7 +138,7 @@
   padding: 0 10px;
   border: 1px solid var(--border);
   border-radius: 3px;
-  background: #ffffff;
+  background: var(--bg-surface);
   color: var(--text-default);
   font: inherit;
   cursor: pointer;
@@ -146,7 +151,7 @@
 .filter-btn-primary {
   border-color: var(--excel-green);
   background: var(--excel-green);
-  color: #ffffff;
+  color: var(--text-on-accent);
 }
 
 .filter-btn-secondary {
@@ -200,7 +205,7 @@
 }
 
 .filter-error {
-  color: #b42318;
+  color: var(--error-text);
 }
 
 .filter-range-row {

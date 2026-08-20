@@ -2,8 +2,8 @@
 .spreadsheet-formula-bar {
   display: flex;
   align-items: stretch;
-  height: 24px;
-  background: #ffffff;
+  height: var(--formula-row-h);
+  background: var(--bg-toolbar);
   border-bottom: 1px solid var(--border);
   font-family: var(--excel-font);
   font-size: 13px;
@@ -16,7 +16,7 @@
   max-width: 160px;
   padding: 0;
   border-right: 1px solid var(--border);
-  background: #ffffff;
+  background: var(--bg-toolbar);
 }
 
 .spreadsheet-name-box .spreadsheet-name-box-input {
@@ -35,7 +35,7 @@
 }
 
 .spreadsheet-name-box[data-error='true'] .spreadsheet-name-box-input {
-  background: rgba(220, 53, 69, 0.12);
+  background: var(--error-bg);
 }
 
 .spreadsheet-name-box-error-message {
@@ -56,7 +56,7 @@
   padding: 0 8px 0 28px;
   border: none;
   outline: none;
-  background: #ffffff
+  background: var(--bg-toolbar)
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ctext x='12' y='17' text-anchor='middle' font-family='serif' font-style='italic' font-size='14' fill='%236a6a6a'%3Efx%3C/text%3E%3C/svg%3E")
     no-repeat 4px center;
   background-size: 20px 20px;
@@ -65,7 +65,7 @@
 }
 
 .spreadsheet-formula-bar-input:focus {
-  background-color: #ffffff;
+  background-color: var(--bg-toolbar);
   outline: 1px solid var(--office-blue);
   outline-offset: -1px;
 }
@@ -76,7 +76,7 @@
   display: inline-flex;
   align-items: center;
   padding: 0 8px;
-  color: #b42318;
+  color: var(--error-text);
   font-size: 12px;
   white-space: nowrap;
   overflow: hidden;

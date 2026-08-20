@@ -3,10 +3,10 @@
 .number-format-dropdown {
   min-width: 240px;
   padding: 4px 0;
-  background: #ffffff;
+  background: var(--bg-surface);
   border: 1px solid var(--border-strong);
   border-radius: 2px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-popover);
   font-family: var(--excel-font);
   font-size: 12px;
 }
@@ -59,10 +59,10 @@
   z-index: 501;
   min-width: 196px;
   padding: 4px 0;
-  background: #ffffff;
+  background: var(--bg-surface);
   border: 1px solid var(--border-strong);
   border-radius: 2px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-popover);
 }
 
 .number-format-dropdown-submenu-item {
@@ -84,7 +84,7 @@
 
 .number-format-dropdown-item-disabled,
 .number-format-dropdown-item:disabled {
-  color: #b0b0b0;
+  color: var(--text-disabled);
   cursor: default;
 }
 
@@ -100,8 +100,8 @@
 
 /* Toolbar fill/text color popover */
 .spreadsheet-color-popover {
-  background: #ffffff;
-  border: 1px solid #d1d1d1;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
   border-radius: 6px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18), 0 1px 3px rgba(0, 0, 0, 0.08);
   padding: 8px 8px 6px;
@@ -111,7 +111,7 @@
   min-width: 196px;
   user-select: none;
   font-family: var(--excel-font);
-  color: #1f1f1f;
+  color: var(--text-default);
 }
 
 .spreadsheet-color-popover-no-fill {
@@ -125,7 +125,7 @@
   background: transparent;
   font: inherit;
   font-size: 12px;
-  color: #1f1f1f;
+  color: var(--text-default);
   cursor: pointer;
   border-radius: 4px;
   line-height: 1.2;
@@ -133,8 +133,8 @@
 
 .spreadsheet-color-popover-no-fill:hover,
 .spreadsheet-color-popover-no-fill:focus-visible {
-  background: #f3f3f3;
-  border-color: #d1d1d1;
+  background: var(--hover);
+  border-color: var(--border);
   outline: none;
 }
 
@@ -153,7 +153,7 @@
 
 .spreadsheet-color-popover-section-title {
   font-size: 11px;
-  color: #757575;
+  color: var(--text-muted);
   padding: 0 4px;
   margin-top: 2px;
   letter-spacing: 0.02em;
@@ -184,7 +184,7 @@
 
 .spreadsheet-color-popover-swatch:hover,
 .spreadsheet-color-popover-swatch:focus-visible {
-  outline: 1px solid #1f1f1f;
+  outline: 1px solid var(--text-default);
   outline-offset: 1px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
   transform: translateY(-1px);
@@ -202,11 +202,11 @@
   text-align: left;
   padding: 6px 8px 5px;
   border: none;
-  border-top: 1px solid #ebebeb;
+  border-top: 1px solid var(--border);
   background: transparent;
   font: inherit;
   font-size: 12px;
-  color: #1f1f1f;
+  color: var(--text-default);
   cursor: pointer;
   border-radius: 0;
   margin: 2px -2px 0;
@@ -215,12 +215,12 @@
 
 .spreadsheet-color-popover-more:hover:not(:disabled),
 .spreadsheet-color-popover-more:focus-visible:not(:disabled) {
-  background: #f3f3f3;
+  background: var(--hover);
   outline: none;
 }
 
 .spreadsheet-color-popover-more:disabled {
-  color: #a6a6a6;
+  color: var(--text-disabled);
   cursor: not-allowed;
 }
 
@@ -245,11 +245,11 @@
 .spreadsheet-color-popover-hint {
   min-height: 16px;
   font-size: 11px;
-  color: #757575;
+  color: var(--text-muted);
   padding: 2px 4px 0;
   font-family: var(--excel-font);
   font-variant-numeric: tabular-nums;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--border);
   margin-top: 2px;
   padding-top: 4px;
 }

@@ -1,0 +1,48 @@
+---
+import type { HomeContent } from '../../data/home-content'
+import type { HomeFramework, HomeFrameworkId } from '../../data/home-framework-content'
+
+interface Props {
+  content: HomeContent['integration']
+  frameworks: HomeFramework[]
+  links: Record<HomeFrameworkId, string>
+}
+
+const { content, frameworks, links } = Astro.props
+---
+
+<section class="home-integration-section home-shell" id="integrate" aria-labelledby="home-integrate-title">
+  <div class="home-integration-copy">
+    <p class="home-section-index">{content.index}</p>
+    <h2 id="home-integrate-title">{content.title}</h2>
+    <p>{content.description}</p>
+    <div class="home-framework-grid" aria-label="Framework integration paths">
+      {
+        frameworks.map((framework) => (
+          <a
+            class:list={['home-framework-card', { 'home-framework-card-featured': framework.featured }]}
+            href={links[framework.id]}
+          >
+            <span class="home-framework-status">{framework.status}</span>
+            <strong>{framework.title}</strong>
+            <span class="home-framework-description">{framework.description}</span>
+            <span class="home-framework-action">{framework.action} <b>→</b></span>
+          </a>
+        ))
+      }
+    </div>
+  </div>
+  <pre class="home-code-card" aria-label="Integration example"><code><span class="home-code-dim">import</span> {'{'} SpreadsheetGrid {'}'} <span class="home-code-dim">from</span>
+  <span class="home-code-string">'@einfach/solid-excel/vnext'</span>
+
+<span class="home-code-dim">const</span> backend = <span class="home-code-function">createStaticSpreadsheetBackend</span>({'{'}
+  sheets: [{'{'} id: <span class="home-code-string">'plan'</span>, name: <span class="home-code-string">'Plan'</span> {'}'}],
+  matrix: revenuePlan,
+{'}'})
+
+&lt;<span class="home-code-tag">SpreadsheetGrid</span>
+  sheetId=<span class="home-code-string">"plan"</span>
+  viewport={'{'}viewport{'}'}
+  backend={'{'}backend{'}'}
+/&gt;</code></pre>
+</section>

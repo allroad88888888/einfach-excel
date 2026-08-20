@@ -1,0 +1,91 @@
+---
+import DocsPage from '../../../components/DocsPage.astro'
+import { sourceUrl } from '../../../data/source-projection'
+import { sitePath } from '../../../data/site-path'
+---
+
+<DocsPage
+  locale="zh"
+  title="Vue 适配器源码参考"
+  eyebrow="预发布框架参考"
+  summary="在 Vue 组件中渲染调用方持有的投影，而不创建第二份电子表格状态。"
+  alternateLocaleHref={sitePath('docs/vue/')}
+>
+  <div class="docs-guide">
+    <section class="docs-guide-callout docs-guide-callout-warning" aria-label="Vue 适配器状态">
+      <p class="docs-guide-label">状态：仅仓库源码</p>
+      <p>
+        <code>@einfach/vue-excel</code> 是版本为 <code>0.0.0</code> 的私有 workspace 包。它尚未发布 npm，
+        没有默认 Worker 或 WASM 后端，也不是完整电子表格应用。请把它作为可评估的源码，而不是可安装的包。
+      </p>
+    </section>
+
+    <h2>1. 安装仓库 workspace</h2>
+    <p>Vue 适配器当前从这个仓库中消费，因此先安装一次 workspace 依赖，再运行它的 fixture。</p>
+    <pre><code>{`git clone https://github.com/allroad88888888/einfach-excel.git
+cd einfach-excel
+pnpm install`}</code></pre>
+
+    <h2>2. 运行已验证的 Vue fixture</h2>
+    <pre><code>{`NO_PROXY=localhost,127.0.0.1 \
+pnpm --filter @einfach/vue-excel run e2e`}</code></pre>
+    <p>
+      此命令会启动仓库内 Vite fixture、打开 Chromium、在受控单元格间拖动，并验证投影后的选区。成功时会报告一个
+      通过的 Vue adapter 测试。
+    </p>
+
+    <h2>3. 了解当前可用边界</h2>
+    <div class="docs-guide-terms">
+      <article><strong>受控网格</strong><span>把调用方持有的 cells 与有限 range 绑定到 Vue 网格视图。</span></article>
+      <article><strong>Provider hooks</strong><span>桥接 UI-core 的选区、导航、编辑、剪贴板与历史命令。</span></article>
+      <article><strong>唯一数据源</strong><span>Vue 响应式只管理订阅和清理；电子表格状态仍在 UI-core atoms 中。</span></article>
+    </div>
+
+    <h2>4. 组合一个受控投影</h2>
+    <p>这是一种仓库源码模式。Vue 宿主拥有 backend、cells 与 range，适配器只负责渲染这份投影。</p>
+    <pre><code>{`<script setup lang="ts">
+import type {
+  CellRange,
+  DisplayCell,
+  SpreadsheetBackend,
+} from '@einfach/spreadsheet-ui-core'
+import {
+  SpreadsheetGridView,
+  SpreadsheetUiProvider,
+} from '@einfach/vue-excel'
+
+defineProps<{
+  backend: SpreadsheetBackend
+  cells: readonly DisplayCell[]
+  range: CellRange
+}>()
+</script>
+
+<template>
+  <SpreadsheetUiProvider :backend="backend">
+    <SpreadsheetGridView :cells="cells" :range="range" />
+  </SpreadsheetUiProvider>
+</template>`}</code></pre>
+
+    <h2>5. 这些职责仍由宿主承担</h2>
+    <ol class="docs-guide-steps">
+      <li>一个工作簿挂载期间保持 backend 稳定；替换它会有意创建新的 UI core。</li>
+      <li>由你负责数据查询，并把返回的有限 <code>cells</code> 与 <code>range</code> 传给视图。</li>
+      <li>交互使用适配器 hooks；不要把电子表格产品状态镜像到第二套 Vue refs 中。</li>
+    </ol>
+
+    <h2>6. 查看交互参考实现</h2>
+    <div class="docs-guide-next">
+      <a href={sitePath('zh/demos/vue-controlled-projection/')}><strong>运行 Vue 投影演示</strong><span>在固定 4×4 网格上拖动，并查看当前选择范围。→</span></a>
+      <a href={sourceUrl('excel/excel-site/src/islands/VueAdapterDemoIsland.vue')}><strong>阅读精确的宿主源码</strong><span>它提供 provider、确定性 backend、store、投影与指针选择。→</span></a>
+      <a href={sourceUrl('excel/vue-excel/README.md')}><strong>阅读包边界</strong><span>查看已有基础能力与刻意未包含的部分。→</span></a>
+    </div>
+
+    <h2>还没有准备好的部分</h2>
+    <p>
+      目前没有已发布的 Vue 版本、默认 Worker 工厂、WASM 打包、浏览器端到端承诺或完整工作台外壳。若现在要正式接入，
+      请使用受支持的 <a href={sitePath('zh/docs/getting-started/')}>Solid 路线</a>，或在 Vue 适配器成熟前实现
+      <a href={sitePath('zh/docs/backend-port/')}>backend port</a>。
+    </p>
+  </div>
+</DocsPage>

@@ -1,0 +1,42 @@
+---
+import { homeContent, type HomeContent, type HomeLocale } from '../../data/home-content'
+import { homeFrameworkContent, type HomeFrameworkId } from '../../data/home-framework-content'
+import { sitePath } from '../../data/site-path'
+import '../../styles/home.css'
+import '../../styles/home-workbench.css'
+import '../../styles/home-proof.css'
+import '../../styles/home-evaluation.css'
+import '../../styles/home-integration.css'
+import HomeEvaluation from './HomeEvaluation.astro'
+import HomeHero from './HomeHero.astro'
+import HomeIntegration from './HomeIntegration.astro'
+import HomeProof from './HomeProof.astro'
+
+interface Props {
+  locale: HomeLocale
+}
+
+const { locale } = Astro.props
+const content = homeContent[locale]
+const localizedPath = (path: string) => sitePath(locale === 'zh' ? `zh/${path}` : path)
+const evaluationLinks = Object.fromEntries(
+  content.evaluation.paths.map((path) => [path.id, localizedPath(`demos/${path.route}/`)]),
+) as Record<HomeContent['evaluation']['paths'][number]['id'], string>
+const frameworkLinks: Record<HomeFrameworkId, string> = {
+  solid: localizedPath('docs/getting-started/'),
+  react: localizedPath('docs/react/'),
+  vue: localizedPath('docs/vue/'),
+  backend: localizedPath('docs/backend-port/'),
+}
+---
+
+<main class="home-page">
+  <HomeHero content={content.hero} />
+  <HomeProof content={content} />
+  <HomeEvaluation content={content.evaluation} links={evaluationLinks} />
+  <HomeIntegration
+    content={content.integration}
+    frameworks={homeFrameworkContent[locale]}
+    links={frameworkLinks}
+  />
+</main>

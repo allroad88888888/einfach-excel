@@ -8,7 +8,7 @@
 .spreadsheet-grid .spreadsheet-grid-table {
   border-collapse: separate;
   border-spacing: 0;
-  background: #ffffff;
+  background: var(--bg-cell);
 }
 
 /* Top-left empty corner — pinned, slightly darker chrome */
@@ -21,21 +21,29 @@
 /* Column letters */
 .spreadsheet-grid .spreadsheet-grid-col-header {
   position: relative;
-  height: 22px;
+  height: 24px;
   padding: 0 4px;
   background: var(--bg-chrome);
   border-right: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
-  color: var(--text-default);
-  font-weight: 500;
+  color: var(--text-muted);
+  font-weight: 400;
   text-align: center;
   user-select: none;
 }
 
+.spreadsheet-grid .spreadsheet-grid-col-header.is-in-selection {
+  background: var(--header-selected-bg);
+  color: var(--header-selected-text);
+  font-weight: 600;
+  border-bottom: 2px solid var(--excel-green);
+}
+
+/* 整列选中(点击列字母):实心品牌绿,Excel 口径。 */
 .spreadsheet-grid .spreadsheet-grid-col-header.is-selected {
-  background: var(--select-bg);
-  color: var(--excel-green);
-  font-weight: 700;
+  background: var(--excel-green);
+  color: var(--text-on-accent);
+  font-weight: 600;
   border-bottom: 2px solid var(--excel-green);
 }
 
@@ -50,8 +58,8 @@
   background: var(--bg-chrome);
   border-right: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
-  color: var(--text-default);
-  font-weight: 500;
+  color: var(--text-muted);
+  font-weight: 400;
   text-align: right;
   user-select: none;
 }
@@ -74,10 +82,18 @@
   z-index: 4;
 }
 
+.spreadsheet-grid .spreadsheet-grid-row-header.is-in-selection {
+  background: var(--header-selected-bg);
+  color: var(--header-selected-text);
+  font-weight: 600;
+  border-right: 2px solid var(--excel-green);
+}
+
+/* 整行选中(点击行号):实心品牌绿。 */
 .spreadsheet-grid .spreadsheet-grid-row-header.is-selected {
-  background: var(--select-bg);
-  color: var(--excel-green);
-  font-weight: 700;
+  background: var(--excel-green);
+  color: var(--text-on-accent);
+  font-weight: 600;
   border-right: 2px solid var(--excel-green);
 }
 

@@ -105,6 +105,22 @@ export function installGridSelection(runtime: GridSelectionRuntime) {
     })
   }
 
+  /* Excel 语义的"选区触及":活动单元格/范围所在的行列,表头要给浅色高亮
+     (区别于整行/整列选中的实心高亮)。任意 kind 的选区命中即算。 */
+  function isRowInSelection(row: number) {
+    return getSelectionRegionsForSheet().some((region: SelectionState) => {
+      const range = getSelectionStateRange(region)
+      return row >= range.rowStart && row <= range.rowEnd
+    })
+  }
+
+  function isColumnInSelection(col: number) {
+    return getSelectionRegionsForSheet().some((region: SelectionState) => {
+      const range = getSelectionStateRange(region)
+      return col >= range.colStart && col <= range.colEnd
+    })
+  }
+
   function isAllSelected() {
     return getSelectionRegionsForSheet().some((region: SelectionState) => region.kind === 'all')
   }
@@ -237,6 +253,8 @@ export function installGridSelection(runtime: GridSelectionRuntime) {
     isSelected,
     isRowSelected,
     isColumnSelected,
+    isRowInSelection,
+    isColumnInSelection,
     isAllSelected,
     appendCellSelection,
     createSelectionForRange,

@@ -2,7 +2,7 @@
 .spreadsheet-sheet-tabs {
   display: flex;
   align-items: stretch;
-  height: 28px;
+  height: var(--bottom-strip-h);
   padding: 0 4px;
   background: var(--bg-chrome);
   border-top: 1px solid var(--border);
@@ -23,8 +23,6 @@
   padding: 0 12px;
   border: 1px solid transparent;
   border-bottom: none;
-  border-top-left-radius: 2px;
-  border-top-right-radius: 2px;
   background: transparent;
   color: var(--text-default);
   font: inherit;
@@ -38,10 +36,12 @@
 
 .spreadsheet-sheet-tabs .spreadsheet-sheet-tab[data-active='true'],
 .spreadsheet-sheet-tabs .spreadsheet-sheet-tab.is-active {
-  background: #ffffff;
+  background: var(--bg-cell);
   border-color: var(--border);
-  color: var(--excel-green);
+  color: var(--excel-green-text);
   font-weight: 600;
+  /* Excel for web:活动页签白底 + 底缘一道品牌绿 */
+  box-shadow: inset 0 -2px 0 0 var(--excel-green);
 }
 
 .spreadsheet-sheet-tabs .spreadsheet-sheet-tab-add {

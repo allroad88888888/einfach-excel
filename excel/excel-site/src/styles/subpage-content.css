@@ -1,0 +1,190 @@
+/* Product page content shared by demo and documentation templates. */
+.product-page {
+  width: min(1160px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 54px 0 96px;
+}
+.product-breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 42px;
+  color: var(--product-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.product-breadcrumbs a {
+  color: inherit;
+  text-decoration: none;
+}
+.product-breadcrumbs a:hover {
+  color: var(--product-blue);
+}
+.product-intro {
+  max-width: 860px;
+  padding-bottom: 43px;
+  border-bottom: 1px solid var(--product-line-dark);
+}
+.product-eyebrow,
+.product-intro .eyebrow {
+  margin: 0 0 14px;
+  color: var(--product-green);
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.13em;
+}
+.product-intro h1 {
+  max-width: 820px;
+  margin: 0 0 19px;
+  color: var(--product-ink);
+  font-size: clamp(2.7rem, 5vw, 4.9rem);
+  letter-spacing: -0.06em;
+  line-height: 1.02;
+}
+.product-intro > p:last-child {
+  max-width: 710px;
+  margin: 0;
+  color: var(--product-muted);
+  font-size: 1.08rem;
+  line-height: 1.7;
+}
+.product-narrative {
+  max-width: 790px;
+  padding: 38px 0 12px;
+  color: var(--product-muted);
+  font-size: 1rem;
+  line-height: 1.75;
+}
+.product-narrative h2,
+.product-narrative h3 {
+  color: var(--product-ink);
+  letter-spacing: -0.045em;
+  line-height: 1.1;
+}
+.product-narrative h2 {
+  margin: 38px 0 14px;
+  font-size: clamp(1.65rem, 3vw, 2.35rem);
+}
+.product-narrative h3 {
+  margin: 26px 0 10px;
+  font-size: 1.22rem;
+}
+.product-narrative p,
+.product-narrative li {
+  color: var(--product-muted);
+}
+.product-narrative li + li {
+  margin-top: 5px;
+}
+.product-narrative a,
+.product-source a {
+  color: var(--product-blue);
+  font-weight: 750;
+}
+.product-narrative blockquote {
+  margin: 28px 0;
+  padding: 16px 18px;
+  border-left: 3px solid var(--product-blue);
+  color: var(--product-ink);
+  background: var(--product-blue-pale);
+}
+.product-narrative code:not(pre code) {
+  padding: 0.12em 0.34em;
+  border: 1px solid var(--product-line);
+  border-radius: 3px;
+  color: var(--product-ink);
+  background: var(--product-surface);
+  font-size: 0.87em;
+}
+.product-narrative table {
+  display: block;
+  width: 100%;
+  overflow: auto;
+  margin: 28px 0;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.product-narrative th,
+.product-narrative td {
+  padding: 10px 12px;
+  border: 1px solid var(--product-line);
+  text-align: left;
+}
+.product-narrative th {
+  color: var(--product-ink);
+  background: var(--product-surface);
+}
+.site-body-subpage .demo-island {
+  margin: 44px 0 58px;
+}
+.site-body-subpage .demo-grid-frame {
+  border-color: var(--product-line-dark);
+  border-radius: 8px;
+  /* Excel-web 对齐后,复古橙色硬阴影与 Office 观感冲突,换安静的浮起阴影。 */
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.16);
+}
+.product-source {
+  margin-top: 65px;
+  padding-top: 32px;
+  border-top: 1px solid var(--product-line-dark);
+}
+.product-source h2 {
+  margin: 0 0 15px;
+  color: var(--product-ink);
+  font-size: 1.48rem;
+  letter-spacing: -0.04em;
+}
+.product-source ul {
+  margin: 0 0 24px;
+  padding-left: 20px;
+}
+.product-source li + li {
+  margin-top: 6px;
+}
+.product-code {
+  max-height: 440px;
+  margin: 0;
+  overflow: auto;
+  padding: 24px;
+  border: 1px solid var(--product-line-dark);
+  border-radius: 10px;
+  color: #e8eee9;
+  background: var(--product-code);
+  font:
+    0.8rem/1.75 ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    monospace;
+}
+@media (max-width: 640px) {
+  .product-page {
+    width: min(100% - 30px, 1160px);
+    padding: 38px 0 72px;
+  }
+  .product-breadcrumbs {
+    margin-bottom: 30px;
+  }
+  .product-intro {
+    padding-bottom: 30px;
+  }
+  .product-intro h1 {
+    font-size: clamp(2.5rem, 12vw, 3.7rem);
+  }
+  .product-intro > p:last-child {
+    font-size: 1rem;
+  }
+  .product-narrative {
+    padding-top: 29px;
+    font-size: 0.95rem;
+  }
+  .site-body-subpage .demo-grid-frame {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
+  }
+  .product-source {
+    margin-top: 46px;
+  }
+  .product-code {
+    padding: 17px;
+    font-size: 0.72rem;
+  }
+}

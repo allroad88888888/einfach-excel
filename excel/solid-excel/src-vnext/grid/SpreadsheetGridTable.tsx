@@ -22,6 +22,7 @@ export function SpreadsheetGridTable(props: { runtime: GridRuntime }) {
     getRightSpacerWidth,
     getColumnStyle,
     isColumnSelected,
+    isColumnInSelection,
     freezeColCount,
     colHasFilterRule,
     startColumnResize,
@@ -123,7 +124,7 @@ export function SpreadsheetGridTable(props: { runtime: GridRuntime }) {
                   return (
                     <th
                       role="columnheader"
-                      class={`spreadsheet-grid-col-header ${selected() ? 'is-selected' : ''}`.trim()}
+                      class={`spreadsheet-grid-col-header ${selected() ? 'is-selected' : isColumnInSelection(col) ? 'is-in-selection' : ''}`.trim()}
                       data-col={col}
                       data-selected={selected() ? 'true' : 'false'}
                       data-frozen-col={col < freezeColCount() ? 'true' : undefined}

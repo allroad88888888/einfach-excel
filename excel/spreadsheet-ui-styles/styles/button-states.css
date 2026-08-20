@@ -28,7 +28,7 @@
 .spreadsheet-toolbar button:disabled,
 .spreadsheet-status-bar button:disabled,
 .spreadsheet-sheet-tabs button:disabled {
-  color: #b0b0b0;
+  color: var(--text-disabled);
   cursor: not-allowed;
   background: transparent;
   border-color: transparent;

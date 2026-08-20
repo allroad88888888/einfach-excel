@@ -5,113 +5,31 @@ import { sitePath } from '../../../data/site-path'
 
 <DocsPage
   locale="zh"
-  title="用 Solid 跑起一个表格"
+  title="快速开始"
   eyebrow="集成指南"
-  summary="安装 Solid 绑定，粘贴一份文件，并验证一个真实公式。"
+  summary="创建一个 backend，挂载一个 provider，让网格只请求它需要的投影。"
   alternateLocaleHref={sitePath('docs/getting-started/')}
 >
-  <div class="docs-guide">
-    <section class="docs-guide-callout docs-guide-callout-primary" aria-label="本页结果">
-      <p class="docs-guide-label">完成后你会得到什么</p>
-      <p>
-        五分钟内，一个 Solid + Vite 应用会渲染出可编辑网格，数据与公式计算运行在 Worker 中的 Rust/WASM
-        工作簿引擎。输入 <code>=1+2</code>，单元格会显示 <code>3</code>。
-      </p>
-    </section>
-
-    <h2>安装前，先选对路线</h2>
-    <div class="docs-guide-paths">
-      <a class="docs-guide-path docs-guide-path-featured" href="#install">
-        <span>正式 UI 绑定</span><strong>Solid</strong><small>这是当前受支持的安装与渲染路径。</small>
-      </a>
-      <a class="docs-guide-path" href={sitePath('zh/docs/react/')}>
-        <span>参考实现</span><strong>React</strong><small>请查看受控投影演示，而不是假想的框架适配器。</small>
-      </a>
-      <a class="docs-guide-path" href={sitePath('zh/docs/vue/')}>
-        <span>参考实现</span><strong>Vue</strong><small>请用受控投影演示先厘清宿主边界。</small>
-      </a>
-      <a class="docs-guide-path" href={sitePath('zh/docs/backend-port/')}>
-        <span>接入契约</span><strong>自有后端</strong><small>当工作簿数据与计算已经属于你的产品时，从这里开始。</small>
-      </a>
-    </div>
-
-    <h2>开始前</h2>
-    <ul class="docs-guide-checklist">
-      <li>Node.js 22.12 或更高版本。</li>
-      <li>一个 Vite + Solid TypeScript 应用；没有的话可运行 <code>npm create vite@latest my-sheet -- --template solid-ts</code>。</li>
-      <li><code>index.html</code> 中有 <code>&lt;div id="root"&gt;&lt;/div&gt;</code>。</li>
-    </ul>
-
-    <h2 id="install">1. 安装 Solid 集成</h2>
-    <pre><code>{`npm install @einfach/solid-excel @einfach/core @einfach/solid solid-js`}</code></pre>
-    <p>
-      后三个包是 peer 依赖。应用依赖图中必须各只有一份；provider 与消费者必须共享同一个 Solid runtime。
-    </p>
-
-    <h2>2. 粘贴一份可运行的应用</h2>
-    <p>将 <code>src/main.tsx</code> 替换为下面的代码。它使用内置 Worker 后端，是首次接入最稳妥的默认值。</p>
-    <pre><code>{`import { render } from 'solid-js/web'
-import {
-  createWorkerWorkbookSpreadsheetBackend,
-  SpreadsheetGrid,
-  SpreadsheetUiProvider,
-} from '@einfach/solid-excel/vnext'
-import { defaultVNextWorkbookWorkerFactory } from '@einfach/solid-excel/vnext-worker-factory'
-import '@einfach/solid-excel/vnext-styles.css'
-
-const backend = createWorkerWorkbookSpreadsheetBackend({
-  workerFactory: defaultVNextWorkbookWorkerFactory,
-  sheets: [{ id: 'sheet-1', name: 'Sheet1' }],
-})
-
-const viewport = {
-  scrollTop: 0, scrollLeft: 0, viewportHeight: 480, viewportWidth: 960,
-  rowHeight: 24, colWidth: 96, rowCount: 50, colCount: 12,
-  overscanRows: 2, overscanCols: 1,
-}
-
-const root = document.getElementById('root')
-if (!root) throw new Error('Missing #root')
-
-render(() => (
-  <SpreadsheetUiProvider backend={backend}>
-    <SpreadsheetGrid sheetId="sheet-1" viewport={viewport} />
-  </SpreadsheetUiProvider>
-), root)`}</code></pre>
-
-    <div class="docs-guide-terms" aria-label="这段代码添加了什么">
-      <article><strong>Worker 后端</strong><span>在主线程之外管理工作簿数据与公式计算。</span></article>
-      <article><strong>Provider</strong><span>在应用边界一次性连接后端与 UI 状态。</span></article>
-      <article><strong>Grid</strong><span>只请求当前视口内可见的表格投影。</span></article>
-    </div>
-
-    <h2>3. 验证是否接入成功</h2>
-    <ol class="docs-guide-steps">
-      <li>运行 <code>npm run dev</code>。</li>
-      <li>打开 Vite 给出的 URL，双击 A1 单元格。</li>
-      <li>输入 <code>=1+2</code> 后回车；A1 应显示 <code>3</code>。</li>
-    </ol>
-    <p>网格正常渲染且公式有结果，说明 UI、provider、Worker 通信与工作簿引擎都已连通。</p>
-
-    <details class="docs-guide-details">
-      <summary>当前 0.1.0 包在 Vite 开发模式下的说明</summary>
-      <p>
-        Vite 8 是已验证的开发路径。若开发服务器解析包内 message-format 依赖失败，可在
-        <code>vite.config.ts</code> 添加下面的优化；生产构建和 preview 不需要它。
-      </p>
-      <pre><code>{`optimizeDeps: {
-  include: [
-    '@einfach/solid-excel > @lingui/core',
-    '@einfach/solid-excel > @lingui/core > @messageformat/parser',
-  ],
-}`}</code></pre>
-    </details>
-
-    <h2>下一步做什么</h2>
-    <div class="docs-guide-next">
-      <a href={sitePath('zh/demos/workbench/')}><strong>构建完整工作台</strong><span>查看工具栏、公式栏、工作表、评论与选区如何协同。→</span></a>
-      <a href={sitePath('zh/docs/backend-port/')}><strong>接入自有数据模型</strong><span>实现有界的后端契约，而不是把完整工作簿搬进浏览器。→</span></a>
-      <a href={sitePath('zh/docs/atoms/viewport/')}><strong>理解视口所有权</strong><span>了解为什么视口状态与权威工作簿保持分离。→</span></a>
-    </div>
-  </div>
+  <h2>0. 安装</h2>
+  <pre><code>{`npm install @einfach/solid-excel solid-js @einfach/core @einfach/solid`}</code></pre>
+  <p>
+    2026-08-17 起已发布 npm（五包按 fixed 组同版本）。从安装到第一个公式的权威单页是仓库的
+    <a href="https://github.com/allroad88888888/einfach-excel/blob/main/docs/QUICKSTART.md">Quickstart</a>——
+    本页保持概念性，避免与其漂移。
+  </p>
+  <h2>1. 选择 backend</h2>
+  <p>
+    内置的 Worker + Rust/WASM backend 是一个实用默认值。宿主自有的 backend 也可以，只要实现
+    <a href={sitePath('zh/docs/backend-port/')}>backend port</a>。
+  </p>
+  <h2>2. 只挂载一次 provider</h2>
+  <pre><code>{`<SpreadsheetUiProvider backend={backend}>
+  <SpreadsheetGrid sheetId={sheetId} viewport={viewport} />
+</SpreadsheetUiProvider>`}</code></pre>
+  <h2>3. 有意识地增加能力</h2>
+  <p>
+    将权威的工作簿事实保留在 backend 中。功能局部的 UI 状态属于 atoms；添加状态前，请先阅读
+    <a href={sitePath('zh/docs/atoms/viewport/')}>视口</a>和
+    <a href={sitePath('zh/docs/atoms/selection/')}>选择</a>的所有权指南。
+  </p>
 </DocsPage>

@@ -4,114 +4,32 @@ import { sitePath } from '../../data/site-path'
 ---
 
 <DocsPage
-  title="Get a Solid grid running"
+  title="Getting started"
   eyebrow="INTEGRATION GUIDE"
-  summary="Install the Solid binding, paste one file, and verify a real formula."
+  summary="Create one backend, mount one provider, and let the grid request only the projection it needs."
   alternateLocaleHref={sitePath('zh/docs/getting-started/')}
 >
-  <div class="docs-guide">
-    <section class="docs-guide-callout docs-guide-callout-primary" aria-label="Who this guide is for">
-      <p class="docs-guide-label">THE RESULT</p>
-      <p>
-        In five minutes, a Solid + Vite app renders an editable grid backed by a Worker and the Rust/WASM workbook
-        engine. You will type <code>=1+2</code> and see <code>3</code> in the cell.
-      </p>
-    </section>
-
-    <h2>Choose the route before installing</h2>
-    <div class="docs-guide-paths">
-      <a class="docs-guide-path docs-guide-path-featured" href="#install">
-        <span>FORMAL UI BINDING</span><strong>Solid</strong><small>This is the supported install-and-render path.</small>
-      </a>
-      <a class="docs-guide-path" href={sitePath('docs/react/')}>
-        <span>REFERENCE</span><strong>React</strong><small>Use the controlled-projection demo, not a fictional adapter.</small>
-      </a>
-      <a class="docs-guide-path" href={sitePath('docs/vue/')}>
-        <span>REFERENCE</span><strong>Vue</strong><small>Use the controlled-projection demo to define the host boundary.</small>
-      </a>
-      <a class="docs-guide-path" href={sitePath('docs/backend-port/')}>
-        <span>CONTRACT</span><strong>Your own backend</strong><small>Start here when workbook data and compute already belong to your product.</small>
-      </a>
-    </div>
-
-    <h2>Before you begin</h2>
-    <ul class="docs-guide-checklist">
-      <li>Node.js 22.12 or later.</li>
-      <li>A Vite + Solid TypeScript application. Create one with <code>npm create vite@latest my-sheet -- --template solid-ts</code> if needed.</li>
-      <li>An <code>index.html</code> containing <code>&lt;div id="root"&gt;&lt;/div&gt;</code>.</li>
-    </ul>
-
-    <h2 id="install">1. Install the Solid integration</h2>
-    <pre><code>{`npm install @einfach/solid-excel @einfach/core @einfach/solid solid-js`}</code></pre>
-    <p>
-      The three non-UI packages are peers. Keep one physical copy of each in the application dependency graph; the
-      provider and its consumers must share the same Solid runtime.
-    </p>
-
-    <h2>2. Paste one working application</h2>
-    <p>Replace <code>src/main.tsx</code> with this example. It uses the bundled Worker backend, so it is the safest default for a first integration.</p>
-    <pre><code>{`import { render } from 'solid-js/web'
-import {
-  createWorkerWorkbookSpreadsheetBackend,
-  SpreadsheetGrid,
-  SpreadsheetUiProvider,
-} from '@einfach/solid-excel/vnext'
-import { defaultVNextWorkbookWorkerFactory } from '@einfach/solid-excel/vnext-worker-factory'
-import '@einfach/solid-excel/vnext-styles.css'
-
-const backend = createWorkerWorkbookSpreadsheetBackend({
-  workerFactory: defaultVNextWorkbookWorkerFactory,
-  sheets: [{ id: 'sheet-1', name: 'Sheet1' }],
-})
-
-const viewport = {
-  scrollTop: 0, scrollLeft: 0, viewportHeight: 480, viewportWidth: 960,
-  rowHeight: 24, colWidth: 96, rowCount: 50, colCount: 12,
-  overscanRows: 2, overscanCols: 1,
-}
-
-const root = document.getElementById('root')
-if (!root) throw new Error('Missing #root')
-
-render(() => (
-  <SpreadsheetUiProvider backend={backend}>
-    <SpreadsheetGrid sheetId="sheet-1" viewport={viewport} />
-  </SpreadsheetUiProvider>
-), root)`}</code></pre>
-
-    <div class="docs-guide-terms" aria-label="What the example adds">
-      <article><strong>Worker backend</strong><span>Owns workbook data and formula computation away from the main thread.</span></article>
-      <article><strong>Provider</strong><span>Connects that backend to the UI state once at the application boundary.</span></article>
-      <article><strong>Grid</strong><span>Requests only the projection that is visible inside the viewport.</span></article>
-    </div>
-
-    <h2>3. Verify the integration</h2>
-    <ol class="docs-guide-steps">
-      <li>Run <code>npm run dev</code>.</li>
-      <li>Open the Vite URL, then double-click cell A1.</li>
-      <li>Enter <code>=1+2</code> and press Enter. A1 should display <code>3</code>.</li>
-    </ol>
-    <p>If the grid renders and the formula resolves, the UI, provider, Worker transport, and workbook engine are connected.</p>
-
-    <details class="docs-guide-details">
-      <summary>Vite development note for the current 0.1.0 package</summary>
-      <p>
-        Vite 8 is the verified dev path. If the dev server fails while resolving the package's message-format dependency,
-        add the following optimization to <code>vite.config.ts</code>; production build and preview do not need it.
-      </p>
-      <pre><code>{`optimizeDeps: {
-  include: [
-    '@einfach/solid-excel > @lingui/core',
-    '@einfach/solid-excel > @lingui/core > @messageformat/parser',
-  ],
-}`}</code></pre>
-    </details>
-
-    <h2>Where to go next</h2>
-    <div class="docs-guide-next">
-      <a href={sitePath('demos/workbench/')}><strong>Build a complete workbench</strong><span>See toolbar, formula bar, sheets, comments, and selection working together. →</span></a>
-      <a href={sitePath('docs/backend-port/')}><strong>Bring your own data model</strong><span>Implement the bounded backend contract instead of moving a full workbook into the browser. →</span></a>
-      <a href={sitePath('docs/atoms/viewport/')}><strong>Understand viewport ownership</strong><span>Learn why viewport state stays separate from the authoritative workbook. →</span></a>
-    </div>
-  </div>
+  <h2>0. Install</h2>
+  <pre><code>{`npm install @einfach/solid-excel solid-js @einfach/core @einfach/solid`}</code></pre>
+  <p>
+    Published on npm since 2026-08-17 (five packages, versioned as a fixed group). The authoritative
+    install-to-first-formula page is the repository
+    <a href="https://github.com/allroad88888888/einfach-excel/blob/main/docs/QUICKSTART.md">Quickstart</a> —
+    this page stays conceptual to avoid drifting from it.
+  </p>
+  <h2>1. Choose a backend</h2>
+  <p>
+    The bundled Worker + Rust/WASM backend is a useful default. A host-owned backend works too when it implements the
+    <a href={sitePath('docs/backend-port/')}>backend port</a>.
+  </p>
+  <h2>2. Mount the provider once</h2>
+  <pre><code>{`<SpreadsheetUiProvider backend={backend}>
+  <SpreadsheetGrid sheetId={sheetId} viewport={viewport} />
+</SpreadsheetUiProvider>`}</code></pre>
+  <h2>3. Add capabilities deliberately</h2>
+  <p>
+    Keep authoritative workbook facts in the backend. Feature-local UI state belongs to atoms; consult the
+    <a href={sitePath('docs/atoms/viewport/')}>viewport</a> and
+    <a href={sitePath('docs/atoms/selection/')}>selection</a> ownership guides before adding state.
+  </p>
 </DocsPage>

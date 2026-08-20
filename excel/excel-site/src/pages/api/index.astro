@@ -1,109 +1,30 @@
 ---
 import DocsPage from '../../components/DocsPage.astro'
+import { backendContract, backendTypesPath, sourceUrl } from '../../data/source-projection'
 import { sitePath } from '../../data/site-path'
 ---
 
 <DocsPage
-  title="Developer reference"
-  eyebrow="PUBLIC SURFACE"
-  summary="Packages, contracts, state guides, and the complete generated type reference."
+  title="API reference"
+  eyebrow="SOURCE-PROJECTED REFERENCE"
+  summary="A concise public surface derived from the implementation source used by the live demos."
   alternateLocaleHref={sitePath('zh/api/')}
 >
-  <div class="docs-guide">
-    <section class="docs-guide-callout docs-guide-callout-primary">
-      <p class="docs-guide-label">API OVERVIEW</p>
-      <p>
-        Einfach is a spreadsheet integration system, not a DOM widget. Its APIs separate rendering, authoritative workbook
-        data, and interaction state so the same grid can run on a static, Worker, remote, or product-owned backend.
-      </p>
-    </section>
-
-    <h2>How the public APIs fit together</h2>
-    <p>
-      A normal integration crosses three layers. The UI layer renders the spreadsheet surface. The backend layer answers
-      bounded projection reads and accepts edits. The state layer coordinates selection, viewport, editing, and commands
-      around that surface. The UI does not own the workbook, and the backend does not manipulate the DOM.
-    </p>
-    <table class="docs-guide-table">
-      <thead><tr><th>Surface</th><th>Responsibility</th><th>How it is used</th></tr></thead>
-      <tbody>
-        <tr><td>Solid UI binding</td><td>Renders grids, provider boundaries, and spreadsheet UI surfaces.</td><td>Mount one provider around the sheet surface after the backend is ready.</td></tr>
-        <tr><td>Backend contract</td><td>Owns workbook facts, computation, persistence, and bounded projection reads.</td><td>Use the bundled Worker backend or implement the contract against an existing product system.</td></tr>
-        <tr><td>State APIs</td><td>Own selection, viewport, editing lifecycle, and feature-local interaction state.</td><td>Extend interaction through the provided atoms and commands rather than duplicating product state.</td></tr>
-        <tr><td>Type reference</td><td>Defines the exact exported types and optional capabilities.</td><td>Consult it while implementing a specific feature, not as the first integration tutorial.</td></tr>
-      </tbody>
-    </table>
-
-    <h2>Solid UI binding</h2>
-    <p>
-      The published Solid binding is the primary public UI surface. It provides the application-level provider, the
-      virtualized grid, the Worker-backed workbook integration, and the components that form a complete spreadsheet
-      shell. It is the correct starting point when the application is built with Solid and needs a production integration
-      path rather than a framework experiment.
-    </p>
-    <p>
-      Create the backend once for the lifetime of a workbook, mount the provider once above the spreadsheet area, and put
-      the grid and optional shell components beneath it. The provider connects UI commands to the backend; scrolling then
-      requests only the visible projection instead of expanding the complete workbook in the browser.
-    </p>
-    <div class="docs-guide-next">
-      <a href={sitePath('docs/getting-started/')}><strong>Solid integration guide</strong><span>Installation, one complete app file, formula verification, and the next production steps. →</span></a>
-    </div>
-
-    <h2>Workbook backend contract</h2>
-    <p>
-      The backend contract is the boundary between the spreadsheet UI and authoritative workbook data. It reads a visible
-      window or a finite range, commits cell input, and may progressively add capabilities such as import, clipboard,
-      structure changes, formatting, or comments. This keeps formula calculation, permission checks, storage, and remote
-      synchronization in the system that owns them.
-    </p>
-    <p>
-      Begin with visible projection, range projection, and cell input. Add an optional method only when its matching UI
-      feature is part of the product. A backend must acknowledge a write only after the authoritative system accepted it;
-      that rule keeps editing feedback, history, and rendering consistent.
-    </p>
-    <div class="docs-guide-next">
-      <a href={sitePath('docs/backend-port/')}><strong>Backend contract guide</strong><span>Required responsibilities, implementation order, capability growth, and source-backed type details. →</span></a>
-    </div>
-
-    <h2>State and interaction APIs</h2>
-    <p>
-      The framework-neutral UI core owns interaction state, not workbook state. Viewport APIs describe the current visible
-      area. Selection APIs coordinate the active cell, ranges, pointer drag, and keyboard movement. Feature-specific APIs
-      cover editing, formula input, clipboard, history, and other spreadsheet interactions without asking the host to
-      build a parallel spreadsheet store.
-    </p>
-    <p>
-      Use these APIs when adding behavior around an existing grid. Keep server data, workbook formulas, and durable product
-      facts in the backend. Keep temporary interface facts such as a selection or editor lifecycle in the UI core. This is
-      also the boundary that allows a backend implementation to change without rewriting the visible grid.
-    </p>
-    <div class="docs-guide-next">
-      <a href={sitePath('docs/atoms/viewport/')}><strong>Viewport APIs</strong><span>Visible-window ownership and projection refresh behavior. →</span></a>
-      <a href={sitePath('docs/atoms/selection/')}><strong>Selection APIs</strong><span>Active-cell, range, keyboard, and pointer interaction ownership. →</span></a>
-      <a href={sitePath('docs/atoms/custom-formulas/')}><strong>Custom formula APIs</strong><span>Application-defined formula registration through the supported state boundary. →</span></a>
-    </div>
-
-    <h2>Framework availability</h2>
-    <p>
-      Solid is the published UI binding. React and Vue currently expose private repository adapters for controlled
-      projections and provider hooks; they are useful for evaluating the framework boundary, but they do not yet provide a
-      public npm release, bundled Worker runtime, or full spreadsheet shell. Their guides describe the verified source
-      path and the exact limits of that pre-release surface.
-    </p>
-    <div class="docs-guide-next">
-      <a href={sitePath('docs/react/')}><strong>React adapter reference</strong><span>Repository installation, verified fixture, controlled projection composition, and boundary notes. →</span></a>
-      <a href={sitePath('docs/vue/')}><strong>Vue adapter reference</strong><span>Repository installation, verified fixture, controlled projection composition, and boundary notes. →</span></a>
-    </div>
-
-    <h2>Complete type reference</h2>
-    <p>
-      Generated TypeDoc is the exhaustive reference for exported types, properties, and optional capability signatures. Use
-      it after selecting the integration surface above; the guide pages explain the lifecycle and ownership decisions that
-      a type index cannot convey.
-    </p>
-    <div class="docs-guide-next">
-      <a href={sitePath('api-reference/globals.md')}><strong>Browse generated TypeDoc</strong><span>All public UI-core and Solid exports generated during this site build. →</span></a>
-    </div>
-  </div>
+  <p>
+    Start with the <a href={sitePath('docs/backend-port/')}>backend port guide</a>, then inspect the authoritative
+    <a href={sourceUrl(backendTypesPath)}>TypeScript source</a> for optional capabilities.
+  </p>
+  <h2>SpreadsheetBackend</h2>
+  <pre><code>{backendContract}</code></pre>
+  <h2>Atom feature guides</h2>
+  <ul>
+    <li><a href={sitePath('docs/atoms/viewport/')}>Viewport atoms</a></li>
+    <li><a href={sitePath('docs/atoms/selection/')}>Selection atoms</a></li>
+    <li><a href={sitePath('docs/atoms/custom-formulas/')}>Custom formula atoms</a></li>
+  </ul>
+  <h2>Generated API Markdown</h2>
+  <p>
+    <a href={sitePath('api-reference/globals.md')}>Browse the TypeDoc reference</a> generated from the public
+    <code>spreadsheet-ui-core</code> and <code>solid-excel</code> entry points during this site's build.
+  </p>
 </DocsPage>

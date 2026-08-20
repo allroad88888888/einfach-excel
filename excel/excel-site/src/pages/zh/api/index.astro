@@ -1,100 +1,31 @@
 ---
 import DocsPage from '../../../components/DocsPage.astro'
+import { backendContract, backendTypesPath, sourceUrl } from '../../../data/source-projection'
 import { sitePath } from '../../../data/site-path'
 ---
 
 <DocsPage
   locale="zh"
-  title="开发者参考"
-  eyebrow="公开接口"
-  summary="包、契约、状态指南与完整生成类型参考的索引。"
+  title="API 参考"
+  eyebrow="从源码投射的参考"
+  summary="由线上演示使用的实现源码派生出的精简公开接口。"
   alternateLocaleHref={sitePath('api/')}
 >
-  <div class="docs-guide">
-    <section class="docs-guide-callout docs-guide-callout-primary">
-      <p class="docs-guide-label">API 总览</p>
-      <p>
-        Einfach 不是一个直接操作 DOM 的表格控件，而是一套电子表格接入系统。它将渲染、权威工作簿数据与交互状态
-        分开，让同一个网格可以接静态、Worker、远程或产品自有后端。
-      </p>
-    </section>
-
-    <h2>公开 API 如何协作</h2>
-    <p>
-      一次正常接入会经过三层。UI 层负责绘制表格表面；backend 层返回有界投影并接受编辑；状态层围绕表面协调选区、
-      视口、编辑与命令。UI 不拥有工作簿，backend 也不负责操作 DOM。
-    </p>
-    <table class="docs-guide-table">
-      <thead><tr><th>表面</th><th>职责</th><th>使用方式</th></tr></thead>
-      <tbody>
-        <tr><td>Solid UI 绑定</td><td>渲染网格、provider 边界与电子表格 UI 表面。</td><td>后端准备完成后，在工作表表面上方挂载一次 provider。</td></tr>
-        <tr><td>Backend contract</td><td>持有工作簿事实、计算、持久化与有界投影读取。</td><td>使用内置 Worker 后端，或将契约实现到已有产品系统中。</td></tr>
-        <tr><td>State APIs</td><td>持有选区、视口、编辑生命周期与功能局部交互状态。</td><td>通过 atoms 与 commands 扩展交互，而不是复制一套产品状态。</td></tr>
-        <tr><td>类型参考</td><td>定义精确的公开类型与可选能力。</td><td>实现具体功能时查阅，而不是把它当作第一篇接入教程。</td></tr>
-      </tbody>
-    </table>
-
-    <h2>Solid UI 绑定</h2>
-    <p>
-      已发布的 Solid 绑定是主要公开 UI 表面。它提供应用级 provider、虚拟化 grid、Worker 工作簿接入，以及组成
-      完整电子表格外壳所需的组件。对于 Solid 应用且需要正式生产接入路径的场景，它是正确的开始位置，而不是框架实验。
-    </p>
-    <p>
-      为一个工作簿创建一次 backend，在表格区域上方挂载一次 provider，再将 grid 与可选外壳组件放在其下。provider
-      会把 UI 命令连接到 backend；滚动时只请求可见投影，而不会把完整工作簿展开到浏览器中。
-    </p>
-    <div class="docs-guide-next">
-      <a href={sitePath('zh/docs/getting-started/')}><strong>Solid 接入指南</strong><span>安装、完整应用文件、公式验证与后续生产步骤。→</span></a>
-    </div>
-
-    <h2>工作簿 backend contract</h2>
-    <p>
-      backend contract 是电子表格 UI 与权威工作簿数据之间的边界。它读取可见窗口或有限范围、提交单元格输入，并可以
-      逐步增加导入、剪贴板、结构变更、格式和评论等能力。这使公式计算、权限校验、存储和远程同步都留在真正拥有它们的
-      系统中。
-    </p>
-    <p>
-      先实现可见投影、范围投影和单元格输入；只有产品真的展示相应 UI 时，才增加对应的可选能力。backend 只能在
-      权威系统已接受写入后才确认操作，这条规则让编辑反馈、历史记录和渲染结果保持一致。
-    </p>
-    <div class="docs-guide-next">
-      <a href={sitePath('zh/docs/backend-port/')}><strong>Backend contract 指南</strong><span>必需职责、实现顺序、能力扩展与基于源码的类型细节。→</span></a>
-    </div>
-
-    <h2>状态与交互 API</h2>
-    <p>
-      框架无关的 UI core 持有交互状态，而不是工作簿状态。视口 API 描述当前可见区域；选择 API 协调活动单元格、
-      范围、指针拖动与键盘移动；功能 API 覆盖编辑、公式输入、剪贴板、历史等电子表格交互，不要求宿主再造一套
-      平行的表格状态库。
-    </p>
-    <p>
-      在既有 grid 周边增加行为时使用这些 API。服务端数据、工作簿公式和持久化业务事实仍应留在 backend；选区或
-      编辑生命周期等临时界面事实留在 UI core。这个边界也让 backend 可以替换，而不必重写可见网格。
-    </p>
-    <div class="docs-guide-next">
-      <a href={sitePath('zh/docs/atoms/viewport/')}><strong>视口 API</strong><span>可见窗口的归属与投影刷新行为。→</span></a>
-      <a href={sitePath('zh/docs/atoms/selection/')}><strong>选择 API</strong><span>活动单元格、范围、键盘与指针交互的归属。→</span></a>
-      <a href={sitePath('zh/docs/atoms/custom-formulas/')}><strong>自定义公式 API</strong><span>通过受支持的状态边界注册业务公式。→</span></a>
-    </div>
-
-    <h2>框架可用性</h2>
-    <p>
-      Solid 是已发布的 UI 绑定。React 与 Vue 当前只提供私有仓库适配器，用于受控投影与 provider hooks 的边界验证；
-      它们尚未提供公开 npm 版本、内置 Worker 运行时或完整电子表格外壳。对应指南会说明可验证的源码路径与预发布表面
-      的精确限制。
-    </p>
-    <div class="docs-guide-next">
-      <a href={sitePath('zh/docs/react/')}><strong>React 适配器参考</strong><span>仓库安装、已验证 fixture、受控投影组合与边界说明。→</span></a>
-      <a href={sitePath('zh/docs/vue/')}><strong>Vue 适配器参考</strong><span>仓库安装、已验证 fixture、受控投影组合与边界说明。→</span></a>
-    </div>
-
-    <h2>完整类型参考</h2>
-    <p>
-      生成的 TypeDoc 是公开类型、属性和可选能力签名的完整参考。在上面选定接入表面之后再使用它；指南页解释的是
-      类型索引无法表达的生命周期与所有权决策。
-    </p>
-    <div class="docs-guide-next">
-      <a href={sitePath('api-reference/globals.md')}><strong>浏览生成的 TypeDoc</strong><span>本次站点构建生成的全部公开 UI core 与 Solid 导出。→</span></a>
-    </div>
-  </div>
+  <p>
+    请先阅读 <a href={sitePath('zh/docs/backend-port/')}>backend port 指南</a>，再查看权威的
+    <a href={sourceUrl(backendTypesPath)}>TypeScript 源码</a>，了解可选能力。
+  </p>
+  <h2>SpreadsheetBackend</h2>
+  <pre><code>{backendContract}</code></pre>
+  <h2>Atom 功能指南</h2>
+  <ul>
+    <li><a href={sitePath('zh/docs/atoms/viewport/')}>视口 atoms</a></li>
+    <li><a href={sitePath('zh/docs/atoms/selection/')}>选择 atoms</a></li>
+    <li><a href={sitePath('zh/docs/atoms/custom-formulas/')}>自定义公式 atoms</a></li>
+  </ul>
+  <h2>生成的 API Markdown</h2>
+  <p>
+    <a href={sitePath('api-reference/globals.md')}>浏览 TypeDoc API 参考</a>。它在站点构建时从
+    <code>spreadsheet-ui-core</code> 与 <code>solid-excel</code> 的公开入口生成。
+  </p>
 </DocsPage>

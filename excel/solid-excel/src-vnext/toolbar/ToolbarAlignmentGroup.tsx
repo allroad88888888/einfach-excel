@@ -44,7 +44,7 @@ export function ToolbarAlignmentGroup(props: ToolbarGroupProps) {
         <button
           ref={surface.setHAlignAnchorRef}
           type="button"
-          class={`fmt-btn spreadsheet-toolbar-button ${surface.isDropdownOpen('alignment') ? 'fmt-btn-active' : ''}`.trim()}
+          class={`spreadsheet-toolbar-button ${surface.isDropdownOpen('alignment') ? 'is-active' : ''}`.trim()}
           data-testid="toolbar-btn-h-align"
           data-active-align={surface.currentHAlign()}
           data-tooltip={t('toolbar.hAlign.title')}
@@ -71,7 +71,7 @@ export function ToolbarAlignmentGroup(props: ToolbarGroupProps) {
         <button
           ref={surface.setVAlignAnchorRef}
           type="button"
-          class={`fmt-btn spreadsheet-toolbar-button ${surface.isDropdownOpen('vertical-alignment') ? 'fmt-btn-active' : ''}`.trim()}
+          class={`spreadsheet-toolbar-button ${surface.isDropdownOpen('vertical-alignment') ? 'is-active' : ''}`.trim()}
           data-testid="toolbar-btn-v-align"
           data-active-vertical-align={surface.currentVAlign()}
           data-tooltip={t('toolbar.vAlign.title')}
@@ -93,7 +93,7 @@ export function ToolbarAlignmentGroup(props: ToolbarGroupProps) {
       </div>
       <button
         type="button"
-        class={`fmt-btn spreadsheet-toolbar-button ${runtime.activeCellFormat().wrap ? 'fmt-btn-active' : ''}`.trim()}
+        class={`spreadsheet-toolbar-button ${runtime.activeCellFormat().wrap ? 'is-active' : ''}`.trim()}
         data-testid="toolbar-btn-wrap"
         data-tooltip={t('toolbar.wrap.title')}
         aria-label={t('toolbar.wrap.title')}
@@ -110,7 +110,7 @@ export function ToolbarAlignmentGroup(props: ToolbarGroupProps) {
         <button
           ref={surface.setRotationAnchorRef}
           type="button"
-          class={`fmt-btn spreadsheet-toolbar-button ${surface.isDropdownOpen('rotation') ? 'fmt-btn-active' : ''}`.trim()}
+          class={`spreadsheet-toolbar-button ${surface.isDropdownOpen('rotation') ? 'is-active' : ''}`.trim()}
           data-testid="toolbar-btn-rotation"
           data-tooltip={t('toolbar.rotation.title')}
           aria-label={t('toolbar.rotation.title')}

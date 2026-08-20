@@ -10,7 +10,7 @@ export function readFormulaAutocompleteAnchor(
   target: EventTarget | null,
 ): FormulaAutocompleteAnchor | null {
   if (!(target instanceof HTMLElement)) return null
-  if (!target.classList.contains('cell-input') && !target.classList.contains('formula-bar-input')) {
+  if (!target.classList.contains('cell-input') && !target.classList.contains('spreadsheet-formula-bar-input')) {
     return null
   }
 

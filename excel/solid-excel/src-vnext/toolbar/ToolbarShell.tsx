@@ -43,7 +43,7 @@ export function ToolbarShell(props: ToolbarShellProps) {
 
   return (
     <div
-      class={`format-toolbar spreadsheet-toolbar toolbar-shell ${props.class ?? ''}`.trim()}
+      class={`spreadsheet-toolbar toolbar-shell ${props.class ?? ''}`.trim()}
       role="toolbar"
       data-testid={props['data-testid']}
       data-filter-sort-status={props['data-filter-sort-status']}

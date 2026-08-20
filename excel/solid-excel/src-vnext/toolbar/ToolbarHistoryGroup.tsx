@@ -10,7 +10,7 @@ export function ToolbarHistoryGroup(props: ToolbarGroupProps) {
     <>
       <button
         type="button"
-        class="fmt-btn spreadsheet-toolbar-button"
+        class="spreadsheet-toolbar-button"
         data-testid="toolbar-btn-undo"
         data-tooltip={t('toolbar.undo.title')}
         aria-label={t('toolbar.undo.title')}
@@ -21,7 +21,7 @@ export function ToolbarHistoryGroup(props: ToolbarGroupProps) {
       </button>
       <button
         type="button"
-        class="fmt-btn spreadsheet-toolbar-button"
+        class="spreadsheet-toolbar-button"
         data-testid="toolbar-btn-redo"
         data-tooltip={t('toolbar.redo.title')}
         aria-label={t('toolbar.redo.title')}
@@ -32,7 +32,7 @@ export function ToolbarHistoryGroup(props: ToolbarGroupProps) {
       </button>
       <button
         type="button"
-        class={`fmt-btn spreadsheet-toolbar-button ${runtime.formatPainterState() !== 'idle' ? 'fmt-btn-active' : ''}`.trim()}
+        class={`spreadsheet-toolbar-button ${runtime.formatPainterState() !== 'idle' ? 'is-active' : ''}`.trim()}
         data-testid="toolbar-btn-format-painter"
         data-format-painter-state={runtime.formatPainterState()}
         data-tooltip={
@@ -50,7 +50,7 @@ export function ToolbarHistoryGroup(props: ToolbarGroupProps) {
       </button>
       <button
         type="button"
-        class="fmt-btn spreadsheet-toolbar-button"
+        class="spreadsheet-toolbar-button"
         data-testid="toolbar-btn-clear-format"
         data-tooltip={t('toolbar.clearFormat.title')}
         aria-label={t('toolbar.clearFormat.title')}
@@ -70,7 +70,7 @@ export function ToolbarHistoryGroup(props: ToolbarGroupProps) {
       />
       <button
         type="button"
-        class="fmt-btn spreadsheet-toolbar-button"
+        class="spreadsheet-toolbar-button"
         data-testid="toolbar-btn-comment"
         data-tooltip={t('toolbar.comment.title')}
         aria-label={t('toolbar.comment.title')}

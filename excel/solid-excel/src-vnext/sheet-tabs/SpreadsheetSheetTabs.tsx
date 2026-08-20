@@ -46,7 +46,7 @@ export function SpreadsheetSheetTabs(props: SpreadsheetSheetTabsProps) {
 
   return (
     <div
-      class={`sheet-tabs spreadsheet-sheet-tabs ${props.class ?? ''}`.trim()}
+      class={`spreadsheet-sheet-tabs ${props.class ?? ''}`.trim()}
       data-testid={props['data-testid'] ?? 'spreadsheet-sheet-tabs'}
       aria-busy={sheetTabs().phase === 'loading' || sheetTabs().mutation !== null}
     >

@@ -57,7 +57,7 @@ export function ToolbarTextStyleGroup(props: ToolbarGroupProps) {
         return (
           <button
             type="button"
-            class={`fmt-btn spreadsheet-toolbar-button ${pressed() ? 'fmt-btn-active' : ''}`.trim()}
+            class={`spreadsheet-toolbar-button ${pressed() ? 'is-active' : ''}`.trim()}
             data-testid={item.testId}
             data-tooltip={t(item.title)}
             aria-label={t(item.title)}

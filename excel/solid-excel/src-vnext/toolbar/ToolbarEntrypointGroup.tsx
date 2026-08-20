@@ -21,7 +21,7 @@ export function ToolbarEntrypointGroup(props: ToolbarGroupProps) {
     <>
       <button
         type="button"
-        class="fmt-btn spreadsheet-toolbar-button"
+        class="spreadsheet-toolbar-button"
         data-testid="toolbar-btn-find-replace"
         data-capability={runtime.findReplaceCapability().capability}
         data-tooltip={t('toolbar.findReplace.title')}
@@ -33,7 +33,7 @@ export function ToolbarEntrypointGroup(props: ToolbarGroupProps) {
       </button>
       <button
         type="button"
-        class="fmt-btn spreadsheet-toolbar-button"
+        class="spreadsheet-toolbar-button"
         data-testid="toolbar-btn-conditional-format"
         data-tooltip={t('toolbar.condFmt.title')}
         aria-label={t('toolbar.condFmt.title')}
@@ -44,7 +44,7 @@ export function ToolbarEntrypointGroup(props: ToolbarGroupProps) {
       </button>
       <button
         type="button"
-        class="fmt-btn spreadsheet-toolbar-button"
+        class="spreadsheet-toolbar-button"
         data-testid="toolbar-btn-data-validation"
         data-tooltip={t('toolbar.dataValidation.title')}
         aria-label={t('toolbar.dataValidation.title')}
@@ -57,7 +57,7 @@ export function ToolbarEntrypointGroup(props: ToolbarGroupProps) {
       </button>
       <button
         type="button"
-        class="fmt-btn spreadsheet-toolbar-button"
+        class="spreadsheet-toolbar-button"
         data-testid="toolbar-btn-filter"
         data-tooltip={capability().disabledReason ?? t('toolbar.filter.title')}
         aria-label={t('toolbar.filter.title')}
@@ -75,7 +75,7 @@ export function ToolbarEntrypointGroup(props: ToolbarGroupProps) {
           <button
             ref={surface.setSortAnchorRef}
             type="button"
-            class={`fmt-btn spreadsheet-toolbar-button ${surface.isDropdownOpen('sort') ? 'fmt-btn-active' : ''}`.trim()}
+            class={`spreadsheet-toolbar-button ${surface.isDropdownOpen('sort') ? 'is-active' : ''}`.trim()}
             data-testid="toolbar-btn-sort"
             data-tooltip={
               runtime.physicalSortDiagnostic()?.message ??
@@ -103,7 +103,7 @@ export function ToolbarEntrypointGroup(props: ToolbarGroupProps) {
       </Show>
       <button
         type="button"
-        class="fmt-btn spreadsheet-toolbar-button"
+        class="spreadsheet-toolbar-button"
         data-testid="toolbar-btn-name-manager"
         data-tooltip={t('toolbar.nameManager.title')}
         aria-label={t('toolbar.nameManager.title')}

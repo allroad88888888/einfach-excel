@@ -14,7 +14,7 @@ export function ToolbarFontGroup(props: ToolbarGroupProps) {
       <button
         type="button"
         ref={surface.setFontFamilyAnchorEl}
-        class={`fmt-btn spreadsheet-toolbar-button ${surface.isDropdownOpen('font-family') ? 'fmt-btn-active' : ''}`.trim()}
+        class={`spreadsheet-toolbar-button ${surface.isDropdownOpen('font-family') ? 'is-active' : ''}`.trim()}
         data-testid="toolbar-btn-font-family"
         data-tooltip={t('toolbar.fontFamily.title')}
         aria-label={t('toolbar.fontFamily.title')}
@@ -32,7 +32,7 @@ export function ToolbarFontGroup(props: ToolbarGroupProps) {
       <button
         type="button"
         ref={surface.setFontSizeAnchorEl}
-        class={`fmt-btn spreadsheet-toolbar-button ${surface.isDropdownOpen('font-size') ? 'fmt-btn-active' : ''}`.trim()}
+        class={`spreadsheet-toolbar-button ${surface.isDropdownOpen('font-size') ? 'is-active' : ''}`.trim()}
         data-testid="toolbar-btn-font-size"
         data-tooltip={t('toolbar.fontSize.title')}
         aria-label={t('toolbar.fontSize.title')}
@@ -49,7 +49,7 @@ export function ToolbarFontGroup(props: ToolbarGroupProps) {
       </button>
       <button
         type="button"
-        class="fmt-btn spreadsheet-toolbar-button"
+        class="spreadsheet-toolbar-button"
         data-testid="toolbar-btn-font-size-up"
         data-tooltip={t('toolbar.fontSizeUp.title')}
         aria-label={t('toolbar.fontSizeUp.title')}
@@ -60,7 +60,7 @@ export function ToolbarFontGroup(props: ToolbarGroupProps) {
       </button>
       <button
         type="button"
-        class="fmt-btn spreadsheet-toolbar-button"
+        class="spreadsheet-toolbar-button"
         data-testid="toolbar-btn-font-size-down"
         data-tooltip={t('toolbar.fontSizeDown.title')}
         aria-label={t('toolbar.fontSizeDown.title')}

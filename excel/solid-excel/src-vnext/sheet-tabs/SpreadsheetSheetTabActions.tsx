@@ -39,7 +39,7 @@ export function SpreadsheetSheetTabActions(props: SpreadsheetSheetTabActionsProp
       </For>
       <button
         type="button"
-        class="sheet-tab-add spreadsheet-sheet-tab-add"
+        class="spreadsheet-sheet-tab-add"
         data-testid="sheet-tab-add"
         aria-label="Add sheet"
         title={props.controller.commandTitle('add', 'Add sheet')}

@@ -226,7 +226,7 @@ test.describe('a11y — sheet tabs', () => {
     await gotoWorkerDemo(page)
     const results = await new AxeBuilder({ page })
       .withTags(WCAG_TAGS)
-      .include('.sheet-tabs')
+      .include('.spreadsheet-sheet-tabs')
       .analyze()
     const [firstViolation] = results.violations
     expect(

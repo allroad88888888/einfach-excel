@@ -109,7 +109,7 @@ export function FontFamilyDropdown(props: FontFamilyDropdownProps): JSX.Element 
               <button
                 type="button"
                 class={`spreadsheet-toolbar-font-family-option ${
-                  isActive() ? 'fmt-btn-active' : ''
+                  isActive() ? 'is-active' : ''
                 }`.trim()}
                 data-testid={`toolbar-font-family-item-${family}`}
                 data-font-family={family}

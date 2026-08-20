@@ -28,7 +28,7 @@ export function SpreadsheetSheetTabItem(props: SpreadsheetSheetTabItemProps) {
       <button
         type="button"
         role="tab"
-        class={`sheet-tab spreadsheet-sheet-tab${props.active() ? ' sheet-tab-active is-active' : ''}`}
+        class={`spreadsheet-sheet-tab${props.active() ? ' is-active' : ''}`}
         data-active={props.active() ? 'true' : 'false'}
         data-sheet-id={props.sheet.id}
         aria-selected={props.active()}

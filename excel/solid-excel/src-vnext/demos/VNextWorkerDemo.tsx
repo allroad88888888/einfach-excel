@@ -261,7 +261,7 @@ function VNextWorkerWorkbook() {
             const el = document.activeElement
             if (
               el instanceof HTMLInputElement &&
-              (el.classList.contains('cell-input') || el.classList.contains('formula-bar-input'))
+              (el.classList.contains('cell-input') || el.classList.contains('spreadsheet-formula-bar-input'))
             ) {
               el.focus()
               el.setSelectionRange(caret, caret)

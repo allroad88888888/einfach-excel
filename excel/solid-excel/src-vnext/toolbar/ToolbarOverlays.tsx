@@ -65,7 +65,7 @@ export function ToolbarOverlays(props: ToolbarGroupProps) {
       >
         <button
           type="button"
-          class="fmt-btn spreadsheet-toolbar-button"
+          class="spreadsheet-toolbar-button"
           data-testid="toolbar-mutation-refresh-retry"
           aria-label="Reconcile toolbar mutation"
           onClick={() => void runtime.retryToolbarMutationRefresh()}
@@ -83,7 +83,7 @@ export function ToolbarOverlays(props: ToolbarGroupProps) {
       <Show when={runtime.filterSortEntrypoint().status === 'refresh-failed'}>
         <button
           type="button"
-          class="fmt-btn spreadsheet-toolbar-button"
+          class="spreadsheet-toolbar-button"
           data-testid="toolbar-filter-sort-refresh-retry"
           aria-label="Retry filter and sort refresh"
           onClick={runtime.entrypoints.retryFilterSortRefresh}

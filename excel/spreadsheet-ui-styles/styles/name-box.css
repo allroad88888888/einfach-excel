@@ -70,3 +70,15 @@
   outline-offset: -1px;
 }
 
+
+/* 公式栏提交被拒时的行内错误(role=alert)。 */
+.spreadsheet-formula-bar-error {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 8px;
+  color: #b42318;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

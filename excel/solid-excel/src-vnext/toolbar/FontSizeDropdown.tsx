@@ -96,7 +96,7 @@ export function FontSizeDropdown(props: FontSizeDropdownProps): JSX.Element {
               <button
                 type="button"
                 class={`spreadsheet-toolbar-font-size-option ${
-                  isActive() ? 'fmt-btn-active' : ''
+                  isActive() ? 'is-active' : ''
                 }`.trim()}
                 data-testid={`toolbar-font-size-item-${size}`}
                 data-font-size={String(size)}

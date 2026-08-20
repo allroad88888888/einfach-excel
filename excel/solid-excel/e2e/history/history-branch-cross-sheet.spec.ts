@@ -86,7 +86,7 @@ test.describe('vNext worker history — redo branch + cross-sheet undo', () => {
 
     // The view did not follow the entry: Sheet1 stays the active tab with
     // its own content on screen.
-    await expect(page.locator('.sheet-tab-active')).toHaveText('Sheet1')
+    await expect(page.locator('.spreadsheet-sheet-tab.is-active')).toHaveText('Sheet1')
     await expect(cellDisplay(page, 'A1')).toHaveText('Sheet1')
     await expect(cellDisplay(page, 'C2')).toHaveText('13')
 

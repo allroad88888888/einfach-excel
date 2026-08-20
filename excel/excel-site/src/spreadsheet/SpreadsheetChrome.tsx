@@ -73,7 +73,7 @@ function ChromeBody(props: { chrome: Required<ChromeConfig>; children?: JSX.Elem
       if (
         element instanceof HTMLInputElement &&
         (element.classList.contains('cell-input') ||
-          element.classList.contains('formula-bar-input'))
+          element.classList.contains('spreadsheet-formula-bar-input'))
       ) {
         element.focus()
         element.setSelectionRange(caret, caret)

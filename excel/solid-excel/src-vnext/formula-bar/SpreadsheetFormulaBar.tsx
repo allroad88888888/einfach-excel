@@ -209,12 +209,12 @@ export function SpreadsheetFormulaBar(props: SpreadsheetFormulaBarProps) {
 
   return (
     <div
-      class={`formula-bar spreadsheet-formula-bar ${props.class ?? ''}`.trim()}
+      class={`spreadsheet-formula-bar ${props.class ?? ''}`.trim()}
       data-testid={props['data-testid'] ?? 'formula-bar'}
     >
       <SpreadsheetNameBox />
       <span
-        class="formula-bar-addr spreadsheet-formula-bar-addr"
+        class="spreadsheet-formula-bar-addr"
         data-testid="formula-bar-addr"
         aria-hidden="true"
         style={{ display: 'none' }}
@@ -222,7 +222,7 @@ export function SpreadsheetFormulaBar(props: SpreadsheetFormulaBarProps) {
         {cellAddress()}
       </span>
       <input
-        class="formula-bar-input spreadsheet-formula-bar-input"
+        class="spreadsheet-formula-bar-input"
         data-testid="formula-bar-input"
         type="text"
         // a11y: the visible address chip next to this input is `display:none`
@@ -277,7 +277,7 @@ export function SpreadsheetFormulaBar(props: SpreadsheetFormulaBarProps) {
         }}
       />
       <Show when={commitFeedback.isRejected()}>
-        <span class="formula-bar-error" id="spreadsheet-formula-bar-editing-error" role="alert">
+        <span class="spreadsheet-formula-bar-error" id="spreadsheet-formula-bar-editing-error" role="alert">
           {commitFeedback.error()}
         </span>
       </Show>

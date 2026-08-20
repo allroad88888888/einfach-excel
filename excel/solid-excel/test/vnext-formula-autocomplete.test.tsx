@@ -69,7 +69,7 @@ function renderAutocomplete(draft = '=SU', caret = draft.length) {
   const result = render(() => (
     <SpreadsheetUiProvider backend={createBackend()} store={store}>
       <input class="cell-input" data-testid="cell-input" />
-      <input class="formula-bar-input" data-testid="formula-input" />
+      <input class="spreadsheet-formula-bar-input" data-testid="formula-input" />
       <button type="button" data-testid="outside-focus">
         Outside
       </button>

@@ -21,7 +21,7 @@ export function ToolbarNumberGroup(props: ToolbarGroupProps) {
       <button
         type="button"
         ref={surface.setNumberFormatAnchorEl}
-        class={`fmt-btn spreadsheet-toolbar-button spreadsheet-toolbar-currency-opener ${surface.isDropdownOpen('number-format') ? 'fmt-btn-active' : ''}`.trim()}
+        class={`spreadsheet-toolbar-button spreadsheet-toolbar-currency-opener ${surface.isDropdownOpen('number-format') ? 'is-active' : ''}`.trim()}
         data-testid="toolbar-btn-number-format"
         data-tooltip={t('toolbar.currencyDropdown.title')}
         aria-label={t('toolbar.currencyDropdown.title')}
@@ -41,7 +41,7 @@ export function ToolbarNumberGroup(props: ToolbarGroupProps) {
       </button>
       <button
         type="button"
-        class={`fmt-btn spreadsheet-toolbar-button ${numberFormat() === 'percent' ? 'fmt-btn-active' : ''}`.trim()}
+        class={`spreadsheet-toolbar-button ${numberFormat() === 'percent' ? 'is-active' : ''}`.trim()}
         data-testid="toolbar-btn-percent-format"
         data-tooltip={t('toolbar.percentFormat.title')}
         aria-label={t('toolbar.percentFormat.title')}
@@ -55,7 +55,7 @@ export function ToolbarNumberGroup(props: ToolbarGroupProps) {
       </button>
       <button
         type="button"
-        class={`fmt-btn spreadsheet-toolbar-button ${currency() ? 'fmt-btn-active' : ''}`.trim()}
+        class={`spreadsheet-toolbar-button ${currency() ? 'is-active' : ''}`.trim()}
         data-testid="toolbar-btn-currency-format"
         data-tooltip={t('toolbar.currencyFormat.title')}
         aria-label={t('toolbar.currencyFormat.title')}
@@ -69,7 +69,7 @@ export function ToolbarNumberGroup(props: ToolbarGroupProps) {
       </button>
       <button
         type="button"
-        class="fmt-btn spreadsheet-toolbar-button"
+        class="spreadsheet-toolbar-button"
         data-testid="toolbar-btn-inc-decimal"
         data-tooltip={t('toolbar.incDecimal.title')}
         aria-label={t('toolbar.incDecimal.title')}
@@ -80,7 +80,7 @@ export function ToolbarNumberGroup(props: ToolbarGroupProps) {
       </button>
       <button
         type="button"
-        class="fmt-btn spreadsheet-toolbar-button"
+        class="spreadsheet-toolbar-button"
         data-testid="toolbar-btn-dec-decimal"
         data-tooltip={t('toolbar.decDecimal.title')}
         aria-label={t('toolbar.decDecimal.title')}

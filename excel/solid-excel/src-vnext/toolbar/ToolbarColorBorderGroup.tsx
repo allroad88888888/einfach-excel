@@ -16,7 +16,7 @@ export function ToolbarColorBorderGroup(props: ToolbarGroupProps) {
       ref={(el) => {
         surface.colorAnchors[mode] = el
       }}
-      class={`fmt-btn spreadsheet-toolbar-button ${surface.activeColorMode() === mode ? 'fmt-btn-active' : ''}`.trim()}
+      class={`spreadsheet-toolbar-button ${surface.activeColorMode() === mode ? 'is-active' : ''}`.trim()}
       data-testid={`toolbar-btn-${mode === 'fill' ? 'fill-color' : 'text-color'}`}
       data-tooltip={t(`toolbar.${mode === 'fill' ? 'fillColor' : 'textColor'}.title`)}
       aria-label={t(`toolbar.${mode === 'fill' ? 'fillColor' : 'textColor'}.title`)}
@@ -42,7 +42,7 @@ export function ToolbarColorBorderGroup(props: ToolbarGroupProps) {
         <button
           ref={surface.setBordersAnchorRef}
           type="button"
-          class={`fmt-btn spreadsheet-toolbar-button ${surface.isDropdownOpen('border') ? 'fmt-btn-active' : ''}`.trim()}
+          class={`spreadsheet-toolbar-button ${surface.isDropdownOpen('border') ? 'is-active' : ''}`.trim()}
           data-testid="toolbar-btn-borders"
           data-tooltip={t('toolbar.borders.title')}
           aria-label={t('toolbar.borders.title')}

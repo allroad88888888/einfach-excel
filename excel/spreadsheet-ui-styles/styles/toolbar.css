@@ -75,7 +75,9 @@
   border-color: var(--border);
 }
 
-.spreadsheet-toolbar .spreadsheet-toolbar-button[aria-pressed='true'] {
+.spreadsheet-toolbar .spreadsheet-toolbar-button[aria-pressed='true'],
+/* is-active：下拉开启 / 格式命中等由组件计算的活跃态（原 fmt-btn-active）。 */
+.spreadsheet-toolbar .spreadsheet-toolbar-button.is-active {
   background: var(--active-bg);
   border-color: var(--border-strong);
 }

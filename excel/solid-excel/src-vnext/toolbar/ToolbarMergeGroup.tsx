@@ -19,7 +19,7 @@ export function ToolbarMergeGroup(props: ToolbarGroupProps) {
         <button
           ref={surface.setMergeAnchorRef}
           type="button"
-          class={`fmt-btn spreadsheet-toolbar-button ${surface.isDropdownOpen('merge') || merged() ? 'fmt-btn-active' : ''}`.trim()}
+          class={`spreadsheet-toolbar-button ${surface.isDropdownOpen('merge') || merged() ? 'is-active' : ''}`.trim()}
           data-testid="toolbar-btn-merge"
           data-tooltip={t('toolbar.merge.title')}
           aria-label={t('toolbar.merge.title')}

@@ -1747,8 +1747,12 @@ describe('SpreadsheetMenuBar', () => {
     fireEvent.click(sortAsc)
     await waitFor(() =>
       expect(
-        document.body.querySelector('[data-testid="sort-confirmation-confirm"]'),
-      ).not.toBeNull(),
+        (
+          document.body.querySelector(
+            '[data-testid="sort-confirmation-confirm"]',
+          ) as HTMLButtonElement
+        ).disabled,
+      ).toBe(false),
     )
     fireEvent.click(document.body.querySelector('[data-testid="sort-confirmation-confirm"]')!)
 
@@ -1784,8 +1788,12 @@ describe('SpreadsheetMenuBar', () => {
     fireEvent.click(sortDesc)
     await waitFor(() =>
       expect(
-        document.body.querySelector('[data-testid="sort-confirmation-confirm"]'),
-      ).not.toBeNull(),
+        (
+          document.body.querySelector(
+            '[data-testid="sort-confirmation-confirm"]',
+          ) as HTMLButtonElement
+        ).disabled,
+      ).toBe(false),
     )
     fireEvent.click(document.body.querySelector('[data-testid="sort-confirmation-confirm"]')!)
 

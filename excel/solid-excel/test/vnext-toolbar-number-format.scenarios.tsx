@@ -5,6 +5,28 @@ import { cleanup } from '@solidjs/testing-library'
 import * as toolbar from './vnext-toolbar-test-support'
 
 export function registerNumberFormatScenarios(): void {
+  it('closes the number-format dropdown on an outside pointer press', () => {
+    const store = toolbar.createStore()
+    const backend = toolbar.createFakeBackend()
+
+    store.setter(toolbar.setWorkspaceActiveSheetAtom, { sheetId: 'sheet-1' })
+    store.setter(toolbar.selectCellAtom, { sheetId: 'sheet-1', coord: { row: 0, col: 0 } })
+
+    const { container } = toolbar.render(() => (
+      <toolbar.SpreadsheetUiProvider backend={backend} store={store}>
+        <toolbar.SpreadsheetToolbar />
+      </toolbar.SpreadsheetUiProvider>
+    ))
+
+    toolbar.fireEvent.click(toolbar.getButtons(container).numberFormat)
+    expect(document.body.querySelector('[data-testid="number-format-dropdown"]')).not.toBeNull()
+
+    toolbar.fireEvent.mouseDown(document.body)
+
+    expect(document.body.querySelector('[data-testid="number-format-dropdown"]')).toBeNull()
+    expect(store.getter(toolbar.toolbarActiveSurfaceAtom)).toBeNull()
+  })
+
   it('writes a toolbar number format to the selected row under an active filter', async () => {
     const store = toolbar.createStore()
     const { backend, setFormatRangeCalls } = toolbar.createRecordingBackend()
@@ -150,8 +172,12 @@ export function registerNumberFormatScenarios(): void {
     )
     await toolbar.waitFor(() =>
       expect(
-        document.body.querySelector('[data-testid="sort-confirmation-confirm"]'),
-      ).not.toBeNull(),
+        (
+          document.body.querySelector(
+            '[data-testid="sort-confirmation-confirm"]',
+          ) as HTMLButtonElement
+        ).disabled,
+      ).toBe(false),
     )
     toolbar.fireEvent.click(
       document.body.querySelector('[data-testid="sort-confirmation-confirm"]') as HTMLButtonElement,

@@ -160,7 +160,9 @@ function clickMenuSort(container: HTMLElement, direction: 'asc' | 'desc'): void 
 async function clickToolbarSort(container: HTMLElement, direction: 'asc' | 'desc'): Promise<void> {
   fireEvent.click(button(container, 'toolbar-btn-sort'))
   fireEvent.click(button(document.body, `toolbar-sort-${direction}`))
-  await waitFor(() => expect(button(document.body, 'sort-confirmation-confirm')).not.toBeNull())
+  await waitFor(() =>
+    expect(button(document.body, 'sort-confirmation-confirm').disabled).toBe(false),
+  )
   fireEvent.click(button(document.body, 'sort-confirmation-confirm'))
 }
 
@@ -265,7 +267,9 @@ describe('vNext filter/sort entrypoints', () => {
     await waitForEntrypointsEnabled(container)
 
     clickMenuSort(container, 'desc')
-    await waitFor(() => expect(button(document.body, 'sort-confirmation-confirm')).not.toBeNull())
+    await waitFor(() =>
+      expect(button(document.body, 'sort-confirmation-confirm').disabled).toBe(false),
+    )
     fireEvent.click(button(document.body, 'sort-confirmation-confirm'))
     await waitFor(() =>
       expect(store.getter(filterSortEntrypointStateAtom).status).toBe('outcome-unknown'),

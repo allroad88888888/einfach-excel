@@ -308,11 +308,12 @@ test.describe('Format audit — number format', () => {
     await expect(page.getByTestId('number-format-dropdown')).toBeHidden()
     expect((await cellDisplay(page, 'B2').textContent())?.trim()).toBe(before)
 
-    // Click-outside closes. Use the sidebar which is far to the right of the
-    // dropdown's horizontal band and outside the anchor button's rect.
+    // Click-outside closes. The number-format button can sit beside the
+    // sidebar in an overflowing toolbar, so use the formula bar's centre — a
+    // stable, visible target outside both the dropdown and its anchor.
     await numberFormatBtn(page).click()
     await expect(page.getByTestId('number-format-dropdown')).toBeVisible()
-    await page.getByTestId('wave5-sidebar').click({ position: { x: 5, y: 5 } })
+    await page.getByTestId('wave5-formula-bar').click()
     await expect(page.getByTestId('number-format-dropdown')).toBeHidden()
   })
 

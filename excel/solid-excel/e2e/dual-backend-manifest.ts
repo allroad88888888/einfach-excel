@@ -83,6 +83,7 @@ export const DUAL_BACKEND_SPECS: string[] = [
   'perf-virtual/ad827-bounded-vs-full-range-read.spec.ts',
   'print/print-preview-menu.spec.ts',
   'protection/protection-unlock-range.spec.ts',
+  'protection/protection-unlock-office-web.spec.ts',
   'protection/vnext-protection-real-backend.spec.ts',
   'rows-cols-outline/vnext-hidden-rows-real-backend.spec.ts',
   'rows-cols-outline/vnext-outline-multilevel-real-backend.spec.ts',

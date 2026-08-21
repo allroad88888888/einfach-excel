@@ -87,7 +87,6 @@ describe('vnext grid header resize split', () => {
                 getRenderedRowHeight: () => 24,
                 isRowSelected: () => false,
                 isRowInSelection: () => false,
-            isRowInSelection: () => false,
                 freezeRowCount: () => 0,
                 getRowHeaderStyle: () => ({}),
                 selectRow,

@@ -163,8 +163,8 @@ test.describe('vNext Wave 5 — shell + canvas overlay', () => {
     // Wave 5 forces the span to inherit the TD's bgColor so the tint covers
     // both the cell box AND the text run (matching audit-format.spec.ts).
     expect(paint.displayBackground).toBe('rgb(254, 243, 199)')
-    expect(paint.paddingLeft).toBe('4px')
-    expect(paint.paddingRight).toBe('4px')
+    expect(paint.paddingLeft).toBe('3px')
+    expect(paint.paddingRight).toBe('3px')
   })
 
   test('resized columns extend the horizontal viewport scroll range', async ({ page }) => {
@@ -254,7 +254,7 @@ test.describe('vNext Wave 5 — shell + canvas overlay', () => {
     await expect(colHeader).toHaveAttribute('data-selected', 'true')
     await expect(cell(page, 'C1')).toHaveAttribute('data-selected', 'true')
     await expect(cell(page, 'C3')).toHaveAttribute('data-selected', 'true')
-    await expect(cell(page, 'C3')).toHaveCSS('background-color', 'rgb(241, 246, 255)')
+    await expect(cell(page, 'C3')).toHaveCSS('background-color', 'rgba(16, 124, 65, 0.08)')
   })
 
   test('Find next dialog navigates selection to the matched cell', async ({ page }) => {

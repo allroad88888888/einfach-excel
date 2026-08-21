@@ -10,14 +10,13 @@ async function readSiteSource(relativePath) {
   return readFile(path.join(siteRoot, relativePath), 'utf8')
 }
 
-const [catalog, demoPage, englishRoute, chineseRoute, englishIndex, chineseIndex, ...demoContent] =
+const [catalog, demoPage, englishRoute, chineseRoute, availabilityContent, ...demoContent] =
   await Promise.all([
     readSiteSource('src/data/demo-catalog.ts'),
     readSiteSource('src/components/DemoPage.astro'),
     readSiteSource('src/pages/demos/[id].astro'),
     readSiteSource('src/pages/zh/demos/[id].astro'),
-    readSiteSource('src/pages/index.astro'),
-    readSiteSource('src/pages/zh/index.astro'),
+    readSiteSource('src/data/ai-content.ts'),
     readSiteSource('src/content/demos/en/viewport-projection.md'),
     readSiteSource('src/content/demos/zh/viewport-projection.md'),
     readSiteSource('src/content/demos/en/react-controlled-projection.md'),
@@ -95,15 +94,18 @@ test('the framework demos have discoverable English and Chinese catalog content'
 })
 
 test('site copy states the pre-release boundary without publication or parity promises', () => {
-  assert.match(englishIndex, /pre-release site presents repository source/)
   assert.match(
-    englishIndex,
-    /No npm-published package or independently\s+verified offline installation is available/s,
+    availabilityContent,
+    /This project is available as repository source in a pre-release stage/,
   )
-  assert.match(englishIndex, /no support, compatibility, or performance\s+promises/s)
-  assert.match(chineseIndex, /项目以仓库源码的预发布形态提供/)
-  assert.match(chineseIndex, /没有 npm 发布包或经过独立验证的离线安装/)
-  assert.match(chineseIndex, /也不作支持、兼容性或性能承诺/)
+  assert.match(
+    availabilityContent,
+    /no npm-published package or independently\s+verified offline installation is available/s,
+  )
+  assert.match(
+    availabilityContent,
+    /The demos make no support, compatibility, or performance promises/s,
+  )
   assert.match(
     englishVue,
     /not a published package.*no support, compatibility, or performance promise/s,

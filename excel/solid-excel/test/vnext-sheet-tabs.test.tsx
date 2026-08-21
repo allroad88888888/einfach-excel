@@ -313,7 +313,7 @@ describe('vNext SpreadsheetSheetTabs', () => {
     ]
     const backend = createFakeBackend(sheets)
 
-    const { getByRole, getByTestId } = render(() => (
+    const { getByRole } = render(() => (
       <SpreadsheetUiProvider backend={backend} store={store}>
         <SpreadsheetSheetTabs sheets={sheets} />
       </SpreadsheetUiProvider>

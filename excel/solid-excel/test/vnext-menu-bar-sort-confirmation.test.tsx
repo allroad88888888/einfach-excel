@@ -130,7 +130,9 @@ describe('menu-bar sort confirmation', () => {
     expect(requests).toHaveLength(0)
 
     await openMenuSort(container)
-    await waitFor(() => expect(button(document.body, 'sort-confirmation-confirm')).not.toBeNull())
+    await waitFor(() =>
+      expect(button(document.body, 'sort-confirmation-confirm').disabled).toBe(false),
+    )
     fireEvent.click(button(document.body, 'sort-confirmation-confirm'))
     await waitFor(() => expect(requests).toHaveLength(1))
     expect(store.getter(filterSortEntrypointStateAtom)).toMatchObject({

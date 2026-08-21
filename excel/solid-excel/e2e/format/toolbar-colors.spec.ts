@@ -38,13 +38,17 @@ function noFillButton(page: Page) {
   return page.getByTestId('color-popover-no-fill')
 }
 
+async function expectActiveCellCanvas(page: Page, addr: string) {
+  const target = cell(page, addr)
+  await expect(target).toHaveAttribute('data-active', 'true')
+  await expect(target).toHaveCSS('background-color', 'rgb(255, 255, 255)')
+}
+
 async function readPaint(page: Page, addr: string) {
   return cell(page, addr).evaluate((el) => {
     const display = el.querySelector('.cell-display') as HTMLElement | null
-    const cellStyle = getComputedStyle(el)
     const displayStyle = display ? getComputedStyle(display) : null
     return {
-      cellBackground: cellStyle.backgroundColor,
       displayBackground: displayStyle?.backgroundColor ?? '',
       displayColor: displayStyle?.color ?? '',
     }
@@ -129,8 +133,10 @@ test.describe('Wave 5 toolbar color swatches', () => {
 
     await expect(popover).toBeHidden()
     await expect(cellDisplay(page, target)).toHaveCSS('color', 'rgb(255, 0, 0)')
-    await expect(cell(page, target)).toHaveCSS('background-color', before.cellBackground)
-    await expect(cellDisplay(page, target)).toHaveCSS('background-color', before.displayBackground)
+    // The active cell intentionally uses the canvas surface; its outline is
+    // rendered by the selection overlay rather than a tinted cell background.
+    await expectActiveCellCanvas(page, target)
+    await expect(cellDisplay(page, target)).toHaveCSS('background-color', 'rgb(255, 255, 255)')
   })
 })
 
@@ -148,11 +154,9 @@ test.describe('Wave 5 toolbar color popover reset behavior', () => {
     await noFillButton(page).click()
 
     await expect(popover).toBeHidden()
-    await expect(cell(page, fillTarget)).toHaveCSS('background-color', fillBefore.cellBackground)
-    await expect(cellDisplay(page, fillTarget)).toHaveCSS(
-      'background-color',
-      fillBefore.displayBackground,
-    )
+    await expectActiveCellCanvas(page, fillTarget)
+    await expect(cellDisplay(page, fillTarget)).toHaveCSS('background-color', 'rgb(255, 255, 255)')
+    await expect(cellDisplay(page, fillTarget)).toHaveCSS('color', fillBefore.displayColor)
 
     const textTarget = 'B3'
     await cell(page, textTarget).click()
@@ -188,11 +192,8 @@ test.describe('Wave 5 toolbar color popover reset behavior', () => {
     await page.keyboard.press('Escape')
 
     await expect(popover).toBeHidden()
-    await expect(cell(page, fillTarget)).toHaveCSS('background-color', fillBefore.cellBackground)
-    await expect(cellDisplay(page, fillTarget)).toHaveCSS(
-      'background-color',
-      fillBefore.displayBackground,
-    )
+    await expectActiveCellCanvas(page, fillTarget)
+    await expect(cellDisplay(page, fillTarget)).toHaveCSS('background-color', 'rgb(255, 255, 255)')
     await expect(cellDisplay(page, fillTarget)).toHaveCSS('color', fillBefore.displayColor)
 
     const textTarget = 'B3'
@@ -205,8 +206,8 @@ test.describe('Wave 5 toolbar color popover reset behavior', () => {
     await page.mouse.click(10, 10)
 
     await expect(popover).toBeHidden()
-    await expect(cell(page, textTarget)).toHaveCSS('background-color', textBefore.cellBackground)
-    await expect(cellDisplay(page, textTarget)).toHaveCSS('background-color', textBefore.displayBackground)
+    await expectActiveCellCanvas(page, textTarget)
+    await expect(cellDisplay(page, textTarget)).toHaveCSS('background-color', 'rgb(255, 255, 255)')
     await expect(cellDisplay(page, textTarget)).toHaveCSS('color', textBefore.displayColor)
   })
 })

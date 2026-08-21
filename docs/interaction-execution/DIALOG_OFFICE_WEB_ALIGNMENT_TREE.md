@@ -33,6 +33,18 @@ D-000 Excel for web Dialog 对齐
 │   └── D19 填充/字体颜色选择器（非模态）
 ├── W2 D20 跨 Dialog 视觉矩阵验收（依赖 D01…D19）
 └── W3 D21 集成、回归与交付
+
+D-022 线上 CI 回归修复（依赖 D-000）
+├── W1 R01 编译门禁：修正重复键与未使用测试绑定
+├── W1 R02 站点契约：将首页文案断言移至实际组件边界
+├── W1 R03 Number Format：恢复下拉的外部点击关闭
+├── W2 R04 Chrome E2E：同步已提交 Office 视觉基线断言
+├── W2 R05 Name Manager：同步可访问名称契约断言
+├── W3 R06 首页 Hero：同步静态工作台冒烟契约
+├── W3 R07 排序入口：恢复确认后的物理排序派发
+└── W3 R08 双后端清单：登记新增的保护解锁视觉用例
+
+R-006 Pages 冒烟：同步首页静态 Hero 的就绪契约
 ```
 
 ## 波次与文件所有权
@@ -70,6 +82,14 @@ D-000 Excel for web Dialog 对齐
 | D19 | 填充/字体颜色选择器（非模态） | `gpt-5.6-terra` | `toolbar/FillColorPopover.tsx`、`styles/toolbar-popovers.css`、专属 test | anchored palette、键盘/焦点、保持 modal 排除 | done — Jest 7/7 |
 | D20 | 视觉矩阵 | `gpt-5.6-sol` | `e2e/visual-chrome/**` | 每表面浅/深色 computed-style + modal/popover 不混淆 | done — visual-chrome 27/27 |
 | D21 | 集成修复 | `gpt-5.6-sol` | 仅验收发现的冲突文件 | targeted Jest、visual E2E、lint、typecheck | done — Jest 53/53, visual 27/27, E2E 16/16 |
+| R01 | 编译门禁 | `gpt-5.6-terra` | `vnext-sheet-tabs.test.tsx`、`vnext-grid-header-resize-split.test.tsx` | `lint:check` 与项目 `tsc` 不再报这两处 | done — lint/tsc/Prettier/diff-check 均通过 |
+| R02 | 站点首页契约 | `gpt-5.6-luna` | `ad395-framework-demo-contract.test.mjs` | `npm run test:scripts` 通过；仅更新实际 HomePage 边界的断言 | done — scripts 14/14、docs/Prettier/diff-check 通过 |
+| R03 | Number Format 外部关闭 | `gpt-5.6-sol` | Number Format 下拉实现/样式及 `audit-format.spec.ts` 对应场景 | 点击未被菜单遮挡的外部目标可关闭下拉，目标 E2E 通过 | done — 根因是测试点被菜单覆盖；WASM 4/4、Jest 1/1 通过 |
+| R04 | Chrome E2E 基线 | `gpt-5.6-terra` | `toolbar-colors.spec.ts`、`toolbar-clear-format.spec.ts`、`vnext-wave5.spec.ts` | 断言当前已提交的 Office 网格视觉，不放宽业务行为 | done — Playwright 36/36、diff-check 通过 |
+| R05 | Name Manager 可访问名称 | `gpt-5.6-luna` | `toolbar-name-manager.spec.ts` | 断言 `aria-labelledby` 指向可见标题 | done — E2E 5/5、Prettier/diff-check 通过 |
+| R06 | 首页 Hero 冒烟契约 | `gpt-5.6-luna` | `excel-site/e2e/site-smoke/demo-cold-load.spec.ts` | 验证实际静态 Hero 画布，不再要求已移除的 SpreadsheetGrid island | done — site E2E 13/13、build/Prettier/diff-check 通过 |
+| R07 | 物理排序入口 | `gpt-5.6-sol` | `sort/useSortConfirmation.ts` 的公共确认链、`filter-sort/**`、`menu-bar/**` 的排序入口及对应 Jest，及 `vnext-toolbar-number-format.scenarios.tsx`、`vnext-menu-bar-sort-confirmation.test.tsx` 的确认等待 | 菜单/筛选/工具栏确认后均派发一次真实 sort request；保持 Einfach Atom 链路 | done — 仅修正 async preparing 后的确认等待；相关 Jest 160/160、Playwright 15 passed/3 expected skipped |
+| R08 | 双后端视觉清单 | `gpt-5.6-luna` | `e2e/dual-backend-manifest.ts` 的显式 manifest 常量 | 新增的 protection 解锁视觉 spec 已受双后端覆盖 | done — manifest Jest 4/4、Prettier/diff-check 通过 |
 
 ## 统一完成标准
 

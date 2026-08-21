@@ -670,7 +670,9 @@ describe('vNext SpreadsheetFilterDropdown — physical sort (design-engine-sort 
 
     fireEvent.click(button(container, 'filter-sort-desc'))
 
-    await waitFor(() => expect(button(document.body, 'sort-confirmation-confirm')).not.toBeNull())
+    await waitFor(() =>
+      expect(button(document.body, 'sort-confirmation-confirm').disabled).toBe(false),
+    )
     expect(sortRequests).toHaveLength(0)
     fireEvent.click(button(document.body, 'sort-confirmation-confirm'))
     await waitFor(() => expect(sortRequests).toHaveLength(1))
@@ -708,7 +710,9 @@ describe('vNext SpreadsheetFilterDropdown — physical sort (design-engine-sort 
 
     fireEvent.click(button(container, 'filter-sort-asc'))
 
-    await waitFor(() => expect(button(document.body, 'sort-confirmation-confirm')).not.toBeNull())
+    await waitFor(() =>
+      expect(button(document.body, 'sort-confirmation-confirm').disabled).toBe(false),
+    )
     expect(sortRequests).toHaveLength(0)
     fireEvent.click(button(document.body, 'sort-confirmation-confirm'))
     await waitFor(() => expect(sortRequests).toHaveLength(1))

@@ -117,7 +117,10 @@ test.describe('Toolbar — Clear format', () => {
 
     const after = await readDisplayFormat(page, target)
     expect(after.fontWeight).toBe(before.fontWeight)
-    expect(after.backgroundColor).toBe(before.backgroundColor)
+    // Office Web keeps the active cell on the canvas surface; the selection
+    // outline carries focus instead of tinting this cell's background.
+    await expect(cell(page, target)).toHaveAttribute('data-active', 'true')
+    expect(after.backgroundColor).toBe('rgb(255, 255, 255)')
     expect(after.color).toBe(before.color)
   })
 })

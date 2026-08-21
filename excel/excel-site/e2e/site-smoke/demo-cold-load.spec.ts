@@ -27,7 +27,9 @@ async function expectGridReady(page: Page, budgetMs: number) {
   await expect(grid).toBeVisible({ timeout: budgetMs })
   await expect(grid.locator('td.cell').first()).toBeVisible({ timeout: 5_000 })
   // 工作簿生命周期不得停在 failed(feedback surface 只在异常态渲染错误)。
-  await expect(page.locator('[data-testid="workbook-recovery-feedback"][data-state="error"]')).toHaveCount(0)
+  await expect(
+    page.locator('[data-testid="workbook-recovery-feedback"][data-state="error"]'),
+  ).toHaveCount(0)
 }
 
 test.describe('deployed-artifact smoke — every demo shows real cells in budget', () => {
@@ -51,12 +53,20 @@ test.describe('deployed-artifact smoke — every demo shows real cells in budget
     await expectGridReady(page, 15_000)
   })
 
-  test('the homepage hero island reaches ready with its import progress gone', async ({
-    page,
-  }) => {
+  test('the homepage hero serves a populated worksheet preview', async ({ page }) => {
     await page.goto('.')
-    await expectGridReady(page, 45_000)
-    await expect(page.getByTestId('demo-import-progress')).toHaveCount(0)
+
+    const hero = page.locator('section[aria-labelledby="home-hero-title"]')
+    await expect(hero).toBeVisible()
+    await expect(
+      hero.getByRole('heading', { name: /Make the spreadsheet a product capability/ }),
+    ).toBeVisible()
+
+    const worksheet = hero.getByRole('table', { name: 'Revenue plan' })
+    await expect(worksheet).toBeVisible()
+    await expect(worksheet.getByText('Revenue plan · FY 2026', { exact: true })).toBeVisible()
+    await expect(worksheet.getByText('$1.76m', { exact: true })).toBeVisible()
+    await expect(worksheet.locator('.home-cell')).not.toHaveCount(0)
   })
 
   test('dark theme keeps the workbench grid readable', async ({ page }) => {

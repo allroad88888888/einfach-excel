@@ -58,7 +58,10 @@ test.describe('Wave 5 toolbar — Name Manager', () => {
 
     const dialog = nameManagerDialog(page)
     await expect(dialog).toBeVisible()
-    await expect(dialog).toHaveAttribute('aria-label', 'Name Manager')
+    await expect(dialog).toHaveAttribute('aria-labelledby', 'name-manager-dialog-title')
+    const title = page.locator('#name-manager-dialog-title')
+    await expect(title).toBeVisible()
+    await expect(title).toHaveText('Name Manager')
     await expect(dialogField(dialog, 'name-input')).toBeVisible()
     await expect(dialogField(dialog, 'name-input')).toHaveValue('')
     await expect(dialogField(dialog, 'name-scope-select')).toBeVisible()

@@ -284,7 +284,7 @@
     },
     {
       "files": [
-        "excel/solid-excel/src-vnext/demos/**"
+        "excel/solid-excel/src/demos/**"
       ],
       "rules": {
         "no-console": "off"
@@ -302,7 +302,6 @@
     },
     {
       "files": [
-        "excel/solid-excel/src-vnext/**",
         "excel/solid-excel/src/**",
         "excel/spreadsheet-ui-core/src/**",
         "excel/excel-core-ts/src/**"

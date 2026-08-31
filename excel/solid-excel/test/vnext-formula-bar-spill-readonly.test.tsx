@@ -29,9 +29,9 @@ import {
   type SpreadsheetBackend,
   type VisibleProjectionRequest,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetFormulaBar } from '../src-vnext/formula-bar'
-import { SpreadsheetGrid } from '../src-vnext/grid'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
+import { SpreadsheetFormulaBar } from '../src/formula-bar'
+import { SpreadsheetGrid } from '../src/grid'
+import { SpreadsheetUiProvider } from '../src/provider'
 
 afterEach(() => {
   cleanup()

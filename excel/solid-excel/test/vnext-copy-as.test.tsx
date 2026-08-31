@@ -18,15 +18,15 @@ import {
   setSelectionBoundsAtom,
   setWorkspaceActiveSheetAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetGrid } from '../src-vnext/grid'
-import { SpreadsheetMenuBar } from '../src-vnext/menu-bar'
+import { SpreadsheetGrid } from '../src/grid'
+import { SpreadsheetMenuBar } from '../src/menu-bar'
 import {
   copyAsErrorAtom,
   dispatchCopyAs,
   dispatchCopyAsImage,
   MAX_COPY_AS_CELLS,
   SpreadsheetUiProvider,
-} from '../src-vnext/provider'
+} from '../src/provider'
 
 afterEach(cleanup)
 

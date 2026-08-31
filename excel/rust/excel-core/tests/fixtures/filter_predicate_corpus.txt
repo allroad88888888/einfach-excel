@@ -1,5 +1,5 @@
 # GOLDEN filter-predicate corpus. Generated from the TypeScript original
-# solid/excel/src-vnext/adapter/filter-predicate.ts (+ numericValue from
+# solid/excel/src/adapter/filter-predicate.ts (+ numericValue from
 # spreadsheet-ui-core/src/backend/projection-helpers.ts) running under node.
 # Strings are \uXXXX / \\ escaped. Bit strings are one char per V line, in order.
 # V <value>

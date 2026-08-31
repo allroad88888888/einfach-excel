@@ -3,7 +3,7 @@ import type { DisplayCell } from '@einfach/spreadsheet-ui-core'
 import {
   buildRangeSvg,
   renderRangeAsImage,
-} from '../src-vnext/copy-as'
+} from '../src/copy-as'
 
 /**
  * Single-pixel PNG (1x1 transparent) — placeholder bytes the fake

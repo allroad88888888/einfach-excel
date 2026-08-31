@@ -13,8 +13,8 @@ import {
 import {
   beginSpreadsheetWorkbookLifecycleAtom,
   rejectSpreadsheetWorkbookLifecycleAtom,
-} from '../src-vnext/provider/atoms'
-import { SpreadsheetWorkbookFeedbackHost } from '../src-vnext/feedback'
+} from '../src/provider/atoms'
+import { SpreadsheetWorkbookFeedbackHost } from '../src/feedback'
 
 afterEach(cleanup)
 

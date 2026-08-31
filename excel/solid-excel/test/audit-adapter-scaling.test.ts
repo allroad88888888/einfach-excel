@@ -56,14 +56,14 @@ import {
   createWorkerRuntimeTs,
   installWorkerRuntimeTs,
   type WorkerContext,
-} from '../src-vnext/adapter/worker-runtime-ts'
+} from '../src/adapter/worker-runtime-ts'
 import {
   createStaticSpreadsheetBackend,
   createWorkerWorkbookSpreadsheetBackend,
   createWorkerWorkbook,
-} from '../src-vnext/adapter'
-import { applyConditionalFormatOverlay } from '../src-vnext/adapter/worker-workbook-backend'
-import type { SparseRangeWire, WorkerLike } from '../src-vnext/adapter'
+} from '../src/adapter'
+import { applyConditionalFormatOverlay } from '../src/adapter/worker-workbook-backend'
+import type { SparseRangeWire, WorkerLike } from '../src/adapter'
 import type {
   CellRange,
   ConditionalFormatRuleEntry,

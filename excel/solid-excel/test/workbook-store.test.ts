@@ -2,7 +2,7 @@
 
 import { describe, it, expect } from '@jest/globals'
 import { createRoot } from 'solid-js'
-import { createWorkbookStore } from '../src/workbook-store'
+import { createWorkbookStore } from '../legacy/workbook-store'
 
 describe('createWorkbookStore', () => {
   it('default workbook has one sheet named Sheet1 and active idx 0', () => {

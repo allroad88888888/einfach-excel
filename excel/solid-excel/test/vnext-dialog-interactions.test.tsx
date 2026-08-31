@@ -19,9 +19,9 @@ import {
   setWorkspaceActiveSheetAtom,
 } from '@einfach/spreadsheet-ui-core'
 import { setLocale } from '../src/i18n'
-import { SpreadsheetFindReplaceDialog } from '../src-vnext/find-replace'
-import { SpreadsheetGoToDialog } from '../src-vnext/go-to'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
+import { SpreadsheetFindReplaceDialog } from '../src/find-replace'
+import { SpreadsheetGoToDialog } from '../src/go-to'
+import { SpreadsheetUiProvider } from '../src/provider'
 
 afterEach(cleanup)
 beforeEach(() => setLocale('en'))

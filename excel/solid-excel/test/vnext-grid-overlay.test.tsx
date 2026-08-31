@@ -20,7 +20,7 @@ import {
   setSelectionAtom,
   visibleWindowAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetGrid } from '../src-vnext/grid'
+import { SpreadsheetGrid } from '../src/grid'
 import {
   OverlayRenderer,
   OVERLAY_COLORS,
@@ -29,8 +29,8 @@ import {
   SpreadsheetGridOverlay,
   type OverlayContext,
   type OverlayViewportProvider,
-} from '../src-vnext/grid/SpreadsheetGridOverlay'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
+} from '../src/grid/SpreadsheetGridOverlay'
+import { SpreadsheetUiProvider } from '../src/provider'
 
 afterEach(cleanup)
 

@@ -13,9 +13,9 @@ import {
   type CellRange,
 } from '@einfach/spreadsheet-ui-core'
 
-import { createStaticSpreadsheetBackend } from '../src-vnext/adapter'
-import { dispatchRedo, dispatchUndo } from '../src-vnext/provider/history-dispatch'
-import { runVisibleProjectionTransport } from '../src-vnext/provider/projection-refresh'
+import { createStaticSpreadsheetBackend } from '../src/adapter'
+import { dispatchRedo, dispatchUndo } from '../src/provider/history-dispatch'
+import { runVisibleProjectionTransport } from '../src/provider/projection-refresh'
 
 /**
  * Cross-sheet filter undo/redo (bug 2026-07-22). The provider's post-undo

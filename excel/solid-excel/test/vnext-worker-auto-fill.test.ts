@@ -10,11 +10,11 @@ import type {
   WorkerRuntimeCapabilitiesResponseWire,
   WorkerWorkbookClient,
   WorkbookSheetMeta,
-} from '../src-vnext/adapter'
+} from '../src/adapter'
 import {
   createWorkerWorkbookSpreadsheetBackend,
   WORKER_UNDO_STACK_CAP,
-} from '../src-vnext/adapter'
+} from '../src/adapter'
 
 const SHEET_ID = 'sheet-1'
 

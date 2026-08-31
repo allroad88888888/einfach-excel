@@ -30,7 +30,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { TextDecoder, TextEncoder } from 'node:util'
 import path from 'node:path'
 
-import { createWorkerRuntimeTs } from '../src-vnext/adapter/worker-runtime-ts'
+import { createWorkerRuntimeTs } from '../src/adapter/worker-runtime-ts'
 import { a1 } from './parity-seed'
 
 export { a1 }

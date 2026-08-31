@@ -11,8 +11,8 @@ import {
   setWorkspaceActiveSheetAtom,
   togglePrintPreviewAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
-import { SpreadsheetPrintPreviewOverlay } from '../src-vnext/print'
+import { SpreadsheetUiProvider } from '../src/provider'
+import { SpreadsheetPrintPreviewOverlay } from '../src/print'
 
 afterEach(cleanup)
 

@@ -63,8 +63,8 @@ test.describe('Worker-backed workbook RPC', () => {
 
   test('returns authoritative false for a formula cycle', async ({ page }) => {
     const result = await page.evaluate(async () => {
-      const { createWorkerWorkbook } = await import('/src/wasm-workbook-proxy.ts')
-      const { defaultWorkbookWorkerFactory } = await import('/src/wasm-workbook-worker-factory.ts')
+      const { createWorkerWorkbook } = await import('/legacy/wasm-workbook-proxy.ts')
+      const { defaultWorkbookWorkerFactory } = await import('/legacy/wasm-workbook-worker-factory.ts')
       const workbook = createWorkerWorkbook({ workerFactory: defaultWorkbookWorkerFactory })
       try {
         await workbook.initWorkbook(['Sheet1'])
@@ -88,8 +88,8 @@ test.describe('Worker-backed workbook RPC', () => {
 
   test('returns authoritative false for malformed formula syntax', async ({ page }) => {
     const result = await page.evaluate(async () => {
-      const { createWorkerWorkbook } = await import('/src/wasm-workbook-proxy.ts')
-      const { defaultWorkbookWorkerFactory } = await import('/src/wasm-workbook-worker-factory.ts')
+      const { createWorkerWorkbook } = await import('/legacy/wasm-workbook-proxy.ts')
+      const { defaultWorkbookWorkerFactory } = await import('/legacy/wasm-workbook-worker-factory.ts')
       const workbook = createWorkerWorkbook({ workerFactory: defaultWorkbookWorkerFactory })
       try {
         await workbook.initWorkbook(['Sheet1'])
@@ -504,8 +504,8 @@ async function runWorkerWorkbookScenario(page: Page): Promise<{
   dirtyEvents: DirtyRef[][]
 }> {
   return page.evaluate(async () => {
-    const { createWorkerWorkbook } = await import('/src/wasm-workbook-proxy.ts')
-    const { defaultWorkbookWorkerFactory } = await import('/src/wasm-workbook-worker-factory.ts')
+    const { createWorkerWorkbook } = await import('/legacy/wasm-workbook-proxy.ts')
+    const { defaultWorkbookWorkerFactory } = await import('/legacy/wasm-workbook-worker-factory.ts')
 
     const workbook = createWorkerWorkbook({ workerFactory: defaultWorkbookWorkerFactory })
     const dirtyEvents: DirtyRef[][] = []
@@ -576,8 +576,8 @@ async function runWorkerWorkbookStoreFormulaFailureScenario(
   },
 ): Promise<FormulaFailureScenario> {
   return page.evaluate(async (args) => {
-    const { createWorkerWorkbookStore } = await import('/src/wasm-workbook-store.ts')
-    const { defaultWorkbookWorkerFactory } = await import('/src/wasm-workbook-worker-factory.ts')
+    const { createWorkerWorkbookStore } = await import('/legacy/wasm-workbook-store.ts')
+    const { defaultWorkbookWorkerFactory } = await import('/legacy/wasm-workbook-worker-factory.ts')
 
     const workbook = await createWorkerWorkbookStore({
       workerFactory: defaultWorkbookWorkerFactory,
@@ -675,8 +675,8 @@ async function runWorkerWorkbookImportScenario(page: Page): Promise<{
   afterRangeReadEvalCount: number
 }> {
   return page.evaluate(async () => {
-    const { createWorkerWorkbook } = await import('/src/wasm-workbook-proxy.ts')
-    const { defaultWorkbookWorkerFactory } = await import('/src/wasm-workbook-worker-factory.ts')
+    const { createWorkerWorkbook } = await import('/legacy/wasm-workbook-proxy.ts')
+    const { defaultWorkbookWorkerFactory } = await import('/legacy/wasm-workbook-worker-factory.ts')
 
     const workbook = createWorkerWorkbook({ workerFactory: defaultWorkbookWorkerFactory })
     try {
@@ -753,8 +753,8 @@ async function runWorkerWorkbookImportTouchedCellsScenario(page: Page): Promise<
   finalNonEmpty: DirtyRef[]
 }> {
   return page.evaluate(async () => {
-    const { createWorkerWorkbook } = await import('/src/wasm-workbook-proxy.ts')
-    const { defaultWorkbookWorkerFactory } = await import('/src/wasm-workbook-worker-factory.ts')
+    const { createWorkerWorkbook } = await import('/legacy/wasm-workbook-proxy.ts')
+    const { defaultWorkbookWorkerFactory } = await import('/legacy/wasm-workbook-worker-factory.ts')
 
     const workbook = createWorkerWorkbook({ workerFactory: defaultWorkbookWorkerFactory })
     try {
@@ -820,8 +820,8 @@ async function runWorkerWorkbookImportFormulaAgainstExistingCellScenario(page: P
   source: Snapshot
 }> {
   return page.evaluate(async () => {
-    const { createWorkerWorkbook } = await import('/src/wasm-workbook-proxy.ts')
-    const { defaultWorkbookWorkerFactory } = await import('/src/wasm-workbook-worker-factory.ts')
+    const { createWorkerWorkbook } = await import('/legacy/wasm-workbook-proxy.ts')
+    const { defaultWorkbookWorkerFactory } = await import('/legacy/wasm-workbook-worker-factory.ts')
 
     const workbook = createWorkerWorkbook({ workerFactory: defaultWorkbookWorkerFactory })
     try {
@@ -870,8 +870,8 @@ async function runWorkerWorkbookImportFinalRejectionScenario(page: Page): Promis
   cell: Snapshot
 }> {
   return page.evaluate(async () => {
-    const { createWorkerWorkbook } = await import('/src/wasm-workbook-proxy.ts')
-    const { defaultWorkbookWorkerFactory } = await import('/src/wasm-workbook-worker-factory.ts')
+    const { createWorkerWorkbook } = await import('/legacy/wasm-workbook-proxy.ts')
+    const { defaultWorkbookWorkerFactory } = await import('/legacy/wasm-workbook-worker-factory.ts')
 
     const workbook = createWorkerWorkbook({ workerFactory: defaultWorkbookWorkerFactory })
     try {
@@ -906,8 +906,8 @@ async function runWorkerWorkbookImportNullClearScenario(page: Page): Promise<{
   nonEmpty: DirtyRef[]
 }> {
   return page.evaluate(async () => {
-    const { createWorkerWorkbook } = await import('/src/wasm-workbook-proxy.ts')
-    const { defaultWorkbookWorkerFactory } = await import('/src/wasm-workbook-worker-factory.ts')
+    const { createWorkerWorkbook } = await import('/legacy/wasm-workbook-proxy.ts')
+    const { defaultWorkbookWorkerFactory } = await import('/legacy/wasm-workbook-worker-factory.ts')
 
     const workbook = createWorkerWorkbook({ workerFactory: defaultWorkbookWorkerFactory })
     try {
@@ -963,8 +963,8 @@ async function runWorkerWorkbookImportIssuesScenario(page: Page): Promise<{
   afterReadEvalCount: number
 }> {
   return page.evaluate(async () => {
-    const { createWorkerWorkbook } = await import('/src/wasm-workbook-proxy.ts')
-    const { defaultWorkbookWorkerFactory } = await import('/src/wasm-workbook-worker-factory.ts')
+    const { createWorkerWorkbook } = await import('/legacy/wasm-workbook-proxy.ts')
+    const { defaultWorkbookWorkerFactory } = await import('/legacy/wasm-workbook-worker-factory.ts')
 
     const workbook = createWorkerWorkbook({ workerFactory: defaultWorkbookWorkerFactory })
     try {
@@ -1019,8 +1019,8 @@ async function runWorkerWorkbookSnapshotRoundTripScenario(page: Page): Promise<{
   restoredAfterReadEvalCount: number
 }> {
   return page.evaluate(async () => {
-    const { createWorkerWorkbook } = await import('/src/wasm-workbook-proxy.ts')
-    const { defaultWorkbookWorkerFactory } = await import('/src/wasm-workbook-worker-factory.ts')
+    const { createWorkerWorkbook } = await import('/legacy/wasm-workbook-proxy.ts')
+    const { defaultWorkbookWorkerFactory } = await import('/legacy/wasm-workbook-worker-factory.ts')
 
     const sourceWorkbook = createWorkerWorkbook({ workerFactory: defaultWorkbookWorkerFactory })
     const restoredWorkbook = createWorkerWorkbook({ workerFactory: defaultWorkbookWorkerFactory })
@@ -1128,8 +1128,8 @@ async function runWorkerWorkbookPersistenceSnapshotScenario(page: Page): Promise
   restoredAfterReadEvalCount: number
 }> {
   return page.evaluate(async () => {
-    const { createWorkerWorkbook } = await import('/src/wasm-workbook-proxy.ts')
-    const { defaultWorkbookWorkerFactory } = await import('/src/wasm-workbook-worker-factory.ts')
+    const { createWorkerWorkbook } = await import('/legacy/wasm-workbook-proxy.ts')
+    const { defaultWorkbookWorkerFactory } = await import('/legacy/wasm-workbook-worker-factory.ts')
 
     const sourceWorkbook = createWorkerWorkbook({ workerFactory: defaultWorkbookWorkerFactory })
     const restoredWorkbook = createWorkerWorkbook({ workerFactory: defaultWorkbookWorkerFactory })
@@ -1182,8 +1182,8 @@ async function runWorkerWorkbookImportTooLargeChunkScenario(page: Page): Promise
   cancelled: boolean
 }> {
   return page.evaluate(async () => {
-    const { createWorkerWorkbook } = await import('/src/wasm-workbook-proxy.ts')
-    const { defaultWorkbookWorkerFactory } = await import('/src/wasm-workbook-worker-factory.ts')
+    const { createWorkerWorkbook } = await import('/legacy/wasm-workbook-proxy.ts')
+    const { defaultWorkbookWorkerFactory } = await import('/legacy/wasm-workbook-worker-factory.ts')
 
     const workbook = createWorkerWorkbook({ workerFactory: defaultWorkbookWorkerFactory })
     try {
@@ -1226,8 +1226,8 @@ async function runWorkerWorkbookExportRangeTsvScenario(page: Page): Promise<{
   sparseSnapshot: SparseCell[]
 }> {
   return page.evaluate(async () => {
-    const { createWorkerWorkbook } = await import('/src/wasm-workbook-proxy.ts')
-    const { defaultWorkbookWorkerFactory } = await import('/src/wasm-workbook-worker-factory.ts')
+    const { createWorkerWorkbook } = await import('/legacy/wasm-workbook-proxy.ts')
+    const { defaultWorkbookWorkerFactory } = await import('/legacy/wasm-workbook-worker-factory.ts')
 
     const workbook = createWorkerWorkbook({ workerFactory: defaultWorkbookWorkerFactory })
 
@@ -1277,8 +1277,8 @@ async function runWorkerWorkbookExportRangeTsvChunksScenario(page: Page): Promis
   afterCacheState: string
 }> {
   return page.evaluate(async () => {
-    const { createWorkerWorkbook } = await import('/src/wasm-workbook-proxy.ts')
-    const { defaultWorkbookWorkerFactory } = await import('/src/wasm-workbook-worker-factory.ts')
+    const { createWorkerWorkbook } = await import('/legacy/wasm-workbook-proxy.ts')
+    const { defaultWorkbookWorkerFactory } = await import('/legacy/wasm-workbook-worker-factory.ts')
 
     const workbook = createWorkerWorkbook({ workerFactory: defaultWorkbookWorkerFactory })
 
@@ -1332,8 +1332,8 @@ async function runWorkerWorkbookClearRangeScenario(page: Page): Promise<{
   afterReadState: string
 }> {
   return page.evaluate(async () => {
-    const { createWorkerWorkbook } = await import('/src/wasm-workbook-proxy.ts')
-    const { defaultWorkbookWorkerFactory } = await import('/src/wasm-workbook-worker-factory.ts')
+    const { createWorkerWorkbook } = await import('/legacy/wasm-workbook-proxy.ts')
+    const { defaultWorkbookWorkerFactory } = await import('/legacy/wasm-workbook-worker-factory.ts')
 
     const workbook = createWorkerWorkbook({ workerFactory: defaultWorkbookWorkerFactory })
     try {
@@ -1391,9 +1391,9 @@ async function runWorkerWorkbookStoreLargeClearUndoScenario(page: Page): Promise
   afterFinalReadEvalCount: number
 }> {
   return page.evaluate(async () => {
-    const { createWorkerWorkbook } = await import('/src/wasm-workbook-proxy.ts')
-    const { createWorkerWorkbookStore } = await import('/src/wasm-workbook-store.ts')
-    const { defaultWorkbookWorkerFactory } = await import('/src/wasm-workbook-worker-factory.ts')
+    const { createWorkerWorkbook } = await import('/legacy/wasm-workbook-proxy.ts')
+    const { createWorkerWorkbookStore } = await import('/legacy/wasm-workbook-store.ts')
+    const { defaultWorkbookWorkerFactory } = await import('/legacy/wasm-workbook-worker-factory.ts')
 
     const client = createWorkerWorkbook({ workerFactory: defaultWorkbookWorkerFactory })
     const calls: string[] = []

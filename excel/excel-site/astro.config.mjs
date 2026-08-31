@@ -23,9 +23,9 @@ export default defineConfig({
       alias: {
         '@einfach/spreadsheet-ui-core': path.resolve(repoRoot, 'excel/spreadsheet-ui-core/src'),
         '@einfach/excel-core-ts': path.resolve(repoRoot, 'excel/excel-core-ts/src'),
-        '@einfach/solid-excel/vnext-worker-factory': path.resolve(
+        '@einfach/solid-excel/worker-factory': path.resolve(
           repoRoot,
-          'excel/solid-excel/src-vnext/adapter/worker-factory.ts',
+          'excel/solid-excel/src/adapter/worker-factory.ts',
         ),
         '@einfach/spreadsheet-ui-styles/styles.css': path.resolve(
           repoRoot,
@@ -35,7 +35,7 @@ export default defineConfig({
       dedupe: ['solid-js'],
     },
     optimizeDeps: {
-      exclude: ['@einfach/solid-excel'],
+      exclude: ['@einfach/solid-excel', '@einfach/solid-excel/worker-factory'],
     },
     server: {
       fs: {

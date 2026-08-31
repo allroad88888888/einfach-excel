@@ -33,13 +33,13 @@ import {
 import {
   installWorkerRuntimeTs,
   type WorkerContext,
-} from '../src-vnext/adapter/worker-runtime-ts'
+} from '../src/adapter/worker-runtime-ts'
 import {
   createStaticSpreadsheetBackend,
   createWorkerWorkbookSpreadsheetBackend,
   PASTE_RANGE_FORMATS_UNSUPPORTED,
-} from '../src-vnext/adapter'
-import type { WorkerLike, WorkerWorkbookSpreadsheetBackend } from '../src-vnext/adapter'
+} from '../src/adapter'
+import type { WorkerLike, WorkerWorkbookSpreadsheetBackend } from '../src/adapter'
 
 const SHEET = 'sheet-1'
 

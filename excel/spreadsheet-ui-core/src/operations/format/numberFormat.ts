@@ -8,7 +8,7 @@
  *
  * The Rust engine never sees this code — it stores raw values and the
  * projection layer formats on demand.  The JS reference backend
- * (`excel/solid-excel/src-vnext/adapter/static-backend.ts`) wires this helper into
+ * (`excel/solid-excel/src/adapter/static-backend.ts`) wires this helper into
  * its projection path.
  */
 

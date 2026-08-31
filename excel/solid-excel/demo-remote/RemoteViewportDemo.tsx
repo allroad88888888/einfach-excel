@@ -13,10 +13,10 @@ import {
   workspaceSessionAtom,
   type ViewportMetrics,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetFormulaBar } from '../src-vnext/formula-bar'
-import { SpreadsheetGrid } from '../src-vnext/grid'
-import { SpreadsheetStatusBar } from '../src-vnext/status-bar'
-import { SpreadsheetUiProvider, useSpreadsheetUiStore } from '../src-vnext/provider'
+import { SpreadsheetFormulaBar } from '../src/formula-bar'
+import { SpreadsheetGrid } from '../src/grid'
+import { SpreadsheetStatusBar } from '../src/status-bar'
+import { SpreadsheetUiProvider, useSpreadsheetUiStore } from '../src/provider'
 import { createHttpSpreadsheetBackend } from './http-backend'
 
 const REMOTE_DEFAULT_PORT = 5303

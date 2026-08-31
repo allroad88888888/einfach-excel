@@ -9,7 +9,7 @@ import {
   type VisibleProjectionRequest,
   type VisibleProjectionResult,
 } from '@einfach/spreadsheet-ui-core'
-import { refreshVisibleProjection } from '../src-vnext/provider/projection-refresh'
+import { refreshVisibleProjection } from '../src/provider/projection-refresh'
 
 const WINDOW = { rowStart: 0, rowEnd: 1, colStart: 0, colEnd: 1 } as const
 

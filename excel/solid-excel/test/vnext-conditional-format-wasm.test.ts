@@ -7,8 +7,8 @@ import type {
   WorkerLike,
   WorkerWorkbookClient,
   WorkerWorkbookSpreadsheetBackend,
-} from '../src-vnext/adapter'
-import { getDataBarProjection } from '../src-vnext/adapter/data-bar-projection'
+} from '../src/adapter'
+import { getDataBarProjection } from '../src/adapter/data-bar-projection'
 
 jest.mock('@einfach/excel-wasm', () => {
   /* eslint-disable @typescript-eslint/no-var-requires */
@@ -58,8 +58,8 @@ beforeAll(async () => {
       toWorker.push(listener)
     },
   }
-  await import('../src-vnext/adapter/worker-runtime')
-  const adapter = await import('../src-vnext/adapter')
+  await import('../src/adapter/worker-runtime')
+  const adapter = await import('../src/adapter')
   createClient = () => adapter.createWorkerWorkbook({ workerFactory: () => inProcessWorker })
   createBackend = (client) =>
     adapter.createWorkerWorkbookSpreadsheetBackend({

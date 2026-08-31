@@ -24,7 +24,7 @@ module.exports = {
     exclude:
       '(^|/)(?:@types|__tests__|coverage|dist|cjs|esm|test|wasm-pkg)(?:/|$)|\\.d\\.ts$',
     includeOnly:
-      '^excel/(?:excel-core-ts|excel-site|solid-excel|spreadsheet-ui-core)/(?:src|src-vnext)(?:/|$)',
+      '^excel/(?:excel-core-ts|excel-site|solid-excel|spreadsheet-ui-core)/src(?:/|$)',
     moduleSystems: ['cjs', 'es6'],
     tsPreCompilationDeps: false,
   },

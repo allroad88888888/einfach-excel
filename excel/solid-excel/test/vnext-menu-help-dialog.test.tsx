@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, jest } from '@jest/globals'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { cleanup, fireEvent, render } from '@solidjs/testing-library'
-import { MenuBarHelpDialog } from '../src-vnext/menu-bar/menu-bar-help-dialog'
+import { MenuBarHelpDialog } from '../src/menu-bar/menu-bar-help-dialog'
 
 afterEach(cleanup)
 

@@ -25,15 +25,15 @@
 
 import { describe, expect, jest, test } from '@jest/globals'
 
-import { createStaticSpreadsheetBackend } from '../src-vnext/adapter/static-backend'
+import { createStaticSpreadsheetBackend } from '../src/adapter/static-backend'
 import {
   createWorkerWorkbookSpreadsheetBackend,
-} from '../src-vnext/adapter/worker-workbook-backend'
+} from '../src/adapter/worker-workbook-backend'
 import {
   filterTsvBandRows,
   firstVisibleRowInBand,
-} from '../src-vnext/adapter/filter-hidden-rows'
-import { buildRangeSvg, renderRangeAsImage } from '../src-vnext/copy-as'
+} from '../src/adapter/filter-hidden-rows'
+import { buildRangeSvg, renderRangeAsImage } from '../src/copy-as'
 import type {
   DisplayCell,
   RangeTsvExportRequest,

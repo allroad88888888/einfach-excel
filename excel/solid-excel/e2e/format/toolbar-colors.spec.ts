@@ -108,7 +108,7 @@ test.describe('Wave 5 toolbar color swatches', () => {
     // could bleed through the 6px padding strip. Wave 5 forces the span to
     // inherit the parent TD's `background-color` via CSS so the same tint
     // covers both the padding strip and the text run — see
-    // `excel/solid-excel/src/styles.css`.
+    // `excel/spreadsheet-ui-styles/styles/grid-overlays.css`.
     await expect(cellDisplay(page, target)).toHaveCSS(
       'background-color',
       'rgb(255, 217, 102)',

@@ -1,10 +1,10 @@
 import { describe, expect, test } from '@jest/globals'
 import type { SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
-import { createWorkerWorkbookSpreadsheetBackend } from '../src-vnext/adapter'
-import { dataBarProjection, getDataBarProjection } from '../src-vnext/adapter/data-bar-projection'
-import { createStaticSpreadsheetBackend } from '../src-vnext/adapter/static/backend'
-import { installWorkerRuntimeTs, type WorkerContext } from '../src-vnext/adapter/worker-runtime-ts'
-import type { WorkerLike, WorkerWorkbookSpreadsheetBackend } from '../src-vnext/adapter'
+import { createWorkerWorkbookSpreadsheetBackend } from '../src/adapter'
+import { dataBarProjection, getDataBarProjection } from '../src/adapter/data-bar-projection'
+import { createStaticSpreadsheetBackend } from '../src/adapter/static/backend'
+import { installWorkerRuntimeTs, type WorkerContext } from '../src/adapter/worker-runtime-ts'
+import type { WorkerLike, WorkerWorkbookSpreadsheetBackend } from '../src/adapter'
 
 const SHEET = 'sheet-1'
 const DATA_BAR_RANGE = { rowStart: 0, rowEnd: 4, colStart: 0, colEnd: 0 }

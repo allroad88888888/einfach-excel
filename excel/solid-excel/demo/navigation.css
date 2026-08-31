@@ -1,0 +1,77 @@
+/* EN / 中 toggle in the app header — pushes itself to the right via margin-
+ * left:auto so title + subtitle stay clustered on the left. */
+.locale-switcher {
+  margin-left: auto;
+  display: inline-flex;
+  border: 1px solid #d8d8d8;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.locale-btn {
+  border: 0;
+  padding: 4px 12px;
+  background: #fff;
+  color: #555;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.locale-btn:hover {
+  background: #f4f4f4;
+}
+.locale-btn-active {
+  background: #1a73e8;
+  color: #fff;
+}
+.locale-btn-active:hover {
+  background: #1a73e8;
+}
+.locale-btn + .locale-btn {
+  border-left: 1px solid #d8d8d8;
+}
+.locale-btn-active + .locale-btn,
+.locale-btn + .locale-btn-active {
+  border-left-color: transparent;
+}
+
+/* === Tab Bar === */
+
+.tab-bar {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 0;
+}
+
+.tab-btn {
+  padding: 8px 18px;
+  border: none;
+  background: transparent;
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.tab-btn:hover {
+  color: #333;
+}
+
+.tab-active {
+  color: #1a73e8;
+  border-bottom-color: #1a73e8;
+}
+
+/* Thin vertical rule between demo groups in the tab bar — visually clusters
+ * basics / apps / workbook / perf without forcing a second row. */
+.nav-group-sep {
+  display: inline-block;
+  width: 1px;
+  align-self: stretch;
+  background: #d8d8d8;
+  margin: 6px;
+}

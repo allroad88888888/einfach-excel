@@ -15,9 +15,9 @@ import {
   selectionAtom,
   setWorkspaceActiveSheetAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetFilterDropdown } from '../src-vnext/filter-sort'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
-import { SpreadsheetToolbar } from '../src-vnext/toolbar'
+import { SpreadsheetFilterDropdown } from '../src/filter-sort'
+import { SpreadsheetUiProvider } from '../src/provider'
+import { SpreadsheetToolbar } from '../src/toolbar'
 
 afterEach(cleanup)
 

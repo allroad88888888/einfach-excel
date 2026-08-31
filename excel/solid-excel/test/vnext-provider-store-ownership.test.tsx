@@ -7,7 +7,7 @@ import { cleanup, render, waitFor } from '@solidjs/testing-library'
 import { onMount } from 'solid-js'
 import type { SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
 
-import { SpreadsheetUiProvider, useSpreadsheetUiCore } from '../src-vnext/provider'
+import { SpreadsheetUiProvider, useSpreadsheetUiCore } from '../src/provider'
 
 afterEach(cleanup)
 

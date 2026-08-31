@@ -6,10 +6,10 @@ import {
   type SpreadsheetBackend,
 } from '@einfach/spreadsheet-ui-core'
 
-import { installGridClipboard } from '../src-vnext/grid/grid-clipboard'
-import { installGridEditingController } from '../src-vnext/grid/grid-editing-controller'
-import { installGridFormatController } from '../src-vnext/grid/grid-format-controller'
-import { spreadsheetProjectionSnapshotAtom } from '../src-vnext/provider'
+import { installGridClipboard } from '../src/grid/grid-clipboard'
+import { installGridEditingController } from '../src/grid/grid-editing-controller'
+import { installGridFormatController } from '../src/grid/grid-format-controller'
+import { spreadsheetProjectionSnapshotAtom } from '../src/provider'
 
 const SHEET_ID = 'sheet-1'
 const RANGE = { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 0 }

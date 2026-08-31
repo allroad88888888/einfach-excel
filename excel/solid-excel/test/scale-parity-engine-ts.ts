@@ -10,7 +10,7 @@ import { expect } from '@jest/globals'
 import {
   createWorkerRuntimeTs,
   type ExcelCoreTsWorkerRuntime,
-} from '../src-vnext/adapter/worker-runtime-ts'
+} from '../src/adapter/worker-runtime-ts'
 import { SHEET_NAMES } from './scale-parity-workload'
 import {
   refKey,

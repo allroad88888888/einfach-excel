@@ -1,5 +1,5 @@
 import { describe, expect, test } from '@jest/globals'
-import { createStaticSpreadsheetBackend } from '../src-vnext/adapter'
+import { createStaticSpreadsheetBackend } from '../src/adapter'
 
 /**
  * Excel-parity filter undo on the STATIC backend (2026-07-22). The worker

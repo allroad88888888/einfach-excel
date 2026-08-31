@@ -81,12 +81,12 @@ import {
   type UnhideRowsRequest,
   type VisibleProjectionRequest,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
-import { SpreadsheetMenuBar } from '../src-vnext/menu-bar'
-import { SpreadsheetFormatCellsDialog } from '../src-vnext/format-cells'
-import { createWorkerWorkbookSpreadsheetBackend } from '../src-vnext/adapter'
-import type { WorkerLike } from '../src-vnext/adapter'
-import { installWorkerRuntimeTs, type WorkerContext } from '../src-vnext/adapter/worker-runtime-ts'
+import { SpreadsheetUiProvider } from '../src/provider'
+import { SpreadsheetMenuBar } from '../src/menu-bar'
+import { SpreadsheetFormatCellsDialog } from '../src/format-cells'
+import { createWorkerWorkbookSpreadsheetBackend } from '../src/adapter'
+import type { WorkerLike } from '../src/adapter'
+import { installWorkerRuntimeTs, type WorkerContext } from '../src/adapter/worker-runtime-ts'
 import { setLocale } from '../src/i18n'
 import { seedReadyVisibleProjection } from './projection-test-fixture'
 
@@ -314,10 +314,10 @@ describe('SpreadsheetMenuBar', () => {
 
   it('mounts the shared menu and dialogs as thin UI in both real-worker demos', () => {
     for (const [file, testIdPrefix] of [
-      ['VNextWorkerDemo.tsx', 'vnext-worker'],
+      ['WorkerWorkbookHost.tsx', 'vnext-worker'],
       ['VNextWorkerTsDemo.tsx', 'vnext-worker-ts'],
     ] as const) {
-      const source = readFileSync(join(process.cwd(), 'excel/solid-excel/src-vnext/demos', file), 'utf8')
+      const source = readFileSync(join(process.cwd(), 'excel/solid-excel/src/demos', file), 'utf8')
 
       expect(source).toContain(`<SpreadsheetMenuBar data-testid="${testIdPrefix}-menu-bar" />`)
       expect(source).toContain(`<SpreadsheetGoToDialog data-testid="${testIdPrefix}-go-to" />`)
@@ -1240,7 +1240,7 @@ describe('SpreadsheetMenuBar', () => {
 
   it('keeps row, column, and sheet insertion entrypoints as thin Core adapters', () => {
     const source = readFileSync(
-      join(process.cwd(), 'excel/solid-excel/src-vnext/menu-bar/menu-bar-command-insert.ts'),
+      join(process.cwd(), 'excel/solid-excel/src/menu-bar/menu-bar-command-insert.ts'),
       'utf8',
     )
 
@@ -1619,7 +1619,7 @@ describe('SpreadsheetMenuBar', () => {
 
   it('keeps unhide menu routes as source-only Core resolver bridges', () => {
     const source = readFileSync(
-      join(process.cwd(), 'excel/solid-excel/src-vnext/menu-bar/menu-bar-command-format.ts'),
+      join(process.cwd(), 'excel/solid-excel/src/menu-bar/menu-bar-command-format.ts'),
       'utf8',
     )
     const unhideStart = source.indexOf("case 'unhide-rows':")
@@ -1651,7 +1651,7 @@ describe('SpreadsheetMenuBar', () => {
 
   it('keeps hidden row and column menu routes as thin Core command bridges', () => {
     const source = readFileSync(
-      join(process.cwd(), 'excel/solid-excel/src-vnext/menu-bar/menu-bar-command-format.ts'),
+      join(process.cwd(), 'excel/solid-excel/src/menu-bar/menu-bar-command-format.ts'),
       'utf8',
     )
     const hiddenStart = source.indexOf("case 'hide-rows':")
@@ -2639,7 +2639,7 @@ describe('SpreadsheetMenuBar', () => {
 
   it('keeps the Text to Columns menu branch as a thin Core command adapter', () => {
     const source = readFileSync(
-      join(process.cwd(), 'excel/solid-excel/src-vnext/menu-bar/menu-bar-command-data.ts'),
+      join(process.cwd(), 'excel/solid-excel/src/menu-bar/menu-bar-command-data.ts'),
       'utf8',
     )
     const start = source.indexOf("case 'open-text-to-columns':")
@@ -2900,11 +2900,11 @@ describe('SpreadsheetMenuBar', () => {
 
   it('keeps every Remove Duplicates entry as a thin Core source adapter', () => {
     const menuSource = readFileSync(
-      join(process.cwd(), 'excel/solid-excel/src-vnext/menu-bar/menu-bar-command-data.ts'),
+      join(process.cwd(), 'excel/solid-excel/src/menu-bar/menu-bar-command-data.ts'),
       'utf8',
     )
     const menuBarSource = readFileSync(
-      join(process.cwd(), 'excel/solid-excel/src-vnext/menu-bar/SpreadsheetMenuBar.tsx'),
+      join(process.cwd(), 'excel/solid-excel/src/menu-bar/SpreadsheetMenuBar.tsx'),
       'utf8',
     )
     const menuHelperStart = menuSource.indexOf('function runRemoveDuplicatesEntrypoint')
@@ -2932,7 +2932,7 @@ describe('SpreadsheetMenuBar', () => {
     expect(menuBarSource).toContain('useAtomValue(removeDuplicatesCapabilityAtom)')
 
     const demoSource = readFileSync(
-      join(process.cwd(), 'excel/solid-excel/src-vnext/demos/VNextWave5Demo.tsx'),
+      join(process.cwd(), 'excel/solid-excel/src/demos/VNextWave5Demo.tsx'),
       'utf8',
     )
     const demoStart = demoSource.indexOf('function triggerRemoveDuplicatesForSelection')
@@ -2949,7 +2949,7 @@ describe('SpreadsheetMenuBar', () => {
     expect(demoAdapter).not.toMatch(/\basync\b/)
 
     const providerSource = readFileSync(
-      join(process.cwd(), 'excel/solid-excel/src-vnext/provider/atoms.ts'),
+      join(process.cwd(), 'excel/solid-excel/src/provider/atoms.ts'),
       'utf8',
     )
     expect(providerSource).not.toContain('removeDuplicatesSupportedAtom')

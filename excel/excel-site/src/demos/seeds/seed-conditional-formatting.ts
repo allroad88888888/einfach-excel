@@ -5,7 +5,7 @@
  *
  * The rules are applied through the real `backend.setConditionalFormatRule`
  * mutation port — the same call `SpreadsheetConditionalFormatDialog`'s Save
- * button makes (`excel/solid-excel/src-vnext/conditional-formatting/
+ * button makes (`excel/solid-excel/src/conditional-formatting/
  * SpreadsheetConditionalFormatDialog.tsx`) — rather than baking a static
  * `DisplayCell.conditionalFormat` override onto each cell the way
  * `VNextSmokeDemo.tsx` does. That distinction matters here: the static
@@ -27,7 +27,7 @@
  * port: `StaticSpreadsheetSeed` has no `conditionalFormatRules` field, only
  * `revision` / `sheets` / `matrix` / `cells`.
  */
-import type { StaticSeedMatrix, StaticSpreadsheetSeed } from '@einfach/solid-excel/vnext'
+import type { StaticSeedMatrix, StaticSpreadsheetSeed } from '@einfach/solid-excel'
 import type { SetConditionalFormatRuleRequest } from '@einfach/spreadsheet-ui-core'
 
 /** `normalizeStaticSheets` assigns `sheet-${index + 1}` for a single string sheet name. */

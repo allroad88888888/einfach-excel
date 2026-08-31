@@ -59,10 +59,10 @@ import {
 import {
   createWorkerWorkbookSpreadsheetBackend,
   type WorkerWorkbookClient,
-} from '../src-vnext/adapter'
-import { SpreadsheetGrid } from '../src-vnext/grid'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
-import { SpreadsheetFormatCellsDialog } from '../src-vnext/format-cells'
+} from '../src/adapter'
+import { SpreadsheetGrid } from '../src/grid'
+import { SpreadsheetUiProvider } from '../src/provider'
+import { SpreadsheetFormatCellsDialog } from '../src/format-cells'
 
 afterEach(cleanup)
 
@@ -2613,7 +2613,7 @@ describe('vNext SpreadsheetGrid', () => {
 
   it('keeps Grid metadata hydration behind the UI-core command boundary', () => {
     const source = readFileSync(
-      join(process.cwd(), 'excel/solid-excel/src-vnext/grid/SpreadsheetGrid.tsx'),
+      join(process.cwd(), 'excel/solid-excel/src/grid/SpreadsheetGrid.tsx'),
       'utf8',
     )
 

@@ -38,17 +38,17 @@ import type {
   FilterSnapshotWire,
   SparseRangeWire,
   WorkerWorkbookClient,
-} from '../src-vnext/adapter'
+} from '../src/adapter'
 import {
   FILTER_SORT_SOURCE_TOO_LARGE,
   MAX_FILTER_SORT_PREDICATE_CELLS,
   createWorkerWorkbookSpreadsheetBackend,
-} from '../src-vnext/adapter'
-import { buildFilterSortDisplayRows } from '../src-vnext/adapter/filter-predicate'
-import { filterHiddenRowsFromDisplayRows } from '../src-vnext/adapter/filter-hidden-rows'
-import { SpreadsheetFilterDropdown } from '../src-vnext/filter-sort'
-import { SpreadsheetGrid } from '../src-vnext/grid'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
+} from '../src/adapter'
+import { buildFilterSortDisplayRows } from '../src/adapter/filter-predicate'
+import { filterHiddenRowsFromDisplayRows } from '../src/adapter/filter-hidden-rows'
+import { SpreadsheetFilterDropdown } from '../src/filter-sort'
+import { SpreadsheetGrid } from '../src/grid'
+import { SpreadsheetUiProvider } from '../src/provider'
 
 afterEach(cleanup)
 

@@ -11,7 +11,7 @@
  * 717.5px —— 距视口底只剩 2.5px。CI 上中文标签走 fallback 字体、导航多换
  * 一行，就把菜单顶出视口。
  *
- * 修复见 `src-vnext/toolbar/anchored-menu-style.ts`：下方放不下就向上翻，
+ * 修复见 `src/toolbar/anchored-menu-style.ts`：下方放不下就向上翻，
  * 两边都不够就取较宽松一侧并限高滚动。
  *
  * 440 / 560 两个高度在修复前必定失败，是这份钉子的有效性保证；720 是本地

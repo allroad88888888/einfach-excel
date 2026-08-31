@@ -37,7 +37,7 @@ import type { CellRange, ImportCellInput, VisibleWindow } from '@einfach/spreads
 import type * as NodeFsModule from 'node:fs'
 import type * as NodePathModule from 'node:path'
 
-import type { WorkerLike, WorkerWorkbookSpreadsheetBackend } from '../src-vnext/adapter'
+import type { WorkerLike, WorkerWorkbookSpreadsheetBackend } from '../src/adapter'
 
 jest.mock('@einfach/excel-wasm', () => {
   /* eslint-disable @typescript-eslint/no-var-requires */
@@ -146,8 +146,8 @@ beforeAll(async () => {
       toWorker.push(listener)
     },
   }
-  await import('../src-vnext/adapter/worker-runtime')
-  const adapter = await import('../src-vnext/adapter')
+  await import('../src/adapter/worker-runtime')
+  const adapter = await import('../src/adapter')
   FORMULA_CAP = adapter.WORKER_TABLE_FORMULA_SNAPSHOT_MAX
   TOTALS_CAP = adapter.WORKER_TABLE_TOTALS_SNAPSHOT_MAX
   createBackendImpl = () =>

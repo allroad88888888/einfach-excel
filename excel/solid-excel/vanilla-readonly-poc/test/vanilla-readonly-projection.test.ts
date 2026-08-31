@@ -6,7 +6,7 @@ import {
   type VisibleProjectionRequest,
   type VisibleProjectionResult,
 } from '@einfach/spreadsheet-ui-core'
-import { createStaticSpreadsheetBackend } from '../../src-vnext/adapter/static-backend'
+import { createStaticSpreadsheetBackend } from '../../src/adapter/static-backend'
 import { mountVanillaReadonlyProjection } from '../vanilla-readonly-projection'
 
 const INITIAL_WINDOW = { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 0 } as const

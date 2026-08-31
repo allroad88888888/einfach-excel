@@ -21,7 +21,7 @@
  * `protectSheetAtom` / `setPrintConfigAtom` commands once the sheet id
  * resolves.
  */
-import type { DisplayCell, StaticSpreadsheetSeed } from '@einfach/solid-excel/vnext'
+import type { DisplayCell, StaticSpreadsheetSeed } from '@einfach/solid-excel'
 import type { CellRange, PrintConfig } from '@einfach/spreadsheet-ui-core'
 
 function text(row: number, col: number, value: string): DisplayCell {

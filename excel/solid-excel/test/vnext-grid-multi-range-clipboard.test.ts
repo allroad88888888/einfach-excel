@@ -6,7 +6,7 @@ import {
   type SpreadsheetBackend,
 } from '@einfach/spreadsheet-ui-core'
 
-import { installGridClipboard } from '../src-vnext/grid/grid-clipboard'
+import { installGridClipboard } from '../src/grid/grid-clipboard'
 
 const SHEET_ID = 'sheet-1'
 const PREVIOUS_SOURCE = {

@@ -219,7 +219,7 @@ describe('COUNT', () => {
   // `FunctionImpl` boundary both arrive as a `Value` with no provenance
   // attached, so the line has to be drawn by SHAPE — scalar arg propagates,
   // array element is skipped. That is exactly where the third implementation
-  // (`solid-excel/src-vnext/adapter/static-formula-eval.ts` `aggregateNumeric`)
+  // (`solid-excel/src/adapter/static-formula-eval.ts` `aggregateNumeric`)
   // already draws it: `if (name === 'COUNT') continue` on the range branch,
   // `if (isErrLocal(arg)) return arg` on the scalar branch.
   test('an error inside an array is skipped — it is simply not a number', () => {

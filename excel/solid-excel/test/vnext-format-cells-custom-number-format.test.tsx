@@ -6,8 +6,8 @@ import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import type { SetFormatRangeRequest, SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
 import { openFormatCellsAtom } from '@einfach/spreadsheet-ui-core'
 import { setLocale } from '../src/i18n'
-import { SpreadsheetFormatCellsDialog } from '../src-vnext/format-cells'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
+import { SpreadsheetFormatCellsDialog } from '../src/format-cells'
+import { SpreadsheetUiProvider } from '../src/provider'
 
 const RANGE = { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 0 }
 

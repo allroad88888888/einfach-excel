@@ -1,4 +1,4 @@
-import type { WorkerLike } from '@einfach/solid-excel/vnext'
+import type { WorkerLike } from '@einfach/solid-excel'
 
 interface WorkerMessageCounter {
   sent(): void

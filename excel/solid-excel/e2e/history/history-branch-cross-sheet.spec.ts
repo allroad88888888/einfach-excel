@@ -18,7 +18,7 @@ import {
  *    becomes unreachable and redo must be a no-op afterwards.
  * 2. A cross-sheet undo replays the entry on the sheet it was recorded on
  *    (`entry.sheetId`) but does NOT navigate the view. This is the actual
- *    implemented contract: `src-vnext/provider/history-dispatch.ts` only
+ *    implemented contract: `src/provider/history-dispatch.ts` only
  *    reconciles caches and refreshes projections for the entry's sheet —
  *    no code path switches the active sheet. Asserted as-is.
  */

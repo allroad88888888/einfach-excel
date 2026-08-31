@@ -12,7 +12,7 @@ import {
 import { demandDrivenSheets, seedDemandDrivenWorkbook } from '../demos/seeds/seed-demand-driven'
 import { formulaEngineSheets, seedFormulaEngineWorkbook } from '../demos/seeds/seed-formula-engine'
 import { handOffFormSeed } from '../demos/seeds/seed-hand-off-form'
-import type { WorkerWorkbookBackendSheet, WorkerWorkbookClient } from '@einfach/solid-excel/vnext'
+import type { WorkerWorkbookBackendSheet, WorkerWorkbookClient } from '@einfach/solid-excel'
 import {
   PERFORMANCE_COLS,
   PERFORMANCE_SHEET_ROWS,

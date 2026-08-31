@@ -13,9 +13,9 @@ import {
   openValidationRuleEditorAtom,
   validationRuleEditorAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetDataValidationDialog } from '../src-vnext/data-validation'
+import { SpreadsheetDataValidationDialog } from '../src/data-validation'
 import { setLocale } from '../src/i18n'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
+import { SpreadsheetUiProvider } from '../src/provider'
 
 const testRange = { rowStart: 0, rowEnd: 2, colStart: 0, colEnd: 1 }
 

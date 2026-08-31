@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals'
-import { startFillPointerSession } from '../src-vnext/grid/grid-fill-pointer-session'
+import { startFillPointerSession } from '../src/grid/grid-fill-pointer-session'
 
 interface SessionSpies {
   readonly move: jest.Mock

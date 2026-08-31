@@ -4,8 +4,8 @@ import { afterEach, describe, expect, it } from '@jest/globals'
 import { createStore } from '@einfach/core'
 import { topMenuOpenAtom, type SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
-import { SpreadsheetMenuBar } from '../src-vnext/menu-bar'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
+import { SpreadsheetMenuBar } from '../src/menu-bar'
+import { SpreadsheetUiProvider } from '../src/provider'
 
 afterEach(cleanup)
 

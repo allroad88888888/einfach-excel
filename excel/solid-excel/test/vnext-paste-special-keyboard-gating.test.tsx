@@ -18,9 +18,9 @@ import {
   setWorkspaceActiveSheetAtom,
   topMenuOpenAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetGrid } from '../src-vnext/grid'
-import { SpreadsheetMenuBar } from '../src-vnext/menu-bar'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
+import { SpreadsheetGrid } from '../src/grid'
+import { SpreadsheetMenuBar } from '../src/menu-bar'
+import { SpreadsheetUiProvider } from '../src/provider'
 
 afterEach(cleanup)
 

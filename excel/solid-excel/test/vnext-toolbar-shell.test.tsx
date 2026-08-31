@@ -2,8 +2,8 @@
 
 import { afterEach, describe, expect, it, jest } from '@jest/globals'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
-import { ToolbarAnchoredMenu } from '../src-vnext/toolbar/ToolbarAnchoredMenu'
-import { ToolbarShell } from '../src-vnext/toolbar/ToolbarShell'
+import { ToolbarAnchoredMenu } from '../src/toolbar/ToolbarAnchoredMenu'
+import { ToolbarShell } from '../src/toolbar/ToolbarShell'
 
 afterEach(() => cleanup())
 

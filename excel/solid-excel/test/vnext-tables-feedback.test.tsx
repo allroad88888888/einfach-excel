@@ -11,7 +11,7 @@ import {
 import { afterEach, describe, expect, it } from '@jest/globals'
 import { cleanup, fireEvent, render } from '@solidjs/testing-library'
 
-import { SpreadsheetTablesFeedback } from '../src-vnext/tables'
+import { SpreadsheetTablesFeedback } from '../src/tables'
 
 const A1_C4 = { rowStart: 0, rowEnd: 3, colStart: 0, colEnd: 2 }
 

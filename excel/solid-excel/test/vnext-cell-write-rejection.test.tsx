@@ -3,7 +3,7 @@
 /**
  * `backend.setCellInput` REJECTS when the engine refuses a write (the
  * fallible `try*` bindings surface `CELL_WRITE_REJECTED` — see
- * `src-vnext/adapter/cell-write-reject.ts`). These suites pin the host's
+ * `src/adapter/cell-write-reject.ts`). These suites pin the host's
  * behaviour on the command paths that are NOT the editing-commit lane and
  * therefore have no `editingCommitLifecycle` to land in: Delete-clears,
  * context-menu clears, and the per-cell paste fallback taken when the host

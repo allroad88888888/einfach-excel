@@ -5,7 +5,7 @@
  * rule-read-back port (see `excel/spreadsheet-ui-core/src/data-validation/
  * README.md`: "Backend reads: none") and no seed-time hook that calls
  * `setValidationRule` — `StaticSpreadsheetSeed` is purely declarative. So
- * "pre-seeding a rule" here means what `excel/solid-excel/src-vnext/demos/
+ * "pre-seeding a rule" here means what `excel/solid-excel/src/demos/
  * VNextSmokeDemo.tsx` does: author the `DisplayCell.validation` outcome that
  * `applyValidationRule` (static-backend.ts) would have produced, directly on
  * the cells that already violate it. `validationMessageForRule` /
@@ -26,7 +26,7 @@ import type {
   DisplayCell,
   StaticSeedMatrix,
   StaticSpreadsheetSeed,
-} from '@einfach/solid-excel/vnext'
+} from '@einfach/solid-excel'
 import {
   validationMessageForRule,
   validationSeverityForMode,

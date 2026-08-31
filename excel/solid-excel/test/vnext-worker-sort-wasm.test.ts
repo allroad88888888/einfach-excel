@@ -21,7 +21,7 @@ import { beforeAll, describe, expect, jest, test } from '@jest/globals'
 
 import type * as NodeFsModule from 'node:fs'
 import type * as NodePathModule from 'node:path'
-import type { WorkerLike, WorkerWorkbookClient } from '../src-vnext/adapter'
+import type { WorkerLike, WorkerWorkbookClient } from '../src/adapter'
 
 jest.mock('@einfach/excel-wasm', () => {
   /* eslint-disable @typescript-eslint/no-var-requires */
@@ -71,8 +71,8 @@ beforeAll(async () => {
       toWorker.push(listener)
     },
   }
-  await import('../src-vnext/adapter/worker-runtime')
-  const adapter = await import('../src-vnext/adapter')
+  await import('../src/adapter/worker-runtime')
+  const adapter = await import('../src/adapter')
   createClient = () => adapter.createWorkerWorkbook({ workerFactory: () => inProcessWorker })
 })
 

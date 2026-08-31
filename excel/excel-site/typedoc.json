@@ -2,7 +2,7 @@
   "$schema": "https://typedoc.org/schema.json",
   "entryPoints": [
     "../spreadsheet-ui-core/src/index.ts",
-    "../solid-excel/src-vnext/public.ts"
+    "../solid-excel/src/public.ts"
   ],
   "entryPointStrategy": "resolve",
   "tsconfig": "typedoc.tsconfig.json",

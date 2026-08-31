@@ -8,7 +8,7 @@
  */
 import { describe, expect, test } from '@jest/globals'
 
-import { createWorkerRuntimeTs } from '../src-vnext/adapter/worker-runtime-ts'
+import { createWorkerRuntimeTs } from '../src/adapter/worker-runtime-ts'
 
 describe('excel-core-ts worker runtime — spill projection', () => {
   test('=SEQUENCE(3,2) at A1 projects 1,2,3,4,5,6 across A1:B3', async () => {

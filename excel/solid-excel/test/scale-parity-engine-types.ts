@@ -35,7 +35,7 @@ export interface PersistenceSnapshot {
   version: number
   /**
    * `WorkbookPersistenceSheetWire`
-   * (`excel/solid-excel/src-vnext/adapter/worker-protocol.ts`) —
+   * (`excel/solid-excel/src/adapter/worker-protocol.ts`) —
    * `{ idx, name }` 是**全部**字段，没有可选项。这就是 P5 能对 sheets 做
    * 全等比对的原因：形状里没有留给「某一边填、另一边不填」的空位。
    */

@@ -20,8 +20,8 @@ import {
   textToColumnsOpenAtom,
   textToColumnsWizardAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
-import { SpreadsheetTextToColumnsDialog } from '../src-vnext/text-to-columns'
+import { SpreadsheetUiProvider } from '../src/provider'
+import { SpreadsheetTextToColumnsDialog } from '../src/text-to-columns'
 import { seedReadyVisibleProjection } from './projection-test-fixture'
 
 afterEach(cleanup)

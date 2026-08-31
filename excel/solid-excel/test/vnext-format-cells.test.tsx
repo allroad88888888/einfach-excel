@@ -17,13 +17,13 @@ import {
   setSheetProtectionAtom,
 } from '@einfach/spreadsheet-ui-core'
 import { setLocale } from '../src/i18n'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
+import { SpreadsheetUiProvider } from '../src/provider'
 import {
   SpreadsheetFormatCellsDialog,
   SpreadsheetNumberFormatDialogs,
   numberFormatDialogAtom,
   openNumberFormatDialogAtom,
-} from '../src-vnext/format-cells'
+} from '../src/format-cells'
 import { seedReadyVisibleProjection } from './projection-test-fixture'
 
 const RAW_I18N_KEY_RE =

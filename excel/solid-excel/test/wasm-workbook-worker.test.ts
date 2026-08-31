@@ -6,7 +6,7 @@ import {
   __setImportLimitsForTest,
   mergeImportStatsIssues,
   normalizeImportCells,
-} from '../src-vnext/adapter/worker-runtime'
+} from '../src/adapter/worker-runtime'
 import type {
   CellFormatJSON,
   FormatRangeSnapshot,
@@ -19,11 +19,11 @@ import type {
   SparseCellWire,
   SparseRangeWire,
   WorkbookImportStatsWire,
-} from '../src/wasm-workbook-proxy'
+} from '../legacy/wasm-workbook-proxy'
 import type {
   CellWriteOutcomeWire,
   FormulaWriteOutcomeWire,
-} from '../src-vnext/adapter/cell-write-reject'
+} from '../src/adapter/cell-write-reject'
 import { WasmWorkbook } from '@einfach/excel-wasm'
 
 jest.mock('@einfach/excel-wasm', () => ({

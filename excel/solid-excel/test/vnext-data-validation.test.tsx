@@ -17,8 +17,8 @@ import {
   validationRuleEditorAtom,
   validationRuleFormAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetDataValidationDialog } from '../src-vnext/data-validation'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
+import { SpreadsheetDataValidationDialog } from '../src/data-validation'
+import { SpreadsheetUiProvider } from '../src/provider'
 import { setLocale } from '../src/i18n'
 
 afterEach(() => {

@@ -9,8 +9,8 @@ import {
   setViewportMetricsAtom,
   viewportMetricsAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { installGridKeyboardController } from '../src-vnext/grid/grid-keyboard-controller'
-import { createGridDomAdapter } from '../src-vnext/grid/grid-dom-adapter'
+import { installGridKeyboardController } from '../src/grid/grid-keyboard-controller'
+import { createGridDomAdapter } from '../src/grid/grid-dom-adapter'
 
 type KeyboardRuntime = Parameters<typeof installGridKeyboardController>[0]
 type CellCoord = { row: number; col: number }

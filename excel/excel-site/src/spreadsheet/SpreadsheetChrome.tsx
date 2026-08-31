@@ -10,7 +10,7 @@
 import type { JSX } from 'solid-js'
 import { Show } from 'solid-js'
 import type { FormulaFunctionSuggestion } from '@einfach/spreadsheet-ui-core'
-import type { SpreadsheetUiProviderProps } from '@einfach/solid-excel/vnext'
+import type { SpreadsheetUiProviderProps } from '@einfach/solid-excel'
 import {
   acceptFormulaSuggestion,
   SpreadsheetContextMenu,
@@ -24,7 +24,7 @@ import {
   SpreadsheetUiProvider,
   SpreadsheetWorkbookFeedbackHost,
   useSpreadsheetUiStore,
-} from '@einfach/solid-excel/vnext'
+} from '@einfach/solid-excel'
 import type { ChromeConfig } from './chrome-types'
 import ChromeDialogs from './ChromeDialogs'
 
@@ -48,7 +48,7 @@ export interface SpreadsheetChromeProps {
   /**
    * Explicit named-range capability port (see
    * `createStaticNamedRangeCapabilityPort` / `createWorkerNamedRangeCapabilityPort`
-   * in `@einfach/solid-excel/vnext`). Named ranges are capability-gated in
+   * in `@einfach/solid-excel`). Named ranges are capability-gated in
    * ui-core: without this port, `loadNamedRangeCapabilitiesAtom` never
    * resolves and the registry read never fires, so the name box dropdown and
    * Name Manager stay empty even when the backend already holds names.

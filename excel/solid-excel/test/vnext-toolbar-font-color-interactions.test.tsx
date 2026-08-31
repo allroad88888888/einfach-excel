@@ -10,11 +10,11 @@ import {
 } from '@einfach/spreadsheet-ui-core'
 import { createSignal } from 'solid-js'
 import { setLocale } from '../src/i18n'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
-import { SpreadsheetToolbar } from '../src-vnext/toolbar'
-import { FillColorPopover } from '../src-vnext/toolbar/FillColorPopover'
-import { FontFamilyDropdown } from '../src-vnext/toolbar/FontFamilyDropdown'
-import { FontSizeDropdown } from '../src-vnext/toolbar/FontSizeDropdown'
+import { SpreadsheetUiProvider } from '../src/provider'
+import { SpreadsheetToolbar } from '../src/toolbar'
+import { FillColorPopover } from '../src/toolbar/FillColorPopover'
+import { FontFamilyDropdown } from '../src/toolbar/FontFamilyDropdown'
+import { FontSizeDropdown } from '../src/toolbar/FontSizeDropdown'
 import { seedReadyVisibleProjection } from './projection-test-fixture'
 
 const ANCHOR_RECT = {

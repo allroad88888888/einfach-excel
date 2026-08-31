@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals'
 import { createStore } from '@einfach/core'
 
-import { historyRefreshTargetSheetIdAtom } from '../src-vnext/provider/history-refresh-target-atom'
+import { historyRefreshTargetSheetIdAtom } from '../src/provider/history-refresh-target-atom'
 
 describe('history refresh retry target', () => {
   it('keeps the retry target in the owning workbook Store', () => {

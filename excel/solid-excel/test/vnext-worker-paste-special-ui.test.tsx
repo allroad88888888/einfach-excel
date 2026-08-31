@@ -40,12 +40,12 @@ import {
 import {
   installWorkerRuntimeTs,
   type WorkerContext,
-} from '../src-vnext/adapter/worker-runtime-ts'
-import { createWorkerWorkbookSpreadsheetBackend } from '../src-vnext/adapter'
-import type { WorkerLike, WorkerWorkbookSpreadsheetBackend } from '../src-vnext/adapter'
-import { SpreadsheetMenuBar } from '../src-vnext/menu-bar'
-import { SpreadsheetPasteSpecialDialog } from '../src-vnext/paste-special'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
+} from '../src/adapter/worker-runtime-ts'
+import { createWorkerWorkbookSpreadsheetBackend } from '../src/adapter'
+import type { WorkerLike, WorkerWorkbookSpreadsheetBackend } from '../src/adapter'
+import { SpreadsheetMenuBar } from '../src/menu-bar'
+import { SpreadsheetPasteSpecialDialog } from '../src/paste-special'
+import { SpreadsheetUiProvider } from '../src/provider'
 import { seedReadyVisibleProjection } from './projection-test-fixture'
 
 afterEach(cleanup)

@@ -16,7 +16,7 @@ import {
   setWorkspaceActiveSheetAtom,
 } from '@einfach/spreadsheet-ui-core'
 
-import { dispatchCopyAs, dispatchCopyAsImage } from '../src-vnext/provider'
+import { dispatchCopyAs, dispatchCopyAsImage } from '../src/provider'
 
 function createRejectingProjectionBackend(): SpreadsheetBackend {
   return {

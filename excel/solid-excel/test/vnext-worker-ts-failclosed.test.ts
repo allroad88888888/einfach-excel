@@ -35,12 +35,12 @@ import {
   TS_WORKER_RUNTIME_CAPABILITIES,
   type ExcelCoreTsWorkerRuntime,
   type WorkerContext,
-} from '../src-vnext/adapter/worker-runtime-ts'
+} from '../src/adapter/worker-runtime-ts'
 import {
   createWorkerWorkbook,
   createWorkerWorkbookSpreadsheetBackend,
-} from '../src-vnext/adapter'
-import type { WorkerLike } from '../src-vnext/adapter'
+} from '../src/adapter'
+import type { WorkerLike } from '../src/adapter'
 
 type RpcResponse = Awaited<ReturnType<ExcelCoreTsWorkerRuntime['handle']>>
 

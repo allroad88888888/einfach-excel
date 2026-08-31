@@ -9,7 +9,7 @@ import {
   unregisterCustomFormulaAtom,
   type SpreadsheetBackend,
 } from '@einfach/spreadsheet-ui-core'
-import { customFormulasSupportedAtom, SpreadsheetUiProvider } from '../src-vnext/provider'
+import { customFormulasSupportedAtom, SpreadsheetUiProvider } from '../src/provider'
 
 afterEach(() => {
   cleanup()

@@ -20,7 +20,7 @@ import {
   evaluateFormula,
   formatEvalResult,
   type EvalCellLookup,
-} from '../src-vnext/adapter/static-formula-eval'
+} from '../src/adapter/static-formula-eval'
 
 /** Creates a lookup backed by a string-keyed cell map. */
 function lookupFrom(map: Record<string, string | number>): EvalCellLookup {

@@ -2,9 +2,9 @@
 
 import { describe, expect, it } from '@jest/globals'
 import { createRoot } from 'solid-js'
-import { sparseRangeToTSV } from '../src/range-tsv'
-import type { CellFormatJSON, FormatRangeSnapshot } from '../src/types'
-import { createWorkerWorkbookStore } from '../src/wasm-workbook-store'
+import { sparseRangeToTSV } from '../legacy/range-tsv'
+import type { CellFormatJSON, FormatRangeSnapshot } from '../legacy/types'
+import { createWorkerWorkbookStore } from '../legacy/wasm-workbook-store'
 import type {
   CellRefWire,
   CellSnapshotWire,
@@ -19,7 +19,7 @@ import type {
   WorkbookPersistenceRestoreStatsWire,
   WorkbookPersistenceSnapshotWire,
   WorkbookSheetMeta,
-} from '../src/wasm-workbook-proxy'
+} from '../legacy/wasm-workbook-proxy'
 
 type ClearRangeCall = {
   sheet: number

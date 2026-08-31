@@ -26,9 +26,9 @@ import {
   setWorkspaceActiveSheetAtom,
   type CapturedFormat,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
-import { SpreadsheetToolbar } from '../src-vnext/toolbar'
-import { SpreadsheetFormatPainter } from '../src-vnext/format-painter'
+import { SpreadsheetUiProvider } from '../src/provider'
+import { SpreadsheetToolbar } from '../src/toolbar'
+import { SpreadsheetFormatPainter } from '../src/format-painter'
 import { seedReadyVisibleProjection } from './projection-test-fixture'
 
 afterEach(cleanup)

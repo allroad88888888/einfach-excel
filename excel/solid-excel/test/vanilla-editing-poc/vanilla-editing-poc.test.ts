@@ -2,7 +2,7 @@ import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from '@jest/globals'
 
-import { createStaticSpreadsheetBackend } from '../../src-vnext/adapter/static-backend'
+import { createStaticSpreadsheetBackend } from '../../src/adapter/static-backend'
 import { mountVanillaEditingPoc } from '../../vanilla-editing-poc'
 
 const POC_SOURCE_DIR = join(process.cwd(), 'excel/solid-excel/vanilla-editing-poc')

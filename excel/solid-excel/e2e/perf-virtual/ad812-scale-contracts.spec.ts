@@ -103,9 +103,9 @@ test.describe('AD-812 scale contracts', () => {
         if (requested !== 'ts' && requested !== 'wasm') {
           throw new Error(`AD-812 requires a ts or wasm backend, received ${requested}`)
         }
-        const { createWorkerWorkbook } = await import('/src-vnext/adapter/worker-protocol.ts')
+        const { createWorkerWorkbook } = await import('/src/adapter/worker-protocol.ts')
         const { defaultExcelCoreTsWorkerFactory, defaultVNextWorkbookWorkerFactory } = await import(
-          '/src-vnext/adapter/worker-factory.ts'
+          '/src/adapter/worker-factory.ts'
         )
         const workbook = createWorkerWorkbook({
           workerFactory:

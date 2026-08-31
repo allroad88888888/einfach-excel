@@ -31,8 +31,8 @@ test.describe('Observability guardrails', () => {
     await expect(cell(page, 'A1')).toBeVisible()
 
     const result = await page.evaluate(async () => {
-      const { createWorkerWorkbook } = await import('/src/wasm-workbook-proxy.ts')
-      const { defaultWorkbookWorkerFactory } = await import('/src/wasm-workbook-worker-factory.ts')
+      const { createWorkerWorkbook } = await import('/legacy/wasm-workbook-proxy.ts')
+      const { defaultWorkbookWorkerFactory } = await import('/legacy/wasm-workbook-worker-factory.ts')
 
       const workbook = createWorkerWorkbook({ workerFactory: defaultWorkbookWorkerFactory })
       try {

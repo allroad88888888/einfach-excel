@@ -71,7 +71,7 @@ fn wasm_lib_rs() -> String {
 }
 
 fn worker_runtime_ts() -> String {
-    read(&manifest_dir().join("../../solid-excel/src-vnext/adapter/worker-runtime-ts.ts"))
+    read(&manifest_dir().join("../../solid-excel/src/adapter/worker-runtime-ts.ts"))
 }
 
 /// Identifiers that must be GONE once the given phase is reached.

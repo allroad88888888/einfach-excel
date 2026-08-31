@@ -19,7 +19,7 @@ import {
   NumberFormatDropdown,
   numberFormatIdForFormat,
   type NumberFormatId,
-} from '../src-vnext/toolbar/NumberFormatDropdown'
+} from '../src/toolbar/NumberFormatDropdown'
 
 const RANGE = { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 0 }
 const ANCHOR_RECT = {

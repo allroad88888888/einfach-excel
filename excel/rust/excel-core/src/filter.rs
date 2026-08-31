@@ -416,7 +416,7 @@ pub enum FilterError {
 }
 
 /// Predicate-scan budget, sunk from the host adapter
-/// (`excel/solid-excel/src-vnext/adapter/worker-workbook-backend.ts:211`
+/// (`excel/solid-excel/src/adapter/worker-workbook-backend.ts:211`
 /// `MAX_FILTER_SORT_PREDICATE_CELLS`, whose rejection code is
 /// `FILTER_SORT_SOURCE_TOO_LARGE`). Same 50k budget as
 /// `DEFAULT_MAX_PROJECTION_CELLS` and
@@ -444,7 +444,7 @@ pub(crate) fn predicate_columns(rules: &[ColumnFilterRule]) -> BTreeSet<u32> {
 ///
 /// This is `buildFilterSortDisplayRows` (`projection-helpers.ts:373-410`)
 /// composed with `filterHiddenRowsFromDisplayRows`
-/// (`excel/solid-excel/src-vnext/adapter/filter-hidden-rows.ts:36-56`) — the two
+/// (`excel/solid-excel/src/adapter/filter-hidden-rows.ts:36-56`) — the two
 /// halves both adapters already run back to back — collapsed into the one
 /// projection they actually want. The intermediate sparse `display ->
 /// source` permutation is dropped because it is provably irrelevant to the

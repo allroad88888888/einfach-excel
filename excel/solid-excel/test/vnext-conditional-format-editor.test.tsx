@@ -12,8 +12,8 @@ import {
   type SetConditionalFormatRuleRequest,
   type SpreadsheetBackend,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetConditionalFormatDialog } from '../src-vnext/conditional-formatting'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
+import { SpreadsheetConditionalFormatDialog } from '../src/conditional-formatting'
+import { SpreadsheetUiProvider } from '../src/provider'
 
 afterEach(cleanup)
 

@@ -19,12 +19,12 @@ import { historyLifecycleAtom, historyStackAtom } from '@einfach/spreadsheet-ui-
 import {
   installWorkerRuntimeTs,
   type WorkerContext,
-} from '../src-vnext/adapter/worker-runtime-ts'
-import { createWorkerWorkbookSpreadsheetBackend } from '../src-vnext/adapter'
-import type { WorkerLike } from '../src-vnext/adapter'
-import { SpreadsheetGrid } from '../src-vnext/grid'
-import { SpreadsheetHistoryTimeline } from '../src-vnext/history'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
+} from '../src/adapter/worker-runtime-ts'
+import { createWorkerWorkbookSpreadsheetBackend } from '../src/adapter'
+import type { WorkerLike } from '../src/adapter'
+import { SpreadsheetGrid } from '../src/grid'
+import { SpreadsheetHistoryTimeline } from '../src/history'
+import { SpreadsheetUiProvider } from '../src/provider'
 
 afterEach(cleanup)
 

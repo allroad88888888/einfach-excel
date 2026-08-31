@@ -131,12 +131,12 @@ test.describe('AD-827 bounded versus explicit full-fixture range-read observatio
           throw new Error(`AD-827 requires a ts or wasm backend, received ${requested}`)
         }
 
-        const { createWorkerWorkbook } = await import('/src-vnext/adapter/worker-protocol.ts')
+        const { createWorkerWorkbook } = await import('/src/adapter/worker-protocol.ts')
         const { createWorkerWireTelemetry } = await import(
-          '/src-vnext/adapter/worker-wire-telemetry.ts'
+          '/src/adapter/worker-wire-telemetry.ts'
         )
         const { defaultExcelCoreTsWorkerFactory, defaultVNextWorkbookWorkerFactory } = await import(
-          '/src-vnext/adapter/worker-factory.ts'
+          '/src/adapter/worker-factory.ts'
         )
         const workerFactory =
           requested === 'ts' ? defaultExcelCoreTsWorkerFactory : defaultVNextWorkbookWorkerFactory

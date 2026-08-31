@@ -1,11 +1,11 @@
 import { describe, expect, it, jest } from '@jest/globals'
-import type { ImportCellWire } from '../src/wasm-workbook-proxy'
+import type { ImportCellWire } from '../legacy/wasm-workbook-proxy'
 import { TextDecoder } from 'util'
 import {
   detectDelimiter,
   importDelimitedFileToWorkbook,
   parseDelimitedLine,
-} from '../src/file-import'
+} from '../legacy/file-import'
 
 if (!globalThis.TextDecoder) {
   globalThis.TextDecoder = TextDecoder as unknown as typeof globalThis.TextDecoder

@@ -9,8 +9,8 @@ import type {
   SpreadsheetBackend,
 } from '@einfach/spreadsheet-ui-core'
 import { openTextToColumnsAtom, textToColumnsOpenAtom } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
-import { SpreadsheetTextToColumnsDialog } from '../src-vnext/text-to-columns'
+import { SpreadsheetUiProvider } from '../src/provider'
+import { SpreadsheetTextToColumnsDialog } from '../src/text-to-columns'
 
 afterEach(cleanup)
 

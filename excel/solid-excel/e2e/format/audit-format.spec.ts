@@ -612,7 +612,7 @@ test.describe('Format audit — borders dropdown', () => {
   }
 
   // Renderer order — keep in sync with `getCellBordersAttr` in
-  // `excel/solid-excel/src-vnext/grid/SpreadsheetGrid.tsx`.
+  // `excel/solid-excel/src/grid/SpreadsheetGrid.tsx`.
   const BORDER_SIDE_ORDER: ReadonlyArray<'top' | 'right' | 'bottom' | 'left'> = [
     'top',
     'right',

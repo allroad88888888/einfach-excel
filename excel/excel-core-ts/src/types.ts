@@ -75,7 +75,7 @@ export interface CellRange {
  * This is the INTERNAL / INBOUND vocabulary — every code a value may carry or
  * a literal may parse to. It is deliberately WIDER than what a cell can show.
  * The display boundary is the host's `errorDisplayToken`
- * (`excel/solid-excel/src-vnext/adapter/error-display-token.ts`, twin of Rust's
+ * (`excel/solid-excel/src/adapter/error-display-token.ts`, twin of Rust's
  * `format::error_display_token`), which collapses the two codes Excel has no
  * counterpart for — `#TYPE!` and `#ARGS!` — to `#VALUE!`. Do not narrow this
  * list to match: a parse/wire vocabulary may be wider than the display one,

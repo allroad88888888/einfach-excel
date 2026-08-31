@@ -18,9 +18,9 @@ import {
   selectionAtom,
   setWorkspaceActiveSheetAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetMenuBar } from '../src-vnext/menu-bar'
-import { SpreadsheetToolbar } from '../src-vnext/toolbar'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
+import { SpreadsheetMenuBar } from '../src/menu-bar'
+import { SpreadsheetToolbar } from '../src/toolbar'
+import { SpreadsheetUiProvider } from '../src/provider'
 import { seedReadyVisibleProjection } from './projection-test-fixture'
 
 afterEach(cleanup)

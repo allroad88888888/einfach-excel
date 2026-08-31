@@ -1,11 +1,11 @@
 import { describe, expect, jest, test } from '@jest/globals'
-import type * as WorkerPost from '../src-vnext/adapter/worker-post'
+import type * as WorkerPost from '../src/adapter/worker-post'
 import {
   NORMALIZED_WIRE_PAYLOAD_METHOD,
   classifyWorkerWireMessage,
   createWorkerWireTelemetry,
   estimateNormalizedWirePayloadBytes,
-} from '../src-vnext/adapter/worker-wire-telemetry'
+} from '../src/adapter/worker-wire-telemetry'
 
 describe('worker normalized payload telemetry', () => {
   test('uses a stable UTF-8 estimate instead of object insertion order', () => {
@@ -83,7 +83,7 @@ describe('worker normalized payload telemetry', () => {
         // `worker-post` binds `self` at module initialization, so it must load
         // inside this isolated Worker-scope fixture.
         // eslint-disable-next-line @typescript-eslint/no-require-imports
-        workerPost = require('../src-vnext/adapter/worker-post') as typeof WorkerPost
+        workerPost = require('../src/adapter/worker-post') as typeof WorkerPost
       })
       const post = workerPost!
 

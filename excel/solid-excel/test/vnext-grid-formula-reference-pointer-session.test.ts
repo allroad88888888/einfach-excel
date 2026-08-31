@@ -10,8 +10,8 @@ import {
 import {
   getFormulaReferenceFocusTarget,
   restoreFormulaReferenceFocus,
-} from '../src-vnext/grid/grid-formula-reference-focus'
-import { startFormulaReferencePointerSession } from '../src-vnext/grid/grid-formula-reference-pointer-session'
+} from '../src/grid/grid-formula-reference-focus'
+import { startFormulaReferencePointerSession } from '../src/grid/grid-formula-reference-pointer-session'
 
 function pointerEvent(type: string, pointerId: number): PointerEvent {
   const event = new Event(type, { bubbles: true, cancelable: true })

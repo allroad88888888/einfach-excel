@@ -13,8 +13,8 @@ import {
   workspaceSessionAtom,
   type ConditionalFormatRuleEntry,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
-import { SpreadsheetConditionalFormatDialog } from '../src-vnext/conditional-formatting'
+import { SpreadsheetUiProvider } from '../src/provider'
+import { SpreadsheetConditionalFormatDialog } from '../src/conditional-formatting'
 
 afterEach(cleanup)
 

@@ -1,5 +1,5 @@
 /**
- * Thin wrappers over `@einfach/solid-excel/vnext`'s backend factories. Every
+ * Thin wrappers over `@einfach/solid-excel`'s backend factories. Every
  * parameter and return type here is the library's real shape — nothing is
  * invented — so callers can reach past these helpers into the underlying
  * options/return types whenever they need to.
@@ -9,15 +9,15 @@ import type {
   StaticSpreadsheetSeedInput,
   WorkerWorkbookSpreadsheetBackend,
   WorkerWorkbookSpreadsheetBackendOptions,
-} from '@einfach/solid-excel/vnext'
+} from '@einfach/solid-excel'
 import {
   createStaticSpreadsheetBackend,
   createWorkerWorkbookSpreadsheetBackend,
-} from '@einfach/solid-excel/vnext'
+} from '@einfach/solid-excel'
 // Separate subpath on purpose: the worker factories resolve their bundles via
-// `import.meta.url`, so they stay off the `/vnext` barrel (see that barrel's
+// `import.meta.url`, so they stay off the root barrel (see that barrel's
 // note in `adapter/index.ts`).
-import { defaultVNextWorkbookWorkerFactory } from '@einfach/solid-excel/vnext-worker-factory'
+import { defaultVNextWorkbookWorkerFactory } from '@einfach/solid-excel/worker-factory'
 
 /** In-memory backend for demos that need no worker/WASM round trip. */
 export function makeStaticBackend(seed?: StaticSpreadsheetSeedInput): StaticSpreadsheetBackend {

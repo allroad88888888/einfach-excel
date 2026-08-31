@@ -10,8 +10,8 @@ import {
   rejectSpreadsheetWorkbookLifecycleAtom,
   resolveSpreadsheetWorkbookLifecycleAtom,
   type SpreadsheetWorkbookLifecycle,
-} from '../src-vnext/provider/atoms'
-import { SpreadsheetWorkbookRecovery, workbookLifecycleFeedback } from '../src-vnext/recovery'
+} from '../src/provider/atoms'
+import { SpreadsheetWorkbookRecovery, workbookLifecycleFeedback } from '../src/recovery'
 
 afterEach(cleanup)
 

@@ -9,8 +9,8 @@ import {
   presenceStateAtom,
   setWorkspaceActiveSheetAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
-import { SpreadsheetPresenceOverlay } from '../src-vnext/presence'
+import { SpreadsheetUiProvider } from '../src/provider'
+import { SpreadsheetPresenceOverlay } from '../src/presence'
 
 afterEach(cleanup)
 

@@ -9,7 +9,7 @@ import {
   statusBarProjectionCellsAtom,
   type SpreadsheetBackend,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
+import { SpreadsheetUiProvider } from '../src/provider'
 import { seedReadyVisibleProjection } from './projection-test-fixture'
 
 afterEach(cleanup)

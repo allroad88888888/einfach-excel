@@ -10,8 +10,8 @@ import {
   type SpreadsheetBackend,
   workspaceSessionAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetPresenceOverlay } from '../src-vnext/presence'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
+import { SpreadsheetPresenceOverlay } from '../src/presence'
+import { SpreadsheetUiProvider } from '../src/provider'
 
 afterEach(cleanup)
 

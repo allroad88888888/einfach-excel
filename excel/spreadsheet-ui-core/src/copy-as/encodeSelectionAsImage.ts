@@ -20,7 +20,7 @@ export const MAX_EXPORT_PIXELS = 4096 * 4096
 
 /**
  * Default per-cell pixel sizing for the pre-flight size estimate. Mirrors
- * the PoC defaults baked into `excel/solid-excel/src-vnext/copy-as/renderRangeAsImage.ts`
+ * the PoC defaults baked into `excel/solid-excel/src/copy-as/renderRangeAsImage.ts`
  * — 96 CSS px per column, 24 CSS px per row. The estimate only gates the
  * pixel-count cap; the host backend is still the authority on the actual
  * rendered dimensions.

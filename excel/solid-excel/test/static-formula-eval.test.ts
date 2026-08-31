@@ -3,7 +3,7 @@ import type { DisplayCell } from '@einfach/spreadsheet-ui-core'
 import {
   evaluateFormula,
   type EvalCellLookup,
-} from '../src-vnext/adapter/static-formula-eval'
+} from '../src/adapter/static-formula-eval'
 
 /**
  * Lookup helper for tests. Backs a small grid by string-keyed cell map.

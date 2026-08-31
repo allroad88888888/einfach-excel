@@ -17,7 +17,7 @@
  * 这条规格被一切把数字读成文本的路径共用，所以只能有一份。本包内的调用点是
  * `coerce.ts` 的 `toString`（`&` 拼接 / `LEN` / `T` / `CONCAT`）；它还经包根
  * `index.ts` 导出给宿主的**显示边界**
- * （`excel/solid-excel/src-vnext/adapter/worker-runtime-ts.ts` 的
+ * （`excel/solid-excel/src/adapter/worker-runtime-ts.ts` 的
  * `valueDisplay`）—— 那里此前是 `String(n)`，于是同一个数字在「拼接出来的
  * 文本」和「单元格显示」上是两种写法。Rust 侧对应三个调用点，见那份模块文档。
  *

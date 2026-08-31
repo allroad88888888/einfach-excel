@@ -15,7 +15,7 @@ import type {
   WorkerWorkbookBackendSheet,
   WorkerWorkbookBackendSheetInput,
   WorkerWorkbookClient,
-} from '@einfach/solid-excel/vnext'
+} from '@einfach/solid-excel'
 
 /** Sheet list passed straight to `makeTsWorkerBackend({ sheets: ... })`. */
 export const dynamicArraysSheets: WorkerWorkbookBackendSheetInput[] = [

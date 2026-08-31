@@ -25,7 +25,7 @@ import type {
   DisplayCell,
   StaticSeedMatrix,
   StaticSpreadsheetSeed,
-} from '@einfach/solid-excel/vnext'
+} from '@einfach/solid-excel'
 
 const matrix: StaticSeedMatrix = [
   ['Product', 'SKU', 'Category', 'Price', 'Qty In Stock', 'Status'],

@@ -37,8 +37,8 @@ import {
   viewportMetricsAtom,
   workspaceSessionAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetNameBox } from '../src-vnext/name-box'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
+import { SpreadsheetNameBox } from '../src/name-box'
+import { SpreadsheetUiProvider } from '../src/provider'
 import { setLocale } from '../src/i18n'
 
 afterEach(() => {

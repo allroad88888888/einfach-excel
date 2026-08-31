@@ -27,7 +27,7 @@
  * `SPILL_PROJECTION_LOOKBACK` 这条产品级上限。
  *
  * 这个上限**不是本模块发明的** —— 宿主适配层
- * （`excel/solid-excel/src-vnext/adapter/worker-runtime-ts.ts`）从一开始就用同一个
+ * （`excel/solid-excel/src/adapter/worker-runtime-ts.ts`）从一开始就用同一个
  * 数做同一件事，只是做在显示层。下沉之后那一份改成薄委派，数只剩这一个。
  *
  * ── 代价 ──

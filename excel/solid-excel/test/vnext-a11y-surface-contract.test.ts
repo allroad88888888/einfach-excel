@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from '@jest/globals'
-import { auditKeyboardA11ySurface } from '../src-vnext/a11y'
+import { auditKeyboardA11ySurface } from '../src/a11y'
 
 afterEach(() => {
   document.body.replaceChildren()

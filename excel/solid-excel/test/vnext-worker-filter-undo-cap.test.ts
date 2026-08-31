@@ -29,11 +29,11 @@ import type {
   SparseRangeWire,
   WorkbookSheetMeta,
   WorkerWorkbookClient,
-} from '../src-vnext/adapter'
+} from '../src/adapter'
 import {
   WORKER_FILTER_SNAPSHOT_MAX,
   createWorkerWorkbookSpreadsheetBackend,
-} from '../src-vnext/adapter'
+} from '../src/adapter'
 
 const SHEET_ID = 'sheet-1'
 const RULE: ColumnFilterRuleWire = { kind: 'equals', colIndex: 0, value: 'North' }

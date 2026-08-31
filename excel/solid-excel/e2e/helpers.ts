@@ -81,7 +81,10 @@ function backendQueryFromProject(): string {
  * tack `locale=en` (and the project's `backend=` selector) onto it.
  */
 export async function gotoDemo(page: Page, name: string, query = '') {
-  await page.goto(withEnglishLocale(query))
+  const params = new URLSearchParams(query.replace(/^\?/, ''))
+  params.set('legacy', '1')
+  params.delete('bench')
+  await page.goto(withEnglishLocale(params.toString()))
   await page.getByRole('button', { name, exact: true }).click()
   await expect(cell(page, 'A1')).toBeVisible({ timeout: 30_000 })
 }

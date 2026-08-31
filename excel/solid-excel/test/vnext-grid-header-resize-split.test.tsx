@@ -2,8 +2,8 @@
 
 import { afterEach, describe, expect, it, jest } from '@jest/globals'
 import { cleanup, fireEvent, render } from '@solidjs/testing-library'
-import { SpreadsheetGridDataRow } from '../src-vnext/grid/SpreadsheetGridDataRow'
-import { SpreadsheetGridTable } from '../src-vnext/grid/SpreadsheetGridTable'
+import { SpreadsheetGridDataRow } from '../src/grid/SpreadsheetGridDataRow'
+import { SpreadsheetGridTable } from '../src/grid/SpreadsheetGridTable'
 
 afterEach(() => {
   cleanup()

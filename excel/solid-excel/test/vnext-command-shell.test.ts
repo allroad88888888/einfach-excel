@@ -12,7 +12,7 @@ import {
   resolveMenuBarCommand,
   resolveToolbarFormatCommand,
   type MenuBarCommandPresentationSnapshot,
-} from '../src-vnext/commands'
+} from '../src/commands'
 
 const capabilities: MenuBarCommandPresentationSnapshot = {
   showGridlines: true,

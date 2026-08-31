@@ -47,6 +47,15 @@ test.describe('Solid Excel — Budget demo', () => {
     await expectDisplay(page, 'D16', '600')
   })
 
+  test('legacy navigation overrides conflicting route flags', async ({ page }) => {
+    await gotoDemo(page, DEMO, 'legacy=0&bench=1&locale=en&backend=wasm')
+    const params = new URL(page.url()).searchParams
+    expect(params.get('legacy')).toBe('1')
+    expect(params.has('bench')).toBe(false)
+    expect(params.get('locale')).toBe('en')
+    expect(params.get('backend')).toBe('wasm')
+  })
+
   test('diff column computes =C-B for representative rows', async ({ page }) => {
     // D3 = C3-B3 = 8000-8000 = 0 (income line, exactly on budget).
     await expectDisplay(page, 'D3', '0')

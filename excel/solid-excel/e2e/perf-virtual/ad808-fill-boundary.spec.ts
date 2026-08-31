@@ -31,9 +31,9 @@ test.describe('AD-808 direct-fill boundary observation', () => {
 
     const result = await page.evaluate(
       async ({ rows, cols }) => {
-        const { createWorkerWorkbook } = await import('/src-vnext/adapter/worker-protocol.ts')
+        const { createWorkerWorkbook } = await import('/src/adapter/worker-protocol.ts')
         const { defaultVNextWorkbookWorkerFactory } = await import(
-          '/src-vnext/adapter/worker-factory.ts'
+          '/src/adapter/worker-factory.ts'
         )
         const workbook = createWorkerWorkbook({ workerFactory: defaultVNextWorkbookWorkerFactory })
         const startedMs = performance.now()

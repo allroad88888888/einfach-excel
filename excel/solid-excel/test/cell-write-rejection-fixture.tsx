@@ -19,9 +19,9 @@ import type {
   VisibleProjectionRequest,
 } from '@einfach/spreadsheet-ui-core'
 import { openMenuAtom } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetContextMenu } from '../src-vnext/context-menu'
-import { SpreadsheetGrid } from '../src-vnext/grid'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
+import { SpreadsheetContextMenu } from '../src/context-menu'
+import { SpreadsheetGrid } from '../src/grid'
+import { SpreadsheetUiProvider } from '../src/provider'
 import { seedReadyVisibleProjection } from './projection-test-fixture'
 
 type Store = ReturnType<typeof createStore>

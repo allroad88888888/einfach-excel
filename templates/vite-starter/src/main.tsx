@@ -3,9 +3,9 @@ import {
   createWorkerWorkbookSpreadsheetBackend,
   SpreadsheetGrid,
   SpreadsheetUiProvider,
-} from '@einfach/solid-excel/vnext'
-import { defaultVNextWorkbookWorkerFactory } from '@einfach/solid-excel/vnext-worker-factory'
-import '@einfach/solid-excel/vnext-styles.css'
+} from '@einfach/solid-excel'
+import { defaultVNextWorkbookWorkerFactory } from '@einfach/solid-excel/worker-factory'
+import '@einfach/solid-excel/styles.css'
 
 const backend = createWorkerWorkbookSpreadsheetBackend({
   workerFactory: defaultVNextWorkbookWorkerFactory,

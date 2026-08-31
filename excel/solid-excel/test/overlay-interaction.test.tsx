@@ -9,7 +9,7 @@ import {
   useOverlayInteraction,
   type OverlayCloseReason,
   type OverlayInteraction,
-} from '../src-vnext/overlay'
+} from '../src/overlay'
 
 const overlayOpenAtom = atom(false)
 

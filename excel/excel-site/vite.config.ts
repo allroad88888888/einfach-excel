@@ -31,7 +31,7 @@ export default defineConfig({
   // solid-excel is consumed as linked source so its worker `new URL(...)`
   // modules must be bundled from source, not prebundled.
   optimizeDeps: {
-    exclude: ['@einfach/solid-excel'],
+    exclude: ['@einfach/solid-excel', '@einfach/solid-excel/worker-factory'],
   },
   server: {
     host: '127.0.0.1',

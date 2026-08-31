@@ -9,7 +9,7 @@ import {
   SpreadsheetFeedbackSurface,
   useAtomFeedbackPresentation,
   type SpreadsheetFeedback,
-} from '../src-vnext/feedback'
+} from '../src/feedback'
 
 type CommandState =
   | { readonly status: 'idle' }

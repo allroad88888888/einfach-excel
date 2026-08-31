@@ -27,8 +27,8 @@ import {
   type VisibleProjectionRequest,
   type VisibleProjectionResult,
 } from '@einfach/spreadsheet-ui-core'
-import { pasteSpecialSupportedAtom, SpreadsheetUiProvider } from '../src-vnext/provider'
-import { SpreadsheetPasteSpecialDialog } from '../src-vnext/paste-special'
+import { pasteSpecialSupportedAtom, SpreadsheetUiProvider } from '../src/provider'
+import { SpreadsheetPasteSpecialDialog } from '../src/paste-special'
 import { seedReadyVisibleProjection } from './projection-test-fixture'
 
 afterEach(cleanup)

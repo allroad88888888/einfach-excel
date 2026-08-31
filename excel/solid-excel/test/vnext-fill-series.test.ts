@@ -7,7 +7,7 @@ import {
   type FillSeriesRequest,
   type SpreadsheetBackend,
 } from '@einfach/spreadsheet-ui-core'
-import { createStaticSpreadsheetBackend } from '../src-vnext/adapter'
+import { createStaticSpreadsheetBackend } from '../src/adapter'
 
 const SHEET_ID = 'sheet-1'
 let nextRequestId = 100

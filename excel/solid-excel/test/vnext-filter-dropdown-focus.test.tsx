@@ -13,8 +13,8 @@ import {
   openFilterDropdownAtom,
   setWorkspaceActiveSheetAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetFilterDropdown } from '../src-vnext/filter-sort'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
+import { SpreadsheetFilterDropdown } from '../src/filter-sort'
+import { SpreadsheetUiProvider } from '../src/provider'
 import { seedReadyVisibleProjection } from './projection-test-fixture'
 
 afterEach(cleanup)

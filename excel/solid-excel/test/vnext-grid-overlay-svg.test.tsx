@@ -17,9 +17,9 @@ import {
   FILL_HANDLE_SIZE,
   OVERLAY_BORDER_WIDTH,
   OVERLAY_COLORS,
-} from '../src-vnext/grid/SpreadsheetGridOverlay'
-import { SpreadsheetGridOverlaySvg } from '../src-vnext/grid/SpreadsheetGridOverlaySvg'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
+} from '../src/grid/SpreadsheetGridOverlay'
+import { SpreadsheetGridOverlaySvg } from '../src/grid/SpreadsheetGridOverlaySvg'
+import { SpreadsheetUiProvider } from '../src/provider'
 
 afterEach(cleanup)
 

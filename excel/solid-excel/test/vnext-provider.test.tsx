@@ -15,8 +15,8 @@ import { setLocale } from '../src/i18n'
 import {
   createStaticNamedRangeCapabilityPort,
   createStaticSpreadsheetBackend,
-} from '../src-vnext/adapter'
-import { SpreadsheetUiProvider, useSpreadsheetUiCore } from '../src-vnext/provider'
+} from '../src/adapter'
+import { SpreadsheetUiProvider, useSpreadsheetUiCore } from '../src/provider'
 
 afterEach(() => {
   cleanup()

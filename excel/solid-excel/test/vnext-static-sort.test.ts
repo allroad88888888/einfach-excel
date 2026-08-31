@@ -10,7 +10,7 @@ import { describe, expect, test } from '@jest/globals'
 import {
   createStaticSpreadsheetBackend,
   type StaticSpreadsheetBackend,
-} from '../src-vnext/adapter/static-backend'
+} from '../src/adapter/static-backend'
 import type { CellRange, DisplayCell, SortRangeKey } from '@einfach/spreadsheet-ui-core'
 
 const SHEET = 'sheet-1'

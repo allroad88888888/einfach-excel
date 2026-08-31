@@ -37,8 +37,8 @@ import {
   type SpreadsheetTableDescriptor,
   type TableMutationResult,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetNameManagerDialog } from '../src-vnext/named-ranges'
-import { SpreadsheetUiProvider, type NamedRangeCapabilityPort } from '../src-vnext/provider'
+import { SpreadsheetNameManagerDialog } from '../src/named-ranges'
+import { SpreadsheetUiProvider, type NamedRangeCapabilityPort } from '../src/provider'
 import { setLocale } from '../src/i18n'
 
 afterEach(cleanup)
@@ -575,7 +575,7 @@ describe('SpreadsheetNameManagerDialog core adapter', () => {
 
   it('contains no direct backend mutation/list orchestration or local product-state atom', () => {
     const source = readFileSync(
-      join(process.cwd(), 'excel/solid-excel/src-vnext/named-ranges/SpreadsheetNameManagerDialog.tsx'),
+      join(process.cwd(), 'excel/solid-excel/src/named-ranges/SpreadsheetNameManagerDialog.tsx'),
       'utf8',
     )
 

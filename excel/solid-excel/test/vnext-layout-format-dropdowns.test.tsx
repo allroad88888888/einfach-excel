@@ -2,11 +2,11 @@
 
 import { afterEach, describe, expect, it, jest } from '@jest/globals'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
-import { BordersDropdown } from '../src-vnext/toolbar/BordersDropdown'
-import { HAlignDropdown } from '../src-vnext/toolbar/HAlignDropdown'
-import { MergeDropdown } from '../src-vnext/toolbar/MergeDropdown'
-import { RotationDropdown } from '../src-vnext/toolbar/RotationDropdown'
-import { VAlignDropdown } from '../src-vnext/toolbar/VAlignDropdown'
+import { BordersDropdown } from '../src/toolbar/BordersDropdown'
+import { HAlignDropdown } from '../src/toolbar/HAlignDropdown'
+import { MergeDropdown } from '../src/toolbar/MergeDropdown'
+import { RotationDropdown } from '../src/toolbar/RotationDropdown'
+import { VAlignDropdown } from '../src/toolbar/VAlignDropdown'
 
 afterEach(() => cleanup())
 

@@ -45,7 +45,7 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { TextDecoder, TextEncoder } from 'node:util'
 import path from 'node:path'
 
-import { createWorkerRuntimeTs, type ExcelCoreTsWorkerRuntime } from '../src-vnext/adapter/worker-runtime-ts'
+import { createWorkerRuntimeTs, type ExcelCoreTsWorkerRuntime } from '../src/adapter/worker-runtime-ts'
 
 // jsdom under jest doesn't expose TextDecoder/TextEncoder; the
 // wasm-bindgen glue grabs them at module-load time, so patch globals

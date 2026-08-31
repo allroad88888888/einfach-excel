@@ -9,8 +9,8 @@ import {
   selectCellAtom,
   setClipboardErrorAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetDiagnosticsReadout } from '../src-vnext/diagnostics'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
+import { SpreadsheetDiagnosticsReadout } from '../src/diagnostics'
+import { SpreadsheetUiProvider } from '../src/provider'
 import { setLocale } from '../src/i18n'
 import { seedReadyVisibleProjection } from './projection-test-fixture'
 import { beginVisibleRefresh, createFakeBackend } from './status-bar-test-fixture'

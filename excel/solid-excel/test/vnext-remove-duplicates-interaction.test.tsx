@@ -22,8 +22,8 @@ import {
   selectionAtom,
   setWorkspaceActiveSheetAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
-import { SpreadsheetRemoveDuplicatesDialog } from '../src-vnext/remove-duplicates'
+import { SpreadsheetUiProvider } from '../src/provider'
+import { SpreadsheetRemoveDuplicatesDialog } from '../src/remove-duplicates'
 import { seedReadyVisibleProjection } from './projection-test-fixture'
 
 afterEach(cleanup)

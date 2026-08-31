@@ -13,7 +13,7 @@ import {
   startEditingAtom,
 } from '@einfach/spreadsheet-ui-core'
 
-import { SpreadsheetWorkbookFeedbackHost } from '../src-vnext/feedback'
+import { SpreadsheetWorkbookFeedbackHost } from '../src/feedback'
 
 afterEach(cleanup)
 

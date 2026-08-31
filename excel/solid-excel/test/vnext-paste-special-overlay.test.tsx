@@ -12,8 +12,8 @@ import {
   type SpreadsheetBackend,
   type VisibleProjectionRequest,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetPasteSpecialDialog } from '../src-vnext/paste-special'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
+import { SpreadsheetPasteSpecialDialog } from '../src/paste-special'
+import { SpreadsheetUiProvider } from '../src/provider'
 
 afterEach(cleanup)
 

@@ -5,7 +5,7 @@ import { createStore } from '@einfach/core'
 import { formatNumberValue, workbookLocaleAtom } from '@einfach/spreadsheet-ui-core'
 import { cleanup, render, waitFor } from '@solidjs/testing-library'
 import { setLocale } from '../src/i18n'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
+import { SpreadsheetUiProvider } from '../src/provider'
 
 afterEach(() => {
   cleanup()

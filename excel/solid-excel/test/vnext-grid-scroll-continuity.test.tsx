@@ -11,8 +11,8 @@ import type {
 } from '@einfach/spreadsheet-ui-core'
 import { planSnappedScrollPlacement, setViewportRowHeightAtom } from '@einfach/spreadsheet-ui-core'
 import { createSignal } from 'solid-js'
-import { SpreadsheetGrid } from '../src-vnext/grid'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
+import { SpreadsheetGrid } from '../src/grid'
+import { SpreadsheetUiProvider } from '../src/provider'
 
 afterEach(cleanup)
 

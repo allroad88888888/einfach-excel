@@ -6,8 +6,8 @@ import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import type { SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
 import { openNumberFormatDialogAtom } from '@einfach/spreadsheet-ui-core'
 import { setLocale } from '../src/i18n'
-import { SpreadsheetNumberFormatDialogs } from '../src-vnext/format-cells'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
+import { SpreadsheetNumberFormatDialogs } from '../src/format-cells'
+import { SpreadsheetUiProvider } from '../src/provider'
 
 const RANGE = { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 0 }
 

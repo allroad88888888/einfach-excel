@@ -1,6 +1,6 @@
 import { describe, expect, test } from '@jest/globals'
-import { createStaticSpreadsheetBackend } from '../src-vnext/adapter/static/backend'
-import { createWorkerRuntimeTs } from '../src-vnext/adapter/worker-runtime-ts'
+import { createStaticSpreadsheetBackend } from '../src/adapter/static/backend'
+import { createWorkerRuntimeTs } from '../src/adapter/worker-runtime-ts'
 
 const RANGE = { rowStart: 1, rowEnd: 3, colStart: 0, colEnd: 0 }
 const RULE = {

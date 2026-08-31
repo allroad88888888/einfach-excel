@@ -10,9 +10,9 @@ import {
   type CellRange,
   type SpreadsheetBackend,
 } from '@einfach/spreadsheet-ui-core'
-import { createGridDomAdapter } from '../src-vnext/grid/grid-dom-adapter'
-import { installGridPointerSelection } from '../src-vnext/grid/grid-pointer-selection'
-import { installGridSelection } from '../src-vnext/grid/grid-selection'
+import { createGridDomAdapter } from '../src/grid/grid-dom-adapter'
+import { installGridPointerSelection } from '../src/grid/grid-pointer-selection'
+import { installGridSelection } from '../src/grid/grid-selection'
 
 const MERGE_RANGE: CellRange = {
   rowStart: 1,

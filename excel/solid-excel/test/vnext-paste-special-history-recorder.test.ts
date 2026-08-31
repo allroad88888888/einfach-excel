@@ -14,8 +14,8 @@ import {
   type SpreadsheetBackend,
 } from '@einfach/spreadsheet-ui-core'
 
-import { createSpreadsheetBackendHandle } from '../src-vnext/provider/backend-handle'
-import { createHistoryEntryRecorder } from '../src-vnext/provider/history-entry-recorder'
+import { createSpreadsheetBackendHandle } from '../src/provider/backend-handle'
+import { createHistoryEntryRecorder } from '../src/provider/history-entry-recorder'
 
 function deferred<T>() {
   let resolve!: (value: T) => void

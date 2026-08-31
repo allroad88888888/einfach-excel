@@ -11,7 +11,7 @@ fn collapse_array_for_js(val: &Value) -> std::borrow::Cow<'_, Value> {
 /// one-liner behind on purpose: `Workbook::apply_filter` has to compare its
 /// predicate against the SAME string this boundary emits, because that
 /// string is what the host's TypeScript predicate
-/// (`excel/solid-excel/src-vnext/adapter/filter-predicate.ts`) reads today over
+/// (`excel/solid-excel/src/adapter/filter-predicate.ts`) reads today over
 /// `readSparseRange`. Two separately-maintained formatters would have been
 /// a silent drift channel between the two engines; delegation makes them
 /// the same function, not merely the same intent.

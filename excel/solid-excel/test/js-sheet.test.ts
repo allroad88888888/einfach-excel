@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals'
-import { createJSSheet } from '../src/js-sheet'
+import { createJSSheet } from '../legacy/js-sheet'
 
 describe('createJSSheet', () => {
   it('new cell returns null type', () => {

@@ -12,8 +12,8 @@ import {
   setSelectionBoundsAtom,
   statusBarAggregateConfigAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
-import { SpreadsheetStatusBar } from '../src-vnext/status-bar'
+import { SpreadsheetUiProvider } from '../src/provider'
+import { SpreadsheetStatusBar } from '../src/status-bar'
 import { setLocale } from '../src/i18n'
 import { seedReadyVisibleProjection } from './projection-test-fixture'
 import { createFakeBackend, numericCell } from './status-bar-test-fixture'
@@ -33,11 +33,11 @@ afterEach(() => {
 describe('vNext SpreadsheetStatusBar', () => {
   it('keeps the status bar a pure consumer of the Provider-owned projection bridge', () => {
     const statusBarSource = readFileSync(
-      join(process.cwd(), 'excel/solid-excel/src-vnext/status-bar/SpreadsheetStatusBar.tsx'),
+      join(process.cwd(), 'excel/solid-excel/src/status-bar/SpreadsheetStatusBar.tsx'),
       'utf8',
     )
     const bridgeSource = readFileSync(
-      join(process.cwd(), 'excel/solid-excel/src-vnext/provider/status-bar-projection-bridge.ts'),
+      join(process.cwd(), 'excel/solid-excel/src/provider/status-bar-projection-bridge.ts'),
       'utf8',
     )
     const componentSource = statusBarSource.slice(
@@ -253,4 +253,3 @@ describe('vNext SpreadsheetStatusBar', () => {
     await waitFor(() => expect(getByTestId('status-mode-badge').textContent).toBe('Ready'))
   })
 })
-

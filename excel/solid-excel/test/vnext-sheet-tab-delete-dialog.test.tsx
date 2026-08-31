@@ -10,7 +10,7 @@ import {
   type SheetTabsState,
   type SpreadsheetSheetMetadata,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetSheetTabOverlays } from '../src-vnext/sheet-tabs/SpreadsheetSheetTabOverlays'
+import { SpreadsheetSheetTabOverlays } from '../src/sheet-tabs/SpreadsheetSheetTabOverlays'
 
 afterEach(cleanup)
 

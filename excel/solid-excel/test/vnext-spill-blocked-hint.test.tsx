@@ -26,8 +26,8 @@ import {
   type SpreadsheetBackend,
 } from '@einfach/spreadsheet-ui-core'
 
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
-import { SpreadsheetSpillBlockedHint } from '../src-vnext/diagnostics'
+import { SpreadsheetUiProvider } from '../src/provider'
+import { SpreadsheetSpillBlockedHint } from '../src/diagnostics'
 
 afterEach(cleanup)
 

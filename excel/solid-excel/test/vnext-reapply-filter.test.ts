@@ -35,7 +35,7 @@ import {
   viewportFilterHiddenAtom,
 } from '@einfach/spreadsheet-ui-core'
 import type { HistoryEntryRecorder, SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
-import { createStaticSpreadsheetBackend } from '../src-vnext/adapter'
+import { createStaticSpreadsheetBackend } from '../src/adapter'
 
 const SHEET = 'sheet-1'
 const WINDOW = { rowStart: 0, rowEnd: 4, colStart: 0, colEnd: 1 }

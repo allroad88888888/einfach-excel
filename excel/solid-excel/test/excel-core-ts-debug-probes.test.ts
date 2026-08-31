@@ -41,7 +41,7 @@ import { describe, expect, test } from '@jest/globals'
 
 import { createWorkbook } from '@einfach/excel-core-ts'
 
-import { createWorkerRuntimeTs } from '../src-vnext/adapter/worker-runtime-ts'
+import { createWorkerRuntimeTs } from '../src/adapter/worker-runtime-ts'
 
 // ---------------------------------------------------------------------------
 // 1. Workbook-direct contract.

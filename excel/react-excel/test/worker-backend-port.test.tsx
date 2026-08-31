@@ -2,11 +2,11 @@ import { createStore } from '@einfach/core'
 import type { SpreadsheetUiCore } from '@einfach/spreadsheet-ui-core'
 import { describe, expect, it, jest } from '@jest/globals'
 import { render } from '@testing-library/react'
-import { createWorkerWorkbookSpreadsheetBackend } from '../../solid-excel/src-vnext/adapter/worker/backend'
+import { createWorkerWorkbookSpreadsheetBackend } from '../../solid-excel/src/adapter/worker/backend'
 import type {
   SparseRangeWire,
   WorkerWorkbookClient,
-} from '../../solid-excel/src-vnext/adapter/worker-protocol'
+} from '../../solid-excel/src/adapter/worker-protocol'
 import { SpreadsheetUiProvider, useSpreadsheetUiCore } from '../src'
 
 const SHEET_ID = 'sheet-1'

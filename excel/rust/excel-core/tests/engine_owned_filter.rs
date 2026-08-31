@@ -37,7 +37,7 @@ use einfach_excel_core::{
 // ===================== golden corpus vs the TypeScript original ===========
 
 /// The corpus was produced by running the AUTHORITATIVE host predicate —
-/// `excel/solid-excel/src-vnext/adapter/filter-predicate.ts`, plus `numericValue`
+/// `excel/solid-excel/src/adapter/filter-predicate.ts`, plus `numericValue`
 /// from `spreadsheet-ui-core/src/backend/projection-helpers.ts` — under node
 /// over 77 values x 100 rules. It is the answer the product gives today; the
 /// Rust port has to reproduce all 7 700 of them plus 308 summary-row probes

@@ -41,9 +41,9 @@ import {
   installWorkerRuntimeTs,
   type ExcelCoreTsWorkerRuntime,
   type WorkerContext,
-} from '../src-vnext/adapter/worker-runtime-ts'
-import { createWorkerWorkbookSpreadsheetBackend } from '../src-vnext/adapter'
-import type { WorkerLike, WorkerWorkbookSpreadsheetBackend } from '../src-vnext/adapter'
+} from '../src/adapter/worker-runtime-ts'
+import { createWorkerWorkbookSpreadsheetBackend } from '../src/adapter'
+import type { WorkerLike, WorkerWorkbookSpreadsheetBackend } from '../src/adapter'
 
 const SHEET = 'sheet-1'
 

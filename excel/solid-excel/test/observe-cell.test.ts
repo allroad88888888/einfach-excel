@@ -2,8 +2,8 @@
 
 import { describe, it, expect } from '@jest/globals'
 import { createMemo, createRoot } from 'solid-js'
-import { createSheetStore } from '../src/sheet-store'
-import { createJSSheet } from '../src/js-sheet'
+import { createSheetStore } from '../legacy/sheet-store'
+import { createJSSheet } from '../legacy/js-sheet'
 
 /**
  * Retain/release contract for `observeCell`.

@@ -12,7 +12,7 @@ import {
   viewportFreezeDiagnosticAtom,
   type SpreadsheetBackend,
 } from '@einfach/spreadsheet-ui-core'
-import { createStaticSpreadsheetBackend } from '../src-vnext/adapter/static-backend'
+import { createStaticSpreadsheetBackend } from '../src/adapter/static-backend'
 
 // Freeze is UI-core canonical (CANONICAL_OWNERSHIP flip step 1). The
 // static backend's freeze storage remains as the reference persistence

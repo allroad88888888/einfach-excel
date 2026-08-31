@@ -38,16 +38,16 @@ import {
   togglePrintPreviewAtom,
   validationRuleEditorAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
-import { SpreadsheetCommentThread } from '../src-vnext/comments'
-import { SpreadsheetConditionalFormatDialog } from '../src-vnext/conditional-formatting'
-import { SpreadsheetDataValidationDialog } from '../src-vnext/data-validation'
-import { SpreadsheetFilterDropdown } from '../src-vnext/filter-sort'
-import { SpreadsheetFindReplaceDialog } from '../src-vnext/find-replace'
-import { SpreadsheetFormatCellsDialog } from '../src-vnext/format-cells'
-import { SpreadsheetNameManagerDialog } from '../src-vnext/named-ranges'
-import { SpreadsheetPrintPreviewOverlay } from '../src-vnext/print'
-import { SpreadsheetProtectionUnlockDialog } from '../src-vnext/protection'
+import { SpreadsheetUiProvider } from '../src/provider'
+import { SpreadsheetCommentThread } from '../src/comments'
+import { SpreadsheetConditionalFormatDialog } from '../src/conditional-formatting'
+import { SpreadsheetDataValidationDialog } from '../src/data-validation'
+import { SpreadsheetFilterDropdown } from '../src/filter-sort'
+import { SpreadsheetFindReplaceDialog } from '../src/find-replace'
+import { SpreadsheetFormatCellsDialog } from '../src/format-cells'
+import { SpreadsheetNameManagerDialog } from '../src/named-ranges'
+import { SpreadsheetPrintPreviewOverlay } from '../src/print'
+import { SpreadsheetProtectionUnlockDialog } from '../src/protection'
 
 afterEach(cleanup)
 

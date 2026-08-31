@@ -170,7 +170,7 @@ fn collapse_array_for_display(val: &Value) -> std::borrow::Cow<'_, Value> {
 /// This function is the single place the engine decides what a user reads, so
 /// the register of "codes Excel does not have" lives here rather than in a doc
 /// someone would have to already know to look for. The TypeScript twin
-/// (`excel/solid-excel/src-vnext/adapter/error-display-token.ts`) mirrors this
+/// (`excel/solid-excel/src/adapter/error-display-token.ts`) mirrors this
 /// table, and the always-on `cross-engine-parity-smoke.test.ts` pins both
 /// engines to it — a one-sided change here goes red there.
 ///
@@ -228,7 +228,7 @@ pub fn error_display_token(err: &ValueError) -> Cow<'static, str> {
 /// engine boundary. `excel/rust/wasm`'s private `value_to_display` delegates to
 /// it, which is what makes it the exact string the `readSparseRange` /
 /// `getCellDisplay` wire carries, and therefore the exact string the host's
-/// TypeScript filter predicate (`excel/solid-excel/src-vnext/adapter/
+/// TypeScript filter predicate (`excel/solid-excel/src/adapter/
 /// filter-predicate.ts`) compares against today.
 ///
 /// That identity is the whole reason the E3 filter sink-down is

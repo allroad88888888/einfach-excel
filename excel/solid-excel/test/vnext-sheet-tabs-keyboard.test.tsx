@@ -10,8 +10,8 @@ import {
   type SpreadsheetSheetMetadata,
 } from '@einfach/spreadsheet-ui-core'
 
-import { SpreadsheetSheetTabs } from '../src-vnext/sheet-tabs'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
+import { SpreadsheetSheetTabs } from '../src/sheet-tabs'
+import { SpreadsheetUiProvider } from '../src/provider'
 
 afterEach(cleanup)
 

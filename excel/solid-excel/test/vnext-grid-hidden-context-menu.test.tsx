@@ -20,9 +20,9 @@ import {
   selectionAtom,
   viewportHiddenAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetContextMenu } from '../src-vnext/context-menu'
-import { SpreadsheetGrid } from '../src-vnext/grid'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
+import { SpreadsheetContextMenu } from '../src/context-menu'
+import { SpreadsheetGrid } from '../src/grid'
+import { SpreadsheetUiProvider } from '../src/provider'
 
 beforeEach(() => {
   jest.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null)

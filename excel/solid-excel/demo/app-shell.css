@@ -1,0 +1,85 @@
+/* === App Layout === */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f0f2f5;
+  color: #1a1a1a;
+}
+
+.app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.app-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.app-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.app-subtitle {
+  font-size: 13px;
+  color: #888;
+  font-weight: 400;
+}
+
+/* === Demo Page === */
+
+.demo-page {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  padding: 20px;
+}
+
+.demo-header {
+  margin-bottom: 16px;
+}
+
+.demo-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.demo-desc {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.5;
+}
+
+.demo-desc code {
+  background: #f0f0f0;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-family: 'SF Mono', Menlo, Monaco, monospace;
+}
+
+.demo-desc kbd {
+  background: #f8f8f8;
+  border: 1px solid #d0d0d0;
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 11px;
+  font-family: inherit;
+  box-shadow: 0 1px 0 #ccc;
+}
+
+.demo-desc strong {
+  color: #333;
+}

@@ -39,8 +39,8 @@ import { beforeAll, describe, expect, jest, test } from '@jest/globals'
 import type { ColumnFilterRule, DisplayCell } from '@einfach/spreadsheet-ui-core'
 import type * as NodeFsModule from 'node:fs'
 import type * as NodePathModule from 'node:path'
-import type { WorkerLike, WorkerWorkbookSpreadsheetBackend } from '../src-vnext/adapter'
-import { createStaticSpreadsheetBackend } from '../src-vnext/adapter/static-backend'
+import type { WorkerLike, WorkerWorkbookSpreadsheetBackend } from '../src/adapter'
+import { createStaticSpreadsheetBackend } from '../src/adapter/static-backend'
 
 jest.mock('@einfach/excel-wasm', () => {
   /* eslint-disable @typescript-eslint/no-var-requires */
@@ -93,8 +93,8 @@ beforeAll(async () => {
       toWorker.push(listener)
     },
   }
-  await import('../src-vnext/adapter/worker-runtime')
-  const adapter = await import('../src-vnext/adapter')
+  await import('../src/adapter/worker-runtime')
+  const adapter = await import('../src/adapter')
   createWasmBackend = () =>
     adapter.createWorkerWorkbookSpreadsheetBackend({
       workerFactory: () => inProcessWorker,

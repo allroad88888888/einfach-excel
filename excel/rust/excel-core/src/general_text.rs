@@ -13,7 +13,7 @@
 //! INV-6 例外见 `excel/rust/docs/ATOM_DELEGATION_REWRITE_PLAN.md` 的 EX-6.2。
 //! TS 参考引擎的孪生实现是 `excel/excel-core-ts/src/eval/general-text.ts`
 //! （调用点：`eval/coerce.ts` 的 `toString`，以及宿主的显示边界
-//! `excel/solid-excel/src-vnext/adapter/worker-runtime-ts.ts` 的
+//! `excel/solid-excel/src/adapter/worker-runtime-ts.ts` 的
 //! `valueDisplay`），两侧必须逐字节同判。
 //!
 //! # 这是 Excel 的哪一套规则

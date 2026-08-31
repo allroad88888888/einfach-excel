@@ -3,7 +3,7 @@
 import { afterEach, describe, expect, it } from '@jest/globals'
 import { cleanup, fireEvent, render } from '@solidjs/testing-library'
 import type { DisplayCell } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetCellDisplayValue } from '../src-vnext/grid/SpreadsheetCellDisplayValue'
+import { SpreadsheetCellDisplayValue } from '../src/grid/SpreadsheetCellDisplayValue'
 
 afterEach(cleanup)
 

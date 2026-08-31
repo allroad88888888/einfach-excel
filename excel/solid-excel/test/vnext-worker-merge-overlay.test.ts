@@ -34,14 +34,14 @@ import {
   type DisplayCell,
 } from '@einfach/spreadsheet-ui-core'
 
-import { installWorkerRuntimeTs, type WorkerContext } from '../src-vnext/adapter/worker-runtime-ts'
-import { createWorkerWorkbookSpreadsheetBackend } from '../src-vnext/adapter'
-import type { WorkerLike, WorkerWorkbookSpreadsheetBackend } from '../src-vnext/adapter'
+import { installWorkerRuntimeTs, type WorkerContext } from '../src/adapter/worker-runtime-ts'
+import { createWorkerWorkbookSpreadsheetBackend } from '../src/adapter'
+import type { WorkerLike, WorkerWorkbookSpreadsheetBackend } from '../src/adapter'
 import type {
   FormatRangeSnapshot,
   SparseRangeWire,
   WorkerWorkbookClient,
-} from '../src-vnext/adapter/worker-protocol'
+} from '../src/adapter/worker-protocol'
 
 const SHEET = 'sheet-1'
 

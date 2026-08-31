@@ -1,6 +1,6 @@
 /**
  * Seed data for the "basics" demo — a small, honest team roster. Verified
- * against `excel/solid-excel/src-vnext/adapter/static-backend.ts`: the
+ * against `excel/solid-excel/src/adapter/static-backend.ts`: the
  * static backend's `matrix` seed does NOT parse leading `=` in strings as a
  * formula (every matrix string lands as literal `valueKind: 'string'` text
  * via `valueToDisplayCell`) — formulas only evaluate when set explicitly on
@@ -13,7 +13,7 @@ import type {
   DisplayCell,
   StaticSeedMatrix,
   StaticSpreadsheetSeed,
-} from '@einfach/solid-excel/vnext'
+} from '@einfach/solid-excel'
 
 const matrix: StaticSeedMatrix = [
   ['Name', 'Role', 'Hours Logged', 'Tasks Done', 'Rating'],

@@ -10,8 +10,8 @@ import {
   selectionAggregatesAtom,
   statusBarProjectionCellsAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { spreadsheetProjectionSnapshotAtom, SpreadsheetUiProvider } from '../src-vnext/provider'
-import { SpreadsheetStatusBar } from '../src-vnext/status-bar'
+import { spreadsheetProjectionSnapshotAtom, SpreadsheetUiProvider } from '../src/provider'
+import { SpreadsheetStatusBar } from '../src/status-bar'
 import { setLocale } from '../src/i18n'
 import { seedReadyVisibleProjection } from './projection-test-fixture'
 import {
@@ -177,4 +177,3 @@ describe('vNext status bar aggregates across projection refreshes', () => {
   })
 
 })
-

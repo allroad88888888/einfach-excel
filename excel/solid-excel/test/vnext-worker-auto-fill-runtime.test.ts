@@ -44,7 +44,7 @@ beforeAll(async () => {
       posted.push(message)
     },
   }
-  await import('../src-vnext/adapter/worker-runtime')
+  await import('../src/adapter/worker-runtime')
 })
 
 beforeEach(() => {

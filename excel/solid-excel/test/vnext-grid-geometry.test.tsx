@@ -13,8 +13,8 @@ import {
   setFreezeConfigAtom,
   viewportMetricsAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetGrid } from '../src-vnext/grid'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
+import { SpreadsheetGrid } from '../src/grid'
+import { SpreadsheetUiProvider } from '../src/provider'
 
 const SHEET_ID = 'sheet-1'
 

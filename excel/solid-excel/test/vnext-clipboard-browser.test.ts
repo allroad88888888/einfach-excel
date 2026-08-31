@@ -4,7 +4,7 @@ import {
   clipboardHtmlTableToTsv,
   readBrowserClipboardText,
   writeBrowserClipboard,
-} from '../src-vnext/clipboard/browser-clipboard'
+} from '../src/clipboard/browser-clipboard'
 
 class ClipboardItemMock {
   readonly types: readonly string[]

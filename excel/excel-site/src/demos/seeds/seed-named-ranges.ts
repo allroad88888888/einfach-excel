@@ -20,7 +20,7 @@ import type {
   DisplayCell,
   StaticSeedMatrix,
   StaticSpreadsheetSeed,
-} from '@einfach/solid-excel/vnext'
+} from '@einfach/solid-excel'
 
 /** Explicit id so the pre-registration calls below don't guess the default. */
 export const NAMED_RANGES_SHEET_ID = 'budget'

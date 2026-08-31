@@ -1,8 +1,8 @@
 import { describe, expect, it, jest } from '@jest/globals'
 import type { HistoryEntry, SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
 
-import { createSpreadsheetBackendHandle } from '../src-vnext/provider/backend-handle'
-import { createHistoryEntryRecorder } from '../src-vnext/provider/history-entry-recorder'
+import { createSpreadsheetBackendHandle } from '../src/provider/backend-handle'
+import { createHistoryEntryRecorder } from '../src/provider/history-entry-recorder'
 
 type HistoryCapability = 'full' | 'undo-only' | 'redo-only' | 'none'
 

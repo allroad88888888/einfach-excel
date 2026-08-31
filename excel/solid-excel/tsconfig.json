@@ -7,8 +7,11 @@
     "moduleResolution": "Bundler"
   },
   "include": [
+    "legacy/**/*",
     "src/**/*",
-    "src-vnext/**/*",
+    "src/i18n/**/*.ts",
+    "demo/**/*",
+    "bench/**/*",
     "demo-remote/**/*.ts",
     "demo-remote/**/*.tsx",
     "test/**/*",

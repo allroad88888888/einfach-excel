@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it } from '@jest/globals'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { cleanup, render } from '@solidjs/testing-library'
-import { FillColorPopover } from '../src-vnext/toolbar/FillColorPopover'
+import { FillColorPopover } from '../src/toolbar/FillColorPopover'
 
 const ANCHOR_RECT = {
   bottom: 44,

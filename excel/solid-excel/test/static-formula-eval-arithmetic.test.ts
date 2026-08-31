@@ -26,7 +26,7 @@
 import { describe, expect, it } from '@jest/globals'
 import type { DisplayCell } from '@einfach/spreadsheet-ui-core'
 
-import { evaluateFormula, type EvalCellLookup } from '../src-vnext/adapter/static-formula-eval'
+import { evaluateFormula, type EvalCellLookup } from '../src/adapter/static-formula-eval'
 
 /** Creates a lookup backed by a string-keyed cell map. */
 function lookupFrom(map: Record<string, string | number>): EvalCellLookup {

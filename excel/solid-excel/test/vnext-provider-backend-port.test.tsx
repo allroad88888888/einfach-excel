@@ -9,7 +9,7 @@ import {
   SpreadsheetUiProvider,
   useSpreadsheetBackend,
   useSpreadsheetUiCoreContext,
-} from '../src-vnext/provider'
+} from '../src/provider'
 
 afterEach(cleanup)
 

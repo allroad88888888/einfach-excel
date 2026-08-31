@@ -17,8 +17,8 @@ import {
   historyStackAtom,
   pushHistoryAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
-import { SpreadsheetHistoryTimeline } from '../src-vnext/history'
+import { SpreadsheetUiProvider } from '../src/provider'
+import { SpreadsheetHistoryTimeline } from '../src/history'
 import { seedReadyVisibleProjection } from './projection-test-fixture'
 
 afterEach(cleanup)

@@ -2,8 +2,8 @@ import type { AtomSetResult, AtomSetParameters } from '@einfach/core'
 import type {
   WorkerWorkbookSpreadsheetBackend,
   WorkerWorkbookSpreadsheetBackendOptions,
-} from '@einfach/solid-excel/vnext'
-import { defaultVNextWorkbookWorkerFactory } from '@einfach/solid-excel/vnext-worker-factory'
+} from '@einfach/solid-excel'
+import { defaultVNextWorkbookWorkerFactory } from '@einfach/solid-excel/worker-factory'
 import { makeWasmWorkerBackend } from '../../spreadsheet/backends'
 import {
   projectionWindowLabel,

@@ -7,46 +7,70 @@
   "types": "./@types/src/index.d.ts",
   "exports": {
     ".": {
-      "solid": "./src/index.tsx",
+      "solid": "./src/index.ts",
       "types": "./@types/src/index.d.ts",
       "import": "./esm/src/index.mjs",
       "default": "./esm/src/index.mjs"
     },
     "./vnext": {
-      "solid": "./src-vnext/public.ts",
-      "types": "./@types/src-vnext/public.d.ts",
-      "import": "./esm/src-vnext/public.mjs",
-      "default": "./esm/src-vnext/public.mjs"
+      "solid": "./src/public.ts",
+      "types": "./@types/src/public.d.ts",
+      "import": "./esm/src/public.mjs",
+      "default": "./esm/src/public.mjs"
+    },
+    "./worker-factory": {
+      "solid": "./src/adapter/worker-factory.ts",
+      "types": "./@types/src/adapter/worker-factory.d.ts",
+      "import": "./esm/src/adapter/worker-factory.mjs",
+      "default": "./esm/src/adapter/worker-factory.mjs"
     },
     "./vnext-worker-factory": {
-      "solid": "./src-vnext/adapter/worker-factory.ts",
-      "types": "./@types/src-vnext/adapter/worker-factory.d.ts",
-      "import": "./esm/src-vnext/adapter/worker-factory.mjs",
-      "default": "./esm/src-vnext/adapter/worker-factory.mjs"
+      "solid": "./src/adapter/worker-factory.ts",
+      "types": "./@types/src/adapter/worker-factory.d.ts",
+      "import": "./esm/src/adapter/worker-factory.mjs",
+      "default": "./esm/src/adapter/worker-factory.mjs"
+    },
+    "./worker-runtime": {
+      "solid": "./src/adapter/worker-runtime.ts",
+      "types": "./@types/src/adapter/worker-runtime.d.ts",
+      "import": "./esm/src/adapter/worker-runtime.mjs",
+      "default": "./esm/src/adapter/worker-runtime.mjs"
     },
     "./vnext-worker-runtime": {
-      "solid": "./src-vnext/adapter/worker-runtime.ts",
-      "types": "./@types/src-vnext/adapter/worker-runtime.d.ts",
-      "import": "./esm/src-vnext/adapter/worker-runtime.mjs",
-      "default": "./esm/src-vnext/adapter/worker-runtime.mjs"
+      "solid": "./src/adapter/worker-runtime.ts",
+      "types": "./@types/src/adapter/worker-runtime.d.ts",
+      "import": "./esm/src/adapter/worker-runtime.mjs",
+      "default": "./esm/src/adapter/worker-runtime.mjs"
+    },
+    "./worker-runtime-full": {
+      "solid": "./src/adapter/worker-runtime-full.ts",
+      "types": "./@types/src/adapter/worker-runtime-full.d.ts",
+      "import": "./esm/src/adapter/worker-runtime-full.mjs",
+      "default": "./esm/src/adapter/worker-runtime-full.mjs"
     },
     "./vnext-worker-runtime-full": {
-      "solid": "./src-vnext/adapter/worker-runtime-full.ts",
-      "types": "./@types/src-vnext/adapter/worker-runtime-full.d.ts",
-      "import": "./esm/src-vnext/adapter/worker-runtime-full.mjs",
-      "default": "./esm/src-vnext/adapter/worker-runtime-full.mjs"
+      "solid": "./src/adapter/worker-runtime-full.ts",
+      "types": "./@types/src/adapter/worker-runtime-full.d.ts",
+      "import": "./esm/src/adapter/worker-runtime-full.mjs",
+      "default": "./esm/src/adapter/worker-runtime-full.mjs"
+    },
+    "./worker-runtime-core": {
+      "solid": "./src/adapter/worker-runtime-core.ts",
+      "types": "./@types/src/adapter/worker-runtime-core.d.ts",
+      "import": "./esm/src/adapter/worker-runtime-core.mjs",
+      "default": "./esm/src/adapter/worker-runtime-core.mjs"
     },
     "./vnext-worker-runtime-core": {
-      "solid": "./src-vnext/adapter/worker-runtime-core.ts",
-      "types": "./@types/src-vnext/adapter/worker-runtime-core.d.ts",
-      "import": "./esm/src-vnext/adapter/worker-runtime-core.mjs",
-      "default": "./esm/src-vnext/adapter/worker-runtime-core.mjs"
+      "solid": "./src/adapter/worker-runtime-core.ts",
+      "types": "./@types/src/adapter/worker-runtime-core.d.ts",
+      "import": "./esm/src/adapter/worker-runtime-core.mjs",
+      "default": "./esm/src/adapter/worker-runtime-core.mjs"
     },
     "./legacy": {
-      "solid": "./src/index.tsx",
-      "types": "./@types/src/index.d.ts",
-      "import": "./esm/src/index.mjs",
-      "default": "./esm/src/index.mjs"
+      "solid": "./legacy/index.tsx",
+      "types": "./@types/legacy/index.d.ts",
+      "import": "./esm/legacy/index.mjs",
+      "default": "./esm/legacy/index.mjs"
     },
     "./demos": {
       "solid": "./src/demos/index.ts",
@@ -60,7 +84,8 @@
       "import": "./esm/src/i18n/index.mjs",
       "default": "./esm/src/i18n/index.mjs"
     },
-    "./vnext-styles.css": "./src-vnext/styles/index.css",
+    "./styles.css": "./src/styles/index.css",
+    "./vnext-styles.css": "./src/styles/index.css",
     "./package.json": "./package.json"
   },
   "license": "MIT",
@@ -74,11 +99,11 @@
     "url": "https://github.com/allroad88888888/einfach-excel/issues"
   },
   "files": [
+    "legacy",
     "src",
-    "src-vnext",
     "esm",
     "@types/src",
-    "@types/src-vnext",
+    "@types/legacy",
     "README.md"
   ],
   "engines": {

@@ -7,6 +7,6 @@
   },
   "include": [
     "../spreadsheet-ui-core/src/**/*.ts",
-    "../solid-excel/src-vnext/**/*.ts"
+    "../solid-excel/src/**/*.ts"
   ]
 }

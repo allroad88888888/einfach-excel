@@ -7,8 +7,8 @@ import {
   workspaceSessionAtom,
   type ViewportMetrics,
 } from '@einfach/spreadsheet-ui-core'
-import type { SpreadsheetUiProviderProps } from '@einfach/solid-excel/vnext'
-import { SpreadsheetGrid, useSpreadsheetUiStore } from '@einfach/solid-excel/vnext'
+import type { SpreadsheetUiProviderProps } from '@einfach/solid-excel'
+import { SpreadsheetGrid, useSpreadsheetUiStore } from '@einfach/solid-excel'
 import SpreadsheetChrome from '../../spreadsheet/SpreadsheetChrome'
 
 interface DemoGridProps {

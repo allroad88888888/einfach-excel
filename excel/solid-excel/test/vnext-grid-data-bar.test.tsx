@@ -3,8 +3,8 @@
 import { afterEach, describe, expect, test } from '@jest/globals'
 import { cleanup, render } from '@solidjs/testing-library'
 import type { DisplayCell } from '@einfach/spreadsheet-ui-core'
-import { withDataBarProjection } from '../src-vnext/adapter/data-bar-projection'
-import { SpreadsheetGridDataBar } from '../src-vnext/grid/SpreadsheetGridDataBar'
+import { withDataBarProjection } from '../src/adapter/data-bar-projection'
+import { SpreadsheetGridDataBar } from '../src/grid/SpreadsheetGridDataBar'
 
 afterEach(cleanup)
 

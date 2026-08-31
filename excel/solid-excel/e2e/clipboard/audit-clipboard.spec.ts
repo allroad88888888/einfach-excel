@@ -56,7 +56,7 @@ function display(page: Page, addr: string) {
 
 /**
  * Send Ctrl+C / Ctrl+V / Ctrl+X. The grid handler in
- * src-vnext/grid/SpreadsheetGrid.tsx dispatches keyboard intents through
+ * src/grid/SpreadsheetGrid.tsx dispatches keyboard intents through
  * dispatchKeyboardInputAtom, so the modifier needs to match the platform
  * (Meta on macOS, Control elsewhere). Wave 5 wires both via
  * keyboard/index.ts → 'clipboard.copy' | 'clipboard.cut' | 'clipboard.paste'.

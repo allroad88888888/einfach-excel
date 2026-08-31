@@ -7,7 +7,7 @@
  */
 import { describe, expect, it } from '@jest/globals'
 
-import { createWorkerWorkbook, type WorkerLike } from '../src-vnext/adapter/worker-protocol'
+import { createWorkerWorkbook, type WorkerLike } from '../src/adapter/worker-protocol'
 
 type AnyListener = (e: MessageEvent) => void
 

@@ -8,9 +8,9 @@ import {
   viewportSizeOverridesAtom,
   type SpreadsheetBackend,
 } from '@einfach/spreadsheet-ui-core'
-import { createGridDomAdapter } from '../src-vnext/grid/grid-dom-adapter'
-import { installGridAutoFitController } from '../src-vnext/grid/grid-auto-fit-controller'
-import { installGridResizeController } from '../src-vnext/grid/grid-resize-controller'
+import { createGridDomAdapter } from '../src/grid/grid-dom-adapter'
+import { installGridAutoFitController } from '../src/grid/grid-auto-fit-controller'
+import { installGridResizeController } from '../src/grid/grid-resize-controller'
 
 type AutoFitRuntime = Parameters<typeof installGridAutoFitController>[0]
 type ResizeRuntime = Parameters<typeof installGridResizeController>[0]

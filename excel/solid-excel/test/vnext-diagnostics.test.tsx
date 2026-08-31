@@ -24,8 +24,8 @@ import {
   type SpreadsheetBackend,
 } from '@einfach/spreadsheet-ui-core'
 
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
-import { SpreadsheetDiagnostics } from '../src-vnext/diagnostics'
+import { SpreadsheetUiProvider } from '../src/provider'
+import { SpreadsheetDiagnostics } from '../src/diagnostics'
 
 afterEach(cleanup)
 

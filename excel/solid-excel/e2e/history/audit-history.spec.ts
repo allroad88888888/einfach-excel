@@ -16,7 +16,7 @@ import { test, expect, type Page } from '@playwright/test'
  *   - Click history-timeline-undo → cell does NOT revert.
  *
  * Likely root cause class (kept here as a hint, not asserted):
- *   - `commitCellEdit` in excel/solid-excel/src-vnext/grid/SpreadsheetGrid.tsx
+ *   - `commitCellEdit` in excel/solid-excel/src/grid/SpreadsheetGrid.tsx
  *     calls `backend.setCellInput` but never `pushHistoryAtom`, so the
  *     cell.input mutation never enters the history stack.
  *   - The Edit-menu and grid-keyboard handlers call `undoHistoryAtom`

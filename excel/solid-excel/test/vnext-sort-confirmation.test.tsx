@@ -9,8 +9,8 @@ import {
   type SortRangeRequest,
   type SpreadsheetBackend,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
-import { SpreadsheetToolbar } from '../src-vnext/toolbar'
+import { SpreadsheetUiProvider } from '../src/provider'
+import { SpreadsheetToolbar } from '../src/toolbar'
 
 afterEach(cleanup)
 

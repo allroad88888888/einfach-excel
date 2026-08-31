@@ -16,7 +16,7 @@
  */
 import { describe, expect, test } from '@jest/globals'
 
-import { createWorkerRuntimeTs } from '../src-vnext/adapter/worker-runtime-ts'
+import { createWorkerRuntimeTs } from '../src/adapter/worker-runtime-ts'
 
 interface Rpc {
   (req: Record<string, unknown>): Promise<unknown>

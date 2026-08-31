@@ -4,10 +4,10 @@ import {
   type PrintConfig,
   type ReadPrintConfigRequest,
 } from '@einfach/spreadsheet-ui-core'
-import { createStaticSpreadsheetBackend } from '../src-vnext/adapter/static/backend'
-import { createWorkerWorkbookSpreadsheetBackend } from '../src-vnext/adapter/worker/backend'
-import { createWorkerRuntimeTs } from '../src-vnext/adapter/worker-runtime-ts'
-import type { WorkerWorkbookClient } from '../src-vnext/adapter/worker-protocol'
+import { createStaticSpreadsheetBackend } from '../src/adapter/static/backend'
+import { createWorkerWorkbookSpreadsheetBackend } from '../src/adapter/worker/backend'
+import { createWorkerRuntimeTs } from '../src/adapter/worker-runtime-ts'
+import type { WorkerWorkbookClient } from '../src/adapter/worker-protocol'
 
 type RpcRequest = { id: number; cmd: string; [key: string]: unknown }
 type RpcPayload = Omit<RpcRequest, 'id'> & { cmd: string }

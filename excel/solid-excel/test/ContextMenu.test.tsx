@@ -2,7 +2,7 @@
 
 import { describe, it, expect, afterEach, jest } from '@jest/globals'
 import { render, cleanup, fireEvent } from '@solidjs/testing-library'
-import { ContextMenu, type ContextMenuItem } from '../src/ContextMenu'
+import { ContextMenu, type ContextMenuItem } from '../legacy/ContextMenu'
 
 afterEach(() => {
   cleanup()

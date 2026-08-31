@@ -29,8 +29,8 @@ import {
   updateFindReplaceFormAtom,
   viewportMetricsAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
-import { SpreadsheetFindReplaceDialog } from '../src-vnext/find-replace'
+import { SpreadsheetUiProvider } from '../src/provider'
+import { SpreadsheetFindReplaceDialog } from '../src/find-replace'
 import { setLocale } from '../src/i18n'
 
 afterEach(cleanup)

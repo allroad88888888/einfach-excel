@@ -24,8 +24,8 @@ import {
   setViewportMetricsAtom,
   setWorkspaceActiveSheetAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
-import { SpreadsheetGoToDialog } from '../src-vnext/go-to'
+import { SpreadsheetUiProvider } from '../src/provider'
+import { SpreadsheetGoToDialog } from '../src/go-to'
 
 afterEach(cleanup)
 

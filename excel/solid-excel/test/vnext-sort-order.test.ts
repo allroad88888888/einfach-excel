@@ -16,7 +16,7 @@ import {
   SORT_TYPE_RANK,
   type ResolvedSortKey,
   type SortValue,
-} from '../src-vnext/adapter/sort-order'
+} from '../src/adapter/sort-order'
 
 const num = (value: number): SortValue => ({ kind: 'number', value })
 const text = (value: string): SortValue => ({ kind: 'text', value })

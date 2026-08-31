@@ -2,7 +2,7 @@
  * 双后端(?backend= 参数)e2e 分流的单一事实源。
  *
  * 背景:两个 Playwright project(wasm/ts)唯一差别是 baseURL 的 `?backend=`。
- * 全仓只有 VNextWorkerDemo(src-vnext/demos/VNextWorkerDemo.tsx readBackendChoice)
+ * 全仓只有 VNextWorkerDemo(src/demos/VNextWorkerDemo.tsx readBackendChoice)
  * 读这个参数 —— 其余 demo 硬接固定后端,对它们双跑只是把同一套 UI 断言原样跑两遍
  * (审计时 611/752 个 test 属于这种浪费,见 e2e/BACKEND_PARITY.md § Projects)。
  *

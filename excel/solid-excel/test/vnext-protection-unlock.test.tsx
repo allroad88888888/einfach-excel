@@ -16,8 +16,8 @@ import {
   setSheetProtectionAtom,
   sheetProtectionAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
-import { SpreadsheetProtectionUnlockDialog } from '../src-vnext/protection'
+import { SpreadsheetUiProvider } from '../src/provider'
+import { SpreadsheetProtectionUnlockDialog } from '../src/protection'
 
 afterEach(cleanup)
 

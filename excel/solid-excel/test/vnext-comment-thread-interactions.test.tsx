@@ -14,8 +14,8 @@ import {
   openCommentSessionAtom,
   setCommentDraftAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetCommentThread } from '../src-vnext/comments'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
+import { SpreadsheetCommentThread } from '../src/comments'
+import { SpreadsheetUiProvider } from '../src/provider'
 
 afterEach(() => {
   cleanup()

@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals'
 import { createRangeProjectionRequest } from '@einfach/spreadsheet-ui-core'
-import { createStaticSpreadsheetBackend } from '../src-vnext/adapter'
+import { createStaticSpreadsheetBackend } from '../src/adapter'
 
 /**
  * Wave 7.3 paste-special review MEDIUM #4: arithmetic-coercion contract

@@ -1,6 +1,6 @@
 /**
  * `@einfach/solid-excel` 的双形态预编译管线（ADR 0019）。不走通用 products 管线：
- * 多入口（vnext 公共面 + worker 运行时族 + legacy/demos/i18n）、只出 ESM
+ * 多入口（现役公共面 + worker 运行时族 + legacy）、只出 ESM
  * （worker-factory 依赖 `import.meta`，CJS 形态无意义）、依赖一律 external
  * （尤其 solid-js —— 打进产物会复发 ADR 0001 的双实例 bug）。
  *
@@ -20,15 +20,16 @@ const SOLID_EXCEL = 'excel/solid-excel'
 const esmDir = path.resolve(dirName, SOLID_EXCEL, 'esm')
 
 const entries = {
-  'src/index': `${SOLID_EXCEL}/src/index.tsx`,
+  'legacy/index': `${SOLID_EXCEL}/legacy/index.tsx`,
+  'src/index': `${SOLID_EXCEL}/src/index.ts`,
+  'src/public': `${SOLID_EXCEL}/src/public.ts`,
   'src/demos/index': `${SOLID_EXCEL}/src/demos/index.ts`,
   'src/i18n/index': `${SOLID_EXCEL}/src/i18n/index.ts`,
-  'src-vnext/public': `${SOLID_EXCEL}/src-vnext/public.ts`,
-  'src-vnext/adapter/worker-factory': `${SOLID_EXCEL}/src-vnext/adapter/worker-factory.ts`,
-  'src-vnext/adapter/worker-runtime': `${SOLID_EXCEL}/src-vnext/adapter/worker-runtime.ts`,
-  'src-vnext/adapter/worker-runtime-full': `${SOLID_EXCEL}/src-vnext/adapter/worker-runtime-full.ts`,
-  'src-vnext/adapter/worker-runtime-core': `${SOLID_EXCEL}/src-vnext/adapter/worker-runtime-core.ts`,
-  'src-vnext/adapter/worker-entry-ts': `${SOLID_EXCEL}/src-vnext/adapter/worker-entry-ts.ts`,
+  'src/adapter/worker-factory': `${SOLID_EXCEL}/src/adapter/worker-factory.ts`,
+  'src/adapter/worker-runtime': `${SOLID_EXCEL}/src/adapter/worker-runtime.ts`,
+  'src/adapter/worker-runtime-full': `${SOLID_EXCEL}/src/adapter/worker-runtime-full.ts`,
+  'src/adapter/worker-runtime-core': `${SOLID_EXCEL}/src/adapter/worker-runtime-core.ts`,
+  'src/adapter/worker-entry-ts': `${SOLID_EXCEL}/src/adapter/worker-entry-ts.ts`,
 }
 
 /** 把 worker URL 字面量里的源码后缀改写成预编译后缀。 */
@@ -66,9 +67,8 @@ function keepCssExternal() {
       return null
     },
     writeBundle() {
-      for (const sub of ['src', 'src-vnext']) {
-        copyCssTree(path.resolve(dirName, SOLID_EXCEL, sub), path.resolve(esmDir, sub))
-      }
+      copyCssTree(path.resolve(dirName, SOLID_EXCEL, 'legacy'), path.resolve(esmDir, 'legacy'))
+      copyCssTree(path.resolve(dirName, SOLID_EXCEL, 'src'), path.resolve(esmDir, 'src'))
     },
   }
 }

@@ -37,7 +37,7 @@ import type {
   WorkerWorkbookBackendSheet,
   WorkerWorkbookBackendSheetInput,
   WorkerWorkbookClient,
-} from '@einfach/solid-excel/vnext'
+} from '@einfach/solid-excel'
 
 /** The actual seeded shape — the demo page's header copy reads these, not a guess. */
 export const PERFORMANCE_DATA_ROWS = 100_000

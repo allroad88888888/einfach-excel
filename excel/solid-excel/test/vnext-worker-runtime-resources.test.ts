@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, test } from '@jest/globals'
 
-import type { ImportSession } from '../src-vnext/adapter/worker-import-normalize'
-import { createWorkerWorkbookRuntimeResources } from '../src-vnext/adapter/worker-runtime-resources'
-import type { WasmWorkbookRuntime } from '../src-vnext/adapter/wasm-workbook-surface'
+import type { ImportSession } from '../src/adapter/worker-import-normalize'
+import { createWorkerWorkbookRuntimeResources } from '../src/adapter/worker-runtime-resources'
+import type { WasmWorkbookRuntime } from '../src/adapter/wasm-workbook-surface'
 
 type PostedMessage = { id?: number; ok?: boolean; result?: unknown }
 

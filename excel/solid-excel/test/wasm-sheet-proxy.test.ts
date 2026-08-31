@@ -1,6 +1,6 @@
 import { describe, it, expect } from '@jest/globals'
 import type * as JestGlobalsModule from '@jest/globals'
-import { createWorkerSheet, type WorkerLike } from '../src/wasm-sheet-proxy'
+import { createWorkerSheet, type WorkerLike } from '../legacy/wasm-sheet-proxy'
 
 /**
  * Step 1 tests cover the proxy ↔ worker wire protocol without spinning up a
@@ -446,7 +446,7 @@ describe('wasm-sheet-proxy (7C Step 1)', () => {
       // terminates the underlying Worker thread.
       const fake = makeFakeWorker()
       const sheet = createWorkerSheet({ workerFactory: () => fake })
-      const { createSheetStore } = await import('../src/sheet-store')
+      const { createSheetStore } = await import('../legacy/sheet-store')
       const store = createSheetStore(sheet)
       store.observeCell('A1') // give the store a live handle to release.
       expect(fake._terminateCount).toBe(0)

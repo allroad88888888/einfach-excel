@@ -1,6 +1,6 @@
 /**
  * #27 S4 — the pure derivation both adapters share
- * (`src-vnext/adapter/filter-hidden-rows.ts`), plus the tier-3 capability
+ * (`src/adapter/filter-hidden-rows.ts`), plus the tier-3 capability
  * witness. The tier-2 (old wasm-pkg) degradation is pinned end-to-end in
  * vnext-worker-filter-sort.test.tsx, where the client double lives.
  *
@@ -16,8 +16,8 @@
 import { describe, expect, it } from '@jest/globals'
 
 import type { FilterSortState } from '@einfach/spreadsheet-ui-core'
-import { filterHiddenRowsFromDisplayRows } from '../src-vnext/adapter/filter-hidden-rows'
-import { buildFilterSortDisplayRows } from '../src-vnext/adapter/filter-predicate'
+import { filterHiddenRowsFromDisplayRows } from '../src/adapter/filter-hidden-rows'
+import { buildFilterSortDisplayRows } from '../src/adapter/filter-predicate'
 
 describe('filterHiddenRowsFromDisplayRows', () => {
   it('reports the scanned rows the permutation does not display', () => {
@@ -98,7 +98,7 @@ describe('filterHiddenRowsFromDisplayRows', () => {
 describe('tier-3 degradation: the TS runtime (design §6.5)', () => {
   it('declares the family false so the adapter never sends the RPC', async () => {
     const { TS_WORKER_RUNTIME_CAPABILITIES } = await import(
-      '../src-vnext/adapter/worker-runtime-ts'
+      '../src/adapter/worker-runtime-ts'
     )
     // Fail-closed, never a fake ACK: the adapter reads this witness and skips
     // the push entirely, so the TS host keeps today's SUBTOTAL behaviour

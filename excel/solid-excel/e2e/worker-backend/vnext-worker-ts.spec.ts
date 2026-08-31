@@ -9,7 +9,7 @@
  * TS worker can serve a non-trivial sheet end-to-end (registry dispatch +
  * sheetAtom invalidation + projection refresh + spill projection all live).
  *
- * Demo seeding lives in `excel/solid-excel/src-vnext/demos/VNextWorkerTsDemo.tsx`:
+ * Demo seeding lives in `excel/solid-excel/src/demos/VNextWorkerTsDemo.tsx`:
  *   A1..A4 = Region/North/South/East ; A5 = Total
  *   B1..B4 = Sales/10/20/30          ; B5 = =SUM(B2:B4)
  *   C2     = =UPPER(A2)              → "NORTH" (Wave C/C4 text)

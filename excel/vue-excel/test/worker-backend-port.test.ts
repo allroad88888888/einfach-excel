@@ -1,7 +1,7 @@
 import {
   createWorkerWorkbookSpreadsheetBackend,
   type WorkerWorkbookClient,
-} from '../../solid-excel/src-vnext/adapter'
+} from '../../solid-excel/src/adapter'
 import type { SpreadsheetUiCore } from '@einfach/spreadsheet-ui-core'
 import { describe, expect, it } from '@jest/globals'
 import { createApp, defineComponent, h } from 'vue'

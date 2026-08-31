@@ -78,9 +78,9 @@ test.describe('AD-826 first-screen formula evaluation observation', () => {
           throw new Error(`AD-826 requires a ts or wasm backend, received ${requested}`)
         }
 
-        const { createWorkerWorkbook } = await import('/src-vnext/adapter/worker-protocol.ts')
+        const { createWorkerWorkbook } = await import('/src/adapter/worker-protocol.ts')
         const { defaultExcelCoreTsWorkerFactory, defaultVNextWorkbookWorkerFactory } = await import(
-          '/src-vnext/adapter/worker-factory.ts'
+          '/src/adapter/worker-factory.ts'
         )
         const workerFactory =
           requested === 'ts' ? defaultExcelCoreTsWorkerFactory : defaultVNextWorkbookWorkerFactory

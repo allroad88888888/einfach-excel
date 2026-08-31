@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals'
 import { createRangeProjectionRequest, type DisplayCell } from '@einfach/spreadsheet-ui-core'
-import { createStaticSpreadsheetBackend } from '../src-vnext/adapter'
+import { createStaticSpreadsheetBackend } from '../src/adapter'
 
 // Pins the static-backend structural remap of merge ranges and freeze
 // panes across insertRows / deleteRows / insertColumns / deleteColumns,

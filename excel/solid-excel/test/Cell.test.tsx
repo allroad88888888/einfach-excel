@@ -2,9 +2,9 @@
 
 import { describe, it, expect, afterEach } from '@jest/globals'
 import { render, cleanup, fireEvent } from '@solidjs/testing-library'
-import { Cell } from '../src/Cell'
-import { createSheetStore } from '../src/sheet-store'
-import { createJSSheet } from '../src/js-sheet'
+import { Cell } from '../legacy/Cell'
+import { createSheetStore } from '../legacy/sheet-store'
+import { createJSSheet } from '../legacy/js-sheet'
 
 afterEach(cleanup)
 

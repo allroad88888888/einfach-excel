@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals'
 import type { HistoryLifecycleState } from '@einfach/spreadsheet-ui-core'
 
-import { historyLifecycleFeedback } from '../src-vnext/history/history-feedback'
+import { historyLifecycleFeedback } from '../src/history/history-feedback'
 
 function lifecycle(status: HistoryLifecycleState['status'], error = ''): HistoryLifecycleState {
   return {

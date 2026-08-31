@@ -6,8 +6,8 @@ import {
   type CellCoord,
   type SpreadsheetBackend,
 } from '@einfach/spreadsheet-ui-core'
-import { createGridDomAdapter } from '../src-vnext/grid/grid-dom-adapter'
-import { installGridPointerSelection } from '../src-vnext/grid/grid-pointer-selection'
+import { createGridDomAdapter } from '../src/grid/grid-dom-adapter'
+import { installGridPointerSelection } from '../src/grid/grid-pointer-selection'
 
 type PointerRuntime = Parameters<typeof installGridPointerSelection>[0]
 

@@ -29,7 +29,7 @@ import type {
 
 import type * as NodeFsModule from 'node:fs'
 import type * as NodePathModule from 'node:path'
-import type { WorkerLike, WorkerWorkbookSpreadsheetBackend } from '../src-vnext/adapter'
+import type { WorkerLike, WorkerWorkbookSpreadsheetBackend } from '../src/adapter'
 
 jest.mock('@einfach/excel-wasm', () => {
   /* eslint-disable @typescript-eslint/no-var-requires */
@@ -90,8 +90,8 @@ beforeAll(async () => {
       toWorker.push(listener)
     },
   }
-  await import('../src-vnext/adapter/worker-runtime')
-  const adapter = await import('../src-vnext/adapter')
+  await import('../src/adapter/worker-runtime')
+  const adapter = await import('../src/adapter')
   createBackendImpl = () =>
     adapter.createWorkerWorkbookSpreadsheetBackend({
       workerFactory: () => inProcessWorker,
@@ -762,7 +762,7 @@ describe('worker adapter Excel Table definition undo — real WASM engine + real
   })
 
   test('#26 a workbook of LITERALS over the old cap no longer degrades anything', async () => {
-    const adapter = await import('../src-vnext/adapter')
+    const adapter = await import('../src/adapter')
     const backend = await createBackend()
     await seedTableData(backend)
 
@@ -796,7 +796,7 @@ describe('worker adapter Excel Table definition undo — real WASM engine + real
   })
 
   test('#26 over WORKER_TABLE_FORMULA_SNAPSHOT_MAX a RENAME still degrades to not-undoable', async () => {
-    const adapter = await import('../src-vnext/adapter')
+    const adapter = await import('../src/adapter')
     const cap = adapter.WORKER_TABLE_FORMULA_SNAPSHOT_MAX
     const backend = await createBackend()
     await seedTableData(backend)

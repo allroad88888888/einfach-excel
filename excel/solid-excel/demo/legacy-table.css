@@ -1,0 +1,164 @@
+/* === Excel Table === */
+
+.excel-table-wrapper {
+  overflow: auto;
+  max-height: 70vh;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.excel-table {
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.excel-table th,
+.excel-table td {
+  border: 1px solid #d8d8d8;
+  padding: 0;
+  height: 26px;
+  /* Fixed column width — required so 2D virtualization math
+   * (leftPad/rightPad spacers in px) lines up with the actual rendered
+   * column width. `table-layout: fixed` (set on .excel-table) takes the
+   * column widths from cells in the first row; we override per-class
+   * for .row-header below. */
+  width: 100px;
+}
+
+/* Row-virtualization spacer rows — invisible, but their height pads the
+ * total scroll height so scrollbars track the real (un-windowed) row count.
+ * No border, no padding, transparent so the wrapper background shows through. */
+.virt-spacer,
+.virt-spacer td {
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+
+/* Headers */
+
+.col-header,
+.row-header {
+  background: #f8f9fa;
+  color: #444;
+  font-weight: 500;
+  text-align: center;
+  padding: 2px 6px;
+  position: sticky;
+  user-select: none;
+  font-size: 12px;
+}
+
+.col-header {
+  top: 0;
+  z-index: 2;
+  border-bottom: 2px solid #d0d0d0;
+}
+
+.row-header {
+  left: 0;
+  z-index: 1;
+  min-width: 44px;
+  width: 44px;
+  border-right: 2px solid #d0d0d0;
+}
+
+/* Corner cell (top-left) */
+thead .row-header {
+  z-index: 3;
+  position: sticky;
+  left: 0;
+  top: 0;
+}
+
+/* Cells */
+
+.cell {
+  cursor: cell;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  background: #fff;
+}
+
+.cell:hover {
+  background: #f0f6ff;
+}
+
+.cell-display {
+  display: block;
+  /* Vertical padding intentionally 0: cell rendered height must equal the
+   * logical metrics.rowHeight (default 24) so virtualization, sticky-top of
+   * frozen rows, and SVG overlay coordinates all agree. Earlier `3px` top/
+   * bottom padded the line-height up to 26 px, which table-cell then expanded
+   * to 28 px including the 2 px border — that mismatch made frozen-row sticky
+   * tops land 4 px above their visual cell bottom, so scrolling exposed a
+   * gap/overlap between the first and second frozen row. */
+  padding: 0 6px;
+  height: 100%;
+  line-height: 20px;
+  /* `background-color` does not normally inherit, so a TD with an inline
+   * `background: #ffd966` would leave the span transparent — surfacing the
+   * cell tint only in the 6px horizontal padding. Forcing inheritance keeps
+   * the visual identical (TD + span paint the same fill) and lets e2e
+   * assertions read the fill via `getComputedStyle(span).backgroundColor`
+   * without relying on parent-bleed quirks. Inline `cell.style.background`
+   * stays on the TD only, so unit tests that assert
+   * `display.style.background === ''` continue to hold. */
+  background-color: inherit;
+}
+
+.cell-number .cell-display {
+  text-align: right;
+  color: #1a1a1a;
+}
+
+.cell-text .cell-display {
+  color: #1a1a1a;
+}
+
+.cell-null .cell-display {
+  color: #ccc;
+}
+
+.cell-error {
+  background: #fff5f5;
+}
+
+.cell-error .cell-display {
+  color: #cc0000;
+  font-size: 11px;
+}
+
+/* Edit mode */
+
+.cell-input {
+  width: 100%;
+  height: 100%;
+  border: 2px solid #1a73e8;
+  outline: none;
+  padding: 2px 5px;
+  font-size: 13px;
+  font-family: inherit;
+  box-sizing: border-box;
+  background: #fff;
+}
+
+/* Selected cell highlight (focus cell — outlined + slightly darker tint) */
+.cell-selected {
+  outline: 2px solid #1a73e8;
+  outline-offset: -2px;
+  background: #e8f0fe;
+}
+
+.cell-active {
+  outline: 2px solid #1a73e8;
+  outline-offset: -2px;
+  background: #e8f0fe;
+}
+
+
+/* VNext surface styles live in the framework-neutral
+ * @einfach/spreadsheet-ui-styles package. Import its styles.css entry
+ * alongside this legacy demo shell stylesheet. */

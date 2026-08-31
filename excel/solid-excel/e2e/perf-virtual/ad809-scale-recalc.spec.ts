@@ -59,9 +59,9 @@ test.describe('AD-809 filled-at-scale recalculation observation', () => {
 
     const measurement = await page.evaluate(
       async ({ rows, cols, windowRows }): Promise<Measurement> => {
-        const { createWorkerWorkbook } = await import('/src-vnext/adapter/worker-protocol.ts')
+        const { createWorkerWorkbook } = await import('/src/adapter/worker-protocol.ts')
         const { defaultVNextWorkbookWorkerFactory } = await import(
-          '/src-vnext/adapter/worker-factory.ts'
+          '/src/adapter/worker-factory.ts'
         )
         const workbook = createWorkerWorkbook({ workerFactory: defaultVNextWorkbookWorkerFactory })
 

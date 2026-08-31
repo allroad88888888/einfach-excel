@@ -13,9 +13,9 @@ import {
   selectionAtom,
   setWorkspaceActiveSheetAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetMenuBar } from '../src-vnext/menu-bar'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
-import { SpreadsheetToolbar } from '../src-vnext/toolbar'
+import { SpreadsheetMenuBar } from '../src/menu-bar'
+import { SpreadsheetUiProvider } from '../src/provider'
+import { SpreadsheetToolbar } from '../src/toolbar'
 
 afterEach(cleanup)
 

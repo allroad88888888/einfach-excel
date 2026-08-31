@@ -11,8 +11,8 @@ import type {
   VisibleProjectionResult,
 } from '@einfach/spreadsheet-ui-core'
 import { setFormulaReferenceCaretAtom, startEditingAtom } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetFormulaAutocomplete } from '../src-vnext/formula-autocomplete'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
+import { SpreadsheetFormulaAutocomplete } from '../src/formula-autocomplete'
+import { SpreadsheetUiProvider } from '../src/provider'
 
 afterEach(cleanup)
 

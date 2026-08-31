@@ -2,7 +2,7 @@ import type {
   WorkerWorkbookBackendSheet,
   WorkerWorkbookBackendSheetInput,
   WorkerWorkbookClient,
-} from '@einfach/solid-excel/vnext'
+} from '@einfach/solid-excel'
 
 export const customFormulaSheets: WorkerWorkbookBackendSheetInput[] = [
   { id: 'items', name: 'Items' },

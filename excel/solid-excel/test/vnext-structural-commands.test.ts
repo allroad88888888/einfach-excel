@@ -4,7 +4,7 @@ import type { SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
 import {
   dispatchStructuralCommand,
   type StructuralCommandDispatchContext,
-} from '../src-vnext/structural-commands'
+} from '../src/structural-commands'
 
 describe('structural command host dispatch', () => {
   test('injects host ports into a core command runner without retaining state', () => {

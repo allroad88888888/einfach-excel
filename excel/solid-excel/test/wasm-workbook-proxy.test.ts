@@ -9,7 +9,7 @@ import {
   type ImportCellIssueWire,
   type ImportCellWire,
   type WorkerLike,
-} from '../src/wasm-workbook-proxy'
+} from '../legacy/wasm-workbook-proxy'
 
 interface FakeWorker extends WorkerLike {
   sent: unknown[]

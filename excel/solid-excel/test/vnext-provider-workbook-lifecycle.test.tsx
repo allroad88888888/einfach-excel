@@ -22,7 +22,7 @@ import {
   customFormulasSupportedAtom,
   spreadsheetBackendAtom,
   spreadsheetWorkbookLifecycleAtom,
-} from '../src-vnext/provider'
+} from '../src/provider'
 
 afterEach(cleanup)
 

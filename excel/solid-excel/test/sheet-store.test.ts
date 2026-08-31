@@ -2,8 +2,8 @@
 
 import { describe, it, expect } from '@jest/globals'
 import { createRoot } from 'solid-js'
-import { createSheetStore, parseClipboardTSV, serializeClipboardTSV } from '../src/sheet-store'
-import { createJSSheet } from '../src/js-sheet'
+import { createSheetStore, parseClipboardTSV, serializeClipboardTSV } from '../legacy/sheet-store'
+import { createJSSheet } from '../legacy/js-sheet'
 
 function createTestStore() {
   const sheet = createJSSheet()

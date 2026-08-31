@@ -1,5 +1,5 @@
 /**
- * Every dialog/overlay surface `@einfach/solid-excel/vnext` ships, mounted
+ * Every dialog/overlay surface `@einfach/solid-excel` ships, mounted
  * unconditionally. None
  * of these components take required props; each one reads its own
  * open/closed state from the spreadsheet store, so mounting is a no-op
@@ -24,7 +24,7 @@ import {
   SpreadsheetProtectionUnlockDialog,
   SpreadsheetRemoveDuplicatesDialog,
   SpreadsheetTextToColumnsDialog,
-} from '@einfach/solid-excel/vnext'
+} from '@einfach/solid-excel'
 
 export default function ChromeDialogs() {
   return (

@@ -8,8 +8,8 @@ import {
   setSelectionBoundsAtom,
   setStatusBarAggregateConfigAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
-import { SpreadsheetStatusBar } from '../src-vnext/status-bar'
+import { SpreadsheetUiProvider } from '../src/provider'
+import { SpreadsheetStatusBar } from '../src/status-bar'
 import { setLocale } from '../src/i18n'
 import { seedReadyVisibleProjection } from './projection-test-fixture'
 import { createFakeBackend, numericCell } from './status-bar-test-fixture'
@@ -279,4 +279,3 @@ describe('vNext status bar aggregates', () => {
   })
 
 })
-

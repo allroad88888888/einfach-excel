@@ -36,9 +36,9 @@ import type {
   ConditionalFormatConfigSnapshotWire,
   RemoveConditionalFormatRuleWire,
   SetConditionalFormatRuleWire,
-} from '../src-vnext/adapter'
-import { buildFilterSortDisplayRows } from '../src-vnext/adapter/filter-predicate'
-import { filterHiddenRowsFromDisplayRows } from '../src-vnext/adapter/filter-hidden-rows'
+} from '../src/adapter'
+import { buildFilterSortDisplayRows } from '../src/adapter/filter-predicate'
+import { filterHiddenRowsFromDisplayRows } from '../src/adapter/filter-hidden-rows'
 import {
   createWorkerWorkbook,
   createStaticNamedRangeCapabilityPort,
@@ -49,7 +49,7 @@ import {
   matrixToVisibleProjectionResult,
   sparseCellsToDisplayCells,
   sparseCellsToRangeProjectionResult,
-} from '../src-vnext/adapter'
+} from '../src/adapter'
 
 const recordHistory: HistoryEntryRecorder = (entry, append) =>
   append(entry) ? 'recorded' : 'rejected'

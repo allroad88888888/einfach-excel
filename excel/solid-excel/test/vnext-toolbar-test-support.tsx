@@ -28,9 +28,9 @@ import {
   toolbarMutationLifecycleAtom,
 } from '@einfach/spreadsheet-ui-core'
 import { setLocale } from '../src/i18n'
-import { SpreadsheetFormatCellsDialog, numberFormatDialogAtom } from '../src-vnext/format-cells'
-import { SpreadsheetUiProvider, spreadsheetProjectionSnapshotAtom } from '../src-vnext/provider'
-import { SpreadsheetToolbar } from '../src-vnext/toolbar'
+import { SpreadsheetFormatCellsDialog, numberFormatDialogAtom } from '../src/format-cells'
+import { SpreadsheetUiProvider, spreadsheetProjectionSnapshotAtom } from '../src/provider'
+import { SpreadsheetToolbar } from '../src/toolbar'
 
 export {
   beginProjectionAtom,

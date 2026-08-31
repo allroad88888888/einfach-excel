@@ -4,7 +4,7 @@ import {
   type CellRange,
   type SpreadsheetBackend,
 } from '@einfach/spreadsheet-ui-core'
-import { createStaticSpreadsheetBackend } from '../src-vnext/adapter'
+import { createStaticSpreadsheetBackend } from '../src/adapter'
 
 /**
  * 静态参考后端里，一个数字字面量有**两条通道**，这个文件只管这一件事：

@@ -3,7 +3,7 @@ import {
   registerCustomFormulaAtom,
   unregisterCustomFormulaAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { useSpreadsheetUiStore } from '@einfach/solid-excel/vnext'
+import { useSpreadsheetUiStore } from '@einfach/solid-excel'
 
 const formulas = [
   { name: 'MYTAX', source: 'return Number(args[0]) * 0.2', paramLabels: ['amount'] },

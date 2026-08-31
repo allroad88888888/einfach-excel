@@ -6,7 +6,7 @@ import {
   type SpreadsheetBackend,
 } from '@einfach/spreadsheet-ui-core'
 
-import { createContextMenuClipboardExecutor } from '../src-vnext/context-menu/context-menu-clipboard-executor'
+import { createContextMenuClipboardExecutor } from '../src/context-menu/context-menu-clipboard-executor'
 
 class ClipboardItemMock {
   readonly types: readonly string[]

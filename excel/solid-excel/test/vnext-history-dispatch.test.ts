@@ -6,7 +6,7 @@ import {
   type SpreadsheetBackend,
 } from '@einfach/spreadsheet-ui-core'
 
-import { backendSupportsHistory, recordHistoryEntry } from '../src-vnext/provider/history-dispatch'
+import { backendSupportsHistory, recordHistoryEntry } from '../src/provider/history-dispatch'
 
 function createBackend(overrides: Partial<SpreadsheetBackend> = {}): SpreadsheetBackend {
   return {

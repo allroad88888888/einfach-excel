@@ -5,8 +5,8 @@ import { createStore } from '@einfach/core'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import { menuStateAtom, openMenuAtom, type SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
 
-import { SpreadsheetContextMenu } from '../src-vnext/context-menu'
-import { SpreadsheetUiProvider } from '../src-vnext/provider'
+import { SpreadsheetContextMenu } from '../src/context-menu'
+import { SpreadsheetUiProvider } from '../src/provider'
 
 afterEach(cleanup)
 

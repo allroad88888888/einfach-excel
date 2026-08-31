@@ -1,7 +1,7 @@
 # AD-217 · 可选端口降级演示：实现了出现什么，不实现如何收场
 
 一句话：挑三个可选端口（`pasteRange`、`searchRange`/`replaceMatches`、
-`undoTransaction`/`redoTransaction`），从 src-vnext 与 ui-core 源码逐条引证
+`undoTransaction`/`redoTransaction`），从 src 与 ui-core 源码逐条引证
 "实现 → UI 出现什么入口；不实现 → UI 如何收场"。
 
 先说一个必须诚实的结论：**"不实现就隐藏入口"只是三种降级形态之一**。
@@ -15,7 +15,7 @@
 
 能力探测的统一机制：Provider 挂载时（以及 backend `ready()` 之后再来一次）
 把 backend 对象喂给各特性的 capture 命令 atom ——
-`excel/solid-excel/src-vnext/provider/SpreadsheetUiProvider.tsx:154,174` →
+`excel/solid-excel/src/provider/SpreadsheetUiProvider.tsx:154,174` →
 `provider/capability-capture.ts:16-26`（`captureWorkbookCapabilities`，一处
 列全了 pasteSpecial / spill / filterSort / sortRange / findReplace /
 removeDuplicates / textToColumns / table / customFormulas 九个 capture）。
@@ -42,25 +42,25 @@ removeDuplicates / textToColumns / table / customFormulas 九个 capture）。
    能力门控：`isAvailable: 'capability'`, `capabilityKey: 'pasteSpecial'`
    （`excel/spreadsheet-ui-core/src/menu-bar/index.ts:163-169`）。
 2. 键盘 Ctrl+Alt+V 直接开会话
-   （`excel/solid-excel/src-vnext/grid/grid-keyboard-controller.ts:194-200`）。
+   （`excel/solid-excel/src/grid/grid-keyboard-controller.ts:194-200`）。
 3. 右键菜单拿到 `pasteSpecialAvailable`
-   （`excel/solid-excel/src-vnext/context-menu/SpreadsheetContextMenu.tsx:36,77`）。
+   （`excel/solid-excel/src/context-menu/SpreadsheetContextMenu.tsx:36,77`）。
 
 **不实现 → 如何收场**：
 
 1. **菜单条目整条不渲染**：宿主把 `capabilityKey` 解析为
    `resolveCapability('pasteSpecial') → pasteSpecialCapability()`
-   （`excel/solid-excel/src-vnext/menu-bar/SpreadsheetMenuBar.tsx:130-133`），
+   （`excel/solid-excel/src/menu-bar/SpreadsheetMenuBar.tsx:130-133`），
    渲染层 `isHidden = isAvailable === 'capability' && !resolveCapability(...)`，
    包在 `<Show when={!isHidden()}>` 里 ——
-   `excel/solid-excel/src-vnext/menu-bar/menu-bar-presentation.tsx:151-156`。
+   `excel/solid-excel/src/menu-bar/menu-bar-presentation.tsx:151-156`。
    这是字面意义的隐藏，不是置灰。
 2. **快捷键静默吞掉**：`case 'clipboard.pasteSpecial':` 第一句
    `if (!store.getter(pasteSpecialCapabilityAtom)) return`
    （grid-keyboard-controller.ts:195）。
 3. **双保险**：即使菜单 dispatch 被别的路径触发，
    `case 'edit.pasteSpecial': if (store.getter(pasteSpecialCapabilityAtom)) ...`
-   （`excel/solid-excel/src-vnext/menu-bar/menu-bar-command-edit.ts:52-54`）。
+   （`excel/solid-excel/src/menu-bar/menu-bar-command-edit.ts:52-54`）。
 
 同形态的其他端口（顺带引证，menu-bar 能力键的官方对照表在
 `excel/spreadsheet-ui-core/src/menu-bar/types.ts:23-44` 注释里）：
@@ -90,7 +90,7 @@ hasReplace = typeof source?.replaceMatches === 'function'
 `{ findEnabled, replaceEnabled }`。
 
 **实现了 → 出现的入口**：工具栏放大镜按钮可点
-（`excel/solid-excel/src-vnext/toolbar/ToolbarEntrypointGroup.tsx:22-33`），
+（`excel/solid-excel/src/toolbar/ToolbarEntrypointGroup.tsx:22-33`），
 Ctrl+F / Ctrl+H 打开对话框（grid-keyboard-controller.ts:71-80），Edit 菜单
 Find/Replace 条目（menu-bar/index.ts:196-212）。只实现 `searchRange` 不实现
 `replaceMatches` 是合法中间态：查找可用，Replace 页签切不过去、替换按钮
@@ -127,7 +127,7 @@ menu-bar 的 capability 条目。写教程时不要把两者混为一谈。
 它只是**永远等不到可撤销的条目**，因为上游根本不让条目入栈。
 
 **探测**（宿主侧，不走 capture atom）：
-`excel/solid-excel/src-vnext/provider/history-dispatch.ts:145-156`：
+`excel/solid-excel/src/provider/history-dispatch.ts:145-156`：
 
 ```ts
 backendSupportsUndo    = typeof backend.undoTransaction === 'function'
@@ -163,7 +163,7 @@ cursor > 0` 变 true（`excel/spreadsheet-ui-core/src/history/index.ts:451-460`�
 ## 附：官方对这套哲学的自述
 
 静态参考后端刻意不实现 `readSpillRegion` 的注释是这套契约最好的一句话总结
-（`excel/solid-excel/src-vnext/adapter/static/ports/projection.ts:16-19`）：
+（`excel/solid-excel/src/adapter/static/ports/projection.ts:16-19`）：
 
 > 静态引擎根本没有动态数组模型……装一个恒回 null 的实现等于谎称「这里确实
 > 没有数组」。省掉端口后 `spillRegionSupportedAtom` 转 false，溢出边框与

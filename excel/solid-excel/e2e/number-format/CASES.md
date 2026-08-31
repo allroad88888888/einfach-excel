@@ -2,8 +2,8 @@
 
 > 功能源码：excel/spreadsheet-ui-core/src/format-cells/（number-format-dialog.ts、types.ts）+
 > src/operations/format/（numberFormat.ts、numberFormatParser.ts 渲染管线）；
-> excel/solid-excel/src-vnext/toolbar/NumberFormatDropdown.tsx +
-> src-vnext/format-cells/（SpreadsheetFormatCellsDialog、SpreadsheetNumberFormatDialogs）
+> excel/solid-excel/src/toolbar/NumberFormatDropdown.tsx +
+> src/format-cells/（SpreadsheetFormatCellsDialog、SpreadsheetNumberFormatDialogs）
 > 存量 spec 行数超限登记：无（本文件夹两个 spec 均 ≤360 行）
 
 引擎支持矩阵（backend/types.ts）：WASM wire 仅实现 general/number(decimal)/percent/currency/

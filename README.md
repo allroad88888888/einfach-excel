@@ -171,7 +171,7 @@ npm run lint:check
 
 ### Minimal in-memory example
 
-The published Solid binding exposes the same `@einfach/solid-excel/vnext`
+The published Solid binding exposes the same `@einfach/solid-excel`
 surface used by the repository. This short example uses the in-memory backend
 to show the UI boundary; use the [five-minute quickstart](./docs/QUICKSTART.md)
 for the Worker-hosted Rust/WASM formula path:
@@ -182,7 +182,7 @@ import {
   SpreadsheetUiProvider,
   SpreadsheetGrid,
   SpreadsheetToolbar,
-} from '@einfach/solid-excel/vnext'
+} from '@einfach/solid-excel'
 
 const backend = createStaticSpreadsheetBackend({
   sheets: [{ id: 'sheet-1', name: 'Sheet1' }],

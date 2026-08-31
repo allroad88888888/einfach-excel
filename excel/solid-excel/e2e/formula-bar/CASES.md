@@ -1,6 +1,6 @@
 # formula-bar — e2e cases
 
-> 功能源码：excel/solid-excel/src-vnext 的 formula-bar 组件与 editing 会话
+> 功能源码：excel/solid-excel/src 的 formula-bar 组件与 editing 会话
 > （IME 组合期的命令边界：composing 时 Enter/Escape 不得提交/取消编辑会话）。
 > 单元格编辑器侧的 IME 语义在 editing/（grid-cell-editor-ime.spec.ts），本目录只覆盖公式栏输入侧。
 > 存量 spec 行数超限登记：无（94 行）

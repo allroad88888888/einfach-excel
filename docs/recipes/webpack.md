@@ -48,7 +48,7 @@ module.exports = {
 // src/main.js —— 纯 JS 入口，无 JSX、无 Solid 编译插件
 import { createComponent, render } from 'solid-js/web'
 import { VNextWorkerDemo } from '@einfach/solid-excel/demos'
-import '@einfach/solid-excel/vnext-styles.css'
+import '@einfach/solid-excel/styles.css'
 
 render(() => createComponent(VNextWorkerDemo, {}), document.getElementById('root'))
 ```

@@ -1,7 +1,7 @@
 # 文本/样式格式化（format）— e2e cases
 
 > 功能源码：excel/spreadsheet-ui-core/src/format-cells/ + format-painter/ + toolbar/；
-> excel/solid-excel/src-vnext/format-cells/ + format-painter/ + toolbar/（SpreadsheetToolbar、
+> excel/solid-excel/src/format-cells/ + format-painter/ + toolbar/（SpreadsheetToolbar、
 > 各 Dropdown/Popover）
 > 存量 spec 行数超限登记：audit-format.spec.ts 1036 行（历史文件，只登记不拆）
 

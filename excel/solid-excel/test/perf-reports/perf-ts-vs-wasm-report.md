@@ -839,7 +839,7 @@ captured-output buffering.
 
 **Hosts impact**: any caller that legitimately needs > 750 K cells in
 one shot must now chunk. The reference adapters
-(`excel/solid-excel/src-vnext/adapter/worker-workbook-backend.ts` etc.) do
+(`excel/solid-excel/src/adapter/worker-workbook-backend.ts` etc.) do
 not approach this scale in normal operation — Mega-tier (500 K per
 call) is well under. The new error string starts with
 `"bulk_import_cells refused:"` (or the matching method name) so hosts

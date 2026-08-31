@@ -2,8 +2,8 @@
 
 > 功能源码：excel/spreadsheet-ui-core/src/named-ranges/（NAMED_RANGE_CACHE_MAX = 500、
 > 名称形状校验）+ src/tables/（CRUD 命令、totals、rename/delete 诊断）+
-> excel/solid-excel/src-vnext/named-ranges/（SpreadsheetNameManagerDialog）+
-> src-vnext/adapter/named-range-capability-port.ts（wasm 名称端口 fail-closed）
+> excel/solid-excel/src/named-ranges/（SpreadsheetNameManagerDialog）+
+> src/adapter/named-range-capability-port.ts（wasm 名称端口 fail-closed）
 > 存量 spec 行数超限登记：无（最大 vnext-table-real-backend.spec.ts 169 行）
 
 | ID | 场景 | 步骤概要 | 关键断言 | 状态 | spec |
@@ -18,7 +18,7 @@
 | NR-08 | 删除名称后公式降级 #NAME? | 选中列表项→delete→触发重绘 | H1 变 #NAME?、对话框随 ack 关闭 | 🆕 本轮 | named-range-formula.spec.ts |
 | NR-09 | wasm worker 名称端口 fail-closed 只读 | wasm demo 开 Name Manager 填草稿 | capability ready 但 save/delete 恒 disabled | 🆕 本轮 | named-range-formula.spec.ts（仅 wasm project；ts project 跳过） |
 | NR-10 | 500 名称缓存上限 FIFO 逐出 | 构造 >500 名称 | 只保留最近 500 | ⏳ P2 延后 | —（500 次 UI 往返成本过高；上限语义已由 spreadsheet-ui-core/test/named-ranges.test.ts 单测覆盖） |
-| NR-11 | name-box 定义/跳转命名区域 | name box 输入名称 | 选区跳转/新建名称 | ⏳ P2 延后 | —（UI-core 预留 'name-box' origin，但 src-vnext/name-box 未接命名区域，无 UI 入口） |
+| NR-11 | name-box 定义/跳转命名区域 | name box 输入名称 | 选区跳转/新建名称 | ⏳ P2 延后 | —（UI-core 预留 'name-box' origin，但 src/name-box 未接命名区域，无 UI 入口） |
 | TB-01 | 行内重命名表格 + 结构化引用跟随 | Wave5 建表→=SUM(Table1[Q1])→rename | 行重标、公式值不变（引擎改写引用） | ✅ 存量 | name-manager-table-actions #"renames a table inline…" |
 | TB-02 | cell-ref 形名重命名拒绝 | rename 成 `Q1` | data-table-diagnostic-code=name-like-cell-ref、行保留 | ✅ 存量 | name-manager-table-actions #"a conflicting rename is rejected…" |
 | TB-03 | 删除表格需行内确认 | delete→cancel→delete→confirm | 确认前行在、确认后空态 | ✅ 存量 | name-manager-table-actions #"deletes a table only after…" |

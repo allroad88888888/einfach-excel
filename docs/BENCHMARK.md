@@ -31,8 +31,8 @@ URL 参数：
 
 ## 场景清单
 
-场景登记在 `excel/solid-excel/src/bench/registry.ts`（唯一登记处，新增场景 = 加一个
-条目）；结果结构钉死在 `excel/solid-excel/src/bench/types.ts`。
+场景登记在 `excel/solid-excel/bench/registry.ts`（唯一登记处，新增场景 = 加一个
+条目）；结果结构钉死在 `excel/solid-excel/bench/types.ts`。
 
 | 场景 id              | 类别（ADR 0008） | 数据档位（AD-509，见 [档位定义](AD509_BENCHMARK_DATA_TIERS.md)） | 样本含义                                                       |
 | -------------------- | ---------------- | ------------------------------------------------------------- | -------------------------------------------------------------- |
@@ -47,7 +47,7 @@ URL 参数：
 ## 结果 JSON 含义
 
 每次运行导出一份 `einfach.benchmark-result/v1`（完整类型见
-`excel/solid-excel/src/bench/types.ts`）：
+`excel/solid-excel/bench/types.ts`）：
 
 - `scenarioId` / `definition` / `methodologyRef` —— 场景标识、固定下来的场景定义全文、
   口径引用。比较两份结果前先核对这三项与 `protocol` 完全一致（ADR 0009 §共同采样规则 5）。

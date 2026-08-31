@@ -132,7 +132,7 @@ against the current backend revision. A rejected CAS neither writes freeze state
 
 - [Controller implementation](../src/viewport/window.ts)
 - [Controller lifecycle and race tests](../test/frozen-panes.test.ts)
-- [Static backend implementation](../../solid-excel/src-vnext/adapter/static-backend.ts)
+- [Static backend implementation](../../solid-excel/src/adapter/static-backend.ts)
 - [Static authority race tests](../../solid-excel/test/vnext-freeze-authority.test.ts)
 - [Grid authority tests](../../solid-excel/test/vnext-grid.test.tsx)
 - [Canvas gate tests](../../solid-excel/test/vnext-grid-overlay.test.tsx)

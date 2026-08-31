@@ -1,7 +1,9 @@
 # 示例 demo 烟测（demos）— e2e cases
 
-> 功能源码：src/demos/DemoBudget.tsx、src/demos/DemoGrades.tsx、src/demos/DemoSales.tsx
-> （seed + createWasmSheet；渲染层复用 src/Table.tsx + src/sheet-store.ts）
+> 功能源码（legacy demo 实现）：legacy/demos/DemoBudget.tsx、
+> legacy/demos/DemoGrades.tsx、legacy/demos/DemoSales.tsx
+> （seed + createWasmSheet；渲染层复用 legacy/Table.tsx + legacy/sheet-store.ts）；
+> 导航与挂载壳：demo/App.tsx。
 > 存量 spec 行数超限登记：无（三个存量 spec 均 ≤160 行）
 
 ## 存量场景映射

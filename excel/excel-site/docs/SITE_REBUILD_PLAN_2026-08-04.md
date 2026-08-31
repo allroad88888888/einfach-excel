@@ -190,7 +190,7 @@ bring-your-own-backend 一项；对任一 demo URL `curl` 出的 HTML 包含正�
   （[`range-gate.ts`](../../excel-core-ts/src/eval/range-gate.ts) 的不变式：
   「一个矩形物化得动，当且仅当它作为数组结果落得了地」）。
 - **工程依赖**：〔实际遍历格数〕需要引擎侧新计数端口，链路为
-  engine → [worker backend](../../solid-excel/src-vnext/adapter/worker-workbook-backend.ts)
+  engine → [worker backend](../../solid-excel/src/adapter/worker-workbook-backend.ts)
   可选 port → diagnostics atom。这是 P2 最大工程量，跨包。
   **降级方案**：一期先上 wall-time + worker 消息数（现成可得），格数计数后补——
   叙事页结构不变，只是 HUD 少一格。

@@ -2,8 +2,8 @@
 
 > 功能源码：excel/spreadsheet-ui-core/src/viewport/freeze.ts（冻结 UI-core canonical 状态）+
 > excel/spreadsheet-ui-core/src/keyboard/（方向键 intent）+
-> excel/solid-excel/src-vnext/grid/SpreadsheetGrid.tsx（merge 点击/编辑/渲染、freeze sticky 象限）+
-> src-vnext/toolbar/（merge dropdown）+ src-vnext/context-menu/、src-vnext/menu-bar/（freeze 命令入口）
+> excel/solid-excel/src/grid/SpreadsheetGrid.tsx（merge 点击/编辑/渲染、freeze sticky 象限）+
+> src/toolbar/（merge dropdown）+ src/context-menu/、src/menu-bar/（freeze 命令入口）
 > 存量 spec 行数超限登记：无（最长 toolbar-merge.spec.ts 195 行）
 
 ## 合并（merge）

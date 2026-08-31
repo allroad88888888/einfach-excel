@@ -1,19 +1,19 @@
 # @einfach/solid-excel
 
-Solid.js spreadsheet surface for the Einfach vnext stack. The package wires `@einfach/spreadsheet-ui-core` atoms into Solid components, ships static and worker-backed adapters, and bundles a WASM build of the Rust formula engine.
+Solid.js spreadsheet surface for the active Einfach stack. The package wires `@einfach/spreadsheet-ui-core` atoms into Solid components, ships static and worker-backed adapters, and bundles a WASM build of the Rust formula engine.
 
 feature 归属（哪些事实归引擎、哪些归 UI core）的现行规范源是 [docs/CANONICAL_OWNERSHIP.md](./docs/CANONICAL_OWNERSHIP.md)，判据见 [ADR 0003](../../docs/decisions/0003-engine-owns-filter-sort.md)。
 
 当初推进 online-Excel parity 的多 agent 战役看板已收尾，存于 [docs/archive/](./docs/archive/INDEX.md)（仅供考古）。
 
-## vnext architecture
+## Active architecture
 
 ```
 +---------------------------------------------------------------+
-|  Solid components  (src-vnext/grid, toolbar, formula-bar, ...) |
+|  Solid components  (src/grid, toolbar, formula-bar, ...) |
 |       useAtomValue / useSetAtom from @einfach/solid            |
 +---------------------------------------------------------------+
-|  SpreadsheetUiProvider  (src-vnext/provider/)                  |
+|  SpreadsheetUiProvider  (src/provider/)                  |
 |    - createStore + createSpreadsheetUi                         |
 |    - exposes SpreadsheetUiContext (backend, store)             |
 +---------------------------------------------------------------+
@@ -35,9 +35,9 @@ feature 归属（哪些事实归引擎、哪些归 UI core）的现行规范源�
 +---------------------------------------------------------------+
 ```
 
-Layering rules: components read atoms via `@einfach/solid`; mutations dispatch atoms whose setters call `backend.<method>`. UI core never reaches the worker or WASM directly. The legacy `src/` package is kept for parity tests; new feature work targets `src-vnext/`.
+Layering rules: components read atoms via `@einfach/solid`; mutations dispatch atoms whose setters call `backend.<method>`. UI core never reaches the worker or WASM directly. The legacy `legacy/` package is kept for parity tests; new feature work targets `src/`.
 
-## Components under `src-vnext/`
+## Components under `src/`
 
 | Folder                    | Surface                                                                                                                                                                                                                                                                       |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -61,18 +61,23 @@ Layering rules: components read atoms via `@einfach/solid`; mutations dispatch a
 | `history/`                | `SpreadsheetHistoryTimeline`                                                                                                                                                                                                                                                  |
 | `demos/`                  | `VNextSmokeDemo` (static), `VNextWorkerDemo` (worker + WASM)                                                                                                                                                                                                                  |
 
-Public exports flow through `src-vnext/public.ts`. Import via the `@einfach/solid-excel/vnext` subpath:
+Public exports flow through `src/public.ts`. Import via the `@einfach/solid-excel` subpath:
 
 ```ts
-import { SpreadsheetUiProvider, SpreadsheetGrid } from '@einfach/solid-excel/vnext'
+import { SpreadsheetUiProvider, SpreadsheetGrid } from '@einfach/solid-excel'
 ```
 
 **worker 工厂是第二个入口，不在上面那个 barrel 里。** 它靠 `import.meta.url` 解析 worker
 bundle，放进 barrel 会让所有间接导入它的 jest 套件崩在 `Cannot use 'import.meta' outside a
-module`（实测 37 个）。宿主走独立子路径：
+module`（实测 37 个）。宿主从独立子路径取得真实 factory，并把它交给根入口导出的 worker backend：
 
 ```ts
-import { createWorker } from '@einfach/solid-excel/vnext-worker-factory'
+import { createWorkerWorkbookSpreadsheetBackend } from '@einfach/solid-excel'
+import { defaultVNextWorkbookWorkerFactory } from '@einfach/solid-excel/worker-factory'
+
+const backend = createWorkerWorkbookSpreadsheetBackend({
+  workerFactory: defaultVNextWorkbookWorkerFactory,
+})
 ```
 
 理由与不变式见 [ADR 0004](../../docs/decisions/0004-worker-factory-out-of-barrel.md)；
@@ -125,13 +130,13 @@ clone must have `wasm-pack` and a working Rust toolchain on `PATH`.
 
 ## Testing
 
-jest 套件在 `test/` 下（vnext），另有 legacy `src/` 的 parity 套件。Solid 组件用 `@solidjs/testing-library`。规模现场算，不记数字：`npx jest excel/solid-excel --listTests | wc -l`。
+Jest 套件在 `test/` 下（现役；历史文件名可能仍含 `vnext`），另有 legacy `legacy/` 的 parity 套件。Solid 组件用 `@solidjs/testing-library`。规模现场算，不记数字：`npx jest excel/solid-excel --listTests | wc -l`。
 
 ```bash
 # Whole package
 npx jest excel/solid-excel --no-coverage
 
-# Single vnext spec
+# Single active spec (historical filename)
 npx jest excel/solid-excel/test/vnext-grid.test.tsx --runInBand
 
 # Type gate

@@ -25,7 +25,7 @@
   menu command 或 projection result。
 - 是否保持可视窗口有界，不读取整张 sheet。
 - 是否有明确 fallback：backend 不实现 optional port 时，UI core 如何隐藏或降级该入口。
-- 是否影响 `excel/solid-excel/src-vnext` adapter；如果会，先列出 adapter 的后续任务。
+- 是否影响 `excel/solid-excel/src` adapter；如果会，先列出 adapter 的后续任务。
 - 变更请求是否需要带 `requestId` / `revision` / `cancelToken`，好让 worker 丢弃过期工作。
 
 ## 测试门禁
@@ -38,7 +38,7 @@ npx jest excel/spreadsheet-ui-core/test/<feature>.test.ts --runInBand
 npx jest excel/spreadsheet-ui-core/test/package-boundary.test.ts --runInBand
 ```
 
-影响 `excel/solid-excel/src-vnext` adapter 或 UI：
+影响 `excel/solid-excel/src` adapter 或 UI：
 
 ```bash
 npx tsc -p excel/solid-excel/tsconfig.json --noEmit --pretty false

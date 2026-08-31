@@ -1,7 +1,7 @@
 # 条件格式 — e2e cases
 
 > 功能源码：excel/spreadsheet-ui-core/src/conditional-formatting/（rules cache ≤200）+
-> excel/solid-excel/src-vnext/conditional-formatting/SpreadsheetConditionalFormatDialog.tsx +
+> excel/solid-excel/src/conditional-formatting/SpreadsheetConditionalFormatDialog.tsx +
 > 求值：static-backend.ts / worker-workbook-backend.ts 的 conditionalRuleAppliesToCell
 > （投影时逐格求值，priority 升序首个命中生效）
 > 存量 spec 行数超限登记：无（toolbar-conditional-format.spec.ts 123 行）

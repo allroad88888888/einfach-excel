@@ -40,7 +40,7 @@ npm 消费路径未冒烟（见该配方「未验证」）。
 - Node **>= 22.12.0**（ADR 0018）；四份冒烟全部在基线下界 22.12.0 上执行。
 - `solid-js` / `@einfach/core` / `@einfach/solid` 是 peer，应用内**各只能一份**
   （ADR 0001）；打包器给 `dedupe: ['solid-js']` 一类保险不亏。
-- worker factory 一律从 `@einfach/solid-excel/vnext-worker-factory` 子路径 import
+- worker factory 一律从 `@einfach/solid-excel/worker-factory` 子路径 import
   （ADR 0004，不在 barrel）。
 - 面向打包器环境交付；bare-Node 直接 `import` 不支持（仓根 README）。
 - WASM 二进制（lite 约 1.8~2.2 MB，随打包器口径浮动）由 Vite/webpack 对

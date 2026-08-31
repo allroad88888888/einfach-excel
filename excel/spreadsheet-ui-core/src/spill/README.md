@@ -121,7 +121,7 @@ atom 家族** —— `spillCellRoleAtom` 返回的是一个选择器**函数**�
 - 锚点公式**只覆盖显示**，`formulaBarStateAtom.draft` 仍是这一格自己的源文本。反过来做会把
   一条别人的公式放进「待提交的草稿」里，任何读 `draft` 去提交的路径都会打爆整个数组。
 
-宿主侧是 `excel/solid-excel/src-vnext/formula-bar/SpreadsheetFormulaBar.tsx`（`readOnly` +
+宿主侧是 `excel/solid-excel/src/formula-bar/SpreadsheetFormulaBar.tsx`（`readOnly` +
 `data-spill-readonly` / `data-spill-anchor` + i18n `spill.projectedFormula` 悬停提示）。
 
 ## 已知缺口

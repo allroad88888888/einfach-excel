@@ -5,7 +5,7 @@
 
 | 来源 Issue | 唯一模型 | 状态 | 独占范围 | 前置 | 交付 |
 | --- | --- | --- | --- | --- | --- |
-| UI-527 菜单栏排序确认会话 | `model-527-menu-sort-confirmation` | 已完成（`a9f0196`） | `src-vnext/menu-bar/**`，必要时 `src-vnext/sort/useSortConfirmation.ts`，聚焦测试 | UI-403、UI-303 | 菜单栏升序/降序复用既有排序确认会话；不在确认前提交 mutation。 |
+| UI-527 菜单栏排序确认会话 | `model-527-menu-sort-confirmation` | 已完成（`a9f0196`） | `src/menu-bar/**`，必要时 `src/sort/useSortConfirmation.ts`，聚焦测试 | UI-403、UI-303 | 菜单栏升序/降序复用既有排序确认会话；不在确认前提交 mutation。 |
 | UI-529 菜单栏排序浏览器闭环 | `model-529-menu-sort-e2e` | 已完成（`1f20d1a`） | 菜单排序 Playwright 回归与既有结构审计 | UI-527 | 在 WASM/TS 的真实浏览器中验证取消、Escape、确认和能力缺失路径。 |
 | UI-530 筛选下拉排序确认会话 | `model-530-filter-dropdown-sort-confirmation` | 已完成（`5c7b77d`） | `filter-sort` 宿主、确认桥、物理排序入口校验与聚焦测试 | UI-527 | 下拉排序先捕获 sheet/列目标再进入同一确认会话；不受后续选区变化影响。 |
 

@@ -2,8 +2,8 @@
 
 > 功能源码：excel/spreadsheet-ui-core/src/copy-as/（html/markdown/plain/png 编码器 + atoms）
 >
-> - src-vnext/provider/copy-as-dispatch.ts（multiTierWrite 三级降级 + PNG 双级降级）
-> - src-vnext/copy-as/renderRangeAsImage.ts
+> - src/provider/copy-as-dispatch.ts（multiTierWrite 三级降级 + PNG 双级降级）
+> - src/copy-as/renderRangeAsImage.ts
 >   存量 spec 行数超限登记（如有）：copy-as.spec.ts 330 行（历史文件，只登记不拆）
 
 全部用例跑在 vNext Wave 5 静态 demo，经 `__EINFACH_E2E__` 运行时开关读

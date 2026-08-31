@@ -2,8 +2,8 @@
 
 > 功能源码：excel/spreadsheet-ui-core/src/custom-formulas/（含 README.md，JS 侧 host API）；
 > 引擎契约 excel/rust/excel-core/src/CUSTOM_FORMULAS.md（marshaling / 异步 `#BUSY!` 语义为准）；
-> host 转发 excel/solid-excel/src-vnext/provider/SpreadsheetUiProvider.tsx +
-> adapter/async-custom-pump.ts；demo 种子 src-vnext/demos/VNextWorkerDemo.tsx
+> host 转发 excel/solid-excel/src/provider/SpreadsheetUiProvider.tsx +
+> adapter/async-custom-pump.ts；demo 种子 src/demos/VNextWorkerDemo.tsx
 > （MYTAX/GREET/CELSIUS/SUMSQ2 + 异步 SLOWTAX，注销仅在 demo 卸载时触发）。
 > 存量 spec 行数超限登记：无（custom-formulas.spec.ts 219 行）
 

@@ -95,20 +95,20 @@ transport behavior.
 ## Range-native operations
 
 - The UI store currently sets a 10,000-cell threshold for range clear, range
-  formatting, and clipboard-related address expansion. `excel/solid-excel/src/sheet-store.ts:76-79`
+  formatting, and clipboard-related address expansion. `excel/solid-excel/legacy/sheet-store.ts:76-79`
 - For a selection above the clear threshold, clearing calls the backend
   `clear_range` rectangle operation. If that operation is unavailable, the
   helper reports failure instead of expanding the selection into cell actions.
-  `excel/solid-excel/src/sheet-store.ts:682-735`
+  `excel/solid-excel/legacy/sheet-store.ts:682-735`
 - For a selection above the formatting threshold, formatting calls
   `set_format_range`. If unavailable, the helper reports failure; smaller
-  selections use the address-oriented path. `excel/solid-excel/src/sheet-store.ts:584-660`
+  selections use the address-oriented path. `excel/solid-excel/legacy/sheet-store.ts:584-660`
 - For a selection above the clipboard threshold, copy attempts range TSV export
   through `export_range_tsv_chunks` or `export_range_tsv`; without either it
-  returns `null`. `excel/solid-excel/src/sheet-store.ts:527-575`
+  returns `null`. `excel/solid-excel/legacy/sheet-store.ts:527-575`
 - Address expansion for selection-based actions returns `null` above the
   configured limit, preventing those callers from receiving a full address
-  grid. `excel/solid-excel/src/sheet-store.ts:806-826`
+  grid. `excel/solid-excel/legacy/sheet-store.ts:806-826`
 
 These are current operation-selection rules. They do not guarantee that a
 backend exposes a range operation, nor do they make a transport or timing

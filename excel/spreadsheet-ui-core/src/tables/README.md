@@ -15,7 +15,7 @@ request / result / structured-reject shapes for the six table CRUD backend
 ports (`createTable` / `renameTable` / `renameTableColumn` / `deleteTable` /
 `listTables` / `getTable`), and the `TablesControllerPort` structural subset
 the commands consume. The wire pipeline (worker protocol + both runtimes +
-worker adapter) is implemented in `excel/solid-excel/src-vnext/adapter`.
+worker adapter) is implemented in `excel/solid-excel/src/adapter`.
 
 `commands.ts` — the create-table command layer:
 

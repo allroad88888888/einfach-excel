@@ -36,9 +36,9 @@ import {
   createWorkerWorkbookSpreadsheetBackend,
   SpreadsheetGrid,
   SpreadsheetUiProvider,
-} from '@einfach/solid-excel/vnext'
-import { defaultVNextWorkbookWorkerFactory } from '@einfach/solid-excel/vnext-worker-factory'
-import '@einfach/solid-excel/vnext-styles.css'
+} from '@einfach/solid-excel'
+import { defaultVNextWorkbookWorkerFactory } from '@einfach/solid-excel/worker-factory'
+import '@einfach/solid-excel/styles.css'
 
 const backend = createWorkerWorkbookSpreadsheetBackend({
   workerFactory: defaultVNextWorkbookWorkerFactory,
@@ -57,8 +57,8 @@ render(() => (
 
 1. **worker 后端** —— `createWorkerWorkbookSpreadsheetBackend` 起一个 Web Worker，
    里面跑 Rust/WASM 公式引擎；`defaultVNextWorkbookWorkerFactory` 必须从
-   `@einfach/solid-excel/vnext-worker-factory` **子路径** import
-   （它依赖 `import.meta.url`，刻意不在 `/vnext` barrel 里，
+   `@einfach/solid-excel/worker-factory` **子路径** import
+   （它依赖 `import.meta.url`，刻意不在根入口 barrel 里，
    [ADR 0004](decisions/0004-worker-factory-out-of-barrel.md)）。
 2. **`SpreadsheetUiProvider`** —— 建 UI store，把 backend 接进 atom 体系。
 3. **`SpreadsheetGrid`** —— 虚拟化网格。`sheetId` 对应 backend `sheets` 里的 id；
@@ -87,8 +87,8 @@ npm run dev
 
 - 完整表格外壳（菜单栏、工具栏、公式栏、sheet 页签、对话框）：见
   `@einfach/solid-excel/demos` 的 `VNextWorkerDemo` 源码
-  （`excel/solid-excel/src-vnext/demos/VNextWorkerDemo.tsx`），所有 chrome 组件都从
-  `@einfach/solid-excel/vnext` 导出，按需挂。
+  （`excel/solid-excel/src/demos/VNextWorkerDemo.tsx`），所有 chrome 组件都从
+  `@einfach/solid-excel` 导出，按需挂。
 - 预置数据：`createWorkerWorkbookSpreadsheetBackend` 的 `afterInit(client, sheets)`
   回调里 `client.setCell` / `client.setFormulaDetailed`。
 - 不用 Solid、只要 headless UI core：[UI-core-only 路径](UI_CORE_ONLY.md)。

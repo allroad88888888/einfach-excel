@@ -1,7 +1,7 @@
 # 批注/评论 — e2e cases
 
 > 功能源码：excel/spreadsheet-ui-core/src/comments/ +
-> excel/solid-excel/src-vnext/comments/SpreadsheetCommentThread.tsx
+> excel/solid-excel/src/comments/SpreadsheetCommentThread.tsx
 > 存量 spec 行数超限登记：无（toolbar-comment.spec.ts 114 行）
 
 ## 能力边界（按实现核实）

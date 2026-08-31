@@ -46,11 +46,11 @@ export default defineConfig({
   `new Worker(new URL('./worker-runtime.ts', import.meta.url), { type: 'module' })`
   被 Vite 静态分析，自动切出 worker chunk 并发射 `einfach_wasm_bg-*.wasm` 资产。
   实测产物：`worker-runtime`、`worker-entry-ts` 等 worker chunk + wasm 二进制。
-- worker factory 从 `@einfach/solid-excel/vnext-worker-factory` **子路径** import
-  （ADR 0004，不在 `/vnext` barrel）。
-- 样式：`import '@einfach/solid-excel/vnext-styles.css'`。
+- worker factory 从 `@einfach/solid-excel/worker-factory` **子路径** import
+  （ADR 0004，不在根入口 barrel）。
+- 样式：`import '@einfach/solid-excel/styles.css'`。
 - full WASM 变体（`--features regex-formulas`）：宿主用
-  `import FullWorker from '@einfach/solid-excel/vnext-worker-runtime-full?worker'` 自行
+  `import FullWorker from '@einfach/solid-excel/worker-runtime-full?worker'` 自行
   拉入（见 `worker-factory.ts` 头注释）；**未在仓外冒烟验证**。
 
 ## 未验证

@@ -1,7 +1,7 @@
 # data-ops（分列 + 去重）— e2e cases
 
 > 功能源码：excel/spreadsheet-ui-core/src/remove-duplicates/、text-to-columns/ +
-> src-vnext/remove-duplicates/、text-to-columns/
+> src/remove-duplicates/、text-to-columns/
 > 存量 spec 行数超限登记：remove-duplicates.spec.ts 396 行、text-to-columns.spec.ts 312 行
 > （历史文件，只登记不拆）
 

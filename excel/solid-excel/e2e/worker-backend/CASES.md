@@ -1,10 +1,11 @@
 # worker-backend（worker RPC / 后端桥）— e2e cases
 
-> 功能源码：excel/solid-excel/src-vnext/adapter/（worker-workbook-backend.ts、worker-runtime.ts、
-> worker-runtime-ts.ts、worker-protocol.ts、worker-factory.ts、worker-entry-ts.ts）；
+> 功能源码：excel/solid-excel/src/adapter/（worker-workbook-backend.ts、
+> canonical WASM-lite 叶入口 worker-runtime.ts、TS runtime worker-runtime-ts.ts、
+> worker-protocol.ts、worker-factory.ts、TS bundle 壳 worker-entry-ts.ts）；
 > 契约：excel/spreadsheet-ui-core/src/backend/types.ts（requestId / revision / cancelToken）；
-> 旧壳 worker：excel/solid-excel/src/wasm-workbook-proxy.ts。
-> 存量 spec 行数超限登记：worker-workbook.spec.ts 1484 行、vnext-worker-backend.spec.ts 527 行
+> legacy 旧壳 worker：excel/solid-excel/legacy/wasm-workbook-proxy.ts。
+> 存量 spec 行数超限登记：worker-workbook.spec.ts 1484 行、vnext-worker-backend.spec.ts 524 行
 > （历史文件，只登记不拆，拆分另立专项）。
 
 注：本文件夹存量 spec 大量使用 `?debug=1` + `__einfachWorkbookDebugClient` 内部探针，属历史

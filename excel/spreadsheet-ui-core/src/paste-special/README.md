@@ -7,7 +7,7 @@ capability.
 
 Parity item #11: the static backend AND the worker adapter implement
 `pasteRange` (the worker path composes existing RPCs over the shared
-`excel/solid-excel/src-vnext/adapter/paste-range-plan.ts` helpers). The Edit menu
+`excel/solid-excel/src/adapter/paste-range-plan.ts` helpers). The Edit menu
 and Ctrl+Alt+V are capability-gated. A backend may subdivide the capability
 fail-closed via `pasteRangeSupportedKinds` (projected by
 `pasteSpecialSupportedKindsAtom`): the TS worker runtime declares only the
@@ -96,7 +96,7 @@ stateDiagram-v2
 
 When `op` is `'add' | 'subtract' | 'multiply' | 'divide'`, the backend
 combines the source value with the existing target value per cell. The
-reference implementation in `excel/solid-excel/src-vnext/adapter/static-backend.ts`
+reference implementation in `excel/solid-excel/src/adapter/static-backend.ts`
 defines the contract; worker backends are expected to match.
 
 | source | target | op       | result                                  |

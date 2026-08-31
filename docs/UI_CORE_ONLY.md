@@ -95,4 +95,4 @@ README 标注 source / derived / command 分类）。渲染层自己写：订阅
   （Next、Nuxt 双环境）；上面这个带切片逻辑的内存 backend 是按契约写的直译，
   未经独立浏览器冒烟。
 - 自绘渲染层没有官方参考实现文档；最接近的真实样例是仓内
-  `excel/solid-excel/src-vnext/adapter/static-backend.ts`（内存 backend 的完整版）。
+  `excel/solid-excel/src/adapter/static-backend.ts`（内存 backend 的完整版）。

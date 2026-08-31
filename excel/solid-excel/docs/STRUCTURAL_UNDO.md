@@ -1,11 +1,11 @@
 # Structural Undo
 
 How `insertRow` / `deleteRow` / `insertCol` / `deleteCol` are made undoable in
-legacy `src/sheet-store.ts`. 同一思路在 atom 层的对应实现是 `@einfach/core` 的
+legacy `legacy/sheet-store.ts`. 同一思路在 atom 层的对应实现是 `@einfach/core` 的
 `createHistory`（上游包，走 npm —— 源码不在本仓，见
 [ADR 0002](../../../docs/decisions/0002-upstream-core-via-npm.md)）。
 
-> 注：本文描述的是 legacy `src/` 外壳。vnext 的撤销重做走 backend port 的
+> 注：本文描述的是 legacy `legacy/` 外壳。现役 `src/` 的撤销重做走 backend port 的
 > history 端口，契约在 `excel/spreadsheet-ui-core/src/history/README.md`。
 
 ## Background
@@ -108,7 +108,7 @@ have both during the brief Computing window — pick the formula version).
 pub fn non_empty_addrs(&self) -> Array; // Array<string>
 ```
 
-### TS (`excel/solid-excel/src/types.ts`)
+### TS (`excel/solid-excel/legacy/types.ts`)
 
 ```ts
 interface ISheet {

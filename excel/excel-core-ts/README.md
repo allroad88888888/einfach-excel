@@ -12,7 +12,7 @@ private 包，不发布。
 
 1. **parity 参照** —— 同一批 e2e 与单测跑两个引擎，用来钉住行为一致性
    （矩阵见 `excel/solid-excel/e2e/BACKEND_PARITY.md`）。
-2. **第二个 worker 后端** —— `excel/solid-excel/src-vnext/adapter/worker-runtime-ts.ts` 持有本包的
+2. **第二个 worker 后端** —— `excel/solid-excel/src/adapter/worker-runtime-ts.ts` 持有本包的
    `Workbook`，实现与 Rust 版**同一套** worker 协议。这条路径不需要 WASM，纯 JS 可部署。
 
 Rust 引擎仍是现役主引擎（excel-site 默认走它）。本包不是它的替代计划 —— 早期文档里
@@ -51,7 +51,7 @@ npx jest excel/excel-core-ts/test/functions-registry.test.ts --no-coverage
 - 任何其他 `@einfach/*` 包（不含 `spreadsheet-ui-core`、`solid`、`react-*`）
 
 必须能在纯 node 下跑干净。需要 worker / DOM 的适配器住在下游
-`excel/solid-excel/src-vnext/adapter/`。
+`excel/solid-excel/src/adapter/`。
 
 ## 开发
 

@@ -198,7 +198,7 @@ undo/redo restores the engine's *owned* filter (rules + derived hidden set) from
 engine's own snapshot (`snapshotFilters` / `restoreFilters` on the worker; the
 full-sheet capture on static), and the provider re-hydrates this render cache from
 `readSheetHiddenState.filterRows` (`reconcileFilterHiddenFromEngine` in
-`excel/solid-excel/src-vnext/provider/history-dispatch.ts`). See
+`excel/solid-excel/src/provider/history-dispatch.ts`). See
 `excel/solid-excel/docs/online-excel-parity/design-engine-hidden-rows.md` §6.3.
 
 ### Undoable apply/clear (Excel parity, 2026-07-22)
@@ -280,7 +280,7 @@ a structured `source-too-large` refusal is *returned*, never thrown). `reapplyFi
 / `clearFilter` are recompute and teardown. The host-side predicate scan the adapter
 used to run is **gone** (E5). `static-backend` is itself a second engine (its own
 `evaluateFormula`), so it legitimately keeps a TS predicate
-(`src-vnext/adapter/filter-predicate.ts`, a verbatim move out of UI core in E4) pinned
+(`src/adapter/filter-predicate.ts`, a verbatim move out of UI core in E4) pinned
 to the Rust `apply_filter` result by a golden-parity test. UI core has **zero**
 predicate knowledge — it keeps only the `ColumnFilterRule` wire type, still calls the
 same `setFilterSort` port, and still stores the ACK's `hiddenRowIndices` into

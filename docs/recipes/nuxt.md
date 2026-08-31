@@ -94,6 +94,6 @@ onMounted(async () => {
 
 ## 未验证
 
-- worker 后端（`vnext-worker-factory`）、full WASM 变体（`@einfach/excel-wasm/full`）。
+- worker 后端（`worker-factory`）、full WASM 变体（`@einfach/excel-wasm/full`）。
 - `@einfach/spreadsheet-ui-styles` 的样式正确性（只装未 import）。
 - Nuxt 4 / Vite 之外的 builder。浏览器仅 Chromium headless。

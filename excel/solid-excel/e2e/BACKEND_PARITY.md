@@ -76,7 +76,7 @@ running the same chromium device. They differ only in the baseURL query string:
   in a Web Worker, the F1/F2 TS port).
 
 The `?backend=` selector is only consulted by `VNextWorkerDemo`
-(`src-vnext/demos/VNextWorkerDemo.tsx::readBackendChoice`). Every other demo
+(`src/demos/VNextWorkerDemo.tsx::readBackendChoice`). Every other demo
 (legacy `Blank` / `Formulas` / `Multi-Sheet` / `1M Cells`, the static
 `VNextSmokeDemo`, the static `VNextWave5Demo`, and the dedicated
 `VNextWorkerTsDemo`) is hard-wired to its own backend and ignores the query
@@ -334,7 +334,7 @@ specs listed under "Static `VNextWave5Demo`" above and include:
 
 ## What the debug-probe RPC surfaces
 
-`excel/solid-excel/src-vnext/adapter/worker-runtime-ts.ts` exposes the same three
+`excel/solid-excel/src/adapter/worker-runtime-ts.ts` exposes the same three
 debug RPCs the WASM worker has:
 
 - `debugFormulaCacheState(sheet, addr)` →

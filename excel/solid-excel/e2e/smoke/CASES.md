@@ -1,8 +1,9 @@
 # 冒烟 + 回归钉子（smoke）— e2e cases
 
-> 功能源码：src/App.tsx（demo 壳 + tab 导航）、src/Table.tsx + src/sheet-store.ts（legacy 表格）、
-> src-vnext/demos/（vNext demo 装配）、src-vnext/provider/SpreadsheetUiProvider.tsx
-> 存量 spec 行数超限登记：vnext-smoke.spec.ts 396 行、vnext-real-backend-smoke.spec.ts 339 行、
+> 功能源码：demo/App.tsx（current/legacy demo 壳 + tab 导航）、
+> legacy/Table.tsx + legacy/sheet-store.ts（legacy 表格）、src/demos/（current demo 装配）、
+> src/provider/SpreadsheetUiProvider.tsx（current provider）
+> 存量 spec 行数超限登记：vnext-smoke.spec.ts 403 行、vnext-real-backend-smoke.spec.ts 340 行、
 > regression.spec.ts 308 行（均为历史文件，>300 普通上限、<500，只登记不拆）
 
 ## 存量场景映射

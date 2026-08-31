@@ -1,7 +1,7 @@
 # 键盘导航 + Go To — e2e cases
 
 > 功能源码：excel/spreadsheet-ui-core/src/keyboard/ + go-to/ + selection/（moveSelection 钳制）
-> + excel/solid-excel/src-vnext/go-to/ + grid/SpreadsheetGrid.tsx（handleGridKeyDown 派发）
+> + excel/solid-excel/src/go-to/ + grid/SpreadsheetGrid.tsx（handleGridKeyDown 派发）
 > 存量 spec 行数超限登记：无（go-to.spec.ts 289 行）
 
 ## 场景表

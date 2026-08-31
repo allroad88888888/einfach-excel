@@ -26,7 +26,7 @@ let (fn_norm, policy) = if (1..=11).contains(&fn_int) {
 
 ## 裁决前的错误形态:两套真相
 
-翻案之前的形态,用 `excel/solid-excel/src-vnext/adapter/filter-hidden-rows.ts` 文件头注释里的原话描述最准确:
+翻案之前的形态,用 `excel/solid-excel/src/adapter/filter-hidden-rows.ts` 文件头注释里的原话描述最准确:
 
 > Until this landed the engine had no idea a filter existed, so 1-11 summed filtered-out rows — a divergence from Excel, not a missing feature.
 
@@ -42,7 +42,7 @@ let (fn_norm, policy) = if (1..=11).contains(&fn_int) {
 
 落到代码上,边界是这样的:
 
-- 引擎**拥有**手动隐藏行(`Sheet.hidden_rows`)与筛选(`SheetAutoFilter` = 规则 + 派生隐藏集),并**自己求值谓词**。worker 适配器的 `setFilterSort`(`src-vnext/adapter/worker/filter-sort.ts`)把规则整体交给引擎的 `applyFilter`,引擎跑一遍谓词,把规则和它隐藏的行一起提交,隐藏行随 ACK 回传。适配器侧的注释写得很直白:"This is a MIRROR of engine-owned state, not an independently derived set — nothing here re-runs the predicate." 适配器早期那套宿主侧整列扫描被删掉了(引擎在 7700 次逐格判定的黄金对照下复现了它,才敢删)。
+- 引擎**拥有**手动隐藏行(`Sheet.hidden_rows`)与筛选(`SheetAutoFilter` = 规则 + 派生隐藏集),并**自己求值谓词**。worker 适配器的 `setFilterSort`(`src/adapter/worker/filter-sort.ts`)把规则整体交给引擎的 `applyFilter`,引擎跑一遍谓词,把规则和它隐藏的行一起提交,隐藏行随 ACK 回传。适配器侧的注释写得很直白:"This is a MIRROR of engine-owned state, not an independently derived set — nothing here re-runs the predicate." 适配器早期那套宿主侧整列扫描被删掉了(引擎在 7700 次逐格判定的黄金对照下复现了它,才敢删)。
 - UI core 的两个对应 atom **降级为只在 backend ACK 上写的投影缓存**。这条是硬规则:引擎投影的 atom 不得本地乐观写入——乐观写就是在重新制造第二个权威。
 - 隐藏**列**留在 UI core。这是同一判据的负对照:引擎对隐藏列零建模,没有任何公式读它,所以 `viewportHiddenColsAtom` 留在视图层,而 `sheetHiddenRowsAtom` 是引擎投影。同一个概念的两条轴,因为一条影响计算、一条不影响,归属就是分开的。
 

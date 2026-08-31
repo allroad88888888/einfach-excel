@@ -1,6 +1,6 @@
 # filter-sort — e2e cases
 
-> 功能源码：excel/spreadsheet-ui-core/src/filter-sort/ + src-vnext/filter-sort/
+> 功能源码：excel/spreadsheet-ui-core/src/filter-sort/ + src/filter-sort/
 > 存量 spec 行数超限登记：vnext-sort-real-backend.spec.ts 320 行（历史文件，只登记不拆）
 
 后端口径：筛选谓词与物理排序自 E5/#24 起均为引擎所有 —— WASM worker 全量支持，

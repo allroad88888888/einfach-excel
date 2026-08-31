@@ -15,10 +15,10 @@ UI-core atoms 与既有命令生命周期拥有。
 | Source                                                                                                                | Confirmed fact                                                                                        | Contract consequence                                      |
 | --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
 | [HEADLESS_MOUNTING_CONTRACT §4](HEADLESS_MOUNTING_CONTRACT.md#4-own-dom-measurement-separately-from-backend-metadata) | 挂载宿主拥有 scroll 根节点、行列锚点、原生滚动位置和浏览器 viewport 尺寸。                            | adapter 的 DOM 输入只在一个挂载会话内有效。               |
-| [`grid-lifecycle.ts`](../excel/solid-excel/src-vnext/grid/grid-lifecycle.ts)                                          | 挂载时同步尺寸并创建、观察 `ResizeObserver`；清理时调用 `disconnect()`。                              | 创建、观察和断开 observer 必须由同一会话负责。            |
-| [`grid-projection-controller.ts`](../excel/solid-excel/src-vnext/grid/grid-projection-controller.ts)                  | `clientWidth` / `clientHeight` 在挂载或 observer 回调读取；滚动路径消费已有 viewport 指标。           | 尺寸读取不可放入每个 scroll event 的热路径。              |
-| [`grid-auto-fit.ts`](../excel/solid-excel/src-vnext/grid/grid-auto-fit.ts)                                            | auto-fit 从当前元素的计算样式和临时 DOM probe 的矩形读取尺寸，并立即移除 probe。                      | auto-fit 测量使用当前 window/document，不能留下临时节点。 |
-| [`grid-auto-fit-controller.ts`](../excel/solid-excel/src-vnext/grid/grid-auto-fit-controller.ts)                      | 当前 grid 根节点限定 header 与 cell 候选范围；结果先进入既有 viewport size 命令，再按可选端口持久化。 | adapter 只提供候选的像素测量，不拥有命令状态或持久化。    |
+| [`grid-lifecycle.ts`](../excel/solid-excel/src/grid/grid-lifecycle.ts)                                          | 挂载时同步尺寸并创建、观察 `ResizeObserver`；清理时调用 `disconnect()`。                              | 创建、观察和断开 observer 必须由同一会话负责。            |
+| [`grid-projection-controller.ts`](../excel/solid-excel/src/grid/grid-projection-controller.ts)                  | `clientWidth` / `clientHeight` 在挂载或 observer 回调读取；滚动路径消费已有 viewport 指标。           | 尺寸读取不可放入每个 scroll event 的热路径。              |
+| [`grid-auto-fit.ts`](../excel/solid-excel/src/grid/grid-auto-fit.ts)                                            | auto-fit 从当前元素的计算样式和临时 DOM probe 的矩形读取尺寸，并立即移除 probe。                      | auto-fit 测量使用当前 window/document，不能留下临时节点。 |
+| [`grid-auto-fit-controller.ts`](../excel/solid-excel/src/grid/grid-auto-fit-controller.ts)                      | 当前 grid 根节点限定 header 与 cell 候选范围；结果先进入既有 viewport size 命令，再按可选端口持久化。 | adapter 只提供候选的像素测量，不拥有命令状态或持久化。    |
 
 ## Minimum adapter surface
 

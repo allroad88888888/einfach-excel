@@ -122,6 +122,6 @@ structural undo/redo now restores the engine's owned filter (rules + derived hid
 set) from the engine's own snapshot (`snapshotFilters` / `restoreFilters` on the
 worker; the full-sheet capture on static), and the provider re-hydrates this cache
 from `readSheetHiddenState.filterRows` (`reconcileFilterHiddenFromEngine` in
-`excel/solid-excel/src-vnext/provider/history-dispatch.ts`). See
+`excel/solid-excel/src/provider/history-dispatch.ts`). See
 `excel/solid-excel/docs/online-excel-parity/design-engine-hidden-rows.md` §6.3 and
 `../../docs/filter-sort.md` for the whole-feature contract.

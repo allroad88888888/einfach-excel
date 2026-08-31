@@ -8,7 +8,7 @@
 - 当前产品是 Solid：依赖 `@einfach/core` 与 `@einfach/solid`，并未安装 `@einfach/react`。
 - 因此以 `@einfach/react` 的 Atom 建模原则为基准；Solid 界面使用等价的 `@einfach/solid` 读写
   相同 Atom。除非另行授权，本轮不做 Solid → React 迁移。
-- `spreadsheet-ui-core` 是业务事实、会话、草稿、命令、加载和错误的唯一状态层；vnext 只保留 DOM
+- `spreadsheet-ui-core` 是业务事实、会话、草稿、命令、加载和错误的唯一状态层；Solid 现役层只保留 DOM
   测量、元素焦点和浏览器 API 等短生命周期宿主状态。
 - 一个执行 Issue 只能有一个代码模型所有者。模型 ID 是独立执行任务，不代表所有模型同时运行；
   共享文件只能由前置 Issue 独占，后续 Issue 只读其契约。

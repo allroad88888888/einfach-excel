@@ -24,10 +24,10 @@
 | ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
 | [`backend/types.ts`](../excel/spreadsheet-ui-core/src/backend/types.ts)                              | `readVisibleProjection`、`readRangeProjection` 与 `setCellInput` 是后端必需端口；其他命令端口可缺席。                             | 宿主只调用存在的匹配端口，不假设一个通用 `dispatch` 后端函数。 |
 | [`projection/index.ts`](../excel/spreadsheet-ui-core/src/projection/index.ts)                        | `projectionSnapshotAtom` 是只读消费面；请求和结果经 `beginProjectionAtom`、`resolveProjectionAtom`、`rejectProjectionAtom` 流转。 | 宿主经命令推进投影状态，不能直接写显示快照。                   |
-| [`projection-refresh.ts`](../excel/solid-excel/src-vnext/provider/projection-refresh.ts)             | 一个已开始的 visible transport 负责排空 Store-local 的最新请求队列。                                                              | 排队请求不另起读取；现有 transport 接收后继请求。              |
-| [`grid-lifecycle.ts`](../excel/solid-excel/src-vnext/grid/grid-lifecycle.ts)                         | 当前网格集中保存 `store.sub`、内容变更取消函数、`ResizeObserver` 与指针取消工作。                                                 | headless 宿主必须对等地保存并在卸载时释放这些资源。            |
-| [`grid-projection-controller.ts`](../excel/solid-excel/src-vnext/grid/grid-projection-controller.ts) | 可见窗口从已知 viewport 指标取得；DOM 尺寸只在挂载或 `ResizeObserver` 回调读取。                                                  | 滚动热路径不强制读取 `clientWidth` 或 `clientHeight`。         |
-| [`grid-dom-adapter.ts`](../excel/solid-excel/src-vnext/grid/grid-dom-adapter.ts)                     | DOM 适配器只保存元素引用、滚动锚点与指针监听清理；产品状态留在 UI-core atoms。                                                    | DOM 资源属于挂载宿主，产品状态不属于 DOM 适配器。              |
+| [`projection-refresh.ts`](../excel/solid-excel/src/provider/projection-refresh.ts)             | 一个已开始的 visible transport 负责排空 Store-local 的最新请求队列。                                                              | 排队请求不另起读取；现有 transport 接收后继请求。              |
+| [`grid-lifecycle.ts`](../excel/solid-excel/src/grid/grid-lifecycle.ts)                         | 当前网格集中保存 `store.sub`、内容变更取消函数、`ResizeObserver` 与指针取消工作。                                                 | headless 宿主必须对等地保存并在卸载时释放这些资源。            |
+| [`grid-projection-controller.ts`](../excel/solid-excel/src/grid/grid-projection-controller.ts) | 可见窗口从已知 viewport 指标取得；DOM 尺寸只在挂载或 `ResizeObserver` 回调读取。                                                  | 滚动热路径不强制读取 `clientWidth` 或 `clientHeight`。         |
+| [`grid-dom-adapter.ts`](../excel/solid-excel/src/grid/grid-dom-adapter.ts)                     | DOM 适配器只保存元素引用、滚动锚点与指针监听清理；产品状态留在 UI-core atoms。                                                    | DOM 资源属于挂载宿主，产品状态不属于 DOM 适配器。              |
 
 ## Minimum contract
 

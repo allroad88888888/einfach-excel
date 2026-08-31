@@ -7,21 +7,21 @@
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│ vnext UI (excel/solid-excel/src-vnext/)                            │
+│ Solid UI (excel/solid-excel/src/)                                  │
 │  - Grid, toolbar, dialogs                                    │
 │  - Atoms scoped to UI session                                │
 └─────────────────┬────────────────────────────────────────────┘
                   │ SpreadsheetBackend port (unchanged)
                   ▼
 ┌──────────────────────────────────────────────────────────────┐
-│ Worker (excel/solid-excel/src-vnext/adapter/worker-runtime.ts)     │
+│ Worker (excel/solid-excel/src/adapter/worker-runtime-ts.ts)        │
 │  - postMessage → request decoder                             │
-│  - Calls into @einfach/excel-core                            │
+│  - Calls into @einfach/excel-core-ts                         │
 └─────────────────┬────────────────────────────────────────────┘
                   │ in-process function calls
                   ▼
 ┌──────────────────────────────────────────────────────────────┐
-│ @einfach/excel-core (this package)                           │
+│ @einfach/excel-core-ts (this package)                        │
 │                                                              │
 │  workbook.ts  ─→  sheets: Map<id, sheetAtom>                 │
 │                   names:  Map<name, NamedRange>              │
@@ -41,7 +41,7 @@
 └──────────────────────────────────────────────────────────────┘
 ```
 
-Key property: **`@einfach/excel-core` does not import `solid-js`, the DOM, or anything UI-specific**. Same discipline as `excel/spreadsheet-ui-core`. It depends only on `@einfach/core`.
+Key property: **`@einfach/excel-core-ts` does not import `solid-js`, the DOM, or anything UI-specific**. Same discipline as `excel/spreadsheet-ui-core`. It depends only on `@einfach/core`.
 
 ## 2. Data model
 
@@ -114,7 +114,7 @@ UI dispatches setCell command
 SpreadsheetBackend.setCellInput({ sheetId, row, col, input })
      │  (via postMessage to worker)
      ▼
-worker-runtime.ts decodes request
+worker-runtime-ts.ts decodes request
      │
      ▼
 workbook.setCell(sheetId, key, input)
@@ -311,12 +311,12 @@ Unchanged. The UI core defines the **backend port shape**, host APIs (custom for
 
 This is the contract that keeps the port boring: no UI change.
 
-## 13. What stays in `excel/solid-excel/src-vnext/adapter/`
+## 13. What stays in `excel/solid-excel/src/adapter/`
 
 Unchanged in shape, swap in implementation:
 
-- `worker-factory.ts` — picks which worker bundle to spawn (today: wasm bundle; after Phase 4: ts bundle behind flag; after Phase 10: ts bundle only).
-- `worker-runtime.ts` — decodes postMessage requests, calls into the worker-side core, encodes responses.
+- `worker-factory.ts` — exposes the separate WASM-lite factory and TS-core factory; the latter spawns `worker-entry-ts.ts`, which installs `worker-runtime-ts.ts`.
+- `worker-runtime-ts.ts` — decodes postMessage requests, dispatches them against the `@einfach/excel-core-ts` workbook state, and encodes responses.
 - `worker-workbook-backend.ts` — UI-facing port; sends requests over postMessage.
 
-The new core slots in where `Workbook` (wasm-bound) is constructed today.
+The TS runtime keeps its `@einfach/excel-core-ts` `Workbook` state behind the same worker protocol as the WASM backend.

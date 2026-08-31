@@ -2,7 +2,7 @@
 
 > 功能源码：excel/spreadsheet-ui-core/src/protection/（MAX_UNLOCKED_RANGES = 256，
 > UI-core canonical，后端 port 仅为可选持久化镜像）+
-> excel/solid-excel/src-vnext/protection/SpreadsheetProtectionUnlockDialog.tsx +
+> excel/solid-excel/src/protection/SpreadsheetProtectionUnlockDialog.tsx +
 > 菜单入口：menu-bar-item-format.protectSheet / .unprotectSheet / .unlockRange
 > 存量 spec 行数超限登记：无（vnext-protection-real-backend.spec.ts 91 行）
 

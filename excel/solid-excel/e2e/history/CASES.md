@@ -1,8 +1,8 @@
 # history（撤销重做）— e2e cases
 
 > 功能源码：excel/spreadsheet-ui-core/src/history/（DEFAULT_HISTORY_CAP = 100、
-> 生产者车道、revision 见证）+ excel/solid-excel/src-vnext/history/
-> （SpreadsheetHistoryTimeline）+ src-vnext/provider/history-dispatch.ts
+> 生产者车道、revision 见证）+ excel/solid-excel/src/history/
+> （SpreadsheetHistoryTimeline）+ src/provider/history-dispatch.ts
 > 存量 spec 行数超限登记：无（最大 audit-history.spec.ts 261 行，未超 300）
 
 | ID | 场景 | 步骤概要 | 关键断言 | 状态 | spec |

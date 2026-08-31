@@ -1,8 +1,8 @@
 # 查找替换 — e2e cases
 
 > 功能源码：excel/spreadsheet-ui-core/src/find-replace/（MAX_FIND_PAGE = 500）+
-> excel/solid-excel/src-vnext/find-replace/SpreadsheetFindReplaceDialog.tsx +
-> 静态后端 searchRange/replaceMatches：src-vnext/adapter/static-backend.ts
+> excel/solid-excel/src/find-replace/SpreadsheetFindReplaceDialog.tsx +
+> 静态后端 searchRange/replaceMatches：src/adapter/static-backend.ts
 > 存量 spec 行数超限登记：无（toolbar-find-replace.spec.ts 182 行）
 
 ## 语义要点（按实现核实）

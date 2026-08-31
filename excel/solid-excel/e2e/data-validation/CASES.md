@@ -1,8 +1,8 @@
 # 数据校验 — e2e cases
 
 > 功能源码：excel/spreadsheet-ui-core/src/data-validation/（evaluateValidationLocal）+
-> excel/solid-excel/src-vnext/data-validation/SpreadsheetDataValidationDialog.tsx +
-> 后端 overlay：src-vnext/adapter/worker-workbook-backend.ts（applyValidationOverlay，
+> excel/solid-excel/src/data-validation/SpreadsheetDataValidationDialog.tsx +
+> 后端 overlay：src/adapter/worker-workbook-backend.ts（applyValidationOverlay，
 > 逐格求值）/ static-backend.ts（仅盖章 `validation.<kind>`，不求值）
 > 存量 spec 行数超限登记：无（toolbar-data-validation.spec.ts 122 行）
 

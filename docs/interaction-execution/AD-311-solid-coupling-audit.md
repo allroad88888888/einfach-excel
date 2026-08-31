@@ -2,8 +2,8 @@
 
 ## Scope and method
 
-This is the non-TSX half of a read-only inventory of source files below
-`excel/solid-excel/src-vnext` that actually import from `solid-js`. The paired
+This is a historical, read-only snapshot of the non-TSX inventory taken below
+`excel/solid-excel/src-vnext` at the time of the AD-311 audit. The paired
 [TSX coupling ledger](AD-311-solid-coupling-audit-tsx.md) records every TSX
 import declaration separately; both files together satisfy AD-311.
 
@@ -13,7 +13,7 @@ Commands (run from the repository root):
 rg -n --glob '*.{ts,tsx}' "^import(?:\\s+type)? .* from 'solid-js'" excel/solid-excel/src-vnext
 ```
 
-Result: 24 `.ts` files have 25 `solid-js` import declarations; 99 `.tsx` files
+Snapshot result: 24 `.ts` files had 25 `solid-js` import declarations; 99 `.tsx` files
 have 111 declarations, all recorded in the paired ledger. The `.ts` inventory
 below records its 25 declarations. `adapter/worker-runtime-ts.ts` contains a
 comment mentioning `solid-js`, but has no import and is deliberately excluded.

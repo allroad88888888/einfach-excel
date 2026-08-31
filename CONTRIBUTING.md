@@ -84,7 +84,7 @@ pnpm exec jest path/to/file.test.ts --no-coverage
 
 ```
 excel/spreadsheet-ui-core/ → @einfach/spreadsheet-ui-core  # 框架无关的表格 UI 核心（atoms / 类型 / 投影契约）
-excel/solid-excel/         → @einfach/solid-excel          # Solid.js 表格界面（src-vnext 现役）
+excel/solid-excel/         → @einfach/solid-excel          # Solid.js 表格界面（src 现役）
 excel/excel-site/          → @einfach/excel-site           # 演示 / 门面站（private）
 excel/excel-core-ts/       → @einfach/excel-core-ts        # TS 公式引擎（private，parity 参照 + 第二 worker 后端）
 excel/rust/core/           → einfach-core (crate)          # Rust atom store

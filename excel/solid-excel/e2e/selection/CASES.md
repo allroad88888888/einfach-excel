@@ -1,8 +1,8 @@
 # 选区 + 右键菜单 — e2e cases
 
 > 功能源码：excel/spreadsheet-ui-core/src/selection/ + pointer/ +
-> excel/solid-excel/src-vnext/grid/SpreadsheetGrid.tsx（选区/表头/全选交互）+
-> src-vnext/context-menu/
+> excel/solid-excel/src/grid/SpreadsheetGrid.tsx（选区/表头/全选交互）+
+> src/context-menu/
 > 存量 spec 行数超限登记：无（三个存量 spec 均 <150 行）
 
 ## 结论：多 range 选区 UI 已接线

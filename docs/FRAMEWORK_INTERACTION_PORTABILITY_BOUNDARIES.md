@@ -8,13 +8,13 @@
 
 ## 分类依据与覆盖范围
 
-分类以 [AD-311 TypeScript 台账](interaction-execution/AD-311-solid-coupling-audit.md) 和 [AD-311 TSX 台账](interaction-execution/AD-311-solid-coupling-audit-tsx.md) 为起点，并逐项查看当前 `excel/solid-excel/src-vnext` 源码。
+分类以 [AD-311 TypeScript 台账](interaction-execution/AD-311-solid-coupling-audit.md) 和 [AD-311 TSX 台账](interaction-execution/AD-311-solid-coupling-audit-tsx.md) 为起点，并逐项查看当前 `excel/solid-excel/src` 源码。
 
 可复核的直接 `solid-js` 导入扫描为：
 
 ```sh
 rg -n --glob '*.{ts,tsx}' "^import(?:\\s+type)? .* from 'solid-js'" \
-  excel/solid-excel/src-vnext | awk '!/\/grid\//'
+  excel/solid-excel/src | awk '!/\/grid\//'
 ```
 
 当前非 Grid 结果为 119 个声明（22 个 `.ts`、97 个 `.tsx`）；完整扫描为 136 个（25 个 `.ts`、111 个 `.tsx`），差额正是 Grid 的 3 个 `.ts` 和 14 个 `.tsx` 声明。下面的家族表覆盖这 119 个声明所属的非 Grid 表面，并补查了虽未直接导入 `solid-js`、但仍承担 JSX 或浏览器交互的相邻文件。

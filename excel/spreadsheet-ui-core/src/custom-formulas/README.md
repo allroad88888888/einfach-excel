@@ -149,7 +149,7 @@ bridge marshals `Value::Array` directly to a nested JS array (row-major).
 
 Defensive bodies should branch on `Array.isArray(args[i])` and fall
 back to a single-cell projection — see the `SUMSQ2` demo in
-`excel/solid-excel/src-vnext/demos/VNextWorkerDemo.tsx`:
+`excel/solid-excel/src/demos/VNextWorkerDemo.tsx`:
 
 ```js
 // =SUMSQ2(A1:A10)

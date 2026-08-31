@@ -2,7 +2,7 @@
 
 状态：当前源码分类（AD-312）
 
-本文按当前 `excel/solid-excel/src-vnext/grid` 源码划分 Grid 的可移植边界。
+本文按当前 `excel/solid-excel/src/grid` 源码划分 Grid 的可移植边界。
 它只说明哪些既有逻辑可作为框架中立计算被复用，哪些逻辑仍须由框架适配层
 持有；不移动任何代码，也不选择未来共享代码的归属位置。
 

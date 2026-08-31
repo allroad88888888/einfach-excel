@@ -12,7 +12,7 @@ atom 清单、端口形状、用例覆盖，都在贴着代码的文档里（见
                             │ 组装
         ┌───────────────────▼─────────────────────────────────────┐
         │ 宿主适配器                                               │
-        │ ├── excel/solid-excel/src-vnext  Solid 组件 / worker 胶水│
+        │ ├── excel/solid-excel/src  Solid 组件 / worker 胶水│
         │ ├── excel/react-excel             React 私有部分适配器  │
         │ └── excel/vue-excel               Vue 私有部分适配器    │
         └───────────────────┬─────────────────────────────────────┘
@@ -41,7 +41,7 @@ atom 清单、端口形状、用例覆盖，都在贴着代码的文档里（见
 
 | 宿主  | 包名                   | 源码路径                      | 边界事实                                                      |
 | ----- | ---------------------- | ----------------------------- | ------------------------------------------------------------- |
-| Solid | `@einfach/solid-excel` | `excel/solid-excel/src-vnext` | Solid 的组件、Provider 与 worker adapter 在这里消费 UI core。 |
+| Solid | `@einfach/solid-excel` | `excel/solid-excel/src` | Solid 的组件、Provider 与 worker adapter 在这里消费 UI core。 |
 | React | `@einfach/react-excel` | `excel/react-excel`           | 仓内私有 workspace，只实现了部分适配面。                      |
 | Vue   | `@einfach/vue-excel`   | `excel/vue-excel`             | 仓内私有 workspace，只实现了部分适配面。                      |
 
@@ -71,7 +71,7 @@ React 与 Vue 两项仅用于记录仓内依赖和代码位置；它们不构成
 grep -cE '^\s+[a-zA-Z][a-zA-Z0-9]*\?[(:]' excel/spreadsheet-ui-core/src/backend/types.ts
 ```
 
-两个参考实现都在 `excel/solid-excel/src-vnext/adapter/`：
+两个参考实现都在 `excel/solid-excel/src/adapter/`：
 
 | 实现                         | 用途                                                                |
 | ---------------------------- | ------------------------------------------------------------------- |
@@ -112,8 +112,8 @@ atom 持有整个数组，每个非 (0,0) 目标拿一个读锚点并索引进�
 worker 协议，e2e 双后端跑同一批用例来钉 parity（矩阵见 `excel/solid-excel/e2e/BACKEND_PARITY.md`）。
 Rust 是现役主引擎；TS 版是 parity 参照，同时保留纯 JS 部署路径。
 
-worker 工厂**刻意不从** `src-vnext` barrel 导出（`import.meta` 会炸 jest），宿主必须走
-`@einfach/solid-excel/vnext-worker-factory` 子路径 —— 见
+worker 工厂**刻意不从** `src` barrel 导出（`import.meta` 会炸 jest），宿主必须走
+`@einfach/solid-excel/worker-factory` 子路径 —— 见
 [ADR 0004](decisions/0004-worker-factory-out-of-barrel.md)。
 
 Rust/WASM 那侧的 dispatcher 与"用哪份 wasm 产物"是解耦的：消息循环在

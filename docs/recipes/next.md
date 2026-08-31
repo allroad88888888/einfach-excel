@@ -93,6 +93,6 @@ UI core（stub backend，三必选方法契约见 [UI-core-only 路径](../UI_CO
 
 ## 未验证
 
-- worker 后端（`vnext-worker-factory`）在 Next 里的用法、full WASM 变体。
+- worker 后端（`worker-factory`）在 Next 里的用法、full WASM 变体。
 - Turbopack（冒烟是 webpack 生产构建）、App Router 之外的 Pages Router。
 - `@einfach/spreadsheet-ui-styles` 的 CSS 实际 import。

@@ -1,9 +1,9 @@
 # AD-311 Solid coupling audit: TSX ledger
 
-This ledger is the TSX half of the [AD-311 Solid coupling audit](AD-311-solid-coupling-audit.md).
-Each row is one `from 'solid-js'` declaration under `excel/solid-excel/src-vnext`.
+This ledger is the TSX half of the [AD-311 Solid coupling audit](AD-311-solid-coupling-audit.md), preserved as an audit-time snapshot.
+Each row is one `from 'solid-js'` declaration that was under `excel/solid-excel/src-vnext`.
 `rg -n --glob '*.{ts,tsx}' "^import(?:\\s+type)? .* from 'solid-js'" excel/solid-excel/src-vnext`
-returns the 111 rows below; the paired TypeScript ledger records the remaining 25.
+returned the 111 rows below; the paired TypeScript ledger records the remaining 25. These counts are not a current-tree inventory.
 
 All TSX declarations are framework-specific today: component templates require
 Solid JSX control-flow/render-node types, their reactive values participate in the

@@ -179,28 +179,28 @@ TS 的 REGEX* 会让上面那两份对称钉子失去一侧，对拍能力直接
 ### 怎么选 full
 
 dispatcher 与"用哪份 wasm"已经解耦：worker 的消息循环住在
-`excel/solid-excel/src-vnext/adapter/worker-runtime-core.ts`，导出
+`excel/solid-excel/src/adapter/worker-runtime-core.ts`，导出
 `installWorkerRuntime(wasm)`，`wasm` 是一份 `wasm-pack --target web` 产物的模块命名空间。
 两个**薄入口**各自静态 import 一份产物再调它：
 
 | 入口 | import | 包子路径 |
 |---|---|---|
-| `worker-runtime.ts` | `@einfach/excel-wasm` | `@einfach/solid-excel/vnext-worker-runtime` |
-| `worker-runtime-full.ts` | `@einfach/excel-wasm/full` | `@einfach/solid-excel/vnext-worker-runtime-full` |
+| `worker-runtime.ts` | `@einfach/excel-wasm` | `@einfach/solid-excel/worker-runtime` |
+| `worker-runtime-full.ts` | `@einfach/excel-wasm/full` | `@einfach/solid-excel/worker-runtime-full` |
 
 宿主侧三选一：
 
 ```ts
 // 1) 默认 lite —— 什么都不用做，defaultVNextWorkbookWorkerFactory 就是它
-import { defaultVNextWorkbookWorkerFactory } from '@einfach/solid-excel/vnext-worker-factory'
+import { defaultVNextWorkbookWorkerFactory } from '@einfach/solid-excel/worker-factory'
 
 // 2) 换 full —— 先 `npm run build:wasm:full -w @einfach/excel-wasm`，再自己 import 入口
-import FullWorkbookWorker from '@einfach/solid-excel/vnext-worker-runtime-full?worker'
+import FullWorkbookWorker from '@einfach/solid-excel/worker-runtime-full?worker'
 createWorkerWorkbookSpreadsheetBackend({ workerFactory: () => new FullWorkbookWorker() })
 
 // 3) 自建产物 —— 写三行自己的 worker 入口
 import * as wasm from './my-wasm-pkg/einfach_wasm.js'
-import { installWorkerRuntime } from '@einfach/solid-excel/vnext-worker-runtime-core'
+import { installWorkerRuntime } from '@einfach/solid-excel/worker-runtime-core'
 installWorkerRuntime(wasm)
 ```
 
@@ -212,7 +212,7 @@ installWorkerRuntime(wasm)
 任何一个 WASM 入口，两个薄入口都是叶子**。代价因此只落在真正选了 full 的宿主身上。
 
 类型检查侧同理：`worker-runtime-full.ts` 会被本包的 `tsc` 编进程序，靠
-`src-vnext/adapter/excel-wasm-full-fallback.d.ts` 那条通配 `declare module` 兜底 —— 产物在场
+`src/adapter/excel-wasm-full-fallback.d.ts` 那条通配 `declare module` 兜底 —— 产物在场
 时 TS 用 wasm-pack 生成的真 d.ts，缺席时才落到兜底，两种情况 `tsc --noEmit` 都通过。
 
 `WasmWorkbook` 是现役接口，`WasmSheet` 是更早的单表接口。JS 侧的消费者是上面那两个薄入口

@@ -15,7 +15,7 @@
 ```
 excel/spreadsheet-ui-core        ← atoms、类型、投影契约（无 DOM/worker/WASM）
         ↑  SpreadsheetBackend 端口（backend/types.ts）      ← 你要实现的就是这条边
-excel/solid-excel/src-vnext      ← Solid 组件、Provider、参考适配器
+excel/solid-excel/src      ← Solid 组件、Provider、参考适配器
         ↑
 excel/rust/excel-core + wasm     ← 官方公式引擎（经 worker）
 ```
@@ -23,7 +23,7 @@ excel/rust/excel-core + wasm     ← 官方公式引擎（经 worker）
 UI core 对数据源的全部认知就是 `SpreadsheetBackend` 这一个接口
 （`excel/spreadsheet-ui-core/src/backend/types.ts`）。工作簿事实（格值、
 公式、依赖图）住在端口后面，不进 UI atoms。仓库自带两个参考实现
-（`excel/solid-excel/src-vnext/adapter/`）：`static-backend.ts`（内存，
+（`excel/solid-excel/src/adapter/`）：`static-backend.ts`（内存，
 本教程最小示例的蓝本）与 `worker-workbook-backend.ts`（RPC 到持有 WASM
 Workbook 的 worker）。挂载只需一个 prop：
 `<SpreadsheetUiProvider backend={yourBackend}>`

@@ -1,7 +1,9 @@
 # perf-virtual（虚拟化 + 性能观测）— e2e cases
 
-> 功能源码：excel/solid-excel/src/（旧壳 Table 虚拟化 + demos/DemoMillion.tsx、DemoLarge.tsx、
-> sheet-store.ts 的 debug 探针）+ excel/spreadsheet-ui-core/src/viewport/（visible-window 契约）。
+> 功能源码：excel/solid-excel/legacy/Table.tsx + legacy/demos/DemoMillion.tsx、
+> legacy/demos/DemoLarge.tsx + legacy/sheet-store.ts（旧表格虚拟化与 debug 探针）；
+> 这些 legacy 场景由 demo/App.tsx 的 `?legacy=1` 壳挂载。current visible-window 契约位于
+> excel/spreadsheet-ui-core/src/viewport/。
 > 探针口径：本文件夹是**唯一**允许 `?debug=1` 内部探针断言的文件夹
 > （`__einfachStore.activeSubscriptionCount` / `data-render-count` / `__einfachWorkbookDebugClient`）。
 > 存量 spec 行数超限登记：million-demo.spec.ts 434 行、file-import.spec.ts 315 行

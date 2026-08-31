@@ -34,7 +34,7 @@
 2. **revision 关联**。请求未带 `revision` 时由后端报出当前版本；显式带了就
    必须原样回显（`projectionRevisionsCorrelate`，同文件 234-239 行）。示例
    照抄静态参考实现的写法 `request.revision ?? revision`
-   （`excel/solid-excel/src-vnext/adapter/static/ports/cell-input.ts` 同款）。
+   （`excel/solid-excel/src/adapter/static/ports/cell-input.ts` 同款）。
 3. **结果有界**。结果格必须都在请求矩形内（CELL_OUT_OF_RANGE）、数量不超过
    矩形容量（RESULT_TOO_LARGE）——`validateProjectionResult`（241-287 行）。
    示例用闭区间 `isInside` 过滤后才输出；矩形不要求填满，空白格不投影。
@@ -56,7 +56,7 @@
 ## 挂载方式
 
 ```tsx
-import { SpreadsheetUiProvider } from '@einfach/solid-excel/vnext' // 以实际导出为准
+import { SpreadsheetUiProvider } from '@einfach/solid-excel' // 以实际导出为准
 import { createMinimalSpreadsheetBackend } from './minimal-backend'
 
 const backend = createMinimalSpreadsheetBackend({
@@ -68,7 +68,7 @@ const backend = createMinimalSpreadsheetBackend({
 ```
 
 `SpreadsheetUiProviderProps.backend: SpreadsheetBackend`
-（`excel/solid-excel/src-vnext/provider/types.ts` 15-16 行）——类型上就是
+（`excel/solid-excel/src/provider/types.ts` 15-16 行）——类型上就是
 这个三方法接口，Provider 挂载时对全部可选端口做一次能力捕获
 （`provider/SpreadsheetUiProvider.tsx` 154 行 → `capability-capture.ts`），
 缺席端口按各特性的降级契约处理，不会因为"方法不存在"而崩。

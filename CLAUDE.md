@@ -49,10 +49,10 @@ pre-commit（husky）依次跑 `check:docs`、`lint:check`、`typecheck:apps`、
 不要在那边改表格栈代码。
 
 ```
-excel/spreadsheet-ui-core/ → @einfach/spreadsheet-ui-core # Framework-agnostic spreadsheet UI atoms + types (vnext)
+excel/spreadsheet-ui-core/ → @einfach/spreadsheet-ui-core # Framework-agnostic spreadsheet UI atoms + types (active)
 excel/excel-core-ts/       → @einfach/excel-core-ts       # TS formula engine (private) — parity 参照，同时是第二个 worker 后端
 excel/excel-wasm/          → @einfach/excel-wasm          # Prebuilt WASM engine artifacts（lite/ + full/，wasm-pack 产物，ADR 0015）
-excel/solid-excel/         → @einfach/solid-excel         # Solid.js spreadsheet surface (legacy + vnext)
+excel/solid-excel/         → @einfach/solid-excel         # Solid.js spreadsheet surface (legacy + active)
 excel/excel-site/          → @einfach/excel-site           # Static docs site with Solid/WASM islands (private, Astro)
 excel/rust/core/           → einfach-core (Rust)          # Rust atom store（TS 版 core 的孪生实现）
 excel/rust/excel-core/     → einfach-excel-core           # Rust formula / workbook engine
@@ -98,18 +98,18 @@ pnpm workspace 的 glob 是 `excel/*`；`excel/rust/` 不是 npm 包，产物经
 
 **Spill-derived atoms** (`excel/rust/excel-core/src/sheet.rs` § "Spill (dynamic-array) infrastructure"): when a formula evaluates to `Value::Array`, the anchor cell's atom holds the array and each non-(0,0) target gets a derived atom that reads the anchor and indexes into it. Reads, dependency tracking, and subscription propagation reuse the existing atom framework — no parallel spill index — and the WASM boundary collapses `Value::Array` to its top-left scalar for cell-projection reads. **自定义公式的回调是另一条边界，双向都用二维 JS 数组**：入参方向，range 实参（`=MYFN(A1:A10)`）以二维数组喂给回调；回程方向，回调返回的二维数组走既有 spill 路径溢出（一维/参差/空/超上限各自的答案、以及与 `SEQUENCE` 共用的 `DYNAMIC_ARRAY_CELL_CAP`，见 `excel/rust/excel-core/src/CUSTOM_FORMULAS.md` § "Marshaling" 与 § "Array returns"）。
 
-**Custom formulas** (Wave 8.1): host-registered JS callbacks invoked as cell-level functions (`=MYTAX(B1)`). Source of truth for the engine contract is `excel/rust/excel-core/src/CUSTOM_FORMULAS.md`; the JS-side host API (registration atoms, name validation, built-in shadow list mirrored from the Rust evaluator) lives in `excel/spreadsheet-ui-core/src/custom-formulas/README.md`. The Solid provider (`excel/solid-excel/src-vnext/provider/SpreadsheetUiProvider.tsx`) diffs the registry atom and forwards add/replace/remove ops to the worker through the optional `registerCustomFormula` / `unregisterCustomFormula` backend ports. **Async (Wave 8.2)**: registrations with `isAsync: true` may `await`; the cell holds `#BUSY!` until the worker pump (`excel/solid-excel/src-vnext/adapter/async-custom-pump.ts`, shared by both worker runtimes) settles the Promise back into the engine, and results are memoized per (name, args) until the next registry change — see CUSTOM_FORMULAS.md § "Async custom formulas".
+**Custom formulas** (Wave 8.1): host-registered JS callbacks invoked as cell-level functions (`=MYTAX(B1)`). Source of truth for the engine contract is `excel/rust/excel-core/src/CUSTOM_FORMULAS.md`; the JS-side host API (registration atoms, name validation, built-in shadow list mirrored from the Rust evaluator) lives in `excel/spreadsheet-ui-core/src/custom-formulas/README.md`. The Solid provider (`excel/solid-excel/src/provider/SpreadsheetUiProvider.tsx`) diffs the registry atom and forwards add/replace/remove ops to the worker through the optional `registerCustomFormula` / `unregisterCustomFormula` backend ports. **Async (Wave 8.2)**: registrations with `isAsync: true` may `await`; the cell holds `#BUSY!` until the worker pump (`excel/solid-excel/src/adapter/async-custom-pump.ts`, shared by both worker runtimes) settles the Promise back into the engine, and results are memoized per (name, args) until the next registry change — see CUSTOM_FORMULAS.md § "Async custom formulas".
 
-## Architecture: vnext (spreadsheet stack)
+## Architecture: active spreadsheet stack
 
-The `vnext` arc layers a spreadsheet on top of the existing atom core. It is the active surface for new feature work; the legacy `excel/solid-excel/src/` shell is kept only for parity tests.
+The active stack layers a spreadsheet on top of the existing atom core. New feature work belongs in `excel/solid-excel/src/`; the legacy `excel/solid-excel/legacy/` shell is kept only for parity tests.
 
 ### Three-tier layering
 
 ```
 excel/spreadsheet-ui-core   (atoms, types, projection contracts — no DOM, no worker, no WASM)
         ↑
-excel/solid-excel/src-vnext         (Solid components, Provider, adapters)
+excel/solid-excel/src         (Solid components, Provider, adapters)
         ↑
 excel/rust/excel-core + excel/rust/wasm   (formula engine, workbook state) — reached via a worker
 ```
@@ -122,7 +122,7 @@ See `excel/spreadsheet-ui-core/docs/ROADMAP.md` for the four-wave feature breakd
 
 The contract between UI core and any data source lives in `excel/spreadsheet-ui-core/src/backend/types.ts`. Exactly three methods are required — `readVisibleProjection`, `readRangeProjection`, `setCellInput` — every other member is optional (count them scoped to the interface: `awk '/^export interface SpreadsheetBackend/,/^}$/' excel/spreadsheet-ui-core/src/backend/types.ts | grep -cE '^\s+[a-zA-Z][a-zA-Z0-9]*\?[(:]'`). When the host backend omits a port, features degrade in one of three forms — hidden entry, disabled control, or starved state (e.g. history entries dropped so undo never enables) — without UI core knowing the difference between "host does not implement it" and "feature does not exist"; the walkthrough with code citations is `docs/BACKEND_DEGRADATION.md`.
 
-Two reference implementations ship under `excel/solid-excel/src-vnext/adapter/`:
+Two reference implementations ship under `excel/solid-excel/src/adapter/`:
 
 - `static-backend.ts` — in-memory implementation used by smoke tests and the static demo.
 - `worker/backend.ts`（`createWorkerWorkbookSpreadsheetBackend`）— RPC to a Web Worker that owns the WASM `Workbook` from `excel/rust/wasm`.
@@ -135,8 +135,8 @@ Worker 侧有两套运行时实现同一协议：`worker-runtime.ts` / `worker-r
 TS 版是 parity 参照兼纯 JS 部署路径，e2e 对真正吃 `?backend=` 参数的 spec 双后端各跑一遍钉
 parity（清单 `excel/solid-excel/e2e/dual-backend-manifest.ts`，防腐守卫
 `excel/solid-excel/test/e2e-dual-backend-manifest.test.ts`）
-（矩阵见 `excel/solid-excel/e2e/BACKEND_PARITY.md`）。worker 工厂**刻意不从** `src-vnext` barrel
-导出（`import.meta` 会炸 jest）—— 宿主必须走 `@einfach/solid-excel/vnext-worker-factory` 子路径，
+（矩阵见 `excel/solid-excel/e2e/BACKEND_PARITY.md`）。worker 工厂**刻意不从** `src` barrel
+导出（`import.meta` 会炸 jest）—— 宿主必须走 `@einfach/solid-excel/worker-factory` 子路径，
 见 [ADR 0004](docs/decisions/0004-worker-factory-out-of-barrel.md)。
 
 ### Atom conventions
@@ -148,9 +148,9 @@ parity（清单 `excel/solid-excel/e2e/dual-backend-manifest.ts`，防腐守卫
 
 ### Provider and dialog component pattern
 
-`excel/solid-excel/src-vnext/provider/SpreadsheetUiProvider.tsx` calls `createSpreadsheetUi`, then wraps children in both `@einfach/solid`'s `Provider` (for `useAtomValue` plumbing) and `SpreadsheetUiContext.Provider` (so `useSpreadsheetBackend` and `useSpreadsheetUiStore` resolve).
+`excel/solid-excel/src/provider/SpreadsheetUiProvider.tsx` calls `createSpreadsheetUi`, then wraps children in both `@einfach/solid`'s `Provider` (for `useAtomValue` plumbing) and `SpreadsheetUiContext.Provider` (so `useSpreadsheetBackend` and `useSpreadsheetUiStore` resolve).
 
-Every modal under `excel/solid-excel/src-vnext/*/Spreadsheet*Dialog.tsx` follows the same shape:
+Every modal under `excel/solid-excel/src/*/Spreadsheet*Dialog.tsx` follows the same shape:
 
 1. Read an open-atom via `useAtomValue` and a close-setter (e.g. `closeFindReplaceAtom`).
 2. Hold per-instance form state in `createSignal` locals.
@@ -185,7 +185,7 @@ Every modal under `excel/solid-excel/src-vnext/*/Spreadsheet*Dialog.tsx` follows
 - `moduleNameMapper` in `jest.config.mjs` maps **only this repo's own packages**（`@einfach/spreadsheet-ui-core`、`@einfach/excel-core-ts`）到源码目录；`@einfach/core` / `@einfach/solid` 刻意走 node_modules（已发布版本）
 - Solid tests use `@solidjs/testing-library`
 - Always create a fresh store per test via `createStore()`
-- vnext spreadsheet suites: `npx jest excel/spreadsheet-ui-core --no-coverage` and `npx jest excel/solid-excel --no-coverage`
+- active spreadsheet suites: `npx jest excel/spreadsheet-ui-core --no-coverage` and `npx jest excel/solid-excel --no-coverage`
 - Playwright e2e specs live in `excel/solid-excel/e2e/`（feature 目录 + `CASES.md`，[ADR 0005](docs/decisions/0005-e2e-feature-folders.md)）；jest 的 `testPathIgnorePatterns` 排除它们，只能用 `npm run e2e` 跑
 - Rust 引擎测试独立于 jest：进各 crate 目录 `cargo test`
 

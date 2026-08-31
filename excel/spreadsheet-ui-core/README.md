@@ -86,7 +86,7 @@ Charts、images 与浮动对象明确不在范围内。
 grep -cE '^\s+[a-zA-Z][a-zA-Z0-9]*\?[(:]' src/backend/types.ts
 ```
 
-参考实现在 `excel/solid-excel/src-vnext/adapter/`（`static-backend.ts` 与 `worker-workbook-backend.ts`）。
+参考实现在 `excel/solid-excel/src/adapter/`（`static-backend.ts` 与 `worker-workbook-backend.ts`）。
 
 ## Atom conventions
 

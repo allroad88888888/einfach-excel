@@ -3,7 +3,7 @@
 > 功能源码：excel/spreadsheet-ui-core/src/editing/（editingSessionAtom / start / commit / cancel
 >
 > - mutation-gateway）+ keyboard/index.ts（F2 / Backspace / Delete / 可打印字符 →
->   `editing.start` intent 语义）；宿主编辑器 excel/solid-excel/src-vnext/grid/SpreadsheetGrid.tsx
+>   `editing.start` intent 语义）；宿主编辑器 excel/solid-excel/src/grid/SpreadsheetGrid.tsx
 >   （editor onKeyDown 的 Enter/Tab/Escape、onBlur 提交、`clearOnStart` 覆写 vs 保留）。
 >   存量 spec 行数超限登记：无（vnext-direct-edit-real-backend.spec.ts 83 行）
 

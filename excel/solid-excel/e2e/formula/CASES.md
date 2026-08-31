@@ -2,7 +2,7 @@
 
 > 功能源码：excel/spreadsheet-ui-core/src/formula-bar/ + formula-functions/ + formula-reference/
 > + keyboard/（editing.start / formulaReference.\* intents）；
-> excel/solid-excel/src-vnext/formula-bar/ + formula-autocomplete/ + grid/SpreadsheetGrid.tsx
+> excel/solid-excel/src/formula-bar/ + formula-autocomplete/ + grid/SpreadsheetGrid.tsx
 > 存量 spec 行数超限登记：formula-flow.spec.ts 456 行（历史文件，只登记不拆）
 
 计划文档第 3 节标注本文件夹缺口为「formula-autocomplete 零覆盖」——**过时**：

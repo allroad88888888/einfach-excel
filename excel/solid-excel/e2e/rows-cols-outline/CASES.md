@@ -3,8 +3,8 @@
 > 功能源码：excel/spreadsheet-ui-core/src/viewport/（hidden.ts / effective-hidden.ts /
 > structural-remap.ts）+ excel/spreadsheet-ui-core/src/outline/ +
 > excel/spreadsheet-ui-core/src/operations/；引用移位与 #REF! 哨兵在
-> excel/rust/excel-core/src/shift.rs；UI 入口在 src-vnext/grid/ + src-vnext/context-menu/ +
-> src-vnext/menu-bar/
+> excel/rust/excel-core/src/shift.rs；UI 入口在 src/grid/ + src/context-menu/ +
+> src/menu-bar/
 > 存量 spec 行数超限登记：无（最长 audit-structural.spec.ts 174 行）
 
 | ID | 场景 | 步骤概要 | 关键断言 | 状态 | spec |

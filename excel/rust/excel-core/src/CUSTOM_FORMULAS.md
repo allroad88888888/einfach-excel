@@ -226,7 +226,7 @@ normative registry — which of them collapse at the rendering boundary, and
 why — is the doc comment on `format::error_display_token`
 (`excel/rust/excel-core/src/format.rs`), because that function *is* the
 boundary. Its TypeScript twin is
-`excel/solid-excel/src-vnext/adapter/error-display-token.ts`. Summary:
+`excel/solid-excel/src/adapter/error-display-token.ts`. Summary:
 
 | internal code | shown in a cell | disposition |
 | --- | --- | --- |
@@ -440,7 +440,7 @@ frames.
 ## Security model
 
 The WASM bridge compiles host-supplied JS source via `new Function('args',
-source)` (see `excel/solid-excel/src-vnext/adapter/worker-custom-formulas.ts`).
+source)` (see `excel/solid-excel/src/adapter/worker-custom-formulas.ts`).
 This boundary is **NOT a privilege sandbox**:
 
 - `new Function` sandboxes only the *lexical closure*. The compiled

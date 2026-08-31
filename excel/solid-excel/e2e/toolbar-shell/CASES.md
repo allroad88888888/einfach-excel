@@ -1,7 +1,7 @@
 # 壳层（工具栏 / 菜单栏 / 状态栏 / Name Box）— e2e cases
 
 > 功能源码：excel/spreadsheet-ui-core/src/menu-bar/ + toolbar/ + status-bar/ + name-box/ +
-> backend/types.ts（可选 port → fail-closed 契约）；src-vnext/menu-bar/、toolbar/、status-bar/、
+> backend/types.ts（可选 port → fail-closed 契约）；src/menu-bar/、toolbar/、status-bar/、
 > name-box/、adapter/worker-runtime-ts.ts（TS_WORKER_RUNTIME_CAPABILITIES 见证）
 > 存量 spec 行数超限登记（如有）：toolbar-buttons.spec.ts 490 行、vnext-wave5.spec.ts 486 行
 > （历史文件，只登记不拆）

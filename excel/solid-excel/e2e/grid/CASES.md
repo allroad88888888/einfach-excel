@@ -1,6 +1,6 @@
 # grid — e2e cases
 
-> 功能源码：excel/solid-excel/src-vnext/grid/SpreadsheetGrid.tsx（fill-handle 指针生命周期、
+> 功能源码：excel/solid-excel/src/grid/SpreadsheetGrid.tsx（fill-handle 指针生命周期、
 > Tab/Shift+Tab 键盘边界、aria-activedescendant）+ excel/spreadsheet-ui-core 的选区/填充 atoms。
 > 本目录只放"网格自身交互"的用例；编辑会话语义在 editing/，选区语义在 selection/。
 > 存量 spec 行数超限登记：无（两个 spec 均 <160 行）

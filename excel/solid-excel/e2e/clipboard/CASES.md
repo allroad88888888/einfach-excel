@@ -2,12 +2,13 @@
 
 > 功能源码：excel/spreadsheet-ui-core/src/clipboard/ + excel/spreadsheet-ui-core/src/paste-special/
 >
-> - src-vnext/grid/SpreadsheetGrid.tsx（copySelectionToClipboard / pasteFromClipboard）
-> - src-vnext/paste-special/；legacy 路径：src/Table.tsx（Blank demo）
+> - src/grid/grid-clipboard.ts（copySelectionToClipboard / pasteFromClipboard）；
+>   src/grid/SpreadsheetGrid.tsx 只负责 composition 并安装 installGridClipboard
+> - src/paste-special/；legacy 路径：legacy/Table.tsx（Blank demo）
 >   存量 spec 行数超限登记：无；审计用例与大范围粘贴用例均按职责分拆。
 
-三条产品路径：legacy Blank demo（selection-clipboard）、vNext Wave 5 静态后端
-（audit-clipboard / paste-special）、vNext worker 真后端 wasm+ts（vnext-clipboard-real-backend）。
+三条产品路径：legacy Blank demo（selection-clipboard）、current Wave 5 静态后端
+（audit-clipboard / paste-special）、current worker 真后端 wasm+ts（vnext-clipboard-real-backend）。
 
 | ID    | 场景                                        | 步骤概要                                                | 关键断言                               | 状态       | spec                                                                                                   |
 | ----- | ------------------------------------------- | ------------------------------------------------------- | -------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------ |

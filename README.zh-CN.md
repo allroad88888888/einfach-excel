@@ -156,7 +156,7 @@ npm run lint:check
 
 ### 最小内存后端示例
 
-已发布的 Solid 绑定与仓库共用 `@einfach/solid-excel/vnext` 接口。下面用内存后端展示
+已发布的 Solid 绑定与仓库共用 `@einfach/solid-excel` 接口。下面用内存后端展示
 UI 边界；若要使用 Worker 中的 Rust/WASM 公式路径，请直接跟随[五分钟上手](./docs/QUICKSTART.md)：
 
 ```tsx
@@ -165,7 +165,7 @@ import {
   SpreadsheetUiProvider,
   SpreadsheetGrid,
   SpreadsheetToolbar,
-} from '@einfach/solid-excel/vnext'
+} from '@einfach/solid-excel'
 
 const backend = createStaticSpreadsheetBackend({
   sheets: [{ id: 'sheet-1', name: 'Sheet1' }],

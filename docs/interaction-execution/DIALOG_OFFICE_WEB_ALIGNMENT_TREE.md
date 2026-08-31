@@ -52,7 +52,7 @@ R-006 Pages 冒烟：同步首页静态 Hero 的就绪契约
 | 波次 | 进入/解锁 | 并行规则 | 结果 |
 | --- | --- | --- | --- |
 | W0 | 现状盘点完成 | 仅 D00；独占 shared skin、tokens、视觉 spec | 全表面可继承的 Excel Web 壳与断言 |
-| W1 | D00 已审阅 | 每个 owner 只能编辑自己的 `src-vnext/<feature>/**`、专属 CSS、专属测试 | 每个 Dialog 的内部布局接入共同壳 |
+| W1 | D00 已审阅 | 每个 owner 只能编辑自己的 `src/<feature>/**`、专属 CSS、专属测试 | 每个 Dialog 的内部布局接入共同壳 |
 | W2 | 全部 W1 leaf 通过 | D20 只编辑 visual-chrome E2E，不回写 feature | 覆盖浅/深色、尺寸、颜色、modal/popover 边界 |
 | W3 | D20 通过 | 集成 owner 只修冲突；root 只审阅、显式暂存和提交 | 已核实的完整交付 |
 

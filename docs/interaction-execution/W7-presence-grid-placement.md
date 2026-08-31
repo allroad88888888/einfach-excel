@@ -32,10 +32,10 @@ UI-518 Presence 网格几何与身份呈现（已完成）
 **模型所有权（只读）**：
 
 - `excel/spreadsheet-ui-core/src/presence/**`
-- `excel/solid-excel/src-vnext/presence/**`
-- `excel/solid-excel/src-vnext/grid/grid-overlay-controller.ts`
-- `excel/solid-excel/src-vnext/grid/grid-atom-accessors.ts`
-- `excel/solid-excel/src-vnext/provider/presence-subscription-bridge.ts`
+- `excel/solid-excel/src/presence/**`
+- `excel/solid-excel/src/grid/grid-overlay-controller.ts`
+- `excel/solid-excel/src/grid/grid-atom-accessors.ts`
+- `excel/solid-excel/src/provider/presence-subscription-bridge.ts`
 - 当前各 Demo/Chrome 中 `SpreadsheetPresenceOverlay` 的挂载点与相关聚焦测试。
 
 **验收**：报告现有 Atom 权威边界、唯一正式挂载点、可复用的真实 cell/selection 几何端口、缺失的身份数据，以及 B--D 的最小精确文件清单。审计不写代码、不改测试、不暂存、不提交。
@@ -51,13 +51,13 @@ UI-518 Presence 网格几何与身份呈现（已完成）
 
 **模型所有权（生产与测试）**：
 
-- 修改 `excel/solid-excel/src-vnext/presence/SpreadsheetPresenceOverlay.tsx`
-- 修改 `excel/solid-excel/src-vnext/grid/grid-overlay-controller.ts`
-- 修改 `excel/solid-excel/src-vnext/grid/SpreadsheetGridView.tsx`
-- 修改 `excel/solid-excel/src-vnext/grid/grid-atom-accessors.ts`
+- 修改 `excel/solid-excel/src/presence/SpreadsheetPresenceOverlay.tsx`
+- 修改 `excel/solid-excel/src/grid/grid-overlay-controller.ts`
+- 修改 `excel/solid-excel/src/grid/SpreadsheetGridView.tsx`
+- 修改 `excel/solid-excel/src/grid/grid-atom-accessors.ts`
 - 修改 `excel/excel-site/src/spreadsheet/ChromeDialogs.tsx`
-- 新增 `excel/solid-excel/src-vnext/styles/presence-overlay.css`
-- 修改 `excel/solid-excel/src-vnext/styles/index.css`
+- 新增 `excel/spreadsheet-ui-styles/styles/presence-overlay.css`
+- 修改 `excel/spreadsheet-ui-styles/styles/index.css`
 - 新增 `excel/solid-excel/test/vnext-presence-overlay-geometry.test.tsx`
 - 新增 `excel/solid-excel/test/vnext-grid-presence.test.tsx`
 

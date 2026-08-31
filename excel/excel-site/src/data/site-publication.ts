@@ -1,7 +1,9 @@
+import { demos } from './demo-catalog'
+
 /** Defines the public GitHub Pages addresses emitted by static publication endpoints. */
 const publicOrigin = 'https://allroad88888888.github.io/einfach-excel'
 
-export const indexedSitePaths = [
+const coreSitePaths = [
   '/',
   '/zh/',
   '/docs/getting-started/',
@@ -16,17 +18,11 @@ export const indexedSitePaths = [
   '/zh/docs/atoms/selection/',
   '/zh/docs/atoms/custom-formulas/',
   '/zh/api/',
-  '/demos/viewport-projection/',
-  '/demos/lazy-formulas/',
-  '/demos/lazy-area/',
-  '/demos/formula-engine/',
-  '/demos/custom-formulas/',
-  '/demos/clean-messy-data/',
-  '/demos/hand-off-a-form/',
-  '/demos/bring-your-own-backend/',
-  '/demos/collaboration/',
-  '/demos/workbench/',
 ] as const
+
+const demoSitePaths = demos.flatMap((demo) => [`/demos/${demo.id}/`, `/zh/demos/${demo.id}/`])
+
+export const indexedSitePaths = [...coreSitePaths, ...demoSitePaths]
 
 /** Builds a canonical public URL while preserving the GitHub Pages project path. */
 export function publicUrl(path = '/'): string {

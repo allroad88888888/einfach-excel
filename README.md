@@ -4,26 +4,48 @@
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Live demo](https://img.shields.io/badge/demo-live-0a7f5a.svg)](https://allroad88888888.github.io/einfach-excel/)
 
-**Einfach Excel is a spreadsheet UI core with a bounded projection contract and a Rust/WASM workbook engine.**
+**Calculate only the formulas a visible result needs—then follow off-screen and cross-sheet dependencies automatically.**
 
-[Explore the live demo](https://allroad88888888.github.io/einfach-excel/) · [Quickstart](./docs/QUICKSTART.md) · [中文文档](./README.zh-CN.md) · [Architecture](./docs/ARCHITECTURE.md) · [Contributing](./CONTRIBUTING.md)
+[See demand-driven formulas](https://allroad88888888.github.io/einfach-excel/demos/lazy-formulas/) · [Try the live workbench](https://allroad88888888.github.io/einfach-excel/demos/workbench/) · [Install in five minutes](./docs/QUICKSTART.md) · [中文文档](./README.zh-CN.md) · [Architecture](./docs/ARCHITECTURE.md) · [Contributing](./CONTRIBUTING.md)
 
 ## Why Einfach Excel?
 
-Spreadsheet interfaces are deceptively hard: rendering, interaction, calculation, and data access need distinct ownership. Einfach Excel keeps the UI separate from the workbook implementation through explicit backend and projection boundaries.
+Einfach Excel is open-source spreadsheet infrastructure for product teams. Its formula engine evaluates visible results on demand, follows required dependencies beyond the viewport, and leaves unrelated formula values unevaluated. UI state, workbook authority, projection transport, and computation remain explicit layers.
+
+- **Evaluate the requested dependency chain, not every formula.** A visible result automatically pulls the ordinary formulas it needs from off-screen cells and other sheets. Formula values outside that chain remain unevaluated.
+- **Render the window, not the workbook.** The UI requests a bounded visible projection. A [100,000-row live demo](https://allroad88888888.github.io/einfach-excel/demos/viewport-projection/) lets you inspect the boundary in a real browser.
+- **Keep formulas off the main thread.** The published Solid path can run the Rust/WASM workbook engine in a Web Worker while the UI owns editing and interaction.
+- **Fit the grid to your backend.** The framework-agnostic UI core reads and writes through a typed backend port, leaving workbook data and mutations in your system.
+- **Evaluate with evidence.** Focused demos link to their source, contracts stay beside implementation, and limitations are stated instead of hidden behind performance adjectives.
+
+## See the hard parts before you integrate
+
+| What you need to prove                   | Start here                                                                                                         |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| A complete editable business surface     | [Try the live workbench](https://allroad88888888.github.io/einfach-excel/demos/workbench/)                         |
+| Large-sheet rendering stays bounded      | [Scroll the 100,000-row viewport demo](https://allroad88888888.github.io/einfach-excel/demos/viewport-projection/) |
+| Formula work stays demand-driven         | [Follow the on-demand formula demo](https://allroad88888888.github.io/einfach-excel/demos/lazy-formulas/)          |
+| Your data model can remain authoritative | [Read the backend-port contract](https://allroad88888888.github.io/einfach-excel/docs/backend-port/)               |
+
+## Install the Solid binding
+
+```bash
+npm install @einfach/solid-excel @einfach/core @einfach/solid solid-js
+```
+
+Follow the [five-minute quickstart](./docs/QUICKSTART.md) to mount the Worker backend and verify `=1+2` in a real cell. The current release is `0.1.0`; pin `~0.1.0` if you need a stable API surface while the project is pre-1.0.
+
+## Evidence boundaries
 
 Scale-related behavior is expressed as current code contracts rather than headline measurements:
 
+- **Evaluate formula values on read.** Bulk-imported ordinary formulas remain unevaluated until a requested result reads them. Off-screen and cross-sheet dependencies are followed automatically; direct writes of array or spill formulas may still evaluate to maintain spill state.
 - **Store records, not a geometric grid.** The workbook's row-and-column keyed storage and range traversal work from stored entries within the requested bounds.
 - **Keep display data inside an explicit rectangle.** The UI core validates visible-viewport and explicit-range requests, then rejects results that do not match the request or exceed its rectangle.
 - **Select range dependencies by geometry.** Formula ranges choose cell, row-band, column, or sheet invalidation roots through source-defined geometry rules.
 - **Keep oversized commands rectangular.** Clear and formatting attempt backend range capabilities above their address-expansion limits; unsupported requests are refused instead of expanded into cell actions.
 
-Read [scale facts](./docs/SCALE_FACTS.md) for code citations, [scale architecture](./docs/SCALE_ARCHITECTURE.md) for layer boundaries, and [dated scale observations](./docs/SCALE_OBSERVATIONS.md) for revision-scoped E2 records. These mechanisms make no performance, memory, capacity, transport, or production-SLA claim.
-
-- **Keep calculation off the main thread.** The provided worker-backed Solid integration runs Rust/WASM workbook work in a Web Worker.
-- **Choose your runtime.** `spreadsheet-ui-core` has no dependency on a DOM, Solid, React, a worker, or WASM. Connect it to the backend that fits your product.
-- **Start with real spreadsheet behavior.** The stack covers selection, editing, keyboard interaction, clipboard operations, formulas, history, find/replace, validation, filtering, sorting, comments, and more.
+Read [scale facts](./docs/SCALE_FACTS.md) for code citations, [scale architecture](./docs/SCALE_ARCHITECTURE.md) for layer boundaries, and [dated scale observations](./docs/SCALE_OBSERVATIONS.md) for revision-scoped E2 records. These mechanisms and the live demos make no performance, memory, capacity, transport, or production-SLA claim.
 
 ## How it fits together
 
@@ -53,7 +75,7 @@ The UI core owns interaction state and the projection contract. A backend owns w
 
 ### Framework integrations
 
-`@einfach/solid-excel` is the only currently provided UI-framework binding. `@einfach/spreadsheet-ui-core` is framework-agnostic, but that does not constitute an existing React or Vue integration: no React/Vue adapter package or usable integration path is currently provided.
+`@einfach/solid-excel` is the only published UI-framework binding. The repository also contains private React and Vue controlled-projection reference packages and live demos. They make the host boundary inspectable, but they are not published adapters or complete replacements for the Solid surface.
 
 ### Release status and stability
 
@@ -61,10 +83,6 @@ Five packages were first published to npm on **2026-08-17** at version `0.1.0`:
 `@einfach/spreadsheet-ui-core`, `@einfach/spreadsheet-ui-styles`,
 `@einfach/excel-core-ts`, `@einfach/excel-wasm`, and `@einfach/solid-excel`.
 They version as a fixed group — all five always move together.
-
-```bash
-npm install @einfach/solid-excel solid-js
-```
 
 Compatibility expectations for the `0.x` stage
 ([ADR 0017](./docs/decisions/0017-initial-release-version-0-1-0.md)):
@@ -124,11 +142,12 @@ compatibility, suitability, feature parity, performance, or ranking.
 ## Use it when you need
 
 - an embeddable spreadsheet UI for a SaaS product or internal tool;
+- workbooks where visible results should calculate without evaluating unrelated formulas;
 - a workbook-like workflow without coupling your UI to a particular data backend;
 - responsive formula calculation that does not block the browser UI;
 - a reference implementation for a Solid.js spreadsheet with Rust/WASM workers.
 
-## Get started locally
+## Contribute from a local checkout
 
 ### Prerequisites
 
@@ -150,11 +169,12 @@ npm run lint:check
 
 `npm run build` generates the WASM package when needed, then builds the TypeScript packages and bundles.
 
-### Minimal repository-checkout example (contributors)
+### Minimal in-memory example
 
-The current UI integration is Solid-only and the project is documented for use
-from a repository checkout. The landing-page example uses the workspace's
-`@einfach/solid-excel/vnext` surface; it is not an npm-installation path:
+The published Solid binding exposes the same `@einfach/solid-excel/vnext`
+surface used by the repository. This short example uses the in-memory backend
+to show the UI boundary; use the [five-minute quickstart](./docs/QUICKSTART.md)
+for the Worker-hosted Rust/WASM formula path:
 
 ```tsx
 import {

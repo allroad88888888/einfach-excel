@@ -2,23 +2,64 @@
 import '../styles/site.css'
 import '../styles/subpage.css'
 import '../styles/subpage-content.css'
+import { publicUrl } from '../data/site-publication'
 import { sitePath } from '../data/site-path'
 
 interface Props {
   locale: 'en' | 'zh'
   title: string
+  description?: string
   alternateLocaleHref?: string
   variant?: 'default' | 'home'
 }
 
-const { locale, title, alternateLocaleHref, variant = 'default' } = Astro.props
+const { locale, title, description, alternateLocaleHref, variant = 'default' } = Astro.props
 const isZh = locale === 'zh'
 const isHome = variant === 'home'
+const pageDescription =
+  description ??
+  (isZh
+    ? 'Einfach Excel 的电子表格引擎演示、集成指南与 API 文档。'
+    : 'Spreadsheet engine demos, integration guides, and API documentation for Einfach Excel.')
 const rootHref = sitePath(isZh ? 'zh/' : '')
-const demosHref = sitePath(isZh ? 'zh/#demos' : '#demos')
+const demosHref = sitePath(isZh ? 'zh/#paths' : '#paths')
 const docsHref = sitePath(isZh ? 'zh/docs/getting-started/' : 'docs/getting-started/')
 const apiHref = sitePath(isZh ? 'zh/api/' : 'api/')
 const languageHref = alternateLocaleHref ?? sitePath(isZh ? '' : 'zh/')
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, '')
+const rawPath = Astro.url.pathname
+const canonicalPath =
+  basePath && rawPath.startsWith(basePath) ? rawPath.slice(basePath.length) || '/' : rawPath
+const englishPath = isZh ? canonicalPath.replace(/^\/zh(?=\/|$)/, '') || '/' : canonicalPath
+const chinesePath = isZh ? canonicalPath : `/zh${canonicalPath}`
+const canonicalHref = publicUrl(canonicalPath)
+const englishHref = publicUrl(englishPath)
+const chineseHref = publicUrl(chinesePath)
+const socialImageHref = publicUrl('/social-preview.png')
+const structuredData = isHome
+  ? {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'WebSite',
+          name: 'Einfach Excel',
+          url: publicUrl('/'),
+          description: pageDescription,
+          inLanguage: ['en', 'zh-CN'],
+        },
+        {
+          '@type': 'SoftwareSourceCode',
+          name: 'Einfach Excel',
+          codeRepository: 'https://github.com/allroad88888888/einfach-excel',
+          license: 'https://github.com/allroad88888888/einfach-excel/blob/main/LICENSE',
+          programmingLanguage: ['TypeScript', 'Rust'],
+          runtimePlatform: 'Web browser',
+          url: publicUrl('/'),
+          description: pageDescription,
+        },
+      ],
+    }
+  : undefined
 ---
 
 <!doctype html>
@@ -26,10 +67,27 @@ const languageHref = alternateLocaleHref ?? sitePath(isZh ? '' : 'zh/')
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
-    <meta name="description" content="Einfach spreadsheet engine demos and integration documentation." />
-    <meta property="og:image" content={sitePath('social-preview.png')} />
+    <meta name="description" content={pageDescription} />
+    <meta name="theme-color" content={isHome ? '#f7f6f1' : '#ffffff'} />
+    <link rel="canonical" href={canonicalHref} />
+    <link rel="alternate" hreflang="en" href={englishHref} />
+    <link rel="alternate" hreflang="zh-CN" href={chineseHref} />
+    <link rel="alternate" hreflang="x-default" href={englishHref} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Einfach Excel" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={pageDescription} />
+    <meta property="og:url" content={canonicalHref} />
+    <meta property="og:locale" content={isZh ? 'zh_CN' : 'en_US'} />
+    <meta property="og:image" content={socialImageHref} />
+    <meta property="og:image:alt" content="Einfach Excel spreadsheet workbench" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={pageDescription} />
+    <meta name="twitter:image" content={socialImageHref} />
     <link rel="icon" href={sitePath('favicon.svg')} type="image/svg+xml" />
     <title>{title}</title>
+    {structuredData && <script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData)} />}
   </head>
   <body class:list={{ 'site-body-home': isHome, 'site-body-subpage': !isHome }}>
     <header class="site-header">
@@ -71,7 +129,7 @@ const languageHref = alternateLocaleHref ?? sitePath(isZh ? '' : 'zh/')
             </a>
             <p>{isZh ? '面向产品团队的电子表格基础设施。' : 'Spreadsheet infrastructure for product teams.'}</p>
             <div class="home-footer-links">
-              <a href={docsHref}>{isZh ? '架构' : 'Architecture'}</a><a href={apiHref}>API</a><a href="https://github.com/allroad88888888/einfach-excel">GitHub ↗</a>
+              <a href={docsHref}>{isZh ? '文档' : 'Docs'}</a><a href={apiHref}>API</a><a href="https://github.com/allroad88888888/einfach-excel">GitHub ↗</a>
             </div>
           </div>
         </footer>

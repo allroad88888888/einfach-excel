@@ -2,7 +2,7 @@ export type HomeLocale = 'en' | 'zh'
 
 type HomePath = {
   id: 'workflow' | 'scale' | 'formula'
-  route: 'workbench' | 'viewport-projection' | 'formula-engine'
+  route: 'workbench' | 'viewport-projection' | 'lazy-formulas'
   label: string
   eyebrow: string
   title: string
@@ -19,6 +19,7 @@ export type HomeContent = {
     primaryAction: string
     secondaryAction: string
     note: string
+    previewStatus: string
   }
   signals: Array<{ icon: string; title: string; description: string }>
   thesis: { index: string; title: string }
@@ -27,198 +28,229 @@ export type HomeContent = {
     title: string
     description: string
     action: string
-    target: string
+    target: 'scale' | 'formula' | 'backend'
   }>
   evaluation: { index: string; title: string; intro: string; paths: HomePath[] }
   integration: { index: string; title: string; description: string }
+  install: {
+    index: string
+    title: string
+    description: string
+    command: string
+    primaryAction: string
+    secondaryAction: string
+    note: string
+  }
 }
 
 export const homeContent: Record<HomeLocale, HomeContent> = {
   en: {
     hero: {
-      kicker: 'OPEN SOURCE SPREADSHEET INFRASTRUCTURE',
-      titleStart: 'Make the spreadsheet a product capability,',
-      titleAccent: 'not a black box.',
+      kicker: 'DEMAND-DRIVEN FORMULA ENGINE',
+      titleStart: 'Calculate visible results.',
+      titleAccent: 'Skip unrelated formulas.',
       summary:
-        'A spreadsheet UI for real workflows: keep the viewport bounded, move computation to a Worker, and choose the workbook backend that fits your product.',
-      primaryAction: 'Open the workbench',
-      secondaryAction: 'See integration',
-      note: 'Framework-agnostic UI core · Solid reference implementation · Rust/WASM workbook engine',
+        'Visible results trigger formula evaluation on demand. If they depend on off-screen cells or another sheet, the engine follows the dependency chain automatically; unrelated formulas stay unevaluated.',
+      primaryAction: 'See demand-driven formulas',
+      secondaryAction: 'Try the full workbench',
+      note: 'Visible reads · Automatic cross-sheet dependencies · Worker-hosted Rust/WASM',
+      previewStatus: 'E8 → 5 dependencies evaluated on demand',
     },
     signals: [
       {
-        icon: '⌗',
-        title: 'Bounded projection',
-        description: 'Request only the worksheet projection in view.',
+        icon: 'ƒ',
+        title: 'On-demand formula values',
+        description: 'Visible results pull only the formulas they actually depend on.',
+      },
+      {
+        icon: '↳',
+        title: 'Off-screen + cross-sheet',
+        description: 'Required dependencies resolve automatically wherever they live.',
       },
       {
         icon: '◌',
-        title: 'Worker computation',
-        description: 'Move formula calculation off the main thread.',
-      },
-      {
-        icon: '⌘',
-        title: 'Bring your backend',
-        description: 'Keep the UI distinct from the data source.',
+        title: 'Worker-hosted Rust/WASM',
+        description: 'Keep the calculation path away from the browser main thread.',
       },
     ],
     thesis: {
       index: '01 / PRODUCT THESIS',
-      title: 'Built for your product workflow, not a desktop Excel remake.',
+      title: 'Calculate the requested result—not every formula in the workbook.',
     },
     features: [
       {
         number: '01',
-        title: 'Set a boundary before the data gets big.',
+        title: 'Evaluate the dependency chain, not every formula.',
         description:
-          'Viewport projection lets the renderer work with visible cells instead of expanding a full workbook into the browser.',
-        action: 'Explore viewport projection',
-        target: 'paths',
+          'A visible result can pull required formulas from off-screen cells or other sheets. Formula values outside that chain stay cold.',
+        action: 'Watch formulas calculate on demand',
+        target: 'formula',
       },
       {
         number: '02',
-        title: 'Keep computation in the background.',
+        title: 'Render the window, not the workbook.',
         description:
-          'A Rust/WASM workbook can run in a Web Worker while the main thread keeps scrolling, editing, and keyboard input responsive.',
-        action: 'See the runtime boundary',
-        target: 'integrate',
+          'Bounded projections let the renderer ask for visible cells instead of expanding an entire workbook into the browser.',
+        action: 'Test 100,000 rows',
+        target: 'scale',
       },
       {
         number: '03',
-        title: 'Keep control of your data.',
+        title: 'Fit the grid to your backend.',
         description:
-          'The framework-agnostic UI core reads and writes through a backend port that can meet your product where it is.',
-        action: 'Read the architecture',
-        target: 'docs',
+          'A typed backend port keeps workbook authority, storage, and mutations inside the system your product already owns.',
+        action: 'Read the backend contract',
+        target: 'backend',
       },
     ],
     evaluation: {
       index: '02 / EVALUATE BY JOB',
-      title: 'Start with the question you need to answer.',
+      title: 'Prove the hard part before you integrate.',
       intro:
-        'The homepage does not list every capability. Pick a real task and go straight to its running demo and explanation.',
+        'Pick the risk your team cares about. Each path opens a running demo, a plain-language explanation, and the source behind it.',
       paths: [
+        {
+          id: 'formula',
+          route: 'lazy-formulas',
+          label: 'Prove formula demand',
+          eyebrow: 'FORMULAS',
+          title: 'Request one visible result. Let the engine fetch the rest.',
+          description:
+            'The requested formula pulls required inputs from off-screen cells and other sheets. Formulas outside that dependency chain remain unevaluated.',
+          action: 'Open on-demand formula demo',
+        },
         {
           id: 'workflow',
           route: 'workbench',
           label: 'Embed a workbench',
           eyebrow: 'WORKBENCH',
-          title: 'Give operations, finance, or sales an editable business surface.',
+          title: 'Let business teams work in a familiar surface inside your product.',
           description:
-            'See the full workbench: selection, editing, formulas, filters, comments, and worksheet structure share one UI state.',
-          action: 'Open workbench demo',
+            'Use the complete workbench to test selection, editing, formulas, filters, comments, and worksheet structure together.',
+          action: 'Try the live workbench',
         },
         {
           id: 'scale',
           route: 'viewport-projection',
-          label: 'Validate large-sheet scroll',
+          label: 'Test 100,000 rows',
           eyebrow: 'VIEWPORT',
-          title: 'Feel the scroll first, then inspect the projection boundary.',
+          title: 'Scroll 100,000 rows, then inspect the projection boundary.',
           description:
             'Observe how the UI asks for a bounded window instead of expanding every workbook cell into the DOM.',
           action: 'Open viewport demo',
-        },
-        {
-          id: 'formula',
-          route: 'formula-engine',
-          label: 'Test formula behavior',
-          eyebrow: 'FORMULAS',
-          title: 'Start with a formula case you can explain.',
-          description:
-            'Validate lazy calculation, dynamic arrays, or custom functions against the workbook behavior you expect.',
-          action: 'Open formula demo',
         },
       ],
     },
     integration: {
       index: '03 / INTEGRATE',
-      title: 'Choose the starting path your stack actually has.',
+      title: 'Choose the integration that exists today.',
       description:
-        'Solid has the formal UI binding. React and Vue are controlled-projection references, while custom systems begin at the backend port.',
+        'Install the published Solid binding, study the React or Vue controlled-projection references, or start from the backend port.',
+    },
+    install: {
+      index: '04 / START BUILDING',
+      title: 'From npm to your first formula.',
+      description:
+        'Follow the five-minute Solid guide to install the packages, mount the Worker backend, and verify =1+2 in a real cell.',
+      command: 'npm install @einfach/solid-excel @einfach/core @einfach/solid solid-js',
+      primaryAction: 'Open the five-minute guide',
+      secondaryAction: 'Browse the API',
+      note: 'Current release: 0.1.0 · Node.js 22.12+ · Pin the minor for a stable API surface',
     },
   },
   zh: {
     hero: {
-      kicker: 'OPEN SOURCE SPREADSHEET INFRASTRUCTURE',
-      titleStart: '让表格成为产品能力，',
-      titleAccent: '而不是一块黑箱。',
+      kicker: 'DEMAND-DRIVEN FORMULA ENGINE',
+      titleStart: '只算可视结果，',
+      titleAccent: '不算无关公式。',
       summary:
-        '面向真实工作流的电子表格 UI：可视窗口保持有界，计算移到 Worker，工作簿后端由你的产品决定。',
-      primaryAction: '打开工作台',
-      secondaryAction: '查看集成方式',
-      note: '框架无关 UI 核心 · Solid 参考实现 · Rust/WASM 工作簿引擎',
+        '可视结果触发按需求值；结果依赖到屏外区域或其它工作表时，引擎会自动沿依赖链继续计算。与当前结果无关的公式保持未求值。',
+      primaryAction: '查看按需公式演示',
+      secondaryAction: '体验完整工作台',
+      note: '可视读取 · 自动跨表追踪依赖 · Worker 内 Rust/WASM 引擎',
+      previewStatus: 'E8 → 按需求值 5 个依赖',
     },
     signals: [
-      { icon: '⌗', title: '有界投影', description: '只请求当前视口所需的表格投影。' },
-      { icon: '◌', title: 'Worker 计算', description: '把公式计算从主线程中移开。' },
-      { icon: '⌘', title: '自选后端', description: 'UI 与数据来源保持清晰边界。' },
+      { icon: 'ƒ', title: '公式值按需计算', description: '可视结果只拉取自己真正依赖的公式。' },
+      { icon: '↳', title: '屏外 + 跨表依赖', description: '必要依赖无论在哪里，都会被自动解析。' },
+      { icon: '◌', title: 'Worker 内 Rust/WASM', description: '让公式计算路径远离浏览器主线程。' },
     ],
     thesis: {
       index: '01 / PRODUCT THESIS',
-      title: '为了你的业务流程而生，不是复刻一个桌面 Excel。',
+      title: '计算用户请求的结果，而不是工作簿里的每个公式。',
     },
     features: [
       {
         number: '01',
-        title: '在数据真正变大前，先把边界立起来。',
-        description: '视口投影让渲染层只处理用户看得见的单元格，无需把完整工作簿塞进浏览器。',
-        action: '体验投影视口',
-        target: 'paths',
+        title: '只计算依赖链，不计算所有公式。',
+        description:
+          '可视结果会自动拉取屏外或其它工作表中的必要公式；依赖链之外的公式值保持未求值。',
+        action: '观察公式按需计算',
+        target: 'formula',
       },
       {
         number: '02',
-        title: '让计算留在后台。',
-        description: 'Rust/WASM 工作簿运行于 Web Worker，主线程继续接住滚动、编辑与键盘交互。',
-        action: '看运行时边界',
-        target: 'integrate',
+        title: '渲染窗口，而不是整个工作簿。',
+        description: '视口投影让渲染层只处理用户看得见的单元格，无需把完整工作簿塞进浏览器。',
+        action: '测试 10 万行',
+        target: 'scale',
       },
       {
         number: '03',
-        title: '保留你的数据主权。',
-        description: '框架无关的 UI 核心通过后端端口读写工作簿，适合接入已有服务或本地模型。',
-        action: '阅读架构说明',
-        target: 'docs',
+        title: '让网格适配你的后端。',
+        description: '类型化后端端口让工作簿权威、存储与写操作继续留在产品已有系统中。',
+        action: '阅读后端契约',
+        target: 'backend',
       },
     ],
     evaluation: {
       index: '02 / EVALUATE BY JOB',
-      title: '从你要验证的那个问题开始。',
-      intro: '首页不再陈列所有能力。选择一个真实任务，直接进入对应的运行演示与说明。',
+      title: '先验证最难的部分，再决定接入。',
+      intro: '选择团队最在意的风险。每条路径都包含可运行演示、直白说明与对应源码。',
       paths: [
+        {
+          id: 'formula',
+          route: 'lazy-formulas',
+          label: '验证按需公式',
+          eyebrow: 'FORMULAS',
+          title: '只请求一个可视结果，其余依赖交给引擎。',
+          description:
+            '当前公式会自动拉取屏外和其它工作表中的必要输入；依赖链之外的公式保持未求值。',
+          action: '打开按需公式演示',
+        },
         {
           id: 'workflow',
           route: 'workbench',
           label: '嵌入业务工作台',
           eyebrow: 'WORKBENCH',
-          title: '给运营、财务、销售一个可编辑的业务表面。',
-          description:
-            '查看完整工作台：选区、编辑、公式、筛选、注释与工作表结构都以同一套 UI 状态协作。',
-          action: '打开工作台演示',
+          title: '让业务团队在你的产品里使用熟悉的工作界面。',
+          description: '用完整工作台一起验证选区、编辑、公式、筛选、注释与工作表结构。',
+          action: '体验在线工作台',
         },
         {
           id: 'scale',
           route: 'viewport-projection',
-          label: '验证大表格滚动',
+          label: '测试 10 万行',
           eyebrow: 'VIEWPORT',
-          title: '先感受大表滚动，再看其投影边界。',
+          title: '滚动 10 万行，再检查它的投影边界。',
           description: '观察 UI 如何随滚动请求一个有界窗口，而不把工作簿数据一次性展开放进 DOM。',
           action: '打开视口演示',
-        },
-        {
-          id: 'formula',
-          route: 'formula-engine',
-          label: '测试公式行为',
-          eyebrow: 'FORMULAS',
-          title: '从一个可解释的公式案例开始。',
-          description: '验证惰性计算、动态数组或自定义公式，确认它们是否符合你的工作簿行为预期。',
-          action: '打开公式演示',
         },
       ],
     },
     integration: {
       index: '03 / INTEGRATE',
-      title: '按你的框架，选一条真实的起点。',
-      description: 'Solid 具备正式 UI 绑定。React 与 Vue 目前提供受控投影参考；自定义系统从后端端口开始。',
+      title: '选择今天已经存在的集成路径。',
+      description: '安装已发布的 Solid 绑定，研究 React / Vue 受控投影参考，或从后端端口开始。',
+    },
+    install: {
+      index: '04 / START BUILDING',
+      title: '从 npm 到第一个公式。',
+      description: '跟着五分钟 Solid 指南安装依赖、挂载 Worker 后端，并在真实单元格里验证 =1+2。',
+      command: 'npm install @einfach/solid-excel @einfach/core @einfach/solid solid-js',
+      primaryAction: '打开五分钟指南',
+      secondaryAction: '浏览 API',
+      note: '当前版本：0.1.0 · Node.js 22.12+ · 需要稳定 API 时请锁定次版本',
     },
   },
 }

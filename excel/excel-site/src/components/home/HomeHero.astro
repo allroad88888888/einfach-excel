@@ -3,9 +3,11 @@ import type { HomeContent } from '../../data/home-content'
 
 interface Props {
   content: HomeContent['hero']
+  primaryHref: string
+  secondaryHref: string
 }
 
-const { content } = Astro.props
+const { content, primaryHref, secondaryHref } = Astro.props
 ---
 
 <section class="home-hero home-shell" aria-labelledby="home-hero-title">
@@ -14,8 +16,8 @@ const { content } = Astro.props
     <h1 id="home-hero-title">{content.titleStart} <em>{content.titleAccent}</em></h1>
     <p class="home-hero-summary">{content.summary}</p>
     <div class="home-hero-actions">
-      <a class="home-button home-button-primary" href="#paths">{content.primaryAction} <span aria-hidden="true">→</span></a>
-      <a class="home-button home-button-quiet" href="#integrate">{content.secondaryAction}</a>
+      <a class="home-button home-button-primary" href={primaryHref}>{content.primaryAction} <span aria-hidden="true">→</span></a>
+      <a class="home-button home-button-quiet" href={secondaryHref}>{content.secondaryAction}</a>
     </div>
     <p class="home-micro-copy">{content.note}</p>
   </div>
@@ -32,7 +34,7 @@ const { content } = Astro.props
       <button type="button" aria-label="Bold"><strong>B</strong></button><button type="button" aria-label="Text color">A<span class="home-color-line"></span></button>
       <span class="home-toolbar-spacer"></span><button class="home-toolbar-select" type="button">USD <span>⌄</span></button>
     </div>
-    <div class="home-formula-bar"><span class="home-cell-reference">E8</span><span class="home-formula-symbol">ƒx</span><code>=SUM(E4:E7)</code></div>
+    <div class="home-formula-bar"><span class="home-cell-reference">E8</span><span class="home-formula-symbol">ƒx</span><code>=SUM(E4:E7)*Assumptions!B20</code></div>
     <div class="home-sheet-grid" role="table" aria-label="Revenue plan">
       <div class="home-grid-corner"></div><div class="home-column-label">A</div><div class="home-column-label">B</div><div class="home-column-label">C</div><div class="home-column-label">D</div><div class="home-column-label">E</div>
       <div class="home-row-label">1</div><div class="home-cell home-header-cell">Channel</div><div class="home-cell home-header-cell">Q1</div><div class="home-cell home-header-cell">Q2</div><div class="home-cell home-header-cell">Q3</div><div class="home-cell home-header-cell">Year</div>
@@ -44,6 +46,6 @@ const { content } = Astro.props
       <div class="home-row-label">7</div><div class="home-cell">Expansion</div><div class="home-cell home-number-cell">$81k</div><div class="home-cell home-number-cell">$118k</div><div class="home-cell home-number-cell">$139k</div><div class="home-cell home-number-cell">$338k</div>
       <div class="home-row-label home-active-row">8</div><div class="home-cell home-total-cell">Forecast</div><div class="home-cell home-total-cell home-number-cell">$459k</div><div class="home-cell home-total-cell home-number-cell">$585k</div><div class="home-cell home-total-cell home-number-cell">$714k</div><div class="home-cell home-total-cell home-number-cell home-selected-cell">$1.76m<span class="home-fill-handle"></span></div>
     </div>
-    <div class="home-sheet-tabs"><button class="home-active-tab" type="button">Plan</button><button type="button">Assumptions</button><button type="button">Pipeline</button><button class="home-add-sheet" type="button" aria-label="Add sheet">＋</button><span>Synced just now</span></div>
+    <div class="home-sheet-tabs"><button class="home-active-tab" type="button">Plan</button><button type="button">Assumptions</button><button type="button">Pipeline</button><button class="home-add-sheet" type="button" aria-label="Add sheet">＋</button><span>{content.previewStatus}</span></div>
   </div>
 </section>

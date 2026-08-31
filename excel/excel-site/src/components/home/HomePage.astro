@@ -7,9 +7,11 @@ import '../../styles/home-workbench.css'
 import '../../styles/home-proof.css'
 import '../../styles/home-evaluation.css'
 import '../../styles/home-integration.css'
+import '../../styles/home-install.css'
 import HomeEvaluation from './HomeEvaluation.astro'
 import HomeHero from './HomeHero.astro'
 import HomeIntegration from './HomeIntegration.astro'
+import HomeInstall from './HomeInstall.astro'
 import HomeProof from './HomeProof.astro'
 
 interface Props {
@@ -28,15 +30,24 @@ const frameworkLinks: Record<HomeFrameworkId, string> = {
   vue: localizedPath('docs/vue/'),
   backend: localizedPath('docs/backend-port/'),
 }
+const workbenchHref = localizedPath('demos/workbench/')
+const guideHref = localizedPath('docs/getting-started/')
+const apiHref = localizedPath('api/')
+const proofLinks: Record<HomeContent['features'][number]['target'], string> = {
+  scale: evaluationLinks.scale,
+  formula: evaluationLinks.formula,
+  backend: frameworkLinks.backend,
+}
 ---
 
 <main class="home-page">
-  <HomeHero content={content.hero} />
-  <HomeProof content={content} />
+  <HomeHero content={content.hero} primaryHref={evaluationLinks.formula} secondaryHref={workbenchHref} />
+  <HomeProof content={content} links={proofLinks} />
   <HomeEvaluation content={content.evaluation} links={evaluationLinks} />
   <HomeIntegration
     content={content.integration}
     frameworks={homeFrameworkContent[locale]}
     links={frameworkLinks}
   />
+  <HomeInstall content={content.install} guideHref={guideHref} apiHref={apiHref} />
 </main>

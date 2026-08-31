@@ -14,7 +14,12 @@ interface Props {
 const { title, eyebrow, summary, locale = 'en', alternateLocaleHref, wide = false } = Astro.props
 ---
 
-<SiteLayout locale={locale} title={title + ' · einfach excel'} alternateLocaleHref={alternateLocaleHref}>
+<SiteLayout
+  locale={locale}
+  title={title + ' · einfach excel'}
+  description={summary}
+  alternateLocaleHref={alternateLocaleHref}
+>
   <main class:list={{ 'product-page': true, 'product-docs-page': true, 'product-docs-page-wide': wide }}>
     <header class="product-intro">
       <p class="product-eyebrow">{eyebrow}</p>

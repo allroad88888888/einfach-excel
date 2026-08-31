@@ -4,18 +4,48 @@
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![在线演示](https://img.shields.io/badge/demo-live-0a7f5a.svg)](https://allroad88888888.github.io/einfach-excel/)
 
-**Einfach Excel 是一个具备有界投影契约和 Rust/WASM 工作簿引擎的电子表格 UI 核心。**
+**只计算可视结果真正需要的公式；屏外与跨表依赖自动追踪，无关公式保持未求值。**
 
-[体验在线 Demo](https://allroad88888888.github.io/einfach-excel/) · [五分钟上手](./docs/QUICKSTART.md) · [English](./README.md) · [架构说明](./docs/ARCHITECTURE.md) · [参与贡献](./CONTRIBUTING.md)
+[查看按需公式演示](https://allroad88888888.github.io/einfach-excel/zh/demos/lazy-formulas/) · [体验在线工作台](https://allroad88888888.github.io/einfach-excel/zh/demos/workbench/) · [五分钟安装](./docs/QUICKSTART.md) · [English](./README.md) · [架构说明](./docs/ARCHITECTURE.md) · [参与贡献](./CONTRIBUTING.md)
 
 ## 为什么选择 Einfach Excel？
 
-电子表格界面远比看起来复杂：随着工作簿变大，渲染、交互、计算与数据访问仍须保持流畅。Einfach Excel 将这些职责分开：宿主可以独立使用 UI，并按需接入工作簿实现；生产级集成则把计算移出主线程。
+Einfach Excel 是面向产品团队的开源电子表格基础设施。公式引擎按需计算可视结果，自动追踪视口之外的必要依赖，让无关公式值保持未求值；UI 状态、工作簿权威、投影传输与计算仍是清晰边界。
 
-- **规模增大仍然流畅。** UI 只请求有界的可视窗口投影，不会渲染整个工作簿。在线 Demo 包含一个 100,000 行工作表。
-- **计算不阻塞主线程。** Rust/WASM 引擎运行在 Web Worker 中，浏览器可以持续滚动和编辑。
-- **运行时由你选择。** `spreadsheet-ui-core` 不依赖 DOM、Solid、React、worker 或 WASM；可连接符合产品需求的任意后端。
-- **具备真实的表格行为。** 栈内覆盖选区、编辑、键盘交互、剪贴板、公式、历史记录、查找替换、验证、筛选、排序、评论等能力。
+- **只计算当前结果的依赖链，而不是所有公式。** 可视结果会自动拉取屏外单元格及其它工作表中的必要普通公式；依赖链之外的公式值保持未求值。
+- **渲染窗口，而不是整个工作簿。** UI 只请求有界的可视投影；你可以在[10 万行在线演示](https://allroad88888888.github.io/einfach-excel/zh/demos/viewport-projection/)中检查真实边界。
+- **让公式离开主线程。** 已发布的 Solid 路径可在 Web Worker 中运行 Rust/WASM 工作簿，UI 专注编辑与交互。
+- **让网格适配你的后端。** 框架无关 UI 核心通过类型化端口读写，让工作簿数据与写操作继续留在你的系统里。
+- **先看证据，再做选择。** 聚焦演示直链源码，契约紧邻实现，限制也会明确写出。
+
+## 先验证难点，再决定接入
+
+| 你要验证什么             | 从这里开始                                                                                            |
+| ------------------------ | ----------------------------------------------------------------------------------------------------- |
+| 完整、可编辑的业务界面   | [体验在线工作台](https://allroad88888888.github.io/einfach-excel/zh/demos/workbench/)                 |
+| 大表格渲染保持有界       | [滚动 10 万行视口演示](https://allroad88888888.github.io/einfach-excel/zh/demos/viewport-projection/) |
+| 公式计算保持需求驱动     | [跟随按需公式演示](https://allroad88888888.github.io/einfach-excel/zh/demos/lazy-formulas/)           |
+| 现有数据模型继续保持权威 | [阅读后端端口契约](https://allroad88888888.github.io/einfach-excel/zh/docs/backend-port/)             |
+
+## 安装 Solid 绑定
+
+```bash
+npm install @einfach/solid-excel @einfach/core @einfach/solid solid-js
+```
+
+跟着[五分钟上手](./docs/QUICKSTART.md)挂载 Worker 后端，并在真实单元格中验证 `=1+2`。当前版本为 `0.1.0`；项目仍处于 pre-1.0，需要稳定 API 面时请锁定 `~0.1.0`。
+
+## 证据边界
+
+规模相关行为以当前代码契约表达，而不是用宣传数字代替：
+
+- **公式值在读取时求值。** 批量导入的普通公式在请求结果读取前保持未求值，屏外与跨表依赖会被自动跟随；直接写入数组或溢出公式时，仍可能为维护溢出状态而求值。
+- **存储记录，而不是几何网格。** 工作簿按行列键保存已有记录，区间遍历只处理请求边界内的存量条目。
+- **显示数据必须留在明确矩形内。** UI 核心校验可视窗口与显式区间请求，并拒绝形状不符或越界结果。
+- **按几何范围选择依赖根。** 公式区间依照源码中的几何规则选择单元格、行带、列或工作表失效根。
+- **过大命令仍保持矩形。** 清除和格式化超过地址展开上限时会尝试后端区间能力；不支持则拒绝，而不是展开成逐格操作。
+
+代码引用见[规模事实](./docs/SCALE_FACTS.md)，分层边界见[规模架构](./docs/SCALE_ARCHITECTURE.md)，特定修订上的 E2 记录见[带日期规模观察](./docs/SCALE_OBSERVATIONS.md)。这些机制与在线演示不构成性能、内存、容量、传输或生产 SLA 承诺。
 
 ## 架构概览
 
@@ -45,17 +75,13 @@ UI 核心负责交互状态和投影契约，后端负责工作簿数据和写�
 
 ### 框架集成
 
-`@einfach/solid-excel` 是当前唯一已提供的 UI 框架绑定。`@einfach/spreadsheet-ui-core` 保持框架无关，但这不表示已经提供 React 或 Vue 集成：目前没有 React/Vue 适配器包或可用的集成路径。
+`@einfach/solid-excel` 是当前唯一已发布的 UI 框架绑定。仓库还包含私有的 React / Vue 受控投影参考包与在线演示，可用于检查宿主边界，但它们不是已发布适配器，也不能替代完整的 Solid 表面。
 
 ### 发布状态与稳定性
 
 五个包已于 **2026-08-17** 以 `0.1.0` 首发 npm：`@einfach/spreadsheet-ui-core`、
 `@einfach/spreadsheet-ui-styles`、`@einfach/excel-core-ts`、`@einfach/excel-wasm`、
 `@einfach/solid-excel`。五包按 fixed 组管理版本 —— 永远一起升。
-
-```bash
-npm install @einfach/solid-excel solid-js
-```
 
 `0.x` 阶段的兼容性预期（[ADR 0017](./docs/decisions/0017-initial-release-version-0-1-0.md)）：
 
@@ -101,11 +127,12 @@ Einfach Excel 的发布状态章节另行记录自身的发布状态；它不属
 ## 适合的场景
 
 - 在 SaaS 产品或内部工具中嵌入电子表格 UI；
+- 只计算可视结果，同时不求值无关公式的工作簿；
 - 构建类工作簿流程，同时不让 UI 与某种特定的数据后端绑定；
 - 需要公式计算保持流畅、而不阻塞浏览器界面；
 - 需要 Solid.js 表格与 Rust/WASM worker 的参考实现。
 
-## 本地开始
+## 从本地 checkout 参与贡献
 
 ### 前置条件
 
@@ -127,9 +154,10 @@ npm run lint:check
 
 `npm run build` 会在需要时生成 WASM 包，随后构建 TypeScript 包和 bundle。
 
-### 最小仓库 checkout 示例
+### 最小内存后端示例
 
-当前 UI 集成只提供 Solid 版本，项目文档也只覆盖从仓库 checkout 使用的方式。落地页示例使用工作区内的 `@einfach/solid-excel/vnext` 接口；这不是 npm 安装路径：
+已发布的 Solid 绑定与仓库共用 `@einfach/solid-excel/vnext` 接口。下面用内存后端展示
+UI 边界；若要使用 Worker 中的 Rust/WASM 公式路径，请直接跟随[五分钟上手](./docs/QUICKSTART.md)：
 
 ```tsx
 import {

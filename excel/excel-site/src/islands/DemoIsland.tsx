@@ -5,13 +5,14 @@ import { findDemo } from '../data/demo-catalog'
 import { basicsSeed } from '../demos/seeds/seed-basics'
 import { cleanMessyDataSeed } from '../demos/seeds/seed-clean-messy-data'
 import { collaborationSeed } from '../demos/seeds/seed-collaboration'
-import { customFormulaSheets, seedCustomFormulasWorkbook } from '../demos/seeds/seed-custom-formulas'
+import {
+  customFormulaSheets,
+  seedCustomFormulasWorkbook,
+} from '../demos/seeds/seed-custom-formulas'
+import { demandDrivenSheets, seedDemandDrivenWorkbook } from '../demos/seeds/seed-demand-driven'
 import { formulaEngineSheets, seedFormulaEngineWorkbook } from '../demos/seeds/seed-formula-engine'
 import { handOffFormSeed } from '../demos/seeds/seed-hand-off-form'
-import type {
-  WorkerWorkbookBackendSheet,
-  WorkerWorkbookClient,
-} from '@einfach/solid-excel/vnext'
+import type { WorkerWorkbookBackendSheet, WorkerWorkbookClient } from '@einfach/solid-excel/vnext'
 import {
   PERFORMANCE_COLS,
   PERFORMANCE_SHEET_ROWS,
@@ -49,16 +50,23 @@ export default function DemoIsland(props: DemoIslandProps) {
   const themeObserver = new MutationObserver(() =>
     setSiteTheme(document.documentElement.dataset.theme),
   )
-  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+  themeObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-theme'],
+  })
   onCleanup(() => themeObserver.disconnect())
   const demo = findDemo(props.demoId)
   const isStaticBackend = demo.runtime === 'static'
   const isPerformanceDemo = demo.id === 'viewport-projection'
   const isCustomFormulaDemo = demo.id === 'custom-formulas'
+  const isDemandDrivenDemo = demo.scenario === 'demand-driven'
   // 走 10 万行 performance seed 的 demo(分块导入需要数秒),给可见进度 ——
   // 没有它,格子出现前用户只能看到一句静止的 "Loading workbook…"。
   const usesPerformanceSeed =
-    !isStaticBackend && !isCustomFormulaDemo && demo.scenario !== 'formula-engine'
+    !isStaticBackend &&
+    !isCustomFormulaDemo &&
+    !isDemandDrivenDemo &&
+    demo.scenario !== 'formula-engine'
   const metricsAtom = createPerformanceMetricsAtom(PERFORMANCE_SHEET_ROWS)
   const setMetrics = useSetAtom(metricsAtom)
   const importProgressAtom = createImportProgressAtom(PERFORMANCE_TOTAL_CELLS)
@@ -81,9 +89,11 @@ export default function DemoIsland(props: DemoIslandProps) {
       : makeWasmWorkerBackend({
           ...(isCustomFormulaDemo
             ? { sheets: customFormulaSheets, afterInit: seedCustomFormulasWorkbook }
-            : demo.scenario === 'formula-engine'
-            ? { sheets: formulaEngineSheets, afterInit: seedFormulaEngineWorkbook }
-            : { sheets: performanceSheets, afterInit: seedPerformanceWithProgress }),
+            : isDemandDrivenDemo
+              ? { sheets: demandDrivenSheets, afterInit: seedDemandDrivenWorkbook }
+              : demo.scenario === 'formula-engine'
+                ? { sheets: formulaEngineSheets, afterInit: seedFormulaEngineWorkbook }
+                : { sheets: performanceSheets, afterInit: seedPerformanceWithProgress }),
         })
 
   if ('dispose' in backend) onCleanup(() => backend.dispose())
@@ -109,8 +119,16 @@ export default function DemoIsland(props: DemoIslandProps) {
       <DemoTour stepCount={3} locale={props.locale} />
       <DemoGrid
         backend={backend}
-        rows={isStaticBackend || demo.scenario === 'formula-engine' ? 100 : PERFORMANCE_SHEET_ROWS}
-        columns={isStaticBackend || demo.scenario === 'formula-engine' ? 20 : PERFORMANCE_COLS}
+        rows={
+          isStaticBackend || isDemandDrivenDemo || demo.scenario === 'formula-engine'
+            ? 100
+            : PERFORMANCE_SHEET_ROWS
+        }
+        columns={
+          isStaticBackend || isDemandDrivenDemo || demo.scenario === 'formula-engine'
+            ? 20
+            : PERFORMANCE_COLS
+        }
       >
         {isCustomFormulaDemo && <CustomFormulaRegistrations />}
       </DemoGrid>

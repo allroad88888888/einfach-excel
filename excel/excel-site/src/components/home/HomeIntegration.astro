@@ -32,17 +32,20 @@ const { content, frameworks, links } = Astro.props
       }
     </div>
   </div>
-  <pre class="home-code-card" aria-label="Integration example"><code><span class="home-code-dim">import</span> {'{'} SpreadsheetGrid {'}'} <span class="home-code-dim">from</span>
-  <span class="home-code-string">'@einfach/solid-excel/vnext'</span>
+  <pre class="home-code-card" aria-label="Integration example"><code><span class="home-code-dim">import</span> {'{'}
+  createWorkerWorkbookSpreadsheetBackend,
+  SpreadsheetGrid,
+  SpreadsheetUiProvider,
+{'}'} <span class="home-code-dim">from</span> <span class="home-code-string">'@einfach/solid-excel/vnext'</span>
+<span class="home-code-dim">import</span> {'{'} defaultVNextWorkbookWorkerFactory {'}'} <span class="home-code-dim">from</span>
+  <span class="home-code-string">'@einfach/solid-excel/vnext-worker-factory'</span>
 
-<span class="home-code-dim">const</span> backend = <span class="home-code-function">createStaticSpreadsheetBackend</span>({'{'}
+<span class="home-code-dim">const</span> backend = <span class="home-code-function">createWorkerWorkbookSpreadsheetBackend</span>({'{'}
+  workerFactory: defaultVNextWorkbookWorkerFactory,
   sheets: [{'{'} id: <span class="home-code-string">'plan'</span>, name: <span class="home-code-string">'Plan'</span> {'}'}],
-  matrix: revenuePlan,
 {'}'})
 
-&lt;<span class="home-code-tag">SpreadsheetGrid</span>
-  sheetId=<span class="home-code-string">"plan"</span>
-  viewport={'{'}viewport{'}'}
-  backend={'{'}backend{'}'}
-/&gt;</code></pre>
+&lt;<span class="home-code-tag">SpreadsheetUiProvider</span> backend={'{'}backend{'}'}&gt;
+  &lt;<span class="home-code-tag">SpreadsheetGrid</span> sheetId=<span class="home-code-string">"plan"</span> viewport={'{'}viewport{'}'} /&gt;
+&lt;/<span class="home-code-tag">SpreadsheetUiProvider</span>&gt;</code></pre>
 </section>

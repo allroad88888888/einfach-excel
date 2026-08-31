@@ -3,9 +3,10 @@ import type { HomeContent } from '../../data/home-content'
 
 interface Props {
   content: Pick<HomeContent, 'signals' | 'thesis' | 'features'>
+  links: Record<HomeContent['features'][number]['target'], string>
 }
 
-const { content } = Astro.props
+const { content, links } = Astro.props
 ---
 
 <section class="home-proof">
@@ -19,7 +20,7 @@ const { content } = Astro.props
     <div class="home-feature-grid">
       {content.features.map((feature, index) => (
         <article class:list={['home-feature-card', { 'home-feature-card-lead': index === 0 }]}>
-          <p class="home-card-number">{feature.number}</p><h3>{feature.title}</h3><p>{feature.description}</p><a href={`#${feature.target}`}>{feature.action} <span>→</span></a>
+          <p class="home-card-number">{feature.number}</p><h3>{feature.title}</h3><p>{feature.description}</p><a href={links[feature.target]}>{feature.action} <span>→</span></a>
         </article>
       ))}
     </div>

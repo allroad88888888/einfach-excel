@@ -8,11 +8,15 @@ const agentIntegrationGuidance = `## Agent integration
 Implement the required backend ports: \`readVisibleProjection\`, \`readRangeProjection\`, and \`setCellInput\`. Keep workbook facts and authoritative mutations in the backend; the UI renders bounded projections. A Worker is an implementation choice for that backend boundary, not a required owner of UI state.`
 
 const projectPositioning =
-  'Einfach Excel is a spreadsheet UI core with a bounded projection contract and a Rust/WASM workbook engine.'
+  'Einfach Excel is open-source spreadsheet infrastructure that evaluates the formulas requested results need, follows off-screen and cross-sheet dependencies automatically, and leaves unrelated formula values unevaluated.'
+
+const formulaEvaluationBoundary = `## Demand-driven formula evaluation
+
+On the bulk-import and ordinary formula-read path, formula values stay unevaluated until a requested result reads them. A visible projection can pull required dependencies from outside its rectangle or from another sheet through the workbook evaluation provider. Formula values outside that requested dependency chain stay unevaluated. Direct writes of array or spill formulas may still evaluate to maintain spill state, so this is not a blanket claim about every mutation path.`
 
 const availabilityBoundary = `## Availability and adoption boundary
 
-Solid has the established UI surface. The site also includes local React and Vue controlled-projection demos, which demonstrate the public adapter APIs only. This project is available as repository source in a pre-release stage; no npm-published package or independently verified offline installation is available. The demos make no support, compatibility, or performance promises.`
+Five fixed-group packages, including \`@einfach/solid-excel\`, were published to npm at version \`0.1.0\` on 2026-08-17. Solid is the published UI binding. React and Vue pages are controlled-projection source references, not published adapters. The project is pre-1.0, has no paid support SLA, and its demos make no production performance or capacity promise.`
 
 /** Renders concise and expanded AI-readable indexes from the same site catalogue and source projections. */
 export function renderLlmsIndex(): string {
@@ -24,6 +28,8 @@ export function renderLlmsIndex(): string {
 > ${projectPositioning}
 
 ${availabilityBoundary}
+
+${formulaEvaluationBoundary}
 
 ## Documentation
 
@@ -37,6 +43,10 @@ ${agentIntegrationGuidance}
 ## Demos
 
 ${demoLinks}
+
+## Install
+
+\`npm install @einfach/solid-excel @einfach/core @einfach/solid solid-js\`
 
 ## Runtime boundary
 
@@ -62,6 +72,8 @@ export function renderLlmsFull(): string {
 ${projectPositioning}
 
 ${availabilityBoundary}
+
+${formulaEvaluationBoundary}
 
 ${renderDocumentationMarkdown('getting-started')}
 

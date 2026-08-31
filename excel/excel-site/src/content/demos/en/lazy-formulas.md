@@ -1,14 +1,14 @@
 ---
-title: Only calculate what is needed
-summary: A sparse whole-column formula should visit real cells, not materialize a million-cell rectangle.
+title: Calculate the visible result—not every formula
+summary: A requested result follows off-screen and cross-sheet dependencies automatically; formulas outside that chain stay unevaluated.
 ---
 
 ## Try this
 
-1. Navigate deep into the data without filling unused cells.
-2. Change an input and inspect the recalculated summary.
-3. Compare the nominal column range with populated rows.
+1. Start on Summary: its visible results are the only formula values requested.
+2. Follow `Summary → Model → Inputs` to inspect the automatically resolved dependency chain.
+3. Open Unused only when you want its 64 imported formulas to be evaluated.
 
 ## How it works
 
-The formula engine keeps sparse references sparse. Range materialization is reserved for results that must actually land as an array, so a wide-looking formula does not imply a wide allocation.
+The seed bulk-imports every formula without evaluating its value. Reading the Summary projection activates its ordinary formulas, and the workbook provider follows required references across sheets. Formula values outside the requested results and their dependency chain remain cold until read.

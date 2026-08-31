@@ -9,6 +9,7 @@ import basicsSeedSource from '../demos/seeds/seed-basics.ts?raw'
 import cleanMessyDataSeedSource from '../demos/seeds/seed-clean-messy-data.ts?raw'
 import collaborationSeedSource from '../demos/seeds/seed-collaboration.ts?raw'
 import customFormulasSeedSource from '../demos/seeds/seed-custom-formulas.ts?raw'
+import demandDrivenSeedSource from '../demos/seeds/seed-demand-driven.ts?raw'
 import formulaEngineSeedSource from '../demos/seeds/seed-formula-engine.ts?raw'
 import handOffFormSeedSource from '../demos/seeds/seed-hand-off-form.ts?raw'
 import performanceSeedSource from '../demos/seeds/seed-performance.ts?raw'
@@ -34,6 +35,7 @@ const alternateLocaleHref = sitePath(locale === 'zh' ? 'demos/' + id + '/' : 'zh
 function previewSourceFor(demoId: string, runtime: 'worker-wasm' | 'static'): string {
   if (demoId === 'react-controlled-projection') return reactAdapterDemoSource
   if (demoId === 'vue-controlled-projection') return vueAdapterDemoSource
+  if (demoId === 'lazy-formulas') return demandDrivenSeedSource
   if (demoId === 'formula-engine') return formulaEngineSeedSource
   if (demoId === 'custom-formulas') return customFormulasSeedSource
   if (demoId === 'clean-messy-data') return cleanMessyDataSeedSource
@@ -43,12 +45,17 @@ function previewSourceFor(demoId: string, runtime: 'worker-wasm' | 'static'): st
 }
 ---
 
-<SiteLayout locale={locale} title={frontmatter.title + ' · einfach excel'} alternateLocaleHref={alternateLocaleHref}>
+<SiteLayout
+  locale={locale}
+  title={frontmatter.title + ' · einfach excel'}
+  description={frontmatter.summary}
+  alternateLocaleHref={alternateLocaleHref}
+>
   <main class="product-page demo-detail-page">
     <nav class="product-breadcrumbs" aria-label="Breadcrumb">
       <a href={sitePath(locale === 'zh' ? 'zh/' : '')}>{locale === 'zh' ? '首页' : 'Home'}</a>
       <span>/</span>
-      <a href={sitePath(locale === 'zh' ? 'zh/#demos' : '#demos')}>{locale === 'zh' ? '演示' : 'Demos'}</a>
+      <a href={sitePath(locale === 'zh' ? 'zh/#paths' : '#paths')}>{locale === 'zh' ? '演示' : 'Demos'}</a>
       <span>/</span>
       <span>{frontmatter.title}</span>
     </nav>

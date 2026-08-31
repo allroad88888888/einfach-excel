@@ -1,0 +1,29 @@
+---
+import type { HomeContent } from '../../data/home-content'
+
+interface Props {
+  content: HomeContent['install']
+  guideHref: string
+  apiHref: string
+}
+
+const { content, guideHref, apiHref } = Astro.props
+---
+
+<section class="home-install-section" id="install" aria-labelledby="home-install-title">
+  <div class="home-install-inner home-shell">
+    <div class="home-install-copy">
+      <p class="home-section-index">{content.index}</p>
+      <h2 id="home-install-title">{content.title}</h2>
+      <p>{content.description}</p>
+      <div class="home-hero-actions">
+        <a class="home-button home-button-primary" href={guideHref}>
+          {content.primaryAction} <span aria-hidden="true">→</span>
+        </a>
+        <a class="home-button home-button-quiet" href={apiHref}>{content.secondaryAction}</a>
+      </div>
+      <p class="home-micro-copy">{content.note}</p>
+    </div>
+    <pre class="home-install-command" aria-label="npm install command"><code>{content.command}</code></pre>
+  </div>
+</section>

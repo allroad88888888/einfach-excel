@@ -5,6 +5,7 @@ export interface DemoDefinition {
   runtime: DemoRuntime
   scenario:
     | 'performance'
+    | 'demand-driven'
     | 'formula-engine'
     | 'clean-messy-data'
     | 'hand-off-form'
@@ -29,10 +30,11 @@ export const demos: readonly DemoDefinition[] = [
   {
     id: 'lazy-formulas',
     runtime: 'worker-wasm',
-    scenario: 'performance',
+    scenario: 'demand-driven',
     sourceFiles: [
       'excel/excel-site/src/islands/DemoIsland.tsx',
-      'excel/excel-core-ts/src/eval/runtime-ref.ts',
+      'excel/excel-site/src/demos/seeds/seed-demand-driven.ts',
+      'excel/rust/excel-core/src/workbook_eval_provider.rs',
     ],
   },
   {

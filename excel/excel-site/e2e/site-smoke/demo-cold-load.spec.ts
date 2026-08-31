@@ -14,7 +14,7 @@ const DEMOS: Array<{ id: string; budgetMs: number; expectProgress?: boolean }> =
   { id: 'formula-engine', budgetMs: 15_000 },
   { id: 'custom-formulas', budgetMs: 15_000 },
   { id: 'viewport-projection', budgetMs: 45_000, expectProgress: true },
-  { id: 'lazy-formulas', budgetMs: 45_000, expectProgress: true },
+  { id: 'lazy-formulas', budgetMs: 15_000 },
   { id: 'lazy-area', budgetMs: 45_000, expectProgress: true },
   { id: 'clean-messy-data', budgetMs: 15_000 },
   { id: 'hand-off-a-form', budgetMs: 15_000 },
@@ -53,20 +53,65 @@ test.describe('deployed-artifact smoke — every demo shows real cells in budget
     await expectGridReady(page, 15_000)
   })
 
+  test('the demand-driven demo starts at the visible cross-sheet result', async ({ page }) => {
+    await page.goto('demos/lazy-formulas/')
+    await expectGridReady(page, 15_000)
+
+    const grid = page.getByTestId('spreadsheet-grid')
+    await expect(page.getByRole('tab', { name: 'Summary' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
+    await expect(grid.getByText('Net Profit', { exact: true })).toBeVisible()
+    await expect(grid.getByText('30139.2', { exact: true })).toBeVisible()
+    await expect(grid.getByText('Summary → Model → Inputs', { exact: true })).toBeVisible()
+
+    await page.getByRole('tab', { name: 'Unused' }).click()
+    await expect(page.getByRole('tab', { name: 'Unused' })).toHaveAttribute('aria-selected', 'true')
+    await expect(grid.locator('td.cell .cell-display').getByText('4', { exact: true })).toBeVisible()
+  })
+
   test('the homepage hero serves a populated worksheet preview', async ({ page }) => {
     await page.goto('.')
 
     const hero = page.locator('section[aria-labelledby="home-hero-title"]')
     await expect(hero).toBeVisible()
     await expect(
-      hero.getByRole('heading', { name: /Make the spreadsheet a product capability/ }),
+      hero.getByRole('heading', { name: /Calculate visible results/ }),
     ).toBeVisible()
+    await expect(hero.getByRole('link', { name: /See demand-driven formulas/ })).toHaveAttribute(
+      'href',
+      /demos\/lazy-formulas\/$/,
+    )
+    await expect(hero.getByText('E8 → 5 dependencies evaluated on demand')).toBeVisible()
 
     const worksheet = hero.getByRole('table', { name: 'Revenue plan' })
     await expect(worksheet).toBeVisible()
     await expect(worksheet.getByText('Revenue plan · FY 2026', { exact: true })).toBeVisible()
     await expect(worksheet.getByText('$1.76m', { exact: true })).toBeVisible()
     await expect(worksheet.locator('.home-cell')).not.toHaveCount(0)
+
+    await expect(page).toHaveTitle(/Demand-driven spreadsheet formulas for product teams/)
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      'href',
+      'https://allroad88888888.github.io/einfach-excel/',
+    )
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+      'content',
+      /Calculate visible spreadsheet results on demand/,
+    )
+    const structuredData = await page
+      .locator('script[type="application/ld+json"]')
+      .evaluate((element) => element.textContent)
+    expect(structuredData).toContain('SoftwareSourceCode')
+
+    const install = page.locator('#install')
+    await expect(
+      install.getByRole('heading', { name: 'From npm to your first formula.' }),
+    ).toBeVisible()
+    await expect(
+      install.getByText('npm install @einfach/solid-excel', { exact: false }),
+    ).toBeVisible()
   })
 
   test('dark theme keeps the workbench grid readable', async ({ page }) => {

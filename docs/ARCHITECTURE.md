@@ -47,6 +47,29 @@ atom 清单、端口形状、用例覆盖，都在贴着代码的文档里（见
 
 React 与 Vue 两项仅用于记录仓内依赖和代码位置；它们不构成对外安装、发布就绪、功能完整度或支持状态的声明。
 
+### React 产品路径是 Rust-only
+
+React 产品集成（包括默认 demo 与 E2E）固定走下面这一条单向路径：
+
+```text
+@einfach/react-excel
+        ↓
+@einfach/excel-worker（private、框架无关的 worker 包）
+        ↓
+@einfach/excel-wasm
+        ↓
+Rust excel-core
+```
+
+`@einfach/excel-worker` 是 React 与引擎之间的私有 neutral boundary；它不得复用 Solid adapter，
+也不得把 TS workbook runtime 暴露给 React。仓库其他宿主为 parity 或测试保留的 static backend 与
+TypeScript backend 不属于这条产品路径，React 不得在 WASM load、runtime manifest、初始化或 seed
+失败时回退到它们。失败必须进入可见的 error/retry 流程，retry 创建新的 Rust worker generation。
+
+这条约束覆盖 `excel/react-excel/{src,demo,e2e,package.json}` 与整个 `excel/excel-worker` 包；
+`rules/react-rust-only-boundary.test.mjs` 对源码引用、worker URL 及 dependency/peer 声明执行扫描。
+worker 包尚未创建时扫描允许目录缺席，但目录出现后立即纳入同一规则。
+
 ### 层的硬约束
 
 - `spreadsheet-ui-core` **不得**导入 Solid、React、DOM API、worker 胶水或 WASM 胶水。
@@ -107,6 +130,8 @@ atom 持有整个数组，每个非 (0,0) 目标拿一个读锚点并索引进�
 `excel/spreadsheet-ui-core/src/custom-formulas/README.md`。
 
 ## Worker 运行时有两个
+
+本节记录仓库级的既有 parity 结构；React 产品路径不参与双后端选择，仍受上面的 Rust-only 边界约束。
 
 `worker-runtime.ts`（Rust/WASM）与 `worker-runtime-ts.ts`（`@einfach/excel-core-ts`）实现同一套
 worker 协议，e2e 双后端跑同一批用例来钉 parity（矩阵见 `excel/solid-excel/e2e/BACKEND_PARITY.md`）。

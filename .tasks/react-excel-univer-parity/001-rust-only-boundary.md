@@ -6,10 +6,10 @@ parent: M0
 depends_on: []
 discovered_from: null
 model: gpt-5.6-sol
-status: pending
+status: done
 created: 2026-09-01
-done: null
-base: null
+done: 2026-09-01
+base: b940da7480da6482fb75141d855bb8ebbbda7257
 priority: P0
 stage: M0
 coverage: ["C01a"]

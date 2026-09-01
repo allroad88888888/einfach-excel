@@ -1,0 +1,10 @@
+== hubs for docs/ (10 members; count = distinct members referenced)
+      2 scripts/check-doc-links.mjs
+      2 excel/spreadsheet-ui-core/test/copy-as.test.ts
+      2 excel/spreadsheet-ui-core/src/backend/types.ts
+      2 excel/spreadsheet-ui-core/scripts/verify-package-artifact.mjs
+      2 excel/solid-excel/test/perf-functional-budgets.test.ts
+-- members NOT referenced by top hubs:
+   scripts/check-doc-links.mjs  lacks: docs/adoption-issues docs/content docs/examples docs/interaction-execution docs/interaction-issues docs/issues docs/observations docs/recipes 
+   excel/spreadsheet-ui-core/test/copy-as.test.ts  lacks: docs/adoption-issues docs/decisions docs/examples docs/interaction-execution docs/interaction-issues docs/issues docs/observations docs/recipes 
+   excel/spreadsheet-ui-core/src/backend/types.ts  lacks: docs/adoption-issues docs/decisions docs/examples docs/interaction-execution docs/interaction-issues docs/issues docs/observations docs/recipes 

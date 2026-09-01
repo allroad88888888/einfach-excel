@@ -1,0 +1,9 @@
+== timeline for docs/observations/ (8 members; date member birth-commit)
+   2026-08-13 docs/observations/ad807 4a2ab4ed  <- founding
+   2026-08-13 docs/observations/ad810 bcfc527d  <- founding
+   2026-08-13 docs/observations/ad826 db5a2a8d  <- founding
+   2026-08-13 docs/observations/ad827 19bb65a2
+   2026-08-17 docs/observations/ad808 77a1b6ba
+   2026-08-17 docs/observations/ad809 77a1b6ba  <- latest
+   2026-08-17 docs/observations/ad828 6fa05a10  <- latest
+   2026-08-17 docs/observations/bench 4d4da6fa  <- latest

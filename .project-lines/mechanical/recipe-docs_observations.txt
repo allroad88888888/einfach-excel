@@ -1,0 +1,13 @@
+== recipe for docs/observations/ (from 3 cleanest birth commits)
+-- 19bb65a2 (3 files) docs/observations/ad827: 2026-08-13 test(observability): record bounded range reads
+     docs/AD827_BOUNDED_VS_FULL_RANGE_READ_OBSERVATION.md
+     excel/solid-excel/e2e/perf-virtual/ad827-bounded-vs-full-range-read.spec.ts
+-- db5a2a8d (3 files) docs/observations/ad826: 2026-08-13 test(perf): record AD-826 first-screen evaluation
+     docs/AD826_FIRST_SCREEN_EVALUATION_OBSERVATION.md
+     excel/solid-excel/e2e/perf-virtual/ad826-first-screen-evaluation.spec.ts
+-- 4a2ab4ed (4 files) docs/observations/ad807: 2026-08-13 test(scale): record ten-million load boundary
+     docs/AD807_TEN_MILLION_LOAD_OBSERVATION.md
+     excel/solid-excel/e2e/perf-virtual/CASES.md
+     excel/solid-excel/e2e/perf-virtual/ad807-ten-million-load.spec.ts
+-- in ALL 3 commits (the recipe):
+-- in >=2 commits (probably part of it):

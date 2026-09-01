@@ -1,0 +1,15 @@
+== churn for templates/ (6 files; commits per file)
+-- most changed:
+      2 templates/vite-starter/vite.config.ts
+      2 templates/vite-starter/src/main.tsx
+      2 templates/vite-starter/package.json
+      1 templates/vite-starter/tsconfig.json
+      1 templates/vite-starter/index.html
+      1 templates/vite-starter/README.md
+-- least changed:
+      2 templates/vite-starter/vite.config.ts
+      2 templates/vite-starter/src/main.tsx
+      2 templates/vite-starter/package.json
+      1 templates/vite-starter/tsconfig.json
+      1 templates/vite-starter/index.html
+      1 templates/vite-starter/README.md

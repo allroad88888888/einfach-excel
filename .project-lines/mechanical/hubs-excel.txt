@@ -1,0 +1,10 @@
+== hubs for excel/ (9 members; count = distinct members referenced)
+      5 .changeset/config.json
+      3 jest.config.mjs
+      3 docs/observations/bench/2026-08-17-ad505-bench-chromium-headless.json
+      3 .github/workflows/pages.yml
+      3 .github/workflows/e2e.yml
+-- members NOT referenced by top hubs:
+   .changeset/config.json  lacks: excel/excel-site excel/react-excel excel/rust excel/vue-excel 
+   jest.config.mjs  lacks: excel/excel-site excel/react-excel excel/rust excel/solid-excel excel/spreadsheet-ui-styles excel/vue-excel 
+   docs/observations/bench/2026-08-17-ad505-bench-chromium-headless.json  lacks: excel/excel-core-ts excel/excel-site excel/react-excel excel/rust excel/spreadsheet-ui-styles excel/vue-excel 

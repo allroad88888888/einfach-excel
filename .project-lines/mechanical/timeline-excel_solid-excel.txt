@@ -1,0 +1,11 @@
+== timeline for excel/solid-excel/ (10 members; date member birth-commit)
+   2026-07-28 excel/solid-excel/docs d8aeccb4  <- founding
+   2026-07-28 excel/solid-excel/e2e d8aeccb4  <- founding
+   2026-07-28 excel/solid-excel/src d8aeccb4  <- founding
+   2026-07-28 excel/solid-excel/test d8aeccb4
+   2026-08-13 excel/solid-excel/vanilla-editing-poc 71c2f9ce
+   2026-08-13 excel/solid-excel/vanilla-readonly-poc 59e9e2fa
+   2026-08-17 excel/solid-excel/demo-remote 6fa05a10
+   2026-08-31 excel/solid-excel/bench 14708c26  <- latest
+   2026-08-31 excel/solid-excel/demo 14708c26  <- latest
+   2026-08-31 excel/solid-excel/legacy 14708c26  <- latest

@@ -1,0 +1,5 @@
+== import direction, mode=import (files in ROW that import from COLUMN; tests/docs excluded)
+   .changeset →  excel(1)
+   docs →  excel(1)
+   templates →  excel(1)
+-- identifiers per column: excel:16 templates:4 

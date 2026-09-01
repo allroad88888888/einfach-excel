@@ -1,0 +1,10 @@
+== hubs for docs/observations/ (8 members; count = distinct members referenced)
+      1 scripts/check-doc-links.mjs
+      1 rules/.eslintrc
+      1 jest.config.mjs
+      1 excel/solid-excel/test/scale-parity-engine-wasm.ts
+      1 excel/solid-excel/test/perf-ts-vs-wasm.bench.ts
+-- members NOT referenced by top hubs:
+   scripts/check-doc-links.mjs  lacks: docs/observations/ad807 docs/observations/ad808 docs/observations/ad809 docs/observations/ad810 docs/observations/ad826 docs/observations/ad827 docs/observations/ad828 
+   rules/.eslintrc  lacks: docs/observations/ad807 docs/observations/ad808 docs/observations/ad809 docs/observations/ad810 docs/observations/ad826 docs/observations/ad827 docs/observations/ad828 
+   jest.config.mjs  lacks: docs/observations/ad807 docs/observations/ad808 docs/observations/ad809 docs/observations/ad810 docs/observations/ad826 docs/observations/ad827 docs/observations/ad828 

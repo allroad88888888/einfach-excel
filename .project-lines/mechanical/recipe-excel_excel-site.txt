@@ -1,0 +1,12 @@
+== recipe for excel/excel-site/ (from 1 cleanest birth commits)
+-- 43fbe7fa (7 files) excel/excel-site/e2e: 2026-08-20 test(site): 部署产物冒烟 e2e,并作为 Pages 部署门禁
+     .github/workflows/pages.yml
+     excel/excel-site/package.json
+     excel/excel-site/playwright.config.ts
+     jest.config.mjs
+-- in ALL 1 commits (the recipe):
+     .github/workflows/pages.yml
+     excel/excel-site/package.json
+     excel/excel-site/playwright.config.ts
+     jest.config.mjs
+-- in >=2 commits (probably part of it):

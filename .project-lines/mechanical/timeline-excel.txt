@@ -1,0 +1,10 @@
+== timeline for excel/ (9 members; date member birth-commit)
+   2026-07-28 excel/excel-core-ts d8aeccb4  <- founding
+   2026-07-28 excel/rust d8aeccb4  <- founding
+   2026-07-28 excel/solid-excel d8aeccb4  <- founding
+   2026-07-28 excel/spreadsheet-ui-core d8aeccb4
+   2026-07-29 excel/excel-site 974f431c
+   2026-08-13 excel/react-excel db0637ce
+   2026-08-13 excel/spreadsheet-ui-styles 96fb693f  <- latest
+   2026-08-13 excel/vue-excel a95b0b09  <- latest
+   2026-08-17 excel/excel-wasm 38d7d5b2  <- latest

@@ -1,0 +1,10 @@
+== hubs for excel/excel-site/ (5 members; count = distinct members referenced)
+      2 scripts/check-doc-links.mjs
+      2 package.json
+      2 excel/solid-excel/bench/tier-data.ts
+      2 docs/observations/bench/2026-08-17-ad505-bench-chromium-headless.json
+      2 .github/workflows/docs.yml
+-- members NOT referenced by top hubs:
+   scripts/check-doc-links.mjs  lacks: excel/excel-site/e2e excel/excel-site/prototypes excel/excel-site/src 
+   package.json  lacks: excel/excel-site/e2e excel/excel-site/prototypes excel/excel-site/src 
+   excel/solid-excel/bench/tier-data.ts  lacks: excel/excel-site/e2e excel/excel-site/prototypes excel/excel-site/src 

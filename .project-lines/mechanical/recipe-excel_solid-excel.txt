@@ -1,0 +1,14 @@
+== recipe for excel/solid-excel/ (from 3 cleanest birth commits)
+-- 59e9e2fa (3 files) excel/solid-excel/vanilla-readonly-poc: 2026-08-13 feat(adoption): add vanilla readonly projection POC
+-- 71c2f9ce (7 files) excel/solid-excel/vanilla-editing-poc: 2026-08-13 feat: add vanilla editing poc
+     excel/solid-excel/test/vanilla-editing-poc/vanilla-editing-poc.test.ts
+-- 6fa05a10 (12 files) excel/solid-excel/demo-remote: 2026-08-17 feat(demo): remote HTTP backend viewport demo per AD-828
+     docs/AD828_REMOTE_BACKEND_OBSERVATION.md
+     docs/SCALE_TRANSPORT_NARRATIVE.md
+     docs/observations/ad828/remote-backend-viewport-2026-08-17.json
+     excel/solid-excel/src/App.tsx
+     excel/solid-excel/src/i18n/locales/en.ts
+     excel/solid-excel/src/i18n/locales/zh.ts
+     excel/solid-excel/tsconfig.json
+-- in ALL 3 commits (the recipe):
+-- in >=2 commits (probably part of it):

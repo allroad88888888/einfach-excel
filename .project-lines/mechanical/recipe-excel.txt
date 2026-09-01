@@ -1,0 +1,56 @@
+== recipe for excel/ (from 3 cleanest birth commits)
+-- a95b0b09 (4 files) excel/vue-excel: 2026-08-13 feat(vue-excel): add package skeleton
+-- db0637ce (4 files) excel/react-excel: 2026-08-13 feat(react-excel): add adapter package skeleton
+-- 38d7d5b2 (53 files) excel/excel-wasm: 2026-08-17 feat(excel-wasm): distribute WASM via @einfach/excel-wasm package
+     .github/workflows/ci.yml
+     .github/workflows/e2e.yml
+     .github/workflows/pages.yml
+     .gitignore
+     CLAUDE.md
+     docs/ARCHITECTURE.md
+     docs/WASM_SIZE_MEASUREMENT_PROTOCOL.md
+     excel/excel-core-ts/test/regex-dialect.test.ts
+     excel/rust/wasm/README.md
+     excel/solid-excel/README.md
+     excel/solid-excel/package.json
+     excel/solid-excel/playwright.config.ts
+     excel/solid-excel/src-vnext/adapter/excel-wasm-full-fallback.d.ts
+     excel/solid-excel/src-vnext/adapter/wasm-pkg-full-fallback.d.ts
+     excel/solid-excel/src-vnext/adapter/worker-runtime-full.ts
+     excel/solid-excel/src-vnext/adapter/worker-runtime.ts
+     excel/solid-excel/src/wasm-sheet-worker.ts
+     excel/solid-excel/src/wasm-sheet.ts
+     excel/solid-excel/src/wasm-workbook-worker.ts
+     excel/solid-excel/test/cross-engine-parity-engines.ts
+     excel/solid-excel/test/perf-functional-budgets.test.ts
+     excel/solid-excel/test/perf-rust-bulk-import-trace.bench.ts
+     excel/solid-excel/test/perf-rust-bulk-import-ultra.bench.ts
+     excel/solid-excel/test/perf-rust-storage-primary.bench.ts
+     excel/solid-excel/test/perf-ts-vs-wasm.bench.ts
+     excel/solid-excel/test/scale-parity-engine-wasm.ts
+     excel/solid-excel/test/vnext-auto-fill-static-wasm-parity.test.ts
+     excel/solid-excel/test/vnext-conditional-format-wasm.test.ts
+     excel/solid-excel/test/vnext-filter-static-wasm-parity.test.ts
+     excel/solid-excel/test/vnext-print-config-wasm.test.ts
+     excel/solid-excel/test/vnext-sort-static-wasm-parity.test.ts
+     excel/solid-excel/test/vnext-table-totals-static-wasm-parity.test.ts
+     excel/solid-excel/test/vnext-worker-auto-fill-runtime.test.ts
+     excel/solid-excel/test/vnext-worker-filter-subtotal-wasm.test.ts
+     excel/solid-excel/test/vnext-worker-paste-special-wasm.test.ts
+     excel/solid-excel/test/vnext-worker-sort-host-wasm.test.ts
+     excel/solid-excel/test/vnext-worker-sort-wasm.test.ts
+     excel/solid-excel/test/vnext-worker-spill-persistence-wasm.test.ts
+     excel/solid-excel/test/vnext-worker-spill-region.test.ts
+     excel/solid-excel/test/vnext-worker-spill-write-wasm.test.ts
+     excel/solid-excel/test/vnext-worker-subtotal-hidden-wasm.test.ts
+     excel/solid-excel/test/vnext-worker-tables-wasm.test.ts
+     excel/solid-excel/test/vnext-worker-undo-wasm.test.ts
+     excel/solid-excel/test/wasm-subscription-remap.test.ts
+     excel/solid-excel/test/wasm-workbook-worker.test.ts
+     excel/spreadsheet-ui-core/docs/filter-sort.md
+     excel/spreadsheet-ui-core/src/spill/README.md
+     jest.config.mjs
+     package.json
+     scripts/strip-wasm-names.mjs
+-- in ALL 3 commits (the recipe):
+-- in >=2 commits (probably part of it):

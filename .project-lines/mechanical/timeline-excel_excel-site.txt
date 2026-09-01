@@ -1,0 +1,6 @@
+== timeline for excel/excel-site/ (5 members; date member birth-commit)
+   2026-07-29 excel/excel-site/src 974f431c  <- founding
+   2026-08-04 excel/excel-site/docs 104de178  <- founding
+   2026-08-04 excel/excel-site/scripts 104de178  <- latest
+   2026-08-20 excel/excel-site/e2e 43fbe7fa  <- latest
+   2026-08-20 excel/excel-site/prototypes f5892d74  <- latest

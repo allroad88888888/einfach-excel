@@ -1,0 +1,11 @@
+== timeline for docs/ (10 members; date member birth-commit)
+   2026-07-30 docs/archive 34dbde31  <- founding
+   2026-07-30 docs/decisions bfd19fc6  <- founding
+   2026-08-11 docs/interaction-execution 47de8449  <- founding
+   2026-08-11 docs/interaction-issues 47de8449
+   2026-08-11 docs/issues cf2db192
+   2026-08-13 docs/adoption-issues bf4b421b
+   2026-08-13 docs/observations db5a2a8d
+   2026-08-17 docs/content 46b2590a  <- latest
+   2026-08-17 docs/examples 158406cd  <- latest
+   2026-08-17 docs/recipes 46b2590a  <- latest

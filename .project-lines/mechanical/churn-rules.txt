@@ -1,0 +1,11 @@
+== churn for rules/ (4 files; commits per file)
+-- most changed:
+     15 rules/.eslintrc
+      4 rules/.eslintignore
+      1 rules/setup-jest.ts
+      1 rules/css-stub.cjs
+-- least changed:
+     15 rules/.eslintrc
+      4 rules/.eslintignore
+      1 rules/setup-jest.ts
+      1 rules/css-stub.cjs

@@ -1,0 +1,15 @@
+== recipe for docs/ (from 3 cleanest birth commits)
+-- db5a2a8d (3 files) docs/observations: 2026-08-13 test(perf): record AD-826 first-screen evaluation
+     docs/AD826_FIRST_SCREEN_EVALUATION_OBSERVATION.md
+     excel/solid-excel/e2e/perf-virtual/ad826-first-screen-evaluation.spec.ts
+-- cf2db192 (7 files) docs/issues: 2026-08-11 fix(ci): restore regression test stability
+     excel/solid-excel/src-vnext/grid/grid-atom-accessors.ts
+     excel/solid-excel/src-vnext/grid/grid-layout.ts
+     excel/solid-excel/src-vnext/provider/SpreadsheetUiProvider.tsx
+     excel/solid-excel/test/vnext-presence-overlay-projection.test.tsx
+     excel/solid-excel/test/vnext-presence-overlay.test.tsx
+     excel/solid-excel/test/vnext-worker-merge-ui.test.tsx
+-- bf4b421b (9 files) docs/adoption-issues: 2026-08-13 docs(adoption): integrate authoritative issue tree
+     docs/ADOPTION_ISSUE_TREE.md
+-- in ALL 3 commits (the recipe):
+-- in >=2 commits (probably part of it):

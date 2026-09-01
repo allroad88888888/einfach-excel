@@ -19,6 +19,7 @@
   "sideEffects": false,
   "dependencies": {
     "@einfach/core": "^0.4.0",
+    "@einfach/solid-excel": "workspace:*",
     "@einfach/spreadsheet-ui-core": "workspace:*"
   },
   "peerDependencies": {

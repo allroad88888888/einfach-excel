@@ -42,6 +42,12 @@
       "import": "./esm/src/adapter/worker-runtime.mjs",
       "default": "./esm/src/adapter/worker-runtime.mjs"
     },
+    "./worker-backend": {
+      "solid": "./src/adapter/worker/backend.ts",
+      "types": "./@types/src/adapter/worker/backend.d.ts",
+      "import": "./esm/src/adapter/worker/backend.mjs",
+      "default": "./esm/src/adapter/worker/backend.mjs"
+    },
     "./worker-runtime-full": {
       "solid": "./src/adapter/worker-runtime-full.ts",
       "types": "./@types/src/adapter/worker-runtime-full.d.ts",

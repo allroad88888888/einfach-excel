@@ -50,7 +50,7 @@
 
 | id | 用户功能 | status | base | report | review |
 |---|---|---|---|---|---|
-| 001 | 打开 1000 行 Rust 工作簿 | pending | null | | |
+| 001 | 打开 1000 行 Rust 工作簿 | done | c63249171a177cb39c0755cc14db66f9caa4f2b7 | reports/001-report.md | reports/001-review-v3.md |
 | 002 | 滚动并选择 | pending | null | | |
 | 003 | 单格编辑并回读 | pending | null | | |
 
@@ -65,3 +65,10 @@
 裁决：给现有中性 backend 增加 `@einfach/solid-excel/worker-backend` 子路径，并直接加载
 `vnext-worker-runtime?worker` — 避免经过 Solid public barrel 与同时含 TS factory 的模块；
 错了的代价是 package export 指向错误，因此 001 必须用入口测试与 bundle 审计钉死目标。
+
+## 遗留与发现
+
+- 001 Minor：App 的 StrictMode、卸载后 late completion 与 dispose 次数尚无定向自动化
+  测试；源码独立 review 与真实 Chromium ready 验证均通过，本阶段不扩围。
+- 001 已解决：根级 TypeScript 使用旧 Node 解析，测试已改为 mock-before-`requireActual`，
+  不再用静态 import 把 Vite 专属 demo 模块拉入根工程；根级 `tsc -b` 已通过。

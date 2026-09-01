@@ -4,10 +4,10 @@ title: 打开并灌入 1000 行 Rust 工作簿
 kind: leaf
 depends_on: []
 model: gpt-5.6-sol
-status: pending
+status: done
 created: 2026-09-01
-done: null
-base: null
+done: 2026-09-01
+base: c63249171a177cb39c0755cc14db66f9caa4f2b7
 files:
   - excel/solid-excel/package.json
   - excel/react-excel/package.json

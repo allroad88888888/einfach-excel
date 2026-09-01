@@ -5,87 +5,59 @@ import { sitePath } from '../../data/site-path'
 ---
 
 <DocsPage
-  title="React adapter source"
-  eyebrow="PRE-RELEASE FRAMEWORK REFERENCE"
-  summary="Render a caller-owned projection in React while the workbook boundary remains explicit."
+  title="React workbook product"
+  eyebrow="PRIVATE VITE PRODUCT"
+  summary="Run the repository's complete React workbook against its Rust/WASM worker."
   alternateLocaleHref={sitePath('zh/docs/react/')}
 >
   <div class="docs-guide">
-    <section class="docs-guide-callout docs-guide-callout-warning" aria-label="React adapter status">
-      <p class="docs-guide-label">STATUS: REPOSITORY SOURCE ONLY</p>
+    <section class="docs-guide-callout docs-guide-callout-warning" aria-label="React product status">
+      <p class="docs-guide-label">STATUS: REPOSITORY PRODUCT</p>
       <p>
-        <code>@einfach/react-excel</code> is a private workspace package at version <code>0.0.0</code>. It is not on npm,
-        does not ship a default Worker or WASM backend, and is not a drop-in spreadsheet application. Do not add an npm
-        install command to your product documentation yet.
+        <code>excel/react-excel</code> is a private Vite application, not an installable integration library.
+        Run it from this repository and treat its source as one product rather than a host-facing API.
       </p>
     </section>
 
-    <h2>1. Install the repository workspace</h2>
-    <p>The React adapter is consumed from this repository today, so install the workspace once before running its fixture.</p>
+    <h2>1. Run the workbook</h2>
     <pre><code>{`git clone https://github.com/allroad88888888/einfach-excel.git
 cd einfach-excel
-pnpm install`}</code></pre>
+pnpm install
+pnpm --filter @einfach/react-excel dev`}</code></pre>
+    <p>The development server listens on <code>http://127.0.0.1:5183</code>.</p>
 
-    <h2>2. Run the verified React fixture</h2>
-    <pre><code>{`NO_PROXY=localhost,127.0.0.1 \
-pnpm --filter @einfach/react-excel run e2e`}</code></pre>
+    <h2>2. Follow the Rust-only runtime</h2>
     <p>
-      This command starts the repository's Vite fixture, opens Chromium, drags from one controlled cell to another, and
-      verifies the projected selection. A successful run reports one passing React adapter test.
+      The application creates its backend from <code>@einfach/solid-excel/vnext-worker-runtime?worker</code>.
+      Workbook reads and acknowledged edits cross the worker boundary into Rust/WASM; there is no TypeScript engine,
+      static backend, or runtime fallback.
     </p>
 
-    <h2>3. Understand the available boundary</h2>
+    <h2>3. Exercise the current product</h2>
     <div class="docs-guide-terms">
-      <article><strong>Controlled grid</strong><span>Render a visible cell projection that your application already owns.</span></article>
-      <article><strong>Provider hooks</strong><span>Bridge selection, navigation, editing, clipboard, and history to UI-core atoms.</span></article>
-      <article><strong>Explicit backend</strong><span>Supply your own <code>SpreadsheetBackend</code>; no default data or compute runtime is hidden.</span></article>
+      <article><strong>Bounded projection</strong><span>Browse 1,000 sales orders while React mounts a 32-row window.</span></article>
+      <article><strong>Selection</strong><span>Select one cell or drag a range, including after scrolling to the final record.</span></article>
+      <article><strong>Cell editing</strong><span>Double-click or press Enter, then commit through Rust with Enter or blur.</span></article>
     </div>
+    <p>Press Escape to cancel an edit without writing it.</p>
 
-    <h2>4. Compose one controlled projection</h2>
-    <p>This is a repository-source pattern, not a package-install recipe. The React host owns the backend, cells, and requested window.</p>
-    <pre><code>{`import type {
-  CellRange,
-  DisplayCell,
-  SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
-import {
-  SpreadsheetGridView,
-  SpreadsheetUiProvider,
-} from '@einfach/react-excel'
+    <h2>4. Verify the product</h2>
+    <pre><code>{`pnpm --filter @einfach/react-excel typecheck
+pnpm --filter @einfach/react-excel build
+pnpm --filter @einfach/react-excel test`}</code></pre>
 
-type ProjectionProps = {
-  backend: SpreadsheetBackend
-  cells: readonly DisplayCell[]
-  window: CellRange
-}
-
-export function ReactSpreadsheet({ backend, cells, window }: ProjectionProps) {
-  return (
-    <SpreadsheetUiProvider backend={backend}>
-      <SpreadsheetGridView cells={cells} window={window} />
-    </SpreadsheetUiProvider>
-  )
-}`}</code></pre>
-
-    <h2>5. Keep these responsibilities in the host</h2>
-    <ol class="docs-guide-steps">
-      <li>Keep the backend instance stable for the lifetime of one workbook; replacing it deliberately creates a new UI core.</li>
-      <li>Fetch or derive the bounded projection, then pass its <code>cells</code> and <code>window</code> to the controlled view.</li>
-      <li>Use the nearest-provider hooks when you add interaction. Do not create a second React state store for spreadsheet product state.</li>
-    </ol>
-
-    <h2>6. Inspect the interactive reference</h2>
+    <h2>5. Read the product source</h2>
     <div class="docs-guide-next">
-      <a href={sitePath('demos/react-controlled-projection/')}><strong>Run the React projection demo</strong><span>Drag across its fixed 4×4 grid and inspect the selected range. →</span></a>
-      <a href={sourceUrl('excel/excel-site/src/islands/ReactAdapterDemoIsland.tsx')}><strong>Read the exact host source</strong><span>It supplies a deterministic backend, store, projection, and pointer selection. →</span></a>
-      <a href={sourceUrl('excel/react-excel/README.md')}><strong>Read the package boundary</strong><span>See the supported primitives and the deliberate non-goals. →</span></a>
+      <a href={sourceUrl('excel/react-excel/README.md')}><strong>Read the product boundary</strong><span>See current abilities, directories, and commands. →</span></a>
+      <a href={sourceUrl('excel/react-excel/src/app/App.tsx')}><strong>Read application startup</strong><span>Follow Rust backend readiness into the workbook runtime. →</span></a>
+      <a href={sourceUrl('excel/react-excel/src/workbook/backend/rust-backend.ts')}><strong>Read the worker boundary</strong><span>See seed import and Rust/WASM backend creation. →</span></a>
     </div>
 
-    <h2>What is not ready</h2>
+    <h2>Current boundary</h2>
     <p>
-      There is no published React release, default Worker factory, WASM packaging, browser support promise, or turnkey shell.
-      For a production integration today, use the supported <a href={sitePath('docs/getting-started/')}>Solid path</a> or
-      implement the <a href={sitePath('docs/backend-port/')}>backend port</a> while the React adapter matures.
+      The ribbon, formula bar, sheet tab, and zoom surfaces are presentational. Clipboard, history, formatting,
+      sheet commands, and other workbook commands are not wired, and this private product makes no npm publication
+      or browser-support promise.
     </p>
   </div>
 </DocsPage>

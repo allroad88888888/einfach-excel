@@ -5,9 +5,9 @@ import {
   type SpreadsheetUiCore,
 } from '@einfach/spreadsheet-ui-core'
 import { useMemo, type ReactNode } from 'react'
-import { SpreadsheetUiContext } from './spreadsheet-ui-context'
+import { WorkbookRuntimeContext } from './use-workbook-runtime'
 
-export interface SpreadsheetUiProviderProps {
+export interface WorkbookRuntimeProviderProps {
   backend: SpreadsheetBackend
   children: ReactNode
   store?: Store
@@ -18,12 +18,12 @@ function createCore(backend: SpreadsheetBackend, store: Store | undefined): Spre
 }
 
 /** Supplies an isolated spreadsheet core to a React subtree. */
-export function SpreadsheetUiProvider({
+export function WorkbookRuntimeProvider({
   backend,
   children,
   store,
-}: SpreadsheetUiProviderProps): ReactNode {
+}: WorkbookRuntimeProviderProps): ReactNode {
   const core = useMemo(() => createCore(backend, store), [backend, store])
 
-  return <SpreadsheetUiContext.Provider value={core}>{children}</SpreadsheetUiContext.Provider>
+  return <WorkbookRuntimeContext.Provider value={core}>{children}</WorkbookRuntimeContext.Provider>
 }

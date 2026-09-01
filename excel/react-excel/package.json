@@ -4,44 +4,25 @@
   "private": true,
   "description": "React workbook product powered by the Einfach Rust/WASM engine",
   "type": "module",
-  "exports": {
-    ".": {
-      "types": "./src/index.ts",
-      "import": "./src/index.ts",
-      "default": "./src/index.ts"
-    },
-    "./pointer-selection": {
-      "types": "./src/use-spreadsheet-pointer-selection.ts",
-      "import": "./src/use-spreadsheet-pointer-selection.ts",
-      "default": "./src/use-spreadsheet-pointer-selection.ts"
-    }
-  },
-  "sideEffects": false,
   "dependencies": {
     "@einfach/core": "^0.4.0",
     "@einfach/solid-excel": "workspace:*",
-    "@einfach/spreadsheet-ui-core": "workspace:*"
-  },
-  "peerDependencies": {
-    "react": ">=18.0.0"
+    "@einfach/spreadsheet-ui-core": "workspace:*",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "scripts": {
     "build": "vite build",
     "dev": "vite",
-    "e2e": "playwright test",
-    "e2e:install": "playwright install --with-deps chromium",
-    "typecheck": "tsc -p tsconfig.json --noEmit --pretty false",
-    "typecheck:e2e": "tsc -p e2e/tsconfig.json --noEmit --pretty false"
+    "test": "cd ../.. && jest excel/react-excel/test/workbook --runInBand --no-coverage",
+    "typecheck": "tsc -p tsconfig.json --noEmit --pretty false"
   },
   "devDependencies": {
     "@jest/globals": "^29.7.0",
-    "@playwright/test": "^1.48.0",
     "@testing-library/react": "^16.3.0",
     "@types/react": "^18.3.20",
     "@types/react-dom": "^18.3.6",
     "@vitejs/plugin-react": "^4.7.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
     "vite": "^5.0.0"
   }
 }

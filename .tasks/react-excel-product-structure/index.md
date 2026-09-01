@@ -2,7 +2,7 @@
 
 创建：2026-09-01
 
-状态：running
+状态：awaiting_user
 
 ## 目标
 
@@ -58,7 +58,7 @@ excel/react-excel/
 | id | 交付点 | status | base | report | review |
 |---|---|---|---|---|---|
 | 001 | 产品入口与业务目录落位 | done (R2) | 1b842837fae6a90b029846a6e5298640d429f223 | reports/001-report.md | reports/001-review-v2.md |
-| 002 | 内部 bridge 落位并清空旧文件 | pending | pending | pending | pending |
+| 002 | 内部 bridge 落位并清空旧文件 | done (R5) | dc0897d08b496c77e60d8a96d8ea109c36ee8fb5 | reports/002-report.md | reports/002-review-v6.md |
 
 ## 裁决与代价
 

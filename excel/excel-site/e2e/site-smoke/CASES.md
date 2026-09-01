@@ -2,7 +2,8 @@
 
 > 对象：`astro build` 的静态产物（经 `astro preview`），即部署到 GitHub Pages 的同一形态。
 > 门禁位置：pages.yml 在 deploy 之前跑本目录（构建产物此前是零测试盲区）。
-> React/Vue 受控投影 demo 由各自 e2e 包覆盖（docs/FRAMEWORK_BACKEND_E2E_MATRIX.md）。
+> React 是独立 Vite 产品，不在介绍站提供 demo；Vue 受控投影 demo 由 Vue e2e 包覆盖
+> （docs/FRAMEWORK_BACKEND_E2E_MATRIX.md）。
 
 | ID    | 场景                              | 步骤概要                     | 关键断言                                                                                             | 状态    | spec                   |
 | ----- | --------------------------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------- | ------- | ---------------------- |

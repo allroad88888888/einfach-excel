@@ -11,9 +11,9 @@ atom 清单、端口形状、用例覆盖，都在贴着代码的文档里（见
         └───────────────────┬─────────────────────────┘
                             │ 组装
         ┌───────────────────▼─────────────────────────────────────┐
-        │ 宿主适配器                                               │
+        │ 产品与宿主包                                             │
         │ ├── excel/solid-excel/src  Solid 组件 / worker 胶水│
-        │ ├── excel/react-excel             React 私有部分适配器  │
+        │ ├── excel/react-excel             React Vite 产品       │
         │ └── excel/vue-excel               Vue 私有部分适配器    │
         └───────────────────┬─────────────────────────────────────┘
                             │ 都依赖 atoms / 类型
@@ -34,18 +34,19 @@ atom 清单、端口形状、用例覆盖，都在贴着代码的文档里（见
 [einfach 主仓](https://github.com/allroad88888888/einfach)，不在本仓。见
 [ADR 0002](decisions/0002-upstream-core-via-npm.md)。
 
-### 宿主适配器的包边界
+### 产品与宿主包边界
 
-三个宿主包都以 workspace 依赖指向 `@einfach/spreadsheet-ui-core`；这个包是框架无关的 atom、
+三个包都以 workspace 依赖指向 `@einfach/spreadsheet-ui-core`；这个包是框架无关的 atom、
 类型与投影契约层。真实包名与源码路径如下：
 
 | 宿主  | 包名                   | 源码路径                      | 边界事实                                                      |
 | ----- | ---------------------- | ----------------------------- | ------------------------------------------------------------- |
 | Solid | `@einfach/solid-excel` | `excel/solid-excel/src` | Solid 的组件、Provider 与 worker adapter 在这里消费 UI core。 |
-| React | `@einfach/react-excel` | `excel/react-excel`           | 仓内私有 workspace，只实现了部分适配面。                      |
+| React | `@einfach/react-excel` | `excel/react-excel`           | 仓内私有 Vite 产品，直接接 Rust/WASM worker，不提供公开入口。 |
 | Vue   | `@einfach/vue-excel`   | `excel/vue-excel`             | 仓内私有 workspace，只实现了部分适配面。                      |
 
-React 与 Vue 两项仅用于记录仓内依赖和代码位置；它们不构成对外安装、发布就绪、功能完整度或支持状态的声明。
+React 行记录完整产品的位置；Vue 行只记录仓内依赖和代码位置。两者都不构成对外安装、发布就绪或
+支持状态的声明。
 
 ### 层的硬约束
 

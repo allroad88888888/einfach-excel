@@ -4,8 +4,8 @@ import { expect, test, type Page } from '@playwright/test'
  * 部署产物冒烟:每个 Solid demo 页在预算时间内出真格子。
  *
  * 这条门禁拦的是"看起来挂了"级别的观感故障 —— island 水合失败、worker/
- * WASM 资产路径断裂、seed 卡死。React/Vue 的受控投影 demo 不在此覆盖
- * (各自的 e2e 包负责,矩阵见 docs/FRAMEWORK_BACKEND_E2E_MATRIX.md)。
+ * WASM 资产路径断裂、seed 卡死。React 是独立 Vite 产品，不在介绍站提供 demo；
+ * Vue 受控投影 demo 由 Vue e2e 包覆盖（矩阵见 docs/FRAMEWORK_BACKEND_E2E_MATRIX.md）。
  */
 
 /** worker + 10 万行 seed 的 demo 给宽预算;其余(静态/小 seed)从严。 */

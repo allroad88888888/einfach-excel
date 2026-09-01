@@ -9,8 +9,7 @@
     "project": [
       "./tsconfig.json",
       "./excel/*/tsconfig.json",
-      "./excel/*/demo/tsconfig.json",
-      "./excel/excel-site/tsconfig.react-island.json"
+      "./excel/*/demo/tsconfig.json"
     ]
   },
   "plugins": [

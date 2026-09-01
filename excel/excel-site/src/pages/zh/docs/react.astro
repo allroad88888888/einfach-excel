@@ -6,86 +6,58 @@ import { sitePath } from '../../../data/site-path'
 
 <DocsPage
   locale="zh"
-  title="React 适配器源码参考"
-  eyebrow="预发布框架参考"
-  summary="在 React 中渲染调用方持有的投影，同时保持工作簿边界清晰。"
+  title="React 工作簿产品"
+  eyebrow="私有 VITE 产品"
+  summary="运行仓库中的完整 React 工作簿，并使用其 Rust/WASM worker。"
   alternateLocaleHref={sitePath('docs/react/')}
 >
   <div class="docs-guide">
-    <section class="docs-guide-callout docs-guide-callout-warning" aria-label="React 适配器状态">
-      <p class="docs-guide-label">状态：仅仓库源码</p>
+    <section class="docs-guide-callout docs-guide-callout-warning" aria-label="React 产品状态">
+      <p class="docs-guide-label">状态：仓库内产品</p>
       <p>
-        <code>@einfach/react-excel</code> 是版本为 <code>0.0.0</code> 的私有 workspace 包。它尚未发布 npm，
-        不提供默认 Worker 或 WASM 后端，也不是开箱即用的电子表格应用。现在不要在产品文档中写 npm 安装命令。
+        <code>excel/react-excel</code> 是私有 Vite 应用，不是可安装的集成库。请从本仓运行，
+        并把它的源码视为一个完整产品，而不是面向宿主的 API。
       </p>
     </section>
 
-    <h2>1. 安装仓库 workspace</h2>
-    <p>React 适配器当前从这个仓库中消费，因此先安装一次 workspace 依赖，再运行它的 fixture。</p>
+    <h2>1. 运行工作簿</h2>
     <pre><code>{`git clone https://github.com/allroad88888888/einfach-excel.git
 cd einfach-excel
-pnpm install`}</code></pre>
+pnpm install
+pnpm --filter @einfach/react-excel dev`}</code></pre>
+    <p>开发服务器监听 <code>http://127.0.0.1:5183</code>。</p>
 
-    <h2>2. 运行已验证的 React fixture</h2>
-    <pre><code>{`NO_PROXY=localhost,127.0.0.1 \
-pnpm --filter @einfach/react-excel run e2e`}</code></pre>
+    <h2>2. 理解 Rust-only 运行时</h2>
     <p>
-      此命令会启动仓库内 Vite fixture、打开 Chromium、从一个受控单元格拖动到另一个单元格，并验证投影后的
-      选区。成功时会报告一个通过的 React adapter 测试。
+      应用从 <code>@einfach/solid-excel/vnext-worker-runtime?worker</code> 创建 backend。
+      工作簿读取和确认后的编辑会跨过 worker 边界进入 Rust/WASM；没有 TypeScript 引擎、静态 backend
+      或运行时 fallback。
     </p>
 
-    <h2>3. 了解当前可用边界</h2>
+    <h2>3. 使用当前产品能力</h2>
     <div class="docs-guide-terms">
-      <article><strong>受控网格</strong><span>渲染由你的应用已经持有的可见单元格投影。</span></article>
-      <article><strong>Provider hooks</strong><span>将选区、导航、编辑、剪贴板与历史桥接到 UI-core atoms。</span></article>
-      <article><strong>显式后端</strong><span>由你提供 <code>SpreadsheetBackend</code>，不会暗中附带数据或计算运行时。</span></article>
+      <article><strong>有界投影</strong><span>浏览 1,000 条销售订单，React 只挂载 32 行窗口。</span></article>
+      <article><strong>选择</strong><span>选择单格或拖出范围，包括滚动到最后一条记录之后。</span></article>
+      <article><strong>单元格编辑</strong><span>双击或按 Enter 开始编辑，再用 Enter 或失焦经 Rust 提交。</span></article>
     </div>
+    <p>按 Escape 可取消编辑且不写入。</p>
 
-    <h2>4. 组合一个受控投影</h2>
-    <p>这是一种仓库源码模式，不是包安装配方。React 宿主拥有 backend、cells 与请求窗口。</p>
-    <pre><code>{`import type {
-  CellRange,
-  DisplayCell,
-  SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
-import {
-  SpreadsheetGridView,
-  SpreadsheetUiProvider,
-} from '@einfach/react-excel'
+    <h2>4. 验证产品</h2>
+    <pre><code>{`pnpm --filter @einfach/react-excel typecheck
+pnpm --filter @einfach/react-excel build
+pnpm --filter @einfach/react-excel test`}</code></pre>
 
-type ProjectionProps = {
-  backend: SpreadsheetBackend
-  cells: readonly DisplayCell[]
-  window: CellRange
-}
-
-export function ReactSpreadsheet({ backend, cells, window }: ProjectionProps) {
-  return (
-    <SpreadsheetUiProvider backend={backend}>
-      <SpreadsheetGridView cells={cells} window={window} />
-    </SpreadsheetUiProvider>
-  )
-}`}</code></pre>
-
-    <h2>5. 这些职责仍由宿主承担</h2>
-    <ol class="docs-guide-steps">
-      <li>一个工作簿生命周期内保持 backend 实例稳定；替换它会有意创建新的 UI core。</li>
-      <li>获取或推导有界投影，再将 <code>cells</code> 与 <code>window</code> 传给受控视图。</li>
-      <li>增加交互时使用最近 provider 的 hooks；不要再建一份 React 状态来保存电子表格产品状态。</li>
-    </ol>
-
-    <h2>6. 查看交互参考实现</h2>
+    <h2>5. 阅读产品源码</h2>
     <div class="docs-guide-next">
-      <a href={sitePath('zh/demos/react-controlled-projection/')}><strong>运行 React 投影演示</strong><span>在固定 4×4 网格上拖动，并查看当前选择范围。→</span></a>
-      <a href={sourceUrl('excel/excel-site/src/islands/ReactAdapterDemoIsland.tsx')}><strong>阅读精确的宿主源码</strong><span>它提供确定性 backend、store、投影与指针选择。→</span></a>
-      <a href={sourceUrl('excel/react-excel/README.md')}><strong>阅读包边界</strong><span>查看已有基础能力与刻意未包含的部分。→</span></a>
+      <a href={sourceUrl('excel/react-excel/README.md')}><strong>阅读产品边界</strong><span>查看当前能力、目录和命令。→</span></a>
+      <a href={sourceUrl('excel/react-excel/src/app/App.tsx')}><strong>阅读应用启动</strong><span>跟踪 Rust backend ready 到工作簿 runtime。→</span></a>
+      <a href={sourceUrl('excel/react-excel/src/workbook/backend/rust-backend.ts')}><strong>阅读 worker 边界</strong><span>查看种子导入和 Rust/WASM backend 创建。→</span></a>
     </div>
 
-    <h2>还没有准备好的部分</h2>
+    <h2>当前边界</h2>
     <p>
-      目前没有已发布的 React 版本、默认 Worker 工厂、WASM 打包、浏览器兼容承诺或完整工作台外壳。若现在要正式接入，
-      请使用受支持的 <a href={sitePath('zh/docs/getting-started/')}>Solid 路线</a>，或在 React 适配器成熟前实现
-      <a href={sitePath('zh/docs/backend-port/')}>backend port</a>。
+      ribbon、公式栏、sheet tab 和缩放表面目前只负责展示。剪贴板、历史、格式、sheet 命令及其他
+      工作簿命令尚未接线；这个私有产品也不承诺 npm 发布或浏览器支持范围。
     </p>
   </div>
 </DocsPage>

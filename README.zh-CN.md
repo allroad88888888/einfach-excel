@@ -75,7 +75,9 @@ UI 核心负责交互状态和投影契约，后端负责工作簿数据和写�
 
 ### 框架集成
 
-`@einfach/solid-excel` 是当前唯一已发布的 UI 框架绑定。仓库还包含私有的 React / Vue 受控投影参考包与在线演示，可用于检查宿主边界，但它们不是已发布适配器，也不能替代完整的 Solid 表面。
+`@einfach/solid-excel` 是当前唯一已发布的 UI 框架绑定。`excel/react-excel` 是独立的私有 Vite 产品，
+只接 Rust/WASM worker；它没有公开 adapter 入口，也不在文档站提供在线 demo。Vue 仍是私有受控投影
+adapter，并保留站内 demo。React 与 Vue 都未发布。
 
 ### 发布状态与稳定性
 

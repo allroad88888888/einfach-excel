@@ -14,10 +14,10 @@ import {
   type VisibleProjectionResult,
 } from '@einfach/spreadsheet-ui-core'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
-import { useSpreadsheetUiCore } from './spreadsheet-ui-context'
-import { useSpreadsheetValue, type SpreadsheetValueSource } from './use-spreadsheet-value'
+import { useWorkbookRuntime } from '../runtime/use-workbook-runtime'
+import { useStoreValue, type StoreValueSource } from '../runtime/use-store-value'
 
-export interface UseSpreadsheetViewportOptions {
+export interface UseWorkbookViewportOptions {
   /** The sheet whose visible cells the caller is rendering. */
   readonly sheetId: string
   /** Caller-owned visible window. */
@@ -31,7 +31,7 @@ export interface UseSpreadsheetViewportOptions {
   readonly maxCells?: number
 }
 
-export interface UseSpreadsheetViewportResult {
+export interface WorkbookViewport {
   /** The bounded form of the caller-owned window. */
   readonly window: CellRange
   /** Cells only for the current controlled window. */
@@ -127,7 +127,7 @@ function isCurrentResult(
   )
 }
 
-function createProjectionSource(store: Store): SpreadsheetValueSource<ProjectionSnapshot> {
+function createProjectionSource(store: Store): StoreValueSource<ProjectionSnapshot> {
   return {
     getSnapshot: () => store.getter(projectionSnapshotAtom),
     subscribe: (onStoreChange) => store.sub(projectionSnapshotAtom, onStoreChange),
@@ -167,12 +167,12 @@ async function runVisibleProjectionTransport(
 
 /**
  * Reads a caller-controlled visible window and delegates scrolling back to its owner.
- * Projection state remains in the nearest SpreadsheetUiProvider's Einfach store.
+ * Projection state remains in the nearest WorkbookRuntimeProvider's Einfach store.
  */
-export function useSpreadsheetViewport(
-  options: UseSpreadsheetViewportOptions,
-): UseSpreadsheetViewportResult {
-  const core = useSpreadsheetUiCore()
+export function useWorkbookViewport(
+  options: UseWorkbookViewportOptions,
+): WorkbookViewport {
+  const core = useWorkbookRuntime()
   const { onWindowChange, sheetId } = options
   const rowCount = normalizeCount(options.rowCount)
   const colCount = normalizeCount(options.colCount)
@@ -206,7 +206,7 @@ export function useSpreadsheetViewport(
   )
   const { colEnd, colStart, rowEnd, rowStart } = window
   const source = useMemo(() => createProjectionSource(core.store), [core.store])
-  const snapshot = useSpreadsheetValue(source)
+  const snapshot = useStoreValue(source)
   const transportRef = useRef<Promise<void> | null>(null)
   const launchTransport = useCallback(
     (request: VisibleProjectionRequest): Promise<void> => {

@@ -197,7 +197,7 @@ function formatCellStyle(format: SpreadsheetCellFormat | undefined): CSSProperti
 }
 
 /** Inputs for the controlled, read-only spreadsheet grid projection. */
-export interface SpreadsheetGridViewProps {
+export interface SpreadsheetGridProps {
   readonly window: CellRange
   readonly cells: readonly DisplayCell[]
   readonly selected?: CellRange
@@ -214,7 +214,7 @@ function isSelectedCell(selected: CellRange | undefined, row: number, col: numbe
 }
 
 /** Renders a caller-owned spreadsheet projection without fetching or editing it. */
-export function SpreadsheetGridView({ window, cells, selected }: SpreadsheetGridViewProps) {
+export function SpreadsheetGrid({ window, cells, selected }: SpreadsheetGridProps) {
   const cellsByCoordinate = new Map(cells.map((cell) => [`${cell.row}:${cell.col}`, cell]))
   const rows = []
 

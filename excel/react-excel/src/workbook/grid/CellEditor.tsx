@@ -58,6 +58,7 @@ export function CellEditor({ edit, focusGrid, rowStart }: CellEditorProps) {
     '--editor-row': cell.row - rowStart,
     '--editor-col': cell.col,
   } as CSSProperties
+  const fieldIdentity = `cell-editor-r${cell.row}-c${cell.col}`
 
   return (
     <div className="cell-editor" onBlur={onBlur} onPointerDown={stopPointer} style={style}>
@@ -65,6 +66,8 @@ export function CellEditor({ edit, focusGrid, rowStart }: CellEditorProps) {
         ref={inputRef}
         aria-label="Cell editor"
         disabled={edit.busy}
+        id={fieldIdentity}
+        name={fieldIdentity}
         onChange={(event) => edit.setDraft(event.currentTarget.value)}
         onKeyDown={onKeyDown}
         value={edit.draft}

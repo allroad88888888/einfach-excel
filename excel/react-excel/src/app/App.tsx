@@ -1,12 +1,12 @@
 import { createStore } from '@einfach/core'
 import { setSelectionBoundsAtom } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetUiProvider } from '@einfach/react-excel'
 import { useEffect, useState } from 'react'
 import {
   SALES_ORDER_COLUMNS,
   SALES_ORDER_SHEET_ROW_COUNT,
 } from '../workbook/data/sales-orders'
 import { createRustWorkbookBackend } from '../workbook/backend/rust-backend'
+import { WorkbookRuntimeProvider } from '../workbook/runtime/WorkbookRuntimeProvider'
 import { Workbook } from '../workbook/Workbook'
 
 const workbookStore = createStore()
@@ -71,8 +71,8 @@ export function App() {
   }
 
   return (
-    <SpreadsheetUiProvider backend={state.backend} store={workbookStore}>
+    <WorkbookRuntimeProvider backend={state.backend} store={workbookStore}>
       <Workbook />
-    </SpreadsheetUiProvider>
+    </WorkbookRuntimeProvider>
   )
 }

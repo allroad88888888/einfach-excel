@@ -42,12 +42,13 @@ export function makeWasmWorkerBackend(options?: WorkerWorkbookSpreadsheetBackend
 // astro.config.mjs（excel-site 实际配置；★ = 仓内 workspace 消费特有，外部不需要）
 import { defineConfig } from 'astro/config'
 import solid from '@astrojs/solid-js'
+import vue from '@astrojs/vue'
 import topLevelAwait from 'vite-plugin-top-level-await'
 import wasm from 'vite-plugin-wasm'
 
 export default defineConfig({
   base: process.env.GITHUB_ACTIONS === 'true' ? '/einfach-excel' : '', // 子路径部署才需要
-  integrations: [solid()],
+  integrations: [solid(), vue()],
   vite: {
     plugins: [wasm(), topLevelAwait()],
     resolve: {
@@ -65,8 +66,9 @@ export default defineConfig({
 })
 ```
 
-（实文件还有 react/vue integrations 与 `server.fs.allow` —— 那是本站同时演示
-React/Vue 适配器与 workspace 源码读取的仓内需求，与 Astro+Solid 表格路径无关。）
+（实文件还有 Vue integration 与 `server.fs.allow`：前者保留站内 Vue adapter demo，后者允许读取
+workspace 源码。React 是独立私有 Rust-only Vite 产品；本站不注册 `@astrojs/react`，也不提供
+React demo。）
 
 ## 已验证 / 未验证
 

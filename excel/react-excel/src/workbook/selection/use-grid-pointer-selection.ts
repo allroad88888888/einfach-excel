@@ -7,16 +7,16 @@ import {
   type CellCoord,
 } from '@einfach/spreadsheet-ui-core'
 import { useCallback, useEffect, useRef, type PointerEvent as ReactPointerEvent } from 'react'
-import { useSpreadsheetUiCore } from './spreadsheet-ui-context'
+import { useWorkbookRuntime } from '../runtime/use-workbook-runtime'
 
-export interface UseSpreadsheetPointerSelectionOptions {
+export interface GridPointerSelectionOptions {
   /** The sheet that receives this grid surface's drag selections. */
   readonly sheetId: string
   /** Resolves the grid cell beneath a React pointer event. */
   readonly getCellCoord: (event: ReactPointerEvent<HTMLElement>) => CellCoord | null
 }
 
-export interface SpreadsheetPointerSelectionHandlers {
+export interface GridPointerSelectionHandlers {
   onPointerCancel(event: ReactPointerEvent<HTMLElement>): void
   onPointerDown(event: ReactPointerEvent<HTMLElement>): void
   onPointerMove(event: ReactPointerEvent<HTMLElement>): void
@@ -37,11 +37,11 @@ function releasePointerCapture(pointer: ActivePointer): void {
 }
 
 /** Binds one grid surface's primary-button drag selection to the nearest UI-core store. */
-export function useSpreadsheetPointerSelection(
-  options: UseSpreadsheetPointerSelectionOptions,
-): SpreadsheetPointerSelectionHandlers {
+export function useGridPointerSelection(
+  options: GridPointerSelectionOptions,
+): GridPointerSelectionHandlers {
   const { getCellCoord, sheetId } = options
-  const { store } = useSpreadsheetUiCore()
+  const { store } = useWorkbookRuntime()
   const activePointer = useRef<ActivePointer | null>(null)
 
   const cancelActivePointer = useCallback(() => {

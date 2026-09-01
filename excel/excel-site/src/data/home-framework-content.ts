@@ -24,11 +24,10 @@ export const homeFrameworkContent: Record<HomeLocale, HomeFramework[]> = {
     },
     {
       id: 'react',
-      status: 'CONTROLLED PROJECTION REFERENCE',
+      status: 'PRIVATE VITE PRODUCT',
       title: 'React',
-      description:
-        'Test the public provider and grid APIs through a caller-owned React projection.',
-      action: 'Inspect the React reference',
+      description: 'Run the complete repository product against its Rust/WASM worker.',
+      action: 'Open the React product guide',
     },
     {
       id: 'vue',
@@ -57,10 +56,10 @@ export const homeFrameworkContent: Record<HomeLocale, HomeFramework[]> = {
     },
     {
       id: 'react',
-      status: '受控投影参考',
+      status: '私有 Vite 产品',
       title: 'React',
-      description: '通过调用方持有的 React 投影测试公共 Provider 与 Grid API。',
-      action: '检查 React 参考',
+      description: '运行由 Rust/WASM worker 驱动的完整仓库内产品。',
+      action: '打开 React 产品指南',
     },
     {
       id: 'vue',

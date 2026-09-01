@@ -93,16 +93,6 @@ export const demos: readonly DemoDefinition[] = [
     ],
   },
   {
-    id: 'react-controlled-projection',
-    runtime: 'static',
-    scenario: 'roster',
-    sourceFiles: [
-      'excel/excel-site/src/islands/ReactAdapterDemoIsland.tsx',
-      'excel/react-excel/src/index.ts',
-      'excel/react-excel/src/use-spreadsheet-pointer-selection.ts',
-    ],
-  },
-  {
     id: 'vue-controlled-projection',
     runtime: 'static',
     scenario: 'roster',

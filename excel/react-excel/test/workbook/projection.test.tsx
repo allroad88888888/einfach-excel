@@ -17,7 +17,7 @@ import {
   GRID_ROW_HEIGHT,
   GRID_WINDOW_ROW_COUNT,
 } from '../../src/workbook/projection/use-grid-window'
-import { SpreadsheetUiProvider } from '../../src/spreadsheet-ui-provider'
+import { WorkbookRuntimeProvider } from '../../src/workbook/runtime/WorkbookRuntimeProvider'
 
 const { Workbook } = jest.requireActual('../../src/workbook/Workbook') as {
   Workbook: ComponentType
@@ -69,9 +69,9 @@ function renderWorksheet(backend: SpreadsheetBackend): Store {
     colCount: SALES_ORDER_COLUMNS.length,
   })
   render(
-    <SpreadsheetUiProvider backend={backend} store={store}>
+    <WorkbookRuntimeProvider backend={backend} store={store}>
       <Workbook />
-    </SpreadsheetUiProvider>,
+    </WorkbookRuntimeProvider>,
   )
   return store
 }

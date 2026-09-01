@@ -13,10 +13,10 @@ import {
   type EditingStartInput,
 } from '@einfach/spreadsheet-ui-core'
 import { useCallback, useMemo } from 'react'
-import { useSpreadsheetUiCore } from './spreadsheet-ui-context'
-import { useSpreadsheetValue, type SpreadsheetValueSource } from './use-spreadsheet-value'
+import { useWorkbookRuntime } from '../runtime/use-workbook-runtime'
+import { useStoreValue, type StoreValueSource } from '../runtime/use-store-value'
 
-export interface SpreadsheetEditing {
+export interface EditingSession {
   /** The UI-core-owned editing session for the nearest provider. */
   readonly session: EditingSessionState
   /** The writable draft projection from the UI-core-owned editing session. */
@@ -27,27 +27,27 @@ export interface SpreadsheetEditing {
   start(input: EditingStartInput): EditingSessionState
 }
 
-function createEditingSessionSource(store: Store): SpreadsheetValueSource<EditingSessionState> {
+function createEditingSessionSource(store: Store): StoreValueSource<EditingSessionState> {
   return {
     getSnapshot: () => store.getter(editingSessionAtom),
     subscribe: (onStoreChange) => store.sub(editingSessionAtom, onStoreChange),
   }
 }
 
-function createEditingDraftSource(store: Store): SpreadsheetValueSource<string> {
+function createEditingDraftSource(store: Store): StoreValueSource<string> {
   return {
     getSnapshot: () => store.getter(editingDraftAtom),
     subscribe: (onStoreChange) => store.sub(editingDraftAtom, onStoreChange),
   }
 }
 
-/** Reads and dispatches the editing session owned by the nearest SpreadsheetUiProvider. */
-export function useSpreadsheetEditing(): SpreadsheetEditing {
-  const { store } = useSpreadsheetUiCore()
+/** Reads and dispatches the editing session owned by the nearest WorkbookRuntimeProvider. */
+export function useEditingSession(): EditingSession {
+  const { store } = useWorkbookRuntime()
   const sessionSource = useMemo(() => createEditingSessionSource(store), [store])
   const draftSource = useMemo(() => createEditingDraftSource(store), [store])
-  const session = useSpreadsheetValue(sessionSource)
-  const draft = useSpreadsheetValue(draftSource)
+  const session = useStoreValue(sessionSource)
+  const draft = useStoreValue(draftSource)
 
   const start = useCallback(
     (input: EditingStartInput) => store.setter(startEditingAtom, input),

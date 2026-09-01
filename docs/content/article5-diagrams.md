@@ -1,6 +1,19 @@
-# 文章五配图：给 Solid 库补上 React/Vue 适配层
+# 文章五配图：给 Solid 库补上 React/Vue 适配层（历史稿）
 
-## 图 1：三层责任划分（核心图）
+> **历史时点：2026-08-14。** 图 1–4 记录当时双 adapter 工序。2026-09-01 起，React public
+> adapter/e2e/site demo 已移除；`excel/react-excel` 是独立私有 Rust-only Vite 产品，Vue 仍是 adapter。
+
+## 当前替代关系（2026-09-01）
+
+```mermaid
+flowchart LR
+    SITE[excel-site<br/>Solid / Vue 介绍站] -.->|只链接产品文档；无 React demo| PRODUCT
+    PRODUCT[excel/react-excel<br/>私有 Vite 产品] --> WORKER[Solid neutral worker runtime]
+    WORKER --> RUST[Rust/WASM 工作簿<br/>无 TS/static fallback]
+    VUE[excel/vue-excel<br/>私有 adapter] --> CORE[spreadsheet-ui-core]
+```
+
+## 历史图 1：三层责任划分（核心图）
 
 按 ADR 0012 的裁决：交互事实进 UI-core，表面纯计算归共享展示层（已命名、未建包），事件 / ref / 清理留在各框架适配器。
 
@@ -16,12 +29,12 @@ flowchart TB
     subgraph L2["共享展示/交互层 — ADR 0012 只命名未建包"]
         S1[表面纯计算：冻结布局 · 合并布局 ·<br/>覆盖层几何 · 格式→样式映射 · 锚定菜单几何]
         S2[只收值或框架中立 reader，返回数据<br/>不取元素 · 不注册事件 · 不拥有清理]
-        S3[现状：薄组合 spreadsheet-grid-geometry<br/>在 react/vue 包各留一份 —— 记账的技术债]
+        S3[当时：薄组合 spreadsheet-grid-geometry<br/>在 react/vue 包各留一份 —— 历史技术债]
     end
 
-    subgraph L3["框架适配器 — 事件 / ref / 生命周期各自拥有"]
+    subgraph L3["历史框架适配器 — 事件 / ref / 生命周期各自拥有"]
         SOLID[solid-excel<br/>signal/effect · JSX<br/>坑：单实例（ADR 0001）]
-        REACT[react-excel<br/>useSyncExternalStore 桥<br/>坑：订阅前快照竞态]
+        REACT[react-excel 历史 adapter<br/>useSyncExternalStore 桥<br/>public surface 已移除]
         VUE[vue-excel<br/>shallowRef + effectScope 桥<br/>坑：scope 回收与幂等 dispose]
     end
 
@@ -30,7 +43,7 @@ flowchart TB
     L2 -.->|读取显式事实| L1
 ```
 
-## 图 2：下沉裁决的两个准入问题（ADR 0012）
+## 历史图 2：下沉裁决的两个准入问题（ADR 0012）
 
 ```mermaid
 flowchart TD
@@ -42,7 +55,7 @@ flowchart TD
     STAY -.-> WARN[没有 solid-js import ≠ 可共享：<br/>可能仍依赖组合 runtime、<br/>atom reader 或浏览器事件生命周期]
 ```
 
-## 图 3：真实工序的依赖链（AD-300）
+## 历史图 3：真实工序的依赖链（AD-300）
 
 ```mermaid
 flowchart LR
@@ -55,18 +68,18 @@ flowchart LR
         A325[AD-324/325 样式独立 +<br/>档 1 范围冻结「能看能编」]
         A311 --> A312 --> A315 --> A316 --> A320 --> A325
     end
-    P1 --> R[AD-330 React 线<br/>骨架→订阅桥→Provider→<br/>worker→几何→交互→e2e→demo]
+    P1 --> R[AD-330 React 历史线<br/>public adapter→e2e→demo<br/>现已由独立 Vite 产品替代]
     P1 --> V[AD-360 Vue 线<br/>与 React 逐面对齐 + SFC 双形态]
     R --> S[AD-390 共享面<br/>行为分歧裁决规程 ·<br/>框架 × 后端 e2e 矩阵]
     V --> S
 ```
 
-## 图 4：两个订阅桥的并发/回收差异
+## 历史图 4：两个订阅桥的并发/回收差异
 
 ```mermaid
 sequenceDiagram
     participant Store as ui-core source<br/>(getSnapshot / subscribe)
-    participant R as React 桥<br/>useSyncExternalStore
+    participant R as React 历史桥<br/>useSyncExternalStore
     participant Vue as Vue 桥<br/>shallowRef + effectScope
 
     Note over Store,R: React 的坑在订阅的开始

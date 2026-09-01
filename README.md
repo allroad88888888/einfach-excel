@@ -75,7 +75,9 @@ The UI core owns interaction state and the projection contract. A backend owns w
 
 ### Framework integrations
 
-`@einfach/solid-excel` is the only published UI-framework binding. The repository also contains private React and Vue controlled-projection reference packages and live demos. They make the host boundary inspectable, but they are not published adapters or complete replacements for the Solid surface.
+`@einfach/solid-excel` is the only published UI-framework binding. `excel/react-excel` is a separate private Vite
+product backed only by the Rust/WASM worker; it has no public adapter entry or live demo inside the documentation
+site. Vue remains a private controlled-projection adapter with a site demo. Neither React nor Vue is published.
 
 ### Release status and stability
 

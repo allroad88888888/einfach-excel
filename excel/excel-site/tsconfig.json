@@ -3,6 +3,5 @@
   "compilerOptions": {
     "jsxImportSource": "solid-js"
   },
-  "include": [".astro/types.d.ts", "src/**/*"],
-  "exclude": ["src/islands/ReactAdapterDemoIsland.tsx"]
+  "include": [".astro/types.d.ts", "src/**/*"]
 }

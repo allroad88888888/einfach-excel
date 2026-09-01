@@ -13,7 +13,7 @@ import { describe, expect, it, jest } from '@jest/globals'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ComponentType } from 'react'
 import { SALES_ORDER_COLUMNS, SALES_ORDER_SHEET_ROW_COUNT } from '../../src/workbook/data/sales-orders'
-import { SpreadsheetUiProvider } from '../../src/spreadsheet-ui-provider'
+import { WorkbookRuntimeProvider } from '../../src/workbook/runtime/WorkbookRuntimeProvider'
 
 const { Workbook } = jest.requireActual('../../src/workbook/Workbook') as {
   Workbook: ComponentType
@@ -95,9 +95,9 @@ function renderWorksheet(controlled: ControlledBackend): Store {
     colCount: SALES_ORDER_COLUMNS.length,
   })
   render(
-    <SpreadsheetUiProvider backend={controlled.backend} store={store}>
+    <WorkbookRuntimeProvider backend={controlled.backend} store={store}>
       <Workbook />
-    </SpreadsheetUiProvider>,
+    </WorkbookRuntimeProvider>,
   )
   return store
 }
@@ -146,6 +146,8 @@ describe('Rust workbook cell editing', () => {
     fireEvent.keyDown(document.activeElement!, { key: 'Enter' })
     const editor = await focusedEditor()
     expect(editor).toHaveValue('Order')
+    expect(editor).toHaveAttribute('id', 'cell-editor-r0-c0')
+    expect(editor).toHaveAttribute('name', 'cell-editor-r0-c0')
     fireEvent.change(editor, { target: { value: 'Edited order' } })
     expect(store.getter(editingSessionAtom)).toMatchObject({
       status: 'drafting',
@@ -195,7 +197,10 @@ describe('Rust workbook cell editing', () => {
       fireEvent.click(grid, { clientX: 180, clientY: 72, detail: 2 })
       fireEvent.doubleClick(grid, { clientX: 180, clientY: 72, detail: 2 })
 
-      expect(await focusedEditor()).toHaveValue('R1C1')
+      const editor = await focusedEditor()
+      expect(editor).toHaveValue('R1C1')
+      expect(editor).toHaveAttribute('id', 'cell-editor-r1-c1')
+      expect(editor).toHaveAttribute('name', 'cell-editor-r1-c1')
     } finally {
       Object.defineProperty(document, 'elementFromPoint', {
         configurable: true,

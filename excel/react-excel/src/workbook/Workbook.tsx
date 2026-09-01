@@ -1,7 +1,3 @@
-import {
-  useSpreadsheetSelection,
-  useSpreadsheetViewport,
-} from '@einfach/react-excel'
 import { WorkbookGrid } from './grid/WorkbookGrid'
 import {
   SALES_ORDER_COLUMNS,
@@ -13,6 +9,8 @@ import { WorkbookFooter } from './chrome/WorkbookFooter'
 import { WorkbookHeader } from './chrome/WorkbookHeader'
 import { WorkbookRibbon } from './chrome/WorkbookRibbon'
 import { useGridWindow } from './projection/use-grid-window'
+import { useWorkbookViewport } from './projection/use-workbook-viewport'
+import { useWorkbookSelection } from './selection/use-workbook-selection'
 import './workbook.css'
 
 function columnLabel(index: number): string {
@@ -32,9 +30,9 @@ function selectionLabel(range: {
 
 /** Composes the Rust-backed projection with the workbook chrome. */
 export function Workbook() {
-  const selection = useSpreadsheetSelection()
+  const selection = useWorkbookSelection()
   const gridWindow = useGridWindow()
-  const viewport = useSpreadsheetViewport({
+  const viewport = useWorkbookViewport({
     sheetId: 'orders',
     window: gridWindow.window,
     rowCount: SALES_ORDER_SHEET_ROW_COUNT,

@@ -19,13 +19,16 @@ const [catalog, demoPage, englishRoute, chineseRoute, availabilityContent, ...de
     readSiteSource('src/data/ai-content.ts'),
     readSiteSource('src/content/demos/en/viewport-projection.md'),
     readSiteSource('src/content/demos/zh/viewport-projection.md'),
-    readSiteSource('src/content/demos/en/react-controlled-projection.md'),
-    readSiteSource('src/content/demos/zh/react-controlled-projection.md'),
     readSiteSource('src/content/demos/en/vue-controlled-projection.md'),
     readSiteSource('src/content/demos/zh/vue-controlled-projection.md'),
   ])
 
-const [englishSolid, chineseSolid, englishReact, chineseReact, englishVue, chineseVue] = demoContent
+const [englishSolid, chineseSolid, englishVue, chineseVue] = demoContent
+const [astroConfig, sitePackageSource] = await Promise.all([
+  readSiteSource('astro.config.mjs'),
+  readSiteSource('package.json'),
+])
+const sitePackage = JSON.parse(sitePackageSource)
 
 function demoDefinition(id) {
   const start = catalog.indexOf(`id: '${id}',`)
@@ -60,22 +63,37 @@ test('the Solid viewport route remains a worker-WASM Solid island', () => {
   assert.match(chineseSolid, /Rust\/WASM 工作簿.*Web Worker/s)
 })
 
-test('React and Vue routes remain their own controlled-projection islands', () => {
-  const reactDemo = demoDefinition('react-controlled-projection')
+test('the Vue route remains its own controlled-projection island', () => {
   const vueDemo = demoDefinition('vue-controlled-projection')
 
-  assert.match(reactDemo, /runtime: 'static'/)
-  assert.match(reactDemo, /ReactAdapterDemoIsland\.tsx/)
   assert.match(vueDemo, /runtime: 'static'/)
   assert.match(vueDemo, /VueAdapterDemoIsland\.vue/)
-  assert.ok(demoPage.includes("id === 'react-controlled-projection'"))
-  assert.ok(demoPage.includes('<ReactAdapterDemoIsland client:only="react" locale={locale} />'))
   assert.ok(demoPage.includes("id === 'vue-controlled-projection'"))
   assert.ok(demoPage.includes('<VueAdapterDemoIsland client:only="vue" locale={locale} />'))
-  assert.match(englishReact, /local React island.*controlled inputs/s)
-  assert.match(chineseReact, /本地 React island.*受控输入/s)
   assert.match(englishVue, /local Vue island.*controlled inputs/s)
   assert.match(chineseVue, /本地 Vue island.*受控输入/s)
+})
+
+test('the removed React adapter demo stays outside the documentation site', () => {
+  assert.equal(catalog.includes("id: 'react-controlled-projection'"), false)
+  assert.doesNotMatch(
+    demoPage,
+    /ReactAdapterDemoIsland|reactAdapterDemoSource|react-controlled-projection|client:only="react"/,
+  )
+  assert.doesNotMatch(astroConfig, /@astrojs\/react|reactSources|react\(\{.*include/s)
+
+  const dependencies = { ...sitePackage.dependencies, ...sitePackage.devDependencies }
+  for (const name of [
+    '@einfach/react-excel',
+    '@astrojs/react',
+    'react',
+    'react-dom',
+    '@types/react',
+    '@types/react-dom',
+  ]) {
+    assert.equal(dependencies[name], undefined, `Removed React dependency returned: ${name}`)
+  }
+  assert.doesNotMatch(sitePackage.scripts.typecheck, /react-island/)
 })
 
 test('the framework demos have discoverable English and Chinese catalog content', () => {
@@ -84,7 +102,6 @@ test('the framework demos have discoverable English and Chinese catalog content'
 
   for (const [id, english, chinese] of [
     ['viewport-projection', englishSolid, chineseSolid],
-    ['react-controlled-projection', englishReact, chineseReact],
     ['vue-controlled-projection', englishVue, chineseVue],
   ]) {
     demoDefinition(id)
@@ -96,15 +113,15 @@ test('the framework demos have discoverable English and Chinese catalog content'
 test('site copy states the pre-release boundary without publication or parity promises', () => {
   assert.match(
     availabilityContent,
-    /This project is available as repository source in a pre-release stage/,
+    /Five fixed-group packages.*published to npm at version.*0\.1\.0/s,
   )
   assert.match(
     availabilityContent,
-    /no npm-published package or independently\s+verified offline installation is available/s,
+    /excel\/react-excel.*private repository Vite product.*Rust\/WASM worker/s,
   )
   assert.match(
     availabilityContent,
-    /The demos make no support, compatibility, or performance promises/s,
+    /The project is pre-1\.0.*demos make no production performance or capacity promise/s,
   )
   assert.match(
     englishVue,

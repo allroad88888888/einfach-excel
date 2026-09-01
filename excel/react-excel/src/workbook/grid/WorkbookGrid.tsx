@@ -1,11 +1,5 @@
 import type { CellCoord } from '@einfach/spreadsheet-ui-core'
 import {
-  SpreadsheetGridView,
-  useSpreadsheetSelection,
-  type UseSpreadsheetViewportResult,
-} from '@einfach/react-excel'
-import { useSpreadsheetPointerSelection } from '@einfach/react-excel/pointer-selection'
-import {
   useCallback,
   useRef,
   type CSSProperties,
@@ -18,10 +12,14 @@ import { CellEditor } from './CellEditor'
 import { SALES_ORDER_COLUMNS, SALES_ORDER_SHEET_ROW_COUNT } from '../data/sales-orders'
 import { useCellEdit } from '../editing/use-cell-edit'
 import { GRID_ROW_HEIGHT } from '../projection/use-grid-window'
+import type { WorkbookViewport } from '../projection/use-workbook-viewport'
+import { useGridPointerSelection } from '../selection/use-grid-pointer-selection'
+import { useWorkbookSelection } from '../selection/use-workbook-selection'
+import { SpreadsheetGrid } from './SpreadsheetGrid'
 import './grid.css'
 
 export interface WorkbookGridProps {
-  readonly viewport: UseSpreadsheetViewportResult
+  readonly viewport: WorkbookViewport
 }
 
 function coordinateAt(
@@ -43,7 +41,7 @@ function rowNumbers(rowStart: number, rowEnd: number): readonly number[] {
   return Array.from({ length: rowEnd - rowStart + 1 }, (_, index) => rowStart + index + 1)
 }
 
-function projectionState(viewport: UseSpreadsheetViewportResult) {
+function projectionState(viewport: WorkbookViewport) {
   if (viewport.status === 'error') {
     return <div className="grid-projection-state" role="alert">{viewport.error?.message}</div>
   }
@@ -55,11 +53,11 @@ function projectionState(viewport: UseSpreadsheetViewportResult) {
 
 /** Renders only the Rust projection for the current selectable row window. */
 export function WorkbookGrid({ viewport }: WorkbookGridProps) {
-  const selection = useSpreadsheetSelection()
+  const selection = useWorkbookSelection()
   const cellEdit = useCellEdit(viewport)
   const gridRef = useRef<HTMLDivElement>(null)
   const focusGrid = useCallback(() => gridRef.current?.focus({ preventScroll: true }), [])
-  const pointerHandlers = useSpreadsheetPointerSelection({
+  const pointerHandlers = useGridPointerSelection({
     getCellCoord: coordinateAt,
     sheetId: 'orders',
   })
@@ -143,7 +141,7 @@ export function WorkbookGrid({ viewport }: WorkbookGridProps) {
             onPointerDown={onPointerDown}
           >
             {projectionState(viewport) ?? (
-              <SpreadsheetGridView
+              <SpreadsheetGrid
                 cells={viewport.cells}
                 selected={selection.range}
                 window={viewport.window}

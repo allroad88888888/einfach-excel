@@ -1,8 +1,12 @@
 # 给 Solid 库补上 React/Vue 适配层：从单框架到三框架的真实工序
 
+> **历史文稿（截至 2026-08-14）**：正文记录当时 React/Vue public adapter 同步落地的工序。
+> 2026-09-01，React public surface、adapter e2e 与站内 demo 已移除；`excel/react-excel` 现在是
+> 独立私有 Vite 产品，只接 Rust/WASM worker。Vue 仍保留 adapter 与站内受控投影 demo。
+
 我们的表格栈一直宣称「框架无关」：无头的 `@einfach/spreadsheet-ui-core` 管状态与命令，Solid 只是第一个渲染适配。但只有一个消费者的「框架无关」是主张，不是证据。仓库里给这项工作的 issue 组（AD-300）开篇就是这句话：「框架无关」从主张变成证据的地方。
 
-这篇文章记录补上 React 与 Vue 适配层的真实工序。先说结论：三分之二的工作发生在写第一行 React 代码之前。
+下文按 2026-08-14 的仓库状态记录补上 React 与 Vue 适配层的工序。先说结论：三分之二的工作发生在写第一行 React 代码之前。
 
 ## 工序不是「写两个 wrapper」
 
@@ -40,27 +44,31 @@
 
 ## 第三步：两条框架线，各有各的坑
 
-到这一步，React 和 Vue 适配包（`excel/react-excel`、`excel/vue-excel`）的形态已经被前面的工序决定了：Provider 供一个隔离的 UI core，受控视图渲染调用方给的投影，一批 hook 桥接到既有 ui-core 命令。产品状态全部留在 ui-core atom 里——框架局部状态不是第二个表格 store。两个包的目录几乎互为镜像：同名的 `use-spreadsheet-selection / -editing / -clipboard / -history` 等十余个 hook，一一对应档 1 的表面。
+在当时这一步，React 和 Vue 适配包（`excel/react-excel`、`excel/vue-excel`）的形态被前面的工序决定了：Provider 供一个隔离的 UI core，受控视图渲染调用方给的投影，一批 hook 桥接到既有 ui-core 命令。产品状态全部留在 ui-core atom 里——框架局部状态不是第二个表格 store。两个包的目录当时几乎互为镜像：同名的 `use-spreadsheet-selection / -editing / -clipboard / -history` 等十余个 hook，一一对应档 1 的表面。
 
-「受控视图」值得单独说一句：`SpreadsheetGridView` 不取数、不改工作簿，可见范围、`DisplayCell[]` 投影和选区全部由调用方传入；`SpreadsheetFrozenGridView` 只是把同一份调用方投影切成冻结分区。取数、worker 接线、投影刷新策略都留给宿主应用。这不是功能残缺，是挂载契约的直接推论——投影生命周期归 ui-core 命令拥有，适配层如果自己发请求，就会在框架侧长出第二条数据通路。
+当时的「受控视图」值得单独说一句：`SpreadsheetGridView` 不取数、不改工作簿，可见范围、`DisplayCell[]` 投影和选区全部由调用方传入；`SpreadsheetFrozenGridView` 只是把同一份调用方投影切成冻结分区。取数、worker 接线、投影刷新策略都留给宿主应用。这不是功能残缺，是挂载契约的直接推论——投影生命周期归 ui-core 命令拥有，适配层如果自己发请求，就会在框架侧长出第二条数据通路。
 
 **React：`useSyncExternalStore` 与订阅竞态。**桥的两端是一个框架中立的 source（`{ getSnapshot, subscribe }`）和 React 的外部 store 契约。为什么必须用 `useSyncExternalStore` 而不是 `useState` + `useEffect`：React 18 的并发渲染允许一次渲染被打断、交错，同一帧里两个组件可能读到外部 store 的不同快照（tearing）；外部 store 契约让 React 自己保证一致性，而表格 source 仍是值的唯一拥有者。并发正确性专门有一个验证叶子（AD-333），钉的是一个容易漏的竞态：值在首次 render 之后、`subscribe` 真正挂上之前变了怎么办。`useSyncExternalStore` 会在订阅挂上后重查快照，测试用一个「订阅前偷偷换值」的假 source 把这个行为锁死。Provider 侧用 `useMemo([backend, store])` 创建 core——换 backend 是刻意语义，等于换一个工作簿。另有一个叶子（AD-351）专门处理「默认 Provider 隔离」：Solid 侧那次「一个进程两份 solid-js 导致 Provider 重挂」的事故（ADR 0001）在 React 侧被移植成了等价的单实例约束。踩过的坑要在每个框架再防一次。
 
 **Vue：`shallowRef` + `effectScope` 与回收。**Vue 桥用 `shallowRef` 承载快照——值由外部 store 拥有，深层响应式代理既没必要也有害。真正的坑在清理：订阅挂在一个专用 `effectScope` 里，调用方在组件 scope 内使用时 `onScopeDispose` 自动断开；在 scope 外使用则拿到显式 `dispose`。验证叶子（AD-363）钉两个行为：外层 scope stop 时恰好取消订阅一次；`dispose` 调两遍不重复取消。React 的坑在订阅的开始，Vue 的坑在订阅的结束。Vue 线还多出一个消费形态叶子（AD-381）：同一个受控视图必须同时可从 SFC 的 `<script setup>` 和 render 函数的 `h()` 消费，并用 `vue/compiler-sfc` 编译真实 SFC 挂进 jsdom 作证——因为 Vue 生态里这两种宿主都真实存在。
 
-**两条线共享的东西比预期多。**worker backend 不用重写——`SpreadsheetBackend` 是框架中立的，React 和 Vue 的 worker 接线测试直接复用 solid-excel 的 worker 工作簿后端（`createWorkerWorkbookSpreadsheetBackend`），同一个 WASM worker 服务三个框架。网格几何也不用重写：重活（轴偏移、滚动吸附、视口归一化）在夯实阶段已沉进 ui-core 的 `viewport/` 目录，适配包里的 `spreadsheet-grid-geometry.ts` 只是约 200 行的薄组合。
+**当时两条线共享的东西比预期多。**worker backend 不用重写——`SpreadsheetBackend` 是框架中立的，React 和 Vue 的 worker 接线测试直接复用 solid-excel 的 worker 工作簿后端（`createWorkerWorkbookSpreadsheetBackend`），同一个 WASM worker 服务三个框架。网格几何也不用重写：重活（轴偏移、滚动吸附、视口归一化）在夯实阶段已沉进 ui-core 的 `viewport/` 目录，适配包里的 `spreadsheet-grid-geometry.ts` 只是约 200 行的薄组合。
 
-诚实说一个没做优雅的地方：这份薄组合在两个包里几乎逐行相同——diff 只有注释里的框架名。按 ADR 0012 它属于「表面组合」，归共享展示层，但那一层至今只有名字没有包，于是先复制。这是清楚记账的技术债，不是被忽略的重复。
+当时没做优雅的一点是：这份薄组合在两个包里几乎逐行相同——diff 只有注释里的框架名。按 ADR 0012 它属于「表面组合」，归共享展示层，但那一层只有名字没有包，于是先复制。这是历史技术债；React 后续产品化已经删除这套 public adapter 组合。
 
 ## 第四步：三框架共享面
 
-两条线落地后还有收口（AD-390）：一份行为分歧裁决规程（当 React 和 Vue 对同一用户可见行为不一致时怎么收集证据、裁给谁），一份框架 × 后端的 e2e 证据矩阵。裁决规程里最有用的一句约束：把已实现行为如实记为各自现状，不得由一个框架反推另一个框架已有同一能力——防止「共享事实」被某个框架的实现细节污染。
+当时两条线落地后还有收口（AD-390）：一份行为分歧裁决规程（当 React 和 Vue 对同一用户可见行为不一致时怎么收集证据、裁给谁），一份框架 × 后端的 e2e 证据矩阵。裁决规程里最有用的一句约束：把已实现行为如实记为各自现状，不得由一个框架反推另一个框架已有同一能力——防止「共享事实」被某个框架的实现细节污染。
 
-证据的形态也和 Solid 线对齐：两个适配包各有自己的 Playwright `e2e/adapter-selection` 目录（附 CASES.md 用例清单），在真实浏览器里验证指针选区；站点上各有一个受控投影 demo。验收以叶子为单位逐个记录提交号，而不是一句「React/Vue 已支持」。
+截至 2026-08-14，两个适配包各有 Playwright `e2e/adapter-selection` 与站内受控投影 demo。这些是历史证据，不是当前入口；React 对应目录、命令与站内 demo 已在产品扶正时删除，Vue 证据仍保留。
 
-## 现状与边界
+## 历史时点与当前替代
 
-到本文写作时，React 与 Vue 两条线的档 1 叶子（包骨架、订阅桥、Provider、worker 接线、几何、只读与冻结网格、选区、指针、键盘、编辑、IME、公式栏、名称框、sheet 标签、剪贴板、历史、浏览器 e2e、站点 demo）均已逐叶验收。但两个适配包仍是 private、未发布 npm；范围就是档 1「能看能编」。这不是谦虚，是前面那套「已实现的才是现状」规程的自我约束。
+截至 2026-08-14，React 与 Vue 两条线的档 1 叶子均已逐叶验收，两个适配包仍是 private、未发布 npm。
+
+当前替代关系是：Vue 继续作为私有 adapter；React 不再提供 public adapter API，而是
+`excel/react-excel` 根级独立 Vite 产品。它直接消费现有 Rust/WASM worker，提供 1,000 条订单的
+有界投影、选择与单格编辑；介绍站只链接产品文档，不再托管 React live demo。
 
 如果你也要给单框架库补适配层，我们的路径可以压缩成三句：先用逐 import 的审计画边界，别信「没有 import 就是中立」；下沉按责任裁决并写成 ADR，让「可移植」标签失去权力；把挂载契约做成 vanilla 能跑的文档，再让每个框架各自解决订阅的开始（React 的竞态）与结束（Vue 的回收），并把旧框架踩过的坑（Solid 的单实例）在新框架里再防一次。
 

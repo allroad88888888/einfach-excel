@@ -145,7 +145,7 @@ export const homeContent: Record<HomeLocale, HomeContent> = {
       index: '03 / INTEGRATE',
       title: 'Choose the integration that exists today.',
       description:
-        'Install the published Solid binding, study the React or Vue controlled-projection references, or start from the backend port.',
+        'Install the published Solid binding, run the private React Vite product, study the Vue reference, or start from the backend port.',
     },
     install: {
       index: '04 / START BUILDING',
@@ -241,7 +241,7 @@ export const homeContent: Record<HomeLocale, HomeContent> = {
     integration: {
       index: '03 / INTEGRATE',
       title: '选择今天已经存在的集成路径。',
-      description: '安装已发布的 Solid 绑定，研究 React / Vue 受控投影参考，或从后端端口开始。',
+      description: '安装已发布的 Solid 绑定、运行私有 React Vite 产品、研究 Vue 参考，或从后端端口开始。',
     },
     install: {
       index: '04 / START BUILDING',

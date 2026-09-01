@@ -1,6 +1,5 @@
 ---
 import DemoIsland from '../islands/DemoIsland'
-import ReactAdapterDemoIsland from '../islands/ReactAdapterDemoIsland'
 import VueAdapterDemoIsland from '../islands/VueAdapterDemoIsland.vue'
 import { findDemo } from '../data/demo-catalog'
 import { sitePath } from '../data/site-path'
@@ -13,7 +12,6 @@ import demandDrivenSeedSource from '../demos/seeds/seed-demand-driven.ts?raw'
 import formulaEngineSeedSource from '../demos/seeds/seed-formula-engine.ts?raw'
 import handOffFormSeedSource from '../demos/seeds/seed-hand-off-form.ts?raw'
 import performanceSeedSource from '../demos/seeds/seed-performance.ts?raw'
-import reactAdapterDemoSource from '../islands/ReactAdapterDemoIsland.tsx?raw'
 import vueAdapterDemoSource from '../islands/VueAdapterDemoIsland.vue?raw'
 
 interface Props {
@@ -33,7 +31,6 @@ const sourceBase = 'https://github.com/allroad88888888/einfach-excel/blob/main/'
 const alternateLocaleHref = sitePath(locale === 'zh' ? 'demos/' + id + '/' : 'zh/demos/' + id + '/')
 
 function previewSourceFor(demoId: string, runtime: 'worker-wasm' | 'static'): string {
-  if (demoId === 'react-controlled-projection') return reactAdapterDemoSource
   if (demoId === 'vue-controlled-projection') return vueAdapterDemoSource
   if (demoId === 'lazy-formulas') return demandDrivenSeedSource
   if (demoId === 'formula-engine') return formulaEngineSeedSource
@@ -68,9 +65,7 @@ function previewSourceFor(demoId: string, runtime: 'worker-wasm' | 'static'): st
       <Content />
     </article>
     {
-      id === 'react-controlled-projection' ? (
-        <ReactAdapterDemoIsland client:only="react" locale={locale} />
-      ) : id === 'vue-controlled-projection' ? (
+      id === 'vue-controlled-projection' ? (
         <VueAdapterDemoIsland client:only="vue" locale={locale} />
       ) : (
         <DemoIsland client:only="solid-js" demoId={id} locale={locale} />

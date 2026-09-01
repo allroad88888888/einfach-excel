@@ -7,13 +7,11 @@ import {
   type EditingCommitOutcome,
   type HistoryEntryRecorder,
 } from '@einfach/spreadsheet-ui-core'
-import {
-  useSpreadsheetEditing,
-  useSpreadsheetUiCore,
-  useSpreadsheetValue,
-  type UseSpreadsheetViewportResult,
-} from '@einfach/react-excel'
 import { useCallback, useMemo } from 'react'
+import { useEditingSession } from './use-editing-session'
+import type { WorkbookViewport } from '../projection/use-workbook-viewport'
+import { useStoreValue } from '../runtime/use-store-value'
+import { useWorkbookRuntime } from '../runtime/use-workbook-runtime'
 
 const unavailableHistoryRecorder: HistoryEntryRecorder = () => 'unavailable'
 
@@ -31,9 +29,9 @@ export interface CellEdit {
 }
 
 /** Connects the cell editor to UI-core's acknowledged Rust mutation command. */
-export function useCellEdit(viewport: UseSpreadsheetViewportResult): CellEdit {
-  const core = useSpreadsheetUiCore()
-  const editing = useSpreadsheetEditing()
+export function useCellEdit(viewport: WorkbookViewport): CellEdit {
+  const core = useWorkbookRuntime()
+  const editing = useEditingSession()
   const lifecycleSource = useMemo(
     () => ({
       getSnapshot: () => core.store.getter(editingCommitLifecycleAtom),
@@ -42,7 +40,7 @@ export function useCellEdit(viewport: UseSpreadsheetViewportResult): CellEdit {
     }),
     [core.store],
   )
-  const lifecycle = useSpreadsheetValue(lifecycleSource)
+  const lifecycle = useStoreValue(lifecycleSource)
 
   const start = useCallback(
     (cell: CellCoord) => {

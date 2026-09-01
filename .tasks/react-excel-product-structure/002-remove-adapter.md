@@ -4,10 +4,11 @@ title: 把现役 bridge 内部化并删除旧 adapter
 kind: leaf
 depends_on: ["001"]
 model: gpt-5.6-sol
-status: pending
+status: done
 created: 2026-09-01
-done:
-base:
+done: 2026-09-01
+base: dc0897d08b496c77e60d8a96d8ea109c36ee8fb5
+repair_round: 5
 files:
   - excel/react-excel/src/*.ts
   - excel/react-excel/src/*.tsx
@@ -22,7 +23,17 @@ files:
   - excel/react-excel/playwright.config.ts
   - excel/react-excel/test/**
   - excel/react-excel/package.json
+  - pnpm-lock.yaml
   - excel/react-excel/README.md
+  - docs/FRAMEWORK_BACKEND_E2E_MATRIX.md
+  - excel/excel-site/**
+  - docs/ARCHITECTURE.md
+  - docs/content/article5-framework-adapters.md
+  - docs/content/article5-diagrams.md
+  - docs/recipes/astro.md
+  - README.md
+  - README.zh-CN.md
+  - rules/.eslintrc
   - .tasks/react-excel-product-structure/reports/002-report.md
 ---
 
@@ -67,3 +78,35 @@ files:
 - 所有新增/大改普通文件 `wc -l` ≤300；`git diff --check` 通过。
 
 写 `reports/002-report.md`；不提交、不改状态。
+
+## R1
+
+- 同步 `pnpm-lock.yaml` 的 `excel/react-excel` importer：React/ReactDOM 必须与 manifest 一致归入
+  dependencies，`@playwright/test` 必须消失；用 frozen-lockfile 方式验证 manifest/lock 一致。
+- 任务与 index 的 base 已由编排者纠正为真实 001 提交
+  `dc0897d08b496c77e60d8a96d8ea109c36ee8fb5`。
+- 发现来源：`reports/002-review.md`。
+
+## R2
+
+- 为临时单元格编辑 input 增加坐标派生的稳定 `id`/`name`，关闭根级 Chromium QA 的匿名表单字段告警。
+- 根级浏览器复验连续编辑 B2、C2 后，两格均由 Rust 投影回读，且控制台不再出现该表单告警。
+- 独立复审：`reports/002-review-v3.md`，结论 APPROVED。
+
+## R3
+
+- 删除旧 e2e 后，同步框架后端证据矩阵，清除提交钩子发现的两条旧 spec/CASES 死链。
+- React adapter E2E 只保留明确的历史说明，不再列出已经不存在的命令，也未伪造 archive 证据。
+- 独立复审：`reports/002-review-v4.md`，结论 APPROVED。
+
+## R4
+
+- 移除介绍站对旧 React adapter 的 island、demo route、依赖与构建配置消费，英中 React 指南改为
+  独立 Rust-only Vite 产品说明。
+- 首次复审发现活 lint 配置、活文档与站点负向合同仍有残留：`reports/002-review-v5.md`。
+
+## R5
+
+- 删除 ESLint 对已删 React island tsconfig 的引用；同步根 README、Astro recipe 与 article5 历史口径。
+- AD-395 增加旧 React demo 不得回归 catalog、DemoPage、Astro integration 与 package dependency 的负向合同。
+- 独立复审：`reports/002-review-v6.md`，结论 APPROVED。

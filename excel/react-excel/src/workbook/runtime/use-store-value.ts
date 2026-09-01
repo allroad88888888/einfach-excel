@@ -1,7 +1,7 @@
 import { useCallback, useSyncExternalStore } from 'react'
 
 /** A framework-neutral value source that React can observe. */
-export interface SpreadsheetValueSource<T> {
+export interface StoreValueSource<T> {
   getSnapshot: () => T
   subscribe: (onStoreChange: () => void) => () => void
 }
@@ -12,7 +12,7 @@ export interface SpreadsheetValueSource<T> {
  * `useSyncExternalStore` keeps React's concurrent renders consistent while
  * the spreadsheet source remains the sole owner of its value.
  */
-export function useSpreadsheetValue<T>(source: SpreadsheetValueSource<T>): T {
+export function useStoreValue<T>(source: StoreValueSource<T>): T {
   const subscribe = useCallback(
     (onStoreChange: () => void) => source.subscribe(onStoreChange),
     [source],

@@ -1,12 +1,12 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "rootDir": "src",
+    "composite": false,
+    "incremental": false,
     "jsx": "react-jsx",
-    "emitDeclarationOnly": true,
-    "declarationDir": "@types"
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "types": ["vite/client"]
   },
-  "include": ["./src/**/*"],
-  "exclude": ["./src/**/*.test.ts", "./test/**/*"],
-  "references": []
+  "include": ["./src/**/*.ts", "./src/**/*.tsx"]
 }

@@ -2,7 +2,7 @@
   "name": "@einfach/react-excel",
   "version": "0.0.0",
   "private": true,
-  "description": "React adapter package skeleton for Einfach Excel",
+  "description": "React workbook product powered by the Einfach Rust/WASM engine",
   "type": "module",
   "exports": {
     ".": {
@@ -26,11 +26,11 @@
     "react": ">=18.0.0"
   },
   "scripts": {
-    "build:demo": "vite build --config demo/vite.config.ts",
-    "dev": "vite --config demo/vite.config.ts",
+    "build": "vite build",
+    "dev": "vite",
     "e2e": "playwright test",
     "e2e:install": "playwright install --with-deps chromium",
-    "typecheck:demo": "tsc -p demo/tsconfig.json --noEmit --pretty false",
+    "typecheck": "tsc -p tsconfig.json --noEmit --pretty false",
     "typecheck:e2e": "tsc -p e2e/tsconfig.json --noEmit --pretty false"
   },
   "devDependencies": {

@@ -2,45 +2,78 @@ import type { CellCoord } from '@einfach/spreadsheet-ui-core'
 import {
   SpreadsheetGridView,
   useSpreadsheetSelection,
+  type UseSpreadsheetViewportResult,
 } from '@einfach/react-excel'
 import { useSpreadsheetPointerSelection } from '@einfach/react-excel/pointer-selection'
-import type { PointerEvent as ReactPointerEvent } from 'react'
-import {
-  DEMO_CELLS,
-  DEMO_COLUMNS,
-  DEMO_SHEET_ROW_COUNT,
-} from './demo-data'
+import type {
+  CSSProperties,
+  PointerEvent as ReactPointerEvent,
+  UIEvent as ReactUiEvent,
+} from 'react'
+import { DEMO_COLUMNS, DEMO_SHEET_ROW_COUNT } from './demo-data'
+import { DEMO_GRID_ROW_HEIGHT } from './use-demo-grid-window'
+import './grid-viewport.css'
 
-const GRID_WINDOW = Object.freeze({
-  colStart: 0,
-  colEnd: DEMO_COLUMNS.length - 1,
-  rowStart: 0,
-  rowEnd: DEMO_SHEET_ROW_COUNT - 1,
-})
-const ROW_NUMBERS = Object.freeze(
-  Array.from({ length: DEMO_SHEET_ROW_COUNT }, (_, row) => row + 1),
-)
+export interface DemoGridProps {
+  readonly viewport: UseSpreadsheetViewportResult
+}
 
 function coordinateAt(event: ReactPointerEvent<HTMLElement>): CellCoord | null {
-  const target = document.elementFromPoint(event.clientX, event.clientY)
-  const cell = target?.closest<HTMLElement>('td[data-cell]')
-  const [row, col] = cell?.dataset.cell?.split(':').map(Number) ?? []
+  const eventCell =
+    event.target instanceof Element
+      ? event.target.closest<HTMLElement>('td[data-cell]')
+      : null
+  const pointCell = document
+    .elementFromPoint?.(event.clientX, event.clientY)
+    ?.closest<HTMLElement>('td[data-cell]')
+  const [row, col] = (eventCell ?? pointCell)?.dataset.cell?.split(':').map(Number) ?? []
 
   return Number.isInteger(row) && Number.isInteger(col) ? { row, col } : null
 }
 
-/** Renders the selectable 1,000-row controlled projection. */
-export function DemoGrid() {
+function rowNumbers(rowStart: number, rowEnd: number): readonly number[] {
+  return Array.from({ length: rowEnd - rowStart + 1 }, (_, index) => rowStart + index + 1)
+}
+
+function projectionState(viewport: UseSpreadsheetViewportResult) {
+  if (viewport.status === 'error') {
+    return <div className="grid-projection-state" role="alert">{viewport.error?.message}</div>
+  }
+  if (viewport.status !== 'ready') {
+    return <div className="grid-projection-state" role="status">Loading visible cells…</div>
+  }
+  return null
+}
+
+/** Renders only the Rust projection for the current selectable row window. */
+export function DemoGrid({ viewport }: DemoGridProps) {
   const selection = useSpreadsheetSelection()
   const pointerHandlers = useSpreadsheetPointerSelection({
     getCellCoord: coordinateAt,
     sheetId: 'orders',
   })
+  const rows = rowNumbers(viewport.window.rowStart, viewport.window.rowEnd)
+  const frameStyle = {
+    '--grid-sheet-height': `${(DEMO_SHEET_ROW_COUNT + 1) * DEMO_GRID_ROW_HEIGHT}px`,
+  } as CSSProperties
+  const windowStyle = {
+    '--grid-window-offset': `${viewport.window.rowStart * DEMO_GRID_ROW_HEIGHT}px`,
+  } as CSSProperties
+
+  const onScroll = (event: ReactUiEvent<HTMLDivElement>) => {
+    const { clientHeight, scrollHeight, scrollTop } = event.currentTarget
+    const maxScrollTop = Math.max(0, scrollHeight - clientHeight)
+    const rowStart =
+      maxScrollTop > 0 && scrollTop >= maxScrollTop - 1
+        ? DEMO_SHEET_ROW_COUNT - (viewport.window.rowEnd - viewport.window.rowStart + 1)
+        : Math.floor(scrollTop / DEMO_GRID_ROW_HEIGHT)
+    viewport.scrollTo(rowStart, 0)
+  }
 
   return (
     <section className="worksheet-panel" aria-label="Sales orders worksheet">
-      <div className="sheet-scroll">
-        <div className="sheet-grid-frame">
+      <div className="sheet-scroll" data-testid="sheet-scroll" onScroll={onScroll}>
+        <div className="sheet-grid-frame grid-viewport-frame" style={frameStyle}>
           <div className="sheet-corner" aria-hidden="true" />
           <div className="column-headers" role="row">
             {DEMO_COLUMNS.map((column, col) => (
@@ -57,31 +90,37 @@ export function DemoGrid() {
               </div>
             ))}
           </div>
-          <div className="row-headers" aria-hidden="true">
-            {ROW_NUMBERS.map((rowNumber, row) => (
-              <div
-                className={
-                  row >= selection.range.rowStart && row <= selection.range.rowEnd
-                    ? 'sheet-heading heading-selected'
-                    : 'sheet-heading'
-                }
-                key={rowNumber}
-              >
-                {rowNumber}
-              </div>
-            ))}
+          <div className="row-headers grid-window" style={windowStyle} aria-hidden="true">
+            {rows.map((rowNumber, index) => {
+              const row = index + viewport.window.rowStart
+              return (
+                <div
+                  className={
+                    row >= selection.range.rowStart && row <= selection.range.rowEnd
+                      ? 'sheet-heading heading-selected'
+                      : 'sheet-heading'
+                  }
+                  key={rowNumber}
+                >
+                  {rowNumber}
+                </div>
+              )
+            })}
           </div>
           <div
-            className="grid-surface"
+            className="grid-surface grid-window"
             data-row-count={DEMO_SHEET_ROW_COUNT}
             aria-label="One thousand sales order records"
+            style={windowStyle}
             {...pointerHandlers}
           >
-            <SpreadsheetGridView
-              cells={DEMO_CELLS}
-              selected={selection.range}
-              window={GRID_WINDOW}
-            />
+            {projectionState(viewport) ?? (
+              <SpreadsheetGridView
+                cells={viewport.cells}
+                selected={selection.range}
+                window={viewport.window}
+              />
+            )}
           </div>
         </div>
       </div>

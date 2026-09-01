@@ -51,7 +51,7 @@
 | id | 用户功能 | status | base | report | review |
 |---|---|---|---|---|---|
 | 001 | 打开 1000 行 Rust 工作簿 | done | c63249171a177cb39c0755cc14db66f9caa4f2b7 | reports/001-report.md | reports/001-review-v3.md |
-| 002 | 滚动并选择 | pending | null | | |
+| 002 | 滚动并选择 | done | 5e6e00fa914a4e3b867123d57a7e96d0628e27f5 | reports/002-report.md | reports/002-review-v2.md |
 | 003 | 单格编辑并回读 | pending | null | | |
 
 ## 用户验收门
@@ -72,3 +72,5 @@
   测试；源码独立 review 与真实 Chromium ready 验证均通过，本阶段不扩围。
 - 001 已解决：根级 TypeScript 使用旧 Node 解析，测试已改为 mock-before-`requireActual`，
   不再用静态 import 把 Vite 专属 demo 模块拉入根工程；根级 `tsc -b` 已通过。
+- 002 R1 已解决：到达浏览器真实最大 `scrollTop` 时直接请求合法末窗；高于 924px 的
+  测试与 1415px 真实 Chromium 滚动容器均能到达 row 1000，且仍只挂载 256 格。

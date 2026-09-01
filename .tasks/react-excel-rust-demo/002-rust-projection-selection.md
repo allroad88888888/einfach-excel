@@ -4,10 +4,11 @@ title: 用 Rust 投影实现滚动与选择
 kind: leaf
 depends_on: ["001"]
 model: gpt-5.6-sol
-status: pending
+status: done
 created: 2026-09-01
-done: null
-base: null
+done: 2026-09-01
+base: 5e6e00fa914a4e3b867123d57a7e96d0628e27f5
+repair_round: 1
 files:
   - excel/react-excel/demo/App.tsx
   - excel/react-excel/demo/DemoGrid.tsx
@@ -33,6 +34,8 @@ files:
 - `RustWorksheet` 把完整 viewport result 作为一个 prop 传给 `DemoGrid`；003 可在
   该 result 增加 `refresh` 后直接消费，不再回改 composition 文件。
 - sheet 尺寸固定为 1001×8；滚动位置换算成 bounded row window。
+- 到达浏览器真实最大 `scrollTop` 时必须请求合法末窗；测试不得以超出
+  `scrollHeight - clientHeight` 的伪造位置绕过浏览器 clamp。
 - 只把 hook 返回的 `cells` 交给 `SpreadsheetGridView`，删除 `DEMO_CELLS` 常量与静态
   coordinate map；`demo-data.ts` 只保留 seed 所需的确定性行数据。
 - 行号、选区坐标均保持 sheet 绝对坐标；第 1000 条记录必须可达并可选择。

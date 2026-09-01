@@ -4,6 +4,13 @@
   background: #ffffff;
 }
 
+.rust-runtime-status {
+  padding: 4px 12px;
+  color: var(--primary-strong);
+  background: var(--primary-soft);
+  font-size: 11px;
+}
+
 .sheet-scroll {
   width: 100%;
   height: 100%;

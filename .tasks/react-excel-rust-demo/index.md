@@ -54,7 +54,7 @@
 |---|---|---|---|---|---|
 | 001 | 打开 1000 行 Rust 工作簿 | done | c63249171a177cb39c0755cc14db66f9caa4f2b7 | reports/001-report.md | reports/001-review-v3.md |
 | 002 | 滚动并选择 | done | 5e6e00fa914a4e3b867123d57a7e96d0628e27f5 | reports/002-report.md | reports/002-review-v2.md |
-| 003 | 单格编辑并回读 | done | 97110f118bfcc792fda0b4a1fe5e9bc3c3fb69d4 | reports/003-report.md | reports/003-review-v2.md |
+| 003 | 单格编辑并回读 | done (R2) | 97110f118bfcc792fda0b4a1fe5e9bc3c3fb69d4 | reports/003-report.md | reports/003-review-v3.md |
 
 ## 用户验收门
 
@@ -80,3 +80,8 @@
   `WorkbookRibbon.tsx` 纳入本叶，只移除这两个外观入口，不启用 history。
 - 003 R1 已解决：Enter 使用 active cell；Enter 成功/Escape 回 grid，blur 不抢外部焦点，
   mutation 拒绝回保留草稿的 editor；真实 activeElement 测试证明 mutation 仍为单发。
+- 003 R2 验收失败：真实浏览器双击只能选中单元格，未出现 editor；此前孤立合成
+  `dblclick` 绕过了 pointer selection 的完整事件链，不能作为该交互通过的证据。
+- 003 R2 已解决：pointer capture 会把 `dblclick` target 改为 grid；双击处理现按
+  `clientX/clientY` 从物理落点回查单元格。完整 pointer 序列、真实 Chromium 双击写回、
+  单击选择与拖选回归均通过，独立 review APPROVED。

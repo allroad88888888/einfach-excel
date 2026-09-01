@@ -116,6 +116,22 @@ async function focusedEditor(): Promise<HTMLInputElement> {
   return editor
 }
 
+function dispatchPointer(
+  target: Element,
+  type: 'pointerdown' | 'pointerup',
+  pointerId: number,
+): void {
+  const event = new Event(type, { bubbles: true, cancelable: true })
+  Object.defineProperties(event, {
+    button: { value: 0 },
+    clientX: { value: 180 },
+    clientY: { value: 72 },
+    isPrimary: { value: true },
+    pointerId: { value: pointerId },
+  })
+  fireEvent(target, event)
+}
+
 describe('Rust demo cell editing', () => {
   it('starts, updates the draft, writes through Rust and refreshes the projection', async () => {
     const controlled = createControlledBackend()
@@ -155,6 +171,37 @@ describe('Rust demo cell editing', () => {
     expect(screen.queryByRole('textbox', { name: 'Cell editor' })).toBeNull()
     expect(document.activeElement).toBe(grid)
     expect(controlled.setCellInput).toHaveBeenCalledTimes(1)
+  })
+
+  it('opens the captured pointer cell from a complete browser double-click sequence', async () => {
+    const controlled = createControlledBackend()
+    renderWorksheet(controlled)
+    await firstCell()
+    const grid = screen.getByLabelText('One thousand sales order records')
+    const cell = document.querySelector<HTMLElement>('[data-cell="1:1"]')!
+    const elementFromPoint = document.elementFromPoint
+    Object.defineProperty(document, 'elementFromPoint', {
+      configurable: true,
+      value: jest.fn(() => cell),
+    })
+
+    try {
+      dispatchPointer(cell, 'pointerdown', 31)
+      dispatchPointer(grid, 'pointerup', 31)
+      fireEvent.click(grid, { clientX: 180, clientY: 72, detail: 1 })
+      expect(screen.queryByRole('textbox', { name: 'Cell editor' })).toBeNull()
+      dispatchPointer(cell, 'pointerdown', 32)
+      dispatchPointer(grid, 'pointerup', 32)
+      fireEvent.click(grid, { clientX: 180, clientY: 72, detail: 2 })
+      fireEvent.doubleClick(grid, { clientX: 180, clientY: 72, detail: 2 })
+
+      expect(await focusedEditor()).toHaveValue('R1C1')
+    } finally {
+      Object.defineProperty(document, 'elementFromPoint', {
+        configurable: true,
+        value: elementFromPoint,
+      })
+    }
   })
 
   it('uses the range focus cell for keyboard editing and mutation', async () => {

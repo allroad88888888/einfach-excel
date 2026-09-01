@@ -8,7 +8,7 @@ status: done
 created: 2026-09-01
 done: 2026-09-01
 base: 97110f118bfcc792fda0b4a1fe5e9bc3c3fb69d4
-repair_round: 1
+repair_round: 2
 files:
   - excel/react-excel/src/use-spreadsheet-viewport.ts
   - excel/react-excel/test/use-spreadsheet-viewport.test.tsx
@@ -31,6 +31,8 @@ files:
 ## 实现合同
 
 - 双击单元格或按 Enter 进入编辑；Enter/失焦提交，Escape 取消。
+- 双击必须在浏览器真实 `pointerdown` / `pointerup` / `click` 事件链下可靠触发；只派发孤立的
+  合成 `dblclick` 不算验收。指针选择实现可以继续捕获拖选，但不得吞掉进入编辑的意图。
 - Enter 必须编辑 `selection.activeCell`，不得用 normalized range 左上角替代 focus cell。
 - Enter 成功与 Escape 后恢复 grid 焦点；失焦提交不得抢回用户的新焦点；mutation 拒绝后
   恢复仍保留草稿的 editor 焦点。测试必须从真实 `document.activeElement` 驱动连续键盘链，
@@ -50,6 +52,8 @@ files:
 ## 验收
 
 - 单测覆盖 start、draft、Rust ACK、projection refresh、Escape 与 mutation 拒绝保留草稿。
+- 定向覆盖真实双击所包含的指针事件序列，证明第二次点击进入 editor；不得仅用
+  `fireEvent.doubleClick` 作为该交互的唯一证据。
 - 定向覆盖“mutation ACK + projection reject”：outcome 为 `refresh-failed`、错误可见、
   retry authority 保留，且 mutation 只调用一次。
 - `pnpm exec jest excel/react-excel/test/use-spreadsheet-viewport.test.tsx excel/react-excel/test/rust-demo-cell-edit.test.tsx --runInBand --no-coverage` 通过。
@@ -59,3 +63,10 @@ files:
 - 所有新增/大改普通文件 `wc -l` ≤300；存量超限只报告，不顺手重构。
 
 写 `reports/003-report.md`；执行 agent 不提交。
+
+## R2 验收返修
+
+- 真实浏览器在 pointer capture 后把 `click` / `dblclick` target 重定向为 grid；双击坐标
+  现在按事件落点回查单元格，不再仅依赖 target。
+- 完整 pointer/click 序列定向测试、真实 Chromium 双击编辑与 Rust 回读均通过；独立复核见
+  `reports/003-review-v3.md`。

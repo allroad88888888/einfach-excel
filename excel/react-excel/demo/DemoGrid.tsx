@@ -5,12 +5,17 @@ import {
   type UseSpreadsheetViewportResult,
 } from '@einfach/react-excel'
 import { useSpreadsheetPointerSelection } from '@einfach/react-excel/pointer-selection'
-import type {
-  CSSProperties,
-  PointerEvent as ReactPointerEvent,
-  UIEvent as ReactUiEvent,
+import {
+  useCallback,
+  useRef,
+  type CSSProperties,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type PointerEvent as ReactPointerEvent,
+  type UIEvent as ReactUiEvent,
 } from 'react'
+import { DemoCellEditor } from './DemoCellEditor'
 import { DEMO_COLUMNS, DEMO_SHEET_ROW_COUNT } from './demo-data'
+import { useDemoCellEdit } from './use-demo-cell-edit'
 import { DEMO_GRID_ROW_HEIGHT } from './use-demo-grid-window'
 import './grid-viewport.css'
 
@@ -31,6 +36,13 @@ function coordinateAt(event: ReactPointerEvent<HTMLElement>): CellCoord | null {
   return Number.isInteger(row) && Number.isInteger(col) ? { row, col } : null
 }
 
+function coordinateFromTarget(target: EventTarget): CellCoord | null {
+  const [row, col] =
+    (target instanceof Element ? target.closest<HTMLElement>('td[data-cell]') : null)
+      ?.dataset.cell?.split(':').map(Number) ?? []
+  return Number.isInteger(row) && Number.isInteger(col) ? { row, col } : null
+}
+
 function rowNumbers(rowStart: number, rowEnd: number): readonly number[] {
   return Array.from({ length: rowEnd - rowStart + 1 }, (_, index) => rowStart + index + 1)
 }
@@ -48,6 +60,9 @@ function projectionState(viewport: UseSpreadsheetViewportResult) {
 /** Renders only the Rust projection for the current selectable row window. */
 export function DemoGrid({ viewport }: DemoGridProps) {
   const selection = useSpreadsheetSelection()
+  const cellEdit = useDemoCellEdit(viewport)
+  const gridRef = useRef<HTMLDivElement>(null)
+  const focusGrid = useCallback(() => gridRef.current?.focus({ preventScroll: true }), [])
   const pointerHandlers = useSpreadsheetPointerSelection({
     getCellCoord: coordinateAt,
     sheetId: 'orders',
@@ -68,6 +83,15 @@ export function DemoGrid({ viewport }: DemoGridProps) {
         ? DEMO_SHEET_ROW_COUNT - (viewport.window.rowEnd - viewport.window.rowStart + 1)
         : Math.floor(scrollTop / DEMO_GRID_ROW_HEIGHT)
     viewport.scrollTo(rowStart, 0)
+  }
+  const onKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== 'Enter' || cellEdit.activeCell !== null) return
+    event.preventDefault()
+    cellEdit.start({ row: selection.activeCell.row, col: selection.activeCell.col })
+  }
+  const onPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    event.currentTarget.focus({ preventScroll: true })
+    pointerHandlers.onPointerDown(event)
   }
 
   return (
@@ -108,11 +132,19 @@ export function DemoGrid({ viewport }: DemoGridProps) {
             })}
           </div>
           <div
+            ref={gridRef}
             className="grid-surface grid-window"
             data-row-count={DEMO_SHEET_ROW_COUNT}
             aria-label="One thousand sales order records"
+            onDoubleClick={(event) => {
+              const cell = coordinateFromTarget(event.target)
+              if (cell !== null) cellEdit.start(cell)
+            }}
+            onKeyDown={onKeyDown}
             style={windowStyle}
+            tabIndex={0}
             {...pointerHandlers}
+            onPointerDown={onPointerDown}
           >
             {projectionState(viewport) ?? (
               <SpreadsheetGridView
@@ -121,6 +153,11 @@ export function DemoGrid({ viewport }: DemoGridProps) {
                 window={viewport.window}
               />
             )}
+            <DemoCellEditor
+              edit={cellEdit}
+              focusGrid={focusGrid}
+              rowStart={viewport.window.rowStart}
+            />
           </div>
         </div>
       </div>

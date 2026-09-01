@@ -1,0 +1,42 @@
+.grid-surface {
+  position: relative;
+}
+
+.cell-editor {
+  position: absolute;
+  z-index: 2;
+  top: calc(var(--editor-row) * 28px);
+  left: calc(var(--editor-col) * 12.5%);
+  width: 12.5%;
+  min-width: 120px;
+  height: 28px;
+}
+
+.cell-editor input {
+  width: 100%;
+  height: 100%;
+  padding: 2px 6px;
+  border: 2px solid var(--primary);
+  border-radius: 0;
+  outline: 0;
+  color: var(--text);
+  background: var(--surface);
+}
+
+.cell-editor-feedback {
+  display: flex;
+  width: max-content;
+  max-width: 360px;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px solid #c93c3c;
+  color: #8e2525;
+  background: #fff5f5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  font-size: 11px;
+}
+
+.cell-editor-feedback button {
+  flex: none;
+}

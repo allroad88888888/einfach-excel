@@ -11,15 +11,18 @@ spreadsheet application.
 ## Local Vite demo
 
 The package includes a standalone Vite app with a Univer-inspired workbook
-shell, a deterministic 1,000-record controlled projection, and range selection:
+shell. It opens 1,000 records in the existing Rust/WASM worker backend and
+renders only a bounded visible projection:
 
 ```bash
 pnpm --filter @einfach/react-excel dev
 ```
 
-The demo runs at `http://127.0.0.1:5183`. It intentionally exercises only the
-adapter's current public boundary: caller-owned cells, a caller-owned store,
-and pointer selection. Build and typecheck it independently with:
+The demo runs at `http://127.0.0.1:5183`. Scroll and select normally. Double-click
+a cell, or select it and press Enter, to edit it; Enter or blur writes through
+the backend and refreshes the Rust projection, while Escape cancels. The formula
+bar remains read-only, and the demo does not wire clipboard, sheet, formatting,
+or history commands. Build and typecheck it independently with:
 
 ```bash
 pnpm --filter @einfach/react-excel typecheck:demo
@@ -73,8 +76,9 @@ creates a new UI core for that provider boundary.
 `SpreadsheetGridView` does not fetch cells or mutate a workbook. Its owner
 passes the visible `CellRange`, `DisplayCell[]`, and optional selection. Use
 `SpreadsheetFrozenGridView` when the same caller-owned projection must be
-split into frozen panes. Data fetching, worker wiring, and projection refresh
-remain the host application's responsibility.
+split into frozen panes. Data fetching and worker wiring remain the host
+application's responsibility. `useSpreadsheetViewport.refresh()` lets that host
+await a re-read of the current bounded window after an acknowledged mutation.
 
 ## Supported first-tier surfaces
 

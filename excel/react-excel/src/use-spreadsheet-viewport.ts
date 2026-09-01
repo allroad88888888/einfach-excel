@@ -13,7 +13,7 @@ import {
   type VisibleProjectionRequest,
   type VisibleProjectionResult,
 } from '@einfach/spreadsheet-ui-core'
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useSpreadsheetUiCore } from './spreadsheet-ui-context'
 import { useSpreadsheetValue, type SpreadsheetValueSource } from './use-spreadsheet-value'
 
@@ -39,6 +39,7 @@ export interface UseSpreadsheetViewportResult {
   readonly status: ProjectionStatus
   readonly error: SpreadsheetError | undefined
   readonly truncated: boolean | undefined
+  refresh(): Promise<void>
   /** Requests that a row and column become the visible window's origin. */
   scrollTo(row: number, col: number): void
 }
@@ -149,6 +150,9 @@ async function runVisibleProjectionTransport(
         request = outcome.nextRequest
         continue
       }
+      if (outcome.status !== 'accepted') {
+        throw new Error('Projection result did not match the active request.')
+      }
       return
     } catch (error) {
       const outcome = store.setter(rejectProjectionAtom, { request, error })
@@ -156,7 +160,7 @@ async function runVisibleProjectionTransport(
         request = outcome.nextRequest
         continue
       }
-      return
+      throw error
     }
   }
 }
@@ -203,13 +207,24 @@ export function useSpreadsheetViewport(
   const { colEnd, colStart, rowEnd, rowStart } = window
   const source = useMemo(() => createProjectionSource(core.store), [core.store])
   const snapshot = useSpreadsheetValue(source)
+  const transportRef = useRef<Promise<void> | null>(null)
+  const launchTransport = useCallback(
+    (request: VisibleProjectionRequest): Promise<void> => {
+      const transport = runVisibleProjectionTransport(core.store, core.backend, request)
+      transportRef.current = transport
+      void transport.catch(() => undefined).finally(() => {
+        if (transportRef.current === transport) transportRef.current = null
+      })
+      return transport
+    },
+    [core.backend, core.store],
+  )
 
   useEffect(() => {
     if (rowEnd < rowStart || colEnd < colStart) {
       core.store.setter(resetProjectionAtom)
       return
     }
-
     const begin = core.store.setter(beginProjectionAtom, {
       kind: 'visible-window',
       sheetId,
@@ -218,8 +233,36 @@ export function useSpreadsheetViewport(
       maxCells,
     })
     if (begin.status !== 'started' || begin.request.kind !== 'visible-window') return
-    void runVisibleProjectionTransport(core.store, core.backend, begin.request)
-  }, [core.backend, core.store, maxCells, sheetId, colEnd, colStart, rowEnd, rowStart])
+    void launchTransport(begin.request).catch(() => undefined)
+  }, [core.store, launchTransport, maxCells, sheetId, colEnd, colStart, rowEnd, rowStart])
+
+  const refresh = useCallback(async (): Promise<void> => {
+    if (rowEnd < rowStart || colEnd < colStart) return
+    const begin = core.store.setter(beginProjectionAtom, {
+      kind: 'visible-window',
+      sheetId,
+      window: { rowStart, rowEnd, colStart, colEnd },
+      reason: 'viewport',
+      retainResult: true,
+      maxCells,
+    })
+    if (begin.status === 'invalid' || begin.status === 'exhausted') {
+      throw new Error(begin.error.message)
+    }
+    if ((begin.status !== 'started' && begin.status !== 'queued') || begin.request.kind !== 'visible-window') return
+    const transport = begin.status === 'started' ? launchTransport(begin.request) : transportRef.current
+    if (transport === null) throw new Error('Projection refresh transport is unavailable.')
+    await transport
+
+    const refreshed = core.store.getter(projectionSnapshotAtom)
+    if (
+      refreshed.status !== 'ready' ||
+      refreshed.request?.requestId !== begin.request.requestId ||
+      !isCurrentResult(refreshed, sheetId, window)
+    ) {
+      throw new Error(refreshed.error?.message ?? 'Projection refresh was superseded.')
+    }
+  }, [core.store, launchTransport, maxCells, sheetId, colEnd, colStart, rowEnd, rowStart, window])
 
   const scrollTo = useCallback(
     (row: number, col: number) => {
@@ -250,6 +293,7 @@ export function useSpreadsheetViewport(
     status: current ? snapshot.status : 'idle',
     error: current ? snapshot.error : undefined,
     truncated: result?.truncated,
+    refresh,
     scrollTo,
   }
 }

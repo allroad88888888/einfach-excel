@@ -4,16 +4,18 @@ title: 单格编辑写回 Rust 并完成首轮验收
 kind: leaf
 depends_on: ["002"]
 model: gpt-5.6-sol
-status: pending
+status: done
 created: 2026-09-01
-done: null
-base: null
+done: 2026-09-01
+base: 97110f118bfcc792fda0b4a1fe5e9bc3c3fb69d4
+repair_round: 1
 files:
   - excel/react-excel/src/use-spreadsheet-viewport.ts
   - excel/react-excel/test/use-spreadsheet-viewport.test.tsx
   - excel/react-excel/demo/DemoGrid.tsx
   - excel/react-excel/demo/DemoCellEditor.tsx
   - excel/react-excel/demo/use-demo-cell-edit.ts
+  - excel/react-excel/demo/WorkbookRibbon.tsx
   - excel/react-excel/demo/cell-editor.css
   - excel/react-excel/test/rust-demo-cell-edit.test.tsx
   - excel/react-excel/README.md
@@ -29,6 +31,10 @@ files:
 ## 实现合同
 
 - 双击单元格或按 Enter 进入编辑；Enter/失焦提交，Escape 取消。
+- Enter 必须编辑 `selection.activeCell`，不得用 normalized range 左上角替代 focus cell。
+- Enter 成功与 Escape 后恢复 grid 焦点；失焦提交不得抢回用户的新焦点；mutation 拒绝后
+  恢复仍保留草稿的 editor 焦点。测试必须从真实 `document.activeElement` 驱动连续键盘链，
+  并证明 Enter 导致的 blur 不会二次发送 mutation。
 - 编辑状态使用现有 `useSpreadsheetEditing`；提交走 UI-core `runEditingCommitAtom`，其
   `source` 是当前 Rust backend，禁止本地伪 ACK。
 - 首批不展示 undo/redo；history recorder 明确返回 `unavailable`。

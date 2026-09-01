@@ -6,6 +6,7 @@ import type {
 } from '@einfach/spreadsheet-ui-core'
 import { describe, expect, it, jest } from '@jest/globals'
 import { act, render, screen, waitFor } from '@testing-library/react'
+import { useState } from 'react'
 import { SpreadsheetUiProvider } from '../src/spreadsheet-ui-provider'
 import {
   useSpreadsheetViewport,
@@ -14,15 +15,18 @@ import {
 
 interface Deferred<T> {
   readonly promise: Promise<T>
+  readonly reject: (reason: unknown) => void
   readonly resolve: (value: T) => void
 }
 
 function deferred<T>(): Deferred<T> {
   let resolvePromise!: (value: T) => void
-  const promise = new Promise<T>((resolve) => {
+  let rejectPromise!: (reason: unknown) => void
+  const promise = new Promise<T>((resolve, reject) => {
     resolvePromise = resolve
+    rejectPromise = reject
   })
-  return { promise, resolve: resolvePromise }
+  return { promise, reject: rejectPromise, resolve: resolvePromise }
 }
 
 function resultFor(
@@ -40,6 +44,7 @@ function resultFor(
 
 function ViewportProbe({ options }: { options: UseSpreadsheetViewportOptions }) {
   const viewport = useSpreadsheetViewport(options)
+  const [refreshState, setRefreshState] = useState('idle')
   return (
     <>
       <output data-testid="window">
@@ -49,7 +54,20 @@ function ViewportProbe({ options }: { options: UseSpreadsheetViewportOptions }) 
       <output data-testid="cells">
         {viewport.cells.map((cell) => cell.displayValue).join(',')}
       </output>
+      <output data-testid="error">{viewport.error?.message}</output>
+      <output data-testid="refresh-state">{refreshState}</output>
       <button onClick={() => viewport.scrollTo(99, -10)}>scroll</button>
+      <button
+        onClick={() => {
+          void viewport.refresh().then(
+            () => setRefreshState('resolved'),
+            (error: unknown) =>
+              setRefreshState(error instanceof Error ? `rejected:${error.message}` : 'rejected'),
+          )
+        }}
+      >
+        refresh
+      </button>
     </>
   )
 }
@@ -167,5 +185,62 @@ describe('useSpreadsheetViewport', () => {
     })
     await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('ready'))
     expect(screen.getByTestId('cells')).toHaveTextContent('new')
+  })
+
+  it('resolves refresh only after the current bounded projection lands', async () => {
+    const controlled = createBackend()
+    render(
+      <ViewportHarness
+        backend={controlled.backend}
+        window={{ rowStart: 2, rowEnd: 3, colStart: 4, colEnd: 5 }}
+      />,
+    )
+    await waitForRequests(controlled, 1)
+    await act(async () => {
+      controlled.gates[0]?.resolve(resultFor(controlled.requests[0]!, 'before'))
+    })
+    await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('ready'))
+
+    await act(async () => {
+      screen.getByRole('button', { name: 'refresh' }).click()
+    })
+    await waitForRequests(controlled, 2)
+    expect(screen.getByTestId('refresh-state')).toHaveTextContent('idle')
+    expect(controlled.requests[1]?.window).toEqual(controlled.requests[0]?.window)
+
+    await act(async () => {
+      controlled.gates[1]?.resolve(resultFor(controlled.requests[1]!, 'after'))
+    })
+    await waitFor(() => expect(screen.getByTestId('refresh-state')).toHaveTextContent('resolved'))
+    expect(screen.getByTestId('cells')).toHaveTextContent('after')
+  })
+
+  it('publishes a refresh error before rejecting with the transport error', async () => {
+    const controlled = createBackend()
+    render(
+      <ViewportHarness
+        backend={controlled.backend}
+        window={{ rowStart: 0, rowEnd: 1, colStart: 0, colEnd: 1 }}
+      />,
+    )
+    await waitForRequests(controlled, 1)
+    await act(async () => {
+      controlled.gates[0]?.resolve(resultFor(controlled.requests[0]!, 'before'))
+    })
+    await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('ready'))
+
+    await act(async () => {
+      screen.getByRole('button', { name: 'refresh' }).click()
+    })
+    await waitForRequests(controlled, 2)
+    await act(async () => {
+      controlled.gates[1]?.reject(new Error('Rust refresh failed'))
+    })
+
+    await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('error'))
+    expect(screen.getByTestId('error')).toHaveTextContent('Rust refresh failed')
+    expect(screen.getByTestId('refresh-state')).toHaveTextContent(
+      'rejected:Rust refresh failed',
+    )
   })
 })

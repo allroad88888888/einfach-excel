@@ -32,9 +32,6 @@ export function WorkbookRibbon() {
       </div>
       <span className="toolbar-divider" aria-hidden="true" />
       <div className="ribbon-tools" role="toolbar" aria-label="Start tools">
-        <ToolButton icon="↶" label="Undo" />
-        <ToolButton icon="↷" label="Redo" />
-        <span className="tool-separator" aria-hidden="true" />
         <ToolButton icon="▣" label="Paste" />
         <ToolButton icon="✂" label="Cut" />
         <ToolButton icon="▤" label="Copy" />

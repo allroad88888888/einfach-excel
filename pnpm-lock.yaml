@@ -230,6 +230,15 @@ importers:
 
   excel/excel-wasm: {}
 
+  excel/excel-worker:
+    dependencies:
+      '@einfach/excel-wasm':
+        specifier: workspace:*
+        version: link:../excel-wasm
+      '@einfach/spreadsheet-ui-core':
+        specifier: workspace:*
+        version: link:../spreadsheet-ui-core
+
   excel/react-excel:
     dependencies:
       '@einfach/core':

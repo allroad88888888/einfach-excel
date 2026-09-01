@@ -3,7 +3,7 @@
 | id | stage | priority | status | base | report | review |
 |---|---|---|---|---|---|---|
 | 001 | M0 | P0 | done | b940da7480da6482fb75141d855bb8ebbbda7257 | reports/001-report.md | reports/001-review.md |
-| 002 | M0 | P0 | pending | null | | |
+| 002 | M0 | P0 | done | 2fa4cdab4dc0834edc7440fad2609625dc8c5f84 | reports/002-report.md | reports/002-review-v3.md |
 | 003 | M0 | P0 | pending | null | | |
 | 004 | M0 | P0 | pending | null | | |
 | 005 | M0 | P0 | pending | null | | |

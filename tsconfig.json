@@ -54,5 +54,8 @@
     {
       "path": "./excel/solid-excel/tsconfig.json"
     },
+    {
+      "path": "./excel/excel-worker/tsconfig.json"
+    },
   ]
 }

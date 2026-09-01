@@ -36,17 +36,32 @@ controlled visible window.
 ```text
 src/
 ├── main.tsx
-├── app/                    # startup and global styles
+├── app/                              # startup and global styles
+├── product/
+│   └── sales-orders/
+│       ├── data/                     # sheet definition and Rust import seed
+│       └── runtime/                  # Rust workbook creation and initialization
 └── workbook/
-    ├── Workbook.tsx        # workbook page composition
-    ├── backend/            # Rust worker creation and sales-order seed import
-    ├── chrome/             # header, ribbon, formula bar, footer
-    ├── data/               # sales-order definitions
-    ├── editing/            # acknowledged cell-editing use case
-    ├── grid/               # bounded grid DOM and cell editor
-    ├── projection/         # controlled visible-window projection
-    ├── runtime/            # internal React/UI-core runtime boundary
-    └── selection/          # selection observation and pointer gestures
+    ├── shell/                        # workbook page composition
+    ├── chrome/
+    │   ├── formula-bar/              # active-range value surface
+    │   ├── footer/                   # sheet navigation and status surface
+    │   ├── header/                   # workbook identity surface
+    │   └── ribbon/                   # command discovery surface
+    ├── editing/                      # acknowledged cell-editing use case
+    ├── grid/
+    │   ├── cells/                    # projected cell table
+    │   ├── editor/                   # in-cell editing overlay
+    │   └── viewport/                 # bounded scrollable grid surface
+    ├── projection/                   # controlled visible-window projection
+    ├── runtime/                      # internal React/UI-core runtime boundary
+    └── selection/                    # selection observation and pointer gestures
+
+test/
+├── product/sales-orders/             # product seed and Rust import tests
+└── workbook/
+    ├── editing/                      # cell-editing interaction tests
+    └── projection/                   # visible-window interaction tests
 ```
 
 Product modules use precise relative imports. There is no public package entry or internal barrel.

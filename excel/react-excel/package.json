@@ -14,7 +14,7 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite",
-    "test": "cd ../.. && jest excel/react-excel/test/workbook --runInBand --no-coverage",
+    "test": "cd ../.. && jest excel/react-excel/test --runInBand --no-coverage",
     "typecheck": "tsc -p tsconfig.json --noEmit --pretty false"
   },
   "devDependencies": {

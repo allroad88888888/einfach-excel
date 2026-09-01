@@ -1,9 +1,9 @@
 import { describe, expect, it, jest } from '@jest/globals'
-import packageJson from '../../../solid-excel/package.json'
+import packageJson from '../../../../solid-excel/package.json'
 import {
   SALES_ORDER_CELL_COUNT,
   SALES_ORDER_IMPORT_CHUNK_SIZE,
-} from '../../src/workbook/backend/rust-seed'
+} from '../../../src/product/sales-orders/data/import-seed'
 
 type ImportRustWorkbook = (
   client: {
@@ -29,7 +29,7 @@ const { createWorkerWorkbookSpreadsheetBackend: exportedBackendFactory } = jest.
   '@einfach/solid-excel/worker-backend',
 ) as { createWorkerWorkbookSpreadsheetBackend: unknown }
 const { importRustWorkbook } = jest.requireActual(
-  '../../src/workbook/backend/rust-backend',
+  '../../../src/product/sales-orders/runtime/import-rust-workbook',
 ) as { importRustWorkbook: ImportRustWorkbook }
 
 describe('React workbook Rust backend', () => {

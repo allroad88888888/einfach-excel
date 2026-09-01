@@ -12,10 +12,13 @@ import {
 import { describe, expect, it, jest } from '@jest/globals'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ComponentType } from 'react'
-import { SALES_ORDER_COLUMNS, SALES_ORDER_SHEET_ROW_COUNT } from '../../src/workbook/data/sales-orders'
-import { WorkbookRuntimeProvider } from '../../src/workbook/runtime/WorkbookRuntimeProvider'
+import {
+  SALES_ORDER_COLUMNS,
+  SALES_ORDER_SHEET_ROW_COUNT,
+} from '../../../src/product/sales-orders/data/sheet'
+import { WorkbookRuntimeProvider } from '../../../src/workbook/runtime/WorkbookRuntimeProvider'
 
-const { Workbook } = jest.requireActual('../../src/workbook/Workbook') as {
+const { Workbook } = jest.requireActual('../../../src/workbook/shell/Workbook') as {
   Workbook: ComponentType
 }
 

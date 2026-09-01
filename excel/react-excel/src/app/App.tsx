@@ -4,10 +4,10 @@ import { useEffect, useState } from 'react'
 import {
   SALES_ORDER_COLUMNS,
   SALES_ORDER_SHEET_ROW_COUNT,
-} from '../workbook/data/sales-orders'
-import { createRustWorkbookBackend } from '../workbook/backend/rust-backend'
+} from '../product/sales-orders/data/sheet'
+import { createRustWorkbookBackend } from '../product/sales-orders/runtime/create-rust-workbook-backend'
 import { WorkbookRuntimeProvider } from '../workbook/runtime/WorkbookRuntimeProvider'
-import { Workbook } from '../workbook/Workbook'
+import { Workbook } from '../workbook/shell/Workbook'
 
 const workbookStore = createStore()
 workbookStore.setter(setSelectionBoundsAtom, {

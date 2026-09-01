@@ -1,16 +1,16 @@
-import { WorkbookGrid } from './grid/WorkbookGrid'
+import { WorkbookGrid } from '../grid/viewport/WorkbookGrid'
 import {
   SALES_ORDER_COLUMNS,
   SALES_ORDER_RECORD_COUNT,
   SALES_ORDER_SHEET_ROW_COUNT,
-} from './data/sales-orders'
-import { FormulaBar } from './chrome/FormulaBar'
-import { WorkbookFooter } from './chrome/WorkbookFooter'
-import { WorkbookHeader } from './chrome/WorkbookHeader'
-import { WorkbookRibbon } from './chrome/WorkbookRibbon'
-import { useGridWindow } from './projection/use-grid-window'
-import { useWorkbookViewport } from './projection/use-workbook-viewport'
-import { useWorkbookSelection } from './selection/use-workbook-selection'
+} from '../../product/sales-orders/data/sheet'
+import { FormulaBar } from '../chrome/formula-bar/FormulaBar'
+import { WorkbookFooter } from '../chrome/footer/WorkbookFooter'
+import { WorkbookHeader } from '../chrome/header/WorkbookHeader'
+import { WorkbookRibbon } from '../chrome/ribbon/WorkbookRibbon'
+import { useGridWindow } from '../projection/use-grid-window'
+import { useWorkbookViewport } from '../projection/use-workbook-viewport'
+import { useWorkbookSelection } from '../selection/use-workbook-selection'
 import './workbook.css'
 
 function columnLabel(index: number): string {

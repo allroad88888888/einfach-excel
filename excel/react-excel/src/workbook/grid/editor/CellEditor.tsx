@@ -1,6 +1,6 @@
 import type { CSSProperties, FocusEvent, KeyboardEvent, PointerEvent } from 'react'
 import { useEffect, useRef } from 'react'
-import type { CellEdit } from '../editing/use-cell-edit'
+import type { CellEdit } from '../../editing/use-cell-edit'
 import './cell-editor.css'
 
 export interface CellEditorProps {

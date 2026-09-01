@@ -12,14 +12,14 @@ import type { ComponentType } from 'react'
 import {
   SALES_ORDER_COLUMNS,
   SALES_ORDER_SHEET_ROW_COUNT,
-} from '../../src/workbook/data/sales-orders'
+} from '../../../src/product/sales-orders/data/sheet'
 import {
   GRID_ROW_HEIGHT,
   GRID_WINDOW_ROW_COUNT,
-} from '../../src/workbook/projection/use-grid-window'
-import { WorkbookRuntimeProvider } from '../../src/workbook/runtime/WorkbookRuntimeProvider'
+} from '../../../src/workbook/projection/use-grid-window'
+import { WorkbookRuntimeProvider } from '../../../src/workbook/runtime/WorkbookRuntimeProvider'
 
-const { Workbook } = jest.requireActual('../../src/workbook/Workbook') as {
+const { Workbook } = jest.requireActual('../../../src/workbook/shell/Workbook') as {
   Workbook: ComponentType
 }
 

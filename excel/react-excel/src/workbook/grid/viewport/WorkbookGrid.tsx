@@ -8,14 +8,17 @@ import {
   type PointerEvent as ReactPointerEvent,
   type UIEvent as ReactUiEvent,
 } from 'react'
-import { CellEditor } from './CellEditor'
-import { SALES_ORDER_COLUMNS, SALES_ORDER_SHEET_ROW_COUNT } from '../data/sales-orders'
-import { useCellEdit } from '../editing/use-cell-edit'
-import { GRID_ROW_HEIGHT } from '../projection/use-grid-window'
-import type { WorkbookViewport } from '../projection/use-workbook-viewport'
-import { useGridPointerSelection } from '../selection/use-grid-pointer-selection'
-import { useWorkbookSelection } from '../selection/use-workbook-selection'
-import { SpreadsheetGrid } from './SpreadsheetGrid'
+import { CellEditor } from '../editor/CellEditor'
+import {
+  SALES_ORDER_COLUMNS,
+  SALES_ORDER_SHEET_ROW_COUNT,
+} from '../../../product/sales-orders/data/sheet'
+import { useCellEdit } from '../../editing/use-cell-edit'
+import { GRID_ROW_HEIGHT } from '../../projection/use-grid-window'
+import type { WorkbookViewport } from '../../projection/use-workbook-viewport'
+import { useGridPointerSelection } from '../../selection/use-grid-pointer-selection'
+import { useWorkbookSelection } from '../../selection/use-workbook-selection'
+import { SpreadsheetGrid } from '../cells/SpreadsheetGrid'
 import './grid.css'
 
 export interface WorkbookGridProps {

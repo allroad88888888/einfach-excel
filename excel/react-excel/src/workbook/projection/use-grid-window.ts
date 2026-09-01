@@ -1,6 +1,6 @@
 import type { CellRange } from '@einfach/spreadsheet-ui-core'
 import { useCallback, useState } from 'react'
-import { SALES_ORDER_COLUMNS } from '../data/sales-orders'
+import { SALES_ORDER_COLUMNS } from '../../product/sales-orders/data/sheet'
 
 export const GRID_ROW_HEIGHT = 28
 export const GRID_WINDOW_ROW_COUNT = 32

@@ -29,7 +29,7 @@ files:
 - `pnpm --filter @einfach/react-excel run test:e2e -- e2e/s01/core-interaction.spec.ts --list --project=chromium-desktop --project=webkit-desktop --project=chromium-mobile --project=webkit-mobile` 恰四项；同命令去 `--list` 全绿。
 - `pnpm --filter @einfach/react-excel run test:e2e -- e2e/s01/failure-layout.spec.ts --list --project=chromium-desktop --project=webkit-desktop --project=chromium-mobile --project=webkit-mobile` 恰四项；同命令去 `--list` 全绿。
 - Rust-only source/dependency/bundle scan为0违规；所有本阶段普通文件 `wc -l` ≤300。
-- 报告逐行链接 coverage evidence、命令、截图路径，给用户最多5条人工步骤。
+- 报告逐行链接 coverage evidence、命令、截图路径，只给用户 3 条人工步骤：打开、滚动选择、单格编辑回读。
 - 编排者独立review后把S01设 `awaiting_user` 并停止；不展开S02。
 
 写 `reports/114-report.md`；不提交。

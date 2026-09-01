@@ -4,12 +4,13 @@
 
 ## 目标与状态
 
-把 `@einfach/react-excel` 默认 demo 接到真实 Rust/WASM 工作簿，以 Univer 风格分小批交付；每个用户阶段后停止等待验收。
+把 `@einfach/react-excel` 默认 demo 接到真实 Rust/WASM 工作簿，以 Univer 风格分小批交付；首个用户检查点只开放 3 项功能，完成后停止等待验收。
 
-- 树版本：`v4-minimal-rust-vertical`。
-- v1/v2/v3 复审均为 `NEEDS_CHANGES`，证据在 `reports/tree-review*.md`；v4 通过复审前不派产品任务。
+- 树版本：`v8-three-feature-checkpoint`。
+- v1–v6 的修订记录与 v7 最终批准证据在 `reports/tree-review*.md`；v8 只收紧用户检查点，不扩产品范围。
 - 只展开 M0 与 S01；S02–S16 进入前再拆 10–20 分钟叶。
 - 全功能映射见 `coverage.md`，阶段见 `stages.md`，执行状态见 `ledger.md`。
+- 叶子数是内部工程拆分，不是交给用户一次测试的功能数；S01 只验收“打开、浏览选择、单格编辑”三项。
 
 ## 范围与 Rust-only 边界
 
@@ -238,8 +239,8 @@ export function useSpreadsheetEditingCommit(
 
 | id | stage | 任务 | model | status |
 |---|---|---|---|---|
-| 001 | M0 | Rust-only boundary | gpt-5.6-sol | pending |
-| 002 | M0 | private neutral package | gpt-5.6-terra | pending |
+| 001 | M0 | Rust-only boundary | gpt-5.6-sol | done |
+| 002 | M0 | private neutral package | gpt-5.6-terra | done |
 | 003 | M0 | exact RPC contract | gpt-5.6-sol | pending |
 | 004 | M0 | RPC client | gpt-5.6-sol | pending |
 | 005 | M0 | WASM surface | gpt-5.6-sol | pending |

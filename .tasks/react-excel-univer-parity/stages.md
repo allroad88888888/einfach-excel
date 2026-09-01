@@ -3,7 +3,7 @@
 ## 阶段门
 
 - M0 只建立真实 Rust/WASM 最小链，由自动测试与独立 reviewer 放行。
-- S01 起每阶段只交付 2–4 个用户功能；完成后给出不超过 5 条人工步骤并停止。
+- S01 首个检查点只交付 3 个用户功能；完成后给出恰好 3 条人工步骤并停止。
 - 用户通过才展开下一阶段；失败则在当前阶段开 `discovered_from` 修复叶。
 - 未展开 group 不是可派发任务。
 
@@ -11,8 +11,8 @@
 
 | stage | priority | 用户功能 | readiness | 用户验收重点 | status |
 |---|---|---|---|---|---|
-| M0 | P0 | private neutral Rust worker、React runtime、browser gate | detailed | 真 WASM ready/read/edit/dispose；零 TS/Solid route | review_pending |
-| S01 | P0 | loading/retry、虚拟滚动、选择、单格编辑、Univer shell | detailed | 1000 行；选择；编辑；界面方向 | pending |
+| M0 | P0 | private neutral Rust worker、React runtime、browser gate | detailed | 自动校验真 WASM ready/read/edit/dispose；零 TS/Solid route | in_progress |
+| S01 | P0 | 打开 1000 行 Rust 工作簿、滚动并选择、单格编辑 | detailed | 只测打开；滚动选择；编辑回读 | pending |
 | S02 | P0 | Sheet tabs、Name Box/Go To、公式栏、undo/redo | backlog | 切表；定位；公式；撤销 | pending |
 | S03 | P0 | copy/cut/paste、Paste Special、AutoFill、Find/Replace | backlog | 延迟 cut；选择性粘贴；系列；替换 | pending |
 | S04 | P1 | 行列结构、尺寸隐藏、冻结、合并 | backlog | 插删；尺寸；隐藏；冻结；合并 | pending |
@@ -31,5 +31,6 @@
 
 ## 当前用户检查点
 
-- M0 不打扰用户；完成后直接进入 S01。
-- S01 完成后只测试：打开 Rust 工作簿、滚到第 1000 行、选择并编辑、确认界面方向。
+- M0 是三项用户功能所需的内部链路，只跑自动测试，不增加人工验收项。
+- S01 完成后恰好测试三项：打开 Rust 工作簿；滚到第 1000 行并选择；编辑一个单元格并确认 Rust 回读。
+- Univer 风格壳是三项功能的呈现基线，不作为第四个功能要求用户单独测试。

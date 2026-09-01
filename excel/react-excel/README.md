@@ -8,30 +8,6 @@ This package is private and has not been published to npm. It is therefore a
 workspace integration surface, not an installable public package or a complete
 spreadsheet application.
 
-## Rust-only product boundary
-
-React product wiring, including the default demo and E2E fixtures as they gain
-a real workbook backend, has one supported engine path:
-
-```text
-@einfach/react-excel
-  -> @einfach/excel-worker (private, framework-neutral worker)
-  -> @einfach/excel-wasm
-  -> Rust excel-core
-```
-
-The React package and the private worker must not import a Solid adapter or the
-TypeScript workbook runtime. Static projections may remain test inputs for
-adapter rendering, but they are not a product backend or a runtime fallback.
-WASM loading, runtime-manifest validation, initialization, and seed failures
-must surface an error/retry state; retry creates a fresh Rust worker generation.
-
-Run the executable boundary check with:
-
-```bash
-node --test rules/react-rust-only-boundary.test.mjs
-```
-
 ## Local Vite demo
 
 The package includes a standalone Vite app with a Univer-inspired workbook

@@ -1,0 +1,55 @@
+.formula-bar {
+  display: flex;
+  min-height: 36px;
+  flex: none;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--border);
+  background: var(--chrome);
+  font-size: 12px;
+}
+
+.name-box {
+  width: 86px;
+  height: 27px;
+  flex: none;
+  padding: 5px 9px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #ffffff;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.formula-divider {
+  display: none;
+}
+
+.insert-function {
+  display: grid;
+  width: 28px;
+  height: 27px;
+  flex: none;
+  place-items: center;
+  border-radius: 6px;
+  color: var(--primary);
+  background: var(--primary-soft);
+  font-family: Georgia, serif;
+  font-size: 14px;
+  font-style: italic;
+}
+
+.formula-value {
+  height: 27px;
+  min-width: 0;
+  flex: 1;
+  padding: 5px 9px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #ffffff;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

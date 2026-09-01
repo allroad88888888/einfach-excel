@@ -8,6 +8,24 @@ This package is private and has not been published to npm. It is therefore a
 workspace integration surface, not an installable public package or a complete
 spreadsheet application.
 
+## Local Vite demo
+
+The package includes a standalone Vite app with a Univer-inspired workbook
+shell, a deterministic 1,000-record controlled projection, and range selection:
+
+```bash
+pnpm --filter @einfach/react-excel dev
+```
+
+The demo runs at `http://127.0.0.1:5183`. It intentionally exercises only the
+adapter's current public boundary: caller-owned cells, a caller-owned store,
+and pointer selection. Build and typecheck it independently with:
+
+```bash
+pnpm --filter @einfach/react-excel typecheck:demo
+pnpm --filter @einfach/react-excel build:demo
+```
+
 ## What it provides
 
 - `SpreadsheetUiProvider` creates a UI core around a caller-supplied
@@ -69,9 +87,10 @@ must supply the UI-core-compatible backend and its projection-refresh policy.
 ## Explicitly not included
 
 - npm publishing, a worker factory, WASM packaging, or a default backend
-- a turnkey spreadsheet page, site demo, or production e2e harness
-- toolbar, menu bar, context-menu, dialog, filter/sort, comment, collaboration,
-  protection, presence, and status-bar UI
+- a production-ready turnkey spreadsheet page or production e2e harness; the
+  local Vite demo is development-only
+- production command wiring for the demo toolbar, menus, context menus,
+  dialogs, filter/sort, comments, collaboration, protection, or presence
 - a public compatibility, release-version, or browser-support commitment
 
 Those boundaries are deliberate: this package bridges React to the UI core; it

@@ -1,0 +1,160 @@
+.ribbon-shell {
+  display: flex;
+  min-height: 46px;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--border);
+  background: #ffffff;
+}
+
+.ribbon-tabs {
+  display: flex;
+  height: 34px;
+  flex: none;
+  align-items: center;
+  gap: 2px;
+}
+
+.ribbon-tab {
+  height: 28px;
+  border: 0;
+  border-radius: 7px;
+  padding: 0 9px;
+  color: #515568;
+  background: transparent;
+  font-size: 11px;
+}
+
+.ribbon-tab:hover {
+  background: var(--control-hover);
+}
+
+.ribbon-tab.active {
+  color: var(--primary);
+  background: var(--primary-soft);
+  font-weight: 650;
+}
+
+.toolbar-divider,
+.tool-separator {
+  display: block;
+  width: 1px;
+  height: 22px;
+  flex: none;
+  background: var(--border);
+}
+
+.ribbon-tools {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: 2px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.ribbon-tools::-webkit-scrollbar {
+  display: none;
+}
+
+.tool-button,
+.tool-select {
+  height: 28px;
+  flex: none;
+  border: 0;
+  border-radius: 6px;
+  color: #3f4352;
+  background: transparent;
+  font-size: 12px;
+}
+
+.tool-button {
+  display: grid;
+  width: 28px;
+  place-items: center;
+  padding: 0;
+}
+
+.tool-button:hover,
+.tool-select:hover {
+  background: var(--control-hover);
+}
+
+.tool-button:nth-of-type(8) {
+  font-weight: 700;
+}
+
+.tool-select {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 7px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+}
+
+.tool-select:hover {
+  border-color: var(--border);
+}
+
+.tool-select span {
+  color: #858999;
+  font-size: 9px;
+}
+
+.font-family-select {
+  width: 82px;
+}
+
+.font-size-select {
+  width: 48px;
+}
+
+.number-format-select {
+  width: 78px;
+}
+
+.tool-separator {
+  height: 18px;
+  margin: 0 3px;
+}
+
+.toolbar-spacer {
+  min-width: 8px;
+  flex: 1;
+}
+
+@media (max-width: 760px) {
+  .ribbon-shell {
+    min-height: 43px;
+    gap: 5px;
+    overflow-x: auto;
+    padding-inline: 7px;
+  }
+
+  .ribbon-tabs {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    padding-right: 5px;
+    background: #ffffff;
+  }
+
+  .ribbon-tab:nth-child(n + 4) {
+    display: none;
+  }
+
+  .ribbon-tools {
+    min-width: max-content;
+    overflow: visible;
+  }
+
+  .toolbar-spacer {
+    display: none;
+  }
+}

@@ -1,0 +1,128 @@
+.workbook-header {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  gap: 12px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  background: #ffffff;
+}
+
+.univer-mark {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  grid-template-columns: repeat(2, 7px);
+  grid-template-rows: repeat(2, 7px);
+  place-content: center;
+  gap: 2px;
+  border-radius: 8px;
+  background: var(--primary);
+  box-shadow: 0 3px 8px rgba(39, 79, 238, 0.22);
+}
+
+.univer-mark span {
+  border-radius: 2px;
+  background: #ffffff;
+}
+
+.univer-mark span:nth-child(2),
+.univer-mark span:nth-child(3) {
+  opacity: 0.68;
+}
+
+.workbook-identity {
+  display: flex;
+  min-width: 220px;
+  align-items: baseline;
+  gap: 9px;
+}
+
+.workbook-name {
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workbook-subtitle {
+  color: var(--muted);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.header-spacer {
+  flex: 1;
+}
+
+.save-state {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.save-state > span {
+  display: grid;
+  width: 16px;
+  height: 16px;
+  place-items: center;
+  border-radius: 50%;
+  color: #287d3c;
+  background: #e8f6ec;
+  font-size: 10px;
+}
+
+.demo-badge {
+  padding: 4px 8px;
+  border: 1px solid #dfe3f7;
+  border-radius: 999px;
+  color: #535a74;
+  background: #f7f8ff;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.header-actions button {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  font-size: 14px;
+}
+
+.header-actions button:hover {
+  background: var(--control-hover);
+}
+
+@media (max-width: 640px) {
+  .workbook-header {
+    min-height: 44px;
+    gap: 9px;
+    padding: 0 10px;
+  }
+
+  .univer-mark {
+    width: 28px;
+    height: 28px;
+  }
+
+  .workbook-identity {
+    min-width: 0;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .workbook-subtitle,
+  .save-state {
+    display: none;
+  }
+}

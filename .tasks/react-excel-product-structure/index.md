@@ -68,3 +68,8 @@ excel/react-excel/
 - 裁决：删除旧 adapter unit/e2e，只保留当前产品三条测试链 — 旧测试锁的是已废弃 public API；代价是
   内部 bridge 的细粒度覆盖下降，后续功能按产品验收重新补。
 - `.project-lines` 按用户要求暂停，不作为本树执行输入，也不随本树更新。
+
+## 后续任务
+
+- `../react-excel-core-view-boundary/index.md` 接续处理 UI-core 与 React 视图职责；本树只记录已经完成的
+  产品目录扶正，不回写新的架构实现。

@@ -70,6 +70,8 @@
 
 ## 遗留与发现
 
+- 后续 core/view 职责收敛另见 `../react-excel-core-view-boundary/index.md`；本树的三个用户功能与验收状态
+  保持不变。
 - 001 Minor：App 的 StrictMode、卸载后 late completion 与 dispose 次数尚无定向自动化
   测试；源码独立 review 与真实 Chromium ready 验证均通过，本阶段不扩围。
 - 001 已解决：根级 TypeScript 使用旧 Node 解析，测试已改为 mock-before-`requireActual`，

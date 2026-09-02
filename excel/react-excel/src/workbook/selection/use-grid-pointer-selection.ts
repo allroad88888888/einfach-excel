@@ -1,13 +1,12 @@
+import { useSetAtom } from '@einfach/react'
 import {
   cancelPointerAtom,
   commitPointerAtom,
-  selectCellAtom,
-  startPointerAtom,
-  updatePointerAtom,
+  startPointerSelectionAtom,
+  updatePointerSelectionAtom,
   type CellCoord,
 } from '@einfach/spreadsheet-ui-core'
 import { useCallback, useEffect, useRef, type PointerEvent as ReactPointerEvent } from 'react'
-import { useWorkbookRuntime } from '../runtime/use-workbook-runtime'
 
 export interface GridPointerSelectionOptions {
   /** The sheet that receives this grid surface's drag selections. */
@@ -41,7 +40,10 @@ export function useGridPointerSelection(
   options: GridPointerSelectionOptions,
 ): GridPointerSelectionHandlers {
   const { getCellCoord, sheetId } = options
-  const { store } = useWorkbookRuntime()
+  const cancelPointer = useSetAtom(cancelPointerAtom)
+  const commitPointer = useSetAtom(commitPointerAtom)
+  const startPointerSelection = useSetAtom(startPointerSelectionAtom)
+  const updatePointerSelection = useSetAtom(updatePointerSelectionAtom)
   const activePointer = useRef<ActivePointer | null>(null)
 
   const cancelActivePointer = useCallback(() => {
@@ -49,8 +51,8 @@ export function useGridPointerSelection(
     if (pointer === null) return
     activePointer.current = null
     releasePointerCapture(pointer)
-    store.setter(cancelPointerAtom)
-  }, [store])
+    cancelPointer()
+  }, [cancelPointer])
 
   useEffect(() => cancelActivePointer, [cancelActivePointer])
 
@@ -62,14 +64,7 @@ export function useGridPointerSelection(
 
       event.preventDefault()
       cancelActivePointer()
-      store.setter(selectCellAtom, { sheetId, coord, extend: false })
-      store.setter(startPointerAtom, {
-        kind: 'drag-selection',
-        sheetId,
-        anchor: coord,
-        focus: coord,
-        source: 'pointer',
-      })
+      startPointerSelection({ sheetId, coord })
       activePointer.current = { id: event.pointerId, target: event.currentTarget }
       try {
         event.currentTarget.setPointerCapture(event.pointerId)
@@ -77,7 +72,7 @@ export function useGridPointerSelection(
         // Capture can fail when a browser has already settled a native stream.
       }
     },
-    [cancelActivePointer, getCellCoord, sheetId, store],
+    [cancelActivePointer, getCellCoord, sheetId, startPointerSelection],
   )
 
   const onPointerMove = useCallback(
@@ -87,10 +82,9 @@ export function useGridPointerSelection(
       const coord = getCellCoord(event)
       if (coord === null) return
 
-      store.setter(selectCellAtom, { sheetId, coord, extend: true })
-      store.setter(updatePointerAtom, { kind: 'drag-selection', focus: coord, source: 'pointer' })
+      updatePointerSelection({ sheetId, coord })
     },
-    [getCellCoord, sheetId, store],
+    [getCellCoord, sheetId, updatePointerSelection],
   )
 
   const onPointerUp = useCallback(
@@ -99,9 +93,9 @@ export function useGridPointerSelection(
       if (pointer === null || pointer.id !== event.pointerId) return
       activePointer.current = null
       releasePointerCapture(pointer)
-      store.setter(commitPointerAtom)
+      commitPointer()
     },
-    [store],
+    [commitPointer],
   )
 
   const onPointerCancel = useCallback(

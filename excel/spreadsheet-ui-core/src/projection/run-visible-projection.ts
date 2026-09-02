@@ -6,7 +6,6 @@ import {
   isProjectionResultForRequest,
   projectionSnapshotAtom,
   rejectProjectionAtom,
-  reportProjectionErrorAtom,
   resolveProjectionAtom,
 } from './index'
 import type { BeginVisibleProjectionInput } from './types'
@@ -33,10 +32,13 @@ async function drainVisibleProjectionQueue(
 ): Promise<void> {
   const binding = get(spreadsheetBackendBindingAtom)
   if (binding === null) {
-    set(reportProjectionErrorAtom, {
-      error: new Error('Spreadsheet backend is not bound to this store.'),
-    })
-    return
+    const error = new Error('Spreadsheet backend is not bound to this store.')
+    let request = initialRequest
+    while (true) {
+      const outcome = set(rejectProjectionAtom, { request, error })
+      if (outcome.status !== 'rejected' || outcome.nextRequest?.kind !== 'visible-window') return
+      request = outcome.nextRequest
+    }
   }
   const { backend } = binding
 

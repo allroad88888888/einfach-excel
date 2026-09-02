@@ -1,12 +1,18 @@
 import { createStore } from '@einfach/core'
-import { setSelectionBoundsAtom } from '@einfach/spreadsheet-ui-core'
-import { useEffect, useState } from 'react'
+import { Provider as AtomProvider, useAtomValue, useSetAtom } from '@einfach/react'
+import {
+  beginSpreadsheetRuntimeAtom,
+  rejectSpreadsheetRuntimeAtom,
+  resolveSpreadsheetRuntimeAtom,
+  setSelectionBoundsAtom,
+  spreadsheetRuntimeAtom,
+} from '@einfach/spreadsheet-ui-core'
+import { useEffect } from 'react'
 import {
   SALES_ORDER_COLUMNS,
   SALES_ORDER_SHEET_ROW_COUNT,
 } from '../product/sales-orders/data/sheet'
 import { createRustWorkbookBackend } from '../product/sales-orders/runtime/create-rust-workbook-backend'
-import { WorkbookRuntimeProvider } from '../workbook/runtime/WorkbookRuntimeProvider'
 import { Workbook } from '../workbook/shell/Workbook'
 
 const workbookStore = createStore()
@@ -16,47 +22,52 @@ workbookStore.setter(setSelectionBoundsAtom, {
 })
 
 type RustWorkbookBackend = ReturnType<typeof createRustWorkbookBackend>
-type WorkbookState =
-  | { status: 'loading' }
-  | { status: 'error'; message: string }
-  | { status: 'ready'; backend: RustWorkbookBackend }
 
-function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : 'Unknown Rust workbook error.'
-}
-
-/** Opens the Rust workbook and owns the product runtime boundary. */
-export function App() {
-  const [state, setState] = useState<WorkbookState>({ status: 'loading' })
+/** Owns the Rust Worker resource while core owns its rendered lifecycle state. */
+function ProductWorkbookRuntime() {
+  const state = useAtomValue(spreadsheetRuntimeAtom)
+  const beginRuntime = useSetAtom(beginSpreadsheetRuntimeAtom)
+  const rejectRuntime = useSetAtom(rejectSpreadsheetRuntimeAtom)
+  const resolveRuntime = useSetAtom(resolveSpreadsheetRuntimeAtom)
 
   useEffect(() => {
     let active = true
-    let backend: RustWorkbookBackend
+    let backend: RustWorkbookBackend | undefined
+    let disposed = false
+    const disposeBackend = () => {
+      if (backend === undefined || disposed) return
+      disposed = true
+      backend.dispose()
+    }
+
+    beginRuntime()
 
     try {
       backend = createRustWorkbookBackend()
     } catch (error) {
-      setState({ status: 'error', message: errorMessage(error) })
+      rejectRuntime(error)
       return () => {
         active = false
+        beginRuntime()
       }
     }
 
     void backend.ready().then(
       () => {
-        if (active) setState({ status: 'ready', backend })
+        if (active && backend !== undefined) resolveRuntime({ backend })
       },
       (error: unknown) => {
-        backend.dispose()
-        if (active) setState({ status: 'error', message: errorMessage(error) })
+        disposeBackend()
+        if (active) rejectRuntime(error)
       },
     )
 
     return () => {
       active = false
-      backend.dispose()
+      disposeBackend()
+      beginRuntime()
     }
-  }, [])
+  }, [beginRuntime, rejectRuntime, resolveRuntime])
 
   if (state.status === 'loading') {
     return <main role="status">Loading Rust/WASM workbook…</main>
@@ -70,9 +81,14 @@ export function App() {
     )
   }
 
+  return <Workbook />
+}
+
+/** Opens the Rust workbook and supplies its explicit product store. */
+export function App() {
   return (
-    <WorkbookRuntimeProvider backend={state.backend} store={workbookStore}>
-      <Workbook />
-    </WorkbookRuntimeProvider>
+    <AtomProvider store={workbookStore}>
+      <ProductWorkbookRuntime />
+    </AtomProvider>
   )
 }

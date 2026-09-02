@@ -6,6 +6,7 @@ import {
   type VisibleProjectionRequest,
   type VisibleProjectionResult,
 } from '../src'
+import { createStore } from '@einfach/core'
 import { describe, expect, test } from '@jest/globals'
 
 function projectionResult(request: VisibleProjectionRequest): VisibleProjectionResult {
@@ -92,6 +93,38 @@ describe('runVisibleProjectionAtom', () => {
     expect(core.store.getter(projectionSnapshotAtom)).toMatchObject({
       status: 'error',
       error: { message: 'Rust projection unavailable' },
+    })
+  })
+
+  test('releases an unbound lane so the same store can recover after backend binding', async () => {
+    const store = createStore()
+
+    await expect(store.setter(runVisibleProjectionAtom, projectionInput(0))).resolves.toEqual({
+      status: 'failed',
+      error: 'Spreadsheet backend is not bound to this store.',
+    })
+    expect(store.getter(projectionSnapshotAtom)).toMatchObject({
+      status: 'error',
+      request: { window: projectionInput(0).window },
+    })
+
+    const requests: VisibleProjectionRequest[] = []
+    const backend = {
+      async readVisibleProjection(request: VisibleProjectionRequest) {
+        requests.push(request)
+        return projectionResult(request)
+      },
+    } as SpreadsheetBackend
+    createSpreadsheetUi({ backend, store })
+
+    await expect(store.setter(runVisibleProjectionAtom, projectionInput(20))).resolves.toEqual({
+      status: 'ready',
+    })
+    expect(requests).toHaveLength(1)
+    expect(store.getter(projectionSnapshotAtom)).toMatchObject({
+      status: 'ready',
+      request: { window: projectionInput(20).window },
+      result: { window: projectionInput(20).window },
     })
   })
 })

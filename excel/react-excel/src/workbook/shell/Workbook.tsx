@@ -34,10 +34,9 @@ export function Workbook() {
   const gridWindow = useGridWindow()
   const viewport = useWorkbookViewport({
     sheetId: 'orders',
-    window: gridWindow.window,
+    window: gridWindow,
     rowCount: SALES_ORDER_SHEET_ROW_COUNT,
     colCount: SALES_ORDER_COLUMNS.length,
-    onWindowChange: gridWindow.onWindowChange,
   })
   const selectedCell = viewport.cells.find(
     (cell) =>

@@ -1,18 +1,17 @@
-import type { Store } from '@einfach/core'
+import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   DEFAULT_MAX_PROJECTION_CELLS,
   projectionSnapshotAtom,
   resetProjectionAtom,
   runVisibleProjectionAtom,
+  scrollToCellAtom,
   type CellRange,
   type ProjectionSnapshot,
   type ProjectionStatus,
   type SpreadsheetError,
   type VisibleProjectionResult,
 } from '@einfach/spreadsheet-ui-core'
-import { useCallback, useEffect, useMemo } from 'react'
-import { useWorkbookRuntime } from '../runtime/use-workbook-runtime'
-import { useStoreValue, type StoreValueSource } from '../runtime/use-store-value'
+import { useEffect, useMemo } from 'react'
 
 export interface UseWorkbookViewportOptions {
   /** The sheet whose visible cells the caller is rendering. */
@@ -22,8 +21,6 @@ export interface UseWorkbookViewportOptions {
   /** Sheet dimensions used to keep the controlled window in range. */
   readonly rowCount: number
   readonly colCount: number
-  /** Receives a clamped window when `scrollTo` requests a new origin. */
-  readonly onWindowChange: (window: CellRange) => void
   /** Caps a visible projection; values above the core default are not accepted. */
   readonly maxCells?: number
 }
@@ -67,6 +64,9 @@ function clampWindow(
   maxCells: number,
 ): CellRange {
   if (rowCount === 0 || colCount === 0) {
+    return { rowStart: 0, rowEnd: -1, colStart: 0, colEnd: -1 }
+  }
+  if (input.rowEnd < input.rowStart || input.colEnd < input.colStart) {
     return { rowStart: 0, rowEnd: -1, colStart: 0, colEnd: -1 }
   }
 
@@ -124,13 +124,6 @@ function isCurrentResult(
   )
 }
 
-function createProjectionSource(store: Store): StoreValueSource<ProjectionSnapshot> {
-  return {
-    getSnapshot: () => store.getter(projectionSnapshotAtom),
-    subscribe: (onStoreChange) => store.sub(projectionSnapshotAtom, onStoreChange),
-  }
-}
-
 /**
  * Reads a caller-controlled visible window and delegates scrolling back to its owner.
  * Projection state remains in the nearest WorkbookRuntimeProvider's Einfach store.
@@ -138,8 +131,11 @@ function createProjectionSource(store: Store): StoreValueSource<ProjectionSnapsh
 export function useWorkbookViewport(
   options: UseWorkbookViewportOptions,
 ): WorkbookViewport {
-  const core = useWorkbookRuntime()
-  const { onWindowChange, sheetId } = options
+  const snapshot: ProjectionSnapshot = useAtomValue(projectionSnapshotAtom)
+  const resetProjection = useSetAtom(resetProjectionAtom)
+  const runVisibleProjection = useSetAtom(runVisibleProjectionAtom)
+  const scrollToCell = useSetAtom(scrollToCellAtom)
+  const { sheetId } = options
   const rowCount = normalizeCount(options.rowCount)
   const colCount = normalizeCount(options.colCount)
   const maxCells = normalizeMaxCells(options.maxCells)
@@ -171,25 +167,22 @@ export function useWorkbookViewport(
     ],
   )
   const { colEnd, colStart, rowEnd, rowStart } = window
-  const source = useMemo(() => createProjectionSource(core.store), [core.store])
-  const snapshot = useStoreValue(source)
-
   useEffect(() => {
     if (rowEnd < rowStart || colEnd < colStart) {
-      core.store.setter(resetProjectionAtom)
+      resetProjection()
       return
     }
-    void core.store.setter(runVisibleProjectionAtom, {
+    void runVisibleProjection({
       sheetId,
       window: { rowStart, rowEnd, colStart, colEnd },
       reason: 'viewport',
       maxCells,
     })
-  }, [core.store, maxCells, sheetId, colEnd, colStart, rowEnd, rowStart])
+  }, [maxCells, resetProjection, runVisibleProjection, sheetId, colEnd, colStart, rowEnd, rowStart])
 
-  const refresh = useCallback(async (): Promise<void> => {
+  const refresh = async (): Promise<void> => {
     if (rowEnd < rowStart || colEnd < colStart) return
-    const outcome = await core.store.setter(runVisibleProjectionAtom, {
+    const outcome = await runVisibleProjection({
       sheetId,
       window: { rowStart, rowEnd, colStart, colEnd },
       reason: 'viewport',
@@ -198,28 +191,15 @@ export function useWorkbookViewport(
     })
     if (outcome.status === 'failed') throw new Error(outcome.error)
     if (outcome.status === 'superseded') throw new Error('Projection refresh was superseded.')
-  }, [core.store, maxCells, sheetId, colEnd, colStart, rowEnd, rowStart])
+  }
 
-  const scrollTo = useCallback(
-    (row: number, col: number) => {
-      const rowSpan = rowEnd - rowStart + 1
-      const colSpan = colEnd - colStart + 1
-      onWindowChange(
-        clampWindow(
-          {
-            rowStart: row,
-            rowEnd: row + rowSpan - 1,
-            colStart: col,
-            colEnd: col + colSpan - 1,
-          },
-          rowCount,
-          colCount,
-          maxCells,
-        ),
-      )
-    },
-    [colCount, colEnd, colStart, maxCells, onWindowChange, rowCount, rowEnd, rowStart],
-  )
+  const scrollTo = (row: number, col: number) => {
+    scrollToCell({
+      coord: { row, col },
+      rowAlign: 'start',
+      colAlign: 'start',
+    })
+  }
 
   const current = isCurrentRequest(snapshot, sheetId, window)
   const result = current && isCurrentResult(snapshot, sheetId, window) ? snapshot.result : undefined

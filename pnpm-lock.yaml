@@ -217,6 +217,9 @@ importers:
       '@einfach/core':
         specifier: ^0.4.0
         version: 0.4.0
+      '@einfach/react':
+        specifier: ^0.4.0
+        version: 0.4.0(react@18.3.1)
       '@einfach/solid-excel':
         specifier: workspace:*
         version: link:../solid-excel
@@ -1303,6 +1306,12 @@ packages:
   '@einfach/core@0.4.0':
     resolution: {integrity: sha512-6e01mejaOY/EsIJSbu7e7zzBaF5oBpl5o7Zzx8TVMsRwKWqrMkj1bnVXg/8gdBCVgeekeQphl3Wpd3snfY7lCw==}
     engines: {node: '>=14.18.0'}
+
+  '@einfach/react@0.4.0':
+    resolution: {integrity: sha512-HUXVgJH9TxVuxEPpbk3RgAD+6O9RG8Cs48DS4M82u32plRTLqyPsi/OkWdXqsQCC87Xe404lXB/z0PLr8vPR3Q==}
+    engines: {node: '>=14.18.0'}
+    peerDependencies:
+      react: '>=16.8 <20'
 
   '@einfach/solid@0.4.0':
     resolution: {integrity: sha512-nLQzwOyorM90zkudMvOo+U3iCBcFbm5mdLo31gGYt9MXGIt+hvJq6sbudz2TmNJ5rovKuzxzFSNLOdwtdhhCXQ==}
@@ -7583,6 +7592,11 @@ snapshots:
       sisteransi: 1.0.5
 
   '@einfach/core@0.4.0': {}
+
+  '@einfach/react@0.4.0(react@18.3.1)':
+    dependencies:
+      '@einfach/core': 0.4.0
+      react: 18.3.1
 
   '@einfach/solid@0.4.0(solid-js@1.9.12)':
     dependencies:

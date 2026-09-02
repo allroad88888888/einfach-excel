@@ -57,7 +57,7 @@ function projectionState(viewport: WorkbookViewport) {
 /** Renders only the Rust projection for the current selectable row window. */
 export function WorkbookGrid({ viewport }: WorkbookGridProps) {
   const selection = useWorkbookSelection()
-  const cellEdit = useCellEdit(viewport)
+  const cellEdit = useCellEdit()
   const gridRef = useRef<HTMLDivElement>(null)
   const focusGrid = useCallback(() => gridRef.current?.focus({ preventScroll: true }), [])
   const pointerHandlers = useGridPointerSelection({

@@ -2,6 +2,8 @@ import { createStore, type Store } from '@einfach/core'
 import {
   selectionSnapshotAtom,
   setSelectionBoundsAtom,
+  viewportMetricsAtom,
+  visibleWindowAtom,
   type SpreadsheetBackend,
   type VisibleProjectionRequest,
   type VisibleProjectionResult,
@@ -91,7 +93,7 @@ function pointerDown(target: HTMLElement): void {
 describe('Rust workbook projection window', () => {
   it('requests a bounded orders window and only mounts that projection', async () => {
     const controlled = createProjectionBackend()
-    renderWorksheet(controlled.backend)
+    const store = renderWorksheet(controlled.backend)
     const projectedCellCount = GRID_WINDOW_ROW_COUNT * SALES_ORDER_COLUMNS.length
 
     await waitFor(() => expect(controlled.requests).toHaveLength(1))
@@ -104,6 +106,7 @@ describe('Rust workbook projection window', () => {
         colEnd: SALES_ORDER_COLUMNS.length - 1,
       },
     })
+    expect(store.getter(visibleWindowAtom)).toEqual(controlled.requests[0]?.window)
     await waitFor(() => expect(document.querySelectorAll('td')).toHaveLength(projectedCellCount))
     expect(document.querySelectorAll('td').length).toBeLessThan(8_008)
     expect(screen.getByText('Rust/WASM ready')).toBeInTheDocument()
@@ -137,6 +140,10 @@ describe('Rust workbook projection window', () => {
       colStart: 0,
       colEnd: 7,
     })
+    expect(store.getter(visibleWindowAtom)).toEqual(controlled.requests[1]?.window)
+    expect(store.getter(viewportMetricsAtom).scrollTop).toBe(
+      (SALES_ORDER_SHEET_ROW_COUNT - GRID_WINDOW_ROW_COUNT) * GRID_ROW_HEIGHT,
+    )
 
     const lastFormulaCell = await waitFor(() => {
       const cell = document.querySelector('[data-cell="1000:6"]')

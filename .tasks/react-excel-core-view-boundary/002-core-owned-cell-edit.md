@@ -6,9 +6,9 @@ parent: null
 depends_on: ["001"]
 discovered_from: null
 model: gpt-5.6-sol
-status: pending
+status: skipped
 created: 2026-09-02
-done: null
+done: 2026-09-02
 base: null
 files:
   - excel/spreadsheet-ui-core/src/editing/**
@@ -21,7 +21,10 @@ files:
   - .tasks/react-excel-core-view-boundary/reports/002-report.md
 ---
 
-# 单格提交只由 UI-core 编排
+# 单格提交只由 UI-core 编排（已合并）
+
+> 2026-09-02：用户要求 selection、projection、editing 三条现有链统一迁移为
+> `useAtomValue` / `useSetAtom` + command atom。本叶范围已完整合并到 001，不再单独执行或 review。
 
 ## 目标
 
@@ -70,4 +73,4 @@ React Cell editor 只提交编辑意图并读取提交状态；UI-core 自己取
 
 ## 执行记录（仅编排者回写）
 
-- 等 001 独立 review 与用户验收后写入 base 并派发。
+- 本叶未独立派发；范围合并到 001，状态为 `skipped`。

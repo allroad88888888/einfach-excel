@@ -30,31 +30,35 @@
 
 | id | 表面 / 状态 | 精确入口或路径 | 归属叶子 | 验证证据 | 状态 |
 |---|---|---|---|---|---|
-| B-001 | 首屏与滚动投影 | `react-excel/src/workbook/projection/use-workbook-viewport.ts` | 001 | core command tests + React projection tests | running |
-| B-002 | 单格提交、失败与重试 | `react-excel/src/workbook/editing/use-cell-edit.ts` | 002 | React editing tests + core bound-editing tests | pending |
-| B-003 | Store 创建与 selection bounds 初始化 | `react-excel/src/app/App.tsx`、`workbook/runtime/WorkbookRuntimeProvider.tsx` | 003 | App/provider tests + source audit | pending |
-| B-004 | React workbook 无越界 atom/backend 编排 | `react-excel/src/workbook/**` | 004 | 静态扫描 + 全量 React 验证 | pending |
+| B-001 | Selection 读写与 pointer 选择 | `react-excel/src/workbook/selection/**` | 001 | core command tests + React selection tests | done |
+| B-002 | 首屏与滚动投影 | `react-excel/src/workbook/projection/**` | 001 | core command tests + React projection tests | done |
+| B-003 | 单格启动、提交、失败与重试 | `react-excel/src/workbook/editing/**` | 001 | core command tests + React editing tests | done |
+| B-004 | 显式 Provider 与 hooks store 隔离 | `react-excel/src/workbook/runtime/**` | 001 | provider isolation tests + source audit | done |
+| B-005 | Store 创建与 selection bounds 初始化 | `react-excel/src/app/App.tsx`、`workbook/runtime/WorkbookRuntimeProvider.tsx` | 003 | App/provider tests + source audit | pending |
+| B-006 | React workbook 无越界 atom/backend 编排 | `react-excel/src/workbook/**` | 004 | 静态扫描 + 全量 React 验证 | pending |
+| B-007 | React 产品零 `useState/useReducer` | `react-excel/src/**` | 001 | runtime/window atom tests + static scan | done |
 
 ## 阶段与优先级
 
 ```text
-P0 / 001 Core 接管可见投影
-  └─ P0 / 002 Core 接管单格提交
-      └─ P1 / 003 Core 接管 Store 初始化
-          └─ P1 / 004 审计 React 只剩视图职责
+P0 / 001 三条现有链统一使用 React atom hooks + UI-core command atoms
+  └─ P1 / 003 Core 接管 Store 初始化
+      └─ P1 / 004 审计 React 只剩视图职责
 ```
 
 | id | 交付点 | priority | model | status | base | report | review |
 |---|---|---|---|---|---|---|---|
-| 001 | 连续投影只由 UI-core 调 Rust | P0 | gpt-5.6-sol | running | 6f07cae2568596331a2be333791203694d59bc17 | pending | pending |
-| 002 | 单格提交只由 UI-core 编排 | P0 | gpt-5.6-sol | pending | 等 001 done 后写入 | pending | pending |
-| 003 | 生产 Store 只由 UI-core 创建和初始化 | P1 | gpt-5.6-terra | pending | 等 002 done 后写入 | pending | pending |
+| 001 | Selection / projection / editing 统一 atom 接入 | P0 | gpt-5.6-sol | done | 6f07cae2568596331a2be333791203694d59bc17 | `reports/001-report.md` | `reports/001-review.md` |
+| 002 | 单格提交只由 UI-core 编排（已合并到 001） | P0 | gpt-5.6-sol | skipped | n/a | n/a | n/a |
+| 003 | 生产 Store 只由 UI-core 创建和初始化 | P1 | gpt-5.6-terra | pending | 等 001 done 后写入 | pending | pending |
 | 004 | React view-only 边界审计通过 | P1 | gpt-5.6-sol | pending | 等 003 done 后写入 | pending | pending |
 
 ## 当前进度
 
-- 001 已有未提交实现和本地验证，尚未生成执行报告，也没有独立 review，因此保持 `running`。
-- 002、003、004 不得在 001 review 和用户验收前开工。
+- 001 的 hooks/command atom 迁移返修后二审曾 `APPROVED`；用户验收发现两处 `useState` 后重新打开。
+  App runtime 与 grid window 已下沉/改接 UI-core atoms，三审 `APPROVED`，当前再次暂停等待用户验收。
+- 002 的 editing 范围已合并进 001，标记 `skipped`，避免同一链拆成两次无法独立验收的迁移。
+- 003、004 不得在 001 再次 review 与用户验收前开工。
 
 ## 决策与变更
 
@@ -64,6 +68,11 @@ P0 / 001 Core 接管可见投影
   transport 和状态机；错了的代价是 UI-core API 需要承担更稳定的跨框架合同。
 - 裁决：新建本树，不修改两个已经完成的 React 历史任务目标 — 保留已验收 demo 和目录迁移的事实；
   错了的代价是任务记录分散在三棵树，但边界和提交阶段不会被混写。
+- 变更：用户要求三条现有链一次统一成标准 atom 接入，因此 002 合并到 001；错了的代价是本次 review
+  面更大，但可以一次消除三套手写订阅与 setter 包装，避免中间态继续扩散。
+- 变更：用户明确要求 React 产品零 `useState/useReducer`，覆盖原先“renderer-private 可用”的宽松规则；
+  可见窗口复用 UI-core viewport atoms，Rust 启动状态新增 UI-core runtime atom，但 backend 创建/销毁仍留
+  产品 effect。错了的代价是 DOM 私有状态未来也需建 atom；当前 React 仅保留 `useRef` 表达 DOM 身份。
 
 ## 遗留与发现
 
@@ -71,3 +80,5 @@ P0 / 001 Core 接管可见投影
   现有 atom，没有顺手拆解该状态机。
 - Solid 和 Vue 目前也各自存在 visible projection transport；本树只保证新增 UI-core 能力可被它们后续
   消费，不在 React 验收批次中同时迁移。
+- B-007 reviewer 认为当前 attempt-local `active` + 幂等 dispose 足以处理 StrictMode 与晚到 Promise，
+  但尚无显式 StrictMode/late-settlement 自动化用例；记为非阻塞测试风险，不冒充已覆盖。

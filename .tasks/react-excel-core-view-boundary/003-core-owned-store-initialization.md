@@ -3,7 +3,7 @@ id: "003"
 title: 生产 Store 只由 UI-core 创建和初始化
 kind: leaf
 parent: null
-depends_on: ["002"]
+depends_on: ["001"]
 discovered_from: null
 model: gpt-5.6-terra
 status: pending
@@ -63,4 +63,4 @@ Store 所有权决定 atom 隔离、backend 绑定和未来多工作簿行为，
 
 ## 执行记录（仅编排者回写）
 
-- 等 002 独立 review 与用户验收后写入 base 并派发。
+- 等 001 独立 review 与用户验收后写入 base 并派发。

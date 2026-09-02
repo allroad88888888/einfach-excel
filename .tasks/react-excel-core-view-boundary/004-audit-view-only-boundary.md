@@ -3,7 +3,7 @@ id: "004"
 title: React view-only 边界审计通过
 kind: leaf
 parent: null
-depends_on: ["001", "002", "003"]
+depends_on: ["001", "003"]
 discovered_from: null
 model: gpt-5.6-sol
 status: pending
@@ -38,13 +38,13 @@ files:
 
 ## 覆盖矩阵行
 
-- `B-004`：React workbook 全目录与 B-001/B-002/B-003 的整体回归证据。
+- `B-006`：React workbook 全目录与 B-001 至 B-005 的整体回归证据。
 
 ## 接口
 
 ### 消费
 
-- 001、002、003 的已审查 diff、报告与公开 atom 接口。
+- 001、003 的已审查 diff、报告与公开 atom 接口。
 
 ### 产出
 
@@ -57,8 +57,8 @@ files:
    零命中。
 3. 人工分类所有 `useState`/`useReducer`/`useRef`，每一处都能证明是渲染器或启动状态。
 4. React 全量 test/typecheck/build、core build、ESLint、cycle audit 与 `git diff --check` 通过。
-5. B-001 至 B-004 每行均有验证证据；任何漏项必须新开修复叶或明确记为范围外，不能把 004 标 done。
+5. B-001 至 B-006 每行均有验证证据；任何漏项必须新开修复叶或明确记为范围外，不能把 004 标 done。
 
 ## 执行记录（仅编排者回写）
 
-- 等 001、002、003 全部 done 后写入 base 并派发独立审计。
+- 等 001、003 全部 done 后写入 base 并派发独立审计。

@@ -27,6 +27,7 @@ export type {
   SheetTabsCapabilities,
   SheetTabsPhase,
   SheetTabsSheetState,
+  SheetTabsSource,
   SheetTabsState,
   UpdateSheetTabRenameInput,
   UpdateSheetTabReorderInput,

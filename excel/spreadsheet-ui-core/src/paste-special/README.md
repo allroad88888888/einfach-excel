@@ -7,7 +7,7 @@ capability.
 
 Parity item #11: the static backend AND the worker adapter implement
 `pasteRange` (the Rust worker path composes existing RPCs over the shared
-`excel/spreadsheet-ui-core/src/rust-worker/adapter/paste-range-plan.ts` helpers). The Edit menu
+宿主若没有实现对应的可选 backend 端口，Edit 菜单
 and Ctrl+Alt+V are capability-gated. A backend may subdivide the capability
 fail-closed via `pasteRangeSupportedKinds` (projected by
 `pasteSpecialSupportedKindsAtom`): the TS worker runtime declares only the

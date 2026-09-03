@@ -17,25 +17,10 @@
       "import": "./esm/rust-worker/index.mjs",
       "require": "./cjs/rust-worker/index.cjs"
     },
-    "./rust-worker/runtime": {
-      "types": "./@types/rust-worker/runtime.d.ts",
-      "import": "./esm/rust-worker/runtime.mjs",
-      "default": "./esm/rust-worker/runtime.mjs"
-    },
-    "./rust-worker/runtime-full": {
-      "types": "./@types/rust-worker/runtime-full.d.ts",
-      "import": "./esm/rust-worker/runtime-full.mjs",
-      "default": "./esm/rust-worker/runtime-full.mjs"
-    },
-    "./rust-worker/runtime-core": {
-      "types": "./@types/rust-worker/runtime-core.d.ts",
-      "import": "./esm/rust-worker/runtime-core.mjs",
-      "default": "./esm/rust-worker/runtime-core.mjs"
-    },
-    "./rust-worker/adapter/*": {
-      "types": "./@types/rust-worker/adapter/*.d.ts",
-      "import": "./esm/rust-worker/adapter/*.mjs",
-      "require": "./cjs/rust-worker/adapter/*.cjs"
+    "./rust-runtime": {
+      "types": "./@types/rust-runtime.d.ts",
+      "import": "./esm/rust-runtime.mjs",
+      "default": "./esm/rust-runtime.mjs"
     }
   },
   "license": "MIT",
@@ -63,14 +48,8 @@
     "verify:package-artifact": "node scripts/verify-package-artifact.mjs"
   },
   "sideEffects": [
-    "./src/rust-worker/runtime.ts",
-    "./src/rust-worker/runtime-full.ts",
-    "./src/rust-worker/adapter/worker-runtime.ts",
-    "./src/rust-worker/adapter/worker-runtime-full.ts",
-    "./esm/rust-worker/runtime.mjs",
-    "./esm/rust-worker/runtime-full.mjs",
-    "./esm/rust-worker/adapter/worker-runtime.mjs",
-    "./esm/rust-worker/adapter/worker-runtime-full.mjs"
+    "./src/rust-runtime.ts",
+    "./esm/rust-runtime.mjs"
   ],
   "engines": {
     "node": ">=22.12.0"

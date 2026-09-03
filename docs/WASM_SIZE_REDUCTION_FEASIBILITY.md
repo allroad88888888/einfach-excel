@@ -15,9 +15,9 @@ full 分为独立路径：`build:wasm` 生成 lite，`build:wasm:full` 生成带
 `regex-formulas` feature 的 full；两条交付路径都会在保留名称的构建之后执行各自的
 strip 脚本。`build:wasm:both` 只是顺序执行这两条路径。
 
-full 入口静态导入 `wasm-pkg-full/`，且只有显式选择该入口的宿主才会拉入 full
-变体，见 [`runtime-full.ts`](../excel/spreadsheet-ui-core/src/rust-worker/runtime-full.ts)。
-因此，变体选择是宿主入口的构建图选择，而不是可在同一运行时无代价切换的选项。
+full 入口曾静态导入 `wasm-pkg-full/`，且只有显式选择该入口的宿主才会拉入 full
+变体。该入口现已归档；React 产品只发布 lite Worker。因此，变体选择仍是构建图选择，
+不是可在同一运行时无代价切换的选项。
 
 ## 可行路径
 

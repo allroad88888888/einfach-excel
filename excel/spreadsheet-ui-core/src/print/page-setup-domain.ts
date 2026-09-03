@@ -1,4 +1,9 @@
-import type { SpreadsheetBackend } from '../backend'
+import type {
+  ReadPrintConfigRequest,
+  ReadPrintConfigResult,
+  SetPrintConfigRequest,
+  SetPrintConfigResult,
+} from '../backend'
 import type { CellRange } from '../shared'
 import type { PrintConfig, PrintScale } from './types'
 
@@ -9,14 +14,23 @@ export interface PageSetupOperationTicket {
   readonly refreshRequestId: number
 }
 
+export interface PrintConfigSource {
+  readonly readPrintConfig?: (
+    request: ReadPrintConfigRequest,
+  ) => Promise<ReadPrintConfigResult>
+  readonly setPrintConfig?: (
+    request: SetPrintConfigRequest,
+  ) => Promise<SetPrintConfigResult>
+}
+
 export interface PageSetupPorts {
-  readonly source: SpreadsheetBackend
-  readonly readPrintConfig: NonNullable<SpreadsheetBackend['readPrintConfig']>
-  readonly setPrintConfig: NonNullable<SpreadsheetBackend['setPrintConfig']>
+  readonly source: PrintConfigSource
+  readonly readPrintConfig: NonNullable<PrintConfigSource['readPrintConfig']>
+  readonly setPrintConfig: NonNullable<PrintConfigSource['setPrintConfig']>
 }
 
 export function capturePageSetupPorts(
-  source: SpreadsheetBackend | undefined,
+  source: PrintConfigSource | undefined,
 ): PageSetupPorts | null {
   try {
     if (source === undefined) return null
@@ -30,7 +44,7 @@ export function capturePageSetupPorts(
 }
 
 export function capturePageSetupReadPort(
-  source: SpreadsheetBackend | undefined,
+  source: PrintConfigSource | undefined,
 ): Pick<PageSetupPorts, 'source' | 'readPrintConfig'> | null {
   try {
     if (source === undefined) return null

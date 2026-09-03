@@ -3,10 +3,12 @@ import { getSourceTextFromProjection } from '../projection/editable-source-text'
 import { projectionSnapshotAtom } from '../projection'
 import type { CellCoord } from '../shared'
 import { startEditingAtom } from './session-atoms'
+import type { EditingInputSource } from './types'
 
 export interface StartCellEditingFromProjectionInput {
   readonly sheetId: string
   readonly cell: CellCoord
+  readonly source?: EditingInputSource
 }
 
 /** Starts a cell draft from the source text owned by the current projection. */
@@ -24,7 +26,7 @@ export const startCellEditingFromProjectionAtom = atom(
       sheetId: input.sheetId,
       cell: input.cell,
       draft: sourceText,
-      source: 'cell',
+      source: input.source ?? 'cell',
     })
     return true
   },

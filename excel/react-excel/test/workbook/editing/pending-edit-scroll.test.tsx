@@ -3,7 +3,6 @@ import {
   setSelectionBoundsAtom,
   type BackendMutationResult,
   type EditingCommitRequest,
-  type SpreadsheetBackend,
   type VisibleProjectionRequest,
   type VisibleProjectionResult,
 } from '@einfach/spreadsheet-ui-core'
@@ -16,6 +15,7 @@ import {
 } from '../../../src/product/sales-orders/data/sheet'
 import { GRID_ROW_HEIGHT } from '../../../src/workbook/projection/use-grid-window'
 import { WorkbookRuntimeProvider } from '../../../src/workbook/runtime/WorkbookRuntimeProvider'
+import { createTestRustWorkbookConnection } from '../../support/rust-workbook-connection'
 
 const { Workbook } = jest.requireActual('../../../src/workbook/shell/Workbook') as {
   Workbook: ComponentType
@@ -63,7 +63,7 @@ describe('pending edit projection scrolling', () => {
     })
     render(
       <WorkbookRuntimeProvider
-        backend={{ readVisibleProjection, setCellInput } as unknown as SpreadsheetBackend}
+        connection={createTestRustWorkbookConnection({ readVisibleProjection, setCellInput })}
         store={store}
       >
         <Workbook />

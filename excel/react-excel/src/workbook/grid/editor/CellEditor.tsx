@@ -39,13 +39,15 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
     'outcome-unknown',
   ].includes(lifecycle.status)
   const feedback = editingCommitFeedback(lifecycle)
+  const editingFromFormulaBar = session.source?.source === 'formula-bar'
 
   useEffect(() => {
+    if (editingFromFormulaBar) return
     inputRef.current?.focus({ preventScroll: true })
     inputRef.current?.select()
-  }, [cell?.col, cell?.row])
+  }, [cell?.col, cell?.row, editingFromFormulaBar])
 
-  if (cell === null) return null
+  if (cell === null || editingFromFormulaBar) return null
 
   const commitOnce = async (restoreKeyboardFocus: boolean) => {
     if (committingRef.current || busy) return
@@ -75,6 +77,12 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
       suppressBlurRef.current = false
       return
     }
+    if (
+      event.relatedTarget instanceof HTMLElement &&
+      event.relatedTarget.dataset.formulaInput === 'true'
+    ) {
+      return
+    }
     if (!event.currentTarget.contains(event.relatedTarget)) void commitOnce(false)
   }
   const stopPointer = (event: PointerEvent<HTMLDivElement>) => event.stopPropagation()
@@ -85,7 +93,13 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
   const fieldIdentity = `cell-editor-r${cell.row}-c${cell.col}`
 
   return (
-    <div className="cell-editor" onBlur={onBlur} onPointerDown={stopPointer} style={style}>
+    <div
+      className="cell-editor"
+      data-cell-editor="true"
+      onBlur={onBlur}
+      onPointerDown={stopPointer}
+      style={style}
+    >
       <input
         ref={inputRef}
         aria-label="Cell editor"

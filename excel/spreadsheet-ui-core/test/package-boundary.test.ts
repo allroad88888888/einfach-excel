@@ -6,7 +6,6 @@ import type {
   BackendMutationResult,
   SetRangeLockRequest,
   SheetProtectionPersistencePort,
-  SpreadsheetBackend,
 } from '../src'
 import {
   clipboardStateAtom,
@@ -178,15 +177,16 @@ describe('package boundary', () => {
     expect(sheetProtectionAtom.debugLabel).toBe('spreadsheet.protection.state')
   })
 
-  test('keeps atom modules free of UI frameworks, DOM runtime, workers, and wasm glue', () => {
+  test('keeps UI core free of framework runtimes, DOM access, and inline wasm glue', () => {
     const forbiddenImport =
-      /from ['"](?:solid-js|react|@einfach\/solid|@einfach\/react|.*worker.*|.*wasm.*)['"]/
+      /from ['"](?:solid-js|react|@einfach\/solid|@einfach\/react|.*wasm.*)['"]/
     // 负向后顾排除属性访问:投影结果的领域字段就叫 `window`(`result.window.rowStart`),
     // 只有裸的全局 `window.` / `document.` 才是越界。
     const forbiddenRuntime =
       /(?<!\.)\b(?:document\.|window\.|new Worker\(|HTMLElement|HTMLDivElement)\b/
     const offenders = readSourceFiles(SRC_ROOT)
-      .filter(({ path }) => !path.includes('/rust-worker/'))
+      .filter(({ path }) => !path.endsWith('/rust-runtime.ts'))
+      .filter(({ path }) => !path.includes('/rust-workbook/'))
       .flatMap(({ path, text }) => {
       const matches = []
 
@@ -356,7 +356,7 @@ describe('package boundary', () => {
     }
   })
 
-  test('keeps a generic backend assignable to the protection persistence hook', async () => {
+  test('keeps a structural source assignable to the protection persistence hook', async () => {
     const legacySetRangeLock = async (
       request: SetRangeLockRequest,
     ): Promise<BackendMutationResult> => ({
@@ -365,14 +365,12 @@ describe('package boundary', () => {
       revision: 'legacy-revision',
       affectedRange: request.range,
     })
-    const backend: Pick<SpreadsheetBackend, 'setRangeLock'> = {
+    const source: Pick<SheetProtectionPersistencePort, 'setRangeLock'> = {
       setRangeLock: legacySetRangeLock,
     }
-    // Protection is UI-core canonical (#40): backend protection ports are
-    // an optional persistence hook, so any SpreadsheetBackend — with or
-    // without the ports — must satisfy the hook interface structurally.
-    const withPort: SheetProtectionPersistencePort = backend
-    const portless: SheetProtectionPersistencePort = {} satisfies Pick<SpreadsheetBackend, never>
+    // Protection is UI-core canonical (#40): persistence is a local structural port.
+    const withPort: SheetProtectionPersistencePort = source
+    const portless: SheetProtectionPersistencePort = {}
 
     expect(portless.setRangeLock).toBeUndefined()
     await expect(

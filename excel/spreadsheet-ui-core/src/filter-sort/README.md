@@ -29,7 +29,7 @@ No backing atom is re-exported through the facade.
   - `openFilterDropdownAtom`: opens the dropdown for a column on a sheet.
   - `closeFilterDropdownAtom`: closes the dropdown.
 - Scale bound: one `FilterSortState` entry per active sheet. List rule values capped at `MAX_FILTER_LIST_VALUES` (10 000).
-- Backend reads: `setFilterSort?` on `SpreadsheetBackend` (optional; UI core treats as unavailable when absent).
+- Operation port: optional `setFilterSort`; UI core treats the feature as unavailable until its Rust command is bound.
 - Per-cell/per-row/per-col atom risk: none — no per-cell state created here.
 - Tests: `test/filter-sort.test.ts`.
 
@@ -93,7 +93,7 @@ sort mechanism — there is no display-permutation fallback:
   The filter half is additionally guarded on the rules still being active, so a stale set left behind by a
   cleared filter never pins visible rows. Summary-row pinning needs cell reads UI core does not own
   (known v1 gap, design §6.1).
-- Backend reads: `sortRange?` on `SpreadsheetBackend` (optional). ABSENCE MEANS NO SORT: hosts gate their sort
+- Operation port: optional `sortRange`. ABSENCE MEANS NO SORT: hosts gate their sort
   entrypoints on `sortRangeSupportedAtom` (toolbar button + filter-dropdown sort section) and on the `'sortRange'`
   menu capability key (Data → Sort asc/desc), so the fail-closed TS worker shows no sort affordance at all.
 - Tests: `test/physical-sort.test.ts`.

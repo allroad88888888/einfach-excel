@@ -1,14 +1,37 @@
 import { describe, expect, test } from '@jest/globals'
-import type { SpreadsheetBackend } from '../src'
 import {
   createRangeProjectionRequest,
   createVisibleProjectionRequest,
+  type BackendMutationResult,
+  type RangeProjectionRequest,
+  type RangeProjectionResult,
+  type RangeTsvExportRequest,
+  type RangeTsvExportResult,
+  type SetCellInputRequest,
+  type SetColumnWidthRequest,
+  type SetRowHeightRequest,
   validateProjectionResult,
+  type ViewportSizeProjectionRequest,
+  type ViewportSizeProjectionResult,
+  type VisibleProjectionRequest,
+  type VisibleProjectionResult,
 } from '../src'
 
-describe('backend contract', () => {
+interface WorkbookOperationPorts {
+  readVisibleProjection(request: VisibleProjectionRequest): Promise<VisibleProjectionResult>
+  readRangeProjection(request: RangeProjectionRequest): Promise<RangeProjectionResult>
+  exportRangeTsv(request: RangeTsvExportRequest): Promise<RangeTsvExportResult>
+  readViewportSizeProjection(
+    request: ViewportSizeProjectionRequest,
+  ): Promise<ViewportSizeProjectionResult>
+  setCellInput(request: SetCellInputRequest): Promise<BackendMutationResult>
+  setRowHeight(request: SetRowHeightRequest): Promise<BackendMutationResult>
+  setColumnWidth(request: SetColumnWidthRequest): Promise<BackendMutationResult>
+}
+
+describe('workbook operation contracts', () => {
   test('uses visible-window and explicit range ports without exposing workbook facts', async () => {
-    const backend: SpreadsheetBackend = {
+    const ports: WorkbookOperationPorts = {
       async readVisibleProjection(request) {
         return {
           kind: 'visible-window',
@@ -99,21 +122,21 @@ describe('backend contract', () => {
       range: { rowStart: 2, rowEnd: 3, colStart: 1, colEnd: 1 },
     })
 
-    const visibleResult = await backend.readVisibleProjection(visibleRequest)
-    const rangeResult = await backend.readRangeProjection(rangeRequest)
-    const sizeResult = await backend.readViewportSizeProjection?.({
+    const visibleResult = await ports.readVisibleProjection(visibleRequest)
+    const rangeResult = await ports.readRangeProjection(rangeRequest)
+    const sizeResult = await ports.readViewportSizeProjection({
       kind: 'viewport-size',
       sheetId: 'sheet-1',
       requestId: 10,
       window: { rowStart: 2, rowEnd: 3, colStart: 1, colEnd: 2 },
     })
-    const tsvResult = await backend.exportRangeTsv?.({
+    const tsvResult = await ports.exportRangeTsv({
       kind: 'export-range-tsv',
       sheetId: 'sheet-1',
       requestId: 13,
       range: { rowStart: 1, rowEnd: 2, colStart: 1, colEnd: 2 },
     })
-    const mutationResult = await backend.setCellInput({
+    const mutationResult = await ports.setCellInput({
       kind: 'set-cell-input',
       sheetId: 'sheet-1',
       requestId: 9,
@@ -121,14 +144,14 @@ describe('backend contract', () => {
       col: 1,
       input: '=A1+1',
     })
-    const rowHeightResult = await backend.setRowHeight?.({
+    const rowHeightResult = await ports.setRowHeight({
       kind: 'set-row-height',
       sheetId: 'sheet-1',
       requestId: 11,
       rowIndex: 2,
       heightPx: 32,
     })
-    const columnWidthResult = await backend.setColumnWidth?.({
+    const columnWidthResult = await ports.setColumnWidth({
       kind: 'set-column-width',
       sheetId: 'sheet-1',
       requestId: 12,

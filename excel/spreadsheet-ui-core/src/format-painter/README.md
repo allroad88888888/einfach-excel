@@ -34,17 +34,17 @@
   —— 抓取格式快照时的结构上限。这三条防的是**宿主传入畸形数据**（超深嵌套、超大对象）
   导致的序列化爆栈或内存膨胀，不是业务约束。
 
-## 端口通过 port 类型注入，不直连 backend
+## 端口按操作注入
 
-本模块不持有 `SpreadsheetBackend`。它声明四个 port 类型让宿主注入：
+本模块声明四个窄 port 类型，由上层 command atom 绑定对应的 Rust command：
 
 - `FormatPainterResolveTargetRangesPort` —— 把选区解析成目标区间列表
 - `FormatPainterSetFormatRangePort` —— 实际写格式
 - `FormatPainterRefreshProjectionPort` —— 写完后刷新投影
 - `FormatPainterReadVisibleProjectionPort` —— 抓取源格式
 
-这么做是因为格式刷要跨越「选区解析」（UI core）与「格式写入」（后端）两侧，直接依赖 backend
-会把 `pointer` / `selection` 的语义拖进本模块。
+这么做是因为格式刷要跨越「选区解析」（UI core）与「格式写入」（Rust）两侧；窄 port
+只描述一次操作，不承担工作簿状态，也不会变成新的聚合 backend。
 
 ## ticket 与迟到证据
 

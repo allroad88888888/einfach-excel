@@ -16,6 +16,7 @@ export type {
   EncodeSelectionAsImageSuccess,
   EncodeSelectionAsImageFailure,
   EncodeSelectionAsImageFailureKind,
+  RangeImageExportPort,
 } from './encodeSelectionAsImage'
 
 const lastCopyAsBackingAtom = atom<CopyAsResult | null>(null)

@@ -1,7 +1,9 @@
 /** Shared deterministic helpers for editing transaction tests. */
 import type { Store } from '@einfach/core'
 
+import type { BackendMutationResult, EditingCommitRequest } from '../src/editing'
 import { startEditingAtom } from '../src/editing'
+import { bindTestRustWorkbookConnection } from './support/rust-workbook-connection'
 
 export function deferred<T>() {
   let resolve!: (value: T | PromiseLike<T>) => void
@@ -24,4 +26,11 @@ export function startCellEdit(store: Store, draft = '=B2+2'): void {
     draft,
     source: 'cell',
   })
+}
+
+export function bindEditingMutation(
+  store: Store,
+  setCellInput: (request: EditingCommitRequest) => Promise<BackendMutationResult>,
+): void {
+  bindTestRustWorkbookConnection(store, { setCellInput })
 }

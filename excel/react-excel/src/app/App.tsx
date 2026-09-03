@@ -12,7 +12,8 @@ import {
   SALES_ORDER_COLUMNS,
   SALES_ORDER_SHEET_ROW_COUNT,
 } from '../product/sales-orders/data/sheet'
-import { createRustWorkbookBackend } from '../product/sales-orders/runtime/create-rust-workbook-backend'
+import { createSalesOrdersWorkbookConnection } from '../product/sales-orders/runtime/create-rust-workbook-connection'
+import { initializeSalesOrdersWorkbook } from '../product/sales-orders/runtime/initialize-sales-orders-workbook'
 import { Workbook } from '../workbook/shell/Workbook'
 
 const workbookStore = createStore()
@@ -21,7 +22,7 @@ workbookStore.setter(setSelectionBoundsAtom, {
   rowCount: SALES_ORDER_SHEET_ROW_COUNT,
 })
 
-type RustWorkbookBackend = ReturnType<typeof createRustWorkbookBackend>
+type RustWorkbookConnection = ReturnType<typeof createSalesOrdersWorkbookConnection>
 
 /** Owns the Rust Worker resource while core owns its rendered lifecycle state. */
 function ProductWorkbookRuntime() {
@@ -32,18 +33,18 @@ function ProductWorkbookRuntime() {
 
   useEffect(() => {
     let active = true
-    let backend: RustWorkbookBackend | undefined
+    let connection: RustWorkbookConnection | undefined
     let disposed = false
-    const disposeBackend = () => {
-      if (backend === undefined || disposed) return
+    const disposeConnection = () => {
+      if (connection === undefined || disposed) return
       disposed = true
-      backend.dispose()
+      connection.dispose()
     }
 
     beginRuntime()
 
     try {
-      backend = createRustWorkbookBackend()
+      connection = createSalesOrdersWorkbookConnection()
     } catch (error) {
       rejectRuntime(error)
       return () => {
@@ -52,19 +53,19 @@ function ProductWorkbookRuntime() {
       }
     }
 
-    void backend.ready().then(
+    void initializeSalesOrdersWorkbook(connection).then(
       () => {
-        if (active && backend !== undefined) resolveRuntime({ backend })
+        if (active && connection !== undefined) resolveRuntime({ connection })
       },
       (error: unknown) => {
-        disposeBackend()
+        disposeConnection()
         if (active) rejectRuntime(error)
       },
     )
 
     return () => {
       active = false
-      disposeBackend()
+      disposeConnection()
       beginRuntime()
     }
   }, [beginRuntime, rejectRuntime, resolveRuntime])

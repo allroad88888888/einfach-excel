@@ -4,7 +4,7 @@ import type {
   ReadPrintConfigRequest,
   ReadPrintConfigResult,
   SetPrintConfigRequest,
-  SpreadsheetBackend,
+  PrintConfigSource,
 } from '../src'
 import {
   DEFAULT_PRINT_CONFIG,
@@ -22,7 +22,7 @@ import {
 } from '../src'
 
 interface PrintBackendHarness {
-  readonly source: SpreadsheetBackend
+  readonly source: PrintConfigSource
   readonly reads: ReadonlyArray<ReadPrintConfigRequest>
   readonly writes: ReadonlyArray<SetPrintConfigRequest>
 }
@@ -62,7 +62,7 @@ function createPrintBackend(
       await options.afterWrite?.(request)
       return { sheetId: request.sheetId, requestId: request.requestId, revision: 'write-1' }
     },
-  } as SpreadsheetBackend
+  } satisfies PrintConfigSource
   return { source, reads, writes }
 }
 
@@ -161,7 +161,7 @@ describe('page setup Atom session', () => {
     store.setter(openPageSetupAtom, { sheetId: 'sheet-1' })
 
     await expect(
-      store.setter(runPageSetupSaveAtom, { source: {} as SpreadsheetBackend }),
+      store.setter(runPageSetupSaveAtom, { source: {} }),
     ).resolves.toBe('blocked')
 
     expect(store.getter(pageSetupSessionAtom)?.phase).toBe('blocked')

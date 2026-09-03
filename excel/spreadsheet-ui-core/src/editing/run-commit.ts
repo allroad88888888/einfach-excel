@@ -7,6 +7,9 @@
  * form one ordered publication phase guarded by the active ticket.
  */
 import { atom } from '@einfach/core'
+import type { BackendMutationResult } from '../backend'
+import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
+import { setRustCellInputAtom } from '../rust-workbook/command-atoms'
 import { editingErrorMessage, runBoundedEditingOperation } from './bounded-operation'
 import { captureEditingCommitInput, snapshotEditingAcknowledgement } from './commit-input'
 import {
@@ -23,7 +26,6 @@ import {
   lifecycleForTicket,
   markEditingRawTransportSettled,
   nextSafeEditingIdentity,
-  type EditingCommitTicket,
 } from './commit-state'
 import { completeEditingTicket, rejectEditingTicket } from './commit-settlement'
 import { createEditingCommitTicket } from './commit-ticket'
@@ -92,6 +94,7 @@ export const runEditingCommitAtom = atom(
       )
       return 'blocked'
     }
+    if (get(rustWorkbookConnectionAtom) === null) return 'blocked'
     const targetCell = resolution.cell ?? derivedIntent.cell
 
     const requestId = nextSafeEditingIdentity(get(editingRequestSequenceAtom))
@@ -111,7 +114,7 @@ export const runEditingCommitAtom = atom(
     // descriptor so its cursor stays positionally aligned with the backend log.
     const capturedHistoryReservation = acquireEditingHistoryProjection(
       set,
-      captured.supportsHistoryReplay,
+      false,
     )
     if (capturedHistoryReservation === null) return 'blocked'
     const historyReservation = capturedHistoryReservation ?? null
@@ -150,9 +153,9 @@ export const runEditingCommitAtom = atom(
     if (!editingTicketIsCurrent(get, ticket, pendingLifecycle)) return 'blocked'
 
     // Only launch after raw transport state exists; reconciliation relies on this settlement bit.
-    let rawTransport: Promise<Awaited<ReturnType<EditingCommitTicket['execute']>>>
+    let rawTransport: Promise<BackendMutationResult>
     try {
-      rawTransport = Promise.resolve(ticket.execute.call(ticket.source, ticket.request))
+      rawTransport = Promise.resolve(set(setRustCellInputAtom, ticket.request))
     } catch (error) {
       const detail = editingErrorMessage(error)
       markEditingRawTransportSettled(set, ticket)

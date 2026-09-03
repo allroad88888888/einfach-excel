@@ -24,15 +24,14 @@ const requiredPackageFiles = [
   'esm/rust-worker/index.mjs',
   'cjs/rust-worker/index.cjs',
   '@types/rust-worker/index.d.ts',
-  'esm/rust-worker/runtime.mjs',
-  'esm/rust-worker/runtime-core.mjs',
-  'esm/rust-worker/runtime-full.mjs',
-  '@types/rust-worker/runtime.d.ts',
-  '@types/rust-worker/runtime-core.d.ts',
-  '@types/rust-worker/runtime-full.d.ts',
-  'esm/rust-worker/adapter/worker/backend.mjs',
-  'cjs/rust-worker/adapter/worker/backend.cjs',
-  '@types/rust-worker/adapter/worker/backend.d.ts',
+  'esm/rust-worker/transport.mjs',
+  'cjs/rust-worker/transport.cjs',
+  '@types/rust-worker/transport.d.ts',
+  'esm/rust-runtime.mjs',
+  '@types/rust-runtime.d.ts',
+  'esm/rust-workbook/commands.mjs',
+  'cjs/rust-workbook/commands.cjs',
+  '@types/rust-workbook/commands.d.ts',
   'README.md',
 ]
 const forbiddenPackageDirectories = ['src', 'test', 'e2e', 'demos']
@@ -102,36 +101,22 @@ function verifyManifest(manifest) {
   assertEqual(rustWorkerExport.import, './esm/rust-worker/index.mjs', 'rust worker import')
   assertEqual(rustWorkerExport.require, './cjs/rust-worker/index.cjs', 'rust worker require')
 
-  for (const entry of ['runtime', 'runtime-core', 'runtime-full']) {
-    const workerExport = manifest.exports?.[`./rust-worker/${entry}`]
-    if (!workerExport || typeof workerExport !== 'object')
-      fail(`manifest.exports["./rust-worker/${entry}"] must be an object`)
-    assertEqual(
-      workerExport.types,
-      `./@types/rust-worker/${entry}.d.ts`,
-      `${entry} types`,
-    )
-    assertEqual(workerExport.import, `./esm/rust-worker/${entry}.mjs`, `${entry} import`)
-  }
+  const runtimeExport = manifest.exports?.['./rust-runtime']
+  if (!runtimeExport || typeof runtimeExport !== 'object')
+    fail('manifest.exports["./rust-runtime"] must be an object')
+  assertEqual(runtimeExport.types, './@types/rust-runtime.d.ts', 'runtime types')
+  assertEqual(runtimeExport.import, './esm/rust-runtime.mjs', 'runtime import')
 
-  const rustWorkerAdapterExport = manifest.exports?.['./rust-worker/adapter/*']
-  if (!rustWorkerAdapterExport || typeof rustWorkerAdapterExport !== 'object')
-    fail('manifest.exports["./rust-worker/adapter/*"] must be an object')
-  assertEqual(
-    rustWorkerAdapterExport.types,
-    './@types/rust-worker/adapter/*.d.ts',
-    'rust worker adapter types',
-  )
-  assertEqual(
-    rustWorkerAdapterExport.import,
-    './esm/rust-worker/adapter/*.mjs',
-    'rust worker adapter import',
-  )
-  assertEqual(
-    rustWorkerAdapterExport.require,
-    './cjs/rust-worker/adapter/*.cjs',
-    'rust worker adapter require',
-  )
+  for (const removedExport of [
+    './rust-worker/adapter/*',
+    './rust-worker/backend/*',
+    './rust-worker/runtime-core',
+    './rust-worker/runtime-full',
+    './rust-worker/runtime',
+  ]) {
+    if (manifest.exports?.[removedExport] !== undefined)
+      fail(`removed export must not be published: ${removedExport}`)
+  }
 }
 
 async function assertFile(path) {
@@ -176,6 +161,11 @@ async function verifyTarball(temporaryDirectory) {
   await Promise.all(
     forbiddenPackageDirectories.map((directory) => assertAbsent(join(packageRoot, directory))),
   )
+  await assertAbsent(join(packageRoot, 'esm/rust-worker/adapter'))
+  await assertAbsent(join(packageRoot, 'cjs/rust-worker/adapter'))
+  await assertAbsent(join(packageRoot, '@types/rust-worker/adapter'))
+  await assertAbsent(join(packageRoot, 'esm/rust-worker/backend'))
+  await assertAbsent(join(packageRoot, 'esm/rust-worker/runtime'))
 
   return manifest.name
 }

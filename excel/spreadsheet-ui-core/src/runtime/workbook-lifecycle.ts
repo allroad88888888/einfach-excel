@@ -1,6 +1,6 @@
 import { atom, type Atom } from '@einfach/core'
-import type { SpreadsheetBackend } from '../backend'
-import { spreadsheetBackendBindingAtom } from './backend-state'
+import type { RustWorkbookConnection } from '../rust-workbook'
+import { setRustWorkbookConnectionAtom } from './workbook-connection'
 
 export type SpreadsheetRuntimeState =
   | { readonly status: 'loading' }
@@ -8,7 +8,7 @@ export type SpreadsheetRuntimeState =
   | { readonly status: 'error'; readonly message: string }
 
 export interface ResolveSpreadsheetRuntimeInput {
-  readonly backend: SpreadsheetBackend
+  readonly connection: RustWorkbookConnection
 }
 
 const LOADING_RUNTIME_STATE: SpreadsheetRuntimeState = Object.freeze({ status: 'loading' })
@@ -31,28 +31,28 @@ function runtimeErrorMessage(error: unknown): string {
   }
 }
 
-/** Starts a workbook runtime attempt and clears any stale backend binding. */
+/** 开始一次工作簿启动，并清掉旧的 Worker 连接。 */
 export const beginSpreadsheetRuntimeAtom = atom(null, (_get, set): void => {
-  set(spreadsheetBackendBindingAtom, null)
+  set(setRustWorkbookConnectionAtom, null)
   set(spreadsheetRuntimeBackingAtom, LOADING_RUNTIME_STATE)
 })
 
 beginSpreadsheetRuntimeAtom.debugLabel = 'spreadsheet.runtime.begin'
 
-/** Publishes the ready backend and lifecycle state in one command. */
+/** 在同一个命令里发布可用连接和 ready 状态。 */
 export const resolveSpreadsheetRuntimeAtom = atom(
   null,
   (_get, set, input: ResolveSpreadsheetRuntimeInput): void => {
-    set(spreadsheetBackendBindingAtom, { backend: input.backend })
+    set(setRustWorkbookConnectionAtom, input.connection)
     set(spreadsheetRuntimeBackingAtom, Object.freeze({ status: 'ready' }))
   },
 )
 
 resolveSpreadsheetRuntimeAtom.debugLabel = 'spreadsheet.runtime.resolve'
 
-/** Publishes a startup failure and releases any stale backend binding. */
+/** 发布启动失败，并释放 store 对旧连接的引用。 */
 export const rejectSpreadsheetRuntimeAtom = atom(null, (_get, set, error: unknown): void => {
-  set(spreadsheetBackendBindingAtom, null)
+  set(setRustWorkbookConnectionAtom, null)
   set(
     spreadsheetRuntimeBackingAtom,
     Object.freeze({ status: 'error', message: runtimeErrorMessage(error) }),

@@ -28,8 +28,8 @@ REGEX* 三个内建（`REGEXTEST` / `REGEXEXTRACT` / `REGEXREPLACE`）靠 `regex
 两份一起构建用 `npm run build:wasm:both -w @einfach/excel-wasm`。
 
 **lite 是默认**：`wasm-pack build` 不带参数出的就是它，`ensureWasm`、playwright 的
-`webServer`、以及 vnext worker 的默认 factory 全都指向 `@einfach/excel-wasm`（lite 入口）。full 有一个现成的
-worker 入口（`worker-runtime-full.ts`），但没有任何库内代码引用它 —— 见下面「怎么选 full」。
+`webServer`、以及 React Worker 都指向 `@einfach/excel-wasm`（lite 入口）。full 产物仍可供
+Rust/WASM 的专项验证使用，但 React 当前不发布第二套 Worker 入口。
 
 极性是刻意反的：`einfach-excel-core` 那侧 `regex-formulas` 在 `default` 里（Rust 消费者
 不该因为新增 feature 就静默少掉内建），本 crate 这侧默认关（浏览器默认不该为没人用的
@@ -176,50 +176,22 @@ TS 的 REGEX* 会让上面那两份对称钉子失去一侧，对拍能力直接
 `WRAPCOLS`（TS 有、Rust 无，两份 wasm 都 `#NAME?`，且因为不在保留名清单里还会让宿主
 的同名自定义公式在 TS 后端被静默遮蔽）。
 
-### 怎么选 full
+### React 使用的产物
 
-dispatcher 与"用哪份 wasm"已经解耦：worker 的消息循环住在
-`excel/spreadsheet-ui-core/src/rust-worker/adapter/worker-runtime-core.ts`，导出
-`installWorkerRuntime(wasm)`，`wasm` 是一份 `wasm-pack --target web` 产物的模块命名空间。
-两个**薄入口**各自静态 import 一份产物再调它：
-
-| 入口 | import | 包子路径 |
-|---|---|---|
-| `runtime.ts` | `@einfach/excel-wasm` | `@einfach/spreadsheet-ui-core/rust-worker/runtime` |
-| `runtime-full.ts` | `@einfach/excel-wasm/full` | `@einfach/spreadsheet-ui-core/rust-worker/runtime-full` |
-
-宿主侧三选一：
+React 目前只走 lite，唯一入口是
+`@einfach/spreadsheet-ui-core/rust-worker/runtime`：
 
 ```ts
-// 1) 默认 lite
 import { createWorkerWorkbookSpreadsheetBackend } from '@einfach/spreadsheet-ui-core/rust-worker'
 import WorkbookWorker from '@einfach/spreadsheet-ui-core/rust-worker/runtime?worker'
 createWorkerWorkbookSpreadsheetBackend({ workerFactory: () => new WorkbookWorker() })
-
-// 2) 换 full —— 先 `npm run build:wasm:full -w @einfach/excel-wasm`，再自己 import 入口
-import FullWorkbookWorker from '@einfach/spreadsheet-ui-core/rust-worker/runtime-full?worker'
-createWorkerWorkbookSpreadsheetBackend({ workerFactory: () => new FullWorkbookWorker() })
-
-// 3) 自建产物 —— 写三行自己的 worker 入口
-import * as wasm from './my-wasm-pkg/einfach_wasm.js'
-import { installWorkerRuntime } from '@einfach/spreadsheet-ui-core/rust-worker/runtime-core'
-installWorkerRuntime(wasm)
 ```
 
-**为什么是"宿主自己 import"而不是库里多一个 factory**：Vite 会静态分析
-`new Worker(new URL('./x', import.meta.url))` 并在构建期解析 `x`。只要
-`worker-factory.ts`（或任何 barrel / index）提到 full 入口，`@einfach/excel-wasm/full` 就进了
-每个消费者的构建图 —— 而它是 gitignore 且默认不构建的目录，于是 full 变成**构建期必需产物**，
-每个只想要 lite 的人都得先花 2.5 MB 的构建。所以硬约束是：**库的 barrel / factory 不引用
-任何一个 WASM 入口，两个薄入口都是叶子**。代价因此只落在真正选了 full 的宿主身上。
+这样 Vite 的生产图只包含一份 WASM；需要 REGEX* 时，先确定它是 React 产品能力，再扩展
+现有入口，而不是长期维护 lite/full 两套宿主胶水。
 
-类型检查侧同理：`runtime-full.ts` 会被 UI Core 的 `tsc` 编进程序，靠
-`src/rust-worker/excel-wasm-full-fallback.d.ts` 那条通配 `declare module` 兜底 —— 产物在场
-时 TS 用 wasm-pack 生成的真 d.ts，缺席时才落到兜底，两种情况 `tsc --noEmit` 都通过。
-
-`WasmWorkbook` 是现役接口，`WasmSheet` 是更早的单表接口。JS 侧的消费者是上面那两个薄入口
-背后的 UI Core `worker-runtime-core.ts`，它把这些方法包装成 worker 协议（另一份实现
-`worker-runtime-ts.ts` 用 `@einfach/excel-core-ts` 提供同一套协议）。
+`WasmWorkbook` 是现役接口，`WasmSheet` 是更早的单表接口。JS 侧的消费者是上面的薄入口
+背后的 UI Core `runtime-core.ts`，它只包装 React 当前调用的 Rust 命令。
 
 ## 导出面
 

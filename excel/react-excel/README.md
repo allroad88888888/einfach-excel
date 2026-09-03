@@ -10,7 +10,7 @@
 - 单元格单选和拖拽框选；
 - 从首行滚动到最后一条记录；
 - 双击单元格或按 Enter 进入编辑；
-- 按 Enter 或失焦后，通过 Rust backend 写入并刷新当前可见投影；
+- 按 Enter 或失焦后，通过 Rust command atom 写入并刷新当前可见投影；
 - 按 Escape 取消编辑，不产生写入。
 
 公式栏、Ribbon、工作表标签和缩放区域目前主要负责界面展示。剪贴板、历史记录、格式设置、
@@ -22,15 +22,16 @@
 React 视图
   → @einfach/react（useAtomValue / useSetAtom）
   → @einfach/spreadsheet-ui-core（状态 atom / command atom）
-  → @einfach/spreadsheet-ui-core/rust-worker
+  → rustWorkbookConnectionAtom
+  → @einfach/spreadsheet-ui-core/rust-worker（纯传输）
   → Rust/WASM workbook
 ```
 
-Worker protocol、backend adapter 与轻量 Rust/WASM runtime 均由 UI-core 所有。React 不依赖
-`@einfach/solid-excel`；生产路径没有 TypeScript engine、静态 backend 或运行时 fallback。
+类型化工作簿命令与轻量 Rust/WASM runtime 均由 UI-core 所有。React 不依赖
+`@einfach/solid-excel`；生产路径没有 `SpreadsheetBackend`、TypeScript engine 或运行时 fallback。
 
 - Rust/WASM 负责工作簿权威数据、计算和 mutation 结果。
-- `spreadsheet-ui-core` 负责工作簿状态、跨 atom 状态转换、可见窗口、backend 调用和刷新编排。
+- `spreadsheet-ui-core` 负责工作簿状态、跨 atom 状态转换、可见窗口、Rust 命令和刷新编排。
 - React 负责渲染、effect、DOM 事件、焦点、pointer capture 和滚动事件适配。
 - React 源码不使用 `useState/useReducer`，也不在本包内声明工作簿 atom。
 - 产品启动 effect 负责创建、等待和销毁 Rust Worker；其 loading/ready/error 状态由 UI-core atom 保存。

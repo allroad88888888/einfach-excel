@@ -8,7 +8,12 @@ import {
   type EditingCommitAcknowledgement,
   type EditingCommitRequest,
 } from '../src/editing'
-import { deferred, flushMicrotasks, startCellEdit } from './editing-test-support'
+import {
+  bindEditingMutation,
+  deferred,
+  flushMicrotasks,
+  startCellEdit,
+} from './editing-test-support'
 
 describe('editing commit timeout', () => {
   test('uses finite custom/default mutation deadlines and ignores late fulfilment or rejection', async () => {
@@ -17,14 +22,12 @@ describe('editing commit timeout', () => {
       const fulfilledStore = createStore()
       const fulfilledGate = deferred<EditingCommitAcknowledgement>()
       const fulfilledRequests: EditingCommitRequest[] = []
+      bindEditingMutation(fulfilledStore, (request) => {
+        fulfilledRequests.push(request)
+        return fulfilledGate.promise
+      })
       startCellEdit(fulfilledStore, 'late fulfilment')
       const fulfilledCommit = fulfilledStore.setter(runEditingCommitAtom, {
-        source: {
-          setCellInput(request) {
-            fulfilledRequests.push(request)
-            return fulfilledGate.promise
-          },
-        },
         refreshProjection: async () => undefined,
         timeoutMs: 25,
       })
@@ -46,14 +49,12 @@ describe('editing commit timeout', () => {
       const rejectedStore = createStore()
       const rejectedGate = deferred<EditingCommitAcknowledgement>()
       let rejectedTransportCalls = 0
+      bindEditingMutation(rejectedStore, () => {
+        rejectedTransportCalls += 1
+        return rejectedGate.promise
+      })
       startCellEdit(rejectedStore, 'late rejection')
       const rejectedCommit = rejectedStore.setter(runEditingCommitAtom, {
-        source: {
-          setCellInput() {
-            rejectedTransportCalls += 1
-            return rejectedGate.promise
-          },
-        },
         refreshProjection: async () => undefined,
         // Invalid values safely select the 15 second default.
         timeoutMs: 0,

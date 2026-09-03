@@ -65,14 +65,14 @@ callers without selection context still get a defined result.
 
 ## Used-range scan strategy (host-side)
 
-The host adapter reads the workbook's "used range" by calling
-`backend.readRangeProjection`. For now we derive the range from
+The command reads the workbook's "used range" through the range-projection
+operation. For now we derive the range from
 `viewportMetricsAtom.rowCount × colCount` — i.e. the full addressable space
 the metrics expose — then call `clipRectToCellBudget` to bring the cell
 count under `GO_TO_SCAN_MAX_CELLS` (100 000). The clipped rect preserves
 the full column span and trims rows; the dialog surfaces a
 "scan truncated" banner when clipping fires. A future `usedRangeAtom` /
-port on `SpreadsheetBackend` can replace that approximation without
+`readUsedRange` Rust command can replace that approximation without
 rewriting the locator engine.
 
 For 1M-row workbooks this approach is slow: the host should chunk the read,

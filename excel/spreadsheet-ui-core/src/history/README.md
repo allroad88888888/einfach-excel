@@ -70,6 +70,6 @@ from entries that also carry `localReplay`.
   - `retryHistoryRefreshAtom` — retries a failed post-acknowledgement refresh.
   - `clearHistoryAtom` — resets stack and cursor.
 - Scale bound: `DEFAULT_HISTORY_CAP = 100` entries; each entry is a small descriptor (~100 bytes). No cell content stored; local-replay and side payloads are bounded view facts (freeze: two integers per side; hidden: the sheet's actually-hidden sorted indices per side).
-- Backend reads: optional `undoTransaction` / `redoTransaction` methods on `SpreadsheetBackend` (backend entries only).
+- Operation ports: optional `undoTransaction` / `redoTransaction` commands for Rust-owned history entries.
 - Per-cell/per-row/per-col atom risk: entries must never carry cell content or dense row/column snapshots.
 - Tests: `test/history.test.ts`, `test/frozen-panes.test.ts`, `test/hidden-rows-columns.test.ts` (local replay + side payloads).

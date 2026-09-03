@@ -1,5 +1,4 @@
 import { atom, type Getter, type Setter } from '@einfach/core'
-import type { SpreadsheetBackend } from '../backend'
 import { DEFAULT_PRINT_CONFIG, printConfigStateAtom } from './config-state'
 import {
   capturePageSetupPorts,
@@ -9,6 +8,7 @@ import {
   pageSetupErrorMessage,
   snapshotExactPageSetupRead,
   snapshotPrintConfig,
+  type PrintConfigSource,
   type PageSetupPorts,
   type PageSetupOperationTicket,
 } from './page-setup-domain'
@@ -26,11 +26,11 @@ export interface OpenPageSetupInput {
 }
 
 export interface RunPageSetupSaveInput {
-  readonly source: SpreadsheetBackend
+  readonly source: PrintConfigSource
 }
 
 export interface RetryPageSetupRefreshInput {
-  readonly source: SpreadsheetBackend
+  readonly source: PrintConfigSource
 }
 
 function ownsTicket(get: Getter, ticket: PageSetupOperationTicket): boolean {

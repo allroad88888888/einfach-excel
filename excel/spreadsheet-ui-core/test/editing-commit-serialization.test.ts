@@ -8,22 +8,20 @@ import {
   type EditingCommitAcknowledgement,
   type EditingCommitRequest,
 } from '../src/editing'
-import { deferred, startCellEdit } from './editing-test-support'
+import { bindEditingMutation, deferred, startCellEdit } from './editing-test-support'
 
 describe('editing commit serialization', () => {
   test('freezes one safe request and serializes formula-bar/grid re-entry onto one lane', async () => {
     const store = createStore()
     const acknowledgement = deferred<EditingCommitAcknowledgement>()
     const requests: EditingCommitRequest[] = []
+    bindEditingMutation(store, (request) => {
+      requests.push(request)
+      return acknowledgement.promise
+    })
     startCellEdit(store)
 
     const first = store.setter(runEditingCommitAtom, {
-      source: {
-        setCellInput(request) {
-          requests.push(request)
-          return acknowledgement.promise
-        },
-      },
       commitSource: 'formula-bar',
       move: 'down',
       refreshProjection: async () => undefined,
@@ -47,11 +45,6 @@ describe('editing commit serialization', () => {
 
     await expect(
       store.setter(runEditingCommitAtom, {
-        source: {
-          async setCellInput(request) {
-            return { sheetId: request.sheetId }
-          },
-        },
         commitSource: 'cell',
         refreshProjection: async () => undefined,
       }),

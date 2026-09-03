@@ -6,6 +6,11 @@
     "jsx": "react-jsx",
     "moduleResolution": "Bundler",
     "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@einfach/spreadsheet-ui-core": ["../spreadsheet-ui-core/src/index.ts"],
+      "@einfach/spreadsheet-ui-core/*": ["../spreadsheet-ui-core/src/*"]
+    },
     "types": ["vite/client"]
   },
   "include": ["./src/**/*.ts", "./src/**/*.tsx"]

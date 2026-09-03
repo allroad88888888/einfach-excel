@@ -5,7 +5,7 @@ import {
   setSelectionBoundsAtom,
   viewportMetricsAtom,
   visibleWindowAtom,
-  type SpreadsheetBackend,
+  type RustWorkbookConnection,
   type VisibleProjectionRequest,
   type VisibleProjectionResult,
 } from '@einfach/spreadsheet-ui-core'
@@ -21,6 +21,7 @@ import {
   GRID_WINDOW_ROW_COUNT,
 } from '../../../src/workbook/projection/use-grid-window'
 import { WorkbookRuntimeProvider } from '../../../src/workbook/runtime/WorkbookRuntimeProvider'
+import { createTestRustWorkbookConnection } from '../../support/rust-workbook-connection'
 
 const { Workbook } = jest.requireActual('../../../src/workbook/shell/Workbook') as {
   Workbook: ComponentType
@@ -60,27 +61,27 @@ function deferred<T>() {
   return { promise, resolve }
 }
 
-function createProjectionBackend() {
+function createProjectionConnection() {
   const requests: VisibleProjectionRequest[] = []
   const readVisibleProjection = jest.fn(async (request: VisibleProjectionRequest) => {
     requests.push(request)
     return resultFor(request)
   })
   return {
-    backend: { readVisibleProjection } as unknown as SpreadsheetBackend,
+    connection: createTestRustWorkbookConnection({ readVisibleProjection }),
     readVisibleProjection,
     requests,
   }
 }
 
-function renderWorksheet(backend: SpreadsheetBackend): Store {
+function renderWorksheet(connection: RustWorkbookConnection): Store {
   const store = createStore()
   store.setter(setSelectionBoundsAtom, {
     rowCount: SALES_ORDER_SHEET_ROW_COUNT,
     colCount: SALES_ORDER_COLUMNS.length,
   })
   render(
-    <WorkbookRuntimeProvider backend={backend} store={store}>
+    <WorkbookRuntimeProvider connection={connection} store={store}>
       <Workbook />
     </WorkbookRuntimeProvider>,
   )
@@ -101,8 +102,8 @@ function dispatchPointer(target: HTMLElement, type: 'pointerdown' | 'pointerup')
 
 describe('Rust workbook projection window', () => {
   it('requests a bounded orders window and only mounts that projection', async () => {
-    const controlled = createProjectionBackend()
-    const store = renderWorksheet(controlled.backend)
+    const controlled = createProjectionConnection()
+    const store = renderWorksheet(controlled.connection)
     const projectedCellCount = GRID_WINDOW_ROW_COUNT * SALES_ORDER_COLUMNS.length
 
     await waitFor(() => expect(controlled.requests).toHaveLength(1))
@@ -119,12 +120,12 @@ describe('Rust workbook projection window', () => {
     await waitFor(() => expect(document.querySelectorAll('td')).toHaveLength(projectedCellCount))
     expect(document.querySelectorAll('td').length).toBeLessThan(8_008)
     expect(screen.getByText('Rust/WASM ready')).toBeInTheDocument()
-    expect(screen.getByLabelText('Active cell value')).toHaveTextContent('Order')
+    expect(screen.getByLabelText('Active cell value')).toHaveValue('Order')
   })
 
   it('reaches the last record while preserving absolute selection coordinates', async () => {
-    const controlled = createProjectionBackend()
-    const store = renderWorksheet(controlled.backend)
+    const controlled = createProjectionConnection()
+    const store = renderWorksheet(controlled.connection)
     await waitFor(() => expect(controlled.requests).toHaveLength(1))
     await waitFor(() => expect(document.querySelector('[data-cell="0:0"]')).not.toBeNull())
 
@@ -168,7 +169,7 @@ describe('Rust workbook projection window', () => {
       colEnd: 6,
     })
     expect(screen.getByLabelText('Selected range')).toHaveTextContent('G1001')
-    expect(screen.getByLabelText('Active cell value')).toHaveTextContent('=E1001*F1001')
+    expect(screen.getByLabelText('Active cell value')).toHaveValue('=E1001*F1001')
     expect(document.querySelectorAll('td')).toHaveLength(
       GRID_WINDOW_ROW_COUNT * SALES_ORDER_COLUMNS.length,
     )
@@ -181,7 +182,7 @@ describe('Rust workbook projection window', () => {
       requests.push(request)
       return requests.length === 1 ? resultFor(request) : nextProjection.promise
     })
-    renderWorksheet({ readVisibleProjection } as unknown as SpreadsheetBackend)
+    renderWorksheet(createTestRustWorkbookConnection({ readVisibleProjection }))
     await waitFor(() => expect(document.querySelector('[data-cell="0:0"]')).not.toBeNull())
 
     const scroll = screen.getByTestId('sheet-scroll')
@@ -216,7 +217,7 @@ describe('Rust workbook projection window', () => {
       requests.push(request)
       return requests.length === 1 ? resultFor(request) : nextProjection.promise
     })
-    const store = renderWorksheet({ readVisibleProjection } as unknown as SpreadsheetBackend)
+    const store = renderWorksheet(createTestRustWorkbookConnection({ readVisibleProjection }))
     await waitFor(() => expect(document.querySelector('[data-cell="0:0"]')).not.toBeNull())
 
     const scroll = screen.getByTestId('sheet-scroll')
@@ -281,7 +282,7 @@ describe('Rust workbook projection window', () => {
     const readVisibleProjection = jest.fn(async () => {
       throw new Error('Rust projection unavailable')
     })
-    renderWorksheet({ readVisibleProjection } as unknown as SpreadsheetBackend)
+    renderWorksheet(createTestRustWorkbookConnection({ readVisibleProjection }))
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Rust projection unavailable')
     expect(document.querySelectorAll('td')).toHaveLength(0)

@@ -210,12 +210,11 @@ export interface GetTableResult {
 }
 
 /**
- * Structural subset of `SpreadsheetBackend` the UI-core table commands
- * consume. Declared here (rather than importing `SpreadsheetBackend`) to
- * keep the tables module free of a back-edge into `backend/types` — the
- * host passes its full backend, which satisfies this shape by structural
- * typing. Every port is optional: a host whose engine has no table model
- * omits them and the commands degrade (capability atom reads `false`).
+ * 表格命令当前需要的最小能力集合。
+ *
+ * 它不是全局 backend 对象；调用方只把本次命令需要的 Rust command
+ * 实现绑定进来。每项保持可选，使尚未接入 Rust 命令的功能明确降级为
+ * `unsupported`，而不是引入另一份工作簿状态。
  */
 export interface TablesControllerPort {
   createTable?(request: CreateTableRequest): Promise<CreateTableResult>

@@ -1,13 +1,12 @@
+import type { RustImportCell } from '@einfach/spreadsheet-ui-core'
+
 export const SALES_ORDER_DATA_ROW_COUNT = 1_000
 export const SALES_ORDER_COLUMN_COUNT = 8
 export const SALES_ORDER_CELL_COUNT =
   (SALES_ORDER_DATA_ROW_COUNT + 1) * SALES_ORDER_COLUMN_COUNT
 export const SALES_ORDER_IMPORT_CHUNK_SIZE = 500
 
-export type SalesOrderImportCell =
-  | { sheet: number; row: number; col: number; kind: 'number'; value: number }
-  | { sheet: number; row: number; col: number; kind: 'text'; value: string }
-  | { sheet: number; row: number; col: number; kind: 'formula'; value: string }
+export type SalesOrderImportCell = RustImportCell
 
 const HEADERS = [
   'Order',

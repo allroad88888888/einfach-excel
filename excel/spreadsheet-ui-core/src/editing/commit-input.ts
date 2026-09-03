@@ -8,7 +8,6 @@ import type { EditingCommitTicket } from './commit-state'
 import type {
   EditingCommitAcknowledgement,
   EditingCommitMove,
-  EditingControllerPort,
   EditingInputSource,
   RetryEditingRefreshInput,
   RunEditingCommitInput,
@@ -17,9 +16,6 @@ import type {
 export type CapturedEditingCommitInput =
   | {
       readonly kind: 'captured'
-      readonly source: EditingControllerPort
-      readonly execute: NonNullable<EditingControllerPort['setCellInput']>
-      readonly supportsHistoryReplay: boolean
       readonly commitSource: EditingInputSource | undefined
       readonly move: EditingCommitMove | undefined
       readonly refreshProjection: RunEditingCommitInput['refreshProjection']
@@ -49,19 +45,11 @@ export function captureEditingCommitInput(
   input: RunEditingCommitInput,
 ): CapturedEditingCommitInput {
   try {
-    // Capture the receiver and method together so later port mutation cannot swap the command.
-    const source = input.source
-    const execute = source?.setCellInput
-    const undo = source?.undoTransaction
-    const redo = source?.redoTransaction
     const commitSource = input.commitSource
     const move = input.move
     const refreshProjection = input.refreshProjection
     const timeoutMs = normalizeEditingTimeout(input.timeoutMs)
     if (
-      source === null ||
-      (typeof source !== 'object' && typeof source !== 'function') ||
-      typeof execute !== 'function' ||
       (commitSource !== undefined && !isEditingInputSource(commitSource)) ||
       (move !== undefined && !isEditingCommitMove(move)) ||
       typeof refreshProjection !== 'function'
@@ -70,9 +58,6 @@ export function captureEditingCommitInput(
     }
     return Object.freeze({
       kind: 'captured',
-      source,
-      execute,
-      supportsHistoryReplay: typeof undo === 'function' && typeof redo === 'function',
       commitSource,
       move,
       refreshProjection,

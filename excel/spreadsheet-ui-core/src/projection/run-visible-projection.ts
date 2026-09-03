@@ -1,6 +1,6 @@
 import { atom, type Getter, type Setter } from '@einfach/core'
 import type { VisibleProjectionRequest } from '../backend'
-import { spreadsheetBackendBindingAtom } from '../runtime/backend-state'
+import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import {
   beginProjectionAtom,
   isProjectionResultForRequest,
@@ -30,9 +30,9 @@ async function drainVisibleProjectionQueue(
   set: Setter,
   initialRequest: VisibleProjectionRequest,
 ): Promise<void> {
-  const binding = get(spreadsheetBackendBindingAtom)
-  if (binding === null) {
-    const error = new Error('Spreadsheet backend is not bound to this store.')
+  const connection = get(rustWorkbookConnectionAtom)
+  if (connection === null) {
+    const error = new Error('Rust workbook connection is not bound to this store.')
     let request = initialRequest
     while (true) {
       const outcome = set(rejectProjectionAtom, { request, error })
@@ -40,12 +40,10 @@ async function drainVisibleProjectionQueue(
       request = outcome.nextRequest
     }
   }
-  const { backend } = binding
-
   let request = initialRequest
   while (true) {
     try {
-      const result = await backend.readVisibleProjection(request)
+      const result = await connection.request('projection.readVisible', { request })
       const outcome = set(resolveProjectionAtom, { request, result })
       if (outcome.nextRequest?.kind === 'visible-window') {
         request = outcome.nextRequest
@@ -88,7 +86,7 @@ function projectionOutcome(
   return Object.freeze({ status: 'superseded' })
 }
 
-/** Runs the store-local visible projection transport through the bound backend. */
+/** 通过当前 store 的 Rust Worker 连接读取可见区投影。 */
 export const runVisibleProjectionAtom = atom(
   null,
   async (get, set, input: RunVisibleProjectionInput): Promise<RunVisibleProjectionOutcome> => {

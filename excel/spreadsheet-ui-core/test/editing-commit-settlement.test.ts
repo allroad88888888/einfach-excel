@@ -9,7 +9,7 @@ import {
   type EditingCommitRequest,
   type EditingStartInput,
 } from '../src/editing'
-import { startCellEdit } from './editing-test-support'
+import { bindEditingMutation, startCellEdit } from './editing-test-support'
 
 describe('editing commit settlement', () => {
   test('retains the frozen draft after a rejected transport and permits an explicit retry', async () => {
@@ -30,10 +30,10 @@ describe('editing commit settlement', () => {
         }
       },
     }
+    bindEditingMutation(store, source.setCellInput)
 
     await expect(
       store.setter(runEditingCommitAtom, {
-        source,
         refreshProjection: async () => undefined,
       }),
     ).resolves.toBe('rejected')
@@ -45,7 +45,6 @@ describe('editing commit settlement', () => {
 
     await expect(
       store.setter(runEditingCommitAtom, {
-        source,
         refreshProjection: async () => undefined,
       }),
     ).resolves.toBe('completed')
@@ -69,18 +68,14 @@ describe('editing commit settlement', () => {
         store.setter(startEditingAtom, replacementInput)
       }
     })
+    bindEditingMutation(store, async (request) => ({
+      sheetId: request.sheetId,
+      requestId: request.requestId,
+      revision: 'rev-clear-last',
+    }))
 
     await expect(
       store.setter(runEditingCommitAtom, {
-        source: {
-          async setCellInput(request) {
-            return {
-              sheetId: request.sheetId,
-              requestId: request.requestId,
-              revision: 'rev-clear-last',
-            }
-          },
-        },
         refreshProjection: async () => undefined,
       }),
     ).resolves.toBe('completed')

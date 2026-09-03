@@ -11,10 +11,10 @@ import {
   startCellEditingFromProjectionAtom,
   type BackendMutationResult,
   type EditingCommitRequest,
-  type SpreadsheetBackend,
   type VisibleProjectionRequest,
   type VisibleProjectionResult,
 } from '../src'
+import { createTestRustWorkbookConnection } from './support/rust-workbook-connection'
 
 function projectionResult(
   request: VisibleProjectionRequest,
@@ -61,12 +61,12 @@ async function flushMicrotasks(turns = 6): Promise<void> {
 
 describe('bound cell editing commands', () => {
   test('starts the cell draft from the current visible projection', async () => {
-    const backend = {
+    const connection = createTestRustWorkbookConnection({
       async readVisibleProjection(request: VisibleProjectionRequest) {
         return projectionResult(request)
       },
-    } as SpreadsheetBackend
-    const core = createSpreadsheetUi({ backend })
+    })
+    const core = createSpreadsheetUi({ connection })
     await core.store.setter(runVisibleProjectionAtom, visibleInput)
 
     expect(
@@ -92,13 +92,13 @@ describe('bound cell editing commands', () => {
     const setCellInput = jest.fn(async () => {
       throw new Error('Rust write rejected')
     })
-    const backend = {
+    const connection = createTestRustWorkbookConnection({
       async readVisibleProjection(request: VisibleProjectionRequest) {
         return projectionResult(request)
       },
       setCellInput,
-    } as unknown as SpreadsheetBackend
-    const core = createSpreadsheetUi({ backend })
+    })
+    const core = createSpreadsheetUi({ connection })
     await core.store.setter(runVisibleProjectionAtom, visibleInput)
     core.store.setter(startCellEditingFromProjectionAtom, {
       sheetId: 'sheet-1',
@@ -131,7 +131,7 @@ describe('bound cell editing commands', () => {
       revision: 1,
     }))
     const core = createSpreadsheetUi({
-      backend: { readVisibleProjection, setCellInput } as unknown as SpreadsheetBackend,
+      connection: createTestRustWorkbookConnection({ readVisibleProjection, setCellInput }),
     })
     await core.store.setter(runVisibleProjectionAtom, visibleInput)
     core.store.setter(startCellEditingFromProjectionAtom, {
@@ -173,7 +173,7 @@ describe('bound cell editing commands', () => {
       return mutation.promise
     })
     const core = createSpreadsheetUi({
-      backend: { readVisibleProjection, setCellInput } as unknown as SpreadsheetBackend,
+      connection: createTestRustWorkbookConnection({ readVisibleProjection, setCellInput }),
     })
     await core.store.setter(runVisibleProjectionAtom, visibleInput)
     core.store.setter(startCellEditingFromProjectionAtom, {

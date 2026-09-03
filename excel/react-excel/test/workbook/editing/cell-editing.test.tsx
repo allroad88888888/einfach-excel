@@ -5,7 +5,6 @@ import {
   setSelectionBoundsAtom,
   setSelectionAtom,
   type EditingCommitRequest,
-  type SpreadsheetBackend,
   type VisibleProjectionRequest,
   type VisibleProjectionResult,
 } from '@einfach/spreadsheet-ui-core'
@@ -17,20 +16,29 @@ import {
   SALES_ORDER_SHEET_ROW_COUNT,
 } from '../../../src/product/sales-orders/data/sheet'
 import { WorkbookRuntimeProvider } from '../../../src/workbook/runtime/WorkbookRuntimeProvider'
+import { createTestRustWorkbookConnection } from '../../support/rust-workbook-connection'
 
 const { Workbook } = jest.requireActual('../../../src/workbook/shell/Workbook') as {
   Workbook: ComponentType
 }
 
-interface ControlledBackend {
-  readonly backend: SpreadsheetBackend
-  readonly readVisibleProjection: jest.MockedFunction<SpreadsheetBackend['readVisibleProjection']>
-  readonly setCellInput: jest.MockedFunction<SpreadsheetBackend['setCellInput']>
+interface ControlledConnection {
+  readonly connection: ReturnType<typeof createTestRustWorkbookConnection>
+  readonly readVisibleProjection: jest.MockedFunction<
+    (request: VisibleProjectionRequest) => Promise<VisibleProjectionResult>
+  >
+  readonly setCellInput: jest.MockedFunction<
+    (request: EditingCommitRequest) => Promise<{
+      sheetId: string
+      requestId: number
+      revision: number
+    }>
+  >
   failNextMutation(message: string): void
   failNextRefresh(message: string): void
 }
 
-function createControlledBackend(): ControlledBackend {
+function createControlledConnection(): ControlledConnection {
   const values = new Map<string, string>()
   let mutationFailure: string | undefined
   let refreshFailure: string | undefined
@@ -79,7 +87,7 @@ function createControlledBackend(): ControlledBackend {
   })
 
   return {
-    backend: { readVisibleProjection, setCellInput } as unknown as SpreadsheetBackend,
+    connection: createTestRustWorkbookConnection({ readVisibleProjection, setCellInput }),
     readVisibleProjection,
     setCellInput,
     failNextMutation: (message) => {
@@ -91,14 +99,14 @@ function createControlledBackend(): ControlledBackend {
   }
 }
 
-function renderWorksheet(controlled: ControlledBackend): Store {
+function renderWorksheet(controlled: ControlledConnection): Store {
   const store = createStore()
   store.setter(setSelectionBoundsAtom, {
     rowCount: SALES_ORDER_SHEET_ROW_COUNT,
     colCount: SALES_ORDER_COLUMNS.length,
   })
   render(
-    <WorkbookRuntimeProvider backend={controlled.backend} store={store}>
+    <WorkbookRuntimeProvider connection={controlled.connection} store={store}>
       <Workbook />
     </WorkbookRuntimeProvider>,
   )
@@ -137,7 +145,7 @@ function dispatchPointer(
 
 describe('Rust workbook cell editing', () => {
   it('starts, updates the draft, writes through Rust and refreshes the projection', async () => {
-    const controlled = createControlledBackend()
+    const controlled = createControlledConnection()
     const store = renderWorksheet(controlled)
     await firstCell()
     expect(screen.queryByRole('button', { name: 'Undo' })).toBeNull()
@@ -179,7 +187,7 @@ describe('Rust workbook cell editing', () => {
   })
 
   it('opens the captured pointer cell from a complete browser double-click sequence', async () => {
-    const controlled = createControlledBackend()
+    const controlled = createControlledConnection()
     renderWorksheet(controlled)
     await firstCell()
     const grid = screen.getByLabelText('One thousand sales order records')
@@ -213,7 +221,7 @@ describe('Rust workbook cell editing', () => {
   })
 
   it('uses the range focus cell for keyboard editing and mutation', async () => {
-    const controlled = createControlledBackend()
+    const controlled = createControlledConnection()
     const store = renderWorksheet(controlled)
     await firstCell()
     act(() => {
@@ -239,7 +247,7 @@ describe('Rust workbook cell editing', () => {
   })
 
   it('commits the active draft when focus leaves the cell editor', async () => {
-    const controlled = createControlledBackend()
+    const controlled = createControlledConnection()
     renderWorksheet(controlled)
     fireEvent.doubleClick(await firstCell())
     const editor = await focusedEditor()
@@ -254,7 +262,7 @@ describe('Rust workbook cell editing', () => {
   })
 
   it('keeps a rejected mutation draft editable for an explicit retry', async () => {
-    const controlled = createControlledBackend()
+    const controlled = createControlledConnection()
     controlled.failNextMutation('Rust write rejected')
     const store = renderWorksheet(controlled)
     fireEvent.doubleClick(await firstCell())
@@ -266,13 +274,15 @@ describe('Rust workbook cell editing', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('That edit was not saved.')
     expect(screen.getByRole('textbox', { name: 'Cell editor' })).toHaveValue('Retry me')
     expect(document.activeElement).toBe(screen.getByRole('textbox', { name: 'Cell editor' }))
-    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Retry changed' } })
+    fireEvent.change(screen.getByRole('textbox', { name: 'Cell editor' }), {
+      target: { value: 'Retry changed' },
+    })
     expect(store.getter(editingSessionAtom).draft).toBe('Retry changed')
     expect(controlled.readVisibleProjection).toHaveBeenCalledTimes(1)
   })
 
   it('retains refresh retry authority after one acknowledged mutation', async () => {
-    const controlled = createControlledBackend()
+    const controlled = createControlledConnection()
     const store = renderWorksheet(controlled)
     fireEvent.doubleClick(await firstCell())
     const editor = await focusedEditor()

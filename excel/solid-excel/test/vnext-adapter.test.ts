@@ -4860,7 +4860,7 @@ describe('vnext adapter', () => {
       readRangeProjection: (request) => backend.readRangeProjection(request),
       async removeRowsExact(request) {
         try {
-          return await backend.removeRowsExact!(request)
+          return backend.removeRowsExact!(request)
         } catch (error) {
           falseAckError = error
           throw error

@@ -2,11 +2,15 @@ import type { Getter, Setter } from '@einfach/core'
 import type {
   ProjectionRevision,
   SheetListResult,
-  SpreadsheetBackend,
   SpreadsheetSheetMetadata,
 } from '../backend'
 import { sheetTabsRequestSequenceAtom } from './state'
-import type { CapturedSheetTabsPorts, SheetTabsCapabilities, SheetTabsState } from './types'
+import type {
+  CapturedSheetTabsPorts,
+  SheetTabsCapabilities,
+  SheetTabsSource,
+  SheetTabsState,
+} from './types'
 import { normalizeSheetMetadataList } from './metadata'
 
 export interface SheetListProjectionSnapshot {
@@ -26,7 +30,7 @@ export function issueSheetTabRequestId(get: Getter, set: Setter): number | null 
   return next
 }
 
-export function captureSheetTabsPorts(backend: SpreadsheetBackend): CapturedSheetTabsPorts {
+export function captureSheetTabsPorts(backend: SheetTabsSource): CapturedSheetTabsPorts {
   const { listSheets, addSheet, renameSheet, deleteSheet, reorderSheet } = backend
   return {
     ...(typeof listSheets === 'function' ? { listSheets: () => listSheets.call(backend) } : {}),

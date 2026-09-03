@@ -12,7 +12,7 @@ spreadsheet state core.
 
 ```text
 Rust/WASM Engine
-      ↕ backend protocol
+      ↕ typed Worker commands
 spreadsheet-ui-core
       ↕ Einfach atoms
 @einfach/react
@@ -21,14 +21,14 @@ react-excel views
 ```
 
 - Rust owns authoritative workbook data, calculation, transactions, and mutation results.
-- `spreadsheet-ui-core` owns spreadsheet atoms, cross-atom state transitions, backend calls,
+- `spreadsheet-ui-core` owns spreadsheet atoms, cross-atom state transitions, Rust commands,
   request correlation, retries, and projection invalidation.
 - `react-excel` owns rendering, React effects, DOM events, focus, pointer capture, measurements,
   scrolling, refs, and application startup presentation.
 - Do not introduce a plugin runtime, lifecycle framework, command bus, or general event bus for
   existing features. Einfach atoms are the state and command surface.
-- The application bootstrap may create, await, and dispose the Rust Worker backend. Workbook views
-  must not call backend read or mutation methods directly.
+- The application bootstrap may create, initialize, and dispose the Rust Worker connection. Workbook
+  views must not call connection requests directly.
 
 ## Use the React atom package
 
@@ -37,7 +37,7 @@ Use `@einfach/react` rather than rebuilding its bindings locally.
 ```tsx
 import { Provider as AtomProvider } from '@einfach/react'
 
-const core = createSpreadsheetUi({ backend })
+const core = createSpreadsheetUi({ connection })
 
 return <AtomProvider store={core.store}>{children}</AtomProvider>
 ```
@@ -83,8 +83,8 @@ application's atom state surface.
 
 ## Put semantic actions in command atoms
 
-When an action reads multiple atoms, writes multiple atoms, validates spreadsheet state, calls the
-backend, or defines ordering, put it in `spreadsheet-ui-core` as a command atom:
+When an action reads multiple atoms, writes multiple atoms, validates spreadsheet state, sends a
+Rust command, or defines ordering, put it in `spreadsheet-ui-core` as a command atom:
 
 ```ts
 export const startCellEditingAtom = atom(
@@ -138,7 +138,7 @@ type LoadOutcome =
 ```
 
 Reserve thrown errors for programmer errors or impossible invariant violations. Publish user-facing
-backend failures into the domain's error/lifecycle atom.
+Rust command failures into the domain's error/lifecycle atom.
 
 ## Decide whether `useCallback` belongs
 
@@ -149,7 +149,7 @@ Remove it when the callback only:
 - calls `store.setter`;
 - reads `store.getter`;
 - groups spreadsheet state transitions;
-- injects backend, projection refresh, history, or retry behavior into UI-core.
+- injects Rust commands, projection refresh, history, or retry behavior into UI-core.
 
 It may remain when the callback genuinely owns React or DOM behavior:
 
@@ -172,8 +172,8 @@ atom.
 
 `useRef` is limited to non-render identity that React or the DOM requires: element refs, focus,
 pointer identity/capture, and in-flight event guards such as blur suppression. It must not hide
-business or render state. External resources such as the Rust Worker backend stay in the owning
-effect closure; their rendered lifecycle and backend binding live in UI-core atoms.
+business or render state. External resources such as the Rust Worker connection stay in the owning
+effect closure; their rendered lifecycle and connection binding live in UI-core atoms.
 
 Do not copy selection, editing sessions, projection results, workbook facts, history, validation, or
 feature lifecycle into React state.
@@ -182,16 +182,13 @@ feature lifecycle into React state.
 
 When converting an existing React feature:
 
-1. Identify every atom read, atom write, direct backend call, and React-local state value.
+1. Identify every atom read, atom write, direct connection request, and React-local state value.
 2. Replace manual subscriptions with `useAtomValue` and setter wrappers with `useSetAtom`.
-3. Move multi-atom or backend behavior into a focused UI-core command atom.
+3. Move multi-atom or Rust command behavior into a focused UI-core command atom.
 4. Keep only DOM/view adaptation in React.
 5. Delete obsolete bridge hooks instead of retaining compatibility wrappers with no product caller.
 6. Preserve current user behavior; do not add Ribbon, history, clipboard, or other features during a
    boundary refactor.
-
-If the active work belongs to `.tasks/react-excel-core-view-boundary`, follow its current leaf and do
-not start the next leaf before the required review and user checkpoint.
 
 ## File and verification rules
 
@@ -214,4 +211,4 @@ git diff --check
 ```
 
 Also run scoped ESLint and `wc -l` on every new or substantially changed file. Before handoff, scan
-`excel/react-excel/src` for new `atom(` declarations and workbook code for direct backend calls.
+`excel/react-excel/src` for new `atom(` declarations and workbook views for direct connection calls.

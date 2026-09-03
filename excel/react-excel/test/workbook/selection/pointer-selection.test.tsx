@@ -4,13 +4,13 @@ import {
   pointerSessionAtom,
   selectionSnapshotAtom,
   setSelectionBoundsAtom,
-  type SpreadsheetBackend,
 } from '@einfach/spreadsheet-ui-core'
 import { describe, expect, it } from '@jest/globals'
 import { fireEvent, render, screen } from '@testing-library/react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
 import { WorkbookRuntimeProvider } from '../../../src/workbook/runtime/WorkbookRuntimeProvider'
 import { useGridPointerSelection } from '../../../src/workbook/selection/use-grid-pointer-selection'
+import { createTestRustWorkbookConnection } from '../../support/rust-workbook-connection'
 
 function SelectionSurface() {
   const selection = useAtomValue(selectionSnapshotAtom)
@@ -52,7 +52,7 @@ describe('React pointer selection adapter', () => {
     const store = createStore()
     store.setter(setSelectionBoundsAtom, { rowCount: 20, colCount: 10 })
     render(
-      <WorkbookRuntimeProvider backend={{} as SpreadsheetBackend} store={store}>
+      <WorkbookRuntimeProvider connection={createTestRustWorkbookConnection()} store={store}>
         <SelectionSurface />
       </WorkbookRuntimeProvider>,
     )

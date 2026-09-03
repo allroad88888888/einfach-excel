@@ -50,6 +50,19 @@
   border: 1px solid var(--border);
   border-radius: 6px;
   background: #ffffff;
+  color: var(--text);
+  font: inherit;
+  outline: none;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.formula-value:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary-soft);
+}
+
+.formula-value:disabled {
+  color: var(--muted);
+  background: var(--chrome);
 }

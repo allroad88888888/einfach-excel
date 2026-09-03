@@ -18,7 +18,7 @@
 | 某 feature 的 atom 分类、有界缓存上限、测试面 | `src/<feature>/README.md` |
 | 某个事实归引擎还是归 UI core | [`../../solid-excel/docs/CANONICAL_OWNERSHIP.md`](../../solid-excel/docs/CANONICAL_OWNERSHIP.md) |
 | 归属判据及那次翻转的理由 | [ADR 0003](../../../docs/decisions/0003-engine-owns-filter-sort.md) |
-| 后端端口形状（必需 / 可选） | `src/backend/types.ts` + `src/backend/README.md` |
+| Rust 命令与领域契约 | `src/rust-workbook/` + `src/backend/` |
 | 仓库级三层架构 | [`../../../docs/ARCHITECTURE.md`](../../../docs/ARCHITECTURE.md) |
 | 包内硬约束与测试门禁 | [`CONVENTIONS.md`](./CONVENTIONS.md) |
 | e2e 覆盖了哪些场景 | `excel/solid-excel/e2e/<feature>/CASES.md` |
@@ -43,8 +43,8 @@
 
 这几条约束不随 wave 存废，所有 feature 都适用：
 
-- **可选后端端口** —— feature 新增的 `SpreadsheetBackend` 方法一律可选。宿主没实现时
-  UI core 隐藏对应入口，且不区分「没实现」与「特性不存在」。
+- **增量 Rust 命令** —— feature 新增独立 command contract。尚未接入时，UI core
+  隐藏对应入口；核心路径不能抛异常，也不创建聚合 backend 对象。
 - **State Decision Template** —— 每个模块声明 Source / Derived / Command atom、规模上限、
   以及 per-cell/per-row atom 风险。`debugLabel` 走 `spreadsheet.<feature>.<name>` 命名空间。
 - **`DisplayCell` 扩展** —— 很多 feature 给 `DisplayCell` 加可选字段（`mergedSpan`、

@@ -3,41 +3,26 @@ import { describe, expect, test } from '@jest/globals'
 
 import {
   runEditingCommitAtom,
-  type EditingCommitAcknowledgement,
   type EditingCommitOutcome,
-  type EditingCommitRequest,
-  type EditingControllerPort,
   type RunEditingCommitInput,
 } from '../src/editing'
-import { startCellEdit } from './editing-test-support'
+import { bindEditingMutation, startCellEdit } from './editing-test-support'
 
 describe('editing commit input', () => {
-  test('snapshots caller getters once and preserves the source method receiver', async () => {
+  test('snapshots caller getters once while mutation stays on the connection atom', async () => {
     const store = createStore()
-    startCellEdit(store, 'receiver')
+    startCellEdit(store, 'captured input')
     const inputReads: Record<string, number> = {}
-    let methodReads = 0
-    let receiver: unknown
+    let transportCalls = 0
     let refreshCalls = 0
-
-    const execute = async function (
-      this: unknown,
-      request: EditingCommitRequest,
-    ): Promise<EditingCommitAcknowledgement> {
-      receiver = this
+    bindEditingMutation(store, async (request) => {
+      transportCalls += 1
       return {
         sheetId: request.sheetId,
         requestId: request.requestId,
-        revision: 'rev-receiver',
+        revision: 'rev-captured',
       }
-    }
-    const source = Object.defineProperty({}, 'setCellInput', {
-      get() {
-        methodReads += 1
-        if (methodReads > 1) throw new Error('method getter was re-read')
-        return execute
-      },
-    }) as EditingControllerPort
+    })
     const count = <T>(key: string, value: T) => ({
       get() {
         inputReads[key] = (inputReads[key] ?? 0) + 1
@@ -45,30 +30,23 @@ describe('editing commit input', () => {
         return value
       },
     })
-    const input = Object.defineProperties(
-      {},
-      {
-        source: count('source', source),
-        commitSource: count('commitSource', 'formula-bar'),
-        move: count('move', 'down'),
-        refreshProjection: count('refreshProjection', async () => {
-          refreshCalls += 1
-        }),
-        timeoutMs: count('timeoutMs', 25_000),
-      },
-    ) as RunEditingCommitInput
+    const input = Object.defineProperties({}, {
+      commitSource: count('commitSource', 'formula-bar'),
+      move: count('move', 'down'),
+      refreshProjection: count('refreshProjection', async () => {
+        refreshCalls += 1
+      }),
+      timeoutMs: count('timeoutMs', 25_000),
+    }) as RunEditingCommitInput
 
     await expect(store.setter(runEditingCommitAtom, input)).resolves.toBe('completed')
-
     expect(inputReads).toEqual({
-      source: 1,
       commitSource: 1,
       move: 1,
       refreshProjection: 1,
       timeoutMs: 1,
     })
-    expect(methodReads).toBe(1)
-    expect(receiver).toBe(source)
+    expect(transportCalls).toBe(1)
     expect(refreshCalls).toBe(1)
   })
 
@@ -76,37 +54,19 @@ describe('editing commit input', () => {
     const store = createStore()
     startCellEdit(store, 'getter reentry')
     let replacement: Promise<EditingCommitOutcome> | undefined
-    let replacementTransportCalls = 0
-    let outerTransportCalls = 0
+    let transportCalls = 0
     const reads: Record<string, number> = {}
-    let methodReads = 0
-
+    bindEditingMutation(store, async (request) => {
+      transportCalls += 1
+      return {
+        sheetId: request.sheetId,
+        requestId: request.requestId,
+        revision: 'rev-replacement',
+      }
+    })
     const replacementInput: RunEditingCommitInput = {
-      source: {
-        async setCellInput(request) {
-          replacementTransportCalls += 1
-          return {
-            sheetId: request.sheetId,
-            requestId: request.requestId,
-            revision: 'rev-replacement',
-          }
-        },
-      },
       refreshProjection: async () => undefined,
     }
-    const outerSource = Object.defineProperty({}, 'setCellInput', {
-      get() {
-        methodReads += 1
-        return async (request: EditingCommitRequest) => {
-          outerTransportCalls += 1
-          return {
-            sheetId: request.sheetId,
-            requestId: request.requestId,
-            revision: 'must-not-run',
-          }
-        }
-      },
-    }) as EditingControllerPort
     const once = <T>(key: string, value: () => T) => ({
       get() {
         reads[key] = (reads[key] ?? 0) + 1
@@ -114,33 +74,25 @@ describe('editing commit input', () => {
         return value()
       },
     })
-    const outerInput = Object.defineProperties(
-      {},
-      {
-        source: once('source', () => {
-          replacement = store.setter(runEditingCommitAtom, replacementInput)
-          return outerSource
-        }),
-        commitSource: once('commitSource', () => 'cell'),
-        move: once('move', () => 'none'),
-        refreshProjection: once('refreshProjection', () => async () => undefined),
-        timeoutMs: once('timeoutMs', () => 25_000),
-      },
-    ) as RunEditingCommitInput
+    const outerInput = Object.defineProperties({}, {
+      commitSource: once('commitSource', () => {
+        replacement = store.setter(runEditingCommitAtom, replacementInput)
+        return 'cell'
+      }),
+      move: once('move', () => 'none'),
+      refreshProjection: once('refreshProjection', () => async () => undefined),
+      timeoutMs: once('timeoutMs', () => 25_000),
+    }) as RunEditingCommitInput
 
     await expect(store.setter(runEditingCommitAtom, outerInput)).resolves.toBe('blocked')
     expect(replacement).toBeDefined()
     await expect(replacement).resolves.toBe('completed')
-
     expect(reads).toEqual({
-      source: 1,
       commitSource: 1,
       move: 1,
       refreshProjection: 1,
       timeoutMs: 1,
     })
-    expect(methodReads).toBe(1)
-    expect(outerTransportCalls).toBe(0)
-    expect(replacementTransportCalls).toBe(1)
+    expect(transportCalls).toBe(1)
   })
 })

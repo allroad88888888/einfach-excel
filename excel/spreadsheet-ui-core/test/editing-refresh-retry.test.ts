@@ -9,13 +9,26 @@ import {
   type EditingCommitOutcome,
   type RetryEditingRefreshInput,
 } from '../src/editing'
-import { deferred, flushMicrotasks, startCellEdit } from './editing-test-support'
+import {
+  bindEditingMutation,
+  deferred,
+  flushMicrotasks,
+  startCellEdit,
+} from './editing-test-support'
 
 describe('editing refresh retry', () => {
   test('retries only refresh after an exact acknowledgement', async () => {
     const store = createStore()
     let transportCalls = 0
     let refreshCalls = 0
+    bindEditingMutation(store, async (request) => {
+      transportCalls += 1
+      return {
+        sheetId: request.sheetId,
+        requestId: request.requestId,
+        revision: 42,
+      }
+    })
     startCellEdit(store, 'acknowledged')
     const refreshProjection = async () => {
       refreshCalls += 1
@@ -24,16 +37,6 @@ describe('editing refresh retry', () => {
 
     await expect(
       store.setter(runEditingCommitAtom, {
-        source: {
-          async setCellInput(request) {
-            transportCalls += 1
-            return {
-              sheetId: request.sheetId,
-              requestId: request.requestId,
-              revision: 42,
-            }
-          },
-        },
         refreshProjection,
       }),
     ).resolves.toBe('refresh-failed')
@@ -45,7 +48,6 @@ describe('editing refresh retry', () => {
 
     await expect(
       store.setter(runEditingCommitAtom, {
-        source: {},
         refreshProjection,
       }),
     ).resolves.toBe('blocked')
@@ -63,19 +65,17 @@ describe('editing refresh retry', () => {
       const store = createStore()
       let transportCalls = 0
       let initialRefreshCalls = 0
+      bindEditingMutation(store, async (request) => {
+        transportCalls += 1
+        return {
+          sheetId: request.sheetId,
+          requestId: request.requestId,
+          revision: 'rev-refresh-retry',
+        }
+      })
       startCellEdit(store, 'refresh retry')
       await expect(
         store.setter(runEditingCommitAtom, {
-          source: {
-            async setCellInput(request) {
-              transportCalls += 1
-              return {
-                sheetId: request.sheetId,
-                requestId: request.requestId,
-                revision: 'rev-refresh-retry',
-              }
-            },
-          },
           refreshProjection: async () => {
             initialRefreshCalls += 1
             throw new Error('initial refresh failed')

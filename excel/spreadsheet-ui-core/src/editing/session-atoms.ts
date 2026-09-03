@@ -43,7 +43,6 @@ editingIsActiveAtom.debugLabel = 'spreadsheet.editing.isActive'
 export const editingDraftAtom = atom(
   (get) => get(editingSessionAtom).draft,
   (get, set, input: EditingDraftInput) => {
-    debugger
     // Once a ticket owns the lane, the submitted draft must stay identical to its request.
     if (get(activeEditingCommitTicketAtom) !== null) return
     set(editingSessionBackingAtom, updateEditingDraftState(get(editingSessionAtom), input))

@@ -13,6 +13,6 @@ Bounded name-registry cache and name-manager dialog state.
   - `openNameManagerAtom`: transitions the editor to a given `NameManagerEditorState`.
   - `closeNameManagerAtom`: resets the editor to `{ status: 'closed' }`.
 - Scale bound: `NAMED_RANGE_CACHE_MAX = 500` entries; FIFO eviction keeps the most recent 500.
-- Backend reads: optional `listNamedRanges`, `setNamedRange`, `deleteNamedRange` on `SpreadsheetBackend`.
+- Operation ports: optional `listNamedRanges`, `setNamedRange`, `deleteNamedRange`; these will be bound to the corresponding Rust commands.
 - Per-name atom risk: do not create per-name atoms; the list is a single array atom replaced wholesale.
 - Tests: `test/named-ranges.test.ts`.

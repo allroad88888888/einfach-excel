@@ -3,7 +3,6 @@ import type {
   ProjectionRequestId,
   ProjectionRevision,
   SetCellInputRequest,
-  SpreadsheetBackend,
 } from '../backend/types'
 import type { CellCoord, SpreadsheetError } from '../shared'
 
@@ -68,17 +67,6 @@ export interface EditingCommitAcknowledgement extends BackendMutationResult {
   readonly revision: ProjectionRevision
 }
 
-/**
- * Framework-neutral mutation port. A running commit freezes this receiver and
- * its method into the private ticket so retries can never re-read or resend it.
- */
-export interface EditingControllerPort {
-  setCellInput?: (request: EditingCommitRequest) => Promise<BackendMutationResult>
-  /** Optional replay ports prove that the backend mutation has an undo/redo counterpart. */
-  undoTransaction?: SpreadsheetBackend['undoTransaction']
-  redoTransaction?: SpreadsheetBackend['redoTransaction']
-}
-
 export type EditingCommitLifecycleStatus =
   | 'ready'
   | 'blocked'
@@ -107,7 +95,6 @@ export type EditingCommitOutcome =
   | 'outcome-unknown'
 
 export interface RunEditingCommitInput {
-  readonly source: EditingControllerPort
   readonly commitSource?: EditingInputSource
   readonly move?: EditingCommitMove
   readonly refreshProjection: (sheetId: string) => Promise<void>

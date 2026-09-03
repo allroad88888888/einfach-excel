@@ -14,6 +14,7 @@ import {
 import { beginProjectionAtom, resolveProjectionAtom } from '../src/projection'
 import { setSheetProtectionAtom } from '../src/protection'
 import type { CellRange } from '../src/shared'
+import { bindTestRustWorkbookConnection } from './support/rust-workbook-connection'
 
 const SHEET = 'sheet-1'
 const WINDOW = { rowStart: 0, rowEnd: 3, colStart: 0, colEnd: 3 }
@@ -340,6 +341,12 @@ describe('mutation gateway — editing commit integration', () => {
     const store = createStore()
     publishVisibleProjection(store, filteredCells())
     const requests: EditingCommitRequest[] = []
+    bindTestRustWorkbookConnection(store, {
+      async setCellInput(request) {
+        requests.push(request)
+        return { sheetId: request.sheetId, requestId: request.requestId, revision: 7 }
+      },
+    })
 
     store.setter(startEditingAtom, {
       sheetId: SHEET,
@@ -348,12 +355,6 @@ describe('mutation gateway — editing commit integration', () => {
       source: 'cell',
     })
     const outcome = await store.setter(runEditingCommitAtom, {
-      source: {
-        async setCellInput(request) {
-          requests.push(request)
-          return { sheetId: request.sheetId, requestId: request.requestId, revision: 7 }
-        },
-      },
       commitSource: 'cell',
       refreshProjection: async () => undefined,
     })
@@ -367,6 +368,12 @@ describe('mutation gateway — editing commit integration', () => {
     const store = createStore()
     protectSheet(store)
     const requests: EditingCommitRequest[] = []
+    bindTestRustWorkbookConnection(store, {
+      async setCellInput(request) {
+        requests.push(request)
+        return { sheetId: request.sheetId, requestId: request.requestId, revision: 1 }
+      },
+    })
 
     store.setter(startEditingAtom, {
       sheetId: SHEET,
@@ -375,12 +382,6 @@ describe('mutation gateway — editing commit integration', () => {
       source: 'cell',
     })
     const outcome = await store.setter(runEditingCommitAtom, {
-      source: {
-        async setCellInput(request) {
-          requests.push(request)
-          return { sheetId: request.sheetId, requestId: request.requestId, revision: 1 }
-        },
-      },
       commitSource: 'cell',
       refreshProjection: async () => undefined,
     })

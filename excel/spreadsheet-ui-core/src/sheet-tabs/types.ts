@@ -1,7 +1,11 @@
 import type {
+  AddSheetRequest,
+  DeleteSheetRequest,
   ProjectionRevision,
+  RenameSheetRequest,
+  ReorderSheetRequest,
   SheetListResult,
-  SpreadsheetBackend,
+  SheetMutationResult,
   SpreadsheetSheetMetadata,
 } from '../backend'
 import type { WorkspaceActiveSheetAuthorityWitness } from '../workspace'
@@ -176,7 +180,7 @@ export interface ReorderSheetMetadataInput {
   targetIndex?: number | null
 }
 export interface InitializeSheetTabsInput {
-  backend: SpreadsheetBackend
+  backend: SheetTabsSource
   sheets: readonly SpreadsheetSheetMetadata[]
 }
 export interface BeginSheetTabRenameCommandInput {
@@ -194,12 +198,20 @@ export interface CommitSheetTabReorderCommandInput {
   sheetId: string
 }
 
+export interface SheetTabsSource {
+  listSheets?: () => Promise<SheetListResult>
+  addSheet?: (request: AddSheetRequest) => Promise<SheetMutationResult>
+  renameSheet?: (request: RenameSheetRequest) => Promise<SheetMutationResult>
+  deleteSheet?: (request: DeleteSheetRequest) => Promise<SheetMutationResult>
+  reorderSheet?: (request: ReorderSheetRequest) => Promise<SheetMutationResult>
+}
+
 export interface CapturedSheetTabsPorts {
   listSheets?: () => Promise<SheetListResult>
-  addSheet?: NonNullable<SpreadsheetBackend['addSheet']>
-  renameSheet?: NonNullable<SpreadsheetBackend['renameSheet']>
-  deleteSheet?: NonNullable<SpreadsheetBackend['deleteSheet']>
-  reorderSheet?: NonNullable<SpreadsheetBackend['reorderSheet']>
+  addSheet?: NonNullable<SheetTabsSource['addSheet']>
+  renameSheet?: NonNullable<SheetTabsSource['renameSheet']>
+  deleteSheet?: NonNullable<SheetTabsSource['deleteSheet']>
+  reorderSheet?: NonNullable<SheetTabsSource['reorderSheet']>
 }
 
 export interface SheetTabMutationPlan extends SheetTabMutationState {

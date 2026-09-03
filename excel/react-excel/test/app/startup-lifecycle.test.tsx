@@ -8,16 +8,20 @@ interface Deferred<T> {
   reject(error: unknown): void
 }
 
-interface MockRustBackend {
-  ready(): Promise<void>
+interface MockRustConnection {
   dispose(): void
 }
 
-const mockCreateRustWorkbookBackend = jest.fn<() => MockRustBackend>()
+const mockCreateConnection = jest.fn<() => MockRustConnection>()
+const mockInitializeWorkbook = jest.fn<(connection: MockRustConnection) => Promise<void>>()
 
 jest.mock(
-  '../../src/product/sales-orders/runtime/create-rust-workbook-backend',
-  () => ({ createRustWorkbookBackend: mockCreateRustWorkbookBackend }),
+  '../../src/product/sales-orders/runtime/create-rust-workbook-connection',
+  () => ({ createSalesOrdersWorkbookConnection: mockCreateConnection }),
+)
+jest.mock(
+  '../../src/product/sales-orders/runtime/initialize-sales-orders-workbook',
+  () => ({ initializeSalesOrdersWorkbook: mockInitializeWorkbook }),
 )
 jest.mock('../../src/workbook/shell/Workbook', () => ({
   Workbook: () => <main>Ready workbook</main>,
@@ -37,18 +41,16 @@ function deferred<T>(): Deferred<T> {
   return { promise, resolve, reject }
 }
 
-function createBackend(ready: Promise<void>): MockRustBackend {
-  return {
-    ready: jest.fn(() => ready),
-    dispose: jest.fn(),
-  }
+function createConnection(): MockRustConnection {
+  return { dispose: jest.fn() }
 }
 
 describe('App startup lifecycle', () => {
-  it('renders loading until the product backend becomes ready and disposes it', async () => {
+  it('renders loading until initialization finishes and disposes the connection', async () => {
     const startup = deferred<void>()
-    const backend = createBackend(startup.promise)
-    mockCreateRustWorkbookBackend.mockReturnValueOnce(backend)
+    const connection = createConnection()
+    mockCreateConnection.mockReturnValueOnce(connection)
+    mockInitializeWorkbook.mockReturnValueOnce(startup.promise)
     const rendered = render(<App />)
 
     expect(screen.getByRole('status')).toHaveTextContent('Loading Rust/WASM workbook')
@@ -57,23 +59,24 @@ describe('App startup lifecycle', () => {
     expect(screen.getByText('Ready workbook')).toBeVisible()
 
     rendered.unmount()
-    expect(backend.dispose).toHaveBeenCalledTimes(1)
+    expect(connection.dispose).toHaveBeenCalledTimes(1)
   })
 
-  it('renders an async startup error and releases the backend once', async () => {
+  it('renders an async startup error and releases the connection once', async () => {
     const startup = deferred<void>()
-    const backend = createBackend(startup.promise)
-    mockCreateRustWorkbookBackend.mockReturnValueOnce(backend)
+    const connection = createConnection()
+    mockCreateConnection.mockReturnValueOnce(connection)
+    mockInitializeWorkbook.mockReturnValueOnce(startup.promise)
     render(<App />)
 
     await act(async () => startup.reject(new Error('Worker initialization failed')))
 
     expect(screen.getByRole('alert')).toHaveTextContent('Worker initialization failed')
-    expect(backend.dispose).toHaveBeenCalledTimes(1)
+    expect(connection.dispose).toHaveBeenCalledTimes(1)
   })
 
-  it('renders a synchronous backend creation error', () => {
-    mockCreateRustWorkbookBackend.mockImplementationOnce(() => {
+  it('renders a synchronous connection creation error', () => {
+    mockCreateConnection.mockImplementationOnce(() => {
       throw new Error('Worker construction failed')
     })
 

@@ -4,11 +4,11 @@ import {
   selectCellAtom,
   selectionSnapshotAtom,
   setSelectionBoundsAtom,
-  type SpreadsheetBackend,
 } from '@einfach/spreadsheet-ui-core'
 import { describe, expect, it } from '@jest/globals'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { WorkbookRuntimeProvider } from '../../../src/workbook/runtime/WorkbookRuntimeProvider'
+import { createTestRustWorkbookConnection } from '../../support/rust-workbook-connection'
 
 function createBoundedStore(): Store {
   const store = createStore()
@@ -31,15 +31,15 @@ function SelectionProbe({ label }: { readonly label: string }) {
 
 describe('WorkbookRuntimeProvider isolation', () => {
   it('keeps two explicitly injected stores independent', () => {
-    const backend = {} as SpreadsheetBackend
+    const connection = createTestRustWorkbookConnection()
     const leftStore = createBoundedStore()
     const rightStore = createBoundedStore()
     render(
       <>
-        <WorkbookRuntimeProvider backend={backend} store={leftStore}>
+        <WorkbookRuntimeProvider connection={connection} store={leftStore}>
           <SelectionProbe label="left" />
         </WorkbookRuntimeProvider>
-        <WorkbookRuntimeProvider backend={backend} store={rightStore}>
+        <WorkbookRuntimeProvider connection={connection} store={rightStore}>
           <SelectionProbe label="right" />
         </WorkbookRuntimeProvider>
       </>,

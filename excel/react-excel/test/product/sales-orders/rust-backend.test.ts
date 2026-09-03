@@ -3,101 +3,42 @@ import packageJson from '../../../../spreadsheet-ui-core/package.json'
 import {
   SALES_ORDER_CELL_COUNT,
   SALES_ORDER_IMPORT_CHUNK_SIZE,
+  createSalesOrderImportChunks,
 } from '../../../src/product/sales-orders/data/import-seed'
 
-type ImportRustWorkbook = (
-  client: {
-    beginImport(options: { mode: 'direct' }): Promise<number>
-    cancelImport(sessionId: number): Promise<boolean>
-    commitImport(sessionId: number): Promise<{
-      accepted: number
-      errors: number
-      rejectedFormulas: number
-    }>
-    importChunk(sessionId: number, cells: unknown[]): Promise<number>
-  },
-  sheetIndex: number,
-) => Promise<void>
-
-jest.mock(
-  '@einfach/spreadsheet-ui-core/rust-worker/runtime?worker',
-  () => ({ default: class RustWorkbookWorker {} }),
-  { virtual: true },
-)
-
-const { createWorkerWorkbookSpreadsheetBackend: exportedBackendFactory } = jest.requireActual(
+const { createWorkerTransport } = jest.requireActual(
   '@einfach/spreadsheet-ui-core/rust-worker',
-) as { createWorkerWorkbookSpreadsheetBackend: unknown }
-const { importRustWorkbook } = jest.requireActual(
-  '../../../src/product/sales-orders/runtime/import-rust-workbook',
-) as { importRustWorkbook: ImportRustWorkbook }
+) as { createWorkerTransport: unknown }
+const { createRustWorkbookConnection } = jest.requireActual(
+  '@einfach/spreadsheet-ui-core',
+) as { createRustWorkbookConnection: unknown }
 
-describe('React workbook Rust backend', () => {
-  it('exports the existing neutral backend at the exact package subpath', () => {
+describe('React workbook Rust connection', () => {
+  it('exports transport separately from the side-effectful runtime', () => {
     expect(packageJson.exports['./rust-worker']).toEqual({
       types: './@types/rust-worker/index.d.ts',
       import: './esm/rust-worker/index.mjs',
       require: './cjs/rust-worker/index.cjs',
     })
-    expect(typeof exportedBackendFactory).toBe('function')
+    expect(packageJson.exports['./rust-runtime']).toEqual({
+      types: './@types/rust-runtime.d.ts',
+      import: './esm/rust-runtime.mjs',
+      default: './esm/rust-runtime.mjs',
+    })
+    expect(typeof createWorkerTransport).toBe('function')
+    expect(typeof createRustWorkbookConnection).toBe('function')
   })
 
-  it('direct-imports exactly 8,008 cells in bounded chunks', async () => {
-    const importedCells: unknown[] = []
-    const beginImport = jest.fn(async () => 17)
-    let normalizedCellCount = 0
-    const importChunk = jest.fn(async (_sessionId: number, cells: unknown[]) => {
-      importedCells.push(...cells)
-      normalizedCellCount += cells.length
-      return normalizedCellCount
-    })
-    const commitImport = jest.fn(async () => ({
-      accepted: SALES_ORDER_CELL_COUNT,
-      formulas: 1_000,
-      rejectedFormulas: 0,
-      cleared: 0,
-      errors: 0,
-    }))
-    const cancelImport = jest.fn(async () => true)
-
-    await importRustWorkbook(
-      { beginImport, importChunk, commitImport, cancelImport },
-      3,
-    )
-
-    expect(beginImport).toHaveBeenCalledWith({ mode: 'direct' })
+  it('provides exactly 8,008 initial cells in bounded chunks', () => {
+    const chunks = createSalesOrderImportChunks()
+    const importedCells = chunks.flat()
     expect(importedCells).toHaveLength(8_008)
     expect(importedCells).toHaveLength(SALES_ORDER_CELL_COUNT)
-    expect(
-      importChunk.mock.calls.every(([, cells]) => cells.length <= SALES_ORDER_IMPORT_CHUNK_SIZE),
-    ).toBe(true)
-    expect(importChunk.mock.calls[1]?.[1]).toHaveLength(SALES_ORDER_IMPORT_CHUNK_SIZE)
+    expect(chunks.every((cells) => cells.length <= SALES_ORDER_IMPORT_CHUNK_SIZE)).toBe(true)
+    expect(chunks[1]).toHaveLength(SALES_ORDER_IMPORT_CHUNK_SIZE)
     expect(importedCells).toEqual(expect.arrayContaining([
-      expect.objectContaining({ sheet: 3, row: 0, col: 0, kind: 'text', value: 'Order' }),
-      expect.objectContaining({ sheet: 3, row: 1_000, col: 7 }),
+      expect.objectContaining({ sheet: 0, row: 0, col: 0, kind: 'text', value: 'Order' }),
+      expect.objectContaining({ sheet: 0, row: 1_000, col: 7 }),
     ]))
-    expect(commitImport).toHaveBeenCalledWith(17)
-    expect(cancelImport).not.toHaveBeenCalled()
-  })
-
-  it('rejects failed commit stats', async () => {
-    let normalizedCellCount = 0
-    const client = {
-      beginImport: async () => 21,
-      importChunk: async (_sessionId: number, cells: unknown[]) => {
-        normalizedCellCount += cells.length
-        return normalizedCellCount
-      },
-      commitImport: async () => ({
-        accepted: SALES_ORDER_CELL_COUNT - 1,
-        errors: 1,
-        rejectedFormulas: 0,
-      }),
-      cancelImport: jest.fn(async () => true),
-    }
-
-    await expect(importRustWorkbook(client, 0)).rejects.toThrow(
-      'Rust workbook import failed',
-    )
   })
 })

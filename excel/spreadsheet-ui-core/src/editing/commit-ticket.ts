@@ -34,8 +34,6 @@ export function createEditingCommitTicket(input: {
     requestId: input.requestId,
     intent,
     request,
-    source: input.captured.source,
-    execute: input.captured.execute,
     refreshProjection: input.captured.refreshProjection,
     timeoutMs: input.captured.timeoutMs,
     historyReservation: input.historyReservation,

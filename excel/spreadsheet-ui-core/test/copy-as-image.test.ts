@@ -7,11 +7,11 @@ import {
   MAX_EXPORT_PIXELS,
   type CopyAsImageResult,
   type CopyAsTextResult,
+  type RangeImageExportPort,
 } from '../src/copy-as'
 import type {
   RangeImageExportRequest,
   RangeImageExportResult,
-  SpreadsheetBackend,
 } from '../src/backend/types'
 
 /**
@@ -27,36 +27,9 @@ const FAKE_PNG_BYTES = new Uint8Array([
 ])
 
 function makeMinimalBackend(
-  overrides: Partial<SpreadsheetBackend> = {},
-): SpreadsheetBackend {
-  return {
-    async readVisibleProjection(request) {
-      return {
-        kind: 'visible-window',
-        sheetId: request.sheetId,
-        window: request.window,
-        requestId: request.requestId,
-        cells: [],
-      }
-    },
-    async readRangeProjection(request) {
-      return {
-        kind: 'range',
-        sheetId: request.sheetId,
-        range: request.range,
-        requestId: request.requestId,
-        cells: [],
-      }
-    },
-    async setCellInput(request) {
-      return {
-        sheetId: request.sheetId,
-        requestId: request.requestId,
-        revision: request.revision,
-      }
-    },
-    ...overrides,
-  }
+  overrides: RangeImageExportPort = {},
+): RangeImageExportPort {
+  return { ...overrides }
 }
 
 describe('encodeSelectionAsImage', () => {

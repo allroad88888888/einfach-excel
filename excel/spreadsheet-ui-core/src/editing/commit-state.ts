@@ -11,7 +11,6 @@ import type {
   EditingCommitIntent,
   EditingCommitLifecycleState,
   EditingCommitRequest,
-  EditingControllerPort,
   EditingIntent,
   EditingSessionState,
   RunEditingCommitInput,
@@ -31,8 +30,6 @@ export interface EditingCommitTicket {
   readonly requestId: number
   readonly intent: EditingCommitIntent
   readonly request: EditingCommitRequest
-  readonly source: EditingControllerPort
-  readonly execute: NonNullable<EditingControllerPort['setCellInput']>
   readonly refreshProjection: RunEditingCommitInput['refreshProjection']
   readonly timeoutMs: number
   /** UI timeline ownership only; the Rust backend owns the actual undo images. */

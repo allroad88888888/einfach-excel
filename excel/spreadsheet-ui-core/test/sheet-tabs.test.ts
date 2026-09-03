@@ -3,7 +3,6 @@ import { describe, expect, test } from '@jest/globals'
 import type {
   SheetListResult,
   SheetMutationResult,
-  SpreadsheetBackend,
   SpreadsheetSheetMetadata,
 } from '../src/backend'
 import {
@@ -34,6 +33,7 @@ import {
   setMultiRegionSelectionAtom,
   sheetTabsAtom,
   sheetTabsSheetsAtom,
+  type SheetTabsSource,
   workspaceSessionAtom,
 } from '../src'
 
@@ -42,19 +42,8 @@ const SHEETS: SpreadsheetSheetMetadata[] = [
   { id: 'sheet-2', name: 'Sheet2', index: 1 },
 ]
 
-function createBackend(overrides: Partial<SpreadsheetBackend> = {}): SpreadsheetBackend {
-  return {
-    async readVisibleProjection() {
-      throw new Error('not used')
-    },
-    async readRangeProjection() {
-      throw new Error('not used')
-    },
-    async setCellInput() {
-      throw new Error('not used')
-    },
-    ...overrides,
-  }
+function createBackend(overrides: SheetTabsSource = {}): SheetTabsSource {
+  return { ...overrides }
 }
 
 function deferred<T>() {

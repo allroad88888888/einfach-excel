@@ -1,14 +1,14 @@
 import { atom, type Getter, type Setter } from '@einfach/core'
-import type { SpreadsheetBackend } from '../backend'
 import { printConfigStateAtom } from './config-state'
 import {
   capturePageSetupReadPort,
   nextPageSetupIdentity,
   snapshotExactPageSetupRead,
+  type PrintConfigSource,
 } from './page-setup-domain'
 
 export interface HydratePrintConfigInput {
-  readonly source: SpreadsheetBackend
+  readonly source: PrintConfigSource
   readonly sheetId: string
 }
 

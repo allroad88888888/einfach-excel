@@ -4,7 +4,6 @@ import {
   runVisibleProjectionAtom,
   type RunVisibleProjectionInput,
 } from '../projection/run-visible-projection'
-import { spreadsheetBackendBindingAtom } from '../runtime/backend-state'
 import { retryEditingRefreshAtom } from './retry-refresh'
 import { runEditingCommitAtom } from './run-commit'
 import { editingSessionAtom } from './session-atoms'
@@ -34,16 +33,14 @@ async function refreshVisibleProjection(get: Getter, set: Setter, sheetId: strin
   }
 }
 
-/** Commits the current cell draft through this store's backend and visible window. */
+/** 提交当前草稿；写入和刷新都直接使用当前 store 的 Rust 连接。 */
 export const commitCellEditingAtom = atom(null, async (get, set): Promise<EditingCommitOutcome> => {
   const session = get(editingSessionAtom)
-  const binding = get(spreadsheetBackendBindingAtom)
-  if (session.source === null || binding === null) return 'blocked'
+  if (session.source === null) return 'blocked'
   if (currentVisibleRefreshInput(get, session.source.sheetId) === null) return 'blocked'
 
   return set(runEditingCommitAtom, {
-    source: binding.backend,
-    commitSource: 'cell',
+    commitSource: session.source.source,
     move: 'none',
     refreshProjection: (sheetId) => refreshVisibleProjection(get, set, sheetId),
   })

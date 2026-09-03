@@ -2,12 +2,12 @@ import {
   createSpreadsheetUi,
   projectionSnapshotAtom,
   runVisibleProjectionAtom,
-  type SpreadsheetBackend,
   type VisibleProjectionRequest,
   type VisibleProjectionResult,
 } from '../src'
 import { createStore } from '@einfach/core'
 import { describe, expect, test } from '@jest/globals'
+import { createTestRustWorkbookConnection } from './support/rust-workbook-connection'
 
 function projectionResult(request: VisibleProjectionRequest): VisibleProjectionResult {
   return {
@@ -30,20 +30,19 @@ function projectionInput(rowStart: number) {
 describe('runVisibleProjectionAtom', () => {
   test('owns the backend transport and publishes the projection', async () => {
     const requests: VisibleProjectionRequest[] = []
-    const backend = {
+    const connection = createTestRustWorkbookConnection({
       async readVisibleProjection(request: VisibleProjectionRequest) {
         requests.push(request)
         return projectionResult(request)
       },
-    } as SpreadsheetBackend
-    const core = createSpreadsheetUi({ backend })
+    })
+    const core = createSpreadsheetUi({ connection })
 
     await expect(core.store.setter(runVisibleProjectionAtom, projectionInput(0))).resolves.toEqual({
       status: 'ready',
     })
 
     expect(requests).toHaveLength(1)
-    expect(Object.isFrozen(backend)).toBe(false)
     expect(core.store.getter(projectionSnapshotAtom)).toMatchObject({
       status: 'ready',
       result: { window: projectionInput(0).window },
@@ -56,14 +55,14 @@ describe('runVisibleProjectionAtom', () => {
       releaseFirst = resolve
     })
     const requests: VisibleProjectionRequest[] = []
-    const backend = {
+    const connection = createTestRustWorkbookConnection({
       async readVisibleProjection(request: VisibleProjectionRequest) {
         requests.push(request)
         if (requests.length === 1) await firstGate
         return projectionResult(request)
       },
-    } as SpreadsheetBackend
-    const core = createSpreadsheetUi({ backend })
+    })
+    const core = createSpreadsheetUi({ connection })
 
     const first = core.store.setter(runVisibleProjectionAtom, projectionInput(0))
     const latest = core.store.setter(runVisibleProjectionAtom, projectionInput(20))
@@ -79,12 +78,12 @@ describe('runVisibleProjectionAtom', () => {
   })
 
   test('publishes a terminal backend failure', async () => {
-    const backend = {
+    const connection = createTestRustWorkbookConnection({
       async readVisibleProjection() {
         throw new Error('Rust projection unavailable')
       },
-    } as unknown as SpreadsheetBackend
-    const core = createSpreadsheetUi({ backend })
+    })
+    const core = createSpreadsheetUi({ connection })
 
     await expect(core.store.setter(runVisibleProjectionAtom, projectionInput(0))).resolves.toEqual({
       status: 'failed',
@@ -101,7 +100,7 @@ describe('runVisibleProjectionAtom', () => {
 
     await expect(store.setter(runVisibleProjectionAtom, projectionInput(0))).resolves.toEqual({
       status: 'failed',
-      error: 'Spreadsheet backend is not bound to this store.',
+      error: 'Rust workbook connection is not bound to this store.',
     })
     expect(store.getter(projectionSnapshotAtom)).toMatchObject({
       status: 'error',
@@ -109,13 +108,13 @@ describe('runVisibleProjectionAtom', () => {
     })
 
     const requests: VisibleProjectionRequest[] = []
-    const backend = {
+    const connection = createTestRustWorkbookConnection({
       async readVisibleProjection(request: VisibleProjectionRequest) {
         requests.push(request)
         return projectionResult(request)
       },
-    } as SpreadsheetBackend
-    createSpreadsheetUi({ backend, store })
+    })
+    createSpreadsheetUi({ connection, store })
 
     await expect(store.setter(runVisibleProjectionAtom, projectionInput(20))).resolves.toEqual({
       status: 'ready',

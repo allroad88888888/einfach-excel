@@ -1,5 +1,8 @@
 import type { CellRange } from '../shared'
-import type { SpreadsheetBackend } from '../backend/types'
+import type {
+  RangeImageExportRequest,
+  RangeImageExportResult,
+} from '../backend/types'
 import type { CopyAsRect } from './types'
 import { copyAsVisibleRows } from './visible-rows'
 
@@ -99,6 +102,12 @@ export type EncodeSelectionAsImageResult =
   | EncodeSelectionAsImageSuccess
   | EncodeSelectionAsImageFailure
 
+export interface RangeImageExportPort {
+  exportRangeAsImage?: (
+    request: RangeImageExportRequest,
+  ) => Promise<RangeImageExportResult>
+}
+
 /**
  * Wave 8.4 — framework-agnostic PNG encoder. Calls the host
  * `exportRangeAsImage` port and wraps the returned bytes in a `Blob`
@@ -120,7 +129,7 @@ export type EncodeSelectionAsImageResult =
  */
 export async function encodeSelectionAsImage(
   input: EncodeSelectionAsImageInput,
-  backend: SpreadsheetBackend,
+  backend: RangeImageExportPort,
 ): Promise<EncodeSelectionAsImageResult> {
   if (!backend.exportRangeAsImage) {
     return { ok: false, reason: 'no-backend' }

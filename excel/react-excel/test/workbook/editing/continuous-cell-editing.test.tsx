@@ -2,7 +2,6 @@ import { createStore } from '@einfach/core'
 import {
   setSelectionBoundsAtom,
   type EditingCommitRequest,
-  type SpreadsheetBackend,
   type VisibleProjectionRequest,
   type VisibleProjectionResult,
 } from '@einfach/spreadsheet-ui-core'
@@ -14,6 +13,7 @@ import {
   SALES_ORDER_SHEET_ROW_COUNT,
 } from '../../../src/product/sales-orders/data/sheet'
 import { WorkbookRuntimeProvider } from '../../../src/workbook/runtime/WorkbookRuntimeProvider'
+import { createTestRustWorkbookConnection } from '../../support/rust-workbook-connection'
 
 const { Workbook } = jest.requireActual('../../../src/workbook/shell/Workbook') as {
   Workbook: ComponentType
@@ -53,14 +53,14 @@ describe('continuous Rust cell editing', () => {
         revision,
       }
     })
-    const backend = { readVisibleProjection, setCellInput } as unknown as SpreadsheetBackend
+    const connection = createTestRustWorkbookConnection({ readVisibleProjection, setCellInput })
     const store = createStore()
     store.setter(setSelectionBoundsAtom, {
       rowCount: SALES_ORDER_SHEET_ROW_COUNT,
       colCount: SALES_ORDER_COLUMNS.length,
     })
     render(
-      <WorkbookRuntimeProvider backend={backend} store={store}>
+      <WorkbookRuntimeProvider connection={connection} store={store}>
         <Workbook />
       </WorkbookRuntimeProvider>,
     )

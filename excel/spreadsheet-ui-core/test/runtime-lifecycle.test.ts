@@ -4,32 +4,32 @@ import {
   beginSpreadsheetRuntimeAtom,
   rejectSpreadsheetRuntimeAtom,
   resolveSpreadsheetRuntimeAtom,
+  rustWorkbookConnectionAtom,
   spreadsheetRuntimeAtom,
-  type SpreadsheetBackend,
 } from '../src'
-import { spreadsheetBackendBindingAtom } from '../src/runtime/backend-state'
+import { createTestRustWorkbookConnection } from './support/rust-workbook-connection'
 
 describe('spreadsheet runtime lifecycle', () => {
-  test('publishes loading, ready and error while owning the backend binding', () => {
+  test('publishes loading, ready and error while owning the Rust connection', () => {
     const store = createStore()
-    const backend = {} as SpreadsheetBackend
+    const connection = createTestRustWorkbookConnection()
 
     expect(store.getter(spreadsheetRuntimeAtom)).toEqual({ status: 'loading' })
-    expect(store.getter(spreadsheetBackendBindingAtom)).toBeNull()
+    expect(store.getter(rustWorkbookConnectionAtom)).toBeNull()
 
-    store.setter(resolveSpreadsheetRuntimeAtom, { backend })
+    store.setter(resolveSpreadsheetRuntimeAtom, { connection })
     expect(store.getter(spreadsheetRuntimeAtom)).toEqual({ status: 'ready' })
-    expect(store.getter(spreadsheetBackendBindingAtom)).toEqual({ backend })
+    expect(store.getter(rustWorkbookConnectionAtom)).toBe(connection)
 
     store.setter(rejectSpreadsheetRuntimeAtom, new Error('Rust startup failed'))
     expect(store.getter(spreadsheetRuntimeAtom)).toEqual({
       status: 'error',
       message: 'Rust startup failed',
     })
-    expect(store.getter(spreadsheetBackendBindingAtom)).toBeNull()
+    expect(store.getter(rustWorkbookConnectionAtom)).toBeNull()
 
     store.setter(beginSpreadsheetRuntimeAtom)
     expect(store.getter(spreadsheetRuntimeAtom)).toEqual({ status: 'loading' })
-    expect(store.getter(spreadsheetBackendBindingAtom)).toBeNull()
+    expect(store.getter(rustWorkbookConnectionAtom)).toBeNull()
   })
 })

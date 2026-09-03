@@ -8,7 +8,7 @@
 
 - [ ] `npm test`
 - [ ] `npm run lint:check`
-- [ ] 涉及 e2e：`NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach/solid-excel`
+- [ ] 涉及 React 产品：`pnpm --filter @einfach/react-excel test && pnpm --filter @einfach/react-excel build`
 
 ## 文档同步
 

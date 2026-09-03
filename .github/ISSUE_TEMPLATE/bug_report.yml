@@ -47,7 +47,7 @@ body:
       label: 运行环境
       description: 请写明相关包版本、操作系统、浏览器或 Node.js 版本。
       placeholder: |
-        @einfach/solid-excel：
+        @einfach/react-excel / @einfach/spreadsheet-ui-core：
         操作系统：
         浏览器：
         Node.js：

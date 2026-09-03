@@ -1,3 +1,4 @@
+/* Owns the shared workbook shell layout. */
 .workbook {
   display: flex;
   width: 100%;

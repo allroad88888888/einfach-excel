@@ -1,25 +1,17 @@
 import { createStore } from '@einfach/core'
 import {
   selectionSnapshotAtom,
-  setSelectionBoundsAtom,
   viewportMetricsAtom,
   type VisibleProjectionRequest,
   type VisibleProjectionResult,
 } from '@einfach/spreadsheet-ui-core'
 import { describe, expect, it, jest } from '@jest/globals'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import type { ComponentType } from 'react'
-import {
-  SALES_ORDER_COLUMNS,
-  SALES_ORDER_SHEET_ROW_COUNT,
-} from '../../../src/product/sales-orders/data/sheet'
-import { GRID_ROW_HEIGHT } from '../../../src/workbook/projection/use-grid-window'
-import { WorkbookRuntimeProvider } from '../../../src/workbook/runtime/WorkbookRuntimeProvider'
+import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
+import { WORKBOOK_GRID_ROW_HEIGHT } from '../../../src/workbook/grid/viewport/workbook-grid-config'
+import { WorkbookView } from '../../../src/workbook/shell/WorkbookView'
+import { initializeSalesOrdersStore } from '../../support/initialize-sales-orders-store'
 import { createTestRustWorkbookConnection } from '../../support/rust-workbook-connection'
-
-const { Workbook } = jest.requireActual('../../../src/workbook/shell/Workbook') as {
-  Workbook: ComponentType
-}
 
 function projectionFor(request: VisibleProjectionRequest): VisibleProjectionResult {
   return {
@@ -27,11 +19,13 @@ function projectionFor(request: VisibleProjectionRequest): VisibleProjectionResu
     requestId: request.requestId,
     sheetId: request.sheetId,
     window: request.window,
-    cells: [{
-      row: request.window.rowStart,
-      col: 1,
-      displayValue: `B${request.window.rowStart + 1}`,
-    }],
+    cells: [
+      {
+        row: request.window.rowStart,
+        col: 1,
+        displayValue: `B${request.window.rowStart + 1}`,
+      },
+    ],
   }
 }
 
@@ -42,17 +36,14 @@ function renderWorkbook() {
     return projectionFor(request)
   })
   const store = createStore()
-  store.setter(setSelectionBoundsAtom, {
-    rowCount: SALES_ORDER_SHEET_ROW_COUNT,
-    colCount: SALES_ORDER_COLUMNS.length,
-  })
+  initializeSalesOrdersStore(store)
   render(
-    <WorkbookRuntimeProvider
+    <WorkbookStoreProvider
       connection={createTestRustWorkbookConnection({ readVisibleProjection })}
       store={store}
     >
-      <Workbook />
-    </WorkbookRuntimeProvider>,
+      <WorkbookView />
+    </WorkbookStoreProvider>,
   )
   return { requests, store }
 }
@@ -68,12 +59,14 @@ describe('workbook name box navigation', () => {
     fireEvent.keyDown(nameBox, { key: 'Enter' })
 
     expect(store.getter(selectionSnapshotAtom).activeCell).toMatchObject({ row: 99, col: 1 })
-    expect(store.getter(viewportMetricsAtom).scrollTop).toBe(99 * GRID_ROW_HEIGHT)
+    expect(store.getter(viewportMetricsAtom).scrollTop).toBe(99 * WORKBOOK_GRID_ROW_HEIGHT)
     await waitFor(() => expect(requests).toHaveLength(2))
     expect(requests[1]?.window.rowStart).toBe(99)
-    await waitFor(() => expect(document.querySelector('[data-cell="99:1"]')).toHaveTextContent('B100'))
+    await waitFor(() =>
+      expect(document.querySelector('[data-cell="99:1"]')).toHaveTextContent('B100'),
+    )
     expect(nameBox).toHaveValue('B100')
-    expect(screen.getByLabelText('One thousand sales order records')).toHaveFocus()
+    expect(screen.getByLabelText('Sales Orders cells')).toHaveFocus()
   })
 
   it('restores the selected address when Escape cancels typing', async () => {
@@ -85,6 +78,6 @@ describe('workbook name box navigation', () => {
     fireEvent.keyDown(nameBox, { key: 'Escape' })
 
     expect(nameBox).toHaveValue('A1')
-    expect(screen.getByLabelText('One thousand sales order records')).toHaveFocus()
+    expect(screen.getByLabelText('Sales Orders cells')).toHaveFocus()
   })
 })

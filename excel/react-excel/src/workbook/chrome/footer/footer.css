@@ -1,3 +1,4 @@
+/* Owns the shared workbook footer styling. */
 .workbook-footer {
   display: flex;
   min-height: 34px;

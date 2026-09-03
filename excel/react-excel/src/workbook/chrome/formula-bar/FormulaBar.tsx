@@ -25,14 +25,11 @@ export function FormulaBar() {
   const commitEditing = useSetAtom(commitCellEditingAtom)
   const cancelEditing = useSetAtom(cancelEditingAtom)
   const activeCell = selection.activeCell
-  const activeSheetId = projection?.kind === 'visible-window'
-    ? projection.sheetId
-    : activeCell.sheetId
+  const activeSheetId =
+    projection?.kind === 'visible-window' ? projection.sheetId : activeCell.sheetId
   const selectedCell =
     projection?.kind === 'visible-window'
-      ? projection.cells.find(
-          (cell) => cell.row === activeCell.row && cell.col === activeCell.col,
-        )
+      ? projection.cells.find((cell) => cell.row === activeCell.row && cell.col === activeCell.col)
       : undefined
   const editingActiveCell =
     editingSession.source?.sheetId === activeSheetId &&

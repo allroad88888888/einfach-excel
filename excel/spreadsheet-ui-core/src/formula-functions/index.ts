@@ -1,5 +1,5 @@
 import { atom } from '@einfach/core'
-import { editingDraftAtom, editingSessionAtom } from '../editing'
+import { editingDraftAtom, editingSessionAtom } from '../editing/session-atoms'
 import { formulaReferenceCaretAtom } from '../formula-reference'
 import {
   FORMULA_FUNCTION_SPECS,

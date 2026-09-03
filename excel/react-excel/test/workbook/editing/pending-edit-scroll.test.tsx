@@ -1,6 +1,5 @@
 import { createStore } from '@einfach/core'
 import {
-  setSelectionBoundsAtom,
   type BackendMutationResult,
   type EditingCommitRequest,
   type VisibleProjectionRequest,
@@ -8,18 +7,12 @@ import {
 } from '@einfach/spreadsheet-ui-core'
 import { describe, expect, it, jest } from '@jest/globals'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import type { ComponentType } from 'react'
-import {
-  SALES_ORDER_COLUMNS,
-  SALES_ORDER_SHEET_ROW_COUNT,
-} from '../../../src/product/sales-orders/data/sheet'
-import { GRID_ROW_HEIGHT } from '../../../src/workbook/projection/use-grid-window'
-import { WorkbookRuntimeProvider } from '../../../src/workbook/runtime/WorkbookRuntimeProvider'
+import { SALES_ORDER_SHEET_ROW_COUNT } from '../../../src/page/demo/sales-orders/data/sheet'
+import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
+import { WORKBOOK_GRID_ROW_HEIGHT } from '../../../src/workbook/grid/viewport/workbook-grid-config'
+import { WorkbookView } from '../../../src/workbook/shell/WorkbookView'
+import { initializeSalesOrdersStore } from '../../support/initialize-sales-orders-store'
 import { createTestRustWorkbookConnection } from '../../support/rust-workbook-connection'
-
-const { Workbook } = jest.requireActual('../../../src/workbook/shell/Workbook') as {
-  Workbook: ComponentType
-}
 
 function deferred<T>() {
   let resolve!: (value: T | PromiseLike<T>) => void
@@ -35,47 +28,44 @@ describe('pending edit projection scrolling', () => {
     let mutationRequest: EditingCommitRequest | undefined
     const requests: VisibleProjectionRequest[] = []
     const bundledRequests: VisibleProjectionRequest[] = []
-    const readVisibleProjection = jest.fn(async (
-      request: VisibleProjectionRequest,
-    ): Promise<VisibleProjectionResult> => {
-      requests.push(request)
-      const cells = []
-      for (let row = request.window.rowStart; row <= request.window.rowEnd; row += 1) {
-        for (let col = request.window.colStart; col <= request.window.colEnd; col += 1) {
-          cells.push({ row, col, displayValue: `R${row}C${col}` })
+    const readVisibleProjection = jest.fn(
+      async (request: VisibleProjectionRequest): Promise<VisibleProjectionResult> => {
+        requests.push(request)
+        const cells = []
+        for (let row = request.window.rowStart; row <= request.window.rowEnd; row += 1) {
+          for (let col = request.window.colStart; col <= request.window.colEnd; col += 1) {
+            cells.push({ row, col, displayValue: `R${row}C${col}` })
+          }
         }
-      }
-      return {
-        kind: 'visible-window',
-        sheetId: request.sheetId,
-        requestId: request.requestId,
-        window: request.window,
-        cells,
-      }
-    })
+        return {
+          kind: 'visible-window',
+          sheetId: request.sheetId,
+          requestId: request.requestId,
+          window: request.window,
+          cells,
+        }
+      },
+    )
     const setCellInput = jest.fn((request: EditingCommitRequest) => {
       mutationRequest = request
       return mutation.promise
     })
-    const setCellProjection = jest.fn(async (
-      request: VisibleProjectionRequest,
-    ): Promise<VisibleProjectionResult> => {
-      bundledRequests.push(request)
-      return {
-        kind: 'visible-window',
-        sheetId: request.sheetId,
-        requestId: request.requestId,
-        window: request.window,
-        cells: [],
-      }
-    })
+    const setCellProjection = jest.fn(
+      async (request: VisibleProjectionRequest): Promise<VisibleProjectionResult> => {
+        bundledRequests.push(request)
+        return {
+          kind: 'visible-window',
+          sheetId: request.sheetId,
+          requestId: request.requestId,
+          window: request.window,
+          cells: [],
+        }
+      },
+    )
     const store = createStore()
-    store.setter(setSelectionBoundsAtom, {
-      rowCount: SALES_ORDER_SHEET_ROW_COUNT,
-      colCount: SALES_ORDER_COLUMNS.length,
-    })
+    initializeSalesOrdersStore(store)
     render(
-      <WorkbookRuntimeProvider
+      <WorkbookStoreProvider
         connection={createTestRustWorkbookConnection({
           readVisibleProjection,
           setCellInput,
@@ -83,8 +73,8 @@ describe('pending edit projection scrolling', () => {
         })}
         store={store}
       >
-        <Workbook />
-      </WorkbookRuntimeProvider>,
+        <WorkbookView />
+      </WorkbookStoreProvider>,
     )
 
     const first = await waitFor(() => {
@@ -103,10 +93,10 @@ describe('pending edit projection scrolling', () => {
       clientHeight: { configurable: true, value: 1_200 },
       scrollHeight: {
         configurable: true,
-        value: (SALES_ORDER_SHEET_ROW_COUNT + 1) * GRID_ROW_HEIGHT,
+        value: SALES_ORDER_SHEET_ROW_COUNT * WORKBOOK_GRID_ROW_HEIGHT,
       },
     })
-    fireEvent.scroll(scroll, { target: { scrollTop: 20 * GRID_ROW_HEIGHT } })
+    fireEvent.scroll(scroll, { target: { scrollTop: 20 * WORKBOOK_GRID_ROW_HEIGHT } })
     await waitFor(() => expect(requests.map((request) => request.window.rowStart)).toContain(20))
     await waitFor(() => expect(document.querySelector('[data-cell="20:0"]')).not.toBeNull())
 
@@ -120,9 +110,7 @@ describe('pending edit projection scrolling', () => {
     await waitFor(() => expect(screen.queryByRole('textbox', { name: 'Cell editor' })).toBeNull())
     // The combined cell command computed its captured row-0 window, but UI
     // Core discards it because the independent row-20 scroll won.
-    await waitFor(() =>
-      expect(requests.map((request) => request.window.rowStart)).toEqual([0, 20]),
-    )
+    await waitFor(() => expect(requests.map((request) => request.window.rowStart)).toEqual([0, 20]))
     expect(bundledRequests.map((request) => request.window.rowStart)).toEqual([0])
     expect(document.querySelector('[data-cell="20:0"]')).toHaveTextContent('R20C0')
     expect(setCellInput).toHaveBeenCalledTimes(1)

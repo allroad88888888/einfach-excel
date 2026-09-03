@@ -1,58 +1,47 @@
 import { createStore } from '@einfach/core'
 import {
   editingSessionAtom,
-  setSelectionBoundsAtom,
   type EditingCommitRequest,
   type VisibleProjectionRequest,
   type VisibleProjectionResult,
 } from '@einfach/spreadsheet-ui-core'
 import { describe, expect, it, jest } from '@jest/globals'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import type { ComponentType } from 'react'
-import {
-  SALES_ORDER_COLUMNS,
-  SALES_ORDER_SHEET_ROW_COUNT,
-} from '../../../src/product/sales-orders/data/sheet'
-import { WorkbookRuntimeProvider } from '../../../src/workbook/runtime/WorkbookRuntimeProvider'
+import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
+import { WorkbookView } from '../../../src/workbook/shell/WorkbookView'
+import { initializeSalesOrdersStore } from '../../support/initialize-sales-orders-store'
 import { createTestRustWorkbookConnection } from '../../support/rust-workbook-connection'
-
-const { Workbook } = jest.requireActual('../../../src/workbook/shell/Workbook') as {
-  Workbook: ComponentType
-}
 
 function renderFormulaWorkbook() {
   const values = new Map([['0:0', 'Order']])
   let revision = 0
-  const readVisibleProjection = jest.fn(async (
-    request: VisibleProjectionRequest,
-  ): Promise<VisibleProjectionResult> => ({
-    kind: 'visible-window',
-    sheetId: request.sheetId,
-    requestId: request.requestId,
-    revision,
-    window: request.window,
-    cells: Array.from(values, ([key, displayValue]) => {
-      const [row, col] = key.split(':').map(Number)
-      return { row: row!, col: col!, displayValue }
+  const readVisibleProjection = jest.fn(
+    async (request: VisibleProjectionRequest): Promise<VisibleProjectionResult> => ({
+      kind: 'visible-window',
+      sheetId: request.sheetId,
+      requestId: request.requestId,
+      revision,
+      window: request.window,
+      cells: Array.from(values, ([key, displayValue]) => {
+        const [row, col] = key.split(':').map(Number)
+        return { row: row!, col: col!, displayValue }
+      }),
     }),
-  }))
+  )
   const setCellInput = jest.fn(async (request: EditingCommitRequest) => {
     values.set(`${request.row}:${request.col}`, request.input)
     revision += 1
     return { sheetId: request.sheetId, requestId: request.requestId, revision }
   })
   const store = createStore()
-  store.setter(setSelectionBoundsAtom, {
-    rowCount: SALES_ORDER_SHEET_ROW_COUNT,
-    colCount: SALES_ORDER_COLUMNS.length,
-  })
+  initializeSalesOrdersStore(store)
   render(
-    <WorkbookRuntimeProvider
+    <WorkbookStoreProvider
       connection={createTestRustWorkbookConnection({ readVisibleProjection, setCellInput })}
       store={store}
     >
-      <Workbook />
-    </WorkbookRuntimeProvider>,
+      <WorkbookView />
+    </WorkbookStoreProvider>,
   )
   return { readVisibleProjection, setCellInput, store }
 }

@@ -7,8 +7,7 @@
       "@einfach/spreadsheet-ui-core",
       "@einfach/spreadsheet-ui-styles",
       "@einfach/excel-core-ts",
-      "@einfach/excel-wasm",
-      "@einfach/solid-excel"
+      "@einfach/excel-wasm"
     ]
   ],
   "linked": [],

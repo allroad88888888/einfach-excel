@@ -17,14 +17,8 @@ if (!fs.existsSync(`${process.cwd()}/excel/excel-wasm/lite/einfach_wasm.js`)) {
 const jestConfig = {
   // 转译配置
   transform: {
-    // 为 Solid.js 的 TSX 文件使用特定的 Babel 配置。
-    //
-    // 匹配的是绝对路径,按目录段匹配(前后都带 `/`),不会命中
-    // node_modules/solid-js。本仓只有 excel/solid-excel 一个 Solid 包 ——
-    // @einfach/solid 从 npm 装,发布产物里的 JSX 已由 jsx-dom-expressions
-    // 编译过,不需要再过 babel。
-    '/solid-excel/.*\\.tsx?$': ['babel-jest'],
-    // 其他文件保持现有的 SWC 配置(上面的规则先匹配先生效)。Includes
+    // TypeScript/JSX 统一走 SWC。暂停的 Solid 包不进入根 Jest。
+    // Includes
     // `.mjs` / `.cjs` so ESM-only dependencies (e.g. @lingui/core 6.x and
     // its message-utils helper) get re-emitted as CJS once they're
     // whitelisted from transformIgnorePatterns below.
@@ -45,10 +39,16 @@ const jestConfig = {
   /**
    * Skip generated `@types` directories — composite projects emit `.d.ts`
    * + transpiled `.jsx` there, and jest would re-run those duplicates.
-   * Also skip Playwright e2e specs (`excel/solid-excel/e2e/`) — those run under
-   * `npm run e2e` from `excel/solid-excel/`, not jest.
+   * Solid 与依赖它的旧站点已暂停，Vue 是独立实验；根 Jest 不发现这些非主线源码。
    */
-  testPathIgnorePatterns: ['/node_modules/', '/@types/', '/excel/solid-excel/e2e/', '/excel/react-excel/e2e/', '/excel/vue-excel/e2e/', '/excel/excel-site/e2e/'],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/@types/',
+    '/excel/solid-excel/',
+    '/excel/excel-site/',
+    '/excel/vue-excel/',
+    '/excel/react-excel/e2e/',
+  ],
 
   /**
    * - excel-wasm/lite/ + excel-wasm/full/: each ships its own package.json
@@ -69,9 +69,7 @@ const jestConfig = {
    * 模块名称映射，用于解析 @einfach/core 和 @einfach/react 包
    */
   moduleNameMapper: {
-    // 只映射本仓自己的包。@einfach/core 与 @einfach/solid 现在从 npm 安装,
-    // 走 node_modules 解析 —— 这正是要验证的:excel 必须能跑在已发布的 core
-    // 上,而不是某个只存在于工作区的版本。
+    // 只映射本仓自己的包。@einfach/core 从 npm 安装，走 node_modules 解析。
     '^@einfach/spreadsheet-ui-core$': '<rootDir>/excel/spreadsheet-ui-core/src',
     '^@einfach/spreadsheet-ui-core/(?!.*\\?worker$)(.*)$':
       '<rootDir>/excel/spreadsheet-ui-core/src/$1',
@@ -81,10 +79,7 @@ const jestConfig = {
     // 入口;真实例化 WASM 的 parity/bench 驱动走 fs 路径直读,不经过 resolver。
     '^@einfach/excel-wasm$': '<rootDir>/excel/excel-wasm/lite/einfach_wasm.js',
     '^@einfach/excel-wasm/full$': '<rootDir>/excel/excel-wasm/full/einfach_wasm.js',
-    // CSS / asset imports become an inert object during jest runs so test
-    // files that touch a component which `import './foo.css'` still load
-    // without a parse error. Solid dialogs co-locate their styles next to
-    // the .tsx; without this stub jest would try to parse the .css as JS.
+    // CSS / asset imports become an inert object during Jest runs.
     '\\.(css|less|sass|scss)$': '<rootDir>/rules/css-stub.cjs',
   },
 

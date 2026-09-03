@@ -19,9 +19,10 @@ function navigationCoord(target: NameBoxCommitTarget): CellCoord | null {
     return { row: target.range.rowStart, col: target.range.colStart }
   }
   if (target.kind !== 'named-range') return null
-  return target.coord ?? (target.range
-    ? { row: target.range.rowStart, col: target.range.colStart }
-    : null)
+  return (
+    target.coord ??
+    (target.range ? { row: target.range.rowStart, col: target.range.colStart } : null)
+  )
 }
 
 /** Adapts the shared name-box atoms to one address input. */
@@ -38,9 +39,8 @@ export function NameBox() {
   const domSessionIdRef = useRef<number>()
   const handledBlurSessionIdRef = useRef<number>()
   const value = state.focused ? state.input : state.display
-  const activeSheetId = projection?.kind === 'visible-window'
-    ? projection.sheetId
-    : state.primaryRegion.sheetId
+  const activeSheetId =
+    projection?.kind === 'visible-window' ? projection.sheetId : state.primaryRegion.sheetId
 
   const navigate = (target: NameBoxCommitTarget) => {
     const coord = navigationCoord(target)

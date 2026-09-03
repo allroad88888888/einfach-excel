@@ -42,7 +42,9 @@
     "node_modules",
     "**/node_modules",
     "**/@types/",
-    "./excel/solid-excel/**"
+    "./excel/solid-excel/**",
+    "./excel/excel-site/**",
+    "./excel/vue-excel/**"
   ],
   "references": [
     {
@@ -50,9 +52,6 @@
     },
     {
       "path": "./excel/excel-core-ts/tsconfig.json"
-    },
-    {
-      "path": "./excel/solid-excel/tsconfig.json"
-    },
+    }
   ]
 }

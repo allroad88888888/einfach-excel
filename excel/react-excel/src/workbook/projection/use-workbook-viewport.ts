@@ -117,7 +117,7 @@ function isCurrentRequest(
 
 /**
  * Reads a caller-controlled visible window and delegates scrolling back to its owner.
- * Projection state remains in the nearest WorkbookRuntimeProvider's Einfach store.
+ * Projection state remains in the nearest workbook Einfach store.
  */
 export function useWorkbookViewport(options: UseWorkbookViewportOptions): WorkbookViewport {
   const snapshot: ProjectionSnapshot = useAtomValue(projectionSnapshotAtom)

@@ -38,8 +38,12 @@ export function WorkbookRibbon() {
         <ToolButton icon="✂" label="Cut" />
         <ToolButton icon="▤" label="Copy" />
         <span className="tool-separator" aria-hidden="true" />
-        <button className="tool-select font-family-select" type="button">Arial <span>⌄</span></button>
-        <button className="tool-select font-size-select" type="button">10 <span>⌄</span></button>
+        <button className="tool-select font-family-select" type="button">
+          Arial <span>⌄</span>
+        </button>
+        <button className="tool-select font-size-select" type="button">
+          10 <span>⌄</span>
+        </button>
         <ToolButton icon="B" label="Bold" />
         <ToolButton icon="𝐼" label="Italic" />
         <ToolButton icon="U̲" label="Underline" />

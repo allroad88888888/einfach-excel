@@ -1,3 +1,4 @@
+/* Owns the shared workbook identity bar styling. */
 .workbook-header {
   display: flex;
   min-height: 48px;

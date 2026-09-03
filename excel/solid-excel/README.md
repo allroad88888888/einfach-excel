@@ -1,5 +1,8 @@
 # @einfach/solid-excel
 
+> **暂停维护。** 源码仅保留作考古参考；该包已退出默认构建、测试、CI、发布与 React
+> 主线兼容范围。当前产品入口是 [`../react-excel`](../react-excel/README.md)。
+
 Solid.js spreadsheet surface for the active Einfach stack. The package wires `@einfach/spreadsheet-ui-core` atoms into Solid components, ships static and worker-backed adapters, and bundles a WASM build of the Rust formula engine.
 
 feature 归属（哪些事实归引擎、哪些归 UI core）的现行规范源是 [docs/CANONICAL_OWNERSHIP.md](./docs/CANONICAL_OWNERSHIP.md)，判据见 [ADR 0003](../../docs/decisions/0003-engine-owns-filter-sort.md)。

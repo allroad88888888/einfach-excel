@@ -7,6 +7,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // 两个顶层分组：core/（库）与 excel/（表格栈）
 const packages = ['core', 'excel']
+const nonMainlinePackages = new Set([
+  'excel/solid-excel',
+  'excel/excel-site',
+  'excel/vue-excel',
+])
 
 // 需要删除的目录和文件后缀
 const targets = ['tsconfig.tsbuildinfo', 'es', 'esm', 'cjs', '@types', 'dist']
@@ -32,6 +37,7 @@ try {
 
     // 遍历子目录
     for (const subDir of subDirs) {
+      if (nonMainlinePackages.has(`${pkg}/${subDir}`)) continue
       const subDirPath = path.join(pkgPath, subDir)
 
       // 对每个子目录处理目标

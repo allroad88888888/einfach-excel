@@ -1,0 +1,124 @@
+/* Owns the shared demo navigation styling. */
+.page-sidebar {
+  min-width: 0;
+  min-height: 0;
+  padding: 14px 10px;
+  border-right: 1px solid #e3e6ef;
+  color: #4b5060;
+  background: #fafbfe;
+}
+
+.page-sidebar__nav,
+.page-menu,
+.page-menu__children {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.page-menu__group {
+  display: flex;
+  height: 36px;
+  align-items: center;
+  gap: 9px;
+  padding: 0 9px;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.page-menu__group svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+}
+
+.page-menu__chevron {
+  margin-left: auto;
+  color: #9599a8;
+  font-size: 12px;
+}
+
+.page-menu__children {
+  margin-left: 17px;
+  padding-left: 8px;
+  border-left: 1px solid #dfe2eb;
+}
+
+.page-menu__item {
+  display: flex;
+  height: 34px;
+  align-items: center;
+  gap: 8px;
+  border-radius: 7px;
+  padding: 0 8px;
+  color: #4b5060;
+  font-size: 10px;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.page-menu__item[aria-current='page'] {
+  color: var(--primary-strong);
+  background: var(--primary-soft);
+}
+
+.page-menu__item:hover {
+  background: #e4e9ff;
+}
+
+.page-menu__item:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.page-menu__file-mark {
+  display: grid;
+  width: 20px;
+  height: 22px;
+  flex: none;
+  place-items: center;
+  border: 1px solid #ccd4fa;
+  border-radius: 4px;
+  color: var(--primary);
+  background: #ffffff;
+  font-size: 9px;
+  font-weight: 750;
+}
+
+.page-menu__item-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .page-sidebar {
+    padding: 9px 6px;
+  }
+
+  .page-menu__group {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .page-menu__group > span,
+  .page-menu__item-label {
+    display: none;
+  }
+
+  .page-menu__children {
+    margin: 4px 0 0;
+    padding: 0;
+    border-left: 0;
+  }
+
+  .page-menu__item {
+    justify-content: center;
+    padding: 0;
+  }
+}

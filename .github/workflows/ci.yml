@@ -26,7 +26,7 @@ jobs:
       # `npm run build` 的链条里有 ensureWasm,缺 excel/excel-wasm/lite 时会调
       # `build:wasm` 去跑 wasm-pack。本仓的 tsc/rollup 产物依赖 WASM 侧
       # 的类型与产物,所以 CI 必须具备 Rust 工具链 —— 否则 build 直接
-      # exit 127 (wasm-pack: not found)。步骤与 e2e.yml 保持一致。
+      # exit 127 (wasm-pack: not found)。
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-unknown-unknown

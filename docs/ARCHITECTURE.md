@@ -1,12 +1,12 @@
 # 架构
 
-当前主线是一套 Rust 绑定的表格 UI Core。React、Solid、Vue 只负责把同一组 atom 接到各自视图；
-工作簿值、公式和计算状态只存在于 Rust/WASM。
+当前维护主线是一套 Rust 绑定的表格 UI Core，React 负责把 atom 接到产品视图；工作簿值、
+公式和计算状态只存在于 Rust/WASM。
 
 ## 分层
 
 ```text
-React / Solid / Vue 视图
+React 视图
         ↓ framework atom hooks
 spreadsheet-ui-core
   ├─ feature atoms            选区、编辑、视口、投影生命周期
@@ -23,8 +23,9 @@ rust-runtime.ts               Worker 入口
 当前完整产品是 `excel/react-excel`。它通过 `@einfach/react` 的
 `useAtomValue` / `useSetAtom` 渲染 UI Core；不会在 React 包内建立第二套工作簿 atom。
 
-Solid 代码仍在仓库中，但不是这次 Rust connection 重构的兼容目标。后续接入 Solid 时应使用
-`@einfach/solid` 的 atom binding，而不是恢复一套 `SpreadsheetBackend`。
+`solid-excel` 及依赖它的 `excel-site` 已暂停：源码保留考古，但退出默认构建、测试、CI、
+发布和兼容范围。`vue-excel` 是独立视图实验，不参与 React 主线门禁。未来若恢复某个框架，
+应直接使用该框架的 Einfach atom binding，不得恢复一套 `SpreadsheetBackend`。
 
 ## 各目录职责
 
@@ -40,7 +41,7 @@ Solid 代码仍在仓库中，但不是这次 Rust connection 重构的兼容目
 | `excel/react-excel/src/product/` | 产品工作簿定义和演示数据初始化 |
 | `excel/react-excel/src/workbook/` | React 渲染与 DOM 事件适配 |
 
-`@einfach/core`、`@einfach/react` 和 `@einfach/solid` 来自
+`@einfach/core` 和 `@einfach/react` 来自
 [einfach 主仓](https://github.com/allroad88888888/einfach)。本仓只消费它们。
 
 ## 命令边界

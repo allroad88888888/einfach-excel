@@ -1,3 +1,4 @@
+/* Owns the shared workbook viewport and grid styling. */
 .grid-viewport-frame {
   min-height: var(--grid-sheet-height);
 }
@@ -48,7 +49,7 @@
   top: 0;
   z-index: 4;
   display: grid;
-  grid-template-columns: repeat(8, minmax(120px, 1fr));
+  grid-template-columns: repeat(var(--grid-column-count), minmax(120px, 1fr));
   border-bottom: 1px solid var(--border-strong);
   background: var(--chrome);
 }
@@ -132,5 +133,7 @@
 }
 
 .grid-surface .cell-selected:first-child {
-  box-shadow: inset 2px 0 0 var(--primary), inset 0 0 0 1px rgba(39, 79, 238, 0.62);
+  box-shadow:
+    inset 2px 0 0 var(--primary),
+    inset 0 0 0 1px rgba(39, 79, 238, 0.62);
 }

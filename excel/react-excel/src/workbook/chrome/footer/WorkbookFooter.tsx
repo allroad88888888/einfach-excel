@@ -1,10 +1,15 @@
 import { useAtomValue } from '@einfach/react'
-import { selectionSnapshotAtom } from '@einfach/spreadsheet-ui-core'
-import { SALES_ORDER_RECORD_COUNT } from '../../../product/sales-orders/data/sheet'
+import {
+  activeWorkbookSheetAtom,
+  selectionSnapshotAtom,
+  workbookDocumentAtom,
+} from '@einfach/spreadsheet-ui-core'
 import './footer.css'
 
-/** Renders workbook sheet navigation and status information. */
+/** Renders sheet tabs and selection status for the active UI-core workbook. */
 export function WorkbookFooter() {
+  const document = useAtomValue(workbookDocumentAtom)
+  const activeSheet = useAtomValue(activeWorkbookSheetAtom)
   const selection = useAtomValue(selectionSnapshotAtom)
   const selectedCellCount =
     (selection.range.colEnd - selection.range.colStart + 1) *
@@ -22,12 +27,20 @@ export function WorkbookFooter() {
         <button className="add-sheet" type="button" aria-label="New sheet">
           ＋
         </button>
-        <button className="sheet-tab active" type="button">
-          <span aria-hidden="true" /> Sales Orders
-        </button>
+        {document.sheets.map((sheet) => (
+          <button
+            className={sheet.id === activeSheet?.id ? 'sheet-tab active' : 'sheet-tab'}
+            key={sheet.id}
+            type="button"
+          >
+            <span aria-hidden="true" /> {sheet.name}
+          </button>
+        ))}
       </div>
       <div className="status-items">
-        <span className="record-status">{SALES_ORDER_RECORD_COUNT.toLocaleString()} records</span>
+        {activeSheet === null ? null : (
+          <span className="record-status">{activeSheet.rowCount.toLocaleString()} rows</span>
+        )}
         <span>Count: {selectedCellCount}</span>
         <div className="zoom-control" aria-label="Zoom 100 percent">
           <button type="button" aria-label="Zoom out">

@@ -73,17 +73,17 @@ test('requires a candidate directory and the command that produced it', () => {
   assert.deepEqual(
     parseMeasurementOptions([
       '--candidate',
-      'excel/solid-excel/dist',
+      'excel/react-excel/dist',
       '--build-command',
       'npm run build',
     ]),
     {
       buildCommand: 'npm run build',
-      candidate: 'excel/solid-excel/dist',
+      candidate: 'excel/react-excel/dist',
     },
   )
   assert.throws(
-    () => parseMeasurementOptions(['--candidate', 'excel/solid-excel/dist']),
+    () => parseMeasurementOptions(['--candidate', 'excel/react-excel/dist']),
     /--build-command requires a value/,
   )
 })

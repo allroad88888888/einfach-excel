@@ -8,3 +8,6 @@ esm
 wasm-pkg
 .agent-archive
 .codex-artifacts
+excel/solid-excel
+excel/excel-site
+excel/vue-excel

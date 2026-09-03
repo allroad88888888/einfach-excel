@@ -1,106 +1,13 @@
-name: e2e
+name: Solid e2e (paused)
 
-# Solid Excel browser tests. Separate from `ci.yml` (jest + build) so a
-# browser-infra failure is distinguishable from the unit-test signal.
-#
-# Gate policy: BLOCKING(2026-08-20 起)。advisory 期(continue-on-error)
-# 的教训:step 级失败被 job 级 success 掩盖,红灯从 21 个滚到 98 个而无人
-# 察觉 —— 清零过程见 dab17c1 / ae0325e。失败照旧上传 playwright-report/
-# + test-results/ 供排查;不许为了变绿重新加 continue-on-error。
-#
-# 套件结构（按功能点分目录）见 `excel/solid-excel/e2e/README.md`。
-#
-# Local equivalent:
-#   NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach/solid-excel
-
+# `solid-excel` 源码仅保留考古；该工作流故意没有自动触发，也没有可执行 job。
+# 保留文件是为了让历史方案中的链接仍有明确落点。
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-
-# Cancel in-flight runs when new pushes land on the same PR — no point
-# burning compute on stale commits.
-concurrency:
-  group: e2e-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  workflow_dispatch:
 
 jobs:
-  playwright:
+  paused:
+    if: ${{ false }}
     runs-on: ubuntu-latest
-    # 分片执行。playwright.config 是 workers: 1 + fullyParallel: false
-    # (共享一个 dev server、用例间有状态耦合),不能靠提并发压缩,只能横向切。
-    # 定分片数那次实测:全量串行 30 分 41 秒,切 4 片后每片约 8 分钟,
-    # 20 分钟的上限留足了余量(含 retries: 1 的重试开销)。用例数一直在涨,
-    # 这里不记数字 —— 要当前规模用 `npx playwright test --list`。
-    #
-    # 每片是独立 job:各自起自己的 dev server,分片之间不共享状态,
-    # 因此 workers: 1 提供的隔离保证不受影响。
-    timeout-minutes: 40
-
-    strategy:
-      # 一片失败不影响其他片跑完 —— 要的是完整的失败清单,不是最快熔断。
-      fail-fast: false
-      matrix:
-        shard: [1, 2, 3, 4]
-
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
-      - uses: actions/setup-node@v4
-        with:
-          # engines 基线下限(ADR 0018),与 ci.yml 的钉版一致。
-          node-version: '22.12.0'
-          cache: pnpm
-
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: wasm32-unknown-unknown
-
-      - name: Cache cargo registry + build
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            excel/rust/wasm/target
-          key: ${{ runner.os }}-cargo-e2e-${{ hashFiles('excel/rust/**/Cargo.lock', 'excel/rust/**/Cargo.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-e2e-
-
-      - name: Install wasm-pack
-        run: |
-          if ! command -v wasm-pack >/dev/null; then
-            curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-          fi
-          wasm-pack --version
-
-      - run: pnpm install --frozen-lockfile
-
-      - name: Build WASM bundle
-        run: npm run build:wasm -w @einfach/excel-wasm
-
-      # 必须经 workspace 调用:@playwright/test 是 excel/solid-excel 的
-      # devDependency,不在根上。pnpm 不做提升,根目录的 npx 找不到它
-      # (sh: 1: playwright: not found,exit 127)。
-      - name: Install Playwright browsers
-        run: npm run e2e:install -w @einfach/solid-excel
-
-      - name: Run e2e (shard ${{ matrix.shard }}/4)
-        run: npm run e2e -w @einfach/solid-excel -- --shard=${{ matrix.shard }}/4
-
-      # 产物名必须带分片号:同名 artifact 在并行 job 之间会互相冲突。
-      - name: Upload Playwright report on failure
-        if: failure() || always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report-shard-${{ matrix.shard }}
-          path: |
-            excel/solid-excel/playwright-report/
-            excel/solid-excel/test-results/
-          retention-days: 14
-          if-no-files-found: ignore
+      - run: echo "solid-excel e2e is paused"

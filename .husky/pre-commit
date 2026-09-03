@@ -1,9 +1,8 @@
 # 快检查在前(秒级失败)。全量 clean build + 全量 jest 的门禁在 CI
 # (ci.yml 每次 push/PR 都跑 `npm run build` + `npm test`);提交门禁只保留
-# 文档/lint/类型检查 + 受本次改动影响的 jest。这里的 `tsc -build` 是增量的
-# (不过 clearTypes),.tsbuildinfo 热的时候只要几秒。
+# 文档/展现层边界/lint/主线类型检查 + 受本次改动影响的 jest。
 npm run check:docs
+npm run check:presentation
 npm run lint:check
-npm run typecheck:apps
-npx tsc -build
+npm run typecheck:mainline
 npx jest --onlyChanged --no-coverage --passWithNoTests

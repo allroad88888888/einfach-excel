@@ -4,7 +4,7 @@
 
 ## 环境要求
 
-- Node.js >= 18（CI 覆盖 18 与 20）
+- Node.js >= 22.12（CI 覆盖 22.12 与 24）
 - [pnpm](https://pnpm.io/) 10
 - 完整构建或涉及 Worker 的验证还需要 Rust 工具链、`wasm32-unknown-unknown` target 与
   [wasm-pack](https://rustwasm.github.io/wasm-pack/)
@@ -26,14 +26,15 @@ git clone git@github.com:allroad88888888/einfach-excel.git
 ## 没有 Rust/wasm 工具链时的贡献
 
 未安装 Rust 工具链、`wasm32-unknown-unknown` target 和 `wasm-pack` 的贡献者，仍可处理文档、链接、契约说明，以及不依赖
-生成 Worker 产物的 TypeScript/Solid 代码或定向测试。
+生成 Worker 产物的 TypeScript 代码或定向测试。
 
 提交前，请按改动范围运行不需要 Worker 构建的检查，例如：
 
 ```bash
 pnpm check:docs
+pnpm check:presentation
 pnpm lint:check
-pnpm typecheck:apps
+pnpm typecheck:mainline
 pnpm exec jest path/to/file.test.ts --no-coverage
 ```
 
@@ -84,15 +85,16 @@ pnpm exec jest path/to/file.test.ts --no-coverage
 
 ```
 excel/spreadsheet-ui-core/ → @einfach/spreadsheet-ui-core  # 框架无关的表格 UI 核心（atoms / 类型 / 投影契约）
-excel/solid-excel/         → @einfach/solid-excel          # Solid.js 表格界面（src 现役）
-excel/excel-site/          → @einfach/excel-site           # 演示 / 门面站（private）
+excel/react-excel/         → @einfach/react-excel          # 当前 React 产品与 Vite 演示
+excel/solid-excel/         → @einfach/solid-excel          # 已暂停，仅保留源码考古
+excel/excel-site/          → @einfach/excel-site           # 已暂停，依赖 Solid 的旧站点
 excel/excel-core-ts/       → @einfach/excel-core-ts        # TS 公式引擎（private，parity 参照 + 第二 worker 后端）
 excel/rust/core/           → einfach-core (crate)          # Rust atom store
 excel/rust/excel-core/     → einfach-excel-core (crate)    # Rust 公式 / 工作簿引擎
 excel/rust/wasm/           → einfach-wasm (crate)          # WASM 绑定
 ```
 
-上游 `@einfach/core` / `@einfach/solid` 从 npm 安装，不是 workspace 依赖。架构分层见
+上游 `@einfach/core` / `@einfach/react` 从 npm 安装，不是 workspace 依赖。架构分层见
 [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)。
 
 ## 代码风格
@@ -167,10 +169,8 @@ pnpm exec changeset publish  # 发布到 npm
 pnpm test                                                   # 全量（不采覆盖率；报告用 pnpm run test:coverage）
 pnpm exec jest path/to/file.test.ts --no-coverage           # 单个文件
 pnpm exec jest excel/spreadsheet-ui-core --no-coverage       # 分区套件
-pnpm exec jest excel/solid-excel --no-coverage
-
-pnpm --filter @einfach/solid-excel e2e:install              # 首次装浏览器
-NO_PROXY=localhost,127.0.0.1 pnpm --filter @einfach/solid-excel e2e
+pnpm --filter @einfach/react-excel test
+pnpm --filter @einfach/react-excel build
 ```
 
 ## 许可证

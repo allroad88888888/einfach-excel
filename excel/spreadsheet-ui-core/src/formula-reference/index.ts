@@ -1,7 +1,7 @@
 import { atom } from '@einfach/core'
 import type { Atom, WritableAtom } from '@einfach/core'
 import type { CellCoord } from '../shared'
-import { editingDraftAtom, editingSessionAtom } from '../editing'
+import { editingDraftAtom, editingSessionAtom } from '../editing/session-atoms'
 import { keyboardModeAtom } from '../keyboard'
 import { parseFormulaReferences } from './parser'
 import type {

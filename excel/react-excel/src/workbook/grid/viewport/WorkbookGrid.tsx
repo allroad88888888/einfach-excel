@@ -1,45 +1,17 @@
-import { useAtomValue, useSetAtom } from '@einfach/react'
+import { useAtomValue } from '@einfach/react'
 import {
-  editingSessionAtom,
+  activeWorkbookSheetAtom,
   selectionSnapshotAtom,
-  setViewportMetricsAtom,
-  startCellEditingFromProjectionAtom,
-  viewportMetricsAtom,
-  type CellCoord,
+  type WorkbookDocumentSheet,
 } from '@einfach/spreadsheet-ui-core'
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  type CSSProperties,
-  type KeyboardEvent as ReactKeyboardEvent,
-  type MouseEvent as ReactMouseEvent,
-  type PointerEvent as ReactPointerEvent,
-  type UIEvent as ReactUiEvent,
-} from 'react'
-import { CellEditor } from '../editor/CellEditor'
-import {
-  SALES_ORDER_COLUMNS,
-  SALES_ORDER_SHEET_ROW_COUNT,
-} from '../../../product/sales-orders/data/sheet'
-import { GRID_ROW_HEIGHT, useGridWindow } from '../../projection/use-grid-window'
+import type { CSSProperties } from 'react'
 import { useWorkbookViewport, type WorkbookViewport } from '../../projection/use-workbook-viewport'
-import { useGridPointerSelection } from '../../selection/use-grid-pointer-selection'
 import { SpreadsheetGrid } from '../cells/SpreadsheetGrid'
+import { CellEditor } from '../editor/CellEditor'
+import { WORKBOOK_GRID_ROW_HEIGHT } from './workbook-grid-config'
+import { useWorkbookGridEvents } from './use-workbook-grid-events'
+import { useWorkbookGridWindow } from './use-workbook-grid-window'
 import './grid.css'
-
-function coordinateAt(
-  event: ReactPointerEvent<HTMLElement> | ReactMouseEvent<HTMLElement>,
-): CellCoord | null {
-  const eventCell =
-    event.target instanceof Element ? event.target.closest<HTMLElement>('td[data-cell]') : null
-  const pointCell = document
-    .elementFromPoint?.(event.clientX, event.clientY)
-    ?.closest<HTMLElement>('td[data-cell]')
-  const [row, col] = (eventCell ?? pointCell)?.dataset.cell?.split(':').map(Number) ?? []
-
-  return Number.isInteger(row) && Number.isInteger(col) ? { row, col } : null
-}
 
 function rowNumbers(rowStart: number, rowEnd: number): readonly number[] {
   return Array.from({ length: rowEnd - rowStart + 1 }, (_, index) => rowStart + index + 1)
@@ -63,98 +35,44 @@ function projectionState(viewport: WorkbookViewport) {
   return null
 }
 
-/** Renders only the Rust projection for the current selectable row window. */
-export function WorkbookGrid() {
+function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: WorkbookDocumentSheet }) {
   const selection = useAtomValue(selectionSnapshotAtom)
-  const editingSession = useAtomValue(editingSessionAtom)
-  const viewportMetrics = useAtomValue(viewportMetricsAtom)
-  const startCellEditing = useSetAtom(startCellEditingFromProjectionAtom)
-  const setViewportMetrics = useSetAtom(setViewportMetricsAtom)
-  const gridWindow = useGridWindow()
+  const gridWindow = useWorkbookGridWindow()
   const viewport = useWorkbookViewport({
-    sheetId: 'orders',
+    sheetId: activeSheet.id,
     window: gridWindow,
-    rowCount: SALES_ORDER_SHEET_ROW_COUNT,
-    colCount: SALES_ORDER_COLUMNS.length,
+    rowCount: activeSheet.rowCount,
+    colCount: activeSheet.colCount,
   })
-  const gridRef = useRef<HTMLDivElement>(null)
-  const scrollRef = useRef<HTMLDivElement>(null)
-  const focusGrid = useCallback(() => gridRef.current?.focus({ preventScroll: true }), [])
-  const pointerHandlers = useGridPointerSelection({
-    enabled: !viewport.retained,
-    getCellCoord: coordinateAt,
-    sheetId: 'orders',
-  })
+  const events = useWorkbookGridEvents(viewport)
   const rows = rowNumbers(viewport.window.rowStart, viewport.window.rowEnd)
   const frameStyle = {
-    '--grid-sheet-height': `${(SALES_ORDER_SHEET_ROW_COUNT + 1) * GRID_ROW_HEIGHT}px`,
+    '--grid-column-count': activeSheet.colCount,
+    '--grid-sheet-height': `${(activeSheet.rowCount + 1) * WORKBOOK_GRID_ROW_HEIGHT}px`,
   } as CSSProperties
   const windowStyle = {
-    '--grid-window-offset': `${viewport.placementWindow.rowStart * GRID_ROW_HEIGHT}px`,
+    '--grid-window-offset': `${viewport.placementWindow.rowStart * WORKBOOK_GRID_ROW_HEIGHT}px`,
   } as CSSProperties
 
-  useEffect(() => {
-    const scroll = scrollRef.current
-    if (scroll === null) return
-    const maxScrollTop = Math.max(0, scroll.scrollHeight - scroll.clientHeight)
-    const nextScrollTop = Math.min(viewportMetrics.scrollTop, maxScrollTop)
-    if (scroll.scrollTop !== nextScrollTop) {
-      scroll.scrollTop = nextScrollTop
-    }
-    const maxScrollLeft = Math.max(0, scroll.scrollWidth - scroll.clientWidth)
-    const nextScrollLeft = Math.min(viewportMetrics.scrollLeft, maxScrollLeft)
-    if (scroll.scrollLeft !== nextScrollLeft) {
-      scroll.scrollLeft = nextScrollLeft
-    }
-  }, [viewportMetrics.scrollLeft, viewportMetrics.scrollTop])
-
-  const onScroll = (event: ReactUiEvent<HTMLDivElement>) => {
-    const { clientHeight, scrollHeight, scrollLeft, scrollTop } = event.currentTarget
-    const maxScrollTop = Math.max(0, scrollHeight - clientHeight)
-    const nextScrollTop =
-      maxScrollTop > 0 && scrollTop >= maxScrollTop - 1
-        ? (SALES_ORDER_SHEET_ROW_COUNT - (viewport.window.rowEnd - viewport.window.rowStart + 1)) *
-          GRID_ROW_HEIGHT
-        : scrollTop
-    if (
-      nextScrollTop === viewportMetrics.scrollTop &&
-      scrollLeft === viewportMetrics.scrollLeft
-    ) return
-    setViewportMetrics({
-      ...viewportMetrics,
-      scrollTop: nextScrollTop,
-      scrollLeft,
-    })
-  }
-  const onKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
-    if (viewport.retained) return
-    if (event.key !== 'Enter' || editingSession.source !== null) return
-    event.preventDefault()
-    startCellEditing({
-      sheetId: 'orders',
-      cell: { row: selection.activeCell.row, col: selection.activeCell.col },
-    })
-  }
-  const onPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (viewport.retained) return
-    event.currentTarget.focus({ preventScroll: true })
-    pointerHandlers.onPointerDown(event)
-  }
-
   return (
-    <section className="worksheet-panel" aria-label="Sales orders worksheet">
-      <div ref={scrollRef} className="sheet-scroll" data-testid="sheet-scroll" onScroll={onScroll}>
+    <section className="worksheet-panel" aria-label={`${activeSheet.name} worksheet`}>
+      <div
+        ref={events.scrollRef}
+        className="sheet-scroll"
+        data-testid="sheet-scroll"
+        onScroll={events.onScroll}
+      >
         <div className="sheet-grid-frame grid-viewport-frame" style={frameStyle}>
           <div className="sheet-corner" aria-hidden="true" />
           <div className="column-headers" role="row">
-            {SALES_ORDER_COLUMNS.map((column, col) => (
+            {Array.from({ length: activeSheet.colCount }, (_, col) => (
               <div
                 className={
                   col >= selection.range.colStart && col <= selection.range.colEnd
                     ? 'sheet-heading heading-selected'
                     : 'sheet-heading'
                 }
-                key={column.key}
+                key={col}
                 role="columnheader"
               >
                 {String.fromCharCode(65 + col)}
@@ -179,23 +97,21 @@ export function WorkbookGrid() {
             })}
           </div>
           <div
-            ref={gridRef}
+            ref={events.gridRef}
             className="grid-surface grid-window"
             data-workbook-grid="true"
-            data-row-count={SALES_ORDER_SHEET_ROW_COUNT}
+            data-row-count={activeSheet.rowCount}
             data-projection-retained={viewport.retained ? 'true' : 'false'}
             aria-busy={viewport.retained}
-            aria-label="One thousand sales order records"
-            onDoubleClick={(event) => {
-              if (viewport.retained) return
-              const cell = coordinateAt(event)
-              if (cell !== null) startCellEditing({ sheetId: 'orders', cell })
-            }}
-            onKeyDown={onKeyDown}
+            aria-label={`${activeSheet.name} cells`}
+            onDoubleClick={events.onDoubleClick}
+            onKeyDown={events.onKeyDown}
+            onPointerCancel={events.onPointerCancel}
+            onPointerDown={events.onPointerDown}
+            onPointerMove={events.onPointerMove}
+            onPointerUp={events.onPointerUp}
             style={windowStyle}
             tabIndex={viewport.retained ? -1 : 0}
-            {...pointerHandlers}
-            onPointerDown={onPointerDown}
           >
             {projectionState(viewport) ?? (
               <SpreadsheetGrid
@@ -204,10 +120,19 @@ export function WorkbookGrid() {
                 window={viewport.window}
               />
             )}
-            <CellEditor focusGrid={focusGrid} />
+            <CellEditor focusGrid={events.focusGrid} />
           </div>
         </div>
       </div>
     </section>
   )
+}
+
+/** Renders the visible Rust projection for the active workbook sheet. */
+export function WorkbookGrid() {
+  const activeSheet = useAtomValue(activeWorkbookSheetAtom)
+  if (activeSheet === null) {
+    return <div role="alert">The active workbook sheet is unavailable.</div>
+  }
+  return <WorkbookGridProjection activeSheet={activeSheet} />
 }

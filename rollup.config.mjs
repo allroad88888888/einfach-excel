@@ -6,12 +6,15 @@ import fs from 'fs'
 import { fileURLToPath } from 'url'
 import { readFileSync } from 'fs'
 import yaml from 'js-yaml'
-import { babel } from '@rollup/plugin-babel'
 import { onwarn, treeshakeOptions } from './rollup.shared.mjs'
-import { buildSolidExcelConfig } from './rollup.solid-excel.mjs'
 
 const workspaceConfig = yaml.load(readFileSync('./pnpm-workspace.yaml', 'utf8'))
 const topLevelDirs = workspaceConfig.packages.map((p) => p.replace(/\/\*+$/, ''))
+const nonMainlineProducts = new Set([
+  'excel/solid-excel',
+  'excel/excel-site',
+  'excel/vue-excel',
+])
 
 function hasRollupLibraryEntrypoint(packageDir) {
   const packageJsonPath = `${packageDir}/package.json`
@@ -29,7 +32,8 @@ const products = topLevelDirs.reduce((acc, dir) => {
     .readdirSync(dir, { withFileTypes: true })
     .filter((dirent) => dirent.isDirectory())
     .map((dirent) => `${dir}/${dirent.name}`)
-    // 只构建声明 cjs 与 esm 发布入口的库；Vite 应用（包括 solid-excel）不产出 Rollup 文件。
+    // 只构建当前维护且声明 cjs 与 esm 发布入口的库。
+    .filter((packageDir) => !nonMainlineProducts.has(packageDir))
     .filter(hasRollupLibraryEntrypoint)
   return [...acc, ...subDirs]
 }, [])
@@ -57,14 +61,10 @@ const config = defineConfig({
     '@einfach/spreadsheet-ui-core',
     '@einfach/react',
     '@einfach/utils',
-    '@einfach/solid',
     'react',
     'react-dom',
     'react/jsx-runtime',
     'react/jsx-dev-runtime',
-    'solid-js',
-    'solid-js/web',
-    'solid-js/store',
   ],
   treeshake: treeshakeOptions,
 
@@ -73,63 +73,28 @@ const config = defineConfig({
 
 /** @type {import('rollup').RollupOptions} */
 const productConfigs = products.map((dir) => {
-  /** @type {import('rollup').RollupOptions} */
-  const isSolidPackage = dir.includes('solid')
-
-  // 为solid包使用babel，其他包使用swc
-  const pluginsConfig = isSolidPackage
-    ? [
-        resolve({
-          extensions: ['.ts', '.tsx'],
-        }),
-        babel({
-          babelHelpers: 'bundled',
-          extensions: ['.ts', '.jsx', '.tsx'],
-          presets: [
-            [
-              '@babel/preset-env',
-              {
-                targets: { node: 'current' },
-                modules: false,
-              },
-            ],
-            ['@babel/preset-typescript', { isTsx: true, allowDeclareFields: true }],
-          ],
-          plugins: [
-            [
-              'babel-plugin-jsx-dom-expressions',
-              {
-                moduleName: 'solid-js/web',
-                builtIns: ['createElement', 'spread', 'insert', 'createComponent'],
-                contextToCustomElements: true,
-                wrapConditionals: true,
-              },
-            ],
-          ],
-        }),
-      ]
-    : [
-        resolve({
-          extensions: ['.ts', '.tsx'],
-        }),
-        swc({
-          swc: {
-            minify: false,
-            jsc: {
-              target: 'esnext',
-              parser: {
-                tsx: true,
-                syntax: 'typescript',
-              },
-              transform: {
-                react: {
-                  runtime: 'automatic',
-                },
-              },
+  const pluginsConfig = [
+    resolve({
+      extensions: ['.ts', '.tsx'],
+    }),
+    swc({
+      swc: {
+        minify: false,
+        jsc: {
+          target: 'esnext',
+          parser: {
+            tsx: true,
+            syntax: 'typescript',
+          },
+          transform: {
+            react: {
+              runtime: 'automatic',
             },
           },
-        }),
-      ]
+        },
+      },
+    }),
+  ]
 
   const input = dir.endsWith('/spreadsheet-ui-core')
     ? {
@@ -179,4 +144,4 @@ const productConfigs = products.map((dir) => {
   }
 })
 
-export default [...productConfigs, buildSolidExcelConfig()]
+export default productConfigs

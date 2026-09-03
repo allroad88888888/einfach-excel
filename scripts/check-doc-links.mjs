@@ -29,7 +29,7 @@ const STALE_PATTERNS = [
   },
   {
     re: /\bexcel\/showcase\b/g,
-    why: '`excel/showcase` 已退役，由 `excel/excel-site` 接任',
+    why: '`excel/showcase` 已退役，当前产品入口是 `excel/react-excel`',
   },
   {
     // 平铺时代的 e2e 路径：e2e/<name>.spec.ts（现在一律在功能目录下）

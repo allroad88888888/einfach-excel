@@ -36,13 +36,13 @@ export function createTestRustWorkbookConnection(
           ? await handlers.setCellProjection(input.projection)
           : handlers.readVisibleProjection
             ? await handlers.readVisibleProjection(input.projection)
-          : {
-              kind: 'visible-window' as const,
-              sheetId: input.projection.sheetId,
-              requestId: input.projection.requestId,
-              window: { ...input.projection.window },
-              cells: [],
-            }
+            : {
+                kind: 'visible-window' as const,
+                sheetId: input.projection.sheetId,
+                requestId: input.projection.requestId,
+                window: { ...input.projection.window },
+                cells: [],
+              }
       } catch {
         projection = {
           kind: 'visible-window',

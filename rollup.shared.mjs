@@ -1,6 +1,6 @@
 /**
- * 两条 rollup 管线（通用 products 与 solid-excel 双形态）共享的策略：
- * 循环依赖门禁与 treeshake 口径。只放策略，不放任何构建目标。
+ * Rollup products 共用的循环依赖门禁与 treeshake 口径。
+ * 这里只放策略，不放任何构建目标。
  */
 
 export const treeshakeOptions = {

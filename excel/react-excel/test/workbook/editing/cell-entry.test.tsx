@@ -71,4 +71,44 @@ describe('Rust workbook cell entry', () => {
       expect.objectContaining({ row: 1, col: 1, input: 'Focus edit' }),
     )
   })
+
+  it('replaces the selected cell value when typing starts an edit', async () => {
+    const controlled = createControlledCellEditingConnection()
+    renderSalesOrdersEditingWorksheet(controlled)
+    await firstEditingCell()
+    const grid = screen.getByLabelText('Sales Orders cells')
+    grid.focus()
+
+    fireEvent.keyDown(grid, { key: 'x' })
+
+    const editor = await focusedCellEditor()
+    expect(editor).toHaveValue('x')
+    expect(editor.selectionStart).toBe(1)
+    expect(editor.selectionEnd).toBe(1)
+
+    fireEvent.change(editor, { target: { value: 'xy' } })
+    expect(editor.selectionStart).toBe(2)
+    expect(editor.selectionEnd).toBe(2)
+    fireEvent.keyDown(editor, { key: 'Enter' })
+
+    await waitFor(() => expect(controlled.setCellInput).toHaveBeenCalledTimes(1))
+    expect(controlled.setCellInput).toHaveBeenCalledWith(
+      expect.objectContaining({ row: 0, col: 0, input: 'xy' }),
+    )
+  })
+
+  it('preserves the current value and places the caret at the end for F2 editing', async () => {
+    const controlled = createControlledCellEditingConnection()
+    renderSalesOrdersEditingWorksheet(controlled)
+    await firstEditingCell()
+    const grid = screen.getByLabelText('Sales Orders cells')
+    grid.focus()
+
+    fireEvent.keyDown(grid, { key: 'F2' })
+
+    const editor = await focusedCellEditor()
+    expect(editor).toHaveValue('Order')
+    expect(editor.selectionStart).toBe(5)
+    expect(editor.selectionEnd).toBe(5)
+  })
 })

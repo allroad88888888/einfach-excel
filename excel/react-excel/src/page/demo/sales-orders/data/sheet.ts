@@ -16,4 +16,12 @@ export const SALES_ORDER_COLUMNS: readonly SalesOrderColumn[] = Object.freeze([
   { key: 'unitPrice', label: 'Unit price' },
   { key: 'total', label: 'Total' },
   { key: 'status', label: 'Status' },
+  { key: 'salesRep', label: 'Sales rep' },
+  { key: 'orderDate', label: 'Order date' },
+  { key: 'shipDate', label: 'Ship date' },
+  { key: 'shipMode', label: 'Ship mode' },
+  { key: 'country', label: 'Country' },
+  { key: 'city', label: 'City' },
+  { key: 'discount', label: 'Discount' },
+  { key: 'profit', label: 'Profit' },
 ])

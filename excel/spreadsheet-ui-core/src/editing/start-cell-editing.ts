@@ -9,6 +9,7 @@ export interface StartCellEditingFromProjectionInput {
   readonly sheetId: string
   readonly cell: CellCoord
   readonly source?: EditingInputSource
+  readonly initialDraft?: string
 }
 
 /** Starts a cell draft from the source text owned by the current projection. */
@@ -25,7 +26,7 @@ export const startCellEditingFromProjectionAtom = atom(
     set(startEditingAtom, {
       sheetId: input.sheetId,
       cell: input.cell,
-      draft: sourceText,
+      draft: input.initialDraft ?? sourceText,
       source: input.source ?? 'cell',
     })
     return true

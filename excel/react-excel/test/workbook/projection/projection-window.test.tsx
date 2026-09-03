@@ -11,6 +11,7 @@ import {
 } from '../../../src/page/demo/sales-orders/data/sheet'
 import {
   WORKBOOK_GRID_ROW_HEIGHT,
+  WORKBOOK_GRID_WINDOW_COLUMN_COUNT,
   WORKBOOK_GRID_WINDOW_ROW_COUNT,
 } from '../../../src/workbook/grid/viewport/workbook-grid-config'
 import {
@@ -23,7 +24,8 @@ describe('Rust workbook projection window', () => {
   it('requests a bounded orders window and only mounts that projection', async () => {
     const controlled = createProjectionConnection()
     const store = renderSalesOrdersProjectionWorksheet(controlled.connection)
-    const projectedCellCount = WORKBOOK_GRID_WINDOW_ROW_COUNT * SALES_ORDER_COLUMNS.length
+    const projectedCellCount =
+      WORKBOOK_GRID_WINDOW_ROW_COUNT * WORKBOOK_GRID_WINDOW_COLUMN_COUNT
 
     await waitFor(() => expect(controlled.requests).toHaveLength(1))
     expect(controlled.requests[0]).toMatchObject({
@@ -32,7 +34,7 @@ describe('Rust workbook projection window', () => {
         rowStart: 0,
         rowEnd: WORKBOOK_GRID_WINDOW_ROW_COUNT - 1,
         colStart: 0,
-        colEnd: SALES_ORDER_COLUMNS.length - 1,
+        colEnd: WORKBOOK_GRID_WINDOW_COLUMN_COUNT - 1,
       },
     })
     expect(store.getter(visibleWindowAtom)).toEqual(controlled.requests[0]?.window)
@@ -51,8 +53,13 @@ describe('Rust workbook projection window', () => {
     await waitFor(() => expect(document.querySelector('[data-cell="0:0"]')).not.toBeNull())
 
     const scroll = screen.getByTestId('sheet-scroll')
-    const scrollHeight = SALES_ORDER_SHEET_ROW_COUNT * WORKBOOK_GRID_ROW_HEIGHT
+    const scrollHeight = (SALES_ORDER_SHEET_ROW_COUNT + 1) * WORKBOOK_GRID_ROW_HEIGHT
     const clientHeight = 1_200
+    const visibleRowCount = Math.ceil(
+      (clientHeight - WORKBOOK_GRID_ROW_HEIGHT) / WORKBOOK_GRID_ROW_HEIGHT,
+    )
+    const bottomScrollTop =
+      (SALES_ORDER_SHEET_ROW_COUNT - visibleRowCount) * WORKBOOK_GRID_ROW_HEIGHT
     const maxScrollTop = scrollHeight - clientHeight
     expect(clientHeight).toBeGreaterThan(924)
     expect(Math.floor(maxScrollTop / WORKBOOK_GRID_ROW_HEIGHT)).toBeLessThan(
@@ -63,18 +70,16 @@ describe('Rust workbook projection window', () => {
       scrollHeight: { configurable: true, value: scrollHeight },
     })
     fireEvent.scroll(scroll, { target: { scrollTop: maxScrollTop } })
-    expect(scroll.scrollTop).toBe(maxScrollTop)
+    expect(scroll.scrollTop).toBe(bottomScrollTop)
     await waitFor(() => expect(controlled.requests).toHaveLength(2))
     expect(controlled.requests[1]?.window).toEqual({
-      rowStart: SALES_ORDER_SHEET_ROW_COUNT - WORKBOOK_GRID_WINDOW_ROW_COUNT,
+      rowStart: SALES_ORDER_SHEET_ROW_COUNT - visibleRowCount,
       rowEnd: SALES_ORDER_SHEET_ROW_COUNT - 1,
       colStart: 0,
-      colEnd: SALES_ORDER_COLUMNS.length - 1,
+      colEnd: WORKBOOK_GRID_WINDOW_COLUMN_COUNT - 1,
     })
     expect(store.getter(visibleWindowAtom)).toEqual(controlled.requests[1]?.window)
-    expect(store.getter(viewportMetricsAtom).scrollTop).toBe(
-      (SALES_ORDER_SHEET_ROW_COUNT - WORKBOOK_GRID_WINDOW_ROW_COUNT) * WORKBOOK_GRID_ROW_HEIGHT,
-    )
+    expect(store.getter(viewportMetricsAtom).scrollTop).toBe(bottomScrollTop)
 
     const lastDataRow = SALES_ORDER_SHEET_ROW_COUNT - 1
     const formulaColumn = SALES_ORDER_COLUMNS.findIndex(({ key }) => key === 'total')
@@ -99,7 +104,7 @@ describe('Rust workbook projection window', () => {
       `=E${lastSheetRow}*F${lastSheetRow}`,
     )
     expect(document.querySelectorAll('td')).toHaveLength(
-      WORKBOOK_GRID_WINDOW_ROW_COUNT * SALES_ORDER_COLUMNS.length,
+      visibleRowCount * WORKBOOK_GRID_WINDOW_COLUMN_COUNT,
     )
   })
 })

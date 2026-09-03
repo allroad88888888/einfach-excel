@@ -1,11 +1,11 @@
 /* Owns the shared workbook viewport and grid styling. */
 .grid-viewport-frame {
   min-height: var(--grid-sheet-height);
+  min-width: var(--grid-sheet-width);
 }
 
 .grid-window {
   align-self: start;
-  transform: translateY(var(--grid-window-offset));
   will-change: transform;
 }
 
@@ -28,9 +28,8 @@
 
 .sheet-grid-frame {
   display: grid;
-  width: max(100%, 1006px);
-  min-width: 1006px;
-  grid-template-columns: 46px minmax(960px, 1fr);
+  width: max(100%, var(--grid-sheet-width));
+  grid-template-columns: 46px var(--grid-sheet-content-width);
   grid-template-rows: 28px auto;
 }
 
@@ -49,7 +48,8 @@
   top: 0;
   z-index: 4;
   display: grid;
-  grid-template-columns: repeat(var(--grid-column-count), minmax(120px, 1fr));
+  width: var(--grid-sheet-content-width);
+  grid-template-columns: repeat(var(--grid-column-count), var(--grid-column-width));
   border-bottom: 1px solid var(--border-strong);
   background: var(--chrome);
 }
@@ -83,6 +83,7 @@
   display: grid;
   align-self: start;
   grid-auto-rows: 28px;
+  transform: translateY(var(--grid-window-offset));
   background: var(--chrome);
 }
 
@@ -92,14 +93,16 @@
 }
 
 .grid-surface {
-  min-width: 960px;
+  width: var(--grid-window-width);
+  min-width: var(--grid-window-width);
+  transform: translate(var(--grid-window-offset-x), var(--grid-window-offset));
   touch-action: none;
   user-select: none;
 }
 
 .grid-surface .spreadsheet-grid {
-  width: 100%;
-  min-width: 960px;
+  width: var(--grid-window-width);
+  min-width: var(--grid-window-width);
   border-collapse: collapse;
   table-layout: fixed;
   background: var(--surface);

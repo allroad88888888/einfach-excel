@@ -6,9 +6,8 @@
   position: absolute;
   z-index: 2;
   top: calc(var(--editor-row) * 28px);
-  left: calc(var(--editor-col) * 12.5%);
-  width: 12.5%;
-  min-width: 120px;
+  left: calc(var(--editor-col) * var(--grid-column-width));
+  width: var(--grid-column-width);
   height: 28px;
 }
 

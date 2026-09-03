@@ -13,6 +13,10 @@ const REGIONS = ['North', 'East', 'South', 'West']
 const PRODUCTS = ['Keyboard', 'Monitor', 'Dock', 'Headset', 'Webcam', 'Mouse']
 const PRICES = [79, 329, 149, 119, 89, 49]
 const STATUSES = ['Paid', 'Pending', 'Shipped', 'Review']
+const SALES_REPS = ['Mia', 'Noah', 'Emma', 'Liam']
+const SHIP_MODES = ['Standard', 'Express', 'Pickup']
+const COUNTRIES = ['USA', 'Canada', 'Germany', 'Japan']
+const CITIES = ['Seattle', 'Toronto', 'Berlin', 'Tokyo']
 
 function textCell(row: number, col: number, value: string): SalesOrderImportCell {
   return { sheet: 0, row, col, kind: 'text', value }
@@ -27,6 +31,10 @@ function createDataRow(dataRow: number): SalesOrderImportCell[] {
   const productIndex = dataRow % PRODUCTS.length
   const quantity = (dataRow % 24) + 1
   const unitPrice = PRICES[productIndex] ?? 0
+  const day = String((dataRow % 28) + 1).padStart(2, '0')
+  const shipDay = String(((dataRow + 2) % 28) + 1).padStart(2, '0')
+  const locationIndex = dataRow % COUNTRIES.length
+  const discount = (dataRow % 5) * 0.05
 
   return [
     textCell(row, 0, `SO-${String(10_001 + dataRow)}`),
@@ -37,6 +45,14 @@ function createDataRow(dataRow: number): SalesOrderImportCell[] {
     numberCell(row, 5, unitPrice),
     { sheet: 0, row, col: 6, kind: 'formula', value: `=E${row + 1}*F${row + 1}` },
     textCell(row, 7, STATUSES[dataRow % STATUSES.length] ?? 'Review'),
+    textCell(row, 8, SALES_REPS[dataRow % SALES_REPS.length] ?? ''),
+    textCell(row, 9, `2026-08-${day}`),
+    textCell(row, 10, `2026-09-${shipDay}`),
+    textCell(row, 11, SHIP_MODES[dataRow % SHIP_MODES.length] ?? ''),
+    textCell(row, 12, COUNTRIES[locationIndex] ?? ''),
+    textCell(row, 13, CITIES[locationIndex] ?? ''),
+    numberCell(row, 14, discount),
+    numberCell(row, 15, quantity * unitPrice * (1 - discount) * 0.2),
   ]
 }
 

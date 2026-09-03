@@ -6,12 +6,10 @@ import {
 } from '@einfach/spreadsheet-ui-core'
 import { describe, expect, it, jest } from '@jest/globals'
 import { act, fireEvent, screen, waitFor } from '@testing-library/react'
-import {
-  SALES_ORDER_COLUMNS,
-  SALES_ORDER_SHEET_ROW_COUNT,
-} from '../../../src/page/demo/sales-orders/data/sheet'
+import { SALES_ORDER_SHEET_ROW_COUNT } from '../../../src/page/demo/sales-orders/data/sheet'
 import {
   WORKBOOK_GRID_ROW_HEIGHT,
+  WORKBOOK_GRID_WINDOW_COLUMN_COUNT,
   WORKBOOK_GRID_WINDOW_ROW_COUNT,
 } from '../../../src/workbook/grid/viewport/workbook-grid-config'
 import { createTestRustWorkbookConnection } from '../../support/rust-workbook-connection'
@@ -48,7 +46,7 @@ describe('Rust workbook projection retention', () => {
 
     expect(screen.queryByText('Loading visible cells…')).not.toBeInTheDocument()
     expect(document.querySelectorAll('td')).toHaveLength(
-      WORKBOOK_GRID_WINDOW_ROW_COUNT * SALES_ORDER_COLUMNS.length,
+      WORKBOOK_GRID_WINDOW_ROW_COUNT * WORKBOOK_GRID_WINDOW_COLUMN_COUNT,
     )
     expect(document.querySelector('[data-cell="0:0"]')).toHaveTextContent('Order')
     expect(document.querySelector('[data-cell="31:0"]')).toHaveTextContent('SO-10031')
@@ -105,7 +103,7 @@ describe('Rust workbook projection retention', () => {
     expect(document.querySelector('[data-cell="0:0"]')).toHaveTextContent('Order')
     expect(document.querySelector('[data-cell="400:0"]')).toBeNull()
     expect(document.querySelectorAll('td')).toHaveLength(
-      WORKBOOK_GRID_WINDOW_ROW_COUNT * SALES_ORDER_COLUMNS.length,
+      WORKBOOK_GRID_WINDOW_ROW_COUNT * WORKBOOK_GRID_WINDOW_COLUMN_COUNT,
     )
 
     act(() => nextProjection.resolve(projectionResultFor(requests[1]!)))

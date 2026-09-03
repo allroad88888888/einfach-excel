@@ -87,6 +87,29 @@ describe('bound cell editing commands', () => {
     ).toBe(false)
   })
 
+  test('starts a keyboard draft from the typed character', async () => {
+    const connection = createTestRustWorkbookConnection({
+      async readVisibleProjection(request: VisibleProjectionRequest) {
+        return projectionResult(request)
+      },
+    })
+    const core = createSpreadsheetUi({ connection })
+    await core.store.setter(runVisibleProjectionAtom, visibleInput)
+
+    expect(
+      core.store.setter(startCellEditingFromProjectionAtom, {
+        sheetId: 'sheet-1',
+        cell: { row: 1, col: 2 },
+        source: 'keyboard',
+        initialDraft: 'x',
+      }),
+    ).toBe(true)
+    expect(core.store.getter(editingSessionAtom)).toMatchObject({
+      source: { source: 'keyboard' },
+      draft: 'x',
+    })
+  })
+
   test('keeps a rejected backend mutation as an editable draft', async () => {
     const setCellInput = jest.fn(async () => {
       throw new Error('Rust write rejected')

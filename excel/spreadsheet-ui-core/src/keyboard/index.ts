@@ -7,6 +7,7 @@ import {
   selectionRegionsAtom,
   setPrimaryRegionAtom,
 } from '../selection'
+import { scrollToCellAtom } from '../viewport'
 import { getKeyboardMovementIntent } from './keyboard-movement'
 import type {
   KeyboardCommandIntent,
@@ -50,6 +51,7 @@ export const dispatchKeyboardInputAtom = atom(
     if (intent.type !== 'formulaReference.arrowPick' && intent.type !== 'formulaReference.exit') {
       if (intent.type === 'selection.move') {
         set(setPrimaryRegionAtom, intent.selection)
+        set(scrollToCellAtom, { coord: intent.scroll.target })
       } else if (intent.type === 'selection.selectAll') {
         set(selectionAtom, intent.selection)
       } else if (intent.type === 'selection.clearNonPrimary') {

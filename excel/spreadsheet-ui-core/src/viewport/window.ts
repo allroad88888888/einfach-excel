@@ -161,8 +161,12 @@ export function getVisibleWindow(metrics: ViewportMetrics): VisibleWindow {
 
   const rawRowStart = Math.floor(normalizedMetrics.scrollTop / rowHeight)
   const rawColStart = Math.floor(normalizedMetrics.scrollLeft / colWidth)
-  const visibleRows = Math.ceil(normalizedMetrics.viewportHeight / rowHeight)
-  const visibleCols = Math.ceil(normalizedMetrics.viewportWidth / colWidth)
+  const rowOffset = normalizedMetrics.scrollTop - rawRowStart * rowHeight
+  const colOffset = normalizedMetrics.scrollLeft - rawColStart * colWidth
+  // A partially clipped first item still consumes viewport space, so include
+  // enough trailing items to cover the remainder instead of exposing a gap.
+  const visibleRows = Math.ceil((normalizedMetrics.viewportHeight + rowOffset) / rowHeight)
+  const visibleCols = Math.ceil((normalizedMetrics.viewportWidth + colOffset) / colWidth)
 
   const rowStart = clampIndex(rawRowStart - normalizedMetrics.overscanRows, rowCount)
   const colStart = clampIndex(rawColStart - normalizedMetrics.overscanCols, colCount)

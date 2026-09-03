@@ -63,8 +63,8 @@ export function getKeyboardMovementIntent(
       })
     case 'End':
       return createMoveIntent(input, state, 'end', {
-        row: input.ctrlKey || input.metaKey ? state.bounds.rowCount - 1 : undefined,
-        col: state.bounds.colCount - 1,
+        row: state.bounds.rowCount - 1,
+        col: input.ctrlKey || input.metaKey ? state.bounds.colCount - 1 : undefined,
       })
     default:
       return { type: 'none', reason: 'unhandled' }

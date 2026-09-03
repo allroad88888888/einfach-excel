@@ -21,7 +21,7 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
   const session = useAtomValue(editingSessionAtom)
   const draft = useAtomValue(editingDraftAtom)
   const lifecycle = useAtomValue(editingCommitLifecycleAtom)
-  const rowStart = useAtomValue(visibleWindowAtom).rowStart
+  const window = useAtomValue(visibleWindowAtom)
   const cancelEditing = useSetAtom(cancelEditingAtom)
   const commitEditing = useSetAtom(commitCellEditingAtom)
   const setDraft = useSetAtom(editingDraftAtom)
@@ -32,12 +32,19 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
   const busy = lifecycle.status === 'pending' || lifecycle.status === 'outcome-unknown'
   const feedback = editingCommitFeedback(lifecycle)
   const editingFromFormulaBar = session.source?.source === 'formula-bar'
+  const editingFromKeyboard = session.source?.source === 'keyboard'
 
   useEffect(() => {
     if (editingFromFormulaBar) return
-    inputRef.current?.focus({ preventScroll: true })
-    inputRef.current?.select()
-  }, [cell?.col, cell?.row, editingFromFormulaBar])
+    const input = inputRef.current
+    input?.focus({ preventScroll: true })
+    if (editingFromKeyboard) {
+      const end = input?.value.length ?? 0
+      input?.setSelectionRange(end, end)
+    } else {
+      input?.select()
+    }
+  }, [cell?.col, cell?.row, editingFromFormulaBar, editingFromKeyboard])
 
   if (cell === null || editingFromFormulaBar) return null
 
@@ -79,8 +86,8 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
   }
   const stopPointer = (event: PointerEvent<HTMLDivElement>) => event.stopPropagation()
   const style = {
-    '--editor-row': cell.row - rowStart,
-    '--editor-col': cell.col,
+    '--editor-row': cell.row - window.rowStart,
+    '--editor-col': cell.col - window.colStart,
   } as CSSProperties
   const fieldIdentity = `cell-editor-r${cell.row}-c${cell.col}`
 
@@ -98,7 +105,7 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
         disabled={busy}
         id={fieldIdentity}
         name={fieldIdentity}
-        onChange={(event) => setDraft({ draft: event.currentTarget.value, source: 'cell' })}
+        onChange={(event) => setDraft({ draft: event.currentTarget.value })}
         onKeyDown={onKeyDown}
         value={draft}
       />

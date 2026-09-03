@@ -8,7 +8,11 @@ import type { CSSProperties } from 'react'
 import { useWorkbookViewport, type WorkbookViewport } from '../../projection/use-workbook-viewport'
 import { SpreadsheetGrid } from '../cells/SpreadsheetGrid'
 import { CellEditor } from '../editor/CellEditor'
-import { WORKBOOK_GRID_ROW_HEIGHT } from './workbook-grid-config'
+import {
+  WORKBOOK_GRID_COLUMN_WIDTH,
+  WORKBOOK_GRID_ROW_HEADER_WIDTH,
+  WORKBOOK_GRID_ROW_HEIGHT,
+} from './workbook-grid-config'
 import { useWorkbookGridEvents } from './use-workbook-grid-events'
 import { useWorkbookGridWindow } from './use-workbook-grid-window'
 import './grid.css'
@@ -48,10 +52,23 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
   const rows = rowNumbers(viewport.window.rowStart, viewport.window.rowEnd)
   const frameStyle = {
     '--grid-column-count': activeSheet.colCount,
+    '--grid-column-width': `${WORKBOOK_GRID_COLUMN_WIDTH}px`,
+    '--grid-sheet-content-width': `${activeSheet.colCount * WORKBOOK_GRID_COLUMN_WIDTH}px`,
     '--grid-sheet-height': `${(activeSheet.rowCount + 1) * WORKBOOK_GRID_ROW_HEIGHT}px`,
+    '--grid-sheet-width': `${
+      activeSheet.colCount * WORKBOOK_GRID_COLUMN_WIDTH + WORKBOOK_GRID_ROW_HEADER_WIDTH
+    }px`,
   } as CSSProperties
   const windowStyle = {
     '--grid-window-offset': `${viewport.placementWindow.rowStart * WORKBOOK_GRID_ROW_HEIGHT}px`,
+  } as CSSProperties
+  const cellWindowStyle = {
+    ...windowStyle,
+    '--grid-window-offset-x': `${viewport.placementWindow.colStart * WORKBOOK_GRID_COLUMN_WIDTH}px`,
+    '--grid-window-width': `${
+      (viewport.placementWindow.colEnd - viewport.placementWindow.colStart + 1) *
+      WORKBOOK_GRID_COLUMN_WIDTH
+    }px`,
   } as CSSProperties
 
   return (
@@ -110,7 +127,7 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
             onPointerDown={events.onPointerDown}
             onPointerMove={events.onPointerMove}
             onPointerUp={events.onPointerUp}
-            style={windowStyle}
+            style={cellWindowStyle}
             tabIndex={viewport.retained ? -1 : 0}
           >
             {projectionState(viewport) ?? (

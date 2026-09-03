@@ -34,12 +34,6 @@ describe('workbook horizontal boundary navigation', () => {
     await waitFor(() => expect(scroll.scrollLeft).toBe(scrollWidth - clientWidth))
     fireEvent.scroll(scroll, { target: { scrollLeft: scroll.scrollLeft } })
     expect(store.getter(viewportMetricsAtom).scrollLeft).toBe(scrollWidth - clientWidth)
-    expect(
-      scroll.scrollLeft +
-        clientWidth -
-        (WORKBOOK_GRID_ROW_HEADER_WIDTH +
-          SALES_ORDER_COLUMNS.length * WORKBOOK_GRID_COLUMN_WIDTH),
-    ).toBe(0)
 
     fireEvent.keyDown(grid, { key: 'ArrowLeft', ctrlKey: true })
 

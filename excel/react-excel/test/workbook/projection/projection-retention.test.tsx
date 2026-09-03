@@ -58,6 +58,31 @@ describe('Rust workbook projection retention', () => {
     })
   })
 
+  it('keeps selection navigation active while the next projection is pending', async () => {
+    const nextProjection = deferredProjection<VisibleProjectionResult>()
+    const requests: VisibleProjectionRequest[] = []
+    const readVisibleProjection = jest.fn(async (request: VisibleProjectionRequest) => {
+      requests.push(request)
+      return requests.length === 1 ? projectionResultFor(request) : nextProjection.promise
+    })
+    const store = renderSalesOrdersProjectionWorksheet(
+      createTestRustWorkbookConnection({ readVisibleProjection }),
+    )
+    await waitFor(() => expect(document.querySelector('[data-cell="0:0"]')).not.toBeNull())
+    const scroll = screen.getByTestId('sheet-scroll')
+
+    fireEvent.scroll(scroll, { target: { scrollTop: WORKBOOK_GRID_ROW_HEIGHT } })
+    await waitFor(() => expect(requests).toHaveLength(2))
+    const grid = screen.getByLabelText('Sales Orders cells')
+    grid.focus()
+
+    fireEvent.keyDown(grid, { key: 'ArrowDown' })
+
+    expect(store.getter(selectionSnapshotAtom).activeCell.row).toBe(1)
+    act(() => nextProjection.resolve(projectionResultFor(requests[1]!)))
+    await waitFor(() => expect(grid).toHaveAttribute('data-projection-retained', 'false'))
+  })
+
   it('places a distant retained frame in view without exposing stale interactions', async () => {
     const nextProjection = deferredProjection<VisibleProjectionResult>()
     const requests: VisibleProjectionRequest[] = []
@@ -96,7 +121,7 @@ describe('Rust workbook projection retention', () => {
     dispatchProjectionPointer(retainedCell, 'pointerup')
     fireEvent.doubleClick(retainedCell)
     grid.focus()
-    fireEvent.keyDown(grid, { key: 'Enter' })
+    fireEvent.keyDown(grid, { key: 'F2' })
     expect(store.getter(selectionSnapshotAtom).activeCell).toMatchObject({ row: 0, col: 0 })
     expect(store.getter(editingSessionAtom).source).toBeNull()
 

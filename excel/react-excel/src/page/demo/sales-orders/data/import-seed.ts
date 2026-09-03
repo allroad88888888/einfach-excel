@@ -1,9 +1,7 @@
 import type { RustImportCell } from '@einfach/spreadsheet-ui-core'
 import { SALES_ORDER_COLUMNS, SALES_ORDER_RECORD_COUNT, SALES_ORDER_SHEET_ROW_COUNT } from './sheet'
 
-export const SALES_ORDER_DATA_ROW_COUNT = SALES_ORDER_RECORD_COUNT
-export const SALES_ORDER_COLUMN_COUNT = SALES_ORDER_COLUMNS.length
-export const SALES_ORDER_CELL_COUNT = SALES_ORDER_SHEET_ROW_COUNT * SALES_ORDER_COLUMN_COUNT
+export const SALES_ORDER_CELL_COUNT = SALES_ORDER_SHEET_ROW_COUNT * SALES_ORDER_COLUMNS.length
 export const SALES_ORDER_IMPORT_CHUNK_SIZE = 500
 
 export type SalesOrderImportCell = RustImportCell
@@ -66,7 +64,7 @@ export function createSalesOrderImportChunks(
 
   const cells: SalesOrderImportCell[] = [
     ...SALES_ORDER_COLUMNS.map(({ label }, col) => textCell(0, col, label)),
-    ...Array.from({ length: SALES_ORDER_DATA_ROW_COUNT }, (_, row) => createDataRow(row)).flat(),
+    ...Array.from({ length: SALES_ORDER_RECORD_COUNT }, (_, row) => createDataRow(row)).flat(),
   ]
   const chunks: SalesOrderImportCell[][] = []
   for (let start = 0; start < cells.length; start += chunkSize) {

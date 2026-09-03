@@ -1,4 +1,5 @@
 import type { CellRange, DisplayCell } from '@einfach/spreadsheet-ui-core'
+import type { CSSProperties } from 'react'
 import { cellFormatStyle } from './cell-format-style'
 
 /** Inputs for the controlled, read-only spreadsheet grid projection. */
@@ -18,10 +19,25 @@ function isSelectedCell(selected: CellRange | undefined, row: number, col: numbe
   )
 }
 
+function visibleSelection(window: CellRange, selected: CellRange | undefined): CellRange | null {
+  if (!selected) return null
+  const intersection = {
+    rowStart: Math.max(window.rowStart, selected.rowStart),
+    rowEnd: Math.min(window.rowEnd, selected.rowEnd),
+    colStart: Math.max(window.colStart, selected.colStart),
+    colEnd: Math.min(window.colEnd, selected.colEnd),
+  }
+  return intersection.rowStart <= intersection.rowEnd &&
+    intersection.colStart <= intersection.colEnd
+    ? intersection
+    : null
+}
+
 /** Renders a caller-owned spreadsheet projection without fetching or editing it. */
 export function SpreadsheetGrid({ window, cells, selected }: SpreadsheetGridProps) {
   const cellsByCoordinate = new Map(cells.map((cell) => [`${cell.row}:${cell.col}`, cell]))
   const rows = []
+  const outline = visibleSelection(window, selected)
 
   for (let row = window.rowStart; row <= window.rowEnd; row += 1) {
     const rowCells = []
@@ -46,9 +62,30 @@ export function SpreadsheetGrid({ window, cells, selected }: SpreadsheetGridProp
     rows.push(<tr key={row}>{rowCells}</tr>)
   }
 
+  const outlineStyle = outline
+    ? ({
+        '--selection-col-offset': outline.colStart - window.colStart,
+        '--selection-col-span': outline.colEnd - outline.colStart + 1,
+        '--selection-row-offset': outline.rowStart - window.rowStart,
+        '--selection-row-span': outline.rowEnd - outline.rowStart + 1,
+      } as CSSProperties)
+    : undefined
+  const outlineClassName = [
+    'selection-outline',
+    outline?.rowStart === selected?.rowStart && 'selection-outline-top',
+    outline?.colEnd === selected?.colEnd && 'selection-outline-right',
+    outline?.rowEnd === selected?.rowEnd && 'selection-outline-bottom',
+    outline?.colStart === selected?.colStart && 'selection-outline-left',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
   return (
-    <table className="spreadsheet-grid">
-      <tbody>{rows}</tbody>
-    </table>
+    <>
+      <table className="spreadsheet-grid">
+        <tbody>{rows}</tbody>
+      </table>
+      {outline && <div aria-hidden="true" className={outlineClassName} style={outlineStyle} />}
+    </>
   )
 }

@@ -1,14 +1,10 @@
-.grid-surface {
-  position: relative;
-}
-
 .cell-editor {
   position: absolute;
   z-index: 2;
-  top: calc(var(--editor-row) * 28px);
+  top: calc(var(--editor-row) * var(--grid-row-height));
   left: calc(var(--editor-col) * var(--grid-column-width));
   width: var(--grid-column-width);
-  height: 28px;
+  height: var(--grid-row-height);
 }
 
 .cell-editor input {

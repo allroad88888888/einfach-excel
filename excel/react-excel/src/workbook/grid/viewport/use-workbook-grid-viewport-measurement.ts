@@ -1,8 +1,5 @@
-import { useAtomValue, useSetAtom } from '@einfach/react'
-import {
-  setViewportMetricsAtom,
-  viewportMetricsAtom,
-} from '@einfach/spreadsheet-ui-core'
+import { useSetAtom } from '@einfach/react'
+import { setViewportSizeAtom } from '@einfach/spreadsheet-ui-core'
 import { useLayoutEffect, type RefObject } from 'react'
 import {
   WORKBOOK_GRID_ROW_HEADER_WIDTH,
@@ -21,8 +18,7 @@ export function getWorkbookGridViewportWidth(clientWidth: number): number {
 
 /** Keeps UI Core viewport math aligned with the browser's visible cell area. */
 export function useWorkbookGridViewportMeasurement(scrollRef: RefObject<HTMLDivElement>): void {
-  const metrics = useAtomValue(viewportMetricsAtom)
-  const setViewportMetrics = useSetAtom(setViewportMetricsAtom)
+  const setViewportSize = useSetAtom(setViewportSizeAtom)
 
   useLayoutEffect(() => {
     const scroll = scrollRef.current
@@ -31,10 +27,8 @@ export function useWorkbookGridViewportMeasurement(scrollRef: RefObject<HTMLDivE
     const publishViewportSize = () => {
       const viewportHeight = getWorkbookGridViewportHeight(scroll.clientHeight)
       const viewportWidth = getWorkbookGridViewportWidth(scroll.clientWidth)
-      const nextHeight = viewportHeight > 0 ? viewportHeight : metrics.viewportHeight
-      const nextWidth = viewportWidth > 0 ? viewportWidth : metrics.viewportWidth
-      if (nextHeight === metrics.viewportHeight && nextWidth === metrics.viewportWidth) return
-      setViewportMetrics({ ...metrics, viewportHeight: nextHeight, viewportWidth: nextWidth })
+      if (viewportHeight <= 0 || viewportWidth <= 0) return
+      setViewportSize({ viewportHeight, viewportWidth })
     }
 
     publishViewportSize()
@@ -42,5 +36,5 @@ export function useWorkbookGridViewportMeasurement(scrollRef: RefObject<HTMLDivE
     const observer = new ResizeObserver(publishViewportSize)
     observer.observe(scroll)
     return () => observer.disconnect()
-  }, [metrics, scrollRef, setViewportMetrics])
+  }, [scrollRef, setViewportSize])
 }

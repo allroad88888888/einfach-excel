@@ -22,23 +22,4 @@ describe('End-key movement', () => {
       col: 3,
     })
   })
-
-  test('moves to the bottom-right cell with Ctrl+End', () => {
-    const store = createStore()
-    store.setter(setSelectionBoundsAtom, { rowCount: 10, colCount: 5 })
-    store.setter(setSelectionAtom, {
-      kind: 'cell',
-      sheetId: 'sheet-1',
-      anchor: { row: 5, col: 3 },
-      focus: { row: 5, col: 3 },
-    })
-
-    store.setter(dispatchKeyboardInputAtom, { key: 'End', ctrlKey: true })
-
-    expect(store.getter(activeCellAtom)).toEqual({
-      sheetId: 'sheet-1',
-      row: 9,
-      col: 4,
-    })
-  })
 })

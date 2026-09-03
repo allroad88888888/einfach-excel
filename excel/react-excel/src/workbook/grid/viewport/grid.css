@@ -23,14 +23,15 @@
   width: 100%;
   height: 100%;
   overflow: auto;
+  overflow-anchor: none;
   overscroll-behavior: contain;
 }
 
 .sheet-grid-frame {
   display: grid;
   width: max(100%, var(--grid-sheet-width));
-  grid-template-columns: 46px var(--grid-sheet-content-width);
-  grid-template-rows: 28px auto;
+  grid-template-columns: var(--grid-row-header-width) var(--grid-sheet-content-width);
+  grid-template-rows: var(--grid-row-height) auto;
 }
 
 .sheet-corner {
@@ -82,7 +83,7 @@
   z-index: 3;
   display: grid;
   align-self: start;
-  grid-auto-rows: 28px;
+  grid-auto-rows: var(--grid-row-height);
   transform: translateY(var(--grid-window-offset));
   background: var(--chrome);
 }
@@ -93,6 +94,7 @@
 }
 
 .grid-surface {
+  position: relative;
   width: var(--grid-window-width);
   min-width: var(--grid-window-width);
   transform: translate(var(--grid-window-offset-x), var(--grid-window-offset));
@@ -103,7 +105,8 @@
 .grid-surface .spreadsheet-grid {
   width: var(--grid-window-width);
   min-width: var(--grid-window-width);
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   table-layout: fixed;
   background: var(--surface);
   font-size: 12px;
@@ -114,7 +117,7 @@
 }
 
 .grid-surface .cell {
-  height: 28px;
+  height: var(--grid-row-height);
   padding: 3px 7px;
   overflow: hidden;
   border-right: 1px solid var(--gridline);
@@ -130,13 +133,30 @@
   border-right: 0;
 }
 
-.grid-surface .cell-selected {
-  position: relative;
-  box-shadow: inset 0 0 0 1px rgba(39, 79, 238, 0.62);
+.selection-outline {
+  position: absolute;
+  z-index: 1;
+  top: calc(var(--selection-row-offset) * var(--grid-row-height));
+  left: calc(var(--selection-col-offset) * var(--grid-column-width));
+  width: calc(var(--selection-col-span) * var(--grid-column-width));
+  height: calc(var(--selection-row-span) * var(--grid-row-height));
+  box-sizing: border-box;
+  border: 0 solid var(--primary);
+  pointer-events: none;
 }
 
-.grid-surface .cell-selected:first-child {
-  box-shadow:
-    inset 2px 0 0 var(--primary),
-    inset 0 0 0 1px rgba(39, 79, 238, 0.62);
+.selection-outline-top {
+  border-top-width: 1px;
+}
+
+.selection-outline-right {
+  border-right-width: 1px;
+}
+
+.selection-outline-bottom {
+  border-bottom-width: 1px;
+}
+
+.selection-outline-left {
+  border-left-width: 1px;
 }

@@ -1,5 +1,6 @@
 import {
   selectionSnapshotAtom,
+  setViewportSizeAtom,
   visibleWindowAtom,
   viewportMetricsAtom,
 } from '@einfach/spreadsheet-ui-core'
@@ -58,8 +59,6 @@ describe('Rust workbook projection window', () => {
     const visibleRowCount = Math.ceil(
       (clientHeight - WORKBOOK_GRID_ROW_HEIGHT) / WORKBOOK_GRID_ROW_HEIGHT,
     )
-    const bottomScrollTop =
-      (SALES_ORDER_SHEET_ROW_COUNT - visibleRowCount) * WORKBOOK_GRID_ROW_HEIGHT
     const maxScrollTop = scrollHeight - clientHeight
     expect(clientHeight).toBeGreaterThan(924)
     expect(Math.floor(maxScrollTop / WORKBOOK_GRID_ROW_HEIGHT)).toBeLessThan(
@@ -69,17 +68,24 @@ describe('Rust workbook projection window', () => {
       clientHeight: { configurable: true, value: clientHeight },
       scrollHeight: { configurable: true, value: scrollHeight },
     })
-    fireEvent.scroll(scroll, { target: { scrollTop: maxScrollTop } })
-    expect(scroll.scrollTop).toBe(bottomScrollTop)
+    act(() => {
+      store.setter(setViewportSizeAtom, {
+        viewportHeight: clientHeight - WORKBOOK_GRID_ROW_HEIGHT,
+        viewportWidth: store.getter(viewportMetricsAtom).viewportWidth,
+      })
+    })
     await waitFor(() => expect(controlled.requests).toHaveLength(2))
-    expect(controlled.requests[1]?.window).toEqual({
+    fireEvent.scroll(scroll, { target: { scrollTop: maxScrollTop } })
+    expect(scroll.scrollTop).toBe(maxScrollTop)
+    await waitFor(() => expect(controlled.requests).toHaveLength(3))
+    expect(controlled.requests[2]?.window).toEqual({
       rowStart: SALES_ORDER_SHEET_ROW_COUNT - visibleRowCount,
       rowEnd: SALES_ORDER_SHEET_ROW_COUNT - 1,
       colStart: 0,
       colEnd: WORKBOOK_GRID_WINDOW_COLUMN_COUNT - 1,
     })
-    expect(store.getter(visibleWindowAtom)).toEqual(controlled.requests[1]?.window)
-    expect(store.getter(viewportMetricsAtom).scrollTop).toBe(bottomScrollTop)
+    expect(store.getter(visibleWindowAtom)).toEqual(controlled.requests[2]?.window)
+    expect(store.getter(viewportMetricsAtom).scrollTop).toBe(maxScrollTop)
 
     const lastDataRow = SALES_ORDER_SHEET_ROW_COUNT - 1
     const formulaColumn = SALES_ORDER_COLUMNS.findIndex(({ key }) => key === 'total')

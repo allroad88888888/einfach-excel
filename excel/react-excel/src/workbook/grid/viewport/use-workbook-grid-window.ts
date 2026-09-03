@@ -13,11 +13,14 @@ export function useWorkbookGridWindow(): CellRange {
   const activeSheet = useAtomValue(activeWorkbookSheetAtom)
   const window = useAtomValue(visibleWindowAtom)
   const setViewportMetrics = useSetAtom(setViewportMetricsAtom)
+  const sheetId = activeSheet?.id
+  const rowCount = activeSheet?.rowCount
+  const colCount = activeSheet?.colCount
 
   useEffect(() => {
-    if (activeSheet === null) return
-    setViewportMetrics(workbookViewportMetrics(activeSheet.rowCount, activeSheet.colCount))
-  }, [activeSheet, setViewportMetrics])
+    if (sheetId === undefined || rowCount === undefined || colCount === undefined) return
+    setViewportMetrics(workbookViewportMetrics(rowCount, colCount))
+  }, [colCount, rowCount, setViewportMetrics, sheetId])
 
   return window
 }

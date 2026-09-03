@@ -53,6 +53,8 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
   const frameStyle = {
     '--grid-column-count': activeSheet.colCount,
     '--grid-column-width': `${WORKBOOK_GRID_COLUMN_WIDTH}px`,
+    '--grid-row-height': `${WORKBOOK_GRID_ROW_HEIGHT}px`,
+    '--grid-row-header-width': `${WORKBOOK_GRID_ROW_HEADER_WIDTH}px`,
     '--grid-sheet-content-width': `${activeSheet.colCount * WORKBOOK_GRID_COLUMN_WIDTH}px`,
     '--grid-sheet-height': `${(activeSheet.rowCount + 1) * WORKBOOK_GRID_ROW_HEIGHT}px`,
     '--grid-sheet-width': `${

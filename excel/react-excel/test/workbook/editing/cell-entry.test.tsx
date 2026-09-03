@@ -60,7 +60,7 @@ describe('Rust workbook cell entry', () => {
     })
     const grid = screen.getByLabelText('Sales Orders cells')
     grid.focus()
-    fireEvent.keyDown(document.activeElement!, { key: 'Enter' })
+    fireEvent.keyDown(document.activeElement!, { key: 'F2' })
     const editor = await focusedCellEditor()
     expect(editor).toHaveValue('R1C1')
     fireEvent.change(editor, { target: { value: 'Focus edit' } })

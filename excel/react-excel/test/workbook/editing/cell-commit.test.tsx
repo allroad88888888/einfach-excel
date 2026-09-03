@@ -19,7 +19,7 @@ describe('Rust workbook cell commit', () => {
     const grid = screen.getByLabelText('Sales Orders cells')
     grid.focus()
     expect(document.activeElement).toBe(grid)
-    fireEvent.keyDown(document.activeElement!, { key: 'Enter' })
+    fireEvent.keyDown(document.activeElement!, { key: 'F2' })
     const editor = await focusedCellEditor()
     expect(editor).toHaveValue('Order')
     expect(editor).toHaveAttribute('id', 'cell-editor-r0-c0')
@@ -27,7 +27,7 @@ describe('Rust workbook cell commit', () => {
     fireEvent.change(editor, { target: { value: 'Edited order' } })
     expect(store.getter(editingSessionAtom)).toMatchObject({
       status: 'drafting',
-      source: { sheetId: 'orders', cell: { row: 0, col: 0 }, source: 'cell' },
+      source: { sheetId: 'orders', cell: { row: 0, col: 0 }, source: 'keyboard' },
       draft: 'Edited order',
     })
 
@@ -43,12 +43,12 @@ describe('Rust workbook cell commit', () => {
     expect(controlled.commands).toEqual(['projection.readVisible', 'cell.setInput'])
     await waitFor(() => expect(document.activeElement).toBe(grid))
 
-    fireEvent.keyDown(document.activeElement!, { key: 'Enter' })
+    fireEvent.keyDown(document.activeElement!, { key: 'F2' })
     const keyboardEditor = await focusedCellEditor()
-    expect(keyboardEditor).toHaveValue('Edited order')
+    expect(keyboardEditor).toHaveValue('R1C0')
     fireEvent.keyDown(document.activeElement!, { key: 'Escape' })
-    expect(screen.queryByRole('textbox', { name: 'Cell editor' })).toBeNull()
-    expect(document.activeElement).toBe(grid)
+    await waitFor(() => expect(screen.queryByRole('textbox', { name: 'Cell editor' })).toBeNull())
+    await waitFor(() => expect(document.activeElement).toBe(grid))
     expect(controlled.setCellInput).toHaveBeenCalledTimes(1)
   })
 

@@ -1,7 +1,7 @@
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
-  cancelEditingAtom,
   commitCellEditingAtom,
+  dispatchEditorKeyboardInputAtom,
   editingCommitFeedback,
   editingCommitLifecycleAtom,
   editingDraftAtom,
@@ -22,8 +22,8 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
   const draft = useAtomValue(editingDraftAtom)
   const lifecycle = useAtomValue(editingCommitLifecycleAtom)
   const window = useAtomValue(visibleWindowAtom)
-  const cancelEditing = useSetAtom(cancelEditingAtom)
   const commitEditing = useSetAtom(commitCellEditingAtom)
+  const dispatchEditorKeyboard = useSetAtom(dispatchEditorKeyboardInputAtom)
   const setDraft = useSetAtom(editingDraftAtom)
   const inputRef = useRef<HTMLInputElement>(null)
   const committingRef = useRef(false)
@@ -59,17 +59,30 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
       committingRef.current = false
     }
   }
+  const runKeyboardCommand = async (event: KeyboardEvent<HTMLInputElement>) => {
+    if (committingRef.current || busy) return
+    committingRef.current = true
+    try {
+      const outcome = await dispatchEditorKeyboard({
+        key: event.key,
+        shiftKey: event.shiftKey,
+        ctrlKey: event.ctrlKey,
+        metaKey: event.metaKey,
+        altKey: event.altKey,
+        isComposing: event.nativeEvent.isComposing,
+      })
+      if (outcome === 'completed' || outcome === 'cancelled') focusGrid()
+      if (outcome === 'rejected') inputRef.current?.focus()
+    } finally {
+      committingRef.current = false
+    }
+  }
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     event.stopPropagation()
-    if (event.key === 'Escape') {
-      event.preventDefault()
-      suppressBlurRef.current = true
-      cancelEditing()
-      focusGrid()
-    } else if (event.key === 'Enter') {
-      event.preventDefault()
-      void commitOnce(true)
-    }
+    if (event.key !== 'Escape' && event.key !== 'Enter' && event.key !== 'Tab') return
+    event.preventDefault()
+    if (event.key === 'Escape') suppressBlurRef.current = true
+    void runKeyboardCommand(event)
   }
   const onBlur = (event: FocusEvent<HTMLDivElement>) => {
     if (suppressBlurRef.current) {

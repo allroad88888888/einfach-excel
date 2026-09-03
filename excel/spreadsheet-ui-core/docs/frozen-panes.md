@@ -130,7 +130,7 @@ against the current backend revision. A rejected CAS neither writes freeze state
 
 ## Verification map
 
-- [Controller implementation](../src/viewport/window.ts)
+- [Frozen-window geometry](../src/viewport/frozen-windows.ts)
 - [Controller lifecycle and race tests](../test/frozen-panes.test.ts)
 - [Static backend implementation](../../solid-excel/src/adapter/static-backend.ts)
 - [Static authority race tests](../../solid-excel/test/vnext-freeze-authority.test.ts)

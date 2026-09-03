@@ -18,7 +18,9 @@ describe('workbook page-key navigation', () => {
     fireEvent.keyDown(grid, { key: 'PageDown' })
 
     expect(store.getter(selectionSnapshotAtom).activeCell).toMatchObject({ row: 32, col: 0 })
-    expect(store.getter(viewportMetricsAtom).scrollTop).toBe(WORKBOOK_GRID_ROW_HEIGHT)
+    expect(store.getter(viewportMetricsAtom).scrollTop).toBe(
+      32 * WORKBOOK_GRID_ROW_HEIGHT,
+    )
     await waitFor(() => expect(requests).toHaveLength(2))
     await waitFor(() => expect(document.querySelector('[data-cell="32:0"]')).toBeInTheDocument())
 

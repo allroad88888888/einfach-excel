@@ -3,13 +3,14 @@ import type {
   ProjectionRequestId,
   ProjectionRevision,
   SetCellInputRequest,
+  SpreadsheetBackend,
 } from '../backend/types'
-import type { HistoryEntryRecorder } from '../history'
 import type { CellCoord, SpreadsheetError } from '../shared'
 
 export type EditingInputSource = 'cell' | 'formula-bar' | 'keyboard' | 'paste'
 
-export type EditingSessionStatus = 'idle' | 'drafting' | 'committing' | 'cancelled'
+/** Draft ownership only; asynchronous commit progress lives in EditingCommitLifecycleStatus. */
+export type EditingSessionStatus = 'idle' | 'drafting' | 'cancelled'
 
 export type EditingCommitMove = 'none' | 'up' | 'down' | 'left' | 'right'
 
@@ -73,6 +74,9 @@ export interface EditingCommitAcknowledgement extends BackendMutationResult {
  */
 export interface EditingControllerPort {
   setCellInput?: (request: EditingCommitRequest) => Promise<BackendMutationResult>
+  /** Optional replay ports prove that the backend mutation has an undo/redo counterpart. */
+  undoTransaction?: SpreadsheetBackend['undoTransaction']
+  redoTransaction?: SpreadsheetBackend['redoTransaction']
 }
 
 export type EditingCommitLifecycleStatus =
@@ -107,8 +111,6 @@ export interface RunEditingCommitInput {
   readonly commitSource?: EditingInputSource
   readonly move?: EditingCommitMove
   readonly refreshProjection: (sheetId: string) => Promise<void>
-  /** Host capability guard captured with the commit ticket after backend ACK. */
-  readonly historyEntryRecorder: HistoryEntryRecorder
   /**
    * Finite mutation and refresh deadline. Missing or invalid values fall back
    * to the editing command's 15 second default.

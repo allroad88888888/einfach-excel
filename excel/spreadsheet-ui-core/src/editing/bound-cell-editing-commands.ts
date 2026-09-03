@@ -1,15 +1,14 @@
 import { atom, type Getter, type Setter } from '@einfach/core'
-import type { HistoryEntryRecorder } from '../history'
 import { projectionSnapshotAtom } from '../projection'
 import {
   runVisibleProjectionAtom,
   type RunVisibleProjectionInput,
 } from '../projection/run-visible-projection'
 import { spreadsheetBackendBindingAtom } from '../runtime/backend-state'
-import { editingSessionAtom, retryEditingRefreshAtom, runEditingCommitAtom } from './index'
+import { retryEditingRefreshAtom } from './retry-refresh'
+import { runEditingCommitAtom } from './run-commit'
+import { editingSessionAtom } from './session-atoms'
 import type { EditingCommitOutcome } from './types'
-
-const unavailableHistoryRecorder: HistoryEntryRecorder = () => 'unavailable'
 
 function currentVisibleRefreshInput(
   get: Getter,
@@ -25,11 +24,7 @@ function currentVisibleRefreshInput(
   })
 }
 
-async function refreshVisibleProjection(
-  get: Getter,
-  set: Setter,
-  sheetId: string,
-): Promise<void> {
+async function refreshVisibleProjection(get: Getter, set: Setter, sheetId: string): Promise<void> {
   const input = currentVisibleRefreshInput(get, sheetId)
   if (input === null) throw new Error('The current visible projection is unavailable.')
   const outcome = await set(runVisibleProjectionAtom, input)
@@ -40,23 +35,19 @@ async function refreshVisibleProjection(
 }
 
 /** Commits the current cell draft through this store's backend and visible window. */
-export const commitCellEditingAtom = atom(
-  null,
-  async (get, set): Promise<EditingCommitOutcome> => {
-    const session = get(editingSessionAtom)
-    const binding = get(spreadsheetBackendBindingAtom)
-    if (session.source === null || binding === null) return 'blocked'
-    if (currentVisibleRefreshInput(get, session.source.sheetId) === null) return 'blocked'
+export const commitCellEditingAtom = atom(null, async (get, set): Promise<EditingCommitOutcome> => {
+  const session = get(editingSessionAtom)
+  const binding = get(spreadsheetBackendBindingAtom)
+  if (session.source === null || binding === null) return 'blocked'
+  if (currentVisibleRefreshInput(get, session.source.sheetId) === null) return 'blocked'
 
-    return set(runEditingCommitAtom, {
-      source: binding.backend,
-      commitSource: 'cell',
-      move: 'none',
-      historyEntryRecorder: unavailableHistoryRecorder,
-      refreshProjection: (sheetId) => refreshVisibleProjection(get, set, sheetId),
-    })
-  },
-)
+  return set(runEditingCommitAtom, {
+    source: binding.backend,
+    commitSource: 'cell',
+    move: 'none',
+    refreshProjection: (sheetId) => refreshVisibleProjection(get, set, sheetId),
+  })
+})
 
 commitCellEditingAtom.debugLabel = 'spreadsheet.editing.commitCell'
 

@@ -6,8 +6,8 @@ dialog is a projection of this Core state; it does not own or discover the
 capability.
 
 Parity item #11: the static backend AND the worker adapter implement
-`pasteRange` (the worker path composes existing RPCs over the shared
-`excel/solid-excel/src/adapter/paste-range-plan.ts` helpers). The Edit menu
+`pasteRange` (the Rust worker path composes existing RPCs over the shared
+`excel/spreadsheet-ui-core/src/rust-worker/adapter/paste-range-plan.ts` helpers). The Edit menu
 and Ctrl+Alt+V are capability-gated. A backend may subdivide the capability
 fail-closed via `pasteRangeSupportedKinds` (projected by
 `pasteSpecialSupportedKindsAtom`): the TS worker runtime declares only the

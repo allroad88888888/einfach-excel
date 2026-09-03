@@ -52,6 +52,8 @@ const config = defineConfig({
   external: [
     '@swc/core',
     '@einfach/core',
+    '@einfach/excel-wasm',
+    '@einfach/excel-wasm/full',
     '@einfach/spreadsheet-ui-core',
     '@einfach/react',
     '@einfach/utils',
@@ -129,9 +131,24 @@ const productConfigs = products.map((dir) => {
         }),
       ]
 
+  const input = dir.endsWith('/spreadsheet-ui-core')
+    ? {
+        index: `${dir}/src/index.ts`,
+        'rust-worker/index': `${dir}/src/rust-worker/index.ts`,
+        'rust-worker/runtime': `${dir}/src/rust-worker/runtime.ts`,
+        'rust-worker/runtime-core': `${dir}/src/rust-worker/runtime-core.ts`,
+        'rust-worker/runtime-full': `${dir}/src/rust-worker/runtime-full.ts`,
+      }
+    : `${dir}/src/index.ts`
+  // The Rust Worker leaf entries install their message listener at module
+  // evaluation time. The shared aggressive treeshake policy erases that call,
+  // so UI-core preserves its module graph instead of emitting a dead Worker.
+  const treeshake = dir.endsWith('/spreadsheet-ui-core') ? false : treeshakeOptions
+
   return {
     ...config,
-    input: `${dir}/src/index.ts`,
+    input,
+    treeshake,
     // treeshake: false,
     onwarn,
     plugins: pluginsConfig,

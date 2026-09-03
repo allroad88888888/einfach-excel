@@ -16,7 +16,7 @@ full 分为独立路径：`build:wasm` 生成 lite，`build:wasm:full` 生成带
 strip 脚本。`build:wasm:both` 只是顺序执行这两条路径。
 
 full 入口静态导入 `wasm-pkg-full/`，且只有显式选择该入口的宿主才会拉入 full
-变体，见 [`worker-runtime-full.ts`](../excel/solid-excel/src/adapter/worker-runtime-full.ts)。
+变体，见 [`runtime-full.ts`](../excel/spreadsheet-ui-core/src/rust-worker/runtime-full.ts)。
 因此，变体选择是宿主入口的构建图选择，而不是可在同一运行时无代价切换的选项。
 
 ## 可行路径

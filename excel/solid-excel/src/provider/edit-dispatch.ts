@@ -10,17 +10,15 @@ import {
   type SpreadsheetBackend,
 } from '@einfach/spreadsheet-ui-core'
 
-import { createHistoryEntryRecorder } from './history-entry-recorder'
 import { refreshVisibleProjection } from './projection-refresh'
 
 /**
  * Commit the active editing session by pulling the latest draft, running it
- * through the backend setCellInput port, pushing a history entry and
- * refreshing the visible projection. Used by both the formula bar and the
- * grid in-cell editor so the two paths share identical post-commit wiring.
+ * through the backend setCellInput port and refreshing the visible projection.
+ * Used by both the formula bar and the grid in-cell editor.
  *
  * Returns the UI-core lifecycle outcome. The framework host never owns the
- * mutation acknowledgement, history cursor, or refresh retry state.
+ * mutation acknowledgement or refresh retry state.
  */
 export async function dispatchEditingCommit(
   store: Store,
@@ -40,7 +38,6 @@ export async function dispatchEditingCommit(
     source: backend,
     move: options.move ?? 'none',
     commitSource: options.source ?? 'cell',
-    historyEntryRecorder: createHistoryEntryRecorder(backend),
     refreshProjection: (sheetId) =>
       refreshVisibleProjection(store, backend, sheetId, 'formula-bar'),
   })

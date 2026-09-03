@@ -3,7 +3,7 @@
 > 功能源码：excel/spreadsheet-ui-core/src/sheet-tabs/ + excel/solid-excel/src/sheet-tabs/
 > （SpreadsheetSheetTabs.tsx）；backend port：excel/spreadsheet-ui-core/src/backend/types.ts 的
 > addSheet / renameSheet / deleteSheet / reorderSheet；worker 侧实现
-> excel/solid-excel/src/adapter/worker-workbook-backend.ts、引擎
+> excel/spreadsheet-ui-core/src/rust-worker/adapter/worker/backend.ts、引擎
 > excel/rust/excel-core/src/workbook.rs（rename_sheet / remove_sheet / move_sheet）。
 > 存量 spec 行数超限登记：无（multisheet-ui 282 行、vnext-sheet-lifecycle 100 行）。
 

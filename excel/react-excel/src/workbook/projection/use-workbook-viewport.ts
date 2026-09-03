@@ -26,10 +26,16 @@ export interface UseWorkbookViewportOptions {
 }
 
 export interface WorkbookViewport {
-  /** The bounded form of the caller-owned window. */
+  /** The window belonging to the cells currently displayed. */
   readonly window: CellRange
-  /** Cells only for the current controlled window. */
+  /** The sheet position used to keep the displayed frame inside the requested viewport. */
+  readonly placementWindow: CellRange
+  /** Cells from the same projection frame as `window`. */
   readonly cells: ReadonlyArray<VisibleProjectionResult['cells'][number]>
+  /** True once this sheet has any projection that can keep the grid mounted. */
+  readonly hasResult: boolean
+  /** True while an older logical frame is temporarily placed at the requested window. */
+  readonly retained: boolean
   readonly status: ProjectionStatus
   readonly error: SpreadsheetError | undefined
   readonly truncated: boolean | undefined
@@ -112,25 +118,11 @@ function isCurrentRequest(
   )
 }
 
-function isCurrentResult(
-  snapshot: ProjectionSnapshot,
-  sheetId: string,
-  window: CellRange,
-): boolean {
-  return (
-    snapshot.result?.kind === 'visible-window' &&
-    snapshot.result.sheetId === sheetId &&
-    sameWindow(snapshot.result.window, window)
-  )
-}
-
 /**
  * Reads a caller-controlled visible window and delegates scrolling back to its owner.
  * Projection state remains in the nearest WorkbookRuntimeProvider's Einfach store.
  */
-export function useWorkbookViewport(
-  options: UseWorkbookViewportOptions,
-): WorkbookViewport {
+export function useWorkbookViewport(options: UseWorkbookViewportOptions): WorkbookViewport {
   const snapshot: ProjectionSnapshot = useAtomValue(projectionSnapshotAtom)
   const resetProjection = useSetAtom(resetProjectionAtom)
   const runVisibleProjection = useSetAtom(runVisibleProjectionAtom)
@@ -143,7 +135,7 @@ export function useWorkbookViewport(
   const controlledRowEnd = options.window.rowEnd
   const controlledColStart = options.window.colStart
   const controlledColEnd = options.window.colEnd
-  const window = useMemo(
+  const requestedWindow = useMemo(
     () =>
       clampWindow(
         {
@@ -166,7 +158,7 @@ export function useWorkbookViewport(
       rowCount,
     ],
   )
-  const { colEnd, colStart, rowEnd, rowStart } = window
+  const { colEnd, colStart, rowEnd, rowStart } = requestedWindow
   useEffect(() => {
     if (rowEnd < rowStart || colEnd < colStart) {
       resetProjection()
@@ -176,6 +168,7 @@ export function useWorkbookViewport(
       sheetId,
       window: { rowStart, rowEnd, colStart, colEnd },
       reason: 'viewport',
+      retainResult: true,
       maxCells,
     })
   }, [maxCells, resetProjection, runVisibleProjection, sheetId, colEnd, colStart, rowEnd, rowStart])
@@ -201,11 +194,19 @@ export function useWorkbookViewport(
     })
   }
 
-  const current = isCurrentRequest(snapshot, sheetId, window)
-  const result = current && isCurrentResult(snapshot, sheetId, window) ? snapshot.result : undefined
+  const current = isCurrentRequest(snapshot, sheetId, requestedWindow)
+  const result =
+    snapshot.result?.kind === 'visible-window' && snapshot.result.sheetId === sheetId
+      ? snapshot.result
+      : undefined
+  const window = result?.window ?? requestedWindow
+  const retained = result !== undefined && !sameWindow(result.window, requestedWindow)
   return {
     window,
+    placementWindow: retained ? requestedWindow : window,
     cells: result?.cells ?? [],
+    hasResult: result !== undefined,
+    retained,
     status: current ? snapshot.status : 'idle',
     error: current ? snapshot.error : undefined,
     truncated: result?.truncated,

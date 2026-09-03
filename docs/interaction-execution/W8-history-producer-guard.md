@@ -4,8 +4,8 @@
 
 ## 目标
 
-让每一条会生成撤销记录的 mutation 路径，先经过同一份后端 undo/redo capability guard，再写入
-history Atom。继续保留既有 history Atom 作为历史事实的唯一权威，不在 Solid 或 adapter 中建立影子账本。
+让每一条会生成撤销记录的 mutation 路径，先经过后端 undo/redo capability guard，再写入 history Atom。
+后端事务日志是 replay 数据的权威；history Atom 是 Timeline 元数据与游标的权威，不在 Solid 中建立第三份影子账本。
 
 ## 已知起点
 
@@ -32,18 +32,18 @@ history Atom。继续保留既有 history Atom 作为历史事实的唯一权威
 
 ## C：实施分片
 
-| 子 Issue | 范围                                                         | 前置             | 判定                                                                                                           |
-| -------- | ------------------------------------------------------------ | ---------------- | -------------------------------------------------------------------------------------------------------------- |
-| UI-519a  | Grid editing、clipboard、format 的直接后端 mutation          | 无               | 已完成：三个 host controller 在 ACK 后经同一 Provider guard 记录 history。                                     |
-| UI-519b  | Core command 的 `recordHistory(entry, append)` callback port | UI-519a          | 已完成：recorded / unavailable / rejected 三态 ABI；不把 backend 放进 Atom 或单例。                            |
-| UI-519c  | editing 与 auto-fill                                         | UI-519b          | 已完成：在 ACK 后经 required recorder 执行 reserved append；保留 reservation、transaction、revision、refresh。 |
-| UI-519d  | paste-special 与 text-to-columns                             | UI-519b          | 已完成：保留 reserved/direct 的原有差异；无能力时只跳过 history。                                              |
-| UI-519e  | operations 与 toolbar                                        | UI-519b          | 已完成：结构事务保留 reservation/localSidePayload，工具栏在完整 ACK 后记录。                                   |
-| UI-519f  | tables、filter-sort、remove-duplicates                       | UI-519b          | 已完成：多入口表格、筛选、物理排序与去重都在 ACK 后经 required recorder 写入原有账本。                         |
-| UI-519g  | Grid editing、clipboard、format                              | UI-519a、UI-519b | 已完成：五条 ACK 后路径统一到 recorder 三态；rejected 不刷新并呈现 outcome-unknown。                           |
-| UI-519h  | tables recorder rejected 恢复顺序                            | UI-519f          | 已完成：六类表格命令的 rejected/throw 在 catalog 或 projection 刷新前停止。                                    |
-| UI-519i  | Remove Duplicates history-capability 测试夹具                | UI-519f          | 已完成：成功历史场景明确提供配对 undo/redo port；无能力场景仍验证无 history 降级。                             |
-| UI-521   | Context menu structural-history 测试夹具                     | UI-519e          | 已完成：结构操作成功场景明确提供配对 undo/redo port；默认无能力夹具保持无 history。                            |
+| 子 Issue | 范围                                                         | 前置             | 判定                                                                                                      |
+| -------- | ------------------------------------------------------------ | ---------------- | --------------------------------------------------------------------------------------------------------- |
+| UI-519a  | Grid editing、clipboard、format 的直接后端 mutation          | 无               | 已完成：三个 host controller 在 ACK 后经同一 Provider guard 记录 history。                                |
+| UI-519b  | Core command 的 `recordHistory(entry, append)` callback port | UI-519a          | 已完成：recorded / unavailable / rejected 三态 ABI；不把 backend 放进 Atom 或单例。                       |
+| UI-519c  | editing 与 auto-fill                                         | UI-519b          | 已完成：editing 由 Core 直接投影 Rust 历史元数据；auto-fill 仍经 required recorder 执行 reserved append。 |
+| UI-519d  | paste-special 与 text-to-columns                             | UI-519b          | 已完成：保留 reserved/direct 的原有差异；无能力时只跳过 history。                                         |
+| UI-519e  | operations 与 toolbar                                        | UI-519b          | 已完成：结构事务保留 reservation/localSidePayload，工具栏在完整 ACK 后记录。                              |
+| UI-519f  | tables、filter-sort、remove-duplicates                       | UI-519b          | 已完成：多入口表格、筛选、物理排序与去重都在 ACK 后经 required recorder 写入原有账本。                    |
+| UI-519g  | Grid editing、clipboard、format                              | UI-519a、UI-519b | 已完成：五条 ACK 后路径统一到 recorder 三态；rejected 不刷新并呈现 outcome-unknown。                      |
+| UI-519h  | tables recorder rejected 恢复顺序                            | UI-519f          | 已完成：六类表格命令的 rejected/throw 在 catalog 或 projection 刷新前停止。                               |
+| UI-519i  | Remove Duplicates history-capability 测试夹具                | UI-519f          | 已完成：成功历史场景明确提供配对 undo/redo port；无能力场景仍验证无 history 降级。                        |
+| UI-521   | Context menu structural-history 测试夹具                     | UI-519e          | 已完成：结构操作成功场景明确提供配对 undo/redo port；默认无能力夹具保持无 history。                       |
 
 ### UI-519a 交付（已完成）
 
@@ -76,22 +76,21 @@ Core 现在导出同步的 `HistoryEntryRecorder(entry, append)`、`HistoryEntry
 之后 runtime backend capability 替换。Core 和 Solid TypeScript、Prettier、diff check 均通过；范围 ESLint
 为 0 error（仅项目既有 Jest dependency 规则 warning）。
 
-### UI-519c editing 与 auto-fill（已完成）
+### UI-519c auto-fill 与 editing 历史投影
 
-`runEditingCommitAtom` 与 `runAutoFillAtom` 的 production input/ticket 现在都要求
-`HistoryEntryRecorder`；三个 Solid dispatch 入口在启动命令时注入 Provider 稳定 backend handle 创建的
-recorder。Core 不保存 backend，也不存在 optional direct-history fallback。
+`runAutoFillAtom` 的 production input/ticket 仍要求 `HistoryEntryRecorder`。editing 不再接受框架层注入的
+recorder：`runEditingCommitAtom` 直接从 backend 捕获配对的 undo/redo capability，只有 replay 能力完整时才申请
+`HistoryProducerReservation`，并在精确 ACK 后向 UI 时间线写入一条轻量描述。
 
-每条 mutation 在精确 ACK 后才调用 recorder，并把既有 reservation 的 `pushReservedHistoryAtom` 包装为
-append callback：`recorded` 保留历史；`unavailable` 让 mutation 和 projection refresh 成功，但 history
-entries 为零；`rejected` 则保留原有 outcome-unknown、reservation 和不 refresh 的恢复语义，绝不重发写入。
-auto-fill 的 compact series、fill range、import 与逐格 fallback 都走同一条 callback 路径。
+Rust Worker transaction log 是编辑历史数据的唯一真相：`setCellInput` 内捕获 before/after image，撤销/重做也只
+重放这份记录。UI-core history Atom 不保存单元格副本，只保存 Timeline 所需的 kind、sheet、revision、range 和
+cursor，并通过 reservation 与 Rust log 保持位置对齐。因此它是 UI 投影，不是第二份工作簿历史数据。
 
-聚焦回归覆盖 editing ACK 后 runtime capability 替换、auto-fill 的完整/无能力/rejected append，以及既有
-editing、auto-fill、mutation gateway 与 host feedback。7 个 Jest 套件、183 个断言，Core build/TypeScript、
-Solid TypeScript、Prettier 和 diff check 全部通过；范围 ESLint 为 0 error（7 条既有测试依赖声明 warning）。
-`editing/index.ts`（1,300 行）、`auto-fill/command.ts`（1,699 行）及三份历史 Core 测试均是存量超限文件；
-本次只在已有状态机和测试公共输入 seam 做窄改，未借此跨职责重构。
+原阶段的 editing recorder 回归已删除，改由 `editing-history-projection.test.ts` 覆盖完整 replay、无 replay 和
+producer lane 忙三种情况；auto-fill 的完整/无能力/rejected append 覆盖继续保留。
+本阶段实施时，`editing/index.ts`（1,300 行）、`auto-fill/command.ts`（1,699 行）及三份历史 Core 测试均为
+存量超限文件；当时只在已有状态机和测试公共输入 seam 做窄改。`editing/index.ts` 后续已按会话领域、提交状态、
+提交事务、刷新重试和 reconciliation 职责拆分。
 
 ### UI-519d Paste Special 与 Text-to-Columns（已完成）
 

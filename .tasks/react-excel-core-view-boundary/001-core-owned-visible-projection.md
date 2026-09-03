@@ -46,6 +46,8 @@ Selection、projection、editing 的 React 接入全部改成显式 `@einfach/re
 
 只迁移当前产品已经使用的三条链，不增加新功能，不迁 Store 创建职责，不引入 command bus 或插件层。
 DOM focus、pointer capture、滚动测量、ref 和事件适配仍属于 React；业务状态组合与 Rust 调用属于 UI-core。
+用户后续明确要求删除旧 `commitEditingAtom` 并检查 Vue，因此允许对这条 API 做仓库内 Solid/Vue 最小迁移；
+这不是恢复一般性的跨框架迁移授权。
 
 ## 上下文
 
@@ -121,3 +123,15 @@ DOM focus、pointer capture、滚动测量、ref 和事件适配仍属于 React�
 - 2026-09-02：App runtime lifecycle 与 grid visible window 已改由 UI-core atoms 驱动，项目 skill 同步
   收紧；三审 `APPROVED`。UI-core 99 suites / 2092 tests、React 8 suites / 19 tests、完整构建与边界扫描
   通过，本叶再次标记 `done` 并暂停等待用户验收。
+- 2026-09-02：三审后同一工作区又完成 editing 模块职责拆分、删除框架注入的提交/history recorder、
+  将 undo/redo 数据事实继续交给 Rust，并修复滚动请求期间已有投影闪回 `Loading`。旧 review 不再覆盖
+  当前 diff，本叶重新标记 `running`，保留原 base 并等待独立增量复审；003 继续阻塞。
+- 2026-09-02：增量复审 `REJECTED`。确认 retained projection 把旧 cells 套进新 window，会造成边缘或
+  整屏空白；交回 executor 修复并补命中反例。reviewer 的公共 API 与 `debugger` 两项结论来自旧任务边界：
+  前者已被用户后续的明确删除指令覆盖，后者是用户保留的现场诊断点，均不要求 executor 擅自回滚。
+- 2026-09-02：首次 projection 返修保证了 `window/cells` 同源，但复审仍 `REJECTED`：大跨度滚动时旧
+  frame 保持旧 sheet offset，实际位于滚动视口之外，测试只证明 DOM 挂载。下一返修必须保证 pending
+  frame 与真实 viewport 几何相交，并避免 retained cell 在错误视觉坐标上接收 selection/editing 交互。
+- 2026-09-02：二次 projection 返修引入独立 placement window；pending 旧 frame 保持逻辑坐标但临时置于
+  当前 viewport，并隔离 pointer、双击与 Enter，resolve 后恢复真实 offset 与交互。第三次独立复审
+  `APPROVED`，本叶标记 `done` 并暂停等待用户验收；003 未启动。

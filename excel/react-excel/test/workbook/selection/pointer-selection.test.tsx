@@ -1,6 +1,8 @@
 import { createStore } from '@einfach/core'
+import { useAtomValue } from '@einfach/react'
 import {
   pointerSessionAtom,
+  selectionSnapshotAtom,
   setSelectionBoundsAtom,
   type SpreadsheetBackend,
 } from '@einfach/spreadsheet-ui-core'
@@ -9,10 +11,9 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
 import { WorkbookRuntimeProvider } from '../../../src/workbook/runtime/WorkbookRuntimeProvider'
 import { useGridPointerSelection } from '../../../src/workbook/selection/use-grid-pointer-selection'
-import { useWorkbookSelection } from '../../../src/workbook/selection/use-workbook-selection'
 
 function SelectionSurface() {
-  const selection = useWorkbookSelection()
+  const selection = useAtomValue(selectionSnapshotAtom)
   const handlers = useGridPointerSelection({
     sheetId: 'sheet-1',
     getCellCoord: (event: ReactPointerEvent<HTMLElement>) => ({

@@ -12,7 +12,7 @@ atom 清单、端口形状、用例覆盖，都在贴着代码的文档里（见
                             │ 组装
         ┌───────────────────▼─────────────────────────────────────┐
         │ 产品与宿主包                                             │
-        │ ├── excel/solid-excel/src  Solid 组件 / worker 胶水│
+        │ ├── excel/solid-excel/src         Solid 组件 / Provider       │
         │ ├── excel/react-excel             React Vite 产品       │
         │ └── excel/vue-excel               Vue 私有部分适配器    │
         └───────────────────┬─────────────────────────────────────┘
@@ -20,7 +20,8 @@ atom 清单、端口形状、用例覆盖，都在贴着代码的文档里（见
         ┌───────────────────▼─────────────────────────┐
         │  excel/spreadsheet-ui-core                  │
         │  atoms、类型、投影契约                       │
-        │  无 DOM、无 worker、无 WASM、不依赖任何框架  │
+        │  rust-worker/：Rust/WASM Worker backend     │
+        │  不依赖任何视图框架                          │
         └───────────────────┬─────────────────────────┘
                             │ SpreadsheetBackend port（异步）
         ┌───────────────────▼─────────────────────────┐
@@ -41,7 +42,7 @@ atom 清单、端口形状、用例覆盖，都在贴着代码的文档里（见
 
 | 宿主  | 包名                   | 源码路径                      | 边界事实                                                      |
 | ----- | ---------------------- | ----------------------------- | ------------------------------------------------------------- |
-| Solid | `@einfach/solid-excel` | `excel/solid-excel/src` | Solid 的组件、Provider 与 worker adapter 在这里消费 UI core。 |
+| Solid | `@einfach/solid-excel` | `excel/solid-excel/src` | Solid 组件、Provider 与 TS/static adapter 在这里消费 UI core。 |
 | React | `@einfach/react-excel` | `excel/react-excel`           | 仓内私有 Vite 产品，直接接 Rust/WASM worker，不提供公开入口。 |
 | Vue   | `@einfach/vue-excel`   | `excel/vue-excel`             | 仓内私有 workspace，只实现了部分适配面。                      |
 
@@ -50,8 +51,9 @@ React 行记录完整产品的位置；Vue 行只记录仓内依赖和代码位�
 
 ### 层的硬约束
 
-- `spreadsheet-ui-core` **不得**导入 Solid、React、DOM API、worker 胶水或 WASM 胶水。
-  违反会被 `test/package-boundary.test.ts` 拦住。
+- `spreadsheet-ui-core` **不得**导入 Solid、React 或其它视图框架。Atom 根入口不导出带副作用的
+  Worker runtime；Rust/WASM 胶水只允许存在于显式子入口 `rust-worker/`。这两层边界分别由
+  `test/package-boundary.test.ts` 与 `test/rust-worker-boundary.test.ts` 拦住。
 - **工作簿事实**（单元格值、公式、依赖图、隐藏行、筛选规则）活在后端端口后面，不在 UI atom 里。
   UI 侧的对应 atom 只是「backend ACK 后才写」的投影缓存。归属判据见
   [ADR 0003](decisions/0003-engine-owns-filter-sort.md)。
@@ -72,12 +74,12 @@ React 行记录完整产品的位置；Vue 行只记录仓内依赖和代码位�
 grep -cE '^\s+[a-zA-Z][a-zA-Z0-9]*\?[(:]' excel/spreadsheet-ui-core/src/backend/types.ts
 ```
 
-两个参考实现都在 `excel/solid-excel/src/adapter/`：
+参考实现按所有权分开：
 
-| 实现                         | 用途                                                                |
-| ---------------------------- | ------------------------------------------------------------------- |
-| `static-backend.ts`          | 内存实现，供 smoke 测试与静态演示；同时是 parity 对照的「第二引擎」 |
-| `worker-workbook-backend.ts` | RPC 到持有 WASM `Workbook` 的 Web Worker                            |
+| 实现                                                                    | 用途                                                                |
+| ----------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `excel/solid-excel/src/adapter/static-backend.ts`                        | 内存实现，供 smoke 测试与静态演示；同时是 parity 对照的「第二引擎」 |
+| `excel/spreadsheet-ui-core/src/rust-worker/adapter/worker/backend.ts`     | RPC 到持有 WASM `Workbook` 的 Web Worker                            |
 
 变更请求带可选的 `requestId` / `revision` / `cancelToken`，worker 用它们丢弃过期工作。
 
@@ -109,17 +111,20 @@ atom 持有整个数组，每个非 (0,0) 目标拿一个读锚点并索引进�
 
 ## Worker 运行时有两个
 
-`worker-runtime.ts`（Rust/WASM）与 `worker-runtime-ts.ts`（`@einfach/excel-core-ts`）实现同一套
+UI Core 的 `rust-worker/runtime.ts`（Rust/WASM）与 Solid adapter 的
+`worker-runtime-ts.ts`（`@einfach/excel-core-ts`）实现同一套
 worker 协议，e2e 双后端跑同一批用例来钉 parity（矩阵见 `excel/solid-excel/e2e/BACKEND_PARITY.md`）。
 Rust 是现役主引擎；TS 版是 parity 参照，同时保留纯 JS 部署路径。
 
-worker 工厂**刻意不从** `src` barrel 导出（`import.meta` 会炸 jest），宿主必须走
-`@einfach/solid-excel/worker-factory` 子路径 —— 见
-[ADR 0004](decisions/0004-worker-factory-out-of-barrel.md)。
+Solid 的兼容 worker 工厂仍**刻意不从** `src` barrel 导出（`import.meta` 会炸 jest）；新宿主可直接
+组合 `@einfach/spreadsheet-ui-core/rust-worker` 与
+`@einfach/spreadsheet-ui-core/rust-worker/runtime?worker`。旧宿主继续走
+`@einfach/solid-excel/worker-factory` 子路径 —— 见 [ADR 0004](decisions/0004-worker-factory-out-of-barrel.md)。
 
 Rust/WASM 那侧的 dispatcher 与"用哪份 wasm 产物"是解耦的：消息循环在
-`worker-runtime-core.ts`（`installWorkerRuntime(wasm)`，命令族分在 `worker-commands-*.ts`），
-`worker-runtime.ts` / `worker-runtime-full.ts` 只是各自静态 import `@einfach/excel-wasm` 与
+`spreadsheet-ui-core/src/rust-worker/adapter/worker-runtime-core.ts`
+（`installWorkerRuntime(wasm)`，命令族分在 `worker-commands-*.ts`），
+`rust-worker/runtime.ts` / `rust-worker/runtime-full.ts` 只是各自静态 import `@einfach/excel-wasm` 与
 `@einfach/excel-wasm/full` 的**叶子**入口。库的 barrel 与 factory 不引用任何一个 WASM 入口，所以
 默认不构建的 full 产物不会变成构建期必需项 —— 选型见 `excel/rust/wasm/README.md`
 §「怎么选 full」。
@@ -132,7 +137,7 @@ Rust/WASM 那侧的 dispatcher 与"用哪份 wasm 产物"是解耦的：消息�
   `rollup.solid-excel.mjs`）：`solid` 条件交源码给消费者的 vite-plugin-solid 编译，
   `import`/`default` 交 babel 预编译的仅-ESM 产物
 - SWC 转 React/Vanilla；Babel 转 Solid（为了 JSX）
-- 所有包 `sideEffects: false`
+- UI Core 仅把 Rust Worker runtime 叶子入口标为有副作用；其余无头入口保持可摇树。
 - `npm run build` 链条：`clearTypes` → `ensureWasm` → `tsc -build` → `rollup`。
   `ensureWasm` 在缺 `excel/excel-wasm/lite/` 时调 `wasm-pack`（产物归 `@einfach/excel-wasm`），所以构建环境需要 Rust 工具链。
   `wasm-pack` 的 `--out-dir` 相对 **crate 目录**而非 cwd。

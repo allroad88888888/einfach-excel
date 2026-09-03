@@ -1,5 +1,6 @@
 import { createStore, type Store } from '@einfach/core'
 import {
+  editingSessionAtom,
   selectionSnapshotAtom,
   setSelectionBoundsAtom,
   viewportMetricsAtom,
@@ -51,6 +52,14 @@ function resultFor(request: VisibleProjectionRequest): VisibleProjectionResult {
   }
 }
 
+function deferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void
+  const promise = new Promise<T>((onResolve) => {
+    resolve = onResolve
+  })
+  return { promise, resolve }
+}
+
 function createProjectionBackend() {
   const requests: VisibleProjectionRequest[] = []
   const readVisibleProjection = jest.fn(async (request: VisibleProjectionRequest) => {
@@ -78,8 +87,8 @@ function renderWorksheet(backend: SpreadsheetBackend): Store {
   return store
 }
 
-function pointerDown(target: HTMLElement): void {
-  const event = new Event('pointerdown', { bubbles: true, cancelable: true })
+function dispatchPointer(target: HTMLElement, type: 'pointerdown' | 'pointerup'): void {
+  const event = new Event(type, { bubbles: true, cancelable: true })
   Object.defineProperties(event, {
     button: { value: 0 },
     clientX: { value: 1 },
@@ -150,7 +159,7 @@ describe('Rust workbook projection window', () => {
       expect(cell).not.toBeNull()
       return cell as HTMLElement
     })
-    act(() => pointerDown(lastFormulaCell))
+    act(() => dispatchPointer(lastFormulaCell, 'pointerdown'))
 
     expect(store.getter(selectionSnapshotAtom).range).toEqual({
       rowStart: 1_000,
@@ -163,6 +172,109 @@ describe('Rust workbook projection window', () => {
     expect(document.querySelectorAll('td')).toHaveLength(
       GRID_WINDOW_ROW_COUNT * SALES_ORDER_COLUMNS.length,
     )
+  })
+
+  it('retains one complete projection frame during a one-row scroll', async () => {
+    const nextProjection = deferred<VisibleProjectionResult>()
+    const requests: VisibleProjectionRequest[] = []
+    const readVisibleProjection = jest.fn(async (request: VisibleProjectionRequest) => {
+      requests.push(request)
+      return requests.length === 1 ? resultFor(request) : nextProjection.promise
+    })
+    renderWorksheet({ readVisibleProjection } as unknown as SpreadsheetBackend)
+    await waitFor(() => expect(document.querySelector('[data-cell="0:0"]')).not.toBeNull())
+
+    const scroll = screen.getByTestId('sheet-scroll')
+    Object.defineProperties(scroll, {
+      clientHeight: { configurable: true, value: 1_200 },
+      scrollHeight: {
+        configurable: true,
+        value: (SALES_ORDER_SHEET_ROW_COUNT + 1) * GRID_ROW_HEIGHT,
+      },
+    })
+    fireEvent.scroll(scroll, { target: { scrollTop: GRID_ROW_HEIGHT } })
+    await waitFor(() => expect(requests).toHaveLength(2))
+
+    expect(screen.queryByText('Loading visible cells…')).not.toBeInTheDocument()
+    expect(document.querySelectorAll('td')).toHaveLength(
+      GRID_WINDOW_ROW_COUNT * SALES_ORDER_COLUMNS.length,
+    )
+    expect(document.querySelector('[data-cell="0:0"]')).toHaveTextContent('Order')
+    expect(document.querySelector('[data-cell="31:0"]')).toHaveTextContent('SO-10031')
+    expect(document.querySelector('[data-cell="32:0"]')).toBeNull()
+
+    act(() => nextProjection.resolve(resultFor(requests[1]!)))
+    await waitFor(() => {
+      expect(document.querySelector('[data-cell="32:0"]')).toHaveTextContent('SO-10032')
+    })
+  })
+
+  it('places a distant retained frame in view without exposing stale interactions', async () => {
+    const nextProjection = deferred<VisibleProjectionResult>()
+    const requests: VisibleProjectionRequest[] = []
+    const readVisibleProjection = jest.fn(async (request: VisibleProjectionRequest) => {
+      requests.push(request)
+      return requests.length === 1 ? resultFor(request) : nextProjection.promise
+    })
+    const store = renderWorksheet({ readVisibleProjection } as unknown as SpreadsheetBackend)
+    await waitFor(() => expect(document.querySelector('[data-cell="0:0"]')).not.toBeNull())
+
+    const scroll = screen.getByTestId('sheet-scroll')
+    Object.defineProperties(scroll, {
+      clientHeight: { configurable: true, value: 1_200 },
+      scrollHeight: {
+        configurable: true,
+        value: (SALES_ORDER_SHEET_ROW_COUNT + 1) * GRID_ROW_HEIGHT,
+      },
+    })
+    fireEvent.scroll(scroll, { target: { scrollTop: 400 * GRID_ROW_HEIGHT } })
+    await waitFor(() => expect(requests).toHaveLength(2))
+
+    expect(requests[1]?.window.rowStart).toBe(400)
+    const grid = screen.getByLabelText('One thousand sales order records')
+    const frameTop = Number.parseFloat(grid.style.getPropertyValue('--grid-window-offset'))
+    const frameBottom = frameTop + GRID_WINDOW_ROW_COUNT * GRID_ROW_HEIGHT
+    expect(frameTop).toBe(400 * GRID_ROW_HEIGHT)
+    expect(frameTop).toBeLessThan(scroll.scrollTop + scroll.clientHeight)
+    expect(frameBottom).toBeGreaterThan(scroll.scrollTop)
+    expect(grid).toHaveAttribute('data-projection-retained', 'true')
+    expect(grid).toHaveAttribute('tabindex', '-1')
+
+    const retainedCell = document.querySelector<HTMLElement>('[data-cell="1:1"]')!
+    dispatchPointer(retainedCell, 'pointerdown')
+    dispatchPointer(retainedCell, 'pointerup')
+    fireEvent.doubleClick(retainedCell)
+    grid.focus()
+    fireEvent.keyDown(grid, { key: 'Enter' })
+    expect(store.getter(selectionSnapshotAtom).activeCell).toMatchObject({ row: 0, col: 0 })
+    expect(store.getter(editingSessionAtom).source).toBeNull()
+
+    expect(document.querySelector('[data-cell="0:0"]')).toHaveTextContent('Order')
+    expect(document.querySelector('[data-cell="400:0"]')).toBeNull()
+    expect(document.querySelectorAll('td')).toHaveLength(
+      GRID_WINDOW_ROW_COUNT * SALES_ORDER_COLUMNS.length,
+    )
+
+    act(() => nextProjection.resolve(resultFor(requests[1]!)))
+    const readyCell = await waitFor(() => {
+      const cell = document.querySelector<HTMLElement>('[data-cell="400:1"]')
+      expect(cell).toHaveTextContent('R400C1')
+      return cell!
+    })
+    expect(grid).toHaveAttribute('data-projection-retained', 'false')
+    expect(grid).toHaveAttribute('tabindex', '0')
+    expect(grid.style.getPropertyValue('--grid-window-offset')).toBe(
+      `${400 * GRID_ROW_HEIGHT}px`,
+    )
+
+    dispatchPointer(readyCell, 'pointerdown')
+    dispatchPointer(readyCell, 'pointerup')
+    expect(store.getter(selectionSnapshotAtom).activeCell).toMatchObject({ row: 400, col: 1 })
+    fireEvent.doubleClick(readyCell)
+    expect(store.getter(editingSessionAtom).source).toMatchObject({
+      sheetId: 'orders',
+      cell: { row: 400, col: 1 },
+    })
   })
 
   it('shows Rust projection failures in place of worksheet cells', async () => {

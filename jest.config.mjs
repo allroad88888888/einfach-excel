@@ -73,6 +73,8 @@ const jestConfig = {
     // 走 node_modules 解析 —— 这正是要验证的:excel 必须能跑在已发布的 core
     // 上,而不是某个只存在于工作区的版本。
     '^@einfach/spreadsheet-ui-core$': '<rootDir>/excel/spreadsheet-ui-core/src',
+    '^@einfach/spreadsheet-ui-core/(?!.*\\?worker$)(.*)$':
+      '<rootDir>/excel/spreadsheet-ui-core/src/$1',
     '^@einfach/excel-core-ts$': '<rootDir>/excel/excel-core-ts/src',
     // @einfach/excel-wasm 也是本仓的包,但映射到构建产物而非源码 —— 它的"源码"
     // 是 Rust,jest 消费的只能是 wasm-pack 出的 glue。测试侧一律 jest.mock 这两个

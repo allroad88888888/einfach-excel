@@ -178,14 +178,16 @@ describe('package boundary', () => {
     expect(sheetProtectionAtom.debugLabel).toBe('spreadsheet.protection.state')
   })
 
-  test('does not import UI frameworks, DOM runtime, workers, or wasm glue', () => {
+  test('keeps atom modules free of UI frameworks, DOM runtime, workers, and wasm glue', () => {
     const forbiddenImport =
       /from ['"](?:solid-js|react|@einfach\/solid|@einfach\/react|.*worker.*|.*wasm.*)['"]/
     // 负向后顾排除属性访问:投影结果的领域字段就叫 `window`(`result.window.rowStart`),
     // 只有裸的全局 `window.` / `document.` 才是越界。
     const forbiddenRuntime =
       /(?<!\.)\b(?:document\.|window\.|new Worker\(|HTMLElement|HTMLDivElement)\b/
-    const offenders = readSourceFiles(SRC_ROOT).flatMap(({ path, text }) => {
+    const offenders = readSourceFiles(SRC_ROOT)
+      .filter(({ path }) => !path.includes('/rust-worker/'))
+      .flatMap(({ path, text }) => {
       const matches = []
 
       if (forbiddenImport.test(text)) {
@@ -197,7 +199,7 @@ describe('package boundary', () => {
       }
 
       return matches
-    })
+      })
 
     expect(offenders).toEqual([])
   })

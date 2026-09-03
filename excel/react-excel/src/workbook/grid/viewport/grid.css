@@ -105,6 +105,10 @@
   font-size: 12px;
 }
 
+.grid-surface[data-projection-retained='true'] .spreadsheet-grid {
+  pointer-events: none;
+}
+
 .grid-surface .cell {
   height: 28px;
   padding: 3px 7px;

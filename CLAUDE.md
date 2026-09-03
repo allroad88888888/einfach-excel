@@ -98,23 +98,23 @@ pnpm workspace 的 glob 是 `excel/*`；`excel/rust/` 不是 npm 包，产物经
 
 **Spill-derived atoms** (`excel/rust/excel-core/src/sheet.rs` § "Spill (dynamic-array) infrastructure"): when a formula evaluates to `Value::Array`, the anchor cell's atom holds the array and each non-(0,0) target gets a derived atom that reads the anchor and indexes into it. Reads, dependency tracking, and subscription propagation reuse the existing atom framework — no parallel spill index — and the WASM boundary collapses `Value::Array` to its top-left scalar for cell-projection reads. **自定义公式的回调是另一条边界，双向都用二维 JS 数组**：入参方向，range 实参（`=MYFN(A1:A10)`）以二维数组喂给回调；回程方向，回调返回的二维数组走既有 spill 路径溢出（一维/参差/空/超上限各自的答案、以及与 `SEQUENCE` 共用的 `DYNAMIC_ARRAY_CELL_CAP`，见 `excel/rust/excel-core/src/CUSTOM_FORMULAS.md` § "Marshaling" 与 § "Array returns"）。
 
-**Custom formulas** (Wave 8.1): host-registered JS callbacks invoked as cell-level functions (`=MYTAX(B1)`). Source of truth for the engine contract is `excel/rust/excel-core/src/CUSTOM_FORMULAS.md`; the JS-side host API (registration atoms, name validation, built-in shadow list mirrored from the Rust evaluator) lives in `excel/spreadsheet-ui-core/src/custom-formulas/README.md`. The Solid provider (`excel/solid-excel/src/provider/SpreadsheetUiProvider.tsx`) diffs the registry atom and forwards add/replace/remove ops to the worker through the optional `registerCustomFormula` / `unregisterCustomFormula` backend ports. **Async (Wave 8.2)**: registrations with `isAsync: true` may `await`; the cell holds `#BUSY!` until the worker pump (`excel/solid-excel/src/adapter/async-custom-pump.ts`, shared by both worker runtimes) settles the Promise back into the engine, and results are memoized per (name, args) until the next registry change — see CUSTOM_FORMULAS.md § "Async custom formulas".
+**Custom formulas** (Wave 8.1): host-registered JS callbacks invoked as cell-level functions (`=MYTAX(B1)`). Source of truth for the engine contract is `excel/rust/excel-core/src/CUSTOM_FORMULAS.md`; the JS-side host API (registration atoms, name validation, built-in shadow list mirrored from the Rust evaluator) lives in `excel/spreadsheet-ui-core/src/custom-formulas/README.md`. The Solid provider (`excel/solid-excel/src/provider/SpreadsheetUiProvider.tsx`) diffs the registry atom and forwards add/replace/remove ops to the worker through the optional `registerCustomFormula` / `unregisterCustomFormula` backend ports. **Async (Wave 8.2)**: registrations with `isAsync: true` may `await`; the cell holds `#BUSY!` until the UI Core Rust worker pump (`excel/spreadsheet-ui-core/src/rust-worker/adapter/async-custom-pump.ts`) settles the Promise back into the engine, and results are memoized per (name, args) until the next registry change — see CUSTOM_FORMULAS.md § "Async custom formulas".
 
 ## Architecture: active spreadsheet stack
 
-The active stack layers a spreadsheet on top of the existing atom core. New feature work belongs in `excel/solid-excel/src/`; the legacy `excel/solid-excel/legacy/` shell is kept only for parity tests.
+The active stack layers a spreadsheet on top of the existing atom core. Framework-neutral state and commands belong in `excel/spreadsheet-ui-core/src/`; view components stay in their framework package, and Rust Worker integration stays in UI Core's explicit `rust-worker/` subpath. The legacy `excel/solid-excel/legacy/` shell is kept only for parity tests.
 
 ### Three-tier layering
 
 ```
-excel/spreadsheet-ui-core   (atoms, types, projection contracts — no DOM, no worker, no WASM)
+excel/spreadsheet-ui-core   (atoms, projection contracts, explicit rust-worker backend subpath)
         ↑
-excel/solid-excel/src         (Solid components, Provider, adapters)
+excel/solid-excel/src       (Solid components, Provider, TS/static adapters)
         ↑
 excel/rust/excel-core + excel/rust/wasm   (formula engine, workbook state) — reached via a worker
 ```
 
-Rules: `spreadsheet-ui-core` must not import Solid, React, DOM APIs, worker glue, or WASM glue. Workbook facts (cell values, formulas, dependency graph) live behind the backend port, not in UI atoms.
+Rules: `spreadsheet-ui-core` must not import Solid, React, or another view runtime. Its root atom entry stays free of Worker side effects; Rust/WASM glue is isolated behind the explicit `rust-worker` subpath. Workbook facts (cell values, formulas, dependency graph) live behind the backend port, not in UI atoms.
 
 See `excel/spreadsheet-ui-core/docs/ROADMAP.md` for the four-wave feature breakdown and `excel/spreadsheet-ui-core/docs/AGENT_COLLABORATION.md` for the multi-agent kanban.
 
@@ -122,22 +122,24 @@ See `excel/spreadsheet-ui-core/docs/ROADMAP.md` for the four-wave feature breakd
 
 The contract between UI core and any data source lives in `excel/spreadsheet-ui-core/src/backend/types.ts`. Exactly three methods are required — `readVisibleProjection`, `readRangeProjection`, `setCellInput` — every other member is optional (count them scoped to the interface: `awk '/^export interface SpreadsheetBackend/,/^}$/' excel/spreadsheet-ui-core/src/backend/types.ts | grep -cE '^\s+[a-zA-Z][a-zA-Z0-9]*\?[(:]'`). When the host backend omits a port, features degrade in one of three forms — hidden entry, disabled control, or starved state (e.g. history entries dropped so undo never enables) — without UI core knowing the difference between "host does not implement it" and "feature does not exist"; the walkthrough with code citations is `docs/BACKEND_DEGRADATION.md`.
 
-Two reference implementations ship under `excel/solid-excel/src/adapter/`:
+The reference implementations have separate owners:
 
-- `static-backend.ts` — in-memory implementation used by smoke tests and the static demo.
-- `worker/backend.ts`（`createWorkerWorkbookSpreadsheetBackend`）— RPC to a Web Worker that owns the WASM `Workbook` from `excel/rust/wasm`.
+- `excel/solid-excel/src/adapter/static-backend.ts` — in-memory implementation used by smoke tests and the static demo.
+- `excel/spreadsheet-ui-core/src/rust-worker/adapter/worker/backend.ts` (`createWorkerWorkbookSpreadsheetBackend`) — RPC to a Web Worker that owns the WASM `Workbook` from `excel/rust/wasm`.
 
 ### Worker runtimes（双后端 parity）
 
-Worker 侧有两套运行时实现同一协议：`worker-runtime.ts` / `worker-runtime-full.ts`（Rust/WASM，
+Worker 侧有两套运行时实现同一协议：UI Core 的 `rust-worker/runtime.ts` / `runtime-full.ts`（Rust/WASM，
 两者只是各自静态 import `@einfach/excel-wasm` 与 `@einfach/excel-wasm/full` 的叶子入口，消息循环在
-`worker-runtime-core.ts`）与 `worker-runtime-ts.ts`（`@einfach/excel-core-ts`）。Rust 是现役主引擎；
+`rust-worker/adapter/worker-runtime-core.ts`）与 Solid adapter 的
+`worker-runtime-ts.ts`（`@einfach/excel-core-ts`）。Rust 是现役主引擎；
 TS 版是 parity 参照兼纯 JS 部署路径，e2e 对真正吃 `?backend=` 参数的 spec 双后端各跑一遍钉
 parity（清单 `excel/solid-excel/e2e/dual-backend-manifest.ts`，防腐守卫
 `excel/solid-excel/test/e2e-dual-backend-manifest.test.ts`）
-（矩阵见 `excel/solid-excel/e2e/BACKEND_PARITY.md`）。worker 工厂**刻意不从** `src` barrel
-导出（`import.meta` 会炸 jest）—— 宿主必须走 `@einfach/solid-excel/worker-factory` 子路径，
-见 [ADR 0004](docs/decisions/0004-worker-factory-out-of-barrel.md)。
+（矩阵见 `excel/solid-excel/e2e/BACKEND_PARITY.md`）。新宿主直接组合
+`@einfach/spreadsheet-ui-core/rust-worker` 与 `@einfach/spreadsheet-ui-core/rust-worker/runtime?worker`；
+Solid 的兼容 worker 工厂仍走 `@einfach/solid-excel/worker-factory` 子路径，见
+[ADR 0004](docs/decisions/0004-worker-factory-out-of-barrel.md)。
 
 ### Atom conventions
 

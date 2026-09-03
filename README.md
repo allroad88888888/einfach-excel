@@ -65,12 +65,12 @@ The UI core owns interaction state and the projection contract. A backend owns w
 
 | Location                     | Name                           | Purpose                                                                                      |
 | ---------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------- |
-| `excel/spreadsheet-ui-core/` | `@einfach/spreadsheet-ui-core` | Framework-agnostic atoms, types, interaction state, and visible-window projection contracts. |
-| `excel/solid-excel/`         | `@einfach/solid-excel`         | Solid.js spreadsheet components and static or worker-backed adapters.                        |
+| `excel/spreadsheet-ui-core/` | `@einfach/spreadsheet-ui-core` | Framework-agnostic atoms, interaction state, and the Rust Worker backend.                     |
+| `excel/solid-excel/`         | `@einfach/solid-excel`         | Solid.js spreadsheet components and TS/static reference adapters.                            |
 | `excel/excel-core-ts/`       | `@einfach/excel-core-ts`       | TypeScript formula engine used for parity and as an alternate worker backend.                |
 | `excel/rust/core/`           | `einfach-core`                 | Rust implementation of the atom store.                                                       |
 | `excel/rust/excel-core/`     | `einfach-excel-core`           | Rust workbook and formula engine.                                                            |
-| `excel/rust/wasm/`           | `einfach-wasm`                 | WASM bindings consumed by the Solid worker integration.                                      |
+| `excel/rust/wasm/`           | `einfach-wasm`                 | WASM bindings consumed by the UI-core Rust Worker integration.                               |
 | `excel/excel-site/`          | `@einfach/excel-site`          | The static documentation and interactive demo site.                                          |
 
 ### Framework integrations

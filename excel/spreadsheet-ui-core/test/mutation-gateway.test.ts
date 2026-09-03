@@ -355,7 +355,6 @@ describe('mutation gateway — editing commit integration', () => {
         },
       },
       commitSource: 'cell',
-      historyEntryRecorder: () => 'unavailable',
       refreshProjection: async () => undefined,
     })
 
@@ -383,7 +382,6 @@ describe('mutation gateway — editing commit integration', () => {
         },
       },
       commitSource: 'cell',
-      historyEntryRecorder: () => 'unavailable',
       refreshProjection: async () => undefined,
     })
 

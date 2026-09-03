@@ -1,14 +1,14 @@
 import { createStore, type Store } from '@einfach/core'
-import { useSetAtom } from '@einfach/react'
+import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   selectCellAtom,
+  selectionSnapshotAtom,
   setSelectionBoundsAtom,
   type SpreadsheetBackend,
 } from '@einfach/spreadsheet-ui-core'
 import { describe, expect, it } from '@jest/globals'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { WorkbookRuntimeProvider } from '../../../src/workbook/runtime/WorkbookRuntimeProvider'
-import { useWorkbookSelection } from '../../../src/workbook/selection/use-workbook-selection'
 
 function createBoundedStore(): Store {
   const store = createStore()
@@ -17,7 +17,7 @@ function createBoundedStore(): Store {
 }
 
 function SelectionProbe({ label }: { readonly label: string }) {
-  const selection = useWorkbookSelection()
+  const selection = useAtomValue(selectionSnapshotAtom)
   const selectCell = useSetAtom(selectCellAtom)
   return (
     <button

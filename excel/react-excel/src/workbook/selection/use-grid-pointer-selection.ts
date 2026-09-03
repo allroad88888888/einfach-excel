@@ -11,6 +11,8 @@ import { useCallback, useEffect, useRef, type PointerEvent as ReactPointerEvent 
 export interface GridPointerSelectionOptions {
   /** The sheet that receives this grid surface's drag selections. */
   readonly sheetId: string
+  /** Whether this surface currently represents cells at their true sheet position. */
+  readonly enabled?: boolean
   /** Resolves the grid cell beneath a React pointer event. */
   readonly getCellCoord: (event: ReactPointerEvent<HTMLElement>) => CellCoord | null
 }
@@ -39,7 +41,7 @@ function releasePointerCapture(pointer: ActivePointer): void {
 export function useGridPointerSelection(
   options: GridPointerSelectionOptions,
 ): GridPointerSelectionHandlers {
-  const { getCellCoord, sheetId } = options
+  const { enabled = true, getCellCoord, sheetId } = options
   const cancelPointer = useSetAtom(cancelPointerAtom)
   const commitPointer = useSetAtom(commitPointerAtom)
   const startPointerSelection = useSetAtom(startPointerSelectionAtom)
@@ -54,10 +56,14 @@ export function useGridPointerSelection(
     cancelPointer()
   }, [cancelPointer])
 
-  useEffect(() => cancelActivePointer, [cancelActivePointer])
+  useEffect(() => {
+    if (!enabled) cancelActivePointer()
+    return cancelActivePointer
+  }, [cancelActivePointer, enabled])
 
   const onPointerDown = useCallback(
     (event: ReactPointerEvent<HTMLElement>) => {
+      if (!enabled) return
       if (event.isPrimary === false || event.button !== 0) return
       const coord = getCellCoord(event)
       if (coord === null) return
@@ -72,11 +78,15 @@ export function useGridPointerSelection(
         // Capture can fail when a browser has already settled a native stream.
       }
     },
-    [cancelActivePointer, getCellCoord, sheetId, startPointerSelection],
+    [cancelActivePointer, enabled, getCellCoord, sheetId, startPointerSelection],
   )
 
   const onPointerMove = useCallback(
     (event: ReactPointerEvent<HTMLElement>) => {
+      if (!enabled) {
+        cancelActivePointer()
+        return
+      }
       const pointer = activePointer.current
       if (pointer === null || pointer.id !== event.pointerId) return
       const coord = getCellCoord(event)
@@ -84,18 +94,22 @@ export function useGridPointerSelection(
 
       updatePointerSelection({ sheetId, coord })
     },
-    [getCellCoord, sheetId, updatePointerSelection],
+    [cancelActivePointer, enabled, getCellCoord, sheetId, updatePointerSelection],
   )
 
   const onPointerUp = useCallback(
     (event: ReactPointerEvent<HTMLElement>) => {
+      if (!enabled) {
+        cancelActivePointer()
+        return
+      }
       const pointer = activePointer.current
       if (pointer === null || pointer.id !== event.pointerId) return
       activePointer.current = null
       releasePointerCapture(pointer)
       commitPointer()
     },
-    [commitPointer],
+    [cancelActivePointer, commitPointer, enabled],
   )
 
   const onPointerCancel = useCallback(

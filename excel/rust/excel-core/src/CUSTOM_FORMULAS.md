@@ -440,7 +440,7 @@ frames.
 ## Security model
 
 The WASM bridge compiles host-supplied JS source via `new Function('args',
-source)` (see `excel/solid-excel/src/adapter/worker-custom-formulas.ts`).
+source)` (see `excel/spreadsheet-ui-core/src/rust-worker/adapter/worker-custom-formulas.ts`).
 This boundary is **NOT a privilege sandbox**:
 
 - `new Function` sandboxes only the *lexical closure*. The compiled

@@ -11,7 +11,7 @@ import {
   setFormulaReferenceCaretAtom,
   shouldEnterFormulaReferenceMode,
 } from '../formula-reference'
-import { editingDraftAtom, editingSessionAtom } from './index'
+import { editingDraftAtom, editingSessionAtom } from './session-atoms'
 
 /** Synchronizes an editing input caret with formula-reference state. */
 export function syncFormulaReferenceCaret(store: Store, caret: number): void {

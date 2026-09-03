@@ -20,7 +20,8 @@
 - React 可以写 UI-core 暴露的 writable atom；这属于视图输入适配，不算业务状态复制。
 - React 本地只允许渲染器私有状态，例如 loading/error 展示、滚动窗口、DOM pointer capture、focus 和 ref。
 - 生产路径只接现有 Rust/WASM Worker；禁止 TS engine、TS worker 或静态数据 fallback。
-- 本树不迁移 Solid/Vue；新增 UI-core API 必须是 additive，不能破坏现有框架调用方。
+- 默认不迁移 Solid/Vue；但用户随后明确要求删除旧 `commitEditingAtom` 并检查 Vue 是否能同步移除，因此
+  001 可做这条 editing API 的仓库内一次性迁移，禁止借机扩大到其它 Solid/Vue 链路。
 - 每个叶子完成实现、独立 review 和验证后暂停，等用户验收再进入下一叶。
 - 普通文件物理行数 `≤300`，每个文件只负责一个业务点或抽象；禁止 barrel 和 `utils` 大杂烩。
 - `.project-lines` 继续暂停，不作为执行输入，也不更新。
@@ -55,10 +56,10 @@ P0 / 001 三条现有链统一使用 React atom hooks + UI-core command atoms
 
 ## 当前进度
 
-- 001 的 hooks/command atom 迁移返修后二审曾 `APPROVED`；用户验收发现两处 `useState` 后重新打开。
-  App runtime 与 grid window 已下沉/改接 UI-core atoms，三审 `APPROVED`，当前再次暂停等待用户验收。
+- 001 三审后的 editing 拆分、Rust history 边界与滚动 retained projection 已完成三轮增量复审；最后
+  `APPROVED`。当前暂停在用户验收点，未启动 003。
 - 002 的 editing 范围已合并进 001，标记 `skipped`，避免同一链拆成两次无法独立验收的迁移。
-- 003、004 不得在 001 再次 review 与用户验收前开工。
+- 003、004 不得在用户验收 001 前开工。
 
 ## 决策与变更
 
@@ -73,6 +74,13 @@ P0 / 001 三条现有链统一使用 React atom hooks + UI-core command atoms
 - 变更：用户明确要求 React 产品零 `useState/useReducer`，覆盖原先“renderer-private 可用”的宽松规则；
   可见窗口复用 UI-core viewport atoms，Rust 启动状态新增 UI-core runtime atom，但 backend 创建/销毁仍留
   产品 effect。错了的代价是 DOM 私有状态未来也需建 atom；当前 React 仅保留 `useRef` 表达 DOM 身份。
+- 裁决：001 复审继续保留原始 base `6f07cae2568596331a2be333791203694d59bc17`；后续改动是同一未提交
+  工作区中的连续返修，若改写为当前 HEAD 会让 reviewer 漏审此前未提交差异。代价是复审范围较大，但证据完整。
+- 变更：用户在 001 三审后明确要求删除 `commitEditingAtom`，并要求检查 Vue 调用方能否一起清掉；该明确
+  指令覆盖本树最初的 additive / 不迁移框架约束，仅限此 editing API。错了的代价是对仓库外未知消费者
+  产生源码兼容破坏；当前 package 仍是 workspace 内部版本，仓库内调用方必须一次迁完并由跨框架测试兜底。
+- 裁决：`editing/session-atoms.ts` 中的 `debugger` 是用户亲自加入、用于现场追踪编辑入口的诊断点；agent
+  不得擅自删除，也不把它冒充成本叶新增产物。代价是开启 DevTools 时会暂停，最终清理需由用户明确授权。
 
 ## 遗留与发现
 

@@ -125,7 +125,7 @@ values so the UI can populate the dropdown without an extra round-trip.
 
 ## Integration points
 
-- **Editing** — `commitEditingAtom` reads `validationStatusAtom` before
+- **Editing** — `runEditingCommitAtom` reads `validationStatusAtom` before
   forwarding: `valid` → proceed; `warn` mode → emit diagnostic, proceed;
   `reject` mode + `invalid` → call `cancelEditingAtom`, set diagnostic.
 - **Formula-bar** — mirrors `validationStatusAtom.message` as a transient
@@ -170,9 +170,9 @@ All tests live in `test/data-validation.test.ts`.
 - `validationStatusAtom` returns `valid` when draft matches a list value.
 - `validationStatusAtom` returns `invalid` when draft is outside a numeric range.
 - `validationStatusAtom` returns `warning` for a `warn`-mode mismatch.
-- `commitEditingAtom` proceeds when status is `valid` or no rule present.
-- `commitEditingAtom` emits diagnostic and proceeds when mode is `warn`.
-- `commitEditingAtom` cancels and sets diagnostic when mode is `reject` and invalid.
+- `runEditingCommitAtom` proceeds when status is `valid` or no rule present.
+- `runEditingCommitAtom` emits diagnostic and proceeds when mode is `warn`.
+- `runEditingCommitAtom` cancels and sets diagnostic when mode is `reject` and invalid.
 - `openValidationDropdownAtom` is a no-op when active rule is not `list`.
 - Dropdown closes without committing on Escape intent.
 - Selecting a dropdown value fills the draft and triggers commit.

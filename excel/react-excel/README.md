@@ -22,13 +22,12 @@
 React 视图
   → @einfach/react（useAtomValue / useSetAtom）
   → @einfach/spreadsheet-ui-core（状态 atom / command atom）
-  → SpreadsheetBackend
-  → @einfach/solid-excel/vnext-worker-runtime?worker
+  → @einfach/spreadsheet-ui-core/rust-worker
   → Rust/WASM workbook
 ```
 
-产品复用 Solid 包中与框架无关的 Worker backend 和轻量 Rust/WASM runtime。生产路径没有
-TypeScript engine、静态 backend 或运行时 fallback。
+Worker protocol、backend adapter 与轻量 Rust/WASM runtime 均由 UI-core 所有。React 不依赖
+`@einfach/solid-excel`；生产路径没有 TypeScript engine、静态 backend 或运行时 fallback。
 
 - Rust/WASM 负责工作簿权威数据、计算和 mutation 结果。
 - `spreadsheet-ui-core` 负责工作簿状态、跨 atom 状态转换、可见窗口、backend 调用和刷新编排。
@@ -53,14 +52,13 @@ src/
     │   ├── footer/                   # 工作表导航和状态区域
     │   ├── header/                   # 工作簿标题区域
     │   └── ribbon/                   # 命令入口展示
-    ├── editing/                      # 单元格编辑交互适配
     ├── grid/
     │   ├── cells/                    # 投影单元格表格
     │   ├── editor/                   # 单元格内编辑器
     │   └── viewport/                 # 有界滚动网格
     ├── projection/                   # 可见窗口与投影的 React 接入
     ├── runtime/                      # 显式 Store Provider
-    └── selection/                    # 选区读取和 pointer 手势适配
+    └── selection/                    # pointer 手势的 React 事件适配
 
 test/
 ├── app/                              # Rust 启动生命周期测试

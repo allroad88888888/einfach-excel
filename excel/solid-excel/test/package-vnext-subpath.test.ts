@@ -1,4 +1,5 @@
 import { describe, expect, it, jest } from '@jest/globals'
+import { createWorkerWorkbookSpreadsheetBackend as createCoreWorkerBackend } from '@einfach/spreadsheet-ui-core/rust-worker'
 import {
   SpreadsheetGrid,
   SpreadsheetUiProvider,
@@ -19,6 +20,7 @@ describe('@einfach/solid-excel/vnext subpath', () => {
     expect(typeof createWorkerWorkbook).toBe('function')
     expect(typeof createStaticSpreadsheetBackend).toBe('function')
     expect(typeof createWorkerWorkbookSpreadsheetBackend).toBe('function')
+    expect(createWorkerWorkbookSpreadsheetBackend).toBe(createCoreWorkerBackend)
     expect('VNextSmokeDemo' in vNext).toBe(false)
     expect('VNextWorkerDemo' in vNext).toBe(false)
     expect('defaultVNextWorkbookWorkerFactory' in vNext).toBe(false)

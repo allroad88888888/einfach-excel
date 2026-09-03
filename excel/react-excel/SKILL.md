@@ -75,6 +75,12 @@ React binding and stable function identity.
 Prefer separate `useAtomValue` and `useSetAtom` calls. Use `useAtom` only when the same component
 genuinely needs both the value and setter; do not subscribe a write-only control unnecessarily.
 
+Do not collect atom values and setters into a feature controller object such as `cellEdit`,
+`selectionModel`, or `viewportState` and pass that object through component props. A component that
+owns a feature interaction should import the public atoms and call the hooks itself. Props remain
+appropriate for DOM callbacks, layout-only values, and reusable presentational data that is not the
+application's atom state surface.
+
 ## Put semantic actions in command atoms
 
 When an action reads multiple atoms, writes multiple atoms, validates spreadsheet state, calls the

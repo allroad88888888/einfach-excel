@@ -38,7 +38,7 @@ function startInput(sheetId = 'sheet-1') {
 }
 
 describe('useSpreadsheetEditing', () => {
-  it('starts a session, updates its draft, and stages a core commit', async () => {
+  it('starts a session and updates its draft', async () => {
     const store = createStore()
     const mounted = mountEditing(store)
 
@@ -57,16 +57,6 @@ describe('useSpreadsheetEditing', () => {
 
     expect(mounted.editing.draft.value).toBe('=SUM(A1:A4)')
     expect(mounted.editing.session.value.source?.source).toBe('formula-bar')
-    expect(mounted.editing.commit({ input: '=SUM(A1:A5)', move: 'down' })).toEqual({
-      type: 'editing.commit',
-      sheetId: 'sheet-1',
-      cell: { row: 4, col: 6 },
-      source: 'formula-bar',
-      input: '=SUM(A1:A5)',
-      move: 'down',
-    })
-    await nextTick()
-    expect(mounted.editing.draft.value).toBe('=SUM(A1:A5)')
     mounted.app.unmount()
   })
 

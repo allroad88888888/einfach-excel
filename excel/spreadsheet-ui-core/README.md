@@ -1,6 +1,6 @@
 # @einfach/spreadsheet-ui-core
 
-Framework-agnostic spreadsheet UI core for the Einfach vnext stack. 本包拥有视口计算、可见窗口投影契约、选区、编辑、键盘、菜单、工具栏、剪贴板、工作表标签，以及下面列出的全部 feature 模块 —— 全部由 `@einfach/core` 的 atom 支撑。它不依赖 Solid、React、DOM、worker 或 WASM；那些由宿主适配器带入（由 `test/package-boundary.test.ts` 拦截）。
+Framework-agnostic spreadsheet UI core for the Einfach vnext stack. 本包拥有视口计算、可见窗口投影契约、选区、编辑、键盘、菜单、工具栏、剪贴板、工作表标签，以及下面列出的全部 feature 模块 —— 全部由 `@einfach/core` 的 atom 支撑。`rust-worker` 子路径同时提供跨框架的 Rust/WASM Worker runtime 与 `SpreadsheetBackend` 实现；包根仍不执行 Worker 副作用。Solid、React、Vue 运行时不得进入本包。
 
 仓库级三层架构见 [`../../docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md)；本包的硬约束、准入检查与测试门禁见 [`docs/CONVENTIONS.md`](./docs/CONVENTIONS.md)。
 
@@ -62,6 +62,7 @@ Charts、images 与浮动对象明确不在范围内。
 | `src/protection/` | 工作表保护与锁定单元格状态（解锁区间上限 256） | [✓](./src/protection/README.md) |
 | `src/remove-duplicates/` | 「删除重复项」对话框：选区 + 列选择 + 结果统计 | [✓](./src/remove-duplicates/README.md) |
 | `src/rich-types/` | 结构化单元格值的判别联合（超链接、富文本 run、值种类元数据） | [✓](./src/rich-types/README.md) |
+| `src/rust-worker/` | Worker protocol、Rust/WASM runtime 与 `SpreadsheetBackend` adapter | — |
 | `src/selection/` | 活动单元格、锚点/焦点区间、行列/全选，以及名称框锚点 | [✓](./src/selection/README.md) |
 | `src/shared/` | 跨 feature 的基础类型与工具（`CellCoord`、`CellRange`、`SheetRef`、`SpreadsheetError`） | [✓](./src/shared/README.md) |
 | `src/sheet-tabs/` | 工作表标签菜单、改名、删除与标签交互流程 | [✓](./src/sheet-tabs/README.md) |
@@ -86,7 +87,8 @@ Charts、images 与浮动对象明确不在范围内。
 grep -cE '^\s+[a-zA-Z][a-zA-Z0-9]*\?[(:]' src/backend/types.ts
 ```
 
-参考实现在 `excel/solid-excel/src/adapter/`（`static-backend.ts` 与 `worker-workbook-backend.ts`）。
+Rust Worker 参考实现位于本包的 `src/rust-worker/`；Solid 包只保留旧发布子路径的兼容转发。静态与 TS
+参考 backend 仍位于 `excel/solid-excel/src/adapter/`，不进入 React 生产路径。
 
 ## Atom conventions
 
@@ -112,7 +114,8 @@ npx tsc -p excel/spreadsheet-ui-core/tsconfig.json --noEmit --pretty false
 npx jest excel/spreadsheet-ui-core/test/package-boundary.test.ts --runInBand
 ```
 
-`package-boundary.test.ts` keeps imports of Solid, React, DOM runtime APIs, worker glue, and WASM glue out of the package root. Treat it as the canary for new transitive dependencies.
+`package-boundary.test.ts` keeps Solid、React、DOM runtime APIs、Worker glue 和 WASM glue 挡在 atom/root
+模块之外；`rust-worker-boundary.test.ts` 单独约束 Rust 子路径只能依赖 UI-core 合同和 `excel-wasm`。
 
 ## 开发约定
 

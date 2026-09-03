@@ -220,9 +220,6 @@ importers:
       '@einfach/react':
         specifier: ^0.4.0
         version: 0.4.0(react@18.3.1)
-      '@einfach/solid-excel':
-        specifier: workspace:*
-        version: link:../solid-excel
       '@einfach/spreadsheet-ui-core':
         specifier: workspace:*
         version: link:../spreadsheet-ui-core
@@ -312,6 +309,9 @@ importers:
       '@einfach/core':
         specifier: ^0.4.0
         version: 0.4.0
+      '@einfach/excel-wasm':
+        specifier: workspace:*
+        version: link:../excel-wasm
     devDependencies:
       '@jest/globals':
         specifier: ^29.7.0

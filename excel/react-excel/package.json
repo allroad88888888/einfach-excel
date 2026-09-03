@@ -7,7 +7,6 @@
   "dependencies": {
     "@einfach/core": "^0.4.0",
     "@einfach/react": "^0.4.0",
-    "@einfach/solid-excel": "workspace:*",
     "@einfach/spreadsheet-ui-core": "workspace:*",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"

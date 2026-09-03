@@ -1,5 +1,5 @@
 import { describe, expect, it, jest } from '@jest/globals'
-import packageJson from '../../../../solid-excel/package.json'
+import packageJson from '../../../../spreadsheet-ui-core/package.json'
 import {
   SALES_ORDER_CELL_COUNT,
   SALES_ORDER_IMPORT_CHUNK_SIZE,
@@ -20,13 +20,13 @@ type ImportRustWorkbook = (
 ) => Promise<void>
 
 jest.mock(
-  '@einfach/solid-excel/vnext-worker-runtime?worker',
+  '@einfach/spreadsheet-ui-core/rust-worker/runtime?worker',
   () => ({ default: class RustWorkbookWorker {} }),
   { virtual: true },
 )
 
 const { createWorkerWorkbookSpreadsheetBackend: exportedBackendFactory } = jest.requireActual(
-  '@einfach/solid-excel/worker-backend',
+  '@einfach/spreadsheet-ui-core/rust-worker',
 ) as { createWorkerWorkbookSpreadsheetBackend: unknown }
 const { importRustWorkbook } = jest.requireActual(
   '../../../src/product/sales-orders/runtime/import-rust-workbook',
@@ -34,11 +34,10 @@ const { importRustWorkbook } = jest.requireActual(
 
 describe('React workbook Rust backend', () => {
   it('exports the existing neutral backend at the exact package subpath', () => {
-    expect(packageJson.exports['./worker-backend']).toEqual({
-      solid: './src/adapter/worker/backend.ts',
-      types: './@types/src/adapter/worker/backend.d.ts',
-      import: './esm/src/adapter/worker/backend.mjs',
-      default: './esm/src/adapter/worker/backend.mjs',
+    expect(packageJson.exports['./rust-worker']).toEqual({
+      types: './@types/rust-worker/index.d.ts',
+      import: './esm/rust-worker/index.mjs',
+      require: './cjs/rust-worker/index.cjs',
     })
     expect(typeof exportedBackendFactory).toBe('function')
   })

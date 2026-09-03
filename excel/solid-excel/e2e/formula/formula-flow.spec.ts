@@ -40,7 +40,7 @@ async function commitFormulaInCell(page: Page, addr: string, formula: string) {
   await page.keyboard.type(formula)
   await expect(cellInput(page, addr)).toHaveValue(formula)
   await page.keyboard.press('Enter')
-  // commitEditingAtom + backend.setCellInput + projection refresh are all
+  // runEditingCommitAtom + backend.setCellInput + projection refresh are all
   // async; the next test step must wait for the cell-input to close before
   // navigating, otherwise click / F2 race the pending commit.
   await expect(cellInput(page, addr)).toHaveCount(0)

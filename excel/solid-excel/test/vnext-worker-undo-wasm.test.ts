@@ -100,8 +100,8 @@ beforeAll(async () => {
       toWorker.push(listener)
     },
   }
-  await import('../src/adapter/worker-runtime')
-  const adapter = await import('../src/adapter')
+  await import('@einfach/spreadsheet-ui-core/rust-worker/runtime')
+  const adapter = await import('@einfach/spreadsheet-ui-core/rust-worker')
   createBackendImpl = (sheets) =>
     adapter.createWorkerWorkbookSpreadsheetBackend({
       workerFactory: () => inProcessWorker,

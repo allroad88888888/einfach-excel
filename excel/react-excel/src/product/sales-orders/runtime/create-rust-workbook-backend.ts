@@ -1,5 +1,5 @@
-import { createWorkerWorkbookSpreadsheetBackend } from '@einfach/solid-excel/worker-backend'
-import RustWorkbookWorker from '@einfach/solid-excel/vnext-worker-runtime?worker'
+import { createWorkerWorkbookSpreadsheetBackend } from '@einfach/spreadsheet-ui-core/rust-worker'
+import RustWorkbookWorker from '@einfach/spreadsheet-ui-core/rust-worker/runtime?worker'
 import { importRustWorkbook } from './import-rust-workbook'
 
 /** Creates the sales-order workbook over the Rust/WASM worker. */

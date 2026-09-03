@@ -26,6 +26,7 @@ const entries = {
   'src/demos/index': `${SOLID_EXCEL}/src/demos/index.ts`,
   'src/i18n/index': `${SOLID_EXCEL}/src/i18n/index.ts`,
   'src/adapter/worker-factory': `${SOLID_EXCEL}/src/adapter/worker-factory.ts`,
+  'src/adapter/worker-workbook-backend': `${SOLID_EXCEL}/src/adapter/worker-workbook-backend.ts`,
   'src/adapter/worker-runtime': `${SOLID_EXCEL}/src/adapter/worker-runtime.ts`,
   'src/adapter/worker-runtime-full': `${SOLID_EXCEL}/src/adapter/worker-runtime-full.ts`,
   'src/adapter/worker-runtime-core': `${SOLID_EXCEL}/src/adapter/worker-runtime-core.ts`,

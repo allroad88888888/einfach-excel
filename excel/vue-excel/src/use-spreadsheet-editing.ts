@@ -1,13 +1,10 @@
 import type { Atom, Store } from '@einfach/core'
 import {
   cancelEditingAtom,
-  commitEditingAtom,
   editingDraftAtom,
   editingSessionAtom,
   startEditingAtom,
   type EditingCancelIntent,
-  type EditingCommitInput,
-  type EditingCommitIntent,
   type EditingDraftInput,
   type EditingSessionState,
   type EditingStartInput,
@@ -52,7 +49,6 @@ export interface SpreadsheetEditing {
   readonly draft: Readonly<ShallowRef<string>>
   start: (input: EditingStartInput) => EditingSessionState
   setDraft: (input: EditingDraftInput) => void
-  commit: (input: EditingCommitInput) => EditingCommitIntent | null
   cancel: () => EditingCancelIntent | null
 }
 
@@ -69,7 +65,6 @@ export function useSpreadsheetEditing(): SpreadsheetEditing {
     setDraft: (input) => {
       core.value.store.setter(editingDraftAtom, input)
     },
-    commit: (input) => core.value.store.setter(commitEditingAtom, input),
     cancel: () => core.value.store.setter(cancelEditingAtom),
   }
 }

@@ -14,8 +14,9 @@ backend ports and treats every descriptor as a read-only view fact.
 request / result / structured-reject shapes for the six table CRUD backend
 ports (`createTable` / `renameTable` / `renameTableColumn` / `deleteTable` /
 `listTables` / `getTable`), and the `TablesControllerPort` structural subset
-the commands consume. The wire pipeline (worker protocol + both runtimes +
-worker adapter) is implemented in `excel/solid-excel/src/adapter`.
+the commands consume. The Rust wire pipeline and worker adapter live in
+`excel/spreadsheet-ui-core/src/rust-worker/`; the TS parity runtime remains in
+`excel/solid-excel/src/adapter/`.
 
 `commands.ts` — the create-table command layer:
 

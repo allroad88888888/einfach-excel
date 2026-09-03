@@ -17,7 +17,24 @@ const expectedHomepage =
   'https://github.com/allroad88888888/einfach-excel/tree/main/excel/spreadsheet-ui-core'
 const expectedBugsUrl = 'https://github.com/allroad88888888/einfach-excel/issues'
 const expectedFiles = ['esm', 'cjs', '@types', 'README.md']
-const requiredPackageFiles = ['esm/index.mjs', 'cjs/index.cjs', '@types/index.d.ts', 'README.md']
+const requiredPackageFiles = [
+  'esm/index.mjs',
+  'cjs/index.cjs',
+  '@types/index.d.ts',
+  'esm/rust-worker/index.mjs',
+  'cjs/rust-worker/index.cjs',
+  '@types/rust-worker/index.d.ts',
+  'esm/rust-worker/runtime.mjs',
+  'esm/rust-worker/runtime-core.mjs',
+  'esm/rust-worker/runtime-full.mjs',
+  '@types/rust-worker/runtime.d.ts',
+  '@types/rust-worker/runtime-core.d.ts',
+  '@types/rust-worker/runtime-full.d.ts',
+  'esm/rust-worker/adapter/worker/backend.mjs',
+  'cjs/rust-worker/adapter/worker/backend.cjs',
+  '@types/rust-worker/adapter/worker/backend.d.ts',
+  'README.md',
+]
 const forbiddenPackageDirectories = ['src', 'test', 'e2e', 'demos']
 
 function fail(message) {
@@ -77,6 +94,44 @@ function verifyManifest(manifest) {
   assertEqual(rootExport.types, manifest.types, 'manifest.exports["."].types')
   assertEqual(rootExport.import, manifest.module, 'manifest.exports["."].import')
   assertEqual(rootExport.require, manifest.main, 'manifest.exports["."].require')
+
+  const rustWorkerExport = manifest.exports?.['./rust-worker']
+  if (!rustWorkerExport || typeof rustWorkerExport !== 'object')
+    fail('manifest.exports["./rust-worker"] must be an object')
+  assertEqual(rustWorkerExport.types, './@types/rust-worker/index.d.ts', 'rust worker types')
+  assertEqual(rustWorkerExport.import, './esm/rust-worker/index.mjs', 'rust worker import')
+  assertEqual(rustWorkerExport.require, './cjs/rust-worker/index.cjs', 'rust worker require')
+
+  for (const entry of ['runtime', 'runtime-core', 'runtime-full']) {
+    const workerExport = manifest.exports?.[`./rust-worker/${entry}`]
+    if (!workerExport || typeof workerExport !== 'object')
+      fail(`manifest.exports["./rust-worker/${entry}"] must be an object`)
+    assertEqual(
+      workerExport.types,
+      `./@types/rust-worker/${entry}.d.ts`,
+      `${entry} types`,
+    )
+    assertEqual(workerExport.import, `./esm/rust-worker/${entry}.mjs`, `${entry} import`)
+  }
+
+  const rustWorkerAdapterExport = manifest.exports?.['./rust-worker/adapter/*']
+  if (!rustWorkerAdapterExport || typeof rustWorkerAdapterExport !== 'object')
+    fail('manifest.exports["./rust-worker/adapter/*"] must be an object')
+  assertEqual(
+    rustWorkerAdapterExport.types,
+    './@types/rust-worker/adapter/*.d.ts',
+    'rust worker adapter types',
+  )
+  assertEqual(
+    rustWorkerAdapterExport.import,
+    './esm/rust-worker/adapter/*.mjs',
+    'rust worker adapter import',
+  )
+  assertEqual(
+    rustWorkerAdapterExport.require,
+    './cjs/rust-worker/adapter/*.cjs',
+    'rust worker adapter require',
+  )
 }
 
 async function assertFile(path) {

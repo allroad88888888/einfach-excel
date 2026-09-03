@@ -7,7 +7,6 @@ import {
   runEditingCommitAtom,
   startEditingAtom,
   type CellCoord,
-  type HistoryEntryRecorder,
   type SpreadsheetBackend,
 } from '@einfach/spreadsheet-ui-core'
 
@@ -20,34 +19,15 @@ interface VanillaEditingSessionOptions {
   readonly store: Store
 }
 
-function createHistoryEntryRecorder(backend: SpreadsheetBackend): HistoryEntryRecorder {
-  return (entry, append) => {
-    if (
-      typeof backend.undoTransaction !== 'function' ||
-      typeof backend.redoTransaction !== 'function'
-    ) {
-      return 'unavailable'
-    }
-    try {
-      return append(entry) ? 'recorded' : 'rejected'
-    } catch {
-      return 'rejected'
-    }
-  }
-}
-
 export function createVanillaEditingSession(
   options: VanillaEditingSessionOptions,
 ): VanillaEditingSession {
-  const historyEntryRecorder = createHistoryEntryRecorder(options.backend)
-
   return Object.freeze({
     commit: () =>
       options.store.setter(runEditingCommitAtom, {
         source: options.backend,
         commitSource: 'cell',
         move: 'none',
-        historyEntryRecorder,
         refreshProjection: options.projection.refresh,
       }),
     start: (cell: CellCoord, draft: string) =>

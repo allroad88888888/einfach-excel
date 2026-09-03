@@ -49,7 +49,6 @@ export function createVanillaEditingView(options: VanillaEditingViewOptions): Va
       if (disposed) return
       cell.textContent = displayValue
       input.value = editing.draft
-      input.disabled = editing.status === 'committing'
       commit.disabled = editing.status !== 'drafting'
     },
   })

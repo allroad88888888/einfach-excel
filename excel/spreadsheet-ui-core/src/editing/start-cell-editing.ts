@@ -2,7 +2,7 @@ import { atom } from '@einfach/core'
 import { getSourceTextFromProjection } from '../projection/editable-source-text'
 import { projectionSnapshotAtom } from '../projection'
 import type { CellCoord } from '../shared'
-import { startEditingAtom } from './index'
+import { startEditingAtom } from './session-atoms'
 
 export interface StartCellEditingFromProjectionInput {
   readonly sheetId: string

@@ -12,12 +12,27 @@ Owns cell editor draft, source, commit, and cancel UI state.
   - `editingDraftAtom`: writable draft view over `editingSessionAtom`.
 - Commands:
   - `startEditingAtom`
-  - `commitEditingAtom`
+  - `runEditingCommitAtom`
   - `cancelEditingAtom`
 - Scale bound: one active edit session.
 - Backend reads: none directly. Adapter may read source/formula text when starting an explicit edit.
 - Per-cell/per-row/per-col atom risk: none; editing state stores one active cell coordinate only.
-- Tests: `test/editing.test.ts`.
+- Tests: `test/editing-session.test.ts` and the focused `editing-commit-*.test.ts` suites.
+
+## Internal module boundaries
+
+- `session-domain.ts`: pure session transitions and intent construction.
+- `session-atoms.ts`: synchronous session selectors and commands.
+- `commit-input.ts`: untrusted host input and acknowledgement validation.
+- `commit-ticket.ts`: frozen request, intent and capability ticket construction.
+- `bounded-operation.ts`: finite host-promise execution.
+- `commit-state.ts`: private commit ticket, lifecycle state and authority checks.
+- `history-projection.ts`: replay-capability guard and Rust-log-aligned UI timeline metadata.
+- `commit-settlement.ts`: terminal ticket settlement.
+- `run-commit.ts`: serialized mutation-to-refresh transaction state machine.
+- `retry-refresh.ts`: acknowledged mutation refresh retry.
+- `reconcile-commit.ts`: explicit settlement after an unknown timeout outcome.
+- `index.ts`: public editing exports only.
 
 ## Mutation gateway (`mutation-gateway.ts`)
 

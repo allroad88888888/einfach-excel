@@ -1,223 +1,235 @@
-APPROVED
+REJECTED
 
-# 001 独立 Review：三条现有链统一使用 React atom hooks 与 command atoms
+# 001 增量独立 Review：三审后 editing / history / retained projection
 
 复核日期：2026-09-02
 
-复核基准：`6f07cae2568596331a2be333791203694d59bc17` 到当前 worktree；包含已提交的
-`5aeb6723` projection transport、其后的未提交产品改动及 untracked command/test 文件。
+复核基准：叶子记录的原始 base `6f07cae2568596331a2be333791203694d59bc17` 到当前完整
+worktree。旧的三次 review 只作为历史，不作为本轮结论；本轮重新阅读任务树 `index.md`、001 leaf、
+`reports/001-report.md` 与 `excel/react-excel/SKILL.md`，并核对 base 后的 React、UI-core、Solid、Vue、
+Worker adapter 与文档差异。未修改产品代码。
 
-复核输入：完整阅读任务树 `index.md`、001 leaf、`reports/001-report.md` 与
-`excel/react-excel/SKILL.md`；核对 `@einfach/react@0.4.0` 本地 Provider、
-`useAtomValue`、`useSetAtom` 实现与类型；未修改产品源码、任务文件或项目 SKILL。
+## Blocking findings
 
-## 阻塞项
+### Important 1：retained result 的 cells 与渲染 window 来自两个不同投影
 
-### 1. Pointer 组合 command 没有维护 selection / pointer 的共同不变量
+`useWorkbookViewport` 在新窗口请求期间会保留同 sheet 的旧 `snapshot.result`，但返回对象始终把
+`window` 设为当前受控新窗口（`excel/react-excel/src/workbook/projection/use-workbook-viewport.ts:205-215`）。
+`SpreadsheetGrid` 随后按这个新窗口枚举行列，再从旧 cells 按坐标查值
+（`excel/react-excel/src/workbook/grid/cells/SpreadsheetGrid.tsx:217-241`）。因此 retained projection 并
+没有作为一个完整的 `{window, cells}` 投影被保留：
 
-`startPointerSelectionAtom` 先让 selection 自行按 bounds clamp，却把原始 `coord` 写入 pointer
-（`excel/spreadsheet-ui-core/src/selection/pointer-selection-commands.ts:17-27`）。
-`updatePointerSelectionAtom` 不读取当前 pointer session；在没有 active drag、或传入另一个
-`sheetId` 时仍先扩展 selection，随后 `updatePointerAtom` 只更新旧 pointer 的 focus
-（同文件 `:34-42`）。因此 command 可以产生：selection 在 sheet B、pointer interaction 仍在
-sheet A；也可以在没有 pointer session 时单独改变 selection；越界坐标还会令 selection 的
-clamped focus 与 pointer 的原始 focus 不同。这不符合“一次语义动作保持两份 core 状态一致”的
-产出合同，也使新增 command 不能安全供其它框架复用。
+- 从 `0..31` 滚到 `1..32` 时，旧 row 0 被丢弃，新 row 32 为空；表头与表体已经切到新窗口。
+- 跳转到与旧窗口无交集的窗口时，整张表仍挂载但所有格子为空，虽然旧 result 明明存在。
+- 当前回归只滚动一行，并断言交集内的 row 1 仍有值
+  （`excel/react-excel/test/workbook/projection/projection.test.tsx:176-206`），因此恰好绕过边缘空格和
+  大跨度跳转反例。
 
-最小修复：command 内先验证/归一化一次输入，并用同一个 sheet/coord 更新两份状态；update 必须
-确认当前是同 sheet 的 active drag-selection（或直接从该 session 派生 sheet），否则返回明确
-no-op outcome，不能先改 selection。补 core tests：inactive update、cross-sheet update、越界 start/update，
-均断言 selection 与 pointer 不分叉。
+这会把“闪回 Loading”改成“短暂空白/局部错位”，仍是用户可见的滚动回归。最小修复是让渲染使用
+result 自带的 window，保证一次展示中的 window/cells 同源；或明确设计两个完整 projection frame，不能
+把旧 cells 套到新 window。补测试至少覆盖单行滚动的新边缘 row 32，以及无交集的大跨度跳转。
 
-### 2. 未绑定 backend 的 projection 失败没有 settle active lane
+交叉 sheet 与终态错误两个重点反例本身没有失败：hook 在
+`use-workbook-viewport.ts:206-209` 只保留同 sheet result；`WorkbookGrid.tsx:45-53` 又优先渲染当前请求的
+error，因此 terminal failure 不会被旧 cells 遮蔽。但这不能关闭上述同 sheet 坐标错配。
 
-`drainVisibleProjectionQueue` 的 null-binding 分支只调用 `reportProjectionErrorAtom` 后返回
-（`excel/spreadsheet-ui-core/src/projection/run-visible-projection.ts:34-39`），没有用当前 request
-settle/reject projection lane。首次 command 会 resolve `{status:'failed'}`，但 active ticket 仍残留；
-随后即使通过 `createSpreadsheetUi({ backend, store })` 给同一 store 绑定 backend，新请求也只会进入
-queued 分支并在 `:104-115` 得到 `Visible projection transport is unavailable`，snapshot 停在
-`loading`。异步 command 虽未 reject Promise，却把 store 留在不可恢复状态。
+### Important 2：editing 拆分删除既有公共 API，违反 additive 与“不迁移 Solid/Vue”硬约束
 
-最小修复：null-binding 也必须通过 active request 的 reject/settle 路径释放 lane（并一致处理可能的
-queued successor），再返回显式 failed outcome。补测试：裸 store 首次调用 resolves failed，之后给
-同一 store 正常绑定 backend，下一次调用能 ready；全程无 rejected Promise、无残留 loading lane。
+base 的 UI-core 公开 `commitEditingAtom`（base `editing/index.ts:794-811`），base 的 Vue
+`SpreadsheetEditing` 也公开 `commit(input)` 并转发该 atom（base
+`excel/vue-excel/src/use-spreadsheet-editing.ts:49-73`）。当前：
 
-### 3. Editing refresh 冻结的是 mutation 前窗口，会覆盖 mutation 期间的新窗口
+- `excel/spreadsheet-ui-core/src/editing/index.ts:1-26` 不再导出 `commitEditingAtom`，实现也已删除；
+- `excel/vue-excel/src/use-spreadsheet-editing.ts:46-69` 从公共接口和返回对象删除 `commit`；
+- 对应 Vue 测试删掉了 commit 行为断言，而不是证明旧调用方仍兼容；
+- `RunEditingCommitInput.historyEntryRecorder` 也从公开类型移除，仓库内 Solid 调用点同步改写。
 
-`commitCellEditingAtom` 在启动异步 mutation 前读取并冻结当前 projection request
-（`excel/spreadsheet-ui-core/src/editing/bound-cell-editing-commands.ts:43-59`）。若 Rust mutation
-pending 期间用户从窗口 A 滚到 B，ACK 后 callback 仍启动 A 的 retain-result refresh；实测请求序列
-为 `[A, B, A]`，最终 snapshot 回到 A。React effect 只依赖受控窗口参数
-（`excel/react-excel/src/workbook/projection/use-workbook-viewport.ts:167-178`），而返回值又在
-`:214-220` 丢弃与 B 不匹配的 snapshot，所以不会重新请求 B，界面会停在 loading/空 cells。
-这与本叶“绑定当前 visible window”不符，并构成慢 mutation + 滚动的用户可见回归风险。
+这些是源码兼容的 breaking changes，不是 additive API。它们还直接修改 001 leaf `files` 未声明的
+`excel/solid-excel/**`、`excel/vue-excel/**` 与跨框架文档；而任务树明文要求本树不迁移 Solid/Vue、
+新增 UI-core API 必须 additive。即使旧 `commitEditingAtom` 只是同步 stage intent，也不能在这片边界迁移中
+静默删除。应恢复兼容导出与 Vue `commit()`（可标 deprecated 并转发到等价语义），并保留旧 input 的
+源码兼容；真正的跨框架破坏性清理应另立有迁移方案的任务。
 
-最小修复：refresh callback 执行时再从 core 读取当前 visible request，并刷新当时的窗口；retry
-同样使用 retry 执行时的当前窗口。补 deferred-mutation test：A 开始编辑/提交，pending 时投影 B，
-释放 ACK 后只刷新 B，最终 snapshot 仍为 B 且 mutation 始终一次；React 层断言 B cells 保持可见。
+### Important 3：生产 editing atom 残留 `debugger`
 
-### 4. 两个 `useCallback` 仍只是 setter 包装，违反验收 2
+`excel/spreadsheet-ui-core/src/editing/session-atoms.ts:46` 在每次写 editing draft 时执行裸 `debugger`。
+浏览器 DevTools 开启时，键入单元格会逐次暂停；这也是执行报告“范围 ESLint 通过”没有覆盖到的生产质量
+缺口。静态复核命令：
 
-`useCellEdit` 的 `start` 与 `setDraft` 回调只做参数整形后调用 `useSetAtom` 返回的 setter
-（`excel/react-excel/src/workbook/editing/use-cell-edit.ts:35-44`）。它们不处理 DOM/ref、测量、focus、
-滚动或 React event，也没有 memoized child/effect 的稳定身份需求；这正是
-`excel/react-excel/SKILL.md` 要求移除的“callback only calls setter”，并与执行报告“剩余
-`useCallback` 仅用于 pointer/事件形状、scroll/window、focus/ref 适配”的结论不一致。
+```text
+rg -n "\\bdebugger\\b" excel/react-excel/src excel/spreadsheet-ui-core/src
+excel/spreadsheet-ui-core/src/editing/session-atoms.ts:46:    debugger
+```
 
-最小修复：删除这两层 `useCallback` memoization；可直接暴露匹配的 atom setter，或保留普通的窄
-参数适配函数，把真正的 DOM event 整形留在组件事件处理器。重新执行 `rg -n "useCallback"` 人工
-归类，并修正执行报告证据。
+删除该语句，并让范围 lint 明确启用 `no-debugger`，避免同类残留再次通过。
 
-## 验收逐项核对
+## 重点边界复核
 
-1. ✅ `react-excel` 直接依赖 `@einfach/react@^0.4.0`；Provider 显式传 `core.store`；双 Provider
-   隔离测试通过。本地 0.4.0 的 hooks 确实从最近 Provider 取 store，setter identity 由
-   atom/store 稳定。
-2. ❌ 自制 `useSyncExternalStore` bridge 已删除，三条链也已改用标准 hooks；但阻塞项 4 未满足
-   明文 `useCallback` 限制。
-3. ❌ happy-path、latest-window、terminal failure、mutation reject 与 refresh-only retry 测试通过，
-   且现有测试证明一次 commit 只发一次 mutation；但阻塞项 1-3 暴露的 command 不变量和并发窗口
-   语义没有测试，当前实现实际失败。
-4. ✅ React 15 tests 覆盖点击/拖选/取消、首屏/滚动、双击、Enter、blur、Escape、reject draft、
-   refresh retry 与连续两格编辑，全部通过。
-5. ✅ 三条要求的静态扫描均零命中：workbook 无手写 store getter/setter/observer、无 backend/history/
-   refresh transport 注入，React src 无 `atom(` 声明。
-6. ✅ build/typecheck/React build、范围 ESLint、cycle check、diff check 与文件行数均通过；新增/大改
-   普通文件最大 225 行，职责拆分合理。存量 `editing/index.ts`、`selection/index.ts`、
-   `pointer/index.ts`、`projection/index.ts` 仍超限，但本叶未修改，不要求顺手重构。
+### Editing 拆分与单一职责
 
-## Review 复跑证据
+除上述 API 删除外，拆分形态本身通过职责检查：session 纯状态转换、session atoms、commit input capture、
+ticket、serialized runner、settlement、refresh retry、reconcile 与 history projection 各自能用一个职责描述；
+`run-commit.ts` 289 行，其余新增 editing 源文件均低于 200 行。`editing/index.ts` 是 feature 对外边界的
+26 行导出面，不属于禁止的内部无脑 barrel。没有 `part1`、`utils` 或按行数机械切割。
 
-- UI-core 全量：97 suites / 2085 tests passed。
-- React：6 suites / 15 tests passed。
-- `@einfach/spreadsheet-ui-core` build、React typecheck 与 Vite build（391 modules）通过。
-- 范围 ESLint 无 warning/error；`pnpm check:cycles` 为 1055 modules / 2519 dependencies、零 violation。
-- 要求的三条 `rg` 扫描与 `git diff --check` 通过；所有本叶新增/大改普通文件 `<=300` 行。
+旧 456 行 `excel/solid-excel/e2e/formula/formula-flow.spec.ts` 从 base 起已经超限，本轮只改一行注释，按
+`one-file-one-thing` 的存量小改规则记录但不要求 001 顺手拆分。其余新增/大改普通文件均未超过 300 行。
+
+### Rust / UI-core / framework history 职责
+
+当前仓库内的主方向是正确的：
+
+- Worker backend 的 `setCellInput` 进入 `recordCellMutation`
+  （`excel/solid-excel/src/adapter/worker/ports/cell-input.ts:30-65`）；后者捕获 before/after image，并把真实
+  transaction record 推入 Worker log（`record-cell-mutation.ts:62-105`）。
+- UI-core 的 `history-projection.ts:21-45` 只写 transaction id、kind、sheet、revision 与 affected range，
+  不复制 cell before/after 数据。
+- `run-commit.ts:110-125,224-239` 只在 backend 同时暴露 undo/redo replay capability 时预留并写入一条
+  timeline descriptor；mutation reject 不写 descriptor，refresh retry 不重发 mutation。
+- React workbook 的 backend/history/refresh 注入扫描为零；Solid dispatch 当前不再注入
+  `historyEntryRecorder`，Vue 也没有建立另一份 history 账本。
+
+因此没有发现“framework 保存第二份 undo image”或“UI-core 重做 Rust transaction log”的新问题。
+但是，职责调整不能以删除既有跨框架公共 API 为代价，Important 2 仍阻塞验收。
+
+## 001 验收核对
+
+1. ✅ React 直接依赖 `@einfach/react`，显式 Provider/store 隔离实现与测试仍在。
+2. ✅ React 三条链使用 `useAtomValue` / `useSetAtom`；自制 store bridge 已删除。
+3. ✅ 以下四项静态扫描均零命中：React workbook 的手写 getter/setter/observer、backend/history/refresh
+   注入、React `atom(` 声明、React `useState/useReducer`。
+4. ✅ Pointer command 的共同不变量与 unbound projection lane 修复仍在，未见三审后回退。
+5. ✅ Editing 的 mutation reject、ACK 后 refresh-only retry、一次 mutation 与当前窗口 refresh 的状态机
+   仍由 UI-core 命令负责；Rust/UI timeline 数据职责没有倒退。
+6. ❌ retained projection 的 window/cells 不同源，验收中的连续滚动可见性未闭环（Important 1）。
+7. ❌ UI-core/Vue 公共 editing API 非 additive，且越过“不迁移 Solid/Vue”的范围门（Important 2）。
+8. ❌ 生产源码残留 `debugger`（Important 3）。
+9. ✅ `git diff --check` 通过；本轮按 task-tree reviewer 规则不重复执行执行报告已经跑过的全量测试、build、
+   ESLint 与 cycles。报告所列 106 UI-core suites、Solid、React、Vue、build/cycles 结果不能证明上述静态
+   API 与坐标反例正确。
 
 ## 结论
 
-Provider/hooks 迁移与主要用户路径已经成立，普通 backend reject 也都以显式 outcome 收敛；但 pointer
-跨 atom 不变量、projection lane 释放、editing 当前窗口并发语义以及明文 hook 规则仍未满足。
-修复上述四项并补定向测试后再复审，001 当前不能进入用户验收或 003。
+三审后的 editing 拆分和 Rust/UI-core history 数据分工大体成立，跨 sheet 保留与 terminal failure 展示也
+有明确 guard；但同 sheet retained projection 会把旧 cells 套在新 window 上，公共 editing/Vue API 被
+破坏性删除，且生产 atom 留有 `debugger`。三项均需修复并补命中反例的定向测试后重新独立 review。
 
-## 返修复审
+001 当前结论：`REJECTED`。不得进入用户验收或启动 003。
 
-复审日期：2026-09-02
-
-本节保留上面的初审发现作为历史记录，并以当前 worktree 的返修实现与新增测试覆盖重新裁决；本节结论
-取代初审时的 `REJECTED`。
-
-### 四项阻塞逐项关闭
-
-1. ✅ **Pointer 共同不变量已关闭。** Start 通过 selection authority receipt 取得 bounds 归一化后的
-   同一 sheet/coord，再写 pointer（`excel/spreadsheet-ui-core/src/selection/pointer-selection-commands.ts:28-48`）。
-   Update 在任何 selection write 前检查 active drag 与同 sheet，在 bounds 缩小时还会用 receipt 的新
-   anchor 重建 pointer session（同文件 `:55-95`）。新增 core tests 真实构造 inactive、cross-sheet、
-   越界 start/update 与 active 期间 bounds shrink，分别断言 selection/pointer 都不变或保持相同
-   anchor/focus/range（`excel/spreadsheet-ui-core/test/pointer-selection-commands.test.ts:54-135`）。
-2. ✅ **Unbound projection lane 已关闭。** Null binding 现在对 active request 调用
-   `rejectProjectionAtom`，并循环 settle 被提升的 queued successor
-   （`excel/spreadsheet-ui-core/src/projection/run-visible-projection.ts:28-42`）。回归测试在裸 store 上
-   先断言 Promise resolves failed/error snapshot，再给同一 store 绑定 backend，下一次 command 确实
-   ready 且 snapshot/result 都落到新窗口
-   （`excel/spreadsheet-ui-core/test/run-visible-projection.test.ts:99-129`）。旧实现会在第二次调用得到
-   transport unavailable 并残留 loading，因此该测试有效命中初审反例。
-3. ✅ **Editing pending-mutation 窗口切换已关闭。** Commit/retry 只做启动时可用性 guard；真正执行
-   refresh callback 时重新读取当时的 `projectionSnapshotAtom.request`
-   （`excel/spreadsheet-ui-core/src/editing/bound-cell-editing-commands.ts:14-40,43-73`）。Core deferred
-   mutation test 断言 A→B→B、最终 snapshot 为 B、mutation 一次；refresh-failed 后再切 B 的 retry
-   test 断言 A→A→B→B 且不重发 mutation
-   （`excel/spreadsheet-ui-core/test/cell-editing-commands.test.ts:121-207`）。新增 React 测试也通过真实
-   scroll 让 B cells 先可见，再释放 ACK，最终严格断言请求 `[0,20,20]`、B cell 仍显示且 mutation
-   一次（`excel/react-excel/test/workbook/editing/pending-edit-scroll.test.tsx:32-110`）。
-4. ✅ **Setter-only `useCallback` 已关闭。** `useCellEdit` 已移除 React `useCallback` import；start 与
-   setDraft 只保留普通窄参数适配，commit/retry 直接使用 `useSetAtom` setter
-   （`excel/react-excel/src/workbook/editing/use-cell-edit.ts:27-49`）。`workbook/editing` 当前
-   `useCallback` 零命中；workbook 剩余命中仅是 pointer DOM/capture/event、scroll/window 与 focus/ref。
-
-### 复审验证
-
-- UI-core 全量：97 suites / 2090 tests passed；上述 pointer、projection、editing 定向 suites 均实际运行。
-- React 全量：7 suites / 16 tests passed，包含新增 pending edit + scroll 回归。
-- UI-core build、React typecheck、React Vite build（391 modules）通过。
-- 返修范围 ESLint 无 warning/error；`pnpm check:cycles` 为 1055 modules / 2519 dependencies、零 violation。
-- 三条边界 `rg` 仍零命中；返修新增/大改普通文件最大 225 行，测试最大 208 行，职责与行数合规。
-- 初审已通过的 Provider/store 隔离、标准 `@einfach/react` hooks、普通 mutation/projection failure
-  显式 outcome、用户交互回归与一次 mutation 语义未被返修削弱。
-
-### 最终结论
-
-四个初审 blocking defects 均有对应实现修正与能命中原反例的定向测试，复跑全量验证通过，未发现新的
-blocking regression。001 复审结论：`APPROVED`，可以进入用户验收；是否启动 003 仍遵循任务树的用户
-checkpoint。
-
-## B-007 用户验收返修复审
+## Retained projection 返修复审
 
 复审日期：2026-09-02
 
-本节在保留初审及第一次返修复审历史的前提下，按用户新增的 B-007 重新审查当前 worktree。复审输入包含
-更新后的任务树 index、001 leaf、执行报告和 `excel/react-excel/SKILL.md`；裁决范围仍从
-`6f07cae2568596331a2be333791203694d59bc17` 起，并包含已提交的 `5aeb6723`。本节结论取代上一次用户
-验收前的裁决。
+本节按任务账最新裁决复审 executor 的 projection-only 返修，并取代上文对三项旧 findings 的当前处置：
+`commitEditingAtom` / Solid / Vue 删除是用户明确授权的一次性仓库内迁移；
+`editing/session-atoms.ts` 的 `debugger` 是用户要求保留的现场诊断点。两项均不再作为本轮阻塞，也未要求
+executor 修改。当前唯一需要重新裁决的是 retained projection 的实际可见性。
 
-### B-007 逐项核对
+### Important：完整 retained frame 在大跨度滚动后仍位于视口之外
 
-1. ✅ **React 产品源码已清零本地状态 hooks，且没有把 atom 定义搬进 React。**
-   `rg -n "\\buse(State|Reducer)\\b" excel/react-excel/src` 和任务要求的 React `atom(` 扫描均零命中。
-   产品通过显式 `@einfach/react` Provider 及 `useAtomValue/useSetAtom` 消费 core 状态；没有新增 React
-   window/runtime atom。
-2. ✅ **App 启动渲染态与 backend binding 已形成同一 core lifecycle。**
-   `workbook-lifecycle.ts` 的 begin 同时清 binding 并发布 loading，resolve 先绑定同一 backend 再发布
-   ready，reject 清 binding 并发布 error（`excel/spreadsheet-ui-core/src/runtime/workbook-lifecycle.ts:34-60`）。
-   `App.tsx` 的 effect closure 是 Worker 句柄的唯一所有者；create 同步失败进入 reject，ready 异步失败先
-   幂等 dispose 再 reject，正常卸载也只 dispose 一次并清 core lifecycle
-   （`excel/react-excel/src/app/App.tsx:33-70`）。Workbook 只会在 ready 状态渲染，届时 backend binding
-   已经建立。
-3. ✅ **StrictMode、晚到 Promise 与普通重复 render 在当前实现中不会串写。**
-   每次 effect attempt 都有独立的 `active/backend/disposed` closure；cleanup 先令 attempt inactive，再幂等
-   dispose 并 begin。旧 attempt 随后 resolve/reject 时不会再写 lifecycle，reject 路径的重复 dispose 也被
-   guard 拦截。三个 `useSetAtom` 返回值由固定 atom、固定 Provider store memoize，因此 ready/error
-   导致的普通 rerender 不会重启 effect。产品入口确实以 StrictMode 渲染
-   （`excel/react-excel/src/main.tsx:12-15`）。
-4. ✅ **Grid 复用既有 viewport 状态机，没有第二份窗口状态。**
-   `useGridWindow` 只用 `setViewportMetricsAtom` 初始化固定产品 metrics，并直接订阅
-   `visibleWindowAtom`（`excel/react-excel/src/workbook/projection/use-grid-window.ts:17-39`）；
-   `useWorkbookViewport` 的 scroll adapter 只派发 `scrollToCellAtom`
-   （`excel/react-excel/src/workbook/projection/use-workbook-viewport.ts:196-202`）。其中的 `useMemo`
-   只是对输入范围作同步 clamp，不保存状态，也不构成重复 window atom。`Workbook` 将同一 derived window
-   直接传入 projection hook（`excel/react-excel/src/workbook/shell/Workbook.tsx:32-40`）。
-5. ✅ **现有 `useRef` 均属于明文允许边界。** CellEditor 的 input ref 是 DOM identity，commit/blur refs
-   是单次事件流的 in-flight guard；WorkbookGrid 的 ref 只用于 DOM focus；pointer adapter 的 ref 只记录
-   pointer identity/capture。没有 ref 保存业务状态或决定独立的可渲染状态。
+返修已经关闭“window/cells 不同源”问题：`useWorkbookViewport` 现在同时返回 retained result 的
+`result.window` 与 `result.cells`（`excel/react-excel/src/workbook/projection/use-workbook-viewport.ts:193-204`），
+新结果到达后才整帧切换。单行滚动时，旧 frame 与新视口仍大部分相交，因此该用例的行为成立。
 
-### 测试强度与回归
+但大跨度滚动仍不可见。实际几何链如下：
 
-- Core runtime test 直接断言 loading/ready/error 与 backend binding 同步切换
-  （`excel/spreadsheet-ui-core/test/runtime-lifecycle.test.ts:12-34`）。React App tests 覆盖 loading→ready、
-  成功卸载只 dispose 一次、异步 ready failure 的错误展示和立即 dispose 一次，以及同步 create failure
-  （`excel/react-excel/test/app/startup-lifecycle.test.tsx:47-83`）；因此失败与清理断言不是只检查渲染文案。
-- Core viewport test 从固定 32×8 首屏出发，派发真实 `scrollToCellAtom` 到末端，断言 clamp 后窗口及
-  `scrollTop`（`excel/spreadsheet-ui-core/test/visible-window-scroll.test.ts:10-46`）。React projection test
-  通过真实 scroll handler，断言同一 store 的 `visibleWindowAtom`、`viewportMetricsAtom.scrollTop` 与第二次
-  Rust projection request 完全一致，并继续命中末行渲染和绝对 selection 坐标
-  （`excel/react-excel/test/workbook/projection/projection.test.tsx:116-165`）。旧的 React 本地 window 实现
-  无法通过这些 atom 断言。
-- 新增 App suite 没有显式包一层 StrictMode，也没有单独释放已卸载 attempt 的 deferred Promise；这是可补强
-  的非阻塞测试缺口。当前源码的 attempt-local `active` 与幂等 dispose 已逐语句核对，实际生产入口又使用
-  StrictMode，未发现可构造的旧 attempt 覆盖新 binding/state 路径；001 验收只要求 core atom 单测和 React
-  启动行为测试，现有测试已满足。
-- 第一次返修已关闭的 pointer 共同不变量、unbound projection lane、editing pending-mutation 窗口切换和
-  setter-only callback 保持不变。UI-core 99 suites / 2092 tests、React 8 suites / 19 tests 全量通过，包含
-  pointer、projection failure/latest-window、editing reject/retry/连续编辑/pending-scroll 与 Provider 隔离。
+1. scroll handler 已经让浏览器滚到 `scrollTop = 400 * 28 = 11200px`，并据此请求 row 400
+   （`WorkbookGrid.tsx:89-96`；测试 `projection.test.tsx:221-232`）。
+2. pending 期间 `viewport.window` 仍是 retained row `0..31`，所以 `.grid-window` 的 CSS 变量仍是
+   `--grid-window-offset: 0px`（`WorkbookGrid.tsx:81-87`）。
+3. `.grid-window` 通过 `transform: translateY(var(--grid-window-offset))` 放置在 sheet 坐标中
+   （`grid.css:5-9`）。32 行 frame 高约 `32 * 28 = 896px`，占据 sheet 的约 `[0,896]`；此时滚动视口是
+   `[11200,12400]`（测试把 `clientHeight` 设为 1200），两者没有交集。
 
-### 工程验证与最终结论
+因此 `projection.test.tsx:233-237` 只能证明旧 row 0 DOM 仍挂在文档树中，不能证明用户在滚动容器里看得见
+它。新请求 pending 时，用户看到的仍是空白 sheet 区域，原 review 的“大跨度短暂整屏空白”反例没有被
+修复。此问题不是 jsdom 布局细节，而是由明确的 scrollTop、transform offset 与 frame 高度直接推出。
 
-- UI-core build、React typecheck、React Vite build（391 modules）、范围 ESLint、`git diff --check` 全通过；
-  `pnpm check:cycles` 为 1056 modules / 2521 dependencies，零 violation。三条既有边界扫描以及新增的
-  `useState/useReducer`、React atom 声明扫描全部零命中。
-- 本叶新增或大改普通文件最大 215 行，测试最大 208 行，均低于 300 行；runtime lifecycle、grid window
-  adapter、projection adapter 和各回归 suite 的职责可分别用单一业务点描述。存量超限 core 文件未在
-  B-007 中扩写。
+最小修复需要让 pending retained frame 与当前滚动视口相交，同时保持 frame 的 window/cells 同源。
+可采用 viewport overlay / sticky retained layer；若把旧 frame 临时移到新 scroll offset，则必须禁止或
+重新映射 pointer/editing，不能让视觉位置 row 400 的旧 row 0 DOM 接收错误坐标交互。另一个可接受方向是
+在新 frame ready 前约束实际 scroll position，但不能只更新 atom/request 而让浏览器先滚走。
 
-B-007 的 atom 所有权、资源生命周期、窗口单一来源、ref 边界和回归证据均满足 001 验收，未发现新的
-blocking defect。001 当前最终结论：`APPROVED`，可再次进入用户验收；003 仍应等待该 checkpoint。
+测试必须验证可见几何，而不只是 DOM 存在。至少断言 pending 时 retained frame 的纵向区间与
+`[scrollTop, scrollTop + clientHeight]` 相交；更稳妥的是增加真实浏览器测试，用 bounding rect / 截图确认
+大跨度滚动 pending 期间旧 frame 仍在 `.sheet-scroll` viewport 内。resolve 后再断言 row 400 frame 回到
+sheet 的真实绝对位置并恢复交互。
+
+### 返修复核通过项
+
+- ✅ `result.window` 与 `result.cells` 已作为同一 projection frame 返回；旧的边缘空格/坐标混用已关闭。
+- ✅ 单行滚动测试现在断言 retained `0..31`，并在 resolve 后切到 `1..32`。
+- ✅ 跨 sheet result 仍由 sheetId guard 排除，terminal error 仍优先覆盖 retained frame。
+- ✅ 两个改动文件分别 208、254 行，低于 300 行；职责没有因返修扩散。
+- ✅ 按 task-tree reviewer 规则未重复运行执行报告已经完成的定向/全量测试、build、ESLint、cycles 与
+  diff check；这些通过结果不覆盖上述未断言的布局几何。
+
+### 返修结论
+
+返修修正了 retained frame 的数据一致性，却没有保证它在大跨度滚动后的实际 viewport 内可见。唯一有效
+阻塞仍未关闭。001 当前结论继续为 `REJECTED`，不得进入用户验收或启动 003。
+
+## Retained projection 二次返修第三次复审
+
+复审日期：2026-09-02
+
+`APPROVED`
+
+本节是当前工作区的最新裁决，取代上一节对 retained frame 实际可见性的 `REJECTED`。任务账已经明确裁决
+API 删除属于用户授权的一次性迁移、`editing/session-atoms.ts` 的 `debugger` 属于必须保留的用户诊断点；
+本轮没有把二者重新列为问题，也没有修改产品代码。
+
+### 几何与逻辑坐标
+
+- `useWorkbookViewport` 保留了同一旧 result 的 `window` / `cells`，同时只在 `retained` 时把
+  `placementWindow` 指向最新 requested window（
+  `excel/react-excel/src/workbook/projection/use-workbook-viewport.ts:197-209`）。因此旧 frame 的数据与逻辑
+  坐标仍同源，临时物理摆放没有伪造 projection result。
+- `WorkbookGrid` 用 `placementWindow.rowStart * 28` 生成 transform offset，但 row headers 与
+  `SpreadsheetGrid.window` 继续使用逻辑 `viewport.window`（
+  `excel/react-excel/src/workbook/grid/viewport/WorkbookGrid.tsx:82-88,134-149,169-175`）。在 row 400 的
+  pending 反例里，旧 `data-cell="0:0"` / 旧行号仍是旧坐标，不会冒充 row 400；只是整帧被临时放到当前
+  scroll geometry。
+- 定向反例把 scrollTop 设为 `400 * 28 = 11200`，并断言 frame 区间
+  `[11200, 11200 + 32 * 28]` 与 `[scrollTop, scrollTop + clientHeight]` 相交（
+  `excel/react-excel/test/workbook/projection/projection.test.tsx:222-240`）。这已命中上一轮遗漏的大跨度几何，
+  不再只是断言 DOM 挂载。CSS grid 自身的 header row 只会给实际 content top 增加固定 28px，不改变该
+  896px frame 与 1200px viewport 相交的结论。
+
+### Pending 交互与 pointer capture
+
+- retained 时 pointer adapter 接收 `enabled: false`，外层 pointerdown 也有同步 guard；double-click 与
+  Enter 都在读坐标或启动 editing 前返回，grid 同时为 `tabIndex=-1`、`aria-busy=true`（
+  `WorkbookGrid.tsx:77-81,99-112,151-167`）。CSS 还对 retained table 设置 `pointer-events: none`
+  （`excel/react-excel/src/workbook/grid/viewport/grid.css:108-110`）。
+- 反例对物理位置已移动、逻辑坐标仍为 `1:1` 的 stale cell 依次发送 pointer down/up、double-click，随后
+  聚焦 grid 并发送 Enter；selection 保持 `0:0` 且 editing source 仍为 null（
+  `projection.test.tsx:243-250`）。因此三条入口不是靠 CSS 偶然挡住，测试层程序化事件也被逻辑 guard
+  正确拒绝。
+- 已开始的 pointer stream 不会遗留 capture：adapter 记录 `{id, currentTarget}`；`enabled` 变为 false
+  的 effect 会清空 active ref、调用保存 target 的 `releasePointerCapture(id)`，再调用 UI-core
+  `cancelPointerAtom`；若 move/up 先于 effect 到达，disabled 分支也调用同一 cancellation（
+  `excel/react-excel/src/workbook/selection/use-grid-pointer-selection.ts:44-62,84-112`）。unmount / dependency
+  cleanup 同样复用该路径。由此 capture 与 core pointer session 会一起收敛，不会在 retained frame 上继续
+  drag。
+
+### Resolve 后恢复
+
+- requested result 到达后 `result.window === requestedWindow`，`retained` 变回 false，placement 回归真实
+  result window；row 400 frame 仍位于 11200px，但此时 DOM 逻辑坐标也已切换到 row 400。测试断言
+  retained flag、tabIndex、offset、cell 内容均恢复，并用 pointer 选择 row 400、double-click 启动对应
+  editing（`projection.test.tsx:258-277`）。Enter 走同一个仅受 `retained` 控制的 guard，false 后恢复原路径。
+
+### 非阻塞测试缺口
+
+当前定向测试没有显式构造“先 pointerdown 并成功 setPointerCapture，再滚动进入 retained”的序列，也没有
+spy `releasePointerCapture`；capture 取消这一点目前由上述明确的单路径实现保证。建议后续给
+`pointer-selection.test.tsx` 增加 enabled true→false 的断言，防止生命周期改动回归，但未发现当前实现
+缺陷，因此不作为验收阻塞。
+
+本轮遵循 task-tree reviewer 规则，没有重复执行 executor 已报告通过的 projection 5 tests、React 21 tests、
+typecheck/build/ESLint/cycles/scans/diff-check。相关源码分别 216、182、125 行，新增定向测试 289 行，仍满足
+单一职责与 300 行上限。
+
+001 最新结论：`APPROVED`。retained projection 的大跨度 viewport 几何、逻辑坐标、pending 交互隔离、
+resolve 恢复与 pointer capture 取消均已闭环；可以进入用户验收。

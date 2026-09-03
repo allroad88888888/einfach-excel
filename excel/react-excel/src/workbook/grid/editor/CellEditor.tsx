@@ -6,7 +6,6 @@ import {
   editingCommitLifecycleAtom,
   editingDraftAtom,
   editingSessionAtom,
-  retryCellEditingRefreshAtom,
   visibleWindowAtom,
 } from '@einfach/spreadsheet-ui-core'
 import type { CSSProperties, FocusEvent, KeyboardEvent, PointerEvent } from 'react'
@@ -25,19 +24,12 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
   const rowStart = useAtomValue(visibleWindowAtom).rowStart
   const cancelEditing = useSetAtom(cancelEditingAtom)
   const commitEditing = useSetAtom(commitCellEditingAtom)
-  const retryRefresh = useSetAtom(retryCellEditingRefreshAtom)
   const setDraft = useSetAtom(editingDraftAtom)
   const inputRef = useRef<HTMLInputElement>(null)
   const committingRef = useRef(false)
   const suppressBlurRef = useRef(false)
   const cell = session.source?.cell ?? null
-  const busy = [
-    'pending',
-    'local-acknowledged',
-    'refreshing',
-    'refresh-failed',
-    'outcome-unknown',
-  ].includes(lifecycle.status)
+  const busy = lifecycle.status === 'pending' || lifecycle.status === 'outcome-unknown'
   const feedback = editingCommitFeedback(lifecycle)
   const editingFromFormulaBar = session.source?.source === 'formula-bar'
 
@@ -113,11 +105,6 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
       {feedback && (
         <div className="cell-editor-feedback" role="alert">
           <span>{feedback.message}</span>
-          {lifecycle.status === 'refresh-failed' && (
-            <button type="button" onClick={() => void retryRefresh()}>
-              Retry refresh
-            </button>
-          )}
         </div>
       )}
     </div>

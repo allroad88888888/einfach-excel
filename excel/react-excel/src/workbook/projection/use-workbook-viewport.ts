@@ -4,7 +4,6 @@ import {
   projectionSnapshotAtom,
   resetProjectionAtom,
   runVisibleProjectionAtom,
-  scrollToCellAtom,
   type CellRange,
   type ProjectionSnapshot,
   type ProjectionStatus,
@@ -40,8 +39,6 @@ export interface WorkbookViewport {
   readonly error: SpreadsheetError | undefined
   readonly truncated: boolean | undefined
   refresh(): Promise<void>
-  /** Requests that a row and column become the visible window's origin. */
-  scrollTo(row: number, col: number): void
 }
 
 function normalizeCount(value: number): number {
@@ -126,7 +123,6 @@ export function useWorkbookViewport(options: UseWorkbookViewportOptions): Workbo
   const snapshot: ProjectionSnapshot = useAtomValue(projectionSnapshotAtom)
   const resetProjection = useSetAtom(resetProjectionAtom)
   const runVisibleProjection = useSetAtom(runVisibleProjectionAtom)
-  const scrollToCell = useSetAtom(scrollToCellAtom)
   const { sheetId } = options
   const rowCount = normalizeCount(options.rowCount)
   const colCount = normalizeCount(options.colCount)
@@ -186,14 +182,6 @@ export function useWorkbookViewport(options: UseWorkbookViewportOptions): Workbo
     if (outcome.status === 'superseded') throw new Error('Projection refresh was superseded.')
   }
 
-  const scrollTo = (row: number, col: number) => {
-    scrollToCell({
-      coord: { row, col },
-      rowAlign: 'start',
-      colAlign: 'start',
-    })
-  }
-
   const current = isCurrentRequest(snapshot, sheetId, requestedWindow)
   const result =
     snapshot.result?.kind === 'visible-window' && snapshot.result.sheetId === sheetId
@@ -211,6 +199,5 @@ export function useWorkbookViewport(options: UseWorkbookViewportOptions): Workbo
     error: current ? snapshot.error : undefined,
     truncated: result?.truncated,
     refresh,
-    scrollTo,
   }
 }

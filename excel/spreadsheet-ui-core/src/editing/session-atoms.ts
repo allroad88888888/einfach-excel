@@ -1,41 +1,26 @@
 /**
  * Public synchronous editing atoms.
- * Async Rust transport, acknowledgement, timeline projection, and refresh sequencing live in run-commit.ts.
+ * The asynchronous Rust transaction lives in commit-cell-editing.ts.
  */
 import { atom, type Atom } from '@einfach/core'
 import { keyboardModeAtom } from '../keyboard'
 import {
   activeEditingCommitTicketAtom,
   editingCommitLifecycleBackingAtom,
-  editingIntentBackingAtom,
   editingSessionBackingAtom,
-  editingSessionSequenceAtom,
   lifecycleFor,
-  nextSafeEditingIdentity,
 } from './commit-state'
 import {
   cancelEditingSessionState,
-  createEditingCancelIntent,
-  createEditingStartIntent,
   startEditingSessionState,
   updateEditingDraftState,
 } from './session-domain'
-import type {
-  EditingDraftInput,
-  EditingIntent,
-  EditingSessionState,
-  EditingStartInput,
-} from './types'
+import type { EditingDraftInput, EditingSessionState, EditingStartInput } from './types'
 
 export const editingSessionAtom: Atom<EditingSessionState> = atom((get) =>
   get(editingSessionBackingAtom),
 )
 editingSessionAtom.debugLabel = 'spreadsheet.editing.session'
-
-export const editingIntentAtom: Atom<EditingIntent | null> = atom((get) =>
-  get(editingIntentBackingAtom),
-)
-editingIntentAtom.debugLabel = 'spreadsheet.editing.intent'
 
 export const editingIsActiveAtom = atom((get) => get(editingSessionAtom).status === 'drafting')
 editingIsActiveAtom.debugLabel = 'spreadsheet.editing.isActive'
@@ -54,14 +39,9 @@ export const startEditingAtom = atom(
   (get) => get(editingSessionAtom),
   (get, set, input: EditingStartInput) => {
     if (get(activeEditingCommitTicketAtom) !== null) return get(editingSessionAtom)
-    const sessionId = nextSafeEditingIdentity(get(editingSessionSequenceAtom))
-    if (sessionId === null) return get(editingSessionAtom)
     const session = startEditingSessionState(get(editingSessionAtom), input)
-    // Publish the new identity before its observable session and keyboard projections.
-    set(editingSessionSequenceAtom, sessionId)
     set(editingSessionBackingAtom, session)
-    set(editingIntentBackingAtom, createEditingStartIntent(input))
-    set(editingCommitLifecycleBackingAtom, lifecycleFor('ready', { sessionId }))
+    set(editingCommitLifecycleBackingAtom, lifecycleFor('ready'))
     set(keyboardModeAtom, 'editing')
     return session
   },
@@ -74,17 +54,12 @@ export const cancelEditingAtom = atom(
     // Cancellation cannot steal ownership from an in-flight or outcome-unknown transaction.
     if (get(activeEditingCommitTicketAtom) !== null) return null
     const state = get(editingSessionAtom)
-    const intent = createEditingCancelIntent(state)
-    if (intent === null) return null
+    if (state.source === null) return null
 
-    set(editingIntentBackingAtom, intent)
     set(editingSessionBackingAtom, cancelEditingSessionState(state))
-    set(
-      editingCommitLifecycleBackingAtom,
-      lifecycleFor('ready', { sessionId: get(editingSessionSequenceAtom) }),
-    )
+    set(editingCommitLifecycleBackingAtom, lifecycleFor('ready'))
     set(keyboardModeAtom, 'navigation')
-    return intent
+    return true
   },
 )
 cancelEditingAtom.debugLabel = 'spreadsheet.editing.cancel'

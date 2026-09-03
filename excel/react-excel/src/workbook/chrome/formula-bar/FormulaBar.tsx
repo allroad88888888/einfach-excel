@@ -10,30 +10,8 @@ import {
   startCellEditingFromProjectionAtom,
 } from '@einfach/spreadsheet-ui-core'
 import type { FocusEvent, FormEvent, KeyboardEvent } from 'react'
+import { NameBox } from './NameBox'
 import './formula-bar.css'
-
-function columnLabel(index: number): string {
-  return String.fromCharCode(65 + index)
-}
-
-function selectionLabel(range: {
-  colEnd: number
-  colStart: number
-  rowEnd: number
-  rowStart: number
-}): string {
-  const start = `${columnLabel(range.colStart)}${range.rowStart + 1}`
-  const end = `${columnLabel(range.colEnd)}${range.rowEnd + 1}`
-  return start === end ? start : `${start}:${end}`
-}
-
-const BUSY_EDITING_STATUSES = new Set([
-  'pending',
-  'local-acknowledged',
-  'refreshing',
-  'refresh-failed',
-  'outcome-unknown',
-])
 
 /** Edits the active cell through the same atom session as the in-cell editor. */
 export function FormulaBar() {
@@ -63,7 +41,8 @@ export function FormulaBar() {
   const value = editingActiveCell
     ? editingDraft
     : (selectedCell?.formula ?? selectedCell?.displayValue ?? '')
-  const busy = BUSY_EDITING_STATUSES.has(editingLifecycle.status)
+  const busy =
+    editingLifecycle.status === 'pending' || editingLifecycle.status === 'outcome-unknown'
 
   const beginFormulaEditing = () => {
     if (busy) return
@@ -105,9 +84,7 @@ export function FormulaBar() {
 
   return (
     <div className="formula-bar">
-      <output className="name-box" aria-label="Selected range">
-        {selectionLabel(selection.range)}
-      </output>
+      <NameBox />
       <span className="formula-divider" aria-hidden="true" />
       <span className="insert-function" aria-hidden="true">
         fx

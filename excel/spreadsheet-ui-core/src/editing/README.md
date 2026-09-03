@@ -1,38 +1,38 @@
 # editing
 
-Owns cell editor draft, source, commit, and cancel UI state.
+负责单元格编辑器的草稿、来源、提交状态与取消。工作簿值不在这里保存，提交只调用 Rust。
 
-## State Decision Template
+## Atom 清单
 
 - Source atoms:
-  - `editingSessionAtom`: one active edit session, including address, source, draft, and diagnostic.
-  - `editingIntentAtom`: last edit intent for the host adapter to consume.
+  - `editingSessionAtom`: 当前唯一编辑会话，包含地址、来源和草稿。
+  - `editingCommitLifecycleAtom`: `ready / blocked / pending / rejected / outcome-unknown`。
 - Derived atoms:
-  - `editingIsActiveAtom`: derived from `editingSessionAtom.status`.
-  - `editingDraftAtom`: writable draft view over `editingSessionAtom`.
+  - `editingIsActiveAtom`: 是否正在编辑。
+  - `editingDraftAtom`: 当前草稿的可写视图。
 - Commands:
   - `startEditingAtom`
-  - `runEditingCommitAtom`
+  - `startCellEditingFromProjectionAtom`
+  - `commitCellEditingAtom`
   - `cancelEditingAtom`
 - Scale bound: one active edit session.
-- Backend reads: none directly. Adapter may read source/formula text when starting an explicit edit.
+- Backend reads: `cell.setInput` 一次返回 ACK 和写入后的可见窗口；开始编辑时从当前投影读取源文本。
 - Per-cell/per-row/per-col atom risk: none; editing state stores one active cell coordinate only.
-- Tests: `test/editing-session.test.ts` and the focused `editing-commit-*.test.ts` suites.
+- Tests: `test/editing-session.test.ts`、`test/cell-editing-commands.test.ts` 和 `editing-commit-*.test.ts`。
 
-## Internal module boundaries
+## 内部文件边界
 
-- `session-domain.ts`: pure session transitions and intent construction.
-- `session-atoms.ts`: synchronous session selectors and commands.
-- `commit-input.ts`: untrusted host input and acknowledgement validation.
-- `commit-ticket.ts`: frozen request, intent and capability ticket construction.
-- `bounded-operation.ts`: finite host-promise execution.
-- `commit-state.ts`: private commit ticket, lifecycle state and authority checks.
-- `history-projection.ts`: replay-capability guard and Rust-log-aligned UI timeline metadata.
-- `commit-settlement.ts`: terminal ticket settlement.
-- `run-commit.ts`: serialized mutation-to-refresh transaction state machine.
-- `retry-refresh.ts`: acknowledged mutation refresh retry.
-- `reconcile-commit.ts`: explicit settlement after an unknown timeout outcome.
-- `index.ts`: public editing exports only.
+- `session-domain.ts`: 纯编辑会话转换。
+- `session-atoms.ts`: 同步会话 atom 与命令。
+- `start-cell-editing.ts`: 从当前 Rust 投影开始编辑。
+- `commit-cell-editing.ts`: 一条串行的 Rust 编辑事务。
+- `commit-state.ts`: 提交锁与生命周期。
+- `bounded-operation.ts`: Worker Promise 超时边界。
+- `commit-feedback.ts`: 生命周期到界面提示的映射。
+- `index.ts`: 公共导出。
+
+提交没有第二条 refresh 链。Rust 的 `cell.setInput` 已经把新可见区放在同一回包中；当前窗口没变就
+直接发布，期间发生过滚动就丢弃旧窗口结果。ACK 不匹配或超时会保留锁，防止盲目重发未知写入。
 
 ## Mutation gateway (`mutation-gateway.ts`)
 

@@ -34,23 +34,16 @@ interface ControlledConnection {
       revision: number
     }>
   >
+  readonly commands: string[]
   failNextMutation(message: string): void
-  failNextRefresh(message: string): void
 }
 
 function createControlledConnection(): ControlledConnection {
   const values = new Map<string, string>()
+  const commands: string[] = []
   let mutationFailure: string | undefined
-  let refreshFailure: string | undefined
   let revision = 0
-  const readVisibleProjection = jest.fn(async (
-    request: VisibleProjectionRequest,
-  ): Promise<VisibleProjectionResult> => {
-    if (refreshFailure !== undefined) {
-      const message = refreshFailure
-      refreshFailure = undefined
-      throw new Error(message)
-    }
+  const project = (request: VisibleProjectionRequest): VisibleProjectionResult => {
     const cells = []
     for (let row = request.window.rowStart; row <= request.window.rowEnd; row += 1) {
       for (let col = request.window.colStart; col <= request.window.colEnd; col += 1) {
@@ -70,7 +63,11 @@ function createControlledConnection(): ControlledConnection {
       window: request.window,
       cells,
     }
-  })
+  }
+  const readVisibleProjection = jest.fn(async (request: VisibleProjectionRequest) =>
+    project(request),
+  )
+  const setCellProjection = jest.fn(async (request: VisibleProjectionRequest) => project(request))
   const setCellInput = jest.fn(async (request: EditingCommitRequest) => {
     if (mutationFailure !== undefined) {
       const message = mutationFailure
@@ -87,14 +84,17 @@ function createControlledConnection(): ControlledConnection {
   })
 
   return {
-    connection: createTestRustWorkbookConnection({ readVisibleProjection, setCellInput }),
+    connection: createTestRustWorkbookConnection({
+      onRequest: (command) => commands.push(command),
+      readVisibleProjection,
+      setCellInput,
+      setCellProjection,
+    }),
     readVisibleProjection,
     setCellInput,
+    commands,
     failNextMutation: (message) => {
       mutationFailure = message
-    },
-    failNextRefresh: (message) => {
-      refreshFailure = message
     },
   }
 }
@@ -174,7 +174,8 @@ describe('Rust workbook cell editing', () => {
     )
     await waitFor(() => expect(screen.queryByRole('textbox', { name: 'Cell editor' })).toBeNull())
     expect(await firstCell()).toHaveTextContent('Edited order')
-    expect(controlled.readVisibleProjection).toHaveBeenCalledTimes(2)
+    expect(controlled.readVisibleProjection).toHaveBeenCalledTimes(1)
+    expect(controlled.commands).toEqual(['projection.readVisible', 'cell.setInput'])
     await waitFor(() => expect(document.activeElement).toBe(grid))
 
     fireEvent.keyDown(document.activeElement!, { key: 'Enter' })
@@ -279,29 +280,5 @@ describe('Rust workbook cell editing', () => {
     })
     expect(store.getter(editingSessionAtom).draft).toBe('Retry changed')
     expect(controlled.readVisibleProjection).toHaveBeenCalledTimes(1)
-  })
-
-  it('retains refresh retry authority after one acknowledged mutation', async () => {
-    const controlled = createControlledConnection()
-    const store = renderWorksheet(controlled)
-    fireEvent.doubleClick(await firstCell())
-    const editor = await focusedEditor()
-    fireEvent.change(editor, { target: { value: 'Saved once' } })
-    controlled.failNextRefresh('Rust projection retry needed')
-    fireEvent.keyDown(editor, { key: 'Enter' })
-
-    await waitFor(() => {
-      expect(store.getter(editingCommitLifecycleAtom)).toMatchObject({
-        status: 'refresh-failed',
-        acknowledgedRevision: 1,
-      })
-    })
-    expect(controlled.setCellInput).toHaveBeenCalledTimes(1)
-    expect(screen.getByText('This edit was saved, but the sheet could not be refreshed.')).toBeVisible()
-
-    fireEvent.click(screen.getByRole('button', { name: 'Retry refresh' }))
-    await waitFor(() => expect(store.getter(editingCommitLifecycleAtom).status).toBe('ready'))
-    expect(controlled.setCellInput).toHaveBeenCalledTimes(1)
-    expect(await firstCell()).toHaveTextContent('Saved once')
   })
 })

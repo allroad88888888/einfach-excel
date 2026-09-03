@@ -1,455 +1,56 @@
 import { atom, type Atom } from '@einfach/core'
 import { cloneFormat } from '../backend'
 import type {
-  DisplayCell,
-  ProjectionCancelToken,
   ProjectionRequestId,
-  ProjectionRequestReason,
-  ProjectionRevision,
   RangeProjectionRequest,
-  RangeProjectionResult,
   SpreadsheetCellFormat,
   VisibleProjectionRequest,
-  VisibleProjectionResult,
 } from '../backend'
 import { selectionSnapshotAtom } from '../selection'
-import type { CellRange, SheetRef, SpreadsheetError } from '../shared'
+import type { SpreadsheetError } from '../shared'
+import {
+  createRangeProjectionRequest,
+  createVisibleProjectionRequest,
+  validateProjectionRequest,
+  validateProjectionResult,
+} from './contracts'
+import {
+  IDLE_PROJECTION_SNAPSHOT,
+  freezeProjectionRequest,
+  freezeProjectionResult,
+  freezeProjectionSnapshot,
+  freezeProjectionValidationError,
+  nextProjectionRequestId,
+  projectionErrorFrom,
+  projectionLaneBackingAtom,
+  projectionRequestSequenceBackingAtom,
+  projectionSnapshotAtom,
+  projectionSnapshotBackingAtom,
+  sameProjectionRequest,
+  type ProjectionLaneTicket,
+} from './state'
 import type {
   BeginProjectionInput,
-  ProjectionLimitOptions,
   ProjectionBeginOutcome,
   ProjectionRejectOutcome,
   ProjectionRequest,
   ProjectionResolveOutcome,
   ProjectionResult,
-  ProjectionSnapshot,
-  ProjectionValidationCode,
-  ProjectionValidationError,
   ProjectionValidationResult,
   RejectProjectionInput,
   ReportProjectionErrorInput,
   ResolveProjectionInput,
 } from './types'
 
+export * from './contracts'
 export * from './types'
-
-export const DEFAULT_MAX_PROJECTION_CELLS = 50_000
-
-export interface CreateVisibleProjectionRequestInput extends SheetRef {
-  window: CellRange
-  requestId: ProjectionRequestId
-  reason?: ProjectionRequestReason
-  revision?: ProjectionRevision
-  cancelToken?: ProjectionCancelToken
-}
-
-export interface CreateRangeProjectionRequestInput extends SheetRef {
-  range: CellRange
-  requestId: ProjectionRequestId
-  reason: ProjectionRequestReason
-  revision?: ProjectionRevision
-  cancelToken?: ProjectionCancelToken
-}
-
-function copyRange(range: CellRange): CellRange {
-  return {
-    rowStart: range.rowStart,
-    rowEnd: range.rowEnd,
-    colStart: range.colStart,
-    colEnd: range.colEnd,
-  }
-}
-
-function isInteger(value: number) {
-  return Number.isSafeInteger(value)
-}
-
-function sameRange(left: CellRange, right: CellRange) {
-  return (
-    left.rowStart === right.rowStart &&
-    left.rowEnd === right.rowEnd &&
-    left.colStart === right.colStart &&
-    left.colEnd === right.colEnd
-  )
-}
-
-function makeInvalid(
-  code: ProjectionValidationCode,
-  message: string,
-  extra: Omit<Extract<ProjectionValidationResult, { ok: false }>['error'], 'code' | 'message'> = {},
-): ProjectionValidationResult {
-  return {
-    ok: false,
-    error: {
-      code,
-      message,
-      ...extra,
-    },
-  }
-}
-
-export function createVisibleProjectionRequest(
-  input: CreateVisibleProjectionRequestInput,
-): VisibleProjectionRequest {
-  return {
-    kind: 'visible-window',
-    sheetId: input.sheetId,
-    window: copyRange(input.window),
-    requestId: input.requestId,
-    reason: input.reason,
-    revision: input.revision,
-    cancelToken: input.cancelToken,
-  }
-}
-
-export function createRangeProjectionRequest(
-  input: CreateRangeProjectionRequestInput,
-): RangeProjectionRequest {
-  return {
-    kind: 'range',
-    sheetId: input.sheetId,
-    range: copyRange(input.range),
-    requestId: input.requestId,
-    reason: input.reason,
-    revision: input.revision,
-    cancelToken: input.cancelToken,
-  }
-}
-
-export function getProjectionRequestRange(request: ProjectionRequest): CellRange {
-  return request.kind === 'visible-window' ? request.window : request.range
-}
-
-export function getProjectionResultRange(result: ProjectionResult): CellRange {
-  return result.kind === 'visible-window' ? result.window : result.range
-}
-
-export function isEmptyRange(range: CellRange): boolean {
-  return range.rowEnd < range.rowStart || range.colEnd < range.colStart
-}
-
-export function countRangeCells(range: CellRange): number {
-  if (isEmptyRange(range)) {
-    return 0
-  }
-  return (range.rowEnd - range.rowStart + 1) * (range.colEnd - range.colStart + 1)
-}
-
-export function isCellInRange(cell: DisplayCell, range: CellRange): boolean {
-  return (
-    cell.row >= range.rowStart &&
-    cell.row <= range.rowEnd &&
-    cell.col >= range.colStart &&
-    cell.col <= range.colEnd
-  )
-}
-
-export function getProjectionWindowKey(sheetId: string, range: CellRange): string {
-  return `${sheetId}:${range.rowStart}:${range.rowEnd}:${range.colStart}:${range.colEnd}`
-}
-
-function validateProjectionRange(
-  sheetId: string,
-  requestId: ProjectionRequestId,
-  range: CellRange,
-  options: ProjectionLimitOptions = {},
-): ProjectionValidationResult {
-  const maxCells = options.maxCells ?? DEFAULT_MAX_PROJECTION_CELLS
-
-  if (sheetId.length === 0) {
-    return makeInvalid('INVALID_SHEET', 'Projection requests must include a sheet id.')
-  }
-
-  if (!isInteger(requestId) || requestId === 0) {
-    return makeInvalid(
-      'INVALID_REQUEST_ID',
-      'Projection request ids must be non-zero safe integers.',
-    )
-  }
-
-  if (
-    !isInteger(range.rowStart) ||
-    !isInteger(range.rowEnd) ||
-    !isInteger(range.colStart) ||
-    !isInteger(range.colEnd) ||
-    range.rowStart < 0 ||
-    range.colStart < 0
-  ) {
-    return makeInvalid('INVALID_RANGE', 'Projection ranges must use non-negative integer bounds.', {
-      range,
-    })
-  }
-
-  if (isEmptyRange(range)) {
-    return makeInvalid('EMPTY_RANGE', 'Empty ranges should not be sent to the backend.', {
-      range,
-    })
-  }
-
-  const cellCount = countRangeCells(range)
-  if (cellCount > maxCells) {
-    return makeInvalid('RANGE_TOO_LARGE', 'Projection requests must remain bounded.', {
-      range,
-      cellCount,
-      maxCells,
-    })
-  }
-
-  return {
-    ok: true,
-    cellCount,
-  }
-}
-
-export function validateProjectionRequest(
-  request: ProjectionRequest,
-  options: ProjectionLimitOptions = {},
-): ProjectionValidationResult {
-  return validateProjectionRange(
-    request.sheetId,
-    request.requestId,
-    getProjectionRequestRange(request),
-    options,
-  )
-}
-
-export function isProjectionResultForRequest(
-  request: ProjectionRequest,
-  result: ProjectionResult,
-): boolean {
-  return (
-    request.kind === result.kind &&
-    request.sheetId === result.sheetId &&
-    request.requestId === result.requestId &&
-    sameRange(getProjectionRequestRange(request), getProjectionResultRange(result)) &&
-    projectionRevisionsCorrelate(request.revision, result.revision)
-  )
-}
-
-/**
- * Revision is an optional content version, not a request identity witness.
- * An omitted request revision lets the backend establish the current version;
- * an explicit request version must be echoed exactly.
- */
-export function projectionRevisionsCorrelate(
-  requestRevision: ProjectionRevision | undefined,
-  resultRevision: ProjectionRevision | undefined,
-): boolean {
-  return requestRevision === undefined || requestRevision === resultRevision
-}
-
-export function validateProjectionResult(
-  result: ProjectionResult,
-  options: ProjectionLimitOptions & { request?: ProjectionRequest } = {},
-): ProjectionValidationResult {
-  if (options.request && !isProjectionResultForRequest(options.request, result)) {
-    return makeInvalid('STALE_RESULT', 'Projection result does not match its request.')
-  }
-
-  const range = getProjectionResultRange(result)
-  const requestValidation = validateProjectionRange(
-    result.sheetId,
-    result.requestId,
-    range,
-    options,
-  )
-
-  if (!requestValidation.ok) {
-    return requestValidation
-  }
-
-  if (result.cells.length > requestValidation.cellCount) {
-    return makeInvalid(
-      'RESULT_TOO_LARGE',
-      'Projection results may not contain more cells than the requested range.',
-      {
-        range,
-        cellCount: result.cells.length,
-        maxCells: requestValidation.cellCount,
-      },
-    )
-  }
-
-  for (const cell of result.cells) {
-    if (!isCellInRange(cell, range)) {
-      return makeInvalid(
-        'CELL_OUT_OF_RANGE',
-        'Projection results may only include cells inside the requested range.',
-        { range },
-      )
-    }
-  }
-
-  return {
-    ok: true,
-    cellCount: requestValidation.cellCount,
-  }
-}
-
-export function createEmptyVisibleProjectionResult(
-  request: VisibleProjectionRequest,
-): VisibleProjectionResult {
-  return {
-    kind: 'visible-window',
-    sheetId: request.sheetId,
-    requestId: request.requestId,
-    revision: request.revision,
-    window: copyRange(request.window),
-    cells: [],
-  }
-}
-
-const MAX_PROJECTION_ERROR_TEXT = 512
-
-const IDLE_PROJECTION_SNAPSHOT: ProjectionSnapshot = Object.freeze({
-  status: 'idle',
-  request: undefined,
-  result: undefined,
-  error: undefined,
-})
-
-interface ProjectionLaneTicket<Request extends ProjectionRequest = ProjectionRequest> {
-  readonly request: Request
-  readonly retainResult: boolean
-}
-
-interface VisibleProjectionLaneState {
-  readonly active: ProjectionLaneTicket<VisibleProjectionRequest> | null
-  readonly queued: ProjectionLaneTicket<VisibleProjectionRequest> | null
-}
-
-interface ProjectionLaneState {
-  readonly visibleWindow: VisibleProjectionLaneState
-  readonly range: ProjectionLaneTicket<RangeProjectionRequest> | null
-}
-
-const EMPTY_PROJECTION_LANES: ProjectionLaneState = Object.freeze({
-  visibleWindow: Object.freeze({ active: null, queued: null }),
-  range: null,
-})
-
-function freezeProjectionValue<T>(value: T): T {
-  if (value === null || typeof value !== 'object') return value
-  if (Array.isArray(value)) {
-    return Object.freeze(value.map((item) => freezeProjectionValue(item))) as T
-  }
-
-  const snapshot: Record<string, unknown> = {}
-  for (const [key, child] of Object.entries(value)) {
-    snapshot[key] = freezeProjectionValue(child)
-  }
-  return Object.freeze(snapshot) as T
-}
-
-function freezeProjectionRequest(request: ProjectionRequest): ProjectionRequest {
-  return freezeProjectionValue(request)
-}
-
-function freezeProjectionResult(result: ProjectionResult): ProjectionResult {
-  return freezeProjectionValue(result)
-}
-
-function freezeProjectionValidationError(
-  error: ProjectionValidationError,
-): ProjectionValidationError {
-  return freezeProjectionValue(error)
-}
-
-function freezeProjectionSnapshot(snapshot: ProjectionSnapshot): ProjectionSnapshot {
-  return Object.freeze({
-    status: snapshot.status,
-    request: snapshot.request,
-    result: snapshot.result,
-    error: snapshot.error,
-  })
-}
-
-function boundedText(value: unknown, fallback: string): string {
-  const text = typeof value === 'string' && value.length > 0 ? value : fallback
-  return text.slice(0, MAX_PROJECTION_ERROR_TEXT)
-}
-
-function projectionErrorFrom(
-  error: unknown,
-  fallbackMessage = 'Spreadsheet projection failed.',
-  code?: string,
-): SpreadsheetError {
-  const fallbackCode = code ?? 'BACKEND_ERROR'
-  let source: Partial<SpreadsheetError> = {}
-  try {
-    if (typeof error === 'object' && error !== null) {
-      source = error as Partial<SpreadsheetError>
-    }
-  } catch {
-    source = {}
-  }
-
-  let message = fallbackMessage
-  try {
-    if (error instanceof Error) message = error.message
-    else if (typeof source.message === 'string') message = source.message
-  } catch {
-    message = fallbackMessage
-  }
-
-  const snapshot: SpreadsheetError = {
-    code: boundedText(source.code, fallbackCode),
-    message: boundedText(message, fallbackMessage),
-  }
-  if (source.severity !== undefined) snapshot.severity = source.severity
-  if (source.source !== undefined) snapshot.source = source.source
-  if (source.hint !== undefined) snapshot.hint = boundedText(source.hint, '')
-  return Object.freeze(snapshot)
-}
-
-function sameProjectionRequest(left: ProjectionRequest, right: ProjectionRequest): boolean {
-  return (
-    left.kind === right.kind &&
-    left.sheetId === right.sheetId &&
-    left.requestId === right.requestId &&
-    left.revision === right.revision &&
-    sameRange(getProjectionRequestRange(left), getProjectionRequestRange(right))
-  )
-}
-
-/** Crosses the positive safe-integer boundary once, then descends without reuse. */
-export function nextProjectionRequestId(sequence: number): ProjectionRequestId | null {
-  if (!Number.isSafeInteger(sequence)) return null
-  if (sequence >= 0) {
-    return sequence < Number.MAX_SAFE_INTEGER ? sequence + 1 : -1
-  }
-  return sequence > Number.MIN_SAFE_INTEGER ? sequence - 1 : null
-}
-
-// Product state is writable only inside this module. Framework packages receive
-// read-only atoms plus typed commands below.
-const projectionSnapshotBackingAtom = atom<ProjectionSnapshot>(IDLE_PROJECTION_SNAPSHOT)
-const projectionRequestSequenceBackingAtom = atom(0)
-const projectionLaneBackingAtom = atom<ProjectionLaneState>(EMPTY_PROJECTION_LANES)
-
-projectionSnapshotBackingAtom.debugLabel = 'spreadsheet.projection.snapshot.state'
-projectionRequestSequenceBackingAtom.debugLabel = 'spreadsheet.projection.requestSequence.state'
-projectionLaneBackingAtom.debugLabel = 'spreadsheet.projection.lanes.state'
-
-export const projectionSnapshotAtom: Atom<ProjectionSnapshot> = atom((get) =>
-  get(projectionSnapshotBackingAtom),
-)
-projectionSnapshotAtom.debugLabel = 'spreadsheet.projection.snapshot'
-
-export const projectionRequestIdAtom: Atom<number> = atom((get) =>
-  get(projectionRequestSequenceBackingAtom),
-)
-projectionRequestIdAtom.debugLabel = 'spreadsheet.projection.requestId'
-
-export const issueProjectionRequestIdAtom = atom(
-  (get) => get(projectionRequestIdAtom),
-  (get, set): ProjectionRequestId | null => {
-    const next = nextProjectionRequestId(get(projectionRequestSequenceBackingAtom))
-    if (next !== null) set(projectionRequestSequenceBackingAtom, next)
-    return next
-  },
-)
-issueProjectionRequestIdAtom.debugLabel = 'spreadsheet.projection.issueRequestId'
+export { applyVisibleProjectionAtom } from './apply-visible-projection'
+export {
+  issueProjectionRequestIdAtom,
+  nextProjectionRequestId,
+  projectionRequestIdAtom,
+  projectionSnapshotAtom,
+} from './state'
 
 function createProjectionRequest(
   input: BeginProjectionInput,
@@ -782,19 +383,6 @@ export const reportProjectionErrorAtom = atom(
   },
 )
 reportProjectionErrorAtom.debugLabel = 'spreadsheet.projection.reportError'
-
-export function createEmptyRangeProjectionResult(
-  request: RangeProjectionRequest,
-): RangeProjectionResult {
-  return {
-    kind: 'range',
-    sheetId: request.sheetId,
-    requestId: request.requestId,
-    revision: request.revision,
-    range: copyRange(request.range),
-    cells: [],
-  }
-}
 
 /**
  * Derived: the active cell's cell-level format, looked up in the current

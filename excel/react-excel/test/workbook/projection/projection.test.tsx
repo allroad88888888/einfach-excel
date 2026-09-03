@@ -168,7 +168,7 @@ describe('Rust workbook projection window', () => {
       colStart: 6,
       colEnd: 6,
     })
-    expect(screen.getByLabelText('Selected range')).toHaveTextContent('G1001')
+    expect(screen.getByRole('textbox', { name: 'Name box' })).toHaveValue('G1001')
     expect(screen.getByLabelText('Active cell value')).toHaveValue('=E1001*F1001')
     expect(document.querySelectorAll('td')).toHaveLength(
       GRID_WINDOW_ROW_COUNT * SALES_ORDER_COLUMNS.length,

@@ -1,11 +1,8 @@
 /// <reference lib="WebWorker" />
 
-import type {
-  BackendMutationResult,
-  VisibleProjectionResult,
-} from '../backend'
+import type { BackendMutationResult } from '../backend'
 import type { WorkerErrorWire, WorkerRequestWire } from '../rust-worker/types'
-import { displayCell, writeCellInput } from './cell-io'
+import { writeCellInput } from './cell-io'
 import type {
   RustImportCell,
   RustWorkbookCommands,
@@ -13,6 +10,7 @@ import type {
   RustWorkbookSheetInput,
 } from './commands'
 import type { RustWasmModule, WasmWorkbook } from './wasm-types'
+import { readVisibleProjection } from './visible-projection'
 
 type CommandName = keyof RustWorkbookCommands
 
@@ -24,13 +22,6 @@ function rpcError(error: unknown): WorkerErrorWire {
     message: typed.message,
     ...(typed.detail === undefined ? {} : { detail: typed.detail }),
   }
-}
-
-function requiredMethod<T>(method: T | undefined, name: string): T {
-  if (method) return method
-  throw Object.assign(new Error(`WasmWorkbook.${name} is unavailable`), {
-    code: 'WASM_METHOD_UNAVAILABLE',
-  })
 }
 
 /** 在 Worker 内维护唯一 Rust 工作簿，并处理四条 UI Core 命令。 */
@@ -69,13 +60,15 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
   }
 
   function currentWorkbook(): WasmWorkbook {
-    if (!workbook) throw Object.assign(new Error('Workbook is not initialized'), { code: 'NOT_READY' })
+    if (!workbook)
+      throw Object.assign(new Error('Workbook is not initialized'), { code: 'NOT_READY' })
     return workbook
   }
 
   function sheetIndex(sheetId: string): number {
     const sheet = sheetsById.get(sheetId)
-    if (!sheet) throw Object.assign(new Error(`Unknown sheet: ${sheetId}`), { code: 'INVALID_SHEET' })
+    if (!sheet)
+      throw Object.assign(new Error(`Unknown sheet: ${sheetId}`), { code: 'INVALID_SHEET' })
     return sheet.index
   }
 
@@ -91,39 +84,23 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
     }
     if (command === 'projection.readVisible') {
       const { request } = payload as RustWorkbookCommands[typeof command]['payload']
-      const read = requiredMethod(current.read_sparse_range, 'read_sparse_range')
-      const cells = read.call(
+      return readVisibleProjection(
         current,
         sheetIndex(request.sheetId),
-        request.window.rowStart,
-        request.window.colStart,
-        request.window.rowEnd,
-        request.window.colEnd,
+        request,
+        request.revision ?? revision,
       )
-      const result: VisibleProjectionResult = {
-        kind: 'visible-window',
-        sheetId: request.sheetId,
-        requestId: request.requestId,
-        revision: request.revision ?? revision,
-        window: { ...request.window },
-        cells: cells
-          .map(displayCell)
-          .filter((cell): cell is NonNullable<typeof cell> => cell !== null)
-          .sort((left, right) => left.row - right.row || left.col - right.col),
-      }
-      return result
     }
     if (command === 'cell.setInput') {
-      const { request } = payload as RustWorkbookCommands[typeof command]['payload']
-      writeCellInput(
-        current,
-        sheetIndex(request.sheetId),
-        request.row,
-        request.col,
-        request.input,
-      )
+      const { request, projection } = payload as RustWorkbookCommands[typeof command]['payload']
+      if (projection.sheetId !== request.sheetId) {
+        throw Object.assign(new Error('Mutation and projection must target the same sheet'), {
+          code: 'PROJECTION_SHEET_MISMATCH',
+        })
+      }
+      writeCellInput(current, sheetIndex(request.sheetId), request.row, request.col, request.input)
       revision += 1
-      const result: BackendMutationResult = {
+      const acknowledgement: BackendMutationResult = {
         sheetId: request.sheetId,
         requestId: request.requestId,
         revision,
@@ -134,7 +111,15 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
           colEnd: request.col,
         },
       }
-      return result
+      return {
+        acknowledgement,
+        projection: readVisibleProjection(
+          current,
+          sheetIndex(projection.sheetId),
+          projection,
+          revision,
+        ),
+      }
     }
     throw Object.assign(new Error(`Unknown command: ${String(command)}`), {
       code: 'UNKNOWN_COMMAND',

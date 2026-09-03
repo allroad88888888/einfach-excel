@@ -36,6 +36,12 @@ export interface RustImportStats {
   readonly issues?: readonly unknown[]
 }
 
+/** 单元格写入后的确认与同一 Rust 修订版可见区。 */
+export interface RustSetCellInputResult {
+  readonly acknowledgement: BackendMutationResult
+  readonly projection: VisibleProjectionResult
+}
+
 export interface RustWorkbookCommands {
   readonly 'workbook.initialize': WorkerCommand<
     { readonly sheets: readonly RustWorkbookSheetInput[] },
@@ -50,8 +56,11 @@ export interface RustWorkbookCommands {
     VisibleProjectionResult
   >
   readonly 'cell.setInput': WorkerCommand<
-    { readonly request: SetCellInputRequest },
-    BackendMutationResult
+    {
+      readonly request: SetCellInputRequest
+      readonly projection: VisibleProjectionRequest
+    },
+    RustSetCellInputResult
   >
 }
 

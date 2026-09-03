@@ -3,7 +3,6 @@ import { describe, expect, test } from '@jest/globals'
 
 import {
   cancelEditingAtom,
-  editingIntentAtom,
   editingSessionAtom,
   startEditingAtom,
   updateEditingDraftState,
@@ -31,13 +30,6 @@ describe('editing session', () => {
         source: 'cell',
       },
       draft: '=A1+1',
-      diagnostic: null,
-    })
-    expect(store.getter(editingIntentAtom)).toEqual({
-      type: 'editing.start',
-      sheetId: 'sheet-1',
-      cell: { row: 2, col: 3 },
-      source: 'cell',
     })
   })
 
@@ -50,7 +42,6 @@ describe('editing session', () => {
         source: 'formula-bar',
       },
       draft: '=SUM(A1:A3)',
-      diagnostic: null,
     }
 
     const afterFormulaBar = updateEditingDraftState(state, {
@@ -81,7 +72,7 @@ describe('editing session', () => {
     })
   })
 
-  test('cancels an active session and publishes its intent', () => {
+  test('cancels an active session back to idle', () => {
     const store = createStore()
 
     store.setter(startEditingAtom, {
@@ -91,19 +82,13 @@ describe('editing session', () => {
       source: 'paste',
     })
 
-    const cancelIntent = store.setter(cancelEditingAtom)
+    const cancelled = store.setter(cancelEditingAtom)
 
-    expect(cancelIntent).toEqual({
-      type: 'editing.cancel',
-      sheetId: 'sheet-1',
-      cell: { row: 4, col: 2 },
-      source: 'paste',
-    })
+    expect(cancelled).toBe(true)
     expect(store.getter(editingSessionAtom)).toEqual({
-      status: 'cancelled',
+      status: 'idle',
       source: null,
       draft: '',
-      diagnostic: null,
     })
   })
 })

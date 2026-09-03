@@ -6,7 +6,6 @@ import {
   editingDraftAtom,
   editingSessionAtom,
   projectionSnapshotAtom,
-  retryCellEditingRefreshAtom,
   runVisibleProjectionAtom,
   startCellEditingFromProjectionAtom,
   type BackendMutationResult,
@@ -118,20 +117,24 @@ describe('bound cell editing commands', () => {
     })
   })
 
-  test('retries only refresh after one acknowledged mutation', async () => {
-    let projectionCalls = 0
-    const readVisibleProjection = jest.fn(async (request: VisibleProjectionRequest) => {
-      projectionCalls += 1
-      if (projectionCalls === 2) throw new Error('Rust refresh failed')
-      return projectionResult(request, projectionCalls === 3 ? 'Saved once' : 'Before')
-    })
+  test('publishes the projection bundled with one mutation command', async () => {
+    const readVisibleProjection = jest.fn(async (request: VisibleProjectionRequest) =>
+      projectionResult(request, 'Before'),
+    )
+    const setCellProjection = jest.fn(async (request: VisibleProjectionRequest) =>
+      projectionResult(request, 'Saved once'),
+    )
     const setCellInput = jest.fn(async (request: EditingCommitRequest) => ({
       sheetId: request.sheetId,
       requestId: request.requestId,
       revision: 1,
     }))
     const core = createSpreadsheetUi({
-      connection: createTestRustWorkbookConnection({ readVisibleProjection, setCellInput }),
+      connection: createTestRustWorkbookConnection({
+        readVisibleProjection,
+        setCellInput,
+        setCellProjection,
+      }),
     })
     await core.store.setter(runVisibleProjectionAtom, visibleInput)
     core.store.setter(startCellEditingFromProjectionAtom, {
@@ -140,23 +143,13 @@ describe('bound cell editing commands', () => {
     })
     core.store.setter(editingDraftAtom, { draft: 'Saved once', source: 'cell' })
 
-    await expect(core.store.setter(commitCellEditingAtom)).resolves.toBe('refresh-failed')
+    await expect(core.store.setter(commitCellEditingAtom)).resolves.toBe('completed')
     expect(setCellInput).toHaveBeenCalledTimes(1)
-    expect(core.store.getter(editingCommitLifecycleAtom).status).toBe('refresh-failed')
-
-    await expect(core.store.setter(runVisibleProjectionAtom, laterVisibleInput)).resolves.toEqual({
-      status: 'ready',
-    })
-
-    await expect(core.store.setter(retryCellEditingRefreshAtom)).resolves.toBe('completed')
-    expect(setCellInput).toHaveBeenCalledTimes(1)
-    expect(readVisibleProjection).toHaveBeenCalledTimes(4)
-    expect(readVisibleProjection.mock.calls.map(([request]) => request.window.rowStart)).toEqual([
-      0,
-      0,
-      20,
-      20,
-    ])
+    expect(readVisibleProjection).toHaveBeenCalledTimes(1)
+    expect(setCellProjection).toHaveBeenCalledTimes(1)
+    expect(core.store.getter(projectionSnapshotAtom).result?.cells[0]?.displayValue).toBe(
+      'Saved once',
+    )
     expect(core.store.getter(editingCommitLifecycleAtom).status).toBe('ready')
   })
 
@@ -166,6 +159,11 @@ describe('bound cell editing commands', () => {
       requests.push(request)
       return projectionResult(request)
     })
+    const bundledRequests: VisibleProjectionRequest[] = []
+    const setCellProjection = jest.fn(async (request: VisibleProjectionRequest) => {
+      bundledRequests.push(request)
+      return projectionResult(request, 'Slow save')
+    })
     const mutation = deferred<BackendMutationResult>()
     let mutationRequest: EditingCommitRequest | undefined
     const setCellInput = jest.fn((request: EditingCommitRequest) => {
@@ -173,7 +171,11 @@ describe('bound cell editing commands', () => {
       return mutation.promise
     })
     const core = createSpreadsheetUi({
-      connection: createTestRustWorkbookConnection({ readVisibleProjection, setCellInput }),
+      connection: createTestRustWorkbookConnection({
+        readVisibleProjection,
+        setCellInput,
+        setCellProjection,
+      }),
     })
     await core.store.setter(runVisibleProjectionAtom, visibleInput)
     core.store.setter(startCellEditingFromProjectionAtom, {
@@ -198,7 +200,8 @@ describe('bound cell editing commands', () => {
     await expect(commit).resolves.toBe('completed')
 
     expect(setCellInput).toHaveBeenCalledTimes(1)
-    expect(requests.map((request) => request.window.rowStart)).toEqual([0, 20, 20])
+    expect(requests.map((request) => request.window.rowStart)).toEqual([0, 20])
+    expect(bundledRequests.map((request) => request.window.rowStart)).toEqual([0])
     expect(core.store.getter(projectionSnapshotAtom)).toMatchObject({
       status: 'ready',
       request: { window: laterVisibleInput.window },

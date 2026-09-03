@@ -24,17 +24,9 @@ export function editingCommitFeedback(
         message: 'This edit was not confirmed — it may or may not have been saved.',
         detail: lifecycle.error || undefined,
       }
-    case 'refresh-failed':
-      return {
-        kind: 'error',
-        message: 'This edit was saved, but the sheet could not be refreshed.',
-        detail: lifecycle.error || undefined,
-      }
     case 'ready':
     case 'blocked':
     case 'pending':
-    case 'local-acknowledged':
-    case 'refreshing':
       return null
   }
 }

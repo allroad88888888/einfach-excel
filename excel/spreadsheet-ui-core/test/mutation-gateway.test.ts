@@ -4,10 +4,10 @@ import type { DisplayCell, VisibleProjectionResult } from '../src/backend'
 import { diagnosticsAtom } from '../src/diagnostics'
 import {
   clearContentMutationBlockAtom,
+  commitCellEditingAtom,
   contentMutationLastBlockAtom,
   editingCommitLifecycleAtom,
   resolveContentMutationAtom,
-  runEditingCommitAtom,
   startEditingAtom,
   type EditingCommitRequest,
 } from '../src/editing'
@@ -354,10 +354,7 @@ describe('mutation gateway — editing commit integration', () => {
       draft: '42',
       source: 'cell',
     })
-    const outcome = await store.setter(runEditingCommitAtom, {
-      commitSource: 'cell',
-      refreshProjection: async () => undefined,
-    })
+    const outcome = await store.setter(commitCellEditingAtom)
 
     expect(outcome).toBe('completed')
     expect(requests).toHaveLength(1)
@@ -366,6 +363,7 @@ describe('mutation gateway — editing commit integration', () => {
 
   test('editing commit is blocked with zero transport on a locked cell', async () => {
     const store = createStore()
+    publishVisibleProjection(store, plainCells())
     protectSheet(store)
     const requests: EditingCommitRequest[] = []
     bindTestRustWorkbookConnection(store, {
@@ -381,10 +379,7 @@ describe('mutation gateway — editing commit integration', () => {
       draft: 'nope',
       source: 'cell',
     })
-    const outcome = await store.setter(runEditingCommitAtom, {
-      commitSource: 'cell',
-      refreshProjection: async () => undefined,
-    })
+    const outcome = await store.setter(commitCellEditingAtom)
 
     expect(outcome).toBe('blocked')
     expect(requests).toHaveLength(0)

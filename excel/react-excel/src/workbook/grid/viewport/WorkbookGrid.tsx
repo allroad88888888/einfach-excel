@@ -2,11 +2,14 @@ import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   editingSessionAtom,
   selectionSnapshotAtom,
+  setViewportMetricsAtom,
   startCellEditingFromProjectionAtom,
+  viewportMetricsAtom,
   type CellCoord,
 } from '@einfach/spreadsheet-ui-core'
 import {
   useCallback,
+  useEffect,
   useRef,
   type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
@@ -64,7 +67,9 @@ function projectionState(viewport: WorkbookViewport) {
 export function WorkbookGrid() {
   const selection = useAtomValue(selectionSnapshotAtom)
   const editingSession = useAtomValue(editingSessionAtom)
+  const viewportMetrics = useAtomValue(viewportMetricsAtom)
   const startCellEditing = useSetAtom(startCellEditingFromProjectionAtom)
+  const setViewportMetrics = useSetAtom(setViewportMetricsAtom)
   const gridWindow = useGridWindow()
   const viewport = useWorkbookViewport({
     sheetId: 'orders',
@@ -73,6 +78,7 @@ export function WorkbookGrid() {
     colCount: SALES_ORDER_COLUMNS.length,
   })
   const gridRef = useRef<HTMLDivElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
   const focusGrid = useCallback(() => gridRef.current?.focus({ preventScroll: true }), [])
   const pointerHandlers = useGridPointerSelection({
     enabled: !viewport.retained,
@@ -87,14 +93,38 @@ export function WorkbookGrid() {
     '--grid-window-offset': `${viewport.placementWindow.rowStart * GRID_ROW_HEIGHT}px`,
   } as CSSProperties
 
+  useEffect(() => {
+    const scroll = scrollRef.current
+    if (scroll === null) return
+    const maxScrollTop = Math.max(0, scroll.scrollHeight - scroll.clientHeight)
+    const nextScrollTop = Math.min(viewportMetrics.scrollTop, maxScrollTop)
+    if (scroll.scrollTop !== nextScrollTop) {
+      scroll.scrollTop = nextScrollTop
+    }
+    const maxScrollLeft = Math.max(0, scroll.scrollWidth - scroll.clientWidth)
+    const nextScrollLeft = Math.min(viewportMetrics.scrollLeft, maxScrollLeft)
+    if (scroll.scrollLeft !== nextScrollLeft) {
+      scroll.scrollLeft = nextScrollLeft
+    }
+  }, [viewportMetrics.scrollLeft, viewportMetrics.scrollTop])
+
   const onScroll = (event: ReactUiEvent<HTMLDivElement>) => {
-    const { clientHeight, scrollHeight, scrollTop } = event.currentTarget
+    const { clientHeight, scrollHeight, scrollLeft, scrollTop } = event.currentTarget
     const maxScrollTop = Math.max(0, scrollHeight - clientHeight)
-    const rowStart =
+    const nextScrollTop =
       maxScrollTop > 0 && scrollTop >= maxScrollTop - 1
-        ? SALES_ORDER_SHEET_ROW_COUNT - (viewport.window.rowEnd - viewport.window.rowStart + 1)
-        : Math.floor(scrollTop / GRID_ROW_HEIGHT)
-    viewport.scrollTo(rowStart, 0)
+        ? (SALES_ORDER_SHEET_ROW_COUNT - (viewport.window.rowEnd - viewport.window.rowStart + 1)) *
+          GRID_ROW_HEIGHT
+        : scrollTop
+    if (
+      nextScrollTop === viewportMetrics.scrollTop &&
+      scrollLeft === viewportMetrics.scrollLeft
+    ) return
+    setViewportMetrics({
+      ...viewportMetrics,
+      scrollTop: nextScrollTop,
+      scrollLeft,
+    })
   }
   const onKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
     if (viewport.retained) return
@@ -113,7 +143,7 @@ export function WorkbookGrid() {
 
   return (
     <section className="worksheet-panel" aria-label="Sales orders worksheet">
-      <div className="sheet-scroll" data-testid="sheet-scroll" onScroll={onScroll}>
+      <div ref={scrollRef} className="sheet-scroll" data-testid="sheet-scroll" onScroll={onScroll}>
         <div className="sheet-grid-frame grid-viewport-frame" style={frameStyle}>
           <div className="sheet-corner" aria-hidden="true" />
           <div className="column-headers" role="row">
@@ -151,6 +181,7 @@ export function WorkbookGrid() {
           <div
             ref={gridRef}
             className="grid-surface grid-window"
+            data-workbook-grid="true"
             data-row-count={SALES_ORDER_SHEET_ROW_COUNT}
             data-projection-retained={viewport.retained ? 'true' : 'false'}
             aria-busy={viewport.retained}

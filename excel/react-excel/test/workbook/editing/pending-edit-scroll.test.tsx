@@ -34,6 +34,7 @@ describe('pending edit projection scrolling', () => {
     const mutation = deferred<BackendMutationResult>()
     let mutationRequest: EditingCommitRequest | undefined
     const requests: VisibleProjectionRequest[] = []
+    const bundledRequests: VisibleProjectionRequest[] = []
     const readVisibleProjection = jest.fn(async (
       request: VisibleProjectionRequest,
     ): Promise<VisibleProjectionResult> => {
@@ -56,6 +57,18 @@ describe('pending edit projection scrolling', () => {
       mutationRequest = request
       return mutation.promise
     })
+    const setCellProjection = jest.fn(async (
+      request: VisibleProjectionRequest,
+    ): Promise<VisibleProjectionResult> => {
+      bundledRequests.push(request)
+      return {
+        kind: 'visible-window',
+        sheetId: request.sheetId,
+        requestId: request.requestId,
+        window: request.window,
+        cells: [],
+      }
+    })
     const store = createStore()
     store.setter(setSelectionBoundsAtom, {
       rowCount: SALES_ORDER_SHEET_ROW_COUNT,
@@ -63,7 +76,11 @@ describe('pending edit projection scrolling', () => {
     })
     render(
       <WorkbookRuntimeProvider
-        connection={createTestRustWorkbookConnection({ readVisibleProjection, setCellInput })}
+        connection={createTestRustWorkbookConnection({
+          readVisibleProjection,
+          setCellInput,
+          setCellProjection,
+        })}
         store={store}
       >
         <Workbook />
@@ -101,11 +118,12 @@ describe('pending edit projection scrolling', () => {
     })
 
     await waitFor(() => expect(screen.queryByRole('textbox', { name: 'Cell editor' })).toBeNull())
-    await waitFor(() => expect(requests.map((request) => request.window.rowStart)).toEqual([
-      0,
-      20,
-      20,
-    ]))
+    // The combined cell command computed its captured row-0 window, but UI
+    // Core discards it because the independent row-20 scroll won.
+    await waitFor(() =>
+      expect(requests.map((request) => request.window.rowStart)).toEqual([0, 20]),
+    )
+    expect(bundledRequests.map((request) => request.window.rowStart)).toEqual([0])
     expect(document.querySelector('[data-cell="20:0"]')).toHaveTextContent('R20C0')
     expect(setCellInput).toHaveBeenCalledTimes(1)
   })

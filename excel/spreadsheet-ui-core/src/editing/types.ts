@@ -1,17 +1,10 @@
-import type {
-  BackendMutationResult,
-  ProjectionRequestId,
-  ProjectionRevision,
-  SetCellInputRequest,
-} from '../backend/types'
-import type { CellCoord, SpreadsheetError } from '../shared'
+import type { ProjectionRequestId, SetCellInputRequest } from '../backend/types'
+import type { CellCoord } from '../shared'
 
 export type EditingInputSource = 'cell' | 'formula-bar' | 'keyboard' | 'paste'
 
 /** Draft ownership only; asynchronous commit progress lives in EditingCommitLifecycleStatus. */
-export type EditingSessionStatus = 'idle' | 'drafting' | 'cancelled'
-
-export type EditingCommitMove = 'none' | 'up' | 'down' | 'left' | 'right'
+export type EditingSessionStatus = 'idle' | 'drafting'
 
 export interface EditingSourceCell {
   readonly sheetId: string
@@ -23,7 +16,6 @@ export interface EditingSessionState {
   readonly status: EditingSessionStatus
   readonly source: EditingSourceCell | null
   readonly draft: string
-  readonly diagnostic: SpreadsheetError | null
 }
 
 export interface EditingStartInput {
@@ -38,94 +30,26 @@ export interface EditingDraftInput {
   source?: EditingInputSource
 }
 
-export interface EditingCommitInput {
-  input: string
-  move?: EditingCommitMove
-  source?: EditingInputSource
-}
-
-export interface EditingCommitIntent {
-  type: 'editing.commit'
-  sheetId: string
-  cell: CellCoord
-  source: EditingInputSource
-  input: string
-  move: EditingCommitMove
-}
-
-/**
- * Frozen set-cell-input request owned by the editing command. Runtime
- * acknowledgement is strict even though the shared backend fields remain
- * optional for compatibility with non-editing callers.
- */
+/** Set-cell request with the identity required by the editing transaction. */
 export interface EditingCommitRequest extends SetCellInputRequest {
   readonly requestId: ProjectionRequestId
-}
-
-export interface EditingCommitAcknowledgement extends BackendMutationResult {
-  readonly requestId: ProjectionRequestId
-  readonly revision: ProjectionRevision
 }
 
 export type EditingCommitLifecycleStatus =
   | 'ready'
   | 'blocked'
   | 'pending'
-  | 'local-acknowledged'
-  | 'refreshing'
-  | 'refresh-failed'
   | 'outcome-unknown'
   | 'rejected'
 
 export interface EditingCommitLifecycleState {
   readonly status: EditingCommitLifecycleStatus
-  readonly sessionId: number
-  readonly requestId: ProjectionRequestId | null
-  readonly sheetId: string | null
-  readonly cell: Readonly<CellCoord> | null
-  readonly acknowledgedRevision: ProjectionRevision | null
   readonly error: string
 }
 
-export type EditingCommitOutcome =
-  | 'completed'
-  | 'blocked'
-  | 'rejected'
-  | 'refresh-failed'
-  | 'outcome-unknown'
+export type EditingCommitOutcome = 'completed' | 'blocked' | 'rejected' | 'outcome-unknown'
 
-export interface RunEditingCommitInput {
-  readonly commitSource?: EditingInputSource
-  readonly move?: EditingCommitMove
-  readonly refreshProjection: (sheetId: string) => Promise<void>
-  /**
-   * Finite mutation and refresh deadline. Missing or invalid values fall back
-   * to the editing command's 15 second default.
-   */
+/** Optional test/host override; normal React callers submit with no argument. */
+export interface CommitCellEditingInput {
   readonly timeoutMs?: number
 }
-
-export interface RetryEditingRefreshInput {
-  readonly refreshProjection: (sheetId: string) => Promise<void>
-  /**
-   * Finite refresh-only retry deadline. Missing or invalid values fall back to
-   * the editing command's 15 second default.
-   */
-  readonly timeoutMs?: number
-}
-
-export interface EditingCancelIntent {
-  type: 'editing.cancel'
-  sheetId: string
-  cell: CellCoord
-  source: EditingInputSource
-}
-
-export interface EditingStartIntent {
-  type: 'editing.start'
-  sheetId: string
-  cell: CellCoord
-  source: EditingInputSource
-}
-
-export type EditingIntent = EditingStartIntent | EditingCommitIntent | EditingCancelIntent

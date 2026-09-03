@@ -1,7 +1,7 @@
 import { createStore } from '@einfach/core'
 import { describe, expect, test } from '@jest/globals'
 
-import { historyStackAtom, runEditingCommitAtom } from '../src'
+import { commitCellEditingAtom, historyStackAtom } from '../src'
 import { bindEditingMutation, startCellEdit } from './editing-test-support'
 
 describe('editing history projection', () => {
@@ -14,9 +14,9 @@ describe('editing history projection', () => {
     }))
     startCellEdit(store, 'untracked')
 
-    await expect(store.setter(runEditingCommitAtom, {
-      refreshProjection: async () => undefined,
-    })).resolves.toBe('completed')
+    await expect(
+      store.setter(commitCellEditingAtom),
+    ).resolves.toBe('completed')
 
     expect(store.getter(historyStackAtom)).toMatchObject({ cursor: 0, entries: [] })
   })

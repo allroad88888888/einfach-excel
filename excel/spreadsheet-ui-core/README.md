@@ -79,7 +79,8 @@ Charts、images 与浮动对象明确不在范围内。
 ## Rust connection
 
 每个 store 的 `rustWorkbookConnectionAtom` 只保存一个 Worker 连接资源，不保存工作簿数据。
-投影 atom 发送 `projection.readVisible`，编辑 command atom 发送 `cell.setInput`；产品启动流程发送
+投影 atom 发送 `projection.readVisible`；编辑 command atom 发送一次 `cell.setInput`，同时取得
+mutation ACK 和同一 Rust 修订版的可见区投影。产品启动流程发送
 `workbook.initialize` 和 `workbook.importCells`。没有 `SpreadsheetBackend` 聚合接口，也没有按框架
 区分的 engine adapter。新增能力时增加一条明确命令及对应 atom，不向连接对象堆可选方法。
 

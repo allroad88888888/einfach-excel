@@ -10,10 +10,12 @@
 - 单元格单选和拖拽框选；
 - 从首行滚动到最后一条记录；
 - 双击单元格或按 Enter 进入编辑；
-- 按 Enter 或失焦后，通过 Rust command atom 写入并刷新当前可见投影；
+- 在名称框输入单元格地址，跳转选区和可见窗口；
+- 在公式栏直接修改活动单元格；
+- 按 Enter 或失焦后，通过一次 Rust command 同时写入并取得当前可见投影；
 - 按 Escape 取消编辑，不产生写入。
 
-公式栏、Ribbon、工作表标签和缩放区域目前主要负责界面展示。剪贴板、历史记录、格式设置、
+Ribbon、工作表标签和缩放区域目前主要负责界面展示。剪贴板、历史记录、格式设置、
 工作表命令等完整 Excel 功能尚未接入本产品。
 
 ## Rust-only 运行边界
@@ -31,10 +33,13 @@ React 视图
 `@einfach/solid-excel`；生产路径没有 `SpreadsheetBackend`、TypeScript engine 或运行时 fallback。
 
 - Rust/WASM 负责工作簿权威数据、计算和 mutation 结果。
-- `spreadsheet-ui-core` 负责工作簿状态、跨 atom 状态转换、可见窗口、Rust 命令和刷新编排。
+- `spreadsheet-ui-core` 负责工作簿状态、跨 atom 状态转换、可见窗口与 Rust 命令。
 - React 负责渲染、effect、DOM 事件、焦点、pointer capture 和滚动事件适配。
 - React 源码不使用 `useState/useReducer`，也不在本包内声明工作簿 atom。
 - 产品启动 effect 负责创建、等待和销毁 Rust Worker；其 loading/ready/error 状态由 UI-core atom 保存。
+
+普通单元格提交只走一次 `cell.setInput` Worker RPC，结果包含严格 ACK 和同一修订版投影。提交期间
+如果用户滚动，独立的滚动投影优先，旧窗口的编辑投影不会覆盖新窗口。
 
 ## 目录结构
 
@@ -49,7 +54,7 @@ src/
 └── workbook/
     ├── shell/                        # 工作簿页面组合
     ├── chrome/
-    │   ├── formula-bar/              # 当前选区值展示
+    │   ├── formula-bar/              # 名称框跳转和活动单元格编辑
     │   ├── footer/                   # 工作表导航和状态区域
     │   ├── header/                   # 工作簿标题区域
     │   └── ribbon/                   # 命令入口展示

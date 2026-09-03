@@ -2,9 +2,9 @@ import { createStore } from '@einfach/core'
 import { describe, expect, test } from '@jest/globals'
 
 import {
+  commitCellEditingAtom,
   editingCommitLifecycleAtom,
   editingSessionAtom,
-  runEditingCommitAtom,
   startEditingAtom,
   type EditingCommitRequest,
   type EditingStartInput,
@@ -33,9 +33,7 @@ describe('editing commit settlement', () => {
     bindEditingMutation(store, source.setCellInput)
 
     await expect(
-      store.setter(runEditingCommitAtom, {
-        refreshProjection: async () => undefined,
-      }),
+      store.setter(commitCellEditingAtom),
     ).resolves.toBe('rejected')
     expect(store.getter(editingCommitLifecycleAtom).status).toBe('rejected')
     expect(store.getter(editingSessionAtom)).toMatchObject({
@@ -44,9 +42,7 @@ describe('editing commit settlement', () => {
     })
 
     await expect(
-      store.setter(runEditingCommitAtom, {
-        refreshProjection: async () => undefined,
-      }),
+      store.setter(commitCellEditingAtom),
     ).resolves.toBe('completed')
     expect(attempts).toBe(2)
     expect(seenInputs).toEqual(['=SUM(A1:A3)', '=SUM(A1:A3)'])
@@ -75,9 +71,7 @@ describe('editing commit settlement', () => {
     }))
 
     await expect(
-      store.setter(runEditingCommitAtom, {
-        refreshProjection: async () => undefined,
-      }),
+      store.setter(commitCellEditingAtom),
     ).resolves.toBe('completed')
     unsubscribeSession()
 

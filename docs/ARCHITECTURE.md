@@ -33,7 +33,7 @@ Solid 代码仍在仓库中，但不是这次 Rust connection 重构的兼容目
 | `excel/spreadsheet-ui-core/src/backend/` | 表格请求、结果和显示类型；这里只是类型，不是 backend 对象 |
 | `excel/spreadsheet-ui-core/src/runtime/` | store 内的连接引用和 loading/ready/error 生命周期 |
 | `excel/spreadsheet-ui-core/src/projection/` | 投影排队、关联和发布 |
-| `excel/spreadsheet-ui-core/src/editing/` | 编辑草稿、提交状态机和刷新编排 |
+| `excel/spreadsheet-ui-core/src/editing/` | 编辑草稿与一次 Rust 提交事务 |
 | `excel/spreadsheet-ui-core/src/rust-workbook/` | UI 形状的 Rust 工作簿命令与 Worker 端执行 |
 | `excel/spreadsheet-ui-core/src/rust-worker/` | 与表格业务无关的 Worker RPC |
 | `excel/spreadsheet-ui-core/src/rust-runtime.ts` | 装载 WASM 并安装 Worker 消息处理器 |
@@ -55,7 +55,7 @@ UI Core 不再导出 `SpreadsheetBackend` 能力大对象。一个 store 只绑�
 | `workbook.initialize` | 产品启动流程 | 工作表元数据 |
 | `workbook.importCells` | 产品启动流程 | 一批 Rust 导入统计 |
 | `projection.readVisible` | 投影 command atom | 有界 `VisibleProjectionResult` |
-| `cell.setInput` | 编辑 command atom | 精确 mutation ACK |
+| `cell.setInput` | 编辑 command atom | 精确 mutation ACK + 同修订版可见区投影 |
 
 新增功能应增加明确命令及对应 command atom。不要向连接堆可选方法，也不要在主线程维护 Rust
 能力或工作簿状态的镜像。
@@ -66,19 +66,16 @@ UI Core 不再导出 `SpreadsheetBackend` 能力大对象。一个 store 只绑�
 键盘 / 双击
   → start/editing atoms
   → commitCellEditingAtom
-  → runEditingCommitAtom
   → setRustCellInputAtom
   → connection.request('cell.setInput')
   → Worker transport → WASM → Rust
-  ← mutation ACK
-  → runVisibleProjectionAtom
-  → connection.request('projection.readVisible')
-  ← 新可见区投影
-  → projection atom 发布 → 视图重渲染
+  ← mutation ACK + 写入后的可见区投影
+  → applyVisibleProjectionAtom 直接发布 → 视图重渲染
 ```
 
 UI 只对编辑草稿做本地更新，不预测 Rust 计算结果。写入 ACK 不匹配当前请求时，编辑状态机按
-`outcome-unknown` 处理，不能伪装成功。
+`outcome-unknown` 处理，不能伪装成功。普通编辑只发送一次 Worker RPC；若用户在请求期间滚动，
+滚动产生的 `projection.readVisible` 独立执行并拥有更新的窗口，编辑响应携带的旧窗口投影会被丢弃。
 
 ## 状态归属
 

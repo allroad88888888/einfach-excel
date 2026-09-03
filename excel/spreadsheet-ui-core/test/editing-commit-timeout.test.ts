@@ -2,12 +2,12 @@ import { createStore } from '@einfach/core'
 import { describe, expect, jest, test } from '@jest/globals'
 
 import {
+  commitCellEditingAtom,
   DEFAULT_EDITING_COMMIT_TIMEOUT_MS,
   editingCommitLifecycleAtom,
-  runEditingCommitAtom,
-  type EditingCommitAcknowledgement,
   type EditingCommitRequest,
 } from '../src/editing'
+import type { BackendMutationResult } from '../src/backend'
 import {
   bindEditingMutation,
   deferred,
@@ -20,15 +20,14 @@ describe('editing commit timeout', () => {
     jest.useFakeTimers()
     try {
       const fulfilledStore = createStore()
-      const fulfilledGate = deferred<EditingCommitAcknowledgement>()
+      const fulfilledGate = deferred<BackendMutationResult>()
       const fulfilledRequests: EditingCommitRequest[] = []
       bindEditingMutation(fulfilledStore, (request) => {
         fulfilledRequests.push(request)
         return fulfilledGate.promise
       })
       startCellEdit(fulfilledStore, 'late fulfilment')
-      const fulfilledCommit = fulfilledStore.setter(runEditingCommitAtom, {
-        refreshProjection: async () => undefined,
+      const fulfilledCommit = fulfilledStore.setter(commitCellEditingAtom, {
         timeoutMs: 25,
       })
       await flushMicrotasks()
@@ -47,15 +46,14 @@ describe('editing commit timeout', () => {
       expect(fulfilledStore.getter(editingCommitLifecycleAtom).status).toBe('outcome-unknown')
 
       const rejectedStore = createStore()
-      const rejectedGate = deferred<EditingCommitAcknowledgement>()
+      const rejectedGate = deferred<BackendMutationResult>()
       let rejectedTransportCalls = 0
       bindEditingMutation(rejectedStore, () => {
         rejectedTransportCalls += 1
         return rejectedGate.promise
       })
       startCellEdit(rejectedStore, 'late rejection')
-      const rejectedCommit = rejectedStore.setter(runEditingCommitAtom, {
-        refreshProjection: async () => undefined,
+      const rejectedCommit = rejectedStore.setter(commitCellEditingAtom, {
         // Invalid values safely select the 15 second default.
         timeoutMs: 0,
       })

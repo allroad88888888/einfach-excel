@@ -9,12 +9,9 @@ import {
 } from '../../src'
 
 export interface TestRustWorkbookHandlers {
-  readVisibleProjection?: (
-    request: VisibleProjectionRequest,
-  ) => Promise<VisibleProjectionResult>
-  setCellInput?: (
-    request: EditingCommitRequest,
-  ) => Promise<BackendMutationResult>
+  readVisibleProjection?: (request: VisibleProjectionRequest) => Promise<VisibleProjectionResult>
+  setCellInput?: (request: EditingCommitRequest) => Promise<BackendMutationResult>
+  setCellProjection?: (request: VisibleProjectionRequest) => Promise<VisibleProjectionResult>
 }
 
 export function createTestRustWorkbookConnection(
@@ -27,9 +24,34 @@ export function createTestRustWorkbookConnection(
       )
     }
     if (command === 'cell.setInput' && handlers.setCellInput) {
-      return handlers.setCellInput(
-        (payload as { request: EditingCommitRequest }).request,
-      )
+      const input = payload as {
+        request: EditingCommitRequest
+        projection: VisibleProjectionRequest
+      }
+      const acknowledgement = await handlers.setCellInput(input.request)
+      let projection: VisibleProjectionResult
+      try {
+        projection = handlers.setCellProjection
+          ? await handlers.setCellProjection(input.projection)
+          : handlers.readVisibleProjection
+            ? await handlers.readVisibleProjection(input.projection)
+            : {
+                kind: 'visible-window' as const,
+                sheetId: input.projection.sheetId,
+                requestId: input.projection.requestId,
+                window: { ...input.projection.window },
+                cells: [],
+              }
+      } catch {
+        projection = {
+          kind: 'visible-window',
+          sheetId: input.projection.sheetId,
+          requestId: input.projection.requestId + 1,
+          window: { ...input.projection.window },
+          cells: [],
+        }
+      }
+      return { acknowledgement, projection }
     }
     throw new Error(`Unhandled test Rust command: ${command}`)
   }) as RustWorkbookConnection['request']

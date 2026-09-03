@@ -21,6 +21,18 @@ export interface ProjectionSnapshot {
   readonly error?: SpreadsheetError
 }
 
+export interface ApplyVisibleProjectionInput {
+  /** Exact projection state captured before the mutation was sent. */
+  readonly witness: ProjectionSnapshot
+  readonly request: VisibleProjectionRequest
+  readonly result: VisibleProjectionResult
+}
+
+export type ApplyVisibleProjectionOutcome =
+  | { readonly status: 'applied' }
+  | { readonly status: 'superseded' }
+  | { readonly status: 'rejected'; readonly error: SpreadsheetError }
+
 export interface ProjectionLimitOptions {
   readonly maxCells?: number
 }

@@ -9,7 +9,7 @@ impl Sheet {
             style.apply_to(&mut format);
         }
         if let Some(style) = self.row_styles.get(&addr.row) {
-            style.apply_to(&mut format);
+            style.format.apply_to(&mut format);
         }
         if let Some(style) = self.cell_styles.get(&addr) {
             style.apply_to(&mut format);

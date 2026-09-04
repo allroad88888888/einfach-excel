@@ -132,6 +132,19 @@ describe('getVisibleWindow', () => {
     })
   })
 
+  test('uses sparse rowStyle heights for visible rows and scroll geometry', () => {
+    const rowHeights = { '1': 44 }
+    expect(getVisibleWindow(metrics({ viewportHeight: 64, overscanRows: 0 }), rowHeights)).toEqual({
+      rowStart: 0,
+      rowEnd: 1,
+      colStart: 0,
+      colEnd: 4,
+    })
+    expect(
+      getCellViewportRect({ row: 2, col: 0 }, metrics({ rowCount: 4 }), rowHeights),
+    ).toMatchObject({ top: 64, height: 20 })
+  })
+
   test('derives visible window from viewport atoms', () => {
     const store = createStore()
 

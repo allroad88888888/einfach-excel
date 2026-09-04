@@ -17,7 +17,7 @@ describe('Rust visible format projection', () => {
       ],
       snapshot_format_range: () => ({
         cellStyles: [{ addr: 'A1', format: { italic: true } }],
-        rowStyles: [{ index: 0, format: { bold: true } }],
+        rowStyles: [{ index: 0, format: { bold: true }, height: 51 }],
         columnStyles: [],
       }),
     } as unknown as WasmWorkbook
@@ -50,5 +50,6 @@ describe('Rust visible format projection', () => {
         format: { bold: true },
       },
     ])
+    expect(result.rowHeights).toEqual([{ rowIndex: 0, heightPx: 51 }])
   })
 })

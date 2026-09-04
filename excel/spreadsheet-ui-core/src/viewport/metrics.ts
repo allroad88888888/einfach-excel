@@ -7,6 +7,8 @@ import type {
   ViewportMetrics,
   ViewportScrollPosition,
 } from './types'
+import { getAxisOffsetForIndex, getAxisSpanSize } from './axis-geometry'
+import { viewportSizeOverridesAtom } from './size-overrides'
 
 export const DEFAULT_VIEWPORT_METRICS: ViewportMetrics = {
   scrollTop: 0,
@@ -48,7 +50,10 @@ export function clampViewportOffset(value: number, max: number): number {
   return Math.max(0, Math.min(normalizeNumber(value, 0), Math.max(0, max)))
 }
 
-export function normalizeViewportMetrics(metrics: ViewportMetrics): ViewportMetrics {
+export function normalizeViewportMetrics(
+  metrics: ViewportMetrics,
+  rowHeights?: Record<string, number>,
+): ViewportMetrics {
   const rowHeight = normalizePositive(metrics.rowHeight, DEFAULT_VIEWPORT_METRICS.rowHeight)
   const colWidth = normalizePositive(metrics.colWidth, DEFAULT_VIEWPORT_METRICS.colWidth)
   const rowCount = normalizeCount(metrics.rowCount)
@@ -57,7 +62,11 @@ export function normalizeViewportMetrics(metrics: ViewportMetrics): ViewportMetr
   const viewportWidth = Math.max(0, normalizeNumber(metrics.viewportWidth, 0))
 
   return {
-    scrollTop: clampViewportOffset(metrics.scrollTop, rowCount * rowHeight - viewportHeight),
+    sheetId: metrics.sheetId,
+    scrollTop: clampViewportOffset(
+      metrics.scrollTop,
+      getAxisOffsetForIndex(rowCount, rowCount, rowHeight, rowHeights) - viewportHeight,
+    ),
     scrollLeft: clampViewportOffset(metrics.scrollLeft, colCount * colWidth - viewportWidth),
     viewportHeight,
     viewportWidth,
@@ -70,16 +79,22 @@ export function normalizeViewportMetrics(metrics: ViewportMetrics): ViewportMetr
   }
 }
 
-export function getCellViewportRect(coord: CellCoord, metrics: ViewportMetrics): CellViewportRect {
-  const normalized = normalizeViewportMetrics(metrics)
+export function getCellViewportRect(
+  coord: CellCoord,
+  metrics: ViewportMetrics,
+  rowHeights?: Record<string, number>,
+): CellViewportRect {
+  const normalized = normalizeViewportMetrics(metrics, rowHeights)
   const row = clampViewportIndex(coord.row, normalized.rowCount)
   const col = clampViewportIndex(coord.col, normalized.colCount)
   return {
     row,
     col,
-    top: row * normalized.rowHeight - normalized.scrollTop,
+    top:
+      getAxisOffsetForIndex(row, normalized.rowCount, normalized.rowHeight, rowHeights) -
+      normalized.scrollTop,
     left: col * normalized.colWidth - normalized.scrollLeft,
-    height: normalized.rowHeight,
+    height: getAxisSpanSize(row, row, normalized.rowCount, normalized.rowHeight, rowHeights),
     width: normalized.colWidth,
   }
 }
@@ -87,8 +102,9 @@ export function getCellViewportRect(coord: CellCoord, metrics: ViewportMetrics):
 export function getViewportScrollForCell(
   metrics: ViewportMetrics,
   input: ScrollToCellInput,
+  rowHeights?: Record<string, number>,
 ): ViewportScrollPosition {
-  const normalized = normalizeViewportMetrics(metrics)
+  const normalized = normalizeViewportMetrics(metrics, rowHeights)
   const row = clampViewportIndex(input.coord.row, normalized.rowCount)
   const col = clampViewportIndex(input.coord.col, normalized.colCount)
   return {
@@ -96,9 +112,14 @@ export function getViewportScrollForCell(
       align: input.rowAlign ?? 'nearest',
       current: normalized.scrollTop,
       viewportSize: normalized.viewportHeight,
-      cellStart: row * normalized.rowHeight,
-      cellSize: normalized.rowHeight,
-      totalSize: normalized.rowCount * normalized.rowHeight,
+      cellStart: getAxisOffsetForIndex(row, normalized.rowCount, normalized.rowHeight, rowHeights),
+      cellSize: getAxisSpanSize(row, row, normalized.rowCount, normalized.rowHeight, rowHeights),
+      totalSize: getAxisOffsetForIndex(
+        normalized.rowCount,
+        normalized.rowCount,
+        normalized.rowHeight,
+        rowHeights,
+      ),
     }),
     scrollLeft: getAlignedScrollOffset({
       align: input.colAlign ?? 'nearest',
@@ -116,8 +137,12 @@ viewportMetricsAtom.debugLabel = 'spreadsheet.viewport.metrics'
 
 export const setViewportMetricsAtom = atom(
   (get) => get(viewportMetricsAtom),
-  (_get, set, metrics: ViewportMetrics) => {
-    set(viewportMetricsAtom, normalizeViewportMetrics(metrics))
+  (get, set, metrics: ViewportMetrics) => {
+    const sizes = get(viewportSizeOverridesAtom)
+    const rowHeights = metrics.sheetId
+      ? sizes.rowHeightsBySheet[metrics.sheetId]
+      : undefined
+    set(viewportMetricsAtom, normalizeViewportMetrics(metrics, rowHeights))
   },
 )
 setViewportMetricsAtom.debugLabel = 'spreadsheet.viewport.setMetrics'
@@ -126,7 +151,11 @@ export const scrollToCellAtom = atom(
   (get) => get(viewportMetricsAtom),
   (get, set, input: ScrollToCellInput): ViewportScrollPosition => {
     const metrics = get(viewportMetricsAtom)
-    const scrollPosition = getViewportScrollForCell(metrics, input)
+    const sizes = get(viewportSizeOverridesAtom)
+    const rowHeights = metrics.sheetId
+      ? sizes.rowHeightsBySheet[metrics.sheetId]
+      : undefined
+    const scrollPosition = getViewportScrollForCell(metrics, input, rowHeights)
     set(viewportMetricsAtom, { ...metrics, ...scrollPosition })
     return scrollPosition
   },

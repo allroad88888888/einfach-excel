@@ -19,7 +19,7 @@ use super::*;
 /// `Sheet::hidden_rows`, the engine-owned set — so the two can never drift
 /// into disagreeing about where a hidden row landed. It also matches
 /// `Sheet::shift_dimension_insert` / `shift_dimension_delete`, which move
-/// `row_heights` on the same edit.
+/// `row_styles` on the same edit.
 pub(crate) fn shift_hidden_row(row: u32, at: u32, count: u32, insert: bool) -> Option<u32> {
     if insert {
         return Some(if row >= at {

@@ -1,16 +1,21 @@
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   commitCellEditingAtom,
+  activeWorkbookSheetAtom,
   dispatchEditorKeyboardInputAtom,
   editingCommitFeedback,
   editingCommitLifecycleAtom,
   editingDraftAtom,
   editingSessionAtom,
   visibleWindowAtom,
+  getAxisOffsetForIndex,
+  getViewportRowHeight,
+  viewportSizeOverridesAtom,
 } from '@einfach/spreadsheet-ui-core'
 import type { CSSProperties, FocusEvent, KeyboardEvent, PointerEvent } from 'react'
 import { useEffect, useRef } from 'react'
 import './cell-editor.css'
+import { WORKBOOK_GRID_ROW_HEIGHT } from '../viewport/workbook-grid-config'
 
 export interface CellEditorProps {
   readonly focusGrid: () => void
@@ -22,6 +27,8 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
   const draft = useAtomValue(editingDraftAtom)
   const lifecycle = useAtomValue(editingCommitLifecycleAtom)
   const window = useAtomValue(visibleWindowAtom)
+  const activeSheet = useAtomValue(activeWorkbookSheetAtom)
+  const sizeOverrides = useAtomValue(viewportSizeOverridesAtom)
   const commitEditing = useSetAtom(commitCellEditingAtom)
   const dispatchEditorKeyboard = useSetAtom(dispatchEditorKeyboardInputAtom)
   const setDraft = useSetAtom(editingDraftAtom)
@@ -47,6 +54,19 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
   }, [cell?.col, cell?.row, editingFromFormulaBar, editingFromKeyboard])
 
   if (cell === null || editingFromFormulaBar) return null
+
+  const sheetId = activeSheet?.id ?? ''
+  const rowCount = activeSheet?.rowCount ?? 0
+  const rowHeights = sizeOverrides.rowHeightsBySheet[sheetId]
+  const editorTop =
+    getAxisOffsetForIndex(cell.row, rowCount, WORKBOOK_GRID_ROW_HEIGHT, rowHeights) -
+    getAxisOffsetForIndex(window.rowStart, rowCount, WORKBOOK_GRID_ROW_HEIGHT, rowHeights)
+  const editorHeight = getViewportRowHeight(
+    sizeOverrides,
+    sheetId,
+    cell.row,
+    WORKBOOK_GRID_ROW_HEIGHT,
+  )
 
   const commitOnce = async (restoreKeyboardFocus: boolean) => {
     if (committingRef.current || busy) return
@@ -99,7 +119,8 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
   }
   const stopPointer = (event: PointerEvent<HTMLDivElement>) => event.stopPropagation()
   const style = {
-    '--editor-row': cell.row - window.rowStart,
+    '--editor-top': `${editorTop}px`,
+    '--editor-height': `${editorHeight}px`,
     '--editor-col': cell.col - window.colStart,
   } as CSSProperties
   const fieldIdentity = `cell-editor-r${cell.row}-c${cell.col}`

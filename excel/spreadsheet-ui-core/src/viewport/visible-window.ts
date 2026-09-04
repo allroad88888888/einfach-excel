@@ -6,27 +6,41 @@ import {
   viewportMetricsAtom,
 } from './metrics'
 import type { ViewportMetrics, VisibleWindow } from './types'
+import { getAxisEndIndexAtOffset, getAxisStartIndexAtOffset } from './axis-geometry'
+import { viewportSizeOverridesAtom } from './size-overrides'
 
 /** Computes the rectangular projection needed to cover the current viewport. */
-export function getVisibleWindow(metrics: ViewportMetrics): VisibleWindow {
-  const normalized = normalizeViewportMetrics(metrics)
+export function getVisibleWindow(
+  metrics: ViewportMetrics,
+  rowHeights?: Record<string, number>,
+): VisibleWindow {
+  const normalized = normalizeViewportMetrics(metrics, rowHeights)
   const { colCount, colWidth, rowCount, rowHeight } = normalized
   if (rowCount === 0 || colCount === 0) {
     return { rowStart: 0, rowEnd: -1, colStart: 0, colEnd: -1 }
   }
 
-  const rawRowStart = Math.floor(normalized.scrollTop / rowHeight)
+  const rawRowStart = getAxisStartIndexAtOffset(
+    normalized.scrollTop,
+    rowCount,
+    rowHeight,
+    rowHeights,
+  )
   const rawColStart = Math.floor(normalized.scrollLeft / colWidth)
-  const rowOffset = normalized.scrollTop - rawRowStart * rowHeight
   const colOffset = normalized.scrollLeft - rawColStart * colWidth
   // A clipped first item still consumes space, so the trailing edge may need one more item.
-  const visibleRows = Math.ceil((normalized.viewportHeight + rowOffset) / rowHeight)
+  const rawRowEnd = getAxisEndIndexAtOffset(
+    normalized.scrollTop + normalized.viewportHeight,
+    rowCount,
+    rowHeight,
+    rowHeights,
+  )
   const visibleCols = Math.ceil((normalized.viewportWidth + colOffset) / colWidth)
 
   return {
     rowStart: clampViewportIndex(rawRowStart - normalized.overscanRows, rowCount),
     rowEnd: clampViewportIndex(
-      rawRowStart + Math.max(1, visibleRows) + normalized.overscanRows - 1,
+      rawRowEnd + normalized.overscanRows,
       rowCount,
     ),
     colStart: clampViewportIndex(rawColStart - normalized.overscanCols, colCount),
@@ -89,7 +103,12 @@ export function isCellInVisibleWindow(coord: CellCoord, visibleWindow: VisibleWi
   )
 }
 
-export const visibleWindowAtom = atom((get): VisibleWindow =>
-  getVisibleWindow(get(viewportMetricsAtom)),
-)
+export const visibleWindowAtom = atom((get): VisibleWindow => {
+  const metrics = get(viewportMetricsAtom)
+  const sizes = get(viewportSizeOverridesAtom)
+  const rowHeights = metrics.sheetId
+    ? sizes.rowHeightsBySheet[metrics.sheetId]
+    : undefined
+  return getVisibleWindow(metrics, rowHeights)
+})
 visibleWindowAtom.debugLabel = 'spreadsheet.viewport.visibleWindow'

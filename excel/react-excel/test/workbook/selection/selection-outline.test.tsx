@@ -9,6 +9,7 @@ describe('spreadsheet selection outline', () => {
         cells={[]}
         selected={{ rowStart: 0, rowEnd: 2, colStart: 0, colEnd: 2 }}
         window={{ rowStart: 0, rowEnd: 2, colStart: 0, colEnd: 2 }}
+        rowHeights={[28, 44, 28]}
       />,
     )
 
@@ -23,7 +24,8 @@ describe('spreadsheet selection outline', () => {
       'selection-outline-left',
     )
     expect(outline?.style.getPropertyValue('--selection-col-span')).toBe('3')
-    expect(outline?.style.getPropertyValue('--selection-row-span')).toBe('3')
+    expect(outline?.style.getPropertyValue('--selection-top')).toBe('0px')
+    expect(outline?.style.getPropertyValue('--selection-height')).toBe('100px')
   })
 })
 

@@ -54,6 +54,24 @@ fn cell_patch_changes_only_the_requested_property() {
 }
 
 #[test]
+fn large_cell_font_grows_only_its_row_style() {
+    let mut sheet = Sheet::new();
+    sheet.patch_format_range(
+        range(CellAddress::new(2, 3), CellAddress::new(2, 3)),
+        StyleScope::Cell,
+        CellStyle {
+            font_size: Some(Some(36)),
+            ..Default::default()
+        },
+    );
+
+    assert_eq!(sheet.row_height(2), Some(51));
+    assert_eq!(sheet.row_height(1), None);
+    assert_eq!(sheet.row_height(3), None);
+    assert_eq!(sheet.all_row_heights(), vec![(2, 51)]);
+}
+
+#[test]
 fn later_column_action_wins_at_row_intersection() {
     let mut sheet = Sheet::new();
     sheet.patch_format_range(

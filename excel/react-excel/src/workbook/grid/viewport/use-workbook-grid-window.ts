@@ -19,7 +19,7 @@ export function useWorkbookGridWindow(): CellRange {
 
   useEffect(() => {
     if (sheetId === undefined || rowCount === undefined || colCount === undefined) return
-    setViewportMetrics(workbookViewportMetrics(rowCount, colCount))
+    setViewportMetrics(workbookViewportMetrics(rowCount, colCount, sheetId))
   }, [colCount, rowCount, setViewportMetrics, sheetId])
 
   return window

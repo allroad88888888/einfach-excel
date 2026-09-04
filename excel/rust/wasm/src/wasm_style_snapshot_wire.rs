@@ -13,6 +13,14 @@ struct IndexedStyleSnapshotJSON {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+struct IndexedRowStyleSnapshotJSON {
+    index: u32,
+    format: CellFormatJSON,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    height: Option<u32>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 struct LegacyRangeFormatJSON {
     #[serde(rename = "startRow")]
     start_row: u32,
@@ -40,7 +48,7 @@ struct FormatRangeSnapshotJSON {
     #[serde(rename = "cellStyles", alias = "cellFormats", default)]
     cell_styles: Vec<CellStyleSnapshotJSON>,
     #[serde(rename = "rowStyles", default)]
-    row_styles: Vec<IndexedStyleSnapshotJSON>,
+    row_styles: Vec<IndexedRowStyleSnapshotJSON>,
     #[serde(rename = "columnStyles", default)]
     column_styles: Vec<IndexedStyleSnapshotJSON>,
     #[serde(
@@ -67,7 +75,15 @@ impl FormatRangeSnapshotJSON {
                     format: CellFormatJSON::from_style(style),
                 })
                 .collect(),
-            row_styles: indexed_styles_to_json(&snapshot.row_styles),
+            row_styles: snapshot
+                .row_styles
+                .iter()
+                .map(|(index, style)| IndexedRowStyleSnapshotJSON {
+                    index: *index,
+                    format: CellFormatJSON::from_style(&style.format),
+                    height: style.height,
+                })
+                .collect(),
             column_styles: indexed_styles_to_json(&snapshot.column_styles),
             legacy_range_formats: Vec::new(),
         }
@@ -97,7 +113,19 @@ impl FormatRangeSnapshotJSON {
             )
             .normalize(),
             cell_styles,
-            row_styles: indexed_styles_from_json(self.row_styles),
+            row_styles: self
+                .row_styles
+                .into_iter()
+                .map(|entry| {
+                    (
+                        entry.index,
+                        RowStyle {
+                            format: entry.format.into_style(),
+                            height: entry.height,
+                        },
+                    )
+                })
+                .collect(),
             column_styles: indexed_styles_from_json(self.column_styles),
         })
     }

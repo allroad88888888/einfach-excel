@@ -59,5 +59,8 @@ export function readVisibleProjection(
     revision,
     window: { ...request.window },
     cells: applyVisibleFormats(visibleCells, request.window, formats),
+    rowHeights: formats.rowStyles.flatMap(({ index, height }) =>
+      height === undefined ? [] : [{ rowIndex: index, heightPx: height }],
+    ),
   }
 }

@@ -23,6 +23,19 @@ pub struct CellStyle {
     pub borders: Option<CellBorders>,
 }
 
+/// 行级样式；显示格式与行高都由同一个 rowStyle 条目持有。
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct RowStyle {
+    pub format: CellStyle,
+    pub height: Option<u32>,
+}
+
+impl RowStyle {
+    pub fn is_empty(&self) -> bool {
+        self.format.is_empty() && self.height.is_none()
+    }
+}
+
 impl CellStyle {
     /// 把完整格式变成一层完整覆盖，供旧的 set_format API 使用。
     pub fn from_format(format: CellFormat) -> Self {

@@ -11,31 +11,43 @@ impl Sheet {
         if height_px == 0 {
             return self.clear_row_height(row_index);
         }
-        self.row_heights.insert(row_index, height_px) != Some(height_px)
+        let style = self.row_styles.entry(row_index).or_default();
+        let changed = style.height != Some(height_px);
+        style.height = Some(height_px);
+        changed
     }
 
     pub fn clear_row_height(&mut self, row_index: u32) -> bool {
-        self.row_heights.remove(&row_index).is_some()
+        let Some(style) = self.row_styles.get_mut(&row_index) else {
+            return false;
+        };
+        let changed = style.height.take().is_some();
+        if style.is_empty() {
+            self.row_styles.remove(&row_index);
+        }
+        changed
     }
 
     pub fn row_height(&self, row_index: u32) -> Option<u32> {
-        self.row_heights.get(&row_index).copied()
+        self.row_styles
+            .get(&row_index)
+            .and_then(|style| style.height)
     }
 
     pub fn row_heights_in_range(&self, start_row: u32, end_row: u32) -> Vec<(u32, u32)> {
         if end_row < start_row {
             return Vec::new();
         }
-        self.row_heights
+        self.row_styles
             .range(start_row..=end_row)
-            .map(|(row_index, height_px)| (*row_index, *height_px))
+            .filter_map(|(row_index, style)| style.height.map(|height| (*row_index, height)))
             .collect()
     }
 
     pub fn all_row_heights(&self) -> Vec<(u32, u32)> {
-        self.row_heights
+        self.row_styles
             .iter()
-            .map(|(row_index, height_px)| (*row_index, *height_px))
+            .filter_map(|(row_index, style)| style.height.map(|height| (*row_index, height)))
             .collect()
     }
 

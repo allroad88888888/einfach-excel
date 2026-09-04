@@ -7,8 +7,13 @@ export const WORKBOOK_GRID_COLUMN_WIDTH = 120
 export const WORKBOOK_GRID_WINDOW_COLUMN_COUNT = 8
 
 /** Creates the default React viewport metrics for one workbook sheet. */
-export function workbookViewportMetrics(rowCount: number, colCount: number): ViewportMetrics {
+export function workbookViewportMetrics(
+  rowCount: number,
+  colCount: number,
+  sheetId?: string,
+): ViewportMetrics {
   return {
+    ...(sheetId === undefined ? {} : { sheetId }),
     scrollTop: 0,
     scrollLeft: 0,
     viewportHeight: WORKBOOK_GRID_WINDOW_ROW_COUNT * WORKBOOK_GRID_ROW_HEIGHT,

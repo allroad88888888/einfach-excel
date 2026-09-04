@@ -83,7 +83,7 @@
   z-index: 3;
   display: grid;
   align-self: start;
-  grid-auto-rows: var(--grid-row-height);
+  grid-template-rows: var(--grid-window-row-heights);
   transform: translateY(var(--grid-window-offset));
   background: var(--chrome);
 }
@@ -117,7 +117,8 @@
 }
 
 .grid-surface .cell {
-  height: var(--grid-row-height);
+  height: inherit;
+  box-sizing: border-box;
   padding: 3px 7px;
   overflow: hidden;
   border-right: 1px solid var(--gridline);
@@ -125,6 +126,7 @@
   color: var(--text);
   background: var(--surface);
   cursor: cell;
+  line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -136,10 +138,10 @@
 .selection-outline {
   position: absolute;
   z-index: 1;
-  top: calc(var(--selection-row-offset) * var(--grid-row-height));
+  top: var(--selection-top);
   left: calc(var(--selection-col-offset) * var(--grid-column-width));
   width: calc(var(--selection-col-span) * var(--grid-column-width));
-  height: calc(var(--selection-row-span) * var(--grid-row-height));
+  height: var(--selection-height);
   box-sizing: border-box;
   border: 0 solid var(--primary);
   pointer-events: none;

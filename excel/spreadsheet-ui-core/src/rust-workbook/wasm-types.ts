@@ -30,9 +30,13 @@ export interface RustIndexedStyleSnapshot {
   readonly format: RustSparseCellStyle
 }
 
+export interface RustIndexedRowStyleSnapshot extends RustIndexedStyleSnapshot {
+  readonly height?: number
+}
+
 export interface RustFormatRangeSnapshot {
   readonly cellStyles: readonly RustCellStyleSnapshot[]
-  readonly rowStyles: readonly RustIndexedStyleSnapshot[]
+  readonly rowStyles: readonly RustIndexedRowStyleSnapshot[]
   readonly columnStyles: readonly RustIndexedStyleSnapshot[]
 }
 

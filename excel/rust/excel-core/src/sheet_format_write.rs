@@ -3,22 +3,28 @@
 use super::*;
 use crate::cell_style::{CellStyle, StyleScope};
 
+const DEFAULT_ROW_HEIGHT_PX: u32 = 28;
+const CELL_VERTICAL_CHROME_PX: u32 = 7;
+
 impl Sheet {
     /// 兼容旧 API：把完整格式作为一个单元格的完整覆盖。
     pub fn set_format(&mut self, addr_str: &str, format: CellFormat) {
         let addr = CellAddress::parse(addr_str).expect("invalid cell address");
+        let font_size = format.font_size;
         if format == CellFormat::default() {
             self.cell_styles.remove(&addr);
         } else {
             self.cell_styles
                 .insert(addr, CellStyle::from_format(format));
         }
+        self.grow_row_for_font_size(addr.row, font_size);
         self.notify_style_subscribers(|candidate| candidate == addr);
     }
 
     /// 兼容旧 API：完整格式按单元格写入，不再建立永久矩形层。
     pub fn set_format_range(&mut self, range: CellRange, format: CellFormat) -> usize {
         let normalized = range.normalize();
+        let font_size = format.font_size;
         let style = CellStyle::from_format(format.clone());
         for addr in normalized.iter() {
             if format == CellFormat::default() {
@@ -26,6 +32,7 @@ impl Sheet {
             } else {
                 self.cell_styles.insert(addr, style.clone());
             }
+            self.grow_row_for_font_size(addr.row, font_size);
         }
         self.notify_style_subscribers(|addr| normalized.contains(addr))
     }
@@ -58,7 +65,28 @@ impl Sheet {
     fn patch_cells(&mut self, range: CellRange, patch: &CellStyle) {
         for addr in range.iter() {
             self.cell_styles.entry(addr).or_default().apply_patch(patch);
+            if let Some(font_size) = patch.font_size {
+                self.grow_row_for_font_size(addr.row, font_size);
+            }
         }
+    }
+
+    /// 字号只会撑高当前单元格所在行，不读取或扫描其他行。
+    fn grow_row_for_font_size(&mut self, row: u32, font_size: Option<u32>) {
+        let Some(font_size) = font_size else {
+            return;
+        };
+        // React 单元格使用 1.2 line-height、上下 3px padding 和 1px 网格线。
+        let text_height = font_size.saturating_mul(6).div_ceil(5);
+        let required_height =
+            DEFAULT_ROW_HEIGHT_PX.max(text_height.saturating_add(CELL_VERTICAL_CHROME_PX));
+        let row_style = self.row_styles.entry(row).or_default();
+        row_style.height = Some(
+            row_style
+                .height
+                .unwrap_or(DEFAULT_ROW_HEIGHT_PX)
+                .max(required_height),
+        );
     }
 
     fn patch_rows(&mut self, start: u32, end: u32, patch: &CellStyle) {
@@ -85,7 +113,11 @@ impl Sheet {
                     .or_default()
                     .apply_patch(patch);
             }
-            self.row_styles.entry(row).or_default().apply_patch(patch);
+            self.row_styles
+                .entry(row)
+                .or_default()
+                .format
+                .apply_patch(patch);
         }
     }
 
@@ -104,7 +136,7 @@ impl Sheet {
         let conflicting_rows: Vec<u32> = self
             .row_styles
             .iter()
-            .filter_map(|(row, style)| style.overlaps(patch).then_some(*row))
+            .filter_map(|(row, style)| style.format.overlaps(patch).then_some(*row))
             .collect();
         for column in start..=end {
             for row in &conflicting_rows {

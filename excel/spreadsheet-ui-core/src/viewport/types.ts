@@ -1,6 +1,7 @@
 import type { CellCoord, CellRange } from '../shared'
 
 export interface ViewportMetrics {
+  sheetId?: string
   scrollTop: number
   scrollLeft: number
   viewportHeight: number

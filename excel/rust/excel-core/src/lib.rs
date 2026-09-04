@@ -20,7 +20,7 @@ pub use auto_fill::{
     AutoFillSeries, AutoFillTextPattern,
 };
 pub use cell::CellAddress;
-pub use cell_style::{CellStyle, StyleScope};
+pub use cell_style::{CellStyle, RowStyle, StyleScope};
 pub use csv::{export_csv, import_csv, parse_csv, to_csv};
 pub use eval::{
     eval_expr, is_builtin_function_name, CustomFunctionRegistry, EvalProvider,

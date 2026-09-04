@@ -1,10 +1,10 @@
 .cell-editor {
   position: absolute;
   z-index: 2;
-  top: calc(var(--editor-row) * var(--grid-row-height));
+  top: var(--editor-top);
   left: calc(var(--editor-col) * var(--grid-column-width));
   width: var(--grid-column-width);
-  height: var(--grid-row-height);
+  height: var(--editor-height);
 }
 
 .cell-editor input {

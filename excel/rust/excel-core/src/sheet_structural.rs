@@ -91,7 +91,6 @@ impl Sheet {
             sheet.retarget_parked_sources(edit);
             match edit {
                 crate::shift::ShiftEdit::RowInsert { at, count } => {
-                    Self::shift_dimension_insert(&mut sheet.row_heights, at, count);
                     Self::shift_dimension_insert(&mut sheet.row_styles, at, count);
                     // The engine-owned hidden set is row-indexed dimension
                     // metadata too, so it rides the SAME pass — through the
@@ -105,7 +104,6 @@ impl Sheet {
                     sheet.shift_filter_hidden_rows(at, count, true);
                 }
                 crate::shift::ShiftEdit::RowDelete { at, count } => {
-                    Self::shift_dimension_delete(&mut sheet.row_heights, at, count);
                     Self::shift_dimension_delete(&mut sheet.row_styles, at, count);
                     sheet.shift_hidden_rows(at, count, false);
                     sheet.shift_filter_hidden_rows(at, count, false);

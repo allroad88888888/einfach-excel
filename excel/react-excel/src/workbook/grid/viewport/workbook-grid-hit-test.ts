@@ -1,4 +1,7 @@
-import type { CellCoord } from '@einfach/spreadsheet-ui-core'
+import {
+  getAxisStartIndexAtOffset,
+  type CellCoord,
+} from '@einfach/spreadsheet-ui-core'
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react'
 
 interface WorkbookViewportPoint {
@@ -12,6 +15,7 @@ interface WorkbookViewportPoint {
   readonly rowHeaderWidth: number
   readonly rowCount: number
   readonly colCount: number
+  readonly rowHeights?: Record<string, number>
 }
 
 /** Resolves a pointer location to the workbook cell rendered beneath it. */
@@ -37,7 +41,12 @@ export function workbookCellAtViewportPoint(input: WorkbookViewportPoint): CellC
   const contentY = input.scrollTop + input.clientY - input.bounds.top - input.rowHeight
   if (contentX < 0 || contentY < 0) return null
 
-  const row = Math.floor(contentY / input.rowHeight)
+  const row = getAxisStartIndexAtOffset(
+    contentY,
+    input.rowCount,
+    input.rowHeight,
+    input.rowHeights,
+  )
   const col = Math.floor(contentX / input.colWidth)
   return row < input.rowCount && col < input.colCount ? { row, col } : null
 }

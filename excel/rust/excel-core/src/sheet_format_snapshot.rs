@@ -1,13 +1,13 @@
 //! 格式 undo 与持久化使用的稀疏快照。
 
 use super::*;
-use crate::cell_style::CellStyle;
+use crate::cell_style::{CellStyle, RowStyle};
 
 #[derive(Clone, Debug)]
 pub struct FormatRangeSnapshot {
     pub range: CellRange,
     pub cell_styles: Vec<(CellAddress, CellStyle)>,
-    pub row_styles: Vec<(u32, CellStyle)>,
+    pub row_styles: Vec<(u32, RowStyle)>,
     pub column_styles: Vec<(u32, CellStyle)>,
 }
 

@@ -21,9 +21,29 @@ test('font size is written through Rust and reflected by the ribbon', async ({ p
   const cell = await selectTestCell(page)
   const fontSize = page.getByRole('combobox', { name: 'Font size' })
 
+  await expect(fontSize).toHaveCSS('width', '56px')
   await fontSize.selectOption('16')
   await expect(fontSize).toHaveValue('16')
   await expect(cell).toHaveCSS('font-size', '16px')
+})
+
+test('a 36px cell font grows only its own row', async ({ page }) => {
+  const cell = await selectTestCell(page)
+  const rowBefore = await cell.boundingBox()
+  const nextRow = page.locator('td[data-cell="3:1"]')
+  const nextRowBefore = await nextRow.boundingBox()
+
+  await page.getByRole('combobox', { name: 'Font size' }).selectOption('36')
+  await expect(cell).toHaveCSS('font-size', '36px')
+  await expect.poll(async () => (await cell.boundingBox())?.height).toBeGreaterThan(36)
+  const grownRow = await cell.boundingBox()
+  expect((await nextRow.boundingBox())?.height).toBe(rowBefore?.height)
+  expect((await nextRow.boundingBox())?.y).toBe(
+    (nextRowBefore?.y ?? 0) + (grownRow?.height ?? 0) - (rowBefore?.height ?? 0),
+  )
+  expect((await page.locator('.row-headers .sheet-heading').nth(2).boundingBox())?.height).toBe(
+    grownRow?.height,
+  )
 })
 
 test('wrap text toggles the selected Rust cell style', async ({ page }) => {

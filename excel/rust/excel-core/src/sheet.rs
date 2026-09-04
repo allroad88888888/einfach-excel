@@ -313,10 +313,10 @@ pub(crate) struct SheetInterior {
     pub(crate) needs_parse: RefCell<HashSet<CellAddress>>,
     /// Sparse column widths in physical pixels, keyed by 0-based column
     /// (absent → UI default). Lives in the shared interior — rather than
-    /// beside `row_heights` on [`Sheet`] — because a formula-inner read_fn
+    /// beside `row_styles` on [`Sheet`] — because a formula-inner read_fn
     /// ([`AtomFormulaProvider`], reachable only through the `FacadeCtx`'s
-    /// `Rc<SheetInterior>`) needs it to answer `CELL("width")`. `row_heights`
-    /// stays on `Sheet`: no formula reads a row height (Excel has no
+    /// `Rc<SheetInterior>`) needs it to answer `CELL("width")`. Row height
+    /// stays inside `row_styles`: no formula reads a row height (Excel has no
     /// `CELL("height")` info_type). Read UNTRACKED (no dependency edge): a bare
     /// column resize does not itself re-derive an existing `CELL("width")`
     /// formula — consistent with `set_col_width` driving no recompute anywhere
@@ -390,15 +390,13 @@ pub struct Sheet {
     next_cell_sub_id: u64,
     /// 稀疏 cellStyle；只保存单元格自己明确接管的显示属性。
     pub(crate) cell_styles: HashMap<CellAddress, CellStyle>,
-    /// 稀疏 rowStyle；行高仍由 `row_heights` 单独负责。
-    pub(crate) row_styles: BTreeMap<u32, CellStyle>,
+    /// 稀疏 rowStyle；行显示格式与行高共用这一份权威数据。
+    pub(crate) row_styles: BTreeMap<u32, crate::cell_style::RowStyle>,
     /// 稀疏 columnStyle；列宽仍由 `SheetInterior::col_widths` 单独负责。
     pub(crate) column_styles: BTreeMap<u32, CellStyle>,
     /// Sheet-wide conditional formatting rules. Applied in order on top of
     /// each cell's base format at display time (first match wins).
     conditional_rules: Vec<ConditionalRule>,
-    /// Sparse row heights in physical pixels. Absent means the UI default.
-    row_heights: BTreeMap<u32, u32>,
     // Column widths moved to `SheetInterior::col_widths` (shared `Rc`) so the
     // formula-inner provider can reach them for `CELL("width")`. The public
     // `set_col_width` / `col_width` / ... accessors below are unchanged and now
@@ -408,11 +406,11 @@ pub struct Sheet {
     /// `WorkbookAtomContext::eval_hidden_rows`, which is now a read-only
     /// evaluation mirror republished from here.
     ///
-    /// Sits beside `row_heights` / `col_widths` because it is the same kind
+    /// Sits beside `row_styles` / `col_widths` because it is the same kind
     /// of fact: sparse, row-indexed, per-sheet dimension metadata that
     /// belongs to the sheet rather than to the workbook. Three consequences
     /// come free from the placement — `apply_structural_shift` displaces it
-    /// in the same pass that displaces `row_heights`; `move_sheet` /
+    /// in the same pass that displaces `row_styles`; `move_sheet` /
     /// `remove_sheet` carry it because they move the whole `Sheet`; and
     /// persistence-v1, which already walks sheets, can serialize it without
     /// a new keying scheme.
@@ -428,7 +426,7 @@ pub struct Sheet {
     /// rule list: nothing hidden.
     ///
     /// Beside `hidden_rows` for the same reason `hidden_rows` is beside
-    /// `row_heights`, and it inherits the same three freebies: structural
+    /// `row_styles`, and it inherits the same three freebies: structural
     /// displacement, sheet lifecycle, persistence-by-sheet-walk.
     ///
     /// The derived set is STORED rather than recomputed on demand, and that
@@ -1851,7 +1849,6 @@ impl Sheet {
             row_styles: BTreeMap::new(),
             column_styles: BTreeMap::new(),
             conditional_rules: Vec::new(),
-            row_heights: BTreeMap::new(),
             hidden_rows: BTreeSet::new(),
             filter: None,
             filter_scan_count: Cell::new(0),

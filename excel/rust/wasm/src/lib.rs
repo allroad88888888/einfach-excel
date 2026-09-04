@@ -10,9 +10,9 @@ use einfach_excel_core::{
     CellSubscription, ColumnFilterRule, ConditionalFormatConfigSnapshot,
     ConditionalFormatRuleEntry, CustomFunctionRegistry, DepGraphStats, FilterApplyReport,
     FilterError, FilterSnapshot, FormatRangeSnapshot, HiddenRowsSnapshot, NumberFormat, Rotation,
-    Sheet, SheetError, SheetFilterState, SheetHiddenRows, SortDirection, SortKey, SortRangeError,
-    SortRangeReport, StyleScope, TableEntry, TableError, TableRegistrySnapshot, TotalsFunction,
-    VerticalAlign, Workbook, WorkbookError, MAX_FILTER_PREDICATE_CELLS,
+    RowStyle, Sheet, SheetError, SheetFilterState, SheetHiddenRows, SortDirection, SortKey,
+    SortRangeError, SortRangeReport, StyleScope, TableEntry, TableError, TableRegistrySnapshot,
+    TotalsFunction, VerticalAlign, Workbook, WorkbookError, MAX_FILTER_PREDICATE_CELLS,
 };
 use einfach_excel_core::{
     AutoFillDirection, AutoFillError, AutoFillListWitness, AutoFillReport, AutoFillRequest,

@@ -34,6 +34,9 @@ fn formula_record_is_structural_metadata_only() {
         .lines()
         .map(str::trim)
         .filter(|line| !line.is_empty() && !line.starts_with("///"))
+        // FormulaRecord now lives in a sheet child module. Its sibling users
+        // require child-tree visibility; visibility is not response state.
+        .map(|line| line.strip_prefix("pub(super) ").unwrap_or(line))
         .collect();
     assert_eq!(
         fields,

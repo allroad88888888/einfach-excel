@@ -260,8 +260,7 @@ impl Workbook {
         let target_sheet = self
             .sheet_mut(request.sheet_idx)
             .expect("preflighted auto-fill sheet disappeared");
-        // A default range layer clears any previous effective target format.
-        // Non-default copied effective formats are then restored sparsely.
+        // 先清掉目标格自己的 cellStyle，再逐格复制源格式。
         target_sheet.set_format_range(write_range, CellFormat::default());
         for cell in &planned {
             if cell.format != CellFormat::default() {

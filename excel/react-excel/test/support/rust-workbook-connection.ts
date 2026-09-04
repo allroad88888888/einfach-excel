@@ -1,7 +1,9 @@
 import type {
   BackendMutationResult,
   EditingCommitRequest,
+  RustSetRangeFormatResult,
   RustWorkbookConnection,
+  SetFormatRangeRequest,
   VisibleProjectionRequest,
   VisibleProjectionResult,
 } from '@einfach/spreadsheet-ui-core'
@@ -11,9 +13,13 @@ export interface TestRustWorkbookHandlers {
   readVisibleProjection?: (request: VisibleProjectionRequest) => Promise<VisibleProjectionResult>
   setCellInput?: (request: EditingCommitRequest) => Promise<BackendMutationResult>
   setCellProjection?: (request: VisibleProjectionRequest) => Promise<VisibleProjectionResult>
+  setRangeFormat?: (
+    request: SetFormatRangeRequest,
+    projection: VisibleProjectionRequest,
+  ) => Promise<RustSetRangeFormatResult>
 }
 
-/** 把测试关注的两条命令装进最小 Rust connection 假件。 */
+/** 把测试关注的 Rust 命令装进最小 connection 假件。 */
 export function createTestRustWorkbookConnection(
   handlers: TestRustWorkbookHandlers = {},
 ): RustWorkbookConnection {
@@ -53,6 +59,13 @@ export function createTestRustWorkbookConnection(
         }
       }
       return { acknowledgement, projection }
+    }
+    if (command === 'format.setRange' && handlers.setRangeFormat) {
+      const input = payload as {
+        request: SetFormatRangeRequest
+        projection: VisibleProjectionRequest
+      }
+      return handlers.setRangeFormat(input.request, input.projection)
     }
     throw new Error(`Unhandled test Rust command: ${command}`)
   }) as RustWorkbookConnection['request']

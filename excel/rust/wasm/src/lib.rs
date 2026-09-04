@@ -6,14 +6,13 @@
 
 use einfach_core::{CellListener, Value, ValueError};
 use einfach_excel_core::{
-    Align, BorderSpec, BorderStyle, CellAddress, CellBorders, CellFormat, CellRange,
-    CellSubscription, ColumnFilterRule, CustomFunctionRegistry, DepGraphStats, FilterApplyReport,
-    FilterError, FilterSnapshot, FormatRangeSnapshot, HiddenRowsSnapshot, NumberFormat,
-    RangeFormatSnapshotLayer, Rotation, Sheet, SheetError, SheetFilterState, SheetHiddenRows,
-    ConditionalFormatConfigSnapshot, ConditionalFormatRuleEntry, SortDirection, SortKey,
-    SortRangeError, SortRangeReport, TableEntry, TableError,
-    TableRegistrySnapshot, TotalsFunction, VerticalAlign, Workbook, WorkbookError,
-    MAX_FILTER_PREDICATE_CELLS,
+    Align, BorderSpec, BorderStyle, CellAddress, CellBorders, CellFormat, CellRange, CellStyle,
+    CellSubscription, ColumnFilterRule, ConditionalFormatConfigSnapshot,
+    ConditionalFormatRuleEntry, CustomFunctionRegistry, DepGraphStats, FilterApplyReport,
+    FilterError, FilterSnapshot, FormatRangeSnapshot, HiddenRowsSnapshot, NumberFormat, Rotation,
+    Sheet, SheetError, SheetFilterState, SheetHiddenRows, SortDirection, SortKey, SortRangeError,
+    SortRangeReport, StyleScope, TableEntry, TableError, TableRegistrySnapshot, TotalsFunction,
+    VerticalAlign, Workbook, WorkbookError, MAX_FILTER_PREDICATE_CELLS,
 };
 use einfach_excel_core::{
     AutoFillDirection, AutoFillError, AutoFillListWitness, AutoFillReport, AutoFillRequest,
@@ -29,6 +28,8 @@ use wasm_bindgen::JsCast;
 
 include!("wasm_autofill_wire.rs");
 include!("wasm_cell_format_wire.rs");
+include!("wasm_cell_style_wire.rs");
+include!("wasm_style_snapshot_wire.rs");
 include!("wasm_format_snapshot_wire.rs");
 include!("wasm_import_value_wire.rs");
 include!("wasm_import_cells_wire.rs");

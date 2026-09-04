@@ -3,6 +3,7 @@ export {
   type RustImportCell,
   type RustImportStats,
   type RustSetCellInputResult,
+  type RustSetRangeFormatResult,
   type RustWorkbookCommands,
   type RustWorkbookConnection,
   type RustWorkbookSheet,

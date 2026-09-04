@@ -16,28 +16,36 @@ struct CellFormatJSON {
     italic: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     align: Option<String>,
-    #[serde(default, rename = "fontSize", skip_serializing_if = "Option::is_none")]
-    font_size: Option<u32>,
+    #[serde(
+        default,
+        rename = "fontSize",
+        deserialize_with = "deserialize_optional_override",
+        skip_serializing_if = "Option::is_none"
+    )]
+    font_size: Option<Option<u32>>,
     #[serde(
         default,
         rename = "fgColor",
         alias = "color",
+        deserialize_with = "deserialize_optional_override",
         skip_serializing_if = "Option::is_none"
     )]
-    fg_color: Option<String>,
+    fg_color: Option<Option<String>>,
     #[serde(
         default,
         rename = "bgColor",
         alias = "background",
+        deserialize_with = "deserialize_optional_override",
         skip_serializing_if = "Option::is_none"
     )]
-    bg_color: Option<String>,
+    bg_color: Option<Option<String>>,
     #[serde(
         default,
         rename = "fontFamily",
+        deserialize_with = "deserialize_optional_override",
         skip_serializing_if = "Option::is_none"
     )]
-    font_family: Option<String>,
+    font_family: Option<Option<String>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     underline: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -54,8 +62,20 @@ struct CellFormatJSON {
     vertical_align: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     rotation: Option<RotationJSON>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    borders: Option<CellBordersJSON>,
+    #[serde(
+        default,
+        deserialize_with = "deserialize_optional_override",
+        skip_serializing_if = "Option::is_none"
+    )]
+    borders: Option<Option<CellBordersJSON>>,
+}
+
+fn deserialize_optional_override<'de, D, T>(deserializer: D) -> Result<Option<Option<T>>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+    T: Deserialize<'de>,
+{
+    Option::<T>::deserialize(deserializer).map(Some)
 }
 
 /// Wire format for cell rotation. JS sends `number | 'vertical'`; the
@@ -134,10 +154,10 @@ impl CellFormatJSON {
             bold: self.bold.unwrap_or(false),
             italic: self.italic.unwrap_or(false),
             align,
-            font_size: self.font_size,
-            color: self.fg_color,
-            background: self.bg_color,
-            font_family: self.font_family,
+            font_size: self.font_size.flatten(),
+            color: self.fg_color.flatten(),
+            background: self.bg_color.flatten(),
+            font_family: self.font_family.flatten(),
             underline: self.underline.unwrap_or(false),
             strikethrough: self.strikethrough.unwrap_or(false),
             wrap_text: self.wrap.unwrap_or(false),
@@ -146,8 +166,48 @@ impl CellFormatJSON {
             rotation,
             borders: self
                 .borders
+                .flatten()
                 .map(CellBordersJSON::into_borders)
                 .unwrap_or_default(),
+        }
+    }
+
+    /// 保留字段是否出现，供稀疏格式 patch 使用。
+    fn into_style(self) -> CellStyle {
+        CellStyle {
+            number_format: self.number_format.map(NumberFormatJSON::into_number_format),
+            bold: self.bold,
+            italic: self.italic,
+            align: self.align.map(|value| match value.as_str() {
+                "left" => Align::Left,
+                "center" => Align::Center,
+                "right" => Align::Right,
+                _ => Align::Default,
+            }),
+            font_size: self.font_size,
+            color: self.fg_color,
+            background: self.bg_color,
+            font_family: self.font_family,
+            underline: self.underline,
+            strikethrough: self.strikethrough,
+            wrap_text: self.wrap,
+            indent: self.indent,
+            vertical_align: self.vertical_align.map(|value| match value.as_str() {
+                "top" => VerticalAlign::Top,
+                "center" => VerticalAlign::Center,
+                "bottom" => VerticalAlign::Bottom,
+                "justify" => VerticalAlign::Justify,
+                "distributed" => VerticalAlign::Distributed,
+                _ => VerticalAlign::Default,
+            }),
+            rotation: self.rotation.map(|value| match value {
+                RotationJSON::Vertical(value) if value == "vertical" => Rotation::Vertical,
+                RotationJSON::Degrees(degrees) => Rotation::Degrees(degrees),
+                RotationJSON::Vertical(_) => Rotation::None,
+            }),
+            borders: self
+                .borders
+                .map(|value| value.map(CellBordersJSON::into_borders).unwrap_or_default()),
         }
     }
 
@@ -162,10 +222,10 @@ impl CellFormatJSON {
                 Align::Center => "center".into(),
                 Align::Right => "right".into(),
             }),
-            font_size: fmt.font_size,
-            fg_color: fmt.color.clone(),
-            bg_color: fmt.background.clone(),
-            font_family: fmt.font_family.clone(),
+            font_size: fmt.font_size.map(Some),
+            fg_color: fmt.color.clone().map(Some),
+            bg_color: fmt.background.clone().map(Some),
+            font_family: fmt.font_family.clone().map(Some),
             underline: if fmt.underline { Some(true) } else { None },
             strikethrough: if fmt.strikethrough { Some(true) } else { None },
             wrap: if fmt.wrap_text { Some(true) } else { None },
@@ -187,63 +247,7 @@ impl CellFormatJSON {
                 Rotation::Degrees(d) => Some(RotationJSON::Degrees(d)),
                 Rotation::Vertical => Some(RotationJSON::Vertical("vertical".into())),
             },
-            borders: CellBordersJSON::from_borders(&fmt.borders),
-        }
-    }
-}
-
-impl CellBordersJSON {
-    fn into_borders(self) -> CellBorders {
-        CellBorders {
-            top: self.top.map(BorderSpecJSON::into_spec),
-            right: self.right.map(BorderSpecJSON::into_spec),
-            bottom: self.bottom.map(BorderSpecJSON::into_spec),
-            left: self.left.map(BorderSpecJSON::into_spec),
-        }
-    }
-
-    fn from_borders(borders: &CellBorders) -> Option<Self> {
-        if borders == &CellBorders::default() {
-            return None;
-        }
-        Some(CellBordersJSON {
-            top: borders.top.as_ref().map(BorderSpecJSON::from_spec),
-            right: borders.right.as_ref().map(BorderSpecJSON::from_spec),
-            bottom: borders.bottom.as_ref().map(BorderSpecJSON::from_spec),
-            left: borders.left.as_ref().map(BorderSpecJSON::from_spec),
-        })
-    }
-}
-
-impl BorderSpecJSON {
-    fn into_spec(self) -> BorderSpec {
-        let style = match self.style.as_str() {
-            "thin" => BorderStyle::Thin,
-            "medium" => BorderStyle::Medium,
-            "thick" => BorderStyle::Thick,
-            "dashed" => BorderStyle::Dashed,
-            "dotted" => BorderStyle::Dotted,
-            "double" => BorderStyle::Double,
-            _ => BorderStyle::None,
-        };
-        BorderSpec {
-            style,
-            color: self.color,
-        }
-    }
-
-    fn from_spec(spec: &BorderSpec) -> Self {
-        BorderSpecJSON {
-            style: match spec.style {
-                BorderStyle::None => "none".into(),
-                BorderStyle::Thin => "thin".into(),
-                BorderStyle::Medium => "medium".into(),
-                BorderStyle::Thick => "thick".into(),
-                BorderStyle::Dashed => "dashed".into(),
-                BorderStyle::Dotted => "dotted".into(),
-                BorderStyle::Double => "double".into(),
-            },
-            color: spec.color.clone(),
+            borders: CellBordersJSON::from_borders(&fmt.borders).map(Some),
         }
     }
 }

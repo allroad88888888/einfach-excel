@@ -1,4 +1,4 @@
-import type { RustImportCell } from '@einfach/spreadsheet-ui-core'
+import type { RustImportCell, SpreadsheetCellFormat } from '@einfach/spreadsheet-ui-core'
 import { SALES_ORDER_COLUMNS, SALES_ORDER_RECORD_COUNT, SALES_ORDER_SHEET_ROW_COUNT } from './sheet'
 
 export const SALES_ORDER_CELL_COUNT = SALES_ORDER_SHEET_ROW_COUNT * SALES_ORDER_COLUMNS.length
@@ -16,12 +16,29 @@ const SHIP_MODES = ['Standard', 'Express', 'Pickup']
 const COUNTRIES = ['USA', 'Canada', 'Germany', 'Japan']
 const CITIES = ['Seattle', 'Toronto', 'Berlin', 'Tokyo']
 
+const DEMO_TEXT_STYLES: ReadonlyMap<string, SpreadsheetCellFormat> = new Map([
+  ['1:0', { bold: true }],
+  ['1:1', { italic: true }],
+  ['1:2', { underline: true }],
+  ['1:3', { bgColor: '#fff2cc' }],
+  ['1:4', { fgColor: '#c00000' }],
+  ['1:5', { align: 'center' }],
+  ['1:6', { fontFamily: 'Georgia' }],
+  ['1:7', { fontSize: 16 }],
+  ['1:8', { wrap: true }],
+])
+
+function demoFormat(row: number, col: number): { readonly format?: SpreadsheetCellFormat } {
+  const format = DEMO_TEXT_STYLES.get(`${row}:${col}`)
+  return format ? { format } : {}
+}
+
 function textCell(row: number, col: number, value: string): SalesOrderImportCell {
-  return { sheet: 0, row, col, kind: 'text', value }
+  return { sheet: 0, row, col, kind: 'text', value, ...demoFormat(row, col) }
 }
 
 function numberCell(row: number, col: number, value: number): SalesOrderImportCell {
-  return { sheet: 0, row, col, kind: 'number', value }
+  return { sheet: 0, row, col, kind: 'number', value, ...demoFormat(row, col) }
 }
 
 function createDataRow(dataRow: number): SalesOrderImportCell[] {
@@ -41,7 +58,14 @@ function createDataRow(dataRow: number): SalesOrderImportCell[] {
     textCell(row, 3, PRODUCTS[productIndex] ?? ''),
     numberCell(row, 4, quantity),
     numberCell(row, 5, unitPrice),
-    { sheet: 0, row, col: 6, kind: 'formula', value: `=E${row + 1}*F${row + 1}` },
+    {
+      sheet: 0,
+      row,
+      col: 6,
+      kind: 'formula',
+      value: `=E${row + 1}*F${row + 1}`,
+      ...demoFormat(row, 6),
+    },
     textCell(row, 7, STATUSES[dataRow % STATUSES.length] ?? 'Review'),
     textCell(row, 8, SALES_REPS[dataRow % SALES_REPS.length] ?? ''),
     textCell(row, 9, `2026-08-${day}`),

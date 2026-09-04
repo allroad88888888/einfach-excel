@@ -1,0 +1,46 @@
+import { expect, test } from '@playwright/test'
+
+async function selectTestCell(page: import('@playwright/test').Page) {
+  await page.goto('/')
+  const cell = page.locator('td[data-cell="2:1"]')
+  await expect(cell).toBeVisible()
+  await cell.click()
+  return cell
+}
+
+test('font family is written through Rust and reflected by the ribbon', async ({ page }) => {
+  const cell = await selectTestCell(page)
+  const fontFamily = page.getByRole('combobox', { name: 'Font family' })
+
+  await fontFamily.selectOption('Georgia')
+  await expect(fontFamily).toHaveValue('Georgia')
+  await expect(cell).toHaveCSS('font-family', /Georgia/)
+})
+
+test('font size is written through Rust and reflected by the ribbon', async ({ page }) => {
+  const cell = await selectTestCell(page)
+  const fontSize = page.getByRole('combobox', { name: 'Font size' })
+
+  await fontSize.selectOption('16')
+  await expect(fontSize).toHaveValue('16')
+  await expect(cell).toHaveCSS('font-size', '16px')
+})
+
+test('wrap text toggles the selected Rust cell style', async ({ page }) => {
+  const cell = await selectTestCell(page)
+  const wrap = page.getByRole('button', { name: 'Wrap text' })
+
+  await wrap.click()
+  await expect(wrap).toHaveAttribute('aria-pressed', 'true')
+  await expect(cell).toHaveCSS('white-space', 'normal')
+  await wrap.click()
+  await expect(wrap).toHaveAttribute('aria-pressed', 'false')
+  await expect(cell).toHaveCSS('white-space', 'nowrap')
+})
+
+test('shows the text layout examples from the original Rust seed', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.locator('td[data-cell="1:6"]')).toHaveCSS('font-family', /Georgia/)
+  await expect(page.locator('td[data-cell="1:7"]')).toHaveCSS('font-size', '16px')
+  await expect(page.locator('td[data-cell="1:8"]')).toHaveCSS('white-space', 'normal')
+})

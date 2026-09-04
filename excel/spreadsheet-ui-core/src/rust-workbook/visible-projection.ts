@@ -5,12 +5,22 @@ import type {
 } from '../backend'
 import { displayCell } from './cell-io'
 import type { WasmWorkbook } from './wasm-types'
+import { applyVisibleFormats } from './format-projection'
 
 function requiredSparseRead(
   workbook: WasmWorkbook,
 ): NonNullable<WasmWorkbook['read_sparse_range']> {
   if (workbook.read_sparse_range) return workbook.read_sparse_range
   throw Object.assign(new Error('WasmWorkbook.read_sparse_range is unavailable'), {
+    code: 'WASM_METHOD_UNAVAILABLE',
+  })
+}
+
+function requiredFormatSnapshot(
+  workbook: WasmWorkbook,
+): NonNullable<WasmWorkbook['snapshot_format_range']> {
+  if (workbook.snapshot_format_range) return workbook.snapshot_format_range
+  throw Object.assign(new Error('WasmWorkbook.snapshot_format_range is unavailable'), {
     code: 'WASM_METHOD_UNAVAILABLE',
   })
 }
@@ -31,15 +41,23 @@ export function readVisibleProjection(
     request.window.rowEnd,
     request.window.colEnd,
   )
+  const formats = requiredFormatSnapshot(workbook).call(
+    workbook,
+    sheetIndex,
+    request.window.rowStart,
+    request.window.colStart,
+    request.window.rowEnd,
+    request.window.colEnd,
+  )
+  const visibleCells = cells
+    .map(displayCell)
+    .filter((cell): cell is NonNullable<typeof cell> => cell !== null)
   return {
     kind: 'visible-window',
     sheetId: request.sheetId,
     requestId: request.requestId,
     revision,
     window: { ...request.window },
-    cells: cells
-      .map(displayCell)
-      .filter((cell): cell is NonNullable<typeof cell> => cell !== null)
-      .sort((left, right) => left.row - right.row || left.col - right.col),
+    cells: applyVisibleFormats(visibleCells, request.window, formats),
   }
 }

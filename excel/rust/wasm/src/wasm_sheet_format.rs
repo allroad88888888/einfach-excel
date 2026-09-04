@@ -11,9 +11,7 @@ impl WasmSheet {
         Ok(())
     }
 
-    /// Phase 6 — set the format for a rectangular range.
-    /// `fmt` follows the same wire shape as `set_format`; `null` / `undefined` / `{}` clears
-    /// any non-default range style by storing the default style as a layer.
+    /// 兼容旧调用：把完整格式逐格写进 cellStyle。
     pub fn set_format_range(
         &mut self,
         start_row: u32,
@@ -33,6 +31,27 @@ impl WasmSheet {
             CellAddress::new(end_row, end_col),
         );
         Ok(self.sheet.set_format_range(range, parsed.into_format()) as u32)
+    }
+
+    /// 按属性写入 cellStyle / rowStyle / columnStyle。
+    pub fn patch_format_range(
+        &mut self,
+        start_row: u32,
+        start_col: u32,
+        end_row: u32,
+        end_col: u32,
+        patch: JsValue,
+        scope: &str,
+    ) -> Result<u32, JsValue> {
+        let parsed: CellFormatJSON = serde_wasm_bindgen::from_value(patch)
+            .map_err(|e| JsValue::from_str(&format!("invalid CellStyle patch: {e}")))?;
+        let range = CellRange::new(
+            CellAddress::new(start_row, start_col),
+            CellAddress::new(end_row, end_col),
+        );
+        Ok(self
+            .sheet
+            .patch_format_range(range, style_scope(scope)?, parsed.into_style()) as u32)
     }
 
     /// Snapshot sparse formatting metadata for undoing a later range-format

@@ -1,3 +1,4 @@
+import type { SpreadsheetCellFormat } from '../backend'
 import type { RustImportCell, RustImportStats } from './commands'
 
 export interface RustCellSnapshot {
@@ -15,6 +16,26 @@ export interface RustWriteOutcome {
   readonly code?: string
 }
 
+export type RustSparseCellStyle = {
+  readonly [Key in keyof SpreadsheetCellFormat]?: SpreadsheetCellFormat[Key] | null
+}
+
+export interface RustCellStyleSnapshot {
+  readonly addr: string
+  readonly format: RustSparseCellStyle
+}
+
+export interface RustIndexedStyleSnapshot {
+  readonly index: number
+  readonly format: RustSparseCellStyle
+}
+
+export interface RustFormatRangeSnapshot {
+  readonly cellStyles: readonly RustCellStyleSnapshot[]
+  readonly rowStyles: readonly RustIndexedStyleSnapshot[]
+  readonly columnStyles: readonly RustIndexedStyleSnapshot[]
+}
+
 export interface WasmWorkbook {
   sheet_count(): number
   sheet_name(index: number): string
@@ -27,6 +48,30 @@ export interface WasmWorkbook {
   trySetFormulaAt?: (sheet: number, addr: string, formula: string) => RustWriteOutcome
   snapshotCell(sheet: number, addr: string): RustCellSnapshot
   bulk_import_cells(cells: readonly RustImportCell[]): RustImportStats
+  set_format_range?: (
+    sheet: number,
+    startRow: number,
+    startCol: number,
+    endRow: number,
+    endCol: number,
+    format: SpreadsheetCellFormat | null,
+  ) => number
+  patch_format_range?: (
+    sheet: number,
+    startRow: number,
+    startCol: number,
+    endRow: number,
+    endCol: number,
+    patch: Readonly<Record<string, unknown>>,
+    scope: 'cell' | 'row' | 'column',
+  ) => number
+  snapshot_format_range?: (
+    sheet: number,
+    startRow: number,
+    startCol: number,
+    endRow: number,
+    endCol: number,
+  ) => RustFormatRangeSnapshot
   read_sparse_range?: (
     sheet: number,
     startRow: number,

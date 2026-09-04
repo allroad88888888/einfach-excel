@@ -83,7 +83,11 @@ impl Sheet {
             .collect()
     }
 
-    pub(super) fn shift_dimension_insert(dimensions: &mut BTreeMap<u32, u32>, at: u32, count: u32) {
+    pub(super) fn shift_dimension_insert<T: Clone>(
+        dimensions: &mut BTreeMap<u32, T>,
+        at: u32,
+        count: u32,
+    ) {
         let mut shifted = BTreeMap::new();
         for (index, size_px) in dimensions.iter() {
             let next_index = if *index >= at {
@@ -91,12 +95,16 @@ impl Sheet {
             } else {
                 *index
             };
-            shifted.insert(next_index, *size_px);
+            shifted.insert(next_index, size_px.clone());
         }
         *dimensions = shifted;
     }
 
-    pub(super) fn shift_dimension_delete(dimensions: &mut BTreeMap<u32, u32>, at: u32, count: u32) {
+    pub(super) fn shift_dimension_delete<T: Clone>(
+        dimensions: &mut BTreeMap<u32, T>,
+        at: u32,
+        count: u32,
+    ) {
         let delete_end = at.saturating_add(count);
         let mut shifted = BTreeMap::new();
         for (index, size_px) in dimensions.iter() {
@@ -108,7 +116,7 @@ impl Sheet {
             } else {
                 *index
             };
-            shifted.insert(next_index, *size_px);
+            shifted.insert(next_index, size_px.clone());
         }
         *dimensions = shifted;
     }

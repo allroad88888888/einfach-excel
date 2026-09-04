@@ -1,6 +1,7 @@
 pub mod auto_fill;
 pub mod bulk_import_trace;
 pub mod cell;
+pub mod cell_style;
 pub mod csv;
 pub mod eval;
 pub mod filter;
@@ -19,6 +20,7 @@ pub use auto_fill::{
     AutoFillSeries, AutoFillTextPattern,
 };
 pub use cell::CellAddress;
+pub use cell_style::{CellStyle, StyleScope};
 pub use csv::{export_csv, import_csv, parse_csv, to_csv};
 pub use eval::{
     eval_expr, is_builtin_function_name, CustomFunctionRegistry, EvalProvider,
@@ -37,8 +39,7 @@ pub use formula::{parse_formula, BinOperator, Expr, TableArea};
 pub use general_text::excel_general_to_text;
 pub use range::CellRange;
 pub use sheet::{
-    CellSubscription, DepGraphStats, FormatRangeSnapshot, PendingAsyncCustomCall,
-    RangeFormatSnapshotLayer, Sheet, SheetError,
+    CellSubscription, DepGraphStats, FormatRangeSnapshot, PendingAsyncCustomCall, Sheet, SheetError,
 };
 pub use shift::{render_formula, shift_refs};
 pub use sort::{

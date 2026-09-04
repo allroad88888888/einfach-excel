@@ -39,9 +39,7 @@ impl WasmWorkbook {
             .map_err(|err| JsValue::from_str(&format!("serialize auto-fill report: {err}")))
     }
 
-    /// Set a range format without materializing empty cells. The core stores
-    /// a sparse range-format layer and only notifies addresses that are
-    /// already subscribed.
+    /// 兼容旧调用：把完整格式逐格写进 cellStyle。
     pub fn set_format_range(
         &mut self,
         sheet_idx: u32,
@@ -66,6 +64,30 @@ impl WasmWorkbook {
             .sheet_mut(sheet_idx as usize)
             .ok_or_else(|| JsValue::from_str(&format!("invalid sheet index: {sheet_idx}")))?;
         Ok(sheet.set_format_range(range, parsed.into_format()) as u32)
+    }
+
+    /// 按属性写入 cellStyle / rowStyle / columnStyle。
+    pub fn patch_format_range(
+        &mut self,
+        sheet_idx: u32,
+        start_row: u32,
+        start_col: u32,
+        end_row: u32,
+        end_col: u32,
+        patch: JsValue,
+        scope: &str,
+    ) -> Result<u32, JsValue> {
+        let parsed: CellFormatJSON = serde_wasm_bindgen::from_value(patch)
+            .map_err(|e| JsValue::from_str(&format!("invalid CellStyle patch: {e}")))?;
+        let range = CellRange::new(
+            CellAddress::new(start_row, start_col),
+            CellAddress::new(end_row, end_col),
+        );
+        let sheet = self
+            .workbook
+            .sheet_mut(sheet_idx as usize)
+            .ok_or_else(|| JsValue::from_str(&format!("invalid sheet index: {sheet_idx}")))?;
+        Ok(sheet.patch_format_range(range, style_scope(scope)?, parsed.into_style()) as u32)
     }
 
     /// Snapshot sparse formatting metadata for a workbook sheet. The

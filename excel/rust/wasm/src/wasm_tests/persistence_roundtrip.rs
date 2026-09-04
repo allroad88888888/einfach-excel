@@ -89,13 +89,13 @@ fn wasm_workbook_snapshot_persistence_v1_roundtrip_sparse_formula_and_formats() 
             CellAddress::new(0, 0),
             CellAddress::new(2, 0),
         ));
-    assert_eq!(restored_fmt.range_formats.len(), 1);
+    assert_eq!(restored_fmt.cell_styles.len(), 3);
     assert!(matches!(
-        restored_fmt.range_formats[0].fmt.number_format,
-        NumberFormat::Decimal {
+        restored_fmt.cell_styles[0].1.number_format,
+        Some(NumberFormat::Decimal {
             digits: 2,
             thousands: true
-        }
+        })
     ));
 
     let restored_custom_fmt =
@@ -107,9 +107,9 @@ fn wasm_workbook_snapshot_persistence_v1_roundtrip_sparse_formula_and_formats() 
                 CellAddress::new(0, 0),
                 CellAddress::new(0, 0),
             ));
-    assert_eq!(restored_custom_fmt.range_formats.len(), 1);
-    match &restored_custom_fmt.range_formats[0].fmt.number_format {
-        NumberFormat::Custom(pattern) => assert_eq!(pattern, "#,##0.0\" kg\""),
+    assert_eq!(restored_custom_fmt.cell_styles.len(), 1);
+    match &restored_custom_fmt.cell_styles[0].1.number_format {
+        Some(NumberFormat::Custom(pattern)) => assert_eq!(pattern, "#,##0.0\" kg\""),
         other => panic!("expected custom number format, got {other:?}"),
     }
     assert_eq!(
@@ -142,7 +142,33 @@ fn wasm_workbook_snapshot_persistence_v1_keeps_format_only_sheet() {
     let envelope = wb.snapshot_persistence_v1_json();
     assert_eq!(envelope.sheets.len(), 2);
     assert_eq!(envelope.cells.len(), 0);
-    assert_eq!(envelope.formats[1].range_formats.len(), 1);
+    assert_eq!(envelope.formats[1].cell_styles.len(), 25);
+}
+
+#[test]
+fn legacy_v1_range_formats_are_migrated_to_cell_styles() {
+    let wire: FormatRangeSnapshotJSON = serde_json::from_value(serde_json::json!({
+        "startRow": 0,
+        "startCol": 0,
+        "endRow": 0,
+        "endCol": 1,
+        "cellFormats": [],
+        "rangeFormats": [{
+            "startRow": 0,
+            "startCol": 0,
+            "endRow": 0,
+            "endCol": 1,
+            "format": { "bold": true }
+        }]
+    }))
+    .unwrap();
+
+    let snapshot = wire.into_snapshot().unwrap();
+    assert_eq!(snapshot.cell_styles.len(), 2);
+    assert!(snapshot
+        .cell_styles
+        .iter()
+        .all(|(_, style)| style.bold == Some(true)));
 }
 
 #[test]

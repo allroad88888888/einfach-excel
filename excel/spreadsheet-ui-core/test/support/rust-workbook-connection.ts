@@ -3,7 +3,9 @@ import {
   setRustWorkbookConnectionAtom,
   type BackendMutationResult,
   type EditingCommitRequest,
+  type RustSetRangeFormatResult,
   type RustWorkbookConnection,
+  type SetFormatRangeRequest,
   type VisibleProjectionRequest,
   type VisibleProjectionResult,
 } from '../../src'
@@ -12,6 +14,10 @@ export interface TestRustWorkbookHandlers {
   readVisibleProjection?: (request: VisibleProjectionRequest) => Promise<VisibleProjectionResult>
   setCellInput?: (request: EditingCommitRequest) => Promise<BackendMutationResult>
   setCellProjection?: (request: VisibleProjectionRequest) => Promise<VisibleProjectionResult>
+  setRangeFormat?: (
+    request: SetFormatRangeRequest,
+    projection: VisibleProjectionRequest,
+  ) => Promise<RustSetRangeFormatResult>
 }
 
 export function createTestRustWorkbookConnection(
@@ -52,6 +58,13 @@ export function createTestRustWorkbookConnection(
         }
       }
       return { acknowledgement, projection }
+    }
+    if (command === 'format.setRange' && handlers.setRangeFormat) {
+      const input = payload as {
+        request: SetFormatRangeRequest
+        projection: VisibleProjectionRequest
+      }
+      return handlers.setRangeFormat(input.request, input.projection)
     }
     throw new Error(`Unhandled test Rust command: ${command}`)
   }) as RustWorkbookConnection['request']

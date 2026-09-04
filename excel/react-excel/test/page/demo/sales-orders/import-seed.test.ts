@@ -35,5 +35,18 @@ describe('Sales Orders import seed', () => {
         }),
       ]),
     )
+    expect(importedCells).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ row: 1, col: 0, format: { bold: true } }),
+        expect.objectContaining({ row: 1, col: 1, format: { italic: true } }),
+        expect.objectContaining({ row: 1, col: 2, format: { underline: true } }),
+        expect.objectContaining({ row: 1, col: 3, format: { bgColor: '#fff2cc' } }),
+        expect.objectContaining({ row: 1, col: 4, format: { fgColor: '#c00000' } }),
+        expect.objectContaining({ row: 1, col: 5, format: { align: 'center' } }),
+        expect.objectContaining({ row: 1, col: 6, format: { fontFamily: 'Georgia' } }),
+        expect.objectContaining({ row: 1, col: 7, format: { fontSize: 16 } }),
+        expect.objectContaining({ row: 1, col: 8, format: { wrap: true } }),
+      ]),
+    )
   })
 })

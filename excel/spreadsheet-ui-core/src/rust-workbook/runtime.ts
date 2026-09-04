@@ -3,6 +3,7 @@
 import type { BackendMutationResult } from '../backend'
 import type { WorkerErrorWire, WorkerRequestWire } from '../rust-worker/types'
 import { writeCellInput } from './cell-io'
+import { writeImportedCellFormats, writeRangeFormat } from './format-io'
 import type {
   RustImportCell,
   RustWorkbookCommands,
@@ -24,7 +25,7 @@ function rpcError(error: unknown): WorkerErrorWire {
   }
 }
 
-/** 在 Worker 内维护唯一 Rust 工作簿，并处理四条 UI Core 命令。 */
+/** 在 Worker 内维护唯一 Rust 工作簿，并处理 UI Core 的直接命令。 */
 export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
   const scope = self as unknown as DedicatedWorkerGlobalScope
   const sheetsById = new Map<string, RustWorkbookSheet>()
@@ -80,7 +81,10 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
     const current = currentWorkbook()
     if (command === 'workbook.importCells') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
-      return current.bulk_import_cells(input.cells as readonly RustImportCell[])
+      const cells = input.cells as readonly RustImportCell[]
+      const stats = current.bulk_import_cells(cells)
+      writeImportedCellFormats(current, cells)
+      return stats
     }
     if (command === 'projection.readVisible') {
       const { request } = payload as RustWorkbookCommands[typeof command]['payload']
@@ -110,6 +114,31 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
           colStart: request.col,
           colEnd: request.col,
         },
+      }
+      return {
+        acknowledgement,
+        projection: readVisibleProjection(
+          current,
+          sheetIndex(projection.sheetId),
+          projection,
+          revision,
+        ),
+      }
+    }
+    if (command === 'format.setRange') {
+      const { request, projection } = payload as RustWorkbookCommands[typeof command]['payload']
+      if (projection.sheetId !== request.sheetId) {
+        throw Object.assign(new Error('Mutation and projection must target the same sheet'), {
+          code: 'PROJECTION_SHEET_MISMATCH',
+        })
+      }
+      writeRangeFormat(current, sheetIndex(request.sheetId), request)
+      revision += 1
+      const acknowledgement: BackendMutationResult = {
+        sheetId: request.sheetId,
+        requestId: request.requestId,
+        revision,
+        affectedRange: { ...request.range },
       }
       return {
         acknowledgement,

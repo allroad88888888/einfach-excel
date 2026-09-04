@@ -1,9 +1,13 @@
 /** Shared deterministic helpers for editing transaction tests. */
 import type { Store } from '@einfach/core'
 
-import type { BackendMutationResult, EditingCommitRequest } from '../src/editing'
+import type { EditingCommitRequest } from '../src/editing'
 import { startEditingAtom } from '../src/editing'
-import type { VisibleProjectionRequest, VisibleProjectionResult } from '../src/backend'
+import type {
+  BackendMutationResult,
+  VisibleProjectionRequest,
+  VisibleProjectionResult,
+} from '../src/backend'
 import { beginProjectionAtom, projectionSnapshotAtom, resolveProjectionAtom } from '../src/projection'
 import { bindTestRustWorkbookConnection } from './support/rust-workbook-connection'
 

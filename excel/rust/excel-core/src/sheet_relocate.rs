@@ -50,10 +50,14 @@ impl Sheet {
         // addresses fall inside the deleted band; survivors are relocated by
         // `relocate_cells`. Done as a separate sweep so the existing cell
         // logic stays unchanged.
-        let fmt_drop: Vec<CellAddress> =
-            self.formats.keys().copied().filter(|a| pred(*a)).collect();
+        let fmt_drop: Vec<CellAddress> = self
+            .cell_styles
+            .keys()
+            .copied()
+            .filter(|a| pred(*a))
+            .collect();
         for addr in fmt_drop {
-            self.formats.remove(&addr);
+            self.cell_styles.remove(&addr);
         }
     }
 
@@ -141,35 +145,16 @@ impl Sheet {
         // mapped onto the invalid sentinel (deleted band) are dropped; for
         // delete_row/delete_col `drop_cells_in` already removed them, but
         // we filter defensively here too in case `f` produces a sentinel.
-        let new_formats: HashMap<CellAddress, CellFormat> = std::mem::take(&mut self.formats)
+        let new_cell_styles = std::mem::take(&mut self.cell_styles)
             .into_iter()
-            .filter_map(|(addr, fmt)| {
+            .filter_map(|(addr, style)| {
                 let next = f(addr);
                 if next.row == crate::shift::REF_INVALID_ROW
                     || next.col == crate::shift::REF_INVALID_COL
                 {
                     None
                 } else {
-                    Some((next, fmt))
-                }
-            })
-            .collect();
-        let new_range_formats: Vec<RangeFormat> = std::mem::take(&mut self.range_formats)
-            .into_iter()
-            .filter_map(|layer| {
-                let start = f(layer.range.start);
-                let end = f(layer.range.end);
-                if start.row == crate::shift::REF_INVALID_ROW
-                    || start.col == crate::shift::REF_INVALID_COL
-                    || end.row == crate::shift::REF_INVALID_ROW
-                    || end.col == crate::shift::REF_INVALID_COL
-                {
-                    None
-                } else {
-                    Some(RangeFormat {
-                        range: CellRange::new(start, end).normalize(),
-                        fmt: layer.fmt,
-                    })
+                    Some((next, style))
                 }
             })
             .collect();
@@ -179,8 +164,7 @@ impl Sheet {
         *self.interior.formula_texts.borrow_mut() = new_formula_texts;
         *self.interior.formula_source.borrow_mut() = new_formula_source;
         *self.interior.needs_parse.borrow_mut() = new_needs_parse;
-        self.formats = new_formats;
-        self.range_formats = new_range_formats;
+        self.cell_styles = new_cell_styles;
         for addr in changed_addrs {
             self.invalidate_formula_inner(addr);
             self.bump_facade_epoch(addr);

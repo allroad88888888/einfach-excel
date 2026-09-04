@@ -11,6 +11,7 @@ use einfach_core::{
 };
 
 use crate::cell::CellAddress;
+use crate::cell_style::CellStyle;
 use crate::eval::{eval_expr_with_provider, CustomFunctionRegistry, EvalProvider, ResolvedTable};
 use crate::format::{apply_rules, CellFormat, ConditionalRule};
 use crate::formula::{parse_formula, Expr, RangeBounds};
@@ -74,6 +75,10 @@ mod facade;
 mod filter;
 #[path = "sheet_format.rs"]
 mod format;
+#[path = "sheet_format_snapshot.rs"]
+mod format_snapshot;
+#[path = "sheet_format_write.rs"]
+mod format_write;
 #[path = "sheet_hidden_rows.rs"]
 mod hidden_rows;
 #[path = "sheet_hydrate.rs"]
@@ -119,13 +124,12 @@ pub use self::async_custom::PendingAsyncCustomCall;
 pub use self::bulk_loader::BulkLoader;
 pub use self::debug_deps::DepGraphStats;
 pub use self::error::SheetError;
-pub use self::format::{FormatRangeSnapshot, RangeFormatSnapshotLayer};
+pub use self::format_snapshot::FormatRangeSnapshot;
 pub use self::subscribe::CellSubscription;
 pub(crate) use self::array_gate::{expr_may_produce_array, source_may_produce_array};
 pub(crate) use self::async_custom::ASYNC_CUSTOM_RESULT_CACHE_CAP;
 pub(crate) use self::bulk_install::BulkInstallCleanup;
 pub(crate) use self::eval_provider::collapse_array_for_eval;
-pub(crate) use self::format::RangeFormat;
 pub(crate) use self::workbook_topology::ProjectedTable;
 
 
@@ -384,15 +388,12 @@ pub struct Sheet {
     /// visible cell does not allocate a cell atom by itself.
     cell_subscriptions: HashMap<CellAddress, AddressSubscriptionBucket>,
     next_cell_sub_id: u64,
-    /// Per-cell formatting (Phase 6). Independent of the dep graph; format
-    /// changes never trigger formula recompute. Entry absent → default.
-    /// `pub(crate)` so the sort module's layer materialize+cut preprocessing
-    /// (`sort.rs`) can rewrite entries in place.
-    pub(crate) formats: HashMap<CellAddress, CellFormat>,
-    /// Ordered range-format layers. Later entries win. The format lookup order
-    /// is reversed so overlapping ranges resolve to the most recently added
-    /// matching layer. `pub(crate)` for the sort module (see `formats`).
-    pub(crate) range_formats: Vec<RangeFormat>,
+    /// 稀疏 cellStyle；只保存单元格自己明确接管的显示属性。
+    pub(crate) cell_styles: HashMap<CellAddress, CellStyle>,
+    /// 稀疏 rowStyle；行高仍由 `row_heights` 单独负责。
+    pub(crate) row_styles: BTreeMap<u32, CellStyle>,
+    /// 稀疏 columnStyle；列宽仍由 `SheetInterior::col_widths` 单独负责。
+    pub(crate) column_styles: BTreeMap<u32, CellStyle>,
     /// Sheet-wide conditional formatting rules. Applied in order on top of
     /// each cell's base format at display time (first match wins).
     conditional_rules: Vec<ConditionalRule>,
@@ -1846,8 +1847,9 @@ impl Sheet {
             workbook_sheet_index: Rc::new(Cell::new(None)),
             cell_subscriptions: HashMap::new(),
             next_cell_sub_id: 0,
-            formats: HashMap::new(),
-            range_formats: Vec::new(),
+            cell_styles: HashMap::new(),
+            row_styles: BTreeMap::new(),
+            column_styles: BTreeMap::new(),
             conditional_rules: Vec::new(),
             row_heights: BTreeMap::new(),
             hidden_rows: BTreeSet::new(),

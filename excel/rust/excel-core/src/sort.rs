@@ -16,10 +16,9 @@
 //!   - **Formulas move VERBATIM** (§4): AST / parked source text is
 //!     relocated without reference translation — the sort path never
 //!     touches `shift.rs` and can never mint `#REF!` sentinels.
-//!   - **Formats** (§5.3): per-cell formats ride along with
-//!     `relocate_cells`; range-format layers are pre-processed by
-//!     "materialize + cut" so no layer overlaps the sorted range when the
-//!     permutation runs. Row heights do NOT move (Excel behavior).
+//!   - **Formats** (§5.3): cellStyle rides along with `relocate_cells`;
+//!     rowStyle / columnStyle stay attached to their physical axes. Row
+//!     heights do NOT move (Excel behavior).
 //!   - **Spill** (§5.1): any intersection between the range and an ACTIVE
 //!     spill (anchor or target) is rejected up front, so no installed
 //!     projection ever needs tearing down — the permutation is identity
@@ -34,9 +33,10 @@ use std::collections::{HashMap, HashSet};
 use einfach_core::Value;
 
 use crate::cell::CellAddress;
+#[cfg(test)]
 use crate::format::CellFormat;
 use crate::range::CellRange;
-use crate::sheet::{collapse_array_for_eval, RangeFormat, Sheet, EXCEL_MAX_COLS, EXCEL_MAX_ROWS};
+use crate::sheet::{collapse_array_for_eval, Sheet, EXCEL_MAX_COLS, EXCEL_MAX_ROWS};
 use crate::workbook::Workbook;
 
 /// Sort direction for one key. Descending reverses the comparison of the
@@ -194,58 +194,12 @@ pub fn sort_cmp_with_direction(
     }
 }
 
-// === Rectangle helpers (format layer cut) ===
-
 fn ranges_intersect(a: CellRange, b: CellRange) -> bool {
     let (a, b) = (a.normalize(), b.normalize());
     !(a.end.row < b.start.row
         || a.start.row > b.end.row
         || a.end.col < b.start.col
         || a.start.col > b.end.col)
-}
-
-/// Geometric subtraction `a \ b` for normalized, intersecting rectangles:
-/// up to 4 disjoint pieces (top band, bottom band, left/middle,
-/// right/middle) that tile `a` minus `b` exactly.
-fn subtract_range(a: CellRange, b: CellRange) -> Vec<CellRange> {
-    let mut out = Vec::with_capacity(4);
-    if a.start.row < b.start.row {
-        out.push(CellRange::new(
-            CellAddress::new(a.start.row, a.start.col),
-            CellAddress::new(b.start.row - 1, a.end.col),
-        ));
-    }
-    if a.end.row > b.end.row {
-        out.push(CellRange::new(
-            CellAddress::new(b.end.row + 1, a.start.col),
-            CellAddress::new(a.end.row, a.end.col),
-        ));
-    }
-    let mid_r0 = a.start.row.max(b.start.row);
-    let mid_r1 = a.end.row.min(b.end.row);
-    if mid_r0 <= mid_r1 {
-        if a.start.col < b.start.col {
-            out.push(CellRange::new(
-                CellAddress::new(mid_r0, a.start.col),
-                CellAddress::new(mid_r1, b.start.col - 1),
-            ));
-        }
-        if a.end.col > b.end.col {
-            out.push(CellRange::new(
-                CellAddress::new(mid_r0, b.end.col + 1),
-                CellAddress::new(mid_r1, a.end.col),
-            ));
-        }
-    }
-    out
-}
-
-/// Intersection of two normalized, intersecting rectangles.
-fn intersect_range(a: CellRange, b: CellRange) -> CellRange {
-    CellRange::new(
-        CellAddress::new(a.start.row.max(b.start.row), a.start.col.max(b.start.col)),
-        CellAddress::new(a.end.row.min(b.end.row), a.end.col.min(b.end.col)),
-    )
 }
 
 impl Sheet {
@@ -268,67 +222,6 @@ impl Sheet {
             }
         }
         hit
-    }
-
-    /// §5.3 format-layer preprocessing: materialize the effective base
-    /// format of every layer-covered cell inside `range` as a per-cell
-    /// entry, then geometrically cut every intersecting layer so no layer
-    /// overlaps `range`. Afterwards "default = no entry" holds inside the
-    /// range and `relocate_cells` moving per-cell entries is the complete,
-    /// correct format semantics; all remaining layer corners live outside
-    /// the range, where the sort permutation is identity.
-    ///
-    /// Layer Vec order is preserved (pieces replace their source layer in
-    /// place), so the "later layer wins" resolution outside the range is
-    /// unchanged.
-    fn materialize_and_cut_format_layers(&mut self, range: CellRange) {
-        let intersecting: Vec<CellRange> = self
-            .range_formats
-            .iter()
-            .map(|layer| layer.range)
-            .filter(|r| ranges_intersect(*r, range))
-            .collect();
-        if intersecting.is_empty() {
-            return;
-        }
-
-        // 1. Materialize. `base_format_at` resolves per-cell > topmost
-        //    covering layer, so visiting each covered cell once (bounded
-        //    by Σ layer∩range areas, not the whole range) is exact.
-        //    Cells whose effective format is default get NO entry — a
-        //    later default-format layer shadowing an earlier styled one
-        //    resolves to default, and absence encodes exactly that.
-        let default = CellFormat::default();
-        let mut seen: HashSet<CellAddress> = HashSet::new();
-        for rect in &intersecting {
-            for addr in intersect_range(rect.normalize(), range).iter() {
-                if !seen.insert(addr) || self.formats.contains_key(&addr) {
-                    continue;
-                }
-                let fmt = self.base_format_at(addr);
-                if fmt != default {
-                    self.formats.insert(addr, fmt);
-                }
-            }
-        }
-
-        // 2. Cut: replace each intersecting layer with ≤4 disjoint pieces
-        //    that avoid `range`, preserving Vec order.
-        let old_layers = std::mem::take(&mut self.range_formats);
-        let mut next = Vec::with_capacity(old_layers.len());
-        for layer in old_layers {
-            if !ranges_intersect(layer.range, range) {
-                next.push(layer);
-                continue;
-            }
-            for piece in subtract_range(layer.range.normalize(), range) {
-                next.push(RangeFormat {
-                    range: piece,
-                    fmt: layer.fmt.clone(),
-                });
-            }
-        }
-        self.range_formats = next;
     }
 
     /// Physically sort `range` by `keys`, keeping `excluded_rows` in place
@@ -439,7 +332,6 @@ impl Sheet {
         // the map is a bijection so the full-map rebuild cannot collide.
         let (c0, c1) = (n.start.col, n.end.col);
         self.with_structural_edit(move |sheet| {
-            sheet.materialize_and_cut_format_layers(n);
             // ADR 0006 阶段 0/2 —— 碰撞态 anchor 不在 §5.1 闸门的视野里：闸门
             // 遍历 `spill_anchor_addr`，那是**已安装**投影的索引，而碰撞态
             // anchor 一个 target 都没装。放行是有意的（`is_spill_region` 的
@@ -1071,12 +963,9 @@ mod tests {
         assert_eq!(sheet.get_format("B1"), red);
         assert_eq!(sheet.get_format("A2"), bold);
         let after = sheet.snapshot_format_range(r);
-        assert_eq!(after.cell_formats, before.cell_formats);
-        assert_eq!(after.range_formats.len(), before.range_formats.len());
-        for (x, y) in after.range_formats.iter().zip(before.range_formats.iter()) {
-            assert_eq!(x.range, y.range);
-            assert_eq!(x.fmt, y.fmt);
-        }
+        assert_eq!(after.cell_styles, before.cell_styles);
+        assert_eq!(after.row_styles, before.row_styles);
+        assert_eq!(after.column_styles, before.column_styles);
     }
 
     // === Gates ===
@@ -1269,31 +1158,4 @@ mod tests {
         );
     }
 
-    // === Pure helper coverage ===
-
-    #[test]
-    fn subtract_range_produces_disjoint_cover() {
-        let a = range("A1", "D5");
-        let b = range("B2", "C4");
-        let pieces = subtract_range(a, b);
-        assert_eq!(pieces.len(), 4);
-        let mut area = 0u32;
-        for p in &pieces {
-            area += p.cell_count();
-            assert!(!ranges_intersect(*p, b), "piece {p:?} overlaps the hole");
-            for q in &pieces {
-                if p != q {
-                    assert!(!ranges_intersect(*p, *q), "pieces overlap: {p:?} {q:?}");
-                }
-            }
-        }
-        assert_eq!(area, a.cell_count() - b.cell_count());
-    }
-
-    #[test]
-    fn subtract_range_full_containment_removes_layer() {
-        let a = range("B2", "C3");
-        let b = range("A1", "D5");
-        assert!(subtract_range(a, b).is_empty());
-    }
 }

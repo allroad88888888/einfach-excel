@@ -22,6 +22,7 @@ impl WasmSheet :: [] :: pub fn insert_col(&mut self, at: u32, count: u32)
 impl WasmSheet :: [] :: pub fn insert_row(&mut self, at: u32, count: u32)
 impl WasmSheet :: [] :: pub fn is_error(&mut self, addr: &str) -> bool
 impl WasmSheet :: [] :: pub fn non_empty_addrs(&self) -> Vec<String>
+impl WasmSheet :: [] :: pub fn patch_format_range( &mut self, start_row: u32, start_col: u32, end_row: u32, end_col: u32, patch: JsValue, scope: &str, ) -> Result<u32, JsValue>
 impl WasmSheet :: [] :: pub fn restore_format_snapshot(&mut self, snapshot: JsValue) -> Result<u32, JsValue>
 impl WasmSheet :: [] :: pub fn set_boolean(&mut self, addr: &str, value: bool)
 impl WasmSheet :: [] :: pub fn set_error(&mut self, addr: &str, value: &str)
@@ -114,6 +115,7 @@ impl WasmWorkbook :: [] :: pub fn insert_row(&mut self, sheet_idx: u32, at: u32,
 impl WasmWorkbook :: [] :: pub fn is_error(&self, sheet_idx: u32, addr: &str) -> bool
 impl WasmWorkbook :: [] :: pub fn list_non_empty_cells(&self) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn move_sheet(&mut self, from: u32, to: u32) -> bool
+impl WasmWorkbook :: [] :: pub fn patch_format_range( &mut self, sheet_idx: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, patch: JsValue, scope: &str, ) -> Result<u32, JsValue>
 impl WasmWorkbook :: [] :: pub fn read_sparse_range( &self, sheet_idx: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, ) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn remove_sheet(&mut self, idx: u32) -> bool
 impl WasmWorkbook :: [] :: pub fn rename_sheet(&mut self, idx: u32, name: &str) -> bool

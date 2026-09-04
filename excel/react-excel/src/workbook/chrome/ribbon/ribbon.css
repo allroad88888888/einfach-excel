@@ -85,15 +85,17 @@
   background: var(--control-hover);
 }
 
-.tool-button:nth-of-type(8) {
+.tool-button[aria-label='Bold'] {
   font-weight: 700;
 }
 
+.tool-button[aria-pressed='true'] {
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
 .tool-select {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 7px;
+  cursor: pointer;
   padding: 0 8px;
   border: 1px solid transparent;
 }
@@ -102,13 +104,8 @@
   border-color: var(--border);
 }
 
-.tool-select span {
-  color: #858999;
-  font-size: 9px;
-}
-
 .font-family-select {
-  width: 82px;
+  width: 108px;
 }
 
 .font-size-select {

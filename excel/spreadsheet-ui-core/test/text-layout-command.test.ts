@@ -26,7 +26,7 @@ function projectedCell(
 }
 
 describe('selection text layout command', () => {
-  test('sets font family, font size and wrap through sparse Rust patches', async () => {
+  test('sets font, wrap and indent through sparse Rust patches', async () => {
     let format: SpreadsheetCellFormat = {}
     let revision = 1
     const writes: SetFormatRangeRequest[] = []
@@ -63,11 +63,17 @@ describe('selection text layout command', () => {
     })
     await core.store.setter(applySelectionFormatAtom, { type: 'font-size', value: 16 })
     await core.store.setter(applySelectionFormatAtom, 'wrap-text')
+    await core.store.setter(applySelectionFormatAtom, 'increase-indent')
+    await core.store.setter(applySelectionFormatAtom, 'increase-indent')
+    await core.store.setter(applySelectionFormatAtom, 'decrease-indent')
 
     expect(writes.map((write) => write.format)).toEqual([
       { fontFamily: 'Georgia' },
       { fontSize: 16 },
       { wrap: true },
+      { indent: 1 },
+      { indent: 2 },
+      { indent: 1 },
     ])
     expect(writes.every((write) => write.writeMode === 'patch')).toBe(true)
   })

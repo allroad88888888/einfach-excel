@@ -22,5 +22,17 @@ describe('Workbook ribbon text layout', () => {
     fireEvent.click(wrap)
     await waitFor(() => expect(wrap).toHaveAttribute('aria-pressed', 'true'))
     expect(writes[2]?.format).toEqual({ wrap: true })
+
+    const increaseIndent = screen.getByRole('button', { name: 'Increase indent' })
+    fireEvent.click(increaseIndent)
+    await waitFor(() => expect(writes).toHaveLength(4))
+    expect(writes[3]?.format).toEqual({ indent: 1 })
+    fireEvent.click(increaseIndent)
+    await waitFor(() => expect(writes).toHaveLength(5))
+    expect(writes[4]?.format).toEqual({ indent: 2 })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Decrease indent' }))
+    await waitFor(() => expect(writes).toHaveLength(6))
+    expect(writes[5]?.format).toEqual({ indent: 1 })
   })
 })

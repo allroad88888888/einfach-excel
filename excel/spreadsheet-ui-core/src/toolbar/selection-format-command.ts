@@ -4,6 +4,7 @@ import type {
   ProjectionRevision,
   SpreadsheetBorders,
   SpreadsheetCellFormat,
+  SpreadsheetNumberFormat,
 } from '../backend'
 import { resolveContentMutationAtom } from '../editing/mutation-gateway'
 import {
@@ -33,12 +34,28 @@ export const SELECTION_ALL_BORDERS = Object.freeze({
   left: SELECTION_BORDER_SPEC,
 }) satisfies SpreadsheetBorders
 
+export const SELECTION_PERCENT_FORMAT = Object.freeze({
+  kind: 'percent' as const,
+  digits: 0,
+}) satisfies SpreadsheetNumberFormat
+export const SELECTION_CURRENCY_FORMAT = Object.freeze({
+  kind: 'currency' as const,
+  symbol: '$',
+  digits: 2,
+}) satisfies SpreadsheetNumberFormat
+export const SELECTION_THOUSANDS_FORMAT = Object.freeze({
+  kind: 'number' as const,
+  digits: 2,
+  thousands: true,
+}) satisfies SpreadsheetNumberFormat
+
 const BORDER_SIDES = ['top', 'right', 'bottom', 'left'] as const
 
 export type SelectionFormatAction =
   | 'bold'
   | 'italic'
   | 'underline'
+  | 'strikethrough'
   | 'text-color'
   | 'fill-color'
   | 'horizontal-alignment'
@@ -46,6 +63,11 @@ export type SelectionFormatAction =
   | 'text-rotation'
   | 'all-borders'
   | 'wrap-text'
+  | 'increase-indent'
+  | 'decrease-indent'
+  | 'percent-format'
+  | 'currency-format'
+  | 'thousands-format'
   | { readonly type: 'font-family'; readonly value: string }
   | { readonly type: 'font-size'; readonly value: number }
 
@@ -66,7 +88,12 @@ function nextPatch(
       ? { format: { fontSize: action.value } }
       : null
   }
-  if (action === 'bold' || action === 'italic' || action === 'underline') {
+  if (
+    action === 'bold' ||
+    action === 'italic' ||
+    action === 'underline' ||
+    action === 'strikethrough'
+  ) {
     return { format: { [action]: !current[action] } }
   }
   if (action === 'wrap-text') {
@@ -105,6 +132,26 @@ function nextPatch(
     return enabled
       ? { format: {}, clearFormatFields: ['borders'] }
       : { format: { borders: SELECTION_ALL_BORDERS } }
+  }
+  if (action === 'increase-indent') {
+    return { format: { indent: Math.min((current.indent ?? 0) + 1, 15) } }
+  }
+  if (action === 'decrease-indent') {
+    return { format: { indent: Math.max((current.indent ?? 0) - 1, 0) } }
+  }
+  if (action === 'percent-format') {
+    const enabled =
+      current.numberFormat?.kind === 'percent' || current.numberFormat?.kind === 'percentage'
+    return { format: { numberFormat: enabled ? { kind: 'general' } : SELECTION_PERCENT_FORMAT } }
+  }
+  if (action === 'currency-format') {
+    const enabled = current.numberFormat?.kind === 'currency'
+    return { format: { numberFormat: enabled ? { kind: 'general' } : SELECTION_CURRENCY_FORMAT } }
+  }
+  if (action === 'thousands-format') {
+    const enabled =
+      current.numberFormat?.kind === 'number' || current.numberFormat?.kind === 'decimal'
+    return { format: { numberFormat: enabled ? { kind: 'general' } : SELECTION_THOUSANDS_FORMAT } }
   }
   const align = current.align === 'center' ? 'right' : current.align === 'right' ? 'left' : 'center'
   return { format: { align } }

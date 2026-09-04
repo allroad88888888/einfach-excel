@@ -58,9 +58,28 @@ test('wrap text toggles the selected Rust cell style', async ({ page }) => {
   await expect(cell).toHaveCSS('white-space', 'nowrap')
 })
 
+test('indent can increase and decrease through Rust', async ({ page }) => {
+  const cell = await selectTestCell(page)
+  const increase = page.getByRole('button', { name: 'Increase indent' })
+  const decrease = page.getByRole('button', { name: 'Decrease indent' })
+
+  await increase.click()
+  await expect(cell).toHaveCSS('padding-left', '8px')
+  await increase.click()
+  await expect(cell).toHaveCSS('padding-left', '16px')
+  await decrease.click()
+  await expect(cell).toHaveCSS('padding-left', '8px')
+  await decrease.click()
+  await expect(cell).toHaveCSS('padding-left', '7px')
+})
+
 test('shows the text layout examples from the original Rust seed', async ({ page }) => {
   await page.goto('/')
   await expect(page.locator('td[data-cell="1:6"]')).toHaveCSS('font-family', /Georgia/)
   await expect(page.locator('td[data-cell="1:7"]')).toHaveCSS('font-size', '16px')
   await expect(page.locator('td[data-cell="1:8"]')).toHaveCSS('white-space', 'normal')
+  const nameBox = page.getByRole('textbox', { name: 'Name box' })
+  await nameBox.fill('N2')
+  await nameBox.press('Enter')
+  await expect(page.locator('td[data-cell="1:13"]')).toHaveCSS('padding-left', '16px')
 })

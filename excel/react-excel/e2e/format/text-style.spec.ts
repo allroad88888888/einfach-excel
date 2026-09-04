@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 
 interface TextStyleCase {
-  readonly label: 'Bold' | 'Italic' | 'Underline'
+  readonly label: 'Bold' | 'Italic' | 'Underline' | 'Strikethrough'
   readonly active: (page: Page) => Promise<string>
   readonly enabledValue: string
   readonly disabledValue: string
@@ -24,6 +24,12 @@ const cases: readonly TextStyleCase[] = [
     label: 'Underline',
     active: (page) => cellStyle(page, 'textDecorationLine'),
     enabledValue: 'underline',
+    disabledValue: 'none',
+  },
+  {
+    label: 'Strikethrough',
+    active: (page) => cellStyle(page, 'textDecorationLine'),
+    enabledValue: 'line-through',
     disabledValue: 'none',
   },
 ]
@@ -59,12 +65,19 @@ for (const styleCase of cases) {
   })
 }
 
-test('shows the three text styles from the original Rust seed', async ({ page }) => {
+test('shows the text styles from the original Rust seed', async ({ page }) => {
   await page.goto('/')
   await expect(page.locator('td[data-cell="1:0"]')).toHaveCSS('font-weight', '700')
   await expect(page.locator('td[data-cell="1:1"]')).toHaveCSS('font-style', 'italic')
   await expect(page.locator('td[data-cell="1:2"]')).toHaveCSS(
     'text-decoration-line',
     'underline',
+  )
+  const nameBox = page.getByRole('textbox', { name: 'Name box' })
+  await nameBox.fill('M2')
+  await nameBox.press('Enter')
+  await expect(page.locator('td[data-cell="1:12"]')).toHaveCSS(
+    'text-decoration-line',
+    'line-through',
   )
 })

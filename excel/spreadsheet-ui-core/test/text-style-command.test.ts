@@ -33,7 +33,7 @@ function projection(
 }
 
 describe('selection text style command', () => {
-  test('toggles bold, italic and underline through one Rust range command', async () => {
+  test('toggles bold, italic, underline and strikethrough through one Rust command', async () => {
     let format: SpreadsheetCellFormat = {}
     let revision = 1
     const writes: SetFormatRangeRequest[] = []
@@ -70,11 +70,15 @@ describe('selection text style command', () => {
     await expect(core.store.setter(applySelectionFormatAtom, 'underline')).resolves.toBe(
       'completed',
     )
+    await expect(core.store.setter(applySelectionFormatAtom, 'strikethrough')).resolves.toBe(
+      'completed',
+    )
 
     expect(writes.map((write) => write.format)).toEqual([
       { bold: true },
       { italic: true },
       { underline: true },
+      { strikethrough: true },
     ])
     expect(writes.every((write) => write.kind === 'set-format-range')).toBe(true)
     expect(writes.every((write) => write.writeMode === 'patch' && write.scope === 'cell')).toBe(true)

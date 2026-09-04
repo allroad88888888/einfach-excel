@@ -3,10 +3,10 @@ import { describe, expect, test } from 'vitest'
 import { renderFormattingRibbon } from '../../support/formatting-ribbon-harness'
 
 describe('Workbook ribbon text styles', () => {
-  test('toggles bold, italic and underline on the selected Rust range', async () => {
+  test('toggles four text decorations on the selected Rust range', async () => {
     const { writes } = await renderFormattingRibbon()
 
-    for (const label of ['Bold', 'Italic', 'Underline']) {
+    for (const label of ['Bold', 'Italic', 'Underline', 'Strikethrough']) {
       fireEvent.click(screen.getByRole('button', { name: label }))
       await waitFor(() =>
         expect(screen.getByRole('button', { name: label })).toHaveAttribute(
@@ -16,11 +16,12 @@ describe('Workbook ribbon text styles', () => {
       )
     }
 
-    expect(writes).toHaveLength(3)
+    expect(writes).toHaveLength(4)
     expect(writes.map((write) => write.format)).toEqual([
       { bold: true },
       { italic: true },
       { underline: true },
+      { strikethrough: true },
     ])
 
     fireEvent.click(screen.getByRole('button', { name: 'Bold' }))
@@ -30,6 +31,6 @@ describe('Workbook ribbon text styles', () => {
         'false',
       ),
     )
-    expect(writes[3]?.format).toEqual({ bold: false })
+    expect(writes[4]?.format).toEqual({ bold: false })
   })
 })

@@ -106,6 +106,12 @@ export function WorkbookRibbon() {
           pressed={Boolean(activeFormat.underline)}
         />
         <ToolButton
+          icon="S̶"
+          label="Strikethrough"
+          onClick={() => void applyFormat('strikethrough')}
+          pressed={Boolean(activeFormat.strikethrough)}
+        />
+        <ToolButton
           icon="▦"
           label="Borders"
           onClick={() => void applyFormat('all-borders')}
@@ -143,6 +149,16 @@ export function WorkbookRibbon() {
           pressed={activeFormat.rotation !== undefined && activeFormat.rotation !== 0}
         />
         <ToolButton
+          icon="⇤"
+          label="Decrease indent"
+          onClick={() => void applyFormat('decrease-indent')}
+        />
+        <ToolButton
+          icon="⇥"
+          label="Increase indent"
+          onClick={() => void applyFormat('increase-indent')}
+        />
+        <ToolButton
           icon="↵"
           label="Wrap text"
           onClick={() => void applyFormat('wrap-text')}
@@ -150,10 +166,30 @@ export function WorkbookRibbon() {
         />
         <ToolButton icon="⊞" label="Merge cells" />
         <span className="tool-separator" aria-hidden="true" />
-        <button className="tool-select number-format-select" type="button">
-          General <span>⌄</span>
-        </button>
-        <ToolButton icon="%" label="Percent format" />
+        <ToolButton
+          icon=",0"
+          label="Thousands format"
+          onClick={() => void applyFormat('thousands-format')}
+          pressed={
+            activeFormat.numberFormat?.kind === 'number' ||
+            activeFormat.numberFormat?.kind === 'decimal'
+          }
+        />
+        <ToolButton
+          icon="%"
+          label="Percent format"
+          onClick={() => void applyFormat('percent-format')}
+          pressed={
+            activeFormat.numberFormat?.kind === 'percent' ||
+            activeFormat.numberFormat?.kind === 'percentage'
+          }
+        />
+        <ToolButton
+          icon="$"
+          label="Currency format"
+          onClick={() => void applyFormat('currency-format')}
+          pressed={activeFormat.numberFormat?.kind === 'currency'}
+        />
         <ToolButton icon="Σ" label="Auto sum" />
         <div className="toolbar-spacer" />
         <ToolButton icon="⌕" label="Find" />

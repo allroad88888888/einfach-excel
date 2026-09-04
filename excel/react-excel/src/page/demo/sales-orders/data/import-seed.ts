@@ -16,7 +16,7 @@ const SHIP_MODES = ['Standard', 'Express', 'Pickup']
 const COUNTRIES = ['USA', 'Canada', 'Germany', 'Japan']
 const CITIES = ['Seattle', 'Toronto', 'Berlin', 'Tokyo']
 
-const DEMO_TEXT_STYLES: ReadonlyMap<string, SpreadsheetCellFormat> = new Map([
+const DEMO_CELL_FORMATS: ReadonlyMap<string, SpreadsheetCellFormat> = new Map([
   ['1:0', { bold: true }],
   ['1:1', { italic: true }],
   ['1:2', { underline: true }],
@@ -39,10 +39,15 @@ const DEMO_TEXT_STYLES: ReadonlyMap<string, SpreadsheetCellFormat> = new Map([
       },
     },
   ],
+  ['1:12', { strikethrough: true }],
+  ['1:13', { indent: 2 }],
+  ['2:14', { numberFormat: { kind: 'percent', digits: 0 } }],
+  ['1:15', { numberFormat: { kind: 'currency', symbol: '$', digits: 2 } }],
+  ['8:6', { numberFormat: { kind: 'number', digits: 2, thousands: true } }],
 ])
 
 function demoFormat(row: number, col: number): { readonly format?: SpreadsheetCellFormat } {
-  const format = DEMO_TEXT_STYLES.get(`${row}:${col}`)
+  const format = DEMO_CELL_FORMATS.get(`${row}:${col}`)
   return format ? { format } : {}
 }
 

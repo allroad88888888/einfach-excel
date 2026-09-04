@@ -1,6 +1,7 @@
 import type { DisplayCell, SpreadsheetCellFormat } from '../backend'
 import { isDefaultFormat, toA1 } from '../backend'
 import type { CellRange } from '../shared'
+import { formatNumberValue } from '../operations/format/numberFormat'
 import type { RustFormatRangeSnapshot, RustSparseCellStyle } from './wasm-types'
 
 function applyStyle(
@@ -29,6 +30,18 @@ function formatAt(
   return applyStyle(format, cellStyles.get(toA1(row, col)))
 }
 
+function formattedDisplayValue(cell: DisplayCell, format: SpreadsheetCellFormat): string {
+  const numberFormat = format.numberFormat
+  if (
+    cell.numericValue === undefined ||
+    numberFormat === undefined ||
+    numberFormat.kind === 'general'
+  ) {
+    return cell.displayValue
+  }
+  return formatNumberValue(numberFormat, cell.numericValue, { locale: format.locale }).text
+}
+
 /** 只在可见窗口内解析 Rust 的三类稀疏样式。 */
 export function applyVisibleFormats(
   cells: readonly DisplayCell[],
@@ -46,7 +59,11 @@ export function applyVisibleFormats(
       const cell = cellsByCoordinate.get(`${row}:${col}`)
       const format = formatAt(cellStyles, rowStyles, columnStyles, row, col)
       if (cell) {
-        result.push(!isDefaultFormat(format) ? { ...cell, format } : cell)
+        result.push(
+          !isDefaultFormat(format)
+            ? { ...cell, displayValue: formattedDisplayValue(cell, format), format }
+            : cell,
+        )
       } else if (!isDefaultFormat(format)) {
         result.push({ row, col, displayValue: '', valueKind: 'blank', format })
       }

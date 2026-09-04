@@ -52,4 +52,44 @@ describe('Rust visible format projection', () => {
     ])
     expect(result.rowHeights).toEqual([{ rowIndex: 0, heightPx: 51 }])
   })
+
+  test('formats numeric display text from the Rust format snapshot', () => {
+    const workbook = {
+      read_sparse_range: () => [
+        {
+          sheet: 0,
+          addr: 'A1',
+          display: '1234.5',
+          type: 'number',
+          isError: false,
+          formula: '',
+        },
+      ],
+      snapshot_format_range: () => ({
+        cellStyles: [
+          {
+            addr: 'A1',
+            format: { numberFormat: { kind: 'number', digits: 2, thousands: true } },
+          },
+        ],
+        rowStyles: [],
+        columnStyles: [],
+      }),
+    } as unknown as WasmWorkbook
+
+    const result = readVisibleProjection(
+      workbook,
+      0,
+      {
+        kind: 'visible-window',
+        sheetId: 'sheet-1',
+        requestId: 1,
+        window: { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 0 },
+      },
+      1,
+    )
+
+    expect(result.cells[0]?.displayValue).toBe('1,234.50')
+    expect(result.cells[0]?.numericValue).toBe(1234.5)
+  })
 })

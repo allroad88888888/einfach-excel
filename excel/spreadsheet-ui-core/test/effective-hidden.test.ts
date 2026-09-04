@@ -1,4 +1,4 @@
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 import { createStore } from '@einfach/core'
 import {
   applyViewportFilterHiddenStructuralShiftAtom,
@@ -184,8 +184,7 @@ describe('applyViewportFilterHiddenStructuralShiftAtom — displacement', () => 
     ['delete entirely AFTER the set', [4, 6], { kind: 'delete', index: 9, count: 2 }, [4, 6]],
     ['multi-row delete before', [4, 6], { kind: 'delete', index: 0, count: 3 }, [1, 3]],
   ] as const
-  test.each(SHIFT_TABLE)('%s', (...args: (typeof SHIFT_TABLE)[number]) => {
-    const [_label, seeded, partial, expected] = args
+  test.each(SHIFT_TABLE)('%s', (_label, seeded, partial, expected) => {
     const store = createStore()
     seedFilterHidden(store, seeded)
     const shift: BackendStructuralShift = { axis: 'row', ...partial }

@@ -31,12 +31,11 @@
     "inlineSourceMap": true
   },
   "include": [
-    "./jest.config.mjs",
+    "./vitest.workspace.ts",
     "rollup.config.mjs",
     "./**/*.test.ts",
     "./**/*.test.tsx",
-    "./**/test",
-    "./rules/setup-jest.ts"
+    "./**/test"
   ],
   "exclude": [
     "node_modules",

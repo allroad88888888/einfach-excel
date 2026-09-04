@@ -18,7 +18,7 @@
  * 还错」咬到，所以规格钉在端到端这一侧。
  */
 
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import { createWorkbook } from '../src/workbook'
 import { keyFor } from '../src/sheet'

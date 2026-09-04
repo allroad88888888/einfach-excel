@@ -208,8 +208,8 @@ function Sheet() {
 npm test
 
 # 运行聚焦的包测试。
-npx jest excel/spreadsheet-ui-core --no-coverage
-npx jest excel/solid-excel --no-coverage
+pnpm --filter @einfach/spreadsheet-ui-core test
+pnpm --filter @einfach/solid-excel test
 
 # 运行浏览器端到端测试前安装 Chromium。
 npm run e2e:install -w @einfach/solid-excel

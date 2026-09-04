@@ -9,7 +9,7 @@
  *  - Error envelope: empty input → `#NAME?`, malformed → `#VALUE!`.
  */
 
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import { parseFormula } from '../src/parser'
 import type { Expr } from '../src/types'

@@ -4,7 +4,7 @@ import {
   type VisibleProjectionRequest,
   type VisibleProjectionResult,
 } from '@einfach/spreadsheet-ui-core'
-import { describe, expect, it, jest } from '@jest/globals'
+import { describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
 import { WorkbookView } from '../../../src/workbook/shell/WorkbookView'
@@ -15,7 +15,7 @@ describe('continuous Rust cell editing', () => {
   it('edits two different cells without reusing the first mutation or draft', async () => {
     const values = new Map<string, string>()
     let revision = 0
-    const readVisibleProjection = jest.fn(
+    const readVisibleProjection = vi.fn(
       async (request: VisibleProjectionRequest): Promise<VisibleProjectionResult> => {
         const cells = []
         for (let row = request.window.rowStart; row <= request.window.rowEnd; row += 1) {
@@ -36,7 +36,7 @@ describe('continuous Rust cell editing', () => {
         }
       },
     )
-    const setCellInput = jest.fn(async (request: EditingCommitRequest) => {
+    const setCellInput = vi.fn(async (request: EditingCommitRequest) => {
       values.set(`${request.row}:${request.col}`, request.input)
       revision += 1
       return {

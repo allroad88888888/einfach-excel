@@ -1,7 +1,7 @@
 /** @jsxImportSource solid-js */
 
 import { createStore } from '@einfach/core'
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import type {
   DisplayCell,
@@ -22,13 +22,13 @@ import { SpreadsheetUiProvider } from '../src/provider'
 import { setLocale } from '../src/i18n'
 
 beforeEach(() => {
-  jest.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null)
+  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null)
   setLocale('en')
 })
 
 afterEach(() => {
   cleanup()
-  jest.restoreAllMocks()
+  vi.restoreAllMocks()
 })
 
 const VIEWPORT = {

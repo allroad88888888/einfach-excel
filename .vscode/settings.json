@@ -26,6 +26,5 @@
     "tsbuildinfo"
   ],
   "editor.formatOnSave": true,
-  "jest.runMode": "on-demand",
   "prettier.configPath": ".prettierrc.mjs"
 }

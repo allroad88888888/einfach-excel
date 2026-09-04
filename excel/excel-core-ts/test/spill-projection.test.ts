@@ -24,7 +24,7 @@
  * 失效那一半（锚点动了读者跟不跟）在兄弟文件 `spill-projection-invalidation.test.ts`。
  */
 
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import { createWorkbook } from '../src/workbook'
 import { keyFor } from '../src/sheet'

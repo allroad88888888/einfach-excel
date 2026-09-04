@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { afterEach, describe, expect, it } from '@jest/globals'
+import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, render } from '@solidjs/testing-library'
 import { createStore } from '@einfach/core'
 import {

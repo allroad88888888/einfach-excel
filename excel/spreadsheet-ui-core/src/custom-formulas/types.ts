@@ -79,7 +79,7 @@ export type CustomFormulaReturn =
   | ReadonlyArray<ReadonlyArray<CustomFormulaScalar | CustomFormulaErrorReturn>>
 
 /**
- * Compiled local function form. Used by jest tests (no worker) and for
+ * Compiled local function form. Used by Vitest tests (no worker) and for
  * the optional `paramLabels` future wave. The Solid host does NOT send
  * this across `postMessage`; it sends `source` and lets the worker
  * `new Function('args', source)` it on register.

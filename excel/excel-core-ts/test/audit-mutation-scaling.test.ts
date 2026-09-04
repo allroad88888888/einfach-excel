@@ -36,7 +36,7 @@
  *         (unchanged, still pinned).
  */
 
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import { createWorkbook, type BulkCellInput } from '../src/workbook'
 import { keyFor } from '../src/sheet'

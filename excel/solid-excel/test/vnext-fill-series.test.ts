@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals'
+import { describe, expect, it } from 'vitest'
 import {
   BUILTIN_FILL_SERIES_WEEKDAY_NAMES,
   createRangeProjectionRequest,

@@ -19,11 +19,11 @@
  *     (RPC indirection still present, but synchronous). WASM goes
  *     directly through `WasmWorkbook` instance methods (the RPC
  *     handler in `worker-runtime.ts` auto-installs onto `self` and
- *     can't be invoked twice cleanly under jest, so we skip the
+ *     can't be invoked twice cleanly under Vitest, so we skip the
  *     dispatcher and call the same wasm-bindgen methods the
  *     dispatcher would call).
  *   - Gated on `EINFACH_PERF=1` — without it, every spec is skipped
- *     so the default `npx jest` run isn't slowed down.
+ *     so the default package test run isn't slowed down.
  *   - Skips WASM gracefully if `wasm-pkg/` is missing or the .wasm
  *     fails to instantiate.
  *
@@ -33,13 +33,12 @@
  * results without modifying the historical report.
  *
  * Invocation:
- *   EINFACH_PERF=1 npx jest --testRegex 'perf-ts-vs-wasm\.bench\.ts$' --no-coverage
+ *   pnpm --filter @einfach/solid-excel test:bench -- test/perf-ts-vs-wasm.bench.ts
  *
- * (The `.bench.ts` suffix keeps the file out of the default jest
- * `testMatch` glob, so `npx jest` without flags ignores it. The
- * `--testRegex` override is the discovery trick.)
+ * The normal Vitest config excludes `.bench.ts`; `test:bench` switches
+ * discovery to benchmark files.
  */
-import { describe, it, beforeAll, afterAll } from '@jest/globals'
+import { describe, it, beforeAll, afterAll } from 'vitest'
 import { performance } from 'node:perf_hooks'
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { TextDecoder, TextEncoder } from 'node:util'
@@ -47,7 +46,7 @@ import path from 'node:path'
 
 import { createWorkerRuntimeTs, type ExcelCoreTsWorkerRuntime } from '../src/adapter/worker-runtime-ts'
 
-// jsdom under jest doesn't expose TextDecoder/TextEncoder; the
+// jsdom under Vitest doesn't expose TextDecoder/TextEncoder; the
 // wasm-bindgen glue grabs them at module-load time, so patch globals
 // BEFORE we attempt to import the wasm module.
 const g = globalThis as unknown as {
@@ -58,7 +57,7 @@ if (!g.TextDecoder) g.TextDecoder = TextDecoder
 if (!g.TextEncoder) g.TextEncoder = TextEncoder
 
 // ---------------------------------------------------------------------------
-// Gate the whole bench on EINFACH_PERF=1 — without it the default `npx jest`
+// Gate the whole bench on EINFACH_PERF=1 — without it the default `pnpm --filter @einfach/solid-excel exec vitest run`
 // run skips every spec immediately. We still build all the helpers/types so
 // the file compiles cleanly under `tsc -b`.
 // ---------------------------------------------------------------------------
@@ -316,7 +315,7 @@ function makeTsDriver(workload: Workload): BackendDriver {
 // ---------------------------------------------------------------------------
 // Driver: WASM backend. Calls WasmWorkbook directly. The auto-installing
 // `worker-runtime.ts` dispatcher operates on `self` and isn't usable from
-// jest, but the dispatcher's hot path is just `setFormulaAt` /
+// Vitest, but the dispatcher's hot path is just `setFormulaAt` /
 // `set_cell_number` / `snapshotCell` — same methods we invoke here.
 // ---------------------------------------------------------------------------
 function makeWasmDriver(workload: Workload): BackendDriver {
@@ -409,7 +408,7 @@ function rssMb(): number {
 }
 
 // Best-effort GC hook. Node only exposes `global.gc` when launched with
-// `--expose-gc`; under jest the bench process usually doesn't have it, so
+// `--expose-gc`; under Vitest the bench process usually doesn't have it, so
 // this becomes a no-op. We call it between TS-driver and WASM-driver to
 // keep peak-RSS readings from one engine bleeding into the other's column.
 function maybeGc(): void {

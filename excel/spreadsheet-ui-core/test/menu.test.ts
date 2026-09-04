@@ -1,8 +1,7 @@
 import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
 import { createStore } from '@einfach/core'
 import type { AtomSetParameters, AtomSetResult, AtomState } from '@einfach/core'
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 import {
   clearMenuIntentAtom,
   closeMenuAtom,
@@ -24,6 +23,7 @@ import {
   type MenuState,
   updateMenuHighlightAtom,
 } from '../src/menu'
+import { repositoryPath } from './support/repository-path'
 
 type AtomHasPublicWrite<Entity> = Entity extends { write: unknown } ? true : false
 
@@ -357,10 +357,7 @@ describe('menu core', () => {
   })
 
   test('keeps backing atoms private and public state writes behind commands', () => {
-    const source = readFileSync(
-      join(process.cwd(), 'excel/spreadsheet-ui-core/src/menu/index.ts'),
-      'utf8',
-    )
+    const source = readFileSync(repositoryPath('excel/spreadsheet-ui-core/src/menu/index.ts'), 'utf8')
 
     for (const name of ['menuStateAtom', 'menuIntentAtom']) {
       expect(source).toMatch(new RegExp(`export const ${name}: Atom<`))

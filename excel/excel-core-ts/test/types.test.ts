@@ -1,12 +1,12 @@
 /**
- * Wave A smoke test — proves the package is wired into the jest harness
+ * Wave A smoke test — proves the package is wired into the Vitest harness
  * and the frozen type contracts compile + are importable.
  *
  * Subsequent phases will add real semantic tests; this file stays as a
  * tripwire that future agents notice if they accidentally break the
  * public surface.
  */
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import {
   BLANK,
@@ -53,7 +53,7 @@ describe('@einfach/excel-core-ts — Wave A contracts', () => {
       { kind: 'array', value: [[{ kind: 'number', value: 1 }]] },
     ]
     // The cast above is the test — if any variant is missing required
-    // fields, tsc would have failed before jest ever ran.
+    // fields, tsc would have failed before Vitest ever ran.
     expect(samples).toHaveLength(7)
   })
 

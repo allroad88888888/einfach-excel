@@ -26,7 +26,7 @@
  *      legacy full-trust contract, so the WASM path is unchanged.
  */
 
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 import { createVisibleProjectionRequest } from '@einfach/spreadsheet-ui-core'
 
 import {

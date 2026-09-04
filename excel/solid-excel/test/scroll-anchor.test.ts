@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals'
+import { describe, expect, it } from 'vitest'
 import {
   SCROLL_SURFACE_VIEWPORT_MULTIPLE,
   getMaxAnchorPx,

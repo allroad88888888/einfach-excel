@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { atom, createStore } from '@einfach/core'
 import { useAtomValue, useSetAtom } from '@einfach/solid'
 import { render, cleanup, waitFor } from '@solidjs/testing-library'
@@ -242,9 +242,9 @@ describe('vNext SpreadsheetUiProvider', () => {
 
   it('loads named-range capabilities only through the explicit capability port', async () => {
     const store = createStore()
-    const hiddenBackendReader = jest.fn(async () => NAMED_RANGE_CAPABILITIES)
-    const injectedReader = jest.fn(async () => NAMED_RANGE_CAPABILITIES)
-    const listNamedRanges = jest.fn(async (request: { requestId?: number }) => ({
+    const hiddenBackendReader = vi.fn(async () => NAMED_RANGE_CAPABILITIES)
+    const injectedReader = vi.fn(async () => NAMED_RANGE_CAPABILITIES)
+    const listNamedRanges = vi.fn(async (request: { requestId?: number }) => ({
       requestId: request.requestId,
       revision: 1,
       names: [],
@@ -312,8 +312,8 @@ describe('vNext SpreadsheetUiProvider', () => {
 
   it('does not discover a capability reader hidden on the backend', async () => {
     const store = createStore()
-    const hiddenBackendReader = jest.fn(async () => NAMED_RANGE_CAPABILITIES)
-    const listNamedRanges = jest.fn(async (request: { requestId?: number }) => ({
+    const hiddenBackendReader = vi.fn(async () => NAMED_RANGE_CAPABILITIES)
+    const listNamedRanges = vi.fn(async (request: { requestId?: number }) => ({
       requestId: request.requestId,
       names: [],
     }))
@@ -351,8 +351,8 @@ describe('vNext SpreadsheetUiProvider', () => {
     const pendingCapabilities = new Promise<NamedRangeBackendCapabilities>((resolve) => {
       resolveCapabilities = resolve
     })
-    const injectedReader = jest.fn(() => pendingCapabilities)
-    const listNamedRanges = jest.fn(async (request: { requestId?: number }) => ({
+    const injectedReader = vi.fn(() => pendingCapabilities)
+    const listNamedRanges = vi.fn(async (request: { requestId?: number }) => ({
       requestId: request.requestId,
       names: [],
     }))
@@ -398,13 +398,13 @@ describe('vNext SpreadsheetUiProvider', () => {
     const currentCapabilities = new Promise<NamedRangeBackendCapabilities>((resolve) => {
       resolveCurrentCapabilities = resolve
     })
-    const staleReader = jest.fn(() => staleCapabilities)
-    const currentReader = jest.fn(() => currentCapabilities)
-    const staleListNamedRanges = jest.fn(async (request: { requestId?: number }) => ({
+    const staleReader = vi.fn(() => staleCapabilities)
+    const currentReader = vi.fn(() => currentCapabilities)
+    const staleListNamedRanges = vi.fn(async (request: { requestId?: number }) => ({
       requestId: request.requestId,
       names: [],
     }))
-    const currentListNamedRanges = jest.fn(async (request: { requestId?: number }) => ({
+    const currentListNamedRanges = vi.fn(async (request: { requestId?: number }) => ({
       requestId: request.requestId,
       names: [],
     }))

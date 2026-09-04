@@ -18,7 +18,7 @@
  *  2. 语义层：空占位取到的确实是默认值 / 空值；
  *  3. 仍与 Excel 有出入的残留（另有根因，注明，别当成本文件的契约）。
  */
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import { createWorkbook } from '../src/workbook'
 import { keyFor } from '../src/sheet'

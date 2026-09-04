@@ -1,4 +1,4 @@
-import { describe, expect, it, jest } from '@jest/globals'
+import { describe, expect, it, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import type { CellRange, SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
 import {
@@ -47,7 +47,7 @@ function createKeyboardHarness(mergeRanges: readonly CellRange[] = []) {
   store.setter(setViewportMetricsAtom, VIEWPORT)
   setActiveCell(store, { row: 5, col: 3 })
 
-  const moveSelectionToDataEdge = jest.fn(async (event: KeyboardEvent) => {
+  const moveSelectionToDataEdge = vi.fn(async (event: KeyboardEvent) => {
     event.preventDefault()
     store.setter(selectCellAtom, {
       sheetId: SHEET_ID,
@@ -59,7 +59,7 @@ function createKeyboardHarness(mergeRanges: readonly CellRange[] = []) {
     props: { sheetId: SHEET_ID, viewport: VIEWPORT },
     store,
     backend: {
-      resolveDataEdge: jest.fn(),
+      resolveDataEdge: vi.fn(),
     } as unknown as SpreadsheetBackend,
     atoms: {},
     dom: createGridDomAdapter(),

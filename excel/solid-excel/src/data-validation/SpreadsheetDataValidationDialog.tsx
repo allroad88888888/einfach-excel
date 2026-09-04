@@ -20,7 +20,7 @@ import {
 import { dataValidationRangeLabel } from './data-validation-dialog-range'
 import { ValidationRuleDialogContent } from './ValidationRuleDialogContent'
 
-if (typeof process === 'undefined' || !process.env.JEST_WORKER_ID) {
+if (typeof process === 'undefined' || process.env.VITEST !== 'true') {
   void import('@einfach/spreadsheet-ui-styles/features/data-validation-dialog.css')
 }
 

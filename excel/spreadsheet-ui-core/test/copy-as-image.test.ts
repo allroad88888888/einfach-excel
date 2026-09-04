@@ -1,4 +1,4 @@
-import { describe, expect, jest, test } from '@jest/globals'
+import { describe, expect, test, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import {
   encodeSelectionAsImage,
@@ -66,7 +66,7 @@ describe('encodeSelectionAsImage', () => {
   })
 
   test('returns a Blob typed image/png with the backend bytes', async () => {
-    const spy = jest.fn(
+    const spy = vi.fn(
       async (req: RangeImageExportRequest): Promise<RangeImageExportResult> => ({
         kind: 'range-image',
         sheetId: req.sheetId,
@@ -102,7 +102,7 @@ describe('encodeSelectionAsImage', () => {
   test('returns too-large failure without calling the backend when the estimate exceeds the cap', async () => {
     // 100k rows × 26 cols × default sizes (96 × 24) = 2,496 × 96 × 100,000 × 24
     // = 5.99e9 pixels — well above the 16.78M cap.
-    const spy = jest.fn(
+    const spy = vi.fn(
       async (req: RangeImageExportRequest): Promise<RangeImageExportResult> => ({
         kind: 'range-image',
         sheetId: req.sheetId,
@@ -131,7 +131,7 @@ describe('encodeSelectionAsImage', () => {
   })
 
   test('per-call maxPixels override raises the cap', async () => {
-    const spy = jest.fn(
+    const spy = vi.fn(
       async (req: RangeImageExportRequest): Promise<RangeImageExportResult> => ({
         kind: 'range-image',
         sheetId: req.sheetId,
@@ -162,7 +162,7 @@ describe('encodeSelectionAsImage', () => {
 
   test('host-provided per-cell sizes feed the estimate', async () => {
     // 10 × 10 cells × 1px × 1px overrides = 100 pixels. Default cap.
-    const spy = jest.fn(
+    const spy = vi.fn(
       async (req: RangeImageExportRequest): Promise<RangeImageExportResult> => ({
         kind: 'range-image',
         sheetId: req.sheetId,
@@ -194,7 +194,7 @@ describe('encodeSelectionAsImage', () => {
   // same way it forked on SIZE: text drops filtered rows, image keeps them.
 
   test('forwards hiddenRows to the backend port', async () => {
-    const spy = jest.fn(
+    const spy = vi.fn(
       async (req: RangeImageExportRequest): Promise<RangeImageExportResult> => ({
         kind: 'range-image',
         sheetId: req.sheetId,
@@ -221,7 +221,7 @@ describe('encodeSelectionAsImage', () => {
   })
 
   test('omitting hiddenRows leaves the port argument undefined', async () => {
-    const spy = jest.fn(
+    const spy = vi.fn(
       async (req: RangeImageExportRequest): Promise<RangeImageExportResult> => ({
         kind: 'range-image',
         sheetId: req.sheetId,
@@ -241,7 +241,7 @@ describe('encodeSelectionAsImage', () => {
   })
 
   test('the too-large estimate counts visible rows only', async () => {
-    const spy = jest.fn(
+    const spy = vi.fn(
       async (req: RangeImageExportRequest): Promise<RangeImageExportResult> => ({
         kind: 'range-image',
         sheetId: req.sheetId,

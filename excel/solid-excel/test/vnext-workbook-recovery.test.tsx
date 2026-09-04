@@ -2,7 +2,7 @@
 
 import { createStore, type Store } from '@einfach/core'
 import { Provider } from '@einfach/solid'
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render } from '@solidjs/testing-library'
 
 import {
@@ -96,7 +96,7 @@ describe('SpreadsheetWorkbookRecovery', () => {
 
   it('only invokes the host-supplied recovery action for the current failed session', () => {
     const store = createStore()
-    const retry = jest.fn()
+    const retry = vi.fn()
     const rendered = mount(store, retry)
 
     store.setter(beginSpreadsheetWorkbookLifecycleAtom, 7)

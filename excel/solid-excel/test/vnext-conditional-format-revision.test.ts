@@ -1,4 +1,4 @@
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 import { createStaticSpreadsheetBackend } from '../src/adapter/static/backend'
 import { createWorkerRuntimeTs } from '../src/adapter/worker-runtime-ts'
 

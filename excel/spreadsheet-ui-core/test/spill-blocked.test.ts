@@ -6,7 +6,7 @@
  * 「框没画出来」严重得多，所以单独钉。
  */
 import { createStore } from '@einfach/core'
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 import {
   activeSpillBlockageAtom,
   activeSpillRegionAtom,

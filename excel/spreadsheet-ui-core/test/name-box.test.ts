@@ -1,4 +1,4 @@
-import { describe, expect, jest, test } from '@jest/globals'
+import { describe, expect, test, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import {
   blurNameBoxAtom,
@@ -276,7 +276,7 @@ describe('NameBox define-name command', () => {
     const store = createStore()
     let observedRequest: SetNamedRangeRequest | undefined
     let settleMutation: ((result: NamedRangeMutationResult) => void) | undefined
-    const setNamedRange = jest.fn(
+    const setNamedRange = vi.fn(
       (request: SetNamedRangeRequest) =>
         new Promise<NamedRangeMutationResult>((resolve) => {
           observedRequest = request

@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { describe, it, expect, afterEach } from '@jest/globals'
+import { describe, it, expect, afterEach } from 'vitest'
 import { render, cleanup } from '@solidjs/testing-library'
 import { Table } from '../legacy/Table'
 import { createSheetStore } from '../legacy/sheet-store'

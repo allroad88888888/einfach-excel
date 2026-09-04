@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import type {
@@ -118,10 +118,10 @@ describe('SpreadsheetHistoryTimeline', () => {
         false,
       )
     }
-    const undoSpy = jest.fn(async (request: UndoTransactionRequest) =>
+    const undoSpy = vi.fn(async (request: UndoTransactionRequest) =>
       exactAcknowledgement(request),
     )
-    const redoSpy = jest.fn(async (request: RedoTransactionRequest) =>
+    const redoSpy = vi.fn(async (request: RedoTransactionRequest) =>
       exactAcknowledgement(request),
     )
     const backend: SpreadsheetBackend = {
@@ -170,7 +170,7 @@ describe('SpreadsheetHistoryTimeline', () => {
     const store = createStore()
     seedEntries(store, 2)
     const acknowledgement = deferred<HistoryTransactionResult>()
-    const undoSpy = jest.fn((_request: UndoTransactionRequest) => acknowledgement.promise)
+    const undoSpy = vi.fn((_request: UndoTransactionRequest) => acknowledgement.promise)
     const backend: SpreadsheetBackend = { ...createBaseBackend(), undoTransaction: undoSpy }
 
     const { getByTestId } = render(() => (
@@ -204,10 +204,10 @@ describe('SpreadsheetHistoryTimeline', () => {
   it('uses each exact ACK revision as the next Core undo or redo request base', async () => {
     const store = createStore()
     seedEntries(store, 2)
-    const undoSpy = jest.fn(async (request: UndoTransactionRequest) =>
+    const undoSpy = vi.fn(async (request: UndoTransactionRequest) =>
       exactAcknowledgement(request, request.requestId === 1 ? 3 : 5),
     )
-    const redoSpy = jest.fn(async (request: RedoTransactionRequest) =>
+    const redoSpy = vi.fn(async (request: RedoTransactionRequest) =>
       exactAcknowledgement(request, 4),
     )
     const backend: SpreadsheetBackend = {
@@ -255,7 +255,7 @@ describe('SpreadsheetHistoryTimeline', () => {
   it('jumps through repeated Core undo commands without a Solid-owned cursor', async () => {
     const store = createStore()
     seedEntries(store, 4)
-    const undoSpy = jest.fn(async (request: UndoTransactionRequest) =>
+    const undoSpy = vi.fn(async (request: UndoTransactionRequest) =>
       exactAcknowledgement(request, request.revision ?? 0),
     )
     const backend: SpreadsheetBackend = { ...createBaseBackend(), undoTransaction: undoSpy }
@@ -296,7 +296,7 @@ describe('SpreadsheetHistoryTimeline', () => {
   ])('keeps the cursor and locks resend for a %s acknowledgement', async (_label, resultFor) => {
     const store = createStore()
     seedEntries(store, 1)
-    const undoSpy = jest.fn(async (request: UndoTransactionRequest) => resultFor(request))
+    const undoSpy = vi.fn(async (request: UndoTransactionRequest) => resultFor(request))
     const backend: SpreadsheetBackend = { ...createBaseBackend(), undoTransaction: undoSpy }
 
     const { getByTestId, queryByTestId } = render(() => (
@@ -322,7 +322,7 @@ describe('SpreadsheetHistoryTimeline', () => {
   it('retains history and marks OutcomeUnknown when transport rejects', async () => {
     const store = createStore()
     seedEntries(store, 2)
-    const undoSpy = jest.fn(async (_request: UndoTransactionRequest) => {
+    const undoSpy = vi.fn(async (_request: UndoTransactionRequest) => {
       throw new Error('connection dropped after write boundary')
     })
     const backend: SpreadsheetBackend = { ...createBaseBackend(), undoTransaction: undoSpy }
@@ -348,7 +348,7 @@ describe('SpreadsheetHistoryTimeline', () => {
     seedEntries(store, 1)
     seedVisibleProjection(store)
     let refreshAttempt = 0
-    const readVisibleProjection = jest.fn(
+    const readVisibleProjection = vi.fn(
       async (request: VisibleProjectionRequest): Promise<VisibleProjectionResult> => {
         refreshAttempt += 1
         if (refreshAttempt === 1) throw new Error('projection unavailable')
@@ -362,7 +362,7 @@ describe('SpreadsheetHistoryTimeline', () => {
         }
       },
     )
-    const undoSpy = jest.fn(async (request: UndoTransactionRequest) =>
+    const undoSpy = vi.fn(async (request: UndoTransactionRequest) =>
       exactAcknowledgement(request, 'ack-revision'),
     )
     const backend: SpreadsheetBackend = {

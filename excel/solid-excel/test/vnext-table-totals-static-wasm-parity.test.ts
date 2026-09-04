@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  *
  * Excel Table totals row + structured references — STATIC ⇄ WASM golden
  * parity (design-excel-table.md §5/§7, parity #32 T6). The static reference
@@ -20,23 +20,21 @@
  * results are compared verbatim — those ARE the semantics under test.
  */
 
-import { beforeAll, describe, expect, jest, test } from '@jest/globals'
+import { beforeAll, describe, expect, vi, test } from 'vitest'
 
 import type {
   ColumnFilterRule,
   DisplayCell,
   TableTotalsFunction,
 } from '@einfach/spreadsheet-ui-core'
-import type * as NodeFsModule from 'node:fs'
-import type * as NodePathModule from 'node:path'
 import type { WorkerLike, WorkerWorkbookSpreadsheetBackend } from '../src/adapter'
 import { createStaticSpreadsheetBackend } from '../src/adapter/static-backend'
 
-jest.mock('@einfach/excel-wasm', () => {
+vi.mock('@einfach/excel-wasm', async () => {
   /* eslint-disable @typescript-eslint/no-var-requires */
-  const { readFileSync } = require('node:fs') as typeof NodeFsModule
-  const nodePath = require('node:path') as typeof NodePathModule
-  const real = jest.requireActual('@einfach/excel-wasm') as {
+  const { readFileSync } = await import('node:fs')
+  const nodePath = await import('node:path')
+  const real = await vi.importActual('@einfach/excel-wasm') as {
     initSync: (input: { module: ArrayBufferLike }) => unknown
     WasmWorkbook: unknown
   }

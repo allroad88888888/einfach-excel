@@ -5,7 +5,7 @@ import {
   type VisibleProjectionRequest,
   type VisibleProjectionResult,
 } from '@einfach/spreadsheet-ui-core'
-import { describe, expect, it, jest } from '@jest/globals'
+import { describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { SALES_ORDER_SHEET_ROW_COUNT } from '../../../src/page/demo/sales-orders/data/sheet'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
@@ -28,7 +28,7 @@ describe('pending edit projection scrolling', () => {
     let mutationRequest: EditingCommitRequest | undefined
     const requests: VisibleProjectionRequest[] = []
     const bundledRequests: VisibleProjectionRequest[] = []
-    const readVisibleProjection = jest.fn(
+    const readVisibleProjection = vi.fn(
       async (request: VisibleProjectionRequest): Promise<VisibleProjectionResult> => {
         requests.push(request)
         const cells = []
@@ -46,11 +46,11 @@ describe('pending edit projection scrolling', () => {
         }
       },
     )
-    const setCellInput = jest.fn((request: EditingCommitRequest) => {
+    const setCellInput = vi.fn((request: EditingCommitRequest) => {
       mutationRequest = request
       return mutation.promise
     })
-    const setCellProjection = jest.fn(
+    const setCellProjection = vi.fn(
       async (request: VisibleProjectionRequest): Promise<VisibleProjectionResult> => {
         bundledRequests.push(request)
         return {

@@ -22,7 +22,7 @@
  * 断言全写闭式字面量、全走 `createWorkbook` 的真实公式路径 —— 稀疏孪生与
  * 物化两条路只有从公式路径才分得开（直接调 `FUNCTIONS.X` 会测到不跑的那条）。
  */
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import { createWorkbook } from '../src/workbook'
 import { keyFor } from '../src/sheet'

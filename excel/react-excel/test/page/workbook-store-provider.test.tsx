@@ -5,7 +5,7 @@ import {
   selectionSnapshotAtom,
   setSelectionBoundsAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { describe, expect, it } from '@jest/globals'
+import { describe, expect, it } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { WorkbookStoreProvider } from '../../src/page/WorkbookStoreProvider'
 

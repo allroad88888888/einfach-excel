@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import type {
@@ -99,17 +99,17 @@ function strictNamedRangeBackend(
 ) {
   let names = [...(options.names ?? [])]
   let revision = 0
-  const readNamedRangeCapabilities = jest.fn(async () => {
+  const readNamedRangeCapabilities = vi.fn(async () => {
     return options.capabilityResult ?? NAMED_RANGE_CAPABILITIES
   })
-  const listNamedRanges = jest.fn(async (request: ListNamedRangesRequest) => ({
+  const listNamedRanges = vi.fn(async (request: ListNamedRangesRequest) => ({
     requestId: request.requestId,
     revision: ++revision,
     names: names.slice(),
     authority: 'static-session-registry' as const,
     definitionReadback: 'full' as const,
   }))
-  const setNamedRange = jest.fn(
+  const setNamedRange = vi.fn(
     async (request: SetNamedRangeRequest): Promise<NamedRangeMutationResult> => {
       const outcome = options.outcome ?? 'w0-acknowledged'
       if (outcome === 'w0-acknowledged') {

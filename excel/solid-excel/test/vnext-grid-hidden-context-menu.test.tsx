@@ -1,7 +1,7 @@
 /** @jsxImportSource solid-js */
 
 import { createStore } from '@einfach/core'
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import type {
   DisplayCell,
@@ -25,12 +25,12 @@ import { SpreadsheetGrid } from '../src/grid'
 import { SpreadsheetUiProvider } from '../src/provider'
 
 beforeEach(() => {
-  jest.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null)
+  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null)
 })
 
 afterEach(() => {
   cleanup()
-  jest.restoreAllMocks()
+  vi.restoreAllMocks()
 })
 
 const VIEWPORT = {

@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { afterEach, describe, expect, test } from '@jest/globals'
+import { afterEach, describe, expect, test } from 'vitest'
 import { createStore } from '@einfach/core'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import type { SetFormatRangeRequest, SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'

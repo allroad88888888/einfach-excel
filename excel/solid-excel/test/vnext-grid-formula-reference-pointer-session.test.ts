@@ -1,5 +1,5 @@
 import { createStore } from '@einfach/core'
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   editingDraftAtom,
   enterFormulaReferenceAtom,
@@ -36,8 +36,8 @@ function startSession(input: HTMLInputElement) {
   })
 
   const handle = document.createElement('button')
-  const setPointerCapture = jest.fn()
-  const releasePointerCapture = jest.fn()
+  const setPointerCapture = vi.fn()
+  const releasePointerCapture = vi.fn()
   Object.assign(handle, { setPointerCapture, releasePointerCapture })
   document.body.append(handle)
   let cancel: (() => void) | undefined
@@ -59,7 +59,7 @@ function startSession(input: HTMLInputElement) {
 
 afterEach(() => {
   document.body.replaceChildren()
-  jest.restoreAllMocks()
+  vi.restoreAllMocks()
 })
 
 describe('vNext formula-reference pointer session', () => {

@@ -1,8 +1,8 @@
-# 快检查在前(秒级失败)。全量 clean build + 全量 jest 的门禁在 CI
+# 快检查在前(秒级失败)。全量 clean build + 全量 Vitest 的门禁在 CI
 # (ci.yml 每次 push/PR 都跑 `npm run build` + `npm test`);提交门禁只保留
-# 文档/展现层边界/lint/主线类型检查 + 受本次改动影响的 jest。
+# 文档/展现层边界/lint/主线类型检查 + 受本次改动影响的 Vitest。
 npm run check:docs
 npm run check:presentation
 npm run lint:check
 npm run typecheck:mainline
-npx jest --onlyChanged --no-coverage --passWithNoTests
+pnpm exec vitest run --workspace vitest.workspace.ts --changed --passWithNoTests

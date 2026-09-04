@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, jest, test } from '@jest/globals'
+import { afterEach, describe, expect, test, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import {
   COMMENT_MUTATION_TIMEOUT_MS,
@@ -40,7 +40,7 @@ async function flushLaunch(): Promise<void> {
 
 describe('comments-notes', () => {
   afterEach(() => {
-    jest.useRealTimers()
+    vi.useRealTimers()
   })
 
   test('initial state: session null, draft empty, intent null', () => {
@@ -348,7 +348,7 @@ describe('comments-notes', () => {
   })
 
   test('a normal stalled transport reaches the Core deadline and preserves retry evidence', async () => {
-    jest.useFakeTimers()
+    vi.useFakeTimers()
     const store = createStore()
     const result = deferred<unknown>()
     store.setter(openCommentSessionAtom, {
@@ -370,11 +370,11 @@ describe('comments-notes', () => {
       status: 'pending',
     })
 
-    jest.advanceTimersByTime(COMMENT_MUTATION_TIMEOUT_MS - 1)
+    vi.advanceTimersByTime(COMMENT_MUTATION_TIMEOUT_MS - 1)
     await flushLaunch()
     expect(store.getter(commentOperationAttemptLedgerAtom)[0].status).toBe('pending')
 
-    jest.advanceTimersByTime(1)
+    vi.advanceTimersByTime(1)
     await mutation
 
     expect(store.getter(commentSessionAtom)).toEqual({
@@ -396,7 +396,7 @@ describe('comments-notes', () => {
   })
 
   test('a late fulfilment cannot acknowledge or double-settle a timed-out ticket', async () => {
-    jest.useFakeTimers()
+    vi.useFakeTimers()
     const store = createStore()
     const result = deferred<unknown>()
     let requestId: number | undefined
@@ -416,7 +416,7 @@ describe('comments-notes', () => {
       },
     })
     await flushLaunch()
-    jest.advanceTimersByTime(COMMENT_MUTATION_TIMEOUT_MS)
+    vi.advanceTimersByTime(COMMENT_MUTATION_TIMEOUT_MS)
     await mutation
     const timedOutAttempt = store.getter(commentOperationAttemptLedgerAtom)[0]
 
@@ -432,7 +432,7 @@ describe('comments-notes', () => {
   })
 
   test('timeout settles the old ticket without overwriting a reopened session, and late reject is ignored', async () => {
-    jest.useFakeTimers()
+    vi.useFakeTimers()
     const store = createStore()
     const result = deferred<unknown>()
     store.setter(openCommentSessionAtom, {
@@ -452,7 +452,7 @@ describe('comments-notes', () => {
       cell: { row: 4, col: 5 },
     })
     store.setter(setCommentDraftAtom, 'new draft')
-    jest.advanceTimersByTime(COMMENT_MUTATION_TIMEOUT_MS)
+    vi.advanceTimersByTime(COMMENT_MUTATION_TIMEOUT_MS)
     await mutation
     const timedOutAttempt = store.getter(commentOperationAttemptLedgerAtom)[0]
 

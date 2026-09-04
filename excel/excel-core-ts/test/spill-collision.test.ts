@@ -11,7 +11,7 @@
  * 跨引擎那一钉在 `excel/solid-excel/test/cross-engine-parity-spill.test.ts`。
  */
 
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import { createWorkbook } from '../src/workbook'
 import { keyFor } from '../src/sheet'

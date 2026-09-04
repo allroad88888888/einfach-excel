@@ -32,7 +32,7 @@
  * 期望值一律写**闭式字面量**，不写「三条相等」—— 那样三条一起错也是绿的
  * （抄 `whole-axis-refs.test.ts` 的做法）。
  */
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import { createWorkbook } from '../src/workbook'
 import { keyFor } from '../src/sheet'

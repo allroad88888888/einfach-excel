@@ -1,4 +1,4 @@
-import { describe, expect, jest, test } from '@jest/globals'
+import { describe, expect, test, vi } from 'vitest'
 import { snapshotAcknowledgement, runBoundedOperation } from '../src/internal/ack-hardening'
 
 // ---------------------------------------------------------------------------
@@ -118,16 +118,16 @@ describe('runBoundedOperation', () => {
   })
 
   test('timeout when operation takes too long', async () => {
-    jest.useFakeTimers()
+    vi.useFakeTimers()
     const promise = runBoundedOperation(
       () => new Promise<number>(() => {}), // never resolves
       100,
       'test',
     )
 
-    jest.advanceTimersByTime(200)
+    vi.advanceTimersByTime(200)
     const result = await promise
-    jest.useRealTimers()
+    vi.useRealTimers()
 
     // The label rides along so the caller can name the stalled transport.
     expect(result).toEqual({ kind: 'timeout', label: 'test' })
@@ -142,14 +142,14 @@ describe('runBoundedOperation', () => {
   })
 
   test('clears the deadline timer once the operation settles', async () => {
-    jest.useFakeTimers()
+    vi.useFakeTimers()
     try {
       await runBoundedOperation(() => Promise.resolve(1), 10_000, 'test')
-      // A live timer here would keep the process (and a Jest worker) busy for
+      // A live timer here would keep the process (and a Vitest worker) busy for
       // the rest of timeoutMs after the work is already done.
-      expect(jest.getTimerCount()).toBe(0)
+      expect(vi.getTimerCount()).toBe(0)
     } finally {
-      jest.useRealTimers()
+      vi.useRealTimers()
     }
   })
 

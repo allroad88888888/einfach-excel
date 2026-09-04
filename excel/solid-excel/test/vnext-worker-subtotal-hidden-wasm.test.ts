@@ -1,10 +1,10 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  *
  * SUBTOTAL hidden-row eval input (parity #23) — the `setEvalHiddenRows` RPC
  * over the REAL WASM engine and the REAL `worker-runtime.ts` dispatcher in
  * process. Same harness as vnext-worker-sort-wasm.test.ts: wasm-pkg
- * jest-mocked onto itself with the binary pre-loaded through `initSync`, a
+ * Vitest-mocked onto itself with the binary pre-loaded through `initSync`, a
  * fake `self` installed before the runtime module imports.
  *
  * Pins the eval-input contract this slice ships:
@@ -15,17 +15,15 @@
  *  - an out-of-range sheet index is a silent no-op (does not throw).
  */
 
-import { beforeAll, describe, expect, jest, test } from '@jest/globals'
+import { beforeAll, describe, expect, vi, test } from 'vitest'
 
-import type * as NodeFsModule from 'node:fs'
-import type * as NodePathModule from 'node:path'
 import type { WorkerLike, WorkerWorkbookClient } from '../src/adapter'
 
-jest.mock('@einfach/excel-wasm', () => {
+vi.mock('@einfach/excel-wasm', async () => {
   /* eslint-disable @typescript-eslint/no-var-requires */
-  const { readFileSync } = require('node:fs') as typeof NodeFsModule
-  const nodePath = require('node:path') as typeof NodePathModule
-  const real = jest.requireActual('@einfach/excel-wasm') as {
+  const { readFileSync } = await import('node:fs')
+  const nodePath = await import('node:path')
+  const real = await vi.importActual('@einfach/excel-wasm') as {
     initSync: (input: { module: ArrayBufferLike }) => unknown
     WasmWorkbook: unknown
   }

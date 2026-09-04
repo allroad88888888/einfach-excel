@@ -1,5 +1,5 @@
 import { createStore } from '@einfach/core'
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 import type { BackendMutationResult } from '../src/backend/types'
 import { getOutlineGroupsForSheet, outlineAtom, viewportHiddenAtom } from '../src'
 import type { HistoryEntryRecorder } from '../src/history'

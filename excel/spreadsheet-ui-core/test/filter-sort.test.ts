@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, jest, test } from '@jest/globals'
+import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import {
   FILTER_SORT_ACKNOWLEDGEMENT_ERROR,
@@ -858,7 +858,7 @@ describe('Core-owned filter/sort mutation lifecycle', () => {
       'A',
     )
     expect(committedHiddenRows).toEqual([2, 4])
-    expect(committedHiddenRows).not.toBe(hiddenRows)
+    expect(Object.is(committedHiddenRows, hiddenRows)).toBe(false)
     expect(store.getter(historyStackAtom).entries[0]?.projectionRevision).toBe(17)
     expectHistoryProducerLaneAvailable(store)
   })
@@ -2133,7 +2133,7 @@ describe('shared history producer lane — physical sort', () => {
   })
 
   test('transport uses the 15s default deadline and late rejection is inert', async () => {
-    jest.useFakeTimers()
+    vi.useFakeTimers()
     try {
       const store = makeStore()
       setPhysicalAuthority(store, 'A', 1)
@@ -2144,9 +2144,9 @@ describe('shared history producer lane — physical sort', () => {
       await Promise.resolve()
       expect(requests).toHaveLength(1)
 
-      await jest.advanceTimersByTimeAsync(14_999)
+      await vi.advanceTimersByTimeAsync(14_999)
       expect(store.getter(filterSortEntrypointStateAtom).status).toBe('pending')
-      await jest.advanceTimersByTimeAsync(1)
+      await vi.advanceTimersByTimeAsync(1)
       await pending
 
       const timedOut = store.getter(filterSortEntrypointStateAtom)
@@ -2162,14 +2162,14 @@ describe('shared history producer lane — physical sort', () => {
       await store.setter(runPhysicalSortAtom, runInput(source))
       expect(requests).toHaveLength(1)
     } finally {
-      jest.useRealTimers()
+      vi.useRealTimers()
     }
   })
 
   test(
     'refresh timeout is refresh-failed, retains the token, and ignores late settlement',
     async () => {
-    jest.useFakeTimers()
+    vi.useFakeTimers()
     try {
       const store = makeStore()
       setPhysicalAuthority(store, 'A', 1)
@@ -2186,7 +2186,7 @@ describe('shared history producer lane — physical sort', () => {
         },
       })
       await refreshStarted.promise
-      await jest.advanceTimersByTimeAsync(25)
+      await vi.advanceTimersByTimeAsync(25)
       await pending
 
       const timedOut = store.getter(filterSortEntrypointStateAtom)
@@ -2203,12 +2203,12 @@ describe('shared history producer lane — physical sort', () => {
       await store.setter(runPhysicalSortAtom, runInput(source))
       expect(requests).toHaveLength(1)
     } finally {
-      jest.useRealTimers()
+      vi.useRealTimers()
     }
   })
 
   test('retry refresh has its own captured deadline and never resends transport', async () => {
-    jest.useFakeTimers()
+    vi.useFakeTimers()
     try {
       const store = makeStore()
       setPhysicalAuthority(store, 'A', 1)
@@ -2231,7 +2231,7 @@ describe('shared history producer lane — physical sort', () => {
         },
       })
       await retryStarted.promise
-      await jest.advanceTimersByTimeAsync(30)
+      await vi.advanceTimersByTimeAsync(30)
       await retry
 
       const timedOut = store.getter(filterSortEntrypointStateAtom)
@@ -2246,7 +2246,7 @@ describe('shared history producer lane — physical sort', () => {
       expect(store.getter(filterSortEntrypointStateAtom)).toEqual(timedOut)
       expect(requests).toHaveLength(1)
     } finally {
-      jest.useRealTimers()
+      vi.useRealTimers()
     }
   })
 

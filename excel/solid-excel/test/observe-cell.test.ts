@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { describe, it, expect } from '@jest/globals'
+import { describe, it, expect } from 'vitest'
 import { createMemo, createRoot } from 'solid-js'
 import { createSheetStore } from '../legacy/sheet-store'
 import { createJSSheet } from '../legacy/js-sheet'

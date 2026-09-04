@@ -6,7 +6,7 @@
  * 断言「引用 worker demo(唯一吃 ?backend= 的页面)的文件集合」与清单严格相等:
  * 新写的吃参数 spec 忘记登记 → 这里红;spec 改造后不再吃参数却留在清单 → 也红。
  */
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import {

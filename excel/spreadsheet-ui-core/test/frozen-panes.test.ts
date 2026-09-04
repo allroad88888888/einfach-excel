@@ -1,5 +1,5 @@
 import { createStore } from '@einfach/core'
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 import * as spreadsheetUiCore from '../src'
 import {
   applyViewportFreezeStructuralShiftAtom,
@@ -390,8 +390,7 @@ describe('freeze structural shift remap', () => {
   ] as const
   test.each(REMAP_CASES)(
     'remapFrozenLeadingBand: %s',
-    (...args: (typeof REMAP_CASES)[number]) => {
-      const [_label, frozen, shift, expected] = args
+    (_label, frozen, shift, expected) => {
       expect(remapFrozenLeadingBand(frozen, { axis: 'row', ...shift })).toBe(expected)
     },
   )

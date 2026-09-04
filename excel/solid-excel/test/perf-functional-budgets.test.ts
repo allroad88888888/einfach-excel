@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  *
  * FUNCTIONAL PERFORMANCE GATES — "user starts an operation, how much work
  * does the stack do before the surface can repaint".
@@ -7,7 +7,7 @@
  * This is the missing half of the `E2E / a11y / perf` triple. The repo
  * already has ENGINE-level benches (`perf-rust-storage-primary.bench.ts`,
  * `perf-rust-bulk-import-ultra.bench.ts` — both `EINFACH_PERF=1`-gated,
- * `.bench.ts` so the default jest sweep skips them) and a scaling audit
+ * `.bench.ts` so the default Vitest sweep skips them) and a scaling audit
  * (`audit-adapter-scaling.test.ts`, loose timings + hard shape asserts).
  * What was missing is a budget on the FEATURE path: sort, Table-definition
  * undo, and viewport projection, measured through the real host backend
@@ -28,22 +28,20 @@
  * swaps in the heavy tier (same assertions, bigger workbook) — same env
  * gate `scale-parity.test.ts` uses.
  *
- *   npx jest perf-functional-budgets --no-coverage
- *   EINFACH_SCALE=1 npx jest perf-functional-budgets --no-coverage
+ *   pnpm --filter @einfach/solid-excel test -- test/perf-functional-budgets.test.ts
+ *   EINFACH_SCALE=1 pnpm --filter @einfach/solid-excel test -- test/perf-functional-budgets.test.ts
  */
 
-import { beforeAll, describe, expect, jest, test } from '@jest/globals'
+import { beforeAll, describe, expect, vi, test } from 'vitest'
 import type { CellRange, ImportCellInput, VisibleWindow } from '@einfach/spreadsheet-ui-core'
-import type * as NodeFsModule from 'node:fs'
-import type * as NodePathModule from 'node:path'
 
 import type { WorkerLike, WorkerWorkbookSpreadsheetBackend } from '../src/adapter'
 
-jest.mock('@einfach/excel-wasm', () => {
+vi.mock('@einfach/excel-wasm', async () => {
   /* eslint-disable @typescript-eslint/no-var-requires */
-  const { readFileSync } = require('node:fs') as typeof NodeFsModule
-  const nodePath = require('node:path') as typeof NodePathModule
-  const real = jest.requireActual('@einfach/excel-wasm') as {
+  const { readFileSync } = await import('node:fs')
+  const nodePath = await import('node:path')
+  const real = await vi.importActual('@einfach/excel-wasm') as {
     initSync: (input: { module: ArrayBufferLike }) => unknown
     WasmWorkbook: unknown
   }

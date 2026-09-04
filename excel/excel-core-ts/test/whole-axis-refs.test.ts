@@ -10,7 +10,7 @@
  * 相等」—— 那样两边一起错也是绿的）。全部走 `createWorkbook` 的真实公式路径，
  * 不直接调内部函数：稀疏 / 物化两条路正是靠公式路径才分得开。
  */
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import { createWorkbook } from '../src/workbook'
 import { keyFor } from '../src/sheet'

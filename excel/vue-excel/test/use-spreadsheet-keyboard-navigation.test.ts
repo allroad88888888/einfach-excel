@@ -7,7 +7,7 @@ import {
   type ScrollToCellIntent,
   type SpreadsheetBackend,
 } from '@einfach/spreadsheet-ui-core'
-import { describe, expect, it, jest } from '@jest/globals'
+import { describe, expect, it, vi } from 'vitest'
 import { createApp, defineComponent, h } from 'vue'
 import { SpreadsheetUiProvider } from '../src/spreadsheet-ui-provider'
 import {
@@ -120,7 +120,7 @@ describe('useSpreadsheetKeyboardNavigation', () => {
 
   it('uses visible increments for paging and forwards core scroll intents', () => {
     const store = createStore()
-    const onScrollToCell = jest.fn()
+    const onScrollToCell = vi.fn()
     seedStore(store, { row: 2, col: 3 })
     const mounted = mountKeyboardNavigation(store, onScrollToCell)
 

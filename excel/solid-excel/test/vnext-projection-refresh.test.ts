@@ -1,5 +1,5 @@
 import { createStore, type Store } from '@einfach/core'
-import { describe, expect, it } from '@jest/globals'
+import { describe, expect, it } from 'vitest'
 import {
   beginProjectionAtom,
   projectionSnapshotAtom,

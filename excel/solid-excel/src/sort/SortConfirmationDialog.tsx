@@ -3,7 +3,7 @@ import { Portal } from 'solid-js/web'
 import type { SortConfirmationEntrypoint, SortConfirmationState } from './sort-confirmation-state'
 import { formatSortColumn, formatSortRange } from './sort-range-label'
 
-if (typeof process === 'undefined' || !process.env.JEST_WORKER_ID) {
+if (typeof process === 'undefined' || process.env.VITEST !== 'true') {
   void import('@einfach/spreadsheet-ui-styles/features/sort-confirmation-dialog.css')
 }
 

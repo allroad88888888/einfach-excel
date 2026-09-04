@@ -2,7 +2,7 @@
 
 import { createStore, type Store } from '@einfach/core'
 import { Provider } from '@einfach/solid'
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import {
   beginProjectionAtom,
@@ -77,8 +77,8 @@ function mountDropdown(store: Store, overrides: { onClose?: () => void } = {}) {
   const anchor = document.createElement('button')
   anchor.dataset.numberFormatTestAnchor = 'true'
   document.body.append(anchor)
-  const onSelect = jest.fn<(id: NumberFormatId) => void>()
-  const onClose = overrides.onClose ?? jest.fn()
+  const onSelect = vi.fn<(id: NumberFormatId) => void>()
+  const onClose = overrides.onClose ?? vi.fn()
   const rendered = render(() => (
     <Provider store={store}>
       <NumberFormatDropdown
@@ -165,8 +165,8 @@ describe('NumberFormatDropdown', () => {
   it('surfaces Atom-owned mutation ambiguity and performs refresh-only recovery', async () => {
     const store = createStore()
     seedActiveFormat(store, { kind: 'general' })
-    const refreshProjection = jest.fn(async () => undefined)
-    const setFormatRange = jest.fn(async () => {
+    const refreshProjection = vi.fn(async () => undefined)
+    const setFormatRange = vi.fn(async () => {
       throw new Error('connection interrupted')
     })
     await store.setter(runToolbarMutationAtom, {

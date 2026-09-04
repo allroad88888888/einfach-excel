@@ -1,4 +1,4 @@
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 import type { DisplayCell, MergeRangeRequest, UnmergeRangeRequest, VisibleProjectionResult } from '../src'
 import { getMergeAnchorCoord, isMergeAnchor, isMergeCovered } from '../src'
 

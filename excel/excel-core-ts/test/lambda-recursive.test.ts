@@ -20,7 +20,7 @@
  * recursion, and bare-LAMBDA `#CALC!`.
  */
 
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import { createWorkbook } from '../src/workbook'
 import type { Expr, Value } from '../src/types'

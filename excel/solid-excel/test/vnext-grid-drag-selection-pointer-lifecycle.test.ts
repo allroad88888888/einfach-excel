@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import {
   pointerIntentAtom,
@@ -27,7 +27,7 @@ function pointerEvent(
 function createFixture() {
   const store = createStore()
   let point: CellCoord | null = null
-  const selectCellSpan = jest.fn((anchor: CellCoord, focus: CellCoord) => ({
+  const selectCellSpan = vi.fn((anchor: CellCoord, focus: CellCoord) => ({
     kind:
       anchor.row === focus.row && anchor.col === focus.col ? ('cell' as const) : ('range' as const),
     sheetId: 'sheet-1',
@@ -52,7 +52,7 @@ function createFixture() {
     backend: {} as SpreadsheetBackend,
     atoms: {},
     dom: createGridDomAdapter(),
-    focusGrid: jest.fn(),
+    focusGrid: vi.fn(),
     getCellCoordFromPoint: () => point,
     selectCellSpan,
   }
@@ -69,7 +69,7 @@ function createFixture() {
 }
 
 afterEach(() => {
-  jest.restoreAllMocks()
+  vi.restoreAllMocks()
   document.body.replaceChildren()
   delete (document as { visibilityState?: string }).visibilityState
 })
@@ -139,8 +139,8 @@ describe('vnext grid drag-selection pointer lifecycle', () => {
     const captureFixture = createFixture()
     const target = document.createElement('div')
     Object.assign(target, {
-      releasePointerCapture: jest.fn(),
-      setPointerCapture: jest.fn(),
+      releasePointerCapture: vi.fn(),
+      setPointerCapture: vi.fn(),
     })
     target.addEventListener('pointerdown', (event) => {
       captureFixture.pointer.startDragSelection(event as PointerEvent, 0, 0)
@@ -160,8 +160,8 @@ describe('vnext grid drag-selection pointer lifecycle', () => {
     // 塌回单格。鼠标必须走纯 window 监听流。
     const { pointer, store, selectCellSpan, setPoint } = createFixture()
     const target = document.createElement('div')
-    const setPointerCapture = jest.fn()
-    Object.assign(target, { releasePointerCapture: jest.fn(), setPointerCapture })
+    const setPointerCapture = vi.fn()
+    Object.assign(target, { releasePointerCapture: vi.fn(), setPointerCapture })
     target.addEventListener('pointerdown', (event) => {
       pointer.startDragSelection(event as PointerEvent, 0, 0)
     })

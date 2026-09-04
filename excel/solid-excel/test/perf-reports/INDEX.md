@@ -13,5 +13,5 @@
 重跑示例：
 
 ```bash
-EINFACH_PERF=1 npx jest perf-ts-vs-wasm --no-coverage
+pnpm --filter @einfach/solid-excel test:bench
 ```

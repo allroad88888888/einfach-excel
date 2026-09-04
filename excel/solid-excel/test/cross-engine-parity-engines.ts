@@ -10,7 +10,7 @@
  *            through the wasm-bindgen methods DIRECTLY rather than through
  *            `worker-runtime.ts`: that dispatcher auto-installs onto `self`
  *            at module load and cannot be instantiated twice cleanly under
- *            jest, so a two-engine file cannot use it (same workaround as
+ *            Vitest, so a two-engine file cannot use it (same workaround as
  *            `scale-parity.test.ts` / `perf-ts-vs-wasm.bench.ts`). Bulk
  *            path: `bulk_install_workbook`.
  *
@@ -25,7 +25,7 @@
  * FALLIBLE `try*` bindings and asserts `ok`, so a re-introduced engine-side
  * refusal fails loudly here instead of reading back as a silent no-op.
  */
-import { expect } from '@jest/globals'
+import { expect } from 'vitest'
 import { existsSync, readFileSync } from 'node:fs'
 import { TextDecoder, TextEncoder } from 'node:util'
 import path from 'node:path'
@@ -35,7 +35,7 @@ import { a1 } from './parity-seed'
 
 export { a1 }
 
-// jsdom under jest exposes no TextDecoder/TextEncoder; the wasm-bindgen glue
+// jsdom under Vitest exposes no TextDecoder/TextEncoder; the wasm-bindgen glue
 // grabs them at module-load time, so patch globals BEFORE the wasm import.
 const g = globalThis as unknown as {
   TextDecoder: typeof TextDecoder
@@ -196,7 +196,7 @@ export async function loadWasmModule(): Promise<void> {
  * infallible `set_cell_*` twins created.
  */
 function expectWritten(outcome: unknown, addr: string): void {
-  // The addr rides along so a jest diff names the cell that was refused.
+  // The addr rides along so a Vitest diff names the cell that was refused.
   expect({ addr, ok: (outcome as { ok?: unknown } | null)?.ok, outcome }).toEqual({
     addr,
     ok: true,
@@ -272,7 +272,7 @@ export function makeEngine(label: EngineLabel): Engine {
   return label === 'ts' ? makeTsEngine() : makeWasmEngine()
 }
 
-/** `addr=display` (plus an error marker) so a jest array diff names the cells. */
+/** `addr=display` (plus an error marker) so a Vitest array diff names the cells. */
 export function flatten(reading: Reading): string[] {
   return [...reading].map(
     ([addr, cell]) => `${addr}=${cell.display}${cell.isError ? ' <err>' : ''}`,

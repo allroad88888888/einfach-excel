@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals'
+import { describe, expect, it } from 'vitest'
 import type { VisibleProjectionResult } from '../src/backend'
 import { getSourceTextFromProjection } from '../src/projection/editable-source-text'
 

@@ -1,5 +1,5 @@
 import { createStore } from '@einfach/core'
-import { afterAll, beforeAll, describe, expect, test } from '@jest/globals'
+import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import {
   retryAutoFillRefreshAtom,
   runAutoFillAtom,

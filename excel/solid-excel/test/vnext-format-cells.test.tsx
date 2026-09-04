@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createStore, type Store } from '@einfach/core'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import type {
@@ -57,7 +57,7 @@ function createFakeBackend() {
       cells: [],
     }),
     setCellInput: async (req) => ({ sheetId: req.sheetId }),
-    setFormatRange: jest.fn(async (req: SetFormatRangeRequest) => {
+    setFormatRange: vi.fn(async (req: SetFormatRangeRequest) => {
       setFormatRangeRequests.push(req)
       return {
         sheetId: req.sheetId,

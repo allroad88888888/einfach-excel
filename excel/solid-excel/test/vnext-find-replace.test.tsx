@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import type {
@@ -278,7 +278,7 @@ describe('SpreadsheetFindReplaceDialog', () => {
       pageStart: 0,
       totalCount: 2,
     }
-    const searchSpy = jest.fn(async (req: SearchRangeRequest) => acknowledgeSearch(req, fakeResult))
+    const searchSpy = vi.fn(async (req: SearchRangeRequest) => acknowledgeSearch(req, fakeResult))
     const backend = createSearchBackend(searchSpy)
 
     const { container } = render(() => (
@@ -347,7 +347,7 @@ describe('SpreadsheetFindReplaceDialog', () => {
       pageStart: 0,
       totalCount: 3,
     }
-    const searchSpy = jest.fn(async (req: SearchRangeRequest) => acknowledgeSearch(req, fakeResult))
+    const searchSpy = vi.fn(async (req: SearchRangeRequest) => acknowledgeSearch(req, fakeResult))
     await establishTicketedResult(store, searchSpy)
 
     const backend = createSearchBackend(searchSpy)
@@ -374,7 +374,7 @@ describe('SpreadsheetFindReplaceDialog', () => {
       pageStart: 0,
       totalCount: 2,
     }
-    const searchSpy = jest.fn(async (req: SearchRangeRequest) => acknowledgeSearch(req, fakeResult))
+    const searchSpy = vi.fn(async (req: SearchRangeRequest) => acknowledgeSearch(req, fakeResult))
     await establishTicketedResult(store, searchSpy)
 
     const backend = createSearchBackend(searchSpy)
@@ -427,7 +427,7 @@ describe('SpreadsheetFindReplaceDialog', () => {
       pageStart: 0,
       totalCount: 2,
     }
-    const searchSpy = jest.fn(async (req: SearchRangeRequest) => acknowledgeSearch(req, fakeResult))
+    const searchSpy = vi.fn(async (req: SearchRangeRequest) => acknowledgeSearch(req, fakeResult))
     await establishTicketedResult(store, searchSpy)
     const initialMetrics = store.getter(viewportMetricsAtom)
 
@@ -462,7 +462,7 @@ describe('SpreadsheetFindReplaceDialog', () => {
       pageStart: 0,
       totalCount: 1,
     }
-    const searchSpy = jest.fn(async (req: SearchRangeRequest) => acknowledgeSearch(req, fakeResult))
+    const searchSpy = vi.fn(async (req: SearchRangeRequest) => acknowledgeSearch(req, fakeResult))
     const backend = createSearchBackend(searchSpy)
 
     const { container } = render(() => (
@@ -502,12 +502,12 @@ describe('SpreadsheetFindReplaceDialog', () => {
     }
     let searchReceiver: SpreadsheetBackend | undefined
     let replaceReceiver: SpreadsheetBackend | undefined
-    const searchSpy = jest.fn(async function (this: SpreadsheetBackend, req: SearchRangeRequest) {
+    const searchSpy = vi.fn(async function (this: SpreadsheetBackend, req: SearchRangeRequest) {
       searchReceiver = this
       return acknowledgeSearch(req, fakeSearchResult)
     })
     const replaceCalls: ReplaceMatchesRequest[] = []
-    const replaceSpy = jest.fn(async function (
+    const replaceSpy = vi.fn(async function (
       this: SpreadsheetBackend,
       req: ReplaceMatchesRequest,
     ): Promise<ReplaceMatchesResult> {
@@ -561,12 +561,12 @@ describe('SpreadsheetFindReplaceDialog', () => {
       revision: 'refresh-retry-find-revision',
     }
     let searchAttempt = 0
-    const searchSpy = jest.fn(async (request: SearchRangeRequest) => {
+    const searchSpy = vi.fn(async (request: SearchRangeRequest) => {
       searchAttempt += 1
       if (searchAttempt === 2) throw new Error('Could not refresh Find results')
       return acknowledgeSearch(request, fakeSearchResult)
     })
-    const replaceSpy = jest.fn(async (request: ReplaceMatchesRequest) =>
+    const replaceSpy = vi.fn(async (request: ReplaceMatchesRequest) =>
       acknowledgeReplace(request, { replacedCount: 1 }),
     )
     const backend = createSearchBackend(searchSpy, replaceSpy)
@@ -637,7 +637,7 @@ describe('SpreadsheetFindReplaceDialog', () => {
     const deferredRefresh = createDeferred<SearchRangeResult>()
     let deferredRequest: SearchRangeRequest | undefined
     let searchAttempt = 0
-    const searchSpy = jest.fn((request: SearchRangeRequest): Promise<SearchRangeResult> => {
+    const searchSpy = vi.fn((request: SearchRangeRequest): Promise<SearchRangeResult> => {
       searchAttempt += 1
       if (searchAttempt === 2) return Promise.reject(new Error('Refresh needs a retry'))
       if (searchAttempt === 3) {
@@ -648,7 +648,7 @@ describe('SpreadsheetFindReplaceDialog', () => {
         acknowledgeSearch(request, searchAttempt === 1 ? oldSearchResult : reopenedSearchResult),
       )
     })
-    const replaceSpy = jest.fn(async (request: ReplaceMatchesRequest) =>
+    const replaceSpy = vi.fn(async (request: ReplaceMatchesRequest) =>
       acknowledgeReplace(request, { replacedCount: 1 }),
     )
     const backend = createSearchBackend(searchSpy, replaceSpy)
@@ -709,10 +709,10 @@ describe('SpreadsheetFindReplaceDialog', () => {
       pageStart: 0,
       totalCount: 2,
     }
-    const searchSpy = jest.fn(async (request: SearchRangeRequest) =>
+    const searchSpy = vi.fn(async (request: SearchRangeRequest) =>
       acknowledgeSearch(request, fakeSearchResult),
     )
-    const replaceSpy = jest.fn(async (request: ReplaceMatchesRequest) =>
+    const replaceSpy = vi.fn(async (request: ReplaceMatchesRequest) =>
       acknowledgeReplace(request, { replacedCount: 1 }),
     )
     await establishTicketedResult(store, searchSpy, { replacement: 'bar' })
@@ -762,10 +762,10 @@ describe('SpreadsheetFindReplaceDialog', () => {
       pageStart: 0,
       totalCount: 1,
     }
-    const searchSpy = jest.fn(async (req: SearchRangeRequest) =>
+    const searchSpy = vi.fn(async (req: SearchRangeRequest) =>
       acknowledgeSearch(req, fakeSearchResult),
     )
-    const replaceSpy = jest.fn(
+    const replaceSpy = vi.fn(
       async (req: ReplaceMatchesRequest): Promise<ReplaceMatchesResult> =>
         acknowledgeReplace(req, { replacedCount: 1 }),
     )
@@ -797,7 +797,7 @@ describe('SpreadsheetFindReplaceDialog', () => {
     const store = createStore()
     const deferredReplace = createDeferred<ReplaceMatchesResult>()
     let dispatchedRequest: ReplaceMatchesRequest | undefined
-    const searchSpy = jest.fn(async (request: SearchRangeRequest) =>
+    const searchSpy = vi.fn(async (request: SearchRangeRequest) =>
       acknowledgeSearch(request, {
         kind: 'search-range',
         sheetId: request.sheetId,
@@ -815,7 +815,7 @@ describe('SpreadsheetFindReplaceDialog', () => {
         revision: `${request.sheetId}-revision`,
       }),
     )
-    const replaceSpy = jest.fn((request: ReplaceMatchesRequest) => {
+    const replaceSpy = vi.fn((request: ReplaceMatchesRequest) => {
       dispatchedRequest = request
       return deferredReplace.promise
     })
@@ -968,10 +968,10 @@ describe('SpreadsheetFindReplaceDialog', () => {
       totalCount: 1,
       revision: 'replace-failure-find-revision',
     }
-    const searchSpy = jest.fn(async (req: SearchRangeRequest) =>
+    const searchSpy = vi.fn(async (req: SearchRangeRequest) =>
       acknowledgeSearch(req, fakeSearchResult),
     )
-    const replaceSpy = jest.fn(
+    const replaceSpy = vi.fn(
       async (_req: ReplaceMatchesRequest): Promise<ReplaceMatchesResult> => {
         throw new Error('replace exploded')
       },
@@ -1019,10 +1019,10 @@ describe('SpreadsheetFindReplaceDialog', () => {
       totalCount: 1,
       revision: 'replace-all-failure-find-revision',
     }
-    const searchSpy = jest.fn(async (req: SearchRangeRequest) =>
+    const searchSpy = vi.fn(async (req: SearchRangeRequest) =>
       acknowledgeSearch(req, fakeSearchResult),
     )
-    const replaceSpy = jest.fn(
+    const replaceSpy = vi.fn(
       async (_req: ReplaceMatchesRequest): Promise<ReplaceMatchesResult> => {
         throw new Error('bulk replace exploded')
       },
@@ -1071,7 +1071,7 @@ describe('SpreadsheetFindReplaceDialog', () => {
       totalCount: 1,
     }
     let attempt = 0
-    const searchSpy = jest.fn(async (req: SearchRangeRequest) => {
+    const searchSpy = vi.fn(async (req: SearchRangeRequest) => {
       attempt += 1
       if (attempt === 1) throw new Error('first search failed')
       return acknowledgeSearch(req, fakeSearchResult)

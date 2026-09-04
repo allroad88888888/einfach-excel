@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 import { ENGINE_BUILTIN_FORMULA_NAMES } from '../src/custom-formulas'
+import { repositoryPath } from './support/repository-path'
 
 /**
  * Drift guard: `engine-builtin-names.ts` must stay byte-for-byte
@@ -33,7 +33,7 @@ const RESERVED_NAME_MODULE_PATHS = [
   'eval_builtin_names_a_h.rs',
   'eval_builtin_names_i_r.rs',
   'eval_builtin_names_s_z.rs',
-].map((file) => join(process.cwd(), 'excel/rust/excel-core/src', file))
+].map((file) => repositoryPath('excel/rust/excel-core/src', file))
 
 /**
  * Self-check floor for the extractor — a floor, not the real count, so
@@ -124,7 +124,7 @@ describe('engine-builtin mirror: Rust is_builtin_function_name vs JS ENGINE_BUIL
 
   test('the generated header count matches the array length', () => {
     const generated = readFileSync(
-      join(process.cwd(), 'excel/spreadsheet-ui-core/src/custom-formulas/engine-builtin-names.ts'),
+      repositoryPath('excel/spreadsheet-ui-core/src/custom-formulas/engine-builtin-names.ts'),
       'utf8',
     )
     const declared = /Count: (\d+) names\./.exec(generated)

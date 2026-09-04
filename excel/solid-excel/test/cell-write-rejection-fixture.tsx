@@ -6,10 +6,10 @@
  * starts refusing after N accepted writes, the render/interaction helpers
  * for the two hosts that drive it, and an unhandled-rejection watch.
  *
- * Not a `.test.` file, so Jest's default `testMatch` never collects it.
+ * Not a `.test.` file, so Vitest's default include never collects it.
  */
 
-import { expect, jest } from '@jest/globals'
+import { expect, vi } from 'vitest'
 import type { createStore } from '@einfach/core'
 import { fireEvent, render, waitFor } from '@solidjs/testing-library'
 import type {
@@ -32,8 +32,8 @@ export function installClipboard(text: string): () => void {
   Object.defineProperty(navigator, 'clipboard', {
     configurable: true,
     value: {
-      readText: jest.fn(async () => text),
-      writeText: jest.fn(async () => undefined),
+      readText: vi.fn(async () => text),
+      writeText: vi.fn(async () => undefined),
     },
   })
   return () => {

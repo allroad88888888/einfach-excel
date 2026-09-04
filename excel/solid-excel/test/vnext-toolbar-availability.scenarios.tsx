@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { expect, it } from '@jest/globals'
+import { expect, it } from 'vitest'
 import * as toolbar from './vnext-toolbar-test-support'
 
 export function registerAvailabilityScenarios(): void {

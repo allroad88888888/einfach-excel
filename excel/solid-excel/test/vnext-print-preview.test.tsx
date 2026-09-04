@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import { cleanup, fireEvent, render } from '@solidjs/testing-library'
 import type { SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
@@ -172,7 +172,7 @@ describe('vNext SpreadsheetPrintPreviewOverlay', () => {
   it('invokes the browser print action', () => {
     const store = createStore()
     const backend = createFakeBackend()
-    const print = jest.fn()
+    const print = vi.fn()
     const originalPrint = window.print
     Object.defineProperty(window, 'print', { configurable: true, value: print })
     store.setter(togglePrintPreviewAtom)

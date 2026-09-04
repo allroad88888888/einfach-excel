@@ -1,5 +1,5 @@
 import { transformSync } from '@swc/core'
-import { describe, expect, it } from '@jest/globals'
+import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { Component } from 'vue'

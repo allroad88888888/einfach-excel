@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals'
+import { describe, expect, it } from 'vitest'
 import { editingCommitFeedback, isUnresolvedEditingCommit } from '../src/editing/commit-feedback'
 import type { EditingCommitLifecycleState } from '../src/editing'
 

@@ -1,8 +1,8 @@
 import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
-import { describe, expect, jest, test } from '@jest/globals'
+import { describe, expect, test, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import { commitNameBoxAtom } from '../src/name-box'
+import { repositoryPath } from './support/repository-path'
 import {
   closeNameManagerAtom,
   deleteNameManagerEntryAtom,
@@ -220,7 +220,7 @@ describe('named-range public identity', () => {
 describe('NR-C0 capability and shared mutation lane', () => {
   test('C03 requires an explicit ready capability before dispatch and blocks unsupported work', async () => {
     const unloadedStore = createStore()
-    const unloadedSet = jest.fn(async (request: SetNamedRangeRequest) => ({
+    const unloadedSet = vi.fn(async (request: SetNamedRangeRequest) => ({
       requestId: request.requestId,
       outcome: 'confirmed-not-applied' as const,
     }))
@@ -241,7 +241,7 @@ describe('NR-C0 capability and shared mutation lane', () => {
 
     const loadingStore = createStore()
     const capabilityRead = deferred<NamedRangeBackendCapabilities>()
-    const loadingSet = jest.fn(async (request: SetNamedRangeRequest) => ({
+    const loadingSet = vi.fn(async (request: SetNamedRangeRequest) => ({
       requestId: request.requestId,
       outcome: 'confirmed-not-applied' as const,
     }))
@@ -265,7 +265,7 @@ describe('NR-C0 capability and shared mutation lane', () => {
     await flushMicrotasks()
 
     const unsupportedStore = createStore()
-    const unsupportedSet = jest.fn(async (request: SetNamedRangeRequest) => ({
+    const unsupportedSet = vi.fn(async (request: SetNamedRangeRequest) => ({
       requestId: request.requestId,
       outcome: 'confirmed-not-applied' as const,
     }))
@@ -292,7 +292,7 @@ describe('NR-C0 capability and shared mutation lane', () => {
     })
 
     const unavailableStore = createStore()
-    const unavailableSet = jest.fn(async (request: SetNamedRangeRequest) => ({
+    const unavailableSet = vi.fn(async (request: SetNamedRangeRequest) => ({
       requestId: request.requestId,
       outcome: 'confirmed-not-applied' as const,
     }))
@@ -317,7 +317,7 @@ describe('NR-C0 capability and shared mutation lane', () => {
   test('C01/C04 synchronously reserves one lane for Manager and NameBox duplicate intents', async () => {
     const store = createStore()
     const transport = deferred<NamedRangeMutationResult>()
-    const setNamedRange = jest.fn((_request: SetNamedRangeRequest) => transport.promise)
+    const setNamedRange = vi.fn((_request: SetNamedRangeRequest) => transport.promise)
     const source = makePort({ setNamedRange })
     await prepareCapabilities(store, source)
     store.setter(setSelectionAtom, {
@@ -369,7 +369,7 @@ describe('NR-C0 capability and shared mutation lane', () => {
     const store = createStore()
     const mutation = deferred<NamedRangeMutationResult>()
     const registryRead = deferred<NamedRangeListResult>()
-    const setNamedRange = jest.fn((request: SetNamedRangeRequest) =>
+    const setNamedRange = vi.fn((request: SetNamedRangeRequest) =>
       setNamedRange.mock.calls.length === 1
         ? mutation.promise
         : Promise.resolve({
@@ -377,7 +377,7 @@ describe('NR-C0 capability and shared mutation lane', () => {
             outcome: 'confirmed-not-applied' as const,
           }),
     )
-    const listNamedRanges = jest.fn((_request: ListNamedRangesRequest) => registryRead.promise)
+    const listNamedRanges = vi.fn((_request: ListNamedRangesRequest) => registryRead.promise)
     const source = makePort({ setNamedRange, listNamedRanges })
     await prepareCapabilities(store, source)
 
@@ -432,12 +432,12 @@ describe('NR-C0 strict mutation settlement', () => {
     'C05 accepts an exact %s result for a set operation',
     async (outcome) => {
       const store = createStore()
-      const setNamedRange = jest.fn(async (request: SetNamedRangeRequest) => ({
+      const setNamedRange = vi.fn(async (request: SetNamedRangeRequest) => ({
         requestId: request.requestId,
         revision: 7,
         outcome,
       }))
-      const listNamedRanges = jest.fn(async (request: ListNamedRangesRequest) => ({
+      const listNamedRanges = vi.fn(async (request: ListNamedRangesRequest) => ({
         requestId: request.requestId,
         revision: 7,
         names: [makeRange('Accepted')],
@@ -473,11 +473,11 @@ describe('NR-C0 strict mutation settlement', () => {
 
   test('C05 omits revision from terminal snapshots when the exact result omits it', async () => {
     const store = createStore()
-    const setNamedRange = jest.fn(async (request: SetNamedRangeRequest) => ({
+    const setNamedRange = vi.fn(async (request: SetNamedRangeRequest) => ({
       requestId: request.requestId,
       outcome: 'w0-acknowledged' as const,
     }))
-    const listNamedRanges = jest.fn(async (request: ListNamedRangesRequest) => ({
+    const listNamedRanges = vi.fn(async (request: ListNamedRangesRequest) => ({
       requestId: request.requestId,
       names: [makeRange('NoRevision')],
     }))
@@ -544,7 +544,7 @@ describe('NR-C0 strict mutation settlement', () => {
     ],
   ])('C06 maps %s to an ordinary unconfirmed result', async (_label, response) => {
     const store = createStore()
-    const listNamedRanges = jest.fn(async (request: ListNamedRangesRequest) => ({
+    const listNamedRanges = vi.fn(async (request: ListNamedRangesRequest) => ({
       requestId: request.requestId,
       names: [],
     }))
@@ -625,10 +625,10 @@ describe('NR-C0 strict mutation settlement', () => {
 
   test('C07/C08 keeps unknown across UI/refresh and only the same ticket late ack unlocks it', async () => {
     const store = createStore()
-    const setNamedRange = jest.fn(async () =>
+    const setNamedRange = vi.fn(async () =>
       Promise.reject({ code: 'NAMED_RANGE_OUTCOME_UNKNOWN' }),
     )
-    const listNamedRanges = jest.fn(async (request: ListNamedRangesRequest) => ({
+    const listNamedRanges = vi.fn(async (request: ListNamedRangesRequest) => ({
       requestId: request.requestId,
       revision: `r${request.requestId}`,
       names: [makeRange('LastGood')],
@@ -699,7 +699,7 @@ describe('NR-C0 strict mutation settlement', () => {
 describe('NR-C0 Manager interaction ownership', () => {
   test('C05 keeps the current Manager draft when the write is confirmed not applied', async () => {
     const store = createStore()
-    const listNamedRanges = jest.fn(async (request: ListNamedRangesRequest) => ({
+    const listNamedRanges = vi.fn(async (request: ListNamedRangesRequest) => ({
       requestId: request.requestId,
       names: [],
     }))
@@ -728,8 +728,8 @@ describe('NR-C0 Manager interaction ownership', () => {
     const store = createStore()
     const mutation = deferred<NamedRangeMutationResult>()
     const registryRead = deferred<NamedRangeListResult>()
-    const setNamedRange = jest.fn((_request: SetNamedRangeRequest) => mutation.promise)
-    const listNamedRanges = jest.fn((_request: ListNamedRangesRequest) => registryRead.promise)
+    const setNamedRange = vi.fn((_request: SetNamedRangeRequest) => mutation.promise)
+    const listNamedRanges = vi.fn((_request: ListNamedRangesRequest) => registryRead.promise)
     const source = makePort({ setNamedRange, listNamedRanges })
     await prepareCapabilities(store, source)
     const sessionId = store.setter(openNameManagerAtom, { status: 'editing-new' })
@@ -772,7 +772,7 @@ describe('NR-C0 Manager interaction ownership', () => {
     'C09 keeps last-good projection and Manager draft when refresh ends as %s',
     async (failure) => {
       const store = createStore()
-      const listNamedRanges = jest.fn(
+      const listNamedRanges = vi.fn(
         (request: ListNamedRangesRequest): Promise<NamedRangeListResult> => {
           if (failure === 'reject') return Promise.reject(new Error('list failed'))
           if (failure === 'mismatched-request') {
@@ -797,7 +797,7 @@ describe('NR-C0 Manager interaction ownership', () => {
           )
         },
       )
-      const setNamedRange = jest.fn(async (request: SetNamedRangeRequest) => ({
+      const setNamedRange = vi.fn(async (request: SetNamedRangeRequest) => ({
         requestId: request.requestId,
         outcome: 'w0-acknowledged' as const,
         revision: 2,
@@ -836,8 +836,8 @@ describe('NR-C0 Manager interaction ownership', () => {
     const store = createStore()
     const mutation = deferred<NamedRangeMutationResult>()
     const registryRead = deferred<NamedRangeListResult>()
-    const setNamedRange = jest.fn((_request: SetNamedRangeRequest) => mutation.promise)
-    const listNamedRanges = jest.fn((_request: ListNamedRangesRequest) => registryRead.promise)
+    const setNamedRange = vi.fn((_request: SetNamedRangeRequest) => mutation.promise)
+    const listNamedRanges = vi.fn((_request: ListNamedRangesRequest) => registryRead.promise)
     const source = makePort({ setNamedRange, listNamedRanges })
     await prepareCapabilities(store, source)
     const sessionId = store.setter(openNameManagerAtom, { status: 'editing-new' })
@@ -874,8 +874,8 @@ describe('NR-C0 Manager interaction ownership', () => {
     const store = createStore()
     const mutation = deferred<NamedRangeMutationResult>()
     const registryRead = deferred<NamedRangeListResult>()
-    const deleteNamedRange = jest.fn((_request: DeleteNamedRangeRequest) => mutation.promise)
-    const listNamedRanges = jest.fn((_request: ListNamedRangesRequest) => registryRead.promise)
+    const deleteNamedRange = vi.fn((_request: DeleteNamedRangeRequest) => mutation.promise)
+    const listNamedRanges = vi.fn((_request: ListNamedRangesRequest) => registryRead.promise)
     const source = makePort({ deleteNamedRange, listNamedRanges })
     await prepareCapabilities(store, source)
     const entryA = makeRange('EntryA')
@@ -907,8 +907,8 @@ describe('NR-C0 Manager interaction ownership', () => {
     const store = createStore()
     const mutation = deferred<NamedRangeMutationResult>()
     const registryRead = deferred<NamedRangeListResult>()
-    const setNamedRange = jest.fn((_request: SetNamedRangeRequest) => mutation.promise)
-    const listNamedRanges = jest.fn((_request: ListNamedRangesRequest) => registryRead.promise)
+    const setNamedRange = vi.fn((_request: SetNamedRangeRequest) => mutation.promise)
+    const listNamedRanges = vi.fn((_request: ListNamedRangesRequest) => registryRead.promise)
     const source = makePort({ setNamedRange, listNamedRanges })
     await prepareCapabilities(store, source)
     const oldSessionId = store.setter(openNameManagerAtom, { status: 'editing-new' })
@@ -948,11 +948,11 @@ describe('NR-C0 Manager interaction ownership', () => {
 
   test('C13 explicit stale-session save and delete intents dispatch nothing', async () => {
     const store = createStore()
-    const setNamedRange = jest.fn(async (request: SetNamedRangeRequest) => ({
+    const setNamedRange = vi.fn(async (request: SetNamedRangeRequest) => ({
       requestId: request.requestId,
       outcome: 'confirmed-not-applied' as const,
     }))
-    const deleteNamedRange = jest.fn(async (request: DeleteNamedRangeRequest) => ({
+    const deleteNamedRange = vi.fn(async (request: DeleteNamedRangeRequest) => ({
       requestId: request.requestId,
       outcome: 'confirmed-not-applied' as const,
     }))
@@ -1001,14 +1001,14 @@ describe('NR-C0 Store isolation and registry ordering', () => {
     const storeB = createStore()
     const mutationA = deferred<NamedRangeMutationResult>()
     const mutationB = deferred<NamedRangeMutationResult>()
-    const setA = jest.fn((_request: SetNamedRangeRequest) => mutationA.promise)
-    const setB = jest.fn((_request: SetNamedRangeRequest) => mutationB.promise)
-    const listA = jest.fn(async (request: ListNamedRangesRequest) => ({
+    const setA = vi.fn((_request: SetNamedRangeRequest) => mutationA.promise)
+    const setB = vi.fn((_request: SetNamedRangeRequest) => mutationB.promise)
+    const listA = vi.fn(async (request: ListNamedRangesRequest) => ({
       requestId: request.requestId,
       revision: 'store-a',
       names: [makeRange('StoreA')],
     }))
-    const listB = jest.fn(async (request: ListNamedRangesRequest) => ({
+    const listB = vi.fn(async (request: ListNamedRangesRequest) => ({
       requestId: request.requestId,
       revision: 'store-b',
       names: [makeRange('StoreB')],
@@ -1069,7 +1069,7 @@ describe('NR-C0 Store isolation and registry ordering', () => {
     const store = createStore()
     const firstRead = deferred<NamedRangeListResult>()
     const secondRead = deferred<NamedRangeListResult>()
-    const listNamedRanges = jest.fn((_request: ListNamedRangesRequest) =>
+    const listNamedRanges = vi.fn((_request: ListNamedRangesRequest) =>
       listNamedRanges.mock.calls.length === 1 ? firstRead.promise : secondRead.promise,
     )
     const source = makePort({ listNamedRanges })
@@ -1116,7 +1116,7 @@ describe('NR-C0 Store isolation and registry ordering', () => {
     const publicNames = Array.from({ length: NAMED_RANGE_CACHE_MAX + 1 }, (_, index) =>
       makeRange(`PublicName${index}`),
     )
-    const listNamedRanges = jest.fn(async (request: ListNamedRangesRequest) => ({
+    const listNamedRanges = vi.fn(async (request: ListNamedRangesRequest) => ({
       requestId: request.requestId,
       revision: 'public-501',
       names: publicNames,
@@ -1176,7 +1176,7 @@ describe('NR-C0 Store isolation and registry ordering', () => {
     },
   ])('publishes $label with exact own-property semantics', async (witness) => {
     const store = createStore()
-    const listNamedRanges = jest.fn(async (request: ListNamedRangesRequest) =>
+    const listNamedRanges = vi.fn(async (request: ListNamedRangesRequest) =>
       witness.buildResult(request),
     )
     const source = makePort({ listNamedRanges })
@@ -1201,7 +1201,7 @@ describe('NR-C0 Store isolation and registry ordering', () => {
       const lastGoodNames = [makeRange('LastGood')]
       store.setter(setNameRegistryAtom, { revision: 'last-good', names: lastGoodNames })
       const lastGood = store.getter(nameRegistryCacheAtom)
-      const listNamedRanges = jest.fn(async (request: ListNamedRangesRequest) => ({
+      const listNamedRanges = vi.fn(async (request: ListNamedRangesRequest) => ({
         requestId: request.requestId,
         revision,
         names: [makeRange('Unconfirmed')],
@@ -1226,7 +1226,7 @@ describe('NR-C0 Store isolation and registry ordering', () => {
 describe('NR-C0 bounded operation ledger', () => {
   test('C12 dispatches item 33 by evicting only the oldest terminal attempt', async () => {
     const store = createStore()
-    const setNamedRange = jest.fn(async (request: SetNamedRangeRequest) => ({
+    const setNamedRange = vi.fn(async (request: SetNamedRangeRequest) => ({
       requestId: request.requestId,
       outcome: 'confirmed-not-applied' as const,
     }))
@@ -1256,7 +1256,7 @@ describe('NR-C0 bounded operation ledger', () => {
   test('C12 never evicts an unresolved attempt and dispatches no later intent', async () => {
     const store = createStore()
     let dispatchCount = 0
-    const setNamedRange = jest.fn(async (request: SetNamedRangeRequest) => {
+    const setNamedRange = vi.fn(async (request: SetNamedRangeRequest) => {
       dispatchCount += 1
       if (dispatchCount === NAMED_RANGE_MUTATION_LEDGER_MAX) {
         throw new Error('outcome remains unknown')
@@ -1305,8 +1305,8 @@ describe('NR-C0 workbook generation guards', () => {
     const store = createStore()
     const oldRead = deferred<NamedRangeListResult>()
     const currentRead = deferred<NamedRangeListResult>()
-    const oldList = jest.fn((_request: ListNamedRangesRequest) => oldRead.promise)
-    const currentList = jest.fn((_request: ListNamedRangesRequest) => currentRead.promise)
+    const oldList = vi.fn((_request: ListNamedRangesRequest) => oldRead.promise)
+    const currentList = vi.fn((_request: ListNamedRangesRequest) => currentRead.promise)
     const oldSource = makePort({ listNamedRanges: oldList })
     const currentSource = makePort({ listNamedRanges: currentList })
     await prepareCapabilities(store, oldSource)
@@ -1345,7 +1345,7 @@ describe('NR-C0 workbook generation guards', () => {
 
   test('a context switch before the microtask transport confirms not-applied with zero dispatch', async () => {
     const store = createStore()
-    const oldSet = jest.fn(async (request: SetNamedRangeRequest) => ({
+    const oldSet = vi.fn(async (request: SetNamedRangeRequest) => ({
       requestId: request.requestId,
       outcome: 'w0-acknowledged' as const,
     }))
@@ -1379,8 +1379,8 @@ describe('NR-C0 workbook generation guards', () => {
   test('an old dispatched ack settles globally without refreshing or clearing the new workbook UI', async () => {
     const store = createStore()
     const oldMutation = deferred<NamedRangeMutationResult>()
-    const oldSet = jest.fn((_request: SetNamedRangeRequest) => oldMutation.promise)
-    const oldList = jest.fn(async (request: ListNamedRangesRequest) => ({
+    const oldSet = vi.fn((_request: SetNamedRangeRequest) => oldMutation.promise)
+    const oldList = vi.fn(async (request: ListNamedRangesRequest) => ({
       requestId: request.requestId,
       names: [makeRange('OldWorkbook')],
     }))
@@ -1437,7 +1437,7 @@ describe('NR-C0 workbook generation guards', () => {
 describe('NR-C0 Excel Manager draft normalization', () => {
   test('uses the active sheet for a workbook-scoped range without an explicit sheet', async () => {
     const store = createStore()
-    const setNamedRange = jest.fn(async (request: SetNamedRangeRequest) => ({
+    const setNamedRange = vi.fn(async (request: SetNamedRangeRequest) => ({
       requestId: request.requestId,
       outcome: 'confirmed-not-applied' as const,
     }))
@@ -1463,7 +1463,7 @@ describe('NR-C0 Excel Manager draft normalization', () => {
 
   test('uses an explicit Sheet!A1 reference instead of the active sheet fallback', async () => {
     const store = createStore()
-    const setNamedRange = jest.fn(async (request: SetNamedRangeRequest) => ({
+    const setNamedRange = vi.fn(async (request: SetNamedRangeRequest) => ({
       requestId: request.requestId,
       outcome: 'confirmed-not-applied' as const,
     }))
@@ -1487,7 +1487,7 @@ describe('NR-C0 Excel Manager draft normalization', () => {
 
   test('normalizes sheet scope plus lambda parameters and formula body', async () => {
     const store = createStore()
-    const setNamedRange = jest.fn(async (request: SetNamedRangeRequest) => ({
+    const setNamedRange = vi.fn(async (request: SetNamedRangeRequest) => ({
       requestId: request.requestId,
       outcome: 'confirmed-not-applied' as const,
     }))
@@ -1524,7 +1524,7 @@ describe('NR-C0 static controller boundaries', () => {
   ]
 
   test('C15 keeps NameBox and Manager product state in @einfach/core without global controllers', () => {
-    const sources = sourceFiles.map((path) => readFileSync(join(process.cwd(), path), 'utf8'))
+    const sources = sourceFiles.map((path) => readFileSync(repositoryPath(path), 'utf8'))
     const combined = sources.join('\n')
     const bareImports = sources.flatMap((source) =>
       [...source.matchAll(/from ['"]([^'"]+)['"]/g)]
@@ -1542,11 +1542,11 @@ describe('NR-C0 static controller boundaries', () => {
 
   test('C15 keeps transport writers synchronous and returns no transport Promise', () => {
     const namedRangesSource = readFileSync(
-      join(process.cwd(), 'excel/spreadsheet-ui-core/src/named-ranges/index.ts'),
+      repositoryPath('excel/spreadsheet-ui-core/src/named-ranges/index.ts'),
       'utf8',
     )
     const nameBoxSource = readFileSync(
-      join(process.cwd(), 'excel/spreadsheet-ui-core/src/name-box/index.ts'),
+      repositoryPath('excel/spreadsheet-ui-core/src/name-box/index.ts'),
       'utf8',
     )
     const writers = [

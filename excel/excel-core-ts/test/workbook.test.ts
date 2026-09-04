@@ -17,7 +17,7 @@
  * want to bypass it (test isolation), we inject a mock via `parser`.
  */
 
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import { createWorkbook } from '../src/workbook'
 import { keyFor } from '../src/sheet'

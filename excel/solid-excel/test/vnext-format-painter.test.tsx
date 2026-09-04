@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import type {
@@ -289,7 +289,7 @@ describe('SpreadsheetFormatPainter thin-host contract', () => {
 
   it('fails closed before mutation when refresh capability is absent', async () => {
     const store = createStore()
-    const setFormatRange = jest.fn(async (request: SetFormatRangeRequest) => ({
+    const setFormatRange = vi.fn(async (request: SetFormatRangeRequest) => ({
       sheetId: request.sheetId,
       requestId: request.requestId,
       affectedRange: request.range,
@@ -405,7 +405,7 @@ describe('SpreadsheetToolbar format painter button', () => {
   })
 
   it('single click arms the painter with the active cell format after the dblclick window', () => {
-    jest.useFakeTimers()
+    vi.useFakeTimers()
     const store = createStore()
     const { backend } = createRecordingBackend()
     primeStoreWithProjection(store)
@@ -424,7 +424,7 @@ describe('SpreadsheetToolbar format painter button', () => {
     fireEvent.click(btn)
     expect(store.getter(formatPainterStateAtom)).toBe('idle')
 
-    jest.advanceTimersByTime(250)
+    vi.advanceTimersByTime(250)
 
     expect(store.getter(formatPainterStateAtom)).toBe('armed')
     const clip = store.getter(formatPainterClipboardAtom)
@@ -434,7 +434,7 @@ describe('SpreadsheetToolbar format painter button', () => {
     expect(clip!.format.borders?.top?.style).toBe('thin')
     expect(clip!.format.bgColor).toBe('#ffeecc')
 
-    jest.useRealTimers()
+    vi.useRealTimers()
   })
 
   it('double click puts the painter in sticky mode', () => {

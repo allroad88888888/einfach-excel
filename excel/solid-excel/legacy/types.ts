@@ -5,7 +5,7 @@ import type { SpreadsheetNumberFormat } from '@einfach/spreadsheet-ui-core'
  *
  * Two implementations are expected:
  *   - createWasmSheet(): real Rust + WASM backend (production)
- *   - createJSSheet():    pure JS mock used in jest tests / dev fallback
+ *   - createJSSheet():    pure JS mock used in Vitest tests / dev fallback
  */
 export interface ISheet {
   set_number(addr: string, value: number): void

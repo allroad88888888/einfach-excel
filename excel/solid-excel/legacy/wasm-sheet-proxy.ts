@@ -60,7 +60,7 @@ export interface WorkerLike {
 export interface WorkerSheetOptions {
   /**
    * Worker factory. The proxy itself is framework-agnostic and never
-   * references `import.meta.url` (which would otherwise break Jest's
+   * references `import.meta.url` (which would otherwise break a CommonJS runner's
    * CommonJS transform). Demos that want the real worker import the
    * companion helper `defaultWorkerFactory` from
    * `./wasm-sheet-worker-factory.ts` and pass it in here. Tests inject

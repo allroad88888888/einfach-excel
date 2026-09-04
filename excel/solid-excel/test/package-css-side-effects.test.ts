@@ -1,12 +1,12 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  */
 
 import { execFile } from 'node:child_process'
 import { mkdtemp, readdir, rm, stat, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { promisify } from 'node:util'
-import { describe, expect, it } from '@jest/globals'
+import { describe, expect, it } from 'vitest'
 
 const PACKAGE_ROOT = join(__dirname, '..')
 const runCommand = promisify(execFile)

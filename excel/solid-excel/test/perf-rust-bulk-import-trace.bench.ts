@@ -37,13 +37,13 @@
  * (ratio of phase_ms between 100k and 1M, with 10× = linear).
  *
  * Invocation:
- *   EINFACH_PERF=1 npx jest perf-rust-bulk-import-trace --no-coverage \
- *     --testTimeout=1800000
+ *   pnpm --filter @einfach/solid-excel test:bench -- test/perf-rust-bulk-import-trace.bench.ts \
+ *     --testTimeout 1800000
  *
  * Gated on EINFACH_PERF=1 — without it the spec is skipped so the
- * default `npx jest` run doesn't pay the cost.
+ * default package test run doesn't pay the cost.
  */
-import { describe, it, beforeAll, afterAll } from '@jest/globals'
+import { describe, it, beforeAll, afterAll } from 'vitest'
 import { performance } from 'node:perf_hooks'
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { TextDecoder, TextEncoder } from 'node:util'
@@ -500,7 +500,7 @@ describePerf('Rust bulk-import phase-decomp bench (EINFACH_PERF=1)', () => {
           try {
             wb.free()
           } catch (err) {
-            // Swallow — see comment above. Process exits soon (jest
+            // Swallow — see comment above. Process exits soon (Vitest
             // spawns one worker per file), so the leak is bounded.
             // eslint-disable-next-line no-console
             console.warn(

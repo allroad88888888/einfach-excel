@@ -24,7 +24,7 @@ import {
   FUNCTIONS,
 } from '../src/eval/functions/logical'
 import type { EvalContext, Value } from '../src/types'
-import { describe, expect, it } from '@jest/globals'
+import { describe, expect, it } from 'vitest'
 
 // -----------------------------------------------------------------------------
 // Test scaffolding

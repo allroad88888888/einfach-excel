@@ -87,7 +87,7 @@ projects.
 它只跑 `e2e/dual-backend-manifest.ts` 登记的双后端 spec（真正吃 `?backend=`
 的 56 个文件）加两个 TS 影子 spec；`wasm` project 跑其余全部。清单由
 `test/e2e-dual-backend-manifest.test.ts` 按源码标记防腐：新增吃参数的 spec
-忘记登记会在 jest 里当场红。收缩前后规模：1602 → 957 个用例/全量。
+忘记登记会在 Vitest 里当场红。收缩前后规模：1602 → 957 个用例/全量。
 
 ## Running
 

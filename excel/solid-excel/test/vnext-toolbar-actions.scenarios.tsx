@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { expect, it, jest } from '@jest/globals'
+import { expect, it, vi } from 'vitest'
 import * as toolbar from './vnext-toolbar-test-support'
 
 export function registerActionsScenarios(): void {
@@ -29,7 +29,7 @@ export function registerActionsScenarios(): void {
   })
 
   it('single click on Format Painter arms the painter after the dblclick window', async () => {
-    jest.useFakeTimers()
+    vi.useFakeTimers()
     const store = toolbar.createStore()
     const { backend } = toolbar.createRecordingBackend()
 
@@ -51,8 +51,8 @@ export function registerActionsScenarios(): void {
 
     expect(store.getter(toolbar.formatPainterStateAtom)).toBe('idle')
     toolbar.fireEvent.click(toolbar.getButtons(container).painter)
-    jest.advanceTimersByTime(250)
+    vi.advanceTimersByTime(250)
     expect(store.getter(toolbar.formatPainterStateAtom)).toBe('armed')
-    jest.useRealTimers()
+    vi.useRealTimers()
   })
 }

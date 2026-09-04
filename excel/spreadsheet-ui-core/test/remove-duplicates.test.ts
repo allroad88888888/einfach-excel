@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, jest, test } from '@jest/globals'
+import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import type { Store } from '@einfach/core'
 import type {
@@ -694,7 +694,7 @@ describe('remove-duplicates Core lifecycle', () => {
     async (field) => {
       const store = createStore()
       seedSelection(store)
-      const transport = jest.fn(async (request: RangeProjectionRequest) =>
+      const transport = vi.fn(async (request: RangeProjectionRequest) =>
         rangeAcknowledgement(request),
       )
       const source = new Proxy<RemoveDuplicatesControllerPort>(
@@ -732,10 +732,10 @@ describe('remove-duplicates Core lifecycle', () => {
     async () => {
     const store = createStore()
     seedSelection(store)
-    const innerTransport = jest.fn(async (request: RangeProjectionRequest) =>
+    const innerTransport = vi.fn(async (request: RangeProjectionRequest) =>
       rangeAcknowledgement(request),
     )
-    const outerTransport = jest.fn(async (request: RangeProjectionRequest) =>
+    const outerTransport = vi.fn(async (request: RangeProjectionRequest) =>
       rangeAcknowledgement(request),
     )
     const innerSource: RemoveDuplicatesControllerPort = {
@@ -775,7 +775,7 @@ describe('remove-duplicates Core lifecycle', () => {
   })
 
   test('read timeout clears its ticket and ignores a late exact acknowledgement', async () => {
-    jest.useFakeTimers()
+    vi.useFakeTimers()
     try {
       const store = createStore()
       seedSelection(store)
@@ -793,7 +793,7 @@ describe('remove-duplicates Core lifecycle', () => {
       await Promise.resolve()
       expect(request).toBeDefined()
 
-      jest.advanceTimersByTime(25)
+      vi.advanceTimersByTime(25)
       await expect(opening).resolves.toBe('failed')
       const lifecycleAfterTimeout = store.getter(removeDuplicatesLifecycleAtom)
       const errorAfterTimeout = store.getter(removeDuplicatesErrorAtom)
@@ -808,7 +808,7 @@ describe('remove-duplicates Core lifecycle', () => {
       expect(store.getter(removeDuplicatesErrorAtom)).toBe(errorAfterTimeout)
       expect(store.getter(removeDuplicatesSessionAtom)).toBeNull()
     } finally {
-      jest.useRealTimers()
+      vi.useRealTimers()
     }
   })
 
@@ -986,7 +986,7 @@ describe('remove-duplicates Core lifecycle', () => {
     async () => {
     const store = createStore()
     seedSelection(store)
-    const replacementTransport = jest.fn(async (request: RangeProjectionRequest) =>
+    const replacementTransport = vi.fn(async (request: RangeProjectionRequest) =>
       rangeAcknowledgement(request, [], 'replacement-revision'),
     )
     let replacementOpening: Promise<unknown> | undefined
@@ -1038,7 +1038,7 @@ describe('remove-duplicates Core lifecycle', () => {
       if (mismatch === 'workspace-sheet') {
         store.setter(setWorkspaceActiveSheetAtom, { sheetId: 'sheet-2' })
       }
-      const readRangeProjection = jest.fn(async (request: RangeProjectionRequest) =>
+      const readRangeProjection = vi.fn(async (request: RangeProjectionRequest) =>
         rangeAcknowledgement(request),
       )
       const source = { readRangeProjection }
@@ -1395,7 +1395,7 @@ describe('remove-duplicates Core lifecycle', () => {
 
   test('workspace A→B→A after hydration revokes the session before confirm transport', async () => {
     const store = createStore()
-    const removeRowsExact = jest.fn(async (request: RemoveRowsExactRequest) =>
+    const removeRowsExact = vi.fn(async (request: RemoveRowsExactRequest) =>
       mutationAcknowledgement(request),
     )
     const source: RemoveDuplicatesControllerPort = {
@@ -1539,7 +1539,7 @@ describe('remove-duplicates Core lifecycle', () => {
       }
       const sessionId = await hydrate(store, hydrationSource)
       selectRegionColumnOnly(store)
-      const transport = jest.fn(async (request: RemoveRowsExactRequest) =>
+      const transport = vi.fn(async (request: RemoveRowsExactRequest) =>
         mutationAcknowledgement(request),
       )
       const source = new Proxy<RemoveDuplicatesControllerPort>(
@@ -1591,14 +1591,14 @@ describe('remove-duplicates Core lifecycle', () => {
     }
     const sessionId = await hydrate(store, hydrationSource)
     selectRegionColumnOnly(store)
-    const innerTransport = jest.fn(async (request: RemoveRowsExactRequest) =>
+    const innerTransport = vi.fn(async (request: RemoveRowsExactRequest) =>
       mutationAcknowledgement(request),
     )
-    const outerTransport = jest.fn(async (request: RemoveRowsExactRequest) =>
+    const outerTransport = vi.fn(async (request: RemoveRowsExactRequest) =>
       mutationAcknowledgement(request),
     )
-    const innerRefresh = jest.fn(async () => undefined)
-    const outerRefresh = jest.fn(async () => undefined)
+    const innerRefresh = vi.fn(async () => undefined)
+    const outerRefresh = vi.fn(async () => undefined)
     const innerSource: RemoveDuplicatesControllerPort = { removeRowsExact: innerTransport }
     const outerSource: RemoveDuplicatesControllerPort = { removeRowsExact: outerTransport }
     let innerConfirmation: Promise<unknown> | undefined
@@ -1636,7 +1636,7 @@ describe('remove-duplicates Core lifecycle', () => {
 
   test('a foreign history producer blocks before ticket publication or transport', async () => {
     const store = createStore()
-    const removeRowsExact = jest.fn(async (request: RemoveRowsExactRequest) =>
+    const removeRowsExact = vi.fn(async (request: RemoveRowsExactRequest) =>
       mutationAcknowledgement(request),
     )
     const source: RemoveDuplicatesControllerPort = {
@@ -1670,7 +1670,7 @@ describe('remove-duplicates Core lifecycle', () => {
     'authority drift after ticket publication releases before transport and leaves no ticket',
     async () => {
     const store = createStore()
-    const removeRowsExact = jest.fn(async (request: RemoveRowsExactRequest) =>
+    const removeRowsExact = vi.fn(async (request: RemoveRowsExactRequest) =>
       mutationAcknowledgement(request),
     )
     const source: RemoveDuplicatesControllerPort = {
@@ -1706,7 +1706,7 @@ describe('remove-duplicates Core lifecycle', () => {
 
   test('pre-transport authority drift retains the ticket when exact release fails', async () => {
     const store = createStore()
-    const removeRowsExact = jest.fn(async (request: RemoveRowsExactRequest) =>
+    const removeRowsExact = vi.fn(async (request: RemoveRowsExactRequest) =>
       mutationAcknowledgement(request),
     )
     const source: RemoveDuplicatesControllerPort = {
@@ -1757,7 +1757,7 @@ describe('remove-duplicates Core lifecycle', () => {
     'a $protection target is gateway-blocked with zero producer-side effects',
     async ({ unlockedRanges }) => {
       const store = createStore()
-      const removeRowsExact = jest.fn(async (request: RemoveRowsExactRequest) =>
+      const removeRowsExact = vi.fn(async (request: RemoveRowsExactRequest) =>
         mutationAcknowledgement(request),
       )
       const source: RemoveDuplicatesControllerPort = {
@@ -1826,10 +1826,10 @@ describe('remove-duplicates Core lifecycle', () => {
     'a $protection sheet passes the remove-rows gateway and commits once',
     async ({ mode, unlockedRanges }) => {
       const store = createStore()
-      const removeRowsExact = jest.fn(async (request: RemoveRowsExactRequest) =>
+      const removeRowsExact = vi.fn(async (request: RemoveRowsExactRequest) =>
         mutationAcknowledgement(request),
       )
-      const refreshProjection = jest.fn(async () => undefined)
+      const refreshProjection = vi.fn(async () => undefined)
       const source: RemoveDuplicatesControllerPort = {
         async readRangeProjection(request) {
           return rangeAcknowledgement(request)
@@ -2224,7 +2224,7 @@ describe('remove-duplicates Core lifecycle', () => {
   test(
     'mutation timeout retains its immutable ticket and ignores a late exact acknowledgement',
     async () => {
-    jest.useFakeTimers()
+    vi.useFakeTimers()
     try {
       const store = createStore()
       const mutation = deferred<RemoveRowsExactResult>()
@@ -2256,7 +2256,7 @@ describe('remove-duplicates Core lifecycle', () => {
       await Promise.resolve()
       expect(mutationCalls).toBe(1)
       expect(request).toBeDefined()
-      jest.advanceTimersByTime(DEFAULT_REMOVE_DUPLICATES_TIMEOUT_MS)
+      vi.advanceTimersByTime(DEFAULT_REMOVE_DUPLICATES_TIMEOUT_MS)
       await expect(outcome).resolves.toBe('outcome-unknown')
       const lifecycleAfterTimeout = store.getter(removeDuplicatesLifecycleAtom)
       const errorAfterTimeout = store.getter(removeDuplicatesErrorAtom)
@@ -2283,7 +2283,7 @@ describe('remove-duplicates Core lifecycle', () => {
       )
       expect(mutationCalls).toBe(1)
     } finally {
-      jest.useRealTimers()
+      vi.useRealTimers()
     }
   })
 

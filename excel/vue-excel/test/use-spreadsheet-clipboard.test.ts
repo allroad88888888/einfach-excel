@@ -5,7 +5,7 @@ import {
   type ClipboardTransferInput,
   type SpreadsheetBackend,
 } from '@einfach/spreadsheet-ui-core'
-import { describe, expect, it } from '@jest/globals'
+import { describe, expect, it } from 'vitest'
 import { createApp, defineComponent, h, nextTick, ref } from 'vue'
 import { SpreadsheetUiProvider } from '../src/spreadsheet-ui-provider'
 import {

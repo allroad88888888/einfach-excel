@@ -3,7 +3,7 @@
  * Each function gets ≥ 4 fixtures: happy path, error propagation,
  * an edge case, and a shape verification.
  */
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import { BLANK, type EvalContext, type Value } from '../src'
 import { FUNCTIONS } from '../src/eval/functions/array'

@@ -24,7 +24,7 @@
  * 放在 solid-excel 而不是任一引擎包里，判据只有一条：这是**两个后端可互换**才产生的
  * 约束，而只有这一层同时看得见两个后端。
  */
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import { BUILTIN_FUNCTIONS } from '@einfach/excel-core-ts'
 import { ENGINE_BUILTIN_FORMULA_NAMES } from '@einfach/spreadsheet-ui-core'

@@ -24,7 +24,7 @@
  * 个溢出格，会把它撑成第二个 scale suite（文件头明令禁止）。对称就靠这对文件。
  */
 
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import { FUNCTIONS as TEXT_FUNCTIONS } from '../src/eval/functions/text'
 import { FUNCTIONS as ARRAY_FUNCTIONS } from '../src/eval/functions/array'

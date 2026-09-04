@@ -49,7 +49,7 @@
  *         scoped entirely outside the viewport cost zero per-cell work.
  */
 
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 import { createVisibleProjectionRequest } from '@einfach/spreadsheet-ui-core'
 
 import {

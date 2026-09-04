@@ -8,7 +8,7 @@ import {
   type HistoryUndoRequest,
   type SpreadsheetBackend,
 } from '@einfach/spreadsheet-ui-core'
-import { describe, expect, it, jest } from '@jest/globals'
+import { describe, expect, it, vi } from 'vitest'
 import { createApp, defineComponent, h, nextTick, ref } from 'vue'
 import { SpreadsheetUiProvider } from '../src/spreadsheet-ui-provider'
 import { useSpreadsheetHistory, type SpreadsheetHistory } from '../src/use-spreadsheet-history'
@@ -23,14 +23,14 @@ function entry(transactionId: string, revision: number): HistoryEntry {
 }
 
 function createBackend() {
-  const undoTransaction = jest.fn(
+  const undoTransaction = vi.fn(
     async (request: HistoryUndoRequest): Promise<HistoryMutationResult> => ({
       transactionId: request.transactionId,
       requestId: request.requestId,
       revision: 3,
     }),
   )
-  const redoTransaction = jest.fn(
+  const redoTransaction = vi.fn(
     async (request: HistoryRedoRequest): Promise<HistoryMutationResult> => ({
       transactionId: request.transactionId,
       requestId: request.requestId,
@@ -133,7 +133,7 @@ describe('useSpreadsheetHistory', () => {
     const store = createStore()
     const { backend, redoTransaction, undoTransaction } = createBackend()
     const mounted = mountHistory(store, backend)
-    const refreshProjection = jest.fn(async () => undefined)
+    const refreshProjection = vi.fn(async () => undefined)
     store.setter(pushHistoryAtom, entry('first-change', 1))
     store.setter(pushHistoryAtom, entry('second-change', 2))
     await nextTick()
@@ -162,10 +162,10 @@ describe('useSpreadsheetHistory', () => {
     const store = createStore()
     const { backend } = createBackend()
     const mounted = mountHistory(store, backend)
-    const failedRefresh = jest.fn(async () => {
+    const failedRefresh = vi.fn(async () => {
       throw new Error('refresh failed')
     })
-    const retryRefresh = jest.fn(async () => undefined)
+    const retryRefresh = vi.fn(async () => undefined)
     store.setter(pushHistoryAtom, entry('change', 1))
 
     await expect(mounted.history.undo({ refreshProjection: failedRefresh })).resolves.toBe(

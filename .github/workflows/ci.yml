@@ -51,7 +51,7 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
       # node:test 契约测试(脚本生成器 + 站点 demo 契约),纯 node 内置模块,
-      # 秒级,不依赖构建产物 —— 此前无人执行(jest 的 testMatch 不收 .mjs)。
+      # 秒级、不依赖构建产物，因此作为 Vitest workspace 之外的契约测试直接执行。
       - run: npm run test:scripts
       - run: npm run build
       - run: npm test

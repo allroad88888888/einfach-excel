@@ -6,7 +6,7 @@
  * serial 60 and serials >= 61 align with the post-phantom calendar.
  */
 
-import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globals'
+import { afterEach, beforeEach, describe, expect, vi, test } from 'vitest'
 
 import { FUNCTIONS } from '../src/eval/functions/date'
 import type { EvalContext, FunctionImpl, Value } from '../src/types'
@@ -263,25 +263,25 @@ describe('WEEKDAY', () => {
 
 describe('TODAY', () => {
   beforeEach(() => {
-    jest.useFakeTimers()
+    vi.useFakeTimers()
   })
   afterEach(() => {
-    jest.useRealTimers()
+    vi.useRealTimers()
   })
 
   test('TODAY() returns serial for the current UTC date (no time)', () => {
     // Pin to 2024-01-01 12:34:56 UTC. Serial of the date == 45292.
-    jest.setSystemTime(new Date(Date.UTC(2024, 0, 1, 12, 34, 56)))
+    vi.setSystemTime(new Date(Date.UTC(2024, 0, 1, 12, 34, 56)))
     expect(call(FUNCTIONS.TODAY, [])).toEqual(num(45292))
   })
 
   test('TODAY() truncates time-of-day to midnight UTC', () => {
-    jest.setSystemTime(new Date(Date.UTC(2024, 0, 1, 23, 59, 59)))
+    vi.setSystemTime(new Date(Date.UTC(2024, 0, 1, 23, 59, 59)))
     expect(call(FUNCTIONS.TODAY, [])).toEqual(num(45292))
   })
 
   test('TODAY() shifts on the next UTC day', () => {
-    jest.setSystemTime(new Date(Date.UTC(2024, 0, 2, 0, 0, 1)))
+    vi.setSystemTime(new Date(Date.UTC(2024, 0, 2, 0, 0, 1)))
     expect(call(FUNCTIONS.TODAY, [])).toEqual(num(45293))
   })
 
@@ -292,26 +292,26 @@ describe('TODAY', () => {
 
 describe('NOW', () => {
   beforeEach(() => {
-    jest.useFakeTimers()
+    vi.useFakeTimers()
   })
   afterEach(() => {
-    jest.useRealTimers()
+    vi.useRealTimers()
   })
 
   test('NOW() returns serial + 0.5 at noon UTC', () => {
-    jest.setSystemTime(new Date(Date.UTC(2024, 0, 1, 12, 0, 0)))
+    vi.setSystemTime(new Date(Date.UTC(2024, 0, 1, 12, 0, 0)))
     const out = call(FUNCTIONS.NOW, []) as Value & { kind: 'number' }
     expect(out.kind).toBe('number')
     expect(out.value).toBeCloseTo(45292.5, 10)
   })
 
   test('NOW() at midnight UTC equals TODAY()', () => {
-    jest.setSystemTime(new Date(Date.UTC(2024, 0, 1, 0, 0, 0)))
+    vi.setSystemTime(new Date(Date.UTC(2024, 0, 1, 0, 0, 0)))
     expect(call(FUNCTIONS.NOW, [])).toEqual(num(45292))
   })
 
   test('NOW() fractional component is in [0, 1)', () => {
-    jest.setSystemTime(new Date(Date.UTC(2024, 0, 1, 18, 0, 0)))
+    vi.setSystemTime(new Date(Date.UTC(2024, 0, 1, 18, 0, 0)))
     const out = call(FUNCTIONS.NOW, []) as Value & { kind: 'number' }
     const whole = Math.floor(out.value)
     const frac = out.value - whole

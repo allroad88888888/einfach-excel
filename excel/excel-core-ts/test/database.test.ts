@@ -1,4 +1,4 @@
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import { BUILTIN_FUNCTIONS, evaluate, getBuiltinFunction, parseFormula } from '../src'
 import { FUNCTIONS } from '../src/eval/functions/database'

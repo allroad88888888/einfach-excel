@@ -2,7 +2,7 @@
  * Phase 8 — info / logical / lookup function additions tests.
  */
 
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import { FUNCTIONS as INFO_FUNCTIONS } from '../src/eval/functions/info'
 import { FUNCTIONS as LOGICAL_FUNCTIONS } from '../src/eval/functions/logical'

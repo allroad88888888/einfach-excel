@@ -1,5 +1,5 @@
-/* eslint-disable import/no-extraneous-dependencies -- root Jest supplies these test globals. */
-import { describe, expect, it } from '@jest/globals'
+/* eslint-disable import/no-extraneous-dependencies -- package Vitest supplies these globals. */
+import { describe, expect, it } from 'vitest'
 import { createStore } from '@einfach/core'
 import type {
   RangeProjectionRequest,

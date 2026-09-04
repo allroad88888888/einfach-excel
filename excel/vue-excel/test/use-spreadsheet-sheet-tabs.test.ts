@@ -7,7 +7,7 @@ import {
   type SpreadsheetBackend,
   type SpreadsheetSheetMetadata,
 } from '@einfach/spreadsheet-ui-core'
-import { describe, expect, it, jest } from '@jest/globals'
+import { describe, expect, it, vi } from 'vitest'
 import { createApp, defineComponent, h, nextTick, ref } from 'vue'
 import { SpreadsheetUiProvider } from '../src/spreadsheet-ui-provider'
 import {
@@ -33,8 +33,8 @@ function createBackend(
   listSheets?: () => Promise<SheetListResult>,
 ) {
   let currentSheets = initialSheets
-  const listed = jest.fn(listSheets ?? (async () => ({ sheets: currentSheets })))
-  const addSheet = jest.fn(async (request: AddSheetRequest) => {
+  const listed = vi.fn(listSheets ?? (async () => ({ sheets: currentSheets })))
+  const addSheet = vi.fn(async (request: AddSheetRequest) => {
     const createdSheet = {
       id: `sheet-${currentSheets.length + 1}`,
       name: request.name ?? `Sheet${currentSheets.length + 1}`,

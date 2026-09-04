@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import type {
@@ -48,10 +48,10 @@ function installClipboard(initialText = '') {
   let text = initialText
   const previous = Object.getOwnPropertyDescriptor(navigator, 'clipboard')
   const clipboard = {
-    writeText: jest.fn(async (nextText: string) => {
+    writeText: vi.fn(async (nextText: string) => {
       text = nextText
     }),
-    readText: jest.fn(async () => text),
+    readText: vi.fn(async () => text),
     getText: () => text,
   }
 

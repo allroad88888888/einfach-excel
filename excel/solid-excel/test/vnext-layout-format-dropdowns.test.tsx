@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import { BordersDropdown } from '../src/toolbar/BordersDropdown'
 import { HAlignDropdown } from '../src/toolbar/HAlignDropdown'
@@ -18,7 +18,7 @@ function getButton(testId: string): HTMLButtonElement {
 
 describe('layout-format toolbar dropdown interactions', () => {
   it('focuses and exposes the current horizontal alignment', async () => {
-    const onSelect = jest.fn()
+    const onSelect = vi.fn()
     let anchor!: HTMLButtonElement
     render(() => (
       <>
@@ -55,7 +55,7 @@ describe('layout-format toolbar dropdown interactions', () => {
   })
 
   it('navigates vertical alignment and restores focus on Escape', async () => {
-    const onClose = jest.fn()
+    const onClose = vi.fn()
     let anchor!: HTMLButtonElement
     render(() => (
       <>
@@ -87,7 +87,7 @@ describe('layout-format toolbar dropdown interactions', () => {
   })
 
   it('skips a disabled inner-border command during keyboard navigation', async () => {
-    const onSelect = jest.fn()
+    const onSelect = vi.fn()
     let anchor!: HTMLButtonElement
     render(() => (
       <>
@@ -121,7 +121,7 @@ describe('layout-format toolbar dropdown interactions', () => {
   })
 
   it('focuses the only available merge recovery command', async () => {
-    const onSelect = jest.fn()
+    const onSelect = vi.fn()
     let anchor!: HTMLButtonElement
     render(() => (
       <>
@@ -151,8 +151,8 @@ describe('layout-format toolbar dropdown interactions', () => {
   })
 
   it('gives rotation a roving menu focus lifecycle', async () => {
-    const onSelect = jest.fn()
-    const onClose = jest.fn()
+    const onSelect = vi.fn()
+    const onClose = vi.fn()
     let anchor!: HTMLButtonElement
     render(() => (
       <>

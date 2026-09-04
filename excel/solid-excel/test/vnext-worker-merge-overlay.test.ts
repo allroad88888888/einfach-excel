@@ -23,7 +23,7 @@
  *     pre-shift merge set from the record's side payload.
  */
 
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 import { createStore } from '@einfach/core'
 import {
   historyStackAtom,

@@ -1,5 +1,5 @@
 import { createStore } from '@einfach/core'
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 import {
   activeSpillRegionAtom,
   captureSpillRegionCapabilityAtom,
@@ -149,7 +149,7 @@ describe('spill core', () => {
     const store = createStore()
     // 不写成 `(() => void) | null`：TS 的控制流分析看不进 Promise executor，
     // 会把它在 `releaseSlow?.()` 处窄化成 `never`（`tsc -build` 报 TS2349，而
-    // jest 走 SWC 剥类型、`solid-excel` 的 tsconfig 又不覆盖本目录，两边都放行）。
+    // vi 走 SWC 剥类型、`solid-excel` 的 tsconfig 又不覆盖本目录，两边都放行）。
     // 一个 no-op 起手值同时表达了「一定有东西可调」。
     let releaseSlow: () => void = () => {}
     const slowRegion = {

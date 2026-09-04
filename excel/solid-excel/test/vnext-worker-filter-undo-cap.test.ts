@@ -18,7 +18,7 @@
  *    on a sheet with an active filter, `recordStructuralMutation`.
  */
 
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 import type {
   CellRefWire,
   ColumnFilterRuleWire,

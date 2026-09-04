@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import type { SpreadsheetBackend, VerifySheetProtectionPort } from '@einfach/spreadsheet-ui-core'
@@ -42,7 +42,7 @@ describe('SpreadsheetProtectionUnlockDialog visual states', () => {
     const verification = new Promise<{ ok: false; message: string }>((resolve) => {
       rejectPassword = resolve
     })
-    const verify = jest.fn<VerifySheetProtectionPort>(() => verification)
+    const verify = vi.fn<VerifySheetProtectionPort>(() => verification)
     const view = render(() => (
       <SpreadsheetUiProvider backend={createBackend()} store={store}>
         <SpreadsheetProtectionUnlockDialog verifySheetProtection={verify} />

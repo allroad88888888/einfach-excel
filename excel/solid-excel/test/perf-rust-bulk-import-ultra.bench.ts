@@ -15,8 +15,8 @@
  *
  *   1. Raise `MAX_BULK_IMPORT_CELLS_PER_CALL` to e.g. 10_000_000.
  *   2. Run `npm --prefix excel/solid-excel run build:wasm`.
- *   3. EINFACH_PERF=1 npx jest perf-rust-bulk-import-ultra.bench.ts \
- *        --no-coverage --testTimeout=1800000
+ *   3. pnpm --filter @einfach/solid-excel test:bench -- perf-rust-bulk-import-ultra.bench.ts \
+ *        --testTimeout 1800000
  *   4. Inspect `excel/solid-excel/test/perf-reports/perf-rust-bulk-import-ultra-report.md`.
  *
  * Tiers:
@@ -35,9 +35,9 @@
  * builder so the lazy-bulk-load behavior is exercised under a
  * realistic mix of formulas (point refs, range refs, IF, SUM).
  *
- * Gated on EINFACH_PERF=1 — skipped in the default jest sweep.
+ * Gated on EINFACH_PERF=1 — skipped in the default Vitest sweep.
  */
-import { describe, it, beforeAll, afterAll } from '@jest/globals'
+import { describe, it, beforeAll, afterAll } from 'vitest'
 import { performance } from 'node:perf_hooks'
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { TextDecoder, TextEncoder } from 'node:util'

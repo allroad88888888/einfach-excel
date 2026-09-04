@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import { cleanup, render, waitFor, fireEvent } from '@solidjs/testing-library'
 import type {
@@ -469,7 +469,7 @@ describe('OverlayRenderer', () => {
   })
 
   it('draws marching ants over the clipboard source on copy and advances the dash offset', () => {
-    jest.useFakeTimers()
+    vi.useFakeTimers()
     try {
       const store = createStore()
       store.setter(setSelectionAtom, {
@@ -495,7 +495,7 @@ describe('OverlayRenderer', () => {
       expect(initialAnts.length).toBeGreaterThanOrEqual(1)
       const startingOffset = renderer.getMarchingAntsOffset()
 
-      jest.advanceTimersByTime(360)
+      vi.advanceTimersByTime(360)
       const callCountBefore = calls.length
       renderer.renderNow()
       expect(renderer.getMarchingAntsOffset()).toBeGreaterThan(startingOffset)
@@ -503,7 +503,7 @@ describe('OverlayRenderer', () => {
 
       renderer.detach()
     } finally {
-      jest.useRealTimers()
+      vi.useRealTimers()
     }
   })
 
@@ -607,7 +607,7 @@ describe('OverlayRenderer', () => {
 
   it('schedules a single rAF when multiple atom changes happen in the same frame', () => {
     const store = createStore()
-    const rafSpy = jest.spyOn(window, 'requestAnimationFrame')
+    const rafSpy = vi.spyOn(window, 'requestAnimationFrame')
     try {
       const { ctx } = createRecordingContext()
       const renderer = new OverlayRenderer(() => ctx)
@@ -675,9 +675,9 @@ function createFakeBackend(): SpreadsheetBackend {
 }
 
 describe('SpreadsheetGridOverlay integration', () => {
-  let consoleErrSpy: ReturnType<typeof jest.spyOn> | null = null
+  let consoleErrSpy: ReturnType<typeof vi.spyOn> | null = null
   beforeEach(() => {
-    consoleErrSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined)
+    consoleErrSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
   })
   afterEach(() => {
     consoleErrSpy?.mockRestore()

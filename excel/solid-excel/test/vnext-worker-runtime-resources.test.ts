@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, test } from '@jest/globals'
+import { afterEach, beforeEach, describe, expect, test } from 'vitest'
 
 import type { ImportSession } from '../src/adapter/worker-import-normalize'
 import { createWorkerWorkbookRuntimeResources } from '../src/adapter/worker-runtime-resources'

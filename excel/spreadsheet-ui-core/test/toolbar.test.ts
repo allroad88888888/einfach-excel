@@ -1,5 +1,5 @@
 import { createStore } from '@einfach/core'
-import { describe, expect, jest, test } from '@jest/globals'
+import { describe, expect, test, vi } from 'vitest'
 import {
   closeToolbarSurfaceAtom,
   dispatchToolbarFormatCommandAtom,
@@ -187,8 +187,7 @@ describe('toolbar core', () => {
   ] as const
   test.each(MUTATION_IDENTITY_CASES)(
     'allocates safe mutation identities at the %s case',
-    (...args: (typeof MUTATION_IDENTITY_CASES)[number]) => {
-      const [_case, input, expected] = args
+    (_case, input, expected) => {
       expect(nextToolbarMutationIdentity(input)).toBe(expected)
     },
   )
@@ -386,8 +385,8 @@ describe('toolbar core', () => {
 
   test('blocks an unsupported batch before any backend mutation is called', async () => {
     const store = createStore()
-    const mergeRange = jest.fn(async () => ({ sheetId: 'Sheet1', revision: 1 }))
-    const refreshProjection = jest.fn(async () => undefined)
+    const mergeRange = vi.fn(async () => ({ sheetId: 'Sheet1', revision: 1 }))
+    const refreshProjection = vi.fn(async () => undefined)
 
     const outcome = await store.setter(runToolbarMutationAtom, {
       source: { mergeRange },
@@ -417,10 +416,10 @@ describe('toolbar core', () => {
 
   test('rejects an operation and step mismatch before dispatching any backend method', async () => {
     const store = createStore()
-    const setFormatRange = jest.fn(async (request: SetFormatRangeRequest) =>
+    const setFormatRange = vi.fn(async (request: SetFormatRangeRequest) =>
       strictFormatAcknowledgement(request, 1),
     )
-    const mergeRange = jest.fn(async (request: MergeRangeRequest) =>
+    const mergeRange = vi.fn(async (request: MergeRangeRequest) =>
       strictRangeAcknowledgement(request, 1),
     )
 
@@ -448,10 +447,10 @@ describe('toolbar core', () => {
 
   test('records history exactly once only after a strict acknowledgement and refresh', async () => {
     const store = createStore()
-    const setFormatRange = jest.fn(async (request: SetFormatRangeRequest) =>
+    const setFormatRange = vi.fn(async (request: SetFormatRangeRequest) =>
       strictFormatAcknowledgement(request, 8),
     )
-    const refreshProjection = jest.fn(async () => undefined)
+    const refreshProjection = vi.fn(async () => undefined)
 
     const outcome = await store.setter(runToolbarMutationAtom, {
       source: { setFormatRange },
@@ -496,14 +495,14 @@ describe('toolbar core', () => {
 
   test('derives merge and unmerge history kinds from the validated Core operation', async () => {
     const store = createStore()
-    const mergeRange = jest.fn(async (request: MergeRangeRequest) =>
+    const mergeRange = vi.fn(async (request: MergeRangeRequest) =>
       strictRangeAcknowledgement(request, 9),
     )
-    const unmergeRange = jest.fn(async (request: UnmergeRangeRequest) =>
+    const unmergeRange = vi.fn(async (request: UnmergeRangeRequest) =>
       strictRangeAcknowledgement(request, 10),
     )
     const range = { rowStart: 0, rowEnd: 1, colStart: 0, colEnd: 1 }
-    const refreshProjection = jest.fn(async () => undefined)
+    const refreshProjection = vi.fn(async () => undefined)
 
     await expect(
       store.setter(runToolbarMutationAtom, {
@@ -540,12 +539,12 @@ describe('toolbar core', () => {
   test('treats every dispatched transport rejection as outcome unknown and never resends it', async () => {
     const store = createStore()
     const requests: SetFormatRangeRequest[] = []
-    const transport = jest.fn(async (request: SetFormatRangeRequest) => {
+    const transport = vi.fn(async (request: SetFormatRangeRequest) => {
       requests.push(request)
       throw new Error('transport rejected after dispatch')
     })
     const source: ToolbarMutationControllerPort = { setFormatRange: transport }
-    const refreshProjection = jest.fn(async () => undefined)
+    const refreshProjection = vi.fn(async () => undefined)
 
     expect(
       await store.setter(runToolbarMutationAtom, {
@@ -591,7 +590,7 @@ describe('toolbar core', () => {
     expect(store.setter(resetToolbarMutationAtom)).toBe(false)
     expect(await store.setter(retryToolbarMutationRefreshAtom)).toBe('blocked')
 
-    const confirmedTransport = jest.fn(async (request: SetFormatRangeRequest) =>
+    const confirmedTransport = vi.fn(async (request: SetFormatRangeRequest) =>
       strictFormatAcknowledgement(request, 2),
     )
     await expect(
@@ -619,13 +618,13 @@ describe('toolbar core', () => {
     const first = createDeferred<ToolbarBackendMutationResult>()
     const second = createDeferred<ToolbarBackendMutationResult>()
     const requests: SetFormatRangeRequest[] = []
-    const setFormatRange = jest.fn((request: SetFormatRangeRequest) => {
+    const setFormatRange = vi.fn((request: SetFormatRangeRequest) => {
       requests.push(request)
       if (requests.length === 1) return first.promise
       if (requests.length === 2) return second.promise
       return Promise.resolve(strictFormatAcknowledgement(request, 30 + requests.length))
     })
-    const refreshProjection = jest.fn(async () => undefined)
+    const refreshProjection = vi.fn(async () => undefined)
     const input = {
       source: { setFormatRange },
       sheetId: 'Sheet1',
@@ -673,12 +672,12 @@ describe('toolbar core', () => {
     const store = createStore()
     const late = createDeferred<ToolbarBackendMutationResult>()
     const requests: SetFormatRangeRequest[] = []
-    const setFormatRange = jest.fn((request: SetFormatRangeRequest) => {
+    const setFormatRange = vi.fn((request: SetFormatRangeRequest) => {
       requests.push(request)
       if (requests.length === 1) return late.promise
       return Promise.resolve(strictFormatAcknowledgement(request, 42))
     })
-    const refreshProjection = jest.fn(async () => undefined)
+    const refreshProjection = vi.fn(async () => undefined)
     const input = {
       source: { setFormatRange },
       sheetId: 'Sheet1',
@@ -716,12 +715,12 @@ describe('toolbar core', () => {
   test('keeps a partially acknowledged border batch outcome unknown and reconciles without resend', async () => {
     const store = createStore()
     let callCount = 0
-    const setFormatRange = jest.fn(async (request: SetFormatRangeRequest) => {
+    const setFormatRange = vi.fn(async (request: SetFormatRangeRequest) => {
       callCount += 1
       if (callCount === 2) throw new Error('connection lost after first ACK')
       return strictFormatAcknowledgement(request, 10)
     })
-    const refreshProjection = jest.fn(async () => undefined)
+    const refreshProjection = vi.fn(async () => undefined)
 
     const outcome = await store.setter(runToolbarMutationAtom, {
       source: { setFormatRange },
@@ -768,11 +767,11 @@ describe('toolbar core', () => {
 
   test('treats a mismatched ACK as outcome unknown and allows refresh-only reconciliation', async () => {
     const store = createStore()
-    const setFormatRange = jest.fn(async (request: SetFormatRangeRequest) => ({
+    const setFormatRange = vi.fn(async (request: SetFormatRangeRequest) => ({
       ...strictFormatAcknowledgement(request, 11),
       requestId: (request.requestId ?? 0) + 1,
     }))
-    const refreshProjection = jest.fn(async () => undefined)
+    const refreshProjection = vi.fn(async () => undefined)
 
     expect(
       await store.setter(runToolbarMutationAtom, {
@@ -806,11 +805,11 @@ describe('toolbar core', () => {
     'fails the strict ACK contract for %s and permits refresh-only recovery',
     async (_case, createResult) => {
       const store = createStore()
-      const setFormatRange = jest.fn(
+      const setFormatRange = vi.fn(
         async (request: SetFormatRangeRequest) =>
           createResult(request) as ToolbarBackendMutationResult,
       )
-      const refreshProjection = jest.fn(async () => undefined)
+      const refreshProjection = vi.fn(async () => undefined)
 
       expect(
         await store.setter(runToolbarMutationAtom, {
@@ -853,11 +852,11 @@ describe('toolbar core', () => {
 
   test('retries only refresh after ACK without duplicating mutation or history', async () => {
     const store = createStore()
-    const setFormatRange = jest.fn(async (request: SetFormatRangeRequest) =>
+    const setFormatRange = vi.fn(async (request: SetFormatRangeRequest) =>
       strictFormatAcknowledgement(request, 12),
     )
     let refreshAttempt = 0
-    const refreshProjection = jest.fn(async () => {
+    const refreshProjection = vi.fn(async () => {
       refreshAttempt += 1
       if (refreshAttempt === 1) throw new Error('projection unavailable')
     })

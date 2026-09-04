@@ -12,9 +12,9 @@ Rust/WASM 公式引擎（`excel/rust/`）+ 基于两者的 Solid.js 表格界面
 
 ```bash
 npm run build            # clearTypes → ensureWasm → tsc -build → rollup（缺 excel/excel-wasm/lite 时会调 wasm-pack，需要 Rust 工具链）
-npm test                 # 全量 jest（不采覆盖率；报告用 npm run test:coverage）
-npx jest path/to/file.test.ts                      # 单个测试文件
-npx jest excel/spreadsheet-ui-core --no-coverage   # 分区套件（solid-excel 同理）
+npm test                 # 主线 Vitest workspace（报告用 npm run test:coverage）
+pnpm --filter @einfach/react-excel exec vitest run path/to/file.test.ts
+pnpm --filter @einfach/spreadsheet-ui-core test
 
 npm run lint:check       # eslint 只检查；npm run eslint 检查并自动修
 npm run check:docs       # 文档链接门禁（CONTRIBUTING §文档规则）
@@ -38,7 +38,7 @@ npm run build:wasm -w @einfach/excel-wasm            # 产物落 excel/excel-was
 npm run build:wasm:full -w @einfach/excel-wasm       # full 变体（--features regex-formulas）→ excel/excel-wasm/full/
 ```
 
-pre-commit（husky）依次跑 `check:docs`、`lint:check`、`typecheck:apps`、增量 `tsc -build`、`jest --onlyChanged` —— 全量 clean build + 全量 jest 的门禁在 CI（ci.yml）；大改动提交前手动跑一次全量 `npm test` 可以省一轮 CI 返工。
+pre-commit（husky）依次跑文档、展现层边界、lint、主线类型检查和 Vitest changed 模式。全量 clean build + 主线 Vitest 的门禁在 CI（ci.yml）；大改动提交前手动跑一次全量 `npm test` 可以省一轮 CI 返工。
 
 ## Monorepo Structure (pnpm workspaces)
 
@@ -63,7 +63,7 @@ pnpm workspace 的 glob 是 `excel/*`；`excel/rust/` 不是 npm 包，产物经
 `@einfach/excel-wasm`（`excel/excel-wasm/`）的 `build:wasm` 接入
 （`wasm-pack` 的 `--out-dir` 相对 crate 目录而非 cwd，改动那条 script 时注意）。
 
-**上游依赖**：`@einfach/core` 与 `@einfach/solid` 从 npm 安装，jest 不再对它们做 `moduleNameMapper`
+**上游依赖**：`@einfach/core` 与 `@einfach/solid` 从 npm 安装，Vitest 不对它们做 alias
 映射，走 node_modules 解析。这是刻意的 —— 本仓必须能跑在**已发布**的 core 上，而不是某个只存在于
 工作区的版本。当前基线 `@einfach/core@^0.4.0` + `@einfach/solid@^0.4.0`，全套测试在其上通过。
 
@@ -182,14 +182,14 @@ Every modal under `excel/solid-excel/src/*/Spreadsheet*Dialog.tsx` follows the s
 
 ## Testing
 
-- Jest with jsdom environment
-- SWC for non-Solid tests, Babel for Solid tests（`excel/solid-excel` 下的 `.tsx` 走 babel-jest）
-- `moduleNameMapper` in `jest.config.mjs` maps **only this repo's own packages**（`@einfach/spreadsheet-ui-core`、`@einfach/excel-core-ts`）到源码目录；`@einfach/core` / `@einfach/solid` 刻意走 node_modules（已发布版本）
+- Vitest；各包按需要选择 node 或 jsdom environment
+- React、Solid、Vue 各用自己的 Vite 转换链，包内配置负责源码 alias
+- `vitest.workspace.ts` 只编排当前主线包；暂停包仍保留可独立运行的 Vitest 配置
 - Solid tests use `@solidjs/testing-library`
 - Always create a fresh store per test via `createStore()`
-- active spreadsheet suites: `npx jest excel/spreadsheet-ui-core --no-coverage` and `npx jest excel/solid-excel --no-coverage`
-- Playwright e2e specs live in `excel/solid-excel/e2e/`（feature 目录 + `CASES.md`，[ADR 0005](docs/decisions/0005-e2e-feature-folders.md)）；jest 的 `testPathIgnorePatterns` 排除它们，只能用 `npm run e2e` 跑
-- Rust 引擎测试独立于 jest：进各 crate 目录 `cargo test`
+- active spreadsheet suites: `pnpm --filter @einfach/spreadsheet-ui-core test` and `pnpm --filter @einfach/react-excel test`
+- Playwright e2e specs 不在 Vitest 的 `include` 范围，只能用各包的 `e2e` script 跑
+- Rust 引擎测试独立于 Vitest：进各 crate 目录 `cargo test`
 
 ## Code Style
 

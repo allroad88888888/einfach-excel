@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, test } from '@jest/globals'
+import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import { createStore } from '@einfach/core'
 import {
   MAX_TABLE_CATALOG_ENTRIES,

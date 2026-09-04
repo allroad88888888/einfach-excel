@@ -18,7 +18,7 @@
  *  - the filter dropdown driving the worker backend end to end.
  */
 
-import { afterEach, describe, expect, it } from '@jest/globals'
+import { afterEach, describe, expect, it } from 'vitest'
 import { createStore } from '@einfach/core'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import type { VisibleProjectionResult } from '@einfach/spreadsheet-ui-core'

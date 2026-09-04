@@ -16,7 +16,7 @@
  * 走的是真实 RPC 路径（`runtime.handle(...)`），不直接调 `wrapCustomResult`。
  */
 
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import { createWorkerRuntimeTs } from '../src/adapter/worker-runtime-ts'
 
@@ -40,7 +40,7 @@ async function initSheet(runtime: Runtime): Promise<Rpc> {
   return rpc
 }
 
-/** `addr=display` 一行一格 —— jest 的数组 diff 会直接点名是哪一格。 */
+/** `addr=display` 一行一格 —— Vitest 的数组 diff 会直接点名是哪一格。 */
 async function displays(rpc: Rpc, addrs: readonly string[]): Promise<string[]> {
   const cells = (await rpc({
     cmd: 'readCells',

@@ -11,7 +11,7 @@
  * when the function registry merges in src/eval/functions/index.ts).
  */
 
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import {
   VLOOKUP,
@@ -523,7 +523,7 @@ describe('XMATCH', () => {
 // XLOOKUP search_mode = ±2). Regression for FUNCTION_QUALITY_2026-06-05.md
 // "XLOOKUP search_mode = ±2" / "VLOOKUP/HLOOKUP/MATCH approximate" entries.
 //
-// We don't time these — Jest doesn't reliably distinguish O(log n) from
+// We don't time these — Vitest doesn't reliably distinguish O(log n) from
 // O(n) at 1k elements. Instead we assert correctness on inputs the linear
 // path used to handle, plus structural invariants: results on the boundary
 // between two sorted runs, and fallback behaviour on mixed-type input

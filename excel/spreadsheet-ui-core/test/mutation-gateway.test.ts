@@ -1,4 +1,4 @@
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 import { createStore } from '@einfach/core'
 import type { DisplayCell, VisibleProjectionResult } from '../src/backend'
 import { diagnosticsAtom } from '../src/diagnostics'

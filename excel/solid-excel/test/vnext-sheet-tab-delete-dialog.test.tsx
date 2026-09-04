@@ -2,7 +2,7 @@
 
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render } from '@solidjs/testing-library'
 import { createSignal } from 'solid-js'
 import {
@@ -38,13 +38,13 @@ function renderDeleteDialog(
   onConfirm: () => void = () => undefined,
 ) {
   const [sheetTabs, setSheetTabs] = createSignal(makeState())
-  const tabButton = jest.fn(() => document.querySelector('[data-testid="sheet-tab-anchor"]'))
+  const tabButton = vi.fn(() => document.querySelector('[data-testid="sheet-tab-anchor"]'))
   const controller = {
-    cancelDelete: jest.fn(() => {
+    cancelDelete: vi.fn(() => {
       onCancel()
       setSheetTabs((state) => ({ ...state, deleteConfirmation: null }))
     }),
-    confirmDelete: jest.fn(onConfirm),
+    confirmDelete: vi.fn(onConfirm),
     tabButton,
   } as unknown as Parameters<typeof SpreadsheetSheetTabOverlays>[0]['controller']
 

@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import type {
@@ -43,11 +43,11 @@ function setActiveSheet(store: ReturnType<typeof createStore>, sheetId: string) 
 function createBackend(
   listConditionalFormatRules: NonNullable<SpreadsheetBackend['listConditionalFormatRules']>,
 ) {
-  const setConditionalFormatRule = jest.fn(async (request: SetConditionalFormatRuleRequest) => ({
+  const setConditionalFormatRule = vi.fn(async (request: SetConditionalFormatRuleRequest) => ({
     sheetId: request.sheetId,
     requestId: request.requestId,
   }))
-  const removeConditionalFormatRule = jest.fn(
+  const removeConditionalFormatRule = vi.fn(
     async (request: RemoveConditionalFormatRuleRequest) => ({
       sheetId: request.sheetId,
       requestId: request.requestId,
@@ -110,7 +110,7 @@ describe('conditional-format persisted-rule hydration', () => {
     const store = createStore()
     setActiveSheet(store, 'sheet-a')
     const persisted = ruleFor('persisted-a')
-    const listRules = jest.fn(async (request: ListConditionalFormatRulesRequest) =>
+    const listRules = vi.fn(async (request: ListConditionalFormatRulesRequest) =>
       rulesResult(request, [persisted]),
     )
     const { backend } = createBackend(listRules)
@@ -130,7 +130,7 @@ describe('conditional-format persisted-rule hydration', () => {
     const store = createStore()
     setActiveSheet(store, 'sheet-a')
     const pending = new Map<string, ReturnType<typeof deferred<ConditionalFormatRulesResult>>>()
-    const listRules = jest.fn((request: ListConditionalFormatRulesRequest) => {
+    const listRules = vi.fn((request: ListConditionalFormatRulesRequest) => {
       const next = deferred<ConditionalFormatRulesResult>()
       pending.set(request.sheetId, next)
       return next.promise
@@ -165,7 +165,7 @@ describe('conditional-format persisted-rule hydration', () => {
     const staleRule = ruleFor('rule-a')
     const currentRule = ruleFor('rule-b')
     setActiveSheet(store, 'sheet-a')
-    const listRules = jest.fn(async (request: ListConditionalFormatRulesRequest) =>
+    const listRules = vi.fn(async (request: ListConditionalFormatRulesRequest) =>
       rulesResult(request, request.sheetId === 'sheet-a' ? [staleRule] : [currentRule]),
     )
     const { backend, setConditionalFormatRule, removeConditionalFormatRule } =

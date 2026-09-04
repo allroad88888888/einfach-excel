@@ -37,7 +37,7 @@
  * the "evalCount after mutate" expectations here would shift from
  * "increments immediately" to "increments only on next read."
  */
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import { createWorkbook } from '@einfach/excel-core-ts'
 

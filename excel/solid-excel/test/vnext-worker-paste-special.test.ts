@@ -19,7 +19,7 @@
  *  - host-orchestrated undo/redo round trip of one paste transaction.
  */
 
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 import {
   SUPPORTED_PASTE_SPECIAL_KINDS,
   type CellRange,

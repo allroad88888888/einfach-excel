@@ -35,7 +35,7 @@ pnpm check:docs
 pnpm check:presentation
 pnpm lint:check
 pnpm typecheck:mainline
-pnpm exec jest path/to/file.test.ts --no-coverage
+pnpm exec vitest run path/to/file.test.ts
 ```
 
 只运行与改动相关且可在本机执行的命令。完整 `pnpm build` 会先通过 `ensureWasm` 检查 Worker 产物，缺失时调用
@@ -167,8 +167,8 @@ pnpm exec changeset publish  # 发布到 npm
 
 ```bash
 pnpm test                                                   # 全量（不采覆盖率；报告用 pnpm run test:coverage）
-pnpm exec jest path/to/file.test.ts --no-coverage           # 单个文件
-pnpm exec jest excel/spreadsheet-ui-core --no-coverage       # 分区套件
+pnpm exec vitest run path/to/file.test.ts                    # 单个文件
+pnpm --filter @einfach/spreadsheet-ui-core test              # 分区套件
 pnpm --filter @einfach/react-excel test
 pnpm --filter @einfach/react-excel build
 ```

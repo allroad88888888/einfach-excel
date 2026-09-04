@@ -6,7 +6,7 @@ import {
   type VisibleProjectionResult,
 } from '../src'
 import { createStore } from '@einfach/core'
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 import { createTestRustWorkbookConnection } from './support/rust-workbook-connection'
 
 function projectionResult(request: VisibleProjectionRequest): VisibleProjectionResult {

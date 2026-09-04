@@ -1,4 +1,4 @@
-import { describe, expect, it, jest } from '@jest/globals'
+import { describe, expect, it, vi } from 'vitest'
 import type { HistoryEntry, SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
 
 import { createSpreadsheetBackendHandle } from '../src/provider/backend-handle'
@@ -39,7 +39,7 @@ function entry(): HistoryEntry {
 describe('history entry recorder', () => {
   it('appends an acknowledged entry only when the current backend supports undo and redo', () => {
     const recorder = createHistoryEntryRecorder(createBackend('full'))
-    const append = jest.fn(() => true)
+    const append = vi.fn(() => true)
 
     expect(recorder(entry(), append)).toBe('recorded')
     expect(append).toHaveBeenCalledWith(entry())
@@ -49,7 +49,7 @@ describe('history entry recorder', () => {
     'skips the Core append callback when the current backend is %s',
     (capability) => {
       const recorder = createHistoryEntryRecorder(createBackend(capability))
-      const append = jest.fn(() => true)
+      const append = vi.fn(() => true)
 
       expect(recorder(entry(), append)).toBe('unavailable')
       expect(append).not.toHaveBeenCalled()
@@ -58,7 +58,7 @@ describe('history entry recorder', () => {
 
   it('reports rejected when the Core append callback rejects or throws', () => {
     const recorder = createHistoryEntryRecorder(createBackend('full'))
-    const append = jest.fn(() => false)
+    const append = vi.fn(() => false)
 
     expect(recorder(entry(), append)).toBe('rejected')
     expect(append).toHaveBeenCalledTimes(1)
@@ -72,7 +72,7 @@ describe('history entry recorder', () => {
   it('checks the forwarding backend after the mutation acknowledgement', async () => {
     const handle = createSpreadsheetBackendHandle(createBackend('full'))
     const recorder = createHistoryEntryRecorder(handle.backend)
-    const append = jest.fn(() => true)
+    const append = vi.fn(() => true)
 
     await Promise.resolve()
     handle.replace(createBackend('none'))

@@ -1,8 +1,6 @@
-/** @jest-environment node */
+/** @vitest-environment node */
 
-import { beforeAll, describe, expect, jest, test } from '@jest/globals'
-import type * as NodeFsModule from 'node:fs'
-import type * as NodePathModule from 'node:path'
+import { beforeAll, describe, expect, vi, test } from 'vitest'
 import type {
   WorkerLike,
   WorkerWorkbookClient,
@@ -10,11 +8,11 @@ import type {
 } from '../src/adapter'
 import { getDataBarProjection } from '../src/adapter/data-bar-projection'
 
-jest.mock('@einfach/excel-wasm', () => {
+vi.mock('@einfach/excel-wasm', async () => {
   /* eslint-disable @typescript-eslint/no-var-requires */
-  const { readFileSync } = require('node:fs') as typeof NodeFsModule
-  const nodePath = require('node:path') as typeof NodePathModule
-  const real = jest.requireActual('@einfach/excel-wasm') as {
+  const { readFileSync } = await import('node:fs')
+  const nodePath = await import('node:path')
+  const real = await vi.importActual('@einfach/excel-wasm') as {
     initSync: (input: { module: ArrayBufferLike }) => unknown
     WasmWorkbook: unknown
   }

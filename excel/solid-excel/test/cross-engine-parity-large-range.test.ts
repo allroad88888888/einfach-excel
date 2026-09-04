@@ -29,7 +29,7 @@
  * 去核对 Excel 的答案再改期望值。
  */
 
-import { afterAll, beforeAll, describe, expect, test } from '@jest/globals'
+import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 
 import {
   displaysOf,

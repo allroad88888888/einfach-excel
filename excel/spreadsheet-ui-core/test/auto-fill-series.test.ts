@@ -1,5 +1,5 @@
 import { createStore, type Atom } from '@einfach/core'
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 import {
   BUILTIN_FILL_SERIES_MONTH_NAMES,
   BUILTIN_FILL_SERIES_WEEKDAY_NAMES,

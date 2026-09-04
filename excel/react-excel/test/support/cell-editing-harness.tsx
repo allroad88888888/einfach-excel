@@ -4,7 +4,7 @@ import {
   type VisibleProjectionRequest,
   type VisibleProjectionResult,
 } from '@einfach/spreadsheet-ui-core'
-import { jest } from '@jest/globals'
+import { vi, type MockedFunction } from 'vitest'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { SALES_ORDER_COLUMNS } from '../../src/page/demo/sales-orders/data/sheet'
 import { WorkbookStoreProvider } from '../../src/page/WorkbookStoreProvider'
@@ -15,10 +15,10 @@ import { createTestRustWorkbookConnection } from './rust-workbook-connection'
 /** Builds controllable Sales Orders workbook fixtures for cell-editing tests. */
 export interface ControlledCellEditingConnection {
   readonly connection: ReturnType<typeof createTestRustWorkbookConnection>
-  readonly readVisibleProjection: jest.MockedFunction<
+  readonly readVisibleProjection: MockedFunction<
     (request: VisibleProjectionRequest) => Promise<VisibleProjectionResult>
   >
-  readonly setCellInput: jest.MockedFunction<
+  readonly setCellInput: MockedFunction<
     (request: EditingCommitRequest) => Promise<{
       sheetId: string
       requestId: number
@@ -55,11 +55,11 @@ export function createControlledCellEditingConnection(): ControlledCellEditingCo
       cells,
     }
   }
-  const readVisibleProjection = jest.fn(async (request: VisibleProjectionRequest) =>
+  const readVisibleProjection = vi.fn(async (request: VisibleProjectionRequest) =>
     project(request),
   )
-  const setCellProjection = jest.fn(async (request: VisibleProjectionRequest) => project(request))
-  const setCellInput = jest.fn(async (request: EditingCommitRequest) => {
+  const setCellProjection = vi.fn(async (request: VisibleProjectionRequest) => project(request))
+  const setCellInput = vi.fn(async (request: EditingCommitRequest) => {
     if (mutationFailure !== undefined) {
       const message = mutationFailure
       mutationFailure = undefined

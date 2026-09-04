@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals'
+import { describe, expect, it } from 'vitest'
 import type { HistoryLifecycleState } from '@einfach/spreadsheet-ui-core'
 
 import { historyLifecycleFeedback } from '../src/history/history-feedback'

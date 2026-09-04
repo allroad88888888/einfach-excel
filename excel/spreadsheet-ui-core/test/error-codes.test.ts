@@ -1,4 +1,4 @@
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 import { gradeSpreadsheetError } from '../src/shared'
 import type { SpreadsheetError } from '../src/shared'
 

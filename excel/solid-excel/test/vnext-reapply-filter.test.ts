@@ -16,7 +16,7 @@
  * first half does.
  */
 
-import { describe, expect, it } from '@jest/globals'
+import { describe, expect, it } from 'vitest'
 import { createStore } from '@einfach/core'
 import {
   captureFilterSortCapabilityAtom,

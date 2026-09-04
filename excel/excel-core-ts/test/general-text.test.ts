@@ -11,7 +11,7 @@
  * 「两份实现必须同判」。
  */
 
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import { excelGeneralToText } from '../src/eval/general-text'
 import { toString as valueToString } from '../src/eval/coerce'

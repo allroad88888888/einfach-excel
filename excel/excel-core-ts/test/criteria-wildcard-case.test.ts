@@ -29,7 +29,7 @@
  * `FUNCTIONS` 注册表里的同名实现 —— 这一程已经三次被「单测全绿、端到端还错」咬到。
  */
 
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import { createWorkbook } from '../src/workbook'
 import { keyFor } from '../src/sheet'

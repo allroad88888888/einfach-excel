@@ -36,7 +36,7 @@ import { useSortConfirmation } from '../sort/useSortConfirmation'
 import { FilterDropdownPresentation } from './FilterDropdownPresentation'
 import { useFilterDropdownFocus } from './filter-dropdown-focus'
 
-if (typeof process === 'undefined' || !process.env.JEST_WORKER_ID) {
+if (typeof process === 'undefined' || process.env.VITEST !== 'true') {
   void import('@einfach/spreadsheet-ui-styles/features/filter-dropdown.css')
 }
 

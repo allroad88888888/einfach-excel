@@ -1,6 +1,6 @@
 import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
-import { describe, expect, it } from '@jest/globals'
+import { describe, expect, it } from 'vitest'
 
 import { createStaticSpreadsheetBackend } from '../../src/adapter/static-backend'
 import { mountVanillaEditingPoc } from '../../vanilla-editing-poc'

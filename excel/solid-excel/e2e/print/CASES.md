@@ -1,7 +1,7 @@
 # print — e2e cases
 
 > 功能源码：excel/solid-excel/src 的 File 菜单打印预览入口与预览对话框
-> （print config 的 worker 后端读写在 jest：vnext-print-config-wasm.test.ts）。
+> （print config 的 worker 后端读写在 Vitest：vnext-print-config-wasm.test.ts）。
 > 本目录覆盖菜单入口 → 语义化 dialog → 焦点恢复的浏览器行为；真实双后端（?backend= 参数）。
 > 存量 spec 行数超限登记：无（77 行）
 

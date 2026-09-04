@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { expect } from '@jest/globals'
+import { expect } from 'vitest'
 import { createStore } from '@einfach/core'
 import { fireEvent, render, waitFor } from '@solidjs/testing-library'
 import type {

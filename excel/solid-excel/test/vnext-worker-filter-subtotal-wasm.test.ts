@@ -1,9 +1,9 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  *
  * #27 S4 — an ACTIVE FILTER reaches the engine, over the REAL Rust engine and
  * the REAL `worker-runtime.ts` dispatcher in process (same harness as
- * vnext-worker-subtotal-hidden-wasm.test.ts: wasm-pkg jest-mocked onto itself
+ * vnext-worker-subtotal-hidden-wasm.test.ts: wasm-pkg Vitest-mocked onto itself
  * with the binary pre-loaded through `initSync`, a fake `self` installed
  * before the runtime module imports).
  *
@@ -25,7 +25,7 @@
  *    (1-11 keeps manually hidden rows, 101-111 drops them).
  */
 
-import { beforeAll, describe, expect, jest, test } from '@jest/globals'
+import { beforeAll, describe, expect, vi, test } from 'vitest'
 
 import { createStore } from '@einfach/core'
 import type { DisplayCell } from '@einfach/spreadsheet-ui-core'
@@ -40,15 +40,13 @@ import {
   viewportFilterHiddenAtom,
   viewportHiddenAtom,
 } from '@einfach/spreadsheet-ui-core'
-import type * as NodeFsModule from 'node:fs'
-import type * as NodePathModule from 'node:path'
 import type { WorkerLike, WorkerWorkbookSpreadsheetBackend } from '../src/adapter'
 
-jest.mock('@einfach/excel-wasm', () => {
+vi.mock('@einfach/excel-wasm', async () => {
   /* eslint-disable @typescript-eslint/no-var-requires */
-  const { readFileSync } = require('node:fs') as typeof NodeFsModule
-  const nodePath = require('node:path') as typeof NodePathModule
-  const real = jest.requireActual('@einfach/excel-wasm') as {
+  const { readFileSync } = await import('node:fs')
+  const nodePath = await import('node:path')
+  const real = await vi.importActual('@einfach/excel-wasm') as {
     initSync: (input: { module: ArrayBufferLike }) => unknown
     WasmWorkbook: unknown
   }

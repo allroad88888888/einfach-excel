@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import type {
@@ -198,7 +198,7 @@ function installFakeClipboard(opts: InstallFakeClipboardOptions = {}) {
 
   const FakeClipboardItem = opts.strict ? StrictClipboardItem : LenientClipboardItem
 
-  const fakeWrite = jest.fn(async (items: LenientClipboardItem[]) => {
+  const fakeWrite = vi.fn(async (items: LenientClipboardItem[]) => {
     if (opts.writeRejects) {
       throw new Error('clipboard.write denied (test)')
     }
@@ -206,7 +206,7 @@ function installFakeClipboard(opts: InstallFakeClipboardOptions = {}) {
       writeCalls.push({ types: [...item.types], blobs: { ...item.blobs } })
     }
   })
-  const fakeWriteText = jest.fn(async (text: string) => {
+  const fakeWriteText = vi.fn(async (text: string) => {
     writeTextCalls.push(text)
   })
 
@@ -439,7 +439,7 @@ describe('Copy as HTML / Markdown (Ctrl+Shift+C)', () => {
       (oversizedRange.colEnd - oversizedRange.colStart + 1)
     expect(totalCells).toBeGreaterThan(MAX_COPY_AS_CELLS)
 
-    const projectionSpy = jest.spyOn(backend, 'readRangeProjection')
+    const projectionSpy = vi.spyOn(backend, 'readRangeProjection')
 
     await dispatchCopyAs(store, backend, {
       sheetId: 'sheet-1',
@@ -486,7 +486,7 @@ describe('Copy as HTML / Markdown (Ctrl+Shift+C)', () => {
 
     // Remove writeText so even the tier-3 fallback fails.
     Object.defineProperty(navigator, 'clipboard', {
-      value: { write: jest.fn(async () => { throw new Error('blocked') }) },
+      value: { write: vi.fn(async () => { throw new Error('blocked') }) },
       configurable: true,
     })
 
@@ -608,7 +608,7 @@ describe('Copy as PNG (Ctrl+Shift+P) — dispatchCopyAsImage', () => {
     const store = createStore()
     store.setter(setWorkspaceActiveSheetAtom, { sheetId: 'sheet-1' })
     store.setter(setSelectionBoundsAtom, { rowCount: 1_500_000, colCount: 16_384 })
-    const exportSpy = jest.fn()
+    const exportSpy = vi.fn()
     const backend: SpreadsheetBackend = {
       ...createBackend(),
       async exportRangeAsImage(request) {

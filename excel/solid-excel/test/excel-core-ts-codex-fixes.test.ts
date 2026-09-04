@@ -14,7 +14,7 @@
  *   P2.3  moveSheet must keep contents attached to the renamed sheet name,
  *         not zip positionally against the new order.
  */
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import { createWorkerRuntimeTs } from '../src/adapter/worker-runtime-ts'
 

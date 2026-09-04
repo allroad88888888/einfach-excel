@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals'
+import { describe, expect, it } from 'vitest'
 import { createStore } from '@einfach/core'
 
 import { historyRefreshTargetSheetIdAtom } from '../src/provider/history-refresh-target-atom'

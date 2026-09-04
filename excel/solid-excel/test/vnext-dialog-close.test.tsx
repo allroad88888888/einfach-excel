@@ -13,7 +13,7 @@
  * Esc/X both invoke the same toggle setter, which flips it back to closed.
  */
 
-import { afterEach, describe, expect, it } from '@jest/globals'
+import { afterEach, describe, expect, it } from 'vitest'
 import { createStore } from '@einfach/core'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import type { JSX } from 'solid-js'

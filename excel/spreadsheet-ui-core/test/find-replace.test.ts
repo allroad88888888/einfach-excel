@@ -1,4 +1,4 @@
-import { describe, expect, jest, test } from '@jest/globals'
+import { describe, expect, test, vi, type Mock } from 'vitest'
 import { createStore } from '@einfach/core'
 import {
   DEFAULT_FIND_REPLACE_FORM_STATE,
@@ -141,8 +141,8 @@ async function establishTicket(
     readonly totalCount?: number
     readonly revision?: number | string | null
   } = {},
-): Promise<jest.Mock<(request: SearchRangeRequest) => Promise<SearchRangeResult>>> {
-  const searchRange = jest.fn(async (request: SearchRangeRequest) =>
+): Promise<Mock<(request: SearchRangeRequest) => Promise<SearchRangeResult>>> {
+  const searchRange = vi.fn(async (request: SearchRangeRequest) =>
     resultFor(
       request,
       matches,
@@ -218,7 +218,7 @@ describe('find/replace Core lifecycle and compatibility views', () => {
     prepareStore(store)
     const result = deferred<SearchRangeResult>()
     let request!: SearchRangeRequest
-    const searchRange = jest.fn((nextRequest: SearchRangeRequest) => {
+    const searchRange = vi.fn((nextRequest: SearchRangeRequest) => {
       request = nextRequest
       return result.promise
     })
@@ -330,7 +330,7 @@ describe('find/replace Core lifecycle and compatibility views', () => {
       matches: [match(0, 0)],
       totalCount: 1,
     })
-    const replaceMatches = jest.fn(async (request: ReplaceMatchesRequest) =>
+    const replaceMatches = vi.fn(async (request: ReplaceMatchesRequest) =>
       exactAcknowledgement(request),
     )
     await store.setter(runFindReplaceMutationAtom, {
@@ -395,7 +395,7 @@ describe('find/replace search correlation and focus', () => {
       regex: false,
       searchFormulas: true,
     })
-    const searchRange = jest.fn(async (request: SearchRangeRequest) =>
+    const searchRange = vi.fn(async (request: SearchRangeRequest) =>
       resultFor(request, [match(7, 8, 'formula')], 1, 'rev-1'),
     )
     await store.setter(runFindReplaceSearchAtom, { searchRange })
@@ -431,7 +431,7 @@ describe('find/replace search correlation and focus', () => {
   test('current-selection scope captures the original normalized range and owns its focus write', async () => {
     const store = createStore()
     prepareStore(store, { scope: 'current-selection' })
-    const searchRange = jest.fn(async (request: SearchRangeRequest) =>
+    const searchRange = vi.fn(async (request: SearchRangeRequest) =>
       resultFor(request, [match(3, 4)]),
     )
     await store.setter(runFindReplaceSearchAtom, { searchRange })
@@ -447,7 +447,7 @@ describe('find/replace search correlation and focus', () => {
   test('same-tick duplicate search dispatches exactly once', async () => {
     const store = createStore()
     prepareStore(store)
-    const searchRange = jest.fn(async (request: SearchRangeRequest) => resultFor(request))
+    const searchRange = vi.fn(async (request: SearchRangeRequest) => resultFor(request))
     const first = store.setter(runFindReplaceSearchAtom, { searchRange })
     const second = store.setter(runFindReplaceSearchAtom, { searchRange })
     await first
@@ -458,7 +458,7 @@ describe('find/replace search correlation and focus', () => {
   test('close before the microtask dispatch prevents the search port call', async () => {
     const store = createStore()
     prepareStore(store)
-    const searchRange = jest.fn(async (request: SearchRangeRequest) => resultFor(request))
+    const searchRange = vi.fn(async (request: SearchRangeRequest) => resultFor(request))
     const pending = store.setter(runFindReplaceSearchAtom, { searchRange })
     store.setter(closeFindReplaceAtom)
     await pending
@@ -473,7 +473,7 @@ describe('find/replace search correlation and focus', () => {
     const store = createStore()
     prepareStore(store)
     store.setter(updateFindReplaceFormAtom, patch)
-    const searchRange = jest.fn(async (request: SearchRangeRequest) => resultFor(request))
+    const searchRange = vi.fn(async (request: SearchRangeRequest) => resultFor(request))
     await store.setter(runFindReplaceSearchAtom, { searchRange })
     expect(searchRange).not.toHaveBeenCalled()
     expect(store.getter(findReplaceErrorAtom)?.code).toBe(expectedCode)
@@ -483,7 +483,7 @@ describe('find/replace search correlation and focus', () => {
     const noSheet = createStore()
     noSheet.setter(openFindReplaceAtom)
     noSheet.setter(updateFindReplaceFormAtom, { needle: 'foo' })
-    const port = jest.fn(async (request: SearchRangeRequest) => resultFor(request))
+    const port = vi.fn(async (request: SearchRangeRequest) => resultFor(request))
     await noSheet.setter(runFindReplaceSearchAtom, { searchRange: port })
     expect(port).not.toHaveBeenCalled()
     expect(noSheet.getter(findReplaceErrorAtom)?.code).toBe('FIND_REPLACE_SHEET_UNAVAILABLE')
@@ -538,10 +538,10 @@ describe('find/replace search correlation and focus', () => {
     async (_label, start, end) => {
       const store = createStore()
       prepareStore(store)
-      const searchRange = jest.fn(async (request: SearchRangeRequest) =>
+      const searchRange = vi.fn(async (request: SearchRangeRequest) =>
         resultFor(request, [match(0, 0, 'displayValue', start, end)]),
       )
-      const replaceMatches = jest.fn(async (request: ReplaceMatchesRequest) =>
+      const replaceMatches = vi.fn(async (request: ReplaceMatchesRequest) =>
         exactAcknowledgement(request),
       )
 
@@ -629,7 +629,7 @@ describe('find/replace search correlation and focus', () => {
 
     const empty = createStore()
     prepareStore(empty)
-    const searchRange = jest.fn(async (request: SearchRangeRequest) => resultFor(request))
+    const searchRange = vi.fn(async (request: SearchRangeRequest) => resultFor(request))
     await empty.setter(stepFindReplaceAtom, { direction: 1, searchRange })
     expect(searchRange).toHaveBeenCalledTimes(1)
   })
@@ -639,7 +639,7 @@ describe('find/replace search correlation and focus', () => {
     prepareStore(store)
     await establishTicket(store, [match(0, 0, null)])
     expect(store.getter(findReplaceCursorAtom).status).toBe('ready')
-    const replaceMatches = jest.fn(async (request: ReplaceMatchesRequest) =>
+    const replaceMatches = vi.fn(async (request: ReplaceMatchesRequest) =>
       exactAcknowledgement(request),
     )
     await store.setter(runFindReplaceMutationAtom, {
@@ -658,11 +658,11 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
     const store = createStore()
     prepareStore(store, { searchFormulas: true })
     await establishTicket(store, [match(0, 0, 'formula')], { revision: 'rev-1' })
-    const replaceMatches = jest.fn(async (request: ReplaceMatchesRequest) =>
+    const replaceMatches = vi.fn(async (request: ReplaceMatchesRequest) =>
       exactAcknowledgement(request, 'rev-2'),
     )
-    const acceptAcknowledgedResult = jest.fn(async () => undefined)
-    const searchRange = jest.fn(async (request: SearchRangeRequest) =>
+    const acceptAcknowledgedResult = vi.fn(async () => undefined)
+    const searchRange = vi.fn(async (request: SearchRangeRequest) =>
       resultFor(request, [match(1, 1, 'formula')], 1, request.revision),
     )
     await store.setter(runFindReplaceMutationAtom, {
@@ -701,7 +701,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
     await establishTicket(store)
     const result = deferred<ReplaceMatchesResponse>()
     let request!: ReplaceMatchesRequest
-    const replaceMatches = jest.fn((nextRequest: ReplaceMatchesRequest) => {
+    const replaceMatches = vi.fn((nextRequest: ReplaceMatchesRequest) => {
       request = nextRequest
       return result.promise
     })
@@ -758,7 +758,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
 
     const result = deferred<SearchRangeResult>()
     let request!: SearchRangeRequest
-    const searchRange = jest.fn((nextRequest: SearchRangeRequest) => {
+    const searchRange = vi.fn((nextRequest: SearchRangeRequest) => {
       request = nextRequest
       return result.promise
     })
@@ -791,7 +791,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
     prepareStore(store)
     const matches = Array.from({ length: MAX_FIND_PAGE }, (_, row) => match(row, 0))
     await establishTicket(store, matches, { totalCount: MAX_FIND_PAGE + 20, revision: 1 })
-    const replaceMatches = jest.fn(async (request: ReplaceMatchesRequest) =>
+    const replaceMatches = vi.fn(async (request: ReplaceMatchesRequest) =>
       exactAcknowledgement(request, 2),
     )
     await store.setter(runFindReplaceMutationAtom, {
@@ -812,7 +812,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
     const store = createStore()
     prepareStore(store)
     await establishTicket(store)
-    const replaceMatches = jest.fn(async (request: ReplaceMatchesRequest) =>
+    const replaceMatches = vi.fn(async (request: ReplaceMatchesRequest) =>
       exactAcknowledgement(request),
     )
     const input = {
@@ -833,7 +833,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
     const store = createStore()
     prepareStore(store)
     await establishTicket(store)
-    const replaceMatches = jest.fn(
+    const replaceMatches = vi.fn(
       async (request: ReplaceMatchesRequest): Promise<ReplaceMatchesResponse> => ({
         kind: 'replace-matches-not-applied',
         applied: false,
@@ -858,12 +858,12 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
     const store = createStore()
     prepareStore(store)
     await establishTicket(store)
-    const oldReplaceTransport = jest.fn(
+    const oldReplaceTransport = vi.fn(
       async (_request: ReplaceMatchesRequest): Promise<ReplaceMatchesResponse> => {
         throw new Error('connection lost after dispatch')
       },
     )
-    const originalSearchTransport = jest.fn(async (request: SearchRangeRequest) =>
+    const originalSearchTransport = vi.fn(async (request: SearchRangeRequest) =>
       resultFor(request),
     )
     const originalInput = {
@@ -885,7 +885,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
     expect(store.getter(findReplaceErrorAtom)?.code).toBe('FIND_REPLACE_OUTCOME_UNKNOWN')
     expect(originalSearchTransport).not.toHaveBeenCalled()
 
-    const reconciliationFind = jest.fn(async (request: SearchRangeRequest) =>
+    const reconciliationFind = vi.fn(async (request: SearchRangeRequest) =>
       resultFor(request, [match(0, 0)], 1, 2),
     )
     await store.setter(runFindReplaceRefreshRecoveryAtom, {
@@ -910,7 +910,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
     })
     expect(store.getter(findReplaceMutationBlockedAtom)).toBe(false)
 
-    const newReplaceTransport = jest.fn(async (request: ReplaceMatchesRequest) =>
+    const newReplaceTransport = vi.fn(async (request: ReplaceMatchesRequest) =>
       exactAcknowledgement(request, 3),
     )
     await store.setter(runFindReplaceMutationAtom, {
@@ -961,7 +961,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
     const store = createStore()
     prepareStore(store)
     await establishTicket(store)
-    const replaceA = jest.fn(async (): Promise<ReplaceMatchesResponse> => {
+    const replaceA = vi.fn(async (): Promise<ReplaceMatchesResponse> => {
       throw new Error('unknown after dispatch')
     })
     await store.setter(runFindReplaceMutationAtom, {
@@ -997,7 +997,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
     })
     expect(store.getter(findReplaceMutationBlockedAtom)).toBe(false)
 
-    const replaceB = jest.fn(async (request: ReplaceMatchesRequest) =>
+    const replaceB = vi.fn(async (request: ReplaceMatchesRequest) =>
       exactAcknowledgement(request, 3),
     )
     await store.setter(runFindReplaceMutationAtom, {
@@ -1057,7 +1057,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
       const store = createStore()
       prepareStore(store)
       await establishTicket(store)
-      const replaceMatches = jest.fn(async () => response as ReplaceMatchesResponse)
+      const replaceMatches = vi.fn(async () => response as ReplaceMatchesResponse)
       await store.setter(runFindReplaceMutationAtom, {
         historyEntryRecorder: unavailableHistoryRecorder,
         action: 'replace-current',
@@ -1082,7 +1082,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
       const store = createStore()
       prepareStore(store)
       await establishTicket(store, [match(0, 0)], { revision: entry.revision })
-      const replaceMatches = jest.fn(async (request: ReplaceMatchesRequest) =>
+      const replaceMatches = vi.fn(async (request: ReplaceMatchesRequest) =>
         exactAcknowledgement(request),
       )
       await store.setter(runFindReplaceMutationAtom, {
@@ -1115,7 +1115,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
       await establishTicket(store)
       const result = deferred<ReplaceMatchesResponse>()
       let mutationRequest!: ReplaceMatchesRequest
-      const replaceMatches = jest.fn(async (request: ReplaceMatchesRequest) => {
+      const replaceMatches = vi.fn(async (request: ReplaceMatchesRequest) => {
         mutationRequest = request
         return result.promise
       })
@@ -1150,15 +1150,15 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
     const store = createStore()
     prepareStore(store)
     await establishTicket(store)
-    const replaceMatches = jest.fn(async (request: ReplaceMatchesRequest) =>
+    const replaceMatches = vi.fn(async (request: ReplaceMatchesRequest) =>
       exactAcknowledgement(request, 2),
     )
     let projectionAttempts = 0
-    const acceptAcknowledgedResult = jest.fn(async () => {
+    const acceptAcknowledgedResult = vi.fn(async () => {
       projectionAttempts += 1
       if (projectionAttempts === 1) throw new Error('projection unavailable')
     })
-    const searchRange = jest.fn(async (request: SearchRangeRequest) =>
+    const searchRange = vi.fn(async (request: SearchRangeRequest) =>
       resultFor(request, [match(1, 1)], 1, request.revision),
     )
     await store.setter(runFindReplaceMutationAtom, {
@@ -1189,11 +1189,11 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
     const store = createStore()
     prepareStore(store)
     await establishTicket(store)
-    const replaceMatches = jest.fn(async (request: ReplaceMatchesRequest) =>
+    const replaceMatches = vi.fn(async (request: ReplaceMatchesRequest) =>
       exactAcknowledgement(request, 2),
     )
     let searchAttempts = 0
-    const searchRange = jest.fn(async (request: SearchRangeRequest) => {
+    const searchRange = vi.fn(async (request: SearchRangeRequest) => {
       searchAttempts += 1
       if (searchAttempts === 1) throw new Error('refresh failed')
       return resultFor(request, [match(2, 2)], 1, request.revision)
@@ -1222,7 +1222,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
     await establishTicket(store)
     const late = deferred<ReplaceMatchesResponse>()
     let request!: ReplaceMatchesRequest
-    const replaceMatches = jest.fn(async (nextRequest: ReplaceMatchesRequest) => {
+    const replaceMatches = vi.fn(async (nextRequest: ReplaceMatchesRequest) => {
       request = nextRequest
       return late.promise
     })
@@ -1244,7 +1244,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
       status: 'required',
       phase: 'search',
     })
-    const refreshSearch = jest.fn(async (nextRequest: SearchRangeRequest) =>
+    const refreshSearch = vi.fn(async (nextRequest: SearchRangeRequest) =>
       resultFor(nextRequest, [match(1, 1)], 1, nextRequest.revision),
     )
     await store.setter(runFindReplaceRefreshRecoveryAtom, { searchRange: refreshSearch })
@@ -1259,7 +1259,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
     await establishTicket(store)
     const late = deferred<ReplaceMatchesResponse>()
     let request!: ReplaceMatchesRequest
-    const replaceMatches = jest.fn(async (nextRequest: ReplaceMatchesRequest) => {
+    const replaceMatches = vi.fn(async (nextRequest: ReplaceMatchesRequest) => {
       request = nextRequest
       return late.promise
     })
@@ -1285,7 +1285,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
     const store = createStore()
     prepareStore(store)
     await establishTicket(store)
-    const replaceMatches = jest.fn(async (request: ReplaceMatchesRequest) =>
+    const replaceMatches = vi.fn(async (request: ReplaceMatchesRequest) =>
       exactAcknowledgement(request, request.requestId!),
     )
     const searchRange = async (request: SearchRangeRequest): Promise<SearchRangeResult> =>
@@ -1305,7 +1305,7 @@ describe('find/replace exact-once mutation and refresh recovery', () => {
       outcomeUnknownCount: 0,
     })
 
-    const unknown = jest.fn(async (): Promise<ReplaceMatchesResponse> => {
+    const unknown = vi.fn(async (): Promise<ReplaceMatchesResponse> => {
       throw new Error('unknown outcome')
     })
     await store.setter(runFindReplaceMutationAtom, {

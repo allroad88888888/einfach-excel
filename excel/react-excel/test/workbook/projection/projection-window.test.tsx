@@ -4,7 +4,7 @@ import {
   visibleWindowAtom,
   viewportMetricsAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { describe, expect, it } from '@jest/globals'
+import { describe, expect, it } from 'vitest'
 import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import {
   SALES_ORDER_COLUMNS,

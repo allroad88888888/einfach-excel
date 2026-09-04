@@ -22,12 +22,12 @@
  *  - mutating the root re-flows through the chain
  *  - range-based chains (`=SUM(B1:B100)`) work
  *
- * Performance: depths up to 100k run in well under the 30 s jest
+ * Performance: depths up to 100k run in well under the 30 s Vitest
  * default timeout on a 2024 laptop; we still set explicit timeouts so
  * a slow CI box doesn't silently truncate the chain.
  */
 
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import { createWorkbook } from '../src/workbook'
 import { keyFor } from '../src/sheet'

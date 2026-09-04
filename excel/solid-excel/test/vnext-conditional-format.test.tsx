@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import type { SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
@@ -38,14 +38,14 @@ function createFakeBackend() {
       cells: [],
     }),
     setCellInput: async (req) => ({ sheetId: req.sheetId }),
-    setConditionalFormatRule: jest.fn(async (req) => {
+    setConditionalFormatRule: vi.fn(async (req) => {
       setConditionalFormatRuleRequests.push(req)
       return {
         sheetId: (req as { sheetId: string }).sheetId,
         requestId: (req as { requestId?: number }).requestId,
       }
     }),
-    removeConditionalFormatRule: jest.fn(async (req) => {
+    removeConditionalFormatRule: vi.fn(async (req) => {
       removeConditionalFormatRuleRequests.push(req)
       return {
         sheetId: (req as { sheetId: string }).sheetId,
@@ -200,7 +200,7 @@ describe('SpreadsheetConditionalFormatDialog', () => {
     const store = createStore()
     const { backend } = createFakeBackend()
     let shouldFail = true
-    backend.setConditionalFormatRule = jest.fn(async (req) => {
+    backend.setConditionalFormatRule = vi.fn(async (req) => {
       if (shouldFail) throw new Error('boom')
       return {
         sheetId: (req as { sheetId: string }).sheetId,
@@ -236,7 +236,7 @@ describe('SpreadsheetConditionalFormatDialog', () => {
   it('surfaces backend errors on Remove', async () => {
     const store = createStore()
     const { backend } = createFakeBackend()
-    backend.removeConditionalFormatRule = jest.fn(async () => {
+    backend.removeConditionalFormatRule = vi.fn(async () => {
       throw new Error('remove failed')
     })
 

@@ -1,12 +1,7 @@
-import { describe, expect, it, jest } from '@jest/globals'
+import { describe, expect, it } from 'vitest'
+import { createRustWorkbookConnection } from '@einfach/spreadsheet-ui-core'
+import { createWorkerTransport } from '@einfach/spreadsheet-ui-core/rust-worker'
 import packageJson from '../../../spreadsheet-ui-core/package.json'
-
-const { createWorkerTransport } = jest.requireActual(
-  '@einfach/spreadsheet-ui-core/rust-worker',
-) as { createWorkerTransport: unknown }
-const { createRustWorkbookConnection } = jest.requireActual('@einfach/spreadsheet-ui-core') as {
-  createRustWorkbookConnection: unknown
-}
 
 describe('React workbook Rust runtime boundary', () => {
   it('exports transport separately from the side-effectful runtime', () => {

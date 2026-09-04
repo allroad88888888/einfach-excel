@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals'
+import { describe, expect, it } from 'vitest'
 import { render } from '@testing-library/react'
 import { SpreadsheetGrid } from '../../../src/workbook/grid/cells/SpreadsheetGrid'
 

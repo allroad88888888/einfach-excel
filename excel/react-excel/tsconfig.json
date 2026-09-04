@@ -11,7 +11,13 @@
       "@einfach/spreadsheet-ui-core": ["../spreadsheet-ui-core/src/index.ts"],
       "@einfach/spreadsheet-ui-core/*": ["../spreadsheet-ui-core/src/*"]
     },
-    "types": ["vite/client"]
+    "types": ["vite/client", "node", "vitest/globals", "@testing-library/jest-dom"]
   },
-  "include": ["./src/**/*.ts", "./src/**/*.tsx"]
+  "include": [
+    "./src/**/*.ts",
+    "./src/**/*.tsx",
+    "./test/**/*.ts",
+    "./test/**/*.tsx",
+    "./vitest.config.ts"
+  ]
 }

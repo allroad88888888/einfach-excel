@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, jest, test } from '@jest/globals'
+import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import type { Atom } from '@einfach/core'
 import { copyClipboardAtom } from '../src/clipboard'
@@ -131,7 +131,7 @@ function createPort(
   implementation: (request: PasteRangeRequest) => Promise<PasteRangeResult> = async (request) =>
     strictResult(request),
 ) {
-  const pasteRange = jest.fn(implementation)
+  const pasteRange = vi.fn(implementation)
   const port: PasteSpecialControllerPort = { pasteRange }
   return { pasteRange, port }
 }
@@ -436,13 +436,13 @@ describe('paste-special Core state machine', () => {
     'a non-paste acknowledgement kind is outcome-unknown and never reaches history',
     async () => {
     const store = createStore()
-    const pasteRange = jest.fn(async (request: PasteRangeRequest) => ({
+    const pasteRange = vi.fn(async (request: PasteRangeRequest) => ({
       ...strictResult(request),
       kind: 'other-mutation',
     }))
     const port = { pasteRange } as unknown as PasteSpecialControllerPort
     const session = openReadySession(store, port)
-    const refreshProjection = jest.fn(async () => {})
+    const refreshProjection = vi.fn(async () => {})
 
     await expect(
       store.setter(confirmPasteSpecialAtom, {
@@ -502,13 +502,13 @@ describe('paste-special Core state machine', () => {
     'invalid %s revision fails closed and retains the producer lane',
     async (...[_label, revision]) => {
       const store = createStore()
-      const pasteRange = jest.fn(async (request: PasteRangeRequest) => ({
+      const pasteRange = vi.fn(async (request: PasteRangeRequest) => ({
         ...strictResult(request),
         revision,
       }))
       const port = { pasteRange } as PasteSpecialControllerPort
       const session = openReadySession(store, port)
-      const refreshProjection = jest.fn(async () => {})
+      const refreshProjection = vi.fn(async () => {})
 
       await expect(
         store.setter(confirmPasteSpecialAtom, {
@@ -537,13 +537,13 @@ describe('paste-special Core state machine', () => {
     'invalid %s acknowledgement range fails closed instead of using the target fallback',
     async (...[_label, affectedRange]) => {
       const store = createStore()
-      const pasteRange = jest.fn(async (request: PasteRangeRequest) => ({
+      const pasteRange = vi.fn(async (request: PasteRangeRequest) => ({
         ...strictResult(request),
         affectedRange,
       }))
       const port = { pasteRange } as PasteSpecialControllerPort
       const session = openReadySession(store, port)
-      const refreshProjection = jest.fn(async () => {})
+      const refreshProjection = vi.fn(async () => {})
 
       await expect(
         store.setter(confirmPasteSpecialAtom, {
@@ -579,7 +579,7 @@ describe('paste-special Core state machine', () => {
       colStart: { enumerable: true, get: () => once('colStart', 8) },
       colEnd: { enumerable: true, get: () => once('colEnd', 9) },
     })
-    const pasteRange = jest.fn(
+    const pasteRange = vi.fn(
       async (request: PasteRangeRequest) =>
         Object.defineProperties(Object.create(null), {
           kind: { enumerable: true, get: () => once('kind', 'paste-range') },
@@ -630,7 +630,7 @@ describe('paste-special Core state machine', () => {
     'colEnd',
   ] as const)('a throwing %s acknowledgement getter fails closed', async (throwingField) => {
     const store = createStore()
-    const pasteRange = jest.fn(async (request: PasteRangeRequest) => {
+    const pasteRange = vi.fn(async (request: PasteRangeRequest) => {
       const read = <T>(name: string, value: T): T => {
         if (name === throwingField) throw new Error(`hostile ${name} getter`)
         return value
@@ -654,7 +654,7 @@ describe('paste-special Core state machine', () => {
     })
     const port = { pasteRange } as PasteSpecialControllerPort
     const session = openReadySession(store, port)
-    const refreshProjection = jest.fn(async () => {})
+    const refreshProjection = vi.fn(async () => {})
 
     await expect(
       store.setter(confirmPasteSpecialAtom, {
@@ -675,7 +675,7 @@ describe('paste-special Core state machine', () => {
 
   test('a hostile acknowledgement Proxy is contained and fails closed', async () => {
     const store = createStore()
-    const pasteRange = jest.fn(async (request: PasteRangeRequest) => {
+    const pasteRange = vi.fn(async (request: PasteRangeRequest) => {
       const result = strictResult(request)
       return new Proxy(result, {
         get(target, property, receiver) {
@@ -686,7 +686,7 @@ describe('paste-special Core state machine', () => {
     })
     const port = { pasteRange } as PasteSpecialControllerPort
     const session = openReadySession(store, port)
-    const refreshProjection = jest.fn(async () => {})
+    const refreshProjection = vi.fn(async () => {})
 
     await expect(
       store.setter(confirmPasteSpecialAtom, {
@@ -709,7 +709,7 @@ describe('paste-special Core state machine', () => {
     const store = createStore()
     const { pasteRange, port } = createPort()
     const session = openReadySession(store, port)
-    const refreshProjection = jest.fn(async () => {})
+    const refreshProjection = vi.fn(async () => {})
     const originalWrite = pushReservedHistoryAtom.write
     try {
       pushReservedHistoryAtom.write = () => false
@@ -789,7 +789,7 @@ describe('paste-special Core state machine', () => {
     const store = createStore()
     const { pasteRange, port } = createPort()
     const session = openReadySession(store, port)
-    const refreshProjection = jest
+    const refreshProjection = vi
       .fn<(sheetId: string) => Promise<void>>()
       .mockRejectedValueOnce(new Error('projection offline'))
       .mockResolvedValueOnce(undefined)
@@ -837,7 +837,7 @@ describe('paste-special Core state machine', () => {
       return transport.promise
     })
     const first = openReadySession(store, port)
-    const refreshProjection = jest.fn(async () => {})
+    const refreshProjection = vi.fn(async () => {})
     const pending = store.setter(confirmPasteSpecialAtom, {
       historyEntryRecorder: recordTestHistory,
       source: port,
@@ -928,7 +928,7 @@ describe('paste-special Core state machine', () => {
     const { port } = createPort()
     const session = openReadySession(store, port)
     const requestIdBefore = store.getter(pasteSpecialRequestIdAtom)
-    const pasteRange = jest.fn(async (request: PasteRangeRequest) => strictResult(request))
+    const pasteRange = vi.fn(async (request: PasteRangeRequest) => strictResult(request))
     const source = Object.defineProperty({} as PasteSpecialControllerPort, 'pasteRange', {
       get: () => {
         store.setter(closePasteSpecialAtom)

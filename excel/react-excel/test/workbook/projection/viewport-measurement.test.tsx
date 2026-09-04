@@ -1,7 +1,7 @@
 import { createStore } from '@einfach/core'
 import { useAtomValue } from '@einfach/react'
 import { setViewportMetricsAtom, viewportMetricsAtom } from '@einfach/spreadsheet-ui-core'
-import { describe, expect, it } from '@jest/globals'
+import { describe, expect, it } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { useRef } from 'react'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
@@ -9,7 +9,7 @@ import { useWorkbookGridViewportMeasurement } from '../../../src/workbook/grid/v
 import { workbookViewportMetrics } from '../../../src/workbook/grid/viewport/workbook-grid-config'
 
 function ViewportMeasurementProbe() {
-  const scrollRef = useRef<HTMLDivElement>(null)
+  const scrollRef = useRef<HTMLDivElement | null>(null)
   const metrics = useAtomValue(viewportMetricsAtom)
   useWorkbookGridViewportMeasurement(scrollRef)
   const captureScroll = (node: HTMLDivElement | null) => {

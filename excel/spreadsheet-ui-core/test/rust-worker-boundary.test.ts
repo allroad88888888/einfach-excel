@@ -1,13 +1,14 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 import {
   createWorkerTransport,
   type WorkerLike,
 } from '../src/rust-worker'
 import { createRustWorkbookConnection } from '../src/rust-workbook'
+import { repositoryPath } from './support/repository-path'
 
-const RUST_WORKER_ROOT = join(process.cwd(), 'excel/spreadsheet-ui-core/src/rust-worker')
+const RUST_WORKER_ROOT = repositoryPath('excel/spreadsheet-ui-core/src/rust-worker')
 
 function sourceFiles(dir: string): readonly string[] {
   return readdirSync(dir).flatMap((entry) => {
@@ -87,10 +88,7 @@ describe('Rust Worker ownership boundary', () => {
   })
 
   test('keeps the package root free of side-effectful Worker exports', () => {
-    const root = readFileSync(
-      join(process.cwd(), 'excel/spreadsheet-ui-core/src/index.ts'),
-      'utf8',
-    )
+    const root = readFileSync(repositoryPath('excel/spreadsheet-ui-core/src/index.ts'), 'utf8')
 
     expect(root).not.toContain("from './rust-worker")
     expect(root).not.toContain('worker-runtime')

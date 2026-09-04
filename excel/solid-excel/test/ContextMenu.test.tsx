@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { describe, it, expect, afterEach, jest } from '@jest/globals'
+import { describe, it, expect, afterEach, vi } from 'vitest'
 import { render, cleanup, fireEvent } from '@solidjs/testing-library'
 import { ContextMenu, type ContextMenuItem } from '../legacy/ContextMenu'
 
@@ -48,8 +48,8 @@ describe('ContextMenu', () => {
   })
 
   it('clicking an item calls its onSelect and then onClose', () => {
-    const onSelect = jest.fn()
-    const onClose = jest.fn()
+    const onSelect = vi.fn()
+    const onClose = vi.fn()
     const items: ContextMenuItem[] = [{ label: 'Do thing', onSelect }]
     render(() => (
       <ContextMenu items={items} x={0} y={0} onClose={onClose} />
@@ -62,7 +62,7 @@ describe('ContextMenu', () => {
   })
 
   it('pressing Escape on document calls onClose', () => {
-    const onClose = jest.fn()
+    const onClose = vi.fn()
     const items: ContextMenuItem[] = [{ label: 'Anything', onSelect: () => {} }]
     render(() => (
       <ContextMenu items={items} x={0} y={0} onClose={onClose} />
@@ -74,8 +74,8 @@ describe('ContextMenu', () => {
   })
 
   it('disabled items do not fire onSelect', () => {
-    const onSelect = jest.fn()
-    const onClose = jest.fn()
+    const onSelect = vi.fn()
+    const onClose = vi.fn()
     const items: ContextMenuItem[] = [
       { label: 'Nope', onSelect, disabled: true },
     ]
@@ -91,7 +91,7 @@ describe('ContextMenu', () => {
   })
 
   it('clicking outside the menu calls onClose', () => {
-    const onClose = jest.fn()
+    const onClose = vi.fn()
     const items: ContextMenuItem[] = [{ label: 'X', onSelect: () => {} }]
     render(() => (
       <ContextMenu items={items} x={0} y={0} onClose={onClose} />

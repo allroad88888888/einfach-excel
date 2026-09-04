@@ -2,12 +2,12 @@
  * `ParityEngine` 的 **WASM 引擎**实现：直接驱动 `wasm-pkg/` 的 `WasmWorkbook`。
  *
  * 为什么不走 `worker-runtime.ts` 的 dispatcher：它在模块加载时自动装到 `self`
- * 上，jest 里没法干净地装第二次。所以这里调的是 dispatcher 会调的那批
+ * 上，Vitest 里没法干净地装第二次。所以这里调的是 dispatcher 会调的那批
  * wasm-bindgen 方法（`perf-ts-vs-wasm.bench.ts` 同样的绕法）。
  *
  * bulk 路径：`bulk_install_workbook`（storage-primary，Phase 6.2）。
  */
-import { expect } from '@jest/globals'
+import { expect } from 'vitest'
 import { existsSync, readFileSync } from 'node:fs'
 import { TextDecoder, TextEncoder } from 'node:util'
 import path from 'node:path'
@@ -21,7 +21,7 @@ import {
   type SampledCell,
 } from './scale-parity-engine-types'
 
-// jsdom under jest doesn't expose TextDecoder/TextEncoder; the wasm-bindgen
+// jsdom under Vitest doesn't expose TextDecoder/TextEncoder; the wasm-bindgen
 // glue grabs them at module-load time, so patch globals BEFORE importing
 // the wasm module (same trick as perf-ts-vs-wasm.bench.ts).
 const g = globalThis as unknown as {

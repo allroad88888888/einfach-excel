@@ -32,7 +32,9 @@
     "README.md"
   ],
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "sideEffects": false,
   "engines": {
@@ -48,7 +50,7 @@
     "@einfach/core": "^0.4.0"
   },
   "devDependencies": {
-    "@jest/globals": "^29.7.0",
-    "@types/node": "^20.11.30"
+    "@types/node": "^20.11.30",
+    "vitest": "^2.1.9"
   }
 }

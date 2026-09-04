@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from '@jest/globals'
+import { afterEach, describe, expect, it } from 'vitest'
 import { auditKeyboardA11ySurface } from '../src/a11y'
 
 afterEach(() => {

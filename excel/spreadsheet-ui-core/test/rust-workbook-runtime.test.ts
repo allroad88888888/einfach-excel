@@ -1,5 +1,5 @@
 import { createStore } from '@einfach/core'
-import { describe, expect, jest, test } from '@jest/globals'
+import { describe, expect, test, vi, type Mock } from 'vitest'
 import {
   activeWorkbookSheetAtom,
   disposeRustWorkbookRuntimeAtom,
@@ -16,7 +16,7 @@ import type { WorkerLike } from '../src/rust-worker'
 
 interface TestWorker {
   readonly commands: string[]
-  readonly terminate: jest.Mock
+  readonly terminate: Mock
   readonly worker: WorkerLike
 }
 
@@ -25,7 +25,7 @@ function createRuntimeWorker(
   initializedSheets = [{ id: 'orders', index: 0, name: 'Orders' }],
 ): TestWorker {
   const commands: string[] = []
-  const terminate = jest.fn()
+  const terminate = vi.fn()
   let onMessage: ((event: MessageEvent) => void) | undefined
   const worker: WorkerLike = {
     postMessage(message) {

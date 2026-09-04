@@ -16,7 +16,7 @@ import { useOverlayInteraction } from '../overlay'
 import { useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider'
 import { SpreadsheetPageSetupDialog } from './SpreadsheetPageSetupDialog'
 
-if (typeof process === 'undefined' || !process.env.JEST_WORKER_ID) {
+if (typeof process === 'undefined' || process.env.VITEST !== 'true') {
   void import('@einfach/spreadsheet-ui-styles/features/print-preview-dialog.css')
 }
 

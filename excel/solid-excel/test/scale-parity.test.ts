@@ -62,7 +62,7 @@
  * addresses together with `WORKLOAD_SEED` / `EDIT_SEED`; do not patch
  * either engine to make the suite green.
  */
-import { describe, expect, test, beforeAll, afterAll } from '@jest/globals'
+import { describe, expect, test, beforeAll, afterAll } from 'vitest'
 
 import { buildWorkload } from './scale-parity-workload'
 import { buildEdits } from './scale-parity-edits'
@@ -72,7 +72,7 @@ import { loadWasmModule, makeWasmEngine } from './scale-parity-engine-wasm'
 import { expectParity } from './scale-parity-compare'
 
 // ---------------------------------------------------------------------------
-// Suite. Phases share one imported workbook pair — jest runs the specs in
+// Suite. Phases share one imported workbook pair — Vitest runs the specs in
 // declaration order within the file.
 // ---------------------------------------------------------------------------
 describe('scale parity — one seeded ~75k workload through both worker runtimes', () => {

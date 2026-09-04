@@ -11,12 +11,11 @@
 Run with:
 
 ```
-EINFACH_PERF=1 npx jest --testRegex 'perf-ts-vs-wasm\.bench\.ts$' --no-coverage
+pnpm --filter @einfach/solid-excel test:bench -- test/perf-ts-vs-wasm.bench.ts
 ```
 
-(The bench uses a `.bench.ts` suffix so it stays out of the default
-`testMatch` glob — running plain `npx jest` skips it entirely. The
-`--testRegex` override is the discovery trick.)
+The normal Vitest config excludes `.bench.ts`; `test:bench` switches
+discovery to benchmark files.
 
 Each row reports wall-clock milliseconds (median of 3 runs for Tiny /
 Medium, single run for Large+) for both the TS and WASM cores on
@@ -70,8 +69,8 @@ that engine on all LARGER tiers — but does NOT abort the suite.
 Run with very high `--testTimeout` for the heavy tiers, e.g.:
 
 ```
-EINFACH_PERF=1 npx jest --testRegex 'perf-ts-vs-wasm\.bench\.ts$' \
-  --no-coverage --testTimeout=1800000
+pnpm --filter @einfach/solid-excel test:bench -- test/perf-ts-vs-wasm.bench.ts \
+  --testTimeout 1800000
 ```
 
 Optionally launch Node with `--expose-gc` and a larger heap so the
@@ -79,9 +78,9 @@ between-tier GC actually runs and a 1M-cell tier doesn't hit V8's
 default 4 GB ceiling early:
 
 ```
-EINFACH_PERF=1 NODE_OPTIONS='--expose-gc --max-old-space-size=8192' \
-  npx jest --testRegex 'perf-ts-vs-wasm\.bench\.ts$' \
-  --no-coverage --testTimeout=1800000 --maxWorkers=1
+NODE_OPTIONS='--expose-gc --max-old-space-size=8192' \
+  pnpm --filter @einfach/solid-excel test:bench -- test/perf-ts-vs-wasm.bench.ts \
+  --testTimeout 1800000 --maxWorkers 1
 ```
 
 <!-- BENCH:RESULTS:START -->
@@ -799,7 +798,7 @@ The error is the message thrown by the wasm-bindgen-generated
 A reduced reproducer (1 M seeds OK → 1 M formulas crashes mid-loop)
 confirmed the chain takes ~11 minutes and produces RSS ≈ 2.2 GB at
 failure; the panic message itself goes to `console.error` via
-`console_error_panic_hook` but is easy to miss inside jest's
+`console_error_panic_hook` but is easy to miss inside Vitest's
 captured-output buffering.
 
 **Fix**: pre-flight payload-size guard at the WASM API boundary, in

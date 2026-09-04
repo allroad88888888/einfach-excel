@@ -45,7 +45,7 @@
 | SH-29 | 状态栏聚合随选区扩展/收缩重算 | B2:C2 → B2:C3 → B2 | sum 300→540→120，count 2→4→1 | 🆕 本轮 | status-name-box.spec.ts |
 | SH-30 | Name Box 非法输入报错（role=alert）且选区不动，成功提交后错误清除 | 填 "!!!" 回车再填 A1 | name-box-error 可见→消失，选区不变→A1 | 🆕 本轮 | status-name-box.spec.ts |
 | SH-31 | 菜单 accessKey / 方向键遍历（Alt+字母开菜单、↑↓ 高亮） | — | — | ⏳ P2 延后 | 键盘导航矩阵大，独立专项更合适 |
-| SH-32 | 聚合勾选菜单的方向键遍历（↑↓/Home/End） | — | — | ⏳ P2 延后 | 已由 jest 组件测覆盖键盘分支，e2e 只钉右键→勾选→Escape 主路径 |
+| SH-32 | 聚合勾选菜单的方向键遍历（↑↓/Home/End） | — | — | ⏳ P2 延后 | 已由 Vitest 组件测覆盖键盘分支，e2e 只钉右键→勾选→Escape 主路径 |
 | SH-33 | edit.pasteSpecial / data.textToColumns 的 port 撤除矩阵 | — | — | ⏳ P2 延后 | worker 后端两端口均无条件实现，当前无法构造缺失端；待出现真实缺端 host 再补 |
 
 状态说明：fail-closed 矩阵按 `test.info().project.name` 分支（参考

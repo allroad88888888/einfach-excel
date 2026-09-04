@@ -1,25 +1,25 @@
 /** @jsxImportSource solid-js */
 
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render } from '@solidjs/testing-library'
 import { SpreadsheetGridDataRow } from '../src/grid/SpreadsheetGridDataRow'
 import { SpreadsheetGridTable } from '../src/grid/SpreadsheetGridTable'
 
 afterEach(() => {
   cleanup()
-  jest.restoreAllMocks()
+  vi.restoreAllMocks()
 })
 
 describe('vnext grid header resize split', () => {
   it('keeps a column resize handle click out of column selection', () => {
-    const selectColumn = jest.fn()
-    const startColumnResize = jest.fn()
+    const selectColumn = vi.fn()
+    const startColumnResize = vi.fn()
     const { getByTestId, container } = render(() => (
       <SpreadsheetGridTable
         runtime={
           {
             props: { sheetId: 'sheet-1' },
-            store: { setter: jest.fn() },
+            store: { setter: vi.fn() },
             getTotalTableWidth: () => 96,
             getRows: () => [0],
             getCols: () => [0],
@@ -36,23 +36,23 @@ describe('vnext grid header resize split', () => {
             freezeColCount: () => 0,
             colHasFilterRule: () => false,
             startColumnResize,
-            autoFitColumn: jest.fn(),
+            autoFitColumn: vi.fn(),
             getTopSpacerHeight: () => 0,
             getBottomSpacerHeight: () => 0,
             getVirtualColumnSpan: () => 1,
             getCornerStyle: () => ({}),
             isAllSelected: () => false,
-            focusGrid: jest.fn(),
-            openContextMenu: jest.fn(),
+            focusGrid: vi.fn(),
+            openContextMenu: vi.fn(),
             selectColumn,
             getRenderedRowHeight: () => 24,
             isRowSelected: () => false,
             isRowInSelection: () => false,
             freezeRowCount: () => 0,
             getRowHeaderStyle: () => ({}),
-            selectRow: jest.fn(),
-            startRowResize: jest.fn(),
-            autoFitRow: jest.fn(),
+            selectRow: vi.fn(),
+            startRowResize: vi.fn(),
+            autoFitRow: vi.fn(),
             isCellCoveredByMerge: () => true,
           } as never
         }
@@ -73,8 +73,8 @@ describe('vnext grid header resize split', () => {
   })
 
   it('keeps a row resize handle click out of row selection', () => {
-    const selectRow = jest.fn()
-    const startRowResize = jest.fn()
+    const selectRow = vi.fn()
+    const startRowResize = vi.fn()
     const { getByTestId, container } = render(() => (
       <table>
         <tbody>
@@ -90,12 +90,12 @@ describe('vnext grid header resize split', () => {
                 freezeRowCount: () => 0,
                 getRowHeaderStyle: () => ({}),
                 selectRow,
-                openContextMenu: jest.fn(),
+                openContextMenu: vi.fn(),
                 getLeftSpacerWidth: () => 0,
                 getCols: () => [],
                 getRightSpacerWidth: () => 0,
                 startRowResize,
-                autoFitRow: jest.fn(),
+                autoFitRow: vi.fn(),
               } as never
             }
             row={0}

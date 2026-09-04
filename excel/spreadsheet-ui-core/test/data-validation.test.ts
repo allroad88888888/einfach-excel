@@ -1,4 +1,4 @@
-import { describe, expect, jest, test } from '@jest/globals'
+import { describe, expect, test, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import {
   DATA_VALIDATION_MUTATION_LEDGER_MAX,
@@ -302,13 +302,13 @@ describe('data-validation', () => {
   test('save snapshots the core form, acknowledges the result, and closes', async () => {
     const store = createStore()
     const range = { rowStart: 1, rowEnd: 3, colStart: 2, colEnd: 4 }
-    const setRule = jest.fn(async (request: SetValidationRuleRequest) => ({
+    const setRule = vi.fn(async (request: SetValidationRuleRequest) => ({
       sheetId: request.sheetId,
       requestId: request.requestId,
       revision: 'revision-2',
       affectedRange: request.range,
     }))
-    const acceptAcknowledgedResult = jest.fn(async () => undefined)
+    const acceptAcknowledgedResult = vi.fn(async () => undefined)
     store.setter(openValidationRuleEditorAtom, { range })
     store.setter(updateValidationRuleFormAtom, {
       kind: 'range',
@@ -363,7 +363,7 @@ describe('data-validation', () => {
     const store = createStore()
     const range = { rowStart: 1, rowEnd: 2, colStart: 3, colEnd: 4 }
     const backend = deferred<DataValidationMutationAcknowledgement>()
-    const setRule = jest.fn(() => backend.promise)
+    const setRule = vi.fn(() => backend.promise)
     const snapshots: Array<{
       source: 'editor' | 'ledger'
       editorPending: boolean
@@ -432,7 +432,7 @@ describe('data-validation', () => {
     const store = createStore()
     const range = { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 0 }
     const backend = deferred<DataValidationMutationAcknowledgement>()
-    const setRule = jest.fn(() => backend.promise)
+    const setRule = vi.fn(() => backend.promise)
     store.setter(openValidationRuleEditorAtom, { range })
 
     const first = store.setter(runDataValidationMutationAtom, {
@@ -464,8 +464,8 @@ describe('data-validation', () => {
   test('an explicit sheet target remains independent of fallback authority rotations', async () => {
     const store = createStore()
     const range = { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 0 }
-    const acceptAcknowledgedResult = jest.fn(async () => undefined)
-    const setRule = jest.fn(async (request: SetValidationRuleRequest) => {
+    const acceptAcknowledgedResult = vi.fn(async () => undefined)
+    const setRule = vi.fn(async (request: SetValidationRuleRequest) => {
       store.setter(setWorkspaceActiveSheetAtom, { sheetId: 'workspace-b' })
       store.setter(selectionAtom, {
         kind: 'cell',
@@ -505,7 +505,7 @@ describe('data-validation', () => {
   test('workspace fallback rejects an A to B to A authority rotation before transport', async () => {
     const store = createStore()
     const range = { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 0 }
-    const setRule = jest.fn(async (request: SetValidationRuleRequest) => ({
+    const setRule = vi.fn(async (request: SetValidationRuleRequest) => ({
       sheetId: request.sheetId,
       requestId: request.requestId,
       affectedRange: request.range,
@@ -532,7 +532,7 @@ describe('data-validation', () => {
   test('workspace fallback survives a public snapshot replacement that preserves target authority', async () => {
     const store = createStore()
     const range = { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 0 }
-    const setRule = jest.fn(async (request: SetValidationRuleRequest) => ({
+    const setRule = vi.fn(async (request: SetValidationRuleRequest) => ({
       sheetId: request.sheetId,
       requestId: request.requestId,
       affectedRange: request.range,
@@ -557,7 +557,7 @@ describe('data-validation', () => {
   test('selection fallback rejects an A to B to A authority rotation before transport', async () => {
     const store = createStore()
     const range = { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 0 }
-    const setRule = jest.fn(async (request: SetValidationRuleRequest) => ({
+    const setRule = vi.fn(async (request: SetValidationRuleRequest) => ({
       sheetId: request.sheetId,
       requestId: request.requestId,
       affectedRange: request.range,
@@ -599,7 +599,7 @@ describe('data-validation', () => {
   test('activating workspace authority revokes a captured selection fallback before transport', async () => {
     const store = createStore()
     const range = { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 0 }
-    const setRule = jest.fn(async (request: SetValidationRuleRequest) => ({
+    const setRule = vi.fn(async (request: SetValidationRuleRequest) => ({
       sheetId: request.sheetId,
       requestId: request.requestId,
       affectedRange: request.range,
@@ -630,7 +630,7 @@ describe('data-validation', () => {
     const store = createStore()
     const firstRange = { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 0 }
     const secondRange = { rowStart: 5, rowEnd: 5, colStart: 5, colEnd: 5 }
-    const setRule = jest.fn(async (request: SetValidationRuleRequest) => ({
+    const setRule = vi.fn(async (request: SetValidationRuleRequest) => ({
       sheetId: request.sheetId,
       requestId: request.requestId,
       affectedRange: request.range,
@@ -664,7 +664,7 @@ describe('data-validation', () => {
   test('workspace A to B to A rotation after transport blocks stale reconciliation', async () => {
     const store = createStore()
     const range = { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 0 }
-    const acceptAcknowledgedResult = jest.fn(async () => undefined)
+    const acceptAcknowledgedResult = vi.fn(async () => undefined)
     store.setter(setWorkspaceActiveSheetAtom, { sheetId: 'sheet-a' })
     store.setter(openValidationRuleEditorAtom, { range })
 
@@ -732,7 +732,7 @@ describe('data-validation', () => {
   test('workspace authority rotation after transport blocks stale reconciliation', async () => {
     const store = createStore()
     const range = { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 0 }
-    const acceptAcknowledgedResult = jest.fn(async () => undefined)
+    const acceptAcknowledgedResult = vi.fn(async () => undefined)
     store.setter(setWorkspaceActiveSheetAtom, { sheetId: 'sheet-a' })
     store.setter(openValidationRuleEditorAtom, { range })
 
@@ -764,7 +764,7 @@ describe('data-validation', () => {
   test('selection authority rotation after transport blocks stale reconciliation', async () => {
     const store = createStore()
     const range = { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 0 }
-    const acceptAcknowledgedResult = jest.fn(async () => undefined)
+    const acceptAcknowledgedResult = vi.fn(async () => undefined)
     store.setter(selectionAtom, {
       kind: 'cell',
       sheetId: 'sheet-a',
@@ -807,8 +807,8 @@ describe('data-validation', () => {
     const store = createStore()
     const range = { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 0 }
     const backend = deferred<DataValidationMutationAcknowledgement>()
-    const setRule = jest.fn(() => backend.promise)
-    const acceptAcknowledgedResult = jest.fn(async () => undefined)
+    const setRule = vi.fn(() => backend.promise)
+    const acceptAcknowledgedResult = vi.fn(async () => undefined)
     store.setter(setWorkspaceActiveSheetAtom, { sheetId: 'sheet-a' })
     store.setter(openValidationRuleEditorAtom, { range })
 
@@ -878,8 +878,8 @@ describe('data-validation', () => {
     const store = createStore()
     const range = { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 0 }
     const backend = deferred<DataValidationMutationAcknowledgement>()
-    const setRule = jest.fn(() => backend.promise)
-    const acceptAcknowledgedResult = jest.fn(async () => undefined)
+    const setRule = vi.fn(() => backend.promise)
+    const acceptAcknowledgedResult = vi.fn(async () => undefined)
     store.setter(selectionAtom, {
       kind: 'cell',
       sheetId: 'sheet-a',
@@ -1019,7 +1019,7 @@ describe('data-validation', () => {
   test('clear dispatches a core-owned range snapshot', async () => {
     const store = createStore()
     const range = { rowStart: 0, rowEnd: 5, colStart: 1, colEnd: 1 }
-    const clearRule = jest.fn(async (request: ClearValidationRuleRequest) => ({
+    const clearRule = vi.fn(async (request: ClearValidationRuleRequest) => ({
       sheetId: request.sheetId,
       requestId: request.requestId,
       affectedRange: request.range,
@@ -1052,7 +1052,7 @@ describe('data-validation', () => {
     const firstRange = { rowStart: 0, rowEnd: 1, colStart: 0, colEnd: 1 }
     const secondRange = { rowStart: 8, rowEnd: 9, colStart: 3, colEnd: 4 }
     const backend = deferred<DataValidationMutationAcknowledgement>()
-    const acceptAcknowledgedResult = jest.fn(async () => undefined)
+    const acceptAcknowledgedResult = vi.fn(async () => undefined)
     store.setter(openValidationRuleEditorAtom, {
       range: firstRange,
       draft: { kind: 'list', values: ['old'], dropdown: true },
@@ -1119,7 +1119,7 @@ describe('data-validation', () => {
     const firstRange = { rowStart: 1, rowEnd: 2, colStart: 1, colEnd: 2 }
     const secondRange = { rowStart: 12, rowEnd: 13, colStart: 5, colEnd: 6 }
     const backend = deferred<DataValidationMutationAcknowledgement>()
-    const acceptAcknowledgedResult = jest.fn(async () => undefined)
+    const acceptAcknowledgedResult = vi.fn(async () => undefined)
     let dispatchedRequest: ClearValidationRuleRequest | undefined
     store.setter(openValidationRuleEditorAtom, {
       range: firstRange,
@@ -1242,7 +1242,7 @@ describe('data-validation', () => {
   ])('$name acknowledgement becomes outcome-unknown', async ({ response, error }) => {
     const store = createStore()
     const range = { rowStart: 0, rowEnd: 1, colStart: 0, colEnd: 1 }
-    const acceptAcknowledgedResult = jest.fn(async () => undefined)
+    const acceptAcknowledgedResult = vi.fn(async () => undefined)
     store.setter(openValidationRuleEditorAtom, { range })
 
     await expect(
@@ -1270,7 +1270,7 @@ describe('data-validation', () => {
   test('mismatched acknowledgement range becomes outcome-unknown', async () => {
     const store = createStore()
     const range = { rowStart: 0, rowEnd: 1, colStart: 0, colEnd: 1 }
-    const acceptAcknowledgedResult = jest.fn(async () => undefined)
+    const acceptAcknowledgedResult = vi.fn(async () => undefined)
     store.setter(openValidationRuleEditorAtom, { range })
 
     await store.setter(runDataValidationMutationAtom, {
@@ -1301,7 +1301,7 @@ describe('data-validation', () => {
     const store = createStore()
     const range = { rowStart: 1, rowEnd: 2, colStart: 3, colEnd: 4 }
     const getterReads = { sheetId: 0, requestId: 0, affectedRange: 0, revision: 0 }
-    const acceptAcknowledgedResult = jest.fn(
+    const acceptAcknowledgedResult = vi.fn(
       async (acknowledgement: DataValidationMutationAcknowledgement) => {
         expect(Object.isFrozen(acknowledgement)).toBe(true)
         expect(Object.isFrozen(acknowledgement.affectedRange)).toBe(true)
@@ -1412,7 +1412,7 @@ describe('data-validation', () => {
     ])
 
     store.setter(openValidationRuleEditorAtom, { range: secondRange })
-    const backend = jest.fn(async () => ({ sheetId: 'sheet-1', requestId: 2 }))
+    const backend = vi.fn(async () => ({ sheetId: 'sheet-1', requestId: 2 }))
     let callerPropertyReads = 0
     const blockedInput = Object.defineProperties(
       {},
@@ -1454,7 +1454,7 @@ describe('data-validation', () => {
   test('bounded journal evicts only the oldest acknowledged attempts', async () => {
     const store = createStore()
     const range = { rowStart: 1, rowEnd: 1, colStart: 1, colEnd: 1 }
-    const setRule = jest.fn(async (request: SetValidationRuleRequest) => ({
+    const setRule = vi.fn(async (request: SetValidationRuleRequest) => ({
       sheetId: request.sheetId,
       requestId: request.requestId,
       affectedRange: request.range,
@@ -1545,7 +1545,7 @@ describe('data-validation', () => {
 
   test('missing range rejects before backend dispatch', async () => {
     const store = createStore()
-    const setRule = jest.fn(async () => ({ sheetId: 'sheet-1' }))
+    const setRule = vi.fn(async () => ({ sheetId: 'sheet-1' }))
     store.setter(openValidationRuleEditorAtom, {})
 
     await store.setter(runDataValidationMutationAtom, {
@@ -1561,7 +1561,7 @@ describe('data-validation', () => {
 
   test('missing sheet rejects before backend dispatch', async () => {
     const store = createStore()
-    const setRule = jest.fn(async () => ({ sheetId: '' }))
+    const setRule = vi.fn(async () => ({ sheetId: '' }))
     store.setter(openValidationRuleEditorAtom, {
       range: { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 0 },
     })

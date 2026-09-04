@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import {
@@ -36,7 +36,7 @@ afterEach(() => {
 
 describe('toolbar font menus', () => {
   it('focuses the current family, navigates the menu, and restores the opener on Escape', async () => {
-    const onClose = jest.fn()
+    const onClose = vi.fn()
     let anchor!: HTMLButtonElement
     const { container } = render(() => (
       <>
@@ -77,7 +77,7 @@ describe('toolbar font menus', () => {
   })
 
   it('focuses the current size and returns focus after selecting a size', async () => {
-    const onSelect = jest.fn()
+    const onSelect = vi.fn()
     let anchor!: HTMLButtonElement
     const { container } = render(() => (
       <>
@@ -169,7 +169,7 @@ describe('toolbar color palette', () => {
   })
 
   it('reflects the current color, supports grid keys, and returns focus on Escape', async () => {
-    const onClose = jest.fn()
+    const onClose = vi.fn()
     const [mode, setMode] = createSignal<'fill' | null>('fill')
     const { container } = render(() => (
       <>
@@ -209,7 +209,7 @@ describe('toolbar color palette', () => {
   })
 
   it('marks no fill as current and restores the opener after a color pick', async () => {
-    const onPick = jest.fn()
+    const onPick = vi.fn()
     const [open, setOpen] = createSignal(true)
     const { container } = render(() => (
       <>

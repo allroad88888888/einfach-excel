@@ -17,7 +17,7 @@ import { useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider/hooks'
 import { CommentThreadPresentation } from './CommentThreadPresentation'
 import { useCommentThreadInteraction } from './use-comment-thread-interaction'
 
-if (typeof process === 'undefined' || !process.env.JEST_WORKER_ID) {
+if (typeof process === 'undefined' || process.env.VITEST !== 'true') {
   void import('@einfach/spreadsheet-ui-styles/features/comment-thread.css')
 }
 

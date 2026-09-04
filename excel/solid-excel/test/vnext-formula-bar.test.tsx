@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import { render, cleanup, fireEvent, waitFor } from '@solidjs/testing-library'
 import type {
@@ -44,7 +44,7 @@ function createBackend(
   readResult: VisibleProjectionResult,
   setCellInputSpy: (request: SetCellInputRequest) => Promise<BackendMutationResult>,
 ) {
-  const readVisibleProjection = jest.fn(async (_request: VisibleProjectionRequest) => {
+  const readVisibleProjection = vi.fn(async (_request: VisibleProjectionRequest) => {
     return readResult
   })
 
@@ -64,7 +64,7 @@ describe('vNext SpreadsheetFormulaBar', () => {
     const store = createStore()
     const window = { rowStart: 0, rowEnd: 1, colStart: 0, colEnd: 1 }
     const result = createVisibleProjectionResult(window, 'sheet-1')
-    const setCellInput = jest.fn(async () => ({ sheetId: 'sheet-1' }))
+    const setCellInput = vi.fn(async () => ({ sheetId: 'sheet-1' }))
     const { backend } = createBackend(result, setCellInput)
     seedReadyVisibleProjection(store, {
       status: 'ready',
@@ -102,7 +102,7 @@ describe('vNext SpreadsheetFormulaBar', () => {
     const store = createStore()
     const initialWindow = { rowStart: 0, rowEnd: 1, colStart: 0, colEnd: 1 }
     const initialResult = createVisibleProjectionResult(initialWindow, 'sheet-1')
-    const setCellInput = jest.fn(async () => ({ sheetId: 'sheet-1' }))
+    const setCellInput = vi.fn(async () => ({ sheetId: 'sheet-1' }))
     const { backend } = createBackend(initialResult, setCellInput)
     seedReadyVisibleProjection(store, {
       status: 'ready',
@@ -162,7 +162,7 @@ describe('vNext SpreadsheetFormulaBar', () => {
       cells: [],
       revision: 'rev-1',
     }
-    const setCellInput = jest.fn(async () => ({ sheetId: 'sheet-1' }))
+    const setCellInput = vi.fn(async () => ({ sheetId: 'sheet-1' }))
     const { backend } = createBackend(result, setCellInput)
     seedReadyVisibleProjection(store, {
       status: 'ready',
@@ -193,7 +193,7 @@ describe('vNext SpreadsheetFormulaBar', () => {
     const store = createStore()
     const window = { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 0 }
     const result = createVisibleProjectionResult(window, 'sheet-1')
-    const setCellInput = jest.fn(async (request: SetCellInputRequest) => ({
+    const setCellInput = vi.fn(async (request: SetCellInputRequest) => ({
       sheetId: request.sheetId,
       requestId: request.requestId,
       revision: 'rev-2',
@@ -258,7 +258,7 @@ describe('vNext SpreadsheetFormulaBar', () => {
     const store = createStore()
     const window = { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 0 }
     const result = createVisibleProjectionResult(window, 'sheet-1')
-    const setCellInput = jest.fn(async () => ({ sheetId: 'sheet-1' }))
+    const setCellInput = vi.fn(async () => ({ sheetId: 'sheet-1' }))
     const { backend } = createBackend(result, setCellInput)
 
     seedReadyVisibleProjection(store, {

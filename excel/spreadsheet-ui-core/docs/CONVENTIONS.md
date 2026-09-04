@@ -34,15 +34,15 @@ UI core 类型或 atom 改动：
 
 ```bash
 npx tsc -p excel/spreadsheet-ui-core/tsconfig.json --noEmit --pretty false
-npx jest excel/spreadsheet-ui-core/test/<feature>.test.ts --runInBand
-npx jest excel/spreadsheet-ui-core/test/package-boundary.test.ts --runInBand
+pnpm --filter @einfach/spreadsheet-ui-core exec vitest run test/<feature>.test.ts
+pnpm --filter @einfach/spreadsheet-ui-core exec vitest run test/package-boundary.test.ts
 ```
 
 影响 `excel/solid-excel/src` adapter 或 UI：
 
 ```bash
 npx tsc -p excel/solid-excel/tsconfig.json --noEmit --pretty false
-npx jest excel/solid-excel/test/vnext-*.test.tsx excel/solid-excel/test/vnext-adapter.test.ts --runInBand
+pnpm --filter @einfach/solid-excel exec vitest run test/vnext-*.test.tsx test/vnext-adapter.test.ts
 NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach/solid-excel -- e2e/smoke/vnext-smoke.spec.ts
 ```
 

@@ -11,7 +11,7 @@
  *      降级契约，静态后端走的就是这条路。
  */
 
-import { afterEach, describe, expect, it } from '@jest/globals'
+import { afterEach, describe, expect, it } from 'vitest'
 import { createStore } from '@einfach/core'
 import { cleanup, render, waitFor } from '@solidjs/testing-library'
 import {

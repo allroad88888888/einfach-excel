@@ -1,4 +1,4 @@
-import { describe, expect, jest, test } from '@jest/globals'
+import { describe, expect, test, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import {
   closeFormatCellsAtom,
@@ -289,7 +289,7 @@ describe('format-cells Core-owned save lifecycle', () => {
     'keeps a retryable ErrorOpen when source-range resolution %s before the write boundary',
     async (_label, resolver) => {
       const store = createStore()
-      const setFormatRange = jest.fn()
+      const setFormatRange = vi.fn()
       store.setter(openFormatCellsAtom, {
         sheetId: 'sheet-1',
         range: RANGE,

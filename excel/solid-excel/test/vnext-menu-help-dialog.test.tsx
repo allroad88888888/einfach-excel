@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { cleanup, fireEvent, render } from '@solidjs/testing-library'
@@ -10,11 +10,11 @@ afterEach(cleanup)
 
 describe('MenuBarHelpDialog Office web shell', () => {
   it('keeps the closed state unmounted and renders the compact shortcuts card', () => {
-    const closed = render(() => <MenuBarHelpDialog kind="closed" onClose={jest.fn()} />)
+    const closed = render(() => <MenuBarHelpDialog kind="closed" onClose={vi.fn()} />)
     expect(closed.container.querySelector('[role="dialog"]')).toBeNull()
     closed.unmount()
 
-    const rendered = render(() => <MenuBarHelpDialog kind="shortcuts" onClose={jest.fn()} />)
+    const rendered = render(() => <MenuBarHelpDialog kind="shortcuts" onClose={vi.fn()} />)
     const dialog = rendered.getByRole('dialog')
 
     expect(dialog.querySelector('header')).not.toBeNull()
@@ -27,7 +27,7 @@ describe('MenuBarHelpDialog Office web shell', () => {
   })
 
   it('closes from the primary action or Escape without changing the caller contract', () => {
-    const onClose = jest.fn()
+    const onClose = vi.fn()
     const { getByRole } = render(() => <MenuBarHelpDialog kind="about" onClose={onClose} />)
     const dialog = getByRole('dialog')
 

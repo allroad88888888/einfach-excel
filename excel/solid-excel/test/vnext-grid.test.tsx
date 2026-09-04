@@ -2,7 +2,7 @@
 
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import { render, cleanup, fireEvent, waitFor } from '@solidjs/testing-library'
 import type {
@@ -2719,7 +2719,7 @@ describe('vNext SpreadsheetGrid', () => {
 
     const selectionBefore = store.getter(selectionAtom)
     const activeCell = container.querySelector('[data-cell-addr="C2"]') as HTMLElement
-    jest.spyOn(activeCell, 'getBoundingClientRect').mockReturnValue({
+    vi.spyOn(activeCell, 'getBoundingClientRect').mockReturnValue({
       x: 20,
       y: 30,
       left: 20,
@@ -2820,7 +2820,7 @@ describe('vNext SpreadsheetGrid', () => {
       return result
     }
 
-    const writeText = jest.fn<() => Promise<void>>().mockResolvedValue(undefined)
+    const writeText = vi.fn<() => Promise<void>>().mockResolvedValue(undefined)
     Object.defineProperty(navigator, 'clipboard', {
       configurable: true,
       value: { writeText },
@@ -2874,7 +2874,7 @@ describe('vNext SpreadsheetGrid', () => {
     Object.defineProperty(navigator, 'clipboard', {
       configurable: true,
       value: {
-        readText: jest.fn<() => Promise<string>>().mockResolvedValue('pasted'),
+        readText: vi.fn<() => Promise<string>>().mockResolvedValue('pasted'),
       },
     })
 
@@ -3510,7 +3510,7 @@ describe('vNext SpreadsheetGrid', () => {
       }
     }
 
-    const writeText = jest.fn<(text: string) => Promise<void>>().mockResolvedValue(undefined)
+    const writeText = vi.fn<(text: string) => Promise<void>>().mockResolvedValue(undefined)
     Object.defineProperty(navigator, 'clipboard', {
       configurable: true,
       value: { writeText },
@@ -3589,7 +3589,7 @@ describe('vNext SpreadsheetGrid', () => {
       return result
     }
 
-    const writeText = jest.fn<(text: string) => Promise<void>>().mockResolvedValue(undefined)
+    const writeText = vi.fn<(text: string) => Promise<void>>().mockResolvedValue(undefined)
     Object.defineProperty(navigator, 'clipboard', {
       configurable: true,
       value: { writeText },
@@ -3660,7 +3660,7 @@ describe('vNext SpreadsheetGrid', () => {
     }
     // no consumeExportRangeTsvChunks / exportRangeTsv on backend
 
-    const writeText = jest.fn<(text: string) => Promise<void>>().mockResolvedValue(undefined)
+    const writeText = vi.fn<(text: string) => Promise<void>>().mockResolvedValue(undefined)
     Object.defineProperty(navigator, 'clipboard', {
       configurable: true,
       value: { writeText },
@@ -3730,7 +3730,7 @@ describe('vNext SpreadsheetGrid', () => {
       return result
     }
 
-    const writeText = jest.fn<(text: string) => Promise<void>>().mockResolvedValue(undefined)
+    const writeText = vi.fn<(text: string) => Promise<void>>().mockResolvedValue(undefined)
     Object.defineProperty(navigator, 'clipboard', {
       configurable: true,
       value: { writeText },

@@ -1,5 +1,5 @@
 /** @jsxImportSource solid-js */
-import { describe, expect, it } from '@jest/globals'
+import { describe, expect, it } from 'vitest'
 import { createStore, atom } from '@einfach/core'
 import { render } from '@solidjs/testing-library'
 import { Provider, useAtomValue } from '@einfach/solid'

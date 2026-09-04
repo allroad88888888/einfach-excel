@@ -36,7 +36,7 @@
  *   - Missing arg binds to BLANK inside the body (not undefined).
  */
 
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import { createWorkbook } from '../src/workbook'
 import { evaluate, rangeLookupGeneric, refLookupGeneric } from '../src/eval/evaluate'

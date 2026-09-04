@@ -38,7 +38,7 @@ src/types.ts       跨轨道公共契约（AST、Value、函数签名、变更�
 跨文件重名由测试拦截：
 
 ```bash
-npx jest excel/excel-core-ts/test/functions-registry.test.ts --no-coverage
+pnpm --filter @einfach/excel-core-ts exec vitest run test/functions-registry.test.ts
 ```
 
 ## 包边界
@@ -57,7 +57,7 @@ npx jest excel/excel-core-ts/test/functions-registry.test.ts --no-coverage
 
 ```bash
 npm run build -w @einfach/excel-core-ts                 # tsc
-npx jest excel/excel-core-ts --no-coverage              # 本包全部单测
+pnpm --filter @einfach/excel-core-ts test               # 本包全部单测
 npx tsc --noEmit -p excel/excel-core-ts/tsconfig.json   # 只类型检查
 ```
 

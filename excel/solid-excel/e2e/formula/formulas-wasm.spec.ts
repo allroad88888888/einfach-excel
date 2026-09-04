@@ -13,7 +13,7 @@ import {
  * P1: WASM Formula Showcase
  *
  * Backed by `DemoFormulas` + `createWasmSheet` — the real Rust evaluator.
- * Function correctness is exhaustively unit-tested in Rust/Jest; the e2e
+ * Function correctness is exhaustively unit-tested in Rust/Vitest; the e2e
  * here is integration coverage only:
  *
  *   - the WASM module actually loads and seeds (no "Loading WASM…" stuck)

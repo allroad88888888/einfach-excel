@@ -1,4 +1,4 @@
-import { describe, expect, jest, test } from '@jest/globals'
+import { describe, expect, test, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import {
   historyStackAtom,
@@ -102,8 +102,8 @@ describe('find/replace history recording', () => {
       recorded.push(entry)
       return append(entry) ? 'recorded' : 'rejected'
     }
-    const refreshSearch = jest.fn(async (request: SearchRangeRequest) => searchResult(request, []))
-    const replaceMatches = jest.fn(async (request: ReplaceMatchesRequest) =>
+    const refreshSearch = vi.fn(async (request: SearchRangeRequest) => searchResult(request, []))
+    const replaceMatches = vi.fn(async (request: ReplaceMatchesRequest) =>
       acknowledgement(request),
     )
 
@@ -130,8 +130,8 @@ describe('find/replace history recording', () => {
 
   test('an unavailable recorder completes without creating an undo entry', async () => {
     const store = await setupStore([match(1, 3), match(2, 3)])
-    const refreshSearch = jest.fn(async (request: SearchRangeRequest) => searchResult(request, []))
-    const replaceMatches = jest.fn(async (request: ReplaceMatchesRequest) =>
+    const refreshSearch = vi.fn(async (request: SearchRangeRequest) => searchResult(request, []))
+    const replaceMatches = vi.fn(async (request: ReplaceMatchesRequest) =>
       acknowledgement(request),
     )
 
@@ -149,10 +149,10 @@ describe('find/replace history recording', () => {
     'a %s history recorder makes the acknowledged mutation outcome-unknown without refresh or resend',
     async (outcome) => {
       const store = await setupStore([match(1, 3), match(2, 3)])
-      const refreshSearch = jest.fn(async (request: SearchRangeRequest) =>
+      const refreshSearch = vi.fn(async (request: SearchRangeRequest) =>
         searchResult(request, []),
       )
-      const replaceMatches = jest.fn(async (request: ReplaceMatchesRequest) =>
+      const replaceMatches = vi.fn(async (request: ReplaceMatchesRequest) =>
         acknowledgement(request),
       )
       const historyEntryRecorder: HistoryEntryRecorder = () => {

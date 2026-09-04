@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import type {
@@ -107,7 +107,7 @@ describe('SpreadsheetConditionalFormatDialog interactions', () => {
 
   it('opens an existing rule through its core draft command and submits it from the form', async () => {
     const store = createStore()
-    const setConditionalFormatRule = jest.fn(async (request: SetConditionalFormatRuleRequest) => ({
+    const setConditionalFormatRule = vi.fn(async (request: SetConditionalFormatRuleRequest) => ({
       sheetId: request.sheetId,
       requestId: request.requestId,
     }))
@@ -138,7 +138,7 @@ describe('SpreadsheetConditionalFormatDialog interactions', () => {
 
   it('associates an Atom-backed unknown outcome with the dialog and preserves the blocked retry path', async () => {
     const store = createStore()
-    const setConditionalFormatRule = jest.fn(async () => {
+    const setConditionalFormatRule = vi.fn(async () => {
       throw new Error('connection interrupted')
     })
     store.setter(setConditionalFormatRulesAtom, { sheetId: 'sheet-1', rules: [CELL_VALUE_ENTRY] })

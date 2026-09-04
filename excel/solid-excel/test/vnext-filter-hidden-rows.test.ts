@@ -13,7 +13,7 @@
  * makes SUBTOTAL quietly include a filtered-away row.
  */
 
-import { describe, expect, it } from '@jest/globals'
+import { describe, expect, it } from 'vitest'
 
 import type { FilterSortState } from '@einfach/spreadsheet-ui-core'
 import { filterHiddenRowsFromDisplayRows } from '../src/adapter/filter-hidden-rows'

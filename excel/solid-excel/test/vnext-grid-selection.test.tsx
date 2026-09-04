@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import {
   pointerIntentAtom,
@@ -25,7 +25,7 @@ type SelectionRuntime = Parameters<typeof installGridSelection>[0]
 type PointerRuntime = Parameters<typeof installGridPointerSelection>[0]
 
 afterEach(() => {
-  jest.restoreAllMocks()
+  vi.restoreAllMocks()
 })
 
 function createRuntime(store: ReturnType<typeof createStore>) {
@@ -59,7 +59,7 @@ function createRuntime(store: ReturnType<typeof createStore>) {
       col <= MERGE_RANGE.colEnd
         ? MERGE_RANGE
         : null,
-    focusGrid: jest.fn(),
+    focusGrid: vi.fn(),
     getCellCoordFromPoint: () => point,
   }
   const selection = installGridSelection(runtime as unknown as SelectionRuntime)

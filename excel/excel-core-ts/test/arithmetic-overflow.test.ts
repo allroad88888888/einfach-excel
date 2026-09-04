@@ -16,7 +16,7 @@
  * 整列引用（走稀疏孪生）。
  */
 
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import { evaluate, parseRefToKey, refLookupGeneric, rangeLookupGeneric } from '../src/eval/evaluate'
 import { parseFormula } from '../src/parser'

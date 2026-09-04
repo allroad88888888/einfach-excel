@@ -14,7 +14,7 @@
  * regress when a future agent refactors the helpers.
  */
 
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import {
   ABS,

@@ -1,4 +1,4 @@
-import { describe, expect, jest, test } from '@jest/globals'
+import { describe, expect, test, vi } from 'vitest'
 import { createStore, type Store } from '@einfach/core'
 import {
   CONDITIONAL_FORMAT_MUTATION_LEDGER_MAX,
@@ -231,7 +231,7 @@ describe('conditional-formatting core state machine', () => {
 
   test('fallback workspace witness rejects A-B-A authority before transport dispatch', async () => {
     const store = createStore()
-    const setRule = jest.fn(async (request: SetConditionalFormatRuleRequest) =>
+    const setRule = vi.fn(async (request: SetConditionalFormatRuleRequest) =>
       acknowledged(request),
     )
     store.setter(setWorkspaceActiveSheetAtom, { sheetId: 'sheet-a' })
@@ -258,7 +258,7 @@ describe('conditional-formatting core state machine', () => {
 
   test('fallback selection witness rejects A-B-A authority before transport dispatch', async () => {
     const store = createStore()
-    const setRule = jest.fn(async (request: SetConditionalFormatRuleRequest) =>
+    const setRule = vi.fn(async (request: SetConditionalFormatRuleRequest) =>
       acknowledged(request),
     )
     const selectionA = {
@@ -355,7 +355,7 @@ describe('conditional-formatting core state machine', () => {
 
   test('same-tick close/reopen cancels a reservation before journal or transport launch', async () => {
     const store = createStore()
-    const setRule = jest.fn(async (request: SetConditionalFormatRuleRequest) =>
+    const setRule = vi.fn(async (request: SetConditionalFormatRuleRequest) =>
       acknowledged(request),
     )
     prepareOpenStore(store)
@@ -498,12 +498,12 @@ describe('conditional-formatting core state machine', () => {
     const store = createStore()
     const gate = deferred<ConditionalFormatMutationAcknowledgement>()
     const started = deferred<SetConditionalFormatRuleRequest>()
-    const setRule = jest.fn((request: SetConditionalFormatRuleRequest) => {
+    const setRule = vi.fn((request: SetConditionalFormatRuleRequest) => {
       started.resolve(request)
       return gate.promise
     })
-    const acceptAcknowledgedResult = jest.fn(async () => undefined)
-    const listRules = jest.fn(async () => ({
+    const acceptAcknowledgedResult = vi.fn(async () => undefined)
+    const listRules = vi.fn(async () => ({
       sheetId: 'sheet-fallback',
       requestId: 1,
       rules: [],
@@ -521,7 +521,7 @@ describe('conditional-formatting core state machine', () => {
     })
     await started.promise
     const pendingEditor = store.getter(conditionalFormatEditorAtom)
-    const editorSideEffect = jest.fn()
+    const editorSideEffect = vi.fn()
     const unsubscribeEditor = store.sub(conditionalFormatEditorAtom, editorSideEffect)
 
     store.setter(setWorkspaceActiveSheetAtom, { sheetId: 'sheet-other' })
@@ -563,12 +563,12 @@ describe('conditional-formatting core state machine', () => {
       anchor: { row: 6, col: 7 },
       focus: { row: 8, col: 9 },
     }
-    const setRule = jest.fn((request: SetConditionalFormatRuleRequest) => {
+    const setRule = vi.fn((request: SetConditionalFormatRuleRequest) => {
       started.resolve(request)
       return gate.promise
     })
-    const acceptAcknowledgedResult = jest.fn(async () => undefined)
-    const listRules = jest.fn(async () => ({
+    const acceptAcknowledgedResult = vi.fn(async () => undefined)
+    const listRules = vi.fn(async () => ({
       sheetId: 'sheet-a',
       requestId: 1,
       rules: [],
@@ -586,7 +586,7 @@ describe('conditional-formatting core state machine', () => {
     })
     const request = await started.promise
     const pendingEditor = store.getter(conditionalFormatEditorAtom)
-    const editorSideEffect = jest.fn()
+    const editorSideEffect = vi.fn()
     const unsubscribeEditor = store.sub(conditionalFormatEditorAtom, editorSideEffect)
 
     store.setter(setSelectionAtom, selectionB)
@@ -617,8 +617,8 @@ describe('conditional-formatting core state machine', () => {
     const store = createStore()
     const gate = deferred<ConditionalFormatMutationAcknowledgement>()
     const started = deferred<SetConditionalFormatRuleRequest>()
-    const acceptAcknowledgedResult = jest.fn(async () => undefined)
-    const listRules = jest.fn(async () => ({
+    const acceptAcknowledgedResult = vi.fn(async () => undefined)
+    const listRules = vi.fn(async () => ({
       sheetId: 'sheet-a',
       requestId: 1,
       rules: [makeEntry('stale-list')],
@@ -714,8 +714,8 @@ describe('conditional-formatting core state machine', () => {
   test('current acknowledged mutation accepts a strict listed snapshot and then closes', async () => {
     const store = createStore()
     const listedEntry = makeEntry('listed')
-    const acceptAcknowledgedResult = jest.fn(async () => undefined)
-    const listRules = jest.fn(async (request: ListConditionalFormatRulesRequest) => ({
+    const acceptAcknowledgedResult = vi.fn(async () => undefined)
+    const listRules = vi.fn(async (request: ListConditionalFormatRulesRequest) => ({
       sheetId: request.sheetId,
       requestId: request.requestId,
       revision: 9,
@@ -831,7 +831,7 @@ describe('conditional-formatting core state machine', () => {
 
   test('remove uses the same strict ticket and ledger contract', async () => {
     const store = createStore()
-    const removeRule = jest.fn(async (request: RemoveConditionalFormatRuleRequest) =>
+    const removeRule = vi.fn(async (request: RemoveConditionalFormatRuleRequest) =>
       acknowledged(request, 12),
     )
     prepareOpenStore(store, makeEntry('remove-me'))

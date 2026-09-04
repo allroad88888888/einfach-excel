@@ -1,4 +1,4 @@
-import { describe, expect, jest, test } from '@jest/globals'
+import { describe, expect, test, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import {
   FORMAT_PAINTER_LEDGER_MAX,
@@ -169,7 +169,7 @@ describe('format-painter Core authority and mutation lifecycle', () => {
 
   test('blocks before transport when any port is missing and retains armed state', async () => {
     const store = prepare()
-    const setFormatRange = jest.fn()
+    const setFormatRange = vi.fn()
 
     const result = await store.setter(applyFormatPainterAtom, {
       resolveTargetRanges: (_sheetId, range) => [range],
@@ -188,7 +188,7 @@ describe('format-painter Core authority and mutation lifecycle', () => {
     'rejects zero or multiple backing ranges before the first mutation call',
     async ({ ranges }) => {
       const store = prepare()
-      const setFormatRange = jest.fn()
+      const setFormatRange = vi.fn()
 
       const result = await store.setter(
         applyFormatPainterAtom,
@@ -204,12 +204,12 @@ describe('format-painter Core authority and mutation lifecycle', () => {
 
   test('uses only the frozen base format, accepts an exact receipt, refreshes, then exits armed', async () => {
     const store = prepare()
-    const setFormatRange = jest.fn((request: SetFormatRangeRequest) => ({
+    const setFormatRange = vi.fn((request: SetFormatRangeRequest) => ({
       sheetId: request.sheetId,
       requestId: request.requestId,
       affectedRange: request.range,
     }))
-    const refreshProjection = jest.fn()
+    const refreshProjection = vi.fn()
 
     const result = await store.setter(
       applyFormatPainterAtom,
@@ -234,7 +234,7 @@ describe('format-painter Core authority and mutation lifecycle', () => {
 
   test('sticky mode stays armed after exact acknowledgement and suppresses the same target', async () => {
     const store = prepare('sticky')
-    const setFormatRange = jest.fn((request: SetFormatRangeRequest) => ({
+    const setFormatRange = vi.fn((request: SetFormatRangeRequest) => ({
       sheetId: request.sheetId,
       requestId: request.requestId,
       affectedRange: request.range,
@@ -259,7 +259,7 @@ describe('format-painter Core authority and mutation lifecycle', () => {
     ],
   ])('enters outcome-unknown after the first port call on %s', async (_name, port) => {
     const store = prepare()
-    const setFormatRange = jest.fn(port)
+    const setFormatRange = vi.fn(port)
 
     expect(await store.setter(applyFormatPainterAtom, successfulPorts({ setFormatRange }))).toBe(
       'outcome-unknown',
@@ -275,7 +275,7 @@ describe('format-painter Core authority and mutation lifecycle', () => {
   test('blocks duplicate dispatch while pending', async () => {
     const store = prepare()
     const transport = deferred<unknown>()
-    const setFormatRange = jest.fn((_request: SetFormatRangeRequest) => transport.promise)
+    const setFormatRange = vi.fn((_request: SetFormatRangeRequest) => transport.promise)
     const first = store.setter(
       applyFormatPainterAtom,
       successfulPorts({ setFormatRange, timeoutMs: 1_000 }),
@@ -363,7 +363,7 @@ describe('format-painter Core authority and mutation lifecycle', () => {
 
   test('refresh runs only after exact ack; refresh failure reports honest local projection unknown', async () => {
     const store = prepare()
-    const refreshProjection = jest.fn(async () => Promise.reject(new Error('refresh failed')))
+    const refreshProjection = vi.fn(async () => Promise.reject(new Error('refresh failed')))
 
     expect(await store.setter(applyFormatPainterAtom, successfulPorts({ refreshProjection }))).toBe(
       'honest-local-projection-unknown',

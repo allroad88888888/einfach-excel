@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import {
@@ -194,7 +194,7 @@ describe('SpreadsheetPasteSpecialDialog thin Core projection', () => {
 
   it('keeps a worker-shaped backend without pasteRange closed and transport-free', () => {
     const store = createStore()
-    const readVisibleProjection = jest.fn(async (request: VisibleProjectionRequest) =>
+    const readVisibleProjection = vi.fn(async (request: VisibleProjectionRequest) =>
       visibleResult(request),
     )
     const backend = createBackend({ readVisibleProjection })
@@ -289,8 +289,8 @@ describe('SpreadsheetPasteSpecialDialog thin Core projection', () => {
     const store = createStore()
     seedPasteContext(store)
     seedProjection(store)
-    const pasteRange = jest.fn(async (request: PasteRangeRequest) => strictPasteResult(request))
-    const readVisibleProjection = jest.fn(async (request: VisibleProjectionRequest) =>
+    const pasteRange = vi.fn(async (request: PasteRangeRequest) => strictPasteResult(request))
+    const readVisibleProjection = vi.fn(async (request: VisibleProjectionRequest) =>
       visibleResult(request),
     )
     const backend = createBackend({ pasteRange, readVisibleProjection })
@@ -351,7 +351,7 @@ describe('SpreadsheetPasteSpecialDialog thin Core projection', () => {
       sheetId: 'sheet-1',
       state: { mode: 'protected', unlockedRanges: [] },
     })
-    const pasteRange = jest.fn(async (request: PasteRangeRequest) => strictPasteResult(request))
+    const pasteRange = vi.fn(async (request: PasteRangeRequest) => strictPasteResult(request))
     const backend = createBackend({ pasteRange })
     store.setter(openPasteSpecialAtom)
     const { container } = renderDialog(store, backend)
@@ -380,7 +380,7 @@ describe('SpreadsheetPasteSpecialDialog thin Core projection', () => {
   it('transport rejection remains outcome-unknown and disables duplicate confirm', async () => {
     const store = createStore()
     seedPasteContext(store)
-    const pasteRange = jest.fn(async (_request: PasteRangeRequest) => {
+    const pasteRange = vi.fn(async (_request: PasteRangeRequest) => {
       throw new Error('connection lost after send')
     })
     const backend = createBackend({ pasteRange })
@@ -412,8 +412,8 @@ describe('SpreadsheetPasteSpecialDialog thin Core projection', () => {
     const store = createStore()
     seedPasteContext(store)
     seedProjection(store)
-    const pasteRange = jest.fn(async (request: PasteRangeRequest) => strictPasteResult(request))
-    const readVisibleProjection = jest
+    const pasteRange = vi.fn(async (request: PasteRangeRequest) => strictPasteResult(request))
+    const readVisibleProjection = Vitest
       .fn<(request: VisibleProjectionRequest) => Promise<VisibleProjectionResult>>()
       .mockRejectedValueOnce(new Error('projection offline'))
       .mockImplementationOnce(async (request) => visibleResult(request))
@@ -447,7 +447,7 @@ describe('SpreadsheetPasteSpecialDialog thin Core projection', () => {
     seedProjection(store)
     const transport = deferred<PasteRangeResult>()
     let sent: PasteRangeRequest | null = null
-    const pasteRange = jest.fn(async (request: PasteRangeRequest) => {
+    const pasteRange = vi.fn(async (request: PasteRangeRequest) => {
       sent = request
       return transport.promise
     })

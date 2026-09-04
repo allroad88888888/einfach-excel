@@ -4,7 +4,7 @@ import type {
   VisibleProjectionRequest,
   VisibleProjectionResult,
 } from '@einfach/spreadsheet-ui-core'
-import { describe, expect, it, jest } from '@jest/globals'
+import { describe, expect, it, vi } from 'vitest'
 import { createApp, defineComponent, h, nextTick, shallowRef, type ShallowRef } from 'vue'
 import { SpreadsheetUiProvider } from '../src/spreadsheet-ui-provider'
 import {
@@ -47,7 +47,7 @@ function resultFor(
 function createBackend() {
   const requests: VisibleProjectionRequest[] = []
   const gates: Array<Deferred<VisibleProjectionResult>> = []
-  const readVisibleProjection = jest.fn((request: VisibleProjectionRequest) => {
+  const readVisibleProjection = vi.fn((request: VisibleProjectionRequest) => {
     const gate = deferred<VisibleProjectionResult>()
     requests.push(request)
     gates.push(gate)
@@ -108,7 +108,7 @@ async function settle(): Promise<void> {
 describe('useSpreadsheetViewport', () => {
   it('clamps a controlled window before issuing a bounded visible projection', async () => {
     const controlled = createBackend()
-    const onWindowChange = jest.fn()
+    const onWindowChange = vi.fn()
     const mounted = mountViewport(
       controlled.backend,
       { rowStart: 99, rowEnd: 110, colStart: 99, colEnd: 110 },

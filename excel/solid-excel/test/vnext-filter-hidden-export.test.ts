@@ -23,7 +23,7 @@
  * production cannot yet produce. These tests describe the S5 world.
  */
 
-import { describe, expect, jest, test } from '@jest/globals'
+import { describe, expect, vi, test } from 'vitest'
 
 import { createStaticSpreadsheetBackend } from '../src/adapter/static-backend'
 import {
@@ -271,7 +271,7 @@ describe('renderRangeAsImage honours the filter-hidden set', () => {
   })
 
   test('COUNTER-EXAMPLE then FIX: the canvas GEOMETRY shrinks too', async () => {
-    const rasterizer = jest.fn(async (_svg: string, _w: number, _h: number) => FAKE_PNG)
+    const rasterizer = vi.fn(async (_svg: string, _w: number, _h: number) => FAKE_PNG)
 
     // Unguarded: 5 rows × 20px = 100px tall.
     const unguarded = await renderRangeAsImage(
@@ -315,7 +315,7 @@ describe('renderRangeAsImage honours the filter-hidden set', () => {
   })
 
   test('per-row measured heights are summed over visible rows only', async () => {
-    const rasterizer = jest.fn(async (_svg: string, _w: number, _h: number) => FAKE_PNG)
+    const rasterizer = vi.fn(async (_svg: string, _w: number, _h: number) => FAKE_PNG)
     // Rows 1 and 3 are the tall ones; hiding them must remove THEIR heights,
     // not a uniform default.
     const rowHeights = new Map([
@@ -340,7 +340,7 @@ describe('renderRangeAsImage honours the filter-hidden set', () => {
   })
 
   test('an all-hidden range still yields a valid 1px canvas', async () => {
-    const rasterizer = jest.fn(async (_svg: string, _w: number, _h: number) => FAKE_PNG)
+    const rasterizer = vi.fn(async (_svg: string, _w: number, _h: number) => FAKE_PNG)
     const result = await renderRangeAsImage(
       {
         sheetId: 'sheet-1',
@@ -359,7 +359,7 @@ describe('renderRangeAsImage honours the filter-hidden set', () => {
   })
 
   test('scale multiplies the SHRUNK height, not the raw span', async () => {
-    const rasterizer = jest.fn(async (_svg: string, _w: number, _h: number) => FAKE_PNG)
+    const rasterizer = vi.fn(async (_svg: string, _w: number, _h: number) => FAKE_PNG)
     const result = await renderRangeAsImage(
       {
         sheetId: 'sheet-1',

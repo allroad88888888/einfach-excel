@@ -2,7 +2,7 @@
 
 import { atom, createStore, type Store } from '@einfach/core'
 import { Provider } from '@einfach/solid'
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render } from '@solidjs/testing-library'
 
 import {
@@ -89,7 +89,7 @@ describe('SpreadsheetFeedbackSurface', () => {
 
   it('renders a retryable atom-derived error and leaves retry execution to its caller', () => {
     const store = createStore()
-    const retry = jest.fn()
+    const retry = vi.fn()
     const rendered = mount(store, { onRetry: retry })
 
     store.setter(commandStateAtom, {
@@ -125,7 +125,7 @@ describe('SpreadsheetFeedbackSurface', () => {
 
   it('dismisses an error only through the owning lifecycle action', () => {
     const store = createStore()
-    const dismiss = jest.fn(() => store.setter(commandStateAtom, { status: 'idle' }))
+    const dismiss = vi.fn(() => store.setter(commandStateAtom, { status: 'idle' }))
     const rendered = mount(store, { onDismiss: dismiss })
 
     store.setter(commandStateAtom, {

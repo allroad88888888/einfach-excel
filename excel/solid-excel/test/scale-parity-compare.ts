@@ -4,7 +4,7 @@
  * 刻意收集**全部**不一致再抛，而不是首个不一致就 fail —— 分歧通常成片出现，
  * 只报第一个地址会让人一次只修一格。失败信息里带上两个种子，报告即可复现。
  */
-import { expect } from '@jest/globals'
+import { expect } from 'vitest'
 
 import type { SampledCell } from './scale-parity-engine-types'
 import { WORKLOAD_SEED } from './scale-parity-workload'

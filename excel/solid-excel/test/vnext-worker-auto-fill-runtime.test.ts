@@ -1,23 +1,23 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  *
  * AutoFill owns a private typed Error witness at the WASM boundary. Drive the
  * real worker dispatcher with a mocked workbook to pin which thrown values may
  * cross the RPC boundary as AUTO_FILL_REJECTED.
  */
 
-import { beforeAll, beforeEach, describe, expect, jest, test } from '@jest/globals'
+import { beforeAll, beforeEach, describe, expect, vi, test } from 'vitest'
 
-const mockApplyAutoFill = jest.fn()
+const mockApplyAutoFill = vi.fn()
 const mockWorkbook = {
   apply_auto_fill: (request: unknown) => mockApplyAutoFill(request),
   drainAsyncCustomRequests: () => [],
 }
 
-jest.mock('@einfach/excel-wasm', () => ({
+vi.mock('@einfach/excel-wasm', () => ({
   __esModule: true,
-  default: jest.fn(async () => undefined),
-  WasmWorkbook: jest.fn(() => mockWorkbook),
+  default: vi.fn(async () => undefined),
+  WasmWorkbook: vi.fn(() => mockWorkbook),
 }))
 
 type WorkerResponse =

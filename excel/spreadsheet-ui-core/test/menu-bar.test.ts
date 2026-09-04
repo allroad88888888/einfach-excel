@@ -1,8 +1,7 @@
 import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
 import { createStore } from '@einfach/core'
 import type { AtomSetParameters, AtomState } from '@einfach/core'
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 import {
   closeHelpOverlayAtom,
   closeTopMenuAtom,
@@ -16,6 +15,7 @@ import {
   type TopMenuId,
   type TopMenuOpenState,
 } from '../src/menu-bar'
+import { repositoryPath } from './support/repository-path'
 
 type AtomHasPublicWrite<Entity> = Entity extends { write: unknown } ? true : false
 type TypesEqual<Left, Right> =
@@ -253,7 +253,7 @@ describe('menu bar state boundary', () => {
 
   test('keeps backing atoms private and all public state writes behind commands', () => {
     const source = readFileSync(
-      join(process.cwd(), 'excel/spreadsheet-ui-core/src/menu-bar/index.ts'),
+      repositoryPath('excel/spreadsheet-ui-core/src/menu-bar/index.ts'),
       'utf8',
     )
 

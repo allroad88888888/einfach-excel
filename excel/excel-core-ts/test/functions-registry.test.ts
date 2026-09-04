@@ -8,7 +8,7 @@
  * future contract drift between B2 evaluator and Wave C function
  * shapes is caught here rather than in Wave D worker integration.
  */
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import {
   BLANK,

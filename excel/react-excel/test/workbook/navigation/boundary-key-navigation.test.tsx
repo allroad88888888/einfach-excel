@@ -3,7 +3,7 @@ import {
   setViewportSizeAtom,
   viewportMetricsAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { describe, expect, it } from '@jest/globals'
+import { describe, expect, it } from 'vitest'
 import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { SALES_ORDER_SHEET_ROW_COUNT } from '../../../src/page/demo/sales-orders/data/sheet'
 import { WORKBOOK_GRID_ROW_HEIGHT } from '../../../src/workbook/grid/viewport/workbook-grid-config'

@@ -1,4 +1,4 @@
-import { describe, expect, jest, test } from '@jest/globals'
+import { describe, expect, vi, test } from 'vitest'
 import type * as WorkerPost from '../src/adapter/worker-post'
 import {
   NORMALIZED_WIRE_PAYLOAD_METHOD,
@@ -63,7 +63,7 @@ describe('worker normalized payload telemetry', () => {
     })
   })
 
-  test('records inbound requests plus worker-post response, error, and dirty messages', () => {
+  test('records inbound requests plus worker-post response, error, and dirty messages', async () => {
     const originalSelf = Object.getOwnPropertyDescriptor(globalThis, 'self')
     const listeners: Array<(event: MessageEvent) => void> = []
     const posted: unknown[] = []
@@ -78,14 +78,10 @@ describe('worker normalized payload telemetry', () => {
     Object.defineProperty(globalThis, 'self', { configurable: true, value: scope })
 
     try {
-      let workerPost: typeof WorkerPost | undefined
-      jest.isolateModules(() => {
-        // `worker-post` binds `self` at module initialization, so it must load
-        // inside this isolated Worker-scope fixture.
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        workerPost = require('../src/adapter/worker-post') as typeof WorkerPost
-      })
-      const post = workerPost!
+      // `worker-post` binds `self` at module initialization, so reset its module
+      // cache before loading it inside this Worker-scope fixture.
+      vi.resetModules()
+      const post = await import('../src/adapter/worker-post') as typeof WorkerPost
 
       listeners[0]!({ data: { id: 1, cmd: 'readRange' } } as MessageEvent)
       post.postResponse(1, { cells: [] })

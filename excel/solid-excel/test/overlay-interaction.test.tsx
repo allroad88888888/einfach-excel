@@ -2,7 +2,7 @@
 
 import { atom, createStore } from '@einfach/core'
 import { Provider, useAtomValue } from '@einfach/solid'
-import { afterEach, describe, expect, it } from '@jest/globals'
+import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import { Show } from 'solid-js'
 import {

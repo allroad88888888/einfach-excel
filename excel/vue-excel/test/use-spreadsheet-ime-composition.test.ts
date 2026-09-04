@@ -1,17 +1,17 @@
-import { describe, expect, it, jest } from '@jest/globals'
+import { describe, expect, it, vi, type Mock } from 'vitest'
 import { createApp, defineComponent, h } from 'vue'
 import { useSpreadsheetImeComposition } from '../src/use-spreadsheet-ime-composition'
 
 interface MountedCompositionSurface {
   readonly app: ReturnType<typeof createApp>
   readonly editor: HTMLInputElement
-  readonly onCancel: jest.Mock
-  readonly onCommit: jest.Mock
+  readonly onCancel: Mock
+  readonly onCommit: Mock
 }
 
 function mountCompositionSurface(): MountedCompositionSurface {
-  const onCommit = jest.fn()
-  const onCancel = jest.fn()
+  const onCommit = vi.fn()
+  const onCancel = vi.fn()
   const Root = defineComponent({
     setup: function CompositionSurfaceSetup() {
       const handlers = useSpreadsheetImeComposition({ onCancel, onCommit })

@@ -9,7 +9,7 @@
  * isolation from the workbook layer.
  */
 
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import {
   cycleGuardKey,

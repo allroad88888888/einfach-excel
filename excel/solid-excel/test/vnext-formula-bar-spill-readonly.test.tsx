@@ -19,7 +19,7 @@
  *      `#SPILL!`），只读态不许把它一起禁掉。这条是只读态与 editing 状态机的边界。
  */
 
-import { afterEach, describe, expect, it } from '@jest/globals'
+import { afterEach, describe, expect, it } from 'vitest'
 import { createStore } from '@einfach/core'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import {

@@ -1,17 +1,14 @@
-import { describe, expect, it, jest } from '@jest/globals'
+import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import type { ComponentType, ReactNode } from 'react'
+import type { ReactNode } from 'react'
+import { App } from '../../src/app/App'
 
-jest.mock('../../src/page/WorkbookRuntimeProvider', () => ({
+vi.mock('../../src/page/WorkbookRuntimeProvider', () => ({
   WorkbookRuntimeProvider: ({ children }: { readonly children: ReactNode }) => children,
 }))
-jest.mock('../../src/workbook/shell/WorkbookView', () => ({
+vi.mock('../../src/workbook/shell/WorkbookView', () => ({
   WorkbookView: () => <div data-testid="workbook-view">Ready workbook</div>,
 }))
-
-const { App } = jest.requireActual('../../src/app/App') as {
-  App: ComponentType
-}
 
 describe('demo page', () => {
   it('renders registered navigation outside the active demo', () => {

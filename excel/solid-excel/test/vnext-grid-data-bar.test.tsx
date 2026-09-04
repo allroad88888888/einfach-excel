@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { afterEach, describe, expect, test } from '@jest/globals'
+import { afterEach, describe, expect, test } from 'vitest'
 import { cleanup, render } from '@solidjs/testing-library'
 import type { DisplayCell } from '@einfach/spreadsheet-ui-core'
 import { withDataBarProjection } from '../src/adapter/data-bar-projection'

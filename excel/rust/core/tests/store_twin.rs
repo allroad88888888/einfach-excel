@@ -1,4 +1,4 @@
-//! Twin tests — each test here is a port of a specific core/core jest test
+//! Twin tests — each test here is a port of a specific core/core Vitest test
 //! (file + name cited above each), pinning INV-1 isomorphism behaviorally.
 //! Adaptations required by the Rust surface are marked TWIN-ADAPT with the
 //! reason; semantic divergences reference their DV-# ledger row in

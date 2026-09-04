@@ -11,7 +11,7 @@
  *
  * 清单靠 test/e2e-dual-backend-manifest.test.ts 防腐:它按 DUAL_MARKERS 扫描
  * 全部 spec 源码,断言"引用 worker demo 的文件集合"与本清单严格相等 ——
- * 新增吃参数的 spec 忘记登记会在 jest 里当场红,而不是静默单跑。
+ * 新增吃参数的 spec 忘记登记会在 Vitest 里当场红,而不是静默单跑。
  */
 
 /** 判据:spec 源码命中任一标记 = 它会落到吃 `?backend=` 的 VNextWorkerDemo。 */

@@ -1,4 +1,4 @@
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 import type { Store } from '@einfach/core'
 import { createStore } from '@einfach/core'
 import {

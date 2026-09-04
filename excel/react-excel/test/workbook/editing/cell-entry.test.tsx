@@ -1,6 +1,6 @@
 import { createStore } from '@einfach/core'
 import { setSelectionAtom } from '@einfach/spreadsheet-ui-core'
-import { describe, expect, it, jest } from '@jest/globals'
+import { describe, expect, it, vi } from 'vitest'
 import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import {
   createControlledCellEditingConnection,
@@ -20,7 +20,7 @@ describe('Rust workbook cell entry', () => {
     const elementFromPoint = document.elementFromPoint
     Object.defineProperty(document, 'elementFromPoint', {
       configurable: true,
-      value: jest.fn(() => cell),
+      value: vi.fn(() => cell),
     })
 
     try {

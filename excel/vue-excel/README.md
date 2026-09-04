@@ -87,7 +87,7 @@ application-level parity.
 Run these commands from the repository root:
 
 ```bash
-npx jest excel/vue-excel --runInBand --no-coverage
+pnpm --filter @einfach/vue-excel test
 npx tsc -p excel/vue-excel/tsconfig.json --noEmit --pretty false
 ```
 

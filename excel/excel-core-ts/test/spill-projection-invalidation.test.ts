@@ -11,7 +11,7 @@
  * 答不出那一刻，同一条公式的答案会取决于两次写入的先后。
  */
 
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import { createWorkbook } from '../src/workbook'
 import { keyFor } from '../src/sheet'

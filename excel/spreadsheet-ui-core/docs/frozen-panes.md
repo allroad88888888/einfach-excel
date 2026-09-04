@@ -143,8 +143,8 @@ against the current backend revision. A rejected CAS neither writes freeze state
 Focused verification commands:
 
 ```sh
-npx jest excel/spreadsheet-ui-core/test/frozen-panes.test.ts --runInBand --coverage=false
-npx jest excel/solid-excel/test/vnext-freeze-authority.test.ts excel/solid-excel/test/vnext-grid.test.tsx excel/solid-excel/test/vnext-grid-overlay.test.tsx excel/solid-excel/test/vnext-grid-overlay-svg.test.tsx excel/solid-excel/test/vnext-menu-bar.test.tsx excel/solid-excel/test/vnext-context-menu.test.tsx --runInBand --coverage=false
+pnpm --filter @einfach/spreadsheet-ui-core exec vitest run test/frozen-panes.test.ts
+pnpm --filter @einfach/solid-excel exec vitest run test/vnext-freeze-authority.test.ts test/vnext-grid.test.tsx test/vnext-grid-overlay.test.tsx test/vnext-grid-overlay-svg.test.tsx test/vnext-menu-bar.test.tsx test/vnext-context-menu.test.tsx
 npm run build -w @einfach/spreadsheet-ui-core
 npm exec -w @einfach/solid-excel -- vite build
 ```

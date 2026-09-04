@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { createStore } from '@einfach/core'
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 import type {
   BackendMutationResult,
   SetRangeLockRequest,
@@ -60,8 +60,9 @@ import {
   viewportShowHeadingsAtom,
   workspaceSessionAtom,
 } from '../src'
+import { repositoryPath } from './support/repository-path'
 
-const SRC_ROOT = join(process.cwd(), 'excel/spreadsheet-ui-core/src')
+const SRC_ROOT = repositoryPath('excel/spreadsheet-ui-core/src')
 
 type AtomHasPublicWrite<Entity> = Entity extends { write: unknown } ? true : false
 

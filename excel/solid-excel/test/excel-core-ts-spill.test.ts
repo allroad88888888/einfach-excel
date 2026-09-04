@@ -6,7 +6,7 @@
  * collapses to its top-left scalar at the read boundary (matches the
  * WASM core's convention so UI projection stays one-scalar-per-cell).
  */
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import { createWorkerRuntimeTs } from '../src/adapter/worker-runtime-ts'
 

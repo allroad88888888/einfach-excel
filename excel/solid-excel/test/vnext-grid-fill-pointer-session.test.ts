@@ -1,19 +1,19 @@
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi, type Mock } from 'vitest'
 import { startFillPointerSession } from '../src/grid/grid-fill-pointer-session'
 
 interface SessionSpies {
-  readonly move: jest.Mock
-  readonly commit: jest.Mock
-  readonly cancel: jest.Mock
-  readonly setCancel: jest.Mock
+  readonly move: Mock
+  readonly commit: Mock
+  readonly cancel: Mock
+  readonly setCancel: Mock
 }
 
 function createSpies(): SessionSpies {
   return {
-    move: jest.fn(),
-    commit: jest.fn(),
-    cancel: jest.fn(),
-    setCancel: jest.fn(),
+    move: vi.fn(),
+    commit: vi.fn(),
+    cancel: vi.fn(),
+    setCancel: vi.fn(),
   }
 }
 
@@ -41,8 +41,8 @@ describe('startFillPointerSession', () => {
   it('processes only the initiating pointer and commits it once', () => {
     const handle = document.createElement('button')
     const spies = createSpies()
-    const setPointerCapture = jest.fn()
-    const releasePointerCapture = jest.fn()
+    const setPointerCapture = vi.fn()
+    const releasePointerCapture = vi.fn()
     Object.assign(handle, { setPointerCapture, releasePointerCapture })
     document.body.append(handle)
 
@@ -65,8 +65,8 @@ describe('startFillPointerSession', () => {
     const handle = document.createElement('button')
     const spies = createSpies()
     Object.assign(handle, {
-      setPointerCapture: jest.fn(),
-      releasePointerCapture: jest.fn(() => {
+      setPointerCapture: vi.fn(),
+      releasePointerCapture: vi.fn(() => {
         throw new Error('pointer capture already released')
       }),
     })

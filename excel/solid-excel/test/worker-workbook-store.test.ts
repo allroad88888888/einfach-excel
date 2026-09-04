@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { describe, expect, it } from '@jest/globals'
+import { describe, expect, it } from 'vitest'
 import { createRoot } from 'solid-js'
 import { sparseRangeToTSV } from '../legacy/range-tsv'
 import type { CellFormatJSON, FormatRangeSnapshot } from '../legacy/types'

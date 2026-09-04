@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
   clipboardHtmlTableToTsv,
@@ -44,12 +44,12 @@ afterEach(() => {
   Reflect.deleteProperty(navigator, 'clipboard')
   Reflect.deleteProperty(globalThis, 'ClipboardItem')
   Reflect.deleteProperty(document, 'execCommand')
-  jest.restoreAllMocks()
+  vi.restoreAllMocks()
 })
 
 describe('vnext browser clipboard boundary', () => {
   it('writes HTML and TSV together when the rich Clipboard API is available', async () => {
-    const write = jest.fn(async (_items: readonly ClipboardItemMock[]) => undefined)
+    const write = vi.fn(async (_items: readonly ClipboardItemMock[]) => undefined)
     installClipboard({ write })
     installClipboardItem()
 
@@ -67,8 +67,8 @@ describe('vnext browser clipboard boundary', () => {
   })
 
   it('falls back to writeText when the rich write is rejected', async () => {
-    const write = jest.fn(async () => Promise.reject(new Error('NotAllowedError')))
-    const writeText = jest.fn(async (_text: string) => undefined)
+    const write = vi.fn(async () => Promise.reject(new Error('NotAllowedError')))
+    const writeText = vi.fn(async (_text: string) => undefined)
     installClipboard({ write, writeText })
     installClipboardItem()
 
@@ -79,7 +79,7 @@ describe('vnext browser clipboard boundary', () => {
   })
 
   it('uses the temporary textarea adapter when Clipboard API access is absent', async () => {
-    const execCommand = jest.fn(() => true)
+    const execCommand = vi.fn(() => true)
     Object.defineProperty(document, 'execCommand', { configurable: true, value: execCommand })
 
     await expect(writeBrowserClipboard({ plainText: 'fallback' })).resolves.toBe('legacy')
@@ -125,7 +125,7 @@ describe('vnext browser clipboard boundary', () => {
   })
 
   it('uses readText when rich reads are denied', async () => {
-    const readText = jest.fn(async () => 'fallback\ttext')
+    const readText = vi.fn(async () => 'fallback\ttext')
     installClipboard({
       read: async () => Promise.reject(new Error('NotAllowedError')),
       readText,

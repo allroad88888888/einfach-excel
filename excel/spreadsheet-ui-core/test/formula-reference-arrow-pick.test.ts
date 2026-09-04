@@ -1,5 +1,5 @@
 import { createStore } from '@einfach/core'
-import { describe, expect, it } from '@jest/globals'
+import { describe, expect, it } from 'vitest'
 import { applyFormulaReferenceArrowPick } from '../src'
 import { editingSessionAtom, startEditingAtom } from '../src/editing'
 import { enterFormulaReferenceAtom, formulaReferenceSessionAtom } from '../src/formula-reference'

@@ -20,12 +20,12 @@
  * Output: `test/perf-reports/perf-rust-storage-primary-report.md`.
  *
  * Invocation:
- *   EINFACH_PERF=1 npx jest perf-rust-storage-primary --no-coverage \
- *     --testTimeout=1800000
+ *   pnpm --filter @einfach/solid-excel test:bench -- test/perf-rust-storage-primary.bench.ts \
+ *     --testTimeout 1800000
  *
  * Gated on EINFACH_PERF=1 — without it the spec is skipped.
  */
-import { describe, it, beforeAll, afterAll } from '@jest/globals'
+import { describe, it, beforeAll, afterAll } from 'vitest'
 import { performance } from 'node:perf_hooks'
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { TextDecoder, TextEncoder } from 'node:util'
@@ -259,7 +259,7 @@ describePerf('Rust storage-primary vs legacy bulk import (EINFACH_PERF=1)', () =
           try {
             wb.free()
           } catch {
-            // bounded leak — jest spawns one worker per file
+            // bounded leak — Vitest spawns one worker per file
           }
         }
 

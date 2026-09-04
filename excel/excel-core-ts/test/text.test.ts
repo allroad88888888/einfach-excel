@@ -6,7 +6,7 @@
  * behavior from JS `.length` (which would count UTF-16 code units).
  */
 
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import { FUNCTIONS } from '../src/eval/functions/text'
 import type { EvalContext, Value } from '../src/types'

@@ -5,7 +5,7 @@
  * 同时钉住兼容性守卫:部分测试 double 的 addEventListener 无视 type 参数,把
  * 所有 listener 当 message listener 调用 —— 普通消息(无 e.type)不得误触发失败路径。
  */
-import { describe, expect, it } from '@jest/globals'
+import { describe, expect, it } from 'vitest'
 
 import { createWorkerWorkbook, type WorkerLike } from '../src/adapter/worker-protocol'
 

@@ -5,7 +5,7 @@ import {
   type VisibleProjectionRequest,
   type VisibleProjectionResult,
 } from '@einfach/spreadsheet-ui-core'
-import { describe, expect, it, jest } from '@jest/globals'
+import { describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
 import { WORKBOOK_GRID_ROW_HEIGHT } from '../../../src/workbook/grid/viewport/workbook-grid-config'
@@ -31,7 +31,7 @@ function projectionFor(request: VisibleProjectionRequest): VisibleProjectionResu
 
 function renderWorkbook() {
   const requests: VisibleProjectionRequest[] = []
-  const readVisibleProjection = jest.fn(async (request: VisibleProjectionRequest) => {
+  const readVisibleProjection = vi.fn(async (request: VisibleProjectionRequest) => {
     requests.push(request)
     return projectionFor(request)
   })

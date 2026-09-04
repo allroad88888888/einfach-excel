@@ -1,5 +1,5 @@
 import { createStore } from '@einfach/core'
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 import {
   getCellViewportRect,
   getViewportColumnWidth,
@@ -80,8 +80,7 @@ describe('viewport chrome state', () => {
   ] as const
   test.each(TOGGLE_CASES)(
     '%s toggle is the writable state transition',
-    (...args: (typeof TOGGLE_CASES)[number]) => {
-      const [_label, stateAtom, toggleAtom, debugLabel] = args
+    (_label, stateAtom, toggleAtom, debugLabel) => {
       const store = createStore()
 
       expect(toggleAtom.debugLabel).toBe(debugLabel)

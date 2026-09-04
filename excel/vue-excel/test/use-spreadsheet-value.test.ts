@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals'
+import { describe, expect, it } from 'vitest'
 import { effectScope } from 'vue'
 import type { SpreadsheetValueSource } from '../src/use-spreadsheet-value'
 import { useSpreadsheetValue } from '../src/use-spreadsheet-value'

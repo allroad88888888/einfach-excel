@@ -1,5 +1,5 @@
 import { createStore } from '@einfach/core'
-import { describe, expect, jest, test } from '@jest/globals'
+import { describe, expect, test, vi } from 'vitest'
 
 import {
   commitCellEditingAtom,
@@ -17,7 +17,7 @@ import {
 
 describe('editing commit timeout', () => {
   test('uses finite custom/default mutation deadlines and ignores late fulfilment or rejection', async () => {
-    jest.useFakeTimers()
+    vi.useFakeTimers()
     try {
       const fulfilledStore = createStore()
       const fulfilledGate = deferred<BackendMutationResult>()
@@ -33,9 +33,9 @@ describe('editing commit timeout', () => {
       await flushMicrotasks()
       expect(fulfilledRequests).toHaveLength(1)
 
-      await jest.advanceTimersByTimeAsync(24)
+      await vi.advanceTimersByTimeAsync(24)
       expect(fulfilledStore.getter(editingCommitLifecycleAtom).status).toBe('pending')
-      await jest.advanceTimersByTimeAsync(1)
+      await vi.advanceTimersByTimeAsync(1)
       await expect(fulfilledCommit).resolves.toBe('outcome-unknown')
       fulfilledGate.resolve({
         sheetId: fulfilledRequests[0].sheetId,
@@ -58,9 +58,9 @@ describe('editing commit timeout', () => {
         timeoutMs: 0,
       })
       await flushMicrotasks()
-      await jest.advanceTimersByTimeAsync(DEFAULT_EDITING_COMMIT_TIMEOUT_MS - 1)
+      await vi.advanceTimersByTimeAsync(DEFAULT_EDITING_COMMIT_TIMEOUT_MS - 1)
       expect(rejectedStore.getter(editingCommitLifecycleAtom).status).toBe('pending')
-      await jest.advanceTimersByTimeAsync(1)
+      await vi.advanceTimersByTimeAsync(1)
       await expect(rejectedCommit).resolves.toBe('outcome-unknown')
       rejectedGate.reject(new Error('late rejection is still observed'))
       await flushMicrotasks()
@@ -68,7 +68,7 @@ describe('editing commit timeout', () => {
       expect(rejectedTransportCalls).toBe(1)
       expect(rejectedStore.getter(editingCommitLifecycleAtom).status).toBe('outcome-unknown')
     } finally {
-      jest.useRealTimers()
+      vi.useRealTimers()
     }
   })
 })

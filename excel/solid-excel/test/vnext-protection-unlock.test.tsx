@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import type {
@@ -181,7 +181,7 @@ describe('SpreadsheetProtectionUnlockDialog', () => {
   it('passes the typed password to the host verifier and commits on success', async () => {
     const store = createStore()
     protectSampleSheet(store)
-    const verify = jest.fn<VerifySheetProtectionPort>(async () => ({ ok: true }))
+    const verify = vi.fn<VerifySheetProtectionPort>(async () => ({ ok: true }))
     store.setter(openProtectionUnlockAtom, sampleTarget)
     const view = render(() => (
       <SpreadsheetUiProvider backend={createBaseBackend()} store={store}>
@@ -212,7 +212,7 @@ describe('SpreadsheetProtectionUnlockDialog', () => {
   it('returns to Editing when password verification rejects the attempt', async () => {
     const store = createStore()
     protectSampleSheet(store)
-    const verify = jest.fn<VerifySheetProtectionPort>(async () => ({
+    const verify = vi.fn<VerifySheetProtectionPort>(async () => ({
       ok: false,
       message: 'Incorrect workbook password.',
     }))
@@ -245,7 +245,7 @@ describe('SpreadsheetProtectionUnlockDialog', () => {
     const store = createStore()
     protectSampleSheet(store)
     const verification = createDeferred<{ ok: boolean; message?: string }>()
-    const verify = jest.fn<VerifySheetProtectionPort>(() => verification.promise)
+    const verify = vi.fn<VerifySheetProtectionPort>(() => verification.promise)
     store.setter(openProtectionUnlockAtom, sampleTarget)
     const view = render(() => (
       <SpreadsheetUiProvider backend={createBaseBackend()} store={store}>
@@ -282,7 +282,7 @@ describe('SpreadsheetProtectionUnlockDialog', () => {
     const store = createStore()
     protectSampleSheet(store)
     const verification = createDeferred<{ ok: boolean }>()
-    const verify = jest.fn<VerifySheetProtectionPort>(() => verification.promise)
+    const verify = vi.fn<VerifySheetProtectionPort>(() => verification.promise)
     store.setter(openProtectionUnlockAtom, sampleTarget)
     const view = render(() => (
       <SpreadsheetUiProvider backend={createBaseBackend()} store={store}>

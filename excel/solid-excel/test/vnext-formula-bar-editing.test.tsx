@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import type {
@@ -34,7 +34,7 @@ function mount(setCellInput: (request: SetCellInputRequest) => Promise<BackendMu
   const store = createStore()
   const projection = createProjection()
   const backend: SpreadsheetBackend = {
-    readVisibleProjection: jest.fn(async (_request: VisibleProjectionRequest) => projection),
+    readVisibleProjection: vi.fn(async (_request: VisibleProjectionRequest) => projection),
     readRangeProjection: async () => {
       throw new Error('not used')
     },
@@ -61,7 +61,7 @@ function mount(setCellInput: (request: SetCellInputRequest) => Promise<BackendMu
 
 describe('vNext formula bar editing interactions', () => {
   it('leaves Enter to an active DOM IME composition until it ends', async () => {
-    const setCellInput = jest.fn(async () => ({ sheetId: 'sheet-1' }))
+    const setCellInput = vi.fn(async () => ({ sheetId: 'sheet-1' }))
     const { input, store } = mount(setCellInput)
 
     fireEvent.input(input, { target: { value: 'interim' } })
@@ -87,7 +87,7 @@ describe('vNext formula bar editing interactions', () => {
   })
 
   it('keeps a rejected draft focused and announces the shared lifecycle error', async () => {
-    const setCellInput = jest.fn(async () => {
+    const setCellInput = vi.fn(async () => {
       throw new Error('Network unavailable')
     })
     const { getByRole, input, store } = mount(setCellInput)

@@ -53,7 +53,7 @@
  * 这里失败就是一条**真的**跨引擎发现：报告分歧地址，不要放宽断言。
  */
 
-import { afterAll, beforeAll, describe, expect, test } from '@jest/globals'
+import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 
 import {
   displaysOf,

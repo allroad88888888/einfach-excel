@@ -1,4 +1,4 @@
-import { describe, expect, jest, test } from '@jest/globals'
+import { describe, expect, test, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import {
   DEFAULT_HISTORY_CAP,
@@ -266,7 +266,7 @@ describe('history Core lifecycle', () => {
     producerFirst.setter(pushHistoryAtom, makeEntry('tx-producer-first', 1))
     const reservation = producerFirst.setter(acquireHistoryProducerReservationAtom)
     if (reservation === null) throw new Error('expected producer reservation')
-    const blockedUndo = jest.fn(async (request: HistoryUndoRequest) =>
+    const blockedUndo = vi.fn(async (request: HistoryUndoRequest) =>
       exactAcknowledgement(request, 2),
     )
 
@@ -284,7 +284,7 @@ describe('history Core lifecycle', () => {
     historyFirst.setter(pushHistoryAtom, makeEntry('tx-history-first', 1))
     const acknowledgement = deferred<HistoryMutationResult>()
     let request: HistoryUndoRequest | null = null
-    const undo = jest.fn((nextRequest: HistoryUndoRequest) => {
+    const undo = vi.fn((nextRequest: HistoryUndoRequest) => {
       request = nextRequest
       return acknowledgement.promise
     })
@@ -317,8 +317,8 @@ describe('history Core lifecycle', () => {
       },
     })
     store.setter(pushHistoryAtom, makeEntry('tx-backend', 2))
-    const undo = jest.fn(async (request: HistoryUndoRequest) => exactAcknowledgement(request, 3))
-    const redo = jest.fn(async (request: HistoryRedoRequest) => exactAcknowledgement(request, 4))
+    const undo = vi.fn(async (request: HistoryUndoRequest) => exactAcknowledgement(request, 3))
+    const redo = vi.fn(async (request: HistoryRedoRequest) => exactAcknowledgement(request, 4))
     const source: HistoryControllerPort = { undoTransaction: undo, redoTransaction: redo }
     await expect(
       store.setter(runUndoHistoryAtom, { source, refreshProjection: async () => {} }),
@@ -370,7 +370,7 @@ describe('history Core lifecycle', () => {
       )
     }
 
-    const persist = jest.fn(() => {
+    const persist = vi.fn(() => {
       attemptReentry('redo')
       return new Promise<never>(() => {})
     })
@@ -547,7 +547,7 @@ describe('history Core lifecycle', () => {
       }),
     ).resolves.toBe('completed')
 
-    const undo = jest.fn(async (request: HistoryUndoRequest) =>
+    const undo = vi.fn(async (request: HistoryUndoRequest) =>
       exactAcknowledgement(request, 'backend-next'),
     )
     await expect(
@@ -713,10 +713,10 @@ describe('history Core lifecycle', () => {
   test('each matching ACK advances the Core base revision used by the next undo or redo', async () => {
     const store = createStore()
     store.setter(pushHistoryAtom, makeEntry('tx-1', 1))
-    const undo = jest.fn(async (request: HistoryUndoRequest) =>
+    const undo = vi.fn(async (request: HistoryUndoRequest) =>
       exactAcknowledgement(request, request.requestId === 1 ? 3 : 5),
     )
-    const redo = jest.fn(async (request: HistoryRedoRequest) => exactAcknowledgement(request, 4))
+    const redo = vi.fn(async (request: HistoryRedoRequest) => exactAcknowledgement(request, 4))
     const source: HistoryControllerPort = { undoTransaction: undo, redoTransaction: redo }
     const refreshProjection = async () => {}
 
@@ -744,10 +744,10 @@ describe('history Core lifecycle', () => {
   test('rejects invalid entry revisions without retaining history or starting transport', async () => {
     for (const revision of [Number.NaN, Number.POSITIVE_INFINITY, '']) {
       const store = createStore()
-      const undo = jest.fn(async (request: HistoryUndoRequest) => exactAcknowledgement(request))
-      const redo = jest.fn(async (request: HistoryRedoRequest) => exactAcknowledgement(request))
+      const undo = vi.fn(async (request: HistoryUndoRequest) => exactAcknowledgement(request))
+      const redo = vi.fn(async (request: HistoryRedoRequest) => exactAcknowledgement(request))
       const source: HistoryControllerPort = { undoTransaction: undo, redoTransaction: redo }
-      const refreshProjection = jest.fn(async () => {})
+      const refreshProjection = vi.fn(async () => {})
 
       expect(store.setter(pushHistoryAtom, makeEntry('tx-invalid', revision))).toBe(false)
       expect(store.getter(historyStackAtom)).toMatchObject({ entries: [], cursor: 0 })
@@ -782,7 +782,7 @@ describe('history Core lifecycle', () => {
         throw new Error('redo capability must not be read for an empty stack')
       },
     }
-    const refreshProjection = jest.fn(async () => {})
+    const refreshProjection = vi.fn(async () => {})
 
     await expect(store.setter(runUndoHistoryAtom, { source, refreshProjection })).resolves.toBe(
       'blocked',
@@ -822,7 +822,7 @@ describe('history Core lifecycle', () => {
         return execute
       },
     }) as HistoryControllerPort
-    const refresh = jest.fn(async () => {})
+    const refresh = vi.fn(async () => {})
     const command = Object.defineProperties(
       {},
       {
@@ -864,7 +864,7 @@ describe('history Core lifecycle', () => {
   })
 
   test('invalid command timeouts normalize once to the positive finite default', async () => {
-    const timeoutSpy = jest.spyOn(globalThis, 'setTimeout')
+    const timeoutSpy = vi.spyOn(globalThis, 'setTimeout')
     try {
       for (const timeoutMs of [0, -1, Number.NaN, Number.POSITIVE_INFINITY]) {
         const store = createStore()
@@ -894,7 +894,7 @@ describe('history Core lifecycle', () => {
     store.setter(pushHistoryAtom, makeEntry('tx-1', 1))
     store.setter(pushHistoryAtom, makeEntry('tx-2', 2))
     const acknowledgement = deferred<HistoryMutationResult>()
-    const undo = jest.fn((_request: HistoryUndoRequest) => acknowledgement.promise)
+    const undo = vi.fn((_request: HistoryUndoRequest) => acknowledgement.promise)
     const source: HistoryControllerPort = { undoTransaction: undo }
     const input = { source, refreshProjection: async () => {} }
 
@@ -941,7 +941,7 @@ describe('history Core lifecycle', () => {
   ])('strict ACK rejects %s as OutcomeUnknown', async (_label, resultFor) => {
     const store = createStore()
     store.setter(pushHistoryAtom, makeEntry('tx-1', 1))
-    const undo = jest.fn(async (request: HistoryUndoRequest) => resultFor(request))
+    const undo = vi.fn(async (request: HistoryUndoRequest) => resultFor(request))
     const source: HistoryControllerPort = { undoTransaction: undo }
     const input = { source, refreshProjection: async () => {} }
 
@@ -1099,7 +1099,7 @@ describe('history Core lifecycle', () => {
   test('transport rejection becomes OutcomeUnknown and never resends the mutation', async () => {
     const store = createStore()
     store.setter(pushHistoryAtom, makeEntry('tx-1', 1))
-    const undo = jest.fn(async (_request: HistoryUndoRequest): Promise<HistoryMutationResult> => {
+    const undo = vi.fn(async (_request: HistoryUndoRequest): Promise<HistoryMutationResult> => {
       throw new Error('connection dropped after write boundary')
     })
     const source: HistoryControllerPort = { undoTransaction: undo }
@@ -1115,7 +1115,7 @@ describe('history Core lifecycle', () => {
   test('structured not-applied ACK is OutcomeUnknown; cursor and witness stay', async () => {
     const store = createStore()
     store.setter(pushHistoryAtom, makeEntry('tx-1', 1))
-    const undo = jest.fn(
+    const undo = vi.fn(
       async (request: HistoryUndoRequest): Promise<HistoryMutationResult> => ({
         transactionId: request.transactionId,
         requestId: request.requestId,
@@ -1166,10 +1166,10 @@ describe('history Core lifecycle', () => {
   test('matching ACK plus refresh failure commits cursor and permits refresh-only retry', async () => {
     const store = createStore()
     store.setter(pushHistoryAtom, makeEntry('tx-1', 1))
-    const undo = jest.fn(async (request: HistoryUndoRequest) => exactAcknowledgement(request, 2))
-    const redo = jest.fn(async (request: HistoryRedoRequest) => exactAcknowledgement(request, 3))
+    const undo = vi.fn(async (request: HistoryUndoRequest) => exactAcknowledgement(request, 2))
+    const redo = vi.fn(async (request: HistoryRedoRequest) => exactAcknowledgement(request, 3))
     const source: HistoryControllerPort = { undoTransaction: undo, redoTransaction: redo }
-    const firstRefresh = jest.fn(async () => {
+    const firstRefresh = vi.fn(async () => {
       throw new Error('projection unavailable')
     })
 
@@ -1184,7 +1184,7 @@ describe('history Core lifecycle', () => {
     expect(store.getter(historyCanRetryRefreshAtom)).toBe(true)
     expect(undo).toHaveBeenCalledTimes(1)
 
-    const retryRefresh = jest.fn(async () => {})
+    const retryRefresh = vi.fn(async () => {})
     let replacement: Promise<unknown> | null = null
     const unsubscribe = store.sub(canRedoAtom, () => {
       if (replacement !== null || !store.getter(canRedoAtom)) return
@@ -1212,7 +1212,7 @@ describe('history Core lifecycle', () => {
     async () => {
     const store = createStore()
     store.setter(pushHistoryAtom, makeEntry('tx-1', 1))
-    const undo = jest.fn(async (request: HistoryUndoRequest) => exactAcknowledgement(request, 2))
+    const undo = vi.fn(async (request: HistoryUndoRequest) => exactAcknowledgement(request, 2))
     await expect(
       store.setter(runUndoHistoryAtom, {
         source: { undoTransaction: undo },
@@ -1222,8 +1222,8 @@ describe('history Core lifecycle', () => {
       }),
     ).resolves.toBe('refresh-failed')
 
-    const nestedRefresh = jest.fn(async () => {})
-    const outerRefresh = jest.fn(async () => {})
+    const nestedRefresh = vi.fn(async () => {})
+    const outerRefresh = vi.fn(async () => {})
     let nestedOperation: Promise<unknown> | null = null
     let refreshGetterReads = 0
     const hostileRetry = Object.defineProperty({}, 'refreshProjection', {
@@ -1254,7 +1254,7 @@ describe('history Core lifecycle', () => {
     async () => {
     const store = createStore()
     store.setter(pushHistoryAtom, makeEntry('tx-1', 1))
-    const undo = jest.fn(async (request: HistoryUndoRequest) => exactAcknowledgement(request, 2))
+    const undo = vi.fn(async (request: HistoryUndoRequest) => exactAcknowledgement(request, 2))
     const source: HistoryControllerPort = { undoTransaction: undo }
     const lateRefresh = deferred<void>()
 
@@ -1283,8 +1283,8 @@ describe('history Core lifecycle', () => {
     async () => {
     const store = createStore()
     store.setter(pushHistoryAtom, makeEntry('tx-1', 1))
-    const undo = jest.fn(async (request: HistoryUndoRequest) => exactAcknowledgement(request, 2))
-    const redo = jest.fn(async (request: HistoryRedoRequest) => exactAcknowledgement(request, 3))
+    const undo = vi.fn(async (request: HistoryUndoRequest) => exactAcknowledgement(request, 2))
+    const redo = vi.fn(async (request: HistoryRedoRequest) => exactAcknowledgement(request, 3))
     const source: HistoryControllerPort = { undoTransaction: undo, redoTransaction: redo }
     let replacementStarted = false
     let replacement: Promise<unknown> | null = null

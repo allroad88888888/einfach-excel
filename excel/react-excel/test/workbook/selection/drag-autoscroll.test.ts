@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals'
+import { describe, expect, it } from 'vitest'
 import { gridDragAutoscrollDelta } from '../../../src/workbook/selection/use-grid-drag-autoscroll'
 
 const VIEWPORT = { top: 100, right: 900, bottom: 500, left: 100 }

@@ -8,7 +8,7 @@ import {
   type HistoryEntryRecorder,
   type TablesControllerPort,
 } from '@einfach/spreadsheet-ui-core'
-import { afterEach, describe, expect, it } from '@jest/globals'
+import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, render } from '@solidjs/testing-library'
 
 import { SpreadsheetTablesFeedback } from '../src/tables'

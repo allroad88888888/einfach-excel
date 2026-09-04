@@ -11,7 +11,7 @@
  *   - edge case (rate=0 / type=1 / wrong sign / convergence failure)
  */
 
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import {
   ACCRINT,

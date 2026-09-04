@@ -9,10 +9,10 @@ import {
 import { addrToCoord, coordToAddr } from './selection'
 
 /**
- * Pure JS implementation of ISheet for development / jest tests.
+ * Pure JS implementation of ISheet for development / Vitest tests.
  *
  * NOTE: this is a mock — the formula evaluator only handles a subset of
- * what the Rust backend supports (see ISSUES.md D.1). It exists so jest
+ * what the Rust backend supports (see ISSUES.md D.1). It exists so Vitest
  * tests can run without the WASM toolchain. Production / e2e tests must
  * use createWasmSheet().
  *

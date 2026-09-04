@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import {
@@ -77,7 +77,7 @@ describe('conditional-format rule editor fields', () => {
   it('edits an existing rule, adopts the selection, and submits the atom draft', async () => {
     const store = createStore()
     prepare(store)
-    const setRule = jest.fn(async (request: SetConditionalFormatRuleRequest) => ({
+    const setRule = vi.fn(async (request: SetConditionalFormatRuleRequest) => ({
       sheetId: request.sheetId,
       requestId: request.requestId,
     }))
@@ -100,7 +100,7 @@ describe('conditional-format rule editor fields', () => {
   it('renders the supported kind fields and exposes validation before save', async () => {
     const store = createStore()
     prepare(store)
-    const setRule = jest.fn(async (request: SetConditionalFormatRuleRequest) => ({
+    const setRule = vi.fn(async (request: SetConditionalFormatRuleRequest) => ({
       sheetId: request.sheetId,
       requestId: request.requestId,
     }))

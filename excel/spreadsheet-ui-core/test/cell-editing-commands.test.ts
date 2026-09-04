@@ -1,4 +1,4 @@
-import { describe, expect, jest, test } from '@jest/globals'
+import { describe, expect, test, vi } from 'vitest'
 import {
   commitCellEditingAtom,
   createSpreadsheetUi,
@@ -111,7 +111,7 @@ describe('bound cell editing commands', () => {
   })
 
   test('keeps a rejected backend mutation as an editable draft', async () => {
-    const setCellInput = jest.fn(async () => {
+    const setCellInput = vi.fn(async () => {
       throw new Error('Rust write rejected')
     })
     const connection = createTestRustWorkbookConnection({
@@ -141,13 +141,13 @@ describe('bound cell editing commands', () => {
   })
 
   test('publishes the projection bundled with one mutation command', async () => {
-    const readVisibleProjection = jest.fn(async (request: VisibleProjectionRequest) =>
+    const readVisibleProjection = vi.fn(async (request: VisibleProjectionRequest) =>
       projectionResult(request, 'Before'),
     )
-    const setCellProjection = jest.fn(async (request: VisibleProjectionRequest) =>
+    const setCellProjection = vi.fn(async (request: VisibleProjectionRequest) =>
       projectionResult(request, 'Saved once'),
     )
-    const setCellInput = jest.fn(async (request: EditingCommitRequest) => ({
+    const setCellInput = vi.fn(async (request: EditingCommitRequest) => ({
       sheetId: request.sheetId,
       requestId: request.requestId,
       revision: 1,
@@ -178,18 +178,18 @@ describe('bound cell editing commands', () => {
 
   test('refreshes the visible window current when a deferred mutation is acknowledged', async () => {
     const requests: VisibleProjectionRequest[] = []
-    const readVisibleProjection = jest.fn(async (request: VisibleProjectionRequest) => {
+    const readVisibleProjection = vi.fn(async (request: VisibleProjectionRequest) => {
       requests.push(request)
       return projectionResult(request)
     })
     const bundledRequests: VisibleProjectionRequest[] = []
-    const setCellProjection = jest.fn(async (request: VisibleProjectionRequest) => {
+    const setCellProjection = vi.fn(async (request: VisibleProjectionRequest) => {
       bundledRequests.push(request)
       return projectionResult(request, 'Slow save')
     })
     const mutation = deferred<BackendMutationResult>()
     let mutationRequest: EditingCommitRequest | undefined
-    const setCellInput = jest.fn((request: EditingCommitRequest) => {
+    const setCellInput = vi.fn((request: EditingCommitRequest) => {
       mutationRequest = request
       return mutation.promise
     })

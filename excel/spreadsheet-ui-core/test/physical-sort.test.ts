@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, test } from '@jest/globals'
+import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import { createStore } from '@einfach/core'
 import {
   PHYSICAL_SORT_CAPABILITY_ERROR,

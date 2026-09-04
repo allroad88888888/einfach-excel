@@ -16,7 +16,7 @@
  *   2. Add a spread entry to the merge below.
  *
  * Name collisions across files are a build-time bug — declared via the
- * jest test in `test/functions-registry.test.ts` so we catch them early.
+ * Vitest test in `test/functions-registry.test.ts` so we catch them early.
  */
 import type { FunctionImpl } from '../../types'
 

@@ -1,4 +1,4 @@
-import { describe, expect, it, jest } from '@jest/globals'
+import { describe, expect, it, vi, type Mock } from 'vitest'
 import {
   MAX_IMPORT_CHUNK_CELLS,
   MAX_IMPORT_SESSION_NORMALIZED_CELLS,
@@ -26,10 +26,10 @@ import type {
 } from '../src/adapter/cell-write-reject'
 import { WasmWorkbook } from '@einfach/excel-wasm'
 
-jest.mock('@einfach/excel-wasm', () => ({
+vi.mock('@einfach/excel-wasm', () => ({
   __esModule: true,
-  default: jest.fn(async () => undefined),
-  WasmWorkbook: jest.fn(),
+  default: vi.fn(async () => undefined),
+  WasmWorkbook: vi.fn(),
 }))
 
 type MockCellState = {
@@ -707,10 +707,10 @@ function requestWorkerResponse<T>(
 function withMockedWorker(options: MockWasmWorkbookOptions = {}) {
   const workbooks: MockWasmWorkbook[] = []
   const responses: MockWorkerResponse[] = []
-  const postMessageSpy = jest.spyOn(self, 'postMessage').mockImplementation((message) => {
+  const postMessageSpy = vi.spyOn(self, 'postMessage').mockImplementation((message) => {
     responses.push(message as MockWorkerResponse)
   })
-  const constructorMock = WasmWorkbook as unknown as jest.Mock
+  const constructorMock = WasmWorkbook as unknown as Mock
   constructorMock.mockImplementation(() => {
     const { workbook } = createMockWasmWorkbook(options)
     workbook.__mockInstanceId = workbooks.length
@@ -2611,7 +2611,7 @@ describe('wave 8.2 · async custom formulas — worker pump wiring', () => {
   })
 
   it('maps callback throw to {error:#VALUE!} and missing local fn to {error:#NAME?}', async () => {
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined)
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
     const harness = withMockedWorker()
     try {
       await harness.send({ id: 9201, cmd: 'initWorkbook' })

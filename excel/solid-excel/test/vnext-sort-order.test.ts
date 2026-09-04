@@ -6,7 +6,7 @@
  * `vnext-sort-static-wasm-parity.test.ts`.
  */
 
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import {
   compareSortText,

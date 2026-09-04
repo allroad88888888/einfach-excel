@@ -1,5 +1,5 @@
 /** 条件聚合的整轴稀疏路径必须传播不存在工作表的 #REF!，不能当作空集合。 */
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import { createWorkbook } from '../src/workbook'
 import { keyFor } from '../src/sheet'

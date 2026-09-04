@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import {
@@ -138,7 +138,7 @@ describe('toolbar sort confirmation', () => {
     const store = createStore()
     setTarget(store, 1)
     let resolutionAttempt = 0
-    const sortRange = jest.fn<NonNullable<SpreadsheetBackend['sortRange']>>()
+    const sortRange = vi.fn<NonNullable<SpreadsheetBackend['sortRange']>>()
     const backend = createBackend({
       sortRange,
       async resolveDataEdge(request) {

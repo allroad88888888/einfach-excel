@@ -1,4 +1,6 @@
-import { describe, expect, it, jest } from '@jest/globals'
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
+import { describe, expect, it } from 'vitest'
 
 import * as i18n from '../src/i18n'
 import * as legacy from '../legacy'
@@ -12,8 +14,8 @@ interface SolidExcelPackageJson {
   exports: Record<string, unknown>
 }
 
-const packageJson = jest.requireActual(
-  '../package.json',
+const packageJson = JSON.parse(
+  readFileSync(path.resolve(__dirname, '../package.json'), 'utf8'),
 ) as SolidExcelPackageJson
 
 describe('@einfach/solid-excel package entry', () => {

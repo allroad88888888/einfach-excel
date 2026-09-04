@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import type {
@@ -91,7 +91,7 @@ describe('SpreadsheetTextToColumnsDialog focus and error presentation', () => {
   })
 
   it('associates a Core mutation error with the existing Finish control', async () => {
-    const importCellChunks = jest.fn(async () => {
+    const importCellChunks = vi.fn(async () => {
       throw new Error('network interrupted')
     })
     const store = createStore()

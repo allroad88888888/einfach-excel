@@ -16,7 +16,7 @@
  *   4. 挡路的是另一个数组时，话里得说出「数组」—— 那时指的是那个数组的**锚点**，
  *      而锚点在用户眼里可能是空的，照直说「清掉 H3」会像是提示指错了地方。
  */
-import { afterEach, describe, expect, it } from '@jest/globals'
+import { afterEach, describe, expect, it } from 'vitest'
 import { createStore, type Store } from '@einfach/core'
 import { cleanup, render } from '@solidjs/testing-library'
 import {

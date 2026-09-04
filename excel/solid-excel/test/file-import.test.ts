@@ -1,4 +1,4 @@
-import { describe, expect, it, jest } from '@jest/globals'
+import { describe, expect, it, vi } from 'vitest'
 import type { ImportCellWire } from '../legacy/wasm-workbook-proxy'
 import { TextDecoder } from 'util'
 import {
@@ -76,15 +76,15 @@ function makeFakeClient() {
   }
 
   const client = {
-    beginImport: jest.fn(() => {
+    beginImport: vi.fn(() => {
       calls.beginImport.push(1)
       return 1
     }),
-    importChunk: jest.fn(async (_sessionId: number, cells: ImportCellWire[]) => {
+    importChunk: vi.fn(async (_sessionId: number, cells: ImportCellWire[]) => {
       calls.importChunk.push({ sessionId: _sessionId, cells: [...cells] })
       return cells.length
     }),
-    commitImport: jest.fn(async () => {
+    commitImport: vi.fn(async () => {
       calls.commitImport.push(1)
       return {
         accepted: 0,
@@ -94,7 +94,7 @@ function makeFakeClient() {
         errors: 0,
       }
     }),
-    cancelImport: jest.fn(async () => {
+    cancelImport: vi.fn(async () => {
       calls.cancelImport.push(1)
       return true
     }),

@@ -71,8 +71,8 @@ import { SpreadsheetUiProvider, SpreadsheetGrid } from '@einfach/solid-excel'
 ```
 
 **worker 工厂是第二个入口，不在上面那个 barrel 里。** 它靠 `import.meta.url` 解析 worker
-bundle，放进 barrel 会让所有间接导入它的 jest 套件崩在 `Cannot use 'import.meta' outside a
-module`（实测 37 个）。宿主从独立子路径取得真实 factory，并把它交给根入口导出的 worker backend：
+bundle，放进 barrel 会让不支持 `import.meta` 的测试转换链崩在
+`Cannot use 'import.meta' outside a module`。宿主从独立子路径取得真实 factory，并把它交给根入口导出的 worker backend：
 
 ```ts
 import { createWorkerWorkbookSpreadsheetBackend } from '@einfach/solid-excel'
@@ -101,7 +101,7 @@ dependency graph instead of adding a component-level workaround:
 
 ```bash
 grep -oE '^  solid-js@[0-9.]+' pnpm-lock.yaml | sort -u
-npx jest excel/solid-excel/test/provider-remount-1912.test.tsx --runInBand
+pnpm --filter @einfach/solid-excel exec vitest run test/provider-remount-1912.test.tsx
 ```
 
 The package runtime cannot reliably discover another `solid-js` branch in the
@@ -133,14 +133,14 @@ clone must have `wasm-pack` and a working Rust toolchain on `PATH`.
 
 ## Testing
 
-Jest 套件在 `test/` 下（现役；历史文件名可能仍含 `vnext`），另有 legacy `legacy/` 的 parity 套件。Solid 组件用 `@solidjs/testing-library`。规模现场算，不记数字：`npx jest excel/solid-excel --listTests | wc -l`。
+Vitest 套件在 `test/` 下（历史文件名可能仍含 `vnext`），另有 legacy `legacy/` 的 parity 套件。Solid 组件用 `@solidjs/testing-library`。规模现场算，不记数字：`pnpm --filter @einfach/solid-excel exec vitest list | wc -l`。
 
 ```bash
 # Whole package
-npx jest excel/solid-excel --no-coverage
+pnpm --filter @einfach/solid-excel test
 
 # Single active spec (historical filename)
-npx jest excel/solid-excel/test/vnext-grid.test.tsx --runInBand
+pnpm --filter @einfach/solid-excel exec vitest run test/vnext-grid.test.tsx
 
 # Type gate
 npx tsc -p excel/solid-excel/tsconfig.json --noEmit --pretty false

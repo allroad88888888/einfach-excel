@@ -5,7 +5,7 @@
  * TIMEVALUE, WEEKNUM, ISOWEEKNUM, DATEDIF, NETWORKDAYS, WORKDAY.
  */
 
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import { FUNCTIONS } from '../src/eval/functions/date'
 import type { EvalContext, FunctionImpl, Value } from '../src/types'

@@ -34,7 +34,7 @@
  * 红了不一定是坏消息 —— 可能是某一侧修好了，那时把它挪进上面的组里。
  */
 
-import { afterAll, beforeAll, describe, expect, test } from '@jest/globals'
+import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 
 import { displaysOf, loadWasmModule, makeEngine, type Engine } from './cross-engine-parity-engines'
 import { a1 } from './parity-seed'

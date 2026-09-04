@@ -33,10 +33,10 @@ import { useOverlayInteraction } from '../overlay'
 
 // Pull in the dialog stylesheet as a side-effect import. Vite picks the
 // dynamic-import target up statically and bundles the CSS into the chunk;
-// the runtime guard skips evaluation under jest so unit tests aren't
+// the runtime guard skips evaluation under Vitest so unit tests aren't
 // blocked when no CSS transform is configured. The co-located
 // `.css.d.ts` keeps tsc satisfied under the Bundler moduleResolution.
-if (typeof process === 'undefined' || !process.env.JEST_WORKER_ID) {
+if (typeof process === 'undefined' || process.env.VITEST !== 'true') {
   void import('@einfach/spreadsheet-ui-styles/features/paste-special-dialog.css')
 }
 

@@ -33,7 +33,7 @@
  * 这里失败就是一条**真的**跨引擎发现：报告分歧地址，不要放宽断言。
  */
 
-import { afterAll, beforeAll, describe, expect, test } from '@jest/globals'
+import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 
 import {
   displaysOf,
@@ -131,7 +131,7 @@ describe('cross-engine parity — spill lifecycle (TS runtime vs WASM engine)', 
   }, 30_000)
 
   // Runs LAST and hands the workbook back exactly as it found it, so the
-  // shared fixture above stays valid regardless of jest ordering.
+  // shared fixture above stays valid regardless of Vitest ordering.
   test('a spill-region write withdraws the array on both engines, and revives', async () => {
     const bothRead = async () => {
       const tsRead = await ts.read(PROBE_ADDRS)

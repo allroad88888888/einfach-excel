@@ -2,7 +2,7 @@
 
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest'
 import { createStore, type Store } from '@einfach/core'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import {
@@ -171,8 +171,8 @@ describe('SpreadsheetNameManagerDialog core adapter', () => {
     const mutationResult = deferred<NamedRangeMutationResult>()
     const refreshedRegistry = deferred<NamedRangeListResult>()
     let listCall = 0
-    const setNamedRange = jest.fn((_request: SetNamedRangeRequest) => mutationResult.promise)
-    const listNamedRanges = jest.fn((request: ListNamedRangesRequest) => {
+    const setNamedRange = vi.fn((_request: SetNamedRangeRequest) => mutationResult.promise)
+    const listNamedRanges = vi.fn((request: ListNamedRangesRequest) => {
       listCall += 1
       if (listCall === 1) {
         return Promise.resolve({ requestId: request.requestId, revision: 1, names: [] })
@@ -245,7 +245,7 @@ describe('SpreadsheetNameManagerDialog core adapter', () => {
   it('deletes the core-selected entry with a strict request and refreshes the registry', async () => {
     const store = createStore()
     let listCall = 0
-    const listNamedRanges = jest.fn(async (request: ListNamedRangesRequest) => {
+    const listNamedRanges = vi.fn(async (request: ListNamedRangesRequest) => {
       listCall += 1
       return {
         requestId: request.requestId,
@@ -253,7 +253,7 @@ describe('SpreadsheetNameManagerDialog core adapter', () => {
         names: listCall === 1 ? [SAMPLE_ENTRY] : [],
       }
     })
-    const deleteNamedRange = jest.fn(async (request: DeleteNamedRangeRequest) => ({
+    const deleteNamedRange = vi.fn(async (request: DeleteNamedRangeRequest) => ({
       requestId: request.requestId,
       outcome: 'w0-acknowledged' as const,
       revision: 2,
@@ -288,12 +288,12 @@ describe('SpreadsheetNameManagerDialog core adapter', () => {
 
   it('keeps the current draft and selection after an exact confirmed-not-applied result', async () => {
     const store = createStore()
-    const setNamedRange = jest.fn(async (request: SetNamedRangeRequest) => ({
+    const setNamedRange = vi.fn(async (request: SetNamedRangeRequest) => ({
       requestId: request.requestId,
       outcome: 'confirmed-not-applied' as const,
       revision: 1,
     }))
-    const listNamedRanges = jest.fn(async (request: ListNamedRangesRequest) => ({
+    const listNamedRanges = vi.fn(async (request: ListNamedRangesRequest) => ({
       requestId: request.requestId,
       revision: 1,
       names: [SAMPLE_ENTRY],
@@ -322,13 +322,13 @@ describe('SpreadsheetNameManagerDialog core adapter', () => {
     'keeps the draft unconfirmed for a %s',
     async (mode) => {
       const store = createStore()
-      const setNamedRange = jest.fn(
+      const setNamedRange = vi.fn(
         (_request: SetNamedRangeRequest): Promise<NamedRangeMutationResult> =>
           mode === 'malformed-result'
             ? Promise.resolve({})
             : Promise.reject(new Error('transport failed')),
       )
-      const listNamedRanges = jest.fn(async (request: ListNamedRangesRequest) => ({
+      const listNamedRanges = vi.fn(async (request: ListNamedRangesRequest) => ({
         requestId: request.requestId,
         revision: 1,
         names: [],
@@ -360,8 +360,8 @@ describe('SpreadsheetNameManagerDialog core adapter', () => {
     const oldMutation = deferred<NamedRangeMutationResult>()
     const oldRefresh = deferred<NamedRangeListResult>()
     let listCall = 0
-    const setNamedRange = jest.fn((_request: SetNamedRangeRequest) => oldMutation.promise)
-    const listNamedRanges = jest.fn((request: ListNamedRangesRequest) => {
+    const setNamedRange = vi.fn((_request: SetNamedRangeRequest) => oldMutation.promise)
+    const listNamedRanges = vi.fn((request: ListNamedRangesRequest) => {
       listCall += 1
       if (listCall === 1) {
         return Promise.resolve({ requestId: request.requestId, revision: 1, names: [] })
@@ -418,8 +418,8 @@ describe('SpreadsheetNameManagerDialog core adapter', () => {
     const mutationResult = deferred<NamedRangeMutationResult>()
     const refreshedRegistry = deferred<NamedRangeListResult>()
     let listCall = 0
-    const setNamedRange = jest.fn((_request: SetNamedRangeRequest) => mutationResult.promise)
-    const listNamedRanges = jest.fn((request: ListNamedRangesRequest) => {
+    const setNamedRange = vi.fn((_request: SetNamedRangeRequest) => mutationResult.promise)
+    const listNamedRanges = vi.fn((request: ListNamedRangesRequest) => {
       listCall += 1
       if (listCall === 1) {
         return Promise.resolve({ requestId: request.requestId, revision: 1, names: [] })
@@ -466,11 +466,11 @@ describe('SpreadsheetNameManagerDialog core adapter', () => {
 
   it('keeps mutation transport at zero when named-range capability is unavailable', async () => {
     const store = createStore()
-    const setNamedRange = jest.fn(async (request: SetNamedRangeRequest) => ({
+    const setNamedRange = vi.fn(async (request: SetNamedRangeRequest) => ({
       requestId: request.requestId,
       outcome: 'w0-acknowledged' as const,
     }))
-    const listNamedRanges = jest.fn(async (request: ListNamedRangesRequest) => ({
+    const listNamedRanges = vi.fn(async (request: ListNamedRangesRequest) => ({
       requestId: request.requestId,
       names: [],
     }))
@@ -500,11 +500,11 @@ describe('SpreadsheetNameManagerDialog core adapter', () => {
 
   it('keeps mutation transport at zero when the initial list projection is unconfirmed', async () => {
     const store = createStore()
-    const setNamedRange = jest.fn(async (request: SetNamedRangeRequest) => ({
+    const setNamedRange = vi.fn(async (request: SetNamedRangeRequest) => ({
       requestId: request.requestId,
       outcome: 'w0-acknowledged' as const,
     }))
-    const listNamedRanges = jest.fn(async (request: ListNamedRangesRequest) => ({
+    const listNamedRanges = vi.fn(async (request: ListNamedRangesRequest) => ({
       requestId: (request.requestId ?? 0) + 1,
       revision: 1,
       names: [],
@@ -533,7 +533,7 @@ describe('SpreadsheetNameManagerDialog core adapter', () => {
 
   it('delegates validation to core and does not send an invalid draft', async () => {
     const store = createStore()
-    const setNamedRange = jest.fn(async (request: SetNamedRangeRequest) => ({
+    const setNamedRange = vi.fn(async (request: SetNamedRangeRequest) => ({
       requestId: request.requestId,
       outcome: 'w0-acknowledged' as const,
     }))
@@ -553,7 +553,7 @@ describe('SpreadsheetNameManagerDialog core adapter', () => {
 
   it('localizes a known core blocked reason in English without entering transport', async () => {
     const store = createStore()
-    const deleteNamedRange = jest.fn(async (request: DeleteNamedRangeRequest) => ({
+    const deleteNamedRange = vi.fn(async (request: DeleteNamedRangeRequest) => ({
       requestId: request.requestId,
       outcome: 'w0-acknowledged' as const,
     }))
@@ -617,7 +617,7 @@ const COSTS_TABLE: SpreadsheetTableDescriptor = Object.freeze({
 describe('SpreadsheetNameManagerDialog tables region', () => {
   it('refreshes the catalog on open and lists every workbook table', async () => {
     const store = createStore()
-    const listTables = jest.fn(
+    const listTables = vi.fn(
       async (request: ListTablesRequest): Promise<ListTablesResult> => ({
         requestId: request.requestId,
         revision: 1,
@@ -656,7 +656,7 @@ describe('SpreadsheetNameManagerDialog tables region', () => {
 
   it('does not read the table catalog until the dialog opens', async () => {
     const store = createStore()
-    const listTables = jest.fn(
+    const listTables = vi.fn(
       async (request: ListTablesRequest): Promise<ListTablesResult> => ({
         requestId: request.requestId,
         revision: 1,
@@ -681,7 +681,7 @@ describe('SpreadsheetNameManagerDialog tables region', () => {
 
   it('shows the empty state when the workbook has no tables', async () => {
     const store = createStore()
-    const listTables = jest.fn(
+    const listTables = vi.fn(
       async (request: ListTablesRequest): Promise<ListTablesResult> => ({
         requestId: request.requestId,
         revision: 1,
@@ -719,9 +719,9 @@ describe('SpreadsheetNameManagerDialog tables region', () => {
 describe('SpreadsheetNameManagerDialog table row actions', () => {
   interface LifecycleHarness {
     backend: NamedRangeBackend
-    listTables: jest.Mock<(request: ListTablesRequest) => Promise<ListTablesResult>>
-    renameTable: jest.Mock<(request: RenameTableRequest) => Promise<TableMutationResult>>
-    deleteTable: jest.Mock<(request: DeleteTableRequest) => Promise<TableMutationResult>>
+    listTables: Mock<(request: ListTablesRequest) => Promise<ListTablesResult>>
+    renameTable: Mock<(request: RenameTableRequest) => Promise<TableMutationResult>>
+    deleteTable: Mock<(request: DeleteTableRequest) => Promise<TableMutationResult>>
     catalog: () => readonly SpreadsheetTableDescriptor[]
   }
 
@@ -734,14 +734,14 @@ describe('SpreadsheetNameManagerDialog table row actions', () => {
   ): LifecycleHarness {
     let catalog: readonly SpreadsheetTableDescriptor[] = [SALES_TABLE, COSTS_TABLE]
 
-    const listTables = jest.fn(
+    const listTables = vi.fn(
       async (request: ListTablesRequest): Promise<ListTablesResult> => ({
         requestId: request.requestId,
         revision: 1,
         tables: [...catalog],
       }),
     )
-    const renameTable = jest.fn(
+    const renameTable = vi.fn(
       async (request: RenameTableRequest): Promise<TableMutationResult> => {
         if (options.renameResult) return options.renameResult(request)
         catalog = catalog.map((table) =>
@@ -756,7 +756,7 @@ describe('SpreadsheetNameManagerDialog table row actions', () => {
         }
       },
     )
-    const deleteTable = jest.fn(
+    const deleteTable = vi.fn(
       async (request: DeleteTableRequest): Promise<TableMutationResult> => {
         catalog = catalog.filter((table) => table.name !== request.name)
         return {

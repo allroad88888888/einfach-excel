@@ -15,7 +15,7 @@
  * looks only at the generic `CELL_WRITE_REJECTED` envelope.
  */
 
-import { afterEach, describe, expect, it } from '@jest/globals'
+import { afterEach, describe, expect, it } from 'vitest'
 import { createStore } from '@einfach/core'
 import { cleanup, fireEvent, waitFor } from '@solidjs/testing-library'
 import {

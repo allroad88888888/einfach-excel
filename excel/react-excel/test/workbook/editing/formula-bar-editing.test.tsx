@@ -5,7 +5,7 @@ import {
   type VisibleProjectionRequest,
   type VisibleProjectionResult,
 } from '@einfach/spreadsheet-ui-core'
-import { describe, expect, it, jest } from '@jest/globals'
+import { describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
 import { WorkbookView } from '../../../src/workbook/shell/WorkbookView'
@@ -15,7 +15,7 @@ import { createTestRustWorkbookConnection } from '../../support/rust-workbook-co
 function renderFormulaWorkbook() {
   const values = new Map([['0:0', 'Order']])
   let revision = 0
-  const readVisibleProjection = jest.fn(
+  const readVisibleProjection = vi.fn(
     async (request: VisibleProjectionRequest): Promise<VisibleProjectionResult> => ({
       kind: 'visible-window',
       sheetId: request.sheetId,
@@ -28,7 +28,7 @@ function renderFormulaWorkbook() {
       }),
     }),
   )
-  const setCellInput = jest.fn(async (request: EditingCommitRequest) => {
+  const setCellInput = vi.fn(async (request: EditingCommitRequest) => {
     values.set(`${request.row}:${request.col}`, request.input)
     revision += 1
     return { sheetId: request.sheetId, requestId: request.requestId, revision }

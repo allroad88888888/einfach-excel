@@ -9,7 +9,7 @@
  * **最小形状**（一张表、无播种工作负载、不走 bulk 导入，失败时地址少到可以直接
  * 读），那份是播种规模，负责撞出最小形状撞不出的组合态。两份都是 always-on。
  *
- * 本份必须快到能挂在每一次 `npx jest` 上，所以**不要**把它长成第二个 scale 套件。
+ * 本份必须快到能挂在每一次 `pnpm --filter @einfach/solid-excel exec vitest run` 上，所以**不要**把它长成第二个 scale 套件。
  * 只有当一条分歧是**单引擎单测看不见的一整类**时，才往这里加场景。
  *
  * ## 已经钉住的分歧类（每一条都曾是活的）
@@ -46,7 +46,7 @@
  * 这里失败就是一条**真的**跨引擎发现：报告分歧地址，不要放宽断言。
  */
 
-import { afterAll, beforeAll, describe, expect, test } from '@jest/globals'
+import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 
 import {
   displaysOf,

@@ -1,4 +1,4 @@
-import { describe, expect, jest, test } from '@jest/globals'
+import { describe, expect, vi, test } from 'vitest'
 import type { DisplayCell } from '@einfach/spreadsheet-ui-core'
 import {
   buildRangeSvg,
@@ -48,7 +48,7 @@ describe('vnext copy-as image renderer (Wave 8.4 PoC)', () => {
   })
 
   test('renderRangeAsImage forwards bytes from the rasterizer and packs the result', async () => {
-    const rasterizer = jest.fn(
+    const rasterizer = vi.fn(
       async (_svg: string, _w: number, _h: number) => FAKE_PNG,
     )
     const result = await renderRangeAsImage(
@@ -82,7 +82,7 @@ describe('vnext copy-as image renderer (Wave 8.4 PoC)', () => {
   })
 
   test('renderRangeAsImage honours scale on the SVG size', async () => {
-    const rasterizer = jest.fn(
+    const rasterizer = vi.fn(
       async (_svg: string, _w: number, _h: number) => FAKE_PNG,
     )
     const result = await renderRangeAsImage(
@@ -101,7 +101,7 @@ describe('vnext copy-as image renderer (Wave 8.4 PoC)', () => {
   })
 
   test('renderRangeAsImage sums per-column widths and per-row heights from the size map', async () => {
-    const rasterizer = jest.fn(
+    const rasterizer = vi.fn(
       async (_svg: string, _w: number, _h: number) => FAKE_PNG,
     )
     // 2-column selection: col 0 = 50px, col 1 = 150px → 200px total.
@@ -135,7 +135,7 @@ describe('vnext copy-as image renderer (Wave 8.4 PoC)', () => {
   })
 
   test('missing per-cell sizes fall back to the single-value override, then the PoC default', async () => {
-    const rasterizer = jest.fn(
+    const rasterizer = vi.fn(
       async (_svg: string, _w: number, _h: number) => FAKE_PNG,
     )
     // Only col 1 has a measurement (200px); col 0 falls back to the

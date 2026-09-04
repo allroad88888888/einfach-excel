@@ -1,4 +1,4 @@
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 import { getColumnLabel, getWindowIndexes, isCoordInsideRange, keyFor, toA1 } from '../src/shared'
 
 describe('grid coordinate helpers', () => {

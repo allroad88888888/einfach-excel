@@ -24,7 +24,7 @@
  *     custom → `#NAME?`).
  */
 
-import { describe, expect, jest, test } from '@jest/globals'
+import { describe, expect, vi, test } from 'vitest'
 
 import { createWorkerRuntimeTs } from '../src/adapter/worker-runtime-ts'
 
@@ -357,7 +357,7 @@ describe('worker-runtime-ts custom formulas — wave 8.2 async', () => {
   })
 
   test('async callback throw settles as #VALUE!', async () => {
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined)
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
     try {
       const runtime = createWorkerRuntimeTs()
       const { rpc, sheetIdx } = await initSheet(runtime)

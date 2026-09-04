@@ -1,4 +1,6 @@
-import { describe, expect, it, jest } from '@jest/globals'
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
+import { describe, expect, it } from 'vitest'
 
 import * as packageEntry from '../src/index'
 
@@ -9,7 +11,9 @@ interface VueExcelPackageJson {
   private: boolean
 }
 
-const packageJson = jest.requireActual('../package.json') as VueExcelPackageJson
+const packageJson = JSON.parse(
+  readFileSync(path.resolve(__dirname, '../package.json'), 'utf8'),
+) as VueExcelPackageJson
 
 describe('@einfach/vue-excel package entry', () => {
   it('keeps the package private while exposing the Vue bridges', () => {

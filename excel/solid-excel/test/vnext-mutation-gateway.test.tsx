@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import { render, cleanup, fireEvent, waitFor } from '@solidjs/testing-library'
 import type {
@@ -187,7 +187,7 @@ describe('vNext mutation gateway — grid paths', () => {
     Object.defineProperty(navigator, 'clipboard', {
       configurable: true,
       value: {
-        readText: jest.fn<() => Promise<string>>().mockResolvedValue('pasted'),
+        readText: vi.fn<() => Promise<string>>().mockResolvedValue('pasted'),
       },
     })
 

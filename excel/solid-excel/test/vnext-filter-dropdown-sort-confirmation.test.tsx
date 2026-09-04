@@ -1,7 +1,7 @@
 /** @jsxImportSource solid-js */
-/* eslint-disable import/no-extraneous-dependencies -- root Jest supplies these test dependencies. */
+/* eslint-disable import/no-extraneous-dependencies -- package Vitest supplies these dependencies. */
 
-import { afterEach, describe, expect, it } from '@jest/globals'
+import { afterEach, describe, expect, it } from 'vitest'
 import { createStore } from '@einfach/core'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import type {

@@ -3,7 +3,7 @@
  * `excel/rust/excel-core/docs/SCALE_TEST_SUITE_PLAN.md` (S1–S12).
  *
  * Design contract (plan §Design principles):
- *  - Always-on: runs under plain `npx jest`; the whole file must stay
+ *  - Always-on: runs under the package's plain Vitest command; the whole file must stay
  *    well under the monorepo's 8 s budget (target ≤ 4 s).
  *  - Counters, not clocks: every complexity assertion uses re-eval
  *    counts (`debugFormulaEvalCount`), DepGraph sizes
@@ -31,7 +31,7 @@
  *    content), which is what the worker runtime does on restore.
  */
 
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import { keyFor } from '../src/sheet'
 import { createWorkbook, type BulkCellInput } from '../src/workbook'

@@ -2,7 +2,7 @@
 
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { afterEach, describe, expect, it } from '@jest/globals'
+import { afterEach, describe, expect, it } from 'vitest'
 import { createStore } from '@einfach/core'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import {

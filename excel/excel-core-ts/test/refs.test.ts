@@ -4,7 +4,7 @@
  * Discipline: pure functions only — no atoms, no store, no Solid. Every
  * test is fully described by its inputs/outputs.
  */
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import {
   EXCEL_MAX_COL,

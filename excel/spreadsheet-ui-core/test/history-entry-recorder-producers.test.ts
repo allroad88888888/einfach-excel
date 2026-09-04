@@ -1,5 +1,5 @@
 import { createStore } from '@einfach/core'
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 import { historyStackAtom, type HistoryEntryRecorder } from '../src/history'
 import { createInsertRowsOperation, runStructureOperationAtom } from '../src/operations'
 import type { InsertRowsRequest } from '../src/backend/types'

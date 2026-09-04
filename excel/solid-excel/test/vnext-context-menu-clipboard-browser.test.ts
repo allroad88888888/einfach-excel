@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import {
   clipboardStateAtom,
@@ -39,13 +39,13 @@ function installClipboard(clipboard: object) {
 }
 
 function createBackend() {
-  const clearRange = jest.fn<NonNullable<SpreadsheetBackend['clearRange']>>(async (request) => ({
+  const clearRange = vi.fn<NonNullable<SpreadsheetBackend['clearRange']>>(async (request) => ({
     sheetId: request.sheetId,
     requestId: request.requestId,
     revision: request.revision,
     affectedRange: request.range,
   }))
-  const setCellInput = jest.fn<SpreadsheetBackend['setCellInput']>(async (request) => ({
+  const setCellInput = vi.fn<SpreadsheetBackend['setCellInput']>(async (request) => ({
     sheetId: request.sheetId,
     requestId: request.requestId,
     revision: request.revision,
@@ -97,7 +97,7 @@ function intent(
 
 describe('vNext context-menu browser clipboard transport', () => {
   it('writes a rich clipboard item while retaining the existing copy Atom lifecycle', async () => {
-    const write = jest.fn(async (_items: readonly ClipboardItemMock[]) => undefined)
+    const write = vi.fn(async (_items: readonly ClipboardItemMock[]) => undefined)
     installClipboard({ write })
     Object.defineProperty(globalThis, 'ClipboardItem', {
       configurable: true,
@@ -119,7 +119,7 @@ describe('vNext context-menu browser clipboard transport', () => {
 
   it('reports copy and cut transport failures through the existing Atom without clearing cells', async () => {
     installClipboard({
-      writeText: jest.fn(async () => Promise.reject(new Error('NotAllowedError'))),
+      writeText: vi.fn(async () => Promise.reject(new Error('NotAllowedError'))),
     })
     Object.defineProperty(document, 'execCommand', { configurable: true, value: () => false })
     const store = createStore()
@@ -144,7 +144,7 @@ describe('vNext context-menu browser clipboard transport', () => {
 
   it('reports a paste read failure through the existing Atom without a backend mutation', async () => {
     installClipboard({
-      readText: jest.fn(async () => Promise.reject(new Error('NotAllowedError'))),
+      readText: vi.fn(async () => Promise.reject(new Error('NotAllowedError'))),
     })
     const store = createStore()
     const { backend, clearRange, setCellInput } = createBackend()

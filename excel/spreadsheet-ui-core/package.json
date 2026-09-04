@@ -45,6 +45,8 @@
   ],
   "scripts": {
     "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "verify:package-artifact": "node scripts/verify-package-artifact.mjs"
   },
   "sideEffects": [
@@ -67,7 +69,8 @@
     "@einfach/excel-wasm": "workspace:*"
   },
   "devDependencies": {
-    "@jest/globals": "^29.7.0",
-    "@types/node": "^20.11.30"
+    "@types/node": "^20.11.30",
+    "jsdom": "^25.0.1",
+    "vitest": "^2.1.9"
   }
 }

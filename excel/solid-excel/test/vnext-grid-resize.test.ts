@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import {
   MAX_VIEWPORT_ROW_HEIGHT,
@@ -107,7 +107,7 @@ function createResizeFixture(options: ResizeFixtureOptions = {}) {
 }
 
 afterEach(() => {
-  jest.restoreAllMocks()
+  vi.restoreAllMocks()
   document.body.replaceChildren()
 })
 

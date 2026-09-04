@@ -1,10 +1,10 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  *
  * Engine physical sort (design-engine-sort S2/S3) — the `sortRange` RPC
  * over the REAL WASM engine and the REAL `worker-runtime.ts` dispatcher
  * in process. Same harness as vnext-worker-paste-special-wasm.test.ts:
- * wasm-pkg jest-mocked onto itself with the binary pre-loaded through
+ * wasm-pkg Vitest-mocked onto itself with the binary pre-loaded through
  * `initSync`, a fake `self` installed before the runtime module imports.
  *
  * Exercised at the WorkerWorkbookClient level (the S4 host port + undo
@@ -17,17 +17,15 @@
  *    spill-in-range with its anchor).
  */
 
-import { beforeAll, describe, expect, jest, test } from '@jest/globals'
+import { beforeAll, describe, expect, vi, test } from 'vitest'
 
-import type * as NodeFsModule from 'node:fs'
-import type * as NodePathModule from 'node:path'
 import type { WorkerLike, WorkerWorkbookClient } from '../src/adapter'
 
-jest.mock('@einfach/excel-wasm', () => {
+vi.mock('@einfach/excel-wasm', async () => {
   /* eslint-disable @typescript-eslint/no-var-requires */
-  const { readFileSync } = require('node:fs') as typeof NodeFsModule
-  const nodePath = require('node:path') as typeof NodePathModule
-  const real = jest.requireActual('@einfach/excel-wasm') as {
+  const { readFileSync } = await import('node:fs')
+  const nodePath = await import('node:path')
+  const real = await vi.importActual('@einfach/excel-wasm') as {
     initSync: (input: { module: ArrayBufferLike }) => unknown
     WasmWorkbook: unknown
   }

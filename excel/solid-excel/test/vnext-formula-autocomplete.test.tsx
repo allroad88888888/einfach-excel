@@ -1,7 +1,7 @@
 /** @jsxImportSource solid-js */
 
 import { createStore } from '@einfach/core'
-import { afterEach, describe, expect, it } from '@jest/globals'
+import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, render, waitFor } from '@solidjs/testing-library'
 import type {
   BackendMutationResult,

@@ -19,7 +19,7 @@ export default defineConfig({
         repoRoot,
         'excel/spreadsheet-ui-core/src',
       ),
-      // Mirrors the jest moduleNameMapper so the bundled worker resolves
+      // Mirrors the Vitest alias so the bundled worker resolves
       // excel-core-ts straight from source. Otherwise vite would pick up the
       // stale published esm/cjs outputs and ?backend=ts would crash when the
       // worker calls debug RPCs added in Phase 1.

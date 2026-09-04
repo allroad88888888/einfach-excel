@@ -1,10 +1,10 @@
-import { describe, expect, it, jest } from '@jest/globals'
+import { describe, expect, it, vi } from 'vitest'
 
 import { getBenchScenario, listBenchScenarios } from '../bench/registry'
 
-jest.mock('../bench/fixture', () => ({
+vi.mock('../bench/fixture', () => ({
   BENCH_SHEET_ID: 'bench-sheet',
-  mountBenchFixture: jest.fn(),
+  mountBenchFixture: vi.fn(),
 }))
 
 const PUBLIC_SCENARIOS = [

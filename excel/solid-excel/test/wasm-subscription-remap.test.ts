@@ -11,12 +11,12 @@
  *
  * Always-on: three tests against a 3-sheet workbook, milliseconds.
  */
-import { describe, expect, test, beforeAll, beforeEach, afterEach } from '@jest/globals'
+import { describe, expect, test, beforeAll, beforeEach, afterEach } from 'vitest'
 import { existsSync, readFileSync } from 'node:fs'
 import { TextDecoder, TextEncoder } from 'node:util'
 import path from 'node:path'
 
-// jsdom under jest doesn't expose TextDecoder/TextEncoder; the wasm-bindgen
+// jsdom under Vitest doesn't expose TextDecoder/TextEncoder; the wasm-bindgen
 // glue grabs them at module-load time, so patch globals BEFORE importing
 // the wasm module (same trick as scale-parity.test.ts).
 const g = globalThis as unknown as {

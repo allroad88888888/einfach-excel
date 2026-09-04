@@ -1,5 +1,5 @@
 import type { DisplayCell, ViewportMetrics } from '@einfach/spreadsheet-ui-core'
-import { describe, expect, it } from '@jest/globals'
+import { describe, expect, it } from 'vitest'
 import { createApp, h } from 'vue'
 import {
   SpreadsheetFrozenGridView,

@@ -13,7 +13,7 @@
  *     reverse dep edges, or breaking the cycle never re-derives them.
  */
 
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import { keyFor } from '../src/sheet'
 import { createWorkbook } from '../src/workbook'

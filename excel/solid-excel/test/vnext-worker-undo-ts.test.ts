@@ -20,7 +20,7 @@
  *    undone cell, and redo re-converges (Wave 8.2 interplay).
  */
 
-import { afterEach, describe, expect, test } from '@jest/globals'
+import { afterEach, describe, expect, test } from 'vitest'
 import { createStore } from '@einfach/core'
 import {
   HISTORY_NOT_APPLIED_ERROR,

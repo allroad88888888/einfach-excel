@@ -9,7 +9,7 @@
  *   - error tolerance inside the range (Excel skips error cells)
  */
 
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import { FUNCTIONS } from '../src/eval/functions/stats'
 import type { EvalContext, FunctionImpl, Value } from '../src/types'

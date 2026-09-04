@@ -24,7 +24,7 @@
  * 极性。完整实测表见 Rust 半边 `regex_dialect_parity.rs` 的文件头。
  */
 
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 
 import { FUNCTIONS } from '../src/eval/functions/text'
 import type { EvalContext, FunctionImpl, Value } from '../src/types'

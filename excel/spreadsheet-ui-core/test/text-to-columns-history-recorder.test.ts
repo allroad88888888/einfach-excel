@@ -1,5 +1,5 @@
 import { createStore } from '@einfach/core'
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 import type { BackendMutationResult, ImportCellChunksRequest } from '../src/backend/types'
 import {
   acquireHistoryProducerReservationAtom,

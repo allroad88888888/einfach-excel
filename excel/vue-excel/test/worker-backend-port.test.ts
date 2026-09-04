@@ -3,7 +3,7 @@ import {
   type WorkerWorkbookClient,
 } from '../../solid-excel/src/adapter'
 import type { SpreadsheetUiCore } from '@einfach/spreadsheet-ui-core'
-import { describe, expect, it } from '@jest/globals'
+import { describe, expect, it } from 'vitest'
 import { createApp, defineComponent, h } from 'vue'
 import { SpreadsheetUiProvider, useSpreadsheetUiCore } from '../src'
 

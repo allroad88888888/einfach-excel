@@ -4,7 +4,7 @@ import {
   type VisibleProjectionRequest,
   type VisibleProjectionResult,
 } from '@einfach/spreadsheet-ui-core'
-import { jest } from '@jest/globals'
+import { vi } from 'vitest'
 import { fireEvent, render } from '@testing-library/react'
 import { SALES_ORDER_COLUMNS } from '../../src/page/demo/sales-orders/data/sheet'
 import { WorkbookStoreProvider } from '../../src/page/WorkbookStoreProvider'
@@ -49,7 +49,7 @@ export function deferredProjection<T>() {
 
 export function createProjectionConnection() {
   const requests: VisibleProjectionRequest[] = []
-  const readVisibleProjection = jest.fn(async (request: VisibleProjectionRequest) => {
+  const readVisibleProjection = vi.fn(async (request: VisibleProjectionRequest) => {
     requests.push(request)
     return projectionResultFor(request)
   })

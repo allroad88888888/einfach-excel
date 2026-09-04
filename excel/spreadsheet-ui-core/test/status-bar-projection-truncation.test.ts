@@ -6,7 +6,7 @@
  * 一条，用户看到的就是一个静默算错的和。
  */
 import { createStore } from '@einfach/core'
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 import type { DisplayCell } from '../src/backend'
 import {
   addSelectionRegionAtom,

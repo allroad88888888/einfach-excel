@@ -1,5 +1,5 @@
 import { createStore, type Store } from '@einfach/core'
-import { describe, expect, test } from '@jest/globals'
+import { describe, expect, test } from 'vitest'
 import {
   activeCellFormatAtom,
   beginProjectionAtom,

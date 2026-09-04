@@ -2,31 +2,21 @@ import type {
   RustWorkbookDefinition,
   StartRustWorkbookRuntimeInput,
 } from '@einfach/spreadsheet-ui-core'
-import { describe, expect, it, jest } from '@jest/globals'
+import { describe, expect, it, vi, type Mock } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import type { ComponentType, ReactNode } from 'react'
+import { WorkbookRuntimeProvider } from '../../src/page/WorkbookRuntimeProvider'
 
-const mockCreateWorker = jest.fn()
+const { mockCreateWorker } = vi.hoisted(() => ({ mockCreateWorker: vi.fn() }))
 
-jest.mock(
+vi.mock(
   '@einfach/spreadsheet-ui-core/rust-runtime?worker',
   () => ({ __esModule: true, default: mockCreateWorker }),
-  { virtual: true },
 )
-
-const { WorkbookRuntimeProvider } = jest.requireActual(
-  '../../src/page/WorkbookRuntimeProvider',
-) as {
-  WorkbookRuntimeProvider: ComponentType<{
-    readonly children: ReactNode
-    readonly definition: RustWorkbookDefinition
-  }>
-}
 
 type RuntimeWorker = ReturnType<StartRustWorkbookRuntimeInput['workerFactory']>
 
-function createReadyWorker(): { worker: RuntimeWorker; terminate: jest.Mock } {
-  const terminate = jest.fn()
+function createReadyWorker(): { worker: RuntimeWorker; terminate: Mock } {
+  const terminate = vi.fn()
   let onMessage: ((event: MessageEvent) => void) | undefined
   return {
     worker: {

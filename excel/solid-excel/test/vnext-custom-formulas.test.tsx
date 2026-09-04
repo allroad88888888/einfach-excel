@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import { cleanup, render, waitFor } from '@solidjs/testing-library'
 import {
@@ -13,7 +13,7 @@ import { customFormulasSupportedAtom, SpreadsheetUiProvider } from '../src/provi
 
 afterEach(() => {
   cleanup()
-  jest.restoreAllMocks()
+  vi.restoreAllMocks()
 })
 
 function createDeferredVoid() {
@@ -27,10 +27,10 @@ function createDeferredVoid() {
 }
 
 function createBackendWithCustomFormulas() {
-  const registerSpy = jest.fn<
+  const registerSpy = vi.fn<
     (name: string, source: string, options?: { isAsync?: boolean }) => Promise<void>
   >(async () => undefined)
-  const unregisterSpy = jest.fn<(name: string) => Promise<void>>(async () => undefined)
+  const unregisterSpy = vi.fn<(name: string) => Promise<void>>(async () => undefined)
   const backend: SpreadsheetBackend = {
     async readVisibleProjection() {
       throw new Error('not used')
@@ -166,11 +166,11 @@ describe('vnext custom formulas — host wiring', () => {
     const store = createStore()
     const registerGate = createDeferredVoid()
     const remote = new Set<string>()
-    const registerSpy = jest.fn<(name: string) => Promise<void>>(async (name) => {
+    const registerSpy = vi.fn<(name: string) => Promise<void>>(async (name) => {
       await registerGate.promise
       remote.add(name)
     })
-    const unregisterSpy = jest.fn<(name: string) => Promise<void>>(async (name) => {
+    const unregisterSpy = vi.fn<(name: string) => Promise<void>>(async (name) => {
       remote.delete(name)
     })
     const backend: SpreadsheetBackend = {
@@ -241,13 +241,13 @@ describe('vnext custom formulas — host wiring', () => {
     const store = createStore()
     const replacementGate = createDeferredVoid()
     const remote = new Map<string, string>()
-    const registerSpy = jest.fn<(name: string, source: string) => Promise<void>>(
+    const registerSpy = vi.fn<(name: string, source: string) => Promise<void>>(
       async (name, source) => {
         if (source === 'return 2') await replacementGate.promise
         remote.set(name, source)
       },
     )
-    const unregisterSpy = jest.fn<(name: string) => Promise<void>>(async (name) => {
+    const unregisterSpy = vi.fn<(name: string) => Promise<void>>(async (name) => {
       remote.delete(name)
     })
     const backend: SpreadsheetBackend = {
@@ -390,11 +390,11 @@ describe('vnext custom formulas — reconciliation failures', () => {
   it('a failed registerCustomFormula does not advance the baseline', async () => {
     const store = createStore()
     let attempts = 0
-    const registerSpy = jest.fn<(name: string, source: string) => Promise<void>>(async () => {
+    const registerSpy = vi.fn<(name: string, source: string) => Promise<void>>(async () => {
       attempts++
       if (attempts === 1) throw new Error('worker boom')
     })
-    const unregisterSpy = jest.fn<(name: string) => Promise<void>>(async () => undefined)
+    const unregisterSpy = vi.fn<(name: string) => Promise<void>>(async () => undefined)
     const backend: SpreadsheetBackend = {
       async readVisibleProjection() {
         throw new Error('not used')
@@ -457,11 +457,11 @@ describe('vnext custom formulas — reconciliation failures', () => {
       releaseFirst = resolve
     })
     let registerCalls = 0
-    const registerSpy = jest.fn<(name: string, source: string) => Promise<void>>(async () => {
+    const registerSpy = vi.fn<(name: string, source: string) => Promise<void>>(async () => {
       registerCalls++
       if (registerCalls === 1) await firstRegister
     })
-    const unregisterSpy = jest.fn<(name: string) => Promise<void>>(async () => undefined)
+    const unregisterSpy = vi.fn<(name: string) => Promise<void>>(async () => undefined)
     const backend: SpreadsheetBackend = {
       async readVisibleProjection() {
         throw new Error('not used')
@@ -514,13 +514,13 @@ describe('vnext custom formulas — provider isolation and lifecycle races', () 
     const secondStore = createStore()
     const firstGate = createDeferredVoid()
     let firstInstalled = false
-    const firstRegister = jest.fn<(name: string) => Promise<void>>(async () => {
+    const firstRegister = vi.fn<(name: string) => Promise<void>>(async () => {
       await firstGate.promise
       firstInstalled = true
     })
-    const firstUnregister = jest.fn<(name: string) => Promise<void>>(async () => undefined)
-    const secondRegister = jest.fn<(name: string) => Promise<void>>(async () => undefined)
-    const secondUnregister = jest.fn<(name: string) => Promise<void>>(async () => undefined)
+    const firstUnregister = vi.fn<(name: string) => Promise<void>>(async () => undefined)
+    const secondRegister = vi.fn<(name: string) => Promise<void>>(async () => undefined)
+    const secondUnregister = vi.fn<(name: string) => Promise<void>>(async () => undefined)
     const firstBackend: SpreadsheetBackend = {
       async readVisibleProjection() {
         throw new Error('not used')
@@ -595,14 +595,14 @@ describe('vnext custom formulas — provider isolation and lifecycle races', () 
   })
 
   it('does not grow the remote set when stale unregister keeps failing during churn', async () => {
-    jest.spyOn(console, 'warn').mockImplementation(() => undefined)
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined)
     const store = createStore()
     const remote = new Set<string>()
     let rejectCleanup = true
-    const registerSpy = jest.fn<(name: string) => Promise<void>>(async (name) => {
+    const registerSpy = vi.fn<(name: string) => Promise<void>>(async (name) => {
       remote.add(name)
     })
-    const unregisterSpy = jest.fn<(name: string) => Promise<void>>(async (name) => {
+    const unregisterSpy = vi.fn<(name: string) => Promise<void>>(async (name) => {
       if (rejectCleanup) throw new Error('worker cleanup failed')
       remote.delete(name)
     })
@@ -659,16 +659,16 @@ describe('vnext custom formulas — provider isolation and lifecycle races', () 
   })
 
   it('lands a deferred stale-unregister failure on the newest generation', async () => {
-    jest.spyOn(console, 'warn').mockImplementation(() => undefined)
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined)
     const store = createStore()
     const firstUnregisterGate = createDeferredVoid()
     const remote = new Set<string>()
     let rejectCleanup = true
-    const registerSpy = jest.fn<(name: string) => Promise<void>>(async (name) => {
+    const registerSpy = vi.fn<(name: string) => Promise<void>>(async (name) => {
       remote.add(name)
     })
     let unregisterCalls = 0
-    const unregisterSpy = jest.fn<(name: string) => Promise<void>>(async (name) => {
+    const unregisterSpy = vi.fn<(name: string) => Promise<void>>(async (name) => {
       unregisterCalls += 1
       if (unregisterCalls === 1) await firstUnregisterGate.promise
       if (rejectCleanup) throw new Error('worker cleanup failed')
@@ -741,10 +741,10 @@ describe('vnext custom formulas — provider isolation and lifecycle races', () 
     const gate = new Promise<void>((resolve) => {
       release = resolve
     })
-    const registerSpy = jest.fn<(name: string, source: string) => Promise<void>>(async () => {
+    const registerSpy = vi.fn<(name: string, source: string) => Promise<void>>(async () => {
       await gate
     })
-    const unregisterSpy = jest.fn<(name: string) => Promise<void>>(async () => undefined)
+    const unregisterSpy = vi.fn<(name: string) => Promise<void>>(async () => undefined)
     const backend: SpreadsheetBackend = {
       async readVisibleProjection() {
         throw new Error('not used')

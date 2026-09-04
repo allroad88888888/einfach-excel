@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals'
+import { describe, expect, it } from 'vitest'
 import {
   SALES_ORDER_CELL_COUNT,
   SALES_ORDER_IMPORT_CHUNK_SIZE,

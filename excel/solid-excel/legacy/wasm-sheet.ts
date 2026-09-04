@@ -96,7 +96,7 @@ async function loadWasmModule(): Promise<WasmModule> {
  *
  * Other demos (Budget / Grades / Sales / Blank) still use `createJSSheet`
  * for now; switching is a one-line swap of the factory passed to
- * `createSheetStore`. Jest tests stay on the JS mock — `createWasmSheet`
+ * `createSheetStore`. Vitest tests stay on the JS mock — `createWasmSheet`
  * needs the WASM toolchain and a browser-ish environment.
  */
 export async function createWasmSheet(): Promise<ISheet> {

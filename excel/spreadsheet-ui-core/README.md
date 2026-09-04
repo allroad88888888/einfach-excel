@@ -94,18 +94,18 @@ mutation ACK 和同一 Rust 修订版的可见区投影。产品启动流程发�
 
 单测在 `test/` 下，全部是 atom 级。每个测试用 `createStore()` 建**新** store 以隔离 atom 交互。
 
-规模现场算，不记数字：`npx jest excel/spreadsheet-ui-core --listTests | wc -l`。
+规模现场算，不记数字：`pnpm --filter @einfach/spreadsheet-ui-core exec vitest list | wc -l`。
 
 ```bash
 # Whole package
-npx jest excel/spreadsheet-ui-core --no-coverage
+pnpm --filter @einfach/spreadsheet-ui-core test
 
 # Single feature
-npx jest excel/spreadsheet-ui-core/test/<feature>.test.ts --runInBand
+pnpm --filter @einfach/spreadsheet-ui-core exec vitest run test/<feature>.test.ts
 
 # Type + boundary gate
 npx tsc -p excel/spreadsheet-ui-core/tsconfig.json --noEmit --pretty false
-npx jest excel/spreadsheet-ui-core/test/package-boundary.test.ts --runInBand
+pnpm --filter @einfach/spreadsheet-ui-core exec vitest run test/package-boundary.test.ts
 ```
 
 `package-boundary.test.ts` 把 Solid、React、DOM runtime API 和内联 WASM glue 挡在普通 atom 模块之外；

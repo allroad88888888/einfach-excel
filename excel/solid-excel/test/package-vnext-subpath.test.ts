@@ -1,4 +1,6 @@
-import { describe, expect, it, jest } from '@jest/globals'
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
+import { describe, expect, it } from 'vitest'
 import { createWorkerWorkbookSpreadsheetBackend as createCoreWorkerBackend } from '@einfach/spreadsheet-ui-core/rust-worker'
 import {
   SpreadsheetGrid,
@@ -9,7 +11,9 @@ import {
 } from '../src/public'
 import * as vNext from '../src/public'
 
-const packageJson = jest.requireActual('../package.json') as {
+const packageJson = JSON.parse(
+  readFileSync(path.resolve(__dirname, '../package.json'), 'utf8'),
+) as {
   exports: Record<string, unknown>
 }
 

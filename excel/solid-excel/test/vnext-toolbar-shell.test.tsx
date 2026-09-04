@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import { ToolbarAnchoredMenu } from '../src/toolbar/ToolbarAnchoredMenu'
 import { ToolbarShell } from '../src/toolbar/ToolbarShell'
@@ -9,7 +9,7 @@ afterEach(() => cleanup())
 
 describe('vNext toolbar shell', () => {
   it('makes an overflowing control row reachable without changing toolbar state', async () => {
-    const scrollBy = jest.fn()
+    const scrollBy = vi.fn()
     const { container } = render(() => (
       <ToolbarShell
         data-testid="toolbar-shell"

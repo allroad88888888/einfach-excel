@@ -8,7 +8,7 @@
 // 是单项最大的浪费。实测 3,172,516 → 2,601,536 字节（gzip 969,758 → 833,045）。
 //
 // 挂在 @einfach/excel-wasm 的 `build:wasm`（lite，剥 `lite/`）与 `build:wasm:full`
-// （full，剥 `full/`）末尾，所以 dev 与 jest 默认拿到的是**已剥**的产物。
+// （full，剥 `full/`）末尾，所以 dev 与 Vitest 默认拿到的是**已剥**的产物。
 // 需要可读 panic 栈时跑 `build:wasm:keep-names` / `build:wasm:full:keep-names`
 // —— 那两条只跑 wasm-pack，不接这一步。
 //

@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { afterEach, describe } from '@jest/globals'
+import { afterEach, describe } from 'vitest'
 import { cleanup } from '@solidjs/testing-library'
 import { setLocale } from '../src/i18n'
 import { registerActionsScenarios } from './vnext-toolbar-actions.scenarios'

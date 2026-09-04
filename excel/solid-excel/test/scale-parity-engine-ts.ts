@@ -5,7 +5,7 @@
  * bulk 路径：beginImport → importChunk → commitImport（runtime 内部每表一次
  * `bulkApply`）。
  */
-import { expect } from '@jest/globals'
+import { expect } from 'vitest'
 
 import {
   createWorkerRuntimeTs,

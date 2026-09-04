@@ -39,7 +39,7 @@ import {
   RemoveDuplicatesDialogContent,
 } from './RemoveDuplicatesDialogContent'
 
-if (typeof process === 'undefined' || !process.env.JEST_WORKER_ID) {
+if (typeof process === 'undefined' || process.env.VITEST !== 'true') {
   void import('@einfach/spreadsheet-ui-styles/features/remove-duplicates-dialog.css')
 }
 

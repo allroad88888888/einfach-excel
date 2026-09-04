@@ -1,4 +1,4 @@
-import { describe, expect, jest, test } from '@jest/globals'
+import { describe, expect, test, vi } from 'vitest'
 import { createStore, type Store } from '@einfach/core'
 import type { BackendMutationResult, DisplayCell } from '../src/backend/types'
 import { resolveContentMutationAtom } from '../src/editing'
@@ -641,8 +641,7 @@ describe('one-shot hydration seed', () => {
       },
     ],
   ] as const
-  test.each(HYDRATE_TABLE)('rejects an invalid payload (%s) with a diagnostic', async (...args: (typeof HYDRATE_TABLE)[number]) => {
-    const [_label, overrides] = args
+  test.each(HYDRATE_TABLE)('rejects an invalid payload (%s) with a diagnostic', async (_label, overrides) => {
     const store = createStore()
     const source: SheetProtectionPersistencePort = {
       readSheetProtection: async (request) =>
@@ -1013,7 +1012,7 @@ describe('unlock verification session', () => {
     const store = createStore()
     openLockedRange(store)
     store.setter(setProtectionUnlockPasswordAtom, 'workbook-password')
-    const verifySheetProtection = jest.fn<VerifySheetProtectionPort>(async () => ({ ok: true }))
+    const verifySheetProtection = vi.fn<VerifySheetProtectionPort>(async () => ({ ok: true }))
 
     store.setter(submitProtectionUnlockAtom, { verifySheetProtection })
     expect(store.getter(protectionUnlockPhaseAtom)).toBe('verifying')
@@ -1082,7 +1081,7 @@ describe('unlock verification session', () => {
     const store = createStore()
     openLockedRange(store)
     const verification = deferred<{ ok: boolean }>()
-    const verifySheetProtection = jest.fn(() => verification.promise)
+    const verifySheetProtection = vi.fn(() => verification.promise)
     const input = { verifySheetProtection }
 
     store.setter(submitProtectionUnlockAtom, input)
@@ -1141,12 +1140,12 @@ describe('W2 gateway enforcement without protection ports (worker-parity contrac
   // ports do not. Protection must be fully enforceable locally.
   function createPortlessBackendProbe() {
     return {
-      readVisibleProjection: jest.fn(),
-      readRangeProjection: jest.fn(),
-      setCellInput: jest.fn(),
-      clearRange: jest.fn(),
-      fillRange: jest.fn(),
-      pasteRange: jest.fn(),
+      readVisibleProjection: vi.fn(),
+      readRangeProjection: vi.fn(),
+      setCellInput: vi.fn(),
+      clearRange: vi.fn(),
+      fillRange: vi.fn(),
+      pasteRange: vi.fn(),
       // No setSheetProtection / setRangeLock / readSheetProtection.
     }
   }

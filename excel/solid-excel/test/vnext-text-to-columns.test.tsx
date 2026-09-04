@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import { afterEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import type {
@@ -299,7 +299,7 @@ describe('SpreadsheetTextToColumnsDialog', () => {
 
   it('Finish calls backend.importCellChunks with assembled plan and closes', async () => {
     const store = createStore()
-    const spy = jest.fn(
+    const spy = vi.fn(
       async (request: ImportCellChunksRequest): Promise<BackendMutationResult> =>
         matchingAcknowledgement(request),
     )
@@ -349,7 +349,7 @@ describe('SpreadsheetTextToColumnsDialog', () => {
 
   it('blocks Finish on a protected sheet with zero importCellChunks transport', async () => {
     const store = createStore()
-    const spy = jest.fn(
+    const spy = vi.fn(
       async (request: ImportCellChunksRequest): Promise<BackendMutationResult> =>
         matchingAcknowledgement(request),
     )
@@ -400,7 +400,7 @@ describe('SpreadsheetTextToColumnsDialog', () => {
     const projection = deferred<VisibleProjectionResult>()
     let importRequest: ImportCellChunksRequest | null = null
     let projectionRequest: VisibleProjectionRequest | null = null
-    const importSpy = jest.fn((request: ImportCellChunksRequest) => {
+    const importSpy = vi.fn((request: ImportCellChunksRequest) => {
       importRequest = request
       return acknowledgement.promise
     })
@@ -489,7 +489,7 @@ describe('SpreadsheetTextToColumnsDialog', () => {
 
   it('keeps an acknowledged refresh error locked and retries only projection refresh', async () => {
     const store = createStore()
-    const importSpy = jest.fn(async (request: ImportCellChunksRequest) =>
+    const importSpy = vi.fn(async (request: ImportCellChunksRequest) =>
       matchingAcknowledgement(request),
     )
     let projectionCount = 0
@@ -572,7 +572,7 @@ describe('SpreadsheetTextToColumnsDialog', () => {
 
   it('projects outcome-unknown as an immutable dialog and never resends', async () => {
     const store = createStore()
-    const importSpy = jest.fn(async (): Promise<BackendMutationResult> => {
+    const importSpy = vi.fn(async (): Promise<BackendMutationResult> => {
       throw new Error('connection ended after send')
     })
     const backend = createImportSpyBackend(importSpy)

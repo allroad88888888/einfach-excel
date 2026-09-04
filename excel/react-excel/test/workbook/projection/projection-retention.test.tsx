@@ -4,7 +4,7 @@ import {
   type VisibleProjectionRequest,
   type VisibleProjectionResult,
 } from '@einfach/spreadsheet-ui-core'
-import { describe, expect, it, jest } from '@jest/globals'
+import { describe, expect, it, vi } from 'vitest'
 import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { SALES_ORDER_SHEET_ROW_COUNT } from '../../../src/page/demo/sales-orders/data/sheet'
 import {
@@ -24,7 +24,7 @@ describe('Rust workbook projection retention', () => {
   it('retains one complete projection frame during a one-row scroll', async () => {
     const nextProjection = deferredProjection<VisibleProjectionResult>()
     const requests: VisibleProjectionRequest[] = []
-    const readVisibleProjection = jest.fn(async (request: VisibleProjectionRequest) => {
+    const readVisibleProjection = vi.fn(async (request: VisibleProjectionRequest) => {
       requests.push(request)
       return requests.length === 1 ? projectionResultFor(request) : nextProjection.promise
     })
@@ -61,7 +61,7 @@ describe('Rust workbook projection retention', () => {
   it('keeps selection navigation active while the next projection is pending', async () => {
     const nextProjection = deferredProjection<VisibleProjectionResult>()
     const requests: VisibleProjectionRequest[] = []
-    const readVisibleProjection = jest.fn(async (request: VisibleProjectionRequest) => {
+    const readVisibleProjection = vi.fn(async (request: VisibleProjectionRequest) => {
       requests.push(request)
       return requests.length === 1 ? projectionResultFor(request) : nextProjection.promise
     })
@@ -86,7 +86,7 @@ describe('Rust workbook projection retention', () => {
   it('places a distant retained frame in view without exposing stale interactions', async () => {
     const nextProjection = deferredProjection<VisibleProjectionResult>()
     const requests: VisibleProjectionRequest[] = []
-    const readVisibleProjection = jest.fn(async (request: VisibleProjectionRequest) => {
+    const readVisibleProjection = vi.fn(async (request: VisibleProjectionRequest) => {
       requests.push(request)
       return requests.length === 1 ? projectionResultFor(request) : nextProjection.promise
     })

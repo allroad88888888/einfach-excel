@@ -14,7 +14,7 @@
  *      静默吞掉一条陌生码 = 把同一个缺陷换个地方重演；
  *   3. 关闭动作真的把它从 store 里拿掉，而不只是从视图里藏掉。
  */
-import { afterEach, describe, expect, it } from '@jest/globals'
+import { afterEach, describe, expect, it } from 'vitest'
 import { createStore, type Store } from '@einfach/core'
 import { cleanup, render } from '@solidjs/testing-library'
 import {

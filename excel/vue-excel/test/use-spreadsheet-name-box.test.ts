@@ -11,7 +11,7 @@ import {
   type SetNamedRangeRequest,
   type SpreadsheetBackend,
 } from '@einfach/spreadsheet-ui-core'
-import { describe, expect, it, jest } from '@jest/globals'
+import { describe, expect, it, vi } from 'vitest'
 import { createApp, defineComponent, h, nextTick, ref } from 'vue'
 import { SpreadsheetUiProvider } from '../src/spreadsheet-ui-provider'
 import {
@@ -170,7 +170,7 @@ describe('useSpreadsheetNameBox', () => {
 
   it('sends a new name through the shared named-range mutation command', async () => {
     const store = createStore()
-    const setNamedRange = jest.fn(async (request: SetNamedRangeRequest) => ({
+    const setNamedRange = vi.fn(async (request: SetNamedRangeRequest) => ({
       requestId: request.requestId,
       outcome: 'w0-acknowledged' as const,
       authority: 'static-session-registry' as const,

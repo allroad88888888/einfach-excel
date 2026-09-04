@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals'
+import { describe, expect, it } from 'vitest'
 import type { CellRange, DisplayCell } from '@einfach/spreadsheet-ui-core'
 import { createApp, h } from 'vue'
 import { SpreadsheetGridView } from '../src'

@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  *
  * Excel spill-region write semantics over the REAL WASM engine and the REAL
  * `worker-runtime.ts` dispatcher, in process (same harness as
@@ -33,22 +33,20 @@
  * (`excel-core-ts/src/workbook.ts`) both skip the work. Hence a separate suite.
  */
 
-import { beforeAll, describe, expect, jest, test } from '@jest/globals'
+import { beforeAll, describe, expect, vi, test } from 'vitest'
 import type { CellRange, DisplayCell } from '@einfach/spreadsheet-ui-core'
 
-import type * as NodeFsModule from 'node:fs'
-import type * as NodePathModule from 'node:path'
 import type {
   WorkerLike,
   WorkerWorkbookClient,
   WorkerWorkbookSpreadsheetBackend,
 } from '../src/adapter'
 
-jest.mock('@einfach/excel-wasm', () => {
+vi.mock('@einfach/excel-wasm', async () => {
   /* eslint-disable @typescript-eslint/no-var-requires */
-  const { readFileSync } = require('node:fs') as typeof NodeFsModule
-  const nodePath = require('node:path') as typeof NodePathModule
-  const real = jest.requireActual('@einfach/excel-wasm') as {
+  const { readFileSync } = await import('node:fs')
+  const nodePath = await import('node:path')
+  const real = await vi.importActual('@einfach/excel-wasm') as {
     initSync: (input: { module: ArrayBufferLike }) => unknown
     WasmWorkbook: unknown
   }

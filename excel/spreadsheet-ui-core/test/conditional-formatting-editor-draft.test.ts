@@ -1,4 +1,4 @@
-import { describe, expect, jest, test } from '@jest/globals'
+import { describe, expect, test, vi } from 'vitest'
 import { createStore, type Store } from '@einfach/core'
 import {
   conditionalFormatEditorAtom,
@@ -116,7 +116,7 @@ describe('conditional-format editor draft', () => {
 
   test('blocks invalid range, priority, and rule values before transport', async () => {
     const store = createStore()
-    const setRule = jest.fn(async (request: SetConditionalFormatRuleRequest) => ({
+    const setRule = vi.fn(async (request: SetConditionalFormatRuleRequest) => ({
       sheetId: request.sheetId,
       requestId: request.requestId,
     }))

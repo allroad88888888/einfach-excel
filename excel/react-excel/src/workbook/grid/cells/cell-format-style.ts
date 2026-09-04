@@ -162,21 +162,6 @@ export function cellFormatStyle(
   applyBorderStyle(style, 'bottom', format.borders?.bottom)
   applyBorderStyle(style, 'left', format.borders?.left)
 
-  if (format.rotation === 'vertical') {
-    style.writingMode = 'vertical-rl'
-    style.textOrientation = 'mixed'
-  } else if (
-    typeof format.rotation === 'number' &&
-    Number.isFinite(format.rotation) &&
-    format.rotation >= -90 &&
-    format.rotation <= 90 &&
-    format.rotation !== 0
-  ) {
-    style.display = 'inline-block'
-    style.transform = `rotate(${format.rotation}deg)`
-    style.transformOrigin = 'center center'
-  }
-
   const overflow = format.overflow ?? (format.wrap ? 'wrap' : undefined)
   if (overflow === 'wrap') {
     style.overflowWrap = 'anywhere'
@@ -192,4 +177,31 @@ export function cellFormatStyle(
   }
 
   return style
+}
+
+/** Maps text rotation onto an inner element so the table cell geometry stays unchanged. */
+export function cellTextRotationStyle(
+  format: SpreadsheetCellFormat | undefined,
+): CSSProperties | undefined {
+  if (format?.rotation === 'vertical') {
+    return {
+      display: 'inline-block',
+      textOrientation: 'mixed',
+      writingMode: 'vertical-rl',
+    }
+  }
+  if (
+    typeof format?.rotation === 'number' &&
+    Number.isFinite(format.rotation) &&
+    format.rotation >= -90 &&
+    format.rotation <= 90 &&
+    format.rotation !== 0
+  ) {
+    return {
+      display: 'inline-block',
+      transform: `rotate(${format.rotation}deg)`,
+      transformOrigin: 'center center',
+    }
+  }
+  return undefined
 }

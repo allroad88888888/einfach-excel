@@ -1,4 +1,5 @@
 import {
+  SELECTION_ALL_BORDERS,
   SELECTION_FILL_COLOR,
   SELECTION_TEXT_COLOR,
 } from '@einfach/spreadsheet-ui-core'
@@ -25,5 +26,21 @@ describe('Workbook ribbon cell appearance', () => {
     fireEvent.click(alignment)
     await waitFor(() => expect(writes).toHaveLength(4))
     expect(writes[3]?.format).toMatchObject({ align: 'right' })
+  })
+
+  test('applies vertical alignment, text rotation and borders', async () => {
+    const { writes } = await renderFormattingRibbon()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Vertical alignment' }))
+    await waitFor(() => expect(writes).toHaveLength(1))
+    expect(writes[0]?.format).toEqual({ verticalAlign: 'top' })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Text rotation' }))
+    await waitFor(() => expect(writes).toHaveLength(2))
+    expect(writes[1]?.format).toEqual({ rotation: 45 })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Borders' }))
+    await waitFor(() => expect(writes).toHaveLength(3))
+    expect(writes[2]?.format).toEqual({ borders: SELECTION_ALL_BORDERS })
   })
 })

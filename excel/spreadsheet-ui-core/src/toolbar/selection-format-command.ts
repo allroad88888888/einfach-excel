@@ -2,6 +2,7 @@ import { atom } from '@einfach/core'
 import type {
   BackendMutationResult,
   ProjectionRevision,
+  SpreadsheetBorders,
   SpreadsheetCellFormat,
 } from '../backend'
 import { resolveContentMutationAtom } from '../editing/mutation-gateway'
@@ -18,6 +19,21 @@ import { selectionSnapshotAtom } from '../selection'
 
 export const SELECTION_TEXT_COLOR = '#c00000'
 export const SELECTION_FILL_COLOR = '#fff2cc'
+export const SELECTION_BORDER_COLOR = '#7f7f7f'
+
+const SELECTION_BORDER_SPEC = Object.freeze({
+  style: 'thin' as const,
+  color: SELECTION_BORDER_COLOR,
+})
+
+export const SELECTION_ALL_BORDERS = Object.freeze({
+  top: SELECTION_BORDER_SPEC,
+  right: SELECTION_BORDER_SPEC,
+  bottom: SELECTION_BORDER_SPEC,
+  left: SELECTION_BORDER_SPEC,
+}) satisfies SpreadsheetBorders
+
+const BORDER_SIDES = ['top', 'right', 'bottom', 'left'] as const
 
 export type SelectionFormatAction =
   | 'bold'
@@ -26,6 +42,9 @@ export type SelectionFormatAction =
   | 'text-color'
   | 'fill-color'
   | 'horizontal-alignment'
+  | 'vertical-alignment'
+  | 'text-rotation'
+  | 'all-borders'
   | 'wrap-text'
   | { readonly type: 'font-family'; readonly value: string }
   | { readonly type: 'font-size'; readonly value: number }
@@ -62,6 +81,30 @@ function nextPatch(
     return current.bgColor === SELECTION_FILL_COLOR
       ? { format: {}, clearFormatFields: ['bgColor'] }
       : { format: { bgColor: SELECTION_FILL_COLOR } }
+  }
+  if (action === 'vertical-alignment') {
+    const verticalAlign =
+      current.verticalAlign === 'top'
+        ? 'center'
+        : current.verticalAlign === 'center'
+          ? 'bottom'
+          : 'top'
+    return { format: { verticalAlign } }
+  }
+  if (action === 'text-rotation') {
+    if (current.rotation === -45) {
+      return { format: { rotation: 0 } }
+    }
+    return { format: { rotation: current.rotation === 45 ? -45 : 45 } }
+  }
+  if (action === 'all-borders') {
+    const enabled = BORDER_SIDES.every((side) => {
+      const border = current.borders?.[side]
+      return border?.style === 'thin' && border.color === SELECTION_BORDER_COLOR
+    })
+    return enabled
+      ? { format: {}, clearFormatFields: ['borders'] }
+      : { format: { borders: SELECTION_ALL_BORDERS } }
   }
   const align = current.align === 'center' ? 'right' : current.align === 'right' ? 'left' : 'center'
   return { format: { align } }

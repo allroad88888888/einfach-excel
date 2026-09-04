@@ -4,6 +4,7 @@ import {
   createSpreadsheetUi,
   runVisibleProjectionAtom,
   selectCellAtom,
+  SELECTION_ALL_BORDERS,
   SELECTION_FILL_COLOR,
   SELECTION_TEXT_COLOR,
   type SetFormatRangeRequest,
@@ -13,7 +14,7 @@ import {
 import { createTestRustWorkbookConnection } from './support/rust-workbook-connection'
 
 describe('selection cell appearance command', () => {
-  test('applies colors and cycles horizontal alignment through Rust', async () => {
+  test('applies colors, alignment, rotation and borders through Rust', async () => {
     let format: SpreadsheetCellFormat = {}
     let revision = 1
     const writes: SetFormatRangeRequest[] = []
@@ -50,6 +51,14 @@ describe('selection cell appearance command', () => {
     await core.store.setter(applySelectionFormatAtom, 'horizontal-alignment')
     await core.store.setter(applySelectionFormatAtom, 'horizontal-alignment')
     await core.store.setter(applySelectionFormatAtom, 'horizontal-alignment')
+    await core.store.setter(applySelectionFormatAtom, 'vertical-alignment')
+    await core.store.setter(applySelectionFormatAtom, 'vertical-alignment')
+    await core.store.setter(applySelectionFormatAtom, 'vertical-alignment')
+    await core.store.setter(applySelectionFormatAtom, 'text-rotation')
+    await core.store.setter(applySelectionFormatAtom, 'text-rotation')
+    await core.store.setter(applySelectionFormatAtom, 'text-rotation')
+    await core.store.setter(applySelectionFormatAtom, 'all-borders')
+    await core.store.setter(applySelectionFormatAtom, 'all-borders')
 
     expect(writes.map((write) => write.format)).toEqual([
       { bgColor: SELECTION_FILL_COLOR },
@@ -57,7 +66,16 @@ describe('selection cell appearance command', () => {
       { align: 'center' },
       { align: 'right' },
       { align: 'left' },
+      { verticalAlign: 'top' },
+      { verticalAlign: 'center' },
+      { verticalAlign: 'bottom' },
+      { rotation: 45 },
+      { rotation: -45 },
+      { rotation: 0 },
+      { borders: SELECTION_ALL_BORDERS },
+      {},
     ])
+    expect(writes[12]?.clearFormatFields).toEqual(['borders'])
   })
 })
 

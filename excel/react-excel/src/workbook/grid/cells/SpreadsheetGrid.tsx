@@ -1,6 +1,6 @@
 import type { CellRange, DisplayCell } from '@einfach/spreadsheet-ui-core'
 import type { CSSProperties } from 'react'
-import { cellFormatStyle } from './cell-format-style'
+import { cellFormatStyle, cellTextRotationStyle } from './cell-format-style'
 import { WORKBOOK_GRID_ROW_HEIGHT } from '../viewport/workbook-grid-config'
 
 /** Inputs for the controlled, read-only spreadsheet grid projection. */
@@ -47,6 +47,8 @@ export function SpreadsheetGrid({ window, cells, selected, rowHeights }: Spreads
     for (let col = window.colStart; col <= window.colEnd; col += 1) {
       const cell = cellsByCoordinate.get(`${row}:${col}`)
       const isSelected = isSelectedCell(selected, row, col)
+      const rotationStyle = cellTextRotationStyle(cell?.format)
+      const displayValue = cell?.displayValue ?? ''
 
       rowCells.push(
         <td
@@ -56,7 +58,13 @@ export function SpreadsheetGrid({ window, cells, selected, rowHeights }: Spreads
           data-selected={isSelected ? 'true' : undefined}
           style={cellFormatStyle(cell?.format)}
         >
-          {cell?.displayValue ?? ''}
+          {rotationStyle ? (
+            <span className="cell-rotated-text" style={rotationStyle}>
+              {displayValue}
+            </span>
+          ) : (
+            displayValue
+          )}
         </td>,
       )
     }

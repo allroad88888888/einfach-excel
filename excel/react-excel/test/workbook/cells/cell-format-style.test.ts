@@ -1,6 +1,9 @@
 import type { SpreadsheetCellFormat } from '@einfach/spreadsheet-ui-core'
 
-import { cellFormatStyle } from '../../../src/workbook/grid/cells/cell-format-style'
+import {
+  cellFormatStyle,
+  cellTextRotationStyle,
+} from '../../../src/workbook/grid/cells/cell-format-style'
 
 describe('cellFormatStyle', () => {
   it('maps valid font, alignment, border, rotation, and overflow formats to React styles', () => {
@@ -32,7 +35,6 @@ describe('cellFormatStyle', () => {
       borderTopStyle: 'solid',
       borderTopWidth: '1px',
       color: 'rgba(10, 20, 30, 0.5)',
-      display: 'inline-block',
       fontFamily: 'Arial, "Open Sans"',
       fontSize: '14px',
       fontStyle: 'italic',
@@ -43,8 +45,6 @@ describe('cellFormatStyle', () => {
       textAlignLast: 'justify',
       textDecoration: 'underline line-through',
       textOverflow: 'ellipsis',
-      transform: 'rotate(45deg)',
-      transformOrigin: 'center center',
       verticalAlign: 'middle',
       whiteSpace: 'nowrap',
     })
@@ -53,10 +53,18 @@ describe('cellFormatStyle', () => {
   it('preserves vertical rotation, wrap fallback, and overflow semantics', () => {
     expect(cellFormatStyle({ rotation: 'vertical', wrap: true })).toEqual({
       overflowWrap: 'anywhere',
-      textOrientation: 'mixed',
       whiteSpace: 'normal',
       wordBreak: 'break-word',
+    })
+    expect(cellTextRotationStyle({ rotation: 'vertical' })).toEqual({
+      display: 'inline-block',
+      textOrientation: 'mixed',
       writingMode: 'vertical-rl',
+    })
+    expect(cellTextRotationStyle({ rotation: 45 })).toEqual({
+      display: 'inline-block',
+      transform: 'rotate(45deg)',
+      transformOrigin: 'center center',
     })
     expect(cellFormatStyle({ overflow: 'clip' })).toEqual({
       overflow: 'hidden',
@@ -88,6 +96,7 @@ describe('cellFormatStyle', () => {
       borderTopWidth: '1px',
       paddingLeft: '2000px',
     })
+    expect(cellTextRotationStyle(untrusted)).toBeUndefined()
   })
 
   it('returns undefined only when no format is supplied', () => {

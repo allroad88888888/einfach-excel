@@ -105,7 +105,12 @@ export function WorkbookRibbon() {
           onClick={() => void applyFormat('underline')}
           pressed={Boolean(activeFormat.underline)}
         />
-        <ToolButton icon="▦" label="Borders" />
+        <ToolButton
+          icon="▦"
+          label="Borders"
+          onClick={() => void applyFormat('all-borders')}
+          pressed={Boolean(activeFormat.borders && Object.keys(activeFormat.borders).length)}
+        />
         <ToolButton
           icon="▰"
           label="Fill color"
@@ -124,6 +129,18 @@ export function WorkbookRibbon() {
           label="Horizontal alignment"
           onClick={() => void applyFormat('horizontal-alignment')}
           pressed={activeFormat.align !== undefined && activeFormat.align !== 'default'}
+        />
+        <ToolButton
+          icon="↕"
+          label="Vertical alignment"
+          onClick={() => void applyFormat('vertical-alignment')}
+          pressed={activeFormat.verticalAlign !== undefined}
+        />
+        <ToolButton
+          icon="↗"
+          label="Text rotation"
+          onClick={() => void applyFormat('text-rotation')}
+          pressed={activeFormat.rotation !== undefined && activeFormat.rotation !== 0}
         />
         <ToolButton
           icon="↵"

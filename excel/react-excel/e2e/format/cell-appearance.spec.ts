@@ -44,6 +44,40 @@ test('Horizontal alignment cycles center, right and left through Rust', async ({
   }
 })
 
+test('Vertical alignment cycles top, center and bottom through Rust', async ({ page }) => {
+  const cell = await selectedCell(page)
+  const button = page.getByRole('button', { name: 'Vertical alignment' })
+
+  for (const alignment of ['top', 'middle', 'bottom']) {
+    await button.click()
+    await expect(cell).toHaveCSS('vertical-align', alignment)
+  }
+})
+
+test('Text rotation cycles up, down and off through Rust', async ({ page }) => {
+  const cell = await selectedCell(page)
+  const button = page.getByRole('button', { name: 'Text rotation' })
+
+  await button.click()
+  await expect(cell.locator('.cell-rotated-text')).toHaveAttribute('style', /rotate\(45deg\)/)
+  await button.click()
+  await expect(cell.locator('.cell-rotated-text')).toHaveAttribute('style', /rotate\(-45deg\)/)
+  await button.click()
+  await expect(cell.locator('.cell-rotated-text')).toHaveCount(0)
+})
+
+test('Borders toggles thin borders through Rust', async ({ page }) => {
+  const cell = await selectedCell(page)
+  const button = page.getByRole('button', { name: 'Borders' })
+
+  await button.click()
+  await expect(cell).toHaveCSS('border-top-style', 'solid')
+  await expect(cell).toHaveCSS('border-top-width', '1px')
+  await expect(cell).toHaveCSS('border-top-color', 'rgb(127, 127, 127)')
+  await button.click()
+  await expect(cell).toHaveCSS('border-top-style', 'none')
+})
+
 test('shows the second format batch in the original Rust seed', async ({ page }) => {
   await page.goto('/')
   await expect(page.locator('td[data-cell="1:3"]')).toHaveCSS(
@@ -52,4 +86,17 @@ test('shows the second format batch in the original Rust seed', async ({ page })
   )
   await expect(page.locator('td[data-cell="1:4"]')).toHaveCSS('color', 'rgb(192, 0, 0)')
   await expect(page.locator('td[data-cell="1:5"]')).toHaveCSS('text-align', 'center')
+  const nameBox = page.getByRole('textbox', { name: 'Name box' })
+  await nameBox.fill('J2')
+  await nameBox.press('Enter')
+  await expect(page.locator('td[data-cell="1:9"]')).toHaveCSS('vertical-align', 'top')
+  await nameBox.fill('K2')
+  await nameBox.press('Enter')
+  await expect(page.locator('td[data-cell="1:10"] .cell-rotated-text')).toHaveAttribute(
+    'style',
+    /rotate\(45deg\)/,
+  )
+  await nameBox.fill('L2')
+  await nameBox.press('Enter')
+  await expect(page.locator('td[data-cell="1:11"]')).toHaveCSS('border-top-style', 'solid')
 })

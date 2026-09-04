@@ -26,6 +26,19 @@ const DEMO_TEXT_STYLES: ReadonlyMap<string, SpreadsheetCellFormat> = new Map([
   ['1:6', { fontFamily: 'Georgia' }],
   ['1:7', { fontSize: 16 }],
   ['1:8', { wrap: true }],
+  ['1:9', { verticalAlign: 'top' }],
+  ['1:10', { rotation: 45 }],
+  [
+    '1:11',
+    {
+      borders: {
+        top: { style: 'thin', color: '#7f7f7f' },
+        right: { style: 'thin', color: '#7f7f7f' },
+        bottom: { style: 'thin', color: '#7f7f7f' },
+        left: { style: 'thin', color: '#7f7f7f' },
+      },
+    },
+  ],
 ])
 
 function demoFormat(row: number, col: number): { readonly format?: SpreadsheetCellFormat } {

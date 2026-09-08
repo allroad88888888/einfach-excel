@@ -2,6 +2,7 @@ import type { CellCoord } from '../shared'
 import { visibleAxisDestination } from './visible-axis-movement'
 import {
   getActiveCell,
+  getSelectionRange,
   moveSelection,
   normalizeSelection,
   type ActiveSelectionCell,
@@ -98,8 +99,8 @@ function createMoveIntent(
 ): MoveSelectionIntent {
   const currentSelection = normalizeSelection(state.selection, state.bounds)
   const from = stripSheetId(getActiveCell(currentSelection, state.bounds))
-  const extend = input.key === 'Tab' ? false : Boolean(input.shiftKey)
-  const mergeAwareMovement = getMergeAwareArrowMovement(input, reason, movement, from)
+  const extend = input.key === 'Tab' || input.key === 'Enter' ? false : Boolean(input.shiftKey)
+  const mergeAwareMovement = getMergeAwareArrowMovement(input, state, reason, movement, from)
   const rawSelection = moveSelection(currentSelection, state.bounds, {
     ...mergeAwareMovement,
     row: visibleAxisDestination(
@@ -119,11 +120,11 @@ function createMoveIntent(
     extend,
   })
   const rawTo = stripSheetId(getActiveCell(rawSelection, state.bounds))
-  const to = getMergeAwareArrowDestination(input, state, reason, from, rawTo)
+  const to = getMergeAwareArrowDestination(input, reason, from, rawTo)
   const selection =
     to.row === rawTo.row && to.col === rawTo.col
       ? rawSelection
-      : moveSelection(currentSelection, state.bounds, { row: to.row, col: to.col, extend: false })
+      : moveSelection(currentSelection, state.bounds, { row: to.row, col: to.col, extend })
 
   return {
     type: 'selection.move',
@@ -139,31 +140,60 @@ function createMoveIntent(
 
 function getMergeAwareArrowMovement(
   input: KeyboardInput,
+  state: KeyboardCommandState,
   reason: KeyboardMoveReason,
   movement: KeyboardMovement,
   from: CellCoord,
 ): KeyboardMovement {
-  if (!isMergeAwareArrowInput(input, reason)) return movement
-  const range = input.resolveMergeRange!(from.row, from.col)
+  const range = input.resolveMergeRange?.(from.row, from.col)
   if (!range) return movement
+  const selected = getSelectionRange(state.selection, state.bounds)
+  const extendFromMerge =
+    reason === 'arrow' &&
+    input.shiftKey &&
+    !input.ctrlKey &&
+    !input.metaKey &&
+    Object.keys(range).every(
+      (key) => range[key as keyof typeof range] === selected[key as keyof typeof range],
+    )
+  if (!isMergeAwareArrowInput(input, reason) && !extendFromMerge) return movement
+  const rowFrom = (movement.rowDelta ?? 0) > 0 ? range.rowEnd : range.rowStart
+  const colFrom = (movement.colDelta ?? 0) > 0 ? range.colEnd : range.colStart
   return {
     ...movement,
-    row: movement.rowDelta === undefined ? range.rowStart : range.rowStart + movement.rowDelta,
-    col: movement.colDelta === undefined ? range.colStart : range.colStart + movement.colDelta,
+    row:
+      movement.rowDelta === undefined
+        ? range.rowStart
+        : (visibleAxisDestination(
+            rowFrom,
+            state.bounds.rowCount,
+            state.hiddenRows,
+            undefined,
+            movement.rowDelta,
+          ) ?? rowFrom + movement.rowDelta),
+    col:
+      movement.colDelta === undefined
+        ? range.colStart
+        : (visibleAxisDestination(
+            colFrom,
+            state.bounds.colCount,
+            state.hiddenColumns,
+            undefined,
+            movement.colDelta,
+          ) ?? colFrom + movement.colDelta),
   }
 }
 
 function getMergeAwareArrowDestination(
   input: KeyboardInput,
-  state: KeyboardCommandState,
   reason: KeyboardMoveReason,
   from: CellCoord,
   rawTo: CellCoord,
 ): CellCoord {
-  if (!isMergeAwareArrowInput(input, reason)) return rawTo
+  if (!input.resolveMergeRange) return rawTo
   const sourceRange = input.resolveMergeRange!(from.row, from.col)
-  if (sourceRange && isCoordInRange(rawTo, sourceRange)) {
-    return getCoordAfterMerge(sourceRange, input.key, state, rawTo)
+  if (isMergeAwareArrowInput(input, reason) && sourceRange && isCoordInRange(rawTo, sourceRange)) {
+    return { row: sourceRange.rowStart, col: sourceRange.colStart }
   }
   const destinationRange = input.resolveMergeRange!(rawTo.row, rawTo.col)
   return destinationRange
@@ -174,8 +204,8 @@ function getMergeAwareArrowDestination(
 function isMergeAwareArrowInput(input: KeyboardInput, reason: KeyboardMoveReason): boolean {
   return Boolean(
     input.resolveMergeRange &&
-      reason === 'arrow' &&
-      !input.shiftKey &&
+      (reason === 'arrow' || reason === 'tab' || reason === 'enter') &&
+      (!input.shiftKey || reason === 'tab' || reason === 'enter') &&
       !input.ctrlKey &&
       !input.metaKey &&
       !input.altKey,
@@ -192,34 +222,6 @@ function isCoordInRange(
     coord.col >= range.colStart &&
     coord.col <= range.colEnd
   )
-}
-
-function getCoordAfterMerge(
-  range: { rowStart: number; rowEnd: number; colStart: number; colEnd: number },
-  key: KeyboardInput['key'],
-  state: KeyboardCommandState,
-  fallback: CellCoord,
-): CellCoord {
-  switch (key) {
-    case 'ArrowUp':
-      return range.rowStart === 0
-        ? { row: range.rowStart, col: range.colStart }
-        : { row: range.rowStart - 1, col: range.colStart }
-    case 'ArrowDown':
-      return range.rowEnd >= state.bounds.rowCount - 1
-        ? { row: range.rowStart, col: range.colStart }
-        : { row: range.rowEnd + 1, col: range.colStart }
-    case 'ArrowLeft':
-      return range.colStart === 0
-        ? { row: range.rowStart, col: range.colStart }
-        : { row: range.rowStart, col: range.colStart - 1 }
-    case 'ArrowRight':
-      return range.colEnd >= state.bounds.colCount - 1
-        ? { row: range.rowStart, col: range.colStart }
-        : { row: range.rowStart, col: range.colEnd + 1 }
-    default:
-      return fallback
-  }
 }
 
 function normalizePageDelta(value: number | undefined): number {

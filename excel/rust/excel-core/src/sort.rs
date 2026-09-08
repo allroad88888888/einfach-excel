@@ -207,7 +207,7 @@ impl Sheet {
     /// intersecting `range`, reported by its anchor. Deterministic: the
     /// top-left-most intersecting anchor wins (HashMap iteration order
     /// must not leak into the rejection payload).
-    fn sort_spill_intersecting(&self, range: CellRange) -> Option<CellAddress> {
+    pub(crate) fn spill_intersecting(&self, range: CellRange) -> Option<CellAddress> {
         let mut hit: Option<CellAddress> = None;
         for anchor in self.spill_anchor_addr.values().copied() {
             let (rows, cols) = self.spill_info(anchor).unwrap_or((1, 1));
@@ -249,7 +249,7 @@ impl Sheet {
         {
             return Err(SortRangeError::KeyOutOfRange);
         }
-        if let Some(anchor) = self.sort_spill_intersecting(n) {
+        if let Some(anchor) = self.spill_intersecting(n) {
             return Err(SortRangeError::SpillIntersectsRange { anchor });
         }
 

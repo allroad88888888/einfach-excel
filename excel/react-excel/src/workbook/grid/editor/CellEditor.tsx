@@ -9,9 +9,10 @@ import {
   insertEditingLineBreakAtom,
   editingSessionAtom,
   visibleWindowAtom,
-  getAxisOffsetForIndex,
-  getViewportRowHeight,
-  getViewportColumnWidth,
+  getViewportRangeRectangle,
+  mergeRangeAt,
+  projectionSnapshotAtom,
+  viewportMetricsAtom,
   viewportGeometrySizesAtom,
 } from '@einfach/spreadsheet-ui-core'
 import type { CSSProperties, FocusEvent, KeyboardEvent, PointerEvent } from 'react'
@@ -34,6 +35,8 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
   const lifecycle = useAtomValue(editingCommitLifecycleAtom)
   const window = useAtomValue(visibleWindowAtom)
   const activeSheet = useAtomValue(activeWorkbookSheetAtom)
+  const projection = useAtomValue(projectionSnapshotAtom).result
+  const viewportMetrics = useAtomValue(viewportMetricsAtom)
   const sizeOverrides = useAtomValue(viewportGeometrySizesAtom)
   const commitEditing = useSetAtom(commitCellEditingAtom)
   const dispatchEditorKeyboard = useSetAtom(dispatchEditorKeyboardInputAtom)
@@ -63,17 +66,29 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
   if (cell === null || editingFromFormulaBar) return null
 
   const sheetId = activeSheet?.id ?? ''
-  const rowCount = activeSheet?.rowCount ?? 0
-  const rowHeights = sizeOverrides.rowHeightsBySheet[sheetId]
-  const editorTop =
-    getAxisOffsetForIndex(cell.row, rowCount, WORKBOOK_GRID_ROW_HEIGHT, rowHeights) -
-    getAxisOffsetForIndex(window.rowStart, rowCount, WORKBOOK_GRID_ROW_HEIGHT, rowHeights)
-  const editorHeight = getViewportRowHeight(
-    sizeOverrides,
+  const merge =
+    projection?.kind === 'visible-window' && projection.sheetId === sheetId
+      ? mergeRangeAt(projection.mergedRanges ?? [], cell)
+      : undefined
+  const metrics = {
+    ...viewportMetrics,
     sheetId,
-    cell.row,
-    WORKBOOK_GRID_ROW_HEIGHT,
+    rowCount: activeSheet?.rowCount ?? 0,
+    colCount: activeSheet?.colCount ?? 0,
+    rowHeight: WORKBOOK_GRID_ROW_HEIGHT,
+    colWidth: WORKBOOK_GRID_COLUMN_WIDTH,
+  }
+  const rect = getViewportRangeRectangle(
+    metrics,
+    sizeOverrides,
+    merge ?? {
+      rowStart: cell.row,
+      rowEnd: cell.row,
+      colStart: cell.col,
+      colEnd: cell.col,
+    },
   )
+  const origin = getViewportRangeRectangle(metrics, sizeOverrides, window)
 
   const commitOnce = async (restoreKeyboardFocus: boolean) => {
     if (committingRef.current || busy) return
@@ -138,23 +153,10 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
   }
   const stopPointer = (event: PointerEvent<HTMLDivElement>) => event.stopPropagation()
   const style = {
-    '--editor-top': `${editorTop}px`,
-    '--editor-height': `${Math.max(editorHeight, Math.min(5, draft.split('\n').length) * 18 + 6)}px`,
-    '--editor-left': `${
-      getAxisOffsetForIndex(
-        cell.col,
-        activeSheet?.colCount ?? 0,
-        WORKBOOK_GRID_COLUMN_WIDTH,
-        sizeOverrides.colWidthsBySheet[sheetId],
-      ) -
-      getAxisOffsetForIndex(
-        window.colStart,
-        activeSheet?.colCount ?? 0,
-        WORKBOOK_GRID_COLUMN_WIDTH,
-        sizeOverrides.colWidthsBySheet[sheetId],
-      )
-    }px`,
-    '--editor-width': `${getViewportColumnWidth(sizeOverrides, sheetId, cell.col, WORKBOOK_GRID_COLUMN_WIDTH)}px`,
+    '--editor-top': `${rect.top - origin.top}px`,
+    '--editor-height': `${Math.max(rect.height, Math.min(5, draft.split('\n').length) * 18 + 6)}px`,
+    '--editor-left': `${rect.left - origin.left}px`,
+    '--editor-width': `${rect.width}px`,
   } as CSSProperties
   const fieldIdentity = `cell-editor-r${cell.row}-c${cell.col}`
 

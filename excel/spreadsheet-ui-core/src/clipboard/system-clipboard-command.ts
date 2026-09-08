@@ -1,5 +1,6 @@
 import { atom } from '@einfach/core'
 import { selectionStructureFeedbackAtom } from '../toolbar/selection-structure-state'
+import { selectionMergeFeedbackAtom } from '../toolbar/selection-merge-state'
 import { editingSessionAtom } from '../editing/session-atoms'
 import { resolveContentMutationAtom } from '../editing/mutation-gateway'
 import {
@@ -18,7 +19,7 @@ import type {
   RustClipboardExportFormat,
   RustClipboardPasteRequest,
 } from '../rust-workbook/clipboard-commands'
-import { selectionSnapshotAtom } from '../selection'
+import { selectionSnapshotAtom, selectionAuthorityWitnessAtom } from '../selection'
 import { validateProjectionResult } from '../projection/contracts'
 import { applyProjectionSizes } from '../projection/projection-sizes'
 
@@ -90,12 +91,13 @@ export const runSystemClipboardAtom = atom(
     if (
       get(feedbackAtom).busy ||
       get(editingSessionAtom).source !== null ||
-      get(selectionStructureFeedbackAtom).busy
+      get(selectionStructureFeedbackAtom).busy || get(selectionMergeFeedbackAtom).busy
     )
       return false
     const sheet = get(activeWorkbookSheetAtom)
     const connection = get(rustWorkbookConnectionAtom)
     const selection = get(selectionSnapshotAtom)
+    const selectionAuthority = get(selectionAuthorityWitnessAtom)
     if (!sheet || !connection || selection.selection.sheetId !== sheet.id) return false
     set(feedbackAtom, { busy: true, error: false, message: `${input.operation}…` })
     try {
@@ -155,7 +157,7 @@ export const runSystemClipboardAtom = atom(
 
       const data = await input.read()
       if (
-        get(selectionSnapshotAtom) !== selection ||
+        get(selectionAuthorityWitnessAtom) !== selectionAuthority ||
         get(rustWorkbookConnectionAtom) !== connection ||
         get(editingSessionAtom).source !== null
       )

@@ -48,6 +48,14 @@ impl Sheet {
             .sort_unstable_by_key(|r| (r.start.row, r.start.col));
     }
 
+    /// 几何历史只重算 spill 锚点，不扫描原始单元格来回放空的内容快照。
+    pub(crate) fn restore_merge_geometry(&mut self, range: CellRange, merges: &[CellRange]) {
+        let mut anchors = self.teardown_all_spills();
+        anchors.extend(self.teardown_blocked_spill_anchors());
+        self.replace_merges_in_range(range, merges);
+        self.project_bulk_spill_anchors(anchors);
+    }
+
     pub(super) fn shift_merges(&mut self, edit: ShiftEdit) {
         self.merged_ranges =
             self.merged_ranges

@@ -43,6 +43,9 @@ impl Workbook {
             if snapshot.source_sheet != Some(sheet_idx) {
                 return Err("CLIPBOARD_CROSS_SHEET_CUT");
             }
+            if sheet.merged_ranges().iter().any(|merge| merge.intersects(snapshot.source)) {
+                return Err("Unmerge cells before cutting this range.");
+            }
             for (addr, original) in snapshot.source.iter().zip(&snapshot.cells) {
                 let current = read_cell(sheet, addr);
                 if sheet.is_spill_region(addr)
@@ -60,6 +63,11 @@ impl Workbook {
             // 空白源格不写值，也不覆盖目标格式；它对应的 spill 结果同样不受影响。
             if options.skip_blanks && cell.is_blank() {
                 continue;
+            }
+            // 合并剪贴板几何尚未迁移；拒绝不可见数据写入，且必须早于任何实际修改。
+            if options.mode != ClipboardPasteMode::Formats &&
+                sheet.merged_range_at(addr).is_some_and(|merge| merge.start != addr) {
+                return Err("Unmerge the destination before pasting into covered cells.");
             }
             if options.mode != ClipboardPasteMode::Formats && sheet.is_spill_region(addr) {
                 return Err("CLIPBOARD_SPILL_TARGET");

@@ -7,7 +7,9 @@ import { withHistory } from './history-io'
 import { applyRustHistory } from './history-apply'
 import { exportClipboard } from './clipboard-export'
 import { changeSheetStructure } from './sheet-structure'
-import { importSheetSizes, readSizes, resizeRange } from './size-io'
+import { readSizes, resizeRange } from './size-io'
+import { initializeWorkbook } from './initialize-workbook'
+import { changeMerge } from './merge-io'
 import { changeStructure } from './structure-io'
 import { writeImportedCellFormats } from './format-io'
 import type {
@@ -18,7 +20,7 @@ import type {
 } from './commands'
 import type { RustWasmModule, WasmWorkbook } from './wasm-types'
 import { readVisibleProjection } from './visible-projection'
-import { changeVisibility, importSheetVisibility } from './visibility-io'
+import { changeVisibility } from './visibility-io'
 
 type CommandName = keyof RustWorkbookCommands
 
@@ -52,28 +54,13 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
     sheets: readonly RustWorkbookSheetInput[],
   ): Promise<RustWorkbookSheet[]> {
     await ensureWasm()
-    const inputs = sheets.length > 0 ? sheets : [{ name: 'Sheet1' }]
-    const next = new wasm.WasmWorkbook() as WasmWorkbook
-    next.rename_sheet(0, inputs[0]?.name ?? 'Sheet1')
-    for (const input of inputs.slice(1)) next.add_sheet(input.name)
-    inputs.forEach((input, index) => importSheetSizes(next, index, input))
-    inputs.forEach((input, index) => importSheetVisibility(next, index, input))
-    next.history_clear?.('')
-    workbook = next
+    const initialized = initializeWorkbook(wasm, sheets)
+    workbook = initialized.workbook
     revision = 0
     clipboard = undefined
     sheetsById.clear()
-    return inputs.map((input, index) => {
-      const sheet = Object.freeze({
-        id: input.id ?? `sheet-${index + 1}`,
-        index,
-        name: next.sheet_name(index),
-        ...(next.sheet_key ? { key: next.sheet_key(index) } : {}),
-        ...(input.rowCount ? { rowCount: input.rowCount, colCount: input.colCount } : {}),
-      })
-      sheetsById.set(sheet.id, sheet)
-      return sheet
-    })
+    for (const sheet of initialized.sheets) sheetsById.set(sheet.id, sheet)
+    return initialized.sheets
   }
 
   function currentWorkbook(): WasmWorkbook {
@@ -95,8 +82,19 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       return initialize(input.sheets)
     }
     const current = currentWorkbook()
+    if (command === 'range.merge') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      const result = changeMerge(current, sheetIndex(input.sheetId), input, revision)
+      if (result.changed) revision += 1
+      return result
+    }
     if (command === 'sheet.editStructure') {
-      const result = changeStructure(current, sheetsById, payload as RustWorkbookCommands[typeof command]['payload'], revision + 1)
+      const result = changeStructure(
+        current,
+        sheetsById,
+        payload as RustWorkbookCommands[typeof command]['payload'],
+        revision + 1,
+      )
       revision += 1
       if (clipboard) clipboard.invalidated = true
       return result

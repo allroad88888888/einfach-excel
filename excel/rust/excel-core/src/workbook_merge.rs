@@ -37,15 +37,14 @@ impl Workbook {
         }) {
             return Err("Unmerge or move the cells outside the Excel Table first.");
         }
-        let mut occupied = false;
-        let mut spill = false;
-        target.for_each_non_empty_in_range(range, |addr| {
-            occupied |= addr != range.start;
-            spill |= target.is_spill_region(addr);
-        });
-        if spill {
+        // 与排序共用矩形预检；空值数组子格不能靠“非空格扫描”识别。
+        if target.spill_intersecting(range).is_some() {
             return Err("Cannot merge cells in an array spill.");
         }
+        let mut occupied = false;
+        target.for_each_non_empty_in_range(range, |addr| {
+            occupied |= addr != range.start;
+        });
         if occupied && !discard {
             return Err("MERGE_CONTENT_CONFIRMATION_REQUIRED");
         }

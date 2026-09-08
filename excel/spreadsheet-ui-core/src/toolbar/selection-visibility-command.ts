@@ -8,13 +8,14 @@ import {
 } from '../projection'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import { activeWorkbookSheetAtom } from '../runtime/workbook-document'
-import { selectionSnapshotAtom, selectCellAtom } from '../selection'
+import { selectionSnapshotAtom, selectCellAtom, selectionAuthorityWitnessAtom } from '../selection'
 import { sheetProtectionAtom, getSheetProtection } from '../protection'
 import { scrollToCellAtom } from '../viewport/metrics'
 import { viewportGeometrySizesAtom } from '../viewport/geometry-sizes'
 import { validSheetVisibility } from '../viewport/hidden-state'
 import { validateProjectionResult } from '../projection/contracts'
 import { selectionStructureFeedbackAtom } from './selection-structure-state'
+import { selectionMergeFeedbackAtom } from './selection-merge-state'
 
 export const selectionVisibilityFeedbackAtom = atom({ busy: false, error: null as string | null })
 export type SelectionVisibilityAction = 'hide-rows' | 'hide-columns' | 'unhide' | 'unhide-all'
@@ -26,12 +27,13 @@ export const runSelectionVisibilityAtom = atom(
     if (
       get(selectionVisibilityFeedbackAtom).busy ||
       get(editingSessionAtom).source !== null ||
-      get(selectionStructureFeedbackAtom).busy
+      get(selectionStructureFeedbackAtom).busy || get(selectionMergeFeedbackAtom).busy
     )
       return false
     const connection = get(rustWorkbookConnectionAtom)
     const sheet = get(activeWorkbookSheetAtom)
     const selection = get(selectionSnapshotAtom)
+    const selectionAuthority = get(selectionAuthorityWitnessAtom)
     const witness = get(projectionSnapshotAtom)
     const visible = witness.request
     if (
@@ -83,7 +85,8 @@ export const runSelectionVisibilityAtom = atom(
         request: projection,
         result: result.projection,
       })
-      if (applied.status === 'applied' && get(selectionSnapshotAtom) === selection) {
+      // 投影刷新会重建选区快照；只在用户实际改变选区时放弃位置修复。
+      if (applied.status === 'applied' && get(selectionAuthorityWitnessAtom) === selectionAuthority) {
         const geometry = get(viewportGeometrySizesAtom)
         // 隐藏当前活动格后落到后一个可见行/列；末端则向前找，全隐藏时保留坐标供恢复。
         const nextIndex = (

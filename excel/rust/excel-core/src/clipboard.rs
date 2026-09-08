@@ -144,6 +144,9 @@ impl Workbook {
     ) -> Result<ClipboardSnapshot, ClipboardError> {
         validate_range(range)?;
         let sheet = self.sheet(sheet_idx).ok_or("CLIPBOARD_INVALID_SHEET")?;
+        if cut && sheet.merged_ranges().iter().any(|merge| merge.intersects(range)) {
+            return Err("Unmerge cells before cutting this range.");
+        }
         let mut cells = Vec::with_capacity(range.cell_count() as usize);
         let mut text = String::new();
         for addr in range.iter() {

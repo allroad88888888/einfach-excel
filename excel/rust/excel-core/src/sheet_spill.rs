@@ -54,7 +54,7 @@ impl Sheet {
 
     /// True when `addr` sits anywhere inside an ACTIVE spill rectangle — the
     /// anchor itself OR one of its projection cells. This is the per-address
-    /// form of the rectangle `sort.rs` §5.1 (`sort_spill_intersecting`) tests
+    /// form of the rectangle `sort.rs` §5.1 (`spill_intersecting`) tests
     /// a whole range against, and the two must stay the same predicate: ADR
     /// 0006's「明确非目标」keeps sort and auto-fill on *whole-request*
     /// rejection, so a rectangle one of them refuses the other may not accept.

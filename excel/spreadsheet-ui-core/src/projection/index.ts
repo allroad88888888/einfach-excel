@@ -409,7 +409,7 @@ export const activeCellFormatAtom: Atom<SpreadsheetCellFormat> = atom((get) => {
     return {}
   }
 
-  const cell = result.cells.find(
+  const cell = [...(result.mergeAnchors ?? []), ...result.cells].find(
     (candidate) =>
       candidate.row === selection.activeCell.row && candidate.col === selection.activeCell.col,
   )

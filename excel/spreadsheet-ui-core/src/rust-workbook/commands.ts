@@ -116,6 +116,16 @@ export interface RustClearRangeRequest {
 }
 
 export interface RustWorkbookCommands {
+  readonly 'range.merge': WorkerCommand<
+    {
+      readonly sheetId: string
+      readonly range: CellRange
+      readonly action: 'merge' | 'center' | 'unmerge'
+      readonly discard: boolean
+      readonly projection: VisibleProjectionRequest
+    },
+    { readonly changed: boolean; readonly projection: VisibleProjectionResult }
+  >
   readonly 'sheet.editStructure': WorkerCommand<
     {
       readonly sheetId: string

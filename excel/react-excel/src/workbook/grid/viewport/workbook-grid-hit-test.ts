@@ -24,7 +24,7 @@ export function workbookCellAt(
   event: ReactPointerEvent<HTMLElement> | ReactMouseEvent<HTMLElement>,
 ): CellCoord | null {
   const eventCell =
-    event.target instanceof Element ? event.target.closest<HTMLElement>('td[data-cell]') : null
+    event.target instanceof Element ? event.target.closest<HTMLElement>('[data-cell]') : null
   return cellCoordinate(eventCell) ?? workbookCellAtPoint(event.clientX, event.clientY)
 }
 
@@ -32,7 +32,7 @@ export function workbookCellAt(
 export function workbookCellAtPoint(clientX: number, clientY: number): CellCoord | null {
   const pointCell = document
     .elementFromPoint?.(clientX, clientY)
-    ?.closest<HTMLElement>('td[data-cell]')
+    ?.closest<HTMLElement>('[data-cell]')
   return cellCoordinate(pointCell)
 }
 

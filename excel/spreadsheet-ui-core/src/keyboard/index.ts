@@ -1,4 +1,6 @@
 import { atom } from '@einfach/core'
+import { projectionSnapshotBackingAtom } from '../projection/state'
+import { mergeRangeAt } from '../shared/merge'
 import {
   clearNonPrimaryRegionsAtom,
   normalizeSelection,
@@ -41,7 +43,15 @@ clearKeyboardIntentAtom.debugLabel = 'spreadsheet.keyboard.clearIntent'
 export const dispatchKeyboardInputAtom = atom(
   (get) => get(lastKeyboardIntentAtom),
   (get, set, input: KeyboardInput): KeyboardCommandIntent => {
-    const intent = getKeyboardCommandIntent(input, {
+    const result = get(projectionSnapshotBackingAtom).result
+    const mergedRanges =
+      result?.kind === 'visible-window' && result.sheetId === get(selectionAtom).sheetId
+        ? result.mergedRanges : undefined
+    const intent = getKeyboardCommandIntent({
+      ...input,
+      resolveMergeRange: input.resolveMergeRange ??
+        (mergedRanges ? (row, col) => mergeRangeAt(mergedRanges, { row, col }) ?? null : undefined),
+    }, {
       mode: get(keyboardModeAtom),
       selection: get(selectionAtom),
       bounds: get(selectionBoundsAtom),

@@ -12,6 +12,7 @@ import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import type { RustClearRangeMode, RustSetRangeFormatResult } from '../rust-workbook/commands'
 import { selectionSnapshotAtom } from '../selection'
 import { selectionStructureFeedbackAtom } from './selection-structure-state'
+import { selectionMergeFeedbackAtom } from './selection-merge-state'
 
 export type SelectionMutationOutcome = 'completed' | 'blocked' | 'superseded' | 'rejected'
 type SelectionMutation =
@@ -26,7 +27,7 @@ type SelectionMutation =
 export const runSelectionMutationAtom = atom(
   null,
   async (get, set, input: SelectionMutation): Promise<SelectionMutationOutcome> => {
-    if (get(selectionStructureFeedbackAtom).busy) return 'blocked'
+    if (get(selectionStructureFeedbackAtom).busy || get(selectionMergeFeedbackAtom).busy) return 'blocked'
     const selection = get(selectionSnapshotAtom)
     const witness = get(projectionSnapshotAtom)
     const visible = witness.request

@@ -1,4 +1,5 @@
 import type { CellRange, DisplayCell } from '@einfach/spreadsheet-ui-core'
+import { mergeRangeAt } from '@einfach/spreadsheet-ui-core'
 import type { CSSProperties } from 'react'
 import { cellFormatStyle, cellTextRotationStyle } from './cell-format-style'
 import {
@@ -10,6 +11,7 @@ import {
 export interface SpreadsheetGridProps {
   readonly window: CellRange
   readonly cells: readonly DisplayCell[]
+  readonly mergedRanges?: readonly CellRange[]
   readonly selected?: CellRange
   readonly rowHeights?: readonly number[]
   readonly columnWidths?: readonly number[]
@@ -43,6 +45,7 @@ function visibleSelection(window: CellRange, selected: CellRange | undefined): C
 export function SpreadsheetGrid({
   window,
   cells,
+  mergedRanges,
   selected,
   rowHeights,
   columnWidths,
@@ -58,6 +61,7 @@ export function SpreadsheetGrid({
     for (let col = window.colStart; col <= window.colEnd; col += 1) {
       if (columnWidths?.[col - window.colStart] === 0) continue
       const cell = cellsByCoordinate.get(`${row}:${col}`)
+      const merged = mergeRangeAt(mergedRanges ?? [], { row, col }) !== undefined
       const isSelected = isSelectedCell(selected, row, col)
       const rotationStyle = cellTextRotationStyle(cell?.format)
       const formatStyle = cellFormatStyle(cell?.format) ?? {}
@@ -74,12 +78,16 @@ export function SpreadsheetGrid({
           key={col}
           className={isSelected ? 'cell cell-selected' : 'cell'}
           data-cell={`${row}:${col}`}
+          aria-hidden={merged || undefined}
           data-selected={isSelected ? 'true' : undefined}
           style={formatStyle}
         >
           <span
             className="cell-content"
-            style={{ maxHeight: Math.max(0, height - 6 - topBorder - bottomBorder) }}
+            style={{
+              maxHeight: Math.max(0, height - 6 - topBorder - bottomBorder),
+              visibility: merged ? 'hidden' : undefined,
+            }}
           >
             {rotationStyle ? (
               <span className="cell-rotated-text" style={rotationStyle}>

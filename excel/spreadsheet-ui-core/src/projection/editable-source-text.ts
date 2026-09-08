@@ -8,6 +8,10 @@ export function getSourceTextFromProjection(
   activeSheetId: string,
 ): string | undefined {
   if (!result || result.sheetId !== activeSheetId) return undefined
+  const anchor = result.mergeAnchors?.find(
+    candidate => candidate.row === cell.row && candidate.col === cell.col,
+  )
+  if (anchor) return anchor.inputText ?? anchor.formula ?? anchor.displayValue
   if (
     cell.row < result.window.rowStart ||
     cell.row > result.window.rowEnd ||

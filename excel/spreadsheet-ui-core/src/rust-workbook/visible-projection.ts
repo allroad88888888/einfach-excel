@@ -7,6 +7,7 @@ import { displayCell } from './cell-io'
 import type { WasmWorkbook } from './wasm-types'
 import { applyVisibleFormats } from './format-projection'
 import { readSizes } from './size-io'
+import { readMergeProjection } from './merge-projection'
 
 function requiredSparseRead(
   workbook: WasmWorkbook,
@@ -62,6 +63,7 @@ export function readVisibleProjection(
     revision,
     window: { ...request.window },
     cells: applyVisibleFormats(visibleCells, request.window, formats),
+    ...readMergeProjection(workbook, sheetIndex, request.window),
     rowHeights: formats.rowStyles.flatMap(({ index, height }) =>
       height === undefined ? [] : [{ rowIndex: index, heightPx: height }],
     ),

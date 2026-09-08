@@ -39,6 +39,16 @@ export interface RustFormatRangeSnapshot {
 }
 
 export interface WasmWorkbook {
+  merge_cells?: (
+    sheet: number,
+    startRow: number,
+    startCol: number,
+    endRow: number,
+    endCol: number,
+    action: string,
+    discard: boolean,
+  ) => boolean
+  merged_ranges?: (sheet: number) => ArrayLike<number>
   edit_structure?: (sheet: number, action: string, at: number, count: number) => boolean
   set_visibility?: (
     sheet: number,

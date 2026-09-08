@@ -13,6 +13,7 @@ import {
 import type { CSSProperties } from 'react'
 import { useWorkbookViewport, type WorkbookViewport } from '../../projection/use-workbook-viewport'
 import { SpreadsheetGrid } from '../cells/SpreadsheetGrid'
+import { MergedCells } from '../cells/MergedCells'
 import { CellEditor } from '../editor/CellEditor'
 import {
   WORKBOOK_GRID_COLUMN_WIDTH,
@@ -231,6 +232,7 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
             {projectionState(viewport) ?? (
               <SpreadsheetGrid
                 cells={viewport.cells}
+                mergedRanges={viewport.mergedRanges}
                 selected={selection.range}
                 window={viewport.window}
                 rowHeights={visibleRowHeights}
@@ -240,6 +242,7 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
                 )}
               />
             )}
+            <MergedCells />
             <CellEditor focusGrid={events.focusGrid} />
           </div>
         </div>

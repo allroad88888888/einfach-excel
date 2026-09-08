@@ -18,6 +18,7 @@ import {
 import { activateWorkbookSheetAtom } from '../runtime/activate-workbook-sheet'
 import { rustHistoryPanelAtom } from '../history/rust-history-command'
 import { selectionStructureFeedbackAtom } from '../toolbar/selection-structure-state'
+import { selectionMergeFeedbackAtom } from '../toolbar/selection-merge-state'
 import { dispatchSheetTabIntentAtom } from './basic-commands'
 import { nextSheetTabName } from './metadata'
 import { sheetTabsAtom } from './state'
@@ -48,7 +49,7 @@ export const runWorkbookSheetCommandAtom = atom(
       state.mutation ||
       get(systemClipboardFeedbackAtom).busy ||
       get(rustHistoryPanelAtom).busy ||
-      get(selectionStructureFeedbackAtom).busy
+      get(selectionStructureFeedbackAtom).busy || get(selectionMergeFeedbackAtom).busy
     )
       return false
     if (input.operation === 'cancel-delete') {

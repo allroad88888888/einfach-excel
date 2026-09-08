@@ -179,3 +179,78 @@ fn invalid_geometry_foreign_history_and_pending_history_are_rejected() {
     assert!(history.undo(&mut Workbook::new()).is_err());
     assert_eq!(history.undo_count(), 1);
 }
+
+#[test]
+fn unmerge_history_reblocks_and_reprojects_arrays_without_restoring_cell_snapshots() {
+    let mut wb = Workbook::new();
+    wb.merge_cells(0, range("B1", "C1"), MergeAction::Merge, false)
+        .unwrap();
+    wb.set_formula(0, "A1", "=SEQUENCE(1,3)");
+    let mut history = WorkbookHistory::default();
+    history
+        .merge_cells(&mut wb, 0, range("C1", "C1"), MergeAction::Unmerge, false)
+        .unwrap();
+    for _ in 0..3 {
+        assert_eq!(wb.get_cell("Sheet1", "C1"), Value::Number(3.0));
+        history.undo(&mut wb).unwrap();
+        assert_eq!(wb.get_cell("Sheet1", "A1"), Value::Error(ValueError::Spill));
+        assert_eq!(wb.get_cell("Sheet1", "C1"), Value::Null);
+        history.redo(&mut wb).unwrap();
+    }
+}
+
+#[test]
+fn unmerge_history_does_not_copy_unrelated_content_in_the_bounding_box() {
+    let mut wb = Workbook::new();
+    for r in [range("A1", "C1"), range("A5", "C5")] {
+        wb.merge_cells(0, r, MergeAction::Merge, false).unwrap();
+    }
+    wb.set_cell(0, "B3", Value::Text("x".repeat(33 * 1024 * 1024)));
+    let mut history = WorkbookHistory::default();
+    history
+        .merge_cells(&mut wb, 0, range("A1", "A5"), MergeAction::Unmerge, false)
+        .unwrap();
+    assert_eq!(history.undo_count(), 1);
+    // 原生写入不在此条几何历史中，undo 不应回放其旧数据或格式。
+    wb.set_cell(0, "B3", Value::Number(9.0));
+    history.undo(&mut wb).unwrap();
+    assert_eq!(wb.get_cell("Sheet1", "B3"), Value::Number(9.0));
+    assert_eq!(wb.sheet(0).unwrap().merged_ranges().len(), 2);
+}
+
+#[test]
+fn editing_a_covered_cell_cannot_create_hidden_content_or_format() {
+    let mut wb = Workbook::new();
+    wb.merge_cells(0, range("A1", "B2"), MergeAction::Merge, false)
+        .unwrap();
+    for input in ["text", "36%", "=1+2"] {
+        assert_eq!(wb.set_cell_input(0, "B2", input), Err("MERGED_CELL_WRITE"));
+        assert_eq!(wb.get_cell("Sheet1", "B2"), Value::Null);
+        assert_eq!(wb.sheet(0).unwrap().get_formula("B2"), None);
+    }
+    wb.set_cell_input(0, "A1", "25%").unwrap();
+    assert_eq!(wb.get_cell("Sheet1", "A1"), Value::Number(0.25));
+}
+
+#[test]
+fn empty_spill_children_cannot_be_merged_even_when_the_anchor_is_outside_selection() {
+    let mut wb = Workbook::new();
+    wb.sheet_mut(0)
+        .unwrap()
+        .set_array(
+            "A1",
+            std::sync::Arc::new(einfach_core::ArrayData::new(
+                1,
+                3,
+                vec![Value::Number(1.0), Value::Null, Value::Null],
+            )),
+        )
+        .unwrap();
+    let mut history = WorkbookHistory::default();
+    assert_eq!(
+        history.merge_cells(&mut wb, 0, range("B1", "C1"), MergeAction::Merge, true),
+        Err("Cannot merge cells in an array spill."),
+    );
+    assert_eq!(history.undo_count(), 0);
+    assert!(wb.sheet(0).unwrap().merged_ranges().is_empty());
+}

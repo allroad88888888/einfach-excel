@@ -7,6 +7,7 @@ import {
   getActiveCell,
   setSelectionAtom,
   selectionSnapshotAtom,
+  selectionAuthorityWitnessAtom,
   type SelectionState,
 } from './index'
 
@@ -34,11 +35,12 @@ export const selectGridHeaderAtom = atom(
       return false
 
     const witness = get(selectionSnapshotAtom)
+    const selectionAuthority = get(selectionAuthorityWitnessAtom)
     if (get(editingSessionAtom).source !== null) {
       const outcome = await set(commitCellEditingAtom)
       if (
         outcome !== 'completed' ||
-        get(selectionSnapshotAtom) !== witness ||
+        get(selectionAuthorityWitnessAtom) !== selectionAuthority ||
         get(activeWorkbookSheetAtom)?.id !== input.sheetId
       )
         return false

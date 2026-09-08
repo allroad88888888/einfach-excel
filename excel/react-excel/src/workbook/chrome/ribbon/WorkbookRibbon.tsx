@@ -11,6 +11,7 @@ import { SelectionSizeTools } from './SelectionSizeTools'
 import { HistoryTools } from './HistoryTools'
 import { VisibilityTools } from './VisibilityTools'
 import { StructureTools } from './StructureTools'
+import { MergeTools } from './MergeTools'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import './ribbon.css'
 
@@ -176,7 +177,7 @@ export function WorkbookRibbon() {
           onClick={() => void applyFormat('wrap-text')}
           pressed={Boolean(activeFormat.wrap)}
         />
-        <ToolButton icon="⊞" label="Merge cells" />
+        <MergeTools />
         <SelectionSizeTools />
         <span className="tool-separator" aria-hidden="true" />
         <ToolButton

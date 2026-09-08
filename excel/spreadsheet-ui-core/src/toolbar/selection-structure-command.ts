@@ -28,6 +28,7 @@ import { selectionSnapshotAtom } from '../selection'
 import { sheetTabsAtom } from '../sheet-tabs/state'
 import { validSheetVisibility, applySheetVisibility } from '../viewport/hidden-state'
 import { selectionStructureFeedbackAtom } from './selection-structure-state'
+import { selectionMergeFeedbackAtom } from './selection-merge-state'
 import { selectionVisibilityFeedbackAtom } from './selection-visibility-command'
 import { selectionSizePanelAtom } from './selection-size-command'
 
@@ -36,7 +37,7 @@ export const runSelectionStructureAtom = atom(
   null,
   async (get, set, action: StructureAction): Promise<boolean> => {
     if (
-      get(selectionStructureFeedbackAtom).busy ||
+      get(selectionStructureFeedbackAtom).busy || get(selectionMergeFeedbackAtom).busy ||
       get(editingSessionAtom).source !== null ||
       get(rustHistoryPanelAtom).busy ||
       get(sheetTabsAtom).mutation ||

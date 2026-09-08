@@ -1,4 +1,6 @@
 import { atom } from '@einfach/core'
+import { projectionSnapshotBackingAtom } from '../projection/state'
+import { projectMergedSelection, mergedActiveCell } from './merged-selection'
 import type { Atom, Getter, Setter } from '@einfach/core'
 import type { CellCoord, CellRange } from '../shared'
 import type {
@@ -753,7 +755,10 @@ const selectionBoundsStateAtom: Atom<SelectionBounds> = atom(
 selectionBoundsStateAtom.debugLabel = 'spreadsheet.selection.internal.boundsState'
 
 const _multiSelectionAtom: Atom<MultiRangeSelectionState> = atom(
-  (get) => get(selectionAuthorityStateAtom).multi,
+  (get) => projectMergedSelection(
+    get(selectionAuthorityStateAtom).multi,
+    get(projectionSnapshotBackingAtom).result,
+  ),
 )
 _multiSelectionAtom.debugLabel = 'spreadsheet.selection._multi'
 
@@ -762,7 +767,7 @@ function captureSelectionWriteAuthority(get: Getter): SelectionWriteAuthority {
   return {
     authority,
     bounds: authority.bounds,
-    multi: authority.multi,
+    multi: get(_multiSelectionAtom),
     witness: authority.witness,
   }
 }
@@ -781,7 +786,9 @@ function commitMultiSelectionState(
   set: Setter,
   nextState: MultiRangeSelectionState,
 ): SelectionAuthorityState {
-  const nextSnapshot = snapshotMultiSelectionState(nextState)
+  const nextSnapshot = snapshotMultiSelectionState(
+    projectMergedSelection(nextState, get(projectionSnapshotBackingAtom).result),
+  )
   const liveAuthority = get(selectionAuthorityStateAtom)
   const previousTarget = captureSelectionTargetContext(liveAuthority.multi, liveAuthority.bounds)
   const nextTarget = captureSelectionTargetContext(nextSnapshot, liveAuthority.bounds)
@@ -865,7 +872,10 @@ primarySelectionRegionAtom.debugLabel = 'spreadsheet.selection.primaryRegion'
 
 export const activeCellAtom = atom((get): ActiveSelectionCell => {
   const bounds = get(selectionBoundsStateAtom)
-  return Object.freeze(getActiveCell(getPrimaryRegion(get(_multiSelectionAtom)), bounds))
+  return Object.freeze(mergedActiveCell(
+    getActiveCell(getPrimaryRegion(get(_multiSelectionAtom)), bounds),
+    get(projectionSnapshotBackingAtom).result,
+  ))
 })
 activeCellAtom.debugLabel = 'spreadsheet.selection.activeCell'
 
@@ -883,7 +893,7 @@ export const selectionSnapshotAtom = atom((get): SelectionSnapshot => {
 
   return Object.freeze({
     selection,
-    activeCell: Object.freeze(getActiveCell(selection, bounds)),
+    activeCell: get(activeCellAtom),
     range: Object.freeze(getSelectionRange(selection, bounds)),
   })
 })
@@ -988,7 +998,7 @@ export const selectionAuthorityReceiptIsCurrentAtom = atom(
       return false
     }
     return sameSelectionTargetContext(
-      captureSelectionTargetContext(authorityAtStart.multi, authorityAtStart.bounds),
+      captureSelectionTargetContext(get(_multiSelectionAtom), authorityAtStart.bounds),
       { selection: selection.value, range: range.value },
     )
   },

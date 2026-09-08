@@ -122,6 +122,8 @@ impl WasmWorkbook :: [] :: pub fn insert_col(&mut self, sheet_idx: u32, at: u32,
 impl WasmWorkbook :: [] :: pub fn insert_row(&mut self, sheet_idx: u32, at: u32, count: u32)
 impl WasmWorkbook :: [] :: pub fn is_error(&self, sheet_idx: u32, addr: &str) -> bool
 impl WasmWorkbook :: [] :: pub fn list_non_empty_cells(&self) -> Result<JsValue, JsValue>
+impl WasmWorkbook :: [] :: pub fn merge_cells( &mut self, sheet: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, action: &str, discard: bool, ) -> Result<bool, JsValue>
+impl WasmWorkbook :: [] :: pub fn merged_ranges(&self, sheet: u32) -> Result<Vec<u32>, JsValue>
 impl WasmWorkbook :: [] :: pub fn move_sheet(&mut self, from: u32, to: u32) -> bool
 impl WasmWorkbook :: [] :: pub fn paste_clipboard( &mut self, sheet_idx: u32, row: u32, col: u32, text: &str, internal: bool, policy: JsValue, ) -> Result<Vec<u32>, JsValue>
 impl WasmWorkbook :: [] :: pub fn patch_format_range( &mut self, sheet_idx: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, patch: JsValue, scope: &str, ) -> Result<u32, JsValue>

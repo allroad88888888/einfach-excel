@@ -31,6 +31,7 @@ export interface WorkbookViewport {
   readonly placementWindow: CellRange
   /** Cells from the same projection frame as `window`. */
   readonly cells: ReadonlyArray<VisibleProjectionResult['cells'][number]>
+  readonly mergedRanges?: readonly CellRange[]
   /** True once this sheet has any projection that can keep the grid mounted. */
   readonly hasResult: boolean
   /** True while an older logical frame is temporarily placed at the requested window. */
@@ -193,6 +194,7 @@ export function useWorkbookViewport(options: UseWorkbookViewportOptions): Workbo
     window,
     placementWindow: retained ? requestedWindow : window,
     cells: result?.cells ?? [],
+    mergedRanges: result?.mergedRanges,
     hasResult: result !== undefined,
     retained,
     status: current ? snapshot.status : 'idle',

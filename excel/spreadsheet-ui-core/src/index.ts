@@ -76,3 +76,6 @@ export { selectionSizePanelAtom, runSelectionSizeAtom } from './toolbar/selectio
 export * from './selection/header-selection-command'
 export * from './viewport'
 export * from './workspace'
+export { getViewportRangeRectangle } from './viewport/range-rectangle'
+export { runSelectionMergeAtom, type SelectionMergeAction } from './toolbar/selection-merge-command'
+export { selectionMergeFeedbackAtom } from './toolbar/selection-merge-state'

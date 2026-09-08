@@ -210,6 +210,30 @@ describe('system clipboard commands', () => {
     expect(paste).not.toHaveBeenCalled()
   })
 
+  test.each([false, true])(
+    'projection refresh during clipboard read preserves selection authority (move away/back=%s)',
+    async (moveAwayAndBack) => {
+      const { store, paste } = await setup()
+      const result = await store.setter(runSystemClipboardAtom, {
+        operation: 'paste',
+        read: async () => {
+          await store.setter(runVisibleProjectionAtom, {
+            sheetId: 'sheet-1',
+            reason: 'viewport',
+            window: { rowStart: 0, rowEnd: 9, colStart: 0, colEnd: 4 },
+          })
+          if (moveAwayAndBack) {
+            for (const row of [1, 0])
+              store.setter(selectCellAtom, { sheetId: 'sheet-1', coord: { row, col: 0 } })
+          }
+          return { text: 'value' }
+        },
+      })
+      expect(result).toBe(!moveAwayAndBack)
+      expect(paste).toHaveBeenCalledTimes(moveAwayAndBack ? 0 : 1)
+    },
+  )
+
   test('protected paste passes the complete unlocked ranges to Rust', async () => {
     const { store, paste } = await setup()
     const unlocked = [{ rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 1 }]

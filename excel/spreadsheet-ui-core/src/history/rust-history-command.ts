@@ -24,6 +24,7 @@ import type { RustHistoryState } from './rust-history-types'
 import type { RustWorkbookSheet } from '../rust-workbook/commands'
 import { applySheetVisibility, validSheetVisibility } from '../viewport/hidden-state'
 import { selectionStructureFeedbackAtom } from '../toolbar/selection-structure-state'
+import { selectionMergeFeedbackAtom } from '../toolbar/selection-merge-state'
 
 const EMPTY: RustHistoryState = { undoCount: 0, redoCount: 0, entries: [], notice: null }
 /** 直接读取 Rust 投影里的历史目录，不维护另一份 JS 撤销栈。 */
@@ -50,7 +51,7 @@ export const runRustHistoryAtom = atom(
       get(editingSessionAtom).source !== null ||
       get(sheetTabsAtom).mutation ||
       get(systemClipboardFeedbackAtom).busy ||
-      get(selectionStructureFeedbackAtom).busy
+      get(selectionStructureFeedbackAtom).busy || get(selectionMergeFeedbackAtom).busy
     )
       return false
     const state = get(rustHistoryStateAtom)

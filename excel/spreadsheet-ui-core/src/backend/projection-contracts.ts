@@ -35,6 +35,10 @@ export interface VisibleProjectionResult extends SheetRef {
   requestId: ProjectionRequestId
   revision?: ProjectionRevision
   cells: DisplayCell[]
+  /** Rust 的全表稀疏合并边界，供屏幕外导航使用。 */
+  mergedRanges?: CellRange[]
+  /** 与窗口相交的合并锚点；可以位于窗口外，不塞进普通 cells 的窗口契约。 */
+  mergeAnchors?: DisplayCell[]
   /** 当前窗口内由 rowStyle 持有的稀疏行高。 */
   rowHeights?: ViewportRowHeight[]
   /** 当前窗口内的稀疏列宽。 */

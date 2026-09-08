@@ -33,7 +33,9 @@ export function FormulaBar() {
     projection?.kind === 'visible-window' ? projection.sheetId : activeCell.sheetId
   const selectedCell =
     projection?.kind === 'visible-window'
-      ? projection.cells.find((cell) => cell.row === activeCell.row && cell.col === activeCell.col)
+      ? [...(projection.mergeAnchors ?? []), ...projection.cells].find(
+          (cell) => cell.row === activeCell.row && cell.col === activeCell.col,
+        )
       : undefined
   const editingActiveCell =
     editingSession.source?.sheetId === activeSheetId &&

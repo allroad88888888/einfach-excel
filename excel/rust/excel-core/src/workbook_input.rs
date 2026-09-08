@@ -17,6 +17,13 @@ impl Workbook {
         if self.sheet(sheet_idx).is_none() {
             return Err("INVALID_SHEET");
         }
+        // UI 应定位到合并锚点；底层拒绝覆盖格输入，不能产生看不见的新数据。
+        if self.sheets[sheet_idx]
+            .merged_range_at(addr)
+            .is_some_and(|range| range.start != addr)
+        {
+            return Err("MERGED_CELL_WRITE");
+        }
         match parse_cell_input(input, true) {
             CellInput::Formula(source) => {
                 // 提交草稿前预检，解析/静态循环失败不能先覆盖原格再要求用户重试。

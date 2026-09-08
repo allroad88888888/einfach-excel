@@ -5,8 +5,8 @@ use crate::MergeAction;
 #[derive(Debug)]
 pub(super) struct MergeChange {
     range: CellRange,
-    before: HistorySnapshot,
-    after: HistorySnapshot,
+    before: Option<HistorySnapshot>,
+    after: Option<HistorySnapshot>,
     before_merges: Vec<CellRange>,
     after_merges: Vec<CellRange>,
 }
@@ -31,17 +31,26 @@ impl MergeChange {
         let store = workbook.store.clone();
         store.batch(|_| {
             let target = &mut workbook.sheets[sheet];
-            let anchors = target.restore_structure_content(&[snapshot]);
-            target.replace_merges_in_range(self.range, merges);
-            target.project_bulk_spill_anchors(anchors);
+            if let Some(snapshot) = snapshot {
+                let anchors = target.restore_structure_content(&[snapshot]);
+                target.replace_merges_in_range(self.range, merges);
+                target.project_bulk_spill_anchors(anchors);
+            } else {
+                target.restore_merge_geometry(self.range, merges);
+            }
         });
         workbook.sheets[sheet].resume_structure_notifications(observers);
         Ok(())
     }
 
     pub(super) fn retained_bytes(&self) -> usize {
-        self.before.retained_bytes()
-            + self.after.retained_bytes()
+        self.before
+            .as_ref()
+            .map_or(0, HistorySnapshot::retained_bytes)
+            + self
+                .after
+                .as_ref()
+                .map_or(0, HistorySnapshot::retained_bytes)
             + (self.before_merges.len() + self.after_merges.len())
                 * std::mem::size_of::<CellRange>()
     }
@@ -70,7 +79,9 @@ impl WorkbookHistory {
             affected.end.row = affected.end.row.max(r.end.row);
             affected.end.col = affected.end.col.max(r.end.col);
         }
-        let before = HistorySnapshot::capture(&workbook.sheets[sheet], affected, true);
+        let content = action != MergeAction::Unmerge;
+        let before =
+            content.then(|| HistorySnapshot::capture(&workbook.sheets[sheet], affected, true));
         if !workbook.merge_cells(sheet, range, action, discard)? {
             return Ok(false);
         }
@@ -78,7 +89,8 @@ impl WorkbookHistory {
             range,
             before,
             before_merges,
-            after: HistorySnapshot::capture(&workbook.sheets[sheet], affected, true),
+            after: content
+                .then(|| HistorySnapshot::capture(&workbook.sheets[sheet], affected, true)),
             after_merges: workbook.sheets[sheet].merges_in_range(range),
         };
         let key = workbook.sheet_key(sheet).unwrap();

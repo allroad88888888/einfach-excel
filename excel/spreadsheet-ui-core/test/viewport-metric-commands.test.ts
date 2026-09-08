@@ -7,6 +7,8 @@ import {
   viewportMetricsAtom,
   initializeViewportMetricsAtom,
 } from '../src/viewport'
+import { viewportSizeOverridesAtom } from '../src/viewport/size-overrides'
+import { sheetHiddenRowsBackingAtom, viewportHiddenColsBackingAtom } from '../src/viewport/hidden-state'
 
 describe('viewport metric commands', () => {
   test('same-sheet canvas changes preserve physical scroll and measured viewport', () => {
@@ -74,5 +76,44 @@ describe('viewport metric commands', () => {
       viewportHeight: 320,
       viewportWidth: 420,
     })
+  })
+
+  test('resizing keeps the bottom and right edges pinned, including fractional browser offsets', () => {
+    const store = createStore()
+    store.setter(setViewportMetricsAtom, {
+      ...store.getter(viewportMetricsAtom),
+      rowCount: 100, colCount: 20, rowHeight: 20, colWidth: 80,
+      viewportHeight: 300, viewportWidth: 400, scrollTop: 1699.5, scrollLeft: 1200,
+    })
+    store.setter(setViewportSizeAtom, { viewportHeight: 260, viewportWidth: 350 })
+    expect(store.getter(viewportMetricsAtom)).toMatchObject({ scrollTop: 1740, scrollLeft: 1250 })
+    store.setter(setViewportSizeAtom, { viewportHeight: 350, viewportWidth: 500 })
+    expect(store.getter(viewportMetricsAtom)).toMatchObject({ scrollTop: 1650, scrollLeft: 1100 })
+  })
+
+  test('edge pinning uses actual row/column sizes and skips hidden trailing indices', () => {
+    const store = createStore()
+    store.setter(viewportSizeOverridesAtom, {
+      rowHeightsBySheet: { s: { '0': 80 } }, colWidthsBySheet: { s: { '0': 240 } },
+    })
+    store.setter(sheetHiddenRowsBackingAtom, { s: [99] })
+    store.setter(viewportHiddenColsBackingAtom, { s: [19] })
+    store.setter(setViewportMetricsAtom, {
+      ...store.getter(viewportMetricsAtom), sheetId: 's',
+      rowCount: 100, colCount: 20, rowHeight: 20, colWidth: 80,
+      viewportHeight: 300, viewportWidth: 400, scrollTop: 1740, scrollLeft: 1280,
+    })
+    store.setter(setViewportSizeAtom, { viewportHeight: 250, viewportWidth: 300 })
+    expect(store.getter(viewportMetricsAtom)).toMatchObject({ scrollTop: 1790, scrollLeft: 1380 })
+  })
+
+  test('shrinking a fully visible sheet stays at its origin rather than jumping to the new end', () => {
+    const store = createStore()
+    store.setter(setViewportMetricsAtom, {
+      ...store.getter(viewportMetricsAtom), rowCount: 10, colCount: 4,
+      viewportHeight: 500, viewportWidth: 600,
+    })
+    store.setter(setViewportSizeAtom, { viewportHeight: 100, viewportWidth: 100 })
+    expect(store.getter(viewportMetricsAtom)).toMatchObject({ scrollTop: 0, scrollLeft: 0 })
   })
 })

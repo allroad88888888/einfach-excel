@@ -3,7 +3,7 @@ import {
   runVisibleProjectionAtom, setSelectionAtom, setSelectionBoundsAtom,
   type RustWorkbookCommands, type RustWorkbookConnection, type VisibleProjectionRequest,
 } from '@einfach/spreadsheet-ui-core'
-import { act, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { expect, test, vi } from 'vitest'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
 import { SelectionStatus } from '../../../src/workbook/chrome/footer/SelectionStatus'
@@ -55,7 +55,7 @@ test('statistics wait locally and a late old selection cannot reappear', async (
   let finish!: (value: Numbers) => void
   const r = await setup(new Promise((resolve) => { finish = resolve }))
   expect(screen.getByText('Calculating selection…')).toBeVisible()
-  expect(screen.getByRole('button')).toBeVisible()
+  expect(screen.getByRole('button', { name: 'Grid remains available' })).toBeVisible()
   r.aggregate.mockResolvedValue({ ...numbers, sum: 99, average: 33, min: 33, max: 33 })
   await r.select(9)
   expect(await screen.findByText('Sum: 99')).toBeVisible()
@@ -102,4 +102,32 @@ test('text-only count remains visible without inventing numeric extrema', async 
   expect(screen.getByText('Min: —')).toBeVisible()
   expect(screen.getByText('Max: —')).toBeVisible()
   expect(r.aggregate).toHaveBeenCalledTimes(2)
+})
+
+test('settings hide summaries immediately and restore defaults without recalculating', async () => {
+  const r = await setup()
+  fireEvent.click(screen.getByRole('button', { name: 'Selection statistics settings' }))
+  expect(screen.getByRole('dialog', { name: 'Selection statistics' })).toBeVisible()
+  const checks = screen.getAllByRole('checkbox')
+  expect(checks).toHaveLength(6)
+  for (const check of checks) fireEvent.click(check)
+  expect(screen.getByText('No statistics selected')).toBeVisible()
+  expect(screen.queryByRole('button', { name: 'Copy Sum' })).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: 'Restore defaults' }))
+  expect(await screen.findByText('Sum: 12')).toBeVisible()
+  expect(r.aggregate).toHaveBeenCalledTimes(1)
+  fireEvent.click(screen.getByRole('button', { name: 'Done' }))
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(screen.getByRole('button', { name: 'Selection statistics settings' })).toHaveFocus()
+})
+
+test('missing statistics are disabled but a real zero count can be copied', async () => {
+  const r = await setup()
+  r.aggregate.mockResolvedValueOnce({
+    count: 0, numericCount: 0, sum: null, average: null, min: null, max: null, revision: 0,
+  })
+  await r.select(2)
+  expect(screen.getByRole('button', { name: 'Copy Sum' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: 'Copy Min' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: 'Copy Count' })).toBeEnabled()
 })

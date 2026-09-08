@@ -47,6 +47,13 @@ export function writeBrowserClipboardExport(
   })
 }
 
+/** 标量统计只写原始纯文本，不携带单元格 token 或 HTML。 */
+export function writeBrowserClipboardText(text: Promise<string>): Promise<void> {
+  return writeClipboardItems({
+    'text/plain': text.then((value) => new Blob([value], { type: 'text/plain' })),
+  })
+}
+
 async function writeClipboardItems(payload: Record<string, Promise<Blob>>): Promise<void> {
   const parts = Object.values(payload)
   // ClipboardItem 支持 Promise<Blob>：在用户事件里启动写入，不先等待 Worker。

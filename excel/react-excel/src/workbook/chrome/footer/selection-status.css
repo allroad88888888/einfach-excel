@@ -1,18 +1,103 @@
 /* 状态栏沿用现有字体与颜色；窄屏换行，数值不裁切。 */
+.workbook-footer {
+  flex-wrap: wrap;
+}
+/* 保留两张初始工作表及操作按钮的空间；统计或剪贴板提示变长时自然换行。 */
+.workbook-footer .workbook-sheet-controls {
+  flex: 1 0 min(100%, 480px);
+}
+.workbook-footer .status-items {
+  max-width: 100%;
+  box-sizing: border-box;
+}
 .selection-statistics {
   display: flex;
+  flex: 1;
+  min-width: 0;
   flex-wrap: wrap;
   gap: 4px 12px;
   padding-block: 6px;
   font-variant-numeric: tabular-nums;
 }
-.selection-statistics > span {
+.selection-statistics > span,
+.selection-statistic {
   overflow-wrap: anywhere;
+}
+.selection-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  min-width: 0;
+  gap: 0 6px;
+}
+.status-items .selection-statistic {
+  height: auto;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+.selection-statistic:focus-visible,
+.statistics-settings-button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.status-items .statistics-settings-button {
+  height: 26px;
+  width: 26px;
+  flex: none;
+}
+.statistic-copy-feedback {
+  flex-basis: 100%;
+  padding-bottom: 4px;
+  overflow-wrap: anywhere;
+}
+.statistic-copy-feedback[role='alert'] {
+  color: #a12622;
+}
+.statistics-settings {
+  width: 320px;
+  max-width: calc(100vw - 32px);
+  box-sizing: border-box;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: #242735;
+  background: white;
+  font-size: 13px;
+}
+.statistics-settings::backdrop {
+  background: #20243455;
+}
+.statistics-settings h2 {
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+.statistics-settings p {
+  line-height: 1.5;
+}
+.statistics-settings label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-block: 4px;
+}
+.statistics-settings-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.status-items .statistics-settings-actions button {
+  height: auto;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
 }
 .selection-statistics-error {
   color: #a12622;
 }
-@media (max-width: 1100px) {
+/* 常见桌面及窄屏固定分行，查询等待态不能让网格高度来回变化。 */
+@media (max-width: 1400px) {
   .workbook-footer {
     flex-wrap: wrap;
   }
@@ -27,7 +112,7 @@
     padding-inline: 8px;
     border-top: 1px solid var(--border);
   }
-  .selection-statistics {
+  .selection-status {
     flex: 1;
   }
 }

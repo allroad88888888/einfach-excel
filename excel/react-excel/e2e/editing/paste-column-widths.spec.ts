@@ -1,6 +1,8 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select, copy, pasteOption } from '../support/clipboard'
 
+test.use({ screenshot: 'only-on-failure' })
+
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 async function sheet(page: Page, name: string) {

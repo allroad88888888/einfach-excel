@@ -2,6 +2,7 @@ import { createStore } from '@einfach/core'
 import { expect, test, vi } from 'vitest'
 import {
   selectionAggregatesAtom, setSelectionAtom, setSelectionBoundsAtom,
+  configureSelectionStatisticsAtom, copySelectionStatisticAtom, selectionStatisticCopyFeedbackAtom,
   type RustWorkbookConnection, type RustWorkbookCommands,
 } from '../src'
 import { projectionSnapshotBackingAtom } from '../src/projection/state'
@@ -99,4 +100,63 @@ test.each([
   const r = setup()
   r.request.mockResolvedValue({ ...numbers, ...invalid })
   expect(await r.read()).toMatchObject({ status: 'error' })
+})
+
+test('configuring and copying a summary reuses its native result without new requests', async () => {
+  const r = setup()
+  r.request.mockResolvedValue({ ...numbers, average: 1 / 3 })
+  await r.read()
+  r.store.setter(configureSelectionStatisticsAtom, { statistic: 'sum', visible: false })
+  const write = vi.fn(async (text: Promise<string>) => { expect(await text).toBe(String(1 / 3)) })
+  expect(await r.store.setter(copySelectionStatisticAtom, { statistic: 'average', value: 1 / 3, write })).toBe(true)
+  expect(write).toHaveBeenCalledTimes(1)
+  expect(r.request).toHaveBeenCalledTimes(1)
+  expect(r.store.getter(selectionStatisticCopyFeedbackAtom)).toEqual({
+    busy: false, error: false, message: 'Copied Average.',
+  })
+})
+
+test('copy starts the browser write synchronously and freezes the clicked result', async () => {
+  const r = setup()
+  await r.read()
+  let finish!: () => void
+  const permission = new Promise<void>((resolve) => { finish = resolve })
+  const write = vi.fn(async (text: Promise<string>) => {
+    await permission
+    expect(await text).toBe('12')
+  })
+  const pending = r.store.setter(copySelectionStatisticAtom, { statistic: 'sum', value: 12, write })
+  expect(write).toHaveBeenCalledTimes(1)
+  expect(r.store.getter(selectionStatisticCopyFeedbackAtom).busy).toBe(true)
+  expect(await r.store.setter(copySelectionStatisticAtom, { statistic: 'max', value: 7, write })).toBe(false)
+  r.request.mockResolvedValue({ ...numbers, sum: 99 })
+  r.select(3)
+  expect(await r.read()).toMatchObject({ numbers: { sum: 99 } })
+  finish()
+  expect(await pending).toBe(true)
+  expect(write).toHaveBeenCalledTimes(1)
+})
+
+test('clipboard permission failures are visible and a later copy can recover', async () => {
+  const r = setup()
+  const denied = () => { throw new Error('Clipboard permission was denied.') }
+  expect(await r.store.setter(copySelectionStatisticAtom, {
+    statistic: 'sum', value: 12, write: denied,
+  })).toBe(false)
+  expect(r.store.getter(selectionStatisticCopyFeedbackAtom)).toMatchObject({
+    busy: false, error: true,
+  })
+  expect(await r.store.setter(copySelectionStatisticAtom, { statistic: 'sum', value: 12, write: async (text) => {
+    expect(await text).toBe('12')
+  } })).toBe(true)
+  expect(r.store.getter(selectionStatisticCopyFeedbackAtom).error).toBe(false)
+})
+
+test('null and non-finite statistics cannot be exported as a fabricated number', async () => {
+  const r = setup()
+  const write = vi.fn(async (text: Promise<string>) => { await text })
+  expect(await r.store.setter(copySelectionStatisticAtom, { statistic: 'sum', value: null, write })).toBe(false)
+  expect(r.store.getter(selectionStatisticCopyFeedbackAtom).message).toContain('no finite value')
+  expect(await r.store.setter(copySelectionStatisticAtom, { statistic: 'count', value: NaN, write })).toBe(false)
+  expect(write).not.toHaveBeenCalled()
 })

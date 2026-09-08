@@ -6,6 +6,7 @@ async function select(page: Page, address: string) {
   await name.fill(address)
   await name.press('Enter')
   await expect(name).toHaveValue(address)
+  await expect(page.locator('[data-workbook-grid]')).toHaveAttribute('data-projection-retained', 'false')
 }
 async function summary(page: Page) {
   await page.goto('/')
@@ -84,7 +85,7 @@ test('an entire column includes offscreen formulas and scrolling keeps the same 
   await expect(status(page)).toHaveText(total!)
 })
 
-for (const width of [1280, 390]) {
+for (const width of [1440, 1280, 390]) {
   test(`statistics fit ${width}px without covering cells or overflowing`, async ({ page }, info) => {
     await page.setViewportSize({ width, height: 800 })
     const errors: string[] = []
@@ -92,9 +93,19 @@ for (const width of [1280, 390]) {
     await summary(page)
     await stats(page, 4, '26', '6.5')
     await extrema(page, 6, '-4', '20')
+    // 可见不等于可点击：统计变长也不能把标签压到相邻操作按钮下面。
+    for (const name of ['Sales Orders', 'Summary']) {
+      const tab = page.getByRole('tab', { name, exact: true })
+      await tab.click()
+      await expect(tab).toHaveAttribute('aria-selected', 'true')
+    }
+    await select(page, 'A93:F93')
+    await stats(page, 4, '26', '6.5')
+    const tabs = page.locator('.sheet-tab-list')
+    expect(await tabs.evaluate((element) => element.clientWidth)).toBeGreaterThanOrEqual(192)
     const footer = page.locator('.workbook-footer')
     expect(await footer.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true)
-    for (const span of await status(page).locator('span').all()) {
+    for (const span of await status(page).locator('button').all()) {
       await expect(span).toBeInViewport()
       expect(await span.evaluate((element) => parseFloat(getComputedStyle(element).fontSize))).toBeGreaterThanOrEqual(11)
     }

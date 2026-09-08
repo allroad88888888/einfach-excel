@@ -186,7 +186,7 @@ function getGridKeyboardInput(
     if (event.ctrlKey || event.metaKey || event.altKey) return null
     return { ...input, pageRowDelta: visiblePageRowCount(metrics) }
   }
-  if (event.key === 'F2' || event.key === 'Backspace') {
+  if (event.key === 'F2' || event.key === 'Backspace' || event.key === 'Delete') {
     return event.ctrlKey || event.metaKey || event.altKey ? null : input
   }
   if (isPrintableCellEntry(event)) return input

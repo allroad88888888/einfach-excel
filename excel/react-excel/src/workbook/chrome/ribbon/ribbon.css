@@ -85,6 +85,11 @@
   background: var(--control-hover);
 }
 
+.tool-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
 .tool-button[aria-label='Bold'] {
   font-weight: 700;
 }

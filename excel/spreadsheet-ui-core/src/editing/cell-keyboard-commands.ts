@@ -6,6 +6,7 @@ import { commitCellEditingAtom } from './commit-cell-editing'
 import { cancelEditingAtom } from './session-atoms'
 import { startCellEditingFromProjectionAtom } from './start-cell-editing'
 import type { EditingCommitOutcome } from './types'
+import { clearSelectionAtom } from '../toolbar/selection-mutation-command'
 
 export interface GridCellKeyboardInput {
   readonly sheetId: string
@@ -21,6 +22,10 @@ export const dispatchGridCellKeyboardInputAtom = atom(
   null,
   (_get, set, input: GridCellKeyboardInput) => {
     const intent = set(dispatchKeyboardInputAtom, input.keyboard)
+    if (intent.type === 'cell.clear' && input.allowEditing) {
+      void set(clearSelectionAtom, 'contents')
+      return intent
+    }
     if (intent.type !== 'editing.start' || !input.allowEditing) return intent
 
     set(startCellEditingFromProjectionAtom, {

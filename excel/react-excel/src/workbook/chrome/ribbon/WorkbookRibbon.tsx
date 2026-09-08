@@ -1,6 +1,8 @@
 import {
   activeCellFormatAtom,
   applySelectionFormatAtom,
+  clearSelectionAtom,
+  editingSessionAtom,
   SELECTION_FILL_COLOR,
   SELECTION_TEXT_COLOR,
 } from '@einfach/spreadsheet-ui-core'
@@ -12,18 +14,20 @@ interface ToolButtonProps {
   readonly label: string
   readonly onClick?: () => void
   readonly pressed?: boolean
+  readonly disabled?: boolean
 }
 
 const TABS = ['Start', 'Insert', 'Formulas', 'Data', 'View']
 const FONT_FAMILIES = ['Arial', 'Calibri', 'Georgia', 'Times New Roman']
 const FONT_SIZES = [8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 36]
 
-function ToolButton({ icon, label, onClick, pressed }: ToolButtonProps) {
+function ToolButton({ icon, label, onClick, pressed, disabled }: ToolButtonProps) {
   return (
     <button
       aria-label={label}
       aria-pressed={pressed}
       className="tool-button"
+      disabled={disabled}
       onClick={onClick}
       title={label}
       type="button"
@@ -37,6 +41,8 @@ function ToolButton({ icon, label, onClick, pressed }: ToolButtonProps) {
 export function WorkbookRibbon() {
   const activeFormat = useAtomValue(activeCellFormatAtom)
   const applyFormat = useSetAtom(applySelectionFormatAtom)
+  const clearSelection = useSetAtom(clearSelectionAtom)
+  const editing = useAtomValue(editingSessionAtom).source !== null
 
   return (
     <div className="ribbon-shell">
@@ -208,6 +214,25 @@ export function WorkbookRibbon() {
           pressed={!activeFormat.numberFormat || activeFormat.numberFormat.kind === 'general'}
         />
         <ToolButton icon="Σ" label="Auto sum" />
+        <span className="tool-separator" aria-hidden="true" />
+        <ToolButton
+          icon="⌫"
+          label="Clear contents"
+          disabled={editing}
+          onClick={() => void clearSelection('contents')}
+        />
+        <ToolButton
+          icon="A×"
+          label="Clear formatting"
+          disabled={editing}
+          onClick={() => void clearSelection('formats')}
+        />
+        <ToolButton
+          icon="×"
+          label="Clear all"
+          disabled={editing}
+          onClick={() => void clearSelection('all')}
+        />
         <div className="toolbar-spacer" />
         <ToolButton icon="⌕" label="Find" />
         <ToolButton icon="⋮" label="More tools" />

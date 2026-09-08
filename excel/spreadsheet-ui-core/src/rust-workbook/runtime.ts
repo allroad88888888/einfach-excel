@@ -3,6 +3,7 @@
 import type { BackendMutationResult } from '../backend'
 import type { WorkerErrorWire, WorkerRequestWire } from '../rust-worker/types'
 import { writeCellInput } from './cell-io'
+import { clearRange } from './clear-io'
 import { writeImportedCellFormats, writeRangeFormat } from './format-io'
 import type {
   RustImportCell,
@@ -125,14 +126,15 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
         ),
       }
     }
-    if (command === 'format.setRange') {
+    if (command === 'format.setRange' || command === 'range.clear') {
       const { request, projection } = payload as RustWorkbookCommands[typeof command]['payload']
       if (projection.sheetId !== request.sheetId) {
         throw Object.assign(new Error('Mutation and projection must target the same sheet'), {
           code: 'PROJECTION_SHEET_MISMATCH',
         })
       }
-      writeRangeFormat(current, sheetIndex(request.sheetId), request)
+      if ('mode' in request) clearRange(current, sheetIndex(request.sheetId), request)
+      else writeRangeFormat(current, sheetIndex(request.sheetId), request)
       revision += 1
       const acknowledgement: BackendMutationResult = {
         sheetId: request.sheetId,

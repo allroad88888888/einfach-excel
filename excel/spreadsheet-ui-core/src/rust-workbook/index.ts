@@ -2,6 +2,8 @@ export {
   createRustWorkbookConnection,
   type RustImportCell,
   type RustImportStats,
+  type RustClearRangeRequest,
+  type RustClearRangeMode,
   type RustSetCellInputResult,
   type RustSetRangeFormatResult,
   type RustWorkbookCommands,

@@ -52,6 +52,13 @@ export interface WasmWorkbook {
   trySetFormulaAt?: (sheet: number, addr: string, formula: string) => RustWriteOutcome
   snapshotCell(sheet: number, addr: string): RustCellSnapshot
   bulk_import_cells(cells: readonly RustImportCell[]): RustImportStats
+  clear_range?: (
+    sheet: number,
+    startRow: number,
+    startCol: number,
+    endRow: number,
+    endCol: number,
+  ) => number
   set_format_range?: (
     sheet: number,
     startRow: number,

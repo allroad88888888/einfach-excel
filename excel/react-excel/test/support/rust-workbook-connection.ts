@@ -2,6 +2,7 @@ import type {
   BackendMutationResult,
   EditingCommitRequest,
   RustSetRangeFormatResult,
+  RustClearRangeRequest,
   RustWorkbookConnection,
   SetFormatRangeRequest,
   VisibleProjectionRequest,
@@ -9,6 +10,10 @@ import type {
 } from '@einfach/spreadsheet-ui-core'
 
 export interface TestRustWorkbookHandlers {
+  clearRange?: (
+    request: RustClearRangeRequest,
+    projection: VisibleProjectionRequest,
+  ) => Promise<RustSetRangeFormatResult>
   onRequest?: (command: string) => void
   readVisibleProjection?: (request: VisibleProjectionRequest) => Promise<VisibleProjectionResult>
   setCellInput?: (request: EditingCommitRequest) => Promise<BackendMutationResult>
@@ -25,6 +30,13 @@ export function createTestRustWorkbookConnection(
 ): RustWorkbookConnection {
   const request = (async (command: string, payload: unknown) => {
     handlers.onRequest?.(command)
+    if (command === 'range.clear' && handlers.clearRange) {
+      const input = payload as {
+        request: RustClearRangeRequest
+        projection: VisibleProjectionRequest
+      }
+      return handlers.clearRange(input.request, input.projection)
+    }
     if (command === 'projection.readVisible' && handlers.readVisibleProjection) {
       return handlers.readVisibleProjection(
         (payload as { request: VisibleProjectionRequest }).request,

@@ -4,6 +4,7 @@ import {
   type BackendMutationResult,
   type EditingCommitRequest,
   type RustSetRangeFormatResult,
+  type RustClearRangeRequest,
   type RustWorkbookConnection,
   type SetFormatRangeRequest,
   type VisibleProjectionRequest,
@@ -11,6 +12,10 @@ import {
 } from '../../src'
 
 export interface TestRustWorkbookHandlers {
+  clearRange?: (
+    request: RustClearRangeRequest,
+    projection: VisibleProjectionRequest,
+  ) => Promise<RustSetRangeFormatResult>
   readVisibleProjection?: (request: VisibleProjectionRequest) => Promise<VisibleProjectionResult>
   setCellInput?: (request: EditingCommitRequest) => Promise<BackendMutationResult>
   setCellProjection?: (request: VisibleProjectionRequest) => Promise<VisibleProjectionResult>
@@ -24,6 +29,13 @@ export function createTestRustWorkbookConnection(
   handlers: TestRustWorkbookHandlers = {},
 ): RustWorkbookConnection {
   const request = (async (command: string, payload: unknown) => {
+    if (command === 'range.clear' && handlers.clearRange) {
+      const input = payload as {
+        request: RustClearRangeRequest
+        projection: VisibleProjectionRequest
+      }
+      return handlers.clearRange(input.request, input.projection)
+    }
     if (command === 'projection.readVisible' && handlers.readVisibleProjection) {
       return handlers.readVisibleProjection(
         (payload as { request: VisibleProjectionRequest }).request,

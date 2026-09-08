@@ -3,6 +3,7 @@ import {
   runVisibleProjectionAtom,
   selectCellAtom,
   type SetFormatRangeRequest,
+  type RustClearRangeRequest,
   type SpreadsheetCellFormat,
   type VisibleProjectionRequest,
 } from '@einfach/spreadsheet-ui-core'
@@ -29,11 +30,22 @@ function projection(
 /** Renders the ribbon over a controllable Rust formatting connection. */
 export async function renderFormattingRibbon(): Promise<{
   readonly writes: SetFormatRangeRequest[]
+  readonly clears: RustClearRangeRequest[]
 }> {
   let format: SpreadsheetCellFormat = {}
   let revision = 1
   const writes: SetFormatRangeRequest[] = []
+  const clears: RustClearRangeRequest[] = []
   const connection = createTestRustWorkbookConnection({
+    async clearRange(request, projectionRequest) {
+      clears.push(request)
+      if (request.mode !== 'contents') format = {}
+      revision += 1
+      return {
+        acknowledgement: { sheetId: request.sheetId, requestId: request.requestId, revision },
+        projection: projection(projectionRequest, format, revision),
+      }
+    },
     async readVisibleProjection(request) {
       return projection(request, format, revision)
     },
@@ -67,5 +79,5 @@ export async function renderFormattingRibbon(): Promise<{
       reason: 'viewport',
     })
   })
-  return { writes }
+  return { writes, clears }
 }

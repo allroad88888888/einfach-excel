@@ -7,6 +7,7 @@ import type {
   VisibleProjectionResult,
 } from '../backend'
 import type { WorkerCommand, WorkerLike, WorkerTransport } from '../rust-worker'
+import type { CellRange } from '../shared'
 import { createWorkerTransport } from '../rust-worker'
 
 export interface RustWorkbookSheetInput {
@@ -22,11 +23,41 @@ export interface RustWorkbookSheet {
 
 /** 导入坐标为零基：row=0、col=0 表示 A1。 */
 type RustImportCellValue =
-  | { readonly sheet: number; readonly row: number; readonly col: number; readonly kind: 'number'; readonly value: number }
-  | { readonly sheet: number; readonly row: number; readonly col: number; readonly kind: 'text'; readonly value: string }
-  | { readonly sheet: number; readonly row: number; readonly col: number; readonly kind: 'boolean'; readonly value: boolean }
-  | { readonly sheet: number; readonly row: number; readonly col: number; readonly kind: 'error'; readonly value: string }
-  | { readonly sheet: number; readonly row: number; readonly col: number; readonly kind: 'formula'; readonly value: string }
+  | {
+      readonly sheet: number
+      readonly row: number
+      readonly col: number
+      readonly kind: 'number'
+      readonly value: number
+    }
+  | {
+      readonly sheet: number
+      readonly row: number
+      readonly col: number
+      readonly kind: 'text'
+      readonly value: string
+    }
+  | {
+      readonly sheet: number
+      readonly row: number
+      readonly col: number
+      readonly kind: 'boolean'
+      readonly value: boolean
+    }
+  | {
+      readonly sheet: number
+      readonly row: number
+      readonly col: number
+      readonly kind: 'error'
+      readonly value: string
+    }
+  | {
+      readonly sheet: number
+      readonly row: number
+      readonly col: number
+      readonly kind: 'formula'
+      readonly value: string
+    }
   | { readonly sheet: number; readonly row: number; readonly col: number; readonly kind: 'null' }
 
 /** Rust 批量导入格；可选格式仍直接写入 Rust，不产生 React 数据副本。 */
@@ -55,7 +86,20 @@ export interface RustSetRangeFormatResult {
   readonly projection: VisibleProjectionResult
 }
 
+export type RustClearRangeMode = 'contents' | 'formats' | 'all'
+export interface RustClearRangeRequest {
+  readonly sheetId: string
+  readonly requestId: number
+  readonly range: CellRange
+  readonly scope: 'cell' | 'row' | 'column'
+  readonly mode: RustClearRangeMode
+}
+
 export interface RustWorkbookCommands {
+  readonly 'range.clear': WorkerCommand<
+    { readonly request: RustClearRangeRequest; readonly projection: VisibleProjectionRequest },
+    RustSetRangeFormatResult
+  >
   readonly 'workbook.initialize': WorkerCommand<
     { readonly sheets: readonly RustWorkbookSheetInput[] },
     readonly RustWorkbookSheet[]

@@ -70,7 +70,7 @@ describe('worksheet structural controls', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Delete sheet' }))
     let dialog = await screen.findByRole('alertdialog')
     expect(dialog).toHaveTextContent('Sales Orders')
-    expect(dialog).toHaveTextContent('cannot be undone')
+    expect(dialog).toHaveTextContent('session history limits')
     fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }))
     await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull())
     expect(changeSheets).not.toHaveBeenCalled()

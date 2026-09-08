@@ -3,7 +3,8 @@ use super::*;
 use std::rc::Weak;
 
 pub struct ArchivedWorksheet {
-    sheet: Sheet,
+    // 成功恢复时取走；只有仍持有 Sheet 的归档被丢弃才释放原生资源。
+    sheet: Option<Sheet>,
     key: u64,
     index: usize,
     name: String,
@@ -32,8 +33,32 @@ impl ArchivedWorksheet {
         self.key
     }
 
+    pub(crate) fn retained_bytes(&self) -> usize {
+        use crate::sheet::metadata_bytes;
+        self.sheet.as_ref().map_or(0, Sheet::history_retained_bytes)
+            + self.name.len()
+            + metadata_bytes(&self.print_config)
+            + metadata_bytes(&self.conditional_format)
+            + metadata_bytes(&self.tables)
+            + metadata_bytes(&self.references)
+            + metadata_bytes(&self.remaining_names)
+            + self.remaining_keys.len() * 8
+    }
+
+    /// 撤销“新增”时，原先指向不存在表名的公式仍应保留原始源，而不是永久改成 #REF!。
+    pub(crate) fn restore_missing_reference_sources(&self, workbook: &mut Workbook) {
+        for (sheet, addr, source) in &self.references {
+            let index = if *sheet > self.index {
+                sheet - 1
+            } else {
+                *sheet
+            };
+            workbook.set_formula(index, &addr.to_string_repr(), source);
+        }
+    }
+
     /// 拒绝跨 Workbook 恢复或覆盖另一次拓扑修改；失败时把原资源完整交还调用者。
-    pub fn restore(self, workbook: &mut Workbook) -> Result<usize, Self> {
+    pub fn restore(mut self, workbook: &mut Workbook) -> Result<usize, Self> {
         if workbook.is_inside_custom_call()
             || !self
                 .origin
@@ -52,15 +77,19 @@ impl ArchivedWorksheet {
         let index = self.index;
         let store = workbook.store.clone();
         store.batch(|_| {
-            workbook.sheets.insert(index, self.sheet);
+            workbook
+                .sheets
+                .insert(index, self.sheet.take().expect("archive owns its sheet"));
             workbook.sheet_keys.insert(index, self.key);
-            workbook.names.insert(index, self.name);
-            workbook.print_configs.insert(index, self.print_config);
+            workbook.names.insert(index, std::mem::take(&mut self.name));
+            workbook
+                .print_configs
+                .insert(index, std::mem::take(&mut self.print_config));
             workbook
                 .conditional_formats
-                .insert(index, self.conditional_format);
+                .insert(index, std::mem::take(&mut self.conditional_format));
             let tables_changed = !self.tables.is_empty();
-            for table in self.tables {
+            for table in self.tables.drain(..) {
                 workbook
                     .tables
                     .insert(table.name().to_ascii_uppercase(), table);
@@ -71,11 +100,19 @@ impl ArchivedWorksheet {
             workbook.rebuild_name_lookup();
             workbook.sync_atom_topology();
             workbook.republish_hidden_all();
-            for (sheet, addr, source) in self.references {
+            for (sheet, addr, source) in self.references.drain(..) {
                 workbook.set_formula(sheet, &addr.to_string_repr(), &source);
             }
         });
         Ok(index)
+    }
+}
+
+impl Drop for ArchivedWorksheet {
+    fn drop(&mut self) {
+        if let Some(sheet) = self.sheet.as_mut() {
+            sheet.release_archived_atoms();
+        }
     }
 }
 
@@ -109,7 +146,7 @@ impl Workbook {
             .collect();
         let sheet = self.remove_sheet(index)?;
         Some(ArchivedWorksheet {
-            sheet,
+            sheet: Some(sheet),
             key,
             index,
             name,
@@ -121,5 +158,54 @@ impl Workbook {
             remaining_keys: self.sheet_keys.clone(),
             origin: Rc::downgrade(&self.atom_context),
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::workbook_history::WorkbookHistory;
+
+    #[test]
+    fn evicting_archive_releases_its_shared_store_atoms() {
+        let mut workbook = Workbook::new();
+        workbook.add_sheet("Large");
+        let baseline = workbook.store.debug_total_atom_count();
+        workbook.set_cell(1, "A1", Value::Text("x".repeat(33 * 1024 * 1024)));
+        assert!(workbook.store.debug_total_atom_count() > baseline);
+        let mut history = WorkbookHistory::default();
+        history.remove_sheet(&mut workbook, 1).unwrap();
+        assert_eq!(history.undo_count(), 0);
+        assert_eq!(workbook.store.debug_total_atom_count(), baseline);
+    }
+
+    #[test]
+    fn clearing_archives_reclaims_formula_chains_and_spills_without_touching_live_sheets() {
+        let mut workbook = Workbook::new();
+        workbook.set_cell(0, "A1", Value::Number(11.0));
+        let mut history = WorkbookHistory::default();
+        let mut settled_count = None;
+        for _ in 0..3 {
+            let index = workbook.add_sheet("Temporary");
+            workbook.set_cell(index, "A1", Value::Number(7.0));
+            workbook.set_formula(index, "B1", "=A1+1");
+            workbook.set_formula(index, "C1", "=B1*2");
+            workbook.set_formula(index, "D1", "=SEQUENCE(10)");
+            assert_eq!(workbook.get_cell("Temporary", "C1"), Value::Number(16.0));
+            assert_eq!(workbook.get_cell("Temporary", "D10"), Value::Number(10.0));
+            history.remove_sheet(&mut workbook, index).unwrap();
+            let held = workbook.store.debug_total_atom_count();
+            history.clear("");
+            let released = workbook.store.debug_total_atom_count();
+            assert!(released < held);
+            if let Some(previous) = settled_count {
+                assert_eq!(
+                    released, previous,
+                    "repeated archive eviction must not leak atoms"
+                );
+            }
+            settled_count = Some(released);
+            assert_eq!(workbook.get_cell("Sheet1", "A1"), Value::Number(11.0));
+        }
     }
 }

@@ -67,6 +67,8 @@ const ERROR_MESSAGES: Readonly<Record<string, string>> = {
   CLIPBOARD_CROSS_SHEET_CUT: 'Cut between sheets is not supported yet.',
   CLIPBOARD_LOCKED: 'The source or destination includes locked cells.',
   CLIPBOARD_CUT_CONSUMED: 'These cells have already been moved. Copy or cut again to paste.',
+  CLIPBOARD_SHEET_HISTORY_CHANGED:
+    'Worksheet history changed the clipboard source. Copy or cut again to paste.',
   CLIPBOARD_INVALID_FORMULA: 'The clipboard contains an invalid formula. Nothing was pasted.',
   CLIPBOARD_INVALID_TSV: 'The clipboard text has unmatched quotes. Nothing was pasted.',
 }

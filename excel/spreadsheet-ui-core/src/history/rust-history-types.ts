@@ -4,6 +4,11 @@ import type { CellRange } from '../shared'
 export interface RustHistoryEntry {
   readonly label: string
   readonly sheetIndex: number
+  /** 原生稳定身份；移动、改名和恢复删除不换 key。 */
+  readonly sheetKey?: string
+  readonly sheetName?: string
+  readonly sheetChange?: boolean
+  readonly affectedSheetKeys?: readonly string[]
   readonly affectedSheets?: readonly number[]
   readonly range: CellRange
 }

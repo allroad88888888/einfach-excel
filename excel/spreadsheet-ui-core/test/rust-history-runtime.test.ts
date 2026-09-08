@@ -204,6 +204,6 @@ describe('Rust history transport', () => {
     expect((await r.call('workbook.editSheet', payload)).ok).toBe(false)
     expect(r.clear).not.toHaveBeenCalled()
     expect((await r.call('workbook.editSheet', { ...payload, name: 'Renamed' })).ok).toBe(true)
-    expect(r.clear.mock.lastCall?.[0]).toContain('worksheet change')
+    expect(r.clear).not.toHaveBeenCalled()
   })
 })

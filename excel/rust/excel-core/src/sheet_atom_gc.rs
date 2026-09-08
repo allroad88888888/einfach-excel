@@ -7,6 +7,15 @@
 use super::*;
 
 impl Sheet {
+    /// 归档淘汰时必须释放共享 Store 的内容，而不只是丢掉 Sheet 的索引。
+    /// 复用全表替换的原生清理口；不重建图、不通知已删除表的订阅者。
+    pub(crate) fn release_archived_atoms(&mut self) {
+        let (_, _, cleanup) = self.bulk_install_storage(HashMap::new(), HashMap::new());
+        // bulk_install_storage 已解绑 fanout；归档不再恢复，所以也释放回调桶。
+        self.cell_subscriptions.clear();
+        self.finish_bulk_install(cleanup);
+    }
+
     /// Get or create the primitive atom for a cell address.
     /// New cells start as Null.
     ///
@@ -37,7 +46,11 @@ impl Sheet {
         }
     }
 
-    pub(super) fn evict_owned_family_key<K>(&self, family: &Rc<RefCell<AtomFamily<K>>>, key: &K) -> bool
+    pub(super) fn evict_owned_family_key<K>(
+        &self,
+        family: &Rc<RefCell<AtomFamily<K>>>,
+        key: &K,
+    ) -> bool
     where
         K: Eq + Hash + Clone,
     {
@@ -58,7 +71,10 @@ impl Sheet {
     /// continue iteratively through that inner's Store-recorded dependencies.
     /// AtomFamily refuses every node that still has a dependent/subscriber;
     /// this method never reconstructs or owns a parallel dependency graph.
-    pub(super) fn try_evict_formula_dependency_atoms(&self, roots: impl IntoIterator<Item = AtomId>) {
+    pub(super) fn try_evict_formula_dependency_atoms(
+        &self,
+        roots: impl IntoIterator<Item = AtomId>,
+    ) {
         let mut pending: HashSet<AtomId> = roots.into_iter().collect();
         while !pending.is_empty() {
             let before = self.atoms_owned.get();

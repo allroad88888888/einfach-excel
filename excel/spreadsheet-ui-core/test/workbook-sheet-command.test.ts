@@ -51,6 +51,8 @@ describe('Rust workbook sheet commands', () => {
     expect(request).toHaveBeenCalledTimes(1)
     expect(request).toHaveBeenCalledWith('workbook.editSheet', {
       name: 'Sheet3',
+      rowCount: 1001,
+      colCount: 16,
       sheetId: undefined,
       projection: undefined,
     })

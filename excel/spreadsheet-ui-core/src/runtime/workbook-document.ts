@@ -12,6 +12,7 @@ export interface WorkbookDocumentSheet {
   readonly index: number
   readonly rowCount: number
   readonly colCount: number
+  readonly key?: string
 }
 
 export interface WorkbookDocument {
@@ -93,7 +94,14 @@ export const publishWorkbookSheetStructureAtom = atom(
     const current = get(workbookDocumentAtom)
     const previous = new Map(current.sheets.map((sheet) => [sheet.id, sheet]))
     const sheets = input.map((sheet) => {
-      const shape = previous.get(sheet.id)
+      const shape =
+        previous.get(sheet.id) ??
+        (Number.isSafeInteger(sheet.rowCount) &&
+        (sheet.rowCount ?? 0) > 0 &&
+        Number.isSafeInteger(sheet.colCount) &&
+        (sheet.colCount ?? 0) > 0
+          ? { rowCount: sheet.rowCount!, colCount: sheet.colCount! }
+          : undefined)
       if (!shape) throw new Error('Rust returned an unknown worksheet.')
       return Object.freeze({ ...shape, ...sheet })
     })

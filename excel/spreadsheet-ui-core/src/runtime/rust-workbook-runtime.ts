@@ -66,12 +66,16 @@ export const startRustWorkbookRuntimeAtom = atom(
 
     try {
       const initializedSheets = await connection.request('workbook.initialize', {
-        sheets: definition.sheets.map(({ id, name, rowHeights, colWidths }) => ({
-          id,
-          name,
-          ...(rowHeights ? { rowHeights } : {}),
-          ...(colWidths ? { colWidths } : {}),
-        })),
+        sheets: definition.sheets.map(
+          ({ id, name, rowCount, colCount, rowHeights, colWidths }) => ({
+            id,
+            name,
+            rowCount,
+            colCount,
+            ...(rowHeights ? { rowHeights } : {}),
+            ...(colWidths ? { colWidths } : {}),
+          }),
+        ),
       })
       if (!ownsConnection(get, sessionId, connection)) return
       if (initializedSheets.length !== definition.sheets.length) {
@@ -91,6 +95,7 @@ export const startRustWorkbookRuntimeAtom = atom(
           id: sheet.id,
           name: sheet.name,
           index: sheet.index,
+          ...(sheet.key ? { key: sheet.key } : {}),
           rowCount: source.rowCount,
           colCount: source.colCount,
         }

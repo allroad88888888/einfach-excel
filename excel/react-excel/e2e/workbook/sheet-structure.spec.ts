@@ -69,7 +69,7 @@ test('delete cancellation and Escape never remove data', async ({ page }) => {
     await page.getByRole('button', { name: 'Delete sheet', exact: true }).click()
     const dialog = page.getByRole('alertdialog')
     await expect(dialog).toContainText('Sales Orders')
-    await expect(dialog).toContainText('cannot be undone')
+    await expect(dialog).toContainText('session history limits')
     if (cancel === 'button') await dialog.getByRole('button', { name: 'Cancel' }).click()
     else await page.keyboard.press('Escape')
     await expect(dialog).toBeHidden()

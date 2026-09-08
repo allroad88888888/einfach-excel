@@ -145,6 +145,7 @@ impl WasmWorkbook :: [] :: pub fn set_number(&mut self, sheet_idx: u32, addr: &s
 impl WasmWorkbook :: [] :: pub fn set_row_height(&mut self, sheet_idx: u32, row_index: u32, height_px: u32) -> bool
 impl WasmWorkbook :: [] :: pub fn set_text(&mut self, sheet_idx: u32, addr: &str, value: &str)
 impl WasmWorkbook :: [] :: pub fn sheet_count(&self) -> u32
+impl WasmWorkbook :: [] :: pub fn sheet_key(&self, idx: u32) -> String
 impl WasmWorkbook :: [] :: pub fn sheet_name(&self, idx: u32) -> String
 impl WasmWorkbook :: [] :: pub fn snapshot_format_range( &self, sheet_idx: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, ) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn snapshot_persistence_v1(&self) -> Result<JsValue, JsValue>

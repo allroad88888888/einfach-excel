@@ -1,5 +1,6 @@
 import type { RustWorkbookCommands, RustWorkbookSheet } from './commands'
 import type { WasmWorkbook } from './wasm-types'
+import { retainSheetMetadata } from './sheet-metadata'
 
 /** Rust 执行结构变更后重排 ID→索引；稳定 ID 不随标签位置变化。 */
 export function changeSheetStructure(
@@ -8,11 +9,13 @@ export function changeSheetStructure(
   input: RustWorkbookCommands['workbook.changeSheets']['payload'],
 ): readonly RustWorkbookSheet[] {
   const source = sheetsById.get(input.sheetId)
-  if (!source) throw new Error('The worksheet no longer exists.')
-  if (input.projection && !sheetsById.has(input.projection.sheetId)) {
+  if (!source || source.index < 0) throw new Error('The worksheet no longer exists.')
+  if (input.projection && (sheetsById.get(input.projection.sheetId)?.index ?? -1) < 0) {
     throw new Error('The visible worksheet no longer exists.')
   }
-  const ordered = [...sheetsById.values()].sort((left, right) => left.index - right.index)
+  const ordered = [...sheetsById.values()]
+    .filter((sheet) => sheet.index >= 0)
+    .sort((left, right) => left.index - right.index)
   if (input.operation === 'delete') {
     if (ordered.length <= 1) throw new Error('Keep at least one worksheet.')
     if (input.projection?.sheetId === input.sheetId) {
@@ -36,7 +39,6 @@ export function changeSheetStructure(
   const sheets = ordered.map((sheet, index) =>
     Object.freeze({ ...sheet, index, name: workbook.sheet_name(index) }),
   )
-  sheetsById.clear()
-  for (const sheet of sheets) sheetsById.set(sheet.id, sheet)
+  retainSheetMetadata(workbook, sheetsById, sheets)
   return sheets
 }

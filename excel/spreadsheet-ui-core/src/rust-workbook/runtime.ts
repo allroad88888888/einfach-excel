@@ -4,6 +4,7 @@ import type { BackendMutationResult } from '../backend'
 import type { WorkerErrorWire, WorkerRequestWire } from '../rust-worker/types'
 import { writeTrackedMutation } from './tracked-mutation'
 import { withHistory } from './history-io'
+import { applyRustHistory } from './history-apply'
 import { exportClipboard } from './clipboard-export'
 import { changeSheetStructure } from './sheet-structure'
 import { importSheetSizes, readSizes, resizeRange } from './size-io'
@@ -36,7 +37,9 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
   let workbook: WasmWorkbook | undefined
   let initPromise: Promise<unknown> | undefined
   let revision = 0
-  let clipboard: { token: string; cut: boolean; consumed?: boolean } | undefined
+  let clipboard:
+    | { token: string; cut: boolean; consumed?: boolean; invalidated?: boolean }
+    | undefined
 
   async function ensureWasm(): Promise<void> {
     initPromise ??= wasm.default()
@@ -61,6 +64,8 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
         id: input.id ?? `sheet-${index + 1}`,
         index,
         name: next.sheet_name(index),
+        ...(next.sheet_key ? { key: next.sheet_key(index) } : {}),
+        ...(input.rowCount ? { rowCount: input.rowCount, colCount: input.colCount } : {}),
       })
       sheetsById.set(sheet.id, sheet)
       return sheet
@@ -75,7 +80,7 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
 
   function sheetIndex(sheetId: string): number {
     const sheet = sheetsById.get(sheetId)
-    if (!sheet)
+    if (!sheet || sheet.index < 0)
       throw Object.assign(new Error(`Unknown sheet: ${sheetId}`), { code: 'INVALID_SHEET' })
     return sheet.index
   }
@@ -88,25 +93,10 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
     const current = currentWorkbook()
     if (command === 'history.apply') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
-      const state = current.history_state?.()
-      const entry =
-        state?.entries[input.direction === 'undo' ? state.undoCount - 1 : state.undoCount]
-      if (!entry || !current.history_apply)
-        throw new Error('No operation is available to undo or redo.')
-      const visibleIndex = sheetIndex(input.projection.sheetId)
-      const affectedSheet = [...sheetsById.values()].find(
-        (sheet) => sheet.index === entry.sheetIndex,
-      )
-      if (!affectedSheet) throw new Error('History worksheet no longer exists.')
-      if (!current.history_apply(input.direction))
-        throw new Error('No operation is available to undo or redo.')
+      const result = applyRustHistory(current, sheetsById, input, revision + 1)
       revision += 1
-      return {
-        projection: readVisibleProjection(current, visibleIndex, input.projection, revision),
-        sheetId: affectedSheet.id,
-        range: entry.range,
-        sizes: readSizes(current, entry.sheetIndex, entry.range),
-      }
+      if (result.sheets && clipboard) clipboard.invalidated = true
+      return result
     }
     if (command === 'range.resize') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
@@ -130,9 +120,6 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
     if (command === 'workbook.changeSheets') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
       const sheets = changeSheetStructure(current, sheetsById, input)
-      current.history_clear?.(
-        'History was reset by a worksheet structure change; its undo is not connected yet.',
-      )
       revision += 1
       return {
         sheets,
@@ -157,13 +144,13 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
         input.sheetId ? sheetIndex(input.sheetId) : undefined,
         input.name,
       )
-      current.history_clear?.(
-        'History was reset by a worksheet change; its undo is not connected yet.',
-      )
       const sheet = Object.freeze({
+        ...(input.sheetId ? sheetsById.get(input.sheetId) : {}),
         id: input.sheetId ?? crypto.randomUUID(),
         index,
         name: current.sheet_name(index),
+        ...(current.sheet_key ? { key: current.sheet_key(index) } : {}),
+        ...(input.rowCount ? { rowCount: input.rowCount, colCount: input.colCount } : {}),
       })
       sheetsById.set(sheet.id, sheet)
       revision += 1
@@ -230,6 +217,7 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
         if (!current.paste_clipboard) throw new Error('Rust paste export is unavailable')
         const internal = !!request.token && request.token === clipboard?.token
         if (internal && clipboard?.consumed) throw new Error('CLIPBOARD_CUT_CONSUMED')
+        if (internal && clipboard?.invalidated) throw new Error('CLIPBOARD_SHEET_HISTORY_CHANGED')
         const range = current.paste_clipboard(
           sheetIndex(request.sheetId),
           request.row,

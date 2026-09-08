@@ -11,9 +11,20 @@ import { describe, expect, test, vi } from 'vitest'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
 import { HistoryTools } from '../../../src/workbook/chrome/ribbon/HistoryTools'
 
-async function setup(empty = false, failure = false, label = 'Edit cell') {
+async function setup(empty = false, failure = false, label = 'Edit cell', archived = false) {
   const range = { rowStart: 1, rowEnd: 1, colStart: 0, colEnd: 0 }
-  const entries = empty ? [] : [{ label, sheetIndex: 0, range }]
+  const entries = empty
+    ? []
+    : [
+        {
+          label,
+          sheetIndex: 0,
+          range,
+          ...(archived
+            ? { sheetKey: 'archived', sheetName: 'Deleted Summary', sheetChange: true }
+            : {}),
+        },
+      ]
   let undoCount = entries.length
   const history = () => ({
     undoCount,
@@ -65,6 +76,15 @@ async function click(name: string) {
 }
 
 describe('history controls', () => {
+  test('an archived worksheet uses its native identity and name, not the new occupant of its old index', async () => {
+    await setup(false, false, 'Delete worksheet', true)
+    await click('Recent operations')
+    expect(screen.getByRole('listitem')).toHaveTextContent(
+      'Delete worksheetDeleted Summary · Worksheet',
+    )
+    expect(screen.getByRole('listitem')).not.toHaveTextContent('Orders')
+    expect(screen.getByRole('listitem')).not.toHaveTextContent('A2:A2')
+  })
   test.each(['Paste cells', 'Move cells'])(
     '%s uses native history commands, not another paste',
     async (label) => {

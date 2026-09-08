@@ -15,9 +15,9 @@ import {
   publishWorkbookSheetStructureAtom,
   workbookDocumentAtom,
 } from '../runtime/workbook-document'
-import { selectCellAtom, setSelectionBoundsAtom } from '../selection'
-import { setViewportScrollAtom } from '../viewport'
-import { activateSheetTabAtom, dispatchSheetTabIntentAtom } from './basic-commands'
+import { activateWorkbookSheetAtom } from '../runtime/activate-workbook-sheet'
+import { rustHistoryPanelAtom } from '../history/rust-history-command'
+import { dispatchSheetTabIntentAtom } from './basic-commands'
 import { nextSheetTabName } from './metadata'
 import { sheetTabsAtom } from './state'
 
@@ -42,7 +42,13 @@ export const runWorkbookSheetCommandAtom = atom(
   async (get, set, input: WorkbookSheetCommand): Promise<boolean> => {
     const connection = get(rustWorkbookConnectionAtom)
     const state = get(sheetTabsAtom)
-    if (!connection || state.mutation || get(systemClipboardFeedbackAtom).busy) return false
+    if (
+      !connection ||
+      state.mutation ||
+      get(systemClipboardFeedbackAtom).busy ||
+      get(rustHistoryPanelAtom).busy
+    )
+      return false
     if (input.operation === 'cancel-delete') {
       set(sheetTabsAtom, { ...state, deleteConfirmation: null, error: null })
       return true
@@ -108,14 +114,8 @@ export const runWorkbookSheetCommandAtom = atom(
       })
       return true
     }
-    const activate = (sheet: typeof active): void => {
-      set(setSelectionBoundsAtom, { rowCount: sheet.rowCount, colCount: sheet.colCount })
-      set(activateSheetTabAtom, { sheetId: sheet.id })
-      set(selectCellAtom, { sheetId: sheet.id, coord: { row: 0, col: 0 }, extend: false })
-      set(setViewportScrollAtom, { scrollTop: 0, scrollLeft: 0 })
-    }
     if (input.operation === 'switch') {
-      if (target.id !== active.id) activate(target)
+      if (target.id !== active.id) set(activateWorkbookSheetAtom, target)
       set(sheetTabsAtom, {
         ...get(sheetTabsAtom),
         rename: null,
@@ -170,7 +170,7 @@ export const runWorkbookSheetCommandAtom = atom(
         if (deleting && active.id === target.id) {
           const next =
             get(workbookDocumentAtom).sheets[Math.min(target.index, result.sheets.length - 1)]
-          if (next) activate(next)
+          if (next) set(activateWorkbookSheetAtom, next)
         }
         if (projection && result.projection)
           set(applyVisibleProjectionAtom, {
@@ -187,7 +187,14 @@ export const runWorkbookSheetCommandAtom = atom(
         })
         return true
       }
-      const result = await connection.request('workbook.editSheet', { name, sheetId, projection })
+      const result = await connection.request('workbook.editSheet', {
+        name,
+        sheetId,
+        projection,
+        ...(input.operation === 'add'
+          ? { rowCount: active.rowCount, colCount: active.colCount }
+          : {}),
+      })
       if (get(rustWorkbookConnectionAtom) !== connection) return false
       const previous = sheetId ? workbook.sheets.find((sheet) => sheet.id === sheetId) : undefined
       // 新表是空白画布；尺寸沿用当前工作簿的画布范围，不复制任何单元格。
@@ -197,7 +204,7 @@ export const runWorkbookSheetCommandAtom = atom(
         colCount: previous?.colCount ?? active.colCount,
       }
       set(publishWorkbookSheetAtom, sheet)
-      if (input.operation === 'add') activate(sheet)
+      if (input.operation === 'add') set(activateWorkbookSheetAtom, sheet)
       if (projection && result.projection)
         set(applyVisibleProjectionAtom, { witness, request: projection, result: result.projection })
       set(sheetTabsAtom, { ...get(sheetTabsAtom), mutation: null, rename: null, error: null })

@@ -63,6 +63,9 @@ mod workbook_sheet_removal;
 #[path = "workbook_sheet_archive.rs"]
 mod workbook_sheet_archive;
 pub use workbook_sheet_archive::ArchivedWorksheet;
+#[path = "workbook_sheet_history.rs"]
+mod workbook_sheet_history;
+pub(crate) use workbook_sheet_history::SheetHistoryChange;
 #[path = "workbook_structural.rs"]
 mod workbook_structural;
 #[path = "workbook_table_geometry.rs"]

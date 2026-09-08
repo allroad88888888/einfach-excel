@@ -33,6 +33,14 @@ impl WasmWorkbook {
             .unwrap_or_default()
     }
 
+    /// Opaque native identity; String avoids JavaScript's integer precision limit.
+    pub fn sheet_key(&self, idx: u32) -> String {
+        self.workbook
+            .sheet_key(idx as usize)
+            .map(|key| key.to_string())
+            .unwrap_or_default()
+    }
+
     pub fn add_sheet(&mut self, name: &str) -> u32 {
         self.workbook.add_sheet(name) as u32
     }
@@ -41,8 +49,8 @@ impl WasmWorkbook {
     pub fn edit_sheet(&mut self, index: Option<u32>, name: &str) -> Result<u32, JsValue> {
         let old = index.and_then(|idx| self.workbook.name(idx as usize).map(str::to_string));
         let result = self
-            .workbook
-            .edit_sheet(index.map(|idx| idx as usize), name)
+            .history
+            .edit_sheet(&mut self.workbook, index.map(|idx| idx as usize), name)
             .map(|idx| idx as u32)
             .map_err(JsValue::from_str)?;
         if let (Some(old), Some(clipboard)) = (old, self.clipboard.as_mut()) {
@@ -58,7 +66,10 @@ impl WasmWorkbook {
     pub fn remove_sheet(&mut self, idx: u32) -> bool {
         let idx = idx as usize;
         let old = self.workbook.name(idx).unwrap_or_default().to_string();
-        if self.workbook.remove_sheet(idx).is_none() {
+        if !self.prepare_sheet_removal(idx) {
+            return false;
+        }
+        if self.history.remove_sheet(&mut self.workbook, idx).is_err() {
             return false;
         }
         if let Some(clipboard) = self.clipboard.as_mut() {
@@ -77,8 +88,7 @@ impl WasmWorkbook {
         // the shift, or a later unsubscribe_cell resolves against the WRONG
         // sheet (off by one) and leaves the engine-side callback alive,
         // emitting dirty events with a pre-removal index. Tokens on the
-        // removed sheet are dropped — their engine subscription died with
-        // the sheet.
+        // removed sheet were explicitly unsubscribed before archiving it.
         self.subscriptions.retain(|_, entry| entry.sheet_idx != idx);
         for entry in self.subscriptions.values_mut() {
             if entry.sheet_idx > idx {
@@ -91,7 +101,11 @@ impl WasmWorkbook {
     pub fn move_sheet(&mut self, from: u32, to: u32) -> bool {
         let from = from as usize;
         let to = to as usize;
-        if !self.workbook.move_sheet(from, to) {
+        if self
+            .history
+            .move_sheet(&mut self.workbook, from, to)
+            .is_err()
+        {
             return false;
         }
         if let Some(clipboard) = self.clipboard.as_mut() {

@@ -22,6 +22,8 @@ import type {
 export interface RustWorkbookSheetInput {
   readonly id?: string
   readonly name: string
+  readonly rowCount?: number
+  readonly colCount?: number
   readonly rowHeights?: readonly ViewportRowHeight[]
   readonly colWidths?: readonly ViewportColumnWidth[]
 }
@@ -30,6 +32,9 @@ export interface RustWorkbookSheet {
   readonly id: string
   readonly index: number
   readonly name: string
+  readonly key?: string
+  readonly rowCount?: number
+  readonly colCount?: number
 }
 
 /** 导入坐标为零基：row=0、col=0 表示 A1。 */
@@ -113,6 +118,7 @@ export interface RustWorkbookCommands {
       readonly projection: VisibleProjectionResult
       readonly range: CellRange
       readonly sheetId: string
+      readonly sheets?: readonly RustWorkbookSheet[]
       readonly sizes: {
         readonly rowHeights: ViewportRowHeight[]
         readonly colWidths: ViewportColumnWidth[]
@@ -151,6 +157,8 @@ export interface RustWorkbookCommands {
     {
       readonly sheetId?: string
       readonly name: string
+      readonly rowCount?: number
+      readonly colCount?: number
       readonly projection?: VisibleProjectionRequest
     },
     {

@@ -92,6 +92,7 @@ export interface WasmWorkbook {
   ) => ArrayLike<number>
   sheet_count(): number
   sheet_name(index: number): string
+  sheet_key?(index: number): string
   add_sheet(name: string): number
   edit_sheet(index: number | undefined, name: string): number
   remove_sheet(index: number): boolean

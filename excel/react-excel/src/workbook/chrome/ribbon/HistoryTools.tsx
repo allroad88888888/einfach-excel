@@ -83,8 +83,8 @@ export function HistoryTools() {
             {state.undoCount} undo · {state.redoCount} redo
           </p>
           <p className="history-hint">
-            Cell edits, formatting, clearing, paste, cut moves and row/column sizes. Up to 50 steps
-            in this session.
+            Cell edits, formatting, clearing, paste, cut moves, row/column sizes and worksheets. Up
+            to 50 steps in this session.
           </p>
           {state.notice && (
             <p role="status" className="history-hint">
@@ -99,9 +99,14 @@ export function HistoryTools() {
                 <li key={index} className={index < state.undoCount ? '' : 'history-undone'}>
                   <span>{entry.label}</span>
                   <small>
-                    {document.sheets.find((sheet) => sheet.index === entry.sheetIndex)?.name} ·{' '}
-                    {toA1(entry.range.rowStart, entry.range.colStart)}:
-                    {toA1(entry.range.rowEnd, entry.range.colEnd)}
+                    {document.sheets.find((sheet) =>
+                      entry.sheetKey
+                        ? sheet.key === entry.sheetKey
+                        : sheet.index === entry.sheetIndex,
+                    )?.name ?? entry.sheetName}
+                    {entry.sheetChange
+                      ? ' · Worksheet'
+                      : ` · ${toA1(entry.range.rowStart, entry.range.colStart)}:${toA1(entry.range.rowEnd, entry.range.colEnd)}`}
                     {index >= state.undoCount ? ' · Undone' : ''}
                   </small>
                 </li>

@@ -31,7 +31,8 @@ export function SheetDeleteConfirmation() {
     >
       <h2 id="sheet-delete-title">Delete worksheet?</h2>
       <p id="sheet-delete-description">
-        Delete “{confirmation.sheetName}” and all its data? This cannot be undone yet.
+        Delete “{confirmation.sheetName}” and all its data? Undo is available within session history
+        limits.
       </p>
       {state.error && (
         <p className="sheet-command-error" role="alert">

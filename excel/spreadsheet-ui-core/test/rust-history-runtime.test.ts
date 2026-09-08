@@ -81,6 +81,9 @@ async function runtime() {
       { id: 'summary', name: 'Summary' },
     ],
   })
+  // 初始化移除导入产生的历史；后续断言只统计用户操作。
+  expect(clear.mock.calls).toEqual([['']])
+  clear.mockClear()
   return {
     call,
     begin,

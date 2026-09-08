@@ -9,6 +9,7 @@ import {
 import { ClipboardTools } from './ClipboardTools'
 import { SelectionSizeTools } from './SelectionSizeTools'
 import { HistoryTools } from './HistoryTools'
+import { VisibilityTools } from './VisibilityTools'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import './ribbon.css'
 
@@ -66,6 +67,7 @@ export function WorkbookRibbon() {
       <div className="ribbon-tools" role="toolbar" aria-label="Start tools">
         <ClipboardTools />
         <HistoryTools />
+        <VisibilityTools />
         <span className="tool-separator" aria-hidden="true" />
         <select
           aria-label="Font family"

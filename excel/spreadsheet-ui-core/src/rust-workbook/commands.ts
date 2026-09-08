@@ -11,6 +11,7 @@ import type {
 import type { WorkerCommand, WorkerLike, WorkerTransport } from '../rust-worker'
 import type { CellRange } from '../shared'
 import { createWorkerTransport } from '../rust-worker'
+import type { SheetVisibilityProjection } from '../viewport/hidden-state'
 import type {
   RustClipboardCapture,
   RustClipboardCaptureRequest,
@@ -26,6 +27,8 @@ export interface RustWorkbookSheetInput {
   readonly colCount?: number
   readonly rowHeights?: readonly ViewportRowHeight[]
   readonly colWidths?: readonly ViewportColumnWidth[]
+  readonly hiddenRows?: readonly number[]
+  readonly hiddenColumns?: readonly number[]
 }
 
 export interface RustWorkbookSheet {
@@ -112,6 +115,15 @@ export interface RustClearRangeRequest {
 }
 
 export interface RustWorkbookCommands {
+  readonly 'range.visibility': WorkerCommand<
+    {
+      readonly sheetId: string
+      readonly range: CellRange
+      readonly action: 'hide-rows' | 'hide-columns' | 'unhide'
+      readonly projection: VisibleProjectionRequest
+    },
+    { readonly changed: boolean; readonly projection: VisibleProjectionResult }
+  >
   readonly 'history.apply': WorkerCommand<
     { readonly direction: 'undo' | 'redo'; readonly projection: VisibleProjectionRequest },
     {
@@ -119,6 +131,7 @@ export interface RustWorkbookCommands {
       readonly range: CellRange
       readonly sheetId: string
       readonly sheets?: readonly RustWorkbookSheet[]
+      readonly visibility?: SheetVisibilityProjection
       readonly sizes: {
         readonly rowHeights: ViewportRowHeight[]
         readonly colWidths: ViewportColumnWidth[]

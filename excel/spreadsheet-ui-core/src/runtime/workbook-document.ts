@@ -5,6 +5,7 @@ import { resetWorkspaceSessionAtom, workspaceSessionAtom } from '../workspace'
 import { DEFAULT_SHEET_TABS_STATE, sheetTabsAtom } from '../sheet-tabs/state'
 import type { RustWorkbookSheet } from '../rust-workbook/commands'
 import { viewportSizeOverridesAtom } from '../viewport/size-overrides'
+import { sheetHiddenRowsBackingAtom, viewportHiddenColsBackingAtom, viewportFilterHiddenBackingAtom } from '../viewport/hidden-state'
 
 export interface WorkbookDocumentSheet {
   readonly id: string
@@ -56,6 +57,9 @@ export const initializeWorkbookDocumentAtom = atom(
     })
     const firstSheet = sheets[0]
     if (firstSheet === undefined) return
+    set(sheetHiddenRowsBackingAtom, {})
+    set(viewportHiddenColsBackingAtom, {})
+    set(viewportFilterHiddenBackingAtom, { rowsBySheet: {} })
     set(workbookDocumentBackingAtom, workbook)
     set(sheetTabsAtom, {
       ...DEFAULT_SHEET_TABS_STATE,
@@ -109,6 +113,14 @@ export const publishWorkbookSheetStructureAtom = atom(
     set(setSheetTabsSheetsAtom, { sheets })
     // 删除的表不再保留投影尺寸；其它表以稳定 ID 存储，无需跟随索引重写。
     const ids = new Set(sheets.map((sheet) => sheet.id))
+    for (const target of [sheetHiddenRowsBackingAtom, viewportHiddenColsBackingAtom])
+      set(target, Object.fromEntries(Object.entries(get(target)).filter(([id]) => ids.has(id))))
+    set(viewportFilterHiddenBackingAtom, {
+      rowsBySheet: Object.fromEntries(
+        Object.entries(get(viewportFilterHiddenBackingAtom).rowsBySheet)
+          .filter(([id]) => ids.has(id)),
+      ),
+    })
     const sizes = get(viewportSizeOverridesAtom)
     set(viewportSizeOverridesAtom, {
       rowHeightsBySheet: Object.fromEntries(

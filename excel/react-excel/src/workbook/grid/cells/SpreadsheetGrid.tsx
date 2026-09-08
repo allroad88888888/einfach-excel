@@ -52,9 +52,11 @@ export function SpreadsheetGrid({
   const outline = visibleSelection(window, selected)
 
   for (let row = window.rowStart; row <= window.rowEnd; row += 1) {
+    if (rowHeights?.[row - window.rowStart] === 0) continue
     const rowCells = []
 
     for (let col = window.colStart; col <= window.colEnd; col += 1) {
+      if (columnWidths?.[col - window.colStart] === 0) continue
       const cell = cellsByCoordinate.get(`${row}:${col}`)
       const isSelected = isSelectedCell(selected, row, col)
       const rotationStyle = cellTextRotationStyle(cell?.format)
@@ -143,9 +145,11 @@ export function SpreadsheetGrid({
       <table className="spreadsheet-grid">
         {columnWidths && (
           <colgroup>
-            {columnWidths.map((width, index) => (
-              <col key={index} style={{ width }} />
-            ))}
+            {columnWidths
+              .filter((width) => width > 0)
+              .map((width, index) => (
+                <col key={index} style={{ width }} />
+              ))}
           </colgroup>
         )}
         <tbody>{rows}</tbody>

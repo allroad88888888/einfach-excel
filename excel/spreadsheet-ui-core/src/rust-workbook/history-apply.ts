@@ -66,6 +66,8 @@ export function applyRustHistory(
   return {
     projection: readVisibleProjection(workbook, currentVisible.index, request, revision),
     sheetId: affected.id,
+    ...(target && target.index >= 0 && workbook.sheet_visibility
+      ? { visibility: workbook.sheet_visibility(target.index) } : {}),
     range,
     sizes:
       target && target.index >= 0

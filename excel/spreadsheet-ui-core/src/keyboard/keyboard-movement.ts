@@ -1,4 +1,5 @@
 import type { CellCoord } from '../shared'
+import { visibleAxisDestination } from './visible-axis-movement'
 import {
   getActiveCell,
   moveSelection,
@@ -101,6 +102,20 @@ function createMoveIntent(
   const mergeAwareMovement = getMergeAwareArrowMovement(input, reason, movement, from)
   const rawSelection = moveSelection(currentSelection, state.bounds, {
     ...mergeAwareMovement,
+    row: visibleAxisDestination(
+      from.row,
+      state.bounds.rowCount,
+      state.hiddenRows,
+      mergeAwareMovement.row,
+      mergeAwareMovement.rowDelta,
+    ),
+    col: visibleAxisDestination(
+      from.col,
+      state.bounds.colCount,
+      state.hiddenColumns,
+      mergeAwareMovement.col,
+      mergeAwareMovement.colDelta,
+    ),
     extend,
   })
   const rawTo = stripSheetId(getActiveCell(rawSelection, state.bounds))

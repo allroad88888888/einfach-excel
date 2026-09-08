@@ -3,6 +3,36 @@
 use super::*;
 
 impl Workbook {
+    pub fn sheet_visibility(&self, sheet_index: usize) -> Result<SheetVisibility, &'static str> {
+        let sheet = self
+            .sheet(sheet_index)
+            .ok_or("The worksheet no longer exists.")?;
+        Ok(SheetVisibility {
+            rows: sheet.hidden_rows(),
+            columns: sheet.hidden_columns(),
+        })
+    }
+
+    /// 两轴在同一批次恢复；只有手动行集合变化时才发布 SUBTOTAL 的原生依赖。
+    pub(crate) fn restore_sheet_visibility(
+        &mut self,
+        sheet_index: usize,
+        state: &SheetVisibility,
+    ) -> Result<(), &'static str> {
+        if self.is_inside_custom_call() {
+            return Err("Cannot change visibility during a custom call.");
+        }
+        let sheet = self
+            .sheet_mut(sheet_index)
+            .ok_or("The worksheet no longer exists.")?;
+        let rows_changed = sheet.replace_hidden_rows(state.rows.iter().copied().collect());
+        sheet.replace_hidden_columns(state.columns.iter().copied().collect());
+        if rows_changed {
+            self.republish_hidden(sheet_index);
+        }
+        Ok(())
+    }
+
     pub fn set_eval_hidden_rows(&mut self, sheet_index: usize, rows: &[u32]) {
         if self.is_inside_custom_call() {
             return;

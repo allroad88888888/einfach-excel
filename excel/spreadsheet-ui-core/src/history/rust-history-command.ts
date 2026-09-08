@@ -20,6 +20,7 @@ import { sheetTabsAtom } from '../sheet-tabs/state'
 import { systemClipboardFeedbackAtom } from '../clipboard/system-clipboard-command'
 import type { RustHistoryState } from './rust-history-types'
 import type { RustWorkbookSheet } from '../rust-workbook/commands'
+import { applySheetVisibility, validSheetVisibility } from '../viewport/hidden-state'
 
 const EMPTY: RustHistoryState = { undoCount: 0, redoCount: 0, entries: [], notice: null }
 /** 直接读取 Rust 投影里的历史目录，不维护另一份 JS 撤销栈。 */
@@ -109,6 +110,7 @@ export const runRustHistoryAtom = atom(
         : projection
       if (
         (sheet && result.sheetId !== sheet.id) ||
+        (result.visibility !== undefined && !validSheetVisibility(result.visibility)) ||
         !validateProjectionResult(result.projection, { request }).ok
       )
         throw new Error('Rust returned a mismatched history result.')
@@ -127,6 +129,7 @@ export const runRustHistoryAtom = atom(
           ...result.sizes,
         })
       set(applyVisibleProjectionAtom, { witness, request, result: result.projection })
+      if (result.visibility) applySheetVisibility(get, set, result.sheetId, result.visibility)
       set(rustHistoryPanelAtom, { ...panel, busy: false, error: null })
       return true
     } catch (error) {

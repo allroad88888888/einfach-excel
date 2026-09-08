@@ -42,6 +42,13 @@ export function snapshotRustWorkbookDefinition(
       throw new Error('Rust workbook definition contains an invalid sheet.')
     }
     ids.add(id)
+    const hidden = (indices: readonly number[] | undefined, count: number) => {
+      if (indices?.some((index) => !Number.isSafeInteger(index) || index < 0 || index >= count))
+        throw new Error('Invalid initial hidden index.')
+      return indices ? Object.freeze([...new Set(indices)].sort((a, b) => a - b)) : undefined
+    }
+    const hiddenRows = hidden(sheet.hiddenRows, sheet.rowCount)
+    const hiddenColumns = hidden(sheet.hiddenColumns, sheet.colCount)
     const rowHeights = sheet.rowHeights?.map((entry) => {
       if (
         !Number.isSafeInteger(entry.rowIndex) ||
@@ -73,6 +80,8 @@ export function snapshotRustWorkbookDefinition(
       colCount: sheet.colCount,
       ...(rowHeights ? { rowHeights: Object.freeze(rowHeights) } : {}),
       ...(colWidths ? { colWidths: Object.freeze(colWidths) } : {}),
+      ...(hiddenRows ? { hiddenRows } : {}),
+      ...(hiddenColumns ? { hiddenColumns } : {}),
     })
   })
   if (title.length === 0 || sheets.length === 0) {

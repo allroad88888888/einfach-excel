@@ -16,7 +16,10 @@ describe('Sales Orders workbook definition', () => {
         rowCount: SALES_ORDER_SHEET_ROW_COUNT,
         colCount: SALES_ORDER_COLUMNS.length,
       },
-      { id: 'summary', name: 'Summary', rowCount: 100, colCount: 8, ...SUMMARY_SIZES },
+      {
+        id: 'summary', name: 'Summary', rowCount: 100, colCount: 8,
+        ...SUMMARY_SIZES, hiddenRows: [9], hiddenColumns: [6],
+      },
     ])
   })
 

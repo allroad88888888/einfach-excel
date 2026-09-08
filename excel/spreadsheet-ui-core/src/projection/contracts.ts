@@ -10,6 +10,7 @@ import type {
   VisibleProjectionResult,
 } from '../backend'
 import type { CellRange, SheetRef } from '../shared'
+import { validSheetVisibility } from '../viewport/hidden-state'
 import type {
   ProjectionLimitOptions,
   ProjectionRequest,
@@ -207,6 +208,8 @@ export function validateProjectionResult(
     return makeInvalid('STALE_RESULT', 'Projection result does not match its request.')
   }
   const range = getProjectionResultRange(result)
+  if (result.kind === 'visible-window' && result.visibility !== undefined && !validSheetVisibility(result.visibility))
+    return makeInvalid('CELL_OUT_OF_RANGE', 'Invalid Rust visibility projection.')
   const requestValidation = validateProjectionRange(
     result.sheetId,
     result.requestId,

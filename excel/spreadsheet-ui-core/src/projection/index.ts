@@ -42,6 +42,7 @@ import type {
   ResolveProjectionInput,
 } from './types'
 import { applyProjectionSizes } from './projection-sizes'
+import { applySheetVisibility } from '../viewport/hidden-state'
 
 export * from './contracts'
 export * from './types'
@@ -262,6 +263,7 @@ export const resolveProjectionAtom = atom(
           ) {
             set(projectionSnapshotBackingAtom, freezeProjectionSnapshot({ ...current, result }))
             if (result.kind === 'visible-window') applyProjectionSizes(get, set, result)
+            if (result.kind === 'visible-window' && result.visibility) applySheetVisibility(get, set, result.sheetId, result.visibility)
           }
         }
         return Object.freeze({
@@ -289,6 +291,7 @@ export const resolveProjectionAtom = atom(
         }),
       )
       if (result.kind === 'visible-window') applyProjectionSizes(get, set, result)
+      if (result.kind === 'visible-window' && result.visibility) applySheetVisibility(get, set, result.sheetId, result.visibility)
       return Object.freeze({ status: 'accepted', result })
     }
 

@@ -8,7 +8,7 @@ import {
   startCellEditingFromProjectionAtom,
   updatePointerSelectionAtom,
   viewportMetricsAtom,
-  viewportSizeOverridesAtom,
+  viewportGeometrySizesAtom,
   type KeyboardInput,
   type ViewportMetrics,
 } from '@einfach/spreadsheet-ui-core'
@@ -42,7 +42,7 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
   const selection = useAtomValue(selectionSnapshotAtom)
   const editingSession = useAtomValue(editingSessionAtom)
   const viewportMetrics = useAtomValue(viewportMetricsAtom)
-  const sizeOverrides = useAtomValue(viewportSizeOverridesAtom)
+  const sizeOverrides = useAtomValue(viewportGeometrySizesAtom)
   const dispatchGridKeyboard = useSetAtom(dispatchGridCellKeyboardInputAtom)
   const startCellEditing = useSetAtom(startCellEditingFromProjectionAtom)
   const setViewportScroll = useSetAtom(setViewportScrollAtom)

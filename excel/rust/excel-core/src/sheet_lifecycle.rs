@@ -42,6 +42,7 @@ impl Sheet {
             column_styles: BTreeMap::new(),
             conditional_rules: Vec::new(),
             hidden_rows: BTreeSet::new(),
+            hidden_columns: BTreeSet::new(),
             filter: None,
             filter_scan_count: Cell::new(0),
             formula_eval_count: Rc::new(Cell::new(0)),

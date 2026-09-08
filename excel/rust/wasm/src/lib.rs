@@ -107,6 +107,7 @@ pub struct WasmWorkbook {
 include!("wasm_workbook_topology.rs");
 include!("wasm_workbook_tables.rs");
 include!("wasm_workbook_visibility.rs");
+include!("wasm_workbook_manual_visibility.rs");
 include!("wasm_workbook_table_totals.rs");
 include!("wasm_workbook_writes.rs");
 include!("wasm_workbook_spills_subscriptions.rs");
@@ -146,6 +147,7 @@ mod tests {
     include!("wasm_tests/custom.rs");
     include!("wasm_tests/tables.rs");
     include!("wasm_tests/hidden_rows.rs");
+    include!("wasm_tests/manual_visibility.rs");
     include!("wasm_tests/filters_support.rs");
     include!("wasm_tests/filters_persistence.rs");
     include!("wasm_tests/filters_wire_contract.rs");

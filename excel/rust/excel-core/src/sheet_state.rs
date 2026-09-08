@@ -97,6 +97,8 @@ pub struct Sheet {
     /// distinction (1-11 exclude filter-hidden rows only, 101-111 exclude
     /// both), and a merged set could not express that rule.
     pub(super) hidden_rows: BTreeSet<u32>,
+    /// 手动隐藏列属于工作表元数据，不以零列宽或 UI 本地集合代替。
+    pub(super) hidden_columns: BTreeSet<u32>,
     /// The sheet's AutoFilter — committed RULES plus the row set they
     /// DERIVED (E3 of `design-engine-hidden-rows.md`). `None` means no
     /// filter is active, which is the same observable state as an empty

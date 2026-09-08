@@ -115,6 +115,7 @@ impl Sheet {
                         count,
                     );
                     Self::shift_dimension_insert(&mut sheet.column_styles, at, count);
+                    sheet.shift_hidden_columns(at, count, true);
                 }
                 crate::shift::ShiftEdit::ColDelete { at, count } => {
                     Self::shift_dimension_delete(
@@ -123,6 +124,7 @@ impl Sheet {
                         count,
                     );
                     Self::shift_dimension_delete(&mut sheet.column_styles, at, count);
+                    sheet.shift_hidden_columns(at, count, false);
                 }
             }
             // Previously-installed anchors re-derive BEFORE previously-blocked

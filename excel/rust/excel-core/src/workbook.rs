@@ -108,7 +108,7 @@ pub use self::workbook_print_config::{
 };
 pub use self::workbook_table_types::{TableEntry, TableRegistrySnapshot};
 pub use self::workbook_visibility_types::{
-    FilterSnapshot, HiddenRowsSnapshot, SheetFilterState, SheetHiddenRows,
+    FilterSnapshot, HiddenRowsSnapshot, SheetFilterState, SheetHiddenRows, SheetVisibility,
 };
 
 use self::workbook_eval_provider::WorkbookEvalProvider;

@@ -12,7 +12,7 @@ import {
   getAxisOffsetForIndex,
   getViewportRowHeight,
   getViewportColumnWidth,
-  viewportSizeOverridesAtom,
+  viewportGeometrySizesAtom,
 } from '@einfach/spreadsheet-ui-core'
 import type { CSSProperties, FocusEvent, KeyboardEvent, PointerEvent } from 'react'
 import { useEffect, useRef } from 'react'
@@ -34,7 +34,7 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
   const lifecycle = useAtomValue(editingCommitLifecycleAtom)
   const window = useAtomValue(visibleWindowAtom)
   const activeSheet = useAtomValue(activeWorkbookSheetAtom)
-  const sizeOverrides = useAtomValue(viewportSizeOverridesAtom)
+  const sizeOverrides = useAtomValue(viewportGeometrySizesAtom)
   const commitEditing = useSetAtom(commitCellEditingAtom)
   const dispatchEditorKeyboard = useSetAtom(dispatchEditorKeyboardInputAtom)
   const setDraft = useSetAtom(editingDraftAtom)

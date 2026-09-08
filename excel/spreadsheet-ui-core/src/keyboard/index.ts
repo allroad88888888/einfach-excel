@@ -8,6 +8,7 @@ import {
 } from '../selection'
 import { applyKeyboardMove } from './apply-keyboard-move'
 import { getKeyboardMovementIntent } from './keyboard-movement'
+import { sheetHiddenRowsBackingAtom, viewportHiddenColsBackingAtom, viewportFilterHiddenBackingAtom } from '../viewport/hidden-state'
 import type {
   KeyboardCommandIntent,
   KeyboardCommandState,
@@ -45,6 +46,11 @@ export const dispatchKeyboardInputAtom = atom(
       selection: get(selectionAtom),
       bounds: get(selectionBoundsAtom),
       selectionRegionCount: get(selectionRegionsAtom).length,
+      hiddenRows: new Set([
+        ...(get(sheetHiddenRowsBackingAtom)[get(selectionAtom).sheetId] ?? []),
+        ...(get(viewportFilterHiddenBackingAtom).rowsBySheet[get(selectionAtom).sheetId] ?? []),
+      ]),
+      hiddenColumns: new Set(get(viewportHiddenColsBackingAtom)[get(selectionAtom).sheetId] ?? []),
     })
 
     if (intent.type !== 'formulaReference.arrowPick' && intent.type !== 'formulaReference.exit') {

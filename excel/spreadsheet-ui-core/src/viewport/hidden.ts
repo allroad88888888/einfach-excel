@@ -20,6 +20,7 @@ import {
 import { selectionRegionsAtom, selectionSnapshotAtom } from '../selection'
 import { remapIndexSetAfterStructuralShift } from './structural-remap'
 import type { ViewportHiddenState } from './types'
+import { sheetHiddenRowsBackingAtom, viewportHiddenColsBackingAtom } from './hidden-state'
 
 // Hidden ROWS are an ENGINE-owned fact since the hidden-row sink-down
 // (design-engine-hidden-rows §4.2/§8): they change what SUBTOTAL 101-111
@@ -96,12 +97,8 @@ export function getHiddenColumnsForSheet(state: ViewportHiddenState, sheetId: st
 // --- Split backing atoms (design-engine-hidden-rows §8) ---------------------
 
 /** Engine-projection cache for manually hidden ROWS. Written on ACK, never canonical. */
-const sheetHiddenRowsBackingAtom = atom<Record<string, number[]>>({})
-sheetHiddenRowsBackingAtom.debugLabel = 'spreadsheet.viewport.hiddenRowsBacking'
 
 /** UI-core canonical hidden COLUMNS. */
-const viewportHiddenColsBackingAtom = atom<Record<string, number[]>>({})
-viewportHiddenColsBackingAtom.debugLabel = 'spreadsheet.viewport.hiddenColsBacking'
 
 /**
  * Per-sheet monotonic generation for the row reconcile. Bumped by every

@@ -55,6 +55,7 @@ export function readVisibleProjection(
     .filter((cell): cell is NonNullable<typeof cell> => cell !== null)
   return {
     kind: 'visible-window',
+    ...(workbook.sheet_visibility ? { visibility: workbook.sheet_visibility(sheetIndex) } : {}),
     ...(workbook.history_state ? { history: workbook.history_state() } : {}),
     sheetId: request.sheetId,
     requestId: request.requestId,

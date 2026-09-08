@@ -24,6 +24,7 @@ export * from './backend'
 export * from './clipboard'
 export * from './clipboard/system-clipboard-command'
 export * from './clipboard/paste-special-panel'
+export * from './toolbar/selection-visibility-command'
 export * from './named-ranges'
 export {
   beginNameManagerTableRenameAtom,

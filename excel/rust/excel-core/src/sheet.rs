@@ -95,6 +95,8 @@ mod format_write;
 mod formula_state;
 #[path = "sheet_hidden_rows.rs"]
 mod hidden_rows;
+#[path = "sheet_hidden_columns.rs"]
+mod hidden_columns;
 #[path = "sheet_history_budget.rs"]
 mod history_budget;
 pub(crate) use history_budget::metadata_bytes;

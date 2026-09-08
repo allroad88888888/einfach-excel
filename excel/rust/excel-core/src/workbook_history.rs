@@ -8,6 +8,9 @@ use std::rc::{Rc, Weak};
 
 #[path = "workbook_history_sheets.rs"]
 mod sheets;
+#[path = "workbook_history_visibility.rs"]
+mod visibility;
+use visibility::VisibilityChange;
 
 const MAX_ENTRIES: usize = 50;
 const MAX_BYTES: usize = 32 * 1024 * 1024;
@@ -32,6 +35,7 @@ enum HistoryChange {
         after: Vec<(usize, HistorySnapshot)>,
     },
     Sheet(Box<SheetHistoryChange>),
+    Visibility(VisibilityChange),
 }
 
 impl HistoryEntry {
@@ -67,6 +71,9 @@ impl HistoryEntry {
                 workbook.restore_history_snapshots(if undo { before } else { after })
             }
             HistoryChange::Sheet(change) => change.apply(workbook, undo),
+            HistoryChange::Visibility(change) => {
+                change.apply(workbook, self.sheet, self.sheet_key, undo)
+            }
         }
     }
 }
@@ -265,6 +272,7 @@ fn entry_bytes(entry: &HistoryEntry) -> usize {
             .map(|(_, snapshot)| snapshot.retained_bytes())
             .sum(),
         HistoryChange::Sheet(change) => change.retained_bytes(),
+        HistoryChange::Visibility(change) => change.retained_bytes(),
     };
     payload + entry.label.len() + entry.sheet_name.len() + entry.affected_keys.len() * 16 + 128
 }

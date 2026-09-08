@@ -2,6 +2,7 @@ import type { SpreadsheetCellFormat, ViewportRowHeight, ViewportColumnWidth } fr
 import type { RustImportCell, RustImportStats } from './commands'
 import type { RustClipboardCapture, RustClipboardPasteRequest } from './clipboard-commands'
 import type { RustHistoryState } from '../history/rust-history-types'
+import type { SheetVisibilityProjection } from '../viewport/hidden-state'
 
 export interface RustCellSnapshot {
   readonly sheet: number
@@ -38,6 +39,15 @@ export interface RustFormatRangeSnapshot {
 }
 
 export interface WasmWorkbook {
+  set_visibility?: (
+    sheet: number,
+    startRow: number,
+    startCol: number,
+    endRow: number,
+    endCol: number,
+    action: string,
+  ) => boolean
+  sheet_visibility?: (sheet: number) => SheetVisibilityProjection
   history_begin?: (
     sheet: number,
     startRow: number,

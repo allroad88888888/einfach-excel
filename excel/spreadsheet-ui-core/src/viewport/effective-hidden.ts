@@ -3,6 +3,7 @@ import type { BackendStructuralShift } from '../backend/types'
 import { viewportHiddenAtom } from './hidden'
 import { remapIndexSetAfterStructuralShift } from './structural-remap'
 import type { ViewportFilterHiddenState, ViewportHiddenState } from './types'
+import { viewportFilterHiddenBackingAtom } from './hidden-state'
 
 // Two hidden-row sets, one union view.
 //
@@ -55,10 +56,6 @@ function sameRows(left: readonly number[], right: readonly number[]): boolean {
   return left.length === right.length && left.every((value, offset) => value === right[offset])
 }
 
-const viewportFilterHiddenBackingAtom = atom<ViewportFilterHiddenState>(
-  DEFAULT_VIEWPORT_FILTER_HIDDEN_STATE,
-)
-viewportFilterHiddenBackingAtom.debugLabel = 'spreadsheet.viewport.filterHiddenBacking'
 
 /** Read-only projection of the filter-hidden row sets. Mutate via the commands below. */
 export const viewportFilterHiddenAtom: Atom<ViewportFilterHiddenState> = atom((get) =>

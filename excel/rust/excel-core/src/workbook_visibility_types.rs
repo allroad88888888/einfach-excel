@@ -2,6 +2,13 @@
 
 use super::*;
 
+/// 手动可见性的原生快照；筛选派生隐藏状态单独持有，不被“取消隐藏”清除。
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct SheetVisibility {
+    pub rows: Vec<u32>,
+    pub columns: Vec<u32>,
+}
+
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct SheetHiddenRows {
     pub sheet_index: usize,

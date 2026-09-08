@@ -14,6 +14,7 @@ import type {
   ApplyVisibleProjectionOutcome,
 } from './types'
 import { applyProjectionSizes } from './projection-sizes'
+import { applySheetVisibility } from '../viewport/hidden-state'
 
 /** Publishes the projection bundled with a mutation without opening a second read lane. */
 export const applyVisibleProjectionAtom = atom(
@@ -49,6 +50,7 @@ export const applyVisibleProjectionAtom = atom(
         freezeProjectionSnapshot({ status: 'ready', request, result, error: undefined }),
       )
       applyProjectionSizes(get, set, result)
+      if (result.visibility) applySheetVisibility(get, set, result.sheetId, result.visibility)
       return Object.freeze({ status: 'applied' })
     } catch (cause) {
       const error = projectionErrorFrom(cause)

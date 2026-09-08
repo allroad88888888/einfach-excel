@@ -4,6 +4,7 @@ import { projectionSnapshotAtom } from '../projection'
 import type { CellCoord } from '../shared'
 import { startEditingAtom } from './session-atoms'
 import type { EditingInputSource } from './types'
+import { viewportGeometrySizesAtom } from '../viewport/geometry-sizes'
 
 export interface StartCellEditingFromProjectionInput {
   readonly sheetId: string
@@ -16,6 +17,11 @@ export interface StartCellEditingFromProjectionInput {
 export const startCellEditingFromProjectionAtom = atom(
   null,
   (get, set, input: StartCellEditingFromProjectionInput): boolean => {
+    const sizes = get(viewportGeometrySizesAtom)
+    if (
+      sizes.rowHeightsBySheet[input.sheetId]?.[input.cell.row] === 0 ||
+      sizes.colWidthsBySheet[input.sheetId]?.[input.cell.col] === 0
+    ) return false
     const result = get(projectionSnapshotAtom).result
     const sourceText =
       result?.kind === 'visible-window'

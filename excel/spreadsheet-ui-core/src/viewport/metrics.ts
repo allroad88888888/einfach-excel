@@ -8,7 +8,7 @@ import type {
   ViewportScrollPosition,
 } from './types'
 import { getAxisOffsetForIndex, getAxisSpanSize } from './axis-geometry'
-import { viewportSizeOverridesAtom } from './size-overrides'
+import { viewportGeometrySizesAtom } from './geometry-sizes'
 
 export const DEFAULT_VIEWPORT_METRICS: ViewportMetrics = {
   scrollTop: 0,
@@ -151,7 +151,7 @@ viewportMetricsAtom.debugLabel = 'spreadsheet.viewport.metrics'
 export const setViewportMetricsAtom = atom(
   (get) => get(viewportMetricsAtom),
   (get, set, metrics: ViewportMetrics) => {
-    const sizes = get(viewportSizeOverridesAtom)
+    const sizes = get(viewportGeometrySizesAtom)
     const rowHeights = metrics.sheetId ? sizes.rowHeightsBySheet[metrics.sheetId] : undefined
     set(
       viewportMetricsAtom,
@@ -169,7 +169,7 @@ export const scrollToCellAtom = atom(
   (get) => get(viewportMetricsAtom),
   (get, set, input: ScrollToCellInput): ViewportScrollPosition => {
     const metrics = get(viewportMetricsAtom)
-    const sizes = get(viewportSizeOverridesAtom)
+    const sizes = get(viewportGeometrySizesAtom)
     const rowHeights = metrics.sheetId ? sizes.rowHeightsBySheet[metrics.sheetId] : undefined
     const scrollPosition = getViewportScrollForCell(
       metrics,

@@ -1,5 +1,6 @@
 import type { ViewportRowHeight, ViewportColumnWidth } from './viewport-contracts'
 import type { RustHistoryState } from '../history/rust-history-types'
+import type { SheetVisibilityProjection } from '../viewport/hidden-state'
 import type { CellRange, SheetRef } from '../shared'
 import type {
   DisplayCell,
@@ -40,6 +41,8 @@ export interface VisibleProjectionResult extends SheetRef {
   colWidths?: ViewportColumnWidth[]
   /** 同一次原生命令返回的历史目录，不携带回放数据。 */
   history?: RustHistoryState
+  /** 整张表的隐藏索引；不能只返回窗口内部分，否则屏幕外定位会漂移。 */
+  visibility?: SheetVisibilityProjection
   truncated?: boolean
 }
 

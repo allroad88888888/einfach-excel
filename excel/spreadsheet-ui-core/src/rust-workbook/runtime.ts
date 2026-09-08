@@ -17,6 +17,7 @@ import type {
 } from './commands'
 import type { RustWasmModule, WasmWorkbook } from './wasm-types'
 import { readVisibleProjection } from './visible-projection'
+import { changeVisibility, importSheetVisibility } from './visibility-io'
 
 type CommandName = keyof RustWorkbookCommands
 
@@ -55,6 +56,8 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
     next.rename_sheet(0, inputs[0]?.name ?? 'Sheet1')
     for (const input of inputs.slice(1)) next.add_sheet(input.name)
     inputs.forEach((input, index) => importSheetSizes(next, index, input))
+    inputs.forEach((input, index) => importSheetVisibility(next, index, input))
+    next.history_clear?.('')
     workbook = next
     revision = 0
     clipboard = undefined
@@ -115,6 +118,17 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       return {
         projection: readVisibleProjection(current, index, input.projection, revision),
         sizes: readSizes(current, index, input.range),
+      }
+    }
+    if (command === 'range.visibility') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      if (input.sheetId !== input.projection.sheetId) throw new Error('PROJECTION_SHEET_MISMATCH')
+      const index = sheetIndex(input.sheetId)
+      const changed = changeVisibility(current, index, input, sheetsById.get(input.sheetId)!)
+      if (changed) revision += 1
+      return {
+        changed,
+        projection: readVisibleProjection(current, index, input.projection, revision),
       }
     }
     if (command === 'workbook.changeSheets') {

@@ -6,7 +6,7 @@ import {
   getViewportColumnWidth,
   selectionSnapshotAtom,
   selectGridHeaderAtom,
-  viewportSizeOverridesAtom,
+  viewportGeometrySizesAtom,
   type WorkbookDocumentSheet,
   type GridHeaderSelectionInput,
 } from '@einfach/spreadsheet-ui-core'
@@ -49,7 +49,7 @@ function projectionState(viewport: WorkbookViewport) {
 function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: WorkbookDocumentSheet }) {
   const selection = useAtomValue(selectionSnapshotAtom)
   const selectHeader = useSetAtom(selectGridHeaderAtom)
-  const sizeOverrides = useAtomValue(viewportSizeOverridesAtom)
+  const sizeOverrides = useAtomValue(viewportGeometrySizesAtom)
   const gridWindow = useWorkbookGridWindow()
   const viewport = useWorkbookViewport({
     sheetId: activeSheet.id,
@@ -96,9 +96,12 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
     rowHeights,
   )
   const frameStyle = {
-    '--grid-column-count': activeSheet.colCount,
+    '--grid-column-count': columnWidths.filter((width) => width > 0).length,
     '--grid-column-width': `${WORKBOOK_GRID_COLUMN_WIDTH}px`,
-    '--grid-column-widths': columnWidths.map((width) => `${width}px`).join(' '),
+    '--grid-column-widths': columnWidths
+      .filter((width) => width > 0)
+      .map((width) => `${width}px`)
+      .join(' '),
     '--grid-row-height': `${WORKBOOK_GRID_ROW_HEIGHT}px`,
     '--grid-row-header-width': `${WORKBOOK_GRID_ROW_HEADER_WIDTH}px`,
     '--grid-sheet-content-width': `${sheetContentWidth}px`,
@@ -107,7 +110,10 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
   } as CSSProperties
   const windowStyle = {
     '--grid-window-offset': `${windowOffset}px`,
-    '--grid-window-row-heights': visibleRowHeights.map((height) => `${height}px`).join(' '),
+    '--grid-window-row-heights': visibleRowHeights
+      .filter((height) => height > 0)
+      .map((height) => `${height}px`)
+      .join(' '),
   } as CSSProperties
   const cellWindowStyle = {
     ...windowStyle,
@@ -138,34 +144,37 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
             <span aria-hidden="true">◢</span>
           </button>
           <div className="column-headers" role="row">
-            {Array.from({ length: activeSheet.colCount }, (_, col) => (
-              <button
-                className={
-                  col >= selection.range.colStart && col <= selection.range.colEnd
-                    ? 'sheet-heading heading-selected'
-                    : 'sheet-heading'
-                }
-                key={col}
-                role="columnheader"
-                type="button"
-                aria-label={`Select column ${String.fromCharCode(65 + col)}`}
-                aria-selected={col >= selection.range.colStart && col <= selection.range.colEnd}
-                onPointerDown={(event) => event.preventDefault()}
-                onClick={(event) =>
-                  void selectGridHeader({
-                    kind: 'column',
-                    sheetId: activeSheet.id,
-                    index: col,
-                    extend: event.shiftKey,
-                  })
-                }
-              >
-                {String.fromCharCode(65 + col)}
-              </button>
-            ))}
+            {Array.from({ length: activeSheet.colCount }, (_, col) =>
+              columnWidths[col] === 0 ? null : (
+                <button
+                  className={
+                    col >= selection.range.colStart && col <= selection.range.colEnd
+                      ? 'sheet-heading heading-selected'
+                      : 'sheet-heading'
+                  }
+                  key={col}
+                  role="columnheader"
+                  type="button"
+                  aria-label={`Select column ${String.fromCharCode(65 + col)}`}
+                  aria-selected={col >= selection.range.colStart && col <= selection.range.colEnd}
+                  onPointerDown={(event) => event.preventDefault()}
+                  onClick={(event) =>
+                    void selectGridHeader({
+                      kind: 'column',
+                      sheetId: activeSheet.id,
+                      index: col,
+                      extend: event.shiftKey,
+                    })
+                  }
+                >
+                  {String.fromCharCode(65 + col)}
+                </button>
+              ),
+            )}
           </div>
           <div className="row-headers grid-window" style={windowStyle}>
             {rows.map((rowNumber, index) => {
+              if (visibleRowHeights[index] === 0) return null
               const row = index + viewport.window.rowStart
               return (
                 <button

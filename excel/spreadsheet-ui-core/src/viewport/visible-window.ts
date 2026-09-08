@@ -3,7 +3,7 @@ import type { CellCoord } from '../shared'
 import { clampViewportIndex, normalizeViewportMetrics, viewportMetricsAtom } from './metrics'
 import type { ViewportMetrics, VisibleWindow } from './types'
 import { getAxisEndIndexAtOffset, getAxisStartIndexAtOffset } from './axis-geometry'
-import { viewportSizeOverridesAtom } from './size-overrides'
+import { viewportGeometrySizesAtom } from './geometry-sizes'
 
 /** Computes the rectangular projection needed to cover the current viewport. */
 export function getVisibleWindow(
@@ -108,7 +108,7 @@ export function isCellInVisibleWindow(coord: CellCoord, visibleWindow: VisibleWi
 
 export const visibleWindowAtom = atom((get): VisibleWindow => {
   const metrics = get(viewportMetricsAtom)
-  const sizes = get(viewportSizeOverridesAtom)
+  const sizes = get(viewportGeometrySizesAtom)
   const rowHeights = metrics.sheetId ? sizes.rowHeightsBySheet[metrics.sheetId] : undefined
   return getVisibleWindow(
     metrics,

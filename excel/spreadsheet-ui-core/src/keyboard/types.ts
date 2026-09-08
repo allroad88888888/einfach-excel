@@ -27,6 +27,8 @@ export interface KeyboardCommandState {
   selection: SelectionState
   bounds: SelectionBounds
   selectionRegionCount?: number
+  hiddenRows?: ReadonlySet<number>
+  hiddenColumns?: ReadonlySet<number>
 }
 
 export type KeyboardMoveReason = 'arrow' | 'tab' | 'enter' | 'home' | 'end' | 'page'

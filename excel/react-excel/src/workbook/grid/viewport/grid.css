@@ -82,7 +82,6 @@
   place-items: center;
   padding: 0;
   border: 0;
-  border-right: 1px solid var(--border);
   color: #444444;
   background: var(--chrome);
   font-size: 11px;
@@ -103,7 +102,7 @@
   outline-offset: -1px;
 }
 
-.column-headers .sheet-heading:last-child {
+.column-headers .sheet-heading:last-child .sheet-heading-button {
   border-right: 0;
 }
 
@@ -125,7 +124,7 @@
   background: var(--chrome);
 }
 
-.row-headers .sheet-heading {
+.row-headers .sheet-heading-button {
   border-right: 1px solid var(--border-strong);
   border-bottom: 1px solid var(--border);
 }

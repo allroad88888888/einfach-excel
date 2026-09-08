@@ -39,6 +39,11 @@ type SizeAction =
   | 'column'
   | 'reset'
   | { readonly field: 'height' | 'width'; readonly value: string }
+  | {
+      readonly axis: 'row' | 'column'
+      readonly pixels: number
+      readonly target: { readonly sheetId: string; readonly range: CellRange }
+    }
 
 /** 尺寸面板草稿属于 UI Core；真实尺寸只在 Rust 确认后更新坐标缓存。 */
 export const runSelectionSizeAtom = atom(
@@ -46,13 +51,16 @@ export const runSelectionSizeAtom = atom(
   async (get, set, action: SizeAction): Promise<boolean> => {
     const state = get(selectionSizePanelAtom)
     if (
-      state.busy || get(selectionStructureFeedbackAtom).busy || get(selectionMergeFeedbackAtom).busy
-    ) return false
+      state.busy ||
+      get(selectionStructureFeedbackAtom).busy ||
+      get(selectionMergeFeedbackAtom).busy
+    )
+      return false
     if (action === 'close') {
       set(selectionSizePanelAtom, CLOSED)
       return true
     }
-    if (typeof action !== 'string') {
+    if (typeof action !== 'string' && 'field' in action) {
       if (!state.target) return false
       set(selectionSizePanelAtom, { ...state, [action.field]: action.value, error: null })
       return true
@@ -77,16 +85,24 @@ export const runSelectionSizeAtom = atom(
       })
       return true
     }
-    if (!state.target || state.target.sheetId !== sheetId) return false
+    // 拖拽直接提交捕获的目标；不借用弹窗草稿，也不为了写入而打开弹窗。
+    const target = typeof action === 'object' ? action.target : state.target
+    const axis = typeof action === 'object' ? action.axis : action
+    if (!target || target.sheetId !== sheetId) return false
     const fail = (error: string) => {
-      set(selectionSizePanelAtom, { ...state, error })
+      set(selectionSizePanelAtom, { ...state, busy: false, error })
       return false
     }
     if (getSheetProtection(get(sheetProtectionAtom), sheetId).mode === 'protected')
       return fail('Unprotect the worksheet before changing row or column sizes.')
-    const pixels = action === 'reset' ? 0 : Number(action === 'row' ? state.height : state.width)
-    const [min, max] = action === 'row' ? [16, 512] : [40, 1024]
-    if (action !== 'reset' && (!Number.isSafeInteger(pixels) || pixels < min! || pixels > max!))
+    const pixels =
+      typeof action === 'object'
+        ? action.pixels
+        : axis === 'reset'
+          ? 0
+          : Number(axis === 'row' ? state.height : state.width)
+    const [min, max] = axis === 'row' ? [16, 512] : [40, 1024]
+    if (axis !== 'reset' && (!Number.isSafeInteger(pixels) || pixels < min! || pixels > max!))
       return fail(`Enter a whole number from ${min} to ${max} pixels.`)
     const witness = get(projectionSnapshotAtom)
     const visible = witness.request
@@ -105,8 +121,8 @@ export const runSelectionSizeAtom = atom(
     try {
       const result = await connection.request('range.resize', {
         sheetId,
-        range: state.target.range,
-        axis: action,
+        range: target.range,
+        axis,
         pixels,
         projection,
       })
@@ -116,7 +132,7 @@ export const runSelectionSizeAtom = atom(
       // 先合并完整目标的尺寸，屏幕外部分也会影响后续滚动定位。
       applyProjectionSizes(get, set, {
         ...result.projection,
-        window: state.target.range,
+        window: target.range,
         ...result.sizes,
       })
       set(applyVisibleProjectionAtom, { witness, request: projection, result: result.projection })

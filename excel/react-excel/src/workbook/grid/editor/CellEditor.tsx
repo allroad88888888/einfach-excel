@@ -154,11 +154,25 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
     if (!event.currentTarget.contains(event.relatedTarget)) void commitOnce(false)
   }
   const stopPointer = (event: PointerEvent<HTMLDivElement>) => event.stopPropagation()
+  const top = WORKBOOK_GRID_ROW_HEIGHT + rect.top + (frozenRow ? metrics.scrollTop : 0)
+  const left = WORKBOOK_GRID_ROW_HEADER_WIDTH + rect.left + (frozenCol ? metrics.scrollLeft : 0)
+  const height = Math.max(rect.height, Math.min(5, draft.split('\n').length) * 18 + 6)
+  const viewportTop = metrics.scrollTop + WORKBOOK_GRID_ROW_HEIGHT
+  const viewportLeft = metrics.scrollLeft + WORKBOOK_GRID_ROW_HEADER_WIDTH
+  const frozenHeight = freeze?.sheetId === sheetId ? freeze.height : 0
+  const frozenWidth = freeze?.sheetId === sheetId ? freeze.width : 0
+  // 编辑器保持挂载以保留草稿／焦点，仅裁掉表头及其它固定区上的绘制与命中。
+  // 允许负 inset，让错误提示仍能超出单元格，但不能超出可编辑的视口。
+  const clipTop = viewportTop + (frozenRow ? 0 : frozenHeight) - top
+  const clipLeft = viewportLeft + (frozenCol ? 0 : frozenWidth) - left
+  const clipRight = left + rect.width - viewportLeft - metrics.viewportWidth
+  const clipBottom = top + height - viewportTop - metrics.viewportHeight
   const style = {
-    '--editor-top': `${WORKBOOK_GRID_ROW_HEIGHT + rect.top + (frozenRow ? metrics.scrollTop : 0)}px`,
-    '--editor-height': `${Math.max(rect.height, Math.min(5, draft.split('\n').length) * 18 + 6)}px`,
-    '--editor-left': `${WORKBOOK_GRID_ROW_HEADER_WIDTH + rect.left + (frozenCol ? metrics.scrollLeft : 0)}px`,
+    '--editor-top': `${top}px`,
+    '--editor-height': `${height}px`,
+    '--editor-left': `${left}px`,
     '--editor-width': `${rect.width}px`,
+    clipPath: `inset(${clipTop}px ${clipRight}px ${clipBottom}px ${clipLeft}px)`,
   } as CSSProperties
   const fieldIdentity = `cell-editor-r${cell.row}-c${cell.col}`
 

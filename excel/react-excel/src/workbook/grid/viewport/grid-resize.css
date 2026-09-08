@@ -1,0 +1,67 @@
+.sheet-heading {
+  position: relative;
+}
+.sheet-heading-button {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-right: 1px solid var(--border);
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  cursor: inherit;
+}
+.sheet-heading-button:focus-visible {
+  outline: 1px solid var(--primary);
+  outline-offset: -1px;
+}
+.grid-resize-handle {
+  position: absolute;
+  touch-action: none;
+  z-index: 1;
+}
+.grid-resize-column {
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: col-resize;
+}
+.grid-resize-row {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 6px;
+  cursor: row-resize;
+}
+.grid-resize-handle:hover,
+.grid-resize-handle:focus-visible {
+  background: var(--primary);
+}
+.grid-resize-handle[aria-disabled='true'] {
+  cursor: default;
+}
+.resize-guide {
+  position: absolute;
+  z-index: 9;
+  pointer-events: none;
+}
+.resize-guide-row {
+  border-top: 1px dashed var(--primary);
+}
+.resize-guide-column {
+  border-left: 1px dashed var(--primary);
+}
+.resize-guide output {
+  position: absolute;
+  left: 8px;
+  top: 4px;
+  white-space: nowrap;
+  padding: 2px 4px;
+  background: var(--primary);
+  color: white;
+  font-size: 11px;
+}

@@ -4,6 +4,7 @@ import {
   activeWorkbookSheetAtom,
   freezeFeedbackAtom,
   projectedFreezeAtom,
+  projectionSnapshotAtom,
   runFreezeAtom,
 } from '@einfach/spreadsheet-ui-core'
 
@@ -20,6 +21,8 @@ export function FreezeTools() {
   const feedback = useAtomValue(freezeFeedbackAtom)
   const freeze = useAtomValue(projectedFreezeAtom)
   const sheet = useAtomValue(activeWorkbookSheetAtom)
+  const projection = useAtomValue(projectionSnapshotAtom)
+  const ready = projection.status === 'ready' && projection.request?.sheetId === sheet?.id
   const editing = useAtomValue(editingSessionAtom).source !== null
   const frozen = Boolean(freeze && freeze.sheetId === sheet?.id && (freeze.rows || freeze.cols))
   return (
@@ -28,7 +31,7 @@ export function FreezeTools() {
         className="paste-options-select"
         aria-label="Freeze panes"
         value=""
-        disabled={editing || feedback.busy}
+        disabled={!ready || editing || feedback.busy}
         onChange={(event) => {
           const option = OPTIONS.find(([value]) => value === event.currentTarget.value)
           if (option) void run(option[0])

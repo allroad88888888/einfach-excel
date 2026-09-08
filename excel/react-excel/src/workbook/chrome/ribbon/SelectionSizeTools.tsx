@@ -34,12 +34,14 @@ export function SelectionSizeTools() {
         className="tool-button"
         aria-label="Row and column size"
         title="Row and column size"
-        disabled={editing}
+        disabled={editing || state.busy}
         type="button"
         onClick={() => void run('open')}
       >
         ↔
       </button>
+      {!target && state.error && <span role="alert" className="size-error">{state.error}</span>}
+      {!target && state.busy && <span role="status">Saving sizes…</span>}
       {target && (
         <dialog
           ref={ref}

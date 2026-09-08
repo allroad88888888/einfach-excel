@@ -119,6 +119,7 @@ include!("wasm_workbook_diagnostics.rs");
 include!("wasm_workbook_autofill_format.rs");
 include!("wasm_workbook_clipboard.rs");
 include!("wasm_workbook_viewport_persistence.rs");
+include!("wasm_workbook_auto_fit.rs");
 include!("wasm_workbook_history.rs");
 include!("wasm_workbook_structure.rs");
 include!("wasm_workbook_merge.rs");

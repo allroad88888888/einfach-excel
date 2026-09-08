@@ -6,6 +6,7 @@ import {
   selectionSnapshotAtom,
 } from '@einfach/spreadsheet-ui-core'
 import type { CSSProperties } from 'react'
+import { GridResizeHandle } from './GridResizeHandle'
 
 /** 普通表头与冻结表头共用选中样式、Shift 扩选及整行整列命令。 */
 export function GridHeading({
@@ -28,27 +29,29 @@ export function GridHeading({
       ? index >= selection.range.rowStart && index <= selection.range.rowEnd
       : index >= selection.range.colStart && index <= selection.range.colEnd
   return (
-    <button
-      className={selected ? 'sheet-heading heading-selected' : 'sheet-heading'}
-      role={axis === 'column' ? 'columnheader' : undefined}
-      type="button"
-      aria-label={`Select ${axis} ${label}`}
-      aria-selected={axis === 'column' ? selected : undefined}
-      aria-pressed={axis === 'row' ? selected : undefined}
-      style={style}
-      onPointerDown={(event) => {
-        event.preventDefault()
-        event.stopPropagation()
-      }}
-      onClick={async (event) => {
-        if (
-          sheet &&
-          (await select({ kind: axis, sheetId: sheet.id, index, extend: event.shiftKey }))
-        )
-          focusGrid()
-      }}
-    >
-      {label}
-    </button>
+    <div className={selected ? 'sheet-heading heading-selected' : 'sheet-heading'} style={style}>
+      <button
+        className="sheet-heading-button"
+        role={axis === 'column' ? 'columnheader' : undefined}
+        type="button"
+        aria-label={`Select ${axis} ${label}`}
+        aria-selected={axis === 'column' ? selected : undefined}
+        aria-pressed={axis === 'row' ? selected : undefined}
+        onPointerDown={(event) => {
+          event.preventDefault()
+          event.stopPropagation()
+        }}
+        onClick={async (event) => {
+          if (
+            sheet &&
+            (await select({ kind: axis, sheetId: sheet.id, index, extend: event.shiftKey }))
+          )
+            focusGrid()
+        }}
+      >
+        {label}
+      </button>
+      <GridResizeHandle axis={axis} index={index} label={label} focusGrid={focusGrid} />
+    </div>
   )
 }

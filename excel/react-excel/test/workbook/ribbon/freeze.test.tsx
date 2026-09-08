@@ -1,5 +1,7 @@
 import {
   createSpreadsheetUi,
+  beginProjectionAtom,
+  resolveProjectionAtom,
   initializeWorkbookDocumentAtom,
   runVisibleProjectionAtom,
   selectCellAtom,
@@ -103,4 +105,33 @@ test('an active cell draft disables freeze without replacing its text', async ()
   })
   expect(menu()).toBeDisabled()
   expect(r.change).not.toHaveBeenCalled()
+})
+
+test('a retained but pending projection disables freeze until the current window is ready', async () => {
+  const r = await setup()
+  let request: VisibleProjectionRequest | undefined
+  act(() => {
+    const outcome = r.store.setter(beginProjectionAtom, {
+      kind: 'visible-window',
+      sheetId: 's',
+      window: { rowStart: 10, rowEnd: 19, colStart: 0, colEnd: 7 },
+      reason: 'viewport',
+      retainResult: true,
+    })
+    if (outcome.status === 'started' && outcome.request.kind === 'visible-window') {
+      request = outcome.request
+    }
+  })
+  expect(request).toBeDefined()
+  expect(menu()).toBeDisabled()
+  expect(r.change).not.toHaveBeenCalled()
+  act(() => {
+    r.store.setter(resolveProjectionAtom, {
+      request: request!,
+      result: { ...request!, cells: [], freeze: { rows: 0, cols: 0 } },
+    })
+  })
+  expect(menu()).toBeEnabled()
+  await choose('first-row')
+  expect(r.change).toHaveBeenCalledTimes(1)
 })

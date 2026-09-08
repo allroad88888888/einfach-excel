@@ -1,4 +1,5 @@
 pub mod auto_fill;
+mod auto_fit_dimensions;
 pub mod bulk_import_trace;
 pub mod cell;
 pub mod cell_input;

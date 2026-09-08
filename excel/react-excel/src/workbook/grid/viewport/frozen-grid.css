@@ -33,6 +33,6 @@
   background: var(--chrome);
 }
 
-.frozen-row-headers .sheet-heading {
+.frozen-row-headers .sheet-heading-button {
   border-bottom: 1px solid var(--border);
 }

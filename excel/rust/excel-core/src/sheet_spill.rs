@@ -147,6 +147,15 @@ impl Sheet {
         if end_row >= EXCEL_MAX_ROWS || end_col >= EXCEL_MAX_COLS {
             return Err(ValueError::Spill);
         }
+        // 合并是矩形障碍，即使被覆盖格没有字面量，也不能让数组在其内部生成子格。
+        let rect = crate::CellRange::new(anchor_addr, CellAddress::new(end_row, end_col));
+        if self
+            .merged_ranges
+            .iter()
+            .any(|range| range.intersects(rect))
+        {
+            return Err(ValueError::Spill);
+        }
 
         // First pass: collision detection. We compute every target
         // (skipping (0, 0) which is the anchor) and ensure no obstruction.
@@ -227,6 +236,9 @@ impl Sheet {
     /// cell that `register_spill` would not have tripped over sends the user to
     /// clear something that does not revive the array.
     pub(super) fn is_target_occupied(&self, target: CellAddress, our_anchor_atom: AtomId) -> bool {
+        if self.merged_range_at(target).is_some() {
+            return true;
+        }
         // (a) Formula cell at target — always blocks. Unhydrated lazy
         // formulas count too: a same-cell collision with a deferred
         // formula must surface as #SPILL!, not pass through.

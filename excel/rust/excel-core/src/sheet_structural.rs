@@ -67,7 +67,7 @@ impl Sheet {
                 || interior.col_widths.borrow().range(first..).next().is_some()
                 || self.hidden_columns.range(first..).next().is_some()
         };
-        if occupied || dimension {
+        if occupied || dimension || self.merged_ranges.iter().any(|r| r.intersects(range)) {
             return Err("The insertion would move data or formatting outside the worksheet.");
         }
         Ok(())
@@ -155,6 +155,7 @@ impl Sheet {
             sheet.relocate_cells(|addr| edit.apply(addr));
             sheet.retarget_formula_refs(edit);
             sheet.retarget_parked_sources(edit);
+            sheet.shift_merges(edit);
             match edit {
                 crate::shift::ShiftEdit::RowInsert { at, count } => {
                     Self::shift_dimension_insert(&mut sheet.row_styles, at, count);

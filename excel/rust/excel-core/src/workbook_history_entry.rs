@@ -38,7 +38,7 @@ impl HistoryEntry {
         }
         if matches!(
             self.change,
-            HistoryChange::Cells { .. } | HistoryChange::Structure(_)
+            HistoryChange::Cells { .. } | HistoryChange::Structure(_) | HistoryChange::Merge(_)
         ) {
             for (index, key) in self.affected_indices.iter().zip(&self.affected_keys) {
                 if workbook.sheet_key(*index) != Some(*key) {
@@ -55,6 +55,7 @@ impl HistoryEntry {
                 change.apply(workbook, self.sheet, self.sheet_key, undo)
             }
             HistoryChange::Structure(change) => change.apply(workbook, self.sheet, undo),
+            HistoryChange::Merge(change) => change.apply(workbook, self.sheet, undo),
         }
     }
 }
@@ -69,6 +70,7 @@ pub(super) fn entry_bytes(entry: &HistoryEntry) -> usize {
         HistoryChange::Sheet(change) => change.retained_bytes(),
         HistoryChange::Visibility(change) => change.retained_bytes(),
         HistoryChange::Structure(change) => change.retained_bytes(),
+        HistoryChange::Merge(change) => change.retained_bytes(),
     };
     payload + entry.label.len() + entry.sheet_name.len() + entry.affected_keys.len() * 16 + 128
 }

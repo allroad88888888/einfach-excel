@@ -28,12 +28,12 @@ use crate::sheet::{
 mod workbook_bulk;
 #[path = "workbook_bulk_types.rs"]
 mod workbook_bulk_types;
-#[path = "workbook_custom.rs"]
-mod workbook_custom;
 #[path = "workbook_conditional_format.rs"]
 mod workbook_conditional_format;
 #[path = "workbook_conditional_format_types.rs"]
 mod workbook_conditional_format_types;
+#[path = "workbook_custom.rs"]
+mod workbook_custom;
 #[path = "workbook_cycles.rs"]
 mod workbook_cycles;
 #[path = "workbook_errors.rs"]
@@ -58,21 +58,27 @@ mod workbook_names;
 mod workbook_print_config;
 #[path = "workbook_read.rs"]
 mod workbook_read;
-#[path = "workbook_sheet_removal.rs"]
-mod workbook_sheet_removal;
 #[path = "workbook_sheet_archive.rs"]
 mod workbook_sheet_archive;
+#[path = "workbook_sheet_removal.rs"]
+mod workbook_sheet_removal;
 pub use workbook_sheet_archive::ArchivedWorksheet;
 #[path = "workbook_sheet_history.rs"]
 mod workbook_sheet_history;
 pub(crate) use workbook_sheet_history::SheetHistoryChange;
 #[path = "workbook_structural.rs"]
 mod workbook_structural;
-#[path = "workbook_structural_preflight.rs"]
-mod workbook_structural_preflight;
 #[path = "workbook_structural_history.rs"]
 mod workbook_structural_history;
+#[path = "workbook_structural_preflight.rs"]
+mod workbook_structural_preflight;
 pub(crate) use workbook_structural_history::StructuralHistoryChange;
+#[path = "workbook_history_restore.rs"]
+mod workbook_history_restore;
+#[path = "workbook_sheet_edit.rs"]
+mod workbook_sheet_edit;
+#[path = "workbook_sheet_refs.rs"]
+mod workbook_sheet_refs;
 #[path = "workbook_table_geometry.rs"]
 mod workbook_table_geometry;
 #[path = "workbook_table_registry.rs"]
@@ -85,19 +91,16 @@ mod workbook_table_totals;
 mod workbook_table_types;
 #[path = "workbook_topology.rs"]
 mod workbook_topology;
-#[path = "workbook_sheet_edit.rs"]
-mod workbook_sheet_edit;
-#[path = "workbook_history_restore.rs"]
-mod workbook_history_restore;
-#[path = "workbook_sheet_refs.rs"]
-mod workbook_sheet_refs;
 pub(crate) use workbook_sheet_refs::rewrite_sheet_refs;
+#[path = "workbook_input.rs"]
+mod workbook_input;
+#[path = "workbook_merge.rs"]
+mod workbook_merge;
 #[path = "workbook_visibility_types.rs"]
 mod workbook_visibility_types;
 #[path = "workbook_write.rs"]
 mod workbook_write;
-#[path = "workbook_input.rs"]
-mod workbook_input;
+pub use workbook_merge::MergeAction;
 
 pub(crate) use self::workbook_bulk_types::CustomCallScope;
 pub use self::workbook_bulk_types::{BulkInstallStats, InstallError};
@@ -147,11 +150,11 @@ mod workbook_tests_async_custom;
 #[path = "workbook_tests/basics.rs"]
 mod workbook_tests_basics;
 #[cfg(test)]
-#[path = "workbook_tests/custom.rs"]
-mod workbook_tests_custom;
-#[cfg(test)]
 #[path = "workbook_tests/conditional_format.rs"]
 mod workbook_tests_conditional_format;
+#[cfg(test)]
+#[path = "workbook_tests/custom.rs"]
+mod workbook_tests_custom;
 #[cfg(test)]
 #[path = "workbook_tests/dependencies.rs"]
 mod workbook_tests_dependencies;

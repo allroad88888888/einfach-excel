@@ -18,6 +18,7 @@ struct StructuralSnapshot {
     visibility: SheetVisibility,
     filter: Option<SheetAutoFilter>,
     tables: Vec<TableEntry>,
+    merges: Vec<CellRange>,
 }
 
 impl StructuralHistoryChange {
@@ -154,6 +155,9 @@ impl StructuralHistoryChange {
                 .map(|filter| (filter.rules().to_vec(), filter.hidden_set().clone()))
                 .unwrap_or_default();
             workbook.sheets[sheet].commit_filter(rules, hidden);
+            workbook.sheets[sheet]
+                .merged_ranges
+                .clone_from(&snapshot.merges);
             workbook.republish_hidden(sheet);
             let tables_changed = workbook
                 .tables
@@ -203,6 +207,7 @@ impl StructuralSnapshot {
                 })
                 .collect(),
             visibility: workbook.sheet_visibility(sheet).unwrap(),
+            merges: workbook.sheets[sheet].merged_ranges().to_vec(),
             filter: workbook.sheets[sheet].filter().cloned(),
             tables: workbook
                 .tables
@@ -221,5 +226,6 @@ impl StructuralSnapshot {
             + crate::sheet::metadata_bytes(&self.visibility)
             + crate::sheet::metadata_bytes(&self.filter)
             + crate::sheet::metadata_bytes(&self.tables)
+            + self.merges.len() * std::mem::size_of::<CellRange>()
     }
 }

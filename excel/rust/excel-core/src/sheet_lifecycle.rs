@@ -40,6 +40,7 @@ impl Sheet {
             cell_styles: HashMap::new(),
             row_styles: BTreeMap::new(),
             column_styles: BTreeMap::new(),
+            merged_ranges: Vec::new(),
             conditional_rules: Vec::new(),
             hidden_rows: BTreeSet::new(),
             hidden_columns: BTreeSet::new(),

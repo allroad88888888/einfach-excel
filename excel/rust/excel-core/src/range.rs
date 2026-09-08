@@ -8,6 +8,16 @@ pub struct CellRange {
 }
 
 impl CellRange {
+    /// 两个矩形是否有交集；只比较边界，不枚举区域中的格子。
+    pub fn intersects(&self, other: CellRange) -> bool {
+        let a = self.normalize();
+        let b = other.normalize();
+        a.start.row <= b.end.row
+            && b.start.row <= a.end.row
+            && a.start.col <= b.end.col
+            && b.start.col <= a.end.col
+    }
+
     pub fn new(start: CellAddress, end: CellAddress) -> Self {
         CellRange { start, end }
     }

@@ -14,8 +14,11 @@ use visibility::VisibilityChange;
 #[path = "workbook_history_entry.rs"]
 mod entry;
 use entry::entry_bytes;
+#[path = "workbook_history_merge.rs"]
+mod merge;
 #[path = "workbook_history_structure.rs"]
 mod structure;
+use merge::MergeChange;
 
 const MAX_ENTRIES: usize = 50;
 const MAX_BYTES: usize = 32 * 1024 * 1024;
@@ -42,6 +45,7 @@ enum HistoryChange {
     Sheet(Box<SheetHistoryChange>),
     Visibility(VisibilityChange),
     Structure(Box<StructuralHistoryChange>),
+    Merge(Box<MergeChange>),
 }
 
 struct PendingEdit {

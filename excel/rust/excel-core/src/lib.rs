@@ -10,14 +10,14 @@ pub mod filter;
 pub mod format;
 pub mod formula;
 pub mod general_text;
+pub mod history_snapshot;
 pub mod range;
 pub mod sheet;
 pub mod shift;
 pub mod sort;
 pub mod undo;
-pub mod history_snapshot;
-pub mod workbook_history;
 pub mod workbook;
+pub mod workbook_history;
 
 pub use auto_fill::{
     AutoFillDirection, AutoFillError, AutoFillListWitness, AutoFillReport, AutoFillRequest,
@@ -53,8 +53,8 @@ pub use undo::{CellSnapshot, Edit, UndoStack};
 pub use workbook::{
     BulkInstallStats, ConditionalFormatConfigSnapshot, ConditionalFormatError,
     ConditionalFormatRuleEntry, FilterSnapshot, HeaderFooterFields, HiddenRowsError,
-    HiddenRowsSnapshot, InstallError, ManualPageBreak, ManualPageBreakAxis, PrintConfig,
-    PrintConfigError, PrintConfigSnapshot, PrintOrientation, PrintScale, SheetFilterState,
-    SheetHiddenRows, TableEntry, TableError, TableRegistrySnapshot, TotalsFunction, Workbook,
-    WorkbookError,
+    HiddenRowsSnapshot, InstallError, ManualPageBreak, ManualPageBreakAxis, MergeAction,
+    PrintConfig, PrintConfigError, PrintConfigSnapshot, PrintOrientation, PrintScale,
+    SheetFilterState, SheetHiddenRows, TableEntry, TableError, TableRegistrySnapshot,
+    TotalsFunction, Workbook, WorkbookError,
 };

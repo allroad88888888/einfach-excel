@@ -71,8 +71,6 @@ mod debug_deps;
 mod dependency_graph;
 #[path = "sheet_dimensions.rs"]
 mod dimensions;
-#[path = "sheet_history_restore.rs"]
-mod history_restore;
 #[path = "sheet_error.rs"]
 mod error;
 #[path = "sheet_eval_provider.rs"]
@@ -95,13 +93,19 @@ mod format_snapshot;
 mod format_write;
 #[path = "sheet_formula_state.rs"]
 mod formula_state;
-#[path = "sheet_hidden_rows.rs"]
-mod hidden_rows;
 #[path = "sheet_hidden_columns.rs"]
 mod hidden_columns;
+#[path = "sheet_hidden_rows.rs"]
+mod hidden_rows;
 #[path = "sheet_history_budget.rs"]
 mod history_budget;
+#[path = "sheet_history_restore.rs"]
+mod history_restore;
+#[path = "sheet_merge.rs"]
+mod merge;
 pub(crate) use history_budget::metadata_bytes;
+#[path = "sheet_cross_sheet_shift.rs"]
+mod cross_sheet_shift;
 #[path = "sheet_hydrate.rs"]
 mod hydrate;
 #[path = "sheet_in_flight.rs"]
@@ -118,8 +122,6 @@ mod read;
 mod relocate;
 #[path = "sheet_retarget.rs"]
 mod retarget;
-#[path = "sheet_cross_sheet_shift.rs"]
-mod cross_sheet_shift;
 #[path = "sheet_row_major_map.rs"]
 mod row_major_map;
 #[path = "sheet_scan.rs"]

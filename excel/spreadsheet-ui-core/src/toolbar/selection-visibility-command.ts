@@ -14,6 +14,7 @@ import { scrollToCellAtom } from '../viewport/metrics'
 import { viewportGeometrySizesAtom } from '../viewport/geometry-sizes'
 import { validSheetVisibility } from '../viewport/hidden-state'
 import { validateProjectionResult } from '../projection/contracts'
+import { selectionStructureFeedbackAtom } from './selection-structure-state'
 
 export const selectionVisibilityFeedbackAtom = atom({ busy: false, error: null as string | null })
 export type SelectionVisibilityAction = 'hide-rows' | 'hide-columns' | 'unhide' | 'unhide-all'
@@ -22,7 +23,11 @@ export type SelectionVisibilityAction = 'hide-rows' | 'hide-columns' | 'unhide' 
 export const runSelectionVisibilityAtom = atom(
   null,
   async (get, set, action: SelectionVisibilityAction): Promise<boolean> => {
-    if (get(selectionVisibilityFeedbackAtom).busy || get(editingSessionAtom).source !== null)
+    if (
+      get(selectionVisibilityFeedbackAtom).busy ||
+      get(editingSessionAtom).source !== null ||
+      get(selectionStructureFeedbackAtom).busy
+    )
       return false
     const connection = get(rustWorkbookConnectionAtom)
     const sheet = get(activeWorkbookSheetAtom)

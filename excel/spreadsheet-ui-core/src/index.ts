@@ -12,7 +12,11 @@ export * from './runtime/rust-workbook-runtime'
 export * from './runtime/workbook-document'
 export * from './rust-workbook'
 export * from './history/rust-history-types'
-export { rustHistoryStateAtom, rustHistoryPanelAtom, runRustHistoryAtom } from './history/rust-history-command'
+export {
+  rustHistoryStateAtom,
+  rustHistoryPanelAtom,
+  runRustHistoryAtom,
+} from './history/rust-history-command'
 export * from './conditional-formatting'
 export * from './copy-as'
 export * from './data-validation'
@@ -25,6 +29,8 @@ export * from './clipboard'
 export * from './clipboard/system-clipboard-command'
 export * from './clipboard/paste-special-panel'
 export * from './toolbar/selection-visibility-command'
+export { runSelectionStructureAtom } from './toolbar/selection-structure-command'
+export { selectionStructureFeedbackAtom } from './toolbar/selection-structure-state'
 export * from './named-ranges'
 export {
   beginNameManagerTableRenameAtom,

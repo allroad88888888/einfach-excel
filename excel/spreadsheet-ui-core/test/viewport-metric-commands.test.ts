@@ -5,9 +5,44 @@ import {
   setViewportScrollAtom,
   setViewportSizeAtom,
   viewportMetricsAtom,
+  initializeViewportMetricsAtom,
 } from '../src/viewport'
 
 describe('viewport metric commands', () => {
+  test('same-sheet canvas changes preserve physical scroll and measured viewport', () => {
+    const store = createStore()
+    const initial = {
+      ...store.getter(viewportMetricsAtom),
+      sheetId: 's',
+      rowCount: 100,
+      colCount: 16,
+      viewportHeight: 320,
+      viewportWidth: 420,
+    }
+    store.setter(initializeViewportMetricsAtom, initial)
+    store.setter(setViewportScrollAtom, { scrollTop: 1500, scrollLeft: 300 })
+    store.setter(initializeViewportMetricsAtom, {
+      ...initial,
+      rowCount: 99,
+      colCount: 15,
+      viewportHeight: 800,
+      viewportWidth: 900,
+    })
+    expect(store.getter(viewportMetricsAtom)).toMatchObject({
+      rowCount: 99,
+      colCount: 15,
+      scrollTop: 1500,
+      scrollLeft: 300,
+      viewportHeight: 320,
+      viewportWidth: 420,
+    })
+    store.setter(initializeViewportMetricsAtom, { ...initial, sheetId: 'next' })
+    expect(store.getter(viewportMetricsAtom)).toMatchObject({
+      sheetId: 'next',
+      scrollTop: 0,
+      scrollLeft: 0,
+    })
+  })
   test('size and scroll updates merge into the latest metrics', () => {
     const store = createStore()
     store.setter(setViewportMetricsAtom, {

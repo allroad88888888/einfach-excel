@@ -13,14 +13,17 @@ import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import {
   workbookDocumentAtom,
   publishWorkbookSheetStructureAtom,
+  syncWorkbookCanvasAtom,
 } from '../runtime/workbook-document'
 import { activateWorkbookSheetAtom } from '../runtime/activate-workbook-sheet'
 import { historyProjectionRequest } from '../rust-workbook/history-apply'
+import { structureSheet, structureSizeRange } from '../rust-workbook/structure-geometry'
 import { sheetTabsAtom } from '../sheet-tabs/state'
 import { systemClipboardFeedbackAtom } from '../clipboard/system-clipboard-command'
 import type { RustHistoryState } from './rust-history-types'
 import type { RustWorkbookSheet } from '../rust-workbook/commands'
 import { applySheetVisibility, validSheetVisibility } from '../viewport/hidden-state'
+import { selectionStructureFeedbackAtom } from '../toolbar/selection-structure-state'
 
 const EMPTY: RustHistoryState = { undoCount: 0, redoCount: 0, entries: [], notice: null }
 /** 直接读取 Rust 投影里的历史目录，不维护另一份 JS 撤销栈。 */
@@ -46,7 +49,8 @@ export const runRustHistoryAtom = atom(
     if (
       get(editingSessionAtom).source !== null ||
       get(sheetTabsAtom).mutation ||
-      get(systemClipboardFeedbackAtom).busy
+      get(systemClipboardFeedbackAtom).busy ||
+      get(selectionStructureFeedbackAtom).busy
     )
       return false
     const state = get(rustHistoryStateAtom)
@@ -90,14 +94,24 @@ export const runRustHistoryAtom = atom(
     })
     set(rustHistoryPanelAtom, { ...panel, busy: true, error: null })
     try {
+      const restored =
+        entry.structuralEdit && sheet
+          ? structureSheet(sheet, entry.structuralEdit, action === 'undo')
+          : undefined
+      const expectedSheets = restored
+        ? workbook.sheets.map((item) => (item.id === restored.id ? restored : item))
+        : workbook.sheets
       const result = await connection.request('history.apply', { direction: action, projection })
       if (get(rustWorkbookConnectionAtom) !== connection) return false
-      if (entry.sheetChange && !result.sheets?.length)
+      if ((entry.sheetChange || restored) && !result.sheets?.length)
         throw new Error('Rust returned no worksheet structure.')
       if (
         result.sheets &&
-        (!entry.sheetChange ||
-          !validHistorySheets(workbook.sheets, result.sheets, entry.sheetKey, result.sheetId))
+        ((!entry.sheetChange && !restored) ||
+          !validHistorySheets(expectedSheets, result.sheets, entry.sheetKey, result.sheetId) ||
+          (restored &&
+            (result.sheets.length !== expectedSheets.length ||
+              result.sheets.some((item, index) => item.id !== expectedSheets[index]?.id))))
       ) {
         throw new Error('Rust returned mismatched worksheet identities.')
       }
@@ -114,6 +128,16 @@ export const runRustHistoryAtom = atom(
         !validateProjectionResult(result.projection, { request }).ok
       )
         throw new Error('Rust returned a mismatched history result.')
+      if (restored) {
+        const expected = structureSizeRange(sheet!, restored)
+        if (
+          Object.entries(expected).some(
+            ([key, value]) => result.range[key as keyof typeof expected] !== value,
+          ) ||
+          !result.visibility
+        )
+          throw new Error('Rust returned incomplete structural geometry.')
+      }
       if (result.sheets) {
         set(publishWorkbookSheetStructureAtom, result.sheets)
         if (request.sheetId !== visible.sheetId) {
@@ -130,6 +154,7 @@ export const runRustHistoryAtom = atom(
         })
       set(applyVisibleProjectionAtom, { witness, request, result: result.projection })
       if (result.visibility) applySheetVisibility(get, set, result.sheetId, result.visibility)
+      if (restored) set(syncWorkbookCanvasAtom)
       set(rustHistoryPanelAtom, { ...panel, busy: false, error: null })
       return true
     } catch (error) {

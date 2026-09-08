@@ -5,7 +5,12 @@ import { resetWorkspaceSessionAtom, workspaceSessionAtom } from '../workspace'
 import { DEFAULT_SHEET_TABS_STATE, sheetTabsAtom } from '../sheet-tabs/state'
 import type { RustWorkbookSheet } from '../rust-workbook/commands'
 import { viewportSizeOverridesAtom } from '../viewport/size-overrides'
-import { sheetHiddenRowsBackingAtom, viewportHiddenColsBackingAtom, viewportFilterHiddenBackingAtom } from '../viewport/hidden-state'
+import { setViewportMetricsAtom, viewportMetricsAtom } from '../viewport/metrics'
+import {
+  sheetHiddenRowsBackingAtom,
+  viewportHiddenColsBackingAtom,
+  viewportFilterHiddenBackingAtom,
+} from '../viewport/hidden-state'
 
 export interface WorkbookDocumentSheet {
   readonly id: string
@@ -117,8 +122,9 @@ export const publishWorkbookSheetStructureAtom = atom(
       set(target, Object.fromEntries(Object.entries(get(target)).filter(([id]) => ids.has(id))))
     set(viewportFilterHiddenBackingAtom, {
       rowsBySheet: Object.fromEntries(
-        Object.entries(get(viewportFilterHiddenBackingAtom).rowsBySheet)
-          .filter(([id]) => ids.has(id)),
+        Object.entries(get(viewportFilterHiddenBackingAtom).rowsBySheet).filter(([id]) =>
+          ids.has(id),
+        ),
       ),
     })
     const sizes = get(viewportSizeOverridesAtom)
@@ -132,6 +138,16 @@ export const publishWorkbookSheetStructureAtom = atom(
     })
   },
 )
+
+/** 原表插删在完整尺寸投影发布后同步一次画布边界，不按切表流程重置为 A1。 */
+export const syncWorkbookCanvasAtom = atom(null, (get, set): void => {
+  const sheet = get(activeWorkbookSheetAtom)
+  if (!sheet) return
+  set(setSelectionBoundsAtom, { rowCount: sheet.rowCount, colCount: sheet.colCount })
+  const metrics = get(viewportMetricsAtom)
+  if (metrics.sheetId === sheet.id)
+    set(setViewportMetricsAtom, { ...metrics, rowCount: sheet.rowCount, colCount: sheet.colCount })
+})
 
 /** Clears workbook metadata after its owned Rust runtime is disposed. */
 export const clearWorkbookDocumentAtom = atom(null, (_get, set): void => {

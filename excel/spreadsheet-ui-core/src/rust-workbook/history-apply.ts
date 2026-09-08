@@ -4,6 +4,11 @@ import type { WasmWorkbook } from './wasm-types'
 import { readSheetMetadata } from './sheet-metadata'
 import { readVisibleProjection } from './visible-projection'
 import { readSizes } from './size-io'
+import {
+  structureSheet,
+  structureProjectionRequest,
+  structureSizeRange,
+} from './structure-geometry'
 
 /** 当前表还在就保持视图；被撤销新增移除时，落到相邻表的 A1。两端共用以校验返回结果。 */
 export function historyProjectionRequest(
@@ -11,7 +16,8 @@ export function historyProjectionRequest(
   sheets: readonly RustWorkbookSheet[],
   previousIndex: number,
 ): VisibleProjectionRequest {
-  if (sheets.some((sheet) => sheet.id === request.sheetId)) return request
+  const current = sheets.find((sheet) => sheet.id === request.sheetId)
+  if (current) return structureProjectionRequest(request, current)
   const next = sheets[Math.min(previousIndex, sheets.length - 1)]
   if (!next?.rowCount || !next.colCount)
     throw new Error('Restored worksheet bounds are unavailable.')
@@ -45,29 +51,46 @@ export function applyRustHistory(
   )
   if (!affected) throw new Error('History worksheet no longer exists.')
   if (
-    entry.sheetChange &&
+    (entry.sheetChange || entry.structuralEdit) &&
     (!workbook.sheet_key ||
       [...known.values()].some((sheet) => !sheet.key || !sheet.rowCount || !sheet.colCount))
   )
     throw new Error('Worksheet identity or bounds are unavailable.')
+  const restored = entry.structuralEdit
+    ? structureSheet(affected, entry.structuralEdit, input.direction === 'undo')
+    : undefined
+  if (
+    restored &&
+    (!workbook.snapshot_viewport_sizes ||
+      !workbook.sheet_visibility ||
+      !workbook.read_sparse_range ||
+      !workbook.snapshot_format_range)
+  )
+    throw new Error('Rust structure projection is unavailable.')
+  // 校验恢复后的窗口必须在原生修改之前，失败不能消耗历史条目。
+  if (restored)
+    structureProjectionRequest(input.projection, restored.id === visible.id ? restored : visible)
   if (!workbook.history_apply(input.direction))
     throw new Error('No operation is available to undo or redo.')
-  const sheets = entry.sheetChange ? readSheetMetadata(workbook, known) : undefined
+  if (restored) known.set(restored.id, restored)
+  const sheets = entry.sheetChange || restored ? readSheetMetadata(workbook, known) : undefined
   const request = sheets
     ? historyProjectionRequest(input.projection, sheets, visible.index)
     : input.projection
   const currentVisible = known.get(request.sheetId)!
   const target = known.get(affected.id)
   // 恢复表时补齐整张画布的稀疏尺寸，避免未进入视口的行高/列宽丢失导致滚动位置漂移。
-  const range =
-    entry.sheetChange && target && target.index >= 0
+  const range = restored
+    ? structureSizeRange(affected, restored)
+    : entry.sheetChange && target && target.index >= 0
       ? { rowStart: 0, colStart: 0, rowEnd: target.rowCount! - 1, colEnd: target.colCount! - 1 }
       : entry.range
   return {
     projection: readVisibleProjection(workbook, currentVisible.index, request, revision),
     sheetId: affected.id,
     ...(target && target.index >= 0 && workbook.sheet_visibility
-      ? { visibility: workbook.sheet_visibility(target.index) } : {}),
+      ? { visibility: workbook.sheet_visibility(target.index) }
+      : {}),
     range,
     sizes:
       target && target.index >= 0

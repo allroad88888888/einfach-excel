@@ -13,6 +13,7 @@ import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import { selectionSnapshotAtom } from '../selection'
 import type { CellRange } from '../shared'
 import { viewportMetricsAtom } from '../viewport/metrics'
+import { selectionStructureFeedbackAtom } from './selection-structure-state'
 import {
   getViewportColumnWidth,
   getViewportRowHeight,
@@ -43,7 +44,7 @@ export const runSelectionSizeAtom = atom(
   null,
   async (get, set, action: SizeAction): Promise<boolean> => {
     const state = get(selectionSizePanelAtom)
-    if (state.busy) return false
+    if (state.busy || get(selectionStructureFeedbackAtom).busy) return false
     if (action === 'close') {
       set(selectionSizePanelAtom, CLOSED)
       return true

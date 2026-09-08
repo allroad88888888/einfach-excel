@@ -1,4 +1,5 @@
 import { atom } from '@einfach/core'
+import { selectionStructureFeedbackAtom } from '../toolbar/selection-structure-state'
 import { editingSessionAtom } from '../editing/session-atoms'
 import { resolveContentMutationAtom } from '../editing/mutation-gateway'
 import {
@@ -86,7 +87,12 @@ const ERROR_MESSAGES: Readonly<Record<string, string>> = {
 export const runSystemClipboardAtom = atom(
   null,
   async (get, set, input: SystemClipboardOperation): Promise<boolean> => {
-    if (get(feedbackAtom).busy || get(editingSessionAtom).source !== null) return false
+    if (
+      get(feedbackAtom).busy ||
+      get(editingSessionAtom).source !== null ||
+      get(selectionStructureFeedbackAtom).busy
+    )
+      return false
     const sheet = get(activeWorkbookSheetAtom)
     const connection = get(rustWorkbookConnectionAtom)
     const selection = get(selectionSnapshotAtom)

@@ -1,7 +1,6 @@
 //! 粘贴事务：完整预检后再一次写入，重叠剪切先清源再落目标。
 
 use super::*;
-use crate::{parse_formula, render_formula, CellStyle, StyleScope};
 
 impl Workbook {
     pub fn paste_clipboard(
@@ -34,8 +33,9 @@ impl Workbook {
         if self.is_inside_custom_call() {
             return Err("CLIPBOARD_MUTATION_DURING_CUSTOM_CALL");
         }
-        let range = snapshot.paste_target(options)?;
         let sheet = self.sheet(sheet_idx).ok_or("CLIPBOARD_INVALID_SHEET")?;
+        let logical_target = merge::logical_target(snapshot, sheet, options);
+        let range = snapshot.paste_target(options, logical_target)?;
         if options.mode == ClipboardPasteMode::ColumnWidths {
             return self.paste_column_widths(snapshot, sheet_idx, range, history);
         }
@@ -43,8 +43,8 @@ impl Workbook {
             if snapshot.source_sheet != Some(sheet_idx) {
                 return Err("CLIPBOARD_CROSS_SHEET_CUT");
             }
-            if sheet.merged_ranges().iter().any(|merge| merge.intersects(snapshot.source)) {
-                return Err("Unmerge cells before cutting this range.");
+            if sheet.merges_in_range(snapshot.source) != snapshot.merges {
+                return Err("CLIPBOARD_CUT_SOURCE_CHANGED");
             }
             for (addr, original) in snapshot.source.iter().zip(&snapshot.cells) {
                 let current = read_cell(sheet, addr);
@@ -56,104 +56,15 @@ impl Workbook {
                 }
             }
         }
-        let mut planned = Vec::with_capacity(range.cell_count() as usize);
-        let mut formula_bytes = 0usize;
-        for addr in range.iter() {
-            let (origin, cell) = snapshot.cell_at_target(addr, range, options.transpose);
-            // 空白源格不写值，也不覆盖目标格式；它对应的 spill 结果同样不受影响。
-            if options.skip_blanks && cell.is_blank() {
-                continue;
-            }
-            // 合并剪贴板几何尚未迁移；拒绝不可见数据写入，且必须早于任何实际修改。
-            if options.mode != ClipboardPasteMode::Formats &&
-                sheet.merged_range_at(addr).is_some_and(|merge| merge.start != addr) {
-                return Err("Unmerge the destination before pasting into covered cells.");
-            }
-            if options.mode != ClipboardPasteMode::Formats && sheet.is_spill_region(addr) {
-                return Err("CLIPBOARD_SPILL_TARGET");
-            }
-            let value = match options.mode {
-                ClipboardPasteMode::Formats | ClipboardPasteMode::ColumnWidths => None,
-                ClipboardPasteMode::Values
-                | ClipboardPasteMode::ValuesAndFormats
-                | ClipboardPasteMode::ValuesAndNumberFormats => {
-                    Some(ClipboardValue::Literal(match &cell.value {
-                        ClipboardValue::Formula { source, evaluated } => evaluated
-                            .clone()
-                            .unwrap_or_else(|| Value::Text(source.clone())),
-                        ClipboardValue::Literal(value) => value.clone(),
-                    }))
-                }
-                ClipboardPasteMode::All
-                | ClipboardPasteMode::Formulas
-                | ClipboardPasteMode::FormulasAndNumberFormats => Some(match &cell.value {
-                    ClipboardValue::Formula { source, .. } => {
-                        let mut expr = parse_formula(source).ok_or("CLIPBOARD_INVALID_FORMULA")?;
-                        let original = expr.clone();
-                        if snapshot.cut {
-                            move_refs::rewrite(
-                                &mut expr,
-                                true,
-                                self.name(sheet_idx).unwrap(),
-                                snapshot.source,
-                                range.start,
-                            )?;
-                        } else if snapshot.source_sheet.is_some() {
-                            // 每个平铺格相对自己的源格平移，而不是整个选区共用一次偏移。
-                            expr = crate::shift::shift_copy_formula(
-                                &expr,
-                                i64::from(addr.row) - i64::from(origin.row),
-                                i64::from(addr.col) - i64::from(origin.col),
-                            )
-                            .map_err(|_| "CLIPBOARD_UNSUPPORTED_FORMULA")?;
-                        }
-                        ClipboardValue::Formula {
-                            source: if expr == original {
-                                source.clone()
-                            } else {
-                                render_formula(&expr)
-                            },
-                            evaluated: None,
-                        }
-                    }
-                    other => other.clone(),
-                }),
-            };
-            let value = if options.arithmetic == ClipboardArithmetic::None {
-                value
-            } else {
-                // 目标公式只取源文本，不为组合表达式额外计算一次结果或读取样式。
-                let target = match sheet.formula_text_at(addr) {
-                    Some(source) => ClipboardValue::Formula {
-                        source,
-                        evaluated: None,
-                    },
-                    None => ClipboardValue::Literal(sheet.peek_value(addr)),
-                };
-                value
-                    .map(|value| options.arithmetic.combine(target, value))
-                    .transpose()?
-            };
-            if let Some(ClipboardValue::Formula { source, .. }) = &value {
-                formula_bytes = formula_bytes.saturating_add(source.len());
-                if formula_bytes > MAX_CLIPBOARD_TEXT_BYTES {
-                    return Err("CLIPBOARD_TOO_LARGE");
-                }
-            }
-            let format = match options.mode {
-                ClipboardPasteMode::Values | ClipboardPasteMode::Formulas => None,
-                ClipboardPasteMode::FormulasAndNumberFormats
-                | ClipboardPasteMode::ValuesAndNumberFormats => {
-                    // 只补数字格式，不把源字体/颜色或默认值盖到目标行列样式上。
-                    cell.format.as_ref().map(|format| CellStyle {
-                        number_format: Some(format.number_format.clone()),
-                        ..Default::default()
-                    })
-                }
-                _ => cell.format.clone().map(CellStyle::from_format),
-            };
-            planned.push((addr, value, format));
-        }
+        let merges = merge::MergePastePlan::prepare(
+            self,
+            snapshot,
+            sheet_idx,
+            options,
+            range,
+            logical_target.is_some(),
+        )?;
+        let planned = paste_values::plan_cells(self, snapshot, sheet_idx, range, options, &merges)?;
         let dependents = if snapshot.cut {
             move_refs::dependent_writes(self, sheet_idx, snapshot.source, range)?
         } else {
@@ -178,50 +89,19 @@ impl Workbook {
                     planned.iter().map(|(addr, _, _)| *addr),
                     &dependents,
                 ),
+                merges.changed(),
             )?;
         }
 
-        // 从这里开始不再返回预检错误；仅格式粘贴完全不进入值写入/公式计算链路。
-        if options.mode != ClipboardPasteMode::Formats {
-            self.bulk_load(|loader| {
-                if snapshot.cut {
-                    for addr in snapshot.source.iter() {
-                        loader.clear_cell_at(sheet_idx, addr);
-                    }
-                }
-                for (addr, value, _) in &planned {
-                    match value {
-                        Some(ClipboardValue::Formula { source, .. }) => {
-                            loader.set_formula_at(sheet_idx, *addr, source);
-                        }
-                        Some(ClipboardValue::Literal(Value::Null)) => {
-                            loader.clear_cell_at(sheet_idx, *addr)
-                        }
-                        Some(ClipboardValue::Literal(value)) => {
-                            loader.set_cell_at(sheet_idx, *addr, value.clone())
-                        }
-                        None => {}
-                    }
-                }
-                for (sheet, addr, text) in &dependents {
-                    loader.set_formula_at(*sheet, *addr, text);
-                }
-            });
-        }
-        let sheet = self.sheet_mut(sheet_idx).unwrap();
-        if snapshot.cut {
-            sheet.patch_format_range(
-                snapshot.source,
-                StyleScope::Cell,
-                CellStyle::from_format(CellFormat::default()),
-            );
-        }
-        for (addr, _, format) in planned {
-            if let Some(format) = format {
-                // 默认格式也要压住目标原有的行/列样式。
-                sheet.patch_format_range(CellRange::single(addr), StyleScope::Cell, format);
-            }
-        }
+        apply::apply_paste(
+            self,
+            snapshot,
+            sheet_idx,
+            options,
+            planned,
+            &dependents,
+            &merges,
+        );
         if let Some(history) = history {
             history.finish(self, true)?;
         }

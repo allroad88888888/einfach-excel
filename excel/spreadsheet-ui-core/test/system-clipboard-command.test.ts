@@ -58,6 +58,24 @@ async function setup() {
 
 describe('system clipboard commands', () => {
   test.each([
+    ['CLIPBOARD_PARTIAL_MERGE', 'whole merged cells'],
+    ['CLIPBOARD_MERGE_CONTENT', 'hide cell content'],
+    ['CLIPBOARD_MERGE_TABLE', 'Excel Table'],
+  ])('explains native merge rejection %s without changing projection', async (code, message) => {
+    const { store, paste } = await setup()
+    const before = store.getter(projectionSnapshotAtom)
+    paste.mockRejectedValueOnce(new Error(code))
+    expect(
+      await store.setter(runSystemClipboardAtom, {
+        operation: 'paste',
+        read: async () => ({ text: 'value' }),
+      }),
+    ).toBe(false)
+    expect(store.getter(projectionSnapshotAtom)).toBe(before)
+    expect(store.getter(systemClipboardFeedbackAtom).message).toContain(message)
+  })
+
+  test.each([
     'all',
     'values',
     'formats',

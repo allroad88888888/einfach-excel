@@ -57,6 +57,10 @@ const feedbackAtom = atom<SystemClipboardFeedback>({ busy: false, error: false, 
 export const systemClipboardFeedbackAtom = atom((get) => get(feedbackAtom))
 
 const ERROR_MESSAGES: Readonly<Record<string, string>> = {
+  CLIPBOARD_PARTIAL_MERGE: 'Select whole merged cells before copying or pasting.',
+  CLIPBOARD_MERGE_CONTENT:
+    'The paste would hide cell content. Unmerge the destination or change the selection first.',
+  CLIPBOARD_MERGE_TABLE: 'Merged cells cannot be pasted inside an Excel Table.',
   CLIPBOARD_EMPTY: 'The copied worksheet was deleted. Copy cells again before pasting.',
   CLIPBOARD_SELECTION_SIZE:
     'The selected range must fit whole copies of the clipboard. Nothing was pasted.',

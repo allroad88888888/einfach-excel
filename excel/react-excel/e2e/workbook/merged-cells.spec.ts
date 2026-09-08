@@ -126,3 +126,24 @@ test('merge menu and confirmation fit desktop and narrow screens', async ({ page
   }
   expect(errors).toEqual([])
 })
+
+test('a merged cell remains editable when its anchor row and column are hidden', async ({
+  page,
+}) => {
+  await select(page, 'B2:C3', '1:1')
+  await merge(page)
+  const visibility = page.getByRole('combobox', { name: 'Row and column visibility' })
+  await page.getByRole('button', { name: 'Select row 2', exact: true }).click()
+  await visibility.selectOption('hide-rows')
+  await expect(visibility).toBeEnabled()
+  await page.getByRole('columnheader', { name: 'Select column B', exact: true }).click()
+  await visibility.selectOption('hide-columns')
+  await expect(visibility).toBeEnabled()
+  await expect(merged(page)).toBeVisible()
+  await merged(page).dblclick()
+  const editor = page.getByRole('textbox', { name: 'Cell editor', exact: true })
+  await expect(editor).toHaveValue('Acme Co.')
+  await editor.fill('Visible merged edit')
+  await editor.press('Enter')
+  await expect(merged(page)).toHaveText('Visible merged edit')
+})

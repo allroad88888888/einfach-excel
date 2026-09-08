@@ -1,4 +1,4 @@
-//! 合并剪贴板几何未实现前，旧粘贴事务不能向覆盖格偷偷写入或只搬走锚点。
+//! 合并剪贴板边界：拒绝部分覆盖与过期剪切，但完整合并区允许剪切。
 use einfach_core::Value;
 use einfach_excel_core::clipboard::{ClipboardPasteMode, ClipboardPasteOptions, ClipboardSnapshot};
 use einfach_excel_core::{CellAddress, CellRange, MergeAction, Workbook};
@@ -24,7 +24,7 @@ fn stale_cut_cannot_leave_a_merge_behind_and_single_anchor_paste_remains_valid()
     wb.set_cell(0, "A1", Value::Number(4.0));
     let cut = wb.capture_clipboard(0, range("A1", "A1"), true).unwrap();
     wb.merge_cells(0, range("A1", "B2"), MergeAction::Merge, false).unwrap();
-    assert!(wb.capture_clipboard(0, range("A1", "B2"), true).is_err());
+    assert!(wb.capture_clipboard(0, range("A1", "B2"), true).is_ok());
     assert!(wb.paste_clipboard(&cut, 0, &ClipboardPasteOptions::new(range("D1", "D1"))).is_err());
     assert_eq!(wb.get_cell("Sheet1", "D1"), Value::Null);
     let value = ClipboardSnapshot::from_tsv("8", ClipboardPasteMode::All).unwrap();

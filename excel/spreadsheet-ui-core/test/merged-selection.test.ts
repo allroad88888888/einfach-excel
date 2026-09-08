@@ -11,6 +11,10 @@ import { startCellEditingFromProjectionAtom } from '../src/editing/start-cell-ed
 import { editingSessionAtom } from '../src/editing/session-atoms'
 import { activeCellFormatAtom } from '../src/projection'
 import { dispatchKeyboardInputAtom } from '../src/keyboard'
+import {
+  sheetHiddenRowsBackingAtom,
+  viewportHiddenColsBackingAtom,
+} from '../src/viewport/hidden-state'
 
 const merge = { rowStart: 1, rowEnd: 2, colStart: 1, colEnd: 2 }
 function setup() {
@@ -93,3 +97,20 @@ test('native projection geometry drives arrow entry and exit without a React res
   store.setter(dispatchKeyboardInputAtom, { key: 'ArrowDown' })
   expect(store.getter(activeCellAtom)).toMatchObject({ row: 3, col: 1 })
 })
+
+test.each([false, true])(
+  'merge editing checks the whole rectangle (fully hidden=%s)',
+  (allHidden) => {
+    const store = setup()
+    store.setter(sheetHiddenRowsBackingAtom, { s: allHidden ? [1, 2] : [1] })
+    store.setter(viewportHiddenColsBackingAtom, { s: [1] })
+    expect(
+      store.setter(startCellEditingFromProjectionAtom, {
+        sheetId: 's',
+        cell: { row: 1, col: 1 },
+      }),
+    ).toBe(!allHidden)
+    if (!allHidden)
+      expect(store.getter(editingSessionAtom).source?.cell).toEqual({ row: 1, col: 1 })
+  },
+)

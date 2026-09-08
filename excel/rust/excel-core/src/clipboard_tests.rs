@@ -252,5 +252,5 @@ fn validate(
     options.row_count = rows;
     options.col_count = cols;
     options.unlocked_ranges = unlocked.map(|ranges| ranges.to_vec());
-    clip.paste_target(&options).map(|_| ())
+    clip.paste_target(&options, None).map(|_| ())
 }

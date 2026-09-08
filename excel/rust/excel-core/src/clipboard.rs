@@ -12,10 +12,16 @@ mod paste;
 #[path = "clipboard_paste_target.rs"]
 mod paste_target;
 pub use arithmetic::ClipboardArithmetic;
+#[path = "clipboard_apply.rs"]
+mod apply;
 #[path = "clipboard_column_widths.rs"]
 mod column_widths;
 #[path = "clipboard_history_targets.rs"]
 mod history_targets;
+#[path = "clipboard_merge.rs"]
+mod merge;
+#[path = "clipboard_paste_values.rs"]
+mod paste_values;
 pub use paste_target::{ClipboardPasteMode, ClipboardPasteOptions};
 #[path = "clipboard_tsv.rs"]
 mod tsv;
@@ -56,6 +62,8 @@ pub struct ClipboardSnapshot {
     text: String,
     // 仅列宽粘贴使用复制时的列属性；None 表示默认宽度，不是漏读。
     column_widths: Vec<Option<u32>>,
+    // 原生快照保留复制时的矩形，之后取消源合并也不改变剪贴板。
+    merges: Vec<CellRange>,
 }
 
 impl ClipboardSnapshot {
@@ -144,8 +152,12 @@ impl Workbook {
     ) -> Result<ClipboardSnapshot, ClipboardError> {
         validate_range(range)?;
         let sheet = self.sheet(sheet_idx).ok_or("CLIPBOARD_INVALID_SHEET")?;
-        if cut && sheet.merged_ranges().iter().any(|merge| merge.intersects(range)) {
-            return Err("Unmerge cells before cutting this range.");
+        let merges = sheet.merges_in_range(range);
+        if merges
+            .iter()
+            .any(|merge| !range.contains(merge.start) || !range.contains(merge.end))
+        {
+            return Err("CLIPBOARD_PARTIAL_MERGE");
         }
         let mut cells = Vec::with_capacity(range.cell_count() as usize);
         let mut text = String::new();
@@ -175,6 +187,7 @@ impl Workbook {
             column_widths: (range.start.col..=range.end.col)
                 .map(|col| sheet.col_width(col))
                 .collect(),
+            merges,
         })
     }
 }

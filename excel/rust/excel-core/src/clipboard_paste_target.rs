@@ -60,6 +60,7 @@ impl ClipboardSnapshot {
     pub(super) fn paste_target(
         &self,
         options: &ClipboardPasteOptions,
+        logical_target: Option<CellAddress>,
     ) -> Result<CellRange, ClipboardError> {
         let selection = options.selection;
         validate_range(selection)?;
@@ -98,7 +99,9 @@ impl ClipboardSnapshot {
         } else {
             (self.rows(), self.cols())
         };
-        let range = if selection.rows() == 1 && selection.cols() == 1 {
+        let range = if let Some(anchor) = logical_target {
+            CellRange::single(anchor)
+        } else if selection.rows() == 1 && selection.cols() == 1 {
             CellRange::new(
                 selection.start,
                 CellAddress::new(

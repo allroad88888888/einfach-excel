@@ -175,6 +175,9 @@ struct WorkbookPersistenceV1JSON {
     version: u32,
     sheets: Vec<WorkbookPersistenceSheetMetaJSON>,
     cells: Vec<SparseCellJSON>,
+    /// 合并矩形属于工作表几何，不混进单元格格式；旧快照缺省为空。
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    merges: Vec<SheetMergesJSON>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     formats: Vec<FormatRangeSnapshotJSON>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]

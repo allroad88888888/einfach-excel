@@ -8,6 +8,7 @@ pub struct HistorySnapshot {
     pub cells: Option<Vec<CellSnapshot>>,
     pub formats: FormatRangeSnapshot,
     pub column_widths: Vec<(u32, u32)>,
+    pub(crate) merges: Option<Vec<CellRange>>,
 }
 
 impl HistorySnapshot {
@@ -44,7 +45,20 @@ impl HistorySnapshot {
             cells,
             formats: sheet.snapshot_format_range(range),
             column_widths: sheet.col_widths_in_range(range.start.col, range.end.col),
+            merges: None,
         }
+    }
+
+    /// 只有会改变合并几何的命令才携带它，普通输入/格式历史仍只记录原有字段。
+    pub(crate) fn capture_with_merges(
+        sheet: &Sheet,
+        range: CellRange,
+        content: bool,
+        merges: bool,
+    ) -> Self {
+        let mut snapshot = Self::capture(sheet, range, content);
+        snapshot.merges = merges.then(|| sheet.merges_in_range(range));
+        snapshot
     }
 
     /// 一次 Store batch 内恢复源数据，随后还原写入自动改变的行高/格式。
@@ -75,5 +89,9 @@ impl HistorySnapshot {
                 + self.formats.column_styles.len())
                 * 512
             + self.column_widths.len() * 16
+            + self
+                .merges
+                .as_ref()
+                .map_or(0, |ranges| ranges.len() * std::mem::size_of::<CellRange>())
     }
 }

@@ -75,6 +75,8 @@ mod workbook_structural_preflight;
 pub(crate) use workbook_structural_history::StructuralHistoryChange;
 #[path = "workbook_history_restore.rs"]
 mod workbook_history_restore;
+#[path = "workbook_history_restore_merged.rs"]
+mod workbook_history_restore_merged;
 #[path = "workbook_sheet_edit.rs"]
 mod workbook_sheet_edit;
 #[path = "workbook_sheet_refs.rs"]

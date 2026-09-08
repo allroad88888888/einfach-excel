@@ -7,6 +7,40 @@ impl Sheet {
         &self.merged_ranges
     }
 
+    /// 恢复稀疏合并元数据；先完整校验，不能用导入悄悄覆盖已有内容。
+    /// 只扫描范围内已存储的地址，不展开空白矩形或求值惰性公式。
+    pub fn restore_merged_ranges(&mut self, ranges: Vec<CellRange>) -> Result<(), &'static str> {
+        for (index, range) in ranges.iter().enumerate() {
+            if range.start.row > range.end.row
+                || range.start.col > range.end.col
+                || range.end.row >= EXCEL_MAX_ROWS
+                || range.end.col >= EXCEL_MAX_COLS
+                || range.start == range.end
+            {
+                return Err("Invalid persisted merge range.");
+            }
+            if ranges[..index].iter().any(|other| other.intersects(*range)) {
+                return Err("Persisted merge ranges overlap.");
+            }
+            let mut covered_content = false;
+            self.for_each_non_empty_in_range(*range, |addr| {
+                // 批量恢复可能已经生成数组子格；它们不是用户内容，下面会按合并几何重新投影。
+                covered_content |= addr != range.start && !self.is_spilled(addr);
+            });
+            if covered_content {
+                return Err("Persisted merge covers cell content.");
+            }
+        }
+        self.restore_merge_geometry(
+            CellRange::new(
+                CellAddress::new(0, 0),
+                CellAddress::new(EXCEL_MAX_ROWS - 1, EXCEL_MAX_COLS - 1),
+            ),
+            &ranges,
+        );
+        Ok(())
+    }
+
     /// 返回整个相交矩形，锚点在视口外时也能正确投影。
     pub fn merges_in_range(&self, range: CellRange) -> Vec<CellRange> {
         self.merged_ranges

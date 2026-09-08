@@ -47,12 +47,12 @@ impl Sheet {
         self.bump_formula_topology_epoch();
         let points: HashSet<_> = snapshots
             .iter()
-            .filter(|s| s.range.start == s.range.end)
+            .filter(|s| s.cells.is_some() && s.range.start == s.range.end)
             .map(|s| s.range.start)
             .collect();
         let ranges: Vec<_> = snapshots
             .iter()
-            .filter(|s| s.range.start != s.range.end)
+            .filter(|s| s.cells.is_some() && s.range.start != s.range.end)
             .map(|s| s.range)
             .collect();
         // 一次稀疏扫描，不为每条跨表引用重复扫描整张表。

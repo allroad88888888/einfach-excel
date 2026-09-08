@@ -72,7 +72,14 @@ impl WorkbookHistory {
         label: &str,
         content: bool,
     ) -> Result<(), &'static str> {
-        self.begin_ranges(workbook, sheet, range, label, &[(sheet, range, content)])
+        self.begin_ranges(
+            workbook,
+            sheet,
+            range,
+            label,
+            &[(sheet, range, content)],
+            false,
+        )
     }
 
     /// 多范围仍是一条用户操作，范围由原生命令的预检结果提供。
@@ -83,6 +90,7 @@ impl WorkbookHistory {
         range: CellRange,
         label: &str,
         targets: &[(usize, CellRange, bool)],
+        merges: bool,
     ) -> Result<(), &'static str> {
         if self.pending.is_some() {
             return Err("Another history command is pending.");
@@ -97,10 +105,15 @@ impl WorkbookHistory {
             range,
             before: targets
                 .iter()
-                .map(|(sheet, range, content)| {
+                .map(|(index, range, content)| {
                     (
-                        *sheet,
-                        HistorySnapshot::capture(workbook.sheet(*sheet).unwrap(), *range, *content),
+                        *index,
+                        HistorySnapshot::capture_with_merges(
+                            workbook.sheet(*index).unwrap(),
+                            *range,
+                            *content,
+                            merges && *index == sheet,
+                        ),
                     )
                 })
                 .collect(),
@@ -125,7 +138,12 @@ impl WorkbookHistory {
                     .ok_or("History worksheet no longer exists.")?;
                 Ok((
                     *sheet,
-                    HistorySnapshot::capture(target, before.range, before.cells.is_some()),
+                    HistorySnapshot::capture_with_merges(
+                        target,
+                        before.range,
+                        before.cells.is_some(),
+                        before.merges.is_some(),
+                    ),
                 ))
             })
             .collect::<Result<Vec<_>, &'static str>>()?;

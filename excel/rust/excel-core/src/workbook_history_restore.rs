@@ -14,6 +14,9 @@ impl Workbook {
         {
             return Err("History worksheet no longer exists.");
         }
+        if snapshots.iter().any(|(_, snapshot)| snapshot.merges.is_some()) {
+            return self.restore_merged_history_snapshots(snapshots);
+        }
         let store = self.store.clone();
         let mut result = Ok(());
         store.batch(|_| {

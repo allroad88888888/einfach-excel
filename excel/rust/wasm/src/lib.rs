@@ -133,6 +133,8 @@ impl Default for WasmWorkbook {
 
 include!("wasm_workbook_helpers.rs");
 include!("wasm_workbook_persistence_helpers.rs");
+include!("wasm_workbook_restore.rs");
+include!("wasm_merge_persistence.rs");
 
 include!("wasm_sparse_install.rs");
 include!("wasm_write_errors.rs");
@@ -159,6 +161,7 @@ mod tests {
     include!("wasm_tests/sort_and_sheet.rs");
     include!("wasm_tests/workbook_sparse.rs");
     include!("wasm_tests/persistence_roundtrip.rs");
+    include!("wasm_tests/merge_persistence.rs");
     include!("wasm_tests/persistence_validation.rs");
     include!("wasm_tests/print_config.rs");
     include!("wasm_tests/conditional_format.rs");

@@ -8,6 +8,31 @@ export const SALES_ORDER_SUMMARY_CELLS: readonly RustImportCell[] = [
   { sheet: 1, row: 1, col: 1, kind: 'formula', value: "='Sales Orders'!B2" },
   { sheet: 1, row: 9, col: 0, kind: 'text', value: 'Hidden row example' },
   { sheet: 1, row: 0, col: 6, kind: 'text', value: 'Hidden column example' },
+  // 离屏内容参与自动适应；仅给演示数据加格式，不在 React 写坐标特判。
+  {
+    sheet: 1,
+    row: 89,
+    col: 4,
+    kind: 'text',
+    value: 'Offscreen customer — Northwind International',
+    format: { bold: true, fontSize: 14 },
+  },
+  {
+    sheet: 1,
+    row: 89,
+    col: 5,
+    kind: 'text',
+    value: '第一行\nSecond line\n第三行',
+    format: { italic: true, wrap: true },
+  },
+  {
+    sheet: 1,
+    row: 89,
+    col: 7,
+    kind: 'formula',
+    value: "='Sales Orders'!G2*1000000",
+    format: { numberFormat: { kind: 'number', digits: 2, thousands: true } },
+  },
   {
     sheet: 1,
     row: 14,

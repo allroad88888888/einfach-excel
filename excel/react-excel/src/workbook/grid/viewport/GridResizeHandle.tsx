@@ -12,6 +12,7 @@ import {
   viewportMetricsAtom,
 } from '@einfach/spreadsheet-ui-core'
 import { useEffect, useRef } from 'react'
+import { readAutoFitLayout } from './read-auto-fit-layout'
 import './grid-resize.css'
 
 /** 手柄只处理 DOM 捕获与键盘；尺寸草稿及落库由公共 command atom 负责。 */
@@ -43,6 +44,12 @@ export function GridResizeHandle({
     : axis === 'row'
       ? getViewportRowHeight(sizes, sheet?.id ?? '', index, metrics.rowHeight)
       : getViewportColumnWidth(sizes, sheet?.id ?? '', index, metrics.colWidth)
+  const autoFit = (element: HTMLSpanElement) => {
+    if (disabled) return
+    const layout = readAutoFitLayout(element)
+    if (layout)
+      void Promise.resolve(run({ phase: 'auto-fit', axis, index, layout })).then(focusGrid)
+  }
   useEffect(() => {
     if (pointerId === undefined) return
     const cancel = () => {
@@ -76,7 +83,7 @@ export function GridResizeHandle({
       aria-valuemax={axis === 'row' ? 512 : 1024}
       aria-valuenow={pixels}
       aria-disabled={disabled}
-      title={`Drag to resize ${axis}; arrow keys adjust by 10 px`}
+      title={`Drag to resize ${axis}; double-click or Enter to auto-fit; arrow keys adjust by 10 px`}
       onPointerDown={(event) => {
         event.preventDefault()
         event.stopPropagation()
@@ -114,8 +121,18 @@ export function GridResizeHandle({
         void run({ phase: 'cancel', pointerId: event.pointerId })
       }}
       onClick={(event) => event.stopPropagation()}
-      onDoubleClick={(event) => event.stopPropagation()}
+      onDoubleClick={(event) => {
+        event.preventDefault()
+        event.stopPropagation()
+        autoFit(event.currentTarget)
+      }}
       onKeyDown={(event) => {
+        if (event.key === 'Enter') {
+          event.preventDefault()
+          event.stopPropagation()
+          autoFit(event.currentTarget)
+          return
+        }
         const keys = axis === 'row' ? ['ArrowUp', 'ArrowDown'] : ['ArrowLeft', 'ArrowRight']
         const direction = keys.indexOf(event.key)
         if (direction < 0 || disabled) return

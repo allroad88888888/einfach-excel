@@ -13,6 +13,10 @@ import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
 import { GridHeading } from '../../../src/workbook/grid/viewport/GridHeading'
 import { SelectionSizeTools } from '../../../src/workbook/chrome/ribbon/SelectionSizeTools'
 
+vi.mock('../../../src/workbook/grid/viewport/read-auto-fit-layout', () => ({
+  readAutoFitLayout: () => ({ fontFamily: 'Arial', fontSize: 12, lineHeight: 14.4 }),
+}))
+
 async function setup() {
   const project = (p: VisibleProjectionRequest) => ({ ...p, cells: [], revision: 1 })
   const resize = vi.fn(async (p: RustWorkbookCommands['range.resize']['payload']) => ({
@@ -97,3 +101,22 @@ test('a native rejection is readable outside the size dialog', async () => {
   expect(screen.getByRole('alert')).toHaveTextContent('Resize denied')
   expect(screen.queryByRole('dialog')).toBeNull()
 })
+
+test.each(['double-click', 'Enter'])(
+  '%s dispatches one automatic size command',
+  async (gesture) => {
+    const { resize } = await setup()
+    const handle = screen.getByRole('separator', { name: 'Resize column B' })
+    await act(async () => {
+      if (gesture === 'Enter') fireEvent.keyDown(handle, { key: 'Enter' })
+      else fireEvent.doubleClick(handle)
+    })
+    expect(resize).toHaveBeenCalledTimes(1)
+    expect(resize.mock.calls[0][0]).toMatchObject({
+      axis: 'column',
+      autoFit: { fontFamily: 'Arial', fontSize: 12 },
+      range: { rowStart: 0, rowEnd: 99, colStart: 1, colEnd: 1 },
+    })
+    expect(screen.queryByRole('dialog')).toBeNull()
+  },
+)

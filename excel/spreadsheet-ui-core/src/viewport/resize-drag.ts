@@ -4,6 +4,7 @@ import { projectionSnapshotAtom } from '../projection/state'
 import { activeWorkbookSheetAtom } from '../runtime/workbook-document'
 import { selectionSnapshotAtom } from '../selection'
 import type { CellRange } from '../shared'
+import type { AutoFitLayout } from '../rust-workbook/auto-fit-measurement'
 import { runSelectionSizeAtom, selectionSizePanelAtom } from '../toolbar/selection-size-command'
 import { viewportGeometrySizesAtom } from './geometry-sizes'
 import { viewportMetricsAtom } from './metrics'
@@ -33,6 +34,7 @@ interface ResizeDrag {
 export const resizeDragAtom = atom<ResizeDrag | null>(null)
 resizeDragAtom.debugLabel = 'spreadsheet.viewport.resizeDrag'
 type ResizeGesture =
+  | { phase: 'auto-fit'; axis: 'row' | 'column'; index: number; layout: AutoFitLayout }
   | { phase: 'start'; axis: 'row' | 'column'; index: number; pointerId: number; position: number }
   | { phase: 'move'; pointerId: number; position: number }
   | { phase: 'commit' | 'cancel'; pointerId: number }
@@ -43,7 +45,7 @@ export const runResizeDragAtom = atom(
   (get, set, input: ResizeGesture): boolean | Promise<boolean> => {
     const sheet = get(activeWorkbookSheetAtom)
     const current = get(resizeDragAtom)
-    if (input.phase === 'start') {
+    if (input.phase === 'start' || input.phase === 'auto-fit') {
       const projection = get(projectionSnapshotAtom)
       if (
         !sheet ||
@@ -53,7 +55,7 @@ export const runResizeDragAtom = atom(
         get(selectionSizePanelAtom).target ||
         projection.status !== 'ready' ||
         projection.request?.sheetId !== sheet.id ||
-        !Number.isFinite(input.position) ||
+        (input.phase === 'start' && !Number.isFinite(input.position)) ||
         !Number.isInteger(input.index) ||
         input.index < 0 ||
         input.index >= (input.axis === 'row' ? sheet.rowCount : sheet.colCount)
@@ -89,6 +91,13 @@ export const runResizeDragAtom = atom(
           ? getViewportRowHeight(sizes, sheet.id, input.index, metrics.rowHeight)
           : getViewportColumnWidth(sizes, sheet.id, input.index, metrics.colWidth)
       if (initial <= 0) return false
+      if (input.phase === 'auto-fit')
+        return set(runSelectionSizeAtom, {
+          axis: input.axis,
+          pixels: 0,
+          autoFit: input.layout,
+          target: { sheetId: sheet.id, range },
+        })
       set(resizeDragAtom, {
         sheetId: sheet.id,
         axis: input.axis,

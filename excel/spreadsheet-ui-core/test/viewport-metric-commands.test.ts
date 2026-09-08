@@ -36,9 +36,16 @@ describe('viewport metric commands', () => {
       viewportHeight: 320,
       viewportWidth: 420,
     })
-    store.setter(initializeViewportMetricsAtom, { ...initial, sheetId: 'next' })
+    store.setter(initializeViewportMetricsAtom, {
+      ...initial,
+      sheetId: 'next',
+      viewportHeight: 896,
+      viewportWidth: 960,
+    })
     expect(store.getter(viewportMetricsAtom)).toMatchObject({
       sheetId: 'next',
+      viewportHeight: 320,
+      viewportWidth: 420,
       scrollTop: 0,
       scrollLeft: 0,
     })

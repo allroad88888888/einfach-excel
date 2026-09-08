@@ -12,6 +12,7 @@ import { validateProjectionResult } from '../projection/contracts'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import { selectionSnapshotAtom } from '../selection'
 import type { CellRange } from '../shared'
+import type { AutoFitLayout } from '../rust-workbook/auto-fit-measurement'
 import { viewportMetricsAtom } from '../viewport/metrics'
 import { selectionStructureFeedbackAtom } from './selection-structure-state'
 import { selectionMergeFeedbackAtom } from './selection-merge-state'
@@ -42,6 +43,7 @@ type SizeAction =
   | {
       readonly axis: 'row' | 'column'
       readonly pixels: number
+      readonly autoFit?: AutoFitLayout
       readonly target: { readonly sheetId: string; readonly range: CellRange }
     }
 
@@ -88,6 +90,7 @@ export const runSelectionSizeAtom = atom(
     // 拖拽直接提交捕获的目标；不借用弹窗草稿，也不为了写入而打开弹窗。
     const target = typeof action === 'object' ? action.target : state.target
     const axis = typeof action === 'object' ? action.axis : action
+    const autoFit = typeof action === 'object' ? action.autoFit : undefined
     if (!target || target.sheetId !== sheetId) return false
     const fail = (error: string) => {
       set(selectionSizePanelAtom, { ...state, busy: false, error })
@@ -102,7 +105,11 @@ export const runSelectionSizeAtom = atom(
           ? 0
           : Number(axis === 'row' ? state.height : state.width)
     const [min, max] = axis === 'row' ? [16, 512] : [40, 1024]
-    if (axis !== 'reset' && (!Number.isSafeInteger(pixels) || pixels < min! || pixels > max!))
+    if (
+      !autoFit &&
+      axis !== 'reset' &&
+      (!Number.isSafeInteger(pixels) || pixels < min! || pixels > max!)
+    )
       return fail(`Enter a whole number from ${min} to ${max} pixels.`)
     const witness = get(projectionSnapshotAtom)
     const visible = witness.request
@@ -124,6 +131,7 @@ export const runSelectionSizeAtom = atom(
         range: target.range,
         axis,
         pixels,
+        ...(autoFit ? { autoFit } : {}),
         projection,
       })
       if (get(rustWorkbookConnectionAtom) !== connection) return false

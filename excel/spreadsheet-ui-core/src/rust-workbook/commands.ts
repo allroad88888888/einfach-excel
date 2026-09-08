@@ -13,6 +13,7 @@ import type { CellRange } from '../shared'
 import { createWorkerTransport } from '../rust-worker'
 import type { SheetVisibilityProjection } from '../viewport/hidden-state'
 import type { StructuralEdit } from './structure-geometry'
+import type { AutoFitLayout } from './auto-fit-measurement'
 import type {
   RustClipboardCapture,
   RustClipboardCaptureRequest,
@@ -182,6 +183,7 @@ export interface RustWorkbookCommands {
       readonly range: CellRange
       readonly axis: 'row' | 'column' | 'reset'
       readonly pixels: number
+      readonly autoFit?: AutoFitLayout
       readonly projection: VisibleProjectionRequest
     },
     {

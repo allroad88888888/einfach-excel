@@ -1,6 +1,37 @@
 import type { CellRange } from '../shared'
 import type { WasmWorkbook } from './wasm-types'
-import type { RustWorkbookSheetInput } from './commands'
+import type { RustWorkbookSheetInput, RustWorkbookCommands } from './commands'
+import { createAutoFitMeasurer } from './auto-fit-measurement'
+
+/** 自动适应仍是一条尺寸命令；测量失败时原生保证不写入任何尺寸。 */
+export function autoFitRange(
+  workbook: WasmWorkbook,
+  sheet: number,
+  input: RustWorkbookCommands['range.resize']['payload'],
+): boolean {
+  const { range, axis, projection, autoFit } = input
+  if (!autoFit || axis === 'reset' || !projection.viewport)
+    throw new Error('Invalid auto-fit command.')
+  const { rowHeight, colWidth } = projection.viewport
+  if (
+    ![range.rowStart, range.rowEnd, range.colStart, range.colEnd, rowHeight, colWidth].every(
+      (n) => Number.isSafeInteger(n) && n >= 0 && n <= 0xffffffff,
+    )
+  )
+    throw new Error('Auto-fit coordinates and default sizes must be non-negative integers.')
+  if (!workbook.auto_fit_dimensions) throw new Error('Rust auto-fit command is unavailable.')
+  return workbook.auto_fit_dimensions(
+    sheet,
+    range.rowStart,
+    range.colStart,
+    range.rowEnd,
+    range.colEnd,
+    axis,
+    rowHeight,
+    colWidth,
+    createAutoFitMeasurer(axis, autoFit),
+  )
+}
 
 /** JS 数值进入 u32 WASM 参数前拒绝截断/溢出；业务尺寸范围仍由 Rust 校验。 */
 export function resizeRange(

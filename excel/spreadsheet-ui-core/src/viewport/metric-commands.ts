@@ -2,12 +2,17 @@ import { atom } from '@einfach/core'
 import { setViewportMetricsAtom, viewportMetricsAtom } from './metrics'
 import type { ViewportMetrics } from './types'
 
-/** 换表才使用初始位置；同表增减行列保留浏览器已测量尺寸与滚动位置。 */
+/** 换表重置位置，不重置浏览器已测量的可见面积；同表结构变动保留位置。 */
 export const initializeViewportMetricsAtom = atom(
   null,
   (get, set, input: ViewportMetrics): void => {
     const current = get(viewportMetricsAtom)
-    if (current.sheetId !== input.sheetId) set(setViewportMetricsAtom, input)
+    if (current.sheetId !== input.sheetId)
+      set(setViewportMetricsAtom, {
+        ...input,
+        viewportHeight: current.viewportHeight > 0 ? current.viewportHeight : input.viewportHeight,
+        viewportWidth: current.viewportWidth > 0 ? current.viewportWidth : input.viewportWidth,
+      })
     else if (current.rowCount !== input.rowCount || current.colCount !== input.colCount)
       set(setViewportMetricsAtom, {
         ...current,

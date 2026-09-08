@@ -1,5 +1,6 @@
 use einfach_core::Value;
 use einfach_excel_core::{CellAddress, CellFormat, CellRange, Workbook};
+use einfach_excel_core::workbook_history::WorkbookHistory;
 
 fn range(r0: u32, c0: u32, r1: u32, c1: u32) -> CellRange {
     CellRange::new(CellAddress::new(r0, c0), CellAddress::new(r1, c1))
@@ -79,4 +80,52 @@ fn merges_across_the_axis_are_preserved_but_horizontal_merge_width_is_available_
         Ok(70.0)
     }).unwrap();
     assert_eq!(wb.sheet(0).unwrap().row_height(0), Some(70));
+}
+
+#[test]
+fn hidden_rows_neither_contribute_content_nor_lose_their_saved_height() {
+    let mut wb = Workbook::new();
+    wb.set_cell(0, "A1", Value::Text("Visible".into()));
+    wb.set_cell(0, "A2", Value::Text("Hidden".into()));
+    wb.sheet_mut(0).unwrap().set_row_height(1, 80);
+    wb.hide_rows(0, &[1]);
+    let mut calls = 0;
+    wb.auto_fit_dimensions(0, range(0, 0, 9, 7), "row", 28, 120, |value, _, _| {
+        assert_eq!(value, &Value::Text("Visible".into()));
+        calls += 1;
+        Ok(25.0)
+    }).unwrap();
+    assert_eq!(calls, 1);
+    assert_eq!(wb.sheet(0).unwrap().row_height(1), Some(80));
+    assert_eq!(wb.list_hidden_rows(0), vec![1]);
+}
+
+#[test]
+fn repeated_fit_is_a_noop_and_invalid_input_never_measures() {
+    let mut wb = Workbook::new();
+    wb.set_cell(0, "A1", Value::Number(1.0));
+    assert!(wb.auto_fit_dimensions(0, range(0, 0, 9, 0), "column", 28, 120, |_, _, _| Ok(90.0)).unwrap());
+    assert!(!wb.auto_fit_dimensions(0, range(0, 0, 9, 0), "column", 28, 120, |_, _, _| Ok(90.0)).unwrap());
+    assert!(wb.auto_fit_dimensions(0, range(0, 0, 1_048_576, 0), "row", 28, 120, |_, _, _| panic!("invalid range")).is_err());
+}
+
+#[test]
+fn hidden_columns_and_filtered_rows_do_not_participate_in_measurement() {
+    let mut wb = Workbook::new();
+    wb.set_cell(0, "A1", Value::Text("Visible".into()));
+    wb.set_cell(0, "B1", Value::Text("Hidden column".into()));
+    wb.set_cell(0, "A2", Value::Text("Filtered row".into()));
+    wb.sheet_mut(0).unwrap().set_col_width(1, 250);
+    WorkbookHistory::default().set_visibility(&mut wb, 0, range(0, 1, 9, 1), "hide-columns").unwrap();
+    wb.set_eval_filter_hidden_rows(0, &[1]);
+    let mut calls = 0;
+    wb.auto_fit_dimensions(0, range(0, 0, 9, 7), "column", 28, 120, |value, _, _| {
+        assert_eq!(value, &Value::Text("Visible".into()));
+        calls += 1;
+        Ok(75.0)
+    }).unwrap();
+    assert_eq!(calls, 1);
+    assert_eq!(wb.sheet(0).unwrap().all_col_widths(), vec![(0, 75), (1, 250)]);
+    assert_eq!(wb.sheet_visibility(0).unwrap().columns, vec![1]);
+    assert_eq!(wb.filter_hidden_rows(0), vec![1]);
 }

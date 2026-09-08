@@ -51,6 +51,8 @@
 }
 
 .sheet-corner {
+  /* 冻结覆盖层占两行两列；角按钮必须显式定位，不能参与自动排格。 */
+  grid-area: 1 / 1;
   padding: 0;
   border: 0;
   position: sticky;

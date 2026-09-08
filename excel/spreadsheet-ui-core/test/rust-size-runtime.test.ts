@@ -15,6 +15,9 @@ async function runtime() {
     postMessage: post,
   })
   const resize = vi.fn()
+  const fit = vi.fn(() => true)
+  const begin = vi.fn()
+  const finish = vi.fn()
   class TestWorkbook {
     rename_sheet() {
       return true
@@ -25,6 +28,9 @@ async function runtime() {
     }
 
     resize_range = resize
+    auto_fit_dimensions = fit
+    history_begin = begin
+    history_finish = finish
 
     read_sparse_range() {
       return []
@@ -56,7 +62,7 @@ async function runtime() {
       },
     ],
   })
-  return { call, resize }
+  return { call, resize, fit, begin, finish }
 }
 const visible = {
   kind: 'visible-window',
@@ -73,6 +79,55 @@ const input = {
 }
 
 describe('Rust size transport', () => {
+  test('auto-fit is one native call in one history group, errors do not advance revision', async () => {
+    const { call, resize, fit, begin, finish } = await runtime()
+    vi.stubGlobal(
+      'OffscreenCanvas',
+      class {
+        getContext() {
+          return { font: '', measureText: () => ({ width: 50 }) }
+        }
+      },
+    )
+    const autoFit = {
+      fontFamily: 'Arial',
+      fontSize: 12,
+      lineHeight: 14.4,
+      paddingTop: 3,
+      paddingBottom: 3,
+      paddingLeft: 7,
+      paddingRight: 7,
+      borderTop: 0,
+      borderBottom: 1,
+      borderLeft: 0,
+      borderRight: 1,
+    }
+    const command = {
+      ...input,
+      autoFit,
+      projection: {
+        ...visible,
+        viewport: { rowHeight: 28, colWidth: 120, height: 300, width: 500 },
+      },
+    }
+    resize.mockClear()
+    expect((await call('range.resize', command)).ok).toBe(true)
+    expect(fit).toHaveBeenCalledWith(0, 50, 1, 60, 3, 'column', 28, 120, expect.any(Function))
+    expect(resize).not.toHaveBeenCalled()
+    expect(begin).toHaveBeenCalledWith(0, 50, 1, 60, 3, 'Auto-fit column', false)
+    expect(finish).toHaveBeenLastCalledWith(true)
+    fit.mockImplementationOnce(() => {
+      throw new Error('Measurement failed')
+    })
+    expect((await call('range.resize', command)).ok).toBe(false)
+    expect(finish).toHaveBeenLastCalledWith(false)
+    expect((await call('projection.readVisible', { request: visible })).result.revision).toBe(1)
+    fit.mockClear()
+    expect(
+      (await call('range.resize', { ...command, range: { ...input.range, rowEnd: 2 ** 32 } })).ok,
+    ).toBe(false)
+    expect(fit).not.toHaveBeenCalled()
+  })
   test('initial sizes are axis writes, a resize returns visible data and full target metadata', async () => {
     const { call, resize } = await runtime()
     expect(resize.mock.calls).toEqual([

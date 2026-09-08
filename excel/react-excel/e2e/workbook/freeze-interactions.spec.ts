@@ -18,6 +18,14 @@ test('Summary native freeze seed survives switching, resizing and last-row navig
   await expect(fixed).toBeVisible()
   expect(Math.abs((await fixed.boundingBox())!.y - before.y)).toBeLessThan(1)
   await page.setViewportSize({ width: 900, height: 620 })
+  // resize 返回时 ResizeObserver 尚可能未发布新尺寸；等真实视口与冻结层一致再定位。
+  await expect
+    .poll(async () => {
+      const visible = await page.getByTestId('sheet-scroll').evaluate((node) => node.clientHeight)
+      const frozen = await page.locator('.frozen-viewport').boundingBox()
+      return frozen?.height === visible
+    })
+    .toBe(true)
   await select(page, 'B100', '99:1')
   const target = (await page.locator('td[data-cell="99:1"]').boundingBox())!
   const scroll = (await page.getByTestId('sheet-scroll').boundingBox())!

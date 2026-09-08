@@ -7,7 +7,7 @@ import { withHistory } from './history-io'
 import { applyRustHistory } from './history-apply'
 import { exportClipboard } from './clipboard-export'
 import { changeSheetStructure } from './sheet-structure'
-import { readSizes, resizeRange } from './size-io'
+import { autoFitRange, readSizes, resizeRange } from './size-io'
 import { initializeWorkbook } from './initialize-workbook'
 import { changeMerge } from './merge-io'
 import { changeFreeze } from './freeze-io'
@@ -124,9 +124,16 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
         current,
         index,
         input.range,
-        input.axis === 'reset' ? 'Reset sizes' : `Resize ${input.axis}`,
+        input.autoFit
+          ? `Auto-fit ${input.axis}`
+          : input.axis === 'reset'
+            ? 'Reset sizes'
+            : `Resize ${input.axis}`,
         false,
-        () => resizeRange(current, index, input.range, input.axis, input.pixels),
+        () =>
+          input.autoFit
+            ? autoFitRange(current, index, input)
+            : resizeRange(current, index, input.range, input.axis, input.pixels),
       )
       revision += 1
       return {

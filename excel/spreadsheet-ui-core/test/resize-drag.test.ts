@@ -13,6 +13,7 @@ import {
   type RustWorkbookCommands,
   type RustWorkbookConnection,
   type VisibleProjectionRequest,
+  type AutoFitLayout,
 } from '../src'
 
 async function setup() {
@@ -99,6 +100,36 @@ test('selected rows resize as one range', async () => {
   store.setter(runResizeDragAtom, { phase: 'move', pointerId: 1, position: 30 })
   await store.setter(runResizeDragAtom, { phase: 'commit', pointerId: 1 })
   expect(resize.mock.calls[0][0].range).toEqual({ rowStart: 2, rowEnd: 4, colStart: 0, colEnd: 7 })
+})
+
+test('auto-fit captures all selected columns with one request, no preview or second refresh', async () => {
+  const { store, request, resize } = await setup()
+  await store.setter(selectGridHeaderAtom, { kind: 'column', sheetId: 's', index: 2 })
+  await store.setter(selectGridHeaderAtom, { kind: 'column', sheetId: 's', index: 4, extend: true })
+  request.mockClear()
+  const layout: AutoFitLayout = {
+    fontFamily: 'Arial',
+    fontSize: 12,
+    lineHeight: 14.4,
+    paddingTop: 3,
+    paddingBottom: 3,
+    paddingLeft: 7,
+    paddingRight: 7,
+    borderTop: 0,
+    borderBottom: 1,
+    borderLeft: 0,
+    borderRight: 1,
+  }
+  expect(
+    await store.setter(runResizeDragAtom, { phase: 'auto-fit', axis: 'column', index: 3, layout }),
+  ).toBe(true)
+  expect(resize.mock.calls[0][0]).toMatchObject({
+    axis: 'column',
+    autoFit: layout,
+    range: { rowStart: 0, rowEnd: 99, colStart: 2, colEnd: 4 },
+  })
+  expect(request).toHaveBeenCalledTimes(1)
+  expect(store.getter(resizeDragAtom)).toBeNull()
 })
 
 test('wrong pointer, cancellation and no movement never write', async () => {

@@ -3,6 +3,7 @@ import type { RustImportCell, RustImportStats } from './commands'
 import type { RustClipboardCapture, RustClipboardPasteRequest } from './clipboard-commands'
 import type { RustHistoryState } from '../history/rust-history-types'
 import type { SheetVisibilityProjection } from '../viewport/hidden-state'
+import type { AutoFitText } from './auto-fit-measurement'
 
 export interface RustCellSnapshot {
   readonly sheet: number
@@ -39,6 +40,17 @@ export interface RustFormatRangeSnapshot {
 }
 
 export interface WasmWorkbook {
+  auto_fit_dimensions?: (
+    sheet: number,
+    startRow: number,
+    startCol: number,
+    endRow: number,
+    endCol: number,
+    axis: string,
+    defaultRow: number,
+    defaultColumn: number,
+    measure: (text: AutoFitText) => number,
+  ) => boolean
   set_frozen_panes?: (sheet: number, rows: number, cols: number) => boolean
   frozen_panes?: (sheet: number) => ArrayLike<number>
   merge_cells?: (

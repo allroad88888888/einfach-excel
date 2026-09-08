@@ -1,27 +1,14 @@
-# find-replace
+# 查找替换
 
-Owns the ticketed Core lifecycle for find, replace, and read-only recovery.
+调用链：React 事件 → `runFindReplaceAtom` → Rust Worker/WASM → atom 结果 → React 渲染。
 
-## Module boundaries
+- `state.ts`：面板草稿、打开时的查询范围、忙碌状态、当前匹配及反馈。
+- `command.ts`：查找替换命令；验证范围与版本，接受当前请求的结果，发布替换投影。
+- `navigation.ts`：把匹配坐标转为工作表激活、选区及滚动位置。
+- `index.ts`：暴露只读面板 atom 与语义 command atom。
 
-- `state.ts`: private source atoms only.
-- `projection-atoms.ts`: immutable public projections.
-- `basic-commands.ts`: dialog, form, compatibility, and capability commands.
-- `search-commands.ts`: exact-correlated search and cursor focus.
-- `mutation-domain.ts` / `mutation-commands.ts`: replace evidence and dispatch.
-- `refresh-recovery.ts`: projection acceptance and read-only refresh recovery.
-- `target-domain.ts`, `ledger-domain.ts`, and `value-domain.ts`: ticket validity,
-  bounded evidence ledger, and pure value helpers.
+Rust 负责匹配、替换事务及撤销历史；UI Core 不保存工作簿副本，不维护 ticket、ledger 或重试层。
+查询一次只取当前匹配，全部替换直接交给 Rust，不受查询分页大小限制。
+旧 backend 的数据类型保留在 `backend/find-types.ts`，不是 React 的执行路径。
 
-## Atom classification
-
-- Source atoms are private to `state.ts`; consumers use only immutable projections.
-- Derived atoms: query, cursor, form, lifecycle, capability, availability/error,
-  pending/mutation-blocked status, operation diagnostics, and capped-result notice.
-- Commands: dialog/form updates, capability capture, compatibility writes, search,
-  step, mutation, and refresh recovery.
-
-The match page is bounded by `MAX_FIND_PAGE = 500`. The evidence ledger is bounded
-to 32 entries and prevents automatic resend after an unknown replace outcome.
-
-Tests: `test/find-replace.test.ts`.
+验证：`test/find-replace.test.ts`、`test/find-replace-history.test.ts`。

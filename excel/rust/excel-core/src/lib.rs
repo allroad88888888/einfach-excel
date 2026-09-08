@@ -8,6 +8,7 @@ pub mod clipboard;
 pub mod csv;
 pub mod eval;
 pub mod filter;
+mod find_text;
 pub mod format;
 pub mod formula;
 pub mod general_text;
@@ -19,6 +20,8 @@ pub mod sort;
 pub mod undo;
 pub mod workbook;
 pub mod workbook_history;
+mod workbook_find;
+pub use workbook_find::{FindLookIn, FindMatch, FindPage, FindQuery};
 
 pub use auto_fill::{
     AutoFillDirection, AutoFillError, AutoFillListWitness, AutoFillReport, AutoFillRequest,

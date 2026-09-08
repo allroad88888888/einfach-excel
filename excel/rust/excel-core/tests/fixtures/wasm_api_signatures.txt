@@ -110,6 +110,7 @@ impl WasmWorkbook :: [] :: pub fn delete_col(&mut self, sheet_idx: u32, at: u32,
 impl WasmWorkbook :: [] :: pub fn delete_row(&mut self, sheet_idx: u32, at: u32, count: u32)
 impl WasmWorkbook :: [] :: pub fn edit_sheet(&mut self, index: Option<u32>, name: &str) -> Result<u32, JsValue>
 impl WasmWorkbook :: [] :: pub fn edit_structure( &mut self, sheet: u32, action: &str, at: u32, count: u32, ) -> Result<bool, JsValue>
+impl WasmWorkbook :: [] :: pub fn find_cells(&self, request: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn frozen_panes(&self, sheet: u32) -> Result<Vec<u32>, JsValue>
 impl WasmWorkbook :: [] :: pub fn get_display(&self, sheet_idx: u32, addr: &str) -> String
 impl WasmWorkbook :: [] :: pub fn get_formula(&self, sheet_idx: u32, addr: &str) -> String
@@ -132,6 +133,7 @@ impl WasmWorkbook :: [] :: pub fn patch_format_range( &mut self, sheet_idx: u32,
 impl WasmWorkbook :: [] :: pub fn read_sparse_range( &self, sheet_idx: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, ) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn remove_sheet(&mut self, idx: u32) -> bool
 impl WasmWorkbook :: [] :: pub fn rename_sheet(&mut self, idx: u32, name: &str) -> bool
+impl WasmWorkbook :: [] :: pub fn replace_by_query(&mut self, request: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn resize_range( &mut self, sheet_idx: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, axis: &str, pixels: u32, ) -> Result<(), JsValue>
 impl WasmWorkbook :: [] :: pub fn restore_format_snapshot(&mut self, snapshot: JsValue) -> Result<u32, JsValue>
 impl WasmWorkbook :: [] :: pub fn restore_persistence_v1(&mut self, value: JsValue) -> Result<JsValue, JsValue>

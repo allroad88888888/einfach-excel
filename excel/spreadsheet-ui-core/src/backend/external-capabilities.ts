@@ -39,7 +39,7 @@ export type {
   ReplaceMatchesResult,
   SearchRangeRequest,
   SearchRangeResult,
-} from '../find-replace/types'
+} from './find-types'
 export type {
   ReadPrintConfigRequest,
   ReadPrintConfigResult,

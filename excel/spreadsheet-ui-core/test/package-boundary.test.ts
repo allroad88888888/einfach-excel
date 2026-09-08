@@ -23,7 +23,7 @@ import {
   filterSortSessionIdAtom,
   filterSortStateAtom,
   filterSortSyncTicketAtom,
-  findReplaceQueryAtom,
+  findReplacePanelAtom,
   focusFormulaBarAtom,
   formulaBarDraftAtom,
   formulaBarStateAtom,
@@ -172,7 +172,7 @@ describe('package boundary', () => {
     expect(typeof getDisplayCellText).toBe('function')
     expect(typeof isHyperlinkValue).toBe('function')
     expect(printConfigStateAtom.debugLabel).toBe('spreadsheet.print.config')
-    expect(findReplaceQueryAtom.debugLabel).toBe('spreadsheet.findReplace.query')
+    expect(findReplacePanelAtom.debugLabel).toBe('spreadsheet.findReplace.panel')
     expect(presenceStateAtom.debugLabel).toBe('spreadsheet.presence.state')
     expect(filterSortStateAtom.debugLabel).toBe('spreadsheet.filterSort.state')
     expect(sheetProtectionAtom.debugLabel).toBe('spreadsheet.protection.state')

@@ -3,11 +3,12 @@
 import type { BackendMutationResult } from '../backend'
 import type { WorkerErrorWire, WorkerRequestWire } from '../rust-worker/types'
 import { writeTrackedMutation } from './tracked-mutation'
-import { withHistory } from './history-io'
 import { applyRustHistory } from './history-apply'
 import { exportClipboard } from './clipboard-export'
 import { changeSheetStructure } from './sheet-structure'
-import { autoFitRange, readSizes, resizeRange } from './size-io'
+import { readSizes } from './size-io'
+import { changeSize } from './resize-io'
+import { findWorkbook, replaceWorkbook } from './find-io'
 import { initializeWorkbook } from './initialize-workbook'
 import { changeMerge } from './merge-io'
 import { changeFreeze } from './freeze-io'
@@ -84,6 +85,30 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       return initialize(input.sheets)
     }
     const current = currentWorkbook()
+    if (command === 'workbook.find')
+      return findWorkbook(
+        current,
+        sheetsById,
+        payload as RustWorkbookCommands[typeof command]['payload'],
+        revision,
+      )
+    if (command === 'workbook.replace') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      const result = replaceWorkbook(current, sheetsById, input, revision)
+      // 写入完成即推进版本；后面的投影读取失败也不能让旧查询再次写入。
+      if (result.cells > 0) revision += 1
+      const index = sheetIndex(input.projection.sheetId)
+      return {
+        ...result,
+        projection: readVisibleProjection(current, index, input.projection, revision),
+        sizes: readSizes(current, index, {
+          rowStart: 0,
+          colStart: 0,
+          rowEnd: 1_048_575,
+          colEnd: 16_383,
+        }),
+      }
+    }
     if (command === 'sheet.freeze') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
       sheetIndex(input.sheetId)
@@ -117,24 +142,8 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
     }
     if (command === 'range.resize') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
-      if (input.sheetId !== input.projection.sheetId) throw new Error('PROJECTION_SHEET_MISMATCH')
       const index = sheetIndex(input.sheetId)
-      if (!current.snapshot_viewport_sizes) throw new Error('Rust size snapshot is unavailable.')
-      withHistory(
-        current,
-        index,
-        input.range,
-        input.autoFit
-          ? `Auto-fit ${input.axis}`
-          : input.axis === 'reset'
-            ? 'Reset sizes'
-            : `Resize ${input.axis}`,
-        false,
-        () =>
-          input.autoFit
-            ? autoFitRange(current, index, input)
-            : resizeRange(current, index, input.range, input.axis, input.pixels),
-      )
+      changeSize(current, index, input)
       revision += 1
       return {
         projection: readVisibleProjection(current, index, input.projection, revision),

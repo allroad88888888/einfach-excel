@@ -1,0 +1,107 @@
+.find-replace-dialog {
+  box-sizing: border-box;
+  width: 440px;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100dvh - 24px);
+  overflow: auto;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  background: var(--surface);
+  font-size: 13px;
+}
+.find-replace-dialog::backdrop {
+  background: rgb(20 25 45 / 25%);
+}
+.find-replace-dialog h2 {
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+.find-replace-dialog p {
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.find-replace-dialog form {
+  display: grid;
+  gap: 8px;
+}
+.find-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.find-replace-dialog button,
+.find-replace-dialog select,
+.find-replace-dialog input:not([type='checkbox']) {
+  box-sizing: border-box;
+  min-height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 4px 8px;
+  font: inherit;
+  color: inherit;
+}
+.find-replace-dialog input:not([type='checkbox']),
+.find-replace-dialog select {
+  width: 100%;
+  min-width: 0;
+  background: var(--surface);
+}
+.find-replace-dialog button {
+  background: var(--control-hover);
+  cursor: pointer;
+}
+.find-replace-dialog button[aria-selected='true'],
+.find-replace-dialog button.find-primary {
+  background: var(--primary-soft);
+  color: var(--primary-strong);
+}
+.find-replace-dialog button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.find-replace-dialog :focus-visible {
+  outline: 2px solid var(--primary-strong);
+  outline-offset: 2px;
+}
+.find-options {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  gap: 12px;
+  margin: 8px 0;
+}
+.find-options label {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.find-checks,
+.find-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.find-checks label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.find-actions {
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+.find-error {
+  color: #b42318;
+}
+.find-hint {
+  color: #626777;
+  font-size: 12px;
+  margin-bottom: 0;
+}
+@media (max-width: 450px) {
+  .find-options {
+    grid-template-columns: 1fr;
+  }
+}

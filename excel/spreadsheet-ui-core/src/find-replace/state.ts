@@ -1,33 +1,51 @@
 import { atom } from '@einfach/core'
-import type {
-  FindCursorState,
-  FindReplaceCapability,
-  FindReplaceFormState,
-  FindReplaceQuery,
-  ReplaceAllCapInfo,
-} from './types'
-import type { SpreadsheetError } from '../shared'
-import { DEFAULT_FIND_REPLACE_FORM_STATE, INITIAL_CURSOR } from './constants'
-import type { FindReplaceOperationAttempt, FindReplaceSessionState } from './internal-types'
-import { INITIAL_SESSION } from './internal-types'
-import { copyCursor } from './value-domain'
+import type { RustFindMatch, RustFindQuery } from '../rust-workbook/find-commands'
+import type { CellRange } from '../shared'
 
-export const findReplaceQueryStateAtom = atom<FindReplaceQuery | null>(null)
-export const findReplaceCursorStateAtom = atom<FindCursorState>(copyCursor(INITIAL_CURSOR))
-export const findReplaceFormStateAtom = atom<FindReplaceFormState>({
-  ...DEFAULT_FIND_REPLACE_FORM_STATE,
+export interface FindReplaceForm extends RustFindQuery {
+  readonly replacement: string
+  readonly scope: 'sheet' | 'workbook' | 'current-selection'
+}
+
+export interface FindReplacePanel {
+  readonly open: boolean
+  readonly tab: 'find' | 'replace'
+  readonly form: FindReplaceForm
+  /** 打开时捕获作用域，结果导航不能把原选区或原工作表改成下一次搜索范围。 */
+  readonly origin: {
+    readonly sheetId: string
+    readonly range: CellRange
+    readonly regions: number
+  } | null
+  readonly busy: 'find' | 'replace' | null
+  readonly result: {
+    readonly index: number
+    readonly total: number
+    readonly revision: number
+    readonly current: RustFindMatch | null
+  } | null
+  readonly error: string | null
+  readonly notice: string | null
+}
+
+export const findReplaceStateAtom = atom<FindReplacePanel>({
+  open: false,
+  tab: 'find',
+  origin: null,
+  busy: null,
+  result: null,
+  error: null,
+  notice: null,
+  form: {
+    needle: '',
+    replacement: '',
+    caseSensitive: false,
+    wholeCell: false,
+    lookIn: 'formulas',
+    scope: 'sheet',
+  },
 })
-export const findReplaceSessionStateAtom = atom<FindReplaceSessionState>({ ...INITIAL_SESSION })
-export const findReplaceRequestSequenceAtom = atom(0)
-export const findReplaceOperationAttemptLedgerStateAtom = atom<
-  readonly FindReplaceOperationAttempt[]
->([])
-export const findReplaceCommandErrorStateAtom = atom<SpreadsheetError | null>(null)
-export const replaceAllCappedStateAtom = atom<ReplaceAllCapInfo | null>(null)
-export const findReplaceCapabilityStateAtom = atom<FindReplaceCapability>('unknown')
 
-findReplaceSessionStateAtom.debugLabel = 'spreadsheet.findReplace.internal.sessionState'
-findReplaceRequestSequenceAtom.debugLabel = 'spreadsheet.findReplace.internal.requestSequence'
-findReplaceOperationAttemptLedgerStateAtom.debugLabel =
-  'spreadsheet.findReplace.internal.operationAttemptLedger'
-findReplaceCapabilityStateAtom.debugLabel = 'spreadsheet.findReplace.internal.capabilityState'
+/** 视图只读面板投影；写入全部经过同一个语义 command。 */
+export const findReplacePanelAtom = atom((get) => get(findReplaceStateAtom))
+findReplacePanelAtom.debugLabel = 'spreadsheet.findReplace.panel'

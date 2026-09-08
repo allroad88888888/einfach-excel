@@ -13,6 +13,7 @@ import { VisibilityTools } from './VisibilityTools'
 import { StructureTools } from './StructureTools'
 import { MergeTools } from './MergeTools'
 import { FreezeTools } from './FreezeTools'
+import { FindReplaceTools } from './FindReplaceTools'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import './ribbon.css'
 
@@ -244,7 +245,7 @@ export function WorkbookRibbon() {
           onClick={() => void clearSelection('all')}
         />
         <div className="toolbar-spacer" />
-        <ToolButton icon="⌕" label="Find" />
+          <FindReplaceTools />
         <ToolButton icon="⋮" label="More tools" />
       </div>
     </div>

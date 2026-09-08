@@ -8,6 +8,10 @@ export const SALES_ORDER_SUMMARY_CELLS: readonly RustImportCell[] = [
   { sheet: 1, row: 1, col: 1, kind: 'formula', value: "='Sales Orders'!B2" },
   { sheet: 1, row: 9, col: 0, kind: 'text', value: 'Hidden row example' },
   { sheet: 1, row: 0, col: 6, kind: 'text', value: 'Hidden column example' },
+  // 查找示例保存在原生数据：emoji 的匹配位置、大小写与公式源分别可验收。
+  { sheet: 1, row: 84, col: 0, kind: 'text', value: '😀alpha alpha' },
+  { sheet: 1, row: 84, col: 1, kind: 'text', value: 'ALPHA' },
+  { sheet: 1, row: 84, col: 2, kind: 'formula', value: '=LEN("alpha")' },
   // 离屏内容参与自动适应；仅给演示数据加格式，不在 React 写坐标特判。
   {
     sheet: 1,

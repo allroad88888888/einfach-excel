@@ -14,6 +14,7 @@ import { createWorkerTransport } from '../rust-worker'
 import type { SheetVisibilityProjection } from '../viewport/hidden-state'
 import type { StructuralEdit } from './structure-geometry'
 import type { AutoFitLayout } from './auto-fit-measurement'
+import type { RustFindCommands } from './find-commands'
 import type {
   RustClipboardCapture,
   RustClipboardCaptureRequest,
@@ -118,7 +119,7 @@ export interface RustClearRangeRequest {
   readonly mode: RustClearRangeMode
 }
 
-export interface RustWorkbookCommands {
+export interface RustWorkbookCommands extends RustFindCommands {
   readonly 'sheet.freeze': WorkerCommand<
     {
       readonly sheetId: string

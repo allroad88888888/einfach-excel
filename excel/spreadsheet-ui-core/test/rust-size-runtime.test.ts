@@ -18,6 +18,7 @@ async function runtime() {
   const fit = vi.fn(() => true)
   const begin = vi.fn()
   const finish = vi.fn()
+  const read = vi.fn(() => [])
   class TestWorkbook {
     rename_sheet() {
       return true
@@ -32,9 +33,7 @@ async function runtime() {
     history_begin = begin
     history_finish = finish
 
-    read_sparse_range() {
-      return []
-    }
+    read_sparse_range = read
 
     snapshot_format_range() {
       return { cellStyles: [], rowStyles: [], columnStyles: [] }
@@ -62,7 +61,7 @@ async function runtime() {
       },
     ],
   })
-  return { call, resize, fit, begin, finish }
+  return { call, resize, fit, begin, finish, read }
 }
 const visible = {
   kind: 'visible-window',
@@ -79,6 +78,14 @@ const input = {
 }
 
 describe('Rust size transport', () => {
+  test('a post-write projection failure retains the advanced workbook revision', async () => {
+    const { call, read, resize, finish } = await runtime()
+    read.mockImplementationOnce(() => { throw new Error('Projection failed') })
+    expect((await call('range.resize', input)).ok).toBe(false)
+    expect(resize).toHaveBeenLastCalledWith(0, 50, 1, 60, 3, 'column', 200)
+    expect(finish).toHaveBeenLastCalledWith(true)
+    expect((await call('projection.readVisible', { request: visible })).result.revision).toBe(1)
+  })
   test('auto-fit is one native call in one history group, errors do not advance revision', async () => {
     const { call, resize, fit, begin, finish } = await runtime()
     vi.stubGlobal(

@@ -4,6 +4,7 @@ import type { RustClipboardCapture, RustClipboardPasteRequest } from './clipboar
 import type { RustHistoryState } from '../history/rust-history-types'
 import type { SheetVisibilityProjection } from '../viewport/hidden-state'
 import type { AutoFitText } from './auto-fit-measurement'
+import type { NativeFindMatch, NativeFindRequest, NativeReplaceRequest } from './find-commands'
 
 export interface RustCellSnapshot {
   readonly sheet: number
@@ -40,6 +41,8 @@ export interface RustFormatRangeSnapshot {
 }
 
 export interface WasmWorkbook {
+  find_cells?: (request: NativeFindRequest) => { total: number; matches: NativeFindMatch[] }
+  replace_by_query?: (request: NativeReplaceRequest) => { cells: number; occurrences: number }
   auto_fit_dimensions?: (
     sheet: number,
     startRow: number,

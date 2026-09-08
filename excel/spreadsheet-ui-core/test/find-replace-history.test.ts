@@ -1,177 +1,93 @@
-import { describe, expect, test, vi } from 'vitest'
-import { createStore } from '@einfach/core'
-import {
-  historyStackAtom,
-  selectionAtom,
-  setSelectionAtom,
-  setSelectionBoundsAtom,
-  setWorkspaceActiveSheetAtom,
-} from '../src'
-import {
-  openFindReplaceAtom,
-  runFindReplaceMutationAtom,
-  runFindReplaceSearchAtom,
-  updateFindReplaceFormAtom,
-} from '../src/find-replace'
-import type {
-  FindMatch,
-  HistoryEntry,
-  HistoryEntryRecorder,
-  ReplaceMatchesRequest,
-  ReplaceMatchesResponse,
-  SearchRangeRequest,
-  SearchRangeResult,
-} from '../src'
-import { findReplaceErrorAtom, findReplaceRefreshRecoveryAtom } from '../src/find-replace'
+import { expect, test } from 'vitest'
+import { findHarness } from './support/find-replace-harness'
+import { projectionSnapshotAtom, setSheetProtectionAtom, viewportSizeOverridesAtom } from '../src'
 
-function match(row: number, col: number): FindMatch {
-  return {
-    coord: { row, col },
-    sheetId: 'sheet1',
-    matchStart: 0,
-    matchEnd: 3,
-    target: 'displayValue',
-  }
-}
-
-function searchResult(
-  request: SearchRangeRequest,
-  matches: readonly FindMatch[],
-  revision: number | string = request.revision ?? 1,
-): SearchRangeResult {
-  return {
-    kind: 'search-range',
-    sheetId: request.sheetId,
-    requestId: request.requestId,
-    pageStart: request.pageStart,
-    matches: [...matches],
-    totalCount: matches.length,
-    revision,
-  }
-}
-
-function acknowledgement(request: ReplaceMatchesRequest): ReplaceMatchesResponse {
-  return {
-    requestId: request.requestId,
-    replacedCount: request.coords.length,
-    revision: 2,
-  }
-}
-
-async function setupStore(matches: readonly FindMatch[]) {
-  const store = createStore()
-  store.setter(setSelectionBoundsAtom, { rowCount: 1000, colCount: 100 })
-  store.setter(setWorkspaceActiveSheetAtom, { sheetId: 'sheet1' })
-  store.setter(setSelectionAtom, {
-    kind: 'cell',
-    sheetId: 'sheet1',
-    anchor: { row: 1, col: 3 },
-    focus: { row: 1, col: 3 },
+test('current replacement sends one native mutation with its original UTF-16 position', async () => {
+  const r = await findHarness()
+  await r.run('next')
+  const count = r.request.mock.calls.length
+  expect(await r.run('replace-current')).toBe(true)
+  expect(r.replace).toHaveBeenCalledTimes(1)
+  expect(r.request).toHaveBeenCalledTimes(count + 1)
+  expect(r.replace.mock.lastCall![0]).toMatchObject({
+    current: { sheetId: 's', row: 5, col: 1, start: 0, end: 3 },
+    expectedRevision: 0,
+    replacement: 'new',
   })
-  store.setter(openFindReplaceAtom)
-  store.setter(updateFindReplaceFormAtom, {
-    needle: '240',
-    replacement: '888',
-    scope: 'sheet',
+  expect(r.state().result).toBeNull()
+  expect(r.state().notice).toContain('Replaced 1 occurrence(s) in 1 cell(s)')
+  expect(r.store.getter(projectionSnapshotAtom).result?.revision).toBe(1)
+  expect(r.store.getter(viewportSizeOverridesAtom).rowHeightsBySheet.s?.['89']).toBe(60)
+})
+
+test('all replaces the query without a current page or preliminary fake search', async () => {
+  const r = await findHarness()
+  await r.run({ form: { scope: 'workbook' } })
+  expect(await r.run('replace-all')).toBe(true)
+  expect(r.find).not.toHaveBeenCalled()
+  expect(r.replace.mock.lastCall![0]).not.toHaveProperty('current')
+  expect(r.replace.mock.lastCall![0].targets).toHaveLength(2)
+})
+
+test('current replacement requires a found position and protected targets cannot write', async () => {
+  const r = await findHarness()
+  expect(await r.run('replace-current')).toBe(false)
+  expect(r.replace).not.toHaveBeenCalled()
+  r.store.setter(setSheetProtectionAtom, {
+    sheetId: 's',
+    state: { mode: 'protected', unlockedRanges: [] },
   })
-  await store.setter(runFindReplaceSearchAtom, {
-    searchRange: async (request) => searchResult(request, matches),
-  })
-  expect(store.getter(selectionAtom)).toMatchObject({ sheetId: 'sheet1' })
-  return store
-}
+  expect(await r.run('replace-all')).toBe(false)
+  expect(r.state().error).toContain('Unprotect')
+  expect(r.replace).not.toHaveBeenCalled()
+})
 
-function replaceInput(
-  historyEntryRecorder: HistoryEntryRecorder,
-  searchRange: (request: SearchRangeRequest) => Promise<SearchRangeResult>,
-  replaceMatches: (request: ReplaceMatchesRequest) => Promise<ReplaceMatchesResponse>,
-) {
-  return {
-    action: 'replace-all' as const,
-    historyEntryRecorder,
-    searchRange,
-    replaceMatches,
-  }
-}
+test('native rejection clears the stale cursor and allows an explicit corrected attempt', async () => {
+  const r = await findHarness()
+  await r.run('next')
+  r.replace.mockRejectedValueOnce(new Error('The workbook changed. Find again before replacing.'))
+  expect(await r.run('replace-current')).toBe(false)
+  expect(r.state().result).toBeNull()
+  expect(r.state().error).toContain('Find again')
+  expect(r.store.getter(projectionSnapshotAtom).result?.revision).toBe(0)
+  await r.run('next')
+  expect(await r.run('replace-current')).toBe(true)
+})
 
-describe('find/replace history recording', () => {
-  test('records an acknowledged replace-all as one cell-input history entry', async () => {
-    const store = await setupStore([match(1, 3), match(2, 3)])
-    const recorded: HistoryEntry[] = []
-    const historyEntryRecorder: HistoryEntryRecorder = (entry, append) => {
-      recorded.push(entry)
-      return append(entry) ? 'recorded' : 'rejected'
-    }
-    const refreshSearch = vi.fn(async (request: SearchRangeRequest) => searchResult(request, []))
-    const replaceMatches = vi.fn(async (request: ReplaceMatchesRequest) =>
-      acknowledgement(request),
-    )
-
-    await store.setter(
-      runFindReplaceMutationAtom,
-      replaceInput(historyEntryRecorder, refreshSearch, replaceMatches),
-    )
-
-    expect(replaceMatches).toHaveBeenCalledTimes(1)
-    expect(refreshSearch).toHaveBeenCalledTimes(1)
-    expect(recorded).toEqual([
-      expect.objectContaining({
-        kind: 'cell.set-input',
-        sheetId: 'sheet1',
-        projectionRevision: 2,
-        affectedRange: { rowStart: 1, rowEnd: 2, colStart: 3, colEnd: 3 },
-      }),
-    ])
-    expect(store.getter(historyStackAtom)).toMatchObject({
-      cursor: 1,
-      entries: [expect.objectContaining({ kind: 'cell.set-input' })],
-    })
-  })
-
-  test('an unavailable recorder completes without creating an undo entry', async () => {
-    const store = await setupStore([match(1, 3), match(2, 3)])
-    const refreshSearch = vi.fn(async (request: SearchRangeRequest) => searchResult(request, []))
-    const replaceMatches = vi.fn(async (request: ReplaceMatchesRequest) =>
-      acknowledgement(request),
-    )
-
-    await store.setter(
-      runFindReplaceMutationAtom,
-      replaceInput(() => 'unavailable', refreshSearch, replaceMatches),
-    )
-
-    expect(replaceMatches).toHaveBeenCalledTimes(1)
-    expect(refreshSearch).toHaveBeenCalledTimes(1)
-    expect(store.getter(historyStackAtom)).toMatchObject({ cursor: 0, entries: [] })
-  })
-
-  test.each(['rejected', 'throw'] as const)(
-    'a %s history recorder makes the acknowledged mutation outcome-unknown without refresh or resend',
-    async (outcome) => {
-      const store = await setupStore([match(1, 3), match(2, 3)])
-      const refreshSearch = vi.fn(async (request: SearchRangeRequest) =>
-        searchResult(request, []),
-      )
-      const replaceMatches = vi.fn(async (request: ReplaceMatchesRequest) =>
-        acknowledgement(request),
-      )
-      const historyEntryRecorder: HistoryEntryRecorder = () => {
-        if (outcome === 'throw') throw new Error('history lane failed')
-        return 'rejected'
-      }
-      const input = replaceInput(historyEntryRecorder, refreshSearch, replaceMatches)
-
-      await store.setter(runFindReplaceMutationAtom, input)
-      await store.setter(runFindReplaceMutationAtom, input)
-
-      expect(replaceMatches).toHaveBeenCalledTimes(1)
-      expect(refreshSearch).not.toHaveBeenCalled()
-      expect(store.getter(historyStackAtom)).toMatchObject({ cursor: 0, entries: [] })
-      expect(store.getter(findReplaceErrorAtom)?.code).toBe('FIND_REPLACE_OUTCOME_UNKNOWN')
-      expect(store.getter(findReplaceRefreshRecoveryAtom)).toMatchObject({
-        status: 'required',
-        phase: 'search',
-      })
-    },
+test('busy mutation cannot be sent twice, closed, or redirected by changing the form', async () => {
+  const r = await findHarness()
+  let resolve!: (value: Awaited<ReturnType<typeof r.replace>>) => void
+  r.replace.mockReturnValueOnce(
+    new Promise((done) => {
+      resolve = done
+    }),
   )
+  const pending = r.run('replace-all')
+  expect(r.state().busy).toBe('replace')
+  expect(await r.run('replace-all')).toBe(false)
+  expect(await r.run('close')).toBe(false)
+  expect(await r.run({ form: { needle: 'different' } })).toBe(false)
+  const input = r.replace.mock.calls[0][0]
+  resolve({
+    cells: 0,
+    occurrences: 0,
+    projection: { ...input.projection, revision: 0, cells: [] },
+    sizes: { rowHeights: [], colWidths: [] },
+  })
+  expect(await pending).toBe(true)
+  expect(r.replace).toHaveBeenCalledTimes(1)
+  expect(r.state().busy).toBeNull()
+})
+
+test('a mismatched mutation projection never overwrites the current view', async () => {
+  const r = await findHarness()
+  r.replace.mockImplementationOnce(async (input) => ({
+    cells: 1,
+    occurrences: 1,
+    projection: { ...input.projection, sheetId: 'wrong', revision: 1, cells: [] },
+    sizes: { rowHeights: [], colWidths: [] },
+  }))
+  expect(await r.run('replace-all')).toBe(false)
+  expect(r.state().error).toContain('mismatched')
+  expect(r.store.getter(projectionSnapshotAtom).result?.sheetId).toBe('s')
 })

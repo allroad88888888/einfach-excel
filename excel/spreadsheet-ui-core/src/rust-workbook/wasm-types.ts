@@ -43,6 +43,13 @@ export interface RustFormatRangeSnapshot {
 }
 
 export interface WasmWorkbook {
+  apply_auto_fill?: (input: {
+    readonly sheet: number
+    readonly sourceRange: { startRow: number; endRow: number; startCol: number; endCol: number }
+    readonly targetRange: { startRow: number; endRow: number; startCol: number; endCol: number }
+    readonly direction: 'down' | 'right'
+    readonly series: 'copy'
+  }) => { readonly written: number }
   aggregate_selection?: (
     targets: readonly (CellRange & { readonly sheet: number })[],
   ) => SelectionNumbers

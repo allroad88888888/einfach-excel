@@ -1,5 +1,6 @@
 import type { SetCellInputRequest, SetFormatRangeRequest } from '../backend'
-import type { RustClearRangeRequest } from './commands'
+import type { RustClearRangeRequest, RustFillRangeRequest } from './commands'
+import { fillRange } from './fill-io'
 import { writeCellInput } from './cell-io'
 import { clearRange } from './clear-io'
 import { writeRangeFormat } from './format-io'
@@ -10,8 +11,10 @@ import type { WasmWorkbook } from './wasm-types'
 export function writeTrackedMutation(
   workbook: WasmWorkbook,
   sheet: number,
-  request: SetCellInputRequest | SetFormatRangeRequest | RustClearRangeRequest,
+  request:
+    | SetCellInputRequest | SetFormatRangeRequest | RustClearRangeRequest | RustFillRangeRequest,
 ) {
+  if ('direction' in request) return fillRange(workbook, sheet, request)
   if ('row' in request) {
     const range = {
       rowStart: request.row,

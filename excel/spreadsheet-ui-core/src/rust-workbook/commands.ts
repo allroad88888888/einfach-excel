@@ -121,6 +121,12 @@ export interface RustClearRangeRequest {
 }
 
 export interface RustWorkbookCommands extends RustFindCommands {
+  readonly 'range.fill': WorkerCommand<
+    { readonly request: RustFillRangeRequest; readonly projection: VisibleProjectionRequest },
+    RustSetRangeFormatResult & { readonly sizes: {
+      readonly rowHeights: ViewportRowHeight[]; readonly colWidths: ViewportColumnWidth[]
+    } }
+  >
   readonly 'selection.aggregate': WorkerCommand<
     { readonly targets: readonly { readonly sheetId: string; readonly range: CellRange }[] },
     SelectionNumbers & { readonly revision: number }
@@ -265,6 +271,13 @@ export interface RustWorkbookCommands extends RustFindCommands {
 }
 
 export type RustWorkbookConnection = WorkerTransport<RustWorkbookCommands>
+
+export interface RustFillRangeRequest {
+  readonly sheetId: string
+  readonly requestId: number
+  readonly range: CellRange
+  readonly direction: 'down' | 'right'
+}
 
 /** 创建 UI Core 唯一持有的 Rust 工作簿连接。 */
 export function createRustWorkbookConnection(

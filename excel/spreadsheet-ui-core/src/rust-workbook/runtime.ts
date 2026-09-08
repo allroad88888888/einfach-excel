@@ -17,7 +17,6 @@ import { editWorkbookSheet } from './sheet-edit'
 import { changeStructure } from './structure-io'
 import { writeImportedCellFormats } from './format-io'
 import type {
-  RustImportCell,
   RustWorkbookCommands,
   RustWorkbookSheet,
   RustWorkbookSheetInput,
@@ -207,9 +206,8 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
     }
     if (command === 'workbook.importCells') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
-      const cells = input.cells as readonly RustImportCell[]
-      const stats = current.bulk_import_cells(cells)
-      writeImportedCellFormats(current, cells)
+      const stats = current.bulk_import_cells(input.cells)
+      writeImportedCellFormats(current, input.cells)
       current.history_clear?.('')
       return stats
     }
@@ -226,6 +224,7 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       command === 'cell.setInput' ||
       command === 'format.setRange' ||
       command === 'range.clear' ||
+      command === 'range.fill' ||
       command === 'clipboard.paste'
     ) {
       const { request, projection } = payload as RustWorkbookCommands[typeof command]['payload']
@@ -272,6 +271,7 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       }
       return {
         acknowledgement,
+        ...('direction' in request ? { sizes: readSizes(current, sheetIndex(request.sheetId), request.range) } : {}),
         ...(colWidths ? { colWidths } : {}),
         projection: readVisibleProjection(
           current,

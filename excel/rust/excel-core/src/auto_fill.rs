@@ -1,3 +1,4 @@
+use crate::cell_style::{CellStyle, StyleScope};
 use crate::formula::Expr;
 use crate::sheet::{EXCEL_MAX_COLS, EXCEL_MAX_ROWS};
 use crate::{parse_formula, render_formula, CellAddress, CellFormat, CellRange, Workbook};
@@ -208,6 +209,15 @@ impl Workbook {
         let sheet = self
             .sheet(request.sheet_idx)
             .expect("auto-fill sheet was validated above");
+        if sheet
+            .merged_ranges()
+            .iter()
+            .any(|range| range.intersects(request.target_range))
+        {
+            return Err(AutoFillError::InvalidGeometry(
+                "unmerge cells before filling this range",
+            ));
+        }
         let planned = match request.series {
             AutoFillSeries::Copy => plan_copy(sheet, request, write_range.unwrap())?,
             AutoFillSeries::IntegerStep | AutoFillSeries::DecimalStep => {
@@ -260,12 +270,13 @@ impl Workbook {
         let target_sheet = self
             .sheet_mut(request.sheet_idx)
             .expect("preflighted auto-fill sheet disappeared");
-        // 先清掉目标格自己的 cellStyle，再逐格复制源格式。
-        target_sheet.set_format_range(write_range, CellFormat::default());
+        // 默认格式也是完整覆盖：不能清掉 cellStyle 后漏出目标行列的继承样式。
         for cell in &planned {
-            if cell.format != CellFormat::default() {
-                target_sheet.set_format(&cell.addr.to_string_repr(), cell.format.clone());
-            }
+            target_sheet.patch_format_range(
+                CellRange::single(cell.addr),
+                StyleScope::Cell,
+                CellStyle::from_format(cell.format.clone()),
+            );
         }
 
         Ok(AutoFillReport {

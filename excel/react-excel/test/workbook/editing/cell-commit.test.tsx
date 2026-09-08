@@ -58,7 +58,8 @@ describe('Rust workbook cell commit', () => {
     fireEvent.doubleClick(await firstEditingCell())
     const editor = await focusedCellEditor()
     fireEvent.change(editor, { target: { value: 'Blurred edit' } })
-    const outsideTarget = screen.getByRole('button', { name: 'Paste' })
+    // 编辑期间剪贴板按钮禁用；用仍可聚焦的工具验证真实失焦提交。
+    const outsideTarget = screen.getByRole('button', { name: 'Find' })
     outsideTarget.focus()
 
     await waitFor(() => expect(controlled.setCellInput).toHaveBeenCalledTimes(1))

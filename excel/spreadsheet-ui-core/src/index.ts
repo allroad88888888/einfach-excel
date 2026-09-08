@@ -20,6 +20,7 @@ export * from './comments'
 export * from './history'
 export * from './backend'
 export * from './clipboard'
+export * from './clipboard/system-clipboard-command'
 export * from './named-ranges'
 export {
   beginNameManagerTableRenameAtom,

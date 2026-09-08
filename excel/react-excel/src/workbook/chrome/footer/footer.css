@@ -68,6 +68,16 @@
   padding-left: 18px;
 }
 
+.clipboard-feedback {
+  max-width: 320px;
+  padding-block: 5px;
+  overflow-wrap: anywhere;
+}
+
+.clipboard-feedback[data-error='true'] {
+  color: #a12622;
+}
+
 .zoom-control {
   display: flex;
   height: 100%;
@@ -106,6 +116,7 @@
 @media (max-width: 760px) {
   .workbook-footer {
     min-height: 30px;
+    flex-wrap: wrap;
   }
 
   .status-items {

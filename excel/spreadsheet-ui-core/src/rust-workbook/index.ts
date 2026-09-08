@@ -12,3 +12,9 @@ export {
   type RustWorkbookSheetInput,
 } from './commands'
 export { setRustCellInputAtom, type SetRustCellInputInput } from './command-atoms'
+export type {
+  RustClipboardCapture,
+  RustClipboardCaptureRequest,
+  RustClipboardPasteRequest,
+  RustClipboardPasteMode,
+} from './clipboard-commands'

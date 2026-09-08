@@ -6,6 +6,7 @@ import {
   SELECTION_FILL_COLOR,
   SELECTION_TEXT_COLOR,
 } from '@einfach/spreadsheet-ui-core'
+import { ClipboardTools } from './ClipboardTools'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import './ribbon.css'
 
@@ -61,9 +62,7 @@ export function WorkbookRibbon() {
       </div>
       <span className="toolbar-divider" aria-hidden="true" />
       <div className="ribbon-tools" role="toolbar" aria-label="Start tools">
-        <ToolButton icon="▣" label="Paste" />
-        <ToolButton icon="✂" label="Cut" />
-        <ToolButton icon="▤" label="Copy" />
+        <ClipboardTools />
         <span className="tool-separator" aria-hidden="true" />
         <select
           aria-label="Font family"

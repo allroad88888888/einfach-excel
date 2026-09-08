@@ -9,6 +9,11 @@ import type {
 import type { WorkerCommand, WorkerLike, WorkerTransport } from '../rust-worker'
 import type { CellRange } from '../shared'
 import { createWorkerTransport } from '../rust-worker'
+import type {
+  RustClipboardCapture,
+  RustClipboardCaptureRequest,
+  RustClipboardPasteRequest,
+} from './clipboard-commands'
 
 export interface RustWorkbookSheetInput {
   readonly id?: string
@@ -96,6 +101,11 @@ export interface RustClearRangeRequest {
 }
 
 export interface RustWorkbookCommands {
+  readonly 'clipboard.capture': WorkerCommand<RustClipboardCaptureRequest, RustClipboardCapture>
+  readonly 'clipboard.paste': WorkerCommand<
+    { readonly request: RustClipboardPasteRequest; readonly projection: VisibleProjectionRequest },
+    RustSetRangeFormatResult
+  >
   readonly 'range.clear': WorkerCommand<
     { readonly request: RustClearRangeRequest; readonly projection: VisibleProjectionRequest },
     RustSetRangeFormatResult

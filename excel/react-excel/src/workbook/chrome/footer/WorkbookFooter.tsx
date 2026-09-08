@@ -3,6 +3,7 @@ import {
   activeWorkbookSheetAtom,
   selectionSnapshotAtom,
   workbookDocumentAtom,
+  systemClipboardFeedbackAtom,
 } from '@einfach/spreadsheet-ui-core'
 import './footer.css'
 
@@ -11,6 +12,7 @@ export function WorkbookFooter() {
   const document = useAtomValue(workbookDocumentAtom)
   const activeSheet = useAtomValue(activeWorkbookSheetAtom)
   const selection = useAtomValue(selectionSnapshotAtom)
+  const clipboard = useAtomValue(systemClipboardFeedbackAtom)
   const selectedCellCount =
     (selection.range.colEnd - selection.range.colStart + 1) *
     (selection.range.rowEnd - selection.range.rowStart + 1)
@@ -38,6 +40,17 @@ export function WorkbookFooter() {
         ))}
       </div>
       <div className="status-items">
+        {clipboard.message && (
+          <div
+            className="clipboard-feedback"
+            role={clipboard.error ? 'alert' : 'status'}
+            aria-label="Clipboard status"
+            data-error={clipboard.error}
+            title={clipboard.message}
+          >
+            {clipboard.message}
+          </div>
+        )}
         {activeSheet === null ? null : (
           <span className="record-status">{activeSheet.rowCount.toLocaleString()} rows</span>
         )}

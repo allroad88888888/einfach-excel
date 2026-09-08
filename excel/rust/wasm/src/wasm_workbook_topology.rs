@@ -13,6 +13,7 @@ impl WasmWorkbook {
         ));
         WasmWorkbook {
             workbook,
+            clipboard: None,
             subscriptions: HashMap::new(),
             next_token: 0,
             custom_formulas,

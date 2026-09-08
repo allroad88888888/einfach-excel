@@ -19,6 +19,7 @@
 //! 子模块一律私有，公开面由本文件逐项 `pub use` 出去 —— `crate::shift::X`
 //! 的路径与拆分前逐字相同，调用点不需要跟着改。
 
+mod copy;
 mod delta;
 mod edit;
 mod parked;
@@ -30,6 +31,7 @@ mod render_ref;
 mod retarget;
 mod table_ref;
 
+pub use copy::shift_copy_formula;
 pub use delta::shift_refs;
 pub use edit::{
     contains_invalid_ref, shift_addr_col_delete, shift_addr_col_insert, shift_addr_row_delete,

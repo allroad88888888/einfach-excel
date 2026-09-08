@@ -19,6 +19,7 @@ import {
   WORKBOOK_GRID_ROW_HEIGHT,
 } from './workbook-grid-config'
 import { useWorkbookGridEvents } from './use-workbook-grid-events'
+import { useGridClipboard } from '../../clipboard/use-grid-clipboard'
 import { useWorkbookGridWindow } from './use-workbook-grid-window'
 import './grid.css'
 
@@ -56,6 +57,7 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
     colCount: activeSheet.colCount,
   })
   const events = useWorkbookGridEvents(viewport)
+  const clipboard = useGridClipboard(viewport.retained)
   const selectGridHeader = async (input: GridHeaderSelectionInput) => {
     if (await selectHeader(input)) events.focusGrid()
   }
@@ -184,6 +186,9 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
             ref={events.gridRef}
             className="grid-surface grid-window"
             data-workbook-grid="true"
+            onCopy={clipboard.onCopy}
+            onCut={clipboard.onCut}
+            onPaste={clipboard.onPaste}
             data-row-count={activeSheet.rowCount}
             data-projection-retained={viewport.retained ? 'true' : 'false'}
             aria-busy={viewport.retained}

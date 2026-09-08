@@ -33,6 +33,7 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
   let workbook: WasmWorkbook | undefined
   let initPromise: Promise<unknown> | undefined
   let revision = 0
+  let clipboard: { token: string; cut: boolean; consumed?: boolean } | undefined
 
   async function ensureWasm(): Promise<void> {
     initPromise ??= wasm.default()
@@ -49,6 +50,7 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
     for (const input of inputs.slice(1)) next.add_sheet(input.name)
     workbook = next
     revision = 0
+    clipboard = undefined
     sheetsById.clear()
     return inputs.map((input, index) => {
       const sheet = Object.freeze({
@@ -80,6 +82,21 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       return initialize(input.sheets)
     }
     const current = currentWorkbook()
+    if (command === 'clipboard.capture') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      if (!current.capture_clipboard) throw new Error('Rust clipboard export is unavailable')
+      const range = input.range
+      const captured = current.capture_clipboard(
+        sheetIndex(input.sheetId),
+        range.rowStart,
+        range.colStart,
+        range.rowEnd,
+        range.colEnd,
+        input.cut,
+      )
+      clipboard = { token: crypto.randomUUID(), cut: input.cut }
+      return { ...captured, token: clipboard.token }
+    }
     if (command === 'workbook.importCells') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
       const cells = input.cells as readonly RustImportCell[]
@@ -126,21 +143,48 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
         ),
       }
     }
-    if (command === 'format.setRange' || command === 'range.clear') {
+    if (
+      command === 'format.setRange' ||
+      command === 'range.clear' ||
+      command === 'clipboard.paste'
+    ) {
       const { request, projection } = payload as RustWorkbookCommands[typeof command]['payload']
       if (projection.sheetId !== request.sheetId) {
         throw Object.assign(new Error('Mutation and projection must target the same sheet'), {
           code: 'PROJECTION_SHEET_MISMATCH',
         })
       }
-      if ('mode' in request) clearRange(current, sheetIndex(request.sheetId), request)
-      else writeRangeFormat(current, sheetIndex(request.sheetId), request)
+      let affectedRange
+      if ('text' in request) {
+        if (!current.paste_clipboard) throw new Error('Rust paste export is unavailable')
+        const internal = !!request.token && request.token === clipboard?.token
+        if (internal && clipboard?.consumed) throw new Error('CLIPBOARD_CUT_CONSUMED')
+        const range = current.paste_clipboard(
+          sheetIndex(request.sheetId),
+          request.row,
+          request.col,
+          request.text,
+          internal,
+          request,
+        )
+        affectedRange = {
+          rowStart: range[0],
+          colStart: range[1],
+          rowEnd: range[2],
+          colEnd: range[3],
+        }
+        if (internal && clipboard?.cut) clipboard.consumed = true
+      } else {
+        if ('mode' in request) clearRange(current, sheetIndex(request.sheetId), request)
+        else writeRangeFormat(current, sheetIndex(request.sheetId), request)
+        affectedRange = { ...request.range }
+      }
       revision += 1
       const acknowledgement: BackendMutationResult = {
         sheetId: request.sheetId,
         requestId: request.requestId,
         revision,
-        affectedRange: { ...request.range },
+        affectedRange,
       }
       return {
         acknowledgement,

@@ -3,6 +3,9 @@ import type {
   EditingCommitRequest,
   RustSetRangeFormatResult,
   RustClearRangeRequest,
+  RustClipboardCapture,
+  RustClipboardCaptureRequest,
+  RustClipboardPasteRequest,
   RustWorkbookConnection,
   SetFormatRangeRequest,
   VisibleProjectionRequest,
@@ -10,6 +13,11 @@ import type {
 } from '@einfach/spreadsheet-ui-core'
 
 export interface TestRustWorkbookHandlers {
+  captureClipboard?: (request: RustClipboardCaptureRequest) => Promise<RustClipboardCapture>
+  pasteClipboard?: (
+    request: RustClipboardPasteRequest,
+    projection: VisibleProjectionRequest,
+  ) => Promise<RustSetRangeFormatResult>
   clearRange?: (
     request: RustClearRangeRequest,
     projection: VisibleProjectionRequest,
@@ -29,6 +37,16 @@ export function createTestRustWorkbookConnection(
   handlers: TestRustWorkbookHandlers = {},
 ): RustWorkbookConnection {
   const request = (async (command: string, payload: unknown) => {
+    if (command === 'clipboard.capture' && handlers.captureClipboard) {
+      return handlers.captureClipboard(payload as RustClipboardCaptureRequest)
+    }
+    if (command === 'clipboard.paste' && handlers.pasteClipboard) {
+      const input = payload as {
+        request: RustClipboardPasteRequest
+        projection: VisibleProjectionRequest
+      }
+      return handlers.pasteClipboard(input.request, input.projection)
+    }
     handlers.onRequest?.(command)
     if (command === 'range.clear' && handlers.clearRange) {
       const input = payload as {

@@ -1,5 +1,6 @@
 import type { SpreadsheetCellFormat } from '../backend'
 import type { RustImportCell, RustImportStats } from './commands'
+import type { RustClipboardCapture, RustClipboardPasteRequest } from './clipboard-commands'
 
 export interface RustCellSnapshot {
   readonly sheet: number
@@ -41,6 +42,25 @@ export interface RustFormatRangeSnapshot {
 }
 
 export interface WasmWorkbook {
+  capture_clipboard?: (
+    sheet: number,
+    startRow: number,
+    startCol: number,
+    endRow: number,
+    endCol: number,
+    cut: boolean,
+  ) => Omit<RustClipboardCapture, 'token'>
+  paste_clipboard?: (
+    sheet: number,
+    row: number,
+    col: number,
+    text: string,
+    internal: boolean,
+    policy: Pick<
+      RustClipboardPasteRequest,
+      'rowCount' | 'colCount' | 'unlockedRanges' | 'mode' | 'selection'
+    >,
+  ) => ArrayLike<number>
   sheet_count(): number
   sheet_name(index: number): string
   add_sheet(name: string): number

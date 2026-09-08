@@ -9,12 +9,19 @@ import type {
   RustClipboardCaptureRequest,
   RustClipboardPasteRequest,
   RustWorkbookConnection,
+  RustWorkbookCommands,
   SetFormatRangeRequest,
   VisibleProjectionRequest,
   VisibleProjectionResult,
 } from '@einfach/spreadsheet-ui-core'
 
 export interface TestRustWorkbookHandlers {
+  changeSheets?: (
+    request: RustWorkbookCommands['workbook.changeSheets']['payload'],
+  ) => Promise<RustWorkbookCommands['workbook.changeSheets']['result']>
+  editSheet?: (
+    request: RustWorkbookCommands['workbook.editSheet']['payload'],
+  ) => Promise<RustWorkbookCommands['workbook.editSheet']['result']>
   exportClipboard?: (request: RustClipboardExportRequest) => Promise<RustClipboardExport>
   captureClipboard?: (request: RustClipboardCaptureRequest) => Promise<RustClipboardCapture>
   pasteClipboard?: (
@@ -40,6 +47,14 @@ export function createTestRustWorkbookConnection(
   handlers: TestRustWorkbookHandlers = {},
 ): RustWorkbookConnection {
   const request = (async (command: string, payload: unknown) => {
+    if (command === 'workbook.changeSheets' && handlers.changeSheets) {
+      return handlers.changeSheets(
+        payload as RustWorkbookCommands['workbook.changeSheets']['payload'],
+      )
+    }
+    if (command === 'workbook.editSheet' && handlers.editSheet) {
+      return handlers.editSheet(payload as RustWorkbookCommands['workbook.editSheet']['payload'])
+    }
     if (command === 'clipboard.export' && handlers.exportClipboard) {
       return handlers.exportClipboard(payload as RustClipboardExportRequest)
     }

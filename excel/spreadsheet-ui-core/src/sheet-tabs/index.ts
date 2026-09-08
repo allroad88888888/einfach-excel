@@ -1,4 +1,5 @@
 /** Public compatibility facade for the Sheet Tabs domain. */
+export { runWorkbookSheetCommandAtom, type WorkbookSheetCommand } from './workbook-command'
 export type {
   ActivateSheetTabInput,
   BeginSheetTabRenameCommandInput,

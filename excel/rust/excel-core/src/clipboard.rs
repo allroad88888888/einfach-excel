@@ -50,6 +50,33 @@ pub struct ClipboardSnapshot {
 }
 
 impl ClipboardSnapshot {
+    /// 表重排只改变源表索引；源表被删除时由宿主释放快照，避免误剪另一张表。
+    pub fn remap_source_sheet(&mut self, map: impl FnOnce(usize) -> Option<usize>) -> bool {
+        let Some(source) = self.source_sheet else {
+            return true;
+        };
+        let Some(next) = map(source) else {
+            return false;
+        };
+        self.source_sheet = Some(next);
+        true
+    }
+
+    /// 跟随表名变化或删除；冻结结果和样式不变，静态公式身份保持一致。
+    pub fn rewrite_sheet_references(&mut self, old: &str, new: Option<&str>) {
+        for cell in &mut self.cells {
+            if let ClipboardValue::Formula { source, .. } = &mut cell.value {
+                if let Some(mut expr) = crate::parse_formula(source) {
+                    let original = expr.clone();
+                    crate::workbook::rewrite_sheet_refs(&mut expr, old, new);
+                    if expr != original {
+                        *source = crate::render_formula(&expr);
+                    }
+                }
+            }
+        }
+    }
+
     pub fn text(&self) -> &str {
         &self.text
     }

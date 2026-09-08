@@ -58,8 +58,7 @@ impl Workbook {
 
     /// Rename a sheet. Fails (returns false) if the new name is taken.
     ///
-    /// Formula ASTs store sheet names, so changing topology invalidates the
-    /// shared topology atom read by qualified references.
+    /// Retarget static references before publishing the renamed topology.
     pub fn rename_sheet(&mut self, idx: usize, new_name: &str) -> bool {
         if self.is_inside_custom_call() {
             return false; // re-entrancy guard
@@ -70,24 +69,31 @@ impl Workbook {
         if idx >= self.names.len() {
             return false;
         }
-        let old = std::mem::take(&mut self.names[idx]);
-        self.by_name.remove(&old);
-        self.names[idx] = new_name.to_string();
-        self.by_name.insert(new_name.to_string(), idx);
-        // Table anchor maintenance (design doc #32 §4.4): entries are
-        // anchored by sheet NAME, so re-point every Table on the renamed
-        // sheet. Bump the epoch only if at least one Table moved.
-        let mut table_moved = false;
-        for entry in self.tables.values_mut() {
-            if entry.sheet_name == old {
-                entry.sheet_name = new_name.to_string();
-                table_moved = true;
+        let rewrites = self.sheet_ref_rewrites(&self.names[idx], Some(new_name));
+        let store = self.store.clone();
+        store.batch(|_| {
+            let old = std::mem::take(&mut self.names[idx]);
+            self.by_name.remove(&old);
+            self.names[idx] = new_name.to_string();
+            self.by_name.insert(new_name.to_string(), idx);
+            // Table anchor maintenance (design doc #32 §4.4): entries are
+            // anchored by sheet NAME, so re-point every Table on the renamed
+            // sheet. Bump the epoch only if at least one Table moved.
+            let mut table_moved = false;
+            for entry in self.tables.values_mut() {
+                if entry.sheet_name == old {
+                    entry.sheet_name = new_name.to_string();
+                    table_moved = true;
+                }
             }
-        }
-        if table_moved {
-            self.bump_tables_epoch();
-        }
-        self.sync_atom_topology();
+            if table_moved {
+                self.bump_tables_epoch();
+            }
+            self.sync_atom_topology();
+            for (sheet, addr, text) in rewrites {
+                self.set_formula(sheet, &addr.to_string_repr(), &text);
+            }
+        });
         true
     }
 

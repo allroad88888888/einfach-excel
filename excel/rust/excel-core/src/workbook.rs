@@ -74,6 +74,11 @@ mod workbook_table_totals;
 mod workbook_table_types;
 #[path = "workbook_topology.rs"]
 mod workbook_topology;
+#[path = "workbook_sheet_edit.rs"]
+mod workbook_sheet_edit;
+#[path = "workbook_sheet_refs.rs"]
+mod workbook_sheet_refs;
+pub(crate) use workbook_sheet_refs::rewrite_sheet_refs;
 #[path = "workbook_visibility_types.rs"]
 mod workbook_visibility_types;
 #[path = "workbook_write.rs"]

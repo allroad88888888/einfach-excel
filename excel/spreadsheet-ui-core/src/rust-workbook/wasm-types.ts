@@ -60,6 +60,9 @@ export interface WasmWorkbook {
   sheet_count(): number
   sheet_name(index: number): string
   add_sheet(name: string): number
+  edit_sheet(index: number | undefined, name: string): number
+  remove_sheet(index: number): boolean
+  move_sheet(from: number, to: number): boolean
   rename_sheet(index: number, name: string): boolean
   snapshotCell(sheet: number, addr: string): RustCellSnapshot
   bulk_import_cells(cells: readonly RustImportCell[]): RustImportStats

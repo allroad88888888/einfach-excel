@@ -36,14 +36,41 @@ impl WasmWorkbook {
         self.workbook.add_sheet(name) as u32
     }
 
+    /// Checked user command; the optional index distinguishes rename from add.
+    pub fn edit_sheet(&mut self, index: Option<u32>, name: &str) -> Result<u32, JsValue> {
+        let old = index.and_then(|idx| self.workbook.name(idx as usize).map(str::to_string));
+        let result = self
+            .workbook
+            .edit_sheet(index.map(|idx| idx as usize), name)
+            .map(|idx| idx as u32)
+            .map_err(JsValue::from_str)?;
+        if let (Some(old), Some(clipboard)) = (old, self.clipboard.as_mut()) {
+            clipboard.rewrite_sheet_references(&old, Some(name.trim()));
+        }
+        Ok(result)
+    }
+
     pub fn rename_sheet(&mut self, idx: u32, name: &str) -> bool {
         self.workbook.rename_sheet(idx as usize, name)
     }
 
     pub fn remove_sheet(&mut self, idx: u32) -> bool {
         let idx = idx as usize;
+        let old = self.workbook.name(idx).unwrap_or_default().to_string();
         if self.workbook.remove_sheet(idx).is_none() {
             return false;
+        }
+        if let Some(clipboard) = self.clipboard.as_mut() {
+            clipboard.rewrite_sheet_references(&old, None);
+            if !clipboard.remap_source_sheet(|source| {
+                if source == idx {
+                    None
+                } else {
+                    Some(if source > idx { source - 1 } else { source })
+                }
+            }) {
+                self.clipboard = None;
+            }
         }
         // Mirror move_sheet: keep token → (sheet_idx, sub) accurate across
         // the shift, or a later unsubscribe_cell resolves against the WRONG
@@ -65,6 +92,10 @@ impl WasmWorkbook {
         let to = to as usize;
         if !self.workbook.move_sheet(from, to) {
             return false;
+        }
+        if let Some(clipboard) = self.clipboard.as_mut() {
+            clipboard
+                .remap_source_sheet(|source| Some(remap_sheet_index_after_move(source, from, to)));
         }
         for entry in self.subscriptions.values_mut() {
             entry.sheet_idx = remap_sheet_index_after_move(entry.sheet_idx, from, to);

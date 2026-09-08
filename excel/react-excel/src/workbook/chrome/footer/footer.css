@@ -49,6 +49,103 @@
   border-radius: 6px;
   font-size: 11px;
   font-weight: 600;
+  flex: none;
+  white-space: nowrap;
+}
+
+.workbook-sheet-controls {
+  min-width: 0;
+  flex: 1;
+}
+.sheet-tabs {
+  min-height: 34px;
+}
+.sheet-tab-list {
+  display: flex;
+  min-width: 0;
+  overflow-x: auto;
+  align-self: stretch;
+}
+.sheet-tabs .rename-sheet {
+  flex: none;
+  width: 30px;
+  font-size: 17px;
+}
+
+.sheet-tabs .sheet-action {
+  flex: none;
+  width: 26px;
+  font-size: 17px;
+}
+.sheet-action:hover {
+  background: var(--control-hover);
+}
+.sheet-delete-dialog {
+  width: 360px;
+  max-width: calc(100vw - 32px);
+  box-sizing: border-box;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+  color: #242735;
+  font-size: 13px;
+  box-shadow: 0 12px 40px #20243433;
+}
+.sheet-delete-dialog::backdrop {
+  background: #20243455;
+}
+.sheet-delete-dialog h2 {
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+.sheet-delete-dialog p {
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.sheet-delete-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.sheet-delete-actions button {
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+.sheet-delete-actions .sheet-delete-confirm {
+  background: #a12622;
+  color: white;
+  border-color: #a12622;
+}
+.sheet-delete-actions button:disabled {
+  opacity: 0.5;
+}
+.sheet-tabs button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.sheet-rename {
+  display: flex;
+  gap: 6px;
+  padding: 5px 8px;
+}
+.sheet-rename input {
+  min-width: 0;
+  width: 180px;
+  border: 1px solid var(--primary);
+  padding: 4px;
+}
+.sheet-rename button {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--control-hover);
+}
+.sheet-command-error {
+  margin: 0;
+  padding: 4px 8px;
+  color: #a12622;
+  overflow-wrap: anywhere;
 }
 
 .sheet-tab.active {

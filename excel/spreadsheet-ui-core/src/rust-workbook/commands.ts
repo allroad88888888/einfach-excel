@@ -103,6 +103,29 @@ export interface RustClearRangeRequest {
 }
 
 export interface RustWorkbookCommands {
+  readonly 'workbook.changeSheets': WorkerCommand<
+    (
+      | { readonly operation: 'delete'; readonly sheetId: string }
+      | { readonly operation: 'move'; readonly sheetId: string; readonly targetIndex: number }
+    ) & { readonly projection?: VisibleProjectionRequest },
+    {
+      readonly sheets: readonly RustWorkbookSheet[]
+      readonly revision: number
+      readonly projection?: VisibleProjectionResult
+    }
+  >
+  readonly 'workbook.editSheet': WorkerCommand<
+    {
+      readonly sheetId?: string
+      readonly name: string
+      readonly projection?: VisibleProjectionRequest
+    },
+    {
+      readonly sheet: RustWorkbookSheet
+      readonly revision: number
+      readonly projection?: VisibleProjectionResult
+    }
+  >
   readonly 'clipboard.export': WorkerCommand<RustClipboardExportRequest, RustClipboardExport>
   readonly 'clipboard.capture': WorkerCommand<RustClipboardCaptureRequest, RustClipboardCapture>
   readonly 'clipboard.paste': WorkerCommand<

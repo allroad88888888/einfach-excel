@@ -8,10 +8,7 @@
 //!     referenced the removed sheet (A-6).
 //!   - `rename_sheet` rebuilds the graph against the new name → index
 //!     map and dirties + notifies formulas whose resolution changed —
-//!     both "old name broke" and "new name now resolves" (A-7). The
-//!     name-resolution contract itself is unchanged: ASTs keep the
-//!     typed sheet name; references to the old name surface a
-//!     `#REF!`-class value.
+//!     both retargeted old-name references and newly resolved names (A-7).
 //!   - Cross-sheet refs hidden behind defined names (`READDATA =
 //!     LAMBDA(Data!A1)`, cell `=READDATA()`) register real edges and
 //!     stay fresh + notify, including nested named lambdas and
@@ -143,8 +140,7 @@ fn remove_referenced_sheet_propagates_to_chained_dependents() {
 // A-7: rename_sheet
 // ===================================================================
 
-/// Renaming the referenced sheet breaks `=Data!A1` (AST keeps the old
-/// name) — the dependent's value changes, so it must dirty + notify.
+/// Renaming preserves the referenced cell and republishes its rewritten formula.
 #[test]
 fn rename_sheet_notifies_dependents_of_old_name() {
     let mut wb = Workbook::new();
@@ -156,11 +152,14 @@ fn rename_sheet_notifies_dependents_of_old_name() {
 
     assert!(wb.rename_sheet(data, "Numbers"));
 
+    assert_eq!(wb.get_cell("Sheet1", "B1"), Value::Number(10.0));
+    assert_eq!(*fires.borrow(), 0, "rename must not publish a transient #REF!");
+    wb.set_cell(data, "A1", Value::Number(8.0));
     assert!(
         *fires.borrow() >= 1,
-        "dependent must be notified when the rename breaks its reference"
+        "retargeted reference must remain subscribed to its source"
     );
-    assert_ne!(wb.get_cell("Sheet1", "B1"), Value::Number(10.0));
+    assert_eq!(wb.get_cell("Sheet1", "B1"), Value::Number(16.0));
 }
 
 /// The inverse: a formula referencing a name that did NOT resolve

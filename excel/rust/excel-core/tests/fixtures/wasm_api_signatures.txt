@@ -95,6 +95,9 @@ impl WasmWorkbook :: [] :: pub fn apply_auto_fill(&mut self, payload: JsValue) -
 impl WasmWorkbook :: [] :: pub fn bulk_import_cells(&mut self, cells: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn bulk_install_workbook(&mut self, payload: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn clear_cell(&mut self, sheet_idx: u32, addr: &str)
+impl WasmWorkbook :: [] :: pub fn capture_clipboard( &mut self, sheet_idx: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, cut: bool, ) -> Result<JsValue, JsValue>
+impl WasmWorkbook :: [] :: pub fn paste_clipboard( &mut self, sheet_idx: u32, row: u32, col: u32, text: &str, internal: bool, policy: JsValue, ) -> Result<Vec<u32>, JsValue>
+impl WasmWorkbook :: [] :: pub fn set_cell_input( &mut self, sheet_idx: usize, addr: &str, input: &str, ) -> Result<(), JsValue>
 impl WasmWorkbook :: [] :: pub fn clear_range( &mut self, sheet_idx: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, ) -> u32
 impl WasmWorkbook :: [] :: pub fn debug_cross_sheet_dependents_count(&self) -> u32
 impl WasmWorkbook :: [] :: pub fn debug_formula_cache_state(&self, sheet_idx: u32, addr: &str) -> String
@@ -104,6 +107,7 @@ impl WasmWorkbook :: [] :: pub fn debug_formula_eval_count_total(&self) -> u32
 impl WasmWorkbook :: [] :: pub fn debug_live_subscription_count(&self) -> u32
 impl WasmWorkbook :: [] :: pub fn debug_sheet_formula_count(&self, sheet_idx: u32) -> u32
 impl WasmWorkbook :: [] :: pub fn debug_sheet_live_subscription_count(&self, sheet_idx: u32) -> u32
+impl WasmWorkbook :: [] :: pub fn edit_sheet(&mut self, index: Option<u32>, name: &str) -> Result<u32, JsValue>
 impl WasmWorkbook :: [] :: pub fn delete_col(&mut self, sheet_idx: u32, at: u32, count: u32)
 impl WasmWorkbook :: [] :: pub fn delete_row(&mut self, sheet_idx: u32, at: u32, count: u32)
 impl WasmWorkbook :: [] :: pub fn get_display(&self, sheet_idx: u32, addr: &str) -> String

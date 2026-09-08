@@ -49,8 +49,7 @@ fn raw_path_cross_sheet_formula_uses_shared_store() {
     assert_eq!(wb.get_cell("Sheet1", "B1"), Value::Number(14.0));
 }
 
-/// Removing and recreating a referenced sheet updates the workbook
-/// topology root, forcing dependent formula atoms to resolve the name again.
+/// A recreated name must not reconnect deleted references; a newly entered formula can use it.
 #[test]
 fn remove_sheet_then_recompute_stays_correct() {
     let mut wb = Workbook::new();
@@ -64,12 +63,13 @@ fn remove_sheet_then_recompute_stays_correct() {
 
     wb.remove_sheet(1);
 
-    // A new Data sheet with the same name is resolved through the updated
-    // topology version rather than any retained sheet index.
+    // The original reference is permanently broken, even if the name is reused.
     wb.add_sheet("Data");
     wb.sheet_by_name_mut("Data")
         .unwrap()
         .set_cell("A1", Value::Number(3.0));
+    assert_eq!(wb.get_cell("Sheet1", "B1"), Value::Error(ValueError::InvalidRef));
+    assert!(wb.set_formula(0, "B1", "=Data!A1*2"));
     assert_eq!(wb.get_cell("Sheet1", "B1"), Value::Number(6.0));
 
     // Mutate the new source. Must propagate.

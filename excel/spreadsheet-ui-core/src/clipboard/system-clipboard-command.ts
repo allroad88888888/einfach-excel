@@ -51,6 +51,7 @@ const feedbackAtom = atom<SystemClipboardFeedback>({ busy: false, error: false, 
 export const systemClipboardFeedbackAtom = atom((get) => get(feedbackAtom))
 
 const ERROR_MESSAGES: Readonly<Record<string, string>> = {
+  CLIPBOARD_EMPTY: 'The copied worksheet was deleted. Copy cells again before pasting.',
   CLIPBOARD_SELECTION_SIZE:
     'The selected range must fit whole copies of the clipboard. Nothing was pasted.',
   CLIPBOARD_CUT_SPECIAL: 'Paste special requires Copy, not Cut. The cut cells are unchanged.',

@@ -278,13 +278,8 @@ fn audit_remove_unrelated_sheet_preserves_store_dependency() {
 }
 
 // =====================================================================
-// Finding A7 (P-C) — FIXED (W1.2). rename_sheet still does NOT rewrite
-// formula ASTs/texts (the name-resolution contract is unchanged:
-// `=Data!A1` keeps saying `Data` and stops resolving), but dependents
-// are now dirtied and their subscribers notified, and the cross-sheet
-// edge graph is rebuilt against the new name → index map. Pin flipped
-// to the fixed behavior; the new-name-resolves case lives in
-// tests/cross_sheet_propagation.rs.
+// A7: rename now retargets static formula references within one Store batch.
+// The old result remains stable and later source edits must still propagate.
 // =====================================================================
 
 #[test]
@@ -306,16 +301,16 @@ fn audit_rename_sheet_dependents_not_retargeted_or_notified() {
 
     let after = wb.get_cell("Sheet1", "B1");
     eprintln!("B1 after renaming Data -> Numbers: {after:?}");
-    // Name-resolution contract (unchanged): the AST still says
-    // `Data!A1`, which no longer resolves — the observable value
-    // changed away from 10 (#REF!-class).
-    assert_ne!(
+    // Sheet rename now retargets static references in the same publication batch.
+    assert_eq!(
         after,
         Value::Number(10.0),
-        "dependent value changed after rename (references break, Excel-\
-         style rewrite is a separate follow-up)"
+        "dependent value must survive rename"
     );
-    // A-7 FIXED: the subscriber is told about the change.
+    // No transient #REF! publication; later source writes still notify dependents.
+    assert_eq!(*fires.borrow(), 0);
+    wb.set_cell(data, "A1", Value::Number(8.0));
+    assert_eq!(wb.get_cell("Sheet1", "B1"), Value::Number(16.0));
     assert!(
         *fires.borrow() >= 1,
         "A-7 FIXED: rename_sheet must notify dependents whose value \

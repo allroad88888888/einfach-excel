@@ -2,14 +2,13 @@ import { useAtomValue } from '@einfach/react'
 import {
   activeWorkbookSheetAtom,
   selectionSnapshotAtom,
-  workbookDocumentAtom,
   systemClipboardFeedbackAtom,
 } from '@einfach/spreadsheet-ui-core'
 import './footer.css'
+import { WorkbookSheetTabs } from './WorkbookSheetTabs'
 
 /** Renders sheet tabs and selection status for the active UI-core workbook. */
 export function WorkbookFooter() {
-  const document = useAtomValue(workbookDocumentAtom)
   const activeSheet = useAtomValue(activeWorkbookSheetAtom)
   const selection = useAtomValue(selectionSnapshotAtom)
   const clipboard = useAtomValue(systemClipboardFeedbackAtom)
@@ -19,26 +18,7 @@ export function WorkbookFooter() {
 
   return (
     <footer className="workbook-footer">
-      <div className="sheet-tabs" aria-label="Workbook sheets">
-        <button className="sheet-nav" type="button" aria-label="Previous sheet">
-          ‹
-        </button>
-        <button className="sheet-nav" type="button" aria-label="Next sheet">
-          ›
-        </button>
-        <button className="add-sheet" type="button" aria-label="New sheet">
-          ＋
-        </button>
-        {document.sheets.map((sheet) => (
-          <button
-            className={sheet.id === activeSheet?.id ? 'sheet-tab active' : 'sheet-tab'}
-            key={sheet.id}
-            type="button"
-          >
-            <span aria-hidden="true" /> {sheet.name}
-          </button>
-        ))}
-      </div>
+      <WorkbookSheetTabs />
       <div className="status-items">
         {clipboard.message && (
           <div

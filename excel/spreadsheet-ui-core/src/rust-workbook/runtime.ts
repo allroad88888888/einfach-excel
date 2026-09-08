@@ -4,6 +4,7 @@ import type { BackendMutationResult } from '../backend'
 import type { WorkerErrorWire, WorkerRequestWire } from '../rust-worker/types'
 import { writeCellInput } from './cell-io'
 import { exportClipboard } from './clipboard-export'
+import { changeSheetStructure } from './sheet-structure'
 import { clearRange } from './clear-io'
 import { writeImportedCellFormats, writeRangeFormat } from './format-io'
 import type {
@@ -83,6 +84,50 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       return initialize(input.sheets)
     }
     const current = currentWorkbook()
+    if (command === 'workbook.changeSheets') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      const sheets = changeSheetStructure(current, sheetsById, input)
+      revision += 1
+      return {
+        sheets,
+        revision,
+        ...(input.projection
+          ? {
+              projection: readVisibleProjection(
+                current,
+                sheetIndex(input.projection.sheetId),
+                input.projection,
+                revision,
+              ),
+            }
+          : {}),
+      }
+    }
+    if (command === 'workbook.editSheet') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      // 先校验投影目标，避免写入成功后才发现请求的表不存在。
+      const visibleIndex = input.projection ? sheetIndex(input.projection.sheetId) : undefined
+      const index = current.edit_sheet(
+        input.sheetId ? sheetIndex(input.sheetId) : undefined,
+        input.name,
+      )
+      const sheet = Object.freeze({
+        id: input.sheetId ?? crypto.randomUUID(),
+        index,
+        name: current.sheet_name(index),
+      })
+      sheetsById.set(sheet.id, sheet)
+      revision += 1
+      return {
+        sheet,
+        revision,
+        ...(input.projection && visibleIndex !== undefined
+          ? {
+              projection: readVisibleProjection(current, visibleIndex, input.projection, revision),
+            }
+          : {}),
+      }
+    }
     if (command === 'clipboard.export') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
       return exportClipboard(current, sheetIndex(input.sheetId), input)

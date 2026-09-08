@@ -95,6 +95,7 @@ impl ClipboardSnapshot {
             cut: false,
             cells,
             text: text.into(),
+            column_widths: Vec::new(),
         })
     }
 }

@@ -171,7 +171,7 @@ export interface RustWorkbookCommands {
   readonly 'clipboard.capture': WorkerCommand<RustClipboardCaptureRequest, RustClipboardCapture>
   readonly 'clipboard.paste': WorkerCommand<
     { readonly request: RustClipboardPasteRequest; readonly projection: VisibleProjectionRequest },
-    RustSetRangeFormatResult
+    RustSetRangeFormatResult & { readonly colWidths?: ViewportColumnWidth[] }
   >
   readonly 'range.clear': WorkerCommand<
     { readonly request: RustClearRangeRequest; readonly projection: VisibleProjectionRequest },

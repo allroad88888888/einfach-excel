@@ -20,6 +20,10 @@ async function runtime() {
     cut,
   }))
   const paste = vi.fn<NonNullable<WasmWorkbook['paste_clipboard']>>(() => [0, 0, 0, 0])
+  const sizes = vi.fn((_sheet: number, _r0: number, c0: number, _r1: number, c1: number) => ({
+    rowHeights: [],
+    colWidths: c0 <= 5 && c1 >= 5 ? [{ colIndex: 5, widthPx: 200 }] : [],
+  }))
   class TestWorkbook {
     rename_sheet() {
       return true
@@ -31,6 +35,7 @@ async function runtime() {
 
     capture_clipboard = capture
     paste_clipboard = paste
+    snapshot_viewport_sizes = sizes
     read_sparse_range() {
       return []
     }
@@ -76,10 +81,24 @@ async function runtime() {
       reason: 'toolbar',
     },
   })
-  return { call, capture, paste, captureInput, pasteInput }
+  return { call, capture, paste, captureInput, pasteInput, sizes }
 }
 
 describe('Rust clipboard transport', () => {
+  test('width-only paste returns the full affected width range with the original visible projection', async () => {
+    const { call, paste, pasteInput, sizes } = await runtime()
+    paste.mockReturnValueOnce([0, 0, 0, 7])
+    const input = pasteInput('external')
+    const result = await call('clipboard.paste', {
+      ...input,
+      request: { ...input.request, mode: 'column-widths' },
+    })
+    expect(result.ok).toBe(true)
+    expect(result.result.colWidths).toEqual([{ colIndex: 5, widthPx: 200 }])
+    expect(result.result.projection.window).toEqual(input.projection.window)
+    expect(sizes).toHaveBeenCalledWith(0, 0, 0, 0, 7)
+    expect(paste).toHaveBeenCalledTimes(1)
+  })
   test('export is read-only and preserves a pending cut snapshot and revision', async () => {
     const { call, captureInput, pasteInput, paste } = await runtime()
     const captured = await call('clipboard.capture', captureInput)
@@ -103,6 +122,10 @@ describe('Rust clipboard transport', () => {
     { mode: 'values-number-formats' },
     { transpose: true },
     { skipBlanks: true },
+    { arithmetic: 'add' },
+    { arithmetic: 'subtract' },
+    { arithmetic: 'multiply' },
+    { arithmetic: 'divide' },
     { mode: 'values-formats', transpose: true, skipBlanks: true },
   ])('forwards paste options %j and selection unchanged to the Rust policy', async (options) => {
     const { call, paste, pasteInput } = await runtime()

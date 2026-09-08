@@ -15,8 +15,11 @@ import type {
   RustClipboardPasteMode,
   RustClipboardExport,
   RustClipboardExportFormat,
+  RustClipboardPasteRequest,
 } from '../rust-workbook/clipboard-commands'
 import { selectionSnapshotAtom } from '../selection'
+import { validateProjectionResult } from '../projection/contracts'
+import { applyProjectionSizes } from '../projection/projection-sizes'
 
 export interface SystemClipboardData {
   readonly text: string
@@ -37,6 +40,7 @@ export type SystemClipboardOperation =
   | {
       readonly operation: 'paste'
       readonly mode?: RustClipboardPasteMode
+      readonly arithmetic?: RustClipboardPasteRequest['arithmetic']
       readonly transpose?: boolean
       readonly skipBlanks?: boolean
       readonly read: () => Promise<SystemClipboardData>
@@ -71,6 +75,11 @@ const ERROR_MESSAGES: Readonly<Record<string, string>> = {
     'Worksheet history changed the clipboard source. Copy or cut again to paste.',
   CLIPBOARD_INVALID_FORMULA: 'The clipboard contains an invalid formula. Nothing was pasted.',
   CLIPBOARD_INVALID_TSV: 'The clipboard text has unmatched quotes. Nothing was pasted.',
+  CLIPBOARD_ARITHMETIC_FORMATS: 'Paste arithmetic needs cell contents, not formatting only.',
+  CLIPBOARD_UNSUPPORTED_ARITHMETIC: 'This cell type cannot be used in paste arithmetic.',
+  CLIPBOARD_COLUMN_WIDTH_OPTIONS:
+    'Column widths cannot be combined with arithmetic, transpose or skip blanks.',
+  CLIPBOARD_COLUMN_WIDTH_LOCKED: 'Unprotect the worksheet before pasting column widths.',
 }
 
 /** 一个入口处理系统剪贴板手势；工作簿数据只有 Rust 快照一份。 */
@@ -179,6 +188,7 @@ export const runSystemClipboardAtom = atom(
           col,
           ...data,
           mode: input.mode ?? 'all',
+          ...(input.arithmetic ? { arithmetic: input.arithmetic } : {}),
           transpose: input.transpose ?? false,
           skipBlanks: input.skipBlanks ?? false,
           selection: selection.range,
@@ -196,6 +206,31 @@ export const runSystemClipboardAtom = atom(
         ack.revision !== result.projection.revision
       )
         throw new Error('Invalid paste acknowledgement.')
+      if (input.mode === 'column-widths') {
+        if (get(rustWorkbookConnectionAtom) !== connection)
+          throw new Error('The workbook changed. Paste again.')
+        const range = ack.affectedRange
+        if (
+          !range ||
+          !result.colWidths ||
+          !validateProjectionResult(result.projection, { request: projection }).ok ||
+          !Object.values(range).every(Number.isSafeInteger) ||
+          range.rowStart !== row ||
+          range.rowEnd < row ||
+          range.rowEnd >= sheet.rowCount ||
+          range.colStart !== col ||
+          range.colEnd < col ||
+          range.colEnd >= sheet.colCount
+        )
+          throw new Error('Invalid column width result.')
+        // 合并整个粘贴目标的列宽，屏幕外列也参与滚动定位；不再发第二次刷新。
+        applyProjectionSizes(get, set, {
+          ...result.projection,
+          window: range,
+          rowHeights: undefined,
+          colWidths: result.colWidths,
+        })
+      }
       set(applyVisibleProjectionAtom, { witness, request: projection, result: result.projection })
       set(feedbackAtom, { busy: false, error: false, message: 'Pasted cells.' })
       return true

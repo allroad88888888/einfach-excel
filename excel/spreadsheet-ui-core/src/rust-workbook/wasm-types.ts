@@ -87,7 +87,14 @@ export interface WasmWorkbook {
     internal: boolean,
     policy: Pick<
       RustClipboardPasteRequest,
-      'rowCount' | 'colCount' | 'unlockedRanges' | 'mode' | 'selection' | 'transpose' | 'skipBlanks'
+      | 'rowCount'
+      | 'colCount'
+      | 'unlockedRanges'
+      | 'mode'
+      | 'selection'
+      | 'transpose'
+      | 'skipBlanks'
+      | 'arithmetic'
     >,
   ) => ArrayLike<number>
   sheet_count(): number

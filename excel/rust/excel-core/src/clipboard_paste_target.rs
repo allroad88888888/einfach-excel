@@ -12,6 +12,7 @@ pub enum ClipboardPasteMode {
     Formulas,
     FormulasAndNumberFormats,
     ValuesAndNumberFormats,
+    ColumnWidths,
 }
 
 impl ClipboardPasteMode {
@@ -23,6 +24,7 @@ impl ClipboardPasteMode {
                 | Self::ValuesAndFormats
                 | Self::FormulasAndNumberFormats
                 | Self::ValuesAndNumberFormats
+                | Self::ColumnWidths
         )
     }
 }
@@ -30,6 +32,7 @@ impl ClipboardPasteMode {
 pub struct ClipboardPasteOptions {
     pub selection: CellRange,
     pub mode: ClipboardPasteMode,
+    pub arithmetic: ClipboardArithmetic,
     pub transpose: bool,
     pub skip_blanks: bool,
     pub row_count: u32,
@@ -42,6 +45,7 @@ impl ClipboardPasteOptions {
         Self {
             selection,
             mode: ClipboardPasteMode::All,
+            arithmetic: ClipboardArithmetic::None,
             transpose: false,
             skip_blanks: false,
             row_count: crate::sheet::EXCEL_MAX_ROWS,
@@ -60,14 +64,36 @@ impl ClipboardSnapshot {
         let selection = options.selection;
         validate_range(selection)?;
         if self.cut
-            && (options.mode != ClipboardPasteMode::All || options.transpose || options.skip_blanks)
+            && (options.mode != ClipboardPasteMode::All
+                || options.transpose
+                || options.skip_blanks
+                || options.arithmetic != ClipboardArithmetic::None)
         {
             return Err("CLIPBOARD_CUT_SPECIAL");
+        }
+        if options.mode == ClipboardPasteMode::Formats
+            && options.arithmetic != ClipboardArithmetic::None
+        {
+            return Err("CLIPBOARD_ARITHMETIC_FORMATS");
         }
         if options.mode.requires_source_formats() && self.source_sheet.is_none() {
             return Err("CLIPBOARD_NO_FORMATS");
         }
-        let (rows, cols) = if options.transpose {
+        if options.mode == ClipboardPasteMode::ColumnWidths {
+            if options.transpose
+                || options.skip_blanks
+                || options.arithmetic != ClipboardArithmetic::None
+            {
+                return Err("CLIPBOARD_COLUMN_WIDTH_OPTIONS");
+            }
+            // 列宽影响整列，不能拿选中几格的解锁权限代替尺寸权限。
+            if options.unlocked_ranges.is_some() {
+                return Err("CLIPBOARD_COLUMN_WIDTH_LOCKED");
+            }
+        }
+        let (rows, cols) = if options.mode == ClipboardPasteMode::ColumnWidths {
+            (1, self.cols())
+        } else if options.transpose {
             (self.cols(), self.rows())
         } else {
             (self.rows(), self.cols())

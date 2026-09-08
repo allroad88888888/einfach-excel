@@ -1,0 +1,65 @@
+.paste-special-dialog {
+  box-sizing: border-box;
+  width: 400px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+  color: var(--text);
+  font-size: 13px;
+}
+.paste-special-dialog::backdrop {
+  background: rgb(20 25 45 / 25%);
+}
+.paste-special-dialog h2 {
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+.paste-special-dialog p {
+  line-height: 1.5;
+}
+.paste-special-dialog form {
+  display: grid;
+  gap: 10px;
+}
+.paste-special-dialog select,
+.paste-special-dialog button {
+  min-width: 0;
+  min-height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 4px 8px;
+  font: inherit;
+  color: inherit;
+}
+.paste-special-dialog button {
+  background: var(--control-hover);
+}
+.paste-special-dialog button:hover {
+  background: var(--primary-soft);
+}
+.paste-special-dialog button:disabled {
+  opacity: 0.5;
+}
+.paste-special-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.paste-special-checks label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+}
+.paste-special-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.paste-special-error {
+  color: #b42318;
+}

@@ -1,14 +1,19 @@
-//! Rust 持有的剪贴板快照：复制时冻结值/公式/有效样式，不复制行高列宽。
+//! Rust 持有的剪贴板快照：冻结值/公式/有效样式/列宽；只有列宽模式写尺寸，不复制行高。
 
 use crate::{CellAddress, CellFormat, CellRange, Workbook};
 use einfach_core::Value;
 
+#[path = "clipboard_arithmetic.rs"]
+mod arithmetic;
 #[path = "clipboard_move.rs"]
 mod move_refs;
 #[path = "clipboard_paste.rs"]
 mod paste;
 #[path = "clipboard_paste_target.rs"]
 mod paste_target;
+pub use arithmetic::ClipboardArithmetic;
+#[path = "clipboard_column_widths.rs"]
+mod column_widths;
 #[path = "clipboard_history_targets.rs"]
 mod history_targets;
 pub use paste_target::{ClipboardPasteMode, ClipboardPasteOptions};
@@ -49,6 +54,8 @@ pub struct ClipboardSnapshot {
     cut: bool,
     cells: Vec<ClipboardCell>,
     text: String,
+    // 仅列宽粘贴使用复制时的列属性；None 表示默认宽度，不是漏读。
+    column_widths: Vec<Option<u32>>,
 }
 
 impl ClipboardSnapshot {
@@ -162,6 +169,9 @@ impl Workbook {
             cut,
             cells,
             text,
+            column_widths: (range.start.col..=range.end.col)
+                .map(|col| sheet.col_width(col))
+                .collect(),
         })
     }
 }

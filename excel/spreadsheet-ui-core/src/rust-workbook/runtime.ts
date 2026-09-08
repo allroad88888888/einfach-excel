@@ -213,8 +213,11 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
         })
       }
       let affectedRange
+      let colWidths
       if ('text' in request) {
         if (!current.paste_clipboard) throw new Error('Rust paste export is unavailable')
+        if (request.mode === 'column-widths' && !current.snapshot_viewport_sizes)
+          throw new Error('Rust size snapshot is unavailable.')
         const internal = !!request.token && request.token === clipboard?.token
         if (internal && clipboard?.consumed) throw new Error('CLIPBOARD_CUT_CONSUMED')
         if (internal && clipboard?.invalidated) throw new Error('CLIPBOARD_SHEET_HISTORY_CHANGED')
@@ -232,6 +235,8 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
           rowEnd: range[2],
           colEnd: range[3],
         }
+        if (request.mode === 'column-widths')
+          colWidths = readSizes(current, sheetIndex(request.sheetId), affectedRange).colWidths
         if (internal && clipboard?.cut) clipboard.consumed = true
       } else {
         affectedRange = writeTrackedMutation(current, sheetIndex(request.sheetId), request)
@@ -245,6 +250,7 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       }
       return {
         acknowledgement,
+        ...(colWidths ? { colWidths } : {}),
         projection: readVisibleProjection(
           current,
           sheetIndex(projection.sheetId),

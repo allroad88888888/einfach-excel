@@ -9,6 +9,20 @@ use crate::cell::CellAddress;
 use crate::formula::{parse_formula, RangeAbs, RangeBounds};
 
 #[test]
+fn quoted_text_round_trips_as_one_literal_not_formula_syntax() {
+    for text in ["", "\"", "a\"b", "你好\"🙂", "\")+7+(\"", "line\n\"two\""] {
+        let expr = Expr::Text(text.into());
+        assert_eq!(parse_formula(&render_formula(&expr)), Some(expr));
+    }
+    assert_eq!(
+        parse_formula("=\"a\"\"b\""),
+        Some(Expr::Text("a\"b".into()))
+    );
+    assert_eq!(parse_formula("=\"a\"\""), None);
+    assert_eq!(parse_formula("=\"a\"b\""), None);
+}
+
+#[test]
 fn render_roundtrip() {
     let original = "=SUM(A1:A10)+IF(B1>0,B1*2,0)";
     let parsed = parse_formula(original).unwrap();

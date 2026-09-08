@@ -63,6 +63,9 @@ describe('workbook system clipboard', () => {
   test.each([
     ['transpose', { transpose: true }],
     ['skip-blanks', { skipBlanks: true }],
+    ['add', { arithmetic: 'add' }],
+    ['subtract', { arithmetic: 'subtract' }],
+    ['multiply', { arithmetic: 'multiply' }],
     ['values-formats', { mode: 'values-formats' }],
     ['formulas', { mode: 'formulas' }],
     ['formulas-number-formats', { mode: 'formulas-number-formats' }],

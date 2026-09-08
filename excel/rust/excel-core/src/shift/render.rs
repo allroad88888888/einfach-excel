@@ -20,7 +20,13 @@ fn render_into(expr: &Expr, out: &mut String) {
         Expr::Number(n) => render_number(*n, out),
         Expr::Text(s) => {
             out.push('"');
-            out.push_str(s);
+            // 与词法器共用 Excel 的双引号转义，不能把文字插入公式语法。
+            for ch in s.chars() {
+                out.push(ch);
+                if ch == '"' {
+                    out.push('"');
+                }
+            }
             out.push('"');
         }
         Expr::Bool(b) => out.push_str(if *b { "TRUE" } else { "FALSE" }),
@@ -37,12 +43,10 @@ fn render_into(expr: &Expr, out: &mut String) {
             end,
             unbounded,
             abs,
-        } => {
-            match renderable_shape(*start, *end, *unbounded) {
-                Some(shape) => render_range_body(*start, *end, shape, *abs, out),
-                None => out.push_str("#REF!"),
-            }
-        }
+        } => match renderable_shape(*start, *end, *unbounded) {
+            Some(shape) => render_range_body(*start, *end, shape, *abs, out),
+            None => out.push_str("#REF!"),
+        },
         Expr::SheetRef { sheet, addr, abs } => {
             if is_invalid(*addr) {
                 out.push_str("#REF!");
@@ -58,16 +62,14 @@ fn render_into(expr: &Expr, out: &mut String) {
             end,
             unbounded,
             abs,
-        } => {
-            match renderable_shape(*start, *end, *unbounded) {
-                Some(shape) => {
-                    push_sheet_name(out, sheet);
-                    out.push('!');
-                    render_range_body(*start, *end, shape, *abs, out)
-                }
-                None => out.push_str("#REF!"),
+        } => match renderable_shape(*start, *end, *unbounded) {
+            Some(shape) => {
+                push_sheet_name(out, sheet);
+                out.push('!');
+                render_range_body(*start, *end, shape, *abs, out)
             }
-        }
+            None => out.push_str("#REF!"),
+        },
         Expr::SpillRef(anchor) => {
             render_into(anchor, out);
             out.push('#');

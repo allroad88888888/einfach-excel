@@ -36,6 +36,9 @@ impl Workbook {
         }
         let range = snapshot.paste_target(options)?;
         let sheet = self.sheet(sheet_idx).ok_or("CLIPBOARD_INVALID_SHEET")?;
+        if options.mode == ClipboardPasteMode::ColumnWidths {
+            return self.paste_column_widths(snapshot, sheet_idx, range, history);
+        }
         if snapshot.cut {
             if snapshot.source_sheet != Some(sheet_idx) {
                 return Err("CLIPBOARD_CROSS_SHEET_CUT");
@@ -51,6 +54,7 @@ impl Workbook {
             }
         }
         let mut planned = Vec::with_capacity(range.cell_count() as usize);
+        let mut formula_bytes = 0usize;
         for addr in range.iter() {
             let (origin, cell) = snapshot.cell_at_target(addr, range, options.transpose);
             // 空白源格不写值，也不覆盖目标格式；它对应的 spill 结果同样不受影响。
@@ -61,7 +65,7 @@ impl Workbook {
                 return Err("CLIPBOARD_SPILL_TARGET");
             }
             let value = match options.mode {
-                ClipboardPasteMode::Formats => None,
+                ClipboardPasteMode::Formats | ClipboardPasteMode::ColumnWidths => None,
                 ClipboardPasteMode::Values
                 | ClipboardPasteMode::ValuesAndFormats
                 | ClipboardPasteMode::ValuesAndNumberFormats => {
@@ -107,6 +111,27 @@ impl Workbook {
                     other => other.clone(),
                 }),
             };
+            let value = if options.arithmetic == ClipboardArithmetic::None {
+                value
+            } else {
+                // 目标公式只取源文本，不为组合表达式额外计算一次结果或读取样式。
+                let target = match sheet.formula_text_at(addr) {
+                    Some(source) => ClipboardValue::Formula {
+                        source,
+                        evaluated: None,
+                    },
+                    None => ClipboardValue::Literal(sheet.peek_value(addr)),
+                };
+                value
+                    .map(|value| options.arithmetic.combine(target, value))
+                    .transpose()?
+            };
+            if let Some(ClipboardValue::Formula { source, .. }) = &value {
+                formula_bytes = formula_bytes.saturating_add(source.len());
+                if formula_bytes > MAX_CLIPBOARD_TEXT_BYTES {
+                    return Err("CLIPBOARD_TOO_LARGE");
+                }
+            }
             let format = match options.mode {
                 ClipboardPasteMode::Values | ClipboardPasteMode::Formulas => None,
                 ClipboardPasteMode::FormulasAndNumberFormats
@@ -135,7 +160,7 @@ impl Workbook {
                 if snapshot.cut {
                     "Move cells"
                 } else {
-                    "Paste cells"
+                    options.arithmetic.history_label()
                 },
                 &history_targets::targets(
                     snapshot,

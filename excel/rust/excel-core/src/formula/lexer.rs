@@ -266,14 +266,17 @@ impl Parser {
 
     pub(super) fn parse_string(&mut self) -> Option<Expr> {
         self.advance(); // skip opening "
-        let start = self.pos;
+        let mut text = String::new();
         while let Some(c) = self.peek() {
-            if c == '"' {
-                let s: String = self.chars[start..self.pos].iter().collect();
-                self.advance(); // skip closing "
-                return Some(Expr::Text(s));
-            }
             self.advance();
+            if c == '"' {
+                // Excel 字符串中的两个双引号表示一个文字引号，不是字符串结束。
+                if self.peek() != Some('"') {
+                    return Some(Expr::Text(text));
+                }
+                self.advance();
+            }
+            text.push(c);
         }
         None // unterminated string
     }

@@ -9,6 +9,7 @@ import {
   writeBrowserClipboard,
   writeBrowserClipboardExport,
 } from '../../clipboard/browser-clipboard'
+import { PasteSpecialTools } from './PasteSpecialTools'
 
 const COPY_FORMATS = [
   { value: 'text', label: 'Copy as plain text' },
@@ -17,6 +18,11 @@ const COPY_FORMATS = [
 ] as const
 
 const PASTE_OPTIONS = [
+  { value: 'add', label: 'Paste and add', paste: { arithmetic: 'add' } },
+  { value: 'subtract', label: 'Paste and subtract', paste: { arithmetic: 'subtract' } },
+  { value: 'multiply', label: 'Paste and multiply', paste: { arithmetic: 'multiply' } },
+  { value: 'divide', label: 'Paste and divide', paste: { arithmetic: 'divide' } },
+  { value: 'column-widths', label: 'Paste column widths only', paste: { mode: 'column-widths' } },
   { value: 'transpose', label: 'Paste transposed', paste: { transpose: true } },
   { value: 'skip-blanks', label: 'Paste skipping blanks', paste: { skipBlanks: true } },
   {
@@ -101,6 +107,7 @@ export function ClipboardTools() {
           </option>
         ))}
       </select>
+      <PasteSpecialTools />
       <select
         className="tool-select copy-as-select"
         aria-label="Copy as"

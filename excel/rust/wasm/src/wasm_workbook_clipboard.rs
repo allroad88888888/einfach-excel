@@ -1,4 +1,6 @@
-use einfach_excel_core::clipboard::{ClipboardPasteMode, ClipboardPasteOptions};
+use einfach_excel_core::clipboard::{
+    ClipboardArithmetic, ClipboardPasteMode, ClipboardPasteOptions,
+};
 
 /// 传输层只拿文本与尺寸；值、公式、有效格式快照始终留在 Rust。
 #[derive(Serialize)]
@@ -13,6 +15,7 @@ struct ClipboardCaptureJSON {
 #[serde(rename_all = "camelCase")]
 struct ClipboardPastePolicyJSON {
     mode: Option<String>,
+    arithmetic: Option<String>,
     transpose: Option<bool>,
     skip_blanks: Option<bool>,
     selection: Option<ClipboardRangeJSON>,
@@ -83,7 +86,16 @@ impl WasmWorkbook {
             "formulas" => ClipboardPasteMode::Formulas,
             "formulas-number-formats" => ClipboardPasteMode::FormulasAndNumberFormats,
             "values-number-formats" => ClipboardPasteMode::ValuesAndNumberFormats,
+            "column-widths" => ClipboardPasteMode::ColumnWidths,
             _ => return Err(JsValue::from_str("CLIPBOARD_INVALID_MODE")),
+        };
+        let arithmetic = match policy.arithmetic.as_deref().unwrap_or("none") {
+            "none" => ClipboardArithmetic::None,
+            "add" => ClipboardArithmetic::Add,
+            "subtract" => ClipboardArithmetic::Subtract,
+            "multiply" => ClipboardArithmetic::Multiply,
+            "divide" => ClipboardArithmetic::Divide,
+            _ => return Err(JsValue::from_str("CLIPBOARD_INVALID_ARITHMETIC")),
         };
         let selection = policy
             .selection
@@ -127,6 +139,7 @@ impl WasmWorkbook {
                 &ClipboardPasteOptions {
                     selection,
                     mode,
+                    arithmetic,
                     transpose: policy.transpose.unwrap_or(false),
                     skip_blanks: policy.skip_blanks.unwrap_or(false),
                     row_count: policy.row_count,

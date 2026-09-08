@@ -88,20 +88,24 @@ describe('system clipboard commands', () => {
     expect(read).toHaveBeenCalledTimes(1)
   })
 
-  test.each([{ transpose: true }, { skipBlanks: true }, { transpose: true, skipBlanks: true }])(
-    'forwards paste options %j without a second RPC',
-    async (options) => {
-      const { store, paste, read } = await setup()
-      await store.setter(runSystemClipboardAtom, {
-        operation: 'paste',
-        ...options,
-        read: async () => ({ text: '1\t2' }),
-      })
-      expect(paste).toHaveBeenCalledTimes(1)
-      expect(paste.mock.calls[0][0]).toMatchObject(options)
-      expect(read).toHaveBeenCalledTimes(1)
-    },
-  )
+  test.each([
+    { transpose: true },
+    { skipBlanks: true },
+    { transpose: true, skipBlanks: true },
+    { arithmetic: 'add' as const },
+    { arithmetic: 'subtract' as const },
+    { arithmetic: 'multiply' as const },
+  ])('forwards paste options %j without a second RPC', async (options) => {
+    const { store, paste, read } = await setup()
+    await store.setter(runSystemClipboardAtom, {
+      operation: 'paste',
+      ...options,
+      read: async () => ({ text: '1\t2' }),
+    })
+    expect(paste).toHaveBeenCalledTimes(1)
+    expect(paste.mock.calls[0][0]).toMatchObject(options)
+    expect(read).toHaveBeenCalledTimes(1)
+  })
 
   test('skipping blanks lets Rust decide whether a locked anchor will actually be written', async () => {
     const { store, paste } = await setup()

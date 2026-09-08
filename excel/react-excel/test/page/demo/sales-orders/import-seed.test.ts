@@ -46,6 +46,7 @@ describe('Sales Orders import seed', () => {
         expect.objectContaining({ row: 1, col: 6, format: { fontFamily: 'Georgia' } }),
         expect.objectContaining({ row: 1, col: 7, format: { fontSize: 16 } }),
         expect.objectContaining({ row: 1, col: 8, format: { wrap: true } }),
+        expect.objectContaining({ row: 2, col: 8, value: 'Noah\nEast team', format: { wrap: true } }),
         expect.objectContaining({ row: 1, col: 9, format: { verticalAlign: 'top' } }),
         expect.objectContaining({ row: 1, col: 10, format: { rotation: 45 } }),
         expect.objectContaining({
@@ -82,6 +83,7 @@ describe('Sales Orders import seed', () => {
         expect.objectContaining({
           row: 2,
           col: 15,
+          value: 125.02,
           format: { numberFormat: { kind: 'currency', symbol: '$', digits: 0 }, bold: true },
         }),
       ]),

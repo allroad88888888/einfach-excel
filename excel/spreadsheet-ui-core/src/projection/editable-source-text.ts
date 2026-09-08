@@ -20,5 +20,7 @@ export function getSourceTextFromProjection(
   const projectionCell = result.cells.find(
     (candidate) => candidate.row === cell.row && candidate.col === cell.col,
   )
-  return projectionCell ? (projectionCell.formula ?? projectionCell.displayValue ?? '') : ''
+  return projectionCell
+    ? (projectionCell.inputText ?? projectionCell.formula ?? projectionCell.displayValue ?? '')
+    : ''
 }

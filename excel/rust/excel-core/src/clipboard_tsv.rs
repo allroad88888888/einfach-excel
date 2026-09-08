@@ -15,7 +15,10 @@ pub(super) fn push_field(out: &mut String, field: &str) {
 impl ClipboardSnapshot {
     /// 接受普通矩形/不齐行文本；短行补空格，末尾一个行终止符不多建一行。
     pub fn from_tsv(text: &str, mode: ClipboardPasteMode) -> Result<Self, ClipboardError> {
-        if mode == ClipboardPasteMode::Formats {
+        if matches!(
+            mode,
+            ClipboardPasteMode::Formats | ClipboardPasteMode::ValuesAndFormats
+        ) {
             return Err("CLIPBOARD_NO_FORMATS");
         }
         if text.len() > MAX_CLIPBOARD_TEXT_BYTES {
@@ -100,34 +103,17 @@ impl ClipboardSnapshot {
 }
 
 fn parse_input(input: &str, mode: ClipboardPasteMode) -> Result<ClipboardValue, ClipboardError> {
-    if input.starts_with('=') {
-        if mode == ClipboardPasteMode::Values {
-            return Ok(ClipboardValue::Literal(Value::Text(input.into())));
+    use crate::cell_input::{parse_cell_input, CellInput};
+    match parse_cell_input(input, mode != ClipboardPasteMode::Values) {
+        CellInput::Formula(source) => {
+            crate::parse_formula(&source).ok_or("CLIPBOARD_INVALID_FORMULA")?;
+            Ok(ClipboardValue::Formula {
+                source,
+                evaluated: None,
+            })
         }
-        if crate::parse_formula(input).is_none() {
-            return Err("CLIPBOARD_INVALID_FORMULA");
-        }
-        return Ok(ClipboardValue::Formula {
-            source: input.into(),
-            evaluated: None,
-        });
+        CellInput::Literal(value) => Ok(ClipboardValue::Literal(value)),
+        // 纯文本粘贴仍保留目标格式，只复用百分比的数值识别。
+        CellInput::Percentage { value, .. } => Ok(ClipboardValue::Literal(Value::Number(value))),
     }
-    let value = if let Some(text) = input.strip_prefix('\'') {
-        Value::Text(text.into())
-    } else if input.is_empty() {
-        Value::Null
-    } else if input.eq_ignore_ascii_case("true") {
-        Value::Boolean(true)
-    } else if input.eq_ignore_ascii_case("false") {
-        Value::Boolean(false)
-    } else if let Ok(number) = input.trim().parse::<f64>() {
-        if number.is_finite() {
-            Value::Number(number)
-        } else {
-            Value::Text(input.into())
-        }
-    } else {
-        Value::Text(input.into())
-    };
-    Ok(ClipboardValue::Literal(value))
 }

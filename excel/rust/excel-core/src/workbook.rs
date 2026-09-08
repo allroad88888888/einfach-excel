@@ -78,6 +78,8 @@ mod workbook_topology;
 mod workbook_visibility_types;
 #[path = "workbook_write.rs"]
 mod workbook_write;
+#[path = "workbook_input.rs"]
+mod workbook_input;
 
 pub(crate) use self::workbook_bulk_types::CustomCallScope;
 pub use self::workbook_bulk_types::{BulkInstallStats, InstallError};

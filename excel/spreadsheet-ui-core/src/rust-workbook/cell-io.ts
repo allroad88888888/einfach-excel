@@ -1,19 +1,11 @@
 import type { DisplayCell } from '../backend'
 import { toA1 } from '../backend'
-import type { RustCellSnapshot, RustWriteOutcome, WasmWorkbook } from './wasm-types'
+import type { RustCellSnapshot, WasmWorkbook } from './wasm-types'
 
 function requiredMethod<T>(method: T | undefined, name: string): T {
   if (method) return method
   throw Object.assign(new Error(`WasmWorkbook.${name} is unavailable`), {
     code: 'WASM_METHOD_UNAVAILABLE',
-  })
-}
-
-function assertWrite(outcome: RustWriteOutcome, address: string): void {
-  if (outcome?.ok !== false) return
-  throw Object.assign(new Error(`Rust engine rejected the write to ${address}`), {
-    code: 'CELL_WRITE_REJECTED',
-    detail: { code: outcome.code ?? 'unknown' },
   })
 }
 
@@ -38,6 +30,7 @@ export function displayCell(snapshot: RustCellSnapshot): DisplayCell | null {
         ? 'blank'
         : snapshot.type
   const cell: DisplayCell = { ...coord, displayValue: snapshot.display, valueKind }
+  cell.inputText = snapshot.inputText ?? (snapshot.formula || snapshot.display)
   if (snapshot.type === 'number') {
     const numericValue = Number(snapshot.display)
     if (Number.isFinite(numericValue)) cell.numericValue = numericValue
@@ -56,46 +49,5 @@ export function writeCellInput(
   input: string,
 ): void {
   const address = toA1(row, col)
-  const trimmed = input.trim()
-  let outcome: RustWriteOutcome
-  if (!trimmed) {
-    outcome = requiredMethod(workbook.tryClearCellAt, 'tryClearCellAt').call(
-      workbook,
-      sheet,
-      address,
-    )
-  } else if (trimmed.startsWith('=')) {
-    outcome = requiredMethod(workbook.trySetFormulaAt, 'trySetFormulaAt').call(
-      workbook,
-      sheet,
-      address,
-      trimmed,
-    )
-    assertWrite(outcome, address)
-    if (outcome.installed === false) {
-      const snapshot = workbook.snapshotCell(sheet, address)
-      throw Object.assign(new Error('Formula could not be installed'), {
-        code: snapshot.display.toUpperCase().includes('CYCLE')
-          ? 'FORMULA_CYCLE'
-          : 'INVALID_FORMULA',
-      })
-    }
-    return
-  } else {
-    const numericValue = Number(trimmed)
-    outcome = Number.isFinite(numericValue)
-      ? requiredMethod(workbook.trySetCellNumber, 'trySetCellNumber').call(
-          workbook,
-          sheet,
-          address,
-          numericValue,
-        )
-      : requiredMethod(workbook.trySetCellText, 'trySetCellText').call(
-          workbook,
-          sheet,
-          address,
-          input,
-        )
-  }
-  assertWrite(outcome, address)
+  requiredMethod(workbook.set_cell_input, 'set_cell_input').call(workbook, sheet, address, input)
 }

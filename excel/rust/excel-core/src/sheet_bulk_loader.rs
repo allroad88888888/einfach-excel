@@ -54,7 +54,11 @@ impl<'a> BulkLoader<'a> {
     ///
     /// ORDER RULE: every caller runs this before its first `ensure_cell` /
     /// `store.set` at `addr` — see `collapse_spill_for_write`.
-    pub(super) fn prepare_spill_for_write(&mut self, addr: CellAddress, blocks_spill: bool) -> bool {
+    pub(super) fn prepare_spill_for_write(
+        &mut self,
+        addr: CellAddress,
+        blocks_spill: bool,
+    ) -> bool {
         if !blocks_spill && self.sheet.spilled_into_anchor(addr).is_some() {
             // Same fixpoint argument as `Sheet::set_cell_inner`: a Null write
             // could not have blocked the spill, so collapsing would only
@@ -98,6 +102,7 @@ impl<'a> BulkLoader<'a> {
         if !self.prepare_spill_for_write(addr, !is_null) {
             return;
         }
+        self.sheet.grow_row_for_multiline_text(addr, &value);
         let pre_range_member = self.sheet.range_member_present(addr);
         self.sheet.clear_spill_at_address(addr);
 

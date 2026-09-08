@@ -165,7 +165,7 @@ export function cellFormatStyle(
   const overflow = format.overflow ?? (format.wrap ? 'wrap' : undefined)
   if (overflow === 'wrap') {
     style.overflowWrap = 'anywhere'
-    style.whiteSpace = 'normal'
+    style.whiteSpace = 'pre-wrap'
     style.wordBreak = 'break-word'
   } else if (overflow === 'clip' || overflow === 'ellipsis') {
     style.overflow = 'hidden'

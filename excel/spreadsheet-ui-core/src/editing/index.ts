@@ -12,6 +12,7 @@ export { editingCommitLifecycleAtom } from './commit-state'
 export {
   cancelEditingAtom,
   editingDraftAtom,
+  insertEditingLineBreakAtom,
   editingIsActiveAtom,
   editingSessionAtom,
   startEditingAtom,

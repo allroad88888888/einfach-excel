@@ -36,6 +36,8 @@ export interface DisplayCell {
   row: number
   col: number
   displayValue: string
+  /** Rust 提供的原始编辑文本，与经过数字格式舍入的 displayValue 分开。 */
+  inputText?: string
   valueKind?: 'blank' | 'number' | 'string' | 'boolean' | 'error'
   /** Read-only projection fact: the canonical finite number before display formatting. */
   numericValue?: number

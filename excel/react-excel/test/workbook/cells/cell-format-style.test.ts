@@ -53,7 +53,7 @@ describe('cellFormatStyle', () => {
   it('preserves vertical rotation, wrap fallback, and overflow semantics', () => {
     expect(cellFormatStyle({ rotation: 'vertical', wrap: true })).toEqual({
       overflowWrap: 'anywhere',
-      whiteSpace: 'normal',
+      whiteSpace: 'pre-wrap',
       wordBreak: 'break-word',
     })
     expect(cellTextRotationStyle({ rotation: 'vertical' })).toEqual({

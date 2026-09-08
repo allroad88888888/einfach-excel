@@ -145,6 +145,8 @@ struct CellSnapshotJSON {
     sheet: usize,
     addr: String,
     display: String,
+    #[serde(rename = "inputText")]
+    input_text: String,
     #[serde(rename = "type")]
     cell_type: String,
     #[serde(rename = "isError")]

@@ -148,6 +148,7 @@ impl WasmWorkbook {
                     sheet: sheet_idx,
                     addr: addr_str,
                     display: value_to_display(&value),
+                    input_text: value_to_input_text(&value, &formula),
                     cell_type: value_to_cell_type(&value),
                     is_error: value.is_error(),
                     formula,

@@ -33,6 +33,13 @@ struct ClipboardCell {
     format: Option<CellFormat>,
 }
 
+impl ClipboardCell {
+    /// 只跳过真正的空格；零、false、空字符串及返回空字符串的公式都是有意写入的内容。
+    fn is_blank(&self) -> bool {
+        matches!(self.value, ClipboardValue::Literal(Value::Null))
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct ClipboardSnapshot {
     source_sheet: Option<usize>,
@@ -137,3 +144,11 @@ mod tests;
 #[cfg(test)]
 #[path = "clipboard_paste_modes_tests.rs"]
 mod paste_modes_tests;
+
+#[cfg(test)]
+#[path = "clipboard_transpose_tests.rs"]
+mod transpose_tests;
+
+#[cfg(test)]
+#[path = "clipboard_skip_blanks_tests.rs"]
+mod skip_blanks_tests;

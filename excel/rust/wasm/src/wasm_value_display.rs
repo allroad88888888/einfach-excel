@@ -19,6 +19,11 @@ fn value_to_display(val: &Value) -> String {
     einfach_excel_core::value_to_display(val)
 }
 
+/// 编辑文本不走 General 显示的有效位舍入，保证 f64 往返不丢精度。
+fn value_to_input_text(val: &Value, formula: &str) -> String {
+    einfach_excel_core::cell_input::editable_cell_text(&collapse_array_for_js(val), formula)
+}
+
 fn value_to_cell_type(val: &Value) -> String {
     let val = collapse_array_for_js(val);
     match &*val {

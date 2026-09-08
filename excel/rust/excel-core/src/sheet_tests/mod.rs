@@ -21,6 +21,7 @@ mod deep_chain;
 mod facade_rederive;
 mod format_display;
 mod format_layers;
+mod multiline;
 mod formula_eval;
 mod non_empty_enum;
 mod notify_dedup;

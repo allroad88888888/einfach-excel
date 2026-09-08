@@ -1,6 +1,7 @@
 pub mod auto_fill;
 pub mod bulk_import_trace;
 pub mod cell;
+pub mod cell_input;
 pub mod cell_style;
 pub mod clipboard;
 pub mod csv;

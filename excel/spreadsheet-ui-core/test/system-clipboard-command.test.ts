@@ -57,7 +57,7 @@ async function setup() {
 }
 
 describe('system clipboard commands', () => {
-  test.each(['all', 'values', 'formats'] as const)(
+  test.each(['all', 'values', 'formats', 'values-formats'] as const)(
     'sends %s with the full selected range in one RPC',
     async (mode) => {
       const { store, paste, read } = await setup()
@@ -82,6 +82,44 @@ describe('system clipboard commands', () => {
       expect(read).toHaveBeenCalledTimes(1)
     },
   )
+
+  test.each([{ transpose: true }, { skipBlanks: true }, { transpose: true, skipBlanks: true }])(
+    'forwards paste options %j without a second RPC',
+    async (options) => {
+      const { store, paste, read } = await setup()
+      await store.setter(runSystemClipboardAtom, {
+        operation: 'paste',
+        ...options,
+        read: async () => ({ text: '1\t2' }),
+      })
+      expect(paste).toHaveBeenCalledTimes(1)
+      expect(paste.mock.calls[0][0]).toMatchObject(options)
+      expect(read).toHaveBeenCalledTimes(1)
+    },
+  )
+
+  test('skipping blanks lets Rust decide whether a locked anchor will actually be written', async () => {
+    const { store, paste } = await setup()
+    const unlocked = [{ rowStart: 0, rowEnd: 0, colStart: 1, colEnd: 1 }]
+    store.setter(protectSheetAtom, { sheetId: 'sheet-1', unlockedRanges: unlocked })
+    await store.setter(runSystemClipboardAtom, {
+      operation: 'paste',
+      skipBlanks: true,
+      read: async () => ({ text: '\t7' }),
+    })
+    expect(paste.mock.calls[0][0]).toMatchObject({ skipBlanks: true, unlockedRanges: unlocked })
+    paste.mockRejectedValueOnce(new Error('CLIPBOARD_LOCKED'))
+    const before = store.getter(projectionSnapshotAtom)
+    expect(
+      await store.setter(runSystemClipboardAtom, {
+        operation: 'paste',
+        skipBlanks: true,
+        read: async () => ({ text: '1\t7' }),
+      }),
+    ).toBe(false)
+    expect(store.getter(projectionSnapshotAtom)).toBe(before)
+    expect(store.getter(systemClipboardFeedbackAtom).message).toContain('locked')
+  })
 
   test('a size rejection leaves the selection projection intact and reports the mismatch', async () => {
     const { store, paste } = await setup()

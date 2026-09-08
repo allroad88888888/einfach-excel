@@ -26,6 +26,7 @@ const DEMO_CELL_FORMATS: ReadonlyMap<string, SpreadsheetCellFormat> = new Map([
   ['1:6', { fontFamily: 'Georgia' }],
   ['1:7', { fontSize: 16 }],
   ['1:8', { wrap: true }],
+  ['2:8', { wrap: true }],
   ['1:9', { verticalAlign: 'top' }],
   ['1:10', { rotation: 45 }],
   [
@@ -72,7 +73,8 @@ function createDataRow(dataRow: number): SalesOrderImportCell[] {
   const discount = (dataRow % 5) * 0.05
 
   return [
-    textCell(row, 0, `SO-${String(10_001 + dataRow)}`),
+    // 第 4 行保留一个带前导零的文本编号，验证再次编辑不会转为数字。
+    textCell(row, 0, dataRow === 2 ? '00123' : `SO-${String(10_001 + dataRow)}`),
     textCell(row, 1, CUSTOMERS[dataRow % CUSTOMERS.length] ?? ''),
     textCell(row, 2, REGIONS[dataRow % REGIONS.length] ?? ''),
     textCell(row, 3, PRODUCTS[productIndex] ?? ''),
@@ -86,15 +88,22 @@ function createDataRow(dataRow: number): SalesOrderImportCell[] {
       value: `=E${row + 1}*F${row + 1}`,
       ...demoFormat(row, 6),
     },
-    textCell(row, 7, STATUSES[dataRow % STATUSES.length] ?? 'Review'),
-    textCell(row, 8, SALES_REPS[dataRow % SALES_REPS.length] ?? ''),
+    dataRow === 2
+      ? { sheet: 0, row, col: 7, kind: 'boolean', value: true }
+      : textCell(row, 7, STATUSES[dataRow % STATUSES.length] ?? 'Review'),
+    textCell(
+      row,
+      8,
+      dataRow === 1 ? 'Noah\nEast team' : (SALES_REPS[dataRow % SALES_REPS.length] ?? ''),
+    ),
     textCell(row, 9, `2026-08-${day}`),
     textCell(row, 10, `2026-09-${shipDay}`),
     textCell(row, 11, SHIP_MODES[dataRow % SHIP_MODES.length] ?? ''),
     textCell(row, 12, COUNTRIES[locationIndex] ?? ''),
     textCell(row, 13, CITIES[locationIndex] ?? ''),
     numberCell(row, 14, discount),
-    numberCell(row, 15, quantity * unitPrice * (1 - discount) * 0.2),
+    // 演示金额按分生成；编辑展示真实数值，不能靠格式隐藏生成过程的浮点尾差。
+    numberCell(row, 15, Number((quantity * unitPrice * (1 - discount) * 0.2).toFixed(2))),
   ]
 }
 

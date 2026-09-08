@@ -61,6 +61,21 @@ async function setup() {
 
 describe('workbook system clipboard', () => {
   test.each([
+    ['transpose', { transpose: true }],
+    ['skip-blanks', { skipBlanks: true }],
+    ['values-formats', { mode: 'values-formats' }],
+  ])('more paste option %s dispatches once and resets for the next use', async (value, options) => {
+    const { paste } = await setup()
+    const menu = screen.getByRole('combobox', { name: 'More paste options' })
+    fireEvent.change(menu, { target: { value } })
+    await waitFor(() => expect(paste).toHaveBeenCalledTimes(1))
+    expect(paste.mock.calls[0][0]).toMatchObject(options)
+    expect(menu).toHaveValue('')
+    await waitFor(() => expect(menu).not.toBeDisabled())
+    fireEvent.change(menu, { target: { value } })
+    await waitFor(() => expect(paste).toHaveBeenCalledTimes(2))
+  })
+  test.each([
     ['Paste values only', 'values'],
     ['Paste formatting only', 'formats'],
   ])('toolbar %s uses the same paste command with its mode', async (name, mode) => {
@@ -128,5 +143,6 @@ describe('workbook system clipboard', () => {
     expect(paste).not.toHaveBeenCalled()
     for (const name of ['Copy', 'Cut', 'Paste', 'Paste values only', 'Paste formatting only'])
       expect(screen.getByRole('button', { name })).toBeDisabled()
+    expect(screen.getByRole('combobox', { name: 'More paste options' })).toBeDisabled()
   })
 })

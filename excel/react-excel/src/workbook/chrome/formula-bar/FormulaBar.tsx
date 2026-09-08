@@ -4,12 +4,14 @@ import {
   commitCellEditingAtom,
   editingCommitLifecycleAtom,
   editingDraftAtom,
+  insertEditingLineBreakAtom,
   editingSessionAtom,
   projectionSnapshotAtom,
   selectionSnapshotAtom,
   startCellEditingFromProjectionAtom,
 } from '@einfach/spreadsheet-ui-core'
 import type { FocusEvent, FormEvent, KeyboardEvent } from 'react'
+import { flushSync } from 'react-dom'
 import { NameBox } from './NameBox'
 import './formula-bar.css'
 
@@ -22,6 +24,7 @@ export function FormulaBar() {
   const editingLifecycle = useAtomValue(editingCommitLifecycleAtom)
   const startEditing = useSetAtom(startCellEditingFromProjectionAtom)
   const setEditingDraft = useSetAtom(editingDraftAtom)
+  const insertLineBreak = useSetAtom(insertEditingLineBreakAtom)
   const commitEditing = useSetAtom(commitCellEditingAtom)
   const cancelEditing = useSetAtom(cancelEditingAtom)
   const activeCell = selection.activeCell
@@ -37,7 +40,7 @@ export function FormulaBar() {
     editingSession.source.cell.col === activeCell.col
   const value = editingActiveCell
     ? editingDraft
-    : (selectedCell?.formula ?? selectedCell?.displayValue ?? '')
+    : (selectedCell?.inputText ?? selectedCell?.formula ?? selectedCell?.displayValue ?? '')
   const busy =
     editingLifecycle.status === 'pending' || editingLifecycle.status === 'outcome-unknown'
 
@@ -53,7 +56,7 @@ export function FormulaBar() {
       source: 'formula-bar',
     })
   }
-  const updateFormula = (event: FormEvent<HTMLInputElement>) => {
+  const updateFormula = (event: FormEvent<HTMLTextAreaElement>) => {
     if (!editingActiveCell) {
       const started = startEditing({
         sheetId: activeSheetId,
@@ -64,12 +67,24 @@ export function FormulaBar() {
     }
     setEditingDraft({ draft: event.currentTarget.value, source: 'formula-bar' })
   }
-  const commitFormula = (event: FocusEvent<HTMLInputElement>) => {
+  const commitFormula = (event: FocusEvent<HTMLTextAreaElement>) => {
     if (event.relatedTarget?.closest('[data-cell-editor]')) return
     void commitEditing()
   }
-  const handleFormulaKey = (event: KeyboardEvent<HTMLInputElement>) => {
+  const handleFormulaKey = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     event.stopPropagation()
+    // 输入法确认键属于浏览器；229 覆盖部分浏览器 compositionend 后的确认事件。
+    if (event.nativeEvent.isComposing || event.keyCode === 229) return
+    if (event.key === 'Enter' && event.altKey) {
+      event.preventDefault()
+      const input = event.currentTarget
+      let caret: number | null = null
+      flushSync(() => {
+        caret = insertLineBreak({ start: input.selectionStart, end: input.selectionEnd })
+      })
+      if (caret !== null) input.setSelectionRange(caret, caret)
+      return
+    }
     if (event.key === 'Escape') {
       event.preventDefault()
       cancelEditing()
@@ -86,7 +101,7 @@ export function FormulaBar() {
       <span className="insert-function" aria-hidden="true">
         fx
       </span>
-      <input
+      <textarea
         aria-label="Active cell value"
         autoComplete="off"
         className="formula-value"
@@ -100,6 +115,7 @@ export function FormulaBar() {
         onKeyDown={handleFormulaKey}
         onMouseDown={beginFormulaEditing}
         spellCheck={false}
+        rows={Math.min(4, value.split('\n').length)}
         value={value}
       />
     </div>

@@ -39,6 +39,7 @@ describe('Rust visible format projection', () => {
         row: 0,
         col: 0,
         displayValue: 'Northwind',
+        inputText: 'Northwind',
         valueKind: 'string',
         format: { bold: true, italic: true },
       },

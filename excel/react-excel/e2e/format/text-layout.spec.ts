@@ -37,7 +37,7 @@ test('a 36px cell font grows only its own row', async ({ page }) => {
   await expect(cell).toHaveCSS('font-size', '36px')
   await expect.poll(async () => (await cell.boundingBox())?.height).toBeGreaterThan(36)
   const grownRow = await cell.boundingBox()
-  expect((await nextRow.boundingBox())?.height).toBe(rowBefore?.height)
+  expect((await nextRow.boundingBox())?.height).toBe(nextRowBefore?.height)
   expect((await nextRow.boundingBox())?.y).toBe(
     (nextRowBefore?.y ?? 0) + (grownRow?.height ?? 0) - (rowBefore?.height ?? 0),
   )
@@ -52,7 +52,7 @@ test('wrap text toggles the selected Rust cell style', async ({ page }) => {
 
   await wrap.click()
   await expect(wrap).toHaveAttribute('aria-pressed', 'true')
-  await expect(cell).toHaveCSS('white-space', 'normal')
+  await expect(cell).toHaveCSS('white-space', 'pre-wrap')
   await wrap.click()
   await expect(wrap).toHaveAttribute('aria-pressed', 'false')
   await expect(cell).toHaveCSS('white-space', 'nowrap')
@@ -77,7 +77,7 @@ test('shows the text layout examples from the original Rust seed', async ({ page
   await page.goto('/')
   await expect(page.locator('td[data-cell="1:6"]')).toHaveCSS('font-family', /Georgia/)
   await expect(page.locator('td[data-cell="1:7"]')).toHaveCSS('font-size', '16px')
-  await expect(page.locator('td[data-cell="1:8"]')).toHaveCSS('white-space', 'normal')
+  await expect(page.locator('td[data-cell="1:8"]')).toHaveCSS('white-space', 'pre-wrap')
   const nameBox = page.getByRole('textbox', { name: 'Name box' })
   await nameBox.fill('N2')
   await nameBox.press('Enter')

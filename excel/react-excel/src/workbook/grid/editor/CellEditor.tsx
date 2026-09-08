@@ -6,6 +6,7 @@ import {
   editingCommitFeedback,
   editingCommitLifecycleAtom,
   editingDraftAtom,
+  insertEditingLineBreakAtom,
   editingSessionAtom,
   visibleWindowAtom,
   getAxisOffsetForIndex,
@@ -14,6 +15,7 @@ import {
 } from '@einfach/spreadsheet-ui-core'
 import type { CSSProperties, FocusEvent, KeyboardEvent, PointerEvent } from 'react'
 import { useEffect, useRef } from 'react'
+import { flushSync } from 'react-dom'
 import './cell-editor.css'
 import { WORKBOOK_GRID_ROW_HEIGHT } from '../viewport/workbook-grid-config'
 
@@ -32,7 +34,8 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
   const commitEditing = useSetAtom(commitCellEditingAtom)
   const dispatchEditorKeyboard = useSetAtom(dispatchEditorKeyboardInputAtom)
   const setDraft = useSetAtom(editingDraftAtom)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const insertLineBreak = useSetAtom(insertEditingLineBreakAtom)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
   const committingRef = useRef(false)
   const suppressBlurRef = useRef(false)
   const cell = session.source?.cell ?? null
@@ -79,7 +82,7 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
       committingRef.current = false
     }
   }
-  const runKeyboardCommand = async (event: KeyboardEvent<HTMLInputElement>) => {
+  const runKeyboardCommand = async (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (committingRef.current || busy) return
     committingRef.current = true
     try {
@@ -97,8 +100,20 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
       committingRef.current = false
     }
   }
-  const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+  const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     event.stopPropagation()
+    if (event.nativeEvent.isComposing || event.keyCode === 229) return
+    if (event.key === 'Enter' && event.altKey) {
+      event.preventDefault()
+      const input = event.currentTarget
+      let caret: number | null = null
+      // 先让 atom 草稿落到 DOM，再还原光标，避免受控输入把光标推到末尾。
+      flushSync(() => {
+        caret = insertLineBreak({ start: input.selectionStart, end: input.selectionEnd })
+      })
+      if (caret !== null) input.setSelectionRange(caret, caret)
+      return
+    }
     if (event.key !== 'Escape' && event.key !== 'Enter' && event.key !== 'Tab') return
     event.preventDefault()
     if (event.key === 'Escape') suppressBlurRef.current = true
@@ -120,7 +135,7 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
   const stopPointer = (event: PointerEvent<HTMLDivElement>) => event.stopPropagation()
   const style = {
     '--editor-top': `${editorTop}px`,
-    '--editor-height': `${editorHeight}px`,
+    '--editor-height': `${Math.max(editorHeight, Math.min(5, draft.split('\n').length) * 18 + 6)}px`,
     '--editor-col': cell.col - window.colStart,
   } as CSSProperties
   const fieldIdentity = `cell-editor-r${cell.row}-c${cell.col}`
@@ -133,7 +148,7 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
       onPointerDown={stopPointer}
       style={style}
     >
-      <input
+      <textarea
         ref={inputRef}
         aria-label="Cell editor"
         disabled={busy}
@@ -142,6 +157,7 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
         onChange={(event) => setDraft({ draft: event.currentTarget.value })}
         onKeyDown={onKeyDown}
         value={draft}
+        rows={1}
       />
       {feedback && (
         <div className="cell-editor-feedback" role="alert">

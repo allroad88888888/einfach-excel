@@ -35,6 +35,19 @@ export const editingDraftAtom = atom(
 )
 editingDraftAtom.debugLabel = 'spreadsheet.editing.draft'
 
+/** 在输入框给出的选中文字范围插入一个换行；返回新的 DOM 光标位置。 */
+export const insertEditingLineBreakAtom = atom(
+  null,
+  (get, set, range: { start: number; end: number }): number | null => {
+    if (get(activeEditingCommitTicketAtom) !== null || !get(editingSessionAtom).source) return null
+    const draft = get(editingDraftAtom)
+    const start = Math.max(0, Math.min(draft.length, range.start))
+    const end = Math.max(start, Math.min(draft.length, range.end))
+    set(editingDraftAtom, { draft: `${draft.slice(0, start)}\n${draft.slice(end)}` })
+    return start + 1
+  },
+)
+
 export const startEditingAtom = atom(
   (get) => get(editingSessionAtom),
   (get, set, input: EditingStartInput) => {

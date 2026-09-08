@@ -80,6 +80,29 @@ impl Sheet {
         let text_height = font_size.saturating_mul(6).div_ceil(5);
         let required_height =
             DEFAULT_ROW_HEIGHT_PX.max(text_height.saturating_add(CELL_VERTICAL_CHROME_PX));
+        self.grow_row_height(row, required_height);
+    }
+
+    /// 显式换行只撑高当前行；高度只写 rowStyle，不扫描其他单元格。
+    pub(super) fn grow_row_for_multiline_text(&mut self, addr: CellAddress, value: &Value) {
+        let Value::Text(text) = value else { return };
+        if !text.contains('\n') {
+            return;
+        }
+        let font_size = self
+            .effective_format(&addr.to_string_repr())
+            .font_size
+            .unwrap_or(12);
+        let lines = u32::try_from(text.split('\n').count()).unwrap_or(u32::MAX);
+        let height = font_size
+            .saturating_mul(6)
+            .div_ceil(5)
+            .saturating_mul(lines)
+            .saturating_add(CELL_VERTICAL_CHROME_PX);
+        self.grow_row_height(addr.row, height);
+    }
+
+    fn grow_row_height(&mut self, row: u32, required_height: u32) {
         let row_style = self.row_styles.entry(row).or_default();
         row_style.height = Some(
             row_style

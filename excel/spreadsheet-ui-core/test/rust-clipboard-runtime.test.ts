@@ -80,15 +80,21 @@ async function runtime() {
 }
 
 describe('Rust clipboard transport', () => {
-  test('forwards paste mode and selection unchanged to the Rust policy', async () => {
+  test.each([
+    { mode: 'values' },
+    { mode: 'values-formats' },
+    { transpose: true },
+    { skipBlanks: true },
+    { mode: 'values-formats', transpose: true, skipBlanks: true },
+  ])('forwards paste options %j and selection unchanged to the Rust policy', async (options) => {
     const { call, paste, pasteInput } = await runtime()
     const input = pasteInput('external')
     const selection = { rowStart: 0, rowEnd: 3, colStart: 0, colEnd: 2 }
     await call('clipboard.paste', {
       ...input,
-      request: { ...input.request, mode: 'values', selection },
+      request: { ...input.request, ...options, selection },
     })
-    expect(paste.mock.calls[0][5]).toMatchObject({ mode: 'values', selection })
+    expect(paste.mock.calls[0][5]).toMatchObject({ ...options, selection })
   })
   test('capture reads Rust once and cut token is consumed only after successful paste', async () => {
     const { call, capture, paste, captureInput, pasteInput } = await runtime()

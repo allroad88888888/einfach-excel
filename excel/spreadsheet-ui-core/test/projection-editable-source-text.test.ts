@@ -11,6 +11,13 @@ const projection: VisibleProjectionResult = {
 }
 
 describe('editable projection source text', () => {
+  it('keeps the original input after number formatting and projection cloning', () => {
+    const formatted = {
+      ...projection,
+      cells: [{ row: 1, col: 3, displayValue: '$125', inputText: '125.02' }],
+    }
+    expect(getSourceTextFromProjection(formatted, { row: 1, col: 3 }, 'sheet-1')).toBe('125.02')
+  })
   it('prefers formulas, supports empty projected cells, and rejects unrelated coordinates', () => {
     expect(getSourceTextFromProjection(projection, { row: 1, col: 3 }, 'sheet-1')).toBe('=A1+B1')
     expect(getSourceTextFromProjection(projection, { row: 2, col: 4 }, 'sheet-1')).toBe('')

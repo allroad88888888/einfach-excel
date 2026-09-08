@@ -157,6 +157,9 @@ export function getKeyboardCommandIntent(
 }
 
 function getEditingModeIntent(input: KeyboardInput): KeyboardCommandIntent {
+  if (input.key === 'Enter' && input.altKey) {
+    return { type: 'none', reason: 'editing-text-navigation' }
+  }
   if (input.key === 'Escape') {
     return {
       type: 'editing.cancel',

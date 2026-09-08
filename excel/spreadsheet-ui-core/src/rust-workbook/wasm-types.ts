@@ -6,6 +6,7 @@ export interface RustCellSnapshot {
   readonly sheet: number
   readonly addr: string
   readonly display: string
+  readonly inputText?: string
   readonly type: 'number' | 'text' | 'boolean' | 'error' | 'null'
   readonly isError: boolean
   readonly formula: string
@@ -42,6 +43,7 @@ export interface RustFormatRangeSnapshot {
 }
 
 export interface WasmWorkbook {
+  set_cell_input?: (sheet: number, address: string, input: string) => void
   capture_clipboard?: (
     sheet: number,
     startRow: number,
@@ -58,7 +60,7 @@ export interface WasmWorkbook {
     internal: boolean,
     policy: Pick<
       RustClipboardPasteRequest,
-      'rowCount' | 'colCount' | 'unlockedRanges' | 'mode' | 'selection'
+      'rowCount' | 'colCount' | 'unlockedRanges' | 'mode' | 'selection' | 'transpose' | 'skipBlanks'
     >,
   ) => ArrayLike<number>
   sheet_count(): number

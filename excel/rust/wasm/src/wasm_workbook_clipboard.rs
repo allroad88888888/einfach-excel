@@ -13,6 +13,8 @@ struct ClipboardCaptureJSON {
 #[serde(rename_all = "camelCase")]
 struct ClipboardPastePolicyJSON {
     mode: Option<String>,
+    transpose: Option<bool>,
+    skip_blanks: Option<bool>,
     selection: Option<ClipboardRangeJSON>,
     row_count: u32,
     col_count: u32,
@@ -76,6 +78,7 @@ impl WasmWorkbook {
         let mode = match policy.mode.as_deref().unwrap_or("all") {
             "all" => ClipboardPasteMode::All,
             "values" => ClipboardPasteMode::Values,
+            "values-formats" => ClipboardPasteMode::ValuesAndFormats,
             "formats" => ClipboardPasteMode::Formats,
             _ => return Err(JsValue::from_str("CLIPBOARD_INVALID_MODE")),
         };
@@ -121,6 +124,8 @@ impl WasmWorkbook {
                 &ClipboardPasteOptions {
                     selection,
                     mode,
+                    transpose: policy.transpose.unwrap_or(false),
+                    skip_blanks: policy.skip_blanks.unwrap_or(false),
                     row_count: policy.row_count,
                     col_count: policy.col_count,
                     unlocked_ranges: unlocked,

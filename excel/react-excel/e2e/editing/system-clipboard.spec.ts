@@ -1,35 +1,11 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test } from '@playwright/test'
+import { select, copy, paste } from '../support/clipboard'
 
 test.beforeEach(async ({ context, page }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await page.goto('/')
   await expect(page.locator('td[data-cell="1:0"]')).toHaveText('SO-10001')
 })
-
-async function select(page: Page, address: string, coord: string) {
-  const name = page.getByRole('textbox', { name: 'Name box' })
-  await name.fill(address)
-  await name.press('Enter')
-  const cell = page.locator(`td[data-cell="${coord}"]`)
-  await expect(cell).toBeVisible()
-  await expect(page.locator('[data-workbook-grid]')).toHaveAttribute(
-    'data-projection-retained',
-    'false',
-  )
-  return cell
-}
-
-async function copy(page: Page, operation: 'Copy' | 'Cut' = 'Copy') {
-  await page.getByRole('button', { name: operation, exact: true }).click()
-  await expect(page.getByLabel('Clipboard status')).toContainText(
-    operation === 'Copy' ? 'Copied' : 'ready to move',
-  )
-}
-
-async function paste(page: Page) {
-  await page.getByRole('button', { name: 'Paste', exact: true }).click()
-  await expect(page.getByLabel('Clipboard status')).toHaveText('Pasted cells.')
-}
 
 test('system copy freezes value and format and permits repeated pastes', async ({ page }) => {
   await select(page, 'A2', '1:0')

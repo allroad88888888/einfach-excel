@@ -31,24 +31,24 @@ impl Workbook {
         }
         let mut planned = Vec::with_capacity(range.cell_count() as usize);
         for addr in range.iter() {
+            let (origin, cell) = snapshot.cell_at_target(addr, range, options.transpose);
+            // 空白源格不写值，也不覆盖目标格式；它对应的 spill 结果同样不受影响。
+            if options.skip_blanks && cell.is_blank() {
+                continue;
+            }
             if options.mode != ClipboardPasteMode::Formats && sheet.is_spill_region(addr) {
                 return Err("CLIPBOARD_SPILL_TARGET");
             }
-            let row_offset = (addr.row - range.start.row) % snapshot.rows();
-            let col_offset = (addr.col - range.start.col) % snapshot.cols();
-            let cell = &snapshot.cells[(row_offset * snapshot.cols() + col_offset) as usize];
-            let origin = CellAddress::new(
-                snapshot.source.start.row + row_offset,
-                snapshot.source.start.col + col_offset,
-            );
             let value = match options.mode {
                 ClipboardPasteMode::Formats => None,
-                ClipboardPasteMode::Values => Some(ClipboardValue::Literal(match &cell.value {
-                    ClipboardValue::Formula { source, evaluated } => evaluated
-                        .clone()
-                        .unwrap_or_else(|| Value::Text(source.clone())),
-                    ClipboardValue::Literal(value) => value.clone(),
-                })),
+                ClipboardPasteMode::Values | ClipboardPasteMode::ValuesAndFormats => {
+                    Some(ClipboardValue::Literal(match &cell.value {
+                        ClipboardValue::Formula { source, evaluated } => evaluated
+                            .clone()
+                            .unwrap_or_else(|| Value::Text(source.clone())),
+                        ClipboardValue::Literal(value) => value.clone(),
+                    }))
+                }
                 ClipboardPasteMode::All => Some(match &cell.value {
                     ClipboardValue::Formula { source, .. } => {
                         let mut expr = parse_formula(source).ok_or("CLIPBOARD_INVALID_FORMULA")?;

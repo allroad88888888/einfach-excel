@@ -7,12 +7,15 @@ pub enum ClipboardPasteMode {
     #[default]
     All,
     Values,
+    ValuesAndFormats,
     Formats,
 }
 
 pub struct ClipboardPasteOptions {
     pub selection: CellRange,
     pub mode: ClipboardPasteMode,
+    pub transpose: bool,
+    pub skip_blanks: bool,
     pub row_count: u32,
     pub col_count: u32,
     pub unlocked_ranges: Option<Vec<CellRange>>,
@@ -23,6 +26,8 @@ impl ClipboardPasteOptions {
         Self {
             selection,
             mode: ClipboardPasteMode::All,
+            transpose: false,
+            skip_blanks: false,
             row_count: crate::sheet::EXCEL_MAX_ROWS,
             col_count: crate::sheet::EXCEL_MAX_COLS,
             unlocked_ranges: None,
@@ -38,12 +43,23 @@ impl ClipboardSnapshot {
     ) -> Result<CellRange, ClipboardError> {
         let selection = options.selection;
         validate_range(selection)?;
-        if self.cut && options.mode != ClipboardPasteMode::All {
+        if self.cut
+            && (options.mode != ClipboardPasteMode::All || options.transpose || options.skip_blanks)
+        {
             return Err("CLIPBOARD_CUT_SPECIAL");
         }
-        if options.mode == ClipboardPasteMode::Formats && self.source_sheet.is_none() {
+        if matches!(
+            options.mode,
+            ClipboardPasteMode::Formats | ClipboardPasteMode::ValuesAndFormats
+        ) && self.source_sheet.is_none()
+        {
             return Err("CLIPBOARD_NO_FORMATS");
         }
+        let (rows, cols) = if options.transpose {
+            (self.cols(), self.rows())
+        } else {
+            (self.rows(), self.cols())
+        };
         let range = if selection.rows() == 1 && selection.cols() == 1 {
             CellRange::new(
                 selection.start,
@@ -51,20 +67,19 @@ impl ClipboardSnapshot {
                     selection
                         .start
                         .row
-                        .checked_add(self.rows() - 1)
+                        .checked_add(rows - 1)
                         .ok_or("CLIPBOARD_INVALID_RANGE")?,
                     selection
                         .start
                         .col
-                        .checked_add(self.cols() - 1)
+                        .checked_add(cols - 1)
                         .ok_or("CLIPBOARD_INVALID_RANGE")?,
                 ),
             )
         } else {
-            if selection.rows() % self.rows() != 0
-                || selection.cols() % self.cols() != 0
-                || (self.cut
-                    && (selection.rows() != self.rows() || selection.cols() != self.cols()))
+            if selection.rows() % rows != 0
+                || selection.cols() % cols != 0
+                || (self.cut && (selection.rows() != rows || selection.cols() != cols))
             {
                 return Err("CLIPBOARD_SELECTION_SIZE");
             }
@@ -76,10 +91,38 @@ impl ClipboardSnapshot {
         }
         if let Some(unlocked) = &options.unlocked_ranges {
             let allowed = |addr| unlocked.iter().any(|range| range.contains(addr));
-            if !range.iter().all(allowed) || (self.cut && !self.source.iter().all(allowed)) {
+            let targets_allowed = range.iter().all(|addr| {
+                let (_, cell) = self.cell_at_target(addr, range, options.transpose);
+                (options.skip_blanks && cell.is_blank()) || allowed(addr)
+            });
+            if !targets_allowed || (self.cut && !self.source.iter().all(allowed)) {
                 return Err("CLIPBOARD_LOCKED");
             }
         }
         Ok(range)
+    }
+
+    /// 目标坐标反查源格：先按转置后的块尺寸取模，再交换偏移；预检与写入共用。
+    pub(super) fn cell_at_target(
+        &self,
+        addr: CellAddress,
+        target: CellRange,
+        transpose: bool,
+    ) -> (CellAddress, &ClipboardCell) {
+        let (row, col) = if transpose {
+            (
+                (addr.col - target.start.col) % self.rows(),
+                (addr.row - target.start.row) % self.cols(),
+            )
+        } else {
+            (
+                (addr.row - target.start.row) % self.rows(),
+                (addr.col - target.start.col) % self.cols(),
+            )
+        };
+        (
+            CellAddress::new(self.source.start.row + row, self.source.start.col + col),
+            &self.cells[(row * self.cols() + col) as usize],
+        )
     }
 }

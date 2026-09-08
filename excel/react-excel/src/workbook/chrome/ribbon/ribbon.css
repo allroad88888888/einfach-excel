@@ -85,7 +85,8 @@
   background: var(--control-hover);
 }
 
-.tool-button:disabled {
+.tool-button:disabled,
+.tool-select:disabled {
   opacity: 0.4;
   cursor: default;
 }
@@ -140,9 +141,7 @@
   }
 
   .ribbon-tabs {
-    position: sticky;
-    left: 0;
-    z-index: 2;
+    /* 窄屏标签随整条工具栏滚动，避免盖住滚入视野的粘贴选项。 */
     padding-right: 5px;
     background: #ffffff;
   }

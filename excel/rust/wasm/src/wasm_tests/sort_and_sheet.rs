@@ -261,3 +261,15 @@ fn wasm_sheet_sum_function() {
     sheet.set_formula("A4", "=SUM(A1,A2,A3)");
     assert_eq!(sheet.get_number("A4"), 6.0);
 }
+#[test]
+fn editable_number_text_round_trips_without_general_display_rounding() {
+    for number in [125.02, 0.15, 1.2345678901234567, 1.0e-20, -0.0] {
+        let input = value_to_input_text(&Value::Number(number), "");
+        assert_eq!(input.parse::<f64>().unwrap().to_bits(), number.to_bits());
+    }
+    assert_eq!(value_to_input_text(&Value::Number(7.0), "=A1*2"), "=A1*2");
+    assert_eq!(
+        value_to_input_text(&Value::Text("one\ntwo".into()), ""),
+        "one\ntwo"
+    );
+}

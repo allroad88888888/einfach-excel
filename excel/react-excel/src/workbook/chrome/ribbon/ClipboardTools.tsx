@@ -6,7 +6,17 @@ import {
 } from '@einfach/spreadsheet-ui-core'
 import { readBrowserClipboard, writeBrowserClipboard } from '../../clipboard/browser-clipboard'
 
-/** 工具栏现有的三个剪贴板按钮，只转发浏览器 I/O。 */
+const PASTE_OPTIONS = [
+  { value: 'transpose', label: 'Paste transposed', paste: { transpose: true } },
+  { value: 'skip-blanks', label: 'Paste skipping blanks', paste: { skipBlanks: true } },
+  {
+    value: 'values-formats',
+    label: 'Paste values and formatting',
+    paste: { mode: 'values-formats' },
+  },
+] as const
+
+/** 剪贴板入口只转发浏览器 I/O；下拉选择是一次命令，不保存另一份粘贴状态。 */
 export function ClipboardTools() {
   const run = useSetAtom(runSystemClipboardAtom)
   const feedback = useAtomValue(systemClipboardFeedbackAtom)
@@ -49,6 +59,27 @@ export function ClipboardTools() {
           <span aria-hidden="true">{mode === 'values' ? '123' : 'A▧'}</span>
         </button>
       ))}
+      <select
+        className="tool-select"
+        aria-label="More paste options"
+        title="More paste options"
+        defaultValue=""
+        disabled={feedback.busy || editing}
+        onChange={(event) => {
+          const option = PASTE_OPTIONS.find(({ value }) => value === event.currentTarget.value)
+          event.currentTarget.value = ''
+          if (option) void run({ ...option.paste, operation: 'paste', read: readBrowserClipboard })
+        }}
+      >
+        <option value="" disabled>
+          Paste options
+        </option>
+        {PASTE_OPTIONS.map(({ value, label }) => (
+          <option key={value} value={value}>
+            {label}
+          </option>
+        ))}
+      </select>
     </>
   )
 }

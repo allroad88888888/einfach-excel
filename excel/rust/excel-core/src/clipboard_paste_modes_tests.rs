@@ -155,7 +155,11 @@ fn cut_rejects_special_paste_or_repetition_then_still_allows_normal_move() {
     let mut wb = Workbook::new();
     wb.set_cell(0, "A1", Value::Number(5.0));
     let clip = wb.capture_clipboard(0, range("A1", "A1"), true).unwrap();
-    for mode in [ClipboardPasteMode::Values, ClipboardPasteMode::Formats] {
+    for mode in [
+        ClipboardPasteMode::Values,
+        ClipboardPasteMode::Formats,
+        ClipboardPasteMode::ValuesAndFormats,
+    ] {
         assert_eq!(
             wb.paste_clipboard(&clip, 0, &options("B1", "B1", mode)),
             Err("CLIPBOARD_CUT_SPECIAL")
@@ -226,5 +230,38 @@ fn cut_back_onto_itself_does_not_retarget_partial_range_references() {
     assert_eq!(
         wb.sheet(0).unwrap().get_formula("C1").as_deref(),
         Some("=SUM(A1:A2)")
+    );
+}
+
+#[test]
+fn values_and_formats_uses_raw_values_and_overwrites_destination_style() {
+    let mut wb = Workbook::new();
+    wb.set_cell(0, "A1", Value::Number(125.02));
+    wb.sheet_mut(0).unwrap().patch_format_range(
+        range("A1", "A1"),
+        StyleScope::Cell,
+        CellStyle {
+            bold: Some(true),
+            number_format: Some(crate::NumberFormat::Decimal {
+                digits: 0,
+                thousands: false,
+            }),
+            ..Default::default()
+        },
+    );
+    let clip = wb.capture_clipboard(0, range("A1", "A1"), false).unwrap();
+    wb.paste_clipboard(
+        &clip,
+        0,
+        &options("B2", "B2", ClipboardPasteMode::ValuesAndFormats),
+    )
+    .unwrap();
+    let sheet = wb.sheet(0).unwrap();
+    assert_eq!(sheet.get_cell("B2"), Value::Number(125.02));
+    assert_eq!(sheet.formatted_display("B2"), "125");
+    assert!(sheet.get_format("B2").bold);
+    assert_eq!(
+        ClipboardSnapshot::from_tsv("text", ClipboardPasteMode::ValuesAndFormats).unwrap_err(),
+        "CLIPBOARD_NO_FORMATS"
     );
 }

@@ -158,6 +158,7 @@ export function cloneCell(cell: DisplayCell): DisplayCell {
   if (cell.valueKind) clone.valueKind = cell.valueKind
   if (cell.numericValue !== undefined) clone.numericValue = cell.numericValue
   if (cell.formula !== undefined) clone.formula = cell.formula
+  if (cell.inputText !== undefined) clone.inputText = cell.inputText
   if (cell.error) clone.error = { ...cell.error }
   if (cell.formatKey !== undefined) clone.formatKey = cell.formatKey
   if (cell.format) clone.format = cloneFormat(cell.format)

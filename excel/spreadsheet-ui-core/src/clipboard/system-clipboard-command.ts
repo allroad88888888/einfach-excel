@@ -30,6 +30,8 @@ export type SystemClipboardOperation =
   | {
       readonly operation: 'paste'
       readonly mode?: RustClipboardPasteMode
+      readonly transpose?: boolean
+      readonly skipBlanks?: boolean
       readonly read: () => Promise<SystemClipboardData>
     }
 
@@ -120,6 +122,8 @@ export const runSystemClipboardAtom = atom(
           kind: input.mode === 'formats' ? 'set-format-range' : 'paste-range',
           sheetId: sheet.id,
           cell: { row, col },
+          // 首格也可能被跳过；实际写入哪些格只有 Rust 快照知道，保护交给它完整检查。
+          protectionGate: input.skipBlanks !== true,
         }).status === 'blocked'
       )
         throw new Error('CLIPBOARD_LOCKED')
@@ -140,6 +144,8 @@ export const runSystemClipboardAtom = atom(
           col,
           ...data,
           mode: input.mode ?? 'all',
+          transpose: input.transpose ?? false,
+          skipBlanks: input.skipBlanks ?? false,
           selection: selection.range,
           rowCount: sheet.rowCount,
           colCount: sheet.colCount,

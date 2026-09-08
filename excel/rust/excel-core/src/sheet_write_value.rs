@@ -32,7 +32,11 @@ impl Sheet {
         self.set_array_at(addr, arr)
     }
 
-    pub(super) fn set_array_at(&mut self, addr: CellAddress, arr: Arc<ArrayData>) -> Result<(), SheetError> {
+    pub(super) fn set_array_at(
+        &mut self,
+        addr: CellAddress,
+        arr: Arc<ArrayData>,
+    ) -> Result<(), SheetError> {
         let collapsed_anchor = self.spilled_into_anchor(addr);
         let blocked_retries = self.blocked_anchors_claiming(addr);
         let pre_range_member = self.range_member_present(addr);
@@ -151,7 +155,11 @@ impl Sheet {
         self.set_cell_inner(addr, value)
     }
 
-    pub(super) fn set_cell_inner(&mut self, addr: CellAddress, value: Value) -> Result<(), SheetError> {
+    pub(super) fn set_cell_inner(
+        &mut self,
+        addr: CellAddress,
+        value: Value,
+    ) -> Result<(), SheetError> {
         // ADR 0006 stage 1 — a write into a spill projection cell withdraws the
         // whole array, EXCEPT when the incoming value could not have blocked it
         // in the first place. `Value::Null` is the only such value
@@ -207,6 +215,10 @@ impl Sheet {
         // ADR 0006 stage 2 — same idea in the blocked direction.
         array_formulas_to_reproject.extend(blocked_retries);
 
+        self.grow_row_for_multiline_text(addr, &value);
+        if matches!(&value, Value::Text(text) if text.contains('\n')) {
+            self.cell_styles.entry(addr).or_default().wrap_text = Some(true);
+        }
         self.store_batch(|sheet| {
             // ORDER RULE (ADR 0006 stage 1): the projection must be withdrawn
             // before anything below can call `ensure_cell` / `store.set` on

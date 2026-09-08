@@ -55,11 +55,13 @@
 }
 
 .formula-value {
-  height: 27px;
+  min-height: 27px;
+  max-height: 90px;
+  resize: none;
   min-width: 0;
   flex: 1;
   padding: 5px 9px;
-  overflow: hidden;
+  overflow: auto;
   border: 1px solid var(--border);
   border-radius: 6px;
   background: #ffffff;
@@ -67,7 +69,7 @@
   font: inherit;
   outline: none;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: pre-wrap;
 }
 
 .formula-value:focus {

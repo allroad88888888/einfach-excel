@@ -12,6 +12,7 @@ fn query(needle: &str) -> FindQuery {
         needle: needle.into(),
         case_sensitive: false,
         whole_cell: false,
+        wildcards: false,
         look_in: FindLookIn::Formulas,
     }
 }

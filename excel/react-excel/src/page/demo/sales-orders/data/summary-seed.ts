@@ -12,6 +12,11 @@ export const SALES_ORDER_SUMMARY_CELLS: readonly RustImportCell[] = [
   { sheet: 1, row: 84, col: 0, kind: 'text', value: '😀alpha alpha' },
   { sheet: 1, row: 84, col: 1, kind: 'text', value: 'ALPHA' },
   { sheet: 1, row: 84, col: 2, kind: 'formula', value: '=LEN("alpha")' },
+  // 通配符示例：三个普通字符、字面星号与单个 emoji。
+  { sheet: 1, row: 85, col: 0, kind: 'text', value: 'SKU-100' },
+  { sheet: 1, row: 85, col: 1, kind: 'text', value: 'SKU-200' },
+  { sheet: 1, row: 85, col: 2, kind: 'text', value: 'SKU-*' },
+  { sheet: 1, row: 86, col: 0, kind: 'text', value: 'SKU-😀' },
   // 离屏内容参与自动适应；仅给演示数据加格式，不在 React 写坐标特判。
   {
     sheet: 1,

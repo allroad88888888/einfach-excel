@@ -80,6 +80,14 @@ async function runtime() {
 }
 
 describe('native find and replace transport', () => {
+  test('wildcards pass unchanged through find and replace without a TS matcher', async () => {
+    const { call, find, write } = await runtime()
+    const wildcardQuery = { ...query, needle: 'SKU-~*?', wildcards: true }
+    await call('workbook.find', { ...search, query: wildcardQuery })
+    expect(find.mock.lastCall![0].query).toEqual(wildcardQuery)
+    await call('workbook.replace', { ...replace, query: wildcardQuery })
+    expect(write.mock.lastCall![0].query).toEqual(wildcardQuery)
+  })
   test('find forwards the full scope and paging once without changing visible data', async () => {
     const { call, find, read } = await runtime()
     expect(await call('workbook.find', search)).toMatchObject({

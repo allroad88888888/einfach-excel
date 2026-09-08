@@ -65,6 +65,7 @@ test('query options invalidate positions but editing the replacement keeps the c
     caseSensitive: true,
     wholeCell: true,
     lookIn: 'values',
+    wildcards: false,
   })
 })
 

@@ -11,6 +11,7 @@ export interface RustFindQuery {
   readonly needle: string
   readonly caseSensitive: boolean
   readonly wholeCell: boolean
+  readonly wildcards?: boolean
   readonly lookIn: 'values' | 'formulas'
 }
 

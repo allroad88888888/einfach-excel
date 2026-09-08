@@ -94,6 +94,27 @@ test('navigation displays the native index and worksheet address', async () => {
   expect(r.find.mock.calls.map(([input]) => input.offset)).toEqual([0, 1])
 })
 
+test('tab keyboard changes the panel without a Rust request and wraps dialog focus', async () => {
+  const r = await setup()
+  const find = screen.getByRole('tab', { name: 'Find' })
+  const replace = screen.getByRole('tab', { name: 'Replace' })
+  find.focus()
+  await act(async () => {
+    fireEvent.keyDown(find, { key: 'ArrowRight' })
+  })
+  expect(replace).toHaveFocus()
+  expect(replace).toHaveAttribute('aria-selected', 'true')
+  expect(screen.getByRole('tabpanel', { name: 'Replace' })).toBeVisible()
+  const close = screen.getByRole('button', { name: 'Close' })
+  close.focus()
+  fireEvent.keyDown(close, { key: 'Tab' })
+  expect(replace).toHaveFocus()
+  fireEvent.keyDown(replace, { key: 'Tab', shiftKey: true })
+  expect(close).toHaveFocus()
+  expect(r.find).not.toHaveBeenCalled()
+  expect(r.replace).not.toHaveBeenCalled()
+})
+
 test('replacement field does not invalidate the selected match; one native write updates feedback', async () => {
   const r = await setup()
   await fill('Find what', 'old')
@@ -130,6 +151,21 @@ test('native errors are visible and the corrected query can be submitted again',
   expect(screen.queryByRole('alert')).toBeNull()
   await click('Find next')
   expect(screen.getByText('1 of 2 · Sheet!B6')).toBeVisible()
+})
+
+test('find-all lists native positions and clicking a result asks Rust for that exact index', async () => {
+  const r = await setup()
+  await fill('Find what', 'old')
+  await act(async () => {
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Use wildcards' }))
+  })
+  await click('Find all')
+  expect(r.find.mock.lastCall![0]).toMatchObject({ limit: 100, query: { wildcards: true } })
+  expect(screen.getByRole('region', { name: 'All search results' })).toBeVisible()
+  await click('Go to Sheet!B6, match 1')
+  expect(r.find.mock.lastCall![0]).toMatchObject({ offset: 0, limit: 1 })
+  await fill('Find what', 'new')
+  expect(screen.queryByRole('region', { name: 'All search results' })).toBeNull()
 })
 
 test('options are sent through the command without a React controller object', async () => {

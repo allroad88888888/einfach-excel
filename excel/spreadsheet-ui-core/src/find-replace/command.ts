@@ -21,6 +21,9 @@ export type FindReplaceAction =
   | 'previous'
   | 'replace-current'
   | 'replace-all'
+  | 'find-all'
+  | { readonly page: number }
+  | { readonly match: number }
   | { readonly open: 'find' | 'replace' }
   | { readonly form: Partial<FindReplaceForm> }
 
@@ -68,7 +71,7 @@ export const runFindReplaceAtom = atom(
       return true
     }
     if (!state.open || !state.origin) return false
-    if (typeof action === 'object') {
+    if (typeof action === 'object' && 'form' in action) {
       const onlyReplacement = Object.keys(action.form).every((key) => key === 'replacement')
       set(findReplaceStateAtom, {
         ...state,
@@ -91,7 +94,7 @@ export const runFindReplaceAtom = atom(
       })
       return false
     }
-    const { needle, replacement, caseSensitive, wholeCell, lookIn, scope } = state.form
+    const { needle, replacement, caseSensitive, wholeCell, lookIn, scope, wildcards } = state.form
     if (!needle.length) return fail('Enter text to find.')
     const workbook = get(workbookDocumentAtom)
     const sheets =
@@ -113,7 +116,15 @@ export const runFindReplaceAtom = atom(
               colEnd: sheet.colCount - 1,
             },
     }))
-    const query = { needle, caseSensitive, wholeCell, lookIn }
+    const query = { needle, caseSensitive, wholeCell, lookIn, wildcards }
+    const requested =
+      typeof action === 'object' ? ('page' in action ? action.page : action.match) : null
+    if (requested !== null && (!Number.isSafeInteger(requested) || requested < 0))
+      return fail('Invalid result position.')
+    const picking = typeof action === 'object' && 'match' in action
+    const listing = action === 'find-all' || (typeof action === 'object' && 'page' in action)
+    if (picking && (!state.result?.page || requested! >= state.result.total))
+      return fail('Find all before choosing a result.')
     const writing = action === 'replace-current' || action === 'replace-all'
     if (
       writing &&
@@ -140,24 +151,29 @@ export const runFindReplaceAtom = atom(
       set(findReplaceStateAtom, pending)
       if (!writing) {
         let index =
-          state.result && state.result.total > 0
-            ? (state.result.index + (action === 'previous' ? -1 : 1) + state.result.total) %
-              state.result.total
-            : 0
+          requested ??
+          (action === 'find-all'
+            ? 0
+            : state.result && state.result.total > 0
+              ? (state.result.index + (action === 'previous' ? -1 : 1) + state.result.total) %
+                state.result.total
+              : 0)
         let page = await connection.request('workbook.find', {
           targets,
           query,
           offset: index,
-          limit: 1,
+          limit: listing ? 100 : 1,
         })
         if (!current()) return false
+        if (picking && page.revision !== state.result?.revision)
+          return fail('The workbook changed. Find all again before choosing a result.')
         if (page.total > 0 && !page.matches.length) {
           index = action === 'previous' ? page.total - 1 : 0
           page = await connection.request('workbook.find', {
             targets,
             query,
             offset: index,
-            limit: 1,
+            limit: listing ? 100 : 1,
           })
           if (!current()) return false
         }
@@ -168,7 +184,17 @@ export const runFindReplaceAtom = atom(
           ...pending,
           busy: null,
           notice,
-          result: { index, total: page.total, current: match, revision: page.revision },
+          result: {
+            index,
+            total: page.total,
+            current: match,
+            revision: page.revision,
+            page: listing
+              ? { offset: index, matches: page.matches }
+              : page.revision === state.result?.revision
+                ? state.result?.page
+                : undefined,
+          },
         })
         return true
       }

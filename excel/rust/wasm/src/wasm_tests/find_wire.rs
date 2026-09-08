@@ -13,6 +13,7 @@ fn find_wire_preserves_scope_options_and_utf16_match_positions() {
     assert_eq!(query.needle, "😀é");
     assert!(query.whole_cell);
     assert_eq!(query.look_in, FindLookIn::Formulas);
+    assert!(!query.wildcards);
     let matched = FindMatchJSON::from(FindMatch {
         sheet: 2,
         address: range.start,
@@ -41,6 +42,17 @@ fn find_wire_rejects_fractional_coordinates_and_unsupported_search_modes() {
         request["targets"][0]["rowEnd"] = invalid;
         assert!(serde_json::from_value::<FindRequestJSON>(request).is_err());
     }
+    let mut wildcard = base.clone();
+    wildcard["query"]["wildcards"] = serde_json::json!(true);
+    assert!(
+        serde_json::from_value::<FindRequestJSON>(wildcard.clone())
+            .unwrap()
+            .query
+            .native()
+            .wildcards
+    );
+    wildcard["query"]["wildcards"] = serde_json::json!("true");
+    assert!(serde_json::from_value::<FindRequestJSON>(wildcard).is_err());
     let mut unsupported = base;
     unsupported["query"]["regex"] = serde_json::json!(true);
     assert!(serde_json::from_value::<FindRequestJSON>(unsupported).is_err());

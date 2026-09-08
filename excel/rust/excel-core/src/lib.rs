@@ -9,6 +9,7 @@ pub mod csv;
 pub mod eval;
 pub mod filter;
 mod find_text;
+mod find_wildcard;
 pub mod format;
 pub mod formula;
 pub mod general_text;

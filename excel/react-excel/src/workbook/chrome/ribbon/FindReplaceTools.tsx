@@ -8,6 +8,7 @@ import {
   workbookDocumentAtom,
 } from '@einfach/spreadsheet-ui-core'
 import './find-replace.css'
+import { FindResults } from './FindResults'
 
 /** 只处理 DOM 控件与焦点；草稿、查询、替换、导航由同一个 command atom 执行。 */
 export function FindReplaceTools() {
@@ -57,19 +58,54 @@ export function FindReplaceTools() {
           ref={ref}
           className="find-replace-dialog"
           aria-labelledby={`${id}-title`}
+          onKeyDown={(event) => {
+            if (event.key !== 'Tab') return
+            // 在首尾控件间循环，避免浏览器把 Tab 焦点送到地址栏。
+            const controls = event.currentTarget.querySelectorAll<HTMLElement>(
+              'button:not(:disabled):not([tabindex="-1"]), input:not(:disabled), select:not(:disabled)',
+            )
+            const first = controls[0]
+            const last = controls[controls.length - 1]
+            if (event.shiftKey ? event.target !== first : event.target !== last) return
+            event.preventDefault()
+            ;(event.shiftKey ? last : first)?.focus()
+          }}
           onCancel={(event) => {
             event.preventDefault()
             void run('close')
           }}
         >
           <h2 id={`${id}-title`}>Find and replace</h2>
-          <div className="find-tabs" role="tablist" aria-label="Find or replace">
+          <div
+            className="find-tabs"
+            role="tablist"
+            aria-label="Find or replace"
+            onKeyDown={(event) => {
+              if (busy || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return
+              event.preventDefault()
+              event.stopPropagation()
+              const tab =
+                event.key === 'Home'
+                  ? 'find'
+                  : event.key === 'End'
+                    ? 'replace'
+                    : state.tab === 'find'
+                      ? 'replace'
+                      : 'find'
+              void run({ open: tab })
+              event.currentTarget.querySelector<HTMLElement>(`[data-find-tab="${tab}"]`)?.focus()
+            }}
+          >
             {(['find', 'replace'] as const).map((tab) => (
               <button
                 key={tab}
                 type="button"
                 role="tab"
+                id={`${id}-${tab}`}
+                data-find-tab={tab}
+                aria-controls={`${id}-panel`}
                 aria-selected={state.tab === tab}
+                tabIndex={state.tab === tab ? 0 : -1}
                 disabled={busy}
                 onClick={() => void run({ open: tab })}
               >
@@ -78,6 +114,9 @@ export function FindReplaceTools() {
             ))}
           </div>
           <form
+            id={`${id}-panel`}
+            role="tabpanel"
+            aria-labelledby={`${id}-${state.tab}`}
             onSubmit={(event) => {
               event.preventDefault()
               void run('next')
@@ -149,6 +188,17 @@ export function FindReplaceTools() {
               <label>
                 <input
                   type="checkbox"
+                  checked={form.wildcards ?? false}
+                  disabled={busy}
+                  onChange={(event) =>
+                    void run({ form: { wildcards: event.currentTarget.checked } })
+                  }
+                />
+                Use wildcards
+              </label>
+              <label>
+                <input
+                  type="checkbox"
                   checked={form.caseSensitive}
                   disabled={busy}
                   onChange={(event) =>
@@ -188,6 +238,13 @@ export function FindReplaceTools() {
               <button type="submit" className="find-primary" disabled={busy || !form.needle}>
                 Find next
               </button>
+              <button
+                type="button"
+                disabled={busy || !form.needle}
+                onClick={() => void run('find-all')}
+              >
+                Find all
+              </button>
               {state.tab === 'replace' && (
                 <>
                   <button
@@ -215,8 +272,12 @@ export function FindReplaceTools() {
               </button>
             </div>
           </form>
+          <FindResults />
           <p className="find-hint">
-            Searches literal text, including offscreen cells. Replacements can be undone together.
+            {form.wildcards
+              ? '* = any text, ? = one character, ~ escapes *, ? or ~. '
+              : 'Searches literal text, including offscreen cells. '}
+            Replacements can be undone together.
           </p>
           {form.lookIn === 'values' && state.tab === 'replace' && (
             <p className="find-hint">

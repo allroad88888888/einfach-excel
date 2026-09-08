@@ -17,6 +17,8 @@ struct FindQueryJSON {
     needle: String,
     case_sensitive: bool,
     whole_cell: bool,
+    #[serde(default)]
+    wildcards: bool,
     look_in: FindLookInJSON,
 }
 
@@ -85,6 +87,7 @@ impl FindQueryJSON {
             needle: self.needle,
             case_sensitive: self.case_sensitive,
             whole_cell: self.whole_cell,
+            wildcards: self.wildcards,
             look_in: match self.look_in {
                 FindLookInJSON::Values => FindLookIn::Values,
                 FindLookInJSON::Formulas => FindLookIn::Formulas,

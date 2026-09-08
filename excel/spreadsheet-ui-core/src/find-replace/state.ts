@@ -23,6 +23,8 @@ export interface FindReplacePanel {
     readonly total: number
     readonly revision: number
     readonly current: RustFindMatch | null
+    /** 有界结果页；total 仍为完整查询总数，不在 UI 镜像整份工作簿。 */
+    readonly page?: { readonly offset: number; readonly matches: readonly RustFindMatch[] }
   } | null
   readonly error: string | null
   readonly notice: string | null
@@ -41,6 +43,7 @@ export const findReplaceStateAtom = atom<FindReplacePanel>({
     replacement: '',
     caseSensitive: false,
     wholeCell: false,
+    wildcards: false,
     lookIn: 'formulas',
     scope: 'sheet',
   },

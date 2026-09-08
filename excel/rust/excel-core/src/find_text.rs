@@ -1,10 +1,12 @@
 //! 字面量匹配使用原字符串边界；对外的匹配位置统一换算为 UTF-16。
+use crate::find_wildcard::FindWildcard;
 use std::ops::Range;
 
 pub(crate) struct FindText {
     needle: String,
     case_sensitive: bool,
     whole_cell: bool,
+    wildcard: Option<FindWildcard>,
 }
 
 impl FindText {
@@ -12,6 +14,7 @@ impl FindText {
         needle: &str,
         case_sensitive: bool,
         whole_cell: bool,
+        wildcards: bool,
     ) -> Result<Self, &'static str> {
         if needle.is_empty() || needle.len() > 4096 {
             return Err("Enter a search string of 1–4096 UTF-8 bytes.");
@@ -24,12 +27,16 @@ impl FindText {
             },
             case_sensitive,
             whole_cell,
+            wildcard: wildcards.then(|| FindWildcard::new(needle, case_sensitive, whole_cell)),
         })
     }
 
-    pub(crate) fn spans(&self, text: &str) -> Vec<Range<usize>> {
+    pub(crate) fn spans(&self, text: &str) -> Result<Vec<Range<usize>>, &'static str> {
+        if let Some(wildcard) = &self.wildcard {
+            return wildcard.spans(text);
+        }
         if self.case_sensitive {
-            return self.match_spans(text);
+            return Ok(self.match_spans(text));
         }
         // 大小写转换可能扩展字符（例如 İ）；只接受完整原字符的边界，
         // 不把转换后的 UTF-8 字节位置直接用来截取原字符串。
@@ -40,14 +47,15 @@ impl FindText {
             folded.extend(ch.to_lowercase());
         }
         boundaries.push((folded.len(), text.len()));
-        self.match_spans(&folded)
+        Ok(self
+            .match_spans(&folded)
             .into_iter()
             .filter_map(|span| {
                 let start = boundaries.binary_search_by_key(&span.start, |b| b.0).ok()?;
                 let end = boundaries.binary_search_by_key(&span.end, |b| b.0).ok()?;
                 Some(boundaries[start].1..boundaries[end].1)
             })
-            .collect()
+            .collect())
     }
 
     fn match_spans(&self, text: &str) -> Vec<Range<usize>> {

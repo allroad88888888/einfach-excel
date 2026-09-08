@@ -16,6 +16,7 @@ pub struct FindQuery {
     pub needle: String,
     pub case_sensitive: bool,
     pub whole_cell: bool,
+    pub wildcards: bool,
     pub look_in: FindLookIn,
 }
 
@@ -80,7 +81,12 @@ impl Workbook {
         query: &FindQuery,
         mut visit: impl FnMut(MatchedCell),
     ) -> Result<(), &'static str> {
-        let matcher = FindText::new(&query.needle, query.case_sensitive, query.whole_cell)?;
+        let matcher = FindText::new(
+            &query.needle,
+            query.case_sensitive,
+            query.whole_cell,
+            query.wildcards,
+        )?;
         let mut sheets = BTreeMap::<usize, Vec<CellRange>>::new();
         if targets.is_empty() || targets.len() > 1024 {
             return Err("Choose between 1 and 1024 search ranges.");
@@ -96,6 +102,7 @@ impl Workbook {
             }
             sheets.entry(sheet).or_default().push(range);
         }
+        let mut error = None;
         for (sheet, ranges) in sheets {
             let mut bounds = ranges[0];
             for range in &ranges[1..] {
@@ -106,7 +113,7 @@ impl Workbook {
             }
             let source = self.sheet(sheet).unwrap();
             self.for_each_sparse_range_cell(sheet, bounds, |address, value| {
-                if !ranges.iter().any(|range| range.contains(address)) {
+                if error.is_some() || !ranges.iter().any(|range| range.contains(address)) {
                     return;
                 }
                 let formula = source.formula_text_at(address);
@@ -119,7 +126,13 @@ impl Workbook {
                         .format_number(*number),
                     _ => value_to_display(&value),
                 };
-                let spans = matcher.spans(&text);
+                let spans = match matcher.spans(&text) {
+                    Ok(spans) => spans,
+                    Err(message) => {
+                        error = Some(message);
+                        return;
+                    }
+                };
                 if !spans.is_empty() {
                     visit(MatchedCell {
                         sheet,
@@ -131,6 +144,6 @@ impl Workbook {
                 }
             });
         }
-        Ok(())
+        error.map_or(Ok(()), Err)
     }
 }

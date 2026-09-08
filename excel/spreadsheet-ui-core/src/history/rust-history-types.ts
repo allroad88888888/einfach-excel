@@ -1,4 +1,5 @@
 import type { CellRange } from '../shared'
+import type { StructuralEdit } from '../rust-workbook/structure-geometry'
 
 /** 仅用于展示的 Rust 历史目录；不含 before/after 数据或本地回放器。 */
 export interface RustHistoryEntry {
@@ -8,6 +9,7 @@ export interface RustHistoryEntry {
   readonly sheetKey?: string
   readonly sheetName?: string
   readonly sheetChange?: boolean
+  readonly structuralEdit?: StructuralEdit
   readonly affectedSheetKeys?: readonly string[]
   readonly affectedSheets?: readonly number[]
   readonly range: CellRange

@@ -1,6 +1,7 @@
 //! 删除只改引用节点，保留可编辑公式源以及范围尚存的部分。
 use einfach_core::{Value, ValueError};
-use einfach_excel_core::{CellAddress, Sheet};
+use einfach_excel_core::shift::ShiftEdit;
+use einfach_excel_core::{CellAddress, Sheet, Workbook};
 use std::collections::HashMap;
 
 fn seed(formula: &str, warm: bool) -> Sheet {
@@ -47,10 +48,12 @@ fn local_range_endpoints_inside_a_deleted_band_shrink_to_the_survivors() {
 #[test]
 fn deleted_whole_column_ranges_preserve_the_remaining_columns() {
     for warm in [false, true] {
-        let mut sheet = seed("=SUM(A:C)", false);
-        // 避开整列汇总公式的自引用，把公式搬到 E10。
-        sheet.clear_cell("C10");
-        sheet.set_formula("E10", "=SUM(A:C)");
+        let mut sheet = Sheet::new();
+        // 公式在汇总列之外；批量导入使冷路径真正保持未求值状态。
+        sheet.bulk_load(|loader| {
+            loader.set_cell("A1", Value::Number(10.0));
+            loader.set_formula("E10", "=SUM(A:C)");
+        });
         if warm {
             sheet.get_cell("E10");
         }
@@ -85,7 +88,53 @@ fn dead_reference_fallback_remains_lazy_and_keeps_invalid_sources_invalid() {
     assert_eq!(sheet.debug_point_dependency_key_count(), 0);
     let mut sources = HashMap::new();
     sources.insert(CellAddress::new(5, 2), "=A2+".to_owned());
-    sheet.bulk_install_storage(HashMap::new(), sources);
-    sheet.delete_row(1, 1);
-    assert_eq!(sheet.get_cell("C5"), Value::Error(ValueError::InvalidValue));
+    let mut workbook = Workbook::new();
+    workbook
+        .install_sheet_bulk(0, HashMap::new(), sources)
+        .unwrap();
+    workbook.delete_rows(0, 1, 1);
+    assert_eq!(
+        workbook.sheet(0).unwrap().get_cell("C5"),
+        Value::Error(ValueError::InvalidValue)
+    );
+}
+
+#[test]
+fn references_to_empty_edge_cells_become_errors_consistently_when_inserted_outside() {
+    for warm in [false, true] {
+        for (source, edit, address) in [
+            (
+                "=IFERROR(A1048576,9)",
+                ShiftEdit::RowInsert { at: 0, count: 1 },
+                "C11",
+            ),
+            (
+                "=IFERROR(XFD1,9)",
+                ShiftEdit::ColInsert { at: 0, count: 1 },
+                "D10",
+            ),
+            (
+                "=IFERROR(SUM(1048576:1048576),9)",
+                ShiftEdit::RowInsert { at: 0, count: 1 },
+                "C11",
+            ),
+            (
+                "=IFERROR(SUM(XFD:XFD),9)",
+                ShiftEdit::ColInsert { at: 0, count: 1 },
+                "D10",
+            ),
+        ] {
+            let mut wb = Workbook::new();
+            wb.sheet_mut(0).unwrap().bulk_load(|loader| {
+                loader.set_formula("C10", source);
+            });
+            if warm {
+                wb.get_cell("Sheet1", "C10");
+            }
+            wb.try_structural_edit(0, edit).unwrap();
+            let formula = wb.sheet(0).unwrap().get_formula(address).unwrap();
+            assert!(formula.contains("#REF!"), "warm={warm}: {formula}");
+            assert_eq!(wb.get_cell("Sheet1", address), Value::Number(9.0));
+        }
+    }
 }

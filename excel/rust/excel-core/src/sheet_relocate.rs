@@ -7,7 +7,10 @@
 use super::*;
 
 impl Sheet {
-    pub(super) fn drop_cells_in(&mut self, pred: impl Fn(CellAddress) -> bool) {
+    pub(super) fn drop_cells_in(
+        &mut self,
+        pred: impl Fn(CellAddress) -> bool,
+    ) -> HashSet<CellAddress> {
         // Codex P1 #2 fix: collect EVERY address in the deleted band
         // across the four cell/formula maps — primitive cells, hydrated
         // formula records, AND lazy parked formulas
@@ -34,7 +37,7 @@ impl Sheet {
                 .keys()
                 .filter(|a| pred(*a)),
         );
-        for addr in to_drop {
+        for addr in to_drop.iter().copied() {
             self.drop_cell_slot(addr);
             // `remove_formula_record` already drains `formula_source` +
             // `needs_parse` first (LAZY_FORMULA_INDEXING Phase 3) so a
@@ -59,6 +62,7 @@ impl Sheet {
         for addr in fmt_drop {
             self.cell_styles.remove(&addr);
         }
+        to_drop
     }
 
     /// Move every (still-present) cell entry to its new address per `f`.

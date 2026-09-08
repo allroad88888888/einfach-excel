@@ -39,6 +39,7 @@ export interface RustFormatRangeSnapshot {
 }
 
 export interface WasmWorkbook {
+  edit_structure?: (sheet: number, action: string, at: number, count: number) => boolean
   set_visibility?: (
     sheet: number,
     startRow: number,

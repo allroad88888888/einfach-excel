@@ -16,6 +16,8 @@ struct HistoryEntryJSON {
     sheet_key: String,
     sheet_name: String,
     sheet_change: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    structural_edit: Option<StructuralEditJSON>,
     affected_sheets: Vec<usize>,
     affected_sheet_keys: Vec<String>,
     range: HistoryRangeJSON,
@@ -77,6 +79,7 @@ impl WasmWorkbook {
         };
         let entry = offset.and_then(|offset| self.history.entries().nth(offset));
         let structural = entry.is_some_and(|entry| entry.is_sheet_change());
+        let axes_changed = entry.is_some_and(|entry| entry.structural_edit().is_some());
         let removal = entry
             .filter(|entry| entry.removes_sheet(direction == "undo"))
             .map(|entry| (entry.sheet, entry.sheet_key));
@@ -102,6 +105,8 @@ impl WasmWorkbook {
         .map_err(JsValue::from_str)?;
         if changed && structural {
             self.remap_history_subscriptions(&keys);
+        }
+        if changed && (structural || axes_changed) {
             // 原剪贴板源可能指向已消失或改名的表；Worker 同步使其 token 失效并提示重新复制。
             self.clipboard = None;
         }
@@ -122,6 +127,7 @@ impl WasmWorkbook {
                     sheet_key: entry.sheet_key.to_string(),
                     sheet_name: entry.sheet_name.clone(),
                     sheet_change: entry.is_sheet_change(),
+                    structural_edit: entry.structural_edit().map(StructuralEditJSON::from),
                     affected_sheets: entry.affected_sheets(),
                     affected_sheet_keys: entry
                         .affected_keys

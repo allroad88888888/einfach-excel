@@ -71,6 +71,8 @@ mod debug_deps;
 mod dependency_graph;
 #[path = "sheet_dimensions.rs"]
 mod dimensions;
+#[path = "sheet_history_restore.rs"]
+mod history_restore;
 #[path = "sheet_error.rs"]
 mod error;
 #[path = "sheet_eval_provider.rs"]

@@ -68,6 +68,11 @@ mod workbook_sheet_history;
 pub(crate) use workbook_sheet_history::SheetHistoryChange;
 #[path = "workbook_structural.rs"]
 mod workbook_structural;
+#[path = "workbook_structural_preflight.rs"]
+mod workbook_structural_preflight;
+#[path = "workbook_structural_history.rs"]
+mod workbook_structural_history;
+pub(crate) use workbook_structural_history::StructuralHistoryChange;
 #[path = "workbook_table_geometry.rs"]
 mod workbook_table_geometry;
 #[path = "workbook_table_registry.rs"]

@@ -1,13 +1,14 @@
 //! 在**未解析**（parked）的公式源码文本上，把被本次结构编辑移动的引用记号
 //! 换成新写法。
 
-use super::edit::{ShiftEdit, REF_INVALID_COL, REF_INVALID_ROW};
+use super::edit::ShiftEdit;
 use super::parked_band::{try_shift_whole_col, try_shift_whole_row};
 use super::parked_scan::{
     next_non_ws, scan_abs_addr_token, scan_cross_sheet_ref_end, scan_ident_end,
     scan_quoted_name_end,
 };
 use crate::cell::push_abs_addr;
+use crate::sheet::{EXCEL_MAX_COLS, EXCEL_MAX_ROWS};
 
 /// Outcome of `rewrite_parked_source` for one parked formula source.
 #[derive(Debug, PartialEq, Eq)]
@@ -16,8 +17,7 @@ pub enum SourceRewrite {
     Unchanged,
     /// At least one reference shifted; the rewritten source is returned.
     Rewritten(String),
-    /// A reference fell inside the deleted band. Mirrors the hydrated
-    /// path: the whole formula becomes a `#REF!` error cell.
+    /// 引用端点被删除或挤出边界；调用者回退 AST，只替换引用节点或缩小范围。
     DeadRef,
 }
 
@@ -44,9 +44,8 @@ pub enum SourceRewrite {
 ///     the address token immediately after the `!` — plus an optional
 ///     `:end` range tail that parses as an address — belongs to a
 ///     `SheetRef` / `SheetRange`, which within-sheet structural edits
-///     do NOT shift (mirrors `map_addrs`). Cross-sheet retarget scope
-///     is unchanged from the hydrated path: edits on this sheet never
-///     rewrite other sheets' formulas either.
+///     do NOT shift here. Workbook runs its qualified-reference rewrite
+///     separately inside the same structural transaction.
 ///   - A token that parses as a cell address is shifted through
 ///     `ShiftEdit::apply`. Bounded range corners (`A1:B5`) are two
 ///     independent tokens, exactly like `shift_range_corners` with
@@ -54,8 +53,8 @@ pub enum SourceRewrite {
 ///   - Whole-column (`A:C`) / whole-row (`1:3`) ranges replicate
 ///     `shift_range_corners`' synthetic-corner trick: the bounded axis
 ///     shifts, the unbounded axis is pinned — and a corner mapped into
-///     the deleted band (e.g. `delete_col(0)` under `=SUM(1:3)`) kills
-///     the formula, matching the hydrated `contains_invalid_ref` path.
+///     the deleted band requests AST fallback. The caller preserves
+///     surviving range portions instead of discarding the formula.
 ///   - Absolute refs (`$A$1`, `$A1`, `A$1`, and the range / whole-col /
 ///     whole-row forms) are shifted exactly like their relative twins —
 ///     the address moves, the `$` markers are preserved — mirroring the
@@ -72,8 +71,8 @@ pub enum SourceRewrite {
 /// which parks without validating) still surface `#VALUE!` at
 /// hydration after a rewrite — token rewrites inside garbage can't
 /// make garbage parse. The caller is expected to parse-check before
-/// honoring `DeadRef` so unparseable sources keep the hydrated path's
-/// `#VALUE!` outcome instead of gaining a `#REF!`.
+/// handling `DeadRef` with the structural AST mapper: invalid sources
+/// stay invalid, while valid formulas keep their outer expressions.
 pub fn rewrite_parked_source(src: &str, edit: ShiftEdit) -> SourceRewrite {
     let b = src.as_bytes();
     let n = b.len();
@@ -151,7 +150,7 @@ pub fn rewrite_parked_source(src: &str, edit: ShiftEdit) -> SourceRewrite {
                 // Same-sheet cell ref (`A5`, `A$5`), `$`-aware on the row.
                 if let Some((addr, col_abs, row_abs, end)) = scan_abs_addr_token(b, start) {
                     let mapped = edit.apply(addr);
-                    if mapped.row == REF_INVALID_ROW || mapped.col == REF_INVALID_COL {
+                    if mapped.row >= EXCEL_MAX_ROWS || mapped.col >= EXCEL_MAX_COLS {
                         return SourceRewrite::DeadRef;
                     }
                     if mapped != addr {
@@ -193,7 +192,7 @@ pub fn rewrite_parked_source(src: &str, edit: ShiftEdit) -> SourceRewrite {
             let start = i;
             if let Some((addr, col_abs, row_abs, end)) = scan_abs_addr_token(b, start) {
                 let mapped = edit.apply(addr);
-                if mapped.row == REF_INVALID_ROW || mapped.col == REF_INVALID_COL {
+                if mapped.row >= EXCEL_MAX_ROWS || mapped.col >= EXCEL_MAX_COLS {
                     return SourceRewrite::DeadRef;
                 }
                 if mapped != addr {

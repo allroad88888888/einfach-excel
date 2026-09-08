@@ -15,7 +15,7 @@ impl Workbook {
 
     /// Insert `count` rows at `at` on `sheet_index`, then follow Tables.
     pub fn insert_rows(&mut self, sheet_index: usize, at: u32, count: u32) {
-        self.apply_structural_shift_with_table_follow(
+        let _ = self.try_structural_edit(
             sheet_index,
             crate::shift::ShiftEdit::RowInsert { at, count },
         );
@@ -23,7 +23,7 @@ impl Workbook {
 
     /// Delete `count` rows at `at` on `sheet_index`, then follow Tables.
     pub fn delete_rows(&mut self, sheet_index: usize, at: u32, count: u32) {
-        self.apply_structural_shift_with_table_follow(
+        let _ = self.try_structural_edit(
             sheet_index,
             crate::shift::ShiftEdit::RowDelete { at, count },
         );
@@ -31,7 +31,7 @@ impl Workbook {
 
     /// Insert `count` columns at `at` on `sheet_index`, then follow Tables.
     pub fn insert_columns(&mut self, sheet_index: usize, at: u32, count: u32) {
-        self.apply_structural_shift_with_table_follow(
+        let _ = self.try_structural_edit(
             sheet_index,
             crate::shift::ShiftEdit::ColInsert { at, count },
         );
@@ -39,13 +39,13 @@ impl Workbook {
 
     /// Delete `count` columns at `at` on `sheet_index`, then follow Tables.
     pub fn delete_columns(&mut self, sheet_index: usize, at: u32, count: u32) {
-        self.apply_structural_shift_with_table_follow(
+        let _ = self.try_structural_edit(
             sheet_index,
             crate::shift::ShiftEdit::ColDelete { at, count },
         );
     }
 
-    fn apply_structural_shift_with_table_follow(
+    pub(super) fn apply_structural_shift_with_table_follow(
         &mut self,
         sheet_index: usize,
         edit: crate::shift::ShiftEdit,

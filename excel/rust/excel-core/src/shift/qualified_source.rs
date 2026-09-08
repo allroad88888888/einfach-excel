@@ -1,5 +1,7 @@
 //! 只扫描带表名前缀的静态引用；未求值公式保持源码态，不解析整条公式或建立计算依赖。
-use super::parked_scan::{scan_cross_sheet_ref_end, scan_ident_end, scan_quoted_name_end};
+use super::parked_scan::{
+    scan_cross_sheet_ref_end, scan_ident_end, scan_quoted_name_end, skip_ascii_ws,
+};
 use super::{render_formula, rewrite_structural_refs, ShiftEdit};
 use crate::formula::parse_formula;
 
@@ -71,10 +73,12 @@ pub(crate) fn rewrite_qualified_source(
             continue;
         };
         if rewrite_structural_refs(&mut reference, target, false, edit) {
+            let postfix = skip_ascii_ws(bytes, ref_end);
             if matches!(reference, crate::formula::Expr::Error(_))
-                && bytes.get(ref_end) == Some(&b'#')
+                && bytes.get(postfix) == Some(&b'#')
             {
-                ref_end += 1;
+                // Parser 允许锚点与 # 之间有空白；错误节点不能留下这个后缀。
+                ref_end = postfix + 1;
                 index = ref_end;
             }
             output.push_str(&source[emitted..start]);

@@ -12,6 +12,7 @@ import type { WorkerCommand, WorkerLike, WorkerTransport } from '../rust-worker'
 import type { CellRange } from '../shared'
 import { createWorkerTransport } from '../rust-worker'
 import type { SheetVisibilityProjection } from '../viewport/hidden-state'
+import type { StructuralEdit } from './structure-geometry'
 import type {
   RustClipboardCapture,
   RustClipboardCaptureRequest,
@@ -115,6 +116,22 @@ export interface RustClearRangeRequest {
 }
 
 export interface RustWorkbookCommands {
+  readonly 'sheet.editStructure': WorkerCommand<
+    {
+      readonly sheetId: string
+      readonly edit: StructuralEdit
+      readonly projection: VisibleProjectionRequest
+    },
+    {
+      readonly sheet: RustWorkbookSheet
+      readonly projection: VisibleProjectionResult
+      readonly range: CellRange
+      readonly sizes: {
+        readonly rowHeights: ViewportRowHeight[]
+        readonly colWidths: ViewportColumnWidth[]
+      }
+    }
+  >
   readonly 'range.visibility': WorkerCommand<
     {
       readonly sheetId: string

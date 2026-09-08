@@ -7,6 +7,72 @@
 use super::*;
 
 impl Sheet {
+    /// 不读取公式结果；只检查会被挤出边界的稀疏数据及轴元数据。
+    pub(crate) fn validate_structural_edit(
+        &self,
+        edit: crate::shift::ShiftEdit,
+    ) -> Result<(), &'static str> {
+        use crate::shift::ShiftEdit;
+        let (at, count, insert) = match edit {
+            ShiftEdit::RowInsert { at, count } | ShiftEdit::ColInsert { at, count } => {
+                (at, count, true)
+            }
+            ShiftEdit::RowDelete { at, count } | ShiftEdit::ColDelete { at, count } => {
+                (at, count, false)
+            }
+        };
+        let limit = if edit.is_row_edit() {
+            EXCEL_MAX_ROWS
+        } else {
+            EXCEL_MAX_COLS
+        };
+        if at >= limit || count > limit - at {
+            return Err("Invalid structural edit range.");
+        }
+        if !insert || count == 0 {
+            return Ok(());
+        }
+        let first = limit - count;
+        let range = CellRange::new(
+            if edit.is_row_edit() {
+                CellAddress::new(first, 0)
+            } else {
+                CellAddress::new(0, first)
+            },
+            CellAddress::new(EXCEL_MAX_ROWS - 1, EXCEL_MAX_COLS - 1),
+        );
+        let interior = &self.interior;
+        let occupied = interior.cells.borrow().range_iter(range).next().is_some()
+            || interior
+                .formula_cells
+                .borrow()
+                .range_iter(range)
+                .next()
+                .is_some()
+            || interior
+                .formula_source
+                .borrow()
+                .range_iter(range)
+                .next()
+                .is_some()
+            || self.cell_styles.keys().any(|addr| range.contains(*addr));
+        let dimension = if edit.is_row_edit() {
+            self.row_styles.range(first..).next().is_some()
+                || self.hidden_rows.range(first..).next().is_some()
+                || self
+                    .filter_hidden_set()
+                    .is_some_and(|rows| rows.range(first..).next().is_some())
+        } else {
+            self.column_styles.range(first..).next().is_some()
+                || interior.col_widths.borrow().range(first..).next().is_some()
+                || self.hidden_columns.range(first..).next().is_some()
+        };
+        if occupied || dimension {
+            return Err("The insertion would move data or formatting outside the worksheet.");
+        }
+        Ok(())
+    }
+
     // === Phase 4: structural edits ===
 
     /// Insert `count` empty rows starting at `at` (0-based). All cells at or
@@ -57,8 +123,8 @@ impl Sheet {
     ///     formula's refs.
     ///   - LAZY (parked) formulas: `retarget_parked_sources` rewrites
     ///     reference tokens in the parked SOURCE TEXT
-    ///     (`shift::rewrite_parked_source`, pure string work — no
-    ///     parse, no dep install), preserving the 7d0e380 invariant
+    ///     (`shift::rewrite_parked_source`; deleted/overflowing endpoints
+    ///     use AST fallback without dependency installation), preserving the 7d0e380 invariant
     ///     that the text always references post-shift addresses before
     ///     hydration can run (`A1="=A2"` + insert_row(0,1) ⇒ text
     ///     `=A3` at the relocated A2 — no self-cycle).

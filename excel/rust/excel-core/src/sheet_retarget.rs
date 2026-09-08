@@ -102,10 +102,8 @@ impl Sheet {
         self.invalidate_formula_value(addr);
     }
 
-    /// AUDIT A-1 (lazy half): retarget every PARKED formula by rewriting
-    /// reference tokens in its source text — no parse, no hydration, no
-    /// dependency work. Runs after `retarget_formula_refs`; `write_error` for
-    /// dead refs invalidates the corresponding Store facade normally.
+    /// 未求值公式优先只改源码 token；删除引用端点时回退 AST，以保留范围幸存部分。
+    /// 两条路径都只保存源码，不建立计算依赖；无效源码保持原样，首次读取仍报 #VALUE!。
     ///
     /// 此局部阶段只改裸引用。Workbook 插删随后在同一事务调用
     /// retarget_sheet_references，统一移动指向目标表的显式引用。

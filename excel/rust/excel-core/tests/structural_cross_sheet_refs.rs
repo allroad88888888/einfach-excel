@@ -178,21 +178,28 @@ fn downstream_formulas_recalculate_after_a_shifted_reference_is_written() {
 #[test]
 fn deleting_a_spill_anchor_preserves_a_parseable_error_formula_in_both_states() {
     for warm in [false, true] {
-        let mut wb = Workbook::new();
-        wb.add_sheet("Data");
-        wb.bulk_load(|loader| {
-            loader.set_formula(1, "A1", "=SEQUENCE(3)");
-            loader.set_formula(0, "A1", "=IFERROR(SUM(Data!A1#),7)");
-        });
-        if warm {
-            assert_eq!(wb.get_cell("Sheet1", "A1"), Value::Number(6.0));
+        for source in ["=IFERROR(SUM(Data!A1#),7)", "=IFERROR(SUM(Data!A1 #),7)"] {
+            let mut wb = Workbook::new();
+            wb.add_sheet("Data");
+            wb.set_formula(1, "A1", "=SEQUENCE(3)");
+            // 直接停泊引用公式，避免 Workbook 导入的数组投影尾提前将其求值。
+            wb.sheet_mut(0).unwrap().bulk_load(|loader| {
+                assert!(loader.set_formula("A1", source));
+            });
+            assert_eq!(
+                wb.sheet(0).unwrap().debug_dep_graph_stats().formula_count,
+                0
+            );
+            if warm {
+                assert_eq!(wb.get_cell("Sheet1", "A1"), Value::Number(6.0));
+            }
+            wb.delete_rows(1, 0, 1);
+            assert_eq!(wb.get_cell("Sheet1", "A1"), Value::Number(7.0));
+            let source = wb.sheet(0).unwrap().get_formula("A1").unwrap();
+            assert_eq!(source, "=IFERROR(SUM(#REF!),7)");
+            assert!(wb.set_formula(0, "B1", &source));
+            assert_eq!(wb.get_cell("Sheet1", "B1"), Value::Number(7.0));
         }
-        wb.delete_rows(1, 0, 1);
-        assert_eq!(wb.get_cell("Sheet1", "A1"), Value::Number(7.0));
-        let source = wb.sheet(0).unwrap().get_formula("A1").unwrap();
-        assert_eq!(source, "=IFERROR(SUM(#REF!),7)");
-        assert!(wb.set_formula(0, "B1", &source));
-        assert_eq!(wb.get_cell("Sheet1", "B1"), Value::Number(7.0));
     }
 }
 

@@ -187,9 +187,7 @@ fn parked_unbounded_ranges_shift_on_bounded_axis_only() {
     assert_eq!(sheet.get_cell("G2"), Value::Number(3.0));
 }
 
-/// Delete-band semantics: a parked formula whose ref dies becomes a
-/// plain `#REF!` error cell (hydrated-path parity: the formula record
-/// is gone, the value is the error).
+/// 删除引用后保留公式源；冷/热路径都只把失效引用节点变成 #REF!。
 #[test]
 fn parked_ref_into_deleted_band_becomes_ref_error() {
     let mut sheet = Sheet::new();
@@ -204,10 +202,7 @@ fn parked_ref_into_deleted_band_becomes_ref_error() {
         Value::Error(ValueError::InvalidRef),
         "ref into deleted band must surface #REF!"
     );
-    assert!(
-        sheet.get_formula("C1").is_none(),
-        "hydrated-path parity: the #REF! cell is no longer a formula"
-    );
+    assert_eq!(sheet.get_formula("C1").as_deref(), Some("=(#REF!*2)"));
     // The bystander stayed parked.
     assert_eq!(sheet.get_formula("D1").as_deref(), Some("=A1+1"));
 }

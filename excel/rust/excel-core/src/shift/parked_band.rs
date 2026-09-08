@@ -4,6 +4,7 @@
 use super::edit::{ShiftEdit, REF_INVALID_COL, REF_INVALID_ROW};
 use super::parked_scan::{scan_abs_col_token, skip_ascii_ws};
 use crate::cell::{push_abs_col, push_abs_row, CellAddress};
+use crate::sheet::{EXCEL_MAX_COLS, EXCEL_MAX_ROWS};
 
 /// Try to consume a `$`-aware whole-column range `[$]A:[$]C` starting at
 /// `start`. `None` when the shape is not a whole-column range. `Some(Err)`
@@ -32,6 +33,7 @@ pub(super) fn try_shift_whole_col(
     let m2 = edit.apply(CellAddress::new(0, end_col));
     if m1.col == REF_INVALID_COL
         || m2.col == REF_INVALID_COL
+        || (!edit.is_row_edit() && (m1.col >= EXCEL_MAX_COLS || m2.col >= EXCEL_MAX_COLS))
         || (!edit.is_row_edit() && (m1.row == REF_INVALID_ROW || m2.row == REF_INVALID_ROW))
     {
         return Some(Err(()));
@@ -102,6 +104,7 @@ pub(super) fn try_shift_whole_row(
     let m2 = edit.apply(CellAddress::new(r2 - 1, 0));
     if m1.row == REF_INVALID_ROW
         || m2.row == REF_INVALID_ROW
+        || (edit.is_row_edit() && (m1.row >= EXCEL_MAX_ROWS || m2.row >= EXCEL_MAX_ROWS))
         || (edit.is_row_edit() && (m1.col == REF_INVALID_COL || m2.col == REF_INVALID_COL))
     {
         return Some(Err(()));

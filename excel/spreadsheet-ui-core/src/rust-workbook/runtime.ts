@@ -8,6 +8,7 @@ import { applyRustHistory } from './history-apply'
 import { exportClipboard } from './clipboard-export'
 import { changeSheetStructure } from './sheet-structure'
 import { importSheetSizes, readSizes, resizeRange } from './size-io'
+import { changeStructure } from './structure-io'
 import { writeImportedCellFormats } from './format-io'
 import type {
   RustImportCell,
@@ -94,6 +95,12 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       return initialize(input.sheets)
     }
     const current = currentWorkbook()
+    if (command === 'sheet.editStructure') {
+      const result = changeStructure(current, sheetsById, payload as RustWorkbookCommands[typeof command]['payload'], revision + 1)
+      revision += 1
+      if (clipboard) clipboard.invalidated = true
+      return result
+    }
     if (command === 'history.apply') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
       const result = applyRustHistory(current, sheetsById, input, revision + 1)

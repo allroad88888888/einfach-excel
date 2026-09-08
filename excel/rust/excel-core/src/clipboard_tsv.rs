@@ -15,10 +15,7 @@ pub(super) fn push_field(out: &mut String, field: &str) {
 impl ClipboardSnapshot {
     /// 接受普通矩形/不齐行文本；短行补空格，末尾一个行终止符不多建一行。
     pub fn from_tsv(text: &str, mode: ClipboardPasteMode) -> Result<Self, ClipboardError> {
-        if matches!(
-            mode,
-            ClipboardPasteMode::Formats | ClipboardPasteMode::ValuesAndFormats
-        ) {
+        if mode.requires_source_formats() {
             return Err("CLIPBOARD_NO_FORMATS");
         }
         if text.len() > MAX_CLIPBOARD_TEXT_BYTES {

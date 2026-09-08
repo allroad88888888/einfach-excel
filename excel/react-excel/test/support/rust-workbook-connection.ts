@@ -4,6 +4,8 @@ import type {
   RustSetRangeFormatResult,
   RustClearRangeRequest,
   RustClipboardCapture,
+  RustClipboardExport,
+  RustClipboardExportRequest,
   RustClipboardCaptureRequest,
   RustClipboardPasteRequest,
   RustWorkbookConnection,
@@ -13,6 +15,7 @@ import type {
 } from '@einfach/spreadsheet-ui-core'
 
 export interface TestRustWorkbookHandlers {
+  exportClipboard?: (request: RustClipboardExportRequest) => Promise<RustClipboardExport>
   captureClipboard?: (request: RustClipboardCaptureRequest) => Promise<RustClipboardCapture>
   pasteClipboard?: (
     request: RustClipboardPasteRequest,
@@ -37,6 +40,9 @@ export function createTestRustWorkbookConnection(
   handlers: TestRustWorkbookHandlers = {},
 ): RustWorkbookConnection {
   const request = (async (command: string, payload: unknown) => {
+    if (command === 'clipboard.export' && handlers.exportClipboard) {
+      return handlers.exportClipboard(payload as RustClipboardExportRequest)
+    }
     if (command === 'clipboard.capture' && handlers.captureClipboard) {
       return handlers.captureClipboard(payload as RustClipboardCaptureRequest)
     }

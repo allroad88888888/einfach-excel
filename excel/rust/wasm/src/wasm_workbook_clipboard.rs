@@ -80,6 +80,9 @@ impl WasmWorkbook {
             "values" => ClipboardPasteMode::Values,
             "values-formats" => ClipboardPasteMode::ValuesAndFormats,
             "formats" => ClipboardPasteMode::Formats,
+            "formulas" => ClipboardPasteMode::Formulas,
+            "formulas-number-formats" => ClipboardPasteMode::FormulasAndNumberFormats,
+            "values-number-formats" => ClipboardPasteMode::ValuesAndNumberFormats,
             _ => return Err(JsValue::from_str("CLIPBOARD_INVALID_MODE")),
         };
         let selection = policy

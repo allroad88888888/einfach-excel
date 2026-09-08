@@ -57,31 +57,36 @@ async function setup() {
 }
 
 describe('system clipboard commands', () => {
-  test.each(['all', 'values', 'formats', 'values-formats'] as const)(
-    'sends %s with the full selected range in one RPC',
-    async (mode) => {
-      const { store, paste, read } = await setup()
-      store.setter(setSelectionAtom, {
-        kind: 'range',
-        sheetId: 'sheet-1',
-        anchor: { row: 0, col: 0 },
-        focus: { row: 3, col: 2 },
-      })
-      expect(
-        await store.setter(runSystemClipboardAtom, {
-          operation: 'paste',
-          mode,
-          read: async () => ({ text: 'value', token: 'snapshot-token' }),
-        }),
-      ).toBe(true)
-      expect(paste).toHaveBeenCalledTimes(1)
-      expect(paste.mock.calls[0][0]).toMatchObject({
+  test.each([
+    'all',
+    'values',
+    'formats',
+    'values-formats',
+    'formulas',
+    'formulas-number-formats',
+    'values-number-formats',
+  ] as const)('sends %s with the full selected range in one RPC', async (mode) => {
+    const { store, paste, read } = await setup()
+    store.setter(setSelectionAtom, {
+      kind: 'range',
+      sheetId: 'sheet-1',
+      anchor: { row: 0, col: 0 },
+      focus: { row: 3, col: 2 },
+    })
+    expect(
+      await store.setter(runSystemClipboardAtom, {
+        operation: 'paste',
         mode,
-        selection: { rowStart: 0, rowEnd: 3, colStart: 0, colEnd: 2 },
-      })
-      expect(read).toHaveBeenCalledTimes(1)
-    },
-  )
+        read: async () => ({ text: 'value', token: 'snapshot-token' }),
+      }),
+    ).toBe(true)
+    expect(paste).toHaveBeenCalledTimes(1)
+    expect(paste.mock.calls[0][0]).toMatchObject({
+      mode,
+      selection: { rowStart: 0, rowEnd: 3, colStart: 0, colEnd: 2 },
+    })
+    expect(read).toHaveBeenCalledTimes(1)
+  })
 
   test.each([{ transpose: true }, { skipBlanks: true }, { transpose: true, skipBlanks: true }])(
     'forwards paste options %j without a second RPC',

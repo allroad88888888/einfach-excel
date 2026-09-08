@@ -4,7 +4,17 @@ import {
   runSystemClipboardAtom,
   systemClipboardFeedbackAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { readBrowserClipboard, writeBrowserClipboard } from '../../clipboard/browser-clipboard'
+import {
+  readBrowserClipboard,
+  writeBrowserClipboard,
+  writeBrowserClipboardExport,
+} from '../../clipboard/browser-clipboard'
+
+const COPY_FORMATS = [
+  { value: 'text', label: 'Copy as plain text' },
+  { value: 'markdown', label: 'Copy as Markdown' },
+  { value: 'html', label: 'Copy as HTML table' },
+] as const
 
 const PASTE_OPTIONS = [
   { value: 'transpose', label: 'Paste transposed', paste: { transpose: true } },
@@ -13,6 +23,17 @@ const PASTE_OPTIONS = [
     value: 'values-formats',
     label: 'Paste values and formatting',
     paste: { mode: 'values-formats' },
+  },
+  { value: 'formulas', label: 'Paste formulas only', paste: { mode: 'formulas' } },
+  {
+    value: 'formulas-number-formats',
+    label: 'Paste formulas and number formats',
+    paste: { mode: 'formulas-number-formats' },
+  },
+  {
+    value: 'values-number-formats',
+    label: 'Paste values and number formats',
+    paste: { mode: 'values-number-formats' },
   },
 ] as const
 
@@ -60,7 +81,7 @@ export function ClipboardTools() {
         </button>
       ))}
       <select
-        className="tool-select"
+        className="tool-select paste-options-select"
         aria-label="More paste options"
         title="More paste options"
         defaultValue=""
@@ -75,6 +96,34 @@ export function ClipboardTools() {
           Paste options
         </option>
         {PASTE_OPTIONS.map(({ value, label }) => (
+          <option key={value} value={value}>
+            {label}
+          </option>
+        ))}
+      </select>
+      <select
+        className="tool-select copy-as-select"
+        aria-label="Copy as"
+        title="Copy as"
+        defaultValue=""
+        disabled={feedback.busy || editing}
+        onChange={(event) => {
+          const format = COPY_FORMATS.find(
+            ({ value }) => value === event.currentTarget.value,
+          )?.value
+          event.currentTarget.value = ''
+          if (format)
+            void run({
+              operation: 'copy-as',
+              format,
+              write: (data) => writeBrowserClipboardExport(format, data),
+            })
+        }}
+      >
+        <option value="" disabled>
+          Copy as
+        </option>
+        {COPY_FORMATS.map(({ value, label }) => (
           <option key={value} value={value}>
             {label}
           </option>

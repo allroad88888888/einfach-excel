@@ -6,6 +6,8 @@ import {
   type RustSetRangeFormatResult,
   type RustClearRangeRequest,
   type RustClipboardCapture,
+  type RustClipboardExport,
+  type RustClipboardExportRequest,
   type RustClipboardCaptureRequest,
   type RustClipboardPasteRequest,
   type RustWorkbookConnection,
@@ -15,6 +17,7 @@ import {
 } from '../../src'
 
 export interface TestRustWorkbookHandlers {
+  exportClipboard?: (request: RustClipboardExportRequest) => Promise<RustClipboardExport>
   captureClipboard?: (request: RustClipboardCaptureRequest) => Promise<RustClipboardCapture>
   pasteClipboard?: (
     request: RustClipboardPasteRequest,
@@ -37,6 +40,9 @@ export function createTestRustWorkbookConnection(
   handlers: TestRustWorkbookHandlers = {},
 ): RustWorkbookConnection {
   const request = (async (command: string, payload: unknown) => {
+    if (command === 'clipboard.export' && handlers.exportClipboard) {
+      return handlers.exportClipboard(payload as RustClipboardExportRequest)
+    }
     if (command === 'clipboard.capture' && handlers.captureClipboard) {
       return handlers.captureClipboard(payload as RustClipboardCaptureRequest)
     }

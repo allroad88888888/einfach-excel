@@ -41,7 +41,9 @@ impl Workbook {
             }
             let value = match options.mode {
                 ClipboardPasteMode::Formats => None,
-                ClipboardPasteMode::Values | ClipboardPasteMode::ValuesAndFormats => {
+                ClipboardPasteMode::Values
+                | ClipboardPasteMode::ValuesAndFormats
+                | ClipboardPasteMode::ValuesAndNumberFormats => {
                     Some(ClipboardValue::Literal(match &cell.value {
                         ClipboardValue::Formula { source, evaluated } => evaluated
                             .clone()
@@ -49,7 +51,9 @@ impl Workbook {
                         ClipboardValue::Literal(value) => value.clone(),
                     }))
                 }
-                ClipboardPasteMode::All => Some(match &cell.value {
+                ClipboardPasteMode::All
+                | ClipboardPasteMode::Formulas
+                | ClipboardPasteMode::FormulasAndNumberFormats => Some(match &cell.value {
                     ClipboardValue::Formula { source, .. } => {
                         let mut expr = parse_formula(source).ok_or("CLIPBOARD_INVALID_FORMULA")?;
                         let original = expr.clone();
@@ -82,10 +86,17 @@ impl Workbook {
                     other => other.clone(),
                 }),
             };
-            let format = if options.mode == ClipboardPasteMode::Values {
-                None
-            } else {
-                cell.format.clone()
+            let format = match options.mode {
+                ClipboardPasteMode::Values | ClipboardPasteMode::Formulas => None,
+                ClipboardPasteMode::FormulasAndNumberFormats
+                | ClipboardPasteMode::ValuesAndNumberFormats => {
+                    // 只补数字格式，不把源字体/颜色或默认值盖到目标行列样式上。
+                    cell.format.as_ref().map(|format| CellStyle {
+                        number_format: Some(format.number_format.clone()),
+                        ..Default::default()
+                    })
+                }
+                _ => cell.format.clone().map(CellStyle::from_format),
             };
             planned.push((addr, value, format));
         }
@@ -133,11 +144,7 @@ impl Workbook {
         for (addr, _, format) in planned {
             if let Some(format) = format {
                 // 默认格式也要压住目标原有的行/列样式。
-                sheet.patch_format_range(
-                    CellRange::single(addr),
-                    StyleScope::Cell,
-                    CellStyle::from_format(format),
-                );
+                sheet.patch_format_range(CellRange::single(addr), StyleScope::Cell, format);
             }
         }
         Ok(range)

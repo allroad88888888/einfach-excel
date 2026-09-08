@@ -152,3 +152,7 @@ mod transpose_tests;
 #[cfg(test)]
 #[path = "clipboard_skip_blanks_tests.rs"]
 mod skip_blanks_tests;
+
+#[cfg(test)]
+#[path = "clipboard_formula_modes_tests.rs"]
+mod formula_modes_tests;

@@ -159,6 +159,9 @@ fn cut_rejects_special_paste_or_repetition_then_still_allows_normal_move() {
         ClipboardPasteMode::Values,
         ClipboardPasteMode::Formats,
         ClipboardPasteMode::ValuesAndFormats,
+        ClipboardPasteMode::Formulas,
+        ClipboardPasteMode::FormulasAndNumberFormats,
+        ClipboardPasteMode::ValuesAndNumberFormats,
     ] {
         assert_eq!(
             wb.paste_clipboard(&clip, 0, &options("B1", "B1", mode)),

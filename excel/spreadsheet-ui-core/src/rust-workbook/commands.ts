@@ -13,6 +13,8 @@ import type {
   RustClipboardCapture,
   RustClipboardCaptureRequest,
   RustClipboardPasteRequest,
+  RustClipboardExport,
+  RustClipboardExportRequest,
 } from './clipboard-commands'
 
 export interface RustWorkbookSheetInput {
@@ -101,6 +103,7 @@ export interface RustClearRangeRequest {
 }
 
 export interface RustWorkbookCommands {
+  readonly 'clipboard.export': WorkerCommand<RustClipboardExportRequest, RustClipboardExport>
   readonly 'clipboard.capture': WorkerCommand<RustClipboardCaptureRequest, RustClipboardCapture>
   readonly 'clipboard.paste': WorkerCommand<
     { readonly request: RustClipboardPasteRequest; readonly projection: VisibleProjectionRequest },

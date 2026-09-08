@@ -80,9 +80,27 @@ async function runtime() {
 }
 
 describe('Rust clipboard transport', () => {
+  test('export is read-only and preserves a pending cut snapshot and revision', async () => {
+    const { call, captureInput, pasteInput, paste } = await runtime()
+    const captured = await call('clipboard.capture', captureInput)
+    const exported = await call('clipboard.export', {
+      sheetId: 'orders',
+      range: captureInput.range,
+      format: 'html',
+    })
+    expect(exported.ok).toBe(true)
+    expect(exported.result.html).toContain('<table')
+    expect(exported.result).not.toHaveProperty('token')
+    const result = await call('clipboard.paste', pasteInput(captured.result.token))
+    expect(result.result.acknowledgement.revision).toBe(1)
+    expect(paste.mock.calls[0][4]).toBe(true)
+  })
   test.each([
     { mode: 'values' },
     { mode: 'values-formats' },
+    { mode: 'formulas' },
+    { mode: 'formulas-number-formats' },
+    { mode: 'values-number-formats' },
     { transpose: true },
     { skipBlanks: true },
     { mode: 'values-formats', transpose: true, skipBlanks: true },

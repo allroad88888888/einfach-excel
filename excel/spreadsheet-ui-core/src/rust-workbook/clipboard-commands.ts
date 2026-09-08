@@ -1,6 +1,29 @@
 import type { CellRange } from '../shared'
 
-export type RustClipboardPasteMode = 'all' | 'values' | 'formats' | 'values-formats'
+export type RustClipboardExportFormat = 'text' | 'markdown' | 'html'
+
+/** 只用于系统剪贴板的显示文本；不携带内部复制/剪切身份或工作簿副本。 */
+export interface RustClipboardExport {
+  readonly text: string
+  readonly html?: string
+  readonly rows: number
+  readonly cols: number
+}
+
+export interface RustClipboardExportRequest {
+  readonly sheetId: string
+  readonly range: CellRange
+  readonly format: RustClipboardExportFormat
+}
+
+export type RustClipboardPasteMode =
+  | 'all'
+  | 'values'
+  | 'formats'
+  | 'values-formats'
+  | 'formulas'
+  | 'formulas-number-formats'
+  | 'values-number-formats'
 
 /** 文本属于系统剪贴板；公式/格式快照不离开 Rust。token 只识别当前 Worker 的快照。 */
 export interface RustClipboardCapture {

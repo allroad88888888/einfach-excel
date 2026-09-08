@@ -9,6 +9,22 @@ pub enum ClipboardPasteMode {
     Values,
     ValuesAndFormats,
     Formats,
+    Formulas,
+    FormulasAndNumberFormats,
+    ValuesAndNumberFormats,
+}
+
+impl ClipboardPasteMode {
+    /// 外部 TSV 没有源格式；不能拿目标格式伪装成复制到的格式。
+    pub(super) fn requires_source_formats(self) -> bool {
+        matches!(
+            self,
+            Self::Formats
+                | Self::ValuesAndFormats
+                | Self::FormulasAndNumberFormats
+                | Self::ValuesAndNumberFormats
+        )
+    }
 }
 
 pub struct ClipboardPasteOptions {
@@ -48,11 +64,7 @@ impl ClipboardSnapshot {
         {
             return Err("CLIPBOARD_CUT_SPECIAL");
         }
-        if matches!(
-            options.mode,
-            ClipboardPasteMode::Formats | ClipboardPasteMode::ValuesAndFormats
-        ) && self.source_sheet.is_none()
-        {
+        if options.mode.requires_source_formats() && self.source_sheet.is_none() {
             return Err("CLIPBOARD_NO_FORMATS");
         }
         let (rows, cols) = if options.transpose {

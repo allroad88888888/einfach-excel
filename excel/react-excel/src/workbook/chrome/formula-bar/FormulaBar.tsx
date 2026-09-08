@@ -2,6 +2,7 @@ import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   cancelEditingAtom,
   commitCellEditingAtom,
+  editingCommitFeedback,
   editingCommitLifecycleAtom,
   editingDraftAtom,
   insertEditingLineBreakAtom,
@@ -43,6 +44,10 @@ export function FormulaBar() {
     : (selectedCell?.inputText ?? selectedCell?.formula ?? selectedCell?.displayValue ?? '')
   const busy =
     editingLifecycle.status === 'pending' || editingLifecycle.status === 'outcome-unknown'
+  const feedback =
+    editingActiveCell && editingSession.source?.source === 'formula-bar'
+      ? editingCommitFeedback(editingLifecycle)
+      : null
 
   const beginFormulaEditing = () => {
     if (busy) return
@@ -95,29 +100,38 @@ export function FormulaBar() {
   }
 
   return (
-    <div className="formula-bar">
-      <NameBox />
-      <span className="formula-divider" aria-hidden="true" />
-      <span className="insert-function" aria-hidden="true">
-        fx
-      </span>
-      <textarea
-        aria-label="Active cell value"
-        autoComplete="off"
-        className="formula-value"
-        data-formula-input="true"
-        disabled={busy}
-        id="formula-input"
-        name="formula-input"
-        onBlur={commitFormula}
-        onFocus={beginFormulaEditing}
-        onInput={updateFormula}
-        onKeyDown={handleFormulaKey}
-        onMouseDown={beginFormulaEditing}
-        spellCheck={false}
-        rows={Math.min(4, value.split('\n').length)}
-        value={value}
-      />
-    </div>
+    <>
+      <div className="formula-bar">
+        <NameBox />
+        <span className="formula-divider" aria-hidden="true" />
+        <span className="insert-function" aria-hidden="true">
+          fx
+        </span>
+        <textarea
+          aria-label="Active cell value"
+          aria-invalid={feedback ? true : undefined}
+          aria-describedby={feedback ? 'formula-edit-feedback' : undefined}
+          autoComplete="off"
+          className="formula-value"
+          data-formula-input="true"
+          disabled={busy}
+          id="formula-input"
+          name="formula-input"
+          onBlur={commitFormula}
+          onFocus={beginFormulaEditing}
+          onInput={updateFormula}
+          onKeyDown={handleFormulaKey}
+          onMouseDown={beginFormulaEditing}
+          spellCheck={false}
+          rows={Math.min(4, value.split('\n').length)}
+          value={value}
+        />
+      </div>
+      {feedback && (
+        <p className="formula-edit-feedback" id="formula-edit-feedback" role="alert">
+          {feedback.message}
+        </p>
+      )}
+    </>
   )
 }

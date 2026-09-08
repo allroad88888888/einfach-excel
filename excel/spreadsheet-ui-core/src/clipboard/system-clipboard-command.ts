@@ -13,6 +13,8 @@ import { activeWorkbookSheetAtom } from '../runtime/workbook-document'
 import type {
   RustClipboardCapture,
   RustClipboardPasteMode,
+  RustClipboardExport,
+  RustClipboardExportFormat,
 } from '../rust-workbook/clipboard-commands'
 import { selectionSnapshotAtom } from '../selection'
 
@@ -22,6 +24,11 @@ export interface SystemClipboardData {
 }
 
 export type SystemClipboardOperation =
+  | {
+      readonly operation: 'copy-as'
+      readonly format: RustClipboardExportFormat
+      readonly write: (data: Promise<RustClipboardExport>) => Promise<void>
+    }
   | {
       readonly operation: 'copy' | 'cut'
       // Promise 交给浏览器立即创建 ClipboardItem，保留用户手势权限。
@@ -74,6 +81,31 @@ export const runSystemClipboardAtom = atom(
     if (!sheet || !connection || selection.selection.sheetId !== sheet.id) return false
     set(feedbackAtom, { busy: true, error: false, message: `${input.operation}…` })
     try {
+      if (input.operation === 'copy-as') {
+        if (
+          set(resolveContentMutationAtom, {
+            kind: 'clear-range',
+            sheetId: sheet.id,
+            range: selection.range,
+            protectionGate: false,
+          }).status === 'blocked'
+        )
+          throw new Error('CLIPBOARD_INVALID_RANGE')
+        const exported = connection.request('clipboard.export', {
+          sheetId: sheet.id,
+          range: selection.range,
+          format: input.format,
+        })
+        // 与普通复制一样同步启动浏览器写入；不刷新屏幕投影，也不改变剪切快照。
+        const written = new Promise<void>((resolve) => resolve(input.write(exported)))
+        const [data] = await Promise.all([exported, written])
+        set(feedbackAtom, {
+          busy: false,
+          error: false,
+          message: `Copied ${data.rows} × ${data.cols} cells as ${input.format}.`,
+        })
+        return true
+      }
       if (input.operation !== 'paste') {
         if (
           set(resolveContentMutationAtom, {

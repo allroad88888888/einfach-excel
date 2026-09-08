@@ -3,6 +3,7 @@
 import type { BackendMutationResult } from '../backend'
 import type { WorkerErrorWire, WorkerRequestWire } from '../rust-worker/types'
 import { writeCellInput } from './cell-io'
+import { exportClipboard } from './clipboard-export'
 import { clearRange } from './clear-io'
 import { writeImportedCellFormats, writeRangeFormat } from './format-io'
 import type {
@@ -82,6 +83,10 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       return initialize(input.sheets)
     }
     const current = currentWorkbook()
+    if (command === 'clipboard.export') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      return exportClipboard(current, sheetIndex(input.sheetId), input)
+    }
     if (command === 'clipboard.capture') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
       if (!current.capture_clipboard) throw new Error('Rust clipboard export is unavailable')

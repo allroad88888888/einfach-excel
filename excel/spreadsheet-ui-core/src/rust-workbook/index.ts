@@ -13,6 +13,9 @@ export {
 } from './commands'
 export { setRustCellInputAtom, type SetRustCellInputInput } from './command-atoms'
 export type {
+  RustClipboardExport,
+  RustClipboardExportFormat,
+  RustClipboardExportRequest,
   RustClipboardCapture,
   RustClipboardCaptureRequest,
   RustClipboardPasteRequest,

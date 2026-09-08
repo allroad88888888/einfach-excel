@@ -114,6 +114,14 @@
   width: 108px;
 }
 
+.paste-options-select {
+  width: 132px;
+}
+
+.copy-as-select {
+  width: 100px;
+}
+
 .font-size-select {
   width: 56px;
 }

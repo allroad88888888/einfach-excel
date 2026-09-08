@@ -7,12 +7,7 @@ function makeKey(row: number, col: number): string {
 }
 
 function inRect(rect: CopyAsRect, row: number, col: number): boolean {
-  return (
-    row >= rect.startRow &&
-    row <= rect.endRow &&
-    col >= rect.startCol &&
-    col <= rect.endCol
-  )
+  return row >= rect.startRow && row <= rect.endRow && col >= rect.startCol && col <= rect.endCol
 }
 
 function indexCells(cells: ReadonlyArray<DisplayCell>): Map<string, DisplayCell> {
@@ -44,10 +39,7 @@ function indexCells(cells: ReadonlyArray<DisplayCell>): Map<string, DisplayCell>
  * | no             | yes             | covered renders blank (no leakage)   |
  * | no             | no              | merge irrelevant                     |
  */
-function collectMergeCovered(
-  cells: ReadonlyArray<DisplayCell>,
-  rect: CopyAsRect,
-): Set<string> {
+function collectMergeCovered(cells: ReadonlyArray<DisplayCell>, rect: CopyAsRect): Set<string> {
   const covered = new Set<string>()
 
   for (const cell of cells) {
@@ -86,10 +78,17 @@ function collectMergeCovered(
  *   - Newlines become `<br>` because GFM table cells are single-line.
  */
 function escapeMarkdownCell(raw: string): string {
-  return raw
-    .replace(/\\/g, '\\\\')
-    .replace(/\|/g, '\\|')
-    .replace(/\r\n|\r|\n/g, '<br>')
+  return (
+    raw
+      // 单元格里的 HTML/链接/强调标记是数据，不应在目标 Markdown 编辑器中执行或变形。
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\\/g, '\\\\')
+      .replace(/\|/g, '\\|')
+      .replace(/([`*_\[\]!])/g, '\\$1')
+      .replace(/\r\n|\r|\n/g, '<br>')
+  )
 }
 
 function wrapFormatting(text: string, cell: DisplayCell | undefined): string {

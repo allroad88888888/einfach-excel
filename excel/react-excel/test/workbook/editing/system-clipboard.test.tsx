@@ -64,6 +64,9 @@ describe('workbook system clipboard', () => {
     ['transpose', { transpose: true }],
     ['skip-blanks', { skipBlanks: true }],
     ['values-formats', { mode: 'values-formats' }],
+    ['formulas', { mode: 'formulas' }],
+    ['formulas-number-formats', { mode: 'formulas-number-formats' }],
+    ['values-number-formats', { mode: 'values-number-formats' }],
   ])('more paste option %s dispatches once and resets for the next use', async (value, options) => {
     const { paste } = await setup()
     const menu = screen.getByRole('combobox', { name: 'More paste options' })

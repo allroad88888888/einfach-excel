@@ -1,4 +1,9 @@
-import type { RustClipboardCapture, SystemClipboardData } from '@einfach/spreadsheet-ui-core'
+import type {
+  RustClipboardCapture,
+  RustClipboardExport,
+  RustClipboardExportFormat,
+  SystemClipboardData,
+} from '@einfach/spreadsheet-ui-core'
 
 function escapeHtml(text: string): string {
   return text
@@ -13,12 +18,7 @@ export function clipboardToken(html: string): string | undefined {
   return /data-einfach-clipboard=["']([a-f0-9-]{36})["']/i.exec(html)?.[1]
 }
 
-export async function writeBrowserClipboard(data: Promise<RustClipboardCapture>): Promise<void> {
-  if (!navigator.clipboard?.write || typeof ClipboardItem === 'undefined') {
-    throw new Error(
-      'This browser cannot write the clipboard. Use a secure HTTPS or localhost page.',
-    )
-  }
+export function writeBrowserClipboard(data: Promise<RustClipboardCapture>): Promise<void> {
   const plain = data.then(({ text }) => new Blob([text], { type: 'text/plain' }))
   const html = data.then(
     ({ text, token }) =>
@@ -26,21 +26,40 @@ export async function writeBrowserClipboard(data: Promise<RustClipboardCapture>)
         type: 'text/html',
       }),
   )
+  return writeClipboardItems({ 'text/plain': plain, 'text/html': html })
+}
+
+/** Copy As 不携带内部 token；粘回表格时不会意外恢复源公式或消费剪切。 */
+export function writeBrowserClipboardExport(
+  format: RustClipboardExportFormat,
+  data: Promise<RustClipboardExport>,
+): Promise<void> {
+  return writeClipboardItems({
+    'text/plain': data.then(({ text }) => new Blob([text], { type: 'text/plain' })),
+    ...(format === 'html'
+      ? {
+          'text/html': data.then(({ html }) => {
+            if (html === undefined) throw new Error('The workbook did not return an HTML table.')
+            return new Blob([html], { type: 'text/html' })
+          }),
+        }
+      : {}),
+  })
+}
+
+async function writeClipboardItems(payload: Record<string, Promise<Blob>>): Promise<void> {
+  const parts = Object.values(payload)
   // ClipboardItem 支持 Promise<Blob>：在用户事件里启动写入，不先等待 Worker。
   // https://developer.mozilla.org/en-US/docs/Web/API/ClipboardItem/ClipboardItem
   try {
-    await Promise.all([
-      navigator.clipboard.write([
-        new ClipboardItem({
-          'text/plain': plain,
-          'text/html': html,
-        }),
-      ]),
-      plain,
-      html,
-    ])
+    if (!navigator.clipboard?.write || typeof ClipboardItem === 'undefined') {
+      throw new Error(
+        'This browser cannot write the clipboard. Use a secure HTTPS or localhost page.',
+      )
+    }
+    await Promise.all([navigator.clipboard.write([new ClipboardItem(payload)]), ...parts])
   } catch (error) {
-    await Promise.allSettled([plain, html])
+    await Promise.allSettled(parts)
     if (error instanceof DOMException && error.name === 'NotAllowedError') {
       throw new Error('Clipboard permission was denied. Allow clipboard access and try again.')
     }

@@ -47,6 +47,8 @@ export interface VisibleProjectionResult extends SheetRef {
   history?: RustHistoryState
   /** 整张表的隐藏索引；不能只返回窗口内部分，否则屏幕外定位会漂移。 */
   visibility?: SheetVisibilityProjection
+  /** 原生工作表冻结边界；React 不持有第二份配置。 */
+  freeze?: { readonly rows: number; readonly cols: number }
   truncated?: boolean
 }
 

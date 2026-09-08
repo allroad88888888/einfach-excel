@@ -210,6 +210,12 @@ export function validateProjectionResult(
   const range = getProjectionResultRange(result)
   if (result.kind === 'visible-window' && result.visibility !== undefined && !validSheetVisibility(result.visibility))
     return makeInvalid('CELL_OUT_OF_RANGE', 'Invalid Rust visibility projection.')
+  if (result.kind === 'visible-window' && result.freeze !== undefined) {
+    const freeze = result.freeze
+    if (!freeze || ![freeze.rows, freeze.cols].every((n) => Number.isSafeInteger(n) && n >= 0) ||
+      freeze.rows >= 1_048_576 || freeze.cols >= 16_384)
+      return makeInvalid('CELL_OUT_OF_RANGE', 'Invalid Rust freeze projection.')
+  }
   const requestValidation = validateProjectionRange(
     result.sheetId,
     result.requestId,

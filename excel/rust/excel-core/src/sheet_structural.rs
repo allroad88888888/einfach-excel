@@ -33,6 +33,14 @@ impl Sheet {
             return Ok(());
         }
         let first = limit - count;
+        let frozen = if edit.is_row_edit() {
+            self.frozen_panes.rows
+        } else {
+            self.frozen_panes.cols
+        };
+        if at < frozen && frozen >= first {
+            return Err("The insertion would move the freeze boundary outside the worksheet.");
+        }
         let range = CellRange::new(
             if edit.is_row_edit() {
                 CellAddress::new(first, 0)
@@ -156,6 +164,7 @@ impl Sheet {
             sheet.retarget_formula_refs(edit);
             sheet.retarget_parked_sources(edit);
             sheet.shift_merges(edit);
+            sheet.shift_frozen_panes(edit);
             match edit {
                 crate::shift::ShiftEdit::RowInsert { at, count } => {
                     Self::shift_dimension_insert(&mut sheet.row_styles, at, count);

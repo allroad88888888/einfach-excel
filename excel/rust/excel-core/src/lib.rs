@@ -43,7 +43,8 @@ pub use formula::{parse_formula, BinOperator, Expr, TableArea};
 pub use general_text::excel_general_to_text;
 pub use range::CellRange;
 pub use sheet::{
-    CellSubscription, DepGraphStats, FormatRangeSnapshot, PendingAsyncCustomCall, Sheet, SheetError,
+    CellSubscription, DepGraphStats, FormatRangeSnapshot, FrozenPanes, PendingAsyncCustomCall,
+    Sheet, SheetError,
 };
 pub use shift::{render_formula, shift_refs};
 pub use sort::{

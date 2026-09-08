@@ -14,6 +14,21 @@ export function initializeWorkbook(
   for (const input of inputs.slice(1)) workbook.add_sheet(input.name)
   inputs.forEach((input, index) => importSheetSizes(workbook, index, input))
   inputs.forEach((input, index) => importSheetVisibility(workbook, index, input))
+  // 初始矩形只写 Rust；后续导入锚点内容，启动历史不暴露为用户操作。
+  inputs.forEach((input, index) => {
+    for (const range of input.mergedRanges ?? []) {
+      if (!workbook.merge_cells) throw new Error('Rust merge command is unavailable.')
+      workbook.merge_cells(
+        index,
+        range.rowStart,
+        range.colStart,
+        range.rowEnd,
+        range.colEnd,
+        'merge',
+        false,
+      )
+    }
+  })
   workbook.history_clear?.('')
   return {
     workbook,

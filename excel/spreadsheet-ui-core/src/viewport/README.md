@@ -2,6 +2,12 @@
 
 Owns scroll/size metrics and derives the visible row/column window.
 
+## 当前 React/Rust 主线
+
+冻结窗格正在迁移到原生工作表元数据：`sheet.freeze` 返回 `VisibleProjectionResult.freeze`，
+历史、结构随动、快照由 Rust 负责，固定区域 UI 尚未接入。后续 React command 不应调用下面的旧本地冻结路径。
+当前手动行列隐藏也已由 Rust 的 `range.visibility` 持有；下面的旧 owner／backend 说明不适用于当前 React 主线。
+
 ## Freeze panes — UI-core canonical (flip step 1)
 
 Freeze is a pure viewport fact ({rows, cols} per sheet) and is UI-core canonical per

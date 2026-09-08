@@ -4,7 +4,11 @@ import {
   SALES_ORDER_SHEET_ROW_COUNT,
 } from '../../../../src/page/demo/sales-orders/data/sheet'
 import { SALES_ORDERS_WORKBOOK_DEFINITION } from '../../../../src/page/demo/sales-orders/sales-orders-workbook'
-import { SALES_ORDER_SUMMARY_CELLS, SUMMARY_SIZES } from '../../../../src/page/demo/sales-orders/data/summary-seed'
+import {
+  SALES_ORDER_SUMMARY_CELLS,
+  SUMMARY_SIZES,
+  SUMMARY_MERGES,
+} from '../../../../src/page/demo/sales-orders/data/summary-seed'
 
 describe('Sales Orders workbook definition', () => {
   it('describes the workbook imported by the page', () => {
@@ -17,8 +21,14 @@ describe('Sales Orders workbook definition', () => {
         colCount: SALES_ORDER_COLUMNS.length,
       },
       {
-        id: 'summary', name: 'Summary', rowCount: 100, colCount: 8,
-        ...SUMMARY_SIZES, hiddenRows: [9], hiddenColumns: [6],
+        id: 'summary',
+        name: 'Summary',
+        rowCount: 100,
+        colCount: 8,
+        ...SUMMARY_SIZES,
+        hiddenRows: [9],
+        hiddenColumns: [6],
+        mergedRanges: SUMMARY_MERGES,
       },
     ])
   })

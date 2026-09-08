@@ -1,0 +1,35 @@
+import { expect, test } from '@playwright/test'
+import { select } from '../support/clipboard'
+
+test('Summary seeds native merged cells with clean history, editable anchors and undoable unmerge', async ({
+  page,
+}) => {
+  await page.goto('/')
+  await expect(page.locator('td[data-cell="1:0"]')).toHaveText('SO-10001')
+  await page.getByRole('tab', { name: 'Summary', exact: true }).click()
+  await select(page, 'A15', '14:0')
+  const heading = page.locator('[data-merged-cell][data-cell="14:0"]')
+  const detail = page.locator('[data-merged-cell][data-cell="16:0"]')
+  await expect(heading).toHaveText('Merged heading')
+  await expect(heading).toHaveAttribute('aria-colspan', '4')
+  await expect(heading).toHaveCSS('text-align', 'center')
+  await expect(detail).toHaveText('Two-row merged cell')
+  await expect(detail).toHaveAttribute('aria-rowspan', '2')
+  await expect(detail).toHaveAttribute('aria-colspan', '2')
+  const undo = page.getByRole('button', { name: 'Undo', exact: true })
+  await expect(undo).toBeDisabled()
+  await heading.dblclick()
+  const editor = page.getByRole('textbox', { name: 'Cell editor', exact: true })
+  await expect(editor).toHaveValue('Merged heading')
+  await editor.fill('Edited heading')
+  await editor.press('Enter')
+  await expect(heading).toHaveText('Edited heading')
+  await select(page, 'A15', '14:0')
+  await page.getByRole('combobox', { name: 'Merge cells', exact: true }).selectOption('unmerge')
+  await expect(heading).toHaveCount(0)
+  await expect(page.locator('td[data-cell="14:0"]')).toHaveText('Edited heading')
+  await expect(page.locator('td[data-cell="14:1"]')).toHaveText('')
+  await undo.click()
+  await expect(heading).toHaveText('Edited heading')
+  await expect(detail).toHaveText('Two-row merged cell')
+})

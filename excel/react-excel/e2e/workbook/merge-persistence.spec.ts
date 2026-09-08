@@ -5,6 +5,36 @@ const wasmUrl = `/@fs${fileURLToPath(new URL('../../../excel-wasm/', import.meta
 
 // 验证真实 WASM 的 JS 序列化边界；不声称当前页面已有保存/打开菜单。
 for (const variant of ['lite', 'full']) {
+  test(`${variant} native seed import rejects covered content before writing any cells`, async ({
+    page,
+  }) => {
+    await page.goto('/')
+    const result = await page.evaluate(async (url) => {
+      const module = await import(url)
+      await module.default()
+      const workbook = new module.WasmWorkbook()
+      try {
+        workbook.merge_cells(0, 0, 0, 1, 1, 'merge', false)
+        workbook.bulk_import_cells([{ sheet: 0, row: 0, col: 0, kind: 'text', value: 'Anchor' }])
+        const before = workbook.snapshot_persistence_v1()
+        let rejection = ''
+        try {
+          workbook.bulk_import_cells([
+            { sheet: 0, row: 0, col: 0, kind: 'text', value: 'Changed' },
+            { sheet: 0, row: 1, col: 1, kind: 'text', value: 'Hidden' },
+          ])
+        } catch (error) {
+          rejection = String(error)
+        }
+        return { rejection, before, after: workbook.snapshot_persistence_v1() }
+      } finally {
+        workbook.free()
+      }
+    }, `${wasmUrl}${variant}/einfach_wasm.js`)
+    expect(result.rejection).toContain('covered cells')
+    expect(result.after).toEqual(result.before)
+  })
+
   test(`${variant} WASM persistence retains merges and rejects invalid geometry atomically`, async ({
     page,
   }) => {

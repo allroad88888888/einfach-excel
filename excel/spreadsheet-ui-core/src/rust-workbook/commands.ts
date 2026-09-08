@@ -30,6 +30,7 @@ export interface RustWorkbookSheetInput {
   readonly colWidths?: readonly ViewportColumnWidth[]
   readonly hiddenRows?: readonly number[]
   readonly hiddenColumns?: readonly number[]
+  readonly mergedRanges?: readonly CellRange[]
 }
 
 export interface RustWorkbookSheet {
@@ -116,6 +117,15 @@ export interface RustClearRangeRequest {
 }
 
 export interface RustWorkbookCommands {
+  readonly 'sheet.freeze': WorkerCommand<
+    {
+      readonly sheetId: string
+      readonly rows: number
+      readonly cols: number
+      readonly projection: VisibleProjectionRequest
+    },
+    { readonly changed: boolean; readonly projection: VisibleProjectionResult }
+  >
   readonly 'range.merge': WorkerCommand<
     {
       readonly sheetId: string

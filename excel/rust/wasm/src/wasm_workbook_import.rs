@@ -8,6 +8,24 @@ impl WasmWorkbook {
         let cells: Vec<WorkbookImportCellJSON> = serde_wasm_bindgen::from_value(cells)
             .map_err(|err| JsValue::from_str(&format!("invalid import cells: {err}")))?;
 
+        // 种子可先安装合并矩形；批量装载不能绕过覆盖格保护而生成隐藏内容。
+        // 写入前检查整批，拒绝时不留下已导入的前半批数据。
+        for cell in &cells {
+            let addr = CellAddress::new(cell.row, cell.col);
+            let clearing = matches!(&cell.kind, BulkImportKindJSON::Text(kind) if kind == "null");
+            if !clearing
+                && self
+                    .workbook
+                    .sheet(cell.sheet)
+                    .and_then(|sheet| sheet.merged_range_at(addr))
+                    .is_some_and(|range| range.start != addr)
+            {
+                return Err(JsValue::from_str(
+                    "Import cannot write merged covered cells.",
+                ));
+            }
+        }
+
         let mut stats = WorkbookImportStatsJSON::default();
         let sheet_count = self.workbook.sheet_count();
         self.workbook.bulk_load(|loader| {

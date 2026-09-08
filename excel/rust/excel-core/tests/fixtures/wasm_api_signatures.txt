@@ -109,6 +109,7 @@ impl WasmWorkbook :: [] :: pub fn delete_col(&mut self, sheet_idx: u32, at: u32,
 impl WasmWorkbook :: [] :: pub fn delete_row(&mut self, sheet_idx: u32, at: u32, count: u32)
 impl WasmWorkbook :: [] :: pub fn edit_sheet(&mut self, index: Option<u32>, name: &str) -> Result<u32, JsValue>
 impl WasmWorkbook :: [] :: pub fn edit_structure( &mut self, sheet: u32, action: &str, at: u32, count: u32, ) -> Result<bool, JsValue>
+impl WasmWorkbook :: [] :: pub fn frozen_panes(&self, sheet: u32) -> Result<Vec<u32>, JsValue>
 impl WasmWorkbook :: [] :: pub fn get_display(&self, sheet_idx: u32, addr: &str) -> String
 impl WasmWorkbook :: [] :: pub fn get_formula(&self, sheet_idx: u32, addr: &str) -> String
 impl WasmWorkbook :: [] :: pub fn get_number(&self, sheet_idx: u32, addr: &str) -> f64
@@ -144,6 +145,7 @@ impl WasmWorkbook :: [] :: pub fn set_col_width(&mut self, sheet_idx: u32, col_i
 impl WasmWorkbook :: [] :: pub fn set_error(&mut self, sheet_idx: u32, addr: &str, value: &str)
 impl WasmWorkbook :: [] :: pub fn set_format_range( &mut self, sheet_idx: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, fmt: JsValue, ) -> Result<u32, JsValue>
 impl WasmWorkbook :: [] :: pub fn set_formula(&mut self, sheet_idx: u32, addr: &str, formula: &str) -> bool
+impl WasmWorkbook :: [] :: pub fn set_frozen_panes(&mut self, sheet: u32, rows: u32, cols: u32) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn set_number(&mut self, sheet_idx: u32, addr: &str, value: f64)
 impl WasmWorkbook :: [] :: pub fn set_row_height(&mut self, sheet_idx: u32, row_index: u32, height_px: u32) -> bool
 impl WasmWorkbook :: [] :: pub fn set_text(&mut self, sheet_idx: u32, addr: &str, value: &str)

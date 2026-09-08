@@ -49,6 +49,20 @@ export function snapshotRustWorkbookDefinition(
     }
     const hiddenRows = hidden(sheet.hiddenRows, sheet.rowCount)
     const hiddenColumns = hidden(sheet.hiddenColumns, sheet.colCount)
+    const mergedRanges = sheet.mergedRanges?.map((range) => {
+      if (
+        ![range.rowStart, range.rowEnd, range.colStart, range.colEnd].every(
+          (n) => Number.isSafeInteger(n) && n >= 0,
+        ) ||
+        range.rowStart > range.rowEnd ||
+        range.colStart > range.colEnd ||
+        range.rowEnd >= sheet.rowCount ||
+        range.colEnd >= sheet.colCount ||
+        (range.rowStart === range.rowEnd && range.colStart === range.colEnd)
+      )
+        throw new Error('Invalid initial merged range.')
+      return Object.freeze({ ...range })
+    })
     const rowHeights = sheet.rowHeights?.map((entry) => {
       if (
         !Number.isSafeInteger(entry.rowIndex) ||
@@ -82,6 +96,7 @@ export function snapshotRustWorkbookDefinition(
       ...(colWidths ? { colWidths: Object.freeze(colWidths) } : {}),
       ...(hiddenRows ? { hiddenRows } : {}),
       ...(hiddenColumns ? { hiddenColumns } : {}),
+      ...(mergedRanges ? { mergedRanges: Object.freeze(mergedRanges) } : {}),
     })
   })
   if (title.length === 0 || sheets.length === 0) {

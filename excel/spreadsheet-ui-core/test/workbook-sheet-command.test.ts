@@ -1,5 +1,6 @@
 import { createStore } from '@einfach/core'
 import { describe, expect, test, vi } from 'vitest'
+import { projectionSnapshotBackingAtom } from '../src/projection/state'
 import {
   initializeWorkbookDocumentAtom,
   setRustWorkbookConnectionAtom,
@@ -65,23 +66,45 @@ describe('Rust workbook sheet commands', () => {
     expect(store.getter(sheetTabsAtom).mutation).toBeNull()
   })
 
-  test('switch resets selection and scroll, updates bounds, and sends no Rust mutation', async () => {
-    const { store, run, request } = setup()
-    store.setter(selectCellAtom, { sheetId: 'orders', coord: { row: 999, col: 15 }, extend: false })
-    store.setter(setViewportScrollAtom, { scrollTop: 500, scrollLeft: 500 })
-    expect(await run({ operation: 'switch', sheetId: 'summary' })).toBe(true)
-    expect(store.getter(activeWorkbookSheetAtom)?.id).toBe('summary')
-    expect(store.getter(selectionBoundsAtom)).toEqual({ rowCount: 100, colCount: 8 })
-    expect(store.getter(selectionSnapshotAtom).activeCell).toMatchObject({
-      sheetId: 'summary',
-      row: 0,
-      col: 0,
-    })
-    expect(store.getter(viewportMetricsAtom)).toMatchObject({ scrollLeft: 0, scrollTop: 0 })
-    expect(request).not.toHaveBeenCalled()
-    expect(await run({ operation: 'switch', sheetId: 'missing' })).toBe(false)
-    expect(store.getter(activeWorkbookSheetAtom)?.id).toBe('summary')
-  })
+  test.each([false, true])(
+    'switch resets selection and scroll with merged projection=%s',
+    async (merged) => {
+      const { store, run, request } = setup()
+      store.setter(projectionSnapshotBackingAtom, {
+        status: 'ready',
+        request: undefined,
+        error: undefined,
+        result: {
+          kind: 'visible-window',
+          sheetId: 'orders',
+          requestId: 1,
+          window: { rowStart: 0, rowEnd: 10, colStart: 0, colEnd: 7 },
+          cells: [],
+          mergedRanges: merged ? [{ rowStart: 1, rowEnd: 2, colStart: 1, colEnd: 2 }] : [],
+        },
+      })
+      store.setter(selectCellAtom, {
+        sheetId: 'orders',
+        coord: { row: 999, col: 15 },
+        extend: false,
+      })
+      // 页面已订阅选区，切表前派生缓存必然存在。
+      expect(store.getter(selectionSnapshotAtom).activeCell.sheetId).toBe('orders')
+      store.setter(setViewportScrollAtom, { scrollTop: 500, scrollLeft: 500 })
+      expect(await run({ operation: 'switch', sheetId: 'summary' })).toBe(true)
+      expect(store.getter(activeWorkbookSheetAtom)?.id).toBe('summary')
+      expect(store.getter(selectionBoundsAtom)).toEqual({ rowCount: 100, colCount: 8 })
+      expect(store.getter(selectionSnapshotAtom).activeCell).toMatchObject({
+        sheetId: 'summary',
+        row: 0,
+        col: 0,
+      })
+      expect(store.getter(viewportMetricsAtom)).toMatchObject({ scrollLeft: 0, scrollTop: 0 })
+      expect(request).not.toHaveBeenCalled()
+      expect(await run({ operation: 'switch', sheetId: 'missing' })).toBe(false)
+      expect(store.getter(activeWorkbookSheetAtom)?.id).toBe('summary')
+    },
+  )
 
   test('rename keeps stable identity, dimensions, active sheet and selection', async () => {
     const { store, run, request } = setup()

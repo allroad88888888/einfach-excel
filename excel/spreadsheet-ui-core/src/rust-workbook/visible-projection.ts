@@ -54,8 +54,10 @@ export function readVisibleProjection(
   const visibleCells = cells
     .map(displayCell)
     .filter((cell): cell is NonNullable<typeof cell> => cell !== null)
+  const freeze = workbook.frozen_panes?.(sheetIndex)
   return {
     kind: 'visible-window',
+    ...(freeze ? { freeze: { rows: freeze[0], cols: freeze[1] } } : {}),
     ...(workbook.sheet_visibility ? { visibility: workbook.sheet_visibility(sheetIndex) } : {}),
     ...(workbook.history_state ? { history: workbook.history_state() } : {}),
     sheetId: request.sheetId,

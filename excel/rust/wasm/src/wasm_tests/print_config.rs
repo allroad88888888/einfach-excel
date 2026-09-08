@@ -56,6 +56,7 @@ fn invalid_print_config_persistence_does_not_replace_the_live_workbook() {
         print_configs: vec![default_print_snapshot(3), default_print_snapshot(4)],
         conditional_formats: vec![],
         merges: vec![],
+        freeze: vec![],
     };
 
     assert!(workbook.restore_persistence_v1_json(payload).is_err());

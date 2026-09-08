@@ -54,6 +54,9 @@ impl HistoryEntry {
             HistoryChange::Visibility(change) => {
                 change.apply(workbook, self.sheet, self.sheet_key, undo)
             }
+            HistoryChange::Freeze(change) => {
+                change.apply(workbook, self.sheet, self.sheet_key, undo)
+            }
             HistoryChange::Structure(change) => change.apply(workbook, self.sheet, undo),
             HistoryChange::Merge(change) => change.apply(workbook, self.sheet, undo),
         }
@@ -69,6 +72,7 @@ pub(super) fn entry_bytes(entry: &HistoryEntry) -> usize {
             .sum(),
         HistoryChange::Sheet(change) => change.retained_bytes(),
         HistoryChange::Visibility(change) => change.retained_bytes(),
+        HistoryChange::Freeze(_) => std::mem::size_of::<FreezeChange>(),
         HistoryChange::Structure(change) => change.retained_bytes(),
         HistoryChange::Merge(change) => change.retained_bytes(),
     };

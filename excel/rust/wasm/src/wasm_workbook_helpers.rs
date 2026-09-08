@@ -86,6 +86,7 @@ impl WasmWorkbook {
             sheets,
             cells: self.snapshot_sparse_cells(),
             merges: self.merges_json(),
+            freeze: self.freeze_json(),
             formats,
             sizes,
             tables: self.tables_json(),

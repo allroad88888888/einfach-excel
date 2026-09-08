@@ -8,6 +8,22 @@ export const SALES_ORDER_SUMMARY_CELLS: readonly RustImportCell[] = [
   { sheet: 1, row: 1, col: 1, kind: 'formula', value: "='Sales Orders'!B2" },
   { sheet: 1, row: 9, col: 0, kind: 'text', value: 'Hidden row example' },
   { sheet: 1, row: 0, col: 6, kind: 'text', value: 'Hidden column example' },
+  {
+    sheet: 1,
+    row: 14,
+    col: 0,
+    kind: 'text',
+    value: 'Merged heading',
+    format: { bold: true, align: 'center', bgColor: '#e9edff' },
+  },
+  {
+    sheet: 1,
+    row: 16,
+    col: 0,
+    kind: 'text',
+    value: 'Two-row merged cell',
+    format: { verticalAlign: 'center', bgColor: '#fff2cc' },
+  },
 ]
 
 /** 尺寸示例属于表的行列属性，不属于上面的单元格。 */
@@ -18,3 +34,9 @@ export const SUMMARY_SIZES = {
 
 /** 恢复隐藏即可看到第 10 行和 G 列的原始示例内容。 */
 export const SUMMARY_VISIBILITY = { hiddenRows: [9], hiddenColumns: [6] } as const
+
+/** 两个原生合并样例；覆盖格不再重复存储内容。 */
+export const SUMMARY_MERGES = [
+  { rowStart: 14, rowEnd: 14, colStart: 0, colEnd: 3 },
+  { rowStart: 16, rowEnd: 17, colStart: 0, colEnd: 1 },
+] as const

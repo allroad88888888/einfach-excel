@@ -179,6 +179,8 @@ struct WorkbookPersistenceV1JSON {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     merges: Vec<SheetMergesJSON>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    freeze: Vec<SheetFreezeJSON>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     formats: Vec<FormatRangeSnapshotJSON>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     sizes: Vec<ViewportSizeSnapshotJSON>,

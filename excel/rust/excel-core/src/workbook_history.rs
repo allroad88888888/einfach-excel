@@ -11,6 +11,9 @@ mod sheets;
 #[path = "workbook_history_visibility.rs"]
 mod visibility;
 use visibility::VisibilityChange;
+#[path = "workbook_history_freeze.rs"]
+mod freeze;
+use freeze::FreezeChange;
 #[path = "workbook_history_entry.rs"]
 mod entry;
 use entry::entry_bytes;
@@ -44,6 +47,7 @@ enum HistoryChange {
     },
     Sheet(Box<SheetHistoryChange>),
     Visibility(VisibilityChange),
+    Freeze(FreezeChange),
     Structure(Box<StructuralHistoryChange>),
     Merge(Box<MergeChange>),
 }

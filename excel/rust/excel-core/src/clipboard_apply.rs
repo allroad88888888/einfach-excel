@@ -31,7 +31,7 @@ pub(super) fn apply_paste(
             anchors = sheet.teardown_blocked_spill_anchors();
             merges.apply(sheet);
         }
-        // 从这里开始不再返回预检错误；仅格式粘贴完全不进入值写入/公式计算链路。
+        // 仅格式粘贴不改原始值；合并几何改变后，受阻数组仍需在末尾重新投影。
         if options.mode != ClipboardPasteMode::Formats {
             workbook.bulk_load(|loader| {
                 if snapshot.cut {

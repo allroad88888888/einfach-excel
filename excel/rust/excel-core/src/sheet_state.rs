@@ -73,6 +73,7 @@ pub struct Sheet {
     pub(crate) column_styles: BTreeMap<u32, CellStyle>,
     /// 合并区域只记录不重叠的矩形；不为被覆盖的空格创建 atom 或样式副本。
     pub(crate) merged_ranges: Vec<CellRange>,
+    pub(crate) frozen_panes: FrozenPanes,
     /// Sheet-wide conditional formatting rules. Applied in order on top of
     /// each cell's base format at display time (first match wins).
     pub(super) conditional_rules: Vec<ConditionalRule>,

@@ -116,6 +116,7 @@ impl WasmWorkbook {
                 .map_err(|err| format!("persistence restore install failed: {err}"))?;
         }
         Self::restore_merges_json(&mut workbook, payload.merges)?;
+        Self::restore_freeze_json(&mut workbook, payload.freeze)?;
         let mut restored_formats = 0u32;
         for (sheet_idx, snapshot) in format_snapshots {
             let sheet = workbook

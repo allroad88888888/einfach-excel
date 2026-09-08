@@ -39,6 +39,8 @@ export interface RustFormatRangeSnapshot {
 }
 
 export interface WasmWorkbook {
+  set_frozen_panes?: (sheet: number, rows: number, cols: number) => boolean
+  frozen_panes?: (sheet: number) => ArrayLike<number>
   merge_cells?: (
     sheet: number,
     startRow: number,

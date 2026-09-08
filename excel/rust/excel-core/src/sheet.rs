@@ -103,6 +103,9 @@ mod history_budget;
 mod history_restore;
 #[path = "sheet_merge.rs"]
 mod merge;
+#[path = "sheet_freeze.rs"]
+mod freeze;
+pub use freeze::FrozenPanes;
 pub(crate) use history_budget::metadata_bytes;
 #[path = "sheet_cross_sheet_shift.rs"]
 mod cross_sheet_shift;

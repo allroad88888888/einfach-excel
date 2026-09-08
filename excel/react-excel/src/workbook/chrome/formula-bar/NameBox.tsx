@@ -4,7 +4,6 @@ import {
   commitNameBoxAtom,
   focusNameBoxAtom,
   nameBoxStateAtom,
-  projectionSnapshotAtom,
   revertNameBoxAtom,
   scrollToCellAtom,
   updateNameBoxInputAtom,
@@ -28,7 +27,6 @@ function navigationCoord(target: NameBoxCommitTarget): CellCoord | null {
 /** Adapts the shared name-box atoms to one address input. */
 export function NameBox() {
   const state = useAtomValue(nameBoxStateAtom)
-  const projection = useAtomValue(projectionSnapshotAtom).result
   const focusNameBox = useSetAtom(focusNameBoxAtom)
   const updateNameBoxInput = useSetAtom(updateNameBoxInputAtom)
   const commitNameBox = useSetAtom(commitNameBoxAtom)
@@ -39,8 +37,6 @@ export function NameBox() {
   const domSessionIdRef = useRef<number>()
   const handledBlurSessionIdRef = useRef<number>()
   const value = state.focused ? state.input : state.display
-  const activeSheetId =
-    projection?.kind === 'visible-window' ? projection.sheetId : state.primaryRegion.sheetId
 
   const navigate = (target: NameBoxCommitTarget) => {
     const coord = navigationCoord(target)
@@ -48,7 +44,8 @@ export function NameBox() {
     scrollToCell({ coord, rowAlign: 'start', colAlign: 'nearest' })
   }
   const commit = (input: string, sessionId: number) => {
-    const target = commitNameBox({ input, sessionId, sheetId: activeSheetId })
+    // 切表加载期间旧投影仍可显示；目标表由 command 的当前选区决定。
+    const target = commitNameBox({ input, sessionId })
     navigate(target)
     return target
   }

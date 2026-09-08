@@ -10,6 +10,8 @@ import { changeSheetStructure } from './sheet-structure'
 import { readSizes, resizeRange } from './size-io'
 import { initializeWorkbook } from './initialize-workbook'
 import { changeMerge } from './merge-io'
+import { changeFreeze } from './freeze-io'
+import { editWorkbookSheet } from './sheet-edit'
 import { changeStructure } from './structure-io'
 import { writeImportedCellFormats } from './format-io'
 import type {
@@ -82,6 +84,13 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       return initialize(input.sheets)
     }
     const current = currentWorkbook()
+    if (command === 'sheet.freeze') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      sheetIndex(input.sheetId)
+      const result = changeFreeze(current, sheetsById.get(input.sheetId)!, input, revision)
+      if (result.changed) revision += 1
+      return result
+    }
     if (command === 'range.merge') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
       const result = changeMerge(current, sheetIndex(input.sheetId), input, revision)
@@ -157,31 +166,9 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
     }
     if (command === 'workbook.editSheet') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
-      // 先校验投影目标，避免写入成功后才发现请求的表不存在。
-      const visibleIndex = input.projection ? sheetIndex(input.projection.sheetId) : undefined
-      const index = current.edit_sheet(
-        input.sheetId ? sheetIndex(input.sheetId) : undefined,
-        input.name,
-      )
-      const sheet = Object.freeze({
-        ...(input.sheetId ? sheetsById.get(input.sheetId) : {}),
-        id: input.sheetId ?? crypto.randomUUID(),
-        index,
-        name: current.sheet_name(index),
-        ...(current.sheet_key ? { key: current.sheet_key(index) } : {}),
-        ...(input.rowCount ? { rowCount: input.rowCount, colCount: input.colCount } : {}),
-      })
-      sheetsById.set(sheet.id, sheet)
+      const result = editWorkbookSheet(current, sheetsById, input, revision + 1)
       revision += 1
-      return {
-        sheet,
-        revision,
-        ...(input.projection && visibleIndex !== undefined
-          ? {
-              projection: readVisibleProjection(current, visibleIndex, input.projection, revision),
-            }
-          : {}),
-      }
+      return result
     }
     if (command === 'clipboard.export') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']

@@ -28,6 +28,17 @@ function responseError(error: WorkerErrorWire): Error {
   })
 }
 
+/** 与 responseError 对应的发送端转换，协议错误不属于工作簿业务。 */
+export function rpcError(error: unknown): WorkerErrorWire {
+  if (!(error instanceof Error)) return { code: 'WORKER_ERROR', message: String(error) }
+  const typed = error as Error & { code?: string; detail?: unknown }
+  return {
+    code: typed.code ?? 'WORKER_ERROR',
+    message: typed.message,
+    ...(typed.detail === undefined ? {} : { detail: typed.detail }),
+  }
+}
+
 /** 创建与业务无关的类型化 Worker RPC 传输。 */
 export function createWorkerTransport<Commands extends WorkerCommandMap>(
   workerFactory: () => WorkerLike,

@@ -15,6 +15,7 @@ import type { SheetVisibilityProjection } from '../viewport/hidden-state'
 import type { StructuralEdit } from './structure-geometry'
 import type { AutoFitLayout } from './auto-fit-measurement'
 import type { RustFindCommands } from './find-commands'
+import type { SelectionNumbers } from '../status-bar/types'
 import type {
   RustClipboardCapture,
   RustClipboardCaptureRequest,
@@ -120,6 +121,10 @@ export interface RustClearRangeRequest {
 }
 
 export interface RustWorkbookCommands extends RustFindCommands {
+  readonly 'selection.aggregate': WorkerCommand<
+    { readonly targets: readonly { readonly sheetId: string; readonly range: CellRange }[] },
+    SelectionNumbers & { readonly revision: number }
+  >
   readonly 'sheet.freeze': WorkerCommand<
     {
       readonly sheetId: string

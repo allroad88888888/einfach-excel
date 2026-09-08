@@ -1,51 +1,57 @@
-import { atom } from '@einfach/core'
-import type { Atom } from '@einfach/core'
-import { selectionBoundsAtom, selectionRegionsAtom } from '../selection'
-import {
-  computeSelectionAggregatesFromRanges,
-  normalizeSelectionRanges,
-  rangeContains,
-  type NormalizedSelectionRange,
-} from './aggregates-compute'
-import { statusBarProjectionSnapshotAtom, type StatusBarProjectionSnapshot } from './projection-state'
-import type { SelectionAggregates } from './types'
+import { atom, type Atom } from '@einfach/core'
+import { getSelectionRange, selectionBoundsAtom, selectionRegionsAtom } from '../selection'
+import { projectionSnapshotAtom } from '../projection/state'
+import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
+import type { SelectionAggregateState } from './types'
 
-/** Joins the projection snapshot with the live selection into one aggregate. */
+// 只依赖原生数据版本；同一版本的滚动投影不能重复统计整列。
+const aggregateRevisionAtom = atom((get) => get(projectionSnapshotAtom).result?.revision ?? null)
+aggregateRevisionAtom.debugLabel = 'spreadsheet.statusBar.revision'
 
-function selectionCoverageIsTruncated(
-  projection: StatusBarProjectionSnapshot,
-  ranges: readonly NormalizedSelectionRange[],
-): boolean {
-  if (projection.upstreamTruncated || projection.cellsTruncated) return true
-  if (ranges.length === 0) return false
-  if (projection.sheetId === null || projection.window === null) return true
-
-  for (const entry of ranges) {
-    if (entry.sheetId !== projection.sheetId || !rangeContains(projection.window, entry.range)) {
-      return true
-    }
-  }
-  return false
-}
-
-export const selectionAggregatesAtom: Atom<SelectionAggregates> = atom((get) => {
-  const projection = get(statusBarProjectionSnapshotAtom)
-  const ranges = normalizeSelectionRanges(get(selectionRegionsAtom), get(selectionBoundsAtom))
-  const matchingRanges =
-    projection.sheetId === null
-      ? []
-      : ranges.filter((entry) => entry.sheetId === projection.sheetId).map((entry) => entry.range)
-  return computeSelectionAggregatesFromRanges(projection.cells, matchingRanges, {
-    truncated: selectionCoverageIsTruncated(projection, ranges),
-  })
+/** 只读异步派生：选区或数据变了就查询，过时 Promise 由 atom 本身处理。 */
+export const selectionAggregatesAtom: Atom<
+  SelectionAggregateState | Promise<SelectionAggregateState>
+> = atom((get) => {
+  const connection = get(rustWorkbookConnectionAtom)
+  const revision = get(aggregateRevisionAtom)
+  const regions = get(selectionRegionsAtom)
+  const bounds = get(selectionBoundsAtom)
+  if (!connection || typeof revision !== 'number') return { status: 'idle' } as const
+  const targets = regions.map((region) => ({
+    sheetId: region.sheetId,
+    range: getSelectionRange(region, bounds),
+  }))
+  if (targets.length === 0) return { status: 'idle' } as const
+  return connection.request('selection.aggregate', { targets })
+    .then((result) => {
+      // 拒绝缺失/非数值的传输结果；不能把坏响应显示成看似正确的零。
+      if (
+        !result || !Number.isSafeInteger(result.numericCount) || result.numericCount < 0 ||
+        !Number.isSafeInteger(result.count) || result.count < result.numericCount ||
+        ![result.sum, result.average].every((value) => value === null || Number.isFinite(value)) ||
+        (result.numericCount === 0
+          ? result.min !== null || result.max !== null
+          : !Number.isFinite(result.min) || !Number.isFinite(result.max) ||
+            result.min === null || result.max === null || result.min > result.max) ||
+        !Number.isSafeInteger(result.revision) || result.revision < revision
+      ) {
+        throw new Error('Invalid selection statistics response.')
+      }
+      return {
+        status: 'ready',
+        numbers: Object.freeze({
+          count: result.count,
+          numericCount: result.numericCount,
+          sum: result.sum,
+          average: result.average,
+          min: result.min,
+          max: result.max,
+        }),
+      } as const
+    })
+    .catch((error: unknown) => ({
+      status: 'error',
+      message: error instanceof Error ? error.message : 'Selection statistics failed.',
+    }) as const)
 })
 selectionAggregatesAtom.debugLabel = 'spreadsheet.statusBar.selectionAggregates'
-
-/**
- * Read-only aggregate truth, including upstream/local cell truncation,
- * selection coverage, sheet mismatch, and membership-budget exhaustion.
- */
-export const statusBarAggregateTruncatedAtom: Atom<boolean> = atom(
-  (get) => get(selectionAggregatesAtom).truncated,
-)
-statusBarAggregateTruncatedAtom.debugLabel = 'spreadsheet.statusBar.aggregateTruncated'

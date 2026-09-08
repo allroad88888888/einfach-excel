@@ -1,7 +1,8 @@
 /// <reference lib="WebWorker" />
 
 import type { BackendMutationResult } from '../backend'
-import type { WorkerErrorWire, WorkerRequestWire } from '../rust-worker/types'
+import type { WorkerRequestWire } from '../rust-worker/types'
+import { rpcError } from '../rust-worker/transport'
 import { writeTrackedMutation } from './tracked-mutation'
 import { applyRustHistory } from './history-apply'
 import { exportClipboard } from './clipboard-export'
@@ -26,16 +27,6 @@ import { readVisibleProjection } from './visible-projection'
 import { changeVisibility } from './visibility-io'
 
 type CommandName = keyof RustWorkbookCommands
-
-function rpcError(error: unknown): WorkerErrorWire {
-  if (!(error instanceof Error)) return { code: 'WORKER_ERROR', message: String(error) }
-  const typed = error as Error & { code?: string; detail?: unknown }
-  return {
-    code: typed.code ?? 'WORKER_ERROR',
-    message: typed.message,
-    ...(typed.detail === undefined ? {} : { detail: typed.detail }),
-  }
-}
 
 /** 在 Worker 内维护唯一 Rust 工作簿，并处理 UI Core 的直接命令。 */
 export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
@@ -85,6 +76,15 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       return initialize(input.sheets)
     }
     const current = currentWorkbook()
+    if (command === 'selection.aggregate') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      if (!current.aggregate_selection) throw new Error('Rust aggregate command is unavailable.')
+      const targets = input.targets.map(({ sheetId, range }) => ({
+        ...range,
+        sheet: sheetIndex(sheetId),
+      }))
+      return { ...current.aggregate_selection(targets), revision }
+    }
     if (command === 'workbook.find')
       return findWorkbook(
         current,

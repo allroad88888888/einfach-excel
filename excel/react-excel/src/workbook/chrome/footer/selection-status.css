@@ -1,0 +1,33 @@
+/* 状态栏沿用现有字体与颜色；窄屏换行，数值不裁切。 */
+.selection-statistics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  padding-block: 6px;
+  font-variant-numeric: tabular-nums;
+}
+.selection-statistics > span {
+  overflow-wrap: anywhere;
+}
+.selection-statistics-error {
+  color: #a12622;
+}
+@media (max-width: 1100px) {
+  .workbook-footer {
+    flex-wrap: wrap;
+  }
+  .workbook-footer .workbook-sheet-controls {
+    flex: 1 0 100%;
+    max-width: 100%;
+  }
+  .workbook-footer .status-items {
+    width: 100%;
+    box-sizing: border-box;
+    gap: 8px;
+    padding-inline: 8px;
+    border-top: 1px solid var(--border);
+  }
+  .selection-statistics {
+    flex: 1;
+  }
+}

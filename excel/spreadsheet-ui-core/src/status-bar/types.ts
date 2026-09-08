@@ -1,39 +1,15 @@
-export type StatusBarAggregateKey =
-  | 'sum'
-  | 'average'
-  | 'count'
-  | 'numericCount'
-  | 'min'
-  | 'max'
-
-export interface SelectionAggregates {
-  sum: number
-  average: number
-  count: number
-  numericCount: number
-  min: number
-  max: number
-  truncated: boolean
+/** 原生统计结果；null 表示没有数值，或求和超过数值范围。 */
+export interface SelectionNumbers {
+  /** 非空格数，包含文本、布尔、错误和空字符串。 */
+  readonly count: number
+  readonly numericCount: number
+  readonly sum: number | null
+  readonly average: number | null
+  readonly min: number | null
+  readonly max: number | null
 }
 
-export type StatusBarAggregateConfig = Readonly<Record<StatusBarAggregateKey, boolean>>
-
-export type StatusBarInputMode = 'ready' | 'edit' | 'enter' | 'point'
-
-export const STATUS_BAR_AGGREGATE_KEYS: readonly StatusBarAggregateKey[] = [
-  'sum',
-  'average',
-  'count',
-  'numericCount',
-  'min',
-  'max',
-] as const
-
-export const DEFAULT_STATUS_BAR_AGGREGATE_CONFIG: StatusBarAggregateConfig = Object.freeze({
-  sum: true,
-  average: true,
-  count: true,
-  numericCount: false,
-  min: false,
-  max: false,
-})
+export type SelectionAggregateState =
+  | { readonly status: 'idle' }
+  | { readonly status: 'ready'; readonly numbers: SelectionNumbers }
+  | { readonly status: 'error'; readonly message: string }

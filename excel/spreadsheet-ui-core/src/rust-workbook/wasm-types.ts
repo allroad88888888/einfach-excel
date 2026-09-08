@@ -5,6 +5,8 @@ import type { RustHistoryState } from '../history/rust-history-types'
 import type { SheetVisibilityProjection } from '../viewport/hidden-state'
 import type { AutoFitText } from './auto-fit-measurement'
 import type { NativeFindMatch, NativeFindRequest, NativeReplaceRequest } from './find-commands'
+import type { CellRange } from '../shared'
+import type { SelectionNumbers } from '../status-bar/types'
 
 export interface RustCellSnapshot {
   readonly sheet: number
@@ -41,6 +43,9 @@ export interface RustFormatRangeSnapshot {
 }
 
 export interface WasmWorkbook {
+  aggregate_selection?: (
+    targets: readonly (CellRange & { readonly sheet: number })[],
+  ) => SelectionNumbers
   find_cells?: (request: NativeFindRequest) => { total: number; matches: NativeFindMatch[] }
   replace_by_query?: (request: NativeReplaceRequest) => { cells: number; occurrences: number }
   auto_fit_dimensions?: (

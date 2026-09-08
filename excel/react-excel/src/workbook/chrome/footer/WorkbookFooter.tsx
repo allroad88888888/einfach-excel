@@ -6,6 +6,7 @@ import {
 } from '@einfach/spreadsheet-ui-core'
 import './footer.css'
 import { WorkbookSheetTabs } from './WorkbookSheetTabs'
+import { SelectionStatus } from './SelectionStatus'
 
 /** Renders sheet tabs and selection status for the active UI-core workbook. */
 export function WorkbookFooter() {
@@ -34,7 +35,8 @@ export function WorkbookFooter() {
         {activeSheet === null ? null : (
           <span className="record-status">{activeSheet.rowCount.toLocaleString()} rows</span>
         )}
-        <span>Count: {selectedCellCount}</span>
+        <span>Selected: {selectedCellCount}</span>
+        <SelectionStatus />
         <div className="zoom-control" aria-label="Zoom 100 percent">
           <button type="button" aria-label="Zoom out">
             −

@@ -22,7 +22,7 @@ describe('workbook header selection', () => {
       'aria-pressed',
       'true',
     )
-    expect(screen.getByText('Count: 16')).toBeVisible()
+    expect(screen.getByText('Selected: 16')).toBeVisible()
 
     fireEvent.click(screen.getByRole('columnheader', { name: 'Select column B' }))
     await waitFor(() => expect(store.getter(selectionSnapshotAtom).selection.kind).toBe('column'))
@@ -31,12 +31,12 @@ describe('workbook header selection', () => {
       'aria-selected',
       'true',
     )
-    expect(screen.getByText('Count: 1001')).toBeVisible()
+    expect(screen.getByText('Selected: 1001')).toBeVisible()
 
     fireEvent.click(screen.getByRole('button', { name: 'Select all cells' }))
     await waitFor(() => expect(store.getter(selectionSnapshotAtom).selection.kind).toBe('all'))
     expect(screen.getByRole('textbox', { name: 'Name box' })).toHaveValue('A1:P1001')
-    expect(screen.getByText('Count: 16016')).toBeVisible()
+    expect(screen.getByText('Selected: 16016')).toBeVisible()
     expect(controlled.setCellInput).not.toHaveBeenCalled()
   })
 

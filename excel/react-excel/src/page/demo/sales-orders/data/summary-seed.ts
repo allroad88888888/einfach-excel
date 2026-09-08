@@ -17,6 +17,17 @@ export const SALES_ORDER_SUMMARY_CELLS: readonly RustImportCell[] = [
   { sheet: 1, row: 85, col: 1, kind: 'text', value: 'SKU-200' },
   { sheet: 1, row: 85, col: 2, kind: 'text', value: 'SKU-*' },
   { sheet: 1, row: 86, col: 0, kind: 'text', value: 'SKU-😀' },
+  // 状态栏示例 A93:F93：数值 4 个，和 26，平均 6.5；文本数字和布尔不计数。
+  { sheet: 1, row: 92, col: 0, kind: 'number', value: 10 },
+  { sheet: 1, row: 92, col: 1, kind: 'number', value: 0 },
+  { sheet: 1, row: 92, col: 2, kind: 'number', value: -4 },
+  { sheet: 1, row: 92, col: 3, kind: 'formula', value: '=A93*2' },
+  { sheet: 1, row: 92, col: 4, kind: 'text', value: '30' },
+  { sheet: 1, row: 92, col: 5, kind: 'boolean', value: true },
+  // A94:C94 看似空白或报错，但都有内容：非空计数为 3，数值计数为 0。
+  { sheet: 1, row: 93, col: 0, kind: 'text', value: '' },
+  { sheet: 1, row: 93, col: 1, kind: 'formula', value: '=""' },
+  { sheet: 1, row: 93, col: 2, kind: 'formula', value: '=1/0' },
   // 离屏内容参与自动适应；仅给演示数据加格式，不在 React 写坐标特判。
   {
     sheet: 1,

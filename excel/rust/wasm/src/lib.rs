@@ -121,6 +121,7 @@ include!("wasm_workbook_clipboard.rs");
 include!("wasm_workbook_viewport_persistence.rs");
 include!("wasm_workbook_auto_fit.rs");
 include!("wasm_workbook_find.rs");
+include!("wasm_workbook_aggregate.rs");
 include!("wasm_workbook_history.rs");
 include!("wasm_workbook_structure.rs");
 include!("wasm_workbook_merge.rs");
@@ -160,6 +161,7 @@ mod tests {
     include!("wasm_tests/merge.rs");
     include!("wasm_tests/frozen_panes.rs");
     include!("wasm_tests/find_wire.rs");
+    include!("wasm_tests/aggregate_wire.rs");
     include!("wasm_tests/filters_support.rs");
     include!("wasm_tests/filters_persistence.rs");
     include!("wasm_tests/filters_wire_contract.rs");

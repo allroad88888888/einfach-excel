@@ -7,7 +7,7 @@ test('row headers select full rows and Shift click extends the selection', async
   await expect(cell(page, 2, 0)).toBeVisible()
   await page.getByRole('button', { name: 'Select row 3', exact: true }).click()
   await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('A3:P3')
-  await expect(page.getByText('Count: 16', { exact: true })).toBeVisible()
+  await expect(page.getByText('Selected: 16', { exact: true })).toBeVisible()
   await page
     .getByRole('button', { name: 'Select row 5', exact: true })
     .click({ modifiers: ['Shift'] })
@@ -64,7 +64,7 @@ test('the corner selects and formats the full sheet including cells outside the 
   await corner.click()
   await expect(corner).toHaveAttribute('aria-pressed', 'true')
   await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('A1:P1001')
-  await expect(page.getByText('Count: 16016', { exact: true })).toBeVisible()
+  await expect(page.getByText('Selected: 16016', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Italic', exact: true }).click()
   await expect(cell(page, 0, 0)).toHaveCSS('font-style', 'italic')
   await page.getByTestId('sheet-scroll').evaluate((element) => {
@@ -74,7 +74,7 @@ test('the corner selects and formats the full sheet including cells outside the 
   await expect(cell(page, 1000, 15)).toHaveAttribute('data-selected', 'true')
   await expect(cell(page, 1000, 15)).toHaveCSS('font-style', 'italic')
   await cell(page, 1000, 15).click()
-  await expect(page.getByText('Count: 1', { exact: true })).toBeVisible()
+  await expect(page.getByText('Selected: 1', { exact: true })).toBeVisible()
   await expect(corner).toHaveAttribute('aria-pressed', 'false')
 })
 

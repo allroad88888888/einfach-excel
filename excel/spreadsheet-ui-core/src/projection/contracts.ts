@@ -11,6 +11,7 @@ import type {
 } from '../backend'
 import type { CellRange, SheetRef } from '../shared'
 import { validSheetVisibility } from '../viewport/hidden-state'
+import { validFrozenProjection, validProjectionViewport } from './frozen-validation'
 import type {
   ProjectionLimitOptions,
   ProjectionRequest,
@@ -23,6 +24,7 @@ export const DEFAULT_MAX_PROJECTION_CELLS = 50_000
 
 export interface CreateVisibleProjectionRequestInput extends SheetRef {
   window: CellRange
+  viewport?: VisibleProjectionRequest['viewport']
   requestId: ProjectionRequestId
   reason?: ProjectionRequestReason
   revision?: ProjectionRevision
@@ -74,6 +76,7 @@ export function createVisibleProjectionRequest(
     kind: 'visible-window',
     sheetId: input.sheetId,
     window: copyRange(input.window),
+    ...(input.viewport ? { viewport: { ...input.viewport } } : {}),
     requestId: input.requestId,
     reason: input.reason,
     revision: input.revision,
@@ -171,6 +174,8 @@ export function validateProjectionRequest(
   request: ProjectionRequest,
   options: ProjectionLimitOptions = {},
 ): ProjectionValidationResult {
+  if (request.kind === 'visible-window' && request.viewport !== undefined && !validProjectionViewport(request.viewport))
+    return makeInvalid('INVALID_RANGE', 'Invalid projection viewport.')
   return validateProjectionRange(
     request.sheetId,
     request.requestId,
@@ -208,6 +213,8 @@ export function validateProjectionResult(
     return makeInvalid('STALE_RESULT', 'Projection result does not match its request.')
   }
   const range = getProjectionResultRange(result)
+  if (result.kind === 'visible-window' && !validFrozenProjection(result, options.maxCells ?? DEFAULT_MAX_PROJECTION_CELLS))
+    return makeInvalid('CELL_OUT_OF_RANGE', 'Invalid Rust frozen-region projection.')
   if (result.kind === 'visible-window' && result.visibility !== undefined && !validSheetVisibility(result.visibility))
     return makeInvalid('CELL_OUT_OF_RANGE', 'Invalid Rust visibility projection.')
   if (result.kind === 'visible-window' && result.freeze !== undefined) {

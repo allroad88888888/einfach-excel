@@ -43,6 +43,7 @@ import type {
 } from './types'
 import { applyProjectionSizes } from './projection-sizes'
 import { applySheetVisibility } from '../viewport/hidden-state'
+import { cellAtProjection } from './cell-at'
 
 export * from './contracts'
 export * from './types'
@@ -62,6 +63,7 @@ function createProjectionRequest(
     return createVisibleProjectionRequest({
       sheetId: input.sheetId,
       window: input.window,
+      viewport: input.viewport,
       requestId,
       reason: input.reason,
       revision: input.revision,
@@ -409,10 +411,7 @@ export const activeCellFormatAtom: Atom<SpreadsheetCellFormat> = atom((get) => {
     return {}
   }
 
-  const cell = [...(result.mergeAnchors ?? []), ...result.cells].find(
-    (candidate) =>
-      candidate.row === selection.activeCell.row && candidate.col === selection.activeCell.col,
-  )
+  const cell = cellAtProjection(result, selection.activeCell)
   return cell?.format ? cloneFormat(cell.format) : {}
 })
 activeCellFormatAtom.debugLabel = 'spreadsheet.projection.activeCellFormat'

@@ -78,6 +78,7 @@ interface BeginProjectionBaseInput {
 export interface BeginVisibleProjectionInput extends BeginProjectionBaseInput {
   readonly kind: 'visible-window'
   readonly window: CellRange
+  readonly viewport?: VisibleProjectionRequest['viewport']
 }
 
 export interface BeginRangeProjectionInput extends BeginProjectionBaseInput {

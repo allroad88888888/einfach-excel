@@ -8,7 +8,7 @@ import {
   editingDraftAtom,
   insertEditingLineBreakAtom,
   editingSessionAtom,
-  visibleWindowAtom,
+  projectedFreezeAtom,
   getViewportRangeRectangle,
   mergeRangeAt,
   projectionSnapshotAtom,
@@ -22,6 +22,7 @@ import './cell-editor.css'
 import {
   WORKBOOK_GRID_ROW_HEIGHT,
   WORKBOOK_GRID_COLUMN_WIDTH,
+  WORKBOOK_GRID_ROW_HEADER_WIDTH,
 } from '../viewport/workbook-grid-config'
 
 export interface CellEditorProps {
@@ -33,7 +34,7 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
   const session = useAtomValue(editingSessionAtom)
   const draft = useAtomValue(editingDraftAtom)
   const lifecycle = useAtomValue(editingCommitLifecycleAtom)
-  const window = useAtomValue(visibleWindowAtom)
+  const freeze = useAtomValue(projectedFreezeAtom)
   const activeSheet = useAtomValue(activeWorkbookSheetAtom)
   const projection = useAtomValue(projectionSnapshotAtom).result
   const viewportMetrics = useAtomValue(viewportMetricsAtom)
@@ -88,7 +89,8 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
       colEnd: cell.col,
     },
   )
-  const origin = getViewportRangeRectangle(metrics, sizeOverrides, window)
+  const frozenRow = freeze?.sheetId === sheetId && cell.row < freeze.rows
+  const frozenCol = freeze?.sheetId === sheetId && cell.col < freeze.cols
 
   const commitOnce = async (restoreKeyboardFocus: boolean) => {
     if (committingRef.current || busy) return
@@ -153,9 +155,9 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
   }
   const stopPointer = (event: PointerEvent<HTMLDivElement>) => event.stopPropagation()
   const style = {
-    '--editor-top': `${rect.top - origin.top}px`,
+    '--editor-top': `${WORKBOOK_GRID_ROW_HEIGHT + rect.top + (frozenRow ? metrics.scrollTop : 0)}px`,
     '--editor-height': `${Math.max(rect.height, Math.min(5, draft.split('\n').length) * 18 + 6)}px`,
-    '--editor-left': `${rect.left - origin.left}px`,
+    '--editor-left': `${WORKBOOK_GRID_ROW_HEADER_WIDTH + rect.left + (frozenCol ? metrics.scrollLeft : 0)}px`,
     '--editor-width': `${rect.width}px`,
   } as CSSProperties
   const fieldIdentity = `cell-editor-r${cell.row}-c${cell.col}`

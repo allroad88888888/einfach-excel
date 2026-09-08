@@ -16,6 +16,14 @@ export function initializeWorkbook(
   inputs.forEach((input, index) => importSheetVisibility(workbook, index, input))
   // 初始矩形只写 Rust；后续导入锚点内容，启动历史不暴露为用户操作。
   inputs.forEach((input, index) => {
+    if (input.freeze) {
+      const { rows, cols } = input.freeze
+      if (![rows, cols].every((n) => Number.isSafeInteger(n) && n >= 0) ||
+        rows >= (input.rowCount ?? 1_048_576) || cols >= (input.colCount ?? 16_384))
+        throw new Error('Invalid initial freeze boundary.')
+      if (!workbook.set_frozen_panes) throw new Error('Rust freeze command is unavailable.')
+      workbook.set_frozen_panes(index, rows, cols)
+    }
     for (const range of input.mergedRanges ?? []) {
       if (!workbook.merge_cells) throw new Error('Rust merge command is unavailable.')
       workbook.merge_cells(

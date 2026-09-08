@@ -12,6 +12,7 @@ import { HistoryTools } from './HistoryTools'
 import { VisibilityTools } from './VisibilityTools'
 import { StructureTools } from './StructureTools'
 import { MergeTools } from './MergeTools'
+import { FreezeTools } from './FreezeTools'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import './ribbon.css'
 
@@ -71,6 +72,7 @@ export function WorkbookRibbon() {
         <HistoryTools />
         <VisibilityTools />
         <StructureTools />
+        <FreezeTools />
         <span className="tool-separator" aria-hidden="true" />
         <select
           aria-label="Font family"

@@ -31,6 +31,7 @@ export interface RustWorkbookSheetInput {
   readonly hiddenRows?: readonly number[]
   readonly hiddenColumns?: readonly number[]
   readonly mergedRanges?: readonly CellRange[]
+  readonly freeze?: { readonly rows: number; readonly cols: number }
 }
 
 export interface RustWorkbookSheet {

@@ -4,6 +4,7 @@ import {
   projectionSnapshotAtom,
   resetProjectionAtom,
   runVisibleProjectionAtom,
+  viewportMetricsAtom,
   type CellRange,
   type ProjectionSnapshot,
   type ProjectionStatus,
@@ -122,6 +123,12 @@ function isCurrentRequest(
  */
 export function useWorkbookViewport(options: UseWorkbookViewportOptions): WorkbookViewport {
   const snapshot: ProjectionSnapshot = useAtomValue(projectionSnapshotAtom)
+  const metrics = useAtomValue(viewportMetricsAtom)
+  const { viewportHeight: height, viewportWidth: width, rowHeight, colWidth } = metrics
+  const projectionViewport = useMemo(
+    () => ({ height, width, rowHeight, colWidth }),
+    [height, width, rowHeight, colWidth],
+  )
   const resetProjection = useSetAtom(resetProjectionAtom)
   const runVisibleProjection = useSetAtom(runVisibleProjectionAtom)
   const { sheetId } = options
@@ -164,17 +171,29 @@ export function useWorkbookViewport(options: UseWorkbookViewportOptions): Workbo
     void runVisibleProjection({
       sheetId,
       window: { rowStart, rowEnd, colStart, colEnd },
+      viewport: projectionViewport,
       reason: 'viewport',
       retainResult: true,
       maxCells,
     })
-  }, [maxCells, resetProjection, runVisibleProjection, sheetId, colEnd, colStart, rowEnd, rowStart])
+  }, [
+    maxCells,
+    resetProjection,
+    runVisibleProjection,
+    sheetId,
+    colEnd,
+    colStart,
+    rowEnd,
+    rowStart,
+    projectionViewport,
+  ])
 
   const refresh = async (): Promise<void> => {
     if (rowEnd < rowStart || colEnd < colStart) return
     const outcome = await runVisibleProjection({
       sheetId,
       window: { rowStart, rowEnd, colStart, colEnd },
+      viewport: projectionViewport,
       reason: 'viewport',
       retainResult: true,
       maxCells,

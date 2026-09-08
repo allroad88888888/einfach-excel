@@ -5,22 +5,27 @@ import {
   selectionSnapshotAtom,
   viewportGeometrySizesAtom,
   viewportMetricsAtom,
+  type CellRange,
+  type DisplayCell,
 } from '@einfach/spreadsheet-ui-core'
 import { cellFormatStyle, cellTextRotationStyle } from './cell-format-style'
 import './merged-cells.css'
 
 /** 叠加完整合并框并裁到可见窗口，滚动不改变文本在原矩形里的位置。 */
-export function MergedCells() {
+export function MergedCells({ window, anchors }: {
+  window?: CellRange
+  anchors?: readonly DisplayCell[]
+} = {}) {
   const snapshot = useAtomValue(projectionSnapshotAtom)
   const selection = useAtomValue(selectionSnapshotAtom)
   const sizes = useAtomValue(viewportGeometrySizesAtom)
   const metrics = useAtomValue(viewportMetricsAtom)
   const result = snapshot.result
   if (result?.kind !== 'visible-window' || result.sheetId !== metrics.sheetId) return null
-  const origin = getViewportRangeRectangle(metrics, sizes, result.window)
+  const origin = getViewportRangeRectangle(metrics, sizes, window ?? result.window)
   return (
     <div className="merged-cell-layer">
-      {result.mergeAnchors?.map((cell) => {
+      {(anchors ?? result.mergeAnchors)?.map((cell) => {
         const span = cell.mergedSpan!
         const range = {
           rowStart: cell.row,

@@ -81,6 +81,7 @@ export const runSelectionMergeAtom = atom(
       sheetId: sheet.id,
       requestId,
       window: visible.window,
+      viewport: visible.viewport,
       reason: 'toolbar',
     })
     const busy = { ...state, busy: true, error: null }

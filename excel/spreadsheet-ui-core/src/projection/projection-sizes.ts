@@ -18,45 +18,49 @@ export function applyProjectionSizes(
   set: Setter,
   result: VisibleProjectionResult,
 ): void {
-  if (result.rowHeights === undefined && result.colWidths === undefined) return
   const current = get(viewportSizeOverridesAtom)
-  const canonical = (result.rowHeights ?? []).filter(
-    ({ rowIndex, heightPx }) =>
-      Number.isSafeInteger(rowIndex) &&
-      rowIndex >= result.window.rowStart &&
-      rowIndex <= result.window.rowEnd &&
-      Number.isFinite(heightPx) &&
-      heightPx >= MIN_VIEWPORT_ROW_HEIGHT &&
-      heightPx <= MAX_VIEWPORT_ROW_HEIGHT,
-  )
   const currentSheet = current.rowHeightsBySheet[result.sheetId] ?? {}
-  const nextSheet =
-    result.rowHeights === undefined
-      ? currentSheet
-      : reconcileRowHeightWindow(
-          currentSheet,
-          canonical,
-          result.window.rowStart,
-          result.window.rowEnd,
-        )
   const currentColumns = current.colWidthsBySheet[result.sheetId] ?? {}
-  const nextColumns =
-    result.colWidths === undefined
-      ? currentColumns
-      : reconcileColumnWidthWindow(
-          currentColumns,
-          result.colWidths.filter(
-            ({ colIndex, widthPx }) =>
-              Number.isSafeInteger(colIndex) &&
-              colIndex >= result.window.colStart &&
-              colIndex <= result.window.colEnd &&
-              Number.isFinite(widthPx) &&
-              widthPx >= MIN_VIEWPORT_COL_WIDTH &&
-              widthPx <= MAX_VIEWPORT_COL_WIDTH,
-          ),
-          result.window.colStart,
-          result.window.colEnd,
-        )
+  let nextSheet = currentSheet
+  let nextColumns = currentColumns
+  // 所有窗口先合并，最后只发布一次；未返回的窗口尺寸不会被删除。
+  for (const region of [result, ...(result.frozen?.regions ?? [])]) {
+    const canonical = (region.rowHeights ?? []).filter(
+      ({ rowIndex, heightPx }) =>
+        Number.isSafeInteger(rowIndex) &&
+        rowIndex >= region.window.rowStart &&
+        rowIndex <= region.window.rowEnd &&
+        Number.isFinite(heightPx) &&
+        heightPx >= MIN_VIEWPORT_ROW_HEIGHT &&
+        heightPx <= MAX_VIEWPORT_ROW_HEIGHT,
+    )
+    nextSheet =
+      region.rowHeights === undefined
+        ? nextSheet
+        : reconcileRowHeightWindow(
+            nextSheet,
+            canonical,
+            region.window.rowStart,
+            region.window.rowEnd,
+          )
+    nextColumns =
+      region.colWidths === undefined
+        ? nextColumns
+        : reconcileColumnWidthWindow(
+            nextColumns,
+            region.colWidths.filter(
+              ({ colIndex, widthPx }) =>
+                Number.isSafeInteger(colIndex) &&
+                colIndex >= region.window.colStart &&
+                colIndex <= region.window.colEnd &&
+                Number.isFinite(widthPx) &&
+                widthPx >= MIN_VIEWPORT_COL_WIDTH &&
+                widthPx <= MAX_VIEWPORT_COL_WIDTH,
+            ),
+            region.window.colStart,
+            region.window.colEnd,
+          )
+  }
   if (sameSparseSizes(currentSheet, nextSheet) && sameSparseSizes(currentColumns, nextColumns))
     return
   set(viewportSizeOverridesAtom, {

@@ -2,6 +2,8 @@ import type { ViewportRowHeight, ViewportColumnWidth } from './viewport-contract
 import type { RustHistoryState } from '../history/rust-history-types'
 import type { SheetVisibilityProjection } from '../viewport/hidden-state'
 import type { CellRange, SheetRef } from '../shared'
+import type { FrozenProjection, ProjectionViewport } from './frozen-projection-contracts'
+export type { FrozenProjection, FrozenProjectionRegion, ProjectionViewport } from './frozen-projection-contracts'
 import type {
   DisplayCell,
   ProjectionCancelToken,
@@ -14,6 +16,7 @@ import type {
 export interface VisibleProjectionRequest extends SheetRef {
   kind: 'visible-window'
   window: CellRange
+  viewport?: ProjectionViewport
   requestId: ProjectionRequestId
   reason?: ProjectionRequestReason
   revision?: ProjectionRevision
@@ -49,6 +52,8 @@ export interface VisibleProjectionResult extends SheetRef {
   visibility?: SheetVisibilityProjection
   /** 原生工作表冻结边界；React 不持有第二份配置。 */
   freeze?: { readonly rows: number; readonly cols: number }
+  /** 与滚动区同一修订版的冻结数据，不混进普通 cells 的窗口契约。 */
+  frozen?: FrozenProjection
   truncated?: boolean
 }
 

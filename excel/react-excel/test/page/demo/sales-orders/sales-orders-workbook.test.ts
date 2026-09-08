@@ -25,6 +25,7 @@ describe('Sales Orders workbook definition', () => {
         name: 'Summary',
         rowCount: 100,
         colCount: 8,
+        freeze: { rows: 1, cols: 0 },
         ...SUMMARY_SIZES,
         hiddenRows: [9],
         hiddenColumns: [6],

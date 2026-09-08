@@ -49,6 +49,10 @@ export function snapshotRustWorkbookDefinition(
     }
     const hiddenRows = hidden(sheet.hiddenRows, sheet.rowCount)
     const hiddenColumns = hidden(sheet.hiddenColumns, sheet.colCount)
+    const freeze = sheet.freeze
+    if (freeze && (![freeze.rows, freeze.cols].every((n) => Number.isSafeInteger(n) && n >= 0) ||
+      freeze.rows >= sheet.rowCount || freeze.cols >= sheet.colCount))
+      throw new Error('Invalid initial freeze boundary.')
     const mergedRanges = sheet.mergedRanges?.map((range) => {
       if (
         ![range.rowStart, range.rowEnd, range.colStart, range.colEnd].every(
@@ -97,6 +101,7 @@ export function snapshotRustWorkbookDefinition(
       ...(hiddenRows ? { hiddenRows } : {}),
       ...(hiddenColumns ? { hiddenColumns } : {}),
       ...(mergedRanges ? { mergedRanges: Object.freeze(mergedRanges) } : {}),
+      ...(freeze ? { freeze: Object.freeze({ ...freeze }) } : {}),
     })
   })
   if (title.length === 0 || sheets.length === 0) {

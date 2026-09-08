@@ -1,0 +1,38 @@
+/* sticky 只负责固定容器，内部格坐标仍由同一份尺寸投影计算。 */
+.frozen-viewport {
+  position: sticky;
+  grid-area: 1 / 1 / 3 / 3;
+  align-self: start;
+  justify-self: start;
+  top: 0;
+  left: 0;
+  z-index: 6;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.frozen-pane,
+.frozen-row-headers,
+.frozen-column-headers {
+  position: absolute;
+  overflow: hidden;
+  pointer-events: auto;
+  background: var(--surface);
+}
+
+.frozen-pane::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  box-shadow: inset -1px -1px var(--border-strong);
+  pointer-events: none;
+}
+
+.frozen-row-headers,
+.frozen-column-headers {
+  background: var(--chrome);
+}
+
+.frozen-row-headers .sheet-heading {
+  border-bottom: 1px solid var(--border);
+}

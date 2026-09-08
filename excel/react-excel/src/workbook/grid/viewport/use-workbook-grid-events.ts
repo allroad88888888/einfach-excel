@@ -9,6 +9,7 @@ import {
   updatePointerSelectionAtom,
   viewportMetricsAtom,
   viewportGeometrySizesAtom,
+  projectedFreezeAtom,
   type KeyboardInput,
   type ViewportMetrics,
 } from '@einfach/spreadsheet-ui-core'
@@ -43,6 +44,7 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
   const editingSession = useAtomValue(editingSessionAtom)
   const viewportMetrics = useAtomValue(viewportMetricsAtom)
   const sizeOverrides = useAtomValue(viewportGeometrySizesAtom)
+  const freeze = useAtomValue(projectedFreezeAtom)
   const dispatchGridKeyboard = useSetAtom(dispatchGridCellKeyboardInputAtom)
   const startCellEditing = useSetAtom(startCellEditingFromProjectionAtom)
   const setViewportScroll = useSetAtom(setViewportScrollAtom)
@@ -77,10 +79,12 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
               rowCount: activeSheet.rowCount,
               colCount: activeSheet.colCount,
               rowHeights: sizeOverrides.rowHeightsBySheet[activeSheet.id],
+              frozenHeight: freeze?.sheetId === activeSheet.id ? freeze.height : 0,
+              frozenWidth: freeze?.sheetId === activeSheet.id ? freeze.width : 0,
             }))
       if (coord !== null) updatePointerSelection({ sheetId: activeSheet.id, coord })
     },
-    [activeSheet, sizeOverrides, updatePointerSelection],
+    [activeSheet, sizeOverrides, updatePointerSelection, freeze],
   )
   const dragAutoscroll = useGridDragAutoscroll({
     enabled: activeSheet !== null,
@@ -104,8 +108,13 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
     setViewportScroll({ scrollTop, scrollLeft })
   }
   const onKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (event.target instanceof HTMLElement && event.target.closest('button, input, textarea')) return
     if (activeSheet === null || editingSession.source !== null) return
-    const keyboard = getGridKeyboardInput(event, viewportMetrics)
+    const keyboard = getGridKeyboardInput(event, {
+      ...viewportMetrics,
+      viewportHeight: Math.max(0, viewportMetrics.viewportHeight -
+        (freeze?.sheetId === activeSheet.id ? freeze.height : 0)),
+    })
     if (keyboard === null) return
 
     event.preventDefault()
@@ -118,8 +127,9 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
   }
   const onPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (viewport.retained) return
-    event.currentTarget.focus({ preventScroll: true })
     const coord = workbookCellAt(event)
+    if (coord === null) return
+    focusGrid()
     pointerHandlers.onPointerDown(event)
     if (coord !== null && event.button === 0 && event.isPrimary !== false) {
       dragAutoscroll.start(event)

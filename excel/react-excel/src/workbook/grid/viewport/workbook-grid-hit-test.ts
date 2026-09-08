@@ -17,6 +17,8 @@ interface WorkbookViewportPoint {
   readonly rowCount: number
   readonly colCount: number
   readonly rowHeights?: Record<string, number>
+  readonly frozenHeight?: number
+  readonly frozenWidth?: number
 }
 
 /** Resolves a pointer location to the workbook cell rendered beneath it. */
@@ -38,8 +40,10 @@ export function workbookCellAtPoint(clientX: number, clientY: number): CellCoord
 
 /** Maps viewport pixels to a cell while retained projection DOM is temporarily non-interactive. */
 export function workbookCellAtViewportPoint(input: WorkbookViewportPoint): CellCoord | null {
-  const contentX = input.scrollLeft + input.clientX - input.bounds.left - input.rowHeaderWidth
-  const contentY = input.scrollTop + input.clientY - input.bounds.top - input.rowHeight
+  const x = input.clientX - input.bounds.left - input.rowHeaderWidth
+  const y = input.clientY - input.bounds.top - input.rowHeight
+  const contentX = x + (x < (input.frozenWidth ?? 0) ? 0 : input.scrollLeft)
+  const contentY = y + (y < (input.frozenHeight ?? 0) ? 0 : input.scrollTop)
   if (contentX < 0 || contentY < 0) return null
 
   const row = getAxisStartIndexAtOffset(

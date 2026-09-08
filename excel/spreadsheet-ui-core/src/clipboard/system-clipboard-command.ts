@@ -189,6 +189,7 @@ export const runSystemClipboardAtom = atom(
       const projection = createVisibleProjectionRequest({
         sheetId: sheet.id,
         window: visible.window,
+        viewport: visible.viewport,
         requestId,
         reason: 'toolbar',
       })

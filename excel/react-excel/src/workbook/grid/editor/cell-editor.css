@@ -1,6 +1,6 @@
 .cell-editor {
   position: absolute;
-  z-index: 2;
+  z-index: 8;
   top: var(--editor-top);
   left: var(--editor-left);
   width: var(--editor-width);

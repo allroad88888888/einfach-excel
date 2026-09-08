@@ -1,14 +1,13 @@
-import { useAtomValue, useSetAtom } from '@einfach/react'
+import { useAtomValue } from '@einfach/react'
 import {
   activeWorkbookSheetAtom,
   getAxisOffsetForIndex,
   getViewportRowHeight,
   getViewportColumnWidth,
   selectionSnapshotAtom,
-  selectGridHeaderAtom,
   viewportGeometrySizesAtom,
+  projectedFreezeAtom,
   type WorkbookDocumentSheet,
-  type GridHeaderSelectionInput,
 } from '@einfach/spreadsheet-ui-core'
 import type { CSSProperties } from 'react'
 import { useWorkbookViewport, type WorkbookViewport } from '../../projection/use-workbook-viewport'
@@ -23,10 +22,15 @@ import {
 import { useWorkbookGridEvents } from './use-workbook-grid-events'
 import { useGridClipboard } from '../../clipboard/use-grid-clipboard'
 import { useWorkbookGridWindow } from './use-workbook-grid-window'
+import { GridHeaders } from './GridHeaders'
+import { FrozenGrid } from './FrozenGrid'
 import './grid.css'
 
 function rowNumbers(rowStart: number, rowEnd: number): readonly number[] {
-  return Array.from({ length: rowEnd - rowStart + 1 }, (_, index) => rowStart + index + 1)
+  return Array.from(
+    { length: Math.max(0, rowEnd - rowStart + 1) },
+    (_, index) => rowStart + index + 1,
+  )
 }
 
 function projectionState(viewport: WorkbookViewport) {
@@ -49,7 +53,7 @@ function projectionState(viewport: WorkbookViewport) {
 
 function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: WorkbookDocumentSheet }) {
   const selection = useAtomValue(selectionSnapshotAtom)
-  const selectHeader = useSetAtom(selectGridHeaderAtom)
+  const freeze = useAtomValue(projectedFreezeAtom)
   const sizeOverrides = useAtomValue(viewportGeometrySizesAtom)
   const gridWindow = useWorkbookGridWindow()
   const viewport = useWorkbookViewport({
@@ -60,10 +64,14 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
   })
   const events = useWorkbookGridEvents(viewport)
   const clipboard = useGridClipboard(viewport.retained)
-  const selectGridHeader = async (input: GridHeaderSelectionInput) => {
-    if (await selectHeader(input)) events.focusGrid()
+  const frozenRows = freeze?.sheetId === activeSheet.id ? freeze.rows : 0
+  const frozenCols = freeze?.sheetId === activeSheet.id ? freeze.cols : 0
+  const bodyWindow = {
+    ...viewport.window,
+    rowStart: Math.max(viewport.window.rowStart, frozenRows),
+    colStart: Math.max(viewport.window.colStart, frozenCols),
   }
-  const rows = rowNumbers(viewport.window.rowStart, viewport.window.rowEnd)
+  const rows = rowNumbers(bodyWindow.rowStart, bodyWindow.rowEnd)
   const rowHeights = sizeOverrides.rowHeightsBySheet[activeSheet.id]
   const columnWidths = Array.from({ length: activeSheet.colCount }, (_, col) =>
     getViewportColumnWidth(sizeOverrides, activeSheet.id, col, WORKBOOK_GRID_COLUMN_WIDTH),
@@ -80,7 +88,7 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
     getViewportRowHeight(
       sizeOverrides,
       activeSheet.id,
-      viewport.window.rowStart + index,
+      bodyWindow.rowStart + index,
       WORKBOOK_GRID_ROW_HEIGHT,
     ),
   )
@@ -91,7 +99,7 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
     rowHeights,
   )
   const windowOffset = getAxisOffsetForIndex(
-    viewport.placementWindow.rowStart,
+    Math.max(viewport.placementWindow.rowStart, frozenRows),
     activeSheet.rowCount,
     WORKBOOK_GRID_ROW_HEIGHT,
     rowHeights,
@@ -118,10 +126,10 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
   } as CSSProperties
   const cellWindowStyle = {
     ...windowStyle,
-    '--grid-window-offset-x': `${columnOffset(viewport.placementWindow.colStart)}px`,
+    '--grid-window-offset-x': `${columnOffset(Math.max(viewport.placementWindow.colStart, frozenCols))}px`,
     '--grid-window-width': `${
-      columnOffset(viewport.placementWindow.colEnd + 1) -
-      columnOffset(viewport.placementWindow.colStart)
+      columnOffset(Math.max(viewport.placementWindow.colEnd + 1, frozenCols)) -
+      columnOffset(Math.max(viewport.placementWindow.colStart, frozenCols))
     }px`,
   } as CSSProperties
 
@@ -139,93 +147,36 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
         data-testid="sheet-scroll"
         onScroll={events.onScroll}
       >
-        <div className="sheet-grid-frame grid-viewport-frame" style={frameStyle}>
-          <button
-            className="sheet-corner"
-            type="button"
-            aria-label="Select all cells"
-            aria-pressed={selection.selection.kind === 'all'}
-            onPointerDown={(event) => event.preventDefault()}
-            onClick={() => void selectGridHeader({ kind: 'all', sheetId: activeSheet.id })}
-          >
-            <span aria-hidden="true">◢</span>
-          </button>
-          <div className="column-headers" role="row">
-            {Array.from({ length: activeSheet.colCount }, (_, col) =>
-              columnWidths[col] === 0 ? null : (
-                <button
-                  className={
-                    col >= selection.range.colStart && col <= selection.range.colEnd
-                      ? 'sheet-heading heading-selected'
-                      : 'sheet-heading'
-                  }
-                  key={col}
-                  role="columnheader"
-                  type="button"
-                  aria-label={`Select column ${String.fromCharCode(65 + col)}`}
-                  aria-selected={col >= selection.range.colStart && col <= selection.range.colEnd}
-                  onPointerDown={(event) => event.preventDefault()}
-                  onClick={(event) =>
-                    void selectGridHeader({
-                      kind: 'column',
-                      sheetId: activeSheet.id,
-                      index: col,
-                      extend: event.shiftKey,
-                    })
-                  }
-                >
-                  {String.fromCharCode(65 + col)}
-                </button>
-              ),
-            )}
-          </div>
-          <div className="row-headers grid-window" style={windowStyle}>
-            {rows.map((rowNumber, index) => {
-              if (visibleRowHeights[index] === 0) return null
-              const row = index + viewport.window.rowStart
-              return (
-                <button
-                  className={
-                    row >= selection.range.rowStart && row <= selection.range.rowEnd
-                      ? 'sheet-heading heading-selected'
-                      : 'sheet-heading'
-                  }
-                  key={rowNumber}
-                  type="button"
-                  aria-label={`Select row ${rowNumber}`}
-                  aria-pressed={row >= selection.range.rowStart && row <= selection.range.rowEnd}
-                  onPointerDown={(event) => event.preventDefault()}
-                  onClick={(event) =>
-                    void selectGridHeader({
-                      kind: 'row',
-                      sheetId: activeSheet.id,
-                      index: row,
-                      extend: event.shiftKey,
-                    })
-                  }
-                >
-                  {rowNumber}
-                </button>
-              )
-            })}
-          </div>
+        <div
+          className="sheet-grid-frame grid-viewport-frame"
+          data-frozen-rows={frozenRows}
+          data-frozen-cols={frozenCols}
+          style={frameStyle}
+          onCopy={clipboard.onCopy}
+          onCut={clipboard.onCut}
+          onPaste={clipboard.onPaste}
+          onDoubleClick={events.onDoubleClick}
+          onKeyDown={events.onKeyDown}
+          onPointerDown={events.onPointerDown}
+          onPointerMove={events.onPointerMove}
+          onPointerUp={events.onPointerUp}
+          onPointerCancel={events.onPointerCancel}
+        >
+          <GridHeaders
+            rowStart={bodyWindow.rowStart}
+            rowHeights={visibleRowHeights}
+            columnWidths={columnWidths}
+            rowStyle={windowStyle}
+            focusGrid={events.focusGrid}
+          />
           <div
             ref={events.gridRef}
             className="grid-surface grid-window"
             data-workbook-grid="true"
-            onCopy={clipboard.onCopy}
-            onCut={clipboard.onCut}
-            onPaste={clipboard.onPaste}
             data-row-count={activeSheet.rowCount}
             data-projection-retained={viewport.retained ? 'true' : 'false'}
             aria-busy={viewport.retained}
             aria-label={`${activeSheet.name} cells`}
-            onDoubleClick={events.onDoubleClick}
-            onKeyDown={events.onKeyDown}
-            onPointerCancel={events.onPointerCancel}
-            onPointerDown={events.onPointerDown}
-            onPointerMove={events.onPointerMove}
-            onPointerUp={events.onPointerUp}
             style={cellWindowStyle}
             tabIndex={viewport.retained ? -1 : 0}
           >
@@ -234,17 +185,15 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
                 cells={viewport.cells}
                 mergedRanges={viewport.mergedRanges}
                 selected={selection.range}
-                window={viewport.window}
+                window={bodyWindow}
                 rowHeights={visibleRowHeights}
-                columnWidths={columnWidths.slice(
-                  viewport.window.colStart,
-                  viewport.window.colEnd + 1,
-                )}
+                columnWidths={columnWidths.slice(bodyWindow.colStart, bodyWindow.colEnd + 1)}
               />
             )}
-            <MergedCells />
-            <CellEditor focusGrid={events.focusGrid} />
+            <MergedCells window={bodyWindow} />
           </div>
+          <FrozenGrid focusGrid={events.focusGrid} />
+          <CellEditor focusGrid={events.focusGrid} />
         </div>
       </div>
     </section>

@@ -111,6 +111,20 @@ test('native failure does not publish a projection or advance revision', async (
   expect((await r.run(1, 0)).result.projection.revision).toBe(1)
 })
 
+test('invalid viewport is rejected before freezing or clearing native history', async () => {
+  const r = await setup()
+  const result = await r.call('sheet.freeze', {
+    sheetId: 's', rows: 1, cols: 0,
+    projection: {
+      ...projection,
+      viewport: { height: Infinity, width: 600, rowHeight: 28, colWidth: 120 },
+    },
+  })
+  expect(result).toMatchObject({ ok: false, error: { message: 'Invalid projection viewport.' } })
+  expect(r.freeze).not.toHaveBeenCalled()
+  expect(r.read).not.toHaveBeenCalled()
+})
+
 test.each([null, {}, { rows: -1, cols: 0 }, { rows: 1, cols: 1.5 }, { rows: 1_048_576, cols: 0 }])(
   'malformed freeze metadata cannot be published: %j',
   (freeze) => {

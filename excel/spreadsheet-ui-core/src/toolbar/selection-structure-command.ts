@@ -85,6 +85,7 @@ export const runSelectionStructureAtom = atom(
         sheetId: sheet.id,
         requestId,
         window: visible.window,
+        viewport: visible.viewport,
         reason: 'toolbar',
       })
       const request = structureProjectionRequest(projection, expected)

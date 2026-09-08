@@ -90,6 +90,7 @@ export const runRustHistoryAtom = atom(
     const projection = createVisibleProjectionRequest({
       sheetId: visible.sheetId,
       window: visible.window,
+      viewport: visible.viewport,
       requestId,
       reason: 'toolbar',
     })

@@ -9,6 +9,7 @@ import type {
 } from './types'
 import { getAxisOffsetForIndex, getAxisSpanSize } from './axis-geometry'
 import { viewportGeometrySizesAtom } from './geometry-sizes'
+import { projectedFreezeAtom } from './projected-freeze'
 
 export const DEFAULT_VIEWPORT_METRICS: ViewportMetrics = {
   scrollTop: 0,
@@ -111,37 +112,64 @@ export function getViewportScrollForCell(
   input: ScrollToCellInput,
   rowHeights?: Record<string, number>,
   colWidths?: Record<string, number>,
+  freeze?: { rows: number; cols: number; height: number; width: number },
 ): ViewportScrollPosition {
   const normalized = normalizeViewportMetrics(metrics, rowHeights, colWidths)
   const row = clampViewportIndex(input.coord.row, normalized.rowCount)
   const col = clampViewportIndex(input.coord.col, normalized.colCount)
+  const frozenHeight = freeze?.height ?? 0
+  const frozenWidth = freeze?.width ?? 0
   return {
-    scrollTop: getAlignedScrollOffset({
-      align: input.rowAlign ?? 'nearest',
-      current: normalized.scrollTop,
-      viewportSize: normalized.viewportHeight,
-      cellStart: getAxisOffsetForIndex(row, normalized.rowCount, normalized.rowHeight, rowHeights),
-      cellSize: getAxisSpanSize(row, row, normalized.rowCount, normalized.rowHeight, rowHeights),
-      totalSize: getAxisOffsetForIndex(
-        normalized.rowCount,
-        normalized.rowCount,
-        normalized.rowHeight,
-        rowHeights,
-      ),
-    }),
-    scrollLeft: getAlignedScrollOffset({
-      align: input.colAlign ?? 'nearest',
-      current: normalized.scrollLeft,
-      viewportSize: normalized.viewportWidth,
-      cellStart: getAxisOffsetForIndex(col, normalized.colCount, normalized.colWidth, colWidths),
-      cellSize: getAxisSpanSize(col, col, normalized.colCount, normalized.colWidth, colWidths),
-      totalSize: getAxisOffsetForIndex(
-        normalized.colCount,
-        normalized.colCount,
-        normalized.colWidth,
-        colWidths,
-      ),
-    }),
+    scrollTop:
+      freeze && (row < freeze.rows || frozenHeight >= normalized.viewportHeight)
+        ? normalized.scrollTop
+        : getAlignedScrollOffset({
+            align: input.rowAlign ?? 'nearest',
+            current: normalized.scrollTop,
+            viewportSize: normalized.viewportHeight - frozenHeight,
+            cellStart:
+              getAxisOffsetForIndex(row, normalized.rowCount, normalized.rowHeight, rowHeights) -
+              frozenHeight,
+            cellSize: getAxisSpanSize(
+              row,
+              row,
+              normalized.rowCount,
+              normalized.rowHeight,
+              rowHeights,
+            ),
+            totalSize:
+              getAxisOffsetForIndex(
+                normalized.rowCount,
+                normalized.rowCount,
+                normalized.rowHeight,
+                rowHeights,
+              ) - frozenHeight,
+          }),
+    scrollLeft:
+      freeze && (col < freeze.cols || frozenWidth >= normalized.viewportWidth)
+        ? normalized.scrollLeft
+        : getAlignedScrollOffset({
+            align: input.colAlign ?? 'nearest',
+            current: normalized.scrollLeft,
+            viewportSize: normalized.viewportWidth - frozenWidth,
+            cellStart:
+              getAxisOffsetForIndex(col, normalized.colCount, normalized.colWidth, colWidths) -
+              frozenWidth,
+            cellSize: getAxisSpanSize(
+              col,
+              col,
+              normalized.colCount,
+              normalized.colWidth,
+              colWidths,
+            ),
+            totalSize:
+              getAxisOffsetForIndex(
+                normalized.colCount,
+                normalized.colCount,
+                normalized.colWidth,
+                colWidths,
+              ) - frozenWidth,
+          }),
   }
 }
 
@@ -169,6 +197,7 @@ export const scrollToCellAtom = atom(
   (get) => get(viewportMetricsAtom),
   (get, set, input: ScrollToCellInput): ViewportScrollPosition => {
     const metrics = get(viewportMetricsAtom)
+    const freeze = get(projectedFreezeAtom)
     const sizes = get(viewportGeometrySizesAtom)
     const rowHeights = metrics.sheetId ? sizes.rowHeightsBySheet[metrics.sheetId] : undefined
     const scrollPosition = getViewportScrollForCell(
@@ -176,6 +205,7 @@ export const scrollToCellAtom = atom(
       input,
       rowHeights,
       metrics.sheetId ? sizes.colWidthsBySheet[metrics.sheetId] : undefined,
+      freeze?.sheetId === metrics.sheetId ? (freeze ?? undefined) : undefined,
     )
     set(viewportMetricsAtom, { ...metrics, ...scrollPosition })
     return scrollPosition

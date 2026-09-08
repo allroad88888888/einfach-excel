@@ -122,6 +122,7 @@ export const commitCellEditingAtom = atom(
       createVisibleProjectionRequest({
         sheetId: visibleRequest.sheetId,
         window: visibleRequest.window,
+        viewport: visibleRequest.viewport,
         requestId,
         reason: visibleRequest.reason,
       }),

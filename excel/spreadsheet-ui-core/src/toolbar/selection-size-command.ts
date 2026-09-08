@@ -98,6 +98,7 @@ export const runSelectionSizeAtom = atom(
       sheetId,
       requestId,
       window: visible.window,
+      viewport: visible.viewport,
       reason: 'toolbar',
     })
     set(selectionSizePanelAtom, { ...state, busy: true, error: null })

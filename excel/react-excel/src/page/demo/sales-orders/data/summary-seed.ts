@@ -35,6 +35,9 @@ export const SUMMARY_SIZES = {
 /** 恢复隐藏即可看到第 10 行和 G 列的原始示例内容。 */
 export const SUMMARY_VISIBILITY = { hiddenRows: [9], hiddenColumns: [6] } as const
 
+/** 原生冻结示例：首行总额不随 Summary 纵向滚动。 */
+export const SUMMARY_FREEZE = { rows: 1, cols: 0 } as const
+
 /** 两个原生合并样例；覆盖格不再重复存储内容。 */
 export const SUMMARY_MERGES = [
   { rowStart: 14, rowEnd: 14, colStart: 0, colEnd: 3 },

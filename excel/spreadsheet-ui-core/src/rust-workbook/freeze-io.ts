@@ -1,6 +1,7 @@
 import type { RustWorkbookCommands, RustWorkbookSheet } from './commands'
 import type { WasmWorkbook } from './wasm-types'
 import { readVisibleProjection } from './visible-projection'
+import { planFrozenProjection } from './frozen-projection'
 
 /** 传输边界验证 JS 数值；数量、历史与结构随动只由 Rust 持有。 */
 export function changeFreeze(
@@ -23,6 +24,11 @@ export function changeFreeze(
     !workbook.snapshot_format_range
   )
     throw new Error('Rust freeze command is unavailable.')
+  // 拒绝无法投影的请求必须发生在原生写入之前，不能出现“报错但已冻结”。
+  if (input.projection.viewport)
+    planFrozenProjection(
+      workbook, sheet.index, input.projection, input, workbook.sheet_visibility?.(sheet.index),
+    )
   const changed = workbook.set_frozen_panes(sheet.index, input.rows, input.cols)
   return {
     changed,

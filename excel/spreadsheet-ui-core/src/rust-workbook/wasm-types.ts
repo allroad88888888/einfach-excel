@@ -1,6 +1,7 @@
-import type { SpreadsheetCellFormat } from '../backend'
+import type { SpreadsheetCellFormat, ViewportRowHeight, ViewportColumnWidth } from '../backend'
 import type { RustImportCell, RustImportStats } from './commands'
 import type { RustClipboardCapture, RustClipboardPasteRequest } from './clipboard-commands'
+import type { RustHistoryState } from '../history/rust-history-types'
 
 export interface RustCellSnapshot {
   readonly sheet: number
@@ -37,6 +38,38 @@ export interface RustFormatRangeSnapshot {
 }
 
 export interface WasmWorkbook {
+  history_begin?: (
+    sheet: number,
+    startRow: number,
+    startCol: number,
+    endRow: number,
+    endCol: number,
+    label: string,
+    content: boolean,
+  ) => void
+  history_finish?: (success: boolean) => void
+  history_clear?: (notice: string) => void
+  history_apply?: (direction: 'undo' | 'redo') => boolean
+  history_state?: () => RustHistoryState
+  resize_range?: (
+    sheet: number,
+    startRow: number,
+    startCol: number,
+    endRow: number,
+    endCol: number,
+    axis: string,
+    pixels: number,
+  ) => void
+  snapshot_viewport_sizes?: (
+    sheet: number,
+    startRow: number,
+    startCol: number,
+    endRow: number,
+    endCol: number,
+  ) => {
+    rowHeights?: ViewportRowHeight[]
+    colWidths?: ViewportColumnWidth[]
+  }
   set_cell_input?: (sheet: number, address: string, input: string) => void
   capture_clipboard?: (
     sheet: number,

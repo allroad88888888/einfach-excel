@@ -7,6 +7,45 @@
 use super::*;
 
 impl Sheet {
+    /// 批量尺寸只操作行列元数据；先完整校验，失败不会留下部分修改。
+    pub fn resize_range(
+        &mut self,
+        range: CellRange,
+        axis: &str,
+        pixels: u32,
+    ) -> Result<(), &'static str> {
+        if range.start.row > range.end.row
+            || range.start.col > range.end.col
+            || range.end.row >= 1_048_576
+            || range.end.col >= 16_384
+        {
+            return Err("Invalid size range.");
+        }
+        match axis {
+            "row" if (16..=512).contains(&pixels) => {
+                for row in range.start.row..=range.end.row {
+                    self.set_row_height(row, pixels);
+                }
+            }
+            "column" if (40..=1024).contains(&pixels) => {
+                for col in range.start.col..=range.end.col {
+                    self.set_col_width(col, pixels);
+                }
+            }
+            "reset" if pixels == 0 => {
+                // 清除只访问已存在的尺寸条目，不把空白单元格物化出来。
+                for (row, _) in self.row_heights_in_range(range.start.row, range.end.row) {
+                    self.clear_row_height(row);
+                }
+                for (col, _) in self.col_widths_in_range(range.start.col, range.end.col) {
+                    self.clear_col_width(col);
+                }
+            }
+            _ => return Err("Use a row height of 16–512 px or a column width of 40–1024 px."),
+        }
+        Ok(())
+    }
+
     pub fn set_row_height(&mut self, row_index: u32, height_px: u32) -> bool {
         if height_px == 0 {
             return self.clear_row_height(row_index);

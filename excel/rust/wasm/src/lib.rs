@@ -66,6 +66,7 @@ include!("wasm_custom_array.rs");
 #[wasm_bindgen]
 pub struct WasmWorkbook {
     workbook: Workbook,
+    history: einfach_excel_core::workbook_history::WorkbookHistory,
     clipboard: Option<einfach_excel_core::clipboard::ClipboardSnapshot>,
     /// Workbook-level ownership for opaque JS subscription tokens. Each entry
     /// points at an underlying stable-facade subscription; cross-sheet
@@ -117,6 +118,7 @@ include!("wasm_workbook_diagnostics.rs");
 include!("wasm_workbook_autofill_format.rs");
 include!("wasm_workbook_clipboard.rs");
 include!("wasm_workbook_viewport_persistence.rs");
+include!("wasm_workbook_history.rs");
 include!("wasm_workbook_print_config.rs");
 include!("wasm_workbook_conditional_format.rs");
 

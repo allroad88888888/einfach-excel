@@ -54,7 +54,7 @@
   z-index: 4;
   display: grid;
   width: var(--grid-sheet-content-width);
-  grid-template-columns: repeat(var(--grid-column-count), var(--grid-column-width));
+  grid-template-columns: var(--grid-column-widths);
   border-bottom: 1px solid var(--border-strong);
   background: var(--chrome);
 }
@@ -154,12 +154,19 @@
   border-right: 0;
 }
 
+/* 内容可以裁切，但不能推翻 Rust 行高撑开 HTML table。 */
+.cell-content {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .selection-outline {
   position: absolute;
   z-index: 1;
   top: var(--selection-top);
-  left: calc(var(--selection-col-offset) * var(--grid-column-width));
-  width: calc(var(--selection-col-span) * var(--grid-column-width));
+  left: var(--selection-left);
+  width: var(--selection-width);
   height: var(--selection-height);
   box-sizing: border-box;
   border: 0 solid var(--primary);

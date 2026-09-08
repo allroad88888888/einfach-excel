@@ -3,6 +3,7 @@ import {
   activeWorkbookSheetAtom,
   getAxisOffsetForIndex,
   getViewportRowHeight,
+  getViewportColumnWidth,
   selectionSnapshotAtom,
   selectGridHeaderAtom,
   viewportSizeOverridesAtom,
@@ -63,6 +64,17 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
   }
   const rows = rowNumbers(viewport.window.rowStart, viewport.window.rowEnd)
   const rowHeights = sizeOverrides.rowHeightsBySheet[activeSheet.id]
+  const columnWidths = Array.from({ length: activeSheet.colCount }, (_, col) =>
+    getViewportColumnWidth(sizeOverrides, activeSheet.id, col, WORKBOOK_GRID_COLUMN_WIDTH),
+  )
+  const columnOffset = (index: number) =>
+    getAxisOffsetForIndex(
+      index,
+      activeSheet.colCount,
+      WORKBOOK_GRID_COLUMN_WIDTH,
+      sizeOverrides.colWidthsBySheet[activeSheet.id],
+    )
+  const sheetContentWidth = columnOffset(activeSheet.colCount)
   const visibleRowHeights = rows.map((_, index) =>
     getViewportRowHeight(
       sizeOverrides,
@@ -86,13 +98,12 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
   const frameStyle = {
     '--grid-column-count': activeSheet.colCount,
     '--grid-column-width': `${WORKBOOK_GRID_COLUMN_WIDTH}px`,
+    '--grid-column-widths': columnWidths.map((width) => `${width}px`).join(' '),
     '--grid-row-height': `${WORKBOOK_GRID_ROW_HEIGHT}px`,
     '--grid-row-header-width': `${WORKBOOK_GRID_ROW_HEADER_WIDTH}px`,
-    '--grid-sheet-content-width': `${activeSheet.colCount * WORKBOOK_GRID_COLUMN_WIDTH}px`,
+    '--grid-sheet-content-width': `${sheetContentWidth}px`,
     '--grid-sheet-height': `${sheetContentHeight + WORKBOOK_GRID_ROW_HEIGHT}px`,
-    '--grid-sheet-width': `${
-      activeSheet.colCount * WORKBOOK_GRID_COLUMN_WIDTH + WORKBOOK_GRID_ROW_HEADER_WIDTH
-    }px`,
+    '--grid-sheet-width': `${sheetContentWidth + WORKBOOK_GRID_ROW_HEADER_WIDTH}px`,
   } as CSSProperties
   const windowStyle = {
     '--grid-window-offset': `${windowOffset}px`,
@@ -100,10 +111,10 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
   } as CSSProperties
   const cellWindowStyle = {
     ...windowStyle,
-    '--grid-window-offset-x': `${viewport.placementWindow.colStart * WORKBOOK_GRID_COLUMN_WIDTH}px`,
+    '--grid-window-offset-x': `${columnOffset(viewport.placementWindow.colStart)}px`,
     '--grid-window-width': `${
-      (viewport.placementWindow.colEnd - viewport.placementWindow.colStart + 1) *
-      WORKBOOK_GRID_COLUMN_WIDTH
+      columnOffset(viewport.placementWindow.colEnd + 1) -
+      columnOffset(viewport.placementWindow.colStart)
     }px`,
   } as CSSProperties
 
@@ -208,6 +219,10 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
                 selected={selection.range}
                 window={viewport.window}
                 rowHeights={visibleRowHeights}
+                columnWidths={columnWidths.slice(
+                  viewport.window.colStart,
+                  viewport.window.colEnd + 1,
+                )}
               />
             )}
             <CellEditor focusGrid={events.focusGrid} />

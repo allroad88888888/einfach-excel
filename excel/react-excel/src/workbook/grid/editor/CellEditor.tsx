@@ -11,13 +11,17 @@ import {
   visibleWindowAtom,
   getAxisOffsetForIndex,
   getViewportRowHeight,
+  getViewportColumnWidth,
   viewportSizeOverridesAtom,
 } from '@einfach/spreadsheet-ui-core'
 import type { CSSProperties, FocusEvent, KeyboardEvent, PointerEvent } from 'react'
 import { useEffect, useRef } from 'react'
 import { flushSync } from 'react-dom'
 import './cell-editor.css'
-import { WORKBOOK_GRID_ROW_HEIGHT } from '../viewport/workbook-grid-config'
+import {
+  WORKBOOK_GRID_ROW_HEIGHT,
+  WORKBOOK_GRID_COLUMN_WIDTH,
+} from '../viewport/workbook-grid-config'
 
 export interface CellEditorProps {
   readonly focusGrid: () => void
@@ -136,7 +140,21 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
   const style = {
     '--editor-top': `${editorTop}px`,
     '--editor-height': `${Math.max(editorHeight, Math.min(5, draft.split('\n').length) * 18 + 6)}px`,
-    '--editor-col': cell.col - window.colStart,
+    '--editor-left': `${
+      getAxisOffsetForIndex(
+        cell.col,
+        activeSheet?.colCount ?? 0,
+        WORKBOOK_GRID_COLUMN_WIDTH,
+        sizeOverrides.colWidthsBySheet[sheetId],
+      ) -
+      getAxisOffsetForIndex(
+        window.colStart,
+        activeSheet?.colCount ?? 0,
+        WORKBOOK_GRID_COLUMN_WIDTH,
+        sizeOverrides.colWidthsBySheet[sheetId],
+      )
+    }px`,
+    '--editor-width': `${getViewportColumnWidth(sizeOverrides, sheetId, cell.col, WORKBOOK_GRID_COLUMN_WIDTH)}px`,
   } as CSSProperties
   const fieldIdentity = `cell-editor-r${cell.row}-c${cell.col}`
 

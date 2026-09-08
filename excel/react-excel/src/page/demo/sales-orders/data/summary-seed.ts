@@ -7,3 +7,9 @@ export const SALES_ORDER_SUMMARY_CELLS: readonly RustImportCell[] = [
   { sheet: 1, row: 1, col: 0, kind: 'text', value: 'Customer' },
   { sheet: 1, row: 1, col: 1, kind: 'formula', value: "='Sales Orders'!B2" },
 ]
+
+/** 尺寸示例属于表的行列属性，不属于上面的单元格。 */
+export const SUMMARY_SIZES = {
+  rowHeights: [{ rowIndex: 0, heightPx: 40 }],
+  colWidths: [{ colIndex: 0, widthPx: 200 }],
+} as const

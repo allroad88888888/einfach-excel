@@ -1,7 +1,10 @@
 import type { CellRange, DisplayCell } from '@einfach/spreadsheet-ui-core'
 import type { CSSProperties } from 'react'
 import { cellFormatStyle, cellTextRotationStyle } from './cell-format-style'
-import { WORKBOOK_GRID_ROW_HEIGHT } from '../viewport/workbook-grid-config'
+import {
+  WORKBOOK_GRID_ROW_HEIGHT,
+  WORKBOOK_GRID_COLUMN_WIDTH,
+} from '../viewport/workbook-grid-config'
 
 /** Inputs for the controlled, read-only spreadsheet grid projection. */
 export interface SpreadsheetGridProps {
@@ -9,6 +12,7 @@ export interface SpreadsheetGridProps {
   readonly cells: readonly DisplayCell[]
   readonly selected?: CellRange
   readonly rowHeights?: readonly number[]
+  readonly columnWidths?: readonly number[]
 }
 
 function isSelectedCell(selected: CellRange | undefined, row: number, col: number): boolean {
@@ -36,7 +40,13 @@ function visibleSelection(window: CellRange, selected: CellRange | undefined): C
 }
 
 /** Renders a caller-owned spreadsheet projection without fetching or editing it. */
-export function SpreadsheetGrid({ window, cells, selected, rowHeights }: SpreadsheetGridProps) {
+export function SpreadsheetGrid({
+  window,
+  cells,
+  selected,
+  rowHeights,
+  columnWidths,
+}: SpreadsheetGridProps) {
   const cellsByCoordinate = new Map(cells.map((cell) => [`${cell.row}:${cell.col}`, cell]))
   const rows = []
   const outline = visibleSelection(window, selected)
@@ -48,6 +58,13 @@ export function SpreadsheetGrid({ window, cells, selected, rowHeights }: Spreads
       const cell = cellsByCoordinate.get(`${row}:${col}`)
       const isSelected = isSelectedCell(selected, row, col)
       const rotationStyle = cellTextRotationStyle(cell?.format)
+      const formatStyle = cellFormatStyle(cell?.format) ?? {}
+      const height = rowHeights?.[row - window.rowStart] ?? WORKBOOK_GRID_ROW_HEIGHT
+      // table 的内容上限扣除真实边框；16px 行高也不能被大字或粗边框反向撑开。
+      const topBorder = Number.parseFloat(
+        String(formatStyle.borderTopWidth ?? (formatStyle.borderTopStyle ? 3 : 0)),
+      )
+      const bottomBorder = Number.parseFloat(String(formatStyle.borderBottomWidth ?? 1))
       const displayValue = cell?.displayValue ?? ''
 
       rowCells.push(
@@ -56,21 +73,33 @@ export function SpreadsheetGrid({ window, cells, selected, rowHeights }: Spreads
           className={isSelected ? 'cell cell-selected' : 'cell'}
           data-cell={`${row}:${col}`}
           data-selected={isSelected ? 'true' : undefined}
-          style={cellFormatStyle(cell?.format)}
+          style={formatStyle}
         >
-          {rotationStyle ? (
-            <span className="cell-rotated-text" style={rotationStyle}>
-              {displayValue}
-            </span>
-          ) : (
-            displayValue
-          )}
+          <span
+            className="cell-content"
+            style={{ maxHeight: Math.max(0, height - 6 - topBorder - bottomBorder) }}
+          >
+            {rotationStyle ? (
+              <span className="cell-rotated-text" style={rotationStyle}>
+                {displayValue}
+              </span>
+            ) : (
+              displayValue
+            )}
+          </span>
         </td>,
       )
     }
 
     rows.push(
-      <tr key={row} style={{ height: rowHeights?.[row - window.rowStart] }}>
+      <tr
+        key={row}
+        style={
+          {
+            height: rowHeights?.[row - window.rowStart],
+          } as CSSProperties
+        }
+      >
         {rowCells}
       </tr>,
     )
@@ -78,17 +107,24 @@ export function SpreadsheetGrid({ window, cells, selected, rowHeights }: Spreads
 
   const outlineStyle = outline
     ? ({
-        '--selection-col-offset': outline.colStart - window.colStart,
-        '--selection-col-span': outline.colEnd - outline.colStart + 1,
-        '--selection-top': `${sumRowHeights(
+        '--selection-left': `${sumSizes(columnWidths, 0, outline.colStart - window.colStart, WORKBOOK_GRID_COLUMN_WIDTH)}px`,
+        '--selection-width': `${sumSizes(
+          columnWidths,
+          outline.colStart - window.colStart,
+          outline.colEnd - window.colStart + 1,
+          WORKBOOK_GRID_COLUMN_WIDTH,
+        )}px`,
+        '--selection-top': `${sumSizes(
           rowHeights,
           0,
           outline.rowStart - window.rowStart,
+          WORKBOOK_GRID_ROW_HEIGHT,
         )}px`,
-        '--selection-height': `${sumRowHeights(
+        '--selection-height': `${sumSizes(
           rowHeights,
           outline.rowStart - window.rowStart,
           outline.rowEnd - window.rowStart + 1,
+          WORKBOOK_GRID_ROW_HEIGHT,
         )}px`,
       } as CSSProperties)
     : undefined
@@ -105,6 +141,13 @@ export function SpreadsheetGrid({ window, cells, selected, rowHeights }: Spreads
   return (
     <>
       <table className="spreadsheet-grid">
+        {columnWidths && (
+          <colgroup>
+            {columnWidths.map((width, index) => (
+              <col key={index} style={{ width }} />
+            ))}
+          </colgroup>
+        )}
         <tbody>{rows}</tbody>
       </table>
       {outline && <div aria-hidden="true" className={outlineClassName} style={outlineStyle} />}
@@ -112,14 +155,15 @@ export function SpreadsheetGrid({ window, cells, selected, rowHeights }: Spreads
   )
 }
 
-function sumRowHeights(
-  rowHeights: readonly number[] | undefined,
+function sumSizes(
+  sizes: readonly number[] | undefined,
   start: number,
   end: number,
+  fallback: number,
 ): number {
   let total = 0
   for (let index = start; index < end; index += 1) {
-    total += rowHeights?.[index] ?? WORKBOOK_GRID_ROW_HEIGHT
+    total += sizes?.[index] ?? fallback
   }
   return total
 }

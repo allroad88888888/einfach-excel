@@ -7,6 +7,8 @@ import {
   SELECTION_TEXT_COLOR,
 } from '@einfach/spreadsheet-ui-core'
 import { ClipboardTools } from './ClipboardTools'
+import { SelectionSizeTools } from './SelectionSizeTools'
+import { HistoryTools } from './HistoryTools'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import './ribbon.css'
 
@@ -63,6 +65,7 @@ export function WorkbookRibbon() {
       <span className="toolbar-divider" aria-hidden="true" />
       <div className="ribbon-tools" role="toolbar" aria-label="Start tools">
         <ClipboardTools />
+        <HistoryTools />
         <span className="tool-separator" aria-hidden="true" />
         <select
           aria-label="Font family"
@@ -170,6 +173,7 @@ export function WorkbookRibbon() {
           pressed={Boolean(activeFormat.wrap)}
         />
         <ToolButton icon="⊞" label="Merge cells" />
+        <SelectionSizeTools />
         <span className="tool-separator" aria-hidden="true" />
         <ToolButton
           icon=",0"

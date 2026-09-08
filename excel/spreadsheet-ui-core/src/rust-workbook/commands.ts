@@ -5,6 +5,8 @@ import type {
   SpreadsheetCellFormat,
   VisibleProjectionRequest,
   VisibleProjectionResult,
+  ViewportRowHeight,
+  ViewportColumnWidth,
 } from '../backend'
 import type { WorkerCommand, WorkerLike, WorkerTransport } from '../rust-worker'
 import type { CellRange } from '../shared'
@@ -20,6 +22,8 @@ import type {
 export interface RustWorkbookSheetInput {
   readonly id?: string
   readonly name: string
+  readonly rowHeights?: readonly ViewportRowHeight[]
+  readonly colWidths?: readonly ViewportColumnWidth[]
 }
 
 export interface RustWorkbookSheet {
@@ -103,6 +107,35 @@ export interface RustClearRangeRequest {
 }
 
 export interface RustWorkbookCommands {
+  readonly 'history.apply': WorkerCommand<
+    { readonly direction: 'undo' | 'redo'; readonly projection: VisibleProjectionRequest },
+    {
+      readonly projection: VisibleProjectionResult
+      readonly range: CellRange
+      readonly sheetId: string
+      readonly sizes: {
+        readonly rowHeights: ViewportRowHeight[]
+        readonly colWidths: ViewportColumnWidth[]
+      }
+    }
+  >
+  readonly 'range.resize': WorkerCommand<
+    {
+      readonly sheetId: string
+      readonly range: CellRange
+      readonly axis: 'row' | 'column' | 'reset'
+      readonly pixels: number
+      readonly projection: VisibleProjectionRequest
+    },
+    {
+      readonly projection: VisibleProjectionResult
+      /** 完整目标范围的尺寸，不局限于当前屏幕。 */
+      readonly sizes: {
+        readonly rowHeights: ViewportRowHeight[]
+        readonly colWidths: ViewportColumnWidth[]
+      }
+    }
+  >
   readonly 'workbook.changeSheets': WorkerCommand<
     (
       | { readonly operation: 'delete'; readonly sheetId: string }

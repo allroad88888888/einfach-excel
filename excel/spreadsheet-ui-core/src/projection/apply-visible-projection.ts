@@ -13,7 +13,7 @@ import type {
   ApplyVisibleProjectionInput,
   ApplyVisibleProjectionOutcome,
 } from './types'
-import { applyProjectionRowHeights } from './projection-row-heights'
+import { applyProjectionSizes } from './projection-sizes'
 
 /** Publishes the projection bundled with a mutation without opening a second read lane. */
 export const applyVisibleProjectionAtom = atom(
@@ -48,7 +48,7 @@ export const applyVisibleProjectionAtom = atom(
         projectionSnapshotBackingAtom,
         freezeProjectionSnapshot({ status: 'ready', request, result, error: undefined }),
       )
-      applyProjectionRowHeights(get, set, result)
+      applyProjectionSizes(get, set, result)
       return Object.freeze({ status: 'applied' })
     } catch (cause) {
       const error = projectionErrorFrom(cause)

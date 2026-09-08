@@ -41,7 +41,7 @@ import type {
   ReportProjectionErrorInput,
   ResolveProjectionInput,
 } from './types'
-import { applyProjectionRowHeights } from './projection-row-heights'
+import { applyProjectionSizes } from './projection-sizes'
 
 export * from './contracts'
 export * from './types'
@@ -261,7 +261,7 @@ export const resolveProjectionAtom = atom(
             sameProjectionRequest(current.request, successor.request)
           ) {
             set(projectionSnapshotBackingAtom, freezeProjectionSnapshot({ ...current, result }))
-            if (result.kind === 'visible-window') applyProjectionRowHeights(get, set, result)
+            if (result.kind === 'visible-window') applyProjectionSizes(get, set, result)
           }
         }
         return Object.freeze({
@@ -288,7 +288,7 @@ export const resolveProjectionAtom = atom(
           error: undefined,
         }),
       )
-      if (result.kind === 'visible-window') applyProjectionRowHeights(get, set, result)
+      if (result.kind === 'visible-window') applyProjectionSizes(get, set, result)
       return Object.freeze({ status: 'accepted', result })
     }
 

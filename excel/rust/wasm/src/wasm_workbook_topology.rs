@@ -15,6 +15,7 @@ impl WasmWorkbook {
             workbook,
             clipboard: None,
             subscriptions: HashMap::new(),
+            history: Default::default(),
             next_token: 0,
             custom_formulas,
             last_bulk_import_phase_ms: Cell::new(None),

@@ -2,11 +2,12 @@
 
 import type { BackendMutationResult } from '../backend'
 import type { WorkerErrorWire, WorkerRequestWire } from '../rust-worker/types'
-import { writeCellInput } from './cell-io'
+import { writeTrackedMutation } from './tracked-mutation'
+import { withHistory } from './history-io'
 import { exportClipboard } from './clipboard-export'
 import { changeSheetStructure } from './sheet-structure'
-import { clearRange } from './clear-io'
-import { writeImportedCellFormats, writeRangeFormat } from './format-io'
+import { importSheetSizes, readSizes, resizeRange } from './size-io'
+import { writeImportedCellFormats } from './format-io'
 import type {
   RustImportCell,
   RustWorkbookCommands,
@@ -50,6 +51,7 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
     const next = new wasm.WasmWorkbook() as WasmWorkbook
     next.rename_sheet(0, inputs[0]?.name ?? 'Sheet1')
     for (const input of inputs.slice(1)) next.add_sheet(input.name)
+    inputs.forEach((input, index) => importSheetSizes(next, index, input))
     workbook = next
     revision = 0
     clipboard = undefined
@@ -84,9 +86,53 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       return initialize(input.sheets)
     }
     const current = currentWorkbook()
+    if (command === 'history.apply') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      const state = current.history_state?.()
+      const entry =
+        state?.entries[input.direction === 'undo' ? state.undoCount - 1 : state.undoCount]
+      if (!entry || !current.history_apply)
+        throw new Error('No operation is available to undo or redo.')
+      const visibleIndex = sheetIndex(input.projection.sheetId)
+      const affectedSheet = [...sheetsById.values()].find(
+        (sheet) => sheet.index === entry.sheetIndex,
+      )
+      if (!affectedSheet) throw new Error('History worksheet no longer exists.')
+      if (!current.history_apply(input.direction))
+        throw new Error('No operation is available to undo or redo.')
+      revision += 1
+      return {
+        projection: readVisibleProjection(current, visibleIndex, input.projection, revision),
+        sheetId: affectedSheet.id,
+        range: entry.range,
+        sizes: readSizes(current, entry.sheetIndex, entry.range),
+      }
+    }
+    if (command === 'range.resize') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      if (input.sheetId !== input.projection.sheetId) throw new Error('PROJECTION_SHEET_MISMATCH')
+      const index = sheetIndex(input.sheetId)
+      if (!current.snapshot_viewport_sizes) throw new Error('Rust size snapshot is unavailable.')
+      withHistory(
+        current,
+        index,
+        input.range,
+        input.axis === 'reset' ? 'Reset sizes' : `Resize ${input.axis}`,
+        false,
+        () => resizeRange(current, index, input.range, input.axis, input.pixels),
+      )
+      revision += 1
+      return {
+        projection: readVisibleProjection(current, index, input.projection, revision),
+        sizes: readSizes(current, index, input.range),
+      }
+    }
     if (command === 'workbook.changeSheets') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
       const sheets = changeSheetStructure(current, sheetsById, input)
+      current.history_clear?.(
+        'History was reset by a worksheet structure change; its undo is not connected yet.',
+      )
       revision += 1
       return {
         sheets,
@@ -110,6 +156,9 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       const index = current.edit_sheet(
         input.sheetId ? sheetIndex(input.sheetId) : undefined,
         input.name,
+      )
+      current.history_clear?.(
+        'History was reset by a worksheet change; its undo is not connected yet.',
       )
       const sheet = Object.freeze({
         id: input.sheetId ?? crypto.randomUUID(),
@@ -152,6 +201,7 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       const cells = input.cells as readonly RustImportCell[]
       const stats = current.bulk_import_cells(cells)
       writeImportedCellFormats(current, cells)
+      current.history_clear?.('')
       return stats
     }
     if (command === 'projection.readVisible') {
@@ -163,37 +213,8 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
         request.revision ?? revision,
       )
     }
-    if (command === 'cell.setInput') {
-      const { request, projection } = payload as RustWorkbookCommands[typeof command]['payload']
-      if (projection.sheetId !== request.sheetId) {
-        throw Object.assign(new Error('Mutation and projection must target the same sheet'), {
-          code: 'PROJECTION_SHEET_MISMATCH',
-        })
-      }
-      writeCellInput(current, sheetIndex(request.sheetId), request.row, request.col, request.input)
-      revision += 1
-      const acknowledgement: BackendMutationResult = {
-        sheetId: request.sheetId,
-        requestId: request.requestId,
-        revision,
-        affectedRange: {
-          rowStart: request.row,
-          rowEnd: request.row,
-          colStart: request.col,
-          colEnd: request.col,
-        },
-      }
-      return {
-        acknowledgement,
-        projection: readVisibleProjection(
-          current,
-          sheetIndex(projection.sheetId),
-          projection,
-          revision,
-        ),
-      }
-    }
     if (
+      command === 'cell.setInput' ||
       command === 'format.setRange' ||
       command === 'range.clear' ||
       command === 'clipboard.paste'
@@ -224,10 +245,9 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
           colEnd: range[3],
         }
         if (internal && clipboard?.cut) clipboard.consumed = true
+        current.history_clear?.('History was reset by paste; clipboard undo is not connected yet.')
       } else {
-        if ('mode' in request) clearRange(current, sheetIndex(request.sheetId), request)
-        else writeRangeFormat(current, sheetIndex(request.sheetId), request)
-        affectedRange = { ...request.range }
+        affectedRange = writeTrackedMutation(current, sheetIndex(request.sheetId), request)
       }
       revision += 1
       const acknowledgement: BackendMutationResult = {

@@ -1,5 +1,32 @@
 #[wasm_bindgen]
 impl WasmWorkbook {
+    /// 一次命令修改选区涉及的行/列，尺寸不写入 cellStyle。
+    pub fn resize_range(
+        &mut self,
+        sheet_idx: u32,
+        start_row: u32,
+        start_col: u32,
+        end_row: u32,
+        end_col: u32,
+        axis: &str,
+        pixels: u32,
+    ) -> Result<(), JsValue> {
+        let sheet = self
+            .workbook
+            .sheet_mut(sheet_idx as usize)
+            .ok_or_else(|| JsValue::from_str("The worksheet no longer exists."))?;
+        sheet
+            .resize_range(
+                CellRange::new(
+                    CellAddress::new(start_row, start_col),
+                    CellAddress::new(end_row, end_col),
+                ),
+                axis,
+                pixels,
+            )
+            .map_err(JsValue::from_str)
+    }
+
     pub fn set_row_height(&mut self, sheet_idx: u32, row_index: u32, height_px: u32) -> bool {
         let Some(sheet) = self.workbook.sheet_mut(sheet_idx as usize) else {
             return false;

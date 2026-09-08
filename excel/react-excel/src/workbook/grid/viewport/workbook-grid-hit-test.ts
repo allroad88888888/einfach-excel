@@ -12,6 +12,7 @@ interface WorkbookViewportPoint {
   readonly scrollLeft: number
   readonly rowHeight: number
   readonly colWidth: number
+  readonly colWidths?: Record<string, number>
   readonly rowHeaderWidth: number
   readonly rowCount: number
   readonly colCount: number
@@ -47,7 +48,7 @@ export function workbookCellAtViewportPoint(input: WorkbookViewportPoint): CellC
     input.rowHeight,
     input.rowHeights,
   )
-  const col = Math.floor(contentX / input.colWidth)
+  const col = getAxisStartIndexAtOffset(contentX, input.colCount, input.colWidth, input.colWidths)
   return row < input.rowCount && col < input.colCount ? { row, col } : null
 }
 

@@ -1,4 +1,5 @@
-import type { ViewportRowHeight } from './viewport-contracts'
+import type { ViewportRowHeight, ViewportColumnWidth } from './viewport-contracts'
+import type { RustHistoryState } from '../history/rust-history-types'
 import type { CellRange, SheetRef } from '../shared'
 import type {
   DisplayCell,
@@ -35,6 +36,10 @@ export interface VisibleProjectionResult extends SheetRef {
   cells: DisplayCell[]
   /** 当前窗口内由 rowStyle 持有的稀疏行高。 */
   rowHeights?: ViewportRowHeight[]
+  /** 当前窗口内的稀疏列宽。 */
+  colWidths?: ViewportColumnWidth[]
+  /** 同一次原生命令返回的历史目录，不携带回放数据。 */
+  history?: RustHistoryState
   truncated?: boolean
 }
 

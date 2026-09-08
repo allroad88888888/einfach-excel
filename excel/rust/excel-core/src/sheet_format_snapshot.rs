@@ -3,7 +3,7 @@
 use super::*;
 use crate::cell_style::{CellStyle, RowStyle};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct FormatRangeSnapshot {
     pub range: CellRange,
     pub cell_styles: Vec<(CellAddress, CellStyle)>,
@@ -14,6 +14,27 @@ pub struct FormatRangeSnapshot {
 impl Sheet {
     pub fn snapshot_format_range(&self, range: CellRange) -> FormatRangeSnapshot {
         let normalized = range.normalize();
+        // 单格编辑的历史只查询当前格，不能为一次输入扫描全部 cellStyle。
+        if normalized.start == normalized.end {
+            return FormatRangeSnapshot {
+                range: normalized,
+                cell_styles: self
+                    .cell_styles
+                    .get(&normalized.start)
+                    .map(|style| vec![(normalized.start, style.clone())])
+                    .unwrap_or_default(),
+                row_styles: self
+                    .row_styles
+                    .get(&normalized.start.row)
+                    .map(|style| vec![(normalized.start.row, style.clone())])
+                    .unwrap_or_default(),
+                column_styles: self
+                    .column_styles
+                    .get(&normalized.start.col)
+                    .map(|style| vec![(normalized.start.col, style.clone())])
+                    .unwrap_or_default(),
+            };
+        }
         let mut cell_styles: Vec<_> = self
             .cell_styles
             .iter()
@@ -41,6 +62,16 @@ impl Sheet {
 
     pub fn restore_format_range_snapshot(&mut self, snapshot: FormatRangeSnapshot) -> usize {
         let range = snapshot.range.normalize();
+        if range.start == range.end {
+            self.cell_styles.remove(&range.start);
+            self.cell_styles.extend(snapshot.cell_styles);
+            self.row_styles.remove(&range.start.row);
+            self.row_styles.extend(snapshot.row_styles);
+            self.column_styles.remove(&range.start.col);
+            self.column_styles.extend(snapshot.column_styles);
+            self.notify_address_subscribers(range.start);
+            return usize::from(self.cell_subscriptions.contains_key(&range.start));
+        }
         self.cell_styles.retain(|addr, _| !range.contains(*addr));
         self.cell_styles.extend(snapshot.cell_styles);
         self.row_styles

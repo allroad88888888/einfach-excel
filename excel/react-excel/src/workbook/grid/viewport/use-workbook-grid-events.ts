@@ -72,6 +72,7 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
               scrollLeft: scroll.scrollLeft,
               rowHeight: WORKBOOK_GRID_ROW_HEIGHT,
               colWidth: WORKBOOK_GRID_COLUMN_WIDTH,
+              colWidths: sizeOverrides.colWidthsBySheet[activeSheet.id],
               rowHeaderWidth: WORKBOOK_GRID_ROW_HEADER_WIDTH,
               rowCount: activeSheet.rowCount,
               colCount: activeSheet.colCount,
@@ -79,7 +80,7 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
             }))
       if (coord !== null) updatePointerSelection({ sheetId: activeSheet.id, coord })
     },
-    [activeSheet, sizeOverrides.rowHeightsBySheet, updatePointerSelection],
+    [activeSheet, sizeOverrides, updatePointerSelection],
   )
   const dragAutoscroll = useGridDragAutoscroll({
     enabled: activeSheet !== null,
@@ -169,6 +170,7 @@ function getGridKeyboardInput(
     ctrlKey: event.ctrlKey,
     metaKey: event.metaKey,
   }
+  if ((event.ctrlKey || event.metaKey) && !event.altKey && ['z', 'y'].includes(event.key.toLowerCase())) return input
   if (
     isArrowKey(event.key) ||
     event.key === 'Home' ||

@@ -6,6 +6,7 @@ import type {
 import { displayCell } from './cell-io'
 import type { WasmWorkbook } from './wasm-types'
 import { applyVisibleFormats } from './format-projection'
+import { readSizes } from './size-io'
 
 function requiredSparseRead(
   workbook: WasmWorkbook,
@@ -54,6 +55,7 @@ export function readVisibleProjection(
     .filter((cell): cell is NonNullable<typeof cell> => cell !== null)
   return {
     kind: 'visible-window',
+    ...(workbook.history_state ? { history: workbook.history_state() } : {}),
     sheetId: request.sheetId,
     requestId: request.requestId,
     revision,
@@ -62,5 +64,7 @@ export function readVisibleProjection(
     rowHeights: formats.rowStyles.flatMap(({ index, height }) =>
       height === undefined ? [] : [{ rowIndex: index, heightPx: height }],
     ),
+    // 旧测试假件可省略尺寸 API；生产 WASM 提供完整的行列尺寸快照。
+    ...(workbook.snapshot_viewport_sizes ? readSizes(workbook, sheetIndex, request.window) : {}),
   }
 }

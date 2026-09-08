@@ -13,8 +13,8 @@ describe('Rust workbook cell commit', () => {
     const controlled = createControlledCellEditingConnection()
     const store = renderSalesOrdersEditingWorksheet(controlled)
     await firstEditingCell()
-    expect(screen.queryByRole('button', { name: 'Undo' })).toBeNull()
-    expect(screen.queryByRole('button', { name: 'Redo' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Undo' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Redo' })).toBeDisabled()
 
     const grid = screen.getByLabelText('Sales Orders cells')
     grid.focus()

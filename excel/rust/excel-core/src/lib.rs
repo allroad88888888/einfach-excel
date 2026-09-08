@@ -15,6 +15,8 @@ pub mod sheet;
 pub mod shift;
 pub mod sort;
 pub mod undo;
+pub mod history_snapshot;
+pub mod workbook_history;
 pub mod workbook;
 
 pub use auto_fill::{

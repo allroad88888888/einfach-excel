@@ -1,0 +1,53 @@
+.history-dialog {
+  box-sizing: border-box;
+  width: 400px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 48px);
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  background: var(--surface);
+  font-size: 13px;
+}
+.history-dialog::backdrop {
+  background: rgb(20 25 45 / 25%);
+}
+.history-dialog h2 {
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+.history-dialog ol {
+  max-height: 300px;
+  overflow-y: auto;
+  padding-left: 24px;
+}
+.history-dialog li {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.history-dialog small {
+  display: block;
+  margin-top: 4px;
+  color: #626777;
+  overflow-wrap: anywhere;
+}
+.history-undone {
+  color: #626777;
+}
+.history-hint {
+  color: #626777;
+  line-height: 1.5;
+}
+.history-error {
+  color: #b42318;
+  font-size: 12px;
+}
+.history-close {
+  min-height: 32px;
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--control-hover);
+  font: inherit;
+}

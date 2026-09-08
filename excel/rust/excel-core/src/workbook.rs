@@ -76,6 +76,8 @@ mod workbook_table_types;
 mod workbook_topology;
 #[path = "workbook_sheet_edit.rs"]
 mod workbook_sheet_edit;
+#[path = "workbook_history_restore.rs"]
+mod workbook_history_restore;
 #[path = "workbook_sheet_refs.rs"]
 mod workbook_sheet_refs;
 pub(crate) use workbook_sheet_refs::rewrite_sheet_refs;

@@ -4,6 +4,7 @@ import type { CellRange } from '../shared'
 export interface RustHistoryEntry {
   readonly label: string
   readonly sheetIndex: number
+  readonly affectedSheets?: readonly number[]
   readonly range: CellRange
 }
 export interface RustHistoryState {

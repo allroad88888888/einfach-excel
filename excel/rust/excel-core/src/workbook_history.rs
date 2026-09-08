@@ -11,15 +11,27 @@ pub struct HistoryEntry {
     pub label: String,
     pub sheet: usize,
     pub range: CellRange,
-    before: HistorySnapshot,
-    after: HistorySnapshot,
+    before: Vec<(usize, HistorySnapshot)>,
+    after: Vec<(usize, HistorySnapshot)>,
+}
+
+impl HistoryEntry {
+    /// 剪切可能改写其它表的公式；权限检查必须看到全部受影响的表。
+    pub fn affected_sheets(&self) -> Vec<usize> {
+        self.before
+            .iter()
+            .map(|(sheet, _)| *sheet)
+            .collect::<std::collections::BTreeSet<_>>()
+            .into_iter()
+            .collect()
+    }
 }
 
 struct PendingEdit {
     label: String,
     sheet: usize,
     range: CellRange,
-    before: HistorySnapshot,
+    before: Vec<(usize, HistorySnapshot)>,
 }
 
 #[derive(Default)]
@@ -39,24 +51,38 @@ impl WorkbookHistory {
         label: &str,
         content: bool,
     ) -> Result<(), &'static str> {
+        self.begin_ranges(workbook, sheet, range, label, &[(sheet, range, content)])
+    }
+
+    /// 多范围仍是一条用户操作，范围由原生命令的预检结果提供。
+    pub(crate) fn begin_ranges(
+        &mut self,
+        workbook: &Workbook,
+        sheet: usize,
+        range: CellRange,
+        label: &str,
+        targets: &[(usize, CellRange, bool)],
+    ) -> Result<(), &'static str> {
         if self.pending.is_some() {
             return Err("Another history command is pending.");
         }
-        if range.start.row > range.end.row
-            || range.start.col > range.end.col
-            || range.end.row >= 1_048_576
-            || range.end.col >= 16_384
-        {
-            return Err("Invalid history range.");
+        validate_target(workbook, sheet, range)?;
+        for (sheet, range, _) in targets {
+            validate_target(workbook, *sheet, *range)?;
         }
-        let target = workbook
-            .sheet(sheet)
-            .ok_or("History worksheet no longer exists.")?;
         self.pending = Some(PendingEdit {
             label: label.to_owned(),
             sheet,
             range,
-            before: HistorySnapshot::capture(target, range, content),
+            before: targets
+                .iter()
+                .map(|(sheet, range, content)| {
+                    (
+                        *sheet,
+                        HistorySnapshot::capture(workbook.sheet(*sheet).unwrap(), *range, *content),
+                    )
+                })
+                .collect(),
         });
         Ok(())
     }
@@ -67,15 +93,21 @@ impl WorkbookHistory {
             .take()
             .ok_or("No history command is pending.")?;
         if !success {
-            return pending.before.restore(workbook, pending.sheet);
+            return workbook.restore_history_snapshots(&pending.before);
         }
-        let after = HistorySnapshot::capture(
-            workbook
-                .sheet(pending.sheet)
-                .ok_or("History worksheet no longer exists.")?,
-            pending.range,
-            pending.before.cells.is_some(),
-        );
+        let after = pending
+            .before
+            .iter()
+            .map(|(sheet, before)| {
+                let target = workbook
+                    .sheet(*sheet)
+                    .ok_or("History worksheet no longer exists.")?;
+                Ok((
+                    *sheet,
+                    HistorySnapshot::capture(target, before.range, before.cells.is_some()),
+                ))
+            })
+            .collect::<Result<Vec<_>, &'static str>>()?;
         if pending.before == after {
             return Ok(());
         }
@@ -109,7 +141,7 @@ impl WorkbookHistory {
             return Ok(false);
         }
         let entry = &self.entries[self.cursor - 1];
-        entry.before.restore(workbook, entry.sheet)?;
+        workbook.restore_history_snapshots(&entry.before)?;
         self.cursor -= 1;
         Ok(true)
     }
@@ -121,7 +153,7 @@ impl WorkbookHistory {
         let Some(entry) = self.entries.get(self.cursor) else {
             return Ok(false);
         };
-        entry.after.restore(workbook, entry.sheet)?;
+        workbook.restore_history_snapshots(&entry.after)?;
         self.cursor += 1;
         Ok(true)
     }
@@ -148,5 +180,29 @@ impl WorkbookHistory {
 }
 
 fn entry_bytes(entry: &HistoryEntry) -> usize {
-    entry.before.retained_bytes() + entry.after.retained_bytes() + entry.label.len()
+    entry
+        .before
+        .iter()
+        .chain(&entry.after)
+        .map(|(_, snapshot)| snapshot.retained_bytes())
+        .sum::<usize>()
+        + entry.label.len()
+}
+
+fn validate_target(
+    workbook: &Workbook,
+    sheet: usize,
+    range: CellRange,
+) -> Result<(), &'static str> {
+    if workbook.sheet(sheet).is_none() {
+        return Err("History worksheet no longer exists.");
+    }
+    if range.start.row > range.end.row
+        || range.start.col > range.end.col
+        || range.end.row >= 1_048_576
+        || range.end.col >= 16_384
+    {
+        return Err("Invalid history range.");
+    }
+    Ok(())
 }

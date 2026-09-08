@@ -83,7 +83,8 @@ export function HistoryTools() {
             {state.undoCount} undo · {state.redoCount} redo
           </p>
           <p className="history-hint">
-            Cell edits, formatting, clearing and row/column sizes. Up to 50 steps in this session.
+            Cell edits, formatting, clearing, paste, cut moves and row/column sizes. Up to 50 steps
+            in this session.
           </p>
           {state.notice && (
             <p role="status" className="history-hint">

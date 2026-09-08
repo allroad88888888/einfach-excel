@@ -91,6 +91,11 @@ impl WasmWorkbook :: [#[wasm_bindgen(js_name = removeConditionalFormatRule)]] ::
 impl WasmWorkbook :: [#[wasm_bindgen(js_name = setConditionalFormatRule)]] :: pub fn set_conditional_format_rule( &mut self, sheet: u32, request: JsValue, ) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [#[wasm_bindgen(js_name = setPrintConfig)]] :: pub fn set_print_config(&mut self, sheet: u32, config: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn add_sheet(&mut self, name: &str) -> u32
+impl WasmWorkbook :: [] :: pub fn history_apply(&mut self, direction: &str) -> Result<bool, JsValue>
+impl WasmWorkbook :: [] :: pub fn history_begin( &mut self, sheet: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, label: &str, content: bool, ) -> Result<(), JsValue>
+impl WasmWorkbook :: [] :: pub fn history_clear(&mut self, notice: &str)
+impl WasmWorkbook :: [] :: pub fn history_finish(&mut self, success: bool) -> Result<(), JsValue>
+impl WasmWorkbook :: [] :: pub fn history_state(&self) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn apply_auto_fill(&mut self, payload: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn bulk_import_cells(&mut self, cells: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn bulk_install_workbook(&mut self, payload: JsValue) -> Result<JsValue, JsValue>

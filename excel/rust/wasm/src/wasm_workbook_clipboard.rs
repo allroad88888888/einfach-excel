@@ -121,7 +121,7 @@ impl WasmWorkbook {
         let cut = snapshot.is_cut();
         let range = self
             .workbook
-            .paste_clipboard(
+            .paste_clipboard_with_history(
                 snapshot,
                 sheet_idx as usize,
                 &ClipboardPasteOptions {
@@ -133,6 +133,7 @@ impl WasmWorkbook {
                     col_count: policy.col_count,
                     unlocked_ranges: unlocked,
                 },
+                &mut self.history,
             )
             .map_err(JsValue::from_str)?;
         if cut {

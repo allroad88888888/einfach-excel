@@ -15,6 +15,7 @@ impl Workbook {
         let mut removed = None;
         store.batch(|_| {
             let sheet = self.sheets.remove(idx);
+            self.sheet_keys.remove(idx);
             self.print_configs.remove(idx);
             self.conditional_formats.remove(idx);
             sheet.detach_workbook_context();

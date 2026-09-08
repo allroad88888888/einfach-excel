@@ -9,6 +9,8 @@ mod move_refs;
 mod paste;
 #[path = "clipboard_paste_target.rs"]
 mod paste_target;
+#[path = "clipboard_history_targets.rs"]
+mod history_targets;
 pub use paste_target::{ClipboardPasteMode, ClipboardPasteOptions};
 #[path = "clipboard_tsv.rs"]
 mod tsv;

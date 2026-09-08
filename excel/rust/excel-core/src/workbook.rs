@@ -60,6 +60,9 @@ mod workbook_print_config;
 mod workbook_read;
 #[path = "workbook_sheet_removal.rs"]
 mod workbook_sheet_removal;
+#[path = "workbook_sheet_archive.rs"]
+mod workbook_sheet_archive;
+pub use workbook_sheet_archive::ArchivedWorksheet;
 #[path = "workbook_structural.rs"]
 mod workbook_structural;
 #[path = "workbook_table_geometry.rs"]
@@ -114,6 +117,8 @@ pub struct Workbook {
     pub(super) store: Store,
     pub(super) atom_context: Rc<WorkbookAtomContext>,
     pub(super) sheets: Vec<Sheet>,
+    sheet_keys: Vec<u64>,
+    next_sheet_key: u64,
     pub(super) names: Vec<String>,
     pub(super) by_name: HashMap<String, usize>,
     pub(super) cycle_ast_walk_count: Cell<usize>,

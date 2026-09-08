@@ -20,6 +20,8 @@ impl Workbook {
         // P3: every sheet shares the workbook's single store, so cross-sheet
         // dependencies can live as ordinary in-store edges (P6).
         self.sheets.push(Sheet::with_store(self.store.clone()));
+        self.sheet_keys.push(self.next_sheet_key);
+        self.next_sheet_key += 1;
         self.names.push(name.to_string());
         self.print_configs.push(Default::default());
         self.conditional_formats.push(Default::default());
@@ -30,6 +32,11 @@ impl Workbook {
 
     pub fn sheet_count(&self) -> usize {
         self.sheets.len()
+    }
+
+    /// 工作簿内单调分配；改名/移动/撤销删除不换身份，重新创建同名表也不复用旧身份。
+    pub fn sheet_key(&self, index: usize) -> Option<u64> {
+        self.sheet_keys.get(index).copied()
     }
 
     pub fn name(&self, idx: usize) -> Option<&str> {
@@ -120,10 +127,12 @@ impl Workbook {
         }
 
         let sheet = self.sheets.remove(from);
+        let key = self.sheet_keys.remove(from);
         let name = self.names.remove(from);
         let print_config = self.print_configs.remove(from);
         let conditional_format = self.conditional_formats.remove(from);
         self.sheets.insert(to, sheet);
+        self.sheet_keys.insert(to, key);
         self.names.insert(to, name);
         self.print_configs.insert(to, print_config);
         self.conditional_formats.insert(to, conditional_format);

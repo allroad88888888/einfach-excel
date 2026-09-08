@@ -3,6 +3,27 @@ use super::*;
 use crate::history_snapshot::HistorySnapshot;
 
 impl Workbook {
+    /// 多表/多范围在同一 Store batch 内恢复，不向订阅者发布一半完成的移动。
+    pub(crate) fn restore_history_snapshots(
+        &mut self,
+        snapshots: &[(usize, HistorySnapshot)],
+    ) -> Result<(), &'static str> {
+        if snapshots
+            .iter()
+            .any(|(sheet, _)| self.sheet(*sheet).is_none())
+        {
+            return Err("History worksheet no longer exists.");
+        }
+        let store = self.store.clone();
+        let mut result = Ok(());
+        store.batch(|_| {
+            result = snapshots
+                .iter()
+                .try_for_each(|(sheet, snapshot)| snapshot.restore(self, *sheet));
+        });
+        result
+    }
+
     pub(crate) fn restore_history_snapshot(
         &mut self,
         sheet: usize,

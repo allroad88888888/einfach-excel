@@ -11,6 +11,8 @@ impl Workbook {
             store,
             atom_context,
             sheets: Vec::new(),
+            sheet_keys: Vec::new(),
+            next_sheet_key: 1,
             names: Vec::new(),
             by_name: HashMap::new(),
             cycle_ast_walk_count: Cell::new(0),

@@ -10,6 +10,27 @@ impl Workbook {
         sheet_idx: usize,
         options: &ClipboardPasteOptions,
     ) -> Result<CellRange, ClipboardError> {
+        self.paste_clipboard_recorded(snapshot, sheet_idx, options, None)
+    }
+
+    /// 已有粘贴事务直接接入原生历史，预检和写入只执行一次。
+    pub fn paste_clipboard_with_history(
+        &mut self,
+        snapshot: &ClipboardSnapshot,
+        sheet_idx: usize,
+        options: &ClipboardPasteOptions,
+        history: &mut crate::workbook_history::WorkbookHistory,
+    ) -> Result<CellRange, ClipboardError> {
+        self.paste_clipboard_recorded(snapshot, sheet_idx, options, Some(history))
+    }
+
+    fn paste_clipboard_recorded(
+        &mut self,
+        snapshot: &ClipboardSnapshot,
+        sheet_idx: usize,
+        options: &ClipboardPasteOptions,
+        mut history: Option<&mut crate::workbook_history::WorkbookHistory>,
+    ) -> Result<CellRange, ClipboardError> {
         if self.is_inside_custom_call() {
             return Err("CLIPBOARD_MUTATION_DURING_CUSTOM_CALL");
         }
@@ -106,6 +127,27 @@ impl Workbook {
             Vec::new()
         };
 
+        if let Some(history) = history.as_deref_mut() {
+            history.begin_ranges(
+                self,
+                sheet_idx,
+                history_targets::affected_range(snapshot, range, sheet_idx, &dependents),
+                if snapshot.cut {
+                    "Move cells"
+                } else {
+                    "Paste cells"
+                },
+                &history_targets::targets(
+                    snapshot,
+                    range,
+                    sheet_idx,
+                    options,
+                    planned.iter().map(|(addr, _, _)| *addr),
+                    &dependents,
+                ),
+            )?;
+        }
+
         // 从这里开始不再返回预检错误；仅格式粘贴完全不进入值写入/公式计算链路。
         if options.mode != ClipboardPasteMode::Formats {
             self.bulk_load(|loader| {
@@ -146,6 +188,9 @@ impl Workbook {
                 // 默认格式也要压住目标原有的行/列样式。
                 sheet.patch_format_range(CellRange::single(addr), StyleScope::Cell, format);
             }
+        }
+        if let Some(history) = history {
+            history.finish(self, true)?;
         }
         Ok(range)
     }

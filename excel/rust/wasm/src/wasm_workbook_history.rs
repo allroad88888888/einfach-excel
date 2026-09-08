@@ -13,6 +13,7 @@ struct HistoryStateJSON {
 struct HistoryEntryJSON {
     label: String,
     sheet_index: usize,
+    affected_sheets: Vec<usize>,
     range: HistoryRangeJSON,
 }
 
@@ -81,6 +82,7 @@ impl WasmWorkbook {
                 .map(|entry| HistoryEntryJSON {
                     label: entry.label.clone(),
                     sheet_index: entry.sheet,
+                    affected_sheets: entry.affected_sheets(),
                     range: HistoryRangeJSON {
                         row_start: entry.range.start.row,
                         row_end: entry.range.end.row,

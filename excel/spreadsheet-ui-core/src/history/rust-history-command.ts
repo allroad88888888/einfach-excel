@@ -47,7 +47,16 @@ export const runRustHistoryAtom = atom(
       set(rustHistoryPanelAtom, { ...panel, busy: false, error })
       return false
     }
-    if (getSheetProtection(get(sheetProtectionAtom), sheet.id).mode === 'protected')
+    const affected = entry.affectedSheets ?? [entry.sheetIndex]
+    const workbook = get(workbookDocumentAtom)
+    if (
+      affected.some((index) => {
+        const target = workbook.sheets.find((candidate) => candidate.index === index)
+        return (
+          !target || getSheetProtection(get(sheetProtectionAtom), target.id).mode === 'protected'
+        )
+      })
+    )
       return fail('Unprotect the affected worksheet before undoing or redoing.')
     const requestId = set(issueProjectionRequestIdAtom)
     if (requestId === null) return false

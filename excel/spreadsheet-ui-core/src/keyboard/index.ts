@@ -326,7 +326,7 @@ function getCommandShortcutIntent(
       }
     case 'z':
       return {
-        type: 'history.undo',
+        type: input.shiftKey ? 'history.redo' : 'history.undo',
       }
     case 'y':
       return {

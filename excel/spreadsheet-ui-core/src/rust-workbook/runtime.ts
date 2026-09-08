@@ -245,7 +245,6 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
           colEnd: range[3],
         }
         if (internal && clipboard?.cut) clipboard.consumed = true
-        current.history_clear?.('History was reset by paste; clipboard undo is not connected yet.')
       } else {
         affectedRange = writeTrackedMutation(current, sheetIndex(request.sheetId), request)
       }

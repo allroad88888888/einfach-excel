@@ -4,7 +4,6 @@ import type {
   ProjectionRevision,
   SpreadsheetBorders,
   SpreadsheetCellFormat,
-  SpreadsheetNumberFormat,
 } from '../backend'
 import { resolveContentMutationAtom } from '../editing/mutation-gateway'
 import {
@@ -17,6 +16,13 @@ import {
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import type { RustSetRangeFormatResult } from '../rust-workbook'
 import { selectionSnapshotAtom } from '../selection'
+import { nextNumberFormat, type NumberFormatAction } from './number-format-action'
+
+export {
+  SELECTION_PERCENT_FORMAT,
+  SELECTION_CURRENCY_FORMAT,
+  SELECTION_THOUSANDS_FORMAT,
+} from './number-format-action'
 
 export const SELECTION_TEXT_COLOR = '#c00000'
 export const SELECTION_FILL_COLOR = '#fff2cc'
@@ -34,21 +40,6 @@ export const SELECTION_ALL_BORDERS = Object.freeze({
   left: SELECTION_BORDER_SPEC,
 }) satisfies SpreadsheetBorders
 
-export const SELECTION_PERCENT_FORMAT = Object.freeze({
-  kind: 'percent' as const,
-  digits: 0,
-}) satisfies SpreadsheetNumberFormat
-export const SELECTION_CURRENCY_FORMAT = Object.freeze({
-  kind: 'currency' as const,
-  symbol: '$',
-  digits: 2,
-}) satisfies SpreadsheetNumberFormat
-export const SELECTION_THOUSANDS_FORMAT = Object.freeze({
-  kind: 'number' as const,
-  digits: 2,
-  thousands: true,
-}) satisfies SpreadsheetNumberFormat
-
 const BORDER_SIDES = ['top', 'right', 'bottom', 'left'] as const
 
 export type SelectionFormatAction =
@@ -65,9 +56,7 @@ export type SelectionFormatAction =
   | 'wrap-text'
   | 'increase-indent'
   | 'decrease-indent'
-  | 'percent-format'
-  | 'currency-format'
-  | 'thousands-format'
+  | NumberFormatAction
   | { readonly type: 'font-family'; readonly value: string }
   | { readonly type: 'font-size'; readonly value: number }
 
@@ -76,9 +65,11 @@ export type ApplySelectionFormatOutcome = 'completed' | 'blocked' | 'superseded'
 function nextPatch(
   current: SpreadsheetCellFormat,
   action: SelectionFormatAction,
-):
-  | { format: SpreadsheetCellFormat; clearFormatFields?: readonly (keyof SpreadsheetCellFormat)[] }
-  | null {
+  numericValue: number | undefined,
+): {
+  format: SpreadsheetCellFormat
+  clearFormatFields?: readonly (keyof SpreadsheetCellFormat)[]
+} | null {
   if (typeof action !== 'string') {
     if (action.type === 'font-family') {
       const fontFamily = action.value.trim()
@@ -139,19 +130,16 @@ function nextPatch(
   if (action === 'decrease-indent') {
     return { format: { indent: Math.max((current.indent ?? 0) - 1, 0) } }
   }
-  if (action === 'percent-format') {
-    const enabled =
-      current.numberFormat?.kind === 'percent' || current.numberFormat?.kind === 'percentage'
-    return { format: { numberFormat: enabled ? { kind: 'general' } : SELECTION_PERCENT_FORMAT } }
-  }
-  if (action === 'currency-format') {
-    const enabled = current.numberFormat?.kind === 'currency'
-    return { format: { numberFormat: enabled ? { kind: 'general' } : SELECTION_CURRENCY_FORMAT } }
-  }
-  if (action === 'thousands-format') {
-    const enabled =
-      current.numberFormat?.kind === 'number' || current.numberFormat?.kind === 'decimal'
-    return { format: { numberFormat: enabled ? { kind: 'general' } : SELECTION_THOUSANDS_FORMAT } }
+  if (
+    action === 'percent-format' ||
+    action === 'currency-format' ||
+    action === 'thousands-format' ||
+    action === 'general-format' ||
+    action === 'increase-decimal' ||
+    action === 'decrease-decimal'
+  ) {
+    const numberFormat = nextNumberFormat(current.numberFormat, action, numericValue)
+    return numberFormat ? { format: { numberFormat } } : null
   }
   const align = current.align === 'center' ? 'right' : current.align === 'right' ? 'left' : 'center'
   return { format: { align } }
@@ -204,7 +192,10 @@ export const applySelectionFormatAtom = atom(
     const range = resolution.ranges?.[0]
     if (requestId === null || !range) return 'blocked'
 
-    const patch = nextPatch(get(activeCellFormatAtom), action)
+    const activeCell = projectionWitness.result?.cells.find(
+      (cell) => cell.row === selection.activeCell.row && cell.col === selection.activeCell.col,
+    )
+    const patch = nextPatch(get(activeCellFormatAtom), action, activeCell?.numericValue)
     if (patch === null) return 'blocked'
     const request = Object.freeze({
       kind: 'set-format-range' as const,

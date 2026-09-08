@@ -44,6 +44,8 @@ const DEMO_CELL_FORMATS: ReadonlyMap<string, SpreadsheetCellFormat> = new Map([
   ['2:14', { numberFormat: { kind: 'percent', digits: 0 } }],
   ['1:15', { numberFormat: { kind: 'currency', symbol: '$', digits: 2 } }],
   ['8:6', { numberFormat: { kind: 'number', digits: 2, thousands: true } }],
+  ['3:14', { numberFormat: { kind: 'percent', digits: 2 } }],
+  ['2:15', { numberFormat: { kind: 'currency', symbol: '$', digits: 0 }, bold: true }],
 ])
 
 function demoFormat(row: number, col: number): { readonly format?: SpreadsheetCellFormat } {

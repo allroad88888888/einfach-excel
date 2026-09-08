@@ -171,8 +171,9 @@ export function WorkbookRibbon() {
           label="Thousands format"
           onClick={() => void applyFormat('thousands-format')}
           pressed={
-            activeFormat.numberFormat?.kind === 'number' ||
-            activeFormat.numberFormat?.kind === 'decimal'
+            (activeFormat.numberFormat?.kind === 'number' ||
+              activeFormat.numberFormat?.kind === 'decimal') &&
+            activeFormat.numberFormat.thousands === true
           }
         />
         <ToolButton
@@ -189,6 +190,22 @@ export function WorkbookRibbon() {
           label="Currency format"
           onClick={() => void applyFormat('currency-format')}
           pressed={activeFormat.numberFormat?.kind === 'currency'}
+        />
+        <ToolButton
+          icon=".0+"
+          label="Increase decimal places"
+          onClick={() => void applyFormat('increase-decimal')}
+        />
+        <ToolButton
+          icon=".0−"
+          label="Decrease decimal places"
+          onClick={() => void applyFormat('decrease-decimal')}
+        />
+        <ToolButton
+          icon="123"
+          label="General format"
+          onClick={() => void applyFormat('general-format')}
+          pressed={!activeFormat.numberFormat || activeFormat.numberFormat.kind === 'general'}
         />
         <ToolButton icon="Σ" label="Auto sum" />
         <div className="toolbar-spacer" />

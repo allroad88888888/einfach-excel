@@ -1,11 +1,13 @@
-import { useAtomValue } from '@einfach/react'
+import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   activeWorkbookSheetAtom,
   getAxisOffsetForIndex,
   getViewportRowHeight,
   selectionSnapshotAtom,
+  selectGridHeaderAtom,
   viewportSizeOverridesAtom,
   type WorkbookDocumentSheet,
+  type GridHeaderSelectionInput,
 } from '@einfach/spreadsheet-ui-core'
 import type { CSSProperties } from 'react'
 import { useWorkbookViewport, type WorkbookViewport } from '../../projection/use-workbook-viewport'
@@ -44,6 +46,7 @@ function projectionState(viewport: WorkbookViewport) {
 
 function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: WorkbookDocumentSheet }) {
   const selection = useAtomValue(selectionSnapshotAtom)
+  const selectHeader = useSetAtom(selectGridHeaderAtom)
   const sizeOverrides = useAtomValue(viewportSizeOverridesAtom)
   const gridWindow = useWorkbookGridWindow()
   const viewport = useWorkbookViewport({
@@ -53,6 +56,9 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
     colCount: activeSheet.colCount,
   })
   const events = useWorkbookGridEvents(viewport)
+  const selectGridHeader = async (input: GridHeaderSelectionInput) => {
+    if (await selectHeader(input)) events.focusGrid()
+  }
   const rows = rowNumbers(viewport.window.rowStart, viewport.window.rowEnd)
   const rowHeights = sizeOverrides.rowHeightsBySheet[activeSheet.id]
   const visibleRowHeights = rows.map((_, index) =>
@@ -108,10 +114,19 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
         onScroll={events.onScroll}
       >
         <div className="sheet-grid-frame grid-viewport-frame" style={frameStyle}>
-          <div className="sheet-corner" aria-hidden="true" />
+          <button
+            className="sheet-corner"
+            type="button"
+            aria-label="Select all cells"
+            aria-pressed={selection.selection.kind === 'all'}
+            onPointerDown={(event) => event.preventDefault()}
+            onClick={() => void selectGridHeader({ kind: 'all', sheetId: activeSheet.id })}
+          >
+            <span aria-hidden="true">◢</span>
+          </button>
           <div className="column-headers" role="row">
             {Array.from({ length: activeSheet.colCount }, (_, col) => (
-              <div
+              <button
                 className={
                   col >= selection.range.colStart && col <= selection.range.colEnd
                     ? 'sheet-heading heading-selected'
@@ -119,25 +134,49 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
                 }
                 key={col}
                 role="columnheader"
+                type="button"
+                aria-label={`Select column ${String.fromCharCode(65 + col)}`}
+                aria-selected={col >= selection.range.colStart && col <= selection.range.colEnd}
+                onPointerDown={(event) => event.preventDefault()}
+                onClick={(event) =>
+                  void selectGridHeader({
+                    kind: 'column',
+                    sheetId: activeSheet.id,
+                    index: col,
+                    extend: event.shiftKey,
+                  })
+                }
               >
                 {String.fromCharCode(65 + col)}
-              </div>
+              </button>
             ))}
           </div>
-          <div className="row-headers grid-window" style={windowStyle} aria-hidden="true">
+          <div className="row-headers grid-window" style={windowStyle}>
             {rows.map((rowNumber, index) => {
               const row = index + viewport.window.rowStart
               return (
-                <div
+                <button
                   className={
                     row >= selection.range.rowStart && row <= selection.range.rowEnd
                       ? 'sheet-heading heading-selected'
                       : 'sheet-heading'
                   }
                   key={rowNumber}
+                  type="button"
+                  aria-label={`Select row ${rowNumber}`}
+                  aria-pressed={row >= selection.range.rowStart && row <= selection.range.rowEnd}
+                  onPointerDown={(event) => event.preventDefault()}
+                  onClick={(event) =>
+                    void selectGridHeader({
+                      kind: 'row',
+                      sheetId: activeSheet.id,
+                      index: row,
+                      extend: event.shiftKey,
+                    })
+                  }
                 >
                   {rowNumber}
-                </div>
+                </button>
               )
             })}
           </div>

@@ -74,6 +74,16 @@ describe('Sales Orders import seed', () => {
           col: 6,
           format: { numberFormat: { kind: 'number', digits: 2, thousands: true } },
         }),
+        expect.objectContaining({
+          row: 3,
+          col: 14,
+          format: { numberFormat: { kind: 'percent', digits: 2 } },
+        }),
+        expect.objectContaining({
+          row: 2,
+          col: 15,
+          format: { numberFormat: { kind: 'currency', symbol: '$', digits: 0 }, bold: true },
+        }),
       ]),
     )
   })

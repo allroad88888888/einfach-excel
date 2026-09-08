@@ -15,6 +15,8 @@
 //! | `render_number` | 数字字面量渲染回源码时挑普通写法还是科学计数 |
 //! | `render_ref` | 单元格地址 / 区域引用写成 A1 文本时的 `$` 与 `#REF!` 形状 |
 //! | `table_ref` | 表名 / 列名改掉之后重写结构化引用节点 |
+//! | `structural_refs` | 按工作表作用域重写结构引用节点，删除时缩小存活范围 |
+//! | `qualified_source` | 保持停泊公式原样，只重写指向被编辑表的静态引用片段 |
 //!
 //! 子模块一律私有，公开面由本文件逐项 `pub use` 出去 —— `crate::shift::X`
 //! 的路径与拆分前逐字相同，调用点不需要跟着改。
@@ -30,6 +32,8 @@ mod render_number;
 mod render_ref;
 mod retarget;
 mod table_ref;
+mod structural_refs;
+mod qualified_source;
 
 pub use copy::shift_copy_formula;
 pub use delta::shift_refs;
@@ -42,3 +46,5 @@ pub use render::render_formula;
 pub use retarget::map_addrs;
 
 pub(crate) use table_ref::{rewrite_table_refs, TableRefEditSpec};
+pub(crate) use structural_refs::rewrite_structural_refs;
+pub(crate) use qualified_source::rewrite_qualified_source;

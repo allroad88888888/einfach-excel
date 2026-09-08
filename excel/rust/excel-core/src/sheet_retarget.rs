@@ -35,13 +35,8 @@ impl Sheet {
             .map(|(addr, expr)| (*addr, expr.clone()))
             .collect();
         for (addr, old_expr) in snapshot {
-            let new_expr = crate::shift::map_addrs(&old_expr, &f);
-            if crate::shift::contains_invalid_ref(&new_expr) {
-                // Formula references a cell deleted by this structural edit.
-                // Excel produces #REF!.
-                self.write_error(addr, ValueError::InvalidRef);
-                continue;
-            }
+            let mut new_expr = (*old_expr).clone();
+            crate::shift::rewrite_structural_refs(&mut new_expr, "", true, edit);
             if new_expr == *old_expr {
                 // Shift didn't touch any static ref. Keep the record, but
                 // invalidate the Store-derived value when the edit can still
@@ -81,25 +76,30 @@ impl Sheet {
             // Refs crossed the boundary: install the mapped AST directly and
             // invalidate formula-inner. Render (no re-parse!) only to keep
             // `formula_texts` / `get_formula` truthful.
-            let new_expr_rc = Rc::new(new_expr);
-            let deps = Sheet::formula_deps_for(&new_expr_rc);
-            let static_ranges = collect_range_refs(&new_expr_rc);
-            let record = Rc::new(FormulaRecord::new(new_expr_rc.clone(), deps, static_ranges));
-            self.interior
-                .formula_cells
-                .borrow_mut()
-                .insert(addr, record);
-            self.interior
-                .formula_exprs
-                .borrow_mut()
-                .insert(addr, new_expr_rc.clone());
-            self.interior
-                .formula_texts
-                .borrow_mut()
-                .insert(addr, crate::shift::render_formula(&new_expr_rc));
-            self.materialize_formula_inner(addr);
-            self.invalidate_formula_value(addr);
+            self.install_retargeted_formula(addr, new_expr);
         }
+    }
+
+    /// 两种结构随动共用已解析 AST 的安装，不再 render 后重新 parse。
+    pub(super) fn install_retargeted_formula(&mut self, addr: CellAddress, expr: Expr) {
+        let new_expr_rc = Rc::new(expr);
+        let deps = Sheet::formula_deps_for(&new_expr_rc);
+        let static_ranges = collect_range_refs(&new_expr_rc);
+        let record = Rc::new(FormulaRecord::new(new_expr_rc.clone(), deps, static_ranges));
+        self.interior
+            .formula_cells
+            .borrow_mut()
+            .insert(addr, record);
+        self.interior
+            .formula_exprs
+            .borrow_mut()
+            .insert(addr, new_expr_rc.clone());
+        self.interior
+            .formula_texts
+            .borrow_mut()
+            .insert(addr, crate::shift::render_formula(&new_expr_rc));
+        self.materialize_formula_inner(addr);
+        self.invalidate_formula_value(addr);
     }
 
     /// AUDIT A-1 (lazy half): retarget every PARKED formula by rewriting
@@ -107,10 +107,8 @@ impl Sheet {
     /// dependency work. Runs after `retarget_formula_refs`; `write_error` for
     /// dead refs invalidates the corresponding Store facade normally.
     ///
-    /// Cross-sheet scope mirrors the hydrated path exactly: sheet-
-    /// qualified refs in this sheet's sources are not shifted, and
-    /// other sheets' parked formulas referencing this sheet are not
-    /// rewritten (`map_addrs` has never retargeted either).
+    /// 此局部阶段只改裸引用。Workbook 插删随后在同一事务调用
+    /// retarget_sheet_references，统一移动指向目标表的显式引用。
     pub(super) fn retarget_parked_sources(&mut self, edit: crate::shift::ShiftEdit) {
         let mut rewrites: Vec<(CellAddress, String)> = Vec::new();
         let mut dead: Vec<CellAddress> = Vec::new();
@@ -131,26 +129,23 @@ impl Sheet {
             }
         }
         for addr in dead {
-            // Parity guard for unparseable parked sources (possible via
-            // `bulk_install_storage`): the hydrated path would surface
-            // `#VALUE!` at first read and never see a ref to kill — so
-            // a "dead ref" inside garbage stays parked untouched.
-            let parses = {
+            // 只有端点落入删除带的公式走 AST 回退（旧路径同样需要 parse 校验）。
+            // 普通插入/平移继续只改源码 token；这里仍只保存源码，不 hydration。
+            let parsed = {
                 let source = self.interior.formula_source.borrow();
                 source
                     .get(&addr)
-                    .map(|src| crate::formula::parse_formula(src.source.as_ref()).is_some())
-                    .unwrap_or(false)
+                    .and_then(|src| crate::formula::parse_formula(src.source.as_ref()))
             };
-            if !parses {
+            let Some(mut expr) = parsed else {
                 continue;
-            }
-            // Mirror the hydrated retarget: the whole formula becomes a
-            // #REF! error cell. `write_error` drains the parked state
-            // (`remove_formula_record` clears `formula_source` /
-            // `needs_parse` first) and invalidates Store dependents through
-            // the cell facade.
-            self.write_error(addr, ValueError::InvalidRef);
+            };
+            crate::shift::rewrite_structural_refs(&mut expr, "", true, edit);
+            self.interior.formula_source.borrow_mut().insert(
+                addr,
+                ParkedFormula::new(crate::shift::render_formula(&expr)),
+            );
+            self.invalidate_formula_value(addr);
         }
     }
 

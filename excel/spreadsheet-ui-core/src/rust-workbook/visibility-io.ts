@@ -12,7 +12,9 @@ export function changeVisibility(
     throw new Error('Rust visibility command is unavailable.')
   const range = input.range
   if (
-    !Object.values(range).every((n) => Number.isSafeInteger(n) && n >= 0) ||
+    ![range.rowStart, range.colStart, range.rowEnd, range.colEnd].every(
+      (n) => Number.isSafeInteger(n) && n >= 0,
+    ) ||
     range.rowStart > range.rowEnd ||
     range.colStart > range.colEnd ||
     range.rowEnd >= (sheet.rowCount ?? 1_048_576) ||

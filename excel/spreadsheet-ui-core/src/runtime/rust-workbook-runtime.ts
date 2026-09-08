@@ -66,16 +66,8 @@ export const startRustWorkbookRuntimeAtom = atom(
 
     try {
       const initializedSheets = await connection.request('workbook.initialize', {
-        sheets: definition.sheets.map(
-          ({ id, name, rowCount, colCount, rowHeights, colWidths }) => ({
-            id,
-            name,
-            rowCount,
-            colCount,
-            ...(rowHeights ? { rowHeights } : {}),
-            ...(colWidths ? { colWidths } : {}),
-          }),
-        ),
+        // 定义已做完整快照与校验，直接传递，避免二次字段筛选遗漏初始元数据。
+        sheets: definition.sheets,
       })
       if (!ownsConnection(get, sessionId, connection)) return
       if (initializedSheets.length !== definition.sheets.length) {

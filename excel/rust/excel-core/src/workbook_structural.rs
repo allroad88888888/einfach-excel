@@ -11,10 +11,7 @@ impl Workbook {
     //
     // These delegate to the existing per-sheet structural ops (which do the
     // full cell/formula/spill/format/dimension retarget) and then remap
-    // every Table anchored to that sheet. The wasm binding still calls
-    // `Sheet::insert_row` directly today; rewiring it to route through
-    // these wrappers is T6 (§10) — deliberately NOT done here so T1 leaves
-    // the wasm export surface untouched.
+    // every Table anchored to that sheet. 显式跨表引用在同一 Store batch 内跟随。
 
     /// Insert `count` rows at `at` on `sheet_index`, then follow Tables.
     pub fn insert_rows(&mut self, sheet_index: usize, at: u32, count: u32) {
@@ -53,6 +50,23 @@ impl Workbook {
         sheet_index: usize,
         edit: crate::shift::ShiftEdit,
     ) {
+        if self.is_inside_custom_call() {
+            return;
+        }
+        let Some(name) = self.names.get(sheet_index).cloned() else {
+            return;
+        };
+        let store = self.store.clone();
+        store.batch(|_| {
+            self.shift_sheet_and_tables(sheet_index, edit);
+            // 包含目标表自己的 Sheet1!A1 写法；同表裸引用已经由 Sheet 位移处理。
+            for sheet in &mut self.sheets {
+                sheet.retarget_sheet_references(&name, edit);
+            }
+        });
+    }
+
+    fn shift_sheet_and_tables(&mut self, sheet_index: usize, edit: crate::shift::ShiftEdit) {
         if self.is_inside_custom_call() {
             return; // re-entrancy guard, mirrors the cell mutators
         }

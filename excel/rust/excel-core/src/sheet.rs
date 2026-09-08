@@ -116,6 +116,8 @@ mod read;
 mod relocate;
 #[path = "sheet_retarget.rs"]
 mod retarget;
+#[path = "sheet_cross_sheet_shift.rs"]
+mod cross_sheet_shift;
 #[path = "sheet_row_major_map.rs"]
 mod row_major_map;
 #[path = "sheet_scan.rs"]

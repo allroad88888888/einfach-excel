@@ -126,6 +126,12 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
 
   return (
     <section className="worksheet-panel" aria-label={`${activeSheet.name} worksheet`}>
+      {(sheetContentHeight === 0 || sheetContentWidth === 0) && (
+        <div className="grid-visibility-state" role="status">
+          All {sheetContentHeight === 0 ? 'rows' : 'columns'} are hidden. Use Hide / Unhide to
+          restore them.
+        </div>
+      )}
       <div
         ref={events.scrollRef}
         className="sheet-scroll"

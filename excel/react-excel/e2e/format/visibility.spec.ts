@@ -19,11 +19,14 @@ test.beforeEach(async ({ page }) => {
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
 })
 
-test('hidden rows collapse without gaps, navigation skips them and undo restores seed data', async ({ page }) => {
+test('hidden rows collapse without gaps, navigation skips them and undo restores seed data', async ({
+  page,
+}) => {
   await select(page, 'A3:A5', '2:0')
   await visibility(page, 'hide-rows')
   for (const row of [2, 3, 4]) await expect(cell(page, `${row}:0`)).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Select row 3', exact: true })).toHaveCount(0)
+  await select(page, 'A2', '1:0')
   const before = await cell(page, '1:0').boundingBox()
   const after = await cell(page, '5:0').boundingBox()
   expect(Math.abs(after!.y - before!.y - before!.height)).toBeLessThan(1)
@@ -38,7 +41,9 @@ test('hidden rows collapse without gaps, navigation skips them and undo restores
   await expect(cell(page, '2:0')).toHaveCount(0)
 })
 
-test('hidden columns collapse and cell editor stays aligned after arrow and Tab navigation', async ({ page }) => {
+test('hidden columns collapse and cell editor stays aligned after arrow and Tab navigation', async ({
+  page,
+}) => {
   await select(page, 'B2:D2', '1:1')
   await visibility(page, 'hide-columns')
   for (const col of [1, 2, 3]) await expect(cell(page, `1:${col}`)).toHaveCount(0)
@@ -61,7 +66,9 @@ test('hidden columns collapse and cell editor stays aligned after arrow and Tab 
   await expect(cell(page, '1:1')).toHaveText('Acme Co.')
 })
 
-test('Summary original hidden examples are native and unhide keeps original sizes', async ({ page }) => {
+test('Summary original hidden examples are native and unhide keeps original sizes', async ({
+  page,
+}) => {
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
   await expect(cell(page, '0:0')).toHaveText('First order total')
   await expect(cell(page, '9:0')).toHaveCount(0)
@@ -85,7 +92,7 @@ test('unhide selected range preserves unrelated hidden rows and columns', async 
   await visibility(page, 'hide-columns')
   await locate(page, 'C4')
   await visibility(page, 'unhide')
-  await expect(cell(page, '3:2')).toHaveText('East')
+  await expect(cell(page, '3:2')).toHaveText('South')
   for (const coord of ['2:2', '4:2', '3:1', '3:3']) await expect(cell(page, coord)).toHaveCount(0)
   await page.getByRole('button', { name: 'Undo', exact: true }).click()
   await expect(cell(page, '3:2')).toHaveCount(0)
@@ -103,7 +110,9 @@ test('all hidden axes remain recoverable from the toolbar', async ({ page }) => 
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
 })
 
-test('hidden final rows and columns keep boundary keys and PageDown inside visible data', async ({ page }) => {
+test('hidden final rows and columns keep boundary keys and PageDown inside visible data', async ({
+  page,
+}) => {
   await locate(page, 'A990:P1001')
   await visibility(page, 'hide-rows')
   await locate(page, 'O1:P1')

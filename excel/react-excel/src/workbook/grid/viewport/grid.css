@@ -1,4 +1,19 @@
 /* Owns the shared workbook viewport and grid styling. */
+.worksheet-panel {
+  position: relative;
+}
+
+.grid-visibility-state {
+  position: absolute;
+  z-index: 1;
+  top: 48px;
+  left: 56px;
+  right: 16px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .grid-viewport-frame {
   min-height: var(--grid-sheet-height);
   min-width: var(--grid-sheet-width);

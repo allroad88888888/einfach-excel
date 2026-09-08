@@ -162,6 +162,10 @@ test('deleting the cut source refuses stale paste without erasing the surviving 
 
 test('cut follows index shifts when an earlier unrelated sheet is deleted', async ({ page }) => {
   await switchSheet(page, 'Summary')
+  // A10 现在是初始隐藏样例；先通过真实菜单恢复，再验证跨索引剪切。
+  const visibility = page.getByRole('combobox', { name: 'Row and column visibility' })
+  await visibility.selectOption('unhide-all')
+  await expect(visibility).toBeEnabled()
   await select(page, 'A1', '0:0')
   await copy(page, 'Cut')
   await switchSheet(page, 'Sales Orders')

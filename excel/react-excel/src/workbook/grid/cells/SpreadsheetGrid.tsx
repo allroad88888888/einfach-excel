@@ -107,29 +107,36 @@ export function SpreadsheetGrid({
     )
   }
 
-  const outlineStyle = outline
-    ? ({
-        '--selection-left': `${sumSizes(columnWidths, 0, outline.colStart - window.colStart, WORKBOOK_GRID_COLUMN_WIDTH)}px`,
-        '--selection-width': `${sumSizes(
-          columnWidths,
-          outline.colStart - window.colStart,
-          outline.colEnd - window.colStart + 1,
-          WORKBOOK_GRID_COLUMN_WIDTH,
-        )}px`,
-        '--selection-top': `${sumSizes(
-          rowHeights,
-          0,
-          outline.rowStart - window.rowStart,
-          WORKBOOK_GRID_ROW_HEIGHT,
-        )}px`,
-        '--selection-height': `${sumSizes(
-          rowHeights,
-          outline.rowStart - window.rowStart,
-          outline.rowEnd - window.rowStart + 1,
-          WORKBOOK_GRID_ROW_HEIGHT,
-        )}px`,
-      } as CSSProperties)
-    : undefined
+  const outlineWidth = outline
+    ? sumSizes(
+        columnWidths,
+        outline.colStart - window.colStart,
+        outline.colEnd - window.colStart + 1,
+        WORKBOOK_GRID_COLUMN_WIDTH,
+      )
+    : 0
+  const outlineHeight = outline
+    ? sumSizes(
+        rowHeights,
+        outline.rowStart - window.rowStart,
+        outline.rowEnd - window.rowStart + 1,
+        WORKBOOK_GRID_ROW_HEIGHT,
+      )
+    : 0
+  const outlineStyle =
+    outline && outlineWidth > 0 && outlineHeight > 0
+      ? ({
+          '--selection-left': `${sumSizes(columnWidths, 0, outline.colStart - window.colStart, WORKBOOK_GRID_COLUMN_WIDTH)}px`,
+          '--selection-width': `${outlineWidth}px`,
+          '--selection-top': `${sumSizes(
+            rowHeights,
+            0,
+            outline.rowStart - window.rowStart,
+            WORKBOOK_GRID_ROW_HEIGHT,
+          )}px`,
+          '--selection-height': `${outlineHeight}px`,
+        } as CSSProperties)
+      : undefined
   const outlineClassName = [
     'selection-outline',
     outline?.rowStart === selected?.rowStart && 'selection-outline-top',
@@ -154,7 +161,7 @@ export function SpreadsheetGrid({
         )}
         <tbody>{rows}</tbody>
       </table>
-      {outline && <div aria-hidden="true" className={outlineClassName} style={outlineStyle} />}
+      {outlineStyle && <div aria-hidden="true" className={outlineClassName} style={outlineStyle} />}
     </>
   )
 }

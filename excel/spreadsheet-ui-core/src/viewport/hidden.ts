@@ -22,25 +22,10 @@ import { remapIndexSetAfterStructuralShift } from './structural-remap'
 import type { ViewportHiddenState } from './types'
 import { sheetHiddenRowsBackingAtom, viewportHiddenColsBackingAtom } from './hidden-state'
 
-// Hidden ROWS are an ENGINE-owned fact since the hidden-row sink-down
-// (design-engine-hidden-rows §4.2/§8): they change what SUBTOTAL 101-111
-// evaluate, so the engine is their authoritative STORE. `sheetHiddenRowsAtom`
-// below is UI core's render-time PROJECTION of that store — written
-// optimistically for an instant visual, then UNCONDITIONALLY reconciled from
-// the backend ACK (`readSheetHiddenState`) so a bounded optimistic window never
-// decays into a silent permanent divergence (§4.3 disciplines).
-//
-// Hidden COLUMNS stay UI-core canonical (§8 — the engine models no hidden
-// columns; SUBTOTAL filters on `addr.row` only). `viewportHiddenColsAtom` is
-// the source of truth for them; the column commits stay synchronous and mirror
-// into the optional `hideColumns` / `unhideColumns` ports fire-and-forget.
-//
-// The two axes are separate atoms precisely because their ownership differs:
-// merging them would let a future refactor push hidden columns at the engine,
-// which has nowhere to put them. `viewportHiddenAtom` is a COMPAT derived that
-// synthesises the historic `{ rowsBySheet, colsBySheet }` shape from the two so
-// the 15 unmigrated consumers keep reading it verbatim; new code must not
-// write it.
+// 本文件保留旧 backend 消费者的隐藏命令及本地历史，不是 React 主线写入入口。
+// 维护中的 React 路径使用 runSelectionVisibilityAtom：行列隐藏均由 Rust 持有，
+// hidden-state.ts 只保存原生返回的完整投影，不提前修改数据或在 JS 回放历史。
+// 这里的读取 atom 共用同一 backing state；不能根据旧 column port 误判列隐藏归 UI 所有。
 
 export const DEFAULT_VIEWPORT_HIDDEN_STATE: ViewportHiddenState = {
   rowsBySheet: {},

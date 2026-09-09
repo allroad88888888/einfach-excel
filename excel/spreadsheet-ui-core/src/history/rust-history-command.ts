@@ -103,7 +103,11 @@ export const runRustHistoryAtom = atom(
       const expectedSheets = restored
         ? workbook.sheets.map((item) => (item.id === restored.id ? restored : item))
         : workbook.sheets
-      const result = await connection.request('history.apply', { direction: action, projection })
+      const pending = connection.request('history.apply', { direction: action, projection })
+      // 先同步阻止重入，再发布等待态；大范围恢复期间标签不能看起来仍然可点。
+      await Promise.resolve()
+      set(rustHistoryPanelAtom, { ...panel, busy: true, error: null })
+      const result = await pending
       if (get(rustWorkbookConnectionAtom) !== connection) return false
       if ((entry.sheetChange || restored) && !result.sheets?.length)
         throw new Error('Rust returned no worksheet structure.')

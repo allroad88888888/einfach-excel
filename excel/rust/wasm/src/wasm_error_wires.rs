@@ -48,6 +48,7 @@ fn sort_range_error_to_js(err: SortRangeError) -> JsValue {
         SortRangeError::InvalidRange => sort_error_to_js("invalid-range", None, None),
         SortRangeError::EmptyKeys => sort_error_to_js("empty-keys", None, None),
         SortRangeError::KeyOutOfRange => sort_error_to_js("key-out-of-range", None, None),
+        SortRangeError::MergeIntersectsRange => sort_error_to_js("merge-in-range", None, None),
         SortRangeError::SpillIntersectsRange { anchor } => {
             sort_error_to_js("spill-in-range", Some(&anchor.to_string()), None)
         }

@@ -24,6 +24,7 @@ import type {
 import type { RustWasmModule, WasmWorkbook } from './wasm-types'
 import { readVisibleProjection } from './visible-projection'
 import { changeVisibility } from './visibility-io'
+import { sortRange } from './sort-io'
 
 type CommandName = keyof RustWorkbookCommands
 
@@ -75,6 +76,19 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       return initialize(input.sheets)
     }
     const current = currentWorkbook()
+    if (command === 'range.sort') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      const index = sheetIndex(input.sheetId)
+      const movedRows = sortRange(current, index, input)
+      if (movedRows > 0) {
+        revision += 1
+        // 剪切快照的坐标不再代表原记录；排序后必须重新剪切。
+        if (clipboard?.cut) clipboard.invalidated = true
+      }
+      return {
+        movedRows, projection: readVisibleProjection(current, index, input.projection, revision),
+      }
+    }
     if (command === 'selection.aggregate') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
       if (!current.aggregate_selection) throw new Error('Rust aggregate command is unavailable.')

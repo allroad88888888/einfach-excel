@@ -1,4 +1,6 @@
 export * from './auto-fill'
+export { sortFeedbackAtom, sortSelectionAtom } from './sort/command'
+export { sortPanelAtom, configureSortAtom } from './sort/panel'
 export * from './filter-sort'
 export * from './protection'
 export * from './find-replace'

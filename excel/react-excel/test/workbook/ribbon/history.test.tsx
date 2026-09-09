@@ -10,6 +10,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, test, vi } from 'vitest'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
 import { HistoryTools } from '../../../src/workbook/chrome/ribbon/HistoryTools'
+import { WorkbookSheetTabs } from '../../../src/workbook/chrome/footer/WorkbookSheetTabs'
 
 async function setup(empty = false, failure = false, label = 'Edit cell', archived = false) {
   const range = { rowStart: 1, rowEnd: 1, colStart: 0, colEnd: 0 }
@@ -53,11 +54,15 @@ async function setup(empty = false, failure = false, label = 'Edit cell', archiv
   const store = createStore()
   store.setter(initializeWorkbookDocumentAtom, {
     title: 'Book',
-    sheets: [{ id: 'orders', index: 0, name: 'Orders', rowCount: 100, colCount: 8 }],
+    sheets: [
+      { id: 'orders', index: 0, name: 'Orders', rowCount: 100, colCount: 8 },
+      { id: 'summary', index: 1, name: 'Summary', rowCount: 100, colCount: 8 },
+    ],
   })
   render(
     <WorkbookStoreProvider store={store} connection={{ request, dispose() {} }}>
       <HistoryTools />
+      <WorkbookSheetTabs />
     </WorkbookStoreProvider>,
   )
   await act(async () => {
@@ -76,6 +81,22 @@ async function click(name: string) {
 }
 
 describe('history controls', () => {
+  test('pending native undo visibly disables controls and sheet tabs before the reply', async () => {
+    const { apply } = await setup()
+    let finish!: (value: Awaited<ReturnType<typeof apply>>) => void
+    apply.mockImplementationOnce(() => new Promise((resolve) => { finish = resolve }))
+    await click('Undo')
+    expect(screen.getByRole('button', { name: 'Undo' })).toBeDisabled()
+    expect(screen.getByRole('tab', { name: 'Summary' })).toBeDisabled()
+    await act(async () => {
+      finish({ projection: { ...apply.mock.lastCall![0].projection, cells: [], revision: 1,
+        history: { undoCount: 0, redoCount: 1, entries: [], notice: null } },
+      range: { rowStart: 1, rowEnd: 1, colStart: 0, colEnd: 0 }, sheetId: 'orders',
+      sizes: { rowHeights: [], colWidths: [] } })
+    })
+    expect(screen.getByRole('tab', { name: 'Summary' })).toBeEnabled()
+  })
+
   test('an archived worksheet uses its native identity and name, not the new occupant of its old index', async () => {
     await setup(false, false, 'Delete worksheet', true)
     await click('Recent operations')

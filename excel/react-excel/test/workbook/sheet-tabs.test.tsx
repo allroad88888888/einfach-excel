@@ -1,6 +1,8 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { describe, expect, test, vi } from 'vitest'
-import { activeWorkbookSheetAtom, type RustWorkbookCommands } from '@einfach/spreadsheet-ui-core'
+import {
+  activeWorkbookSheetAtom, rustHistoryPanelAtom, type RustWorkbookCommands,
+} from '@einfach/spreadsheet-ui-core'
 import {
   createControlledCellEditingConnection,
   firstEditingCell,
@@ -27,6 +29,15 @@ async function setup() {
 }
 
 describe('workbook sheet tabs', () => {
+  test('history pending state disables tabs instead of silently ignoring a click', async () => {
+    const { store } = await setup()
+    act(() => store.setter(rustHistoryPanelAtom, { open: false, busy: true, error: null }))
+    expect(screen.getByRole('tab', { name: 'Summary' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Next sheet' })).toBeDisabled()
+    act(() => store.setter(rustHistoryPanelAtom, { open: false, busy: false, error: null }))
+    expect(screen.getByRole('tab', { name: 'Summary' })).toBeEnabled()
+  })
+
   test('adds a blank Rust sheet and switches via tabs and navigation buttons', async () => {
     const { editSheet, store } = await setup()
     fireEvent.click(screen.getByRole('button', { name: 'New sheet' }))

@@ -5,6 +5,7 @@ import {
   sheetTabsAtom,
   runWorkbookSheetCommandAtom,
   systemClipboardFeedbackAtom,
+  rustHistoryPanelAtom,
 } from '@einfach/spreadsheet-ui-core'
 import { useEffect, useRef } from 'react'
 import { SheetDeleteConfirmation } from './SheetDeleteConfirmation'
@@ -15,10 +16,11 @@ export function WorkbookSheetTabs() {
   const active = useAtomValue(activeWorkbookSheetAtom)
   const state = useAtomValue(sheetTabsAtom)
   const clipboard = useAtomValue(systemClipboardFeedbackAtom)
+  const history = useAtomValue(rustHistoryPanelAtom)
   const run = useSetAtom(runWorkbookSheetCommandAtom)
   const inputRef = useRef<HTMLInputElement>(null)
   const tabsRef = useRef<HTMLDivElement>(null)
-  const busy = state.mutation !== null || clipboard.busy
+  const busy = state.mutation !== null || clipboard.busy || history.busy
   const index = document.sheets.findIndex((sheet) => sheet.id === active?.id)
 
   useEffect(() => {

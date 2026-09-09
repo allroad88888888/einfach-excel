@@ -7,6 +7,7 @@ import type { AutoFitText } from './auto-fit-measurement'
 import type { NativeFindMatch, NativeFindRequest, NativeReplaceRequest } from './find-commands'
 import type { CellRange } from '../shared'
 import type { SelectionNumbers } from '../status-bar/types'
+import type { RustSortKey } from './sort-commands'
 
 export interface RustCellSnapshot {
   readonly sheet: number
@@ -44,6 +45,12 @@ export interface RustFormatRangeSnapshot {
 }
 
 export interface WasmWorkbook {
+  sortRange?: (sheet: number, input: {
+    readonly range: { startRow: number; endRow: number; startCol: number; endCol: number }
+    readonly keys: readonly (RustSortKey & { readonly caseSensitive: boolean })[]
+    readonly excludedRows: readonly number[]
+  }) => { readonly ok: true; readonly movedRows: number } |
+    { readonly ok: false; readonly code: string; readonly message?: string }
   apply_auto_fill?: (input: {
     readonly sheet: number
     readonly sourceRange: { startRow: number; endRow: number; startCol: number; endCol: number }

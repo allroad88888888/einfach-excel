@@ -82,6 +82,8 @@ pub enum SortRangeError {
     EmptyKeys,
     /// A key column falls outside the range's column span.
     KeyOutOfRange,
+    /// 合并布局不能跟随普通行置换；先取消合并再排序。
+    MergeIntersectsRange,
     /// The range intersects an active spill (anchor or target). Aligned
     /// with Excel's "can't change part of an array" rejection.
     SpillIntersectsRange {
@@ -251,6 +253,9 @@ impl Sheet {
         }
         if let Some(anchor) = self.spill_intersecting(n) {
             return Err(SortRangeError::SpillIntersectsRange { anchor });
+        }
+        if self.merged_ranges().iter().any(|merged| merged.intersects(n)) {
+            return Err(SortRangeError::MergeIntersectsRange);
         }
 
         // Visible slots: the range's rows minus the (deduped, clamped)

@@ -1,0 +1,32 @@
+.sort-dialog {
+  width: 460px;
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+}
+.sort-dialog form { display: flex; flex-direction: column; align-items: stretch; }
+.sort-dialog .sort-header { display: flex; align-items: center; gap: 8px; }
+.sort-dialog input[type='checkbox'] { width: 16px; min-height: 16px; margin: 0; }
+.sort-dialog fieldset {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  min-width: 0;
+}
+.sort-dialog legend { font-weight: 600; padding: 0 4px; }
+.sort-dialog select {
+  min-width: 0;
+  min-height: 32px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: white;
+  color: inherit;
+  font: inherit;
+}
+.sort-dialog :is(button, input, select):focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.sort-dialog .size-actions button[type='submit'] { background: var(--primary); color: white; }

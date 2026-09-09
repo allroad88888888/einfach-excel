@@ -16,6 +16,7 @@ import type { SheetVisibilityProjection } from '../viewport/hidden-state'
 import type { StructuralEdit } from './structure-geometry'
 import type { AutoFitLayout } from './auto-fit-measurement'
 import type { RustFindCommands } from './find-commands'
+import type { RustSortCommands } from './sort-commands'
 import type { SelectionNumbers } from '../status-bar/types'
 import type {
   RustClipboardCapture,
@@ -121,7 +122,7 @@ export interface RustClearRangeRequest {
   readonly mode: RustClearRangeMode
 }
 
-export interface RustWorkbookCommands extends RustFindCommands {
+export interface RustWorkbookCommands extends RustFindCommands, RustSortCommands {
   readonly 'range.fill': WorkerCommand<
     { readonly request: RustFillRangeRequest; readonly projection: VisibleProjectionRequest },
     RustSetRangeFormatResult & { readonly sizes: {

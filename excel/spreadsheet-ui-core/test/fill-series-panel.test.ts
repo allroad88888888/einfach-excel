@@ -87,7 +87,7 @@ test('pending fill prevents editing options, dismissal and duplicate submission'
   expect(store.getter(fillSeriesPanelAtom).target).toBeNull()
 })
 
-test.each(['weekday-name', 'month-name', 'custom-list'] as const)(
+test.each(['weekday-name', 'month-name', 'custom-list', 'date'] as const)(
   '%s accepts one source and sends only user options to Rust', async (kind) => {
     const { store, fill } = await setup()
     await store.setter(configureFillSeriesAtom, { field: 'kind', value: kind })

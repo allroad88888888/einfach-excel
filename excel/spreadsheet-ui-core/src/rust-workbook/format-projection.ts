@@ -35,7 +35,7 @@ function formattedDisplayValue(cell: DisplayCell, format: SpreadsheetCellFormat)
   if (
     cell.numericValue === undefined ||
     numberFormat === undefined ||
-    numberFormat.kind === 'general'
+    numberFormat.kind === 'general' || numberFormat.kind === 'date'
   ) {
     return cell.displayValue
   }

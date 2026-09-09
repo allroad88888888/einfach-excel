@@ -78,7 +78,7 @@ fn make_xirr_env() -> (HashMap<CellAddress, AtomId>, HashMap<AtomId, Value>) {
     let mut cell_map = HashMap::new();
     let mut values = HashMap::new();
     let flows = [-100.0_f64, 50.0, 70.0];
-    // Date serials under our 1970 epoch.
+    // Date serials under the workbook's Excel 1900 epoch.
     // 2020-01-01 = 18262, 2020-06-01 = 18414, 2020-12-31 = 18627.
     let dates = [
         date_serial(2020, 1, 1),

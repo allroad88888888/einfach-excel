@@ -62,7 +62,7 @@ fn booleans_are_typed_and_percentages_keep_the_input_precision() {
 
 #[test]
 fn unsupported_inputs_remain_text_and_values_only_does_not_execute_formulas() {
-    for text in ["NaN", "inf", "1e999", "12%%", "%", "2026-09-08", "0x10"] {
+    for text in ["NaN", "inf", "1e999", "12%%", "%", "09/08/2026", "0x10"] {
         assert_eq!(
             parse_cell_input(text, true),
             CellInput::Literal(Value::Text(text.into()))

@@ -122,7 +122,8 @@ impl CellFormat {
                 let body = format_fixed(n, *digits, true, "");
                 format!("{}{}", symbol, body)
             }
-            NumberFormat::Date(_) => default_number_string(n),
+            NumberFormat::Date(pattern) => crate::date_format::format_date(pattern, n)
+                .unwrap_or_else(|| default_number_string(n)),
             NumberFormat::Custom(pattern) => {
                 format_custom_number(pattern, n).unwrap_or_else(|| default_number_string(n))
             }

@@ -2,9 +2,7 @@
 //! through a real `Workbook` instance so the parse + eval + cache pipeline is
 //! exercised (not just the inline match arms in `eval.rs`).
 //!
-//! Epoch reminder: this codebase uses 1970-01-01 = serial 0 (Unix-style), not
-//! Excel's 1900 epoch. Tests that need a known serial therefore build the
-//! expected value via a DATE() formula on the workbook itself.
+//! 本文件验证日期函数组合；独立 Excel 1900 序号常量见 date_system.rs。
 
 use einfach_core::Value;
 use einfach_excel_core::Workbook;

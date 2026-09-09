@@ -1,8 +1,7 @@
 use super::*;
 
 pub(super) fn dow_monday_indexed(serial: i64) -> usize {
-    // Sunday=0..Saturday=6 (since 1970-01-01 was Thursday → +4).
-    let dow_sun = (serial + 4).rem_euclid(7);
+    let dow_sun = crate::date_serial::weekday_sunday_indexed(serial);
     // Shift to Mon=0..Sun=6.
     ((dow_sun + 6) % 7) as usize
 }

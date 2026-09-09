@@ -12,6 +12,7 @@ export interface RustCellSnapshot {
   readonly sheet: number
   readonly addr: string
   readonly display: string
+  readonly formattedDisplay?: string
   readonly inputText?: string
   readonly type: 'number' | 'text' | 'boolean' | 'error' | 'null'
   readonly isError: boolean
@@ -49,7 +50,7 @@ export interface WasmWorkbook {
     readonly targetRange: { startRow: number; endRow: number; startCol: number; endCol: number }
     readonly direction: 'down' | 'right' | 'up' | 'left'
     readonly series: 'copy' | 'integer-step' | 'text-number' | 'linear-trend' |
-      'weekday-name' | 'month-name' | 'custom-list'
+      'weekday-name' | 'month-name' | 'custom-list' | 'date-day'
     readonly infer?: boolean
     readonly list?: { listName: string; values: readonly string[]; locale: string }
   }) => { readonly written: number }

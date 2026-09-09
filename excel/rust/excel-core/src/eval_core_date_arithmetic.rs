@@ -1,23 +1,8 @@
 use super::*;
 
-/// Gregorian leap-year rule. Mirrors the local helper inside `date_serial`
-/// / `date_from_serial`, exposed at module scope so the date arithmetic
-/// helpers below can share it.
-pub(super) fn is_leap_year(y: i32) -> bool {
-    (y % 4 == 0 && y % 100 != 0) || y % 400 == 0
-}
-
 /// Number of days in month `m` of year `y`. Month is 1-based (1..=12).
 pub(super) fn days_in_month(y: i32, m: u32) -> u32 {
-    const DOM: [u32; 12] = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-    if m == 0 || m > 12 {
-        return 0;
-    }
-    let mut d = DOM[(m - 1) as usize];
-    if m == 2 && is_leap_year(y) {
-        d += 1;
-    }
-    d
+    crate::date_serial::days_in_excel_month(y, m).unwrap_or(0)
 }
 
 /// Shift `(year, month)` by `delta` months, handling negative deltas and

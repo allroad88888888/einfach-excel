@@ -8,6 +8,15 @@ export const SALES_ORDER_SUMMARY_CELLS: readonly RustImportCell[] = [
   { sheet: 1, row: 1, col: 1, kind: 'formula', value: "='Sales Orders'!B2" },
   { sheet: 1, row: 9, col: 0, kind: 'text', value: 'Hidden row example' },
   { sheet: 1, row: 0, col: 6, kind: 'text', value: 'Hidden column example' },
+  // 日期原始序号：日填充、月末填充及 1900 兼容闰日；不在视图伪造日期。
+  { sheet: 1, row: 19, col: 0, kind: 'number', value: 45350,
+    format: { bold: true, numberFormat: { kind: 'date', pattern: 'yyyy-mm-dd' } } },
+  { sheet: 1, row: 19, col: 2, kind: 'number', value: 45322,
+    format: { italic: true, numberFormat: { kind: 'date', pattern: 'yyyy-mm-dd' } } },
+  { sheet: 1, row: 20, col: 2, kind: 'number', value: 45351,
+    format: { italic: true, numberFormat: { kind: 'date', pattern: 'yyyy-mm-dd' } } },
+  { sheet: 1, row: 19, col: 4, kind: 'number', value: 60,
+    format: { underline: true, numberFormat: { kind: 'date', pattern: 'yyyy-mm-dd' } } },
   // 序列样本：A40:A41 等差、C40:C41 编号、E40:E43 非等差趋势。
   { sheet: 1, row: 38, col: 0, kind: 'text', value: 'Series examples', format: { bold: true } },
   { sheet: 1, row: 39, col: 0, kind: 'number', value: 1 },

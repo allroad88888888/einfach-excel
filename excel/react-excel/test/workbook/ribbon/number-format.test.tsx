@@ -54,6 +54,7 @@ describe('Workbook ribbon number formats', () => {
       ['Percent format', SELECTION_PERCENT_FORMAT],
       ['Currency format', SELECTION_CURRENCY_FORMAT],
       ['Thousands format', SELECTION_THOUSANDS_FORMAT],
+      ['Date format', { kind: 'date', pattern: 'yyyy-mm-dd' }],
     ] as const
 
     for (const [index, [label, numberFormat]] of cases.entries()) {

@@ -125,6 +125,7 @@ function nextPatch(
     action === 'currency-format' ||
     action === 'thousands-format' ||
     action === 'general-format' ||
+    action === 'date-format' ||
     action === 'increase-decimal' ||
     action === 'decrease-decimal'
   ) {

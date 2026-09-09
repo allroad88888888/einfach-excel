@@ -40,7 +40,7 @@ async function apply() {
   await act(async () => { fireEvent.submit(dialog().querySelector('form')!) })
 }
 
-test.each(['number', 'text-number', 'linear-trend', 'weekday-name', 'month-name', 'custom-list'])(
+test.each(['number', 'text-number', 'linear-trend', 'weekday-name', 'month-name', 'custom-list', 'date'])(
   '%s is an atom-controlled option', async (kind) => {
   const { fill } = await setup()
   await act(async () => {

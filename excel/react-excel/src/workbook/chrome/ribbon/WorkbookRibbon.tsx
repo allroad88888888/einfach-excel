@@ -228,6 +228,9 @@ export function WorkbookRibbon() {
           onClick={() => void applyFormat('general-format')}
           pressed={!activeFormat.numberFormat || activeFormat.numberFormat.kind === 'general'}
         />
+        <ToolButton icon="▦" label="Date format"
+          onClick={() => void applyFormat('date-format')}
+          pressed={activeFormat.numberFormat?.kind === 'date'} />
         <ToolButton icon="Σ" label="Auto sum" />
         <span className="tool-separator" aria-hidden="true" />
         <ToolButton

@@ -90,11 +90,6 @@ pub(super) fn eval_fn_date_time(
                 _ => Value::Error(ValueError::WrongType),
             }
         }
-        // WEEKDAY(serial[, return_type]).
-        //
-        // Epoch note: this codebase uses 1970-01-01 = serial 0 (Unix-style),
-        // not Excel's 1900 epoch. 1970-01-01 was a Thursday, so the
-        // Sunday-indexed day-of-week is `((floor(serial)) + 4) mod 7`.
                 _ => unreachable!(),
     }
 }

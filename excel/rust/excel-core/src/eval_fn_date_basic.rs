@@ -2,12 +2,9 @@
 
 use super::*;
 
-pub(super) fn eval_fn_date_basic(
-    name: &str,
-    args: &[Expr],
-    provider: &dyn EvalProvider,
-) -> Value {
-    match name {"TODAY" => {
+pub(super) fn eval_fn_date_basic(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
+    match name {
+        "TODAY" => {
             use chrono::{Datelike, Local};
             let today = Local::now().date_naive();
             Value::Number(date_serial(today.year(), today.month(), today.day()))
@@ -22,21 +19,24 @@ pub(super) fn eval_fn_date_basic(
             Value::Number(day_serial + secs_in_day / 86_400.0)
         }
         "DATE" => {
-            // DATE(year, month, day) — naive day-count via days-from-epoch.
-            // Doesn't handle leap rules of pre-1582 Julian; accurate enough
-            // for the demo's range.
+            // 与输入、显示及填充共用 Excel 1900 日期序号。
             if args.len() != 3 {
                 return Value::Error(ValueError::WrongArgCount);
             }
-            let y = coerce_to_number(&eval_expr_with_provider(&args[0], provider));
-            let m = coerce_to_number(&eval_expr_with_provider(&args[1], provider));
-            let d = coerce_to_number(&eval_expr_with_provider(&args[2], provider));
-            match (y, m, d) {
-                (Some(y), Some(m), Some(d)) => {
-                    Value::Number(date_serial(y as i32, m as u32, d as u32))
+            let mut numbers = [0.0; 3];
+            for (slot, arg) in numbers.iter_mut().zip(args) {
+                let value = eval_expr_with_provider(arg, provider);
+                if let Value::Error(error) = value {
+                    return Value::Error(error);
                 }
-                _ => Value::Error(ValueError::InvalidValue),
+                let Some(number) = coerce_to_number(&value) else {
+                    return Value::Error(ValueError::InvalidValue);
+                };
+                *slot = number;
             }
+            date_formula_serial(numbers[0], numbers[1], numbers[2])
+                .map(Value::Number)
+                .unwrap_or(Value::Error(ValueError::Overflow))
         }
         "YEAR" => date_part(args, provider, |y, _, _| y as f64),
         "MONTH" => date_part(args, provider, |_, m, _| m as f64),
@@ -51,6 +51,6 @@ pub(super) fn eval_fn_date_basic(
         // When used as a range argument to SUM / COUNT / AVERAGE / VLOOKUP
         // / etc., `for_each_arg_value` and `collect_range_2d_for_arg` detect
         // the OFFSET call and iterate the full computed range instead.
-                _ => unreachable!(),
+        _ => unreachable!(),
     }
 }

@@ -145,6 +145,7 @@ impl WasmWorkbook {
                     .and_then(|sheet| sheet.get_formula(&addr_str))
                     .unwrap_or_default();
                 out.push(CellSnapshotJSON {
+                    formatted_display: native_date_display(&self.workbook, sheet_idx, &addr_str, &value),
                     sheet: sheet_idx,
                     addr: addr_str,
                     display: value_to_display(&value),

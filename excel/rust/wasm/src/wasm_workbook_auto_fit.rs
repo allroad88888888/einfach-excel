@@ -27,8 +27,14 @@ impl WasmWorkbook {
             CellRange::new(CellAddress::new(start_row, start_col), CellAddress::new(end_row, end_col)),
             axis, default_row, default_col,
             |value, format, width| {
+                let value = collapse_array_for_js(value);
+                let value = value.as_ref();
                 let input = AutoFitTextJSON {
-                    text: value_to_display(value),
+                    text: match value {
+                        Value::Number(n) if matches!(format.number_format, NumberFormat::Date(_)) =>
+                            format.format_number(*n),
+                        _ => value_to_display(value),
+                    },
                     numeric_value: match value { Value::Number(n) => Some(*n), _ => None },
                     format: CellFormatJSON::from_format(format), width,
                 };

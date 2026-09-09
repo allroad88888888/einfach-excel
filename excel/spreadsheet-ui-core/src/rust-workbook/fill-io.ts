@@ -61,7 +61,8 @@ export function fillRange(
   withHistory(workbook, sheet, destination, `Fill ${series ? `${series.kind} series` : direction}`, true, () =>
     workbook.apply_auto_fill!({
       sheet, sourceRange: nativeRange(source), targetRange: nativeRange(range), direction,
-      series: series?.kind === 'number' ? 'integer-step' : series?.kind ?? 'copy',
+      series: series?.kind === 'number' ? 'integer-step'
+        : series?.kind === 'date' ? 'date-day' : series?.kind ?? 'copy',
       ...(series || input.auto ? { infer: true } : {}),
       ...(custom ? { list: { listName: 'custom-fill', values: custom, locale: 'en' } } : {}),
     }),

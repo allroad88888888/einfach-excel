@@ -129,7 +129,7 @@ test('invalid series geometry and counts fail before history allocation', async 
   expect(begin).not.toHaveBeenCalled()
 })
 
-test.each(['weekday-name', 'month-name', 'custom-list'])(
+test.each(['weekday-name', 'month-name', 'custom-list', 'date'])(
   '%s infers from a single native sample, without sending builtin lists or step guesses', async (kind) => {
     const { call, fill, begin } = await runtime()
     const series = { kind, sourceCount: 1,
@@ -138,7 +138,7 @@ test.each(['weekday-name', 'month-name', 'custom-list'])(
     expect((await call('range.fill', { ...input,
       request: { ...input.request, range: { ...range, colEnd: 1 }, series },
     })).ok).toBe(true)
-    expect(fill).toHaveBeenCalledWith({ sheet: 0, direction: 'down', series: kind, infer: true,
+    expect(fill).toHaveBeenCalledWith({ sheet: 0, direction: 'down', series: kind === 'date' ? 'date-day' : kind, infer: true,
       sourceRange: { startRow: 50, endRow: 50, startCol: 1, endCol: 1 },
       targetRange: { startRow: 50, endRow: 53, startCol: 1, endCol: 1 },
       ...(kind === 'custom-list' ? { list: {

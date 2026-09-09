@@ -29,7 +29,9 @@ export function displayCell(snapshot: RustCellSnapshot): DisplayCell | null {
       : snapshot.type === 'null'
         ? 'blank'
         : snapshot.type
-  const cell: DisplayCell = { ...coord, displayValue: snapshot.display, valueKind }
+  const cell: DisplayCell = {
+    ...coord, displayValue: snapshot.formattedDisplay ?? snapshot.display, valueKind,
+  }
   cell.inputText = snapshot.inputText ?? (snapshot.formula || snapshot.display)
   if (snapshot.type === 'number') {
     const numericValue = Number(snapshot.display)

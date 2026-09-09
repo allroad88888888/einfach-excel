@@ -4,10 +4,7 @@
 //! and the value cache are all exercised, not just the inline match
 //! arms in `eval.rs`.
 //!
-//! Epoch reminder: serials here are 1970-01-01 = 0 (Unix-style), not
-//! Excel's 1900 epoch (see TODO(excel-1900-epoch) on `date_serial`).
-//! Tests therefore build expected serials with `DATE()` formulas
-//! rather than hard-coding numbers.
+//! 本文件验证函数组合；1900 纪元的独立常量断言见 date_system.rs。
 
 use einfach_core::Value;
 use einfach_excel_core::Workbook;

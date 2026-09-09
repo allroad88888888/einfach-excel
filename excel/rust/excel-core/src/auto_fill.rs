@@ -2,7 +2,9 @@ use crate::cell_style::{CellStyle, StyleScope};
 use crate::formula::Expr;
 use crate::sheet::{EXCEL_MAX_COLS, EXCEL_MAX_ROWS};
 use crate::{parse_formula, render_formula, CellAddress, CellFormat, CellRange, Workbook};
-use chrono::{Datelike, Duration, NaiveDate};
+use crate::date_serial::{
+    days_in_excel_month, excel_date_parts_to_serial, excel_serial_to_date_parts, ExcelDateParts,
+};
 use einfach_core::Value;
 use std::fmt;
 use unicode_normalization::char::canonical_combining_class;
@@ -653,14 +655,6 @@ fn plan_linear_trend(
     })
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
-struct ExcelDateParts {
-    year: i32,
-    month: u32,
-    day: u32,
-    fraction: f64,
-}
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum DateSeriesKind {
     Day,
@@ -677,71 +671,6 @@ struct DateAnalysis {
 
 fn is_safe_integer(value: f64) -> bool {
     value.is_finite() && value.abs() <= MAX_SAFE_INTEGER && value.fract() == 0.0
-}
-
-fn days_in_excel_month(year: i32, month: u32) -> Option<u32> {
-    if year == 1900 && month == 2 {
-        return Some(29);
-    }
-    let (next_year, next_month) = if month == 12 {
-        (year.checked_add(1)?, 1)
-    } else {
-        (year, month.checked_add(1)?)
-    };
-    let first = NaiveDate::from_ymd_opt(year, month, 1)?;
-    let next = NaiveDate::from_ymd_opt(next_year, next_month, 1)?;
-    Some((next - first).num_days() as u32)
-}
-
-fn excel_serial_to_date_parts(serial: f64) -> Option<ExcelDateParts> {
-    if !serial.is_finite() {
-        return None;
-    }
-    let whole = serial.floor();
-    if whole < i64::MIN as f64 || whole > i64::MAX as f64 {
-        return None;
-    }
-    let whole = whole as i64;
-    let fraction = serial - whole as f64;
-    if whole == 60 {
-        return Some(ExcelDateParts {
-            year: 1900,
-            month: 2,
-            day: 29,
-            fraction,
-        });
-    }
-    let adjusted = if whole > 60 { whole - 1 } else { whole };
-    let epoch = NaiveDate::from_ymd_opt(1899, 12, 31)?;
-    let date = epoch.checked_add_signed(Duration::days(adjusted))?;
-    Some(ExcelDateParts {
-        year: date.year(),
-        month: date.month(),
-        day: date.day(),
-        fraction,
-    })
-}
-
-fn excel_date_parts_to_serial(parts: ExcelDateParts) -> Option<f64> {
-    if !parts.fraction.is_finite()
-        || parts.month == 0
-        || parts.month > 12
-        || parts.day == 0
-        || parts.day > days_in_excel_month(parts.year, parts.month)?
-    {
-        return None;
-    }
-    if parts.year == 1900 && parts.month == 2 && parts.day == 29 {
-        return Some(60.0 + parts.fraction);
-    }
-    let date = NaiveDate::from_ymd_opt(parts.year, parts.month, parts.day)?;
-    let epoch = NaiveDate::from_ymd_opt(1899, 12, 31)?;
-    let mut serial = date.signed_duration_since(epoch).num_days() as f64;
-    if parts.year > 1900 || (parts.year == 1900 && parts.month > 2) {
-        serial += 1.0;
-    }
-    let serial = serial + parts.fraction;
-    serial.is_finite().then_some(serial)
 }
 
 fn add_excel_months(
@@ -902,6 +831,7 @@ fn plan_date_series(
             relative,
             analysis.preserve_end_of_month,
         )
+        .filter(|serial| crate::date_serial::valid_date_serial(*serial))
         .map(Value::Number)
         .ok_or(AutoFillError::InvalidSource(
             "generated series contains an invalid date",

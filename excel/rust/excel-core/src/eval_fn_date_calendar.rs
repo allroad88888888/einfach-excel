@@ -33,7 +33,10 @@ pub(super) fn eval_fn_date_calendar(
                 1
             };
             // Sunday=0..Saturday=6 in our intermediate.
-            let dow = ((serial.floor() as i64) + 4).rem_euclid(7);
+            if !crate::date_serial::valid_date_serial(serial) {
+                return Value::Error(ValueError::Overflow);
+            }
+            let dow = crate::date_serial::weekday_sunday_indexed(serial.floor() as i64);
             let result = match return_type {
                 1 => dow + 1,             // Sun=1..Sat=7
                 2 => ((dow + 6) % 7) + 1, // Mon=1..Sun=7
@@ -82,10 +85,13 @@ pub(super) fn eval_fn_date_calendar(
                 2 => 1, // Monday
                 _ => return Value::Error(ValueError::InvalidValue),
             };
+            if !crate::date_serial::valid_date_serial(serial) {
+                return Value::Error(ValueError::Overflow);
+            }
             let (y, _, _) = date_from_serial(serial);
             let jan1 = date_serial(y, 1, 1);
             // Sunday=0..Saturday=6 for jan1.
-            let jan1_dow = ((jan1.floor() as i64) + 4).rem_euclid(7);
+            let jan1_dow = crate::date_serial::weekday_sunday_indexed(jan1.floor() as i64);
             // Day-of-year, 0-based.
             let doy = serial.floor() as i64 - jan1.floor() as i64;
             // Position within week 1 of jan1: how many days into the week
@@ -111,10 +117,21 @@ pub(super) fn eval_fn_date_calendar(
             }
             match (coerce_to_number(&s), coerce_to_number(&m)) {
                 (Some(start), Some(months)) => {
+                    if !crate::date_serial::valid_date_serial(start)
+                        || !months.is_finite()
+                        || months.abs() > 120_000.0
+                    {
+                        return Value::Error(ValueError::Overflow);
+                    }
                     let (y, mo, _) = date_from_serial(start);
                     let (ty, tm) = shift_year_month(y, mo, months.trunc() as i64);
                     let dim = days_in_month(ty, tm);
-                    Value::Number(date_serial(ty, tm, 1) + (dim as f64) - 1.0)
+                    let result = date_serial(ty, tm, 1) + (dim as f64) - 1.0;
+                    if crate::date_serial::valid_date_serial(result) {
+                        Value::Number(result)
+                    } else {
+                        Value::Error(ValueError::Overflow)
+                    }
                 }
                 _ => Value::Error(ValueError::WrongType),
             }
@@ -135,11 +152,22 @@ pub(super) fn eval_fn_date_calendar(
             }
             match (coerce_to_number(&s), coerce_to_number(&m)) {
                 (Some(start), Some(months)) => {
+                    if !crate::date_serial::valid_date_serial(start)
+                        || !months.is_finite()
+                        || months.abs() > 120_000.0
+                    {
+                        return Value::Error(ValueError::Overflow);
+                    }
                     let (y, mo, d) = date_from_serial(start);
                     let (ty, tm) = shift_year_month(y, mo, months.trunc() as i64);
                     let dim = days_in_month(ty, tm);
                     let td = d.min(dim);
-                    Value::Number(date_serial(ty, tm, td))
+                    let result = date_serial(ty, tm, td);
+                    if crate::date_serial::valid_date_serial(result) {
+                        Value::Number(result)
+                    } else {
+                        Value::Error(ValueError::Overflow)
+                    }
                 }
                 _ => Value::Error(ValueError::WrongType),
             }

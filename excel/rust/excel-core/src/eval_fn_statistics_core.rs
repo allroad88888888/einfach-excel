@@ -139,7 +139,6 @@ pub(super) fn eval_fn_statistics_core(
             Value::Number(nums[k - 1])
         }
 
-        // Dates: stored as f64 day numbers, epoch = 1970-01-01 → 0.
                 _ => unreachable!(),
     }
 }

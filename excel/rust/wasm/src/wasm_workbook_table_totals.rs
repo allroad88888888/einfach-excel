@@ -118,6 +118,7 @@ impl WasmWorkbook {
             .map(|addr| addr.to_string())
             .unwrap_or_else(|| addr.to_ascii_uppercase());
         serde_wasm_bindgen::to_value(&CellSnapshotJSON {
+            formatted_display: native_date_display(&self.workbook, sheet_idx_usize, &addr, &value),
             sheet: sheet_idx_usize,
             addr,
             display: value_to_display(&value),

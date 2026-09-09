@@ -65,7 +65,9 @@ export function FillSeriesTools() {
             placeholder={'Low\nMedium\nHigh'}
             onChange={(event) => void run({ field: 'listText', value: event.currentTarget.value })} />
         </>}
-        <p className="size-hint">{minimumFillSamples(state.kind) === 1
+        <p className="size-hint">{state.kind === 'date'
+          ? 'One date advances by a day. Two or more dates infer day, week or month steps; month ends stay at month end.'
+          : minimumFillSamples(state.kind) === 1
           ? state.kind === 'custom-list'
             ? 'One item per line (2–512 unique items). One source sample follows the list; more samples infer a cyclic step.'
             : 'English short/full names or Chinese names. One source sample advances by one; more samples infer the cyclic step.'

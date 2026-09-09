@@ -1,82 +1,44 @@
 use super::*;
+use crate::date_serial::{
+    excel_date_parts_to_serial, excel_serial_to_date_parts, valid_date_serial, ExcelDateParts,
+};
 
-/// Naive Gregorian-only days-from-epoch. Epoch: 1970-01-01 = 0.
-///
-/// TODO(excel-1900-epoch): if Excel file import/export becomes a requirement,
-/// switch to Excel's 1900-01-01 = serial 1 convention. Constraints:
-///   - serials need a +25569 offset (days between 1900-01-01 and 1970-01-01,
-///     including the phantom Feb 29 1900 that Excel preserves for Lotus 1-2-3
-///     compatibility);
-///   - the phantom 1900-02-29 must be reproduced for serials 60..; dates before
-///     1900-03-01 stay off by one day from the real Gregorian calendar;
-///   - dates before 1900-01-01 → #NUM! (Excel rejects them);
-///   - every test in `eval_*date*` / `eval_weekday` / `eval_eomonth` / etc.
-///     needs its expected values regenerated against the new baseline.
-/// Until then 1970 epoch is internally consistent and has no leap-year bug.
+/// 内部年月日转换不套用 DATE 函数的短年份规则；非法日期返回 NaN。
 pub(super) fn date_serial(year: i32, month: u32, day: u32) -> f64 {
-    if month == 0 || month > 12 || day == 0 || day > 31 {
-        return f64::NAN;
-    }
-    // Days in each month for non-leap years.
-    const DOM: [u32; 12] = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-    fn is_leap(y: i32) -> bool {
-        (y % 4 == 0 && y % 100 != 0) || y % 400 == 0
-    }
-    let mut days: i64 = 0;
-    if year >= 1970 {
-        for y in 1970..year {
-            days += if is_leap(y) { 366 } else { 365 };
-        }
-    } else {
-        for y in year..1970 {
-            days -= if is_leap(y) { 366 } else { 365 };
-        }
-    }
-    for m in 1..month {
-        days += DOM[(m - 1) as usize] as i64;
-        if m == 2 && is_leap(year) {
-            days += 1;
-        }
-    }
-    days += (day - 1) as i64;
-    days as f64
+    excel_date_parts_to_serial(ExcelDateParts {
+        year,
+        month,
+        day,
+        fraction: 0.0,
+    })
+    .unwrap_or(f64::NAN)
 }
 
+/// 调用方负责输入错误；无效值使用不可表示的日期哨兵，不迭代年份或溢出。
 pub(super) fn date_from_serial(serial: f64) -> (i32, u32, u32) {
-    let days = serial as i64;
-    let mut year = 1970i32;
-    let mut remaining = days;
-    fn is_leap(y: i32) -> bool {
-        (y % 4 == 0 && y % 100 != 0) || y % 400 == 0
+    excel_serial_to_date_parts(serial)
+        .map(|p| (p.year, p.month, p.day))
+        .unwrap_or((0, 0, 0))
+}
+
+/// DATE 接受月／日溢出，但结果必须仍在工作簿的 1900 日期系统范围内。
+pub(super) fn date_formula_serial(year: f64, month: f64, day: f64) -> Option<f64> {
+    if !year.is_finite()
+        || !month.is_finite()
+        || !day.is_finite()
+        || !(0.0..10000.0).contains(&year)
+        || month.abs() > 120_000.0
+        || day.abs() > 4_000_000.0
+    {
+        return None;
     }
-    if remaining >= 0 {
-        loop {
-            let dy = if is_leap(year) { 366 } else { 365 };
-            if remaining < dy {
-                break;
-            }
-            remaining -= dy;
-            year += 1;
-        }
-    } else {
-        while remaining < 0 {
-            year -= 1;
-            let dy = if is_leap(year) { 366 } else { 365 };
-            remaining += dy;
-        }
-    }
-    const DOM: [u32; 12] = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-    let mut month = 1u32;
-    while month <= 12 {
-        let dm = DOM[(month - 1) as usize] as i64 + if month == 2 && is_leap(year) { 1 } else { 0 };
-        if remaining < dm {
-            break;
-        }
-        remaining -= dm;
-        month += 1;
-    }
-    let day = remaining as u32 + 1;
-    (year, month, day)
+    let year = year.trunc() as i64;
+    let year = if year < 1900 { year + 1900 } else { year };
+    let total_months = year * 12 + month.trunc() as i64 - 1;
+    let year = i32::try_from(total_months.div_euclid(12)).ok()?;
+    let month = (total_months.rem_euclid(12) + 1) as u32;
+    let serial = date_serial(year, month, 1) + day.trunc() - 1.0;
+    valid_date_serial(serial).then_some(serial)
 }
 
 pub(super) fn date_part(
@@ -88,11 +50,15 @@ pub(super) fn date_part(
         return Value::Error(ValueError::WrongArgCount);
     }
     let v = eval_expr_with_provider(&args[0], provider);
+    if let Value::Error(error) = v {
+        return Value::Error(error);
+    }
     match coerce_to_number(&v) {
-        Some(n) => {
+        Some(n) if valid_date_serial(n) => {
             let (y, m, d) = date_from_serial(n);
             Value::Number(f(y, m, d))
         }
+        Some(_) => Value::Error(ValueError::Overflow),
         None => Value::Error(ValueError::WrongType),
     }
 }

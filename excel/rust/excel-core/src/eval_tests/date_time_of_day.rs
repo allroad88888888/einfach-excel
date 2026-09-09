@@ -6,8 +6,7 @@ use super::super::*;
 use super::common::*;
 
 // === Date / time formula tests ===========================================
-// Epoch reminder: 1970-01-01 = serial 0 (Unix-style, not Excel 1900).
-// 1970-01-01 was a Thursday → WEEKDAY(0, 1) = 5.
+// 时间仍是一天的小数部分；整数部分统一使用 Excel 1900 日期序号。
 
 #[test]
 fn eval_hour() {

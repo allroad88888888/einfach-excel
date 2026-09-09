@@ -78,7 +78,8 @@ export function createAutoFitMeasurer(axis: 'row' | 'column', layout: AutoFitLay
   return ({ text: raw, numericValue, format, width }: AutoFitText): number => {
     const numberFormat = format.numberFormat
     const text =
-      numericValue != null && numberFormat && numberFormat.kind !== 'general'
+      numericValue != null && numberFormat &&
+      numberFormat.kind !== 'general' && numberFormat.kind !== 'date'
         ? formatNumberValue(numberFormat, numericValue, { locale: format.locale ?? undefined }).text
         : raw
     const size =

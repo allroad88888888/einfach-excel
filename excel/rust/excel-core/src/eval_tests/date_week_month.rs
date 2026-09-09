@@ -8,16 +8,16 @@ use super::common::*;
 #[test]
 fn eval_weekday() {
     let (cm, vs) = make_test_env();
-    // 1970-01-01 (serial 0) was Thursday. return_type=1 → Sun=1..Sat=7 → 5.
-    assert_eq!(eval_str("=WEEKDAY(0)", &cm, &vs), Value::Number(5.0));
+    // 1970-01-01 在 Excel 1900 系统中是 25569，仍是星期四。
+    assert_eq!(eval_str("=WEEKDAY(25569)", &cm, &vs), Value::Number(5.0));
     // Explicit return_type=1.
-    assert_eq!(eval_str("=WEEKDAY(0,1)", &cm, &vs), Value::Number(5.0));
+    assert_eq!(eval_str("=WEEKDAY(25569,1)", &cm, &vs), Value::Number(5.0));
     // return_type=2 (Mon=1..Sun=7): Thursday → 4.
-    assert_eq!(eval_str("=WEEKDAY(0,2)", &cm, &vs), Value::Number(4.0));
+    assert_eq!(eval_str("=WEEKDAY(25569,2)", &cm, &vs), Value::Number(4.0));
     // return_type=3 (Mon=0..Sun=6): Thursday → 3.
-    assert_eq!(eval_str("=WEEKDAY(0,3)", &cm, &vs), Value::Number(3.0));
-    // 1970-01-04 is a Sunday (serial 3) → return_type=1 → 1.
-    assert_eq!(eval_str("=WEEKDAY(3,1)", &cm, &vs), Value::Number(1.0));
+    assert_eq!(eval_str("=WEEKDAY(25569,3)", &cm, &vs), Value::Number(3.0));
+    // 1970-01-04 is a Sunday (serial 25572) → return_type=1 → 1.
+    assert_eq!(eval_str("=WEEKDAY(25572,1)", &cm, &vs), Value::Number(1.0));
     // Out-of-range return_type → #NUM!.
     assert_eq!(
         eval_str("=WEEKDAY(0,99)", &cm, &vs),
@@ -54,14 +54,14 @@ fn eval_weekday() {
 fn eval_weeknum() {
     let (cm, vs) = make_test_env();
     // 1970-01-01 (Thu) — return_type=1 (week starts Sun) → week 1.
-    assert_eq!(eval_str("=WEEKNUM(0)", &cm, &vs), Value::Number(1.0));
+    assert_eq!(eval_str("=WEEKNUM(25569)", &cm, &vs), Value::Number(1.0));
     // 1970-01-04 is a Sunday → week 2 with return_type=1.
-    assert_eq!(eval_str("=WEEKNUM(3,1)", &cm, &vs), Value::Number(2.0));
+    assert_eq!(eval_str("=WEEKNUM(25572,1)", &cm, &vs), Value::Number(2.0));
     // 1970-01-04 (Sun) — return_type=2 (week starts Mon) — still week 1
     // because next Monday hasn't arrived yet.
-    assert_eq!(eval_str("=WEEKNUM(3,2)", &cm, &vs), Value::Number(1.0));
+    assert_eq!(eval_str("=WEEKNUM(25572,2)", &cm, &vs), Value::Number(1.0));
     // 1970-01-05 (Mon) — return_type=2 → week 2.
-    assert_eq!(eval_str("=WEEKNUM(4,2)", &cm, &vs), Value::Number(2.0));
+    assert_eq!(eval_str("=WEEKNUM(25573,2)", &cm, &vs), Value::Number(2.0));
     // Out-of-range return_type → InvalidValue.
     assert_eq!(
         eval_str("=WEEKNUM(0,99)", &cm, &vs),

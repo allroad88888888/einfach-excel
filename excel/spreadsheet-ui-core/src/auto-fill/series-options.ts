@@ -6,6 +6,7 @@ export const FILL_SERIES_OPTIONS = [
   { kind: 'weekday-name', label: 'Weekday names', samples: 1 },
   { kind: 'month-name', label: 'Month names', samples: 1 },
   { kind: 'custom-list', label: 'Custom list', samples: 1 },
+  { kind: 'date', label: 'Date sequence', samples: 1 },
 ] as const
 
 export type FillSeriesKind = typeof FILL_SERIES_OPTIONS[number]['kind']

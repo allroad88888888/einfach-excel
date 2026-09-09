@@ -14,11 +14,6 @@ pub(super) fn eval_fn_array_matrix(
         // inclusive on both ends. If `start > end`, the result is
         // negated (matches Excel).
         //
-        // Epoch note: serials here are 1970-01-01 = 0 (see
-        // TODO(excel-1900-epoch) on `date_serial`). 1970-01-01 was a
-        // Thursday, so the Sunday-indexed day-of-week formula is
-        // `((serial.floor() as i64) + 4).rem_euclid(7)`.
-        //
         // Holidays are filtered to whole-day integers (non-numeric
         // cells are silently skipped — Excel raises #VALUE! on text
         // holidays, but we stay lenient because mixed-type holiday

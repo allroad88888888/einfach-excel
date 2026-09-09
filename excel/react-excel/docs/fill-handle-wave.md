@@ -53,5 +53,7 @@
 桌面 1280px 与窄屏 390px 截图已检查：沿用细边框、小填充柄，没有遮住数据或撑出页面横向滚动。
 共享 visual-runtime 未提供，使用持久化 Playwright 截图、可见性、页面异常及溢出断言验证。
 普通新增／修改源文件均在 300 行内；README 从 300 行缩到 117 行，操作说明 196 行。
-演示服务 `http://127.0.0.1:5183` 返回 200；刷新页面可加载新 WASM。本批未 commit。
+演示服务 `http://127.0.0.1:5183` 返回 200；刷新页面可加载新 WASM。本批已随 `d8ecb165` 提交。
 README 的操作内容按职责迁到 [current-capabilities.md](current-capabilities.md)，不删减功能范围。
+
+后续名称识别扩展见[名称序列批次](fill-named-series-wave.md)；上面的未包含范围描述的是本批验收时点。

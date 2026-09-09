@@ -7,7 +7,8 @@ pub(super) fn eval_fn_date_duration(
     args: &[Expr],
     provider: &dyn EvalProvider,
 ) -> Value {
-    match name {"DATEDIF" => {
+    match name {
+        "DATEDIF" => {
             if args.len() != 3 {
                 return Value::Error(ValueError::WrongArgCount);
             }
@@ -100,32 +101,9 @@ pub(super) fn eval_fn_date_duration(
                 Value::Null => return Value::Error(ValueError::WrongType),
                 other => coerce_to_text(&other),
             };
-            let parts: Vec<&str> = if s.contains('-') {
-                s.split('-').collect()
-            } else if s.contains('/') {
-                s.split('/').collect()
-            } else {
-                return Value::Error(ValueError::InvalidValue);
-            };
-            if parts.len() != 3 {
-                return Value::Error(ValueError::InvalidValue);
-            }
-            let y: i32 = match parts[0].parse() {
-                Ok(n) => n,
-                Err(_) => return Value::Error(ValueError::InvalidValue),
-            };
-            let m: u32 = match parts[1].parse() {
-                Ok(n) => n,
-                Err(_) => return Value::Error(ValueError::InvalidValue),
-            };
-            let d: u32 = match parts[2].parse() {
-                Ok(n) => n,
-                Err(_) => return Value::Error(ValueError::InvalidValue),
-            };
-            if m == 0 || m > 12 || d == 0 || d > days_in_month(y, m) {
-                return Value::Error(ValueError::InvalidValue);
-            }
-            Value::Number(date_serial(y, m, d))
+            crate::date_serial::parse_iso_date(s.trim())
+                .map(Value::Number)
+                .unwrap_or(Value::Error(ValueError::InvalidValue))
         }
         // TIMEVALUE(text) — "HH:MM" or "HH:MM:SS".
         "TIMEVALUE" => {
@@ -231,6 +209,6 @@ pub(super) fn eval_fn_date_duration(
         // Boolean(false) = 0, Text = 0 (all count toward the denominator).
         // Null is NOT counted (matches Excel's "empty cell" handling).
         // Errors propagate.
-                _ => unreachable!(),
+        _ => unreachable!(),
     }
 }

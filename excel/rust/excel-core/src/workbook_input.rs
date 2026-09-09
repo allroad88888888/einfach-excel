@@ -1,4 +1,4 @@
-//! 将用户原始输入作为一次工作簿写入；自动百分比格式也在同一命令内完成。
+//! 将用户输入作为一次工作簿写入；自动数字格式也在同一命令内完成。
 use super::*;
 use crate::cell_input::{parse_cell_input, CellInput};
 use crate::{CellStyle, NumberFormat, StyleScope};
@@ -24,7 +24,7 @@ impl Workbook {
         {
             return Err("MERGED_CELL_WRITE");
         }
-        match parse_cell_input(input, true) {
+        let formatted_number = match parse_cell_input(input, true) {
             CellInput::Formula(source) => {
                 // 提交草稿前预检，解析/静态循环失败不能先覆盖原格再要求用户重试。
                 let expr = parse_formula(&source).ok_or("INVALID_FORMULA")?;
@@ -37,22 +37,29 @@ impl Workbook {
                 if !installed {
                     return Err("INVALID_FORMULA");
                 }
+                None
             }
-            CellInput::Literal(value) => self
-                .try_set_cell(sheet_idx, address, value)
-                .map_err(input_write_error)?,
-            CellInput::Percentage { value, digits } => {
-                self.try_set_cell(sheet_idx, address, Value::Number(value))
+            CellInput::Literal(value) => {
+                self.try_set_cell(sheet_idx, address, value)
                     .map_err(input_write_error)?;
-                self.sheet_mut(sheet_idx).unwrap().patch_format_range(
-                    CellRange::single(addr),
-                    StyleScope::Cell,
-                    CellStyle {
-                        number_format: Some(NumberFormat::Percent { digits }),
-                        ..Default::default()
-                    },
-                );
+                None
             }
+            CellInput::Percentage { value, digits } => {
+                Some((value, NumberFormat::Percent { digits }))
+            }
+            CellInput::Date(value) => Some((value, NumberFormat::Date("yyyy-mm-dd".into()))),
+        };
+        if let Some((value, format)) = formatted_number {
+            self.try_set_cell(sheet_idx, address, Value::Number(value))
+                .map_err(input_write_error)?;
+            self.sheet_mut(sheet_idx).unwrap().patch_format_range(
+                CellRange::single(addr),
+                StyleScope::Cell,
+                CellStyle {
+                    number_format: Some(format),
+                    ..Default::default()
+                },
+            );
         }
         Ok(())
     }

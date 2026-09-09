@@ -20,6 +20,7 @@ export type NumberFormatAction =
   | 'currency-format'
   | 'thousands-format'
   | 'general-format'
+  | 'date-format'
   | 'increase-decimal'
   | 'decrease-decimal'
 
@@ -37,6 +38,7 @@ export function nextNumberFormat(
   numericValue: number | undefined,
 ): SpreadsheetNumberFormat | null {
   if (action === 'general-format') return { kind: 'general' }
+  if (action === 'date-format') return { kind: 'date', pattern: 'yyyy-mm-dd' }
   if (action === 'percent-format') {
     const enabled = current?.kind === 'percent' || current?.kind === 'percentage'
     return enabled ? { kind: 'general' } : SELECTION_PERCENT_FORMAT

@@ -6,9 +6,10 @@ pub enum CellInput {
     Formula(String),
     Literal(Value),
     Percentage { value: f64, digits: u8 },
+    Date(f64),
 }
 
-/// 只识别明确的输入语法；不完整数字、非有限数、日期等仍保留为文字。
+/// 只识别明确的输入语法；不完整数字、非有限数、歧义日期仍保留为文字。
 pub fn parse_cell_input(input: &str, allow_formula: bool) -> CellInput {
     if let Some(text) = input.strip_prefix('\'') {
         return CellInput::Literal(Value::Text(text.into()));
@@ -37,6 +38,9 @@ pub fn parse_cell_input(input: &str, allow_formula: bool) -> CellInput {
                 digits,
             };
         }
+    }
+    if let Some(serial) = crate::date_serial::parse_iso_date(trimmed) {
+        return CellInput::Date(serial);
     }
     CellInput::Literal(
         finite_number(trimmed)

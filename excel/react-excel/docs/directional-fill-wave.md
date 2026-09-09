@@ -36,7 +36,7 @@ Summary 的种子仍放在页面 data 目录：
 
 ## 验收记录
 
-- 底层阶段提交：`d3128c72`；本次 React 入口与验收尚未提交。
+- 底层阶段提交：`d3128c72`；React 入口与验收提交：`3a943ff2`。
 - Rust 填充专项 5 条、既有填充 27 条通过；Core lib 1631 通过、3 条既有忽略。
 - WASM lib 102 通过、1 条既有忽略；lite/full 均已重建。
 - UI Core command 9 条、transport 4 条；React 菜单 5 条，覆盖等待／失败／重试／禁用。

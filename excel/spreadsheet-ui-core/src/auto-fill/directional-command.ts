@@ -14,13 +14,15 @@ import { selectionMergeFeedbackAtom } from '../toolbar/selection-merge-state'
 import { systemClipboardFeedbackAtom } from '../clipboard/system-clipboard-command'
 import { getSheetProtection, sheetProtectionAtom } from '../protection'
 import type { RustFillRangeRequest } from '../rust-workbook/commands'
+import { rangeEquals } from '../shared'
 
 const feedbackAtom = atom({ busy: false, error: '', message: '' })
 export const directionalFillFeedbackAtom = atom((get) => get(feedbackAtom))
 
 /** 填充入口只传选项；当前选区、原生写入及结果发布都在一个 command 内。 */
 export const fillSelectionAtom = atom(null, async (
-  get, set, input: 'down' | 'right' | Pick<RustFillRangeRequest, 'direction' | 'series'>,
+  get, set, input: 'down' | 'right' | Pick<RustFillRangeRequest, 'direction' | 'series'> &
+    Partial<Pick<RustFillRangeRequest, 'sourceRange' | 'range' | 'auto' | 'sheetId'>>,
 ): Promise<boolean> => {
   const { direction, series } = typeof input === 'string' ? { direction: input, series: undefined } : input
   if (get(feedbackAtom).busy || get(editingSessionAtom).source !== null ||
@@ -34,8 +36,11 @@ export const fillSelectionAtom = atom(null, async (
   if (!connection || !sheetId || visible?.kind !== 'visible-window' || visible.sheetId !== sheetId) return false
   const fail = (error: string) => { set(feedbackAtom, { busy: false, error, message: '' }); return false }
   if (get(selectionRegionsAtom).length !== 1) return fail('Select one continuous fill range.')
-  const { range } = selection
-  if ((direction === 'down' ? range.rowEnd - range.rowStart : range.colEnd - range.colStart) < 1)
+  const drag = typeof input === 'object' && input.sourceRange ? input : null
+  if (drag && (drag.sheetId !== sheetId || !rangeEquals(drag.sourceRange!, selection.range)))
+    return fail('The fill source selection changed. Drag again.')
+  const range = drag?.range ?? selection.range
+  if (((direction === 'down' || direction === 'up') ? range.rowEnd - range.rowStart : range.colEnd - range.colStart) < 1)
     return fail('Include a source row or column and at least one destination.')
   if (getSheetProtection(get(sheetProtectionAtom), sheetId).mode === 'protected')
     return fail('Unprotect the worksheet before filling cells.')
@@ -50,7 +55,8 @@ export const fillSelectionAtom = atom(null, async (
   set(feedbackAtom, busy)
   try {
     const pending = connection.request('range.fill', {
-      request: { sheetId, requestId, range, direction, ...(series ? { series } : {}) }, projection,
+      request: { sheetId, requestId, range, direction, ...(series ? { series } : {}),
+        ...(drag ? { sourceRange: drag.sourceRange, auto: drag.auto } : {}) }, projection,
     })
     // 同步 guard 先阻止重复写入；异步续体通知 React，不能等 Worker 返回才禁用菜单。
     await Promise.resolve()

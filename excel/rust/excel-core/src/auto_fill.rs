@@ -1199,9 +1199,9 @@ fn plan_named_series(
     write_range: Option<CellRange>,
 ) -> Result<Vec<PlannedCell>, AutoFillError> {
     let step = requested_step(request)?;
-    if step != 1.0 && step != -1.0 {
+    if step.fract() != 0.0 || step.abs() > LIST_MAX_ITEMS as f64 {
         return Err(AutoFillError::InvalidStep(
-            "named series step must be 1 or -1",
+            "named series step must be a non-zero integer within the list limit",
         ));
     }
     let witness = request.list.as_ref().ok_or(AutoFillError::InvalidWitness(

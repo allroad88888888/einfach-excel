@@ -14,6 +14,12 @@ export const SALES_ORDER_SUMMARY_CELLS: readonly RustImportCell[] = [
   { sheet: 1, row: 40, col: 0, kind: 'number', value: 3 },
   { sheet: 1, row: 39, col: 2, kind: 'text', value: 'Item001', format: { italic: true } },
   { sheet: 1, row: 40, col: 2, kind: 'text', value: 'Item003', format: { italic: true } },
+  // 名称序列：星期跨周、月份跨年、自定义优先级，真实文本及样式仍由 Rust 导入。
+  { sheet: 1, row: 54, col: 0, kind: 'text', value: 'Friday', format: { bold: true } },
+  { sheet: 1, row: 54, col: 2, kind: 'text', value: 'Nov', format: { italic: true } },
+  { sheet: 1, row: 54, col: 4, kind: 'text', value: 'Low', format: { underline: true } },
+  { sheet: 1, row: 59, col: 0, kind: 'text', value: '星期五' },
+  { sheet: 1, row: 59, col: 2, kind: 'text', value: '11月' },
   { sheet: 1, row: 39, col: 4, kind: 'number', value: 0 },
   { sheet: 1, row: 40, col: 4, kind: 'number', value: 2 },
   { sheet: 1, row: 41, col: 4, kind: 'number', value: 1 },

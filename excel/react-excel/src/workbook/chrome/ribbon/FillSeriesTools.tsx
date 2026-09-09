@@ -2,13 +2,10 @@ import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useEffect, useId, useRef } from 'react'
 import {
   configureFillSeriesAtom, directionalFillFeedbackAtom, editingSessionAtom, fillSeriesPanelAtom,
+  FILL_SERIES_OPTIONS, minimumFillSamples,
 } from '@einfach/spreadsheet-ui-core'
 import './selection-size.css'
 import './fill-series.css'
-
-const KINDS = [
-  ['number', 'Number sequence'], ['text-number', 'Text numbering'], ['linear-trend', 'Linear trend'],
-] as const
 
 /** 序列面板只负责 DOM 与模态焦点；样本推断全部留在 Rust。 */
 export function FillSeriesTools() {
@@ -41,10 +38,13 @@ export function FillSeriesTools() {
         <label htmlFor={`${id}-kind`}>Sequence type</label>
         <select id={`${id}-kind`} value={state.kind} disabled={feedback.busy}
           onChange={(event) => {
-            const kind = KINDS.find(([value]) => value === event.currentTarget.value)?.[0]
+            const kind = FILL_SERIES_OPTIONS.find(
+              (option) => option.kind === event.currentTarget.value,
+            )?.kind
             if (kind) void run({ field: 'kind', value: kind })
           }}>
-          {KINDS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+          {FILL_SERIES_OPTIONS.map(({ kind, label }) =>
+            <option key={kind} value={kind}>{label}</option>)}
         </select>
         <label htmlFor={`${id}-direction`}>Direction</label>
         <select id={`${id}-direction`} value={state.direction} disabled={feedback.busy}
@@ -55,10 +55,21 @@ export function FillSeriesTools() {
           <option value="down">Down</option><option value="right">Right</option>
         </select>
         <label htmlFor={`${id}-count`}>Source sample count</label>
-        <input id={`${id}-count`} type="number" min={state.kind === 'linear-trend' ? 3 : 2} step="1"
+        <input id={`${id}-count`} type="number" min={minimumFillSamples(state.kind)} step="1"
           required value={state.sourceCount} disabled={feedback.busy}
           onChange={(event) => void run({ field: 'sourceCount', value: event.currentTarget.value })} />
-        <p className="size-hint">{state.kind === 'linear-trend'
+        {state.kind === 'custom-list' && <>
+          <label htmlFor={`${id}-list`}>Custom list items</label>
+          <textarea id={`${id}-list`} rows={5} maxLength={16_384} required
+            value={state.listText} disabled={feedback.busy}
+            placeholder={'Low\nMedium\nHigh'}
+            onChange={(event) => void run({ field: 'listText', value: event.currentTarget.value })} />
+        </>}
+        <p className="size-hint">{minimumFillSamples(state.kind) === 1
+          ? state.kind === 'custom-list'
+            ? 'One item per line (2–512 unique items). One source sample follows the list; more samples infer a cyclic step.'
+            : 'English short/full names or Chinese names. One source sample advances by one; more samples infer the cyclic step.'
+          : state.kind === 'linear-trend'
           ? 'At least 3 numeric samples. Rust fits a least-squares line using all samples.'
           : state.kind === 'text-number'
             ? 'At least 2 numbered labels, such as Item001, Item003. Matching padding is preserved.'

@@ -40,17 +40,53 @@ async function apply() {
   await act(async () => { fireEvent.submit(dialog().querySelector('form')!) })
 }
 
-test.each(['number', 'text-number', 'linear-trend'])('%s is an atom-controlled option', async (kind) => {
+test.each(['number', 'text-number', 'linear-trend', 'weekday-name', 'month-name', 'custom-list'])(
+  '%s is an atom-controlled option', async (kind) => {
   const { fill } = await setup()
   await act(async () => {
     fireEvent.change(screen.getByLabelText('Sequence type'), { target: { value: kind } })
   })
-  expect(screen.getByLabelText('Source sample count')).toHaveValue(kind === 'linear-trend' ? 3 : 2)
+  const minimum = kind === 'linear-trend' ? 3 : ['number', 'text-number'].includes(kind) ? 2 : 1
+  expect(screen.getByLabelText('Source sample count')).toHaveValue(minimum)
+  if (kind === 'custom-list') await act(async () => {
+    fireEvent.change(screen.getByLabelText('Custom list items'), { target: { value: 'Low\nMedium\nHigh' } })
+  })
   await apply()
   expect(fill).toHaveBeenCalledTimes(1)
   expect(fill.mock.lastCall![0].request.series?.kind).toBe(kind)
+  if (kind === 'custom-list') expect(fill.mock.lastCall![0].request.series?.customValues)
+    .toEqual(['Low', 'Medium', 'High'])
   expect(screen.queryByRole('dialog')).toBeNull()
   expect(screen.getByRole('button', { name: 'Fill series' })).toHaveFocus()
+})
+
+test('custom list draft survives native rejection, busy disables textarea, reopening retains it', async () => {
+  const { fill } = await setup()
+  await act(async () => {
+    fireEvent.change(screen.getByLabelText('Sequence type'), { target: { value: 'custom-list' } })
+  })
+  await act(async () => {
+    fireEvent.change(screen.getByLabelText('Custom list items'), { target: { value: 'Low\nLow' } })
+  })
+  fill.mockRejectedValueOnce(new Error('list values must be unique'))
+  await apply()
+  expect(screen.getByRole('alert')).toHaveTextContent('unique')
+  expect(screen.getByLabelText('Custom list items')).toHaveValue('Low\nLow')
+  await act(async () => {
+    fireEvent.change(screen.getByLabelText('Custom list items'), { target: { value: 'Low\nHigh' } })
+  })
+  let finish!: (r: ReturnType<typeof result>) => void
+  fill.mockImplementationOnce(() => new Promise((resolve) => { finish = resolve }))
+  await apply()
+  expect(screen.getByLabelText('Custom list items')).toBeDisabled()
+  await act(async () => { finish(result(fill.mock.lastCall![0])) })
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: 'Fill series' }))
+  })
+  await act(async () => {
+    fireEvent.change(screen.getByLabelText('Sequence type'), { target: { value: 'custom-list' } })
+  })
+  expect(screen.getByLabelText('Custom list items')).toHaveValue('Low\nHigh')
 })
 
 test('invalid input and native errors remain visible and can be corrected', async () => {

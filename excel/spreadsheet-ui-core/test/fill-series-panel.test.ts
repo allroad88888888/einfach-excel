@@ -86,3 +86,30 @@ test('pending fill prevents editing options, dismissal and duplicate submission'
   expect(await pending).toBe(true)
   expect(store.getter(fillSeriesPanelAtom).target).toBeNull()
 })
+
+test.each(['weekday-name', 'month-name', 'custom-list'] as const)(
+  '%s accepts one source and sends only user options to Rust', async (kind) => {
+    const { store, fill } = await setup()
+    await store.setter(configureFillSeriesAtom, { field: 'kind', value: kind })
+    expect(store.getter(fillSeriesPanelAtom).sourceCount).toBe('1')
+    if (kind === 'custom-list') await store.setter(configureFillSeriesAtom, {
+      field: 'listText', value: ' Low \r\nMedium\r\nHigh\n',
+    })
+    expect(await store.setter(configureFillSeriesAtom, 'apply')).toBe(true)
+    expect(fill.mock.lastCall![0].request.series).toEqual({ kind, sourceCount: 1,
+      ...(kind === 'custom-list' ? { customValues: ['Low', 'Medium', 'High'] } : {}),
+    })
+    expect(fill).toHaveBeenCalledTimes(1)
+    await store.setter(configureFillSeriesAtom, 'open')
+    if (kind === 'custom-list') expect(store.getter(fillSeriesPanelAtom).listText).toContain('Medium')
+  },
+)
+
+test('custom list text budget rejects before transport', async () => {
+  const { store, fill } = await setup()
+  await store.setter(configureFillSeriesAtom, { field: 'kind', value: 'custom-list' })
+  await store.setter(configureFillSeriesAtom, { field: 'listText', value: 'x'.repeat(16385) })
+  expect(await store.setter(configureFillSeriesAtom, 'apply')).toBe(false)
+  expect(store.getter(fillSeriesPanelAtom).error).toContain('16384')
+  expect(fill).not.toHaveBeenCalled()
+})

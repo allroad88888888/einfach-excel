@@ -1,7 +1,8 @@
 .fill-series-dialog form {
   grid-template-columns: 1fr;
 }
-.fill-series-dialog select {
+.fill-series-dialog select,
+.fill-series-dialog textarea {
   min-height: 34px;
   max-width: 100%;
   border: 1px solid var(--border);
@@ -11,6 +12,7 @@
   color: inherit;
   font: inherit;
 }
+.fill-series-dialog textarea { resize: vertical; min-height: 100px; }
 .fill-series-dialog .size-actions {
   justify-content: flex-end;
 }

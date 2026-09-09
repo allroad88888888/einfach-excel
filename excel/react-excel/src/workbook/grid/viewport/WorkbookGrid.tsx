@@ -25,6 +25,7 @@ import { useGridClipboard } from '../../clipboard/use-grid-clipboard'
 import { useWorkbookGridWindow } from './use-workbook-grid-window'
 import { GridHeaders } from './GridHeaders'
 import { FrozenGrid } from './FrozenGrid'
+import { FillHandle } from '../fill/FillHandle'
 import './grid.css'
 
 function rowNumbers(rowStart: number, rowEnd: number): readonly number[] {
@@ -194,6 +195,7 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
             <MergedCells window={bodyWindow} />
           </div>
           <FrozenGrid focusGrid={events.focusGrid} />
+          <FillHandle scrollRef={events.scrollRef} focusGrid={events.focusGrid} />
           <CellEditor focusGrid={events.focusGrid} />
           <ResizeGuide />
         </div>

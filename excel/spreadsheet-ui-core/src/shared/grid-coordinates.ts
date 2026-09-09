@@ -1,5 +1,10 @@
 import type { CellRange } from './types'
 
+export function rangeEquals(a: CellRange, b: CellRange): boolean {
+  return a.rowStart === b.rowStart && a.rowEnd === b.rowEnd &&
+    a.colStart === b.colStart && a.colEnd === b.colEnd
+}
+
 /** Creates stable identifiers and labels for zero-based grid coordinates. */
 export function keyFor(row: number, col: number): string {
   return `${row}:${col}`

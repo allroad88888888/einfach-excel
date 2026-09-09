@@ -9,6 +9,8 @@ import {
   resolveProjectionAtom,
 } from './index'
 import type { BeginVisibleProjectionInput } from './types'
+import { selectionSnapshotAtom } from '../selection'
+import { scrollToCellAtom, viewportMetricsAtom } from '../viewport/metrics'
 
 export type RunVisibleProjectionInput = Omit<BeginVisibleProjectionInput, 'kind'>
 export type RunVisibleProjectionOutcome =
@@ -29,6 +31,7 @@ async function drainVisibleProjectionQueue(
   get: Getter,
   set: Setter,
   initialRequest: VisibleProjectionRequest,
+  previousSheetId?: string,
 ): Promise<void> {
   const connection = get(rustWorkbookConnectionAtom)
   if (connection === null) {
@@ -41,10 +44,26 @@ async function drainVisibleProjectionQueue(
     }
   }
   let request = initialRequest
+  let renderedSheetId = previousSheetId
   while (true) {
     try {
       const result = await connection.request('projection.readVisible', { request })
+      const firstSheetFrame = renderedSheetId !== result.sheetId
       const outcome = set(resolveProjectionAtom, { request, result })
+      // 切表后首帧才拿到真实冻结／隐藏／尺寸。名称框若已跳转，修正估算坐标以免目标被冻结区盖住。
+      // 只处理首帧；普通滚动绝不能被当前选区拉回。
+      const current = get(projectionSnapshotAtom).result
+      const selection = get(selectionSnapshotAtom)
+      if (outcome.status === 'accepted' && current?.sheetId === result.sheetId)
+        renderedSheetId = result.sheetId
+      if (firstSheetFrame && outcome.status === 'accepted' && current?.sheetId === result.sheetId &&
+        selection.selection.sheetId === result.sheetId &&
+        get(viewportMetricsAtom).sheetId === result.sheetId &&
+        (selection.range.rowStart > 0 || selection.range.colStart > 0)) {
+        set(scrollToCellAtom, {
+          coord: { row: selection.range.rowStart, col: selection.range.colStart },
+        })
+      }
       if (outcome.nextRequest?.kind === 'visible-window') {
         request = outcome.nextRequest
         continue
@@ -90,6 +109,7 @@ function projectionOutcome(
 export const runVisibleProjectionAtom = atom(
   null,
   async (get, set, input: RunVisibleProjectionInput): Promise<RunVisibleProjectionOutcome> => {
+    const previousSheetId = get(projectionSnapshotAtom).result?.sheetId
     const begin = set(beginProjectionAtom, { ...input, kind: 'visible-window' })
     if (begin.status === 'invalid' || begin.status === 'exhausted') {
       return Object.freeze({ status: 'failed', error: begin.error.message })
@@ -104,7 +124,9 @@ export const runVisibleProjectionAtom = atom(
     let transportBinding = get(visibleProjectionTransportBackingAtom)
     const ownsTransport = begin.status === 'started'
     if (ownsTransport) {
-      transportBinding = { promise: drainVisibleProjectionQueue(get, set, begin.request) }
+      transportBinding = {
+        promise: drainVisibleProjectionQueue(get, set, begin.request, previousSheetId),
+      }
       set(visibleProjectionTransportBackingAtom, transportBinding)
     }
     if (transportBinding === null) {

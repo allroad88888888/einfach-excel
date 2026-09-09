@@ -1,5 +1,6 @@
 //! 只从原生样本推断序列参数；实际预检与写入仍复用 auto_fill 引擎。
 use super::*;
+mod named;
 
 impl Workbook {
     /// UI 只提供样本范围与序列类别，不能提交另一份 JS 推算的工作簿事实。
@@ -14,8 +15,38 @@ impl Workbook {
             .ok_or(AutoFillError::SheetOutOfRange)?;
         request.step = None;
         request.text_pattern = None;
-        request.list = None;
+        if request.series != AutoFillSeries::CustomList {
+            request.list = None;
+        }
         match request.series {
+            AutoFillSeries::Copy => {
+                // 自动模式只试验源样本；目标溢出／spill 等错误不能降级成复制吞掉。
+                for series in [
+                    AutoFillSeries::IntegerStep,
+                    AutoFillSeries::TextNumber,
+                    AutoFillSeries::WeekdayName,
+                    AutoFillSeries::MonthName,
+                ] {
+                    let mut candidate = request.clone();
+                    candidate.series = series;
+                    let Ok(candidate) = self.infer_auto_fill_request(candidate) else {
+                        continue;
+                    };
+                    let valid = match candidate.series {
+                        AutoFillSeries::TextNumber => {
+                            plan_text_number_series(sheet, &candidate, None)
+                        }
+                        AutoFillSeries::WeekdayName | AutoFillSeries::MonthName => {
+                            plan_named_series(sheet, &candidate, None)
+                        }
+                        _ => plan_numeric_series(sheet, &candidate, None),
+                    };
+                    if valid.is_ok() {
+                        return Ok(candidate);
+                    }
+                }
+                return Ok(request);
+            }
             AutoFillSeries::IntegerStep | AutoFillSeries::DecimalStep => {
                 let (_, values) = source_numbers(sheet, &request, 2)?;
                 let step = values[1] - values[0];
@@ -60,6 +91,11 @@ impl Workbook {
                         0
                     },
                 });
+            }
+            AutoFillSeries::WeekdayName
+            | AutoFillSeries::MonthName
+            | AutoFillSeries::CustomList => {
+                return named::infer_named_series(sheet, request);
             }
             _ => return Err(AutoFillError::UnsupportedSeries),
         }

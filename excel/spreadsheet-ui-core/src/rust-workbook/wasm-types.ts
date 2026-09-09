@@ -47,9 +47,11 @@ export interface WasmWorkbook {
     readonly sheet: number
     readonly sourceRange: { startRow: number; endRow: number; startCol: number; endCol: number }
     readonly targetRange: { startRow: number; endRow: number; startCol: number; endCol: number }
-    readonly direction: 'down' | 'right'
-    readonly series: 'copy' | 'integer-step' | 'text-number' | 'linear-trend'
+    readonly direction: 'down' | 'right' | 'up' | 'left'
+    readonly series: 'copy' | 'integer-step' | 'text-number' | 'linear-trend' |
+      'weekday-name' | 'month-name' | 'custom-list'
     readonly infer?: boolean
+    readonly list?: { listName: string; values: readonly string[]; locale: string }
   }) => { readonly written: number }
   aggregate_selection?: (
     targets: readonly (CellRange & { readonly sheet: number })[],

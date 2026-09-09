@@ -128,3 +128,35 @@ test('invalid series geometry and counts fail before history allocation', async 
   expect(fill).not.toHaveBeenCalled()
   expect(begin).not.toHaveBeenCalled()
 })
+
+test.each(['weekday-name', 'month-name', 'custom-list'])(
+  '%s infers from a single native sample, without sending builtin lists or step guesses', async (kind) => {
+    const { call, fill, begin } = await runtime()
+    const series = { kind, sourceCount: 1,
+      ...(kind === 'custom-list' ? { customValues: ['Low', 'Medium', 'High'] } : {}),
+    }
+    expect((await call('range.fill', { ...input,
+      request: { ...input.request, range: { ...range, colEnd: 1 }, series },
+    })).ok).toBe(true)
+    expect(fill).toHaveBeenCalledWith({ sheet: 0, direction: 'down', series: kind, infer: true,
+      sourceRange: { startRow: 50, endRow: 50, startCol: 1, endCol: 1 },
+      targetRange: { startRow: 50, endRow: 53, startCol: 1, endCol: 1 },
+      ...(kind === 'custom-list' ? { list: {
+        listName: 'custom-fill', locale: 'en', values: ['Low', 'Medium', 'High'],
+      } } : {}),
+    })
+    expect(begin).toHaveBeenCalledTimes(1)
+  },
+)
+
+test('malformed custom lists reject before native history allocation', async () => {
+  const { call, begin, fill } = await runtime()
+  for (const customValues of [undefined, [], ['Low'], [1, 2], Array(513).fill('Low'),
+    ['Low', 'x'.repeat(16384)]]) {
+    expect((await call('range.fill', { ...input, request: { ...input.request,
+      range: { ...range, colEnd: 1 }, series: { kind: 'custom-list', sourceCount: 1, customValues },
+    } })).ok).toBe(false)
+  }
+  expect(begin).not.toHaveBeenCalled()
+  expect(fill).not.toHaveBeenCalled()
+})

@@ -9,6 +9,7 @@ import type {
   ViewportColumnWidth,
 } from '../backend'
 import type { WorkerCommand, WorkerLike, WorkerTransport } from '../rust-worker'
+import type { FillSeriesKind } from '../auto-fill/series-options'
 import type { CellRange } from '../shared'
 import { createWorkerTransport } from '../rust-worker'
 import type { SheetVisibilityProjection } from '../viewport/hidden-state'
@@ -276,10 +277,13 @@ export interface RustFillRangeRequest {
   readonly sheetId: string
   readonly requestId: number
   readonly range: CellRange
-  readonly direction: 'down' | 'right'
+  readonly direction: 'down' | 'right' | 'up' | 'left'
+  readonly sourceRange?: CellRange
+  readonly auto?: boolean
   readonly series?: {
-    readonly kind: 'number' | 'text-number' | 'linear-trend'
+    readonly kind: FillSeriesKind
     readonly sourceCount: number
+    readonly customValues?: readonly string[]
   }
 }
 

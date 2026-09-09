@@ -60,8 +60,8 @@ fn ts_worker_formula_debug_state_has_no_shadow_override() {
     let compact = source.replace([' ', '\n', '\r', '\t'], "");
     assert!(
         compact.contains(
-            "case'debugFormulaCacheState':returnstate.workbook.debugFormulaCacheState(\
-             Number(msg.sheet),String(msg.addr??''))"
+            "case'debugFormulaCacheState':returnhandled(state.workbook.debugFormulaCacheState(\
+             Number(msg.sheet),String(msg.addr??'')),)"
         ),
         "P7 requires debugFormulaCacheState to delegate directly to workbook state"
     );

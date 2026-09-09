@@ -1,5 +1,5 @@
 use einfach_core::{Value, ValueError};
-use einfach_excel_core::clipboard::{ClipboardPasteMode, ClipboardPasteOptions};
+use einfach_excel_core::clipboard::ClipboardPasteOptions;
 use einfach_excel_core::{CellAddress, CellRange, Workbook};
 
 #[test]
@@ -55,14 +55,11 @@ fn last_sheet_and_unknown_indices_are_rejected_without_clearing_data() {
 }
 
 fn options() -> ClipboardPasteOptions {
+    // 复用普通粘贴默认值；本组测试只约束目标位置与工作表大小。
     ClipboardPasteOptions {
-        selection: CellRange::single(CellAddress::new(2, 0)),
-        mode: ClipboardPasteMode::All,
-        transpose: false,
-        skip_blanks: false,
         row_count: 20,
         col_count: 5,
-        unlocked_ranges: None,
+        ..ClipboardPasteOptions::new(CellRange::single(CellAddress::new(2, 0)))
     }
 }
 

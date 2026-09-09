@@ -105,9 +105,7 @@ fn display_is_byte_identical_to_the_single_conversion() {
     }
 }
 
-/// `NumberFormat::General` 与 `Date` / 自定义模式的兜底也走同一条路 ——
-/// 它们本来就调用同一个 `default_number_string`，这里防的是「有人只改了
-/// `value_to_display` 那一个分支」。
+/// General 与不支持的格式模式共用兜底；已支持的日期格式独立校验日期范围。
 #[test]
 fn number_format_general_and_fallbacks_share_the_spec() {
     let general = CellFormat::default();
@@ -117,7 +115,12 @@ fn number_format_general_and_fallbacks_share_the_spec() {
         number_format: NumberFormat::Date("yyyy-mm-dd".into()),
         ..CellFormat::default()
     };
-    assert_eq!(date.format_number(1e21), "1E+21");
+    assert_eq!(date.format_number(1e21), "#####");
+    let unsupported_date = CellFormat {
+        number_format: NumberFormat::Date("unsupported".into()),
+        ..CellFormat::default()
+    };
+    assert_eq!(unsupported_date.format_number(0.1 + 0.2), "0.3");
 
     // 引号没闭合的模式 tokenize 不出来（`format_custom_number` → `None`），
     // 退回 General 兜底 —— 兜底那一支也必须走同一条规格。

@@ -101,9 +101,9 @@ fn same_sheet_whole_axis_shifts_next_to_a_quoted_cross_sheet_one() {
 }
 
 /// 引号跳过不得掩盖 `DeadRef`：同一条公式里带引号表名活着、同表引用死了，
-/// 整条公式仍要变成 `#REF!`（与 hydrated 路径同口径）。
+/// 只替换失效引用，保留可编辑公式源；求值仍是 `#REF!`（与 hydrated 路径同口径）。
 #[test]
-fn dead_same_sheet_ref_after_a_quoted_name_still_kills_the_formula() {
+fn dead_same_sheet_ref_after_a_quoted_name_preserves_the_formula() {
     let mut wb = Workbook::new();
     let mut formulas: HashMap<_, String> = HashMap::new();
     formulas.insert(addr("C5"), "='A1'!B1+A1".to_string());
@@ -112,10 +112,10 @@ fn dead_same_sheet_ref_after_a_quoted_name_still_kills_the_formula() {
     wb.sheet_mut(0).unwrap().delete_row(0, 1); // A1 所在行整行删掉
 
     let sheet = wb.sheet(0).unwrap();
-    assert!(
-        sheet.get_formula("C4").is_none(),
-        "公式该被 #REF! 掉，却留着：{:?}",
-        sheet.get_formula("C4")
+    assert_eq!(
+        sheet.get_formula("C4").as_deref(),
+        Some("=(A1!B1+#REF!)"),
+        "只替换已删的同表引用，不删除外层表达式或跨表引用"
     );
     assert_eq!(
         sheet.get_cell("C4"),

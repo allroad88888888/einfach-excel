@@ -166,16 +166,15 @@ impl Sheet {
             self.retire_blocked_anchor(addr);
         }
 
-        // Snapshot whether this address previously held a spill anchor
-        // (in cells[addr] → spill_targets). Used to decide whether we
-        // need to tear down on a scalar result.
+        // 公式地址上的 atom 是投影结果。结构编辑会先移除 spill 索引，
+        // 但保留这个 atom；被阻挡的 #SPILL! 也没有 spill_targets 条目。
+        // 因此必须按 slot 判断，非数组结果才能清掉这两种旧投影。
         let prev_anchor_atom: Option<AtomId> = self
             .interior
             .cells
             .borrow()
             .get(&addr)
-            .and_then(|slot| slot.atom_id())
-            .filter(|id| self.spill_targets.contains_key(id));
+            .and_then(|slot| slot.atom_id());
 
         // LAZY_FORMULA_INDEXING Phase 3: hydrate before consulting
         // `formula_cells` so unhydrated array-producing formulas get

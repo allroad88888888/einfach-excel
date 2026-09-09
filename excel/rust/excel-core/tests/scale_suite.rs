@@ -686,15 +686,12 @@ fn s7b_delete_band_keeps_laziness_and_refs_band_correctly() {
         "delete_row on parked formulas must hydrate nothing"
     );
     assert_eq!(sheet.debug_point_dependency_key_count(), 0);
-    // Band rows (formula + primitive pairs) are gone from the count,
-    // and the #REF! probes converted to plain error CELLS (engine
-    // contract pinned in tests/lazy_structural_retarget.rs: a parked
-    // formula whose ref dies is no longer a formula).
+    // 删除区内的 B 公式消失；区外的 BAND 个探针保留含 #REF! 的公式源。
+    // 这与 structural_formula_preservation.rs 的冷／热路径契约一致。
     assert_eq!(
         sheet.debug_formula_count(),
-        (N - BAND) as usize,
-        "N − BAND surviving B formulas; band formulas and #REF! probes \
-         drop out of the formula tables"
+        N as usize,
+        "N − BAND surviving B formulas plus BAND editable #REF! probes"
     );
 
     // Shifted closed form: old row r (r > BAND) now lives at r − BAND
@@ -709,6 +706,10 @@ fn s7b_delete_band_keeps_laziness_and_refs_band_correctly() {
 
     // #REF! band: the probe formulas referenced deleted rows.
     for j in [1u32, BAND / 2, BAND] {
+        assert_eq!(
+            sheet.get_formula(&format!("D{}", N + j - BAND)).as_deref(),
+            Some("=(#REF!*1)")
+        );
         assert_eq!(
             sheet.get_cell(&format!("D{}", N + j - BAND)),
             Value::Error(ValueError::InvalidRef),

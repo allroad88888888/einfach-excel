@@ -71,7 +71,22 @@ fn wasm_lib_rs() -> String {
 }
 
 fn worker_runtime_ts() -> String {
-    read(&manifest_dir().join("../../solid-excel/src/adapter/worker-runtime-ts.ts"))
+    let root = manifest_dir().join("../../solid-excel/src/adapter/worker-runtime-ts.ts");
+    let mut source = read(&root);
+    // Worker 按命令拆分后，禁用影子状态的检查必须覆盖全部子模块。
+    let mut pending = vec![root.with_extension("")];
+    while let Some(dir) = pending.pop() {
+        for entry in fs::read_dir(&dir).expect("worker runtime directory") {
+            let path = entry.expect("worker runtime entry").path();
+            if path.is_dir() {
+                pending.push(path);
+            } else if path.extension().is_some_and(|ext| ext == "ts") {
+                source.push('\n');
+                source.push_str(&read(&path));
+            }
+        }
+    }
+    source
 }
 
 /// Identifiers that must be GONE once the given phase is reached.

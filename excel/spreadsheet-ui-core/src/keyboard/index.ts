@@ -271,6 +271,11 @@ function getCommandShortcutIntent(
   }
 
   switch (input.key.toLowerCase()) {
+    case 'd':
+    case 'r':
+      return input.altKey || input.shiftKey
+        ? { type: 'none', reason: 'unhandled' }
+        : { type: 'range.fill', direction: input.key.toLowerCase() === 'd' ? 'down' : 'right' }
     case 'a':
       return {
         type: 'selection.selectAll',

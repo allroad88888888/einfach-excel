@@ -277,6 +277,10 @@ export interface RustFillRangeRequest {
   readonly requestId: number
   readonly range: CellRange
   readonly direction: 'down' | 'right'
+  readonly series?: {
+    readonly kind: 'number' | 'text-number' | 'linear-trend'
+    readonly sourceCount: number
+  }
 }
 
 /** 创建 UI Core 唯一持有的 Rust 工作簿连接。 */

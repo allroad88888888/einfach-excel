@@ -181,6 +181,8 @@ function getGridKeyboardInput(
     metaKey: event.metaKey,
   }
   if ((event.ctrlKey || event.metaKey) && !event.altKey && ['z', 'y'].includes(event.key.toLowerCase())) return input
+  if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey &&
+    ['d', 'r'].includes(event.key.toLowerCase())) return input
   if (
     isArrowKey(event.key) ||
     event.key === 'Home' ||

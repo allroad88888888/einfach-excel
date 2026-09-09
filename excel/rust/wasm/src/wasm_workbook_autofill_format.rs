@@ -16,8 +16,8 @@ impl WasmWorkbook {
     }
 
     /// Preflight and apply one native drag-fill atomically. The payload uses
-    /// zero-based inclusive ranges and carries every detector witness needed
-    /// to reject semantically inconsistent series requests.
+    /// zero-based inclusive ranges. `infer` derives parameters from native
+    /// samples; otherwise explicit detector witnesses remain strictly validated.
     pub fn apply_auto_fill(&mut self, payload: JsValue) -> Result<JsValue, JsValue> {
         let request: AutoFillRequestJSON =
             serde_wasm_bindgen::from_value(payload).map_err(|err| {
@@ -26,15 +26,25 @@ impl WasmWorkbook {
                     format!("invalid auto-fill request: {err}"),
                 )
             })?;
-        let report = self
-            .workbook
-            .apply_auto_fill(&request.into())
-            .map_err(|err| {
-                auto_fill_rejection(
-                    auto_fill_error_code(&err),
-                    format!("auto-fill rejected: {err}"),
-                )
-            })?;
+        let infer = request.infer;
+        let request = if infer {
+            self.workbook
+                .infer_auto_fill_request(request.into())
+                .map_err(|err| {
+                    auto_fill_rejection(
+                        auto_fill_error_code(&err),
+                        format!("auto-fill rejected: {err}"),
+                    )
+                })?
+        } else {
+            request.into()
+        };
+        let report = self.workbook.apply_auto_fill(&request).map_err(|err| {
+            auto_fill_rejection(
+                auto_fill_error_code(&err),
+                format!("auto-fill rejected: {err}"),
+            )
+        })?;
         serde_wasm_bindgen::to_value(&AutoFillReportJSON::from(report))
             .map_err(|err| JsValue::from_str(&format!("serialize auto-fill report: {err}")))
     }

@@ -8,6 +8,7 @@ import { startCellEditingFromProjectionAtom } from './start-cell-editing'
 import type { EditingCommitOutcome } from './types'
 import { clearSelectionAtom } from '../toolbar/selection-mutation-command'
 import { runRustHistoryAtom } from '../history/rust-history-command'
+import { fillSelectionAtom } from '../auto-fill/directional-command'
 
 export interface GridCellKeyboardInput {
   readonly sheetId: string
@@ -23,6 +24,10 @@ export const dispatchGridCellKeyboardInputAtom = atom(
   null,
   (_get, set, input: GridCellKeyboardInput) => {
     const intent = set(dispatchKeyboardInputAtom, input.keyboard)
+    if (intent.type === 'range.fill' && input.allowEditing) {
+      void set(fillSelectionAtom, intent.direction)
+      return intent
+    }
     if ((intent.type === 'history.undo' || intent.type === 'history.redo') && input.allowEditing) {
       void set(runRustHistoryAtom, intent.type === 'history.undo' ? 'undo' : 'redo')
       return intent

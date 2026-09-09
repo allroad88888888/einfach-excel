@@ -48,7 +48,8 @@ export interface WasmWorkbook {
     readonly sourceRange: { startRow: number; endRow: number; startCol: number; endCol: number }
     readonly targetRange: { startRow: number; endRow: number; startCol: number; endCol: number }
     readonly direction: 'down' | 'right'
-    readonly series: 'copy'
+    readonly series: 'copy' | 'integer-step' | 'text-number' | 'linear-trend'
+    readonly infer?: boolean
   }) => { readonly written: number }
   aggregate_selection?: (
     targets: readonly (CellRange & { readonly sheet: number })[],

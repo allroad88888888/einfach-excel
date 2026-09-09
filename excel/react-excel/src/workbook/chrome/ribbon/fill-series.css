@@ -1,0 +1,16 @@
+.fill-series-dialog form {
+  grid-template-columns: 1fr;
+}
+.fill-series-dialog select {
+  min-height: 34px;
+  max-width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 4px 8px;
+  background: white;
+  color: inherit;
+  font: inherit;
+}
+.fill-series-dialog .size-actions {
+  justify-content: flex-end;
+}

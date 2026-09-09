@@ -147,6 +147,11 @@ fn auto_fill_wire_preserves_canonical_locale_and_rejects_unknown_fields() {
         }"#;
     let request: AutoFillRequestJSON =
         serde_json::from_str(payload).expect("strict auto-fill payload");
+    assert!(!request.infer, "legacy callers keep explicit witness validation");
+    let inferred = payload.replacen("\"sheet\": 0,", "\"sheet\": 0, \"infer\": true,", 1);
+    assert!(serde_json::from_str::<AutoFillRequestJSON>(&inferred).unwrap().infer);
+    let invalid = payload.replacen("\"sheet\": 0,", "\"sheet\": 0, \"infer\": \"true\",", 1);
+    assert!(serde_json::from_str::<AutoFillRequestJSON>(&invalid).is_err());
     let core: AutoFillRequest = request.into();
     assert_eq!(
         core.list.as_ref().map(|list| list.locale.as_str()),

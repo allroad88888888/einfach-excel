@@ -122,6 +122,19 @@
   width: 100px;
 }
 
+.fill-feedback {
+  flex: none;
+  max-width: 280px;
+  color: #3f4352;
+  font-size: 12px;
+  line-height: 16px;
+  overflow-wrap: anywhere;
+}
+
+.fill-feedback[role='alert'] {
+  color: #a12622;
+}
+
 .font-size-select {
   width: 56px;
 }

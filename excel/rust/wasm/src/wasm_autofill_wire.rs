@@ -77,6 +77,8 @@ struct AutoFillRequestJSON {
     direction: AutoFillDirectionJSON,
     series: AutoFillSeriesJSON,
     #[serde(default)]
+    infer: bool,
+    #[serde(default)]
     step: Option<f64>,
     #[serde(default)]
     text_pattern: Option<AutoFillTextPatternJSON>,

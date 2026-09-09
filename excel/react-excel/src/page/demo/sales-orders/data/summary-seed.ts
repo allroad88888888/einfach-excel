@@ -8,6 +8,23 @@ export const SALES_ORDER_SUMMARY_CELLS: readonly RustImportCell[] = [
   { sheet: 1, row: 1, col: 1, kind: 'formula', value: "='Sales Orders'!B2" },
   { sheet: 1, row: 9, col: 0, kind: 'text', value: 'Hidden row example' },
   { sheet: 1, row: 0, col: 6, kind: 'text', value: 'Hidden column example' },
+  // 序列样本：A40:A41 等差、C40:C41 编号、E40:E43 非等差趋势。
+  { sheet: 1, row: 38, col: 0, kind: 'text', value: 'Series examples', format: { bold: true } },
+  { sheet: 1, row: 39, col: 0, kind: 'number', value: 1 },
+  { sheet: 1, row: 40, col: 0, kind: 'number', value: 3 },
+  { sheet: 1, row: 39, col: 2, kind: 'text', value: 'Item001', format: { italic: true } },
+  { sheet: 1, row: 40, col: 2, kind: 'text', value: 'Item003', format: { italic: true } },
+  { sheet: 1, row: 39, col: 4, kind: 'number', value: 0 },
+  { sheet: 1, row: 40, col: 4, kind: 'number', value: 2 },
+  { sheet: 1, row: 41, col: 4, kind: 'number', value: 1 },
+  { sheet: 1, row: 42, col: 4, kind: 'number', value: 5 },
+  // 定向填充示例：B71:B73 向下填公式；D71:F71 向右填文字及下划线。
+  { sheet: 1, row: 69, col: 0, kind: 'text', value: 'Fill examples', format: { bold: true } },
+  { sheet: 1, row: 70, col: 0, kind: 'number', value: 2 },
+  { sheet: 1, row: 71, col: 0, kind: 'number', value: 3 },
+  { sheet: 1, row: 72, col: 0, kind: 'number', value: 4 },
+  { sheet: 1, row: 70, col: 1, kind: 'formula', value: '=A71+$A$71', format: { bold: true } },
+  { sheet: 1, row: 70, col: 3, kind: 'text', value: 'Fill me', format: { underline: true } },
   // 查找示例保存在原生数据：emoji 的匹配位置、大小写与公式源分别可验收。
   { sheet: 1, row: 84, col: 0, kind: 'text', value: '😀alpha alpha' },
   { sheet: 1, row: 84, col: 1, kind: 'text', value: 'ALPHA' },

@@ -153,6 +153,7 @@ export type KeyboardCommandIntent =
   | KeyboardClipboardIntent
   | SheetNavigationIntent
   | HistoryIntent
+  | { type: 'range.fill'; direction: 'down' | 'right' }
   | FormatToggleIntent
   | ClearCellsIntent
   | GoToOpenIntent

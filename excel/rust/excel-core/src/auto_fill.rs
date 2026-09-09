@@ -7,6 +7,8 @@ use einfach_core::Value;
 use std::fmt;
 use unicode_normalization::char::canonical_combining_class;
 
+mod inference;
+
 const NUMBER_EPSILON: f64 = 1e-10;
 
 /// JS 正则里不带 `s` 标志的 `.` 所排除的四个行终止符。

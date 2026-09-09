@@ -10,6 +10,8 @@ import { ClipboardTools } from './ClipboardTools'
 import { SelectionSizeTools } from './SelectionSizeTools'
 import { HistoryTools } from './HistoryTools'
 import { VisibilityTools } from './VisibilityTools'
+import { FillTools } from './FillTools'
+import { FillSeriesTools } from './FillSeriesTools'
 import { StructureTools } from './StructureTools'
 import { MergeTools } from './MergeTools'
 import { FreezeTools } from './FreezeTools'
@@ -71,6 +73,8 @@ export function WorkbookRibbon() {
       <div className="ribbon-tools" role="toolbar" aria-label="Start tools">
         <ClipboardTools />
         <HistoryTools />
+        <FillTools />
+        <FillSeriesTools />
         <VisibilityTools />
         <StructureTools />
         <FreezeTools />

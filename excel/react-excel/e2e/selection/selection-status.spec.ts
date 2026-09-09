@@ -18,6 +18,7 @@ async function stats(page: Page, count: number, sum: string, average: string) {
   await expect(status(page)).toContainText(`Numerical count: ${count}`)
   await expect(status(page)).toContainText(`Sum: ${sum}`)
   await expect(status(page)).toContainText(`Average: ${average}`)
+  await expect(status(page)).not.toContainText('Calculating selection')
 }
 async function extrema(page: Page, count: number, min: string, max: string) {
   await expect(status(page).getByText(`Count: ${count}`, { exact: true })).toBeVisible()
@@ -79,6 +80,8 @@ test('an entire column includes offscreen formulas and scrolling keeps the same 
   await expect(status(page)).toHaveText(before!)
   await page.getByRole('tab', { name: 'Sales Orders', exact: true }).click()
   await select(page, 'G2')
+  // 投影完成不代表异步统计完成；先等原生 G2 总额，不能捕获前一个 D 列的保留结果。
+  await stats(page, 1, '79', '79')
   const total = await status(page).textContent()
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
   await select(page, 'B1')

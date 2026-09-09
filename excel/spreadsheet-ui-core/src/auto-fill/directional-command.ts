@@ -13,12 +13,16 @@ import { selectionStructureFeedbackAtom } from '../toolbar/selection-structure-s
 import { selectionMergeFeedbackAtom } from '../toolbar/selection-merge-state'
 import { systemClipboardFeedbackAtom } from '../clipboard/system-clipboard-command'
 import { getSheetProtection, sheetProtectionAtom } from '../protection'
+import type { RustFillRangeRequest } from '../rust-workbook/commands'
 
 const feedbackAtom = atom({ busy: false, error: '', message: '' })
 export const directionalFillFeedbackAtom = atom((get) => get(feedbackAtom))
 
-/** 菜单与快捷键只传方向；当前选区、原生写入及结果发布都在一个 command 内。 */
-export const fillSelectionAtom = atom(null, async (get, set, direction: 'down' | 'right'): Promise<boolean> => {
+/** 填充入口只传选项；当前选区、原生写入及结果发布都在一个 command 内。 */
+export const fillSelectionAtom = atom(null, async (
+  get, set, input: 'down' | 'right' | Pick<RustFillRangeRequest, 'direction' | 'series'>,
+): Promise<boolean> => {
+  const { direction, series } = typeof input === 'string' ? { direction: input, series: undefined } : input
   if (get(feedbackAtom).busy || get(editingSessionAtom).source !== null ||
     get(selectionStructureFeedbackAtom).busy || get(selectionMergeFeedbackAtom).busy ||
     get(systemClipboardFeedbackAtom).busy) return false
@@ -42,11 +46,16 @@ export const fillSelectionAtom = atom(null, async (get, set, direction: 'down' |
   const projection = createVisibleProjectionRequest({
     sheetId, requestId, window: visible.window, viewport: visible.viewport, reason: 'toolbar',
   })
-  set(feedbackAtom, { busy: true, error: '', message: `Filling ${direction}…` })
+  const busy = { busy: true, error: '', message: `Filling ${direction}…` }
+  set(feedbackAtom, busy)
   try {
-    const result = await connection.request('range.fill', {
-      request: { sheetId, requestId, range, direction }, projection,
+    const pending = connection.request('range.fill', {
+      request: { sheetId, requestId, range, direction, ...(series ? { series } : {}) }, projection,
     })
+    // 同步 guard 先阻止重复写入；异步续体通知 React，不能等 Worker 返回才禁用菜单。
+    await Promise.resolve()
+    set(feedbackAtom, busy)
+    const result = await pending
     if (get(rustWorkbookConnectionAtom) !== connection) return false
     const ack = result.acknowledgement
     if (ack.sheetId !== sheetId || ack.requestId !== requestId ||

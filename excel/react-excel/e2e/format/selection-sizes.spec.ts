@@ -95,7 +95,7 @@ test('manual small row clips large text instead of breaking grid geometry', asyn
   await select(page, 'B3')
   await page.getByRole('combobox', { name: 'Font size' }).selectOption('36')
   await page.getByRole('button', { name: 'Borders', exact: true }).click()
-  await page.getByRole('button', { name: 'Text rotation', exact: true }).click()
+  await page.getByRole('combobox', { name: 'Text rotation', exact: true }).selectOption('45')
   await size(page, 'row', 16)
   await expect.poll(async () => (await cell(page, '2:1').boundingBox())?.height).toBe(16)
   await expect(cell(page, '2:1')).toHaveCSS('font-size', '36px')

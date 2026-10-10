@@ -169,6 +169,7 @@
   background: var(--surface);
   cursor: cell;
   line-height: 1.2;
+  vertical-align: bottom;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

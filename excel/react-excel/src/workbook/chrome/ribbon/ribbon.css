@@ -62,6 +62,10 @@
   display: none;
 }
 
+.text-layout-tools { display: inline-flex; flex: none; align-items: center; gap: 2px; }
+.text-layout-select { width: 76px; padding: 0 4px; }
+.text-layout-error { display: inline-flex; align-items: center; max-width: 260px; color: #a12622; }
+
 .tool-button,
 .tool-select {
   height: 28px;

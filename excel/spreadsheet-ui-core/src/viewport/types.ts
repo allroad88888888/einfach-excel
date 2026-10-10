@@ -36,6 +36,8 @@ export interface ScrollToCellInput {
   coord: CellCoord
   rowAlign?: ViewportCellAlign
   colAlign?: ViewportCellAlign
+  /** 导航事件可携带即时 DOM 测量，避免等待 ResizeObserver 时使用旧面积。 */
+  viewport?: Pick<ViewportMetrics, 'viewportHeight' | 'viewportWidth'>
 }
 
 export interface ViewportSizeOverrideState {

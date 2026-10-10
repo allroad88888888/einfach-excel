@@ -51,7 +51,7 @@ export function MergedCells({ window, anchors }: {
             aria-selected={selected}
             className="cell merged-cell"
             style={{
-              ...cellFormatStyle(cell.format),
+              ...cellFormatStyle(cell.format, cell.valueKind),
               top: rect.top - origin.top,
               left: rect.left - origin.left,
               width: rect.width,

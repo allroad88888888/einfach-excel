@@ -3,6 +3,23 @@ import type { WasmWorkbook } from '../src/rust-workbook/wasm-types'
 import { readVisibleProjection } from '../src/rust-workbook/visible-projection'
 
 describe('Rust visible format projection', () => {
+  test.each([null, undefined])('explicit %s clears inherited color; absent fields still inherit', (clear) => {
+    const workbook = {
+      read_sparse_range: () => [],
+      snapshot_format_range: () => ({
+        cellStyles: [{ addr: 'A1', format: { bgColor: clear, fgColor: clear, italic: true } }],
+        rowStyles: [{ index: 0, format: { bgColor: '#93c47d', fgColor: '#c00000', bold: true } }],
+        columnStyles: [],
+      }),
+    } as unknown as WasmWorkbook
+    const result = readVisibleProjection(workbook, 0, {
+      kind: 'visible-window', sheetId: 's', requestId: 1,
+      window: { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 1 },
+    }, 1)
+    expect(result.cells[0]?.format).toEqual({ bold: true, italic: true })
+    expect(result.cells[1]?.format).toEqual({ bold: true, bgColor: '#93c47d', fgColor: '#c00000' })
+  })
+
   test('retains native leap-day display without changing numeric or editable values', () => {
     const workbook = {
       read_sparse_range: () => [{ sheet: 0, addr: 'A1', display: '60',

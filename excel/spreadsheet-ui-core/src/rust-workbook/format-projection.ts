@@ -11,8 +11,9 @@ function applyStyle(
   if (!style) return target
   const result = { ...target } as Record<string, unknown>
   for (const [field, value] of Object.entries(style)) {
-    if (value === null) delete result[field]
-    else if (value !== undefined) result[field] = value
+    // WASM 的 Some(None) 会序列化成显式 undefined；缺省字段根本不在 entries 中。
+    if (value === null || value === undefined) delete result[field]
+    else result[field] = value
   }
   return result as SpreadsheetCellFormat
 }

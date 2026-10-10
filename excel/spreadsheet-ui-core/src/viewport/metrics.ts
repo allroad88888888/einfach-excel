@@ -196,15 +196,19 @@ setViewportMetricsAtom.debugLabel = 'spreadsheet.viewport.setMetrics'
 export const scrollToCellAtom = atom(
   (get) => get(viewportMetricsAtom),
   (get, set, input: ScrollToCellInput): ViewportScrollPosition => {
-    const metrics = get(viewportMetricsAtom)
+    const current = get(viewportMetricsAtom)
     const freeze = get(projectedFreezeAtom)
     const sizes = get(viewportGeometrySizesAtom)
-    const rowHeights = metrics.sheetId ? sizes.rowHeightsBySheet[metrics.sheetId] : undefined
+    const rowHeights = current.sheetId ? sizes.rowHeightsBySheet[current.sheetId] : undefined
+    const colWidths = current.sheetId ? sizes.colWidthsBySheet[current.sheetId] : undefined
+    const metrics = input.viewport
+      ? normalizeViewportMetrics({ ...current, ...input.viewport }, rowHeights, colWidths)
+      : current
     const scrollPosition = getViewportScrollForCell(
       metrics,
       input,
       rowHeights,
-      metrics.sheetId ? sizes.colWidthsBySheet[metrics.sheetId] : undefined,
+      colWidths,
       freeze?.sheetId === metrics.sheetId ? (freeze ?? undefined) : undefined,
     )
     set(viewportMetricsAtom, { ...metrics, ...scrollPosition })

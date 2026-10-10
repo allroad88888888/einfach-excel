@@ -56,7 +56,7 @@ export const runColorPaletteAtom = atom(null, async (get, set, action: ColorActi
   }
   const quick = typeof action === 'object' && action.type === 'quick'
   const fail = (error: string) => {
-    set(colorPaletteAtom, { ...state, busy: false, error })
+    set(colorPaletteAtom, { ...get(colorPaletteAtom), busy: false, error })
     set(openToolbarPaletteAtom, { palette: kind })
     return false
   }
@@ -70,9 +70,18 @@ export const runColorPaletteAtom = atom(null, async (get, set, action: ColorActi
   const pending = { ...state, busy: true, error: null, witness,
     draft: color ?? state.draft }
   set(colorPaletteAtom, pending)
-  const outcome = await set(applySelectionFormatAtom, { type: kind, value: color })
-  if (get(rustWorkbookConnectionAtom) !== connection || get(colorPaletteAtom) !== pending)
+  const response = set(applySelectionFormatAtom, { type: kind, value: color })
+  // Einfach 的同步段延迟通知；续体发布 busy，让 UI 在 Worker 回包前就禁用控件。
+  await Promise.resolve()
+  if (get(colorPaletteAtom) === pending) set(colorPaletteAtom, pending)
+  const outcome = await response
+  if (get(colorPaletteAtom) !== pending) return false
+  if (get(rustWorkbookConnectionAtom) !== connection) {
+    // 旧工作簿的回包不更新上次颜色，也不能让新工作簿的色板一直等待。
+    set(colorPaletteAtom, { ...state, busy: false, witness: null, error: null })
+    set(closeToolbarSurfaceAtom)
     return false
+  }
   if (outcome !== 'completed' && outcome !== 'superseded')
     return fail(outcome === 'blocked'
       ? 'Select an editable range and wait for the worksheet to finish loading.'

@@ -6,6 +6,15 @@ import {
 } from '../../../src/workbook/grid/cells/cell-format-style'
 
 describe('cellFormatStyle', () => {
+  it('automatic alignment uses Rust value kinds, while explicit alignment wins', () => {
+    expect(cellFormatStyle(undefined, 'number')).toEqual({ textAlign: 'right' })
+    expect(cellFormatStyle({ align: 'default' }, 'number')).toEqual({ textAlign: 'right' })
+    expect(cellFormatStyle({ align: 'left' }, 'number')).toEqual({ textAlign: 'left' })
+    expect(cellFormatStyle(undefined, 'string')).toEqual({ textAlign: 'left' })
+    expect(cellFormatStyle(undefined, 'boolean')).toEqual({ textAlign: 'center' })
+    expect(cellFormatStyle(undefined, 'error')).toEqual({ textAlign: 'center' })
+  })
+
   it('maps valid font, alignment, border, rotation, and overflow formats to React styles', () => {
     const format: SpreadsheetCellFormat = {
       bold: true,
@@ -58,7 +67,7 @@ describe('cellFormatStyle', () => {
     })
     expect(cellTextRotationStyle({ rotation: 'vertical' })).toEqual({
       display: 'inline-block',
-      textOrientation: 'mixed',
+      textOrientation: 'upright',
       writingMode: 'vertical-rl',
     })
     expect(cellTextRotationStyle({ rotation: 45 })).toEqual({

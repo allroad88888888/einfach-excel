@@ -32,6 +32,12 @@ export const SELECTION_ALL_BORDERS = Object.freeze({
 
 const BORDER_SIDES = ['top', 'right', 'bottom', 'left'] as const
 
+/** 明确选择目标值，不依赖当前格循环推导下一档。 */
+export type TextLayoutAction =
+  | { readonly type: 'horizontal-alignment'; readonly value: 'default' | 'left' | 'center' | 'right' }
+  | { readonly type: 'vertical-alignment'; readonly value: 'top' | 'center' | 'bottom' | null }
+  | { readonly type: 'text-rotation'; readonly value: number | 'vertical' }
+
 export type SelectionFormatAction =
   | 'bold'
   | 'italic'
@@ -39,9 +45,6 @@ export type SelectionFormatAction =
   | 'strikethrough'
   | 'text-color'
   | 'fill-color'
-  | 'horizontal-alignment'
-  | 'vertical-alignment'
-  | 'text-rotation'
   | 'all-borders'
   | 'wrap-text'
   | 'increase-indent'
@@ -51,6 +54,7 @@ export type SelectionFormatAction =
   | { readonly type: 'font-size'; readonly value: number }
   | { readonly type: 'fill-color'; readonly value: string | null }
   | { readonly type: 'text-color'; readonly value: string | null }
+  | TextLayoutAction
 
 export type ApplySelectionFormatOutcome = SelectionMutationOutcome
 
@@ -63,6 +67,20 @@ function nextPatch(
   clearFormatFields?: readonly (keyof SpreadsheetCellFormat)[]
 } | null {
   if (typeof action !== 'string') {
+    if (action.type === 'horizontal-alignment') {
+      return ['default', 'left', 'center', 'right'].includes(action.value)
+        ? { format: { align: action.value } } : null
+    }
+    if (action.type === 'vertical-alignment') {
+      if (action.value === null) return { format: {}, clearFormatFields: ['verticalAlign'] }
+      return ['top', 'center', 'bottom'].includes(action.value)
+        ? { format: { verticalAlign: action.value } } : null
+    }
+    if (action.type === 'text-rotation') {
+      return action.value === 'vertical' ||
+        (Number.isInteger(action.value) && action.value >= -90 && action.value <= 90)
+        ? { format: { rotation: action.value } } : null
+    }
     if (action.type === 'fill-color' || action.type === 'text-color') {
       const field = action.type === 'fill-color' ? 'bgColor' : 'fgColor'
       // null 是清除此字段，不把白色/黑色冒充“无填充/自动”；仍由 Rust 处理继承覆盖。
@@ -99,21 +117,6 @@ function nextPatch(
       ? { format: {}, clearFormatFields: ['bgColor'] }
       : { format: { bgColor: SELECTION_FILL_COLOR } }
   }
-  if (action === 'vertical-alignment') {
-    const verticalAlign =
-      current.verticalAlign === 'top'
-        ? 'center'
-        : current.verticalAlign === 'center'
-          ? 'bottom'
-          : 'top'
-    return { format: { verticalAlign } }
-  }
-  if (action === 'text-rotation') {
-    if (current.rotation === -45) {
-      return { format: { rotation: 0 } }
-    }
-    return { format: { rotation: current.rotation === 45 ? -45 : 45 } }
-  }
   if (action === 'all-borders') {
     const enabled = BORDER_SIDES.every((side) => {
       const border = current.borders?.[side]
@@ -141,8 +144,7 @@ function nextPatch(
     const numberFormat = nextNumberFormat(current.numberFormat, action, numericValue)
     return numberFormat ? { format: { numberFormat } } : null
   }
-  const align = current.align === 'center' ? 'right' : current.align === 'right' ? 'left' : 'center'
-  return { format: { align } }
+  return null
 }
 
 /** 格式规则先产生 patch，再复用区域写入命令。 */

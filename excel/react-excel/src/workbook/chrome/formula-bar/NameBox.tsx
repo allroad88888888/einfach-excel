@@ -11,6 +11,9 @@ import {
   type NameBoxCommitTarget,
 } from '@einfach/spreadsheet-ui-core'
 import { useRef, type FocusEvent, type FormEvent, type KeyboardEvent } from 'react'
+import {
+  getWorkbookGridViewportHeight, getWorkbookGridViewportWidth,
+} from '../../grid/viewport/use-workbook-grid-viewport-measurement'
 
 function navigationCoord(target: NameBoxCommitTarget): CellCoord | null {
   if (target.kind === 'cell') return target.coord
@@ -41,7 +44,14 @@ export function NameBox() {
   const navigate = (target: NameBoxCommitTarget) => {
     const coord = navigationCoord(target)
     if (coord === null) return
-    scrollToCell({ coord, rowAlign: 'start', colAlign: 'nearest' })
+    const scroll = inputRef.current?.closest('.workbook')?.querySelector('.sheet-scroll')
+    const viewportHeight = getWorkbookGridViewportHeight(scroll?.clientHeight ?? 0)
+    const viewportWidth = getWorkbookGridViewportWidth(scroll?.clientWidth ?? 0)
+    scrollToCell({
+      coord, rowAlign: 'start', colAlign: 'nearest',
+      viewport: viewportHeight > 0 && viewportWidth > 0
+        ? { viewportHeight, viewportWidth } : undefined,
+    })
   }
   const commit = (input: string, sessionId: number) => {
     // 切表加载期间旧投影仍可显示；目标表由 command 的当前选区决定。

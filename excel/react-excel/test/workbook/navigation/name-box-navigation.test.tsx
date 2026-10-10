@@ -49,6 +49,23 @@ function renderWorkbook() {
 }
 
 describe('workbook name box navigation', () => {
+  it('uses the current DOM width when a resize has not reached the viewport atom yet', async () => {
+    const { requests, store } = renderWorkbook()
+    await waitFor(() => expect(requests).toHaveLength(1))
+    const scroll = screen.getByTestId('sheet-scroll')
+    Object.defineProperties(scroll, {
+      clientWidth: { value: 333 }, clientHeight: { value: 600 },
+    })
+    const nameBox = screen.getByRole('textbox', { name: 'Name box' })
+    fireEvent.focus(nameBox)
+    fireEvent.input(nameBox, { target: { value: 'D2' } })
+    fireEvent.keyDown(nameBox, { key: 'Enter' })
+    expect(store.getter(viewportMetricsAtom)).toMatchObject({
+      viewportWidth: 287, viewportHeight: 572, scrollLeft: 193,
+    })
+    await waitFor(() => expect(requests.at(-1)?.window.colEnd).toBeGreaterThanOrEqual(3))
+  })
+
   it('moves the selection, viewport and Rust projection to an entered address', async () => {
     const { requests, store } = renderWorkbook()
     await waitFor(() => expect(requests).toHaveLength(1))

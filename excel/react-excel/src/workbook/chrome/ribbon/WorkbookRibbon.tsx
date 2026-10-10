@@ -17,6 +17,7 @@ import { MergeTools } from './MergeTools'
 import { FreezeTools } from './FreezeTools'
 import { FindReplaceTools } from './FindReplaceTools'
 import { ColorTools } from './ColorTools'
+import { TextLayoutTools } from './TextLayoutTools'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import './ribbon.css'
 
@@ -143,24 +144,7 @@ export function WorkbookRibbon() {
         <ColorTools kind="fill-color" />
         <ColorTools kind="text-color" />
         <span className="tool-separator" aria-hidden="true" />
-        <ToolButton
-          icon="☷"
-          label="Horizontal alignment"
-          onClick={() => void applyFormat('horizontal-alignment')}
-          pressed={activeFormat.align !== undefined && activeFormat.align !== 'default'}
-        />
-        <ToolButton
-          icon="↕"
-          label="Vertical alignment"
-          onClick={() => void applyFormat('vertical-alignment')}
-          pressed={activeFormat.verticalAlign !== undefined}
-        />
-        <ToolButton
-          icon="↗"
-          label="Text rotation"
-          onClick={() => void applyFormat('text-rotation')}
-          pressed={activeFormat.rotation !== undefined && activeFormat.rotation !== 0}
-        />
+        <TextLayoutTools />
         <ToolButton
           icon="⇤"
           label="Decrease indent"

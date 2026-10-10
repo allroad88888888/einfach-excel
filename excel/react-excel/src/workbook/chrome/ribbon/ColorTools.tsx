@@ -4,6 +4,7 @@ import {
   runColorPaletteAtom, toolbarActiveSurfaceAtom, type ToolbarPaletteKind,
 } from '@einfach/spreadsheet-ui-core'
 import { useId, useLayoutEffect, useRef, type CSSProperties } from 'react'
+import { cycleDialogFocus } from './dialog-focus'
 import './color-palette.css'
 
 const COLORS = [
@@ -67,6 +68,7 @@ export function ColorTools({ kind }: { readonly kind: ToolbarPaletteKind }) {
         onClick={() => void run({ type: 'open', kind })}>⌄</button>
     </span>
     {open && <dialog ref={dialogRef} className="color-palette" aria-labelledby={`${id}-title`}
+      onKeyDown={cycleDialogFocus}
       onCancel={(event) => { event.preventDefault(); void run('close') }}
       onClick={(event) => {
         if (event.target !== event.currentTarget) return
@@ -97,7 +99,8 @@ export function ColorTools({ kind }: { readonly kind: ToolbarPaletteKind }) {
             onChange={(event) => void run({ type: 'draft', value: event.currentTarget.value })} />
           <input id={`${id}-hex`} type="text" aria-label="Color hex" spellCheck={false}
             value={state.draft} disabled={state.busy} maxLength={7}
-            aria-invalid={!!state.error && !validDraft} aria-describedby={`${id}-error`}
+            aria-invalid={!!state.error && !validDraft}
+            aria-describedby={state.error ? `${id}-error` : undefined}
             onChange={(event) => void run({ type: 'draft', value: event.currentTarget.value })} />
           <button type="submit" disabled={state.busy}>Apply</button>
         </div>

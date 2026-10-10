@@ -9,6 +9,7 @@ import {
 } from '@einfach/spreadsheet-ui-core'
 import './find-replace.css'
 import { FindResults } from './FindResults'
+import { cycleDialogFocus } from './dialog-focus'
 
 /** 只处理 DOM 控件与焦点；草稿、查询、替换、导航由同一个 command atom 执行。 */
 export function FindReplaceTools() {
@@ -58,18 +59,7 @@ export function FindReplaceTools() {
           ref={ref}
           className="find-replace-dialog"
           aria-labelledby={`${id}-title`}
-          onKeyDown={(event) => {
-            if (event.key !== 'Tab') return
-            // 在首尾控件间循环，避免浏览器把 Tab 焦点送到地址栏。
-            const controls = event.currentTarget.querySelectorAll<HTMLElement>(
-              'button:not(:disabled):not([tabindex="-1"]), input:not(:disabled), select:not(:disabled)',
-            )
-            const first = controls[0]
-            const last = controls[controls.length - 1]
-            if (event.shiftKey ? event.target !== first : event.target !== last) return
-            event.preventDefault()
-            ;(event.shiftKey ? last : first)?.focus()
-          }}
+          onKeyDown={cycleDialogFocus}
           onCancel={(event) => {
             event.preventDefault()
             void run('close')

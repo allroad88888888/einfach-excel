@@ -1,4 +1,6 @@
-import type { SpreadsheetBorderSpec, SpreadsheetCellFormat } from '@einfach/spreadsheet-ui-core'
+import type {
+  DisplayCell, SpreadsheetBorderSpec, SpreadsheetCellFormat,
+} from '@einfach/spreadsheet-ui-core'
 import type { CSSProperties } from 'react'
 
 const COLOR_HEX_RE = /^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/
@@ -99,10 +101,13 @@ function applyBorderStyle(
 /** Maps spreadsheet cell formats to safe React style properties. */
 export function cellFormatStyle(
   format: SpreadsheetCellFormat | undefined,
+  valueKind?: DisplayCell['valueKind'],
 ): CSSProperties | undefined {
-  if (!format) return undefined
-
   const style: CSSProperties = {}
+  // 自动对齐是值类型的显示规则，不写回 cellStyle，也不从显示文本猜测数字。
+  if (valueKind) style.textAlign = valueKind === 'number'
+    ? 'right' : valueKind === 'boolean' || valueKind === 'error' ? 'center' : 'left'
+  if (!format) return valueKind ? style : undefined
   const foreground = sanitizeColor(format.fgColor)
   const background = sanitizeColor(format.bgColor)
   const fontFamily = format.fontFamily?.trim()
@@ -186,7 +191,7 @@ export function cellTextRotationStyle(
   if (format?.rotation === 'vertical') {
     return {
       display: 'inline-block',
-      textOrientation: 'mixed',
+      textOrientation: 'upright',
       writingMode: 'vertical-rl',
     }
   }

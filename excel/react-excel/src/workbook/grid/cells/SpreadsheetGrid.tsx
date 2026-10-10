@@ -75,7 +75,7 @@ export function SpreadsheetGrid({
       const merged = mergeRangeAt(mergedRanges ?? [], { row, col }) !== undefined
       const isSelected = isSelectedCell(selected, row, col)
       const rotationStyle = cellTextRotationStyle(cell?.format)
-      const formatStyle = cellFormatStyle(cell?.format) ?? {}
+      const formatStyle = cellFormatStyle(cell?.format, cell?.valueKind) ?? {}
       const height = rowHeights?.[row - window.rowStart] ?? WORKBOOK_GRID_ROW_HEIGHT
       // table 的内容上限扣除真实边框；16px 行高也不能被大字或粗边框反向撑开。
       const topBorder = Number.parseFloat(

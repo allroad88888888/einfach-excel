@@ -8,61 +8,67 @@ async function selectedCell(page: Page): Promise<Locator> {
   return cell
 }
 
-test('Fill color toggles the selected Rust cell background', async ({ page }) => {
+test('Fill color reapplies the last color and No fill clears it explicitly', async ({ page }) => {
   const cell = await selectedCell(page)
-  const button = page.getByRole('button', { name: 'Fill color' })
+  const button = page.getByRole('button', { name: 'Fill color', exact: true })
   const initial = await cell.evaluate((element) => getComputedStyle(element).backgroundColor)
 
   await button.click()
   await expect(button).toHaveAttribute('aria-pressed', 'true')
   await expect(cell).toHaveCSS('background-color', 'rgb(255, 242, 204)')
   await button.click()
+  await expect(cell).toHaveCSS('background-color', 'rgb(255, 242, 204)')
+  await page.getByRole('button', { name: 'Choose fill color' }).click()
+  await page.getByRole('button', { name: 'No fill', exact: true }).click()
   await expect(button).toHaveAttribute('aria-pressed', 'false')
   await expect(cell).toHaveCSS('background-color', initial)
 })
 
-test('Text color toggles the selected Rust cell foreground', async ({ page }) => {
+test('Text color reapplies the last color and Automatic clears it explicitly', async ({ page }) => {
   const cell = await selectedCell(page)
-  const button = page.getByRole('button', { name: 'Text color' })
+  const button = page.getByRole('button', { name: 'Text color', exact: true })
   const initial = await cell.evaluate((element) => getComputedStyle(element).color)
 
   await button.click()
   await expect(button).toHaveAttribute('aria-pressed', 'true')
   await expect(cell).toHaveCSS('color', 'rgb(192, 0, 0)')
   await button.click()
+  await expect(cell).toHaveCSS('color', 'rgb(192, 0, 0)')
+  await page.getByRole('button', { name: 'Choose text color' }).click()
+  await page.getByRole('button', { name: 'Automatic text color' }).click()
   await expect(button).toHaveAttribute('aria-pressed', 'false')
   await expect(cell).toHaveCSS('color', initial)
 })
 
-test('Horizontal alignment cycles center, right and left through Rust', async ({ page }) => {
+test('Horizontal alignment selects center, right and left through Rust', async ({ page }) => {
   const cell = await selectedCell(page)
-  const button = page.getByRole('button', { name: 'Horizontal alignment' })
+  const control = page.getByRole('combobox', { name: 'Horizontal alignment' })
 
   for (const alignment of ['center', 'right', 'left']) {
-    await button.click()
+    await control.selectOption(alignment)
     await expect(cell).toHaveCSS('text-align', alignment)
   }
 })
 
-test('Vertical alignment cycles top, center and bottom through Rust', async ({ page }) => {
+test('Vertical alignment selects top, center and bottom through Rust', async ({ page }) => {
   const cell = await selectedCell(page)
-  const button = page.getByRole('button', { name: 'Vertical alignment' })
+  const control = page.getByRole('combobox', { name: 'Vertical alignment' })
 
   for (const alignment of ['top', 'middle', 'bottom']) {
-    await button.click()
+    await control.selectOption(alignment === 'middle' ? 'center' : alignment)
     await expect(cell).toHaveCSS('vertical-align', alignment)
   }
 })
 
-test('Text rotation cycles up, down and off through Rust', async ({ page }) => {
+test('Text rotation selects clockwise, counterclockwise and off through Rust', async ({ page }) => {
   const cell = await selectedCell(page)
-  const button = page.getByRole('button', { name: 'Text rotation' })
+  const control = page.getByRole('combobox', { name: 'Text rotation' })
 
-  await button.click()
+  await control.selectOption('45')
   await expect(cell.locator('.cell-rotated-text')).toHaveAttribute('style', /rotate\(45deg\)/)
-  await button.click()
+  await control.selectOption('-45')
   await expect(cell.locator('.cell-rotated-text')).toHaveAttribute('style', /rotate\(-45deg\)/)
-  await button.click()
+  await control.selectOption('0')
   await expect(cell.locator('.cell-rotated-text')).toHaveCount(0)
 })
 

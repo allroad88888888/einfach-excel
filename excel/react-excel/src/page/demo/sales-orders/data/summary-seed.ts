@@ -50,6 +50,18 @@ export const SALES_ORDER_SUMMARY_CELLS: readonly RustImportCell[] = [
   { sheet: 1, row: 41, col: 4, kind: 'number', value: 1 },
   { sheet: 1, row: 42, col: 4, kind: 'number', value: 5 },
   // 定向填充示例：B71:B73 向下填公式；D71:F71 向右填文字及下划线。
+  // 快捷公式：C65:E67 为三组数值，68 行留空供按钮生成草稿；70 行保留原生计算样例。
+  { sheet: 1, row: 63, col: 2, kind: 'text', value: 'SUM', format: { bold: true } },
+  { sheet: 1, row: 63, col: 3, kind: 'text', value: 'AVERAGE', format: { bold: true } },
+  { sheet: 1, row: 63, col: 4, kind: 'text', value: 'COUNT', format: { bold: true } },
+  ...[2, 3, 4].flatMap((col): RustImportCell[] => [
+    { sheet: 1, row: 64, col, kind: 'number', value: 2 },
+    { sheet: 1, row: 65, col, kind: 'number', value: 4 },
+    { sheet: 1, row: 66, col, kind: 'number', value: 6 },
+  ]),
+  { sheet: 1, row: 69, col: 2, kind: 'formula', value: '=SUM(C65:C67)' },
+  { sheet: 1, row: 69, col: 3, kind: 'formula', value: '=AVERAGE(D65:D67)' },
+  { sheet: 1, row: 69, col: 4, kind: 'formula', value: '=COUNT(E65:E67)' },
   { sheet: 1, row: 69, col: 0, kind: 'text', value: 'Fill examples', format: { bold: true } },
   { sheet: 1, row: 70, col: 0, kind: 'number', value: 2 },
   { sheet: 1, row: 71, col: 0, kind: 'number', value: 3 },

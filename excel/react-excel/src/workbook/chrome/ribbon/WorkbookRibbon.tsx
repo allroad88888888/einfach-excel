@@ -20,6 +20,7 @@ import { MergeTools } from './MergeTools'
 import { FreezeTools } from './FreezeTools'
 import { FindReplaceTools } from './FindReplaceTools'
 import { GoToTools } from './GoToTools'
+import { QuickFormulaTools } from './QuickFormulaTools'
 import { ColorTools } from './ColorTools'
 import { TextLayoutTools } from './TextLayoutTools'
 import { FontSizeTools } from './FontSizeTools'
@@ -206,7 +207,7 @@ export function WorkbookRibbon() {
           onClick={() => void applyFormat('date-format')}
           pressed={activeFormat.numberFormat?.kind === 'date'} />
         <NumberFormatTools />
-        <ToolButton icon="Σ" label="Auto sum" />
+        <QuickFormulaTools />
         <span className="tool-separator" aria-hidden="true" />
         <ToolButton
           icon="⌫"

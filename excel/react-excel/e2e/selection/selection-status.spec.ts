@@ -77,7 +77,8 @@ test('empty strings and errors count as content, but clearing a minimum removes 
 test('an entire column includes offscreen formulas and scrolling keeps the same statistics', async ({ page }) => {
   await summary(page)
   await page.getByRole('columnheader', { name: 'Select column D', exact: true }).click()
-  await stats(page, 1, '20', '20')
+  // D65:D67 = 2/4/6，D70 的 AVERAGE = 4，加上 D93 = 20，共五个数值。
+  await stats(page, 5, '36', '7.2')
   const before = await status(page).textContent()
   await page.getByTestId('sheet-scroll').evaluate((element) => { element.scrollTop = element.scrollHeight })
   await expect(page.locator('td[data-cell="92:3"]')).toBeVisible()

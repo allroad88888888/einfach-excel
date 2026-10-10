@@ -128,6 +128,7 @@ include!("wasm_workbook_number_format_preview.rs");
 include!("wasm_workbook_find.rs");
 include!("wasm_workbook_text_columns.rs");
 include!("wasm_workbook_remove_duplicates.rs");
+include!("wasm_workbook_quick_formula.rs");
 include!("wasm_workbook_aggregate.rs");
 include!("wasm_workbook_history.rs");
 include!("wasm_workbook_structure.rs");
@@ -172,6 +173,7 @@ mod tests {
     include!("wasm_tests/find_wire.rs");
     include!("wasm_tests/text_columns_wire.rs");
     include!("wasm_tests/remove_duplicates_wire.rs");
+    include!("wasm_tests/quick_formula_wire.rs");
     include!("wasm_tests/aggregate_wire.rs");
     include!("wasm_tests/filters_support.rs");
     include!("wasm_tests/filters_persistence.rs");

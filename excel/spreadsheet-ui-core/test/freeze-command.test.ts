@@ -1,6 +1,8 @@
 import { expect, test, vi } from 'vitest'
 import {
   createSpreadsheetUi,
+  beginProjectionAtom,
+  resolveProjectionAtom,
   initializeWorkbookDocumentAtom,
   runVisibleProjectionAtom,
   selectCellAtom,
@@ -116,4 +118,23 @@ test('editing, single-axis canvas limits and unknown menu actions never freeze',
   expect(r.change).not.toHaveBeenCalled()
   r.store.setter(startCellEditingFromProjectionAtom, { sheetId: 's', cell: { row: 0, col: 0 } })
   expect(await r.store.setter(runFreezeAtom, 'unfreeze')).toBe(false)
+})
+
+test('a menu event racing a viewport read still freezes after that read settles', async () => {
+  const { store, change } = await setup()
+  const reading = store.setter(beginProjectionAtom, { kind: 'visible-window', sheetId: 's',
+    window: { rowStart: 2, rowEnd: 9, colStart: 0, colEnd: 7 }, reason: 'viewport', retainResult: true })
+  if (reading.status !== 'started' || reading.request.kind !== 'visible-window')
+    throw new Error('Expected visible read')
+  let finish!: (result: ReturnType<typeof response>) => void
+  change.mockImplementationOnce(() => new Promise((resolve) => { finish = resolve }))
+  const pending = store.setter(runFreezeAtom, 'selection')
+  expect(change).toHaveBeenCalledTimes(1)
+  // Worker 按顺序先返回此前的读，再返回冻结事务；不是补发第二次读取。
+  store.setter(resolveProjectionAtom, {
+    request: reading.request, result: project(reading.request),
+  })
+  finish(response(change.mock.calls[0]![0]))
+  expect(await pending).toBe(true)
+  expect(store.getter(projectedFreezeAtom)).toMatchObject({ sheetId: 's', rows: 2, cols: 1 })
 })

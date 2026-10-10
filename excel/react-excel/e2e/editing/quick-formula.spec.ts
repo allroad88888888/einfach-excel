@@ -1,0 +1,121 @@
+import { expect, test, type Page } from '@playwright/test'
+
+const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
+const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
+const bar = (page: Page) => page.getByRole('textbox', { name: 'Active cell value' })
+const menu = (page: Page) => page.getByRole('combobox', { name: 'Quick formula' })
+async function go(page: Page, reference: string) {
+  await button(page, 'Go to').click()
+  await page.getByLabel('Reference', { exact: true }).fill(reference)
+  await button(page, 'Go').click()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(bar(page)).toBeEnabled()
+}
+test.beforeEach(async ({ page }) => {
+  await page.goto('/')
+  await expect(cell(page, '1:0')).toHaveText('SO-10001')
+  await page.getByRole('tab', { name: 'Summary', exact: true }).click()
+  await expect(cell(page, '1:1')).toHaveText('Acme Co.')
+})
+
+for (const [fn, col, index, expected] of [
+  ['sum', 'C', 2, '12'], ['average', 'D', 3, '4'], ['count', 'E', 4, '3'],
+] as const) test(`${fn} infers native seed range, confirms once and supports undo, redo and recalculation`, async ({ page }) => {
+  await go(page, `${col}68`)
+  await expect(cell(page, `69:${index}`)).toHaveText(expected)
+  await menu(page).selectOption(fn)
+  await expect(bar(page)).toHaveValue(`=${fn.toUpperCase()}(${col}65:${col}67)`)
+  await expect(bar(page)).toBeFocused()
+  await expect(cell(page, `67:${index}`)).toHaveText('')
+  await expect(button(page, 'Undo')).toBeDisabled()
+  await bar(page).press('Enter')
+  await expect(cell(page, `67:${index}`)).toHaveText(expected)
+  await button(page, 'Undo').click()
+  await expect(cell(page, `67:${index}`)).toHaveText('')
+  await expect(button(page, 'Undo')).toBeDisabled()
+  await button(page, 'Redo').click()
+  await expect(cell(page, `67:${index}`)).toHaveText(expected)
+  await go(page, `${col}65`)
+  await bar(page).fill('8')
+  await bar(page).press('Enter')
+  const changed = fn === 'sum' ? '18' : fn === 'average' ? '6' : '3'
+  await expect(cell(page, `67:${index}`)).toHaveText(changed)
+  await expect(cell(page, `69:${index}`)).toHaveText(changed)
+})
+
+test('explicit selection uses an empty trailing cell, permits draft correction and Escape writes nothing', async ({ page }) => {
+  await go(page, 'C65:C68')
+  await button(page, 'Auto sum').click()
+  await expect(bar(page)).toHaveValue('=SUM(C65:C67)')
+  await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('C68')
+  await bar(page).press('Escape')
+  await expect(cell(page, '67:2')).toHaveText('')
+  await expect(button(page, 'Undo')).toBeDisabled()
+  await button(page, 'Auto sum').click()
+  await expect(bar(page)).toHaveValue('=SUM(C65:C67)')
+  await bar(page).fill('=SUM(C65:C66)')
+  await bar(page).press('Enter')
+  await expect(cell(page, '67:2')).toHaveText('6')
+})
+
+test('horizontal explicit range counts numbers, not text or booleans', async ({ page }) => {
+  await page.getByRole('combobox', { name: 'Row and column visibility' }).selectOption('unhide-all')
+  await go(page, 'A93:F93')
+  await menu(page).selectOption('count')
+  await expect(bar(page)).toHaveValue('=COUNT(A93:F93)')
+  await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('G93')
+  await bar(page).press('Enter')
+  await expect(cell(page, '92:6')).toHaveText('4')
+})
+
+test('occupied result, merged source and hidden result reject without modifying selection or history', async ({ page }) => {
+  await go(page, 'C65:C66')
+  await button(page, 'Auto sum').click()
+  await expect(page.getByRole('alert')).toContainText('not empty')
+  await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('C65:C66')
+  await expect(cell(page, '66:2')).toHaveText('6')
+  await go(page, 'A15:D15')
+  await button(page, 'Auto sum').click()
+  await expect(page.getByRole('alert')).toContainText('unmerged')
+  await go(page, 'A93:F93')
+  await menu(page).selectOption('count')
+  await expect(page.getByRole('alert')).toContainText('Unhide')
+  await expect(button(page, 'Undo')).toBeDisabled()
+})
+
+test('no nearby number and canvas edge stay correctable', async ({ page }) => {
+  await go(page, 'H80')
+  await button(page, 'Auto sum').click()
+  await expect(page.getByRole('alert')).toContainText('immediately below or right')
+  await go(page, 'A100:B100')
+  await menu(page).selectOption('average')
+  // Both cells are blank: the last cell may be the explicit result; cancel this valid draft.
+  await expect(bar(page)).toHaveValue('=AVERAGE(A100:A100)')
+  await bar(page).press('Escape')
+  await go(page, 'A99:A100')
+  await bar(page).fill('1')
+  await bar(page).press('Enter')
+  await go(page, 'A100')
+  await bar(page).fill('2')
+  await bar(page).press('Enter')
+  await button(page, 'Auto sum').click()
+  await expect(page.getByRole('alert')).toContainText('no room')
+  await expect(cell(page, '99:0')).toHaveText('2')
+})
+
+for (const width of [1280, 390]) test(`formula draft stays editable and visible at ${width}px`, async ({ page }, info) => {
+  const errors: string[] = []
+  page.on('pageerror', (error) => errors.push(error.message))
+  await page.setViewportSize({ width, height: 850 })
+  await go(page, 'C68')
+  await button(page, 'Auto sum').click()
+  await expect(bar(page)).toHaveValue('=SUM(C65:C67)')
+  await expect(bar(page)).toBeFocused()
+  const box = (await bar(page).boundingBox())!
+  expect(box.x).toBeGreaterThanOrEqual(0)
+  expect(box.x + box.width).toBeLessThanOrEqual(width)
+  await page.screenshot({ path: info.outputPath(`quick-formula-${width}.png`) })
+  await bar(page).press('Escape')
+  await expect(button(page, 'Undo')).toBeDisabled()
+  expect(errors).toEqual([])
+})

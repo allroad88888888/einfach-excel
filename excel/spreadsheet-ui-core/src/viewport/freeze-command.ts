@@ -47,7 +47,9 @@ export const runFreezeAtom = atom(
     if (
       !connection ||
       !sheet ||
-      witness.status !== 'ready' ||
+      // 菜单事件可能早于 React 的 disabled 更新；冻结不需要单元格值。
+      // 允许在途的当前窗口读取，既有投影入口会处理先读后写与新窗口覆盖。
+      (witness.status !== 'ready' && witness.status !== 'loading') ||
       visible?.kind !== 'visible-window' ||
       visible.sheetId !== sheet.id ||
       selection.selection.sheetId !== sheet.id

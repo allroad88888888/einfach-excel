@@ -13,6 +13,7 @@ import type { ColumnFilterRule } from '../filter-sort/types'
 import type { RustFilterReport } from './filter-commands'
 import type { NativeTextColumnsRequest, RustTextColumnsPreview, RustTextColumnsReport } from './text-columns-commands'
 import type { NativeRemoveDuplicatesRequest, RustRemoveDuplicatesPreview } from './remove-duplicates-commands'
+import type { NativeQuickFormulaRequest, QuickFormulaSuggestion } from './quick-formula-commands'
 
 export interface RustCellSnapshot {
   readonly sheet: number
@@ -50,6 +51,7 @@ export interface RustFormatRangeSnapshot {
 }
 
 export interface WasmWorkbook {
+  suggest_quick_formula?: (request: NativeQuickFormulaRequest) => QuickFormulaSuggestion
   preview_remove_duplicates?: (
     request: NativeRemoveDuplicatesRequest,
   ) => RustRemoveDuplicatesPreview

@@ -81,6 +81,17 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       return initialize(input.sheets)
     }
     const current = currentWorkbook()
+    if (command === 'formula.suggest') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      const index = sheetIndex(input.sheetId)
+      const sheet = sheetsById.get(input.sheetId)!
+      if (!current.suggest_quick_formula) throw new Error('Rust quick formula is unavailable.')
+      // 原生只读建议不推进修订号；确认草稿复用 cell.setInput。
+      return { ...current.suggest_quick_formula({
+        sheet: index, range: input.range, function: input.function,
+        rowCount: sheet.rowCount ?? 1_048_576, colCount: sheet.colCount ?? 16_384,
+      }), revision }
+    }
     if (command === 'duplicates.preview') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
       return previewRemoveDuplicates(current, sheetsById.get(input.sheetId), input, revision)

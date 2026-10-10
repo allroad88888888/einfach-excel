@@ -93,6 +93,9 @@ mod format;
 mod format_snapshot;
 #[path = "sheet_format_write.rs"]
 mod format_write;
+#[path = "sheet_borders.rs"]
+mod borders;
+pub use borders::BorderPreset;
 #[path = "sheet_formula_state.rs"]
 mod formula_state;
 #[path = "sheet_hidden_columns.rs"]

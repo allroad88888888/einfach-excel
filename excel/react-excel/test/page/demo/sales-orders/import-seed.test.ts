@@ -33,6 +33,15 @@ describe('Sales Orders import seed', () => {
           row: SALES_ORDER_RECORD_COUNT,
           col: SALES_ORDER_COLUMNS.length - 1,
         }),
+        expect.objectContaining({ row: 5, col: 1, format: {
+          borders: { bottom: { style: 'double', color: '#c00000' } },
+        } }),
+        expect.objectContaining({ row: 6, col: 1, format: {
+          borders: { left: { style: 'dashed', color: '#6fa8dc' } },
+        } }),
+        expect.objectContaining({ row: 7, col: 1, format: {
+          borders: { top: { style: 'dotted', color: '#93c47d' } },
+        } }),
       ]),
     )
     expect(importedCells).toEqual(

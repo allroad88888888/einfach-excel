@@ -15,6 +15,11 @@ export function writeTrackedMutation(
     | SetCellInputRequest | SetFormatRangeRequest | RustClearRangeRequest | RustFillRangeRequest,
 ) {
   if ('direction' in request) return fillRange(workbook, sheet, request)
+  // 共边邻格的撤销范围由 Rust 计算，不能再套一个较窄的 JS 事务。
+  if ('borderPatch' in request && request.borderPatch) {
+    writeRangeFormat(workbook, sheet, request)
+    return { ...request.range }
+  }
   if ('row' in request) {
     const range = {
       rowStart: request.row,
@@ -31,7 +36,7 @@ export function writeTrackedMutation(
   const content = clearing && request.mode !== 'formats'
   const range = historyFormatRange(
     request.range,
-    clearing && request.mode === 'contents' ? 'cell' : (request.scope ?? 'cell'),
+    (clearing ? request.mode === 'contents' : !!request.borderPatch) ? 'cell' : (request.scope ?? 'cell'),
   )
   withHistory(
     workbook,

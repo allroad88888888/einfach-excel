@@ -5,13 +5,8 @@ import {
 } from '@einfach/spreadsheet-ui-core'
 import { useId, useLayoutEffect, useRef, type CSSProperties } from 'react'
 import { cycleDialogFocus } from './dialog-focus'
+import { COLORS } from './color-swatches'
 import './color-palette.css'
-
-const COLORS = [
-  '#000000', '#434343', '#666666', '#999999', '#cccccc', '#efefef', '#ffffff', '#c00000',
-  '#e06666', '#f6b26b', '#ffd966', '#93c47d', '#76a5af', '#6fa8dc', '#8e7cc3', '#c27ba0',
-  '#f4cccc', '#fce5cd', '#fff2cc', '#d9ead3', '#d0e0e3', '#cfe2f3', '#d9d2e9', '#ead1dc',
-]
 
 /** 填充/文字色共用一个视图；传入的 kind 只是工具类型，不传控制器或业务状态。 */
 export function ColorTools({ kind }: { readonly kind: ToolbarPaletteKind }) {

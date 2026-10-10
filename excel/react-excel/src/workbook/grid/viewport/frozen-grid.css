@@ -20,13 +20,8 @@
   background: var(--surface);
 }
 
-.frozen-pane::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  box-shadow: inset -1px -1px var(--border-strong);
-  pointer-events: none;
-}
+/* 接缝使用真实单元格的边，不再用覆盖阴影把彩色细线染成灰色。 */
+.frozen-pane .cell:last-child { border-right: 1px solid var(--gridline); }
 
 .frozen-row-headers,
 .frozen-column-headers {

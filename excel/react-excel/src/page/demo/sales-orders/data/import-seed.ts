@@ -60,6 +60,10 @@ const DEMO_CELL_FORMATS: ReadonlyMap<string, SpreadsheetCellFormat> = new Map([
   ['14:14', { numberFormat: { kind: 'time', pattern: 'h:mm' } }],
   ['15:14', { numberFormat: { kind: 'time', pattern: 'h:mm AM/PM' } }],
   ['17:14', { numberFormat: { kind: 'fraction', denominator: 20 } }],
+  // 边框示例直接进入 Rust，不在视图里按坐标补样式。
+  ['5:1', { borders: { bottom: { style: 'double', color: '#c00000' } } }],
+  ['6:1', { borders: { left: { style: 'dashed', color: '#6fa8dc' } } }],
+  ['7:1', { borders: { top: { style: 'dotted', color: '#93c47d' } } }],
 ])
 
 function demoFormat(row: number, col: number): { readonly format?: SpreadsheetCellFormat } {

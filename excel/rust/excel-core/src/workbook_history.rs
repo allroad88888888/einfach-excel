@@ -22,6 +22,8 @@ mod entry;
 use entry::entry_bytes;
 #[path = "workbook_history_merge.rs"]
 mod merge;
+#[path = "workbook_history_borders.rs"]
+mod borders;
 #[path = "workbook_history_replace.rs"]
 mod replace;
 pub use replace::ReplaceReport;

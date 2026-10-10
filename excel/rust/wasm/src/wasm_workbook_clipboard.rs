@@ -44,11 +44,28 @@ impl WasmWorkbook {
         end_row: u32,
         end_col: u32,
         cut: bool,
-        painter: Option<bool>,
     ) -> Result<JsValue, JsValue> {
-        if painter == Some(true) && cut {
-            return Err(JsValue::from_str("CLIPBOARD_INVALID_POLICY"));
-        }
+        self.capture_clipboard_slot(sheet_idx, start_row, start_col, end_row, end_col, cut, false)
+    }
+
+    /// 格式刷使用独立快照槽；保持普通剪贴板既有导出签名。
+    pub fn capture_format_painter(
+        &mut self,
+        sheet_idx: u32,
+        start_row: u32,
+        start_col: u32,
+        end_row: u32,
+        end_col: u32,
+    ) -> Result<JsValue, JsValue> {
+        self.capture_clipboard_slot(sheet_idx, start_row, start_col, end_row, end_col, false, true)
+    }
+}
+
+impl WasmWorkbook {
+    fn capture_clipboard_slot(
+        &mut self, sheet_idx: u32, start_row: u32, start_col: u32,
+        end_row: u32, end_col: u32, cut: bool, painter: bool,
+    ) -> Result<JsValue, JsValue> {
         let snapshot = self
             .workbook
             .capture_clipboard(
@@ -67,14 +84,17 @@ impl WasmWorkbook {
             cut,
         })
         .map_err(|err| JsValue::from_str(&err.to_string()))?;
-        if painter == Some(true) {
+        if painter {
             self.format_painter = Some(snapshot);
         } else {
             self.clipboard = Some(snapshot);
         }
         Ok(result)
     }
+}
 
+#[wasm_bindgen]
+impl WasmWorkbook {
     /// 内部快照或外部 TSV 二选一。剪切只有成功落地后才消费快照。
     pub fn paste_clipboard(
         &mut self,

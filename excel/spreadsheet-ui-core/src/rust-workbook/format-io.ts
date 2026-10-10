@@ -18,6 +18,13 @@ export function writeRangeFormat(
   request: SetFormatRangeRequest,
 ): void {
   const range = request.range
+  if (request.borderPatch) {
+    if (!workbook.patch_range_borders) throw new Error('WasmWorkbook.patch_range_borders is unavailable')
+    workbook.patch_range_borders(
+      sheet, range.rowStart, range.colStart, range.rowEnd, range.colEnd, request.borderPatch,
+    )
+    return
+  }
   if (request.writeMode === 'patch') {
     const patchFormatRange = workbook.patch_format_range
     if (!patchFormatRange) {

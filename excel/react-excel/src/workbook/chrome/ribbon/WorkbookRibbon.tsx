@@ -21,6 +21,7 @@ import { ColorTools } from './ColorTools'
 import { TextLayoutTools } from './TextLayoutTools'
 import { FontSizeTools } from './FontSizeTools'
 import { NumberFormatTools } from './NumberFormatTools'
+import { BorderTools } from './BorderTools'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import './ribbon.css'
 
@@ -129,8 +130,9 @@ export function WorkbookRibbon() {
           icon="▦"
           label="Borders"
           onClick={() => void applyFormat('all-borders')}
-          pressed={Boolean(activeFormat.borders && Object.keys(activeFormat.borders).length)}
+          pressed={Object.values(activeFormat.borders ?? {}).some((border) => border?.style !== 'none')}
         />
+        <BorderTools />
         <ColorTools kind="fill-color" />
         <ColorTools kind="text-color" />
         <span className="tool-separator" aria-hidden="true" />

@@ -179,7 +179,7 @@ impl Sheet {
         }
     }
 
-    fn notify_style_subscribers(&self, includes: impl Fn(CellAddress) -> bool) -> usize {
+    pub(super) fn notify_style_subscribers(&self, includes: impl Fn(CellAddress) -> bool) -> usize {
         let addrs: Vec<CellAddress> = self
             .cell_subscriptions
             .keys()

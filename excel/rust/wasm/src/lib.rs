@@ -120,6 +120,7 @@ include!("wasm_workbook_bulk_install.rs");
 include!("wasm_workbook_instrumentation.rs");
 include!("wasm_workbook_diagnostics.rs");
 include!("wasm_workbook_autofill_format.rs");
+include!("wasm_workbook_borders.rs");
 include!("wasm_workbook_clipboard.rs");
 include!("wasm_workbook_viewport_persistence.rs");
 include!("wasm_workbook_auto_fit.rs");

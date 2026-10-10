@@ -20,6 +20,7 @@ async function runtime() {
     cut,
   }))
   const paste = vi.fn<NonNullable<WasmWorkbook['paste_clipboard']>>(() => [0, 0, 0, 0])
+  const capturePainter = vi.fn(() => ({ text: '123', rows: 1, cols: 1, cut: false }))
   const sizes = vi.fn((_sheet: number, _r0: number, c0: number, _r1: number, c1: number) => ({
     rowHeights: [],
     colWidths: c0 <= 5 && c1 >= 5 ? [{ colIndex: 5, widthPx: 200 }] : [],
@@ -34,6 +35,7 @@ async function runtime() {
     }
 
     capture_clipboard = capture
+    capture_format_painter = capturePainter
     paste_clipboard = paste
     snapshot_viewport_sizes = sizes
     read_sparse_range() {
@@ -81,15 +83,16 @@ async function runtime() {
       reason: 'toolbar',
     },
   })
-  return { call, capture, paste, captureInput, pasteInput, sizes }
+  return { call, capture, capturePainter, paste, captureInput, pasteInput, sizes }
 }
 
 describe('Rust clipboard transport', () => {
   test('format painter has its own native slot and cannot consume or replace a normal cut', async () => {
-    const { call, capture, paste, captureInput, pasteInput } = await runtime()
+    const { call, capture, capturePainter, paste, captureInput, pasteInput } = await runtime()
     const copied = await call('clipboard.capture', captureInput)
     const brush = await call('clipboard.capture', { ...captureInput, cut: false, painter: true })
-    expect(capture).toHaveBeenLastCalledWith(0, 0, 0, 0, 0, false, true)
+    expect(capture).toHaveBeenCalledTimes(1)
+    expect(capturePainter.mock.calls).toEqual([[0, 0, 0, 0, 0]])
     const input = pasteInput(brush.result.token)
     const painted = await call('clipboard.paste', { ...input,
       request: { ...input.request, mode: 'formats', painter: true } })

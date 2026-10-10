@@ -1,9 +1,11 @@
 import type { CellRange, DisplayCell } from '@einfach/spreadsheet-ui-core'
-import { mergeRangeAt, nativeFilterRangeAtom, formulaReferenceSessionAtom } from '@einfach/spreadsheet-ui-core'
+import { mergeRangeAt, nativeFilterRangeAtom, formulaReferenceSessionAtom,
+  projectionSnapshotAtom, viewportMetricsAtom } from '@einfach/spreadsheet-ui-core'
 import { useAtomValue } from '@einfach/react'
 import { CellFilterButton } from './CellFilterButton'
 import type { CSSProperties } from 'react'
 import { cellFormatStyle, cellTextRotationStyle } from './cell-format-style'
+import { createGridBorderStyles } from './grid-border-style'
 import {
   WORKBOOK_GRID_ROW_HEIGHT,
   WORKBOOK_GRID_COLUMN_WIDTH,
@@ -54,6 +56,8 @@ export function SpreadsheetGrid({
 }: SpreadsheetGridProps) {
   const filterRange = useAtomValue(nativeFilterRangeAtom)
   const reference = useAtomValue(formulaReferenceSessionAtom)
+  const projection = useAtomValue(projectionSnapshotAtom).result
+  const metrics = useAtomValue(viewportMetricsAtom)
   const picked = reference?.pickAnchor && reference.pickFocus ? {
     rowStart: Math.min(reference.pickAnchor.row, reference.pickFocus.row),
     rowEnd: Math.max(reference.pickAnchor.row, reference.pickFocus.row),
@@ -62,6 +66,10 @@ export function SpreadsheetGrid({
   } : undefined
   const selected = picked ?? selectionRange
   const cellsByCoordinate = new Map(cells.map((cell) => [`${cell.row}:${cell.col}`, cell]))
+  const borderStyle = createGridBorderStyles({ cells, window, rowHeights, columnWidths,
+    projection: projection?.kind === 'visible-window' ? projection : undefined,
+    scrollTop: metrics.scrollTop, scrollLeft: metrics.scrollLeft,
+  })
   const rows = []
   const outline = visibleSelection(window, selected)
 
@@ -75,7 +83,12 @@ export function SpreadsheetGrid({
       const merged = mergeRangeAt(mergedRanges ?? [], { row, col }) !== undefined
       const isSelected = isSelectedCell(selected, row, col)
       const rotationStyle = cellTextRotationStyle(cell?.format)
-      const formatStyle = cellFormatStyle(cell?.format, cell?.valueKind) ?? {}
+      const formatStyle = {
+        ...cellFormatStyle(
+          cell?.format ? { ...cell.format, borders: undefined } : undefined, cell?.valueKind,
+        ),
+        ...borderStyle(row, col, cell?.format),
+      }
       const height = rowHeights?.[row - window.rowStart] ?? WORKBOOK_GRID_ROW_HEIGHT
       // table 的内容上限扣除真实边框；16px 行高也不能被大字或粗边框反向撑开。
       const topBorder = Number.parseFloat(

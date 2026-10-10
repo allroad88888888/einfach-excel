@@ -1,5 +1,6 @@
 import { atom } from '@einfach/core'
 import type { SpreadsheetCellFormat } from '../backend'
+import type { RangeBorderPatch } from '../backend/format-contracts'
 import { resolveContentMutationAtom } from '../editing/mutation-gateway'
 import { editingSessionAtom } from '../editing/session-atoms'
 import {
@@ -21,6 +22,7 @@ type SelectionMutation =
       readonly kind: 'format'
       readonly format: SpreadsheetCellFormat
       readonly clearFormatFields?: readonly (keyof SpreadsheetCellFormat)[]
+      readonly borderPatch?: RangeBorderPatch
     }
   | { readonly kind: 'clear'; readonly mode: RustClearRangeMode }
 
@@ -79,6 +81,7 @@ export const runSelectionMutationAtom = atom(
                 kind: 'set-format-range',
                 format: input.format,
                 clearFormatFields: input.clearFormatFields,
+                ...(input.borderPatch ? { borderPatch: input.borderPatch, scope: 'cell' as const } : {}),
                 writeMode: 'patch',
               },
               projection,

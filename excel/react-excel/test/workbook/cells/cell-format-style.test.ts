@@ -40,6 +40,7 @@ describe('cellFormatStyle', () => {
       backgroundColor: '#AABBCC',
       borderRightColor: '#1234',
       borderRightStyle: 'dashed',
+      borderRightWidth: '1px',
       borderTopColor: 'red',
       borderTopStyle: 'solid',
       borderTopWidth: '1px',

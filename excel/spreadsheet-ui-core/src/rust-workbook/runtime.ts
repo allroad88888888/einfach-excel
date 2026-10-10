@@ -224,17 +224,16 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
     }
     if (command === 'clipboard.capture') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
-      if (!current.capture_clipboard) throw new Error('Rust clipboard export is unavailable')
+      const capture = input.painter ? current.capture_format_painter : current.capture_clipboard
+      if (!capture) throw new Error('Rust clipboard export is unavailable')
+      if (input.painter && input.cut) throw new Error('CLIPBOARD_INVALID_POLICY')
       const range = input.range
-      const captured = current.capture_clipboard(
-        sheetIndex(input.sheetId),
-        range.rowStart,
-        range.colStart,
-        range.rowEnd,
-        range.colEnd,
-        input.cut,
-        ...(input.painter ? [true] : []),
-      )
+      const coordinates = [
+        sheetIndex(input.sheetId), range.rowStart, range.colStart, range.rowEnd, range.colEnd,
+      ] as const
+      const captured = input.painter
+        ? current.capture_format_painter!(...coordinates)
+        : current.capture_clipboard!(...coordinates, input.cut)
       if (input.painter) {
         painterToken = crypto.randomUUID()
         return { ...captured, token: painterToken }

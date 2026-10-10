@@ -74,6 +74,7 @@ export * from './text-to-columns'
 export * from './toolbar'
 export * from './toolbar/selection-format-command'
 export { colorPaletteAtom, runColorPaletteAtom } from './toolbar/color-palette'
+export { borderPanelAtom, runBorderPanelAtom, BORDER_PRESETS, BORDER_STYLES } from './toolbar/border-panel'
 export { textLayoutFeedbackAtom, runTextLayoutAtom } from './toolbar/text-layout-command'
 export {
   numberFormatPanelAtom, runNumberFormatPanelAtom,

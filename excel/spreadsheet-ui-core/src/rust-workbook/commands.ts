@@ -109,9 +109,11 @@ export interface RustSetCellInputResult {
 }
 
 /** 区域格式写入后的确认与同一 Rust 修订版可见区。 */
-export interface RustSetRangeFormatResult {
-  readonly acknowledgement: BackendMutationResult
-  readonly projection: VisibleProjectionResult
+export interface RustSetRangeFormatResult extends RustSetCellInputResult {
+  readonly sizes?: {
+    readonly rowHeights: ViewportRowHeight[]
+    readonly colWidths: ViewportColumnWidth[]
+  }
 }
 
 export type RustClearRangeMode = 'contents' | 'formats' | 'all'

@@ -18,6 +18,7 @@ import { FreezeTools } from './FreezeTools'
 import { FindReplaceTools } from './FindReplaceTools'
 import { ColorTools } from './ColorTools'
 import { TextLayoutTools } from './TextLayoutTools'
+import { FontSizeTools } from './FontSizeTools'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import './ribbon.css'
 
@@ -31,7 +32,6 @@ interface ToolButtonProps {
 
 const TABS = ['Start', 'Insert', 'Formulas', 'Data', 'View']
 const FONT_FAMILIES = ['Arial', 'Calibri', 'Georgia', 'Times New Roman']
-const FONT_SIZES = [8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 36]
 
 function ToolButton({ icon, label, onClick, pressed, disabled }: ToolButtonProps) {
   return (
@@ -97,20 +97,7 @@ export function WorkbookRibbon() {
             </option>
           ))}
         </select>
-        <select
-          aria-label="Font size"
-          className="tool-select font-size-select"
-          onChange={(event) =>
-            void applyFormat({ type: 'font-size', value: Number(event.currentTarget.value) })
-          }
-          value={activeFormat.fontSize ?? 10}
-        >
-          {FONT_SIZES.map((fontSize) => (
-            <option key={fontSize} value={fontSize}>
-              {fontSize}
-            </option>
-          ))}
-        </select>
+        <FontSizeTools />
         <ToolButton
           icon="B"
           label="Bold"

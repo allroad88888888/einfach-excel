@@ -7,6 +7,8 @@ import type {
 
 export const MIN_VIEWPORT_ROW_HEIGHT = 16
 export const MAX_VIEWPORT_ROW_HEIGHT = 512
+// 手动调高仍最多 512px；Rust 自动撑高（如 512px 字体需要 622px）使用 u32 高度。
+export const MAX_PROJECTED_ROW_HEIGHT = 0xffff_ffff
 export const MIN_VIEWPORT_COL_WIDTH = 40
 export const MAX_VIEWPORT_COL_WIDTH = 1024
 

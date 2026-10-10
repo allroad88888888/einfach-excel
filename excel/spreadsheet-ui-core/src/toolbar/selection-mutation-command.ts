@@ -9,6 +9,7 @@ import {
   projectionSnapshotAtom,
 } from '../projection'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
+import { applyProjectionSizes } from '../projection/projection-sizes'
 import type { RustClearRangeMode, RustSetRangeFormatResult } from '../rust-workbook/commands'
 import { selectionSnapshotAtom } from '../selection'
 import { selectionStructureFeedbackAtom } from './selection-structure-state'
@@ -101,6 +102,9 @@ export const runSelectionMutationAtom = atom(
       request: projection,
       result: result.projection,
     })
+    // 大字号也会改变屏幕外的行高；复用已有稀疏尺寸缓存，不增加一次 Worker 往返。
+    if (applied.status === 'applied' && result.sizes)
+      applyProjectionSizes(get, set, { ...result.projection, window: base.range, ...result.sizes })
     return applied.status === 'applied' ? 'completed' : 'superseded'
   },
 )

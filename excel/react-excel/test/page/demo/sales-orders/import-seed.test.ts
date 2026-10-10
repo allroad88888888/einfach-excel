@@ -38,7 +38,7 @@ describe('Sales Orders import seed', () => {
     expect(importedCells).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ row: 3, col: 0, kind: 'text', value: '00123' }),
-        expect.objectContaining({ row: 3, col: 7, kind: 'boolean', value: true }),
+        expect.objectContaining({ row: 3, col: 7, kind: 'boolean', value: true, format: { fontSize: 13 } }),
         expect.objectContaining({ row: 1, col: 0, format: { bold: true } }),
         expect.objectContaining({ row: 1, col: 1, format: { italic: true } }),
         expect.objectContaining({ row: 1, col: 2, format: { underline: true } }),

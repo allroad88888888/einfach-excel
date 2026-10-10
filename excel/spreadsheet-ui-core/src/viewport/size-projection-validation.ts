@@ -8,7 +8,7 @@ import type {
 import type { CellRange } from '../shared'
 import {
   MAX_VIEWPORT_COL_WIDTH,
-  MAX_VIEWPORT_ROW_HEIGHT,
+  MAX_PROJECTED_ROW_HEIGHT,
   MIN_VIEWPORT_COL_WIDTH,
   MIN_VIEWPORT_ROW_HEIGHT,
 } from './size-overrides'
@@ -132,7 +132,7 @@ function snapshotCanonicalRowHeights(
       typeof heightPx !== 'number' ||
       !Number.isFinite(heightPx) ||
       heightPx < MIN_VIEWPORT_ROW_HEIGHT ||
-      heightPx > MAX_VIEWPORT_ROW_HEIGHT
+      heightPx > MAX_PROJECTED_ROW_HEIGHT
     ) {
       return null
     }

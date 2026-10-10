@@ -5,7 +5,7 @@ import {
   reconcileColumnWidthWindow,
 } from '../viewport/size-projection-validation'
 import {
-  MAX_VIEWPORT_ROW_HEIGHT,
+  MAX_PROJECTED_ROW_HEIGHT,
   MIN_VIEWPORT_ROW_HEIGHT,
   MAX_VIEWPORT_COL_WIDTH,
   MIN_VIEWPORT_COL_WIDTH,
@@ -32,7 +32,7 @@ export function applyProjectionSizes(
         rowIndex <= region.window.rowEnd &&
         Number.isFinite(heightPx) &&
         heightPx >= MIN_VIEWPORT_ROW_HEIGHT &&
-        heightPx <= MAX_VIEWPORT_ROW_HEIGHT,
+        heightPx <= MAX_PROJECTED_ROW_HEIGHT,
     )
     nextSheet =
       region.rowHeights === undefined

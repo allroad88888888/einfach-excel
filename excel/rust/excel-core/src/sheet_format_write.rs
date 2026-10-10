@@ -55,6 +55,13 @@ impl Sheet {
                 self.patch_columns(normalized.start.col, normalized.end.col, &patch)
             }
         }
+        // 高度只属于 rowStyle。按本次选区的行处理一次，三个样式 scope 共用，
+        // 不因同一行选中了多列而重复撑高，也不扫描选区外的行或单元格。
+        if let Some(font_size) = patch.font_size {
+            for row in normalized.start.row..=normalized.end.row {
+                self.grow_row_for_font_size(row, font_size);
+            }
+        }
         self.notify_style_subscribers(|addr| match scope {
             StyleScope::Cell => normalized.contains(addr),
             StyleScope::Row => (normalized.start.row..=normalized.end.row).contains(&addr.row),
@@ -65,9 +72,6 @@ impl Sheet {
     fn patch_cells(&mut self, range: CellRange, patch: &CellStyle) {
         for addr in range.iter() {
             self.cell_styles.entry(addr).or_default().apply_patch(patch);
-            if let Some(font_size) = patch.font_size {
-                self.grow_row_for_font_size(addr.row, font_size);
-            }
         }
     }
 

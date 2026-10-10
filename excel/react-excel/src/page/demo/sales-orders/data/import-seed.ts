@@ -25,6 +25,8 @@ const DEMO_CELL_FORMATS: ReadonlyMap<string, SpreadsheetCellFormat> = new Map([
   ['1:5', { align: 'center' }],
   ['1:6', { fontFamily: 'Georgia' }],
   ['1:7', { fontSize: 16 }],
+  // 非预设字号用于验证自定义值回显，以及 13 → 14 / 12 的增减档位。
+  ['3:7', { fontSize: 13 }],
   ['1:8', { wrap: true }],
   ['2:8', { wrap: true }],
   ['1:9', { verticalAlign: 'top' }],
@@ -89,7 +91,7 @@ function createDataRow(dataRow: number): SalesOrderImportCell[] {
       ...demoFormat(row, 6),
     },
     dataRow === 2
-      ? { sheet: 0, row, col: 7, kind: 'boolean', value: true }
+      ? { sheet: 0, row, col: 7, kind: 'boolean', value: true, ...demoFormat(row, 7) }
       : textCell(row, 7, STATUSES[dataRow % STATUSES.length] ?? 'Review'),
     textCell(
       row,

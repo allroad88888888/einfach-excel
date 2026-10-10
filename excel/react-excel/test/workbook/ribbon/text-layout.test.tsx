@@ -17,9 +17,9 @@ test('explicit alignment reads the returned projection and default clears only i
   await choose('Horizontal alignment', 'default')
   await choose('Vertical alignment', 'default')
   expect(writes.map((write) => write.format)).toEqual([
-    { align: 'right' }, { verticalAlign: 'top' }, { align: 'default' }, {},
+    { align: 'right' }, { verticalAlign: 'top' }, { align: 'default' }, { verticalAlign: 'default' },
   ])
-  expect(writes[3]?.clearFormatFields).toEqual(['verticalAlign'])
+  expect(writes[3]?.clearFormatFields).toBeUndefined()
 })
 
 test('rotation choices send numeric degrees or the explicit vertical mode', async () => {
@@ -33,4 +33,18 @@ test('rotation choices send numeric degrees or the explicit vertical mode', asyn
     { rotation: 'vertical' }, { rotation: 0 },
   ])
   expect(screen.queryByRole('alert')).toBeNull()
+})
+
+test('font family, font size, wrap and indent remain independent of alignment', async () => {
+  const { writes } = await renderFormattingRibbon()
+  await choose('Font family', 'Georgia')
+  await choose('Font size', '16')
+  for (const name of ['Wrap text', 'Increase indent', 'Increase indent', 'Decrease indent']) {
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name })) })
+  }
+  expect(writes.map((write) => write.format)).toEqual([
+    { fontFamily: 'Georgia' }, { fontSize: 16 }, { wrap: true },
+    { indent: 1 }, { indent: 2 }, { indent: 1 },
+  ])
+  expect(screen.getByRole('button', { name: 'Wrap text' })).toHaveAttribute('aria-pressed', 'true')
 })

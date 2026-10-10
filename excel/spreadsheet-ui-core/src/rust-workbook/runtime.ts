@@ -263,6 +263,9 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       }
       // 先校验浏览表存在，不能写完才发现投影目标已失效。
       const projectionSheet = sheetIndex(projection.sheetId)
+      const fontSizeWrite = 'format' in request && request.format?.fontSize !== undefined
+      if (fontSizeWrite && !current.snapshot_viewport_sizes)
+        throw new Error('Rust size snapshot is unavailable.')
       let affectedRange
       let colWidths
       if ('text' in request) {
@@ -301,7 +304,9 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       }
       return {
         acknowledgement,
-        ...('direction' in request ? { sizes: readSizes(current, sheetIndex(request.sheetId), request.range) } : {}),
+        ...('direction' in request || fontSizeWrite
+          ? { sizes: readSizes(current, sheetIndex(request.sheetId),
+            'range' in request ? request.range : affectedRange) } : {}),
         ...(colWidths ? { colWidths } : {}),
         projection: readVisibleProjection(
           current,

@@ -73,6 +73,7 @@ test('rotation presets and upright vertical text leave row height, width and con
   await page.getByRole('spinbutton', { name: 'Row height' }).fill('180')
   await page.getByRole('button', { name: 'Set row height' }).click()
   const target = cell(page, '2:1')
+  await expect(target).toHaveCSS('height', '180px')
   const before = await target.boundingBox()
   for (const degrees of [-90, -45, 45, 90]) {
     await choose(page, 'Text rotation', String(degrees))
@@ -109,12 +110,16 @@ test('pending native layout disables all three choices and makes one undo entry'
   })
   await page.reload()
   await select(page, 'P1001', '1000:15')
+  await page.getByRole('combobox', { name: 'Horizontal alignment' }).focus()
   await page.getByRole('combobox', { name: 'Horizontal alignment' }).selectOption('center')
   for (const name of ['Horizontal alignment', 'Vertical alignment', 'Text rotation'])
     await expect(page.getByRole('combobox', { name })).toBeDisabled()
   await expect(page.getByRole('status').filter({ hasText: 'Applying layout' })).toBeVisible()
+  const nameBox = page.getByRole('textbox', { name: 'Name box' })
+  await nameBox.focus()
   await page.evaluate(() => Reflect.get(window, 'releaseLayoutWrite')())
   await expect(cell(page, '1000:15')).toHaveCSS('text-align', 'center')
+  await expect(nameBox).toBeFocused()
   await page.getByRole('button', { name: 'Undo', exact: true }).click()
   await expect(cell(page, '1000:15')).toHaveCSS('text-align', 'right')
   await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
@@ -129,6 +134,69 @@ test('editing disables layout controls without committing or losing the draft', 
     await expect(page.getByRole('combobox', { name })).toBeDisabled()
   await editor.press('Escape')
   await expect(cell(page, '2:1')).toHaveText('Northwind')
+  const formula = page.getByRole('textbox', { name: 'Active cell value' })
+  await formula.fill('Unsaved formula-bar draft')
+  for (const name of ['Horizontal alignment', 'Vertical alignment', 'Text rotation'])
+    await expect(page.getByRole('combobox', { name })).toBeDisabled()
+  await formula.press('Escape')
+  await expect(cell(page, '2:1')).toHaveText('Northwind')
+})
+
+test('native rejection is visible and a retry creates only one undo entry', async ({ page }) => {
+  await page.addInitScript(() => {
+    const post = Worker.prototype.postMessage
+    let rejectOnce = true
+    Worker.prototype.postMessage = function (
+      message: { command?: string; payload?: { request: { sheetId: string } } },
+      options?: Transferable[] | StructuredSerializeOptions,
+    ) {
+      if (rejectOnce && message.command === 'format.setRange' && message.payload) {
+        rejectOnce = false
+        message = { ...message, payload: {
+          ...message.payload, request: { ...message.payload.request, sheetId: 'missing-layout-sheet' },
+        } }
+      }
+      post.call(this, message, Array.isArray(options) ? { transfer: options } : (options ?? {}))
+    }
+  })
+  await page.reload()
+  await select(page, 'B3', '2:1')
+  await page.getByRole('combobox', { name: 'Horizontal alignment' }).selectOption('right')
+  await expect(page.getByRole('alert')).toContainText('Check the cell before retrying')
+  await expect(cell(page, '2:1')).toHaveCSS('text-align', 'left')
+  await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+  await choose(page, 'Horizontal alignment', 'right')
+  await expect(page.getByRole('alert')).toHaveCount(0)
+  await expect(cell(page, '2:1')).toHaveCSS('text-align', 'right')
+  await page.getByRole('button', { name: 'Undo', exact: true }).click()
+  await expect(cell(page, '2:1')).toHaveCSS('text-align', 'left')
+  await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+})
+
+test('merged frozen fragments display all three choices from the same native anchor', async ({ page }) => {
+  await select(page, 'C3', '2:2')
+  await page.getByRole('combobox', { name: 'Freeze panes' }).selectOption('selection')
+  await select(page, 'B2:D4', '1:1')
+  await page.getByRole('combobox', { name: 'Merge cells', exact: true }).selectOption('merge')
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Merge cells', exact: true }).click()
+  const fragments = page.locator('[data-merged-cell="true"]')
+  await expect(fragments).toHaveCount(4)
+  await choose(page, 'Horizontal alignment', 'right')
+  await choose(page, 'Vertical alignment', 'top')
+  await choose(page, 'Text rotation', 'vertical')
+  for (const fragment of await fragments.all()) {
+    await expect(fragment).toHaveCSS('text-align', 'right')
+    await expect(fragment).toHaveCSS('justify-content', 'flex-start')
+    await expect(fragment.locator('.cell-content > span')).toHaveCSS('text-orientation', 'upright')
+  }
+  await choose(page, 'Horizontal alignment', 'default')
+  await choose(page, 'Vertical alignment', 'default')
+  await choose(page, 'Text rotation', '0')
+  for (const fragment of await fragments.all()) {
+    await expect(fragment).toHaveCSS('text-align', 'left')
+    await expect(fragment).toHaveCSS('justify-content', 'flex-end')
+    await expect(fragment).toHaveText('Acme Co.')
+  }
 })
 
 for (const width of [1280, 390]) {
@@ -138,10 +206,10 @@ for (const width of [1280, 390]) {
     const rotation = page.getByRole('combobox', { name: 'Text rotation' })
     await rotation.scrollIntoViewIfNeeded()
     await rotation.focus()
-    await rotation.press('Home')
-    await rotation.press('Enter')
+    // 原生 select 的按字查找；macOS 无头 Chromium 不转发弹出菜单的方向键。
+    await rotation.press('4')
     await expect(rotation).toBeEnabled()
-    await expect(rotation).toHaveValue('-90')
+    await expect(rotation).toHaveValue('45')
     await expect(rotation).toBeFocused()
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     await expect(rotation).toBeInViewport()

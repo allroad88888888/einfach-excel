@@ -35,7 +35,7 @@ const BORDER_SIDES = ['top', 'right', 'bottom', 'left'] as const
 /** 明确选择目标值，不依赖当前格循环推导下一档。 */
 export type TextLayoutAction =
   | { readonly type: 'horizontal-alignment'; readonly value: 'default' | 'left' | 'center' | 'right' }
-  | { readonly type: 'vertical-alignment'; readonly value: 'top' | 'center' | 'bottom' | null }
+  | { readonly type: 'vertical-alignment'; readonly value: 'default' | 'top' | 'center' | 'bottom' }
   | { readonly type: 'text-rotation'; readonly value: number | 'vertical' }
 
 export type SelectionFormatAction =
@@ -72,8 +72,8 @@ function nextPatch(
         ? { format: { align: action.value } } : null
     }
     if (action.type === 'vertical-alignment') {
-      if (action.value === null) return { format: {}, clearFormatFields: ['verticalAlign'] }
-      return ['top', 'center', 'bottom'].includes(action.value)
+      // Rust 的枚举字段用 default 覆盖继承值；null 代表不修改，不能用于恢复默认。
+      return ['default', 'top', 'center', 'bottom'].includes(action.value)
         ? { format: { verticalAlign: action.value } } : null
     }
     if (action.type === 'text-rotation') {
@@ -92,7 +92,7 @@ function nextPatch(
       const fontFamily = action.value.trim()
       return fontFamily && fontFamily.length <= 100 ? { format: { fontFamily } } : null
     }
-    return Number.isFinite(action.value) && action.value > 0 && action.value <= 512
+    return Number.isInteger(action.value) && action.value > 0 && action.value <= 512
       ? { format: { fontSize: action.value } }
       : null
   }

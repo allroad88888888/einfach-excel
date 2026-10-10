@@ -42,13 +42,12 @@ test.each(['default', 'left', 'center', 'right'] as const)(
   },
 )
 
-test.each(['top', 'center', 'bottom', null] as const)(
+test.each(['default', 'top', 'center', 'bottom'] as const)(
   'vertical %s writes only its field, and default explicitly clears inheritance', async (value) => {
     const { store, write } = await setup()
     await store.setter(applySelectionFormatAtom, { type: 'vertical-alignment', value })
-    expect(write.mock.calls[0]![0].format).toEqual(value === null ? {} : { verticalAlign: value })
-    expect(write.mock.calls[0]![0].clearFormatFields)
-      .toEqual(value === null ? ['verticalAlign'] : undefined)
+    expect(write.mock.calls[0]![0].format).toEqual({ verticalAlign: value })
+    expect(write.mock.calls[0]![0].clearFormatFields).toBeUndefined()
   },
 )
 
@@ -64,6 +63,7 @@ test.each([-90, -45, -12, 0, 15, 45, 90, 'vertical'] as const)(
 test.each([
   { type: 'horizontal-alignment', value: 'diagonal' },
   { type: 'vertical-alignment', value: 'middle' },
+  { type: 'vertical-alignment', value: null },
   ...[-91, 91, 12.5, NaN, Infinity, '45', 'invalid'].map((value) => ({
     type: 'text-rotation', value,
   })),

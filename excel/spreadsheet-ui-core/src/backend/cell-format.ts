@@ -8,7 +8,8 @@ export type SpreadsheetAlignment =
   | 'justify'
   | 'distributed'
 
-export type SpreadsheetVerticalAlignment = 'top' | 'center' | 'bottom' | 'justify' | 'distributed'
+export type SpreadsheetVerticalAlignment =
+  | 'default' | 'top' | 'center' | 'bottom' | 'justify' | 'distributed'
 
 /**
  * Overflow strategy for a cell whose text exceeds its box.

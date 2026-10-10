@@ -15,6 +15,7 @@ async function runtime() {
     postMessage: post,
   })
   const resize = vi.fn()
+  const format = vi.fn()
   const fit = vi.fn(() => true)
   const begin = vi.fn()
   const finish = vi.fn()
@@ -29,6 +30,7 @@ async function runtime() {
     }
 
     resize_range = resize
+    patch_format_range = format
     auto_fit_dimensions = fit
     history_begin = begin
     history_finish = finish
@@ -61,7 +63,7 @@ async function runtime() {
       },
     ],
   })
-  return { call, resize, fit, begin, finish, read }
+  return { call, resize, fit, begin, finish, read, format, TestWorkbook }
 }
 const visible = {
   kind: 'visible-window',
@@ -78,6 +80,29 @@ const input = {
 }
 
 describe('Rust size transport', () => {
+  test.each([true, false])('font writes require full target sizes before mutation (available=%s)',
+    async (available) => {
+      const { call, format, TestWorkbook } = await runtime()
+      if (!available)
+        Object.defineProperty(TestWorkbook.prototype, 'snapshot_viewport_sizes', { value: undefined })
+      const response = await call('format.setRange', {
+        request: { kind: 'set-format-range', sheetId: 'orders', requestId: 8,
+          range: input.range, format: { fontSize: 37 }, scope: 'column', writeMode: 'patch' },
+        projection: visible,
+      })
+      expect(response.ok).toBe(available)
+      if (!available) {
+        expect(format).not.toHaveBeenCalled()
+        return
+      }
+      expect(format).toHaveBeenCalledTimes(1)
+      expect(format).toHaveBeenCalledWith(0, 50, 1, 60, 3, { fontSize: 37 }, 'column')
+      expect(response.result.sizes).toEqual({
+        rowHeights: [{ rowIndex: 50, heightPx: 40 }],
+        colWidths: [{ colIndex: 1, widthPx: 200 }],
+      })
+      expect(response.result.projection.window).toEqual(visible.window)
+    })
   test('a post-write projection failure retains the advanced workbook revision', async () => {
     const { call, read, resize, finish } = await runtime()
     read.mockImplementationOnce(() => { throw new Error('Projection failed') })

@@ -11,9 +11,23 @@ for (const mode of ['all', 'current'] as const) {
     await page.goto('/')
     const result = await page.evaluate(
       async ({ coreUrl, mode }) => {
+        console.debug('[find-worker] importing commands')
         const { createRustWorkbookConnection } = await import(`${coreUrl}rust-workbook/commands.ts`)
+        console.debug('[find-worker] importing worker')
         const { default: RuntimeWorker } = await import(`${coreUrl}rust-runtime.ts?worker`)
         const connection = createRustWorkbookConnection(() => new RuntimeWorker())
+        // 真实请求不加重试或超时；trace 记录最后完成的命令，便于定位偶发挂起。
+        const request = async (command: string, payload: unknown) => {
+          console.debug('[find-worker] request', command)
+          try {
+            const result = await connection.request(command, payload)
+            console.debug('[find-worker] response', command)
+            return result
+          } catch (error) {
+            console.debug('[find-worker] rejected', command, String(error))
+            throw error
+          }
+        }
         const range = { rowStart: 0, colStart: 0, rowEnd: 1000, colEnd: 7 }
         const targets = [
           { sheetId: 's', range },
@@ -28,13 +42,13 @@ for (const mode of ['all', 'current'] as const) {
           window: { rowStart: 995, rowEnd: 1000, colStart: 0, colEnd: 2 },
         }
         try {
-          await connection.request('workbook.initialize', {
+          await request('workbook.initialize', {
             sheets: [
               { id: 's', name: 'Sheet', rowCount: 1001, colCount: 8 },
               { id: 'other', name: 'Other', rowCount: 1001, colCount: 8 },
             ],
           })
-          await connection.request('workbook.importCells', {
+          await request('workbook.importCells', {
             cells: Array.from({ length: 600 }, (_, i) => ({
               sheet: Math.floor(i / 300),
               row: (i % 300) + 701,
@@ -43,8 +57,8 @@ for (const mode of ['all', 'current'] as const) {
               value: '😀old old',
             })),
           })
-          const found = await connection.request('workbook.find', search)
-          const last = await connection.request('workbook.find', { ...search, offset: 1199 })
+          const found = await request('workbook.find', search)
+          const last = await request('workbook.find', { ...search, offset: 1199 })
           const input = {
             targets,
             query,
@@ -53,18 +67,18 @@ for (const mode of ['all', 'current'] as const) {
             projection,
             ...(mode === 'current' ? { current: last.matches[0] } : {}),
           }
-          const replaced = await connection.request('workbook.replace', input)
+          const replaced = await request('workbook.replace', input)
           let stale = ''
           try {
-            await connection.request('workbook.replace', input)
+            await request('workbook.replace', input)
           } catch (error) {
             stale = (error as Error).message
           }
-          const remaining = await connection.request('workbook.find', search)
-          const undo = await connection.request('history.apply', { direction: 'undo', projection })
-          const restored = await connection.request('workbook.find', search)
-          const redo = await connection.request('history.apply', { direction: 'redo', projection })
-          const noOp = await connection.request('workbook.replace', {
+          const remaining = await request('workbook.find', search)
+          const undo = await request('history.apply', { direction: 'undo', projection })
+          const restored = await request('workbook.find', search)
+          const redo = await request('history.apply', { direction: 'redo', projection })
+          const noOp = await request('workbook.replace', {
             targets,
             query: { ...query, needle: 'new' },
             replacement: 'new',

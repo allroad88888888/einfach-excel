@@ -107,6 +107,8 @@ pnpm --filter @einfach/excel-wasm build:wasm # Rust 源码变化后重建本地 
 pnpm --filter @einfach/react-excel dev
 pnpm --filter @einfach/react-excel typecheck
 pnpm --filter @einfach/react-excel test
+pnpm --filter @einfach/react-excel e2e:install # 首次运行或 Playwright 升级后安装配套浏览器
+pnpm --filter @einfach/react-excel e2e
 pnpm --filter @einfach/react-excel build
 ```
 

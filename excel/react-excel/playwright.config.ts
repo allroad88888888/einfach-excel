@@ -25,7 +25,8 @@ export default defineConfig({
   use: {
     ...devices['Desktop Chrome'],
     baseURL,
-    trace: 'on-first-retry',
+    // 本地不重试，也要保留首次失败的请求与浏览器事件。
+    trace: 'retain-on-failure',
   },
   webServer: {
     command: `pnpm dev --host 127.0.0.1 --port ${port} --strictPort`,

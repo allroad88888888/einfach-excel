@@ -21,7 +21,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit --pretty false"
   },
   "devDependencies": {
-    "@playwright/test": "^1.48.0",
+    "@playwright/test": "1.64.0",
     "@testing-library/jest-dom": "^6.4.5",
     "@testing-library/react": "^16.3.0",
     "@types/react": "^18.3.20",

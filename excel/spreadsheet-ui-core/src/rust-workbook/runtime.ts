@@ -25,6 +25,7 @@ import type { RustWasmModule, WasmWorkbook } from './wasm-types'
 import { readVisibleProjection } from './visible-projection'
 import { changeVisibility } from './visibility-io'
 import { sortRange } from './sort-io'
+import { changeFilter } from './filter-io'
 
 type CommandName = keyof RustWorkbookCommands
 
@@ -76,6 +77,16 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       return initialize(input.sheets)
     }
     const current = currentWorkbook()
+    if (command === 'sheet.filter') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      const index = sheetIndex(input.sheetId)
+      const columns = sheetsById.get(input.sheetId)!.colCount ?? 16_384
+      const hiddenRows = changeFilter(current, index, columns, input)
+      revision += 1
+      return {
+        hiddenRows, projection: readVisibleProjection(current, index, input.projection, revision),
+      }
+    }
     if (command === 'range.sort') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
       const index = sheetIndex(input.sheetId)

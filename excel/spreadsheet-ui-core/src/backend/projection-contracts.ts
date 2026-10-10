@@ -1,6 +1,7 @@
 import type { ViewportRowHeight, ViewportColumnWidth } from './viewport-contracts'
 import type { RustHistoryState } from '../history/rust-history-types'
 import type { SheetVisibilityProjection } from '../viewport/hidden-state'
+import type { ColumnFilterRule } from '../filter-sort/types'
 import type { CellRange, SheetRef } from '../shared'
 import type { FrozenProjection, ProjectionViewport } from './frozen-projection-contracts'
 export type { FrozenProjection, FrozenProjectionRegion, ProjectionViewport } from './frozen-projection-contracts'
@@ -50,6 +51,8 @@ export interface VisibleProjectionResult extends SheetRef {
   history?: RustHistoryState
   /** 整张表的隐藏索引；不能只返回窗口内部分，否则屏幕外定位会漂移。 */
   visibility?: SheetVisibilityProjection
+  /** 当前表已提交的原生条件，随投影返回，面板不另建权威副本。 */
+  filterRules?: readonly ColumnFilterRule[]
   /** 原生工作表冻结边界；React 不持有第二份配置。 */
   freeze?: { readonly rows: number; readonly cols: number }
   /** 与滚动区同一修订版的冻结数据，不混进普通 cells 的窗口契约。 */

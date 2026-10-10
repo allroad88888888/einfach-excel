@@ -13,6 +13,7 @@ import { VisibilityTools } from './VisibilityTools'
 import { FillTools } from './FillTools'
 import { FillSeriesTools } from './FillSeriesTools'
 import { SortTools } from './SortTools'
+import { FilterTools } from './FilterTools'
 import { StructureTools } from './StructureTools'
 import { MergeTools } from './MergeTools'
 import { FreezeTools } from './FreezeTools'
@@ -77,6 +78,7 @@ export function WorkbookRibbon() {
         <FillTools />
         <FillSeriesTools />
         <SortTools />
+        <FilterTools />
         <VisibilityTools />
         <StructureTools />
         <FreezeTools />

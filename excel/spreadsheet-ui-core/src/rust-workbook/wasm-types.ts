@@ -8,6 +8,8 @@ import type { NativeFindMatch, NativeFindRequest, NativeReplaceRequest } from '.
 import type { CellRange } from '../shared'
 import type { SelectionNumbers } from '../status-bar/types'
 import type { RustSortKey } from './sort-commands'
+import type { ColumnFilterRule } from '../filter-sort/types'
+import type { RustFilterReport } from './filter-commands'
 
 export interface RustCellSnapshot {
   readonly sheet: number
@@ -45,6 +47,9 @@ export interface RustFormatRangeSnapshot {
 }
 
 export interface WasmWorkbook {
+  applyFilter?: (sheet: number, input: { rules: readonly ColumnFilterRule[] }) => RustFilterReport
+  reapplyFilter?: (sheet: number) => RustFilterReport
+  clearFilter?: (sheet: number) => RustFilterReport
   sortRange?: (sheet: number, input: {
     readonly range: { startRow: number; endRow: number; startCol: number; endCol: number }
     readonly keys: readonly (RustSortKey & { readonly caseSensitive: boolean })[]
@@ -98,7 +103,9 @@ export interface WasmWorkbook {
     endCol: number,
     action: string,
   ) => boolean
-  sheet_visibility?: (sheet: number) => SheetVisibilityProjection
+  sheet_visibility?: (sheet: number) => SheetVisibilityProjection & {
+    readonly filterRules?: readonly ColumnFilterRule[]
+  }
   history_begin?: (
     sheet: number,
     startRow: number,

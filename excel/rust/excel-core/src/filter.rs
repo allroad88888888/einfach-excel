@@ -399,6 +399,8 @@ pub struct FilterApplyReport {
 /// § "Engine physical sort wire").
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum FilterError {
+    /// A history transaction already owns the workbook mutation boundary.
+    HistoryPending,
     /// `sheet_index` is not a sheet.
     InvalidSheet,
     /// A custom-formula callback tried to mutate the workbook it is being

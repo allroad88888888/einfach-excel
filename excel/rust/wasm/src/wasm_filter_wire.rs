@@ -186,6 +186,7 @@ struct FilterSnapshotJSON {
 /// twin of the adapter's `FILTER_SORT_SOURCE_TOO_LARGE`.
 fn filter_error_to_js(err: FilterError) -> JsValue {
     match err {
+        FilterError::HistoryPending => sort_error_to_js("history-pending", None, None),
         FilterError::InvalidSheet => sort_error_to_js("invalid-sheet", None, None),
         FilterError::MutationDuringCustomCall => {
             sort_error_to_js("mutation-during-custom-call", None, None)

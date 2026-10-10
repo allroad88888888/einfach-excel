@@ -116,7 +116,11 @@ impl WasmWorkbook {
             .into_iter()
             .map(ColumnFilterRuleJSON::into_rule)
             .collect();
-        Self::filter_result_to_js(self.workbook.apply_filter(sheet_idx as usize, &rules))
+        Self::filter_result_to_js(self.history.apply_filter(
+            &mut self.workbook,
+            sheet_idx as usize,
+            &rules,
+        ))
     }
 
     /// `Data -> Reapply` (Excel `Ctrl+Alt+L`): re-run `sheetIdx`'s ALREADY
@@ -125,13 +129,17 @@ impl WasmWorkbook {
     /// currently satisfy it.
     #[wasm_bindgen(js_name = "reapplyFilter")]
     pub fn reapply_filter(&mut self, sheet_idx: u32) -> Result<JsValue, JsValue> {
-        Self::filter_result_to_js(self.workbook.reapply_filter(sheet_idx as usize))
+        Self::filter_result_to_js(
+            self.history.reapply_filter(&mut self.workbook, sheet_idx as usize),
+        )
     }
 
     /// Drop `sheetIdx`'s filter — rules and derived rows both. Scan-free.
     #[wasm_bindgen(js_name = "clearFilter")]
     pub fn clear_filter(&mut self, sheet_idx: u32) -> Result<JsValue, JsValue> {
-        Self::filter_result_to_js(self.workbook.clear_filter(sheet_idx as usize))
+        Self::filter_result_to_js(
+            self.history.clear_filter(&mut self.workbook, sheet_idx as usize),
+        )
     }
 
     /// Read `sheetIdx`'s committed filter as

@@ -7,7 +7,7 @@ import {
   editingDraftAtom,
   insertEditingLineBreakAtom,
   editingSessionAtom,
-  projectionSnapshotAtom,
+  activeCellInputTextAtom,
   selectionSnapshotAtom,
   startCellEditingFromProjectionAtom,
 } from '@einfach/spreadsheet-ui-core'
@@ -19,7 +19,7 @@ import './formula-bar.css'
 /** Edits the active cell through the same atom session as the in-cell editor. */
 export function FormulaBar() {
   const selection = useAtomValue(selectionSnapshotAtom)
-  const projection = useAtomValue(projectionSnapshotAtom).result
+  const sourceText = useAtomValue(activeCellInputTextAtom)
   const editingSession = useAtomValue(editingSessionAtom)
   const editingDraft = useAtomValue(editingDraftAtom)
   const editingLifecycle = useAtomValue(editingCommitLifecycleAtom)
@@ -29,21 +29,12 @@ export function FormulaBar() {
   const commitEditing = useSetAtom(commitCellEditingAtom)
   const cancelEditing = useSetAtom(cancelEditingAtom)
   const activeCell = selection.activeCell
-  const activeSheetId =
-    projection?.kind === 'visible-window' ? projection.sheetId : activeCell.sheetId
-  const selectedCell =
-    projection?.kind === 'visible-window'
-      ? [...(projection.mergeAnchors ?? []), ...projection.cells].find(
-          (cell) => cell.row === activeCell.row && cell.col === activeCell.col,
-        )
-      : undefined
+  const activeSheetId = selection.selection.sheetId
   const editingActiveCell =
     editingSession.source?.sheetId === activeSheetId &&
     editingSession.source.cell.row === activeCell.row &&
     editingSession.source.cell.col === activeCell.col
-  const value = editingActiveCell
-    ? editingDraft
-    : (selectedCell?.inputText ?? selectedCell?.formula ?? selectedCell?.displayValue ?? '')
+  const value = editingActiveCell ? editingDraft : sourceText ?? ''
   const busy =
     editingLifecycle.status === 'pending' || editingLifecycle.status === 'outcome-unknown'
   const feedback =
@@ -52,7 +43,7 @@ export function FormulaBar() {
       : null
 
   const beginFormulaEditing = () => {
-    if (busy) return
+    if (busy || (!editingActiveCell && sourceText === undefined)) return
     if (editingActiveCell) {
       setEditingDraft({ draft: editingDraft, source: 'formula-bar' })
       return
@@ -116,7 +107,7 @@ export function FormulaBar() {
           autoComplete="off"
           className="formula-value"
           data-formula-input="true"
-          disabled={busy}
+          disabled={busy || (!editingActiveCell && sourceText === undefined)}
           id="formula-input"
           name="formula-input"
           onBlur={commitFormula}

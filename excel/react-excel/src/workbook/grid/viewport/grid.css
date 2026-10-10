@@ -218,3 +218,7 @@
   border-color: #00856a;
   border-style: dashed;
 }
+.grid-viewport-frame[data-format-painter] [data-cell],
+.grid-viewport-frame[data-format-painter] [data-merged-cell] {
+  cursor: crosshair;
+}

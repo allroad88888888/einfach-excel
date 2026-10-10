@@ -43,7 +43,7 @@ the UI-side protection gate (`isRangeFullyUnlocked` over the target ranges)
 before any transport. `set-format-range` gates like content (Excel semantics:
 locked cells on a protected sheet cannot be reformatted); consumers are the
 toolbar format commands, the borders/clear-format/decimal paths, and the
-format-painter apply port.
+format-painter command through the existing formats-only clipboard operation.
 
 Mutation targets are source coordinates on arrival. Filtering hides rows
 rather than compacting them (#27), so display row IS source row: the gateway's

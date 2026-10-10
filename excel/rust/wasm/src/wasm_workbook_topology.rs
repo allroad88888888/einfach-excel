@@ -14,6 +14,7 @@ impl WasmWorkbook {
         WasmWorkbook {
             workbook,
             clipboard: None,
+            format_painter: None,
             subscriptions: HashMap::new(),
             history: Default::default(),
             next_token: 0,

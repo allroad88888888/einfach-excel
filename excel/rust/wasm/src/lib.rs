@@ -69,6 +69,8 @@ pub struct WasmWorkbook {
     workbook: Workbook,
     history: einfach_excel_core::workbook_history::WorkbookHistory,
     clipboard: Option<einfach_excel_core::clipboard::ClipboardSnapshot>,
+    /// 格式刷独立占一个原生快照槽，不能覆盖用户普通复制／剪切的内容。
+    format_painter: Option<einfach_excel_core::clipboard::ClipboardSnapshot>,
     /// Workbook-level ownership for opaque JS subscription tokens. Each entry
     /// points at an underlying stable-facade subscription; cross-sheet
     /// reactivity reaches that facade through the shared Store graph. The

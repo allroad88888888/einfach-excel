@@ -48,6 +48,13 @@ impl Workbook {
                 Some((value, NumberFormat::Percent { digits }))
             }
             CellInput::Date(value) => Some((value, NumberFormat::Date("yyyy-mm-dd".into()))),
+            CellInput::Time { value, pattern } => Some((value, NumberFormat::Time(pattern.into()))),
+            CellInput::Fraction { value, denominator } => Some((
+                value,
+                NumberFormat::Fraction {
+                    denominator: crate::FractionDenominator::Fixed(denominator),
+                },
+            )),
         };
         if let Some((value, format)) = formatted_number {
             self.try_set_cell(sheet_idx, address, Value::Number(value))

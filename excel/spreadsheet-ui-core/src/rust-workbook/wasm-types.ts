@@ -161,6 +161,7 @@ export interface WasmWorkbook {
     endRow: number,
     endCol: number,
     cut: boolean,
+    painter?: boolean,
   ) => Omit<RustClipboardCapture, 'token'>
   paste_clipboard?: (
     sheet: number,
@@ -171,6 +172,7 @@ export interface WasmWorkbook {
     policy: Pick<
       RustClipboardPasteRequest,
       | 'rowCount'
+      | 'painter'
       | 'colCount'
       | 'unlockedRanges'
       | 'mode'

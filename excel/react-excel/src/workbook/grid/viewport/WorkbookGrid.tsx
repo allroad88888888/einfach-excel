@@ -1,6 +1,7 @@
 import { useAtomValue } from '@einfach/react'
 import {
   activeWorkbookSheetAtom,
+  formatPainterAtom,
   getAxisOffsetForIndex,
   getViewportRowHeight,
   getViewportColumnWidth,
@@ -54,6 +55,7 @@ function projectionState(viewport: WorkbookViewport) {
 }
 
 function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: WorkbookDocumentSheet }) {
+  const painter = useAtomValue(formatPainterAtom)
   const selection = useAtomValue(selectionSnapshotAtom)
   const freeze = useAtomValue(projectedFreezeAtom)
   const sizeOverrides = useAtomValue(viewportGeometrySizesAtom)
@@ -152,6 +154,7 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
         <div
           className="sheet-grid-frame grid-viewport-frame"
           data-frozen-rows={frozenRows}
+          data-format-painter={painter.mode === 'idle' ? undefined : painter.mode}
           data-frozen-cols={frozenCols}
           style={frameStyle}
           onCopy={clipboard.onCopy}

@@ -3,6 +3,8 @@ mod auto_fit_dimensions;
 pub mod bulk_import_trace;
 pub mod cell;
 pub mod cell_input;
+mod time_input;
+mod fraction_input;
 pub mod cell_style;
 pub mod clipboard;
 pub mod csv;

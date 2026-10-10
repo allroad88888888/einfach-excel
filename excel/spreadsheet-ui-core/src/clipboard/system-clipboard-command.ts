@@ -24,6 +24,7 @@ import { validateProjectionResult } from '../projection/contracts'
 import { applyProjectionSizes } from '../projection/projection-sizes'
 
 export interface SystemClipboardData {
+  readonly painter?: boolean
   readonly text: string
   readonly token?: string
 }
@@ -88,6 +89,12 @@ const ERROR_MESSAGES: Readonly<Record<string, string>> = {
   CLIPBOARD_COLUMN_WIDTH_OPTIONS:
     'Column widths cannot be combined with arithmetic, transpose or skip blanks.',
   CLIPBOARD_COLUMN_WIDTH_LOCKED: 'Unprotect the worksheet before pasting column widths.',
+}
+
+/** 普通剪贴板与格式刷共享原生错误说明。 */
+export function clipboardErrorMessage(error: unknown): string {
+  const message = error instanceof Error ? error.message : String(error)
+  return ERROR_MESSAGES[message] ?? message
 }
 
 /** 一个入口处理系统剪贴板手势；工作簿数据只有 Rust 快照一份。 */
@@ -247,11 +254,10 @@ export const runSystemClipboardAtom = atom(
         })
       }
       set(applyVisibleProjectionAtom, { witness, request: projection, result: result.projection })
-      set(feedbackAtom, { busy: false, error: false, message: 'Pasted cells.' })
+      set(feedbackAtom, { busy: false, error: false, message: data.painter ? '' : 'Pasted cells.' })
       return true
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error)
-      set(feedbackAtom, { busy: false, error: true, message: ERROR_MESSAGES[message] ?? message })
+      set(feedbackAtom, { busy: false, error: true, message: clipboardErrorMessage(error) })
       return false
     }
   },

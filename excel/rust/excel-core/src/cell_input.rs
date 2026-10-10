@@ -7,6 +7,8 @@ pub enum CellInput {
     Literal(Value),
     Percentage { value: f64, digits: u8 },
     Date(f64),
+    Time { value: f64, pattern: &'static str },
+    Fraction { value: f64, denominator: u32 },
 }
 
 /// 只识别明确的输入语法；不完整数字、非有限数、歧义日期仍保留为文字。
@@ -41,6 +43,12 @@ pub fn parse_cell_input(input: &str, allow_formula: bool) -> CellInput {
     }
     if let Some(serial) = crate::date_serial::parse_iso_date(trimmed) {
         return CellInput::Date(serial);
+    }
+    if let Some(time) = crate::time_input::parse_time(trimmed) {
+        return time;
+    }
+    if let Some(fraction) = crate::fraction_input::parse_fraction(trimmed) {
+        return fraction;
     }
     CellInput::Literal(
         finite_number(trimmed)

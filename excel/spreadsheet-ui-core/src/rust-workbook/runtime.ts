@@ -36,6 +36,7 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
   let workbook: WasmWorkbook | undefined
   let initPromise: Promise<unknown> | undefined
   let revision = 0
+  let painterToken: string | undefined
   let clipboard:
     | { token: string; cut: boolean; consumed?: boolean; invalidated?: boolean }
     | undefined
@@ -53,6 +54,7 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
     workbook = initialized.workbook
     revision = 0
     clipboard = undefined
+    painterToken = undefined
     sheetsById.clear()
     for (const sheet of initialized.sheets) sheetsById.set(sheet.id, sheet)
     return initialized.sheets
@@ -157,6 +159,7 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       )
       revision += 1
       if (clipboard) clipboard.invalidated = true
+      painterToken = undefined
       return result
     }
     if (command === 'history.apply') {
@@ -164,6 +167,7 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       const result = applyRustHistory(current, sheetsById, input, revision + 1)
       revision += 1
       if (result.sheets && clipboard) clipboard.invalidated = true
+      if (result.sheets) painterToken = undefined
       return result
     }
     if (command === 'range.resize') {
@@ -190,6 +194,7 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
     if (command === 'workbook.changeSheets') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
       const sheets = changeSheetStructure(current, sheetsById, input)
+      painterToken = undefined
       revision += 1
       return {
         sheets,
@@ -209,6 +214,7 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
     if (command === 'workbook.editSheet') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
       const result = editWorkbookSheet(current, sheetsById, input, revision + 1)
+      painterToken = undefined
       revision += 1
       return result
     }
@@ -227,7 +233,12 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
         range.rowEnd,
         range.colEnd,
         input.cut,
+        ...(input.painter ? [true] : []),
       )
+      if (input.painter) {
+        painterToken = crypto.randomUUID()
+        return { ...captured, token: painterToken }
+      }
       clipboard = { token: crypto.randomUUID(), cut: input.cut }
       return { ...captured, token: clipboard.token }
     }
@@ -272,9 +283,12 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
         if (!current.paste_clipboard) throw new Error('Rust paste export is unavailable')
         if (request.mode === 'column-widths' && !current.snapshot_viewport_sizes)
           throw new Error('Rust size snapshot is unavailable.')
-        const internal = !!request.token && request.token === clipboard?.token
-        if (internal && clipboard?.consumed) throw new Error('CLIPBOARD_CUT_CONSUMED')
-        if (internal && clipboard?.invalidated) throw new Error('CLIPBOARD_SHEET_HISTORY_CHANGED')
+        const internal = !!request.token &&
+          request.token === (request.painter ? painterToken : clipboard?.token)
+        if (request.painter && !internal) throw new Error('CLIPBOARD_SHEET_HISTORY_CHANGED')
+        if (!request.painter && internal && clipboard?.consumed) throw new Error('CLIPBOARD_CUT_CONSUMED')
+        if (!request.painter && internal && clipboard?.invalidated)
+          throw new Error('CLIPBOARD_SHEET_HISTORY_CHANGED')
         const range = current.paste_clipboard(
           sheetIndex(request.sheetId),
           request.row,
@@ -291,7 +305,7 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
         }
         if (request.mode === 'column-widths')
           colWidths = readSizes(current, sheetIndex(request.sheetId), affectedRange).colWidths
-        if (internal && clipboard?.cut) clipboard.consumed = true
+        if (!request.painter && internal && clipboard?.cut) clipboard.consumed = true
       } else {
         affectedRange = writeTrackedMutation(current, sheetIndex(request.sheetId), request)
       }

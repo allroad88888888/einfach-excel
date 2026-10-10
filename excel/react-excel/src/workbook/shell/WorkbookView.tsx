@@ -4,16 +4,24 @@ import { WorkbookHeader } from '../chrome/header/WorkbookHeader'
 import { WorkbookRibbon } from '../chrome/ribbon/WorkbookRibbon'
 import { WorkbookGrid } from '../grid/viewport/WorkbookGrid'
 import './workbook.css'
-import { useSetAtom } from '@einfach/react'
-import { runFindReplaceAtom } from '@einfach/spreadsheet-ui-core'
+import { useAtomValue, useSetAtom } from '@einfach/react'
+import { runFindReplaceAtom, formatPainterAtom, runFormatPainterAtom } from '@einfach/spreadsheet-ui-core'
 
 /** Composes the shared spreadsheet chrome around the active Rust workbook. */
 export function WorkbookView() {
   const runFind = useSetAtom(runFindReplaceAtom)
+  const painter = useAtomValue(formatPainterAtom)
+  const runPainter = useSetAtom(runFormatPainterAtom)
   return (
     <div
       className="workbook"
       data-runtime-state="ready"
+      onKeyDownCapture={(event) => {
+        if (event.key === 'Escape' && !event.nativeEvent.isComposing && painter.mode !== 'idle') {
+          event.preventDefault()
+          void runPainter('exit')
+        }
+      }}
       onKeyDown={(event) => {
         if (event.nativeEvent.isComposing || event.altKey || !(event.ctrlKey || event.metaKey))
           return

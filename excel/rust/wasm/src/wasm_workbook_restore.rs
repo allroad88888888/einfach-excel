@@ -175,6 +175,7 @@ impl WasmWorkbook {
         self.workbook = workbook;
         self.history = Default::default();
         self.clipboard = None;
+        self.format_painter = None;
         Ok(stats)
     }
 }

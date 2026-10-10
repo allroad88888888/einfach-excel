@@ -113,9 +113,10 @@ fn parse_input(input: &str, mode: ClipboardPasteMode) -> Result<ClipboardValue, 
             })
         }
         CellInput::Literal(value) => Ok(ClipboardValue::Literal(value)),
-        // 纯文本粘贴仍保留目标格式，只复用百分比／日期的数值识别。
-        CellInput::Percentage { value, .. } | CellInput::Date(value) => {
-            Ok(ClipboardValue::Literal(Value::Number(value)))
-        }
+        // 纯文本粘贴仍保留目标格式，只复用明确输入语法的数值识别。
+        CellInput::Percentage { value, .. }
+        | CellInput::Date(value)
+        | CellInput::Time { value, .. }
+        | CellInput::Fraction { value, .. } => Ok(ClipboardValue::Literal(Value::Number(value))),
     }
 }

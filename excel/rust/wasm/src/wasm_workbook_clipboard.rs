@@ -14,6 +14,7 @@ struct ClipboardCaptureJSON {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct ClipboardPastePolicyJSON {
+    painter: Option<bool>,
     mode: Option<String>,
     arithmetic: Option<String>,
     transpose: Option<bool>,
@@ -43,7 +44,11 @@ impl WasmWorkbook {
         end_row: u32,
         end_col: u32,
         cut: bool,
+        painter: Option<bool>,
     ) -> Result<JsValue, JsValue> {
+        if painter == Some(true) && cut {
+            return Err(JsValue::from_str("CLIPBOARD_INVALID_POLICY"));
+        }
         let snapshot = self
             .workbook
             .capture_clipboard(
@@ -62,7 +67,11 @@ impl WasmWorkbook {
             cut,
         })
         .map_err(|err| JsValue::from_str(&err.to_string()))?;
-        self.clipboard = Some(snapshot);
+        if painter == Some(true) {
+            self.format_painter = Some(snapshot);
+        } else {
+            self.clipboard = Some(snapshot);
+        }
         Ok(result)
     }
 
@@ -97,6 +106,11 @@ impl WasmWorkbook {
             "divide" => ClipboardArithmetic::Divide,
             _ => return Err(JsValue::from_str("CLIPBOARD_INVALID_ARITHMETIC")),
         };
+        if policy.painter == Some(true) && (!internal || mode != ClipboardPasteMode::Formats
+            || arithmetic != ClipboardArithmetic::None || policy.transpose == Some(true)
+            || policy.skip_blanks == Some(true)) {
+            return Err(JsValue::from_str("CLIPBOARD_INVALID_POLICY"));
+        }
         let selection = policy
             .selection
             .map(|range| {
@@ -122,7 +136,7 @@ impl WasmWorkbook {
         });
         let external;
         let snapshot = if internal {
-            self.clipboard
+            (if policy.painter == Some(true) { &self.format_painter } else { &self.clipboard })
                 .as_ref()
                 .ok_or_else(|| JsValue::from_str("CLIPBOARD_EMPTY"))?
         } else {

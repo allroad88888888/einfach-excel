@@ -85,6 +85,31 @@ async function runtime() {
 }
 
 describe('Rust clipboard transport', () => {
+  test('format painter has its own native slot and cannot consume or replace a normal cut', async () => {
+    const { call, capture, paste, captureInput, pasteInput } = await runtime()
+    const copied = await call('clipboard.capture', captureInput)
+    const brush = await call('clipboard.capture', { ...captureInput, cut: false, painter: true })
+    expect(capture).toHaveBeenLastCalledWith(0, 0, 0, 0, 0, false, true)
+    const input = pasteInput(brush.result.token)
+    const painted = await call('clipboard.paste', { ...input,
+      request: { ...input.request, mode: 'formats', painter: true } })
+    expect(painted.ok).toBe(true)
+    expect(paste.mock.lastCall?.[4]).toBe(true)
+    expect(paste.mock.lastCall?.[5]).toMatchObject({ mode: 'formats', painter: true })
+    expect((await call('clipboard.paste', pasteInput(copied.result.token))).ok).toBe(true)
+    expect((await call('clipboard.paste', pasteInput(copied.result.token))).ok).toBe(false)
+  })
+
+  test('stale format painter tokens reject instead of falling back to empty external TSV', async () => {
+    const { call, paste, captureInput, pasteInput } = await runtime()
+    const brush = await call('clipboard.capture', { ...captureInput, cut: false, painter: true })
+    await call('clipboard.capture', { ...captureInput, cut: false, painter: true })
+    const input = pasteInput(brush.result.token)
+    const result = await call('clipboard.paste', { ...input,
+      request: { ...input.request, mode: 'formats', painter: true } })
+    expect(result.ok).toBe(false)
+    expect(paste).not.toHaveBeenCalled()
+  })
   test('width-only paste returns the full affected width range with the original visible projection', async () => {
     const { call, paste, pasteInput, sizes } = await runtime()
     paste.mockReturnValueOnce([0, 0, 0, 7])

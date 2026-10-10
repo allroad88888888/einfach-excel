@@ -4,6 +4,8 @@ import {
   dispatchGridCellKeyboardInputAtom,
   editingSessionAtom,
   formulaReferenceActiveAtom,
+  formatPainterAtom,
+  runFormatPainterAtom,
   selectionSnapshotAtom,
   setViewportScrollAtom,
   startCellEditingFromProjectionAtom,
@@ -44,6 +46,8 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
   const selection = useAtomValue(selectionSnapshotAtom)
   const editingSession = useAtomValue(editingSessionAtom)
   const pickingReference = useAtomValue(formulaReferenceActiveAtom)
+  const painter = useAtomValue(formatPainterAtom)
+  const runPainter = useSetAtom(runFormatPainterAtom)
   const viewportMetrics = useAtomValue(viewportMetricsAtom)
   const sizeOverrides = useAtomValue(viewportGeometrySizesAtom)
   const freeze = useAtomValue(projectedFreezeAtom)
@@ -112,6 +116,17 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
   const onKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
     if (event.target instanceof HTMLElement && event.target.closest('button, input, textarea')) return
     if (activeSheet === null || editingSession.source !== null) return
+    if (painter.mode !== 'idle' && !event.nativeEvent.isComposing) {
+      if (event.key === 'Enter') {
+        event.preventDefault()
+        void runPainter('apply')
+        return
+      }
+      if (event.key === 'F2' || isPrintableCellEntry(event)) {
+        event.preventDefault()
+        return
+      }
+    }
     const keyboard = getGridKeyboardInput(event, {
       ...viewportMetrics,
       viewportHeight: Math.max(0, viewportMetrics.viewportHeight -
@@ -150,7 +165,7 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
     pointerHandlers.onPointerCancel(event)
   }
   const onDoubleClick = (event: ReactMouseEvent<HTMLDivElement>) => {
-    if (activeSheet === null || viewport.retained || pickingReference) return
+    if (activeSheet === null || viewport.retained || pickingReference || painter.mode !== 'idle') return
     const cell = workbookCellAt(event)
     if (cell !== null) startCellEditing({ sheetId: activeSheet.id, cell })
   }

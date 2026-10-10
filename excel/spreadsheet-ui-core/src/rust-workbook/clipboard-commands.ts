@@ -36,12 +36,14 @@ export interface RustClipboardCapture {
 }
 
 export interface RustClipboardCaptureRequest {
+  readonly painter?: boolean
   readonly sheetId: string
   readonly range: CellRange
   readonly cut: boolean
 }
 
 export interface RustClipboardPasteRequest {
+  readonly painter?: boolean
   readonly arithmetic?: 'none' | 'add' | 'subtract' | 'multiply' | 'divide'
   readonly mode?: RustClipboardPasteMode
   readonly transpose?: boolean

@@ -79,6 +79,12 @@ describe('Sales Orders import seed', () => {
           format: { numberFormat: { kind: 'fraction', denominator: 'two-digit' } } }),
         expect.objectContaining({ row: 13, col: 14,
           format: { numberFormat: { kind: 'time', pattern: 'hh:mm:ss' } } }),
+        expect.objectContaining({ row: 14, col: 14,
+          format: { numberFormat: { kind: 'time', pattern: 'h:mm' } } }),
+        expect.objectContaining({ row: 15, col: 14,
+          format: { numberFormat: { kind: 'time', pattern: 'h:mm AM/PM' } } }),
+        expect.objectContaining({ row: 17, col: 14, value: 0.05,
+          format: { numberFormat: { kind: 'fraction', denominator: 20 } } }),
         expect.objectContaining({
           row: 2,
           col: 14,

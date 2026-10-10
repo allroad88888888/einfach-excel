@@ -1,6 +1,7 @@
 import { useSetAtom } from '@einfach/react'
 import {
   endPointerSelectionAtom,
+  runFormatPainterAtom,
   startPointerSelectionAtom,
   updatePointerSelectionAtom,
   type CellCoord,
@@ -42,6 +43,7 @@ export function useGridPointerSelection(
 ): GridPointerSelectionHandlers {
   const { enabled = true, getCellCoord, sheetId } = options
   const endPointer = useSetAtom(endPointerSelectionAtom)
+  const runPainter = useSetAtom(runFormatPainterAtom)
   const startPointerSelection = useSetAtom(startPointerSelectionAtom)
   const updatePointerSelection = useSetAtom(updatePointerSelectionAtom)
   const activePointer = useRef<ActivePointer | null>(null)
@@ -105,9 +107,9 @@ export function useGridPointerSelection(
       if (pointer === null || pointer.id !== event.pointerId) return
       activePointer.current = null
       releasePointerCapture(pointer)
-      endPointer()
+      void runPainter('end-selection')
     },
-    [cancelActivePointer, endPointer, enabled],
+    [cancelActivePointer, runPainter, enabled],
   )
 
   const onPointerCancel = useCallback(

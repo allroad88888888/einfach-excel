@@ -9,7 +9,7 @@ import {
 
 describe('typed cell input dispatch', () => {
   for (const source of ['cell', 'formula'] as const) {
-    test.each(["'00123", ' FaLsE ', '12.50%'])(
+    test.each(["'00123", ' FaLsE ', '12.50%', '13:30', '36:15:30', '1:30 PM', '9 AM', '1 1/2', '-0 3/8'])(
       `${source} sends %j without JS coercion`,
       async (value) => {
         const controlled = createControlledCellEditingConnection()

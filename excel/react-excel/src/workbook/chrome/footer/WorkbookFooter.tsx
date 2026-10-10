@@ -1,6 +1,7 @@
 import { useAtomValue } from '@einfach/react'
 import {
   activeWorkbookSheetAtom,
+  formatPainterAtom,
   selectionSnapshotAtom,
   systemClipboardFeedbackAtom,
 } from '@einfach/spreadsheet-ui-core'
@@ -13,6 +14,7 @@ export function WorkbookFooter() {
   const activeSheet = useAtomValue(activeWorkbookSheetAtom)
   const selection = useAtomValue(selectionSnapshotAtom)
   const clipboard = useAtomValue(systemClipboardFeedbackAtom)
+  const painting = useAtomValue(formatPainterAtom).mode !== 'idle'
   const selectedCellCount =
     (selection.range.colEnd - selection.range.colStart + 1) *
     (selection.range.rowEnd - selection.range.rowStart + 1)
@@ -21,7 +23,7 @@ export function WorkbookFooter() {
     <footer className="workbook-footer">
       <WorkbookSheetTabs />
       <div className="status-items">
-        {clipboard.message && (
+        {clipboard.message && !painting && (
           <div
             className="clipboard-feedback"
             role={clipboard.error ? 'alert' : 'status'}

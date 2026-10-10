@@ -1,407 +1,156 @@
-import { describe, expect, test, vi } from 'vitest'
-import { createStore } from '@einfach/core'
+import { expect, test, vi } from 'vitest'
 import {
-  FORMAT_PAINTER_LEDGER_MAX,
-  applyFormatPainterAtom,
-  armFormatPainterAtom,
-  armFormatPainterStickyAtom,
-  exitFormatPainterAtom,
-  formatPainterBlockedAtom,
-  formatPainterClipboardAtom,
-  formatPainterControllerAtom,
-  formatPainterLedgerAtom,
-  formatPainterPendingAtom,
-  formatPainterStateAtom,
-  syncFormatPainterContextAtom,
-  type ApplyFormatPainterInput,
-  type CapturedFormat,
-} from '../src/format-painter'
-import { setSelectionAtom } from '../src/selection'
-import { setWorkspaceActiveSheetAtom } from '../src/workspace'
-import type { SetFormatRangeRequest } from '../src'
+  createSpreadsheetUi, initializeWorkbookDocumentAtom, selectCellAtom, runVisibleProjectionAtom,
+  formatPainterAtom, runFormatPainterAtom, setRustWorkbookConnectionAtom,
+  setWorkspaceActiveSheetAtom,
+  startCellEditingFromProjectionAtom, startPointerSelectionAtom, pointerSessionAtom,
+  type RustClipboardCaptureRequest, type RustClipboardPasteRequest, type VisibleProjectionRequest,
+} from '../src'
+import { createTestRustWorkbookConnection } from './support/rust-workbook-connection'
 
-const SOURCE = { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 0 }
-const TARGET = { rowStart: 2, rowEnd: 3, colStart: 4, colEnd: 5 }
-
-function deferred<T>() {
-  let resolve!: (value: T | PromiseLike<T>) => void
-  let reject!: (reason?: unknown) => void
-  const promise = new Promise<T>((resolvePromise, rejectPromise) => {
-    resolve = resolvePromise
-    reject = rejectPromise
-  })
-  return { promise, resolve, reject }
+async function setup() {
+  const capture = vi.fn(async (_request: RustClipboardCaptureRequest) => ({
+    text: 'source', rows: 1, cols: 1, cut: false, token: 'painter-token',
+  }))
+  const paste = vi.fn(async (
+    request: RustClipboardPasteRequest, projection: VisibleProjectionRequest,
+  ) => ({
+    acknowledgement: { sheetId: request.sheetId, requestId: request.requestId, revision: 1 },
+    projection: { ...projection, revision: 1, cells: [] },
+  }))
+  const { store } = createSpreadsheetUi({ connection: createTestRustWorkbookConnection({
+    captureClipboard: capture, pasteClipboard: paste,
+    readVisibleProjection: async (request) => ({ ...request, revision: 0,
+      cells: [{ row: 0, col: 0, displayValue: 'source' }] }),
+  }) })
+  store.setter(initializeWorkbookDocumentAtom, { title: 'Test', sheets: [
+    { id: 's', index: 0, name: 'Test', rowCount: 10, colCount: 10 },
+    { id: 'other', index: 1, name: 'Other', rowCount: 10, colCount: 10 },
+  ] })
+  store.setter(selectCellAtom, { sheetId: 's', coord: { row: 0, col: 0 } })
+  await store.setter(runVisibleProjectionAtom, { sheetId: 's', reason: 'viewport',
+    window: { rowStart: 0, rowEnd: 9, colStart: 0, colEnd: 9 } })
+  return { store, capture, paste }
 }
 
-function sampleFormat(): CapturedFormat {
-  return {
-    format: {
-      bold: true,
-      italic: false,
-      align: 'right',
-      fontSize: 14,
-      fgColor: '#112233',
-      bgColor: '#ffeecc',
-      numberFormat: { kind: 'currency', symbol: '$', digits: 2 },
-      borders: { top: { style: 'thin', color: '#000000' } },
-    },
-    conditionalFormat: { bgColor: '#ff0000' },
+test('captures Rust formatting once without a UI copy, then paints once and exits', async () => {
+  const { store, capture, paste } = await setup()
+  expect(store.getter(formatPainterAtom).mode).toBe('idle')
+  expect(await store.setter(runFormatPainterAtom, 'arm')).toBe(true)
+  expect(capture).toHaveBeenCalledWith({ sheetId: 's', cut: false, painter: true,
+    range: { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 0 } })
+  expect(store.getter(formatPainterAtom)).not.toHaveProperty('format')
+  store.setter(selectCellAtom, { sheetId: 's', coord: { row: 2, col: 3 } })
+  expect(await store.setter(runFormatPainterAtom, 'apply')).toBe(true)
+  expect(paste).toHaveBeenCalledTimes(1)
+  expect(paste.mock.calls[0]![0]).toMatchObject({ row: 2, col: 3, mode: 'formats',
+    text: '', token: 'painter-token', painter: true })
+  expect(store.getter(formatPainterAtom).mode).toBe('idle')
+  expect(await store.setter(runFormatPainterAtom, 'apply')).toBe(false)
+})
+
+test('continuous mode retains the same native snapshot until explicit exit', async () => {
+  const { store, capture, paste } = await setup()
+  await store.setter(runFormatPainterAtom, 'sticky')
+  for (const row of [1, 2]) {
+    store.setter(selectCellAtom, { sheetId: 's', coord: { row, col: 0 } })
+    expect(await store.setter(runFormatPainterAtom, 'apply')).toBe(true)
+    expect(store.getter(formatPainterAtom).mode).toBe('sticky')
   }
-}
+  expect(capture).toHaveBeenCalledTimes(1)
+  expect(paste).toHaveBeenCalledTimes(2)
+  await store.setter(runFormatPainterAtom, 'exit')
+  expect(await store.setter(runFormatPainterAtom, 'apply')).toBe(false)
+})
 
-function selectRange(
-  store: ReturnType<typeof createStore>,
-  range: typeof SOURCE,
-  sheetId = 'sheet-1',
-): void {
-  store.setter(setSelectionAtom, {
-    kind: 'range',
-    sheetId,
-    anchor: { row: range.rowStart, col: range.colStart },
-    focus: { row: range.rowEnd, col: range.colEnd },
-  })
-}
+test('double-click promotes a pending capture without issuing another request', async () => {
+  const { store, capture } = await setup()
+  let release!: () => void
+  capture.mockImplementationOnce(() => new Promise((resolve) => {
+    release = () => resolve({ text: '', rows: 1, cols: 1, cut: false, token: 'one' })
+  }))
+  const pending = store.setter(runFormatPainterAtom, 'arm')
+  await store.setter(runFormatPainterAtom, 'sticky')
+  expect(store.getter(formatPainterAtom)).toMatchObject({ mode: 'sticky', busy: true })
+  release()
+  expect(await pending).toBe(true)
+  expect(store.getter(formatPainterAtom)).toMatchObject({ mode: 'sticky', busy: false, token: 'one' })
+  expect(capture).toHaveBeenCalledTimes(1)
+})
 
-function prepare(mode: 'armed' | 'sticky' = 'armed', captured: CapturedFormat = sampleFormat()) {
-  const store = createStore()
-  store.setter(setWorkspaceActiveSheetAtom, { sheetId: 'sheet-1' })
-  selectRange(store, SOURCE)
-  store.setter(mode === 'armed' ? armFormatPainterAtom : armFormatPainterStickyAtom, captured)
-  selectRange(store, TARGET)
-  return store
-}
-
-function successfulPorts(
-  overrides: Partial<ApplyFormatPainterInput> = {},
-): ApplyFormatPainterInput {
-  return {
-    resolveTargetRanges: (_sheetId, range) => [range],
-    setFormatRange: (request) => ({
-      sheetId: request.sheetId,
-      requestId: request.requestId,
-      affectedRange: request.range,
-    }),
-    refreshProjection: () => undefined,
-    ...overrides,
-  }
-}
-
-describe('format-painter Core authority and mutation lifecycle', () => {
-  test('starts idle and arms from Core-owned selection/workspace authority', () => {
-    const store = prepare()
-    const controller = store.getter(formatPainterControllerAtom)
-
-    expect(controller.state).toBe('armed')
-    expect(controller.source).toEqual({ sheetId: 'sheet-1', range: SOURCE })
-    expect(controller.sessionId).toBe(1)
-    expect(controller.phase).toBe('ready')
-    expect(store.getter(formatPainterPendingAtom)).toBe(false)
-  })
-
-  test('deep-snapshots and freezes base/compatibility evidence without aliasing caller data', () => {
-    const captured = sampleFormat()
-    const store = prepare('armed', captured)
-    const clipboard = store.getter(formatPainterClipboardAtom)!
-
-    captured.format.bold = false
-    if (captured.format.borders?.top) captured.format.borders.top.color = '#fff'
-    if (captured.conditionalFormat) captured.conditionalFormat.bgColor = '#000'
-
-    expect(clipboard.format.bold).toBe(true)
-    expect(clipboard.format.borders?.top?.color).toBe('#000000')
-    expect(clipboard.conditionalFormat?.bgColor).toBe('#ff0000')
-    expect(Object.isFrozen(clipboard)).toBe(true)
-    expect(Object.isFrozen(clipboard.format)).toBe(true)
-    expect(Object.isFrozen(clipboard.format.borders?.top)).toBe(true)
-  })
-
-  test('keeps session/request identities strict, unique, and isolated per store', async () => {
-    const first = prepare('sticky')
-    const second = prepare('sticky')
-    const firstRequestIds: number[] = []
-    const secondRequestIds: number[] = []
-
-    await first.setter(
-      applyFormatPainterAtom,
-      successfulPorts({
-        setFormatRange: (request) => {
-          firstRequestIds.push(request.requestId!)
-          return {
-            sheetId: request.sheetId,
-            requestId: request.requestId,
-            affectedRange: request.range,
-          }
-        },
-      }),
-    )
-    await second.setter(
-      applyFormatPainterAtom,
-      successfulPorts({
-        setFormatRange: (request) => {
-          secondRequestIds.push(request.requestId!)
-          return {
-            sheetId: request.sheetId,
-            requestId: request.requestId,
-            affectedRange: request.range,
-          }
-        },
-      }),
-    )
-    selectRange(first, { rowStart: 6, rowEnd: 6, colStart: 6, colEnd: 6 })
-    await first.setter(
-      applyFormatPainterAtom,
-      successfulPorts({
-        setFormatRange: (request) => {
-          firstRequestIds.push(request.requestId!)
-          return {
-            sheetId: request.sheetId,
-            requestId: request.requestId,
-            affectedRange: request.range,
-          }
-        },
-      }),
-    )
-
-    expect(firstRequestIds).toEqual([1, 2])
-    expect(secondRequestIds).toEqual([1])
-    expect(firstRequestIds.every(Number.isSafeInteger)).toBe(true)
-  })
-
-  test('blocks before transport when any port is missing and retains armed state', async () => {
-    const store = prepare()
-    const setFormatRange = vi.fn()
-
-    const result = await store.setter(applyFormatPainterAtom, {
-      resolveTargetRanges: (_sheetId, range) => [range],
-      setFormatRange,
-    })
-
-    expect(result).toBe('preflight-failed')
-    expect(setFormatRange).not.toHaveBeenCalled()
-    expect(store.getter(formatPainterStateAtom)).toBe('armed')
-    expect(store.getter(formatPainterClipboardAtom)).not.toBeNull()
-    expect(store.getter(formatPainterLedgerAtom)).toHaveLength(0)
-    expect(store.getter(formatPainterBlockedAtom)).toBe(false)
-  })
-
-  test.each([{ ranges: [] }, { ranges: [TARGET, { ...TARGET, rowStart: 7, rowEnd: 7 }] }])(
-    'rejects zero or multiple backing ranges before the first mutation call',
-    async ({ ranges }) => {
-      const store = prepare()
-      const setFormatRange = vi.fn()
-
-      const result = await store.setter(
-        applyFormatPainterAtom,
-        successfulPorts({ resolveTargetRanges: () => ranges, setFormatRange }),
-      )
-
-      expect(result).toBe('preflight-failed')
-      expect(setFormatRange).not.toHaveBeenCalled()
-      expect(store.getter(formatPainterLedgerAtom)).toHaveLength(0)
-      expect(store.getter(formatPainterStateAtom)).toBe('armed')
-    },
-  )
-
-  test('uses only the frozen base format, accepts an exact receipt, refreshes, then exits armed', async () => {
-    const store = prepare()
-    const setFormatRange = vi.fn((request: SetFormatRangeRequest) => ({
-      sheetId: request.sheetId,
-      requestId: request.requestId,
-      affectedRange: request.range,
+test.each(['selection', 'exit', 'connection', 'sheet'] as const)(
+  '%s change during capture cannot resurrect the old session', async (change) => {
+    const { store, capture } = await setup()
+    let release!: () => void
+    capture.mockImplementationOnce(() => new Promise((resolve) => {
+      release = () => resolve({ text: '', rows: 1, cols: 1, cut: false, token: 'old' })
     }))
-    const refreshProjection = vi.fn()
-
-    const result = await store.setter(
-      applyFormatPainterAtom,
-      successfulPorts({ setFormatRange, refreshProjection }),
-    )
-
-    expect(result).toBe('local-acknowledged')
-    expect(setFormatRange).toHaveBeenCalledTimes(1)
-    expect(setFormatRange.mock.calls[0][0]).toMatchObject({
-      kind: 'set-format-range',
-      sheetId: 'sheet-1',
-      range: TARGET,
-      requestId: 1,
-      format: { bold: true },
-    })
-    expect(setFormatRange.mock.calls[0][0]).not.toHaveProperty('conditionalFormat')
-    expect(refreshProjection).toHaveBeenCalledTimes(1)
-    expect(store.getter(formatPainterStateAtom)).toBe('idle')
-    expect(store.getter(formatPainterClipboardAtom)).toBeNull()
-    expect(store.getter(formatPainterLedgerAtom)[0].status).toBe('local-acknowledged')
-  })
-
-  test('sticky mode stays armed after exact acknowledgement and suppresses the same target', async () => {
-    const store = prepare('sticky')
-    const setFormatRange = vi.fn((request: SetFormatRangeRequest) => ({
-      sheetId: request.sheetId,
-      requestId: request.requestId,
-      affectedRange: request.range,
-    }))
-    const ports = successfulPorts({ setFormatRange })
-
-    expect(await store.setter(applyFormatPainterAtom, ports)).toBe('local-acknowledged')
-    expect(await store.setter(applyFormatPainterAtom, ports)).toBe('blocked')
-    expect(setFormatRange).toHaveBeenCalledTimes(1)
-    expect(store.getter(formatPainterStateAtom)).toBe('sticky')
-    expect(store.getter(formatPainterClipboardAtom)).not.toBeNull()
-  })
-
-  test.each([
-    ['mismatched receipt', async () => ({ sheetId: 'wrong', requestId: 1, affectedRange: TARGET })],
-    ['rejection', async () => Promise.reject(new Error('backend rejected'))],
-    [
-      'synchronous throw',
-      () => {
-        throw new Error('transport throw')
-      },
-    ],
-  ])('enters outcome-unknown after the first port call on %s', async (_name, port) => {
-    const store = prepare()
-    const setFormatRange = vi.fn(port)
-
-    expect(await store.setter(applyFormatPainterAtom, successfulPorts({ setFormatRange }))).toBe(
-      'outcome-unknown',
-    )
-    expect(setFormatRange).toHaveBeenCalledTimes(1)
-    expect(store.getter(formatPainterStateAtom)).toBe('armed')
-    expect(store.getter(formatPainterClipboardAtom)).not.toBeNull()
-    expect(store.getter(formatPainterBlockedAtom)).toBe(true)
-    expect(store.getter(formatPainterLedgerAtom)[0].status).toBe('outcome-unknown')
-    expect(await store.setter(applyFormatPainterAtom, successfulPorts())).toBe('blocked')
-  })
-
-  test('blocks duplicate dispatch while pending', async () => {
-    const store = prepare()
-    const transport = deferred<unknown>()
-    const setFormatRange = vi.fn((_request: SetFormatRangeRequest) => transport.promise)
-    const first = store.setter(
-      applyFormatPainterAtom,
-      successfulPorts({ setFormatRange, timeoutMs: 1_000 }),
-    )
-
-    await Promise.resolve()
-    expect(store.getter(formatPainterPendingAtom)).toBe(true)
-    expect(await store.setter(applyFormatPainterAtom, successfulPorts())).toBe('blocked')
-    expect(setFormatRange).toHaveBeenCalledTimes(1)
-
-    const request = setFormatRange.mock.calls[0][0]
-    transport.resolve({
-      sheetId: request.sheetId,
-      requestId: request.requestId,
-      affectedRange: request.range,
-    })
-    expect(await first).toBe('local-acknowledged')
-  })
-
-  test('timeout stays unknown; late exact settlement records evidence only', async () => {
-    const store = prepare()
-    const transport = deferred<unknown>()
-    let request: Parameters<NonNullable<ApplyFormatPainterInput['setFormatRange']>>[0] | null = null
-
-    expect(
-      await store.setter(
-        applyFormatPainterAtom,
-        successfulPorts({
-          timeoutMs: 1,
-          setFormatRange: (nextRequest) => {
-            request = nextRequest
-            return transport.promise
-          },
-        }),
-      ),
-    ).toBe('outcome-unknown')
-
-    transport.resolve({
-      sheetId: request!.sheetId,
-      requestId: request!.requestId,
-      affectedRange: request!.range,
-    })
-    await Promise.resolve()
-    await Promise.resolve()
-
-    const attempt = store.getter(formatPainterLedgerAtom)[0]
-    expect(attempt.status).toBe('outcome-unknown')
-    expect(attempt.lateEvidence).toBe('late-exact-acknowledgement')
-    expect(store.getter(formatPainterStateAtom)).toBe('armed')
-    expect(store.getter(formatPainterBlockedAtom)).toBe(true)
-  })
-
-  test('exit/re-arm tombstones pending UI authority; late exact ack only updates old ledger', async () => {
-    const store = prepare()
-    const transport = deferred<unknown>()
-    let request: Parameters<NonNullable<ApplyFormatPainterInput['setFormatRange']>>[0] | null = null
-    const running = store.setter(
-      applyFormatPainterAtom,
-      successfulPorts({
-        setFormatRange: (nextRequest) => {
-          request = nextRequest
-          return transport.promise
-        },
-      }),
-    )
-    await Promise.resolve()
-
-    store.setter(exitFormatPainterAtom)
-    selectRange(store, SOURCE)
-    store.setter(armFormatPainterStickyAtom, { format: { italic: true } })
-    const newSession = store.getter(formatPainterControllerAtom).sessionId
-    selectRange(store, TARGET)
-    transport.resolve({
-      sheetId: request!.sheetId,
-      requestId: request!.requestId,
-      affectedRange: request!.range,
-    })
-
-    expect(await running).toBe('stale')
-    expect(store.getter(formatPainterControllerAtom).sessionId).toBe(newSession)
-    expect(store.getter(formatPainterStateAtom)).toBe('sticky')
-    expect(store.getter(formatPainterClipboardAtom)?.format.italic).toBe(true)
-    expect(store.getter(formatPainterLedgerAtom)[0].status).toBe('local-acknowledged')
-  })
-
-  test('refresh runs only after exact ack; refresh failure reports honest local projection unknown', async () => {
-    const store = prepare()
-    const refreshProjection = vi.fn(async () => Promise.reject(new Error('refresh failed')))
-
-    expect(await store.setter(applyFormatPainterAtom, successfulPorts({ refreshProjection }))).toBe(
-      'honest-local-projection-unknown',
-    )
-
-    expect(refreshProjection).toHaveBeenCalledTimes(1)
-    expect(store.getter(formatPainterStateAtom)).toBe('idle')
-    expect(store.getter(formatPainterClipboardAtom)).toBeNull()
-    expect(store.getter(formatPainterControllerAtom).phase).toBe('honest-local-projection-unknown')
-    expect(store.getter(formatPainterLedgerAtom)[0].status).toBe('honest-local-projection-unknown')
-  })
-
-  test('workspace drift is tombstoned by the Core sync command', () => {
-    const store = prepare('sticky')
-    store.setter(setWorkspaceActiveSheetAtom, { sheetId: 'sheet-2' })
-
-    expect(store.setter(syncFormatPainterContextAtom)).toBe(true)
-    expect(store.getter(formatPainterStateAtom)).toBe('idle')
-    expect(store.getter(formatPainterClipboardAtom)).toBeNull()
-  })
-
-  test('bounds the attempt ledger by evicting acknowledged evidence only', async () => {
-    const store = prepare('sticky')
-    for (let index = 0; index < FORMAT_PAINTER_LEDGER_MAX + 3; index += 1) {
-      selectRange(store, {
-        rowStart: index + 2,
-        rowEnd: index + 2,
-        colStart: index + 3,
-        colEnd: index + 3,
-      })
-      expect(await store.setter(applyFormatPainterAtom, successfulPorts())).toBe(
-        'local-acknowledged',
-      )
+    const pending = store.setter(runFormatPainterAtom, 'arm')
+    if (change === 'selection') store.setter(selectCellAtom, { sheetId: 's', coord: { row: 1, col: 1 } })
+    if (change === 'exit') await store.setter(runFormatPainterAtom, 'exit')
+    if (change === 'connection') store.setter(setRustWorkbookConnectionAtom, null)
+    if (change === 'sheet') {
+      store.setter(setWorkspaceActiveSheetAtom, { sheetId: 'other' })
+      store.setter(setWorkspaceActiveSheetAtom, { sheetId: 's' })
     }
+    release()
+    expect(await pending).toBe(false)
+    expect(store.getter(formatPainterAtom).mode).toBe('idle')
+  },
+)
 
-    const ledger = store.getter(formatPainterLedgerAtom)
-    expect(ledger).toHaveLength(FORMAT_PAINTER_LEDGER_MAX)
-    expect(ledger.every((attempt) => attempt.status === 'local-acknowledged')).toBe(true)
-    expect(ledger[0].requestId).toBe(4)
-  })
+test('pending apply blocks duplicate writes, and exiting cannot be undone by its response', async () => {
+  const { store, paste } = await setup()
+  let release!: () => void
+  paste.mockImplementationOnce((request, projection) => new Promise((resolve) => {
+    release = () => resolve({
+      acknowledgement: { sheetId: request.sheetId, requestId: request.requestId, revision: 1 },
+      projection: { ...projection, revision: 1, cells: [] },
+    })
+  }))
+  await store.setter(runFormatPainterAtom, 'sticky')
+  const pending = store.setter(runFormatPainterAtom, 'apply')
+  await vi.waitFor(() => expect(paste).toHaveBeenCalledTimes(1))
+  expect(await store.setter(runFormatPainterAtom, 'apply')).toBe(false)
+  await store.setter(runFormatPainterAtom, 'exit')
+  release()
+  await pending
+  expect(store.getter(formatPainterAtom).mode).toBe('idle')
+})
+
+test('native rejection retains the brush for a corrected target and exposes feedback', async () => {
+  const { store, paste } = await setup()
+  await store.setter(runFormatPainterAtom, 'arm')
+  paste.mockRejectedValueOnce(new Error('CLIPBOARD_SELECTION_SIZE'))
+  expect(await store.setter(runFormatPainterAtom, 'apply')).toBe(false)
+  expect(store.getter(formatPainterAtom)).toMatchObject({ mode: 'armed', busy: false, error: true })
+  expect(store.getter(formatPainterAtom).message).toContain('whole copies')
+  expect(await store.setter(runFormatPainterAtom, 'apply')).toBe(true)
+})
+
+test('capture errors stay idle and do not dispatch a mutation', async () => {
+  const { store, capture, paste } = await setup()
+  capture.mockRejectedValueOnce(new Error('CLIPBOARD_PARTIAL_MERGE'))
+  expect(await store.setter(runFormatPainterAtom, 'arm')).toBe(false)
+  expect(store.getter(formatPainterAtom)).toMatchObject({ mode: 'idle', error: true })
+  expect(paste).not.toHaveBeenCalled()
+})
+
+test('editing blocks arming, while an ordinary pointer release still ends selection', async () => {
+  const { store, capture, paste } = await setup()
+  store.setter(startPointerSelectionAtom, { sheetId: 's', coord: { row: 0, col: 0 } })
+  await store.setter(runFormatPainterAtom, 'end-selection')
+  expect(store.getter(pointerSessionAtom).status).not.toBe('active')
+  expect(paste).not.toHaveBeenCalled()
+  store.setter(startCellEditingFromProjectionAtom, { sheetId: 's', cell: { row: 0, col: 0 } })
+  expect(await store.setter(runFormatPainterAtom, 'arm')).toBe(false)
+  expect(capture).not.toHaveBeenCalled()
+})
+
+test('separate workbooks do not share brush state or tokens', async () => {
+  const first = await setup()
+  const second = await setup()
+  await first.store.setter(runFormatPainterAtom, 'sticky')
+  expect(second.store.getter(formatPainterAtom).mode).toBe('idle')
+  expect(second.capture).not.toHaveBeenCalled()
 })

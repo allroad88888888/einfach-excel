@@ -56,6 +56,10 @@ const DEMO_CELL_FORMATS: ReadonlyMap<string, SpreadsheetCellFormat> = new Map([
   ['12:6', { numberFormat: { kind: 'scientific', digits: 2 } }],
   ['12:14', { numberFormat: { kind: 'fraction', denominator: 'two-digit' } }],
   ['13:14', { numberFormat: { kind: 'time', pattern: 'hh:mm:ss' } }],
+  // 输入示例的原生数值与格式：可再次编辑，也可以直接输入时间／带分数。
+  ['14:14', { numberFormat: { kind: 'time', pattern: 'h:mm' } }],
+  ['15:14', { numberFormat: { kind: 'time', pattern: 'h:mm AM/PM' } }],
+  ['17:14', { numberFormat: { kind: 'fraction', denominator: 20 } }],
 ])
 
 function demoFormat(row: number, col: number): { readonly format?: SpreadsheetCellFormat } {

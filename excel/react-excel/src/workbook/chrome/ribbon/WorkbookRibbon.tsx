@@ -5,6 +5,7 @@ import {
   editingSessionAtom,
 } from '@einfach/spreadsheet-ui-core'
 import { ClipboardTools } from './ClipboardTools'
+import { FormatPainterTools } from './FormatPainterTools'
 import { SelectionSizeTools } from './SelectionSizeTools'
 import { HistoryTools } from './HistoryTools'
 import { VisibilityTools } from './VisibilityTools'
@@ -75,6 +76,7 @@ export function WorkbookRibbon() {
       <span className="toolbar-divider" aria-hidden="true" />
       <div className="ribbon-tools" role="toolbar" aria-label="Start tools">
         <ClipboardTools />
+        <FormatPainterTools />
         <HistoryTools />
         <FillTools />
         <FillSeriesTools />

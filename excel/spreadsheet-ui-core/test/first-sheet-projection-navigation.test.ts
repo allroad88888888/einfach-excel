@@ -3,7 +3,8 @@ import { createSpreadsheetUi, selectCellAtom, setSelectionBoundsAtom, setViewpor
   runVisibleProjectionAtom, viewportMetricsAtom, scrollToCellAtom, setViewportScrollAtom,
   type RustWorkbookConnection, type VisibleProjectionRequest, type VisibleProjectionResult } from '../src'
 
-test('first native frame corrects a name-box jump made before freeze, height and hidden data arrived', async () => {
+test.each(['before-request', 'during-request'])(
+  'first native frame corrects a name-box jump %s before geometry arrived', async (timing) => {
   let resolve!: (result: VisibleProjectionResult) => void
   let request!: VisibleProjectionRequest
   const { store } = createSpreadsheetUi({ connection: {
@@ -16,11 +17,17 @@ test('first native frame corrects a name-box jump made before freeze, height and
   store.setter(setViewportMetricsAtom, { sheetId: 's', rowCount: 100, colCount: 8,
     rowHeight: 28, colWidth: 120, viewportWidth: 800, viewportHeight: 400,
     scrollTop: 0, scrollLeft: 0, overscanRows: 2, overscanCols: 2 })
-  store.setter(selectCellAtom, { sheetId: 's', coord: { row: 39, col: 0 } })
-  store.setter(scrollToCellAtom, { coord: { row: 39, col: 0 }, rowAlign: 'start' })
-  expect(store.getter(viewportMetricsAtom).scrollTop).toBe(1092)
+  const navigate = () => {
+    store.setter(selectCellAtom, { sheetId: 's', coord: { row: 39, col: 0 } })
+    store.setter(scrollToCellAtom, { coord: { row: 39, col: 0 }, rowAlign: 'start' })
+  }
+  if (timing === 'before-request') navigate()
   const pending = store.setter(runVisibleProjectionAtom, { sheetId: 's', reason: 'viewport',
-    window: { rowStart: 37, rowEnd: 56, colStart: 0, colEnd: 7 } })
+    window: timing === 'before-request'
+      ? { rowStart: 37, rowEnd: 56, colStart: 0, colEnd: 7 }
+      : { rowStart: 0, rowEnd: 16, colStart: 0, colEnd: 7 } })
+  if (timing === 'during-request') navigate()
+  expect(store.getter(viewportMetricsAtom).scrollTop).toBe(1092)
   const reply = (): VisibleProjectionResult => ({ ...request, cells: [], rowHeights: [],
     visibility: { manualRows: [9], manualColumns: [], filterRows: [] },
     freeze: { rows: 1, cols: 0 }, frozen: { height: 40, width: 0, regions: [
@@ -38,4 +45,5 @@ test('first native frame corrects a name-box jump made before freeze, height and
   resolve(reply())
   await scroll
   expect(store.getter(viewportMetricsAtom).scrollTop).toBe(1500)
-})
+  },
+)

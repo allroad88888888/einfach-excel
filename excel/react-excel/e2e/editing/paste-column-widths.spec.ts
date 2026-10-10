@@ -6,8 +6,12 @@ test.use({ screenshot: 'only-on-failure' })
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
 async function sheet(page: Page, name: string) {
-  await page.getByRole('tab', { name, exact: true }).click()
-  await expect(cell(page, '0:0')).toHaveText(name === 'Summary' ? 'First order total' : 'Order')
+  const tab = page.getByRole('tab', { name, exact: true })
+  await tab.click()
+  await expect(tab).toHaveAttribute('aria-selected', 'true')
+  // 回访会恢复原选区和滚动位置，A1 不再是切表完成的标志。
+  await expect(page.locator('.grid-projection-state')).toHaveCount(0)
+  await expect(page.locator('[data-workbook-grid]')).toHaveAttribute('data-projection-retained', 'false')
 }
 test.beforeEach(async ({ context, page }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
@@ -82,7 +86,8 @@ test('offscreen pasted column widths align the last header and editor and surviv
   await editor.press('Escape')
   await sheet(page, 'Summary')
   await sheet(page, 'Sales Orders')
-  await select(page, 'P1001', '1000:15')
+  await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('P1001')
+  await expect(target).toBeInViewport()
   await expect.poll(async () => (await target.boundingBox())?.width).toBe(200)
   await button(page, 'Undo').click()
   await expect.poll(async () => (await target.boundingBox())?.width).toBe(120)

@@ -18,6 +18,17 @@ test.beforeEach(async ({ context, page }) => {
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
 })
 
+test.afterEach(async ({ page }, info) => {
+  if (info.status === info.expectedStatus) return
+  await info.attach('paste-dialog-focus', { contentType: 'application/json',
+    body: JSON.stringify(await page.evaluate(() => ({
+      pageFocused: document.hasFocus(),
+      activeElement: document.activeElement?.outerHTML,
+      dialogOpen: document.querySelector<HTMLDialogElement>('dialog')?.open,
+    })), null, 2),
+  })
+})
+
 test('divide uses the destination as dividend and undo restores the seed', async ({ page }) => {
   await select(page, 'E4', '3:4')
   await copy(page)
@@ -109,7 +120,8 @@ test('cancel discards choices and width-only clears incompatible options', async
   await expect(page.getByLabel('Operation', { exact: true })).toHaveValue('none')
   await expect(page.getByLabel('Transpose', { exact: true })).not.toBeChecked()
   await expect(page.getByLabel('Skip blanks', { exact: true })).toBeDisabled()
-  await page.keyboard.press('Escape')
+  // selectOption 不模拟点击焦点；键盘操作明确从用户刚选择的可用控件发出。
+  await page.getByLabel('Paste content', { exact: true }).press('Escape')
   await expect(page.getByRole('dialog')).toHaveCount(0)
   await expect(button(page, 'Paste special')).toBeFocused()
   await open(page)

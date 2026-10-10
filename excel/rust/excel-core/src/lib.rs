@@ -26,6 +26,7 @@ pub mod range;
 pub mod sheet;
 pub mod shift;
 pub mod sort;
+pub mod text_columns;
 pub mod undo;
 pub mod workbook;
 pub mod workbook_history;

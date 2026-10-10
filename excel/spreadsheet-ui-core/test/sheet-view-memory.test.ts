@@ -8,7 +8,7 @@ import {
   initializeViewportMetricsAtom, visibleWindowAtom,
   selectionSnapshotAtom, setMultiRegionSelectionAtom, setRustWorkbookConnectionAtom,
   setSelectionAtom, setViewportMetricsAtom, setViewportScrollAtom, viewportMetricsAtom,
-  type SelectionState, type VisibleProjectionRequest,
+  editingSessionAtom, type EditingCommitRequest, type SelectionState, type VisibleProjectionRequest,
 } from '../src'
 import { publishWorkbookSheetStructureAtom } from '../src/runtime/workbook-document'
 import { createTestRustWorkbookConnection } from './support/rust-workbook-connection'
@@ -24,11 +24,12 @@ function setup() {
     kind: 'visible-window' as const, sheetId: request.sheetId, requestId: request.requestId,
     window: request.window, cells: [],
   })
+  const write = vi.fn(async (input: EditingCommitRequest) => ({
+    sheetId: input.sheetId, requestId: input.requestId, revision: 1,
+  }))
   const request = vi.fn(createTestRustWorkbookConnection({
     readVisibleProjection: project, setCellProjection: project,
-    setCellInput: async (input) => ({
-      sheetId: input.sheetId, requestId: input.requestId, revision: 1,
-    }),
+    setCellInput: write,
   }).request)
   store.setter(setRustWorkbookConnectionAtom, { request, dispose: vi.fn() })
   store.setter(setViewportMetricsAtom, {
@@ -39,7 +40,7 @@ function setup() {
   const switchTo = (sheetId: string) => store.setter(runWorkbookSheetCommandAtom, {
     operation: 'switch', sheetId,
   })
-  return { store, request, switchTo }
+  return { store, request, write, switchTo }
 }
 
 const selections: SelectionState[] = [
@@ -207,3 +208,61 @@ test('clicking the active sheet keeps its live view instead of an old checkpoint
   expect(store.getter(selectionSnapshotAtom).selection).toEqual(selections[2])
   expect(store.getter(viewportMetricsAtom)).toMatchObject({ scrollTop: 5000, scrollLeft: 100 })
 })
+
+test.each(['rejected', 'late-ack'])(
+  'cross-sheet %s keeps the correct ordinary view after the edit settles',
+  async (outcome) => {
+    const { store, write, switchTo } = setup()
+    await switchTo('summary')
+    const ordinary: SelectionState = {
+      kind: 'cell', sheetId: 'summary', anchor: { row: 40, col: 3 }, focus: { row: 40, col: 3 },
+    }
+    store.setter(setSelectionAtom, ordinary)
+    store.setter(setViewportScrollAtom, { scrollTop: 800, scrollLeft: 100 })
+    await switchTo('orders')
+    store.setter(setSelectionAtom, selections[1]!)
+    store.setter(setViewportScrollAtom, { scrollTop: 18000, scrollLeft: 500 })
+    store.setter(startEditingAtom, {
+      sheetId: 'orders', cell: { row: 800, col: 10 }, source: 'formula-bar', draft: '=',
+    })
+    store.setter(syncFormulaReferenceCaretAtom, 1)
+    await switchTo('summary')
+    store.setter(pickFormulaReferenceAtom, {
+      sheetId: 'summary', pickAnchor: { row: 1, col: 1 }, pickFocus: { row: 1, col: 1 }, dragging: false,
+    })
+    await store.setter(runVisibleProjectionAtom, {
+      sheetId: 'summary', window: { rowStart: 0, rowEnd: 10, colStart: 0, colEnd: 7 }, reason: 'viewport',
+    })
+    const chosen: SelectionState = {
+      kind: 'cell', sheetId: 'summary', anchor: { row: 60, col: 4 }, focus: { row: 60, col: 4 },
+    }
+    if (outcome === 'rejected') {
+      write.mockRejectedValueOnce(new Error('Rejected before mutation'))
+      expect(await store.setter(commitCellEditingAtom)).toBe('rejected')
+      expect(store.getter(editingSessionAtom).draft).toBe("='Summary'!B2")
+      expect(store.getter(viewportMetricsAtom).sheetId).toBe('summary')
+      store.setter(cancelEditingAtom)
+    } else {
+      let finish!: () => void
+      write.mockImplementationOnce((input) => new Promise((resolve) => {
+        finish = () => resolve({ sheetId: input.sheetId, requestId: input.requestId, revision: 1 })
+      }))
+      const pending = store.setter(commitCellEditingAtom)
+      // 待提交期间的显式定位属于用户新意图，旧 ACK 不得覆盖它或丢掉其视图记忆。
+      store.setter(setSelectionAtom, chosen)
+      store.setter(setViewportScrollAtom, { scrollTop: 1200, scrollLeft: 200 })
+      finish()
+      expect(await pending).toBe('completed')
+      expect(store.getter(selectionSnapshotAtom).selection).toEqual(chosen)
+      await switchTo('orders')
+    }
+    expect(store.getter(selectionSnapshotAtom).selection).toEqual(selections[1])
+    expect(store.getter(viewportMetricsAtom)).toMatchObject({ scrollTop: 18000, scrollLeft: 500 })
+    await switchTo('summary')
+    expect(store.getter(selectionSnapshotAtom).selection).toEqual(
+      outcome === 'rejected' ? ordinary : chosen,
+    )
+    expect(store.getter(viewportMetricsAtom)).toMatchObject(outcome === 'rejected'
+      ? { scrollTop: 800, scrollLeft: 100 } : { scrollTop: 1200, scrollLeft: 200 })
+  },
+)

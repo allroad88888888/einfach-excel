@@ -19,6 +19,7 @@ import { StructureTools } from './StructureTools'
 import { MergeTools } from './MergeTools'
 import { FreezeTools } from './FreezeTools'
 import { FindReplaceTools } from './FindReplaceTools'
+import { GoToTools } from './GoToTools'
 import { ColorTools } from './ColorTools'
 import { TextLayoutTools } from './TextLayoutTools'
 import { FontSizeTools } from './FontSizeTools'
@@ -227,6 +228,7 @@ export function WorkbookRibbon() {
         />
         <div className="toolbar-spacer" />
           <FindReplaceTools />
+        <GoToTools />
         <ToolButton icon="⋮" label="More tools" />
       </div>
     </div>

@@ -1,5 +1,16 @@
 # go-to
 
+## React / Rust 主线地址定位
+
+`reference-command.ts` 的 `runGoToReferenceAtom` 复用本模块的会话、输入、错误及最多 10 条最近记录。
+React 只派发打开、改草稿、提交、选择最近项、关闭；地址解析、画布边界校验、切表、选区、滚动均在该命令内。
+可见数据仍走原 Rust Worker 投影读取，定位本身没有数据写入或 undo entry。A1 支持 `$` 标记，R1C1 支持相对偏移，
+跨表引用支持带空格、转义单引号的表名。无效目标在切表前拒绝，不夹取到画布边界。
+
+最近项保存解析后的、带工作表名的绝对地址，不保存原相对表达式。记录为当前 UI store 内的导航历史，不是持久版本；
+表改名后旧文本地址无法解析时明确报错，不降级跳往活动表。隐藏目标只改变选区，不改行列可见性。
+本入口不连接下面的旧 `Go To Special` 扫描端口，也不从 TS 名称注册表冒充 Rust 的动态命名区域。
+
 Atom layer behind the **Go To** / **Go To Special** dialog (Wave 7.4).
 
 ## Atom classification

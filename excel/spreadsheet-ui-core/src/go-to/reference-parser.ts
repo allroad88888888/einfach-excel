@@ -60,11 +60,14 @@ export function parseGoToReference(input: string, context: GoToParseContext): Go
   }
 
   // Try A1 cell / A1 range / R1C1 forms.
-  const cell = parseA1Cell(body)
+  // 定位接受绝对 A1 标记，但不把任意位置的 $ 静默删除。
+  const a1 = /^\$?([a-z]+)\$?([1-9]\d*)(?:\s*:\s*\$?([a-z]+)\$?([1-9]\d*))?$/i.exec(body)
+  const address = a1 ? `${a1[1]}${a1[2]}${a1[3] ? `:${a1[3]}${a1[4]}` : ''}` : body
+  const cell = parseA1Cell(address)
   if (cell) {
     return ok({ sheetId, coord: cell })
   }
-  const range = parseA1Range(body)
+  const range = parseA1Range(address)
   if (range) {
     return ok({ sheetId, range })
   }
@@ -118,16 +121,15 @@ function splitSheetPrefix(input: string): {
 } {
   // Quoted sheet name: 'My Sheet'!A1
   if (input.startsWith("'")) {
-    const close = input.indexOf("'!", 1)
-    if (close < 0) {
-      return { sheetPrefix: null, body: input, sheetParseFailed: true }
+    let name = ''
+    for (let index = 1; index < input.length; index += 1) {
+      if (input[index] !== "'") { name += input[index]; continue }
+      if (input[index + 1] === "'") { name += "'"; index += 1; continue }
+      const body = input.slice(index + 2).trim()
+      if (input[index + 1] !== '!' || !name || !body) break
+      return { sheetPrefix: name, body, sheetParseFailed: false }
     }
-    const name = input.slice(1, close).replace(/''/g, "'")
-    const body = input.slice(close + 2).trim()
-    if (body.length === 0) {
-      return { sheetPrefix: null, body: input, sheetParseFailed: true }
-    }
-    return { sheetPrefix: name, body, sheetParseFailed: false }
+    return { sheetPrefix: null, body: input, sheetParseFailed: true }
   }
 
   const bangIdx = input.indexOf('!')

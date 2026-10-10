@@ -32,6 +32,12 @@ mod workbook_bulk_types;
 mod workbook_conditional_format;
 #[path = "workbook_conditional_format_types.rs"]
 mod workbook_conditional_format_types;
+#[path = "workbook_conditional_format_numeric.rs"]
+pub(crate) mod conditional_format_numeric;
+#[path = "workbook_conditional_format_projection.rs"]
+mod conditional_format_projection;
+#[path = "workbook_conditional_format_structure.rs"]
+mod conditional_format_structure;
 #[path = "workbook_custom.rs"]
 mod workbook_custom;
 #[path = "workbook_cycles.rs"]

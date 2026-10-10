@@ -34,6 +34,7 @@ impl Workbook {
             .sheet(sheet_index)
             .ok_or("The worksheet no longer exists.")?;
         sheet.validate_structural_edit(edit)?;
+        self.validate_conditional_format_shift(sheet_index, edit)?;
         let (count, limit) = match edit {
             ShiftEdit::RowInsert { count, .. } => (count, crate::sheet::EXCEL_MAX_ROWS),
             ShiftEdit::ColInsert { count, .. } => (count, crate::sheet::EXCEL_MAX_COLS),

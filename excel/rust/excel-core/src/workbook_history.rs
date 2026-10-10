@@ -17,6 +17,9 @@ use freeze::FreezeChange;
 #[path = "workbook_history_filter.rs"]
 mod filter;
 use filter::FilterChange;
+#[path = "workbook_history_conditional_format.rs"]
+mod conditional_format;
+use conditional_format::ConditionalFormatChange;
 #[path = "workbook_history_entry.rs"]
 mod entry;
 use entry::entry_bytes;
@@ -63,6 +66,7 @@ enum HistoryChange {
     Visibility(VisibilityChange),
     Freeze(FreezeChange),
     Filter(FilterChange),
+    ConditionalFormat(ConditionalFormatChange),
     Structure(Box<StructuralHistoryChange>),
     Merge(Box<MergeChange>),
 }

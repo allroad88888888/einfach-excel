@@ -2,7 +2,7 @@ import type { DisplayCell, VisibleProjectionResult } from '../backend'
 import { toA1 } from '../backend'
 import type { CellRange } from '../shared'
 import { displayCell } from './cell-io'
-import { applyVisibleFormats } from './format-projection'
+import { applyVisibleFormats, readDisplayFormats } from './format-projection'
 import type { WasmWorkbook } from './wasm-types'
 import type { SheetVisibilityProjection } from '../viewport/hidden-state'
 import { isCollapsedOutside } from '../projection/merge-border-cells'
@@ -55,7 +55,7 @@ export function readMergeProjection(
     }
     if (!workbook.snapshot_format_range) throw new Error('Rust format snapshot is unavailable.')
     const point = { rowStart, colStart, rowEnd: rowStart, colEnd: colStart }
-    const formats = workbook.snapshot_format_range(sheet, rowStart, colStart, rowStart, colStart)
+    const formats = readDisplayFormats(workbook, sheet, point)
     mergeAnchors.push({
       ...applyVisibleFormats([cell], point, formats)[0],
       mergedSpan: { rows: rowEnd - rowStart + 1, cols: colEnd - colStart + 1 },
@@ -76,8 +76,7 @@ export function readMergeProjection(
       })
     }
     for (const strip of strips) {
-      const edgeFormats = workbook.snapshot_format_range(sheet,
-        strip.rowStart, strip.colStart, strip.rowEnd, strip.colEnd)
+      const edgeFormats = readDisplayFormats(workbook, sheet, strip)
       for (const edgeCell of applyVisibleFormats([], strip, edgeFormats)) {
         if (edgeCell.format?.borders) mergeBorderCells.set(`${edgeCell.row}:${edgeCell.col}`, {
           row: edgeCell.row, col: edgeCell.col, displayValue: '',

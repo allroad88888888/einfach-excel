@@ -1,7 +1,7 @@
 import type { VisibleProjectionResult } from '../backend'
 import type { CellRange } from '../shared'
 import { displayCell } from './cell-io'
-import { applyVisibleFormats } from './format-projection'
+import { applyVisibleFormats, readDisplayFormats } from './format-projection'
 import { readMergeProjection } from './merge-projection'
 import { readSizes } from './size-io'
 import type { WasmWorkbook } from './wasm-types'
@@ -26,7 +26,7 @@ export function readWindowProjection(
     .read_sparse_range(sheet, rowStart, colStart, rowEnd, colEnd)
     .map(displayCell)
     .filter((cell): cell is NonNullable<typeof cell> => cell !== null)
-  const formats = workbook.snapshot_format_range(sheet, rowStart, colStart, rowEnd, colEnd)
+  const formats = readDisplayFormats(workbook, sheet, window)
   return {
     cells: applyVisibleFormats(cells, window, formats),
     ...readMergeProjection(workbook, sheet, window, visibility),

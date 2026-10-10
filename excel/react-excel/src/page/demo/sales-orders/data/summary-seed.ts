@@ -184,6 +184,13 @@ export const SUMMARY_VISIBILITY = { hiddenRows: [9], hiddenColumns: [6] } as con
 /** 原生冻结示例：首行总额不随 Summary 纵向滚动。 */
 export const SUMMARY_FREEZE = { rows: 1, cols: 0 } as const
 
+/** C65:C67 的 2、4、6：大于 3 的 4、6 由 Rust 条件格式高亮。 */
+export const SUMMARY_CONDITIONAL_FORMATS = [{
+  scope: { range: { rowStart: 64, rowEnd: 66, colStart: 2, colEnd: 2 } },
+  rule: { kind: 'cell-value', operator: 'gt', value: '3',
+    format: { bgColor: '#ffc7ce', fgColor: '#9c0006' } },
+}] as const
+
 /** 两个原生合并样例；覆盖格不再重复存储内容。 */
 export const SUMMARY_MERGES = [
   { rowStart: 14, rowEnd: 14, colStart: 0, colEnd: 3 },

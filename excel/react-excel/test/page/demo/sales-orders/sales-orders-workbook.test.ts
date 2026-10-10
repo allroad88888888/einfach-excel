@@ -8,6 +8,7 @@ import {
   SALES_ORDER_SUMMARY_CELLS,
   SUMMARY_SIZES,
   SUMMARY_MERGES,
+  SUMMARY_CONDITIONAL_FORMATS,
 } from '../../../../src/page/demo/sales-orders/data/summary-seed'
 
 describe('Sales Orders workbook definition', () => {
@@ -30,6 +31,7 @@ describe('Sales Orders workbook definition', () => {
         hiddenRows: [9],
         hiddenColumns: [6],
         mergedRanges: SUMMARY_MERGES,
+        conditionalFormats: SUMMARY_CONDITIONAL_FORMATS,
       },
     ])
   })

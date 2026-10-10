@@ -14,6 +14,7 @@ import type { RustFilterReport } from './filter-commands'
 import type { NativeTextColumnsRequest, RustTextColumnsPreview, RustTextColumnsReport } from './text-columns-commands'
 import type { NativeRemoveDuplicatesRequest, RustRemoveDuplicatesPreview } from './remove-duplicates-commands'
 import type { NativeQuickFormulaRequest, QuickFormulaSuggestion } from './quick-formula-commands'
+import type { ConditionalFormatChange, NativeConditionalFormats } from './conditional-format-commands'
 
 export interface RustCellSnapshot {
   readonly sheet: number
@@ -51,6 +52,15 @@ export interface RustFormatRangeSnapshot {
 }
 
 export interface WasmWorkbook {
+  listConditionalFormats?: (sheet: number) => NativeConditionalFormats
+  setConditionalFormatRule?: (
+    sheet: number,
+    request: Omit<Extract<ConditionalFormatChange, { action: 'set' }>, 'action'>,
+  ) => NativeConditionalFormats
+  removeConditionalFormatRule?: (
+    sheet: number, request: { revision: number; ruleId: string },
+  ) => NativeConditionalFormats
+  snapshot_display_format_range?: WasmWorkbook['snapshot_format_range']
   suggest_quick_formula?: (request: NativeQuickFormulaRequest) => QuickFormulaSuggestion
   preview_remove_duplicates?: (
     request: NativeRemoveDuplicatesRequest,

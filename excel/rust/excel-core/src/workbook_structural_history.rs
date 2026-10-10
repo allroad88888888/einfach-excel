@@ -20,6 +20,7 @@ struct StructuralSnapshot {
     tables: Vec<TableEntry>,
     merges: Vec<CellRange>,
     freeze: crate::FrozenPanes,
+    conditional_formats: Vec<ConditionalFormatRuleEntry>,
 }
 
 impl StructuralHistoryChange {
@@ -113,6 +114,10 @@ impl StructuralHistoryChange {
             return Err("The worksheet changed outside history.");
         }
         let snapshot = if undo { &self.before } else { &self.after };
+        let config = &workbook.conditional_formats[sheet];
+        if config.rules != snapshot.conditional_formats && config.revision == u64::MAX {
+            return Err("Conditional-format revision is exhausted.");
+        }
         if snapshot.tables.iter().any(|table| {
             workbook
                 .tables
@@ -156,6 +161,8 @@ impl StructuralHistoryChange {
                 .clone_from(&snapshot.merges);
             workbook.republish_hidden(sheet);
             workbook.sheets[sheet].frozen_panes = snapshot.freeze;
+            workbook.replace_conditional_format_rules(sheet, snapshot.conditional_formats.clone())
+                .expect("history preflight checked conditional-format revision");
             let tables_changed = workbook
                 .tables
                 .values()
@@ -206,6 +213,7 @@ impl StructuralSnapshot {
             visibility: workbook.sheet_visibility(sheet).unwrap(),
             merges: workbook.sheets[sheet].merged_ranges().to_vec(),
             freeze: workbook.sheets[sheet].frozen_panes(),
+            conditional_formats: workbook.conditional_formats[sheet].rules.clone(),
             filter: workbook.sheets[sheet].filter().cloned(),
             tables: workbook
                 .tables
@@ -226,5 +234,6 @@ impl StructuralSnapshot {
             + crate::sheet::metadata_bytes(&self.tables)
             + self.merges.len() * std::mem::size_of::<CellRange>()
             + std::mem::size_of::<crate::FrozenPanes>()
+            + crate::sheet::metadata_bytes(&self.conditional_formats)
     }
 }

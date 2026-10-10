@@ -18,6 +18,9 @@ statrs = "0.16"
 # `regex-formulas` feature below.
 regex = { version = "1.12.3", optional = true }
 unicode-normalization = "0.1.25"
+# 条件格式持久规则在原生端解码，宿主不参与条件判断。
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
 # `rand` powers RAND() / RANDBETWEEN() volatile draws. The thread RNG is
 # good enough for spreadsheet RNG and matches Excel's "fresh draw per
 # evaluation" volatility model.

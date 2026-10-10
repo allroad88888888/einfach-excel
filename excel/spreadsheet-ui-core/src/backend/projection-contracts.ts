@@ -2,6 +2,7 @@ import type { ViewportRowHeight, ViewportColumnWidth } from './viewport-contract
 import type { RustHistoryState } from '../history/rust-history-types'
 import type { SheetVisibilityProjection } from '../viewport/hidden-state'
 import type { ColumnFilterRule } from '../filter-sort/types'
+import type { ConditionalFormatRuleEntry } from '../conditional-formatting/types'
 import type { CellRange, SheetRef } from '../shared'
 import type { FrozenProjection, ProjectionViewport } from './frozen-projection-contracts'
 export type { FrozenProjection, FrozenProjectionRegion, ProjectionViewport } from './frozen-projection-contracts'
@@ -56,6 +57,11 @@ export interface VisibleProjectionResult extends SheetRef {
   /** 当前表已提交的原生条件，随投影返回，面板不另建权威副本。 */
   filterRules?: readonly ColumnFilterRule[]
   filterRange?: CellRange
+  /** 原生规则目录随显示投影返回；面板只保存未提交的草稿。 */
+  conditionalFormats?: {
+    readonly revision: number
+    readonly rules: readonly ConditionalFormatRuleEntry[]
+  }
   /** 原生工作表冻结边界；React 不持有第二份配置。 */
   freeze?: { readonly rows: number; readonly cols: number }
   /** 与滚动区同一修订版的冻结数据，不混进普通 cells 的窗口契约。 */

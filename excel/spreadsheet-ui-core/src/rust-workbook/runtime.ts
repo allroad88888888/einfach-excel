@@ -28,6 +28,7 @@ import { sortRange } from './sort-io'
 import { changeFilter } from './filter-io'
 import { applyTextColumns, previewTextColumns } from './text-columns-io'
 import { applyRemoveDuplicates, previewRemoveDuplicates } from './remove-duplicates-io'
+import { changeConditionalFormat } from './conditional-format-io'
 
 type CommandName = keyof RustWorkbookCommands
 
@@ -81,6 +82,16 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       return initialize(input.sheets)
     }
     const current = currentWorkbook()
+    if (command === 'conditionalFormat.change') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      const index = sheetIndex(input.sheetId)
+      const sheet = sheetsById.get(input.sheetId)!
+      changeConditionalFormat(
+        current, index, input, sheet.rowCount ?? 1_048_576, sheet.colCount ?? 16_384,
+      )
+      revision += 1
+      return { projection: readVisibleProjection(current, index, input.projection, revision) }
+    }
     if (command === 'formula.suggest') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
       const index = sheetIndex(input.sheetId)

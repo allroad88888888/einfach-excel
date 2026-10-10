@@ -7,6 +7,7 @@ import {
   SUMMARY_VISIBILITY,
   SUMMARY_MERGES,
   SUMMARY_FREEZE,
+  SUMMARY_CONDITIONAL_FORMATS,
 } from './data/summary-seed'
 
 /** Defines the workbook data loaded by the Sales Orders page. */
@@ -28,6 +29,7 @@ export const SALES_ORDERS_WORKBOOK_DEFINITION: RustWorkbookDefinition = Object.f
       ...SUMMARY_VISIBILITY,
       mergedRanges: SUMMARY_MERGES,
       freeze: SUMMARY_FREEZE,
+      conditionalFormats: SUMMARY_CONDITIONAL_FORMATS,
     },
   ]),
   createImportChunks: () => [...createSalesOrderImportChunks(), SALES_ORDER_SUMMARY_CELLS],

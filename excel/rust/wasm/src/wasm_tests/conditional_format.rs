@@ -54,3 +54,35 @@ fn legacy_persistence_without_conditional_formats_restores_defaults() {
         0
     );
 }
+
+#[test]
+fn numeric_rules_persist_without_baking_their_highlight_into_cell_styles() {
+    let mut source = WasmWorkbook::new();
+    source.workbook.set_cell(0, "A1", Value::Number(9.0));
+    let request: SetConditionalFormatRuleJSON = serde_json::from_value(serde_json::json!({
+        "revision": 0, "scope": { "range": { "rowStart": 0, "rowEnd": 1, "colStart": 0, "colEnd": 0 } },
+        "rule": { "kind": "cell-value", "operator": "gt", "value": "5", "format": { "bgColor": "#FFC7CE" } },
+    })).unwrap();
+    let rule = request.into_entry("numeric".into()).unwrap();
+    source.history.set_conditional_format_rule(&mut source.workbook, 0, 0, rule).unwrap();
+    let payload = source.snapshot_persistence_v1_json();
+    let mut restored = WasmWorkbook::new();
+    restored.restore_persistence_v1_json(payload).unwrap();
+    let range = CellRange::single(CellAddress::new(0, 0));
+    assert!(restored.workbook.sheet(0).unwrap().snapshot_format_range(range).cell_styles.is_empty());
+    let visible = restored.workbook.snapshot_display_format_range(0, range).unwrap();
+    assert_eq!(visible.cell_styles[0].1.background, Some(Some("#FFC7CE".into())));
+    restored.workbook.set_cell(0, "A1", Value::Number(1.0));
+    assert!(restored.workbook.snapshot_display_format_range(0, range).unwrap().cell_styles.is_empty());
+}
+
+#[test]
+fn conditional_format_command_wire_rejects_extra_mutation_fields() {
+    assert!(serde_json::from_value::<RemoveConditionalFormatRuleJSON>(serde_json::json!({
+        "revision": 0, "ruleId": "r", "clearCells": true,
+    })).is_err());
+    assert!(serde_json::from_value::<SetConditionalFormatRuleJSON>(serde_json::json!({
+        "revision": 0, "scope": { "range": { "rowStart": 0, "rowEnd": 0, "colStart": 0, "colEnd": 0 } },
+        "rule": {}, "overwrite": true,
+    })).is_err());
+}

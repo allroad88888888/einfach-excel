@@ -32,7 +32,7 @@ struct ConditionalFormatConfigSnapshotJSON {
 }
 
 #[derive(Clone, Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct SetConditionalFormatRuleJSON {
     revision: u64,
     #[serde(default)]
@@ -44,7 +44,7 @@ struct SetConditionalFormatRuleJSON {
 }
 
 #[derive(Clone, Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct RemoveConditionalFormatRuleJSON {
     revision: u64,
     rule_id: String,

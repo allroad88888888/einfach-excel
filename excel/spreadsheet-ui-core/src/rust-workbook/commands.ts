@@ -21,6 +21,8 @@ import type { RustFilterCommands } from './filter-commands'
 import type { RustTextColumnsCommands } from './text-columns-commands'
 import type { RustRemoveDuplicatesCommands } from './remove-duplicates-commands'
 import type { RustQuickFormulaCommands } from './quick-formula-commands'
+import type { RustConditionalFormatCommands } from './conditional-format-commands'
+import type { CellValueRule, ConditionalFormatScope } from '../conditional-formatting/types'
 import type { SelectionNumbers } from '../status-bar/types'
 import type { RustSetCellInputResult, RustSetRangeFormatResult } from './mutation-results'
 export type { RustSetCellInputResult, RustSetRangeFormatResult } from './mutation-results'
@@ -43,6 +45,10 @@ export interface RustWorkbookSheetInput {
   readonly hiddenColumns?: readonly number[]
   readonly mergedRanges?: readonly CellRange[]
   readonly freeze?: { readonly rows: number; readonly cols: number }
+  readonly conditionalFormats?: readonly {
+    readonly scope: ConditionalFormatScope
+    readonly rule: CellValueRule
+  }[]
 }
 
 export interface RustWorkbookSheet {
@@ -118,7 +124,8 @@ export interface RustClearRangeRequest {
 
 export interface RustWorkbookCommands
   extends RustFindCommands, RustSortCommands, RustFilterCommands,
-    RustTextColumnsCommands, RustRemoveDuplicatesCommands, RustQuickFormulaCommands {
+    RustTextColumnsCommands, RustRemoveDuplicatesCommands, RustQuickFormulaCommands,
+    RustConditionalFormatCommands {
   readonly 'format.preview': WorkerCommand<
     {
       readonly sheetId: string

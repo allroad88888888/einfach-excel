@@ -1,0 +1,35 @@
+.conditional-format-panel {
+  box-sizing: border-box;
+  width: 460px;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 24px);
+  overflow: auto;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+}
+.conditional-format-panel::backdrop { background: rgb(20 25 45 / 25%); }
+.conditional-format-panel h2 { margin: 0; font-size: 17px; }
+.conditional-format-panel h3 { margin: 16px 0 8px; font-size: 13px; }
+.conditional-format-panel p { line-height: 1.5; }
+.conditional-format-panel ul { list-style: none; margin: 0 0 8px; padding: 0; }
+.conditional-format-panel li { display: flex; align-items: center; gap: 6px; margin: 6px 0; }
+.conditional-format-panel li span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.conditional-format-panel fieldset {
+  display: grid; grid-template-columns: minmax(90px, 1fr) minmax(0, 180px);
+  align-items: center; gap: 10px; padding: 0; border: 0; margin: 0; min-width: 0;
+}
+.conditional-format-panel input, .conditional-format-panel select, .conditional-format-panel button {
+  box-sizing: border-box; min-width: 0; min-height: 34px; padding: 5px 8px;
+  font: inherit; color: inherit; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 4px;
+}
+.conditional-format-panel input[type='color'] { padding: 3px; width: 100%; }
+.conditional-format-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+.conditional-format-actions button[type='submit'] { background: var(--primary); color: white; }
+.conditional-format-panel :disabled { opacity: .5; }
+.conditional-format-panel :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.conditional-format-panel [role='alert'] { color: #a12622; overflow-wrap: anywhere; }

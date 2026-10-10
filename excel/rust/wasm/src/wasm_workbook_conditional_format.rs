@@ -36,8 +36,8 @@ impl WasmWorkbook {
             .into_entry(rule_id)
             .map_err(|error| JsValue::from_str(&error))?;
         let snapshot = self
-            .workbook
-            .set_conditional_format_rule(sheet as usize, revision, rule)
+            .history
+            .set_conditional_format_rule(&mut self.workbook, sheet as usize, revision, rule)
             .map_err(|error| JsValue::from_str(&error.to_string()))?;
         let wire = ConditionalFormatConfigSnapshotJSON::from_snapshot(&snapshot)
             .map_err(|error| JsValue::from_str(&error))?;
@@ -55,12 +55,28 @@ impl WasmWorkbook {
                 JsValue::from_str(&format!("invalid conditional-format removal: {error}"))
             })?;
         let snapshot = self
-            .workbook
-            .remove_conditional_format_rule(sheet as usize, request.revision, &request.rule_id)
+            .history
+            .remove_conditional_format_rule(&mut self.workbook, sheet as usize, request.revision, &request.rule_id)
             .map_err(|error| JsValue::from_str(&error.to_string()))?;
         let wire = ConditionalFormatConfigSnapshotJSON::from_snapshot(&snapshot)
             .map_err(|error| JsValue::from_str(&error))?;
         conditional_format_wire_to_js(&wire)
+    }
+
+    /// 显示专用快照含条件高亮；基础 snapshot_format_range 继续服务复制和持久化。
+    pub fn snapshot_display_format_range(
+        &self,
+        sheet: u32,
+        start_row: u32,
+        start_col: u32,
+        end_row: u32,
+        end_col: u32,
+    ) -> Result<JsValue, JsValue> {
+        let range = CellRange::new(CellAddress::new(start_row, start_col), CellAddress::new(end_row, end_col));
+        let snapshot = self.workbook.snapshot_display_format_range(sheet as usize, range)
+            .map_err(JsValue::from_str)?;
+        serde_wasm_bindgen::to_value(&FormatRangeSnapshotJSON::from_snapshot(&snapshot, Some(sheet)))
+            .map_err(|error| JsValue::from_str(&format!("serialize display formatting: {error}")))
     }
 
     fn conditional_formats_json(&self) -> Result<Vec<ConditionalFormatConfigSnapshotJSON>, String> {

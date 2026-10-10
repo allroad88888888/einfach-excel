@@ -24,6 +24,7 @@
 mod copy;
 mod delta;
 mod edit;
+pub(crate) use edit::shift_interval;
 mod parked;
 mod parked_band;
 mod parked_scan;

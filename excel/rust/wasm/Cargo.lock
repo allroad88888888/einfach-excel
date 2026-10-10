@@ -121,6 +121,8 @@ dependencies = [
  "einfach-core",
  "rand",
  "regex",
+ "serde",
+ "serde_json",
  "statrs",
  "unicode-normalization",
 ]

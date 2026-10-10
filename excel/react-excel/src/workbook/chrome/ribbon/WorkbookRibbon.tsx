@@ -21,6 +21,7 @@ import { FreezeTools } from './FreezeTools'
 import { FindReplaceTools } from './FindReplaceTools'
 import { GoToTools } from './GoToTools'
 import { QuickFormulaTools } from './QuickFormulaTools'
+import { ConditionalFormatTools } from './ConditionalFormatTools'
 import { ColorTools } from './ColorTools'
 import { TextLayoutTools } from './TextLayoutTools'
 import { FontSizeTools } from './FontSizeTools'
@@ -141,6 +142,7 @@ export function WorkbookRibbon() {
         <BorderTools />
         <ColorTools kind="fill-color" />
         <ColorTools kind="text-color" />
+        <ConditionalFormatTools />
         <span className="tool-separator" aria-hidden="true" />
         <TextLayoutTools />
         <ToolButton

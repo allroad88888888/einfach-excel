@@ -4,6 +4,24 @@
 use crate::cell::CellAddress;
 use crate::formula::{Expr, RangeBounds};
 
+/// 有限闭区间随插删位移：中间插入会扩张，部分删除会收缩，全删返回 None。
+/// 筛选与条件格式共用，不创建地址列表；越过画布末端的范围裁到边界。
+pub(crate) fn shift_interval(start: u32, end: u32, at: u32, count: u32, insert: bool, limit: u32)
+    -> Option<(u32, u32)>
+{
+    if count == 0 || at > end { return Some((start, end)); }
+    if insert {
+        let start = if at <= start { start.saturating_add(count) } else { start };
+        return (start < limit).then_some((start, end.saturating_add(count).min(limit - 1)));
+    }
+    let cut_end = at.saturating_add(count);
+    let first = if start < at || start >= cut_end { start } else { cut_end };
+    if first > end { return None; }
+    let next_start = if first >= cut_end { first - count } else { first };
+    let next_end = if end >= cut_end { end - count } else { at - 1 };
+    Some((next_start, next_end))
+}
+
 /// What to do with a CellRef whose target was deleted by a structural edit.
 ///
 /// `Invalid` becomes `#REF!` at eval time. We mark it via a sentinel

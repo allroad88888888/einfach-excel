@@ -91,6 +91,8 @@ impl Workbook {
             }
         }
         self.remap_tables_after_shift(sheet_index, edit);
+        self.replace_conditional_format_rules(sheet_index, self.shifted_conditional_format_rules(sheet_index, edit))
+            .expect("structural preflight checked conditional-format revision");
         // Hidden-row eval inputs are row-indexed too, so a row edit must
         // displace the numbers inside each set exactly as it displaced the
         // cells. Column edits displace nothing in a row set. See

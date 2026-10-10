@@ -12,6 +12,7 @@ import type {
 import type { CellRange, SheetRef } from '../shared'
 import { validSheetVisibility } from '../viewport/hidden-state'
 import { validFilterRange, validFilterRules } from '../rust-workbook/filter-commands'
+import { validNativeConditionalFormats } from '../rust-workbook/conditional-format-commands'
 import { validFrozenProjection, validProjectionViewport } from './frozen-validation'
 import { validMergeBorderCells } from './merge-border-cells'
 import type {
@@ -215,6 +216,9 @@ export function validateProjectionResult(
     return makeInvalid('STALE_RESULT', 'Projection result does not match its request.')
   }
   const range = getProjectionResultRange(result)
+  if (result.kind === 'visible-window' && result.conditionalFormats !== undefined &&
+    !validNativeConditionalFormats(result.conditionalFormats))
+    return makeInvalid('CELL_OUT_OF_RANGE', 'Invalid Rust conditional-format rules.')
   if (result.kind === 'visible-window' && result.filterRange !== undefined && (
     !validFilterRange(result.filterRange) || result.filterRules?.some((rule) =>
       rule.colIndex < result.filterRange!.colStart || rule.colIndex > result.filterRange!.colEnd)

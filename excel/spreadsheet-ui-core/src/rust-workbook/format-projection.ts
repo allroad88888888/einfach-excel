@@ -2,7 +2,16 @@ import type { DisplayCell, SpreadsheetCellFormat, SpreadsheetNumberFormat } from
 import { isDefaultFormat, toA1 } from '../backend'
 import type { CellRange } from '../shared'
 import { formatNumberValue } from '../operations/format/numberFormat'
-import type { RustFormatRangeSnapshot, RustSparseCellStyle } from './wasm-types'
+import type { RustFormatRangeSnapshot, RustSparseCellStyle, WasmWorkbook } from './wasm-types'
+
+/** 生产读取原生条件格式快照；旧单测假件仅提供基础格式接口。 */
+export function readDisplayFormats(
+  workbook: WasmWorkbook, sheet: number, range: CellRange,
+): RustFormatRangeSnapshot {
+  const read = workbook.snapshot_display_format_range ?? workbook.snapshot_format_range
+  if (!read) throw new Error('Rust format snapshot is unavailable.')
+  return read.call(workbook, sheet, range.rowStart, range.colStart, range.rowEnd, range.colEnd)
+}
 
 function applyStyle(
   target: SpreadsheetCellFormat,

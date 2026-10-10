@@ -6,6 +6,25 @@ use super::workbook_conditional_format_types::SheetConditionalFormatConfig;
 use super::*;
 
 impl Workbook {
+    /// 历史恢复只替换一张表的规则，修订号仍单调增长，拒绝旧面板覆盖恢复结果。
+    pub(crate) fn replace_conditional_format_rules(
+        &mut self,
+        sheet: usize,
+        rules: Vec<ConditionalFormatRuleEntry>,
+    ) -> Result<(), ConditionalFormatError> {
+        if self.is_inside_custom_call() {
+            return Err(ConditionalFormatError::MutationDuringCustomCall);
+        }
+        validate_conditional_format_rules(&rules)?;
+        let config = self.conditional_formats.get_mut(sheet)
+            .ok_or(ConditionalFormatError::UnknownSheet)?;
+        if config.rules == rules { return Ok(()); }
+        let revision = next_conditional_format_revision(config.revision)?;
+        config.rules = rules;
+        config.revision = revision;
+        Ok(())
+    }
+
     pub fn conditional_format_config(
         &self,
         sheet: usize,
@@ -36,12 +55,13 @@ impl Workbook {
             .get_mut(sheet)
             .ok_or(ConditionalFormatError::UnknownSheet)?;
         assert_conditional_format_revision(config.revision, expected_revision)?;
+        let revision = next_conditional_format_revision(config.revision)?;
         if let Some(index) = config.rules.iter().position(|item| item.id == rule.id) {
             config.rules[index] = rule;
         } else {
             config.rules.push(rule);
         }
-        config.revision = next_conditional_format_revision(config.revision)?;
+        config.revision = revision;
         Ok(ConditionalFormatConfigSnapshot {
             sheet,
             revision: config.revision,
@@ -66,8 +86,9 @@ impl Workbook {
             .get_mut(sheet)
             .ok_or(ConditionalFormatError::UnknownSheet)?;
         assert_conditional_format_revision(config.revision, expected_revision)?;
+        let revision = next_conditional_format_revision(config.revision)?;
         config.rules.retain(|rule| rule.id != rule_id);
-        config.revision = next_conditional_format_revision(config.revision)?;
+        config.revision = revision;
         Ok(ConditionalFormatConfigSnapshot {
             sheet,
             revision: config.revision,
@@ -139,7 +160,8 @@ fn validate_conditional_format_rule(
     if rule.id.trim().is_empty() {
         return Err(ConditionalFormatError::InvalidRuleId);
     }
-    if rule.row_end < rule.row_start || rule.col_end < rule.col_start {
+    if rule.row_end < rule.row_start || rule.col_end < rule.col_start
+        || rule.row_end >= crate::sheet::EXCEL_MAX_ROWS || rule.col_end >= crate::sheet::EXCEL_MAX_COLS {
         return Err(ConditionalFormatError::InvalidRuleRange);
     }
     Ok(())

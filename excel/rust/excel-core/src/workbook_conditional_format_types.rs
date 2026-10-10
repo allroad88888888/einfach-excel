@@ -8,8 +8,8 @@ pub struct ConditionalFormatRuleEntry {
     pub col_start: u32,
     pub col_end: u32,
     pub priority: i64,
-    /// The UI rule union is intentionally opaque to formula evaluation. Its
-    /// canonical JSON travels through the workbook and is projected by hosts.
+    /// 持久化保留规则原文；已支持的数值规则由原生显示投影解码求值。
+    /// 未实现的旧规则种类仍可往返保存，不能由宿主补一套计算。
     pub rule_json: String,
 }
 

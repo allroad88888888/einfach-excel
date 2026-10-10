@@ -1,43 +1,7 @@
 //! 筛选区域随行列插删位移；不重新计算匹配结果，删除表头即移除区域。
 use super::*;
 use crate::{shift::ShiftEdit, ColumnFilterRule};
-
-fn shift_axis(
-    start: u32,
-    end: u32,
-    at: u32,
-    count: u32,
-    insert: bool,
-    limit: u32,
-) -> Option<(u32, u32)> {
-    if count == 0 || at > end {
-        return Some((start, end));
-    }
-    if insert {
-        let start = if at <= start {
-            start.saturating_add(count)
-        } else {
-            start
-        };
-        return (start < limit).then_some((start, end.saturating_add(count).min(limit - 1)));
-    }
-    let cut_end = at.saturating_add(count);
-    let first = if start < at || start >= cut_end {
-        start
-    } else {
-        cut_end
-    };
-    if first > end {
-        return None;
-    }
-    let next_start = if first >= cut_end {
-        first - count
-    } else {
-        first
-    };
-    let next_end = if end >= cut_end { end - count } else { at - 1 };
-    Some((next_start, next_end))
-}
+use crate::shift::shift_interval;
 
 impl Sheet {
     pub(super) fn shift_filter_range(&mut self, edit: ShiftEdit) {
@@ -62,7 +26,7 @@ impl Sheet {
         } else {
             (range.start.col, range.end.col, EXCEL_MAX_COLS)
         };
-        let Some((start, end)) = shift_axis(start, end, at, count, insert, limit) else {
+        let Some((start, end)) = shift_interval(start, end, at, count, insert, limit) else {
             self.filter = None;
             return;
         };
@@ -83,7 +47,7 @@ impl Sheet {
                     | ColumnFilterRule::Range { col_index, .. }
                     | ColumnFilterRule::List { col_index, .. } => col_index,
                 };
-                let Some((next, _)) = shift_axis(*col, *col, at, count, insert, EXCEL_MAX_COLS)
+                let Some((next, _)) = shift_interval(*col, *col, at, count, insert, EXCEL_MAX_COLS)
                 else {
                     return false;
                 };

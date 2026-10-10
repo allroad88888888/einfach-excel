@@ -49,6 +49,18 @@ export function snapshotRustWorkbookDefinition(
     }
     const hiddenRows = hidden(sheet.hiddenRows, sheet.rowCount)
     const hiddenColumns = hidden(sheet.hiddenColumns, sheet.colCount)
+    const conditionalFormats = sheet.conditionalFormats?.map((entry) => {
+      const range = entry.scope.range
+      if (![range.rowStart, range.rowEnd, range.colStart, range.colEnd].every(
+        (n) => Number.isSafeInteger(n) && n >= 0) || range.rowStart > range.rowEnd ||
+        range.colStart > range.colEnd || range.rowEnd >= sheet.rowCount ||
+        range.colEnd >= sheet.colCount)
+        throw new Error('Invalid initial conditional-format range.')
+      return Object.freeze({
+        scope: Object.freeze({ range: Object.freeze({ ...range }) }),
+        rule: Object.freeze({ ...entry.rule, format: Object.freeze({ ...entry.rule.format }) }),
+      })
+    })
     const freeze = sheet.freeze
     if (freeze && (![freeze.rows, freeze.cols].every((n) => Number.isSafeInteger(n) && n >= 0) ||
       freeze.rows >= sheet.rowCount || freeze.cols >= sheet.colCount))
@@ -102,6 +114,7 @@ export function snapshotRustWorkbookDefinition(
       ...(hiddenColumns ? { hiddenColumns } : {}),
       ...(mergedRanges ? { mergedRanges: Object.freeze(mergedRanges) } : {}),
       ...(freeze ? { freeze: Object.freeze({ ...freeze }) } : {}),
+      ...(conditionalFormats ? { conditionalFormats: Object.freeze(conditionalFormats) } : {}),
     })
   })
   if (title.length === 0 || sheets.length === 0) {

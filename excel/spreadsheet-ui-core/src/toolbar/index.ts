@@ -1,4 +1,10 @@
 import { atom } from '@einfach/core'
+import { toolbarIntentAtom, toolbarIntentBackingAtom } from './surface-state'
+export {
+  createToolbarUiState, createToolbarSurfaceIntent, toolbarUiStateAtom,
+  toolbarIntentAtom, toolbarActiveSurfaceAtom, openToolbarDropdownAtom,
+  openToolbarPaletteAtom, closeToolbarSurfaceAtom, clearToolbarIntentAtom,
+} from './surface-state'
 import type { Atom, Getter, Setter } from '@einfach/core'
 import { editingSessionAtom } from '../editing'
 import { nextHistoryTransactionId, pushHistoryAtom } from '../history'
@@ -17,8 +23,6 @@ import type {
 } from '../backend/types'
 import type { CellRange } from '../shared'
 import type {
-  OpenToolbarDropdownInput,
-  OpenToolbarPaletteInput,
   ToolbarActiveSurface,
   ToolbarAvailabilitySnapshot,
   ToolbarCommandAvailability,
@@ -26,7 +30,6 @@ import type {
   ToolbarFormatCommandInput,
   ToolbarFormatCommandIntent,
   ToolbarFormatCommandKind,
-  ToolbarIntent,
   ToolbarMutationControllerPort,
   ToolbarBackendMutationResult,
   ToolbarMutationIdentityPlan,
@@ -36,25 +39,10 @@ import type {
   ToolbarMutationStep,
   ToolbarPaletteKind,
   RunToolbarMutationInput,
-  ToolbarUiState,
 } from './types'
 
 export * from './types'
 
-export function createToolbarUiState(): ToolbarUiState {
-  return Object.freeze({
-    activeSurface: null,
-  })
-}
-
-export function createToolbarSurfaceIntent(surface: ToolbarActiveSurface): ToolbarIntent {
-  const snapshot = Object.freeze({ kind: surface.kind, id: surface.id })
-  return Object.freeze({
-    type: 'toolbar.surface.open',
-    source: 'toolbar',
-    surface: snapshot,
-  })
-}
 
 export function createToolbarFormatCommandIntent(
   input: ToolbarFormatCommandInput,
@@ -150,28 +138,6 @@ export function isToolbarFormatCommandAvailable(
   }
 }
 
-const toolbarUiStateBackingAtom = atom<ToolbarUiState>(Object.freeze(createToolbarUiState()))
-toolbarUiStateBackingAtom.debugLabel = 'spreadsheet.toolbar.uiBacking'
-
-/** Read-only Core-owned toolbar surface state; adapters use typed commands for transitions. */
-export const toolbarUiStateAtom: Atom<ToolbarUiState> = atom((get) =>
-  get(toolbarUiStateBackingAtom),
-)
-toolbarUiStateAtom.debugLabel = 'spreadsheet.toolbar.ui'
-
-const toolbarIntentBackingAtom = atom<ToolbarIntent | null>(null)
-toolbarIntentBackingAtom.debugLabel = 'spreadsheet.toolbar.intentBacking'
-
-/** Read-only Core-owned intent projection; only typed toolbar commands write its backing atom. */
-export const toolbarIntentAtom: Atom<ToolbarIntent | null> = atom((get) =>
-  get(toolbarIntentBackingAtom),
-)
-toolbarIntentAtom.debugLabel = 'spreadsheet.toolbar.intent'
-
-export const toolbarActiveSurfaceAtom: Atom<ToolbarActiveSurface | null> = atom(
-  (get) => get(toolbarUiStateBackingAtom).activeSurface,
-)
-toolbarActiveSurfaceAtom.debugLabel = 'spreadsheet.toolbar.activeSurface'
 
 export const toolbarCommandAvailabilityAtom = atom((get): ToolbarCommandAvailability => {
   const selection = get(selectionAtom)
@@ -186,66 +152,6 @@ export const toolbarCommandAvailabilityAtom = atom((get): ToolbarCommandAvailabi
 })
 toolbarCommandAvailabilityAtom.debugLabel = 'spreadsheet.toolbar.commandAvailability'
 
-export const openToolbarDropdownAtom = atom(
-  (get) => get(toolbarUiStateBackingAtom),
-  (_get, set, input: OpenToolbarDropdownInput) => {
-    const surface: ToolbarActiveSurface = Object.freeze({
-      kind: 'dropdown',
-      id: input.dropdown,
-    })
-
-    set(
-      toolbarUiStateBackingAtom,
-      Object.freeze({
-        activeSurface: surface,
-      }),
-    )
-    set(toolbarIntentBackingAtom, createToolbarSurfaceIntent(surface))
-    return surface
-  },
-)
-openToolbarDropdownAtom.debugLabel = 'spreadsheet.toolbar.openDropdown'
-
-export const openToolbarPaletteAtom = atom(
-  (get) => get(toolbarUiStateBackingAtom),
-  (_get, set, input: OpenToolbarPaletteInput) => {
-    const surface: ToolbarActiveSurface = Object.freeze({
-      kind: 'palette',
-      id: input.palette,
-    })
-
-    set(
-      toolbarUiStateBackingAtom,
-      Object.freeze({
-        activeSurface: surface,
-      }),
-    )
-    set(toolbarIntentBackingAtom, createToolbarSurfaceIntent(surface))
-    return surface
-  },
-)
-openToolbarPaletteAtom.debugLabel = 'spreadsheet.toolbar.openPalette'
-
-export const closeToolbarSurfaceAtom = atom(
-  (get) => get(toolbarUiStateBackingAtom),
-  (_get, set) => {
-    set(
-      toolbarUiStateBackingAtom,
-      Object.freeze({
-        activeSurface: null,
-      }),
-    )
-    set(
-      toolbarIntentBackingAtom,
-      Object.freeze({
-        type: 'toolbar.surface.close',
-        source: 'toolbar',
-      }),
-    )
-    return null
-  },
-)
-closeToolbarSurfaceAtom.debugLabel = 'spreadsheet.toolbar.closeSurface'
 
 export const dispatchToolbarFormatCommandAtom = atom(
   (get) => get(toolbarIntentAtom),
@@ -285,14 +191,6 @@ export const dispatchToolbarFormatCommandAtom = atom(
 )
 dispatchToolbarFormatCommandAtom.debugLabel = 'spreadsheet.toolbar.dispatchFormatCommand'
 
-export const clearToolbarIntentAtom = atom(
-  (get) => get(toolbarIntentBackingAtom),
-  (_get, set) => {
-    set(toolbarIntentBackingAtom, null)
-    return null
-  },
-)
-clearToolbarIntentAtom.debugLabel = 'spreadsheet.toolbar.clearIntent'
 
 export const TOOLBAR_MUTATION_CAPABILITY_ERROR =
   'Toolbar mutation is unavailable because this workbook does not provide the required transport.'

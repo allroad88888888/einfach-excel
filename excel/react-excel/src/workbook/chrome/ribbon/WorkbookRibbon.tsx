@@ -3,8 +3,6 @@ import {
   applySelectionFormatAtom,
   clearSelectionAtom,
   editingSessionAtom,
-  SELECTION_FILL_COLOR,
-  SELECTION_TEXT_COLOR,
 } from '@einfach/spreadsheet-ui-core'
 import { ClipboardTools } from './ClipboardTools'
 import { SelectionSizeTools } from './SelectionSizeTools'
@@ -18,6 +16,7 @@ import { StructureTools } from './StructureTools'
 import { MergeTools } from './MergeTools'
 import { FreezeTools } from './FreezeTools'
 import { FindReplaceTools } from './FindReplaceTools'
+import { ColorTools } from './ColorTools'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import './ribbon.css'
 
@@ -141,18 +140,8 @@ export function WorkbookRibbon() {
           onClick={() => void applyFormat('all-borders')}
           pressed={Boolean(activeFormat.borders && Object.keys(activeFormat.borders).length)}
         />
-        <ToolButton
-          icon="▰"
-          label="Fill color"
-          onClick={() => void applyFormat('fill-color')}
-          pressed={activeFormat.bgColor === SELECTION_FILL_COLOR}
-        />
-        <ToolButton
-          icon="A̲"
-          label="Text color"
-          onClick={() => void applyFormat('text-color')}
-          pressed={activeFormat.fgColor === SELECTION_TEXT_COLOR}
-        />
+        <ColorTools kind="fill-color" />
+        <ColorTools kind="text-color" />
         <span className="tool-separator" aria-hidden="true" />
         <ToolButton
           icon="☷"

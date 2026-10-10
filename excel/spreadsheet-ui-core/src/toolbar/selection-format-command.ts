@@ -49,6 +49,8 @@ export type SelectionFormatAction =
   | NumberFormatAction
   | { readonly type: 'font-family'; readonly value: string }
   | { readonly type: 'font-size'; readonly value: number }
+  | { readonly type: 'fill-color'; readonly value: string | null }
+  | { readonly type: 'text-color'; readonly value: string | null }
 
 export type ApplySelectionFormatOutcome = SelectionMutationOutcome
 
@@ -61,6 +63,13 @@ function nextPatch(
   clearFormatFields?: readonly (keyof SpreadsheetCellFormat)[]
 } | null {
   if (typeof action !== 'string') {
+    if (action.type === 'fill-color' || action.type === 'text-color') {
+      const field = action.type === 'fill-color' ? 'bgColor' : 'fgColor'
+      // null 是清除此字段，不把白色/黑色冒充“无填充/自动”；仍由 Rust 处理继承覆盖。
+      if (action.value === null) return { format: {}, clearFormatFields: [field] }
+      const color = action.value.trim()
+      return /^#[\da-f]{6}$/i.test(color) ? { format: { [field]: color.toLowerCase() } } : null
+    }
     if (action.type === 'font-family') {
       const fontFamily = action.value.trim()
       return fontFamily && fontFamily.length <= 100 ? { format: { fontFamily } } : null

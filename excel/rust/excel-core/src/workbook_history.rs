@@ -29,6 +29,8 @@ mod format;
 #[path = "workbook_history_replace.rs"]
 mod replace;
 pub use replace::ReplaceReport;
+#[path = "workbook_history_text_columns.rs"]
+mod text_columns;
 #[path = "workbook_history_structure.rs"]
 mod structure;
 use merge::MergeChange;

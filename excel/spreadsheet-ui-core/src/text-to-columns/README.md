@@ -1,5 +1,23 @@
 # text-to-columns
 
+## Maintained React path
+
+The legacy wizard below is not the maintained React implementation. The React batch routes
+`textColumns.preview` / `textColumns.apply` through the existing Rust workbook Worker commands.
+Rust owns source values, tokenization, full-range validation, overwrite checks and native history;
+the Worker only maps sheet identity, supplies canvas bounds and guards the preview revision.
+The React view uses `textColumnsPanelAtom` / `runTextColumnsPanelAtom` in `native-panel.ts`.
+Draft changes invalidate the bounded preview and overwrite confirmation; the user explicitly
+refreshes preview before applying. The command guards selection identity, destination protection
+and workbook revision, then publishes the one native mutation projection. See the
+[current feature progress](../../../react-excel/FEATURE_PROGRESS.md).
+
+Current native output preserves text (including leading zeros and leading `=`), clears empty
+fields and keeps destination formatting. Per-column conversion options remain future work.
+Preview sampling is bounded but validation and application use the complete selected source.
+
+## Legacy wizard
+
 Owns the 3-step Text to Columns wizard. Splits a single-column selection
 into multiple columns by delimiter or fixed-width slice positions, then
 emits a single `importCellChunks` plan so undo collapses into one entry.

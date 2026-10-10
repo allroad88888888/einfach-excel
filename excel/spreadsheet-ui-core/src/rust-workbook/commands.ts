@@ -18,6 +18,7 @@ import type { AutoFitLayout } from './auto-fit-measurement'
 import type { RustFindCommands } from './find-commands'
 import type { RustSortCommands } from './sort-commands'
 import type { RustFilterCommands } from './filter-commands'
+import type { RustTextColumnsCommands } from './text-columns-commands'
 import type { SelectionNumbers } from '../status-bar/types'
 import type { RustSetCellInputResult, RustSetRangeFormatResult } from './mutation-results'
 export type { RustSetCellInputResult, RustSetRangeFormatResult } from './mutation-results'
@@ -114,7 +115,7 @@ export interface RustClearRangeRequest {
 }
 
 export interface RustWorkbookCommands
-  extends RustFindCommands, RustSortCommands, RustFilterCommands {
+  extends RustFindCommands, RustSortCommands, RustFilterCommands, RustTextColumnsCommands {
   readonly 'format.preview': WorkerCommand<
     {
       readonly sheetId: string

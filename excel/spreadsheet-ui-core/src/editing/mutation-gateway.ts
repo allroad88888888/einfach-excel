@@ -41,6 +41,7 @@ export type ContentMutationKind =
   | 'fill-series'
   | 'paste-range'
   | 'import-cell-chunks'
+  | 'split-text-columns'
   | 'remove-rows'
   | 'set-format-range'
 

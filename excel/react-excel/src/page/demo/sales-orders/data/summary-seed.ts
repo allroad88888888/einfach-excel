@@ -83,6 +83,11 @@ export const SALES_ORDER_SUMMARY_CELLS: readonly RustImportCell[] = [
     format: { numberFormat: { kind: 'text' } } },
   { sheet: 1, row: 95, col: 2, kind: 'number', value: 45351,
     format: { numberFormat: { kind: 'date', pattern: 'dd-mmm-yy' }, italic: true } },
+  // 原生分列：E97:E98 按逗号拆到 B97，C98 用于测试覆盖确认；E99 按 2,5 定宽拆。
+  { sheet: 1, row: 96, col: 4, kind: 'text', value: '"North, America",001,Ready' },
+  { sheet: 1, row: 97, col: 4, kind: 'text', value: '"Asia",002,"On hold"' },
+  { sheet: 1, row: 98, col: 4, kind: 'text', value: '北京😀AB007' },
+  { sheet: 1, row: 97, col: 2, kind: 'text', value: 'Existing destination', format: { italic: true } },
   // 离屏内容参与自动适应；仅给演示数据加格式，不在 React 写坐标特判。
   {
     sheet: 1,

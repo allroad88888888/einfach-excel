@@ -26,6 +26,7 @@ import { readVisibleProjection } from './visible-projection'
 import { changeVisibility } from './visibility-io'
 import { sortRange } from './sort-io'
 import { changeFilter } from './filter-io'
+import { applyTextColumns, previewTextColumns } from './text-columns-io'
 
 type CommandName = keyof RustWorkbookCommands
 
@@ -79,6 +80,22 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       return initialize(input.sheets)
     }
     const current = currentWorkbook()
+    if (command === 'textColumns.preview') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      return previewTextColumns(current, sheetsById.get(input.sheetId), input, revision)
+    }
+    if (command === 'textColumns.apply') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      const result = applyTextColumns(current, sheetsById.get(input.sheetId), input, revision)
+      // 写入完成就推进版本；即使投影失败，也不能拿旧预览再次覆盖。
+      if (result.changedCells > 0) revision += 1
+      return {
+        ...result,
+        projection: readVisibleProjection(
+          current, sheetIndex(input.sheetId), input.projection, revision,
+        ),
+      }
+    }
     if (command === 'format.preview') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
       if (!current.preview_number_format) throw new Error('Rust number format preview is unavailable.')

@@ -11,6 +11,7 @@ import type { SelectionNumbers } from '../status-bar/types'
 import type { RustSortKey } from './sort-commands'
 import type { ColumnFilterRule } from '../filter-sort/types'
 import type { RustFilterReport } from './filter-commands'
+import type { NativeTextColumnsRequest, RustTextColumnsPreview, RustTextColumnsReport } from './text-columns-commands'
 
 export interface RustCellSnapshot {
   readonly sheet: number
@@ -48,6 +49,10 @@ export interface RustFormatRangeSnapshot {
 }
 
 export interface WasmWorkbook {
+  preview_text_columns?: (request: NativeTextColumnsRequest) => RustTextColumnsPreview
+  split_text_columns?: (
+    request: NativeTextColumnsRequest, overwrite: boolean,
+  ) => RustTextColumnsReport
   preview_number_format?: (sheet: number, addr: string, format: SpreadsheetNumberFormat) => string
   applyFilter?: (
     sheet: number,

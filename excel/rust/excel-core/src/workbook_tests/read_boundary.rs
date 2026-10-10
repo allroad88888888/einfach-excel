@@ -79,3 +79,52 @@ fn sparse_range_read_still_returns_evaluated_formula_values() {
     let expected: f64 = (3..(3 + ROWS)).map(|row| (row % 500) as f64).sum();
     assert_eq!(aggregate, Value::Number(expected));
 }
+
+#[test]
+fn text_columns_reads_settle_even_when_preview_or_apply_is_rejected() {
+    use crate::text_columns::TextColumnsMode;
+    use crate::workbook_text_columns::TextColumnsRequest;
+    for (invalid, apply) in [(false, false), (true, false), (false, true), (true, true)] {
+        let mut wb = seeded_workbook();
+        if invalid {
+            wb.set_cell(0, "A2", Value::Text("\"unfinished".into()));
+        }
+        if apply {
+            wb.set_cell(
+                0,
+                "C1",
+                Value::Text("Existing content requires confirmation".into()),
+            );
+        }
+        let request = TextColumnsRequest {
+            sheet: 0,
+            source: CellRange::new(CellAddress::new(0, 0), CellAddress::new(1, 0)),
+            destination: CellAddress::new(0, 2),
+            row_count: 1_048_576,
+            col_count: 16_384,
+            mode: TextColumnsMode::Delimited {
+                delimiters: vec![','],
+                merge_consecutive: false,
+                qualifier: Some('"'),
+            },
+        };
+        let result = if apply {
+            let mut history = crate::workbook_history::WorkbookHistory::default();
+            let result = history
+                .split_text_columns(&mut wb, &request, false)
+                .map(|_| ());
+            assert_eq!(history.undo_count(), 0);
+            result
+        } else {
+            wb.preview_text_columns(&request).map(|_| ())
+        };
+        assert_eq!(result.is_err(), invalid || apply);
+        let before = wb.store.debug_flush_visit_count();
+        wb.try_set_cell(0, "Z1", Value::Number(1.0)).unwrap();
+        let visits = wb.store.debug_flush_visit_count() - before;
+        assert!(
+            visits < 100,
+            "unrelated write inherited {visits} visits after preview"
+        );
+    }
+}

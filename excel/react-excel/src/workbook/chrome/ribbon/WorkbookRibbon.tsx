@@ -14,6 +14,7 @@ import { FillSeriesTools } from './FillSeriesTools'
 import { SortTools } from './SortTools'
 import { FilterTools } from './FilterTools'
 import { TextColumnsTools } from './TextColumnsTools'
+import { RemoveDuplicatesTools } from './RemoveDuplicatesTools'
 import { StructureTools } from './StructureTools'
 import { MergeTools } from './MergeTools'
 import { FreezeTools } from './FreezeTools'
@@ -85,6 +86,7 @@ export function WorkbookRibbon() {
         <SortTools />
         <FilterTools />
         <TextColumnsTools />
+        <RemoveDuplicatesTools />
         <VisibilityTools />
         <StructureTools />
         <FreezeTools />

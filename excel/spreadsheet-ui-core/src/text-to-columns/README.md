@@ -22,6 +22,15 @@ The source field selector can address fields beyond the twelve-column preview li
 `sourceColumnCount` describes the full source shape, not the compacted or sampled result.
 Preview sampling is bounded but validation and application use the complete selected source.
 
+`numberOptions` applies only to General fields. Rust accepts an explicit dot/comma decimal
+separator, an optional thousands separator (dot, comma, space, nonbreaking space, narrow
+nonbreaking space or apostrophe), and opt-in trailing minus. Thousands groups after the first
+must contain exactly three digits; decimal and thousands separators must differ. Invalid or
+non-finite numbers retain their original text instead of falling back to another decimal rule.
+Text, explicit Date and unspecified fields are unchanged. Number options preserve field type
+choices but invalidate preview and overwrite consent; reopening the panel resets the options.
+The React disclosure only shows these controls; it does not parse workbook values.
+
 ## Legacy wizard
 
 Owns the 3-step Text to Columns wizard. Splits a single-column selection

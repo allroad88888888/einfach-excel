@@ -1,0 +1,34 @@
+.duplicates-dialog {
+  box-sizing: border-box; width: 640px; max-width: calc(100vw - 24px);
+  max-height: calc(100dvh - 24px); overflow: auto; padding: 20px;
+  border: 1px solid var(--border); border-radius: 8px;
+  background: var(--surface); color: var(--text); font-size: 13px;
+}
+.duplicates-dialog::backdrop { background: rgb(20 25 45 / 25%); }
+.duplicates-dialog h2 { margin: 0; font-size: 16px; }
+.duplicates-dialog p { line-height: 1.5; }
+.duplicates-dialog form { display: grid; gap: 14px; }
+.duplicates-dialog label { display: grid; gap: 6px; min-width: 0; }
+.duplicates-dialog select, .duplicates-dialog button {
+  box-sizing: border-box; min-width: 0; min-height: 34px; padding: 6px 8px;
+  border: 1px solid var(--border); border-radius: 4px;
+  background: var(--surface); color: inherit; font: inherit;
+}
+.duplicates-dialog .duplicates-check { display: flex; gap: 8px; align-items: center; overflow-wrap: anywhere; }
+.duplicates-dialog input[type='checkbox'] { flex-shrink: 0; }
+.duplicates-dialog fieldset { min-width: 0; margin: 0; padding: 10px; border: 1px solid var(--border); }
+.duplicates-columns { max-height: 160px; overflow: auto; display: grid; gap: 8px; margin-top: 10px; }
+.duplicates-hint { color: #596174; font-size: 12px; }
+.duplicates-table-scroll { max-height: 200px; overflow: auto; border: 1px solid var(--border); }
+.duplicates-dialog table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+.duplicates-dialog caption { text-align: left; padding: 8px; font-weight: 600; }
+.duplicates-dialog th, .duplicates-dialog td { padding: 7px 10px; text-align: left; border: 1px solid var(--border); }
+.duplicates-dialog td:last-child { overflow-wrap: anywhere; white-space: pre-wrap; max-width: 220px; }
+.duplicates-dialog th { font-weight: 500; background: #f5f6fa; }
+.duplicates-warning { padding: 10px; border: 1px solid #c99b42; border-radius: 4px; background: #fff9ec; margin-top: 12px; }
+.duplicates-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.duplicates-dialog button[type='submit'] { background: var(--primary); color: white; }
+.duplicates-dialog [role='alert'] { margin: 0; color: #a12622; overflow-wrap: anywhere; }
+.duplicates-dialog :disabled { opacity: .5; }
+.duplicates-dialog :focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+@media (max-width: 480px) { .duplicates-dialog { padding: 14px; } }

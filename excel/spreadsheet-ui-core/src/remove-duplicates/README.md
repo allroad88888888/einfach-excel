@@ -1,5 +1,28 @@
 # remove-duplicates
 
+## Maintained React path
+
+React uses `nativeDuplicatesPanelAtom` / `runNativeDuplicatesPanelAtom` in `native-panel.ts`.
+The single command owns option drafts, explicit preview, deletion consent and protection checks.
+`duplicates.preview` returns bounded native counts/samples with a revision; `duplicates.apply`
+checks that revision before one Rust history transaction and publishes one returned projection.
+Neither the panel nor Worker scans cell values or calls the legacy scanner below.
+
+Rust compares formatted display values across the chosen absolute columns, retaining the first
+matching record. Header exclusion and exact/Unicode lowercase/trim combinations are explicit.
+Filtered-out rows stay in their physical slots; manually hidden rows participate. Only cells
+inside the selected rectangle compact. Cell styles and verbatim formula sources move with records;
+row/column styles, sizes and outside cells do not move. Native limits are 100,000 cells, 256 columns,
+32 MiB comparison data and the existing undo budget. Merges and active array spills reject before
+mutation. The preview samples at most 20 duplicate rows, 12 columns and 120 characters per field;
+application always processes the complete range, not that sample.
+
+Changing options discards preview and deletion consent. A selection/workbook change invalidates
+the captured target. While applying, repeated submission, draft edits and cancellation are blocked;
+an uncertain response requires a fresh preview, never an automatic destructive retry.
+
+## Legacy implementation (not used by React)
+
 Owns the Data → Remove Duplicates dialog. The user picks a range, the
 dialog lists the columns in that range as checkboxes (all checked by
 default), and OK scans the selection: rows that match any earlier row

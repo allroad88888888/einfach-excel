@@ -30,6 +30,7 @@ pub mod text_columns;
 pub mod workbook_text_columns;
 pub mod text_columns_value;
 pub mod text_columns_number;
+pub mod workbook_remove_duplicates;
 pub mod undo;
 pub mod workbook;
 pub mod workbook_history;

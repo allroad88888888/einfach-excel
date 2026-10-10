@@ -133,6 +133,8 @@ mod range_tiers;
 mod read;
 #[path = "sheet_relocate.rs"]
 mod relocate;
+#[path = "sheet_remove_duplicates.rs"]
+mod remove_duplicates;
 #[path = "sheet_retarget.rs"]
 mod retarget;
 #[path = "sheet_row_major_map.rs"]

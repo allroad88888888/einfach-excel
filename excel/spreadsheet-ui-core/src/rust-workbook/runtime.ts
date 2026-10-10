@@ -27,6 +27,7 @@ import { changeVisibility } from './visibility-io'
 import { sortRange } from './sort-io'
 import { changeFilter } from './filter-io'
 import { applyTextColumns, previewTextColumns } from './text-columns-io'
+import { applyRemoveDuplicates, previewRemoveDuplicates } from './remove-duplicates-io'
 
 type CommandName = keyof RustWorkbookCommands
 
@@ -80,6 +81,19 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       return initialize(input.sheets)
     }
     const current = currentWorkbook()
+    if (command === 'duplicates.preview') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      return previewRemoveDuplicates(current, sheetsById.get(input.sheetId), input, revision)
+    }
+    if (command === 'duplicates.apply') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      const result = applyRemoveDuplicates(current, sheetsById.get(input.sheetId), input, revision)
+      if (result.removedRows > 0) revision += 1
+      return { ...result,
+        projection: readVisibleProjection(
+          current, sheetIndex(input.sheetId), input.projection, revision,
+        ) }
+    }
     if (command === 'textColumns.preview') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
       return previewTextColumns(current, sheetsById.get(input.sheetId), input, revision)

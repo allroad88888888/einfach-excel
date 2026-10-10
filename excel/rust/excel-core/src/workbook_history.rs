@@ -31,6 +31,8 @@ mod replace;
 pub use replace::ReplaceReport;
 #[path = "workbook_history_text_columns.rs"]
 mod text_columns;
+#[path = "workbook_history_remove_duplicates.rs"]
+mod remove_duplicates;
 #[path = "workbook_history_structure.rs"]
 mod structure;
 use merge::MergeChange;

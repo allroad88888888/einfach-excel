@@ -1,0 +1,137 @@
+import { expect, test, type Page } from '@playwright/test'
+import { select, paste } from '../support/clipboard'
+
+const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
+const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
+const status = (page: Page) => page.getByRole('dialog').getByRole('status')
+async function open(page: Page, range = 'D32:F37', coord = '31:3') {
+  await select(page, range, coord)
+  await button(page, 'Remove duplicates').click()
+  await expect(status(page)).toContainText('duplicate records;')
+}
+async function refresh(page: Page) {
+  await button(page, 'Update preview').click()
+  await expect(status(page)).toContainText('duplicate records;')
+}
+async function apply(page: Page, count: number) {
+  await page.getByRole('checkbox', { name: `Remove ${count} duplicate records (one undo restores them)`, exact: true }).check()
+  await button(page, 'Remove records').click()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+}
+test.beforeEach(async ({ page }) => {
+  await page.context().grantPermissions(['clipboard-read', 'clipboard-write'])
+  await page.goto('/')
+  await expect(cell(page, '1:0')).toHaveText('SO-10001')
+  await page.getByRole('tab', { name: 'Summary', exact: true }).click()
+  await expect(cell(page, '0:0')).toHaveText('First order total')
+})
+
+for (const width of [1280, 390]) test(`native seed removes matching records and restores once at ${width}px`, async ({ page }, info) => {
+  const errors: string[] = []
+  page.on('pageerror', (error) => errors.push(error.message))
+  await page.setViewportSize({ width, height: 850 })
+  await open(page)
+  await expect(status(page)).toContainText('0 duplicate records')
+  await page.getByRole('checkbox', { name: 'Compare column F', exact: true }).uncheck()
+  await page.getByRole('combobox', { name: 'Text comparison' }).selectOption('trimIgnoreCase')
+  await expect(button(page, 'Remove records')).toBeDisabled()
+  await refresh(page)
+  await expect(status(page)).toHaveText('3 duplicate records; 2 unique records remain.')
+  const dialog = page.getByRole('dialog')
+  await page.getByRole('checkbox', { name: /Remove 3 duplicate records/ }).check()
+  await button(page, 'Remove records').press('Tab')
+  await expect(page.getByLabel('First row contains headers')).toBeFocused()
+  await page.getByLabel('First row contains headers').press('Shift+Tab')
+  await expect(button(page, 'Remove records')).toBeFocused()
+  await page.screenshot({ path: info.outputPath(`remove-duplicates-${width}.png`) })
+  const box = (await dialog.boundingBox())!
+  expect(box.x).toBeGreaterThanOrEqual(0)
+  expect(box.x + box.width).toBeLessThanOrEqual(width)
+  expect(await dialog.evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true)
+  await button(page, 'Remove records').click()
+  await expect(dialog).toHaveCount(0)
+  await expect(await select(page, 'D34', '33:3')).toHaveText('Pine')
+  await expect(await select(page, 'F34', '33:5')).toHaveText('P1')
+  await expect(cell(page, '33:5')).toHaveCSS('text-decoration-line', 'underline')
+  await expect(await select(page, 'F33', '32:5')).toHaveCSS('font-style', 'italic')
+  await expect(await select(page, 'F37', '36:5')).toHaveText('')
+  await button(page, 'Undo').click()
+  await expect(cell(page, '36:5')).toHaveText('P1')
+  await expect(button(page, 'Undo')).toBeDisabled()
+  await expect(await select(page, 'D35', '34:3')).toHaveText('maple')
+  await button(page, 'Redo').click()
+  await expect(await select(page, 'D34', '33:3')).toHaveText('Pine')
+  await expect(await select(page, 'A32', '31:0')).toHaveText('')
+  expect(errors).toEqual([])
+})
+
+test('comparison options refresh native counts and cancellation leaves data/history untouched', async ({ page }) => {
+  await open(page)
+  await page.getByRole('checkbox', { name: 'Compare column F', exact: true }).uncheck()
+  for (const [comparison, count] of [['exact', 1], ['ignoreCase', 2], ['trim', 2], ['trimIgnoreCase', 3]] as const) {
+    await page.getByRole('combobox', { name: 'Text comparison' }).selectOption(comparison)
+    await refresh(page)
+    await expect(status(page)).toContainText(`${count} duplicate records;`)
+  }
+  await button(page, 'Cancel').click()
+  await expect(await select(page, 'F37', '36:5')).toHaveText('P1')
+  await expect(button(page, 'Undo')).toBeDisabled()
+})
+
+test('header option changes whether the first matching value participates', async ({ page }) => {
+  await select(page, 'A45', '44:0')
+  await page.evaluate(() => navigator.clipboard.writeText('Key\nKey\nOther'))
+  await paste(page)
+  await open(page, 'A45:A47', '44:0')
+  await expect(status(page)).toContainText('0 duplicate records;')
+  await page.getByLabel('First row contains headers').uncheck()
+  await refresh(page)
+  await expect(status(page)).toHaveText('1 duplicate records; 2 unique records remain.')
+  await apply(page, 1)
+  await expect(await select(page, 'A46', '45:0')).toHaveText('Other')
+  await button(page, 'Undo').click()
+  await expect(cell(page, '45:0')).toHaveText('Key')
+})
+
+test('empty keys and merged cells reject without mutation and remain correctable', async ({ page }) => {
+  await open(page)
+  await page.getByRole('dialog').getByRole('button', { name: 'Clear all', exact: true }).click()
+  await button(page, 'Update preview').click()
+  await expect(page.getByRole('alert')).toContainText('at least one')
+  await button(page, 'Select all').click()
+  await refresh(page)
+  await expect(status(page)).toContainText('0 duplicate records;')
+  await page.getByRole('dialog').press('Escape')
+  await select(page, 'A15:D15', '14:0')
+  await button(page, 'Remove duplicates').click()
+  await page.getByLabel('First row contains headers').uncheck()
+  await button(page, 'Update preview').click()
+  await expect(page.getByRole('alert')).toContainText('Unmerge')
+  await button(page, 'Cancel').click()
+  await expect(button(page, 'Undo')).toBeDisabled()
+})
+
+test('400 rows compact completely, not only the twenty preview examples; adjacent data stays', async ({ page }) => {
+  await page.getByRole('tab', { name: 'Sales Orders', exact: true }).click()
+  await select(page, 'N400', '399:13')
+  const outside = await cell(page, '399:13').innerText()
+  await select(page, 'O1', '0:14')
+  await page.evaluate(() => navigator.clipboard.writeText(
+    Array.from({ length: 400 }, (_, index) => `Key${index % 10}\tID${index}`).join('\n'),
+  ))
+  await paste(page)
+  await open(page, 'O1:P400', '0:14')
+  await page.getByLabel('First row contains headers').uncheck()
+  await page.getByRole('checkbox', { name: 'Compare column P', exact: true }).uncheck()
+  await refresh(page)
+  await expect(status(page)).toHaveText('390 duplicate records; 10 unique records remain.')
+  await expect(page.getByText(/Sample limited to 20 duplicate rows/)).toBeVisible()
+  await apply(page, 390)
+  await expect(await select(page, 'P10', '9:15')).toHaveText('ID9')
+  await expect(await select(page, 'P400', '399:15')).toHaveText('')
+  await expect(await select(page, 'N400', '399:13')).toHaveText(outside)
+  await button(page, 'Undo').click()
+  await expect(await select(page, 'P400', '399:15')).toHaveText('ID399')
+  await button(page, 'Redo').click()
+  await expect(cell(page, '399:15')).toHaveText('')
+})

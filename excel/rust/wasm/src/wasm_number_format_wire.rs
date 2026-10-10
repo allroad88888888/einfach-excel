@@ -20,6 +20,7 @@ struct NumberFormatJSON {
 impl NumberFormatJSON {
     fn into_number_format(self) -> NumberFormat {
         match self.kind.as_str() {
+            "text" => NumberFormat::Text,
             "number" | "decimal" => NumberFormat::Decimal {
                 digits: self.digits.unwrap_or(2),
                 thousands: self.thousands.unwrap_or(false),
@@ -49,6 +50,10 @@ impl NumberFormatJSON {
 
     fn from_number_format(nf: &NumberFormat) -> Self {
         match nf {
+            NumberFormat::Text => NumberFormatJSON {
+                kind: "text".into(),
+                ..Default::default()
+            },
             NumberFormat::Scientific { digits } => NumberFormatJSON {
                 kind: "scientific".into(),
                 digits: Some(*digits),
@@ -120,7 +125,8 @@ impl NumberFormatJSON {
 fn uses_native_number_display(format: &NumberFormat) -> bool {
     matches!(
         format,
-        NumberFormat::Date(_)
+        NumberFormat::Text
+            | NumberFormat::Date(_)
             | NumberFormat::Time(_)
             | NumberFormat::Scientific { .. }
             | NumberFormat::Fraction { .. }

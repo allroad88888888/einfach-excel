@@ -1,6 +1,7 @@
 #[test]
 fn advanced_formats_wire_roundtrip_preserves_native_options() {
     for (wire, value, expected) in [
+        (serde_json::json!({"kind":"text"}), 12345.0, "12345"),
         (
             serde_json::json!({"kind":"scientific","digits":3}),
             12345.0,
@@ -78,6 +79,7 @@ fn advanced_format_defaults_are_native_and_invalid_denominators_reject_before_mu
 fn advanced_formats_survive_workbook_persistence_without_converting_values() {
     let mut source = WasmWorkbook::new();
     let cases = [
+        (serde_json::json!({"kind":"text"}), 12345.0, "12345"),
         (
             serde_json::json!({"kind":"scientific","digits":3}),
             12345.0,

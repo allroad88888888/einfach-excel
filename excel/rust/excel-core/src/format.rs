@@ -79,6 +79,8 @@ pub struct CellBorders {
 pub enum NumberFormat {
     #[default]
     General,
+    /// 后续用户输入按文本保存；设置格式本身不改变已有值或公式。
+    Text,
     /// Fixed decimal places.
     Decimal {
         digits: u8,
@@ -118,7 +120,7 @@ impl CellFormat {
     /// default display path.
     pub fn format_number(&self, n: f64) -> String {
         match &self.number_format {
-            NumberFormat::General => default_number_string(n),
+            NumberFormat::General | NumberFormat::Text => default_number_string(n),
             NumberFormat::Decimal { digits, thousands } => format_fixed(n, *digits, *thousands, ""),
             NumberFormat::Percent { digits } => format_fixed(n * 100.0, *digits, false, "%"),
             NumberFormat::Currency { symbol, digits } => {

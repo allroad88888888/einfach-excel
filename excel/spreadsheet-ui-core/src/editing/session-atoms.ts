@@ -2,7 +2,11 @@
  * Public synchronous editing atoms.
  * The asynchronous Rust transaction lives in commit-cell-editing.ts.
  */
-import { atom, type Atom } from '@einfach/core'
+import { atom, type Atom, type Getter, type Setter } from '@einfach/core'
+import { activeWorkbookSheetAtom, workbookDocumentAtom } from '../runtime/workbook-document'
+import { activateWorkbookSheetAtom } from '../runtime/activate-workbook-sheet'
+import { selectCellAtom, selectionSnapshotAtom } from '../selection'
+import { scrollToCellAtom } from '../viewport/metrics'
 import { keyboardModeAtom } from '../keyboard'
 import { resetFormulaReferenceStateAtom } from '../formula-reference/state'
 import {
@@ -25,6 +29,24 @@ editingSessionAtom.debugLabel = 'spreadsheet.editing.session'
 
 export const editingIsActiveAtom = atom((get) => get(editingSessionAtom).status === 'drafting')
 editingIsActiveAtom.debugLabel = 'spreadsheet.editing.isActive'
+
+/** 拾取结束后回到唯一编辑源；选区未离开时保持原有同表编辑行为。 */
+export function returnToEditingSource(
+  get: Getter, set: Setter, session: EditingSessionState,
+): void {
+  const source = session.source
+  if (!source) return
+  if (get(activeWorkbookSheetAtom)?.id === source.sheetId) {
+    const selected = get(selectionSnapshotAtom).activeCell
+    if (selected.row !== source.cell.row || selected.col !== source.cell.col) {
+      set(selectCellAtom, { sheetId: source.sheetId, coord: source.cell, extend: false })
+      set(scrollToCellAtom, { coord: source.cell })
+    }
+    return
+  }
+  const sheet = get(workbookDocumentAtom).sheets.find((item) => item.id === source.sheetId)
+  if (sheet) set(activateWorkbookSheetAtom, sheet, source.cell)
+}
 
 export const editingDraftAtom = atom(
   (get) => get(editingSessionAtom).draft,
@@ -71,6 +93,7 @@ export const cancelEditingAtom = atom(
     const state = get(editingSessionAtom)
     if (state.source === null) return null
 
+    returnToEditingSource(get, set, state)
     set(resetFormulaReferenceStateAtom)
     set(editingSessionBackingAtom, cancelEditingSessionState(state))
     set(editingCommitLifecycleBackingAtom, lifecycleFor('ready'))

@@ -1,8 +1,9 @@
 import type { CellCoord } from '../shared'
 
 export interface FormulaReferenceSession {
-  /** Cell being edited (anchor of the editing session). */
+  /** 首次键盘拾取的起点；跨表从 A1 起步，真实编辑源保留在 editingSession。 */
   anchorCell: CellCoord
+  /** 当前浏览/拾取表，不是最终写入表。 */
   sheetId: string
   /** Caret position in the draft at the moment the session was entered. */
   insertionCaret: number

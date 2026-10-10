@@ -49,7 +49,9 @@ export interface EditingCommitLifecycleState {
 
 export type EditingCommitOutcome = 'completed' | 'blocked' | 'rejected' | 'outcome-unknown'
 
-/** Optional test/host override; normal React callers submit with no argument. */
+/** 提交选项；普通确认不传参数，切表提交自行决定下一张表。 */
 export interface CommitCellEditingInput {
+  /** 默认回编辑源；切表命令会自己去用户指定的表，不先往返一次。 */
+  readonly returnToSource?: boolean
   readonly timeoutMs?: number
 }

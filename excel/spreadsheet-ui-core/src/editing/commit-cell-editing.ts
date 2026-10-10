@@ -25,6 +25,9 @@ import {
 } from './commit-state'
 import { resolveContentMutationAtom } from './mutation-gateway'
 import { createEditingSessionState } from './session-domain'
+import { returnToEditingSource } from './session-atoms'
+import { activeWorkbookSheetAtom } from '../runtime/workbook-document'
+import { selectionAuthorityWitnessAtom } from '../selection'
 import type {
   CommitCellEditingInput,
   EditingCommitOutcome,
@@ -83,13 +86,14 @@ export const commitCellEditingAtom = atom(
     if (get(activeEditingCommitTicketAtom) !== null) return 'blocked'
 
     const session = get(editingSessionBackingAtom)
+    const selectionWitness = get(selectionAuthorityWitnessAtom)
+    const browsingSheetId = get(activeWorkbookSheetAtom)?.id
     const projectionWitness = get(projectionSnapshotAtom)
     const visibleRequest = projectionWitness.request
     if (
       session.status !== 'drafting' ||
       session.source === null ||
-      visibleRequest?.kind !== 'visible-window' ||
-      visibleRequest.sheetId !== session.source.sheetId
+      visibleRequest?.kind !== 'visible-window'
     ) {
       return blockCommit(set, 'The current edit or visible projection is unavailable.')
     }
@@ -174,6 +178,12 @@ export const commitCellEditingAtom = atom(
     set(editingCommitLifecycleBackingAtom, lifecycleFor('ready'))
     set(keyboardModeAtom, 'navigation')
     set(activeEditingCommitTicketAtom, null)
+    // 写入目标来自编辑源，投影来自当前浏览表；确认后才回源，不在拾取期间改工作簿。
+    // 等待 Rust 期间已定位到其它格时，不让旧提交把用户拉回原位置。
+    if (input?.returnToSource !== false &&
+      get(activeWorkbookSheetAtom)?.id === browsingSheetId &&
+      get(selectionAuthorityWitnessAtom) === selectionWitness)
+      returnToEditingSource(get, set, session)
     return 'completed'
   },
 )

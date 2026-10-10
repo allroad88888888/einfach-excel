@@ -13,7 +13,7 @@ import {
   startCellEditingFromProjectionAtom,
 } from '@einfach/spreadsheet-ui-core'
 import type { FocusEvent, FormEvent, KeyboardEvent } from 'react'
-import { useRef } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import { flushSync } from 'react-dom'
 import { useFormulaInput } from '../../grid/editor/use-formula-input'
 import { FormulaAssist } from '../../formula/FormulaAssist'
@@ -37,21 +37,18 @@ export function FormulaBar() {
   const cancelEditing = useSetAtom(cancelEditingAtom)
   const activeCell = selection.activeCell
   const activeSheetId = selection.selection.sheetId
-  const editingActiveCell =
-    editingSession.source?.sheetId === activeSheetId &&
-    editingSession.source.cell.row === activeCell.row &&
-    editingSession.source.cell.col === activeCell.col
-  const value = editingActiveCell ? editingDraft : sourceText ?? ''
+  const hasEditingSource = editingSession.source !== null
+  const value = hasEditingSource ? editingDraft : sourceText ?? ''
   const busy =
     editingLifecycle.status === 'pending' || editingLifecycle.status === 'outcome-unknown'
   const feedback =
-    editingActiveCell && editingSession.source?.source === 'formula-bar'
+    hasEditingSource && editingSession.source?.source === 'formula-bar'
       ? editingCommitFeedback(editingLifecycle)
       : null
 
   const beginFormulaEditing = () => {
-    if (busy || (!editingActiveCell && sourceText === undefined)) return
-    if (editingActiveCell) {
+    if (busy || (!hasEditingSource && sourceText === undefined)) return
+    if (hasEditingSource) {
       setEditingDraft({ draft: editingDraft, source: 'formula-bar' })
       return
     }
@@ -62,7 +59,7 @@ export function FormulaBar() {
     })
   }
   const updateFormula = (event: FormEvent<HTMLTextAreaElement>) => {
-    if (!editingActiveCell) {
+    if (!hasEditingSource) {
       const started = startEditing({
         sheetId: activeSheetId,
         cell: { row: activeCell.row, col: activeCell.col },
@@ -73,6 +70,12 @@ export function FormulaBar() {
     updateDraft({ draft: event.currentTarget.value, source: 'formula-bar',
       caret: event.currentTarget.selectionStart })
   }
+
+  // 格内编辑跨表后只迁移 DOM 焦点；草稿与写入坐标仍由原编辑 atom 持有。
+  const inputSource = editingSession.source?.source
+  useLayoutEffect(() => {
+    if (inputSource === 'formula-bar') inputRef.current?.focus({ preventScroll: true })
+  }, [inputSource])
   const commitFormula = (event: FocusEvent<HTMLTextAreaElement>) => {
     if (event.relatedTarget?.closest('[data-cell-editor]')) return
     void commitEditing()
@@ -120,7 +123,7 @@ export function FormulaBar() {
           autoComplete="off"
           className="formula-value"
           data-formula-input="true"
-          disabled={busy || (!editingActiveCell && sourceText === undefined)}
+          disabled={busy || (!hasEditingSource && sourceText === undefined)}
           id="formula-input"
           name="formula-input"
           onBlur={commitFormula}

@@ -103,11 +103,11 @@ describe('workbook sheet tabs', () => {
   test('a failed cell commit prevents sheet switching and preserves its draft', async () => {
     const { cell, failNextMutation, store } = await setup()
     fireEvent.doubleClick(cell)
-    fireEvent.change(screen.getByLabelText('Cell editor'), { target: { value: '=bad(' } })
+    fireEvent.change(screen.getByLabelText('Cell editor'), { target: { value: 'Unsaved value' } })
     failNextMutation('Invalid formula')
     fireEvent.click(screen.getByRole('tab', { name: 'Summary' }))
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('not saved'))
     expect(store.getter(activeWorkbookSheetAtom)?.id).toBe('orders')
-    expect(screen.getByLabelText('Cell editor')).toHaveValue('=bad(')
+    expect(screen.getByLabelText('Cell editor')).toHaveValue('Unsaved value')
   })
 })

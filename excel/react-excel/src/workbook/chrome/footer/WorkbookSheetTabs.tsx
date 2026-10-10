@@ -6,6 +6,9 @@ import {
   runWorkbookSheetCommandAtom,
   systemClipboardFeedbackAtom,
   rustHistoryPanelAtom,
+  editingSessionAtom,
+  editingCommitLifecycleAtom,
+  formulaReferenceActiveAtom,
 } from '@einfach/spreadsheet-ui-core'
 import { useEffect, useRef } from 'react'
 import { SheetDeleteConfirmation } from './SheetDeleteConfirmation'
@@ -17,10 +20,16 @@ export function WorkbookSheetTabs() {
   const state = useAtomValue(sheetTabsAtom)
   const clipboard = useAtomValue(systemClipboardFeedbackAtom)
   const history = useAtomValue(rustHistoryPanelAtom)
+  const editing = useAtomValue(editingSessionAtom)
+  const lifecycle = useAtomValue(editingCommitLifecycleAtom)
+  const picking = useAtomValue(formulaReferenceActiveAtom)
   const run = useSetAtom(runWorkbookSheetCommandAtom)
   const inputRef = useRef<HTMLInputElement>(null)
   const tabsRef = useRef<HTMLDivElement>(null)
-  const busy = state.mutation !== null || clipboard.busy || history.busy
+  const busy = state.mutation !== null || clipboard.busy || history.busy ||
+    lifecycle.status === 'pending' || lifecycle.status === 'outcome-unknown'
+  const structureBusy = busy || picking ||
+    (editing.source !== null && editing.source.sheetId !== active?.id)
   const index = document.sheets.findIndex((sheet) => sheet.id === active?.id)
 
   useEffect(() => {
@@ -61,7 +70,7 @@ export function WorkbookSheetTabs() {
           type="button"
           aria-label="New sheet"
           title="New sheet"
-          disabled={busy}
+          disabled={structureBusy}
           onPointerDown={(event) => event.preventDefault()}
           onClick={() => void run({ operation: 'add' })}
         >
@@ -97,7 +106,7 @@ export function WorkbookSheetTabs() {
           type="button"
           aria-label="Rename sheet"
           title="Rename sheet"
-          disabled={busy || !active}
+          disabled={structureBusy || !active}
           onPointerDown={(event) => event.preventDefault()}
           onClick={() => active && void run({ operation: 'begin-rename', sheetId: active.id })}
         >
@@ -108,7 +117,7 @@ export function WorkbookSheetTabs() {
           type="button"
           aria-label="Move sheet left"
           title="Move sheet left"
-          disabled={busy || index <= 0}
+          disabled={structureBusy || index <= 0}
           onPointerDown={(event) => event.preventDefault()}
           onClick={() => void run({ operation: 'move-left' })}
         >
@@ -119,7 +128,7 @@ export function WorkbookSheetTabs() {
           type="button"
           aria-label="Move sheet right"
           title="Move sheet right"
-          disabled={busy || index >= document.sheets.length - 1}
+          disabled={structureBusy || index >= document.sheets.length - 1}
           onPointerDown={(event) => event.preventDefault()}
           onClick={() => void run({ operation: 'move-right' })}
         >
@@ -130,7 +139,7 @@ export function WorkbookSheetTabs() {
           type="button"
           aria-label="Delete sheet"
           title="Delete sheet"
-          disabled={busy || document.sheets.length <= 1}
+          disabled={structureBusy || document.sheets.length <= 1}
           onPointerDown={(event) => event.preventDefault()}
           onClick={() => void run({ operation: 'request-delete' })}
         >

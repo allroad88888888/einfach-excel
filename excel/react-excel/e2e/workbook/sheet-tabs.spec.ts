@@ -131,6 +131,8 @@ test('invalid draft blocks switching without losing draft or source cell', async
   await cell.dblclick()
   const input = page.getByRole('textbox', { name: 'Cell editor' })
   await input.fill('=SUM(')
+  // F2 退出引用拾取后才走普通切表提交；拾取模式允许跨表且不能提前写入。
+  await input.press('F2')
   await page.getByRole('tab', { name: 'Summary' }).click()
   await expect(page.getByRole('alert')).toContainText('not saved')
   await expect(page.getByRole('tab', { name: 'Sales Orders' })).toHaveAttribute(

@@ -23,6 +23,8 @@ import type { KeyboardInput } from '../keyboard'
 import { editingDraftAtom, editingSessionAtom } from './session-atoms'
 import type { EditingDraftInput } from './types'
 import { activeEditingCommitTicketAtom } from './commit-state'
+import { activeWorkbookSheetAtom, workbookDocumentAtom } from '../runtime/workbook-document'
+import { activateWorkbookSheetAtom } from '../runtime/activate-workbook-sheet'
 
 /** 光标只是一份 UI 状态；手动移走光标才结束当前拾取，不影响工作簿选区。 */
 export const syncFormulaReferenceCaretAtom = atom(null, (get, set, caret: number) => {
@@ -35,9 +37,10 @@ export const syncFormulaReferenceCaretAtom = atom(null, (get, set, caret: number
   if (reference) set(exitFormulaReferenceAtom, 'type-after-pick')
   if (get(formulaReferenceTextOnlyAtom)) return
   if (!shouldEnterFormulaReferenceMode(session.draft, caret)) return
+  const sheetId = get(activeWorkbookSheetAtom)?.id ?? session.source.sheetId
   set(enterFormulaReferenceAtom, {
-    anchorCell: session.source.cell,
-    sheetId: session.source.sheetId,
+    anchorCell: sheetId === session.source.sheetId ? session.source.cell : { row: 0, col: 0 },
+    sheetId,
     insertionCaret: caret,
     draft: session.draft,
   })
@@ -132,14 +135,24 @@ const toggleFormulaInputModeAtom = atom(null, (get, set, range: { start: number;
     return { handled: true }
   }
   const token = parseFormulaReferences(editing.draft, editing.source.sheetId).find(
-    (item) => !item.text.includes('!') && item.start <= range.start && range.end <= item.end,
+    (item) => item.start <= range.start && range.end <= item.end,
   )
+  const sheets = get(workbookDocumentAtom).sheets
+  const target = token?.text.includes('!')
+    ? sheets.find((sheet) => sheet.name.toLowerCase() === token.sheetId?.toLowerCase())
+    : sheets.find((sheet) => sheet.id === (token?.sheetId ?? get(activeWorkbookSheetAtom)?.id))
+  if (token?.text.includes('!') && !target) return { handled: false }
+  const sheetId = target?.id ?? get(activeWorkbookSheetAtom)?.id ?? editing.source.sheetId
+  if (target && target.id !== get(activeWorkbookSheetAtom)?.id) {
+    set(editingDraftAtom, { draft: editing.draft, source: 'formula-bar' })
+    set(activateWorkbookSheetAtom, target)
+  }
   const start = token?.start ?? range.start
   const end = token?.end ?? range.end
   set(formulaReferenceTextOnlyAtom, false)
   set(enterFormulaReferenceAtom, {
-    anchorCell: editing.source.cell,
-    sheetId: editing.source.sheetId,
+    anchorCell: sheetId === editing.source.sheetId ? editing.source.cell : { row: 0, col: 0 },
+    sheetId,
     insertionCaret: start,
     draft: editing.draft,
   })

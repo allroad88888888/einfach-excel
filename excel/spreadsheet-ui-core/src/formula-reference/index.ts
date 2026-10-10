@@ -7,6 +7,7 @@ import { keyboardModeAtom } from '../keyboard'
 import { parseFormulaReferences } from './parser'
 import { formulaReferenceCaretBackingAtom, formulaReferenceSessionBackingAtom } from './state'
 import { activeEditingCommitTicketAtom } from '../editing/commit-state'
+import { workbookDocumentAtom } from '../runtime/workbook-document'
 import type {
   EnterFormulaReferenceInput,
   FormulaReferenceExitReason,
@@ -187,7 +188,8 @@ export const pickFormulaReferenceAtom = atom(null, (get, set, input: FormulaRefe
   const currentDraft = get(editingSessionAtom).draft
   let token = serializeRangeRef(input.pickAnchor, input.pickFocus)
   if (input.preserveLocks && session.tokenRange) {
-    const previous = currentDraft.slice(session.tokenRange.start, session.tokenRange.end).split(':')
+    const previous = currentDraft.slice(session.tokenRange.start, session.tokenRange.end)
+      .replace(/^.*!/, '').split(':')
     token = token
       .split(':')
       .map((part, index) => {
@@ -200,6 +202,12 @@ export const pickFormulaReferenceAtom = atom(null, (get, set, input: FormulaRefe
           : part
       })
       .join(':')
+  }
+  if (input.sheetId !== get(editingSessionAtom).source?.sheetId) {
+    const sheet = get(workbookDocumentAtom).sheets.find((item) => item.id === input.sheetId)
+    if (!sheet) return
+    // 始终引用工作表名称；引号双写，空格/中文/撇号都能无歧义交给 Rust。
+    token = `'${sheet.name.replace(/'/g, "''")}'!${token}`
   }
   const spliced = spliceDraft(currentDraft, session.tokenRange, session.insertionCaret, token)
 

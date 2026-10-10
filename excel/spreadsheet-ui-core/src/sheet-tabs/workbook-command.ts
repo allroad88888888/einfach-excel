@@ -1,6 +1,8 @@
 import { atom } from '@einfach/core'
 import { commitCellEditingAtom } from '../editing/commit-cell-editing'
-import { editingSessionAtom } from '../editing/session-atoms'
+import { editingDraftAtom, editingSessionAtom } from '../editing/session-atoms'
+import { activeEditingCommitTicketAtom } from '../editing/commit-state'
+import { formulaReferenceSessionBackingAtom } from '../formula-reference/state'
 import { systemClipboardFeedbackAtom } from '../clipboard/system-clipboard-command'
 import {
   applyVisibleProjectionAtom,
@@ -46,6 +48,7 @@ export const runWorkbookSheetCommandAtom = atom(
     const state = get(sheetTabsAtom)
     if (
       !connection ||
+      get(activeEditingCommitTicketAtom) !== null ||
       state.mutation ||
       get(systemClipboardFeedbackAtom).busy ||
       get(rustHistoryPanelAtom).busy ||
@@ -90,9 +93,30 @@ export const runWorkbookSheetCommandAtom = atom(
     }
     if (moving && (targetIndex < 0 || targetIndex >= workbook.sheets.length)) return false
 
+    const reference = get(formulaReferenceSessionBackingAtom)
+    const editing = get(editingSessionAtom)
+    // 拾取期间只允许浏览其它表，不能删除/重命名正在引用的表。
+    if ((reference || (editing.source && editing.source.sheetId !== active.id)) &&
+      input.operation !== 'switch') return false
+    if (reference && input.operation === 'switch') {
+      if (target.id === active.id) return true
+      if (!editing.source) return false
+      // 格内输入在另一张表上没有对应位置；共用公式栏继续编辑同一份草稿。
+      set(editingDraftAtom, { draft: editing.draft, source: 'formula-bar' })
+      set(activateWorkbookSheetAtom, target)
+      set(formulaReferenceSessionBackingAtom, {
+        ...reference, sheetId: target.id, anchorCell: { row: 0, col: 0 },
+        pickAnchor: null, pickFocus: null, dragging: false,
+      })
+      set(sheetTabsAtom, {
+        ...get(sheetTabsAtom), rename: null, error: null, deleteConfirmation: null,
+      })
+      return true
+    }
+
     // 切换前沿用原提交命令；错误保留草稿，不让它写到下一个工作表。
     if (get(editingSessionAtom).source !== null) {
-      if ((await set(commitCellEditingAtom)) !== 'completed') return false
+      if ((await set(commitCellEditingAtom, { returnToSource: false })) !== 'completed') return false
       if (
         get(rustWorkbookConnectionAtom) !== connection ||
         get(activeWorkbookSheetAtom)?.id !== active.id

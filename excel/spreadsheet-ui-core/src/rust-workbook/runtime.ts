@@ -255,11 +255,14 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       command === 'clipboard.paste'
     ) {
       const { request, projection } = payload as RustWorkbookCommands[typeof command]['payload']
-      if (projection.sheetId !== request.sheetId) {
+      // 跨表公式编辑：写入原单元格，但返回正在浏览表的真实投影。
+      if (command !== 'cell.setInput' && projection.sheetId !== request.sheetId) {
         throw Object.assign(new Error('Mutation and projection must target the same sheet'), {
           code: 'PROJECTION_SHEET_MISMATCH',
         })
       }
+      // 先校验浏览表存在，不能写完才发现投影目标已失效。
+      const projectionSheet = sheetIndex(projection.sheetId)
       let affectedRange
       let colWidths
       if ('text' in request) {
@@ -302,7 +305,7 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
         ...(colWidths ? { colWidths } : {}),
         projection: readVisibleProjection(
           current,
-          sheetIndex(projection.sheetId),
+          projectionSheet,
           projection,
           revision,
         ),

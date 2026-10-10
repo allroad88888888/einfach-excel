@@ -11,7 +11,15 @@ import {
   formulaReferenceSessionAtom,
   setFormulaReferenceCaretAtom,
   shouldEnterFormulaReferenceMode,
+  parseFormulaReferences,
 } from '../formula-reference'
+import { moveFormulaReferenceAtom } from '../formula-reference/arrow-pick'
+import { toggleFormulaReferenceAtom } from '../formula-reference/toggle-reference'
+import {
+  formulaReferenceSessionBackingAtom,
+  formulaReferenceTextOnlyAtom,
+} from '../formula-reference/state'
+import type { KeyboardInput } from '../keyboard'
 import { editingDraftAtom, editingSessionAtom } from './session-atoms'
 import type { EditingDraftInput } from './types'
 import { activeEditingCommitTicketAtom } from './commit-state'
@@ -25,6 +33,7 @@ export const syncFormulaReferenceCaretAtom = atom(null, (get, set, caret: number
   const reference = get(formulaReferenceSessionAtom)
   if (reference && caret === (reference.tokenRange?.end ?? reference.insertionCaret)) return
   if (reference) set(exitFormulaReferenceAtom, 'type-after-pick')
+  if (get(formulaReferenceTextOnlyAtom)) return
   if (!shouldEnterFormulaReferenceMode(session.draft, caret)) return
   set(enterFormulaReferenceAtom, {
     anchorCell: session.source.cell,
@@ -97,6 +106,81 @@ export const dispatchFormulaSuggestionKeyAtom = atom(
       return caret === null ? { handled: false } : { handled: true, caret }
     } else return { handled: false }
     return { handled: true }
+  },
+)
+
+/** F2 只切换草稿的操作方式；已有引用从当前位置继续，选中文字可被新引用替换。 */
+const toggleFormulaInputModeAtom = atom(null, (get, set, range: { start: number; end: number }) => {
+  const editing = get(editingSessionAtom)
+  if (
+    !editing.source ||
+    !editing.draft.startsWith('=') ||
+    get(activeEditingCommitTicketAtom) !== null
+  )
+    return { handled: false }
+  if (
+    !Number.isInteger(range.start) ||
+    !Number.isInteger(range.end) ||
+    range.start < 1 ||
+    range.start > range.end ||
+    range.end > editing.draft.length
+  )
+    return { handled: false }
+  if (get(formulaReferenceSessionAtom)) {
+    set(formulaReferenceTextOnlyAtom, true)
+    set(exitFormulaReferenceAtom, 'type-after-pick')
+    return { handled: true }
+  }
+  const token = parseFormulaReferences(editing.draft, editing.source.sheetId).find(
+    (item) => !item.text.includes('!') && item.start <= range.start && range.end <= item.end,
+  )
+  const start = token?.start ?? range.start
+  const end = token?.end ?? range.end
+  set(formulaReferenceTextOnlyAtom, false)
+  set(enterFormulaReferenceAtom, {
+    anchorCell: editing.source.cell,
+    sheetId: editing.source.sheetId,
+    insertionCaret: start,
+    draft: editing.draft,
+  })
+  const reference = get(formulaReferenceSessionAtom)!
+  set(formulaReferenceSessionBackingAtom, {
+    ...reference,
+    tokenRange: start < end ? { start, end } : null,
+    pickAnchor: token ? { row: token.range.rowStart, col: token.range.colStart } : null,
+    pickFocus: token ? { row: token.range.rowEnd, col: token.range.colEnd } : null,
+  })
+  set(setFormulaReferenceCaretAtom, end)
+  return { handled: true, caret: end }
+})
+
+/** 两个输入入口共用优先级：补全列表 → 引用快捷键 → 浏览器文字光标/原提交命令。 */
+export const dispatchFormulaInputKeyAtom = atom(
+  null,
+  (
+    get,
+    set,
+    input: KeyboardInput & { start: number; end: number },
+  ): { handled: boolean; caret?: number } => {
+    if (
+      input.isComposing ||
+      input.altKey ||
+      input.ctrlKey ||
+      input.metaKey ||
+      get(activeEditingCommitTicketAtom) !== null
+    )
+      return { handled: false }
+    if (!input.shiftKey) {
+      const suggestion = set(dispatchFormulaSuggestionKeyAtom, input.key)
+      if (suggestion.handled) return suggestion
+    }
+    if (input.key === 'F2' && !input.shiftKey) return set(toggleFormulaInputModeAtom, input)
+    if (input.key === 'F4') {
+      const caret = set(toggleFormulaReferenceAtom, input)
+      return caret === null ? { handled: true } : { handled: true, caret }
+    }
+    const caret = set(moveFormulaReferenceAtom, input)
+    return caret === null ? { handled: false } : { handled: true, caret }
   },
 )
 

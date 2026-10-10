@@ -43,6 +43,8 @@ export interface FormulaReferencePickInput {
   sheetId: string
   /** True while a pointer drag is still in progress. */
   dragging: boolean
+  /** 键盘移动已有引用时保留 F4 设置的行列锁；重新点击默认选择新的相对引用。 */
+  preserveLocks?: boolean
 }
 
 export type FormulaReferenceExitReason =

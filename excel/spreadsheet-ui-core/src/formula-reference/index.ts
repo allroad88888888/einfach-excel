@@ -61,16 +61,22 @@ export function spliceDraft(
   return { draft: next, end: tokenRange.start + token.length }
 }
 
-const TRIGGER_CHARS = new Set(['=', '+', '-', '*', '/', '^', '&', '(', ',', '<', '>', '%'])
+const TRIGGER_CHARS = new Set(['=', '+', '-', '*', '/', '^', '&', '(', ',', '<', '>'])
 
 export function shouldEnterFormulaReferenceMode(draft: string, caret: number): boolean {
-  if (!draft.startsWith('=') || caret === 0) return false
-  // 双引号里的运算符只是文本；Excel 用两个双引号转义字符串内的引号。
-  let quoted = false
+  if (!draft.startsWith('=') || !Number.isInteger(caret) || caret <= 0 || caret > draft.length)
+    return false
+  // 文本/工作表名里的运算符不是引用入口；双写同类引号是转义。
+  let quoted: string | null = null
   for (let i = 0; i < caret; i++) {
-    if (draft[i] !== '"') continue
-    if (quoted && draft[i + 1] === '"') { i++; continue }
-    quoted = !quoted
+    if (quoted) {
+      if (draft[i] !== quoted) continue
+      if (draft[i + 1] === quoted && i + 1 < caret) {
+        i++
+        continue
+      }
+      quoted = null
+    } else if (draft[i] === '"' || draft[i] === "'") quoted = draft[i]
   }
   if (quoted) return false
 
@@ -158,14 +164,43 @@ enterFormulaReferenceAtom.debugLabel = 'spreadsheet.formulaReference.enter'
 
 export const pickFormulaReferenceAtom = atom(null, (get, set, input: FormulaReferencePickInput) => {
   const session = get(formulaReferenceSessionBackingAtom)
-  if (session === null || input.sheetId !== session.sheetId ||
-    get(activeEditingCommitTicketAtom) !== null || get(editingSessionAtom).status !== 'drafting') return
-  if ([input.pickAnchor, input.pickFocus].some(({ row, col }) =>
-    !Number.isSafeInteger(row) || !Number.isSafeInteger(col) || row < 0 || col < 0 ||
-    row >= 1_048_576 || col >= 16_384)) return
+  if (
+    session === null ||
+    input.sheetId !== session.sheetId ||
+    get(activeEditingCommitTicketAtom) !== null ||
+    get(editingSessionAtom).status !== 'drafting'
+  )
+    return
+  if (
+    [input.pickAnchor, input.pickFocus].some(
+      ({ row, col }) =>
+        !Number.isSafeInteger(row) ||
+        !Number.isSafeInteger(col) ||
+        row < 0 ||
+        col < 0 ||
+        row >= 1_048_576 ||
+        col >= 16_384,
+    )
+  )
+    return
 
-  const token = serializeRangeRef(input.pickAnchor, input.pickFocus)
   const currentDraft = get(editingSessionAtom).draft
+  let token = serializeRangeRef(input.pickAnchor, input.pickFocus)
+  if (input.preserveLocks && session.tokenRange) {
+    const previous = currentDraft.slice(session.tokenRange.start, session.tokenRange.end).split(':')
+    token = token
+      .split(':')
+      .map((part, index) => {
+        const locks = /^(\$?)[A-Z]+(\$?)\d+$/i.exec(previous[Math.min(index, previous.length - 1)])
+        return locks
+          ? part.replace(
+              /^([A-Z]+)(\d+)$/,
+              (_all, col: string, row: string) => `${locks[1]}${col}${locks[2]}${row}`,
+            )
+          : part
+      })
+      .join(':')
+  }
   const spliced = spliceDraft(currentDraft, session.tokenRange, session.insertionCaret, token)
 
   set(editingDraftAtom, { draft: spliced.draft })

@@ -6,10 +6,9 @@ import {
   formulaReferenceCaretAtom,
   editingDraftAtom,
   syncFormulaReferenceCaretAtom,
-  toggleFormulaReferenceAtom,
   formulaFunctionSuggestionsAtom,
   formulaFunctionSuggestionCursorAtom,
-  dispatchFormulaSuggestionKeyAtom,
+  dispatchFormulaInputKeyAtom,
   editingSessionAtom,
   formulaFunctionSignatureAtom,
 } from '@einfach/spreadsheet-ui-core'
@@ -24,7 +23,6 @@ export function useFormulaInput(
   const caret = useAtomValue(formulaReferenceCaretAtom)
   const draft = useAtomValue(editingDraftAtom)
   const syncCaret = useSetAtom(syncFormulaReferenceCaretAtom)
-  const toggle = useSetAtom(toggleFormulaReferenceAtom)
   const suggestions = useAtomValue(formulaFunctionSuggestionsAtom)
   const cursor = useAtomValue(formulaFunctionSuggestionCursorAtom)
   const session = useAtomValue(editingSessionAtom)
@@ -32,7 +30,7 @@ export function useFormulaInput(
   const active =
     session.status === 'drafting' &&
     (source === 'formula-bar') === (session.source?.source === 'formula-bar')
-  const dispatchSuggestionKey = useSetAtom(dispatchFormulaSuggestionKeyAtom)
+  const dispatchKey = useSetAtom(dispatchFormulaInputKeyAtom)
   useLayoutEffect(() => {
     const input = ref.current
     if (input && document.activeElement === input && reference?.tokenRange && caret >= 0)
@@ -47,38 +45,25 @@ export function useFormulaInput(
       if (input && document.activeElement === input) syncCaret(input.selectionStart)
     },
     onFormulaKey: (event: KeyboardEvent<HTMLTextAreaElement>) => {
-      if (
-        event.altKey ||
-        event.ctrlKey ||
-        event.metaKey ||
-        event.nativeEvent.isComposing ||
-        event.keyCode === 229
-      )
-        return false
-      if (
-        !event.shiftKey &&
-        ['ArrowUp', 'ArrowDown', 'Tab', 'Enter', 'Escape'].includes(event.key)
-      ) {
-        let result: { handled: boolean; caret?: number } = { handled: false }
-        flushSync(() => {
-          result = dispatchSuggestionKey(event.key)
-        })
-        if (result.handled) {
-          event.preventDefault()
-          if (result.caret !== undefined)
-            event.currentTarget.setSelectionRange(result.caret, result.caret)
-          return true
-        }
-      }
-      if (event.key !== 'F4') return false
-      event.preventDefault()
       const input = event.currentTarget
-      let end: number | null = null
+      let result: { handled: boolean; caret?: number } = { handled: false }
       flushSync(() => {
-        end = toggle({ start: input.selectionStart, end: input.selectionEnd })
+        result = dispatchKey({
+          key: event.key,
+          shiftKey: event.shiftKey,
+          ctrlKey: event.ctrlKey,
+          metaKey: event.metaKey,
+          altKey: event.altKey,
+          isComposing: event.nativeEvent.isComposing || event.keyCode === 229,
+          start: input.selectionStart,
+          end: input.selectionEnd,
+        })
       })
-      if (end !== null) input.setSelectionRange(end, end)
-      return true
+      if (result.handled) {
+        event.preventDefault()
+        if (result.caret !== undefined) input.setSelectionRange(result.caret, result.caret)
+      }
+      return result.handled
     },
   }
 }

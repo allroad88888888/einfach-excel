@@ -1,4 +1,4 @@
-/* 状态栏沿用现有字体与颜色；统计单行滚动，等待态不能移动正在点击的单元格。 */
+/* 状态栏沿用现有字体与颜色；统计区预留固定高度，等待态不能移动正在点击的单元格。 */
 .workbook-footer {
   flex-wrap: wrap;
 }
@@ -119,5 +119,19 @@
   }
   .selection-status {
     flex: 1;
+  }
+}
+
+/* 窄屏默认六项全部展开；即使只显示等待文字，也保留三行，避免双击目标跳动。
+   极长数值仍可横向滚动读取，不缩小字体，也不改 Rust 返回的值。 */
+@media (max-width: 760px) {
+  .selection-statistics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(max-content, 1fr));
+    grid-template-rows: repeat(3, 18px);
+    height: 74px;
+  }
+  .selection-statistics > span {
+    grid-column: 1 / -1;
   }
 }

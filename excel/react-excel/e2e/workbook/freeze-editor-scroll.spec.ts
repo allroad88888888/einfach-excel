@@ -1,31 +1,43 @@
 import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
 
-test('a rejected fixed-cell edit keeps its feedback visible outside the cell', async ({ page }) => {
-  await page.goto('/')
-  await select(page, 'B3', '2:1')
-  await page.getByRole('combobox', { name: 'Freeze panes' }).selectOption('selection')
-  await (await select(page, 'A2', '1:0')).dblclick()
-  const editor = page.getByRole('textbox', { name: 'Cell editor', exact: true })
-  await editor.fill('=SUM(')
-  await editor.press('Enter')
-  const error = page.getByRole('alert')
-  await expect(error).toHaveText('That edit was not saved.')
-  const editorBox = (await editor.boundingBox())!
-  const errorBox = (await error.boundingBox())!
-  expect(errorBox.y).toBeGreaterThanOrEqual(editorBox.y + editorBox.height)
-  expect(
-    await error.evaluate((node) => {
-      const rect = node.getBoundingClientRect()
-      return node.contains(
-        document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2),
-      )
-    }),
-  ).toBe(true)
-  await expect(editor).toBeFocused()
-  await editor.press('Escape')
-  await expect(error).toHaveCount(0)
-})
+for (const width of [1280, 390]) {
+  test(`a rejected fixed-cell edit keeps its feedback visible outside the cell at ${width}px`, async ({
+    page,
+  }, info) => {
+    await page.setViewportSize({ width, height: 800 })
+    await page.goto('/')
+    await select(page, 'B3', '2:1')
+    await page.getByRole('combobox', { name: 'Freeze panes' }).selectOption('selection')
+    await (await select(page, 'A2', '1:0')).dblclick()
+    const editor = page.getByRole('textbox', { name: 'Cell editor', exact: true })
+    await editor.fill('=SUM(')
+    await editor.press('Enter')
+    const error = page.getByRole('alert')
+    await expect(error).toHaveText('That edit was not saved.')
+    await expect(editor).toHaveAccessibleDescription('That edit was not saved.')
+    await expect(editor).toHaveAttribute('aria-invalid', 'true')
+    const signature = page.getByLabel('Formula arguments')
+    await expect(signature).toContainText('SUM(')
+    const editorBox = (await editor.boundingBox())!
+    const errorBox = (await error.boundingBox())!
+    expect(errorBox.y).toBeGreaterThanOrEqual(editorBox.y + editorBox.height)
+    expect(
+      await error.evaluate((node) => {
+        const rect = node.getBoundingClientRect()
+        return node.contains(
+          document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2),
+        )
+      }),
+    ).toBe(true)
+    const signatureBox = (await signature.boundingBox())!
+    expect(signatureBox.y).toBeGreaterThanOrEqual(errorBox.y + errorBox.height)
+    await page.screenshot({ path: info.outputPath(`formula-error-${width}.png`) })
+    await expect(editor).toBeFocused()
+    await editor.press('Escape')
+    await expect(error).toHaveCount(0)
+  })
+}
 
 for (const frozen of [false, true]) {
   for (const axis of ['row', 'column'] as const) {

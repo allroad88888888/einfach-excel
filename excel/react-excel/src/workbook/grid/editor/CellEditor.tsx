@@ -15,6 +15,7 @@ import {
   projectionSnapshotAtom,
   viewportMetricsAtom,
   viewportGeometrySizesAtom,
+  type EditorKeyboardOutcome,
 } from '@einfach/spreadsheet-ui-core'
 import type { CSSProperties, FocusEvent, KeyboardEvent, PointerEvent } from 'react'
 import { useEffect, useRef } from 'react'
@@ -96,13 +97,20 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
   const frozenRow = freeze?.sheetId === sheetId && cell.row < freeze.rows
   const frozenCol = freeze?.sheetId === sheetId && cell.col < freeze.cols
 
+  const restoreFocus = (outcome: EditorKeyboardOutcome) => {
+    // 原输入框卸载/禁用会把焦点交给 body；用户已进入其它控件时，旧请求不能抢回焦点。
+    if (document.activeElement !== document.body && document.activeElement !== inputRef.current)
+      return
+    if (outcome === 'completed' || outcome === 'cancelled') focusGrid()
+    if (outcome === 'rejected') inputRef.current?.focus({ preventScroll: true })
+  }
+
   const commitOnce = async (restoreKeyboardFocus: boolean) => {
     if (committingRef.current || busy) return
     committingRef.current = true
     try {
       const outcome = await commitEditing()
-      if (restoreKeyboardFocus && outcome === 'completed') focusGrid()
-      if (restoreKeyboardFocus && outcome === 'rejected') inputRef.current?.focus()
+      if (restoreKeyboardFocus) restoreFocus(outcome)
     } finally {
       committingRef.current = false
     }
@@ -119,8 +127,7 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
         altKey: event.altKey,
         isComposing: event.nativeEvent.isComposing,
       })
-      if (outcome === 'completed' || outcome === 'cancelled') focusGrid()
-      if (outcome === 'rejected') inputRef.current?.focus()
+      restoreFocus(outcome)
     } finally {
       committingRef.current = false
     }
@@ -195,12 +202,14 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
         aria-autocomplete="list"
         aria-controls={formulaInput.activeOption ? formulaInput.listId : undefined}
         aria-activedescendant={formulaInput.activeOption}
-        aria-describedby={formulaInput.signatureId}
+        aria-invalid={feedback ? true : undefined}
+        aria-describedby={feedback ? `${fieldIdentity}-feedback` : formulaInput.signatureId}
         disabled={busy}
         id={fieldIdentity}
         name={fieldIdentity}
-        onChange={(event) => setDraft({ draft: event.currentTarget.value,
-          caret: event.currentTarget.selectionStart })}
+        onChange={(event) =>
+          setDraft({ draft: event.currentTarget.value, caret: event.currentTarget.selectionStart })
+        }
         onSelect={formulaInput.onSelect}
         onKeyDown={onKeyDown}
         value={draft}
@@ -208,7 +217,7 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
       />
       <FormulaAssist inputRef={inputRef} id={formulaInput.listId} source="cell" />
       {feedback && (
-        <div className="cell-editor-feedback" role="alert">
+        <div className="cell-editor-feedback" id={`${fieldIdentity}-feedback`} role="alert">
           <span>{feedback.message}</span>
         </div>
       )}

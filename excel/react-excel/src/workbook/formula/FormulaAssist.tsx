@@ -3,6 +3,7 @@ import { useLayoutEffect, useRef, type RefObject } from 'react'
 import { createPortal, flushSync } from 'react-dom'
 import {
   editingSessionAtom,
+  editingCommitLifecycleAtom,
   formulaFunctionSuggestionsAtom,
   formulaFunctionSuggestionCursorAtom,
   formulaFunctionSignatureAtom,
@@ -22,6 +23,7 @@ export function FormulaAssist({
   source: 'cell' | 'formula-bar'
 }) {
   const session = useAtomValue(editingSessionAtom)
+  const lifecycle = useAtomValue(editingCommitLifecycleAtom)
   const suggestions = useAtomValue(formulaFunctionSuggestionsAtom)
   const cursor = useAtomValue(formulaFunctionSuggestionCursorAtom)
   const signature = useAtomValue(formulaFunctionSignatureAtom)
@@ -44,7 +46,9 @@ export function FormulaAssist({
       popup.style.visibility = rect.bottom <= 0 || rect.top >= height ||
         rect.right <= 0 || rect.left >= width ? 'hidden' : 'visible'
       popup.style.left = `${Math.max(8, Math.min(rect.left, width - popup.offsetWidth - 8))}px`
-      const below = rect.bottom + 4
+      // 格内提交错误占用输入框下方；参数帮助接在错误之后，不盖住失败原因。
+      const feedback = input.closest('[data-cell-editor]')?.querySelector('[role="alert"]')
+      const below = Math.max(rect.bottom, feedback?.getBoundingClientRect().bottom ?? 0) + 4
       popup.style.top = `${Math.max(
         8,
         below + popup.offsetHeight <= height - 8 ? below : rect.top - popup.offsetHeight - 4,
@@ -61,7 +65,7 @@ export function FormulaAssist({
       window.removeEventListener('resize', position)
       window.removeEventListener('scroll', position, true)
     }
-  }, [visible, inputRef, suggestions, signature, cursor])
+  }, [visible, inputRef, suggestions, signature, cursor, lifecycle])
 
   if (!visible) return null
   const acceptName = (name: string) => {

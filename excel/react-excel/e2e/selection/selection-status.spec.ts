@@ -119,3 +119,30 @@ for (const width of [1440, 1280, 390]) {
     expect(errors).toEqual([])
   })
 }
+
+test('narrow statistics reserve their height while the real Worker result is pending', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 800 })
+  await page.addInitScript(() => {
+    // 只延迟原生统计请求，不伪造结果；稳定覆盖等待态与真实六项数值之间的布局切换。
+    const post = Worker.prototype.postMessage
+    const pending: Array<() => void> = []
+    Object.defineProperty(window, 'releaseStatistics', {
+      value: () => pending.splice(0).forEach((send) => send()),
+    })
+    Worker.prototype.postMessage = function (message: { command?: string }, options?: Transferable[] | StructuredSerializeOptions) {
+      const send = () => post.call(this, message, Array.isArray(options) ? { transfer: options } : options ?? {})
+      if (message.command === 'selection.aggregate') pending.push(send)
+      else send()
+    }
+  })
+  await summary(page)
+  await expect(status(page)).toContainText('Calculating selection')
+  const grid = page.getByTestId('sheet-scroll')
+  const before = (await grid.boundingBox())!
+  await page.evaluate(() => Reflect.get(window, 'releaseStatistics')())
+  await stats(page, 4, '26', '6.5')
+  expect((await grid.boundingBox())!.height).toBe(before.height)
+  for (const button of await status(page).getByRole('button').all()) {
+    await expect(button).toBeInViewport()
+  }
+})

@@ -41,8 +41,11 @@ impl Workbook {
         }
         if snapshot.cut {
             // 剪切后新应用的筛选也不能让粘贴暗中删除不可见源行。
-            if sheet.filter_hidden_set().is_some_and(|rows|
-                rows.range(snapshot.source.start.row..=snapshot.source.end.row).next().is_some()) {
+            if sheet.filter_hidden_set().is_some_and(|rows| {
+                rows.range(snapshot.source.start.row..=snapshot.source.end.row)
+                    .next()
+                    .is_some()
+            }) {
                 return Err("CLIPBOARD_FILTERED_CUT");
             }
             if snapshot.source_sheet != Some(sheet_idx) {
@@ -70,6 +73,21 @@ impl Workbook {
             logical_target.is_some(),
         )?;
         let planned = paste_values::plan_cells(self, snapshot, sheet_idx, range, options, &merges)?;
+        let sheet = self.sheet(sheet_idx).unwrap();
+        let cleared = snapshot
+            .source
+            .iter()
+            .take(if snapshot.cut {
+                snapshot.source.cell_count() as usize
+            } else {
+                0
+            })
+            .map(|addr| (addr, crate::CellBorders::default()));
+        let replaced = planned
+            .iter()
+            .filter_map(|(addr, _, format)| Some((*addr, format.as_ref()?.borders.clone()?)));
+        let borders = sheet
+            .plan_replacement_borders(cleared.chain(replaced), &merges.resulting_ranges(sheet));
         let dependents = if snapshot.cut {
             move_refs::dependent_writes(self, sheet_idx, snapshot.source, range)?
         } else {
@@ -77,6 +95,17 @@ impl Workbook {
         };
 
         if let Some(history) = history.as_deref_mut() {
+            let mut targets = history_targets::targets(
+                snapshot,
+                range,
+                sheet_idx,
+                options,
+                planned.iter().map(|(addr, _, _)| *addr),
+                &dependents,
+            );
+            if let Some(affected) = crate::sheet::border_plan_range(&borders) {
+                targets.push((sheet_idx, affected, false));
+            }
             history.begin_ranges(
                 self,
                 sheet_idx,
@@ -86,14 +115,7 @@ impl Workbook {
                 } else {
                     options.arithmetic.history_label()
                 },
-                &history_targets::targets(
-                    snapshot,
-                    range,
-                    sheet_idx,
-                    options,
-                    planned.iter().map(|(addr, _, _)| *addr),
-                    &dependents,
-                ),
+                &targets,
                 merges.changed(),
             )?;
         }
@@ -106,6 +128,7 @@ impl Workbook {
             planned,
             &dependents,
             &merges,
+            borders,
         );
         if let Some(history) = history {
             history.finish(self, true)?;

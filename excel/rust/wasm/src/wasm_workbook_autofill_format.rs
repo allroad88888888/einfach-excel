@@ -93,11 +93,9 @@ impl WasmWorkbook {
             CellAddress::new(start_row, start_col),
             CellAddress::new(end_row, end_col),
         );
-        let sheet = self
-            .workbook
-            .sheet_mut(sheet_idx as usize)
-            .ok_or_else(|| JsValue::from_str(&format!("invalid sheet index: {sheet_idx}")))?;
-        Ok(sheet.patch_format_range(range, style_scope(scope)?, parsed.into_style()) as u32)
+        self.history.patch_format_range(
+            &mut self.workbook, sheet_idx as usize, range, style_scope(scope)?, parsed.into_style(),
+        ).map(|count| count as u32).map_err(JsValue::from_str)
     }
 
     /// Snapshot sparse formatting metadata for a workbook sheet. The

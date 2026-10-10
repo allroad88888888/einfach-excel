@@ -36,7 +36,7 @@ export function writeTrackedMutation(
   const content = clearing && request.mode !== 'formats'
   const range = historyFormatRange(
     request.range,
-    (clearing ? request.mode === 'contents' : !!request.borderPatch) ? 'cell' : (request.scope ?? 'cell'),
+    clearing && request.mode === 'contents' ? 'cell' : (request.scope ?? 'cell'),
   )
   withHistory(
     workbook,

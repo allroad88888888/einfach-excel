@@ -10,6 +10,7 @@ pub(super) fn apply_paste(
     planned: Vec<paste_values::PlannedCell>,
     dependents: &[(usize, CellAddress, String)],
     merges: &merge::MergePastePlan,
+    borders: crate::sheet::BorderPlan,
 ) {
     let indices: std::collections::BTreeSet<_> = std::iter::once(sheet_idx)
         .chain(dependents.iter().map(|(sheet, _, _)| *sheet))
@@ -72,6 +73,7 @@ pub(super) fn apply_paste(
                 sheet.patch_format_range(CellRange::single(addr), StyleScope::Cell, format);
             }
         }
+        sheet.apply_border_plan(borders);
         if merges.changed() {
             sheet.project_bulk_spill_anchors(anchors);
         }

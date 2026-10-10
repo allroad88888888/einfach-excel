@@ -107,7 +107,13 @@ export const SALES_ORDER_SUMMARY_CELLS: readonly RustImportCell[] = [
     col: 0,
     kind: 'text',
     value: 'Merged heading',
-    format: { bold: true, align: 'center', bgColor: '#e9edff' },
+    format: { bold: true, align: 'center', bgColor: '#e9edff',
+      borders: { bottom: { style: 'thick', color: '#c00000' } },
+    },
+  },
+  // 合并格 A15:D15 的 C15 底边单独为蓝色，空白覆盖格只存原生样式。
+  { sheet: 1, row: 14, col: 2, kind: 'null',
+    format: { borders: { bottom: { style: 'thin', color: '#123abc' } } },
   },
   {
     sheet: 1,

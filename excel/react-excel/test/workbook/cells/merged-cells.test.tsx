@@ -18,10 +18,11 @@ import { expect, test } from 'vitest'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
 import { MergedCells } from '../../../src/workbook/grid/cells/MergedCells'
 
-async function setup() {
+async function setup(bordered = false) {
   const request = (async (_command: string, input: { request: VisibleProjectionRequest }) => ({
     ...input.request,
-    cells: [],
+    cells: bordered ? [{ row: 2, col: 3, displayValue: '',
+      format: { borders: { right: { style: 'thin', color: '#123abc' } } } }] : [],
     mergedRanges: [{ rowStart: 1, rowEnd: 3, colStart: 1, colEnd: 3 }],
     mergeAnchors: [
       {
@@ -29,7 +30,12 @@ async function setup() {
         col: 1,
         displayValue: 'Offscreen anchor',
         mergedSpan: { rows: 3, cols: 3 },
-        format: { bold: true, align: 'center', verticalAlign: 'center' },
+        format: { bold: true, align: 'center', verticalAlign: 'center',
+          ...(bordered ? { borders: {
+            right: { style: 'thick', color: '#c00000' },
+            bottom: { style: 'thick', color: '#c00000' },
+          } } : {}),
+        },
       },
     ],
   })) as RustWorkbookConnection['request']
@@ -107,4 +113,21 @@ test('a projection from another sheet cannot render over the active sheet', asyn
     store.setter(setViewportMetricsAtom, { ...store.getter(viewportMetricsAtom), sheetId: 'other' })
   })
   expect(screen.queryByRole('gridcell')).toBeNull()
+})
+
+test('offscreen merge paints only visible perimeter segments and leaves the text intact', async () => {
+  await setup(true)
+  const merged = screen.getByRole('gridcell')
+  const segment = (side: string, coord: string) =>
+    merged.querySelector(`[data-merged-border="${side}"][data-border-cell="${coord}"]`)
+  expect(merged).toHaveTextContent('Offscreen anchor')
+  expect(merged).toHaveStyle({ borderWidth: '0px' })
+  expect(segment('right', '2:3')).toHaveStyle({
+    borderRightWidth: '1px', borderRightColor: '#123abc', left: '250px', top: '40px',
+  })
+  expect(segment('right', '3:3')).toHaveStyle({ borderRightWidth: '3px', borderRightColor: '#c00000' })
+  expect(segment('bottom', '3:2')).toHaveStyle({ borderBottomWidth: '3px' })
+  expect(merged.querySelectorAll('[data-merged-border]')).toHaveLength(4)
+  expect(merged.querySelector('[data-merged-border="top"]')).toBeNull()
+  expect(merged.querySelector('[data-merged-border="left"]')).toBeNull()
 })

@@ -98,8 +98,17 @@ test('copy of an interior cell retains four native sides, not just its two rende
   await select(page, 'G15', '14:6'); await paste(page)
   for (const side of ['top', 'right', 'bottom', 'left']) {
     await expect(cell(page, '14:6')).toHaveCSS(`border-${side}-color`, 'rgb(18, 58, 188)')
-    await expect(cell(page, '14:6')).toHaveCSS(`border-${side}-width`, '1px')
   }
+  // 上／左边可能由邻格绘制；复制后四条可见边仍完整且只绘制一次。
+  await select(page, 'A1', '0:0')
+  for (const [coord, side] of [
+    ['13:6', 'bottom'], ['14:5', 'right'], ['14:6', 'right'], ['14:6', 'bottom'],
+  ]) {
+    await expect(cell(page, coord)).toHaveCSS(`border-${side}-color`, 'rgb(18, 58, 188)')
+    await expect(cell(page, coord)).toHaveCSS(`border-${side}-width`, '1px')
+  }
+  await expect(cell(page, '14:6')).toHaveCSS('border-top-width', '0px')
+  await expect(cell(page, '14:6')).toHaveCSS('border-left-width', '0px')
 })
 
 test('native border seed styles reopen correctly and clearing does not clear values', async ({ page }) => {
@@ -117,6 +126,9 @@ test('native border seed styles reopen correctly and clearing does not clear val
     await apply(page)
     await expect(cell(page, coord!)).toHaveText(before!)
     await expect(cell(page, coord!)).not.toHaveCSS(`border-${side}-style`, style!)
+    // 清除 B7 也会清除 B8 的共边；恢复历史后再检查下一条原始种子。
+    await page.getByRole('button', { name: 'Undo', exact: true }).click()
+    await expect(cell(page, coord!)).toHaveCSS(`border-${side}-style`, style!)
   }
 })
 
@@ -128,10 +140,15 @@ test('merged cell outside uses the full merged rectangle', async ({ page }) => {
   await expect(merged).toBeVisible()
   await open(page, 'outside', 'double'); await apply(page)
   for (const side of ['top', 'right', 'bottom', 'left']) {
-    await expect(merged).toHaveCSS(`border-${side}-style`, 'double')
+    const segments = merged.locator(`[data-merged-border="${side}"]`)
+    await expect(segments).toHaveCount(2)
+    for (const segment of await segments.all()) {
+      await expect(segment).toHaveCSS(`border-${side}-style`, 'double')
+    }
   }
   await page.getByRole('button', { name: 'Undo', exact: true }).click()
-  await expect(merged).not.toHaveCSS('border-top-style', 'double')
+  await expect(merged.locator('[data-merged-border="top"]').first())
+    .not.toHaveCSS('border-top-style', 'double')
 })
 
 test('frozen cells and the last offscreen cell retain borders after scrolling', async ({ page }) => {
@@ -143,8 +160,11 @@ test('frozen cells and the last offscreen cell retain borders after scrolling', 
   await open(page, 'right', 'double', '#c00000'); await apply(page)
   await expect(cell(page, '1000:15')).toHaveCSS('border-right-width', '3px')
   const fixed = page.locator('[data-frozen-pane="corner"] td[data-cell="1:0"]')
-  await expect(fixed).toHaveCSS('border-top-width', '3px')
+  await expect(fixed).toHaveCSS('border-top-width', '0px')
   await expect(fixed).toHaveCSS('border-top-color', 'rgb(18, 58, 188)')
+  const fixedAbove = page.locator('[data-frozen-pane="corner"] td[data-cell="0:0"]')
+  await expect(fixedAbove).toHaveCSS('border-bottom-width', '3px')
+  await expect(fixedAbove).toHaveCSS('border-bottom-color', 'rgb(18, 58, 188)')
   await select(page, 'C4', '3:2')
   await select(page, 'P1001', '1000:15')
   await expect(cell(page, '1000:15')).toHaveCSS('border-right-style', 'double')

@@ -139,6 +139,11 @@ impl MergePastePlan {
         !self.remove.is_empty() || !self.insert.is_empty()
     }
 
+    pub fn resulting_ranges(&self, sheet: &crate::Sheet) -> Vec<CellRange> {
+        sheet.merged_ranges().iter().filter(|range| !self.remove.contains(range))
+            .chain(self.insert.iter()).copied().collect()
+    }
+
     pub fn covered(&self, sheet: &crate::Sheet, addr: CellAddress) -> bool {
         self.insert
             .iter()

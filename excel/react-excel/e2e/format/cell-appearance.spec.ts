@@ -78,10 +78,14 @@ test('Borders toggles thin borders through Rust', async ({ page }) => {
 
   await button.click()
   await expect(cell).toHaveCSS('border-top-style', 'solid')
-  await expect(cell).toHaveCSS('border-top-width', '1px')
+  await expect(cell).toHaveCSS('border-top-width', '0px')
   await expect(cell).toHaveCSS('border-top-color', 'rgb(127, 127, 127)')
+  const above = page.locator('td[data-cell="1:0"]')
+  await expect(above).toHaveCSS('border-bottom-width', '1px')
+  await expect(above).toHaveCSS('border-bottom-color', 'rgb(127, 127, 127)')
   await button.click()
   await expect(cell).toHaveCSS('border-top-style', 'none')
+  await expect(above).not.toHaveCSS('border-bottom-color', 'rgb(127, 127, 127)')
 })
 
 test('shows the second format batch in the original Rust seed', async ({ page }) => {

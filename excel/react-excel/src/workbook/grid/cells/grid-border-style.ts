@@ -54,10 +54,30 @@ export function createGridBorderStyles({
     ? after(freeze.rows, ownProjection.window.rowEnd, hiddenRows) : undefined
   const bodyCol = freeze && ownProjection
     ? after(freeze.cols, ownProjection.window.colEnd, hiddenCols) : undefined
-  const format = (row: number | undefined, col: number | undefined) =>
-    row === undefined || col === undefined ? undefined : all.get(`${row}:${col}`)
+  const anchors = new Map([
+    ...ownProjection?.mergeAnchors ?? [],
+    ...ownProjection?.frozen?.regions.flatMap((region) => region.mergeAnchors ?? []) ?? [],
+  ].map((cell) => [`${cell.row}:${cell.col}`, cell.format]))
+  const format = (
+    row: number | undefined, col: number | undefined, current?: SpreadsheetCellFormat,
+  ): SpreadsheetCellFormat | undefined => {
+    if (row === undefined || col === undefined) return undefined
+    const raw = current ?? all.get(`${row}:${col}`)
+    const merge = ownProjection?.mergedRanges?.find((m) =>
+      row >= m.rowStart && row <= m.rowEnd && col >= m.colStart && col <= m.colEnd)
+    if (!merge) return raw
+    const anchor = anchors.get(`${merge.rowStart}:${merge.colStart}`)?.borders
+    // 锚点是旧合并格式的默认值；原生边段（包括显式 none）优先，不把内侧画成外沿。
+    return { ...raw, borders: {
+      top: row === merge.rowStart ? raw?.borders?.top ?? anchor?.top : undefined,
+      bottom: row === merge.rowEnd ? raw?.borders?.bottom ?? anchor?.bottom : undefined,
+      left: col === merge.colStart ? raw?.borders?.left ?? anchor?.left : undefined,
+      right: col === merge.colEnd ? raw?.borders?.right ?? anchor?.right : undefined,
+    } }
+  }
 
   return (row: number, col: number, current?: SpreadsheetCellFormat): CSSProperties => {
+    current = format(row, col, current)
     const ri = rowPosition.get(row)!, ci = colPosition.get(col)!
     const top = rows[ri - 1] ?? (scrollTop === 0 && row === bodyRow ? frozenRow : undefined)
     const left = cols[ci - 1] ?? (scrollLeft === 0 && col === bodyCol ? frozenCol : undefined)

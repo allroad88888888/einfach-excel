@@ -9,6 +9,7 @@ import {
   type DisplayCell,
 } from '@einfach/spreadsheet-ui-core'
 import { cellFormatStyle, cellTextRotationStyle } from './cell-format-style'
+import { MergedCellBorders } from './MergedCellBorders'
 import './merged-cells.css'
 
 /** 叠加完整合并框并裁到可见窗口，滚动不改变文本在原矩形里的位置。 */
@@ -51,7 +52,8 @@ export function MergedCells({ window, anchors }: {
             aria-selected={selected}
             className="cell merged-cell"
             style={{
-              ...cellFormatStyle(cell.format, cell.valueKind),
+              ...cellFormatStyle({ ...cell.format, borders: undefined }, cell.valueKind),
+              border: 0,
               top: rect.top - origin.top,
               left: rect.left - origin.left,
               width: rect.width,
@@ -64,6 +66,7 @@ export function MergedCells({ window, anchors }: {
                     : 'flex-end',
             }}
           >
+            <MergedCellBorders range={range} window={window ?? result.window} />
             <span className="cell-content">
               <span style={cellTextRotationStyle(cell.format)}>{cell.displayValue}</span>
             </span>

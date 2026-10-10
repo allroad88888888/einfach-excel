@@ -1,5 +1,5 @@
 import {
-  SELECTION_ALL_BORDERS,
+  SELECTION_BORDER_COLOR,
   SELECTION_FILL_COLOR,
   SELECTION_TEXT_COLOR,
 } from '@einfach/spreadsheet-ui-core'
@@ -47,6 +47,9 @@ describe('Workbook ribbon cell appearance', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Borders' }))
     await waitFor(() => expect(writes).toHaveLength(3))
-    expect(writes[2]?.format).toEqual({ borders: SELECTION_ALL_BORDERS })
+    expect(writes[2]?.format).toEqual({})
+    expect(writes[2]?.borderPatch).toEqual({
+      preset: 'all', style: 'thin', color: SELECTION_BORDER_COLOR,
+    })
   })
 })

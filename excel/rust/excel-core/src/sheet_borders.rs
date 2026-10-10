@@ -123,13 +123,55 @@ impl Sheet {
         Ok(writes)
     }
 
-    fn plan_border_side(
+    pub(super) fn plan_border_side(
         &self,
         writes: &mut BorderPlan,
         addr: CellAddress,
         side: usize,
         border: &BorderSpec,
     ) {
+        let merged = self.merged_range_at(addr);
+        let fallback = merged.map(|merge| self.base_format_at(merge.start).borders);
+        // 旧合并格式可能只存在锚点。改变首段前固定其它段的旧值，避免把首段新色
+        // 当成整边的新默认值；只枚举这一条外沿，不展开合并内部或扫描工作表。
+        if let Some(merge) = merged.filter(|merge| merge.start == addr && (side == 0 || side == 3))
+        {
+            let anchor = writes
+                .get(&addr)
+                .cloned()
+                .unwrap_or_else(|| self.base_format_at(addr).borders);
+            let old = border_side(&anchor, side).cloned().unwrap_or_default();
+            if old != *border {
+                let end = if side == 0 {
+                    merge.end.col
+                } else {
+                    merge.end.row
+                };
+                let start = if side == 0 {
+                    merge.start.col
+                } else {
+                    merge.start.row
+                };
+                for index in start + 1..=end {
+                    let edge = if side == 0 {
+                        CellAddress::new(addr.row, index)
+                    } else {
+                        CellAddress::new(index, addr.col)
+                    };
+                    let borders = writes
+                        .entry(edge)
+                        .or_insert_with(|| self.base_format_at(edge).borders);
+                    let target = if side == 0 {
+                        &mut borders.top
+                    } else {
+                        &mut borders.left
+                    };
+                    if target.is_none() {
+                        *target = Some(old.clone());
+                    }
+                }
+            }
+        }
         let borders = writes
             .entry(addr)
             .or_insert_with(|| self.base_format_at(addr).borders);
@@ -141,7 +183,10 @@ impl Sheet {
         };
         // 明确 none 可表达合并边段的清除，但空白格不因重复清除制造历史。
         if border.style == BorderStyle::None
-            && target.as_ref().is_none_or(|b| b.style == BorderStyle::None)
+            && target
+                .as_ref()
+                .or_else(|| fallback.as_ref().and_then(|b| border_side(b, side)))
+                .is_none_or(|b| b.style == BorderStyle::None)
         {
             return;
         }
@@ -149,6 +194,9 @@ impl Sheet {
     }
 
     pub(crate) fn apply_border_plan(&mut self, writes: BorderPlan) -> usize {
+        if writes.is_empty() {
+            return 0;
+        }
         for (addr, borders) in &writes {
             self.cell_styles.entry(*addr).or_default().borders = Some(borders.clone());
         }
@@ -156,7 +204,16 @@ impl Sheet {
     }
 }
 
-fn adjacent(addr: CellAddress, side: usize) -> Option<CellAddress> {
+pub(super) fn border_side(borders: &CellBorders, side: usize) -> Option<&BorderSpec> {
+    match side {
+        0 => borders.top.as_ref(),
+        1 => borders.right.as_ref(),
+        2 => borders.bottom.as_ref(),
+        _ => borders.left.as_ref(),
+    }
+}
+
+pub(super) fn adjacent(addr: CellAddress, side: usize) -> Option<CellAddress> {
     match side {
         0 => addr
             .row
@@ -169,4 +226,16 @@ fn adjacent(addr: CellAddress, side: usize) -> Option<CellAddress> {
             .checked_sub(1)
             .map(|col| CellAddress::new(addr.row, col)),
     }
+}
+
+/// 历史只扩大到本次实际改动的样式地址，不把它作为用户的新选区。
+pub(crate) fn border_plan_range(writes: &BorderPlan) -> Option<CellRange> {
+    writes.keys().fold(None, |range, addr| {
+        let mut range = range.unwrap_or(CellRange::single(*addr));
+        range.start.row = range.start.row.min(addr.row);
+        range.start.col = range.start.col.min(addr.col);
+        range.end.row = range.end.row.max(addr.row);
+        range.end.col = range.end.col.max(addr.col);
+        Some(range)
+    })
 }

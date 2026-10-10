@@ -102,20 +102,6 @@ function applyBorderStyle(
   }
 }
 
-/** 相邻格同一条边只画一次；不改原生每格可独立复制的四边数据。 */
-export function cellBorderEdgeStyle(
-  format: SpreadsheetCellFormat | undefined,
-  above: SpreadsheetCellFormat | undefined,
-  left: SpreadsheetCellFormat | undefined,
-): CSSProperties {
-  const same = (a?: SpreadsheetBorderSpec, b?: SpreadsheetBorderSpec) =>
-    a && b && a.style !== 'none' && a.style === b.style && a.color === b.color
-  return {
-    ...(same(format?.borders?.top, above?.borders?.bottom) ? { borderTopWidth: '0px' } : {}),
-    ...(same(format?.borders?.left, left?.borders?.right) ? { borderLeftWidth: '0px' } : {}),
-  }
-}
-
 /** Maps spreadsheet cell formats to safe React style properties. */
 export function cellFormatStyle(
   format: SpreadsheetCellFormat | undefined,

@@ -1,5 +1,5 @@
 import { atom } from '@einfach/core'
-import type { SpreadsheetBorders, SpreadsheetCellFormat } from '../backend'
+import type { RangeBorderPatch, SpreadsheetBorders, SpreadsheetCellFormat } from '../backend'
 import { activeCellFormatAtom, projectionSnapshotAtom } from '../projection'
 import {
   runSelectionMutationAtom,
@@ -65,6 +65,7 @@ function nextPatch(
 ): {
   format: SpreadsheetCellFormat
   clearFormatFields?: readonly (keyof SpreadsheetCellFormat)[]
+  borderPatch?: RangeBorderPatch
 } | null {
   if (typeof action !== 'string') {
     if (action.type === 'horizontal-alignment') {
@@ -122,9 +123,13 @@ function nextPatch(
       const border = current.borders?.[side]
       return border?.style === 'thin' && border.color === SELECTION_BORDER_COLOR
     })
-    return enabled
-      ? { format: {}, clearFormatFields: ['borders'] }
-      : { format: { borders: SELECTION_ALL_BORDERS } }
+    // 快捷按钮与设置面板共用原生共边命令，邻格同步及撤销均由 Rust 决定。
+    return {
+      format: {},
+      borderPatch: {
+        preset: enabled ? 'none' : 'all', style: 'thin', color: SELECTION_BORDER_COLOR,
+      },
+    }
   }
   if (action === 'increase-indent') {
     return { format: { indent: Math.min((current.indent ?? 0) + 1, 15) } }

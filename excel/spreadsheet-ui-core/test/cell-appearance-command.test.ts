@@ -5,6 +5,7 @@ import {
   runVisibleProjectionAtom,
   selectCellAtom,
   SELECTION_ALL_BORDERS,
+  SELECTION_BORDER_COLOR,
   SELECTION_FILL_COLOR,
   SELECTION_TEXT_COLOR,
   type SetFormatRangeRequest,
@@ -26,6 +27,10 @@ describe('selection cell appearance command', () => {
         writes.push(request)
         format = { ...format, ...(request.format ?? {}) }
         for (const field of request.clearFormatFields ?? []) delete format[field]
+        // 只模拟活动格回显；共边与历史由原生测试验证。
+        if (request.borderPatch) {
+          format.borders = request.borderPatch.preset === 'all' ? SELECTION_ALL_BORDERS : {}
+        }
         revision += 1
         return {
           acknowledgement: {
@@ -69,10 +74,16 @@ describe('selection cell appearance command', () => {
       { rotation: 45 },
       { rotation: -45 },
       { rotation: 0 },
-      { borders: SELECTION_ALL_BORDERS },
+      {},
       {},
     ])
-    expect(writes[12]?.clearFormatFields).toEqual(['borders'])
+    expect(writes[11]?.borderPatch).toEqual({
+      preset: 'all', style: 'thin', color: SELECTION_BORDER_COLOR,
+    })
+    expect(writes[12]?.borderPatch).toEqual({
+      preset: 'none', style: 'thin', color: SELECTION_BORDER_COLOR,
+    })
+    expect(writes[12]?.clearFormatFields).toBeUndefined()
   })
 })
 

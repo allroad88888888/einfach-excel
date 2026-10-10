@@ -130,7 +130,7 @@ export function WorkbookRibbon() {
           icon="▦"
           label="Borders"
           onClick={() => void applyFormat('all-borders')}
-          pressed={Object.values(activeFormat.borders ?? {}).some((border) => border?.style !== 'none')}
+          pressed={Object.values(activeFormat.borders ?? {}).some((b) => b && b.style !== 'none')}
         />
         <BorderTools />
         <ColorTools kind="fill-color" />

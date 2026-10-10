@@ -15,7 +15,7 @@ export interface FormulaReferenceToken {
   colorIndex: number
 }
 
-const COLUMN_LABEL_RE = /[A-Z]+/
+const COLUMN_LABEL_RE = /[A-Z]+/i
 
 function columnLabelToIndex(label: string): number {
   let result = 0
@@ -33,8 +33,8 @@ function parseA1(token: string): { row: number; col: number } | null {
   if (rowPart.length === 0) return null
   const rowOneBased = Number(rowPart)
   if (!Number.isInteger(rowOneBased) || rowOneBased < 1) return null
-  const col = columnLabelToIndex(colPart)
-  if (col < 0) return null
+  const col = columnLabelToIndex(colPart.toUpperCase())
+  if (col < 0 || col >= 16_384 || rowOneBased > 1_048_576) return null
   return { row: rowOneBased - 1, col }
 }
 
@@ -44,7 +44,7 @@ function parseA1(token: string): { row: number; col: number } | null {
 // Group 3: start cell
 // Group 4: optional ":endCell"
 // eslint-disable-next-line max-len
-const TOKEN_RE = /(?:(?:([A-Za-z_][\w]*)|'((?:[^']|'')+)')!)?(\$?[A-Z]+\$?\d+)(?::(\$?[A-Z]+\$?\d+))?/g
+const TOKEN_RE = /"(?:[^"]|"")*"?|(?:(?:([A-Za-z_][\w]*)|'((?:[^']|'')+)')!)?(\$?[A-Z]+\$?\d+)(?::(\$?[A-Z]+\$?\d+))?/gi
 
 /**
  * Scan a formula draft (without the leading '=') and return every cell /
@@ -73,8 +73,12 @@ export function parseFormulaReferences(
   TOKEN_RE.lastIndex = 0
   for (let match: RegExpExecArray | null; (match = TOKEN_RE.exec(draft)) !== null; ) {
     const [full, sheetUnquoted, sheetQuoted, startRaw, endRaw] = match
+    if (full.startsWith('"')) continue
     const start = match.index
     const end = start + full.length
+    // 不把命名标识符、函数名或 R1C1 的片段当作 A1 引用。
+    if (/[\p{L}\p{N}_.]/u.test(draft[start - 1] ?? '') ||
+      /[\p{L}\p{N}_.(]/u.test(draft[end] ?? '')) continue
 
     const sheetId = sheetUnquoted ?? sheetQuoted?.replace(/''/g, "'") ?? currentSheetId
     const startCoord = parseA1(startRaw.replace(/\$/g, ''))

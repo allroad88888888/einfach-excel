@@ -72,7 +72,8 @@ export function FilterTools() {
       </select>
       {(feedback.error || feedback.message) && (
         <span
-          className="clipboard-feedback"
+          className="filter-feedback"
+          title={feedback.error || feedback.message}
           aria-label="Filter status"
           role={feedback.error ? 'alert' : 'status'}
         >

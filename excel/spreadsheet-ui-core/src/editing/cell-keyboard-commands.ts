@@ -9,6 +9,7 @@ import type { EditingCommitOutcome } from './types'
 import { clearSelectionAtom } from '../toolbar/selection-mutation-command'
 import { runRustHistoryAtom } from '../history/rust-history-command'
 import { fillSelectionAtom } from '../auto-fill/directional-command'
+import { exitFormulaReferenceAtom } from '../formula-reference'
 
 export interface GridCellKeyboardInput {
   readonly sheetId: string
@@ -53,7 +54,11 @@ dispatchGridCellKeyboardInputAtom.debugLabel = 'spreadsheet.editing.dispatchGrid
 export const dispatchEditorKeyboardInputAtom = atom(
   null,
   async (get, set, input: KeyboardInput): Promise<EditorKeyboardOutcome> => {
-    const intent = set(dispatchKeyboardInputAtom, input)
+    let intent = set(dispatchKeyboardInputAtom, input)
+    if (intent.type === 'formulaReference.exit') {
+      set(exitFormulaReferenceAtom, intent.reason)
+      intent = set(dispatchKeyboardInputAtom, input)
+    }
     if (intent.type === 'editing.cancel') {
       return set(cancelEditingAtom) ? 'cancelled' : 'ignored'
     }

@@ -1,9 +1,12 @@
 import { atom } from '@einfach/core'
 import type { Atom, WritableAtom } from '@einfach/core'
 import type { CellCoord } from '../shared'
+import { getColumnLabel } from '../shared/grid-coordinates'
 import { editingDraftAtom, editingSessionAtom } from '../editing/session-atoms'
 import { keyboardModeAtom } from '../keyboard'
 import { parseFormulaReferences } from './parser'
+import { formulaReferenceCaretBackingAtom, formulaReferenceSessionBackingAtom } from './state'
+import { activeEditingCommitTicketAtom } from '../editing/commit-state'
 import type {
   EnterFormulaReferenceInput,
   FormulaReferenceExitReason,
@@ -19,20 +22,8 @@ export * from './types'
 // Pure helpers
 // ---------------------------------------------------------------------------
 
-function indexToColumnLabel(col: number): string {
-  let current = col
-  let label = ''
-
-  do {
-    label = String.fromCharCode(65 + (current % 26)) + label
-    current = Math.floor(current / 26) - 1
-  } while (current >= 0)
-
-  return label
-}
-
 export function serializeCellRef(coord: CellCoord): string {
-  return `${indexToColumnLabel(coord.col)}${coord.row + 1}`
+  return `${getColumnLabel(coord.col)}${coord.row + 1}`
 }
 
 export function serializeRangeRef(anchor: CellCoord, focus: CellCoord): string {
@@ -73,7 +64,15 @@ export function spliceDraft(
 const TRIGGER_CHARS = new Set(['=', '+', '-', '*', '/', '^', '&', '(', ',', '<', '>', '%'])
 
 export function shouldEnterFormulaReferenceMode(draft: string, caret: number): boolean {
-  if (caret === 0) return false
+  if (!draft.startsWith('=') || caret === 0) return false
+  // 双引号里的运算符只是文本；Excel 用两个双引号转义字符串内的引号。
+  let quoted = false
+  for (let i = 0; i < caret; i++) {
+    if (draft[i] !== '"') continue
+    if (quoted && draft[i + 1] === '"') { i++; continue }
+    quoted = !quoted
+  }
+  if (quoted) return false
 
   const charBefore = draft[caret - 1]
   if (!TRIGGER_CHARS.has(charBefore)) return false
@@ -88,7 +87,6 @@ export function shouldEnterFormulaReferenceMode(draft: string, caret: number): b
 // State boundary
 // ---------------------------------------------------------------------------
 
-const formulaReferenceSessionBackingAtom = atom<FormulaReferenceSession | null>(null)
 formulaReferenceSessionBackingAtom.debugLabel = 'spreadsheet.formulaReference.sessionBacking'
 
 export const formulaReferenceSessionAtom: Atom<FormulaReferenceSession | null> = atom((get) =>
@@ -96,7 +94,6 @@ export const formulaReferenceSessionAtom: Atom<FormulaReferenceSession | null> =
 )
 formulaReferenceSessionAtom.debugLabel = 'spreadsheet.formulaReference.session'
 
-const formulaReferenceCaretBackingAtom = atom<number>(-1)
 formulaReferenceCaretBackingAtom.debugLabel = 'spreadsheet.formulaReference.caretBacking'
 
 export const formulaReferenceCaretAtom: Atom<number> = atom((get) =>
@@ -161,13 +158,18 @@ enterFormulaReferenceAtom.debugLabel = 'spreadsheet.formulaReference.enter'
 
 export const pickFormulaReferenceAtom = atom(null, (get, set, input: FormulaReferencePickInput) => {
   const session = get(formulaReferenceSessionBackingAtom)
-  if (session === null) return
+  if (session === null || input.sheetId !== session.sheetId ||
+    get(activeEditingCommitTicketAtom) !== null || get(editingSessionAtom).status !== 'drafting') return
+  if ([input.pickAnchor, input.pickFocus].some(({ row, col }) =>
+    !Number.isSafeInteger(row) || !Number.isSafeInteger(col) || row < 0 || col < 0 ||
+    row >= 1_048_576 || col >= 16_384)) return
 
   const token = serializeRangeRef(input.pickAnchor, input.pickFocus)
   const currentDraft = get(editingSessionAtom).draft
   const spliced = spliceDraft(currentDraft, session.tokenRange, session.insertionCaret, token)
 
   set(editingDraftAtom, { draft: spliced.draft })
+  set(formulaReferenceCaretBackingAtom, spliced.end)
 
   set(formulaReferenceSessionBackingAtom, {
     ...session,

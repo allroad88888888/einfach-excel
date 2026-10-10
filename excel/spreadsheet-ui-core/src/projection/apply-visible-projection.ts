@@ -21,8 +21,12 @@ export const applyVisibleProjectionAtom = atom(
   null,
   (get, set, input: ApplyVisibleProjectionInput): ApplyVisibleProjectionOutcome => {
     const current = get(projectionSnapshotBackingAtom)
+    // 命令发送前就在途的读取先完成，不代表用户切换了窗口。
+    // 保留同一个 request 身份即可接收随后返回的修改结果；新窗口/切表仍会换 request。
+    const previousReadSettled = input.witness.status === 'loading' &&
+      current.status === 'ready' && current.request === input.witness.request
     if (
-      current !== input.witness ||
+      (current !== input.witness && !previousReadSettled) ||
       current.status === 'loading' ||
       get(projectionLaneBackingAtom).visibleWindow.active !== null
     ) {

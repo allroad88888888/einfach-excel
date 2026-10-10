@@ -22,3 +22,15 @@
 .filter-dialog input[type='checkbox'] { width: 16px; min-height: 16px; margin: 0; }
 .filter-dialog :is(button, input, select, textarea):focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .filter-dialog .size-actions button[type='submit'] { background: var(--primary); color: white; }
+.filter-feedback {
+  /* 工具栏横向滚动，提示不能被 flex 压窄后逐字换行、挤掉表格高度。 */
+  flex: none;
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+  font-size: 12px;
+  line-height: 16px;
+}
+.filter-feedback[role='alert'] { color: #a12622; }

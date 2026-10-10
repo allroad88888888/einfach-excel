@@ -3,6 +3,7 @@ import {
   activeWorkbookSheetAtom,
   dispatchGridCellKeyboardInputAtom,
   editingSessionAtom,
+  formulaReferenceActiveAtom,
   selectionSnapshotAtom,
   setViewportScrollAtom,
   startCellEditingFromProjectionAtom,
@@ -42,6 +43,7 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
   const activeSheet = useAtomValue(activeWorkbookSheetAtom)
   const selection = useAtomValue(selectionSnapshotAtom)
   const editingSession = useAtomValue(editingSessionAtom)
+  const pickingReference = useAtomValue(formulaReferenceActiveAtom)
   const viewportMetrics = useAtomValue(viewportMetricsAtom)
   const sizeOverrides = useAtomValue(viewportGeometrySizesAtom)
   const freeze = useAtomValue(projectedFreezeAtom)
@@ -129,7 +131,7 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
     if (viewport.retained) return
     const coord = workbookCellAt(event)
     if (coord === null) return
-    focusGrid()
+    if (!pickingReference) focusGrid()
     pointerHandlers.onPointerDown(event)
     if (coord !== null && event.button === 0 && event.isPrimary !== false) {
       dragAutoscroll.start(event)
@@ -148,7 +150,7 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
     pointerHandlers.onPointerCancel(event)
   }
   const onDoubleClick = (event: ReactMouseEvent<HTMLDivElement>) => {
-    if (activeSheet === null || viewport.retained) return
+    if (activeSheet === null || viewport.retained || pickingReference) return
     const cell = workbookCellAt(event)
     if (cell !== null) startCellEditing({ sheetId: activeSheet.id, cell })
   }

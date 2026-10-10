@@ -1,5 +1,5 @@
 import type { CellRange, DisplayCell } from '@einfach/spreadsheet-ui-core'
-import { mergeRangeAt, nativeFilterRangeAtom } from '@einfach/spreadsheet-ui-core'
+import { mergeRangeAt, nativeFilterRangeAtom, formulaReferenceSessionAtom } from '@einfach/spreadsheet-ui-core'
 import { useAtomValue } from '@einfach/react'
 import { CellFilterButton } from './CellFilterButton'
 import type { CSSProperties } from 'react'
@@ -48,11 +48,19 @@ export function SpreadsheetGrid({
   window,
   cells,
   mergedRanges,
-  selected,
+  selected: selectionRange,
   rowHeights,
   columnWidths,
 }: SpreadsheetGridProps) {
   const filterRange = useAtomValue(nativeFilterRangeAtom)
+  const reference = useAtomValue(formulaReferenceSessionAtom)
+  const picked = reference?.pickAnchor && reference.pickFocus ? {
+    rowStart: Math.min(reference.pickAnchor.row, reference.pickFocus.row),
+    rowEnd: Math.max(reference.pickAnchor.row, reference.pickFocus.row),
+    colStart: Math.min(reference.pickAnchor.col, reference.pickFocus.col),
+    colEnd: Math.max(reference.pickAnchor.col, reference.pickFocus.col),
+  } : undefined
+  const selected = picked ?? selectionRange
   const cellsByCoordinate = new Map(cells.map((cell) => [`${cell.row}:${cell.col}`, cell]))
   const rows = []
   const outline = visibleSelection(window, selected)
@@ -153,6 +161,7 @@ export function SpreadsheetGrid({
       : undefined
   const outlineClassName = [
     'selection-outline',
+    picked && 'formula-reference-outline',
     outline?.rowStart === selected?.rowStart && 'selection-outline-top',
     outline?.colEnd === selected?.colEnd && 'selection-outline-right',
     outline?.rowEnd === selected?.rowEnd && 'selection-outline-bottom',

@@ -211,3 +211,9 @@
 .selection-outline-left {
   border-left-width: 1px;
 }
+
+/* 引用拾取不是工作簿选区：用绿色虚线保留两者的视觉区别。 */
+.formula-reference-outline {
+  border-color: #00856a;
+  border-style: dashed;
+}

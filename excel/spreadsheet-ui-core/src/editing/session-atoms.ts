@@ -4,6 +4,7 @@
  */
 import { atom, type Atom } from '@einfach/core'
 import { keyboardModeAtom } from '../keyboard'
+import { resetFormulaReferenceStateAtom } from '../formula-reference/state'
 import {
   activeEditingCommitTicketAtom,
   editingCommitLifecycleBackingAtom,
@@ -52,6 +53,7 @@ export const startEditingAtom = atom(
   (get) => get(editingSessionAtom),
   (get, set, input: EditingStartInput) => {
     if (get(activeEditingCommitTicketAtom) !== null) return get(editingSessionAtom)
+    set(resetFormulaReferenceStateAtom)
     const session = startEditingSessionState(get(editingSessionAtom), input)
     set(editingSessionBackingAtom, session)
     set(editingCommitLifecycleBackingAtom, lifecycleFor('ready'))
@@ -69,6 +71,7 @@ export const cancelEditingAtom = atom(
     const state = get(editingSessionAtom)
     if (state.source === null) return null
 
+    set(resetFormulaReferenceStateAtom)
     set(editingSessionBackingAtom, cancelEditingSessionState(state))
     set(editingCommitLifecycleBackingAtom, lifecycleFor('ready'))
     set(keyboardModeAtom, 'navigation')

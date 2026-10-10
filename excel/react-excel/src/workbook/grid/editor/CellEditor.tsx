@@ -6,6 +6,7 @@ import {
   editingCommitFeedback,
   editingCommitLifecycleAtom,
   editingDraftAtom,
+  updateFormulaDraftAtom,
   insertEditingLineBreakAtom,
   editingSessionAtom,
   projectedFreezeAtom,
@@ -19,6 +20,7 @@ import type { CSSProperties, FocusEvent, KeyboardEvent, PointerEvent } from 'rea
 import { useEffect, useRef } from 'react'
 import { flushSync } from 'react-dom'
 import './cell-editor.css'
+import { useFormulaReferenceInput } from './use-formula-reference-input'
 import {
   WORKBOOK_GRID_ROW_HEIGHT,
   WORKBOOK_GRID_COLUMN_WIDTH,
@@ -41,9 +43,10 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
   const sizeOverrides = useAtomValue(viewportGeometrySizesAtom)
   const commitEditing = useSetAtom(commitCellEditingAtom)
   const dispatchEditorKeyboard = useSetAtom(dispatchEditorKeyboardInputAtom)
-  const setDraft = useSetAtom(editingDraftAtom)
+  const setDraft = useSetAtom(updateFormulaDraftAtom)
   const insertLineBreak = useSetAtom(insertEditingLineBreakAtom)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const formulaInput = useFormulaReferenceInput(inputRef)
   const committingRef = useRef(false)
   const suppressBlurRef = useRef(false)
   const cell = session.source?.cell ?? null
@@ -124,6 +127,7 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     event.stopPropagation()
     if (event.nativeEvent.isComposing || event.keyCode === 229) return
+    if (formulaInput.onReferenceKey(event)) return
     if (event.key === 'Enter' && event.altKey) {
       event.preventDefault()
       const input = event.currentTarget
@@ -190,7 +194,9 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
         disabled={busy}
         id={fieldIdentity}
         name={fieldIdentity}
-        onChange={(event) => setDraft({ draft: event.currentTarget.value })}
+        onChange={(event) => setDraft({ draft: event.currentTarget.value,
+          caret: event.currentTarget.selectionStart })}
+        onSelect={formulaInput.onSelect}
         onKeyDown={onKeyDown}
         value={draft}
         rows={1}

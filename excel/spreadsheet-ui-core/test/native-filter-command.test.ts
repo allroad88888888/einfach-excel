@@ -116,6 +116,50 @@ test('native rejection and invalid projection preserve the old result', async ()
   expect(store.getter(projectionSnapshotAtom)).toBe(before)
 })
 
+test('clear publishes when a viewport read started before it finishes first', async () => {
+  const { store, filter, request } = await setup()
+  await store.setter(runNativeFilterAtom, { action: 'apply', rules })
+  let finishRead!: (value: Awaited<ReturnType<typeof request>>) => void
+  let finishClear!: (value: ReturnType<typeof result>) => void
+  request.mockImplementationOnce(() => new Promise((resolve) => { finishRead = resolve }))
+  const refresh = store.setter(runVisibleProjectionAtom, {
+    sheetId: 's', window: { rowStart: 0, rowEnd: 9, colStart: 0, colEnd: 7 },
+    retainResult: true,
+  })
+  const readRequest = store.getter(projectionSnapshotAtom).request as VisibleProjectionRequest
+  filter.mockImplementationOnce(() => new Promise((resolve) => { finishClear = resolve }))
+  const clear = store.setter(runNativeFilterAtom, { action: 'clear' })
+  // Worker 顺序执行：旧读取先返回，清除随后返回同一窗口的新投影。
+  finishRead({ ...readRequest, cells: [], revision: 2, filterRules: rules })
+  await refresh
+  expect(store.getter(nativeFilterRulesAtom)).toEqual(rules)
+  finishClear({ ...result(filter.mock.lastCall![0]), hiddenRows: 0 })
+  expect(await clear).toBe(true)
+  expect(store.getter(nativeFilterRulesAtom)).toEqual([])
+  expect(request).toHaveBeenCalledTimes(4)
+})
+
+test.each(['scroll', 'same-window-refresh', 'sheet-round-trip'] as const)(
+  'clear cannot replace a newer %s projection', async (scenario) => {
+    const { store, filter } = await setup()
+    let finishClear!: (value: ReturnType<typeof result>) => void
+    filter.mockImplementationOnce(() => new Promise((resolve) => { finishClear = resolve }))
+    const clear = store.setter(runNativeFilterAtom, { action: 'clear' })
+    if (scenario === 'sheet-round-trip')
+      await store.setter(runVisibleProjectionAtom, {
+        sheetId: 'other', window: { rowStart: 0, rowEnd: 9, colStart: 0, colEnd: 7 },
+      })
+    await store.setter(runVisibleProjectionAtom, {
+      sheetId: 's',
+      window: { rowStart: scenario === 'scroll' ? 5 : 0, rowEnd: 9, colStart: 0, colEnd: 7 },
+    })
+    const newer = store.getter(projectionSnapshotAtom)
+    finishClear(result(filter.mock.lastCall![0]))
+    await clear
+    expect(store.getter(projectionSnapshotAtom)).toBe(newer)
+  },
+)
+
 test('panel composes AND conditions, validates range, cancels without writing and reopens native rules', async () => {
   const { store, filter } = await setup()
   await store.setter(configureNativeFilterAtom, 'open')

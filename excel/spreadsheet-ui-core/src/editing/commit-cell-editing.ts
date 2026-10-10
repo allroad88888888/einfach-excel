@@ -1,6 +1,7 @@
 import { atom, type Getter, type Setter } from '@einfach/core'
 import type { ProjectionRevision } from '../backend'
 import { keyboardModeAtom } from '../keyboard'
+import { resetFormulaReferenceStateAtom } from '../formula-reference/state'
 import {
   applyVisibleProjectionAtom,
   createVisibleProjectionRequest,
@@ -168,6 +169,7 @@ export const commitCellEditingAtom = atom(
       request: projectionRequest,
       result: transport.value.projection,
     })
+    set(resetFormulaReferenceStateAtom)
     set(editingSessionBackingAtom, createEditingSessionState())
     set(editingCommitLifecycleBackingAtom, lifecycleFor('ready'))
     set(keyboardModeAtom, 'navigation')

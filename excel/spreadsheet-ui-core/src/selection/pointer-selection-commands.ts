@@ -1,7 +1,8 @@
 import { atom } from '@einfach/core'
-import { pointerSessionAtom, startPointerAtom, updatePointerAtom } from '../pointer'
+import { pointerSessionAtom, startPointerAtom, updatePointerAtom, commitPointerAtom, cancelPointerAtom } from '../pointer'
 import type { CellCoord } from '../shared'
 import { setSelectionWithAuthorityReceiptAtom } from './index'
+import { formulaReferenceSessionAtom, pickFormulaReferenceAtom } from '../formula-reference'
 
 export interface StartPointerSelectionInput {
   readonly sheetId: string
@@ -27,7 +28,15 @@ function sameCoord(left: CellCoord, right: CellCoord): boolean {
 /** Starts one drag-selection intent as one atomic selection transition. */
 export const startPointerSelectionAtom = atom(
   null,
-  (_get, set, input: StartPointerSelectionInput): PointerSelectionCommandOutcome => {
+  (get, set, input: StartPointerSelectionInput): PointerSelectionCommandOutcome => {
+    const reference = get(formulaReferenceSessionAtom)
+    if (reference?.sheetId === input.sheetId) {
+      set(startPointerAtom, { kind: 'drag-selection', sheetId: input.sheetId,
+        anchor: input.coord, focus: input.coord, source: 'pointer' })
+      set(pickFormulaReferenceAtom, { sheetId: input.sheetId,
+        pickAnchor: input.coord, pickFocus: input.coord, dragging: true })
+      return { status: 'applied', coord: input.coord }
+    }
     const receipt = set(setSelectionWithAuthorityReceiptAtom, {
       kind: 'cell',
       sheetId: input.sheetId,
@@ -65,6 +74,12 @@ export const updatePointerSelectionAtom = atom(
     if (input.sheetId !== pointer.interaction.sheetId) {
       return Object.freeze({ status: 'ignored', reason: 'sheet-mismatch' })
     }
+    if (get(formulaReferenceSessionAtom)?.sheetId === input.sheetId) {
+      set(pickFormulaReferenceAtom, { sheetId: input.sheetId,
+        pickAnchor: pointer.interaction.anchor, pickFocus: input.coord, dragging: true })
+      set(updatePointerAtom, { kind: 'drag-selection', focus: input.coord, source: 'pointer' })
+      return { status: 'applied', coord: input.coord }
+    }
     const receipt = set(setSelectionWithAuthorityReceiptAtom, {
       kind: 'range',
       sheetId: pointer.interaction.sheetId,
@@ -97,3 +112,13 @@ export const updatePointerSelectionAtom = atom(
 )
 
 updatePointerSelectionAtom.debugLabel = 'spreadsheet.selection.updatePointer'
+
+/** 松手只结束拖动，保留公式输入与其源单元格；Escape 由编辑命令取消草稿。 */
+export const endPointerSelectionAtom = atom(null, (get, set, cancel = false) => {
+  const reference = get(formulaReferenceSessionAtom)
+  if (reference?.dragging && reference.pickAnchor && reference.pickFocus)
+    set(pickFormulaReferenceAtom, { sheetId: reference.sheetId,
+      pickAnchor: reference.pickAnchor, pickFocus: reference.pickFocus, dragging: false })
+  if (cancel) set(cancelPointerAtom)
+  else set(commitPointerAtom)
+})

@@ -78,12 +78,44 @@ test('column conditions combine and clearing one preserves the other; empty cond
 })
 
 test('clear removes an empty filter region and undo restores the same header row', async ({ page }) => {
-  await enable(page)
-  await menu(page).selectOption('clear')
-  await expect(header(page, 'A')).toHaveCount(0)
-  await page.getByRole('button', { name: 'Undo', exact: true }).click()
-  await expect(cell(page, '24:0').getByRole('button')).toBeVisible()
-  await expect(header(page, 'C')).toHaveAttribute('data-filtered', 'false')
+  // 连续切换提示文字，覆盖曾因工具栏高度变化触发投影竞争的路径。
+  for (let attempt = 0; attempt < 5; attempt++) {
+    await enable(page)
+    await menu(page).selectOption('clear')
+    await expect(header(page, 'A')).toHaveCount(0)
+    await expect(page.getByLabel('Filter status')).toContainText('Filter cleared.')
+    await page.getByRole('button', { name: 'Undo', exact: true }).click()
+    await expect(cell(page, '24:0').getByRole('button')).toBeVisible()
+    await expect(header(page, 'C')).toHaveAttribute('data-filtered', 'false')
+    await page.getByRole('button', { name: 'Redo', exact: true }).click()
+    await expect(header(page, 'A')).toHaveCount(0)
+  }
+})
+
+test('frozen header buttons still filter after scrolling without starting an edit or selection', async ({ page }) => {
+  await page.getByRole('tab', { name: 'Sales Orders', exact: true }).click()
+  await enable(page, 'A1:D1001')
+  await select(page, 'B2')
+  await page.getByRole('combobox', { name: 'Freeze panes' }).selectOption('selection')
+  const fixed = page.locator('[data-frozen-pane="top"]').getByRole('button', { name: 'Filter column C', exact: true })
+  await expect(fixed).toBeVisible()
+  await page.getByTestId('sheet-scroll').evaluate((node) => { node.scrollTop = 1400 })
+  await expect(cell(page, '50:2')).toBeVisible()
+  await fixed.click()
+  const dialog = page.getByRole('dialog', { name: 'Filter conditions' })
+  await dialog.getByLabel('Filter value 1', { exact: true }).fill('West')
+  await dialog.getByRole('button', { name: 'Apply filter', exact: true }).click()
+  await expect(page.getByLabel('Filter status')).toHaveText('750 rows filtered out.')
+  await expect(fixed).toBeFocused()
+  await expect(fixed).toHaveAttribute('data-filtered', 'true')
+  await expect(page.getByRole('textbox', { name: 'Cell editor', exact: true })).toHaveCount(0)
+  await select(page, 'C5')
+  await expect(cell(page, '4:2')).toHaveText('West')
+  await expect(cell(page, '5:2')).toHaveCount(0)
+  await fixed.click()
+  await dialog.getByRole('button', { name: 'Clear column C filter' }).click()
+  await expect(cell(page, '5:2')).toHaveText('North')
+  await expect(fixed).toHaveAttribute('data-filtered', 'false')
 })
 
 test('row insertion shifts the filter header and conditions; deletion and undo restore them', async ({ page }) => {
@@ -121,6 +153,9 @@ for (const width of [1280, 390]) {
     const errors: string[] = []
     page.on('pageerror', (error) => errors.push(error.message))
     await enable(page)
+    const ribbon = page.locator('.ribbon-shell')
+    await expect.poll(async () => (await ribbon.boundingBox())!.height).toBeLessThanOrEqual(46)
+    await expect.poll(async () => (await page.getByLabel('Filter status').boundingBox())!.height).toBe(16)
     await header(page, 'A').focus()
     await page.screenshot({ path: info.outputPath(`filter-header-${width}.png`) })
     await header(page, 'A').press('Enter')
@@ -133,6 +168,9 @@ for (const width of [1280, 390]) {
     await page.keyboard.press('Escape')
     await expect(dialog).not.toBeVisible()
     await expect(header(page, 'A')).toBeFocused()
+    await menu(page).selectOption('clear')
+    await expect(header(page, 'A')).toHaveCount(0)
+    await expect.poll(async () => (await ribbon.boundingBox())!.height).toBeLessThanOrEqual(46)
     expect(errors).toEqual([])
   })
 }

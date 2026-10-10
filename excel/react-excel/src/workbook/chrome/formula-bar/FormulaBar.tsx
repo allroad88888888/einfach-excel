@@ -5,6 +5,7 @@ import {
   editingCommitFeedback,
   editingCommitLifecycleAtom,
   editingDraftAtom,
+  updateFormulaDraftAtom,
   insertEditingLineBreakAtom,
   editingSessionAtom,
   activeCellInputTextAtom,
@@ -12,7 +13,9 @@ import {
   startCellEditingFromProjectionAtom,
 } from '@einfach/spreadsheet-ui-core'
 import type { FocusEvent, FormEvent, KeyboardEvent } from 'react'
+import { useRef } from 'react'
 import { flushSync } from 'react-dom'
+import { useFormulaReferenceInput } from '../../grid/editor/use-formula-reference-input'
 import { NameBox } from './NameBox'
 import './formula-bar.css'
 
@@ -25,6 +28,9 @@ export function FormulaBar() {
   const editingLifecycle = useAtomValue(editingCommitLifecycleAtom)
   const startEditing = useSetAtom(startCellEditingFromProjectionAtom)
   const setEditingDraft = useSetAtom(editingDraftAtom)
+  const updateDraft = useSetAtom(updateFormulaDraftAtom)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
+  const formulaInput = useFormulaReferenceInput(inputRef)
   const insertLineBreak = useSetAtom(insertEditingLineBreakAtom)
   const commitEditing = useSetAtom(commitCellEditingAtom)
   const cancelEditing = useSetAtom(cancelEditingAtom)
@@ -63,7 +69,8 @@ export function FormulaBar() {
       })
       if (!started) return
     }
-    setEditingDraft({ draft: event.currentTarget.value, source: 'formula-bar' })
+    updateDraft({ draft: event.currentTarget.value, source: 'formula-bar',
+      caret: event.currentTarget.selectionStart })
   }
   const commitFormula = (event: FocusEvent<HTMLTextAreaElement>) => {
     if (event.relatedTarget?.closest('[data-cell-editor]')) return
@@ -73,6 +80,7 @@ export function FormulaBar() {
     event.stopPropagation()
     // 输入法确认键属于浏览器；229 覆盖部分浏览器 compositionend 后的确认事件。
     if (event.nativeEvent.isComposing || event.keyCode === 229) return
+    if (formulaInput.onReferenceKey(event)) return
     if (event.key === 'Enter' && event.altKey) {
       event.preventDefault()
       const input = event.currentTarget
@@ -101,6 +109,7 @@ export function FormulaBar() {
           fx
         </span>
         <textarea
+          ref={inputRef}
           aria-label="Active cell value"
           aria-invalid={feedback ? true : undefined}
           aria-describedby={feedback ? 'formula-edit-feedback' : undefined}
@@ -114,6 +123,7 @@ export function FormulaBar() {
           onFocus={beginFormulaEditing}
           onInput={updateFormula}
           onKeyDown={handleFormulaKey}
+          onSelect={formulaInput.onSelect}
           onMouseDown={beginFormulaEditing}
           spellCheck={false}
           rows={Math.min(4, value.split('\n').length)}

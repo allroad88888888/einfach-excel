@@ -116,6 +116,7 @@ pub(crate) use self::workbook_bulk_types::CustomCallScope;
 pub use self::workbook_bulk_types::{BulkInstallStats, InstallError};
 pub use self::workbook_conditional_format_types::{
     ConditionalFormatConfigSnapshot, ConditionalFormatError, ConditionalFormatRuleEntry,
+    ConditionalFormatRuleAction,
 };
 pub use self::workbook_errors::{HiddenRowsError, TableError, TotalsFunction};
 pub use self::workbook_loader::WorkbookLoader;

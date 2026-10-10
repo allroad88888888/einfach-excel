@@ -189,6 +189,11 @@ export const SUMMARY_CONDITIONAL_FORMATS = [{
   scope: { range: { rowStart: 64, rowEnd: 66, colStart: 2, colEnd: 2 } },
   rule: { kind: 'cell-value', operator: 'gt', value: '3',
     format: { bgColor: '#ffc7ce', fgColor: '#9c0006' } },
+}, {
+  // 蓝色规则默认停用：启用后 2 变蓝，上移后 4、6 也由蓝色优先显示。
+  scope: { range: { rowStart: 64, rowEnd: 66, colStart: 2, colEnd: 2 } },
+  rule: { kind: 'cell-value', enabled: false, operator: 'gt', value: '1',
+    format: { bgColor: '#d9eaf7', fgColor: '#123456' } },
 }] as const
 
 /** 两个原生合并样例；覆盖格不再重复存储内容。 */

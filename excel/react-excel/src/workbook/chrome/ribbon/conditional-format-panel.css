@@ -16,8 +16,9 @@
 .conditional-format-panel h3 { margin: 16px 0 8px; font-size: 13px; }
 .conditional-format-panel p { line-height: 1.5; }
 .conditional-format-panel ul { list-style: none; margin: 0 0 8px; padding: 0; }
-.conditional-format-panel li { display: flex; align-items: center; gap: 6px; margin: 6px 0; }
+.conditional-format-panel li { display: grid; gap: 6px; margin: 10px 0; }
 .conditional-format-panel li span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.conditional-rule-actions { display: flex; flex-wrap: wrap; gap: 6px; }
 .conditional-format-panel fieldset {
   display: grid; grid-template-columns: minmax(90px, 1fr) minmax(0, 180px);
   align-items: center; gap: 10px; padding: 0; border: 0; margin: 0; min-width: 0;

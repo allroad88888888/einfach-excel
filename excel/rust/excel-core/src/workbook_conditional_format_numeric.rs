@@ -6,6 +6,8 @@ use serde::Deserialize;
 #[serde(deny_unknown_fields)]
 struct NumericRuleJson {
     kind: String,
+    #[serde(default = "enabled_by_default")]
+    enabled: bool,
     operator: Operator,
     value: Operand,
     #[serde(rename = "value2")]
@@ -67,7 +69,10 @@ pub(crate) struct NumericRule {
     value: f64,
     value2: Option<f64>,
     pub(crate) style: CellStyle,
+    pub(crate) enabled: bool,
 }
+
+fn enabled_by_default() -> bool { true }
 
 impl NumericRule {
     /// JSON 只在规则写入或每次窗口读取时解码一次，不在每个 cell 内解析。
@@ -109,6 +114,7 @@ impl NumericRule {
             return Err("Choose at least one highlight property.");
         }
         Ok(Self {
+            enabled: rule.enabled,
             operator: rule.operator,
             value,
             value2,
@@ -118,7 +124,7 @@ impl NumericRule {
 
     /// 空白、文本、布尔值、错误由调用方排除；不把空白强转成零。
     pub(crate) fn matches(&self, number: f64) -> bool {
-        if !number.is_finite() {
+        if !self.enabled || !number.is_finite() {
             return false;
         }
         match self.operator {

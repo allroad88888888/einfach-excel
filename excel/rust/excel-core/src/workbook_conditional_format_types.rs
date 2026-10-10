@@ -1,5 +1,16 @@
 //! Canonical conditional-format configuration values.
 
+/// 对已保存规则的单次管理操作；一次操作只产生一条历史。
+#[derive(Clone, Copy, Debug, serde::Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum ConditionalFormatRuleAction {
+    Duplicate,
+    Enable,
+    Disable,
+    MoveUp,
+    MoveDown,
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ConditionalFormatRuleEntry {
     pub id: String,

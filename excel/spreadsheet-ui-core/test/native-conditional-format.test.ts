@@ -197,3 +197,31 @@ test('pending save is single flight and a disconnected reply cannot publish into
   expect(await pending).toBe(false)
   expect(store.getter(nativeConditionalFormatPanelAtom).sheetId).toBeNull()
 })
+
+test.each(['duplicate', 'enable', 'disable', 'move-up', 'move-down'] as const)(
+  '%s sends only the target ID and current revision through one native command', async (type) => {
+    const { store, request, run } = setup(true)
+    await run('open')
+    // 未提交表单不参与目录操作，避免把半份草稿写入已有规则。
+    await run({ type: 'draft', range: 'invalid', rule: { value: 'NaN' } })
+    expect(await run({ type, id: rule.id })).toBe(true)
+    expect(request).toHaveBeenCalledTimes(1)
+    expect(request.mock.calls[0][1]).toMatchObject({ action: type, ruleId: rule.id, revision: 1 })
+    expect(request.mock.calls[0][1]).not.toHaveProperty('rule')
+    expect(store.getter(nativeConditionalFormatPanelAtom).sheetId).toBeNull()
+  },
+)
+
+test('management rejects missing IDs and protection; native errors preserve the editable panel', async () => {
+  const { store, request, run } = setup(true)
+  await run('open')
+  expect(await run({ type: 'duplicate', id: 'gone' })).toBe(false)
+  store.setter(setSheetProtectionAtom, { sheetId: 's', state: { mode: 'protected', unlockedRanges: [] } })
+  expect(await run({ type: 'disable', id: rule.id })).toBe(false)
+  expect(request).not.toHaveBeenCalled()
+  store.setter(setSheetProtectionAtom, { sheetId: 's', state: { mode: 'open', unlockedRanges: [] } })
+  request.mockRejectedValueOnce(new Error('The rules changed.'))
+  expect(await run({ type: 'move-up', id: rule.id })).toBe(false)
+  expect(store.getter(nativeConditionalFormatPanelAtom)).toMatchObject({ busy: false, error: 'The rules changed.' })
+  expect(store.getter(nativeConditionalFormatsAtom)?.rules).toEqual([rule])
+})

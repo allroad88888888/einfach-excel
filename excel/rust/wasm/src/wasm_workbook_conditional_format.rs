@@ -2,6 +2,19 @@
 
 #[wasm_bindgen]
 impl WasmWorkbook {
+    /// 复制、启停与重排都由原生目录一次修改，一次进入历史。
+    #[wasm_bindgen(js_name = manageConditionalFormatRule)]
+    pub fn manage_conditional_format_rule(&mut self, sheet: u32, request: JsValue) -> Result<JsValue, JsValue> {
+        let request: ManageConditionalFormatRuleJSON = serde_wasm_bindgen::from_value(request)
+            .map_err(|error| JsValue::from_str(&format!("invalid conditional-format action: {error}")))?;
+        let snapshot = self.history.manage_conditional_format_rule(
+            &mut self.workbook, sheet as usize, request.revision, &request.rule_id, request.action,
+        ).map_err(|error| JsValue::from_str(&error))?;
+        let wire = ConditionalFormatConfigSnapshotJSON::from_snapshot(&snapshot)
+            .map_err(|error| JsValue::from_str(&error))?;
+        conditional_format_wire_to_js(&wire)
+    }
+
     #[wasm_bindgen(js_name = listConditionalFormats)]
     pub fn list_conditional_formats(&self, sheet: u32) -> Result<JsValue, JsValue> {
         let snapshot = self

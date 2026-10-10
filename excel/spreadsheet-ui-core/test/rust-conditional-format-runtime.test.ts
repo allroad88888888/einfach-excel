@@ -28,6 +28,7 @@ async function setup() {
   }
   const write = vi.fn(() => config)
   const remove = vi.fn(() => config)
+  const manage = vi.fn(() => config)
   const base = vi.fn(() => ({ cellStyles: [], rowStyles: [], columnStyles: [] }))
   const display = vi.fn(() => ({
     ...base(),
@@ -44,6 +45,7 @@ async function setup() {
 
     setConditionalFormatRule = write
     removeConditionalFormatRule = remove
+    manageConditionalFormatRule = manage
     listConditionalFormats = () => config
     history_state = () => ({ undoCount: 1, redoCount: 0 })
     snapshot_format_range = base
@@ -58,7 +60,7 @@ async function setup() {
   await call('workbook.initialize', {
     sheets: [{ id: 's', name: 'Sheet', rowCount: 100, colCount: 8 }],
   })
-  return { call, write, remove, display }
+  return { call, write, remove, manage, display }
 }
 
 test('set delegates once and returns native display, rules and history in one projection', async () => {
@@ -120,3 +122,20 @@ test('invalid targets reject before Rust and native failures cannot advance the 
   expect((await call('conditionalFormat.change', input)).error.message).toMatch(/stale/)
   expect((await call('conditionalFormat.change', input)).result.projection.revision).toBe(1)
 })
+
+test.each(['duplicate', 'enable', 'disable', 'move-up', 'move-down'])(
+  '%s delegates one atomic native management action and returns its display projection', async (action) => {
+    const { call, write, remove, manage, display } = await setup()
+    const response = await call('conditionalFormat.change', {
+      action, sheetId: 's', revision: 1, ruleId: 'r', projection,
+    })
+    expect(response).toMatchObject({
+      ok: true, result: { projection: { history: { undoCount: 1 } } },
+    })
+    expect(manage).toHaveBeenCalledTimes(1)
+    expect(manage).toHaveBeenCalledWith(0, { action, revision: 1, ruleId: 'r' })
+    expect(write).not.toHaveBeenCalled()
+    expect(remove).not.toHaveBeenCalled()
+    expect(display).toHaveBeenCalled()
+  },
+)

@@ -24,6 +24,14 @@ export function changeConditionalFormat(
     workbook.removeConditionalFormatRule(sheet, { revision: input.revision, ruleId: input.ruleId })
     return
   }
+  if (input.action === 'duplicate' || input.action === 'enable' || input.action === 'disable'
+    || input.action === 'move-up' || input.action === 'move-down') {
+    if (!workbook.manageConditionalFormatRule)
+      throw new Error('Rust conditional-format rule management is unavailable.')
+    const { action, revision, ruleId } = input
+    workbook.manageConditionalFormatRule(sheet, { action, revision, ruleId })
+    return
+  }
   if (input.action !== 'set') throw new Error('Choose a supported conditional-format action.')
   const { rowStart, rowEnd, colStart, colEnd } = input.scope.range
   if (

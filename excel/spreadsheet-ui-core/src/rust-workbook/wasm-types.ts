@@ -53,6 +53,10 @@ export interface RustFormatRangeSnapshot {
 
 export interface WasmWorkbook {
   listConditionalFormats?: (sheet: number) => NativeConditionalFormats
+  manageConditionalFormatRule?: (
+    sheet: number,
+    request: Exclude<ConditionalFormatChange, { action: 'set' | 'remove' }>,
+  ) => NativeConditionalFormats
   setConditionalFormatRule?: (
     sheet: number,
     request: Omit<Extract<ConditionalFormatChange, { action: 'set' }>, 'action'>,

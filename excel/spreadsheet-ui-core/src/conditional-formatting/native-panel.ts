@@ -31,11 +31,14 @@ const CLOSED: Panel = {
 export const nativeConditionalFormatPanelAtom = atom<Panel>(CLOSED)
 export const nativeConditionalFormatsAtom = atom((get) => {
   const result = get(projectionSnapshotAtom).result
-  return result?.kind === 'visible-window' && result.sheetId === get(activeWorkbookSheetAtom)?.id
+  const config = result?.kind === 'visible-window' && result.sheetId === get(activeWorkbookSheetAtom)?.id
     ? result.conditionalFormats : undefined
+  // 列表顺序直接反映 Rust 的优先级；不保存第二份可写目录。
+  return config && { ...config, rules: [...config.rules].sort((a, b) => a.priority - b.priority) }
 })
 type Action = 'open' | 'close' | 'new' | 'save'
-  | { type: 'edit' | 'remove'; id: string }
+  | { type: 'edit'; id: string }
+  | { type: 'remove' | 'duplicate' | 'enable' | 'disable' | 'move-up' | 'move-down'; id: string }
   | { type: 'draft'; range?: string; rule?: Partial<CellValueRule> }
 
 /** 一个入口负责草稿与提交；规则判断不进入 TS，复用现有可见投影发布。 */
@@ -91,10 +94,10 @@ export const runNativeConditionalFormatAtom = atom(null, async (
   if (visible?.kind !== 'visible-window' || visible.sheetId !== sheet.id)
     return fail('Wait for the worksheet to finish loading.')
   let change: ConditionalFormatChange
-  if (typeof action === 'object' && action.type === 'remove') {
+  if (typeof action === 'object') {
     if (!config.rules.some((rule) => rule.id === action.id))
       return fail('The rule no longer exists.')
-    change = { action: 'remove', ruleId: action.id, revision: config.revision }
+    change = { action: action.type, ruleId: action.id, revision: config.revision }
   } else {
     const cell = parseA1Cell(state.range)
     const range = parseA1Range(state.range) ?? (cell

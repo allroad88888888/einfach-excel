@@ -86,3 +86,40 @@ fn conditional_format_command_wire_rejects_extra_mutation_fields() {
         "rule": {}, "overwrite": true,
     })).is_err());
 }
+
+#[test]
+fn management_wire_accepts_only_explicit_actions_and_no_client_rule_replacements() {
+    for action in ["duplicate", "enable", "disable", "move-up", "move-down"] {
+        assert!(serde_json::from_value::<ManageConditionalFormatRuleJSON>(serde_json::json!({
+            "revision": 1, "ruleId": "r", "action": action,
+        })).is_ok());
+    }
+    for invalid in [
+        serde_json::json!({"revision": 1, "ruleId": "r", "action": "sort"}),
+        serde_json::json!({"revision": 1, "ruleId": "r", "action": "disable", "rule": {}}),
+        serde_json::json!({"revision": -1, "ruleId": "r", "action": "enable"}),
+    ] {
+        assert!(serde_json::from_value::<ManageConditionalFormatRuleJSON>(invalid).is_err());
+    }
+}
+
+#[test]
+fn copied_disabled_rules_and_reordered_priorities_round_trip_in_persistence() {
+    use einfach_excel_core::workbook::ConditionalFormatRuleAction::{Disable, Duplicate, MoveUp};
+    let mut source = WasmWorkbook::new();
+    source.workbook.set_cell(0, "A1", Value::Number(9.0));
+    let request: SetConditionalFormatRuleJSON = serde_json::from_value(serde_json::json!({
+        "revision": 0, "scope": { "range": { "rowStart": 0, "rowEnd": 1, "colStart": 0, "colEnd": 0 } },
+        "rule": { "kind": "cell-value", "operator": "gt", "value": "5", "format": { "bgColor": "#FFC7CE" } },
+    })).unwrap();
+    source.history.set_conditional_format_rule(&mut source.workbook, 0, 0, request.into_entry("r".into()).unwrap()).unwrap();
+    source.history.manage_conditional_format_rule(&mut source.workbook, 0, 1, "r", Disable).unwrap();
+    let copied = source.history.manage_conditional_format_rule(&mut source.workbook, 0, 2, "r", Duplicate).unwrap();
+    let expected = source.history.manage_conditional_format_rule(&mut source.workbook, 0, 3, &copied.rules[1].id, MoveUp).unwrap();
+    let mut restored = WasmWorkbook::new();
+    restored.restore_persistence_v1_json(source.snapshot_persistence_v1_json()).unwrap();
+    assert_eq!(restored.workbook.conditional_format_config(0).unwrap(), expected);
+    let range = CellRange::single(CellAddress::new(0, 0));
+    assert!(restored.workbook.snapshot_display_format_range(0, range).unwrap().cell_styles.is_empty());
+    assert!(restored.workbook.sheet(0).unwrap().snapshot_format_range(range).cell_styles.is_empty());
+}

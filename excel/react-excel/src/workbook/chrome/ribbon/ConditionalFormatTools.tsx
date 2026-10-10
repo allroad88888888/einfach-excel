@@ -39,18 +39,35 @@ export function ConditionalFormatTools() {
       aria-describedby={`${id}-hint`} onKeyDown={cycleDialogFocus}
       onCancel={(event) => { event.preventDefault(); void run('close') }}>
       <h2 id={`${id}-title`}>Conditional formatting</h2>
-      <p id={`${id}-hint`}>Highlight numeric values. Original cell formatting stays unchanged.</p>
+      <p id={`${id}-hint`}>Highlight numeric values. Higher rules win when colors overlap.</p>
       <section aria-label="Worksheet rules">
         <h3>Worksheet rules</h3>
         {!config?.rules.length && <p>No rules yet.</p>}
         <ul>{config?.rules.map((entry, index) => <li key={entry.id}>
           <span>{rangeToA1(entry.scope.range)} · {entry.rule.kind === 'cell-value'
             ? `${OPERATORS[entry.rule.operator] ?? entry.rule.operator} ${entry.rule.value}${entry.rule.value2 ? ` – ${entry.rule.value2}` : ''}`
-            : `${entry.rule.kind} (not editable yet)`}</span>
+            : `${entry.rule.kind} (not editable yet)`}
+            {entry.rule.kind === 'cell-value' && entry.rule.enabled === false && ' · Disabled'}</span>
+          <div className="conditional-rule-actions">
           <button type="button" disabled={state.busy || entry.rule.kind !== 'cell-value'}
             aria-label={`Edit rule ${index + 1}`} onClick={() => void run({ type: 'edit', id: entry.id })}>Edit</button>
+          <button type="button" disabled={state.busy || entry.rule.kind !== 'cell-value'}
+            aria-label={`Copy rule ${index + 1}`}
+            onClick={() => void run({ type: 'duplicate', id: entry.id })}>Copy</button>
+          <button type="button" disabled={state.busy || entry.rule.kind !== 'cell-value'}
+            aria-label={`${entry.rule.kind === 'cell-value' && entry.rule.enabled === false ? 'Enable' : 'Disable'} rule ${index + 1}`}
+            onClick={() => void run({ type: entry.rule.kind === 'cell-value' && entry.rule.enabled === false
+              ? 'enable' : 'disable', id: entry.id })}>
+            {entry.rule.kind === 'cell-value' && entry.rule.enabled === false ? 'Enable' : 'Disable'}</button>
+          <button type="button" disabled={state.busy || index === 0}
+            aria-label={`Move rule ${index + 1} up`}
+            onClick={() => void run({ type: 'move-up', id: entry.id })}>↑</button>
+          <button type="button" disabled={state.busy || index === (config?.rules.length ?? 0) - 1}
+            aria-label={`Move rule ${index + 1} down`}
+            onClick={() => void run({ type: 'move-down', id: entry.id })}>↓</button>
           <button type="button" disabled={state.busy} aria-label={`Delete rule ${index + 1}`}
             onClick={() => void run({ type: 'remove', id: entry.id })}>Delete</button>
+          </div>
         </li>)}</ul>
         <button type="button" disabled={state.busy} onClick={() => void run('new')}>New rule</button>
       </section>

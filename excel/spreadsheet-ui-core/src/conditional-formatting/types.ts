@@ -16,6 +16,8 @@ export interface ConditionalFormatScope {
 
 export interface CellValueRule {
   kind: 'cell-value'
+  /** 缺省启用；停用仍保存规则，由 Rust 显示投影跳过。 */
+  enabled?: boolean
   operator: 'eq' | 'ne' | 'gt' | 'gte' | 'lt' | 'lte' | 'between' | 'not-between'
   value: string
   value2?: string

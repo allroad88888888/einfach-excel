@@ -50,6 +50,14 @@ struct RemoveConditionalFormatRuleJSON {
     rule_id: String,
 }
 
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ManageConditionalFormatRuleJSON {
+    revision: u64,
+    rule_id: String,
+    action: einfach_excel_core::workbook::ConditionalFormatRuleAction,
+}
+
 impl ConditionalFormatRuleEntryJSON {
     fn from_entry(entry: &ConditionalFormatRuleEntry) -> Result<Self, String> {
         let rule = serde_json::from_str(&entry.rule_json)

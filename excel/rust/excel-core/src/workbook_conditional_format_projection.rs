@@ -32,6 +32,7 @@ impl Workbook {
             .filter_map(|entry| {
                 NumericRule::parse(&entry.rule_json)
                     .ok()
+                    .filter(|rule| rule.enabled)
                     .map(|rule| (entry, rule))
             })
             .collect();

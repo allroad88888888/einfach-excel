@@ -8,7 +8,7 @@ import { ConditionalFormatTools } from '../../../src/workbook/chrome/ribbon/Cond
 
 type Payload = RustWorkbookCommands['conditionalFormat.change']['payload']
 const range = { rowStart: 0, rowEnd: 2, colStart: 0, colEnd: 0 }
-function setup() {
+function setup(enabled = true) {
   const store = createStore()
   store.setter(initializeWorkbookDocumentAtom, { title: 'Book', sheets: [
     { id: 's', index: 0, name: 'Sheet', rowCount: 100, colCount: 8 },
@@ -19,7 +19,7 @@ function setup() {
     throw new Error('Expected a visible projection request')
   store.setter(resolveProjectionAtom, { request: read.request, result: { ...read.request, cells: [],
     conditionalFormats: { revision: 1, rules: [{ id: 'r', scope: { range }, priority: 0,
-      rule: { kind: 'cell-value', operator: 'gt', value: '2', format: { bgColor: '#ffc7ce' } } }] } } })
+      rule: { kind: 'cell-value', enabled, operator: 'gt', value: '2', format: { bgColor: '#ffc7ce' } } }] } } })
   const request = vi.fn(async (_command: string, input: Payload) => ({ projection: {
     ...input.projection, cells: [], conditionalFormats: { revision: 2, rules: [] },
   } }))
@@ -77,4 +77,24 @@ test('between exposes two numeric drafts; invalid native values never close the 
   expect(screen.getByLabelText('Maximum')).toBeVisible()
   await click('Add rule')
   expect(screen.getByRole('alert')).toHaveTextContent('finite number')
+})
+
+test.each([
+  ['Copy rule 1', 'duplicate', true], ['Disable rule 1', 'disable', true], ['Enable rule 1', 'enable', false],
+] as const)('%s dispatches the native action without submitting a draft', async (label, action, enabled) => {
+  const request = setup(enabled)
+  await click('Conditional formatting')
+  if (!enabled) expect(screen.getByRole('region')).toHaveTextContent('Disabled')
+  await click(label)
+  expect(request.mock.calls[0][1]).toMatchObject({ action, ruleId: 'r', revision: 1 })
+  expect(request).toHaveBeenCalledTimes(1)
+  expect(screen.queryByRole('dialog')).toBeNull()
+})
+
+test('a single rule cannot move beyond either end of the list', async () => {
+  const request = setup()
+  await click('Conditional formatting')
+  expect(screen.getByRole('button', { name: 'Move rule 1 up' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: 'Move rule 1 down' })).toBeDisabled()
+  expect(request).not.toHaveBeenCalled()
 })

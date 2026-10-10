@@ -25,6 +25,11 @@ export type ConditionalFormatChange =
       readonly rule: CellValueRule
     }
   | { readonly action: 'remove'; readonly revision: number; readonly ruleId: string }
+  | {
+      readonly action: 'duplicate' | 'enable' | 'disable' | 'move-up' | 'move-down'
+      readonly revision: number
+      readonly ruleId: string
+    }
 
 export interface RustConditionalFormatCommands {
   'conditionalFormat.change': WorkerCommand<
@@ -55,6 +60,8 @@ export function validNativeConditionalFormats(config: NativeConditionalFormats):
       !Number.isSafeInteger(entry.priority) ||
       !entry.rule ||
       typeof entry.rule.kind !== 'string'
+      || (entry.rule.kind === 'cell-value' && entry.rule.enabled !== undefined
+        && typeof entry.rule.enabled !== 'boolean')
     )
       return false
     ids.add(entry.id)

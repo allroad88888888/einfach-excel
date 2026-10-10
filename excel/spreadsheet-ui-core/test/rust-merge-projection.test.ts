@@ -103,3 +103,31 @@ test('missing native projection capability fails before merge writes', () => {
   ).toThrow('Rust merge command is unavailable.')
   expect(merge).not.toHaveBeenCalled()
 })
+
+test('hidden offscreen perimeter reads only the two collapsed strips, never the merged interior', () => {
+  const wb = {
+    ...native([0, 0, 100, 10]),
+    snapshot_format_range: vi.fn((_sheet, row, col) => ({
+      cellStyles: row === 0 && col === 4 ? [{ addr: 'F1', format: {
+        borders: { top: { style: 'thin', color: '#123abc' } },
+      } }] : row === 20 && col === 0 ? [{ addr: 'A23', format: {
+        borders: { left: { style: 'none' } },
+      } }] : [],
+      rowStyles: [], columnStyles: [],
+    })),
+  }
+  const result = readMergeProjection(wb as unknown as WasmWorkbook, 0, window, {
+    manualRows: Array.from({ length: 20 }, (_, i) => i), filterRows: [],
+    manualColumns: [0, 1, 2, 3],
+  })
+  expect(wb.snapshotCell).toHaveBeenCalledTimes(1)
+  expect(wb.snapshot_format_range.mock.calls).toEqual([
+    [0, 0, 0, 0, 0], [0, 0, 4, 0, 8], [0, 20, 0, 30, 0],
+  ])
+  expect(result.mergeBorderCells).toEqual([
+    { row: 0, col: 5, displayValue: '', format: {
+      borders: { top: { style: 'thin', color: '#123abc' } },
+    } },
+    { row: 22, col: 0, displayValue: '', format: { borders: { left: { style: 'none' } } } },
+  ])
+})

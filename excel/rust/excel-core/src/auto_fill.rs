@@ -1,4 +1,3 @@
-use crate::cell_style::{CellStyle, StyleScope};
 use crate::formula::Expr;
 use crate::sheet::{EXCEL_MAX_COLS, EXCEL_MAX_ROWS};
 use crate::{parse_formula, render_formula, CellAddress, CellFormat, CellRange, Workbook};
@@ -10,6 +9,7 @@ use std::fmt;
 use unicode_normalization::char::canonical_combining_class;
 
 mod inference;
+mod apply;
 
 const NUMBER_EPSILON: f64 = 1e-10;
 
@@ -181,114 +181,6 @@ struct PlannedCell {
     format: CellFormat,
 }
 
-impl Workbook {
-    /// Preflight and apply one drag-fill as a single native operation.
-    ///
-    /// Every source value, formula, target spill constraint, and generated
-    /// value is validated before the first mutation. Callers therefore either
-    /// receive a complete fill or an error with the workbook untouched.
-    pub fn apply_auto_fill(
-        &mut self,
-        request: &AutoFillRequest,
-    ) -> Result<AutoFillReport, AutoFillError> {
-        validate_geometry(request)?;
-        let write_range = fill_write_range(request);
-
-        if self.is_inside_custom_call() {
-            return Err(AutoFillError::MutationDuringCustomCall);
-        }
-        self.sheet(request.sheet_idx)
-            .ok_or(AutoFillError::SheetOutOfRange)?;
-
-        // Copy has no semantic witnesses to validate when the handle did not
-        // extend beyond the source. Series validation intentionally continues
-        // below, matching the stricter static backend contract.
-        if write_range.is_none() && request.series == AutoFillSeries::Copy {
-            return Ok(AutoFillReport {
-                write_range: None,
-                written: 0,
-            });
-        }
-
-        let sheet = self
-            .sheet(request.sheet_idx)
-            .expect("auto-fill sheet was validated above");
-        if sheet
-            .merged_ranges()
-            .iter()
-            .any(|range| range.intersects(request.target_range))
-        {
-            return Err(AutoFillError::InvalidGeometry(
-                "unmerge cells before filling this range",
-            ));
-        }
-        let planned = match request.series {
-            AutoFillSeries::Copy => plan_copy(sheet, request, write_range.unwrap())?,
-            AutoFillSeries::IntegerStep | AutoFillSeries::DecimalStep => {
-                plan_numeric_series(sheet, request, write_range)?
-            }
-            AutoFillSeries::LinearTrend => plan_linear_trend(sheet, request, write_range)?,
-            AutoFillSeries::DateDay | AutoFillSeries::DateWeek | AutoFillSeries::DateMonth => {
-                plan_date_series(sheet, request, write_range)?
-            }
-            AutoFillSeries::TextNumber => plan_text_number_series(sheet, request, write_range)?,
-            AutoFillSeries::WeekdayName
-            | AutoFillSeries::MonthName
-            | AutoFillSeries::CustomList => plan_named_series(sheet, request, write_range)?,
-        };
-
-        let Some(write_range) = write_range else {
-            return Ok(AutoFillReport {
-                write_range: None,
-                written: 0,
-            });
-        };
-
-        // No operation below can fail. Formula text was parsed during
-        // preflight and all writes are buffered into one workbook bulk-load.
-        // Formula cells route through `WorkbookLoader::set_formula_at` — the
-        // same validated path `Workbook::set_formula` itself uses — instead
-        // of the prevalidated fast path, so a fill that closes a dependency
-        // cycle still LANDS: the cycle-closing cell(s) install as `#CYCLE!`
-        // (either the install-time static check or the Store's own runtime
-        // cyclic-eval guard catches it) and every other planned cell
-        // computes normally. This matches Excel: dragging a fill handle
-        // never rejects the drag outright, exactly like typing each
-        // formula in by hand would not.
-        self.bulk_load(|loader| {
-            for cell in &planned {
-                match &cell.value {
-                    PlannedValue::Primitive(Value::Null) => {
-                        loader.clear_cell_at(request.sheet_idx, cell.addr);
-                    }
-                    PlannedValue::Primitive(value) => {
-                        loader.set_cell_at(request.sheet_idx, cell.addr, value.clone());
-                    }
-                    PlannedValue::Formula(source) => {
-                        loader.set_formula_at(request.sheet_idx, cell.addr, source);
-                    }
-                }
-            }
-        });
-
-        let target_sheet = self
-            .sheet_mut(request.sheet_idx)
-            .expect("preflighted auto-fill sheet disappeared");
-        // 默认格式也是完整覆盖：不能清掉 cellStyle 后漏出目标行列的继承样式。
-        for cell in &planned {
-            target_sheet.patch_format_range(
-                CellRange::single(cell.addr),
-                StyleScope::Cell,
-                CellStyle::from_format(cell.format.clone()),
-            );
-        }
-
-        Ok(AutoFillReport {
-            write_range: Some(write_range),
-            written: planned.len(),
-        })
-    }
-}
 
 fn validate_geometry(request: &AutoFillRequest) -> Result<(), AutoFillError> {
     for range in [request.source_range, request.target_range] {

@@ -51,6 +51,7 @@ export function readFrozenProjection(
         workbook,
         sheet,
         region.window,
+        visibility,
       )
       return { ...region, ...data }
     }),

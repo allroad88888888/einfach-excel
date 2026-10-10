@@ -107,3 +107,38 @@ fn changing_first_segment_of_blank_merge_keeps_remaining_segments_blank() {
         );
     }
 }
+
+#[test]
+fn single_axis_merge_keeps_other_segments_when_its_anchor_bottom_or_right_changes() {
+    for (end, neighbour, preset, horizontal) in [
+        ("D2", "B3", BorderPreset::Top, true),
+        ("B4", "C2", BorderPreset::Left, false),
+    ] {
+        let mut sheet = Sheet::new();
+        sheet.restore_merged_ranges(vec![range("B2", end)]).unwrap();
+        let red = pen(BorderStyle::Thick, "#c00000");
+        let mut borders = CellBorders::default();
+        if horizontal {
+            borders.bottom = Some(red.clone());
+        } else {
+            borders.right = Some(red.clone());
+        }
+        sheet.patch_format_range(
+            range("B2", "B2"),
+            StyleScope::Cell,
+            CellStyle {
+                borders: Some(borders),
+                ..Default::default()
+            },
+        );
+        sheet
+            .patch_range_borders(
+                range(neighbour, neighbour),
+                preset,
+                pen(BorderStyle::Thin, "#123abc"),
+            )
+            .unwrap();
+        let edge = sheet.get_format(end).borders;
+        assert_eq!(if horizontal { edge.bottom } else { edge.right }, Some(red));
+    }
+}

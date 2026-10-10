@@ -98,3 +98,32 @@ test('merged perimeter uses physical segments before offscreen anchor defaults',
   expect(style(2, 2).borderTopColor).toBeUndefined()
   expect(style(2, 2).borderLeftColor).toBeUndefined()
 })
+
+test('collapsed hidden merge edges transfer to the preceding visible frozen cells only once', () => {
+  const cells: DisplayCell[] = []
+  const topCells: DisplayCell[] = [], leftCells: DisplayCell[] = []
+  const bodyWindow = { rowStart: 2, rowEnd: 4, colStart: 2, colEnd: 4 }
+  const topWindow = { ...bodyWindow, rowStart: 0, rowEnd: 0 }
+  const leftWindow = { ...bodyWindow, colStart: 0, colEnd: 0 }
+  const projection: VisibleProjectionResult = {
+    kind: 'visible-window', sheetId: 's', requestId: 1, cells, window: bodyWindow,
+    freeze: { rows: 1, cols: 1 },
+    visibility: { manualRows: [1], filterRows: [], manualColumns: [1] },
+    mergedRanges: [{ rowStart: 1, rowEnd: 3, colStart: 1, colEnd: 3 }],
+    mergeAnchors: [{ ...cell(1, 1, { borders: { top: red, left: red } }),
+      mergedSpan: { rows: 3, cols: 3 } }],
+    mergeBorderCells: [cell(1, 2, { borders: { top: blue } }),
+      cell(2, 1, { borders: { left: blue } })],
+    frozen: { height: 28, width: 100, regions: [
+      { pane: 'top', window: topWindow, cells: topCells },
+      { pane: 'left', window: leftWindow, cells: leftCells },
+    ] },
+  }
+  const style = (data: DisplayCell[], region: typeof bodyWindow) => createGridBorderStyles({
+    cells: data, window: region, projection, scrollTop: 0, scrollLeft: 0,
+  })
+  expect(style(topCells, topWindow)(0, 2)).toMatchObject({ borderBottomColor: '#123abc', borderBottomWidth: '1px' })
+  expect(style(leftCells, leftWindow)(2, 0)).toMatchObject({ borderRightColor: '#123abc', borderRightWidth: '1px' })
+  expect(style(cells, bodyWindow)(1, 2)).toMatchObject({ borderTopColor: '#123abc', borderTopWidth: '0px' })
+  expect(style(cells, bodyWindow)(2, 1)).toMatchObject({ borderLeftColor: '#123abc', borderLeftWidth: '0px' })
+})

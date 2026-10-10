@@ -5,15 +5,17 @@ import { applyVisibleFormats } from './format-projection'
 import { readMergeProjection } from './merge-projection'
 import { readSizes } from './size-io'
 import type { WasmWorkbook } from './wasm-types'
+import type { SheetVisibilityProjection } from '../viewport/hidden-state'
 
 /** 读取一个连续可见矩形；滚动区与冻结区复用同一套值、格式与合并锚点规则。 */
 export function readWindowProjection(
   workbook: WasmWorkbook,
   sheet: number,
   window: CellRange,
+  visibility?: SheetVisibilityProjection,
 ): Pick<
   VisibleProjectionResult,
-  'cells' | 'mergedRanges' | 'mergeAnchors' | 'rowHeights' | 'colWidths'
+  'cells' | 'mergedRanges' | 'mergeAnchors' | 'mergeBorderCells' | 'rowHeights' | 'colWidths'
 > {
   if (!workbook.read_sparse_range || !workbook.snapshot_format_range)
     throw Object.assign(new Error('Rust window projection is unavailable'), {
@@ -27,7 +29,7 @@ export function readWindowProjection(
   const formats = workbook.snapshot_format_range(sheet, rowStart, colStart, rowEnd, colEnd)
   return {
     cells: applyVisibleFormats(cells, window, formats),
-    ...readMergeProjection(workbook, sheet, window),
+    ...readMergeProjection(workbook, sheet, window, visibility),
     rowHeights: formats.rowStyles.flatMap(({ index, height }) =>
       height === undefined ? [] : [{ rowIndex: index, heightPx: height }],
     ),

@@ -93,3 +93,24 @@ for (const action of ['Clear formatting', 'Clear all']) {
     await expect(cell(page, '9:1')).toHaveText(neighbour!)
   })
 }
+
+for (const axis of ['row', 'column']) {
+  test(`clearing an entire ${axis} clears the neighbouring face and undoes once`, async ({ page }) => {
+    if (axis === 'row') await page.getByRole('button', { name: 'Select row 10', exact: true }).click()
+    else await page.getByRole('columnheader', { name: 'Select column C', exact: true }).click()
+    const targetValue = await cell(page, '9:2').textContent()
+    const peer = cell(page, axis === 'row' ? '8:2' : '9:1')
+    const peerValue = await peer.textContent()
+    const side = axis === 'row' ? 'bottom' : 'right'
+    await expect(peer).toHaveCSS(`border-${side}-color`, 'rgb(192, 0, 0)')
+    await page.getByRole('button', { name: 'Clear formatting', exact: true }).click()
+    await expect(peer).not.toHaveCSS(`border-${side}-color`, 'rgb(192, 0, 0)')
+    await expect(peer).toHaveText(peerValue!)
+    await expect(cell(page, '9:2')).toHaveText(targetValue!)
+    await page.getByRole('button', { name: 'Undo', exact: true }).click()
+    await expect(peer).toHaveCSS(`border-${side}-color`, 'rgb(192, 0, 0)')
+    await expect(peer).toHaveCSS(`border-${side}-width`, '3px')
+    await page.getByRole('button', { name: 'Redo', exact: true }).click()
+    await expect(peer).not.toHaveCSS(`border-${side}-color`, 'rgb(192, 0, 0)')
+  })
+}

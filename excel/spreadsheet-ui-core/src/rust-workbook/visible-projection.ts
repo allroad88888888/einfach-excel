@@ -32,6 +32,6 @@ export function readVisibleProjection(
     requestId: request.requestId,
     revision,
     window: { ...request.window },
-    ...readWindowProjection(workbook, sheetIndex, request.window),
+    ...readWindowProjection(workbook, sheetIndex, request.window, visibility),
   }
 }

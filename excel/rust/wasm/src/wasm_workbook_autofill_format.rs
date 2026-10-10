@@ -39,7 +39,7 @@ impl WasmWorkbook {
         } else {
             request.into()
         };
-        let report = self.workbook.apply_auto_fill(&request).map_err(|err| {
+        let report = self.history.apply_auto_fill(&mut self.workbook, &request).map_err(|err| {
             auto_fill_rejection(
                 auto_fill_error_code(&err),
                 format!("auto-fill rejected: {err}"),

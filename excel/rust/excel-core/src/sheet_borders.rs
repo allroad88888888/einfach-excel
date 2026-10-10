@@ -134,26 +134,32 @@ impl Sheet {
         let fallback = merged.map(|merge| self.base_format_at(merge.start).borders);
         // 旧合并格式可能只存在锚点。改变首段前固定其它段的旧值，避免把首段新色
         // 当成整边的新默认值；只枚举这一条外沿，不展开合并内部或扫描工作表。
-        if let Some(merge) = merged.filter(|merge| merge.start == addr && (side == 0 || side == 3))
-        {
+        if let Some(merge) = merged.filter(|merge| {
+            merge.start == addr
+                && (side == 0
+                    || side == 3
+                    || (side == 1 && merge.start.col == merge.end.col)
+                    || (side == 2 && merge.start.row == merge.end.row))
+        }) {
             let anchor = writes
                 .get(&addr)
                 .cloned()
                 .unwrap_or_else(|| self.base_format_at(addr).borders);
             let old = border_side(&anchor, side).cloned().unwrap_or_default();
             if old != *border {
-                let end = if side == 0 {
+                let horizontal = side % 2 == 0;
+                let end = if horizontal {
                     merge.end.col
                 } else {
                     merge.end.row
                 };
-                let start = if side == 0 {
+                let start = if horizontal {
                     merge.start.col
                 } else {
                     merge.start.row
                 };
                 for index in start + 1..=end {
-                    let edge = if side == 0 {
+                    let edge = if horizontal {
                         CellAddress::new(addr.row, index)
                     } else {
                         CellAddress::new(index, addr.col)
@@ -161,10 +167,11 @@ impl Sheet {
                     let borders = writes
                         .entry(edge)
                         .or_insert_with(|| self.base_format_at(edge).borders);
-                    let target = if side == 0 {
-                        &mut borders.top
-                    } else {
-                        &mut borders.left
+                    let target = match side {
+                        0 => &mut borders.top,
+                        1 => &mut borders.right,
+                        2 => &mut borders.bottom,
+                        _ => &mut borders.left,
                     };
                     if target.is_none() {
                         *target = Some(old.clone());

@@ -16,6 +16,7 @@ export interface FrozenProjectionRegion {
   window: CellRange
   cells: DisplayCell[]
   mergeAnchors?: DisplayCell[]
+  mergeBorderCells?: DisplayCell[]
   rowHeights?: ViewportRowHeight[]
   colWidths?: ViewportColumnWidth[]
 }

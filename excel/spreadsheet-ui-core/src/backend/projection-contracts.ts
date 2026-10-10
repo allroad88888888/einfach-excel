@@ -43,6 +43,8 @@ export interface VisibleProjectionResult extends SheetRef {
   mergedRanges?: CellRange[]
   /** 与窗口相交的合并锚点；可以位于窗口外，不塞进普通 cells 的窗口契约。 */
   mergeAnchors?: DisplayCell[]
+  /** 隐藏轴压缩到窗口边缘的合并外沿样式；不含覆盖格内容。 */
+  mergeBorderCells?: DisplayCell[]
   /** 当前窗口内由 rowStyle 持有的稀疏行高。 */
   rowHeights?: ViewportRowHeight[]
   /** 当前窗口内的稀疏列宽。 */

@@ -93,6 +93,8 @@ mod format;
 mod format_snapshot;
 #[path = "sheet_format_write.rs"]
 mod format_write;
+#[path = "sheet_axis_border_clear.rs"]
+mod axis_border_clear;
 #[path = "sheet_borders.rs"]
 mod borders;
 pub use borders::BorderPreset;

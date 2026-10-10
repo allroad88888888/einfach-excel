@@ -13,6 +13,7 @@ import type { CellRange, SheetRef } from '../shared'
 import { validSheetVisibility } from '../viewport/hidden-state'
 import { validFilterRange, validFilterRules } from '../rust-workbook/filter-commands'
 import { validFrozenProjection, validProjectionViewport } from './frozen-validation'
+import { validMergeBorderCells } from './merge-border-cells'
 import type {
   ProjectionLimitOptions,
   ProjectionRequest,
@@ -224,6 +225,8 @@ export function validateProjectionResult(
     return makeInvalid('CELL_OUT_OF_RANGE', 'Invalid Rust filter rules.')
   if (result.kind === 'visible-window' && result.visibility !== undefined && !validSheetVisibility(result.visibility))
     return makeInvalid('CELL_OUT_OF_RANGE', 'Invalid Rust visibility projection.')
+  if (result.kind === 'visible-window' && !validMergeBorderCells(result, options.maxCells ?? DEFAULT_MAX_PROJECTION_CELLS))
+    return makeInvalid('CELL_OUT_OF_RANGE', 'Invalid Rust merged-border projection.')
   if (result.kind === 'visible-window' && result.freeze !== undefined) {
     const freeze = result.freeze
     if (!freeze || ![freeze.rows, freeze.cols].every((n) => Number.isSafeInteger(n) && n >= 0) ||

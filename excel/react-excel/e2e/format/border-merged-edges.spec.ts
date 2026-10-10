@@ -40,6 +40,20 @@ test('native merged seed shows one thin blue bottom segment between thick red se
   }
 })
 
+test('changing the first bottom segment of a single-row merge keeps other seeded segments', async ({ page }) => {
+  await paint(page, 'A16', '15:0', 'top')
+  await select(page, 'A1', '0:0')
+  const seed = page.locator('[data-merged-cell][data-cell="14:0"]')
+  const bottom = (col: number) => seed.locator(`[data-merged-border="bottom"][data-border-cell="14:${col}"]`)
+  for (const col of [0, 1, 2, 3]) {
+    await expect(bottom(col)).toHaveCSS('border-bottom-color', col % 2 === 0 ? 'rgb(18, 58, 188)' : 'rgb(192, 0, 0)')
+    await expect(bottom(col)).toHaveCSS('border-bottom-width', col % 2 === 0 ? '1px' : '3px')
+  }
+  await page.getByRole('button', { name: 'Undo', exact: true }).click()
+  await expect(bottom(0)).toHaveCSS('border-bottom-color', 'rgb(192, 0, 0)')
+  await expect(bottom(2)).toHaveCSS('border-bottom-color', 'rgb(18, 58, 188)')
+})
+
 for (const [side, address, coord, preset, target, others, owner, ownerSide] of [
   ['right', 'E9', '8:4', 'left', '8:3', ['7:3', '9:3'], '8:3', 'right'],
   ['left', 'A9', '8:0', 'right', '8:1', ['7:1', '9:1'], '8:0', 'right'],

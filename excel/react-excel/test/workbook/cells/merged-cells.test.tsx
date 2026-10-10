@@ -18,12 +18,17 @@ import { expect, test } from 'vitest'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
 import { MergedCells } from '../../../src/workbook/grid/cells/MergedCells'
 
-async function setup(bordered = false) {
+async function setup(bordered = false, hidden = false) {
   const request = (async (_command: string, input: { request: VisibleProjectionRequest }) => ({
     ...input.request,
     cells: bordered ? [{ row: 2, col: 3, displayValue: '',
       format: { borders: { right: { style: 'thin', color: '#123abc' } } } }] : [],
     mergedRanges: [{ rowStart: 1, rowEnd: 3, colStart: 1, colEnd: 3 }],
+    ...(hidden ? {
+      visibility: { manualRows: [1], filterRows: [], manualColumns: [1] },
+      mergeBorderCells: [{ row: 1, col: 2, displayValue: '',
+        format: { borders: { top: { style: 'thin', color: '#123abc' } } } }],
+    } : {}),
     mergeAnchors: [
       {
         row: 1,
@@ -34,6 +39,8 @@ async function setup(bordered = false) {
           ...(bordered ? { borders: {
             right: { style: 'thick', color: '#c00000' },
             bottom: { style: 'thick', color: '#c00000' },
+            top: { style: 'thick', color: '#c00000' },
+            left: { style: 'thick', color: '#c00000' },
           } } : {}),
         },
       },
@@ -130,4 +137,16 @@ test('offscreen merge paints only visible perimeter segments and leaves the text
   expect(merged.querySelectorAll('[data-merged-border]')).toHaveLength(4)
   expect(merged.querySelector('[data-merged-border="top"]')).toBeNull()
   expect(merged.querySelector('[data-merged-border="left"]')).toBeNull()
+})
+
+test('hidden offscreen anchor axes retain physical edge segments at the collapsed boundary', async () => {
+  await setup(true, true)
+  const merged = screen.getByRole('gridcell')
+  expect(merged).toHaveStyle({ top: '0px', left: '0px', width: '200px', height: '40px' })
+  expect(merged.querySelector('[data-merged-border="top"][data-border-cell="1:2"]'))
+    .toHaveStyle({ borderTopColor: '#123abc', borderTopWidth: '1px', top: '0px' })
+  expect(merged.querySelector('[data-merged-border="top"][data-border-cell="1:3"]'))
+    .toHaveStyle({ borderTopColor: '#c00000', borderTopWidth: '3px' })
+  expect(merged.querySelector('[data-merged-border="left"][data-border-cell="2:1"]'))
+    .toHaveStyle({ borderLeftColor: '#c00000', borderLeftWidth: '3px', left: '0px' })
 })

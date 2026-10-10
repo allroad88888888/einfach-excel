@@ -26,7 +26,9 @@ export function createGridBorderStyles({
   const all = new Map((ownProjection
     ? [
       ...ownProjection.cells,
+      ...ownProjection.mergeBorderCells ?? [],
       ...ownProjection.frozen?.regions.flatMap((region) => region.cells) ?? [],
+      ...ownProjection.frozen?.regions.flatMap((region) => region.mergeBorderCells ?? []) ?? [],
     ]
     : cells).map((cell) => [`${cell.row}:${cell.col}`, cell.format]))
   const rows = Array.from({ length: Math.max(0, window.rowEnd - window.rowStart + 1) }, (_, i) => i)
@@ -58,31 +60,48 @@ export function createGridBorderStyles({
     ...ownProjection?.mergeAnchors ?? [],
     ...ownProjection?.frozen?.regions.flatMap((region) => region.mergeAnchors ?? []) ?? [],
   ].map((cell) => [`${cell.row}:${cell.col}`, cell.format]))
+  const merges = ownProjection?.mergedRanges?.map((range) => ({
+    range,
+    firstRow: after(range.rowStart, range.rowEnd, hiddenRows),
+    lastRow: before(range.rowEnd, hiddenRows),
+    firstCol: after(range.colStart, range.colEnd, hiddenCols),
+    lastCol: before(range.colEnd, hiddenCols),
+  }))
   const format = (
     row: number | undefined, col: number | undefined, current?: SpreadsheetCellFormat,
   ): SpreadsheetCellFormat | undefined => {
     if (row === undefined || col === undefined) return undefined
     const raw = current ?? all.get(`${row}:${col}`)
-    const merge = ownProjection?.mergedRanges?.find((m) =>
+    const visible = merges?.find(({ range: m }) =>
       row >= m.rowStart && row <= m.rowEnd && col >= m.colStart && col <= m.colEnd)
-    if (!merge) return raw
+    if (!visible) return raw
+    const merge = visible.range
     const anchor = anchors.get(`${merge.rowStart}:${merge.colStart}`)?.borders
+    const edge = (r: number, c: number, side: 'top' | 'bottom' | 'left' | 'right') =>
+      (r === row && c === col ? raw : all.get(`${r}:${c}`))?.borders?.[side] ?? anchor?.[side]
     // 锚点是旧合并格式的默认值；原生边段（包括显式 none）优先，不把内侧画成外沿。
     return { ...raw, borders: {
-      top: row === merge.rowStart ? raw?.borders?.top ?? anchor?.top : undefined,
-      bottom: row === merge.rowEnd ? raw?.borders?.bottom ?? anchor?.bottom : undefined,
-      left: col === merge.colStart ? raw?.borders?.left ?? anchor?.left : undefined,
-      right: col === merge.colEnd ? raw?.borders?.right ?? anchor?.right : undefined,
+      top: row === merge.rowStart || row === visible.firstRow ? edge(merge.rowStart, col, 'top') : undefined,
+      bottom: row === merge.rowEnd || row === visible.lastRow ? edge(merge.rowEnd, col, 'bottom') : undefined,
+      left: col === merge.colStart || col === visible.firstCol ? edge(row, merge.colStart, 'left') : undefined,
+      right: col === merge.colEnd || col === visible.lastCol
+        ? edge(row, merge.colEnd, 'right') : undefined,
     } }
   }
 
   return (row: number, col: number, current?: SpreadsheetCellFormat): CSSProperties => {
     current = format(row, col, current)
     const ri = rowPosition.get(row)!, ci = colPosition.get(col)!
-    const top = rows[ri - 1] ?? (scrollTop === 0 && row === bodyRow ? frozenRow : undefined)
-    const left = cols[ci - 1] ?? (scrollLeft === 0 && col === bodyCol ? frozenCol : undefined)
-    const bottom = rows[ri + 1] ?? (scrollTop === 0 && row === frozenRow ? bodyRow : undefined)
-    const right = cols[ci + 1] ?? (scrollLeft === 0 && col === frozenCol ? bodyCol : undefined)
+    // 合并外沿可在隐藏轴上；普通格保持索引查找，仅这类外沿查相邻可见坐标。
+    const top = (ri === undefined ? rows.findLast((r) => r < row) : rows[ri - 1]) ??
+      (scrollTop === 0 && after(row, window.rowEnd, hiddenRows) === bodyRow ? frozenRow : undefined)
+    const left = (ci === undefined ? cols.findLast((c) => c < col) : cols[ci - 1]) ??
+      (scrollLeft === 0 && after(col, window.colEnd, hiddenCols) === bodyCol
+        ? frozenCol : undefined)
+    const bottom = (ri === undefined ? rows.find((r) => r > row) : rows[ri + 1]) ??
+      (scrollTop === 0 && row === frozenRow ? bodyRow : undefined)
+    const right = (ci === undefined ? cols.find((c) => c > col) : cols[ci + 1]) ??
+      (scrollLeft === 0 && col === frozenCol ? bodyCol : undefined)
     const borders = {
       top: sharedBorder(format(top, col)?.borders?.bottom, current?.borders?.top),
       left: sharedBorder(format(row, left)?.borders?.right, current?.borders?.left),

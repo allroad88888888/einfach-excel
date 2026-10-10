@@ -22,13 +22,21 @@ export function MergedCellBorders({ range, window }: { range: CellRange; window:
       getViewportColumnWidth(sizes, result.sheetId, window.colStart + i, metrics.colWidth)),
   })
   const origin = getViewportRangeRectangle(metrics, sizes, range)
+  const visible = getViewportRangeRectangle(metrics, sizes, window)
   const edges = []
   for (const side of ['Top', 'Right', 'Bottom', 'Left'] as const) {
     const horizontal = side === 'Top' || side === 'Bottom'
     const fixed = side === 'Top' ? range.rowStart : side === 'Bottom' ? range.rowEnd
       : side === 'Left' ? range.colStart : range.colEnd
     if (horizontal ? fixed < window.rowStart || fixed > window.rowEnd
-      : fixed < window.colStart || fixed > window.colEnd) continue
+      : fixed < window.colStart || fixed > window.colEnd) {
+      // 隐藏轴的逻辑索引在窗口外，压缩后的实际边界仍可能正好可见。
+      const edge = side === 'Top' ? origin.top : side === 'Bottom' ? origin.top + origin.height
+        : side === 'Left' ? origin.left : origin.left + origin.width
+      const start = horizontal ? visible.top : visible.left
+      const end = start + (horizontal ? visible.height : visible.width)
+      if (edge < start || edge > end) continue
+    }
     const start = horizontal ? Math.max(range.colStart, window.colStart)
       : Math.max(range.rowStart, window.rowStart)
     const end = horizontal ? Math.min(range.colEnd, window.colEnd)

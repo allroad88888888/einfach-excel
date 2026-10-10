@@ -61,6 +61,20 @@ async function setup() {
 
 describe('workbook system clipboard', () => {
   test.each([
+    ['CLIPBOARD_FILTERED_CUT', 'Clear the filter before cutting this range'],
+    ['CLIPBOARD_NO_VISIBLE_ROWS', 'no unfiltered rows to copy'],
+  ])('native rejection %s is readable and rejects clipboard data before publication', async (code, message) => {
+    const { capture, paste } = await setup()
+    capture.mockRejectedValueOnce(new Error(code))
+    fireEvent.click(screen.getByRole('button', { name: code === 'CLIPBOARD_FILTERED_CUT' ? 'Cut' : 'Copy' }))
+    await waitFor(() => expect(screen.getByRole('alert', { name: 'Clipboard status' }))
+      .toHaveTextContent(message))
+    // 浏览器手势内先把 Promise 交给 ClipboardItem；失败必须拒绝数据而非发布空内容。
+    await expect(vi.mocked(writeBrowserClipboard).mock.results[0].value).rejects.toThrow(code)
+    expect(paste).not.toHaveBeenCalled()
+  })
+
+  test.each([
     ['transpose', { transpose: true }],
     ['skip-blanks', { skipBlanks: true }],
     ['add', { arithmetic: 'add' }],

@@ -40,6 +40,11 @@ impl Workbook {
             return self.paste_column_widths(snapshot, sheet_idx, range, history);
         }
         if snapshot.cut {
+            // 剪切后新应用的筛选也不能让粘贴暗中删除不可见源行。
+            if sheet.filter_hidden_set().is_some_and(|rows|
+                rows.range(snapshot.source.start.row..=snapshot.source.end.row).next().is_some()) {
+                return Err("CLIPBOARD_FILTERED_CUT");
+            }
             if snapshot.source_sheet != Some(sheet_idx) {
                 return Err("CLIPBOARD_CROSS_SHEET_CUT");
             }

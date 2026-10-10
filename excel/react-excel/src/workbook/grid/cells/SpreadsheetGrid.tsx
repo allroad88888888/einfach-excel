@@ -1,5 +1,7 @@
 import type { CellRange, DisplayCell } from '@einfach/spreadsheet-ui-core'
-import { mergeRangeAt } from '@einfach/spreadsheet-ui-core'
+import { mergeRangeAt, nativeFilterRangeAtom } from '@einfach/spreadsheet-ui-core'
+import { useAtomValue } from '@einfach/react'
+import { CellFilterButton } from './CellFilterButton'
 import type { CSSProperties } from 'react'
 import { cellFormatStyle, cellTextRotationStyle } from './cell-format-style'
 import {
@@ -50,6 +52,7 @@ export function SpreadsheetGrid({
   rowHeights,
   columnWidths,
 }: SpreadsheetGridProps) {
+  const filterRange = useAtomValue(nativeFilterRangeAtom)
   const cellsByCoordinate = new Map(cells.map((cell) => [`${cell.row}:${cell.col}`, cell]))
   const rows = []
   const outline = visibleSelection(window, selected)
@@ -72,11 +75,13 @@ export function SpreadsheetGrid({
       )
       const bottomBorder = Number.parseFloat(String(formatStyle.borderBottomWidth ?? 1))
       const displayValue = cell?.displayValue ?? ''
+      const filterHeader = !merged && row === filterRange?.rowStart
+        && col >= filterRange.colStart && col <= filterRange.colEnd
 
       rowCells.push(
         <td
           key={col}
-          className={isSelected ? 'cell cell-selected' : 'cell'}
+          className={`cell${isSelected ? ' cell-selected' : ''}${filterHeader ? ' cell-filter-header' : ''}`}
           data-cell={`${row}:${col}`}
           aria-hidden={merged || undefined}
           data-selected={isSelected ? 'true' : undefined}
@@ -97,6 +102,7 @@ export function SpreadsheetGrid({
               displayValue
             )}
           </span>
+          {filterHeader && <CellFilterButton col={col} />}
         </td>,
       )
     }

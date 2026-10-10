@@ -46,6 +46,11 @@ impl Sheet {
         } else {
             Some(crate::filter::SheetAutoFilter::new(rules, hidden))
         };
+        self.commit_filter_state(next)
+    }
+
+    /// 历史及持久化按原样恢复区域、条件、隐藏集合，不重新扫描数据。
+    pub(crate) fn commit_filter_state(&mut self, next: Option<crate::filter::SheetAutoFilter>) -> bool {
         if self.filter == next {
             return false;
         }

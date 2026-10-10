@@ -42,6 +42,7 @@ export function exportClipboard(
   )
   const input = {
     cells: projection.cells,
+    hiddenRows: projection.visibility?.filterRows,
     rect: {
       startRow: range.rowStart,
       endRow: range.rowEnd,
@@ -49,6 +50,9 @@ export function exportClipboard(
       endCol: range.colEnd,
     },
   }
+  const visibleRows = rows - (input.hiddenRows ?? [])
+    .filter((row) => row >= range.rowStart && row <= range.rowEnd).length
+  if (visibleRows === 0) throw new Error('CLIPBOARD_NO_VISIBLE_ROWS')
   const text =
     format === 'markdown' ? encodeSelectionAsMarkdown(input) : encodeSelectionAsPlainText(input)
   const html = format === 'html' ? encodeSelectionAsHtml(input) : undefined
@@ -56,5 +60,5 @@ export function exportClipboard(
   if (encoder.encode(text).byteLength + encoder.encode(html ?? '').byteLength > MAX_EXPORT_BYTES) {
     throw new Error('CLIPBOARD_TOO_LARGE')
   }
-  return { text, ...(html === undefined ? {} : { html }), rows, cols }
+  return { text, ...(html === undefined ? {} : { html }), rows: visibleRows, cols }
 }

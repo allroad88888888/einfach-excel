@@ -338,21 +338,22 @@ pub fn row_matches_rules(rules: &[ColumnFilterRule], read_value: impl Fn(u32) ->
 /// follow later cell edits. A getter that re-ran the predicate would be
 /// live by construction; a stored set cannot be.
 ///
-/// The design sketch also carried an `autoFilter` `range`. It is omitted:
-/// nothing in the product produces one (the wire request is `{ rules }`
-/// and nothing else), the scan extent is derived exactly the way the host
-/// derives it today, and an unused field would still have to be given
-/// persistence and displacement semantics. See the commit message.
+/// 显式区域包含表头；None 保留旧整表扫描契约。区域与隐藏快照一起保存、撤销。
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct SheetAutoFilter {
     rules: Vec<ColumnFilterRule>,
     hidden: BTreeSet<u32>,
+    pub(crate) range: Option<crate::CellRange>,
 }
 
 impl SheetAutoFilter {
     pub(crate) fn new(rules: Vec<ColumnFilterRule>, hidden: BTreeSet<u32>) -> Self {
-        SheetAutoFilter { rules, hidden }
+        SheetAutoFilter { rules, hidden, range: None }
     }
+
+    pub fn range(&self) -> Option<crate::CellRange> { self.range }
+
+    pub(crate) fn rules_mut(&mut self) -> &mut Vec<ColumnFilterRule> { &mut self.rules }
 
     /// The committed rules.
     pub fn rules(&self) -> &[ColumnFilterRule] {
@@ -399,6 +400,8 @@ pub struct FilterApplyReport {
 /// § "Engine physical sort wire").
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum FilterError {
+    /// 区域必须包含表头与数据，条件列必须属于此区域。
+    InvalidRange,
     /// A history transaction already owns the workbook mutation boundary.
     HistoryPending,
     /// `sheet_index` is not a sheet.

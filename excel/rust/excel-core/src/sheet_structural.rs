@@ -33,6 +33,12 @@ impl Sheet {
             return Ok(());
         }
         let first = limit - count;
+        if self.filter().and_then(|filter| filter.range()).is_some_and(|range| {
+            let end = if edit.is_row_edit() { range.end.row } else { range.end.col };
+            at <= end && end >= first
+        }) {
+            return Err("The insertion would move the filter range outside the worksheet.");
+        }
         let frozen = if edit.is_row_edit() {
             self.frozen_panes.rows
         } else {
@@ -203,6 +209,7 @@ impl Sheet {
                     sheet.shift_hidden_columns(at, count, false);
                 }
             }
+            sheet.shift_filter_range(edit);
             // Previously-installed anchors re-derive BEFORE previously-blocked
             // ones: an anchor that owned its rectangle before the shift keeps
             // first claim on it afterwards, instead of losing a race to a

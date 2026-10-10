@@ -1,9 +1,10 @@
 import type { VisibleProjectionRequest, VisibleProjectionResult } from '../backend'
 import type { WorkerCommand } from '../rust-worker'
 import type { ColumnFilterRule } from '../filter-sort/types'
+import type { CellRange } from '../shared'
 
 export type RustFilterAction =
-  | { readonly action: 'apply'; readonly rules: readonly ColumnFilterRule[] }
+  | { readonly action: 'apply'; readonly rules: readonly ColumnFilterRule[]; readonly range?: CellRange }
   | { readonly action: 'reapply' | 'clear' }
 export type RustFilterReport =
   | {
@@ -21,6 +22,15 @@ export interface RustFilterCommands {
     },
     { readonly hiddenRows: number; readonly projection: VisibleProjectionResult }
   >
+}
+
+export function validFilterRange(value: unknown): value is CellRange {
+  if (!value || typeof value !== 'object') return false
+  const range = value as CellRange
+  return [range.rowStart, range.rowEnd, range.colStart, range.colEnd]
+    .every((index) => Number.isSafeInteger(index) && index >= 0)
+    && range.rowStart < range.rowEnd && range.colStart <= range.colEnd
+    && range.rowEnd < 1_048_576 && range.colEnd < 16_384
 }
 
 /** 传输边界校验；只检查条件形状，不在 JS 判断任何单元格是否匹配。 */

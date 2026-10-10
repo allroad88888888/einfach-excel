@@ -83,7 +83,11 @@ impl Workbook {
             .filter()
             .map(|filter| filter.rules().to_vec())
             .unwrap_or_default();
-        self.run_filter(sheet_index, rules)
+        if let Some(range) = self.filter_range(sheet_index) {
+            self.apply_filter_range(sheet_index, range, &rules)
+        } else {
+            self.run_filter(sheet_index, rules)
+        }
     }
 
     /// Drop `sheet_index`'s filter: rules and derived rows both. Cheap and

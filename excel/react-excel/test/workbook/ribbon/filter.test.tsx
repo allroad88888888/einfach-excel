@@ -11,6 +11,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import { expect, test, vi } from 'vitest'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
 import { FilterTools } from '../../../src/workbook/chrome/ribbon/FilterTools'
+import { CellFilterButton } from '../../../src/workbook/grid/cells/CellFilterButton'
 
 type Input = RustWorkbookCommands['sheet.filter']['payload']
 const result = (p: Input) => ({
@@ -20,16 +21,18 @@ const result = (p: Input) => ({
     cells: [],
     revision: 1,
     filterRules: p.action === 'apply' ? p.rules : [],
+    filterRange: p.action === 'apply' ? p.range : undefined,
     visibility: { manualRows: [], manualColumns: [], filterRows: [2, 4] },
   },
 })
 const menu = () => screen.getByRole('combobox', { name: 'Worksheet filter' })
 async function choose(value: string) {
   await act(async () => {
+    menu().focus()
     fireEvent.change(menu(), { target: { value } })
   })
 }
-async function setup() {
+async function setup(withHeader = false) {
   const filter = vi.fn(async (p: Input) => result(p))
   const request = (async (cmd: string, p: unknown) =>
     cmd === 'sheet.filter'
@@ -39,6 +42,9 @@ async function setup() {
           cells: [],
           revision: 0,
           filterRules: [],
+          ...(withHeader
+            ? { filterRange: { rowStart: 2, rowEnd: 5, colStart: 1, colEnd: 3 } }
+            : {}),
         }) as RustWorkbookConnection['request']
   const store = createStore()
   store.setter(initializeWorkbookDocumentAtom, {
@@ -49,6 +55,7 @@ async function setup() {
   render(
     <WorkbookStoreProvider store={store} connection={{ request, dispose() {} }}>
       <FilterTools />
+      {withHeader && <CellFilterButton col={2} />}
     </WorkbookStoreProvider>,
   )
   await act(async () => {
@@ -60,6 +67,34 @@ async function setup() {
   })
   return { filter }
 }
+
+test('header opens only its own column and returns focus after applying or clearing it', async () => {
+  const { filter } = await setup(true)
+  const button = screen.getByRole('button', { name: 'Filter column C' })
+  const open = async () =>
+    act(async () => {
+      button.focus()
+      fireEvent.click(button)
+    })
+  await open()
+  expect(screen.getByLabelText('Filter column 1')).toBeDisabled()
+  expect(screen.getByLabelText('Filter column 1')).toHaveValue('2')
+  expect(screen.queryByText('Add condition')).toBeNull()
+  await change('Filter value 1', 'West')
+  await apply()
+  expect(button).toHaveFocus()
+  expect(button).toHaveAttribute('data-filtered', 'true')
+  expect(filter.mock.lastCall![0]).toMatchObject({
+    range: { rowStart: 2, rowEnd: 5, colStart: 1, colEnd: 3 },
+  })
+  await open()
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: 'Clear column C filter' }))
+  })
+  expect(filter.mock.lastCall![0]).toMatchObject({ rules: [], range: { rowStart: 2, rowEnd: 5 } })
+  expect(button).toHaveFocus()
+  expect(button).toHaveAttribute('data-filtered', 'false')
+})
 async function change(name: string, value: string) {
   await act(async () => {
     fireEvent.change(screen.getByLabelText(name), { target: { value } })

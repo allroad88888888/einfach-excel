@@ -85,6 +85,8 @@ mod facade_context;
 mod facade_range_context;
 #[path = "sheet_filter.rs"]
 mod filter;
+#[path = "sheet_filter_shift.rs"]
+mod filter_shift;
 #[path = "sheet_format.rs"]
 mod format;
 #[path = "sheet_format_snapshot.rs"]

@@ -162,7 +162,7 @@ impl ClipboardSnapshot {
             )
         };
         (
-            CellAddress::new(self.source.start.row + row, self.source.start.col + col),
+            CellAddress::new(self.source_rows[row as usize], self.source.start.col + col),
             &self.cells[(row * self.cols() + col) as usize],
         )
     }

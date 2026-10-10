@@ -116,11 +116,12 @@ impl WasmWorkbook {
             .into_iter()
             .map(ColumnFilterRuleJSON::into_rule)
             .collect();
-        Self::filter_result_to_js(self.history.apply_filter(
-            &mut self.workbook,
-            sheet_idx as usize,
-            &rules,
-        ))
+        Self::filter_result_to_js(if let Some(range) = payload.range {
+            self.history.apply_filter_range(&mut self.workbook, sheet_idx as usize,
+                range.into_range(), &rules)
+        } else {
+            self.history.apply_filter(&mut self.workbook, sheet_idx as usize, &rules)
+        })
     }
 
     /// `Data -> Reapply` (Excel `Ctrl+Alt+L`): re-run `sheetIdx`'s ALREADY
@@ -155,6 +156,7 @@ impl WasmWorkbook {
         let sheet_idx = sheet_idx as usize;
         let entry = SheetFilterStateJSON {
             sheet: sheet_idx as u32,
+            range: self.workbook.filter_range(sheet_idx).map(FilterRangeJSON::from_range),
             rules: self
                 .workbook
                 .filter_rules(sheet_idx)

@@ -26,6 +26,7 @@ export function readVisibleProjection(
     ...(frozen ? { frozen } : {}),
     ...(visibility ? { visibility } : {}),
     ...(visibility?.filterRules ? { filterRules: visibility.filterRules } : {}),
+    ...(visibility?.filterRange ? { filterRange: visibility.filterRange } : {}),
     ...(workbook.history_state ? { history: workbook.history_state() } : {}),
     sheetId: request.sheetId,
     requestId: request.requestId,

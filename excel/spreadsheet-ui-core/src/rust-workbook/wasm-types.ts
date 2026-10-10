@@ -47,22 +47,36 @@ export interface RustFormatRangeSnapshot {
 }
 
 export interface WasmWorkbook {
-  applyFilter?: (sheet: number, input: { rules: readonly ColumnFilterRule[] }) => RustFilterReport
+  applyFilter?: (
+    sheet: number,
+    input: { rules: readonly ColumnFilterRule[]; range?: CellRange },
+  ) => RustFilterReport
   reapplyFilter?: (sheet: number) => RustFilterReport
   clearFilter?: (sheet: number) => RustFilterReport
-  sortRange?: (sheet: number, input: {
-    readonly range: { startRow: number; endRow: number; startCol: number; endCol: number }
-    readonly keys: readonly (RustSortKey & { readonly caseSensitive: boolean })[]
-    readonly excludedRows: readonly number[]
-  }) => { readonly ok: true; readonly movedRows: number } |
-    { readonly ok: false; readonly code: string; readonly message?: string }
+  sortRange?: (
+    sheet: number,
+    input: {
+      readonly range: { startRow: number; endRow: number; startCol: number; endCol: number }
+      readonly keys: readonly (RustSortKey & { readonly caseSensitive: boolean })[]
+      readonly excludedRows: readonly number[]
+    },
+  ) =>
+    | { readonly ok: true; readonly movedRows: number }
+    | { readonly ok: false; readonly code: string; readonly message?: string }
   apply_auto_fill?: (input: {
     readonly sheet: number
     readonly sourceRange: { startRow: number; endRow: number; startCol: number; endCol: number }
     readonly targetRange: { startRow: number; endRow: number; startCol: number; endCol: number }
     readonly direction: 'down' | 'right' | 'up' | 'left'
-    readonly series: 'copy' | 'integer-step' | 'text-number' | 'linear-trend' |
-      'weekday-name' | 'month-name' | 'custom-list' | 'date-day'
+    readonly series:
+      | 'copy'
+      | 'integer-step'
+      | 'text-number'
+      | 'linear-trend'
+      | 'weekday-name'
+      | 'month-name'
+      | 'custom-list'
+      | 'date-day'
     readonly infer?: boolean
     readonly list?: { listName: string; values: readonly string[]; locale: string }
   }) => { readonly written: number }
@@ -105,6 +119,7 @@ export interface WasmWorkbook {
   ) => boolean
   sheet_visibility?: (sheet: number) => SheetVisibilityProjection & {
     readonly filterRules?: readonly ColumnFilterRule[]
+    readonly filterRange?: CellRange
   }
   history_begin?: (
     sheet: number,

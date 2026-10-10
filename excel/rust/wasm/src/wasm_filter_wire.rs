@@ -108,10 +108,32 @@ impl ColumnFilterRuleJSON {
 }
 
 /// `applyFilter` / `reapplyFilter` payload.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct FilterRangeJSON {
+    row_start: u32,
+    row_end: u32,
+    col_start: u32,
+    col_end: u32,
+}
+
+impl FilterRangeJSON {
+    fn from_range(range: CellRange) -> Self {
+        Self { row_start: range.start.row, row_end: range.end.row,
+            col_start: range.start.col, col_end: range.end.col }
+    }
+    fn into_range(self) -> CellRange {
+        CellRange::new(CellAddress::new(self.row_start, self.col_start),
+            CellAddress::new(self.row_end, self.col_end))
+    }
+}
+
 #[derive(Clone, Debug, Default, Deserialize)]
 struct ApplyFilterPayloadJSON {
     #[serde(default)]
     rules: Vec<ColumnFilterRuleJSON>,
+    #[serde(default)]
+    range: Option<FilterRangeJSON>,
 }
 
 /// Success shape of the three filter commands, mirroring
@@ -138,6 +160,8 @@ struct FilterApplyReportJSON {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct SheetFilterStateJSON {
     sheet: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    range: Option<FilterRangeJSON>,
     rules: Vec<ColumnFilterRuleJSON>,
     /// The rows those rules hid. Carried alongside the rules, not re-derived
     /// on restore: re-deriving would evaluate against whatever the cells say
@@ -150,6 +174,7 @@ impl SheetFilterStateJSON {
     fn from_entry(entry: &SheetFilterState) -> Self {
         SheetFilterStateJSON {
             sheet: entry.sheet_index as u32,
+            range: entry.range.map(FilterRangeJSON::from_range),
             rules: entry
                 .rules
                 .iter()
@@ -162,6 +187,7 @@ impl SheetFilterStateJSON {
     fn into_entry(self) -> SheetFilterState {
         SheetFilterState {
             sheet_index: self.sheet as usize,
+            range: self.range.map(FilterRangeJSON::into_range),
             rules: self
                 .rules
                 .into_iter()
@@ -186,6 +212,8 @@ struct FilterSnapshotJSON {
 /// twin of the adapter's `FILTER_SORT_SOURCE_TOO_LARGE`.
 fn filter_error_to_js(err: FilterError) -> JsValue {
     match err {
+        FilterError::InvalidRange => sort_error_to_js("invalid-range", None,
+            Some("Choose a header and at least one data row; filter columns must be inside the range.")),
         FilterError::HistoryPending => sort_error_to_js("history-pending", None, None),
         FilterError::InvalidSheet => sort_error_to_js("invalid-sheet", None, None),
         FilterError::MutationDuringCustomCall => {

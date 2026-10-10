@@ -266,7 +266,9 @@ impl Sheet {
             .filter(|r| *r >= n.start.row && *r <= n.end.row)
             .collect();
         let visible: Vec<u32> = (n.start.row..=n.end.row)
-            .filter(|r| !excluded.contains(r))
+            // 筛掉行由引擎自己排除；手动隐藏行仍参与，不依赖宿主传回隐藏集合。
+            .filter(|r| !excluded.contains(r)
+                && !self.filter_hidden_set().is_some_and(|rows| rows.contains(r)))
             .collect();
         if visible.len() <= 1 {
             return Ok(SortRangeReport::default());

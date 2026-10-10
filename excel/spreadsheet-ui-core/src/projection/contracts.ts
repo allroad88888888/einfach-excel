@@ -11,7 +11,7 @@ import type {
 } from '../backend'
 import type { CellRange, SheetRef } from '../shared'
 import { validSheetVisibility } from '../viewport/hidden-state'
-import { validFilterRules } from '../rust-workbook/filter-commands'
+import { validFilterRange, validFilterRules } from '../rust-workbook/filter-commands'
 import { validFrozenProjection, validProjectionViewport } from './frozen-validation'
 import type {
   ProjectionLimitOptions,
@@ -214,6 +214,10 @@ export function validateProjectionResult(
     return makeInvalid('STALE_RESULT', 'Projection result does not match its request.')
   }
   const range = getProjectionResultRange(result)
+  if (result.kind === 'visible-window' && result.filterRange !== undefined && (
+    !validFilterRange(result.filterRange) || result.filterRules?.some((rule) =>
+      rule.colIndex < result.filterRange!.colStart || rule.colIndex > result.filterRange!.colEnd)
+  )) return makeInvalid('CELL_OUT_OF_RANGE', 'Invalid Rust filter range.')
   if (result.kind === 'visible-window' && !validFrozenProjection(result, options.maxCells ?? DEFAULT_MAX_PROJECTION_CELLS))
     return makeInvalid('CELL_OUT_OF_RANGE', 'Invalid Rust frozen-region projection.')
   if (result.kind === 'visible-window' && result.filterRules !== undefined && !validFilterRules(result.filterRules))

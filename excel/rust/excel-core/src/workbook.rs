@@ -42,6 +42,8 @@ mod workbook_errors;
 mod workbook_eval_provider;
 #[path = "workbook_filter_engine.rs"]
 mod workbook_filter_engine;
+#[path = "workbook_filter_range.rs"]
+mod workbook_filter_range;
 #[path = "workbook_filter_rules.rs"]
 mod workbook_filter_rules;
 #[path = "workbook_hidden_rows.rs"]

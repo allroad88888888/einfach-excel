@@ -836,11 +836,13 @@ fn restore_drops_entries_for_sheets_that_no_longer_exist() {
     let snapshot = FilterSnapshot::from_sheets(vec![
         SheetFilterState {
             sheet_index: 0,
+            range: None,
             rules: vec![contains(0, "a")],
             hidden_rows: vec![4],
         },
         SheetFilterState {
             sheet_index: 7,
+            range: None,
             rules: vec![contains(0, "z")],
             hidden_rows: vec![1],
         },

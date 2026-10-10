@@ -142,6 +142,7 @@ impl Workbook {
                 .filter_map(|(sheet_index, sheet)| {
                     sheet.filter().map(|filter| SheetFilterState {
                         sheet_index,
+                        range: filter.range(),
                         rules: filter.rules().to_vec(),
                         hidden_rows: filter.hidden_rows(),
                     })
@@ -173,18 +174,31 @@ impl Workbook {
                 continue; // captured against a wider workbook
             }
             let index = entry.sheet_index;
+            if let Some(range) = entry.range {
+                crate::workbook::workbook_filter_range::validate_filter_range(range, &entry.rules)?;
+                if entry.hidden_rows.iter().any(|row| *row <= range.start.row || *row > range.end.row) {
+                    return Err(FilterError::InvalidRange);
+                }
+            }
             wanted[index] = Some(entry);
         }
         let mut restored = 0u32;
         for (sheet_index, entry) in wanted.into_iter().enumerate() {
-            let (rules, hidden) = match entry {
+            let next = match entry {
                 Some(entry) => {
                     restored += 1;
-                    (entry.rules, entry.hidden_rows.into_iter().collect())
+                    if entry.range.is_none() && entry.rules.is_empty() && entry.hidden_rows.is_empty() {
+                        None
+                    } else {
+                        let mut state = crate::filter::SheetAutoFilter::new(
+                            entry.rules, entry.hidden_rows.into_iter().collect());
+                        state.range = entry.range;
+                        Some(state)
+                    }
                 }
-                None => (Vec::new(), BTreeSet::new()),
+                None => None,
             };
-            if self.sheets[sheet_index].commit_filter(rules, hidden) {
+            if self.sheets[sheet_index].commit_filter_state(next) {
                 self.republish_hidden(sheet_index);
             }
         }

@@ -123,3 +123,23 @@ fn wasm_filter_restore_rejects_unsupported_version_without_mutating() {
         "rejected without mutating"
     );
 }
+
+#[test]
+fn wasm_persistence_keeps_filter_range_and_empty_conditions_without_rescanning() {
+    let mut source = workbook_with_filter();
+    let range = CellRange::new(CellAddress::new(1, 0), CellAddress::new(4, 1));
+    source.workbook.apply_filter_range(0, range, &[keep_list(&["3", "5"])]).unwrap();
+    assert_eq!(source.workbook.filter_hidden_rows(0), vec![3]);
+    let envelope = source.snapshot_persistence_v1_json();
+    let json = serde_json::to_string(&envelope).unwrap();
+    assert!(json.contains("\"range\":{\"rowStart\":1,\"rowEnd\":4,\"colStart\":0,\"colEnd\":1}"));
+    let mut restored = WasmWorkbook::new();
+    restored.restore_persistence_v1_json(envelope).unwrap();
+    assert_eq!(restored.workbook.filter_range(0), Some(range));
+    assert_eq!(restored.workbook.filter_hidden_rows(0), vec![3]);
+    assert_eq!(restored.workbook.debug_filter_scan_count(0), 0);
+    restored.workbook.apply_filter_range(0, range, &[]).unwrap();
+    source.restore_persistence_v1_json(restored.snapshot_persistence_v1_json()).unwrap();
+    assert_eq!(source.workbook.filter_range(0), Some(range));
+    assert!(source.workbook.filter_rules(0).is_empty());
+}

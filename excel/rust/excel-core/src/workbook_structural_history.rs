@@ -150,12 +150,7 @@ impl StructuralHistoryChange {
             workbook
                 .restore_sheet_visibility(sheet, &snapshot.visibility)
                 .expect("preflight checked workbook state");
-            let (rules, hidden) = snapshot
-                .filter
-                .as_ref()
-                .map(|filter| (filter.rules().to_vec(), filter.hidden_set().clone()))
-                .unwrap_or_default();
-            workbook.sheets[sheet].commit_filter(rules, hidden);
+            workbook.sheets[sheet].commit_filter_state(snapshot.filter.clone());
             workbook.sheets[sheet]
                 .merged_ranges
                 .clone_from(&snapshot.merges);

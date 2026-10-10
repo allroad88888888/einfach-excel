@@ -2,8 +2,14 @@ import { atom } from '@einfach/core'
 import { activeWorkbookSheetAtom } from '../runtime/workbook-document'
 import { selectionSnapshotAtom } from '../selection'
 import type { ColumnFilterRule } from '../filter-sort/types'
+import type { CellRange } from '../shared'
 import { validFilterRules } from '../rust-workbook/filter-commands'
-import { nativeFilterFeedbackAtom, nativeFilterRulesAtom, runNativeFilterAtom } from './command'
+import {
+  nativeFilterFeedbackAtom,
+  nativeFilterRangeAtom,
+  nativeFilterRulesAtom,
+  runNativeFilterAtom,
+} from './command'
 
 interface Condition {
   col: number
@@ -23,6 +29,8 @@ const condition = (col: number): Condition => ({
 })
 const initial = {
   sheetId: null as string | null,
+  range: undefined as CellRange | undefined,
+  column: undefined as number | undefined,
   conditions: [] as readonly Condition[],
   error: '',
 }
@@ -33,6 +41,8 @@ type Action =
   | 'close'
   | 'apply'
   | 'add'
+  | 'clear-column'
+  | { type: 'open-column'; col: number }
   | { type: 'remove'; index: number }
   | { type: 'change'; index: number; patch: Partial<Condition> }
 
@@ -48,10 +58,18 @@ export const configureNativeFilterAtom = atom(
       return true
     }
     if (!sheet) return false
-    if (action === 'open') {
-      const rules = get(nativeFilterRulesAtom)
+    if (action === 'open' || (typeof action === 'object' && action.type === 'open-column')) {
+      const range = get(nativeFilterRangeAtom)
+      const column = typeof action === 'object' ? action.col : undefined
+      if (column !== undefined && (!range || column < range.colStart || column > range.colEnd))
+        return false
+      const rules = get(nativeFilterRulesAtom).filter(
+        (rule) => column === undefined || rule.colIndex === column,
+      )
       set(stateAtom, {
         sheetId: sheet.id,
+        range,
+        column,
         error: '',
         conditions: rules.length
           ? rules.map((rule) => ({
@@ -65,7 +83,18 @@ export const configureNativeFilterAtom = atom(
                 : {}),
               ...(rule.kind === 'list' ? { value: rule.values.join('\n') } : {}),
             }))
-          : [condition(get(selectionSnapshotAtom).activeCell.col)],
+          : [
+              condition(
+                column ??
+                  Math.max(
+                    range?.colStart ?? 0,
+                    Math.min(
+                      get(selectionSnapshotAtom).activeCell.col,
+                      range?.colEnd ?? sheet.colCount - 1,
+                    ),
+                  ),
+              ),
+            ],
       })
       return true
     }
@@ -75,9 +104,14 @@ export const configureNativeFilterAtom = atom(
     }
     if (action === 'add') {
       const used = new Set(state.conditions.map((item) => item.col))
-      let col = 0
+      let col = state.range?.colStart ?? 0
       while (used.has(col)) col++
-      if (col >= sheet.colCount || state.conditions.length >= 8) return false
+      if (
+        state.column !== undefined ||
+        col > (state.range?.colEnd ?? sheet.colCount - 1) ||
+        state.conditions.length >= 8
+      )
+        return false
       set(stateAtom, { ...state, error: '', conditions: [...state.conditions, condition(col)] })
       return true
     }
@@ -99,7 +133,7 @@ export const configureNativeFilterAtom = atom(
       })
       return true
     }
-    const rules: ColumnFilterRule[] = state.conditions.map((item) => {
+    let rules: ColumnFilterRule[] = state.conditions.map((item) => {
       const colIndex = item.col
       if (item.kind === 'range')
         return {
@@ -111,6 +145,12 @@ export const configureNativeFilterAtom = atom(
       if (item.kind === 'list') return { kind: 'list', colIndex, values: item.value.split('\n') }
       return { kind: item.kind, colIndex, value: item.value, caseSensitive: item.caseSensitive }
     })
+    if (state.column !== undefined) {
+      rules = [
+        ...get(nativeFilterRulesAtom).filter((rule) => rule.colIndex !== state.column),
+        ...(action === 'clear-column' ? [] : rules),
+      ]
+    }
     if (!validFilterRules(rules, sheet.colCount)) {
       set(stateAtom, {
         ...state,
@@ -118,7 +158,11 @@ export const configureNativeFilterAtom = atom(
       })
       return false
     }
-    const completed = await set(runNativeFilterAtom, { action: 'apply', rules })
+    const completed = await set(runNativeFilterAtom, {
+      action: 'apply',
+      rules,
+      ...(state.range ? { range: state.range } : {}),
+    })
     if (completed) set(stateAtom, initial)
     else
       set(stateAtom, {

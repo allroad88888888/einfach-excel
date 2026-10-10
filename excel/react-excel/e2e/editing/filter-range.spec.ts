@@ -1,0 +1,138 @@
+import { expect, test, type Page } from '@playwright/test'
+
+const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
+const menu = (page: Page) => page.getByRole('combobox', { name: 'Worksheet filter' })
+const header = (page: Page, col: string) => page.getByRole('button', { name: `Filter column ${col}`, exact: true })
+async function select(page: Page, address: string) {
+  const name = page.getByRole('textbox', { name: 'Name box' })
+  await name.fill(address)
+  await name.press('Enter')
+  await expect(name).toHaveValue(address)
+  await expect(page.locator('[data-workbook-grid]')).toHaveAttribute('data-projection-retained', 'false')
+}
+async function enable(page: Page, address = 'A25:C29') {
+  await select(page, address)
+  await menu(page).selectOption('selection')
+  await expect(page.getByLabel('Filter status')).toHaveText('0 rows filtered out.')
+}
+async function open(page: Page, col: string) {
+  await header(page, col).click()
+  return page.getByRole('dialog', { name: 'Filter conditions' })
+}
+async function west(page: Page) {
+  const dialog = await open(page, 'A')
+  await dialog.getByLabel('Filter value 1', { exact: true }).fill('West')
+  await dialog.getByRole('button', { name: 'Apply filter', exact: true }).click()
+  await expect(dialog).not.toBeVisible()
+  await expect(page.getByLabel('Filter status')).toHaveText('2 rows filtered out.')
+}
+test.beforeEach(async ({ page }) => {
+  await page.goto('/')
+  await expect(cell(page, '1:0')).toHaveText('SO-10001')
+  await page.getByRole('tab', { name: 'Summary', exact: true }).click()
+})
+
+test('a bounded filter starts at its own header and never hides records outside its rectangle', async ({ page }) => {
+  await enable(page)
+  await expect(header(page, 'A')).toHaveAttribute('data-filtered', 'false')
+  await west(page)
+  await expect(header(page, 'A')).toBeFocused()
+  await expect(header(page, 'A')).toHaveAttribute('data-filtered', 'true')
+  await expect(cell(page, '24:0')).toHaveText('Team')
+  await expect(cell(page, '25:2')).toHaveText('W20')
+  await expect(cell(page, '26:2')).toHaveCount(0)
+  await expect(cell(page, '27:2')).toHaveText('W10')
+  await expect(cell(page, '28:2')).toHaveCount(0)
+  await select(page, 'A30')
+  await expect(cell(page, '29:0')).toBeVisible()
+  await select(page, 'A1')
+  await expect(cell(page, '0:1')).toHaveText('79')
+  await page.getByRole('button', { name: 'Undo', exact: true }).click()
+  await select(page, 'A25')
+  await expect(cell(page, '26:2')).toHaveText('E10')
+  await expect(header(page, 'A')).toHaveAttribute('data-filtered', 'false')
+})
+
+test('column conditions combine and clearing one preserves the other; empty conditions retain buttons', async ({ page }) => {
+  await enable(page)
+  await west(page)
+  let dialog = await open(page, 'B')
+  await expect(dialog.getByLabel('Filter column 1', { exact: true })).toBeDisabled()
+  await dialog.getByLabel('Filter condition 1', { exact: true }).selectOption('range')
+  await dialog.getByLabel('Minimum 1', { exact: true }).fill('15')
+  await dialog.getByRole('button', { name: 'Apply filter', exact: true }).click()
+  await expect(cell(page, '27:2')).toHaveCount(0)
+  dialog = await open(page, 'A')
+  await dialog.getByRole('button', { name: 'Clear column A filter' }).click()
+  await expect(cell(page, '28:2')).toHaveText('E30')
+  await expect(cell(page, '26:2')).toHaveCount(0)
+  await expect(header(page, 'B')).toHaveAttribute('data-filtered', 'true')
+  dialog = await open(page, 'B')
+  await dialog.getByRole('button', { name: 'Clear column B filter' }).click()
+  await expect(cell(page, '26:2')).toHaveText('E10')
+  await expect(cell(page, '27:2')).toHaveText('W10')
+  await expect(header(page, 'B')).toHaveAttribute('data-filtered', 'false')
+  await page.getByRole('button', { name: 'Undo', exact: true }).click()
+  await expect(header(page, 'B')).toHaveAttribute('data-filtered', 'true')
+  await expect(cell(page, '26:2')).toHaveCount(0)
+})
+
+test('clear removes an empty filter region and undo restores the same header row', async ({ page }) => {
+  await enable(page)
+  await menu(page).selectOption('clear')
+  await expect(header(page, 'A')).toHaveCount(0)
+  await page.getByRole('button', { name: 'Undo', exact: true }).click()
+  await expect(cell(page, '24:0').getByRole('button')).toBeVisible()
+  await expect(header(page, 'C')).toHaveAttribute('data-filtered', 'false')
+})
+
+test('row insertion shifts the filter header and conditions; deletion and undo restore them', async ({ page }) => {
+  await enable(page)
+  await west(page)
+  await select(page, 'A25')
+  const structure = page.getByRole('combobox', { name: 'Insert or delete rows and columns' })
+  await structure.selectOption('insert-rows')
+  await expect(cell(page, '25:0').getByRole('button')).toBeVisible()
+  await expect(cell(page, '27:2')).toHaveCount(0)
+  await select(page, 'A26')
+  await structure.selectOption('delete-rows')
+  await expect(header(page, 'A')).toHaveCount(0)
+  await page.getByRole('button', { name: 'Undo', exact: true }).click()
+  await expect(cell(page, '25:0').getByRole('button')).toBeVisible()
+  await expect(header(page, 'A')).toHaveAttribute('data-filtered', 'true')
+  await page.getByRole('button', { name: 'Undo', exact: true }).click()
+  await expect(cell(page, '24:0').getByRole('button')).toBeVisible()
+})
+
+test('single-cell range is rejected without replacing the old filter or creating history', async ({ page }) => {
+  await enable(page)
+  await select(page, 'A25')
+  await menu(page).selectOption('selection')
+  await expect(page.getByRole('alert', { name: 'Filter status' })).toContainText('header and at least one data row')
+  await expect(header(page, 'A')).toBeVisible()
+  await page.getByRole('button', { name: 'Undo', exact: true }).click()
+  await expect(header(page, 'A')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+})
+
+for (const width of [1280, 390]) {
+  test(`header filter and column dialog support keyboard and fit ${width}px`, async ({ page }, info) => {
+    await page.setViewportSize({ width, height: 800 })
+    const errors: string[] = []
+    page.on('pageerror', (error) => errors.push(error.message))
+    await enable(page)
+    await header(page, 'A').focus()
+    await page.screenshot({ path: info.outputPath(`filter-header-${width}.png`) })
+    await header(page, 'A').press('Enter')
+    const dialog = page.getByRole('dialog', { name: 'Filter conditions' })
+    await expect(dialog).toContainText('Range A25:C29')
+    await expect(dialog.getByRole('button', { name: 'Apply filter', exact: true })).toBeInViewport()
+    expect(await dialog.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+    await page.screenshot({ path: info.outputPath(`filter-column-${width}.png`) })
+    await page.keyboard.press('Escape')
+    await expect(dialog).not.toBeVisible()
+    await expect(header(page, 'A')).toBeFocused()
+    expect(errors).toEqual([])
+  })
+}

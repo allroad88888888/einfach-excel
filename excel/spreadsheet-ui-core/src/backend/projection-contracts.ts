@@ -53,6 +53,7 @@ export interface VisibleProjectionResult extends SheetRef {
   visibility?: SheetVisibilityProjection
   /** 当前表已提交的原生条件，随投影返回，面板不另建权威副本。 */
   filterRules?: readonly ColumnFilterRule[]
+  filterRange?: CellRange
   /** 原生工作表冻结边界；React 不持有第二份配置。 */
   freeze?: { readonly rows: number; readonly cols: number }
   /** 与滚动区同一修订版的冻结数据，不混进普通 cells 的窗口契约。 */

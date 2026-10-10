@@ -38,6 +38,7 @@ impl HiddenRowsSnapshot {
 #[derive(Clone, Debug, PartialEq)]
 pub struct SheetFilterState {
     pub sheet_index: usize,
+    pub range: Option<CellRange>,
     pub rules: Vec<ColumnFilterRule>,
     pub hidden_rows: Vec<u32>,
 }

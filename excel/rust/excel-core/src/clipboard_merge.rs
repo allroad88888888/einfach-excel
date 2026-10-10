@@ -10,7 +10,7 @@ pub(super) fn logical_target(
     if options.mode == ClipboardPasteMode::ColumnWidths {
         return None;
     }
-    let scalar = snapshot.source.start == snapshot.source.end;
+    let scalar = snapshot.rows() == 1 && snapshot.cols() == 1;
     let logical = scalar || (!snapshot.cut && snapshot.merges == [snapshot.source]);
     let target = sheet.merged_range_at(options.selection.start)?;
     (logical && (options.selection == target || options.selection.start == options.selection.end))
@@ -33,7 +33,7 @@ impl MergePastePlan {
         collapsed: bool,
     ) -> Result<Self, ClipboardError> {
         let sheet = workbook.sheet(sheet_idx).ok_or("CLIPBOARD_INVALID_SHEET")?;
-        let scalar = collapsed || snapshot.source.start == snapshot.source.end;
+        let scalar = collapsed || (snapshot.rows() == 1 && snapshot.cols() == 1);
         // 值/公式/数字格式/运算不改变目标几何；纯文本剪贴板本来也没有合并布局。
         let copy_layout = !scalar
             && snapshot.source_sheet.is_some()
@@ -54,7 +54,9 @@ impl MergePastePlan {
             for row in (target.start.row..=target.end.row).step_by(rows as usize) {
                 for col in (target.start.col..=target.end.col).step_by(cols as usize) {
                     for source in &snapshot.merges {
-                        let r = source.start.row - snapshot.source.start.row;
+                        // 完整合并块已在捕获时校验；跳过前面的筛掉行后再定位。
+                        let r = snapshot.source_rows.binary_search(&source.start.row)
+                            .expect("captured merge has a visible anchor") as u32;
                         let c = source.start.col - snapshot.source.start.col;
                         if options.skip_blanks
                             && snapshot.cells[(r * snapshot.cols() + c) as usize].is_blank()

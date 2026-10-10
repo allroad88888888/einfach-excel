@@ -57,6 +57,8 @@ impl ClipboardCell {
 pub struct ClipboardSnapshot {
     source_sheet: Option<usize>,
     source: CellRange,
+    // 压紧后的每一行仍记住真实源行；相对公式不能按压紧坐标偏移。
+    source_rows: Vec<u32>,
     cut: bool,
     cells: Vec<ClipboardCell>,
     text: String,
@@ -103,7 +105,7 @@ impl ClipboardSnapshot {
     }
 
     pub fn rows(&self) -> u32 {
-        self.source.rows()
+        self.source_rows.len() as u32
     }
 
     pub fn cols(&self) -> u32 {
@@ -152,20 +154,37 @@ impl Workbook {
     ) -> Result<ClipboardSnapshot, ClipboardError> {
         validate_range(range)?;
         let sheet = self.sheet(sheet_idx).ok_or("CLIPBOARD_INVALID_SHEET")?;
-        let merges = sheet.merges_in_range(range);
+        let hidden = sheet.filter_hidden_set();
+        let source_rows: Vec<u32> = (range.start.row..=range.end.row)
+            .filter(|row| !hidden.is_some_and(|rows| rows.contains(row)))
+            .collect();
+        if cut && source_rows.len() != range.rows() as usize {
+            return Err("CLIPBOARD_FILTERED_CUT");
+        }
+        if source_rows.is_empty() {
+            return Err("CLIPBOARD_NO_VISIBLE_ROWS");
+        }
+        let merges: Vec<_> = sheet.merges_in_range(range).into_iter().filter(|merge| {
+            source_rows.get(source_rows.partition_point(|row| *row < merge.start.row))
+                .is_some_and(|row| *row <= merge.end.row)
+        }).collect();
         if merges
             .iter()
-            .any(|merge| !range.contains(merge.start) || !range.contains(merge.end))
+            .any(|merge| !range.contains(merge.start) || !range.contains(merge.end)
+                || (merge.start.row..=merge.end.row)
+                    .any(|row| hidden.is_some_and(|rows| rows.contains(&row))))
         {
             return Err("CLIPBOARD_PARTIAL_MERGE");
         }
-        let mut cells = Vec::with_capacity(range.cell_count() as usize);
+        let mut cells = Vec::with_capacity(source_rows.len() * range.cols() as usize);
         let mut text = String::new();
-        for addr in range.iter() {
+        for addr in source_rows.iter().flat_map(|row| {
+            (range.start.col..=range.end.col).map(move |col| CellAddress::new(*row, col))
+        }) {
             if cut && sheet.is_spill_region(addr) {
                 return Err("CLIPBOARD_SPILL_SOURCE");
             }
-            if addr != range.start {
+            if !cells.is_empty() {
                 text.push(if addr.col == range.start.col {
                     '\n'
                 } else {
@@ -181,6 +200,7 @@ impl Workbook {
         Ok(ClipboardSnapshot {
             source_sheet: Some(sheet_idx),
             source: range,
+            source_rows,
             cut,
             cells,
             text,

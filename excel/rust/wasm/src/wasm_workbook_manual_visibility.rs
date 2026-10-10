@@ -7,6 +7,8 @@ struct SheetVisibilityJSON {
     filter_rows: Vec<u32>,
     // 与隐藏集合取自同一原生状态，避免宿主再读一份完整筛选快照。
     filter_rules: Vec<ColumnFilterRuleJSON>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    filter_range: Option<FilterRangeJSON>,
 }
 
 #[wasm_bindgen]
@@ -44,6 +46,7 @@ impl WasmWorkbook {
             manual_rows: state.rows,
             manual_columns: state.columns,
             filter_rows: self.workbook.filter_hidden_rows(sheet as usize),
+            filter_range: self.workbook.filter_range(sheet as usize).map(FilterRangeJSON::from_range),
             filter_rules: self.workbook.filter_rules(sheet as usize)
                 .iter().map(ColumnFilterRuleJSON::from_rule).collect(),
         })

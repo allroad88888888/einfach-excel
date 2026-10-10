@@ -13,9 +13,9 @@ import { getSheetProtection, sheetProtectionAtom } from '../protection'
 import { rustHistoryPanelAtom } from '../history/rust-history-command'
 import { selectionStructureFeedbackAtom } from '../toolbar/selection-structure-state'
 import { sortFeedbackAtom } from '../sort/command'
-import type { RustFilterAction } from '../rust-workbook/filter-commands'
+import { validFilterRange, type RustFilterAction } from '../rust-workbook/filter-commands'
 import { validSheetVisibility } from '../viewport/hidden-state'
-import { selectCellAtom, selectionSnapshotAtom, selectionAuthorityWitnessAtom } from '../selection'
+import { selectCellAtom, selectionSnapshotAtom, selectionAuthorityWitnessAtom, selectionRegionsAtom } from '../selection'
 import { scrollToCellAtom } from '../viewport/metrics'
 import { viewportGeometrySizesAtom } from '../viewport/geometry-sizes'
 
@@ -27,11 +27,18 @@ export const nativeFilterRulesAtom = atom((get) => {
     ? (result.filterRules ?? [])
     : []
 })
+export const nativeFilterRangeAtom = atom((get) => {
+  const result = get(projectionSnapshotAtom).result
+  return result?.kind === 'visible-window' && result.sheetId === get(activeWorkbookSheetAtom)?.id
+    ? result.filterRange : undefined
+})
 
 /** Rust 返回完整隐藏索引，复用 viewport 的可见性投影，不压缩或重排源行号。 */
 export const runNativeFilterAtom = atom(
   null,
-  async (get, set, action: RustFilterAction): Promise<boolean> => {
+  async (get, set, input: RustFilterAction | 'selection'): Promise<boolean> => {
+    const action: RustFilterAction = input === 'selection'
+      ? { action: 'apply', range: get(selectionSnapshotAtom).range, rules: [] } : input
     if (
       get(feedbackAtom).busy ||
       get(editingSessionAtom).source !== null ||
@@ -50,6 +57,10 @@ export const runNativeFilterAtom = atom(
       set(feedbackAtom, { busy: false, error, message: '' })
       return false
     }
+    if (input === 'selection' && get(selectionRegionsAtom).length !== 1)
+      return fail('Select one continuous filter range, including its header.')
+    if (action.action === 'apply' && action.range && !validFilterRange(action.range))
+      return fail('Select a header and at least one data row for the filter range.')
     if (getSheetProtection(get(sheetProtectionAtom), sheet.id).mode === 'protected')
       return fail('Unprotect the worksheet before changing its filter.')
     const requestId = set(issueProjectionRequestIdAtom)

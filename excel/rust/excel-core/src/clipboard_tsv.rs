@@ -92,6 +92,7 @@ impl ClipboardSnapshot {
         Ok(Self {
             source_sheet: None,
             source,
+            source_rows: (source.start.row..=source.end.row).collect(),
             cut: false,
             cells,
             text: text.into(),

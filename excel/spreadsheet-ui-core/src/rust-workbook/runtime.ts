@@ -81,7 +81,9 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
       const index = sheetIndex(input.sheetId)
       const columns = sheetsById.get(input.sheetId)!.colCount ?? 16_384
-      const hiddenRows = changeFilter(current, index, columns, input)
+      const hiddenRows = changeFilter(
+        current, index, columns, input, sheetsById.get(input.sheetId)!.rowCount,
+      )
       revision += 1
       return {
         hiddenRows, projection: readVisibleProjection(current, index, input.projection, revision),

@@ -27,6 +27,24 @@ function fixture() {
 }
 
 describe('Rust-backed clipboard export', () => {
+  test.each(['text', 'markdown', 'html'] as const)(
+    '%s omits native filter rows but keeps manually hidden rows', (format) => {
+      const { workbook, request } = fixture()
+      workbook.sheet_visibility = () => ({ manualRows: [1], manualCols: [], filterRows: [2, 90] })
+      const result = exportClipboard(workbook, 0, { ...request, format })
+      expect(result.rows).toBe(1)
+      expect(result.text).toContain('alert(1)')
+      expect(result.text).not.toContain('$125')
+      expect(result.html ?? '').not.toContain('$125')
+    },
+  )
+
+  test('a selection with no unfiltered rows rejects without an empty clipboard export', () => {
+    const { workbook, request } = fixture()
+    workbook.sheet_visibility = () => ({ manualRows: [], manualCols: [], filterRows: [1, 2] })
+    expect(() => exportClipboard(workbook, 0, request)).toThrow('CLIPBOARD_NO_VISIBLE_ROWS')
+  })
+
   test('Markdown escapes user links and emphasis before adding workbook formatting', () => {
     const { workbook, request, read } = fixture()
     read.mockReturnValueOnce([

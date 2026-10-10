@@ -1,4 +1,4 @@
-import type { DisplayCell, SpreadsheetCellFormat } from '../backend'
+import type { DisplayCell, SpreadsheetCellFormat, SpreadsheetNumberFormat } from '../backend'
 import { isDefaultFormat, toA1 } from '../backend'
 import type { CellRange } from '../shared'
 import { formatNumberValue } from '../operations/format/numberFormat'
@@ -31,12 +31,17 @@ function formatAt(
   return applyStyle(format, cellStyles.get(toA1(row, col)))
 }
 
+/** 原生返回的显示文本也用于自动尺寸测量，不能再经过 JS 近似格式化。 */
+export function usesNativeNumberDisplay(kind: SpreadsheetNumberFormat['kind']): boolean {
+  return kind === 'date' || kind === 'time' || kind === 'scientific' || kind === 'fraction'
+}
+
 function formattedDisplayValue(cell: DisplayCell, format: SpreadsheetCellFormat): string {
   const numberFormat = format.numberFormat
   if (
     cell.numericValue === undefined ||
     numberFormat === undefined ||
-    numberFormat.kind === 'general' || numberFormat.kind === 'date'
+    numberFormat.kind === 'general' || usesNativeNumberDisplay(numberFormat.kind)
   ) {
     return cell.displayValue
   }

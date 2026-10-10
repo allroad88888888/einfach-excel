@@ -49,6 +49,13 @@ const DEMO_CELL_FORMATS: ReadonlyMap<string, SpreadsheetCellFormat> = new Map([
   ['8:6', { numberFormat: { kind: 'number', digits: 2, thousands: true } }],
   ['3:14', { numberFormat: { kind: 'percent', digits: 2 } }],
   ['2:15', { numberFormat: { kind: 'currency', symbol: '$', digits: 0 }, bold: true }],
+  // 三类数字格式设置直接从原生种子回显，视图不根据坐标伪造显示。
+  ['11:6', { numberFormat: { kind: 'number', digits: 3, thousands: false } }],
+  ['11:14', { numberFormat: { kind: 'percent', digits: 1 } }],
+  ['11:15', { numberFormat: { kind: 'currency', symbol: '€', digits: 3 } }],
+  ['12:6', { numberFormat: { kind: 'scientific', digits: 2 } }],
+  ['12:14', { numberFormat: { kind: 'fraction', denominator: 'two-digit' } }],
+  ['13:14', { numberFormat: { kind: 'time', pattern: 'hh:mm:ss' } }],
 ])
 
 function demoFormat(row: number, col: number): { readonly format?: SpreadsheetCellFormat } {

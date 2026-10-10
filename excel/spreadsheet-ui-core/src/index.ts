@@ -76,6 +76,10 @@ export * from './toolbar/selection-format-command'
 export { colorPaletteAtom, runColorPaletteAtom } from './toolbar/color-palette'
 export { textLayoutFeedbackAtom, runTextLayoutAtom } from './toolbar/text-layout-command'
 export {
+  numberFormatPanelAtom, runNumberFormatPanelAtom,
+  NUMBER_FORMAT_TIME_PATTERNS, NUMBER_FORMAT_FRACTIONS,
+} from './toolbar/number-format-panel'
+export {
   DEFAULT_FONT_SIZE, FONT_SIZE_PRESETS, fontSizePanelAtom, runFontSizeAtom,
 } from './toolbar/font-size-command'
 export { clearSelectionAtom } from './toolbar/selection-mutation-command'

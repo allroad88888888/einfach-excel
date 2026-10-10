@@ -3,6 +3,23 @@ import type { WasmWorkbook } from '../src/rust-workbook/wasm-types'
 import { readVisibleProjection } from '../src/rust-workbook/visible-projection'
 
 describe('Rust visible format projection', () => {
+  test.each(['scientific', 'fraction', 'time'] as const)(
+    '%s preserves native display instead of invoking a second formatter', (kind) => {
+      const workbook = {
+        read_sparse_range: () => [{ sheet: 0, addr: 'A1', display: '0.5',
+          formattedDisplay: 'native display witness', inputText: '=1/2',
+          type: 'number', isError: false, formula: '=1/2' }],
+        snapshot_format_range: () => ({ cellStyles: [{ addr: 'A1',
+          format: { numberFormat: { kind } } }], rowStyles: [], columnStyles: [] }),
+      } as unknown as WasmWorkbook
+      const result = readVisibleProjection(workbook, 0, {
+        kind: 'visible-window', sheetId: 's', requestId: 1,
+        window: { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 0 },
+      }, 1)
+      expect(result.cells[0]).toMatchObject({ displayValue: 'native display witness',
+        numericValue: 0.5, inputText: '=1/2' })
+    },
+  )
   test.each([null, undefined])('explicit %s clears inherited color; absent fields still inherit', (clear) => {
     const workbook = {
       read_sparse_range: () => [],

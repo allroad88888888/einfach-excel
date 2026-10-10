@@ -28,6 +28,7 @@ use wasm_bindgen::JsCast;
 
 include!("wasm_autofill_wire.rs");
 include!("wasm_cell_format_wire.rs");
+include!("wasm_number_format_wire.rs");
 include!("wasm_cell_style_wire.rs");
 include!("wasm_style_snapshot_wire.rs");
 include!("wasm_format_snapshot_wire.rs");
@@ -154,6 +155,7 @@ mod tests {
     wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
     include!("wasm_tests/custom.rs");
+    include!("wasm_tests/advanced_number_formats.rs");
     include!("wasm_tests/tables.rs");
     include!("wasm_tests/hidden_rows.rs");
     include!("wasm_tests/manual_visibility.rs");

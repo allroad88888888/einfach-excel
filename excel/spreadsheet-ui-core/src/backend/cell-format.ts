@@ -67,12 +67,13 @@ export type SpreadsheetNumberFormatFractionDenominator =
  *
  * ── Engine support matrix ──
  *
- * **WASM (Rust wire):** Only **6 kinds** are implemented:
+ * **WASM (Rust wire):** Nine kinds are implemented:
  *   `general` | `number` (and deprecated `decimal`) |
- *   `percent` (and synonym `percentage`) | `currency` | `date` | `custom`.
+ *   `percent` (and synonym `percentage`) | `currency` | `date` | `custom` |
+ *   `scientific` | `fraction` | `time` (standard time patterns).
  *
- * The remaining kinds – `accounting`, `time`, `fraction`, `scientific`,
- * `text`, `special` – are **silently downgraded to `general`** by the wire
+ * The remaining kinds – `accounting`, `text`, `special` – are
+ * **silently downgraded to `general`** by the wire
  * layer (`into_number_format`).  The `negative` field on `number` /
  * `currency` / `percent` is also silently discarded (no corresponding wire
  * field).
@@ -81,8 +82,7 @@ export type SpreadsheetNumberFormatFractionDenominator =
  * verbatim (no wire round-trip).
  *
  * Support for the missing categories requires new variants on the engine
- * `NumberFormat` enum; that work is tracked separately and is not part of
- * the salvage / wrap-up batch.
+ * `NumberFormat` enum; they are not exposed by the maintained React dialog yet.
  */
 export type SpreadsheetNumberFormat =
   | { kind: 'general' }

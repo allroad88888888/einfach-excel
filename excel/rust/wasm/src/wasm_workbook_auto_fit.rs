@@ -31,7 +31,7 @@ impl WasmWorkbook {
                 let value = value.as_ref();
                 let input = AutoFitTextJSON {
                     text: match value {
-                        Value::Number(n) if matches!(format.number_format, NumberFormat::Date(_)) =>
+                        Value::Number(n) if uses_native_number_display(&format.number_format) =>
                             format.format_number(*n),
                         _ => value_to_display(value),
                     },

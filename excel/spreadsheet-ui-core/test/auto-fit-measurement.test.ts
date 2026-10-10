@@ -68,6 +68,14 @@ test('measurement uses the same numeric display formatter as visible projections
   expect(context.measureText).toHaveBeenCalledWith('12.34%')
 })
 
+test.each(['scientific', 'fraction', 'time'] as const)('%s measures the native display verbatim', (kind) => {
+  const { context } = setup()
+  createAutoFitMeasurer('column', layout)({
+    ...text({ numberFormat: { kind } }, 'native display witness'), numericValue: 0.5,
+  })
+  expect(context.measureText).toHaveBeenCalledWith('native display witness')
+})
+
 test('row fitting respects explicit lines, wrapping and per-cell font size', () => {
   setup()
   const measure = createAutoFitMeasurer('row', layout)

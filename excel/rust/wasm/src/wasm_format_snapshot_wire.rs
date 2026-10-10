@@ -5,7 +5,6 @@ struct ViewportRowHeightJSON {
     #[serde(rename = "heightPx")]
     height_px: u32,
 }
-
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct ViewportColumnWidthJSON {
     #[serde(rename = "colIndex")]
@@ -120,76 +119,5 @@ impl ViewportSizeSnapshotJSON {
         }
 
         Ok((row_heights, col_widths))
-    }
-}
-
-impl NumberFormatJSON {
-    fn into_number_format(self) -> NumberFormat {
-        match self.kind.as_str() {
-            "number" | "decimal" => NumberFormat::Decimal {
-                digits: self.digits.unwrap_or(2),
-                thousands: self.thousands.unwrap_or(false),
-            },
-            "percent" | "percentage" => NumberFormat::Percent {
-                digits: self.digits.unwrap_or(0),
-            },
-            "currency" => NumberFormat::Currency {
-                symbol: self.symbol.unwrap_or_else(|| "$".into()),
-                digits: self.digits.unwrap_or(2),
-            },
-            "date" => NumberFormat::Date(self.pattern.unwrap_or_else(|| "yyyy-mm-dd".into())),
-            "custom" => self
-                .pattern
-                .map(NumberFormat::Custom)
-                .unwrap_or(NumberFormat::General),
-            _ => NumberFormat::General,
-        }
-    }
-
-    fn from_number_format(nf: &NumberFormat) -> Self {
-        match nf {
-            NumberFormat::General => NumberFormatJSON {
-                kind: "general".into(),
-                digits: None,
-                symbol: None,
-                pattern: None,
-                thousands: None,
-            },
-            NumberFormat::Decimal { digits, thousands } => NumberFormatJSON {
-                kind: "number".into(),
-                digits: Some(*digits),
-                symbol: None,
-                pattern: None,
-                thousands: Some(*thousands),
-            },
-            NumberFormat::Percent { digits } => NumberFormatJSON {
-                kind: "percent".into(),
-                digits: Some(*digits),
-                symbol: None,
-                pattern: None,
-                thousands: None,
-            },
-            NumberFormat::Currency { symbol, digits } => NumberFormatJSON {
-                kind: "currency".into(),
-                digits: Some(*digits),
-                symbol: Some(symbol.clone()),
-                pattern: None,
-                thousands: None,
-            },
-            NumberFormat::Date(p) => NumberFormatJSON {
-                kind: "date".into(),
-                digits: None,
-                symbol: None,
-                pattern: Some(p.clone()),
-                thousands: None,
-            },
-            NumberFormat::Custom(p) => NumberFormatJSON {
-                kind: "custom".into(),
-                digits: None,
-                symbol: None,
-                pattern: Some(p.clone()),
-                thousands: None,
-            },
-        }
     }
 }

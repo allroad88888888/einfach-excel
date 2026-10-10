@@ -107,22 +107,6 @@ struct BorderSpecJSON {
     color: Option<String>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-struct NumberFormatJSON {
-    /// One of "general" | "number" | "decimal" | "percent" | "percentage" | "currency" | "date" | "custom".
-    kind: String,
-    #[serde(default)]
-    digits: Option<u8>,
-    /// Currency symbol — used when `kind == "currency"`.
-    #[serde(default)]
-    symbol: Option<String>,
-    /// Pattern — used when `kind == "date"` or `kind == "custom"`.
-    #[serde(default)]
-    pattern: Option<String>,
-    /// Render thousands separators for `decimal`.
-    #[serde(default)]
-    thousands: Option<bool>,
-}
 
 impl CellFormatJSON {
     fn into_format(self) -> CellFormat {

@@ -93,6 +93,7 @@ fn number_format_kind_aliases() {
         thousands: Some(true),
         symbol: None,
         pattern: None,
+        denominator: None,
     };
     let nf = json.into_number_format();
     assert!(matches!(
@@ -110,6 +111,7 @@ fn number_format_kind_aliases() {
         thousands: None,
         symbol: None,
         pattern: None,
+        denominator: None,
     };
     let nf_pct = pct.into_number_format();
     assert!(matches!(nf_pct, NumberFormat::Percent { digits: 1 }));

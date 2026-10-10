@@ -94,6 +94,9 @@ pub enum NumberFormat {
     },
     /// Custom strftime-like date format, e.g. "yyyy-mm-dd".
     Date(String),
+    Time(String),
+    Scientific { digits: u8 },
+    Fraction { denominator: crate::FractionDenominator },
     /// Excel-style custom numeric pattern. The formatter intentionally covers
     /// a small display subset while preserving the raw pattern for WASM/JS
     /// round-trip.
@@ -124,6 +127,9 @@ impl CellFormat {
             }
             NumberFormat::Date(pattern) => crate::date_format::format_date(pattern, n)
                 .unwrap_or_else(|| default_number_string(n)),
+            NumberFormat::Time(pattern) => crate::time_format::format_time(pattern, n),
+            NumberFormat::Scientific { digits } => crate::scientific_format::format_scientific(n, *digits),
+            NumberFormat::Fraction { denominator } => crate::fraction_format::format_fraction(n, *denominator),
             NumberFormat::Custom(pattern) => {
                 format_custom_number(pattern, n).unwrap_or_else(|| default_number_string(n))
             }

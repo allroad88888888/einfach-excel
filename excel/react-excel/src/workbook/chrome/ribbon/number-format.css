@@ -1,0 +1,37 @@
+.number-format-dialog {
+  box-sizing: border-box;
+  width: 360px;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 24px);
+  overflow: auto;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+}
+.number-format-dialog::backdrop { background: rgb(20 25 45 / 25%); }
+.number-format-dialog h2 { margin: 0; font-size: 16px; }
+.number-format-dialog p { line-height: 1.5; }
+.number-format-dialog form { display: grid; grid-template-columns: 1fr 140px; gap: 12px; align-items: center; }
+.number-format-dialog input:not([type='checkbox']), .number-format-dialog select, .number-format-dialog button {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font: inherit;
+  color: inherit;
+  background: var(--surface);
+}
+.number-format-check { display: flex; grid-column: 1 / -1; gap: 8px; align-items: center; }
+.number-format-hint { grid-column: 1 / -1; margin: 0; }
+.number-format-actions { display: flex; grid-column: 1 / -1; gap: 8px; justify-content: flex-end; }
+.number-format-actions button { width: auto; }
+.number-format-actions button[type='submit'] { background: var(--primary); color: white; }
+.number-format-dialog :disabled { opacity: .5; }
+.number-format-dialog :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.number-format-dialog [role='alert'] { color: #a12622; overflow-wrap: anywhere; }

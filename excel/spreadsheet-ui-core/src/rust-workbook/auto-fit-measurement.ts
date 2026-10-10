@@ -1,4 +1,5 @@
 import { formatNumberValue } from '../operations/format/numberFormat'
+import { usesNativeNumberDisplay } from './format-projection'
 import type { RustSparseCellStyle } from './wasm-types'
 
 /** 来自默认单元格的 CSS 像素值，不包含任何工作簿数据。 */
@@ -79,7 +80,7 @@ export function createAutoFitMeasurer(axis: 'row' | 'column', layout: AutoFitLay
     const numberFormat = format.numberFormat
     const text =
       numericValue != null && numberFormat &&
-      numberFormat.kind !== 'general' && numberFormat.kind !== 'date'
+      numberFormat.kind !== 'general' && !usesNativeNumberDisplay(numberFormat.kind)
         ? formatNumberValue(numberFormat, numericValue, { locale: format.locale ?? undefined }).text
         : raw
     const size =

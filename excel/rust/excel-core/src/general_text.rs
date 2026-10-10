@@ -105,7 +105,7 @@ pub fn excel_general_to_text(n: f64) -> String {
 
 /// 拆出最短往返表示的数字串与十进制指数：返回 `(digits, exp)`，
 /// 满足 `value == 0.d0 d1 … × 10^(exp + 1)`，即 `d0.d1d2… × 10^exp`。
-fn shortest_digits(x: f64) -> (String, i32) {
+pub(crate) fn shortest_digits(x: f64) -> (String, i32) {
     // `{:e}` 无精度参数时给的就是最短往返表示，形如 `1.2345e17` / `5e-1`。
     let rendered = format!("{x:e}");
     let (mantissa, exponent) = rendered
@@ -120,7 +120,7 @@ fn shortest_digits(x: f64) -> (String, i32) {
 
 /// half-up 收到 `target` 位有效数字；不足则补零（补零不改变数值，只是让后面的
 /// 切片逻辑能按定长下标取数）。进位溢出时指数加一。
-fn round_significant(digits: &str, exp: i32, target: usize) -> (String, i32) {
+pub(crate) fn round_significant(digits: &str, exp: i32, target: usize) -> (String, i32) {
     if digits.len() <= target {
         let mut padded = String::from(digits);
         while padded.len() < target {

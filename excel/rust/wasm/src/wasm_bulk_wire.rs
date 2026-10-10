@@ -156,12 +156,12 @@ struct CellSnapshotJSON {
     formula: String,
 }
 
-/// 日期必须保留原生兼容闰日；原始数值仍在 display，供统计与输入使用。
-fn native_date_display(workbook: &Workbook, sheet: usize, addr: &str, value: &Value) -> Option<String> {
+/// 原生格式文本与原始数值分开返回；display 仍供统计与输入使用。
+fn native_number_display(workbook: &Workbook, sheet: usize, addr: &str, value: &Value) -> Option<String> {
     let value = collapse_array_for_js(value);
     let Value::Number(number) = value.as_ref() else { return None };
     let format = workbook.sheet(sheet)?.get_format(addr);
-    matches!(format.number_format, NumberFormat::Date(_)).then(|| format.format_number(*number))
+    uses_native_number_display(&format.number_format).then(|| format.format_number(*number))
 }
 
 /// 表元数据 = 表身份，**仅此而已**：`{ idx, name }` 就是 `restore_persistence_v1`

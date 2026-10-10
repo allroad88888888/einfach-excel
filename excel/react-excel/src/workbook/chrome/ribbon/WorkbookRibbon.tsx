@@ -19,6 +19,7 @@ import { FindReplaceTools } from './FindReplaceTools'
 import { ColorTools } from './ColorTools'
 import { TextLayoutTools } from './TextLayoutTools'
 import { FontSizeTools } from './FontSizeTools'
+import { NumberFormatTools } from './NumberFormatTools'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import './ribbon.css'
 
@@ -195,6 +196,7 @@ export function WorkbookRibbon() {
         <ToolButton icon="▦" label="Date format"
           onClick={() => void applyFormat('date-format')}
           pressed={activeFormat.numberFormat?.kind === 'date'} />
+        <NumberFormatTools />
         <ToolButton icon="Σ" label="Auto sum" />
         <span className="tool-separator" aria-hidden="true" />
         <ToolButton

@@ -139,3 +139,16 @@ test.each(['duplicate', 'enable', 'disable', 'move-up', 'move-down'])(
     expect(display).toHaveBeenCalled()
   },
 )
+
+test.each([
+  { kind: 'formula', formula: '=$B2>5', format: { bold: true } },
+  { kind: 'top-bottom', direction: 'bottom', count: 2, format: { bold: true } },
+  { kind: 'top-bottom', direction: 'top', count: 20, percent: true, format: { bold: true } },
+])('$kind uses the existing native write and one returned display projection', async (rule) => {
+  const { call, write, display } = await setup()
+  const response = await call('conditionalFormat.change', { ...input, rule })
+  expect(response.ok).toBe(true)
+  expect(write).toHaveBeenCalledTimes(1)
+  expect(write).toHaveBeenCalledWith(0, expect.objectContaining({ rule }))
+  expect(display).toHaveBeenCalledTimes(1)
+})

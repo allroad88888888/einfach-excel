@@ -49,8 +49,12 @@ mod async_custom;
 mod atom_formula_provider;
 #[path = "sheet_atom_gc.rs"]
 mod atom_gc;
+#[path = "sheet_axis_border_clear.rs"]
+mod axis_border_clear;
 #[path = "sheet_batch.rs"]
 mod batch;
+#[path = "sheet_borders.rs"]
+mod borders;
 #[path = "sheet_bulk_formula.rs"]
 mod bulk_formula;
 #[path = "sheet_bulk_install.rs"]
@@ -93,16 +97,14 @@ mod format;
 mod format_snapshot;
 #[path = "sheet_format_write.rs"]
 mod format_write;
-#[path = "sheet_axis_border_clear.rs"]
-mod axis_border_clear;
-#[path = "sheet_borders.rs"]
-mod borders;
 pub use borders::BorderPreset;
 pub(crate) use borders::{border_plan_range, BorderPlan};
 #[path = "sheet_border_replacement.rs"]
 mod border_replacement;
 #[path = "sheet_formula_state.rs"]
 mod formula_state;
+#[path = "sheet_freeze.rs"]
+mod freeze;
 #[path = "sheet_hidden_columns.rs"]
 mod hidden_columns;
 #[path = "sheet_hidden_rows.rs"]
@@ -113,8 +115,6 @@ mod history_budget;
 mod history_restore;
 #[path = "sheet_merge.rs"]
 mod merge;
-#[path = "sheet_freeze.rs"]
-mod freeze;
 pub use freeze::FrozenPanes;
 pub(crate) use history_budget::metadata_bytes;
 #[path = "sheet_cross_sheet_shift.rs"]
@@ -129,6 +129,9 @@ mod interior;
 mod lifecycle;
 #[path = "sheet_range_tiers.rs"]
 mod range_tiers;
+#[path = "sheet_rank_threshold.rs"]
+mod rank_threshold;
+pub(crate) use rank_threshold::RankThreshold;
 #[path = "sheet_read.rs"]
 mod read;
 #[path = "sheet_relocate.rs"]

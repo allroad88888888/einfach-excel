@@ -1,4 +1,5 @@
 //! 数值条件规则的原生校验与判定；不读取 UI 状态，不改基础格式。
+use super::conditional_format_highlight::{enabled_by_default, Highlight};
 use crate::cell_style::CellStyle;
 use serde::Deserialize;
 
@@ -52,18 +53,6 @@ impl Operand {
     }
 }
 
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-struct Highlight {
-    #[serde(rename = "fgColor", alias = "color")]
-    color: Option<String>,
-    #[serde(rename = "bgColor", alias = "background")]
-    background: Option<String>,
-    bold: Option<bool>,
-    italic: Option<bool>,
-    underline: Option<bool>,
-}
-
 pub(crate) struct NumericRule {
     operator: Operator,
     value: f64,
@@ -71,8 +60,6 @@ pub(crate) struct NumericRule {
     pub(crate) style: CellStyle,
     pub(crate) enabled: bool,
 }
-
-fn enabled_by_default() -> bool { true }
 
 impl NumericRule {
     /// JSON 只在规则写入或每次窗口读取时解码一次，不在每个 cell 内解析。
@@ -91,28 +78,7 @@ impl NumericRule {
         if !between && value2.is_some() {
             return Err("This comparison accepts only one number.");
         }
-        for color in [&rule.format.color, &rule.format.background]
-            .into_iter()
-            .flatten()
-        {
-            if color.len() != 7
-                || !color.starts_with('#')
-                || !color[1..].bytes().all(|b| b.is_ascii_hexdigit())
-            {
-                return Err("Highlight colors must use #RRGGBB.");
-            }
-        }
-        let style = CellStyle {
-            color: rule.format.color.map(Some),
-            background: rule.format.background.map(Some),
-            bold: rule.format.bold,
-            italic: rule.format.italic,
-            underline: rule.format.underline,
-            ..CellStyle::default()
-        };
-        if style.is_empty() {
-            return Err("Choose at least one highlight property.");
-        }
+        let style = rule.format.into_style()?;
         Ok(Self {
             enabled: rule.enabled,
             operator: rule.operator,

@@ -24,6 +24,22 @@ use crate::sheet::{
     SheetError, WorkbookAtomContext,
 };
 
+#[path = "workbook_conditional_format_formula.rs"]
+mod conditional_format_formula;
+#[path = "workbook_conditional_format_highlight.rs"]
+mod conditional_format_highlight;
+#[path = "workbook_conditional_format_numeric.rs"]
+pub(crate) mod conditional_format_numeric;
+#[path = "workbook_conditional_format_projection.rs"]
+mod conditional_format_projection;
+#[path = "workbook_conditional_format_rank.rs"]
+mod conditional_format_rank;
+#[path = "workbook_conditional_format_rule.rs"]
+pub(crate) mod conditional_format_rule;
+#[path = "workbook_conditional_format_sheet_refs.rs"]
+mod conditional_format_sheet_refs;
+#[path = "workbook_conditional_format_structure.rs"]
+mod conditional_format_structure;
 #[path = "workbook_bulk.rs"]
 mod workbook_bulk;
 #[path = "workbook_bulk_types.rs"]
@@ -32,12 +48,7 @@ mod workbook_bulk_types;
 mod workbook_conditional_format;
 #[path = "workbook_conditional_format_types.rs"]
 mod workbook_conditional_format_types;
-#[path = "workbook_conditional_format_numeric.rs"]
-pub(crate) mod conditional_format_numeric;
-#[path = "workbook_conditional_format_projection.rs"]
-mod conditional_format_projection;
-#[path = "workbook_conditional_format_structure.rs"]
-mod conditional_format_structure;
+use conditional_format_sheet_refs::ConditionalRuleSources;
 #[path = "workbook_custom.rs"]
 mod workbook_custom;
 #[path = "workbook_cycles.rs"]
@@ -115,8 +126,8 @@ pub use workbook_merge::MergeAction;
 pub(crate) use self::workbook_bulk_types::CustomCallScope;
 pub use self::workbook_bulk_types::{BulkInstallStats, InstallError};
 pub use self::workbook_conditional_format_types::{
-    ConditionalFormatConfigSnapshot, ConditionalFormatError, ConditionalFormatRuleEntry,
-    ConditionalFormatRuleAction,
+    ConditionalFormatConfigSnapshot, ConditionalFormatError, ConditionalFormatRuleAction,
+    ConditionalFormatRuleEntry,
 };
 pub use self::workbook_errors::{HiddenRowsError, TableError, TotalsFunction};
 pub use self::workbook_loader::WorkbookLoader;
@@ -152,6 +163,7 @@ pub struct Workbook {
     pub(super) tables_epoch: u64,
     print_configs: Vec<workbook_print_config::SheetPrintConfig>,
     conditional_formats: Vec<workbook_conditional_format_types::SheetConditionalFormatConfig>,
+    conditional_rank_atoms: conditional_format_rank::RankAtoms,
 }
 
 #[cfg(test)]

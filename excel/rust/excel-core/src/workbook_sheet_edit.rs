@@ -3,6 +3,24 @@ use super::*;
 
 impl Workbook {
     pub fn edit_sheet(&mut self, index: Option<usize>, name: &str) -> Result<usize, &'static str> {
+        self.validate_sheet_name(index, name)?;
+        let name = name.trim();
+        match index {
+            Some(idx) => {
+                if self.name(idx) != Some(name) && !self.rename_sheet(idx, name) {
+                    return Err("Could not rename the worksheet.");
+                }
+                Ok(idx)
+            }
+            None => Ok(self.add_sheet(name)),
+        }
+    }
+
+    pub(super) fn validate_sheet_name(
+        &self,
+        index: Option<usize>,
+        name: &str,
+    ) -> Result<(), &'static str> {
         if self.is_inside_custom_call() {
             return Err("Cannot change sheets during a custom formula call.");
         }
@@ -29,14 +47,6 @@ impl Workbook {
         }) {
             return Err("A worksheet with this name already exists.");
         }
-        match index {
-            Some(idx) => {
-                if self.name(idx) != Some(name) && !self.rename_sheet(idx, name) {
-                    return Err("Could not rename the worksheet.");
-                }
-                Ok(idx)
-            }
-            None => Ok(self.add_sheet(name)),
-        }
+        Ok(())
     }
 }

@@ -12,6 +12,8 @@ pub(crate) enum SheetHistoryChange {
         after: String,
         before_refs: FormulaSources,
         after_refs: FormulaSources,
+        before_rules: ConditionalRuleSources,
+        after_rules: ConditionalRuleSources,
     },
     Move {
         key: u64,
@@ -64,8 +66,16 @@ impl SheetHistoryChange {
                     .collect()
             };
             let before_refs = capture(workbook);
+            let rule_keys = workbook
+                .conditional_sheet_ref_rewrites(&before, Some(&after))
+                .into_iter()
+                .chain(workbook.conditional_sheet_ref_rewrites(&after, Some(&before)))
+                .map(|(key, _)| key)
+                .collect();
+            let before_rules = workbook.capture_conditional_rule_sources(&rule_keys);
             workbook.edit_sheet(Some(index), name)?;
             let after_refs = capture(workbook);
+            let after_rules = workbook.capture_conditional_rule_sources(&rule_keys);
             Ok((
                 index,
                 Some(Self::Rename {
@@ -75,6 +85,8 @@ impl SheetHistoryChange {
                     after,
                     before_refs,
                     after_refs,
+                    before_rules,
+                    after_rules,
                 }),
             ))
         } else {
@@ -136,6 +148,8 @@ impl SheetHistoryChange {
                 after,
                 before_refs,
                 after_refs,
+                before_rules,
+                after_rules,
             } => {
                 require_key(workbook, *index, *key)?;
                 let (expected, next, sources) = if undo {
@@ -146,14 +160,21 @@ impl SheetHistoryChange {
                 if workbook.name(*index) != Some(expected.as_str()) {
                     return Err("The worksheet changed outside history.");
                 }
+                let rules = if undo { before_rules } else { after_rules };
+                workbook.validate_sheet_name(Some(*index), next)?;
+                workbook.validate_conditional_rule_sources(rules)?;
                 let store = workbook.store.clone();
                 let mut result = Ok(());
                 store.batch(|_| {
-                    result = workbook.edit_sheet(Some(*index), next).map(|_| {
-                        for (sheet, addr, source) in sources {
-                            workbook.set_formula(*sheet, &addr.to_string_repr(), source);
-                        }
-                    });
+                    result = workbook
+                        .rename_sheet_with_conditional_rules(*index, next, Some(rules))
+                        .then_some(())
+                        .ok_or("Could not rename the worksheet.")
+                        .map(|_| {
+                            for (sheet, addr, source) in sources {
+                                workbook.set_formula(*sheet, &addr.to_string_repr(), source);
+                            }
+                        });
                 });
                 result
             }
@@ -178,7 +199,7 @@ impl SheetHistoryChange {
                     let store = workbook.store.clone();
                     let mut saved = None;
                     store.batch(|_| {
-                        saved = workbook.archive_sheet(*index);
+                        saved = workbook.archive_sheet_with_conditional_refs(*index, *created);
                         if let Some(saved) = saved.as_ref().filter(|_| *created) {
                             saved.restore_missing_reference_sources(workbook);
                         }
@@ -210,10 +231,14 @@ impl SheetHistoryChange {
                 after,
                 before_refs,
                 after_refs,
+                before_rules,
+                after_rules,
                 ..
             } => {
                 before.len()
                     + after.len()
+                    + crate::sheet::metadata_bytes(before_rules)
+                    + crate::sheet::metadata_bytes(after_rules)
                     + before_refs
                         .iter()
                         .chain(after_refs)

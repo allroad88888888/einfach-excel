@@ -1,5 +1,5 @@
 import { atom } from '@einfach/core'
-import type { CellValueRule } from './types'
+import type { CellValueRule, FormulaRule, TopBottomRule, NativeConditionalFormatRule } from './types'
 import { editingSessionAtom } from '../editing/session-atoms'
 import { parseA1Cell, parseA1Range, rangeToA1 } from '../name-box'
 import { activeWorkbookSheetAtom } from '../runtime/workbook-document'
@@ -19,7 +19,7 @@ interface Panel {
   revision: number
   priority: number
   range: string
-  rule: CellValueRule
+  rule: NativeConditionalFormatRule
   busy: boolean
   error: string
 }
@@ -37,9 +37,10 @@ export const nativeConditionalFormatsAtom = atom((get) => {
   return config && { ...config, rules: [...config.rules].sort((a, b) => a.priority - b.priority) }
 })
 type Action = 'open' | 'close' | 'new' | 'save'
+  | { type: 'kind'; kind: NativeConditionalFormatRule['kind'] }
   | { type: 'edit'; id: string }
   | { type: 'remove' | 'duplicate' | 'enable' | 'disable' | 'move-up' | 'move-down'; id: string }
-  | { type: 'draft'; range?: string; rule?: Partial<CellValueRule> }
+  | { type: 'draft'; range?: string; rule?: Partial<Omit<CellValueRule, 'kind'> & Omit<FormulaRule, 'kind'> & Omit<TopBottomRule, 'kind'>> }
 
 /** 一个入口负责草稿与提交；规则判断不进入 TS，复用现有可见投影发布。 */
 export const runNativeConditionalFormatAtom = atom(null, async (
@@ -69,6 +70,18 @@ export const runNativeConditionalFormatAtom = atom(null, async (
   }
   if (state.sheetId !== sheet.id || state.connection !== connection)
     return fail('The workbook or worksheet changed. Close and reopen Conditional formatting.')
+  if (typeof action === 'object' && action.type === 'kind') {
+    const common = { format: { ...state.rule.format },
+      ...(state.rule.enabled === undefined ? {} : { enabled: state.rule.enabled }) }
+    // 换种类从新草稿开始，不能把 operator/value 等旧字段混进公式或排名规则。
+    const rule: NativeConditionalFormatRule = action.kind === 'formula'
+      ? { ...common, kind: 'formula', formula: '' }
+      : action.kind === 'top-bottom'
+        ? { ...common, kind: 'top-bottom', direction: 'top', count: 10, percent: false }
+        : { ...common, kind: 'cell-value', operator: 'gt', value: '' }
+    set(nativeConditionalFormatPanelAtom, { ...state, rule, error: '' })
+    return true
+  }
   if (typeof action === 'object' && action.type === 'draft') {
     set(nativeConditionalFormatPanelAtom, { ...state, error: '',
       ...(action.range === undefined ? {} : { range: action.range }),
@@ -78,7 +91,8 @@ export const runNativeConditionalFormatAtom = atom(null, async (
   }
   if (typeof action === 'object' && action.type === 'edit') {
     const entry = config.rules.find((rule) => rule.id === action.id)
-    if (!entry || entry.rule.kind !== 'cell-value') return fail('This rule type cannot be edited here yet.')
+    if (!entry || (entry.rule.kind !== 'cell-value' && entry.rule.kind !== 'formula' && entry.rule.kind !== 'top-bottom'))
+      return fail('This rule type cannot be edited here yet.')
     set(nativeConditionalFormatPanelAtom, { ...state, error: '', ruleId: entry.id,
       rule: { ...entry.rule, format: { ...entry.rule.format } }, priority: entry.priority,
       range: rangeToA1(entry.scope.range), revision: config.revision,
@@ -104,11 +118,14 @@ export const runNativeConditionalFormatAtom = atom(null, async (
       ? { rowStart: cell.row, rowEnd: cell.row, colStart: cell.col, colEnd: cell.col } : null)
     if (!range || range.rowEnd >= sheet.rowCount || range.colEnd >= sheet.colCount)
       return fail('Enter a cell or range inside this worksheet, for example A1:A100.')
-    const { value2, ...rule } = state.rule
-    const between = rule.operator === 'between' || rule.operator === 'not-between'
+    let rule = state.rule
+    if (rule.kind === 'cell-value' && rule.operator !== 'between' && rule.operator !== 'not-between') {
+      const { value2: _unused, ...single } = rule
+      rule = single
+    }
     change = { action: 'set', revision: state.revision, ruleId: state.ruleId,
       scope: { range }, priority: state.priority,
-      rule: { ...rule, ...(between ? { value2 } : {}) } }
+      rule }
   }
   const requestId = set(issueProjectionRequestIdAtom)
   if (requestId === null) return false

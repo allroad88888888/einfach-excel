@@ -26,6 +26,7 @@ export interface CellValueRule {
 
 export interface FormulaRule {
   kind: 'formula'
+  enabled?: boolean
   formula: string
   format: SpreadsheetCellFormat
 }
@@ -45,11 +46,15 @@ export interface ColorScaleRule {
 
 export interface TopBottomRule {
   kind: 'top-bottom'
+  enabled?: boolean
   direction: 'top' | 'bottom'
   count: number
   percent?: boolean
   format: SpreadsheetCellFormat
 }
+
+/** 已接入 Rust 求值、管理及历史的规则；其余类型只保留旧持久化数据。 */
+export type NativeConditionalFormatRule = CellValueRule | FormulaRule | TopBottomRule
 
 export type ConditionalFormatRule =
   | CellValueRule

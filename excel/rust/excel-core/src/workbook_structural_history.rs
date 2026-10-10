@@ -20,7 +20,7 @@ struct StructuralSnapshot {
     tables: Vec<TableEntry>,
     merges: Vec<CellRange>,
     freeze: crate::FrozenPanes,
-    conditional_formats: Vec<ConditionalFormatRuleEntry>,
+    conditional_formats: Vec<(usize, Vec<ConditionalFormatRuleEntry>)>,
 }
 
 impl StructuralHistoryChange {
@@ -80,9 +80,19 @@ impl StructuralHistoryChange {
                 }
             }
         }
-        let before = StructuralSnapshot::capture(workbook, sheet, &targets);
+        // 只捕获实际改变的目录；跨表引用不能只靠目标表的历史快照恢复。
+        let rule_sheets: Vec<_> = workbook
+            .conditional_formats
+            .iter()
+            .enumerate()
+            .filter_map(|(owner, config)| {
+                (config.rules != workbook.shifted_conditional_format_rules(owner, sheet, edit))
+                    .then_some(owner)
+            })
+            .collect();
+        let before = StructuralSnapshot::capture(workbook, sheet, &targets, &rule_sheets);
         workbook.try_structural_edit(sheet, edit)?;
-        let after = StructuralSnapshot::capture(workbook, sheet, &targets);
+        let after = StructuralSnapshot::capture(workbook, sheet, &targets, &rule_sheets);
         Ok(Some((
             Self {
                 edit,
@@ -99,6 +109,12 @@ impl StructuralHistoryChange {
             .cells
             .iter()
             .map(|(sheet, _)| *sheet)
+            .chain(
+                self.before
+                    .conditional_formats
+                    .iter()
+                    .map(|(sheet, _)| *sheet),
+            )
             .collect::<BTreeSet<_>>()
             .into_iter()
             .collect()
@@ -114,9 +130,11 @@ impl StructuralHistoryChange {
             return Err("The worksheet changed outside history.");
         }
         let snapshot = if undo { &self.before } else { &self.after };
-        let config = &workbook.conditional_formats[sheet];
-        if config.rules != snapshot.conditional_formats && config.revision == u64::MAX {
-            return Err("Conditional-format revision is exhausted.");
+        for (owner, rules) in &snapshot.conditional_formats {
+            let config = &workbook.conditional_formats[*owner];
+            if config.rules != *rules && config.revision == u64::MAX {
+                return Err("Conditional-format revision is exhausted.");
+            }
         }
         if snapshot.tables.iter().any(|table| {
             workbook
@@ -161,8 +179,11 @@ impl StructuralHistoryChange {
                 .clone_from(&snapshot.merges);
             workbook.republish_hidden(sheet);
             workbook.sheets[sheet].frozen_panes = snapshot.freeze;
-            workbook.replace_conditional_format_rules(sheet, snapshot.conditional_formats.clone())
-                .expect("history preflight checked conditional-format revision");
+            for (owner, rules) in &snapshot.conditional_formats {
+                workbook
+                    .replace_conditional_format_rules(*owner, rules.clone())
+                    .expect("history preflight checked conditional-format revision");
+            }
             let tables_changed = workbook
                 .tables
                 .values()
@@ -199,7 +220,12 @@ impl StructuralHistoryChange {
 }
 
 impl StructuralSnapshot {
-    fn capture(workbook: &Workbook, sheet: usize, targets: &[(usize, CellRange)]) -> Self {
+    fn capture(
+        workbook: &Workbook,
+        sheet: usize,
+        targets: &[(usize, CellRange)],
+        rule_sheets: &[usize],
+    ) -> Self {
         Self {
             cells: targets
                 .iter()
@@ -213,7 +239,10 @@ impl StructuralSnapshot {
             visibility: workbook.sheet_visibility(sheet).unwrap(),
             merges: workbook.sheets[sheet].merged_ranges().to_vec(),
             freeze: workbook.sheets[sheet].frozen_panes(),
-            conditional_formats: workbook.conditional_formats[sheet].rules.clone(),
+            conditional_formats: rule_sheets
+                .iter()
+                .map(|&index| (index, workbook.conditional_formats[index].rules.clone()))
+                .collect(),
             filter: workbook.sheets[sheet].filter().cloned(),
             tables: workbook
                 .tables

@@ -3,7 +3,7 @@ import type {
   VisibleProjectionResult,
 } from '../backend/projection-contracts'
 import type {
-  CellValueRule,
+  NativeConditionalFormatRule,
   ConditionalFormatRuleEntry,
   ConditionalFormatScope,
 } from '../conditional-formatting/types'
@@ -22,7 +22,7 @@ export type ConditionalFormatChange =
       readonly ruleId?: string
       readonly scope: ConditionalFormatScope
       readonly priority: number
-      readonly rule: CellValueRule
+      readonly rule: NativeConditionalFormatRule
     }
   | { readonly action: 'remove'; readonly revision: number; readonly ruleId: string }
   | {
@@ -60,7 +60,7 @@ export function validNativeConditionalFormats(config: NativeConditionalFormats):
       !Number.isSafeInteger(entry.priority) ||
       !entry.rule ||
       typeof entry.rule.kind !== 'string'
-      || (entry.rule.kind === 'cell-value' && entry.rule.enabled !== undefined
+      || ((entry.rule.kind === 'cell-value' || entry.rule.kind === 'formula' || entry.rule.kind === 'top-bottom') && entry.rule.enabled !== undefined
         && typeof entry.rule.enabled !== 'boolean')
     )
       return false

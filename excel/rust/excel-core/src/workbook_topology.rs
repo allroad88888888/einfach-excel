@@ -67,6 +67,16 @@ impl Workbook {
     ///
     /// Retarget static references before publishing the renamed topology.
     pub fn rename_sheet(&mut self, idx: usize, new_name: &str) -> bool {
+        self.rename_sheet_with_conditional_rules(idx, new_name, None)
+    }
+
+    /// 历史直接给出要恢复的规则源，避免先逆向改写再恢复造成两次修订。
+    pub(super) fn rename_sheet_with_conditional_rules(
+        &mut self,
+        idx: usize,
+        new_name: &str,
+        restored: Option<&ConditionalRuleSources>,
+    ) -> bool {
         if self.is_inside_custom_call() {
             return false; // re-entrancy guard
         }
@@ -77,6 +87,15 @@ impl Workbook {
             return false;
         }
         let rewrites = self.sheet_ref_rewrites(&self.names[idx], Some(new_name));
+        let conditional = restored.cloned().unwrap_or_else(|| {
+            self.conditional_sheet_ref_rewrites(&self.names[idx], Some(new_name))
+        });
+        if self
+            .validate_conditional_rule_sources(&conditional)
+            .is_err()
+        {
+            return false;
+        }
         let store = self.store.clone();
         store.batch(|_| {
             let old = std::mem::take(&mut self.names[idx]);
@@ -97,6 +116,7 @@ impl Workbook {
                 self.bump_tables_epoch();
             }
             self.sync_atom_topology();
+            self.apply_conditional_rule_sources(&conditional);
             for (sheet, addr, text) in rewrites {
                 self.set_formula(sheet, &addr.to_string_repr(), &text);
             }

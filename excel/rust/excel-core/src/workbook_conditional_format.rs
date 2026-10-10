@@ -16,12 +16,17 @@ impl Workbook {
             return Err(ConditionalFormatError::MutationDuringCustomCall);
         }
         validate_conditional_format_rules(&rules)?;
-        let config = self.conditional_formats.get_mut(sheet)
+        let config = self
+            .conditional_formats
+            .get_mut(sheet)
             .ok_or(ConditionalFormatError::UnknownSheet)?;
-        if config.rules == rules { return Ok(()); }
+        if config.rules == rules {
+            return Ok(());
+        }
         let revision = next_conditional_format_revision(config.revision)?;
         config.rules = rules;
         config.revision = revision;
+        self.clear_conditional_rank_atoms(sheet);
         Ok(())
     }
 
@@ -62,11 +67,13 @@ impl Workbook {
             config.rules.push(rule);
         }
         config.revision = revision;
-        Ok(ConditionalFormatConfigSnapshot {
+        let snapshot = ConditionalFormatConfigSnapshot {
             sheet,
             revision: config.revision,
             rules: config.rules.clone(),
-        })
+        };
+        self.clear_conditional_rank_atoms(sheet);
+        Ok(snapshot)
     }
 
     pub fn remove_conditional_format_rule(
@@ -89,11 +96,13 @@ impl Workbook {
         let revision = next_conditional_format_revision(config.revision)?;
         config.rules.retain(|rule| rule.id != rule_id);
         config.revision = revision;
-        Ok(ConditionalFormatConfigSnapshot {
+        let snapshot = ConditionalFormatConfigSnapshot {
             sheet,
             revision: config.revision,
             rules: config.rules.clone(),
-        })
+        };
+        self.clear_conditional_rank_atoms(sheet);
+        Ok(snapshot)
     }
 
     pub fn snapshot_conditional_formats(&self) -> Vec<ConditionalFormatConfigSnapshot> {
@@ -133,6 +142,7 @@ impl Workbook {
             };
         }
         self.conditional_formats = restored;
+        self.conditional_rank_atoms.borrow_mut().clear();
         Ok(restored_count)
     }
 }
@@ -160,8 +170,11 @@ fn validate_conditional_format_rule(
     if rule.id.trim().is_empty() {
         return Err(ConditionalFormatError::InvalidRuleId);
     }
-    if rule.row_end < rule.row_start || rule.col_end < rule.col_start
-        || rule.row_end >= crate::sheet::EXCEL_MAX_ROWS || rule.col_end >= crate::sheet::EXCEL_MAX_COLS {
+    if rule.row_end < rule.row_start
+        || rule.col_end < rule.col_start
+        || rule.row_end >= crate::sheet::EXCEL_MAX_ROWS
+        || rule.col_end >= crate::sheet::EXCEL_MAX_COLS
+    {
         return Err(ConditionalFormatError::InvalidRuleRange);
     }
     Ok(())

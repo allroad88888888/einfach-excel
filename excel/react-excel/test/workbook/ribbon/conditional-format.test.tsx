@@ -98,3 +98,41 @@ test('a single rule cannot move beyond either end of the list', async () => {
   expect(screen.getByRole('button', { name: 'Move rule 1 down' })).toBeDisabled()
   expect(request).not.toHaveBeenCalled()
 })
+
+test('formula form keeps references as a draft, then sends a single native write', async () => {
+  const request = setup()
+  await click('Conditional formatting')
+  await act(async () => {
+    fireEvent.change(screen.getByLabelText('Rule type'), { target: { value: 'formula' } })
+  })
+  expect(screen.queryByLabelText('Condition')).toBeNull()
+  expect(screen.getByText(/top-left cell of Applies to/)).toBeVisible()
+  await act(async () => {
+    fireEvent.change(screen.getByLabelText('Formula', { exact: true }), { target: { value: '=$B1>5' } })
+  })
+  expect(request).not.toHaveBeenCalled()
+  await click('Add rule')
+  expect(request).toHaveBeenCalledTimes(1)
+  expect(request.mock.calls[0][1]).toMatchObject({ action: 'set', rule: { kind: 'formula', formula: '=$B1>5' } })
+  expect(request.mock.calls[0][1]).not.toHaveProperty('rule.operator')
+})
+
+test.each(['items', 'percent'])('bottom %s controls use the same native command', async (unit) => {
+  const request = setup()
+  await click('Conditional formatting')
+  await act(async () => {
+    fireEvent.change(screen.getByLabelText('Rule type'), { target: { value: 'top-bottom' } })
+  })
+  await act(async () => {
+    fireEvent.change(screen.getByLabelText('Rank direction'), { target: { value: 'bottom' } })
+    fireEvent.change(screen.getByLabelText('Rank by'), { target: { value: unit } })
+  })
+  const input = screen.getByRole('spinbutton', { name: unit === 'items' ? 'Number of items' : 'Percentage' })
+  expect(input).toHaveAttribute('max', unit === 'items' ? '1000' : '100')
+  expect(input).toHaveAttribute('min', unit === 'items' ? '1' : '0')
+  await act(async () => { fireEvent.change(input, { target: { value: '20' } }) })
+  await click('Add rule')
+  expect(request).toHaveBeenCalledTimes(1)
+  expect(request.mock.calls[0][1]).toMatchObject({ action: 'set',
+    rule: { kind: 'top-bottom', direction: 'bottom', count: 20, percent: unit === 'percent' } })
+})

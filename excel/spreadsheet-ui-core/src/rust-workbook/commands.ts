@@ -22,7 +22,7 @@ import type { RustTextColumnsCommands } from './text-columns-commands'
 import type { RustRemoveDuplicatesCommands } from './remove-duplicates-commands'
 import type { RustQuickFormulaCommands } from './quick-formula-commands'
 import type { RustConditionalFormatCommands } from './conditional-format-commands'
-import type { CellValueRule, ConditionalFormatScope } from '../conditional-formatting/types'
+import type { NativeConditionalFormatRule, ConditionalFormatScope } from '../conditional-formatting/types'
 import type { SelectionNumbers } from '../status-bar/types'
 import type { RustSetCellInputResult, RustSetRangeFormatResult } from './mutation-results'
 export type { RustSetCellInputResult, RustSetRangeFormatResult } from './mutation-results'
@@ -47,7 +47,7 @@ export interface RustWorkbookSheetInput {
   readonly freeze?: { readonly rows: number; readonly cols: number }
   readonly conditionalFormats?: readonly {
     readonly scope: ConditionalFormatScope
-    readonly rule: CellValueRule
+    readonly rule: NativeConditionalFormatRule
   }[]
 }
 

@@ -10,15 +10,40 @@ fn formula_cell_evaluation_has_one_store_owned_entry() {
         "formula-cell evaluation gained a parallel entry outside formula-inner"
     );
 
-    let workbook = workbook_rs();
-    let workbook_production = workbook.split("#[cfg(test)]").next().unwrap_or(&workbook);
-    assert_eq!(
-        workbook_production
-            .matches("eval_expr_with_provider(")
-            .count(),
-        1,
-        "workbook direct evaluation must stay limited to top-level defined-name construction"
-    );
+    // 条件谓词不是 cell formula：不安装单元格、不保存值，只覆盖当前显示快照。
+    // 逐文件限定两个顶层用途，不能通过增加总数放行任意新的求值入口。
+    let allowed = ["workbook_names", "workbook_conditional_format_formula"];
+    let sources = workbook_family_sources();
+    for (name, source) in &sources {
+        assert_eq!(
+            source.matches("eval_expr_with_provider(").count(),
+            usize::from(allowed.contains(&name.as_str())),
+            "unexpected workbook evaluation entry in {name}"
+        );
+    }
+    for name in allowed {
+        assert!(
+            sources.iter().any(|(path, _)| path == name),
+            "missing evaluation owner {name}"
+        );
+    }
+    let predicate = sources
+        .iter()
+        .find(|(name, _)| name == "workbook_conditional_format_formula")
+        .unwrap();
+    for write_or_cache in [
+        "set_cell(",
+        "set_formula(",
+        "create_atom(",
+        "create_derived",
+        "HashMap<",
+        "BTreeMap<",
+    ] {
+        assert!(
+            !predicate.1.contains(write_or_cache),
+            "display predicate acquired writable or cached workbook state: {write_or_cache}"
+        );
+    }
 }
 
 #[test]

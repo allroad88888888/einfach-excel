@@ -194,6 +194,18 @@ export const SUMMARY_CONDITIONAL_FORMATS = [{
   scope: { range: { rowStart: 64, rowEnd: 66, colStart: 2, colEnd: 2 } },
   rule: { kind: 'cell-value', enabled: false, operator: 'gt', value: '1',
     format: { bgColor: '#d9eaf7', fgColor: '#123456' } },
+}, {
+  // D 列用相邻 C 列判定：锁住 C 列，但行号按每个目标单元格变化。
+  scope: { range: { rowStart: 64, rowEnd: 66, colStart: 3, colEnd: 3 } },
+  rule: { kind: 'formula', formula: '=$C65>3', format: { bgColor: '#d9eaf7' } },
+}, {
+  // E 列最高 1 项（6）为绿色；最低 50% 向下取整为 1 项（2），显示黄色。
+  scope: { range: { rowStart: 64, rowEnd: 66, colStart: 4, colEnd: 4 } },
+  rule: { kind: 'top-bottom', direction: 'top', count: 1, format: { bgColor: '#e2f0d9' } },
+}, {
+  scope: { range: { rowStart: 64, rowEnd: 66, colStart: 4, colEnd: 4 } },
+  rule: { kind: 'top-bottom', direction: 'bottom', count: 50, percent: true,
+    format: { bgColor: '#fff2cc' } },
 }] as const
 
 /** 两个原生合并样例；覆盖格不再重复存储内容。 */

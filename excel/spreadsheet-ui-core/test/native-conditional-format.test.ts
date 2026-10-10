@@ -225,3 +225,34 @@ test('management rejects missing IDs and protection; native errors preserve the 
   expect(store.getter(nativeConditionalFormatPanelAtom)).toMatchObject({ busy: false, error: 'The rules changed.' })
   expect(store.getter(nativeConditionalFormatsAtom)?.rules).toEqual([rule])
 })
+
+test.each([
+  ['formula', { formula: '=$B2>5' }],
+  ['top-bottom', { direction: 'bottom', count: 20, percent: true }],
+] as const)('%s sends the draft unchanged through the existing native command', async (kind, draft) => {
+  const { store, request, run } = setup()
+  await run('open')
+  await run({ type: 'draft', rule: { operator: 'between', value: '1', value2: '9' } })
+  await run({ type: 'kind', kind })
+  await run({ type: 'draft', rule: draft })
+  expect(store.getter(nativeConditionalFormatPanelAtom).rule).not.toHaveProperty('operator')
+  expect(store.getter(nativeConditionalFormatPanelAtom).rule).not.toHaveProperty('value2')
+  expect(request).not.toHaveBeenCalled()
+  expect(await run('save')).toBe(true)
+  expect(request).toHaveBeenCalledTimes(1)
+  expect(request.mock.calls[0][1]).toMatchObject({ action: 'set', scope: { range }, rule: { kind, ...draft } })
+})
+
+test('switching back to numeric removes formula and ranking fields and preserves highlight', async () => {
+  const { store, request, run } = setup()
+  await run('open')
+  await run({ type: 'kind', kind: 'formula' })
+  await run({ type: 'draft', rule: { formula: '=TRUE', format: { bold: true } } })
+  await run({ type: 'kind', kind: 'top-bottom' })
+  await run({ type: 'kind', kind: 'cell-value' })
+  expect(store.getter(nativeConditionalFormatPanelAtom).rule).toEqual({
+    kind: 'cell-value', operator: 'gt', value: '', format: { bold: true },
+  })
+  await run('close')
+  expect(request).not.toHaveBeenCalled()
+})

@@ -13,6 +13,7 @@ pub struct ArchivedWorksheet {
     tables: Vec<TableEntry>,
     // 只保存删除真正改写过的其它表公式；Sheet 自己的公式由原对象保留。
     references: Vec<(usize, CellAddress, String)>,
+    conditional_references: ConditionalRuleSources,
     remaining_names: Vec<String>,
     remaining_keys: Vec<u64>,
     origin: Weak<WorkbookAtomContext>,
@@ -41,6 +42,7 @@ impl ArchivedWorksheet {
             + metadata_bytes(&self.conditional_format)
             + metadata_bytes(&self.tables)
             + metadata_bytes(&self.references)
+            + metadata_bytes(&self.conditional_references)
             + metadata_bytes(&self.remaining_names)
             + self.remaining_keys.len() * 8
     }
@@ -66,6 +68,9 @@ impl ArchivedWorksheet {
                 .is_some_and(|origin| Rc::ptr_eq(&origin, &workbook.atom_context))
             || workbook.names != self.remaining_names
             || workbook.sheet_keys != self.remaining_keys
+            || workbook
+                .validate_conditional_rule_sources(&self.conditional_references)
+                .is_err()
             || self.tables.iter().any(|table| {
                 workbook
                     .tables
@@ -100,6 +105,7 @@ impl ArchivedWorksheet {
             workbook.rebuild_name_lookup();
             workbook.sync_atom_topology();
             workbook.republish_hidden_all();
+            workbook.apply_conditional_rule_sources(&self.conditional_references);
             for (sheet, addr, source) in self.references.drain(..) {
                 workbook.set_formula(sheet, &addr.to_string_repr(), &source);
             }
@@ -119,6 +125,15 @@ impl Drop for ArchivedWorksheet {
 impl Workbook {
     /// 与普通删除完全相同的语义，但保留恢复所需的资源；预检失败不删除。
     pub fn archive_sheet(&mut self, index: usize) -> Option<ArchivedWorksheet> {
+        self.archive_sheet_with_conditional_refs(index, false)
+    }
+
+    /// 撤销新增表时保留原先悬空的条件公式源；普通删除才把引用改成 #REF!。
+    pub(super) fn archive_sheet_with_conditional_refs(
+        &mut self,
+        index: usize,
+        preserve: bool,
+    ) -> Option<ArchivedWorksheet> {
         if self.is_inside_custom_call() || self.sheet_count() <= 1 {
             return None;
         }
@@ -126,6 +141,12 @@ impl Workbook {
         let key = self.sheet_key(index)?;
         let print_config = self.print_configs[index].clone();
         let conditional_format = self.conditional_formats[index].clone();
+        let rule_keys = self
+            .conditional_sheet_ref_rewrites(&name, None)
+            .into_iter()
+            .filter_map(|(owner, _)| (owner != key).then_some(owner))
+            .collect();
+        let conditional_references = self.capture_conditional_rule_sources(&rule_keys);
         let tables = self
             .tables
             .values()
@@ -144,7 +165,7 @@ impl Workbook {
                 )
             })
             .collect();
-        let sheet = self.remove_sheet(index)?;
+        let sheet = self.remove_sheet_with_conditional_refs(index, preserve)?;
         Some(ArchivedWorksheet {
             sheet: Some(sheet),
             key,
@@ -154,6 +175,7 @@ impl Workbook {
             conditional_format,
             tables,
             references,
+            conditional_references,
             remaining_names: self.names.clone(),
             remaining_keys: self.sheet_keys.clone(),
             origin: Rc::downgrade(&self.atom_context),

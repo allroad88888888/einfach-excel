@@ -1,5 +1,5 @@
 //! 条件格式仅覆盖返回的显示快照；持久基础样式与格式刷快照保持原样。
-use super::conditional_format_numeric::NumericRule;
+use super::conditional_format_rule::NativeRule;
 use super::*;
 use crate::sheet::{EXCEL_MAX_COLS, EXCEL_MAX_ROWS};
 use crate::FormatRangeSnapshot;
@@ -30,17 +30,25 @@ impl Workbook {
             })
             // 旧持久化允许不透明规则。未实现的种类保留原文，不交给 TS 猜着求值。
             .filter_map(|entry| {
-                NumericRule::parse(&entry.rule_json)
+                NativeRule::parse(&entry.rule_json)
                     .ok()
-                    .filter(|rule| rule.enabled)
-                    .map(|rule| (entry, rule))
+                    .filter(NativeRule::enabled)
+                    .map(|rule| {
+                        let threshold = match &rule {
+                            NativeRule::Rank(rank) => {
+                                self.conditional_rank_threshold(sheet, entry, rank)
+                            }
+                            _ => None,
+                        };
+                        (entry, rule, threshold)
+                    })
             })
             .collect();
         if rules.is_empty() {
             return Ok(snapshot);
         }
         // 数字较小的优先级更高；同优先级时，列表中较前的规则优先。
-        rules.sort_by_key(|(entry, _)| entry.priority);
+        rules.sort_by_key(|(entry, _, _)| entry.priority);
         let mut styles: BTreeMap<_, _> = snapshot
             .cell_styles
             .into_iter()
@@ -48,7 +56,7 @@ impl Workbook {
             .collect();
         for row in range.start.row..=range.end.row {
             for col in range.start.col..=range.end.col {
-                if !rules.iter().any(|(entry, _)| entry.contains(row, col)) {
+                if !rules.iter().any(|(entry, _, _)| entry.contains(row, col)) {
                     continue;
                 }
                 let value = target.peek_value(CellAddress::new(row, col));
@@ -56,15 +64,27 @@ impl Workbook {
                     Value::Array(array) => array.get(0, 0),
                     _ => Some(&value),
                 };
-                let Some(Value::Number(number)) = scalar else {
-                    continue;
-                };
-                for (entry, rule) in rules.iter().rev() {
-                    if entry.contains(row, col) && rule.matches(*number) {
+                for (entry, rule, threshold) in rules.iter().rev() {
+                    if !entry.contains(row, col) {
+                        continue;
+                    }
+                    let matched = match rule {
+                        NativeRule::Numeric(rule) => matches!(scalar,
+                            Some(Value::Number(number)) if rule.matches(*number)),
+                        NativeRule::Rank(rule) => matches!(scalar,
+                            Some(Value::Number(number)) if rule.matches(*number, *threshold)),
+                        NativeRule::Formula(rule) => rule.matches(
+                            self,
+                            sheet,
+                            CellAddress::new(entry.row_start, entry.col_start),
+                            CellAddress::new(row, col),
+                        ),
+                    };
+                    if matched {
                         styles
                             .entry((row, col))
                             .or_default()
-                            .apply_patch(&rule.style);
+                            .apply_patch(rule.style());
                     }
                 }
             }

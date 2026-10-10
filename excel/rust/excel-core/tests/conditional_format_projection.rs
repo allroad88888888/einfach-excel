@@ -126,7 +126,7 @@ fn overlapping_rules_combine_properties_with_stable_priority_and_do_not_split_ra
 fn viewport_reads_are_bounded_and_unimplemented_legacy_rules_stay_persisted() {
     let mut book = Workbook::new();
     let mut old = rule("old", range("A1", "A1048576"), "gt", "0");
-    old.rule_json = r#"{"kind":"formula","formula":"=A1>0","format":{"bold":true}}"#.into();
+    old.rule_json = r##"{"kind":"data-bar","maxColor":"#123456"}"##.into();
     book.set_conditional_format_rule(0, 0, old.clone()).unwrap();
     let before = book.snapshot_conditional_formats();
     assert_eq!(

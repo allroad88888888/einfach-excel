@@ -1,7 +1,9 @@
 //! 条件格式 CRUD 的原生历史；只保存规则元数据，不保存范围内的 cellStyle。
 use super::*;
-use crate::workbook::conditional_format_numeric::NumericRule;
-use crate::workbook::{ConditionalFormatConfigSnapshot, ConditionalFormatRuleEntry, ConditionalFormatRuleAction};
+use crate::workbook::conditional_format_rule::NativeRule;
+use crate::workbook::{
+    ConditionalFormatConfigSnapshot, ConditionalFormatRuleAction, ConditionalFormatRuleEntry,
+};
 use crate::CellAddress;
 
 #[derive(Debug)]
@@ -63,14 +65,20 @@ impl WorkbookHistory {
         if self.pending.is_some() || workbook.is_inside_custom_call() {
             return Err("Another history command is pending.".into());
         }
-        let before = workbook.conditional_format_config(sheet).map_err(|error| error.to_string())?;
+        let before = workbook
+            .conditional_format_config(sheet)
+            .map_err(|error| error.to_string())?;
         if before.revision != revision {
-            return Err("The conditional-format rules changed. Reopen the panel and try again.".into());
+            return Err(
+                "The conditional-format rules changed. Reopen the panel and try again.".into(),
+            );
         }
         let mut rules = before.rules.clone();
         // 与显示投影相同：较小优先级优先，同值保留原列表顺序。
         rules.sort_by_key(|rule| rule.priority);
-        let index = rules.iter().position(|rule| rule.id == id)
+        let index = rules
+            .iter()
+            .position(|rule| rule.id == id)
             .ok_or("The conditional format no longer exists.")?;
         let mut range = CellRange::new(
             CellAddress::new(rules[index].row_start, rules[index].col_start),
@@ -78,12 +86,14 @@ impl WorkbookHistory {
         );
         let label = match action {
             Duplicate => {
-                NumericRule::parse(&rules[index].rule_json)?;
+                NativeRule::parse(&rules[index].rule_json)?;
                 let mut copy = rules[index].clone();
                 let mut suffix = rules.len() + 1;
                 loop {
                     copy.id = format!("conditional-format-{suffix}");
-                    if !rules.iter().any(|rule| rule.id == copy.id) { break; }
+                    if !rules.iter().any(|rule| rule.id == copy.id) {
+                        break;
+                    }
                     suffix += 1;
                 }
                 rules.insert(index + 1, copy);
@@ -91,14 +101,18 @@ impl WorkbookHistory {
             }
             Enable | Disable => {
                 let enabled = matches!(action, Enable);
-                if NumericRule::parse(&rules[index].rule_json)?.enabled == enabled {
+                if NativeRule::parse(&rules[index].rule_json)?.enabled() == enabled {
                     return Ok(before);
                 }
                 let mut json: serde_json::Value = serde_json::from_str(&rules[index].rule_json)
                     .map_err(|_| "The stored rule is invalid.")?;
                 json["enabled"] = serde_json::Value::Bool(enabled);
                 rules[index].rule_json = json.to_string();
-                if enabled { "Enable conditional format" } else { "Disable conditional format" }
+                if enabled {
+                    "Enable conditional format"
+                } else {
+                    "Disable conditional format"
+                }
             }
             MoveUp | MoveDown => {
                 let target = if matches!(action, MoveUp) {
@@ -106,11 +120,19 @@ impl WorkbookHistory {
                 } else {
                     (index + 1 < rules.len()).then_some(index + 1)
                 };
-                let Some(target) = target else { return Ok(before); };
+                let Some(target) = target else {
+                    return Ok(before);
+                };
                 let other = &rules[target];
                 range = CellRange::new(
-                    CellAddress::new(range.start.row.min(other.row_start), range.start.col.min(other.col_start)),
-                    CellAddress::new(range.end.row.max(other.row_end), range.end.col.max(other.col_end)),
+                    CellAddress::new(
+                        range.start.row.min(other.row_start),
+                        range.start.col.min(other.col_start),
+                    ),
+                    CellAddress::new(
+                        range.end.row.max(other.row_end),
+                        range.end.col.max(other.col_end),
+                    ),
                 );
                 rules.swap(index, target);
                 "Reorder conditional formats"
@@ -119,11 +141,16 @@ impl WorkbookHistory {
         if matches!(action, Duplicate | MoveUp | MoveDown) {
             // 包含相同优先级及 i64 极值的旧目录也能重排；不对旧值做 +/- 1。
             for (priority, rule) in rules.iter_mut().enumerate() {
-                rule.priority = i64::try_from(priority).map_err(|_| "Too many conditional-format rules.")?;
+                rule.priority =
+                    i64::try_from(priority).map_err(|_| "Too many conditional-format rules.")?;
             }
         }
-        workbook.replace_conditional_format_rules(sheet, rules).map_err(|error| error.to_string())?;
-        let after = workbook.conditional_format_config(sheet).map_err(|error| error.to_string())?;
+        workbook
+            .replace_conditional_format_rules(sheet, rules)
+            .map_err(|error| error.to_string())?;
+        let after = workbook
+            .conditional_format_config(sheet)
+            .map_err(|error| error.to_string())?;
         self.record_conditional_format(workbook, before.rules, &after, range, label);
         Ok(after)
     }
@@ -138,7 +165,7 @@ impl WorkbookHistory {
         if self.pending.is_some() || workbook.is_inside_custom_call() {
             return Err("Another history command is pending.".into());
         }
-        NumericRule::parse(&rule.rule_json).map_err(str::to_owned)?;
+        NativeRule::parse(&rule.rule_json).map_err(str::to_owned)?;
         let before = workbook
             .conditional_format_config(sheet)
             .map_err(|error| error.to_string())?;

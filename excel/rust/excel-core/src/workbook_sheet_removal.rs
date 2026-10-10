@@ -4,6 +4,14 @@ use super::*;
 
 impl Workbook {
     pub fn remove_sheet(&mut self, idx: usize) -> Option<Sheet> {
+        self.remove_sheet_with_conditional_refs(idx, false)
+    }
+
+    pub(super) fn remove_sheet_with_conditional_refs(
+        &mut self,
+        idx: usize,
+        preserve: bool,
+    ) -> Option<Sheet> {
         if self.is_inside_custom_call() {
             return None; // re-entrancy guard
         }
@@ -11,9 +19,20 @@ impl Workbook {
             return None;
         }
         let rewrites = self.sheet_ref_rewrites(&self.names[idx], None);
+        let conditional = if preserve {
+            Vec::new()
+        } else {
+            self.conditional_sheet_ref_rewrites(&self.names[idx], None)
+                .into_iter()
+                .filter(|(key, _)| *key != self.sheet_keys[idx])
+                .collect()
+        };
+        self.validate_conditional_rule_sources(&conditional).ok()?;
         let store = self.store.clone();
         let mut removed = None;
         store.batch(|_| {
+            self.apply_conditional_rule_sources(&conditional);
+            self.clear_conditional_rank_atoms(idx);
             let sheet = self.sheets.remove(idx);
             self.sheet_keys.remove(idx);
             self.print_configs.remove(idx);

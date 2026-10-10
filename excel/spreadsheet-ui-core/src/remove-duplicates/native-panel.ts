@@ -6,8 +6,10 @@ import { applyVisibleProjectionAtom, createVisibleProjectionRequest,
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import type { RustWorkbookConnection } from '../rust-workbook'
 import type { RustRemoveDuplicatesRequest, RustRemoveDuplicatesPreview } from '../rust-workbook/remove-duplicates-commands'
-import { selectionAuthorityWitnessAtom, selectionRegionsAtom, selectionSnapshotAtom,
+import { selectCellAtom, selectionAuthorityWitnessAtom, selectionRegionsAtom, selectionSnapshotAtom,
   type SelectionAuthorityWitness } from '../selection'
+import { scrollToCellAtom } from '../viewport/metrics'
+import { viewportGeometrySizesAtom } from '../viewport/geometry-sizes'
 
 type Draft = Pick<RustRemoveDuplicatesRequest, 'columns' | 'hasHeader' | 'comparison'>
 interface Panel {
@@ -28,6 +30,8 @@ const CLOSED: Panel = { target: null, draft: { columns: [], hasHeader: true, com
 export const nativeDuplicatesPanelAtom = atom<Panel>(CLOSED)
 export type NativeDuplicatesAction = 'open' | 'close' | 'preview' | 'apply'
   | { type: 'draft'; patch: Partial<Draft> } | { type: 'confirm'; value: boolean }
+  | { type: 'page'; offset: number }
+  | { type: 'locate'; row: number; occurrence: 'duplicate' | 'first' }
 
 export const runNativeDuplicatesPanelAtom = atom(null, async (
   get, set, action: NativeDuplicatesAction,
@@ -45,7 +49,7 @@ export const runNativeDuplicatesPanelAtom = atom(null, async (
   if (action !== 'open' && (!state.target || state.target.connection !== connection ||
     state.target.witness !== get(selectionAuthorityWitnessAtom)))
     return fail('The selection or workbook changed. Close this dialog and select the range again.')
-  if (typeof action === 'object') {
+  if (typeof action === 'object' && (action.type === 'draft' || action.type === 'confirm')) {
     if (action.type === 'confirm') {
       if (state.status !== 'idle' || !state.preview) return false
       set(nativeDuplicatesPanelAtom, { ...state, confirmed: action.value })
@@ -55,7 +59,14 @@ export const runNativeDuplicatesPanelAtom = atom(null, async (
     }
     return true
   }
-  if (action === 'open' || action === 'preview') {
+  const offset = typeof action === 'object' && action.type === 'page' ? action.offset : null
+  const locate = typeof action === 'object' && action.type === 'locate' ? action : null
+  const browsing = offset !== null || locate !== null
+  if (browsing && (state.status !== 'idle' || !state.preview)) return false
+  if (offset !== null && (!Number.isSafeInteger(offset) || offset < 0 ||
+    offset >= state.preview!.removedRows)) return false
+  if (locate && !state.preview!.sample.some((row) => row.row === locate.row)) return false
+  if (action === 'open' || action === 'preview' || browsing) {
     const selection = get(selectionSnapshotAtom)
     const range = selection.range
     const pending: Panel = action === 'open' ? {
@@ -73,7 +84,11 @@ export const runNativeDuplicatesPanelAtom = atom(null, async (
       sheetId: pending.target!.sheetId, range: pending.target!.range, ...pending.draft,
     }
     try {
-      const response = connection.request('duplicates.preview', request)
+      // 翻页或定位必须属于同一修订；刷新才允许换用新的数据版本。
+      const response = connection.request('duplicates.preview', { ...request, ...(browsing ? {
+        sampleOffset: offset ?? state.preview!.sampleOffset,
+        expectedRevision: state.preview!.revision,
+      } : {}) })
       await Promise.resolve()
       if (get(nativeDuplicatesPanelAtom) === pending) set(nativeDuplicatesPanelAtom, pending)
       const preview = await response
@@ -81,13 +96,31 @@ export const runNativeDuplicatesPanelAtom = atom(null, async (
       if (get(rustWorkbookConnectionAtom) !== connection ||
         get(selectionAuthorityWitnessAtom) !== pending.target!.witness)
         return fail('The selection or workbook changed. Close this dialog and select the range again.')
-      set(nativeDuplicatesPanelAtom, { ...pending, status: 'idle', preview: { ...preview, request } })
+      if (locate) {
+        const match = preview.sample.find((row) => row.row === locate.row)
+        if (!match) return fail('This result changed. Update the preview.')
+        const sheetId = pending.target!.sheetId
+        const coord = { row: locate.occurrence === 'first' ? match.firstRow : match.row,
+          col: Math.min(...request.columns) }
+        const sizes = get(viewportGeometrySizesAtom)
+        if (sizes.rowHeightsBySheet[sheetId]?.[String(coord.row)] === 0 ||
+          sizes.colWidthsBySheet[sheetId]?.[String(coord.col)] === 0)
+          return fail('Unhide this row or column before locating the record.')
+        set(nativeDuplicatesPanelAtom, CLOSED)
+        set(selectCellAtom, { sheetId, coord })
+        set(scrollToCellAtom, { coord, rowAlign: 'start', colAlign: 'nearest' })
+      } else {
+        set(nativeDuplicatesPanelAtom, {
+          ...pending, status: 'idle', preview: { ...preview, request },
+        })
+      }
       return true
     } catch (error) {
       if (get(nativeDuplicatesPanelAtom) !== pending) return false
       return fail(error instanceof Error ? error.message : 'Could not preview duplicate records.')
     }
   }
+  if (action !== 'apply') return false
   if (state.status !== 'idle' || !state.preview) return fail('Update the preview before removing records.')
   if (!state.confirmed || state.preview.removedRows === 0) return false
   const witness = get(projectionSnapshotAtom)

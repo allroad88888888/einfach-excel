@@ -23,6 +23,8 @@ struct RemoveDuplicatesRequestJSON {
     comparison: DuplicateComparisonJSON,
     row_count: u32,
     col_count: u32,
+    #[serde(default)]
+    sample_offset: u32,
 }
 
 impl RemoveDuplicatesRequestJSON {
@@ -54,6 +56,7 @@ struct RemoveDuplicatesPreviewJSON {
     unique_rows: usize,
     excluded_rows: usize,
     headers: Vec<String>,
+    sample_offset: usize,
     sample: Vec<DuplicateSampleJSON>,
     sample_truncated: bool,
 }
@@ -63,7 +66,8 @@ impl From<RemoveDuplicatesPreview> for RemoveDuplicatesPreviewJSON {
         Self {
             scanned_rows: value.scanned_rows, removed_rows: value.removed_rows,
             unique_rows: value.unique_rows, excluded_rows: value.excluded_rows,
-            headers: value.headers, sample_truncated: value.sample_truncated,
+            headers: value.headers, sample_offset: value.sample_offset,
+            sample_truncated: value.sample_truncated,
             sample: value.sample.into_iter().map(|row| DuplicateSampleJSON {
                 row: row.row, first_row: row.first_row, values: row.values,
             }).collect(),
@@ -76,7 +80,8 @@ impl WasmWorkbook {
     pub fn preview_remove_duplicates(&self, request: JsValue) -> Result<JsValue, JsValue> {
         let request: RemoveDuplicatesRequestJSON = serde_wasm_bindgen::from_value(request)
             .map_err(|error| JsValue::from_str(&error.to_string()))?;
-        let result = self.workbook.preview_remove_duplicates(&request.native())
+        let offset = request.sample_offset as usize;
+        let result = self.workbook.preview_remove_duplicates_page(&request.native(), offset)
             .map_err(JsValue::from_str)?;
         serde_wasm_bindgen::to_value(&RemoveDuplicatesPreviewJSON::from(result))
             .map_err(|error| JsValue::from_str(&error.to_string()))

@@ -27,8 +27,14 @@
 .duplicates-dialog th { font-weight: 500; background: #f5f6fa; }
 .duplicates-warning { padding: 10px; border: 1px solid #c99b42; border-radius: 4px; background: #fff9ec; margin-top: 12px; }
 .duplicates-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.duplicates-pagination { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.duplicates-pagination span { flex: 1 1 180px; }
+.duplicates-dialog .duplicates-row-link { border: 0; padding: 0 4px; background: transparent; color: var(--primary); text-decoration: underline; }
 .duplicates-dialog button[type='submit'] { background: var(--primary); color: white; }
 .duplicates-dialog [role='alert'] { margin: 0; color: #a12622; overflow-wrap: anywhere; }
 .duplicates-dialog :disabled { opacity: .5; }
 .duplicates-dialog :focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
-@media (max-width: 480px) { .duplicates-dialog { padding: 14px; } }
+@media (max-width: 480px) {
+  .duplicates-dialog { padding: 14px; }
+  .duplicates-pagination span { flex-basis: 100%; }
+}

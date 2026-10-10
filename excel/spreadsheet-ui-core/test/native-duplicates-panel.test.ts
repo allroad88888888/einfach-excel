@@ -1,15 +1,18 @@
 import { expect, test, vi } from 'vitest'
 import { createSpreadsheetUi, nativeDuplicatesPanelAtom, runNativeDuplicatesPanelAtom,
-  runVisibleProjectionAtom, setSelectionAtom, setSelectionBoundsAtom, setSheetProtectionAtom,
+  runVisibleProjectionAtom, selectionSnapshotAtom, setSelectionAtom, setSelectionBoundsAtom,
+  setSheetProtectionAtom,
   type RustWorkbookConnection, type VisibleProjectionRequest } from '../src'
 import type { NativeDuplicatesAction } from '../src/remove-duplicates/native-panel'
-import type { RustRemoveDuplicatesApplyRequest, RustRemoveDuplicatesRequest } from '../src/rust-workbook/remove-duplicates-commands'
+import type { RustRemoveDuplicatesApplyRequest, RustRemoveDuplicatesPreviewRequest } from '../src/rust-workbook/remove-duplicates-commands'
+import { sheetHiddenRowsBackingAtom, viewportHiddenColsBackingAtom } from '../src/viewport/hidden-state'
 
 const range = { rowStart: 0, colStart: 0, rowEnd: 4, colEnd: 2 }
 const counts = { scannedRows: 4, removedRows: 2, uniqueRows: 2, excludedRows: 0,
-  headers: ['Key', 'Group', 'ID'], sample: [], sampleTruncated: false, revision: 7 }
+  headers: ['Key', 'Group', 'ID'], sampleOffset: 0,
+  sample: [{ row: 3, firstRow: 1, values: ['a'] }], sampleTruncated: false, revision: 7 }
 async function setup() {
-  const preview = vi.fn(async (_: RustRemoveDuplicatesRequest) => counts)
+  const preview = vi.fn(async (_: RustRemoveDuplicatesPreviewRequest) => counts)
   const write = vi.fn(async (input: RustRemoveDuplicatesApplyRequest) => ({ ...counts,
     projection: { ...input.projection, revision: 8, cells: [] } }))
   const read = vi.fn(async (request: VisibleProjectionRequest) => ({
@@ -17,7 +20,7 @@ async function setup() {
   }))
   const connection: RustWorkbookConnection = { dispose: vi.fn(),
     request: vi.fn(async (command: string, input: unknown) => {
-      if (command === 'duplicates.preview') return preview(input as RustRemoveDuplicatesRequest)
+      if (command === 'duplicates.preview') return preview(input as RustRemoveDuplicatesPreviewRequest)
       if (command === 'duplicates.apply') return write(input as RustRemoveDuplicatesApplyRequest)
       return read((input as { request: VisibleProjectionRequest }).request)
     }) as RustWorkbookConnection['request'] }
@@ -141,4 +144,105 @@ test('rejected mutation clears consent and demands a fresh preview before retry'
     preview: null, confirmed: false, error: 'revision changed' })
   expect(await run('apply')).toBe(false)
   expect(write).toHaveBeenCalledTimes(1)
+})
+
+test('paging pins the native revision, drops deletion consent and replaces rather than appends samples', async () => {
+  const { store, preview, write, run } = await setup()
+  preview.mockResolvedValueOnce({ ...counts, removedRows: 43 })
+  await run('open')
+  await run({ type: 'confirm', value: true })
+  preview.mockResolvedValueOnce({ ...counts, removedRows: 43, sampleOffset: 20,
+    sample: [{ row: 23, firstRow: 1, values: ['second page'] }] })
+  expect(await run({ type: 'page', offset: 20 })).toBe(true)
+  expect(preview.mock.lastCall![0]).toMatchObject({ sampleOffset: 20, expectedRevision: 7 })
+  expect(store.getter(nativeDuplicatesPanelAtom)).toMatchObject({ confirmed: false,
+    preview: { sampleOffset: 20, sample: [{ row: 23 }] } })
+  expect(write).not.toHaveBeenCalled()
+  await run('preview')
+  expect(preview.mock.lastCall![0]).not.toHaveProperty('sampleOffset')
+  expect(preview.mock.lastCall![0]).not.toHaveProperty('expectedRevision')
+})
+
+for (const [occurrence, row] of [['duplicate', 3], ['first', 1]] as const)
+  test(`locating the ${occurrence} record revalidates revision then closes without deletion`, async () => {
+    const { store, preview, write, run } = await setup()
+    await run('open')
+    expect(await run({ type: 'locate', row: 3, occurrence })).toBe(true)
+    expect(preview.mock.lastCall![0]).toMatchObject({ sampleOffset: 0, expectedRevision: 7 })
+    expect(store.getter(selectionSnapshotAtom).selection.anchor).toEqual({ row, col: 0 })
+    expect(store.getter(nativeDuplicatesPanelAtom).target).toBeNull()
+    expect(write).not.toHaveBeenCalled()
+  })
+
+test('invalid pages and forged result rows never dispatch; stale navigation leaves selection untouched', async () => {
+  const { store, preview, write, run } = await setup()
+  await run('open')
+  await run({ type: 'confirm', value: true })
+  for (const offset of [-1, 0.5, NaN, 2]) expect(await run({ type: 'page', offset })).toBe(false)
+  expect(await run({ type: 'page', offset: null } as unknown as NativeDuplicatesAction)).toBe(false)
+  expect(await run({ type: 'locate', row: 99, occurrence: 'first' })).toBe(false)
+  expect(preview).toHaveBeenCalledTimes(1)
+  const before = store.getter(selectionSnapshotAtom)
+  preview.mockRejectedValueOnce(new Error('The workbook changed'))
+  expect(await run({ type: 'locate', row: 3, occurrence: 'duplicate' })).toBe(false)
+  expect(store.getter(selectionSnapshotAtom)).toBe(before)
+  expect(store.getter(nativeDuplicatesPanelAtom)).toMatchObject({ preview: null, confirmed: false,
+    error: 'The workbook changed' })
+  expect(write).not.toHaveBeenCalled()
+})
+
+test('a late page cannot reopen a cancelled dialog', async () => {
+  const { store, preview, run } = await setup()
+  await run('open')
+  let resolve!: (value: typeof counts) => void
+  preview.mockReturnValueOnce(new Promise((done) => { resolve = done }))
+  const paging = run({ type: 'page', offset: 1 })
+  await run('close')
+  resolve({ ...counts, sampleOffset: 1 })
+  expect(await paging).toBe(false)
+  expect(store.getter(nativeDuplicatesPanelAtom).target).toBeNull()
+})
+
+for (const axis of ['row', 'column'] as const)
+  test(`locating a hidden ${axis} leaves visibility and selection untouched`, async () => {
+    const { store, write, run } = await setup()
+    const hidden = axis === 'row' ? sheetHiddenRowsBackingAtom : viewportHiddenColsBackingAtom
+    const visibility = { s: [axis === 'row' ? 3 : 0] }
+    store.setter(hidden, visibility)
+    await run('open')
+    const selection = store.getter(selectionSnapshotAtom)
+    expect(await run({ type: 'locate', row: 3, occurrence: 'duplicate' })).toBe(false)
+    expect(store.getter(hidden)).toBe(visibility)
+    expect(store.getter(selectionSnapshotAtom)).toBe(selection)
+    expect(store.getter(nativeDuplicatesPanelAtom).error).toMatch(/Unhide/)
+    expect(write).not.toHaveBeenCalled()
+  })
+
+for (const action of [{ type: 'page', offset: 1 },
+  { type: 'locate', row: 3, occurrence: 'first' }] as const)
+  test(`a late ${action.type} response cannot override a changed selection`, async () => {
+    const { store, preview, write, run } = await setup()
+    await run('open')
+    let resolve!: (value: typeof counts) => void
+    preview.mockReturnValueOnce(new Promise((done) => { resolve = done }))
+    const reading = run(action)
+    store.setter(setSelectionAtom, { kind: 'cell', sheetId: 's',
+      anchor: { row: 8, col: 2 }, focus: { row: 8, col: 2 } })
+    resolve(counts)
+    expect(await reading).toBe(false)
+    expect(store.getter(selectionSnapshotAtom).activeCell).toMatchObject({ row: 8, col: 2 })
+    expect(store.getter(nativeDuplicatesPanelAtom)).toMatchObject({
+      preview: null, confirmed: false, error: expect.stringMatching(/selection or workbook changed/),
+    })
+    expect(write).not.toHaveBeenCalled()
+  })
+
+test('an absent revalidated result never navigates to the old sample coordinate', async () => {
+  const { store, preview, run } = await setup()
+  await run('open')
+  const selection = store.getter(selectionSnapshotAtom)
+  preview.mockResolvedValueOnce({ ...counts, sample: [] })
+  expect(await run({ type: 'locate', row: 3, occurrence: 'first' })).toBe(false)
+  expect(store.getter(selectionSnapshotAtom)).toBe(selection)
+  expect(store.getter(nativeDuplicatesPanelAtom).error).toMatch(/result changed/)
 })

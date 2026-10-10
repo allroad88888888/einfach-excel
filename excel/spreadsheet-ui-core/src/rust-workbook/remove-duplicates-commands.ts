@@ -18,10 +18,15 @@ export interface RustRemoveDuplicatesPreview {
   readonly uniqueRows: number
   readonly excludedRows: number
   readonly headers: readonly string[]
+  readonly sampleOffset: number
   readonly sample: readonly {
     readonly row: number; readonly firstRow: number; readonly values: readonly string[]
   }[]
   readonly sampleTruncated: boolean
+}
+export interface RustRemoveDuplicatesPreviewRequest extends RustRemoveDuplicatesRequest {
+  readonly sampleOffset?: number
+  readonly expectedRevision?: number
 }
 export interface RustRemoveDuplicatesApplyRequest extends RustRemoveDuplicatesRequest {
   readonly expectedRevision: number
@@ -29,7 +34,7 @@ export interface RustRemoveDuplicatesApplyRequest extends RustRemoveDuplicatesRe
 }
 export interface RustRemoveDuplicatesCommands {
   readonly 'duplicates.preview': WorkerCommand<
-    RustRemoveDuplicatesRequest, RustRemoveDuplicatesPreview & { readonly revision: number }
+    RustRemoveDuplicatesPreviewRequest, RustRemoveDuplicatesPreview & { readonly revision: number }
   >
   readonly 'duplicates.apply': WorkerCommand<
     RustRemoveDuplicatesApplyRequest,
@@ -40,4 +45,5 @@ export interface NativeRemoveDuplicatesRequest extends Omit<RustRemoveDuplicates
   readonly sheet: number
   readonly rowCount: number
   readonly colCount: number
+  readonly sampleOffset?: number
 }

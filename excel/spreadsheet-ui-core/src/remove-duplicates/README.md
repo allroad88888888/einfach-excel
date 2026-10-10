@@ -14,8 +14,17 @@ Filtered-out rows stay in their physical slots; manually hidden rows participate
 inside the selected rectangle compact. Cell styles and verbatim formula sources move with records;
 row/column styles, sizes and outside cells do not move. Native limits are 100,000 cells, 256 columns,
 32 MiB comparison data and the existing undo budget. Merges and active array spills reject before
-mutation. The preview samples at most 20 duplicate rows, 12 columns and 120 characters per field;
-application always processes the complete range, not that sample.
+mutation. Each preview page contains at most 20 duplicate rows, 12 columns and 120 characters per
+field; application always processes the complete range, not that page. `sampleOffset` counts
+duplicate records, not worksheet rows. Every page scans the complete native scope so the first
+occurrence remains global; the frontend only replaces its current bounded page, without a cache
+of all results. Out-of-range pages fail rather than silently returning an unrelated first page.
+
+Page changes and result navigation pin the preview revision. A stale revision requires an explicit
+refresh; both operations clear deletion consent. Clicking a duplicate or its first occurrence
+revalidates the current page, closes the dialog, then uses the existing selection and scroll atoms
+to reveal the first comparison column. Navigation never mutates workbook contents or history.
+Hidden destination rows/columns remain hidden and require the user to unhide before navigating.
 
 Changing options discards preview and deletion consent. A selection/workbook change invalidates
 the captured target. While applying, repeated submission, draft edits and cancellation are blocked;

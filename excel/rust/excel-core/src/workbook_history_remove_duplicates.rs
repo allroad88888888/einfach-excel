@@ -8,7 +8,7 @@ impl WorkbookHistory {
         if self.pending.is_some() || workbook.is_inside_custom_call() {
             return Err("Another mutation is in progress.");
         }
-        let plan = workbook.plan_remove_duplicates(request);
+        let plan = workbook.plan_remove_duplicates(request, 0);
         workbook.store.settle_pending_reads();
         let plan = plan?;
         if plan.preview.removed_rows == 0 { return Ok(plan.preview); }

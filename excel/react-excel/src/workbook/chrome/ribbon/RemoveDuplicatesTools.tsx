@@ -28,6 +28,12 @@ export function RemoveDuplicatesTools() {
     dialog.querySelector('input')?.focus()
     return () => { dialog.close?.(); opener?.focus({ preventScroll: true }) }
   }, [open])
+  async function locate(row: number, occurrence: 'duplicate' | 'first') {
+    if (!await run({ type: 'locate', row, occurrence })) return
+    // 等对话框解除模态后再聚焦网格，业务定位仍由 command atom 完成。
+    requestAnimationFrame(() => trigger.current?.closest('.workbook')
+      ?.querySelector<HTMLElement>('[data-workbook-grid="true"]')?.focus({ preventScroll: true }))
+  }
   return <>
     <button ref={trigger} type="button" className="tool-button" aria-label="Remove duplicates"
       title="Remove duplicates" disabled={editing || busy} onClick={() => void run('open')}>≠</button>
@@ -75,12 +81,27 @@ export function RemoveDuplicatesTools() {
               <table><caption>Duplicate records to remove</caption><thead><tr>
                 <th scope="col">Row</th><th scope="col">First occurrence</th><th scope="col">Sample values</th>
               </tr></thead><tbody>{preview.sample.map((row) => <tr key={row.row}>
-                <th scope="row">{row.row + 1}</th><td>{row.firstRow + 1}</td>
+                <th scope="row"><button type="button" className="duplicates-row-link" disabled={busy}
+                  aria-label={`Go to duplicate row ${row.row + 1}`}
+                  onClick={() => void locate(row.row, 'duplicate')}>{row.row + 1}</button></th>
+                <td><button type="button" className="duplicates-row-link" disabled={busy}
+                  aria-label={`Go to first occurrence row ${row.firstRow + 1} for duplicate row ${row.row + 1}`}
+                  onClick={() => void locate(row.row, 'first')}>{row.firstRow + 1}</button></td>
                 <td>{row.values.map((value) => value || '(Empty)').join(' · ')}</td>
               </tr>)}</tbody></table>
             </div>}
+            {preview.removedRows > 0 && <nav className="duplicates-pagination"
+              aria-label="Duplicate preview pages">
+              <span>Showing {preview.sampleOffset + 1}–{preview.sampleOffset +
+                preview.sample.length}
+                {' '}of {preview.removedRows} duplicate records</span>
+              {preview.removedRows > 20 && <><button type="button" disabled={busy || preview.sampleOffset === 0}
+                onClick={() => void run({ type: 'page', offset: Math.max(0, preview.sampleOffset - 20) })}>Previous page</button>
+              <button type="button" disabled={busy || preview.sampleOffset + preview.sample.length >= preview.removedRows}
+                onClick={() => void run({ type: 'page', offset: preview.sampleOffset + 20 })}>Next page</button></>}
+            </nav>}
             {preview.sampleTruncated && <p className="duplicates-hint">
-              Sample limited to 20 duplicate rows, 12 columns and 120 characters per field.
+              Each page shows up to 20 duplicate rows, 12 columns and 120 characters per field.
               Removal processes the full selected range.
             </p>}
             {preview.removedRows > 0 && <label className="duplicates-check duplicates-warning">

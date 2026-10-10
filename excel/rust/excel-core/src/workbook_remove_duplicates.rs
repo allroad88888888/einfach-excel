@@ -32,6 +32,8 @@ pub struct RemoveDuplicatesPreview {
     pub unique_rows: usize,
     pub excluded_rows: usize,
     pub headers: Vec<String>,
+    /// 重复记录列表中的偏移量，不是工作表行号。
+    pub sample_offset: usize,
     pub sample: Vec<DuplicateSample>,
     pub sample_truncated: bool,
 }
@@ -45,13 +47,20 @@ pub(crate) struct RemoveDuplicatesPlan {
 impl Workbook {
     pub fn preview_remove_duplicates(&self, request: &RemoveDuplicatesRequest)
         -> Result<RemoveDuplicatesPreview, &'static str> {
-        let result = self.plan_remove_duplicates(request);
+        self.preview_remove_duplicates_page(request, 0)
+    }
+
+    /// 每页最多 20 条；仍扫描完整数据域，首条保留记录不随页码变化。
+    pub fn preview_remove_duplicates_page(&self, request: &RemoveDuplicatesRequest, offset: usize)
+        -> Result<RemoveDuplicatesPreview, &'static str> {
+        let result = self.plan_remove_duplicates(request, offset);
         self.store.settle_pending_reads();
         result.map(|plan| plan.preview)
     }
 
-    pub(crate) fn plan_remove_duplicates(&self, request: &RemoveDuplicatesRequest)
+    pub(crate) fn plan_remove_duplicates(&self, request: &RemoveDuplicatesRequest, offset: usize)
         -> Result<RemoveDuplicatesPlan, &'static str> {
+        if offset > 100_000 { return Err("Invalid preview page. Update the preview."); }
         let range = request.range;
         if request.row_count == 0 || request.row_count > EXCEL_MAX_ROWS || request.col_count == 0
             || request.col_count > EXCEL_MAX_COLS || range.start.row > range.end.row
@@ -107,7 +116,8 @@ impl Workbook {
             bytes = bytes.saturating_add(key.iter().map(|text| text.len() + 24).sum::<usize>());
             if bytes > 32 * 1024 * 1024 { return Err("Comparison exceeds 32 MiB. Choose a smaller range."); }
             if let Some(&first_row) = seen.get(&key) {
-                if sample.len() < 20 {
+                let duplicate_index = slots.len() - kept.len() - 1;
+                if duplicate_index >= offset && sample.len() < 20 {
                     truncated |= range.cols() > 12;
                     let values = (range.start.col..=range.end.col).take(12).map(|col| {
                         sample_text(sheet.formatted_display(&CellAddress::new(row, col).to_string()), &mut truncated)
@@ -121,10 +131,14 @@ impl Workbook {
         }
         // 读取惰性公式可能刚产生数组投影；写入前再检查一次最终几何。
         check_geometry(sheet, range)?;
+        if offset > 0 && offset >= slots.len() - kept.len() {
+            return Err("This preview page no longer exists. Update the preview.");
+        }
         Ok(RemoveDuplicatesPlan {
             preview: RemoveDuplicatesPreview {
                 scanned_rows: slots.len(), removed_rows: slots.len() - kept.len(),
-                unique_rows: kept.len(), excluded_rows, headers, sample, sample_truncated: truncated,
+                unique_rows: kept.len(), excluded_rows, headers, sample_offset: offset,
+                sample, sample_truncated: truncated,
             }, slots, kept,
         })
     }

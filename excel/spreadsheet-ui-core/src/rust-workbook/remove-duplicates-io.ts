@@ -2,6 +2,7 @@ import type { RustWorkbookSheet } from './commands'
 import type { WasmWorkbook } from './wasm-types'
 import type {
   NativeRemoveDuplicatesRequest, RustRemoveDuplicatesApplyRequest, RustRemoveDuplicatesRequest,
+  RustRemoveDuplicatesPreviewRequest,
 } from './remove-duplicates-commands'
 
 function nativeRequest(sheet: RustWorkbookSheet | undefined,
@@ -15,10 +16,18 @@ function nativeRequest(sheet: RustWorkbookSheet | undefined,
 /** 预览是只读原生扫描，携带同一工作簿修订号供确认时核对。 */
 export function previewRemoveDuplicates(
   workbook: WasmWorkbook, sheet: RustWorkbookSheet | undefined,
-  input: RustRemoveDuplicatesRequest, revision: number) {
+  input: RustRemoveDuplicatesPreviewRequest, revision: number) {
+  if (input.expectedRevision !== undefined &&
+    (!Number.isSafeInteger(input.expectedRevision) || input.expectedRevision !== revision))
+    throw new Error('The workbook changed. Update the preview before browsing results.')
+  if (input.sampleOffset !== undefined &&
+    (!Number.isSafeInteger(input.sampleOffset) || input.sampleOffset < 0))
+    throw new Error('Invalid preview page.')
   if (!workbook.preview_remove_duplicates)
     throw new Error('Rust duplicate preview is unavailable.')
-  return { ...workbook.preview_remove_duplicates(nativeRequest(sheet, input)), revision }
+  const request = nativeRequest(sheet, input)
+  return { ...workbook.preview_remove_duplicates({ ...request,
+    ...(input.sampleOffset === undefined ? {} : { sampleOffset: input.sampleOffset }) }), revision }
 }
 
 /** 任何版本／投影错误都在原生删除前拒绝；不重新实现比较或历史。 */

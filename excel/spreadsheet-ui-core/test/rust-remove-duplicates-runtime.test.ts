@@ -9,7 +9,7 @@ const projection = { kind: 'visible-window', sheetId: 'orders', requestId: 10,
   window: { rowStart: 0, colStart: 0, rowEnd: 20, colEnd: 7 } }
 const apply = { ...input, projection, expectedRevision: 0 }
 const report = { scannedRows: 399, removedRows: 200, uniqueRows: 199, excludedRows: 0,
-  headers: ['Key', 'Group', 'ID'], sample: [], sampleTruncated: true }
+  headers: ['Key', 'Group', 'ID'], sampleOffset: 0, sample: [], sampleTruncated: true }
 async function runtime() {
   let receive!: (event: { data: unknown }) => Promise<void>
   const post = vi.fn()
@@ -79,4 +79,16 @@ test('projection failure after successful mutation still invalidates old preview
   expect((await call('duplicates.preview', input)).result.revision).toBe(1)
   expect((await call('duplicates.apply', apply)).ok).toBe(false)
   expect(write).toHaveBeenCalledTimes(1)
+})
+
+test('page reads forward the offset and reject stale or malformed cursors before native scanning', async () => {
+  const { call, preview, write } = await runtime()
+  expect((await call('duplicates.preview', { ...input, sampleOffset: 20, expectedRevision: 0 })).ok).toBe(true)
+  expect(preview.mock.lastCall![0]).toMatchObject({ sampleOffset: 20 })
+  for (const sampleOffset of [-1, 1.5, NaN])
+    expect((await call('duplicates.preview', { ...input, sampleOffset })).ok).toBe(false)
+  for (const expectedRevision of [1, -1, NaN, 0.5])
+    expect((await call('duplicates.preview', { ...input, expectedRevision })).ok).toBe(false)
+  expect(preview).toHaveBeenCalledTimes(1)
+  expect(write).not.toHaveBeenCalled()
 })

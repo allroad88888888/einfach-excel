@@ -48,18 +48,22 @@ test('filtered formula copy stays frozen after clear and pastes compacted formul
   await filterMenu(page).selectOption('clear')
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
   await select(page, 'E30')
+  // 只粘贴两条筛选结果；相邻格可能有其它演示种子，必须保留原值。
+  const adjacentBefore = await cell(page, '31:4').innerText()
   await page.getByRole('button', { name: 'Paste', exact: true }).click()
   await expect(page.getByLabel('Clipboard status')).toContainText('Pasted')
   await select(page, 'E30')
   await expect(page.getByRole('textbox', { name: 'Active cell value' })).toHaveValue(/C30\*D30/)
   await select(page, 'E31')
   await expect(page.getByRole('textbox', { name: 'Active cell value' })).toHaveValue(/C31\*D31/)
-  await expect(cell(page, '31:4')).toHaveText('')
+  await expect(cell(page, '31:4')).toHaveText(adjacentBefore)
   await page.getByRole('button', { name: 'Undo', exact: true }).click()
   await expect(cell(page, '29:4')).toHaveText('')
   await expect(cell(page, '30:4')).toHaveText('')
+  await expect(cell(page, '31:4')).toHaveText(adjacentBefore)
   await page.getByRole('button', { name: 'Redo', exact: true }).click()
   await expect(page.getByRole('textbox', { name: 'Active cell value' })).toHaveValue(/C31\*D31/)
+  await expect(cell(page, '31:4')).toHaveText(adjacentBefore)
 })
 
 for (const format of ['text', 'markdown', 'html']) {

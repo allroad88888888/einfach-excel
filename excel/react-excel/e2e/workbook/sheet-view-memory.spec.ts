@@ -1,0 +1,106 @@
+import { expect, test, type Page } from '@playwright/test'
+import { select } from '../support/clipboard'
+
+const nameBox = (page: Page) => page.getByRole('textbox', { name: 'Name box' })
+const scroll = (page: Page) => page.getByTestId('sheet-scroll')
+const position = (page: Page) => scroll(page).evaluate((element) => ({
+  top: element.scrollTop, left: element.scrollLeft,
+}))
+async function switchTo(page: Page, name: string) {
+  const tab = page.getByRole('tab', { name, exact: true })
+  await tab.click()
+  await expect(tab).toHaveAttribute('aria-selected', 'true')
+  await expect(page.locator('[data-workbook-grid]')).toHaveAttribute('data-projection-retained', 'false')
+}
+test.beforeEach(async ({ page }) => {
+  await page.goto('/')
+  await expect(page.locator('td[data-cell="1:0"]')).toHaveText('SO-10001')
+})
+
+for (const width of [1280, 390]) test(`sheet tabs restore selection and both scroll axes at ${width}px`, async ({ page }, info) => {
+  const errors: string[] = []
+  page.on('pageerror', (error) => errors.push(error.message))
+  await page.setViewportSize({ width, height: 850 })
+  await select(page, 'P1001', '1000:15')
+  const orders = await position(page)
+  expect(orders.top).toBeGreaterThan(10000)
+  expect(orders.left).toBeGreaterThan(0)
+  await switchTo(page, 'Summary')
+  await expect(nameBox(page)).toHaveValue('A1')
+  await select(page, 'H90', '89:7')
+  const summary = await position(page)
+  await switchTo(page, 'Sales Orders')
+  await expect(nameBox(page)).toHaveValue('P1001')
+  await expect.poll(() => position(page)).toEqual(orders)
+  await expect(page.locator('td[data-cell="1000:15"]')).toBeInViewport()
+  await page.screenshot({ path: info.outputPath(`orders-restored-${width}.png`) })
+  if (width === 1280) await page.getByRole('button', { name: 'Next sheet' }).click()
+  else await switchTo(page, 'Summary')
+  await expect(nameBox(page)).toHaveValue('H90')
+  await expect.poll(() => position(page)).toEqual(summary)
+  await expect(page.locator('td[data-cell="89:7"]')).toBeInViewport()
+  await page.screenshot({ path: info.outputPath(`summary-restored-${width}.png`) })
+  await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  expect(errors).toEqual([])
+})
+
+test('range and header selections survive switching without creating history', async ({ page }) => {
+  await select(page, 'C20:F22', '19:2')
+  await switchTo(page, 'Summary')
+  await page.getByRole('columnheader', { name: 'Select column B', exact: true }).click()
+  const summary = await nameBox(page).inputValue()
+  await switchTo(page, 'Sales Orders')
+  await expect(nameBox(page)).toHaveValue('C20:F22')
+  await expect(page.locator('td[data-cell="21:5"]')).toHaveAttribute('data-selected', 'true')
+  await switchTo(page, 'Summary')
+  await expect(nameBox(page)).toHaveValue(summary)
+  await expect(page.getByRole('columnheader', { name: 'Select column B', exact: true })).toHaveAttribute('aria-selected', 'true')
+  await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+})
+
+test('scrolling away from the active cell is remembered without jumping back to the selection', async ({ page }) => {
+  await select(page, 'B2', '1:1')
+  await scroll(page).evaluate((element) => { element.scrollTop = 6000; element.scrollLeft = 500 })
+  await expect(page.locator('td[data-cell="1:1"]')).toHaveCount(0)
+  const previous = await position(page)
+  await switchTo(page, 'Summary')
+  await switchTo(page, 'Sales Orders')
+  await expect(nameBox(page)).toHaveValue('B2')
+  await expect.poll(() => position(page)).toEqual(previous)
+  await expect(page.locator('td[data-cell="1:1"]')).toHaveCount(0)
+})
+
+for (const width of [1280, 390]) for (const key of ['Enter', 'Escape']) {
+  test(`cross-sheet reference ${key} restores both ordinary views at ${width}px`, async ({ page }, info) => {
+    await page.setViewportSize({ width, height: 850 })
+    await switchTo(page, 'Summary')
+    await select(page, 'D80', '79:3')
+    const summary = await position(page)
+    await switchTo(page, 'Sales Orders')
+    await select(page, 'K700:L701', '699:10')
+    const input = page.getByRole('textbox', { name: 'Active cell value' })
+    // 名称框把区域左上角带入窗口；先横滚一列，让区域活动格 L701 也进入原生投影。
+    await scroll(page).evaluate((element) => { element.scrollLeft += 120 })
+    await expect(input).toBeEnabled()
+    const orders = await position(page)
+    const original = await input.inputValue()
+    await input.fill('=')
+    await switchTo(page, 'Summary')
+    await scroll(page).evaluate((element) => { element.scrollTop = 0; element.scrollLeft = 0 })
+    const reference = page.locator('td[data-cell="0:1"]')
+    await expect(reference).toHaveText('79')
+    await reference.click()
+    await expect(input).toHaveValue("='Summary'!B1")
+    await input.press(key)
+    await expect(page.getByRole('tab', { name: 'Sales Orders', exact: true })).toHaveAttribute('aria-selected', 'true')
+    await expect(nameBox(page)).toHaveValue('K700:L701')
+    await expect.poll(() => position(page)).toEqual(orders)
+    await expect(input).toHaveValue(key === 'Enter' ? "='Summary'!B1" : original)
+    await page.screenshot({ path: info.outputPath(`reference-${key}-${width}.png`) })
+    await switchTo(page, 'Summary')
+    await expect(nameBox(page)).toHaveValue('D80')
+    await expect.poll(() => position(page)).toEqual(summary)
+    if (key === 'Escape') await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+  })
+}

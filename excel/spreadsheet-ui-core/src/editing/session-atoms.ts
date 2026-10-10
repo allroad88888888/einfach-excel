@@ -5,6 +5,7 @@
 import { atom, type Atom, type Getter, type Setter } from '@einfach/core'
 import { activeWorkbookSheetAtom, workbookDocumentAtom } from '../runtime/workbook-document'
 import { activateWorkbookSheetAtom } from '../runtime/activate-workbook-sheet'
+import { sheetViewsBackingAtom } from '../runtime/sheet-view-state'
 import { selectCellAtom, selectionSnapshotAtom } from '../selection'
 import { scrollToCellAtom } from '../viewport/metrics'
 import { keyboardModeAtom } from '../keyboard'
@@ -36,16 +37,19 @@ export function returnToEditingSource(
 ): void {
   const source = session.source
   if (!source) return
-  if (get(activeWorkbookSheetAtom)?.id === source.sheetId) {
-    const selected = get(selectionSnapshotAtom).activeCell
-    if (selected.row !== source.cell.row || selected.col !== source.cell.col) {
-      set(selectCellAtom, { sheetId: source.sheetId, coord: source.cell, extend: false })
-      set(scrollToCellAtom, { coord: source.cell })
-    }
-    return
+  if (get(activeWorkbookSheetAtom)?.id !== source.sheetId ||
+    get(sheetViewsBackingAtom).referenceBrowsing) {
+    const sheet = get(workbookDocumentAtom).sheets.find((item) => item.id === source.sheetId)
+    // 恢复跨表前的完整选区及浏览位置；没有记忆的测试／外部编辑源再按原坐标定位。
+    if (!sheet) return
+    set(activateWorkbookSheetAtom, sheet)
   }
-  const sheet = get(workbookDocumentAtom).sheets.find((item) => item.id === source.sheetId)
-  if (sheet) set(activateWorkbookSheetAtom, sheet, source.cell)
+  const selected = get(selectionSnapshotAtom).activeCell
+  if (selected.sheetId !== source.sheetId ||
+    selected.row !== source.cell.row || selected.col !== source.cell.col) {
+    set(selectCellAtom, { sheetId: source.sheetId, coord: source.cell, extend: false })
+    set(scrollToCellAtom, { coord: source.cell })
+  }
 }
 
 export const editingDraftAtom = atom(

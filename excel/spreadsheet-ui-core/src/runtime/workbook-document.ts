@@ -1,5 +1,6 @@
 import { atom, type Atom } from '@einfach/core'
-import { DEFAULT_SELECTION_BOUNDS, setSelectionBoundsAtom } from '../selection'
+import { DEFAULT_SELECTION_BOUNDS, selectCellAtom, setSelectionBoundsAtom } from '../selection'
+import { EMPTY_SHEET_VIEWS, sheetViewsBackingAtom } from './sheet-view-state'
 import { activateSheetTabAtom, setSheetTabsSheetsAtom } from '../sheet-tabs/basic-commands'
 import { resetWorkspaceSessionAtom, workspaceSessionAtom } from '../workspace'
 import { DEFAULT_SHEET_TABS_STATE, sheetTabsAtom } from '../sheet-tabs/state'
@@ -54,7 +55,7 @@ activeWorkbookSheetAtom.debugLabel = 'spreadsheet.runtime.document.activeSheet'
 /** Publishes initialized workbook metadata to every core domain that consumes it. */
 export const initializeWorkbookDocumentAtom = atom(
   null,
-  (_get, set, input: InitializeWorkbookDocumentInput): void => {
+  (get, set, input: InitializeWorkbookDocumentInput): void => {
     const sheets = input.sheets.map((sheet) => Object.freeze({ ...sheet }))
     const workbook = Object.freeze({
       title: input.title,
@@ -62,6 +63,7 @@ export const initializeWorkbookDocumentAtom = atom(
     })
     const firstSheet = sheets[0]
     if (firstSheet === undefined) return
+    set(sheetViewsBackingAtom, EMPTY_SHEET_VIEWS)
     set(sheetHiddenRowsBackingAtom, {})
     set(viewportHiddenColsBackingAtom, {})
     set(viewportFilterHiddenBackingAtom, { rowsBySheet: {} })
@@ -79,6 +81,12 @@ export const initializeWorkbookDocumentAtom = atom(
       colCount: firstSheet.colCount,
     })
     set(activateSheetTabAtom, { sheetId: firstSheet.id })
+    set(selectCellAtom, { sheetId: firstSheet.id, coord: { row: 0, col: 0 } })
+    // 清掉旧位置，但让视图首次挂载仍能提供自己的行高、列宽和 overscan。
+    set(setViewportMetricsAtom, {
+      ...get(viewportMetricsAtom), sheetId: undefined,
+      rowCount: 0, colCount: 0, scrollTop: 0, scrollLeft: 0,
+    })
   },
 )
 initializeWorkbookDocumentAtom.debugLabel = 'spreadsheet.runtime.document.initialize'
@@ -118,6 +126,10 @@ export const publishWorkbookSheetStructureAtom = atom(
     set(setSheetTabsSheetsAtom, { sheets })
     // 删除的表不再保留投影尺寸；其它表以稳定 ID 存储，无需跟随索引重写。
     const ids = new Set(sheets.map((sheet) => sheet.id))
+    const views = get(sheetViewsBackingAtom)
+    set(sheetViewsBackingAtom, { ...views, views: Object.fromEntries(
+      Object.entries(views.views).filter(([id]) => ids.has(id)),
+    ) })
     for (const target of [sheetHiddenRowsBackingAtom, viewportHiddenColsBackingAtom])
       set(target, Object.fromEntries(Object.entries(get(target)).filter(([id]) => ids.has(id))))
     set(viewportFilterHiddenBackingAtom, {
@@ -151,6 +163,7 @@ export const syncWorkbookCanvasAtom = atom(null, (get, set): void => {
 
 /** Clears workbook metadata after its owned Rust runtime is disposed. */
 export const clearWorkbookDocumentAtom = atom(null, (_get, set): void => {
+  set(sheetViewsBackingAtom, EMPTY_SHEET_VIEWS)
   set(workbookDocumentBackingAtom, EMPTY_WORKBOOK_DOCUMENT)
   set(sheetTabsAtom, DEFAULT_SHEET_TABS_STATE)
   set(setSheetTabsSheetsAtom, { sheets: [] })

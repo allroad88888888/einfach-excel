@@ -24,6 +24,7 @@ import { selectionMergeFeedbackAtom } from '../toolbar/selection-merge-state'
 import { dispatchSheetTabIntentAtom } from './basic-commands'
 import { nextSheetTabName } from './metadata'
 import { sheetTabsAtom } from './state'
+import { selectionSnapshotAtom } from '../selection'
 
 export type WorkbookSheetCommand =
   | {
@@ -103,9 +104,9 @@ export const runWorkbookSheetCommandAtom = atom(
       if (!editing.source) return false
       // 格内输入在另一张表上没有对应位置；共用公式栏继续编辑同一份草稿。
       set(editingDraftAtom, { draft: editing.draft, source: 'formula-bar' })
-      set(activateWorkbookSheetAtom, target)
+      set(activateWorkbookSheetAtom, target, { reference: true })
       set(formulaReferenceSessionBackingAtom, {
-        ...reference, sheetId: target.id, anchorCell: { row: 0, col: 0 },
+        ...reference, sheetId: target.id, anchorCell: get(selectionSnapshotAtom).activeCell,
         pickAnchor: null, pickFocus: null, dragging: false,
       })
       set(sheetTabsAtom, {
@@ -142,7 +143,8 @@ export const runWorkbookSheetCommandAtom = atom(
       return true
     }
     if (input.operation === 'switch') {
-      if (target.id !== active.id) set(activateWorkbookSheetAtom, target)
+      // 同表的临时引用浏览也需回到普通视图；普通重复点击由切表命令直接忽略。
+      set(activateWorkbookSheetAtom, target)
       set(sheetTabsAtom, {
         ...get(sheetTabsAtom),
         rename: null,

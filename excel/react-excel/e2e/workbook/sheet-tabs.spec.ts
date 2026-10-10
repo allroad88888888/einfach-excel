@@ -10,7 +10,9 @@ async function switchSheet(page: Page, name: string) {
   const tab = page.getByRole('tab', { name, exact: true })
   await tab.click()
   await expect(tab).toHaveAttribute('aria-selected', 'true')
-  await expect(page.locator('td[data-cell="0:0"]')).toBeVisible()
+  // 回访工作表会恢复原滚动位置，A1 不一定在当前窗口内。
+  await expect(page.locator('.grid-projection-state')).toHaveCount(0)
+  await expect(page.locator('[data-workbook-grid]')).toHaveAttribute('data-projection-retained', 'false')
 }
 
 async function rename(page: Page, name: string) {

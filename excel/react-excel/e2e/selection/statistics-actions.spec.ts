@@ -61,7 +61,10 @@ test('copies full precision to the real system clipboard and pastes as a scalar'
   await expect(cell(page, '94:1')).toContainText('0.333333')
   await select(page, 'B95')
   await expect(input).toHaveValue('0.3333333333333333')
-  await select(page, 'A96')
+  // A96 是文本格式种子；空值统计必须选真实空格，不能依赖它仍未使用。
+  await select(page, 'A97')
+  await expect(cell(page, '96:0')).toHaveText('')
+  await expect(statistics(page).getByRole('button', { name: 'Copy Count', exact: true })).toHaveText('Count: 0')
   await expect(statistics(page).getByRole('button', { name: 'Copy Sum' })).toBeDisabled()
   await statistics(page).getByRole('button', { name: 'Copy Count', exact: true }).click()
   await expect(page.getByLabel('Statistic copy status')).toHaveText('Copied Count.')

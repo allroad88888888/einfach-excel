@@ -51,7 +51,7 @@ async function drainVisibleProjectionQueue(
       const firstSheetFrame = renderedSheetId !== result.sheetId
       const outcome = set(resolveProjectionAtom, { request, result })
       // 切表后首帧才拿到真实冻结／隐藏／尺寸。名称框若已跳转，修正估算坐标以免目标被冻结区盖住。
-      // 只处理首帧；普通滚动绝不能被当前选区拉回。
+      // 只校正本就在请求窗口内的目标；切表恢复浏览位置时，离屏选区不能把用户拉回去。
       const current = get(projectionSnapshotAtom).result
       const selection = get(selectionSnapshotAtom)
       if (outcome.status === 'accepted' && current?.sheetId === result.sheetId)
@@ -59,6 +59,10 @@ async function drainVisibleProjectionQueue(
       if (firstSheetFrame && outcome.status === 'accepted' && current?.sheetId === result.sheetId &&
         selection.selection.sheetId === result.sheetId &&
         get(viewportMetricsAtom).sheetId === result.sheetId &&
+        selection.range.rowStart >= request.window.rowStart &&
+        selection.range.rowStart <= request.window.rowEnd &&
+        selection.range.colStart >= request.window.colStart &&
+        selection.range.colStart <= request.window.colEnd &&
         (selection.range.rowStart > 0 || selection.range.colStart > 0)) {
         set(scrollToCellAtom, {
           coord: { row: selection.range.rowStart, col: selection.range.colStart },

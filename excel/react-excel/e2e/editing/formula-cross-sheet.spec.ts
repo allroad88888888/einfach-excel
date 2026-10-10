@@ -100,6 +100,11 @@ test('sheet names with spaces, apostrophes and Chinese survive native parsing an
   await expect(formula(page)).toHaveValue("='O''Brien 预算'!B1")
   await formula(page).pressSequentially('+')
   await switchTo(page, 'Sales Orders')
+  // 引用浏览也从原视图开始；E2 在已记住的 B10 上方，先把它滚入窗口。
+  await page.getByTestId('sheet-scroll').evaluate((element) => {
+    element.scrollTop = 0
+    element.scrollLeft = 0
+  })
   await cell(page, '1:4').click()
   await expect(formula(page)).toHaveValue("='O''Brien 预算'!B1+E2")
   await formula(page).press('Enter')

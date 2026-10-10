@@ -1,22 +1,41 @@
 import { atom } from '@einfach/core'
-import type { WorkbookDocumentSheet } from './workbook-document'
-import { selectCellAtom, setSelectionBoundsAtom } from '../selection'
-import { scrollToCellAtom, setViewportMetricsAtom, viewportMetricsAtom } from '../viewport/metrics'
+import { workbookDocumentAtom, type WorkbookDocumentSheet } from './workbook-document'
+import { selectCellAtom, setMultiRegionSelectionAtom, setSelectionBoundsAtom } from '../selection'
+import { setViewportMetricsAtom, viewportMetricsAtom } from '../viewport/metrics'
 import { activateSheetTabAtom } from '../sheet-tabs/basic-commands'
-import type { CellCoord } from '../shared'
+import { sheetViewsBackingAtom } from './sheet-view-state'
 
-/** 用户切表及历史移除当前表时共用的视图切换：画布、A1 选区、滚动位置一次更新。 */
+/** 切表只保存 UI 位置；原生数据仍由既有可见投影读取。首次访问从 A1 开始。 */
 export const activateWorkbookSheetAtom = atom(
   null,
-  (get, set, sheet: WorkbookDocumentSheet, coord?: CellCoord): void => {
+  (get, set, sheet: WorkbookDocumentSheet, options: { reference?: boolean } = {}): void => {
+    const metrics = get(viewportMetricsAtom)
+    const selection = get(setMultiRegionSelectionAtom)
+    const previousId = selection.regions[selection.primaryIndex]?.sheetId
+    const memory = get(sheetViewsBackingAtom)
+    const views = memory.views
+    let nextViews = views
+    if (previousId === sheet.id && metrics.sheetId === sheet.id && !memory.referenceBrowsing) return
+    // 结构命令可能已删除当前表；不得在切往邻表时把已回收的记忆重新存回去。
+    if (!memory.referenceBrowsing && previousId && previousId !== sheet.id &&
+      get(workbookDocumentAtom).sheets.some((item) => item.id === previousId)) {
+      nextViews = { ...views, [previousId]: {
+        selection,
+        scrollTop: metrics.sheetId === previousId ? metrics.scrollTop : 0,
+        scrollLeft: metrics.sheetId === previousId ? metrics.scrollLeft : 0,
+      } }
+    }
+    set(sheetViewsBackingAtom, { views: nextViews, referenceBrowsing: options.reference ?? false })
+    const remembered = views[sheet.id]
     set(setSelectionBoundsAtom, { rowCount: sheet.rowCount, colCount: sheet.colCount })
     set(activateSheetTabAtom, { sheetId: sheet.id })
-    set(selectCellAtom, { sheetId: sheet.id, coord: coord ?? { row: 0, col: 0 }, extend: false })
+    if (remembered) set(setMultiRegionSelectionAtom, remembered.selection)
+    else set(selectCellAtom, { sheetId: sheet.id, coord: { row: 0, col: 0 }, extend: false })
     // 表与画布尺寸同步切换，返回离屏编辑源也无需等 React 再补一轮旧尺寸。
     set(setViewportMetricsAtom, {
-      ...get(viewportMetricsAtom), sheetId: sheet.id,
-      rowCount: sheet.rowCount, colCount: sheet.colCount, scrollTop: 0, scrollLeft: 0,
+      ...metrics, sheetId: sheet.id,
+      rowCount: sheet.rowCount, colCount: sheet.colCount,
+      scrollTop: remembered?.scrollTop ?? 0, scrollLeft: remembered?.scrollLeft ?? 0,
     })
-    if (coord) set(scrollToCellAtom, { coord })
   },
 )

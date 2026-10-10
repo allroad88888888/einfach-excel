@@ -27,6 +27,7 @@ import { resolveContentMutationAtom } from './mutation-gateway'
 import { createEditingSessionState } from './session-domain'
 import { returnToEditingSource } from './session-atoms'
 import { activeWorkbookSheetAtom } from '../runtime/workbook-document'
+import { sheetViewsBackingAtom } from '../runtime/sheet-view-state'
 import { selectionAuthorityWitnessAtom } from '../selection'
 import type {
   CommitCellEditingInput,
@@ -184,6 +185,12 @@ export const commitCellEditingAtom = atom(
       get(activeWorkbookSheetAtom)?.id === browsingSheetId &&
       get(selectionAuthorityWitnessAtom) === selectionWitness)
       returnToEditingSource(get, set, session)
+    else if (input?.returnToSource !== false) {
+      // 用户在等待期间已主动定位：保留新位置，把它作为之后的普通视图。
+      const memory = get(sheetViewsBackingAtom)
+      if (memory.referenceBrowsing)
+        set(sheetViewsBackingAtom, { ...memory, referenceBrowsing: false })
+    }
     return 'completed'
   },
 )

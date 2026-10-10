@@ -25,6 +25,7 @@ import type { EditingDraftInput } from './types'
 import { activeEditingCommitTicketAtom } from './commit-state'
 import { activeWorkbookSheetAtom, workbookDocumentAtom } from '../runtime/workbook-document'
 import { activateWorkbookSheetAtom } from '../runtime/activate-workbook-sheet'
+import { selectionSnapshotAtom } from '../selection'
 
 /** 光标只是一份 UI 状态；手动移走光标才结束当前拾取，不影响工作簿选区。 */
 export const syncFormulaReferenceCaretAtom = atom(null, (get, set, caret: number) => {
@@ -145,13 +146,14 @@ const toggleFormulaInputModeAtom = atom(null, (get, set, range: { start: number;
   const sheetId = target?.id ?? get(activeWorkbookSheetAtom)?.id ?? editing.source.sheetId
   if (target && target.id !== get(activeWorkbookSheetAtom)?.id) {
     set(editingDraftAtom, { draft: editing.draft, source: 'formula-bar' })
-    set(activateWorkbookSheetAtom, target)
+    set(activateWorkbookSheetAtom, target, { reference: true })
   }
   const start = token?.start ?? range.start
   const end = token?.end ?? range.end
   set(formulaReferenceTextOnlyAtom, false)
   set(enterFormulaReferenceAtom, {
-    anchorCell: sheetId === editing.source.sheetId ? editing.source.cell : { row: 0, col: 0 },
+    anchorCell: sheetId === editing.source.sheetId
+      ? editing.source.cell : get(selectionSnapshotAtom).activeCell,
     sheetId,
     insertionCaret: start,
     draft: editing.draft,

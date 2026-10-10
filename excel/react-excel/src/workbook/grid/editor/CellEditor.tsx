@@ -20,7 +20,8 @@ import type { CSSProperties, FocusEvent, KeyboardEvent, PointerEvent } from 'rea
 import { useEffect, useRef } from 'react'
 import { flushSync } from 'react-dom'
 import './cell-editor.css'
-import { useFormulaReferenceInput } from './use-formula-reference-input'
+import { useFormulaInput } from './use-formula-input'
+import { FormulaAssist } from '../../formula/FormulaAssist'
 import {
   WORKBOOK_GRID_ROW_HEIGHT,
   WORKBOOK_GRID_COLUMN_WIDTH,
@@ -46,7 +47,7 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
   const setDraft = useSetAtom(updateFormulaDraftAtom)
   const insertLineBreak = useSetAtom(insertEditingLineBreakAtom)
   const inputRef = useRef<HTMLTextAreaElement>(null)
-  const formulaInput = useFormulaReferenceInput(inputRef)
+  const formulaInput = useFormulaInput(inputRef, 'cell')
   const committingRef = useRef(false)
   const suppressBlurRef = useRef(false)
   const cell = session.source?.cell ?? null
@@ -127,7 +128,7 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     event.stopPropagation()
     if (event.nativeEvent.isComposing || event.keyCode === 229) return
-    if (formulaInput.onReferenceKey(event)) return
+    if (formulaInput.onFormulaKey(event)) return
     if (event.key === 'Enter' && event.altKey) {
       event.preventDefault()
       const input = event.currentTarget
@@ -191,6 +192,10 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
       <textarea
         ref={inputRef}
         aria-label="Cell editor"
+        aria-autocomplete="list"
+        aria-controls={formulaInput.activeOption ? formulaInput.listId : undefined}
+        aria-activedescendant={formulaInput.activeOption}
+        aria-describedby={formulaInput.signatureId}
         disabled={busy}
         id={fieldIdentity}
         name={fieldIdentity}
@@ -201,6 +206,7 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
         value={draft}
         rows={1}
       />
+      <FormulaAssist inputRef={inputRef} id={formulaInput.listId} source="cell" />
       {feedback && (
         <div className="cell-editor-feedback" role="alert">
           <span>{feedback.message}</span>

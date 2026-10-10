@@ -1,5 +1,7 @@
-import { atom } from '@einfach/core'
+import { atom, type WritableAtom } from '@einfach/core'
 import { editingDraftAtom, editingSessionAtom } from '../editing/session-atoms'
+import type { EditingSessionState } from '../editing/types'
+import { activeEditingCommitTicketAtom } from '../editing/commit-state'
 import { formulaReferenceCaretAtom } from '../formula-reference'
 import {
   FORMULA_FUNCTION_SPECS,
@@ -54,7 +56,32 @@ function rankSuggestions(
  * Null means no active dismissal. Hosts call `dismissFormulaSuggestionsAtom`
  * to set it; helpers below clear it on any user-driven caret change.
  */
-export const formulaFunctionSuggestionsDismissedAtCaretAtom = atom<number | null>(null)
+// 操作只属于当前草稿快照/光标：换字或重新编辑自然恢复默认值，不加 reset 生命周期。
+type SuggestionUi = { cursor: number; dismissed: number | null }
+const suggestionUiBackingAtom = atom<{
+  editing: EditingSessionState
+  caret: number
+  value: SuggestionUi
+} | null>(null)
+const suggestionUiAtom: WritableAtom<SuggestionUi, [Partial<SuggestionUi>], void> = atom(
+  (get): SuggestionUi => {
+    const saved = get(suggestionUiBackingAtom)
+    return saved?.editing === get(editingSessionAtom) &&
+      saved.caret === get(formulaReferenceCaretAtom)
+      ? saved.value
+      : { cursor: 0, dismissed: null }
+  },
+  (get, set, patch: Partial<SuggestionUi>) =>
+    set(suggestionUiBackingAtom, {
+      editing: get(editingSessionAtom),
+      caret: get(formulaReferenceCaretAtom),
+      value: { ...get(suggestionUiAtom), ...patch },
+    }),
+)
+export const formulaFunctionSuggestionsDismissedAtCaretAtom = atom(
+  (get) => get(suggestionUiAtom).dismissed,
+  (_get, set, dismissed: number | null) => set(suggestionUiAtom, { dismissed }),
+)
 formulaFunctionSuggestionsDismissedAtCaretAtom.debugLabel =
   'spreadsheet.formulaFunctions.dismissedAtCaret'
 
@@ -72,7 +99,7 @@ formulaFunctionSuggestionsDismissedAtCaretAtom.debugLabel =
  */
 export const formulaFunctionSuggestionsAtom = atom<FormulaFunctionSuggestion[]>((get) => {
   const session = get(editingSessionAtom)
-  if (session.status !== 'drafting') return []
+  if (session.status !== 'drafting' || get(activeEditingCommitTicketAtom) !== null) return []
   const draft = get(editingDraftAtom)
   if (!draft.startsWith('=')) return []
   const caret = get(formulaReferenceCaretAtom)
@@ -107,23 +134,21 @@ dismissFormulaSuggestionsAtom.debugLabel = 'spreadsheet.formulaFunctions.dismiss
  * function's open paren, returns the spec + the active arg index. Null
  * otherwise. Used to render the signature tooltip below the input.
  */
-export const formulaFunctionSignatureAtom = atom<FormulaFunctionSignatureState | null>(
-  (get) => {
-    const session = get(editingSessionAtom)
-    if (session.status !== 'drafting') return null
-    const draft = get(editingDraftAtom)
-    if (!draft.startsWith('=')) return null
-    const caret = get(formulaReferenceCaretAtom)
-    if (caret < 0) return null
-    const enclosing = findEnclosingFunctionCall(draft, caret)
-    if (!enclosing) return null
-    const spec = getFormulaFunctionSpec(enclosing.name)
-    if (!spec) return null
-    const lastIndex = spec.args.length - 1
-    const activeArgIndex = Math.min(enclosing.activeArgIndex, lastIndex)
-    return { spec, activeArgIndex }
-  },
-)
+export const formulaFunctionSignatureAtom = atom<FormulaFunctionSignatureState | null>((get) => {
+  const session = get(editingSessionAtom)
+  if (session.status !== 'drafting' || get(activeEditingCommitTicketAtom) !== null) return null
+  const draft = get(editingDraftAtom)
+  if (!draft.startsWith('=')) return null
+  const caret = get(formulaReferenceCaretAtom)
+  if (caret < 0) return null
+  const enclosing = findEnclosingFunctionCall(draft, caret)
+  if (!enclosing) return null
+  const spec = getFormulaFunctionSpec(enclosing.name)
+  if (!spec) return null
+  const lastIndex = spec.args.length - 1
+  const activeArgIndex = Math.min(enclosing.activeArgIndex, lastIndex)
+  return { spec, activeArgIndex }
+})
 formulaFunctionSignatureAtom.debugLabel = 'spreadsheet.formulaFunctions.signature'
 
 /**
@@ -131,7 +156,10 @@ formulaFunctionSignatureAtom.debugLabel = 'spreadsheet.formulaFunctions.signatur
  * pointer hover sets it; accepting the suggestion (Tab/Enter) reads it.
  * Reset to 0 whenever the suggestions list changes shape.
  */
-export const formulaFunctionSuggestionCursorAtom = atom<number>(0)
+export const formulaFunctionSuggestionCursorAtom = atom(
+  (get) => get(suggestionUiAtom).cursor,
+  (_get, set, cursor: number) => set(suggestionUiAtom, { cursor }),
+)
 formulaFunctionSuggestionCursorAtom.debugLabel = 'spreadsheet.formulaFunctions.cursor'
 
 /**
@@ -141,8 +169,7 @@ formulaFunctionSuggestionCursorAtom.debugLabel = 'spreadsheet.formulaFunctions.c
 export const formulaFunctionSuggestionsActiveAtom = atom(
   (get) => get(formulaFunctionSuggestionsAtom).length > 0,
 )
-formulaFunctionSuggestionsActiveAtom.debugLabel =
-  'spreadsheet.formulaFunctions.suggestionsActive'
+formulaFunctionSuggestionsActiveAtom.debugLabel = 'spreadsheet.formulaFunctions.suggestionsActive'
 
 /**
  * Per-arg signature rendering. Returns each argument slot with an

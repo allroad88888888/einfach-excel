@@ -1,4 +1,4 @@
-/* 状态栏沿用现有字体与颜色；窄屏换行，数值不裁切。 */
+/* 状态栏沿用现有字体与颜色；统计单行滚动，等待态不能移动正在点击的单元格。 */
 .workbook-footer {
   flex-wrap: wrap;
 }
@@ -14,14 +14,19 @@
   display: flex;
   flex: 1;
   min-width: 0;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 4px 12px;
   padding-block: 6px;
+  height: 28px;
+  align-items: center;
+  overflow-x: auto;
+  scrollbar-width: none;
   font-variant-numeric: tabular-nums;
 }
 .selection-statistics > span,
 .selection-statistic {
-  overflow-wrap: anywhere;
+  flex: none;
+  white-space: nowrap;
 }
 .selection-status {
   display: flex;

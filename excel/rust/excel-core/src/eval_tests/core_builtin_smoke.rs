@@ -64,3 +64,23 @@ fn eval_stats() {
     let var = eval_str("=VAR(A1,B1,A2)", &cm, &vs);
     assert!(matches!(var, Value::Number(n) if n > 0.0));
 }
+
+#[test]
+fn eval_trim_collapses_only_ascii_spaces() {
+    let (cm, vs) = make_test_env();
+    // Excel TRIM 只处理 U+0020：词间压成一个空格，不吞制表符、换行或 NBSP。
+    for (input, expected) in [
+        ("  a   b  ", "a b"),
+        ("    ", ""),
+        ("", ""),
+        ("  中文   文本  ", "中文 文本"),
+        (" \u{a0}a\u{a0} ", "\u{a0}a\u{a0}"),
+        (" \ta\n b\t ", "\ta\n b\t"),
+    ] {
+        assert_eq!(
+            eval_str(&format!("=TRIM(\"{input}\")"), &cm, &vs),
+            Value::Text(expected.into()),
+            "input: {input:?}",
+        );
+    }
+}

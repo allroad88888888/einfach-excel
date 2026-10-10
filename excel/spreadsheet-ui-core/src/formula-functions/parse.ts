@@ -1,95 +1,68 @@
-/**
- * Caret-relative parse helpers for autocomplete + signature support.
- *
- * Both are pure string lookups — no atoms, no host bindings. The derived
- * atoms in `index.ts` call into these and feed the result into the
- * editing-session reactive graph.
- */
-
+/** 输入辅助的词法定位，不求值，也不改写已保存公式。 */
 const NAME_HEAD = /[A-Za-z_]/
 const NAME_REST = /[A-Za-z0-9_]/
+type Call = { name: string; openParen: number; activeArgIndex: number }
 
-/**
- * Locate the function-name fragment immediately to the left of the caret.
- *
- * The fragment is a run of `[A-Za-z_][A-Za-z0-9_]*` characters ending at
- * `caret - 1`. We return null when:
- *   - there's no fragment (caret sits on a delimiter or at index 0)
- *   - the character right after the fragment is `(` — that means the
- *     function already opened its paren and we should be in signature
- *     mode, not autocomplete
- *   - the character at the caret is a name-rest char (we are mid-name,
- *     do not autocomplete against a partial slice)
- *
- * The fragment is what the autocomplete suggestions UI matches against.
- */
+/** 向前扫描才能识别未闭合字符串；引号、数组里的逗号不属于参数分隔符。 */
+function contextAtCaret(draft: string, caret: number) {
+  let quote: string | null = null
+  let arrayDepth = 0
+  const calls: Call[] = []
+  for (let i = 0; i < caret; i++) {
+    const ch = draft[i]
+    if (quote) {
+      if (ch === quote) {
+        if (draft[i + 1] === quote && i + 1 < caret) i++
+        else quote = null
+      }
+      continue
+    }
+    if (ch === '"' || ch === "'") {
+      quote = ch
+      continue
+    }
+    if (ch === '{') {
+      arrayDepth++
+      continue
+    }
+    if (ch === '}') {
+      arrayDepth = Math.max(0, arrayDepth - 1)
+      continue
+    }
+    if (arrayDepth) continue
+    if (ch === '(') {
+      let end = i
+      while (end > 0 && /\s/.test(draft[end - 1])) end--
+      let start = end
+      while (start > 0 && NAME_REST.test(draft[start - 1])) start--
+      const name = start < end && NAME_HEAD.test(draft[start]) ? draft.slice(start, end) : ''
+      calls.push({ name: name.toUpperCase(), openParen: i + 1, activeArgIndex: 0 })
+    } else if (ch === ')') calls.pop()
+    else if (ch === ',' && calls.length) calls[calls.length - 1].activeArgIndex++
+  }
+  return { quote, call: [...calls].reverse().find((call) => call.name) ?? null }
+}
+
+/** 光标左侧的函数前缀；不把字符串、工作表名或限定引用当作函数。 */
 export function findFunctionNameFragmentAtCaret(
   draft: string,
   caret: number,
 ): { start: number; end: number; text: string } | null {
-  if (caret <= 0 || caret > draft.length) return null
-  const end = caret
-  const charAt = draft[end]
-  if (charAt !== undefined && NAME_REST.test(charAt)) return null
-  if (charAt === '(') return null
-
-  let start = end
-  while (start > 0 && NAME_REST.test(draft[start - 1])) start -= 1
-  if (start === end) return null
-  if (!NAME_HEAD.test(draft[start])) return null
-
-  return { start, end, text: draft.slice(start, end) }
+  if (!Number.isInteger(caret) || caret <= 0 || caret > draft.length) return null
+  if (contextAtCaret(draft, caret).quote) return null
+  const charAt = draft[caret]
+  if (charAt === '(' || (charAt !== undefined && NAME_REST.test(charAt))) return null
+  let start = caret
+  while (start > 0 && NAME_REST.test(draft[start - 1])) start--
+  if (start === caret || !NAME_HEAD.test(draft[start])) return null
+  let before = start - 1
+  while (before >= 0 && /\s/.test(draft[before])) before--
+  if (before >= 0 && !'=+-*/^&<>,({'.includes(draft[before])) return null
+  return { start, end: caret, text: draft.slice(start, caret) }
 }
 
-/**
- * Walk backwards from the caret, counting parens, to find the innermost
- * un-closed `(` and the function name that opened it. Returns the
- * function name (upper-cased), the index right after the `(`, and the
- * count of top-level commas between that paren and the caret (which
- * becomes the active arg index).
- *
- * Returns null when the caret is not inside any function call (e.g. the
- * draft is `=B2+` with caret at 4 — no open paren to the left).
- *
- * Skips contents inside double-quoted string literals so a comma inside
- * text doesn't bump the arg counter.
- */
-export function findEnclosingFunctionCall(
-  draft: string,
-  caret: number,
-): { name: string; openParen: number; activeArgIndex: number } | null {
-  if (caret <= 0 || caret > draft.length) return null
-
-  let depth = 0
-  let commaCount = 0
-  let inString = false
-  for (let i = caret - 1; i >= 0; i -= 1) {
-    const ch = draft[i]
-    if (ch === '"') {
-      inString = !inString
-      continue
-    }
-    if (inString) continue
-    if (ch === ')') {
-      depth += 1
-      continue
-    }
-    if (ch === '(') {
-      if (depth === 0) {
-        const nameEnd = i
-        let nameStart = nameEnd
-        while (nameStart > 0 && NAME_REST.test(draft[nameStart - 1])) nameStart -= 1
-        if (nameStart === nameEnd) return null
-        if (!NAME_HEAD.test(draft[nameStart])) return null
-        const name = draft.slice(nameStart, nameEnd).toUpperCase()
-        return { name, openParen: nameEnd + 1, activeArgIndex: commaCount }
-      }
-      depth -= 1
-      continue
-    }
-    if (ch === ',' && depth === 0) {
-      commaCount += 1
-    }
-  }
-  return null
+/** 最近一个仍未闭合的函数；普通括号内也保留所属函数的参数提示。 */
+export function findEnclosingFunctionCall(draft: string, caret: number): Call | null {
+  if (!Number.isInteger(caret) || caret <= 0 || caret > draft.length) return null
+  return contextAtCaret(draft, caret).call
 }

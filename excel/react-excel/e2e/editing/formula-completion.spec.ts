@@ -1,0 +1,112 @@
+import { expect, test } from '@playwright/test'
+import { select } from '../support/clipboard'
+
+test.beforeEach(async ({ page }) => {
+  await page.goto('/')
+  await expect(page.locator('td[data-cell="1:0"]')).toHaveText('SO-10001')
+})
+
+for (const source of ['cell', 'formula-bar']) {
+  test(`${source}: complete a function, pick a range and calculate with one native history entry`, async ({ page }) => {
+    const target = await select(page, 'B2', '1:1')
+    if (source === 'cell') await target.dblclick()
+    const input = page.getByRole('textbox', {
+      name: source === 'cell' ? 'Cell editor' : 'Active cell value', exact: true,
+    })
+    await input.fill('=SU')
+    const options = page.getByRole('listbox', { name: 'Formula functions' })
+    await expect(options).toBeVisible()
+    await input.press('ArrowDown')
+    await expect(page.getByRole('option', { name: /^SUMIF / })).toHaveAttribute('aria-selected', 'true')
+    await input.press('ArrowUp')
+    await input.press('Tab')
+    await expect(input).toHaveValue('=SUM(')
+    await expect(input).toBeFocused()
+    await expect(page.getByLabel('Formula arguments')).toContainText('SUM(')
+    await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+    const start = (await page.locator('td[data-cell="1:4"]').boundingBox())!
+    const end = (await page.locator('td[data-cell="3:4"]').boundingBox())!
+    await page.mouse.move(start.x + 10, start.y + 10)
+    await page.mouse.down()
+    await page.mouse.move(end.x + 10, end.y + 10, { steps: 4 })
+    await page.mouse.up()
+    await expect(input).toHaveValue('=SUM(E2:E4')
+    await input.pressSequentially(')')
+    await input.press('Enter')
+    await expect(target).toHaveText('6')
+    await expect(options).toHaveCount(0)
+    await page.getByRole('button', { name: 'Undo', exact: true }).click()
+    await expect(target).toHaveText('Acme Co.')
+    await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+    await page.getByRole('button', { name: 'Redo', exact: true }).click()
+    await expect(target).toHaveText('6')
+  })
+}
+
+test('pointer acceptance and nested parameter hints share the real formula-bar draft', async ({ page }) => {
+  const target = await select(page, 'B2', '1:1')
+  const input = page.getByRole('textbox', { name: 'Active cell value', exact: true })
+  await input.fill('=RO')
+  await page.getByRole('option', { name: /^ROUND / }).click()
+  await expect(input).toBeFocused()
+  await expect(input).toHaveValue('=ROUND(')
+  await input.pressSequentially('3.14159,')
+  await expect(page.getByLabel('Formula arguments').locator('strong')).toHaveText('num_digits')
+  await input.pressSequentially('2)')
+  await expect(page.getByLabel('Formula arguments')).toHaveCount(0)
+  await input.press('Enter')
+  await expect(target).toHaveText('3.14')
+  await input.fill('=IF(TRUE,SUM(')
+  await expect(page.getByLabel('Formula arguments')).toContainText('SUM(')
+  await input.pressSequentially('1,2),')
+  await expect(page.getByLabel('Formula arguments').locator('strong')).toHaveText('[value_if_false]')
+  await input.pressSequentially('0)')
+  await input.press('Enter')
+  await expect(target).toHaveText('3')
+})
+
+test('Esc dismisses only the list, restarting restores it, and quoted text offers no functions', async ({ page }) => {
+  const target = await select(page, 'B2', '1:1')
+  const input = page.getByRole('textbox', { name: 'Active cell value', exact: true })
+  await input.fill('=SU')
+  await input.press('Escape')
+  await expect(input).toHaveValue('=SU')
+  await expect(page.getByRole('listbox')).toHaveCount(0)
+  await input.press('Escape')
+  await expect(input).toHaveValue('Acme Co.')
+  await input.fill('=SU')
+  await expect(page.getByRole('listbox')).toBeVisible()
+  await input.fill('="SU')
+  await expect(page.getByRole('listbox')).toHaveCount(0)
+  await input.pressSequentially('M"')
+  await input.press('Enter')
+  await expect(target).toHaveText('SUM')
+})
+
+for (const width of [1280, 390]) {
+  test(`completion fits a bottom/right editor at ${width}px without moving focus`, async ({ page }, info) => {
+    await page.setViewportSize({ width, height: 800 })
+    const target = await select(page, 'P1001', '1000:15')
+    await target.dblclick()
+    await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('P1001')
+    const input = page.getByRole('textbox', { name: 'Cell editor', exact: true })
+    await input.fill('=S')
+    const popup = page.getByRole('listbox', { name: 'Formula functions' })
+    await expect(popup).toBeVisible()
+    const bounds = (await popup.boundingBox())!
+    expect(bounds.x).toBeGreaterThanOrEqual(0)
+    expect(bounds.y).toBeGreaterThanOrEqual(0)
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(width)
+    expect(bounds.y + bounds.height).toBeLessThanOrEqual(800)
+    await input.press('ArrowDown')
+    await input.press('ArrowDown')
+    await expect(input).toBeFocused()
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+    await page.screenshot({ path: info.outputPath(`formula-completion-${width}.png`) })
+    await input.press('Enter')
+    await expect(input).toHaveValue('=SQRT(')
+    await input.pressSequentially('9)')
+    await input.press('Enter')
+    await expect(target).toHaveText('3')
+  })
+}

@@ -5,9 +5,9 @@
  * "SUM"), its argument signature, and a short summary used to power
  * autocomplete + signature tooltips.
  *
- * Specs are pure data — no host bindings, no evaluator implementation.
- * The static-backend evaluator and the worker-backed engine each consult
- * the same registry so the UI never has to know which backend is active.
+ * Specs are UI metadata — no evaluator implementation. The maintained
+ * React path calculates through Rust/WASM; the real Worker catalog E2E
+ * verifies that every suggested function has a native implementation.
  */
 
 export interface FormulaFunctionArg {

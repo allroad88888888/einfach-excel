@@ -65,7 +65,17 @@ pub(super) fn eval_fn_text_basic(
         }
         "UPPER" => text_unary(args, provider, |s| s.to_uppercase()),
         "LOWER" => text_unary(args, provider, |s| s.to_lowercase()),
-        "TRIM" => text_unary(args, provider, |s| s.trim().to_string()),
+        "TRIM" => text_unary(args, provider, |s| {
+            // Excel 只清理 ASCII 空格；split_whitespace/trim 会误删 NBSP、制表符等。
+            let mut result = String::with_capacity(s.len());
+            for part in s.split(' ').filter(|part| !part.is_empty()) {
+                if !result.is_empty() {
+                    result.push(' ');
+                }
+                result.push_str(part);
+            }
+            result
+        }),
         "TEXT" => {
             if args.len() != 2 {
                 return Value::Error(ValueError::WrongArgCount);

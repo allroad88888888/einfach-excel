@@ -1,0 +1,41 @@
+.formula-assist {
+  position: fixed;
+  z-index: 40;
+  width: 340px;
+  max-width: calc(100vw - 16px);
+  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 4px 14px #292b3520;
+  font-size: 12px;
+}
+.formula-assist-heading {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 9px;
+  border-bottom: 1px solid var(--border);
+  background: var(--chrome);
+}
+.formula-assist-heading span { color: #535867; }
+.formula-function-list { max-height: min(240px, 40vh); overflow-y: auto; }
+.formula-function-list button {
+  display: grid;
+  grid-template-columns: 74px minmax(0, 1fr);
+  gap: 8px;
+  width: 100%;
+  padding: 7px 9px;
+  border: 0;
+  background: var(--surface);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+.formula-function-list button[aria-selected='true'] { background: var(--primary-soft); }
+.formula-function-list button:hover { background: var(--control-hover); }
+.formula-function-list code { color: var(--primary-strong); font-size: 12px; }
+.formula-function-list button > span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.formula-signature { padding: 8px 10px; overflow-wrap: anywhere; line-height: 1.6; }
+.formula-signature strong { color: var(--primary-strong); text-decoration: underline; }

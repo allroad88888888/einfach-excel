@@ -8,7 +8,8 @@ import type { FormulaFunctionSpec } from './types'
  *
  * Keeping this list small on purpose — every name added here implies a
  * matching backend evaluator (otherwise the user gets `#NAME?` after
- * accepting). Expand alongside the static evaluator + worker engine.
+ * accepting). Expand alongside the Rust evaluator and the real Worker E2E
+ * catalog check; this registry is UI metadata, never an evaluator.
  */
 export const FORMULA_FUNCTION_SPECS: readonly FormulaFunctionSpec[] = [
   {

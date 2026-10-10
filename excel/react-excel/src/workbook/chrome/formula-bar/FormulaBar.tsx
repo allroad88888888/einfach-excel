@@ -15,7 +15,8 @@ import {
 import type { FocusEvent, FormEvent, KeyboardEvent } from 'react'
 import { useRef } from 'react'
 import { flushSync } from 'react-dom'
-import { useFormulaReferenceInput } from '../../grid/editor/use-formula-reference-input'
+import { useFormulaInput } from '../../grid/editor/use-formula-input'
+import { FormulaAssist } from '../../formula/FormulaAssist'
 import { NameBox } from './NameBox'
 import './formula-bar.css'
 
@@ -30,7 +31,7 @@ export function FormulaBar() {
   const setEditingDraft = useSetAtom(editingDraftAtom)
   const updateDraft = useSetAtom(updateFormulaDraftAtom)
   const inputRef = useRef<HTMLTextAreaElement>(null)
-  const formulaInput = useFormulaReferenceInput(inputRef)
+  const formulaInput = useFormulaInput(inputRef, 'formula-bar')
   const insertLineBreak = useSetAtom(insertEditingLineBreakAtom)
   const commitEditing = useSetAtom(commitCellEditingAtom)
   const cancelEditing = useSetAtom(cancelEditingAtom)
@@ -80,7 +81,7 @@ export function FormulaBar() {
     event.stopPropagation()
     // 输入法确认键属于浏览器；229 覆盖部分浏览器 compositionend 后的确认事件。
     if (event.nativeEvent.isComposing || event.keyCode === 229) return
-    if (formulaInput.onReferenceKey(event)) return
+    if (formulaInput.onFormulaKey(event)) return
     if (event.key === 'Enter' && event.altKey) {
       event.preventDefault()
       const input = event.currentTarget
@@ -111,8 +112,11 @@ export function FormulaBar() {
         <textarea
           ref={inputRef}
           aria-label="Active cell value"
+          aria-autocomplete="list"
+          aria-controls={formulaInput.activeOption ? formulaInput.listId : undefined}
+          aria-activedescendant={formulaInput.activeOption}
           aria-invalid={feedback ? true : undefined}
-          aria-describedby={feedback ? 'formula-edit-feedback' : undefined}
+          aria-describedby={feedback ? 'formula-edit-feedback' : formulaInput.signatureId}
           autoComplete="off"
           className="formula-value"
           data-formula-input="true"
@@ -130,6 +134,7 @@ export function FormulaBar() {
           value={value}
         />
       </div>
+      <FormulaAssist inputRef={inputRef} id={formulaInput.listId} source="formula-bar" />
       {feedback && (
         <p className="formula-edit-feedback" id="formula-edit-feedback" role="alert">
           {feedback.message}

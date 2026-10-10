@@ -11,12 +11,14 @@ import {
   type RustClipboardCaptureRequest,
   type RustClipboardPasteRequest,
   type RustWorkbookConnection,
+  type RustWorkbookCommands,
   type SetFormatRangeRequest,
   type VisibleProjectionRequest,
   type VisibleProjectionResult,
 } from '../../src'
 
 export interface TestRustWorkbookHandlers {
+  previewNumberFormat?: (request: RustWorkbookCommands['format.preview']['payload']) => Promise<string>
   exportClipboard?: (request: RustClipboardExportRequest) => Promise<RustClipboardExport>
   captureClipboard?: (request: RustClipboardCaptureRequest) => Promise<RustClipboardCapture>
   pasteClipboard?: (
@@ -40,6 +42,8 @@ export function createTestRustWorkbookConnection(
   handlers: TestRustWorkbookHandlers = {},
 ): RustWorkbookConnection {
   const request = (async (command: string, payload: unknown) => {
+    if (command === 'format.preview' && handlers.previewNumberFormat)
+      return handlers.previewNumberFormat(payload as RustWorkbookCommands['format.preview']['payload'])
     if (command === 'clipboard.export' && handlers.exportClipboard) {
       return handlers.exportClipboard(payload as RustClipboardExportRequest)
     }

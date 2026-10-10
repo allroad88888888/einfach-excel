@@ -155,10 +155,9 @@ fn external_formulas_keep_written_references_but_number_format_modes_require_a_s
             "CLIPBOARD_NO_FORMATS"
         );
     }
-    assert_eq!(
-        ClipboardSnapshot::from_tsv("=SUM(", ClipboardPasteMode::Formulas).unwrap_err(),
-        "CLIPBOARD_INVALID_FORMULA"
-    );
+    let invalid = ClipboardSnapshot::from_tsv("=SUM(", ClipboardPasteMode::Formulas).unwrap();
+    assert_eq!(wb.paste_clipboard(&invalid, 0, &options("B2", "B2", ClipboardPasteMode::Formulas)),
+        Err("CLIPBOARD_INVALID_FORMULA"));
 }
 
 #[test]

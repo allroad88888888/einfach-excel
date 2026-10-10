@@ -79,6 +79,14 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       return initialize(input.sheets)
     }
     const current = currentWorkbook()
+    if (command === 'format.preview') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      if (!current.preview_number_format) throw new Error('Rust number format preview is unavailable.')
+      // 只读单格结果，不推进修订号，也不发布投影或创建历史事务。
+      return current.preview_number_format(
+        sheetIndex(input.sheetId), input.addr, input.numberFormat,
+      )
+    }
     if (command === 'sheet.filter') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
       const index = sheetIndex(input.sheetId)

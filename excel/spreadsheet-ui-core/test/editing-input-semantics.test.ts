@@ -39,6 +39,7 @@ describe('editing input semantics', () => {
         addr: 'A1',
         sheet: 0,
         display: '125.02',
+        formattedDisplay: '$125',
         inputText: '125.02',
         type: 'number',
         formula: '',

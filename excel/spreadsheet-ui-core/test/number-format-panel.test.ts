@@ -24,6 +24,7 @@ async function setup(numberFormat?: SpreadsheetNumberFormat) {
       projection: project(projection) }
   })
   const { store } = createSpreadsheetUi({ connection: createTestRustWorkbookConnection({
+    previewNumberFormat: async () => '12.50',
     readVisibleProjection: async (request) => project(request), setRangeFormat: write,
   }) })
   store.setter(setSelectionBoundsAtom, { rowCount: 10, colCount: 10 })
@@ -40,7 +41,8 @@ test.each([
   [{ kind: 'percentage' }, { category: 'percent', digits: '0' }],
   [{ kind: 'currency', symbol: '€', digits: 1 }, { category: 'currency', digits: '1', symbol: '€' }],
   [{ kind: 'currency', symbol: '' }, { category: 'currency', symbol: '', digits: '2' }],
-  [{ kind: 'date', pattern: 'yyyy-mm-dd' }, { category: 'number', digits: '2' }],
+  [{ kind: 'date', pattern: 'yyyy-mm-dd' }, { category: 'date', datePattern: 'yyyy-mm-dd' }],
+  [{ kind: 'text' }, { category: 'text' }],
   [{ kind: 'scientific', digits: 3 }, { category: 'scientific', digits: '3' }],
   [{ kind: 'fraction', denominator: 16 }, { category: 'fraction', denominator: '16' }],
   [{ kind: 'fraction' }, { category: 'fraction', denominator: 'one-digit' }],
@@ -66,6 +68,8 @@ test.each([
   [{ category: 'fraction', denominator: '16' }, { kind: 'fraction', denominator: 16 }],
   [{ category: 'fraction', denominator: '4294967295' }, { kind: 'fraction', denominator: 4294967295 }],
   [{ category: 'time', pattern: 'h:mm AM/PM', digits: '' }, { kind: 'time', pattern: 'h:mm AM/PM' }],
+  [{ category: 'date', datePattern: 'dd-mmm-yy', digits: '' }, { kind: 'date', pattern: 'dd-mmm-yy' }],
+  [{ category: 'text', digits: '' }, { kind: 'text' }],
 ] as const)('applies draft %j with a single format-only mutation', async (patch, expected) => {
   const { store, write } = await setup()
   await store.setter(runNumberFormatPanelAtom, 'open')

@@ -124,6 +124,7 @@ include!("wasm_workbook_borders.rs");
 include!("wasm_workbook_clipboard.rs");
 include!("wasm_workbook_viewport_persistence.rs");
 include!("wasm_workbook_auto_fit.rs");
+include!("wasm_workbook_number_format_preview.rs");
 include!("wasm_workbook_find.rs");
 include!("wasm_workbook_aggregate.rs");
 include!("wasm_workbook_history.rs");
@@ -159,6 +160,7 @@ mod tests {
 
     include!("wasm_tests/custom.rs");
     include!("wasm_tests/advanced_number_formats.rs");
+    include!("wasm_tests/number_format_preview.rs");
     include!("wasm_tests/tables.rs");
     include!("wasm_tests/hidden_rows.rs");
     include!("wasm_tests/manual_visibility.rs");

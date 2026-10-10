@@ -32,6 +32,16 @@ pub(super) fn plan_cells(
         if options.mode != ClipboardPasteMode::Formats && sheet.is_spill_region(addr) {
             return Err("CLIPBOARD_SPILL_TARGET");
         }
+        // 同一份外部文字平铺到不同格式的格子时，可能分别成为数字和文本。
+        // 内部复制已有权威值类型，不能因目标为 Text 就重新解析。
+        let parsed;
+        let source_value = if snapshot.source_sheet.is_none() && !(covered && merges.scalar) {
+            if let ClipboardValue::Literal(Value::Text(input)) = &cell.value {
+                parsed = tsv::parse_input(input, options.mode,
+                    &sheet.get_format(&addr.to_string_repr()).number_format)?;
+                &parsed
+            } else { &cell.value }
+        } else { &cell.value };
         let value = if covered && merges.scalar {
             None
         } else {
@@ -40,7 +50,7 @@ pub(super) fn plan_cells(
                 ClipboardPasteMode::Values
                 | ClipboardPasteMode::ValuesAndFormats
                 | ClipboardPasteMode::ValuesAndNumberFormats => {
-                    Some(ClipboardValue::Literal(match &cell.value {
+                    Some(ClipboardValue::Literal(match source_value {
                         ClipboardValue::Formula { source, evaluated } => evaluated
                             .clone()
                             .unwrap_or_else(|| Value::Text(source.clone())),
@@ -49,7 +59,7 @@ pub(super) fn plan_cells(
                 }
                 ClipboardPasteMode::All
                 | ClipboardPasteMode::Formulas
-                | ClipboardPasteMode::FormulasAndNumberFormats => Some(match &cell.value {
+                | ClipboardPasteMode::FormulasAndNumberFormats => Some(match source_value {
                     ClipboardValue::Formula { source, .. } => {
                         let mut expr = parse_formula(source).ok_or("CLIPBOARD_INVALID_FORMULA")?;
                         let original = expr.clone();

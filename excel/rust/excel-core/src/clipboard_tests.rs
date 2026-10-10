@@ -171,11 +171,12 @@ fn invalid_input_and_bounds_reject_before_writes() {
         ClipboardSnapshot::from_tsv("\"unfinished", ClipboardPasteMode::All).unwrap_err(),
         "CLIPBOARD_INVALID_TSV"
     );
-    assert_eq!(
-        ClipboardSnapshot::from_tsv("=SUM(", ClipboardPasteMode::All).unwrap_err(),
-        "CLIPBOARD_INVALID_FORMULA"
-    );
     let mut wb = workbook();
+    let invalid = ClipboardSnapshot::from_tsv("=SUM(", ClipboardPasteMode::All).unwrap();
+    assert_eq!(
+        wb.paste_clipboard(&invalid, 0, &ClipboardPasteOptions::new(range("A1", "A1"))),
+        Err("CLIPBOARD_INVALID_FORMULA")
+    );
     assert_eq!(
         wb.capture_clipboard(0, range("A1", "XFD1048576"), false)
             .unwrap_err(),

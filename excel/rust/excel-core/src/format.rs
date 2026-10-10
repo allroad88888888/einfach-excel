@@ -270,6 +270,11 @@ pub fn value_to_display(val: &Value) -> String {
 }
 
 fn format_fixed(n: f64, digits: u8, thousands: bool, suffix: &str) -> String {
+    // 与既有 UI 一致：半数远离零。format! 本身的 ties-to-even 不用于决定舍入。
+    let factor = 10_f64.powi(i32::from(digits));
+    let scaled = n * factor;
+    let rounded = if scaled.is_finite() { scaled.round() / factor } else { n };
+    let n = if rounded == 0.0 { 0.0 } else { rounded };
     let formatted = format!("{:.*}", digits as usize, n);
     let body = if thousands {
         // Insert thousands separators in the integer part.

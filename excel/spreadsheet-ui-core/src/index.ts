@@ -78,7 +78,7 @@ export { borderPanelAtom, runBorderPanelAtom, BORDER_PRESETS, BORDER_STYLES } fr
 export { textLayoutFeedbackAtom, runTextLayoutAtom } from './toolbar/text-layout-command'
 export {
   numberFormatPanelAtom, runNumberFormatPanelAtom,
-  NUMBER_FORMAT_TIME_PATTERNS, NUMBER_FORMAT_FRACTIONS,
+  NUMBER_FORMAT_TIME_PATTERNS, NUMBER_FORMAT_DATE_PATTERNS, NUMBER_FORMAT_FRACTIONS,
 } from './toolbar/number-format-panel'
 export {
   DEFAULT_FONT_SIZE, FONT_SIZE_PRESETS, fontSizePanelAtom, runFontSizeAtom,

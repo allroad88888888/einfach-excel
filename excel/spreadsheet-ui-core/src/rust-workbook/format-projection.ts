@@ -33,7 +33,9 @@ function formatAt(
 
 /** 原生返回的显示文本也用于自动尺寸测量，不能再经过 JS 近似格式化。 */
 export function usesNativeNumberDisplay(kind: SpreadsheetNumberFormat['kind']): boolean {
-  return kind === 'date' || kind === 'time' || kind === 'scientific' || kind === 'fraction'
+  return kind === 'text' || kind === 'date' || kind === 'time' || kind === 'scientific' ||
+    kind === 'fraction' || kind === 'number' || kind === 'decimal' || kind === 'percent' ||
+    kind === 'percentage' || kind === 'currency'
 }
 
 function formattedDisplayValue(cell: DisplayCell, format: SpreadsheetCellFormat): string {

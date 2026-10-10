@@ -1,4 +1,4 @@
-import type { SpreadsheetCellFormat, ViewportRowHeight, ViewportColumnWidth } from '../backend'
+import type { SpreadsheetCellFormat, SpreadsheetNumberFormat, ViewportRowHeight, ViewportColumnWidth } from '../backend'
 import type { RangeBorderPatch } from '../backend/format-contracts'
 import type { RustImportCell, RustImportStats } from './commands'
 import type { RustClipboardCapture, RustClipboardPasteRequest } from './clipboard-commands'
@@ -48,6 +48,7 @@ export interface RustFormatRangeSnapshot {
 }
 
 export interface WasmWorkbook {
+  preview_number_format?: (sheet: number, addr: string, format: SpreadsheetNumberFormat) => string
   applyFilter?: (
     sheet: number,
     input: { rules: readonly ColumnFilterRule[]; range?: CellRange },

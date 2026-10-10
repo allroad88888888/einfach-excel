@@ -1,7 +1,7 @@
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   editingSessionAtom, numberFormatPanelAtom, runNumberFormatPanelAtom,
-  NUMBER_FORMAT_TIME_PATTERNS, NUMBER_FORMAT_FRACTIONS,
+  NUMBER_FORMAT_TIME_PATTERNS, NUMBER_FORMAT_DATE_PATTERNS, NUMBER_FORMAT_FRACTIONS,
 } from '@einfach/spreadsheet-ui-core'
 import { useId, useLayoutEffect, useRef } from 'react'
 import { cycleDialogFocus } from './dialog-focus'
@@ -43,14 +43,34 @@ export function NumberFormatTools() {
           <option value="number">Number</option><option value="percent">Percentage</option>
           <option value="currency">Currency</option>
           <option value="scientific">Scientific</option><option value="fraction">Fraction</option>
-          <option value="time">Time</option>
+          <option value="time">Time</option><option value="date">Date</option>
+          <option value="text">Text</option>
         </select>
-        {state.draft.category !== 'fraction' && state.draft.category !== 'time' && <>
+        {['number', 'percent', 'currency', 'scientific'].includes(state.draft.category) && <>
         <label htmlFor={`${id}-digits`}>Decimal places</label>
         <input id={`${id}-digits`} type="number" min="0" max="15" step="1" disabled={state.busy}
           value={state.draft.digits} aria-describedby={state.error ? `${id}-error` : undefined}
           onChange={(event) => void run({ type: 'draft', patch: { digits: event.currentTarget.value } })} />
         </>}
+        {state.draft.category === 'date' && <>
+          <label className="number-format-wide" htmlFor={`${id}-date`}>Date style</label>
+          <select className="number-format-wide" id={`${id}-date`}
+            disabled={state.busy} value={state.draft.datePattern}
+            onChange={(event) => void run({ type: 'draft', patch: { datePattern: event.currentTarget.value } })}>
+            {NUMBER_FORMAT_DATE_PATTERNS.map((value) => (
+              <option key={value} value={value}>{value}</option>
+            ))}
+            {!NUMBER_FORMAT_DATE_PATTERNS.some((value) => value === state.draft.datePattern) &&
+              <option value={state.draft.datePattern} disabled>
+                Unsupported: {state.draft.datePattern}
+              </option>}
+          </select>
+          <p className="number-format-hint">Changes the display only. The original date value stays unchanged.</p>
+        </>}
+        {state.draft.category === 'text' && <p className="number-format-hint">
+          New typing and external paste stay as text, including leading zeros and formulas.
+          Existing values and formulas are not converted.
+        </p>}
         {state.draft.category === 'fraction' && <>
           <label htmlFor={`${id}-denominator`}>Denominator</label>
           <select id={`${id}-denominator`} disabled={state.busy} value={state.draft.denominator}
@@ -90,6 +110,13 @@ export function NumberFormatTools() {
             onChange={(event) => void run({ type: 'draft', patch: { symbol: event.currentTarget.value } })} />
           <p id={`${id}-symbol-hint`} className="number-format-hint">For example $, €, ¥ or USD. Leave blank for no symbol.</p>
         </>}
+        <div className="number-format-preview">
+          <span>Preview · {state.target?.addr}</span>
+          <div role="status" aria-label="Number format preview" aria-busy={state.preview === null}>
+            {state.preview === null ? 'Loading preview…' : 'text' in state.preview
+              ? state.preview.text || '(Empty)' : state.preview.error}
+          </div>
+        </div>
         <div className="number-format-actions">
           <button type="button" disabled={state.busy} onClick={() => void run('close')}>Cancel</button>
           <button type="submit" disabled={state.busy}>Apply number format</button>

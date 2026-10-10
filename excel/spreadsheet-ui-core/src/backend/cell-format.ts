@@ -67,12 +67,12 @@ export type SpreadsheetNumberFormatFractionDenominator =
  *
  * ── Engine support matrix ──
  *
- * **WASM (Rust wire):** Nine kinds are implemented:
+ * **WASM (Rust wire):** Ten kinds are implemented:
  *   `general` | `number` (and deprecated `decimal`) |
  *   `percent` (and synonym `percentage`) | `currency` | `date` | `custom` |
- *   `scientific` | `fraction` | `time` (standard time patterns).
+ *   `scientific` | `fraction` | `time` (standard time patterns) | `text`.
  *
- * The remaining kinds – `accounting`, `text`, `special` – are
+ * The remaining kinds – `accounting`, `special` – are
  * **silently downgraded to `general`** by the wire
  * layer (`into_number_format`).  The `negative` field on `number` /
  * `currency` / `percent` is also silently discarded (no corresponding wire

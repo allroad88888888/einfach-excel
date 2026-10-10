@@ -29,6 +29,21 @@
 }
 .number-format-check { display: flex; grid-column: 1 / -1; gap: 8px; align-items: center; }
 .number-format-hint { grid-column: 1 / -1; margin: 0; }
+.number-format-wide { grid-column: 1 / -1; }
+.number-format-preview { grid-column: 1 / -1; min-width: 0; }
+.number-format-preview > span { display: block; margin-bottom: 6px; }
+.number-format-preview [role='status'] {
+  box-sizing: border-box;
+  min-height: 40px;
+  max-height: 96px;
+  overflow: auto;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
 .number-format-actions { display: flex; grid-column: 1 / -1; gap: 8px; justify-content: flex-end; }
 .number-format-actions button { width: auto; }
 .number-format-actions button[type='submit'] { background: var(--primary); color: white; }

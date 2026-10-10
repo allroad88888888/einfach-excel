@@ -6,7 +6,8 @@ import type { WasmWorkbook } from '../src/rust-workbook/wasm-types'
 function fixture() {
   const read = vi.fn(() => [
     { addr: 'B2', type: 'text', display: '<script>alert(1)</script>', isError: false, formula: '' },
-    { addr: 'C3', type: 'number', display: '125.02', isError: false, formula: '=1+124.02' },
+    { addr: 'C3', type: 'number', display: '125.02', formattedDisplay: '$125',
+      isError: false, formula: '=1+124.02' },
   ])
   const workbook = {
     read_sparse_range: read,

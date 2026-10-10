@@ -126,6 +126,9 @@ fn uses_native_number_display(format: &NumberFormat) -> bool {
     matches!(
         format,
         NumberFormat::Text
+            | NumberFormat::Decimal { .. }
+            | NumberFormat::Percent { .. }
+            | NumberFormat::Currency { .. }
             | NumberFormat::Date(_)
             | NumberFormat::Time(_)
             | NumberFormat::Scientific { .. }

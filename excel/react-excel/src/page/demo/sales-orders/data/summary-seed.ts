@@ -76,6 +76,13 @@ export const SALES_ORDER_SUMMARY_CELLS: readonly RustImportCell[] = [
   { sheet: 1, row: 93, col: 0, kind: 'text', value: '' },
   { sheet: 1, row: 93, col: 1, kind: 'formula', value: '=""' },
   { sheet: 1, row: 93, col: 2, kind: 'formula', value: '=1/0' },
+  // 数字格式会话示例：文本编号不丢精度，日期仍存原始序号；预览读取这些原生值。
+  { sheet: 1, row: 95, col: 0, kind: 'text', value: '12345678901234567890',
+    format: { numberFormat: { kind: 'text' }, bold: true } },
+  { sheet: 1, row: 95, col: 1, kind: 'text', value: '00123',
+    format: { numberFormat: { kind: 'text' } } },
+  { sheet: 1, row: 95, col: 2, kind: 'number', value: 45351,
+    format: { numberFormat: { kind: 'date', pattern: 'dd-mmm-yy' }, italic: true } },
   // 离屏内容参与自动适应；仅给演示数据加格式，不在 React 写坐标特判。
   {
     sheet: 1,

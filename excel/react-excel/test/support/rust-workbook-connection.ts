@@ -16,6 +16,7 @@ import type {
 } from '@einfach/spreadsheet-ui-core'
 
 export interface TestRustWorkbookHandlers {
+  previewNumberFormat?: (request: RustWorkbookCommands['format.preview']['payload']) => Promise<string>
   changeSheets?: (
     request: RustWorkbookCommands['workbook.changeSheets']['payload'],
   ) => Promise<RustWorkbookCommands['workbook.changeSheets']['result']>
@@ -47,6 +48,8 @@ export function createTestRustWorkbookConnection(
   handlers: TestRustWorkbookHandlers = {},
 ): RustWorkbookConnection {
   const request = (async (command: string, payload: unknown) => {
+    if (command === 'format.preview' && handlers.previewNumberFormat)
+      return handlers.previewNumberFormat(payload as RustWorkbookCommands['format.preview']['payload'])
     if (command === 'workbook.changeSheets' && handlers.changeSheets) {
       return handlers.changeSheets(
         payload as RustWorkbookCommands['workbook.changeSheets']['payload'],

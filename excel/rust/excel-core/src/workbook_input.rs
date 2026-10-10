@@ -1,6 +1,6 @@
 //! 将用户输入作为一次工作簿写入；自动数字格式也在同一命令内完成。
 use super::*;
-use crate::cell_input::{parse_cell_input, CellInput};
+use crate::cell_input::{parse_formatted_input, CellInput};
 use crate::{CellStyle, NumberFormat, StyleScope};
 
 impl Workbook {
@@ -25,13 +25,9 @@ impl Workbook {
             return Err("MERGED_CELL_WRITE");
         }
         // 读取最终生效的行／列／格格式；Text 只影响新输入，不回写已有值。
-        let parsed = if !input.is_empty()
-            && self.sheets[sheet_idx].get_format(address).number_format == NumberFormat::Text
-        {
-            CellInput::Literal(Value::Text(input.strip_prefix('\'').unwrap_or(input).into()))
-        } else {
-            parse_cell_input(input, true)
-        };
+        let parsed = parse_formatted_input(
+            input, true, &self.sheets[sheet_idx].get_format(address).number_format,
+        );
         let formatted_number = match parsed {
             CellInput::Formula(source) => {
                 // 提交草稿前预检，解析/静态循环失败不能先覆盖原格再要求用户重试。

@@ -55,6 +55,7 @@ impl ClipboardCell {
 
 #[derive(Clone, Debug)]
 pub struct ClipboardSnapshot {
+    // None 表示外部 TSV：cells 中只保存原始 Text / 空白 Null，粘贴预检才解析。
     source_sheet: Option<usize>,
     source: CellRange,
     // 压紧后的每一行仍记住真实源行；相对公式不能按压紧坐标偏移。

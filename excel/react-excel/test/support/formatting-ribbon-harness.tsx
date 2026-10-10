@@ -10,7 +10,7 @@ import {
 import { act, render } from '@testing-library/react'
 import { WorkbookStoreProvider } from '../../src/page/WorkbookStoreProvider'
 import { WorkbookRibbon } from '../../src/workbook/chrome/ribbon/WorkbookRibbon'
-import { createTestRustWorkbookConnection } from './rust-workbook-connection'
+import { createTestRustWorkbookConnection, type TestRustWorkbookHandlers } from './rust-workbook-connection'
 
 function projection(
   request: VisibleProjectionRequest,
@@ -28,7 +28,9 @@ function projection(
 }
 
 /** Renders the ribbon over a controllable Rust formatting connection. */
-export async function renderFormattingRibbon(): Promise<{
+export async function renderFormattingRibbon(
+  previewNumberFormat: NonNullable<TestRustWorkbookHandlers['previewNumberFormat']> = async () => 'Order',
+): Promise<{
   readonly writes: SetFormatRangeRequest[]
   readonly clears: RustClearRangeRequest[]
 }> {
@@ -37,6 +39,7 @@ export async function renderFormattingRibbon(): Promise<{
   const writes: SetFormatRangeRequest[] = []
   const clears: RustClearRangeRequest[] = []
   const connection = createTestRustWorkbookConnection({
+    previewNumberFormat,
     async clearRange(request, projectionRequest) {
       clears.push(request)
       if (request.mode !== 'contents') format = {}

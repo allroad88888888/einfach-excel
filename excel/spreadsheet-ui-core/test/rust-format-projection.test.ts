@@ -3,7 +3,7 @@ import type { WasmWorkbook } from '../src/rust-workbook/wasm-types'
 import { readVisibleProjection } from '../src/rust-workbook/visible-projection'
 
 describe('Rust visible format projection', () => {
-  test.each(['scientific', 'fraction', 'time'] as const)(
+  test.each(['scientific', 'fraction', 'time', 'text', 'number', 'decimal', 'percent', 'percentage', 'currency'] as const)(
     '%s preserves native display instead of invoking a second formatter', (kind) => {
       const workbook = {
         read_sparse_range: () => [{ sheet: 0, addr: 'A1', display: '0.5',
@@ -105,13 +105,14 @@ describe('Rust visible format projection', () => {
     expect(result.rowHeights).toEqual([{ rowIndex: 0, heightPx: 51 }])
   })
 
-  test('formats numeric display text from the Rust format snapshot', () => {
+  test('uses native numeric display while retaining raw input and numeric values', () => {
     const workbook = {
       read_sparse_range: () => [
         {
           sheet: 0,
           addr: 'A1',
           display: '1234.5',
+          formattedDisplay: '1,234.50',
           type: 'number',
           isError: false,
           formula: '',

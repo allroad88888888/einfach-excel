@@ -1,8 +1,8 @@
 import type {
-  BackendMutationResult,
   SetCellInputRequest,
   SetFormatRangeRequest,
   SpreadsheetCellFormat,
+  SpreadsheetNumberFormat,
   VisibleProjectionRequest,
   VisibleProjectionResult,
   ViewportRowHeight,
@@ -19,6 +19,8 @@ import type { RustFindCommands } from './find-commands'
 import type { RustSortCommands } from './sort-commands'
 import type { RustFilterCommands } from './filter-commands'
 import type { SelectionNumbers } from '../status-bar/types'
+import type { RustSetCellInputResult, RustSetRangeFormatResult } from './mutation-results'
+export type { RustSetCellInputResult, RustSetRangeFormatResult } from './mutation-results'
 import type {
   RustClipboardCapture,
   RustClipboardCaptureRequest,
@@ -102,20 +104,6 @@ export interface RustImportStats {
   readonly issues?: readonly unknown[]
 }
 
-/** 单元格写入后的确认与同一 Rust 修订版可见区。 */
-export interface RustSetCellInputResult {
-  readonly acknowledgement: BackendMutationResult
-  readonly projection: VisibleProjectionResult
-}
-
-/** 区域格式写入后的确认与同一 Rust 修订版可见区。 */
-export interface RustSetRangeFormatResult extends RustSetCellInputResult {
-  readonly sizes?: {
-    readonly rowHeights: ViewportRowHeight[]
-    readonly colWidths: ViewportColumnWidth[]
-  }
-}
-
 export type RustClearRangeMode = 'contents' | 'formats' | 'all'
 export interface RustClearRangeRequest {
   readonly sheetId: string
@@ -127,6 +115,14 @@ export interface RustClearRangeRequest {
 
 export interface RustWorkbookCommands
   extends RustFindCommands, RustSortCommands, RustFilterCommands {
+  readonly 'format.preview': WorkerCommand<
+    {
+      readonly sheetId: string
+      readonly addr: string
+      readonly numberFormat: SpreadsheetNumberFormat
+    },
+    string
+  >
   readonly 'range.fill': WorkerCommand<
     { readonly request: RustFillRangeRequest; readonly projection: VisibleProjectionRequest },
     RustSetRangeFormatResult & { readonly sizes: {

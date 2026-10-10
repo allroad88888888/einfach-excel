@@ -11,6 +11,17 @@ pub enum CellInput {
     Fraction { value: f64, denominator: u32 },
 }
 
+/// 编辑与外部粘贴都按目标的最终数字格式解释输入；空串始终表示清空。
+pub(crate) fn parse_formatted_input(
+    input: &str, allow_formula: bool, format: &crate::NumberFormat,
+) -> CellInput {
+    if !input.is_empty() && *format == crate::NumberFormat::Text {
+        CellInput::Literal(Value::Text(input.strip_prefix('\'').unwrap_or(input).into()))
+    } else {
+        parse_cell_input(input, allow_formula)
+    }
+}
+
 /// 只识别明确的输入语法；不完整数字、非有限数、歧义日期仍保留为文字。
 pub fn parse_cell_input(input: &str, allow_formula: bool) -> CellInput {
     if let Some(text) = input.strip_prefix('\'') {

@@ -83,8 +83,14 @@ impl ClipboardSnapshot {
         let mut cells = Vec::with_capacity(source.cell_count() as usize);
         for row in rows {
             for col in 0..cols {
+                let input = row.get(col).map(String::as_str).unwrap_or("");
                 cells.push(ClipboardCell {
-                    value: parse_input(row.get(col).map(String::as_str).unwrap_or(""), mode)?,
+                    // 外部快照只保存解码后的原文，类型要等目标格格式确定后再判断。
+                    value: ClipboardValue::Literal(if input.is_empty() {
+                        Value::Null
+                    } else {
+                        Value::Text(input.into())
+                    }),
                     format: None,
                 });
             }
@@ -102,9 +108,11 @@ impl ClipboardSnapshot {
     }
 }
 
-fn parse_input(input: &str, mode: ClipboardPasteMode) -> Result<ClipboardValue, ClipboardError> {
-    use crate::cell_input::{parse_cell_input, CellInput};
-    match parse_cell_input(input, mode != ClipboardPasteMode::Values) {
+pub(super) fn parse_input(
+    input: &str, mode: ClipboardPasteMode, format: &crate::NumberFormat,
+) -> Result<ClipboardValue, ClipboardError> {
+    use crate::cell_input::{parse_formatted_input, CellInput};
+    match parse_formatted_input(input, mode != ClipboardPasteMode::Values, format) {
         CellInput::Formula(source) => {
             crate::parse_formula(&source).ok_or("CLIPBOARD_INVALID_FORMULA")?;
             Ok(ClipboardValue::Formula {

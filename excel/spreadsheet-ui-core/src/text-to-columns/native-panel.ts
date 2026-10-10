@@ -9,7 +9,7 @@ import {
 } from '../projection'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import type { RustWorkbookConnection } from '../rust-workbook'
-import type { RustTextColumnsPreview, RustTextColumnsRequest } from '../rust-workbook/text-columns-commands'
+import type { RustTextColumnRule, RustTextColumnType, RustTextColumnsNumberOptions, RustTextColumnsPreview, RustTextColumnsRequest } from '../rust-workbook/text-columns-commands'
 import {
   selectionAuthorityWitnessAtom, selectionRegionsAtom, selectionSnapshotAtom,
   setSelectionAtom, type SelectionAuthorityWitness,
@@ -24,6 +24,8 @@ interface Draft {
   qualifier: string | null
   breakpoints: string
   destination: string
+  columnTypes: readonly RustTextColumnRule[]
+  numberOptions: RustTextColumnsNumberOptions
 }
 interface Panel {
   target: {
@@ -37,11 +39,13 @@ interface Panel {
   status: 'idle' | 'previewing' | 'applying'
   overwrite: boolean
   error: string | null
+  columnNumber: string
 }
 const CLOSED: Panel = {
   target: null, draft: { kind: 'delimited', delimiters: ',', otherDelimiter: '', mergeConsecutive: false,
-    qualifier: '"', breakpoints: '2, 5', destination: '' },
-  preview: null, status: 'idle', overwrite: false, error: null,
+    qualifier: '"', breakpoints: '2, 5', destination: '', columnTypes: [],
+    numberOptions: { decimalSeparator: '.', groupSeparator: null, trailingMinus: false } },
+  preview: null, status: 'idle', overwrite: false, error: null, columnNumber: '1',
 }
 
 /** 只保存表单草稿和原生有限样本；源数据与拆分结果不在 atom 中计算。 */
@@ -50,6 +54,8 @@ export type TextColumnsPanelAction = 'open' | 'close' | 'preview' | 'apply'
   | { type: 'draft'; patch: Partial<Draft> }
   | { type: 'overwrite'; value: boolean }
   | { type: 'delimiter'; value: string; enabled: boolean }
+  | { type: 'columnNumber'; value: string }
+  | { type: 'columnType'; kind: RustTextColumnType | 'preserve' }
 
 function requestFromDraft(state: Panel): RustTextColumnsRequest | string {
   const { draft, target } = state
@@ -66,6 +72,9 @@ function requestFromDraft(state: Panel): RustTextColumnsRequest | string {
   if (draft.kind === 'delimited' && !delimiters) return 'Choose at least one delimiter.'
   return {
     sheetId: target.sheetId, source: target.source, destination,
+    ...(draft.columnTypes.length ? { columnTypes: draft.columnTypes } : {}),
+    ...(draft.numberOptions.decimalSeparator !== '.' || draft.numberOptions.groupSeparator !== null ||
+      draft.numberOptions.trailingMinus ? { numberOptions: draft.numberOptions } : {}),
     mode: draft.kind === 'fixedWidth' ? { kind: 'fixedWidth', breakpoints }
       : { kind: 'delimited', delimiters: [...new Set([...delimiters])],
         mergeConsecutive: draft.mergeConsecutive, qualifier: draft.qualifier },
@@ -95,7 +104,20 @@ export const runTextColumnsPanelAtom = atom(null, async (
   }
   if (!connection || get(editingSessionAtom).source) return false
   if (typeof action === 'object') {
-    if (action.type === 'overwrite') {
+    if (action.type === 'columnNumber') {
+      if (state.status !== 'idle') return false
+      // 查看另一个字段的配置不改变请求，也不使已确认的预览失效。
+      set(textColumnsPanelAtom, { ...state, columnNumber: action.value })
+    } else if (action.type === 'columnType') {
+      const column = Number(state.columnNumber) - 1
+      if (!Number.isSafeInteger(column) || column < 0 || column >= 16_384)
+        return fail('Choose a source field number from 1 to 16384.')
+      const columnTypes = state.draft.columnTypes.filter((rule) => rule.column !== column)
+      if (action.kind !== 'preserve') columnTypes.push({ column, kind: action.kind })
+      columnTypes.sort((a, b) => a.column - b.column)
+      set(textColumnsPanelAtom, { ...state, draft: { ...state.draft, columnTypes },
+        preview: null, status: 'idle', overwrite: false, error: null })
+    } else if (action.type === 'overwrite') {
       if (!state.preview || state.status !== 'idle') return false
       set(textColumnsPanelAtom, { ...state, overwrite: action.value })
     } else {
@@ -103,7 +125,11 @@ export const runTextColumnsPanelAtom = atom(null, async (
         delimiters: action.enabled ? state.draft.delimiters + action.value
           : state.draft.delimiters.split(action.value).join(''),
       }
-      set(textColumnsPanelAtom, { ...state, draft: { ...state.draft, ...patch },
+      // 分隔规则改变会重排源字段，旧的逐列类型不能悄悄套到新字段上。
+      const resetTypes = ['kind', 'delimiters', 'otherDelimiter', 'mergeConsecutive', 'qualifier', 'breakpoints']
+        .some((key) => key in patch)
+      set(textColumnsPanelAtom, { ...state, draft: { ...state.draft, ...patch,
+        ...(resetTypes ? { columnTypes: [] } : {}) },
         preview: null, status: 'idle', overwrite: false, error: null })
     }
     return true

@@ -1,11 +1,10 @@
 //! 分列是一次原生历史事务；先完成预检，任何失败都不留下部分结果。
 use super::*;
 use crate::workbook_text_columns::{TextColumnsReport, TextColumnsRequest};
-use crate::CellAddress;
-use einfach_core::Value;
+use crate::{CellAddress, CellStyle, StyleScope};
 
 impl WorkbookHistory {
-    /// 输出字段保持文字；空字段清空目标，不改目标格式或行列尺寸。
+    /// 默认保持文字；显式类型只改数字格式，空字段清空目标，跳过字段不占输出列。
     pub fn split_text_columns(
         &mut self,
         workbook: &mut Workbook,
@@ -35,8 +34,7 @@ impl WorkbookHistory {
             .fields
             .iter()
             .flatten()
-            .filter(|text| !text.is_empty())
-            .map(|text| text.len() + 96)
+            .map(|field| field.retained_bytes())
             .sum();
         if before
             .retained_bytes()
@@ -57,23 +55,28 @@ impl WorkbookHistory {
                 .into_iter()
                 .enumerate()
                 .try_for_each(|(row, fields)| {
-                    fields.into_iter().enumerate().try_for_each(|(col, text)| {
+                    fields.into_iter().enumerate().try_for_each(|(col, field)| {
                         let address = CellAddress::new(
                             plan.target.start.row + row as u32,
                             plan.target.start.col + col as u32,
                         );
-                        let value = if text.is_empty() {
-                            Value::Null
-                        } else {
-                            Value::Text(text)
-                        };
+                        let value = field.value;
+                        let address_text = address.to_string();
                         let sheet = workbook.sheet(request.sheet).unwrap();
-                        if !sheet.has_formula_at(address) && sheet.peek_value(address) == value {
+                        let format_changed = field.number_format.as_ref().is_some_and(|format|
+                            sheet.get_format(&address_text).number_format != *format);
+                        if !sheet.has_formula_at(address) && sheet.peek_value(address) == value && !format_changed {
                             return Ok(());
                         }
                         workbook
-                            .try_set_cell(request.sheet, &address.to_string(), value)
+                            .try_set_cell(request.sheet, &address_text, value)
                             .map_err(|_| "Could not write split output.")?;
+                        if format_changed {
+                            workbook.sheet_mut(request.sheet).unwrap().patch_format_range(
+                                CellRange::single(address), StyleScope::Cell,
+                                CellStyle { number_format: field.number_format, ..Default::default() },
+                            );
+                        }
                         changed_cells += 1;
                         Ok(())
                     })

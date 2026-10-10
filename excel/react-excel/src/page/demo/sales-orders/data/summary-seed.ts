@@ -87,6 +87,10 @@ export const SALES_ORDER_SUMMARY_CELLS: readonly RustImportCell[] = [
   { sheet: 1, row: 96, col: 4, kind: 'text', value: '"North, America",001,Ready' },
   { sheet: 1, row: 97, col: 4, kind: 'text', value: '"Asia",002,"On hold"' },
   { sheet: 1, row: 98, col: 4, kind: 'text', value: '北京😀AB007' },
+  // E95 拆到 B95：常规／DMY 日期／跳过／文本；复用已有长文本列，保留 F 列自动适应样例。
+  { sheet: 1, row: 94, col: 4, kind: 'text', value: '001,29/02/2024,ignore,=1+2' },
+  // E96 按分号拆到 B100：前两列 General，小数逗号／千位点／允许尾随负号。
+  { sheet: 1, row: 95, col: 4, kind: 'text', value: '1.234,50;12,50%-;001' },
   { sheet: 1, row: 97, col: 2, kind: 'text', value: 'Existing destination', format: { italic: true } },
   // 离屏内容参与自动适应；仅给演示数据加格式，不在 React 写坐标特判。
   {

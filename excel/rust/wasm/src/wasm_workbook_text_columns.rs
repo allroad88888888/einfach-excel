@@ -1,5 +1,7 @@
 // 分列数据边界：只转换选项和坐标，工作簿计划与历史由 excel-core 执行。
 use einfach_excel_core::text_columns::TextColumnsMode;
+use einfach_excel_core::text_columns_number::TextColumnsNumberOptions;
+use einfach_excel_core::text_columns_value::{TextColumnDateOrder, TextColumnRule, TextColumnType};
 use einfach_excel_core::workbook_text_columns::{TextColumnsPreview, TextColumnsRequest};
 
 #[derive(Deserialize, Serialize)]
@@ -50,14 +52,57 @@ struct TextColumnsRequestJSON {
     source: TextColumnsRangeJSON,
     destination: TextColumnsDestinationJSON,
     mode: TextColumnsModeJSON,
+    #[serde(default)]
+    column_types: Vec<TextColumnRuleJSON>,
+    number_options: Option<TextColumnsNumberOptionsJSON>,
     row_count: u32,
     col_count: u32,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct TextColumnsNumberOptionsJSON {
+    decimal_separator: char,
+    group_separator: Option<char>,
+    trailing_minus: bool,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct TextColumnRuleJSON {
+    column: u32,
+    kind: TextColumnTypeJSON,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+enum TextColumnTypeJSON { General, Text, Skip, DateMdy, DateDmy, DateYmd, DateMyd, DateDym, DateYdm }
+
+impl TextColumnRuleJSON {
+    fn native(self) -> TextColumnRule {
+        use TextColumnTypeJSON::*;
+        TextColumnRule { column: self.column as usize, kind: match self.kind {
+            General => TextColumnType::General, Text => TextColumnType::Text, Skip => TextColumnType::Skip,
+            DateMdy => TextColumnType::Date(TextColumnDateOrder::Mdy),
+            DateDmy => TextColumnType::Date(TextColumnDateOrder::Dmy),
+            DateYmd => TextColumnType::Date(TextColumnDateOrder::Ymd),
+            DateMyd => TextColumnType::Date(TextColumnDateOrder::Myd),
+            DateDym => TextColumnType::Date(TextColumnDateOrder::Dym),
+            DateYdm => TextColumnType::Date(TextColumnDateOrder::Ydm),
+        } }
+    }
 }
 
 impl TextColumnsRequestJSON {
     fn native(self) -> TextColumnsRequest {
         TextColumnsRequest {
             sheet: self.sheet,
+            column_types: self.column_types.into_iter().map(TextColumnRuleJSON::native).collect(),
+            number_options: self.number_options.map(|options| TextColumnsNumberOptions {
+                decimal_separator: options.decimal_separator,
+                group_separator: options.group_separator,
+                trailing_minus: options.trailing_minus,
+            }),
             source: CellRange::new(
                 CellAddress::new(self.source.row_start, self.source.col_start),
                 CellAddress::new(self.source.row_end, self.source.col_end),
@@ -86,6 +131,7 @@ impl TextColumnsRequestJSON {
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 struct TextColumnsPreviewJSON {
+    source_column_count: usize,
     target: TextColumnsRangeJSON,
     overwritten_cells: usize,
     sample: Vec<Vec<String>>,
@@ -95,6 +141,7 @@ struct TextColumnsPreviewJSON {
 impl From<TextColumnsPreview> for TextColumnsPreviewJSON {
     fn from(preview: TextColumnsPreview) -> Self {
         Self {
+            source_column_count: preview.source_column_count,
             target: preview.target.into(),
             overwritten_cells: preview.overwritten_cells,
             sample: preview.sample,

@@ -75,5 +75,49 @@ fn text_columns_wire_preview_matches_native_output_without_writing() {
     assert_eq!(wire["sample"][0], serde_json::json!(["001", "北京"]));
     assert_eq!(wire["sampleTruncated"], true);
     assert_eq!(wire["overwrittenCells"], 0);
+    assert_eq!(wire["sourceColumnCount"], 2);
     assert_eq!(workbook.get_cell("Sheet1", "C1"), Value::Null);
+}
+
+#[test]
+fn text_column_types_wire_maps_source_indices_and_rejects_unknown_types() {
+    let mut request = text_columns_wire_request();
+    request["columnTypes"] = serde_json::json!([
+        {"column": 0, "kind": "skip"}, {"column": 1, "kind": "dateDmy"},
+        {"column": 2, "kind": "general"}, {"column": 3, "kind": "text"}
+    ]);
+    let parsed: TextColumnsRequestJSON = serde_json::from_value(request.clone()).unwrap();
+    assert_eq!(parsed.native().column_types, vec![
+        TextColumnRule { column: 0, kind: TextColumnType::Skip },
+        TextColumnRule { column: 1, kind: TextColumnType::Date(TextColumnDateOrder::Dmy) },
+        TextColumnRule { column: 2, kind: TextColumnType::General },
+        TextColumnRule { column: 3, kind: TextColumnType::Text },
+    ]);
+    for invalid in [serde_json::json!([{"column": -1, "kind": "text"}]),
+        serde_json::json!([{"column": 1.5, "kind": "text"}]),
+        serde_json::json!([{"column": 0, "kind": "date"}]),
+        serde_json::json!([{"column": 0, "kind": "formula"}]),
+        serde_json::json!([{"column": 0, "kind": "skip", "extra": true}])] {
+        request["columnTypes"] = invalid;
+        assert!(serde_json::from_value::<TextColumnsRequestJSON>(request.clone()).is_err());
+    }
+}
+
+#[test]
+fn text_columns_number_options_wire_preserves_unicode_and_rejects_malformed_options() {
+    let mut request = text_columns_wire_request();
+    request["numberOptions"] = serde_json::json!({
+        "decimalSeparator": ",", "groupSeparator": "\u{202f}", "trailingMinus": true
+    });
+    let decoded: TextColumnsRequestJSON = serde_json::from_value(request.clone()).unwrap();
+    assert_eq!(decoded.native().number_options, Some(TextColumnsNumberOptions {
+        decimal_separator: ',', group_separator: Some('\u{202f}'), trailing_minus: true,
+    }));
+    for invalid in [serde_json::json!({"decimalSeparator": "..", "trailingMinus": false}),
+        serde_json::json!({"decimalSeparator": ".", "groupSeparator": "", "trailingMinus": false}),
+        serde_json::json!({"decimalSeparator": ".", "trailingMinus": "true"}),
+        serde_json::json!({"decimalSeparator": ".", "trailingMinus": false, "extra": true})] {
+        request["numberOptions"] = invalid;
+        assert!(serde_json::from_value::<TextColumnsRequestJSON>(request.clone()).is_err());
+    }
 }

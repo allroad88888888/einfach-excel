@@ -12,14 +12,30 @@ export type RustTextColumnsMode =
     }
   | { readonly kind: 'fixedWidth'; readonly breakpoints: readonly number[] }
 
+export type RustTextColumnType = 'general' | 'text' | 'skip'
+  | 'dateMdy' | 'dateDmy' | 'dateYmd' | 'dateMyd' | 'dateDym' | 'dateYdm'
+export interface RustTextColumnRule {
+  readonly column: number
+  readonly kind: RustTextColumnType
+}
+
+export interface RustTextColumnsNumberOptions {
+  readonly decimalSeparator: '.' | ','
+  readonly groupSeparator: string | null
+  readonly trailingMinus: boolean
+}
+
 export interface RustTextColumnsRequest {
   readonly sheetId: string
   readonly source: CellRange
   readonly destination: CellCoord
   readonly mode: RustTextColumnsMode
+  readonly columnTypes?: readonly RustTextColumnRule[]
+  readonly numberOptions?: RustTextColumnsNumberOptions
 }
 
 export interface RustTextColumnsPreview {
+  readonly sourceColumnCount: number
   readonly target: CellRange
   readonly overwrittenCells: number
   readonly sample: readonly (readonly string[])[]

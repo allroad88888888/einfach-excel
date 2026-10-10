@@ -23,6 +23,7 @@ async function runtime() {
     postMessage: post,
   })
   const preview = vi.fn((_request: NativeTextColumnsRequest) => ({
+    sourceColumnCount: 2,
     target, overwrittenCells: 2, sample: [['001', '北京']], sampleTruncated: true,
   }))
   const write = vi.fn((_request: NativeTextColumnsRequest, _overwrite: boolean) => ({
@@ -54,7 +55,7 @@ test('preview forwards complete scope and native options, not visible rows or a 
   const { call, preview, write, read, begin } = await runtime()
   expect(await call('textColumns.preview', input)).toEqual({
     id: 2, ok: true,
-    result: { target, overwrittenCells: 2, sample: [['001', '北京']], sampleTruncated: true, revision: 0 },
+    result: { sourceColumnCount: 2, target, overwrittenCells: 2, sample: [['001', '北京']], sampleTruncated: true, revision: 0 },
   })
   expect(preview).toHaveBeenCalledTimes(1)
   expect(preview).toHaveBeenCalledWith({
@@ -89,6 +90,24 @@ test('fixed-width mode is forwarded unchanged to both commands', async () => {
   await call('textColumns.apply', { ...apply, mode })
   expect(preview.mock.lastCall![0].mode).toEqual(mode)
   expect(write.mock.lastCall![0].mode).toEqual(mode)
+})
+
+test('column types remain source-indexed options and are forwarded identically to preview and apply', async () => {
+  const { call, preview, write } = await runtime()
+  const columnTypes = [{ column: 0, kind: 'skip' }, { column: 1, kind: 'dateDmy' }]
+  await call('textColumns.preview', { ...input, columnTypes })
+  await call('textColumns.apply', { ...apply, columnTypes })
+  expect(preview.mock.lastCall![0].columnTypes).toEqual(columnTypes)
+  expect(write.mock.lastCall![0].columnTypes).toEqual(columnTypes)
+})
+
+test('number parsing options pass through without reinterpreting raw values in the Worker', async () => {
+  const { call, preview, write } = await runtime()
+  const numberOptions = { decimalSeparator: ',', groupSeparator: '.', trailingMinus: true }
+  await call('textColumns.preview', { ...input, numberOptions })
+  await call('textColumns.apply', { ...apply, numberOptions })
+  expect(preview.mock.lastCall![0].numberOptions).toEqual(numberOptions)
+  expect(write.mock.lastCall![0].numberOptions).toEqual(numberOptions)
 })
 
 test('stale or absent revision cannot reuse a previous overwrite confirmation', async () => {

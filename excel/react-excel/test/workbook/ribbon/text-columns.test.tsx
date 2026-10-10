@@ -13,7 +13,7 @@ async function setup(overwrittenCells = 0) {
   const write = vi.fn(async (input: { projection: VisibleProjectionRequest }) => ({
     target, changedCells: 4, projection: { ...input.projection, revision: 1, cells: [] },
   }))
-  const preview = vi.fn(async () => ({ target, overwrittenCells, revision: 0,
+  const preview = vi.fn(async () => ({ sourceColumnCount: 2, target, overwrittenCells, revision: 0,
     sample: [['001', '北京'], ['', '=1+2']], sampleTruncated: false }))
   const connection: RustWorkbookConnection = {
     dispose: vi.fn(), request: vi.fn(async (command: string, input: unknown) => {
@@ -100,4 +100,55 @@ test('Escape closes a draft without writing or retaining its options', async () 
   await click('Text to columns')
   expect(screen.getByLabelText('Destination cell')).toHaveValue('A1')
   expect(write).not.toHaveBeenCalled()
+})
+
+test('field type controls use source numbers and require native re-preview before applying', async () => {
+  const { preview, write } = await setup()
+  await change('Field type', 'skip')
+  await change('Source field number', '2')
+  await change('Field type', 'dateDmy')
+  expect(screen.getByRole('list', { name: 'Configured field types' })).toHaveTextContent('Field 1: Skip field')
+  expect(screen.getByRole('list', { name: 'Configured field types' })).toHaveTextContent('Field 2: Date — DMY')
+  expect(screen.getByRole('button', { name: 'Apply split' })).toBeDisabled()
+  expect(preview).toHaveBeenCalledTimes(1)
+  await click('Update preview')
+  await click('Apply split')
+  expect(write.mock.lastCall![0]).toMatchObject({ columnTypes: [
+    { column: 0, kind: 'skip' }, { column: 1, kind: 'dateDmy' },
+  ] })
+})
+
+test('changing split rules visibly resets types and invalid field numbers disable the type selector', async () => {
+  await setup()
+  await change('Field type', 'text')
+  await change('Split mode', 'fixedWidth')
+  expect(screen.getByLabelText('Field type')).toHaveValue('preserve')
+  expect(screen.queryByRole('list', { name: 'Configured field types' })).toBeNull()
+  await change('Source field number', '')
+  expect(screen.getByLabelText('Field type')).toBeDisabled()
+  await change('Source field number', '1')
+  expect(screen.getByLabelText('Field type')).toBeEnabled()
+  await click('Cancel')
+  await click('Text to columns')
+  expect(screen.getByLabelText('Field type')).toHaveValue('preserve')
+})
+
+test('advanced number options remain atom drafts until a native preview and Cancel resets them', async () => {
+  const { preview, write } = await setup()
+  await act(async () => { fireEvent.click(screen.getByText('Advanced number parsing')) })
+  await change('Decimal separator', ',')
+  await change('Thousands separator', '.')
+  await act(async () => { fireEvent.click(screen.getByRole('checkbox', { name: /Allow trailing minus/ })) })
+  expect(screen.getByRole('button', { name: 'Apply split' })).toBeDisabled()
+  expect(preview).toHaveBeenCalledTimes(1)
+  await click('Update preview')
+  await click('Apply split')
+  expect(write.mock.lastCall![0]).toMatchObject({ numberOptions: {
+    decimalSeparator: ',', groupSeparator: '.', trailingMinus: true,
+  } })
+  await click('Text to columns')
+  await act(async () => { fireEvent.click(screen.getByText('Advanced number parsing')) })
+  expect(screen.getByLabelText('Decimal separator')).toHaveValue('.')
+  expect(screen.getByLabelText('Thousands separator')).toHaveValue('')
+  await click('Cancel')
 })

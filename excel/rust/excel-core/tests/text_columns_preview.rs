@@ -7,6 +7,8 @@ use einfach_excel_core::{CellAddress, CellFormat, CellRange, Workbook};
 fn request(start: &str, end: &str, destination: &str) -> TextColumnsRequest {
     TextColumnsRequest {
         sheet: 0,
+        column_types: vec![],
+        number_options: None,
         row_count: 1_048_576,
         col_count: 16_384,
         source: CellRange::new(

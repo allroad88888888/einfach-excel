@@ -14,6 +14,7 @@ const target = { rowStart: 0, colStart: 2, rowEnd: 1, colEnd: 3 }
 const project = (request: VisibleProjectionRequest) => ({ ...request, revision: 7, cells: [] })
 async function setup() {
   const preview = vi.fn(async (_: RustTextColumnsRequest) => ({
+    sourceColumnCount: 2,
     target, sample: [['001', '北京']], sampleTruncated: false, overwrittenCells: 0, revision: 7,
   }))
   const write = vi.fn(async (input: RustTextColumnsApplyRequest) => ({
@@ -62,7 +63,7 @@ test('open previews complete selection, draft needs explicit refresh, apply uses
 
 test('overwrite confirmation is required and every preview or draft invalidates it', async () => {
   const { store, preview, write, run } = await setup()
-  preview.mockResolvedValue({ target, sample: [], sampleTruncated: false,
+  preview.mockResolvedValue({ sourceColumnCount: 2, target, sample: [], sampleTruncated: false,
     overwrittenCells: 2, revision: 7 })
   await run('open')
   expect(await run('apply')).toBe(false)
@@ -99,7 +100,8 @@ test('fixed positions and multiple Unicode delimiters are options, not a JS data
 
 test.each(['close', 'draft'] as const)('late preview cannot replace a %s action', async (action) => {
   const { store, preview, run } = await setup()
-  const result = { target, sample: [], sampleTruncated: false, overwrittenCells: 0, revision: 7 }
+  const result = { sourceColumnCount: 2, target, sample: [],
+    sampleTruncated: false, overwrittenCells: 0, revision: 7 }
   let finish!: (value: typeof result) => void
   preview.mockReturnValueOnce(new Promise((resolve) => { finish = resolve }))
   const pending = run('open')
@@ -143,4 +145,72 @@ test('pending apply blocks duplicate submissions and errors require a new previe
   expect(store.getter(textColumnsPanelAtom)).toMatchObject({ preview: null, status: 'idle', overwrite: false })
   expect(await run('apply')).toBe(false)
   expect(write).toHaveBeenCalledTimes(1)
+})
+
+test('column types invalidate confirmation, not field browsing, and preview/apply share rules', async () => {
+  const { store, preview, write, run } = await setup()
+  await run('open')
+  const initial = store.getter(textColumnsPanelAtom).preview
+  await run({ type: 'columnNumber', value: '2' })
+  expect(store.getter(textColumnsPanelAtom).preview).toBe(initial)
+  await run({ type: 'overwrite', value: true })
+  await run({ type: 'columnType', kind: 'dateDmy' })
+  expect(store.getter(textColumnsPanelAtom)).toMatchObject({ preview: null, overwrite: false })
+  expect(preview).toHaveBeenCalledTimes(1)
+  await run({ type: 'columnNumber', value: '1' })
+  await run({ type: 'columnType', kind: 'skip' })
+  await run('preview')
+  const rules = [{ column: 0, kind: 'skip' }, { column: 1, kind: 'dateDmy' }]
+  expect(preview.mock.lastCall![0].columnTypes).toEqual(rules)
+  await run('apply')
+  expect(write.mock.lastCall![0].columnTypes).toEqual(rules)
+})
+
+test('changing split geometry resets types, changing destination keeps them, default removes a rule', async () => {
+  const { store, run } = await setup()
+  await run('open')
+  await run({ type: 'columnType', kind: 'text' })
+  await run({ type: 'draft', patch: { destination: 'D1' } })
+  expect(store.getter(textColumnsPanelAtom).draft.columnTypes).toEqual([{ column: 0, kind: 'text' }])
+  await run({ type: 'columnType', kind: 'preserve' })
+  expect(store.getter(textColumnsPanelAtom).draft.columnTypes).toEqual([])
+  for (const patch of [{ kind: 'fixedWidth' as const }, { breakpoints: '3' },
+    { qualifier: null }, { otherDelimiter: ';' }, { mergeConsecutive: true }]) {
+    await run({ type: 'columnType', kind: 'general' })
+    await run({ type: 'draft', patch })
+    expect(store.getter(textColumnsPanelAtom).draft.columnTypes).toEqual([])
+  }
+  await run({ type: 'columnType', kind: 'general' })
+  await run({ type: 'delimiter', value: ';', enabled: true })
+  expect(store.getter(textColumnsPanelAtom).draft.columnTypes).toEqual([])
+})
+
+test.each(['', '0', '1.5', '16385'])('invalid source field %s cannot set a type', async (value) => {
+  const { store, run } = await setup()
+  await run('open')
+  await run({ type: 'columnNumber', value })
+  expect(await run({ type: 'columnType', kind: 'skip' })).toBe(false)
+  expect(store.getter(textColumnsPanelAtom).draft.columnTypes).toEqual([])
+})
+
+test('number options invalidate preview and confirmation but preserve the selected field types', async () => {
+  const { store, preview, write, run } = await setup()
+  await run('open')
+  await run({ type: 'columnType', kind: 'general' })
+  await run('preview')
+  await run({ type: 'overwrite', value: true })
+  const numberOptions = { decimalSeparator: ',' as const, groupSeparator: '.', trailingMinus: true }
+  await run({ type: 'draft', patch: { numberOptions } })
+  expect(store.getter(textColumnsPanelAtom)).toMatchObject({ preview: null, overwrite: false })
+  expect(store.getter(textColumnsPanelAtom).draft.columnTypes).toEqual([{ column: 0, kind: 'general' }])
+  expect(preview).toHaveBeenCalledTimes(2)
+  expect(await run('apply')).toBe(false)
+  await run('preview')
+  expect(preview.mock.lastCall![0].numberOptions).toEqual(numberOptions)
+  await run('apply')
+  expect(write.mock.lastCall![0].numberOptions).toEqual(numberOptions)
+  await run('open')
+  expect(store.getter(textColumnsPanelAtom).draft.numberOptions).toEqual({
+    decimalSeparator: '.', groupSeparator: null, trailingMinus: false,
+  })
 })

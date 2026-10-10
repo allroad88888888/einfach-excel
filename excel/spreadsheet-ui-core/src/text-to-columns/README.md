@@ -12,8 +12,14 @@ refreshes preview before applying. The command guards selection identity, destin
 and workbook revision, then publishes the one native mutation projection. See the
 [current feature progress](../../../react-excel/FEATURE_PROGRESS.md).
 
-Current native output preserves text (including leading zeros and leading `=`), clears empty
-fields and keeps destination formatting. Per-column conversion options remain future work.
+Unspecified fields preserve text (including leading zeros and leading `=`) and destination format.
+Source-indexed `columnTypes` can select General, Text, six numeric date orders, or Skip. Rust owns
+conversion and compacted output geometry; explicit types change only number format, and empty fields
+clear values. Invalid dates remain literal text, and no field executes as a formula. Two-digit date
+years use a fixed 2029 cutoff. Skipping every source field is rejected without mutation.
+Changing split rules clears field types; changing a type invalidates preview and overwrite consent.
+The source field selector can address fields beyond the twelve-column preview limit. The native
+`sourceColumnCount` describes the full source shape, not the compacted or sampled result.
 Preview sampling is bounded but validation and application use the complete selected source.
 
 ## Legacy wizard

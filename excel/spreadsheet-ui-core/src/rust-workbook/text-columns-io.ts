@@ -11,6 +11,8 @@ function nativeRequest(
   return {
     sheet: sheet.index, source: input.source, destination: input.destination, mode: input.mode,
     rowCount: sheet.rowCount ?? 1_048_576, colCount: sheet.colCount ?? 16_384,
+    ...(input.columnTypes ? { columnTypes: input.columnTypes } : {}),
+    ...(input.numberOptions ? { numberOptions: input.numberOptions } : {}),
   }
 }
 

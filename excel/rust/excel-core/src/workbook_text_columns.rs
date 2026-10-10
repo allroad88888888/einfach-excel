@@ -1,6 +1,8 @@
 //! 原生分列计划：读取完整源列，检查目标，返回有界预览；此处不写工作簿。
 use crate::sheet::{EXCEL_MAX_COLS, EXCEL_MAX_ROWS};
 use crate::text_columns::{split_text_columns, TextColumnsMode};
+use crate::text_columns_value::{TextColumnRule, TextColumnType, TextColumnValue};
+use crate::text_columns_number::TextColumnsNumberOptions;
 use crate::{CellAddress, CellRange, Sheet, Workbook};
 use einfach_core::Value;
 
@@ -16,6 +18,8 @@ pub struct TextColumnsRequest {
     pub source: CellRange,
     pub destination: CellAddress,
     pub mode: TextColumnsMode,
+    pub column_types: Vec<TextColumnRule>,
+    pub number_options: Option<TextColumnsNumberOptions>,
     /// 宿主画布边界；不能把输出写到当前界面无法访问的位置。
     pub row_count: u32,
     pub col_count: u32,
@@ -23,6 +27,7 @@ pub struct TextColumnsRequest {
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct TextColumnsPreview {
+    pub source_column_count: usize,
     pub target: CellRange,
     /// 原地拆分不把源列本身当成额外覆盖；移到其它位置时则完整检查目标。
     pub overwritten_cells: usize,
@@ -38,9 +43,10 @@ pub struct TextColumnsReport {
 }
 
 pub(crate) struct TextColumnsPlan {
+    pub source_column_count: usize,
     pub target: CellRange,
     pub overwritten_cells: usize,
-    pub fields: Vec<Vec<String>>,
+    pub fields: Vec<Vec<TextColumnValue>>,
 }
 
 impl Workbook {
@@ -62,7 +68,8 @@ impl Workbook {
                 row.iter()
                     .take(TEXT_COLUMNS_PREVIEW_COLS)
                     .map(|field| {
-                        let mut chars = field.chars();
+                        let display = field.display();
+                        let mut chars = display.chars();
                         let sample = chars.by_ref().take(TEXT_COLUMNS_PREVIEW_CHARS).collect();
                         truncated |= chars.next().is_some();
                         sample
@@ -71,6 +78,7 @@ impl Workbook {
             })
             .collect();
         Ok(TextColumnsPreview {
+            source_column_count: plan.source_column_count,
             target: plan.target,
             overwritten_cells: plan.overwritten_cells,
             sample,
@@ -87,10 +95,19 @@ impl Workbook {
             source,
             destination,
             mode,
+            column_types,
+            number_options,
             row_count,
             col_count,
         } = request;
         mode.validate()?;
+        if let Some(options) = number_options { options.validate()?; }
+        let mut rules = std::collections::BTreeMap::new();
+        for rule in column_types {
+            if rule.column >= EXCEL_MAX_COLS as usize || rules.insert(rule.column, rule.kind).is_some() {
+                return Err("Invalid or duplicate source field type.");
+            }
+        }
         if *row_count == 0
             || *row_count > EXCEL_MAX_ROWS
             || *col_count == 0
@@ -135,16 +152,21 @@ impl Workbook {
             if bytes > MAX_BYTES || rows * columns > MAX_CELLS {
                 return Err("Split exceeds 100,000 cells or 32 MiB. Choose a smaller range.");
             }
-            if columns as u32 > col_count - destination.col {
-                return Err("Split output exceeds the worksheet boundary.");
-            }
             fields.push(row);
+        }
+        if rules.keys().any(|column| *column >= columns) {
+            return Err("A column type refers to a missing source field.");
+        }
+        let output_columns = columns - rules.values().filter(|kind| **kind == TextColumnType::Skip).count();
+        if output_columns == 0 { return Err("Keep at least one source field."); }
+        if output_columns as u32 > col_count - destination.col {
+            return Err("Split output exceeds the worksheet boundary.");
         }
         let target = CellRange::new(
             *destination,
             CellAddress::new(
                 destination.row + rows as u32 - 1,
-                destination.col + columns as u32 - 1,
+                destination.col + output_columns as u32 - 1,
             ),
         );
         check_geometry(sheet, target)?;
@@ -161,10 +183,15 @@ impl Workbook {
         // 读取可能使惰性数组公式展开；检查最终几何，不能只看求值前的缓存。
         check_geometry(sheet, *source)?;
         check_geometry(sheet, target)?;
-        for row in &mut fields {
+        let fields = fields.into_iter().map(|mut row| {
             row.resize(columns, String::new());
-        }
+            row.into_iter().enumerate().filter_map(|(column, text)| {
+                let kind = rules.get(&column).copied();
+                (kind != Some(TextColumnType::Skip)).then(|| TextColumnValue::parse(text, kind, *number_options))
+            }).collect()
+        }).collect();
         Ok(TextColumnsPlan {
+            source_column_count: columns,
             target,
             overwritten_cells,
             fields,

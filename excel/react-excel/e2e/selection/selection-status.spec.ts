@@ -46,7 +46,11 @@ test('seed types use native numbers, and editing, undo and redo refresh statisti
   await select(page, 'A93:F93')
   await stats(page, 4, '56', '14')
   await extrema(page, 6, '-4', '40')
-  await select(page, 'A95:F95')
+  // E95 是分列种子；空区域语义仍用六个明确空白的末行单元格验证。
+  await select(page, 'A100:F100')
+  for (let col = 0; col < 6; col += 1) {
+    await expect(page.locator(`td[data-cell="99:${col}"]`)).toHaveText('')
+  }
   await stats(page, 0, '—', '—')
   await extrema(page, 0, '—', '—')
   await select(page, 'E93:F93')

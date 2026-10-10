@@ -97,6 +97,8 @@ fn text_columns_reads_settle_even_when_preview_or_apply_is_rejected() {
             );
         }
         let request = TextColumnsRequest {
+            column_types: vec![],
+            number_options: None,
             sheet: 0,
             source: CellRange::new(CellAddress::new(0, 0), CellAddress::new(1, 0)),
             destination: CellAddress::new(0, 2),

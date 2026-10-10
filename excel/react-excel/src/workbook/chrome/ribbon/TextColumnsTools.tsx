@@ -2,6 +2,8 @@ import { useAtomValue, useSetAtom } from '@einfach/react'
 import { editingSessionAtom, runTextColumnsPanelAtom, textColumnsPanelAtom, toA1 } from '@einfach/spreadsheet-ui-core'
 import { useId, useLayoutEffect, useRef } from 'react'
 import { cycleDialogFocus } from './dialog-focus'
+import { TextColumnTypes } from './TextColumnTypes'
+import { TextColumnNumberOptions } from './TextColumnNumberOptions'
 import './text-columns.css'
 
 const DELIMITERS = [['Comma', ','], ['Tab', '\t'], ['Semicolon', ';'], ['Space', ' ']] as const
@@ -33,7 +35,7 @@ export function TextColumnsTools() {
       aria-describedby={`${id}-hint`} onKeyDown={cycleDialogFocus}
       onCancel={(event) => { event.preventDefault(); void run('close') }}>
       <h2 id={`${id}-title`}>Text to columns</h2>
-      <p id={`${id}-hint`}>Split one source column. Results stay as text, including leading zeros.
+      <p id={`${id}-hint`}>Split one source column. Fields keep text unless you select a different type.
         Empty fields clear destination cells. Hidden rows are included.</p>
       <p className="text-columns-source">Source: {state.target &&
         `${toA1(state.target.source.rowStart, state.target.source.colStart)}:${toA1(state.target.source.rowEnd, state.target.source.colEnd)}`}</p>
@@ -80,6 +82,8 @@ export function TextColumnsTools() {
           Split after these character positions, for example 2, 5.
           Unicode code points count as one.
         </p></div>}
+        <TextColumnTypes />
+        <TextColumnNumberOptions />
         <div className="text-columns-preview" aria-busy={state.status === 'previewing'}>
           <div role="status">{busy ? 'Applying split…' : state.status === 'previewing' ? 'Loading preview…'
             : preview ? `Output: ${toA1(preview.target.rowStart, preview.target.colStart)}:${toA1(preview.target.rowEnd, preview.target.colEnd)}`

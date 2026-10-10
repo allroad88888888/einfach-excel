@@ -36,6 +36,9 @@
 }
 .text-columns-hint { color: #596174; font-size: 12px; line-height: 1.5; }
 .text-columns-source { font-variant-numeric: tabular-nums; }
+.text-columns-type-summary { max-height: 90px; overflow: auto; margin-bottom: 0; padding-left: 20px; }
+.text-columns-number-options summary { cursor: pointer; padding: 6px 0; }
+.text-columns-number-options .text-columns-check { margin-top: 12px; }
 .text-columns-preview { min-width: 0; display: grid; gap: 10px; }
 .text-columns-table-scroll { max-height: 180px; overflow: auto; border: 1px solid var(--border); }
 .text-columns-dialog table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }

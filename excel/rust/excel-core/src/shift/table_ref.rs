@@ -2,6 +2,20 @@
 
 use crate::formula::Expr;
 
+/// Table 同时有裸名称与结构化引用两种用法；自由名称改写复用词法作用域算法。
+pub(crate) fn rename_table_reference(expr: &mut Expr, old: &str, new: &str) -> bool {
+    let mut changed = super::rename_named_reference(expr, old, new);
+    let spec = TableRefEditSpec::RenameTable {
+        from: old.into(),
+        to: new.into(),
+    };
+    if let Some(next) = rewrite_table_refs(expr, &spec, false) {
+        *expr = next;
+        changed = true;
+    }
+    changed
+}
+
 /// A structured-reference rename to apply to formula text (design doc #32
 /// §4.3). Table rename rewrites the `Expr::TableRef::table` field; column
 /// rename rewrites the endpoints of `Expr::TableRef::columns` — but only on

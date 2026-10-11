@@ -133,7 +133,8 @@ pub fn eval_expr_with_provider(expr: &Expr, provider: &dyn EvalProvider) -> Valu
             //   2. Workbook defined-name registry (consulted via the
             //      provider, which returns None for non-workbook
             //      contexts).
-            //   3. Otherwise `#NAME?`.
+            //   3. Workbook Table name (its data area).
+            //   4. Otherwise `#NAME?`.
             if let Some(v) = lookup_let_binding(name) {
                 return v;
             }

@@ -262,6 +262,7 @@ fn table_error_id(err: TableError) -> &'static str {
         TableError::NoTotalsRow => "no-totals-row",
         TableError::MutationDuringCustomCall => "mutation-during-custom-call",
         TableError::MalformedSnapshot => "malformed-snapshot",
+        TableError::FormulaRewriteConflict => "formula-rewrite-conflict",
     }
 }
 

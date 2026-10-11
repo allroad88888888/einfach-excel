@@ -42,6 +42,8 @@ impl HistoryEntry {
                 | HistoryChange::Structure(_)
                 | HistoryChange::Merge(_)
                 | HistoryChange::NamedRange(_)
+                | HistoryChange::TableCreate(_)
+                | HistoryChange::TableDefinition(_)
         ) {
             for (index, key) in self.affected_indices.iter().zip(&self.affected_keys) {
                 if workbook.sheet_key(*index) != Some(*key) {
@@ -74,6 +76,8 @@ impl HistoryEntry {
             }
             HistoryChange::Structure(change) => change.apply(workbook, self.sheet, undo),
             HistoryChange::NamedRange(change) => change.apply(workbook, undo),
+            HistoryChange::TableCreate(change) => change.apply(workbook, undo),
+            HistoryChange::TableDefinition(change) => change.apply(workbook, undo),
             HistoryChange::Merge(change) => change.apply(workbook, self.sheet, undo),
         }
     }
@@ -95,6 +99,8 @@ pub(super) fn entry_bytes(entry: &HistoryEntry) -> usize {
         HistoryChange::DataValidation(change) => change.retained_bytes(),
         HistoryChange::Structure(change) => change.retained_bytes(),
         HistoryChange::NamedRange(change) => change.retained_bytes(),
+        HistoryChange::TableCreate(change) => change.retained_bytes(),
+        HistoryChange::TableDefinition(change) => change.retained_bytes(),
         HistoryChange::Merge(change) => change.retained_bytes(),
     };
     payload + entry.label.len() + entry.sheet_name.len() + entry.affected_keys.len() * 16 + 128

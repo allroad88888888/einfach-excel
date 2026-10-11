@@ -10,6 +10,21 @@ impl Workbook {
         range: CellRange,
         has_headers: bool,
     ) -> Result<String, TableError> {
+        let entry = self.prepare_table(name, sheet_index, range, has_headers)?;
+        let canonical_name = entry.canonical_name.clone();
+        self.tables.insert(canonical_name.to_ascii_uppercase(), entry);
+        self.bump_tables_epoch();
+        Ok(canonical_name)
+    }
+
+    /// 先完整校验并派生列名；原生创建历史与低层注册共用，预检不写注册表。
+    pub(super) fn prepare_table(
+        &self,
+        name: Option<&str>,
+        sheet_index: usize,
+        range: CellRange,
+        has_headers: bool,
+    ) -> Result<TableEntry, TableError> {
         if self.is_inside_custom_call() {
             return Err(TableError::MutationDuringCustomCall);
         }
@@ -41,29 +56,19 @@ impl Workbook {
             }
             None => self.next_auto_table_name(),
         };
-        let key = canonical_name.to_ascii_uppercase();
-
         let columns = self.derive_column_names(&sheet_name, range);
-
-        self.tables.insert(
-            key,
-            TableEntry {
-                canonical_name: canonical_name.clone(),
-                sheet_name,
-                range,
-                has_headers,
-                has_totals: false,
-                columns,
-            },
-        );
-        self.bump_tables_epoch();
-        Ok(canonical_name)
+        Ok(TableEntry {
+            canonical_name,
+            sheet_name,
+            range,
+            has_headers,
+            has_totals: false,
+            columns,
+        })
     }
 
-    /// Remove a Table's registry entry ("convert to range" — design doc
-    /// §4.1). Cell values, formulas, and formats are left in place; only
-    /// the Table semantics are dropped. `TableError::NotFound` when the
-    /// name is unknown.
+    /// 仅删除低层注册项，引用它的公式会失效；这不是用户的“转换为区域”。
+    /// 交互转换使用 WorkbookHistory::convert_table_to_range，同时改写公式并记录历史。
     pub fn delete_table(&mut self, name: &str) -> Result<(), TableError> {
         if self.is_inside_custom_call() {
             return Err(TableError::MutationDuringCustomCall);
@@ -76,38 +81,12 @@ impl Workbook {
         Ok(())
     }
 
-    /// Rename a Table (design doc §4.1 / §4.3). Re-validates `new_name`
-    /// against the full name mutex (grammar / built-in / cell-ref-form /
-    /// conflict), excluding the Table's own current key so a case-only
-    /// rename works, then rewrites the TEXT of every formula that references
-    /// the old name (`OldName[…]` → `NewName[…]`) across all sheets.
+    /// 底层直接调用与原生历史共用一个改名操作；包括裸表名、规则与保存的闭包。
+    /// 此入口不记录历史，交互命令使用 WorkbookHistory::rename_table。
     pub fn rename_table(&mut self, name: &str, new_name: &str) -> Result<(), TableError> {
-        if self.is_inside_custom_call() {
-            return Err(TableError::MutationDuringCustomCall);
+        if let Some(change) = TableDefinitionChange::prepare_rename(self, name, new_name)? {
+            change.apply(self, false).map_err(|_| TableError::FormulaRewriteConflict)?;
         }
-        let old_key = name.to_ascii_uppercase();
-        if !self.tables.contains_key(&old_key) {
-            return Err(TableError::NotFound);
-        }
-        self.validate_table_name(new_name, Some(&old_key))?;
-        let new_key = new_name.to_ascii_uppercase();
-        // Remove-then-reinsert (the key changes unless it's a case-only
-        // rename, which `validate_table_name`'s self-exclusion permits).
-        let mut entry = self
-            .tables
-            .remove(&old_key)
-            .expect("existence checked above");
-        entry.canonical_name = new_name.to_string();
-        self.tables.insert(new_key, entry);
-        // Sync the projection to the new name BEFORE rewriting referencing
-        // formulas so their re-install resolves the renamed Table.
-        self.sync_atom_tables();
-        let spec = crate::shift::TableRefEditSpec::RenameTable {
-            from: old_key,
-            to: new_name.to_string(),
-        };
-        self.rewrite_table_refs_across_sheets(&spec, None);
-        self.bump_tables_epoch();
         Ok(())
     }
 
@@ -221,14 +200,8 @@ impl Workbook {
 
     // --- Registry snapshot / restore (design doc #32 §11/§12) ------------
     //
-    // The undo primitive for Table DEFINITION changes. Everything a Table
-    // op writes into CELLS (the totals row's `SUBTOTAL` formulas, the cell
-    // moves a structural edit performs) is already covered by the host's
-    // sparse-cell and format snapshots; what had no before-image until now
-    // is the registry itself — name, sheet anchor, range, header/totals
-    // flags, column names. These two calls close that gap, and the host
-    // pairs them with the existing cell primitives inside one undo
-    // transaction.
+    // 低层注册快照用于恢复已有元数据，不包含表头/公式，不能单独充当交互撤销。
+    // 用户命令的全部前后像与回放顺序由 WorkbookHistory 负责。
 
     /// Capture the entire Table registry (see [`TableRegistrySnapshot`] for
     /// why this is REPLACE rather than additive). Pure read — no epoch bump,

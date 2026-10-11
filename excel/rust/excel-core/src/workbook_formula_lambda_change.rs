@@ -2,32 +2,33 @@
 use super::*;
 
 #[derive(Debug)]
-pub(super) struct NamedRangeLambdaChange {
+pub(super) struct FormulaLambdaChange {
     key: String,
     before: NamedEntry,
     after: NamedEntry,
 }
 
-impl NamedRangeLambdaChange {
-    pub fn prepare(workbook: &Workbook, old: &str, new: &str) -> Vec<Self> {
-        workbook
-            .named_values
-            .iter()
-            .filter_map(|(key, entry)| {
-                let NamedDefinition::Value(value) = &entry.definition else {
-                    return None;
-                };
-                let value = rename_value(value, old, new)?;
-                Some(Self {
-                    key: key.clone(),
-                    before: entry.clone(),
-                    after: NamedEntry {
-                        canonical_name: entry.canonical_name.clone(),
-                        definition: NamedDefinition::Value(value),
-                    },
-                })
-            })
-            .collect()
+impl FormulaLambdaChange {
+    pub fn prepare(
+        workbook: &Workbook,
+        rewrite: &impl Fn(&mut Expr) -> Result<bool, &'static str>,
+    ) -> Result<Vec<Self>, &'static str> {
+        let mut changes = Vec::new();
+        for (key, entry) in &workbook.named_values {
+            if let NamedDefinition::Value(value) = &entry.definition {
+                if let Some(value) = rewrite_value(value, rewrite)? {
+                    changes.push(Self {
+                        key: key.clone(),
+                        before: entry.clone(),
+                        after: NamedEntry {
+                            canonical_name: entry.canonical_name.clone(),
+                            definition: NamedDefinition::Value(value),
+                        },
+                    });
+                }
+            }
+        }
+        Ok(changes)
     }
 
     pub fn validate(&self, workbook: &Workbook, undo: bool) -> Result<(), &'static str> {
@@ -47,15 +48,20 @@ impl NamedRangeLambdaChange {
     }
 }
 
-fn rename_value(value: &Value, old: &str, new: &str) -> Option<Value> {
+fn rewrite_value(
+    value: &Value,
+    rewrite: &impl Fn(&mut Expr) -> Result<bool, &'static str>,
+) -> Result<Option<Value>, &'static str> {
     let Value::Lambda(value) = value else {
-        return None;
+        return Ok(None);
     };
-    let lambda = value.as_any().downcast_ref::<ExcelLambda>()?;
+    let Some(lambda) = value.as_any().downcast_ref::<ExcelLambda>() else {
+        return Ok(None);
+    };
     let mut captured = lambda.captured.clone();
     let mut changed = false;
     for (_, value) in &mut captured {
-        if let Some(next) = rename_value(value, old, new) {
+        if let Some(next) = rewrite_value(value, rewrite)? {
             *value = next;
             changed = true;
         }
@@ -72,9 +78,9 @@ fn rename_value(value: &Value, old: &str, new: &str) -> Option<Value> {
         name: "LAMBDA".into(),
         args,
     };
-    changed |= crate::shift::rename_named_reference(&mut wrapper, old, new);
+    changed |= rewrite(&mut wrapper)?;
     if !changed {
-        return None;
+        return Ok(None);
     }
     let Expr::FuncCall { mut args, .. } = wrapper else {
         unreachable!()
@@ -92,9 +98,9 @@ fn rename_value(value: &Value, old: &str, new: &str) -> Option<Value> {
     for ((name, _), next) in captured.iter_mut().zip(&names) {
         *name = next.clone();
     }
-    Some(Value::Lambda(Arc::new(ExcelLambda {
+    Ok(Some(Value::Lambda(Arc::new(ExcelLambda {
         params: names[captured.len()..].to_vec(),
         body,
         captured,
-    })))
+    }))))
 }

@@ -6,14 +6,19 @@ pub(super) fn runtime_ref_from_expr(
 ) -> Result<RuntimeRef, ValueError> {
     match arg {
         Expr::Name(name) if lookup_let_binding(name).is_none() => {
-            let (sheet, range) = provider
-                .lookup_named_range(name)?
-                .ok_or(ValueError::InvalidValue)?;
-            Ok(RuntimeRef {
-                sheet: Some(sheet),
-                range,
-                materialized: None,
-            })
+            if let Some((sheet, range)) = provider.lookup_named_range(name)? {
+                return Ok(RuntimeRef {
+                    sheet: Some(sheet),
+                    range,
+                    materialized: None,
+                });
+            }
+            // 裸表名等同 Table[#Data]，仍使用同一个几何解析入口。
+            // 未找到 Table 时保留 InvalidValue，让值求值继续查命名常量/LAMBDA。
+            match resolve_table_ref(Some(name), TableArea::Data, None, provider) {
+                Err(ValueError::InvalidName) => Err(ValueError::InvalidValue),
+                result => result,
+            }
         }
         Expr::CellRef(addr, _) => Ok(RuntimeRef {
             sheet: None,
@@ -91,64 +96,7 @@ pub(super) fn resolve_table_ref(
         });
     };
 
-    let full = resolved.range.normalize();
-    let header_rows: u32 = if resolved.has_headers { 1 } else { 0 };
-    let totals_rows: u32 = if resolved.has_totals { 1 } else { 0 };
-    let data_start = full.start.row + header_rows;
-    let data_end = full
-        .end
-        .row
-        .checked_sub(totals_rows)
-        .unwrap_or(full.start.row);
-
-    let (row_start, row_end) = match area {
-        TableArea::All => (full.start.row, full.end.row),
-        TableArea::Headers => {
-            if !resolved.has_headers {
-                return Err(ValueError::InvalidRef);
-            }
-            (full.start.row, full.start.row)
-        }
-        TableArea::Totals => {
-            if !resolved.has_totals {
-                return Err(ValueError::InvalidRef);
-            }
-            (full.end.row, full.end.row)
-        }
-        TableArea::Data => {
-            if data_end < data_start {
-                // Zero data rows → `#REF!` (design §4.1 known divergence
-                // from Excel's "keep one empty data row").
-                return Err(ValueError::InvalidRef);
-            }
-            (data_start, data_end)
-        }
-        TableArea::ThisRow => {
-            let cur = provider.current_cell().ok_or(ValueError::InvalidValue)?;
-            if data_end < data_start || cur.row < data_start || cur.row > data_end {
-                // Current row outside the data area (or no current cell) →
-                // `#VALUE!` (design §5.3 point 2, Excel parity).
-                return Err(ValueError::InvalidValue);
-            }
-            (cur.row, cur.row)
-        }
-    };
-
-    let (col_start, col_end) = match columns {
-        None => (full.start.col, full.end.col),
-        Some((a, b)) => {
-            let ia = find_table_column(&resolved.columns, a).ok_or(ValueError::InvalidRef)?;
-            let ib = find_table_column(&resolved.columns, b).ok_or(ValueError::InvalidRef)?;
-            let ca = full.start.col + ia;
-            let cb = full.start.col + ib;
-            (ca.min(cb), ca.max(cb))
-        }
-    };
-
-    let range = CellRange::new(
-        CellAddress::new(row_start, col_start),
-        CellAddress::new(row_end, col_end),
-    );
+    let range = resolved.reference_range(area, columns, provider.current_cell())?;
 
     // Same-sheet Tables resolve as a bare (`sheet: None`) range so the
     // dependency edges are byte-for-byte identical to a typed `A1:A10`;
@@ -165,13 +113,4 @@ pub(super) fn resolve_table_ref(
         range,
         materialized: None,
     })
-}
-
-/// Case-insensitive column-name lookup → 0-based offset within a Table's
-/// column list. `None` when the name isn't a column (→ `#REF!`).
-pub(super) fn find_table_column(columns: &[String], name: &str) -> Option<u32> {
-    columns
-        .iter()
-        .position(|c| c.eq_ignore_ascii_case(name))
-        .map(|i| i as u32)
 }

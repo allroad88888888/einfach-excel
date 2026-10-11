@@ -86,10 +86,12 @@ mod workbook_named_ranges;
 use workbook_named_range_structure::NamedRangeShift;
 #[path = "workbook_named_range_edit.rs"]
 mod workbook_named_range_edit;
-#[path = "workbook_named_range_rules.rs"]
-mod workbook_named_range_rules;
-#[path = "workbook_named_range_lambdas.rs"]
-mod workbook_named_range_lambdas;
+#[path = "workbook_formula_rule_change.rs"]
+mod workbook_formula_rule_change;
+#[path = "workbook_formula_lambda_change.rs"]
+mod workbook_formula_lambda_change;
+#[path = "workbook_formula_source_change.rs"]
+mod workbook_formula_source_change;
 #[path = "workbook_named_range_snapshot.rs"]
 mod workbook_named_range_snapshot;
 pub use workbook_named_range_snapshot::NamedRangeSnapshot;
@@ -128,6 +130,12 @@ mod workbook_sheet_refs;
 mod workbook_table_geometry;
 #[path = "workbook_table_registry.rs"]
 mod workbook_table_registry;
+#[path = "workbook_table_create.rs"]
+mod workbook_table_create;
+pub(crate) use workbook_table_create::TableCreation;
+#[path = "workbook_table_change.rs"]
+mod workbook_table_change;
+pub(crate) use workbook_table_change::TableDefinitionChange;
 #[path = "workbook_table_restore.rs"]
 mod workbook_table_restore;
 #[path = "workbook_table_totals.rs"]

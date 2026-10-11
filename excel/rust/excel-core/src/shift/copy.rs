@@ -56,14 +56,15 @@ fn shift_range(
 
 pub fn shift_copy_formula(expr: &Expr, drow: i64, dcol: i64) -> Result<Expr, ()> {
     let shifted = match expr {
-        // `Expr::Omitted` 必须显式列出：这个 match 的兜底是 `UnsupportedFormula`，
-        // 漏了它就会让 `=SUM(A1,,B1)` 拖拽填充直接失败，而不是原样平移。
+        // 省略参数原样保留；穷尽枚举让新增表达式必须明确其复制规则。
         Expr::Omitted
         | Expr::Number(_)
         | Expr::Text(_)
         | Expr::Bool(_)
         | Expr::Error(_)
-        | Expr::Name(_) => expr.clone(),
+        | Expr::Name(_)
+        // 结构化引用没有相对 A1 坐标；ThisRow 在目标格求值时再决定行号。
+        | Expr::TableRef { .. } => expr.clone(),
         Expr::CellRef(addr, abs) => shift_ref(*addr, *abs, drow, dcol)
             .map(|addr| Expr::CellRef(addr, *abs))
             .unwrap_or_else(|| Expr::Error(einfach_core::ValueError::InvalidRef)),
@@ -134,7 +135,6 @@ pub fn shift_copy_formula(expr: &Expr, drow: i64, dcol: i64) -> Result<Expr, ()>
                 .map(|part| shift_copy_formula(part, drow, dcol))
                 .collect::<Result<Vec<_>, _>>()?,
         ),
-        _ => return Err(()),
     };
     Ok(shifted)
 }

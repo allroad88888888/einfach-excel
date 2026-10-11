@@ -1,6 +1,9 @@
 use super::*;
 
-pub(super) fn runtime_ref_to_grid(r: &RuntimeRef, provider: &dyn EvalProvider) -> Option<Vec<Vec<Value>>> {
+pub(super) fn runtime_ref_to_grid(
+    r: &RuntimeRef,
+    provider: &dyn EvalProvider,
+) -> Option<Vec<Vec<Value>>> {
     if let Some(arr) = &r.materialized {
         let (rows, cols) = arr.shape();
         if checked_array_len(rows as u64, cols as u64).is_err() {
@@ -84,7 +87,10 @@ pub(super) fn runtime_ref_to_value(r: &RuntimeRef, provider: &dyn EvalProvider) 
 /// Also handles dynamic range expressions: if the argument is `OFFSET(...)`,
 /// it is evaluated to a runtime `CellRange` which is then materialised as a
 /// 2D grid — so `VLOOKUP(x, OFFSET(A1,0,0,10,2), 2, FALSE)` works correctly.
-pub(super) fn collect_range_2d_for_arg(arg: &Expr, provider: &dyn EvalProvider) -> Option<Vec<Vec<Value>>> {
+pub(super) fn collect_range_2d_for_arg(
+    arg: &Expr,
+    provider: &dyn EvalProvider,
+) -> Option<Vec<Vec<Value>>> {
     runtime_ref_from_expr(arg, provider)
         .ok()
         .and_then(|r| runtime_ref_to_grid(&r, provider))
@@ -93,23 +99,24 @@ pub(super) fn collect_range_2d_for_arg(arg: &Expr, provider: &dyn EvalProvider) 
 /// Evaluate an `OFFSET(ref, row_off, col_off[, height[, width]])` call and
 /// return the resolved `RuntimeRef`, or `None` if arguments are invalid.
 /// Row/col offsets are applied to produce the top-left corner; height/width
-/// (default 1×1) give the extent. All numeric args must be coercible;
+/// (defaulting to the reference's size) give the extent. All numeric args must be coercible;
 /// otherwise returns `None`.
 ///
-/// 锚点认**单格**引用，同表 `A1` 与跨表 `Sheet2!A1` 同口径 —— 跨表那支此前
-/// 没接上，`=OFFSET(Sheet2!A1,0,1)` 掉进 `_` 给 `#REF!`，套在聚合里更糟：
-/// `=COUNTIF(OFFSET(Sheet2!A1,0,0,3,1),">1")` 把那个 `#REF!` 当**一个不满足
-/// 条件的格子**，答 0（TS 参考引擎两条分别给 200 / 2）。区域锚点
-/// (`OFFSET(A1:B2,…)`) 两侧都不认，那是另一条既有口径，不在本次范围。
-pub(super) fn eval_offset_as_range(args: &[Expr], provider: &dyn EvalProvider) -> Option<RuntimeRef> {
+/// 复用唯一引用解析入口，Table／命名范围与普通区域拥有相同的锚点和默认尺寸。
+/// 计算出来的内存数组没有工作表地址，不能当作 OFFSET 的引用。
+pub(super) fn eval_offset_as_range(
+    args: &[Expr],
+    provider: &dyn EvalProvider,
+) -> Option<RuntimeRef> {
     if args.len() < 3 || args.len() > 5 {
         return None;
     }
-    let (sheet, anchor) = match &args[0] {
-        Expr::CellRef(addr, _) => (None, *addr),
-        Expr::SheetRef { sheet, addr, .. } => (Some(sheet.clone()), *addr),
-        _ => return None,
-    };
+    let reference = runtime_ref_from_expr(&args[0], provider).ok()?;
+    if reference.materialized.is_some() {
+        return None;
+    }
+    let range = reference.range.normalize();
+    let anchor = range.start;
     let row_off = coerce_to_number(&eval_expr_with_provider(&args[1], provider))? as i64;
     let col_off = coerce_to_number(&eval_expr_with_provider(&args[2], provider))? as i64;
     let height = if args.len() >= 4 {
@@ -119,7 +126,7 @@ pub(super) fn eval_offset_as_range(args: &[Expr], provider: &dyn EvalProvider) -
         }
         h as u32
     } else {
-        1
+        range.rows()
     };
     let width = if args.len() == 5 {
         let w = coerce_to_number(&eval_expr_with_provider(&args[4], provider))?;
@@ -128,17 +135,23 @@ pub(super) fn eval_offset_as_range(args: &[Expr], provider: &dyn EvalProvider) -
         }
         w as u32
     } else {
-        1
+        range.cols()
     };
-    let start_row = anchor.row as i64 + row_off;
-    let start_col = anchor.col as i64 + col_off;
-    if start_row < 0 || start_col < 0 {
+    let start_row = (anchor.row as i64).checked_add(row_off)?;
+    let start_col = (anchor.col as i64).checked_add(col_off)?;
+    if start_row < 0
+        || start_col < 0
+        || height == 0
+        || width == 0
+        || start_row.checked_add(height as i64)? > EXCEL_MAX_ROWS as i64
+        || start_col.checked_add(width as i64)? > EXCEL_MAX_COLS as i64
+    {
         return None;
     }
     let start = CellAddress::new(start_row as u32, start_col as u32);
     let end = CellAddress::new(start_row as u32 + height - 1, start_col as u32 + width - 1);
     Some(RuntimeRef {
-        sheet,
+        sheet: reference.sheet,
         range: CellRange::new(start, end),
         materialized: None,
     })

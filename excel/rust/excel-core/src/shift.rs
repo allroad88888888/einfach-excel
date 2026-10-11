@@ -37,6 +37,9 @@ mod structural_refs;
 mod named_ref;
 pub(crate) use named_ref::rename_named_reference;
 mod table_ref;
+pub(crate) use table_ref::rename_table_reference;
+mod table_to_range;
+pub(crate) use table_to_range::TableToRange;
 
 pub use copy::shift_copy_formula;
 pub use delta::shift_refs;

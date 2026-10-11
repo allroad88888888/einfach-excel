@@ -177,6 +177,7 @@
 #[path = "eval_core_lambda_scope.rs"] mod eval_core_lambda_scope;
 #[path = "eval_core_provider.rs"] mod eval_core_provider;
 #[path = "eval_core_runtime_ref_expr.rs"] mod eval_core_runtime_ref_expr;
+#[path = "eval_table_reference.rs"] mod eval_table_reference;
 #[path = "eval_core_runtime_ref_ops.rs"] mod eval_core_runtime_ref_ops;
 #[path = "eval_core_runtime_ref_types.rs"] mod eval_core_runtime_ref_types;
 #[path = "eval_core_runtime_ref_values.rs"] mod eval_core_runtime_ref_values;

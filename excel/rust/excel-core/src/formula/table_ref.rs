@@ -7,8 +7,8 @@ impl Parser {
     /// Parse a structured-reference body starting at the outer `[`
     /// (design doc §5.1 `inner`). `table` carries the already-read table
     /// name (`Some`) for `Table1[...]`, or `None` for a table-less
-    /// `[...]`. The MVP grammar (§3.2 defers combined qualifiers /
-    /// `'`-escapes / empty `[]`):
+    /// `[...]`. Area qualifiers and column segments share the same AST.
+    /// `'`-escapes and empty `[]` remain outside this grammar:
     ///
     /// ```text
     /// inner := '@' colspec | special | '[' colref ']' (':' '[' colref ']')? | colref
@@ -25,27 +25,33 @@ impl Parser {
                     // Bare `[@]` — the whole current row across every column.
                     (TableArea::ThisRow, None)
                 } else {
-                    let col = self.parse_table_colspec()?;
-                    (TableArea::ThisRow, Some((col.clone(), col)))
+                    let columns = if self.peek() == Some('[') {
+                        self.parse_table_column_segment()?
+                    } else {
+                        let col = self.parse_bare_colref()?;
+                        (col.clone(), col)
+                    };
+                    (TableArea::ThisRow, Some(columns))
                 }
             }
             '[' => {
-                // `[colref]` possibly followed by `:` `[colref]` (a
-                // multi-column segment). Bracketed column names carry the
-                // display spelling verbatim.
-                let first = self.parse_bracketed_colref()?;
+                // [[#Headers],[Col]] 与 [[Col1]:[Col2]] 共用列段扫描。
+                let start = self.pos;
+                self.advance();
                 self.skip_whitespace();
-                if self.peek() == Some(':') {
-                    self.advance();
+                let area = if self.peek() == Some('#') {
+                    let area = self.parse_table_special()?;
                     self.skip_whitespace();
-                    if self.peek() != Some('[') {
-                        return None;
-                    }
-                    let second = self.parse_bracketed_colref()?;
-                    (TableArea::Data, Some((first, second)))
+                    self.expect(']')?;
+                    self.skip_whitespace();
+                    self.expect(',')?;
+                    self.skip_whitespace();
+                    area
                 } else {
-                    (TableArea::Data, Some((first.clone(), first)))
-                }
+                    self.pos = start;
+                    TableArea::Data
+                };
+                (area, Some(self.parse_table_column_segment()?))
             }
             _ => {
                 let col = self.parse_bare_colref()?;
@@ -80,14 +86,16 @@ impl Parser {
         None
     }
 
-    /// A `colspec` after `@`: either a bracketed `[colref]` (for names with
-    /// special characters) or a bare `colref`.
-    fn parse_table_colspec(&mut self) -> Option<String> {
+    /// 单列与连续列段；由数据区、限定区及 ThisRow 三种写法共用。
+    fn parse_table_column_segment(&mut self) -> Option<(String, String)> {
+        let first = self.parse_bracketed_colref()?;
         self.skip_whitespace();
-        if self.peek() == Some('[') {
-            self.parse_bracketed_colref()
+        if self.peek() == Some(':') {
+            self.advance();
+            self.skip_whitespace();
+            Some((first, self.parse_bracketed_colref()?))
         } else {
-            self.parse_bare_colref()
+            Some((first.clone(), first))
         }
     }
 

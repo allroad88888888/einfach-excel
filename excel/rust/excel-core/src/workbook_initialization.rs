@@ -65,12 +65,19 @@ impl Workbook {
     }
 
     pub(super) fn named_array_dependents(&self) -> Vec<(usize, HashSet<CellAddress>)> {
-        let dependent_atoms = self.atom_context.name_dependent_atoms();
+        self.array_dependents_for_atoms(&self.atom_context.name_dependent_atoms())
+    }
+
+    /// 名称与 Table 元数据共用现有依赖图，只找可能需要更新 spill 的公式。
+    pub(super) fn array_dependents_for_atoms(
+        &self,
+        atoms: &[AtomId],
+    ) -> Vec<(usize, HashSet<CellAddress>)> {
         self.sheets
             .iter()
             .enumerate()
             .filter_map(|(index, sheet)| {
-                let addresses = sheet.array_formula_addrs_for_store_atoms(&dependent_atoms);
+                let addresses = sheet.array_formula_addrs_for_store_atoms(atoms);
                 (!addresses.is_empty()).then_some((index, addresses))
             })
             .collect()

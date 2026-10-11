@@ -1,7 +1,8 @@
 //! 一次命名区域变更的原生前后状态；先预检，再原子发布名称与实际改写的公式。
 
-use super::workbook_named_range_lambdas::NamedRangeLambdaChange;
-use super::workbook_named_range_rules::NamedRangeRuleChange;
+use super::workbook_formula_lambda_change::FormulaLambdaChange;
+use super::workbook_formula_rule_change::FormulaRuleChange;
+use super::workbook_formula_source_change::FormulaSourceChange;
 use super::*;
 
 #[derive(Clone, Debug)]
@@ -23,21 +24,12 @@ pub enum NamedRangeAction {
 }
 
 #[derive(Debug)]
-struct FormulaRename {
-    sheet: usize,
-    sheet_key: u64,
-    addr: CellAddress,
-    before: String,
-    after: String,
-}
-
-#[derive(Debug)]
 pub(crate) struct NamedRangeChange {
     before: Option<NamedEntry>,
     after: Option<NamedEntry>,
-    formulas: Vec<FormulaRename>,
-    rules: Vec<NamedRangeRuleChange>,
-    lambdas: Vec<NamedRangeLambdaChange>,
+    formulas: Vec<FormulaSourceChange>,
+    rules: Vec<FormulaRuleChange>,
+    lambdas: Vec<FormulaLambdaChange>,
 }
 
 impl NamedRangeChange {
@@ -113,46 +105,16 @@ impl NamedRangeChange {
         let mut lambdas = Vec::new();
         if let (Some(old), Some(new)) = (&before, &after) {
             if old.canonical_name != new.canonical_name {
-                rules = NamedRangeRuleChange::prepare(
-                    workbook,
-                    &old.canonical_name,
-                    &new.canonical_name,
-                );
-                lambdas = NamedRangeLambdaChange::prepare(
-                    workbook,
-                    &old.canonical_name,
-                    &new.canonical_name,
-                );
-                let all = CellRange::new(
-                    CellAddress::new(0, 0),
-                    CellAddress::new(GRID_MAX_ROW, GRID_MAX_COL),
-                );
-                for (index, sheet) in workbook.sheets.iter().enumerate() {
-                    let mut addresses: Vec<_> =
-                        sheet.formula_addrs_in_range(all).into_iter().collect();
-                    addresses.sort_by_key(|addr| (addr.row, addr.col));
-                    for addr in addresses {
-                        let Some(before) = sheet.formula_text_at(addr) else {
-                            continue;
-                        };
-                        let Some(mut expr) = parse_formula(&before) else {
-                            continue;
-                        };
-                        if crate::shift::rename_named_reference(
-                            &mut expr,
-                            &old.canonical_name,
-                            &new.canonical_name,
-                        ) {
-                            formulas.push(FormulaRename {
-                                sheet: index,
-                                sheet_key: workbook.sheet_keys[index],
-                                addr,
-                                before,
-                                after: crate::render_formula(&expr),
-                            });
-                        }
-                    }
-                }
+                let rewrite = |expr: &mut Expr| {
+                    Ok(crate::shift::rename_named_reference(
+                        expr,
+                        &old.canonical_name,
+                        &new.canonical_name,
+                    ))
+                };
+                rules = FormulaRuleChange::prepare(workbook, &|_, _, expr| rewrite(expr))?;
+                lambdas = FormulaLambdaChange::prepare(workbook, &rewrite)?;
+                formulas = FormulaSourceChange::prepare(workbook, &|_, _, expr| rewrite(expr))?;
             }
         }
         Ok(Some(Self {
@@ -219,19 +181,7 @@ impl NamedRangeChange {
             }
         }
         for formula in &self.formulas {
-            let source = if undo {
-                &formula.after
-            } else {
-                &formula.before
-            };
-            if workbook.sheet_key(formula.sheet) != Some(formula.sheet_key)
-                || workbook.sheets[formula.sheet]
-                    .formula_text_at(formula.addr)
-                    .as_ref()
-                    != Some(source)
-            {
-                return Err("A referring formula changed outside history.");
-            }
+            formula.validate(workbook, undo)?;
         }
         for rule in &self.rules {
             rule.validate(workbook, undo)?;
@@ -265,12 +215,7 @@ impl NamedRangeChange {
             }
             workbook.publish_atom_names();
             for formula in &self.formulas {
-                let source = if undo {
-                    &formula.before
-                } else {
-                    &formula.after
-                };
-                workbook.sheets[formula.sheet].restore_formula_source(formula.addr, source);
+                formula.apply(workbook, undo);
             }
         });
         // Store batch 结束才传播间接依赖。先让公式值落定，再更新 spill 几何；
@@ -291,11 +236,7 @@ impl NamedRangeChange {
             + self
                 .formulas
                 .iter()
-                .map(|formula| {
-                    formula.before.len()
-                        + formula.after.len()
-                        + std::mem::size_of::<FormulaRename>()
-                })
+                .map(FormulaSourceChange::retained_bytes)
                 .sum::<usize>()
             + crate::sheet::metadata_bytes(&self.rules)
             + crate::sheet::metadata_bytes(&self.lambdas)

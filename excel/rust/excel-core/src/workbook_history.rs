@@ -25,6 +25,8 @@ mod conditional_format;
 use conditional_format::ConditionalFormatChange;
 #[path = "workbook_history_named_range.rs"]
 mod named_range;
+#[path = "workbook_history_table.rs"]
+mod table;
 #[path = "workbook_history_data_validation.rs"]
 mod data_validation;
 use data_validation::DataValidationChange;
@@ -79,6 +81,8 @@ enum HistoryChange {
     DataValidation(DataValidationChange),
     Structure(Box<StructuralHistoryChange>),
     NamedRange(Box<crate::workbook::NamedRangeChange>),
+    TableCreate(Box<crate::workbook::TableCreation>),
+    TableDefinition(Box<crate::workbook::TableDefinitionChange>),
     Merge(Box<MergeChange>),
 }
 

@@ -228,15 +228,12 @@ fn offset_accepts_a_cross_sheet_anchor() {
     // 静默答 0 的那条。
     assert_eq!(num("=COUNTIF(OFFSET(Sheet2!A1,0,0,3,1),\">1\")"), 2.0);
     assert_eq!(num("=COUNTIF(OFFSET(A1,0,0,3,1),\">1\")"), 2.0);
-    // 区域锚点两侧都不认，是另一条既有口径，不在本次范围 —— 钉住免得漂。
-    assert_eq!(
-        eval("=OFFSET(Sheet2!A1:B2,0,1)"),
-        Value::Error(ValueError::InvalidRef)
-    );
-    assert_eq!(
-        eval("=OFFSET(A1:B2,0,1)"),
-        Value::Error(ValueError::InvalidRef)
-    );
+    // Table 接入统一引用解析后，普通区域也按 Excel 规则继承源区域尺寸。
+    // Sheet2 的 C1=10；Sheet1 的 C 列为空，不能把跨表结果误算为同表。
+    assert_eq!(num("=SUM(OFFSET(Sheet2!A1:B2,0,1))"), 310.0);
+    assert_eq!(num("=SUM(OFFSET(A1:B2,0,1))"), 300.0);
+    assert_eq!(num("=ROWS(OFFSET(Sheet2!A1:B2,0,1))"), 2.0);
+    assert_eq!(num("=COLUMNS(OFFSET(A1:B2,0,1))"), 2.0);
 }
 
 /// 家族里**修复前就正确**的那一半（它们早就走 `resolve_range_arg`）。

@@ -74,8 +74,7 @@ impl WasmWorkbook {
             .map_err(table_error_to_js)
     }
 
-    /// Remove a Table's registry entry (convert to range — values, formulas,
-    /// and formats are untouched).
+    /// 仅删除低层 Table 注册项；不改写引用公式，不等同于用户的“转换为区域”。
     #[wasm_bindgen(js_name = "deleteTable")]
     pub fn delete_table(&mut self, name: &str) -> Result<(), JsValue> {
         self.workbook.delete_table(name).map_err(table_error_to_js)
@@ -108,13 +107,8 @@ impl WasmWorkbook {
     /// `{ version: 1, tables: TableJSON[] }` — the same per-Table shape
     /// `listTables` emits, wrapped in a versioned envelope.
     ///
-    /// This is the missing before-image for Table DEFINITION changes:
-    /// everything `createTable` / `renameTable` / `deleteTable` / the totals
-    /// toggle writes into CELLS is already covered by the host's sparse-cell
-    /// and format snapshots, but the registry itself (name, sheet anchor,
-    /// range, header/totals flags, column names) was not. A host records
-    /// this before the mutation and replays it through `restoreTables` to
-    /// undo. Pure read — no epoch bump, no recompute.
+    /// 此低层快照只包含注册元数据，不包含表头与公式；交互撤销使用 Rust 原生历史，
+    /// 不能由宿主把这个快照当成完整 Table 操作。Pure read — no epoch bump.
     #[wasm_bindgen(js_name = "snapshotTables")]
     pub fn snapshot_tables(&self) -> Result<JsValue, JsValue> {
         serde_wasm_bindgen::to_value(&TableRegistrySnapshotJSON {

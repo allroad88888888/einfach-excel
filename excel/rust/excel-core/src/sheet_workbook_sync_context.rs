@@ -42,6 +42,12 @@ impl WorkbookAtomContext {
             .map_or_else(Vec::new, |root| self.store.reverse_dependents(&[root]))
     }
 
+    pub(crate) fn table_dependent_atoms(&self) -> Vec<AtomId> {
+        self.tables_epoch
+            .borrow()
+            .map_or_else(Vec::new, |root| self.store.reverse_dependents(&[root]))
+    }
+
     /// Refresh the structured-reference Table projection (design doc #32
     /// §5.3). Called by `Workbook` after every Table registry mutation.
     ///

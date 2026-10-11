@@ -24,6 +24,7 @@ pub enum TableError {
     NoTotalsRow,
     MutationDuringCustomCall,
     MalformedSnapshot,
+    FormulaRewriteConflict,
 }
 
 impl std::fmt::Display for TableError {
@@ -44,6 +45,7 @@ impl std::fmt::Display for TableError {
             Self::NoTotalsRow => write!(f, "the table has no totals row; enable it first"),
             Self::MutationDuringCustomCall => write!(f, "table registry mutations are forbidden while a custom-formula callback is executing"),
             Self::MalformedSnapshot => write!(f, "table snapshot entry is malformed: column count does not match the range width"),
+            Self::FormulaRewriteConflict => write!(f, "a table formula consumer changed or cannot be rewritten"),
         }
     }
 }

@@ -57,6 +57,26 @@
 
 ## 批次账本
 
+### Excel Table 基础操作（进行中，未验收）
+
+本批只做三个用户功能：创建表格、重命名表格、转换为普通区域。上一批名称框已提交推送为 `23256ded`。上方 Table 审计描述的是启动前状态，不是当前完成度；完整 #32 范围继续保留。
+
+先补 Rust 原子操作，再接 UI Core command atom 与 React 入口。创建操作复用既有 Table 名称／交叠校验，规范化后的列名写回表头，与单个表定义一起进入原生历史；快照只覆盖表头，不复制数据区或整个 Table 注册表。非法范围、合并／spill 交叠及历史外修改在写入前拒绝。重命名与转换必须处理公式消费者，不能把删除注册项包装成“转换为区域”。
+
+当前已新增创建操作及原生历史接入。交叉测试复现了创建后数组锚点更新、spill 子格未更新的问题；现复用 Store 反向依赖与原有数组投影顺序修复，创建／撤销／重做覆盖同表、跨表及间接 `#` 消费者。裸表名也已接入唯一范围解析器，不另写表格取值路径，LET／LAMBDA 局部名继续优先。`OFFSET` 原先只接受单格引用，本次复用同一解析器接受 Table／命名范围／普通区域，并按源区域继承默认尺寸；对应旧“不支持区域”的断言替换为同表／跨表准确数值及尺寸断言。规则依据 [Microsoft 结构化引用](https://support.microsoft.com/en-us/excel/using-structured-references-with-excel-tables)与 [OFFSET](https://support.microsoft.com/en-us/excel/functions/offset-function)文档。
+
+创建专项 7/7 通过；创建阶段默认配置扩大回归为 23 套／251 passed／1 ignored，日志 `/tmp/excel-table-create-default-final.log`。同一顺序任务的 lite 配置已完成 24 套／257 passed／1 ignored，日志 `/tmp/excel-table-create-lite-final.log`；它与后续重命名代码有时间重叠，不能作为当前源码最终双配置验收。展现层边界、活文档链接与 `git diff --check` 当时通过。
+
+重命名现已新增原生历史，旧 `Workbook::rename_table` 也转用同一原子实现：表定义、单元格公式、条件公式与保存的 LAMBDA 一次提交，撤销恢复精确源码；自由裸名称与结构化引用共用既有 AST 改写，保留 LET／LAMBDA 参数、捕获与文本字面量。命名区域原有的规则／闭包模块改为真正共享的 `workbook_formula_rule_change.rs`、`workbook_formula_lambda_change.rs`，公式源码差异抽到 `workbook_formula_source_change.rs`，原命名区域事务文件降至 253 行，没有复制第二套消费者改写。
+
+重命名交叉测试发现条件格式的复制平移器拒绝 `TableRef`，导致已有规则静默不显示；现让结构化引用原样通过，ThisRow 仍由目标格求值。修复后新增 5 项历史、3 项消费者测试通过，旧名称回归 15/15 通过；另补新名称消费者被激活、跨表 spill 与一次通知测试。重命名阶段扩大回归日志为 `/tmp/excel-table-rename-regression-default.log`、`/tmp/excel-table-rename-regression-lite.log`，双配置各 12 套／119 passed／1 ignored。新增源／测试文件均不超过 300 行；既有 `workbook_history.rs` 为 309 行，本次只新增历史分支，未扩围拆分。
+
+转换为普通区域已开始原生实现，与重命名共用 `TableDefinitionChange`，以 AST 改写公式消费者并保存精确撤销差异；引用几何计算复用 `ResolvedTable::reference_range`。同时补充结构化引用区域限定符与列名组合的解析、渲染。WASM 仅同步了新增原生错误枚举及注释，尚未接入交互命令、重建构件或连接 Worker／React。整批尚未验收，本次按 WIP 保存，不代表功能完成。
+
+补充证据：含旧 Table 结构随动的重命名专项默认配置 6 套／36 项全部通过（`/tmp/excel-table-rename-final.log`），随后 `cargo check` WASM crate 退出 0（`/tmp/excel-table-rename-wasm-check.log`）。这些均为转换改动之前的阶段证据，不是当前源码、浏览器 WASM 构件或整批验收。
+
+当前已知未完成项：转换测试 `conversion_preserves_data_formats_and_total_formulas_with_exact_undo` 在跨表直接区域引用的 spill 子格断言失败（实际 Null，预期 30；`/tmp/excel-table-convert-parser.log`）。调用位置相关的保存／返回 LAMBDA，以及跨 Table 边界的条件规则，目前仅在写入前明确拒绝，仍须实现，不能算作已支持。保留失败回归测试；转换、前端接入和整批最终验证继续待办。
+
 ### 名称框与命名定位（本批已验收）
 
 最终验收：名称框跨表定位、名称框给选区命名、Go To 名称定位三项完成。当前源码完整 E2E **728/728**（10.5 分钟），全量 Vitest **332 文件／5423 项**，根构建、lint、类型检查、文档／展现层边界／循环依赖检查全部通过。最终日志为 `/tmp/excel-name-box-final-e2e.log`、`/tmp/excel-name-box-final-vitest.log`，截图与 trace 在独立 `/tmp/excel-name-box-final-e2e-artifacts`。最终桌面／窄屏截图已检查，焦点与无横向溢出断言通过。名称框或 Go To 输入 `SampleAmounts` 可跨表定位；名称框将 E2:E4 命名为 `QuickUnits` 后，`=SUM(QuickUnits)` 为 6，支持管理器回读与原生 Undo／Redo。

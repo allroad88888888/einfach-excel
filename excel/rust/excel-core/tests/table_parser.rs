@@ -147,10 +147,24 @@ fn rejects_unknown_special_keyword() {
 }
 
 #[test]
-fn rejects_combined_qualifier() {
-    // `Table1[[#Headers],[Col]]` — combined qualifier is deferred (§3.2),
-    // so the MVP grammar rejects it rather than half-parsing it.
-    assert_eq!(parse_formula("=Table1[[#Headers],[Col]]"), None);
+fn parses_combined_area_and_column_qualifiers_without_losing_the_column() {
+    for (text, area) in [
+        ("=Table1[[#Headers],[Col]]", TableArea::Headers),
+        ("=Table1[[#Totals],[Col]]", TableArea::Totals),
+        ("=Table1[[#All],[Col]]", TableArea::All),
+        ("=Table1[[#Data],[Col]]", TableArea::Data),
+        ("=Table1[[#This Row],[Col]]", TableArea::ThisRow),
+    ] {
+        assert_eq!(table_ref(text), (Some("Table1".into()), area, col("Col")));
+        let expr = parse_formula(text).unwrap();
+        assert_eq!(parse_formula(&render_formula(&expr)), Some(expr));
+    }
+    for text in ["=Table1[[#Headers],[Col1]:[Col2]]", "=Table1[@[Col1]:[Col2]]"] {
+        let expr = parse_formula(text).unwrap();
+        assert_eq!(parse_formula(&render_formula(&expr)), Some(expr));
+    }
+    assert_eq!(parse_formula("=Table1[[#Bogus],[Col]]"), None);
+    assert_eq!(parse_formula("=Table1[[#Headers],[Col]"), None);
 }
 
 #[test]

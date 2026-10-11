@@ -189,6 +189,14 @@ fn render_into(expr: &Expr, out: &mut String) {
                 out.push_str(name);
             }
             out.push('[');
+            let qualified = columns.is_some()
+                && matches!(
+                    area,
+                    TableArea::All | TableArea::Headers | TableArea::Totals
+                );
+            if qualified {
+                out.push('[');
+            }
             match area {
                 TableArea::All => out.push_str("#All"),
                 TableArea::Headers => out.push_str("#Headers"),
@@ -205,6 +213,17 @@ fn render_into(expr: &Expr, out: &mut String) {
                         Some((a, b)) if a == b => out.push_str(a),
                         Some((a, b)) => render_table_segment(a, b, out),
                     }
+                }
+            }
+            if qualified {
+                out.push_str("],");
+                let (first, last) = columns.as_ref().unwrap();
+                if first == last {
+                    out.push('[');
+                    out.push_str(first);
+                    out.push(']');
+                } else {
+                    render_table_segment(first, last, out);
                 }
             }
             out.push(']');

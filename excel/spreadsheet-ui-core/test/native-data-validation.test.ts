@@ -38,7 +38,7 @@ function setup(rule: NativeDataValidationRule | null = null) {
   return { store, request, run }
 }
 
-test.each(['whole-number', 'decimal', 'list'] as const)('%s sends native rule once', async (kind) => {
+test.each(['whole-number', 'decimal', 'list', 'text-length'] as const)('%s sends native rule once', async (kind) => {
   const { store, request, run } = setup()
   await run('open')
   expect(store.getter(nativeDataValidationPanelAtom).range).toBe('A2:A4')
@@ -53,6 +53,56 @@ test.each(['whole-number', 'decimal', 'list'] as const)('%s sends native rule on
   expect(request).toHaveBeenCalledTimes(2)
   expect(store.getter(projectionSnapshotAtom).result?.revision).toBe(2)
   expect(store.getter(nativeDataValidationPanelAtom).sheetId).toBeNull()
+})
+
+test.each(['date', 'time'] as const)('%s preserves textual bounds and reopening the native rule', async (kind) => {
+  const min = kind === 'date' ? '2026-10-01' : '09:00'
+  const max = kind === 'date' ? '2026-10-31' : '17:00'
+  const { store, request, run } = setup({ kind, min, max, ignoreBlank: false })
+  await run('open')
+  expect(store.getter(nativeDataValidationPanelAtom)).toMatchObject({ kind, min, max })
+  expect(await run('save')).toBe(true)
+  expect(request.mock.calls[1]).toMatchObject(['validation.change', {
+    rule: { kind, min, max, ignoreBlank: false },
+  }])
+  expect(request).toHaveBeenCalledTimes(2)
+})
+
+test('changing rule type resets only draft bounds and makes no native write', async () => {
+  const { store, request, run } = setup()
+  await run('open')
+  for (const [kind, min, max] of [['date', '1900-01-01', '9999-12-31'],
+    ['time', '00:00', '23:59:59'], ['text-length', '0', '100']] as const) {
+    await run({ kind })
+    expect(store.getter(nativeDataValidationPanelAtom)).toMatchObject({ kind, min, max })
+  }
+  expect(request).toHaveBeenCalledTimes(1)
+})
+
+test.each(['equal', 'not-equal', 'greater-than', 'greater-than-or-equal', 'less-than',
+  'less-than-or-equal'] as const)('%s sends only the visible cutoff once', async (operator) => {
+  const { request, run } = setup()
+  await run('open')
+  await run({ operator, min: '3', max: 'hidden invalid draft' })
+  expect(await run('save')).toBe(true)
+  expect(request.mock.calls[1]).toMatchObject(['validation.change', {
+    rule: { kind: 'whole-number', min: 3, max: 3, operator },
+  }])
+  expect(request).toHaveBeenCalledTimes(2)
+})
+
+test('outside range restores its condition, keeps both bounds, and list does not inherit it', async () => {
+  const { store, request, run } = setup({ kind: 'decimal', min: 2, max: 4,
+    operator: 'not-between', ignoreBlank: false })
+  await run('open')
+  expect(store.getter(nativeDataValidationPanelAtom).operator).toBe('not-between')
+  await run('save')
+  expect(request.mock.calls[1]).toMatchObject(['validation.change', {
+    rule: { min: 2, max: 4, operator: 'not-between' },
+  }])
+  await run('open'); await run({ kind: 'list', items: 'yes\nno' }); await run('save')
+  const payload = request.mock.calls[3]?.[1] as RustWorkbookCommands['validation.change']['payload']
+  expect(payload.rule).toEqual({ kind: 'list', items: ['yes', 'no'], ignoreBlank: false })
 })
 
 test('existing rule fills draft; cancel is read-only; clear targets just selected range', async () => {

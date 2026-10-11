@@ -6,6 +6,7 @@ fn rule(kind: Kind) -> Rule {
     Rule {
         kind,
         ignore_blank: true,
+        operator: Default::default(),
     }
 }
 

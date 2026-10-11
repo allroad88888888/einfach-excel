@@ -15,15 +15,30 @@ for (const variant of ['lite', 'full']) test(`${variant} validation round-trip r
         { kind: 'whole-number', min: 1, max: 10, ignoreBlank: true },
         { kind: 'decimal', min: 0, max: 1, ignoreBlank: false },
         { kind: 'list', items: ['Ready', '001', '=1+2'], ignoreBlank: true },
+        { kind: 'date', min: '2026-10-01', max: '2026-10-31', ignoreBlank: true },
+        { kind: 'time', min: '09:00', max: '17:00', ignoreBlank: true },
+        { kind: 'text-length', min: 2, max: 4, ignoreBlank: false },
+        { kind: 'whole-number', min: 5, max: 5, operator: 'equal', ignoreBlank: true },
+        { kind: 'date', min: '2026-10-01', max: '2026-10-01', operator: 'greater-than', ignoreBlank: true },
+        { kind: 'time', min: '09:00', max: '17:00', operator: 'not-between', ignoreBlank: true },
+        { kind: 'text-length', min: 4, max: 4, operator: 'less-than', ignoreBlank: true },
       ]
       rules.forEach((rule, col) => source.setDataValidation(0, 0, col, 2, col, rule))
       source.set_cell_input(0, 'A1', '5')
       source.set_cell_input(0, 'B1', '0.5')
       source.set_cell_input(0, 'C1', "'001")
+      source.set_cell_input(0, 'D1', '2026-10-11')
+      source.set_cell_input(0, 'E1', '12:00')
+      source.set_cell_input(0, 'F1', '中文🙂')
+      source.set_cell_input(0, 'G1', '5')
+      source.set_cell_input(0, 'H1', '2026-10-11')
+      source.set_cell_input(0, 'I1', '18:00')
+      source.set_cell_input(0, 'J1', 'abc')
       const snapshot = JSON.parse(JSON.stringify(source.snapshot_persistence_v1()))
       restored.restore_persistence_v1(snapshot)
       const before = restored.snapshot_persistence_v1()
-      const rejections = ['2.5', '=2', 'invalid'].map((input, col) => {
+      const rejections = ['2.5', '=2', 'invalid', '2026-11-01', '18:00', 'x',
+        '6', '2026-10-01', '12:00', 'four'].map((input, col) => {
         try { restored.set_cell_input(0, `${String.fromCharCode(65 + col)}1`, input); return '' }
         catch (error) { return String(error) }
       })

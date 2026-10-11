@@ -26,6 +26,7 @@ fn rule(book: &mut Workbook, first: &str, last: &str, ignore_blank: bool) {
                     max: 10.0,
                 },
                 ignore_blank,
+                operator: Default::default(),
             }),
         )
         .unwrap();

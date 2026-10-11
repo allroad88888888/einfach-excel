@@ -45,17 +45,25 @@ test('opens with focus; cancel restores trigger without native write', async () 
   expect(request).toHaveBeenCalledTimes(1)
 })
 
-test.each(['whole-number', 'decimal', 'list'])('submits %s through one command', async (kind) => {
+test.each(['whole-number', 'decimal', 'list', 'date', 'time', 'text-length'])('submits %s through one command', async (kind) => {
   const request = setup()
   await click('Data validation'); await change('Allow', kind)
   if (kind === 'list') {
     expect(screen.queryByLabelText('Minimum')).toBeNull()
     await change('Items, one per line', 'Ready\nOn hold')
+  } else if (kind === 'date' || kind === 'time') {
+    const [min, max] = kind === 'date' ? ['2026-10-01', '2026-10-31'] : ['09:00', '17:00']
+    expect(screen.getByLabelText('Minimum')).toHaveAttribute('type', 'text')
+    await change('Minimum', min); await change('Maximum', max)
   } else {
     await change('Minimum', '1'); await change('Maximum', '9')
   }
   await click('Apply')
   expect(request.mock.calls[1]).toMatchObject(['validation.change', { rule: { kind } }])
+  if (kind === 'date' || kind === 'time') expect(request.mock.calls[1]).toMatchObject([
+    'validation.change', { rule: { min: kind === 'date' ? '2026-10-01' : '09:00',
+      max: kind === 'date' ? '2026-10-31' : '17:00' } },
+  ])
   expect(request).toHaveBeenCalledTimes(2)
   expect(screen.queryByRole('dialog')).toBeNull()
 })
@@ -70,4 +78,27 @@ test('native error keeps editable form; clear does not submit numeric drafts', a
   await click('Clear validation')
   expect(request.mock.calls[2]).toMatchObject(['validation.change', { rule: null }])
   expect(screen.queryByRole('dialog')).toBeNull()
+})
+
+test.each(['equal', 'not-equal', 'greater-than', 'greater-than-or-equal', 'less-than',
+  'less-than-or-equal'])('%s hides the second bound and sends one cutoff', async (operator) => {
+  const request = setup()
+  await click('Data validation'); await change('Condition', operator)
+  expect(screen.queryByLabelText('Maximum')).toBeNull()
+  expect(screen.queryByLabelText('Minimum')).toBeNull()
+  await change('Value', '7'); await click('Apply')
+  expect(request.mock.calls[1]).toMatchObject(['validation.change', {
+    rule: { min: 7, max: 7, operator },
+  }])
+  expect(request).toHaveBeenCalledTimes(2)
+})
+
+test('outside range shows two boundaries and list hides comparison controls', async () => {
+  setup(); await click('Data validation'); await change('Condition', 'not-between')
+  expect(screen.getByLabelText('Minimum')).toBeVisible()
+  expect(screen.getByLabelText('Maximum')).toBeVisible()
+  expect(screen.getByText(/Both boundaries are excluded/)).toBeVisible()
+  await change('Allow', 'list')
+  expect(screen.queryByLabelText('Condition')).toBeNull()
+  expect(screen.queryByText(/Both boundaries are excluded/)).toBeNull()
 })

@@ -1,7 +1,7 @@
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useId, useLayoutEffect, useRef } from 'react'
 import { editingSessionAtom, nativeDataValidationPanelAtom, runNativeDataValidationAtom,
-  type NativeDataValidationRule } from '@einfach/spreadsheet-ui-core'
+  type NativeDataValidationOperator, type NativeDataValidationRule } from '@einfach/spreadsheet-ui-core'
 import { cycleDialogFocus } from './dialog-focus'
 import './data-validation-panel.css'
 
@@ -14,6 +14,13 @@ export function DataValidationTools() {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const id = useId()
   const open = state.sheetId !== null
+  const temporal = state.kind === 'date' || state.kind === 'time'
+  const twoBounds = state.operator === 'between' || state.operator === 'not-between'
+  const boundHint = state.kind === 'date' ? 'YYYY-MM-DD' : state.kind === 'time' ? 'HH:mm:ss' : undefined
+  const boundHelp = state.kind === 'date' ? 'Use YYYY-MM-DD.'
+    : 'Use a clock time from 00:00 to 23:59:59.'
+  const inclusiveHelp = state.kind === 'date'
+    ? ' Both dates are included.' : ' Both times are included.'
   useLayoutEffect(() => {
     const dialog = dialogRef.current
     const opener = trigger.current
@@ -42,23 +49,50 @@ export function DataValidationTools() {
             <option value="whole-number">Whole number</option>
             <option value="decimal">Decimal</option>
             <option value="list">List</option>
+            <option value="date">Date</option>
+            <option value="time">Time</option>
+            <option value="text-length">Text length</option>
           </select>
           {state.kind === 'list' ? <>
             <label htmlFor={`${id}-items`}>Items, one per line</label>
             <textarea id={`${id}-items`} value={state.items} rows={5} required
               onChange={(event) => void run({ items: event.currentTarget.value })} />
           </> : <>
-            <label htmlFor={`${id}-min`}>Minimum</label>
-            <input id={`${id}-min`} type="number" step="any" value={state.min} required
+            <label htmlFor={`${id}-operator`}>Condition</label>
+            <select id={`${id}-operator`} value={state.operator}
+              onChange={(event) => {
+                void run({ operator: event.currentTarget.value as NativeDataValidationOperator })
+              }}>
+              <option value="between">Between</option>
+              <option value="not-between">Not between</option>
+              <option value="equal">Equal to</option>
+              <option value="not-equal">Not equal to</option>
+              <option value="greater-than">Greater than</option>
+              <option value="greater-than-or-equal">Greater than or equal to</option>
+              <option value="less-than">Less than</option>
+              <option value="less-than-or-equal">Less than or equal to</option>
+            </select>
+            <label htmlFor={`${id}-min`}>{twoBounds ? 'Minimum' : 'Value'}</label>
+            <input id={`${id}-min`} type={temporal ? 'text' : 'number'} step="any"
+              placeholder={boundHint} aria-describedby={temporal ? `${id}-hint` : undefined}
+              value={state.min} required
               onChange={(event) => void run({ min: event.currentTarget.value })} />
-            <label htmlFor={`${id}-max`}>Maximum</label>
-            <input id={`${id}-max`} type="number" step="any" value={state.max} required
-              onChange={(event) => void run({ max: event.currentTarget.value })} />
+            {twoBounds && <><label htmlFor={`${id}-max`}>Maximum</label>
+            <input id={`${id}-max`} type={temporal ? 'text' : 'number'} step="any"
+              placeholder={boundHint} aria-describedby={temporal ? `${id}-hint` : undefined}
+              value={state.max} required
+              onChange={(event) => void run({ max: event.currentTarget.value })} /></>}
           </>}
           <label htmlFor={`${id}-blank`}>Ignore blank cells</label>
           <input id={`${id}-blank`} type="checkbox" checked={state.ignoreBlank}
             onChange={(event) => void run({ ignoreBlank: event.currentTarget.checked })} />
         </fieldset>
+        {temporal && <p id={`${id}-hint`}>
+          {boundHelp}{state.operator === 'between' ? inclusiveHelp : ''}
+        </p>}
+        {state.kind !== 'list' && state.operator === 'not-between' &&
+          <p>Values must be below the minimum or above the maximum.
+            Both boundaries are excluded.</p>}
         {state.error && <p role="alert">{state.error}</p>}
         {state.busy && <p role="status">Working…</p>}
         <div className="data-validation-actions">

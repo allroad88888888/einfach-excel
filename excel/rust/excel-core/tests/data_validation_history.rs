@@ -15,6 +15,7 @@ fn rule(max: f64) -> Rule {
     Rule {
         kind: Kind::WholeNumber { min: 0.0, max },
         ignore_blank: true,
+        operator: Default::default(),
     }
 }
 

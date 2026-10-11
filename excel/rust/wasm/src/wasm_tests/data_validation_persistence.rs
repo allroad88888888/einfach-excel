@@ -1,11 +1,14 @@
 // 不依赖 JS 模拟校验；序列化后必须仍由恢复出来的 Rust 规则拒绝非法输入。
 #[test]
-fn validation_roundtrip_preserves_all_three_rules_and_existing_invalid_values() {
+fn validation_roundtrip_preserves_all_six_rules_and_existing_invalid_values() {
     let mut book = WasmWorkbook::new();
     for (col, json) in [
         serde_json::json!({"kind":"whole-number", "min":1, "max":10}),
         serde_json::json!({"kind":"decimal", "min":0, "max":1, "ignoreBlank":false}),
         serde_json::json!({"kind":"list", "items":["Paid", "Pending"]}),
+        serde_json::json!({"kind":"date", "min":"2026-10-01", "max":"2026-10-31"}),
+        serde_json::json!({"kind":"time", "min":"09:00", "max":"17:00"}),
+        serde_json::json!({"kind":"text-length", "min":2, "max":4, "ignoreBlank":false}),
     ]
     .into_iter()
     .enumerate()
@@ -28,7 +31,7 @@ fn validation_roundtrip_preserves_all_three_rules_and_existing_invalid_values() 
             .as_array()
             .unwrap()
             .len(),
-        3
+        6
     );
     let mut restored = WasmWorkbook::new();
     restored
@@ -43,13 +46,60 @@ fn validation_roundtrip_preserves_all_three_rules_and_existing_invalid_values() 
         Value::Number(99.0)
     );
     assert_eq!(restored.history.undo_count(), 0);
-    for (addr, valid, invalid) in [("A1", "5", "5.5"), ("B1", "0.25", ""), ("C1", "Paid", "No")] {
+    for (addr, valid, invalid) in [("A1", "5", "5.5"), ("B1", "0.25", ""), ("C1", "Paid", "No"),
+        ("D1", "2026-10-11", "2026-11-01"), ("E1", "12:00", "18:00"), ("F1", "中文🙂", "x")] {
         restored.workbook.set_cell_input(0, addr, valid).unwrap();
         assert_eq!(
             restored.workbook.set_cell_input(0, addr, invalid),
             Err("DATA_VALIDATION_FAILED")
         );
     }
+}
+
+#[test]
+fn date_time_length_wire_rejects_bad_types_bounds_and_fractional_lengths() {
+    for bad in [
+        serde_json::json!({"kind":"date", "min":1, "max":10}),
+        serde_json::json!({"kind":"time", "min":0.0, "max":0.5}),
+        serde_json::json!({"kind":"text-length", "min":"2", "max":4}),
+    ] {
+        assert!(serde_json::from_value::<DataValidationRuleJSON>(bad).is_err());
+    }
+    for bad in [
+        serde_json::json!({"kind":"date", "min":"2026-02-29", "max":"2026-03-01"}),
+        serde_json::json!({"kind":"time", "min":"00:00", "max":"24:00"}),
+        serde_json::json!({"kind":"text-length", "min":0.5, "max":4}),
+    ] {
+        assert!(serde_json::from_value::<DataValidationRuleJSON>(bad).unwrap().into_rule().is_err());
+    }
+}
+
+#[test]
+fn comparison_operators_roundtrip_through_native_history_and_persistence() {
+    for operator in ["between", "not-between", "equal", "not-equal", "greater-than",
+        "greater-than-or-equal", "less-than", "less-than-or-equal"] {
+        let mut source = WasmWorkbook::new();
+        let json = serde_json::json!({"kind":"decimal", "min":2, "max":4,
+            "operator":operator, "ignoreBlank":false});
+        let rule = serde_json::from_value::<DataValidationRuleJSON>(json).unwrap().into_rule().unwrap();
+        source.history.set_data_validation(&mut source.workbook, 0,
+            CellRange::single(CellAddress::new(0, 0)), Some(rule.clone())).unwrap();
+        let snapshot = serde_json::to_value(source.snapshot_persistence_v1_json()).unwrap();
+        let saved = &snapshot["dataValidations"][0]["regions"][0]["rule"];
+        if operator == "between" { assert!(saved.get("operator").is_none()); }
+        else { assert_eq!(saved["operator"], operator); }
+        let mut restored = WasmWorkbook::new();
+        restored.restore_persistence_v1_json(serde_json::from_value(snapshot).unwrap()).unwrap();
+        assert_eq!(restored.workbook.sheet(0).unwrap().data_validation_at(CellAddress::new(0, 0)), Some(&rule));
+        for value in [1.0, 2.0, 3.0, 4.0, 5.0] {
+            assert_eq!(restored.workbook.set_cell_input(0, "A1", &value.to_string()).is_ok(),
+                rule.accepts(&Value::Number(value)), "{operator} / {value}");
+        }
+    }
+    for json in [
+        serde_json::json!({"kind":"decimal", "min":0, "max":1, "operator":"approximately"}),
+        serde_json::json!({"kind":"list", "items":["a"], "operator":"equal"}),
+    ] { assert!(serde_json::from_value::<DataValidationRuleJSON>(json).is_err()); }
 }
 
 #[test]
@@ -67,6 +117,7 @@ fn invalid_validation_snapshot_keeps_current_workbook_and_history() {
                     max: 10.0,
                 },
                 ignore_blank: true,
+                operator: Default::default(),
             }),
         )
         .unwrap();

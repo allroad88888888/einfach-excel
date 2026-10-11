@@ -1,5 +1,5 @@
 import { atom } from '@einfach/core'
-import type { NativeDataValidationRule } from './native-rule'
+import type { NativeDataValidationOperator, NativeDataValidationRule } from './native-rule'
 import { activeWorkbookSheetAtom } from '../runtime/workbook-document'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import type { RustWorkbookConnection } from '../rust-workbook'
@@ -14,6 +14,7 @@ import { validateProjectionResult } from '../projection/contracts'
 interface Draft {
   range: string
   kind: NativeDataValidationRule['kind']
+  operator: NativeDataValidationOperator
   min: string
   max: string
   items: string
@@ -26,7 +27,7 @@ interface Panel extends Draft {
   error: string
 }
 const CLOSED: Panel = { sheetId: null, connection: null, busy: false, error: '',
-  range: '', kind: 'whole-number', min: '0', max: '100', items: '', ignoreBlank: true }
+  range: '', kind: 'whole-number', operator: 'between', min: '0', max: '100', items: '', ignoreBlank: true }
 /** 只保留表单草稿；已有规则每次打开时向 Rust 读取。 */
 export const nativeDataValidationPanelAtom = atom<Panel>(CLOSED)
 
@@ -75,7 +76,7 @@ export const runNativeDataValidationAtom = atom(null, async (get, set,
       set(nativeDataValidationPanelAtom, { ...pending, busy: false,
         ...(rule ? { kind: rule.kind, ignoreBlank: rule.ignoreBlank,
           ...(rule.kind === 'list' ? { items: rule.items.join('\n') }
-            : { min: String(rule.min), max: String(rule.max) }) } : {}),
+            : { min: String(rule.min), max: String(rule.max), operator: rule.operator ?? 'between' }) } : {}),
         error: pending.range ? '' : 'Choose one continuous range.',
       })
       return true
@@ -84,7 +85,13 @@ export const runNativeDataValidationAtom = atom(null, async (get, set,
   if (state.sheetId !== sheet.id || state.connection !== connection)
     return fail('The workbook changed. Close and reopen Data validation.')
   if (typeof action === 'object') {
-    set(nativeDataValidationPanelAtom, { ...state, ...action, error: '' })
+    // 类型变化仅重置表单边界，不在 UI Core 把日期换算成工作簿数值。
+    const defaults = action.kind && action.kind !== state.kind
+      ? action.kind === 'date' ? { min: '1900-01-01', max: '9999-12-31' }
+        : action.kind === 'time' ? { min: '00:00', max: '23:59:59' }
+          : { min: '0', max: action.kind === 'decimal' ? '1' : '100' }
+      : {}
+    set(nativeDataValidationPanelAtom, { ...state, ...defaults, ...action, error: '' })
     return true
   }
   if (get(editingSessionAtom).source || get(rustHistoryPanelAtom).busy)
@@ -96,12 +103,18 @@ export const runNativeDataValidationAtom = atom(null, async (get, set,
     ? { rowStart: cell.row, rowEnd: cell.row, colStart: cell.col, colEnd: cell.col } : null)
   if (!range || range.rowEnd >= sheet.rowCount || range.colEnd >= sheet.colCount)
     return fail('Enter a cell or range inside this worksheet, for example A1:A100.')
-  if (action === 'save' && state.kind !== 'list' && (!state.min.trim() || !state.max.trim()))
-    return fail('Enter both minimum and maximum.')
+  const twoBounds = state.operator === 'between' || state.operator === 'not-between'
+  if (action === 'save' && state.kind !== 'list' && (!state.min.trim() || (twoBounds && !state.max.trim())))
+    return fail(twoBounds ? 'Enter both minimum and maximum.' : 'Enter the comparison value.')
+  // 单值条件只提交可见输入，不让隐藏的旧 maximum 参与规则定义。
+  const max = twoBounds ? state.max : state.min
+  const comparison = state.operator === 'between' ? {} : { operator: state.operator }
   const rule: NativeDataValidationRule | null = action === 'clear' ? null
     : state.kind === 'list' ? { kind: 'list', items: state.items.split(/\r?\n/),
       ignoreBlank: state.ignoreBlank }
-      : { kind: state.kind, min: Number(state.min), max: Number(state.max),
+      : state.kind === 'date' || state.kind === 'time'
+        ? { kind: state.kind, min: state.min, max, ...comparison, ignoreBlank: state.ignoreBlank }
+      : { kind: state.kind, min: Number(state.min), max: Number(max), ...comparison,
         ignoreBlank: state.ignoreBlank }
   const witness = get(projectionSnapshotAtom)
   const visible = witness.request

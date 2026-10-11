@@ -132,3 +132,68 @@ for (const width of [1280, 390]) test(`validation form fits ${width}px`, async (
   await button(page, 'Cancel').click()
   expect(errors).toEqual([])
 })
+
+for (const [kind, reference, coord, original, minimum, valid, invalid] of [
+  ['date', 'H49', '48:7', '2026-10-11', '2026-10-01', '2026-10-31', '2026-11-01'],
+  ['time', 'H50', '49:7', '12:00', '09:00', '17:00', '18:00'],
+  ['text-length', 'H51', '50:7', '中文🙂', '2', 'four', 'x'],
+]) test(`${kind} native seed enforces bounds and accepted input is undoable`, async ({ page }) => {
+  await go(page, reference)
+  await expect(cell(page, coord)).toHaveText(original)
+  await open(page)
+  await expect(page.getByLabel('Allow')).toHaveValue(kind)
+  await expect(page.getByLabel('Minimum')).toHaveValue(minimum)
+  await button(page, 'Cancel').click()
+  await write(page, invalid)
+  await expect(page.getByRole('alert')).toContainText('data validation rule')
+  await expect(cell(page, coord)).toHaveText(original)
+  await expect(bar(page)).toHaveValue(invalid)
+  await expect(button(page, 'Undo')).toBeDisabled()
+  await write(page, valid)
+  await expect(cell(page, coord)).toHaveText(valid)
+  await button(page, 'Undo').click()
+  await expect(cell(page, coord)).toHaveText(original)
+  await button(page, 'Redo').click()
+  await expect(cell(page, coord)).toHaveText(valid)
+})
+
+test('bad date and time bounds stay correctable without creating history', async ({ page }) => {
+  await go(page, 'D45'); await open(page)
+  for (const [kind, min, max] of [
+    ['date', '2026-02-29', '2026-03-01'], ['time', '00:00', '24:00'],
+  ]) {
+    await page.getByLabel('Allow').selectOption(kind)
+    await page.getByLabel('Minimum').fill(min)
+    await page.getByLabel('Maximum').fill(max)
+    await button(page, 'Apply').click()
+    await expect(dialog(page).getByRole('alert')).toBeVisible()
+    await expect(page.getByLabel('Maximum')).toHaveValue(max)
+  }
+  await page.getByLabel('Maximum').fill('17:00')
+  await button(page, 'Apply').click(); await expect(dialog(page)).toHaveCount(0)
+  await write(page, '12:00'); await expect(cell(page, '44:3')).toHaveText('12:00')
+  await button(page, 'Undo').click(); await expect(cell(page, '44:3')).toHaveText('')
+  await button(page, 'Undo').click(); await expect(button(page, 'Undo')).toBeDisabled()
+  await open(page); await expect(page.getByLabel('Allow')).toHaveValue('whole-number')
+})
+
+test('length zero permits clearing when blank cells are not ignored', async ({ page }) => {
+  await go(page, 'H51'); await open(page)
+  await page.getByLabel('Minimum').fill('0')
+  await button(page, 'Apply').click(); await expect(dialog(page)).toHaveCount(0)
+  await write(page, ''); await expect(cell(page, '50:7')).toHaveText('')
+  await button(page, 'Undo').click(); await expect(cell(page, '50:7')).toHaveText('中文🙂')
+})
+
+for (const width of [1280, 390]) test(`date validation form fits ${width}px`, async ({ page }, info) => {
+  const errors: string[] = []
+  page.on('pageerror', (error) => errors.push(error.message))
+  await page.setViewportSize({ width, height: 800 })
+  await go(page, 'H49'); await open(page)
+  await expect(page.getByLabel('Minimum')).toHaveValue('2026-10-01')
+  await expect(page.getByText('Use YYYY-MM-DD. Both dates are included.')).toBeVisible()
+  expect(await dialog(page).evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true)
+  await page.screenshot({ path: info.outputPath(`date-validation-${width}.png`), fullPage: true })
+  await button(page, 'Cancel').click()
+  expect(errors).toEqual([])
+})

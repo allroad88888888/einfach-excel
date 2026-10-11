@@ -18,6 +18,7 @@ fn install(book: &mut Workbook, address: &str, kind: Kind) {
             Some(Rule {
                 kind,
                 ignore_blank: true,
+                operator: Default::default(),
             }),
         )
         .unwrap();

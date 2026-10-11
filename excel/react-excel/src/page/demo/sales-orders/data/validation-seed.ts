@@ -1,6 +1,6 @@
 import type { RustImportCell, RustWorkbookSheetInput } from '@einfach/spreadsheet-ui-core'
 
-/** H45:H47 分别演示整数、小数、列表；规则与初始值都交给 Rust。 */
+/** H45:H47 基础、H49:H51 类型、H53:H55 比较条件，均交给 Rust 初始化。 */
 export const SUMMARY_VALIDATION_CELLS: readonly RustImportCell[] = [
   { sheet: 1, row: 44, col: 5, kind: 'text', value: 'Integer 1–10' },
   { sheet: 1, row: 45, col: 5, kind: 'text', value: 'Decimal 0–1' },
@@ -8,6 +8,20 @@ export const SUMMARY_VALIDATION_CELLS: readonly RustImportCell[] = [
   { sheet: 1, row: 44, col: 7, kind: 'number', value: 5 },
   { sheet: 1, row: 45, col: 7, kind: 'number', value: 0.5 },
   { sheet: 1, row: 46, col: 7, kind: 'text', value: 'Ready' },
+  { sheet: 1, row: 48, col: 5, kind: 'text', value: 'October dates' },
+  { sheet: 1, row: 49, col: 5, kind: 'text', value: '09:00–17:00' },
+  { sheet: 1, row: 50, col: 5, kind: 'text', value: '2–4 characters' },
+  { sheet: 1, row: 48, col: 7, kind: 'formula', value: '=DATE(2026,10,11)',
+    format: { numberFormat: { kind: 'date', pattern: 'yyyy-mm-dd' } } },
+  { sheet: 1, row: 49, col: 7, kind: 'number', value: 0.5,
+    format: { numberFormat: { kind: 'time', pattern: 'h:mm' } } },
+  { sheet: 1, row: 50, col: 7, kind: 'text', value: '中文🙂' },
+  { sheet: 1, row: 52, col: 5, kind: 'text', value: 'Equal to 5' },
+  { sheet: 1, row: 53, col: 5, kind: 'text', value: 'At least 10' },
+  { sheet: 1, row: 54, col: 5, kind: 'text', value: 'Outside 2–4' },
+  { sheet: 1, row: 52, col: 7, kind: 'number', value: 5 },
+  { sheet: 1, row: 53, col: 7, kind: 'number', value: 12 },
+  { sheet: 1, row: 54, col: 7, kind: 'number', value: 5 },
 ]
 export const SUMMARY_VALIDATIONS: RustWorkbookSheetInput['dataValidations'] = [
   { range: { rowStart: 44, rowEnd: 44, colStart: 7, colEnd: 7 },
@@ -16,4 +30,16 @@ export const SUMMARY_VALIDATIONS: RustWorkbookSheetInput['dataValidations'] = [
     rule: { kind: 'decimal', min: 0, max: 1, ignoreBlank: true } },
   { range: { rowStart: 46, rowEnd: 46, colStart: 7, colEnd: 7 },
     rule: { kind: 'list', items: ['Ready', 'On hold', '001', '=1+2'], ignoreBlank: true } },
+  { range: { rowStart: 48, rowEnd: 48, colStart: 7, colEnd: 7 },
+    rule: { kind: 'date', min: '2026-10-01', max: '2026-10-31', ignoreBlank: true } },
+  { range: { rowStart: 49, rowEnd: 49, colStart: 7, colEnd: 7 },
+    rule: { kind: 'time', min: '09:00', max: '17:00', ignoreBlank: true } },
+  { range: { rowStart: 50, rowEnd: 50, colStart: 7, colEnd: 7 },
+    rule: { kind: 'text-length', min: 2, max: 4, ignoreBlank: false } },
+  { range: { rowStart: 52, rowEnd: 52, colStart: 7, colEnd: 7 },
+    rule: { kind: 'whole-number', min: 5, max: 5, operator: 'equal', ignoreBlank: true } },
+  { range: { rowStart: 53, rowEnd: 53, colStart: 7, colEnd: 7 },
+    rule: { kind: 'decimal', min: 10, max: 10, operator: 'greater-than-or-equal', ignoreBlank: true } },
+  { range: { rowStart: 54, rowEnd: 54, colStart: 7, colEnd: 7 },
+    rule: { kind: 'whole-number', min: 2, max: 4, operator: 'not-between', ignoreBlank: true } },
 ]

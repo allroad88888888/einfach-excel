@@ -50,6 +50,20 @@ fn table_headers_insert_checks_the_view_canvas_and_keeps_the_original_row() {
     })).unwrap();
     book.apply_table_action(0, action(false, 10)).unwrap();
     book.workbook.set_cell(0, "A1", Value::Text("Keep outside".into()));
+    book.workbook.define_named_range("Body", 0,
+        CellRange::new(CellAddress::new(1, 1), CellAddress::new(3, 1))).unwrap();
+    book.workbook.add_sheet("Report");
+    book.workbook.set_formula(1, "A1", "=Body");
+    book.workbook.set_cell(0, "A6", Value::Text("Qty".into()));
+    book.workbook.set_cell(0, "B6", Value::Text("Amount".into()));
+    book.workbook.set_cell(0, "B7", Value::Number(10.));
+    book.workbook.set_cell(0, "B8", Value::Number(12.));
+    book.workbook.define_table(Some("LowerOrders"), 0,
+        CellRange::new(CellAddress::new(5, 0), CellAddress::new(7, 1)), true).unwrap();
+    book.workbook.set_formula(1, "D1", "=LowerOrders[Amount]");
+    book.workbook.apply_filter_range(0,
+        CellRange::new(CellAddress::new(5, 0), CellAddress::new(7, 1)),
+        &[ColumnFilterRule::Range { col_index: 1, min: Some(11.), max: None }]).unwrap();
     let before = serde_json::to_value(book.snapshot_persistence_v1_json()).unwrap();
     assert!(book.apply_table_action(0, action(true, 4)).unwrap_err().contains("outside"));
     assert_eq!(serde_json::to_value(book.snapshot_persistence_v1_json()).unwrap(), before);
@@ -58,6 +72,23 @@ fn table_headers_insert_checks_the_view_canvas_and_keeps_the_original_row() {
     assert_eq!(book.workbook.get_cell("Sheet1", "A1"), Value::Text("Keep outside".into()));
     assert_eq!(book.workbook.get_cell("Sheet1", "A2"), Value::Text("Name".into()));
     assert_eq!(book.workbook.get_cell("Sheet1", "B3"), Value::Number(1.));
+    let snapshot = serde_json::to_value(book.snapshot_persistence_v1_json()).unwrap();
+    let mut restored = WasmWorkbook::new();
+    restored.restore_persistence_v1_json(serde_json::from_value(snapshot).unwrap()).unwrap();
+    assert_eq!(restored.workbook.get_table("LowerOrders").unwrap().range(),
+        CellRange::new(CellAddress::new(6, 0), CellAddress::new(8, 1)));
+    assert_eq!(restored.workbook.get_cell("Report", "D2"), Value::Number(12.));
+    assert_eq!(restored.workbook.filter_range(0),
+        Some(CellRange::new(CellAddress::new(6, 0), CellAddress::new(8, 1))));
+    assert_eq!(restored.workbook.filter_hidden_rows(0), vec![7]);
+    restored.workbook.set_cell(0, "B9", Value::Number(18.));
+    assert_eq!(restored.workbook.get_cell("Report", "D2"), Value::Number(18.));
+    assert_eq!(restored.workbook.named_range("Body").unwrap().unwrap().1,
+        CellRange::new(CellAddress::new(2, 1), CellAddress::new(4, 1)));
+    assert_eq!(restored.workbook.get_cell("Report", "A2"),
+        book.workbook.get_cell("Sheet1", "B4"));
+    restored.workbook.set_cell(0, "B4", Value::Number(8.));
+    assert_eq!(restored.workbook.get_cell("Report", "A2"), Value::Number(8.));
     book.history.undo(&mut book.workbook).unwrap();
     assert_eq!(serde_json::to_value(book.snapshot_persistence_v1_json()).unwrap(), before);
 }

@@ -150,6 +150,8 @@ impl TableDefinitionChange {
             lambdas,
             cells,
             filter: None,
+            named_ranges: Vec::new(),
+            shifted_tables: Vec::new(),
         }))
     }
 }

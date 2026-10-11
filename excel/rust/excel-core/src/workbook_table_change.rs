@@ -25,6 +25,8 @@ mod convert;
 mod calculated_input;
 #[path = "workbook_table_headers.rs"]
 mod headers;
+#[path = "workbook_table_registry_change.rs"]
+mod registry;
 
 #[derive(Debug)]
 pub(crate) struct TableDefinitionChange {
@@ -35,6 +37,8 @@ pub(crate) struct TableDefinitionChange {
     formulas: Vec<FormulaSourceChange>,
     rules: Vec<FormulaRuleChange>,
     lambdas: Vec<FormulaLambdaChange>,
+    named_ranges: Vec<NamedRangeShift>,
+    shifted_tables: Vec<(TableEntry, TableEntry)>,
     // 范围调整可同时触及表头与远处汇总行，只保存这些不相交的局部区域。
     cells: Vec<(HistorySnapshot, HistorySnapshot)>,
     // 表头关闭时只移除属于该表的筛选；与定义和单元格一起回放。
@@ -79,6 +83,8 @@ impl TableDefinitionChange {
             lambdas,
             cells: Vec::new(),
             filter: None,
+            named_ranges: Vec::new(),
+            shifted_tables: Vec::new(),
         }))
     }
 
@@ -103,29 +109,7 @@ impl TableDefinitionChange {
         } else {
             (Some(&self.before), self.after.as_ref())
         };
-        let old_key = expected.map(|entry| entry.name().to_ascii_uppercase());
-        let lookup_key = old_key
-            .clone()
-            .unwrap_or_else(|| self.before.name().to_ascii_uppercase());
-        if workbook.tables.get(&lookup_key) != expected
-            || workbook.name(self.sheet) != Some(self.before.sheet_name())
-        {
-            return Err("The table changed outside history.");
-        }
-        if let Some(next) = next {
-            workbook
-                .validate_table_name(next.name(), old_key.as_deref())
-                .map_err(|_| "The table name is no longer available.")?;
-            if (old_key.is_none() && workbook.tables.len() >= MAX_TABLES)
-                || workbook.tables.iter().any(|(key, entry)| {
-                    Some(key) != old_key.as_ref()
-                        && entry.sheet_name() == next.sheet_name()
-                        && entry.range().intersects(next.range())
-                })
-            {
-                return Err("The table range or registry capacity is no longer available.");
-            }
-        }
+        self.validate_tables(workbook, undo)?;
         for formula in &self.formulas {
             formula.validate(workbook, undo)?;
         }
@@ -135,6 +119,7 @@ impl TableDefinitionChange {
         for lambda in &self.lambdas {
             lambda.validate(workbook, undo)?;
         }
+        workbook.validate_named_range_restore(self.sheet, &self.named_ranges, undo)?;
         if let Some((before, after)) = &self.filter {
             let expected = if undo { after } else { before };
             if workbook.sheets[self.sheet].filter() != expected.as_ref() {
@@ -182,7 +167,7 @@ impl TableDefinitionChange {
             // 计算列覆盖多行；按所有实际写入格的依赖收集，不能只看首行。
             arrays.extend(workbook.array_dependents_for_range(self.sheet, cells.range));
         }
-        if !self.lambdas.is_empty() {
+        if !self.lambdas.is_empty() || !self.named_ranges.is_empty() {
             arrays.extend(workbook.named_array_dependents());
         }
         let observers: Vec<_> = workbook
@@ -193,18 +178,23 @@ impl TableDefinitionChange {
         let store = workbook.store.clone();
         let mut result = Ok(());
         store.batch(|_| {
+            for change in &self.named_ranges { change.apply(workbook, undo); }
+            for lambda in &self.lambdas { lambda.apply(workbook, undo); }
+            if !self.named_ranges.is_empty() || !self.lambdas.is_empty() {
+                workbook.publish_atom_names();
+            }
             if let Some((before, after)) = &self.filter {
                 workbook.sheets[self.sheet].commit_filter_state(if undo { before } else { after }.clone());
                 workbook.republish_hidden(self.sheet);
             }
             if definition_changed {
-                if let Some(key) = old_key {
-                    workbook.tables.remove(&key);
-                }
-                if let Some(next) = next {
-                    workbook
-                        .tables
-                        .insert(next.name().to_ascii_uppercase(), next.clone());
+                for (expected, next) in self.table_definitions(undo) {
+                    if let Some(expected) = expected {
+                        workbook.tables.remove(&expected.name().to_ascii_uppercase());
+                    }
+                    if let Some(next) = next {
+                        workbook.tables.insert(next.name().to_ascii_uppercase(), next.clone());
+                    }
                 }
                 // 新定义先可见，安装重写后的公式时不会经历一次不存在的表名。
                 if geometry_changed { workbook.sync_atom_tables(); }
@@ -216,12 +206,6 @@ impl TableDefinitionChange {
             }
             for rule in &self.rules {
                 rule.apply(workbook, undo);
-            }
-            for lambda in &self.lambdas {
-                lambda.apply(workbook, undo);
-            }
-            if !self.lambdas.is_empty() {
-                workbook.publish_atom_names();
             }
             for formula in &self.formulas {
                 formula.apply(workbook, undo);
@@ -257,6 +241,8 @@ impl TableDefinitionChange {
             + crate::sheet::metadata_bytes(&self.rules)
             + crate::sheet::metadata_bytes(&self.lambdas)
             + crate::sheet::metadata_bytes(&self.filter)
+            + crate::sheet::metadata_bytes(&self.shifted_tables)
+            + self.named_ranges.iter().map(NamedRangeShift::retained_bytes).sum::<usize>()
             + self.cells.iter().map(|(before, after)| {
                 before.retained_bytes() + after.retained_bytes()
             }).sum::<usize>()

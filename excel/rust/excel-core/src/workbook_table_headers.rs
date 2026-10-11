@@ -57,7 +57,7 @@ impl TableDefinitionChange {
         } else { None };
         let change = Self { sheet, range, before, after: Some(after),
             formulas: Vec::new(), rules: Vec::new(), lambdas: Vec::new(),
-            cells: vec![(original, next)], filter };
+            cells: vec![(original, next)], named_ranges: Vec::new(), shifted_tables: Vec::new(), filter };
         if change.retained_bytes() > MAX_BYTES {
             return Err("Changing table headers exceeds the 32 MiB undo budget.".into());
         }

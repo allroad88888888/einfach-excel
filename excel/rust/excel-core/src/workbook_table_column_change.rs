@@ -99,6 +99,8 @@ impl TableDefinitionChange {
             lambdas,
             cells: cells.into_iter().collect(),
             filter: None,
+            named_ranges: Vec::new(),
+            shifted_tables: Vec::new(),
         }))
     }
 }

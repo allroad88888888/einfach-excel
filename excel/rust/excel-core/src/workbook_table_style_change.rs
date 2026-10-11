@@ -33,6 +33,8 @@ impl TableDefinitionChange {
             lambdas: Vec::new(),
             cells: Vec::new(),
             filter: None,
+            named_ranges: Vec::new(),
+            shifted_tables: Vec::new(),
         }))
     }
 }

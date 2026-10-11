@@ -83,6 +83,8 @@ impl TableDefinitionChange {
             formulas: Vec::new(), rules: Vec::new(), lambdas: Vec::new(),
             cells: vec![(before_cells, after_cells)],
             filter: None,
+            named_ranges: Vec::new(),
+            shifted_tables: Vec::new(),
         }))
     }
 

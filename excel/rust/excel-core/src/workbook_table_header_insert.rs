@@ -14,18 +14,32 @@ pub(super) fn prepare(
         return Err("The header insertion would move the table outside this worksheet.".into());
     }
     // 交叉元数据位移尚未接完时，先在任何写入前拒绝，不能静默留下旧坐标。
-    if workbook.tables.values().any(|table| table.name() != before.name()
-        && table.sheet_name() == before.sheet_name() && table.range().intersects(range))
-        || target.data_validations().iter().any(|entry| entry.range.intersects(range))
+    if target.data_validations().iter().any(|entry| entry.range.intersects(range))
         || workbook.conditional_formats[sheet].rules.iter().any(|entry|
             CellRange::new(CellAddress::new(entry.row_start, entry.col_start),
-                CellAddress::new(entry.row_end, entry.col_end)).intersects(range))
-        || target.filter().is_some_and(|filter| filter.range().is_none_or(|bounds| bounds.intersects(range)))
-        || workbook.named_values.values().any(|entry| matches!(entry.definition,
-            NamedDefinition::Range { sheet_key, range: Some(bounds) }
-                if Some(sheet_key) == workbook.sheet_key(sheet) && bounds.intersects(range))) {
-        return Err("Header insertion across tables, ranges or rules is not supported yet.".into());
+                CellAddress::new(entry.row_end, entry.col_end)).intersects(range)) {
+        return Err("Header insertion across validation or conditional-format rules is not supported yet.".into());
     }
+    let filter = match target.filter() {
+        Some(before) => before.after_row_band_insert(row, columns, row_count)?
+            .map(|after| (Some(before.clone()), Some(after))),
+        None => None,
+    };
+    let mut shifted_tables = Vec::new();
+    for table in workbook.tables.values().filter(|table| table.name() != before.name()
+        && table.sheet_name() == before.sheet_name() && table.range().intersects(range)) {
+        if table.range.start.col < columns.0 || table.range.end.col > columns.1 {
+            return Err("The header insertion would split another table's columns.".into());
+        }
+        if table.range.end.row + 1 >= row_count {
+            return Err("The header insertion would move another table outside this worksheet.".into());
+        }
+        let mut moved = table.clone();
+        moved.range.start.row += 1;
+        moved.range.end.row += 1;
+        shifted_tables.push((table.clone(), moved));
+    }
+    let named_ranges = workbook.named_ranges_for_row_band_insert(sheet, row, columns, row_count)?;
     let original = HistorySnapshot::capture(target, range, true);
     if original.cells.as_ref().unwrap().iter().any(|cell| cell.addr.row + 1 >= row_count)
         || original.formats.cell_styles.iter().any(|(addr, _)| addr.row + 1 >= row_count) {
@@ -59,16 +73,21 @@ pub(super) fn prepare(
     });
     FormulaSourceChange::fold_table(&mut formulas, &before, Some(&mut after));
     // 标准公式的引用与原点同时随单元格移动，否则随后扩表会多偏移一行。
-    for formula in after.calculated_columns.iter_mut().flatten() {
-        if formula.row() >= row {
-            *formula = crate::TableColumnFormula::new(formula.row() + 1, formula.formula())?;
+    for (old, moved) in &mut shifted_tables {
+        FormulaSourceChange::fold_table(&mut formulas, old, Some(moved));
+    }
+    for table in std::iter::once(&mut after).chain(shifted_tables.iter_mut().map(|(_, moved)| moved)) {
+        for formula in table.calculated_columns.iter_mut().flatten() {
+            if formula.row() >= row {
+                *formula = crate::TableColumnFormula::new(formula.row() + 1, formula.formula())?;
+            }
         }
     }
     let rules = FormulaRuleChange::prepare(workbook, &|owner, _, expr| rewrite(owner, expr));
     let lambdas = FormulaLambdaChange::prepare(workbook, &|expr|
         rewrite_row_band_insert(expr, before.sheet_name(), false, row, columns));
     let change = TableDefinitionChange { sheet, range: after.range, before, after: Some(after),
-        cells: vec![(original, next)], formulas, rules, lambdas, filter: None };
+        cells: vec![(original, next)], formulas, rules, lambdas, named_ranges, shifted_tables, filter };
     if change.retained_bytes() > MAX_BYTES {
         return Err("Changing table headers exceeds the 32 MiB undo budget.".into());
     }

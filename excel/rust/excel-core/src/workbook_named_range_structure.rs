@@ -14,9 +14,31 @@ impl NamedRangeShift {
     pub(super) fn retained_bytes(&self) -> usize {
         self.name.len() + std::mem::size_of::<Self>()
     }
+
+    /// 原生事务已完成身份校验；调用方统一发布名称 epoch 和数组投影。
+    pub(super) fn apply(&self, workbook: &mut Workbook, undo: bool) {
+        let entry = workbook.named_values.get_mut(&self.name).expect("validated named range");
+        let NamedDefinition::Range { range, .. } = &mut entry.definition else {
+            unreachable!("validated named range")
+        };
+        *range = if undo { self.before } else { self.after };
+    }
 }
 
 impl Workbook {
+    /// 局部插行沿用引用的完整列带规则；宽于列带、整列和其它表的名称不移动。
+    pub(super) fn named_ranges_for_row_band_insert(
+        &self, sheet: usize, row: u32, columns: (u32, u32), row_count: u32,
+    ) -> Result<Vec<NamedRangeShift>, &'static str> {
+        let changes: Vec<_> = self.shifted_named_ranges(sheet, ShiftEdit::RowInsert { at: row, count: 1 })
+            .into_iter().filter(|change| change.before.is_some_and(|range|
+                columns.0 <= range.start.col && range.end.col <= columns.1)).collect();
+        if changes.iter().any(|change| change.after.is_none_or(|range| range.end.row >= row_count)) {
+            return Err("The header insertion would move a named range outside this worksheet.");
+        }
+        Ok(changes)
+    }
+
     pub(super) fn shifted_named_ranges(
         &self,
         sheet: usize,
@@ -109,14 +131,7 @@ impl Workbook {
             return;
         }
         for change in changes {
-            let entry = self
-                .named_values
-                .get_mut(&change.name)
-                .expect("validated named range");
-            let NamedDefinition::Range { range, .. } = &mut entry.definition else {
-                unreachable!("validated named range")
-            };
-            *range = if undo { change.before } else { change.after };
+            change.apply(self, undo);
         }
         self.sync_atom_names();
     }

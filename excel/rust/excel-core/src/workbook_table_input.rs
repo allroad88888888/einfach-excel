@@ -93,13 +93,19 @@ impl TableDefinitionChange {
         if self.before.has_headers && addr.row == self.before.range.start.row {
             return self.apply(workbook, false).map_err(str::to_string);
         }
-        let before =
-            HistorySnapshot::capture(&workbook.sheets[self.sheet], CellRange::single(addr), true);
+        let inherited_row = addr.row > self.before.range.end.row
+            && self.before.calculated_columns.iter().any(Option::is_some);
+        let input_range = if inherited_row {
+            CellRange::new(CellAddress::new(addr.row, self.before.range.start.col),
+                CellAddress::new(addr.row, self.before.range.end.col))
+        } else { CellRange::single(addr) };
+        let before = HistorySnapshot::capture(&workbook.sheets[self.sheet], input_range, true);
         let mut roots = workbook.atom_context.table_dependent_atoms();
         roots.extend(workbook.sheets[self.sheet].store_root_atoms_for_addr(addr));
         let dependents = workbook.store.reverse_dependents(&roots);
         let mut arrays = workbook.array_dependents_for_atoms(&roots);
         arrays.extend(workbook.array_dependents_for_atoms(&dependents));
+        if inherited_row { arrays.extend(workbook.array_dependents_for_range(self.sheet, input_range)); }
         let observers: Vec<_> = workbook
             .sheets
             .iter_mut()
@@ -120,6 +126,28 @@ impl TableDefinitionChange {
                     .is_some()
             {
                 result = Err("Spilled arrays cannot be entered inside a table.");
+            }
+            let mut changed = vec![addr];
+            if result.is_ok() && inherited_row {
+                result = self.before.calculated_columns.iter().enumerate().try_for_each(|(offset, formula)| {
+                    let Some(formula) = formula else { return Ok(()); };
+                    let target = CellAddress::new(addr.row, self.before.range.start.col + offset as u32);
+                    // 手工输入优先；扩进范围的已有数据同样保留，不把它当空格覆盖。
+                    if target == addr || workbook.sheets[self.sheet].formula_text_at(target).is_some()
+                        || workbook.sheets[self.sheet].peek_value(target) != Value::Null {
+                        return Ok(());
+                    }
+                    workbook.set_table_formula(self.sheet, target, &formula.formula_at(addr.row)?)?;
+                    changed.push(target);
+                    Ok(())
+                });
+                if result.is_ok() {
+                    result = changed.iter().try_for_each(|target| {
+                        let value = crate::sheet::collapse_array_for_eval(
+                            workbook.sheets[self.sheet].peek_value(*target));
+                        workbook.validate_input_value(self.sheet, *target, &value)
+                    });
+                }
             }
             if result.is_err() {
                 before

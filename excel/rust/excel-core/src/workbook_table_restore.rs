@@ -37,7 +37,9 @@ impl Workbook {
             }
 
             let range = entry.range.normalize();
-            if entry.columns.len() as u32 != range.cols() {
+            if entry.columns.len() as u32 != range.cols()
+                || (!entry.calculated_columns.is_empty()
+                    && entry.calculated_columns.len() != entry.columns.len()) {
                 return Err(TableError::MalformedSnapshot);
             }
             if next
@@ -57,6 +59,7 @@ impl Workbook {
                     has_totals: entry.has_totals,
                     columns: entry.columns,
                     style: entry.style,
+                    calculated_columns: entry.calculated_columns,
                 },
             );
         }

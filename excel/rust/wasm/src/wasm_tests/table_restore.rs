@@ -39,6 +39,7 @@ fn wasm_table_restore_surfaces_engine_error_ids_and_parse_failures() {
             has_totals: false,
             columns: vec!["only-one".into()],
             style: Default::default(),
+            calculated_columns: Vec::new(),
         }],
     };
     assert_eq!(
@@ -58,6 +59,7 @@ fn wasm_table_restore_surfaces_engine_error_ids_and_parse_failures() {
             has_totals: false,
             columns: vec!["a".into()],
             style: Default::default(),
+            calculated_columns: Vec::new(),
         }],
     };
     assert!(wb

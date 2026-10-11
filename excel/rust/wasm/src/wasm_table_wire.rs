@@ -13,6 +13,8 @@ struct TableJSON {
     columns: Vec<String>,
     #[serde(default)]
     style: einfach_excel_core::TableStyle,
+    #[serde(rename = "calculatedColumns", default, skip_serializing_if = "Vec::is_empty")]
+    calculated_columns: Vec<Option<einfach_excel_core::TableColumnFormula>>,
 }
 
 impl TableJSON {
@@ -31,6 +33,7 @@ impl TableJSON {
             has_totals: entry.has_totals(),
             columns: entry.columns().to_vec(),
             style: entry.style(),
+            calculated_columns: entry.calculated_columns().to_vec(),
         }
     }
 
@@ -55,7 +58,7 @@ impl TableJSON {
             self.has_headers,
             self.has_totals,
             self.columns,
-        ).with_style(self.style))
+        ).with_style(self.style).with_calculated_columns(self.calculated_columns))
     }
 }
 

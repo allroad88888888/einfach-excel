@@ -50,6 +50,8 @@ pub use cell::CellAddress;
 pub use cell_style::{CellStyle, RowStyle, StyleScope};
 mod table_style;
 pub use table_style::{TableStyle, TableStylePreset};
+mod table_column_formula;
+pub use table_column_formula::TableColumnFormula;
 pub use csv::{export_csv, import_csv, parse_csv, to_csv};
 pub use eval::{
     eval_expr, is_builtin_function_name, CustomFunctionRegistry, EvalProvider,

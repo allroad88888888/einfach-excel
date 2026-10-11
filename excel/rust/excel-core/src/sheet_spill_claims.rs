@@ -325,7 +325,7 @@ impl Sheet {
     /// depends on that: it must be able to answer "who is blocking you" for a
     /// million-cell array too, which is exactly the case that registers no
     /// claims.
-    pub(super) fn blocked_anchor_shape(&self, anchor: CellAddress) -> Option<(u32, u32)> {
+    pub(crate) fn blocked_anchor_shape(&self, anchor: CellAddress) -> Option<(u32, u32)> {
         self.spill_blocked.shape_of(anchor)
     }
 

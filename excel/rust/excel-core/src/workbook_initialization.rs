@@ -83,6 +83,16 @@ impl Workbook {
             .collect()
     }
 
+    /// 局部批量写入只收集该范围的实际 atom 依赖，用于提交/撤销后的数组重投。
+    pub(super) fn array_dependents_for_range(
+        &self, sheet: usize, range: CellRange,
+    ) -> Vec<(usize, HashSet<CellAddress>)> {
+        let roots: Vec<_> = range.iter()
+            .flat_map(|addr| self.sheets[sheet].store_root_atoms_for_addr(addr)).collect();
+        let dependents = self.store.reverse_dependents(&roots);
+        self.array_dependents_for_atoms(&dependents)
+    }
+
     /// Push the current Table registry into the atom context so the
     /// formula-inner provider can resolve structured references (design doc
     /// #32 §5.3). Called from `bump_tables_epoch`, i.e. after every registry

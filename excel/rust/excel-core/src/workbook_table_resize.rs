@@ -42,6 +42,14 @@ impl TableDefinitionChange {
         let mut after = before.clone();
         after.range = range;
         after.columns.clear();
+        // 按工作表列坐标保留标准公式；新列为空，缩掉的列不留下错位定义。
+        if !before.calculated_columns.is_empty() {
+            after.calculated_columns = (range.start.col..=range.end.col).map(|col| {
+                col.checked_sub(before.range.start.col)
+                    .and_then(|offset| before.calculated_columns.get(offset as usize))
+                    .cloned().flatten()
+            }).collect();
+        }
         // 先保留所有旧列名，向左扩展也不能夺走右侧保留列的名称。
         let mut used: HashSet<_> = before
             .columns

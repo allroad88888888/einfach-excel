@@ -65,6 +65,7 @@ impl Workbook {
             has_totals: false,
             columns,
             style: crate::TableStyle::default(),
+            calculated_columns: Vec::new(),
         })
     }
 

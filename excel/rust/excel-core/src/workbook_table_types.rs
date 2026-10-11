@@ -11,6 +11,8 @@ pub struct TableEntry {
     pub(super) has_totals: bool,
     pub(super) columns: Vec<String>,
     pub(super) style: crate::TableStyle,
+    // 空列表表示没有计算列；非空时按 columns 对齐，None 是普通数据列。
+    pub(super) calculated_columns: Vec<Option<crate::TableColumnFormula>>,
 }
 
 impl TableEntry {
@@ -30,6 +32,7 @@ impl TableEntry {
             has_totals,
             columns,
             style: crate::TableStyle::default(),
+            calculated_columns: Vec::new(),
         }
     }
 
@@ -56,6 +59,16 @@ impl TableEntry {
 
     pub fn with_style(mut self, style: crate::TableStyle) -> Self {
         self.style = style;
+        self
+    }
+
+    pub fn calculated_columns(&self) -> &[Option<crate::TableColumnFormula>] {
+        &self.calculated_columns
+    }
+
+    /// 恢复时由注册表检查长度，不在这里静默丢掉错误的列映射。
+    pub fn with_calculated_columns(mut self, columns: Vec<Option<crate::TableColumnFormula>>) -> Self {
+        self.calculated_columns = columns;
         self
     }
 

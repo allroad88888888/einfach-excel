@@ -13,7 +13,7 @@ impl WorkbookHistory {
         self.set_cell_input_with_table_expansion(workbook, sheet, address, input, true)
     }
 
-    /// 宿主的工作表保护策略只关闭扩表，不改变普通输入的解析和历史。
+    /// 保护策略关闭扩表/整列自动写入，不改变当前格普通输入的解析和历史。
     pub fn set_cell_input_with_table_expansion(
         &mut self,
         workbook: &mut Workbook,
@@ -55,6 +55,14 @@ impl WorkbookHistory {
             return Ok(());
         }
         if expand_tables {
+            if let Some(mut change) = crate::workbook::TableDefinitionChange::prepare_calculated_input(
+                workbook, sheet, addr, input,
+            )? {
+                if change.apply_calculated_input(workbook)? {
+                    self.record_table_change(workbook, change, "Edit calculated column");
+                }
+                return Ok(());
+            }
             if let Some(mut change) = crate::workbook::TableDefinitionChange::prepare_input_expansion(
                 workbook, sheet, addr, input,
             )? {

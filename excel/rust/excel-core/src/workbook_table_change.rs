@@ -19,6 +19,8 @@ mod input;
 mod style;
 #[path = "workbook_table_convert.rs"]
 mod convert;
+#[path = "workbook_table_calculated_input.rs"]
+mod calculated_input;
 
 #[derive(Debug)]
 pub(crate) struct TableDefinitionChange {
@@ -143,8 +145,9 @@ impl TableDefinitionChange {
             next_cells.push(next);
         }
         let definition_changed = expected != next;
-        if definition_changed && matches!((expected, next), (Some(old), Some(new))
-            if old.same_formula_definition(new)) {
+        let geometry_changed = definition_changed && !matches!((expected, next), (Some(old), Some(new))
+            if old.same_formula_definition(new));
+        if definition_changed && !geometry_changed && self.cells.is_empty() {
             // 纯外观变更不失效公式的 Table epoch，也不遍历/重投数组消费者。
             let next = next.unwrap();
             workbook.tables.insert(next.name().to_ascii_uppercase(), next.clone());
@@ -152,23 +155,15 @@ impl TableDefinitionChange {
             workbook.sheets[self.sheet].notify_format_range(self.range);
             return Ok(());
         }
-        let mut arrays = if definition_changed {
+        let mut arrays = if geometry_changed {
             workbook.array_dependents_for_atoms(&workbook.atom_context.table_dependent_atoms())
         } else {
             Vec::new()
         };
         for cells in &next_cells {
             if cells.cells.is_none() { continue; }
-            // 表头/汇总快照仅覆盖一行；重装前保留现有依赖图中的数组消费者。
-            // restore 内部的重投仍在嵌套 batch 中，必须等最外层失效传播后再投一次。
-            let roots: Vec<_> = (cells.range.start.col..=cells.range.end.col)
-                .flat_map(|col| {
-                    workbook.sheets[self.sheet]
-                        .store_root_atoms_for_addr(CellAddress::new(cells.range.start.row, col))
-                })
-                .collect();
-            let dependents = workbook.store.reverse_dependents(&roots);
-            arrays.extend(workbook.array_dependents_for_atoms(&dependents));
+            // 计算列覆盖多行；按所有实际写入格的依赖收集，不能只看首行。
+            arrays.extend(workbook.array_dependents_for_range(self.sheet, cells.range));
         }
         if !self.lambdas.is_empty() {
             arrays.extend(workbook.named_array_dependents());
@@ -191,7 +186,7 @@ impl TableDefinitionChange {
                         .insert(next.name().to_ascii_uppercase(), next.clone());
                 }
                 // 新定义先可见，安装重写后的公式时不会经历一次不存在的表名。
-                workbook.sync_atom_tables();
+                if geometry_changed { workbook.sync_atom_tables(); }
             }
             for cells in next_cells {
                 if result.is_ok() {
@@ -211,8 +206,10 @@ impl TableDefinitionChange {
                 formula.apply(workbook, undo);
             }
             // 只改某列汇总函数时让单元格 atom 自己传播，不失效整份 Table 目录。
-            if definition_changed {
+            if geometry_changed {
                 workbook.bump_tables_epoch();
+            } else if definition_changed {
+                workbook.tables_epoch = workbook.tables_epoch.wrapping_add(1);
             }
         });
         workbook.recompute_array_formula_groups(arrays);

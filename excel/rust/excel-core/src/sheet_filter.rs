@@ -18,14 +18,12 @@ impl Sheet {
         self.filter.as_ref()
     }
 
-    /// The rows the committed filter hid, ascending. Empty when no filter
-    /// is active — a lookup miss and an empty set are the same "nothing is
-    /// filtered out" signal, exactly as in the evaluation mirror.
+    /// 普通区域与所有 Table 筛选的隐藏行并集；只读派生索引，不拥有筛选条件。
     pub(crate) fn filter_hidden_rows(&self) -> Vec<u32> {
         self.combined_filter_hidden.borrow().iter().copied().collect()
     }
 
-    /// Borrow the derived set for republishing into the evaluation mirror.
+    /// 排序/复制逐行读取只克隆 Rc；索引由 Workbook::republish_hidden 统一发布。
     pub(crate) fn filter_hidden_set(&self) -> Option<Rc<BTreeSet<u32>>> {
         let rows = self.combined_filter_hidden.borrow();
         (!rows.is_empty()).then(|| Rc::clone(&rows))

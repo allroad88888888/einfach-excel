@@ -27,6 +27,9 @@ impl Workbook {
         }
         let table = self.get_table(name).ok_or("The table no longer exists.")?;
         let sheet = self.index_of(table.sheet_name()).ok_or("The worksheet no longer exists.")?;
+        if !table.has_headers && !rules.is_empty() {
+            return Err("Show table headers before filtering its columns.".into());
+        }
         if rules.iter().any(|rule| rule.col_index() < table.range.start.col ||
             rule.col_index() > table.range.end.col) {
             return Err("Choose a column inside the table.".into());

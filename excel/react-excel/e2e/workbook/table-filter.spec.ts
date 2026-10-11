@@ -1,0 +1,173 @@
+import { expect, test, type Page } from '@playwright/test'
+import { fileURLToPath } from 'node:url'
+import { select } from '../support/clipboard'
+
+const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
+const menu = (page: Page) => page.getByRole('combobox', { name: 'Worksheet filter' })
+const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
+const header = (page: Page, table = 'DemoTable', col = 'B') => button(page, `Filter ${table} column ${col}`)
+async function amount(page: Page, min = '20') {
+  await select(page, 'A80', '79:0')
+  await header(page).click()
+  const dialog = page.getByRole('dialog', { name: 'DemoTable filter conditions' })
+  await dialog.getByLabel('Minimum 1', { exact: true }).fill(min)
+  await dialog.getByRole('button', { name: 'Apply filter', exact: true }).click()
+  await expect(dialog).not.toBeVisible()
+  await expect(header(page)).toBeFocused()
+}
+test.beforeEach(async ({ page }) => {
+  await page.goto('/')
+  await expect(cell(page, '1:0')).toHaveText('SO-10001')
+  await page.getByRole('tab', { name: 'Summary', exact: true }).click()
+})
+
+test('seed table conditions are native, leave matching rows visible and create no undo entries', async ({ page }) => {
+  await select(page, 'A80', '79:0')
+  await expect(header(page)).toHaveAttribute('data-filtered', 'true')
+  await expect(cell(page, '80:1')).toHaveText('10')
+  await expect(cell(page, '83:1')).toHaveText('60')
+  await header(page).click()
+  await expect(page.getByLabel('Minimum 1', { exact: true })).toHaveValue('0')
+  await button(page, 'Cancel').click()
+  await select(page, 'A46', '45:0')
+  await expect(header(page, 'CalculatedOrders', 'A')).toHaveAttribute('data-filtered', 'true')
+  await header(page, 'CalculatedOrders', 'A').click()
+  await expect(page.getByLabel('Minimum 1', { exact: true })).toHaveValue('1')
+  await button(page, 'Cancel').click()
+  await expect(button(page, 'Undo')).toBeDisabled()
+})
+
+test('a table filter coexists with another table and an ordinary region; clear affects only its target', async ({ page }) => {
+  await select(page, 'A25:C29', '24:0')
+  await menu(page).selectOption('selection')
+  await button(page, 'Filter column A').click()
+  await page.getByLabel('Filter value 1', { exact: true }).fill('West')
+  await button(page, 'Apply filter').click()
+  await expect(cell(page, '26:0')).toHaveCount(0)
+  await amount(page)
+  await expect(cell(page, '80:0')).toHaveCount(0)
+  await expect(cell(page, '83:1')).toHaveText('50')
+  await expect(cell(page, '84:1')).toHaveText('ALPHA')
+  await menu(page).selectOption('clear')
+  await expect(cell(page, '80:1')).toHaveText('10')
+  await expect(cell(page, '83:1')).toHaveText('60')
+  await expect(header(page)).toHaveAttribute('data-filtered', 'false')
+  await select(page, 'A46', '45:0')
+  await expect(header(page, 'CalculatedOrders', 'A')).toHaveAttribute('data-filtered', 'true')
+  await select(page, 'A25', '24:0')
+  await expect(cell(page, '26:0')).toHaveCount(0)
+  await expect(button(page, 'Filter column A')).toHaveAttribute('data-filtered', 'true')
+  await button(page, 'Undo').click()
+  await select(page, 'A80', '79:0')
+  await expect(cell(page, '80:0')).toHaveCount(0)
+  await expect(cell(page, '83:1')).toHaveText('50')
+})
+
+test('editing keeps the snapshot until reapply, and undo restores that snapshot before undoing the value', async ({ page }) => {
+  await amount(page)
+  await select(page, 'B82', '81:1')
+  const input = page.getByRole('textbox', { name: 'Active cell value' })
+  await input.fill('-5'); await input.press('Enter')
+  await expect(cell(page, '81:1')).toHaveText('-5')
+  await expect(cell(page, '83:1')).toHaveText('25')
+  await menu(page).selectOption('reapply')
+  await expect(cell(page, '81:1')).toHaveCount(0)
+  await expect(cell(page, '83:1')).toHaveText('30')
+  await button(page, 'Undo').click()
+  await expect(cell(page, '81:1')).toHaveText('-5')
+  await expect(cell(page, '83:1')).toHaveText('25')
+  await button(page, 'Undo').click()
+  await expect(cell(page, '81:1')).toHaveText('20')
+  await expect(cell(page, '83:1')).toHaveText('50')
+})
+
+test('clearing one table column preserves the other condition and header buttons', async ({ page }) => {
+  await amount(page)
+  await header(page, 'DemoTable', 'A').click()
+  await page.getByLabel('Filter value 1', { exact: true }).fill('Mouse')
+  await button(page, 'Apply filter').click()
+  await expect(cell(page, '82:0')).toHaveCount(0)
+  await expect(cell(page, '83:1')).toHaveText('20')
+  await header(page).click()
+  await button(page, 'Clear column B filter').click()
+  await expect(header(page)).toHaveAttribute('data-filtered', 'false')
+  await expect(header(page, 'DemoTable', 'A')).toHaveAttribute('data-filtered', 'true')
+  await expect(cell(page, '80:0')).toHaveCount(0)
+  await expect(cell(page, '81:0')).toHaveText('Mouse')
+  await expect(cell(page, '82:0')).toHaveCount(0)
+})
+
+test('filtering every data row keeps selection inside the table so toolbar clear is still available', async ({ page }) => {
+  await select(page, 'A49', '48:0')
+  await menu(page).selectOption('open')
+  await page.getByLabel('Minimum 1', { exact: true }).fill('100')
+  await button(page, 'Apply filter').click()
+  await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('A46')
+  await expect(cell(page, '46:0')).toHaveCount(0)
+  await expect(cell(page, '48:0')).toHaveCount(0)
+  await expect(menu(page).getByRole('option', { name: 'Clear CalculatedOrders filter', exact: true })).toBeEnabled()
+  await menu(page).selectOption('clear')
+  await expect(cell(page, '46:0')).toHaveText('1')
+  await expect(cell(page, '48:0')).toHaveText('3')
+})
+
+test('row insertion moves table filter snapshots and undo returns them to the original records', async ({ page }) => {
+  await amount(page)
+  await select(page, 'A80', '79:0')
+  await page.getByRole('combobox', { name: 'Insert or delete rows and columns' }).selectOption('insert-rows')
+  await expect(cell(page, '80:0')).toHaveText('Product')
+  await expect(cell(page, '81:0')).toHaveCount(0)
+  await expect(cell(page, '84:1')).toHaveText('50')
+  await button(page, 'Undo').click()
+  await expect(cell(page, '79:0')).toHaveText('Product')
+  await expect(cell(page, '80:0')).toHaveCount(0)
+  await expect(cell(page, '83:1')).toHaveText('50')
+})
+
+for (const width of [1280, 390]) test(`table filter dialog is keyboard accessible and fits ${width}px`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 800 })
+  const errors: string[] = []
+  page.on('pageerror', (error) => errors.push(error.message))
+  await select(page, 'A80', '79:0')
+  await header(page).focus(); await header(page).press('Enter')
+  const dialog = page.getByRole('dialog', { name: 'DemoTable filter conditions' })
+  await expect(dialog.getByRole('button', { name: 'Apply filter', exact: true })).toBeInViewport()
+  expect(await dialog.evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  await page.screenshot({ path: `/tmp/excel-table-filter-${width}.png`, fullPage: true })
+  await page.keyboard.press('Escape')
+  await expect(dialog).not.toBeVisible()
+  await expect(header(page)).toBeFocused()
+  expect(errors).toEqual([])
+})
+
+const wasmUrl = `/@fs${fileURLToPath(new URL('../../../excel-wasm/', import.meta.url))}`
+for (const variant of ['lite', 'full']) test(`${variant} saves table filter snapshots and restores without reapplying edited values`,
+  async ({ page }) => {
+    const result = await page.evaluate(async (url) => {
+      const module = await import(url)
+      await module.default()
+      const book = new module.WasmWorkbook(), restored = new module.WasmWorkbook()
+      try {
+        book.set_text(0, 'A1', 'Item'); book.set_text(0, 'B1', 'Amount')
+        for (let row = 2; row <= 4; row++) book.set_number(0, `B${row}`, row - 1)
+        book.change_table(0, { kind: 'create', name: 'Orders', range: [0, 0, 3, 1] })
+        book.change_table(0, { kind: 'filter', name: 'Orders', rules: [{ kind: 'range', colIndex: 1, min: 2 }] })
+        book.set_number(0, 'B2', 5)
+        book.set_formula(0, 'D1', '=SUBTOTAL(9,Orders[Amount])')
+        const saved = JSON.parse(JSON.stringify(book.snapshot_persistence_v1()))
+        restored.restore_persistence_v1(saved)
+        const before = { hidden: restored.getFilter(0).hiddenRows, total: restored.get_number(0, 'D1'),
+          conditions: restored.listTables()[0].autoFilter.rules,
+          undo: restored.history_state().undoCount }
+        restored.change_table(0, { kind: 'reapply-filter', name: 'Orders' })
+        const after = { hidden: restored.getFilter(0).hiddenRows, total: restored.get_number(0, 'D1') }
+        restored.history_apply('undo')
+        return { savedHidden: saved.tables[0].autoFilter.hiddenRows, before, after,
+          undoHidden: restored.getFilter(0).hiddenRows, undoTotal: restored.get_number(0, 'D1') }
+      } finally { book.free(); restored.free() }
+    }, `${wasmUrl}${variant}/einfach_wasm.js`)
+    expect(result).toEqual({ savedHidden: [1], before: { hidden: [1], total: 5,
+      conditions: [{ kind: 'range', colIndex: 1, min: 2 }], undo: 0 },
+    after: { hidden: [], total: 10 }, undoHidden: [1], undoTotal: 5 })
+  })

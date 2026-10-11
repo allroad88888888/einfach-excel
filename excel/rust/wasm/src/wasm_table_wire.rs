@@ -17,10 +17,26 @@ struct TableJSON {
     style: einfach_excel_core::TableStyle,
     #[serde(rename = "calculatedColumns", default, skip_serializing_if = "Vec::is_empty")]
     calculated_columns: Vec<Option<einfach_excel_core::TableColumnFormula>>,
+    #[serde(rename = "autoFilter", default, skip_serializing_if = "Option::is_none")]
+    auto_filter: Option<TableFilterJSON>,
+}
+
+/// Table 范围来自定义；只保存条件与上次扫描快照，不再复制一份范围。
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct TableFilterJSON {
+    rules: Vec<ColumnFilterRuleJSON>,
+    #[serde(rename = "hiddenRows", default, skip_serializing_if = "Vec::is_empty")]
+    hidden_rows: Vec<u32>,
 }
 
 impl TableJSON {
     fn from_entry(entry: &TableEntry, sheet_index: u32) -> Self {
+        Self::from_entry_with_filter_rows(entry, sheet_index, true)
+    }
+
+    /// 保存需要隐藏快照；只读 UI 投影只需要条件，可见行由窗口投影统一返回。
+    fn from_entry_with_filter_rows(entry: &TableEntry, sheet_index: u32, snapshot: bool) -> Self {
         let range = entry.range();
         TableJSON {
             name: entry.name().to_string(),
@@ -37,6 +53,10 @@ impl TableJSON {
             columns: entry.columns().to_vec(),
             style: entry.style(),
             calculated_columns: entry.calculated_columns().to_vec(),
+            auto_filter: entry.auto_filter().map(|filter| TableFilterJSON {
+                rules: filter.rules().iter().map(ColumnFilterRuleJSON::from_rule).collect(),
+                hidden_rows: if snapshot { filter.hidden_rows() } else { Vec::new() },
+            }),
         }
     }
 
@@ -54,7 +74,7 @@ impl TableJSON {
             CellAddress::parse(a.trim()).ok_or_else(|| format!("invalid table range cell: {a}"))?;
         let end =
             CellAddress::parse(b.trim()).ok_or_else(|| format!("invalid table range cell: {b}"))?;
-        Ok(TableEntry::from_parts(
+        let entry = TableEntry::from_parts(
             self.name,
             self.sheet,
             CellRange::new(start, end),
@@ -62,7 +82,12 @@ impl TableJSON {
             self.has_totals,
             self.columns,
         ).with_insert_row(self.insert_row).with_style(self.style)
-            .with_calculated_columns(self.calculated_columns))
+            .with_calculated_columns(self.calculated_columns);
+        Ok(match self.auto_filter {
+            Some(filter) => entry.with_filter(
+                filter.rules.into_iter().map(ColumnFilterRuleJSON::into_rule).collect(), filter.hidden_rows),
+            None => entry,
+        })
     }
 }
 

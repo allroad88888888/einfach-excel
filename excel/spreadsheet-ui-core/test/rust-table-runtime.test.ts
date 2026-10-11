@@ -77,6 +77,9 @@ test('resize maps only coordinates and returns the same native mutation projecti
   expect(change).toHaveBeenCalledTimes(1)
 })
 test.each([
+  { kind: 'filter', name: 'Sales', rules: [{ kind: 'range', colIndex: 1, min: 2 }] },
+  { kind: 'clear-filter', name: 'Sales' },
+  { kind: 'reapply-filter', name: 'Sales' },
   { kind: 'header-row', name: 'Sales', enabled: false },
   { kind: 'header-row', name: 'Sales', enabled: true },
   { kind: 'style', name: 'Sales', style: { preset: 'green', bandedRows: false, firstColumn: true } },
@@ -106,6 +109,8 @@ test('rejects stale, foreign, out-of-bounds and malformed requests before native
     { ...input, projection: { ...projection, window: { ...projection.window, rowEnd: -1 } } },
     { ...input, action: { ...input.action, range: { ...input.action.range, rowEnd: 100 } } },
     { ...input, action: { kind: 'delete', name: 'Sales' } },
+    { ...input, action: { kind: 'filter', name: 'Sales', rules: [{ kind: 'range', colIndex: 1, min: NaN }] } },
+    { ...input, action: { kind: 'filter', name: 'Sales', rules: [{ kind: 'range', colIndex: 8, min: 2 }] } },
   ]) expect((await call('table.change', bad)).ok).toBe(false)
   expect(change).not.toHaveBeenCalled()
 })
@@ -120,13 +125,19 @@ test('native errors and no-ops preserve revision; normal reads include the regis
 })
 test('table projection validation rejects malformed coordinates and column lists', () => {
   expect(validNativeTables(tables)).toBe(true)
+  expect(validNativeTables([{ ...tables[0], autoFilter: {
+    rules: [{ kind: 'range', colIndex: 1, min: 2 }],
+  } }])).toBe(true)
   for (const patch of [{ range: 'A0:B2' }, { columns: ['Product'] },
     { sheetIndex: -1 }, { columns: [1, 2] }, { hasHeaders: null },
     { style: null }, { style: { preset: 'pink', bandedRows: true, firstColumn: false } },
     { style: { preset: 'blue', bandedRows: 1, firstColumn: false } },
     { style: { preset: 'blue', bandedRows: false, firstColumn: false, bandedColumns: 1 } },
     { style: { preset: 'blue', bandedRows: false, firstColumn: false, lastColumn: null } },
-    { hasTotals: true, totalFunctions: ['sum'] }, { hasTotals: true, totalFunctions: ['sum', 'fake'] }])
+    { hasTotals: true, totalFunctions: ['sum'] }, { hasTotals: true, totalFunctions: ['sum', 'fake'] },
+    { autoFilter: null }, { autoFilter: { rules: [] } },
+    { autoFilter: { rules: [{ kind: 'range', colIndex: 2, min: 1 }] } },
+    { autoFilter: { rules: [{ kind: 'range', colIndex: 1, min: NaN }] } }])
     expect(validNativeTables([{ ...tables[0], ...patch }])).toBe(false)
 })
 
@@ -162,6 +173,18 @@ test('seed calculated columns use one native input after table creation and befo
     expect(change.mock.invocationCallOrder[0]).toBeLessThan(write.mock.invocationCallOrder[0])
     expect(write.mock.invocationCallOrder[0]).toBeLessThan(clear.mock.invocationCallOrder.at(-1)!)
   })
+
+test('seed filters are scanned by Rust after imported data and before clearing initial history', async () => {
+  const { call, change, bulk, clear } = await setup()
+  const filterRules = [{ kind: 'range', colIndex: 1, min: 0 }]
+  expect((await call('workbook.importCells', { cells: [], tables: [{
+    sheetId: 's', name: 'Sales', range: input.action.range, filterRules,
+  }] })).ok).toBe(true)
+  expect(change.mock.calls.map((entry) => entry[1].kind)).toEqual(['create', 'filter'])
+  expect(change.mock.calls[1][1]).toEqual({ kind: 'filter', name: 'Sales', rules: filterRules })
+  expect(bulk.mock.invocationCallOrder[0]).toBeLessThan(change.mock.invocationCallOrder[1])
+  expect(change.mock.invocationCallOrder[1]).toBeLessThan(clear.mock.invocationCallOrder.at(-1)!)
+})
 
 test('import passes sparse formats with the values in one native call', async () => {
   const { call, bulk } = await setup()

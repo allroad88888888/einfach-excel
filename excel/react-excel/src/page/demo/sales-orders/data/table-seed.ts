@@ -3,8 +3,10 @@ import type { RustImportCell, RustWorkbookSheetInput } from '@einfach/spreadshee
 /** A80:B83 导入为 Table，Rust 在第 84 行生成汇总；B5 使用结构化引用。 */
 export const SUMMARY_TABLES: RustWorkbookSheetInput['tables'] = [
   { name: 'DemoTable', range: { rowStart: 79, rowEnd: 82, colStart: 0, colEnd: 1 }, totals: true,
+    filterRules: [{ kind: 'range', colIndex: 1, min: 0 }],
     style: { preset: 'blue', bandedRows: true, firstColumn: false } },
   { name: 'CalculatedOrders', range: { rowStart: 45, rowEnd: 48, colStart: 0, colEnd: 2 },
+    filterRules: [{ kind: 'range', colIndex: 0, min: 1 }],
     calculatedColumns: [null, null, '=[@Quantity]*[@Price]'],
     style: { preset: 'green', bandedRows: false, firstColumn: false,
       bandedColumns: true, lastColumn: true } },

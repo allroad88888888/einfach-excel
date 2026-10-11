@@ -8,6 +8,7 @@ import type { WorkerLike } from '../src/rust-worker'
 function definition() {
   return { title: 'Book', sheets: [{ id: 's', name: 'Sheet', rowCount: 10, colCount: 2,
     tables: [{ name: 'Sales', range: { rowStart: 0, rowEnd: 3, colStart: 0, colEnd: 1 }, totals: true,
+      filterRules: [{ kind: 'list' as const, colIndex: 0, values: ['Keyboard'] }],
       style: { preset: 'blue' as const, bandedRows: true, firstColumn: false } }],
   }], createImportChunks: () => [] }
 }
@@ -21,9 +22,19 @@ test('initial tables are frozen independently of the caller and bounded by the c
   source.sheets[0].tables[0].style.bandedRows = false
   expect(copied.sheets[0].tables![0].style?.bandedRows).toBe(true)
   expect(Object.isFrozen(copied.sheets[0].tables![0].style)).toBe(true)
+  source.sheets[0].tables[0].filterRules[0].values.push('Mouse')
+  expect(copied.sheets[0].tables![0].filterRules).toEqual([
+    { kind: 'list', colIndex: 0, values: ['Keyboard'] },
+  ])
+  expect(Object.isFrozen(copied.sheets[0].tables![0].filterRules![0])).toBe(true)
   expect(() => snapshotRustWorkbookDefinition(source)).toThrow('Invalid initial table range')
   source.sheets[0].tables[0].range.rowEnd = 9
   expect(() => snapshotRustWorkbookDefinition(source)).toThrow('Invalid initial table totals row')
+})
+test('initial table filters reject columns outside their table before starting a worker', () => {
+  const source = definition()
+  source.sheets[0].tables[0].filterRules[0].colIndex = 2
+  expect(() => snapshotRustWorkbookDefinition(source)).toThrow('Invalid initial table filter')
 })
 test('runtime sends tables only after every content chunk, before publishing ready', async () => {
   const calls: { command: string; payload: Record<string, unknown> }[] = []

@@ -231,7 +231,6 @@ impl StructuralHistoryChange {
             workbook.sheets[sheet]
                 .merged_ranges
                 .clone_from(&snapshot.merges);
-            workbook.republish_hidden(sheet);
             workbook.sheets[sheet].frozen_panes = snapshot.freeze;
             workbook.sheets[sheet]
                 .data_validations
@@ -252,6 +251,8 @@ impl StructuralHistoryChange {
                 }
                 workbook.bump_tables_epoch();
             }
+            // 普通区域与 Table 的前后像全部就位后，再发布合并可见性。
+            workbook.republish_hidden(sheet);
             for lambda in &self.named_lambdas {
                 lambda.apply(workbook, undo);
             }

@@ -36,6 +36,7 @@ impl Workbook {
             after.insert_row &= range.rows() == 1 + u32::from(after.has_headers) + u32::from(has_totals);
             after.columns = columns;
             after.calculated_columns = formulas;
+            after.shift_filter(edit);
         }
         if geometry_changed {
             self.bump_tables_epoch();

@@ -4,6 +4,11 @@ import { selectionSnapshotAtom } from '../selection'
 import type { ColumnFilterRule } from '../filter-sort/types'
 import type { CellRange } from '../shared'
 import { validFilterRules } from '../rust-workbook/filter-commands'
+import { nativeFilterTargetAtom, nativeTableFiltersAtom } from './scope'
+import { projectionSnapshotAtom } from '../projection/state'
+import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
+import type { RustWorkbookConnection } from '../rust-workbook/commands'
+import type { ProjectionRevision } from '../backend'
 import {
   nativeFilterFeedbackAtom,
   nativeFilterRangeAtom,
@@ -29,20 +34,31 @@ const condition = (col: number): Condition => ({
 })
 const initial = {
   sheetId: null as string | null,
+  connection: null as RustWorkbookConnection | null,
+  table: undefined as string | undefined,
+  revision: undefined as ProjectionRevision | undefined,
   range: undefined as CellRange | undefined,
   column: undefined as number | undefined,
   conditions: [] as readonly Condition[],
   error: '',
 }
 const stateAtom = atom(initial)
-export const nativeFilterPanelAtom = atom((get) => get(stateAtom))
+export const nativeFilterPanelAtom = atom((get) => {
+  const state = get(stateAtom)
+  const rules = state.table
+    ? get(nativeTableFiltersAtom).find((target) => target.table === state.table)?.rules ?? []
+    : get(nativeFilterRulesAtom)
+  return { ...state, rules }
+})
 type Action =
   | 'open'
   | 'close'
   | 'apply'
   | 'add'
   | 'clear-column'
-  | { type: 'open-column'; col: number }
+  | 'clear'
+  | 'reapply'
+  | { type: 'open-column'; col: number; table?: string }
   | { type: 'remove'; index: number }
   | { type: 'change'; index: number; patch: Partial<Condition> }
 
@@ -58,16 +74,28 @@ export const configureNativeFilterAtom = atom(
       return true
     }
     if (!sheet) return false
+    if (action === 'clear' || action === 'reapply') {
+      const target = get(nativeFilterTargetAtom)
+      return set(runNativeFilterAtom, { action, ...(target.table ? { table: target.table } : {}) })
+    }
     if (action === 'open' || (typeof action === 'object' && action.type === 'open-column')) {
-      const range = get(nativeFilterRangeAtom)
+      const target = action === 'open' ? get(nativeFilterTargetAtom)
+        : action.table ? get(nativeTableFiltersAtom).find((entry) => entry.table === action.table)
+          : { table: undefined, range: get(nativeFilterRangeAtom),
+              rules: get(nativeFilterRulesAtom) }
+      if (!target) return false
+      const { range, table } = target
       const column = typeof action === 'object' ? action.col : undefined
       if (column !== undefined && (!range || column < range.colStart || column > range.colEnd))
         return false
-      const rules = get(nativeFilterRulesAtom).filter(
+      const rules = target.rules.filter(
         (rule) => column === undefined || rule.colIndex === column,
       )
       set(stateAtom, {
         sheetId: sheet.id,
+        connection: get(rustWorkbookConnectionAtom),
+        table,
+        revision: get(projectionSnapshotAtom).result?.revision,
         range,
         column,
         error: '',
@@ -98,8 +126,13 @@ export const configureNativeFilterAtom = atom(
       })
       return true
     }
-    if (state.sheetId !== sheet.id) {
+    if (state.sheetId !== sheet.id || state.connection !== get(rustWorkbookConnectionAtom)) {
       set(stateAtom, { ...state, error: 'The worksheet changed. Close and reopen Filter.' })
+      return false
+    }
+    if (state.table && (state.revision !== get(projectionSnapshotAtom).result?.revision ||
+      !get(nativeTableFiltersAtom).some((target) => target.table === state.table))) {
+      set(stateAtom, { ...state, error: 'The table changed. Close and reopen Filter.' })
       return false
     }
     if (action === 'add') {
@@ -147,7 +180,7 @@ export const configureNativeFilterAtom = atom(
     })
     if (state.column !== undefined) {
       rules = [
-        ...get(nativeFilterRulesAtom).filter((rule) => rule.colIndex !== state.column),
+        ...get(nativeFilterPanelAtom).rules.filter((rule) => rule.colIndex !== state.column),
         ...(action === 'clear-column' ? [] : rules),
       ]
     }
@@ -161,8 +194,10 @@ export const configureNativeFilterAtom = atom(
     const completed = await set(runNativeFilterAtom, {
       action: 'apply',
       rules,
-      ...(state.range ? { range: state.range } : {}),
+      ...(state.table ? { table: state.table } : state.range ? { range: state.range } : {}),
     })
+    if (get(stateAtom) !== state || get(rustWorkbookConnectionAtom) !== state.connection)
+      return false
     if (completed) set(stateAtom, initial)
     else
       set(stateAtom, {

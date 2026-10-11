@@ -7,8 +7,7 @@ import {
   getColumnLabel,
   nativeFilterFeedbackAtom,
   nativeFilterPanelAtom,
-  nativeFilterRangeAtom,
-  nativeFilterRulesAtom,
+  nativeFilterTargetAtom,
   runNativeFilterAtom,
 } from '@einfach/spreadsheet-ui-core'
 import { FilterConditionFields } from './FilterConditionFields'
@@ -20,8 +19,7 @@ export function FilterTools() {
   const sheet = useAtomValue(activeWorkbookSheetAtom)
   const panel = useAtomValue(nativeFilterPanelAtom)
   const feedback = useAtomValue(nativeFilterFeedbackAtom)
-  const rules = useAtomValue(nativeFilterRulesAtom)
-  const range = useAtomValue(nativeFilterRangeAtom)
+  const { table, rules, range } = useAtomValue(nativeFilterTargetAtom)
   const editing = useAtomValue(editingSessionAtom).source !== null
   const configure = useSetAtom(configureNativeFilterAtom)
   const run = useSetAtom(runNativeFilterAtom)
@@ -55,19 +53,20 @@ export function FilterTools() {
           const action = event.currentTarget.value
           if (action === 'open') void configure('open')
           else if (action === 'selection') void run('selection')
-          else if (action === 'reapply' || action === 'clear') void run({ action })
+          else if (action === 'reapply' || action === 'clear') void configure(action)
         }}
       >
         <option value="" disabled>
-          {rules.length ? `Filter (${rules.length})` : 'Filter'}
+          {table ? `${table} filter${rules.length ? ` (${rules.length})` : ''}`
+            : rules.length ? `Filter (${rules.length})` : 'Filter'}
         </option>
         <option value="selection">Filter selected range (first row is header)</option>
-        <option value="open">Filter conditions…</option>
+        <option value="open">{table ? `${table} filter conditions…` : 'Filter conditions…'}</option>
         <option value="reapply" disabled={!rules.length}>
-          Reapply filter
+          {table ? `Reapply ${table} filter` : 'Reapply filter'}
         </option>
-        <option value="clear" disabled={!rules.length && !range}>
-          Clear filter
+        <option value="clear" disabled={!rules.length && (table !== undefined || !range)}>
+          {table ? `Clear ${table} filter` : 'Clear filter'}
         </option>
       </select>
       {(feedback.error || feedback.message) && (
@@ -91,9 +90,11 @@ export function FilterTools() {
             void configure('close')
           }}
         >
-          <h2 id={`${id}-title`}>Filter conditions</h2>
+          <h2 id={`${id}-title`}>{panel.table ? `${panel.table} filter conditions` : 'Filter conditions'}</h2>
           <p id={`${id}-help`}>
-            {panel.range
+            {panel.table
+              ? `Table ${panel.table}. Only its data rows are checked; headers and totals are excluded.`
+              : panel.range
               ? `Range ${getColumnLabel(panel.range.colStart)}${panel.range.rowStart + 1}:${getColumnLabel(panel.range.colEnd)}${panel.range.rowEnd + 1}. Its first row stays visible.`
               : 'Filters the worksheet’s used rows, not just the selection. Row 1 stays visible.'}
             {' Every condition must match. After editing values, use Reapply filter.'}
@@ -126,7 +127,8 @@ export function FilterTools() {
             {panel.column !== undefined && (
               <button
                 type="button"
-                disabled={feedback.busy || !rules.some((rule) => rule.colIndex === panel.column)}
+                disabled={feedback.busy ||
+                  !panel.rules.some((rule) => rule.colIndex === panel.column)}
                 onClick={() => void configure('clear-column')}
               >
                 Clear column {getColumnLabel(panel.column)} filter

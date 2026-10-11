@@ -127,16 +127,16 @@ impl Workbook {
                 // fires nothing. It is here so the owning side has the last
                 // word: the mirror is a projection, never an independent
                 // maintainer of the fact.
-                self.republish_hidden(sheet_index);
             }
             crate::shift::ShiftEdit::RowDelete { at, count } => {
                 self.atom_context
                     .shift_hidden_rows_after_row_edit(sheet_index, at, count, false);
-                self.republish_hidden(sheet_index);
             }
             crate::shift::ShiftEdit::ColInsert { .. }
             | crate::shift::ShiftEdit::ColDelete { .. } => {}
         }
+        // 删列也可能移除最后一条条件或整个 Table，必须释放其隐藏行。
+        self.republish_hidden(sheet_index);
     }
 
     // --- internal helpers ----------------------------------------------

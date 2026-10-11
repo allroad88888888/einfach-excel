@@ -45,6 +45,7 @@ impl TableDefinitionChange {
         after.insert_row = before.insert_row
             && range.rows() == 1 + u32::from(after.has_headers) + u32::from(after.has_totals)
             && !workbook.insert_row_has_content(&after);
+        after.clip_filter();
         after.columns.clear();
         // 按工作表列坐标保留标准公式；新列为空，缩掉的列不留下错位定义。
         if !before.calculated_columns.is_empty() {

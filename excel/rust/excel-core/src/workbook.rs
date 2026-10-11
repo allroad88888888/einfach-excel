@@ -75,6 +75,8 @@ mod workbook_filter_range;
 mod workbook_filter_scan;
 #[path = "workbook_table_filter.rs"]
 mod workbook_table_filter;
+#[path = "workbook_table_filter_geometry.rs"]
+mod workbook_table_filter_geometry;
 #[path = "workbook_filter_rules.rs"]
 mod workbook_filter_rules;
 #[path = "workbook_hidden_rows.rs"]

@@ -6,6 +6,7 @@ import type { RustWorkbookSheet, RustWorkbookSheetInput } from './commands'
 import { writeCellInput } from './cell-io'
 import type { WasmWorkbook } from './wasm-types'
 import type { CellRange } from '../shared'
+import { validFilterRules } from './filter-commands'
 
 export interface RustTableCommands {
   'table.change': WorkerCommand<{
@@ -35,7 +36,12 @@ export function changeTable(workbook: WasmWorkbook,
   } else if (input.action.kind === 'totals-row' || input.action.kind === 'header-row' ||
     input.action.kind === 'append-row') {
     action = { ...input.action, rowCount: sheet.rowCount ?? 1_048_576 }
-  } else if (input.action.kind === 'rename' || input.action.kind === 'convert-to-range' ||
+  } else if (input.action.kind === 'filter') {
+    if (!validFilterRules(input.action.rules, sheet.colCount))
+      throw new Error('Choose valid table filter conditions.')
+    action = input.action
+  } else if (input.action.kind === 'clear-filter' || input.action.kind === 'reapply-filter' ||
+    input.action.kind === 'rename' || input.action.kind === 'convert-to-range' ||
     input.action.kind === 'total-function' || input.action.kind === 'rename-column' || input.action.kind === 'style') {
     action = input.action
   } else throw new Error('Invalid table action.')
@@ -63,6 +69,10 @@ export function importTables(workbook: WasmWorkbook, sheets: ReadonlyMap<string,
       if (formula !== null) writeCellInput(workbook, sheet.index,
         table.range.rowStart + 1, table.range.colStart + column, formula)
     })
+    if (table.filterRules?.length) {
+      if (!validFilterRules(table.filterRules, sheet.colCount)) throw new Error('Invalid initial table filter.')
+      workbook.change_table(sheet.index, { kind: 'filter', name: table.name, rules: table.filterRules })
+    }
   }
 }
 

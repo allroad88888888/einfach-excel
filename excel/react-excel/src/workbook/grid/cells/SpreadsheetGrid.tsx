@@ -1,5 +1,5 @@
 import type { CellRange, DisplayCell } from '@einfach/spreadsheet-ui-core'
-import { mergeRangeAt, nativeFilterRangeAtom, formulaReferenceSessionAtom,
+import { mergeRangeAt, nativeFilterRangeAtom, nativeTableFiltersAtom, formulaReferenceSessionAtom,
   projectionSnapshotAtom, viewportMetricsAtom } from '@einfach/spreadsheet-ui-core'
 import { useAtomValue } from '@einfach/react'
 import { CellFilterButton } from './CellFilterButton'
@@ -56,6 +56,7 @@ export function SpreadsheetGrid({
   columnWidths,
 }: SpreadsheetGridProps) {
   const filterRange = useAtomValue(nativeFilterRangeAtom)
+  const tableFilters = useAtomValue(nativeTableFiltersAtom)
   const reference = useAtomValue(formulaReferenceSessionAtom)
   const projection = useAtomValue(projectionSnapshotAtom).result
   const metrics = useAtomValue(viewportMetricsAtom)
@@ -77,6 +78,7 @@ export function SpreadsheetGrid({
   for (let row = window.rowStart; row <= window.rowEnd; row += 1) {
     if (rowHeights?.[row - window.rowStart] === 0) continue
     const rowCells = []
+    const tableHeaders = tableFilters.filter((target) => target.range.rowStart === row)
 
     for (let col = window.colStart; col <= window.colEnd; col += 1) {
       if (columnWidths?.[col - window.colStart] === 0) continue
@@ -97,8 +99,10 @@ export function SpreadsheetGrid({
       )
       const bottomBorder = Number.parseFloat(String(formatStyle.borderBottomWidth ?? 1))
       const displayValue = cell?.displayValue ?? ''
-      const filterHeader = !merged && row === filterRange?.rowStart
-        && col >= filterRange.colStart && col <= filterRange.colEnd
+      const filterTable = tableHeaders.find(({ range }) =>
+        col >= range.colStart && col <= range.colEnd)?.table
+      const filterHeader = !merged && (filterTable !== undefined || row === filterRange?.rowStart
+        && col >= filterRange.colStart && col <= filterRange.colEnd)
 
       rowCells.push(
         <td
@@ -125,7 +129,7 @@ export function SpreadsheetGrid({
               displayValue
             )}
           </span>
-          {filterHeader && <CellFilterButton col={col} />}
+          {filterHeader && <CellFilterButton col={col} table={filterTable} />}
         </td>,
       )
     }

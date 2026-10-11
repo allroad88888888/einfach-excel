@@ -60,6 +60,7 @@ pub(super) fn prepare(
         let mut moved = table.clone();
         moved.range.start.row += 1;
         moved.range.end.row += 1;
+        moved.shift_filter(crate::shift::ShiftEdit::RowInsert { at: row, count: 1 });
         shifted_tables.push((table.clone(), moved));
     }
     let named_ranges = workbook.named_ranges_for_row_band_insert(sheet, row, columns, row_count)?;
@@ -77,6 +78,7 @@ pub(super) fn prepare(
     let mut after = before.clone();
     after.has_headers |= header;
     after.range.end.row += 1;
+    after.shift_filter(crate::shift::ShiftEdit::RowInsert { at: row, count: 1 });
     let rewrite = |owner: usize, expr: &mut Expr| {
         rewrite_row_band_insert(expr, before.sheet_name(), owner == sheet, row, columns)
     };

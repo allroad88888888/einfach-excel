@@ -9,9 +9,11 @@ struct TableProjectionJSON {
 
 impl WasmWorkbook {
     fn table_projection_json(&self) -> Result<Vec<TableProjectionJSON>, String> {
-        self.tables_json()
+        self.workbook.list_tables()
             .into_iter()
-            .map(|table| {
+            .map(|entry| {
+                let sheet = self.sheet_index_by_name(entry.sheet_name()).unwrap_or(0);
+                let table = TableJSON::from_entry_with_filter_rows(entry, sheet, false);
                 let total_functions = self
                     .workbook
                     .table_total_functions(&table.name)

@@ -78,10 +78,18 @@ impl Workbook {
             return Err(TableError::MutationDuringCustomCall);
         }
         let key = name.to_ascii_uppercase();
-        if self.tables.remove(&key).is_none() {
-            return Err(TableError::NotFound);
-        }
-        self.bump_tables_epoch();
+        let table = self.tables.get(&key).ok_or(TableError::NotFound)?;
+        let filtered_sheet = table.auto_filter().and_then(|_| self.index_of(table.sheet_name()));
+        let arrays = if filtered_sheet.is_some() {
+            self.array_dependents_for_atoms(&self.atom_context.filter_dependent_atoms())
+        } else { Vec::new() };
+        let store = self.store.clone();
+        store.batch(|_| {
+            self.tables.remove(&key);
+            if let Some(sheet) = filtered_sheet { self.republish_hidden(sheet); }
+            self.bump_tables_epoch();
+        });
+        self.recompute_array_formula_groups(arrays);
         Ok(())
     }
 

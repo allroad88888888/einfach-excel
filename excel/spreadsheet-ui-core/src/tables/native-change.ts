@@ -10,6 +10,7 @@ import { applyVisibleProjectionAtom, createVisibleProjectionRequest,
 import { validateProjectionResult } from '../projection/contracts'
 import type { TableChange } from './native-types'
 import { nativeTableFeedbackAtom, nativeTableFeedbackBackingAtom as feedbackAtom } from './native-feedback'
+import { validSheetVisibility } from '../viewport/hidden-state'
 
 /** 唯一 Table 写入口：Rust 一次事务，接收并发布其返回投影，不乐观改写表目录。 */
 export const changeNativeTableAtom = atom(null, async (get, set, change: TableChange) => {
@@ -51,7 +52,9 @@ export const changeNativeTableAtom = atom(null, async (get, set, change: TableCh
       get(activeWorkbookSheetAtom)?.id !== sheet.id)
       return null
     if (!validateProjectionResult(reply.projection, { request: projection }).ok ||
-      reply.projection.tables === undefined)
+      reply.projection.tables === undefined ||
+      (['filter', 'clear-filter', 'reapply-filter'].includes(change.kind) &&
+        !validSheetVisibility(reply.projection.visibility)))
       throw new Error('Rust returned a mismatched table result.')
     const applied = set(applyVisibleProjectionAtom, {
       witness, request: projection, result: reply.projection,

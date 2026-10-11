@@ -4,6 +4,23 @@ use crate::{shift::ShiftEdit, ColumnFilterRule};
 use crate::shift::shift_interval;
 
 impl crate::filter::SheetAutoFilter {
+    /// 普通区域与 Table 共用列身份位移；被删除的列条件随列一起移除。
+    pub(crate) fn shift_rule_columns(&mut self, edit: ShiftEdit) {
+        self.rules_mut().retain_mut(|rule| {
+            let col = match rule {
+                ColumnFilterRule::Equals { col_index, .. }
+                | ColumnFilterRule::Contains { col_index, .. }
+                | ColumnFilterRule::Range { col_index, .. }
+                | ColumnFilterRule::List { col_index, .. } => col_index,
+            };
+            let next = edit.apply(CellAddress::new(0, *col)).col;
+            if next >= EXCEL_MAX_COLS { return false; }
+            *col = next;
+            true
+        });
+        if self.rules().is_empty() { self.hidden_set_mut().clear(); }
+    }
+
     /// 局部腾位只搬完整列带内的显式区域；其它筛选保留原矩形与隐藏快照。
     /// 不扫描或重算条件，插入的新行默认可见，手动隐藏仍是工作表行属性。
     pub(crate) fn after_row_band_insert(
@@ -70,23 +87,7 @@ impl Sheet {
         } else {
             range.start.col = start;
             range.end.col = end;
-            filter.rules_mut().retain_mut(|rule| {
-                let col = match rule {
-                    ColumnFilterRule::Equals { col_index, .. }
-                    | ColumnFilterRule::Contains { col_index, .. }
-                    | ColumnFilterRule::Range { col_index, .. }
-                    | ColumnFilterRule::List { col_index, .. } => col_index,
-                };
-                let Some((next, _)) = shift_interval(*col, *col, at, count, insert, EXCEL_MAX_COLS)
-                else {
-                    return false;
-                };
-                *col = next;
-                true
-            });
-            if filter.rules().is_empty() {
-                filter.hidden_set_mut().clear();
-            }
+            filter.shift_rule_columns(edit);
         }
         filter.range = Some(range);
         filter

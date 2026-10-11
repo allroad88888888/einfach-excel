@@ -2,6 +2,9 @@
 #[derive(Deserialize)]
 #[serde(tag = "kind", rename_all = "kebab-case", deny_unknown_fields)]
 enum TableActionJSON {
+    Filter { name: String, rules: Vec<ColumnFilterRuleJSON> },
+    ClearFilter { name: String },
+    ReapplyFilter { name: String },
     AppendRow {
         name: String,
         #[serde(rename = "rowCount")]
@@ -73,6 +76,9 @@ impl WasmWorkbook {
             .name(sheet)
             .ok_or("The worksheet no longer exists.")?;
         if let TableActionJSON::Rename { name, .. }
+        | TableActionJSON::Filter { name, .. }
+        | TableActionJSON::ClearFilter { name }
+        | TableActionJSON::ReapplyFilter { name }
         | TableActionJSON::AppendRow { name, .. }
         | TableActionJSON::HeaderRow { name, .. }
         | TableActionJSON::Style { name, .. }
@@ -90,7 +96,21 @@ impl WasmWorkbook {
                 return Err("The table belongs to another worksheet.".into());
             }
         }
+        let epoch = self.workbook.tables_epoch();
         match action {
+            TableActionJSON::Filter { name, rules } => {
+                let rules = rules.into_iter().map(ColumnFilterRuleJSON::into_rule).collect::<Vec<_>>();
+                self.history.apply_table_filter(&mut self.workbook, &name, &rules)?;
+                Ok(self.workbook.tables_epoch() != epoch)
+            }
+            TableActionJSON::ClearFilter { name } => {
+                self.history.clear_table_filter(&mut self.workbook, &name)?;
+                Ok(self.workbook.tables_epoch() != epoch)
+            }
+            TableActionJSON::ReapplyFilter { name } => {
+                self.history.reapply_table_filter(&mut self.workbook, &name)?;
+                Ok(self.workbook.tables_epoch() != epoch)
+            }
             TableActionJSON::AppendRow { name, row_count } => {
                 self.history.append_table_row(&mut self.workbook, &name, row_count).map(|_| true)
             }

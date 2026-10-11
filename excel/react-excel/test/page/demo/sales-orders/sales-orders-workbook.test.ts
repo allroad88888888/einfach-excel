@@ -85,9 +85,11 @@ describe('Sales Orders workbook definition', () => {
   it('declares a real Table with explicit header data and a structured-reference formula', () => {
     expect(SUMMARY_TABLES).toEqual(expect.arrayContaining([{ name: 'DemoTable',
       range: { rowStart: 79, rowEnd: 82, colStart: 0, colEnd: 1 }, totals: true,
+      filterRules: [{ kind: 'range', colIndex: 1, min: 0 }],
       style: { preset: 'blue', bandedRows: true, firstColumn: false } }]))
     expect(SUMMARY_TABLES).toContainEqual(expect.objectContaining({
       name: 'CalculatedOrders', calculatedColumns: [null, null, '=[@Quantity]*[@Price]'],
+      filterRules: [{ kind: 'range', colIndex: 0, min: 1 }],
     }))
     expect(SUMMARY_TABLE_CELLS).toEqual(expect.arrayContaining([
       expect.objectContaining({ sheet: 1, row: 79, col: 1, kind: 'text', value: 'Amount' }),

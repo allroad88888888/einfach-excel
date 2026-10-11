@@ -2,6 +2,8 @@ import type { RustImportCell, RustWorkbookSheetInput } from '../rust-workbook'
 import type { WorkerLike } from '../rust-worker'
 import { validNativeOutline } from '../outline/native-state'
 import { validNativeTableStyle } from '../tables/native-types'
+import { validFilterRules } from '../rust-workbook/filter-commands'
+import { cloneFilterSortRule } from '../backend/projection-helpers'
 
 export interface RustWorkbookSheetDefinition extends RustWorkbookSheetInput {
   readonly id: string
@@ -65,6 +67,11 @@ export function snapshotRustWorkbookDefinition(
       const totals = sheet.tables![index].totals
       const style = sheet.tables![index].style
       const calculatedColumns = sheet.tables![index].calculatedColumns
+      const filterRules = sheet.tables![index].filterRules
+      if (filterRules !== undefined && (!validFilterRules(filterRules, sheet.colCount) ||
+        filterRules.some((rule) =>
+          rule.colIndex < table.range.colStart || rule.colIndex > table.range.colEnd)))
+        throw new Error('Invalid initial table filter.')
       if (calculatedColumns !== undefined && (
         calculatedColumns.length !== table.range.colEnd - table.range.colStart + 1 ||
         table.range.rowEnd <= table.range.rowStart || calculatedColumns.some((formula) =>
@@ -75,6 +82,12 @@ export function snapshotRustWorkbookDefinition(
         (totals && table.range.rowEnd + 1 >= sheet.rowCount)))
         throw new Error('Invalid initial table totals row.')
       return Object.freeze({ ...table, ...(totals === undefined ? {} : { totals }),
+        ...(filterRules === undefined ? {} : { filterRules:
+          Object.freeze(filterRules.map((rule) => {
+          const copied = cloneFilterSortRule(rule)
+          if (copied.kind === 'list') Object.freeze(copied.values)
+          return Object.freeze(copied)
+          })) }),
         ...(calculatedColumns === undefined ? {} : {
           calculatedColumns: Object.freeze([...calculatedColumns]),
         }),

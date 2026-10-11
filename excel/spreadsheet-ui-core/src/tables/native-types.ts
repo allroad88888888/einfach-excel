@@ -1,5 +1,7 @@
 import type { CellRange } from '../shared'
 import { parseA1Range } from '../name-box/address'
+import type { ColumnFilterRule } from '../filter-sort/types'
+import { validFilterRules } from '../rust-workbook/filter-commands'
 
 export const NATIVE_TOTAL_FUNCTIONS = ['none', 'average', 'count', 'countNums',
   'max', 'min', 'sum', 'stdDev', 'var'] as const
@@ -37,8 +39,12 @@ export interface NativeTable {
   readonly columns: readonly string[]
   readonly totalFunctions?: readonly (NativeTotalFunction | null)[]
   readonly style?: NativeTableStyle
+  /** 已提交条件来自 Rust；隐藏行统一使用 viewport 的可见性投影。 */
+  readonly autoFilter?: { readonly rules: readonly ColumnFilterRule[] }
 }
 export type TableChange =
+  | { readonly kind: 'filter'; readonly name: string; readonly rules: readonly ColumnFilterRule[] }
+  | { readonly kind: 'clear-filter' | 'reapply-filter'; readonly name: string }
   | { readonly kind: 'append-row'; readonly name: string }
   | { readonly kind: 'header-row'; readonly name: string; readonly enabled: boolean }
   | { readonly kind: 'style'; readonly name: string; readonly style: NativeTableStyle }
@@ -74,6 +80,10 @@ export function validNativeTables(value: unknown): value is readonly NativeTable
       !entry.totalFunctions.every((functionId: unknown) => functionId === null ||
         NATIVE_TOTAL_FUNCTIONS.includes(functionId as NativeTotalFunction)))) return false
     const range = parseA1Range(entry.range)
+    if (entry.autoFilter !== undefined && (!entry.hasHeaders || !entry.autoFilter ||
+      !validFilterRules(entry.autoFilter.rules) || !entry.autoFilter.rules.length ||
+      !range || entry.autoFilter.rules.some((rule: ColumnFilterRule) =>
+        rule.colIndex < range.colStart || rule.colIndex > range.colEnd))) return false
     return Boolean(range && range.rowEnd < 1_048_576 && range.colEnd < 16_384 &&
       entry.columns.length === range.colEnd - range.colStart + 1)
   })

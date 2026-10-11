@@ -43,13 +43,14 @@ impl TableDefinitionChange {
         after.has_headers = enabled;
         if reuse_row { after.insert_row = !enabled; }
         after.range.start.row = if enabled || reuse_row { row } else { row + 1 };
+        after.clip_filter();
         let mut next = original.clone();
         next.cells = Some(if enabled {
             after.columns.iter().enumerate().map(|(offset, name)| CellSnapshot::value(
                 CellAddress::new(row, range.start.col + offset as u32), Value::Text(name.clone()),
             )).collect()
         } else { Vec::new() });
-        // 当前引擎只有一个显式区域筛选；只清理同表头、同列跨度且不超出表的筛选。
+        // 保留既有普通区域行为：只清理同表头、同列跨度且不超出表的筛选。
         // 其它区域的筛选、手动隐藏行和大纲都不属于这个开关。
         let filter = if !enabled {
             workbook.sheets[sheet].filter().filter(|filter| filter.range().is_some_and(|bounds|

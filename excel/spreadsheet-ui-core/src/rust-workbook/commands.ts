@@ -18,6 +18,7 @@ import type { AutoFitLayout } from './auto-fit-measurement'
 import type { RustFindCommands } from './find-commands'
 import type { RustSortCommands } from './sort-commands'
 import type { RustFilterCommands } from './filter-commands'
+import type { ColumnFilterRule } from '../filter-sort/types'
 import type { RustTextColumnsCommands } from './text-columns-commands'
 import type { RustRemoveDuplicatesCommands } from './remove-duplicates-commands'
 import type { RustQuickFormulaCommands } from './quick-formula-commands'
@@ -61,6 +62,8 @@ export interface RustWorkbookSheetInput {
     readonly totals?: boolean; readonly style?: NativeTableStyle
     /** 按 Table 列顺序声明初始公式；null 保留普通列，Rust 负责整列填充。 */
     readonly calculatedColumns?: readonly (string | null)[]
+    /** 种子筛选交给 Rust 扫描；不接受前端自算的隐藏行。 */
+    readonly filterRules?: readonly ColumnFilterRule[]
   }[]
   readonly dataValidations?: readonly {
     readonly range: CellRange

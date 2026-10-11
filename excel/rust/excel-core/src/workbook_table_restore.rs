@@ -37,13 +37,15 @@ impl Workbook {
             }
 
             let range = entry.range.normalize();
-            if entry.columns.len() as u32 != range.cols()
+            if range.end.row > GRID_MAX_ROW || range.end.col > GRID_MAX_COL
+                || entry.columns.len() as u32 != range.cols()
                 || (entry.insert_row && range.rows()
                     != 1 + u32::from(entry.has_headers) + u32::from(entry.has_totals))
                 || (!entry.calculated_columns.is_empty()
                     && entry.calculated_columns.len() != entry.columns.len()) {
                 return Err(TableError::MalformedSnapshot);
             }
+            if !entry.valid_filter() { return Err(TableError::MalformedSnapshot); }
             if next
                 .values()
                 .any(|t| t.sheet_name == entry.sheet_name && ranges_overlap(t.range, range))
@@ -73,8 +75,19 @@ impl Workbook {
         if next == self.tables {
             return Ok(count);
         }
-        self.tables = next;
-        self.bump_tables_epoch();
+        let filtered_sheets: BTreeSet<_> = self.tables.values().chain(next.values())
+            .filter(|table| table.auto_filter().is_some())
+            .filter_map(|table| self.index_of(table.sheet_name())).collect();
+        let arrays = if filtered_sheets.is_empty() { Vec::new() } else {
+            self.array_dependents_for_atoms(&self.atom_context.filter_dependent_atoms())
+        };
+        let store = self.store.clone();
+        store.batch(|_| {
+            self.tables = next;
+            for sheet in filtered_sheets { self.republish_hidden(sheet); }
+            self.bump_tables_epoch();
+        });
+        self.recompute_array_formula_groups(arrays);
         Ok(count)
     }
 }

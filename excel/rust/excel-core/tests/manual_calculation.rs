@@ -105,7 +105,7 @@ fn resized_arrays_and_cross_sheet_spill_consumers_use_dependency_order() {
     let (mut book, value) = book();
     book.add_sheet("Source");
     book.set_formula(1, "A1", "=SEQUENCE(EXTERNAL())");
-    book.set_formula(0, "A1", "=SEQUENCE(ROWS(Source!A1#),1,10,10)");
+    book.set_formula(0, "A1", "=Source!A1#*10");
     book.set_formula(0, "D1", "=SUM(A1#)");
     assert_eq!(book.get_cell("Sheet1", "A2"), Value::Number(20.0));
     for (size, sum) in [(4, 100.0), (1, 10.0), (3, 60.0)] {

@@ -2,6 +2,16 @@ import type { RustImportCell } from '@einfach/spreadsheet-ui-core'
 
 /** 第二张表展示跨表引用：改名后数值应保持，修改订单后仍应重算。 */
 export const SALES_ORDER_SUMMARY_CELLS: readonly RustImportCell[] = [
+  // H57:H59 原始溢出，F57:F59 算术引用；H57 改成 SEQUENCE(1) 后仍可 SUM(F57#)。
+  { sheet: 1, row: 55, col: 7, kind: 'text', value: 'Spill source', format: { bold: true } },
+  { sheet: 1, row: 56, col: 7, kind: 'formula', value: '=SEQUENCE(3)' },
+  { sheet: 1, row: 55, col: 5, kind: 'text', value: 'Spill × 10', format: { bold: true } },
+  { sheet: 1, row: 56, col: 5, kind: 'formula', value: '=H57#*10' },
+  { sheet: 1, row: 61, col: 7, kind: 'formula', value: '=SEQUENCE(1)' },
+  { sheet: 1, row: 62, col: 7, kind: 'formula', value: '=SUM(F57#)' },
+  // F62 的目标被 F63 挡住；清掉 F63 后原生引擎自动恢复溢出。
+  { sheet: 1, row: 61, col: 5, kind: 'formula', value: '=SEQUENCE(3)' },
+  { sheet: 1, row: 62, col: 5, kind: 'text', value: 'Clear to unblock' },
   // D62/E62：手动重算可见的随机数及下游；只导入原生公式，不在 React 模拟。
   { sheet: 1, row: 60, col: 3, kind: 'text', value: 'Recalculate: RAND', format: { bold: true } },
   { sheet: 1, row: 60, col: 4, kind: 'text', value: 'RAND × 2', format: { bold: true } },

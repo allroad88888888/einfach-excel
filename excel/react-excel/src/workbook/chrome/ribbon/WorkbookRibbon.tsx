@@ -24,6 +24,7 @@ import { GoToTools } from './GoToTools'
 import { QuickFormulaTools } from './QuickFormulaTools'
 import { InsertFunctionTools } from './InsertFunctionTools'
 import { CalculationTools } from './CalculationTools'
+import { SpillTools } from './SpillTools'
 import { NamedRangeTools } from './NamedRangeTools'
 import { TableTools } from './TableTools'
 import { ConditionalFormatTools } from './ConditionalFormatTools'
@@ -220,6 +221,7 @@ export function WorkbookRibbon() {
         <QuickFormulaTools />
         <InsertFunctionTools />
         <CalculationTools />
+        <SpillTools />
         <NamedRangeTools />
         <TableTools />
         <span className="tool-separator" aria-hidden="true" />

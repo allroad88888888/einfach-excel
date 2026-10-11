@@ -95,6 +95,17 @@ describe('Sales Orders workbook definition', () => {
     expect(new Set(SUMMARY_CONDITIONAL_TEXT_CELLS.map(key)).size)
       .toBe(SUMMARY_CONDITIONAL_TEXT_CELLS.length)
   })
+  it('all import chunks use unique cell addresses, including the spill examples', () => {
+    const cells = [...SALES_ORDERS_WORKBOOK_DEFINITION.createImportChunks() as Iterable<
+      readonly RustImportCell[]
+    >].flat()
+    const seen = new Set<string>()
+    for (const cell of cells) {
+      const address = `${cell.sheet}:${cell.row}:${cell.col}`
+      expect(seen.has(address), `Duplicate seed cell ${address}`).toBe(false)
+      seen.add(address)
+    }
+  })
   it('declares a real Table with explicit header data and a structured-reference formula', () => {
     expect(SUMMARY_TABLES).toEqual(expect.arrayContaining([{ name: 'DemoTable',
       range: { rowStart: 79, rowEnd: 82, colStart: 0, colEnd: 1 }, totals: true,

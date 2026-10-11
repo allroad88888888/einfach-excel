@@ -97,9 +97,16 @@ pub fn eval_expr_with_provider(expr: &Expr, provider: &dyn EvalProvider) -> Valu
 
         Expr::FuncCall { name, args } => eval_func(name, args, provider),
 
+        // 显式 # 引用的是整个数组，即使缩到 1×1 也不能丢失数组身份。
+        // 普通单格区域和 INDEX 取单值仍走下方原有标量规则。
+        Expr::SpillRef(anchor) => match runtime_ref_from_spill(anchor, provider) {
+            Ok(RuntimeRef { materialized: Some(array), .. }) => Value::Array(array),
+            Ok(_) => Value::Error(ValueError::InvalidRef),
+            Err(error) => Value::Error(error),
+        },
+
         Expr::Range { .. }
         | Expr::SheetRange { .. }
-        | Expr::SpillRef(_)
         | Expr::DynamicRange { .. }
         | Expr::TableRef { .. } => {
             // 普通地址与 Table 地址使用同一取值/数组尺寸限制；转换 Table 后

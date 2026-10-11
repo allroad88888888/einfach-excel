@@ -28,6 +28,7 @@ import type { RustOutlineCommands } from './outline-io'
 import type { RustNamedRangeCommands } from './named-range-commands'
 import type { RustTableCommands } from './table-commands'
 import type { RustWorkbookFileCommands } from './file-commands'
+import type { RustSpillCommands } from './spill-commands'
 import type { NativeTableStyle } from '../tables/native-types'
 import type { NativeOutline } from '../outline/native-state'
 import type { NativeDataValidationRule } from '../data-validation/native-rule'
@@ -150,7 +151,7 @@ export interface RustClearRangeRequest {
 export interface RustWorkbookCommands
   extends RustFindCommands, RustSortCommands, RustFilterCommands,
     RustTextColumnsCommands, RustRemoveDuplicatesCommands, RustQuickFormulaCommands,
-    RustConditionalFormatCommands, RustDataValidationCommands,
+    RustConditionalFormatCommands, RustDataValidationCommands, RustSpillCommands,
     RustOutlineCommands, RustNamedRangeCommands, RustTableCommands, RustWorkbookFileCommands {
   readonly 'format.preview': WorkerCommand<
     {

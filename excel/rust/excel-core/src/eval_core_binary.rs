@@ -124,14 +124,12 @@ pub(super) fn eval_compare(op: BinOperator, l: &Value, r: &Value) -> bool {
 
 /// Evaluate a binop operand with array-aware semantics.
 ///
-/// Standard `eval_expr_with_provider` collapses a bare `Expr::Range` to
-/// `#VALUE!` (ranges are only meaningful as function args), and lets a
-/// `Value::Array` from a constructor function (`SEQUENCE`, `={1;2;3}`)
-/// flow through as-is. For implicit broadcast we want the OPPOSITE
-/// behaviour at the binop boundary: a multi-cell range becomes a
-/// `Value::Array`, but a single-cell range collapses to its scalar so
-/// `=A1+1` keeps the scalar-arithmetic fast path.
+/// 普通单格引用保持标量快速路径；显式 # 引用和数组构造函数保留数组身份，
+/// 因此数组缩到 1×1 时，算术结果仍可被下游 # 引用。
 pub(super) fn eval_operand_for_binop(expr: &Expr, provider: &dyn EvalProvider) -> Value {
+    if matches!(expr, Expr::SpillRef(_)) {
+        return eval_expr_with_provider(expr, provider);
+    }
     // 与区域迭代一致：只对选中的分支尝试引用解析，不重新执行条件。
     if let Expr::FuncCall { name, args } = expr {
         if name == "IF" {

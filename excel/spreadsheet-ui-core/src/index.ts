@@ -123,3 +123,4 @@ export type { NativeTable, NativeTableStyle, NativeTableAction, TableChange, Nat
 export { DEFAULT_NATIVE_TABLE_STYLE, NATIVE_TABLE_STYLE_PRESETS } from './tables/native-types'
 export { activeCellInputTextAtom } from './projection/editable-source-text'
 export { toggleFormulaReferenceAtom } from './formula-reference/toggle-reference'
+export { spillAvailableAtom, spillPanelAtom, runSpillAtom } from './spill/command'

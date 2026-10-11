@@ -33,6 +33,7 @@ import { applyRemoveDuplicates, previewRemoveDuplicates } from './remove-duplica
 import { changeConditionalFormat } from './conditional-format-io'
 import { changeDataValidation } from './data-validation-commands'
 import { exportWorkbookFile, openWorkbookFile } from './file-io'
+import { inspectSpill } from './spill-commands'
 
 type CommandName = keyof RustWorkbookCommands
 
@@ -104,6 +105,10 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       return initialize(input.sheets)
     }
     const current = currentWorkbook()
+    if (command === 'formula.inspectSpill') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      return { inspection: inspectSpill(current, sheetIndex(input.sheetId), input.cell), revision }
+    }
     if (command === 'formula.recalculate') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
       if (!['sheet', 'workbook'].includes(input.scope)) throw new Error('Invalid calculation scope.')

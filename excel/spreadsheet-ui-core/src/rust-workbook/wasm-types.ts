@@ -20,6 +20,7 @@ import type { NativeDataValidationRule } from '../data-validation/native-rule'
 import type { NativeOutlineAction } from '../outline/native-state'
 import type { NativeNamedRange, NativeNamedRangeAction } from '../named-ranges/native-types'
 import type { NativeTable, NativeTableAction } from '../tables/native-types'
+import type { WasmSpillQueries } from './spill-commands'
 
 export interface RustCellSnapshot {
   readonly sheet: number
@@ -57,7 +58,7 @@ export interface RustFormatRangeSnapshot {
   readonly dataBars?: readonly ({ readonly addr: string } & NonNullable<DisplayCell['dataBar']>)[]
 }
 
-export interface WasmWorkbook {
+export interface WasmWorkbook extends WasmSpillQueries {
   recalculate?: (sheet?: number) => number
   snapshot_persistence_v1?: () => unknown
   restore_persistence_v1?: (value: unknown) => unknown

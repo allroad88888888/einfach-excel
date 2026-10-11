@@ -5,19 +5,26 @@ use crate::workbook_history::MAX_BYTES;
 use crate::CellSnapshot;
 
 impl Workbook {
-    /// 旧公式下移后也可能转入数组分支；只查实际 spill 索引，不求值整列。
-    pub(super) fn validate_inserted_table_arrays(&self, sheet: usize, edit: ShiftEdit)
+    /// 旧标量公式下移后也可能转入数组分支；最终源码落地后才投影稀疏候选。
+    pub(super) fn validate_inserted_table_arrays(&mut self, sheet: usize, edit: ShiftEdit)
         -> Result<(), &'static str> {
         let ShiftEdit::RowInsert { at, count } = edit else { return Ok(()); };
-        let target = &self.sheets[sheet];
-        let blocked = target.blocked_anchor_addresses();
-        for table in self.tables.values().filter(|table| {
+        let ranges: Vec<_> = self.tables.values().filter(|table| {
             Some(table.sheet_name()) == self.name(sheet)
                 && at > table.range.start.row && at + count <= table.range.end.row
                 && table.calculated_columns.iter().any(Option::is_some)
-        }) {
-            if target.spill_intersecting(table.range).is_some()
-                || blocked.iter().any(|anchor| table.range.contains(*anchor)) {
+        }).map(|table| table.range).collect();
+        let target = &mut self.sheets[sheet];
+        let candidates = ranges.iter().flat_map(|range| target.formula_addrs_in_range(*range))
+            .filter(|addr| target.formula_text_at(*addr).is_some_and(|source| {
+                crate::sheet::source_may_produce_array(&source)
+                    && parse_formula(&source).is_some_and(|expr| crate::sheet::expr_may_produce_array(&expr))
+            })).collect();
+        target.project_bulk_spill_anchors(candidates);
+        let blocked = target.blocked_anchor_addresses();
+        for range in ranges {
+            if target.spill_intersecting(range).is_some()
+                || blocked.iter().any(|anchor| range.contains(*anchor)) {
                 return Err("Spilled arrays cannot be entered inside a table.");
             }
         }

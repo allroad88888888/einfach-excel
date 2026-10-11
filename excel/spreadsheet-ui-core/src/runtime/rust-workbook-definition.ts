@@ -64,11 +64,20 @@ export function snapshotRustWorkbookDefinition(
     const tables = snapshotRanges(sheet.tables, 'table range')?.map((table, index) => {
       const totals = sheet.tables![index].totals
       const style = sheet.tables![index].style
+      const calculatedColumns = sheet.tables![index].calculatedColumns
+      if (calculatedColumns !== undefined && (
+        calculatedColumns.length !== table.range.colEnd - table.range.colStart + 1 ||
+        table.range.rowEnd <= table.range.rowStart || calculatedColumns.some((formula) =>
+          formula !== null && (typeof formula !== 'string' || !formula.startsWith('=')))))
+        throw new Error('Invalid initial calculated columns.')
       if (style !== undefined && !validNativeTableStyle(style)) throw new Error('Invalid initial table style.')
       if (totals !== undefined && (typeof totals !== 'boolean' ||
         (totals && table.range.rowEnd + 1 >= sheet.rowCount)))
         throw new Error('Invalid initial table totals row.')
       return Object.freeze({ ...table, ...(totals === undefined ? {} : { totals }),
+        ...(calculatedColumns === undefined ? {} : {
+          calculatedColumns: Object.freeze([...calculatedColumns]),
+        }),
         ...(style === undefined ? {} : { style: Object.freeze({ ...style }) }) })
     })
     if (sheet.outline && (!validNativeOutline(sheet.outline) ||

@@ -99,7 +99,29 @@
 
 提交检查点：按用户要求保存当前改动，不宣告整批验收。随后新增的“已有计算列公式下移后转入数组分支”回归仍失败：最新默认插行专项 **9 passed / 1 failed**（`/tmp/excel-table-shift-array-default.log`），后续组及 lite 未执行。当前新增 spill 索引检查尚未解决该问题，不能沿用前述通过结果证明最终源码通过；既有 369 行 `sheet_spill_claims.rs` 仅扩大读取方法的模块可见性，没有顺带拆分。
 
-尚待完成：既有公式位移后进入条件数组分支等交叉策略核对、UI Core／React 交叉测试、真实 WASM 构件与持久 E2E、演示种子。不能把三条原生基础路径当成三项完整交互验收，不复用上一批验收结果。
+上述检查点已提交并推送为 `1b658c97`。后续修复了插行数组分支漏检：原来返回标量的公式没有 spill 记录，仅检查索引无法发现它位移后的数组结果。现在在新公式共同落地后，筛选受影响 Table 内已有的稀疏公式候选，复用原生数组投影再验证；不遍历空格、不建立新公式引擎。默认／lite 专项各 **34/34** 通过（`/tmp/excel-table-shift-array-final-default.log`、`/tmp/excel-table-shift-array-final-lite.log`），包含原先失败的活动／阻挡数组两种分支。WASM lib **167 passed / 1 ignored** 复验通过（`/tmp/excel-table-shift-array-final-wasm.log`）。
+
+新增 UI Core 输入传输测试与 React 多格显示测试，使用固定原生响应，不在假件中计算公式。覆盖建列、整列更新、新行继承的一次输入／一次返回投影，以及拒绝后保留草稿、旧值和 revision。相关 Vitest **49/49** 通过（`/tmp/excel-calculated-column-ui-final.log`）；类型、相关 lint、UI Core 构建、文档及展现层边界检查通过。按单一职责规范分别放置传输、DOM、浏览器测试，新增／改动文件均低于 300 行，没有修改生产 TS 调用链。
+
+lite/full 构件已从当前源码重建，顺序构建退出 0（`/tmp/excel-calculated-columns-wasm-build.log`）。新增持久计算列 E2E 与既有输入扩表交叉专项 **8/8**（10.5 秒）通过（`/tmp/excel-calculated-columns-e2e.log`），真实 Vite Worker 验证中间行输入填满上下、整列更新、向下继承及整条撤销重做；不是模拟后端。Rust 默认→lite 完整回归已启动（`/tmp/excel-calculated-columns-all-default.log`、`/tmp/excel-calculated-columns-all-lite.log`），尚未记为完成，不重复启动。
+
+演示种子现为 Summary `A46:C49` 的 `CalculatedOrders`，`C47:C49` 为 10、40、90，`B6` 合计 140。启动声明只给列公式，建表后调用已有 Rust 单格输入建立标准公式并填列，随后统一清空启动历史；不在 React 计算逐行公式。定义快照校验并冻结声明，原生拒绝会沿既有启动错误路径返回。初始化协议复用同一 Table 类型，未新增 RPC；既有 `commands.ts` 331 行仅小改，未顺带拆分。
+
+种子、例外保留、结构插行及输入扩表专项 **11/11** 通过。首次跨范围／汇总交叉为 **18/23**：新示例原放在 A88，确实占用了旧示例扩表目的地，5 项失败；已移动种子到独立区域，保留原有行为与断言，最新同组 **23/23**（23.0 秒）通过（`/tmp/excel-calculated-cross-final-e2e.log`）。其中 lite/full 真实构件均验证 JSON 恢复后继承、手动 resize、结构插行、保护策略禁止批量副作用，以及已移动公式进入活动／阻挡数组分支时持久状态和历史完全不变。这是二进制边界验证，不代表页面已有保存／保护入口。
+
+全量 Vitest **5,491/5,491**（339 文件）通过（`/tmp/excel-calculated-all-vitest.log`）；种子移位后又启动最终复验（`/tmp/excel-calculated-final-all-vitest.log`）。根构建通过（`/tmp/excel-calculated-build.log`），JS 593.92 kB（gzip 168.80 kB），WASM lite 3049.59 kB；类型与相关 lint 通过。完整 E2E 已启动（`/tmp/excel-calculated-all-e2e.log`），与前述完整 Rust 默认→lite 回归一起等待最终结果；保持生产源码及 WASM 冻结，不并行重建。仍待全量回归与最终门禁收尾，本轮续改未提交，不把专项通过当成整批完成。
+
+最终种子位置下的全量 Vitest 复验 **5,491/5,491**（339 文件，64.08 秒）通过，进程退出 0。完整 lint、展现层边界、循环依赖（718 模块、2022 依赖）、文档与差异检查通过。完整浏览器回归确认为 **784 项**，仍与 Rust 双配置回归沿用原进程继续，尚不能记为通过。
+
+完整浏览器回归现已 **784/784**（11.4 分钟）通过，原进程退出 0（`/tmp/excel-calculated-all-e2e.log`）。运行期间生产源码与 WASM 未再变更，既有功能与新增计算列／种子／双构件持久化用例全部通过；没有跳过或放宽失败断言。当前仅剩完整 Rust 默认／lite 回归的最终结果待验收：默认配置仍在原进程运行，未据阶段通过数宣称整个命令完成。当前续改未提交，不能提前进入下一批或关闭完整 41 项计划。
+
+收尾复查又补出清空场景：真实浏览器与原生回归均复现整列清空后再输入只修改当前格（`/tmp/excel-calculated-cleared-repro.log`、`/tmp/excel-calculated-cleared-native-repro.log`）。旧标准公式把全空列误判为局部缺项，现只放宽 `occupied == 0`，部分清空仍保留例外。随后原生回归还复现单格回退分支绕过 Table 数组限制（`/tmp/excel-calculated-fallback-array-repro.log`）；现复用既有表归属查询及单格历史事务检查实际／阻挡 spill，失败沿原事务回滚，没有新增命令或包装层。新增 `table_calculated_clear.rs` 独立覆盖整列清空、逐格清空、局部空洞、保护策略、活动／阻挡数组及历史恢复，86 行；浏览器补 3 项清空交叉用例。
+
+因此上一段 784 项通过属于清空修复前的源码，不再作为最终版本验收。原完整 Rust 队列在确认缺陷后已明确终止（退出 143），不是因观察超时重启；修复后的双配置专项正在运行（`/tmp/excel-calculated-cleared-final-default.log`、`/tmp/excel-calculated-cleared-final-lite.log`）。WASM lib **167 passed / 1 ignored** 复验与 lite/full 重建通过（`/tmp/excel-calculated-cleared-wasm.log`、`/tmp/excel-calculated-cleared-wasm-build.log`）；真实浏览器清空／计算列交叉仍在复验，最终全量需重新取得证据。继续保持本批未验收、未提交。
+
+提交前补充：清空修复的原生专项已通过，但新增订阅断言又复现拒绝数组输入会发出 6 次临时通知。现复用既有通知暂停与 Store batch，将求值、检查及回滚放在同一批次，恢复订阅前完成回滚；本表和跨表订阅均断言零通知。`table_calculated_clear.rs` 最终为 97 行。最新默认／lite 专项各 **39/39** 通过，顺序命令退出 0（`/tmp/excel-calculated-clear-observers-default.log`、`/tmp/excel-calculated-clear-observers-lite.log`）；WASM lib **167 passed / 1 ignored** 与 lite/full 构件重建通过。界面补充明确的 Table 数组输入错误提示，相关反馈及 React 测试 **10/10** 通过。此次按用户要求提交检查点，最终版本的完整 Rust、Vitest 和 E2E 尚未重新验收，不沿用修复前全量结果宣告完成。
+
+提交前真实浏览器专项 **20/20** 通过（`/tmp/excel-calculated-precommit-final-e2e.log`），包含清空、计算列、双构件持久化及输入扩表。前次并行启动误共享 Playwright 端口和产物目录，出现端口占用及 trace 文件丢失；已将四个测试文件放在同一命令串行复测，没有改动产品或放宽断言。
 
 ### Excel Table 样式（已验收）
 

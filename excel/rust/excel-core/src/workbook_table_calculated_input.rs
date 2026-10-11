@@ -45,8 +45,10 @@ impl TableDefinitionChange {
                 eligible &= normalized == previous.formula_at(cell.row).ok();
             } else { eligible &= cell == addr; }
         });
-        // 例外/缺项保留为单格编辑；普通列只有其它数据格均为空才自动建立定义。
-        if !eligible || (previous.is_some() && occupied != range.rows()) { return Ok(None); }
+        // 全空列可以重新建立标准公式；局部缺项仍是例外，不能因编辑别行而填回。
+        if !eligible || (previous.is_some() && occupied > 0 && occupied != range.rows()) {
+            return Ok(None);
+        }
         validate_cells(workbook, sheet, range)?;
         let mut formula = TableColumnFormula::new(addr.row, &source)?;
         if let Some(previous) = previous {

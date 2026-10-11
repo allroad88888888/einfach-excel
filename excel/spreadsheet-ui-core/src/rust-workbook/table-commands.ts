@@ -1,8 +1,9 @@
 import type { ProjectionRevision, VisibleProjectionRequest, VisibleProjectionResult } from '../backend'
 import type { WorkerCommand } from '../rust-worker/types'
-import type { NativeTableAction, NativeTableStyle, TableChange } from '../tables/native-types'
+import type { NativeTableAction, TableChange } from '../tables/native-types'
 import { validateProjectionRequest } from '../projection/contracts'
-import type { RustWorkbookSheet } from './commands'
+import type { RustWorkbookSheet, RustWorkbookSheetInput } from './commands'
+import { writeCellInput } from './cell-io'
 import type { WasmWorkbook } from './wasm-types'
 import type { CellRange } from '../shared'
 
@@ -42,8 +43,7 @@ export function changeTable(workbook: WasmWorkbook,
 
 /** 只用于未发布的启动工作簿；导入后建立表头定义，调用者统一清除启动历史。 */
 export function importTables(workbook: WasmWorkbook, sheets: ReadonlyMap<string, RustWorkbookSheet>,
-  tables: readonly { sheetId: string; name: string; range: CellRange;
-    totals?: boolean; style?: NativeTableStyle }[],
+  tables: readonly (NonNullable<RustWorkbookSheetInput['tables']>[number] & { sheetId: string })[],
 ): void {
   for (const table of tables) {
     const sheet = sheets.get(table.sheetId)
@@ -56,6 +56,11 @@ export function importTables(workbook: WasmWorkbook, sheets: ReadonlyMap<string,
     })
     if (table.style) workbook.change_table(sheet.index, {
       kind: 'style', name: table.name, style: table.style,
+    })
+    // 复用原生计算列输入，不在 JS 复制公式或建立模板镜像；启动历史随后统一清空。
+    table.calculatedColumns?.forEach((formula, column) => {
+      if (formula !== null) writeCellInput(workbook, sheet.index,
+        table.range.rowStart + 1, table.range.colStart + column, formula)
     })
   }
 }

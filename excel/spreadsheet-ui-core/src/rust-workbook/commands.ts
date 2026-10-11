@@ -59,6 +59,8 @@ export interface RustWorkbookSheetInput {
   readonly tables?: readonly {
     readonly name: string; readonly range: CellRange
     readonly totals?: boolean; readonly style?: NativeTableStyle
+    /** 按 Table 列顺序声明初始公式；null 保留普通列，Rust 负责整列填充。 */
+    readonly calculatedColumns?: readonly (string | null)[]
   }[]
   readonly dataValidations?: readonly {
     readonly range: CellRange
@@ -280,11 +282,9 @@ export interface RustWorkbookCommands
     readonly RustWorkbookSheet[]
   >
   readonly 'workbook.importCells': WorkerCommand<
-    { readonly cells: readonly RustImportCell[]; readonly tables?: readonly {
-      readonly sheetId: string; readonly name: string; readonly range: CellRange
-      readonly totals?: boolean
-      readonly style?: NativeTableStyle
-    }[] },
+    { readonly cells: readonly RustImportCell[]; readonly tables?: readonly (
+      NonNullable<RustWorkbookSheetInput['tables']>[number] & { readonly sheetId: string }
+    )[] },
     RustImportStats
   >
   readonly 'projection.readVisible': WorkerCommand<

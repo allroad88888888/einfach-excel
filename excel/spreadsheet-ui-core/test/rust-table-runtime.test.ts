@@ -15,6 +15,7 @@ async function setup() {
   const post = vi.fn(), read = vi.fn(() => []), begin = vi.fn()
   const bulk = vi.fn(() => ({ accepted: 0, errors: 0, rejectedFormulas: 0 }))
   const clear = vi.fn()
+  const write = vi.fn()
   const change = vi.fn((_sheet: number, _action: NativeTableAction) => true)
   const list = vi.fn(() => tables)
   vi.stubGlobal('self', { addEventListener: (_: string, fn: typeof receive) => { receive = fn },
@@ -27,6 +28,7 @@ async function setup() {
     listTables = list
     history_begin = begin
     history_clear = clear
+    set_cell_input = write
     bulk_import_cells = bulk
     read_sparse_range = read
     snapshot_format_range() { return { cellStyles: [], rowStyles: [], columnStyles: [] } }
@@ -38,7 +40,7 @@ async function setup() {
     return post.mock.lastCall![0]
   }
   await call('workbook.initialize', { sheets: [{ id: 's', name: 'Sheet', rowCount: 100, colCount: 8 }] })
-  return { call, change, read, begin, list, bulk, clear }
+  return { call, change, read, begin, list, bulk, clear, write }
 }
 test('creation uses one native history command and one returned projection', async () => {
   const { call, change, read, begin, list } = await setup()
@@ -131,6 +133,19 @@ test('initial tables are built after imported cells and before clearing startup 
   expect(bulk.mock.invocationCallOrder[0]).toBeLessThan(change.mock.invocationCallOrder[0])
   expect(change.mock.invocationCallOrder[0]).toBeLessThan(clear.mock.invocationCallOrder.at(-1)!)
 })
+
+test('seed calculated columns use one native input after table creation and before clearing history',
+  async () => {
+    const { call, change, write, clear } = await setup()
+    expect((await call('workbook.importCells', { cells: [], tables: [{
+      sheetId: 's', name: 'Sales', range: input.action.range,
+      calculatedColumns: [null, '=[@Product]*2'],
+    }] })).ok).toBe(true)
+    expect(write).toHaveBeenCalledTimes(1)
+    expect(write).toHaveBeenCalledWith(0, 'B2', '=[@Product]*2')
+    expect(change.mock.invocationCallOrder[0]).toBeLessThan(write.mock.invocationCallOrder[0])
+    expect(write.mock.invocationCallOrder[0]).toBeLessThan(clear.mock.invocationCallOrder.at(-1)!)
+  })
 
 test('import passes sparse formats with the values in one native call', async () => {
   const { call, bulk } = await setup()

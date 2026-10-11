@@ -7,6 +7,8 @@ const INPUT_ERRORS = [
   ['the new column name collides with another column of the table',
     'This table already has a column with that name. Choose a different column name.'],
   ['column name must not be empty', 'Enter a non-empty column name or press Escape.'],
+  ['Spilled arrays cannot be entered inside a table.',
+    'Spilled arrays cannot be entered inside a table. Use a single-value formula or press Escape.'],
 ] as const
 
 /** Error feedback for editing lifecycle states that leave a draft open. */

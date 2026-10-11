@@ -4,6 +4,9 @@ import type { RustImportCell, RustWorkbookSheetInput } from '@einfach/spreadshee
 export const SUMMARY_TABLES: RustWorkbookSheetInput['tables'] = [
   { name: 'DemoTable', range: { rowStart: 79, rowEnd: 82, colStart: 0, colEnd: 1 }, totals: true,
     style: { preset: 'blue', bandedRows: true, firstColumn: false } },
+  { name: 'CalculatedOrders', range: { rowStart: 45, rowEnd: 48, colStart: 0, colEnd: 2 },
+    calculatedColumns: [null, null, '=[@Quantity]*[@Price]'],
+    style: { preset: 'green', bandedRows: true, firstColumn: false } },
 ]
 export const SUMMARY_TABLE_CELLS: readonly RustImportCell[] = [
   { sheet: 1, row: 4, col: 0, kind: 'text', value: 'Table total', format: { bold: true } },
@@ -13,5 +16,14 @@ export const SUMMARY_TABLE_CELLS: readonly RustImportCell[] = [
   ...['Keyboard', 'Mouse', 'Monitor'].flatMap((value, index): RustImportCell[] => [
     { sheet: 1, row: 80 + index, col: 0, kind: 'text', value },
     { sheet: 1, row: 80 + index, col: 1, kind: 'number', value: (index + 1) * 10 },
+  ]),
+  { sheet: 1, row: 5, col: 0, kind: 'text', value: 'Calculated total', format: { bold: true } },
+  { sheet: 1, row: 5, col: 1, kind: 'formula', value: '=SUM(CalculatedOrders[Total])' },
+  ...['Quantity', 'Price', 'Total'].map((value, col): RustImportCell => ({
+    sheet: 1, row: 45, col, kind: 'text', value, format: { bold: true },
+  })),
+  ...[10, 20, 30].flatMap((value, index): RustImportCell[] => [
+    { sheet: 1, row: 46 + index, col: 0, kind: 'number', value: index + 1 },
+    { sheet: 1, row: 46 + index, col: 1, kind: 'number', value },
   ]),
 ]

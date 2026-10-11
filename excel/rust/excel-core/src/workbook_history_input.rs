@@ -29,15 +29,16 @@ impl WorkbookHistory {
         let range = CellRange::single(addr);
         validate_target(workbook, sheet, range)?;
         let sheet_name = workbook.name(sheet).ok_or("INVALID_SHEET")?;
-        let header = workbook
+        let table = workbook
             .list_tables()
             .into_iter()
             .find(|entry| {
-                entry.has_headers()
-                    && entry.sheet_name() == sheet_name
-                    && entry.range().start.row == addr.row
+                entry.sheet_name() == sheet_name
                     && entry.range().contains(addr)
-            })
+            });
+        let in_table = table.is_some();
+        let header = table
+            .filter(|entry| entry.has_headers() && entry.range().start.row == addr.row)
             .map(|entry| {
                 (
                     entry.name().to_string(),
@@ -72,8 +73,27 @@ impl WorkbookHistory {
             }
         }
         self.begin(workbook, sheet, range, "Edit cell", true)?;
-        let result = workbook.set_cell_input(sheet, address, input);
-        self.finish(workbook, result.is_ok())?;
-        result.map_err(str::to_string)
+        // Table 检查发生在求值后，提交/回滚之前不能让本表或跨表订阅看到临时数组。
+        let observers: Vec<_> = if in_table {
+            workbook.sheets.iter_mut().map(|sheet| sheet.suspend_structure_notifications()).collect()
+        } else { Vec::new() };
+        let store = workbook.store.clone();
+        let mut outcome = Ok(());
+        store.batch(|_| {
+            let mut result = workbook.set_cell_input(sheet, address, input);
+            // 有例外或受保护时走单格分支，但 Table 的数组限制仍然有效。
+            if result.is_ok() && in_table {
+                let target = workbook.sheet(sheet).expect("validated worksheet");
+                if target.is_spill_region(addr) || target.blocked_anchor_shape(addr).is_some() {
+                    result = Err("Spilled arrays cannot be entered inside a table.");
+                }
+            }
+            outcome = self.finish(workbook, result.is_ok()).map_err(str::to_string)
+                .and_then(|()| result.map_err(str::to_string));
+        });
+        for (sheet, observer) in workbook.sheets.iter_mut().zip(observers) {
+            sheet.resume_structure_notifications(observer);
+        }
+        outcome
     }
 }

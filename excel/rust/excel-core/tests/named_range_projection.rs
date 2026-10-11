@@ -96,3 +96,26 @@ fn cross_sheet_subscribers_receive_one_final_value_per_name_command() {
     assert_eq!(wb.get_cell("Sheet1", "G1"), Value::Number(30.0));
     wb.sheet_mut(0).unwrap().unsubscribe_cell(token);
 }
+
+#[test]
+fn single_cell_history_input_reprojects_named_arrays_and_their_consumers() {
+    for in_table in [false, true] {
+        let mut wb = seed();
+        if in_table {
+            // 数值编辑走 Table 单格分支，不建立或更新计算列。
+            wb.define_table(Some("Orders"), 1,
+                CellRange::new(CellAddress::new(0, 0), CellAddress::new(2, 0)), true).unwrap();
+        }
+        let mut history = WorkbookHistory::default();
+        history.set_cell_input(&mut wb, 1, "A2", "40").unwrap();
+        for redo in [false, true] {
+            if redo { history.redo(&mut wb).unwrap(); }
+            assert_eq!(wb.get_cell("Source", "C11"), Value::Number(40.0), "table={in_table}");
+            assert_eq!(wb.get_cell("Sheet1", "A2"), Value::Number(80.0));
+            assert_eq!(wb.get_cell("Sheet1", "D2"), Value::Number(160.0));
+            history.undo(&mut wb).unwrap();
+            assert_eq!(wb.get_cell("Source", "C11"), Value::Number(20.0));
+            assert_eq!(wb.get_cell("Sheet1", "D2"), Value::Number(80.0));
+        }
+    }
+}

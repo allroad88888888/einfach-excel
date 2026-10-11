@@ -17,6 +17,11 @@ impl Workbook {
         if snapshots.iter().any(|(_, snapshot)| snapshot.merges.is_some()) {
             return self.restore_merged_history_snapshots(snapshots);
         }
+        let arrays = snapshots.iter().filter(|(_, snapshot)| snapshot.cells.is_some())
+            .flat_map(|(sheet, snapshot)| self.array_dependents_for_range(*sheet, snapshot.range))
+            .collect();
+        let observers: Vec<_> = self.sheets.iter_mut()
+            .map(Sheet::suspend_structure_notifications).collect();
         let store = self.store.clone();
         let mut result = Ok(());
         store.batch(|_| {
@@ -24,6 +29,11 @@ impl Workbook {
                 .iter()
                 .try_for_each(|(sheet, snapshot)| snapshot.restore(self, *sheet));
         });
+        // 单份快照可能处在嵌套 batch 内；整次撤销传播完成后才投影数组并通知。
+        self.recompute_array_formula_groups(arrays);
+        for (sheet, observer) in self.sheets.iter_mut().zip(observers) {
+            sheet.resume_structure_notifications(observer);
+        }
         result
     }
 

@@ -123,6 +123,20 @@ lite/full 构件已从当前源码重建，顺序构建退出 0（`/tmp/excel-ca
 
 提交前真实浏览器专项 **20/20** 通过（`/tmp/excel-calculated-precommit-final-e2e.log`），包含清空、计算列、双构件持久化及输入扩表。前次并行启动误共享 Playwright 端口和产物目录，出现端口占用及 trace 文件丢失；已将四个测试文件放在同一命令串行复测，没有改动产品或放宽断言。
 
+上述检查点已按用户要求提交推送为 `9e9e5a03`，提交门禁 **2,153/2,153** 通过。继续收尾时，当前提交的根构建、类型与循环依赖检查通过，全量 Vitest **5,492/5,492**（339 文件，30.27 秒）通过（`/tmp/excel-calculated-9e9e-build.log`、`/tmp/excel-calculated-9e9e-vitest.log`、`/tmp/excel-calculated-9e9e-cycles.log`）。完整 **787 项** E2E 已在同一验证队列开始（`/tmp/excel-calculated-9e9e-e2e.log`）；同提交 [CI](https://github.com/allroad88888888/einfach-excel/actions/runs/38138425481) 的 Rust 双配置全量仍在运行，尚未记录通过。保持生产源码和 WASM 冻结，不开启下一批；此续补记录未提交。
+
+完整回归实际结果为 **785 passed / 2 failed**（10.9 分钟），不是全绿：lite/full 的命名区域保存恢复测试在修改源值后，标量 SUM 已更新但跨表溢出格仍为旧值。进度检查只读日志尾部曾漏掉中段失败，最终以整条命令退出 1 及完整报告为准。原生新增 `single_cell_history_input_reprojects_named_arrays_and_their_consumers` 同样复现 20 未更新为 40。原因是上次 Table 拒绝事务把普通输入也包进 Store batch，原数组投影在批次传播前运行；现恢复普通输入原路径，Table 单格事务在 batch 结束后复用现有受影响数组重投，再恢复订阅。原生回归覆盖普通／Table 源格及撤销重做，浏览器原持久化断言全部保留并增加 Table 情形，尚待修复后复验。首次编译暴露已有数组候选方法的模块可见性不足，仅扩为 crate 内可用，没有新增包装层。
+
+`9e9e5a03` 的 CI、docs、Publish 已全部成功（Rust 完整日志 `/tmp/excel-calculated-9e9e-ci-rust.log`），但原 CI 没有覆盖此次浏览器发现的缺陷，不能替代新增回归。当前修复未提交；完整 E2E 与原生全量需要在最终源码上重新验收，不开启下一批。
+
+后续原生回归进一步发现外层历史恢复 batch 使撤销投影过早，原值 20 未恢复、仍显示 40（`/tmp/excel-input-named-array-final-default.log`）。修复沿用原多快照恢复入口：恢复前只收集受影响数组，最外层批次结束后重投，再恢复直接订阅；不逐格重算全表、不增加命令或状态层。浏览器持久化用例追加普通／Table 两种源格的输入撤销重做断言。最终交叉 E2E **24/24**（23.1 秒）通过（`/tmp/excel-input-named-array-history-e2e.log`），默认原生专项 **32/32** 通过、lite 专项仍在原顺序进程中；WASM lib **167 passed / 1 ignored** 与两种构件重建通过。最终根构建通过，其余完整回归仍待收尾。修复新增／改动源码与测试均低于 300 行，没有新增文件或抽象层。
+
+上次已提交源码的 CI 日志计数为默认 **3,340 passed / 10 ignored**、lite **3,300 passed / 10 ignored**、核心 **64/64**、WASM Chrome **7/7**；这些只证明 `9e9e5a03`，不代替当前未提交修复的全量验证。
+
+当前修复的默认／lite 原生专项均 **32/32**，顺序命令退出 0；全量 Vitest 再次 **5,492/5,492**（339 文件，37.16 秒）通过（`/tmp/excel-input-named-array-history-vitest.log`）。最终 **789 项**完整 E2E 已启动（`/tmp/excel-input-named-array-final-all-e2e.log`），当前源码的 Rust 默认→lite 全量也已启动（`/tmp/excel-input-named-array-final-all-default.log`、`/tmp/excel-input-named-array-final-all-lite.log`）。这是修复后的新验收队列，前次已完成且失败的浏览器进程不再使用；验证期间冻结源码和 WASM，仍不宣告本批完成、不进入下一批、不自动提交。
+
+修复后的完整 E2E 最终 **789/789**（11.4 分钟）通过，原命令退出 0（`/tmp/excel-input-named-array-final-all-e2e.log`）。包含上次失败的命名区域持久化场景及新增 Table 源格、输入撤销重做，共四种 lite/full 组合；其余计算列、格式、剪贴板与历史回归也全部通过，没有跳过或放宽断言。期间生产源码及 WASM 未修改。当前仅剩修复后 Rust 默认→lite 全量的完整结果待验收，默认仍在原进程继续执行集成测试，未记录整条命令通过；本批未完成、修复未提交。演示服务 `http://127.0.0.1:5183/` 已确认 HTTP 200。
+
 ### Excel Table 样式（已验收）
 
 最终验收覆盖本批三项：预设、隔行底色、首列强调。完整 E2E **776/776**、Vitest **5,481/5,481** 通过；同一提交 `9129aee7` 的 [CI Rust 任务](https://github.com/allroad88888888/einfach-excel/actions/runs/38131379102/job/114446243802) 中 `einfach-core`、`excel-core` 默认配置与 lite 配置三项完整 `cargo test --locked` 步骤均已完成且为 `success`，作为本批 Rust 双配置验收证据。根构建、类型、lint、边界、循环依赖、文档、WASM lib 与双构件验证见下。本机较慢的原 Rust 顺序任务继续运行，不能声称本地已结束；CI 后续 benchmark 编译及 WASM 步骤仍在执行，也不声称整个 CI 已全绿。此验收不关闭整个 #32 或完整计划。下文保留阶段记录。

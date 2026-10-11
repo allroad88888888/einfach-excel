@@ -84,7 +84,7 @@ impl Workbook {
     }
 
     /// 局部批量写入只收集该范围的实际 atom 依赖，用于提交/撤销后的数组重投。
-    pub(super) fn array_dependents_for_range(
+    pub(crate) fn array_dependents_for_range(
         &self, sheet: usize, range: CellRange,
     ) -> Vec<(usize, HashSet<CellAddress>)> {
         let roots = self.sheets[sheet].store_root_atoms_for_range(range);

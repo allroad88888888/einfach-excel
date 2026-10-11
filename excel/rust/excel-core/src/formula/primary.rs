@@ -100,7 +100,7 @@ impl Parser {
                 }
                 self.parse_number()
             }
-            c if c.is_ascii_alphabetic() => self.parse_identifier(),
+            c if c.is_alphabetic() || c == '_' || c == '\\' => self.parse_identifier(),
             // A leading `$` unambiguously introduces a reference — no other
             // formula token starts with `$` (sheet names, function names, and
             // bare Names never carry one). Cover column-absolute cell refs

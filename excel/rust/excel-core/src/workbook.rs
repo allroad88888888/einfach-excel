@@ -24,22 +24,22 @@ use crate::sheet::{
     SheetError, WorkbookAtomContext,
 };
 
-#[path = "workbook_conditional_format_formula.rs"]
-mod conditional_format_formula;
 #[path = "workbook_conditional_color_scale.rs"]
 mod conditional_color_scale;
 #[path = "workbook_conditional_data_bar.rs"]
 mod conditional_data_bar;
-#[path = "workbook_conditional_range.rs"]
-mod conditional_range;
+#[path = "workbook_conditional_format_formula.rs"]
+mod conditional_format_formula;
 #[path = "workbook_conditional_format_highlight.rs"]
 mod conditional_format_highlight;
 #[path = "workbook_conditional_format_numeric.rs"]
 pub(crate) mod conditional_format_numeric;
 #[path = "workbook_conditional_format_projection.rs"]
 mod conditional_format_projection;
-pub use conditional_format_projection::DisplayFormatRangeSnapshot;
+#[path = "workbook_conditional_range.rs"]
+mod conditional_range;
 pub use conditional_data_bar::DataBarDisplay;
+pub use conditional_format_projection::DisplayFormatRangeSnapshot;
 #[path = "workbook_conditional_format_rank.rs"]
 mod conditional_format_rank;
 #[path = "workbook_conditional_format_rule.rs"]
@@ -79,6 +79,15 @@ mod workbook_initialization;
 mod workbook_loader;
 #[path = "workbook_named.rs"]
 mod workbook_named;
+#[path = "workbook_named_range_structure.rs"]
+mod workbook_named_range_structure;
+#[path = "workbook_named_ranges.rs"]
+mod workbook_named_ranges;
+use workbook_named_range_structure::NamedRangeShift;
+#[path = "workbook_named_range_edit.rs"]
+mod workbook_named_range_edit;
+pub use workbook_named_range_edit::NamedRangeAction;
+pub(crate) use workbook_named_range_edit::NamedRangeChange;
 #[path = "workbook_names.rs"]
 mod workbook_names;
 #[path = "workbook_print_config.rs"]
@@ -139,6 +148,7 @@ pub use self::workbook_conditional_format_types::{
 };
 pub use self::workbook_errors::{HiddenRowsError, TableError, TotalsFunction};
 pub use self::workbook_loader::WorkbookLoader;
+pub(crate) use self::workbook_named::NamedDefinition;
 pub use self::workbook_named::WorkbookError;
 pub use self::workbook_print_config::{
     HeaderFooterFields, ManualPageBreak, ManualPageBreakAxis, PrintConfig, PrintConfigError,

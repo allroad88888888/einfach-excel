@@ -4,10 +4,20 @@ use super::*;
 
 pub(super) type FormulaOverlay<'a> = HashMap<(usize, CellAddress), Option<&'a Expr>>;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub(crate) struct NamedEntry {
     pub(super) canonical_name: String,
-    pub(super) value: Value,
+    pub(super) definition: NamedDefinition,
+}
+
+/// 名称只有一份定义。范围保存稳定表身份，不保存当时读到的单元格值。
+#[derive(Clone, Debug, PartialEq)]
+pub(crate) enum NamedDefinition {
+    Value(Value),
+    Range {
+        sheet_key: u64,
+        range: Option<CellRange>,
+    },
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]

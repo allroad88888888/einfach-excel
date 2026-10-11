@@ -118,7 +118,7 @@ pub(crate) fn expr_may_produce_array(expr: &Expr) -> bool {
         // A structured (Table) reference materializes its resolved region
         // as a `Value::Array` in value context, so a bare `=Table1[Col]`
         // must take the eager spill re-eval path (design doc §5.3).
-        Expr::TableRef { .. } => true,
+        Expr::TableRef { .. } | Expr::Name(_) => true,
         // Multi-area evaluates to `#VALUE!` (error scalar) anywhere
         // other than as an `AREAS` argument — it never produces a
         // spillable `Value::Array`.
@@ -170,14 +170,15 @@ pub(crate) fn source_may_produce_array(source: &str) -> bool {
     // matching tokens rather than substrings keeps `MYSORT` / `SORTED` from
     // dragging unrelated formulas into the candidate set.
     for (i, &b) in bytes.iter().enumerate() {
-        let is_ident = b.is_ascii_alphanumeric() || b == b'.' || b == b'_' || b >= 0x80;
+        let is_ident =
+            b.is_ascii_alphanumeric() || b == b'.' || b == b'_' || b == b'\\' || b >= 0x80;
         if is_ident {
             ident_start.get_or_insert(i);
             continue;
         }
         if let Some(start) = ident_start.take() {
             let token = &body[start..i];
-            if is_array_function_token(token) {
+            if is_array_function_token(token) || is_named_range_token(token) {
                 return true;
             }
             // 紧跟 `(` 的标识符就是一次函数调用。名字不在内建表里 → AST 门
@@ -195,11 +196,23 @@ pub(crate) fn source_may_produce_array(source: &str) -> bool {
         }
     }
     if let Some(start) = ident_start {
-        if is_array_function_token(&body[start..]) {
+        if is_array_function_token(&body[start..]) || is_named_range_token(&body[start..]) {
             return true;
         }
     }
     has_colon && has_operator
+}
+
+/// 纯数字、普通 A1 引用和内建函数保持原来的零解析快路；裸名称可能是数组范围。
+fn is_named_range_token(token: &str) -> bool {
+    token
+        .as_bytes()
+        .first()
+        .is_some_and(|b| b.is_ascii_alphabetic() || *b == b'_' || *b == b'\\' || *b >= 0x80)
+        && !token.eq_ignore_ascii_case("TRUE")
+        && !token.eq_ignore_ascii_case("FALSE")
+        && !is_builtin_function_token(token)
+        && CellAddress::parse(token).is_none()
 }
 
 /// Case-insensitive whole-token membership test against

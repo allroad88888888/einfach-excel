@@ -53,7 +53,11 @@ pub(crate) fn rewrite_qualified_source(
         let start = index;
         let end = if bytes[index] == b'\'' {
             scan_quoted_name_end(bytes, index).unwrap_or(index + 1)
-        } else if bytes[index].is_ascii_alphabetic() || bytes[index] == b'_' {
+        } else if bytes[index].is_ascii_alphabetic()
+            || bytes[index] == b'_'
+            || bytes[index] == b'\\'
+            || bytes[index] >= 0x80
+        {
             scan_ident_end(bytes, index)
         } else {
             index += 1;

@@ -166,6 +166,13 @@ impl<'a, 'r> EvalProvider for AtomFormulaProvider<'a, 'r> {
         self.workbook_context()?.lookup_named(name, self.args)
     }
 
+    fn lookup_named_range(&self, name: &str) -> Result<Option<(String, CellRange)>, ValueError> {
+        match self.workbook_context() {
+            Some(context) => context.lookup_named_range(name, self.args),
+            None => Ok(None),
+        }
+    }
+
     fn lookup_table(&self, name: Option<&str>) -> Option<ResolvedTable> {
         let context = self.workbook_context()?;
         match name {

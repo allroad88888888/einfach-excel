@@ -72,7 +72,7 @@ fn shift_interval(start: u32, end: u32, edit: ShiftEdit) -> Option<(u32, u32)> {
     })
 }
 
-fn shift_range(
+pub(crate) fn shift_range(
     start: &mut CellAddress,
     end: &mut CellAddress,
     unbounded: RangeBounds,

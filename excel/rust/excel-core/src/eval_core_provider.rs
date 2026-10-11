@@ -136,6 +136,12 @@ pub trait EvalProvider {
         None
     }
 
+    /// 动态范围只返回地址，读取沿用普通引用的稀疏遍历与响应式依赖。
+    /// 缺失名称返回 None；已删除的来源表返回 #REF!。
+    fn lookup_named_range(&self, _name: &str) -> Result<Option<(String, CellRange)>, ValueError> {
+        Ok(None)
+    }
+
     /// Does the cell at `addr` contain a formula? Default `false`.
     fn cell_has_formula(&self, _addr: CellAddress) -> bool {
         false

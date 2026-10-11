@@ -52,6 +52,9 @@ fn source_gate_is_superset_of_ast_gate() {
         "=MY.GRID(A1)",
         "=SUM(MYGRID())",
         "=MYGRID(A1:A9)",
+        "=Sales",
+        "=Sales*2",
+        "=SUM(Sales)",
         // Non-array shapes — these may be flagged (over-approximation) but
         // must never make the two gates disagree in the unsafe direction.
         "=A1*2",

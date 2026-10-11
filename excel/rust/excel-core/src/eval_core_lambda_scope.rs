@@ -31,7 +31,7 @@ impl LetFrame {
     }
 
     pub(super) fn bind(&mut self, name: String, value: Value) {
-        self.bindings.insert(name, value);
+        self.bindings.insert(name.to_uppercase(), value);
     }
 }
 
@@ -92,10 +92,11 @@ pub(crate) const MAX_NAMED_CALL_DEPTH: usize = 32;
 /// Walk the active LET frame stack from innermost to outermost. Returns
 /// the first binding for `name`, or `None` if unbound.
 pub(super) fn lookup_let_binding(name: &str) -> Option<Value> {
+    let key = name.to_uppercase();
     LET_FRAMES.with(|frames| {
         let frames = frames.borrow();
         for frame in frames.iter().rev() {
-            if let Some(v) = frame.bindings.get(name) {
+            if let Some(v) = frame.bindings.get(&key) {
                 return Some(v.clone());
             }
         }
@@ -145,7 +146,10 @@ pub(super) fn push_lambda_frame(initial: Vec<(String, Value)>, omitted: HashSet<
         for (k, v) in initial {
             frame.bind(k, v);
         }
-        frame.omitted = omitted;
+        frame.omitted = omitted
+            .into_iter()
+            .map(|name| name.to_uppercase())
+            .collect();
         frame.lambda_activation = true;
         frames.borrow_mut().push(frame);
     });
@@ -164,11 +168,12 @@ pub(super) fn in_lambda_activation() -> bool {
 /// 帧**再问 —— 内层重新绑定（LET 或嵌套 LAMBDA）自然把外层的省略标记盖掉，
 /// 不需要额外的删除动作。
 pub(super) fn lambda_param_is_omitted(name: &str) -> bool {
+    let key = name.to_uppercase();
     LET_FRAMES.with(|frames| {
         let frames = frames.borrow();
         for frame in frames.iter().rev() {
-            if frame.bindings.contains_key(name) {
-                return frame.omitted.contains(name);
+            if frame.bindings.contains_key(&key) {
+                return frame.omitted.contains(&key);
             }
         }
         false

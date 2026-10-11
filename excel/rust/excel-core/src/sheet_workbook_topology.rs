@@ -40,6 +40,7 @@ impl ProjectedTable {
 pub(super) struct WorkbookAtomTopology {
     pub(super) sheets: Vec<(String, FacadeCtx)>,
     pub(super) by_name: HashMap<String, usize>,
+    pub(super) by_key: HashMap<u64, usize>,
 }
 
 /// Where the sheet at `idx` ends up after a sheet moves `from` → `to`.

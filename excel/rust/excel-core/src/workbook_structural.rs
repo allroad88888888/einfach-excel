@@ -63,6 +63,8 @@ impl Workbook {
             for sheet in &mut self.sheets {
                 sheet.retarget_sheet_references(&name, edit);
             }
+            // 最终坐标落地后再发布名称，数组引用不会读到一半位移的来源。
+            self.remap_named_ranges(sheet_index, edit);
         });
     }
 

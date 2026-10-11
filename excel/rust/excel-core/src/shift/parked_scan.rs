@@ -8,15 +8,19 @@ use crate::cell::CellAddress;
 
 /// Identifier scan mirroring `Parser::parse_identifier`: alphanumerics
 /// and `_`, with `.` absorbed only when followed by another identifier
-/// char. `i` must point at the (alphabetic) first char.
+/// char. `_` / `\` / Unicode names are skipped as a whole too. UTF-8
+/// bytes are conservatively kept together so an embedded A1 is never moved.
 pub(super) fn scan_ident_end(b: &[u8], mut i: usize) -> usize {
+    if b.get(i) == Some(&b'\\') {
+        i += 1;
+    }
     while i < b.len() {
         let c = b[i];
-        if c.is_ascii_alphanumeric() || c == b'_' {
+        if c.is_ascii_alphanumeric() || c == b'_' || c >= 0x80 {
             i += 1;
         } else if c == b'.'
             && i + 1 < b.len()
-            && (b[i + 1].is_ascii_alphanumeric() || b[i + 1] == b'_')
+            && (b[i + 1].is_ascii_alphanumeric() || b[i + 1] == b'_' || b[i + 1] >= 0x80)
         {
             i += 1;
         } else {
@@ -136,10 +140,13 @@ pub(super) fn scan_abs_addr_token(b: &[u8], i: usize) -> Option<(CellAddress, bo
     // Boundary: the token must not run into a longer identifier.
     if j < n {
         let d = b[j];
-        if d.is_ascii_alphanumeric() || d == b'_' {
+        if d.is_ascii_alphanumeric() || d == b'_' || d >= 0x80 {
             return None;
         }
-        if d == b'.' && j + 1 < n && (b[j + 1].is_ascii_alphanumeric() || b[j + 1] == b'_') {
+        if d == b'.'
+            && j + 1 < n
+            && (b[j + 1].is_ascii_alphanumeric() || b[j + 1] == b'_' || b[j + 1] >= 0x80)
+        {
             return None;
         }
     }

@@ -12,19 +12,34 @@ impl WorkbookAtomContext {
         }
     }
 
-    pub(crate) fn sync_topology(&self, sheets: Vec<(String, FacadeCtx)>) {
+    pub(crate) fn sync_topology(&self, sheets: Vec<(String, FacadeCtx)>, keys: &[u64]) {
         let by_name = sheets
             .iter()
             .enumerate()
             .map(|(idx, (name, _))| (name.clone(), idx))
             .collect();
-        *self.topology.borrow_mut() = WorkbookAtomTopology { sheets, by_name };
+        let by_key = keys
+            .iter()
+            .enumerate()
+            .map(|(idx, key)| (*key, idx))
+            .collect();
+        *self.topology.borrow_mut() = WorkbookAtomTopology {
+            sheets,
+            by_name,
+            by_key,
+        };
         self.bump_epoch(&self.topology_epoch, &self.topology_revision);
     }
 
-    pub(crate) fn sync_names(&self, names: HashMap<String, Value>) {
+    pub(crate) fn sync_names(&self, names: HashMap<String, crate::workbook::NamedDefinition>) {
         *self.names.borrow_mut() = names;
         self.bump_epoch(&self.names_epoch, &self.names_revision);
+    }
+
+    pub(crate) fn name_dependent_atoms(&self) -> Vec<AtomId> {
+        self.names_epoch
+            .borrow()
+            .map_or_else(Vec::new, |root| self.store.reverse_dependents(&[root]))
     }
 
     /// Refresh the structured-reference Table projection (design doc #32
@@ -134,7 +149,32 @@ impl WorkbookAtomContext {
 
     pub(super) fn lookup_named(&self, name: &str, args: &ReadArgs) -> Option<Value> {
         self.depend_names(args);
-        self.names.borrow().get(&name.to_ascii_uppercase()).cloned()
+        match self.names.borrow().get(&name.to_uppercase())? {
+            crate::workbook::NamedDefinition::Value(value) => Some(value.clone()),
+            crate::workbook::NamedDefinition::Range { .. } => None,
+        }
+    }
+
+    pub(super) fn lookup_named_range(
+        &self,
+        name: &str,
+        args: &ReadArgs,
+    ) -> Result<Option<(String, CellRange)>, ValueError> {
+        self.depend_names(args);
+        let definition = self.names.borrow().get(&name.to_uppercase()).cloned();
+        let Some(crate::workbook::NamedDefinition::Range { sheet_key, range }) = definition else {
+            return Ok(None);
+        };
+        self.depend_topology(args);
+        let topology = self.topology.borrow();
+        let index = topology
+            .by_key
+            .get(&sheet_key)
+            .ok_or(ValueError::InvalidRef)?;
+        Ok(Some((
+            topology.sheets[*index].0.clone(),
+            range.ok_or(ValueError::InvalidRef)?,
+        )))
     }
 
     pub(super) fn call_custom(

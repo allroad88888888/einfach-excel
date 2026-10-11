@@ -207,7 +207,10 @@ const REQUIRED_WORKBOOK_WIRING: &[(&str, u8)] = &[
         6,
     ),
     ("sheet.attach_workbook_context(&self.atom_context,idx);", 6),
-    ("self.atom_context.sync_topology(sheets);", 6),
+    (
+        "self.atom_context.sync_topology(sheets,&self.sheet_keys);",
+        6,
+    ),
 ];
 
 fn file_by_key(key: &str) -> String {

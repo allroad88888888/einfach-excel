@@ -135,8 +135,9 @@ pub fn rewrite_parked_source(src: &str, edit: ShiftEdit) -> SourceRewrite {
                 continue;
             }
         }
-        if c == b'$' || c.is_ascii_alphabetic() {
-            if c.is_ascii_alphabetic() {
+        let identifier = c.is_ascii_alphabetic() || c == b'_' || c == b'\\' || c >= 0x80;
+        if c == b'$' || identifier {
+            if identifier {
                 let start = i;
                 i = scan_ident_end(b, i);
                 match next_non_ws(b, i) {

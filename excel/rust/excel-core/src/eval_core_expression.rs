@@ -137,6 +137,11 @@ pub fn eval_expr_with_provider(expr: &Expr, provider: &dyn EvalProvider) -> Valu
             if let Some(v) = lookup_let_binding(name) {
                 return v;
             }
+            match runtime_ref_from_expr(expr, provider) {
+                Ok(reference) => return runtime_ref_to_value(&reference, provider),
+                Err(ValueError::InvalidValue) => {}
+                Err(error) => return Value::Error(error),
+            }
             if let Some(v) = provider.lookup_named(name) {
                 return v;
             }

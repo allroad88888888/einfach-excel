@@ -7,7 +7,7 @@ pub(crate) struct WorkbookAtomContext {
     pub(super) topology: RefCell<WorkbookAtomTopology>,
     pub(super) topology_epoch: RefCell<Option<AtomId>>,
     pub(super) topology_revision: Cell<u64>,
-    pub(super) names: RefCell<HashMap<String, Value>>,
+    pub(super) names: RefCell<HashMap<String, crate::workbook::NamedDefinition>>,
     pub(super) names_epoch: RefCell<Option<AtomId>>,
     pub(super) names_revision: Cell<u64>,
     /// Structured-reference Table projection, keyed by uppercased name
@@ -85,6 +85,7 @@ impl WorkbookAtomContext {
             topology: RefCell::new(WorkbookAtomTopology {
                 sheets: Vec::new(),
                 by_name: HashMap::new(),
+                by_key: HashMap::new(),
             }),
             topology_epoch: RefCell::new(None),
             topology_revision: Cell::new(0),

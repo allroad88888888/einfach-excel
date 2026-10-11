@@ -12,8 +12,9 @@ impl Parser {
     ///
     /// We allow `.` between identifier chars so Excel 2010+ dotted function
     /// names like `RANK.EQ` / `STDEV.P` / `PERCENTILE.INC` parse as a single
-    /// name. The rule: after the first alpha char, accept
-    /// `[A-Za-z0-9_]`. A `.` is only consumed when the very next char is
+    /// name. The first character may also be `_`, `\` or a Unicode letter;
+    /// the remaining characters accept letters, digits and `_`.
+    /// A `.` is only consumed when the very next char is
     /// itself a valid identifier char (alpha / digit / underscore) — this
     /// keeps a trailing `RANK.` from being absorbed (the `.` is left for
     /// the caller, which will then fail to parse the formula), and
@@ -26,11 +27,11 @@ impl Parser {
         // Read alphanumerics + underscore. Allow '.' only when followed by
         // another identifier char (see doc above).
         while let Some(c) = self.peek() {
-            if c.is_ascii_alphanumeric() || c == '_' {
+            if c.is_alphanumeric() || c == '_' || (self.pos == start && c == '\\') {
                 self.advance();
             } else if c == '.' {
                 match self.peek_at(1) {
-                    Some(next) if next.is_ascii_alphanumeric() || next == '_' => {
+                    Some(next) if next.is_alphanumeric() || next == '_' => {
                         self.advance();
                     }
                     _ => break,

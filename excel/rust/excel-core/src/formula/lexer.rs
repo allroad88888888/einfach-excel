@@ -73,9 +73,9 @@ impl Parser {
     /// being split into `A1` + trailing garbage.
     fn at_ident_continuation(&self) -> bool {
         match self.peek() {
-            Some(c) if c.is_ascii_alphanumeric() || c == '_' => true,
+            Some(c) if c.is_alphanumeric() || c == '_' => true,
             Some('.') => {
-                matches!(self.peek_at(1), Some(n) if n.is_ascii_alphanumeric() || n == '_')
+                matches!(self.peek_at(1), Some(n) if n.is_alphanumeric() || n == '_')
             }
             _ => false,
         }

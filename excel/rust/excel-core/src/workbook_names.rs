@@ -43,7 +43,7 @@ impl Workbook {
             return Err(WorkbookError::MutationDuringCustomCall);
         }
         Self::validate_name(name)?;
-        let key = name.to_ascii_uppercase();
+        let key = name.to_uppercase();
         if is_builtin_function_name(&key) {
             return Err(WorkbookError::ReservedName);
         }
@@ -58,7 +58,7 @@ impl Workbook {
             key,
             NamedEntry {
                 canonical_name: name.to_string(),
-                value,
+                definition: NamedDefinition::Value(value),
             },
         );
         self.sync_atom_names();
@@ -74,7 +74,7 @@ impl Workbook {
         if self.is_inside_custom_call() {
             return false; // re-entrancy guard
         }
-        let key = name.to_ascii_uppercase();
+        let key = name.to_uppercase();
         let removed = self.named_values.remove(&key).is_some();
         if removed {
             self.sync_atom_names();
@@ -82,14 +82,19 @@ impl Workbook {
         removed
     }
 
-    /// Case-insensitive lookup. Returns a clone of the registered
-    /// value, or `None` if no entry exists. Top-level evaluator surfaces use
+    /// Case-insensitive lookup of stored values (including LAMBDA).
+    /// Missing names and range definitions return None: ranges resolve via
+    /// `named_range` and the ordinary formula-reference path, never a second
+    /// evaluation entry in this accessor. Top-level evaluator surfaces use
     /// this directly; formula-inner atoms read the synchronized registry
     /// through `WorkbookAtomContext` so the name-version Store edge is
     /// recorded in their active `ReadArgs` frame.
     pub fn get_named(&self, name: &str) -> Option<Value> {
-        let key = name.to_ascii_uppercase();
-        self.named_values.get(&key).map(|e| e.value.clone())
+        let key = name.to_uppercase();
+        match &self.named_values.get(&key)?.definition {
+            NamedDefinition::Value(value) => Some(value.clone()),
+            NamedDefinition::Range { .. } => None,
+        }
     }
 
     /// Iterator over registered names in canonical (user-typed) casing,

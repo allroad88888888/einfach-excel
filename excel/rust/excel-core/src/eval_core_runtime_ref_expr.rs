@@ -5,6 +5,16 @@ pub(super) fn runtime_ref_from_expr(
     provider: &dyn EvalProvider,
 ) -> Result<RuntimeRef, ValueError> {
     match arg {
+        Expr::Name(name) if lookup_let_binding(name).is_none() => {
+            let (sheet, range) = provider
+                .lookup_named_range(name)?
+                .ok_or(ValueError::InvalidValue)?;
+            Ok(RuntimeRef {
+                sheet: Some(sheet),
+                range,
+                materialized: None,
+            })
+        }
         Expr::CellRef(addr, _) => Ok(RuntimeRef {
             sheet: None,
             range: CellRange::single(*addr),

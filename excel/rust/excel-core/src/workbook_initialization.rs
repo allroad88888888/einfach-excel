@@ -32,7 +32,8 @@ impl Workbook {
         wb
     }
 
-    pub(crate) fn sync_atom_topology(&self) {
+    pub(crate) fn sync_atom_topology(&mut self) {
+        let arrays = self.named_array_dependents();
         let sheets = self
             .sheets
             .iter()
@@ -42,16 +43,37 @@ impl Workbook {
                 (self.names[idx].clone(), sheet.facade_ctx())
             })
             .collect();
-        self.atom_context.sync_topology(sheets);
+        self.atom_context.sync_topology(sheets, &self.sheet_keys);
+        // 删除来源表也必须清掉旧溢出，不能只让未投影的标量公式失效。
+        self.recompute_array_formula_groups(arrays);
     }
 
-    pub(crate) fn sync_atom_names(&self) {
+    pub(crate) fn sync_atom_names(&mut self) {
+        // 名称改变可能使数组变长/缩短；仅沿已有名称依赖修复 spill，不能扫全表。
+        let arrays = self.named_array_dependents();
+        self.publish_atom_names();
+        self.recompute_array_formula_groups(arrays);
+    }
+
+    pub(super) fn publish_atom_names(&self) {
         let names = self
             .named_values
             .iter()
-            .map(|(key, entry)| (key.clone(), entry.value.clone()))
+            .map(|(key, entry)| (key.clone(), entry.definition.clone()))
             .collect();
         self.atom_context.sync_names(names);
+    }
+
+    pub(super) fn named_array_dependents(&self) -> Vec<(usize, HashSet<CellAddress>)> {
+        let dependent_atoms = self.atom_context.name_dependent_atoms();
+        self.sheets
+            .iter()
+            .enumerate()
+            .filter_map(|(index, sheet)| {
+                let addresses = sheet.array_formula_addrs_for_store_atoms(&dependent_atoms);
+                (!addresses.is_empty()).then_some((index, addresses))
+            })
+            .collect()
     }
 
     /// Push the current Table registry into the atom context so the

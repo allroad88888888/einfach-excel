@@ -10,6 +10,7 @@ pub(crate) struct StructuralHistoryChange {
     name: String,
     before: StructuralSnapshot,
     after: StructuralSnapshot,
+    named_ranges: Vec<NamedRangeShift>,
 }
 
 #[derive(Debug)]
@@ -93,6 +94,7 @@ impl StructuralHistoryChange {
             })
             .collect();
         let before = StructuralSnapshot::capture(workbook, sheet, &targets, &rule_sheets);
+        let named_ranges = workbook.shifted_named_ranges(sheet, edit);
         workbook.try_structural_edit(sheet, edit)?;
         let after = StructuralSnapshot::capture(workbook, sheet, &targets, &rule_sheets);
         Ok(Some((
@@ -101,6 +103,7 @@ impl StructuralHistoryChange {
                 name,
                 before,
                 after,
+                named_ranges,
             },
             range,
         )))
@@ -132,6 +135,7 @@ impl StructuralHistoryChange {
             return Err("The worksheet changed outside history.");
         }
         let snapshot = if undo { &self.before } else { &self.after };
+        workbook.validate_named_range_restore(sheet, &self.named_ranges, undo)?;
         for (owner, rules) in &snapshot.conditional_formats {
             let config = &workbook.conditional_formats[*owner];
             if config.rules != *rules && config.revision == u64::MAX {
@@ -182,7 +186,9 @@ impl StructuralHistoryChange {
                 .clone_from(&snapshot.merges);
             workbook.republish_hidden(sheet);
             workbook.sheets[sheet].frozen_panes = snapshot.freeze;
-            workbook.sheets[sheet].data_validations.clone_from(&snapshot.data_validations);
+            workbook.sheets[sheet]
+                .data_validations
+                .clone_from(&snapshot.data_validations);
             for (owner, rules) in &snapshot.conditional_formats {
                 workbook
                     .replace_conditional_format_rules(*owner, rules.clone())
@@ -208,6 +214,7 @@ impl StructuralHistoryChange {
                 }
                 workbook.bump_tables_epoch();
             }
+            workbook.restore_named_range_coordinates(&self.named_ranges, undo);
             for (index, candidates) in anchors {
                 workbook.sheets[index].project_bulk_spill_anchors(candidates);
             }
@@ -219,7 +226,14 @@ impl StructuralHistoryChange {
     }
 
     pub(crate) fn retained_bytes(&self) -> usize {
-        self.name.len() + self.before.retained_bytes() + self.after.retained_bytes()
+        self.name.len()
+            + self.before.retained_bytes()
+            + self.after.retained_bytes()
+            + self
+                .named_ranges
+                .iter()
+                .map(NamedRangeShift::retained_bytes)
+                .sum::<usize>()
     }
 }
 

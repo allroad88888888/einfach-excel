@@ -83,9 +83,8 @@ pub(crate) fn push_sheet_name(out: &mut String, name: &str) {
 ///
 /// 三条判据逐条对着解析器的现实（不是对着 Excel 的文档）：
 ///
-/// 1. 首字符必须是 ASCII 字母 —— `primary::parse_primary` 只在
-///    `c.is_ascii_alphabetic()` 时分流到 `parse_identifier`。所以 `_data`、
-///    `2024Q1`、`销售数据` 都得加引号，哪怕 Excel 认得其中一部分。
+/// 1. 渲染保守地只为 ASCII 字母开头的表名省略引号。解析器也支持 `_data`、
+///    `销售数据` 等名字，但继续给它们加引号可保持既有持久公式字节稳定。
 /// 2. 其余字符只收 `[A-Za-z0-9_]`。**`.` 刻意不收**：`identifier` 只在「下
 ///    一个字符还是标识符字符」时才吃 `.`，于是 `Sheet.` 会被截断、`S..1` 会
 ///    被切两半。为一个纯装饰性的收益引入这种边界不值当 —— 加引号总是安全，

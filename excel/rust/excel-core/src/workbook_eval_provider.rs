@@ -138,6 +138,10 @@ impl<'a> EvalProvider for WorkbookEvalProvider<'a> {
         self.wb.get_named(name)
     }
 
+    fn lookup_named_range(&self, name: &str) -> Result<Option<(String, CellRange)>, ValueError> {
+        self.wb.named_range(name)
+    }
+
     fn lookup_table(&self, name: Option<&str>) -> Option<ResolvedTable> {
         // Eager workbook provider (get_cell of a non-formula cell,
         // define_name evaluation): read the registry directly (design doc

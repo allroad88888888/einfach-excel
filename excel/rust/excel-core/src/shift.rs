@@ -28,13 +28,15 @@ pub(crate) use edit::shift_interval;
 mod parked;
 mod parked_band;
 mod parked_scan;
+mod qualified_source;
 mod render;
 mod render_number;
 mod render_ref;
 mod retarget;
-mod table_ref;
 mod structural_refs;
-mod qualified_source;
+mod named_ref;
+pub(crate) use named_ref::rename_named_reference;
+mod table_ref;
 
 pub use copy::shift_copy_formula;
 pub use delta::shift_refs;
@@ -46,6 +48,7 @@ pub use parked::{rewrite_parked_source, SourceRewrite};
 pub use render::render_formula;
 pub use retarget::map_addrs;
 
-pub(crate) use table_ref::{rewrite_table_refs, TableRefEditSpec};
-pub(crate) use structural_refs::rewrite_structural_refs;
 pub(crate) use qualified_source::rewrite_qualified_source;
+pub(crate) use structural_refs::rewrite_structural_refs;
+pub(crate) use structural_refs::shift_range as shift_structural_range;
+pub(crate) use table_ref::{rewrite_table_refs, TableRefEditSpec};

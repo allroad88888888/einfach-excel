@@ -186,6 +186,52 @@ impl Workbook {
                 }
             }
             Expr::FuncCall { name, args } => {
+                // LET 的定义值先求值，再遮蔽同名工作簿名称；不能把声明位置当引用。
+                if name == "LET" && args.len() >= 3 && args.len() % 2 == 1 {
+                    let mut scoped = visiting_names.clone();
+                    for pair in args[..args.len() - 1].chunks_exact(2) {
+                        if self.collect_workbook_cycle_refs(
+                            &pair[1],
+                            current_idx,
+                            target,
+                            out,
+                            &mut scoped,
+                            detect_unbounded_target,
+                            overlay,
+                        ) {
+                            return true;
+                        }
+                        if let Expr::Name(alias) = &pair[0] {
+                            scoped.insert(alias.to_uppercase());
+                        }
+                    }
+                    return self.collect_workbook_cycle_refs(
+                        args.last().unwrap(),
+                        current_idx,
+                        target,
+                        out,
+                        &mut scoped,
+                        detect_unbounded_target,
+                        overlay,
+                    );
+                }
+                if name == "LAMBDA" && !args.is_empty() {
+                    let mut scoped = visiting_names.clone();
+                    for param in &args[..args.len() - 1] {
+                        if let Expr::Name(alias) = param {
+                            scoped.insert(alias.to_uppercase());
+                        }
+                    }
+                    return self.collect_workbook_cycle_refs(
+                        args.last().unwrap(),
+                        current_idx,
+                        target,
+                        out,
+                        &mut scoped,
+                        detect_unbounded_target,
+                        overlay,
+                    );
+                }
                 if self.collect_named_cycle_refs(
                     name,
                     current_idx,
@@ -340,13 +386,34 @@ impl Workbook {
         detect_unbounded_target: bool,
         overlay: &FormulaOverlay<'_>,
     ) -> bool {
-        let key = name.to_ascii_uppercase();
+        let key = name.to_uppercase();
         if !visiting_names.insert(key.clone()) {
             return false;
         }
         let result = self.named_values.get(&key).is_some_and(|entry| {
+            if let NamedDefinition::Range { sheet_key, range } = &entry.definition {
+                let Some(range) = range else { return false };
+                return self
+                    .sheet_keys
+                    .iter()
+                    .position(|key| key == sheet_key)
+                    .is_some_and(|index| {
+                        self.collect_cycle_range_refs(
+                            index,
+                            *range,
+                            RangeBounds::None,
+                            target,
+                            out,
+                            detect_unbounded_target,
+                            overlay,
+                        )
+                    });
+            }
+            let NamedDefinition::Value(value) = &entry.definition else {
+                unreachable!()
+            };
             self.collect_value_cycle_refs(
-                &entry.value,
+                value,
                 current_idx,
                 target,
                 out,
@@ -375,12 +442,15 @@ impl Workbook {
         let Some(lambda) = lambda.as_any().downcast_ref::<ExcelLambda>() else {
             return false;
         };
+        let mut scoped = visiting_names.clone();
+        scoped.extend(lambda.params.iter().map(|name| name.to_uppercase()));
+        scoped.extend(lambda.captured.iter().map(|(name, _)| name.to_uppercase()));
         if self.collect_workbook_cycle_refs(
             &lambda.body,
             current_idx,
             target,
             out,
-            visiting_names,
+            &mut scoped,
             detect_unbounded_target,
             overlay,
         ) {

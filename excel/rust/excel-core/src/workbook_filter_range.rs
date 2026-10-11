@@ -35,46 +35,12 @@ impl Workbook {
         if self.is_inside_custom_call() {
             return Err(FilterError::MutationDuringCustomCall);
         }
-        let source = self.sheet(sheet).ok_or(FilterError::InvalidSheet)?;
+        self.sheet(sheet).ok_or(FilterError::InvalidSheet)?;
         validate_filter_range(range, rules)?;
-        let cols: BTreeSet<u32> = rules.iter().map(ColumnFilterRule::col_index).collect();
-        let rows = range.rows() - 1;
-        let predicate_cells = rows.saturating_mul(cols.len() as u32);
-        if predicate_cells > crate::filter::MAX_FILTER_PREDICATE_CELLS {
-            return Err(FilterError::SourceTooLarge {
-                rows,
-                columns: cols.len() as u32,
-                predicate_cells,
-            });
-        }
-        let mut hidden = BTreeSet::new();
-        if !rules.is_empty() {
-            source.note_filter_scan();
-            let mut values = HashMap::new();
-            for &col in &cols {
-                let column = CellRange::new(
-                    CellAddress::new(range.start.row + 1, col),
-                    CellAddress::new(range.end.row, col),
-                );
-                self.for_each_sparse_range_cell(sheet, column, |addr, value| {
-                    values.insert((addr.row, addr.col), crate::value_to_display(&value));
-                });
-            }
-            self.store.settle_pending_reads();
-            for row in range.start.row + 1..=range.end.row {
-                if !crate::filter::row_matches_rules(rules, |col| {
-                    values.get(&(row, col)).cloned().unwrap_or_default()
-                }) {
-                    hidden.insert(row);
-                }
-            }
-        }
-        let report = FilterApplyReport {
-            hidden_rows: hidden.iter().copied().collect(),
-            scanned_rows: if rules.is_empty() { 0 } else { rows },
-            predicate_cells,
-        };
-        let mut state = crate::filter::SheetAutoFilter::new(rules.to_vec(), hidden);
+        let data = CellRange::new(CellAddress::new(range.start.row + 1, range.start.col), range.end);
+        let report = self.scan_filter_data(sheet, Some(data), rules)?;
+        let mut state = crate::filter::SheetAutoFilter::new(
+            rules.to_vec(), report.hidden_rows.iter().copied().collect());
         state.range = Some(range);
         if self.sheets[sheet].commit_filter_state(Some(state)) {
             self.republish_hidden(sheet);

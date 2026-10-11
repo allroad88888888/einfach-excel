@@ -67,6 +67,7 @@ impl Workbook {
             columns,
             style: crate::TableStyle::default(),
             calculated_columns: Vec::new(),
+            auto_filter: None,
         })
     }
 

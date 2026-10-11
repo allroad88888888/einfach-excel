@@ -2,7 +2,7 @@
 
 use super::*;
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct TableEntry {
     pub(super) canonical_name: String,
     pub(super) sheet_name: String,
@@ -15,6 +15,7 @@ pub struct TableEntry {
     pub(super) style: crate::TableStyle,
     // 空列表表示没有计算列；非空时按 columns 对齐，None 是普通数据列。
     pub(super) calculated_columns: Vec<Option<crate::TableColumnFormula>>,
+    pub(super) auto_filter: Option<crate::filter::SheetAutoFilter>,
 }
 
 impl TableEntry {
@@ -36,6 +37,7 @@ impl TableEntry {
             columns,
             style: crate::TableStyle::default(),
             calculated_columns: Vec::new(),
+            auto_filter: None,
         }
     }
 
@@ -76,6 +78,11 @@ impl TableEntry {
         &self.calculated_columns
     }
 
+    /// 条件与上次扫描结果属于当前 Table；普通区域筛选仍属于 Sheet。
+    pub fn auto_filter(&self) -> Option<&crate::filter::SheetAutoFilter> {
+        self.auto_filter.as_ref()
+    }
+
     /// 恢复时由注册表检查长度，不在这里静默丢掉错误的列映射。
     pub fn with_calculated_columns(mut self, columns: Vec<Option<crate::TableColumnFormula>>) -> Self {
         self.calculated_columns = columns;
@@ -102,7 +109,7 @@ impl TableEntry {
     }
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct TableRegistrySnapshot {
     pub(super) entries: Vec<TableEntry>,
 }

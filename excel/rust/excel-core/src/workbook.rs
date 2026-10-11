@@ -71,6 +71,10 @@ mod workbook_eval_provider;
 mod workbook_filter_engine;
 #[path = "workbook_filter_range.rs"]
 mod workbook_filter_range;
+#[path = "workbook_filter_scan.rs"]
+mod workbook_filter_scan;
+#[path = "workbook_table_filter.rs"]
+mod workbook_table_filter;
 #[path = "workbook_filter_rules.rs"]
 mod workbook_filter_rules;
 #[path = "workbook_hidden_rows.rs"]

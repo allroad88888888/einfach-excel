@@ -22,15 +22,20 @@ impl Sheet {
     /// is active — a lookup miss and an empty set are the same "nothing is
     /// filtered out" signal, exactly as in the evaluation mirror.
     pub(crate) fn filter_hidden_rows(&self) -> Vec<u32> {
-        self.filter
-            .as_ref()
-            .map(crate::filter::SheetAutoFilter::hidden_rows)
-            .unwrap_or_default()
+        self.combined_filter_hidden.borrow().iter().copied().collect()
     }
 
     /// Borrow the derived set for republishing into the evaluation mirror.
-    pub(crate) fn filter_hidden_set(&self) -> Option<&BTreeSet<u32>> {
-        self.filter.as_ref().map(|f| f.hidden_set())
+    pub(crate) fn filter_hidden_set(&self) -> Option<Rc<BTreeSet<u32>>> {
+        let rows = self.combined_filter_hidden.borrow();
+        (!rows.is_empty()).then(|| Rc::clone(&rows))
+    }
+
+    /// 一次发布合并索引；逐行排序／复制读取时只克隆 Rc，不反复合并整个集合。
+    pub(crate) fn publish_filter_hidden(&self, rows: BTreeSet<u32>) {
+        if **self.combined_filter_hidden.borrow() != rows {
+            *self.combined_filter_hidden.borrow_mut() = Rc::new(rows);
+        }
     }
 
     /// Commit a completed predicate run. `rules` empty drops the filter

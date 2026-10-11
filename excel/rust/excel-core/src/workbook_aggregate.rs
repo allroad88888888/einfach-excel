@@ -105,7 +105,7 @@ impl Workbook {
             // 同一格只访问一次，重叠选区不能重复累加；稀疏扫描包含原生公式求值。
             let hidden = self.sheet(sheet).and_then(|sheet| sheet.filter_hidden_set());
             self.for_each_sparse_range_cell(sheet, bounds, |address, value| {
-                if !hidden.is_some_and(|rows| rows.contains(&address.row))
+                if !hidden.as_ref().is_some_and(|rows| rows.contains(&address.row))
                     && ranges.iter().any(|range| range.contains(address)) {
                     // 数组锚点只代表左上角；其余溢出格由稀疏扫描各自发出。
                     let scalar = match &value {

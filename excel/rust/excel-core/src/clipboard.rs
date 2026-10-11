@@ -158,7 +158,7 @@ impl Workbook {
         let sheet = self.sheet(sheet_idx).ok_or("CLIPBOARD_INVALID_SHEET")?;
         let hidden = sheet.filter_hidden_set();
         let source_rows: Vec<u32> = (range.start.row..=range.end.row)
-            .filter(|row| !hidden.is_some_and(|rows| rows.contains(row)))
+            .filter(|row| !hidden.as_ref().is_some_and(|rows| rows.contains(row)))
             .collect();
         if cut && source_rows.len() != range.rows() as usize {
             return Err("CLIPBOARD_FILTERED_CUT");
@@ -174,7 +174,7 @@ impl Workbook {
             .iter()
             .any(|merge| !range.contains(merge.start) || !range.contains(merge.end)
                 || (merge.start.row..=merge.end.row)
-                    .any(|row| hidden.is_some_and(|rows| rows.contains(&row))))
+                    .any(|row| hidden.as_ref().is_some_and(|rows| rows.contains(&row))))
         {
             return Err("CLIPBOARD_PARTIAL_MERGE");
         }

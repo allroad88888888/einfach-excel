@@ -124,6 +124,8 @@ pub struct Sheet {
     /// path (cell writes, structural edits, formats) at most DISPLACES the
     /// rows already in it.
     pub(super) filter: Option<crate::filter::SheetAutoFilter>,
+    // 普通区域与本表所有 Table 的隐藏行并集；只作读取索引，不是另一份条件状态。
+    pub(super) combined_filter_hidden: RefCell<Rc<BTreeSet<u32>>>,
     /// How many predicate scans this sheet has run. `Cell` because the scan
     /// itself runs behind `&self` (it must, so it can read cell values
     /// through the eager provider while `apply_filter` holds `&mut self`).

@@ -19,8 +19,8 @@ mod resize_inheritance;
 mod input;
 #[path = "workbook_table_paste.rs"]
 mod paste;
-#[path = "workbook_table_style_change.rs"]
-mod style;
+#[path = "workbook_table_metadata_change.rs"]
+mod metadata;
 #[path = "workbook_table_convert.rs"]
 mod convert;
 #[path = "workbook_table_calculated_input.rs"]
@@ -158,9 +158,11 @@ impl TableDefinitionChange {
             next_cells.push(next);
         }
         let definition_changed = expected != next;
+        let filter_changed = self.table_definitions(undo).any(|(before, after)|
+            before.and_then(TableEntry::auto_filter) != after.and_then(TableEntry::auto_filter));
         let geometry_changed = definition_changed && !matches!((expected, next), (Some(old), Some(new))
             if old.same_formula_definition(new));
-        if definition_changed && !geometry_changed && self.cells.is_empty() && self.filter.is_none() {
+        if definition_changed && !geometry_changed && !filter_changed && self.cells.is_empty() && self.filter.is_none() {
             // 纯外观变更不失效公式的 Table epoch，也不遍历/重投数组消费者。
             let next = next.unwrap();
             workbook.tables.insert(next.name().to_ascii_uppercase(), next.clone());
@@ -173,7 +175,7 @@ impl TableDefinitionChange {
         } else {
             Vec::new()
         };
-        if self.filter.is_some() {
+        if self.filter.is_some() || filter_changed {
             arrays.extend(workbook.array_dependents_for_atoms(&workbook.atom_context.filter_dependent_atoms()));
         }
         for cells in &next_cells {
@@ -216,6 +218,7 @@ impl TableDefinitionChange {
                 // 新定义先可见，安装重写后的公式时不会经历一次不存在的表名。
                 if geometry_changed { workbook.sync_atom_tables(); }
             }
+            if filter_changed { workbook.republish_hidden(self.sheet); }
             for cells in next_cells {
                 if result.is_ok() {
                     result = if cells.merges.is_some() {

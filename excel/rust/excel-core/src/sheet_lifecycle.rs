@@ -48,6 +48,7 @@ impl Sheet {
             hidden_rows: BTreeSet::new(),
             hidden_columns: BTreeSet::new(),
             filter: None,
+            combined_filter_hidden: RefCell::new(Rc::new(BTreeSet::new())),
             filter_scan_count: Cell::new(0),
             formula_eval_count: Rc::new(Cell::new(0)),
             imported_formula_count: Cell::new(0),

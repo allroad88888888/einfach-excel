@@ -63,6 +63,7 @@ impl Workbook {
                     columns: entry.columns,
                     style: entry.style,
                     calculated_columns: entry.calculated_columns,
+                    auto_filter: entry.auto_filter,
                 },
             );
         }

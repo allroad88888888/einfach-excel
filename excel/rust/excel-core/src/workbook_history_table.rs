@@ -1,8 +1,35 @@
 //! Table 命令接入唯一原生历史栈；失败不消耗 redo。
 use super::*;
+use crate::{ColumnFilterRule, FilterApplyReport};
 use crate::workbook::{TableCreation, TableDefinitionChange};
 
 impl WorkbookHistory {
+    /// 三个 Table 筛选动作共用原 Table 历史，精确保存条件与当时隐藏集合。
+    pub fn apply_table_filter(&mut self, workbook: &mut Workbook, name: &str,
+        rules: &[ColumnFilterRule]) -> Result<FilterApplyReport, String> {
+        if self.pending.is_some() || workbook.is_inside_custom_call() {
+            return Err("Another history command is pending.".into());
+        }
+        let (change, report) = TableDefinitionChange::prepare_filter(workbook, name, rules)?;
+        if let Some(change) = change {
+            change.apply(workbook, false)?;
+            self.record_table_change(workbook, change, "Filter table");
+        }
+        Ok(report)
+    }
+
+    pub fn clear_table_filter(&mut self, workbook: &mut Workbook, name: &str)
+        -> Result<FilterApplyReport, String> {
+        self.apply_table_filter(workbook, name, &[])
+    }
+
+    pub fn reapply_table_filter(&mut self, workbook: &mut Workbook, name: &str)
+        -> Result<FilterApplyReport, String> {
+        let rules = workbook.get_table(name).ok_or("The table no longer exists.")?
+            .auto_filter().map(|filter| filter.rules().to_vec()).unwrap_or_default();
+        self.apply_table_filter(workbook, name, &rules)
+    }
+
     /// 按表宽追加数据，不插入整张工作表行；汇总与下方内容只在该列带内移动。
     pub fn append_table_row(&mut self, workbook: &mut Workbook, name: &str, row_count: u32)
         -> Result<u32, String> {

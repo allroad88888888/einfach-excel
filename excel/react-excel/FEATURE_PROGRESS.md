@@ -57,6 +57,14 @@
 
 ## 批次账本
 
+### Excel Table 独立筛选（WIP 检查点，未验收）
+
+本批三项：设置当前 Table 的列筛选、只清除当前 Table 筛选、只重新应用当前 Table 筛选。按用户要求保存当前进度，不代表功能交付。
+
+当前仅完成 Rust 基础：Table 持有条件及上次隐藏行结果，普通区域与各 Table 可并存；复用区域谓词扫描器，可见性合并各作用域隐藏行，编辑不自动重扫。已接入现有 Table 历史入口，但历史交叉回归尚未完成。提交前修复迭代器重复调用 `.iter()` 的编译错误，`cargo test --locked --manifest-path excel/rust/excel-core/Cargo.toml --test table_filter_scope` **3/3 通过**。
+
+仍待完成：Table 结构／生命周期变更时同步筛选，保存恢复与 WASM 协议，UI Core／React 入口，历史与页面回归。下方上一批的完整构建、Vitest 和 E2E 结果不覆盖本批 WIP。
+
 ### Excel Table 追加记录与 Tab 导航（已验收）
 
 最终验收：源码冻结后的完整 E2E **861/861**（11.9 分钟，原会话 `73546` 正常退出 0，日志 `/tmp/excel-table-append-full-e2e-frozen.log`）；本批 12 项页面／保存恢复回归全部包含其中。完整 Vitest **5,525/5,525**、React 独立测试 **381/381**、最终专项 **68/68**、Rust 默认／lite 四组集成各 **26/26**、WASM lib **175 passed / 1 ignored**；根构建、UI Core 构建、类型、lint／E2E lint、边界、循环依赖、文档及 diff 检查通过。之前受热更新干扰的回归不计入验收，新冻结队列没有失败、跳过或重试；下方保留阶段记录，当前以本段为准。演示继续使用 Summary 原生种子，不添加前端数据副本；本批按用户要求独立提交，完整 41 项目标仍未完成。

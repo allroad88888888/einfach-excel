@@ -117,12 +117,13 @@ impl Workbook {
             .chain(sheet.outline.hidden_indices(crate::outline::OutlineAxis::Row)).collect();
         self.atom_context
             .publish_eval_hidden_rows(sheet_index, manual);
-        let filtered: HashSet<u32> = sheet
-            .filter_hidden_set()
-            .map(|set| set.iter().copied().collect())
-            .unwrap_or_default();
+        let filtered: BTreeSet<u32> = sheet.filter().into_iter()
+            .chain(self.tables.values().filter(|table| self.index_of(table.sheet_name()) == Some(sheet_index))
+                .filter_map(TableEntry::auto_filter))
+            .flat_map(|filter| filter.hidden_set().iter().copied()).collect();
+        sheet.publish_filter_hidden(filtered.clone());
         self.atom_context
-            .publish_eval_filter_hidden_rows(sheet_index, filtered);
+            .publish_eval_filter_hidden_rows(sheet_index, filtered.into_iter().collect());
     }
 
     /// Reconcile the whole mirror against the sheet vector. Used after a

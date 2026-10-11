@@ -186,6 +186,7 @@ mod tests {
     include!("wasm_tests/persistence_validation.rs");
     include!("wasm_tests/print_config.rs");
     include!("wasm_tests/conditional_format.rs");
+    include!("wasm_tests/conditional_visuals.rs");
     include!("wasm_tests/diagnostics.rs");
     include!("wasm_tests/history_topology.rs");
 }

@@ -76,12 +76,19 @@ test('empty strings and errors count as content, but clearing a minimum removes 
 
 test('an entire column includes offscreen formulas and scrolling keeps the same statistics', async ({ page }) => {
   await summary(page)
+  await select(page, 'D75:D79')
+  for (const [offset, value] of [-10, 0, 5, 10, 20].entries()) {
+    await expect(page.locator(`td[data-cell="${74 + offset}:3"]`)).toHaveText(String(value))
+  }
   await page.getByRole('columnheader', { name: 'Select column D', exact: true }).click()
-  // D65:D67 = 2/4/6，D70 的 AVERAGE = 4，加上 D93 = 20，共五个数值。
-  await stats(page, 5, '36', '7.2')
+  // 原五个数值合计 36；D75:D79 的色阶样例另有五个、合计 25。
+  // 显示颜色不改变原生值：共十个数值，非空内容还包含八个文本。
+  await stats(page, 10, '61', '6.1')
+  await extrema(page, 18, '-10', '20')
   const before = await status(page).textContent()
   await page.getByTestId('sheet-scroll').evaluate((element) => { element.scrollTop = element.scrollHeight })
   await expect(page.locator('td[data-cell="92:3"]')).toBeVisible()
+  await expect(page.locator('td[data-cell="92:3"]')).toHaveText('20')
   await expect(status(page)).toHaveText(before!)
   await page.getByRole('tab', { name: 'Sales Orders', exact: true }).click()
   await select(page, 'G2')

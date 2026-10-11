@@ -2,8 +2,14 @@
 use super::*;
 
 pub(crate) enum ConditionalStatistic {
-    Rank { count: u32, percent: bool, bottom: bool },
-    Bounds { median: bool },
+    Rank {
+        count: u32,
+        percent: bool,
+        bottom: bool,
+    },
+    Bounds {
+        median: bool,
+    },
 }
 
 pub(crate) struct ConditionalRangeAtom {
@@ -67,13 +73,26 @@ impl Sheet {
 impl ConditionalStatistic {
     fn summarize(&self, numbers: &mut [f64]) -> Value {
         match *self {
-            Self::Rank { count, percent, bottom } => {
+            Self::Rank {
+                count,
+                percent,
+                bottom,
+            } => {
                 // 百分比向下取整，阈值并列项由显示规则全部命中。
                 let take = if percent {
                     (numbers.len() as u64 * u64::from(count) / 100) as usize
-                } else { count as usize }.min(numbers.len());
-                if take == 0 { return Value::Null; }
-                let index = if bottom { take - 1 } else { numbers.len() - take };
+                } else {
+                    count as usize
+                }
+                .min(numbers.len());
+                if take == 0 {
+                    return Value::Null;
+                }
+                let index = if bottom {
+                    take - 1
+                } else {
+                    numbers.len() - take
+                };
                 Value::Number(*numbers.select_nth_unstable_by(index, f64::total_cmp).1)
             }
             Self::Bounds { median } => {
@@ -84,12 +103,29 @@ impl ConditionalStatistic {
                     let index = numbers.len() / 2;
                     let (lower, upper, _) = numbers.select_nth_unstable_by(index, f64::total_cmp);
                     if even {
-                        // 两个中间值的均值；先减半，避免有限的大数相加溢出。
-                        lower.iter().copied().fold(f64::NEG_INFINITY, f64::max) / 2.0 + *upper / 2.0
-                    } else { *upper }
-                } else { min };
-                Value::Array(Arc::new(ArrayData::new(1, 3,
-                    vec![Value::Number(min), Value::Number(middle), Value::Number(max)])))
+                        let lower = lower.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+                        let sum = lower + *upper;
+                        // 先相加，避免极小数分别减半后归零；和溢出时才分别减半。
+                        if sum.is_finite() {
+                            sum / 2.0
+                        } else {
+                            lower / 2.0 + *upper / 2.0
+                        }
+                    } else {
+                        *upper
+                    }
+                } else {
+                    min
+                };
+                Value::Array(Arc::new(ArrayData::new(
+                    1,
+                    3,
+                    vec![
+                        Value::Number(min),
+                        Value::Number(middle),
+                        Value::Number(max),
+                    ],
+                )))
             }
         }
     }

@@ -4,6 +4,7 @@ import { startRustWorkbookRuntimeAtom, spreadsheetRuntimeAtom,
   disposeRustWorkbookRuntimeAtom, type RustWorkbookDefinition } from '../src'
 import { snapshotRustWorkbookDefinition } from '../src/runtime/rust-workbook-definition'
 import type { WorkerLike } from '../src/rust-worker'
+import { TEST_FUNCTION_CATALOG } from './support/function-catalog'
 
 function definition() {
   return { title: 'Book', sheets: [{ id: 's', name: 'Sheet', rowCount: 10, colCount: 2,
@@ -43,7 +44,7 @@ test('runtime sends tables only after every content chunk, before publishing rea
     postMessage(message) {
       const input = message as { id: number; command: string; payload: Record<string, unknown> }
       calls.push(input)
-      const result = input.command === 'workbook.initialize'
+      const result = input.command === 'formula.catalog' ? TEST_FUNCTION_CATALOG : input.command === 'workbook.initialize'
         ? [{ id: 's', index: 0, name: 'Sheet' }]
         : { accepted: (input.payload.cells as unknown[]).length, errors: 0, rejectedFormulas: 0 }
       receive({ data: { id: input.id, ok: true, result } } as MessageEvent)
@@ -61,6 +62,7 @@ test('runtime sends tables only after every content chunk, before publishing rea
   })
   expect(calls.map((call) => call.command)).toEqual([
     'workbook.initialize', 'workbook.importCells', 'workbook.importCells', 'workbook.importCells',
+    'formula.catalog',
   ])
   expect(calls[1].payload.tables).toBeUndefined()
   expect(calls[2].payload.tables).toBeUndefined()

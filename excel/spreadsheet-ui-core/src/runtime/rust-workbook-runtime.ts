@@ -3,6 +3,7 @@ import { createRustWorkbookConnection, type RustWorkbookConnection } from '../ru
 import type { WorkerLike } from '../rust-worker'
 import { editingSessionAtom } from '../editing/session-atoms'
 import { resetWorkbookViewAtom } from './reset-workbook-view'
+import { publishNativeFunctionCatalogAtom, validateFunctionCatalog } from '../formula-functions/native-catalog'
 import {
   beginSpreadsheetRuntimeAtom,
   rejectSpreadsheetRuntimeAtom,
@@ -125,6 +126,9 @@ export const startRustWorkbookRuntimeAtom = atom(
         await connection.request('workbook.importCells', { cells: [], tables })
         if (!ownsConnection(get, sessionId, connection)) return
       }
+      const catalog = validateFunctionCatalog(await connection.request('formula.catalog', {}))
+      if (!ownsConnection(get, sessionId, connection)) return
+      set(publishNativeFunctionCatalogAtom, { connection, catalog })
       set(initializeWorkbookDocumentAtom, {
         title: definition.title,
         sheets: documentSheets,
@@ -170,11 +174,15 @@ export const replaceRustWorkbookRuntimeAtom = atom(
       })
       if (!sheets.length || new Set(sheets.map((sheet) => sheet.id)).size !== sheets.length)
         throw new Error('Rust returned invalid workbook sheets.')
+      const catalog = validateFunctionCatalog(await candidate.request('formula.catalog', {}))
+      if (get(runtimeOwnerAtom) !== previous) return false
+      if (get(editingSessionAtom).source) throw new Error('Finish editing the cell first.')
       // 只有此处切换所有权；旧请求随后拒绝，不能再填入新工作簿的投影队列。
       set(runtimeOwnerAtom, {
         sessionId, connection: candidate, workerFactory: previous.workerFactory,
       })
       set(resetWorkbookViewAtom)
+      set(publishNativeFunctionCatalogAtom, { connection: candidate, catalog })
       set(initializeWorkbookDocumentAtom, { title: metadata.title, sheets })
       set(resolveSpreadsheetRuntimeAtom, { connection: candidate })
       disposeConnection(previous.connection)

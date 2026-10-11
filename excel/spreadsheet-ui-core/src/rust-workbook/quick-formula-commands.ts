@@ -1,5 +1,6 @@
 import type { CellCoord, CellRange } from '../shared'
 import type { WorkerCommand } from '../rust-worker'
+import type { NativeFunctionCatalog } from '../formula-functions/types'
 
 export type QuickFormula = 'sum' | 'average' | 'count'
 export interface RustQuickFormulaRequest {
@@ -18,6 +19,7 @@ export interface QuickFormulaSuggestion {
   readonly input: string
 }
 export interface RustQuickFormulaCommands {
+  readonly 'formula.catalog': WorkerCommand<Record<string, never>, NativeFunctionCatalog>
   readonly 'formula.suggest': WorkerCommand<
     RustQuickFormulaRequest, QuickFormulaSuggestion & { readonly revision: number }
   >

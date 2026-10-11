@@ -2,8 +2,11 @@
 
 内置公式函数的元数据与自动补全 / 签名提示状态。
 
-本模块**不求值**任何东西 —— 求值在引擎侧（`excel/rust/excel-core` 或
-`@einfach/excel-core-ts`）。这里只有静态的函数规格表与光标位置驱动的派生状态。
+本模块**不求值**任何东西 —— 当前 React 主线只通过 Rust/WASM 求值。
+可用目录来自当前 Worker 编译后的 `function_catalog()`，与 Rust 求值共用一张分发表。
+运行时启动或替换工作簿时读取一次，绑定连接；滚动和编辑不重读目录。
+`registry.ts` 只保留常用函数的参数帮助，不决定哪些函数可用。未补帮助的原生函数
+仍可搜索、插入及补全，但不伪造参数签名。lite/full 的 REGEX 差异由原生编译配置决定。
 
 ## Atom classification
 
@@ -15,8 +18,11 @@
 | `formulaFunctionSignatureAtom` | derived | 当前所在函数调用的签名与高亮参数位 |
 | `formulaFunctionSuggestionsActiveAtom` | derived | 补全面板是否应当显示（合并「有候选」与「未被 dismiss」） |
 | `dismissFormulaSuggestionsAtom` | command | 记下当前 caret，关闭补全面板 |
+| `nativeFunctionCatalogAtom` | derived | 当前连接的原生函数目录，附已有参数帮助 |
+| `insertFunctionPanelAtom` | derived | 搜索、分类、选中函数及当前选区可用性 |
+| `runInsertFunctionAtom` | command | 打开／关闭目录、修改搜索、插入公式栏草稿 |
 
-全部 atom 设 `debugLabel = 'spreadsheet.formulaFunctions.<name>'`。无 per-cell 家族。
+无 per-cell 家族；插入只写既有编辑草稿，Enter 提交仍走原有单格命令。
 
 ## Bounded caches
 
@@ -44,7 +50,7 @@
 - `getFormulaFunctionSpec` / `renderFormulaFunctionSignature` —— 函数规格查询与签名渲染
 - `renderActiveSignatureSlots` —— 把签名拆成带高亮标记的 slot，供宿主渲染
 
-函数清单以 `registry.ts` 的 `FORMULA_FUNCTIONS` 为准。
+完整可用目录以 Rust 的 `builtin_function_catalog()` 为准，不是保留名清单。
 
 ## 非目标
 

@@ -1,15 +1,14 @@
 import type { FormulaFunctionSpec } from './types'
 
 /**
- * Seed registry. Names must be upper-case. The order here is the
+ * Argument-help metadata. Names must be upper-case. The order here is the
  * tiebreaker for ranking when multiple suggestions share the same
  * fragment-length score (registry order wins, so the most common
  * functions show up first).
  *
- * Keeping this list small on purpose — every name added here implies a
- * matching backend evaluator (otherwise the user gets `#NAME?` after
- * accepting). Expand alongside the Rust evaluator and the real Worker E2E
- * catalog check; this registry is UI metadata, never an evaluator.
+ * Availability comes only from the current Rust function catalog. This
+ * list supplies help for known signatures, not a second function registry.
+ * Native names without help still appear, without invented argument hints.
  */
 export const FORMULA_FUNCTION_SPECS: readonly FormulaFunctionSpec[] = [
   {

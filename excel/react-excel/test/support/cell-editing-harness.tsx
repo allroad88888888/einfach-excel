@@ -1,5 +1,7 @@
 import { createStore, type Store } from '@einfach/core'
 import {
+  FORMULA_FUNCTION_SPECS,
+  publishNativeFunctionCatalogAtom,
   type EditingCommitRequest,
   type VisibleProjectionRequest,
   type VisibleProjectionResult,
@@ -91,6 +93,9 @@ export function renderSalesOrdersEditingWorksheet(
   store = createStore(),
 ): Store {
   initializeSalesOrdersStore(store)
+  store.setter(publishNativeFunctionCatalogAtom, { connection: controlled.connection, catalog: {
+    version: 1, functions: FORMULA_FUNCTION_SPECS.map(({ name }) => ({ name, category: 'Test', note: null })),
+  } })
   render(
     <WorkbookStoreProvider connection={controlled.connection} store={store}>
       <WorkbookView />

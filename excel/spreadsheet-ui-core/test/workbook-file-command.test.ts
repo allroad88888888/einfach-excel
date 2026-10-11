@@ -4,6 +4,7 @@ import { startRustWorkbookRuntimeAtom, disposeRustWorkbookRuntimeAtom,
   runWorkbookFileAtom, workbookFilePanelAtom, workbookDocumentAtom, rustWorkbookConnectionAtom,
   runVisibleProjectionAtom, projectionSnapshotAtom, startEditingAtom } from '../src'
 import type { WorkerLike } from '../src/rust-worker'
+import { TEST_FUNCTION_CATALOG } from './support/function-catalog'
 import { viewportSizeOverridesAtom } from '../src/viewport/size-overrides'
 
 type WireRequest = { id: number; command: string; payload: Record<string, unknown> }
@@ -15,7 +16,8 @@ function worker(reply: (request: WireRequest) => unknown | Promise<unknown>) {
     postMessage(message) {
       const request = message as WireRequest
       requests.push(request)
-      void Promise.resolve().then(() => reply(request)).then((result) => {
+      void Promise.resolve().then(() => request.command === 'formula.catalog'
+        ? TEST_FUNCTION_CATALOG : reply(request)).then((result) => {
         listener?.({ data: { id: request.id, ok: true, result } } as MessageEvent)
       }, (error) => {
         listener?.({ data: { id: request.id, ok: false, error: {
@@ -99,7 +101,7 @@ test('new requires confirmation and creates one full blank canvas without seed i
   expect(await store.setter(runWorkbookFileAtom, { action: 'new', confirmed: false })).toBe(false)
   expect(candidate.requests).toEqual([])
   expect(await store.setter(runWorkbookFileAtom, { action: 'new', confirmed: true })).toBe(true)
-  expect(candidate.requests.map((request) => request.command)).toEqual(['workbook.initialize'])
+  expect(candidate.requests.map((request) => request.command)).toEqual(['workbook.initialize', 'formula.catalog'])
   expect(store.getter(workbookDocumentAtom)).toMatchObject({ title: 'Untitled workbook', sheets: [
     { name: 'Sheet1', rowCount: 1_048_576, colCount: 16_384 },
   ] })

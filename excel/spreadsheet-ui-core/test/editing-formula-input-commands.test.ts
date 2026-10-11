@@ -1,5 +1,6 @@
 import { createStore } from '@einfach/core'
 import { describe, expect, it } from 'vitest'
+import { installTestFunctionCatalog } from './support/function-catalog'
 import {
   acceptFormulaSuggestion,
   editingDraftAtom,
@@ -33,6 +34,7 @@ describe('editing formula input commands', () => {
 
   it('accepts the highlighted suggestion and opens a reference pick for its first argument', () => {
     const store = createStore()
+    installTestFunctionCatalog(store)
     store.setter(startEditingAtom, {
       sheetId: 'sheet-1',
       cell: { row: 0, col: 0 },

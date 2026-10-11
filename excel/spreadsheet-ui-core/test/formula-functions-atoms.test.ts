@@ -1,5 +1,6 @@
 import { createStore } from '@einfach/core'
 import { describe, expect, it } from 'vitest'
+import { installTestFunctionCatalog } from './support/function-catalog'
 import {
   editingDraftAtom,
   formulaFunctionSignatureAtom,
@@ -12,6 +13,7 @@ import {
 
 function setup(draft: string, caret: number) {
   const store = createStore()
+  installTestFunctionCatalog(store)
   store.setter(startEditingAtom, {
     sheetId: 'sheet-1',
     cell: { row: 0, col: 0 },

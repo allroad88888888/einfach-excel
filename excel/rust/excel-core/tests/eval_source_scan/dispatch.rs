@@ -96,8 +96,7 @@ pub fn actual_dispatches(sources: &[Vec<char>]) -> DispatchScan {
 
 /// 根 `eval_func` 的路由选择器；它必须与子模块的实际函数名集合严格一致。
 pub fn routing_selectors(root: &[char]) -> DispatchScan {
-    let function = find(root, "fn eval_func(", 0).expect("找不到 eval_func");
-    let match_start = find(root, "match name {", function)
-        .expect("eval_func 里找不到 `match name {`");
+    let match_start = find(root, "define_builtin_dispatch! {", 0)
+        .expect("找不到求值与目录共用的 define_builtin_dispatch 表");
     scan_match(root, match_start)
 }

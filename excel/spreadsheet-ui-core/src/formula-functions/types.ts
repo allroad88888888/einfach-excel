@@ -27,6 +27,9 @@ export interface FormulaFunctionArg {
 }
 
 export interface FormulaFunctionSpec {
+  /** False means argument help is unavailable, not that this function takes no arguments. */
+  signatureAvailable?: boolean
+  category?: string
   /** Canonical function name, upper-case (e.g. 'SUM'). */
   name: string
   /**
@@ -36,6 +39,16 @@ export interface FormulaFunctionSpec {
   args: FormulaFunctionArg[]
   /** One-line description shown beside the name in the dropdown. */
   summary: string
+}
+
+/** Actual compiled Rust functions; reserved names remain a separate cross-build policy. */
+export interface NativeFunctionCatalog {
+  readonly version: 1
+  readonly functions: readonly {
+    readonly name: string
+    readonly category: string
+    readonly note?: string | null
+  }[]
 }
 
 /**

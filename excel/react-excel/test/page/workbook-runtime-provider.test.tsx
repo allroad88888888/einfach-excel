@@ -21,8 +21,10 @@ function createReadyWorker(): { worker: RuntimeWorker; terminate: Mock } {
   return {
     worker: {
       postMessage(message) {
-        const request = message as { id: number }
-        const result = [{ id: 'sheet-1', index: 0, name: 'Sheet 1' }]
+        const request = message as { id: number; command: string }
+        const result = request.command === 'formula.catalog'
+          ? { version: 1, functions: [{ name: 'SUM', category: 'Math', note: undefined }] }
+          : [{ id: 'sheet-1', index: 0, name: 'Sheet 1' }]
         onMessage?.({ data: { id: request.id, ok: true, result } } as MessageEvent)
       },
       addEventListener(type, listener) {

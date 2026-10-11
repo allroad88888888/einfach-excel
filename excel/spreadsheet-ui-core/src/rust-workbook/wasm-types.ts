@@ -1,5 +1,6 @@
 import type { DisplayCell, SpreadsheetCellFormat, SpreadsheetNumberFormat, ViewportRowHeight, ViewportColumnWidth } from '../backend'
 import type { RangeBorderPatch } from '../backend/format-contracts'
+import type { NativeFunctionCatalog } from '../formula-functions/types'
 import type { RustImportCell, RustImportStats } from './commands'
 import type { RustClipboardCapture, RustClipboardPasteRequest } from './clipboard-commands'
 import type { RustHistoryState } from '../history/rust-history-types'
@@ -291,6 +292,7 @@ export interface WasmWorkbook {
 }
 
 export interface RustWasmModule {
+  function_catalog?: () => NativeFunctionCatalog
   default(): Promise<unknown>
   WasmWorkbook: new () => unknown
 }

@@ -1,5 +1,6 @@
 import { createStore } from '@einfach/core'
 import { expect, test } from 'vitest'
+import { installTestFunctionCatalog } from './support/function-catalog'
 import {
   startEditingAtom, cancelEditingAtom, updateFormulaDraftAtom, editingDraftAtom,
   formulaFunctionSuggestionsAtom, formulaFunctionSuggestionCursorAtom,
@@ -9,6 +10,7 @@ import { acceptFormulaSuggestionAtom, dispatchFormulaSuggestionKeyAtom } from '.
 
 function setup(draft = '=SU') {
   const store = createStore()
+  installTestFunctionCatalog(store)
   store.setter(startEditingAtom, { sheetId: 's', cell: { row: 1, col: 1 }, draft, source: 'cell' })
   store.setter(syncFormulaReferenceCaretAtom, draft.length)
   return store

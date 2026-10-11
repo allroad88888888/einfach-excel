@@ -1,0 +1,117 @@
+import { fileURLToPath } from 'node:url'
+import { expect, test } from '@playwright/test'
+import { select } from '../support/clipboard'
+
+test.beforeEach(async ({ page }) => {
+  await page.goto('/')
+  await expect(page.locator('[data-cell="1:0"]')).toHaveText('SO-10001')
+})
+
+test('catalog searches all native names and categories without mutating the workbook', async ({ page }) => {
+  await page.getByRole('button', { name: 'Insert function', exact: true }).click()
+  const dialog = page.getByRole('dialog', { name: 'Insert function' })
+  await expect(dialog).toContainText('499 functions available')
+  const search = page.getByRole('searchbox', { name: 'Search functions' })
+  await expect(search).toBeFocused()
+  await search.fill('xloo')
+  const functions = page.getByRole('listbox', { name: 'Function', exact: true })
+  await expect(functions.locator('option')).toHaveText(['XLOOKUP'])
+  await page.getByLabel('Category', { exact: true }).selectOption('Date & time')
+  await expect(dialog.getByRole('status')).toContainText('No matching functions')
+  await expect(page.getByRole('button', { name: 'Insert draft' })).toBeDisabled()
+  await search.fill('')
+  await expect(functions.locator('option', { hasText: /^TODAY$/ })).toHaveCount(1)
+  await expect(functions.locator('option', { hasText: /^XLOOKUP$/ })).toHaveCount(0)
+  await page.getByLabel('Category', { exact: true }).selectOption('')
+  await search.fill('TRANSLATE')
+  await expect(dialog).toContainText('does not translate between languages')
+  await search.press('Escape')
+  await expect(dialog).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Insert function', exact: true })).toBeFocused()
+  await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+})
+
+test('insert creates a draft, confirms via Rust and has one undo/redo step', async ({ page }) => {
+  const cell = await select(page, 'B2', '1:1')
+  await page.getByRole('button', { name: 'Insert function', exact: true }).click()
+  await page.getByRole('searchbox', { name: 'Search functions' }).fill('XLOOKUP')
+  await page.getByRole('button', { name: 'Insert draft' }).click()
+  const bar = page.getByRole('textbox', { name: 'Active cell value' })
+  await expect(bar).toHaveValue('=XLOOKUP(')
+  await expect(bar).toBeFocused()
+  await expect(cell).toHaveText('Acme Co.')
+  await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+  await bar.fill('=XLOOKUP(2,E2:E3,A2:A3)')
+  await bar.press('Enter')
+  await expect(cell).toHaveText('SO-10002')
+  await page.getByRole('button', { name: 'Undo', exact: true }).click()
+  await expect(cell).toHaveText('Acme Co.')
+  await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+  await page.getByRole('button', { name: 'Redo', exact: true }).click()
+  await expect(cell).toHaveText('SO-10002')
+})
+
+test('autocomplete uses the native catalog in both editing inputs, without fake argument help', async ({ page }) => {
+  const cell = await select(page, 'B2', '1:1')
+  await cell.dblclick()
+  const editor = page.getByRole('textbox', { name: 'Cell editor' })
+  await editor.fill('=XLO')
+  await expect(page.getByRole('option', { name: /^XLOOKUP / })).toBeVisible()
+  await editor.press('Tab')
+  await expect(editor).toHaveValue('=XLOOKUP(')
+  await expect(page.getByRole('status', { name: 'Formula arguments' })).toHaveCount(0)
+  await editor.press('Escape')
+  await expect(cell).toHaveText('Acme Co.')
+  const bar = page.getByRole('textbox', { name: 'Active cell value' })
+  await bar.fill('=TEXTBEF')
+  await expect(page.getByRole('option', { name: /^TEXTBEFORE / })).toBeVisible()
+  await bar.press('Tab')
+  await expect(bar).toHaveValue('=TEXTBEFORE(')
+  await bar.fill('=TEXTBEFORE("hello-world","-")')
+  await bar.press('Enter')
+  await expect(cell).toHaveText('hello')
+})
+
+for (const width of [1280, 390]) test(`function picker is keyboard accessible at ${width}px`, async ({ page }) => {
+  const errors: string[] = []
+  page.on('pageerror', (error) => errors.push(error.message))
+  await page.setViewportSize({ width, height: 850 })
+  await page.getByRole('button', { name: 'Insert function', exact: true }).click()
+  const dialog = page.getByRole('dialog', { name: 'Insert function' })
+  const search = page.getByRole('searchbox', { name: 'Search functions' })
+  await search.fill('SUM')
+  await expect(page.getByRole('listbox', { name: 'Function', exact: true })).toHaveValue('SUM')
+  await search.press('Shift+Tab')
+  await expect(page.getByRole('button', { name: 'Insert draft' })).toBeFocused()
+  await page.keyboard.press('Tab')
+  await expect(search).toBeFocused()
+  const box = (await dialog.boundingBox())!
+  expect(box.x).toBeGreaterThanOrEqual(0)
+  expect(box.x + box.width).toBeLessThanOrEqual(width)
+  expect(await dialog.evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true)
+  await page.screenshot({ path: `/tmp/excel-function-picker-${width}.png` })
+  await search.press('Enter')
+  const bar = page.getByRole('textbox', { name: 'Active cell value' })
+  await expect(bar).toBeFocused()
+  await expect(bar).toHaveValue('=SUM(')
+  await bar.press('Escape')
+  await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+  expect(errors).toEqual([])
+})
+
+const wasmBase = `/@fs${fileURLToPath(new URL('../../../excel-wasm/', import.meta.url))}`
+for (const variant of ['lite', 'full']) test(`${variant} artifact exports its actual compiled function catalog`, async ({ page }) => {
+  const catalog = await page.evaluate(async (url) => {
+    const wasm = await import(url)
+    await wasm.default()
+    return wasm.function_catalog() as {
+      version: number; functions: { name: string; category: string }[]
+    }
+  }, `${wasmBase}${variant}/einfach_wasm.js`)
+  expect(catalog.version).toBe(1)
+  expect(catalog.functions).toHaveLength(variant === 'full' ? 502 : 499)
+  expect(new Set(catalog.functions.map((item) => item.name)).size).toBe(catalog.functions.length)
+  expect(catalog.functions.filter((item) => item.name.startsWith('REGEX')))
+    .toHaveLength(variant === 'full' ? 3 : 0)
+  expect(catalog.functions.find((item) => item.name === 'XLOOKUP')?.category).toBe('Lookup & reference')
+})

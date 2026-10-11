@@ -1,5 +1,6 @@
 import { createStore, type Store } from '@einfach/core'
 import { expect, test } from 'vitest'
+import { installTestFunctionCatalog } from './support/function-catalog'
 import {
   startEditingAtom,
   cancelEditingAtom,
@@ -126,6 +127,7 @@ test('F4 locks survive moving and extending the same keyboard reference', () => 
 
 test('completion candidates take arrow keys before reference picking', () => {
   const store = setup('=SU')
+  installTestFunctionCatalog(store)
   key(store, 'ArrowDown')
   key(store, 'Enter')
   expect(store.getter(editingDraftAtom)).toBe('=SUMIF(')

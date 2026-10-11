@@ -1,0 +1,25 @@
+/* 紧凑的工具弹窗：沿用工作簿 token，窄屏只收缩宽度，不压缩字级。 */
+.insert-function-panel {
+  box-sizing: border-box; width: 440px; max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 24px); overflow: auto; padding: 20px;
+  border: 1px solid var(--border); border-radius: 8px;
+  background: var(--surface); color: var(--text); font-size: 13px;
+}
+.insert-function-panel::backdrop { background: rgb(20 25 45 / 25%); }
+.insert-function-panel h2 { margin: 0; font-size: 17px; }
+.insert-function-panel p { line-height: 1.5; }
+.insert-function-panel form { display: grid; gap: 8px; }
+.insert-function-panel button, .insert-function-panel input, .insert-function-panel select {
+  box-sizing: border-box; min-width: 0; min-height: 34px; padding: 5px 8px;
+  font: inherit; color: inherit; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 4px;
+}
+.insert-function-panel select[size] { font-family: ui-monospace, monospace; padding: 0; }
+.insert-function-panel option { padding: 5px 8px; }
+.insert-function-description { min-height: 62px; overflow-wrap: anywhere; }
+.insert-function-description code { display: block; margin-top: 8px; }
+.insert-function-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.insert-function-actions button[type='submit'] { background: var(--primary); color: white; }
+.insert-function-panel :disabled { opacity: .5; }
+.insert-function-panel :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.insert-function-panel [role='alert'] { color: #a12622; overflow-wrap: anywhere; }

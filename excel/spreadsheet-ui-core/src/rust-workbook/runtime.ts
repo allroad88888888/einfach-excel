@@ -81,6 +81,11 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
   }
 
   async function dispatch(command: CommandName, payload: unknown): Promise<unknown> {
+    if (command === 'formula.catalog') {
+      await ensureWasm()
+      if (!wasm.function_catalog) throw new Error('Rust function catalog is unavailable.')
+      return wasm.function_catalog()
+    }
     if (command === 'workbook.openFile') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
       await ensureWasm()

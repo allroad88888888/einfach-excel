@@ -4,47 +4,23 @@ import type { EditingSessionState } from '../editing/types'
 import { activeEditingCommitTicketAtom } from '../editing/commit-state'
 import { formulaReferenceCaretAtom } from '../formula-reference'
 import {
-  FORMULA_FUNCTION_SPECS,
-  getFormulaFunctionSpec,
   renderFormulaFunctionSignature,
 } from './registry'
+import { nativeFunctionCatalogAtom } from './native-catalog'
+import { searchFormulaFunctions } from './search'
 import { findEnclosingFunctionCall, findFunctionNameFragmentAtCaret } from './parse'
 import type {
   FormulaFunctionSignatureState,
-  FormulaFunctionSpec,
   FormulaFunctionSuggestion,
 } from './types'
 
 export * from './registry'
 export * from './parse'
 export * from './types'
+export { nativeFunctionCatalogAtom, publishNativeFunctionCatalogAtom } from './native-catalog'
 
 /** Max rows to surface in the dropdown — keeps the UI compact. */
 const SUGGESTION_LIMIT = 8
-
-function rankSuggestions(
-  fragment: string,
-  specs: readonly FormulaFunctionSpec[],
-): FormulaFunctionSpec[] {
-  const upper = fragment.toUpperCase()
-  const startsWith: FormulaFunctionSpec[] = []
-  const contains: FormulaFunctionSpec[] = []
-  for (const spec of specs) {
-    if (spec.name === upper) {
-      // Exact match goes first; user is probably about to hit `(`.
-      startsWith.unshift(spec)
-      continue
-    }
-    if (spec.name.startsWith(upper)) {
-      startsWith.push(spec)
-      continue
-    }
-    if (spec.name.includes(upper)) {
-      contains.push(spec)
-    }
-  }
-  return [...startsWith, ...contains].slice(0, SUGGESTION_LIMIT)
-}
 
 /**
  * Internal source atom: tracks the caret position the user dismissed the
@@ -108,7 +84,9 @@ export const formulaFunctionSuggestionsAtom = atom<FormulaFunctionSuggestion[]>(
   if (dismissedAt !== null && dismissedAt === caret) return []
   const fragment = findFunctionNameFragmentAtCaret(draft, caret)
   if (!fragment) return []
-  const matches = rankSuggestions(fragment.text, FORMULA_FUNCTION_SPECS)
+  const matches = searchFormulaFunctions(
+    fragment.text, get(nativeFunctionCatalogAtom), SUGGESTION_LIMIT,
+  )
   return matches.map((spec) => ({
     spec,
     fragmentStart: fragment.start,
@@ -143,8 +121,9 @@ export const formulaFunctionSignatureAtom = atom<FormulaFunctionSignatureState |
   if (caret < 0) return null
   const enclosing = findEnclosingFunctionCall(draft, caret)
   if (!enclosing) return null
-  const spec = getFormulaFunctionSpec(enclosing.name)
-  if (!spec) return null
+  const spec = get(nativeFunctionCatalogAtom)
+    .find((entry) => entry.name === enclosing.name.toUpperCase())
+  if (!spec || !spec.signatureAvailable) return null
   const lastIndex = spec.args.length - 1
   const activeArgIndex = Math.min(enclosing.activeArgIndex, lastIndex)
   return { spec, activeArgIndex }

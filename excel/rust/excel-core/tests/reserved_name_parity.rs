@@ -22,7 +22,7 @@ mod eval_source_scan;
 
 use std::collections::BTreeSet;
 
-use einfach_excel_core::is_builtin_function_name;
+use einfach_excel_core::{builtin_function_catalog, is_builtin_function_name};
 use eval_source_scan::{
     actual_dispatches, eval_builtin_name_chars, eval_dispatch_chars, eval_family_chars,
     is_formula_name, reserved_macro_body, reserved_names, routing_selectors,
@@ -96,6 +96,26 @@ fn root_routing_selectors_match_actual_function_arms() {
         routing.names, actual.names,
         "eval.rs 路由选择器与 eval_fn_* 子模块的实际函数臂不一致"
     );
+}
+
+#[test]
+fn compiled_catalog_matches_the_real_routing_for_this_build() {
+    let catalog = builtin_function_catalog();
+    let mut expected = actual_dispatch().names;
+    if !cfg!(feature = "regex-formulas") {
+        for name in ["REGEXTEST", "REGEXEXTRACT", "REGEXREPLACE"] {
+            expected.remove(name);
+        }
+    }
+    let names: BTreeSet<String> = catalog.iter().map(|item| item.name.to_string()).collect();
+    assert_eq!(names, expected);
+    assert_eq!(catalog.len(), names.len(), "目录不能含重复项");
+    assert!(catalog.windows(2).all(|pair| pair[0].name < pair[1].name));
+    assert!(catalog.iter().all(|item| !item.category.is_empty()));
+    for name in ["IMAGE", "HYPERLINK", "TRANSLATE"] {
+        assert!(catalog.iter().find(|item| item.name == name).unwrap().note.is_some());
+    }
+    assert_eq!(catalog.iter().find(|item| item.name == "BIN2DEC").unwrap().category, "Engineering");
 }
 
 #[test]

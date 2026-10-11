@@ -1,64 +1,100 @@
 use super::*;
 
-pub(super) fn eval_func(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
-    match name {
-        "LET" | "LAMBDA" | "ISOMITTED" => eval_fn_lambda::eval_fn_lambda(name, args, provider),
-        "SUM" | "AVERAGE" | "COUNT" | "MIN" | "MAX" | "COUNTA" | "COUNTBLANK" | "SUBTOTAL" | "AGGREGATE" => eval_fn_aggregate_core::eval_fn_aggregate_core(name, args, provider),
-        "IF" | "AND" | "OR" | "NOT" | "IFERROR" | "IFNA" | "IFS" | "SWITCH" | "XOR" | "TRUE" | "FALSE" | "NA" => eval_fn_logical::eval_fn_logical(name, args, provider),
-        "ABS" | "SQRT" | "ROUND" | "CEILING" | "FLOOR" | "POWER" | "MOD" => eval_fn_math_basic::eval_fn_math_basic(name, args, provider),
-        "CONCATENATE" | "LEN" | "LEFT" | "RIGHT" | "MID" | "UPPER" | "LOWER" | "TRIM" | "TEXT" => eval_fn_text_basic::eval_fn_text_basic(name, args, provider),
-        "COUNTIF" | "SUMIF" | "AVERAGEIF" | "COUNTIFS" | "SUMIFS" | "AVERAGEIFS" | "MAXIFS" | "MINIFS" => eval_fn_criteria::eval_fn_criteria(name, args, provider),
-        "VLOOKUP" | "HLOOKUP" | "INDEX" | "MATCH" => eval_fn_lookup_classic::eval_fn_lookup_classic(name, args, provider),
-        "MEDIAN" | "MODE" | "STDEV" | "VAR" | "LARGE" | "SMALL" => eval_fn_statistics_core::eval_fn_statistics_core(name, args, provider),
-        "TODAY" | "NOW" | "DATE" | "YEAR" | "MONTH" | "DAY" => eval_fn_date_basic::eval_fn_date_basic(name, args, provider),
-        "OFFSET" | "ROW" | "COLUMN" | "ROWS" | "COLUMNS" | "AREAS" => eval_fn_reference_position::eval_fn_reference_position(name, args, provider),
-        "INT" | "TRUNC" | "SIGN" | "EXP" | "LN" | "LOG" | "LOG10" | "PI" | "ROUNDUP" | "ROUNDDOWN" | "MROUND" => eval_fn_math_rounding::eval_fn_math_rounding(name, args, provider),
-        "PRODUCT" | "QUOTIENT" | "FACT" | "COMBIN" | "GCD" | "LCM" => eval_fn_math_combinatorics::eval_fn_math_combinatorics(name, args, provider),
-        "SIN" | "COS" | "TAN" | "ASIN" | "ACOS" | "ATAN" | "ATAN2" | "RADIANS" | "DEGREES" => eval_fn_math_trigonometry::eval_fn_math_trigonometry(name, args, provider),
-        "ISNUMBER" | "ISTEXT" | "ISBLANK" | "ISERROR" | "ISERR" | "ISNA" | "ISLOGICAL" | "ISNONTEXT" | "ISEVEN" | "ISODD" | "N" | "TYPE" | "ERROR.TYPE" | "ISREF" => eval_fn_information_classification::eval_fn_information_classification(name, args, provider),
-        "FIND" | "SEARCH" | "SUBSTITUTE" | "REPLACE" => eval_fn_text_search::eval_fn_text_search(name, args, provider),
-        "REPT" | "EXACT" | "VALUE" | "T" | "CHAR" | "CODE" | "CLEAN" | "PROPER" | "TEXTJOIN" | "DOLLAR" | "FIXED" | "CONCAT" | "TRANSLATE" | "TEXTSPLIT" | "TEXTBEFORE" | "TEXTAFTER" | "ENCODEURL" => eval_fn_text_format::eval_fn_text_format(name, args, provider),
-        "CHOOSE" | "ADDRESS" | "INDIRECT" | "FORMULATEXT" => eval_fn_reference_resolution::eval_fn_reference_resolution(name, args, provider),
-        "XLOOKUP" | "XMATCH" | "LOOKUP" => eval_fn_lookup_modern::eval_fn_lookup_modern(name, args, provider),
-        "HOUR" | "MINUTE" | "SECOND" | "TIME" => eval_fn_date_time::eval_fn_date_time(name, args, provider),
-        "WEEKDAY" | "WEEKNUM" | "EOMONTH" | "EDATE" | "DAYS" => eval_fn_date_calendar::eval_fn_date_calendar(name, args, provider),
-        "DATEDIF" | "DATEVALUE" | "TIMEVALUE" | "YEARFRAC" => eval_fn_date_duration::eval_fn_date_duration(name, args, provider),
-        "AVERAGEA" | "RANK" | "RANKEQ" | "RANK.EQ" | "RANKAVG" | "RANK.AVG" | "PERCENTILE" | "PERCENTILE.INC" | "PERCENTILE.EXC" | "QUARTILE" | "QUARTILE.INC" | "QUARTILE.EXC" | "STDEV.S" | "VAR.S" | "STDEV.P" | "VAR.P" | "CORREL" | "COVAR" | "COVAR.P" | "COVAR.S" | "SLOPE" | "INTERCEPT" => eval_fn_statistics_descriptive::eval_fn_statistics_descriptive(name, args, provider),
-        "PMT" | "PV" | "FV" | "NPER" | "NPV" | "IRR" | "RATE" | "IPMT" | "PPMT" => eval_fn_financial_tvm::eval_fn_financial_tvm(name, args, provider),
-        "CELL" | "ISFORMULA" | "SHEET" | "SHEETS" | "INFO" => eval_fn_information_workbook::eval_fn_information_workbook(name, args, provider),
-        "DSUM" | "DAVERAGE" | "DCOUNT" | "DCOUNTA" | "DMAX" | "DMIN" | "DPRODUCT" | "DGET" | "DSTDEV" | "DSTDEVP" | "DVAR" | "DVARP" | "BIN2DEC" => eval_fn_database::eval_fn_database(name, args, provider),
-        "OCT2DEC" | "HEX2DEC" | "DEC2BIN" | "DEC2OCT" | "DEC2HEX" | "BIN2HEX" | "BIN2OCT" | "HEX2BIN" | "HEX2OCT" | "OCT2BIN" | "OCT2HEX" | "BITAND" | "BITOR" | "BITXOR" | "BITLSHIFT" | "BITRSHIFT" | "DELTA" | "GESTEP" => eval_fn_engineering_radix::eval_fn_engineering_radix(name, args, provider),
-        "SINH" | "COSH" | "TANH" | "ASINH" | "ACOSH" | "ATANH" | "CSC" | "SEC" | "COT" | "CSCH" | "SECH" | "COTH" | "ACSC" | "ASEC" | "ACOT" | "ACOTH" => eval_fn_math_hyperbolic::eval_fn_math_hyperbolic(name, args, provider),
-        "SUMX2MY2" | "SUMX2PY2" | "SUMXMY2" | "SUMSQ" | "SQRTPI" | "SUMPRODUCT" | "FLOOR.MATH" | "CEILING.MATH" | "FLOOR.PRECISE" | "CEILING.PRECISE" | "ROMAN" | "ARABIC" | "DECIMAL" | "BASE" | "ODD" | "EVEN" | "FACTDOUBLE" | "COMBINA" | "MULTINOMIAL" | "SERIESSUM" | "ISO.CEILING" => eval_fn_math_advanced::eval_fn_math_advanced(name, args, provider),
-        "MDETERM" | "MMULT" | "MINVERSE" | "MUNIT" | "TRANSPOSE" => eval_fn_array_matrix::eval_fn_array_matrix(name, args, provider),
-        "NETWORKDAYS" | "NETWORKDAYS.INTL" | "WORKDAY" | "WORKDAY.INTL" | "ISOWEEKNUM" | "DAYS360" => eval_fn_date_workday::eval_fn_date_workday(name, args, provider),
-        "SEQUENCE" | "RANDARRAY" => eval_fn_dynamic_generate::eval_fn_dynamic_generate(name, args, provider),
-        "UNIQUE" => eval_fn_dynamic_unique::eval_fn_dynamic_unique(name, args, provider),
-        "SORT" | "SORTBY" => eval_fn_dynamic_sort::eval_fn_dynamic_sort(name, args, provider),
-        "FILTER" => eval_fn_dynamic_filter::eval_fn_dynamic_filter(name, args, provider),
-        "MAP" | "REDUCE" | "SCAN" => eval_fn_dynamic_lambda::eval_fn_dynamic_lambda(name, args, provider),
-        "BYROW" | "BYCOL" | "MAKEARRAY" => eval_fn_dynamic_by_axis::eval_fn_dynamic_by_axis(name, args, provider),
-        "TAKE" | "DROP" | "EXPAND" => eval_fn_dynamic_shape::eval_fn_dynamic_shape(name, args, provider),
-        "VSTACK" | "HSTACK" => eval_fn_dynamic_stack::eval_fn_dynamic_stack(name, args, provider),
-        "CHOOSEROWS" | "CHOOSECOLS" => eval_fn_dynamic_selectors::eval_fn_dynamic_selectors(name, args, provider),
-        "TOROW" | "TOCOL" | "WRAPROWS" | "WRAPCOLS" => eval_fn_dynamic_flatten::eval_fn_dynamic_flatten(name, args, provider),
-        "NORM.DIST" | "NORM.INV" | "NORM.S.DIST" | "NORM.S.INV" | "T.DIST" | "T.DIST.RT" | "T.DIST.2T" | "T.INV" | "T.INV.2T" | "F.DIST" | "F.DIST.RT" | "F.INV" | "F.INV.RT" | "CHISQ.DIST" | "CHISQ.DIST.RT" | "CHISQ.INV" | "CHISQ.INV.RT" | "EXPON.DIST" | "WEIBULL.DIST" | "BETA.DIST" | "BETA.INV" | "GAMMA.DIST" | "GAMMA.INV" | "BINOM.DIST" | "BINOM.INV" | "POISSON.DIST" | "HYPGEOM.DIST" | "NEGBINOM.DIST" | "GAMMA" | "GAMMALN" | "ERF" | "ERFC" | "KURT" | "SKEW" | "AVEDEV" | "DEVSQ" | "GEOMEAN" | "HARMEAN" | "TRIMMEAN" | "STANDARDIZE" | "FISHER" | "FISHERINV" | "ERF.PRECISE" | "ERFC.PRECISE" | "GAMMALN.PRECISE" => eval_fn_statistics_distribution::eval_fn_statistics_distribution(name, args, provider),
-        "SLN" | "SYD" | "DB" | "DDB" | "VDB" | "CUMIPMT" | "CUMPRINC" | "EFFECT" | "NOMINAL" | "ISPMT" => eval_fn_financial_depreciation::eval_fn_financial_depreciation(name, args, provider),
-        "ACCRINT" | "ACCRINTM" | "DISC" | "INTRATE" | "RECEIVED" | "TBILLEQ" | "TBILLPRICE" | "TBILLYIELD" | "XIRR" | "XNPV" | "MIRR" | "PRICE" | "YIELD" | "DURATION" | "MDURATION" | "PRICEDISC" | "YIELDDISC" | "PRICEMAT" | "YIELDMAT" | "DOLLARDE" | "DOLLARFR" | "COUPDAYBS" | "COUPDAYS" | "COUPNUM" | "AMORDEGRC" | "AMORLINC" | "ODDFPRICE" | "ODDFYIELD" | "ODDLPRICE" | "ODDLYIELD" | "COUPNCD" | "COUPPCD" | "COUPDAYSNC" | "PDURATION" | "RRI" | "FVSCHEDULE" => eval_fn_financial_securities::eval_fn_financial_securities(name, args, provider),
-        "UNICHAR" | "UNICODE" | "NUMBERVALUE" | "ARRAYTOTEXT" | "VALUETOTEXT" => eval_fn_text_conversion::eval_fn_text_conversion(name, args, provider),
-        #[cfg(feature = "regex-formulas")]
-        "REGEXTEST" | "REGEXEXTRACT" | "REGEXREPLACE" => eval_fn_text_regex::eval_fn_text_regex(name, args, provider),
-        "COMPLEX" | "IMABS" | "IMAGINARY" | "IMREAL" | "IMARGUMENT" | "IMCONJUGATE" | "IMSUM" | "IMSUB" | "IMPRODUCT" | "IMDIV" => eval_fn_engineering_complex_core::eval_fn_engineering_complex_core(name, args, provider),
-        "IMEXP" | "IMLN" | "IMLOG10" | "IMLOG2" | "IMSQRT" | "IMPOWER" | "IMCOS" | "IMCOSH" | "IMSIN" | "IMSINH" | "IMTAN" | "IMSEC" | "IMCSC" | "IMCOT" | "IMSECH" | "IMCSCH" => eval_fn_engineering_complex_transforms::eval_fn_engineering_complex_transforms(name, args, provider),
-        "ASC" | "JIS" | "DBCS" | "PHONETIC" => eval_fn_text_east_asian::eval_fn_text_east_asian(name, args, provider),
-        "HYPERLINK" | "IMAGE" => eval_fn_linked_content::eval_fn_linked_content(name, args, provider),
-        "BESSELJ" | "BESSELY" | "BESSELI" | "BESSELK" | "CONVERT" => eval_fn_engineering_special::eval_fn_engineering_special(name, args, provider),
-        "LENB" | "LEFTB" | "RIGHTB" | "MIDB" | "FINDB" | "SEARCHB" | "REPLACEB" => eval_fn_text_bytes::eval_fn_text_bytes(name, args, provider),
-        "BETADIST" | "BETAINV" | "BINOMDIST" | "CHIDIST" | "CHIINV" | "CHISQ.TEST" | "CHITEST" | "CONFIDENCE" | "CONFIDENCE.NORM" | "COVARIANCE.P" | "COVARIANCE.S" | "CRITBINOM" | "EXPONDIST" | "FDIST" | "FINV" | "F.TEST" | "FTEST" | "GAMMADIST" | "GAMMAINV" | "HYPGEOMDIST" | "LOGNORM.DIST" | "LOGNORM.INV" | "LOGINV" | "LOGNORMDIST" | "NEGBINOMDIST" | "NORMDIST" | "NORMINV" | "NORMSDIST" | "NORMSINV" | "POISSON" | "TDIST" | "TINV" | "T.TEST" | "TTEST" | "WEIBULL" | "Z.TEST" | "ZTEST" | "STDEVP" | "VARP" | "CONFIDENCE.T" | "BINOM.DIST.RANGE" | "PERMUT" | "PERMUTATIONA" => eval_fn_statistics_legacy_distribution::eval_fn_statistics_legacy_distribution(name, args, provider),
-        "LINEST" | "LOGEST" | "TREND" | "GROWTH" | "FORECAST" | "FORECAST.LINEAR" | "STEYX" | "RSQ" | "PEARSON" => eval_fn_statistics_regression::eval_fn_statistics_regression(name, args, provider),
-        "RAND" | "RANDBETWEEN" | "PERCENTRANK" | "PERCENTRANK.INC" | "PERCENTRANK.EXC" | "MODE.SNGL" | "MODE.MULT" | "MAXA" | "MINA" | "STDEVA" | "STDEVPA" | "VARA" | "VARPA" | "SKEW.P" | "FREQUENCY" | "PROB" | "GAUSS" | "PHI" => eval_fn_statistics_legacy_descriptive::eval_fn_statistics_legacy_descriptive(name, args, provider),
-        _ => eval_named_call(name, args, provider),
-    }
+/// Metadata for functions actually compiled into this engine, not the reserved-name policy.
+#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize)]
+pub struct BuiltinFunction {
+    pub name: &'static str,
+    pub category: &'static str,
+    pub note: Option<&'static str>,
+}
+
+/// One definition drives evaluation and discovery; cfg gates apply to both.
+macro_rules! define_builtin_dispatch {
+    ($( $(#[$attr:meta])* $($name:literal)|+ => ($category:literal, $handler:path), )*) => {
+        pub(super) fn eval_func(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
+            match name {
+                $( $(#[$attr])* $($name)|+ => $handler(name, args, provider), )*
+                _ => eval_named_call(name, args, provider),
+            }
+        }
+
+        pub fn builtin_function_catalog() -> Vec<BuiltinFunction> {
+            let mut functions = Vec::new();
+            $( $(#[$attr])* {
+                $( functions.push(BuiltinFunction {
+                    name: $name,
+                    category: $category,
+                    note: match $name {
+                        "IMAGE" => Some("Returns image metadata as text; does not display an image."),
+                        "HYPERLINK" => Some("Returns display text; does not create a clickable link."),
+                        "TRANSLATE" => Some("Replaces characters; does not translate between languages."),
+                        _ => None,
+                    },
+                }); )+
+            } )*
+            functions.sort_by_key(|function| function.name);
+            functions
+        }
+    };
+}
+
+define_builtin_dispatch! {
+    "LET" | "LAMBDA" | "ISOMITTED" => ("Lambda", eval_fn_lambda::eval_fn_lambda),
+    "SUM" | "AVERAGE" | "COUNT" | "MIN" | "MAX" | "COUNTA" | "COUNTBLANK" | "SUBTOTAL" | "AGGREGATE" => ("Math & statistics", eval_fn_aggregate_core::eval_fn_aggregate_core),
+    "IF" | "AND" | "OR" | "NOT" | "IFERROR" | "IFNA" | "IFS" | "SWITCH" | "XOR" | "TRUE" | "FALSE" | "NA" => ("Logical", eval_fn_logical::eval_fn_logical),
+    "ABS" | "SQRT" | "ROUND" | "CEILING" | "FLOOR" | "POWER" | "MOD" => ("Math & statistics", eval_fn_math_basic::eval_fn_math_basic),
+    "CONCATENATE" | "LEN" | "LEFT" | "RIGHT" | "MID" | "UPPER" | "LOWER" | "TRIM" | "TEXT" => ("Text", eval_fn_text_basic::eval_fn_text_basic),
+    "COUNTIF" | "SUMIF" | "AVERAGEIF" | "COUNTIFS" | "SUMIFS" | "AVERAGEIFS" | "MAXIFS" | "MINIFS" => ("Math & statistics", eval_fn_criteria::eval_fn_criteria),
+    "VLOOKUP" | "HLOOKUP" | "INDEX" | "MATCH" => ("Lookup & reference", eval_fn_lookup_classic::eval_fn_lookup_classic),
+    "MEDIAN" | "MODE" | "STDEV" | "VAR" | "LARGE" | "SMALL" => ("Math & statistics", eval_fn_statistics_core::eval_fn_statistics_core),
+    "TODAY" | "NOW" | "DATE" | "YEAR" | "MONTH" | "DAY" => ("Date & time", eval_fn_date_basic::eval_fn_date_basic),
+    "OFFSET" | "ROW" | "COLUMN" | "ROWS" | "COLUMNS" | "AREAS" => ("Lookup & reference", eval_fn_reference_position::eval_fn_reference_position),
+    "INT" | "TRUNC" | "SIGN" | "EXP" | "LN" | "LOG" | "LOG10" | "PI" | "ROUNDUP" | "ROUNDDOWN" | "MROUND" => ("Math & statistics", eval_fn_math_rounding::eval_fn_math_rounding),
+    "PRODUCT" | "QUOTIENT" | "FACT" | "COMBIN" | "GCD" | "LCM" => ("Math & statistics", eval_fn_math_combinatorics::eval_fn_math_combinatorics),
+    "SIN" | "COS" | "TAN" | "ASIN" | "ACOS" | "ATAN" | "ATAN2" | "RADIANS" | "DEGREES" => ("Math & statistics", eval_fn_math_trigonometry::eval_fn_math_trigonometry),
+    "ISNUMBER" | "ISTEXT" | "ISBLANK" | "ISERROR" | "ISERR" | "ISNA" | "ISLOGICAL" | "ISNONTEXT" | "ISEVEN" | "ISODD" | "N" | "TYPE" | "ERROR.TYPE" | "ISREF" => ("Information", eval_fn_information_classification::eval_fn_information_classification),
+    "FIND" | "SEARCH" | "SUBSTITUTE" | "REPLACE" => ("Text", eval_fn_text_search::eval_fn_text_search),
+    "REPT" | "EXACT" | "VALUE" | "T" | "CHAR" | "CODE" | "CLEAN" | "PROPER" | "TEXTJOIN" | "DOLLAR" | "FIXED" | "CONCAT" | "TRANSLATE" | "TEXTSPLIT" | "TEXTBEFORE" | "TEXTAFTER" | "ENCODEURL" => ("Text", eval_fn_text_format::eval_fn_text_format),
+    "CHOOSE" | "ADDRESS" | "INDIRECT" | "FORMULATEXT" => ("Lookup & reference", eval_fn_reference_resolution::eval_fn_reference_resolution),
+    "XLOOKUP" | "XMATCH" | "LOOKUP" => ("Lookup & reference", eval_fn_lookup_modern::eval_fn_lookup_modern),
+    "HOUR" | "MINUTE" | "SECOND" | "TIME" => ("Date & time", eval_fn_date_time::eval_fn_date_time),
+    "WEEKDAY" | "WEEKNUM" | "EOMONTH" | "EDATE" | "DAYS" => ("Date & time", eval_fn_date_calendar::eval_fn_date_calendar),
+    "DATEDIF" | "DATEVALUE" | "TIMEVALUE" | "YEARFRAC" => ("Date & time", eval_fn_date_duration::eval_fn_date_duration),
+    "AVERAGEA" | "RANK" | "RANKEQ" | "RANK.EQ" | "RANKAVG" | "RANK.AVG" | "PERCENTILE" | "PERCENTILE.INC" | "PERCENTILE.EXC" | "QUARTILE" | "QUARTILE.INC" | "QUARTILE.EXC" | "STDEV.S" | "VAR.S" | "STDEV.P" | "VAR.P" | "CORREL" | "COVAR" | "COVAR.P" | "COVAR.S" | "SLOPE" | "INTERCEPT" => ("Math & statistics", eval_fn_statistics_descriptive::eval_fn_statistics_descriptive),
+    "PMT" | "PV" | "FV" | "NPER" | "NPV" | "IRR" | "RATE" | "IPMT" | "PPMT" => ("Financial", eval_fn_financial_tvm::eval_fn_financial_tvm),
+    "CELL" | "ISFORMULA" | "SHEET" | "SHEETS" | "INFO" => ("Information", eval_fn_information_workbook::eval_fn_information_workbook),
+    "DSUM" | "DAVERAGE" | "DCOUNT" | "DCOUNTA" | "DMAX" | "DMIN" | "DPRODUCT" | "DGET" | "DSTDEV" | "DSTDEVP" | "DVAR" | "DVARP" => ("Database", eval_fn_database::eval_fn_database),
+    "OCT2DEC" | "HEX2DEC" | "DEC2BIN" | "DEC2OCT" | "DEC2HEX" | "BIN2HEX" | "BIN2OCT" | "HEX2BIN" | "HEX2OCT" | "OCT2BIN" | "OCT2HEX" | "BITAND" | "BITOR" | "BITXOR" | "BITLSHIFT" | "BITRSHIFT" | "DELTA" | "GESTEP" => ("Engineering", eval_fn_engineering_radix::eval_fn_engineering_radix),
+    "SINH" | "COSH" | "TANH" | "ASINH" | "ACOSH" | "ATANH" | "CSC" | "SEC" | "COT" | "CSCH" | "SECH" | "COTH" | "ACSC" | "ASEC" | "ACOT" | "ACOTH" => ("Math & statistics", eval_fn_math_hyperbolic::eval_fn_math_hyperbolic),
+    "SUMX2MY2" | "SUMX2PY2" | "SUMXMY2" | "SUMSQ" | "SQRTPI" | "SUMPRODUCT" | "FLOOR.MATH" | "CEILING.MATH" | "FLOOR.PRECISE" | "CEILING.PRECISE" | "ROMAN" | "ARABIC" | "DECIMAL" | "BASE" | "ODD" | "EVEN" | "FACTDOUBLE" | "COMBINA" | "MULTINOMIAL" | "SERIESSUM" | "ISO.CEILING" => ("Math & statistics", eval_fn_math_advanced::eval_fn_math_advanced),
+    "MDETERM" | "MMULT" | "MINVERSE" | "MUNIT" | "TRANSPOSE" => ("Arrays", eval_fn_array_matrix::eval_fn_array_matrix),
+    "NETWORKDAYS" | "NETWORKDAYS.INTL" | "WORKDAY" | "WORKDAY.INTL" | "ISOWEEKNUM" | "DAYS360" => ("Date & time", eval_fn_date_workday::eval_fn_date_workday),
+    "SEQUENCE" | "RANDARRAY" => ("Arrays", eval_fn_dynamic_generate::eval_fn_dynamic_generate),
+    "UNIQUE" => ("Arrays", eval_fn_dynamic_unique::eval_fn_dynamic_unique),
+    "SORT" | "SORTBY" => ("Arrays", eval_fn_dynamic_sort::eval_fn_dynamic_sort),
+    "FILTER" => ("Arrays", eval_fn_dynamic_filter::eval_fn_dynamic_filter),
+    "MAP" | "REDUCE" | "SCAN" => ("Arrays", eval_fn_dynamic_lambda::eval_fn_dynamic_lambda),
+    "BYROW" | "BYCOL" | "MAKEARRAY" => ("Arrays", eval_fn_dynamic_by_axis::eval_fn_dynamic_by_axis),
+    "TAKE" | "DROP" | "EXPAND" => ("Arrays", eval_fn_dynamic_shape::eval_fn_dynamic_shape),
+    "VSTACK" | "HSTACK" => ("Arrays", eval_fn_dynamic_stack::eval_fn_dynamic_stack),
+    "CHOOSEROWS" | "CHOOSECOLS" => ("Arrays", eval_fn_dynamic_selectors::eval_fn_dynamic_selectors),
+    "TOROW" | "TOCOL" | "WRAPROWS" | "WRAPCOLS" => ("Arrays", eval_fn_dynamic_flatten::eval_fn_dynamic_flatten),
+    "NORM.DIST" | "NORM.INV" | "NORM.S.DIST" | "NORM.S.INV" | "T.DIST" | "T.DIST.RT" | "T.DIST.2T" | "T.INV" | "T.INV.2T" | "F.DIST" | "F.DIST.RT" | "F.INV" | "F.INV.RT" | "CHISQ.DIST" | "CHISQ.DIST.RT" | "CHISQ.INV" | "CHISQ.INV.RT" | "EXPON.DIST" | "WEIBULL.DIST" | "BETA.DIST" | "BETA.INV" | "GAMMA.DIST" | "GAMMA.INV" | "BINOM.DIST" | "BINOM.INV" | "POISSON.DIST" | "HYPGEOM.DIST" | "NEGBINOM.DIST" | "GAMMA" | "GAMMALN" | "ERF" | "ERFC" | "KURT" | "SKEW" | "AVEDEV" | "DEVSQ" | "GEOMEAN" | "HARMEAN" | "TRIMMEAN" | "STANDARDIZE" | "FISHER" | "FISHERINV" | "ERF.PRECISE" | "ERFC.PRECISE" | "GAMMALN.PRECISE" => ("Math & statistics", eval_fn_statistics_distribution::eval_fn_statistics_distribution),
+    "SLN" | "SYD" | "DB" | "DDB" | "VDB" | "CUMIPMT" | "CUMPRINC" | "EFFECT" | "NOMINAL" | "ISPMT" => ("Financial", eval_fn_financial_depreciation::eval_fn_financial_depreciation),
+    "ACCRINT" | "ACCRINTM" | "DISC" | "INTRATE" | "RECEIVED" | "TBILLEQ" | "TBILLPRICE" | "TBILLYIELD" | "XIRR" | "XNPV" | "MIRR" | "PRICE" | "YIELD" | "DURATION" | "MDURATION" | "PRICEDISC" | "YIELDDISC" | "PRICEMAT" | "YIELDMAT" | "DOLLARDE" | "DOLLARFR" | "COUPDAYBS" | "COUPDAYS" | "COUPNUM" | "AMORDEGRC" | "AMORLINC" | "ODDFPRICE" | "ODDFYIELD" | "ODDLPRICE" | "ODDLYIELD" | "COUPNCD" | "COUPPCD" | "COUPDAYSNC" | "PDURATION" | "RRI" | "FVSCHEDULE" => ("Financial", eval_fn_financial_securities::eval_fn_financial_securities),
+    "UNICHAR" | "UNICODE" | "NUMBERVALUE" | "ARRAYTOTEXT" | "VALUETOTEXT" => ("Text", eval_fn_text_conversion::eval_fn_text_conversion),
+    #[cfg(feature = "regex-formulas")]
+    "REGEXTEST" | "REGEXEXTRACT" | "REGEXREPLACE" => ("Text", eval_fn_text_regex::eval_fn_text_regex),
+    "COMPLEX" | "IMABS" | "IMAGINARY" | "IMREAL" | "IMARGUMENT" | "IMCONJUGATE" | "IMSUM" | "IMSUB" | "IMPRODUCT" | "IMDIV" => ("Engineering", eval_fn_engineering_complex_core::eval_fn_engineering_complex_core),
+    "IMEXP" | "IMLN" | "IMLOG10" | "IMLOG2" | "IMSQRT" | "IMPOWER" | "IMCOS" | "IMCOSH" | "IMSIN" | "IMSINH" | "IMTAN" | "IMSEC" | "IMCSC" | "IMCOT" | "IMSECH" | "IMCSCH" => ("Engineering", eval_fn_engineering_complex_transforms::eval_fn_engineering_complex_transforms),
+    "ASC" | "JIS" | "DBCS" | "PHONETIC" => ("Text", eval_fn_text_east_asian::eval_fn_text_east_asian),
+    "HYPERLINK" | "IMAGE" => ("Linked content", eval_fn_linked_content::eval_fn_linked_content),
+    "BESSELJ" | "BESSELY" | "BESSELI" | "BESSELK" | "CONVERT" => ("Engineering", eval_fn_engineering_special::eval_fn_engineering_special),
+    "LENB" | "LEFTB" | "RIGHTB" | "MIDB" | "FINDB" | "SEARCHB" | "REPLACEB" => ("Text", eval_fn_text_bytes::eval_fn_text_bytes),
+    "BETADIST" | "BETAINV" | "BINOMDIST" | "CHIDIST" | "CHIINV" | "CHISQ.TEST" | "CHITEST" | "CONFIDENCE" | "CONFIDENCE.NORM" | "COVARIANCE.P" | "COVARIANCE.S" | "CRITBINOM" | "EXPONDIST" | "FDIST" | "FINV" | "F.TEST" | "FTEST" | "GAMMADIST" | "GAMMAINV" | "HYPGEOMDIST" | "LOGNORM.DIST" | "LOGNORM.INV" | "LOGINV" | "LOGNORMDIST" | "NEGBINOMDIST" | "NORMDIST" | "NORMINV" | "NORMSDIST" | "NORMSINV" | "POISSON" | "TDIST" | "TINV" | "T.TEST" | "TTEST" | "WEIBULL" | "Z.TEST" | "ZTEST" | "STDEVP" | "VARP" | "CONFIDENCE.T" | "BINOM.DIST.RANGE" | "PERMUT" | "PERMUTATIONA" => ("Math & statistics", eval_fn_statistics_legacy_distribution::eval_fn_statistics_legacy_distribution),
+    "LINEST" | "LOGEST" | "TREND" | "GROWTH" | "FORECAST" | "FORECAST.LINEAR" | "STEYX" | "RSQ" | "PEARSON" => ("Math & statistics", eval_fn_statistics_regression::eval_fn_statistics_regression),
+    "RAND" | "RANDBETWEEN" | "PERCENTRANK" | "PERCENTRANK.INC" | "PERCENTRANK.EXC" | "MODE.SNGL" | "MODE.MULT" | "MAXA" | "MINA" | "STDEVA" | "STDEVPA" | "VARA" | "VARPA" | "SKEW.P" | "FREQUENCY" | "PROB" | "GAUSS" | "PHI" => ("Math & statistics", eval_fn_statistics_legacy_descriptive::eval_fn_statistics_legacy_descriptive),
+    "BIN2DEC" => ("Engineering", eval_fn_database::eval_fn_database),
 }
 
 /// Resolve a function call `name(args)` against the workbook's defined

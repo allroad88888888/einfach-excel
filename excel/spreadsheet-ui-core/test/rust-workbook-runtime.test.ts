@@ -13,6 +13,7 @@ import {
   type RustWorkbookDefinition,
 } from '../src'
 import type { WorkerLike } from '../src/rust-worker'
+import { TEST_FUNCTION_CATALOG } from './support/function-catalog'
 
 interface TestWorker {
   readonly commands: string[]
@@ -24,6 +25,7 @@ interface TestWorker {
 function createRuntimeWorker(
   importFails = false,
   initializedSheets = [{ id: 'orders', index: 0, name: 'Orders' }],
+  catalog: unknown = TEST_FUNCTION_CATALOG,
 ): TestWorker {
   const commands: string[] = []
   const payloads: Record<string, unknown>[] = []
@@ -38,7 +40,7 @@ function createRuntimeWorker(
       }
       commands.push(request.command)
       payloads.push(request.payload)
-      const result =
+      const result = request.command === 'formula.catalog' ? catalog :
         request.command === 'workbook.initialize'
           ? initializedSheets
           : {
@@ -73,6 +75,18 @@ function workbookDefinition(): RustWorkbookDefinition {
 }
 
 describe('Rust workbook runtime commands', () => {
+  test('invalid native catalog fails startup and releases the worker', async () => {
+    const store = createStore()
+    const testWorker = createRuntimeWorker(false, undefined, { version: 2, functions: [] })
+    await store.setter(startRustWorkbookRuntimeAtom, {
+      definition: workbookDefinition(), workerFactory: () => testWorker.worker,
+    })
+    expect(store.getter(spreadsheetRuntimeAtom)).toEqual({
+      status: 'error', message: 'Rust returned an invalid function catalog.',
+    })
+    expect(store.getter(rustWorkbookConnectionAtom)).toBeNull()
+    expect(testWorker.terminate).toHaveBeenCalledOnce()
+  })
   test('passes the complete frozen sheet metadata to the worker', async () => {
     const store = createStore()
     const testWorker = createRuntimeWorker()
@@ -101,7 +115,7 @@ describe('Rust workbook runtime commands', () => {
       workerFactory: () => testWorker.worker,
     })
 
-    expect(testWorker.commands).toEqual(['workbook.initialize', 'workbook.importCells'])
+    expect(testWorker.commands).toEqual(['workbook.initialize', 'workbook.importCells', 'formula.catalog'])
     expect(store.getter(spreadsheetRuntimeAtom)).toEqual({ status: 'ready' })
     expect(store.getter(rustWorkbookConnectionAtom)).not.toBeNull()
     expect(store.getter(workbookDocumentAtom).title).toBe('Sales Orders')

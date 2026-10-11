@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { FORMULA_FUNCTION_SPECS } from '../../../spreadsheet-ui-core/src/formula-functions/registry'
 import { select } from '../support/clipboard'
 
-/** 候选目录的每一项都必须经真实 Worker/WASM 算出结果，不能只检查函数名存在。 */
+/** 已提供详细参数帮助的 21 项逐一验证；完整原生目录另有分发表一致性与页面测试。 */
 const examples: Record<string, [string, string]> = {
   SUM: ['SUM(E2:E3)', '3'],
   AVERAGE: ['AVERAGE(E2:E3)', '1.5'],
@@ -27,11 +27,12 @@ const examples: Record<string, [string, string]> = {
   VLOOKUP: ['VLOOKUP(2,E2:E3,1,FALSE)', '2'],
 }
 
-test('every suggested function calculates through the real Rust worker', async ({ page }) => {
+test('every function with detailed argument help calculates through the real Rust worker', async ({ page }) => {
   await page.goto('/')
   const target = await select(page, 'B2', '1:1')
   const input = page.getByRole('textbox', { name: 'Active cell value', exact: true })
-  expect(Object.keys(examples).sort()).toEqual(FORMULA_FUNCTION_SPECS.map(({ name }) => name).sort())
+  expect(Object.keys(examples).sort())
+    .toEqual(FORMULA_FUNCTION_SPECS.map(({ name }) => name).sort())
   for (const { name } of FORMULA_FUNCTION_SPECS) {
     await test.step(name, async () => {
       const [formula, expected] = examples[name]

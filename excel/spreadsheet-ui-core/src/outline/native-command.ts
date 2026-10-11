@@ -70,7 +70,9 @@ export const runNativeOutlineAtom = atom(
     const witness = get(projectionSnapshotAtom)
     const visible = witness.request
     if (
-      witness.status !== 'ready' ||
+      // 分组栏改变视口尺寸会触发保留旧帧的重读；它不改变原生大纲版本。
+      // 已显示的同表版本仍可发命令，真正过期的版本由 Worker 拒绝。
+      (witness.status !== 'ready' && witness.status !== 'loading') ||
       visible?.kind !== 'visible-window' ||
       visible.sheetId !== sheet.id ||
       witness.result?.sheetId !== sheet.id ||

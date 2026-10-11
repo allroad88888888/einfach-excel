@@ -66,7 +66,7 @@ impl TableDefinitionChange {
         let mut after = before.clone();
         after.columns[index] = new_column.into();
         let resolved = before.to_resolved(sheet);
-        let renamer = crate::shift::TableColumnRename {
+        let renamer = crate::shift::TableColumnEdit {
             table: &resolved,
             spec: crate::shift::TableRefEditSpec::RenameColumn {
                 table_upper: before.name().to_ascii_uppercase(),
@@ -95,7 +95,7 @@ impl TableDefinitionChange {
             formulas,
             rules,
             lambdas,
-            cells,
+            cells: cells.into_iter().collect(),
         }))
     }
 }

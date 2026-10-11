@@ -61,7 +61,7 @@ test('create submits field atoms through one semantic command', async () => {
 test.each(['Rename table', 'Convert to range'])('%s uses the original table identity', async (button) => {
   const request = setup()
   await click('Tables'); await click('Edit table Sales')
-  expect(screen.getByLabelText('Table range')).toHaveAttribute('readonly')
+  expect(screen.getByLabelText('Table range')).not.toHaveAttribute('readonly')
   await change('Table name', 'Revenue'); await click(button)
   expect(request.mock.calls[0]).toMatchObject(['table.change', { action: button === 'Rename table'
     ? { kind: 'rename', name: 'Sales', newName: 'Revenue' }
@@ -151,4 +151,30 @@ test('column rename keeps a correctable draft and submits only the selected orig
   expect(request.mock.calls[1]).toMatchObject(['table.change', { action: {
     kind: 'rename-column', name: 'Sales', column: 'Amount', newName: 'Net [tax]',
   } }])
+})
+
+test('resize uses the range draft, retains focus and updates the displayed native range', async () => {
+  const request = setup()
+  await click('Tables'); await click('Edit table Sales'); await change('Table name', 'Unsaved')
+  await change('Table range', 'A1:C6')
+  request.mockRejectedValueOnce(new Error('The resized range overlaps another table.'))
+  await click('Resize table')
+  expect(screen.getByRole('alert')).toHaveTextContent('overlaps another table')
+  expect(screen.getByLabelText('Table range')).toHaveValue('A1:C6')
+  request.mockImplementationOnce(async (_, payload) => {
+    const input = payload as RustWorkbookCommands['table.change']['payload']
+    return { changed: true, projection: { ...input.projection, cells: [], revision: 2, tables: [
+      { name: 'Sales', sheet: 'Sheet', sheetIndex: 0, range: 'A1:C6',
+        hasHeaders: true, hasTotals: false, columns: ['Product', 'Amount', 'Column1'] },
+    ] } }
+  })
+  screen.getByRole('button', { name: 'Resize table' }).focus()
+  await click('Resize table')
+  expect(request.mock.calls[1]).toMatchObject(['table.change', { action: {
+    kind: 'resize', name: 'Sales', range: { rowStart: 0, rowEnd: 5, colStart: 0, colEnd: 2 },
+  } }])
+  expect(screen.getByRole('dialog')).toBeVisible()
+  expect(screen.getByLabelText('Table range')).toHaveValue('A1:C6')
+  expect(screen.getByLabelText('Table name')).toHaveValue('Unsaved')
+  expect(screen.getByRole('button', { name: 'Resize table' })).toHaveFocus()
 })

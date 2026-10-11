@@ -29,8 +29,8 @@ export function changeTable(workbook: WasmWorkbook,
     !workbook.read_sparse_range || !workbook.snapshot_format_range)
     throw new Error('Rust table management is unavailable.')
   let action: NativeTableAction
-  if (input.action.kind === 'create') {
-    action = { kind: 'create', name: input.action.name, range: tableBounds(sheet, input.action.range) }
+  if (input.action.kind === 'create' || input.action.kind === 'resize') {
+    action = { ...input.action, range: tableBounds(sheet, input.action.range) }
   } else if (input.action.kind === 'totals-row') {
     action = { ...input.action, rowCount: sheet.rowCount ?? 1_048_576 }
   } else if (input.action.kind === 'rename' || input.action.kind === 'convert-to-range' ||

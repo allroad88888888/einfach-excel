@@ -9,6 +9,10 @@ use crate::history_snapshot::HistorySnapshot;
 mod totals;
 #[path = "workbook_table_column_change.rs"]
 mod column;
+#[path = "workbook_table_resize.rs"]
+mod resize;
+#[path = "workbook_table_resize_totals.rs"]
+mod resize_totals;
 
 #[derive(Debug)]
 pub(crate) struct TableDefinitionChange {
@@ -19,7 +23,8 @@ pub(crate) struct TableDefinitionChange {
     formulas: Vec<FormulaSourceChange>,
     rules: Vec<FormulaRuleChange>,
     lambdas: Vec<FormulaLambdaChange>,
-    cells: Option<(HistorySnapshot, HistorySnapshot)>,
+    // 范围调整可同时触及表头与远处汇总行，只保存这些不相交的局部区域。
+    cells: Vec<(HistorySnapshot, HistorySnapshot)>,
 }
 
 impl TableDefinitionChange {
@@ -57,7 +62,7 @@ impl TableDefinitionChange {
             formulas,
             rules,
             lambdas,
-            cells: None,
+            cells: Vec::new(),
         }))
     }
 
@@ -89,7 +94,7 @@ impl TableDefinitionChange {
             formulas,
             rules,
             lambdas,
-            cells: None,
+            cells: Vec::new(),
         })
     }
 
@@ -146,7 +151,8 @@ impl TableDefinitionChange {
         for lambda in &self.lambdas {
             lambda.validate(workbook, undo)?;
         }
-        let next_cells = if let Some((before, after)) = &self.cells {
+        let mut next_cells = Vec::with_capacity(self.cells.len());
+        for (before, after) in &self.cells {
             let (expected, next) = if undo {
                 (after, before)
             } else {
@@ -158,17 +164,15 @@ impl TableDefinitionChange {
             {
                 return Err("The table cells changed outside history.");
             }
-            Some(next)
-        } else {
-            None
-        };
+            next_cells.push(next);
+        }
         let definition_changed = expected != next;
         let mut arrays = if definition_changed {
             workbook.array_dependents_for_atoms(&workbook.atom_context.table_dependent_atoms())
         } else {
             Vec::new()
         };
-        if let Some(cells) = next_cells {
+        for cells in &next_cells {
             // 表头/汇总快照仅覆盖一行；重装前保留现有依赖图中的数组消费者。
             // restore 内部的重投仍在嵌套 batch 中，必须等最外层失效传播后再投一次。
             let roots: Vec<_> = (cells.range.start.col..=cells.range.end.col)
@@ -203,8 +207,10 @@ impl TableDefinitionChange {
                 // 新定义先可见，安装重写后的公式时不会经历一次不存在的表名。
                 workbook.sync_atom_tables();
             }
-            if let Some(cells) = next_cells {
-                result = cells.restore(workbook, self.sheet);
+            for cells in next_cells {
+                if result.is_ok() {
+                    result = cells.restore(workbook, self.sheet);
+                }
             }
             for rule in &self.rules {
                 rule.apply(workbook, undo);
@@ -240,9 +246,9 @@ impl TableDefinitionChange {
                 .sum::<usize>()
             + crate::sheet::metadata_bytes(&self.rules)
             + crate::sheet::metadata_bytes(&self.lambdas)
-            + self.cells.as_ref().map_or(0, |(before, after)| {
+            + self.cells.iter().map(|(before, after)| {
                 before.retained_bytes() + after.retained_bytes()
-            })
+            }).sum::<usize>()
     }
 }
 

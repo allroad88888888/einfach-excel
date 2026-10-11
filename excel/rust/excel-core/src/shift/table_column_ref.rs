@@ -5,12 +5,12 @@ use crate::eval::ResolvedTable;
 use crate::formula::Expr;
 use crate::CellRange;
 
-pub(crate) struct TableColumnRename<'a> {
+pub(crate) struct TableColumnEdit<'a> {
     pub spec: TableRefEditSpec,
     pub table: &'a ResolvedTable,
 }
 
-impl TableColumnRename<'_> {
+impl TableColumnEdit<'_> {
     pub fn rewrite(&self, expr: &mut Expr, scope: Option<(usize, CellRange)>) -> bool {
         match expr {
             Expr::TableRef { table, .. } => {

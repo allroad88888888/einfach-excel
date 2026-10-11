@@ -281,7 +281,7 @@ impl Workbook {
     /// through the normal evaluation path (header cells are usually plain
     /// text/number literals). Non-scalar/error values yield an empty
     /// string so the caller auto-names that column.
-    fn header_text(&self, sheet_name: &str, addr: CellAddress) -> String {
+    pub(super) fn header_text(&self, sheet_name: &str, addr: CellAddress) -> String {
         match self.get_cell(sheet_name, &addr.to_string_repr()) {
             Value::Text(s) => s,
             Value::Number(n) => format!("{n}"),

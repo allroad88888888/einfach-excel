@@ -91,6 +91,7 @@ fn table_wire_rejects_malformed_actions_and_host_owned_history_fields() {
         serde_json::json!({"kind":"create", "range":[-1,0,2,0]}),
         serde_json::json!({"kind":"create", "range":[0,0,2]}),
         serde_json::json!({"kind":"rename", "name":"Sales"}),
+        serde_json::json!({"kind":"resize", "name":"Sales", "range":[0,0,2]}),
         serde_json::json!({"kind":"rename-column", "name":"Sales", "column":"Amount"}),
         serde_json::json!({"kind":"convert-to-range", "name":"Sales", "snapshot":{}}),
         serde_json::json!({"kind":"delete", "name":"Sales"}),
@@ -159,4 +160,33 @@ fn column_wire_rejection_and_noop_leave_redo_intact() {
         "kind":"rename-column", "name":"Inventory", "column":"Column1", "newName":"Column1"
     })).unwrap()).unwrap());
     assert_eq!(book.history.redo_count(), 1);
+}
+
+#[test]
+fn resize_wire_returns_native_range_and_rejects_foreign_sheets_without_losing_redo() {
+    let mut book = WasmWorkbook::new();
+    book.workbook.set_cell(0, "A1", Value::Text("Amount".into()));
+    book.workbook.set_cell(0, "A2", Value::Number(10.));
+    book.workbook.set_cell(0, "A3", Value::Number(20.));
+    book.workbook.set_formula(0, "D1", "=SUM(Inventory[Amount])");
+    book.apply_table_action(0, serde_json::from_value(serde_json::json!({
+        "kind":"create", "name":"Inventory", "range":[0,0,1,0]
+    })).unwrap()).unwrap();
+    let action = || serde_json::from_value(serde_json::json!({
+        "kind":"resize", "name":"Inventory", "range":[0,0,2,1]
+    })).unwrap();
+    assert!(book.apply_table_action(0, action()).unwrap());
+    assert_eq!(book.tables_json()[0].range, "A1:B3");
+    assert_eq!(book.tables_json()[0].columns, ["Amount", "Column1"]);
+    assert_eq!(book.workbook.get_cell("Sheet1", "D1"), Value::Number(30.));
+    assert_eq!(book.history.undo_count(), 2);
+    assert!(!book.apply_table_action(0, action()).unwrap());
+    book.history.undo(&mut book.workbook).unwrap();
+    assert_eq!(book.tables_json()[0].range, "A1:A2");
+    assert_eq!(book.workbook.get_cell("Sheet1", "D1"), Value::Number(10.));
+    book.workbook.add_sheet("Other");
+    assert!(book.apply_table_action(1, action()).is_err());
+    assert_eq!(book.history.redo_count(), 1);
+    book.history.redo(&mut book.workbook).unwrap();
+    assert_eq!(book.tables_json()[0].range, "A1:B3");
 }

@@ -107,7 +107,7 @@ impl TableDefinitionChange {
             formulas: Vec::new(),
             rules: Vec::new(),
             lambdas: Vec::new(),
-            cells: Some((original, next)),
+            cells: vec![(original, next)],
         }))
     }
 }

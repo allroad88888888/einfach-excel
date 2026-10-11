@@ -37,6 +37,11 @@ pub(crate) enum TableRefEditSpec {
         from: String,
         to: String,
     },
+    /// 缩表移除的列必须成为持久 #REF!，不能被之后同名的新列意外接管。
+    RemoveColumns {
+        table_upper: String,
+        columns: Vec<String>,
+    },
 }
 
 /// Rewrite `Expr::TableRef` nodes per `spec`, returning `Some(new)` iff any
@@ -60,6 +65,15 @@ pub(crate) fn rewrite_table_refs(
             area,
             columns,
         } => match spec {
+            TableRefEditSpec::RemoveColumns { table_upper, columns: removed } => {
+                let targets = table.as_ref().map_or(apply_bare, |name| {
+                    name.eq_ignore_ascii_case(table_upper)
+                });
+                let (start, end) = columns.as_ref()?;
+                (targets && removed.iter().any(|name| {
+                    name.eq_ignore_ascii_case(start) || name.eq_ignore_ascii_case(end)
+                })).then_some(Expr::Error(einfach_core::ValueError::InvalidRef))
+            }
             TableRefEditSpec::RenameTable { from, to } => match table {
                 Some(t) if t.eq_ignore_ascii_case(from) => Some(Expr::TableRef {
                     table: Some(to.clone()),

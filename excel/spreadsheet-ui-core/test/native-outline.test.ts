@@ -4,6 +4,10 @@ import {
   initializeWorkbookDocumentAtom,
   clearWorkbookDocumentAtom,
   runVisibleProjectionAtom,
+  beginProjectionAtom,
+  resolveProjectionAtom,
+  rejectProjectionAtom,
+  projectionSnapshotAtom,
   selectCellAtom,
   selectionSnapshotAtom,
   runNativeOutlineAtom,
@@ -207,3 +211,66 @@ test.each(['selection', 'clear'] as const)(
     }
   },
 )
+
+test('a retained viewport read does not reject the next outline gesture', async () => {
+  const { store, change } = await setup()
+  const read = store.setter(beginProjectionAtom, {
+    kind: 'visible-window', sheetId: 's', retainResult: true,
+    window: { rowStart: 0, rowEnd: 8, colStart: 0, colEnd: 7 },
+  })
+  if (read.status !== 'started' || read.request.kind !== 'visible-window')
+    throw new Error('Expected a pending viewport read')
+  let finish!: (value: Awaited<ReturnType<typeof change>>) => void
+  change.mockImplementationOnce(() => new Promise((resolve) => { finish = resolve }))
+  const pending = store.setter(runNativeOutlineAtom, {
+    axis: 'row', action: { kind: 'show-level', level: 1 },
+  })
+  expect(change).toHaveBeenCalledTimes(1)
+  const input = change.mock.calls[0][0]
+  expect(input.revision).toBe(1)
+  expect(input.projection.window).toEqual(read.request.window)
+  // Worker 按发送顺序返回：视口读取先落地，然后发布同一命令的原生修改结果。
+  store.setter(resolveProjectionAtom, {
+    request: read.request, result: { ...read.request, cells: [], revision: 1 },
+  })
+  finish({ changed: true, projection: { ...input.projection, cells: [], revision: 2, visibility } })
+  expect(await pending).toBe(true)
+  expect(store.getter(nativeOutlineAtom)).toEqual(visibility.outline)
+  expect(store.getter(projectionSnapshotAtom).result?.revision).toBe(2)
+  expect(store.getter(nativeOutlineFeedbackAtom).error).toBe('')
+})
+
+test.each([false, true])('loading still rejects missing or foreign-sheet results (retain=%s)', async (retainResult) => {
+  const { store, change } = await setup()
+  store.setter(beginProjectionAtom, {
+    kind: 'visible-window', sheetId: retainResult ? 'another' : 's', retainResult,
+    window: { rowStart: 0, rowEnd: 8, colStart: 0, colEnd: 7 },
+  })
+  expect(await store.setter(runNativeOutlineAtom, {
+    axis: 'row', action: { kind: 'show-level', level: 1 },
+  })).toBe(false)
+  expect(change).not.toHaveBeenCalled()
+  expect(store.getter(nativeOutlineFeedbackAtom).error).toContain('finish loading')
+})
+
+test.each(['read-error', 'stale-version'] as const)('retained data cannot bypass %s', async (failure) => {
+  const { store, change } = await setup()
+  const read = store.setter(beginProjectionAtom, {
+    kind: 'visible-window', sheetId: 's', retainResult: true,
+    window: { rowStart: 0, rowEnd: 8, colStart: 0, colEnd: 7 },
+  })
+  if (read.status !== 'started') throw new Error('Expected a pending viewport read')
+  if (failure === 'read-error') store.setter(rejectProjectionAtom, {
+    request: read.request, error: new Error('Read failed'),
+  })
+  else change.mockRejectedValueOnce(new Error('The worksheet changed. Try the outline action again.'))
+  expect(await store.setter(runNativeOutlineAtom, {
+    axis: 'row', action: { kind: 'show-level', level: 1 },
+  })).toBe(false)
+  expect(change).toHaveBeenCalledTimes(failure === 'read-error' ? 0 : 1)
+  expect(store.getter(nativeOutlineAtom).rows).toEqual([])
+  expect(store.getter(projectionSnapshotAtom).result?.revision).toBe(1)
+  expect(store.getter(nativeOutlineFeedbackAtom).error).toContain(
+    failure === 'read-error' ? 'finish loading' : 'worksheet changed',
+  )
+})

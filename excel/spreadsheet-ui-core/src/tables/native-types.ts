@@ -18,14 +18,16 @@ export interface NativeTable {
 }
 export type TableChange =
   | { readonly kind: 'create'; readonly name?: string; readonly range: CellRange }
+  | { readonly kind: 'resize'; readonly name: string; readonly range: CellRange }
   | { readonly kind: 'rename'; readonly name: string; readonly newName: string }
   | { readonly kind: 'rename-column'; readonly name: string; readonly column: string; readonly newName: string }
   | { readonly kind: 'convert-to-range'; readonly name: string }
   | { readonly kind: 'totals-row'; readonly name: string; readonly enabled: boolean }
   | { readonly kind: 'total-function'; readonly name: string; readonly column: string;
     readonly function: NativeTotalFunction }
-export type NativeTableAction = Exclude<TableChange, { kind: 'create' | 'totals-row' }> |
+export type NativeTableAction = Exclude<TableChange, { kind: 'create' | 'resize' | 'totals-row' }> |
   { readonly kind: 'create'; readonly name?: string; readonly range: readonly [number, number, number, number] } |
+  { readonly kind: 'resize'; readonly name: string; readonly range: readonly [number, number, number, number] } |
   { readonly kind: 'totals-row'; readonly name: string; readonly enabled: boolean; readonly rowCount: number }
 
 /** 仅校验响应结构；名称冲突和结构化引用语义由 Rust 判断。 */

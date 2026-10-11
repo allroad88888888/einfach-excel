@@ -3,6 +3,23 @@ use super::*;
 use crate::workbook::{TableCreation, TableDefinitionChange};
 
 impl WorkbookHistory {
+    /// 改变 Table 所属范围，不移动数据区；表头、汇总与引用变化同进一条历史。
+    pub fn resize_table(
+        &mut self,
+        workbook: &mut Workbook,
+        name: &str,
+        range: CellRange,
+    ) -> Result<bool, String> {
+        if self.pending.is_some() || workbook.is_inside_custom_call() {
+            return Err("Another history command is pending.".into());
+        }
+        let Some(change) = TableDefinitionChange::prepare_resize(workbook, name, range)? else {
+            return Ok(false);
+        };
+        self.finish_table_change(workbook, change, "Resize table")?;
+        Ok(true)
+    }
+
     /// 表头文字、目录列名与结构化引用必须共同提交为一条历史。
     pub fn rename_table_column(
         &mut self,

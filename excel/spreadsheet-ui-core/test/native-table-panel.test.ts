@@ -53,6 +53,20 @@ test('blank and conflicting column names keep the old catalog and editable draft
   expect(store.getter(nativeTablePanelAtom)).toMatchObject({ open: true,
     newColumnName: 'Product', error: 'Duplicate column name', tables })
 })
+test('resize retains column identity after adding columns to the left and reads the returned range', async () => {
+  const { store, request, run } = setup()
+  request.mockImplementationOnce(async (_, input) => ({ changed: true,
+    projection: { ...input.projection, cells: [], revision: 2,
+      tables: [{ ...tables[0], range: 'A1:C6', columns: ['New', 'Product', 'Amount'] }] } }))
+  await run('open'); await run({ edit: 'Sales' }); await run({ column: 'Amount' })
+  await run({ name: 'Unsaved', range: 'A1:C6' }); expect(await run('resize')).toBe(true)
+  expect(request.mock.calls[0][1].action).toEqual({ kind: 'resize', name: 'Sales',
+    range: { rowStart: 0, rowEnd: 5, colStart: 0, colEnd: 2 } })
+  expect(store.getter(nativeTablePanelAtom)).toMatchObject({ open: true, name: 'Unsaved',
+    range: 'A1:C6', column: 'Amount', newColumnName: 'Amount', revision: 2 })
+  await run({ range: 'A101:B102' }); expect(await run('resize')).toBe(false)
+  expect(request).toHaveBeenCalledTimes(1)
+})
 test('new table draft uses coordinates, blank name lets Rust choose, no optimistic registry', async () => {
   const { store, request, run } = setup([])
   await run('open'); await run({ range: 'A1:B4' }); await run('save')

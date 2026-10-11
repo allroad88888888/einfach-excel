@@ -50,6 +50,21 @@ test('creation uses one native history command and one returned projection', asy
   expect(list).toHaveBeenCalledTimes(1)
   expect(begin).not.toHaveBeenCalled()
 })
+test('resize maps only coordinates and returns the same native mutation projection', async () => {
+  const { call, change, read, begin, list } = await setup()
+  const range = { rowStart: 0, rowEnd: 5, colStart: 0, colEnd: 2 }
+  list.mockReturnValueOnce([{ ...tables[0], range: 'A1:C6', columns: ['Product', 'Amount', 'Column1'] }])
+  expect(await call('table.change', { ...input, action: { kind: 'resize', name: 'Sales', range } }))
+    .toMatchObject({ ok: true, result: { projection: { revision: 1,
+      tables: [{ range: 'A1:C6', columns: ['Product', 'Amount', 'Column1'] }] } } })
+  expect(change).toHaveBeenCalledTimes(1)
+  expect(change).toHaveBeenCalledWith(0, { kind: 'resize', name: 'Sales', range: [0, 0, 5, 2] })
+  expect(read).toHaveBeenCalledTimes(1)
+  expect(begin).not.toHaveBeenCalled()
+  expect((await call('table.change', { ...input, revision: 1,
+    action: { kind: 'resize', name: 'Sales', range: { ...range, colEnd: 8 } } })).ok).toBe(false)
+  expect(change).toHaveBeenCalledTimes(1)
+})
 test.each([
   { kind: 'rename', name: 'Sales', newName: 'Revenue' },
   { kind: 'rename-column', name: 'Sales', column: 'Amount', newName: 'Revenue [net]' },

@@ -11,6 +11,10 @@ enum TableActionJSON {
         #[serde(rename = "newName")]
         new_name: String,
     },
+    Resize {
+        name: String,
+        range: [u32; 4],
+    },
     RenameColumn {
         name: String,
         column: String,
@@ -54,6 +58,7 @@ impl WasmWorkbook {
             .name(sheet)
             .ok_or("The worksheet no longer exists.")?;
         if let TableActionJSON::Rename { name, .. }
+        | TableActionJSON::Resize { name, .. }
         | TableActionJSON::RenameColumn { name, .. }
         | TableActionJSON::ConvertToRange { name }
         | TableActionJSON::TotalsRow { name, .. }
@@ -83,6 +88,10 @@ impl WasmWorkbook {
             TableActionJSON::Rename { name, new_name } => {
                 self.history
                     .rename_table(&mut self.workbook, &name, &new_name)
+            }
+            TableActionJSON::Resize { name, range: [r0, c0, r1, c1] } => {
+                self.history.resize_table(&mut self.workbook, &name,
+                    CellRange::new(CellAddress::new(r0, c0), CellAddress::new(r1, c1)))
             }
             TableActionJSON::RenameColumn { name, column, new_name } => {
                 self.history.rename_table_column(&mut self.workbook, &name, &column, &new_name)

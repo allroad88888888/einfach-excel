@@ -39,7 +39,7 @@ pub(crate) use named_ref::rename_named_reference;
 mod table_ref;
 mod table_ref_scope;
 mod table_column_ref;
-pub(crate) use table_column_ref::TableColumnRename;
+pub(crate) use table_column_ref::TableColumnEdit;
 pub(crate) use table_ref::rename_table_reference;
 mod table_to_range;
 pub(crate) use table_to_range::TableToRange;

@@ -50,7 +50,7 @@ export const nativeTablePanelAtom = atom((get) => {
 
 /** 打开/编辑只改草稿；每次提交均为一次 Rust 命令和一次返回投影。 */
 export const runNativeTablePanelAtom = atom(null, async (get, set,
-  action: 'open' | 'new' | 'close' | 'save' | 'convert' |
+  action: 'open' | 'new' | 'close' | 'save' | 'convert' | 'resize' |
   'show-totals' | 'hide-totals' | 'save-total' | 'save-column' | { edit: string } | Partial<Draft>,
 ): Promise<boolean> => {
   const state = get(draftAtom)
@@ -121,7 +121,7 @@ export const runNativeTablePanelAtom = atom(null, async (get, set,
   } else if (action === 'convert') {
     if (!state.editingName) return fail('Choose a table to convert.')
     change = { kind: 'convert-to-range', name: state.editingName }
-  } else if (state.editingName) {
+  } else if (state.editingName && action !== 'resize') {
     if (!state.name.trim()) return fail('Enter a table name.')
     change = { kind: 'rename', name: state.editingName, newName: state.name.trim() }
   } else {
@@ -131,7 +131,10 @@ export const runNativeTablePanelAtom = atom(null, async (get, set,
     } : null)
     if (!range || range.rowEnd >= sheet.rowCount || range.colEnd >= sheet.colCount)
       return fail('Enter one range inside this worksheet, for example A1:C10.')
-    change = { kind: 'create', name: state.name.trim() || undefined, range }
+    if (action === 'resize') {
+      if (!state.editingName) return fail('Choose a table to resize.')
+      change = { kind: 'resize', name: state.editingName, range }
+    } else change = { kind: 'create', name: state.name.trim() || undefined, range }
   }
   const requestId = set(issueProjectionRequestIdAtom)
   if (requestId === null) return false
@@ -159,9 +162,10 @@ export const runNativeTablePanelAtom = atom(null, async (get, set,
       const entry = reply.projection.tables.find((table) => table.name === state.editingName)
       const columnIndex = result.tables.find((table) => table.name === state.editingName)
         ?.columns.indexOf(state.column) ?? 0
-      const column = entry?.columns[Math.max(0, columnIndex)] ?? ''
-      set(draftAtom, (totalsAction || action === 'save-column') && entry ? { ...state, range: entry.range,
-        column, newColumnName: action === 'save-column' ? column : state.newColumnName,
+      const column = action === 'resize' && entry?.columns.includes(state.column) ? state.column
+        : entry?.columns[Math.max(0, columnIndex)] ?? entry?.columns[0] ?? ''
+      set(draftAtom, (totalsAction || action === 'save-column' || action === 'resize') && entry ? { ...state, range: entry.range,
+        column, newColumnName: action === 'save-column' || action === 'resize' ? column : state.newColumnName,
         ...totalDraft(entry, state.totalColumn === state.column ? column : state.totalColumn),
         revision: reply.projection.revision, error: '' } : CLOSED)
     }

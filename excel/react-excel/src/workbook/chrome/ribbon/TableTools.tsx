@@ -51,18 +51,20 @@ export function TableTools() {
             required={Boolean(state.editingName)}
             onChange={(event) => void run({ name: event.currentTarget.value })} />
           <label htmlFor={`${id}-range`}>Table range</label>
-          <input id={`${id}-range`} value={state.range} required readOnly={Boolean(state.editingName)}
+          <input id={`${id}-range`} value={state.range} required
             aria-describedby={`${id}-hint`} placeholder="A1:C10"
             onChange={(event) => void run({ range: event.currentTarget.value })} />
         </fieldset>
         <p id={`${id}-hint`}>{state.editingName
-          ? 'Convert to range keeps your data and formatting. Table references become cell references.'
+          ? 'Resize keeps the header row fixed. Include the totals row when shown. Convert to range keeps your data and formatting.'
           : 'The first row becomes the header. Blank or duplicate headers receive unique names.'}</p>
         {state.error && <p role="alert">{state.error}</p>}
         {state.busy && <p role="status">Saving table changes…</p>}
         <div className="table-panel-actions">
           <button type="button" disabled={state.busy || !state.editingName}
             onClick={() => void run('convert')}>Convert to range</button>
+          {state.editingName && <button type="button" disabled={state.busy}
+            onClick={() => void run('resize')}>Resize table</button>}
           <button type="button" disabled={state.busy} onClick={() => void run('close')}>Cancel</button>
           <button type="submit" disabled={state.busy}>
             {state.editingName ? 'Rename table' : 'Create table'}

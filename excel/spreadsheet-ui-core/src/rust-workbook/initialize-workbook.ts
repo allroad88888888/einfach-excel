@@ -16,6 +16,11 @@ export function initializeWorkbook(
   inputs.forEach((input, index) => importSheetVisibility(workbook, index, input))
   // 初始矩形只写 Rust；后续导入锚点内容，启动历史不暴露为用户操作。
   inputs.forEach((input, index) => {
+    for (const { range, rule } of input.dataValidations ?? []) {
+      if (!workbook.setDataValidation) throw new Error('Rust data validation is unavailable.')
+      workbook.setDataValidation(
+        index, range.rowStart, range.colStart, range.rowEnd, range.colEnd, rule)
+    }
     let revision = 0
     for (const rule of input.conditionalFormats ?? []) {
       if (!workbook.setConditionalFormatRule)

@@ -74,6 +74,8 @@ pub struct Sheet {
     /// 合并区域只记录不重叠的矩形；不为被覆盖的空格创建 atom 或样式副本。
     pub(crate) merged_ranges: Vec<CellRange>,
     pub(crate) frozen_panes: FrozenPanes,
+    /// 验证配置属于工作表，随 Sheet 的移动/归档保留；不进入单元格值 atom。
+    pub(crate) data_validations: Vec<crate::data_validation::DataValidationRegion>,
     /// Sheet-wide conditional formatting rules. Applied in order on top of
     /// each cell's base format at display time (first match wins).
     pub(super) conditional_rules: Vec<ConditionalRule>,

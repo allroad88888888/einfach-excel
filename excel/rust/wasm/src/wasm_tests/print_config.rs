@@ -55,6 +55,7 @@ fn invalid_print_config_persistence_does_not_replace_the_live_workbook() {
         filters: vec![],
         print_configs: vec![default_print_snapshot(3), default_print_snapshot(4)],
         conditional_formats: vec![],
+        data_validations: vec![],
         merges: vec![],
         freeze: vec![],
     };

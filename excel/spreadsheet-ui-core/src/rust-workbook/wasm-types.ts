@@ -15,6 +15,7 @@ import type { NativeTextColumnsRequest, RustTextColumnsPreview, RustTextColumnsR
 import type { NativeRemoveDuplicatesRequest, RustRemoveDuplicatesPreview } from './remove-duplicates-commands'
 import type { NativeQuickFormulaRequest, QuickFormulaSuggestion } from './quick-formula-commands'
 import type { ConditionalFormatChange, NativeConditionalFormats } from './conditional-format-commands'
+import type { NativeDataValidationRule } from '../data-validation/native-rule'
 
 export interface RustCellSnapshot {
   readonly sheet: number
@@ -53,6 +54,9 @@ export interface RustFormatRangeSnapshot {
 }
 
 export interface WasmWorkbook {
+  getDataValidation?: (sheet: number, row: number, col: number) => NativeDataValidationRule | null
+  setDataValidation?: (sheet: number, rowStart: number, colStart: number,
+    rowEnd: number, colEnd: number, rule: NativeDataValidationRule | null) => void
   listConditionalFormats?: (sheet: number) => NativeConditionalFormats
   manageConditionalFormatRule?: (
     sheet: number,

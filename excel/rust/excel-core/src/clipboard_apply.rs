@@ -11,10 +11,16 @@ pub(super) fn apply_paste(
     dependents: &[(usize, CellAddress, String)],
     merges: &merge::MergePastePlan,
     borders: crate::sheet::BorderPlan,
-) {
-    let indices: std::collections::BTreeSet<_> = std::iter::once(sheet_idx)
+    validation_formulas: &[CellAddress],
+    mut history: Option<&mut crate::workbook_history::WorkbookHistory>,
+) -> Result<(), ClipboardError> {
+    let mut indices: std::collections::BTreeSet<_> = std::iter::once(sheet_idx)
         .chain(dependents.iter().map(|(sheet, _, _)| *sheet))
         .collect();
+    if !validation_formulas.is_empty() {
+        // 失败值不能发布给其它表的公式订阅；只延后已注册监听，不遍历整表 cell。
+        indices.extend(0..workbook.sheet_count());
+    }
     let observers: Vec<_> = indices
         .iter()
         .map(|index| {
@@ -25,6 +31,7 @@ pub(super) fn apply_paste(
         })
         .collect();
     let store = workbook.store.clone();
+    let mut outcome = Ok(());
     store.batch(|_| {
         let mut anchors = Vec::new();
         if merges.changed() {
@@ -77,8 +84,20 @@ pub(super) fn apply_paste(
         if merges.changed() {
             sheet.project_bulk_spill_anchors(anchors);
         }
+        let valid = validation_formulas.iter().try_for_each(|addr| {
+            let value =
+                crate::sheet::collapse_array_for_eval(workbook.sheets[sheet_idx].peek_value(*addr));
+            workbook.validate_input_value(sheet_idx, *addr, &value)
+        });
+        // 写入、校验、回滚/记录位于同一发布边界，不先通知 UI 再撤回失败值。
+        outcome = if let Some(history) = history.as_deref_mut() {
+            history.finish(workbook, valid.is_ok()).and(valid)
+        } else {
+            valid
+        };
     });
     for (index, observers) in observers {
         workbook.sheets[index].resume_structure_notifications(observers);
     }
+    outcome
 }

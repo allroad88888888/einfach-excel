@@ -36,6 +36,7 @@ fn wasm_workbook_restore_persistence_v1_rejects_bad_size_without_mutating_workbo
         filters: vec![],
         print_configs: vec![],
         conditional_formats: vec![],
+        data_validations: vec![],
         merges: vec![],
         freeze: vec![],
     };
@@ -62,6 +63,7 @@ fn wasm_workbook_restore_persistence_v1_rejects_unsupported_version() {
         filters: vec![],
         print_configs: vec![],
         conditional_formats: vec![],
+        data_validations: vec![],
         merges: vec![],
         freeze: vec![],
     };
@@ -94,6 +96,7 @@ fn wasm_workbook_restore_persistence_v1_accepts_default_sheet_name() {
         filters: vec![],
         print_configs: vec![],
         conditional_formats: vec![],
+        data_validations: vec![],
         merges: vec![],
         freeze: vec![],
     };
@@ -141,6 +144,7 @@ fn wasm_workbook_restore_persistence_v1_rejects_bad_format_without_mutating_work
         filters: vec![],
         print_configs: vec![],
         conditional_formats: vec![],
+        data_validations: vec![],
         merges: vec![],
         freeze: vec![],
     };
@@ -169,6 +173,7 @@ fn wasm_workbook_restore_persistence_v1_resets_subscription_tokens() {
         filters: vec![],
         print_configs: vec![],
         conditional_formats: vec![],
+        data_validations: vec![],
         merges: vec![],
         freeze: vec![],
     };
@@ -216,6 +221,7 @@ fn persistence_v1_workload(n: u32) -> WorkbookPersistenceV1JSON {
         filters: vec![],
         print_configs: vec![],
         conditional_formats: vec![],
+        data_validations: vec![],
         merges: vec![],
         freeze: vec![],
     }

@@ -42,6 +42,7 @@ impl Sheet {
             column_styles: BTreeMap::new(),
             merged_ranges: Vec::new(),
             frozen_panes: FrozenPanes::default(),
+            data_validations: Vec::new(),
             conditional_rules: Vec::new(),
             hidden_rows: BTreeSet::new(),
             hidden_columns: BTreeSet::new(),

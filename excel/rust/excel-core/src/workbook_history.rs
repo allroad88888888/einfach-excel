@@ -20,6 +20,9 @@ use filter::FilterChange;
 #[path = "workbook_history_conditional_format.rs"]
 mod conditional_format;
 use conditional_format::ConditionalFormatChange;
+#[path = "workbook_history_data_validation.rs"]
+mod data_validation;
+use data_validation::DataValidationChange;
 #[path = "workbook_history_entry.rs"]
 mod entry;
 use entry::entry_bytes;
@@ -67,6 +70,7 @@ enum HistoryChange {
     Freeze(FreezeChange),
     Filter(FilterChange),
     ConditionalFormat(ConditionalFormatChange),
+    DataValidation(DataValidationChange),
     Structure(Box<StructuralHistoryChange>),
     Merge(Box<MergeChange>),
 }
@@ -149,9 +153,6 @@ impl WorkbookHistory {
             .pending
             .take()
             .ok_or("No history command is pending.")?;
-        if !success {
-            return workbook.restore_history_snapshots(&pending.before);
-        }
         let after = pending
             .before
             .iter()
@@ -172,6 +173,9 @@ impl WorkbookHistory {
             .collect::<Result<Vec<_>, &'static str>>()?;
         if pending.before == after {
             return Ok(());
+        }
+        if !success {
+            return workbook.restore_history_snapshots(&pending.before);
         }
         let affected_indices: Vec<_> = pending
             .before

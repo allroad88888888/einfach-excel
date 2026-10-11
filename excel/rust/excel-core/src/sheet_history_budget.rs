@@ -56,6 +56,7 @@ impl Sheet {
             + metadata_bytes(&self.row_styles)
             + metadata_bytes(&self.column_styles)
             + metadata_bytes(&self.conditional_rules)
+            + metadata_bytes(&self.data_validations)
             + metadata_bytes(&self.filter)
             + self.hidden_rows.len() * 32
             + self.hidden_columns.len() * 32

@@ -22,6 +22,7 @@ import { FindReplaceTools } from './FindReplaceTools'
 import { GoToTools } from './GoToTools'
 import { QuickFormulaTools } from './QuickFormulaTools'
 import { ConditionalFormatTools } from './ConditionalFormatTools'
+import { DataValidationTools } from './DataValidationTools'
 import { ColorTools } from './ColorTools'
 import { TextLayoutTools } from './TextLayoutTools'
 import { FontSizeTools } from './FontSizeTools'
@@ -143,6 +144,7 @@ export function WorkbookRibbon() {
         <ColorTools kind="fill-color" />
         <ColorTools kind="text-color" />
         <ConditionalFormatTools />
+        <DataValidationTools />
         <span className="tool-separator" aria-hidden="true" />
         <TextLayoutTools />
         <ToolButton

@@ -4,6 +4,38 @@ use crate::{parse_formula, render_formula, CellStyle};
 
 pub(super) type PlannedCell = (CellAddress, Option<ClipboardValue>, Option<CellStyle>);
 
+/// 值类粘贴检查最终计划而非源显示文本；运算生成的公式必须等整批写完再判断。
+pub(super) fn validate_inputs(
+    workbook: &Workbook,
+    sheet: usize,
+    mode: ClipboardPasteMode,
+    planned: &[PlannedCell],
+) -> Result<Vec<CellAddress>, ClipboardError> {
+    if !matches!(
+        mode,
+        ClipboardPasteMode::Values
+            | ClipboardPasteMode::ValuesAndFormats
+            | ClipboardPasteMode::ValuesAndNumberFormats
+    ) {
+        return Ok(Vec::new());
+    }
+    let mut formulas = Vec::new();
+    for (addr, value, _) in planned {
+        match value {
+            Some(ClipboardValue::Literal(value)) => {
+                workbook.validate_input_value(sheet, *addr, value)?
+            }
+            Some(ClipboardValue::Formula { .. })
+                if workbook.sheets[sheet].data_validation_at(*addr).is_some() =>
+            {
+                formulas.push(*addr);
+            }
+            _ => {}
+        }
+    }
+    Ok(formulas)
+}
+
 pub(super) fn plan_cells(
     workbook: &Workbook,
     snapshot: &ClipboardSnapshot,
@@ -37,11 +69,18 @@ pub(super) fn plan_cells(
         let parsed;
         let source_value = if snapshot.source_sheet.is_none() && !(covered && merges.scalar) {
             if let ClipboardValue::Literal(Value::Text(input)) = &cell.value {
-                parsed = tsv::parse_input(input, options.mode,
-                    &sheet.get_format(&addr.to_string_repr()).number_format)?;
+                parsed = tsv::parse_input(
+                    input,
+                    options.mode,
+                    &sheet.get_format(&addr.to_string_repr()).number_format,
+                )?;
                 &parsed
-            } else { &cell.value }
-        } else { &cell.value };
+            } else {
+                &cell.value
+            }
+        } else {
+            &cell.value
+        };
         let value = if covered && merges.scalar {
             None
         } else {

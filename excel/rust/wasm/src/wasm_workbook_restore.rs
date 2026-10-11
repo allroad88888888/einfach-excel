@@ -117,6 +117,7 @@ impl WasmWorkbook {
         }
         Self::restore_merges_json(&mut workbook, payload.merges)?;
         Self::restore_freeze_json(&mut workbook, payload.freeze)?;
+        Self::restore_data_validations_json(&mut workbook, payload.data_validations)?;
         let mut restored_formats = 0u32;
         for (sheet_idx, snapshot) in format_snapshots {
             let sheet = workbook

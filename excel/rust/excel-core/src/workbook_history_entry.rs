@@ -63,6 +63,9 @@ impl HistoryEntry {
             HistoryChange::ConditionalFormat(change) => {
                 change.apply(workbook, self.sheet, self.sheet_key, undo)
             }
+            HistoryChange::DataValidation(change) => {
+                change.apply(workbook, self.sheet, self.sheet_key, undo)
+            }
             HistoryChange::Structure(change) => change.apply(workbook, self.sheet, undo),
             HistoryChange::Merge(change) => change.apply(workbook, self.sheet, undo),
         }
@@ -81,6 +84,7 @@ pub(super) fn entry_bytes(entry: &HistoryEntry) -> usize {
         HistoryChange::Freeze(_) => std::mem::size_of::<FreezeChange>(),
         HistoryChange::Filter(change) => change.retained_bytes(),
         HistoryChange::ConditionalFormat(change) => change.retained_bytes(),
+        HistoryChange::DataValidation(change) => change.retained_bytes(),
         HistoryChange::Structure(change) => change.retained_bytes(),
         HistoryChange::Merge(change) => change.retained_bytes(),
     };

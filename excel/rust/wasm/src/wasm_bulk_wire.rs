@@ -249,6 +249,8 @@ struct WorkbookPersistenceV1JSON {
         skip_serializing_if = "Vec::is_empty"
     )]
     conditional_formats: Vec<ConditionalFormatConfigSnapshotJSON>,
+    #[serde(default, rename = "dataValidations", skip_serializing_if = "Vec::is_empty")]
+    data_validations: Vec<SheetDataValidationJSON>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

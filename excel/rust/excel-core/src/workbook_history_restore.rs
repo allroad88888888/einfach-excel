@@ -55,15 +55,11 @@ impl Workbook {
                         .map_err(|_| "Could not restore cell value.")?;
                     }
                     for cell in cells.iter().filter(|cell| cell.formula.is_some()) {
-                        if !self
-                            .try_set_formula(
-                                sheet,
-                                &cell.addr.to_string(),
-                                cell.formula.as_ref().unwrap(),
-                            )
-                            .map_err(|_| "Could not restore cell formula.")?
-                        {
-                            return Err("Could not restore cell formula.");
+                        let source = cell.formula.as_ref().unwrap();
+                        if !self.try_set_formula(sheet, &cell.addr.to_string(), source)
+                            .map_err(|_| "Could not restore cell formula.")? {
+                            // 导入历史可以持有错误/循环源码；恢复不是一次新输入校验。
+                            self.sheets[sheet].restore_formula_source(cell.addr, source);
                         }
                     }
                 }

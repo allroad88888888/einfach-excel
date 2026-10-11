@@ -28,7 +28,7 @@ impl Workbook {
         snapshot: &ClipboardSnapshot,
         sheet_idx: usize,
         options: &ClipboardPasteOptions,
-        mut history: Option<&mut crate::workbook_history::WorkbookHistory>,
+        history: Option<&mut crate::workbook_history::WorkbookHistory>,
     ) -> Result<CellRange, ClipboardError> {
         if self.is_inside_custom_call() {
             return Err("CLIPBOARD_MUTATION_DURING_CUSTOM_CALL");
@@ -73,6 +73,12 @@ impl Workbook {
             logical_target.is_some(),
         )?;
         let planned = paste_values::plan_cells(self, snapshot, sheet_idx, range, options, &merges)?;
+        let validation_formulas =
+            paste_values::validate_inputs(self, sheet_idx, options.mode, &planned)?;
+        // 无历史的原生调用也必须可原子拒绝；临时历史只用于失败恢复，不暴露给宿主。
+        let mut rollback = crate::workbook_history::WorkbookHistory::default();
+        let mut history =
+            history.or_else(|| (!validation_formulas.is_empty()).then_some(&mut rollback));
         let sheet = self.sheet(sheet_idx).unwrap();
         let cleared = snapshot
             .source
@@ -129,10 +135,9 @@ impl Workbook {
             &dependents,
             &merges,
             borders,
-        );
-        if let Some(history) = history {
-            history.finish(self, true)?;
-        }
+            &validation_formulas,
+            history,
+        )?;
         Ok(range)
     }
 }

@@ -29,6 +29,7 @@ import { changeFilter } from './filter-io'
 import { applyTextColumns, previewTextColumns } from './text-columns-io'
 import { applyRemoveDuplicates, previewRemoveDuplicates } from './remove-duplicates-io'
 import { changeConditionalFormat } from './conditional-format-io'
+import { changeDataValidation } from './data-validation-commands'
 
 type CommandName = keyof RustWorkbookCommands
 
@@ -82,6 +83,20 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       return initialize(input.sheets)
     }
     const current = currentWorkbook()
+    if (command === 'validation.read') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      if (!current.getDataValidation) throw new Error('Rust data validation is unavailable.')
+      return current.getDataValidation(sheetIndex(input.sheetId), input.row, input.col)
+    }
+    if (command === 'validation.change') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      const sheet = sheetsById.get(input.sheetId)
+      const index = sheetIndex(input.sheetId)
+      changeDataValidation(
+        current, index, input, sheet?.rowCount ?? 1_048_576, sheet?.colCount ?? 16_384)
+      revision += 1
+      return { projection: readVisibleProjection(current, index, input.projection, revision) }
+    }
     if (command === 'conditionalFormat.change') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
       const index = sheetIndex(input.sheetId)

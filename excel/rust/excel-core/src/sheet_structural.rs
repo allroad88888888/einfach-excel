@@ -33,6 +33,16 @@ impl Sheet {
             return Ok(());
         }
         let first = limit - count;
+        if self.data_validations.iter().any(|entry| {
+            let (start, end) = if edit.is_row_edit() {
+                (entry.range.start.row, entry.range.end.row)
+            } else {
+                (entry.range.start.col, entry.range.end.col)
+            };
+            !(start == 0 && end == limit - 1) && end >= first
+        }) {
+            return Err("The insertion would move data validation outside the worksheet.");
+        }
         if self.filter().and_then(|filter| filter.range()).is_some_and(|range| {
             let end = if edit.is_row_edit() { range.end.row } else { range.end.col };
             at <= end && end >= first
@@ -171,6 +181,7 @@ impl Sheet {
             sheet.retarget_parked_sources(edit);
             sheet.shift_merges(edit);
             sheet.shift_frozen_panes(edit);
+            sheet.shift_data_validations(edit);
             match edit {
                 crate::shift::ShiftEdit::RowInsert { at, count } => {
                     Self::shift_dimension_insert(&mut sheet.row_styles, at, count);

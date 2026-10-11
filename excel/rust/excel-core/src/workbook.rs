@@ -56,6 +56,8 @@ mod conditional_format_structure;
 mod conditional_format_scope;
 #[path = "workbook_bulk.rs"]
 mod workbook_bulk;
+#[path = "workbook_calculation.rs"]
+mod workbook_calculation;
 #[path = "workbook_bulk_types.rs"]
 mod workbook_bulk_types;
 #[path = "workbook_conditional_format.rs"]

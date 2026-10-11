@@ -76,15 +76,24 @@ test('empty strings and errors count as content, but clearing a minimum removes 
 
 test('an entire column includes offscreen formulas and scrolling keeps the same statistics', async ({ page }) => {
   await summary(page)
+  await select(page, 'D62')
+  const randomValue = Number(await page.locator('td[data-cell="61:3"]').textContent())
+  expect(randomValue).toBeGreaterThanOrEqual(0)
+  expect(randomValue).toBeLessThan(1)
   await select(page, 'D75:D79')
   for (const [offset, value] of [-10, 0, 5, 10, 20].entries()) {
     await expect(page.locator(`td[data-cell="${74 + offset}:3"]`)).toHaveText(String(value))
   }
   await page.getByRole('columnheader', { name: 'Select column D', exact: true }).click()
   // 原五个数值合计 36；D75:D79 的色阶样例另有五个、合计 25。
-  // 显示颜色不改变原生值：共十个数值，非空内容还包含八个文本。
-  await stats(page, 10, '61', '6.1')
-  await extrema(page, 18, '-10', '20')
+  // 新的 D61 标题和 D62 RAND 也参加统计；滚动不能使随机公式意外重算。
+  await expect(status(page)).toContainText('Numerical count: 11')
+  await expect(status(page)).not.toContainText('Calculating selection')
+  for (const [name, expected] of [['Sum', 61 + randomValue], ['Average', (61 + randomValue) / 11]] as const) {
+    const text = await status(page).getByRole('button', { name: `Copy ${name}`, exact: true }).textContent()
+    expect(Number(text!.slice(name.length + 2))).toBeCloseTo(expected, 8)
+  }
+  await extrema(page, 20, '-10', '20')
   const before = await status(page).textContent()
   await page.getByTestId('sheet-scroll').evaluate((element) => { element.scrollTop = element.scrollHeight })
   await expect(page.locator('td[data-cell="92:3"]')).toBeVisible()
@@ -119,10 +128,12 @@ for (const width of [1440, 1280, 390]) {
     const tabs = page.locator('.sheet-tab-list')
     expect(await tabs.evaluate((element) => element.clientWidth)).toBeGreaterThanOrEqual(192)
     const footer = page.locator('.workbook-footer')
-    expect(await footer.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true)
+    expect(await footer.evaluate((element) =>
+      element.scrollWidth <= element.clientWidth)).toBe(true)
     for (const span of await status(page).locator('button').all()) {
       await expect(span).toBeInViewport()
-      expect(await span.evaluate((element) => parseFloat(getComputedStyle(element).fontSize))).toBeGreaterThanOrEqual(11)
+      expect(await span.evaluate((element) =>
+        parseFloat(getComputedStyle(element).fontSize))).toBeGreaterThanOrEqual(11)
     }
     const box = await footer.boundingBox()
     const grid = await page.getByTestId('sheet-scroll').boundingBox()
@@ -141,8 +152,11 @@ test('narrow statistics reserve their height while the real Worker result is pen
     Object.defineProperty(window, 'releaseStatistics', {
       value: () => pending.splice(0).forEach((send) => send()),
     })
-    Worker.prototype.postMessage = function (message: { command?: string }, options?: Transferable[] | StructuredSerializeOptions) {
-      const send = () => post.call(this, message, Array.isArray(options) ? { transfer: options } : options ?? {})
+    Worker.prototype.postMessage = function (
+      message: { command?: string }, options?: Transferable[] | StructuredSerializeOptions,
+    ) {
+      const send = () => post.call(this, message,
+        Array.isArray(options) ? { transfer: options } : options ?? {})
       if (message.command === 'selection.aggregate') pending.push(send)
       else send()
     }

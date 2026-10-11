@@ -5,6 +5,7 @@ import {
   selectionSnapshotAtom,
   viewportGeometrySizesAtom,
   viewportMetricsAtom,
+  showFormulasAtom, formulaViewText,
   type CellRange,
   type DisplayCell,
 } from '@einfach/spreadsheet-ui-core'
@@ -22,6 +23,7 @@ export function MergedCells({ window, anchors }: {
   const selection = useAtomValue(selectionSnapshotAtom)
   const sizes = useAtomValue(viewportGeometrySizesAtom)
   const metrics = useAtomValue(viewportMetricsAtom)
+  const showFormulas = useAtomValue(showFormulasAtom)
   const result = snapshot.result
   if (result?.kind !== 'visible-window' || result.sheetId !== metrics.sheetId) return null
   const origin = getViewportRangeRectangle(metrics, sizes, window ?? result.window)
@@ -50,6 +52,7 @@ export function MergedCells({ window, anchors }: {
             aria-colspan={span.cols}
             data-cell={`${cell.row}:${cell.col}`}
             data-merged-cell="true"
+            title={showFormulas ? cell.formula : undefined}
             aria-selected={selected}
             className={`cell merged-cell${cell.dataBar ? ' cell-data-bar-host' : ''}`}
             style={{
@@ -70,7 +73,9 @@ export function MergedCells({ window, anchors }: {
             <MergedCellBorders range={range} window={window ?? result.window} />
             <CellDataBar bar={cell.dataBar} />
             <span className="cell-content">
-              <span style={cellTextRotationStyle(cell.format)}>{cell.displayValue}</span>
+              <span style={cellTextRotationStyle(cell.format)}>
+                {formulaViewText(cell, showFormulas)}
+              </span>
             </span>
           </div>
         )

@@ -145,4 +145,11 @@ impl Sheet {
         self.invalidate_formula_inner(addr);
         self.bump_facade_epoch(addr);
     }
+
+    /// 手动重算只失效已有公式缓存；不改公式源码或重建 atom 身份。
+    pub(crate) fn invalidate_calculation(&self, addrs: &HashSet<CellAddress>) {
+        for addr in addrs {
+            self.invalidate_formula_value(*addr);
+        }
+    }
 }

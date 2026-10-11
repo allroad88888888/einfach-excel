@@ -133,6 +133,7 @@ include!("wasm_workbook_text_columns.rs");
 include!("wasm_workbook_remove_duplicates.rs");
 include!("wasm_workbook_quick_formula.rs");
 include!("wasm_function_catalog.rs");
+include!("wasm_workbook_calculation.rs");
 include!("wasm_workbook_aggregate.rs");
 include!("wasm_workbook_history.rs");
 include!("wasm_workbook_structure.rs");

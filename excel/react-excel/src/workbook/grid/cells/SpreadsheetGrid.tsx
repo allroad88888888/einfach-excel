@@ -1,6 +1,6 @@
 import type { CellRange, DisplayCell } from '@einfach/spreadsheet-ui-core'
 import { mergeRangeAt, nativeFilterRangeAtom, nativeTableFiltersAtom, formulaReferenceSessionAtom,
-  projectionSnapshotAtom, viewportMetricsAtom } from '@einfach/spreadsheet-ui-core'
+  projectionSnapshotAtom, viewportMetricsAtom, showFormulasAtom, formulaViewText } from '@einfach/spreadsheet-ui-core'
 import { useAtomValue } from '@einfach/react'
 import { CellFilterButton } from './CellFilterButton'
 import { CellDataBar } from './CellDataBar'
@@ -60,6 +60,7 @@ export function SpreadsheetGrid({
   const reference = useAtomValue(formulaReferenceSessionAtom)
   const projection = useAtomValue(projectionSnapshotAtom).result
   const metrics = useAtomValue(viewportMetricsAtom)
+  const showFormulas = useAtomValue(showFormulasAtom)
   const picked = reference?.pickAnchor && reference.pickFocus ? {
     rowStart: Math.min(reference.pickAnchor.row, reference.pickFocus.row),
     rowEnd: Math.max(reference.pickAnchor.row, reference.pickFocus.row),
@@ -98,7 +99,7 @@ export function SpreadsheetGrid({
         String(formatStyle.borderTopWidth ?? (formatStyle.borderTopStyle ? 3 : 0)),
       )
       const bottomBorder = Number.parseFloat(String(formatStyle.borderBottomWidth ?? 1))
-      const displayValue = cell?.displayValue ?? ''
+      const displayValue = formulaViewText(cell, showFormulas)
       const filterTable = tableHeaders.find(({ range }) =>
         col >= range.colStart && col <= range.colEnd)?.table
       const filterHeader = !merged && (filterTable !== undefined || row === filterRange?.rowStart
@@ -109,6 +110,7 @@ export function SpreadsheetGrid({
           key={col}
           className={`cell${isSelected ? ' cell-selected' : ''}${filterHeader ? ' cell-filter-header' : ''}${cell?.dataBar && !merged ? ' cell-data-bar-host' : ''}`}
           data-cell={`${row}:${col}`}
+          title={showFormulas ? cell?.formula : undefined}
           aria-hidden={merged || undefined}
           data-selected={isSelected ? 'true' : undefined}
           style={formatStyle}

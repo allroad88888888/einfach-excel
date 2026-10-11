@@ -58,6 +58,7 @@ export interface RustFormatRangeSnapshot {
 }
 
 export interface WasmWorkbook {
+  recalculate?: (sheet?: number) => number
   snapshot_persistence_v1?: () => unknown
   restore_persistence_v1?: (value: unknown) => unknown
   free?: () => void

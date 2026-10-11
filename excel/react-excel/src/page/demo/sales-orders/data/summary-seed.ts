@@ -2,6 +2,11 @@ import type { RustImportCell } from '@einfach/spreadsheet-ui-core'
 
 /** 第二张表展示跨表引用：改名后数值应保持，修改订单后仍应重算。 */
 export const SALES_ORDER_SUMMARY_CELLS: readonly RustImportCell[] = [
+  // D62/E62：手动重算可见的随机数及下游；只导入原生公式，不在 React 模拟。
+  { sheet: 1, row: 60, col: 3, kind: 'text', value: 'Recalculate: RAND', format: { bold: true } },
+  { sheet: 1, row: 60, col: 4, kind: 'text', value: 'RAND × 2', format: { bold: true } },
+  { sheet: 1, row: 61, col: 3, kind: 'formula', value: '=RAND()' },
+  { sheet: 1, row: 61, col: 4, kind: 'formula', value: '=D62*2' },
   { sheet: 1, row: 0, col: 0, kind: 'text', value: 'First order total', format: { bold: true } },
   { sheet: 1, row: 0, col: 1, kind: 'formula', value: "='Sales Orders'!G2" },
   { sheet: 1, row: 1, col: 0, kind: 'text', value: 'Customer' },

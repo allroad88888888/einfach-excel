@@ -104,6 +104,16 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       return initialize(input.sheets)
     }
     const current = currentWorkbook()
+    if (command === 'formula.recalculate') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      if (!['sheet', 'workbook'].includes(input.scope)) throw new Error('Invalid calculation scope.')
+      const index = sheetIndex(input.projection.sheetId)
+      if (!current.recalculate) throw new Error('Rust recalculation is unavailable.')
+      const formulaCount = current.recalculate(input.scope === 'sheet' ? index : undefined)
+      if (formulaCount > 0) revision += 1
+      return { formulaCount,
+        projection: readVisibleProjection(current, index, input.projection, revision) }
+    }
     if (command === 'workbook.exportFile') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
       return exportWorkbookFile(current, [...sheetsById.values()], input.title)

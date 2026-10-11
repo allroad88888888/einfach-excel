@@ -126,6 +126,7 @@ test('pending command disables fields until the returned projection closes the d
   await click('Tables'); await click('Edit table Sales'); await click('Convert to range')
   expect(screen.getByRole('status')).toHaveTextContent('Saving table changes')
   expect(screen.getByLabelText('Table name')).toBeDisabled()
+  expect(screen.getByLabelText('Header row')).toBeDisabled()
   expect(screen.getByLabelText('Banded columns')).toBeDisabled()
   expect(screen.getByLabelText('Last column emphasis')).toBeDisabled()
   expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled()
@@ -144,6 +145,37 @@ test.each([false, true])('totals toggle (enabled=%s) dispatches the existing com
   expect(request.mock.calls[0]).toMatchObject(['table.change', {
     action: { kind: 'totals-row', name: 'Sales', enabled: !enabled },
   }])
+})
+
+test('header toggle reads native geometry, preserves names and recovers after rejection', async () => {
+  const request = setup()
+  await click('Tables'); await click('Edit table Sales')
+  await change('Table name', 'Unsaved')
+  const option = screen.getByLabelText('Header row')
+  expect(option).toBeChecked()
+  expect(option).toBeEnabled() // No style preset is required for header semantics.
+  request.mockRejectedValueOnce(new Error('Header change rejected'))
+  await act(async () => { fireEvent.click(option) })
+  expect(option).toBeChecked()
+  expect(screen.getByRole('alert')).toHaveTextContent('Header change rejected')
+  for (const enabled of [false, true]) {
+    request.mockImplementationOnce(async (_, payload) => {
+      const input = payload as RustWorkbookCommands['table.change']['payload']
+      return { changed: true, projection: {
+        ...input.projection, cells: [], revision: enabled ? 3 : 2,
+        tables: [{ name: 'Sales', sheet: 'Sheet', sheetIndex: 0,
+          range: enabled ? 'A1:B4' : 'A2:B4',
+          hasHeaders: enabled, hasTotals: false, columns: ['Product', 'Amount'] }] } }
+    })
+    await act(async () => { fireEvent.click(option) })
+    expect(request.mock.lastCall).toMatchObject(['table.change', {
+      action: { kind: 'header-row', name: 'Sales', enabled },
+    }])
+    expect((option as HTMLInputElement).checked).toBe(enabled)
+    expect(screen.getByLabelText('Table range')).toHaveValue(enabled ? 'A1:B4' : 'A2:B4')
+    expect(screen.getByLabelText('Table name')).toHaveValue('Unsaved')
+    expect(screen.queryByRole('alert')).toBeNull()
+  }
 })
 
 test('column choice reads native function state and Apply returns the saved function', async () => {

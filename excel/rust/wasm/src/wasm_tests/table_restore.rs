@@ -131,6 +131,24 @@ fn wasm_persistence_v1_payload_without_tables_field_still_restores() {
 }
 
 #[test]
+fn wasm_persistence_table_arrays_exist_before_reading_their_anchors() {
+    let mut source = workbook_with_inventory_table();
+    source.add_sheet("Report");
+    source.workbook.set_formula(1, "A1", "=Inventory[#Headers]");
+    source.workbook.set_formula(1, "E1", "=Inventory[Qty]");
+    source.workbook.set_formula(1, "G1", "=1+2");
+    let mut restored = WasmWorkbook::new();
+    restored.restore_persistence_v1_json(source.snapshot_persistence_v1_json()).unwrap();
+    // 直接读非锚点，不能靠测试先读公式格或再写一次公式来补投影。
+    assert_eq!(restored.workbook.get_cell("Report", "B1"), Value::Text("Qty".into()));
+    assert_eq!(restored.workbook.get_cell("Report", "E3"), Value::Number(3.));
+    assert_eq!(restored.debug_formula_cache_state(1, "G1"), "dirty");
+    restored.set_number(0, "B4", 9.);
+    assert_eq!(restored.workbook.get_cell("Report", "E3"), Value::Number(9.));
+    assert_eq!(restored.history.undo_count(), 0);
+}
+
+#[test]
 fn wasm_persistence_v1_omits_the_tables_key_for_a_table_less_workbook() {
     let wb = WasmWorkbook::new();
     let envelope = wb.snapshot_persistence_v1_json();

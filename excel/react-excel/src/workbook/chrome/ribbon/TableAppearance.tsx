@@ -13,7 +13,14 @@ export function TableAppearance() {
   return <section className="table-panel-appearance" aria-labelledby={`${id}-title`}>
     <h3 id={`${id}-title`}>Table style</h3>
     <p>Changes apply immediately. Manual cell, row and column formatting stays in place.</p>
+    <p id={`${id}-headers-hint`}>Hiding headers keeps column names and clears this table’s filter.</p>
     <fieldset disabled={state.busy}>
+      <label className="table-style-option">
+        <input type="checkbox" checked={state.currentTable.hasHeaders}
+          aria-describedby={`${id}-headers-hint`}
+          onChange={(event) => void run(event.currentTarget.checked ? 'show-headers' : 'hide-headers')} />
+        Header row
+      </label>
       <label htmlFor={`${id}-preset`}>Style preset</label>
       <select id={`${id}-preset`} value={style.preset} onChange={(event) => {
         const value = event.currentTarget.value

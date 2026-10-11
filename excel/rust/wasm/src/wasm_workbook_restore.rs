@@ -93,6 +93,12 @@ impl WasmWorkbook {
         // 先有名称定义，再安装公式；首次 spill 投影就能读取完整工作簿事实。
         // 后续 Table 恢复仍检查共享名称冲突；任何失败均不替换当前工作簿。
         Self::restore_named_ranges_json(&mut workbook, payload.named_ranges)?;
+        // Table 定义与名称一样，必须先于数组公式安装。安装时即生成 spill；
+        // 若此时缺少注册表，引用会先得到 #REF!，后补定义不能创建遗漏的溢出格。
+        let restored_tables = workbook
+            .restore_tables(table_snapshot)
+            .map_err(|err| format!("persistence restore tables failed: {}", table_error_id(err)))?
+            as u32;
         let restored_print_configs = workbook
             .restore_print_configs(print_configs)
             .map_err(|error| format!("persistence restore print configs failed: {error}"))?
@@ -141,15 +147,7 @@ impl WasmWorkbook {
                 sheet.set_col_width(col_index, width_px);
             }
         }
-        // Registry last: entries anchor by sheet NAME, so every sheet must
-        // already exist and be named. REPLACE semantics make this exact —
-        // the fresh workbook starts empty, so restore installs precisely the
-        // captured set.
-        let restored_tables = workbook
-            .restore_tables(table_snapshot)
-            .map_err(|err| format!("persistence restore tables failed: {}", table_error_id(err)))?
-            as u32;
-        // Hidden rows last as well, and for the same reason as the registry:
+        // Hidden rows restore after all sheets exist:
         // every sheet must exist first. REPLACE semantics are exact against
         // the fresh workbook, and entries for sheets the payload does not
         // contain are dropped by `restore_hidden` rather than failing here.

@@ -3,6 +3,13 @@
 use super::*;
 
 impl WorkbookAtomContext {
+    /// 筛选改变可能让 IF/SUBTOTAL 返回不同大小的数组；投影复用已有反向依赖。
+    pub(crate) fn filter_dependent_atoms(&self) -> Vec<AtomId> {
+        self.filter_hidden_epoch
+            .borrow()
+            .map_or_else(Vec::new, |root| self.store.reverse_dependents(&[root]))
+    }
+
     /// Tracked read of the MANUAL hidden-row invalidation epoch (design doc #32
     /// §6.2). Consulted by `hidden_rows_for_sheet` — including its miss
     /// branch — so a SUBTOTAL 101-111 formula that currently sees NO hidden

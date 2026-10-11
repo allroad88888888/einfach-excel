@@ -174,6 +174,9 @@ impl TableDefinitionChange {
         } else {
             Vec::new()
         };
+        if self.filter.is_some() {
+            arrays.extend(workbook.array_dependents_for_atoms(&workbook.atom_context.filter_dependent_atoms()));
+        }
         for cells in &next_cells {
             if cells.cells.is_none() { continue; }
             // 计算列覆盖多行；按所有实际写入格的依赖收集，不能只看首行。

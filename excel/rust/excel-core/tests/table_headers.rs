@@ -27,7 +27,7 @@ fn seed() -> (Workbook, WorkbookHistory) {
 #[test]
 fn hide_show_and_history_preserve_body_and_restore_header_references() {
     let (mut wb, mut history) = seed();
-    history.set_table_headers(&mut wb, "Orders", false).unwrap();
+    history.set_table_headers(&mut wb, "Orders", false, 1_048_576).unwrap();
     assert_eq!(history.undo_count(), 1);
     for _ in 0..2 {
         let table = wb.get_table("Orders").unwrap();
@@ -49,13 +49,13 @@ fn hide_show_and_history_preserve_body_and_restore_header_references() {
         assert_eq!(wb.get_cell("Sheet1", "A3"), Value::Text("Product".into()));
         assert_eq!(wb.get_cell("Sheet1", "D2"), Value::Text("Amount".into()));
         assert_eq!(wb.get_cell("Report", "B1"), Value::Text("Amount".into()));
-        assert!(!history.set_table_headers(&mut wb, "Orders", true).unwrap());
+        assert!(!history.set_table_headers(&mut wb, "Orders", true, 1_048_576).unwrap());
         assert_eq!(history.redo_count(), 1);
         history.redo(&mut wb).unwrap();
     }
     history.rename_table_column(&mut wb, "Orders", "Amount", "Net").unwrap();
     assert_eq!(wb.get_cell("Sheet1", "B4"), Value::Number(10.));
-    history.set_table_headers(&mut wb, "Orders", true).unwrap();
+    history.set_table_headers(&mut wb, "Orders", true, 1_048_576).unwrap();
     assert_eq!(wb.get_cell("Sheet1", "B3"), Value::Text("Net".into()));
     assert_eq!(wb.get_cell("Report", "B1"), Value::Text("Net".into()));
     assert_eq!(wb.get_cell("Sheet1", "D1"), Value::Number(30.));
@@ -70,18 +70,23 @@ fn hiding_removes_only_the_owned_filter_and_undo_restores_its_snapshot() {
     }]).unwrap();
     wb.hide_rows(0, &[4]);
     wb.set_formula(0, "D3", "=SUBTOTAL(9,Orders[Amount])");
+    // 不引用 Table 的数组同样依赖筛选可见性，切换后必须更新实际 spill 形状。
+    wb.set_formula(0, "F1", "=IF(SUBTOTAL(9,B4:B5)>25,SEQUENCE(2),SEQUENCE(1))");
     assert_eq!(wb.get_cell("Sheet1", "D3"), Value::Number(20.));
-    history.set_table_headers(&mut wb, "Orders", false).unwrap();
+    assert_eq!(wb.get_cell("Sheet1", "F2"), Value::Null);
+    history.set_table_headers(&mut wb, "Orders", false, 1_048_576).unwrap();
     assert_eq!(wb.filter_range(0), None);
     assert!(wb.filter_hidden_rows(0).is_empty());
     assert_eq!(wb.list_hidden_rows(0), vec![4]);
     assert_eq!(wb.get_cell("Sheet1", "D3"), Value::Number(30.));
+    assert_eq!(wb.get_cell("Sheet1", "F2"), Value::Number(2.));
     history.undo(&mut wb).unwrap();
     assert_eq!(wb.filter_range(0), Some(bounds));
     assert_eq!(wb.filter_hidden_rows(0), vec![3]);
     assert_eq!(wb.get_cell("Sheet1", "D3"), Value::Number(20.));
+    assert_eq!(wb.get_cell("Sheet1", "F2"), Value::Null);
     history.redo(&mut wb).unwrap();
-    history.set_table_headers(&mut wb, "Orders", true).unwrap();
+    history.set_table_headers(&mut wb, "Orders", true, 1_048_576).unwrap();
     assert_eq!(wb.filter_range(0), None, "showing is not undoing the earlier filter removal");
 }
 
@@ -90,13 +95,17 @@ fn unrelated_filter_and_data_in_the_header_destination_are_not_overwritten() {
     let (mut wb, mut history) = seed();
     let outside = range("F3", "G5");
     wb.apply_filter_range(0, outside, &[]).unwrap();
-    history.set_table_headers(&mut wb, "Orders", false).unwrap();
+    history.set_table_headers(&mut wb, "Orders", false, 1_048_576).unwrap();
     assert_eq!(wb.filter_range(0), Some(outside));
     wb.set_cell(0, "A3", Value::Text("Outside data".into()));
     let tables = wb.snapshot_tables();
-    assert!(history.set_table_headers(&mut wb, "Orders", true).unwrap_err().contains("occupied"));
-    assert_eq!(wb.snapshot_tables(), tables);
+    assert!(history.set_table_headers(&mut wb, "Orders", true, 1_048_576).unwrap());
+    assert_eq!(wb.get_cell("Sheet1", "A4"), Value::Text("Product".into()));
+    assert_eq!(wb.get_cell("Sheet1", "A5"), Value::Text("One".into()));
     assert_eq!(wb.get_cell("Sheet1", "A3"), Value::Text("Outside data".into()));
+    assert_eq!(history.undo_count(), 2);
+    history.undo(&mut wb).unwrap();
+    assert_eq!(wb.snapshot_tables(), tables);
     assert_eq!(history.undo_count(), 1);
     assert!(history.undo(&mut wb).is_err(), "history must not overwrite an external cell edit");
     assert_eq!(wb.snapshot_tables(), tables);
@@ -105,7 +114,7 @@ fn unrelated_filter_and_data_in_the_header_destination_are_not_overwritten() {
 #[test]
 fn deleting_first_data_row_does_not_destroy_a_headerless_table() {
     let (mut wb, mut history) = seed();
-    history.set_table_headers(&mut wb, "Orders", false).unwrap();
+    history.set_table_headers(&mut wb, "Orders", false, 1_048_576).unwrap();
     history.edit_structure(&mut wb, 0, ShiftEdit::RowDelete { at: 3, count: 1 }).unwrap();
     assert_eq!(wb.get_table("Orders").unwrap().range(), range("A4", "B4"));
     assert!(!wb.get_table("Orders").unwrap().has_headers());
@@ -120,13 +129,13 @@ fn deleting_first_data_row_does_not_destroy_a_headerless_table() {
 #[test]
 fn converting_headerless_tables_keeps_zero_header_values_and_data_references() {
     let (mut wb, mut history) = seed();
-    history.set_table_headers(&mut wb, "Orders", false).unwrap();
+    history.set_table_headers(&mut wb, "Orders", false, 1_048_576).unwrap();
     history.convert_table_to_range(&mut wb, "Orders").unwrap();
     assert_eq!(wb.get_cell("Sheet1", "D2"), Value::Number(0.));
     assert_eq!(wb.get_cell("Report", "B1"), Value::Number(0.));
     assert_eq!(wb.get_cell("Report", "A3"), Value::Number(30.));
     history.undo(&mut wb).unwrap();
-    history.set_table_headers(&mut wb, "Orders", true).unwrap();
+    history.set_table_headers(&mut wb, "Orders", true, 1_048_576).unwrap();
     assert_eq!(wb.get_cell("Report", "B1"), Value::Text("Amount".into()));
 }
 
@@ -134,7 +143,7 @@ fn converting_headerless_tables_keeps_zero_header_values_and_data_references() {
 fn external_filter_change_rejects_undo_before_restoring_cells_or_table() {
     let (mut wb, mut history) = seed();
     wb.apply_filter_range(0, range("A3", "B5"), &[]).unwrap();
-    history.set_table_headers(&mut wb, "Orders", false).unwrap();
+    history.set_table_headers(&mut wb, "Orders", false, 1_048_576).unwrap();
     let outside = range("F3", "G5");
     wb.apply_filter_range(0, outside, &[]).unwrap();
     let tables = wb.snapshot_tables();

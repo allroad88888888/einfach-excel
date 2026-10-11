@@ -49,10 +49,11 @@ export type TableChange =
   | { readonly kind: 'totals-row'; readonly name: string; readonly enabled: boolean }
   | { readonly kind: 'total-function'; readonly name: string; readonly column: string;
     readonly function: NativeTotalFunction }
-export type NativeTableAction = Exclude<TableChange, { kind: 'create' | 'resize' | 'totals-row' }> |
+export type NativeTableAction = Exclude<TableChange, { kind: 'create' | 'resize' | 'totals-row' | 'header-row' }> |
   { readonly kind: 'create'; readonly name?: string; readonly range: readonly [number, number, number, number] } |
   { readonly kind: 'resize'; readonly name: string; readonly range: readonly [number, number, number, number] } |
-  { readonly kind: 'totals-row'; readonly name: string; readonly enabled: boolean; readonly rowCount: number }
+  { readonly kind: 'totals-row' | 'header-row'; readonly name: string;
+    readonly enabled: boolean; readonly rowCount: number }
 
 /** 仅校验响应结构；名称冲突和结构化引用语义由 Rust 判断。 */
 export function validNativeTables(value: unknown): value is readonly NativeTable[] {

@@ -4,12 +4,12 @@ use crate::workbook::{TableCreation, TableDefinitionChange};
 
 impl WorkbookHistory {
     /// 列名一直归 Table 所有，表头格与筛选在同一条历史内显隐。
-    pub fn set_table_headers(&mut self, workbook: &mut Workbook, name: &str, enabled: bool)
+    pub fn set_table_headers(&mut self, workbook: &mut Workbook, name: &str, enabled: bool, row_count: u32)
         -> Result<bool, String> {
         if self.pending.is_some() || workbook.is_inside_custom_call() {
             return Err("Another history command is pending.".into());
         }
-        let Some(change) = TableDefinitionChange::prepare_headers(workbook, name, enabled)?
+        let Some(change) = TableDefinitionChange::prepare_headers(workbook, name, enabled, row_count)?
             else { return Ok(false); };
         self.finish_table_change(workbook, change,
             if enabled { "Show table headers" } else { "Hide table headers" })?;

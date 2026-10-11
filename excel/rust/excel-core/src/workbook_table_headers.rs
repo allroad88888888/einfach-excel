@@ -1,17 +1,26 @@
-//! 表头显隐只改变一行内容及 Table 起点；数据行保持原坐标。
+//! 表头显隐优先复用原表头空行；没有空位时沿现有历史做局部插入。
 use super::*;
 use crate::{CellSnapshot, workbook_history::MAX_BYTES};
 
+#[path = "workbook_table_header_insert.rs"]
+mod insert;
+
 impl TableDefinitionChange {
     pub(crate) fn prepare_headers(
-        workbook: &Workbook, name: &str, enabled: bool,
+        workbook: &Workbook, name: &str, enabled: bool, row_count: u32,
     ) -> Result<Option<Self>, String> {
         if workbook.is_inside_custom_call() {
             return Err("Cannot change table headers during a custom call.".into());
         }
         let before = workbook.get_table(name).ok_or("The table no longer exists.")?.clone();
+        if row_count == 0 || row_count > GRID_MAX_ROW + 1 || before.range.end.row >= row_count {
+            return Err("The table is outside this worksheet.".into());
+        }
         if before.has_headers == enabled { return Ok(None); }
         let sheet = workbook.index_of(before.sheet_name()).ok_or("The worksheet no longer exists.")?;
+        if enabled && before.range.start.row == 0 {
+            return insert::prepare(workbook, sheet, before, row_count).map(Some);
+        }
         let row = if enabled {
             before.range.start.row.checked_sub(1).ok_or("There is no room above the table for headers.")?
         } else {
@@ -27,7 +36,7 @@ impl TableDefinitionChange {
         if enabled && (!original.cells.as_ref().unwrap().is_empty()
             || workbook.tables.values().any(|entry| entry.name() != before.name()
                 && entry.sheet_name() == before.sheet_name() && entry.range().intersects(range))) {
-            return Err("The row above the table is occupied. Make room before showing headers.".into());
+            return insert::prepare(workbook, sheet, before, row_count).map(Some);
         }
         let mut after = before.clone();
         after.has_headers = enabled;

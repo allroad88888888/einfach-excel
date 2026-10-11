@@ -5,6 +5,8 @@ enum TableActionJSON {
     HeaderRow {
         name: String,
         enabled: bool,
+        #[serde(default, rename = "rowCount")]
+        row_count: Option<u32>,
     },
     Style {
         name: String,
@@ -83,8 +85,9 @@ impl WasmWorkbook {
             }
         }
         match action {
-            TableActionJSON::HeaderRow { name, enabled } => {
-                self.history.set_table_headers(&mut self.workbook, &name, enabled)
+            TableActionJSON::HeaderRow { name, enabled, row_count } => {
+                self.history.set_table_headers(&mut self.workbook, &name, enabled,
+                    row_count.unwrap_or(1_048_576))
             }
             TableActionJSON::Style { name, style } => {
                 self.history.set_table_style(&mut self.workbook, &name, style)

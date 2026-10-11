@@ -55,6 +55,6 @@ pub use render::render_formula;
 pub use retarget::map_addrs;
 
 pub(crate) use qualified_source::rewrite_qualified_source;
-pub(crate) use structural_refs::rewrite_structural_refs;
+pub(crate) use structural_refs::{rewrite_structural_refs, rewrite_row_band_insert};
 pub(crate) use structural_refs::shift_range as shift_structural_range;
 pub(crate) use table_ref::TableRefEditSpec;

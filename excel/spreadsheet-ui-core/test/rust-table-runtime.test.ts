@@ -80,7 +80,8 @@ test.each([
 ])('forwards $kind without emulating cell or registry writes', async (action) => {
   const { call, change } = await setup()
   expect((await call('table.change', { ...input, action })).ok).toBe(true)
-  expect(change).toHaveBeenCalledWith(0, action)
+  expect(change).toHaveBeenCalledWith(0, action.kind === 'header-row'
+    ? { ...action, rowCount: 100 } : action)
 })
 test('totals row forwards the native canvas bound and returns one authoritative projection', async () => {
   const { call, change, read } = await setup()

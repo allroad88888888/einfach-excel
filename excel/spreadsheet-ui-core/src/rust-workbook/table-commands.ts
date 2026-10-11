@@ -32,10 +32,9 @@ export function changeTable(workbook: WasmWorkbook,
   let action: NativeTableAction
   if (input.action.kind === 'create' || input.action.kind === 'resize') {
     action = { ...input.action, range: tableBounds(sheet, input.action.range) }
-  } else if (input.action.kind === 'totals-row') {
+  } else if (input.action.kind === 'totals-row' || input.action.kind === 'header-row') {
     action = { ...input.action, rowCount: sheet.rowCount ?? 1_048_576 }
-  } else if (input.action.kind === 'header-row' ||
-    input.action.kind === 'rename' || input.action.kind === 'convert-to-range' ||
+  } else if (input.action.kind === 'rename' || input.action.kind === 'convert-to-range' ||
     input.action.kind === 'total-function' || input.action.kind === 'rename-column' || input.action.kind === 'style') {
     action = input.action
   } else throw new Error('Invalid table action.')

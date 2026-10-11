@@ -14,6 +14,7 @@ export function TableTools() {
   const editing = useAtomValue(editingSessionAtom).source !== null
   const trigger = useRef<HTMLButtonElement>(null)
   const dialogRef = useRef<HTMLDialogElement>(null)
+  const focusedControl = useRef<HTMLElement | null>(null)
   const id = useId()
   useLayoutEffect(() => {
     const dialog = dialogRef.current
@@ -24,12 +25,24 @@ export function TableTools() {
     dialog.querySelector<HTMLInputElement>('input')?.focus()
     return () => { dialog.close?.(); opener?.focus({ preventScroll: true }) }
   }, [state.open])
+  useLayoutEffect(() => {
+    // 原生 disabled 会丢失键盘焦点。回包后仅恢复弹窗原控件，不抢走用户已移动的焦点。
+    const dialog = dialogRef.current
+    const control = focusedControl.current
+    if (state.busy || !state.open || !dialog || !control || !dialog.contains(control)) return
+    const active = document.activeElement
+    if ((active === document.body || active === dialog) && !control.matches(':disabled'))
+      control.focus({ preventScroll: true })
+  }, [state.busy, state.open])
   return <>
     <button ref={trigger} className="tool-button" type="button" aria-label="Tables" title="Tables"
       disabled={!state.ready || editing || state.busy} onClick={() => void run('open')}>
       <span aria-hidden="true">▤</span>
     </button>
     {state.open && <dialog ref={dialogRef} className="table-panel" aria-labelledby={`${id}-title`}
+      onFocusCapture={(event) => {
+        if (event.target !== event.currentTarget) focusedControl.current = event.target
+      }}
       onKeyDown={cycleDialogFocus} onCancel={(event) => { event.preventDefault(); void run('close') }}>
       <h2 id={`${id}-title`}>Tables</h2>
       <p>Create a named table from a range, or manage tables on this worksheet.</p>

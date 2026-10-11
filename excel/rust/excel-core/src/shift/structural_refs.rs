@@ -109,11 +109,37 @@ pub(crate) fn rewrite_structural_refs(
     local: bool,
     edit: ShiftEdit,
 ) -> bool {
+    rewrite_scoped(expr, target, local, edit, None)
+}
+
+/// 只在指定列带插入一行；复用整行插入的地址规则，不把旁边的引用一起下移。
+/// 宽于列带的矩形引用保持原范围，不能把单个角下移成另一块不等价的矩形。
+pub(crate) fn rewrite_row_band_insert(
+    expr: &mut Expr, target: &str, local: bool, row: u32, columns: (u32, u32),
+) -> bool {
+    rewrite_scoped(expr, target, local, ShiftEdit::RowInsert { at: row, count: 1 }, Some(columns))
+}
+
+fn rewrite_scoped(
+    expr: &mut Expr, target: &str, local: bool, edit: ShiftEdit, columns: Option<(u32, u32)>,
+) -> bool {
     match expr {
         Expr::CellRef(..)
         | Expr::SheetRef { .. }
         | Expr::Range { .. }
         | Expr::SheetRange { .. } => {
+            if let Some((first, last)) = columns {
+                let covered = match expr {
+                    Expr::CellRef(addr, _) | Expr::SheetRef { addr, .. } =>
+                        (first..=last).contains(&addr.col),
+                    Expr::Range { start, end, unbounded, .. }
+                    | Expr::SheetRange { start, end, unbounded, .. } =>
+                        !unbounded.cols_unbounded() && first <= start.col.min(end.col)
+                            && start.col.max(end.col) <= last,
+                    _ => unreachable!(),
+                };
+                if !covered { return false; }
+            }
             let old = expr.clone();
             let valid = match expr {
                 Expr::CellRef(addr, _) if local => {
@@ -155,7 +181,7 @@ pub(crate) fn rewrite_structural_refs(
             *expr != old
         }
         Expr::SpillRef(inner) => {
-            let changed = rewrite_structural_refs(inner, target, local, edit);
+            let changed = rewrite_scoped(inner, target, local, edit, columns);
             // #REF! 不是合法的 spill 锚点，不能回写成不可重解析的 #REF!#。
             if changed && matches!(inner.as_ref(), Expr::Error(_)) {
                 *expr = (**inner).clone();
@@ -163,27 +189,27 @@ pub(crate) fn rewrite_structural_refs(
             changed
         }
         Expr::Negate(inner) | Expr::Percent(inner) => {
-            rewrite_structural_refs(inner, target, local, edit)
+            rewrite_scoped(inner, target, local, edit, columns)
         }
         Expr::BinOp { left, right, .. }
         | Expr::DynamicRange {
             start: left,
             end: right,
         } => {
-            rewrite_structural_refs(left, target, local, edit)
-                | rewrite_structural_refs(right, target, local, edit)
+            rewrite_scoped(left, target, local, edit, columns)
+                | rewrite_scoped(right, target, local, edit, columns)
         }
         Expr::FuncCall { args, .. } | Expr::MultiArea(args) => {
             let mut changed = false;
             for arg in args {
-                changed |= rewrite_structural_refs(arg, target, local, edit);
+                changed |= rewrite_scoped(arg, target, local, edit, columns);
             }
             changed
         }
         Expr::Call(callee, args) => {
-            let mut changed = rewrite_structural_refs(callee, target, local, edit);
+            let mut changed = rewrite_scoped(callee, target, local, edit, columns);
             for arg in args {
-                changed |= rewrite_structural_refs(arg, target, local, edit);
+                changed |= rewrite_scoped(arg, target, local, edit, columns);
             }
             changed
         }

@@ -61,6 +61,20 @@
 
 提交检查点：按用户要求保存并推送当前进度，不作为整批验收。隔列底色与末列强调已接入 React；表头显隐已初步接入 Rust 历史、WASM 命令与 UI Core，React 入口尚未接入。表头原生专项 6/6 与 UI Core 专项 34/34 通过，UI Core 构建通过；相关原生默认配置回归已通过，lite 队列尚未结束。最新 WASM 表头专项为 **1 passed / 1 failed**：JSON 恢复后，隐藏表头的数组引用溢出格应为 0，实际为 Null（`table_headers_wire_history_and_persistence`）。保留失败回归，不跳过或放宽断言；已占用表头目标行、首行及无数据行的处理仍待完善。此前列样式 E2E 24/24 属于表头续改之前的构件，不能代替当前整批验收。
 
+上述检查点已提交推送为 `f03eaa97`，提交门禁 Vitest **3,028/3,028** 通过。续改已修复保存恢复顺序：Table 定义在公式安装前恢复，使现有批量安装直接生成正确数组投影，不新增第二次刷新。原失败断言保留并通过，另补跨表普通 Table 数组的非锚点首次读取、源值更新和普通公式保持惰性回归。WASM lib **170 passed / 1 ignored**（`/tmp/excel-table-headers-restore-wasm.log`）。
+
+React 已在原 Table 样式面板接入 Header row 开关，直接调用现有 command atom，使用原生回包更新范围／状态；种子 `CalculatedOrders` 可验证隐藏、改列名、恢复及原计算列不移动。UI Core／React 专项 **48/48** 与类型检查通过。浏览器第一轮 **15 passed / 2 failed**（`/tmp/excel-table-headers-first-e2e.log`）：两种构件保存恢复通过，但键盘切换后禁用控件丢失焦点。现由既有 Table 弹窗记住实际焦点控件，回包后仅在焦点落到 body／dialog 时恢复，不抢走用户已经移动的焦点；保留原断言并补连续空格切换。
+
+新增原生筛选交叉回归另复现数组漏投影：隐藏表头清除筛选后，不含 Table 引用的 `IF(SUBTOTAL(...),SEQUENCE(...),...)` 已变值却未改变溢出范围（`/tmp/excel-table-headers-filter-array.log`）。现沿现有筛选 epoch 的反向依赖收集受影响数组，在原事务结束后统一重投；不扫描整表。默认／lite 表头专项各 **6/6** 与 WASM lib **170 passed / 1 ignored** 复验通过，最终 UI 专项 **48/48**、相关 lint、类型、文档、边界与循环依赖检查通过。两种构件重建和浏览器复验仍在原顺序进程中，尚不记通过；本次续改未提交，表头自动腾位等边界及完整批次门禁仍待完成。
+
+复验两种构件重建成功。浏览器第二轮 **26 passed / 1 failed**，原因是新测试把数组放在演示已有的 F47（“Choose status”）上，实际触发合法 spill 阻挡；改用真实新工作表承载数组，并增加跨表／撤销后溢出格清空断言，没有清除 demo 数据或放宽预期。最终五文件专项 **27/27**（23.8 秒）通过（`/tmp/excel-table-headers-final-e2e.log`）。桌面／窄屏截图检查还修正了说明段落误入双列表单的问题；连续空格切换、焦点保留、Escape 返回入口、无横向溢出均通过。全量 Vitest **5,500/5,500**（339 文件）和根构建通过（`/tmp/excel-table-headers-all-vitest.log`、`/tmp/excel-table-headers-build.log`）；全量 lint 仍在原队列中。演示服务 `http://127.0.0.1:5183/` 返回 200。当前没有新增命令／适配层，新增或修改文件均低于 300 行，续改未提交。
+
+剩余交付边界明确保留：上方占用时应在 Table 列范围内自动腾位，不能改为插整行影响旁边内容；首行无空间与空数据表也需完整原生历史、引用及保存恢复语义。目前这些情形仍会拒绝，因此表头功能与整批未完成，不能用上述正常路径专项替代剩余实现及最后全量 E2E 验收。
+
+本轮验证队列已正常退出 0，全量 lint 通过（`/tmp/excel-table-headers-all-lint.log`）；没有遗留运行中的本地测试，也没有自动提交。
+
+最新阶段检查点（按用户要求提交）：已补首行及上方占用时的局部腾位，只下移 Table 列带内的稀疏单元格和 cellStyle，行高、列宽及旁边数据不移动；复用原引用改写和历史，UI Core 传入实际画布行数防止越界。默认／lite 原生专项各 **28/28**、UI Core 专项 **34/34**、UI Core 构建和 React 类型检查通过。涉及其他 Table、命名区域、筛选、校验／条件格式以及合并／溢出区域的腾位仍在写入前拒绝，空数据表处理也未完成；因此仍是阶段性提交。前述 27/27 E2E 使用局部腾位续改前的构件，不能算作新腾位路径的浏览器验证；最新 WASM lib 回归另行确认。
+
 本批三项：隔列底色、末列强调、表头显示／隐藏。样式选项参考 [Excel Table 格式说明](https://support.microsoft.com/en-us/excel/format-an-excel-table)；表头开关参考[官方表头说明](https://support.microsoft.com/en-us/excel/turn-excel-table-headers-on-or-off)，必须处理表头原值、引用与筛选，不能用 CSS 隐藏代替原生语义。沿现有 Table 命令、Rust 历史和返回投影实现，不新增适配层。
 
 起步已扩展原生 `TableStyle` 的 `bandedColumns`／`lastColumn` 两个开关，旧配置缺字段默认为关闭。条纹按 Table 起始列计算，与隔行底色独立；首末列强调随实际表范围变化，手动格式与条件格式仍覆盖 Table 默认样式，不向真实格样式逐格写入。新增 `table_style_columns.rs` 专测列条纹、末列随扩表变化、历史、手动覆盖和旧配置兼容；WASM 既有样式保存恢复用例补充两个新字段。专项正在运行，UI 与表头事务尚未实现，不能宣称本批已可交付。

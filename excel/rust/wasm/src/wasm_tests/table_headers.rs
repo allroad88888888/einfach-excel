@@ -41,3 +41,23 @@ fn table_headers_wrong_sheet_is_rejected_before_mutation() {
     assert_eq!(serde_json::to_value(book.snapshot_persistence_v1_json()).unwrap(), before);
     assert_eq!(book.history.undo_count(), 0);
 }
+
+#[test]
+fn table_headers_insert_checks_the_view_canvas_and_keeps_the_original_row() {
+    let mut book = workbook_with_inventory_table();
+    let action = |enabled, count| serde_json::from_value(serde_json::json!({
+        "kind":"header-row", "name":"Inventory", "enabled":enabled, "rowCount":count,
+    })).unwrap();
+    book.apply_table_action(0, action(false, 10)).unwrap();
+    book.workbook.set_cell(0, "A1", Value::Text("Keep outside".into()));
+    let before = serde_json::to_value(book.snapshot_persistence_v1_json()).unwrap();
+    assert!(book.apply_table_action(0, action(true, 4)).unwrap_err().contains("outside"));
+    assert_eq!(serde_json::to_value(book.snapshot_persistence_v1_json()).unwrap(), before);
+    assert_eq!(book.history.undo_count(), 1);
+    book.apply_table_action(0, action(true, 10)).unwrap();
+    assert_eq!(book.workbook.get_cell("Sheet1", "A1"), Value::Text("Keep outside".into()));
+    assert_eq!(book.workbook.get_cell("Sheet1", "A2"), Value::Text("Name".into()));
+    assert_eq!(book.workbook.get_cell("Sheet1", "B3"), Value::Number(1.));
+    book.history.undo(&mut book.workbook).unwrap();
+    assert_eq!(serde_json::to_value(book.snapshot_persistence_v1_json()).unwrap(), before);
+}

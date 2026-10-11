@@ -26,12 +26,20 @@ use crate::sheet::{
 
 #[path = "workbook_conditional_format_formula.rs"]
 mod conditional_format_formula;
+#[path = "workbook_conditional_color_scale.rs"]
+mod conditional_color_scale;
+#[path = "workbook_conditional_data_bar.rs"]
+mod conditional_data_bar;
+#[path = "workbook_conditional_range.rs"]
+mod conditional_range;
 #[path = "workbook_conditional_format_highlight.rs"]
 mod conditional_format_highlight;
 #[path = "workbook_conditional_format_numeric.rs"]
 pub(crate) mod conditional_format_numeric;
 #[path = "workbook_conditional_format_projection.rs"]
 mod conditional_format_projection;
+pub use conditional_format_projection::DisplayFormatRangeSnapshot;
+pub use conditional_data_bar::DataBarDisplay;
 #[path = "workbook_conditional_format_rank.rs"]
 mod conditional_format_rank;
 #[path = "workbook_conditional_format_rule.rs"]
@@ -163,7 +171,7 @@ pub struct Workbook {
     pub(super) tables_epoch: u64,
     print_configs: Vec<workbook_print_config::SheetPrintConfig>,
     conditional_formats: Vec<workbook_conditional_format_types::SheetConditionalFormatConfig>,
-    conditional_rank_atoms: conditional_format_rank::RankAtoms,
+    conditional_range_atoms: conditional_range::RangeAtoms,
 }
 
 #[cfg(test)]

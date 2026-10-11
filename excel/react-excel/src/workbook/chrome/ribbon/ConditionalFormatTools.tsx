@@ -13,7 +13,7 @@ const OPERATORS = {
 }
 
 function supported(rule: ConditionalFormatRule): rule is NativeConditionalFormatRule {
-  return rule.kind === 'cell-value' || rule.kind === 'formula' || rule.kind === 'top-bottom'
+  return ['cell-value', 'formula', 'top-bottom', 'color-scale', 'data-bar'].includes(rule.kind)
 }
 
 function ruleLabel(rule: ConditionalFormatRule): string {
@@ -21,7 +21,9 @@ function ruleLabel(rule: ConditionalFormatRule): string {
     return `${OPERATORS[rule.operator] ?? rule.operator} ${rule.value}${rule.value2 ? ` – ${rule.value2}` : ''}`
   if (rule.kind === 'formula') return rule.formula
   if (rule.kind === 'top-bottom') return `${rule.direction === 'top' ? 'Top' : 'Bottom'} ${rule.count}${rule.percent ? '%' : ' items'}`
-  return `${rule.kind} (not editable yet)`
+  if (rule.kind === 'color-scale') return rule.midColor ? '3-color scale' : '2-color scale'
+  if (rule.kind === 'data-bar') return 'Data bar'
+  return 'Unsupported rule (not editable yet)'
 }
 
 /** 显示原生规则目录；每个输入只更新 command atom 的未提交草稿。 */
@@ -35,6 +37,7 @@ export function ConditionalFormatTools() {
   const id = useId()
   const open = state.sheetId !== null
   const between = state.rule.kind === 'cell-value' && (state.rule.operator === 'between' || state.rule.operator === 'not-between')
+  const highlight = 'format' in state.rule ? state.rule.format : null
   useLayoutEffect(() => {
     const dialog = dialogRef.current
     const opener = trigger.current
@@ -52,7 +55,7 @@ export function ConditionalFormatTools() {
       aria-describedby={`${id}-hint`} onKeyDown={cycleDialogFocus}
       onCancel={(event) => { event.preventDefault(); void run('close') }}>
       <h2 id={`${id}-title`}>Conditional formatting</h2>
-      <p id={`${id}-hint`}>Highlight by value, formula or rank. Higher rules win when colors overlap.</p>
+      <p id={`${id}-hint`}>Highlight values with conditions, color scales or data bars. Higher rules win when colors overlap.</p>
       <section aria-label="Worksheet rules">
         <h3>Worksheet rules</h3>
         {!config?.rules.length && <p>No rules yet.</p>}
@@ -94,6 +97,8 @@ export function ConditionalFormatTools() {
             <option value="cell-value">Cell value</option>
             <option value="formula">Formula</option>
             <option value="top-bottom">Top / bottom</option>
+            <option value="color-scale">Color scale</option>
+            <option value="data-bar">Data bar</option>
           </select>
           {state.rule.kind === 'cell-value' && <>
           <label htmlFor={`${id}-operator`}>Condition</label>
@@ -137,16 +142,43 @@ export function ConditionalFormatTools() {
               value={Number.isNaN(state.rule.count) ? '' : state.rule.count}
               onChange={(event) => void run({ type: 'draft', rule: { count: event.currentTarget.valueAsNumber } })} />
           </>}
+          {(state.rule.kind === 'color-scale' || state.rule.kind === 'data-bar') && <>
+            {state.rule.kind === 'color-scale' && <>
+              <label htmlFor={`${id}-scale-count`}>Scale colors</label>
+              <select id={`${id}-scale-count`} value={state.rule.midColor ? '3' : '2'}
+                onChange={(event) => void run({ type: 'draft', rule: {
+                  midColor: event.currentTarget.value === '3' ? '#ffeb84' : undefined,
+                } })}>
+                <option value="2">2 colors</option><option value="3">3 colors</option>
+              </select>
+            </>}
+            <label htmlFor={`${id}-low-color`}>{state.rule.kind === 'color-scale' ? 'Minimum color' : 'Negative bar color'}</label>
+            <input id={`${id}-low-color`} type="color" value={state.rule.minColor ?? '#f8696b'}
+              onChange={(event) => void run({ type: 'draft', rule: { minColor: event.currentTarget.value } })} />
+            {state.rule.kind === 'color-scale' && state.rule.midColor && <>
+              <label htmlFor={`${id}-mid-color`}>Midpoint color</label>
+              <input id={`${id}-mid-color`} type="color" value={state.rule.midColor}
+                onChange={(event) => void run({ type: 'draft', rule: { midColor: event.currentTarget.value } })} />
+            </>}
+            <label htmlFor={`${id}-high-color`}>{state.rule.kind === 'color-scale' ? 'Maximum color' : 'Positive bar color'}</label>
+            <input id={`${id}-high-color`} type="color" value={state.rule.maxColor ?? '#638ec6'}
+              onChange={(event) => void run({ type: 'draft', rule: { maxColor: event.currentTarget.value } })} />
+            <p>{state.rule.kind === 'data-bar'
+              ? 'Bars use the full range and a shared zero axis. Negative values extend left; cell values stay visible.'
+              : 'Colors use the full range minimum and maximum. The third color marks the median (50th percentile).'}</p>
+          </>}
+          {highlight && <>
           <label htmlFor={`${id}-fill`}>Highlight fill</label>
-          <input id={`${id}-fill`} type="color" value={state.rule.format.bgColor ?? '#ffc7ce'}
+          <input id={`${id}-fill`} type="color" value={highlight.bgColor ?? '#ffc7ce'}
             onChange={(event) => void run({ type: 'draft', rule: {
-              format: { ...state.rule.format, bgColor: event.currentTarget.value },
+              format: { ...highlight, bgColor: event.currentTarget.value },
             } })} />
           <label htmlFor={`${id}-text`}>Highlight text</label>
-          <input id={`${id}-text`} type="color" value={state.rule.format.fgColor ?? '#9c0006'}
+          <input id={`${id}-text`} type="color" value={highlight.fgColor ?? '#9c0006'}
             onChange={(event) => void run({ type: 'draft', rule: {
-              format: { ...state.rule.format, fgColor: event.currentTarget.value },
+              format: { ...highlight, fgColor: event.currentTarget.value },
             } })} />
+          </>}
         </fieldset>
         {state.error && <p role="alert">{state.error}</p>}
         {state.busy && <p role="status">Saving conditional formatting…</p>}

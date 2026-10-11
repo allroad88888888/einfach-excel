@@ -1,15 +1,24 @@
 //! 条件格式仅覆盖返回的显示快照；持久基础样式与格式刷快照保持原样。
 use super::conditional_format_rule::NativeRule;
+use super::conditional_color_scale::NumericBounds;
+use super::conditional_data_bar::DataBarDisplay;
 use super::*;
 use crate::sheet::{EXCEL_MAX_COLS, EXCEL_MAX_ROWS};
 use crate::FormatRangeSnapshot;
+
+/// 显示快照不能用于格式恢复：数据条只存在于这个读结果，永不进入基础格式快照。
+#[derive(Clone, Debug, PartialEq)]
+pub struct DisplayFormatRangeSnapshot {
+    pub formats: FormatRangeSnapshot,
+    pub data_bars: Vec<(CellAddress, DataBarDisplay)>,
+}
 
 impl Workbook {
     pub fn snapshot_display_format_range(
         &self,
         sheet: usize,
         range: CellRange,
-    ) -> Result<FormatRangeSnapshot, &'static str> {
+    ) -> Result<DisplayFormatRangeSnapshot, &'static str> {
         let range = range.normalize();
         if range.end.row >= EXCEL_MAX_ROWS
             || range.end.col >= EXCEL_MAX_COLS
@@ -34,18 +43,15 @@ impl Workbook {
                     .ok()
                     .filter(NativeRule::enabled)
                     .map(|rule| {
-                        let threshold = match &rule {
-                            NativeRule::Rank(rank) => {
-                                self.conditional_rank_threshold(sheet, entry, rank)
-                            }
-                            _ => None,
-                        };
-                        (entry, rule, threshold)
+                        let statistic = rule.statistic().map(|statistic|
+                            self.conditional_range_statistics(sheet, entry, statistic))
+                            .unwrap_or(Value::Null);
+                        (entry, rule, statistic)
                     })
             })
             .collect();
         if rules.is_empty() {
-            return Ok(snapshot);
+            return Ok(DisplayFormatRangeSnapshot { formats: snapshot, data_bars: Vec::new() });
         }
         // 数字较小的优先级更高；同优先级时，列表中较前的规则优先。
         rules.sort_by_key(|(entry, _, _)| entry.priority);
@@ -54,6 +60,7 @@ impl Workbook {
             .into_iter()
             .map(|(addr, style)| ((addr.row, addr.col), style))
             .collect();
+        let mut data_bars = BTreeMap::new();
         for row in range.start.row..=range.end.row {
             for col in range.start.col..=range.end.col {
                 if !rules.iter().any(|(entry, _, _)| entry.contains(row, col)) {
@@ -64,7 +71,7 @@ impl Workbook {
                     Value::Array(array) => array.get(0, 0),
                     _ => Some(&value),
                 };
-                for (entry, rule, threshold) in rules.iter().rev() {
+                for (entry, rule, statistic) in rules.iter().rev() {
                     if !entry.contains(row, col) {
                         continue;
                     }
@@ -72,19 +79,39 @@ impl Workbook {
                         NativeRule::Numeric(rule) => matches!(scalar,
                             Some(Value::Number(number)) if rule.matches(*number)),
                         NativeRule::Rank(rule) => matches!(scalar,
-                            Some(Value::Number(number)) if rule.matches(*number, *threshold)),
+                            Some(Value::Number(number)) if rule.matches(*number,
+                                if let Value::Number(threshold) = statistic { Some(*threshold) } else { None })),
                         NativeRule::Formula(rule) => rule.matches(
                             self,
                             sheet,
                             CellAddress::new(entry.row_start, entry.col_start),
                             CellAddress::new(row, col),
                         ),
+                        NativeRule::ColorScale(rule) => {
+                            if let (Some(Value::Number(number)), Some(bounds)) =
+                                (scalar, NumericBounds::from_value(statistic)) {
+                                if number.is_finite() {
+                                    styles.entry((row, col)).or_default()
+                                        .apply_patch(&rule.style(*number, bounds));
+                                }
+                            }
+                            false
+                        }
+                        NativeRule::DataBar(rule) => {
+                            if let (Some(Value::Number(number)), Some(bounds)) =
+                                (scalar, NumericBounds::from_value(statistic)) {
+                                if number.is_finite() {
+                                    data_bars.insert((row, col), rule.display(*number, bounds));
+                                }
+                            }
+                            false
+                        }
                     };
                     if matched {
                         styles
                             .entry((row, col))
                             .or_default()
-                            .apply_patch(rule.style());
+                            .apply_patch(rule.style().expect("matched highlight rule"));
                     }
                 }
             }
@@ -94,7 +121,9 @@ impl Workbook {
             .into_iter()
             .map(|((row, col), style)| (CellAddress::new(row, col), style))
             .collect();
-        Ok(snapshot)
+        Ok(DisplayFormatRangeSnapshot { formats: snapshot,
+            data_bars: data_bars.into_iter()
+                .map(|((row, col), bar)| (CellAddress::new(row, col), bar)).collect() })
     }
 }
 

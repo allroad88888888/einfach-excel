@@ -58,7 +58,8 @@ export function snapshotRustWorkbookDefinition(
         throw new Error('Invalid initial conditional-format range.')
       return Object.freeze({
         scope: Object.freeze({ range: Object.freeze({ ...range }) }),
-        rule: Object.freeze({ ...entry.rule, format: Object.freeze({ ...entry.rule.format }) }),
+        rule: Object.freeze('format' in entry.rule
+          ? { ...entry.rule, format: Object.freeze({ ...entry.rule.format }) } : { ...entry.rule }),
       })
     })
     const freeze = sheet.freeze

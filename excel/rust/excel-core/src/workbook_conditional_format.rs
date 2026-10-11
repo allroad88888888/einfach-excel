@@ -26,7 +26,7 @@ impl Workbook {
         let revision = next_conditional_format_revision(config.revision)?;
         config.rules = rules;
         config.revision = revision;
-        self.clear_conditional_rank_atoms(sheet);
+        self.clear_conditional_range_atoms(sheet);
         Ok(())
     }
 
@@ -72,7 +72,7 @@ impl Workbook {
             revision: config.revision,
             rules: config.rules.clone(),
         };
-        self.clear_conditional_rank_atoms(sheet);
+        self.clear_conditional_range_atoms(sheet);
         Ok(snapshot)
     }
 
@@ -101,7 +101,7 @@ impl Workbook {
             revision: config.revision,
             rules: config.rules.clone(),
         };
-        self.clear_conditional_rank_atoms(sheet);
+        self.clear_conditional_range_atoms(sheet);
         Ok(snapshot)
     }
 
@@ -142,7 +142,7 @@ impl Workbook {
             };
         }
         self.conditional_formats = restored;
-        self.conditional_rank_atoms.borrow_mut().clear();
+        self.conditional_range_atoms.borrow_mut().clear();
         Ok(restored_count)
     }
 }

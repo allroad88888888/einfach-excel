@@ -3,6 +3,7 @@ import { mergeRangeAt, nativeFilterRangeAtom, formulaReferenceSessionAtom,
   projectionSnapshotAtom, viewportMetricsAtom } from '@einfach/spreadsheet-ui-core'
 import { useAtomValue } from '@einfach/react'
 import { CellFilterButton } from './CellFilterButton'
+import { CellDataBar } from './CellDataBar'
 import type { CSSProperties } from 'react'
 import { cellFormatStyle, cellTextRotationStyle } from './cell-format-style'
 import { createGridBorderStyles } from './grid-border-style'
@@ -102,12 +103,13 @@ export function SpreadsheetGrid({
       rowCells.push(
         <td
           key={col}
-          className={`cell${isSelected ? ' cell-selected' : ''}${filterHeader ? ' cell-filter-header' : ''}`}
+          className={`cell${isSelected ? ' cell-selected' : ''}${filterHeader ? ' cell-filter-header' : ''}${cell?.dataBar && !merged ? ' cell-data-bar-host' : ''}`}
           data-cell={`${row}:${col}`}
           aria-hidden={merged || undefined}
           data-selected={isSelected ? 'true' : undefined}
           style={formatStyle}
         >
+          {!merged && <CellDataBar bar={cell?.dataBar} />}
           <span
             className="cell-content"
             style={{

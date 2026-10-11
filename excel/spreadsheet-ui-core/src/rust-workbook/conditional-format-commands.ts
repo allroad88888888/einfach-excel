@@ -60,7 +60,7 @@ export function validNativeConditionalFormats(config: NativeConditionalFormats):
       !Number.isSafeInteger(entry.priority) ||
       !entry.rule ||
       typeof entry.rule.kind !== 'string'
-      || ((entry.rule.kind === 'cell-value' || entry.rule.kind === 'formula' || entry.rule.kind === 'top-bottom') && entry.rule.enabled !== undefined
+      || (entry.rule.enabled !== undefined
         && typeof entry.rule.enabled !== 'boolean')
     )
       return false

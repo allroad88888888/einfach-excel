@@ -51,6 +51,13 @@ export interface DisplayCell {
   commentThreadId?: string
   validation?: ValidationOutcome
   conditionalFormat?: SpreadsheetCellFormat
+  /** 原生条件格式的临时显示几何；不是 cellStyle 或单元格宽高。 */
+  dataBar?: {
+    readonly left: number
+    readonly width: number
+    readonly axis?: number
+    readonly color: string
+  }
   richValue?: DisplayCellRichValue
   /** Locked indicator from a protected sheet; gating logic uses unlockedRanges on the UI side. */
   locked?: boolean

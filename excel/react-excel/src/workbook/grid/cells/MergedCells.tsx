@@ -10,6 +10,7 @@ import {
 } from '@einfach/spreadsheet-ui-core'
 import { cellFormatStyle, cellTextRotationStyle } from './cell-format-style'
 import { MergedCellBorders } from './MergedCellBorders'
+import { CellDataBar } from './CellDataBar'
 import './merged-cells.css'
 
 /** 叠加完整合并框并裁到可见窗口，滚动不改变文本在原矩形里的位置。 */
@@ -50,7 +51,7 @@ export function MergedCells({ window, anchors }: {
             data-cell={`${cell.row}:${cell.col}`}
             data-merged-cell="true"
             aria-selected={selected}
-            className="cell merged-cell"
+            className={`cell merged-cell${cell.dataBar ? ' cell-data-bar-host' : ''}`}
             style={{
               ...cellFormatStyle({ ...cell.format, borders: undefined }, cell.valueKind),
               border: 0,
@@ -67,6 +68,7 @@ export function MergedCells({ window, anchors }: {
             }}
           >
             <MergedCellBorders range={range} window={window ?? result.window} />
+            <CellDataBar bar={cell.dataBar} />
             <span className="cell-content">
               <span style={cellTextRotationStyle(cell.format)}>{cell.displayValue}</span>
             </span>

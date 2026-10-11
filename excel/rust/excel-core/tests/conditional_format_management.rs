@@ -24,19 +24,19 @@ fn disable_enable_change_only_display_and_each_undo_restores_the_previous_state(
     let (mut book, mut history) = setup();
     let before = book.conditional_format_config(0).unwrap();
     let base = book.sheet(0).unwrap().snapshot_format_range(range("A1", "A3"));
-    assert_eq!(book.snapshot_display_format_range(0, range("A1", "A3")).unwrap().cell_styles.len(), 1);
+    assert_eq!(book.snapshot_display_format_range(0, range("A1", "A3")).unwrap().formats.cell_styles.len(), 1);
     manage(&mut book, &mut history, "r", Disable);
-    assert!(book.snapshot_display_format_range(0, range("A1", "A3")).unwrap().cell_styles.is_empty());
+    assert!(book.snapshot_display_format_range(0, range("A1", "A3")).unwrap().formats.cell_styles.is_empty());
     assert_eq!(book.sheet(0).unwrap().snapshot_format_range(range("A1", "A3")), base);
     manage(&mut book, &mut history, "r", Enable);
     assert_eq!(history.undo_count(), 2);
     history.undo(&mut book).unwrap();
-    assert!(book.snapshot_display_format_range(0, range("A1", "A3")).unwrap().cell_styles.is_empty());
+    assert!(book.snapshot_display_format_range(0, range("A1", "A3")).unwrap().formats.cell_styles.is_empty());
     history.undo(&mut book).unwrap();
     assert_eq!(book.conditional_format_config(0).unwrap().rules, before.rules);
     history.redo(&mut book).unwrap();
     history.redo(&mut book).unwrap();
-    assert_eq!(book.snapshot_display_format_range(0, range("A1", "A3")).unwrap().cell_styles.len(), 1);
+    assert_eq!(book.snapshot_display_format_range(0, range("A1", "A3")).unwrap().formats.cell_styles.len(), 1);
 }
 
 #[test]
@@ -79,7 +79,7 @@ fn moving_tied_and_extreme_priorities_changes_the_winner_atomically_and_undo_res
         assert_eq!(after.revision, before.revision + 1);
         assert_eq!(after.rules[0].id, "blue");
         assert_eq!(history.undo_count(), 1);
-        let display = book.snapshot_display_format_range(0, range("A1", "A3")).unwrap();
+        let display = book.snapshot_display_format_range(0, range("A1", "A3")).unwrap().formats;
         assert_eq!(display.cell_styles[0].1.background, Some(Some("#0000FF".into())));
         history.undo(&mut book).unwrap();
         assert_eq!(book.conditional_format_config(0).unwrap().rules, before.rules);

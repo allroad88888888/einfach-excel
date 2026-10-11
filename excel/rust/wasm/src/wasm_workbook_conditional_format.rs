@@ -88,7 +88,12 @@ impl WasmWorkbook {
         let range = CellRange::new(CellAddress::new(start_row, start_col), CellAddress::new(end_row, end_col));
         let snapshot = self.workbook.snapshot_display_format_range(sheet as usize, range)
             .map_err(JsValue::from_str)?;
-        serde_wasm_bindgen::to_value(&FormatRangeSnapshotJSON::from_snapshot(&snapshot, Some(sheet)))
+        let wire = DisplayFormatRangeSnapshotJSON {
+            formats: FormatRangeSnapshotJSON::from_snapshot(&snapshot.formats, Some(sheet)),
+            data_bars: snapshot.data_bars.into_iter().map(|(addr, bar)|
+                DisplayDataBarJSON { addr: addr.to_string(), bar }).collect(),
+        };
+        wire.serialize(&serde_wasm_bindgen::Serializer::json_compatible())
             .map_err(|error| JsValue::from_str(&format!("serialize display formatting: {error}")))
     }
 
@@ -116,6 +121,21 @@ impl WasmWorkbook {
         }
         Ok(parsed)
     }
+}
+
+#[derive(Serialize)]
+struct DisplayFormatRangeSnapshotJSON {
+    #[serde(flatten)]
+    formats: FormatRangeSnapshotJSON,
+    #[serde(rename = "dataBars")]
+    data_bars: Vec<DisplayDataBarJSON>,
+}
+
+#[derive(Serialize)]
+struct DisplayDataBarJSON {
+    addr: String,
+    #[serde(flatten)]
+    bar: einfach_excel_core::DataBarDisplay,
 }
 
 fn conditional_format_wire_to_js(

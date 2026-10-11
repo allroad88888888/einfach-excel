@@ -73,7 +73,7 @@ fn deleting_the_rule_origin_rebases_to_the_first_surviving_cell() {
     assert!(!formula(&book, 0).contains("#REF!"));
     assert!(book
         .snapshot_display_format_range(0, range("B2", "B2"))
-        .unwrap()
+        .unwrap().formats
         .cell_styles
         .iter()
         .any(|(_, style)| style.bold == Some(true)));
@@ -90,7 +90,7 @@ fn deleting_an_absolute_reference_leaves_ref_error_which_iferror_can_handle() {
     assert!(formula(&book, 0).contains("#REF!"));
     assert!(book
         .snapshot_display_format_range(0, range("B1", "B1"))
-        .unwrap()
+        .unwrap().formats
         .cell_styles
         .iter()
         .any(|(_, style)| style.bold == Some(true)));

@@ -1,8 +1,7 @@
 //! 排名条件的参数校验与阈值缓存；依赖失效交给既有 Rust atom。
 use super::conditional_format_highlight::{enabled_by_default, Highlight};
-use super::*;
 use crate::cell_style::CellStyle;
-use crate::sheet::RankThreshold;
+use crate::sheet::ConditionalStatistic;
 use serde::Deserialize;
 
 #[derive(Clone, Copy, Deserialize)]
@@ -68,40 +67,7 @@ impl RankRule {
                 }
             })
     }
-}
-
-impl Workbook {
-    pub(super) fn conditional_rank_threshold(
-        &self,
-        sheet: usize,
-        entry: &ConditionalFormatRuleEntry,
-        rule: &RankRule,
-    ) -> Option<f64> {
-        let key = (self.sheet_keys[sheet], entry.id.clone());
-        // 只保存派生 atom 身份；不复制工作簿数据，不自建修订号失效机制。
-        let atom = {
-            let mut cache = self.conditional_rank_atoms.borrow_mut();
-            Rc::clone(cache.entry(key).or_insert_with(|| {
-                Rc::new(self.sheets[sheet].create_rank_threshold(
-                    CellRange::new(
-                        CellAddress::new(entry.row_start, entry.col_start),
-                        CellAddress::new(entry.row_end, entry.col_end),
-                    ),
-                    rule.count,
-                    rule.percent,
-                    rule.bottom,
-                ))
-            }))
-        };
-        atom.read()
-    }
-
-    pub(super) fn clear_conditional_rank_atoms(&self, sheet: usize) {
-        let key = self.sheet_keys[sheet];
-        self.conditional_rank_atoms
-            .borrow_mut()
-            .retain(|(owner, _), _| *owner != key);
+    pub(super) fn statistic(&self) -> ConditionalStatistic {
+        ConditionalStatistic::Rank { count: self.count, percent: self.percent, bottom: self.bottom }
     }
 }
-
-pub(super) type RankAtoms = std::cell::RefCell<HashMap<(u64, String), Rc<RankThreshold>>>;

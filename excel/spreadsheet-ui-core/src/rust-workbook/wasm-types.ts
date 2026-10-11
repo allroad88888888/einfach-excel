@@ -1,4 +1,4 @@
-import type { SpreadsheetCellFormat, SpreadsheetNumberFormat, ViewportRowHeight, ViewportColumnWidth } from '../backend'
+import type { DisplayCell, SpreadsheetCellFormat, SpreadsheetNumberFormat, ViewportRowHeight, ViewportColumnWidth } from '../backend'
 import type { RangeBorderPatch } from '../backend/format-contracts'
 import type { RustImportCell, RustImportStats } from './commands'
 import type { RustClipboardCapture, RustClipboardPasteRequest } from './clipboard-commands'
@@ -49,6 +49,7 @@ export interface RustFormatRangeSnapshot {
   readonly cellStyles: readonly RustCellStyleSnapshot[]
   readonly rowStyles: readonly RustIndexedRowStyleSnapshot[]
   readonly columnStyles: readonly RustIndexedStyleSnapshot[]
+  readonly dataBars?: readonly ({ readonly addr: string } & NonNullable<DisplayCell['dataBar']>)[]
 }
 
 export interface WasmWorkbook {

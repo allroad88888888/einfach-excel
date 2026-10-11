@@ -32,7 +32,7 @@ impl Workbook {
         let mut removed = None;
         store.batch(|_| {
             self.apply_conditional_rule_sources(&conditional);
-            self.clear_conditional_rank_atoms(idx);
+            self.clear_conditional_range_atoms(idx);
             let sheet = self.sheets.remove(idx);
             self.sheet_keys.remove(idx);
             self.print_configs.remove(idx);

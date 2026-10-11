@@ -82,7 +82,7 @@ fn numeric_rules_persist_without_baking_their_highlight_into_cell_styles() {
     let visible = restored
         .workbook
         .snapshot_display_format_range(0, range)
-        .unwrap();
+        .unwrap().formats;
     assert_eq!(
         visible.cell_styles[0].1.background,
         Some(Some("#FFC7CE".into()))
@@ -91,7 +91,7 @@ fn numeric_rules_persist_without_baking_their_highlight_into_cell_styles() {
     assert!(restored
         .workbook
         .snapshot_display_format_range(0, range)
-        .unwrap()
+        .unwrap().formats
         .cell_styles
         .is_empty());
 }
@@ -171,7 +171,7 @@ fn copied_disabled_rules_and_reordered_priorities_round_trip_in_persistence() {
     assert!(restored
         .workbook
         .snapshot_display_format_range(0, range)
-        .unwrap()
+        .unwrap().formats
         .cell_styles
         .is_empty());
     assert!(restored
@@ -223,14 +223,14 @@ fn formula_and_rank_rules_round_trip_with_live_display_and_no_base_highlights() 
         let visible = restored
             .workbook
             .snapshot_display_format_range(0, range)
-            .unwrap();
+            .unwrap().formats;
         assert_eq!(visible.cell_styles.len(), 1);
         assert_eq!(visible.cell_styles[0].0, CellAddress::new(1, 0));
         restored.workbook.set_cell(0, "A1", Value::Number(20.0));
         let visible = restored
             .workbook
             .snapshot_display_format_range(0, range)
-            .unwrap();
+            .unwrap().formats;
         assert!(visible
             .cell_styles
             .iter()

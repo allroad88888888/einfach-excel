@@ -136,3 +136,28 @@ test.each(['items', 'percent'])('bottom %s controls use the same native command'
   expect(request.mock.calls[0][1]).toMatchObject({ action: 'set',
     rule: { kind: 'top-bottom', direction: 'bottom', count: 20, percent: unit === 'percent' } })
 })
+
+test.each(['two', 'three', 'bar'])('%s visual controls remain drafts until one native save', async (mode) => {
+  const request = setup()
+  await click('Conditional formatting')
+  await act(async () => {
+    fireEvent.change(screen.getByLabelText('Rule type'), { target: { value: mode === 'bar' ? 'data-bar' : 'color-scale' } })
+  })
+  expect(screen.queryByLabelText('Highlight fill')).toBeNull()
+  expect(screen.queryByLabelText('Value', { exact: true })).toBeNull()
+  if (mode === 'three') await act(async () => {
+    fireEvent.change(screen.getByLabelText('Scale colors'), { target: { value: '3' } })
+  })
+  expect(screen.queryByLabelText('Midpoint color') !== null).toBe(mode === 'three')
+  await act(async () => {
+    fireEvent.change(screen.getByLabelText(mode === 'bar' ? 'Positive bar color' : 'Maximum color'),
+      { target: { value: '#123456' } })
+  })
+  expect(request).not.toHaveBeenCalled()
+  await click('Add rule')
+  expect(request).toHaveBeenCalledTimes(1)
+  expect(request.mock.calls[0][1]).toMatchObject({ action: 'set', rule: {
+    kind: mode === 'bar' ? 'data-bar' : 'color-scale', maxColor: '#123456',
+  } })
+  expect(request.mock.calls[0][1]).not.toHaveProperty('rule.format')
+})

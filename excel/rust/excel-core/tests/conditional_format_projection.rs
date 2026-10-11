@@ -9,7 +9,7 @@ use support::{range, rule};
 
 fn highlighted(book: &Workbook, addr: &str) -> bool {
     book.snapshot_display_format_range(0, range(addr, addr))
-        .unwrap()
+        .unwrap().formats
         .cell_styles
         .iter()
         .any(|(_, style)| style.background == Some(Some("#FFC7CE".into())))
@@ -109,7 +109,7 @@ fn overlapping_rules_combine_properties_with_stable_priority_and_do_not_split_ra
     book.set_conditional_format_rule(0, 1, low).unwrap();
     let styles = book
         .snapshot_display_format_range(0, range("A1", "A1"))
-        .unwrap()
+        .unwrap().formats
         .cell_styles;
     assert_eq!(styles[0].1.background, Some(Some("#FFC7CE".into())));
     assert_eq!(styles[0].1.bold, Some(true));
@@ -126,12 +126,12 @@ fn overlapping_rules_combine_properties_with_stable_priority_and_do_not_split_ra
 fn viewport_reads_are_bounded_and_unimplemented_legacy_rules_stay_persisted() {
     let mut book = Workbook::new();
     let mut old = rule("old", range("A1", "A1048576"), "gt", "0");
-    old.rule_json = r##"{"kind":"data-bar","maxColor":"#123456"}"##.into();
+    old.rule_json = r##"{"kind":"icon-set","maxColor":"#123456"}"##.into();
     book.set_conditional_format_rule(0, 0, old.clone()).unwrap();
     let before = book.snapshot_conditional_formats();
     assert_eq!(
         book.snapshot_display_format_range(0, range("A1", "A2"))
-            .unwrap()
+            .unwrap().formats
             .cell_styles
             .len(),
         0

@@ -20,7 +20,7 @@ fn install(book: &mut Workbook, end: &str, count: u32, percent: bool, bottom: bo
 
 fn bold(book: &Workbook, address: &str) -> bool {
     book.snapshot_display_format_range(0, range(address, address))
-        .unwrap()
+        .unwrap().formats
         .cell_styles
         .iter()
         .any(|(_, style)| style.bold == Some(true))

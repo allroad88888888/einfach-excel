@@ -129,9 +129,9 @@ mod interior;
 mod lifecycle;
 #[path = "sheet_range_tiers.rs"]
 mod range_tiers;
-#[path = "sheet_rank_threshold.rs"]
-mod rank_threshold;
-pub(crate) use rank_threshold::RankThreshold;
+#[path = "sheet_conditional_range.rs"]
+mod conditional_range;
+pub(crate) use conditional_range::{ConditionalRangeAtom, ConditionalStatistic};
 #[path = "sheet_read.rs"]
 mod read;
 #[path = "sheet_relocate.rs"]

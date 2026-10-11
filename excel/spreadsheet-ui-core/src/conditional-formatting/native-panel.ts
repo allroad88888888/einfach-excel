@@ -1,5 +1,5 @@
 import { atom } from '@einfach/core'
-import type { CellValueRule, FormulaRule, TopBottomRule, NativeConditionalFormatRule } from './types'
+import type { CellValueRule, FormulaRule, TopBottomRule, ColorScaleRule, DataBarRule, NativeConditionalFormatRule } from './types'
 import { editingSessionAtom } from '../editing/session-atoms'
 import { parseA1Cell, parseA1Range, rangeToA1 } from '../name-box'
 import { activeWorkbookSheetAtom } from '../runtime/workbook-document'
@@ -40,7 +40,7 @@ type Action = 'open' | 'close' | 'new' | 'save'
   | { type: 'kind'; kind: NativeConditionalFormatRule['kind'] }
   | { type: 'edit'; id: string }
   | { type: 'remove' | 'duplicate' | 'enable' | 'disable' | 'move-up' | 'move-down'; id: string }
-  | { type: 'draft'; range?: string; rule?: Partial<Omit<CellValueRule, 'kind'> & Omit<FormulaRule, 'kind'> & Omit<TopBottomRule, 'kind'>> }
+  | { type: 'draft'; range?: string; rule?: Partial<Omit<CellValueRule, 'kind'> & Omit<FormulaRule, 'kind'> & Omit<TopBottomRule, 'kind'> & Omit<ColorScaleRule, 'kind'> & Omit<DataBarRule, 'kind'>> }
 
 /** 一个入口负责草稿与提交；规则判断不进入 TS，复用现有可见投影发布。 */
 export const runNativeConditionalFormatAtom = atom(null, async (
@@ -71,10 +71,15 @@ export const runNativeConditionalFormatAtom = atom(null, async (
   if (state.sheetId !== sheet.id || state.connection !== connection)
     return fail('The workbook or worksheet changed. Close and reopen Conditional formatting.')
   if (typeof action === 'object' && action.type === 'kind') {
-    const common = { format: { ...state.rule.format },
-      ...(state.rule.enabled === undefined ? {} : { enabled: state.rule.enabled }) }
+    const enabled = state.rule.enabled === undefined ? {} : { enabled: state.rule.enabled }
+    const common = { ...enabled, format: 'format' in state.rule ? { ...state.rule.format }
+      : { bgColor: '#ffc7ce', fgColor: '#9c0006' } }
     // 换种类从新草稿开始，不能把 operator/value 等旧字段混进公式或排名规则。
-    const rule: NativeConditionalFormatRule = action.kind === 'formula'
+    const rule: NativeConditionalFormatRule = action.kind === 'color-scale'
+      ? { ...enabled, kind: 'color-scale', minColor: '#f8696b', maxColor: '#63be7b' }
+      : action.kind === 'data-bar'
+        ? { ...enabled, kind: 'data-bar', minColor: '#f8696b', maxColor: '#638ec6' }
+      : action.kind === 'formula'
       ? { ...common, kind: 'formula', formula: '' }
       : action.kind === 'top-bottom'
         ? { ...common, kind: 'top-bottom', direction: 'top', count: 10, percent: false }
@@ -91,10 +96,10 @@ export const runNativeConditionalFormatAtom = atom(null, async (
   }
   if (typeof action === 'object' && action.type === 'edit') {
     const entry = config.rules.find((rule) => rule.id === action.id)
-    if (!entry || (entry.rule.kind !== 'cell-value' && entry.rule.kind !== 'formula' && entry.rule.kind !== 'top-bottom'))
+    if (!entry || !['cell-value', 'formula', 'top-bottom', 'color-scale', 'data-bar'].includes(entry.rule.kind))
       return fail('This rule type cannot be edited here yet.')
     set(nativeConditionalFormatPanelAtom, { ...state, error: '', ruleId: entry.id,
-      rule: { ...entry.rule, format: { ...entry.rule.format } }, priority: entry.priority,
+      rule: 'format' in entry.rule ? { ...entry.rule, format: { ...entry.rule.format } } : { ...entry.rule }, priority: entry.priority,
       range: rangeToA1(entry.scope.range), revision: config.revision,
     })
     return true
@@ -119,6 +124,10 @@ export const runNativeConditionalFormatAtom = atom(null, async (
     if (!range || range.rowEnd >= sheet.rowCount || range.colEnd >= sheet.colCount)
       return fail('Enter a cell or range inside this worksheet, for example A1:A100.')
     let rule = state.rule
+    if (rule.kind === 'color-scale' && rule.midColor === undefined) {
+      const { midColor: _unused, ...twoColors } = rule
+      rule = twoColors
+    }
     if (rule.kind === 'cell-value' && rule.operator !== 'between' && rule.operator !== 'not-between') {
       const { value2: _unused, ...single } = rule
       rule = single

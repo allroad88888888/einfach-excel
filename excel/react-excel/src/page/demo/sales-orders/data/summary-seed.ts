@@ -68,6 +68,11 @@ export const SALES_ORDER_SUMMARY_CELLS: readonly RustImportCell[] = [
   { sheet: 1, row: 72, col: 0, kind: 'number', value: 4 },
   { sheet: 1, row: 70, col: 1, kind: 'formula', value: '=A71+$A$71', format: { bold: true } },
   { sheet: 1, row: 70, col: 3, kind: 'text', value: 'Fill me', format: { underline: true } },
+  // 独立的条件显示示例 C75:E79：三列同值，两色、三色、正负数据条。
+  ...[2, 3, 4].flatMap((col): RustImportCell[] =>
+    [-10, 0, 5, 10, 20].map((value, offset): RustImportCell => ({
+      sheet: 1, row: 74 + offset, col, kind: 'number', value,
+    }))),
   // 查找示例保存在原生数据：emoji 的匹配位置、大小写与公式源分别可验收。
   { sheet: 1, row: 84, col: 0, kind: 'text', value: '😀alpha alpha' },
   { sheet: 1, row: 84, col: 1, kind: 'text', value: 'ALPHA' },
@@ -206,6 +211,15 @@ export const SUMMARY_CONDITIONAL_FORMATS = [{
   scope: { range: { rowStart: 64, rowEnd: 66, colStart: 4, colEnd: 4 } },
   rule: { kind: 'top-bottom', direction: 'bottom', count: 50, percent: true,
     format: { bgColor: '#fff2cc' } },
+}, {
+  scope: { range: { rowStart: 74, rowEnd: 78, colStart: 2, colEnd: 2 } },
+  rule: { kind: 'color-scale', minColor: '#f8696b', maxColor: '#63be7b' },
+}, {
+  scope: { range: { rowStart: 74, rowEnd: 78, colStart: 3, colEnd: 3 } },
+  rule: { kind: 'color-scale', minColor: '#f8696b', midColor: '#ffeb84', maxColor: '#63be7b' },
+}, {
+  scope: { range: { rowStart: 74, rowEnd: 78, colStart: 4, colEnd: 4 } },
+  rule: { kind: 'data-bar', minColor: '#f8696b', maxColor: '#638ec6' },
 }] as const
 
 /** 两个原生合并样例；覆盖格不再重复存储内容。 */

@@ -72,6 +72,25 @@ function setup(existing = false) {
   return { store, request, run }
 }
 
+test.each(['two', 'three', 'bar'] as const)('visual %s rule sends only its native fields', async (mode) => {
+  const { store, request, run } = setup()
+  await run('open')
+  await run({ type: 'draft', rule: { value: '9' } })
+  await run({ type: 'kind', kind: mode === 'bar' ? 'data-bar' : 'color-scale' })
+  await run({ type: 'draft', rule: {
+    minColor: '#000000', maxColor: '#ffffff', ...(mode === 'three' ? { midColor: '#ff0000' } : {}),
+  } })
+  expect(request).not.toHaveBeenCalled()
+  expect(store.getter(nativeConditionalFormatPanelAtom).rule).not.toHaveProperty('format')
+  expect(await run('save')).toBe(true)
+  const sent = request.mock.calls[0][1]
+  expect(sent).toMatchObject({ action: 'set', rule: {
+    kind: mode === 'bar' ? 'data-bar' : 'color-scale', minColor: '#000000', maxColor: '#ffffff',
+  } })
+  expect(sent).not.toHaveProperty('rule.value')
+  expect(request).toHaveBeenCalledTimes(1)
+})
+
 test('draft changes and cancel never send commands; new saves one request and publishes Rust rules', async () => {
   const { store, request, run } = setup()
   await run('open')

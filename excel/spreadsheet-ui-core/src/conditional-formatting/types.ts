@@ -33,12 +33,14 @@ export interface FormulaRule {
 
 export interface DataBarRule {
   kind: 'data-bar'
+  enabled?: boolean
   minColor?: string
   maxColor?: string
 }
 
 export interface ColorScaleRule {
   kind: 'color-scale'
+  enabled?: boolean
   minColor: string
   midColor?: string
   maxColor: string
@@ -54,7 +56,12 @@ export interface TopBottomRule {
 }
 
 /** 已接入 Rust 求值、管理及历史的规则；其余类型只保留旧持久化数据。 */
-export type NativeConditionalFormatRule = CellValueRule | FormulaRule | TopBottomRule
+export type NativeConditionalFormatRule =
+  | CellValueRule
+  | FormulaRule
+  | TopBottomRule
+  | ColorScaleRule
+  | DataBarRule
 
 export type ConditionalFormatRule =
   | CellValueRule

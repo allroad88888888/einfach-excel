@@ -69,11 +69,20 @@ export function applyVisibleFormats(
   const cellStyles = new Map(snapshot.cellStyles.map((entry) => [entry.addr, entry.format]))
   const rowStyles = new Map(snapshot.rowStyles.map((entry) => [entry.index, entry.format]))
   const columnStyles = new Map(snapshot.columnStyles.map((entry) => [entry.index, entry.format]))
+  const dataBars = new Map((snapshot.dataBars ?? []).map(({ addr, ...bar }) => {
+    if (![bar.left, bar.width, ...(bar.axis === undefined ? [] : [bar.axis])]
+      .every((value) => Number.isFinite(value) && value >= 0 && value <= 100)
+      || bar.left + bar.width > 100.000001 || !/^#[0-9a-f]{6}$/i.test(bar.color))
+      throw new Error('Rust returned invalid data-bar geometry.')
+    return [addr, bar] as const
+  }))
   const result: DisplayCell[] = []
 
   for (let row = window.rowStart; row <= window.rowEnd; row += 1) {
     for (let col = window.colStart; col <= window.colEnd; col += 1) {
-      const cell = cellsByCoordinate.get(`${row}:${col}`)
+      const source = cellsByCoordinate.get(`${row}:${col}`)
+      const dataBar = dataBars.get(toA1(row, col))
+      const cell = source && { ...source, dataBar }
       const format = formatAt(cellStyles, rowStyles, columnStyles, row, col)
       if (cell) {
         result.push(

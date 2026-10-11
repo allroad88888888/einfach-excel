@@ -163,6 +163,7 @@ export function cloneCell(cell: DisplayCell): DisplayCell {
   if (cell.formatKey !== undefined) clone.formatKey = cell.formatKey
   if (cell.format) clone.format = cloneFormat(cell.format)
   if (cell.conditionalFormat) clone.conditionalFormat = cloneFormat(cell.conditionalFormat)
+  if (cell.dataBar) clone.dataBar = { ...cell.dataBar }
   if (cell.validation) clone.validation = { ...cell.validation }
   if (cell.richValue) clone.richValue = cloneRichValue(cell.richValue)
   if (cell.mergedSpan) clone.mergedSpan = { ...cell.mergedSpan }

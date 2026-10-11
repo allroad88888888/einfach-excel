@@ -18,7 +18,7 @@ fn install(book: &mut Workbook, id: &str, formula: &str) {
 
 fn bold(book: &Workbook) -> bool {
     book.snapshot_display_format_range(0, range("A1", "A1"))
-        .unwrap()
+        .unwrap().formats
         .cell_styles
         .iter()
         .any(|(_, style)| style.bold == Some(true))

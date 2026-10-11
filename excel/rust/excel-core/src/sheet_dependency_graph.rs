@@ -39,6 +39,36 @@ impl Sheet {
         roots
     }
 
+    /// 大范围只筛选已存在的 atom；结构历史的整条稀疏带不能枚举百万行乘万列。
+    pub(crate) fn store_root_atoms_for_range(&self, range: CellRange) -> Vec<AtomId> {
+        if u64::from(range.rows()) * u64::from(range.cols()) <= 256 {
+            return range.iter().flat_map(|addr| self.store_root_atoms_for_addr(addr)).collect();
+        }
+        let mut roots = Vec::new();
+        for (addr, slot) in self.interior.cells.borrow().iter() {
+            if range.contains(addr) { roots.extend(slot.atom_id()); }
+        }
+        for (addr, id) in self.slot_epoch_family.borrow().iter() {
+            if range.contains(*addr) { roots.push(id); }
+        }
+        for (addr, id) in self.cell_facade_family.borrow().iter() {
+            if range.contains(*addr) { roots.push(id); }
+        }
+        let first = range_band_key_for_addr(range.start).row_band;
+        let last = range_band_key_for_addr(range.end).row_band;
+        for (key, id) in self.range_band_epoch_family.borrow().iter() {
+            if (range.start.col..=range.end.col).contains(&key.col)
+                && (first..=last).contains(&key.row_band) { roots.push(id); }
+        }
+        for (key, id) in self.range_column_epoch_family.borrow().iter() {
+            if (range.start.col..=range.end.col).contains(&key.col) { roots.push(id); }
+        }
+        roots.extend(self.range_sheet_epoch_family.borrow().get(&()));
+        let mut seen = HashSet::new();
+        roots.retain(|id| self.store.has_atom(*id) && seen.insert(*id));
+        roots
+    }
+
     pub(crate) fn array_formula_addrs_for_store_atoms(
         &self,
         atom_ids: &[AtomId],

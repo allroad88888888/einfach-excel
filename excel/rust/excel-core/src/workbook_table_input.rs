@@ -137,8 +137,9 @@ impl TableDefinitionChange {
             }
             result = if let Some(calculated) = &mut calculated {
                 calculated.apply_calculated_input(workbook).map(|_| ())
-            } else if let Some(source) = &deferred_formula {
-                workbook.set_table_formula(self.sheet, addr, source).map_err(str::to_string)
+            } else if deferred_formula.is_some() {
+                // 显式公式与本行继承公式一起安装，不能先对着半行数据投影。
+                Ok(())
             } else {
                 workbook.set_cell_input(self.sheet, &addr.to_string(), input).map_err(str::to_string)
             };
@@ -153,6 +154,10 @@ impl TableDefinitionChange {
             }
             let mut changed = vec![addr];
             if result.is_ok() && inherited_row {
+                let mut formulas = Vec::new();
+                if let Some(source) = &deferred_formula {
+                    formulas.push(CellSnapshot::formula(addr, source.clone()));
+                }
                 result = self.before.calculated_columns.iter().enumerate().try_for_each(|(offset, formula)| {
                     let Some(formula) = formula else { return Ok(()); };
                     let target = CellAddress::new(addr.row, self.before.range.start.col + offset as u32);
@@ -161,10 +166,13 @@ impl TableDefinitionChange {
                         || workbook.sheets[self.sheet].peek_value(target) != Value::Null {
                         return Ok(());
                     }
-                    workbook.set_table_formula(self.sheet, target, &formula.formula_at(addr.row)?)?;
+                    formulas.push(CellSnapshot::formula(target, formula.formula_at(addr.row)?));
                     changed.push(target);
                     Ok(())
                 }).map_err(str::to_string);
+                if result.is_ok() {
+                    result = workbook.set_table_formulas(self.sheet, &formulas).map_err(str::to_string);
+                }
                 if result.is_ok() {
                     result = changed.iter().try_for_each(|target| {
                         let value = crate::sheet::collapse_array_for_eval(

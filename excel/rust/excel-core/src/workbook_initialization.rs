@@ -87,8 +87,7 @@ impl Workbook {
     pub(super) fn array_dependents_for_range(
         &self, sheet: usize, range: CellRange,
     ) -> Vec<(usize, HashSet<CellAddress>)> {
-        let roots: Vec<_> = range.iter()
-            .flat_map(|addr| self.sheets[sheet].store_root_atoms_for_addr(addr)).collect();
+        let roots = self.sheets[sheet].store_root_atoms_for_range(range);
         let dependents = self.store.reverse_dependents(&roots);
         self.array_dependents_for_atoms(&dependents)
     }

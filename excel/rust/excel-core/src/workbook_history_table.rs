@@ -24,10 +24,11 @@ impl WorkbookHistory {
         if self.pending.is_some() || workbook.is_inside_custom_call() {
             return Err("Another history command is pending.".into());
         }
-        let Some(change) = TableDefinitionChange::prepare_resize(workbook, name, range)? else {
+        let Some(mut change) = TableDefinitionChange::prepare_resize(workbook, name, range)? else {
             return Ok(false);
         };
-        self.finish_table_change(workbook, change, "Resize table")?;
+        change.apply_resizing(workbook)?;
+        self.record_table_change(workbook, change, "Resize table");
         Ok(true)
     }
 

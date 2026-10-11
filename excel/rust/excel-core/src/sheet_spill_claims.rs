@@ -311,7 +311,7 @@ impl Sheet {
     }
 
     /// Every blocked anchor address. Sorted by the caller.
-    pub(super) fn blocked_anchor_addresses(&self) -> Vec<CellAddress> {
+    pub(crate) fn blocked_anchor_addresses(&self) -> Vec<CellAddress> {
         self.spill_blocked.anchor_addresses()
     }
 

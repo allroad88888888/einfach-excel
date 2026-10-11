@@ -96,10 +96,7 @@ impl TableDefinitionChange {
             // 整列是同一次替换：先移除旧依赖，避免旧公式把合法的新依赖误判为循环。
             workbook.clear_range(self.sheet, self.range);
             let planned = self.cells[0].1.cells.as_ref().unwrap();
-            result = planned.iter().try_for_each(|cell| {
-                let source = cell.formula.as_ref().unwrap();
-                workbook.set_table_formula(self.sheet, cell.addr, source)
-            });
+            result = workbook.set_table_formulas(self.sheet, planned);
             // 列内公式可能依赖后面的行，必须在所有源码安装后校验最终值。
             if result.is_ok() {
                 result = planned.iter().try_for_each(|cell| {
@@ -135,18 +132,27 @@ impl TableDefinitionChange {
 
 impl Workbook {
     /// 自动填充与新行继承共用；调用者必须提供整个动作的回滚边界。
-    pub(super) fn set_table_formula(
-        &mut self, sheet: usize, addr: CellAddress, source: &str,
+    pub(in crate::workbook) fn set_table_formulas(
+        &mut self, sheet: usize, cells: &[CellSnapshot],
     ) -> Result<(), &'static str> {
-        let expr = parse_formula(source).ok_or("INVALID_FORMULA")?;
-        if self.closes_workbook_cycle(sheet, addr, &expr) { return Err("FORMULA_CYCLE"); }
-        // 已确认是公式，目标 Text 格式不把填充重新解释成字符串输入。
-        if !self.try_set_formula(sheet, &addr.to_string(), source)
-            .map_err(|_| "Could not write table formula.")? {
-            return Err("INVALID_FORMULA");
+        if self.is_inside_custom_call() { return Err("MUTATION_DURING_CUSTOM_CALL"); }
+        let parsed = cells.iter().map(|cell| {
+            parse_formula(cell.formula.as_ref().expect("table formula plan"))
+                .ok_or("INVALID_FORMULA")
+        }).collect::<Result<Vec<_>, _>>()?;
+        // 复用惰性装载，不在逐格安装期间投影数组；Text 格式不改变公式语义。
+        self.sheets[sheet].bulk_load(|loader| {
+            for cell in cells {
+                loader.set_formula_at(cell.addr, cell.formula.as_ref().unwrap());
+            }
+        });
+        // 所有源码已落地，现有静态检查才能同时看到本次新增的依赖边。
+        for (cell, expr) in cells.iter().zip(&parsed) {
+            if self.closes_workbook_cycle(sheet, cell.addr, expr) { return Err("FORMULA_CYCLE"); }
         }
-        if self.sheets[sheet].is_spill_region(addr)
-            || self.sheets[sheet].blocked_anchor_shape(addr).is_some() {
+        self.sheets[sheet].project_bulk_spill_anchors(cells.iter().map(|cell| cell.addr).collect());
+        if cells.iter().any(|cell| self.sheets[sheet].is_spill_region(cell.addr)
+            || self.sheets[sheet].blocked_anchor_shape(cell.addr).is_some()) {
             return Err("Spilled arrays cannot be entered inside a table.");
         }
         Ok(())

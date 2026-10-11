@@ -81,9 +81,25 @@
 
 右侧公式扩列已复用计算列预检与填充事务：表头、范围和整列公式共用一条历史，失败整体回滚并保留 redo；已有数据、文本格式、保护及汇总行保持原有边界。向下扩表时，显式输入公式的数据验证延后到本行计算列全部继承之后，避免用中间空值误判；合并历史仍检查 32 MiB 预算。
 
-该续改默认配置相关测试 **41/41**、最新测试设置断言专项 **9/9** 通过；WASM lib **164 passed / 1 ignored** 通过（`/tmp/excel-calculated-expand-final-default.log`、`/tmp/excel-calculated-expand-setup-default.log`、`/tmp/excel-calculated-expand-final-wasm.log`）。lite 同组验证尚未全部结束，不先记为通过。本次按用户要求保存阶段提交，不作为整批验收。
+该续改默认／lite 配置相关测试各 **41/41**、最新测试设置断言专项 **9/9** 通过；WASM lib **164 passed / 1 ignored** 通过（`/tmp/excel-calculated-expand-final-default.log`、`/tmp/excel-calculated-expand-final-lite.log`、`/tmp/excel-calculated-expand-setup-default.log`、`/tmp/excel-calculated-expand-final-wasm.log`）。上述引用、结构及扩列阶段已按用户要求提交推送为 `7b6f57a1`，工作区当时干净，不作为整批验收。
 
-尚待完成：结构插入新行的公式填充、手动扩表继承事务交叉行为、UI Core／React 交叉测试、真实 WASM 构件与持久 E2E、演示种子。另需验证逐格安装公式时的临时 spill：条件公式可能中途返回数组、同一行写完后才变为标量，目前只是待复现风险，不能视为已解决。不能把三条原生基础路径当成三项完整交互验收，不复用上一批验收结果。
+临时 spill 风险已复现：显式输入 `IF(B4=0,SEQUENCE(2),B4+1)` 被未继承的 B4 空值误导，最终应为 11 却提前拒绝。计算列及新行继承现复用现有惰性批量安装，等全部源码落地后检查最终循环、数组与数据验证；真正的数组及新增循环仍整体拒绝。回归又发现历史逐格恢复会让重做产生 `#SPILL!`，因此同一快照公式改为统一装载后投影，保留错误／循环源码及跨表数组随动，没有增加公式引擎或前端状态层。
+
+该轮默认／lite 相关测试各 **63/63** 通过，顺序进程退出 0，包含 15 项计算列输入、5 项新行校验及既有扩列、扩表、剪贴板和工作簿历史回归（`/tmp/excel-table-final-spill-history-default.log`、`/tmp/excel-table-final-spill-history-lite.log`）。WASM lib **165 passed / 1 ignored** 通过（`/tmp/excel-table-final-spill-wasm.log`），包含真实绑定输入、重做及 JSON 恢复后新增行的条件公式用例；这不是浏览器构件验证。文档、展现层边界与 diff 检查通过，该轮修改的源码／测试文件均低于 300 行，未新增层或文件。修改未提交。
+
+手动扩表继承已接入既有 Resize 命令：只填新数据区的空格，保留已有值／公式；汇总行搬走后原位置按数据行填充。复用批量公式安装，最后统一验证；失败恢复公式、汇总和表范围，保留 redo 且不发布中间通知。成功后把重叠的旧汇总快照及新数据区内的引用改写并入同一份局部历史，避免两份历史争写同一格；超预算在几何修改前拒绝。新增 `workbook_table_resize_inheritance.rs` 83 行，专门负责手动扩表继承事务，没有增加 Worker 命令或前端数据层。
+
+手动继承的默认／lite 配置相关测试各 **46/46** 通过，顺序进程退出 0：9 项新增专项及既有范围历史、计算列输入／右侧扩列／引用随动回归（`/tmp/excel-table-manual-inheritance-final-default.log`、`/tmp/excel-table-manual-inheritance-final-lite.log`）。WASM lib **166 passed / 1 ignored** 通过（`/tmp/excel-table-manual-inheritance-wasm.log`），新增 JSON 恢复后的真实 resize 绑定→新行公式→单步撤销／重做用例。修改未提交，仍不是浏览器交互验收。
+
+结构插行继承已接入：只为实际插入 Table 数据区的新行生成标准公式；表头之前及表尾之后不擅自扩表。多个 Table 先共同装载再校验，沿既有结构快照回滚；直接 Rust 结构入口与带历史入口语义一致。预算在位移前预检，条件格式保留失败回滚所需的 revision。按快照职责拆出 `workbook_structural_snapshot.rs`（55 行），结构历史文件从既有 313 行降到 278 行；新行公式计划为独立 47 行文件。
+
+首轮测试发现撤销遗漏未改源码的跨表 Table 数组消费者，现由既有 Store 依赖重投，并延后直接订阅到最终值。接入过程中又发现范围依赖函数逐格枚举整个结构带；已停止确认为该问题运行的旧进程，改为筛选现有 atom，未因观察超时重跑。新增稀疏根查询与逐格查询的等价测试，含空 facade、几种范围依赖层及整表不分配 atom；默认／lite 各 **7/7** 通过（`/tmp/excel-sparse-range-roots-default.log`、`/tmp/excel-sparse-range-roots-lite.log`）。
+
+该阶段默认／lite 配置结构相关回归各 **62/62** 通过，其中 9 项插行继承专项覆盖多行、汇总、相对／绝对引用、多个 Table、拒绝原子性、订阅次数及预算（`/tmp/excel-table-insert-sparse-fixed-default.log`、`/tmp/excel-table-insert-sparse-fixed-lite.log`）。该阶段 WASM lib **167 passed / 1 ignored** 通过（`/tmp/excel-table-insert-sparse-fixed-wasm.log`），含真实结构绑定、撤销重做、JSON 恢复后继续新增记录。文档、展现层边界与 diff 检查通过，新增／大改源码与测试均低于 300 行。
+
+提交检查点：按用户要求保存当前改动，不宣告整批验收。随后新增的“已有计算列公式下移后转入数组分支”回归仍失败：最新默认插行专项 **9 passed / 1 failed**（`/tmp/excel-table-shift-array-default.log`），后续组及 lite 未执行。当前新增 spill 索引检查尚未解决该问题，不能沿用前述通过结果证明最终源码通过；既有 369 行 `sheet_spill_claims.rs` 仅扩大读取方法的模块可见性，没有顺带拆分。
+
+尚待完成：既有公式位移后进入条件数组分支等交叉策略核对、UI Core／React 交叉测试、真实 WASM 构件与持久 E2E、演示种子。不能把三条原生基础路径当成三项完整交互验收，不复用上一批验收结果。
 
 ### Excel Table 样式（已验收）
 

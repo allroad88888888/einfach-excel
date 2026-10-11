@@ -13,6 +13,8 @@ mod column;
 mod resize;
 #[path = "workbook_table_resize_totals.rs"]
 mod resize_totals;
+#[path = "workbook_table_resize_inheritance.rs"]
+mod resize_inheritance;
 #[path = "workbook_table_input.rs"]
 mod input;
 #[path = "workbook_table_style_change.rs"]

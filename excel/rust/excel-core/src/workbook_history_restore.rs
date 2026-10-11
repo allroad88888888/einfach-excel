@@ -35,6 +35,9 @@ impl Workbook {
         if self.is_inside_custom_call() {
             return Err("MUTATION_DURING_CUSTOM_CALL");
         }
+        let arrays = if snapshot.cells.is_some() {
+            self.array_dependents_for_range(sheet, snapshot.range)
+        } else { Vec::new() };
         let store = self.store.clone();
         let mut outcome = Ok(());
         store.batch(|_| {
@@ -54,14 +57,10 @@ impl Workbook {
                         )
                         .map_err(|_| "Could not restore cell value.")?;
                     }
-                    for cell in cells.iter().filter(|cell| cell.formula.is_some()) {
-                        let source = cell.formula.as_ref().unwrap();
-                        if !self.try_set_formula(sheet, &cell.addr.to_string(), source)
-                            .map_err(|_| "Could not restore cell formula.")? {
-                            // 导入历史可以持有错误/循环源码；恢复不是一次新输入校验。
-                            self.sheets[sheet].restore_formula_source(cell.addr, source);
-                        }
-                    }
+                    // 恢复不是新输入校验；保留错误/循环源码，也不投影半份快照。
+                    self.sheets[sheet].restore_formula_sources(cells.iter().filter_map(|cell| {
+                        cell.formula.as_deref().map(|source| (cell.addr, source))
+                    }));
                 }
                 let target = self
                     .sheet_mut(sheet)
@@ -78,6 +77,7 @@ impl Workbook {
                 Ok(())
             })();
         });
+        self.recompute_array_formula_groups(arrays);
         outcome
     }
 }

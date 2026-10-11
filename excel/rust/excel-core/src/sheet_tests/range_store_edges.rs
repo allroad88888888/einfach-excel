@@ -156,3 +156,30 @@ fn small_range_reverse_edges_are_store_facades() {
     assert_eq!(sheet.debug_range_dep_candidates("A501"), 0);
     assert_eq!(sheet.debug_dependents_count("A501"), 3);
 }
+
+#[test]
+fn sparse_range_roots_match_point_queries_including_empty_facades_and_geometry_tiers() {
+    let mut sheet = Sheet::new();
+    sheet.set_cell("A1", Value::Number(1.));
+    sheet.set_cell("A600", Value::Number(2.));
+    sheet.set_cell("C1500", Value::Number(3.));
+    for (addr, source) in [("D1", "=SUM(A1:A800)"), ("E1", "=SUM(B:C)"),
+        ("F1000", "=SUM(A1:HZZ200)")] {
+        assert!(sheet.set_formula(addr, source));
+        sheet.get_cell(addr);
+    }
+    sheet.get_cell("B299");
+    for (start, end) in [("A2", "C700"), ("B1", "B800"), ("D500", "F1100"), ("A1", "A1")] {
+        let range = CellRange::new(CellAddress::parse(start).unwrap(), CellAddress::parse(end).unwrap());
+        let expected: HashSet<_> = range.iter()
+            .flat_map(|addr| sheet.store_root_atoms_for_addr(addr)).collect();
+        let actual: HashSet<_> = sheet.store_root_atoms_for_range(range).into_iter().collect();
+        assert_eq!(actual, expected, "{start}:{end}");
+    }
+    let count = sheet.debug_total_atom_count();
+    let all = CellRange::new(CellAddress::new(0, 0), CellAddress::new(EXCEL_MAX_ROWS - 1, EXCEL_MAX_COLS - 1));
+    let roots = sheet.store_root_atoms_for_range(all);
+    assert!(!roots.is_empty());
+    assert!(roots.len() <= count);
+    assert_eq!(sheet.debug_total_atom_count(), count, "range query never materializes absent atoms");
+}

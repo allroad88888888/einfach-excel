@@ -40,7 +40,7 @@ impl Workbook {
     }
 }
 
-fn shifted_columns(table: &TableEntry, next_range: CellRange, edit: ShiftEdit)
+pub(super) fn shifted_columns(table: &TableEntry, next_range: CellRange, edit: ShiftEdit)
     -> Vec<Option<TableColumnFormula>> {
     if table.calculated_columns.is_empty() { return Vec::new(); }
     let mut next = vec![None; next_range.cols() as usize];

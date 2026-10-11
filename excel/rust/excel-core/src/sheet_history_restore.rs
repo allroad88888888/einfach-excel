@@ -10,10 +10,22 @@ pub(crate) struct StructuralObservers {
 impl Sheet {
     /// 历史恢复不是新公式输入；保留导入的错误/循环源码，交给原生惰性求值。
     pub(crate) fn restore_formula_source(&mut self, addr: CellAddress, source: &str) {
-        self.bulk_load(|loader| { loader.set_formula_lazy(addr, source.to_owned()); });
-        if source_may_produce_array(source) {
-            self.project_bulk_spill_anchors(vec![addr]);
-        }
+        self.restore_formula_sources([(addr, source)]);
+    }
+
+    /// 快照内的公式先全部落地，再投影；逐格恢复会让前向依赖读到半份快照。
+    pub(crate) fn restore_formula_sources<'a>(
+        &mut self, formulas: impl IntoIterator<Item = (CellAddress, &'a str)>,
+    ) {
+        let anchors = self.bulk_load(|loader| {
+            let mut anchors = Vec::new();
+            for (addr, source) in formulas {
+                loader.set_formula_lazy(addr, source.to_owned());
+                if source_may_produce_array(source) { anchors.push(addr); }
+            }
+            anchors
+        });
+        self.project_bulk_spill_anchors(anchors);
     }
 
     /// 多表恢复时，把直接回调延迟到整批数据、元数据、spill 都已落地之后。

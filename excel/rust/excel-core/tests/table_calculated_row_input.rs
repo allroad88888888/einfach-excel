@@ -52,3 +52,46 @@ fn final_validation_failure_rolls_back_explicit_formula_inheritance_and_geometry
     assert_eq!(book.get_cell("Sheet1", "B4"), Value::Null);
     assert_eq!(history.redo_count(), 1);
 }
+
+#[test]
+fn temporary_array_branch_does_not_reject_a_final_scalar_new_row() {
+    let (mut book, mut history) = seed(11.);
+    history.set_cell_input(&mut book, 0, "A4", "=IF(B4=0,SEQUENCE(2),B4+1)").unwrap();
+    assert_eq!(book.get_cell("Sheet1", "A4"), Value::Number(11.));
+    assert_eq!(book.get_cell("Sheet1", "A5"), Value::Null);
+    assert_eq!(history.undo_count(), 1);
+    history.undo(&mut book).unwrap();
+    assert_eq!(book.get_cell("Sheet1", "A4"), Value::Null);
+    history.redo(&mut book).unwrap();
+    assert_eq!(book.get_cell("Sheet1", "A4"), Value::Number(11.));
+}
+
+#[test]
+fn final_array_branch_still_rejects_and_preserves_redo() {
+    for source in ["=IF(B4=10,SEQUENCE(2),11)", "=IF(B4=10,SEQUENCE(1,2),11)"] {
+        let (mut book, mut history) = seed(11.);
+        history.set_cell_input(&mut book, 0, "D1", "7").unwrap();
+        history.undo(&mut book).unwrap();
+        let before = book.snapshot_tables();
+        assert_eq!(history.set_cell_input(&mut book, 0, "A4", source).unwrap_err(),
+            "Spilled arrays cannot be entered inside a table.");
+        assert_eq!(book.snapshot_tables(), before);
+        for addr in ["A4", "B4", "A5"] {
+            assert_eq!(book.get_cell("Sheet1", addr), Value::Null);
+        }
+        assert_eq!(history.redo_count(), 1);
+    }
+}
+
+#[test]
+fn cycle_created_by_two_new_row_formulas_rejects_atomically() {
+    let (mut book, mut history) = seed(11.);
+    history.set_cell_input(&mut book, 0, "B2", "=A2+1").unwrap();
+    history.clear("");
+    let before = book.snapshot_tables();
+    assert_eq!(history.set_cell_input(&mut book, 0, "A4", "=B4+1").unwrap_err(), "FORMULA_CYCLE");
+    assert_eq!(book.snapshot_tables(), before);
+    assert_eq!(book.get_cell("Sheet1", "A4"), Value::Null);
+    assert_eq!(book.get_cell("Sheet1", "B4"), Value::Null);
+    assert_eq!(history.undo_count(), 0);
+}

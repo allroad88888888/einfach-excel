@@ -13,6 +13,11 @@ pub(crate) struct FormulaSourceChange {
 }
 
 impl FormulaSourceChange {
+    /// 该格已由局部快照接管时，不再保留第二份源码历史；模板不是单元格。
+    pub(super) fn cell_in_range(&self, sheet: usize, range: CellRange) -> bool {
+        self.sheet == sheet && self.table_key.is_none() && range.contains(self.addr)
+    }
+
     pub fn prepare(
         workbook: &Workbook,
         // range 决定隐式 Table 归属；Some(origin) 标记模板，不受单元格快照排除。

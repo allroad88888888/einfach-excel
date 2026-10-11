@@ -115,6 +115,8 @@ pub(crate) use workbook_sheet_history::SheetHistoryChange;
 mod workbook_structural;
 #[path = "workbook_table_shift.rs"]
 mod workbook_table_shift;
+#[path = "workbook_table_insert_inheritance.rs"]
+mod workbook_table_insert_inheritance;
 #[path = "workbook_structural_history.rs"]
 mod workbook_structural_history;
 #[path = "workbook_structural_preflight.rs"]

@@ -17,7 +17,12 @@ impl Workbook {
             | ShiftEdit::ColDelete { count, .. } => count,
         };
         if count != 0 {
-            self.apply_structural_shift_with_table_follow(sheet_index, edit);
+            if self.has_table_row_inheritance(sheet_index, edit) {
+                // 继承可能被公式/数据验证拒绝，沿用唯一结构事务回滚，不另建历史栈。
+                StructuralHistoryChange::edit(self, sheet_index, edit)?;
+            } else {
+                self.apply_structural_shift_with_table_follow(sheet_index, edit);
+            }
         }
         Ok(())
     }

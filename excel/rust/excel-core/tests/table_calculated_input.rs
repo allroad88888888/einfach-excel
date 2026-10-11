@@ -260,3 +260,21 @@ fn changing_dependency_direction_does_not_treat_the_old_column_as_a_cycle() {
     history.redo(&mut book).unwrap();
     assert_eq!(values(&book), vec![Value::Number(4.), Value::Number(3.), Value::Number(2.)]);
 }
+
+#[test]
+fn forward_column_dependencies_only_project_arrays_after_all_formulas_are_installed() {
+    let (mut book, mut history) = seed();
+    let report = book.add_sheet("Report");
+    book.set_formula(report, "A1", "=SEQUENCE(2,1,Sheet1!B2)");
+    book.set_formula(report, "D1", "=SUM(A1#)");
+    history.set_cell_input(&mut book, 0, "B2",
+        "=IF(ROW()=4,10,IF(B3=0,SEQUENCE(2),B3+1))").unwrap();
+    assert_eq!(values(&book), vec![Value::Number(12.), Value::Number(11.), Value::Number(10.)]);
+    assert_eq!(book.get_cell("Sheet1", "B5"), Value::Null);
+    assert_eq!(book.get_cell("Report", "D1"), Value::Number(25.));
+    history.undo(&mut book).unwrap();
+    assert_eq!(values(&book), vec![Value::Null; 3]);
+    history.redo(&mut book).unwrap();
+    assert_eq!(values(&book), vec![Value::Number(12.), Value::Number(11.), Value::Number(10.)]);
+    assert_eq!(book.get_cell("Report", "D1"), Value::Number(25.));
+}

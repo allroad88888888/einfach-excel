@@ -134,3 +134,65 @@ fn right_formula_input_expands_and_fills_one_history_entry_then_survives_restore
     restored.set_cell_input(0, "B5", "4").unwrap();
     assert_eq!(restored.workbook.get_cell("Sheet1", "D5"), Value::Number(8.));
 }
+
+#[test]
+fn conditional_array_branches_use_final_calculated_values_on_input_and_redo() {
+    let mut book = workbook_with_inventory_table();
+    book.set_cell_input(0, "C2", "=IF(ROW()=4,10,IF(C3=0,SEQUENCE(2),C3+1))").unwrap();
+    assert_eq!(book.workbook.get_cell("Sheet1", "C2"), Value::Number(12.));
+    book.history.undo(&mut book.workbook).unwrap();
+    book.history.redo(&mut book.workbook).unwrap();
+    assert_eq!(book.workbook.get_cell("Sheet1", "C2"), Value::Number(12.));
+    book.set_cell_input(0, "C2", "=10").unwrap();
+    let json = serde_json::to_string(&book.snapshot_persistence_v1_json()).unwrap();
+    let mut restored = WasmWorkbook::new();
+    restored.restore_persistence_v1_json(serde_json::from_str(&json).unwrap()).unwrap();
+    restored.set_cell_input(0, "B5", "=IF(C5=0,SEQUENCE(2),C5+1)").unwrap();
+    assert_eq!(restored.workbook.get_cell("Sheet1", "B5"), Value::Number(11.));
+    assert_eq!(restored.workbook.get_cell("Sheet1", "B6"), Value::Null);
+    restored.history.undo(&mut restored.workbook).unwrap();
+    restored.history.redo(&mut restored.workbook).unwrap();
+    assert_eq!(restored.workbook.get_cell("Sheet1", "B5"), Value::Number(11.));
+}
+
+#[test]
+fn manual_resize_binding_inherits_calculated_columns_and_preserves_saved_templates() {
+    let mut book = workbook_with_inventory_table();
+    book.set_cell_input(0, "C2", "=[@Qty]*2").unwrap();
+    let json = serde_json::to_string(&book.snapshot_persistence_v1_json()).unwrap();
+    let mut restored = WasmWorkbook::new();
+    restored.restore_persistence_v1_json(serde_json::from_str(&json).unwrap()).unwrap();
+    restored.workbook.set_cell(0, "B5", Value::Number(4.));
+    restored.apply_table_action(0, serde_json::from_value(serde_json::json!({
+        "kind":"resize", "name":"Inventory",
+        "range":[0,0,5,2]
+    })).unwrap()).unwrap();
+    assert_eq!(restored.workbook.get_cell("Sheet1", "C5"), Value::Number(8.));
+    assert_eq!(restored.workbook.get_cell("Sheet1", "C6"), Value::Number(0.));
+    assert_eq!(restored.history.undo_count(), 1);
+    restored.history.undo(&mut restored.workbook).unwrap();
+    assert_eq!(restored.workbook.get_cell("Sheet1", "C5"), Value::Null);
+    restored.history.redo(&mut restored.workbook).unwrap();
+    assert_eq!(restored.workbook.get_cell("Sheet1", "C5"), Value::Number(8.));
+}
+
+#[test]
+fn inserted_table_rows_inherit_through_structure_binding_and_save_restore() {
+    let mut book = workbook_with_inventory_table();
+    book.set_cell_input(0, "C2", "=[@Qty]*2").unwrap();
+    book.history.clear("");
+    book.edit_structure(0, "insert-rows", 2, 2).unwrap();
+    assert_eq!(book.workbook.get_cell("Sheet1", "C3"), Value::Number(0.));
+    assert_eq!(book.workbook.get_cell("Sheet1", "C4"), Value::Number(0.));
+    assert_eq!(book.workbook.get_cell("Sheet1", "C5"), Value::Number(4.));
+    assert_eq!(book.history.undo_count(), 1);
+    book.history.undo(&mut book.workbook).unwrap();
+    assert_eq!(book.workbook.get_cell("Sheet1", "C3"), Value::Number(4.));
+    book.history.redo(&mut book.workbook).unwrap();
+    assert_eq!(book.workbook.get_cell("Sheet1", "C3"), Value::Number(0.));
+    let json = serde_json::to_string(&book.snapshot_persistence_v1_json()).unwrap();
+    let mut restored = WasmWorkbook::new();
+    restored.restore_persistence_v1_json(serde_json::from_str(&json).unwrap()).unwrap();
+    restored.set_cell_input(0, "B7", "4").unwrap();
+    assert_eq!(restored.workbook.get_cell("Sheet1", "C7"), Value::Number(8.));
+}

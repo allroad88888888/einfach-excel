@@ -210,6 +210,8 @@ export function compareCellValue(
 
 export function cloneConditionalFormatRule(rule: ConditionalFormatRule): ConditionalFormatRule {
   switch (rule.kind) {
+    case 'text':
+    case 'duplicate-values':
     case 'cell-value':
       return { ...rule, format: cloneFormat(rule.format) }
     case 'formula':
@@ -239,6 +241,8 @@ export function conditionalRuleFormat(
     case 'cell-value':
     case 'formula':
     case 'top-bottom':
+    case 'text':
+    case 'duplicate-values':
       return normalizeFormat(rule.format)
     case 'data-bar':
       return normalizeFormat({ bgColor: rule.maxColor ?? '#bfdbfe' })

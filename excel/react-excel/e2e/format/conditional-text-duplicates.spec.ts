@@ -1,0 +1,132 @@
+import { expect, test, type Page } from '@playwright/test'
+
+const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
+const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
+const dialog = (page: Page) => page.getByRole('dialog', { name: 'Conditional formatting', exact: true })
+const red = 'rgb(255, 199, 206)', green = 'rgb(226, 240, 217)'
+async function go(page: Page, range: string) {
+  await button(page, 'Go to').click()
+  await page.getByLabel('Reference', { exact: true }).fill(range)
+  await button(page, 'Go').click()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+}
+async function open(page: Page) { await button(page, 'Conditional formatting').click() }
+async function save(page: Page, edit = false) {
+  await button(page, edit ? 'Save rule' : 'Add rule').click()
+  await expect(dialog(page)).toHaveCount(0)
+}
+async function write(page: Page, address: string, value: string) {
+  await go(page, address)
+  const input = page.getByRole('textbox', { name: 'Active cell value' })
+  await input.fill(value); await input.press('Enter')
+}
+test.beforeEach(async ({ page }) => {
+  await page.goto('/')
+  await expect(cell(page, '1:0')).toHaveText('SO-10001')
+  await page.getByRole('tab', { name: 'Summary', exact: true }).click()
+  await go(page, 'E85:F89')
+})
+
+test('native seed shows formula text, duplicate values and Stop without startup history', async ({ page }) => {
+  for (const row of [84, 85, 88]) {
+    await expect(cell(page, `${row}:4`)).toHaveCSS('background-color', green)
+    await expect(cell(page, `${row}:4`)).not.toHaveCSS('font-style', 'italic')
+  }
+  await expect(cell(page, '86:4')).toHaveCSS('font-style', 'italic')
+  for (const row of [84, 85, 87]) await expect(cell(page, `${row}:5`)).toHaveCSS('background-color', red)
+  for (const row of [86, 88]) await expect(cell(page, `${row}:5`)).not.toHaveCSS('background-color', red)
+  await expect(button(page, 'Undo')).toBeDisabled()
+})
+
+test('changing Stop, priority and enabled state updates lower rules with one-step history', async ({ page }) => {
+  await open(page); await button(page, 'Edit rule 9').click()
+  await expect(page.getByLabel('Stop if true')).toBeChecked()
+  await page.getByLabel('Stop if true').uncheck(); await save(page, true)
+  await expect(cell(page, '84:4')).toHaveCSS('font-style', 'italic')
+  await button(page, 'Undo').click()
+  await expect(cell(page, '84:4')).not.toHaveCSS('font-style', 'italic')
+  await button(page, 'Redo').click()
+  await expect(cell(page, '84:4')).toHaveCSS('font-style', 'italic')
+  await button(page, 'Undo').click()
+  await open(page); await button(page, 'Disable rule 9').click()
+  await expect(cell(page, '84:4')).toHaveCSS('font-style', 'italic')
+  await expect(cell(page, '84:4')).not.toHaveCSS('background-color', green)
+  await button(page, 'Undo').click()
+  await open(page); await button(page, 'Move rule 11 up').click()
+  await open(page); await button(page, 'Move rule 10 up').click()
+  await expect(cell(page, '84:4')).toHaveCSS('font-style', 'italic')
+  await expect(cell(page, '84:4')).toHaveCSS('background-color', green)
+})
+
+for (const condition of ['contains', 'not-contains', 'begins-with', 'ends-with'])
+  test(`text ${condition} uses real values and native rejection preserves the draft`, async ({ page }) => {
+    await go(page, 'D32:D39'); await open(page)
+    await page.getByLabel('Rule type').selectOption('text')
+    await page.getByLabel('Text condition').selectOption(condition)
+    await button(page, 'Add rule').click()
+    await expect(dialog(page).getByRole('alert')).toContainText('1 and 1024')
+    await page.getByLabel('Matching text').fill('maple')
+    await save(page)
+    const matched = condition !== 'not-contains'
+    for (const row of [33, 34]) {
+      if (matched) await expect(cell(page, `${row}:3`)).toHaveCSS('background-color', red)
+      else await expect(cell(page, `${row}:3`)).not.toHaveCSS('background-color', red)
+    }
+    if (!matched) await expect(cell(page, '36:3')).toHaveCSS('background-color', red)
+    else await expect(cell(page, '36:3')).not.toHaveCSS('background-color', red)
+    await button(page, 'Undo').click()
+    await expect(cell(page, '33:3')).not.toHaveCSS('background-color', red)
+    await button(page, 'Redo').click()
+    await open(page)
+    await expect(dialog(page).getByRole('listitem').first()).toContainText('maple')
+  })
+
+test('duplicate and unique use the whole scope, update on edits and restore with undo', async ({ page }) => {
+  await open(page); await button(page, 'Edit rule 10').click()
+  await page.getByLabel('Highlight values').selectOption('unique'); await save(page, true)
+  await expect(cell(page, '86:5')).toHaveCSS('background-color', red)
+  await expect(cell(page, '84:5')).not.toHaveCSS('background-color', red)
+  await write(page, 'F87', 'CEDAR')
+  await expect(cell(page, '86:5')).not.toHaveCSS('background-color', red)
+  await button(page, 'Undo').click()
+  await expect(cell(page, '86:5')).toHaveCSS('background-color', red)
+  await button(page, 'Undo').click()
+  await write(page, 'H2', 'Birch')
+  await go(page, 'F87'); await open(page); await button(page, 'Edit rule 10').click()
+  await page.getByLabel('Applies to').fill('F85:F89, H2'); await save(page, true)
+  await expect(cell(page, '86:5')).toHaveCSS('background-color', red)
+  await write(page, 'H2', 'Other'); await go(page, 'F87')
+  await expect(cell(page, '86:5')).not.toHaveCSS('background-color', red)
+  await button(page, 'Undo').click()
+  await expect(cell(page, '86:5')).toHaveCSS('background-color', red)
+})
+
+test('Stop blocks lower data bars without removing numbers or base styles', async ({ page }) => {
+  await go(page, 'E75:E79'); await open(page)
+  await page.getByLabel('Condition', { exact: true }).selectOption('gte')
+  await page.getByLabel('Value', { exact: true }).fill('5')
+  await page.getByLabel('Stop if true').check(); await save(page)
+  await expect(cell(page, '76:4').locator('[data-data-bar]')).toHaveCount(0)
+  await expect(cell(page, '74:4').locator('[data-data-bar]')).toHaveCount(1)
+  await expect(cell(page, '76:4')).toHaveText('5')
+  await button(page, 'Undo').click()
+  await expect(cell(page, '76:4').locator('[data-data-bar]')).toHaveCount(1)
+})
+
+for (const width of [1280, 390]) test(`text options fit and cancel restores focus at ${width}px`, async ({ page }) => {
+  const errors: string[] = []
+  page.on('pageerror', (error) => errors.push(error.message))
+  await page.setViewportSize({ width, height: 800 })
+  await open(page)
+  await page.getByLabel('Rule type').selectOption('text')
+  await page.getByLabel('Matching text').fill('ready')
+  await page.getByLabel('Stop if true').check()
+  await button(page, 'Add rule').scrollIntoViewIfNeeded()
+  expect(await dialog(page).evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true)
+  await expect(button(page, 'Add rule')).toBeInViewport()
+  await page.screenshot({ path: `/tmp/excel-cf-text-${width}.png`, fullPage: true })
+  await page.getByLabel('Matching text').press('Escape')
+  await expect(button(page, 'Conditional formatting')).toBeFocused()
+  await expect(button(page, 'Undo')).toBeDisabled()
+  expect(errors).toEqual([])
+})

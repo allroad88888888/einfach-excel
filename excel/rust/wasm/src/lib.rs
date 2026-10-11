@@ -205,6 +205,7 @@ mod tests {
     include!("wasm_tests/print_config.rs");
     include!("wasm_tests/conditional_format.rs");
     include!("wasm_tests/conditional_visuals.rs");
+    include!("wasm_tests/conditional_text.rs");
     include!("wasm_tests/data_validation_persistence.rs");
     include!("wasm_tests/outline_persistence.rs");
     include!("wasm_tests/named_range_persistence.rs");

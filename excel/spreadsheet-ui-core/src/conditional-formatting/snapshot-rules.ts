@@ -15,7 +15,25 @@ import type {
 export function snapshotRule(value: unknown): ConditionalFormatRule | null {
   if (!isObjectRecord(value)) return null
   try {
+    if ((value.enabled !== undefined && typeof value.enabled !== 'boolean') ||
+      (value.stopIfTrue !== undefined && typeof value.stopIfTrue !== 'boolean')) return null
+    const options = {
+      ...(value.enabled === undefined ? {} : { enabled: value.enabled as boolean }),
+      ...(value.stopIfTrue === undefined ? {} : { stopIfTrue: value.stopIfTrue as boolean }),
+    }
     switch (value.kind) {
+      case 'text': {
+        const format = snapshotFormat(value.format)
+        return format && typeof value.text === 'string' &&
+          isOneOf(value.condition, ['contains', 'not-contains', 'begins-with', 'ends-with'] as const)
+          ? { ...options, kind: value.kind, text: value.text, condition: value.condition, format }
+          : null
+      }
+      case 'duplicate-values': {
+        const format = snapshotFormat(value.format)
+        return format && isOneOf(value.mode, ['duplicate', 'unique'] as const)
+          ? { ...options, kind: value.kind, mode: value.mode, format } : null
+      }
       case 'cell-value': {
         const format = snapshotFormat(value.format)
         if (
@@ -35,6 +53,7 @@ export function snapshotRule(value: unknown): ConditionalFormatRule | null {
         )
           return null
         return {
+          ...options,
           kind: value.kind,
           operator: value.operator,
           value: value.value,
@@ -45,7 +64,7 @@ export function snapshotRule(value: unknown): ConditionalFormatRule | null {
       case 'formula': {
         const format = snapshotFormat(value.format)
         return typeof value.formula === 'string' && format !== null
-          ? { kind: value.kind, formula: value.formula, format }
+          ? { ...options, kind: value.kind, formula: value.formula, format }
           : null
       }
       case 'data-bar':
@@ -53,6 +72,7 @@ export function snapshotRule(value: unknown): ConditionalFormatRule | null {
           (value.maxColor !== undefined && typeof value.maxColor !== 'string')
           ? null
           : {
+              ...options,
               kind: value.kind,
               ...(value.minColor === undefined ? {} : { minColor: value.minColor }),
               ...(value.maxColor === undefined ? {} : { maxColor: value.maxColor }),
@@ -63,6 +83,7 @@ export function snapshotRule(value: unknown): ConditionalFormatRule | null {
           (value.midColor !== undefined && typeof value.midColor !== 'string')
           ? null
           : {
+              ...options,
               kind: value.kind,
               minColor: value.minColor,
               ...(value.midColor === undefined ? {} : { midColor: value.midColor }),
@@ -79,6 +100,7 @@ export function snapshotRule(value: unknown): ConditionalFormatRule | null {
         )
           return null
         return {
+          ...options,
           kind: value.kind,
           direction: value.direction,
           count: value.count,

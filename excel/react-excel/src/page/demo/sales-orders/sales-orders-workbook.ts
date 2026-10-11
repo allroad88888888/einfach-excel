@@ -5,6 +5,7 @@ import { SUMMARY_VALIDATION_CELLS, SUMMARY_VALIDATIONS } from './data/validation
 import { SUMMARY_OUTLINE, SUMMARY_OUTLINE_CELLS } from './data/outline-seed'
 import { SUMMARY_NAMED_RANGES, SUMMARY_NAMED_RANGE_CELLS } from './data/named-range-seed'
 import { SUMMARY_TABLES, SUMMARY_TABLE_CELLS } from './data/table-seed'
+import { SUMMARY_CONDITIONAL_TEXT_CELLS, SUMMARY_CONDITIONAL_TEXT_RULES } from './data/conditional-text-seed'
 import {
   SALES_ORDER_SUMMARY_CELLS,
   SUMMARY_SIZES,
@@ -33,7 +34,7 @@ export const SALES_ORDERS_WORKBOOK_DEFINITION: RustWorkbookDefinition = Object.f
       ...SUMMARY_VISIBILITY,
       mergedRanges: SUMMARY_MERGES,
       freeze: SUMMARY_FREEZE,
-      conditionalFormats: SUMMARY_CONDITIONAL_FORMATS,
+      conditionalFormats: [...SUMMARY_CONDITIONAL_FORMATS, ...SUMMARY_CONDITIONAL_TEXT_RULES],
       dataValidations: SUMMARY_VALIDATIONS,
       outline: SUMMARY_OUTLINE,
       namedRanges: SUMMARY_NAMED_RANGES,
@@ -47,5 +48,6 @@ export const SALES_ORDERS_WORKBOOK_DEFINITION: RustWorkbookDefinition = Object.f
     SUMMARY_OUTLINE_CELLS,
     SUMMARY_NAMED_RANGE_CELLS,
     SUMMARY_TABLE_CELLS,
+    SUMMARY_CONDITIONAL_TEXT_CELLS,
   ],
 })

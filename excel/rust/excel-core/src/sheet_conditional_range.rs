@@ -1,7 +1,8 @@
-//! 条件格式的范围统计只读稀疏数值成员；排名、色阶和数据条共享依赖与释放路径。
+//! 条件格式的范围统计只读稀疏成员；集合规则共享依赖与释放路径。
 use super::*;
 
 pub(crate) enum ConditionalStatistic {
+    Duplicates,
     Rank {
         count: u32,
         percent: bool,
@@ -49,15 +50,34 @@ impl Sheet {
                     current_cell: Cell::new(None),
                 };
                 let mut numbers = Vec::new();
+                let mut seen = std::collections::BTreeSet::new();
+                let mut duplicates = std::collections::BTreeSet::new();
                 // 范围在写入前已确保不相交，统计每个稀疏成员一次。
                 for range in &ranges {
                     provider.for_each_range_cell(*range, &mut |_, value| {
+                        if matches!(statistic, ConditionalStatistic::Duplicates) {
+                            if let Some(key) =
+                                crate::workbook::conditional_format_duplicates::value_key(&value)
+                            {
+                                if !seen.insert(key.clone()) {
+                                    duplicates.insert(key);
+                                }
+                            }
+                            return;
+                        }
                         if let Value::Number(number) = value {
                             if number.is_finite() {
                                 numbers.push(number);
                             }
                         }
                     });
+                }
+                if matches!(statistic, ConditionalStatistic::Duplicates) {
+                    let keys = duplicates
+                        .into_iter()
+                        .map(|key| Value::Text(key.into()))
+                        .collect::<Vec<_>>();
+                    return Value::Array(Arc::new(ArrayData::new(keys.len() as u32, 1, keys)));
                 }
                 if numbers.is_empty() {
                     return Value::Null;
@@ -76,6 +96,7 @@ impl Sheet {
 impl ConditionalStatistic {
     fn summarize(&self, numbers: &mut [f64]) -> Value {
         match *self {
+            Self::Duplicates => unreachable!("duplicate keys use the sparse value scan"),
             Self::Rank {
                 count,
                 percent,

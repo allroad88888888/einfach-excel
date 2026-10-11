@@ -11,12 +11,18 @@ const OPERATORS = {
   gt: 'Greater than', lt: 'Less than', eq: 'Equal to', ne: 'Not equal to',
   gte: 'At least', lte: 'At most', between: 'Between', 'not-between': 'Not between',
 }
+const TEXT_CONDITIONS = {
+  contains: 'Contains', 'not-contains': 'Does not contain',
+  'begins-with': 'Begins with', 'ends-with': 'Ends with',
+}
 
 function supported(rule: ConditionalFormatRule): rule is NativeConditionalFormatRule {
-  return ['cell-value', 'formula', 'top-bottom', 'color-scale', 'data-bar'].includes(rule.kind)
+  return ['cell-value', 'formula', 'top-bottom', 'color-scale', 'data-bar', 'text', 'duplicate-values'].includes(rule.kind)
 }
 
 function ruleLabel(rule: ConditionalFormatRule): string {
+  if (rule.kind === 'text') return `${TEXT_CONDITIONS[rule.condition]} “${rule.text}”`
+  if (rule.kind === 'duplicate-values') return rule.mode === 'unique' ? 'Unique values' : 'Duplicate values'
   if (rule.kind === 'cell-value')
     return `${OPERATORS[rule.operator] ?? rule.operator} ${rule.value}${rule.value2 ? ` – ${rule.value2}` : ''}`
   if (rule.kind === 'formula') return rule.formula
@@ -61,6 +67,7 @@ export function ConditionalFormatTools() {
         {!config?.rules.length && <p>No rules yet.</p>}
         <ul>{config?.rules.map((entry, index) => <li key={entry.id}>
           <span>{conditionalFormatScopeToA1(entry.scope)} · {ruleLabel(entry.rule)}
+            {'stopIfTrue' in entry.rule && entry.rule.stopIfTrue && ' · Stop if true'}
             {supported(entry.rule) && entry.rule.enabled === false && ' · Disabled'}</span>
           <div className="conditional-rule-actions">
           <button type="button" disabled={state.busy || !supported(entry.rule)}
@@ -98,9 +105,38 @@ export function ConditionalFormatTools() {
             <option value="cell-value">Cell value</option>
             <option value="formula">Formula</option>
             <option value="top-bottom">Top / bottom</option>
+            <option value="text">Text</option>
+            <option value="duplicate-values">Duplicate / unique values</option>
             <option value="color-scale">Color scale</option>
             <option value="data-bar">Data bar</option>
           </select>
+          {state.rule.kind === 'text' && <>
+            <label htmlFor={`${id}-condition`}>Text condition</label>
+            <select id={`${id}-condition`} value={state.rule.condition}
+              onChange={(event) => void run({ type: 'draft', rule: {
+                condition: event.currentTarget.value as keyof typeof TEXT_CONDITIONS,
+              } })}>
+              {Object.entries(TEXT_CONDITIONS).map(([value, label]) =>
+                <option key={value} value={value}>{label}</option>)}
+            </select>
+            <label htmlFor={`${id}-match-text`}>Matching text</label>
+            <input id={`${id}-match-text`} value={state.rule.text} spellCheck={false}
+              onChange={(event) => void run({ type: 'draft',
+                rule: { text: event.currentTarget.value } })} />
+            <p>Matches literal text, ignoring case. Spaces are kept;
+              * and ? are ordinary characters.</p>
+          </>}
+          {state.rule.kind === 'duplicate-values' && <>
+            <label htmlFor={`${id}-duplicates`}>Highlight values</label>
+            <select id={`${id}-duplicates`} value={state.rule.mode}
+              onChange={(event) => void run({ type: 'draft', rule: {
+                mode: event.currentTarget.value === 'unique' ? 'unique' : 'duplicate',
+              } })}>
+              <option value="duplicate">Duplicate</option><option value="unique">Unique</option>
+            </select>
+            <p>Compares calculated values across all applied ranges, ignoring text case.
+              Blank cells, empty text and errors are skipped; numbers and text are different.</p>
+          </>}
           {state.rule.kind === 'cell-value' && <>
           <label htmlFor={`${id}-operator`}>Condition</label>
           <select id={`${id}-operator`} value={state.rule.operator}
@@ -169,6 +205,11 @@ export function ConditionalFormatTools() {
               : 'Colors use the full range minimum and maximum. The third color marks the median (50th percentile).'}</p>
           </>}
           {highlight && <>
+          <label htmlFor={`${id}-stop`}>Stop if true</label>
+          <input id={`${id}-stop`} type="checkbox"
+            checked={'stopIfTrue' in state.rule && !!state.rule.stopIfTrue}
+            onChange={(event) => void run({ type: 'draft', rule: { stopIfTrue: event.currentTarget.checked } })} />
+          <p>When this rule matches, skip all lower rules for that cell.</p>
           <label htmlFor={`${id}-fill`}>Highlight fill</label>
           <input id={`${id}-fill`} type="color" value={highlight.bgColor ?? '#ffc7ce'}
             onChange={(event) => void run({ type: 'draft', rule: {

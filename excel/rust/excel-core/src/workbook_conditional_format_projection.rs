@@ -1,7 +1,7 @@
 //! 条件格式仅覆盖返回的显示快照；持久基础样式与格式刷快照保持原样。
-use super::conditional_format_rule::NativeRule;
 use super::conditional_color_scale::NumericBounds;
 use super::conditional_data_bar::DataBarDisplay;
+use super::conditional_format_rule::{NativeRule, NativeRuleKind};
 use super::*;
 use crate::sheet::{EXCEL_MAX_COLS, EXCEL_MAX_ROWS};
 use crate::FormatRangeSnapshot;
@@ -38,15 +38,21 @@ impl Workbook {
                     .ok()
                     .filter(NativeRule::enabled)
                     .map(|rule| {
-                        let statistic = rule.statistic().map(|statistic|
-                            self.conditional_range_statistics(sheet, entry, statistic))
+                        let statistic = rule
+                            .statistic()
+                            .map(|statistic| {
+                                self.conditional_range_statistics(sheet, entry, statistic)
+                            })
                             .unwrap_or(Value::Null);
                         (entry, rule, statistic)
                     })
             })
             .collect();
         if rules.is_empty() {
-            return Ok(DisplayFormatRangeSnapshot { formats: snapshot, data_bars: Vec::new() });
+            return Ok(DisplayFormatRangeSnapshot {
+                formats: snapshot,
+                data_bars: Vec::new(),
+            });
         }
         // 数字较小的优先级更高；同优先级时，列表中较前的规则优先。
         rules.sort_by_key(|(entry, _, _)| entry.priority);
@@ -66,48 +72,62 @@ impl Workbook {
                     Value::Array(array) => array.get(0, 0),
                     _ => Some(&value),
                 };
-                for (entry, rule, statistic) in rules.iter().rev() {
+                // 先按优先级判断，命中 Stop 后不再求值低级规则；最后逆序合并补丁，
+                // 保留既有的“不同属性叠加、相同属性高级优先”语义。
+                let mut patches = Vec::new();
+                for (entry, rule, statistic) in &rules {
                     if !entry.contains(row, col) {
                         continue;
                     }
-                    let matched = match rule {
-                        NativeRule::Numeric(rule) => matches!(scalar,
+                    let matched = match &rule.kind {
+                        NativeRuleKind::Numeric(rule) => matches!(scalar,
                             Some(Value::Number(number)) if rule.matches(*number)),
-                        NativeRule::Rank(rule) => matches!(scalar,
+                        NativeRuleKind::Rank(rule) => matches!(scalar,
                             Some(Value::Number(number)) if rule.matches(*number,
                                 if let Value::Number(threshold) = statistic { Some(*threshold) } else { None })),
-                        NativeRule::Formula(rule) => rule.matches(
+                        NativeRuleKind::Text(rule) => matches!(scalar,
+                            Some(Value::Text(text)) if rule.matches(text)),
+                        NativeRuleKind::Duplicates(rule) => {
+                            scalar.is_some_and(|value| rule.matches(value, statistic))
+                        }
+                        NativeRuleKind::Formula(rule) => rule.matches(
                             self,
                             sheet,
                             CellAddress::new(entry.row_start, entry.col_start),
                             CellAddress::new(row, col),
                         ),
-                        NativeRule::ColorScale(rule) => {
+                        NativeRuleKind::ColorScale(rule) => {
                             if let (Some(Value::Number(number)), Some(bounds)) =
-                                (scalar, NumericBounds::from_value(statistic)) {
+                                (scalar, NumericBounds::from_value(statistic))
+                            {
                                 if number.is_finite() {
-                                    styles.entry((row, col)).or_default()
-                                        .apply_patch(&rule.style(*number, bounds));
+                                    patches.push(rule.style(*number, bounds));
                                 }
                             }
                             false
                         }
-                        NativeRule::DataBar(rule) => {
+                        NativeRuleKind::DataBar(rule) => {
                             if let (Some(Value::Number(number)), Some(bounds)) =
-                                (scalar, NumericBounds::from_value(statistic)) {
+                                (scalar, NumericBounds::from_value(statistic))
+                            {
                                 if number.is_finite() {
-                                    data_bars.insert((row, col), rule.display(*number, bounds));
+                                    data_bars
+                                        .entry((row, col))
+                                        .or_insert_with(|| rule.display(*number, bounds));
                                 }
                             }
                             false
                         }
                     };
                     if matched {
-                        styles
-                            .entry((row, col))
-                            .or_default()
-                            .apply_patch(rule.style().expect("matched highlight rule"));
+                        patches.push(rule.style().expect("matched highlight rule").clone());
+                        if rule.stop_if_true {
+                            break;
+                        }
                     }
+                }
+                for patch in patches.iter().rev() {
+                    styles.entry((row, col)).or_default().apply_patch(patch);
                 }
             }
         }
@@ -116,8 +136,12 @@ impl Workbook {
             .into_iter()
             .map(|((row, col), style)| (CellAddress::new(row, col), style))
             .collect();
-        Ok(DisplayFormatRangeSnapshot { formats: snapshot,
-            data_bars: data_bars.into_iter()
-                .map(|((row, col), bar)| (CellAddress::new(row, col), bar)).collect() })
+        Ok(DisplayFormatRangeSnapshot {
+            formats: snapshot,
+            data_bars: data_bars
+                .into_iter()
+                .map(|((row, col), bar)| (CellAddress::new(row, col), bar))
+                .collect(),
+        })
     }
 }

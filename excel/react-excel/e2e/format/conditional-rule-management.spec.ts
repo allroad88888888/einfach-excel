@@ -28,7 +28,7 @@ test.beforeEach(async ({ page }) => {
 test('copy is an independent native rule; edit and each undo preserve the original', async ({ page }) => {
   await manage(page, 'Copy rule 1')
   await open(page)
-  await expect(dialog(page).getByRole('listitem')).toHaveCount(9)
+  await expect(dialog(page).getByRole('listitem')).toHaveCount(12)
   await button(page, 'Edit rule 2').click()
   await page.getByLabel('Applies to', { exact: true }).fill('D65:D67')
   await page.getByLabel('Value', { exact: true }).fill('5')
@@ -42,11 +42,11 @@ test('copy is an independent native rule; edit and each undo preserve the origin
   await expect(cell(page, '66:3')).not.toHaveCSS('background-color', 'rgb(0, 255, 0)')
   await button(page, 'Undo').click()
   await open(page)
-  await expect(dialog(page).getByRole('listitem')).toHaveCount(8)
+  await expect(dialog(page).getByRole('listitem')).toHaveCount(11)
   await button(page, 'Cancel').click()
   await button(page, 'Redo').click()
   await open(page)
-  await expect(dialog(page).getByRole('listitem')).toHaveCount(9)
+  await expect(dialog(page).getByRole('listitem')).toHaveCount(12)
 })
 
 test('seed enable and disable reveal lower rules; undo and redo restore the displayed winner', async ({ page }) => {
@@ -72,7 +72,7 @@ test('moving up and down changes priority in one undoable action, with disabled 
   await open(page)
   await expect(dialog(page).getByRole('listitem').first()).toContainText('Greater than 1')
   await expect(button(page, 'Move rule 1 up')).toBeDisabled()
-  await expect(button(page, 'Move rule 8 down')).toBeDisabled()
+  await expect(button(page, 'Move rule 11 down')).toBeDisabled()
   await button(page, 'Cancel').click()
   await button(page, 'Undo').click()
   await expect(cell(page, '65:2')).toHaveCSS('background-color', red)

@@ -22,6 +22,8 @@ export const RULE_KINDS = [
   'data-bar',
   'color-scale',
   'top-bottom',
+  'text',
+  'duplicate-values',
 ] as const satisfies readonly ConditionalFormatRuleKind[]
 
 export const BORDER_SIDES = [

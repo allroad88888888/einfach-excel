@@ -55,6 +55,8 @@ export function copyRule(rule: ConditionalFormatRule): ConditionalFormatRule {
     case 'cell-value':
     case 'formula':
     case 'top-bottom':
+    case 'text':
+    case 'duplicate-values':
       return { ...rule, format: copyFormat(rule.format) }
     case 'data-bar':
     case 'color-scale':
@@ -87,7 +89,7 @@ export function freezeFormat(format: SpreadsheetCellFormat): SpreadsheetCellForm
 
 export function freezeRule(rule: ConditionalFormatRule): ConditionalFormatRule {
   const result = copyRule(rule)
-  if (result.kind === 'cell-value' || result.kind === 'formula' || result.kind === 'top-bottom')
+  if ('format' in result)
     result.format = freezeFormat(result.format)
   return Object.freeze(result)
 }
@@ -161,6 +163,10 @@ export function freezeLedger(
 
 export function defaultRuleForKind(kind: ConditionalFormatRuleKind): ConditionalFormatRule {
   switch (kind) {
+    case 'text':
+      return { kind, condition: 'contains', text: '', format: { bgColor: '#fef3c7' } }
+    case 'duplicate-values':
+      return { kind, mode: 'duplicate', format: { bgColor: '#fef3c7' } }
     case 'cell-value':
       return { kind, operator: 'gt', value: '0', format: { bgColor: '#fef3c7' } }
     case 'formula':

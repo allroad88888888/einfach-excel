@@ -42,6 +42,10 @@ pub use conditional_data_bar::DataBarDisplay;
 pub use conditional_format_projection::DisplayFormatRangeSnapshot;
 #[path = "workbook_conditional_format_rank.rs"]
 mod conditional_format_rank;
+#[path = "workbook_conditional_format_text.rs"]
+mod conditional_format_text;
+#[path = "workbook_conditional_format_duplicates.rs"]
+pub(crate) mod conditional_format_duplicates;
 #[path = "workbook_conditional_format_rule.rs"]
 pub(crate) mod conditional_format_rule;
 #[path = "workbook_conditional_format_sheet_refs.rs"]

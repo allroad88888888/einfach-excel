@@ -9,6 +9,14 @@ export type ConditionalFormatRuleKind =
   | 'data-bar'
   | 'color-scale'
   | 'top-bottom'
+  | 'text'
+  | 'duplicate-values'
+
+interface HighlightOptions {
+  enabled?: boolean
+  /** 命中后不再应用较低优先级规则，含数据条和色阶。 */
+  stopIfTrue?: boolean
+}
 
 export interface ConditionalFormatScope {
   range: CellRange
@@ -16,7 +24,7 @@ export interface ConditionalFormatScope {
   additionalRanges?: readonly CellRange[]
 }
 
-export interface CellValueRule {
+export interface CellValueRule extends HighlightOptions {
   kind: 'cell-value'
   /** 缺省启用；停用仍保存规则，由 Rust 显示投影跳过。 */
   enabled?: boolean
@@ -26,7 +34,7 @@ export interface CellValueRule {
   format: SpreadsheetCellFormat
 }
 
-export interface FormulaRule {
+export interface FormulaRule extends HighlightOptions {
   kind: 'formula'
   enabled?: boolean
   formula: string
@@ -48,7 +56,7 @@ export interface ColorScaleRule {
   maxColor: string
 }
 
-export interface TopBottomRule {
+export interface TopBottomRule extends HighlightOptions {
   kind: 'top-bottom'
   enabled?: boolean
   direction: 'top' | 'bottom'
@@ -57,8 +65,23 @@ export interface TopBottomRule {
   format: SpreadsheetCellFormat
 }
 
+export interface TextMatchRule extends HighlightOptions {
+  kind: 'text'
+  condition: 'contains' | 'not-contains' | 'begins-with' | 'ends-with'
+  text: string
+  format: SpreadsheetCellFormat
+}
+
+export interface DuplicateValuesRule extends HighlightOptions {
+  kind: 'duplicate-values'
+  mode: 'duplicate' | 'unique'
+  format: SpreadsheetCellFormat
+}
+
 /** 已接入 Rust 求值、管理及历史的规则；其余类型只保留旧持久化数据。 */
 export type NativeConditionalFormatRule =
+  | TextMatchRule
+  | DuplicateValuesRule
   | CellValueRule
   | FormulaRule
   | TopBottomRule
@@ -66,6 +89,8 @@ export type NativeConditionalFormatRule =
   | DataBarRule
 
 export type ConditionalFormatRule =
+  | TextMatchRule
+  | DuplicateValuesRule
   | CellValueRule
   | FormulaRule
   | DataBarRule

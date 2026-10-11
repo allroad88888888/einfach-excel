@@ -73,6 +73,8 @@ export function conditionalFormatEditorDraftError(
         : 'Top and bottom rules require a positive whole-number count'
     case 'data-bar':
     case 'color-scale':
+    case 'text':
+    case 'duplicate-values':
       return null
   }
 }

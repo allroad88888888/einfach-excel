@@ -35,6 +35,33 @@ async function click(name: string) {
   await act(async () => { fireEvent.click(screen.getByRole('button', { name })) })
 }
 
+test.each(['text', 'duplicate-values'])('edits %s and Stop using command atoms', async (kind) => {
+  const request = setup()
+  await click('Conditional formatting')
+  await act(async () => { fireEvent.change(screen.getByLabelText('Rule type'), { target: { value: kind } }) })
+  await act(async () => {
+  if (kind === 'text') {
+    fireEvent.change(screen.getByLabelText('Matching text'), { target: { value: 'Ready' } })
+    fireEvent.change(screen.getByLabelText('Text condition'), { target: { value: 'begins-with' } })
+  } else fireEvent.change(screen.getByLabelText('Highlight values'), { target: { value: 'unique' } })
+  fireEvent.click(screen.getByLabelText('Stop if true'))
+  })
+  await click('Add rule')
+  expect(request).toHaveBeenCalledOnce()
+  expect(request.mock.calls[0][1]).toMatchObject({ rule: { kind, stopIfTrue: true,
+    ...(kind === 'text' ? { text: 'Ready', condition: 'begins-with' } : { mode: 'unique' }) } })
+  expect(screen.queryByRole('dialog')).toBeNull()
+})
+
+test('Stop control is not offered on data bars or color scales', async () => {
+  setup(); await click('Conditional formatting')
+  await act(async () => { fireEvent.click(screen.getByLabelText('Stop if true')) })
+  for (const kind of ['color-scale', 'data-bar']) {
+    await act(async () => { fireEvent.change(screen.getByLabelText('Rule type'), { target: { value: kind } }) })
+    expect(screen.queryByLabelText('Stop if true')).toBeNull()
+  }
+})
+
 test('editing a multi-area rule retains every area under the same native ID', async () => {
   const request = setup(true, true)
   await click('Conditional formatting')

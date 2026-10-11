@@ -63,6 +63,17 @@ async function setup() {
   return { call, write, remove, manage, display }
 }
 
+test.each([
+  { kind: 'text', condition: 'contains', text: 'Ready', stopIfTrue: true, format: { bold: true } },
+  { kind: 'duplicate-values', mode: 'unique', stopIfTrue: true, format: { italic: true } },
+])('new highlight rules reach WASM unchanged: $kind', async (rule) => {
+  const { call, write } = await setup()
+  expect(await call('conditionalFormat.change', { ...input, rule })).toMatchObject({ ok: true })
+  expect(write).toHaveBeenCalledOnce()
+  expect(write.mock.calls[0]).toEqual([0, { revision: 0, ruleId: undefined, priority: -1,
+    scope: input.scope, rule }])
+})
+
 test('set delegates once and returns native display, rules and history in one projection', async () => {
   const { call, write, display } = await setup()
   const response = await call('conditionalFormat.change', input)

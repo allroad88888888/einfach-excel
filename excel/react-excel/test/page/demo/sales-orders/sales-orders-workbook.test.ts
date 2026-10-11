@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import type { RustImportCell } from '@einfach/spreadsheet-ui-core'
+import { SUMMARY_CONDITIONAL_TEXT_CELLS, SUMMARY_CONDITIONAL_TEXT_RULES } from '../../../../src/page/demo/sales-orders/data/conditional-text-seed'
 import {
   SALES_ORDER_COLUMNS,
   SALES_ORDER_SHEET_ROW_COUNT,
@@ -43,7 +45,7 @@ describe('Sales Orders workbook definition', () => {
         hiddenRows: [9],
         hiddenColumns: [6],
         mergedRanges: SUMMARY_MERGES,
-        conditionalFormats: SUMMARY_CONDITIONAL_FORMATS,
+        conditionalFormats: [...SUMMARY_CONDITIONAL_FORMATS, ...SUMMARY_CONDITIONAL_TEXT_RULES],
         dataValidations: SUMMARY_VALIDATIONS,
         outline: SUMMARY_OUTLINE,
         namedRanges: SUMMARY_NAMED_RANGES,
@@ -56,12 +58,13 @@ describe('Sales Orders workbook definition', () => {
     const chunks = SALES_ORDERS_WORKBOOK_DEFINITION.createImportChunks() as Iterable<
       readonly unknown[]
     >
-    expect([...chunks].slice(-5)).toEqual([
+    expect([...chunks].slice(-6)).toEqual([
       SALES_ORDER_SUMMARY_CELLS,
       SUMMARY_VALIDATION_CELLS,
       SUMMARY_OUTLINE_CELLS,
       SUMMARY_NAMED_RANGE_CELLS,
       SUMMARY_TABLE_CELLS,
+      SUMMARY_CONDITIONAL_TEXT_CELLS,
     ])
     expect(SALES_ORDER_SUMMARY_CELLS).toEqual(
       expect.arrayContaining([
@@ -81,6 +84,16 @@ describe('Sales Orders workbook definition', () => {
         }),
       ]),
     )
+  })
+  it('new conditional samples never overwrite previous demo cells', () => {
+    const chunks = [...SALES_ORDERS_WORKBOOK_DEFINITION.createImportChunks() as Iterable<
+      readonly RustImportCell[]
+    >]
+    const key = (cell: RustImportCell) => `${cell.sheet}:${cell.row}:${cell.col}`
+    const previous = new Set(chunks.slice(0, -1).flat().map(key))
+    for (const cell of SUMMARY_CONDITIONAL_TEXT_CELLS) expect(previous.has(key(cell))).toBe(false)
+    expect(new Set(SUMMARY_CONDITIONAL_TEXT_CELLS.map(key)).size)
+      .toBe(SUMMARY_CONDITIONAL_TEXT_CELLS.length)
   })
   it('declares a real Table with explicit header data and a structured-reference formula', () => {
     expect(SUMMARY_TABLES).toEqual(expect.arrayContaining([{ name: 'DemoTable',

@@ -1,6 +1,27 @@
 import type { RustFilterCommands } from './filter-commands'
 import { validFilterRange, validFilterRules } from './filter-commands'
 import type { WasmWorkbook } from './wasm-types'
+import type { RustWorkbookSheet } from './commands'
+
+/** 只读当前版本的一页候选；Worker 不读取单元格，也不改变可见性或历史。 */
+export function readFilterValues(workbook: WasmWorkbook, sheet: RustWorkbookSheet | undefined,
+  input: RustFilterCommands['sheet.filterValues']['payload'], revision: number) {
+  if (!sheet || sheet.index < 0) throw new Error('The worksheet no longer exists.')
+  if (!Number.isSafeInteger(input.expectedRevision) || input.expectedRevision !== revision)
+    throw new Error('The workbook changed. Reopen the filter to browse current values.')
+  if (!Number.isSafeInteger(input.column) || input.column < 0 ||
+    input.column >= (sheet.colCount ?? 16_384) ||
+    !Number.isSafeInteger(input.offset) || input.offset < 0 || input.offset > 1_048_576 ||
+    !Number.isSafeInteger(input.limit) || input.limit < 1 || input.limit > 100 ||
+    typeof input.search !== 'string' || input.search.length > 32767 ||
+    (input.table !== undefined && (typeof input.table !== 'string' || !input.table)))
+    throw new Error('Choose a valid filter column, search text and page.')
+  if (!workbook.filter_values) throw new Error('Rust filter values are unavailable.')
+  const page = workbook.filter_values({ sheet: sheet.index, column: input.column,
+    search: input.search, offset: input.offset, limit: input.limit,
+    ...(input.table === undefined ? {} : { table: input.table }) })
+  return { ...page, revision }
+}
 
 /** 原生筛选自己记历史；Worker 不获取所有单元格，也不保存筛选前后副本。 */
 export function changeFilter(

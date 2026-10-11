@@ -74,12 +74,28 @@ test('cross-sheet header arrays become zero and recover through native history',
   await expect(cell(page, '0:2')).toHaveText('0')
 })
 
-test('hiding headers clears the owned filter and resizes dependent arrays in the same result', async ({ page }) => {
-  await select(page, 'A46:C49', '45:0')
-  await page.getByRole('combobox', { name: 'Worksheet filter' }).selectOption('selection')
-  await expect(page.getByLabel('Filter status')).toHaveText('0 rows filtered out.')
-  await button(page, 'Filter column B').click()
-  const filter = page.getByRole('dialog', { name: 'Filter conditions' })
+for (const scope of ['range', 'table']) test(`hiding headers clears its ${scope} filter and resizes dependent arrays`,
+  async ({ page }) => {
+  const header = button(page, 'Filter CalculatedOrders column B')
+  const menu = page.getByRole('combobox', { name: 'Worksheet filter' })
+  const filter = page.getByRole('dialog', {
+    name: scope === 'table' ? 'CalculatedOrders filter conditions' : 'Filter conditions', exact: true,
+  })
+  const openFilter = async () => {
+    if (scope === 'table') await header.click()
+    else {
+      // 重合表头现在显示 Table 按钮；普通区域条件仍从表外活动格的工具栏进入。
+      await select(page, 'D46', '45:3')
+      await menu.selectOption('open')
+      await filter.getByLabel('Filter column 1', { exact: true }).selectOption('1')
+    }
+  }
+  if (scope === 'range') {
+    await select(page, 'A46:C49', '45:0')
+    await menu.selectOption('selection')
+    await expect(page.getByLabel('Filter status')).toHaveText('0 rows filtered out.')
+  }
+  await openFilter()
   await filter.getByLabel('Filter condition 1', { exact: true }).selectOption('range')
   await filter.getByLabel('Minimum 1', { exact: true }).fill('20')
   await filter.getByRole('button', { name: 'Apply filter', exact: true }).click()
@@ -95,15 +111,18 @@ test('hiding headers clears the owned filter and resizes dependent arrays in the
   await expect(cell(page, '1:0')).toHaveText('')
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
   await open(page); await toggle(page, false); await close(page)
-  await expect(button(page, 'Filter column B')).toHaveCount(0)
+  await expect(header).toHaveCount(0)
   await expect(cell(page, '46:0')).toHaveText('1')
   await page.getByRole('tab', { name: 'Sheet3', exact: true }).click()
   await expect(cell(page, '1:0')).toHaveText('2')
   await button(page, 'Undo').click()
   await expect(cell(page, '1:0')).toHaveText('')
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
-  await expect(button(page, 'Filter column B')).toHaveAttribute('data-filtered', 'true')
   await expect(cell(page, '46:0')).toHaveCount(0)
+  if (scope === 'table') await expect(header).toHaveAttribute('data-filtered', 'true')
+  await openFilter()
+  await expect(filter.getByLabel('Minimum 1', { exact: true })).toHaveValue('20')
+  await filter.getByRole('button', { name: 'Cancel', exact: true }).click()
   await button(page, 'Redo').click()
   await page.getByRole('tab', { name: 'Sheet3', exact: true }).click()
   await expect(cell(page, '1:0')).toHaveText('2')

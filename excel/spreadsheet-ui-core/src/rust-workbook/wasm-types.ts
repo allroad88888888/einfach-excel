@@ -10,7 +10,7 @@ import type { CellRange } from '../shared'
 import type { SelectionNumbers } from '../status-bar/types'
 import type { RustSortKey } from './sort-commands'
 import type { ColumnFilterRule } from '../filter-sort/types'
-import type { RustFilterReport } from './filter-commands'
+import type { RustFilterReport, RustFilterValuesPage, RustFilterValuesQuery } from './filter-commands'
 import type { NativeTextColumnsRequest, RustTextColumnsPreview, RustTextColumnsReport } from './text-columns-commands'
 import type { NativeRemoveDuplicatesRequest, RustRemoveDuplicatesPreview } from './remove-duplicates-commands'
 import type { NativeQuickFormulaRequest, QuickFormulaSuggestion } from './quick-formula-commands'
@@ -57,6 +57,9 @@ export interface RustFormatRangeSnapshot {
 }
 
 export interface WasmWorkbook {
+  filter_values?: (
+    query: RustFilterValuesQuery & { readonly sheet: number },
+  ) => RustFilterValuesPage
   listTables?: () => readonly NativeTable[]
   change_table?: (sheet: number, action: NativeTableAction) => boolean
   list_named_ranges?: () => readonly NativeNamedRange[]

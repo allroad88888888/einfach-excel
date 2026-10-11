@@ -8,6 +8,7 @@ import {
   nativeFilterPanelAtom,
   type ColumnFilterRule,
 } from '@einfach/spreadsheet-ui-core'
+import { FilterValueChoices } from './FilterValueChoices'
 
 /** 条件字段只编辑面板草稿，不读取工作簿数据或决定哪些行隐藏。 */
 export function FilterConditionFields() {
@@ -65,7 +66,7 @@ export function FilterConditionFields() {
             <option value="range">Number range</option>
             <option value="list">One of these values</option>
           </select>
-          {item.kind === 'range' ? (
+          {panel.browser?.index !== index && (item.kind === 'range' ? (
             <>
               {(['min', 'max'] as const).map((bound) => (
                 <label key={bound} className="filter-number-bound">
@@ -94,12 +95,13 @@ export function FilterConditionFields() {
                 <textarea
                   id={`${id}-value-${index}`}
                   aria-label={`Filter value ${index + 1}`}
-                  value={item.value}
+                  value={item.values.join('\n')}
+                  readOnly={item.values.some((value) => value.includes('\n'))}
                   onChange={(event) =>
                     void configure({
                       type: 'change',
                       index,
-                      patch: { value: event.currentTarget.value },
+                      patch: { values: event.currentTarget.value.split('\n') },
                     })
                   }
                 />
@@ -134,7 +136,10 @@ export function FilterConditionFields() {
                 </label>
               )}
             </>
-          )}
+          ))}
+          <FilterValueChoices index={index} />
+          {panel.browser?.index !== index && item.kind === 'list' && item.values.some((value) => value.includes('\n')) &&
+            <p className="size-hint filter-values-hint">Multi-line values stay intact. Use Choose values to change them.</p>}
           {panel.column === undefined && (
             <button
               type="button"

@@ -27,7 +27,7 @@ import type { RustWasmModule, WasmWorkbook } from './wasm-types'
 import { readVisibleProjection } from './visible-projection'
 import { changeVisibility } from './visibility-io'
 import { sortRange } from './sort-io'
-import { changeFilter } from './filter-io'
+import { changeFilter, readFilterValues } from './filter-io'
 import { applyTextColumns, previewTextColumns } from './text-columns-io'
 import { applyRemoveDuplicates, previewRemoveDuplicates } from './remove-duplicates-io'
 import { changeConditionalFormat } from './conditional-format-io'
@@ -175,6 +175,10 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       return current.preview_number_format(
         sheetIndex(input.sheetId), input.addr, input.numberFormat,
       )
+    }
+    if (command === 'sheet.filterValues') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      return readFilterValues(current, sheetsById.get(input.sheetId), input, revision)
     }
     if (command === 'sheet.filter') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']

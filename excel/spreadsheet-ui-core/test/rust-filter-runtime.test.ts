@@ -28,6 +28,9 @@ async function runtime() {
   const reapply = vi.fn(apply),
     clear = vi.fn(apply),
     begin = vi.fn()
+  const values = vi.fn((_input: unknown) => ({
+    values: [{ value: 'West', count: 12 }], total: 101, offset: 50,
+  }))
   class TestWorkbook {
     rename_sheet() {
       return true
@@ -40,6 +43,7 @@ async function runtime() {
     applyFilter = apply
     reapplyFilter = reapply
     clearFilter = clear
+    filter_values = values
     history_begin = begin
     history_state() {
       return { entries: [], undoCount: 0, redoCount: 0, notice: null }
@@ -65,7 +69,7 @@ async function runtime() {
   await call('workbook.initialize', {
     sheets: [{ id: 's', name: 'Orders', rowCount: 100, colCount: 8 }],
   })
-  return { call, apply, reapply, clear, begin }
+  return { call, apply, reapply, clear, begin, values }
 }
 
 test.each(['apply', 'reapply', 'clear'])(
@@ -126,4 +130,44 @@ test('native rejection leaves revision unchanged and exposes the original error'
     await call('sheet.filter', { sheetId: 's', projection, action: 'apply', rules }),
   ).toMatchObject({ ok: false, error: { message: 'Scan is too large' } })
   expect((await call('projection.readVisible', { request: projection })).result.revision).toBe(0)
+})
+
+const valuesQuery = { sheetId: 's', column: 2, table: 'Orders', search: 'west',
+  offset: 50, limit: 50, expectedRevision: 0 }
+
+test('values forwards one native page without advancing revision or creating a history entry', async () => {
+  const { call, values, apply, begin } = await runtime()
+  expect(await call('sheet.filterValues', valuesQuery)).toMatchObject({ ok: true, result: {
+    values: [{ value: 'West', count: 12 }], total: 101, offset: 50, revision: 0,
+  } })
+  expect(values).toHaveBeenCalledTimes(1)
+  expect(values).toHaveBeenCalledWith({ sheet: 0, column: 2, table: 'Orders',
+    search: 'west', offset: 50, limit: 50 })
+  expect((await call('projection.readVisible', { request: projection })).result.revision).toBe(0)
+  expect(apply).not.toHaveBeenCalled(); expect(begin).not.toHaveBeenCalled()
+})
+
+test('invalid values query never reaches native and stale pages reject after a workbook mutation', async () => {
+  const { call, values } = await runtime()
+  for (const patch of [{ sheetId: 'missing' }, { column: 8 }, { column: -1 }, { column: 0.5 },
+    { offset: -1 }, { offset: 0.5 }, { offset: 1_048_577 }, { limit: 0 }, { limit: 101 },
+    { search: null }, { search: 'a'.repeat(32768) }, { expectedRevision: undefined }, { table: '' }])
+    expect((await call('sheet.filterValues', { ...valuesQuery, ...patch })).ok).toBe(false)
+  expect(values).not.toHaveBeenCalled()
+  await call('sheet.filter', { action: 'apply', rules, sheetId: 's', projection })
+  expect(await call('sheet.filterValues', valuesQuery)).toMatchObject({ ok: false,
+    error: { message: 'The workbook changed. Reopen the filter to browse current values.' } })
+  expect(values).not.toHaveBeenCalled()
+  expect((await call('sheet.filterValues', { ...valuesQuery, expectedRevision: 1 })).result.revision).toBe(1)
+})
+
+test('values scan failures stay read-only and ordinary range queries omit table identity', async () => {
+  const { call, values, begin } = await runtime()
+  values.mockImplementationOnce(() => { throw new Error('Scan budget exceeded') })
+  expect(await call('sheet.filterValues', { ...valuesQuery, table: undefined })).toMatchObject({
+    ok: false, error: { message: 'Scan budget exceeded' },
+  })
+  expect(values).toHaveBeenCalledWith({ sheet: 0, column: 2, search: 'west', offset: 50, limit: 50 })
+  expect((await call('projection.readVisible', { request: projection })).result.revision).toBe(0)
+  expect(begin).not.toHaveBeenCalled()
 })

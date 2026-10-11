@@ -14,7 +14,23 @@ export type RustFilterReport =
       readonly predicateCells: number
     }
   | { readonly ok: false; readonly code: string; readonly message?: string }
+export interface RustFilterValuesQuery {
+  readonly column: number
+  readonly table?: string
+  readonly search: string
+  readonly offset: number
+  readonly limit: number
+}
+export interface RustFilterValuesPage {
+  readonly values: readonly { readonly value: string; readonly count: number }[]
+  readonly total: number
+  readonly offset: number
+}
 export interface RustFilterCommands {
+  readonly 'sheet.filterValues': WorkerCommand<
+    RustFilterValuesQuery & { readonly sheetId: string; readonly expectedRevision: number },
+    RustFilterValuesPage & { readonly revision: number }
+  >
   readonly 'sheet.filter': WorkerCommand<
     RustFilterAction & {
       readonly sheetId: string

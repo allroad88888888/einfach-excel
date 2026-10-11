@@ -34,3 +34,20 @@
   line-height: 16px;
 }
 .filter-feedback[role='alert'] { color: #a12622; }
+
+.filter-values, .filter-values-hint { grid-column: 1 / -1; min-width: 0; }
+.filter-values section { margin-top: 8px; }
+.filter-values p { margin: 8px 0; }
+.filter-values-search { display: flex; gap: 8px; }
+.filter-values-search input { min-width: 0; flex: 1; }
+.filter-values-actions, .filter-values-pages {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 8px;
+}
+.filter-values-actions span, .filter-values-pages span { font-variant-numeric: tabular-nums; }
+.filter-values-pages { justify-content: space-between; }
+.filter-values-list { max-height: 180px; overflow-y: auto; border: 1px solid var(--border); margin-top: 8px; }
+.filter-values-list label { display: flex; align-items: flex-start; gap: 8px; padding: 6px 8px; cursor: pointer; }
+.filter-values-list label:hover, .filter-values-list label:focus-within { background: var(--primary-soft); }
+.filter-values-list input[type='checkbox'] { flex: none; margin-top: 2px; }
+.filter-values-label { min-width: 0; flex: 1; white-space: pre-wrap; overflow-wrap: anywhere; }
+.filter-values-count { flex: none; font-variant-numeric: tabular-nums; }

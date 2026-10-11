@@ -2,13 +2,14 @@ import { atom } from '@einfach/core'
 import { activeWorkbookSheetAtom } from '../runtime/workbook-document'
 import { selectionSnapshotAtom } from '../selection'
 import type { ColumnFilterRule } from '../filter-sort/types'
-import type { CellRange } from '../shared'
 import { validFilterRules } from '../rust-workbook/filter-commands'
 import { nativeFilterTargetAtom, nativeTableFiltersAtom } from './scope'
 import { projectionSnapshotAtom } from '../projection/state'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
-import type { RustWorkbookConnection } from '../rust-workbook/commands'
-import type { ProjectionRevision } from '../backend'
+import {
+  filterCondition as condition, filterPanelStateAtom as stateAtom,
+  initialFilterPanel as initial, type FilterCondition as Condition,
+} from './panel-state'
 import {
   nativeFilterFeedbackAtom,
   nativeFilterRangeAtom,
@@ -16,33 +17,6 @@ import {
   runNativeFilterAtom,
 } from './command'
 
-interface Condition {
-  col: number
-  kind: ColumnFilterRule['kind']
-  value: string
-  min: string
-  max: string
-  caseSensitive: boolean
-}
-const condition = (col: number): Condition => ({
-  col,
-  kind: 'equals',
-  value: '',
-  min: '',
-  max: '',
-  caseSensitive: false,
-})
-const initial = {
-  sheetId: null as string | null,
-  connection: null as RustWorkbookConnection | null,
-  table: undefined as string | undefined,
-  revision: undefined as ProjectionRevision | undefined,
-  range: undefined as CellRange | undefined,
-  column: undefined as number | undefined,
-  conditions: [] as readonly Condition[],
-  error: '',
-}
-const stateAtom = atom(initial)
 export const nativeFilterPanelAtom = atom((get) => {
   const state = get(stateAtom)
   const rules = state.table
@@ -98,6 +72,7 @@ export const configureNativeFilterAtom = atom(
         revision: get(projectionSnapshotAtom).result?.revision,
         range,
         column,
+        browser: undefined,
         error: '',
         conditions: rules.length
           ? rules.map((rule) => ({
@@ -109,7 +84,7 @@ export const configureNativeFilterAtom = atom(
               ...(rule.kind === 'range'
                 ? { min: rule.min?.toString() ?? '', max: rule.max?.toString() ?? '' }
                 : {}),
-              ...(rule.kind === 'list' ? { value: rule.values.join('\n') } : {}),
+              ...(rule.kind === 'list' ? { values: rule.values } : {}),
             }))
           : [
               condition(
@@ -130,9 +105,11 @@ export const configureNativeFilterAtom = atom(
       set(stateAtom, { ...state, error: 'The worksheet changed. Close and reopen Filter.' })
       return false
     }
-    if (state.table && (state.revision !== get(projectionSnapshotAtom).result?.revision ||
-      !get(nativeTableFiltersAtom).some((target) => target.table === state.table))) {
-      set(stateAtom, { ...state, error: 'The table changed. Close and reopen Filter.' })
+    if (state.revision !== get(projectionSnapshotAtom).result?.revision ||
+      (state.table && !get(nativeTableFiltersAtom)
+        .some((target) => target.table === state.table))) {
+      const target = state.table ? 'table' : 'worksheet'
+      set(stateAtom, { ...state, error: `The ${target} changed. Close and reopen Filter.` })
       return false
     }
     if (action === 'add') {
@@ -157,6 +134,7 @@ export const configureNativeFilterAtom = atom(
       set(stateAtom, {
         ...state,
         error: '',
+        browser: undefined,
         conditions:
           action.type === 'remove'
             ? state.conditions.filter((_, index) => index !== action.index)
@@ -175,7 +153,7 @@ export const configureNativeFilterAtom = atom(
           ...(item.min.trim() ? { min: Number(item.min) } : {}),
           ...(item.max.trim() ? { max: Number(item.max) } : {}),
         }
-      if (item.kind === 'list') return { kind: 'list', colIndex, values: item.value.split('\n') }
+      if (item.kind === 'list') return { kind: 'list', colIndex, values: item.values }
       return { kind: item.kind, colIndex, value: item.value, caseSensitive: item.caseSensitive }
     })
     if (state.column !== undefined) {

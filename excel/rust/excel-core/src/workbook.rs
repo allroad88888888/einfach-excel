@@ -73,6 +73,9 @@ mod workbook_filter_engine;
 mod workbook_filter_range;
 #[path = "workbook_filter_scan.rs"]
 mod workbook_filter_scan;
+#[path = "workbook_filter_values.rs"]
+mod workbook_filter_values;
+pub use workbook_filter_values::{FilterValueEntry, FilterValuesPage, FilterValuesQuery};
 #[path = "workbook_table_filter.rs"]
 mod workbook_table_filter;
 #[path = "workbook_table_filter_geometry.rs"]

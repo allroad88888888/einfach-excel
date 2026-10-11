@@ -23,7 +23,11 @@ pub struct TableStyle {
 impl Default for TableStyle {
     fn default() -> Self {
         // 旧文件未保存样式时保留原外观，不擅自替旧表上色。
-        Self { preset: TableStylePreset::None, banded_rows: true, first_column: false }
+        Self {
+            preset: TableStylePreset::None,
+            banded_rows: true,
+            first_column: false,
+        }
     }
 }
 
@@ -41,7 +45,16 @@ impl TableStyle {
         let data_start = range.start.row + u32::from(table.has_headers());
         let band = self.banded_rows && !is_header && (addr.row - data_start) % 2 == 0;
         CellStyle {
-            background: Some(Some(if is_header { header } else if is_total || band { stripe } else { "#ffffff" }.into())),
+            background: Some(Some(
+                if is_header {
+                    header
+                } else if is_total || band {
+                    stripe
+                } else {
+                    "#ffffff"
+                }
+                .into(),
+            )),
             color: Some(Some(if is_header { "#ffffff" } else { "#1f2937" }.into())),
             bold: Some(is_header || is_total || (self.first_column && addr.col == range.start.col)),
             ..Default::default()

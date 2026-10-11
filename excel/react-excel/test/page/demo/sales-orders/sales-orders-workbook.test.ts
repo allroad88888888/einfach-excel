@@ -84,7 +84,8 @@ describe('Sales Orders workbook definition', () => {
   })
   it('declares a real Table with explicit header data and a structured-reference formula', () => {
     expect(SUMMARY_TABLES).toEqual([{ name: 'DemoTable',
-      range: { rowStart: 79, rowEnd: 82, colStart: 0, colEnd: 1 }, totals: true }])
+      range: { rowStart: 79, rowEnd: 82, colStart: 0, colEnd: 1 }, totals: true,
+      style: { preset: 'blue', bandedRows: true, firstColumn: false } }])
     expect(SUMMARY_TABLE_CELLS).toEqual(expect.arrayContaining([
       expect.objectContaining({ sheet: 1, row: 79, col: 1, kind: 'text', value: 'Amount' }),
       expect.objectContaining({ sheet: 1, row: 4, col: 1, kind: 'formula',

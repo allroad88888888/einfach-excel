@@ -6,6 +6,7 @@
 汇总操作：显示汇总行、设置列汇总函数、隐藏汇总行；继续使用同一个 command atom 和 Worker 命令。
 列名操作：Tables 面板修改列名、直接编辑表头；两种入口最终调用同一个 Rust 列名历史操作。
 范围操作：编辑 Table range 后点 Resize table；紧邻下方／右侧的单格输入由 Rust 自动扩展。
+样式操作：Tables 面板选择预设、隔行底色、首列强调；配置直接读取当前原生 Table 投影。
 
 调用链：`TableTools` → `runNativeTablePanelAtom` → `table.change` → WASM `change_table`
 → Rust `WorkbookHistory` → 同次返回的可见区投影。一次操作只有一次 Worker 往返；撤销仍走已有原生历史。
@@ -22,8 +23,12 @@
 - 手动范围调整不复制数据区；新表头、汇总行、删除列引用的前后像进入同一条原生历史。
 - 自动扩展仍是一次 `cell.setInput`：新范围与输入共同成功或共同回滚，不追加 `table.change`。
 - 保护表的解锁格输入携带 `expandTables: false`；障碍/归属不明确时只做普通输入。汇总行下方不自动扩行。
+- 原三参 `set_cell_input` 保持签名；保护表走新增的 `set_cell_input_with_table_expansion`，两者共用 Rust 输入历史。
+- Table 仅保存预设与两个开关。Rust 在读取窗口时生成默认样式，显式 cell/row/column 属性覆盖它，条件格式最后覆盖。
+- 转普通区域时才把外观落为普通 cellStyle，不改数据或行高／列宽；超过现有 32 MiB 撤销预算时整次拒绝。
+- 稀疏格式随 `bulk_import_cells` 直接进入 Rust：缺省属性继续继承，边框按原始单元格保存；Worker 不再追加格式命令或触发交互共边同步。
 
-创建／改名／转换、汇总行、列名编辑／定位、范围调整／输入扩展已分批验收（最新完整 E2E 766/766）。Table 样式及其余 #32 计划仍待后续批次。
+创建／改名／转换、汇总行、列名编辑／定位、范围调整／输入扩展已分批验收（完整 E2E 766/766）。Table 样式本批正在全量回归，其余 #32 计划仍待后续批次。
 完整验收状态见 [React 功能进度](../../../react-excel/FEATURE_PROGRESS.md)。
 
 ## 历史接口记录（非当前 React 运行路径）

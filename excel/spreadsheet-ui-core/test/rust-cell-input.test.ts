@@ -5,9 +5,18 @@ import type { WasmWorkbook } from '../src/rust-workbook/wasm-types'
 describe('Rust cell input boundary', () => {
   test('passes the protection expansion policy with the same single input write', () => {
     const write = vi.fn()
-    writeCellInput({ set_cell_input: write } as unknown as WasmWorkbook, 0, 1, 2, '7', false)
+    const ordinaryWrite = vi.fn()
+    writeCellInput({ set_cell_input: ordinaryWrite, set_cell_input_with_table_expansion: write } as unknown as WasmWorkbook, 0, 1, 2, '7', false)
     expect(write).toHaveBeenCalledTimes(1)
     expect(write).toHaveBeenCalledWith(0, 'C2', '7', false)
+    expect(ordinaryWrite).not.toHaveBeenCalled()
+  })
+
+  test('never falls back to an expanding input when the protected entry is missing', () => {
+    const write = vi.fn()
+    expect(() => writeCellInput({ set_cell_input: write } as unknown as WasmWorkbook, 0, 1, 2, '7', false))
+      .toThrow('WasmWorkbook.set_cell_input_with_table_expansion is unavailable')
+    expect(write).not.toHaveBeenCalled()
   })
   test.each(["'00123", "'=1+2", "'", ' FaLsE ', '12.50%', '0.125', '=SUM(A1:A3)', '', '  ',
     '13:30', '36:15:30', '1:30 PM', '9 AM', '1 1/2', '-0 3/8'])(

@@ -17,6 +17,8 @@ mod resize_totals;
 mod input;
 #[path = "workbook_table_style_change.rs"]
 mod style;
+#[path = "workbook_table_convert.rs"]
+mod convert;
 
 #[derive(Debug)]
 pub(crate) struct TableDefinitionChange {
@@ -68,38 +70,6 @@ impl TableDefinitionChange {
             lambdas,
             cells: Vec::new(),
         }))
-    }
-
-    pub(crate) fn prepare_convert(workbook: &Workbook, name: &str) -> Result<Self, String> {
-        if workbook.is_inside_custom_call() {
-            return Err("Cannot convert a table during a custom call.".into());
-        }
-        let before = workbook
-            .get_table(name)
-            .ok_or("The table no longer exists.")?
-            .clone();
-        let sheet = workbook
-            .index_of(before.sheet_name())
-            .ok_or("The table worksheet no longer exists.")?;
-        let table = before.to_resolved(sheet);
-        let converter = crate::shift::TableToRange {
-            name: before.name(),
-            table: &table,
-        };
-        let rewrite = |sheet, range, expr: &mut Expr| converter.rewrite(expr, Some((sheet, range)));
-        let formulas = FormulaSourceChange::prepare(workbook, &rewrite);
-        let rules = FormulaRuleChange::prepare(workbook, &rewrite);
-        let lambdas = FormulaLambdaChange::prepare(workbook, &|expr| converter.rewrite(expr, None));
-        Ok(Self {
-            sheet,
-            range: before.range(),
-            before,
-            after: None,
-            formulas,
-            rules,
-            lambdas,
-            cells: Vec::new(),
-        })
     }
 
     pub(crate) fn affected_sheets(&self, workbook: &Workbook) -> Vec<usize> {
@@ -162,8 +132,10 @@ impl TableDefinitionChange {
             } else {
                 (before, after)
             };
-            validate_cells(workbook, self.sheet, expected.range)?;
-            if HistorySnapshot::capture(&workbook.sheets[self.sheet], expected.range, true)
+            if expected.cells.is_some() {
+                validate_cells(workbook, self.sheet, expected.range)?;
+            }
+            if HistorySnapshot::capture(&workbook.sheets[self.sheet], expected.range, expected.cells.is_some())
                 != *expected
             {
                 return Err("The table cells changed outside history.");
@@ -186,6 +158,7 @@ impl TableDefinitionChange {
             Vec::new()
         };
         for cells in &next_cells {
+            if cells.cells.is_none() { continue; }
             // 表头/汇总快照仅覆盖一行；重装前保留现有依赖图中的数组消费者。
             // restore 内部的重投仍在嵌套 batch 中，必须等最外层失效传播后再投一次。
             let roots: Vec<_> = (cells.range.start.col..=cells.range.end.col)
@@ -245,6 +218,12 @@ impl TableDefinitionChange {
         workbook.recompute_array_formula_groups(arrays);
         for (sheet, listeners) in workbook.sheets.iter_mut().zip(observers) {
             sheet.resume_structure_notifications(listeners);
+        }
+        // 纯格式恢复不会改变 value；恢复订阅后仍须发布最终外观。
+        for (before, _) in &self.cells {
+            if before.cells.is_none() {
+                workbook.sheets[self.sheet].notify_format_range(before.range);
+            }
         }
         result
     }

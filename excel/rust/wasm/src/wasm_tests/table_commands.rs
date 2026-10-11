@@ -117,7 +117,7 @@ fn column_command_and_direct_input_share_native_history_and_projection() {
     assert_eq!(book.tables_json()[0].columns, ["Revenue"]);
     assert_eq!(book.workbook.get_cell("Sheet1", "A1"), Value::Text("Revenue".into()));
     // 直接调用浏览器绑定，不能绕过历史改用 workbook.set_cell_input。
-    book.set_cell_input(0, "A1", "Net [tax]", None).unwrap();
+    book.set_cell_input(0, "A1", "Net [tax]").unwrap();
     assert_eq!(book.history.undo_count(), 3);
     assert_eq!(book.tables_json()[0].columns, ["Net [tax]"]);
     assert_eq!(book.workbook.get_cell("Sheet1", "C1"), Value::Number(30.0));
@@ -132,7 +132,7 @@ fn column_command_and_direct_input_share_native_history_and_projection() {
         book.history.redo(&mut book.workbook).unwrap();
         assert_eq!(book.workbook.get_cell("Sheet1", "C1"), Value::Number(30.0));
     }
-    book.set_cell_input(0, "A2", "40", None).unwrap();
+    book.set_cell_input(0, "A2", "40").unwrap();
     assert_eq!(book.history.undo_count(), 4);
     assert_eq!(book.workbook.get_cell("Sheet1", "C1"), Value::Number(60.0));
     book.history.undo(&mut book.workbook).unwrap();
@@ -146,7 +146,7 @@ fn column_wire_rejection_and_noop_leave_redo_intact() {
     book.apply_table_action(0, serde_json::from_value(serde_json::json!({
         "kind":"create", "name":"Inventory", "range":[0,0,2,1]
     })).unwrap()).unwrap();
-    book.set_cell_input(0, "D1", "42", None).unwrap();
+    book.set_cell_input(0, "D1", "42").unwrap();
     book.history.undo(&mut book.workbook).unwrap();
     for (sheet, column, new_name) in [(1, "Column1", "Net"), (99, "Column1", "Net"),
         (0, "missing", "Net"), (0, "Column1", "Column2"), (0, "Column1", " ")] {
@@ -200,10 +200,10 @@ fn input_binding_expands_native_catalog_without_a_second_host_command() {
         "kind":"create", "name":"Inventory", "range":[0,0,1,0]
     })).unwrap()).unwrap();
     book.history.clear("");
-    book.set_cell_input(0, "A3", "20", None).unwrap();
+    book.set_cell_input(0, "A3", "20").unwrap();
     assert_eq!(book.tables_json()[0].range, "A1:A3");
     assert_eq!(book.history.undo_count(), 1);
-    book.set_cell_input(0, "B1", "Extra", None).unwrap();
+    book.set_cell_input(0, "B1", "Extra").unwrap();
     assert_eq!(book.tables_json()[0].columns, ["Amount", "Extra"]);
     assert_eq!(book.history.undo_count(), 2);
     book.history.undo(&mut book.workbook).unwrap();
@@ -213,7 +213,7 @@ fn input_binding_expands_native_catalog_without_a_second_host_command() {
     assert_eq!(book.workbook.get_cell("Sheet1", "A3"), Value::Null);
     book.history.redo(&mut book.workbook).unwrap();
     assert_eq!(book.workbook.get_cell("Sheet1", "A3"), Value::Number(20.));
-    book.set_cell_input(0, "B2", "7", Some(false)).unwrap();
+    book.set_cell_input_with_table_expansion(0, "B2", "7", false).unwrap();
     assert_eq!(book.tables_json()[0].range, "A1:A3");
     assert_eq!(book.workbook.get_cell("Sheet1", "B1"), Value::Null);
     assert_eq!(book.workbook.get_cell("Sheet1", "B2"), Value::Number(7.));

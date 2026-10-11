@@ -6,11 +6,21 @@ impl WasmWorkbook {
         sheet_idx: usize,
         addr: &str,
         input: &str,
-        expand_tables: Option<bool>,
+    ) -> Result<(), JsValue> {
+        self.set_cell_input_with_table_expansion(sheet_idx, addr, input, true)
+    }
+
+    /// 保护表可关闭自动扩展；保留原输入 API 的签名，仍只执行一次原生写入。
+    pub fn set_cell_input_with_table_expansion(
+        &mut self,
+        sheet_idx: usize,
+        addr: &str,
+        input: &str,
+        expand_tables: bool,
     ) -> Result<(), JsValue> {
         self.history
             .set_cell_input_with_table_expansion(
-                &mut self.workbook, sheet_idx, addr, input, expand_tables.unwrap_or(true),
+                &mut self.workbook, sheet_idx, addr, input, expand_tables,
             )
             .map_err(|error| JsValue::from_str(&error))
     }

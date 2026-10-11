@@ -4,6 +4,22 @@ import { parseA1Range } from '../name-box/address'
 export const NATIVE_TOTAL_FUNCTIONS = ['none', 'average', 'count', 'countNums',
   'max', 'min', 'sum', 'stdDev', 'var'] as const
 export type NativeTotalFunction = typeof NATIVE_TOTAL_FUNCTIONS[number]
+export const NATIVE_TABLE_STYLE_PRESETS = ['none', 'blue', 'green', 'gray'] as const
+export interface NativeTableStyle {
+  readonly preset: typeof NATIVE_TABLE_STYLE_PRESETS[number]
+  readonly bandedRows: boolean
+  readonly firstColumn: boolean
+}
+export const DEFAULT_NATIVE_TABLE_STYLE: NativeTableStyle = {
+  preset: 'none', bandedRows: true, firstColumn: false,
+}
+
+export function validNativeTableStyle(value: unknown): value is NativeTableStyle {
+  if (!value || typeof value !== 'object') return false
+  const style = value as NativeTableStyle
+  return NATIVE_TABLE_STYLE_PRESETS.includes(style.preset) &&
+    typeof style.bandedRows === 'boolean' && typeof style.firstColumn === 'boolean'
+}
 
 /** Rust Table 注册表的只读投影，不在 UI Core 重建定义。 */
 export interface NativeTable {
@@ -15,8 +31,10 @@ export interface NativeTable {
   readonly hasTotals: boolean
   readonly columns: readonly string[]
   readonly totalFunctions?: readonly (NativeTotalFunction | null)[]
+  readonly style?: NativeTableStyle
 }
 export type TableChange =
+  | { readonly kind: 'style'; readonly name: string; readonly style: NativeTableStyle }
   | { readonly kind: 'create'; readonly name?: string; readonly range: CellRange }
   | { readonly kind: 'resize'; readonly name: string; readonly range: CellRange }
   | { readonly kind: 'rename'; readonly name: string; readonly newName: string }
@@ -40,6 +58,7 @@ export function validNativeTables(value: unknown): value is readonly NativeTable
       typeof entry.hasTotals !== 'boolean' || !Array.isArray(entry.columns) ||
       !entry.columns.every((column: unknown) => typeof column === 'string' && column.length > 0))
       return false
+    if (entry.style !== undefined && !validNativeTableStyle(entry.style)) return false
     if (entry.totalFunctions !== undefined && (!Array.isArray(entry.totalFunctions) ||
       entry.totalFunctions.length !== (entry.hasTotals ? entry.columns.length : 0) ||
       !entry.totalFunctions.every((functionId: unknown) => functionId === null ||

@@ -7,6 +7,8 @@ struct WorkbookImportCellJSON {
     kind: BulkImportKindJSON,
     #[serde(default)]
     value: Option<BulkImportValueJSON>,
+    #[serde(default)]
+    format: Option<CellFormatJSON>,
 }
 
 #[derive(Clone, Debug, Serialize)]

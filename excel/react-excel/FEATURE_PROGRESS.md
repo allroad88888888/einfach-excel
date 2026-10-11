@@ -57,9 +57,19 @@
 
 ## 批次账本
 
-### Excel Table 样式（基础代码，未验收）
+### Excel Table 样式（进行中，未验收）
 
-本次提交同时保存进行中的 Rust 样式基础：预设及两个开关、窗口内样式投影、原生样式历史。尚未接入 WASM 持久化与 React 界面，转普通区域保留外观及专项测试也未完成；不能把这部分算作已交付功能。下方 766 项 E2E 与 5,476 项 Vitest 是上一批输入扩展的验收记录，不代表样式功能验收。
+`26561017` 保存了样式基础代码；本轮继续且只做三项：选择预设、隔行底色、首列强调。现已接入 Tables 面板、原生历史和持久化，Summary 的 DemoTable 使用蓝色预设。样式仅保存预设与开关，可见窗口里叠加；显式 cell/row/column 属性优先，条件格式最后覆盖。转普通区域才把外观写入普通 cellStyle，沿用 32 MiB 撤销预算，超限在写入前拒绝。复制及格式刷共用原生剪贴板冻结样式，不把条件格式固化。
+
+发现并修复两个集成问题：恢复原三参 `set_cell_input` 签名，新增受保护输入入口，共用同一 Rust 历史；API 快照只增补新入口和漏记的 `change_table`。稀疏格式随已有 `bulk_import_cells` 直接在 Rust 装载，不将缺省颜色写成清空，不经过交互命令的邻格边框同步，也不新增历史；删除 Worker 的额外格式写入。原生样式专项、WASM、Vitest 与真实浏览器回归正在进行；首轮浏览器失败及修复记录保留在 `/tmp/excel-table-style-e2e.log`。下方 766 项 E2E 与 5,476 项 Vitest 是上一批验收记录，不能代替本批验收。本轮未提交，不关闭 #32 或完整计划。
+
+阶段验证：原生样式专项 **7/7**，包含公式求值计数不增加的断言（`/tmp/excel-table-style-focus-final.log`）；WASM lib **158 passed / 1 ignored**、lite/full 构建通过。Table 交叉 E2E **45/45**，包含真实 lite/full JSON 保存恢复与桌面／390px 控件测试。最新完整 Vitest **337 文件 / 5,481 项**、React 独立测试 **83 文件 / 371 项**、根构建、React 独立构建、UI Core 构建、类型、lint、循环依赖和文档门禁通过。共享视觉脚本本机缺失，使用持久 Playwright 截图及溢出／焦点／对比度检查；已查看 390px 面板和桌面表格截图。新增文件均低于 300 行，现有 `rust-workbook/commands.ts` 超限只做必要类型增补，不扩大重构。
+
+完整首轮 E2E 已结束：**772 passed / 2 failed**，退出 1（`/tmp/excel-table-style-full-e2e.log`）。边框失败稳定复现：交互 patch 的四边替换会清掉已导入邻格的共边；改为上述原生直接导入，新增 lite/full 原生格式导入 E2E。横向公式拖动失败的 trace 明确记录操作中的 Vite HMR、重连和选区重置，源码修改干扰了测试；单独重跑通过，后续冻结源码再跑，不能靠删除断言或放宽超时通过。两项复现日志为 `/tmp/excel-table-style-repro.log`，原失败 trace 保留在默认 `test-results`，复跑使用独立输出目录。
+
+本次按用户要求提交保存上述实现与修复，覆盖前文“本轮未提交”的阶段状态，仍未验收。修复后的专项 E2E **35/35**、两项失败场景各十轮复测合计 **20/20** 通过；最新完整 Vitest **5,481/5,481**、WASM lib **158 passed / 1 ignored**、双构件、根构建、lint、展现层边界、循环依赖及文档检查通过。
+
+尚未完成：修复后的完整 **776 项 E2E**（`/tmp/excel-table-style-final-e2e.log`），以及 Rust 全量 default/lite 顺序回归（`/tmp/excel-table-style-all-core.log`、`/tmp/excel-table-style-all-lite.log`）。原进程仍在执行，不重启；导入修复只改 WASM 层，核心源码未变。已有库内通过或中途通过记录不能替代整个进程退出 0，不先验收。
 
 ### Excel Table 范围与输入扩展（已验收）
 

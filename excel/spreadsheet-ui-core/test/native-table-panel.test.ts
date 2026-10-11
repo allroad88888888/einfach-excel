@@ -41,6 +41,29 @@ test('column rename uses the native identity and reselects the returned column, 
   expect(request).toHaveBeenCalledTimes(1)
 })
 
+test('style changes merge against the returned catalog and never publish a local style mirror', async () => {
+  const initial = { preset: 'blue' as const, bandedRows: true, firstColumn: false }
+  const { store, request, run } = setup([{ ...tables[0], style: initial }])
+  const saved = { preset: 'green' as const, bandedRows: false, firstColumn: true }
+  request.mockImplementationOnce(async (_, input) => ({ changed: true,
+    projection: { ...input.projection, cells: [], revision: 2,
+      tables: [{ ...tables[0], style: saved }] } }))
+  await run('open'); await run({ edit: 'Sales' }); await run({ name: 'Unsaved' })
+  expect(await run({ style: { preset: 'green' } })).toBe(true)
+  expect(request.mock.calls[0][1].action).toEqual({ kind: 'style', name: 'Sales',
+    style: { ...initial, preset: 'green' } })
+  expect(store.getter(nativeTablePanelAtom)).toMatchObject({ open: true, name: 'Unsaved',
+    currentTable: { style: saved }, revision: 2 })
+  request.mockRejectedValueOnce(new Error('Style rejected'))
+  expect(await run({ style: { firstColumn: false } })).toBe(false)
+  expect(request.mock.calls[1][1]).toMatchObject({ revision: 2,
+    action: { style: { ...saved, firstColumn: false } } })
+  expect(store.getter(nativeTablePanelAtom)).toMatchObject({ error: 'Style rejected', currentTable: { style: saved } })
+  store.setter(setSheetProtectionAtom, { sheetId: 's', state: { mode: 'protected', unlockedRanges: [] } })
+  expect(await run({ style: { bandedRows: true } })).toBe(false)
+  expect(request).toHaveBeenCalledTimes(2)
+})
+
 test('blank and conflicting column names keep the old catalog and editable draft', async () => {
   const { store, request, run } = setup()
   await run('open'); await run({ edit: 'Sales' }); await run({ column: 'Amount' })

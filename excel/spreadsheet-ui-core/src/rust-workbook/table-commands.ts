@@ -1,6 +1,6 @@
 import type { ProjectionRevision, VisibleProjectionRequest, VisibleProjectionResult } from '../backend'
 import type { WorkerCommand } from '../rust-worker/types'
-import type { NativeTableAction, TableChange } from '../tables/native-types'
+import type { NativeTableAction, NativeTableStyle, TableChange } from '../tables/native-types'
 import { validateProjectionRequest } from '../projection/contracts'
 import type { RustWorkbookSheet } from './commands'
 import type { WasmWorkbook } from './wasm-types'
@@ -34,7 +34,7 @@ export function changeTable(workbook: WasmWorkbook,
   } else if (input.action.kind === 'totals-row') {
     action = { ...input.action, rowCount: sheet.rowCount ?? 1_048_576 }
   } else if (input.action.kind === 'rename' || input.action.kind === 'convert-to-range' ||
-    input.action.kind === 'total-function' || input.action.kind === 'rename-column') {
+    input.action.kind === 'total-function' || input.action.kind === 'rename-column' || input.action.kind === 'style') {
     action = input.action
   } else throw new Error('Invalid table action.')
   return workbook.change_table(sheet.index, action)
@@ -42,7 +42,8 @@ export function changeTable(workbook: WasmWorkbook,
 
 /** 只用于未发布的启动工作簿；导入后建立表头定义，调用者统一清除启动历史。 */
 export function importTables(workbook: WasmWorkbook, sheets: ReadonlyMap<string, RustWorkbookSheet>,
-  tables: readonly { sheetId: string; name: string; range: CellRange; totals?: boolean }[],
+  tables: readonly { sheetId: string; name: string; range: CellRange;
+    totals?: boolean; style?: NativeTableStyle }[],
 ): void {
   for (const table of tables) {
     const sheet = sheets.get(table.sheetId)
@@ -52,6 +53,9 @@ export function importTables(workbook: WasmWorkbook, sheets: ReadonlyMap<string,
     })
     if (table.totals) workbook.change_table(sheet.index, {
       kind: 'totals-row', name: table.name, enabled: true, rowCount: sheet.rowCount ?? 1_048_576,
+    })
+    if (table.style) workbook.change_table(sheet.index, {
+      kind: 'style', name: table.name, style: table.style,
     })
   }
 }

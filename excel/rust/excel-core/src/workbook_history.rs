@@ -53,7 +53,7 @@ mod structure;
 use merge::MergeChange;
 
 const MAX_ENTRIES: usize = 50;
-const MAX_BYTES: usize = 32 * 1024 * 1024;
+pub(crate) const MAX_BYTES: usize = 32 * 1024 * 1024;
 
 #[derive(Debug)]
 pub struct HistoryEntry {

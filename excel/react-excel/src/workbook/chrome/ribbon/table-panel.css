@@ -37,6 +37,9 @@
 .table-panel-columns { border-top: 1px solid var(--border); margin-top: 16px; padding-top: 16px; }
 .table-panel-totals select { width: 100%; }
 .table-panel-totals .table-panel-actions button { margin-left: auto; margin-right: 0; }
+.table-panel-appearance { border-top: 1px solid var(--border); margin-top: 16px; padding-top: 16px; }
+.table-style-option { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; min-height: 34px; }
+.table-style-option input { flex: 0 0 auto; width: 16px; min-height: 16px; margin: 0; accent-color: var(--primary); }
 @media (max-width: 420px) {
   .table-panel fieldset { grid-template-columns: 1fr; gap: 6px; }
   .table-panel-list > button { flex-wrap: wrap; gap: 4px; }

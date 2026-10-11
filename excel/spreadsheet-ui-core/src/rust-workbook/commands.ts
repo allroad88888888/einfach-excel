@@ -26,6 +26,7 @@ import type { RustDataValidationCommands } from './data-validation-commands'
 import type { RustOutlineCommands } from './outline-io'
 import type { RustNamedRangeCommands } from './named-range-commands'
 import type { RustTableCommands } from './table-commands'
+import type { NativeTableStyle } from '../tables/native-types'
 import type { NativeOutline } from '../outline/native-state'
 import type { NativeDataValidationRule } from '../data-validation/native-rule'
 import type { NativeConditionalFormatRule, ConditionalFormatScope } from '../conditional-formatting/types'
@@ -56,7 +57,8 @@ export interface RustWorkbookSheetInput {
   readonly namedRanges?: readonly { readonly name: string; readonly range: CellRange }[]
   /** 表头来自导入数据；Table 必须在全部内容导入后建立。 */
   readonly tables?: readonly {
-    readonly name: string; readonly range: CellRange; readonly totals?: boolean
+    readonly name: string; readonly range: CellRange
+    readonly totals?: boolean; readonly style?: NativeTableStyle
   }[]
   readonly dataValidations?: readonly {
     readonly range: CellRange
@@ -281,6 +283,7 @@ export interface RustWorkbookCommands
     { readonly cells: readonly RustImportCell[]; readonly tables?: readonly {
       readonly sheetId: string; readonly name: string; readonly range: CellRange
       readonly totals?: boolean
+      readonly style?: NativeTableStyle
     }[] },
     RustImportStats
   >

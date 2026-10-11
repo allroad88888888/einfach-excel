@@ -1,6 +1,7 @@
 import type { RustImportCell, RustWorkbookSheetInput } from '../rust-workbook'
 import type { WorkerLike } from '../rust-worker'
 import { validNativeOutline } from '../outline/native-state'
+import { validNativeTableStyle } from '../tables/native-types'
 
 export interface RustWorkbookSheetDefinition extends RustWorkbookSheetInput {
   readonly id: string
@@ -62,10 +63,13 @@ export function snapshotRustWorkbookDefinition(
     const namedRanges = snapshotRanges(sheet.namedRanges, 'named range')
     const tables = snapshotRanges(sheet.tables, 'table range')?.map((table, index) => {
       const totals = sheet.tables![index].totals
+      const style = sheet.tables![index].style
+      if (style !== undefined && !validNativeTableStyle(style)) throw new Error('Invalid initial table style.')
       if (totals !== undefined && (typeof totals !== 'boolean' ||
         (totals && table.range.rowEnd + 1 >= sheet.rowCount)))
         throw new Error('Invalid initial table totals row.')
-      return Object.freeze({ ...table, ...(totals === undefined ? {} : { totals }) })
+      return Object.freeze({ ...table, ...(totals === undefined ? {} : { totals }),
+        ...(style === undefined ? {} : { style: Object.freeze({ ...style }) }) })
     })
     if (sheet.outline && (!validNativeOutline(sheet.outline) ||
       sheet.outline.rows.some((group) => group.end >= sheet.rowCount) ||

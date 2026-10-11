@@ -52,7 +52,11 @@ export function writeCellInput(
   expandTables?: boolean,
 ): void {
   const address = toA1(row, col)
+  if (expandTables === false) {
+    requiredMethod(workbook.set_cell_input_with_table_expansion, 'set_cell_input_with_table_expansion')
+      .call(workbook, sheet, address, input, false)
+    return
+  }
   const write = requiredMethod(workbook.set_cell_input, 'set_cell_input')
-  if (expandTables === false) write.call(workbook, sheet, address, input, false)
-  else write.call(workbook, sheet, address, input)
+  write.call(workbook, sheet, address, input)
 }

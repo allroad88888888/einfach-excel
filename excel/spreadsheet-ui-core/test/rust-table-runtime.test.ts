@@ -66,6 +66,7 @@ test('resize maps only coordinates and returns the same native mutation projecti
   expect(change).toHaveBeenCalledTimes(1)
 })
 test.each([
+  { kind: 'style', name: 'Sales', style: { preset: 'green', bandedRows: false, firstColumn: true } },
   { kind: 'rename', name: 'Sales', newName: 'Revenue' },
   { kind: 'rename-column', name: 'Sales', column: 'Amount', newName: 'Revenue [net]' },
   { kind: 'convert-to-range', name: 'Sales' },
@@ -105,6 +106,8 @@ test('table projection validation rejects malformed coordinates and column lists
   expect(validNativeTables(tables)).toBe(true)
   for (const patch of [{ range: 'A0:B2' }, { columns: ['Product'] },
     { sheetIndex: -1 }, { columns: [1, 2] }, { hasHeaders: null },
+    { style: null }, { style: { preset: 'pink', bandedRows: true, firstColumn: false } },
+    { style: { preset: 'blue', bandedRows: 1, firstColumn: false } },
     { hasTotals: true, totalFunctions: ['sum'] }, { hasTotals: true, totalFunctions: ['sum', 'fake'] }])
     expect(validNativeTables([{ ...tables[0], ...patch }])).toBe(false)
 })
@@ -112,11 +115,12 @@ test('table projection validation rejects malformed coordinates and column lists
 test('seed totals are established after the table and before startup history is cleared', async () => {
   const { call, change, clear } = await setup()
   expect((await call('workbook.importCells', { cells: [], tables: [
-    { sheetId: 's', name: 'Sales', range: input.action.range, totals: true },
+    { sheetId: 's', name: 'Sales', range: input.action.range, totals: true,
+      style: { preset: 'blue', bandedRows: true, firstColumn: false } },
   ] })).ok).toBe(true)
-  expect(change.mock.calls.map((entry) => entry[1].kind)).toEqual(['create', 'totals-row'])
+  expect(change.mock.calls.map((entry) => entry[1].kind)).toEqual(['create', 'totals-row', 'style'])
   expect(change.mock.calls[1][1]).toEqual({ kind: 'totals-row', name: 'Sales', enabled: true, rowCount: 100 })
-  expect(change.mock.invocationCallOrder[1]).toBeLessThan(clear.mock.invocationCallOrder.at(-1)!)
+  expect(change.mock.invocationCallOrder[2]).toBeLessThan(clear.mock.invocationCallOrder.at(-1)!)
 })
 test('initial tables are built after imported cells and before clearing startup history', async () => {
   const { call, bulk, change, clear } = await setup()
@@ -126,4 +130,17 @@ test('initial tables are built after imported cells and before clearing startup 
   expect(change).toHaveBeenCalledWith(0, { kind: 'create', name: 'Sales', range: [0, 0, 3, 1] })
   expect(bulk.mock.invocationCallOrder[0]).toBeLessThan(change.mock.invocationCallOrder[0])
   expect(change.mock.invocationCallOrder[0]).toBeLessThan(clear.mock.invocationCallOrder.at(-1)!)
+})
+
+test('import passes sparse formats with the values in one native call', async () => {
+  const { call, bulk } = await setup()
+  const cells = [
+    { sheet: 0, row: 0, col: 0, kind: 'text', value: 'Header', format: { bold: true } },
+    { sheet: 0, row: 5, col: 1, kind: 'text', value: 'Double',
+      format: { borders: { bottom: { style: 'double', color: '#c00000' } } } },
+  ]
+  // 此假件不提供 patch_format_range：格式必须跟随 bulk_import_cells，不二次写入。
+  expect((await call('workbook.importCells', { cells })).ok).toBe(true)
+  expect(bulk).toHaveBeenCalledTimes(1)
+  expect(bulk).toHaveBeenCalledWith(cells)
 })

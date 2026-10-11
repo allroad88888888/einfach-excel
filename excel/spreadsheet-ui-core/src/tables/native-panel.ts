@@ -12,7 +12,8 @@ import { applyVisibleProjectionAtom, createVisibleProjectionRequest,
   issueProjectionRequestIdAtom, projectionSnapshotAtom } from '../projection'
 import { validateProjectionResult } from '../projection/contracts'
 import type { ProjectionRevision } from '../backend'
-import { NATIVE_TOTAL_FUNCTIONS, type NativeTable, type NativeTotalFunction, type TableChange } from './native-types'
+import { DEFAULT_NATIVE_TABLE_STYLE, NATIVE_TOTAL_FUNCTIONS, validNativeTableStyle,
+  type NativeTable, type NativeTableStyle, type NativeTotalFunction, type TableChange } from './native-types'
 
 interface Draft {
   name: string; range: string; column: string; newColumnName: string
@@ -51,7 +52,8 @@ export const nativeTablePanelAtom = atom((get) => {
 /** 打开/编辑只改草稿；每次提交均为一次 Rust 命令和一次返回投影。 */
 export const runNativeTablePanelAtom = atom(null, async (get, set,
   action: 'open' | 'new' | 'close' | 'save' | 'convert' | 'resize' |
-  'show-totals' | 'hide-totals' | 'save-total' | 'save-column' | { edit: string } | Partial<Draft>,
+  'show-totals' | 'hide-totals' | 'save-total' | 'save-column' | { edit: string } | Partial<Draft> |
+  { style: Partial<NativeTableStyle> },
 ): Promise<boolean> => {
   const state = get(draftAtom)
   const connection = get(rustWorkbookConnectionAtom)
@@ -77,7 +79,7 @@ export const runNativeTablePanelAtom = atom(null, async (get, set,
     return true
   }
   if (state.ownerSheetId !== sheet.id || state.connection !== connection) return false
-  if (typeof action === 'object') {
+  if (typeof action === 'object' && !('style' in action)) {
     if ('edit' in action) {
       const entry = result.tables.find((table) =>
         table.sheetIndex === sheet.index && table.name === action.edit)
@@ -102,8 +104,15 @@ export const runNativeTablePanelAtom = atom(null, async (get, set,
     return fail('Unprotect the worksheets before changing tables.')
   if (state.revision !== result.revision) return fail('The workbook changed. Reopen Tables.')
   let change: TableChange
+  const styleAction = typeof action === 'object' && 'style' in action
   const totalsAction = action === 'show-totals' || action === 'hide-totals' || action === 'save-total'
-  if (action === 'save-column') {
+  if (styleAction) {
+    const entry = get(nativeTablePanelAtom).currentTable
+    if (!entry) return fail('Choose a table first.')
+    const style = { ...(entry.style ?? DEFAULT_NATIVE_TABLE_STYLE), ...action.style }
+    if (!validNativeTableStyle(style)) return fail('Choose a valid table style.')
+    change = { kind: 'style', name: entry.name, style }
+  } else if (action === 'save-column') {
     const entry = get(nativeTablePanelAtom).currentTable
     if (!entry || !entry.columns.includes(state.column)) return fail('Choose a table column.')
     if (!state.newColumnName.trim()) return fail('Enter a column name.')
@@ -164,7 +173,7 @@ export const runNativeTablePanelAtom = atom(null, async (get, set,
         ?.columns.indexOf(state.column) ?? 0
       const column = action === 'resize' && entry?.columns.includes(state.column) ? state.column
         : entry?.columns[Math.max(0, columnIndex)] ?? entry?.columns[0] ?? ''
-      set(draftAtom, (totalsAction || action === 'save-column' || action === 'resize') && entry ? { ...state, range: entry.range,
+      set(draftAtom, (styleAction || totalsAction || action === 'save-column' || action === 'resize') && entry ? { ...state, range: entry.range,
         column, newColumnName: action === 'save-column' || action === 'resize' ? column : state.newColumnName,
         ...totalDraft(entry, state.totalColumn === state.column ? column : state.totalColumn),
         revision: reply.projection.revision, error: '' } : CLOSED)

@@ -18,7 +18,6 @@ import { changeNamedRange } from './named-range-commands'
 import { changeTable, importTables } from './table-commands'
 import { editWorkbookSheet } from './sheet-edit'
 import { changeStructure } from './structure-io'
-import { writeImportedCellFormats } from './format-io'
 import type {
   RustWorkbookCommands,
   RustWorkbookSheet,
@@ -351,7 +350,6 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
     if (command === 'workbook.importCells') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
       const stats = current.bulk_import_cells(input.cells)
-      writeImportedCellFormats(current, input.cells)
       importTables(current, sheetsById, input.tables ?? [])
       current.history_clear?.('')
       return stats

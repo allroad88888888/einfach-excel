@@ -27,6 +27,7 @@ impl WasmWorkbook {
         }
 
         let mut stats = WorkbookImportStatsJSON::default();
+        let mut formats = Vec::new();
         let sheet_count = self.workbook.sheet_count();
         self.workbook.bulk_load(|loader| {
             for cell in cells {
@@ -52,6 +53,7 @@ impl WasmWorkbook {
                 // Typed loader entries (A-9 follow-up): no per-cell
                 // `to_string_repr` → re-parse round trip.
                 let addr = CellAddress::new(cell.row, cell.col);
+                let accepted_before = stats.accepted;
                 match kind {
                     "number" => match &cell.value {
                         Some(BulkImportValueJSON::Number(n)) if n.is_finite() => {
@@ -152,8 +154,21 @@ impl WasmWorkbook {
                         stats.push_issue(&cell, kind, "INVALID_KIND", "cell kind is not supported");
                     }
                 }
+                if stats.accepted > accepted_before {
+                    if let Some(format) = cell.format {
+                        formats.push((cell.sheet, addr, format.into_style()));
+                    }
+                }
             }
         });
+
+        // 导入是已有单元格事实，不是一次“替换四条边”的交互命令。
+        // 保留稀疏属性与各格自己的边框，不清空缺省颜色、不修改相邻格、不新增历史。
+        for (sheet, addr, style) in formats {
+            self.workbook.sheet_mut(sheet).unwrap().patch_format_range(
+                CellRange::new(addr, addr), StyleScope::Cell, style,
+            );
+        }
 
         serde_wasm_bindgen::to_value(&stats)
             .map_err(|err| JsValue::from_str(&format!("serialize import stats: {err}")))

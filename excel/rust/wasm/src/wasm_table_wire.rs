@@ -11,6 +11,8 @@ struct TableJSON {
     has_totals: bool,
     #[serde(default)]
     columns: Vec<String>,
+    #[serde(default)]
+    style: einfach_excel_core::TableStyle,
 }
 
 impl TableJSON {
@@ -28,6 +30,7 @@ impl TableJSON {
             has_headers: entry.has_headers(),
             has_totals: entry.has_totals(),
             columns: entry.columns().to_vec(),
+            style: entry.style(),
         }
     }
 
@@ -52,7 +55,7 @@ impl TableJSON {
             self.has_headers,
             self.has_totals,
             self.columns,
-        ))
+        ).with_style(self.style))
     }
 }
 

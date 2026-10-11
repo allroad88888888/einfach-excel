@@ -37,6 +37,32 @@ async function click(name: string) {
 async function change(label: string, value: string) {
   await act(async () => { fireEvent.change(screen.getByLabelText(label), { target: { value } }) })
 }
+test('appearance controls read the returned style, retain the dialog and recover from errors', async () => {
+  const request = setup()
+  request.mockImplementation(async (_, payload) => {
+    const input = payload as RustWorkbookCommands['table.change']['payload']
+    return { changed: true, projection: { ...input.projection, cells: [], revision: 2, tables: [
+      { name: 'Sales', sheet: 'Sheet', sheetIndex: 0, range: 'A1:B4', hasHeaders: true,
+        hasTotals: false, columns: ['Product', 'Amount'],
+        style: input.action.kind === 'style' ? input.action.style : undefined },
+    ] } }
+  })
+  await click('Tables'); await click('Edit table Sales')
+  expect(screen.getByLabelText('Banded rows')).toBeDisabled()
+  await change('Style preset', 'green')
+  expect(screen.getByLabelText('Style preset')).toHaveValue('green')
+  await act(async () => { fireEvent.click(screen.getByLabelText('Banded rows')) })
+  expect(screen.getByLabelText('Banded rows')).not.toBeChecked()
+  await act(async () => { fireEvent.click(screen.getByLabelText('First column emphasis')) })
+  expect(screen.getByLabelText('First column emphasis')).toBeChecked()
+  expect(request.mock.calls[2]).toMatchObject(['table.change', { action: { kind: 'style', name: 'Sales',
+    style: { preset: 'green', bandedRows: false, firstColumn: true } } }])
+  request.mockRejectedValueOnce(new Error('Style rejected'))
+  await change('Style preset', 'gray')
+  expect(screen.getByRole('alert')).toHaveTextContent('Style rejected')
+  expect(screen.getByLabelText('Style preset')).toHaveValue('green')
+  expect(screen.getByLabelText('Style preset')).toBeEnabled()
+})
 test('empty table dialog focuses its field and cancel restores focus without writes', async () => {
   const request = setup(true)
   await click('Tables')

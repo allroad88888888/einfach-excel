@@ -1,5 +1,4 @@
 import type { SetFormatRangeRequest } from '../backend'
-import type { RustImportCell } from './commands'
 import type { WasmWorkbook } from './wasm-types'
 
 function requiredSetFormatRange(
@@ -56,24 +55,4 @@ export function writeRangeFormat(
     range.colEnd,
     request.format,
   )
-}
-
-/** 将导入数据携带的稀疏单元格格式写入 Rust。 */
-export function writeImportedCellFormats(
-  workbook: WasmWorkbook,
-  cells: readonly RustImportCell[],
-): void {
-  const setFormatRange = requiredSetFormatRange(workbook)
-  for (const cell of cells) {
-    if (cell.format === undefined || cell.sheet >= workbook.sheet_count()) continue
-    setFormatRange.call(
-      workbook,
-      cell.sheet,
-      cell.row,
-      cell.col,
-      cell.row,
-      cell.col,
-      cell.format,
-    )
-  }
 }

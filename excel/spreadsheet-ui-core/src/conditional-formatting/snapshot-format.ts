@@ -78,7 +78,12 @@ export function snapshotScope(value: unknown): ConditionalFormatScope | null {
   if (!isObjectRecord(value)) return null
   try {
     const range = snapshotRange(value.range)
-    return range === null ? null : { range }
+    if (range === null) return null
+    if (value.additionalRanges === undefined) return { range }
+    if (!Array.isArray(value.additionalRanges) || value.additionalRanges.length >= 4096) return null
+    const additionalRanges = value.additionalRanges.map(snapshotRange)
+    if (additionalRanges.some((area) => area === null)) return null
+    return { range, additionalRanges: additionalRanges as CellRange[] }
   } catch {
     return null
   }

@@ -64,6 +64,10 @@ fn table_headers_insert_checks_the_view_canvas_and_keeps_the_original_row() {
     book.workbook.apply_filter_range(0,
         CellRange::new(CellAddress::new(5, 0), CellAddress::new(7, 1)),
         &[ColumnFilterRule::Range { col_index: 1, min: Some(11.), max: None }]).unwrap();
+    let validation = DataValidationRule { kind: DataValidationKind::WholeNumber { min: 0., max: 20. },
+        ignore_blank: true, operator: Default::default() };
+    book.workbook.sheet_mut(0).unwrap().set_data_validation(
+        CellRange::new(CellAddress::new(1, 0), CellAddress::new(3, 3)), Some(validation.clone())).unwrap();
     let before = serde_json::to_value(book.snapshot_persistence_v1_json()).unwrap();
     assert!(book.apply_table_action(0, action(true, 4)).unwrap_err().contains("outside"));
     assert_eq!(serde_json::to_value(book.snapshot_persistence_v1_json()).unwrap(), before);
@@ -81,6 +85,12 @@ fn table_headers_insert_checks_the_view_canvas_and_keeps_the_original_row() {
     assert_eq!(restored.workbook.filter_range(0),
         Some(CellRange::new(CellAddress::new(6, 0), CellAddress::new(8, 1))));
     assert_eq!(restored.workbook.filter_hidden_rows(0), vec![7]);
+    let sheet = restored.workbook.sheet(0).unwrap();
+    assert_eq!(sheet.data_validation_at(CellAddress::new(4, 0)), Some(&validation));
+    assert_eq!(sheet.data_validation_at(CellAddress::new(1, 3)), Some(&validation));
+    assert_eq!(sheet.data_validation_at(CellAddress::new(1, 0)), None);
+    assert_eq!(sheet.data_validation_at(CellAddress::new(4, 3)), None);
+    assert_eq!(restored.workbook.set_cell_input(0, "B4", "21"), Err("DATA_VALIDATION_FAILED"));
     restored.workbook.set_cell(0, "B9", Value::Number(18.));
     assert_eq!(restored.workbook.get_cell("Report", "D2"), Value::Number(18.));
     assert_eq!(restored.workbook.named_range("Body").unwrap().unwrap().1,

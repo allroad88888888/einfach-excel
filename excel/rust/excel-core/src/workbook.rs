@@ -48,6 +48,8 @@ pub(crate) mod conditional_format_rule;
 mod conditional_format_sheet_refs;
 #[path = "workbook_conditional_format_structure.rs"]
 mod conditional_format_structure;
+#[path = "workbook_conditional_format_scope.rs"]
+mod conditional_format_scope;
 #[path = "workbook_bulk.rs"]
 mod workbook_bulk;
 #[path = "workbook_bulk_types.rs"]

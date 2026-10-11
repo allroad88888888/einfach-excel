@@ -65,8 +65,11 @@ export function validNativeConditionalFormats(config: NativeConditionalFormats):
     )
       return false
     ids.add(entry.id)
-    const range = entry.scope?.range
-    return (
+    const scope = entry.scope
+    if (!scope || (scope.additionalRanges !== undefined &&
+      (!Array.isArray(scope.additionalRanges) || scope.additionalRanges.length >= 4096)))
+      return false
+    return [scope.range, ...scope.additionalRanges ?? []].every((range) => (
       !!range &&
       [range.rowStart, range.rowEnd, range.colStart, range.colEnd].every(
         (value) => Number.isSafeInteger(value) && value >= 0,
@@ -75,6 +78,6 @@ export function validNativeConditionalFormats(config: NativeConditionalFormats):
       range.colEnd >= range.colStart &&
       range.rowEnd < 1_048_576 &&
       range.colEnd < 16_384
-    )
+    ))
   })
 }

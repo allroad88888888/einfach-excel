@@ -7,6 +7,7 @@ fn rule(id: &str) -> ConditionalFormatRuleEntry {
         row_end: 1,
         col_start: 0,
         col_end: 1,
+        additional_ranges: Vec::new(),
         priority: 0,
         rule_json: r#"{\"kind\":\"cell-value\",\"operator\":\"greater-than\",\"value\":1}"#
             .to_string(),

@@ -5,6 +5,7 @@ fn wasm_conditional_format_persists_revision_and_rules() {
         revision: 0,
         rule_id: Some("high-value".to_string()),
         scope: ConditionalFormatScopeJSON {
+            additional_ranges: Vec::new(),
             range: ConditionalFormatRangeJSON {
                 row_start: 1,
                 row_end: 3,

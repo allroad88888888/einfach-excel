@@ -75,6 +75,8 @@ for (const variant of ['lite', 'full']) test(`${variant} persists locally insert
         range: { rowStart: 3, rowEnd: 5, colStart: 0, colEnd: 1 },
         rules: [{ kind: 'range', colIndex: 1, min: 11 }] })
       if (!applied.ok) throw new Error('Filter fixture failed to apply')
+      const validation = { kind: 'whole-number', min: 0, max: 20, ignoreBlank: true }
+      source.setDataValidation(0, 1, 0, 2, 2, validation)
       const before = JSON.stringify(source.snapshot_persistence_v1())
       source.change_table(0, { kind: 'header-row', name: 'Orders', enabled: true, rowCount: 100 })
       const inserted = JSON.parse(JSON.stringify(source.snapshot_persistence_v1()))
@@ -87,13 +89,21 @@ for (const variant of ['lite', 'full']) test(`${variant} persists locally insert
       const child = restored.get_number(1, 'A2')
       const lowerChild = restored.get_number(1, 'D2')
       const filter = restored.getFilter(0)
+      const validationMoved = restored.getDataValidation(0, 3, 0)
+      const validationAdjacent = restored.getDataValidation(0, 1, 2)
+      const validationHeader = restored.getDataValidation(0, 1, 0)
+      const validationOutside = restored.getDataValidation(0, 3, 2)
+      let rejected = false
+      try { restored.set_cell_input(0, 'A4', '21') } catch { rejected = true }
       const cleanHistory = !restored.history_apply('undo')
       restored.set_cell_input(0, 'A4', '8')
       restored.set_cell_input(0, 'A7', '9')
       return { exactUndo, exactRedo, child, cleanHistory, names: restored.list_named_ranges(),
         table: restored.listTables().find((table: { name: string }) => table.name === 'Orders'),
         lower: restored.listTables().find((table: { name: string }) => table.name === 'LowerOrders'),
-        lowerChild, filter, lowerChanged: restored.get_number(1, 'D2'), outside: restored.get_display(0, 'A1'),
+        lowerChild, filter, validation, validationMoved, validationAdjacent,
+        validationHeader, validationOutside, rejected,
+        lowerChanged: restored.get_number(1, 'D2'), outside: restored.get_display(0, 'A1'),
         adjacent: restored.get_number(0, 'D2'), formula: restored.get_number(0, 'B4'),
         changed: restored.get_number(1, 'A2') }
     } finally { source.free(); restored.free() }
@@ -104,4 +114,61 @@ for (const variant of ['lite', 'full']) test(`${variant} persists locally insert
   expect(result.names).toEqual([{ name: 'Body', target: { sheet: 0, range: [2, 0, 3, 0] } }])
   expect(result.filter).toMatchObject({ range: { rowStart: 4, rowEnd: 6, colStart: 0, colEnd: 1 },
     hiddenRows: [5], rules: [{ kind: 'range', colIndex: 1, min: 11 }] })
+  expect(result.validationMoved).toEqual(result.validation)
+  expect(result.validationAdjacent).toEqual(result.validation)
+  expect(result.validationHeader).toBeNull()
+  expect(result.validationOutside).toBeNull()
+  expect(result.rejected).toBe(true)
+})
+
+for (const variant of ['lite', 'full']) test(`${variant} persists moved conditional scopes and formula consumers`, async ({ page }) => {
+  await page.goto('/')
+  const result = await page.evaluate(async (url) => {
+    const module = await import(url)
+    await module.default()
+    const source = new module.WasmWorkbook(), restored = new module.WasmWorkbook()
+    try {
+      for (const [address, value] of [['A1', 'Qty'], ['B1', 'Total'], ['A2', '2'],
+        ['A3', '3'], ['A99', '100']]) source.set_cell_input(0, address, value)
+      source.change_table(0, { kind: 'create', name: 'Orders', range: [0, 0, 2, 1] })
+      source.change_table(0, { kind: 'header-row', name: 'Orders', enabled: false })
+      source.set_cell_input(0, 'A1', 'Keep outside')
+      source.add_sheet('Report')
+      source.setConditionalFormatRule(0, { revision: 0, ruleId: 'scale',
+        scope: { range: { rowStart: 1, rowEnd: 98, colStart: 0, colEnd: 0 } },
+        rule: { kind: 'color-scale', minColor: '#000000', maxColor: '#ffffff' } })
+      source.setConditionalFormatRule(1, { revision: 0, ruleId: 'formula',
+        scope: { range: { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 0 } },
+        rule: { kind: 'formula', formula: '=Sheet1!$A$3>2', format: { bold: true } } })
+      const before = [source.listConditionalFormats(0), source.listConditionalFormats(1)]
+      source.change_table(0, { kind: 'header-row', name: 'Orders', enabled: true, rowCount: 200 })
+      const after = [source.listConditionalFormats(0), source.listConditionalFormats(1)]
+      const display = source.snapshot_display_format_range(1, 0, 0, 0, 0)
+      source.history_apply('undo')
+      const undo = [source.listConditionalFormats(0), source.listConditionalFormats(1)]
+      source.history_apply('redo')
+      const redo = [source.listConditionalFormats(0), source.listConditionalFormats(1)]
+      restored.restore_persistence_v1(JSON.parse(JSON.stringify(source.snapshot_persistence_v1())))
+      const rules = [restored.listConditionalFormats(0), restored.listConditionalFormats(1)]
+      const restoredDisplay = restored.snapshot_display_format_range(1, 0, 0, 0, 0)
+      const cleanHistory = !restored.history_apply('undo')
+      restored.set_cell_input(0, 'A4', '1')
+      const changed = restored.snapshot_display_format_range(1, 0, 0, 0, 0)
+      return { before, after, undo, redo, rules, display, restoredDisplay, changed, cleanHistory }
+    } finally { source.free(); restored.free() }
+  }, `${wasmUrl}${variant}/einfach_wasm.js`)
+  for (const sheet of [0, 1]) {
+    expect(result.undo[sheet].rules).toEqual(result.before[sheet].rules)
+    expect(result.redo[sheet].rules).toEqual(result.after[sheet].rules)
+    expect(result.rules[sheet]).toEqual(result.redo[sheet])
+    expect(result.redo[sheet].revision).toBeGreaterThan(result.after[sheet].revision)
+  }
+  expect(result.rules[0].rules).toHaveLength(1)
+  expect(result.rules[0].rules[0]).toMatchObject({ id: 'scale',
+    scope: { range: { rowStart: 2, rowEnd: 99, colStart: 0, colEnd: 0 } } })
+  expect(result.rules[1].rules[0].rule.formula).toContain('$A$4')
+  expect(result.display.cellStyles).toEqual([{ addr: 'A1', format: { bold: true } }])
+  expect(result.restoredDisplay).toEqual(result.display)
+  expect(result.changed.cellStyles ?? []).toEqual([])
+  expect(result.cleanHistory).toBe(true)
 })

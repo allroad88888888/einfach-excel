@@ -111,6 +111,7 @@ fn hidden_rows_print_config_and_conditional_rules_ride_the_archived_sheet() {
                 row_end: 9,
                 col_start: 0,
                 col_end: 1,
+                additional_ranges: Vec::new(),
                 priority: 0,
                 rule_json: "{}".into(),
             },

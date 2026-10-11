@@ -12,7 +12,6 @@ pub struct DisplayFormatRangeSnapshot {
     pub formats: FormatRangeSnapshot,
     pub data_bars: Vec<(CellAddress, DataBarDisplay)>,
 }
-
 impl Workbook {
     pub fn snapshot_display_format_range(
         &self,
@@ -32,12 +31,7 @@ impl Workbook {
         let mut rules: Vec<_> = self.conditional_formats[sheet]
             .rules
             .iter()
-            .filter(|entry| {
-                entry.row_start <= range.end.row
-                    && entry.row_end >= range.start.row
-                    && entry.col_start <= range.end.col
-                    && entry.col_end >= range.start.col
-            })
+            .filter(|entry| entry.ranges().any(|area| area.intersects(range)))
             // 旧持久化允许不透明规则。未实现的种类保留原文，不交给 TS 猜着求值。
             .filter_map(|entry| {
                 NativeRule::parse(&entry.rule_json)
@@ -125,11 +119,5 @@ impl Workbook {
         Ok(DisplayFormatRangeSnapshot { formats: snapshot,
             data_bars: data_bars.into_iter()
                 .map(|((row, col), bar)| (CellAddress::new(row, col), bar)).collect() })
-    }
-}
-
-impl ConditionalFormatRuleEntry {
-    fn contains(&self, row: u32, col: u32) -> bool {
-        row >= self.row_start && row <= self.row_end && col >= self.col_start && col <= self.col_end
     }
 }

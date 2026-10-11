@@ -152,6 +152,7 @@ impl TableDefinitionChange {
             filter: None,
             named_ranges: Vec::new(),
             shifted_tables: Vec::new(),
+            validations: ValidationShift::default(),
         }))
     }
 }

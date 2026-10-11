@@ -24,6 +24,8 @@
 mod copy;
 mod delta;
 mod edit;
+mod row_band_range;
+pub(crate) use row_band_range::insert_row_band_range;
 pub(crate) use edit::shift_interval;
 mod parked;
 mod parked_band;

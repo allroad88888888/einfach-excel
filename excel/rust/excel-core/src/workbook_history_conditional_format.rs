@@ -46,6 +46,7 @@ impl ConditionalFormatChange {
                 std::mem::size_of::<ConditionalFormatRuleEntry>()
                     + rule.id.len()
                     + rule.rule_json.len()
+                    + rule.additional_ranges.len() * std::mem::size_of::<CellRange>()
             })
             .sum()
     }

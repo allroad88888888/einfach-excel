@@ -36,7 +36,7 @@ impl Drop for ConditionalRangeAtom {
 impl Sheet {
     pub(crate) fn create_conditional_range_atom(
         &self,
-        range: CellRange,
+        ranges: Vec<CellRange>,
         statistic: ConditionalStatistic,
     ) -> ConditionalRangeAtom {
         let ctx = self.facade_ctx();
@@ -49,13 +49,16 @@ impl Sheet {
                     current_cell: Cell::new(None),
                 };
                 let mut numbers = Vec::new();
-                provider.for_each_range_cell(range, &mut |_, value| {
-                    if let Value::Number(number) = value {
-                        if number.is_finite() {
-                            numbers.push(number);
+                // 范围在写入前已确保不相交，统计每个稀疏成员一次。
+                for range in &ranges {
+                    provider.for_each_range_cell(*range, &mut |_, value| {
+                        if let Value::Number(number) = value {
+                            if number.is_finite() {
+                                numbers.push(number);
+                            }
                         }
-                    }
-                });
+                    });
+                }
                 if numbers.is_empty() {
                     return Value::Null;
                 }

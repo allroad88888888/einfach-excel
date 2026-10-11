@@ -12,6 +12,8 @@ struct ConditionalFormatRangeJSON {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct ConditionalFormatScopeJSON {
     range: ConditionalFormatRangeJSON,
+    #[serde(default, rename = "additionalRanges", skip_serializing_if = "Vec::is_empty")]
+    additional_ranges: Vec<ConditionalFormatRangeJSON>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -71,6 +73,10 @@ impl ConditionalFormatRuleEntryJSON {
                     col_start: entry.col_start,
                     col_end: entry.col_end,
                 },
+                additional_ranges: entry.additional_ranges.iter().map(|range| ConditionalFormatRangeJSON {
+                    row_start: range.start.row, row_end: range.end.row,
+                    col_start: range.start.col, col_end: range.end.col,
+                }).collect(),
             },
             priority: entry.priority,
             rule,
@@ -90,6 +96,9 @@ impl ConditionalFormatRuleEntryJSON {
             row_end: range.row_end,
             col_start: range.col_start,
             col_end: range.col_end,
+            additional_ranges: self.scope.additional_ranges.into_iter().map(|range|
+                CellRange::new(CellAddress::new(range.row_start, range.col_start),
+                    CellAddress::new(range.row_end, range.col_end))).collect(),
             priority: self.priority,
             rule_json,
         })

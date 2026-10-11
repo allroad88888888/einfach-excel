@@ -40,6 +40,7 @@ impl TableDefinitionChange {
             filter: None,
             named_ranges: Vec::new(),
             shifted_tables: Vec::new(),
+            validations: ValidationShift::default(),
         };
         // 与既有历史共用预算，不能成功转换后因超限静默丢掉本次撤销。
         if change.retained_bytes() > MAX_BYTES {

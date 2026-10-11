@@ -33,17 +33,21 @@ export function changeConditionalFormat(
     return
   }
   if (input.action !== 'set') throw new Error('Choose a supported conditional-format action.')
-  const { rowStart, rowEnd, colStart, colEnd } = input.scope.range
-  if (
-    ![rowStart, rowEnd, colStart, colEnd].every(Number.isSafeInteger) ||
-    rowStart < 0 ||
-    colStart < 0 ||
-    rowEnd < rowStart ||
-    colEnd < colStart ||
-    rowEnd >= rows ||
-    colEnd >= cols
-  )
-    throw new Error('Choose a conditional-format range inside the worksheet.')
+  if (input.scope.additionalRanges !== undefined && (!Array.isArray(input.scope.additionalRanges)
+    || input.scope.additionalRanges.length >= 4096)) throw new Error('Invalid conditional-format ranges.')
+  for (const range of [input.scope.range, ...input.scope.additionalRanges ?? []]) {
+    const { rowStart, rowEnd, colStart, colEnd } = range
+    if (
+      ![rowStart, rowEnd, colStart, colEnd].every(Number.isSafeInteger) ||
+      rowStart < 0 ||
+      colStart < 0 ||
+      rowEnd < rowStart ||
+      colEnd < colStart ||
+      rowEnd >= rows ||
+      colEnd >= cols
+    )
+      throw new Error('Choose a conditional-format range inside the worksheet.')
+  }
   workbook.setConditionalFormatRule(sheet, {
     revision: input.revision,
     ruleId: input.ruleId,

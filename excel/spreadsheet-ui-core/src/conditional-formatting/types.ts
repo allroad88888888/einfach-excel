@@ -12,6 +12,8 @@ export type ConditionalFormatRuleKind =
 
 export interface ConditionalFormatScope {
   range: CellRange
+  /** 同一条规则的其余区域；所有区域共享 Rust 统计域。 */
+  additionalRanges?: readonly CellRange[]
 }
 
 export interface CellValueRule {

@@ -13,13 +13,8 @@ pub(super) fn prepare(
     if before.range.end.row + 1 >= row_count {
         return Err("The header insertion would move the table outside this worksheet.".into());
     }
-    // 交叉元数据位移尚未接完时，先在任何写入前拒绝，不能静默留下旧坐标。
-    if target.data_validations().iter().any(|entry| entry.range.intersects(range))
-        || workbook.conditional_formats[sheet].rules.iter().any(|entry|
-            CellRange::new(CellAddress::new(entry.row_start, entry.col_start),
-                CellAddress::new(entry.row_end, entry.col_end)).intersects(range)) {
-        return Err("Header insertion across validation or conditional-format rules is not supported yet.".into());
-    }
+    let rules = FormulaRuleChange::prepare_row_band_insert(workbook, sheet, row, columns, row_count)?;
+    let validations = ValidationShift::prepare(target.data_validations(), row, columns, row_count)?;
     let filter = match target.filter() {
         Some(before) => before.after_row_band_insert(row, columns, row_count)?
             .map(|after| (Some(before.clone()), Some(after))),
@@ -83,11 +78,10 @@ pub(super) fn prepare(
             }
         }
     }
-    let rules = FormulaRuleChange::prepare(workbook, &|owner, _, expr| rewrite(owner, expr));
     let lambdas = FormulaLambdaChange::prepare(workbook, &|expr|
         rewrite_row_band_insert(expr, before.sheet_name(), false, row, columns));
     let change = TableDefinitionChange { sheet, range: after.range, before, after: Some(after),
-        cells: vec![(original, next)], formulas, rules, lambdas, named_ranges, shifted_tables, filter };
+        cells: vec![(original, next)], formulas, rules, lambdas, named_ranges, shifted_tables, filter, validations };
     if change.retained_bytes() > MAX_BYTES {
         return Err("Changing table headers exceeds the 32 MiB undo budget.".into());
     }

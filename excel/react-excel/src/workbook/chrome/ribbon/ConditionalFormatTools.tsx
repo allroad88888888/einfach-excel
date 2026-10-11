@@ -2,7 +2,7 @@ import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useId, useLayoutEffect, useRef } from 'react'
 import { nativeConditionalFormatPanelAtom, nativeConditionalFormatsAtom,
   runNativeConditionalFormatAtom,
-  editingSessionAtom, rangeToA1, type CellValueRule, type ConditionalFormatRule,
+  editingSessionAtom, conditionalFormatScopeToA1, type CellValueRule, type ConditionalFormatRule,
   type NativeConditionalFormatRule } from '@einfach/spreadsheet-ui-core'
 import { cycleDialogFocus } from './dialog-focus'
 import './conditional-format-panel.css'
@@ -60,7 +60,7 @@ export function ConditionalFormatTools() {
         <h3>Worksheet rules</h3>
         {!config?.rules.length && <p>No rules yet.</p>}
         <ul>{config?.rules.map((entry, index) => <li key={entry.id}>
-          <span>{rangeToA1(entry.scope.range)} · {ruleLabel(entry.rule)}
+          <span>{conditionalFormatScopeToA1(entry.scope)} · {ruleLabel(entry.rule)}
             {supported(entry.rule) && entry.rule.enabled === false && ' · Disabled'}</span>
           <div className="conditional-rule-actions">
           <button type="button" disabled={state.busy || !supported(entry.rule)}
@@ -90,6 +90,7 @@ export function ConditionalFormatTools() {
         <fieldset disabled={state.busy}>
           <label htmlFor={`${id}-range`}>Applies to</label>
           <input id={`${id}-range`} value={state.range} spellCheck={false}
+            placeholder="A1:A10, C1:C10"
             onChange={(event) => void run({ type: 'draft', range: event.currentTarget.value })} />
           <label htmlFor={`${id}-kind`}>Rule type</label>
           <select id={`${id}-kind`} value={state.rule.kind}
@@ -124,7 +125,7 @@ export function ConditionalFormatTools() {
             <input id={`${id}-formula`} value={state.rule.formula} spellCheck={false}
               aria-describedby={`${id}-formula-hint`} placeholder="=$A1>10"
               onChange={(event) => void run({ type: 'draft', rule: { formula: event.currentTarget.value } })} />
-            <p id={`${id}-formula-hint`}>Write the formula for the top-left cell of Applies to. Use $ to lock a row or column.</p>
+            <p id={`${id}-formula-hint`}>Use commas between ranges. Write the formula for the first range’s top-left cell. Use $ to lock a row or column.</p>
           </>}
           {state.rule.kind === 'top-bottom' && <>
             <label htmlFor={`${id}-direction`}>Rank direction</label>

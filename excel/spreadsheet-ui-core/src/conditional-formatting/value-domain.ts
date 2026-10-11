@@ -32,7 +32,8 @@ export function copyRange(range: Readonly<CellRange>): CellRange {
 }
 
 export function copyScope(scope: ConditionalFormatScope): ConditionalFormatScope {
-  return { range: copyRange(scope.range) }
+  return { range: copyRange(scope.range), ...(scope.additionalRanges === undefined ? {}
+    : { additionalRanges: scope.additionalRanges.map(copyRange) }) }
 }
 
 export function copyFormat(format: SpreadsheetCellFormat): SpreadsheetCellFormat {
@@ -66,7 +67,9 @@ export function freezeRange(range: Readonly<CellRange>): CellRange {
 }
 
 export function freezeScope(scope: ConditionalFormatScope): ConditionalFormatScope {
-  return Object.freeze({ range: freezeRange(scope.range) })
+  return Object.freeze({ range: freezeRange(scope.range),
+    ...(scope.additionalRanges === undefined ? {}
+    : { additionalRanges: Object.freeze(scope.additionalRanges.map(freezeRange)) }) })
 }
 
 export function freezeFormat(format: SpreadsheetCellFormat): SpreadsheetCellFormat {
@@ -172,11 +175,12 @@ export function defaultRuleForKind(kind: ConditionalFormatRuleKind): Conditional
 }
 
 export function sameScope(left: ConditionalFormatScope, right: ConditionalFormatScope): boolean {
+  const a = [left.range, ...left.additionalRanges ?? []]
+  const b = [right.range, ...right.additionalRanges ?? []]
   return (
-    left.range.rowStart === right.range.rowStart &&
-    left.range.rowEnd === right.range.rowEnd &&
-    left.range.colStart === right.range.colStart &&
-    left.range.colEnd === right.range.colEnd
+    a.length === b.length && a.every((range, index) => range.rowStart === b[index].rowStart &&
+      range.rowEnd === b[index].rowEnd && range.colStart === b[index].colStart &&
+      range.colEnd === b[index].colEnd)
   )
 }
 

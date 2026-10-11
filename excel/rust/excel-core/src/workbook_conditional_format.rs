@@ -170,11 +170,7 @@ fn validate_conditional_format_rule(
     if rule.id.trim().is_empty() {
         return Err(ConditionalFormatError::InvalidRuleId);
     }
-    if rule.row_end < rule.row_start
-        || rule.col_end < rule.col_start
-        || rule.row_end >= crate::sheet::EXCEL_MAX_ROWS
-        || rule.col_end >= crate::sheet::EXCEL_MAX_COLS
-    {
+    if !rule.valid_ranges() {
         return Err(ConditionalFormatError::InvalidRuleRange);
     }
     Ok(())

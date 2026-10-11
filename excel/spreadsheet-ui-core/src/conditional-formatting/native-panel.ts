@@ -1,7 +1,8 @@
 import { atom } from '@einfach/core'
 import type { CellValueRule, FormulaRule, TopBottomRule, ColorScaleRule, DataBarRule, NativeConditionalFormatRule } from './types'
 import { editingSessionAtom } from '../editing/session-atoms'
-import { parseA1Cell, parseA1Range, rangeToA1 } from '../name-box/address'
+import { rangeToA1 } from '../name-box/address'
+import { conditionalFormatScopeToA1, parseConditionalFormatScope } from './scope'
 import { activeWorkbookSheetAtom } from '../runtime/workbook-document'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import type { RustWorkbookConnection } from '../rust-workbook'
@@ -100,7 +101,7 @@ export const runNativeConditionalFormatAtom = atom(null, async (
       return fail('This rule type cannot be edited here yet.')
     set(nativeConditionalFormatPanelAtom, { ...state, error: '', ruleId: entry.id,
       rule: 'format' in entry.rule ? { ...entry.rule, format: { ...entry.rule.format } } : { ...entry.rule }, priority: entry.priority,
-      range: rangeToA1(entry.scope.range), revision: config.revision,
+      range: conditionalFormatScopeToA1(entry.scope), revision: config.revision,
     })
     return true
   }
@@ -118,11 +119,10 @@ export const runNativeConditionalFormatAtom = atom(null, async (
       return fail('The rule no longer exists.')
     change = { action: action.type, ruleId: action.id, revision: config.revision }
   } else {
-    const cell = parseA1Cell(state.range)
-    const range = parseA1Range(state.range) ?? (cell
-      ? { rowStart: cell.row, rowEnd: cell.row, colStart: cell.col, colEnd: cell.col } : null)
-    if (!range || range.rowEnd >= sheet.rowCount || range.colEnd >= sheet.colCount)
-      return fail('Enter a cell or range inside this worksheet, for example A1:A100.')
+    const scope = parseConditionalFormatScope(state.range)
+    if (!scope || [scope.range, ...scope.additionalRanges ?? []]
+      .some((range) => range.rowEnd >= sheet.rowCount || range.colEnd >= sheet.colCount))
+      return fail('Enter ranges inside this worksheet, separated by commas, for example A1:A10, C1:C10.')
     let rule = state.rule
     if (rule.kind === 'color-scale' && rule.midColor === undefined) {
       const { midColor: _unused, ...twoColors } = rule
@@ -133,7 +133,7 @@ export const runNativeConditionalFormatAtom = atom(null, async (
       rule = single
     }
     change = { action: 'set', revision: state.revision, ruleId: state.ruleId,
-      scope: { range }, priority: state.priority,
+      scope, priority: state.priority,
       rule }
   }
   const requestId = set(issueProjectionRequestIdAtom)

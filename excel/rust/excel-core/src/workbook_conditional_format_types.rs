@@ -18,6 +18,8 @@ pub struct ConditionalFormatRuleEntry {
     pub row_end: u32,
     pub col_start: u32,
     pub col_end: u32,
+    /// 与主矩形共用同一个规则及统计域；不相交，主矩形左上角仍为公式原点。
+    pub additional_ranges: Vec<crate::CellRange>,
     pub priority: i64,
     /// 持久化保留规则原文；已支持的数值规则由原生显示投影解码求值。
     /// 未实现的旧规则种类仍可往返保存，不能由宿主补一套计算。
@@ -61,7 +63,7 @@ impl std::fmt::Display for ConditionalFormatError {
             ),
             Self::RevisionExhausted => write!(f, "conditional-format revision is exhausted"),
             Self::InvalidRuleId => write!(f, "conditional-format rule id must not be empty"),
-            Self::InvalidRuleRange => write!(f, "conditional-format range must be normalized"),
+            Self::InvalidRuleRange => write!(f, "conditional-format ranges must be valid, disjoint, and contain at most 4096 areas"),
             Self::DuplicateRuleId => write!(f, "conditional-format rule ids must be unique"),
             Self::DuplicateSheetSnapshot => {
                 write!(f, "conditional-format snapshots contain a duplicate sheet")

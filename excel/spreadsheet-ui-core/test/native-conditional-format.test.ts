@@ -72,6 +72,18 @@ function setup(existing = false) {
   return { store, request, run }
 }
 
+test('multi-area text becomes one native command with a shared rule', async () => {
+  const { request, run } = setup()
+  await run('open')
+  await run({ type: 'draft', range: 'A1:A2, C1:C2' })
+  expect(await run('save')).toBe(true)
+  expect(request).toHaveBeenCalledTimes(1)
+  expect(request.mock.calls[0][1]).toMatchObject({ action: 'set', scope: {
+    range: { rowStart: 0, rowEnd: 1, colStart: 0, colEnd: 0 },
+    additionalRanges: [{ rowStart: 0, rowEnd: 1, colStart: 2, colEnd: 2 }],
+  } })
+})
+
 test.each(['two', 'three', 'bar'] as const)('visual %s rule sends only its native fields', async (mode) => {
   const { store, request, run } = setup()
   await run('open')

@@ -27,6 +27,9 @@ mod calculated_input;
 mod headers;
 #[path = "workbook_table_registry_change.rs"]
 mod registry;
+#[path = "workbook_table_validation_shift.rs"]
+mod validation_shift;
+use validation_shift::ValidationShift;
 
 #[derive(Debug)]
 pub(crate) struct TableDefinitionChange {
@@ -39,6 +42,7 @@ pub(crate) struct TableDefinitionChange {
     lambdas: Vec<FormulaLambdaChange>,
     named_ranges: Vec<NamedRangeShift>,
     shifted_tables: Vec<(TableEntry, TableEntry)>,
+    validations: ValidationShift,
     // 范围调整可同时触及表头与远处汇总行，只保存这些不相交的局部区域。
     cells: Vec<(HistorySnapshot, HistorySnapshot)>,
     // 表头关闭时只移除属于该表的筛选；与定义和单元格一起回放。
@@ -85,6 +89,7 @@ impl TableDefinitionChange {
             filter: None,
             named_ranges: Vec::new(),
             shifted_tables: Vec::new(),
+            validations: ValidationShift::default(),
         }))
     }
 
@@ -120,6 +125,7 @@ impl TableDefinitionChange {
             lambda.validate(workbook, undo)?;
         }
         workbook.validate_named_range_restore(self.sheet, &self.named_ranges, undo)?;
+        let validations = self.validations.restore(workbook.sheets[self.sheet].data_validations(), undo)?;
         if let Some((before, after)) = &self.filter {
             let expected = if undo { after } else { before };
             if workbook.sheets[self.sheet].filter() != expected.as_ref() {
@@ -178,6 +184,9 @@ impl TableDefinitionChange {
         let store = workbook.store.clone();
         let mut result = Ok(());
         store.batch(|_| {
+            if let Some(validations) = validations {
+                workbook.sheets[self.sheet].data_validations = validations;
+            }
             for change in &self.named_ranges { change.apply(workbook, undo); }
             for lambda in &self.lambdas { lambda.apply(workbook, undo); }
             if !self.named_ranges.is_empty() || !self.lambdas.is_empty() {
@@ -242,6 +251,7 @@ impl TableDefinitionChange {
             + crate::sheet::metadata_bytes(&self.lambdas)
             + crate::sheet::metadata_bytes(&self.filter)
             + crate::sheet::metadata_bytes(&self.shifted_tables)
+            + self.validations.retained_bytes()
             + self.named_ranges.iter().map(NamedRangeShift::retained_bytes).sum::<usize>()
             + self.cells.iter().map(|(before, after)| {
                 before.retained_bytes() + after.retained_bytes()

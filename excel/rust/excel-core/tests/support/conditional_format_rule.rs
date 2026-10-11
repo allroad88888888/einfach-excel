@@ -20,6 +20,7 @@ pub fn rule(
         row_end: bounds.end.row,
         col_start: bounds.start.col,
         col_end: bounds.end.col,
+        additional_ranges: Vec::new(),
         priority: 0,
         rule_json: serde_json::json!({ "kind": "cell-value", "operator": operator,
             "value": value, "format": { "background": "#FFC7CE" } })

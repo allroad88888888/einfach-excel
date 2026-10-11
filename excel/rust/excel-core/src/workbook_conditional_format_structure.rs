@@ -25,27 +25,40 @@ impl Workbook {
             .iter()
             .filter_map(|entry| {
                 let mut next = entry.clone();
-                let mut origin_delta = 0;
+                let mut origin_delta = (0, 0);
                 if owner == target {
-                    let (lo, hi, limit) = if edit.is_row_edit() {
-                        (&mut next.row_start, &mut next.row_end, EXCEL_MAX_ROWS)
-                    } else {
-                        (&mut next.col_start, &mut next.col_end, EXCEL_MAX_COLS)
-                    };
-                    // 删除覆盖原点时，先按第一个幸存单元格平移相对公式，再处理引用删除。
-                    if !insert && *lo >= at && *lo < at.saturating_add(count) {
-                        origin_delta = i64::from(at.saturating_add(count) - *lo);
+                    let mut ranges = Vec::new();
+                    for mut area in entry.ranges() {
+                        let mut survivor = area.start;
+                        let (lo, hi, limit) = if edit.is_row_edit() {
+                            (&mut area.start.row, &mut area.end.row, EXCEL_MAX_ROWS)
+                        } else {
+                            (&mut area.start.col, &mut area.end.col, EXCEL_MAX_COLS)
+                        };
+                        let Some(shifted) = shift_interval(*lo, *hi, at, count, insert, limit) else { continue; };
+                        if !insert && *lo >= at && *lo < at.saturating_add(count) {
+                            if edit.is_row_edit() { survivor.row = at.saturating_add(count); }
+                            else { survivor.col = at.saturating_add(count); }
+                        }
+                        // 首区被删光时，以第一个幸存区域的旧坐标重定公式原点。
+                        if ranges.is_empty() {
+                            origin_delta = (i64::from(survivor.row) - i64::from(entry.row_start),
+                                i64::from(survivor.col) - i64::from(entry.col_start));
+                        }
+                        (*lo, *hi) = shifted;
+                        ranges.push(area);
                     }
-                    (*lo, *hi) = shift_interval(*lo, *hi, at, count, insert, limit)?;
+                    if ranges.is_empty() { return None; }
+                    next.set_ranges(ranges);
                 }
                 if let Ok(mut json) = serde_json::from_str::<serde_json::Value>(&entry.rule_json) {
                     if json["kind"] == "formula" {
                         if let Some(mut expr) = json["formula"].as_str().and_then(parse_formula) {
-                            if origin_delta != 0 {
+                            if origin_delta != (0, 0) {
                                 let Ok(shifted) = shift_copy_formula(
                                     &expr,
-                                    if edit.is_row_edit() { origin_delta } else { 0 },
-                                    if edit.is_row_edit() { 0 } else { origin_delta },
+                                    origin_delta.0,
+                                    origin_delta.1,
                                 ) else {
                                     // 不支持的旧 AST 仍保留原文，不能因显示原点改变就丢掉规则。
                                     return Some(next);
@@ -58,7 +71,7 @@ impl Workbook {
                                 owner == target,
                                 edit,
                             );
-                            if changed || origin_delta != 0 {
+                            if changed || origin_delta != (0, 0) {
                                 json["formula"] = serde_json::Value::String(render_formula(&expr));
                                 next.rule_json = json.to_string();
                             }

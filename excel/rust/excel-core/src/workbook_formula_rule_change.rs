@@ -1,6 +1,9 @@
 //! 公式改写历史只保留确实变化的条件规则；不回滚同表的不相关规则。
 use super::*;
 
+#[path = "workbook_conditional_format_row_band.rs"]
+mod row_band;
+
 #[derive(Debug)]
 pub(super) struct FormulaRuleChange {
     pub sheet_key: u64,

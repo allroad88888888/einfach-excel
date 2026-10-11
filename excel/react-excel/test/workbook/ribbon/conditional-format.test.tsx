@@ -8,7 +8,7 @@ import { ConditionalFormatTools } from '../../../src/workbook/chrome/ribbon/Cond
 
 type Payload = RustWorkbookCommands['conditionalFormat.change']['payload']
 const range = { rowStart: 0, rowEnd: 2, colStart: 0, colEnd: 0 }
-function setup(enabled = true) {
+function setup(enabled = true, multiple = false) {
   const store = createStore()
   store.setter(initializeWorkbookDocumentAtom, { title: 'Book', sheets: [
     { id: 's', index: 0, name: 'Sheet', rowCount: 100, colCount: 8 },
@@ -18,8 +18,11 @@ function setup(enabled = true) {
   if (read.status !== 'started' || read.request.kind !== 'visible-window')
     throw new Error('Expected a visible projection request')
   store.setter(resolveProjectionAtom, { request: read.request, result: { ...read.request, cells: [],
-    conditionalFormats: { revision: 1, rules: [{ id: 'r', scope: { range }, priority: 0,
-      rule: { kind: 'cell-value', enabled, operator: 'gt', value: '2', format: { bgColor: '#ffc7ce' } } }] } } })
+    conditionalFormats: { revision: 1, rules: [{ id: 'r', scope: { range,
+      ...(multiple ? { additionalRanges: [{ ...range, colStart: 2, colEnd: 2 }] } : {}) },
+      priority: 0,
+      rule: { kind: 'cell-value', enabled, operator: 'gt', value: '2',
+        format: { bgColor: '#ffc7ce' } } }] } } })
   const request = vi.fn(async (_command: string, input: Payload) => ({ projection: {
     ...input.projection, cells: [], conditionalFormats: { revision: 2, rules: [] },
   } }))
@@ -31,6 +34,18 @@ function setup(enabled = true) {
 async function click(name: string) {
   await act(async () => { fireEvent.click(screen.getByRole('button', { name })) })
 }
+
+test('editing a multi-area rule retains every area under the same native ID', async () => {
+  const request = setup(true, true)
+  await click('Conditional formatting')
+  expect(screen.getByRole('region', { name: 'Worksheet rules' })).toHaveTextContent('A1:A3, C1:C3')
+  await click('Edit rule 1')
+  expect(screen.getByLabelText('Applies to')).toHaveValue('A1:A3, C1:C3')
+  await click('Save rule')
+  expect(request).toHaveBeenCalledTimes(1)
+  expect(request.mock.calls[0][1]).toMatchObject({ ruleId: 'r', scope: { range,
+    additionalRanges: [{ ...range, colStart: 2, colEnd: 2 }] } })
+})
 
 test('opens with focused range; Escape closes without writing and restores trigger focus', async () => {
   const request = setup()
@@ -106,7 +121,7 @@ test('formula form keeps references as a draft, then sends a single native write
     fireEvent.change(screen.getByLabelText('Rule type'), { target: { value: 'formula' } })
   })
   expect(screen.queryByLabelText('Condition')).toBeNull()
-  expect(screen.getByText(/top-left cell of Applies to/)).toBeVisible()
+  expect(screen.getByText(/first range’s top-left cell/)).toBeVisible()
   await act(async () => {
     fireEvent.change(screen.getByLabelText('Formula', { exact: true }), { target: { value: '=$B1>5' } })
   })

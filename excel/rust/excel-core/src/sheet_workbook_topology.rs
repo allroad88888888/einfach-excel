@@ -21,6 +21,7 @@ pub(crate) struct ProjectedTable {
     pub(crate) range: CellRange,
     pub(crate) has_headers: bool,
     pub(crate) has_totals: bool,
+    pub(crate) insert_row: bool,
     pub(crate) columns: Vec<String>,
 }
 
@@ -32,6 +33,7 @@ impl ProjectedTable {
             range: self.range,
             has_headers: self.has_headers,
             has_totals: self.has_totals,
+            insert_row: self.insert_row,
             columns: self.columns.clone(),
         }
     }

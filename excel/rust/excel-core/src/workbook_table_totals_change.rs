@@ -12,6 +12,10 @@ impl TableDefinitionChange {
         if before.has_totals == enabled {
             return Ok(None);
         }
+        // 最后一行不能直接减掉，否则会下溢或留下倒置的 Table 范围。
+        if !enabled && before.range.rows() == 1 {
+            return Err(TableError::TotalsRowBlocked);
+        }
         let row = if enabled {
             before
                 .range

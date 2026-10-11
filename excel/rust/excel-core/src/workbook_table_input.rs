@@ -4,6 +4,37 @@ use crate::cell_input::{parse_formatted_input, CellInput};
 use crate::CellSnapshot;
 
 impl TableDefinitionChange {
+    /// 首次输入不扩坐标，只把原生待输入行变成数据行；定义与格子共用输入事务。
+    pub(crate) fn prepare_insert_row_input(
+        workbook: &Workbook, sheet: usize, addr: CellAddress, input: &str, inherit_columns: bool,
+    ) -> Result<Option<Self>, String> {
+        if input.is_empty() { return Ok(None); }
+        let sheet_name = workbook.name(sheet).ok_or("INVALID_SHEET")?;
+        let Some(before) = workbook.tables.values().find(|table| {
+            table.insert_row && table.sheet_name() == sheet_name && table.range.contains(addr)
+                && addr.row == table.range.start.row + u32::from(table.has_headers)
+        }) else { return Ok(None); };
+        let mut after = before.clone();
+        after.insert_row = false;
+        if inherit_columns {
+            let format = workbook.sheets[sheet].get_format(&addr.to_string());
+            if let CellInput::Formula(source) = parse_formatted_input(input, true, &format.number_format) {
+                let column = (addr.col - before.range.start.col) as usize;
+                after.calculated_columns.resize(after.columns.len(), None);
+                after.calculated_columns[column] = Some(crate::TableColumnFormula::new(addr.row, &source)?);
+            }
+        }
+        let range = if inherit_columns && before.calculated_columns.iter().any(Option::is_some) {
+            CellRange::new(CellAddress::new(addr.row, before.range.start.col),
+                CellAddress::new(addr.row, before.range.end.col))
+        } else { CellRange::single(addr) };
+        validate_cells(workbook, sheet, range)?;
+        Ok(Some(Self { sheet, range, before: before.clone(), after: Some(after),
+            formulas: Vec::new(), rules: Vec::new(), lambdas: Vec::new(), cells: Vec::new(),
+            filter: None, named_ranges: Vec::new(), shifted_tables: Vec::new(),
+            validations: ValidationShift::default() }))
+    }
+
     pub(crate) fn prepare_input_expansion(
         workbook: &Workbook,
         sheet: usize,
@@ -90,15 +121,16 @@ impl TableDefinitionChange {
         workbook: &mut Workbook,
         addr: CellAddress,
         input: &str,
+        inherit_columns: bool,
     ) -> Result<(), String> {
         if self.before.has_headers && addr.row == self.before.range.start.row {
             return self.apply(workbook, false).map_err(str::to_string);
         }
-        let mut calculated = if addr.col > self.before.range.end.col {
+        let mut calculated = if inherit_columns && addr.col > self.before.range.end.col {
             Self::prepare_calculated_column(workbook, self.sheet, addr, input,
                 self.after.as_ref().expect("input expands a table"))?
         } else { None };
-        let inherited_row = addr.row > self.before.range.end.row
+        let inherited_row = inherit_columns && (self.before.insert_row || addr.row > self.before.range.end.row)
             && self.before.calculated_columns.iter().any(Option::is_some);
         // 输入公式可能依赖同一新行里稍后继承的计算列，必须等整行写完再验证。
         let deferred_formula = if inherited_row {
@@ -146,9 +178,8 @@ impl TableDefinitionChange {
             // Table 数据格不能成为 spill 锚点，失败必须还原输入与表定义。
             if result.is_ok()
                 && calculated.is_none()
-                && workbook.sheets[self.sheet]
-                    .spill_intersecting(CellRange::single(addr))
-                    .is_some()
+                && (workbook.sheets[self.sheet].spill_intersecting(CellRange::single(addr)).is_some()
+                    || workbook.sheets[self.sheet].blocked_anchor_shape(addr).is_some())
             {
                 result = Err("Spilled arrays cannot be entered inside a table.".into());
             }

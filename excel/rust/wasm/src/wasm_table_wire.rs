@@ -9,6 +9,8 @@ struct TableJSON {
     has_headers: bool,
     #[serde(rename = "hasTotals", default)]
     has_totals: bool,
+    #[serde(rename = "insertRow", default, skip_serializing_if = "is_false")]
+    insert_row: bool,
     #[serde(default)]
     columns: Vec<String>,
     #[serde(default)]
@@ -31,6 +33,7 @@ impl TableJSON {
             ),
             has_headers: entry.has_headers(),
             has_totals: entry.has_totals(),
+            insert_row: entry.has_insert_row(),
             columns: entry.columns().to_vec(),
             style: entry.style(),
             calculated_columns: entry.calculated_columns().to_vec(),
@@ -58,7 +61,8 @@ impl TableJSON {
             self.has_headers,
             self.has_totals,
             self.columns,
-        ).with_style(self.style).with_calculated_columns(self.calculated_columns))
+        ).with_insert_row(self.insert_row).with_style(self.style)
+            .with_calculated_columns(self.calculated_columns))
     }
 }
 

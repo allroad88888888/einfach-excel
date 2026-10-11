@@ -55,6 +55,14 @@ impl WorkbookHistory {
             )?;
             return Ok(());
         }
+        // 关闭扩表只禁止额外写入，不阻止当前待输入位置成为真实的一条记录。
+        if let Some(mut change) = crate::workbook::TableDefinitionChange::prepare_insert_row_input(
+            workbook, sheet, addr, input, expand_tables,
+        )? {
+            change.apply_expanding_input(workbook, addr, input, expand_tables)?;
+            self.record_table_change(workbook, change, "Edit first table row");
+            return Ok(());
+        }
         if expand_tables {
             if let Some(mut change) = crate::workbook::TableDefinitionChange::prepare_calculated_input(
                 workbook, sheet, addr, input,
@@ -67,7 +75,7 @@ impl WorkbookHistory {
             if let Some(mut change) = crate::workbook::TableDefinitionChange::prepare_input_expansion(
                 workbook, sheet, addr, input,
             )? {
-                change.apply_expanding_input(workbook, addr, input)?;
+                change.apply_expanding_input(workbook, addr, input, true)?;
                 self.record_table_change(workbook, change, "Edit cell and expand table");
                 return Ok(());
             }

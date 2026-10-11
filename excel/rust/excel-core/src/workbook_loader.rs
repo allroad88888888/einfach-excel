@@ -180,7 +180,13 @@ impl<'a> WorkbookLoader<'a> {
     /// 另一条公式的溢出矩形里，先投影会让碰撞判定看到半个世界。
     pub(crate) fn flush(self) {
         let WorkbookLoader { wb, ops_by_sheet } = self;
-
+        let rows = wb.insert_rows_for_writes(ops_by_sheet.iter().flat_map(|(sheet, ops)| {
+            ops.iter().map(move |op| (*sheet, match op {
+                WorkbookOp::SetCell { addr, .. } | WorkbookOp::SetFormula { addr, .. }
+                    | WorkbookOp::ClearCell { addr } => *addr,
+            }))
+        }));
+        wb.write_with_insert_rows(rows, |wb| {
         for (sheet_idx, ops) in ops_by_sheet {
             let Some(sheet) = wb.sheets.get_mut(sheet_idx) else {
                 continue;
@@ -241,5 +247,6 @@ impl<'a> WorkbookLoader<'a> {
             });
             sheet.project_bulk_spill_anchors(spill_anchors);
         }
+        });
     }
 }

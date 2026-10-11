@@ -10,11 +10,8 @@ impl ResolvedTable {
     ) -> Result<CellRange, ValueError> {
         let full = self.range.normalize();
         let data_start = full.start.row + u32::from(self.has_headers);
-        let data_end = full
-            .end
-            .row
-            .checked_sub(u32::from(self.has_totals))
-            .unwrap_or(full.start.row);
+        // 使用右开边界：汇总独占第 0 行时数据区为空，不能把下溢兜底为第 0 行。
+        let data_end = full.end.row + 1 - u32::from(self.has_totals);
         let (row_start, row_end) = match area {
             TableArea::All => (full.start.row, full.end.row),
             // 隐藏表头仍验证列身份并提供一行的形状；调用方必须物化为零，不能读数据首行。
@@ -22,14 +19,14 @@ impl ResolvedTable {
             TableArea::Totals if self.has_totals => (full.end.row, full.end.row),
             TableArea::Totals => return Err(ValueError::InvalidRef),
             TableArea::Data => {
-                if data_end < data_start {
+                if self.insert_row || data_end <= data_start {
                     return Err(ValueError::InvalidRef);
                 }
-                (data_start, data_end)
+                (data_start, data_end - 1)
             }
             TableArea::ThisRow => {
                 let current = current.ok_or(ValueError::InvalidValue)?;
-                if data_end < data_start || current.row < data_start || current.row > data_end {
+                if self.insert_row || current.row < data_start || current.row >= data_end {
                     return Err(ValueError::InvalidValue);
                 }
                 (current.row, current.row)

@@ -108,6 +108,7 @@ impl Workbook {
                         range: entry.range,
                         has_headers: entry.has_headers,
                         has_totals: entry.has_totals,
+                        insert_row: entry.insert_row,
                         columns: entry.columns.clone(),
                     },
                 )

@@ -24,8 +24,8 @@ impl TableDefinitionChange {
         let row = if enabled {
             before.range.start.row.checked_sub(1).ok_or("There is no room above the table for headers.")?
         } else {
-            if before.range.rows() <= 1 + u32::from(before.has_totals) {
-                return Err("The table needs a data row before its headers can be hidden.".into());
+            if before.range.rows() == 1 {
+                return Err("The table needs a data or totals row before its headers can be hidden.".into());
             }
             before.range.start.row
         };

@@ -141,6 +141,8 @@ mod workbook_table_create;
 pub(crate) use workbook_table_create::TableCreation;
 #[path = "workbook_table_change.rs"]
 mod workbook_table_change;
+#[path = "workbook_table_insert_row_write.rs"]
+mod workbook_table_insert_row_write;
 pub(crate) use workbook_table_change::TableDefinitionChange;
 #[path = "workbook_table_restore.rs"]
 mod workbook_table_restore;

@@ -28,6 +28,8 @@ pub struct ResolvedTable {
     pub has_headers: bool,
     /// Whether the last row of `range` is a totals row.
     pub has_totals: bool,
+    /// A reserved input row exists instead of data records in this empty table.
+    pub insert_row: bool,
     /// Column display names left→right; index 0 maps to `range.start.col`.
     pub columns: Vec<String>,
 }

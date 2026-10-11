@@ -15,28 +15,28 @@ impl Workbook {
             None => return false,
         };
 
-        let array_dependents = self.cross_sheet_array_dependents_for_addr(sheet_idx, addr);
-
-        // Parse first so the workbook-wide static cycle walk can inspect the
-        // candidate. The sheet remains the canonical parse-error write path.
+        let rows = self.insert_rows_for_writes([(sheet_idx, addr)]);
+        self.write_with_insert_rows(rows, |book| {
+        let array_dependents = book.cross_sheet_array_dependents_for_addr(sheet_idx, addr);
         let expr = match parse_formula(formula_text) {
             Some(e) => e,
             None => {
-                self.sheets[sheet_idx].set_formula(addr_str, formula_text);
-                self.recompute_array_formula_groups(array_dependents);
+                book.sheets[sheet_idx].set_formula(addr_str, formula_text);
+                book.recompute_array_formula_groups(array_dependents);
                 return false;
             }
         };
 
-        if self.closes_workbook_cycle(sheet_idx, addr, &expr) {
-            self.sheets[sheet_idx].write_error(addr, ValueError::CyclicRef);
-            self.recompute_array_formula_groups(array_dependents);
+        if book.closes_workbook_cycle(sheet_idx, addr, &expr) {
+            book.sheets[sheet_idx].write_error(addr, ValueError::CyclicRef);
+            book.recompute_array_formula_groups(array_dependents);
             return false;
         }
 
-        let ok = self.sheets[sheet_idx].set_formula(addr_str, formula_text);
-        self.recompute_array_formula_groups(array_dependents);
+        let ok = book.sheets[sheet_idx].set_formula(addr_str, formula_text);
+        book.recompute_array_formula_groups(array_dependents);
         ok
+        })
     }
 
     /// Workbook-routed cell write. The target sheet's source atom belongs to
@@ -58,9 +58,12 @@ impl Workbook {
         let Some(addr) = CellAddress::parse(addr_str) else {
             return;
         };
-        let array_dependents = self.cross_sheet_array_dependents_for_addr(sheet_idx, addr);
-        self.sheets[sheet_idx].set_cell(addr_str, value);
-        self.recompute_array_formula_groups(array_dependents);
+        let rows = self.insert_rows_for_writes([(sheet_idx, addr)]);
+        self.write_with_insert_rows(rows, |book| {
+            let array_dependents = book.cross_sheet_array_dependents_for_addr(sheet_idx, addr);
+            book.sheets[sheet_idx].set_cell(addr_str, value);
+            book.recompute_array_formula_groups(array_dependents);
+        });
     }
 
     /// Workbook-routed cell clear. Equivalent to `set_cell(idx, addr,
@@ -99,10 +102,13 @@ impl Workbook {
             return Err(SheetError::InvalidAddress);
         }
         let addr = CellAddress::parse(addr_str).ok_or(SheetError::InvalidAddress)?;
-        let array_dependents = self.cross_sheet_array_dependents_for_addr(sheet_idx, addr);
-        self.sheets[sheet_idx].try_set_cell(addr_str, value)?;
-        self.recompute_array_formula_groups(array_dependents);
-        Ok(())
+        let rows = self.insert_rows_for_writes([(sheet_idx, addr)]);
+        self.write_with_insert_rows(rows, |book| {
+            let array_dependents = book.cross_sheet_array_dependents_for_addr(sheet_idx, addr);
+            book.sheets[sheet_idx].try_set_cell(addr_str, value)?;
+            book.recompute_array_formula_groups(array_dependents);
+            Ok(())
+        })
     }
 
     /// Fallible variant of `clear_cell`. Mirrors `Sheet::try_clear_cell`.

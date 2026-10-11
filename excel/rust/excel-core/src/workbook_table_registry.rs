@@ -63,6 +63,7 @@ impl Workbook {
             range,
             has_headers,
             has_totals: false,
+            insert_row: false,
             columns,
             style: crate::TableStyle::default(),
             calculated_columns: Vec::new(),

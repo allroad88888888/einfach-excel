@@ -37,6 +37,7 @@ fn wasm_table_restore_surfaces_engine_error_ids_and_parse_failures() {
             range: "A1:C4".into(),
             has_headers: true,
             has_totals: false,
+            insert_row: false,
             columns: vec!["only-one".into()],
             style: Default::default(),
             calculated_columns: Vec::new(),
@@ -57,6 +58,7 @@ fn wasm_table_restore_surfaces_engine_error_ids_and_parse_failures() {
             range: "not-a-cell".into(),
             has_headers: true,
             has_totals: false,
+            insert_row: false,
             columns: vec!["a".into()],
             style: Default::default(),
             calculated_columns: Vec::new(),
@@ -81,6 +83,42 @@ fn wasm_table_json_round_trips_through_into_entry() {
     assert_eq!(entry.range().end, CellAddress::new(3, 2));
     assert!(entry.has_headers());
     assert_eq!(entry.columns(), ["Name", "Qty", "Price"]);
+}
+
+#[test]
+fn wasm_empty_table_input_row_round_trips_without_turning_into_a_blank_record() {
+    let mut source = WasmWorkbook::new();
+    let entry = TableEntry::from_parts("Orders", "Sheet1",
+        CellRange::new(CellAddress::new(2, 0), CellAddress::new(2, 1)),
+        false, false, vec!["Item".into(), "Amount".into()]).with_insert_row(true);
+    source.workbook.restore_tables(TableRegistrySnapshot::from_entries(vec![entry])).unwrap();
+    source.workbook.add_sheet("Report");
+    source.workbook.set_formula(1, "A1", "=ROWS(Orders[Amount])");
+    source.workbook.set_cell(0, "A4", Value::Text("Outside".into()));
+    let snapshot = source.snapshot_persistence_v1_json();
+    assert!(snapshot.tables[0].insert_row);
+    let wire = serde_json::to_value(&snapshot).unwrap();
+    assert_eq!(wire["tables"][0]["insertRow"], true);
+    let mut restored = WasmWorkbook::new();
+    restored.restore_persistence_v1_json(serde_json::from_value(wire).unwrap()).unwrap();
+    assert!(restored.workbook.get_table("Orders").unwrap().has_insert_row());
+    assert_eq!(restored.workbook.get_cell("Report", "A1"), Value::Error(ValueError::InvalidRef));
+    assert_eq!(restored.workbook.get_cell("Sheet1", "A4"), Value::Text("Outside".into()));
+    let roundtrip = restored.snapshot_persistence_v1_json();
+    assert_eq!(serde_json::to_value(&roundtrip.tables).unwrap(),
+        serde_json::to_value(&snapshot.tables).unwrap());
+}
+
+#[test]
+fn wasm_legacy_table_without_insert_row_remains_an_ordinary_table() {
+    let source = workbook_with_inventory_table();
+    let wire = serde_json::to_value(source.snapshot_persistence_v1_json()).unwrap();
+    assert!(wire["tables"][0].get("insertRow").is_none());
+    let mut restored = WasmWorkbook::new();
+    restored.restore_persistence_v1_json(serde_json::from_value(wire).unwrap()).unwrap();
+    assert!(!restored.workbook.get_table("Inventory").unwrap().has_insert_row());
+    restored.workbook.set_formula(0, "E1", "=ROWS(Inventory[Qty])");
+    assert_eq!(restored.workbook.get_cell("Sheet1", "E1"), Value::Number(3.));
 }
 
 #[test]

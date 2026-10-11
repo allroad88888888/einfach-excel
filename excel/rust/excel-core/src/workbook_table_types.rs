@@ -9,6 +9,8 @@ pub struct TableEntry {
     pub(super) range: CellRange,
     pub(super) has_headers: bool,
     pub(super) has_totals: bool,
+    // 空表的待输入行占位置，但不是一条已存在的空白数据记录。
+    pub(super) insert_row: bool,
     pub(super) columns: Vec<String>,
     pub(super) style: crate::TableStyle,
     // 空列表表示没有计算列；非空时按 columns 对齐，None 是普通数据列。
@@ -30,6 +32,7 @@ impl TableEntry {
             range: range.normalize(),
             has_headers,
             has_totals,
+            insert_row: false,
             columns,
             style: crate::TableStyle::default(),
             calculated_columns: Vec::new(),
@@ -50,6 +53,13 @@ impl TableEntry {
     }
     pub fn has_totals(&self) -> bool {
         self.has_totals
+    }
+    pub fn has_insert_row(&self) -> bool { self.insert_row }
+
+    /// 几何合法性由注册表原子校验；不能靠格子恰好为空推断是否存在数据记录。
+    pub fn with_insert_row(mut self, enabled: bool) -> Self {
+        self.insert_row = enabled;
+        self
     }
     pub fn columns(&self) -> &[String] {
         &self.columns
@@ -75,7 +85,8 @@ impl TableEntry {
     pub(super) fn same_formula_definition(&self, other: &Self) -> bool {
         self.canonical_name == other.canonical_name && self.sheet_name == other.sheet_name
             && self.range == other.range && self.has_headers == other.has_headers
-            && self.has_totals == other.has_totals && self.columns == other.columns
+            && self.has_totals == other.has_totals && self.insert_row == other.insert_row
+            && self.columns == other.columns
     }
 
     pub(crate) fn to_resolved(&self, sheet_index: usize) -> ResolvedTable {
@@ -85,6 +96,7 @@ impl TableEntry {
             range: self.range,
             has_headers: self.has_headers,
             has_totals: self.has_totals,
+            insert_row: self.insert_row,
             columns: self.columns.clone(),
         }
     }

@@ -38,6 +38,8 @@ impl Workbook {
 
             let range = entry.range.normalize();
             if entry.columns.len() as u32 != range.cols()
+                || (entry.insert_row && range.rows()
+                    != 1 + u32::from(entry.has_headers) + u32::from(entry.has_totals))
                 || (!entry.calculated_columns.is_empty()
                     && entry.calculated_columns.len() != entry.columns.len()) {
                 return Err(TableError::MalformedSnapshot);
@@ -57,6 +59,7 @@ impl Workbook {
                     range,
                     has_headers: entry.has_headers,
                     has_totals: entry.has_totals,
+                    insert_row: entry.insert_row,
                     columns: entry.columns,
                     style: entry.style,
                     calculated_columns: entry.calculated_columns,

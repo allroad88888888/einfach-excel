@@ -7,6 +7,8 @@ use crate::history_snapshot::HistorySnapshot;
 
 #[path = "workbook_table_totals_change.rs"]
 mod totals;
+#[path = "workbook_table_column_change.rs"]
+mod column;
 
 #[derive(Debug)]
 pub(crate) struct TableDefinitionChange {
@@ -166,6 +168,18 @@ impl TableDefinitionChange {
         } else {
             Vec::new()
         };
+        if let Some(cells) = next_cells {
+            // 表头/汇总快照仅覆盖一行；重装前保留现有依赖图中的数组消费者。
+            // restore 内部的重投仍在嵌套 batch 中，必须等最外层失效传播后再投一次。
+            let roots: Vec<_> = (cells.range.start.col..=cells.range.end.col)
+                .flat_map(|col| {
+                    workbook.sheets[self.sheet]
+                        .store_root_atoms_for_addr(CellAddress::new(cells.range.start.row, col))
+                })
+                .collect();
+            let dependents = workbook.store.reverse_dependents(&roots);
+            arrays.extend(workbook.array_dependents_for_atoms(&dependents));
+        }
         if !self.lambdas.is_empty() {
             arrays.extend(workbook.named_array_dependents());
         }
@@ -232,7 +246,7 @@ impl TableDefinitionChange {
     }
 }
 
-/// 汇总行不能覆盖合并格或数组；在任何注册表/单元格写入前检查。
+/// 表头/汇总单元格不能覆盖合并格或数组；在任何写入前检查。
 fn validate_cells(workbook: &Workbook, sheet: usize, range: CellRange) -> Result<(), &'static str> {
     let target = workbook
         .sheet(sheet)
@@ -245,7 +259,7 @@ fn validate_cells(workbook: &Workbook, sheet: usize, range: CellRange) -> Result
             .any(|merged| merged.intersects(range))
         || target.spill_intersecting(range).is_some()
     {
-        return Err("The totals row overlaps a merge, spilled array or worksheet boundary.");
+        return Err("The table cells overlap a merge, spilled array or worksheet boundary.");
     }
     Ok(())
 }

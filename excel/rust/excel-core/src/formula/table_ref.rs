@@ -8,7 +8,7 @@ impl Parser {
     /// (design doc §5.1 `inner`). `table` carries the already-read table
     /// name (`Some`) for `Table1[...]`, or `None` for a table-less
     /// `[...]`. Area qualifiers and column segments share the same AST.
-    /// `'`-escapes and empty `[]` remain outside this grammar:
+    /// 列名内的 `'` 转义由同一个列名扫描器处理；空 `[]` 仍不接受。
     ///
     /// ```text
     /// inner := '@' colspec | special | '[' colref ']' (':' '[' colref ']')? | colref
@@ -104,18 +104,7 @@ impl Parser {
     /// spaces are preserved; an empty name is a parse error.
     fn parse_bracketed_colref(&mut self) -> Option<String> {
         self.expect('[')?; // consume inner '['
-        let start = self.pos;
-        while let Some(c) = self.peek() {
-            if c == ']' || c == '[' || c == '#' || c == '@' {
-                break;
-            }
-            self.advance();
-        }
-        let raw: String = self.chars[start..self.pos].iter().collect();
-        let name = raw.trim().to_string();
-        if name.is_empty() {
-            return None;
-        }
+        let name = self.parse_bare_colref()?;
         self.expect(']')?; // consume inner ']'
         Some(name)
     }
@@ -123,14 +112,20 @@ impl Parser {
     /// Parse a bare `colref`: any run of characters except `[ ] # @`,
     /// trimmed (internal spaces kept). Empty is a parse error.
     fn parse_bare_colref(&mut self) -> Option<String> {
-        let start = self.pos;
+        let mut raw = String::new();
         while let Some(c) = self.peek() {
             if c == '[' || c == ']' || c == '#' || c == '@' {
                 break;
             }
             self.advance();
+            if c == '\'' && self.peek().is_some_and(|next| matches!(next, '\'' | '[' | ']' | '#' | '@')) {
+                raw.push(self.peek()?);
+                self.advance();
+            } else {
+                // 保留既有非转义撇号写法（如 O'Brien），输出统一使用转义形式。
+                raw.push(c);
+            }
         }
-        let raw: String = self.chars[start..self.pos].iter().collect();
         let name = raw.trim().to_string();
         if name.is_empty() {
             return None;

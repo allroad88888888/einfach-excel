@@ -6,9 +6,7 @@
 //! round-trip (parse → render → parse is a fixed point at the AST level).
 //! Evaluation lives in `table_structured_refs.rs`.
 //!
-//! MVP subset (§3.2 out-of-scope, asserted as parse failures below):
-//! combined qualifiers `Table1[[#Headers],[Col]]`, `'`-escaped column
-//! names, and empty `Table1[]` are deliberately NOT accepted.
+//! 已覆盖组合限定与单引号转义列名；空 `Table1[]` 仍显式拒绝。
 
 use einfach_excel_core::{parse_formula, render_formula, Expr, TableArea};
 
@@ -49,6 +47,23 @@ fn column_name_keeps_internal_spaces() {
     assert_eq!(c, col("Unit Price"));
     // Bracketed spelling of a spaced name is identical.
     assert_eq!(table_ref("=Table1[[Unit Price]]"), table_ref("=Table1[Unit Price]"));
+}
+
+#[test]
+fn escaped_column_names_round_trip_in_every_reference_area() {
+    let header = "净额 [税] #@ O'Brien";
+    for area in [TableArea::Data, TableArea::ThisRow, TableArea::All,
+        TableArea::Headers, TableArea::Totals] {
+        for table in [None, Some("Inventory".to_string())] {
+            for columns in [col(header), Some((header.into(), "Other]".into()))] {
+                let expr = Expr::TableRef { table: table.clone(), area, columns };
+                let rendered = render_formula(&expr);
+                assert_eq!(parse_formula(&rendered), Some(expr), "{rendered}");
+            }
+        }
+    }
+    assert_eq!(table_ref("=Inventory['#Totals]").2, col("#Totals"));
+    assert_eq!(table_ref("=Inventory[O''Brien]").2, col("O'Brien"));
 }
 
 #[test]

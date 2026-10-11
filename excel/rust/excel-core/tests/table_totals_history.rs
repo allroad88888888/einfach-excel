@@ -234,4 +234,18 @@ fn whole_table_array_consumers_expand_and_shrink_across_sheets() {
         assert_eq!(wb.get_cell("Other", "H1"), Value::Number(60.0));
         history.redo(&mut wb).unwrap();
     }
+    // 单格汇总公式改动不发布目录 epoch，跨表数组仍须通过单元格依赖更新。
+    let epoch = wb.tables_epoch();
+    history
+        .set_table_total_function(&mut wb, "Inventory", "Amount", TotalsFunction::Average)
+        .unwrap();
+    assert_eq!(wb.tables_epoch(), epoch);
+    assert_eq!(wb.get_cell("Other", "E5"), Value::Number(20.0));
+    assert_eq!(wb.get_cell("Other", "H1"), Value::Number(80.0));
+    history.undo(&mut wb).unwrap();
+    assert_eq!(wb.get_cell("Other", "E5"), Value::Number(60.0));
+    assert_eq!(wb.get_cell("Other", "H1"), Value::Number(120.0));
+    history.redo(&mut wb).unwrap();
+    assert_eq!(wb.get_cell("Other", "E5"), Value::Number(20.0));
+    assert_eq!(wb.get_cell("Other", "H1"), Value::Number(80.0));
 }

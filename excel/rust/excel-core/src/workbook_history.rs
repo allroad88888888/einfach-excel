@@ -27,6 +27,8 @@ use conditional_format::ConditionalFormatChange;
 mod named_range;
 #[path = "workbook_history_table.rs"]
 mod table;
+#[path = "workbook_history_input.rs"]
+mod input;
 #[path = "workbook_history_data_validation.rs"]
 mod data_validation;
 use data_validation::DataValidationChange;

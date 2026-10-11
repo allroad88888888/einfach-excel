@@ -90,95 +90,19 @@ impl Workbook {
         Ok(())
     }
 
-    /// Rename one column of a Table (design doc §4.1 / §4.3; the engine half
-    /// of the I3 header-edit → column-rename story). Updates the registry
-    /// column name — the source of truth for `Table[Col]` resolution — and
-    /// rewrites the TEXT of every referencing formula (`Table[Old]` →
-    /// `Table[New]`, plus table-less `[Old]` inside the Table's own cells).
-    ///
-    /// The visible HEADER CELL text is left untouched: the canonical trigger
-    /// (§I3) is a header-cell edit, which already carries the new text, and
-    /// resolution reads the registry, not the header cell. A direct call
-    /// (e.g. a Name Manager rename) thus lags the header display until the
-    /// host writes it — a documented MVP boundary.
+    /// 低层调用与用户历史复用同一个原子改名，表头、目录及公式消费者不再分开写。
     pub fn rename_table_column(
         &mut self,
         table_name: &str,
         old_column: &str,
         new_column: &str,
     ) -> Result<(), TableError> {
-        if self.is_inside_custom_call() {
-            return Err(TableError::MutationDuringCustomCall);
+        if let Some(change) = TableDefinitionChange::prepare_column_rename(
+            self, table_name, old_column, new_column,
+        )? {
+            change.apply(self, false).map_err(|_| TableError::FormulaRewriteConflict)?;
         }
-        if new_column.trim().is_empty() {
-            return Err(TableError::InvalidColumnName);
-        }
-        let key = table_name.to_ascii_uppercase();
-        let Some(entry) = self.tables.get(&key) else {
-            return Err(TableError::NotFound);
-        };
-        let col_idx = entry
-            .columns
-            .iter()
-            .position(|c| c.eq_ignore_ascii_case(old_column))
-            .ok_or(TableError::ColumnNotFound)?;
-        // Collision with a DIFFERENT column is rejected; a case-only rename
-        // of the same column is allowed.
-        if entry
-            .columns
-            .iter()
-            .enumerate()
-            .any(|(i, c)| i != col_idx && c.eq_ignore_ascii_case(new_column))
-        {
-            return Err(TableError::DuplicateColumn);
-        }
-        let anchor_sheet = entry.sheet_name.clone();
-        let table_range = entry.range;
-        self.tables
-            .get_mut(&key)
-            .expect("existence checked above")
-            .columns[col_idx] = new_column.to_string();
-        self.sync_atom_tables();
-        let spec = crate::shift::TableRefEditSpec::RenameColumn {
-            table_upper: key,
-            from: old_column.to_string(),
-            to: new_column.to_string(),
-        };
-        self.rewrite_table_refs_across_sheets(&spec, Some((&anchor_sheet, table_range)));
-        self.bump_tables_epoch();
         Ok(())
-    }
-
-    /// Rewrite structured-reference formula text across every sheet per
-    /// `spec` (design doc §4.3). `anchor` is `Some((sheet_name, range))` for
-    /// a column rename, so table-less `[Col]` references inside the Table's
-    /// own cells on its anchor sheet are rewritten too; `None` for a table
-    /// rename (bare references carry no table name and never match).
-    ///
-    /// Collect (immutable sheet reads) then apply (`set_formula`) in two
-    /// passes: the borrow checker forbids holding a sheet borrow across the
-    /// mutable re-install, and the apply pass reuses the proven formula-edit
-    /// path (parking, cycle check, subscriber notification).
-    fn rewrite_table_refs_across_sheets(
-        &mut self,
-        spec: &crate::shift::TableRefEditSpec,
-        anchor: Option<(&str, CellRange)>,
-    ) {
-        let mut rewrites: Vec<(usize, CellAddress, String)> = Vec::new();
-        for idx in 0..self.sheets.len() {
-            let bare_range = match anchor {
-                Some((sheet_name, range)) if self.names[idx].as_str() == sheet_name => Some(range),
-                _ => None,
-            };
-            let bare_for = |addr: CellAddress| bare_range.is_some_and(|r| r.contains(addr));
-            for (addr, text) in self.sheets[idx].collect_table_ref_rewrites(spec, &bare_for) {
-                rewrites.push((idx, addr, text));
-            }
-        }
-        for (idx, addr, text) in rewrites {
-            let a1 = addr.to_string_repr();
-            self.set_formula(idx, &a1, &text);
-        }
     }
 
     /// Case-insensitive Table lookup. `None` when no Table is registered

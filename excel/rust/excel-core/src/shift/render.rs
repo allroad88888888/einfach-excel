@@ -175,11 +175,7 @@ fn render_into(expr: &Expr, out: &mut String) {
             }
             out.push(')');
         }
-        // Structured (Table) reference. Column names in a parsed TableRef
-        // can never contain `[ ] # @` (both the bare and bracketed colref
-        // lexers stop at those), so single columns render bare and only
-        // multi-column segments need inner brackets — the round-trip
-        // (`parse(render(parse(s))) == parse(s)`) holds at the AST level.
+        // 列名经统一转义后输出；用户改列名构造的 AST 也必须能够重新解析。
         Expr::TableRef {
             table,
             area,
@@ -203,14 +199,14 @@ fn render_into(expr: &Expr, out: &mut String) {
                 TableArea::Totals => out.push_str("#Totals"),
                 TableArea::Data => match columns {
                     None => out.push_str("#Data"),
-                    Some((a, b)) if a == b => out.push_str(a),
+                    Some((a, b)) if a == b => render_table_column(a, out),
                     Some((a, b)) => render_table_segment(a, b, out),
                 },
                 TableArea::ThisRow => {
                     out.push('@');
                     match columns {
                         None => {}
-                        Some((a, b)) if a == b => out.push_str(a),
+                        Some((a, b)) if a == b => render_table_column(a, out),
                         Some((a, b)) => render_table_segment(a, b, out),
                     }
                 }
@@ -220,7 +216,7 @@ fn render_into(expr: &Expr, out: &mut String) {
                 let (first, last) = columns.as_ref().unwrap();
                 if first == last {
                     out.push('[');
-                    out.push_str(first);
+                    render_table_column(first, out);
                     out.push(']');
                 } else {
                     render_table_segment(first, last, out);
@@ -236,10 +232,18 @@ fn render_into(expr: &Expr, out: &mut String) {
 /// separator on re-parse rather than as part of a bare column name.
 fn render_table_segment(a: &str, b: &str, out: &mut String) {
     out.push('[');
-    out.push_str(a);
+    render_table_column(a, out);
     out.push_str("]:[");
-    out.push_str(b);
+    render_table_column(b, out);
     out.push(']');
+}
+
+/// 结构化引用保留字符由单引号转义，不改变真实列名。
+fn render_table_column(column: &str, out: &mut String) {
+    for ch in column.chars() {
+        if matches!(ch, '\'' | '[' | ']' | '#' | '@') { out.push('\''); }
+        out.push(ch);
+    }
 }
 
 #[cfg(test)]

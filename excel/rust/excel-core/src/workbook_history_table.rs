@@ -3,6 +3,24 @@ use super::*;
 use crate::workbook::{TableCreation, TableDefinitionChange};
 
 impl WorkbookHistory {
+    /// 表头文字、目录列名与结构化引用必须共同提交为一条历史。
+    pub fn rename_table_column(
+        &mut self,
+        workbook: &mut Workbook,
+        name: &str,
+        old_column: &str,
+        new_column: &str,
+    ) -> Result<bool, String> {
+        if self.pending.is_some() || workbook.is_inside_custom_call() {
+            return Err("Another history command is pending.".into());
+        }
+        let Some(change) = TableDefinitionChange::prepare_column_rename(workbook, name, old_column, new_column)
+            .map_err(|error| error.to_string())?
+        else { return Ok(false); };
+        self.finish_table_change(workbook, change, "Rename table column")?;
+        Ok(true)
+    }
+
     /// 汇总行的范围与公式是同一条历史；空操作或拒绝不截断 redo。
     pub fn set_table_totals_row(
         &mut self,

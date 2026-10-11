@@ -42,7 +42,7 @@
 | 29 | 排序与筛选 | 升序、降序、多列排序已验收，见[排序批次](docs/sort-wave.md)；原生条件筛选、重新应用、清除筛选及复制/排序/统计交叉已验收；指定区域、表头入口、单列清除已通过全量回归，其它排序/筛选选项待补 |
 | 30 | 删除重复项 | Rust 区域内原子去重、比较列、表头及文本比较选项已验收，完整 E2E 603/603 通过。分页预览、重复记录定位、首条保留记录定位已验收，完整 E2E 608/608、Rust 默认 3002/lite 2962 项通过；不以旧 UI Core scanner 测试宣称产品完成 |
 | 31 | 状态栏摘要 | Rust 六项、显示项配置、恢复默认、原始数值复制已验收；排除筛掉行、保留手动隐藏行的统计已接 Rust 并通过全量回归，见[既有记录](docs/status-bar-wave.md) |
-| 32 | Excel Table | 创建、重命名、转普通区域已验收：完整 E2E 735/735、Vitest 5445/5445、Table 相关 Rust 集成默认／lite 各 188 项通过；汇总行界面进入下一批，Table 样式、列名编辑、范围调整及自动扩展等仍待补 |
+| 32 | Excel Table | 创建、重命名、转普通区域与汇总行三项已验收：最新完整 E2E 744/744、Vitest 5454/5454 通过；列名编辑及 Table 定位进入下一批，Table 样式、范围调整及自动扩展等仍待补 |
 | 33 | 外部数据连接 | 原计划延后；不以本地 fixture 宣称完成 |
 | 34–35 | 批注、备注及协作 | 待接入；身份、通知及持久服务需要明确的真实契约 |
 | 37–39 | 更改记录、版本、个人视图 | 待接入；本地 undo 不能替代版本服务 |
@@ -57,15 +57,33 @@
 
 ## 批次账本
 
-### Excel Table 汇总行（进行中，未验收）
+### Excel Table 列名与定位（进行中，未验收）
+
+本批只做三个用户功能：Tables 面板修改列名、直接编辑表头时同步列名与结构化引用、名称管理器查看并定位 Table。不包含 Table 样式、范围调整或自动扩展。前两项必须复用同一个 Rust 原子操作：表头文字、目录列名、引用公式与历史一起提交；第三项读取原生投影目录，不维护第二份 Table 注册表。
+
+只读核对：现有 `Workbook::rename_table_column` 只修改注册项与普通公式，不更新表头、不记录用户历史，也不覆盖条件规则／保存的闭包。不得直接把它包装成两个 UI 入口宣布完成。先补原生前后像与消费者改写，再接已有 Worker／command atom／React；不新增 backend、刷新层或 TS 工作簿镜像。
+
+原生阶段进展：`WorkbookHistory::rename_table_column` 已复用 `TableDefinitionChange`，表头仅保留单格前后像，真实引用公式、条件规则及保存的闭包共同回放；低层旧接口改用相同实现，删除重复的跨表公式收集／写入路径。新增 `WorkbookHistory::set_cell_input` 区分普通格与 Table 表头：普通输入沿用原有解析，表头只作为列名文字进入同一改名操作，首尾空白规范化，空名／重名拒绝且不消耗 redo。仍未接入 WASM／React，不能视为产品完成。
+
+跨 Table 条件规则与延迟调用的裸引用复用原有调用位置判断，范围判断从转换实现移到共享 `table_ref_scope.rs`，没有第二份依赖图。特殊列名曾复现“改名成功但公式变为错误”；现已在唯一 parser／renderer 内补单引号转义，按 [Microsoft 结构化引用规则](https://support.microsoft.com/en-us/excel/using-structured-references-with-excel-tables)处理 `[] # @ '`。旧的非转义撇号形式仍可读取，输出统一转义。测试闭包使用引擎已支持的直接 LAMBDA 调用，不把尚未支持的单元格存储闭包调用混为列改名回归。
+
+当前专项 **33/33** 通过：列历史 8、消费者 2、表头输入 4、parser 19；覆盖一条撤销、原公式精确恢复、跨表数组、每次一次订阅通知、合并／spill 拒绝、失败保留 redo、嵌套闭包及转义往返。默认／lite 全量 lib 加 Table 扩大回归正在顺序执行，之后检查 WASM lib（`/tmp/excel-table-columns-default.log`、`/tmp/excel-table-columns-lite.log`、`/tmp/excel-table-columns-wasm-tests.log`）。所有新增／大改文件低于 300 行；现有历史栈文件仅增加两行模块声明。尚未改 React 入口或重建浏览器 WASM，本批未验收，未提交。
+
+### Excel Table 汇总行（已验收）
+
+最终验收：修正后的完整 E2E **744/744 passed**，原进程退出 0（`/tmp/excel-table-totals-fixed-full-e2e.log`）；完整 Vitest **336 文件／5,454 项**、根构建、类型、lint、循环依赖、架构及文档门禁通过。当前 Rust lib 默认 **1,652 passed／3 ignored**、lite **1,629 passed／3 ignored**，Table 集成双配置各 **55 项**，WASM lib **151 passed／1 ignored**。新增跨表数组用例在旧构件失败、新构件通过；填充柄 17 项在专项与完整回归均通过。当前功能为显示汇总行、修改列汇总函数、隐藏汇总行，不代表整个 #32 完成。补修尚未提交；下面保留阶段证据。
 
 本批只做三个动作：显示汇总行、设置某列的汇总函数、隐藏汇总行。复用 `table.change` 与同一次返回投影；Rust 写入真实 SUBTOTAL 公式，表范围、公式与撤销历史一次提交。先补现有低层汇总操作的原子历史与完整拒绝检查，再接 Worker／UI Core／React。不得把已有低层接口或核心单测视为 React 功能完成。
 
-原生阶段已实现：`WorkbookHistory` 的汇总行开关与列函数操作复用 `TableDefinitionChange`；只捕获被覆盖的一行或一个单元格，不复制数据区。低层旧接口转用相同预检／提交；已补占用、合并、spill、其他 Table 与网格边界拒绝，失败／无操作不消耗 redo。只改函数不发布 Table 几何 epoch，继续由单元格 atom 传播。新增历史专项 **6/6**，旧汇总／改名／转换 **29/29** 已通过；上述证据在最后一处 epoch 优化前。优化后的默认／lite 扩大回归正在运行（`/tmp/excel-table-totals-regression-default.log`、`/tmp/excel-table-totals-regression-lite.log`），随后检查 WASM crate。尚未扩展 Worker 命令、重建 WASM 构件或接 React 控件，本批未验收。
+实现已提交推送为 `a42ee510`：`WorkbookHistory` 的汇总行开关与列函数操作复用 `TableDefinitionChange`，只捕获被覆盖的一行或一个单元格，不复制数据区。低层旧接口共用预检／提交，占用、合并、spill、其他 Table 与网格边界在写入前拒绝，失败／无操作不消耗 redo。React 的 `TableTotals` 复用同一个 `table.change`；汇总函数由 Rust 从真实公式 AST 派生，不另存函数配置。Summary 的 DemoTable 为 A80:B84，B84 原生 SUM=60，初始化不占历史。
 
-最新原生证据：epoch 优化后的默认配置 **9 套／54 passed／0 failed** 已通过，包含新增汇总历史 6 项；同一顺序任务正在执行 lite 配置，结束后自动检查 WASM crate。所有新增／大改原生文件均低于 300 行，未新增历史栈、注册表副本或函数配置副本。
+提交时证据：lite／full WASM 已重建；UI Core／React 专项 **33/33**、浏览器 Table 专项 **15/15**（含汇总行 8 项）、完整 Vitest **336 文件／5,454 项**、WASM lib **151 passed／1 ignored** 通过。根构建、类型、lint、循环依赖、架构及文档门禁通过。原生 lib 默认 **1,652 passed／3 ignored**、lite **1,629 passed／3 ignored**，Table 相关集成默认／lite 各 **55 项**通过；这些是下述补修前的证据。首轮完整 E2E 最终 **742 passed／1 failed**（`/tmp/excel-table-totals-full-e2e.log`），不提前验收。
 
-接线阶段：上述默认／lite 各 **54 项** 回归与 WASM crate 检查已结束通过。现已扩展同一个 `table.change` 命令，接入 `TableTotals` 控件；汇总函数由 Rust 复用公式 AST 读取，支持自定义内容标记，派生选项不进入持久化元数据。Summary 的 DemoTable 通过原生初始化开启汇总，B84 为 SUM=60，不占启动历史。lite／full WASM 已重建；UI Core／React 专项 **33/33**、真实浏览器 Table 专项 **15/15**（含本批 8 项）、完整 Vitest **336 文件／5,454 项**、WASM lib **151 passed／1 ignored** 通过。根构建与类型检查通过；lint／循环依赖门禁、原生双配置扩大回归和 **743 项完整 E2E** 仍在收集结果（`/tmp/excel-table-totals-full-e2e.log`），本批不提前验收。
+提交后交叉补查复现：仅修改汇总函数时，跨表 `Table[#All]` 数组仍返回旧小计，导致下游 `SUM(A1#)` 同样过期。新增断言先失败（60 未更新为 20），定位为历史恢复的数组重投发生在外层 Store batch 结束之前。补修只沿被写入单元格的现有 atom 反向依赖，等最外层失效传播结束后更新受影响数组；不发布无关 Table 几何 epoch，不加缓存或刷新命令。修正后的原生历史 **6/6** 已通过，包含跨表数组及下游在修改／撤销／重做后的结果。持久 E2E 已增加同一真实交叉场景；修正后的双配置回归、WASM 重建及 **744 项完整 E2E** 尚待完成，本批仍未验收。
+
+补修验证进展：新增真实浏览器用例在旧 WASM 上同样失败，准确复现“预期 20、实际 60”（`/tmp/excel-table-totals-array-before-e2e.log`）。修正后的历史／投影专项默认及 lite 各 **7/7**、WASM lib **151 passed／1 ignored** 通过。扩大回归任务退出 0：lib 默认 **1,652 passed／3 ignored**、lite **1,629 passed／3 ignored**，Table 集成双配置各 **55 项**通过。lite／full WASM 已重新构建；Table 与填充柄专项 **33/33**，其中新增交叉数组 E2E 已由失败变为通过（`/tmp/excel-table-totals-fixed-targeted-e2e.log`）。根构建通过，剩余门禁正在顺序执行；下一轮 **744 项完整 E2E** 使用固定源码／构件复核，日志 `/tmp/excel-table-totals-fixed-full-e2e.log`。补修尚未提交。
+
+首轮唯一失败为右边缘填充柄自动滚动。保留的 trace 显示鼠标按下后页面重新导航（约 86,768ms），选区从 B3 变回 A1，随后 Vite 重连；不是已有证据能证明的滚动算法错误。未放宽断言、未增加重试、未改动拖拽代码，整个填充柄 **17/17** 已在新构件下通过，仍须用无源码／构件变动的完整回归确认。
 
 ### Excel Table 基础操作（已验收）
 

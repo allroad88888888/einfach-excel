@@ -72,6 +72,26 @@ test('totals stay live after edits and exclude manually hidden rows', async ({ p
   await button(page, 'Undo').click(); await expect(cell(page, '83:1')).toHaveText('30')
 })
 
+test('changing only the total function updates cross-sheet spills and their consumers', async ({ page }) => {
+  // 真实空白表容纳五行数组，不让 demo 的既有内容挡住 spill。
+  await button(page, 'New sheet').click()
+  await expect(page.getByRole('tab', { name: 'Sheet3', exact: true })).toHaveAttribute('aria-selected', 'true')
+  await input(page, 'A1', '0:0', '=DemoTable[#All]', 'Product')
+  await expect(cell(page, '4:1')).toHaveText('60')
+  await input(page, 'E1', '0:4', '=SUM(A1#)', '120')
+  await page.getByRole('tab', { name: 'Summary', exact: true }).click()
+  await open(page); await setFunction(page, 'average'); await close(page)
+  await page.getByRole('tab', { name: 'Sheet3', exact: true }).click()
+  await expect(cell(page, '4:1')).toHaveText('20')
+  await expect(cell(page, '0:4')).toHaveText('80')
+  await button(page, 'Undo').click()
+  await expect(cell(page, '4:1')).toHaveText('60')
+  await expect(cell(page, '0:4')).toHaveText('120')
+  await button(page, 'Redo').click()
+  await expect(cell(page, '4:1')).toHaveText('20')
+  await expect(cell(page, '0:4')).toHaveText('80')
+})
+
 test('custom total content is read from Rust and can be replaced or cleared', async ({ page }) => {
   await input(page, 'B84', '83:1', '=SUM(B81:B83)+1', '61')
   await open(page)

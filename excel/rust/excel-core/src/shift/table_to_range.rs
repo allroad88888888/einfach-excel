@@ -1,8 +1,9 @@
 //! 将一个 Table 的引用改成普通地址；只遍历 AST，不求值或替换字符串字面量。
 use crate::eval::ResolvedTable;
-use crate::formula::{BinOperator, Expr, RangeAbs, RangeBounds, RefAbs, TableArea};
+use crate::formula::{BinOperator, Expr, RefAbs, TableArea};
 use crate::CellRange;
 use einfach_core::ValueError;
+use super::table_ref_scope::{scoped_table_reference, table_address, table_position, within_table_axis};
 
 pub(crate) struct TableToRange<'a> {
     pub name: &'a str,
@@ -43,29 +44,7 @@ impl TableToRange<'_> {
         };
         // 整区固定；ThisRow 保留行相对性，让普通复制与条件规则沿行继续平移。
         let abs = RefAbs::new(true, area != TableArea::ThisRow);
-        self.address(range, abs)
-    }
-
-    fn address(&self, range: CellRange, abs: RefAbs) -> Expr {
-        if range.start == range.end {
-            Expr::SheetRef {
-                sheet: self.table.sheet_name.clone(),
-                addr: range.start,
-                abs,
-            }
-        } else {
-            Expr::SheetRange {
-                sheet: self.table.sheet_name.clone(),
-                start: range.start,
-                end: range.end,
-                unbounded: RangeBounds::None,
-                abs: RangeAbs::new(abs, abs),
-            }
-        }
-    }
-
-    fn position(&self, function: &str, range: CellRange) -> Expr {
-        call(function, vec![self.address(range, RefAbs::new(true, true))])
+        table_address(self.table, range, abs)
     }
 
     /// 保存/返回的闭包在调用处取当前行，不能把定义处的行号写死。
@@ -78,10 +57,10 @@ impl TableToRange<'_> {
             Ok(range) => call(
                 "INDEX",
                 vec![
-                    self.address(range, RefAbs::new(true, true)),
+                    table_address(self.table, range, RefAbs::new(true, true)),
                     binary(
                         BinOperator::Add,
-                        binary(BinOperator::Sub, row, self.position("ROW", data)),
+                        binary(BinOperator::Sub, row, table_position(self.table, "ROW", data)),
                         Expr::Number(1.0),
                     ),
                     Expr::Number(0.0),
@@ -92,53 +71,11 @@ impl TableToRange<'_> {
         call(
             "IF",
             vec![
-                self.within("ROW", data),
+                within_table_axis(self.table, "ROW", data),
                 selected,
                 Expr::Error(ValueError::InvalidValue),
             ],
         )
-    }
-
-    fn within(&self, function: &str, range: CellRange) -> Expr {
-        call(
-            "AND",
-            vec![
-                binary(
-                    BinOperator::GtEq,
-                    call(function, vec![]),
-                    self.position(function, range),
-                ),
-                binary(
-                    BinOperator::Lt,
-                    call(function, vec![]),
-                    // 从整个区域取起点与长度，删除首/末行时区域会正常收缩，
-                    // 不留下一个指向已删边界单格的 #REF!。
-                    binary(
-                        BinOperator::Add,
-                        self.position(function, range),
-                        self.position(if function == "ROW" { "ROWS" } else { "COLUMNS" }, range),
-                    ),
-                ),
-            ],
-        )
-    }
-
-    /// 原区域内用普通地址，区域外仍由当前 Table 解析裸引用（包括其它表格）。
-    fn scoped_bare(&self, converted: Expr, original: Expr) -> Expr {
-        let full = self.table.range;
-        let condition = call(
-            "AND",
-            vec![
-                binary(
-                    BinOperator::Eq,
-                    call("SHEET", vec![]),
-                    self.position("SHEET", full),
-                ),
-                self.within("ROW", full),
-                self.within("COLUMN", full),
-            ],
-        );
-        call("IF", vec![condition, converted, original])
     }
 
     fn walk(
@@ -179,7 +116,7 @@ impl TableToRange<'_> {
                             || !self.table.range.contains(range.end)
                     });
                 *expr = if context_dependent {
-                    self.scoped_bare(converted, expr.clone())
+                    scoped_table_reference(self.table, converted, expr.clone())
                 } else {
                     converted
                 };

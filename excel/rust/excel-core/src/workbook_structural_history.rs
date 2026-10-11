@@ -1,5 +1,6 @@
 //! 结构历史只保留被位移的稀疏带及带外真正改写的公式，不复制无关工作表。
 use super::workbook_formula_lambda_change::FormulaLambdaChange;
+use super::workbook_formula_source_change::FormulaSourceChange;
 use super::*;
 use crate::filter::SheetAutoFilter;
 use crate::history_snapshot::HistorySnapshot;
@@ -13,6 +14,7 @@ pub(crate) struct StructuralHistoryChange {
     after: StructuralSnapshot,
     named_ranges: Vec<NamedRangeShift>,
     named_lambdas: Vec<FormulaLambdaChange>,
+    templates: Vec<FormulaSourceChange>,
 }
 
 #[derive(Debug)]
@@ -98,7 +100,7 @@ impl StructuralHistoryChange {
         let before = StructuralSnapshot::capture(workbook, sheet, &targets, &rule_sheets);
         let named_ranges = workbook.shifted_named_ranges(sheet, edit);
         // 上方已完成结构预检；执行并保存实际闭包差异，避免重新求值/扫描。
-        let named_lambdas = workbook.apply_structural_shift_with_table_follow(sheet, edit);
+        let (named_lambdas, templates) = workbook.apply_structural_shift_with_table_follow(sheet, edit);
         let after = StructuralSnapshot::capture(workbook, sheet, &targets, &rule_sheets);
         Ok(Some((
             Self {
@@ -108,6 +110,7 @@ impl StructuralHistoryChange {
                 after,
                 named_ranges,
                 named_lambdas,
+                templates,
             },
             range,
         )))
@@ -118,6 +121,7 @@ impl StructuralHistoryChange {
             .cells
             .iter()
             .map(|(sheet, _)| *sheet)
+            .chain(self.templates.iter().map(|change| change.sheet))
             .chain(
                 self.before
                     .conditional_formats
@@ -143,6 +147,7 @@ impl StructuralHistoryChange {
         for lambda in &self.named_lambdas {
             lambda.validate(workbook, undo)?;
         }
+        for template in &self.templates { template.validate(workbook, undo)?; }
         for (owner, rules) in &snapshot.conditional_formats {
             let config = &workbook.conditional_formats[*owner];
             if config.rules != *rules && config.revision == u64::MAX {
@@ -178,6 +183,8 @@ impl StructuralHistoryChange {
                     .filter(|(s, _)| s == index)
                     .map(|(_, snapshot)| snapshot)
                     .collect();
+                // 只有模板/规则变化的表不恢复单元格，也不拆装无关数组或增加求值。
+                if cells.is_empty() { continue; }
                 anchors.push((
                     *index,
                     workbook.sheets[*index].restore_structure_content(&cells),
@@ -224,6 +231,7 @@ impl StructuralHistoryChange {
             for lambda in &self.named_lambdas {
                 lambda.apply(workbook, undo);
             }
+            for template in &self.templates { template.apply(workbook, undo); }
             workbook.restore_named_range_coordinates(&self.named_ranges, undo);
             if self.named_ranges.is_empty() && !self.named_lambdas.is_empty() {
                 workbook.sync_atom_names();
@@ -243,6 +251,7 @@ impl StructuralHistoryChange {
             + self.before.retained_bytes()
             + self.after.retained_bytes()
             + crate::sheet::metadata_bytes(&self.named_lambdas)
+            + self.templates.iter().map(FormulaSourceChange::retained_bytes).sum::<usize>()
             + self
                 .named_ranges
                 .iter()

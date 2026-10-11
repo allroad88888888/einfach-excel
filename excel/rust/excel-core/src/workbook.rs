@@ -113,6 +113,8 @@ mod workbook_sheet_history;
 pub(crate) use workbook_sheet_history::SheetHistoryChange;
 #[path = "workbook_structural.rs"]
 mod workbook_structural;
+#[path = "workbook_table_shift.rs"]
+mod workbook_table_shift;
 #[path = "workbook_structural_history.rs"]
 mod workbook_structural_history;
 #[path = "workbook_structural_preflight.rs"]

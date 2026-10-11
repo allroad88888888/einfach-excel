@@ -8,15 +8,26 @@ impl TableDefinitionChange {
     pub(crate) fn prepare_calculated_input(
         workbook: &Workbook, sheet: usize, addr: CellAddress, input: &str,
     ) -> Result<Option<Self>, String> {
+        let sheet_name = workbook.name(sheet).ok_or("INVALID_SHEET")?;
+        let Some(table) = workbook.tables.values().find(|table| {
+            table.sheet_name() == sheet_name && table.range().contains(addr)
+        }) else { return Ok(None); };
+        Self::prepare_calculated_column(workbook, sheet, addr, input, table)
+    }
+
+    /// 已有列与即将扩出的列共用预检；只读取给定定义，不先修改注册表。
+    pub(super) fn prepare_calculated_column(
+        workbook: &Workbook, sheet: usize, addr: CellAddress, input: &str, table: &TableEntry,
+    ) -> Result<Option<Self>, String> {
         let target = workbook.sheet(sheet).ok_or("INVALID_SHEET")?;
+        if !table.range().contains(addr)
+            || (table.has_headers() && addr.row == table.range().start.row)
+            || (table.has_totals() && addr.row == table.range().end.row) {
+            return Ok(None);
+        }
         let CellInput::Formula(source) = parse_formatted_input(
             input, true, &target.get_format(&addr.to_string()).number_format,
         ) else { return Ok(None); };
-        let Some(table) = workbook.tables.values().find(|table| {
-            table.sheet_name() == workbook.names[sheet] && table.range().contains(addr)
-                && (!table.has_headers() || addr.row > table.range().start.row)
-                && (!table.has_totals() || addr.row < table.range().end.row)
-        }) else { return Ok(None); };
         let column = (addr.col - table.range.start.col) as usize;
         let range = CellRange::new(
             CellAddress::new(table.range.start.row + u32::from(table.has_headers), addr.col),

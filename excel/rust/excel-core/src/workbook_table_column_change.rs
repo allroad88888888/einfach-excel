@@ -74,13 +74,15 @@ impl TableDefinitionChange {
                 to: new_column.into(),
             },
         };
-        let formulas =
-            FormulaSourceChange::prepare(workbook, &|source_sheet, source_range, expr| {
+        let mut formulas =
+            FormulaSourceChange::prepare(workbook, &|source_sheet, source_range, template, expr| {
                 // 表头本身由局部快照替换为列名文本，不能再用旧公式覆盖一次。
                 column_changed
-                    && !(before.has_headers && source_sheet == sheet && source_range == range)
+                    && !(template.is_none() && before.has_headers
+                        && source_sheet == sheet && source_range == range)
                     && renamer.rewrite(expr, Some((source_sheet, source_range)))
             });
+        FormulaSourceChange::fold_table(&mut formulas, &before, Some(&mut after));
         let rules = FormulaRuleChange::prepare(workbook, &|sheet, range, expr| {
             column_changed && renamer.rewrite(expr, Some((sheet, range)))
         });

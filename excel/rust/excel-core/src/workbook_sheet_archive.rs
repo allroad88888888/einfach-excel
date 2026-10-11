@@ -1,5 +1,6 @@
 //! 保留被删除的原生 Sheet，恢复时重接同一 Store，不序列化/重建全部单元格。
 use super::workbook_formula_lambda_change::FormulaLambdaChange;
+use super::workbook_formula_source_change::FormulaSourceChange;
 use super::*;
 use std::rc::Weak;
 
@@ -16,6 +17,7 @@ pub struct ArchivedWorksheet {
     references: Vec<(usize, CellAddress, String)>,
     conditional_references: ConditionalRuleSources,
     lambdas: Vec<FormulaLambdaChange>,
+    templates: Vec<FormulaSourceChange>,
     remaining_names: Vec<String>,
     remaining_keys: Vec<u64>,
     origin: Weak<WorkbookAtomContext>,
@@ -46,6 +48,7 @@ impl ArchivedWorksheet {
             + metadata_bytes(&self.references)
             + metadata_bytes(&self.conditional_references)
             + metadata_bytes(&self.lambdas)
+            + self.templates.iter().map(FormulaSourceChange::retained_bytes).sum::<usize>()
             + metadata_bytes(&self.remaining_names)
             + self.remaining_keys.len() * 8
     }
@@ -83,6 +86,7 @@ impl ArchivedWorksheet {
                 .lambdas
                 .iter()
                 .any(|change| change.validate(workbook, true).is_err())
+            || self.templates.iter().any(|change| change.validate(workbook, true).is_err())
         {
             return Err(self);
         }
@@ -113,6 +117,7 @@ impl ArchivedWorksheet {
             for lambda in &self.lambdas {
                 lambda.apply(workbook, true);
             }
+            for template in &self.templates { template.apply(workbook, true); }
             if !self.lambdas.is_empty() {
                 workbook.publish_atom_names();
             }
@@ -178,8 +183,8 @@ impl Workbook {
                 )
             })
             .collect();
-        // 保存实际写入的闭包差异；重新生成会改变闭包身份，破坏精确撤销校验。
-        let (sheet, lambdas) = self.remove_sheet_with_conditional_refs(index, preserve)?;
+        // 保存实际写入的闭包/模板差异；重算闭包会改变身份，逆推模板会丢失原始源。
+        let (sheet, lambdas, templates) = self.remove_sheet_with_conditional_refs(index, preserve)?;
         Some(ArchivedWorksheet {
             sheet: Some(sheet),
             key,
@@ -191,6 +196,7 @@ impl Workbook {
             references,
             conditional_references,
             lambdas,
+            templates,
             remaining_names: self.names.clone(),
             remaining_keys: self.sheet_keys.clone(),
             origin: Rc::downgrade(&self.atom_context),

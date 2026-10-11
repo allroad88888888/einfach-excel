@@ -1,19 +1,20 @@
 //! workbook sheet removal operations.
 
 use super::workbook_formula_lambda_change::FormulaLambdaChange;
+use super::workbook_formula_source_change::FormulaSourceChange;
 use super::*;
 
 impl Workbook {
     pub fn remove_sheet(&mut self, idx: usize) -> Option<Sheet> {
         self.remove_sheet_with_conditional_refs(idx, false)
-            .map(|(sheet, _)| sheet)
+            .map(|(sheet, _, _)| sheet)
     }
 
     pub(super) fn remove_sheet_with_conditional_refs(
         &mut self,
         idx: usize,
         preserve: bool,
-    ) -> Option<(Sheet, Vec<FormulaLambdaChange>)> {
+    ) -> Option<(Sheet, Vec<FormulaLambdaChange>, Vec<FormulaSourceChange>)> {
         if self.is_inside_custom_call() {
             return None; // re-entrancy guard
         }
@@ -35,6 +36,10 @@ impl Workbook {
             Vec::new()
         } else {
             FormulaLambdaChange::for_sheet_refs(self, &self.names[idx], None)
+        };
+        let templates = if preserve { Vec::new() } else {
+            FormulaSourceChange::for_sheet_templates(self, &self.names[idx], None)
+                .into_iter().filter(|change| change.sheet != idx).collect()
         };
         let store = self.store.clone();
         let mut removed = None;
@@ -67,6 +72,7 @@ impl Workbook {
             for lambda in &lambdas {
                 lambda.apply(self, false);
             }
+            for template in &templates { template.apply(self, false); }
             if !lambdas.is_empty() {
                 self.publish_atom_names();
             }
@@ -89,6 +95,6 @@ impl Workbook {
             }
             removed = Some(sheet);
         });
-        removed.map(|sheet| (sheet, lambdas))
+        removed.map(|sheet| (sheet, lambdas, templates))
     }
 }

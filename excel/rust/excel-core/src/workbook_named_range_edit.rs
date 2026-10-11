@@ -114,7 +114,7 @@ impl NamedRangeChange {
                 };
                 rules = FormulaRuleChange::prepare(workbook, &|_, _, expr| rewrite(expr));
                 lambdas = FormulaLambdaChange::prepare(workbook, &rewrite);
-                formulas = FormulaSourceChange::prepare(workbook, &|_, _, expr| rewrite(expr));
+                formulas = FormulaSourceChange::prepare(workbook, &|_, _, _, expr| rewrite(expr));
             }
         }
         Ok(Some(Self {

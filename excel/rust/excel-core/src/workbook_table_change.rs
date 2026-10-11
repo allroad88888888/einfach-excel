@@ -59,7 +59,8 @@ impl TableDefinitionChange {
         after.canonical_name = new_name.into();
         let rewrite =
             |expr: &mut Expr| crate::shift::rename_table_reference(expr, before.name(), new_name);
-        let formulas = FormulaSourceChange::prepare(workbook, &|_, _, expr| rewrite(expr));
+        let mut formulas = FormulaSourceChange::prepare(workbook, &|_, _, _, expr| rewrite(expr));
+        FormulaSourceChange::fold_table(&mut formulas, &before, Some(&mut after));
         let rules = FormulaRuleChange::prepare(workbook, &|_, _, expr| rewrite(expr));
         let lambdas = FormulaLambdaChange::prepare(workbook, &rewrite);
         Ok(Some(Self {

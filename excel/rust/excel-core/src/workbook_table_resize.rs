@@ -120,11 +120,11 @@ impl TableDefinitionChange {
             workbook, sheet, &before, &after, &columns,
         )?);
         // 加行/加列只变原生几何，交给已有 atom 依赖失效；没有删列就不扫描公式源码。
-        let (formulas, rules, lambdas) = if removes_columns {
+        let (mut formulas, rules, lambdas) = if removes_columns {
             let formulas =
-                FormulaSourceChange::prepare(workbook, &|source_sheet, source_range, expr| {
+                FormulaSourceChange::prepare(workbook, &|source_sheet, source_range, template, expr| {
                     // 局部快照已拥有被改写的格，不能再由公式历史写第二遍。
-                    !(source_sheet == sheet
+                    !(template.is_none() && source_sheet == sheet
                         && cells
                             .iter()
                             .any(|(old, _)| old.range.intersects(source_range)))
@@ -139,6 +139,7 @@ impl TableDefinitionChange {
         } else {
             (Vec::new(), Vec::new(), Vec::new())
         };
+        FormulaSourceChange::fold_table(&mut formulas, &before, Some(&mut after));
         Ok(Some(Self {
             sheet,
             range,

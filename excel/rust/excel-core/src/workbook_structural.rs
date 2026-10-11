@@ -1,6 +1,7 @@
 //! workbook structural operations.
 
 use super::workbook_formula_lambda_change::FormulaLambdaChange;
+use super::workbook_formula_source_change::FormulaSourceChange;
 use super::*;
 
 impl Workbook {
@@ -50,16 +51,17 @@ impl Workbook {
         &mut self,
         sheet_index: usize,
         edit: crate::shift::ShiftEdit,
-    ) -> Vec<FormulaLambdaChange> {
+    ) -> (Vec<FormulaLambdaChange>, Vec<FormulaSourceChange>) {
         if self.is_inside_custom_call() {
-            return Vec::new();
+            return (Vec::new(), Vec::new());
         }
         let Some(name) = self.names.get(sheet_index).cloned() else {
-            return Vec::new();
+            return (Vec::new(), Vec::new());
         };
         // 同一份实际位移差异交回历史层，不再扫描/改写闭包第二遍。
         let lambdas = FormulaLambdaChange::for_structural_shift(self, &name, edit);
         let ranges = self.shifted_named_ranges(sheet_index, edit);
+        let templates = FormulaSourceChange::for_structural_templates(self, sheet_index, edit);
         let store = self.store.clone();
         store.batch(|_| {
             self.shift_sheet_and_tables(sheet_index, edit);
@@ -71,12 +73,13 @@ impl Workbook {
             for lambda in &lambdas {
                 lambda.apply(self, false);
             }
+            for template in &templates { template.apply(self, false); }
             self.restore_named_range_coordinates(&ranges, false);
             if ranges.is_empty() && !lambdas.is_empty() {
                 self.sync_atom_names();
             }
         });
-        lambdas
+        (lambdas, templates)
     }
 
     fn shift_sheet_and_tables(&mut self, sheet_index: usize, edit: crate::shift::ShiftEdit) {
@@ -133,58 +136,6 @@ impl Workbook {
             }
             crate::shift::ShiftEdit::ColInsert { .. }
             | crate::shift::ShiftEdit::ColDelete { .. } => {}
-        }
-    }
-
-    /// Follow every Table anchored to `sheet_index` through a structural
-    /// `edit` (design doc §4.3 matrix). Reuses `ShiftEdit`'s coordinate
-    /// math for the shift/grow cases and clamps the delete cases so a
-    /// partially-covered Table shrinks (rather than surfacing a `#REF!`
-    /// corner as A1 range-formats do). Deletes that swallow the header row
-    /// (rows) or every column (cols) drop the Table. Bumps the epoch iff a
-    /// Table actually changed.
-    ///
-    /// `pub(crate)`: the public entry points are the structural wrappers
-    /// above. `ShiftEdit` is deliberately not re-exported (T1 leaves the
-    /// `shift` surface unchanged), so external callers reach this only
-    /// through the wrappers.
-    pub(crate) fn remap_tables_after_shift(
-        &mut self,
-        sheet_index: usize,
-        edit: crate::shift::ShiftEdit,
-    ) {
-        let Some(sheet_name) = self.names.get(sheet_index).cloned() else {
-            return;
-        };
-        let keys: Vec<String> = self
-            .tables
-            .iter()
-            .filter(|(_, t)| t.sheet_name == sheet_name)
-            .map(|(k, _)| k.clone())
-            .collect();
-
-        let mut changed = false;
-        for key in keys {
-            let (range, columns) = {
-                let entry = self.tables.get(&key).expect("key just collected");
-                (entry.range, entry.columns.clone())
-            };
-            match remap_table_geometry(range, &columns, edit) {
-                TableRemap::Keep => {}
-                TableRemap::Resize { range, columns } => {
-                    let e = self.tables.get_mut(&key).expect("key just collected");
-                    e.range = range;
-                    e.columns = columns;
-                    changed = true;
-                }
-                TableRemap::Delete => {
-                    self.tables.remove(&key);
-                    changed = true;
-                }
-            }
-        }
-        if changed {
-            self.bump_tables_epoch();
         }
     }
 

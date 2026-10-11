@@ -22,7 +22,10 @@ impl TableDefinitionChange {
             table: &table,
         };
         let rewrite = |sheet, range, expr: &mut Expr| converter.rewrite(expr, Some((sheet, range)));
-        let formulas = FormulaSourceChange::prepare(workbook, &rewrite);
+        let mut formulas = FormulaSourceChange::prepare(workbook, &|sheet, range, origin, expr| {
+            rewrite(sheet, CellRange::single(origin.unwrap_or(range.start)), expr)
+        });
+        FormulaSourceChange::fold_table(&mut formulas, &before, None);
         let rules = FormulaRuleChange::prepare(workbook, &rewrite);
         let lambdas = FormulaLambdaChange::prepare(workbook, &|expr| converter.rewrite(expr, None));
         let change = Self {

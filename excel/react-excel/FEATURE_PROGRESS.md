@@ -61,13 +61,29 @@
 
 本批只做三项：空数据列输入公式后自动填满该列、修改计算列公式后整列更新、Table 向下扩展时继承计算列公式。行为依据 [Excel 网页版计算列说明](https://support.microsoft.com/en-us/excel/use-calculated-columns-in-a-table-in-excel-for-the-web)：列里已有其他普通数据时不自动覆盖。例外值、相对／绝对与结构化引用、撤销重做、数据验证、保护、结构变化和保存恢复都属于本批交叉验证，不另起 TS 公式实现。
 
-当前仅落地 Rust 定义与保存恢复契约：`TableColumnFormula` 保存标准公式文本及行原点，实际格值继续由现有 atom 求值；Table 注册表持有按列对齐的可选定义，WASM 沿已有 Table JSON 携带。旧文件缺少字段仍表示普通列；无效公式、越界原点和错位列映射拒绝，不先修改注册表。首轮测试暴露测试预期遗漏原生 renderer 的规范化括号，保留同一公式算法并修正精确预期。最终定义专项默认／lite 各 **4/4**，WASM lib **160 passed / 1 ignored** 通过，原进程均退出 0；日志为 `/tmp/excel-table-calculated-definition-fixed.log`、`/tmp/excel-table-calculated-definition-lite.log`、`/tmp/excel-table-calculated-wire-fixed.log`。新增三个源码／测试文件均不超过 60 行，文档及 diff 检查通过。
+起步阶段落地 Rust 定义与保存恢复契约：`TableColumnFormula` 保存标准公式文本及行原点，实际格值继续由现有 atom 求值；Table 注册表持有按列对齐的可选定义，WASM 沿已有 Table JSON 携带。旧文件缺少字段仍表示普通列；无效公式、越界原点和错位列映射拒绝，不先修改注册表。首轮测试暴露测试预期遗漏原生 renderer 的规范化括号，保留同一公式算法并修正精确预期。最终定义专项默认／lite 各 **4/4**，WASM lib **160 passed / 1 ignored** 通过，原进程均退出 0；日志为 `/tmp/excel-table-calculated-definition-fixed.log`、`/tmp/excel-table-calculated-definition-lite.log`、`/tmp/excel-table-calculated-wire-fixed.log`。该阶段新增三个源码／测试文件均不超过 60 行，文档及 diff 检查通过。
 
 后续已接入现有 Rust 输入历史事务：空列公式填充、无例外计算列的整列更新、向下输入扩表时的新行继承。复用 Table 历史，失败回滚公式、输入及表范围；保留手工例外和已有数据。整列先移除旧依赖，再安装全部公式，最后校验最终值，避免旧依赖造成误报循环或中间值误触数据验证。没有新增 Worker 命令或前端公式镜像。
 
-阶段验证：加入最终值校验后的专项默认／lite 各 **31/31** 通过（`/tmp/excel-calculated-values-final.log`、`/tmp/excel-calculated-values-lite.log`）。随后补充清除旧依赖及依赖方向反转用例，最新默认／lite 各 32 项专项尚在等待旧测试释放构建锁，不能沿用前一轮结果声称通过；日志为 `/tmp/excel-calculated-transaction-final.log`，lite 日志将在默认配置结束后生成。最新 WASM lib **160 passed / 1 ignored** 通过（`/tmp/excel-calculated-transaction-wasm.log`）。
+阶段验证：加入最终值校验后的专项默认／lite 各 **31/31** 通过（`/tmp/excel-calculated-values-final.log`、`/tmp/excel-calculated-values-lite.log`）。随后补充清除旧依赖及依赖方向反转用例，默认／lite 各 **32/32** 已通过（`/tmp/excel-calculated-transaction-final.log`、`/tmp/excel-calculated-transaction-lite.log`）；其中 14 项输入、11 项扩表、7 项样式。WASM lib **160 passed / 1 ignored** 通过（`/tmp/excel-calculated-transaction-wasm.log`）。
 
-按用户要求提交保存当前阶段，不作为整批验收。尚待完成：结构与改名时模板随动、手动扩表／右侧公式扩列等交叉行为、UI Core／React 交叉测试、真实 WASM 构件与持久 E2E、演示种子。不能把三条原生基础路径当成三项完整交互验收，不复用上一批验收结果。
+按用户要求提交推送上述阶段为 `45e37732`，不作为整批验收。续做引用随动：计算列模板纳入既有 `FormulaSourceChange`，Table 自身模板并入原有定义前后像，其他 Table 模板保留实际源码差异。表／列／名称改名、缩掉被引用列及转普通区域均同步改写模板，沿用同一次撤销；即使所有格都变成手工例外，也不丢失模板随动。上下文归属与公式行原点分开传入原改写器，避免缩表后把转换出的 A1 行号写错。没有新增 Worker 命令、JS 公式逻辑或运行时层。
+
+引用专项首轮 **48/48** 通过（`/tmp/excel-calculated-references-default.log`）；随后补充行原点、缩表上下文及只剩表头时的模板改名，最新默认／lite 各 **51/51** 通过，顺序进程退出 0（`/tmp/excel-calculated-references-empty-default.log`、`/tmp/excel-calculated-references-empty-lite.log`）。其中 8 项模板专项、14 项输入专项，另有名称／Table 改名、列改名、范围调整和转换历史回归。WASM 新增真实输入绑定→改名→JSON 保存恢复→新行继承→整列更新用例，最新 lib **161 passed / 1 ignored** 通过（`/tmp/excel-calculated-references-persistence-wasm.log`）。文档、展现层边界、diff 检查通过，新增／大改文件均低于 300 行。这不是浏览器 WASM 构件/E2E 证据；引用续改尚未提交。
+
+工作表拓扑续改已接入：模板继续用同一源码差异记录，改名/删除/归档恢复都随现有操作原子提交；普通删除使静态工作表引用成为 `#REF!`，撤销新增则保留悬空源码。按工作表稳定身份校验，删除前面的表导致索引移动不影响恢复；撤销改名不误改原先悬空的新表名引用，模板被外部改动时在写入前拒绝。没有新增运行时或单元格扫描；所有本轮新增／修改源码均低于 300 行。
+
+拓扑首轮默认 **39/39** 通过；补充归档恢复拒绝原子性后，最新默认／lite 各 **40/40** 通过，顺序进程退出 0（`/tmp/excel-calculated-topology-final-default.log`、`/tmp/excel-calculated-topology-final-lite.log`），包含 9 项计算列拓扑专项及既有引用、转换、工作表历史/归档回归。最新 WASM lib **162 passed / 1 ignored** 通过（`/tmp/excel-calculated-topology-wasm.log`），新增真实工作表绑定→删除→保存恢复后新行保持错误→原会话撤销后恢复继承用例。文档、边界、diff 检查通过。续改未提交，仍不是本批浏览器交互验收。
+
+行列结构续改已接入：Table 定义位移集中在 `workbook_table_shift.rs`，本表模板按实际列坐标保留/删除，局部与限定引用复用原有结构 AST 改写。原点行删除时从存活行保留标准公式，数据区全删也不丢定义；画布边缘及原点在缩表范围外的情况已有专项。更换原点用原复制算法做往返检查，避免把中间越界永久固化成 `#REF!`。跨表只保留实际改变的模板源码差异，仍进现有结构历史；只有模板变化时跳过空单元格恢复，不拆装无关数组。
+
+结构首轮 **38/38**、跨表模板 **4/4**、补边界后的默认 **52/52** 通过；加入原点往返保护后的最新默认／lite 各 **53/53** 通过，顺序进程退出 0（`/tmp/excel-calculated-structural-origin-default.log`、`/tmp/excel-calculated-structural-origin-lite.log`）。其中 11 项本表模板、4 项跨表模板及既有结构历史/预检/Table 位移回归。最新 WASM lib **163 passed / 1 ignored** 通过（`/tmp/excel-calculated-structural-wasm.log`），新增真实插列→删除原点行→保存恢复→新行继承/撤销用例。文档、边界、diff 检查通过。新增源码 99 行、两个结构测试文件均低于 300 行；既有结构历史文件由 304 行增至 313 行，仅补必要字段、预检和回放，不扩大重构。尚未提交，不能据此记为本批浏览器验收。
+
+右侧公式扩列已复用计算列预检与填充事务：表头、范围和整列公式共用一条历史，失败整体回滚并保留 redo；已有数据、文本格式、保护及汇总行保持原有边界。向下扩表时，显式输入公式的数据验证延后到本行计算列全部继承之后，避免用中间空值误判；合并历史仍检查 32 MiB 预算。
+
+该续改默认配置相关测试 **41/41**、最新测试设置断言专项 **9/9** 通过；WASM lib **164 passed / 1 ignored** 通过（`/tmp/excel-calculated-expand-final-default.log`、`/tmp/excel-calculated-expand-setup-default.log`、`/tmp/excel-calculated-expand-final-wasm.log`）。lite 同组验证尚未全部结束，不先记为通过。本次按用户要求保存阶段提交，不作为整批验收。
+
+尚待完成：结构插入新行的公式填充、手动扩表继承事务交叉行为、UI Core／React 交叉测试、真实 WASM 构件与持久 E2E、演示种子。另需验证逐格安装公式时的临时 spill：条件公式可能中途返回数组、同一行写完后才变为标量，目前只是待复现风险，不能视为已解决。不能把三条原生基础路径当成三项完整交互验收，不复用上一批验收结果。
 
 ### Excel Table 样式（已验收）
 

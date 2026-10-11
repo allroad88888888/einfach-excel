@@ -1,6 +1,7 @@
 //! workbook topology operations.
 
 use super::workbook_formula_lambda_change::FormulaLambdaChange;
+use super::workbook_formula_source_change::FormulaSourceChange;
 use super::*;
 
 impl Workbook {
@@ -68,16 +69,17 @@ impl Workbook {
     ///
     /// Retarget static references before publishing the renamed topology.
     pub fn rename_sheet(&mut self, idx: usize, new_name: &str) -> bool {
-        self.rename_sheet_with_formula_consumers(idx, new_name, None, None)
+        self.rename_sheet_with_formula_consumers(idx, new_name, None, None, None)
     }
 
-    /// 历史给出原始规则与闭包差异，避免逆向改写碰到原先悬空的新表名引用。
+    /// 历史给出原始规则、闭包与模板差异，避免逆向改写碰到原先悬空的新表名引用。
     pub(super) fn rename_sheet_with_formula_consumers(
         &mut self,
         idx: usize,
         new_name: &str,
         restored: Option<&ConditionalRuleSources>,
         restored_lambdas: Option<(&[FormulaLambdaChange], bool)>,
+        restored_templates: Option<(&[FormulaSourceChange], bool)>,
     ) -> bool {
         if self.is_inside_custom_call() {
             return false; // re-entrancy guard
@@ -113,6 +115,18 @@ impl Workbook {
         {
             return false;
         }
+        let prepared_templates;
+        let (templates, template_undo) = match restored_templates {
+            Some(restored) => restored,
+            None => {
+                prepared_templates = FormulaSourceChange::for_sheet_templates(
+                    self, &self.names[idx], Some(new_name));
+                (prepared_templates.as_slice(), false)
+            }
+        };
+        if templates.iter().any(|change| change.validate(self, template_undo).is_err()) {
+            return false;
+        }
         let store = self.store.clone();
         store.batch(|_| {
             let old = std::mem::take(&mut self.names[idx]);
@@ -135,6 +149,7 @@ impl Workbook {
             for lambda in lambdas {
                 lambda.apply(self, undo);
             }
+            for template in templates { template.apply(self, template_undo); }
             if !lambdas.is_empty() {
                 self.publish_atom_names();
             }

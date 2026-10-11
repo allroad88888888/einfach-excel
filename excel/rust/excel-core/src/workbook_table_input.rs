@@ -1,5 +1,6 @@
 //! 单格输入触发的 Table 扩展；复用输入校验与局部历史，不复制数据区。
 use super::*;
+use crate::cell_input::{parse_formatted_input, CellInput};
 use crate::CellSnapshot;
 
 impl TableDefinitionChange {
@@ -93,19 +94,35 @@ impl TableDefinitionChange {
         if self.before.has_headers && addr.row == self.before.range.start.row {
             return self.apply(workbook, false).map_err(str::to_string);
         }
+        let mut calculated = if addr.col > self.before.range.end.col {
+            Self::prepare_calculated_column(workbook, self.sheet, addr, input,
+                self.after.as_ref().expect("input expands a table"))?
+        } else { None };
         let inherited_row = addr.row > self.before.range.end.row
             && self.before.calculated_columns.iter().any(Option::is_some);
-        let input_range = if inherited_row {
+        // 输入公式可能依赖同一新行里稍后继承的计算列，必须等整行写完再验证。
+        let deferred_formula = if inherited_row {
+            match parse_formatted_input(input, true,
+                &workbook.sheets[self.sheet].get_format(&addr.to_string()).number_format) {
+                CellInput::Formula(source) => Some(source),
+                _ => None,
+            }
+        } else { None };
+        let input_range = if let Some(calculated) = &calculated { calculated.range } else if inherited_row {
             CellRange::new(CellAddress::new(addr.row, self.before.range.start.col),
                 CellAddress::new(addr.row, self.before.range.end.col))
         } else { CellRange::single(addr) };
-        let before = HistorySnapshot::capture(&workbook.sheets[self.sheet], input_range, true);
+        // 整列计划已有前后像，不能再复制一份同范围历史。
+        let before = calculated.is_none().then(||
+            HistorySnapshot::capture(&workbook.sheets[self.sheet], input_range, true));
         let mut roots = workbook.atom_context.table_dependent_atoms();
         roots.extend(workbook.sheets[self.sheet].store_root_atoms_for_addr(addr));
         let dependents = workbook.store.reverse_dependents(&roots);
         let mut arrays = workbook.array_dependents_for_atoms(&roots);
         arrays.extend(workbook.array_dependents_for_atoms(&dependents));
-        if inherited_row { arrays.extend(workbook.array_dependents_for_range(self.sheet, input_range)); }
+        if inherited_row || calculated.is_some() {
+            arrays.extend(workbook.array_dependents_for_range(self.sheet, input_range));
+        }
         let observers: Vec<_> = workbook
             .sheets
             .iter_mut()
@@ -114,18 +131,25 @@ impl TableDefinitionChange {
         let store = workbook.store.clone();
         let mut result = Ok(());
         store.batch(|_| {
-            result = self.apply(workbook, false);
+            result = self.apply(workbook, false).map_err(str::to_string);
             if result.is_err() {
                 return;
             }
-            result = workbook.set_cell_input(self.sheet, &addr.to_string(), input);
+            result = if let Some(calculated) = &mut calculated {
+                calculated.apply_calculated_input(workbook).map(|_| ())
+            } else if let Some(source) = &deferred_formula {
+                workbook.set_table_formula(self.sheet, addr, source).map_err(str::to_string)
+            } else {
+                workbook.set_cell_input(self.sheet, &addr.to_string(), input).map_err(str::to_string)
+            };
             // Table 数据格不能成为 spill 锚点，失败必须还原输入与表定义。
             if result.is_ok()
+                && calculated.is_none()
                 && workbook.sheets[self.sheet]
                     .spill_intersecting(CellRange::single(addr))
                     .is_some()
             {
-                result = Err("Spilled arrays cannot be entered inside a table.");
+                result = Err("Spilled arrays cannot be entered inside a table.".into());
             }
             let mut changed = vec![addr];
             if result.is_ok() && inherited_row {
@@ -140,25 +164,34 @@ impl TableDefinitionChange {
                     workbook.set_table_formula(self.sheet, target, &formula.formula_at(addr.row)?)?;
                     changed.push(target);
                     Ok(())
-                });
+                }).map_err(str::to_string);
                 if result.is_ok() {
                     result = changed.iter().try_for_each(|target| {
                         let value = crate::sheet::collapse_array_for_eval(
                             workbook.sheets[self.sheet].peek_value(*target));
                         workbook.validate_input_value(self.sheet, *target, &value)
-                    });
+                    }).map_err(str::to_string);
                 }
             }
             if result.is_err() {
-                before
-                    .restore(workbook, self.sheet)
-                    .expect("input keeps its worksheet");
+                if let Some(before) = &before {
+                    before.restore(workbook, self.sheet).expect("input keeps its worksheet");
+                }
                 self.apply(workbook, true)
                     .expect("input rollback keeps the prepared table cells");
             } else {
-                let after =
-                    HistorySnapshot::capture(&workbook.sheets[self.sheet], before.range, true);
-                self.cells.push((before.clone(), after));
+                if let Some(calculated) = &mut calculated {
+                    // 扩列的表头/几何与计算列共用同一条 Table 历史，不嵌套 push。
+                    self.after = calculated.after.take();
+                    self.cells.append(&mut calculated.cells);
+                } else if let Some(before) = before {
+                    let after = HistorySnapshot::capture(&workbook.sheets[self.sheet], before.range, true);
+                    self.cells.push((before, after));
+                }
+                if self.retained_bytes() > crate::workbook_history::MAX_BYTES {
+                    self.apply(workbook, true).expect("expanded input rollback keeps its snapshots");
+                    result = Err("Expanding this table exceeds the 32 MiB undo budget.".into());
+                }
             }
         });
         // 嵌套 batch 结束后重投既有数组，避免范围/输入先后次序泄露中间帧。
@@ -166,6 +199,6 @@ impl TableDefinitionChange {
         for (sheet, observer) in workbook.sheets.iter_mut().zip(observers) {
             sheet.resume_structure_notifications(observer);
         }
-        result.map_err(str::to_string)
+        result
     }
 }

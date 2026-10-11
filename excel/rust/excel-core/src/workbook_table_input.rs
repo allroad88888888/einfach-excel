@@ -91,6 +91,18 @@ impl TableDefinitionChange {
         }
         let mut change = Self::prepare_resize(workbook, table.name(), range)?
             .ok_or("The table did not expand.")?;
+        // 右侧输入将纳入新数据列；预先把标记纳入同一份前后像，不能让底层写入另改定义。
+        if table.has_insert_row()
+            && addr.row == table.range().start.row + u32::from(table.has_headers()) {
+            let after = change.after.as_mut().unwrap();
+            after.insert_row = false;
+            let format = workbook.sheets[sheet].get_format(&addr.to_string());
+            if let CellInput::Formula(source) = parse_formatted_input(input, true, &format.number_format) {
+                after.calculated_columns.resize(after.columns.len(), None);
+                let column = (addr.col - after.range.start.col) as usize;
+                after.calculated_columns[column] = Some(crate::TableColumnFormula::new(addr.row, &source)?);
+            }
+        }
         if table.has_headers() && addr.row == table.range().start.row {
             // 在新表头输入时名称就是文字；与创建 Table 一样规范化重复/空名称。
             let used: HashSet<_> = table
@@ -126,11 +138,14 @@ impl TableDefinitionChange {
         if self.before.has_headers && addr.row == self.before.range.start.row {
             return self.apply(workbook, false).map_err(str::to_string);
         }
-        let mut calculated = if inherit_columns && addr.col > self.before.range.end.col {
+        // 空表只有一条新记录，走原来的整行安装/校验，不另起一个新计算列事务。
+        let mut calculated = if inherit_columns && !self.before.insert_row && addr.col > self.before.range.end.col {
             Self::prepare_calculated_column(workbook, self.sheet, addr, input,
                 self.after.as_ref().expect("input expands a table"))?
         } else { None };
-        let inherited_row = inherit_columns && (self.before.insert_row || addr.row > self.before.range.end.row)
+        let inherited_row = inherit_columns
+            && !(self.before.has_totals && addr.row == self.before.range.end.row)
+            && (self.before.insert_row || addr.row > self.before.range.end.row)
             && self.before.calculated_columns.iter().any(Option::is_some);
         // 输入公式可能依赖同一新行里稍后继承的计算列，必须等整行写完再验证。
         let deferred_formula = if inherited_row {
@@ -140,9 +155,12 @@ impl TableDefinitionChange {
                 _ => None,
             }
         } else { None };
-        let input_range = if let Some(calculated) = &calculated { calculated.range } else if inherited_row {
-            CellRange::new(CellAddress::new(addr.row, self.before.range.start.col),
-                CellAddress::new(addr.row, self.before.range.end.col))
+        let input_range = if inherited_row {
+            let first = if self.before.insert_row { self.before.range.start.row + u32::from(self.before.has_headers) }
+                else { addr.row };
+            CellRange::new(CellAddress::new(first, self.before.range.start.col),
+                CellAddress::new(addr.row, self.before.range.end.col.max(addr.col)))
+        } else if let Some(calculated) = &calculated { calculated.range
         } else { CellRange::single(addr) };
         // 整列计划已有前后像，不能再复制一份同范围历史。
         let before = calculated.is_none().then(||
@@ -189,17 +207,19 @@ impl TableDefinitionChange {
                 if let Some(source) = &deferred_formula {
                     formulas.push(CellSnapshot::formula(addr, source.clone()));
                 }
-                result = self.before.calculated_columns.iter().enumerate().try_for_each(|(offset, formula)| {
-                    let Some(formula) = formula else { return Ok(()); };
-                    let target = CellAddress::new(addr.row, self.before.range.start.col + offset as u32);
-                    // 手工输入优先；扩进范围的已有数据同样保留，不把它当空格覆盖。
-                    if target == addr || workbook.sheets[self.sheet].formula_text_at(target).is_some()
-                        || workbook.sheets[self.sheet].peek_value(target) != Value::Null {
-                        return Ok(());
-                    }
-                    formulas.push(CellSnapshot::formula(target, formula.formula_at(addr.row)?));
-                    changed.push(target);
-                    Ok(())
+                result = (input_range.start.row..=input_range.end.row).try_for_each(|row| {
+                    self.before.calculated_columns.iter().enumerate().try_for_each(|(offset, formula)| {
+                        let Some(formula) = formula else { return Ok(()); };
+                        let target = CellAddress::new(row, self.before.range.start.col + offset as u32);
+                        // 手工输入优先；扩进范围的已有数据同样保留，不把它当空格覆盖。
+                        if target == addr || workbook.sheets[self.sheet].formula_text_at(target).is_some()
+                            || workbook.sheets[self.sheet].peek_value(target) != Value::Null {
+                            return Ok(());
+                        }
+                        formulas.push(CellSnapshot::formula(target, formula.formula_at(row)?));
+                        changed.push(target);
+                        Ok(())
+                    })
                 }).map_err(str::to_string);
                 if result.is_ok() {
                     result = workbook.set_table_formulas(self.sheet, &formulas).map_err(str::to_string);

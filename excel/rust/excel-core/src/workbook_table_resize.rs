@@ -41,6 +41,10 @@ impl TableDefinitionChange {
         }
         let mut after = before.clone();
         after.range = range;
+        // 待输入行只属于零记录表；显式加行会创建记录，缩掉它则只剩表头/汇总。
+        after.insert_row = before.insert_row
+            && range.rows() == 1 + u32::from(after.has_headers) + u32::from(after.has_totals)
+            && !workbook.insert_row_has_content(&after);
         after.columns.clear();
         // 按工作表列坐标保留标准公式；新列为空，缩掉的列不留下错位定义。
         if !before.calculated_columns.is_empty() {

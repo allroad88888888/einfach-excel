@@ -275,6 +275,7 @@ fn validate_cells(workbook: &Workbook, sheet: usize, range: CellRange) -> Result
             .iter()
             .any(|merged| merged.intersects(range))
         || target.spill_intersecting(range).is_some()
+        || target.blocked_anchor_addresses().iter().any(|addr| range.contains(*addr))
     {
         return Err("The table cells overlap a merge, spilled array or worksheet boundary.");
     }

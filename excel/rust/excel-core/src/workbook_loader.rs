@@ -181,72 +181,78 @@ impl<'a> WorkbookLoader<'a> {
     pub(crate) fn flush(self) {
         let WorkbookLoader { wb, ops_by_sheet } = self;
         let rows = wb.insert_rows_for_writes(ops_by_sheet.iter().flat_map(|(sheet, ops)| {
-            ops.iter().map(move |op| (*sheet, match op {
-                WorkbookOp::SetCell { addr, .. } | WorkbookOp::SetFormula { addr, .. }
-                    | WorkbookOp::ClearCell { addr } => *addr,
-            }))
+            ops.iter().map(move |op| {
+                (
+                    *sheet,
+                    match op {
+                        WorkbookOp::SetCell { addr, .. }
+                        | WorkbookOp::SetFormula { addr, .. }
+                        | WorkbookOp::ClearCell { addr } => *addr,
+                    },
+                )
+            })
         }));
         wb.write_with_insert_rows(rows, |wb| {
-        for (sheet_idx, ops) in ops_by_sheet {
-            let Some(sheet) = wb.sheets.get_mut(sheet_idx) else {
-                continue;
-            };
-            let mut spill_anchors: Vec<CellAddress> = Vec::new();
-            // Pre-grow the per-sheet formula HashMaps to the known
-            // batch size. Saves ~log2(N) rehashes during the replay
-            // loop below (each rehash is O(current entries), so they
-            // amortize to ~2× the final size in wasted copies on a
-            // cold start).
-            sheet.reserve_for_bulk_install(ops.len());
-            sheet.bulk_load(|loader| {
-                for op in ops {
-                    match op {
-                        WorkbookOp::SetCell { addr, value } => {
-                            loader.set_cell_at(addr, value);
-                        }
-                        WorkbookOp::SetFormula { addr, source, expr } => {
-                            // Hand the pre-parsed AST through when we
-                            // have one — skips the sheet-loader's
-                            // re-parse (the same AST was just produced
-                            // by the workbook-side cycle check).
-                            //
-                            // `expr=None` is the parse-failure path:
-                            // the source was unparseable on the
-                            // workbook side too, so route through the
-                            // string form and let the sheet writer
-                            // produce `#VALUE!` via its own parse-fail
-                            // arm (consistency: same `#VALUE!` error
-                            // payload either way).
-                            //
-                            // Cross-sheet cycle was already handled by
-                            // the `set_formula` queue path inserting a
-                            // follow-up `SetCell` to override with
-                            // `Value::Error(CyclicRef)`.
-                            match expr {
-                                Some(expr) => {
-                                    // 投影候选就在这里挑：AST 已在手，
-                                    // 问一次就够，不用回头扫源码。
-                                    if expr_may_produce_array(&expr) {
-                                        spill_anchors.push(addr);
+            for (sheet_idx, ops) in ops_by_sheet {
+                let Some(sheet) = wb.sheets.get_mut(sheet_idx) else {
+                    continue;
+                };
+                let mut spill_anchors: Vec<CellAddress> = Vec::new();
+                // Pre-grow the per-sheet formula HashMaps to the known
+                // batch size. Saves ~log2(N) rehashes during the replay
+                // loop below (each rehash is O(current entries), so they
+                // amortize to ~2× the final size in wasted copies on a
+                // cold start).
+                sheet.reserve_for_bulk_install(ops.len());
+                sheet.bulk_load(|loader| {
+                    for op in ops {
+                        match op {
+                            WorkbookOp::SetCell { addr, value } => {
+                                loader.set_cell_at(addr, value);
+                            }
+                            WorkbookOp::SetFormula { addr, source, expr } => {
+                                // Hand the pre-parsed AST through when we
+                                // have one — skips the sheet-loader's
+                                // re-parse (the same AST was just produced
+                                // by the workbook-side cycle check).
+                                //
+                                // `expr=None` is the parse-failure path:
+                                // the source was unparseable on the
+                                // workbook side too, so route through the
+                                // string form and let the sheet writer
+                                // produce `#VALUE!` via its own parse-fail
+                                // arm (consistency: same `#VALUE!` error
+                                // payload either way).
+                                //
+                                // Cross-sheet cycle was already handled by
+                                // the `set_formula` queue path inserting a
+                                // follow-up `SetCell` to override with
+                                // `Value::Error(CyclicRef)`.
+                                match expr {
+                                    Some(expr) => {
+                                        // 投影候选就在这里挑：AST 已在手，
+                                        // 问一次就够，不用回头扫源码。
+                                        if expr_may_produce_array(&expr) {
+                                            spill_anchors.push(addr);
+                                        }
+                                        // Move `source` so the sheet loader
+                                        // stores the original allocation
+                                        // instead of cloning.
+                                        loader.set_formula_pre_parsed(addr, expr, source);
                                     }
-                                    // Move `source` so the sheet loader
-                                    // stores the original allocation
-                                    // instead of cloning.
-                                    loader.set_formula_pre_parsed(addr, expr, source);
-                                }
-                                None => {
-                                    loader.set_formula_at(addr, &source);
+                                    None => {
+                                        loader.set_formula_at(addr, &source);
+                                    }
                                 }
                             }
-                        }
-                        WorkbookOp::ClearCell { addr } => {
-                            loader.set_cell_at(addr, Value::Null);
+                            WorkbookOp::ClearCell { addr } => {
+                                loader.set_cell_at(addr, Value::Null);
+                            }
                         }
                     }
-                }
-            });
-            sheet.project_bulk_spill_anchors(spill_anchors);
-        }
+                });
+                sheet.project_bulk_spill_anchors(spill_anchors);
+            }
         });
     }
 }

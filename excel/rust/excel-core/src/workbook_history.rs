@@ -1,11 +1,13 @@
 //! Rust 权威的有限历史；JS 只接收标签、计数与目标范围。
 use crate::history_snapshot::HistorySnapshot;
 use crate::sheet::WorkbookAtomContext;
-use crate::workbook::{SheetHistoryChange, StructuralHistoryChange};
+use crate::workbook::{SheetHistoryChange, StructuralHistoryChange, TableEntry};
 use crate::{CellRange, Workbook};
 use std::collections::VecDeque;
 use std::rc::{Rc, Weak};
 
+#[path = "workbook_history_cells.rs"]
+mod cells;
 #[path = "workbook_history_sheets.rs"]
 mod sheets;
 #[path = "workbook_history_visibility.rs"]
@@ -23,33 +25,33 @@ use filter::FilterChange;
 #[path = "workbook_history_conditional_format.rs"]
 mod conditional_format;
 use conditional_format::ConditionalFormatChange;
+#[path = "workbook_history_data_validation.rs"]
+mod data_validation;
+#[path = "workbook_history_input.rs"]
+mod input;
 #[path = "workbook_history_named_range.rs"]
 mod named_range;
 #[path = "workbook_history_table.rs"]
 mod table;
-#[path = "workbook_history_input.rs"]
-mod input;
-#[path = "workbook_history_data_validation.rs"]
-mod data_validation;
 use data_validation::DataValidationChange;
 #[path = "workbook_history_entry.rs"]
 mod entry;
 use entry::entry_bytes;
-#[path = "workbook_history_merge.rs"]
-mod merge;
 #[path = "workbook_history_borders.rs"]
 mod borders;
 #[path = "workbook_history_format.rs"]
 mod format;
+#[path = "workbook_history_merge.rs"]
+mod merge;
 #[path = "workbook_history_replace.rs"]
 mod replace;
 pub use replace::ReplaceReport;
-#[path = "workbook_history_text_columns.rs"]
-mod text_columns;
 #[path = "workbook_history_remove_duplicates.rs"]
 mod remove_duplicates;
 #[path = "workbook_history_structure.rs"]
 mod structure;
+#[path = "workbook_history_text_columns.rs"]
+mod text_columns;
 use merge::MergeChange;
 
 const MAX_ENTRIES: usize = 50;
@@ -73,6 +75,7 @@ enum HistoryChange {
     Cells {
         before: Vec<(usize, HistorySnapshot)>,
         after: Vec<(usize, HistorySnapshot)>,
+        table_rows: Vec<TableEntry>,
     },
     Sheet(Box<SheetHistoryChange>),
     Visibility(VisibilityChange),
@@ -93,6 +96,7 @@ struct PendingEdit {
     sheet: usize,
     range: CellRange,
     before: Vec<(usize, HistorySnapshot)>,
+    table_rows: Vec<TableEntry>,
 }
 
 #[derive(Default)]
@@ -104,119 +108,6 @@ pub struct WorkbookHistory {
 }
 
 impl WorkbookHistory {
-    pub fn begin(
-        &mut self,
-        workbook: &Workbook,
-        sheet: usize,
-        range: CellRange,
-        label: &str,
-        content: bool,
-    ) -> Result<(), &'static str> {
-        self.begin_ranges(
-            workbook,
-            sheet,
-            range,
-            label,
-            &[(sheet, range, content)],
-            false,
-        )
-    }
-
-    /// 多范围仍是一条用户操作，范围由原生命令的预检结果提供。
-    pub(crate) fn begin_ranges(
-        &mut self,
-        workbook: &Workbook,
-        sheet: usize,
-        range: CellRange,
-        label: &str,
-        targets: &[(usize, CellRange, bool)],
-        merges: bool,
-    ) -> Result<(), &'static str> {
-        if self.pending.is_some() {
-            return Err("Another history command is pending.");
-        }
-        validate_target(workbook, sheet, range)?;
-        for (sheet, range, _) in targets {
-            validate_target(workbook, *sheet, *range)?;
-        }
-        self.pending = Some(PendingEdit {
-            label: label.to_owned(),
-            sheet,
-            range,
-            before: targets
-                .iter()
-                .map(|(index, range, content)| {
-                    (
-                        *index,
-                        HistorySnapshot::capture_with_merges(
-                            workbook.sheet(*index).unwrap(),
-                            *range,
-                            *content,
-                            merges && *index == sheet,
-                        ),
-                    )
-                })
-                .collect(),
-        });
-        Ok(())
-    }
-
-    pub fn finish(&mut self, workbook: &mut Workbook, success: bool) -> Result<(), &'static str> {
-        let pending = self
-            .pending
-            .take()
-            .ok_or("No history command is pending.")?;
-        let after = pending
-            .before
-            .iter()
-            .map(|(sheet, before)| {
-                let target = workbook
-                    .sheet(*sheet)
-                    .ok_or("History worksheet no longer exists.")?;
-                Ok((
-                    *sheet,
-                    HistorySnapshot::capture_with_merges(
-                        target,
-                        before.range,
-                        before.cells.is_some(),
-                        before.merges.is_some(),
-                    ),
-                ))
-            })
-            .collect::<Result<Vec<_>, &'static str>>()?;
-        if pending.before == after {
-            return Ok(());
-        }
-        if !success {
-            return workbook.restore_history_snapshots(&pending.before);
-        }
-        let affected_indices: Vec<_> = pending
-            .before
-            .iter()
-            .map(|(sheet, _)| *sheet)
-            .collect::<std::collections::BTreeSet<_>>()
-            .into_iter()
-            .collect();
-        self.push(HistoryEntry {
-            label: pending.label,
-            sheet: pending.sheet,
-            range: pending.range,
-            sheet_key: workbook.sheet_key(pending.sheet).unwrap(),
-            sheet_name: workbook.name(pending.sheet).unwrap().to_owned(),
-            affected_keys: affected_indices
-                .iter()
-                .map(|index| workbook.sheet_key(*index).unwrap())
-                .collect(),
-            affected_indices,
-            origin: Rc::downgrade(&workbook.atom_context),
-            change: HistoryChange::Cells {
-                before: pending.before,
-                after,
-            },
-        });
-        Ok(())
-    }
-
     fn push(&mut self, entry: HistoryEntry) {
         self.entries.truncate(self.cursor);
         self.entries.push_back(entry);

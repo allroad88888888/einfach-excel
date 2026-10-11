@@ -77,8 +77,12 @@ impl Workbook {
             paste_values::validate_inputs(self, sheet_idx, options.mode, &planned)?;
         // 无历史的原生调用也必须可原子拒绝；临时历史只用于失败恢复，不暴露给宿主。
         let mut rollback = crate::workbook_history::WorkbookHistory::default();
-        let mut history =
-            history.or_else(|| (!validation_formulas.is_empty()).then_some(&mut rollback));
+        let enters_table = options.mode != ClipboardPasteMode::Formats
+            && !self
+                .insert_rows_for_writes(planned.iter().map(|(addr, _, _)| (sheet_idx, *addr)))
+                .is_empty();
+        let mut history = history
+            .or_else(|| (enters_table || !validation_formulas.is_empty()).then_some(&mut rollback));
         let sheet = self.sheet(sheet_idx).unwrap();
         let cleared = snapshot
             .source

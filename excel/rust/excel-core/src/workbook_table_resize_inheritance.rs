@@ -10,13 +10,18 @@ impl TableDefinitionChange {
             .filter_map(|(offset, formula)| formula.as_ref()
                 .map(|formula| (after.range.start.col + offset as u32, formula)))
             .collect();
-        if after.range.end.row <= self.before.range.end.row || columns.is_empty() {
+        let first = after.range.start.row + u32::from(after.has_headers);
+        let end = after.range.end.row + 1 - u32::from(after.has_totals);
+        let activates = self.before.insert_row && !after.insert_row && first < end;
+        if after.insert_row || columns.is_empty()
+            || (!activates && after.range.end.row <= self.before.range.end.row) {
             return self.apply(workbook, false).map_err(str::to_string);
         }
         let range = CellRange::new(
-            CellAddress::new(self.before.range.end.row + 1 - u32::from(self.before.has_totals),
+            CellAddress::new(if activates { first }
+                else { self.before.range.end.row + 1 - u32::from(self.before.has_totals) },
                 after.range.start.col),
-            CellAddress::new(after.range.end.row - u32::from(after.has_totals), after.range.end.col),
+            CellAddress::new(end - 1, after.range.end.col),
         );
         let before = HistorySnapshot::capture(&workbook.sheets[self.sheet], range, true);
         // 原汇总行会先搬走；其余已有值/公式（包括返回空值的公式）都保留。

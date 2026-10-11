@@ -17,7 +17,11 @@ pub(super) fn apply_paste(
     let mut indices: std::collections::BTreeSet<_> = std::iter::once(sheet_idx)
         .chain(dependents.iter().map(|(sheet, _, _)| *sheet))
         .collect();
-    if !validation_formulas.is_empty() {
+    if !validation_formulas.is_empty()
+        || !workbook
+            .insert_rows_for_writes(planned.iter().map(|(addr, _, _)| (sheet_idx, *addr)))
+            .is_empty()
+    {
         // 失败值不能发布给其它表的公式订阅；只延后已注册监听，不遍历整表 cell。
         indices.extend(0..workbook.sheet_count());
     }

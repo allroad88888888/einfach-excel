@@ -56,6 +56,9 @@ impl StructuralHistoryChange {
         );
         let name = workbook.name(sheet).unwrap().to_owned();
         let mut targets = vec![(sheet, tail)];
+        // 在空表汇总行前插入时，原待输入行位于移动带上方；只补实际继承格的快照。
+        targets.extend(inherited.iter().filter(|cell| !tail.contains(cell.addr))
+            .map(|cell| (sheet, CellRange::single(cell.addr))));
         for (index, current) in workbook.sheets.iter().enumerate() {
             let mut addrs: Vec<_> = current
                 .formula_addrs_in_range(CellRange::new(CellAddress::new(0, 0), end))
@@ -109,7 +112,12 @@ impl StructuralHistoryChange {
             let mut arrays = Vec::new();
             let mut result = Ok(());
             if !inherited.is_empty() {
-                arrays = workbook.array_dependents_for_range(sheet, range);
+                let mut affected = range;
+                for cell in &inherited {
+                    affected.start.row = affected.start.row.min(cell.addr.row);
+                    affected.end.row = affected.end.row.max(cell.addr.row);
+                }
+                arrays = workbook.array_dependents_for_range(sheet, affected);
                 arrays.extend(workbook.array_dependents_for_atoms(&workbook.atom_context.table_dependent_atoms()));
                 result = workbook.set_table_formulas(sheet, &inherited).and_then(|_| {
                     inherited.iter().try_for_each(|cell| {

@@ -54,9 +54,12 @@ impl Workbook {
             let mut range = table.range;
             range.end.row += count; // 调用者已经做过结构越界预检。
             let columns = super::workbook_table_shift::shifted_columns(table, range, edit);
-            bytes += count as usize * columns.iter().filter(|formula| formula.is_some()).count() * 96;
+            // 空表插行后原待输入位置也成为数据；其计算列不能漏掉，汇总始终排除。
+            let first = if table.insert_row { range.start.row + u32::from(table.has_headers) } else { at };
+            let end = if table.insert_row { range.end.row + 1 - u32::from(table.has_totals) } else { at + count };
+            bytes += (end - first) as usize * columns.iter().filter(|formula| formula.is_some()).count() * 96;
             if bytes > MAX_BYTES { return Err("Table row inheritance exceeds the 32 MiB undo budget."); }
-            for row in at..at + count {
+            for row in first..end {
                 for (offset, formula) in columns.iter().enumerate() {
                     let Some(formula) = formula else { continue; };
                     let source = formula.formula_at(row)?;

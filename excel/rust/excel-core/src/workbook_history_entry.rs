@@ -52,9 +52,11 @@ impl HistoryEntry {
             }
         }
         match &mut self.change {
-            HistoryChange::Cells { before, after } => {
-                workbook.restore_history_snapshots(if undo { before } else { after })
-            }
+            HistoryChange::Cells {
+                before,
+                after,
+                table_rows,
+            } => workbook.restore_cell_history(if undo { before } else { after }, table_rows, undo),
             HistoryChange::Sheet(change) => change.apply(workbook, undo),
             HistoryChange::Visibility(change) => {
                 change.apply(workbook, self.sheet, self.sheet_key, undo)
@@ -85,11 +87,21 @@ impl HistoryEntry {
 
 pub(super) fn entry_bytes(entry: &HistoryEntry) -> usize {
     let payload = match &entry.change {
-        HistoryChange::Cells { before, after } => before
-            .iter()
-            .chain(after)
-            .map(|(_, snapshot)| snapshot.retained_bytes())
-            .sum(),
+        HistoryChange::Cells {
+            before,
+            after,
+            table_rows,
+        } => {
+            before
+                .iter()
+                .chain(after)
+                .map(|(_, snapshot)| snapshot.retained_bytes())
+                .sum::<usize>()
+                + table_rows
+                    .iter()
+                    .map(crate::sheet::metadata_bytes)
+                    .sum::<usize>()
+        }
         HistoryChange::Sheet(change) => change.retained_bytes(),
         HistoryChange::Visibility(change) => change.retained_bytes(),
         HistoryChange::Freeze(_) => std::mem::size_of::<FreezeChange>(),

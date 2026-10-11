@@ -25,9 +25,15 @@ impl Workbook {
                 }
             };
             let formulas = shifted_columns(before, range, edit);
+            // 删除真实汇总行就是关闭汇总，不能把上一条数据/待输入行重新标成汇总。
+            let has_totals = before.has_totals && !matches!(edit, ShiftEdit::RowDelete { at, count }
+                if at <= before.range.end.row && before.range.end.row < at + count);
             templates_changed |= formulas != before.calculated_columns;
             let after = self.tables.get_mut(&key).unwrap();
             after.range = range;
+            after.has_totals = has_totals;
+            // 只移动位置或增删列不创建记录；表内插行、删除待输入行会改变数据区行数。
+            after.insert_row &= range.rows() == 1 + u32::from(after.has_headers) + u32::from(has_totals);
             after.columns = columns;
             after.calculated_columns = formulas;
         }

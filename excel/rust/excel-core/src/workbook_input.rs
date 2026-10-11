@@ -113,6 +113,7 @@ impl Workbook {
             return install(self);
         }
         let before = HistorySnapshot::capture(&self.sheets[sheet], CellRange::single(addr), true);
+        let table_rows = self.insert_rows_for_writes([(sheet, addr)]);
         // 复用已有的通知延后机制，仅遍历已注册监听；拒绝值不能泄露给跨表订阅。
         let observers: Vec<_> = self
             .sheets
@@ -128,8 +129,15 @@ impl Workbook {
                 self.validate_input_value(sheet, addr, &value)
             });
             if result.is_err() {
-                before
-                    .restore(self, sheet)
+                let activated: Vec<_> = table_rows
+                    .iter()
+                    .filter(|before| {
+                        self.get_table(before.name())
+                            == Some(&(*before).clone().with_insert_row(false))
+                    })
+                    .cloned()
+                    .collect();
+                self.restore_cell_history(&[(sheet, before.clone())], &activated, true)
                     .expect("the input transaction keeps its original worksheet");
             }
         });

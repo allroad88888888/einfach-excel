@@ -102,16 +102,16 @@ async function runtime() {
 }
 
 describe('Rust history transport', () => {
-  test('cell input is one native group and keeps its raw input unchanged', async () => {
+  test('cell input owns its native history without an outer JS group and keeps raw input', async () => {
     const r = await runtime()
     const result = await r.call('cell.setInput', {
       projection,
       request: { sheetId: 'orders', requestId: 1, row: 1, col: 0, input: "'00123" },
     })
     expect(result.ok).toBe(true)
-    expect(r.begin.mock.calls).toEqual([[0, 1, 0, 1, 0, 'Edit cell', true]])
+    expect(r.begin).not.toHaveBeenCalled()
     expect(r.input.mock.calls).toEqual([[0, 'A2', "'00123"]])
-    expect(r.finish.mock.calls).toEqual([[true]])
+    expect(r.finish).not.toHaveBeenCalled()
     expect(result.result.projection.history.undoCount).toBe(1)
   })
   test('clear-all groups format and content; scope captures complete intersecting styles', async () => {
@@ -129,7 +129,7 @@ describe('Rust history transport', () => {
       r.clearRange.mock.invocationCallOrder[0]!,
     )
   })
-  test('native rejection aborts the group and leaves the transport revision unchanged', async () => {
+  test('native input rejection leaves transport revision unchanged without a JS history group', async () => {
     const r = await runtime()
     r.input.mockImplementationOnce(() => {
       throw new Error('Invalid input')
@@ -142,7 +142,8 @@ describe('Rust history transport', () => {
         })
       ).ok,
     ).toBe(false)
-    expect(r.finish.mock.calls).toEqual([[false]])
+    expect(r.begin).not.toHaveBeenCalled()
+    expect(r.finish).not.toHaveBeenCalled()
     expect((await r.call('projection.readVisible', { request: projection })).result.revision).toBe(
       0,
     )

@@ -1,5 +1,14 @@
 import type { EditingCommitLifecycleState } from './types'
 
+/** 对已知原生拒绝给出可操作提示；未知错误仍保留通用提示及诊断 detail。 */
+const INPUT_ERRORS = [
+  ['DATA_VALIDATION_FAILED',
+    'This value does not meet the cell’s data validation rule. Change it or press Escape.'],
+  ['the new column name collides with another column of the table',
+    'This table already has a column with that name. Choose a different column name.'],
+  ['column name must not be empty', 'Enter a non-empty column name or press Escape.'],
+] as const
+
 /** Error feedback for editing lifecycle states that leave a draft open. */
 export interface EditingCommitFeedback {
   readonly kind: 'error'
@@ -15,9 +24,8 @@ export function editingCommitFeedback(
     case 'rejected':
       return {
         kind: 'error',
-        message: lifecycle.error?.endsWith('DATA_VALIDATION_FAILED')
-          ? 'This value does not meet the cell’s data validation rule. Change it or press Escape.'
-          : 'That edit was not saved.',
+        message: INPUT_ERRORS.find(([suffix]) => lifecycle.error?.endsWith(suffix))?.[1]
+          ?? 'That edit was not saved.',
         detail: lifecycle.error || undefined,
       }
     case 'outcome-unknown':

@@ -1,15 +1,15 @@
 #[wasm_bindgen]
 impl WasmWorkbook {
-    /// 原始编辑输入直接交给 Rust；宿主不再判断数字、公式或文字。
+    /// 原始编辑与单条历史一起交给 Rust；表头输入复用列名原子操作。
     pub fn set_cell_input(
         &mut self,
         sheet_idx: usize,
         addr: &str,
         input: &str,
     ) -> Result<(), JsValue> {
-        self.workbook
-            .set_cell_input(sheet_idx, addr, input)
-            .map_err(JsValue::from_str)
+        self.history
+            .set_cell_input(&mut self.workbook, sheet_idx, addr, input)
+            .map_err(|error| JsValue::from_str(&error))
     }
 
     pub fn set_cell_number(&mut self, sheet_idx: usize, addr: &str, value: f64) {

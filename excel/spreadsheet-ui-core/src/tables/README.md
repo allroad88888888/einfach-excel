@@ -4,6 +4,7 @@
 
 基础操作：创建 Table、重命名 Table、转换为普通区域。第一行作为表头，Rust 规范化空白／重复列名。
 汇总操作：显示汇总行、设置列汇总函数、隐藏汇总行；继续使用同一个 command atom 和 Worker 命令。
+列名操作：Tables 面板修改列名、直接编辑表头；两种入口最终调用同一个 Rust 列名历史操作。
 
 调用链：`TableTools` → `runNativeTablePanelAtom` → `table.change` → WASM `change_table`
 → Rust `WorkbookHistory` → 同次返回的可见区投影。一次操作只有一次 Worker 往返；撤销仍走已有原生历史。
@@ -14,8 +15,11 @@
 - 初始 Table 在全部单元格导入后创建，表头来自真实 Rust 数据；启动结束统一清除历史。
 - 汇总函数从 Rust 中的真实公式派生为 `totalFunctions`，不写入 Table 持久化元数据或第二份函数配置。
 - 修改某列函数只写该单元格；显示／隐藏同时修改表范围与汇总行内容，均由 Rust 原生历史记录。
+- 列名变更同时更新表头文字、注册项和引用消费者，一次撤销整体恢复；不在 React 改公式文本。
+- 普通单格输入与表头输入均由 WASM `set_cell_input` 记录原生历史，Worker 不再套单格历史事务。
+- 名称管理器的 Tables 列表直接读当前投影；定位复用切表／选区／滚动 atoms，不写原生数据。
 
-创建／改名／转换与汇总行已验收。列名编辑及定位正在下一批推进，Table 样式及其余 #32 计划仍待后续批次。
+创建／改名／转换与汇总行已验收。列名编辑及定位已接线、正在验收，Table 样式及其余 #32 计划仍待后续批次。
 完整验收状态见 [React 功能进度](../../../react-excel/FEATURE_PROGRESS.md)。
 
 ## 历史接口记录（非当前 React 运行路径）

@@ -2,7 +2,7 @@ import { createStore } from '@einfach/core'
 import { expect, test, vi } from 'vitest'
 import { initializeWorkbookDocumentAtom, setRustWorkbookConnectionAtom, beginProjectionAtom,
   resolveProjectionAtom, runNativeTablePanelAtom, nativeTablePanelAtom, setSheetProtectionAtom,
-  type RustWorkbookCommands, type RustWorkbookConnection, type NativeTable, type NativeTotalFunction } from '../src'
+  type RustWorkbookCommands, type RustWorkbookConnection, type NativeTable } from '../src'
 
 type Input = RustWorkbookCommands['table.change']['payload']
 const tables = [{ name: 'Sales', sheet: 'Sheet', sheetIndex: 0, range: 'A1:B4',
@@ -22,11 +22,37 @@ function setup(catalog: NativeTable[] = tables) {
   if (read.status !== 'started' || read.request.kind !== 'visible-window') throw new Error('Expected projection')
   store.setter(resolveProjectionAtom, { request: read.request,
     result: { ...read.request, revision: 1, cells: [], tables: catalog } })
-  return { store, request, run: (action: 'open' | 'new' | 'close' | 'save' | 'convert' |
-    'show-totals' | 'hide-totals' | 'save-total' | { edit: string } |
-    { name?: string; range?: string; totalColumn?: string; totalFunction?: NativeTotalFunction }) =>
+  return { store, request, run: (action: Parameters<typeof runNativeTablePanelAtom.write>[2]) =>
     store.setter(runNativeTablePanelAtom, action) }
 }
+
+test('column rename uses the native identity and reselects the returned column, including totals', async () => {
+  const { store, request, run } = setup()
+  request.mockImplementationOnce(async (_, input) => ({ changed: true,
+    projection: { ...input.projection, cells: [], revision: 2,
+      tables: [{ ...tables[0], columns: ['Product', 'Net'], hasTotals: true, totalFunctions: ['none', 'sum'] }] } }))
+  await run('open'); await run({ edit: 'Sales' }); await run({ column: 'Amount' })
+  await run({ name: 'Unsaved', newColumnName: ' Net ' })
+  expect(await run('save-column')).toBe(true)
+  expect(request.mock.calls[0][1].action).toEqual({ kind: 'rename-column', name: 'Sales',
+    column: 'Amount', newName: ' Net ' })
+  expect(store.getter(nativeTablePanelAtom)).toMatchObject({ open: true, name: 'Unsaved',
+    column: 'Net', newColumnName: 'Net', totalColumn: 'Net', totalFunction: 'sum', revision: 2 })
+  expect(request).toHaveBeenCalledTimes(1)
+})
+
+test('blank and conflicting column names keep the old catalog and editable draft', async () => {
+  const { store, request, run } = setup()
+  await run('open'); await run({ edit: 'Sales' }); await run({ column: 'Amount' })
+  expect(store.getter(nativeTablePanelAtom).newColumnName).toBe('Amount')
+  await run({ newColumnName: ' ' }); expect(await run('save-column')).toBe(false)
+  expect(request).not.toHaveBeenCalled()
+  await run({ newColumnName: 'Product' })
+  request.mockRejectedValueOnce(new Error('Duplicate column name'))
+  expect(await run('save-column')).toBe(false)
+  expect(store.getter(nativeTablePanelAtom)).toMatchObject({ open: true,
+    newColumnName: 'Product', error: 'Duplicate column name', tables })
+})
 test('new table draft uses coordinates, blank name lets Rust choose, no optimistic registry', async () => {
   const { store, request, run } = setup([])
   await run('open'); await run({ range: 'A1:B4' }); await run('save')

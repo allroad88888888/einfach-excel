@@ -1,7 +1,7 @@
 import { createStore } from '@einfach/core'
 import { initializeWorkbookDocumentAtom, beginProjectionAtom, resolveProjectionAtom,
   type RustWorkbookCommands, type RustWorkbookConnection } from '@einfach/spreadsheet-ui-core'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { expect, test, vi } from 'vitest'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
 import { NamedRangeTools } from '../../../src/workbook/chrome/ribbon/NamedRangeTools'
@@ -20,7 +20,8 @@ function setup(empty = false) {
     result: { ...read.request, cells: [], revision: 1, namedRanges: empty ? [] : [
       { name: 'Sales', target: { sheet: 1, range: [1, 0, 3, 0] } },
       { name: 'Deleted', target: null },
-    ] } })
+    ], tables: empty ? [] : [{ name: 'Inventory', sheet: 'Source', sheetIndex: 1,
+      range: 'A80:B84', hasHeaders: true, hasTotals: true, columns: ['Product', 'Amount'] }] } })
   const request = vi.fn(async (_command: string, payload: unknown) => {
     const input = payload as RustWorkbookCommands['namedRange.change']['payload']
     return { changed: true,
@@ -28,7 +29,9 @@ function setup(empty = false) {
   })
   render(<WorkbookStoreProvider store={store} connection={{
     request: request as RustWorkbookConnection['request'], dispose() {},
-  }}><NamedRangeTools /></WorkbookStoreProvider>)
+  }}><div className="workbook"><NamedRangeTools />
+    <div data-workbook-grid="true" tabIndex={0} data-testid="grid" />
+  </div></WorkbookStoreProvider>)
   return request
 }
 async function click(name: string) {
@@ -113,4 +116,14 @@ test('pending work disables all dialog controls until the single response is app
     projection: { ...input.projection, cells: [], revision: 2, namedRanges: [] } }))
   expect(screen.queryByRole('dialog')).toBeNull()
   expect(request).toHaveBeenCalledTimes(1)
+})
+
+test('Table entries show their cross-sheet target and navigate without a native mutation', async () => {
+  const request = setup()
+  await click('Name manager')
+  expect(screen.getByRole('group', { name: 'Workbook tables' })).toHaveTextContent('Source!A80:B84')
+  await click('Go to table Inventory')
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(request).not.toHaveBeenCalled()
+  await waitFor(() => expect(screen.getByTestId('grid')).toHaveFocus())
 })

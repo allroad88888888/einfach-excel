@@ -13,6 +13,13 @@ function lifecycle(
 }
 
 describe('editing commit feedback', () => {
+  it.each([
+    ['the new column name collides with another column of the table', 'different column name'],
+    ['column name must not be empty', 'non-empty column name'],
+  ])('explains a native Table header rejection: %s', (error, message) => {
+    expect(editingCommitFeedback(lifecycle('rejected',
+      `Editing commit was rejected and may be retried: ${error}`))?.message).toContain(message)
+  })
   it('explains a native validation rejection without exposing transport details', () => {
     const feedback = editingCommitFeedback(lifecycle('rejected',
       'Editing commit was rejected and may be retried: DATA_VALIDATION_FAILED'))

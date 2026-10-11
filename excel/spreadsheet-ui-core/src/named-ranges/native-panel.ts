@@ -6,6 +6,10 @@ import { editingSessionAtom } from '../editing/session-atoms'
 import { selectionRegionsAtom, selectionSnapshotAtom } from '../selection'
 import { parseA1Cell, parseA1Range, rangeToA1 } from '../name-box/address'
 import { projectionSnapshotAtom } from '../projection'
+import { activateWorkbookSheetAtom } from '../runtime/activate-workbook-sheet'
+import { applyGoToTargetAtom } from '../go-to'
+import { goToReferenceAvailableAtom } from '../go-to/reference-command'
+import { scrollToCellAtom } from '../viewport/metrics'
 import { changeNativeNamedRangeAtom, nativeNameChangeBusyAtom } from './native-command'
 import type { ProjectionRevision } from '../backend'
 import type { NamedRangeChange } from './native-types'
@@ -22,9 +26,14 @@ const CLOSED: Panel = { ownerSheetId: null, connection: null, editingName: null,
   name: '', targetSheetId: '', range: '', error: '' }
 /** 只保存面板草稿与用户可见的忙碌/错误状态。 */
 const draftAtom = atom<Panel>(CLOSED)
-export const nativeNameManagerAtom = atom((get) => ({
-  ...get(draftAtom), busy: get(nativeNameChangeBusyAtom),
-}))
+export const nativeNameManagerAtom = atom((get) => {
+  const projection = get(projectionSnapshotAtom)
+  const result = projection.result
+  const tables = projection.status === 'ready' && result?.kind === 'visible-window' &&
+    result.sheetId === get(activeWorkbookSheetAtom)?.id ? result.tables : undefined
+  return { ...get(draftAtom), busy: get(nativeNameChangeBusyAtom), tables,
+    canLocateTable: get(goToReferenceAvailableAtom) }
+})
 /** 工作簿切换后隐藏旧草稿；视图无需接触 Rust connection。 */
 export const nativeNameManagerOpenAtom = atom((get) => {
   const state = get(draftAtom)
@@ -34,7 +43,8 @@ export const nativeNameManagerOpenAtom = atom((get) => {
 })
 
 export const runNativeNameManagerAtom = atom(null, async (get, set,
-  action: 'open' | 'close' | 'new' | 'save' | 'delete' | { edit: string } | Partial<Draft>,
+  action: 'open' | 'close' | 'new' | 'save' | 'delete' | { edit: string } |
+  { locateTable: string } | Partial<Draft>,
 ): Promise<boolean> => {
   const state = get(draftAtom)
   if (get(nativeNameChangeBusyAtom)) return false
@@ -64,7 +74,22 @@ export const runNativeNameManagerAtom = atom(null, async (get, set,
   }
   if (state.ownerSheetId !== sheet.id || state.connection !== connection) return false
   if (typeof action === 'object') {
-    if ('edit' in action) {
+    if ('locateTable' in action) {
+      if (!get(goToReferenceAvailableAtom)) return fail('Finish the current operation before navigating.')
+      // 重新读取当前原生目录，不能把打开面板时的旧坐标当作仍然有效。
+      const entry = result.tables?.find((table) => table.name === action.locateTable)
+      const targetSheet = get(workbookDocumentAtom).sheets
+        .find((s) => s.index === entry?.sheetIndex)
+      const range = entry ? parseA1Range(entry.range) : null
+      if (!targetSheet || !range || range.rowEnd >= targetSheet.rowCount ||
+        range.colEnd >= targetSheet.colCount)
+        return fail('The table no longer refers to an available worksheet range.')
+      if (targetSheet.id !== sheet.id) set(activateWorkbookSheetAtom, targetSheet)
+      set(applyGoToTargetAtom, { sheetId: targetSheet.id, range })
+      set(scrollToCellAtom, { coord: { row: range.rowStart, col: range.colStart },
+        rowAlign: 'start', colAlign: 'nearest' })
+      set(draftAtom, CLOSED)
+    } else if ('edit' in action) {
       const entry = result.namedRanges.find((candidate) => candidate.name === action.edit)
       if (!entry) return fail('The named range no longer exists.')
       const targetSheet = get(workbookDocumentAtom).sheets

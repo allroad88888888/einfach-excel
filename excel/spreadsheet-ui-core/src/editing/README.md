@@ -34,6 +34,9 @@
 提交没有第二条 refresh 链。Rust 的 `cell.setInput` 已经把新可见区放在同一回包中；当前窗口没变就
 直接发布，期间发生过滚动就丢弃旧窗口结果。ACK 不匹配或超时会保留锁，防止盲目重发未知写入。
 
+WASM `set_cell_input` 直接调用 `WorkbookHistory::set_cell_input`，由 Rust 判断普通输入或 Table
+表头改名。表头文字、列名和结构化引用在同一条历史中回放；Worker 不再包一层单格历史事务。
+
 ## Mutation gateway (`mutation-gateway.ts`)
 
 Single choke point for content mutations (`set-cell-input`, `clear-range`,

@@ -61,13 +61,23 @@
 
 本批只做三个用户功能：Tables 面板修改列名、直接编辑表头时同步列名与结构化引用、名称管理器查看并定位 Table。不包含 Table 样式、范围调整或自动扩展。前两项必须复用同一个 Rust 原子操作：表头文字、目录列名、引用公式与历史一起提交；第三项读取原生投影目录，不维护第二份 Table 注册表。
 
-只读核对：现有 `Workbook::rename_table_column` 只修改注册项与普通公式，不更新表头、不记录用户历史，也不覆盖条件规则／保存的闭包。不得直接把它包装成两个 UI 入口宣布完成。先补原生前后像与消费者改写，再接已有 Worker／command atom／React；不新增 backend、刷新层或 TS 工作簿镜像。
+起始核对：旧 `Workbook::rename_table_column` 只修改注册项与普通公式，不更新表头、不记录用户历史，也不覆盖条件规则／保存的闭包。本批先补原生前后像与消费者改写，再接已有 Worker／command atom／React；不新增 backend、刷新层或 TS 工作簿镜像。
 
-原生阶段进展：`WorkbookHistory::rename_table_column` 已复用 `TableDefinitionChange`，表头仅保留单格前后像，真实引用公式、条件规则及保存的闭包共同回放；低层旧接口改用相同实现，删除重复的跨表公式收集／写入路径。新增 `WorkbookHistory::set_cell_input` 区分普通格与 Table 表头：普通输入沿用原有解析，表头只作为列名文字进入同一改名操作，首尾空白规范化，空名／重名拒绝且不消耗 redo。仍未接入 WASM／React，不能视为产品完成。
+原生阶段已提交推送为 `c0831896`：`WorkbookHistory::rename_table_column` 复用 `TableDefinitionChange`，表头仅保留单格前后像，真实引用公式、条件规则及保存的闭包共同回放；低层旧接口改用相同实现，删除重复的跨表公式收集／写入路径。新增 `WorkbookHistory::set_cell_input` 区分普通格与 Table 表头：普通输入沿用原有解析，表头只作为列名文字进入同一改名操作，首尾空白规范化，空名／重名拒绝且不消耗 redo。该提交时尚未接入 WASM／React。
 
 跨 Table 条件规则与延迟调用的裸引用复用原有调用位置判断，范围判断从转换实现移到共享 `table_ref_scope.rs`，没有第二份依赖图。特殊列名曾复现“改名成功但公式变为错误”；现已在唯一 parser／renderer 内补单引号转义，按 [Microsoft 结构化引用规则](https://support.microsoft.com/en-us/excel/using-structured-references-with-excel-tables)处理 `[] # @ '`。旧的非转义撇号形式仍可读取，输出统一转义。测试闭包使用引擎已支持的直接 LAMBDA 调用，不把尚未支持的单元格存储闭包调用混为列改名回归。
 
-当前专项 **33/33** 通过：列历史 8、消费者 2、表头输入 4、parser 19；覆盖一条撤销、原公式精确恢复、跨表数组、每次一次订阅通知、合并／spill 拒绝、失败保留 redo、嵌套闭包及转义往返。默认／lite 全量 lib 加 Table 扩大回归正在顺序执行，之后检查 WASM lib（`/tmp/excel-table-columns-default.log`、`/tmp/excel-table-columns-lite.log`、`/tmp/excel-table-columns-wasm-tests.log`）。所有新增／大改文件低于 300 行；现有历史栈文件仅增加两行模块声明。尚未改 React 入口或重建浏览器 WASM，本批未验收，未提交。
+原生证据：专项 **33/33** 通过；全量 lib 加 14 套 Table 集成默认 **1,782 passed／3 ignored**、lite **1,759 passed／3 ignored**，顺序任务退出 0（`/tmp/excel-table-columns-default.log`、`/tmp/excel-table-columns-lite.log`）。覆盖一条撤销、原公式精确恢复、跨表数组、每次一次订阅通知、合并／spill 拒绝、失败保留 redo、嵌套闭包及转义往返。
+
+接线进展：`change_table` 增加 `rename-column`，WASM `set_cell_input` 直接调用原生单格历史，删除 Worker 外层的单格 `withHistory`；格式／清除等其它命令不改。`TableColumns` 直接读写现有面板 atom，`NamedTableList` 从当前投影列出所有 Table，用既有切表／选区／滚动命令定位，不请求刷新目录、不新增历史。沿用 Summary 的真实 DemoTable（A80:B84），无需再造示例数据。
+
+当前 WASM lib **153 passed／1 ignored**、lite／full WASM 构建通过。第一轮 Table E2E **21/21** 通过，桌面／390px 截图无横向溢出。单测发现跨表定位后开关按钮暂时禁用导致焦点丢失，已改为定位成功后回到表格，并补 DOM 与真实浏览器断言。初次 lint 的五处换行问题已修正；源码改变后主动终止刚开始的全量 E2E（不是验收结果），补充直接表头拒绝／redo 和跨表数组用例。最终专项、根构建、全量 Vitest 与完整 E2E 继续验证，本批仍未验收；本次接线未提交。
+
+补充交叉 E2E 曾得到 **7 passed／2 failed**：直接编辑表头重名只显示通用失败提示；原生 modal 关闭前页面仍 inert，阻止焦点落到画布。已在既有错误映射里说明重名／空列名，并在关闭弹窗后的下一帧处理 DOM 聚焦，不加业务状态或重试层。修正后的本批 E2E **9/9**（含失败保留 redo、跨表数组、两种编辑器、桌面／窄屏）通过，错误提示与焦点单测 **12/12** 通过；日志 `/tmp/excel-table-columns-fixed-e2e.log`、`/tmp/excel-table-columns-feedback-unit.log`。此前完整 Vitest **337 文件／5,464 项**通过，新增两条提示断言后重新执行最终门禁链：根构建、完整 Vitest、lint、循环依赖、文档、完整 **753 项 E2E**，日志统一为 `/tmp/excel-table-columns-final-*.log`。完整 E2E 未结束前不提前验收，不进入下一批。
+
+最终门禁中的构建、Vitest **337 文件／5,466 项**、lint、循环依赖、文档均通过。完整 E2E 暴露四个旧日期用例占用 Summary!A80:B80：这些位置现在是列名，不应把数字／公式形状的输入求值为普通格。日期用例改在真实空白工作表上执行，所有原数值、格式与撤销断言保留，并新增表头 `60`／`=1+1` 保持文字且引用仍计算的用例。初次交叉复测 **23 passed／1 failed**，唯一剩余失败是新表更长导致 A80 滚出虚拟窗口；已显式定位回断言行。旧全量进程主动结束，生产代码与 WASM 不变。修正后的日期／列名交叉 **24/24** 通过（`/tmp/excel-table-columns-date-fixed.log`），文档门禁通过；同一顺序任务已进入完整 **754 项 E2E**（`/tmp/excel-table-columns-accepted-full.log`），尚未验收或提交。
+
+提交前最终结果：完整 E2E **753 passed／1 failed**（754 项，10.9 分钟）。唯一失败为 `e2e/workbook/outline.spec.ts:93`，冻结窗格并完成行／列分组后，折叠行收到 `Wait for the worksheet to finish loading.`；原因尚未确认，未修复。以上 Table 接线按用户要求提交保存，本批仍未验收，不把该结果记为全绿。
 
 ### Excel Table 汇总行（已验收）
 

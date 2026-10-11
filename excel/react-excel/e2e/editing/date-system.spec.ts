@@ -17,7 +17,9 @@ async function write(page: Page, address: string, formula: string) {
 test.beforeEach(async ({ page }) => {
   await page.goto('/')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
-  await page.getByRole('tab', { name: 'Summary', exact: true }).click()
+  // 日期计算需要普通输入格；Summary!A80:B80 是真实 Table 表头，输入应视为列名文字。
+  await page.getByRole('button', { name: 'New sheet', exact: true }).click()
+  await expect(page.getByRole('tab', { name: 'Sheet3', exact: true })).toHaveAttribute('aria-selected', 'true')
 })
 
 test('real formula editing uses 1900 serials, recalculates date parts and restores them on undo', async ({ page }) => {
@@ -41,6 +43,8 @@ test('the compatibility leap day remains numeric and agrees with date parts and 
     ['B81', '=DAY(A81)'], ['C81', '=MONTH(A81)'], ['D81', '=WEEKDAY(A81)'],
     ['A82', '=A81+1'], ['B82', '=DAY(A82)'], ['C82', '=MONTH(A82)'],
   ]) await write(page, address!, formula!)
+  // 新工作表有 1,001 行；先把断言的首行带回虚拟窗口，不依赖旧 Summary 的底部钳制。
+  await select(page, 'A80')
   for (const [coord, text] of [
     ['79:0', '59'], ['80:0', '60'], ['80:1', '29'], ['80:2', '2'],
     ['80:3', '4'], ['81:0', '61'], ['81:1', '1'], ['81:2', '3'],

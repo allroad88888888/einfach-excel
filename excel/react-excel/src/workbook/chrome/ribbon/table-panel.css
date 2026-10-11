@@ -34,6 +34,7 @@
 .table-panel :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .table-panel [role='alert'] { color: #a12622; overflow-wrap: anywhere; }
 .table-panel-totals { border-top: 1px solid var(--border); margin-top: 16px; }
+.table-panel-columns { border-top: 1px solid var(--border); margin-top: 16px; padding-top: 16px; }
 .table-panel-totals select { width: 100%; }
 .table-panel-totals .table-panel-actions button { margin-left: auto; margin-right: 0; }
 @media (max-width: 420px) {

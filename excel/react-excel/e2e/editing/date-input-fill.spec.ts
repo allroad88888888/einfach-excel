@@ -80,6 +80,9 @@ test('cell and formula-bar input share numeric dates; undo restores both value a
 })
 
 test('date format changes display only and array formula anchors use the same native display', async ({ page }) => {
+  // 与上一个普通输入用例一致，避免把 Table 列名当作数值或数组公式。
+  await page.getByRole('button', { name: 'New sheet', exact: true }).click()
+  await expect(page.getByRole('tab', { name: 'Sheet3', exact: true })).toHaveAttribute('aria-selected', 'true')
   await write(page, 'A80', '60')
   await select(page, 'A80')
   await page.getByRole('button', { name: 'Date format' }).click()

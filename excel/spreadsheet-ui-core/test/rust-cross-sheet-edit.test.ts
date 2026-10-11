@@ -48,8 +48,8 @@ test('one cell command writes/history-tracks source sheet and returns browsing s
   const { call, write, begin, finish, read } = await runtime()
   const response = await call('cell.setInput', { request, projection })
   expect(write.mock.calls).toEqual([[0, 'K501', "='Summary'!B1"]])
-  expect(begin.mock.calls).toEqual([[0, 500, 10, 500, 10, 'Edit cell', true]])
-  expect(finish.mock.calls).toEqual([[true]])
+  expect(begin).not.toHaveBeenCalled()
+  expect(finish).not.toHaveBeenCalled()
   expect(read.mock.calls).toEqual([[1, 0, 0, 9, 7]])
   expect(response).toMatchObject({ ok: true, result: {
     acknowledgement: { sheetId: 'orders', requestId: 8, revision: 1 },

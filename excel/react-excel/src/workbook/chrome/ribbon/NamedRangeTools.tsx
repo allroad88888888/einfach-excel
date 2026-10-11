@@ -6,6 +6,7 @@ import {
   workbookDocumentAtom, rangeToA1,
 } from '@einfach/spreadsheet-ui-core'
 import { cycleDialogFocus } from './dialog-focus'
+import { NamedTableList } from './NamedTableList'
 import './named-range-panel.css'
 
 /** 目录只读 Rust 投影；字段直接写 UI Core 草稿，React 不保存名称副本。 */
@@ -57,6 +58,7 @@ export function NamedRangeTools() {
           </button>
         })}
       </div>
+      <NamedTableList />
       <form onSubmit={(event) => { event.preventDefault(); void run('save') }}>
         <div className="named-range-heading">
           <h3>{state.editingName ? 'Edit named range' : 'New named range'}</h3>

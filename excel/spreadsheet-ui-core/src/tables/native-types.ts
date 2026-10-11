@@ -19,6 +19,7 @@ export interface NativeTable {
 export type TableChange =
   | { readonly kind: 'create'; readonly name?: string; readonly range: CellRange }
   | { readonly kind: 'rename'; readonly name: string; readonly newName: string }
+  | { readonly kind: 'rename-column'; readonly name: string; readonly column: string; readonly newName: string }
   | { readonly kind: 'convert-to-range'; readonly name: string }
   | { readonly kind: 'totals-row'; readonly name: string; readonly enabled: boolean }
   | { readonly kind: 'total-function'; readonly name: string; readonly column: string;

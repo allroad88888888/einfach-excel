@@ -3,6 +3,7 @@ import { useId, useLayoutEffect, useRef } from 'react'
 import { editingSessionAtom, nativeTablePanelAtom, runNativeTablePanelAtom } from '@einfach/spreadsheet-ui-core'
 import { cycleDialogFocus } from './dialog-focus'
 import { TableTotals } from './TableTotals'
+import { TableColumns } from './TableColumns'
 import './table-panel.css'
 
 /** React 只负责弹窗与焦点；Table 目录、草稿和动作直接读写 UI Core atoms。 */
@@ -68,6 +69,7 @@ export function TableTools() {
           </button>
         </div>
       </form>
+      <TableColumns />
       <TableTotals />
     </dialog>}
   </>

@@ -34,7 +34,7 @@ export function changeTable(workbook: WasmWorkbook,
   } else if (input.action.kind === 'totals-row') {
     action = { ...input.action, rowCount: sheet.rowCount ?? 1_048_576 }
   } else if (input.action.kind === 'rename' || input.action.kind === 'convert-to-range' ||
-    input.action.kind === 'total-function') {
+    input.action.kind === 'total-function' || input.action.kind === 'rename-column') {
     action = input.action
   } else throw new Error('Invalid table action.')
   return workbook.change_table(sheet.index, action)

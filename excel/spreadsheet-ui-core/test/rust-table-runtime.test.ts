@@ -52,6 +52,7 @@ test('creation uses one native history command and one returned projection', asy
 })
 test.each([
   { kind: 'rename', name: 'Sales', newName: 'Revenue' },
+  { kind: 'rename-column', name: 'Sales', column: 'Amount', newName: 'Revenue [net]' },
   { kind: 'convert-to-range', name: 'Sales' },
   { kind: 'total-function', name: 'Sales', column: 'Amount', function: 'average' },
 ])('forwards $kind without emulating cell or registry writes', async (action) => {

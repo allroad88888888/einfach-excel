@@ -14,7 +14,10 @@ import { validateProjectionResult } from '../projection/contracts'
 import type { ProjectionRevision } from '../backend'
 import { NATIVE_TOTAL_FUNCTIONS, type NativeTable, type NativeTotalFunction, type TableChange } from './native-types'
 
-interface Draft { name: string; range: string; totalColumn: string; totalFunction: NativeTotalFunction | 'custom' }
+interface Draft {
+  name: string; range: string; column: string; newColumnName: string
+  totalColumn: string; totalFunction: NativeTotalFunction | 'custom'
+}
 interface Panel extends Draft {
   ownerSheetId: string | null
   connection: RustWorkbookConnection | null
@@ -23,7 +26,7 @@ interface Panel extends Draft {
   error: string
 }
 const CLOSED: Panel = { ownerSheetId: null, connection: null, editingName: null,
-  name: '', range: '', totalColumn: '', totalFunction: 'sum', error: '' }
+  name: '', range: '', column: '', newColumnName: '', totalColumn: '', totalFunction: 'sum', error: '' }
 const draftAtom = atom<Panel>(CLOSED)
 const pendingConnectionAtom = atom<RustWorkbookConnection | null>(null)
 /** 草稿与忙碌是 UI 状态；目录始终直接读取当前 Rust 投影。 */
@@ -48,7 +51,7 @@ export const nativeTablePanelAtom = atom((get) => {
 /** 打开/编辑只改草稿；每次提交均为一次 Rust 命令和一次返回投影。 */
 export const runNativeTablePanelAtom = atom(null, async (get, set,
   action: 'open' | 'new' | 'close' | 'save' | 'convert' |
-  'show-totals' | 'hide-totals' | 'save-total' | { edit: string } | Partial<Draft>,
+  'show-totals' | 'hide-totals' | 'save-total' | 'save-column' | { edit: string } | Partial<Draft>,
 ): Promise<boolean> => {
   const state = get(draftAtom)
   const connection = get(rustWorkbookConnectionAtom)
@@ -80,7 +83,12 @@ export const runNativeTablePanelAtom = atom(null, async (get, set,
         table.sheetIndex === sheet.index && table.name === action.edit)
       if (!entry) return fail('The table no longer exists.')
       set(draftAtom, { ...state, name: entry.name, editingName: entry.name, range: entry.range,
+        column: entry.columns[0], newColumnName: entry.columns[0],
         ...totalDraft(entry), revision: result.revision, error: '' })
+    } else if ('column' in action) {
+      const entry = get(nativeTablePanelAtom).currentTable
+      if (!entry || !entry.columns.includes(action.column!)) return fail('Choose a table column.')
+      set(draftAtom, { ...state, column: action.column!, newColumnName: action.column!, error: '' })
     } else if ('totalColumn' in action) {
       const entry = get(nativeTablePanelAtom).currentTable
       if (!entry || !entry.columns.includes(action.totalColumn!)) return fail('Choose a table column.')
@@ -95,7 +103,12 @@ export const runNativeTablePanelAtom = atom(null, async (get, set,
   if (state.revision !== result.revision) return fail('The workbook changed. Reopen Tables.')
   let change: TableChange
   const totalsAction = action === 'show-totals' || action === 'hide-totals' || action === 'save-total'
-  if (totalsAction) {
+  if (action === 'save-column') {
+    const entry = get(nativeTablePanelAtom).currentTable
+    if (!entry || !entry.columns.includes(state.column)) return fail('Choose a table column.')
+    if (!state.newColumnName.trim()) return fail('Enter a column name.')
+    change = { kind: 'rename-column', name: entry.name, column: state.column, newName: state.newColumnName }
+  } else if (totalsAction) {
     const entry = get(nativeTablePanelAtom).currentTable
     if (!entry) return fail('Choose a table first.')
     if (action === 'save-total') {
@@ -144,8 +157,13 @@ export const runNativeTablePanelAtom = atom(null, async (get, set,
     if (applied.status !== 'applied') throw new Error('The view changed. Reopen Tables.')
     if (get(draftAtom) === state) {
       const entry = reply.projection.tables.find((table) => table.name === state.editingName)
-      set(draftAtom, totalsAction && entry ? { ...state, range: entry.range,
-        ...totalDraft(entry, state.totalColumn), revision: reply.projection.revision, error: '' } : CLOSED)
+      const columnIndex = result.tables.find((table) => table.name === state.editingName)
+        ?.columns.indexOf(state.column) ?? 0
+      const column = entry?.columns[Math.max(0, columnIndex)] ?? ''
+      set(draftAtom, (totalsAction || action === 'save-column') && entry ? { ...state, range: entry.range,
+        column, newColumnName: action === 'save-column' ? column : state.newColumnName,
+        ...totalDraft(entry, state.totalColumn === state.column ? column : state.totalColumn),
+        revision: reply.projection.revision, error: '' } : CLOSED)
     }
     return true
   } catch (error) {

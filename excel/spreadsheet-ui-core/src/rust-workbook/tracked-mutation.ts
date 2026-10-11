@@ -27,9 +27,8 @@ export function writeTrackedMutation(
       colStart: request.col,
       colEnd: request.col,
     }
-    withHistory(workbook, sheet, range, 'Edit cell', true, () =>
-      writeCellInput(workbook, sheet, request.row, request.col, request.input),
-    )
+    // Rust 根据输入位置决定普通编辑或表头改名，并在原生侧记录一条完整历史。
+    writeCellInput(workbook, sheet, request.row, request.col, request.input)
     return range
   }
   const clearing = 'mode' in request

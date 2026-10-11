@@ -136,3 +136,19 @@ test('custom contents are shown honestly and failure preserves a correctable tot
   expect(screen.getByLabelText('Total function')).toHaveValue('average')
   expect(screen.getByRole('button', { name: 'Apply total' })).toBeEnabled()
 })
+
+test('column rename keeps a correctable draft and submits only the selected original column', async () => {
+  const request = setup()
+  await click('Tables'); await click('Edit table Sales'); await change('Column', 'Amount')
+  expect(screen.getByLabelText('New column name')).toHaveValue('Amount')
+  await change('New column name', 'Product')
+  request.mockRejectedValueOnce(new Error('Duplicate column name'))
+  await click('Rename column')
+  expect(screen.getByRole('alert')).toHaveTextContent('Duplicate column name')
+  expect(screen.getByLabelText('Column')).toHaveValue('Amount')
+  expect(screen.getByLabelText('New column name')).toHaveValue('Product')
+  await change('New column name', 'Net [tax]'); await click('Rename column')
+  expect(request.mock.calls[1]).toMatchObject(['table.change', { action: {
+    kind: 'rename-column', name: 'Sales', column: 'Amount', newName: 'Net [tax]',
+  } }])
+})

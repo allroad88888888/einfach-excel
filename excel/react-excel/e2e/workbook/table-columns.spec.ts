@@ -1,0 +1,158 @@
+import { expect, test, type Page } from '@playwright/test'
+import { select } from '../support/clipboard'
+
+const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
+const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
+const formula = (page: Page) => page.getByRole('textbox', { name: 'Active cell value' })
+async function summary(page: Page) {
+  await page.getByRole('tab', { name: 'Summary', exact: true }).click()
+  await expect(cell(page, '4:1')).toHaveText('60')
+}
+async function open(page: Page) {
+  await button(page, 'Tables').click(); await button(page, 'Edit table DemoTable').click()
+  return page.getByRole('dialog', { name: 'Tables', exact: true })
+}
+async function close(page: Page) {
+  await button(page, 'Cancel').click()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+}
+async function assertReferences(page: Page, name: string) {
+  await select(page, 'B80', '79:1'); await expect(cell(page, '79:1')).toHaveText(name)
+  await select(page, 'B84', '83:1')
+  await expect(cell(page, '83:1')).toHaveText('60')
+  await expect(formula(page)).toHaveValue(`=SUBTOTAL(109,DemoTable[${name}])`)
+  await select(page, 'B5', '4:1')
+  await expect(cell(page, '4:1')).toHaveText('60')
+  await expect(formula(page)).toHaveValue(`=SUM(DemoTable[${name}])`)
+}
+test.beforeEach(async ({ page }) => {
+  await page.goto('/')
+  await expect(cell(page, '1:0')).toHaveText('SO-10001')
+})
+
+test('panel column rename updates header, formulas and totals in one undo step', async ({ page }) => {
+  await summary(page); await open(page)
+  await page.getByLabel('Column', { exact: true }).selectOption('Amount')
+  await page.getByLabel('New column name', { exact: true }).fill('Revenue')
+  await button(page, 'Rename column').click()
+  await expect(page.getByLabel('Column', { exact: true })).toHaveValue('Revenue')
+  await expect(page.getByLabel('Total column', { exact: true })).toHaveValue('Revenue')
+  await close(page); await assertReferences(page, 'Revenue')
+  await button(page, 'Undo').click(); await assertReferences(page, 'Amount')
+  await expect(button(page, 'Undo')).toBeDisabled()
+  await button(page, 'Redo').click(); await assertReferences(page, 'Revenue')
+})
+
+for (const source of ['cell', 'formula'] as const) test(`direct ${source} header edit shares column history`, async ({ page }) => {
+  await summary(page); await select(page, 'B80', '79:1')
+  if (source === 'cell') await page.locator('[data-workbook-grid]').press('F2')
+  const input = source === 'cell' ? page.getByRole('textbox', { name: 'Cell editor', exact: true }) : formula(page)
+  await input.fill('Revenue'); await input.press('Enter')
+  await expect(cell(page, '79:1')).toHaveText('Revenue')
+  await assertReferences(page, 'Revenue')
+  await button(page, 'Undo').click(); await assertReferences(page, 'Amount')
+  await expect(button(page, 'Undo')).toBeDisabled()
+  await button(page, 'Redo').click(); await assertReferences(page, 'Revenue')
+})
+
+test('native duplicate rejection preserves draft and does not consume undo', async ({ page }) => {
+  await summary(page); await open(page)
+  await page.getByLabel('Column', { exact: true }).selectOption('Amount')
+  await page.getByLabel('New column name', { exact: true }).fill('Product')
+  await button(page, 'Rename column').click()
+  await expect(page.getByRole('alert')).toContainText(/column/i)
+  await expect(page.getByLabel('Column', { exact: true })).toHaveValue('Amount')
+  await expect(page.getByLabel('New column name', { exact: true })).toHaveValue('Product')
+  await close(page); await expect(button(page, 'Undo')).toBeDisabled()
+  await assertReferences(page, 'Amount')
+})
+
+test('a rejected direct header edit stays correctable and keeps redo available', async ({ page }) => {
+  await summary(page); await select(page, 'B80', '79:1')
+  await formula(page).fill('Revenue'); await formula(page).press('Enter')
+  await expect(cell(page, '79:1')).toHaveText('Revenue')
+  await button(page, 'Undo').click(); await select(page, 'B80', '79:1')
+  await formula(page).fill('Product'); await formula(page).press('Enter')
+  await expect(page.getByRole('alert')).toContainText(/column/i)
+  await expect(cell(page, '79:1')).toHaveText('Amount')
+  await expect(formula(page)).toHaveValue('Product')
+  await formula(page).press('Escape'); await button(page, 'Redo').click()
+  await assertReferences(page, 'Revenue')
+})
+
+test('numeric and formula-shaped header names stay literal while structured formulas remain live', async ({ page }) => {
+  await summary(page)
+  for (const name of ['60', '=1+1']) {
+    await select(page, 'B80', '79:1')
+    await formula(page).fill(name); await formula(page).press('Enter')
+    await expect(cell(page, '79:1')).toHaveText(name)
+    await assertReferences(page, name)
+    await open(page)
+    await expect(page.getByLabel('Total column', { exact: true })).toHaveValue(name)
+    await close(page)
+  }
+  await button(page, 'Undo').click(); await assertReferences(page, '60')
+  await button(page, 'Undo').click(); await assertReferences(page, 'Amount')
+  await expect(button(page, 'Undo')).toBeDisabled()
+})
+
+test('header rename updates a cross-sheet structured array and its dependent formula', async ({ page }) => {
+  await button(page, 'New sheet').click()
+  await expect(page.getByRole('tab', { name: 'Sheet3', exact: true })).toHaveAttribute('aria-selected', 'true')
+  await select(page, 'A1', '0:0')
+  await formula(page).fill('=DemoTable[[#All],[Amount]]'); await formula(page).press('Enter')
+  await expect(cell(page, '0:0')).toHaveText('Amount')
+  await select(page, 'C1', '0:2')
+  await formula(page).fill('=SUM(A1#)'); await formula(page).press('Enter')
+  await expect(cell(page, '0:2')).toHaveText('120')
+  await summary(page); await select(page, 'B80', '79:1')
+  await formula(page).fill('Revenue'); await formula(page).press('Enter')
+  await expect(cell(page, '79:1')).toHaveText('Revenue')
+  await page.getByRole('tab', { name: 'Sheet3', exact: true }).click()
+  await expect(cell(page, '0:0')).toHaveText('Revenue')
+  await expect(cell(page, '0:2')).toHaveText('120')
+  await select(page, 'A1', '0:0')
+  await expect(formula(page)).toHaveValue('=DemoTable[[#All],[Revenue]]')
+  await button(page, 'Undo').click(); await expect(cell(page, '0:0')).toHaveText('Amount')
+  await expect(formula(page)).toHaveValue('=DemoTable[[#All],[Amount]]')
+  await button(page, 'Redo').click(); await expect(cell(page, '0:0')).toHaveText('Revenue')
+  await expect(cell(page, '0:2')).toHaveText('120')
+})
+
+test('name manager locates a Table on another worksheet without adding history', async ({ page }) => {
+  await button(page, 'Name manager').click()
+  await expect(button(page, 'Go to table DemoTable')).toContainText('Summary!A80:B84')
+  await button(page, 'Go to table DemoTable').click()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(page.getByRole('tab', { name: 'Summary', exact: true })).toHaveAttribute('aria-selected', 'true')
+  await expect(cell(page, '79:0')).toBeVisible()
+  await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('A80:B84')
+  await expect(page.locator('[data-workbook-grid]')).toBeFocused()
+  await expect(button(page, 'Undo')).toBeDisabled()
+})
+
+for (const width of [1280, 390]) test(`column and location controls fit ${width}px`, async ({ page }, info) => {
+  const errors: string[] = []
+  page.on('pageerror', (error) => errors.push(error.message))
+  await page.setViewportSize({ width, height: 800 }); await summary(page)
+  const tableDialog = await open(page)
+  await page.getByLabel('Column', { exact: true }).selectOption('Amount')
+  await page.getByLabel('New column name', { exact: true }).fill('Net [tax] #@')
+  await button(page, 'Rename column').click()
+  await expect(page.getByLabel('Column', { exact: true })).toHaveValue('Net [tax] #@')
+  expect(await tableDialog.evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true)
+  await page.getByLabel('New column name', { exact: true }).scrollIntoViewIfNeeded()
+  await page.screenshot({ path: info.outputPath(`table-columns-${width}.png`) })
+  await close(page)
+  await select(page, 'B5', '4:1'); await expect(cell(page, '4:1')).toHaveText('60')
+  await button(page, 'Name manager').click()
+  const names = page.getByRole('dialog', { name: 'Name manager' })
+  await button(page, 'Go to table DemoTable').scrollIntoViewIfNeeded()
+  expect(await names.evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true)
+  const box = (await names.boundingBox())!
+  expect(box.x).toBeGreaterThanOrEqual(0); expect(box.x + box.width).toBeLessThanOrEqual(width)
+  await page.screenshot({ path: info.outputPath(`table-location-${width}.png`) })
+  await page.keyboard.press('Escape'); await expect(names).toHaveCount(0)
+  await expect(button(page, 'Name manager')).toBeFocused()
+  expect(errors).toEqual([])
+})

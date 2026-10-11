@@ -12,11 +12,9 @@ impl TableDefinitionChange {
         if before.has_totals == enabled {
             return Ok(None);
         }
-        // 最后一行不能直接减掉，否则会下溢或留下倒置的 Table 范围。
-        if !enabled && before.range.rows() == 1 {
-            return Err(TableError::TotalsRowBlocked);
-        }
-        let row = if enabled {
+        // 复用空表输入位置；关闭唯一汇总行时保留位置，避免下溢或占用相邻数据。
+        let reuse_row = if enabled { before.insert_row } else { before.range.rows() == 1 };
+        let row = if enabled && !reuse_row {
             before
                 .range
                 .end
@@ -34,7 +32,8 @@ impl TableDefinitionChange {
         validate_cells(workbook, sheet, range).map_err(|_| TableError::TotalsRowBlocked)?;
         let mut after = before.clone();
         after.has_totals = enabled;
-        after.range.end.row = if enabled { row } else { row - 1 };
+        if reuse_row { after.insert_row = !enabled; }
+        after.range.end.row = if enabled || reuse_row { row } else { row - 1 };
         let mut cells = Vec::new();
         if enabled {
             let mut occupied = false;

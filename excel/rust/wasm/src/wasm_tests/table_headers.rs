@@ -1,5 +1,34 @@
 // 真实 Table action 与 JSON 恢复共用原生表头事务，不依赖界面隐藏状态。
 #[test]
+fn empty_table_visibility_reuses_the_last_canvas_row_and_checks_invalid_bounds() {
+    for row in [0, 99, 1_048_575] {
+        let mut book = WasmWorkbook::new();
+        let range = CellRange::new(CellAddress::new(row, 0), CellAddress::new(row, 1));
+        book.workbook.define_table(Some("Orders"), 0, range, true).unwrap();
+        let action = |kind, enabled, count| serde_json::from_value(serde_json::json!({
+            "kind":kind, "name":"Orders", "enabled":enabled, "rowCount":count,
+        })).unwrap();
+        book.apply_table_action(0, action("header-row", false, row + 1)).unwrap();
+        let empty = serde_json::to_value(book.snapshot_persistence_v1_json()).unwrap();
+        for count in [0, row, 1_048_577] {
+            assert!(book.apply_table_action(0, action("totals-row", true, count)).is_err());
+            assert_eq!(serde_json::to_value(book.snapshot_persistence_v1_json()).unwrap(), empty);
+        }
+        book.apply_table_action(0, action("totals-row", true, row + 1)).unwrap();
+        assert_eq!(book.workbook.get_table("Orders").unwrap().range(), range);
+        assert!(!book.workbook.get_table("Orders").unwrap().has_insert_row());
+        book.history.undo(&mut book.workbook).unwrap();
+        assert_eq!(serde_json::to_value(book.snapshot_persistence_v1_json()).unwrap(), empty);
+        let mut restored = WasmWorkbook::new();
+        restored.restore_persistence_v1_json(serde_json::from_value(empty).unwrap()).unwrap();
+        restored.apply_table_action(0, action("header-row", true, row + 1)).unwrap();
+        assert_eq!(restored.workbook.get_table("Orders").unwrap().range(), range);
+        assert!(restored.workbook.get_table("Orders").unwrap().has_headers());
+        assert!(!restored.workbook.get_table("Orders").unwrap().has_insert_row());
+    }
+}
+
+#[test]
 fn table_headers_wire_history_and_persistence() {
     let mut book = workbook_with_inventory_table();
     book.workbook.set_formula(0, "E1", "=Inventory[#Headers]");

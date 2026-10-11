@@ -18,21 +18,23 @@ impl TableDefinitionChange {
         }
         if before.has_headers == enabled { return Ok(None); }
         let sheet = workbook.index_of(before.sheet_name()).ok_or("The worksheet no longer exists.")?;
-        if enabled && before.range.start.row == 0 {
+        // 零记录的输入位置可原地变成表头；隐藏唯一表头则保留该位置，不能吞入邻行。
+        let reuse_row = if enabled { before.insert_row } else { before.range.rows() == 1 };
+        if enabled && !reuse_row && before.range.start.row == 0 {
             return insert::prepare(workbook, sheet, before, row_count).map(Some);
         }
-        let row = if enabled {
+        let row = if enabled && !reuse_row {
             before.range.start.row.checked_sub(1).ok_or("There is no room above the table for headers.")?
         } else {
-            if before.range.rows() == 1 {
-                return Err("The table needs a data or totals row before its headers can be hidden.".into());
-            }
             before.range.start.row
         };
         let range = CellRange::new(CellAddress::new(row, before.range.start.col),
             CellAddress::new(row, before.range.end.col));
         let original = HistorySnapshot::capture(&workbook.sheets[sheet], range, true);
-        if enabled && (!original.cells.as_ref().unwrap().is_empty()
+        if enabled && reuse_row && !original.cells.as_ref().unwrap().is_empty() {
+            return Err("The table input row is not empty.".into());
+        }
+        if enabled && !reuse_row && (!original.cells.as_ref().unwrap().is_empty()
             || workbook.sheets[sheet].merged_ranges().iter().any(|merged| merged.intersects(range))
             || workbook.sheets[sheet].spill_intersecting(range).is_some()
             || workbook.tables.values().any(|entry| entry.name() != before.name()
@@ -42,7 +44,8 @@ impl TableDefinitionChange {
         validate_cells(workbook, sheet, range)?;
         let mut after = before.clone();
         after.has_headers = enabled;
-        after.range.start.row = if enabled { row } else { row + 1 };
+        if reuse_row { after.insert_row = !enabled; }
+        after.range.start.row = if enabled || reuse_row { row } else { row + 1 };
         let mut next = original.clone();
         next.cells = Some(if enabled {
             after.columns.iter().enumerate().map(|(offset, name)| CellSnapshot::value(

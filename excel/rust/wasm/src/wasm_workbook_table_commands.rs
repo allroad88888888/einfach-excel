@@ -130,7 +130,7 @@ impl WasmWorkbook {
                     && !table.has_totals()
                     && (row_count == 0
                         || row_count > 1_048_576
-                        || table.range().end.row + 1 >= row_count)
+                        || table.range().end.row + u32::from(!table.has_insert_row()) >= row_count)
                 {
                     return Err(
                         "The totals row is outside this worksheet. Make room below the table."

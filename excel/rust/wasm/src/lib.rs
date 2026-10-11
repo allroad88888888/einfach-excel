@@ -134,6 +134,7 @@ include!("wasm_workbook_history.rs");
 include!("wasm_workbook_structure.rs");
 include!("wasm_workbook_merge.rs");
 include!("wasm_workbook_freeze.rs");
+include!("wasm_workbook_outline.rs");
 include!("wasm_workbook_print_config.rs");
 include!("wasm_workbook_conditional_format.rs");
 include!("wasm_workbook_data_validation.rs");
@@ -149,6 +150,7 @@ include!("wasm_workbook_persistence_helpers.rs");
 include!("wasm_workbook_restore.rs");
 include!("wasm_merge_persistence.rs");
 include!("wasm_freeze_persistence.rs");
+include!("wasm_outline_persistence.rs");
 include!("wasm_data_validation_wire.rs");
 include!("wasm_data_validation_persistence.rs");
 
@@ -191,6 +193,7 @@ mod tests {
     include!("wasm_tests/conditional_format.rs");
     include!("wasm_tests/conditional_visuals.rs");
     include!("wasm_tests/data_validation_persistence.rs");
+    include!("wasm_tests/outline_persistence.rs");
     include!("wasm_tests/diagnostics.rs");
     include!("wasm_tests/history_topology.rs");
 }

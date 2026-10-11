@@ -20,6 +20,7 @@ struct StructuralSnapshot {
     tables: Vec<TableEntry>,
     merges: Vec<CellRange>,
     freeze: crate::FrozenPanes,
+    outline: crate::outline::SheetOutline,
     data_validations: Vec<crate::data_validation::DataValidationRegion>,
     conditional_formats: Vec<(usize, Vec<ConditionalFormatRuleEntry>)>,
 }
@@ -171,6 +172,7 @@ impl StructuralHistoryChange {
                     workbook.sheets[*index].restore_structure_content(&cells),
                 ));
             }
+            workbook.sheets[sheet].outline.clone_from(&snapshot.outline);
             workbook
                 .restore_sheet_visibility(sheet, &snapshot.visibility)
                 .expect("preflight checked workbook state");
@@ -241,6 +243,7 @@ impl StructuralSnapshot {
             visibility: workbook.sheet_visibility(sheet).unwrap(),
             merges: workbook.sheets[sheet].merged_ranges().to_vec(),
             freeze: workbook.sheets[sheet].frozen_panes(),
+            outline: workbook.sheets[sheet].outline.clone(),
             data_validations: workbook.sheets[sheet].data_validations.clone(),
             conditional_formats: rule_sheets
                 .iter()
@@ -266,6 +269,7 @@ impl StructuralSnapshot {
             + crate::sheet::metadata_bytes(&self.tables)
             + self.merges.len() * std::mem::size_of::<CellRange>()
             + std::mem::size_of::<crate::FrozenPanes>()
+            + crate::sheet::metadata_bytes(&self.outline)
             + crate::sheet::metadata_bytes(&self.conditional_formats)
             + crate::sheet::metadata_bytes(&self.data_validations)
     }

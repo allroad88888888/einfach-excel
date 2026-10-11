@@ -20,8 +20,14 @@ export function readMergeProjection(
   const mergedRanges: CellRange[] = []
   const mergeAnchors: DisplayCell[] = []
   const mergeBorderCells = new Map<string, DisplayCell>()
-  const hiddenRows = new Set([...visibility?.manualRows ?? [], ...visibility?.filterRows ?? []])
-  const hiddenColumns = new Set(visibility?.manualColumns ?? [])
+  const hiddenRows = new Set([
+    ...visibility?.manualRows ?? [],
+    ...visibility?.filterRows ?? [],
+    ...visibility?.outlineRows ?? [],
+  ])
+  const hiddenColumns = new Set([
+    ...visibility?.manualColumns ?? [], ...visibility?.outlineColumns ?? [],
+  ])
   for (let i = 0; i < coordinates.length; i += 4) {
     const [rowStart, colStart, rowEnd, colEnd] = Array.from(
       { length: 4 },

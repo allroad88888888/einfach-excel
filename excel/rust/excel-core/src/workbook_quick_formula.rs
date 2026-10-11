@@ -36,7 +36,9 @@ impl Workbook {
             }
             if sheet.hidden_row_set().contains(&target.row)
                 || sheet.filter_hidden_set().is_some_and(|rows| rows.contains(&target.row))
-                || sheet.hidden_columns().contains(&target.col) {
+                || sheet.hidden_columns().contains(&target.col)
+                || sheet.outline().is_hidden(crate::outline::OutlineAxis::Row, target.row)
+                || sheet.outline().is_hidden(crate::outline::OutlineAxis::Column, target.col) {
                 return Err("Unhide the result cell before inserting a quick formula.");
             }
             // 格式不算内容；空字符串和返回空值的公式仍是内容，不能自动覆盖。

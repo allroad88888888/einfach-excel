@@ -1,6 +1,9 @@
 /* Owns the shared workbook viewport and grid styling. */
 .worksheet-panel {
   position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
 }
 
 .grid-visibility-state {
@@ -35,6 +38,7 @@
 }
 
 .sheet-scroll {
+  grid-area: 2 / 2;
   width: 100%;
   height: 100%;
   overflow: auto;

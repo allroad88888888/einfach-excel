@@ -1,6 +1,7 @@
 import type { RustWorkbookSheet, RustWorkbookSheetInput } from './commands'
 import { importSheetSizes } from './size-io'
 import { importSheetVisibility } from './visibility-io'
+import { importSheetOutline } from './outline-io'
 import type { RustWasmModule, WasmWorkbook } from './wasm-types'
 
 /** WASM 加载后创建唯一工作簿，导入演示页提供的初始元数据。 */
@@ -14,6 +15,7 @@ export function initializeWorkbook(
   for (const input of inputs.slice(1)) workbook.add_sheet(input.name)
   inputs.forEach((input, index) => importSheetSizes(workbook, index, input))
   inputs.forEach((input, index) => importSheetVisibility(workbook, index, input))
+  inputs.forEach((input, index) => importSheetOutline(workbook, index, input))
   // 初始矩形只写 Rust；后续导入锚点内容，启动历史不暴露为用户操作。
   inputs.forEach((input, index) => {
     for (const { range, rule } of input.dataValidations ?? []) {

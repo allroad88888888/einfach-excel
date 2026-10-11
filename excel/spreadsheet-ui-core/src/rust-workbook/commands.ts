@@ -23,6 +23,8 @@ import type { RustRemoveDuplicatesCommands } from './remove-duplicates-commands'
 import type { RustQuickFormulaCommands } from './quick-formula-commands'
 import type { RustConditionalFormatCommands } from './conditional-format-commands'
 import type { RustDataValidationCommands } from './data-validation-commands'
+import type { RustOutlineCommands } from './outline-io'
+import type { NativeOutline } from '../outline/native-state'
 import type { NativeDataValidationRule } from '../data-validation/native-rule'
 import type { NativeConditionalFormatRule, ConditionalFormatScope } from '../conditional-formatting/types'
 import type { SelectionNumbers } from '../status-bar/types'
@@ -47,6 +49,7 @@ export interface RustWorkbookSheetInput {
   readonly hiddenColumns?: readonly number[]
   readonly mergedRanges?: readonly CellRange[]
   readonly freeze?: { readonly rows: number; readonly cols: number }
+  readonly outline?: NativeOutline
   readonly dataValidations?: readonly {
     readonly range: CellRange
     readonly rule: NativeDataValidationRule
@@ -131,7 +134,7 @@ export interface RustClearRangeRequest {
 export interface RustWorkbookCommands
   extends RustFindCommands, RustSortCommands, RustFilterCommands,
     RustTextColumnsCommands, RustRemoveDuplicatesCommands, RustQuickFormulaCommands,
-    RustConditionalFormatCommands, RustDataValidationCommands {
+    RustConditionalFormatCommands, RustDataValidationCommands, RustOutlineCommands {
   readonly 'format.preview': WorkerCommand<
     {
       readonly sheetId: string

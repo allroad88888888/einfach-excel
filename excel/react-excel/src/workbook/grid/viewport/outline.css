@@ -1,0 +1,47 @@
+/* 大纲条独立于画布，不占用 cell 的内容或边框。 */
+.outline-corner,
+.outline-gutter {
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+  min-height: 0;
+  background: var(--chrome);
+  color: var(--muted);
+}
+
+.outline-corner {
+  grid-area: 1 / 1;
+  display: flex;
+  align-items: end;
+}
+
+.outline-row { grid-area: 2 / 1; }
+.outline-column { grid-area: 1 / 2; }
+
+.outline-corner button,
+.outline-gutter button {
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  margin: 1px;
+  padding: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: 2px;
+  background: var(--surface);
+  color: inherit;
+  font-size: 11px;
+  line-height: 16px;
+  cursor: pointer;
+}
+
+.outline-gutter button:hover,
+.outline-corner button:hover { background: var(--selection-fill, #e5e9ff); }
+.outline-gutter button:focus-visible,
+.outline-corner button:focus-visible { outline: 2px solid var(--accent, #315eff); }
+.outline-gutter button:disabled,
+.outline-corner button:disabled { cursor: default; opacity: .5; }
+.outline-toggle { position: absolute; z-index: 1; }
+.outline-line { position: absolute; border-color: var(--border-strong); }
+.outline-row .outline-line { border-left: 1px solid; }
+.outline-column .outline-line { border-top: 1px solid; }
+.outline-column-levels { position: absolute; display: flex; flex-direction: column; z-index: 2; }

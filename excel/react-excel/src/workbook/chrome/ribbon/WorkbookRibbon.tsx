@@ -9,6 +9,7 @@ import { FormatPainterTools } from './FormatPainterTools'
 import { SelectionSizeTools } from './SelectionSizeTools'
 import { HistoryTools } from './HistoryTools'
 import { VisibilityTools } from './VisibilityTools'
+import { OutlineTools } from './OutlineTools'
 import { FillTools } from './FillTools'
 import { FillSeriesTools } from './FillSeriesTools'
 import { SortTools } from './SortTools'
@@ -92,6 +93,7 @@ export function WorkbookRibbon() {
         <TextColumnsTools />
         <RemoveDuplicatesTools />
         <VisibilityTools />
+        <OutlineTools />
         <StructureTools />
         <FreezeTools />
         <span className="tool-separator" aria-hidden="true" />

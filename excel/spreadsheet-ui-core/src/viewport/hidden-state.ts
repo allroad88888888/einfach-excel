@@ -1,8 +1,9 @@
 import { atom, type Getter, type Setter } from '@einfach/core'
 import type { ViewportFilterHiddenState } from './types'
+import { applyNativeOutlineProjection, validNativeOutline, type NativeOutlineProjection } from '../outline/native-state'
 
 /** 原生完整隐藏集合的投影；手动与筛选来源分开，不存单元格数据。 */
-export interface SheetVisibilityProjection {
+export interface SheetVisibilityProjection extends NativeOutlineProjection {
   readonly manualRows: readonly number[]
   readonly manualColumns: readonly number[]
   readonly filterRows: readonly number[]
@@ -18,17 +19,21 @@ viewportFilterHiddenBackingAtom.debugLabel = 'spreadsheet.viewport.filterHiddenB
 export function validSheetVisibility(value: unknown): value is SheetVisibilityProjection {
   if (typeof value !== 'object' || value === null) return false
   const source = value as SheetVisibilityProjection
+  if (source.outline !== undefined && !validNativeOutline(source.outline)) return false
   return (
     [
       ['manualRows', 1_048_576],
       ['manualColumns', 16_384],
       ['filterRows', 1_048_576],
+      ['outlineRows', 1_048_576],
+      ['outlineColumns', 16_384],
     ] as const
   ).every(
     ([key, bound]) =>
+      ((key === 'outlineRows' || key === 'outlineColumns') && source[key] === undefined) ||
       Array.isArray(source[key]) &&
-      source[key].length <= bound &&
-      source[key].every(
+      source[key]!.length <= bound &&
+      source[key]!.every(
         (index, at, list) =>
           Number.isSafeInteger(index) &&
           index >= 0 &&
@@ -46,6 +51,7 @@ export function applySheetVisibility(
   state: SheetVisibilityProjection,
 ): void {
   if (!validSheetVisibility(state)) throw new Error('Invalid Rust visibility projection.')
+  applyNativeOutlineProjection(get, set, sheetId, state)
   for (const [target, indices] of [
     [sheetHiddenRowsBackingAtom, state.manualRows],
     [viewportHiddenColsBackingAtom, state.manualColumns],

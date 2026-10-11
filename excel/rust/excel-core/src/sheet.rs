@@ -109,6 +109,8 @@ mod formula_state;
 mod freeze;
 #[path = "sheet_hidden_columns.rs"]
 mod hidden_columns;
+#[path = "sheet_outline.rs"]
+mod outline;
 #[path = "sheet_hidden_rows.rs"]
 mod hidden_rows;
 #[path = "sheet_history_budget.rs"]

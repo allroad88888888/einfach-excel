@@ -27,8 +27,10 @@ impl Workbook {
         let rows = axis == "row";
         let fallback = if rows { default_row } else { default_col };
         let hidden_rows: HashSet<_> = sheet.hidden_rows().into_iter()
-            .chain(sheet.filter_hidden_rows()).collect();
-        let hidden_cols: HashSet<_> = sheet.hidden_columns().into_iter().collect();
+            .chain(sheet.filter_hidden_rows())
+            .chain(sheet.outline().hidden_indices(crate::outline::OutlineAxis::Row)).collect();
+        let hidden_cols: HashSet<_> = sheet.hidden_columns().into_iter()
+            .chain(sheet.outline().hidden_indices(crate::outline::OutlineAxis::Column)).collect();
         let blocked = |index| sheet.merged_ranges().iter().any(|merge| {
             if rows {
                 merge.start.row != merge.end.row && index >= merge.start.row && index <= merge.end.row

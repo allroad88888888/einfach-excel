@@ -8,10 +8,9 @@ import {
 } from '../projection'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import { activeWorkbookSheetAtom } from '../runtime/workbook-document'
-import { selectionSnapshotAtom, selectCellAtom, selectionAuthorityWitnessAtom } from '../selection'
+import { selectionSnapshotAtom, selectionAuthorityWitnessAtom } from '../selection'
 import { sheetProtectionAtom, getSheetProtection } from '../protection'
-import { scrollToCellAtom } from '../viewport/metrics'
-import { viewportGeometrySizesAtom } from '../viewport/geometry-sizes'
+import { revealVisibleSelection } from '../viewport/reveal-visible-selection'
 import { validSheetVisibility } from '../viewport/hidden-state'
 import { validateProjectionResult } from '../projection/contracts'
 import { selectionStructureFeedbackAtom } from './selection-structure-state'
@@ -88,25 +87,7 @@ export const runSelectionVisibilityAtom = atom(
       })
       // 投影刷新会重建选区快照；只在用户实际改变选区时放弃位置修复。
       if (applied.status === 'applied' && get(selectionAuthorityWitnessAtom) === selectionAuthority) {
-        const geometry = get(viewportGeometrySizesAtom)
-        // 隐藏当前活动格后落到后一个可见行/列；末端则向前找，全隐藏时保留坐标供恢复。
-        const nextIndex = (
-          start: number,
-          count: number,
-          sizes: Record<string, number> | undefined,
-        ) => {
-          for (let index = start; index < count; index++) if (sizes?.[index] !== 0) return index
-          for (let index = start - 1; index >= 0; index--) if (sizes?.[index] !== 0) return index
-          return start
-        }
-        const current = selection.activeCell
-        const coord = {
-          row: nextIndex(current.row, sheet.rowCount, geometry.rowHeightsBySheet[sheet.id]),
-          col: nextIndex(current.col, sheet.colCount, geometry.colWidthsBySheet[sheet.id]),
-        }
-        if (coord.row !== current.row || coord.col !== current.col)
-          set(selectCellAtom, { sheetId: sheet.id, coord })
-        set(scrollToCellAtom, { coord })
+        revealVisibleSelection(get, set, sheet, selection.activeCell)
       }
       set(selectionVisibilityFeedbackAtom, { busy: false, error: null })
       return true

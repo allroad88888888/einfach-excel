@@ -16,6 +16,7 @@ import type { NativeRemoveDuplicatesRequest, RustRemoveDuplicatesPreview } from 
 import type { NativeQuickFormulaRequest, QuickFormulaSuggestion } from './quick-formula-commands'
 import type { ConditionalFormatChange, NativeConditionalFormats } from './conditional-format-commands'
 import type { NativeDataValidationRule } from '../data-validation/native-rule'
+import type { NativeOutlineAction } from '../outline/native-state'
 
 export interface RustCellSnapshot {
   readonly sheet: number
@@ -54,6 +55,7 @@ export interface RustFormatRangeSnapshot {
 }
 
 export interface WasmWorkbook {
+  change_outline?: (sheet: number, axis: 'row' | 'column', action: NativeOutlineAction) => boolean
   getDataValidation?: (sheet: number, row: number, col: number) => NativeDataValidationRule | null
   setDataValidation?: (sheet: number, rowStart: number, colStart: number,
     rowEnd: number, colEnd: number, rule: NativeDataValidationRule | null) => void

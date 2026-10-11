@@ -33,12 +33,14 @@ fn wasm_workbook_restore_persistence_v1_rejects_bad_size_without_mutating_workbo
         }],
         tables: vec![],
         hidden: vec![],
+        hidden_columns: vec![],
         filters: vec![],
         print_configs: vec![],
         conditional_formats: vec![],
         data_validations: vec![],
         merges: vec![],
         freeze: vec![],
+        outlines: vec![],
     };
 
     assert!(wb.restore_persistence_v1_json(payload).is_err());
@@ -60,12 +62,14 @@ fn wasm_workbook_restore_persistence_v1_rejects_unsupported_version() {
         sizes: vec![],
         tables: vec![],
         hidden: vec![],
+        hidden_columns: vec![],
         filters: vec![],
         print_configs: vec![],
         conditional_formats: vec![],
         data_validations: vec![],
         merges: vec![],
         freeze: vec![],
+        outlines: vec![],
     };
     assert!(wb.restore_persistence_v1_json(payload).is_err());
 }
@@ -93,12 +97,14 @@ fn wasm_workbook_restore_persistence_v1_accepts_default_sheet_name() {
         sizes: vec![],
         tables: vec![],
         hidden: vec![],
+        hidden_columns: vec![],
         filters: vec![],
         print_configs: vec![],
         conditional_formats: vec![],
         data_validations: vec![],
         merges: vec![],
         freeze: vec![],
+        outlines: vec![],
     };
 
     let stats = wb.restore_persistence_v1_json(payload).unwrap();
@@ -141,12 +147,14 @@ fn wasm_workbook_restore_persistence_v1_rejects_bad_format_without_mutating_work
         sizes: vec![],
         tables: vec![],
         hidden: vec![],
+        hidden_columns: vec![],
         filters: vec![],
         print_configs: vec![],
         conditional_formats: vec![],
         data_validations: vec![],
         merges: vec![],
         freeze: vec![],
+        outlines: vec![],
     };
 
     assert!(wb.restore_persistence_v1_json(payload).is_err());
@@ -170,12 +178,14 @@ fn wasm_workbook_restore_persistence_v1_resets_subscription_tokens() {
         sizes: vec![],
         tables: vec![],
         hidden: vec![],
+        hidden_columns: vec![],
         filters: vec![],
         print_configs: vec![],
         conditional_formats: vec![],
         data_validations: vec![],
         merges: vec![],
         freeze: vec![],
+        outlines: vec![],
     };
 
     let stats = wb.restore_persistence_v1_json(payload).unwrap();
@@ -218,12 +228,14 @@ fn persistence_v1_workload(n: u32) -> WorkbookPersistenceV1JSON {
         sizes: vec![],
         tables: vec![],
         hidden: vec![],
+        hidden_columns: vec![],
         filters: vec![],
         print_configs: vec![],
         conditional_formats: vec![],
         data_validations: vec![],
         merges: vec![],
         freeze: vec![],
+        outlines: vec![],
     }
 }
 

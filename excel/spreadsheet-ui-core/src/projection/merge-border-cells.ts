@@ -14,8 +14,11 @@ export function isCollapsedOutside(
 export function validMergeBorderCells(result: VisibleProjectionResult, maxCells: number): boolean {
   const rows = new Set([
     ...result.visibility?.manualRows ?? [], ...result.visibility?.filterRows ?? [],
+    ...result.visibility?.outlineRows ?? [],
   ])
-  const cols = new Set(result.visibility?.manualColumns ?? [])
+  const cols = new Set([
+    ...result.visibility?.manualColumns ?? [], ...result.visibility?.outlineColumns ?? [],
+  ])
   let count = 0
   for (const region of [result, ...result.frozen?.regions ?? []]) {
     const cells = region.mergeBorderCells

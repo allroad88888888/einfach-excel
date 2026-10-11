@@ -14,13 +14,18 @@ impl Workbook {
     }
 
     /// 两轴在同一批次恢复；只有手动行集合变化时才发布 SUBTOTAL 的原生依赖。
-    pub(crate) fn restore_sheet_visibility(
+    pub fn restore_sheet_visibility(
         &mut self,
         sheet_index: usize,
         state: &SheetVisibility,
     ) -> Result<(), &'static str> {
         if self.is_inside_custom_call() {
             return Err("Cannot change visibility during a custom call.");
+        }
+        if state.rows.iter().any(|&row| row >= crate::sheet::EXCEL_MAX_ROWS)
+            || state.columns.iter().any(|&col| col >= crate::sheet::EXCEL_MAX_COLS)
+        {
+            return Err("Visibility indices are outside the worksheet.");
         }
         let sheet = self
             .sheet_mut(sheet_index)
@@ -108,7 +113,8 @@ impl Workbook {
         let Some(sheet) = self.sheets.get(sheet_index) else {
             return;
         };
-        let manual: HashSet<u32> = sheet.hidden_row_set().iter().copied().collect();
+        let manual: HashSet<u32> = sheet.hidden_row_set().iter().copied()
+            .chain(sheet.outline.hidden_indices(crate::outline::OutlineAxis::Row)).collect();
         self.atom_context
             .publish_eval_hidden_rows(sheet_index, manual);
         let filtered: HashSet<u32> = sheet

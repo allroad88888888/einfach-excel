@@ -29,8 +29,9 @@ export function planFrozenProjection(
     request.viewport,
     Object.fromEntries(sizes.rowHeights.map(({ rowIndex, heightPx }) => [rowIndex, heightPx])),
     Object.fromEntries(sizes.colWidths.map(({ colIndex, widthPx }) => [colIndex, widthPx])),
-    new Set([...(visibility?.manualRows ?? []), ...(visibility?.filterRows ?? [])]),
-    new Set(visibility?.manualColumns ?? []),
+    new Set([...(visibility?.manualRows ?? []),
+      ...(visibility?.filterRows ?? []), ...(visibility?.outlineRows ?? [])]),
+    new Set([...(visibility?.manualColumns ?? []), ...(visibility?.outlineColumns ?? [])]),
     DEFAULT_MAX_PROJECTION_CELLS,
   )
 }

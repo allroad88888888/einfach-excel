@@ -14,6 +14,9 @@ use visibility::VisibilityChange;
 #[path = "workbook_history_freeze.rs"]
 mod freeze;
 use freeze::FreezeChange;
+#[path = "workbook_history_outline.rs"]
+mod outline;
+use outline::OutlineChange;
 #[path = "workbook_history_filter.rs"]
 mod filter;
 use filter::FilterChange;
@@ -68,6 +71,7 @@ enum HistoryChange {
     Sheet(Box<SheetHistoryChange>),
     Visibility(VisibilityChange),
     Freeze(FreezeChange),
+    Outline(OutlineChange),
     Filter(FilterChange),
     ConditionalFormat(ConditionalFormatChange),
     DataValidation(DataValidationChange),

@@ -1,3 +1,4 @@
+// 仅保留旧 backend 消费者；React 主线使用 native-command，分组与历史由 Rust 持有。
 import { atom, type Atom, type Getter, type Setter } from '@einfach/core'
 import type { BackendStructuralShift } from '../backend/types'
 import {

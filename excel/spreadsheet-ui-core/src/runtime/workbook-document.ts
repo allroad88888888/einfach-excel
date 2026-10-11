@@ -6,6 +6,7 @@ import { resetWorkspaceSessionAtom, workspaceSessionAtom } from '../workspace'
 import { DEFAULT_SHEET_TABS_STATE, sheetTabsAtom } from '../sheet-tabs/state'
 import type { RustWorkbookSheet } from '../rust-workbook/commands'
 import { viewportSizeOverridesAtom } from '../viewport/size-overrides'
+import { nativeOutlineProjectionBackingAtom } from '../outline/native-state'
 import { setViewportMetricsAtom, viewportMetricsAtom } from '../viewport/metrics'
 import {
   sheetHiddenRowsBackingAtom,
@@ -64,6 +65,7 @@ export const initializeWorkbookDocumentAtom = atom(
     const firstSheet = sheets[0]
     if (firstSheet === undefined) return
     set(sheetViewsBackingAtom, EMPTY_SHEET_VIEWS)
+    set(nativeOutlineProjectionBackingAtom, {})
     set(sheetHiddenRowsBackingAtom, {})
     set(viewportHiddenColsBackingAtom, {})
     set(viewportFilterHiddenBackingAtom, { rowsBySheet: {} })
@@ -126,6 +128,8 @@ export const publishWorkbookSheetStructureAtom = atom(
     set(setSheetTabsSheetsAtom, { sheets })
     // 删除的表不再保留投影尺寸；其它表以稳定 ID 存储，无需跟随索引重写。
     const ids = new Set(sheets.map((sheet) => sheet.id))
+    set(nativeOutlineProjectionBackingAtom, Object.fromEntries(
+      Object.entries(get(nativeOutlineProjectionBackingAtom)).filter(([id]) => ids.has(id))))
     const views = get(sheetViewsBackingAtom)
     set(sheetViewsBackingAtom, { ...views, views: Object.fromEntries(
       Object.entries(views.views).filter(([id]) => ids.has(id)),
@@ -163,6 +167,7 @@ export const syncWorkbookCanvasAtom = atom(null, (get, set): void => {
 
 /** Clears workbook metadata after its owned Rust runtime is disposed. */
 export const clearWorkbookDocumentAtom = atom(null, (_get, set): void => {
+  set(nativeOutlineProjectionBackingAtom, {})
   set(sheetViewsBackingAtom, EMPTY_SHEET_VIEWS)
   set(workbookDocumentBackingAtom, EMPTY_WORKBOOK_DOCUMENT)
   set(sheetTabsAtom, DEFAULT_SHEET_TABS_STATE)

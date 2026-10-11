@@ -13,6 +13,7 @@ import { findWorkbook, replaceWorkbook } from './find-io'
 import { initializeWorkbook } from './initialize-workbook'
 import { changeMerge } from './merge-io'
 import { changeFreeze } from './freeze-io'
+import { changeOutline } from './outline-io'
 import { editWorkbookSheet } from './sheet-edit'
 import { changeStructure } from './structure-io'
 import { writeImportedCellFormats } from './format-io'
@@ -219,6 +220,15 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       const result = changeFreeze(current, sheetsById.get(input.sheetId)!, input, revision)
       if (result.changed) revision += 1
       return result
+    }
+    if (command === 'outline.change') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      const index = sheetIndex(input.sheetId)
+      const changed = changeOutline(current, sheetsById.get(input.sheetId)!, input, revision)
+      if (changed) revision += 1
+      return {
+        changed, projection: readVisibleProjection(current, index, input.projection, revision),
+      }
     }
     if (command === 'range.merge') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']

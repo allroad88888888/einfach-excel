@@ -191,6 +191,8 @@ struct WorkbookPersistenceV1JSON {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     freeze: Vec<SheetFreezeJSON>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    outlines: Vec<SheetOutlineJSON>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     formats: Vec<FormatRangeSnapshotJSON>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     sizes: Vec<ViewportSizeSnapshotJSON>,
@@ -218,6 +220,8 @@ struct WorkbookPersistenceV1JSON {
     /// also closes an xlsx-parity gap: real workbooks persist hidden rows.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     hidden: Vec<SheetHiddenRowsJSON>,
+    #[serde(default, rename = "hiddenColumns", skip_serializing_if = "Vec::is_empty")]
+    hidden_columns: Vec<SheetHiddenColumnsJSON>,
     /// Per-sheet AutoFilter state — rules AND the rows they hid (E3 of
     /// `design-engine-hidden-rows.md`). Same `default` +
     /// `skip_serializing_if` backward-compatibility argument as `hidden`

@@ -27,6 +27,7 @@ import { useGridClipboard } from '../../clipboard/use-grid-clipboard'
 import { useWorkbookGridWindow } from './use-workbook-grid-window'
 import { GridHeaders } from './GridHeaders'
 import { FrozenGrid } from './FrozenGrid'
+import { OutlineGutters } from './OutlineGutters'
 import { FillHandle } from '../fill/FillHandle'
 import './grid.css'
 
@@ -140,6 +141,7 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
 
   return (
     <section className="worksheet-panel" aria-label={`${activeSheet.name} worksheet`}>
+      <OutlineGutters focusGrid={events.focusGrid} />
       {(sheetContentHeight === 0 || sheetContentWidth === 0) && (
         <div className="grid-visibility-state" role="status">
           All {sheetContentHeight === 0 ? 'rows' : 'columns'} are hidden. Use Hide / Unhide to

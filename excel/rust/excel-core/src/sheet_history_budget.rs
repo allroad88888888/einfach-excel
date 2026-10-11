@@ -60,6 +60,8 @@ impl Sheet {
             + metadata_bytes(&self.filter)
             + self.hidden_rows.len() * 32
             + self.hidden_columns.len() * 32
+            + (self.outline.rows.len() + self.outline.columns.len())
+                * std::mem::size_of::<crate::outline::OutlineGroup>()
             + self.merged_ranges.len() * std::mem::size_of::<CellRange>()
             + self.interior.col_widths.borrow().len() * 48
             + self.spill_target_anchor.len() * 64;

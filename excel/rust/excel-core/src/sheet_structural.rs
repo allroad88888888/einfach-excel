@@ -33,6 +33,14 @@ impl Sheet {
             return Ok(());
         }
         let first = limit - count;
+        let axis = if edit.is_row_edit() {
+            crate::outline::OutlineAxis::Row
+        } else {
+            crate::outline::OutlineAxis::Column
+        };
+        if self.outline.groups(axis).iter().any(|group| group.end >= first) {
+            return Err("The insertion would move an outline outside the worksheet.");
+        }
         if self.data_validations.iter().any(|entry| {
             let (start, end) = if edit.is_row_edit() {
                 (entry.range.start.row, entry.range.end.row)
@@ -181,6 +189,7 @@ impl Sheet {
             sheet.retarget_parked_sources(edit);
             sheet.shift_merges(edit);
             sheet.shift_frozen_panes(edit);
+            sheet.shift_outline(edit);
             sheet.shift_data_validations(edit);
             match edit {
                 crate::shift::ShiftEdit::RowInsert { at, count } => {

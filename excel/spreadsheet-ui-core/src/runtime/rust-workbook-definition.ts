@@ -1,5 +1,6 @@
 import type { RustImportCell, RustWorkbookSheetInput } from '../rust-workbook'
 import type { WorkerLike } from '../rust-worker'
+import { validNativeOutline } from '../outline/native-state'
 
 export interface RustWorkbookSheetDefinition extends RustWorkbookSheetInput {
   readonly id: string
@@ -49,6 +50,14 @@ export function snapshotRustWorkbookDefinition(
     }
     const hiddenRows = hidden(sheet.hiddenRows, sheet.rowCount)
     const hiddenColumns = hidden(sheet.hiddenColumns, sheet.colCount)
+    if (sheet.outline && (!validNativeOutline(sheet.outline) ||
+      sheet.outline.rows.some((group) => group.end >= sheet.rowCount) ||
+      sheet.outline.columns.some((group) => group.end >= sheet.colCount)))
+      throw new Error('Invalid initial outline range.')
+    const outline = sheet.outline ? Object.freeze({
+      rows: Object.freeze(sheet.outline.rows.map((group) => Object.freeze({ ...group }))),
+      columns: Object.freeze(sheet.outline.columns.map((group) => Object.freeze({ ...group }))),
+    }) : undefined
     const dataValidations = sheet.dataValidations?.map(({ range, rule }) => {
       if (![range.rowStart, range.rowEnd, range.colStart, range.colEnd].every(
         (n) => Number.isSafeInteger(n) && n >= 0) || range.rowStart > range.rowEnd ||
@@ -123,6 +132,7 @@ export function snapshotRustWorkbookDefinition(
       ...(colWidths ? { colWidths: Object.freeze(colWidths) } : {}),
       ...(hiddenRows ? { hiddenRows } : {}),
       ...(hiddenColumns ? { hiddenColumns } : {}),
+      ...(outline ? { outline } : {}),
       ...(mergedRanges ? { mergedRanges: Object.freeze(mergedRanges) } : {}),
       ...(freeze ? { freeze: Object.freeze({ ...freeze }) } : {}),
       ...(conditionalFormats ? { conditionalFormats: Object.freeze(conditionalFormats) } : {}),

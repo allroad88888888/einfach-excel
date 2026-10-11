@@ -11,8 +11,10 @@ import { activateWorkbookSheetAtom } from '../runtime/activate-workbook-sheet'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import { selectionSnapshotAtom } from '../selection'
 import { scrollToCellAtom } from '../viewport/metrics'
-import { rangeToA1 } from '../name-box'
+import { rangeToA1 } from '../name-box/address'
+import { nativeNamedRangesAtom, resolveNativeNamedRange } from '../named-ranges/native-catalog'
 import { parseGoToReference } from './reference-parser'
+import type { GoToParseResult } from './types'
 import {
   applyGoToTargetAtom, closeGoToAtom, goToHistoryAtom, goToInputAtom, goToOpenAtom,
   openGoToAtom, pushGoToHistoryAtom, setGoToErrorDetailsAtom, setGoToInputAtom,
@@ -55,11 +57,14 @@ export const runGoToReferenceAtom = atom(null, (get, set, action: GoToReferenceA
     return fail('This recent location is no longer available.')
   const active = get(activeWorkbookSheetAtom)!
   const sheets = get(workbookDocumentAtom).sheets
-  const parsed = parseGoToReference(recent ?? get(goToInputAtom), {
+  const input = recent ?? get(goToInputAtom)
+  const named = resolveNativeNamedRange(input, get(nativeNamedRangesAtom), sheets)
+  if (named === null) return fail('This named range no longer refers to an available worksheet range.')
+  const parsed: GoToParseResult = named ? { ok: true, target: named } : parseGoToReference(input, {
     activeSheetId: active.id, activeCell: get(selectionSnapshotAtom).activeCell,
     sheets, registry: [],
   })
-  if (!parsed.ok) return fail('Enter a valid A1 or R1C1 reference, optionally prefixed by a worksheet name.')
+  if (!parsed.ok) return fail('Enter a defined name or a valid A1 or R1C1 reference, optionally prefixed by a worksheet name.')
   const { target } = parsed
   const sheet = sheets.find((item) => item.id === target.sheetId)
   const range = target.range ?? (target.coord ? {

@@ -3,18 +3,12 @@ import { activeWorkbookSheetAtom, workbookDocumentAtom } from '../runtime/workbo
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import type { RustWorkbookConnection } from '../rust-workbook/commands'
 import { editingSessionAtom } from '../editing/session-atoms'
-import { rustHistoryPanelAtom } from '../history/rust-history-command'
-import { sheetTabsAtom } from '../sheet-tabs/state'
-import { getSheetProtection, sheetProtectionAtom } from '../protection'
 import { selectionRegionsAtom, selectionSnapshotAtom } from '../selection'
-import { parseA1Cell, parseA1Range, rangeToA1 } from '../name-box'
-import {
-  applyVisibleProjectionAtom, createVisibleProjectionRequest,
-  issueProjectionRequestIdAtom, projectionSnapshotAtom,
-} from '../projection'
-import { validateProjectionResult } from '../projection/contracts'
+import { parseA1Cell, parseA1Range, rangeToA1 } from '../name-box/address'
+import { projectionSnapshotAtom } from '../projection'
+import { changeNativeNamedRangeAtom, nativeNameChangeBusyAtom } from './native-command'
 import type { ProjectionRevision } from '../backend'
-import type { NamedRangeChange, NativeNamedRange } from './native-types'
+import type { NamedRangeChange } from './native-types'
 
 interface Draft { name: string; targetSheetId: string; range: string }
 interface Panel extends Draft {
@@ -22,24 +16,18 @@ interface Panel extends Draft {
   connection: RustWorkbookConnection | null
   revision?: ProjectionRevision
   editingName: string | null
-  busy: boolean
   error: string
 }
 const CLOSED: Panel = { ownerSheetId: null, connection: null, editingName: null,
-  name: '', targetSheetId: '', range: '', busy: false, error: '' }
-const EMPTY: readonly NativeNamedRange[] = Object.freeze([])
-
-/** 已提交目录直接读同一次投影，不建本地注册表或第二套撤销。 */
-export const nativeNamedRangesAtom = atom((get): readonly NativeNamedRange[] => {
-  if (!get(activeWorkbookSheetAtom)) return EMPTY
-  const result = get(projectionSnapshotAtom).result
-  return result?.kind === 'visible-window' ? result.namedRanges ?? EMPTY : EMPTY
-})
+  name: '', targetSheetId: '', range: '', error: '' }
 /** 只保存面板草稿与用户可见的忙碌/错误状态。 */
-export const nativeNameManagerAtom = atom<Panel>(CLOSED)
+const draftAtom = atom<Panel>(CLOSED)
+export const nativeNameManagerAtom = atom((get) => ({
+  ...get(draftAtom), busy: get(nativeNameChangeBusyAtom),
+}))
 /** 工作簿切换后隐藏旧草稿；视图无需接触 Rust connection。 */
 export const nativeNameManagerOpenAtom = atom((get) => {
-  const state = get(nativeNameManagerAtom)
+  const state = get(draftAtom)
   const sheet = get(activeWorkbookSheetAtom)
   return Boolean(sheet && state.ownerSheetId === sheet.id &&
     state.connection === get(rustWorkbookConnectionAtom))
@@ -48,9 +36,9 @@ export const nativeNameManagerOpenAtom = atom((get) => {
 export const runNativeNameManagerAtom = atom(null, async (get, set,
   action: 'open' | 'close' | 'new' | 'save' | 'delete' | { edit: string } | Partial<Draft>,
 ): Promise<boolean> => {
-  const state = get(nativeNameManagerAtom)
-  if (state.busy) return false
-  if (action === 'close') { set(nativeNameManagerAtom, CLOSED); return true }
+  const state = get(draftAtom)
+  if (get(nativeNameChangeBusyAtom)) return false
+  if (action === 'close') { set(draftAtom, CLOSED); return true }
   const sheet = get(activeWorkbookSheetAtom)
   const connection = get(rustWorkbookConnectionAtom)
   if (!sheet || !connection) return false
@@ -58,7 +46,7 @@ export const runNativeNameManagerAtom = atom(null, async (get, set,
   const visible = witness.request
   const result = witness.result
   const fail = (error: string) => {
-    set(nativeNameManagerAtom, { ...get(nativeNameManagerAtom), busy: false, error })
+    set(draftAtom, { ...get(draftAtom), error })
     return false
   }
   if (witness.status !== 'ready' || visible?.kind !== 'visible-window' ||
@@ -69,7 +57,7 @@ export const runNativeNameManagerAtom = atom(null, async (get, set,
   if (action === 'open' || action === 'new') {
     if (get(editingSessionAtom).source) return false
     const selection = get(selectionSnapshotAtom)
-    set(nativeNameManagerAtom, { ...CLOSED, ownerSheetId: sheet.id, connection,
+    set(draftAtom, { ...CLOSED, ownerSheetId: sheet.id, connection,
       targetSheetId: sheet.id, revision: result.revision,
       range: get(selectionRegionsAtom).length === 1 ? rangeToA1(selection.range) : '' })
     return true
@@ -82,21 +70,13 @@ export const runNativeNameManagerAtom = atom(null, async (get, set,
       const targetSheet = get(workbookDocumentAtom).sheets
         .find((s) => s.index === entry.target?.sheet)
       const bounds = entry.target?.range
-      set(nativeNameManagerAtom, { ...state, name: entry.name, editingName: entry.name,
+      set(draftAtom, { ...state, name: entry.name, editingName: entry.name,
         revision: result.revision, targetSheetId: targetSheet?.id ?? sheet.id, error: '',
         range: bounds ? rangeToA1({ rowStart: bounds[0], colStart: bounds[1],
           rowEnd: bounds[2], colEnd: bounds[3] }) : '#REF!' })
-    } else set(nativeNameManagerAtom, { ...state, ...action, error: '' })
+    } else set(draftAtom, { ...state, ...action, error: '' })
     return true
   }
-  if (get(editingSessionAtom).source || get(rustHistoryPanelAtom).busy ||
-    get(sheetTabsAtom).mutation)
-    return fail('Finish the current edit or history operation first.')
-  if (get(workbookDocumentAtom).sheets.some((s) =>
-    getSheetProtection(get(sheetProtectionAtom), s.id).mode === 'protected'))
-    return fail('Unprotect the worksheets before changing workbook names.')
-  if (state.revision !== result.revision)
-    return fail('The workbook changed. Reopen the name editor.')
   let change: NamedRangeChange
   if (action === 'delete') {
     if (!state.editingName) return fail('Choose a named range to delete.')
@@ -121,37 +101,21 @@ export const runNativeNameManagerAtom = atom(null, async (get, set,
         : { kind: 'create', name, target }
     }
   }
-  const requestId = set(issueProjectionRequestIdAtom)
-  if (requestId === null) return false
-  const projection = createVisibleProjectionRequest({ sheetId: sheet.id, requestId,
-    window: visible.window, viewport: visible.viewport, reason: 'toolbar' })
-  const pending = { ...state, busy: true, error: '' }
-  set(nativeNameManagerAtom, pending)
   try {
-    const response = connection.request('namedRange.change', {
-      sheetId: sheet.id, action: change, revision: result.revision, projection,
+    const changed = await set(changeNativeNamedRangeAtom, {
+      action: change, revision: state.revision,
     })
-    await Promise.resolve()
-    set(nativeNameManagerAtom, pending)
-    const reply = await response
-    if (get(rustWorkbookConnectionAtom) !== connection ||
-      get(activeWorkbookSheetAtom)?.id !== sheet.id)
+    if (get(draftAtom) !== state) return false
+    if (!changed) {
+      if (get(rustWorkbookConnectionAtom) !== connection ||
+        get(activeWorkbookSheetAtom)?.id !== sheet.id)
+        set(draftAtom, CLOSED)
       return false
-    if (!validateProjectionResult(reply.projection, { request: projection }).ok ||
-      reply.projection.namedRanges === undefined)
-      throw new Error('Rust returned a mismatched named-range result.')
-    const applied = set(applyVisibleProjectionAtom, {
-      witness, request: projection, result: reply.projection,
-    })
-    if (applied.status !== 'applied') return fail('The view changed. Reopen the name editor.')
-    set(nativeNameManagerAtom, CLOSED)
+    }
+    set(draftAtom, CLOSED)
     return true
   } catch (error) {
-    if (get(rustWorkbookConnectionAtom) !== connection ||
-      get(activeWorkbookSheetAtom)?.id !== sheet.id)
-      return false
+    if (get(draftAtom) !== state) return false
     return fail(error instanceof Error ? error.message : String(error))
-  } finally {
-    if (get(nativeNameManagerAtom) === pending) set(nativeNameManagerAtom, CLOSED)
   }
 })

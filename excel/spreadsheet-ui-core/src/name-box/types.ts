@@ -1,5 +1,4 @@
 import type { CellCoord, CellRange } from '../shared'
-import type { NamedRangeControllerPort } from '../named-ranges'
 
 export type NameBoxMode = 'idle' | 'typing' | 'committing'
 
@@ -49,8 +48,6 @@ export interface NameBoxCommitInput {
   input: string
   /** Override sheetId when the box is bound to a non-active sheet. Optional. */
   sheetId?: string
-  /** Workbook port used only when a new workbook-scoped range name is defined. */
-  source?: NamedRangeControllerPort
   /** Guards DOM events from a previous focus/edit session. */
   sessionId?: number
 }

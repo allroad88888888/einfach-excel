@@ -1,7 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, test, vi } from 'vitest'
 import { createStore } from '@einfach/core'
-import { commitNameBoxAtom } from '../src/name-box'
 import { repositoryPath } from './support/repository-path'
 import {
   closeNameManagerAtom,
@@ -314,7 +313,7 @@ describe('NR-C0 capability and shared mutation lane', () => {
     expect(unavailableSet).not.toHaveBeenCalled()
   })
 
-  test('C01/C04 synchronously reserves one lane for Manager and NameBox duplicate intents', async () => {
+  test('C01/C04 synchronously reserves one lane for legacy Manager duplicate intents', async () => {
     const store = createStore()
     const transport = deferred<NamedRangeMutationResult>()
     const setNamedRange = vi.fn((_request: SetNamedRangeRequest) => transport.promise)
@@ -343,13 +342,8 @@ describe('NR-C0 capability and shared mutation lane', () => {
     expect(store.getter(namedRangeOperationAttemptLedgerAtom)).toHaveLength(1)
     expect(setNamedRange).not.toHaveBeenCalled()
 
-    const nameBoxTarget = store.setter(commitNameBoxAtom, {
-      source,
-      input: 'NameBoxName',
-    })
     store.setter(saveNameManagerAtom, { source, activeSheetId: 'sheet-1' })
 
-    expect(nameBoxTarget).toMatchObject({ kind: 'define-name', name: 'NameBoxName' })
     expect(store.getter(namedRangeMutationStateAtom)).toBe(reservedState)
     expect(store.getter(namedRangeOperationAttemptLedgerAtom)).toHaveLength(1)
     expect(setNamedRange).not.toHaveBeenCalled()
@@ -1521,6 +1515,9 @@ describe('NR-C0 static controller boundaries', () => {
     'excel/spreadsheet-ui-core/src/named-ranges/types.ts',
     'excel/spreadsheet-ui-core/src/name-box/index.ts',
     'excel/spreadsheet-ui-core/src/name-box/types.ts',
+    'excel/spreadsheet-ui-core/src/name-box/state.ts',
+    'excel/spreadsheet-ui-core/src/name-box/command.ts',
+    'excel/spreadsheet-ui-core/src/named-ranges/native-command.ts',
   ]
 
   test('C15 keeps NameBox and Manager product state in @einfach/core without global controllers', () => {
@@ -1540,13 +1537,9 @@ describe('NR-C0 static controller boundaries', () => {
     )
   })
 
-  test('C15 keeps transport writers synchronous and returns no transport Promise', () => {
+  test('C15 keeps legacy static-port transport writers synchronous', () => {
     const namedRangesSource = readFileSync(
       repositoryPath('excel/spreadsheet-ui-core/src/named-ranges/index.ts'),
-      'utf8',
-    )
-    const nameBoxSource = readFileSync(
-      repositoryPath('excel/spreadsheet-ui-core/src/name-box/index.ts'),
       'utf8',
     )
     const writers = [
@@ -1554,7 +1547,6 @@ describe('NR-C0 static controller boundaries', () => {
       [namedRangesSource, 'refreshNamedRangeRegistryAtom'],
       [namedRangesSource, 'runNamedRangeMutationAtom'],
       [namedRangesSource, 'settleNamedRangeMutationAtom'],
-      [nameBoxSource, 'commitNameBoxAtom'],
     ] as const
 
     for (const [source, name] of writers) {

@@ -1,4 +1,4 @@
-import { parseA1Cell, parseA1Range, findNamedRange } from '../name-box'
+import { parseA1Cell, parseA1Range } from '../name-box/address'
 import type { NamedRange } from '../named-ranges'
 import { EXCEL_MAX_COLS, EXCEL_MAX_ROWS } from '../selection'
 import type { CellCoord, CellRange } from '../shared'
@@ -217,3 +217,22 @@ function isR1C1IndexInBounds(index: number, maxCount: number): boolean {
 }
 
 export type { GoToParseReason }
+function findNamedRange(
+  registry: readonly NamedRange[],
+  name: string,
+  currentSheetId?: string,
+): NamedRange | undefined {
+  const lookup = name.trim()
+  if (lookup.length === 0) return undefined
+  const lower = lookup.toLowerCase()
+  const matches = registry.filter((entry) => entry.name.toLowerCase() === lower)
+  if (currentSheetId !== undefined) {
+    const currentSheetMatch = matches.find(
+      (entry) => entry.scope !== 'workbook' && entry.scope.sheetId === currentSheetId,
+    )
+    if (currentSheetMatch) return currentSheetMatch
+    return matches.find((entry) => entry.scope === 'workbook')
+  }
+  // Legacy callers without sheet context retain their prior first-match behavior.
+  return matches[0]
+}

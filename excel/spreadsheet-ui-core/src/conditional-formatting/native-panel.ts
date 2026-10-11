@@ -1,7 +1,7 @@
 import { atom } from '@einfach/core'
 import type { CellValueRule, FormulaRule, TopBottomRule, ColorScaleRule, DataBarRule, NativeConditionalFormatRule } from './types'
 import { editingSessionAtom } from '../editing/session-atoms'
-import { parseA1Cell, parseA1Range, rangeToA1 } from '../name-box'
+import { parseA1Cell, parseA1Range, rangeToA1 } from '../name-box/address'
 import { activeWorkbookSheetAtom } from '../runtime/workbook-document'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import type { RustWorkbookConnection } from '../rust-workbook'

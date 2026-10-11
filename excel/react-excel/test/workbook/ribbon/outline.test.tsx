@@ -1,6 +1,8 @@
 import {
   createSpreadsheetUi,
+  beginProjectionAtom,
   initializeWorkbookDocumentAtom,
+  resolveProjectionAtom,
   runVisibleProjectionAtom,
   selectCellAtom,
   setViewportMetricsAtom,
@@ -113,6 +115,34 @@ test('edge buttons expose expanded state and row/column level commands with grid
     axis: 'column',
     action: { kind: 'show-level', level: 2 },
   })
+})
+
+test('viewport reload disables the menu like the gutters until the returned projection is ready', async () => {
+  const { store, change } = await setup()
+  let pending!: ReturnType<typeof beginProjectionAtom.write>
+  act(() => {
+    pending = store.setter(beginProjectionAtom, {
+      kind: 'visible-window', sheetId: 's', reason: 'viewport',
+      window: { rowStart: 0, rowEnd: 8, colStart: 0, colEnd: 7 },
+    })
+  })
+  // 新增大纲边缘会改变视口尺寸；保留旧格子不代表可以再次修改大纲。
+  expect(menu()).toBeDisabled()
+  expect(screen.getByRole('button', { name: 'Collapse rows 2–4, level 1' })).toBeDisabled()
+  expect(change).not.toHaveBeenCalled()
+  if (pending.status !== 'started' || pending.request.kind !== 'visible-window')
+    throw new Error('Expected a visible projection request')
+  const request = pending.request
+  act(() => {
+    store.setter(resolveProjectionAtom, { request, result: {
+      ...request, cells: [], revision: 2,
+      visibility: { manualRows: [], manualColumns: [], filterRows: [], outline },
+    } })
+  })
+  expect(menu()).toBeEnabled()
+  await choose('collapse-rows')
+  expect(change).toHaveBeenCalledTimes(1)
+  expect(screen.queryByRole('alert')).toBeNull()
 })
 
 test('failure is visible, protected sheets do not mutate, pending work disables all outline controls', async () => {

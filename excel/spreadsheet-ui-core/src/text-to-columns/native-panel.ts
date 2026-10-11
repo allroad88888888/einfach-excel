@@ -1,6 +1,6 @@
 import { atom } from '@einfach/core'
 import { toA1 } from '../backend'
-import { parseA1Cell } from '../name-box'
+import { parseA1Cell } from '../name-box/address'
 import { editingSessionAtom } from '../editing/session-atoms'
 import { resolveContentMutationAtom } from '../editing/mutation-gateway'
 import {

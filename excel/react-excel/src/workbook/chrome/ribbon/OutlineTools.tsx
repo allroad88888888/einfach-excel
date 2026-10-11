@@ -2,6 +2,7 @@ import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   editingSessionAtom,
   nativeOutlineFeedbackAtom,
+  projectionSnapshotAtom,
   runNativeOutlineAtom,
 } from '@einfach/spreadsheet-ui-core'
 
@@ -21,13 +22,14 @@ export function OutlineTools() {
   const run = useSetAtom(runNativeOutlineAtom)
   const feedback = useAtomValue(nativeOutlineFeedbackAtom)
   const editing = useAtomValue(editingSessionAtom).source !== null
+  const projection = useAtomValue(projectionSnapshotAtom)
   return (
     <>
       <select
         aria-label="Outline groups"
         className="paste-options-select"
         value=""
-        disabled={editing || feedback.busy}
+        disabled={editing || feedback.busy || projection.status !== 'ready'}
         onChange={(event) => {
           const option = OPTIONS.find(([value]) => value === event.currentTarget.value)
           if (!option) return

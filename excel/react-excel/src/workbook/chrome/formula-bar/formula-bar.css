@@ -10,6 +10,28 @@
   font-size: 12px;
 }
 
+.name-box-control {
+  position: relative;
+  display: flex;
+  flex: none;
+}
+
+.name-box-feedback {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 4px);
+  left: 0;
+  width: max-content;
+  max-width: min(300px, 70vw);
+  padding: 6px 8px;
+  color: #a52334;
+  background: var(--surface);
+  border: 1px solid #c72f42;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: normal;
+}
+
 .name-box {
   width: 86px;
   height: 27px;

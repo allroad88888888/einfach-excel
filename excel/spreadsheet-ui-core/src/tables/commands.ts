@@ -2,7 +2,7 @@ import { atom } from '@einfach/core'
 import type { Atom } from '@einfach/core'
 import { nextHistoryTransactionId, pushHistoryAtom } from '../history'
 import type { HistoryEntry, HistoryEntryRecorder, HistoryRecordResult } from '../history'
-import { parseA1Cell, parseA1Range } from '../name-box'
+import { parseA1Cell, parseA1Range } from '../name-box/address'
 import type { CellCoord, CellRange } from '../shared'
 import type {
   CreateTableResult,

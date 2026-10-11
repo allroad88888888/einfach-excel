@@ -1,385 +1,148 @@
-import { describe, expect, test, vi } from 'vitest'
-import { createStore } from '@einfach/core'
+import { expect, test } from 'vitest'
 import {
-  blurNameBoxAtom,
-  classifyNameBoxInput,
-  commitNameBoxAtom,
-  findNamedRange,
-  focusNameBoxAtom,
-  isValidName,
-  nameBoxDisplayAtom,
-  nameBoxStateAtom,
-  parseA1Cell,
-  parseA1Range,
-  revertNameBoxAtom,
-  updateNameBoxInputAtom,
-} from '../src/name-box'
-import {
-  loadNamedRangeCapabilitiesAtom,
-  nameRegistryCacheAtom,
-  namedRangeMutationStateAtom,
-  namedRangeOperationAttemptLedgerAtom,
-  type NamedRange,
-  type NamedRangeBackendCapabilities,
-  type NamedRangeControllerPort,
-  type NamedRangeMutationResult,
-  type SetNamedRangeRequest,
-} from '../src/named-ranges'
-import { selectionSnapshotAtom, setSelectionAtom } from '../src/selection'
+  blurNameBoxAtom, commitNameBoxAtom, focusNameBoxAtom, nameBoxDisplayAtom, nameBoxStateAtom,
+  parseA1Cell, parseA1Range, revertNameBoxAtom, updateNameBoxInputAtom,
+  nativeNameChangeBusyAtom, nativeNamedRangesAtom, runNativeNameManagerAtom,
+  selectionSnapshotAtom, setSelectionAtom, setRustWorkbookConnectionAtom,
+  startEditingAtom, editingSessionAtom,
+  type RustWorkbookConnection,
+} from '../src'
+import { names, setup } from './native-name-test-fixture'
 
-const RANGE = { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 0 }
+test('A1 parsing keeps Excel bounds and normalizes reversed ranges', () => {
+  expect(parseA1Cell('XFD1048576')).toEqual({ row: 1_048_575, col: 16_383 })
+  for (const value of ['A0', 'XFE1', 'A1048577']) expect(parseA1Cell(value)).toBeNull()
+  expect(parseA1Range('D5:B2')).toEqual({ rowStart: 1, rowEnd: 4, colStart: 1, colEnd: 3 })
+})
 
-const CAPABILITIES: NamedRangeBackendCapabilities = {
-  runtime: 'static-session',
-  scopes: ['workbook', 'sheet'],
-  bindings: { range: true, constant: true, lambda: true },
-  delete: true,
-  rangeSemantics: 'stored-definition',
-  listAuthority: 'static-session-registry',
-  definitionReadback: 'full',
-  namesWitness: true,
-  mutationAck: 'session-registry-accepted',
-  durability: 'session-local',
-}
+test('display derives an exact match from native names and falls back to the range address', () => {
+  const { store } = setup([{ name: 'Units', target: { sheet: 0, range: [1, 4, 3, 4] } }])
+  store.setter(setSelectionAtom, { sheetId: 'orders', kind: 'range',
+    anchor: { row: 1, col: 4 }, focus: { row: 3, col: 4 } })
+  expect(store.getter(nameBoxDisplayAtom)).toBe('Units')
+  store.setter(commitNameBoxAtom, { input: 'B2:C3' })
+  expect(store.getter(nameBoxDisplayAtom)).toBe('B2:C3')
+})
 
-async function flushMicrotasks(): Promise<void> {
-  for (let index = 0; index < 8; index += 1) {
-    await Promise.resolve()
-  }
-}
+test('out-of-canvas addresses fail without moving selection or writing a name', () => {
+  const { store, request } = setup()
+  const before = store.getter(selectionSnapshotAtom)
+  expect(store.setter(commitNameBoxAtom, { input: 'AA1002' })).toMatchObject({ kind: 'invalid' })
+  expect(store.getter(selectionSnapshotAtom)).toEqual(before)
+  expect(request).not.toHaveBeenCalled()
+})
 
-describe('NameBox A1 parsing', () => {
-  test('accepts the last Excel cell and rejects addresses outside the grid', () => {
-    expect(parseA1Cell('XFD1048576')).toEqual({ row: 1_048_575, col: 16_383 })
-    expect(parseA1Cell('A0')).toBeNull()
-    expect(parseA1Cell('XFE1')).toBeNull()
-    expect(parseA1Cell('A1048577')).toBeNull()
+test('address navigation preserves a captured edit source; name creation still rejects editing conflicts', async () => {
+  const { store, request } = setup()
+  store.setter(startEditingAtom, {
+    sheetId: 'orders', cell: { row: 0, col: 0 }, source: 'formula-bar', draft: '42',
   })
+  const editing = store.getter(editingSessionAtom)
+  expect(store.setter(commitNameBoxAtom, { input: 'B2' })).toMatchObject({ kind: 'cell' })
+  expect(store.getter(selectionSnapshotAtom).activeCell).toMatchObject({ row: 1, col: 1 })
+  expect(store.getter(editingSessionAtom)).toEqual(editing)
+  expect(await store.setter(commitNameBoxAtom, { input: 'NewName' })).toMatchObject({ kind: 'invalid' })
+  expect(store.getter(nameBoxStateAtom).errorMessage).toContain('Finish')
+  expect(request).not.toHaveBeenCalled()
+})
 
-  test('normalizes a reversed range', () => {
-    expect(parseA1Range('D5:B2')).toEqual({
-      rowStart: 1,
-      rowEnd: 4,
-      colStart: 1,
-      colEnd: 3,
-    })
-  })
+test('empty input is correctable without a request; Escape restores the canonical address', () => {
+  const { store, request } = setup()
+  const sessionId = store.setter(focusNameBoxAtom)
+  expect(store.setter(commitNameBoxAtom, { input: '', sessionId })).toMatchObject({ kind: 'invalid' })
+  expect(store.getter(nameBoxStateAtom)).toMatchObject({ input: '', error: true, mode: 'typing' })
+  store.setter(revertNameBoxAtom, { sessionId })
+  expect(store.getter(nameBoxStateAtom)).toMatchObject({ input: 'A1', error: false, mode: 'idle' })
+  expect(request).not.toHaveBeenCalled()
+})
 
-  test('accepts a 255-character name and rejects a 256-character name', () => {
-    const maxLengthName = `N${'a'.repeat(254)}`
-    const overLengthName = `${maxLengthName}a`
-    const context = { sheetId: 'sheet-1', selectionRange: RANGE }
-
-    expect(isValidName(maxLengthName)).toBe(true)
-    expect(classifyNameBoxInput(maxLengthName, [], context)).toMatchObject({
-      kind: 'define-name',
-      name: maxLengthName,
-    })
-    expect(isValidName(overLengthName)).toBe(false)
-    expect(classifyNameBoxInput(overLengthName, [], context)).toEqual({
-      kind: 'invalid',
-      reason: 'unrecognized',
-    })
+test('events from an older focus session cannot replace a newer draft', () => {
+  const { store } = setup()
+  const old = store.setter(focusNameBoxAtom)
+  const current = store.setter(focusNameBoxAtom)
+  store.setter(updateNameBoxInputAtom, { sessionId: current, input: 'CurrentDraft' })
+  expect(store.setter(updateNameBoxInputAtom, { sessionId: old, input: 'Stale' })).toBe(false)
+  expect(store.setter(revertNameBoxAtom, { sessionId: old })).toBe(false)
+  expect(store.setter(blurNameBoxAtom, { sessionId: old })).toBe(false)
+  expect(store.setter(commitNameBoxAtom, { sessionId: old, input: 'Stale' }))
+    .toEqual({ kind: 'invalid', reason: 'stale-session' })
+  expect(store.getter(nameBoxStateAtom)).toMatchObject({
+    input: 'CurrentDraft', focused: true, mode: 'typing', sessionId: current,
   })
 })
 
-describe('NameBox named-range resolution', () => {
-  const registry: NamedRange[] = [
-    {
-      name: 'Rate',
-      scope: 'workbook',
-      refersTo: { kind: 'range', sheetId: 'workbook-target', address: 'A1' },
-    },
-    {
-      name: 'Rate',
-      scope: { sheetId: 'sheet-1' },
-      refersTo: { kind: 'range', sheetId: 'sheet-1', address: 'B2:C3' },
-    },
-    {
-      name: 'Rate',
-      scope: { sheetId: 'sheet-2' },
-      refersTo: { kind: 'range', sheetId: 'sheet-2', address: 'D4' },
-    },
-  ]
-
-  test('prefers current-sheet scope, falls back to workbook, and excludes other sheets', () => {
-    expect(findNamedRange(registry, 'rate', 'sheet-1')?.scope).toEqual({
-      sheetId: 'sheet-1',
-    })
-    expect(findNamedRange(registry, 'RATE', 'sheet-3')?.scope).toBe('workbook')
-
-    const otherSheetOnly = registry.filter((entry) => entry.scope !== 'workbook')
-    const target = classifyNameBoxInput('Rate', otherSheetOnly, {
-      sheetId: 'sheet-3',
-      selectionRange: RANGE,
-    })
-    expect(target.kind).toBe('define-name')
+test.each(['!!invalid', 'N'.repeat(256)])('Rust rejects %s and preserves the draft for retry', async (name) => {
+  const { store, request } = setup()
+  request.mockRejectedValueOnce(new Error('Invalid name'))
+  const sessionId = store.setter(focusNameBoxAtom)
+  expect(await store.setter(commitNameBoxAtom, { input: name, sessionId })).toMatchObject({ kind: 'invalid' })
+  expect(request.mock.calls[0][1].action).toMatchObject({ kind: 'create', name })
+  expect(store.getter(nameBoxStateAtom)).toMatchObject({
+    input: name, error: true, errorMessage: 'Invalid name', mode: 'typing',
   })
+  expect(store.getter(nativeNameChangeBusyAtom)).toBe(false)
+  expect(await store.setter(commitNameBoxAtom, { input: 'QuickUnits', sessionId }))
+    .toMatchObject({ kind: 'define-name' })
+})
 
-  test('keeps first-match compatibility for legacy callers without sheet context', () => {
-    const sheetOnly: NamedRange[] = [
-      {
-        name: 'LocalOnly',
-        scope: { sheetId: 'sheet-2' },
-        refersTo: { kind: 'range', sheetId: 'sheet-2', address: 'D4' },
-      },
-    ]
+test.each(['Sales1', 'Sales.', 'XFE1', '销售额', 'N'.repeat(255)])(
+  'new name %s uses Rust syntax authority, not the removed TS name validator', async (name) => {
+    const { store, request } = setup()
+    expect(await store.setter(commitNameBoxAtom, { input: name })).toMatchObject({ kind: 'define-name' })
+    expect(request.mock.calls[0][1].action).toMatchObject({ kind: 'create', name })
+  },
+)
 
-    expect(findNamedRange(sheetOnly, 'LocalOnly')).toBe(sheetOnly[0])
-  })
-
-  test('navigates only range bindings', () => {
-    const context = { sheetId: 'sheet-1', selectionRange: RANGE }
-    const constant: NamedRange = {
-      name: 'ConstantName',
-      scope: 'workbook',
-      refersTo: { kind: 'constant', value: '42' },
-    }
-    const lambda: NamedRange = {
-      name: 'LambdaName',
-      scope: 'workbook',
-      refersTo: { kind: 'lambda', params: ['x'], body: '=x * 2' },
-    }
-
-    expect(classifyNameBoxInput('ConstantName', [constant], context)).toEqual({
-      kind: 'invalid',
-      reason: 'named-range-not-resolvable',
-    })
-    expect(classifyNameBoxInput('LambdaName', [lambda], context)).toEqual({
-      kind: 'invalid',
-      reason: 'named-range-not-resolvable',
-    })
-  })
-
-  test('uses current-sheet scope for display and navigation', () => {
-    const store = createStore()
-    store.setter(nameRegistryCacheAtom, registry)
-    store.setter(setSelectionAtom, {
-      kind: 'cell',
-      sheetId: 'sheet-1',
-      anchor: { row: 0, col: 0 },
-      focus: { row: 0, col: 0 },
-    })
-
-    const target = store.setter(commitNameBoxAtom, { input: 'Rate' })
-
-    expect(target.kind).toBe('named-range')
-    expect(store.getter(selectionSnapshotAtom).selection).toEqual({
-      kind: 'range',
-      sheetId: 'sheet-1',
-      anchor: { row: 1, col: 1 },
-      focus: { row: 2, col: 2 },
-    })
-    expect(store.getter(nameBoxDisplayAtom)).toBe('Rate')
+test('Enter/blur duplicates and manager writes share one pending command without optimistic names', async () => {
+  const { store, request } = setup()
+  let finish!: (value: Awaited<ReturnType<typeof request>>) => void
+  request.mockImplementationOnce(() => new Promise((resolve) => { finish = resolve }))
+  const sessionId = store.setter(focusNameBoxAtom)
+  const pending = store.setter(commitNameBoxAtom, { input: 'QuickUnits', sessionId })
+  expect(store.getter(nativeNameChangeBusyAtom)).toBe(true)
+  expect(store.setter(commitNameBoxAtom, { input: 'QuickUnits', sessionId }))
+    .toEqual({ kind: 'invalid', reason: 'busy' })
+  expect(await store.setter(runNativeNameManagerAtom, 'open')).toBe(false)
+  expect(store.getter(nativeNamedRangesAtom)).toEqual(names)
+  store.setter(blurNameBoxAtom, { sessionId })
+  const next = store.setter(focusNameBoxAtom)
+  store.setter(updateNameBoxInputAtom, { sessionId: next, input: 'CurrentDraft' })
+  finish({ changed: true, projection: { ...request.mock.calls[0][1].projection,
+    cells: [], revision: 8, namedRanges: [] } })
+  expect(await pending).toMatchObject({ kind: 'invalid', reason: 'stale-session' })
+  expect(request).toHaveBeenCalledTimes(1)
+  expect(store.getter(nativeNamedRangesAtom)).toEqual([])
+  expect(store.getter(nameBoxStateAtom)).toMatchObject({
+    input: 'CurrentDraft', mode: 'typing', error: false, sessionId: next,
   })
 })
 
-describe('NameBox edit sessions', () => {
-  test('invalid input reverts to the canonical display', () => {
-    const store = createStore()
-    store.setter(setSelectionAtom, {
-      kind: 'cell',
-      sheetId: 'sheet-1',
-      anchor: { row: 1, col: 1 },
-      focus: { row: 1, col: 1 },
-    })
-    const sessionId = store.setter(focusNameBoxAtom)
-    store.setter(updateNameBoxInputAtom, { sessionId, input: '!!invalid' })
-
-    const target = store.setter(commitNameBoxAtom, {
-      input: '!!invalid',
-      sessionId,
-    })
-
-    expect(target.kind).toBe('invalid')
-    expect(store.getter(nameBoxStateAtom)).toMatchObject({
-      input: 'B2',
-      display: 'B2',
-      error: true,
-      mode: 'idle',
-      sessionId,
-    })
-    expect(store.getter(namedRangeMutationStateAtom)).toMatchObject({
-      status: 'idle',
-      requestId: null,
-    })
-  })
-
-  test('a 256-character name is rejected and reverted before mutation preflight', () => {
-    const store = createStore()
-    const overLengthName = `N${'a'.repeat(255)}`
-    store.setter(setSelectionAtom, {
-      kind: 'cell',
-      sheetId: 'sheet-1',
-      anchor: { row: 1, col: 1 },
-      focus: { row: 1, col: 1 },
-    })
-    const sessionId = store.setter(focusNameBoxAtom)
-    store.setter(updateNameBoxInputAtom, { sessionId, input: overLengthName })
-
-    const target = store.setter(commitNameBoxAtom, {
-      input: overLengthName,
-      sessionId,
-    })
-
-    expect(target).toEqual({ kind: 'invalid', reason: 'unrecognized' })
-    expect(store.getter(nameBoxStateAtom)).toMatchObject({
-      input: 'B2',
-      display: 'B2',
-      error: true,
-      mode: 'idle',
-      sessionId,
-    })
-  })
-
-  test('events from an older session cannot overwrite the current input', () => {
-    const store = createStore()
-    store.setter(setSelectionAtom, {
-      kind: 'cell',
-      sheetId: 'sheet-1',
-      anchor: { row: 0, col: 0 },
-      focus: { row: 0, col: 0 },
-    })
-    const oldSessionId = store.setter(focusNameBoxAtom)
-    store.setter(updateNameBoxInputAtom, { sessionId: oldSessionId, input: 'OldDraft' })
-    const currentSessionId = store.setter(focusNameBoxAtom)
-    store.setter(updateNameBoxInputAtom, {
-      sessionId: currentSessionId,
-      input: 'CurrentDraft',
-    })
-
-    expect(
-      store.setter(updateNameBoxInputAtom, {
-        sessionId: oldSessionId,
-        input: 'StaleDraft',
-      }),
-    ).toBe(false)
-    expect(store.setter(revertNameBoxAtom, { sessionId: oldSessionId })).toBe(false)
-    expect(store.setter(blurNameBoxAtom, { sessionId: oldSessionId })).toBe(false)
-    expect(
-      store.setter(commitNameBoxAtom, {
-        sessionId: oldSessionId,
-        input: 'StaleDraft',
-      }),
-    ).toEqual({ kind: 'invalid', reason: 'stale-session' })
-    expect(store.getter(nameBoxStateAtom)).toMatchObject({
-      input: 'CurrentDraft',
-      focused: true,
-      mode: 'typing',
-      sessionId: currentSessionId,
-    })
-  })
+test('manager pending prevents a competing name-box creation', async () => {
+  const { store, request } = setup()
+  await store.setter(runNativeNameManagerAtom, 'open')
+  await store.setter(runNativeNameManagerAtom, { name: 'ManagerName' })
+  let finish!: (value: Awaited<ReturnType<typeof request>>) => void
+  request.mockImplementationOnce(() => new Promise((resolve) => { finish = resolve }))
+  const pending = store.setter(runNativeNameManagerAtom, 'save')
+  expect(store.setter(commitNameBoxAtom, { input: 'QuickUnits' })).toMatchObject({ reason: 'busy' })
+  finish({ changed: true, projection: { ...request.mock.calls[0][1].projection,
+    cells: [], revision: 8, namedRanges: names } })
+  expect(await pending).toBe(true)
+  expect(request).toHaveBeenCalledTimes(1)
 })
 
-describe('NameBox define-name command', () => {
-  test('dedupes Enter and blur intents and does not replace a newer draft', async () => {
-    const store = createStore()
-    let observedRequest: SetNamedRangeRequest | undefined
-    let settleMutation: ((result: NamedRangeMutationResult) => void) | undefined
-    const setNamedRange = vi.fn(
-      (request: SetNamedRangeRequest) =>
-        new Promise<NamedRangeMutationResult>((resolve) => {
-          observedRequest = request
-          settleMutation = resolve
-        }),
-    )
-    const source: NamedRangeControllerPort = {
-      readNamedRangeCapabilities: async () => CAPABILITIES,
-      setNamedRange,
-      listNamedRanges: async (request) => ({
-        requestId: request.requestId,
-        names: [
-          {
-            name: 'BrandNew',
-            scope: 'workbook',
-            refersTo: { kind: 'range', sheetId: 'sheet-1', address: 'C3:E5' },
-          },
-        ],
-        authority: 'static-session-registry',
-        definitionReadback: 'full',
-      }),
-    }
-    store.setter(loadNamedRangeCapabilitiesAtom, { source })
-    await flushMicrotasks()
-    store.setter(setSelectionAtom, {
-      kind: 'range',
-      sheetId: 'sheet-1',
-      anchor: { row: 2, col: 2 },
-      focus: { row: 4, col: 4 },
-    })
-    const oldSessionId = store.setter(focusNameBoxAtom)
-    store.setter(updateNameBoxInputAtom, { sessionId: oldSessionId, input: 'BrandNew' })
-
-    const first = store.setter(commitNameBoxAtom, {
-      source,
-      sessionId: oldSessionId,
-      input: 'BrandNew',
-    })
-    const firstMutationState = store.getter(namedRangeMutationStateAtom)
-
-    expect(first).toMatchObject({
-      kind: 'define-name',
-      sheetId: 'sheet-1',
-      name: 'BrandNew',
-      range: { rowStart: 2, rowEnd: 4, colStart: 2, colEnd: 4 },
-    })
-    expect(store.getter(nameBoxStateAtom)).toMatchObject({
-      input: 'BrandNew',
-      error: false,
-      focused: true,
-      mode: 'idle',
-      sessionId: oldSessionId,
-    })
-    expect(firstMutationState).toMatchObject({
-      status: 'pending',
-      origin: 'name-box',
-      sessionId: oldSessionId,
-      action: 'set',
-    })
-    expect(firstMutationState.requestId).toEqual(expect.any(Number))
-    expect(store.getter(namedRangeOperationAttemptLedgerAtom)).toHaveLength(1)
-    expect(setNamedRange).not.toHaveBeenCalled()
-
-    const duplicate = store.setter(commitNameBoxAtom, {
-      source,
-      sessionId: oldSessionId,
-      input: 'BrandNew',
-    })
-    expect(store.setter(blurNameBoxAtom, { sessionId: oldSessionId })).toBe(true)
-
-    expect(first.kind).toBe('define-name')
-    expect(duplicate.kind).toBe('define-name')
-    expect(store.getter(namedRangeMutationStateAtom)).toBe(firstMutationState)
-    expect(store.getter(namedRangeOperationAttemptLedgerAtom)).toHaveLength(1)
-    expect(setNamedRange).not.toHaveBeenCalled()
-
-    const currentSessionId = store.setter(focusNameBoxAtom)
-    store.setter(updateNameBoxInputAtom, {
-      sessionId: currentSessionId,
-      input: 'CurrentDraft',
-    })
-    await Promise.resolve()
-
-    expect(setNamedRange).toHaveBeenCalledTimes(1)
-    expect(observedRequest).toMatchObject({
-      kind: 'set-named-range',
-      name: 'BrandNew',
-      scope: 'workbook',
-      refersTo: { kind: 'range', sheetId: 'sheet-1', address: 'C3:E5' },
-    })
-    expect(observedRequest?.requestId).toEqual(expect.any(Number))
-    settleMutation?.({
-      requestId: observedRequest?.requestId,
-      outcome: 'w0-acknowledged',
-      authority: 'static-session-registry',
-    })
-    await flushMicrotasks()
-
-    expect(store.getter(nameBoxStateAtom)).toMatchObject({
-      input: 'CurrentDraft',
-      focused: true,
-      mode: 'typing',
-      sessionId: currentSessionId,
-    })
+test('replacing the connection releases busy state and ignores late errors', async () => {
+  const { store, request } = setup()
+  let reject!: (error: Error) => void
+  request.mockImplementationOnce(() => new Promise((_resolve, fail) => { reject = fail }))
+  const pending = store.setter(commitNameBoxAtom, { input: 'OldWorkbookName' })
+  store.setter(setRustWorkbookConnectionAtom, {
+    request: request as RustWorkbookConnection['request'], dispose() {},
   })
+  const sessionId = store.setter(focusNameBoxAtom)
+  store.setter(updateNameBoxInputAtom, { sessionId, input: 'NewWorkbookDraft' })
+  expect(store.getter(nativeNameChangeBusyAtom)).toBe(false)
+  reject(new Error('Old workbook failed'))
+  expect(await pending).toMatchObject({ kind: 'invalid' })
+  expect(store.getter(nameBoxStateAtom)).toMatchObject({ input: 'NewWorkbookDraft', error: false })
 })

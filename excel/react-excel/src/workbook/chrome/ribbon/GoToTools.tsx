@@ -53,7 +53,7 @@ export function GoToTools() {
           }}
           onChange={(event) => run({ input: event.currentTarget.value })} />
         <p id={`${id}-hint`} className="go-to-hint">
-          A1, B2:D10, R12C3, R[2]C[-1], or 'Sales Orders'!B2.
+          A defined name, A1, B2:D10, R12C3, R[2]C[-1], or 'Sales Orders'!B2.
           Hidden rows and columns stay hidden.
         </p>
         <section aria-labelledby={`${id}-recent`}>

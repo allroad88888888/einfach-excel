@@ -1,5 +1,8 @@
 import { atom, type Getter } from '@einfach/core'
 import { createRustWorkbookConnection, type RustWorkbookConnection } from '../rust-workbook'
+import type { WorkerLike } from '../rust-worker'
+import { editingSessionAtom } from '../editing/session-atoms'
+import { resetWorkbookViewAtom } from './reset-workbook-view'
 import {
   beginSpreadsheetRuntimeAtom,
   rejectSpreadsheetRuntimeAtom,
@@ -14,6 +17,7 @@ import {
 interface RuntimeOwner {
   readonly sessionId: number
   readonly connection: RustWorkbookConnection | null
+  readonly workerFactory?: () => WorkerLike
 }
 
 const EMPTY_RUNTIME_OWNER: RuntimeOwner = Object.freeze({ sessionId: 0, connection: null })
@@ -50,6 +54,7 @@ export const startRustWorkbookRuntimeAtom = atom(
     disposeConnection(previous.connection)
     const sessionId = nextSessionId(previous.sessionId)
     set(runtimeOwnerAtom, Object.freeze({ sessionId, connection: null }))
+    set(resetWorkbookViewAtom)
     set(clearWorkbookDocumentAtom)
     set(beginSpreadsheetRuntimeAtom)
 
@@ -62,7 +67,9 @@ export const startRustWorkbookRuntimeAtom = atom(
       if (get(runtimeOwnerAtom).sessionId === sessionId) set(rejectSpreadsheetRuntimeAtom, error)
       return
     }
-    set(runtimeOwnerAtom, Object.freeze({ sessionId, connection }))
+    set(runtimeOwnerAtom, Object.freeze({
+      sessionId, connection, workerFactory: input.workerFactory,
+    }))
 
     try {
       const initializedSheets = await connection.request('workbook.initialize', {
@@ -134,6 +141,50 @@ export const startRustWorkbookRuntimeAtom = atom(
 )
 startRustWorkbookRuntimeAtom.debugLabel = 'spreadsheet.runtime.startRustWorkbook'
 
+/** 文件替换先在候选 Worker 完成；失败或旧页面已离开时保留原连接。null 表示新建。 */
+export const replaceRustWorkbookRuntimeAtom = atom(
+  null,
+  async (get, set, text: string | null): Promise<boolean> => {
+    const previous = get(runtimeOwnerAtom)
+    if (!previous.connection || !previous.workerFactory)
+      throw new Error('The workbook is not ready.')
+    if (get(editingSessionAtom).source) throw new Error('Finish editing the cell first.')
+    const sessionId = nextSessionId(previous.sessionId)
+    const candidate = createRustWorkbookConnection(previous.workerFactory)
+    try {
+      const metadata = text === null ? {
+        title: 'Untitled workbook',
+        sheets: await candidate.request('workbook.initialize', { sheets: [{
+          id: `workbook-${sessionId}-0`, name: 'Sheet1', rowCount: 1_048_576, colCount: 16_384,
+        }] }),
+      } : await candidate.request('workbook.openFile', { text, idPrefix: `workbook-${sessionId}` })
+      if (get(runtimeOwnerAtom) !== previous) return false
+      if (get(editingSessionAtom).source) throw new Error('Finish editing the cell first.')
+      const sheets = metadata.sheets.map((sheet, index) => {
+        if (sheet.index !== index || !sheet.id || !Number.isSafeInteger(sheet.rowCount) ||
+          !Number.isSafeInteger(sheet.colCount) || (sheet.rowCount ?? 0) < 1 ||
+          (sheet.rowCount ?? 0) > 1_048_576 || (sheet.colCount ?? 0) < 1 ||
+          (sheet.colCount ?? 0) > 16_384)
+          throw new Error('Rust returned invalid workbook metadata.')
+        return { ...sheet, rowCount: sheet.rowCount!, colCount: sheet.colCount! }
+      })
+      if (!sheets.length || new Set(sheets.map((sheet) => sheet.id)).size !== sheets.length)
+        throw new Error('Rust returned invalid workbook sheets.')
+      // 只有此处切换所有权；旧请求随后拒绝，不能再填入新工作簿的投影队列。
+      set(runtimeOwnerAtom, {
+        sessionId, connection: candidate, workerFactory: previous.workerFactory,
+      })
+      set(resetWorkbookViewAtom)
+      set(initializeWorkbookDocumentAtom, { title: metadata.title, sheets })
+      set(resolveSpreadsheetRuntimeAtom, { connection: candidate })
+      disposeConnection(previous.connection)
+      return true
+    } finally {
+      if (get(runtimeOwnerAtom).connection !== candidate) disposeConnection(candidate)
+    }
+  },
+)
+
 /** Disposes the Rust connection owned by the current UI-core store. */
 export const disposeRustWorkbookRuntimeAtom = atom(null, (get, set): void => {
   const current = get(runtimeOwnerAtom)
@@ -142,6 +193,7 @@ export const disposeRustWorkbookRuntimeAtom = atom(null, (get, set): void => {
     runtimeOwnerAtom,
     Object.freeze({ sessionId: nextSessionId(current.sessionId), connection: null }),
   )
+  set(resetWorkbookViewAtom)
   set(clearWorkbookDocumentAtom)
   set(beginSpreadsheetRuntimeAtom)
 })

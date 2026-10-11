@@ -32,6 +32,7 @@ import { applyTextColumns, previewTextColumns } from './text-columns-io'
 import { applyRemoveDuplicates, previewRemoveDuplicates } from './remove-duplicates-io'
 import { changeConditionalFormat } from './conditional-format-io'
 import { changeDataValidation } from './data-validation-commands'
+import { exportWorkbookFile, openWorkbookFile } from './file-io'
 
 type CommandName = keyof RustWorkbookCommands
 
@@ -80,11 +81,28 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
   }
 
   async function dispatch(command: CommandName, payload: unknown): Promise<unknown> {
+    if (command === 'workbook.openFile') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      await ensureWasm()
+      const restored = openWorkbookFile(wasm, input.text, input.idPrefix)
+      workbook?.free?.()
+      workbook = restored.workbook
+      revision = 0
+      clipboard = undefined
+      painterToken = undefined
+      sheetsById.clear()
+      for (const sheet of restored.metadata.sheets) sheetsById.set(sheet.id, sheet)
+      return restored.metadata
+    }
     if (command === 'workbook.initialize') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
       return initialize(input.sheets)
     }
     const current = currentWorkbook()
+    if (command === 'workbook.exportFile') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      return exportWorkbookFile(current, [...sheetsById.values()], input.title)
+    }
     if (command === 'table.change') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
       const changed = changeTable(current, sheetsById, input, revision)

@@ -68,17 +68,6 @@
   font-size: 11px;
 }
 
-.save-state > span {
-  display: grid;
-  width: 16px;
-  height: 16px;
-  place-items: center;
-  border-radius: 50%;
-  color: #287d3c;
-  background: #e8f6ec;
-  font-size: 10px;
-}
-
 .row-count-badge {
   padding: 4px 8px;
   border: 1px solid #dfe3f7;
@@ -87,21 +76,6 @@
   background: #f7f8ff;
   font-size: 10px;
   font-weight: 600;
-}
-
-.header-actions button {
-  display: grid;
-  width: 30px;
-  height: 30px;
-  place-items: center;
-  border: 0;
-  border-radius: 7px;
-  background: transparent;
-  font-size: 14px;
-}
-
-.header-actions button:hover {
-  background: var(--control-hover);
 }
 
 @media (max-width: 640px) {

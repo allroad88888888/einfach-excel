@@ -1,6 +1,7 @@
 import { useAtomValue } from '@einfach/react'
 import { activeWorkbookSheetAtom, workbookDocumentAtom } from '@einfach/spreadsheet-ui-core'
 import './header.css'
+import { WorkbookFileTools } from './WorkbookFileTools'
 
 /** Renders identity metadata for the active UI-core workbook. */
 export function WorkbookHeader() {
@@ -21,16 +22,12 @@ export function WorkbookHeader() {
       </div>
       <div className="header-spacer" />
       <span className="save-state">
-        <span aria-hidden="true">✓</span> Saved locally
+        In memory
       </span>
       {activeSheet === null ? null : (
         <span className="row-count-badge">{activeSheet.rowCount.toLocaleString()} rows</span>
       )}
-      <div className="header-actions">
-        <button type="button" aria-label="More workbook options">
-          •••
-        </button>
-      </div>
+      <WorkbookFileTools />
     </header>
   )
 }

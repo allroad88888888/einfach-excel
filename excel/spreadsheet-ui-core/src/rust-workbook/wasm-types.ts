@@ -57,6 +57,9 @@ export interface RustFormatRangeSnapshot {
 }
 
 export interface WasmWorkbook {
+  snapshot_persistence_v1?: () => unknown
+  restore_persistence_v1?: (value: unknown) => unknown
+  free?: () => void
   filter_values?: (
     query: RustFilterValuesQuery & { readonly sheet: number },
   ) => RustFilterValuesPage

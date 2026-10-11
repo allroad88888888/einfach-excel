@@ -12,6 +12,7 @@ export * from './runtime/workbook-connection'
 export * from './runtime/rust-workbook-definition'
 export * from './runtime/rust-workbook-runtime'
 export * from './runtime/workbook-document'
+export { workbookFilePanelAtom, runWorkbookFileAtom } from './runtime/workbook-file-command'
 export * from './rust-workbook'
 export * from './history/rust-history-types'
 export {

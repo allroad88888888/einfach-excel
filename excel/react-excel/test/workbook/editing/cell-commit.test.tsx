@@ -61,7 +61,7 @@ describe('Rust workbook cell commit', () => {
     const editor = await focusedCellEditor()
     fireEvent.change(editor, { target: { value: 'Blurred edit' } })
     // 编辑期间剪贴板按钮禁用；用仍可聚焦的工具验证真实失焦提交。
-    const outsideTarget = screen.getByRole('button', { name: 'More workbook options' })
+    const outsideTarget = screen.getByRole('tab', { name: 'Insert' })
     outsideTarget.focus()
 
     await waitFor(() => expect(controlled.setCellInput).toHaveBeenCalledTimes(1))

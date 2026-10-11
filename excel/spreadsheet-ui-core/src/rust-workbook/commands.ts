@@ -27,6 +27,7 @@ import type { RustDataValidationCommands } from './data-validation-commands'
 import type { RustOutlineCommands } from './outline-io'
 import type { RustNamedRangeCommands } from './named-range-commands'
 import type { RustTableCommands } from './table-commands'
+import type { RustWorkbookFileCommands } from './file-commands'
 import type { NativeTableStyle } from '../tables/native-types'
 import type { NativeOutline } from '../outline/native-state'
 import type { NativeDataValidationRule } from '../data-validation/native-rule'
@@ -150,7 +151,7 @@ export interface RustWorkbookCommands
   extends RustFindCommands, RustSortCommands, RustFilterCommands,
     RustTextColumnsCommands, RustRemoveDuplicatesCommands, RustQuickFormulaCommands,
     RustConditionalFormatCommands, RustDataValidationCommands,
-    RustOutlineCommands, RustNamedRangeCommands, RustTableCommands {
+    RustOutlineCommands, RustNamedRangeCommands, RustTableCommands, RustWorkbookFileCommands {
   readonly 'format.preview': WorkerCommand<
     {
       readonly sheetId: string

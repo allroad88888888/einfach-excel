@@ -49,6 +49,7 @@ async function drainVisibleProjectionQueue(
   while (true) {
     try {
       const result = await connection.request('projection.readVisible', { request })
+      if (get(rustWorkbookConnectionAtom) !== connection) return
       const firstSheetFrame = renderedSheetId !== result.sheetId
       // 等待 Worker 时可能已通过名称框定位；取发布原生尺寸前的当前窗口，不能用旧请求窗口。
       const intendedWindow = get(visibleWindowAtom)
@@ -78,6 +79,7 @@ async function drainVisibleProjectionQueue(
       }
       return
     } catch (error) {
+      if (get(rustWorkbookConnectionAtom) !== connection) return
       const outcome = set(rejectProjectionAtom, { request, error })
       if (outcome.status === 'rejected' && outcome.nextRequest?.kind === 'visible-window') {
         request = outcome.nextRequest

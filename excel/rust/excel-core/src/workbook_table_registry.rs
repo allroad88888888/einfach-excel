@@ -64,6 +64,7 @@ impl Workbook {
             has_headers,
             has_totals: false,
             columns,
+            style: crate::TableStyle::default(),
         })
     }
 

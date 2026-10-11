@@ -3,6 +3,12 @@ import { displayCell, writeCellInput } from '../src/rust-workbook/cell-io'
 import type { WasmWorkbook } from '../src/rust-workbook/wasm-types'
 
 describe('Rust cell input boundary', () => {
+  test('passes the protection expansion policy with the same single input write', () => {
+    const write = vi.fn()
+    writeCellInput({ set_cell_input: write } as unknown as WasmWorkbook, 0, 1, 2, '7', false)
+    expect(write).toHaveBeenCalledTimes(1)
+    expect(write).toHaveBeenCalledWith(0, 'C2', '7', false)
+  })
   test.each(["'00123", "'=1+2", "'", ' FaLsE ', '12.50%', '0.125', '=SUM(A1:A3)', '', '  ',
     '13:30', '36:15:30', '1:30 PM', '9 AM', '1 1/2', '-0 3/8'])(
     'sends %j unchanged in one native write',

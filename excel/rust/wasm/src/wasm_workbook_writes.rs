@@ -6,9 +6,12 @@ impl WasmWorkbook {
         sheet_idx: usize,
         addr: &str,
         input: &str,
+        expand_tables: Option<bool>,
     ) -> Result<(), JsValue> {
         self.history
-            .set_cell_input(&mut self.workbook, sheet_idx, addr, input)
+            .set_cell_input_with_table_expansion(
+                &mut self.workbook, sheet_idx, addr, input, expand_tables.unwrap_or(true),
+            )
             .map_err(|error| JsValue::from_str(&error))
     }
 

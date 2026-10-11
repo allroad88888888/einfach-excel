@@ -28,6 +28,7 @@ impl Workbook {
         }
         let target = self.sheet(sheet).ok_or("The worksheet no longer exists.")?;
         let mut snapshot = target.snapshot_format_range(range);
+        self.project_table_styles(sheet, &mut snapshot);
         let mut rules: Vec<_> = self.conditional_formats[sheet]
             .rules
             .iter()

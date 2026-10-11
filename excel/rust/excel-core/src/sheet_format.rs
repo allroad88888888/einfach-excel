@@ -3,6 +3,20 @@
 use super::*;
 
 impl Sheet {
+    /// 将已有显式属性盖在 Table 默认样式上；不改变三层存储和最后一次写入规则。
+    pub(crate) fn apply_base_style_at(&self, addr: CellAddress, style: &mut crate::CellStyle) {
+        if let Some(column) = self.column_styles.get(&addr.col) { style.apply_patch(column); }
+        if let Some(row) = self.row_styles.get(&addr.row) { style.apply_patch(&row.format); }
+        if let Some(cell) = self.cell_styles.get(&addr) { style.apply_patch(cell); }
+    }
+
+    /// 样式元数据改变时只通知已订阅的可见格，不扫描 Table 的全部数据格。
+    pub(crate) fn notify_format_range(&self, range: CellRange) {
+        for addr in self.cell_subscriptions.keys().filter(|addr| range.contains(**addr)) {
+            self.notify_address_subscribers(*addr);
+        }
+    }
+
     pub(crate) fn base_format_at(&self, addr: CellAddress) -> CellFormat {
         let mut format = CellFormat::default();
         if let Some(style) = self.column_styles.get(&addr.col) {

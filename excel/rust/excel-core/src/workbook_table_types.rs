@@ -10,6 +10,7 @@ pub struct TableEntry {
     pub(super) has_headers: bool,
     pub(super) has_totals: bool,
     pub(super) columns: Vec<String>,
+    pub(super) style: crate::TableStyle,
 }
 
 impl TableEntry {
@@ -28,6 +29,7 @@ impl TableEntry {
             has_headers,
             has_totals,
             columns,
+            style: crate::TableStyle::default(),
         }
     }
 
@@ -48,6 +50,19 @@ impl TableEntry {
     }
     pub fn columns(&self) -> &[String] {
         &self.columns
+    }
+
+    pub fn style(&self) -> crate::TableStyle { self.style }
+
+    pub fn with_style(mut self, style: crate::TableStyle) -> Self {
+        self.style = style;
+        self
+    }
+
+    pub(super) fn same_formula_definition(&self, other: &Self) -> bool {
+        self.canonical_name == other.canonical_name && self.sheet_name == other.sheet_name
+            && self.range == other.range && self.has_headers == other.has_headers
+            && self.has_totals == other.has_totals && self.columns == other.columns
     }
 
     pub(crate) fn to_resolved(&self, sheet_index: usize) -> ResolvedTable {

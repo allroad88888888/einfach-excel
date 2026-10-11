@@ -5,6 +5,7 @@
 基础操作：创建 Table、重命名 Table、转换为普通区域。第一行作为表头，Rust 规范化空白／重复列名。
 汇总操作：显示汇总行、设置列汇总函数、隐藏汇总行；继续使用同一个 command atom 和 Worker 命令。
 列名操作：Tables 面板修改列名、直接编辑表头；两种入口最终调用同一个 Rust 列名历史操作。
+范围操作：编辑 Table range 后点 Resize table；紧邻下方／右侧的单格输入由 Rust 自动扩展。
 
 调用链：`TableTools` → `runNativeTablePanelAtom` → `table.change` → WASM `change_table`
 → Rust `WorkbookHistory` → 同次返回的可见区投影。一次操作只有一次 Worker 往返；撤销仍走已有原生历史。
@@ -18,8 +19,11 @@
 - 列名变更同时更新表头文字、注册项和引用消费者，一次撤销整体恢复；不在 React 改公式文本。
 - 普通单格输入与表头输入均由 WASM `set_cell_input` 记录原生历史，Worker 不再套单格历史事务。
 - 名称管理器的 Tables 列表直接读当前投影；定位复用切表／选区／滚动 atoms，不写原生数据。
+- 手动范围调整不复制数据区；新表头、汇总行、删除列引用的前后像进入同一条原生历史。
+- 自动扩展仍是一次 `cell.setInput`：新范围与输入共同成功或共同回滚，不追加 `table.change`。
+- 保护表的解锁格输入携带 `expandTables: false`；障碍/归属不明确时只做普通输入。汇总行下方不自动扩行。
 
-创建／改名／转换、汇总行、列名编辑及定位已验收（完整 E2E 755/755）。Table 样式及其余 #32 计划仍待后续批次。
+创建／改名／转换、汇总行、列名编辑／定位、范围调整／输入扩展已分批验收（最新完整 E2E 766/766）。Table 样式及其余 #32 计划仍待后续批次。
 完整验收状态见 [React 功能进度](../../../react-excel/FEATURE_PROGRESS.md)。
 
 ## 历史接口记录（非当前 React 运行路径）

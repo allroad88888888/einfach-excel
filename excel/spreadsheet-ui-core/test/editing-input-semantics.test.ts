@@ -4,6 +4,8 @@ import {
   dispatchEditorKeyboardInputAtom,
   editingSessionAtom,
   insertEditingLineBreakAtom,
+  commitCellEditingAtom,
+  setSheetProtectionAtom,
 } from '../src'
 import { bindEditingMutation, startCellEdit } from './editing-test-support'
 import { readVisibleProjection } from '../src/rust-workbook/visible-projection'
@@ -11,6 +13,20 @@ import { cloneCell } from '../src/backend/projection-helpers'
 import type { WasmWorkbook } from '../src/rust-workbook/wasm-types'
 
 describe('editing input semantics', () => {
+  test('an unlocked input on a protected sheet explicitly disables native table expansion', async () => {
+    const store = createStore()
+    startCellEdit(store, '7')
+    store.setter(setSheetProtectionAtom, { sheetId: 'sheet-1', state: {
+      mode: 'protected', unlockedRanges: [{ rowStart: 4, rowEnd: 4, colStart: 2, colEnd: 2 }],
+    } })
+    const write = vi.fn(async (request) => ({
+      sheetId: request.sheetId, requestId: request.requestId, revision: 1,
+    }))
+    bindEditingMutation(store, write)
+    expect(await store.setter(commitCellEditingAtom)).toBe('completed')
+    expect(write).toHaveBeenCalledTimes(1)
+    expect(write.mock.calls[0]![0]).toMatchObject({ input: '7', expandTables: false })
+  })
   test('line break replaces only selected text and returns the caret without a mutation', () => {
     const store = createStore()
     expect(store.setter(insertEditingLineBreakAtom, { start: 0, end: 0 })).toBeNull()

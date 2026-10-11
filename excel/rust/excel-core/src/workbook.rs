@@ -142,6 +142,8 @@ mod workbook_table_restore;
 mod workbook_table_totals;
 #[path = "workbook_table_types.rs"]
 mod workbook_table_types;
+#[path = "workbook_table_style.rs"]
+mod workbook_table_style;
 #[path = "workbook_topology.rs"]
 mod workbook_topology;
 pub(crate) use workbook_sheet_refs::rewrite_sheet_refs;

@@ -42,7 +42,7 @@
 | 29 | 排序与筛选 | 升序、降序、多列排序已验收，见[排序批次](docs/sort-wave.md)；原生条件筛选、重新应用、清除筛选及复制/排序/统计交叉已验收；指定区域、表头入口、单列清除已通过全量回归，其它排序/筛选选项待补 |
 | 30 | 删除重复项 | Rust 区域内原子去重、比较列、表头及文本比较选项已验收，完整 E2E 603/603 通过。分页预览、重复记录定位、首条保留记录定位已验收，完整 E2E 608/608、Rust 默认 3002/lite 2962 项通过；不以旧 UI Core scanner 测试宣称产品完成 |
 | 31 | 状态栏摘要 | Rust 六项、显示项配置、恢复默认、原始数值复制已验收；排除筛掉行、保留手动隐藏行的统计已接 Rust 并通过全量回归，见[既有记录](docs/status-bar-wave.md) |
-| 32 | Excel Table | 创建、重命名、转普通区域、汇总行及列名编辑／Table 定位已验收：最新完整 E2E 755/755、Vitest 5471/5471 通过；Table 样式、范围调整及自动扩展等仍待补 |
+| 32 | Excel Table | 创建、重命名、转普通区域、汇总行、列名编辑／定位、手动范围调整及输入自动扩展已分批验收：最新完整 E2E 766/766、Vitest 5476/5476；Table 样式、计算列、粘贴扩展、汇总行新增数据交互等仍待补 |
 | 33 | 外部数据连接 | 原计划延后；不以本地 fixture 宣称完成 |
 | 34–35 | 批注、备注及协作 | 待接入；身份、通知及持久服务需要明确的真实契约 |
 | 37–39 | 更改记录、版本、个人视图 | 待接入；本地 undo 不能替代版本服务 |
@@ -57,9 +57,33 @@
 
 ## 批次账本
 
+### Excel Table 样式（基础代码，未验收）
+
+本次提交同时保存进行中的 Rust 样式基础：预设及两个开关、窗口内样式投影、原生样式历史。尚未接入 WASM 持久化与 React 界面，转普通区域保留外观及专项测试也未完成；不能把这部分算作已交付功能。下方 766 项 E2E 与 5,476 项 Vitest 是上一批输入扩展的验收记录，不代表样式功能验收。
+
+### Excel Table 范围与输入扩展（已验收）
+
+最终验收：完整 E2E **766/766 passed**，原顺序进程退出 0（`/tmp/excel-table-auto-final-e2e.log`，10.9 分钟）；完整 Vitest **337 文件 / 5,476 项**、根构建、类型、lint、循环依赖、架构及文档门禁通过。UI Core 独立构建、React 独立类型检查／构建、React Vitest **83 文件 / 370 项**也通过。原生 default **1,676 passed / 3 ignored**、lite **1,653 passed / 3 ignored**，补充边界专项双配置各 **11/11**；WASM lib **155 passed / 1 ignored**、lite/full 构建通过。验收仍只覆盖下方声明的三项及交互边界，不能据此关闭整个 #32 或完整 41 项计划。自动扩展和新测试尚未提交，下文保留阶段记录。
+
+本批三项：手动调整 Table 范围、紧邻数据区下方输入自动加行、紧邻右侧输入自动加列。复用 Summary 的 DemoTable；自动加行先隐藏汇总行。Table 样式、计算列填充、粘贴扩展、Tab 插入数据行不混入本批，仍保留在 #32 后续范围中。
+
+手动调整已随 `be851c29` 提交推送：相交范围与原表头行检查、列身份保留、移除列引用变为显式 `#REF!`、汇总内容搬移及原生单步历史。新增真实 E2E **6/6** 通过（`/tmp/excel-table-resize-e2e-fixed.log`），覆盖跨表数组、undo/redo、无效范围与占用保护、1280px/390px 键盘入口及截图。初轮测试误选了已有 SKU 数据的第 86 行，Rust 正确拒绝覆盖；成功路径改用确认空白的第 88 行，同时保留第 86 行拒绝用例，没有删除保护。
+
+自动输入链仍是 `编辑 command atom → 既有 set_cell_input → Rust 输入历史 → 原投影`。新增原生 `workbook_table_input.rs` 只负责输入扩展：复用范围预检，表定义先进入同一 batch，再执行既有输入解析/校验，局部输入与新表头一起进入 `TableDefinitionChange`，失败回滚且保留 redo。没有新增 Worker 消息、前端 Table 镜像或第二次刷新。首轮原生专项 **16/16**、WASM lib **155 passed / 1 ignored**、lite/full WASM 构建通过；补充拒绝通知、汇总边界与真实编辑器 E2E 后继续验证，不能以首轮结果宣称本批完成。
+
+边界明确：空输入不扩展；右下角斜邻不扩展；已有另一张 Table 或两张 Table 同时邻接时不猜归属。当前有汇总行时仅支持右侧自动扩列，汇总行下方作为普通输入，不自动移动汇总行；此边界有专项测试，完整 Excel 汇总行新增数据交互（例如 Tab）尚未验收。基本的下方/右侧扩展与手动范围约束参考 [Microsoft 文档](https://support.microsoft.com/en-gb/excel/resize-a-table-by-adding-or-removing-rows-and-columns-in-excel?nochrome=true)，不把该文未明确的汇总行细节当成已验证一致性。
+
+阶段结果：Table 交叉 E2E **30/30**（`/tmp/excel-table-auto-e2e.log`）、完整 Vitest **337 文件 / 5,474 项**、根构建及门禁通过。随后审查补上保护表策略：UI Core 随原输入请求传 `expandTables: false`，Rust 保持普通输入但不写相邻表头或改变范围；这不是第二条 Worker 命令。保护专项 **28/28** 通过。相邻合并格或另一张 Table 阻止扩展时，同样退回合法的普通输入，不让自动行为阻止编辑。
+
+当前状态：范围手动调整已提交；自动扩展与新增 E2E 尚未提交。最新源码的原生 default/lite、WASM lib、lite/full 构建、根构建、完整 Vitest、lint、循环依赖、文档及完整 E2E 正在顺序验证，日志前缀 `/tmp/excel-table-auto-final-`。未完成前不验收、不进入下一批。桌面／窄屏截图已人工检查；共享视觉检查脚本本机缺失，改用持久 E2E 验证对比度、无横向溢出、焦点和页面错误。
+
+最新门禁进度：WASM lib **155 passed / 1 ignored**、lite/full WASM 构建、根构建、完整 Vitest **337 文件 / 5,476 项**、lint、循环依赖、架构及文档检查通过。完整 **766 项 E2E** 已启动（`/tmp/excel-table-auto-final-e2e.log`），原生 lite 回归仍在执行；进程未结束，不能记为本批验收。
+
+原生最终回归已结束：default **1,676 passed / 3 ignored**、lite **1,653 passed / 3 ignored**，均退出 0。随后只补测试，生产源码与 WASM 未变：两张 Table 同时邻接以及 Excel 最后一行／列边界，扩展专项双配置各 **11/11**（`/tmp/excel-table-auto-boundary-fixed-default.log`、`/tmp/excel-table-auto-boundary-fixed-lite.log`）。首轮新增用例误用函数保留名 `Left`，改为 `LeftTable` 后通过，保留同一条歧义断言。最新 1280px／390px 键盘、对比度、溢出和页面错误检查 **2/2**（`/tmp/excel-table-resize-visual-final.log`），对应截图已人工检查。交互式浏览器补验尝试未成功：浏览器连接器不可用，Chrome 原生入口返回 `cgWindowNotFound`；不把此次尝试记为手动交互通过，真实浏览器自动化证据来自上述 Playwright 用例。
+
 ### Excel Table 列名与定位（已验收）
 
-最终验收：完整 E2E **755/755 passed**，顺序任务退出 0（`/tmp/excel-outline-final-full-e2e.log`，10.8 分钟）；完整 Vitest **337 文件／5,471 项**、根构建、类型、lint、循环依赖、架构及文档门禁通过。大纲／Table 专项 **18/18**，原失败用例连续 **20/20** 通过。三个用户功能沿用 Summary 的原生 DemoTable，不增加 React 假数据；原生默认／lite 与 WASM 证据见下文。Table 接线已提交推送为 `ff4efaaf`，后续大纲补修未提交。此次只完成本批三项，不代表整个 #32 或 41 项计划完成。下文保留过程记录。
+最终验收：完整 E2E **755/755 passed**，顺序任务退出 0（`/tmp/excel-outline-final-full-e2e.log`，10.8 分钟）；完整 Vitest **337 文件／5,471 项**、根构建、类型、lint、循环依赖、架构及文档门禁通过。大纲／Table 专项 **18/18**，原失败用例连续 **20/20** 通过。三个用户功能沿用 Summary 的原生 DemoTable，不增加 React 假数据；原生默认／lite 与 WASM 证据见下文。Table 接线已提交推送为 `ff4efaaf`，后续大纲补修已随 `be851c29` 提交推送。此次只完成本批三项，不代表整个 #32 或 41 项计划完成。下文保留过程记录。
 
 本批只做三个用户功能：Tables 面板修改列名、直接编辑表头时同步列名与结构化引用、名称管理器查看并定位 Table。不包含 Table 样式、范围调整或自动扩展。前两项必须复用同一个 Rust 原子操作：表头文字、目录列名、引用公式与历史一起提交；第三项读取原生投影目录，不维护第二份 Table 注册表。
 

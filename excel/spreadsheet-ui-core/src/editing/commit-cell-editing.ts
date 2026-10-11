@@ -29,6 +29,7 @@ import { returnToEditingSource } from './session-atoms'
 import { activeWorkbookSheetAtom } from '../runtime/workbook-document'
 import { sheetViewsBackingAtom } from '../runtime/sheet-view-state'
 import { selectionAuthorityWitnessAtom } from '../selection'
+import { getSheetProtection, sheetProtectionAtom } from '../protection'
 import type {
   CommitCellEditingInput,
   EditingCommitOutcome,
@@ -122,6 +123,8 @@ export const commitCellEditingAtom = atom(
       row: target.row,
       col: target.col,
       input: session.draft,
+      ...(getSheetProtection(get(sheetProtectionAtom), session.source.sheetId).mode === 'protected'
+        ? { expandTables: false } : {}),
       requestId,
     })
     const projectionRequest = Object.freeze(

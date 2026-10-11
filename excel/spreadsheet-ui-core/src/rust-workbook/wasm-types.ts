@@ -194,7 +194,7 @@ export interface WasmWorkbook {
     rowHeights?: ViewportRowHeight[]
     colWidths?: ViewportColumnWidth[]
   }
-  set_cell_input?: (sheet: number, address: string, input: string) => void
+  set_cell_input?: (sheet: number, address: string, input: string, expandTables?: boolean) => void
   capture_clipboard?: (
     sheet: number,
     startRow: number,

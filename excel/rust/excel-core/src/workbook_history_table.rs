@@ -3,6 +3,17 @@ use super::*;
 use crate::workbook::{TableCreation, TableDefinitionChange};
 
 impl WorkbookHistory {
+    /// 预设、隔行底色与首列强调共用一个原生元数据命令。
+    pub fn set_table_style(&mut self, workbook: &mut Workbook, name: &str, style: crate::TableStyle)
+        -> Result<bool, String> {
+        if self.pending.is_some() || workbook.is_inside_custom_call() {
+            return Err("Another history command is pending.".into());
+        }
+        let Some(change) = TableDefinitionChange::prepare_style(workbook, name, style)? else { return Ok(false); };
+        self.finish_table_change(workbook, change, "Format table")?;
+        Ok(true)
+    }
+
     /// 改变 Table 所属范围，不移动数据区；表头、汇总与引用变化同进一条历史。
     pub fn resize_table(
         &mut self,
@@ -123,10 +134,21 @@ impl WorkbookHistory {
         change: TableDefinitionChange,
         label: &str,
     ) -> Result<(), String> {
+        change.apply(workbook, false)?;
+        self.record_table_change(workbook, change, label);
+        Ok(())
+    }
+
+    /// 输入扩展已在原生 batch 内写入；只把同一个变更放入历史，不再次执行。
+    pub(super) fn record_table_change(
+        &mut self,
+        workbook: &Workbook,
+        change: TableDefinitionChange,
+        label: &str,
+    ) {
         let sheet = change.sheet;
         let sheet_key = workbook.sheet_key(sheet).unwrap();
         let affected_indices = change.affected_sheets(workbook);
-        change.apply(workbook, false)?;
         self.push(HistoryEntry {
             label: label.into(),
             sheet,
@@ -141,7 +163,6 @@ impl WorkbookHistory {
             origin: Rc::downgrade(&workbook.atom_context),
             change: HistoryChange::TableDefinition(Box::new(change)),
         });
-        Ok(())
     }
 
     /// 第一行作为表头，规范化文字与注册定义作为一次可撤销操作提交。

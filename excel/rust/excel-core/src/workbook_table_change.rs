@@ -13,6 +13,10 @@ mod column;
 mod resize;
 #[path = "workbook_table_resize_totals.rs"]
 mod resize_totals;
+#[path = "workbook_table_input.rs"]
+mod input;
+#[path = "workbook_table_style_change.rs"]
+mod style;
 
 #[derive(Debug)]
 pub(crate) struct TableDefinitionChange {
@@ -167,6 +171,15 @@ impl TableDefinitionChange {
             next_cells.push(next);
         }
         let definition_changed = expected != next;
+        if definition_changed && matches!((expected, next), (Some(old), Some(new))
+            if old.same_formula_definition(new)) {
+            // 纯外观变更不失效公式的 Table epoch，也不遍历/重投数组消费者。
+            let next = next.unwrap();
+            workbook.tables.insert(next.name().to_ascii_uppercase(), next.clone());
+            workbook.tables_epoch = workbook.tables_epoch.wrapping_add(1);
+            workbook.sheets[self.sheet].notify_format_range(self.range);
+            return Ok(());
+        }
         let mut arrays = if definition_changed {
             workbook.array_dependents_for_atoms(&workbook.atom_context.table_dependent_atoms())
         } else {

@@ -56,6 +56,7 @@ impl Workbook {
                     has_headers: entry.has_headers,
                     has_totals: entry.has_totals,
                     columns: entry.columns,
+                    style: entry.style,
                 },
             );
         }

@@ -196,7 +196,13 @@ impl Workbook {
             if text.len() > MAX_CLIPBOARD_TEXT_BYTES {
                 return Err("CLIPBOARD_TOO_LARGE");
             }
-            cells.push(read_cell(sheet, addr));
+            let mut cell = read_cell(sheet, addr);
+            if let Some(style) = self.table_base_style_at(sheet_idx, addr) {
+                let mut format = CellFormat::default();
+                style.apply_to(&mut format);
+                cell.format = Some(format);
+            }
+            cells.push(cell);
         }
         Ok(ClipboardSnapshot {
             source_sheet: Some(sheet_idx),

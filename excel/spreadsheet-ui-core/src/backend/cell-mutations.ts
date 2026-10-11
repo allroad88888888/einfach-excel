@@ -8,6 +8,8 @@ export interface SetCellInputRequest extends SheetRef {
   row: number
   col: number
   input: string
+  /** 保护表仍允许解锁格的普通输入，但不能隐式改变 Table 范围。 */
+  expandTables?: boolean
   requestId?: ProjectionRequestId
   revision?: ProjectionRevision
 }

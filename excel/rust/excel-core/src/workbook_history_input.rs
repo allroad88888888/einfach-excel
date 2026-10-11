@@ -10,6 +10,18 @@ impl WorkbookHistory {
         address: &str,
         input: &str,
     ) -> Result<(), String> {
+        self.set_cell_input_with_table_expansion(workbook, sheet, address, input, true)
+    }
+
+    /// 宿主的工作表保护策略只关闭扩表，不改变普通输入的解析和历史。
+    pub fn set_cell_input_with_table_expansion(
+        &mut self,
+        workbook: &mut Workbook,
+        sheet: usize,
+        address: &str,
+        input: &str,
+        expand_tables: bool,
+    ) -> Result<(), String> {
         if self.pending.is_some() || workbook.is_inside_custom_call() {
             return Err("Another history command is pending.".into());
         }
@@ -41,6 +53,15 @@ impl WorkbookHistory {
                 input.strip_prefix('\'').unwrap_or(input),
             )?;
             return Ok(());
+        }
+        if expand_tables {
+            if let Some(mut change) = crate::workbook::TableDefinitionChange::prepare_input_expansion(
+                workbook, sheet, addr, input,
+            )? {
+                change.apply_expanding_input(workbook, addr, input)?;
+                self.record_table_change(workbook, change, "Edit cell and expand table");
+                return Ok(());
+            }
         }
         self.begin(workbook, sheet, range, "Edit cell", true)?;
         let result = workbook.set_cell_input(sheet, address, input);

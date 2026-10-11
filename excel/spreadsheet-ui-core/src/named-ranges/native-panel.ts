@@ -37,6 +37,13 @@ export const nativeNamedRangesAtom = atom((get): readonly NativeNamedRange[] => 
 })
 /** 只保存面板草稿与用户可见的忙碌/错误状态。 */
 export const nativeNameManagerAtom = atom<Panel>(CLOSED)
+/** 工作簿切换后隐藏旧草稿；视图无需接触 Rust connection。 */
+export const nativeNameManagerOpenAtom = atom((get) => {
+  const state = get(nativeNameManagerAtom)
+  const sheet = get(activeWorkbookSheetAtom)
+  return Boolean(sheet && state.ownerSheetId === sheet.id &&
+    state.connection === get(rustWorkbookConnectionAtom))
+})
 
 export const runNativeNameManagerAtom = atom(null, async (get, set,
   action: 'open' | 'close' | 'new' | 'save' | 'delete' | { edit: string } | Partial<Draft>,

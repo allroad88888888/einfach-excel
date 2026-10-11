@@ -67,16 +67,12 @@ impl Parser {
     }
 
     /// True if the current position continues an identifier token — an
-    /// alphanumeric / `_`, or a `.` that is itself followed by an identifier
-    /// char (the dotted-function-name rule). Used as the trailing boundary
+    /// alphanumeric / `_` / `.`. Used as the trailing boundary
     /// for a cell-address token so `A1B` / `A1.5` stay bare Names rather than
     /// being split into `A1` + trailing garbage.
     fn at_ident_continuation(&self) -> bool {
         match self.peek() {
-            Some(c) if c.is_alphanumeric() || c == '_' => true,
-            Some('.') => {
-                matches!(self.peek_at(1), Some(n) if n.is_alphanumeric() || n == '_')
-            }
+            Some(c) if c.is_alphanumeric() || c == '_' || c == '.' => true,
             _ => false,
         }
     }

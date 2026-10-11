@@ -6,36 +6,18 @@
 
 use super::ast::Expr;
 use super::lexer::Parser;
+use crate::sheet::{EXCEL_MAX_COLS, EXCEL_MAX_ROWS};
 
 impl Parser {
     /// Identifier: could be a function name (followed by '(') or a cell reference.
     ///
-    /// We allow `.` between identifier chars so Excel 2010+ dotted function
-    /// names like `RANK.EQ` / `STDEV.P` / `PERCENTILE.INC` parse as a single
-    /// name. The first character may also be `_`, `\` or a Unicode letter;
-    /// the remaining characters accept letters, digits and `_`.
-    /// A `.` is only consumed when the very next char is
-    /// itself a valid identifier char (alpha / digit / underscore) — this
-    /// keeps a trailing `RANK.` from being absorbed (the `.` is left for
-    /// the caller, which will then fail to parse the formula), and
-    /// `RANK..EQ` won't be eaten as one identifier either. Numbers like
-    /// `1.5` route through `parse_number` instead, because identifiers
-    /// must start with an alpha char — so the decimal-separator role of
-    /// `.` is unaffected.
+    /// 名称首位允许字母、下划线或反斜杠，后续允许字母、数字、下划线及点。
+    /// 点也是名称字符，不要求前后另有字母；小数仍由 parse_number 分流。
     pub(super) fn parse_identifier(&mut self) -> Option<Expr> {
         let start = self.pos;
-        // Read alphanumerics + underscore. Allow '.' only when followed by
-        // another identifier char (see doc above).
         while let Some(c) = self.peek() {
-            if c.is_alphanumeric() || c == '_' || (self.pos == start && c == '\\') {
+            if c.is_alphanumeric() || c == '_' || c == '.' || (self.pos == start && c == '\\') {
                 self.advance();
-            } else if c == '.' {
-                match self.peek_at(1) {
-                    Some(next) if next.is_alphanumeric() || next == '_' => {
-                        self.advance();
-                    }
-                    _ => break,
-                }
             } else {
                 break;
             }
@@ -103,6 +85,14 @@ impl Parser {
         let name_fallback_pos = self.pos;
         self.pos = start;
         if let Some((addr, abs)) = self.scan_abs_cell_addr() {
+            // 超出 Excel 网格的裸标识符（Sales1、XFE1）是名称，不是空单元格。
+            // 带 $ 的显式引用仍走引用语义；! 前缀已在上方单独分流。
+            if abs == super::ast::RefAbs::REL
+                && (addr.row >= EXCEL_MAX_ROWS || addr.col >= EXCEL_MAX_COLS)
+            {
+                self.pos = name_fallback_pos;
+                return Some(Expr::Name(ident));
+            }
             return self.finish_same_sheet_ref(addr, abs);
         }
         if let Some(expr) = self.try_scan_whole_col_range() {

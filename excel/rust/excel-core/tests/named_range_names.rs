@@ -20,6 +20,13 @@ fn accepted_names_parse_read_and_spill_through_normal_formulas() {
         "_Sales",
         r"\Sales",
         "Sales.Quarter",
+        "Sales..Quarter",
+        "Sales.",
+        "Sales1",
+        "XFE1",
+        "A1048577",
+        "A1.",
+        "A1..A2",
         "NewSales",
         "A1销售",
         "A1.销售",
@@ -119,7 +126,18 @@ fn lexical_shadow_does_not_create_a_false_named_range_cycle() {
 #[test]
 fn structural_source_scanner_does_not_rewrite_address_shaped_parts_of_names() {
     use einfach_excel_core::shift::{rewrite_parked_source, ShiftEdit, SourceRewrite};
-    for name in ["A1销售", "A1.销售", "_A1", r"\A1", "销售A1"] {
+    for name in [
+        "A1销售",
+        "A1.销售",
+        "_A1",
+        r"\A1",
+        "销售A1",
+        "Sales1",
+        "XFE1",
+        "A1048577",
+        "A1.",
+        "A1..A2",
+    ] {
         let (mut wb, range) = source();
         wb.define_named_range(name, 0, range).unwrap();
         let formula = format!("=SUM({name})+A1");

@@ -20,6 +20,34 @@ fn eval_let_simple() {
 }
 
 #[test]
+fn local_lambda_calls_use_the_same_case_insensitive_binding_as_bare_names() {
+    let (cm, vs) = make_test_env();
+    for formula in [
+        "=LET(fn,LAMBDA(x,x+1),FN(4))",
+        "=LAMBDA(fn,FN(4))(LAMBDA(x,x+1))",
+        "=LET(fn,LAMBDA(x,x+1),LAMBDA(FN(4)))()",
+    ] {
+        assert_eq!(eval_str(formula, &cm, &vs), Value::Number(5.0), "{formula}");
+    }
+    assert_eq!(
+        eval_str("=LET(fn,7,FN())", &cm, &vs),
+        Value::Error(ValueError::WrongType)
+    );
+}
+
+#[test]
+fn closures_keep_creation_scope_instead_of_the_callers_later_bindings() {
+    let (cm, vs) = make_test_env();
+    assert_eq!(eval_str("=LET(x,1,fn,LAMBDA(x),LET(x,2,fn()))", &cm, &vs), Value::Number(1.0));
+    for formula in [
+        "=LET(fn,LAMBDA(x),LET(x,2,fn()))",
+        "=LET(fn,LAMBDA(LAMBDA(x)),LET(x,2,fn()()))",
+    ] {
+        assert_eq!(eval_str(formula, &cm, &vs), Value::Error(ValueError::InvalidName), "{formula}");
+    }
+}
+
+#[test]
 fn eval_let_sequential() {
     let (cm, vs) = make_test_env();
     // Second binding references the first — lexical/sequential.

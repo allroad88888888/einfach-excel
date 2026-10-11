@@ -94,7 +94,9 @@ pub(super) fn eval_func(name: &str, args: &[Expr], provider: &dyn EvalProvider) 
 /// with built-ins, and the LAMBDA-only check here preserves the
 /// LAMBDA-over-custom precedence.
 pub(super) fn eval_named_call(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
-    if let Some(value) = provider.lookup_named(name) {
+    // 局部 LAMBDA 参数或闭包捕获优先于全局名称；与裸名称求值使用同一作用域。
+    let local = lookup_let_binding(name);
+    if let Some(value) = local.clone().or_else(|| provider.lookup_named(name)) {
         match &value {
             Value::Lambda(_) => {
                 let mut arg_values: Vec<Value> = Vec::with_capacity(args.len());
@@ -112,6 +114,7 @@ pub(super) fn eval_named_call(name: &str, args: &[Expr], provider: &dyn EvalProv
                 return apply_lambda(&value, arg_values, provider);
             }
             Value::Error(e) => return Value::Error(e.clone()),
+            _ if local.is_some() => return Value::Error(ValueError::WrongType),
             _ => {
                 // Non-LAMBDA defined name (`answer = 42`, `MYRANGE =
                 // $A$1:$B$10`, etc.). Fall through to the custom-formula

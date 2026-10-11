@@ -977,13 +977,15 @@ fn s10_boundary_corner_refs_and_grid_caps() {
     s_col.insert_row(1048575, 2); // insert at the max row: no panic
     assert_eq!(s_col.get_cell("A1"), num(1.0));
 
-    // Point refs BEYOND the Excel grid (XFE1, A1048577) parse and read
-    // as empty cells today — pinned: no panic, Null semantics.
+    // 网格外的裸地址形状是未定义名称，不能伪装成空单元格。
+    // 显式带 $ 的引用仍维持现有越界读取语义。
     let mut s_beyond = Sheet::new();
     assert!(s_beyond.set_formula("A1", "=XFE1+1"));
-    assert_eq!(s_beyond.get_cell("A1"), num(1.0));
+    assert_eq!(s_beyond.get_cell("A1"), Value::Error(ValueError::InvalidName));
     assert!(s_beyond.set_formula("A2", "=A1048577+1"));
-    assert_eq!(s_beyond.get_cell("A2"), num(1.0));
+    assert_eq!(s_beyond.get_cell("A2"), Value::Error(ValueError::InvalidName));
+    assert!(s_beyond.set_formula("A3", "=$XFE$1+1"));
+    assert_eq!(s_beyond.get_cell("A3"), num(1.0));
 }
 
 // =====================================================================

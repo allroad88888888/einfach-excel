@@ -86,6 +86,10 @@ mod workbook_named_ranges;
 use workbook_named_range_structure::NamedRangeShift;
 #[path = "workbook_named_range_edit.rs"]
 mod workbook_named_range_edit;
+#[path = "workbook_named_range_rules.rs"]
+mod workbook_named_range_rules;
+#[path = "workbook_named_range_lambdas.rs"]
+mod workbook_named_range_lambdas;
 #[path = "workbook_named_range_snapshot.rs"]
 mod workbook_named_range_snapshot;
 pub use workbook_named_range_snapshot::NamedRangeSnapshot;

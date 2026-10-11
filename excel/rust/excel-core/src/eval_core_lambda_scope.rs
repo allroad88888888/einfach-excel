@@ -99,6 +99,10 @@ pub(super) fn lookup_let_binding(name: &str) -> Option<Value> {
             if let Some(v) = frame.bindings.get(&key) {
                 return Some(v.clone());
             }
+            // 闭包帧已包含创建时捕获的绑定；不能继续读取调用者的临时 LET。
+            if frame.lambda_activation {
+                break;
+            }
         }
         None
     })
@@ -126,6 +130,9 @@ pub(super) fn snapshot_let_frames() -> Vec<(String, Value)> {
                 if seen.insert(k.clone()) {
                     out.push((k.clone(), v.clone()));
                 }
+            }
+            if frame.lambda_activation {
+                break;
             }
         }
         out
@@ -174,6 +181,9 @@ pub(super) fn lambda_param_is_omitted(name: &str) -> bool {
         for frame in frames.iter().rev() {
             if frame.bindings.contains_key(&key) {
                 return frame.omitted.contains(&key);
+            }
+            if frame.lambda_activation {
+                break;
             }
         }
         false

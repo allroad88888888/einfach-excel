@@ -51,6 +51,8 @@ export interface RustWorkbookSheetInput {
   readonly mergedRanges?: readonly CellRange[]
   readonly freeze?: { readonly rows: number; readonly cols: number }
   readonly outline?: NativeOutline
+  /** 工作簿级名称；范围属于本张表，事实在 Rust 初始化时建立。 */
+  readonly namedRanges?: readonly { readonly name: string; readonly range: CellRange }[]
   readonly dataValidations?: readonly {
     readonly range: CellRange
     readonly rule: NativeDataValidationRule

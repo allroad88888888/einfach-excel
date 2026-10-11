@@ -150,6 +150,14 @@ pub fn rewrite_parked_source(src: &str, edit: ShiftEdit) -> SourceRewrite {
                 }
                 // Same-sheet cell ref (`A5`, `A$5`), `$`-aware on the row.
                 if let Some((addr, col_abs, row_abs, end)) = scan_abs_addr_token(b, start) {
+                    // 与解析器一致：网格外的裸标识符是名称，插行不得改它。
+                    if !col_abs
+                        && !row_abs
+                        && (addr.row >= EXCEL_MAX_ROWS || addr.col >= EXCEL_MAX_COLS)
+                    {
+                        prev = b[i - 1];
+                        continue;
+                    }
                     let mapped = edit.apply(addr);
                     if mapped.row >= EXCEL_MAX_ROWS || mapped.col >= EXCEL_MAX_COLS {
                         return SourceRewrite::DeadRef;

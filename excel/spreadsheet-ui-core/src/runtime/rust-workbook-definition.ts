@@ -50,6 +50,14 @@ export function snapshotRustWorkbookDefinition(
     }
     const hiddenRows = hidden(sheet.hiddenRows, sheet.rowCount)
     const hiddenColumns = hidden(sheet.hiddenColumns, sheet.colCount)
+    const namedRanges = sheet.namedRanges?.map(({ name: rangeName, range }) => {
+      if (![range.rowStart, range.rowEnd, range.colStart, range.colEnd].every(
+        (n) => Number.isSafeInteger(n) && n >= 0) || range.rowStart > range.rowEnd ||
+        range.colStart > range.colEnd || range.rowEnd >= sheet.rowCount ||
+        range.colEnd >= sheet.colCount)
+        throw new Error('Invalid initial named range.')
+      return Object.freeze({ name: rangeName, range: Object.freeze({ ...range }) })
+    })
     if (sheet.outline && (!validNativeOutline(sheet.outline) ||
       sheet.outline.rows.some((group) => group.end >= sheet.rowCount) ||
       sheet.outline.columns.some((group) => group.end >= sheet.colCount)))
@@ -133,6 +141,7 @@ export function snapshotRustWorkbookDefinition(
       ...(hiddenRows ? { hiddenRows } : {}),
       ...(hiddenColumns ? { hiddenColumns } : {}),
       ...(outline ? { outline } : {}),
+      ...(namedRanges ? { namedRanges: Object.freeze(namedRanges) } : {}),
       ...(mergedRanges ? { mergedRanges: Object.freeze(mergedRanges) } : {}),
       ...(freeze ? { freeze: Object.freeze({ ...freeze }) } : {}),
       ...(conditionalFormats ? { conditionalFormats: Object.freeze(conditionalFormats) } : {}),

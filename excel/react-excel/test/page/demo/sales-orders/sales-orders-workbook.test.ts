@@ -10,6 +10,10 @@ import {
   SUMMARY_OUTLINE_CELLS,
 } from '../../../../src/page/demo/sales-orders/data/outline-seed'
 import {
+  SUMMARY_NAMED_RANGES,
+  SUMMARY_NAMED_RANGE_CELLS,
+} from '../../../../src/page/demo/sales-orders/data/named-range-seed'
+import {
   SALES_ORDER_SUMMARY_CELLS,
   SUMMARY_SIZES,
   SUMMARY_MERGES,
@@ -39,6 +43,7 @@ describe('Sales Orders workbook definition', () => {
         conditionalFormats: SUMMARY_CONDITIONAL_FORMATS,
         dataValidations: SUMMARY_VALIDATIONS,
         outline: SUMMARY_OUTLINE,
+        namedRanges: SUMMARY_NAMED_RANGES,
       },
     ])
   })
@@ -47,10 +52,11 @@ describe('Sales Orders workbook definition', () => {
     const chunks = SALES_ORDERS_WORKBOOK_DEFINITION.createImportChunks() as Iterable<
       readonly unknown[]
     >
-    expect([...chunks].slice(-3)).toEqual([
+    expect([...chunks].slice(-4)).toEqual([
       SALES_ORDER_SUMMARY_CELLS,
       SUMMARY_VALIDATION_CELLS,
       SUMMARY_OUTLINE_CELLS,
+      SUMMARY_NAMED_RANGE_CELLS,
     ])
     expect(SALES_ORDER_SUMMARY_CELLS).toEqual(
       expect.arrayContaining([

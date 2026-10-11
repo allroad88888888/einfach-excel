@@ -22,6 +22,7 @@ import { FreezeTools } from './FreezeTools'
 import { FindReplaceTools } from './FindReplaceTools'
 import { GoToTools } from './GoToTools'
 import { QuickFormulaTools } from './QuickFormulaTools'
+import { NamedRangeTools } from './NamedRangeTools'
 import { ConditionalFormatTools } from './ConditionalFormatTools'
 import { DataValidationTools } from './DataValidationTools'
 import { ColorTools } from './ColorTools'
@@ -214,6 +215,7 @@ export function WorkbookRibbon() {
           pressed={activeFormat.numberFormat?.kind === 'date'} />
         <NumberFormatTools />
         <QuickFormulaTools />
+        <NamedRangeTools />
         <span className="tool-separator" aria-hidden="true" />
         <ToolButton
           icon="⌫"

@@ -1,5 +1,7 @@
 //! 一次命名区域变更的原生前后状态；先预检，再原子发布名称与实际改写的公式。
 
+use super::workbook_named_range_lambdas::NamedRangeLambdaChange;
+use super::workbook_named_range_rules::NamedRangeRuleChange;
 use super::*;
 
 #[derive(Clone, Debug)]
@@ -34,6 +36,8 @@ pub(crate) struct NamedRangeChange {
     before: Option<NamedEntry>,
     after: Option<NamedEntry>,
     formulas: Vec<FormulaRename>,
+    rules: Vec<NamedRangeRuleChange>,
+    lambdas: Vec<NamedRangeLambdaChange>,
 }
 
 impl NamedRangeChange {
@@ -105,8 +109,20 @@ impl NamedRangeChange {
             return Ok(None);
         }
         let mut formulas = Vec::new();
+        let mut rules = Vec::new();
+        let mut lambdas = Vec::new();
         if let (Some(old), Some(new)) = (&before, &after) {
             if old.canonical_name != new.canonical_name {
+                rules = NamedRangeRuleChange::prepare(
+                    workbook,
+                    &old.canonical_name,
+                    &new.canonical_name,
+                );
+                lambdas = NamedRangeLambdaChange::prepare(
+                    workbook,
+                    &old.canonical_name,
+                    &new.canonical_name,
+                );
                 let all = CellRange::new(
                     CellAddress::new(0, 0),
                     CellAddress::new(GRID_MAX_ROW, GRID_MAX_COL),
@@ -143,6 +159,8 @@ impl NamedRangeChange {
             before,
             after,
             formulas,
+            rules,
+            lambdas,
         }))
     }
 
@@ -156,6 +174,12 @@ impl NamedRangeChange {
             }
         }
         indices.extend(self.formulas.iter().map(|formula| formula.sheet));
+        indices.extend(self.rules.iter().filter_map(|change| {
+            workbook
+                .sheet_keys
+                .iter()
+                .position(|key| *key == change.sheet_key)
+        }));
         indices.into_iter().collect()
     }
 
@@ -209,6 +233,12 @@ impl NamedRangeChange {
                 return Err("A referring formula changed outside history.");
             }
         }
+        for rule in &self.rules {
+            rule.validate(workbook, undo)?;
+        }
+        for lambda in &self.lambdas {
+            lambda.validate(workbook, undo)?;
+        }
         let arrays = workbook.named_array_dependents();
         // 名称可以影响任意表的订阅；只暂存已有监听，不扫描或复制单元格。
         let observers: Vec<_> = (0..workbook.sheets.len())
@@ -226,6 +256,12 @@ impl NamedRangeChange {
             }
             if let (Some(key), Some(entry)) = (new_key, next) {
                 workbook.named_values.insert(key, entry.clone());
+            }
+            for rule in &self.rules {
+                rule.apply(workbook, undo);
+            }
+            for lambda in &self.lambdas {
+                lambda.apply(workbook, undo);
             }
             workbook.publish_atom_names();
             for formula in &self.formulas {
@@ -261,6 +297,8 @@ impl NamedRangeChange {
                         + std::mem::size_of::<FormulaRename>()
                 })
                 .sum::<usize>()
+            + crate::sheet::metadata_bytes(&self.rules)
+            + crate::sheet::metadata_bytes(&self.lambdas)
     }
 }
 

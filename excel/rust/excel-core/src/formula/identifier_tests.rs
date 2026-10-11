@@ -148,22 +148,37 @@ fn parse_decimal_regression() {
 }
 
 #[test]
-fn parse_trailing_dot_in_identifier_rejected() {
-    // `RANK.` (trailing dot with no continuation) must NOT parse as an
-    // identifier called `RANK.`. The parser stops before the `.`,
-    // leaving it for the caller — there's nothing else `.` can be at
-    // the start of a token, so the formula as a whole fails to parse.
-    assert!(parse_formula("=RANK.").is_none());
-    // Even inside a function-call expression, the lone dot is fatal:
-    assert!(parse_formula("=RANK.(1,A1:A3)").is_none());
+fn parse_trailing_dot_is_part_of_a_defined_name() {
+    assert_eq!(parse_formula("=RANK."), Some(Expr::Name("RANK.".into())));
+    // 不存在的调用名可以解析，再由求值器返回 #NAME?，不是语法错误。
+    assert!(matches!(parse_formula("=RANK.(1,A1:A3)"),
+        Some(Expr::FuncCall { name, .. }) if name == "RANK."));
 }
 
 #[test]
-fn parse_consecutive_dots_in_identifier_rejected() {
-    // `RANK..EQ` — the second dot has no preceding identifier char so
-    // the rule stops the identifier at `RANK` and the second `.` is
-    // not consumed → formula fails to parse.
-    assert!(parse_formula("=RANK..EQ(1,A1:A3)").is_none());
+fn parse_consecutive_dots_are_part_of_a_defined_name() {
+    assert_eq!(
+        parse_formula("=Sales..Quarter"),
+        Some(Expr::Name("Sales..Quarter".into()))
+    );
+    assert!(matches!(parse_formula("=RANK..EQ(1,A1:A3)"),
+        Some(Expr::FuncCall { name, .. }) if name == "RANK..EQ"));
+}
+
+#[test]
+fn only_in_grid_bare_addresses_take_precedence_over_names() {
+    for name in ["Sales1", "XFE1", "A1048577", "A0", "A1.", "A1..A2"] {
+        assert_eq!(
+            parse_formula(&format!("={name}")),
+            Some(Expr::Name(name.into()))
+        );
+    }
+    for reference in ["XFD1048576", "$XFE$1", "A$1048577"] {
+        assert!(matches!(
+            parse_formula(&format!("={reference}")),
+            Some(Expr::CellRef(..))
+        ));
+    }
 }
 
 #[test]

@@ -1,0 +1,42 @@
+/* 与工作簿其它工具弹窗共用颜色和字级；引用范围是目录的第二列。 */
+.named-range-panel {
+  box-sizing: border-box; width: 520px; max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 24px); overflow: auto; padding: 20px;
+  border: 1px solid var(--border); border-radius: 8px;
+  background: var(--surface); color: var(--text); font-size: 13px;
+}
+.named-range-panel::backdrop { background: rgb(20 25 45 / 25%); }
+.named-range-panel h2 { margin: 0; font-size: 17px; }
+.named-range-panel h3 { margin: 0; font-size: 13px; }
+.named-range-panel p { line-height: 1.5; }
+.named-range-panel button, .named-range-panel input, .named-range-panel select {
+  box-sizing: border-box; min-width: 0; min-height: 34px; padding: 5px 8px;
+  font: inherit; color: inherit; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 4px;
+}
+.named-range-list { max-height: 200px; overflow: auto; border-block: 1px solid var(--border); }
+.named-range-list > button {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px; width: 100%; text-align: left; border: 0; border-radius: 0;
+  overflow-wrap: anywhere;
+}
+.named-range-list > button:hover { background: var(--control-hover); }
+.named-range-list > button[aria-pressed='true'] {
+  background: var(--primary-soft); color: var(--primary);
+}
+.named-range-list span { font-family: ui-monospace, monospace; font-size: 12px; }
+.named-range-heading { display: flex; align-items: center; justify-content: space-between; margin: 16px 0; }
+.named-range-panel fieldset {
+  display: grid; grid-template-columns: 100px minmax(0, 1fr); align-items: center;
+  gap: 10px; padding: 0; border: 0; margin: 0; min-width: 0;
+}
+.named-range-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+.named-range-actions button[type='submit'] { background: var(--primary); color: white; }
+.named-range-actions button:first-child { margin-right: auto; }
+.named-range-panel :disabled { opacity: .5; }
+.named-range-panel :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.named-range-panel [role='alert'] { color: #a12622; overflow-wrap: anywhere; }
+@media (max-width: 420px) {
+  .named-range-panel fieldset { grid-template-columns: 1fr; gap: 6px; }
+  .named-range-list > button { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+}

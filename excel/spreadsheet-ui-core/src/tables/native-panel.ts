@@ -1,16 +1,15 @@
 import { atom } from '@einfach/core'
-import { activeWorkbookSheetAtom, workbookDocumentAtom } from '../runtime/workbook-document'
+import { activeWorkbookSheetAtom } from '../runtime/workbook-document'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import type { RustWorkbookConnection } from '../rust-workbook/commands'
 import { editingSessionAtom } from '../editing/session-atoms'
 import { rustHistoryPanelAtom } from '../history/rust-history-command'
 import { sheetTabsAtom } from '../sheet-tabs/state'
-import { getSheetProtection, sheetProtectionAtom } from '../protection'
 import { selectionRegionsAtom, selectionSnapshotAtom } from '../selection'
 import { parseA1Cell, parseA1Range, rangeToA1 } from '../name-box/address'
-import { applyVisibleProjectionAtom, createVisibleProjectionRequest,
-  issueProjectionRequestIdAtom, projectionSnapshotAtom } from '../projection'
-import { validateProjectionResult } from '../projection/contracts'
+import { projectionSnapshotAtom } from '../projection'
+import { changeNativeTableAtom } from './native-change'
+import { nativeTableFeedbackAtom } from './native-feedback'
 import type { ProjectionRevision } from '../backend'
 import { DEFAULT_NATIVE_TABLE_STYLE, NATIVE_TOTAL_FUNCTIONS, validNativeTableStyle,
   type NativeTable, type NativeTableStyle, type NativeTotalFunction, type TableChange } from './native-types'
@@ -29,7 +28,6 @@ interface Panel extends Draft {
 const CLOSED: Panel = { ownerSheetId: null, connection: null, editingName: null,
   name: '', range: '', column: '', newColumnName: '', totalColumn: '', totalFunction: 'sum', error: '' }
 const draftAtom = atom<Panel>(CLOSED)
-const pendingConnectionAtom = atom<RustWorkbookConnection | null>(null)
 /** 草稿与忙碌是 UI 状态；目录始终直接读取当前 Rust 投影。 */
 export const nativeTablePanelAtom = atom((get) => {
   const state = get(draftAtom)
@@ -40,7 +38,7 @@ export const nativeTablePanelAtom = atom((get) => {
   const ready = projection.status === 'ready' && result?.kind === 'visible-window' &&
     result.sheetId === sheet?.id && result.tables !== undefined
   return { ...state, ready,
-    busy: Boolean(connection && get(pendingConnectionAtom) === connection),
+    busy: get(nativeTableFeedbackAtom).busy,
     open: Boolean(connection && state.connection === connection &&
       state.ownerSheetId === sheet?.id),
     tables: ready ? result.tables!.filter((entry) => entry.sheetIndex === sheet?.index) : [],
@@ -58,7 +56,7 @@ export const runNativeTablePanelAtom = atom(null, async (get, set,
 ): Promise<boolean> => {
   const state = get(draftAtom)
   const connection = get(rustWorkbookConnectionAtom)
-  if (connection && get(pendingConnectionAtom) === connection) return false
+  if (get(nativeTableFeedbackAtom).busy) return false
   if (action === 'close') { set(draftAtom, CLOSED); return true }
   const sheet = get(activeWorkbookSheetAtom)
   if (!connection || !sheet) return false
@@ -99,10 +97,6 @@ export const runNativeTablePanelAtom = atom(null, async (get, set,
     } else set(draftAtom, { ...state, ...action, error: '' })
     return true
   }
-  // 公式引用可能跨表；与名称操作相同，保护任一表时拒绝工作簿级改写。
-  if (get(workbookDocumentAtom).sheets.some((s) =>
-    getSheetProtection(get(sheetProtectionAtom), s.id).mode === 'protected'))
-    return fail('Unprotect the worksheets before changing tables.')
   if (state.revision !== result.revision) return fail('The workbook changed. Reopen Tables.')
   let change: TableChange
   const styleAction = typeof action === 'object' && 'style' in action
@@ -155,49 +149,22 @@ export const runNativeTablePanelAtom = atom(null, async (get, set,
       change = { kind: 'resize', name: state.editingName, range }
     } else change = { kind: 'create', name: state.name.trim() || undefined, range }
   }
-  const requestId = set(issueProjectionRequestIdAtom)
-  if (requestId === null) return false
-  const projection = createVisibleProjectionRequest({ sheetId: sheet.id, requestId,
-    window: visible.window, viewport: visible.viewport, reason: 'toolbar' })
-  set(pendingConnectionAtom, connection)
-  try {
-    const response = connection.request('table.change', {
-      sheetId: sheet.id, action: change, revision: result.revision, projection,
-    })
-    await Promise.resolve()
-    if (get(pendingConnectionAtom) === connection) set(pendingConnectionAtom, connection)
-    const reply = await response
-    if (get(rustWorkbookConnectionAtom) !== connection ||
-      get(activeWorkbookSheetAtom)?.id !== sheet.id)
-      return false
-    if (!validateProjectionResult(reply.projection, { request: projection }).ok ||
-      reply.projection.tables === undefined)
-      throw new Error('Rust returned a mismatched table result.')
-    const applied = set(applyVisibleProjectionAtom, {
-      witness, request: projection, result: reply.projection,
-    })
-    if (applied.status !== 'applied') throw new Error('The view changed. Reopen Tables.')
-    if (get(draftAtom) === state) {
-      const entry = reply.projection.tables.find((table) => table.name === state.editingName)
-      const columnIndex = result.tables.find((table) => table.name === state.editingName)
-        ?.columns.indexOf(state.column) ?? 0
-      const column = action === 'resize' && entry?.columns.includes(state.column) ? state.column
-        : entry?.columns[Math.max(0, columnIndex)] ?? entry?.columns[0] ?? ''
-      const retainPanel = styleAction || headersAction || totalsAction ||
-        action === 'save-column' || action === 'resize' || action === 'append-row'
-      set(draftAtom, retainPanel && entry ? { ...state, range: entry.range,
-        column, newColumnName: action === 'save-column' || action === 'resize' ? column : state.newColumnName,
-        ...totalDraft(entry, state.totalColumn === state.column ? column : state.totalColumn),
-        revision: reply.projection.revision, error: '' } : CLOSED)
-    }
-    return true
-  } catch (error) {
-    if (get(draftAtom) !== state || get(rustWorkbookConnectionAtom) !== connection ||
-      get(activeWorkbookSheetAtom)?.id !== sheet.id) return false
-    return fail(error instanceof Error ? error.message : String(error))
-  } finally {
-    if (get(pendingConnectionAtom) === connection) set(pendingConnectionAtom, null)
-  }
+  const projection = await set(changeNativeTableAtom, change)
+  if (get(draftAtom) !== state || get(rustWorkbookConnectionAtom) !== connection ||
+    get(activeWorkbookSheetAtom)?.id !== sheet.id) return false
+  if (!projection) return fail(get(nativeTableFeedbackAtom).error ?? 'The table change was not applied.')
+  const entry = projection.tables?.find((table) => table.name === state.editingName)
+  const columnIndex = result.tables.find((table) => table.name === state.editingName)
+    ?.columns.indexOf(state.column) ?? 0
+  const column = action === 'resize' && entry?.columns.includes(state.column) ? state.column
+    : entry?.columns[Math.max(0, columnIndex)] ?? entry?.columns[0] ?? ''
+  const retainPanel = styleAction || headersAction || totalsAction ||
+    action === 'save-column' || action === 'resize' || action === 'append-row'
+  set(draftAtom, retainPanel && entry ? { ...state, range: entry.range,
+    column, newColumnName: action === 'save-column' || action === 'resize' ? column : state.newColumnName,
+    ...totalDraft(entry, state.totalColumn === state.column ? column : state.totalColumn),
+    revision: projection.revision, error: '' } : CLOSED)
+  return true
 })
 
 /** 下拉框草稿取自 Rust 返回的函数投影；无法识别的用户公式明确显示为 Custom。 */

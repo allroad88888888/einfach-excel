@@ -8,11 +8,14 @@
 范围操作：编辑 Table range 后点 Resize table；紧邻下方／右侧的单格输入由 Rust 自动扩展。
 样式操作：Tables 面板选择预设、隔行底色、首列强调；配置直接读取当前原生 Table 投影。
 
-调用链：`TableTools` → `runNativeTablePanelAtom` → `table.change` → WASM `change_table`
+调用链：`TableTools` → `runNativeTablePanelAtom` → `changeNativeTableAtom` → `table.change` → WASM `change_table`
 → Rust `WorkbookHistory` → 同次返回的可见区投影。一次操作只有一次 Worker 往返；撤销仍走已有原生历史。
 
 - `native-types.ts`：原生目录与命令载荷；只校验响应结构，不复制 Rust 的名称或公式规则。
-- `native-panel.ts`：弹窗草稿、忙碌与错误状态；Table 目录直接读取 `projection.result.tables`。
+- `native-panel.ts`：弹窗草稿；Table 目录直接读取 `projection.result.tables`。
+- `native-change.ts`：面板／键盘共用的原生命令提交与返回投影确认，不维护表定义。
+- `native-feedback.ts`：共用在途／错误反馈；独立于命令，让编辑和历史入口读取时不引入循环依赖。
+- `tab-navigation.ts`：数据区单格 Tab 前进、Shift+Tab 反向跨行；末数据格追加后才定位，晚响应不覆盖用户的新选区。
 - `../rust-workbook/table-commands.ts`：画布坐标校验及原生命令分发，不保存注册表。
 - 初始 Table 在全部单元格导入后创建，表头来自真实 Rust 数据；启动结束统一清除历史。
 - 汇总函数从 Rust 中的真实公式派生为 `totalFunctions`，不写入 Table 持久化元数据或第二份函数配置。
@@ -24,12 +27,14 @@
 - 自动扩展仍是一次 `cell.setInput`：新范围与输入共同成功或共同回滚，不追加 `table.change`。
 - 粘贴扩展由既有粘贴 command 直接进入 Rust：向下扩行、向右扩列及新增记录继承计算列，与粘贴值共用一条 Table 历史，不追加 Resize 请求。向下粘贴超出的列留在表外；显式空白／值与已有例外不被模板覆盖。纯格式、剪切、保护策略或归属不明确时不自动扩表。本批已通过完整 E2E 849/849，详细边界见功能进度。
 - 保护表的解锁格输入携带 `expandTables: false`；障碍/归属不明确时只做普通输入。汇总行下方不自动扩行。
+- Add data row 或末数据格 Tab 使用 `append-row`：只在 Table 列带插入，汇总及下方内容下移，旁列／整行尺寸不动；计算列与引用由 Rust 继承，整次追加是一条原生历史。格内编辑后 Tab 先提交输入，再追加，各自可撤销。
 - 原三参 `set_cell_input` 保持签名；保护表走新增的 `set_cell_input_with_table_expansion`，两者共用 Rust 输入历史。
 - Table 仅保存预设与两个开关。Rust 在读取窗口时生成默认样式，显式 cell/row/column 属性覆盖它，条件格式最后覆盖。
 - 转普通区域时才把外观落为普通 cellStyle，不改数据或行高／列宽；超过现有 32 MiB 撤销预算时整次拒绝。
 - 稀疏格式随 `bulk_import_cells` 直接进入 Rust：缺省属性继续继承，边框按原始单元格保存；Worker 不再追加格式命令或触发交互共边同步。
 
-创建／改名／转换、汇总行、列名编辑／定位、范围调整／输入扩展已分批验收（完整 E2E 766/766）。Table 样式本批正在全量回归，其余 #32 计划仍待后续批次。
+创建／改名／转换、汇总行、列名编辑／定位、范围调整／输入扩展、样式及粘贴扩表已分批验收。
+追加数据行与 Tab／Shift+Tab 本批通过完整 E2E 861/861、Vitest 5525/5525，含原生历史与 lite/full 保存恢复；其余 #32 计划仍待后续核对。
 完整验收状态见 [React 功能进度](../../../react-excel/FEATURE_PROGRESS.md)。
 
 ## 历史接口记录（非当前 React 运行路径）

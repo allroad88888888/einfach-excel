@@ -6,6 +6,7 @@ import {
 } from '../diagnostics'
 import { isRangeFullyUnlocked, sheetProtectionAtom } from '../protection'
 import type { CellCoord, CellRange } from '../shared'
+import { nativeTableFeedbackAtom } from '../tables/native-feedback'
 
 /**
  * Unified content-mutation gateway.
@@ -70,7 +71,7 @@ export type ResolveContentMutationInput =
   | ResolveContentMutationCellInput
   | ResolveContentMutationRangeInput
 
-export type ContentMutationBlockReason = 'locked' | 'invalid-target'
+export type ContentMutationBlockReason = 'locked' | 'invalid-target' | 'table-pending'
 
 export interface AllowedContentMutation {
   readonly status: 'allowed'
@@ -116,11 +117,13 @@ function isValidRange(range: Readonly<CellRange>): boolean {
 }
 
 const BLOCK_MESSAGES: Record<ContentMutationBlockReason, string> = {
+  'table-pending': 'Wait for the table change to finish before editing cells.',
   locked: 'The target cells are locked on a protected sheet.',
   'invalid-target': 'The mutation target coordinates are invalid.',
 }
 
 const BLOCK_CODES: Record<ContentMutationBlockReason, string> = {
+  'table-pending': 'MUTATION_BLOCKED_TABLE_PENDING',
   locked: 'MUTATION_BLOCKED_LOCKED',
   'invalid-target': 'MUTATION_INVALID_TARGET',
 }
@@ -173,6 +176,8 @@ clearContentMutationBlockAtom.debugLabel = 'spreadsheet.mutationGateway.clearBlo
 export const resolveContentMutationAtom = atom(
   null,
   (get, set, input: ResolveContentMutationInput): ContentMutationResolution => {
+    if (get(nativeTableFeedbackAtom).busy)
+      return publishBlock(set, createBlockedResolution(input, 'table-pending'))
     const enforceProtection = input.protectionGate !== false
 
     let sourceCell: Readonly<CellCoord> | undefined

@@ -52,6 +52,15 @@ test('creation uses one native history command and one returned projection', asy
   expect(list).toHaveBeenCalledTimes(1)
   expect(begin).not.toHaveBeenCalled()
 })
+test('append sends the runtime canvas limit to Rust with one projection and no nested history', async () => {
+  const { call, change, read, begin } = await setup()
+  expect(await call('table.change', { ...input, action: { kind: 'append-row', name: 'Sales' } }))
+    .toMatchObject({ ok: true, result: { changed: true, projection: { revision: 1 } } })
+  expect(change).toHaveBeenCalledTimes(1)
+  expect(change).toHaveBeenCalledWith(0, { kind: 'append-row', name: 'Sales', rowCount: 100 })
+  expect(read).toHaveBeenCalledTimes(1)
+  expect(begin).not.toHaveBeenCalled()
+})
 test('resize maps only coordinates and returns the same native mutation projection', async () => {
   const { call, change, read, begin, list } = await setup()
   const range = { rowStart: 0, rowEnd: 5, colStart: 0, colEnd: 2 }

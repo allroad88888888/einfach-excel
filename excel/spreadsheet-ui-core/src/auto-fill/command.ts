@@ -12,7 +12,7 @@ import type {
   SetCellInputRequest,
 } from '../backend/types'
 import { shiftFormulaRefs } from '../clipboard'
-import { resolveContentMutationAtom } from '../editing/mutation-gateway'
+import { resolveContentMutationAtom, type ContentMutationBlockReason } from '../editing/mutation-gateway'
 import { filterSortStateAtom } from '../filter-sort'
 import {
   acquireHistoryProducerReservationAtom,
@@ -114,10 +114,9 @@ export type AutoFillNoOpReason =
   | 'backend-no-op'
 
 export type AutoFillBlockedReason =
+  | ContentMutationBlockReason
   | 'busy'
   | 'active-filter'
-  | 'invalid-target'
-  | 'locked'
   | 'selection-mismatch'
   | 'active-sheet-mismatch'
   | 'missing-data-edge-capability'

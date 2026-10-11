@@ -145,6 +145,7 @@ export interface FormulaReferenceExitIntent {
 
 export type KeyboardCommandIntent =
   | MoveSelectionIntent
+  | { type: 'table.append-row'; name: string }
   | SelectAllIntent
   | ClearNonPrimarySelectionIntent
   | KeyboardEditingStartIntent

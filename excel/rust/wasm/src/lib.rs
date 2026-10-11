@@ -174,6 +174,7 @@ mod tests {
     include!("wasm_tests/number_format_preview.rs");
     include!("wasm_tests/tables.rs");
     include!("wasm_tests/table_commands.rs");
+    include!("wasm_tests/table_append.rs");
     include!("wasm_tests/table_totals_commands.rs");
     include!("wasm_tests/hidden_rows.rs");
     include!("wasm_tests/manual_visibility.rs");

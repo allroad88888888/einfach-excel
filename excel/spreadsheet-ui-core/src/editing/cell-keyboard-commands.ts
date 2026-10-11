@@ -10,6 +10,7 @@ import { clearSelectionAtom } from '../toolbar/selection-mutation-command'
 import { runRustHistoryAtom } from '../history/rust-history-command'
 import { fillSelectionAtom } from '../auto-fill/directional-command'
 import { exitFormulaReferenceAtom } from '../formula-reference'
+import { dispatchTableTabAtom } from '../tables/tab-navigation'
 
 export interface GridCellKeyboardInput {
   readonly sheetId: string
@@ -24,6 +25,10 @@ export type EditorKeyboardOutcome = EditingCommitOutcome | 'cancelled' | 'ignore
 export const dispatchGridCellKeyboardInputAtom = atom(
   null,
   (_get, set, input: GridCellKeyboardInput) => {
+    const tableIntent = set(dispatchTableTabAtom, {
+      ...input.keyboard, allowAppend: input.allowEditing,
+    })
+    if (tableIntent) return tableIntent
     const intent = set(dispatchKeyboardInputAtom, input.keyboard)
     if (intent.type === 'range.fill' && input.allowEditing) {
       void set(fillSelectionAtom, intent.direction)
@@ -67,7 +72,7 @@ export const dispatchEditorKeyboardInputAtom = atom(
     const viewportWitness = get(viewportMetricsAtom)
     const outcome = await set(commitCellEditingAtom)
     if (outcome === 'completed' && get(viewportMetricsAtom) === viewportWitness) {
-      set(dispatchKeyboardInputAtom, input)
+      if (!set(dispatchTableTabAtom, input)) set(dispatchKeyboardInputAtom, input)
     }
     return outcome
   },

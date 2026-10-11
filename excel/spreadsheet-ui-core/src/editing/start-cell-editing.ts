@@ -8,6 +8,7 @@ import { viewportGeometrySizesAtom } from '../viewport/geometry-sizes'
 import { selectionStructureFeedbackAtom } from '../toolbar/selection-structure-state'
 import { selectionMergeFeedbackAtom } from '../toolbar/selection-merge-state'
 import { mergeRangeAt } from '../shared/merge'
+import { nativeTableFeedbackAtom } from '../tables/native-feedback'
 import { getAxisSpanSize } from '../viewport/axis-geometry'
 
 export interface StartCellEditingFromProjectionInput {
@@ -21,7 +22,8 @@ export interface StartCellEditingFromProjectionInput {
 export const startCellEditingFromProjectionAtom = atom(
   null,
   (get, set, input: StartCellEditingFromProjectionInput): boolean => {
-    if (get(selectionStructureFeedbackAtom).busy || get(selectionMergeFeedbackAtom).busy)
+    if (get(selectionStructureFeedbackAtom).busy || get(selectionMergeFeedbackAtom).busy ||
+      get(nativeTableFeedbackAtom).busy)
       return false
     const result = get(projectionSnapshotAtom).result
     const merge =

@@ -1,6 +1,7 @@
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useId, useLayoutEffect, useRef } from 'react'
-import { editingSessionAtom, nativeTablePanelAtom, runNativeTablePanelAtom } from '@einfach/spreadsheet-ui-core'
+import { editingSessionAtom, nativeTablePanelAtom, nativeTableFeedbackAtom,
+  runNativeTablePanelAtom } from '@einfach/spreadsheet-ui-core'
 import { cycleDialogFocus } from './dialog-focus'
 import { TableTotals } from './TableTotals'
 import { TableColumns } from './TableColumns'
@@ -10,6 +11,7 @@ import './table-panel.css'
 /** React 只负责弹窗与焦点；Table 目录、草稿和动作直接读写 UI Core atoms。 */
 export function TableTools() {
   const state = useAtomValue(nativeTablePanelAtom)
+  const feedback = useAtomValue(nativeTableFeedbackAtom)
   const run = useSetAtom(runNativeTablePanelAtom)
   const editing = useAtomValue(editingSessionAtom).source !== null
   const trigger = useRef<HTMLButtonElement>(null)
@@ -39,6 +41,7 @@ export function TableTools() {
       disabled={!state.ready || editing || state.busy} onClick={() => void run('open')}>
       <span aria-hidden="true">▤</span>
     </button>
+    {!state.open && feedback.error && <span role="alert">{feedback.error}</span>}
     {state.open && <dialog ref={dialogRef} className="table-panel" aria-labelledby={`${id}-title`}
       onFocusCapture={(event) => {
         if (event.target !== event.currentTarget) focusedControl.current = event.target

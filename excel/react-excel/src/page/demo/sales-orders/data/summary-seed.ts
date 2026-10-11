@@ -119,6 +119,9 @@ export const SALES_ORDER_SUMMARY_CELLS: readonly RustImportCell[] = [
   { sheet: 1, row: 36, col: 3, kind: 'text', value: 'Pine' },
   { sheet: 1, row: 36, col: 4, kind: 'text', value: 'West' },
   { sheet: 1, row: 36, col: 5, kind: 'text', value: 'P1', format: { underline: true } },
+  // D32:F39 复用上述大小写样本；这两条记录的 D/E 真正留空，用于空格排序。
+  { sheet: 1, row: 37, col: 5, kind: 'text', value: 'empty-a' },
+  { sheet: 1, row: 38, col: 5, kind: 'text', value: 'empty-b' },
   // 原生分列：E97:E98 按逗号拆到 B97，C98 用于测试覆盖确认；E99 按 2,5 定宽拆。
   { sheet: 1, row: 96, col: 4, kind: 'text', value: '"North, America",001,Ready' },
   { sheet: 1, row: 97, col: 4, kind: 'text', value: '"Asia",002,"On hold"' },

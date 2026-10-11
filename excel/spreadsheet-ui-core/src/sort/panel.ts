@@ -9,13 +9,19 @@ interface SortPanel {
   readonly target: { sheetId: string; range: CellRange } | null
   readonly keys: readonly RustSortKey[]
   readonly hasHeader: boolean
+  readonly caseSensitive: boolean
+  readonly emptyFirst: boolean
   readonly error: string
 }
-const initial: SortPanel = { target: null, keys: [], hasHeader: false, error: '' }
+const initial: SortPanel = {
+  target: null, keys: [], hasHeader: false, caseSensitive: false, emptyFirst: false, error: '',
+}
 const stateAtom = atom(initial)
 export const sortPanelAtom = atom((get) => get(stateAtom))
 type Action = 'open' | 'close' | 'apply' | 'add' |
-  { type: 'header'; value: boolean } | { type: 'remove'; index: number } |
+  { type: 'header'; value: boolean } | { type: 'case-sensitive'; value: boolean } |
+  { type: 'empty-first'; value: boolean } |
+  { type: 'move'; index: number; direction: 'up' | 'down' } | { type: 'remove'; index: number } |
   { type: 'key'; index: number; key: RustSortKey }
 
 /** 面板保存用户选择，不读取数据，也不维护排序后的行映射。 */
@@ -43,7 +49,20 @@ export const configureSortAtom = atom(null, async (get, set, action: Action): Pr
   }
   if (typeof action === 'object') {
     if (action.type === 'header') set(stateAtom, { ...state, hasHeader: action.value, error: '' })
-    else {
+    else if (action.type === 'case-sensitive')
+      set(stateAtom, { ...state, caseSensitive: action.value, error: '' })
+    else if (action.type === 'empty-first')
+      set(stateAtom, { ...state, emptyFirst: action.value, error: '' })
+    else if (action.type === 'move') {
+      const target = action.index + (action.direction === 'up' ? -1 : 1)
+      if (!Number.isInteger(action.index) || action.index < 0 ||
+        action.index >= state.keys.length || target < 0 || target >= state.keys.length) return false
+      const keys = [...state.keys]
+      const moved = keys[action.index]!
+      keys[action.index] = keys[target]!
+      keys[target] = moved
+      set(stateAtom, { ...state, keys, error: '' })
+    } else {
       if (action.index < 0 || action.index >= state.keys.length ||
         (action.type === 'remove' && state.keys.length === 1)) return false
       set(stateAtom, { ...state, error: '', keys: action.type === 'remove'
@@ -56,7 +75,8 @@ export const configureSortAtom = atom(null, async (get, set, action: Action): Pr
   if (state.target.sheetId !== selection.selection.sheetId ||
     !rangeEquals(state.target.range, selection.range))
     return fail('The selection changed. Close and reopen Sort.')
-  const completed = await set(sortSelectionAtom, { keys: state.keys, hasHeader: state.hasHeader })
+  const completed = await set(sortSelectionAtom, { keys: state.keys, hasHeader: state.hasHeader,
+    caseSensitive: state.caseSensitive, emptyFirst: state.emptyFirst })
   if (completed) set(stateAtom, initial)
   else fail(get(sortFeedbackAtom).error || 'Sort was not applied. Try again.')
   return completed

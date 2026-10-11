@@ -101,7 +101,9 @@ export interface WasmWorkbook {
     sheet: number,
     input: {
       readonly range: { startRow: number; endRow: number; startCol: number; endCol: number }
-      readonly keys: readonly (RustSortKey & { readonly caseSensitive: boolean })[]
+      readonly keys: readonly (RustSortKey & {
+        readonly caseSensitive: boolean; readonly emptyFirst: boolean
+      })[]
       readonly excludedRows: readonly number[]
     },
   ) =>

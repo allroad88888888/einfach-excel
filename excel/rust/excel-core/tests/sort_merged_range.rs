@@ -22,6 +22,7 @@ fn rejects_any_intersection_with_merged_cells_without_changing_content() {
         col: 0,
         direction: SortDirection::Ascending,
         case_sensitive: false,
+        empty_first: false,
     };
     for target in [range("A1", "B3"), range("A2", "A3")] {
         assert_eq!(

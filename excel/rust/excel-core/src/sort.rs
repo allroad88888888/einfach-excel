@@ -4,8 +4,9 @@
 //! Semantics (normative, per the design adjudications):
 //!
 //!   - **Comparator** (`sort_cmp`, §3.2): Excel type order
-//!     number < text < boolean < error < empty; empty sorts LAST in both
-//!     directions; descending reverses only the non-empty comparison.
+//!     number < text < boolean < error < empty; empty sorts LAST by default
+//!     in both directions; `SortKey.empty_first` explicitly pins it first.
+//!     Descending reverses only the non-empty comparison.
 //!     Text compares case-folded by default (`case_sensitive: false`)
 //!     in code-point order — deliberately NO locale collation, so the
 //!     result is deterministic across static/worker/platforms.
@@ -56,6 +57,8 @@ pub struct SortKey {
     pub direction: SortDirection,
     /// Case-sensitive text comparison; Excel default is `false`.
     pub case_sensitive: bool,
+    /// True places genuinely empty cells first in either direction; empty text remains text.
+    pub empty_first: bool,
 }
 
 /// Result witness for a completed `sort_range`.
@@ -293,12 +296,13 @@ impl Sheet {
         let mut perm: Vec<usize> = (0..visible.len()).collect();
         perm.sort_by(|&ia, &ib| {
             for (ki, key) in keys.iter().enumerate() {
-                let ord = sort_cmp_with_direction(
-                    &key_values[ia][ki],
-                    &key_values[ib][ki],
-                    key.case_sensitive,
-                    key.direction,
-                );
+                let (a, b) = (&key_values[ia][ki], &key_values[ib][ki]);
+                // 空格位置独立于升降序；同为空格时继续比较下一级，不打乱稳定顺序。
+                let ord = match (key.empty_first, matches!(a, Value::Null), matches!(b, Value::Null)) {
+                    (true, true, false) => Ordering::Less,
+                    (true, false, true) => Ordering::Greater,
+                    _ => sort_cmp_with_direction(a, b, key.case_sensitive, key.direction),
+                };
                 if ord != Ordering::Equal {
                     return ord;
                 }
@@ -348,8 +352,8 @@ impl Sheet {
             //
             // 收尾就是插删行列那条流水线：整表摘下 → 跟着搬 → 重投影时按新地址
             // 重新登记。摘**整张表**而不只是矩形内的 anchor，因为排序也能在不碰
-            // anchor 的情况下腾空（或堵上）它的盒子 —— 空格恒沉底，所以排序矩形
-            // 底部的格子会被清空，那可能正是别处某个 anchor 的阻塞物。
+            // anchor 的情况下腾空（或堵上）它的盒子 —— 空格可置顶或沉底，排序后
+            // 清空的格子可能正是别处某个 anchor 的阻塞物。
             let blocked_anchors = sheet.teardown_blocked_spill_anchors();
             let remap = |addr: CellAddress| {
                 if addr.col >= c0 && addr.col <= c1 {
@@ -416,6 +420,7 @@ mod tests {
             col,
             direction: SortDirection::Ascending,
             case_sensitive: false,
+            empty_first: false,
         }
     }
 
@@ -424,6 +429,7 @@ mod tests {
             col,
             direction: SortDirection::Descending,
             case_sensitive: false,
+            empty_first: false,
         }
     }
 

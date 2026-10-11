@@ -45,6 +45,7 @@ fn sort_includes_manual_hidden_but_never_moves_filtered_rows_and_undo_preserves_
                 col: 1,
                 direction: SortDirection::Ascending,
                 case_sensitive: false,
+                empty_first: false,
             }],
             &[],
         )
@@ -70,6 +71,7 @@ fn sort_includes_manual_hidden_but_never_moves_filtered_rows_and_undo_preserves_
                 col: 1,
                 direction: SortDirection::Descending,
                 case_sensitive: false,
+                empty_first: false,
             }],
             &[1],
         )

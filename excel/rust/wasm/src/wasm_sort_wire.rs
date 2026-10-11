@@ -49,6 +49,9 @@ struct SortKeyWireJSON {
     direction: Option<String>,
     #[serde(rename = "caseSensitive", default)]
     case_sensitive: bool,
+    /// 空格位置是原生排序选项，省略时保留历史默认：空格最后。
+    #[serde(rename = "emptyFirst", default)]
+    empty_first: bool,
 }
 
 impl SortKeyWireJSON {
@@ -61,6 +64,7 @@ impl SortKeyWireJSON {
             col: self.col,
             direction,
             case_sensitive: self.case_sensitive,
+            empty_first: self.empty_first,
         }
     }
 }

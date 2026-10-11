@@ -46,12 +46,22 @@ export function SortTools() {
       aria-labelledby={`${id}-title`} aria-describedby={`${id}-help`}
       onCancel={(event) => { event.preventDefault(); void configure('close') }}>
       <h2 id={`${id}-title`}>Custom sort</h2>
-      <p id={`${id}-help`}>Only the selected rectangle moves, including hidden rows.
-        Add columns in priority order; blank cells stay at the bottom.</p>
+      <p id={`${id}-help`}>Only the selected rectangle moves. Filtered rows stay in place;
+        manually hidden rows participate. Levels are applied from top to bottom.</p>
       <form onSubmit={(event) => { event.preventDefault(); void configure('apply') }}>
         <label className="sort-header"><input type="checkbox" checked={panel.hasHeader}
           disabled={feedback.busy} onChange={(event) =>
             void configure({ type: 'header', value: event.currentTarget.checked })} />First row is a header</label>
+        <div className="sort-options">
+          <label className="sort-header"><input type="checkbox" checked={panel.caseSensitive}
+            disabled={feedback.busy} onChange={(event) => void configure({
+              type: 'case-sensitive', value: event.currentTarget.checked,
+            })} />Case sensitive</label>
+          <label>Empty cells <select aria-label="Empty cell position" disabled={feedback.busy}
+            value={panel.emptyFirst ? 'first' : 'last'} onChange={(event) => void configure({
+              type: 'empty-first', value: event.currentTarget.value === 'first',
+            })}><option value="last">Last</option><option value="first">First</option></select></label>
+        </div>
         {panel.keys.map((key, index) => <fieldset key={index} disabled={feedback.busy}>
           <legend>{index === 0 ? 'Sort by' : `Then by (${index + 1})`}</legend>
           <label htmlFor={`${id}-column-${index}`}>Column</label>
@@ -70,8 +80,20 @@ export function SortTools() {
               if (direction === 'asc' || direction === 'desc')
                 void configure({ type: 'key', index, key: { ...key, direction } })
             }}><option value="asc">Ascending</option><option value="desc">Descending</option></select>
-          <button type="button" aria-label={`Remove sort level ${index + 1}`}
-            disabled={panel.keys.length === 1} onClick={() => void configure({ type: 'remove', index })}>Remove</button>
+          <div className="sort-level-actions">
+            {(['up', 'down'] as const).map((direction) => <button key={direction} type="button"
+              aria-label={`Move sort level ${index + 1} ${direction}`}
+              disabled={direction === 'up' ? index === 0 : index === panel.keys.length - 1}
+              onClick={async () => {
+                if (await configure({ type: 'move', index, direction })) {
+                  const next = index + (direction === 'up' ? -1 : 1)
+                  ref.current?.querySelector<HTMLSelectElement>(`[id="${id}-column-${next}"]`)?.focus()
+                }
+              }}>{direction === 'up' ? 'Move up' : 'Move down'}</button>)}
+            <button type="button" aria-label={`Remove sort level ${index + 1}`}
+              disabled={panel.keys.length === 1}
+              onClick={() => void configure({ type: 'remove', index })}>Remove</button>
+          </div>
         </fieldset>)}
         <button type="button" disabled={feedback.busy || panel.keys.length >= Math.min(8, columns.length)}
           onClick={() => void configure('add')}>Add level</button>

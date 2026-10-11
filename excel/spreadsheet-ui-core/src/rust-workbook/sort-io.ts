@@ -7,6 +7,9 @@ export function sortRange(
   workbook: WasmWorkbook, sheet: number, input: RustSortCommands['range.sort']['payload'],
 ): number {
   const { range, keys, hasHeader } = input
+  const { caseSensitive = false, emptyFirst = false } = input
+  if (typeof caseSensitive !== 'boolean' || typeof emptyFirst !== 'boolean')
+    throw new Error('Choose valid case and empty-cell sort options.')
   const rows = range.rowEnd - range.rowStart + 1
   const cols = range.colEnd - range.colStart + 1
   if (input.sheetId !== input.projection.sheetId) throw new Error('PROJECTION_SHEET_MISMATCH')
@@ -28,7 +31,7 @@ export function sortRange(
     const result = workbook.sortRange!(sheet, {
       range: { startRow: data.rowStart, endRow: data.rowEnd,
         startCol: data.colStart, endCol: data.colEnd },
-      keys: keys.map((key) => ({ ...key, caseSensitive: false })), excludedRows: [],
+      keys: keys.map((key) => ({ ...key, caseSensitive, emptyFirst })), excludedRows: [],
     })
     // 原生拒绝是 ok:false 返回值，不是异常；必须让历史分组取消。
     if (!result.ok) throw new Error(result.code === 'spill-in-range'

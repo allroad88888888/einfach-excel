@@ -197,6 +197,7 @@ mod tests {
     include!("wasm_tests/table_headers.rs");
     include!("wasm_tests/table_column_formula.rs");
     include!("wasm_tests/sort_and_sheet.rs");
+    include!("wasm_tests/sort_options.rs");
     include!("wasm_tests/workbook_sparse.rs");
     include!("wasm_tests/persistence_roundtrip.rs");
     include!("wasm_tests/merge_persistence.rs");

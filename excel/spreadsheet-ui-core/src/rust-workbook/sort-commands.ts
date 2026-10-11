@@ -9,6 +9,8 @@ export interface RustSortKey {
 export interface SortRangeOptions {
   readonly keys: readonly RustSortKey[]
   readonly hasHeader: boolean
+  readonly caseSensitive?: boolean
+  readonly emptyFirst?: boolean
 }
 export interface RustSortCommands {
   readonly 'range.sort': WorkerCommand<

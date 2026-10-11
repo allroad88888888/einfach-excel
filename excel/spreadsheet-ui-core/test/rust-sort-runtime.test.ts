@@ -43,7 +43,8 @@ test.each([false, true])('header=%s, one native sort and history group, one proj
   expect(sort).toHaveBeenCalledTimes(1)
   expect(sort).toHaveBeenCalledWith(0, {
     range: { startRow: hasHeader ? 11 : 10, endRow: 20, startCol: 1, endCol: 3 },
-    keys: keys.map((key) => ({ ...key, caseSensitive: false })), excludedRows: [],
+    keys: keys.map((key) => ({ ...key, caseSensitive: false, emptyFirst: false })),
+    excludedRows: [],
   })
   expect(begin).toHaveBeenCalledTimes(1)
   expect(begin).toHaveBeenCalledWith(0, hasHeader ? 11 : 10, 1, 20, 3, 'Sort selection', true)
@@ -62,6 +63,7 @@ test('invalid range, mismatched sheet and duplicate/out-of-range keys reject bef
     { keys: [] }, { keys: [{ col: 0, direction: 'asc' }] },
     { keys: [{ col: 1, direction: 'bad' }] }, { keys: [input.keys[0], input.keys[0]] },
     { projection: { ...projection, sheetId: 'other' } },
+    { caseSensitive: 'true' }, { caseSensitive: null }, { emptyFirst: 1 }, { emptyFirst: null },
   ]
   for (const patch of invalid) expect((await call('range.sort', { ...input, ...patch })).ok).toBe(false)
   expect(sort).not.toHaveBeenCalled()
@@ -84,4 +86,15 @@ test('already sorted data returns a current projection without inventing a mutat
   expect(await call('range.sort', input)).toMatchObject({ ok: true, result: {
     movedRows: 0, projection: { revision: 0 },
   } })
+})
+
+test.each([false, true])('caseSensitive=%s forwards reordered keys and empty-first in one native call', async (caseSensitive) => {
+  const { call, sort, begin } = await runtime()
+  const keys = [{ col: 3, direction: 'desc' }, { col: 1, direction: 'asc' }]
+  expect((await call('range.sort', { ...input, keys, caseSensitive, emptyFirst: true })).ok).toBe(true)
+  expect(sort).toHaveBeenCalledTimes(1)
+  expect(begin).toHaveBeenCalledTimes(1)
+  expect(sort.mock.lastCall![1]).toMatchObject({ keys: keys.map((key) => ({
+    ...key, caseSensitive, emptyFirst: true,
+  })) })
 })

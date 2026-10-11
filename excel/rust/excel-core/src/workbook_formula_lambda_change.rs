@@ -2,13 +2,22 @@
 use super::*;
 
 #[derive(Debug)]
-pub(super) struct FormulaLambdaChange {
+pub(crate) struct FormulaLambdaChange {
     key: String,
     before: NamedEntry,
     after: NamedEntry,
 }
 
 impl FormulaLambdaChange {
+    /// 与单元格共用静态工作表引用改写；只保留真正变化的闭包。
+    pub fn for_sheet_refs(workbook: &Workbook, old: &str, new: Option<&str>) -> Vec<Self> {
+        Self::prepare(workbook, &|expr| {
+            let before = expr.clone();
+            super::workbook_sheet_refs::rewrite_sheet_refs(expr, old, new);
+            *expr != before
+        })
+    }
+
     /// 保存的闭包没有所属单元格，只位移显式指向目标表的地址。
     pub fn for_structural_shift(
         workbook: &Workbook,

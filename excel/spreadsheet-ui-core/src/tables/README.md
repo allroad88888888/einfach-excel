@@ -1,5 +1,25 @@
 # spreadsheet-ui-core / tables
 
+## 当前 React 主线
+
+三个用户操作：创建 Table、重命名 Table、转换为普通区域。第一行作为表头，Rust 规范化空白／重复列名。
+
+调用链：`TableTools` → `runNativeTablePanelAtom` → `table.change` → WASM `change_table`
+→ Rust `WorkbookHistory` → 同次返回的可见区投影。一次操作只有一次 Worker 往返；撤销仍走已有原生历史。
+
+- `native-types.ts`：原生目录与命令载荷；只校验响应结构，不复制 Rust 的名称或公式规则。
+- `native-panel.ts`：弹窗草稿、忙碌与错误状态；Table 目录直接读取 `projection.result.tables`。
+- `../rust-workbook/table-commands.ts`：画布坐标校验及原生命令分发，不保存注册表。
+- 初始 Table 在全部单元格导入后创建，表头来自真实 Rust 数据；启动结束统一清除历史。
+
+创建／改名／转换已接入 React；汇总行、列名编辑、Table 样式及其余 #32 计划不在本批。
+完整验收状态见 [React 功能进度](../../../react-excel/FEATURE_PROGRESS.md)。
+
+## 历史接口记录（非当前 React 运行路径）
+
+以下 `types.ts` / `commands.ts` 的 port、目录缓存及能力探测属于旧实现，React 不使用它们。
+下面的“尚未实现”与兼容描述仅指旧路径，不代表上方 Rust-only 主线。
+
 Excel Table (structured references, totals) — parity #32,
 `excel/solid-excel/docs/online-excel-parity/design-excel-table.md`.
 

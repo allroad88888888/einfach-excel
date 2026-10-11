@@ -1,6 +1,7 @@
 import type { ViewportRowHeight, ViewportColumnWidth } from './viewport-contracts'
 import type { RustHistoryState } from '../history/rust-history-types'
 import type { NativeNamedRange } from '../named-ranges/native-types'
+import type { NativeTable } from '../tables/native-types'
 import type { SheetVisibilityProjection } from '../viewport/hidden-state'
 import type { ColumnFilterRule } from '../filter-sort/types'
 import type { ConditionalFormatRuleEntry } from '../conditional-formatting/types'
@@ -36,6 +37,8 @@ export interface RangeProjectionRequest extends SheetRef {
 }
 
 export interface VisibleProjectionResult extends SheetRef {
+  /** Table 目录与可见单元格来自同一次 Rust 读取。 */
+  tables?: readonly NativeTable[]
   kind: 'visible-window'
   window: CellRange
   requestId: ProjectionRequestId

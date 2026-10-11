@@ -1,5 +1,6 @@
 //! workbook topology operations.
 
+use super::workbook_formula_lambda_change::FormulaLambdaChange;
 use super::*;
 
 impl Workbook {
@@ -67,15 +68,16 @@ impl Workbook {
     ///
     /// Retarget static references before publishing the renamed topology.
     pub fn rename_sheet(&mut self, idx: usize, new_name: &str) -> bool {
-        self.rename_sheet_with_conditional_rules(idx, new_name, None)
+        self.rename_sheet_with_formula_consumers(idx, new_name, None, None)
     }
 
-    /// 历史直接给出要恢复的规则源，避免先逆向改写再恢复造成两次修订。
-    pub(super) fn rename_sheet_with_conditional_rules(
+    /// 历史给出原始规则与闭包差异，避免逆向改写碰到原先悬空的新表名引用。
+    pub(super) fn rename_sheet_with_formula_consumers(
         &mut self,
         idx: usize,
         new_name: &str,
         restored: Option<&ConditionalRuleSources>,
+        restored_lambdas: Option<(&[FormulaLambdaChange], bool)>,
     ) -> bool {
         if self.is_inside_custom_call() {
             return false; // re-entrancy guard
@@ -93,6 +95,21 @@ impl Workbook {
         if self
             .validate_conditional_rule_sources(&conditional)
             .is_err()
+        {
+            return false;
+        }
+        let prepared;
+        let (lambdas, undo) = match restored_lambdas {
+            Some(restored) => restored,
+            None => {
+                prepared =
+                    FormulaLambdaChange::for_sheet_refs(self, &self.names[idx], Some(new_name));
+                (prepared.as_slice(), false)
+            }
+        };
+        if lambdas
+            .iter()
+            .any(|change| change.validate(self, undo).is_err())
         {
             return false;
         }
@@ -115,6 +132,13 @@ impl Workbook {
             if table_moved {
                 self.bump_tables_epoch();
             }
+            for lambda in lambdas {
+                lambda.apply(self, undo);
+            }
+            if !lambdas.is_empty() {
+                self.publish_atom_names();
+            }
+            // 新名字与闭包一起落地，再由拓扑发布修复受影响的 spill。
             self.sync_atom_topology();
             self.apply_conditional_rule_sources(&conditional);
             for (sheet, addr, text) in rewrites {

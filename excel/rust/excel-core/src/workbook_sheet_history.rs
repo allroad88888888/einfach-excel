@@ -1,4 +1,5 @@
 //! 一次工作表结构变化的原生逆操作；改名只保留引用源，增删持有原 Sheet。
+use super::workbook_formula_lambda_change::FormulaLambdaChange;
 use super::*;
 
 type FormulaSources = Vec<(usize, CellAddress, String)>;
@@ -14,6 +15,7 @@ pub(crate) enum SheetHistoryChange {
         after_refs: FormulaSources,
         before_rules: ConditionalRuleSources,
         after_rules: ConditionalRuleSources,
+        lambdas: Vec<FormulaLambdaChange>,
     },
     Move {
         key: u64,
@@ -73,7 +75,16 @@ impl SheetHistoryChange {
                 .map(|(key, _)| key)
                 .collect();
             let before_rules = workbook.capture_conditional_rule_sources(&rule_keys);
-            workbook.edit_sheet(Some(index), name)?;
+            workbook.validate_sheet_name(Some(index), name)?;
+            let lambdas = FormulaLambdaChange::for_sheet_refs(workbook, &before, Some(&after));
+            if !workbook.rename_sheet_with_formula_consumers(
+                index,
+                &after,
+                None,
+                Some((&lambdas, false)),
+            ) {
+                return Err("Could not rename the worksheet.");
+            }
             let after_refs = capture(workbook);
             let after_rules = workbook.capture_conditional_rule_sources(&rule_keys);
             Ok((
@@ -87,6 +98,7 @@ impl SheetHistoryChange {
                     after_refs,
                     before_rules,
                     after_rules,
+                    lambdas,
                 }),
             ))
         } else {
@@ -150,6 +162,7 @@ impl SheetHistoryChange {
                 after_refs,
                 before_rules,
                 after_rules,
+                lambdas,
             } => {
                 require_key(workbook, *index, *key)?;
                 let (expected, next, sources) = if undo {
@@ -167,7 +180,12 @@ impl SheetHistoryChange {
                 let mut result = Ok(());
                 store.batch(|_| {
                     result = workbook
-                        .rename_sheet_with_conditional_rules(*index, next, Some(rules))
+                        .rename_sheet_with_formula_consumers(
+                            *index,
+                            next,
+                            Some(rules),
+                            Some((lambdas, undo)),
+                        )
                         .then_some(())
                         .ok_or("Could not rename the worksheet.")
                         .map(|_| {
@@ -233,12 +251,14 @@ impl SheetHistoryChange {
                 after_refs,
                 before_rules,
                 after_rules,
+                lambdas,
                 ..
             } => {
                 before.len()
                     + after.len()
                     + crate::sheet::metadata_bytes(before_rules)
                     + crate::sheet::metadata_bytes(after_rules)
+                    + crate::sheet::metadata_bytes(lambdas)
                     + before_refs
                         .iter()
                         .chain(after_refs)

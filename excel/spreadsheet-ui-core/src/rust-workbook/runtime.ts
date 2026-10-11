@@ -15,6 +15,7 @@ import { changeMerge } from './merge-io'
 import { changeFreeze } from './freeze-io'
 import { changeOutline } from './outline-io'
 import { changeNamedRange } from './named-range-commands'
+import { changeTable, importTables } from './table-commands'
 import { editWorkbookSheet } from './sheet-edit'
 import { changeStructure } from './structure-io'
 import { writeImportedCellFormats } from './format-io'
@@ -85,6 +86,14 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       return initialize(input.sheets)
     }
     const current = currentWorkbook()
+    if (command === 'table.change') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      const changed = changeTable(current, sheetsById, input, revision)
+      if (changed) revision += 1
+      return { changed, projection: readVisibleProjection(
+        current, sheetIndex(input.sheetId), input.projection, revision,
+      ) }
+    }
     if (command === 'namedRange.change') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
       const changed = changeNamedRange(current, sheetsById, input, revision)
@@ -343,6 +352,7 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
       const stats = current.bulk_import_cells(input.cells)
       writeImportedCellFormats(current, input.cells)
+      importTables(current, sheetsById, input.tables ?? [])
       current.history_clear?.('')
       return stats
     }

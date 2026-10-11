@@ -25,6 +25,7 @@ import type { RustConditionalFormatCommands } from './conditional-format-command
 import type { RustDataValidationCommands } from './data-validation-commands'
 import type { RustOutlineCommands } from './outline-io'
 import type { RustNamedRangeCommands } from './named-range-commands'
+import type { RustTableCommands } from './table-commands'
 import type { NativeOutline } from '../outline/native-state'
 import type { NativeDataValidationRule } from '../data-validation/native-rule'
 import type { NativeConditionalFormatRule, ConditionalFormatScope } from '../conditional-formatting/types'
@@ -53,6 +54,8 @@ export interface RustWorkbookSheetInput {
   readonly outline?: NativeOutline
   /** 工作簿级名称；范围属于本张表，事实在 Rust 初始化时建立。 */
   readonly namedRanges?: readonly { readonly name: string; readonly range: CellRange }[]
+  /** 表头来自导入数据；Table 必须在全部内容导入后建立。 */
+  readonly tables?: readonly { readonly name: string; readonly range: CellRange }[]
   readonly dataValidations?: readonly {
     readonly range: CellRange
     readonly rule: NativeDataValidationRule
@@ -138,7 +141,7 @@ export interface RustWorkbookCommands
   extends RustFindCommands, RustSortCommands, RustFilterCommands,
     RustTextColumnsCommands, RustRemoveDuplicatesCommands, RustQuickFormulaCommands,
     RustConditionalFormatCommands, RustDataValidationCommands,
-    RustOutlineCommands, RustNamedRangeCommands {
+    RustOutlineCommands, RustNamedRangeCommands, RustTableCommands {
   readonly 'format.preview': WorkerCommand<
     {
       readonly sheetId: string
@@ -273,7 +276,9 @@ export interface RustWorkbookCommands
     readonly RustWorkbookSheet[]
   >
   readonly 'workbook.importCells': WorkerCommand<
-    { readonly cells: readonly RustImportCell[] },
+    { readonly cells: readonly RustImportCell[]; readonly tables?: readonly {
+      readonly sheetId: string; readonly name: string; readonly range: CellRange
+    }[] },
     RustImportStats
   >
   readonly 'projection.readVisible': WorkerCommand<

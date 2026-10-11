@@ -50,14 +50,17 @@ export function snapshotRustWorkbookDefinition(
     }
     const hiddenRows = hidden(sheet.hiddenRows, sheet.rowCount)
     const hiddenColumns = hidden(sheet.hiddenColumns, sheet.colCount)
-    const namedRanges = sheet.namedRanges?.map(({ name: rangeName, range }) => {
+    const snapshotRanges = (entries: RustWorkbookSheetInput['namedRanges'], label: string) =>
+      entries?.map(({ name: rangeName, range }) => {
       if (![range.rowStart, range.rowEnd, range.colStart, range.colEnd].every(
         (n) => Number.isSafeInteger(n) && n >= 0) || range.rowStart > range.rowEnd ||
         range.colStart > range.colEnd || range.rowEnd >= sheet.rowCount ||
         range.colEnd >= sheet.colCount)
-        throw new Error('Invalid initial named range.')
+        throw new Error(`Invalid initial ${label}.`)
       return Object.freeze({ name: rangeName, range: Object.freeze({ ...range }) })
     })
+    const namedRanges = snapshotRanges(sheet.namedRanges, 'named range')
+    const tables = snapshotRanges(sheet.tables, 'table range')
     if (sheet.outline && (!validNativeOutline(sheet.outline) ||
       sheet.outline.rows.some((group) => group.end >= sheet.rowCount) ||
       sheet.outline.columns.some((group) => group.end >= sheet.colCount)))
@@ -142,6 +145,7 @@ export function snapshotRustWorkbookDefinition(
       ...(hiddenColumns ? { hiddenColumns } : {}),
       ...(outline ? { outline } : {}),
       ...(namedRanges ? { namedRanges: Object.freeze(namedRanges) } : {}),
+      ...(tables ? { tables: Object.freeze(tables) } : {}),
       ...(mergedRanges ? { mergedRanges: Object.freeze(mergedRanges) } : {}),
       ...(freeze ? { freeze: Object.freeze({ ...freeze }) } : {}),
       ...(conditionalFormats ? { conditionalFormats: Object.freeze(conditionalFormats) } : {}),

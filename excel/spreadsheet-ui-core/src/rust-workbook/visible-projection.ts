@@ -22,6 +22,7 @@ export function readVisibleProjection(
     : undefined
   return {
     kind: 'visible-window',
+    ...(workbook.listTables ? { tables: workbook.listTables() } : {}),
     ...(freeze ? { freeze } : {}),
     ...(frozen ? { frozen } : {}),
     ...(visibility ? { visibility } : {}),

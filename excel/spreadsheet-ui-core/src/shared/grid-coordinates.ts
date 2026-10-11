@@ -1,4 +1,6 @@
 import type { CellRange } from './types'
+export const EXCEL_MAX_ROWS = 1_048_576
+export const EXCEL_MAX_COLS = 16_384
 
 export function rangeEquals(a: CellRange, b: CellRange): boolean {
   return a.rowStart === b.rowStart && a.rowEnd === b.rowEnd &&

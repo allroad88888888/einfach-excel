@@ -36,6 +36,8 @@ pub(super) fn eval_fn_reference_position(
                     .unwrap_or(Value::Error(ValueError::InvalidRef));
             }
             match &args[0] {
+                // 工作表删除会把静态地址改为错误节点，必须保留原始 #REF!。
+                Expr::Error(error) => Value::Error(error.clone()),
                 Expr::CellRef(addr, _) | Expr::SheetRef { addr, .. } => {
                     Value::Number((addr.row + 1) as f64)
                 }
@@ -58,6 +60,7 @@ pub(super) fn eval_fn_reference_position(
                     .unwrap_or(Value::Error(ValueError::InvalidRef));
             }
             match &args[0] {
+                Expr::Error(error) => Value::Error(error.clone()),
                 Expr::CellRef(addr, _) | Expr::SheetRef { addr, .. } => {
                     Value::Number((addr.col + 1) as f64)
                 }

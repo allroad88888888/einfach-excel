@@ -1,0 +1,54 @@
+import { createStore } from '@einfach/core'
+import { expect, test, vi } from 'vitest'
+import { startRustWorkbookRuntimeAtom, spreadsheetRuntimeAtom,
+  disposeRustWorkbookRuntimeAtom, type RustWorkbookDefinition } from '../src'
+import { snapshotRustWorkbookDefinition } from '../src/runtime/rust-workbook-definition'
+import type { WorkerLike } from '../src/rust-worker'
+
+function definition() {
+  return { title: 'Book', sheets: [{ id: 's', name: 'Sheet', rowCount: 10, colCount: 2,
+    tables: [{ name: 'Sales', range: { rowStart: 0, rowEnd: 3, colStart: 0, colEnd: 1 } }],
+  }], createImportChunks: () => [] }
+}
+test('initial tables are frozen independently of the caller and bounded by the canvas', () => {
+  const source = definition()
+  const copied = snapshotRustWorkbookDefinition(source)
+  source.sheets[0].tables[0].range.rowEnd = 10
+  expect(copied.sheets[0].tables![0].range.rowEnd).toBe(3)
+  expect(Object.isFrozen(copied.sheets[0].tables![0].range)).toBe(true)
+  expect(() => snapshotRustWorkbookDefinition(source)).toThrow('Invalid initial table range')
+})
+test('runtime sends tables only after every content chunk, before publishing ready', async () => {
+  const calls: { command: string; payload: Record<string, unknown> }[] = []
+  let receive: (event: MessageEvent) => void = () => {}
+  const worker: WorkerLike = {
+    postMessage(message) {
+      const input = message as { id: number; command: string; payload: Record<string, unknown> }
+      calls.push(input)
+      const result = input.command === 'workbook.initialize'
+        ? [{ id: 's', index: 0, name: 'Sheet' }]
+        : { accepted: (input.payload.cells as unknown[]).length, errors: 0, rejectedFormulas: 0 }
+      receive({ data: { id: input.id, ok: true, result } } as MessageEvent)
+    },
+    addEventListener(type, listener) { if (type === 'message') receive = listener },
+    removeEventListener() {}, terminate: vi.fn(),
+  }
+  const source: RustWorkbookDefinition = { ...definition(), createImportChunks: () => [
+    [{ sheet: 0, row: 0, col: 0, kind: 'text', value: 'Product' }],
+    [{ sheet: 0, row: 1, col: 0, kind: 'text', value: 'Keyboard' }],
+  ] }
+  const store = createStore()
+  await store.setter(startRustWorkbookRuntimeAtom, {
+    definition: source, workerFactory: () => worker,
+  })
+  expect(calls.map((call) => call.command)).toEqual([
+    'workbook.initialize', 'workbook.importCells', 'workbook.importCells', 'workbook.importCells',
+  ])
+  expect(calls[1].payload.tables).toBeUndefined()
+  expect(calls[2].payload.tables).toBeUndefined()
+  expect(calls[3].payload).toEqual({ cells: [], tables: [{ sheetId: 's',
+    ...source.sheets[0].tables![0],
+  }] })
+  expect(store.getter(spreadsheetRuntimeAtom)).toEqual({ status: 'ready' })
+  store.setter(disposeRustWorkbookRuntimeAtom)
+})

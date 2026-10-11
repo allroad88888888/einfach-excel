@@ -42,7 +42,7 @@
 | 29 | 排序与筛选 | 升序、降序、多列排序已验收，见[排序批次](docs/sort-wave.md)；原生条件筛选、重新应用、清除筛选及复制/排序/统计交叉已验收；指定区域、表头入口、单列清除已通过全量回归，其它排序/筛选选项待补 |
 | 30 | 删除重复项 | Rust 区域内原子去重、比较列、表头及文本比较选项已验收，完整 E2E 603/603 通过。分页预览、重复记录定位、首条保留记录定位已验收，完整 E2E 608/608、Rust 默认 3002/lite 2962 项通过；不以旧 UI Core scanner 测试宣称产品完成 |
 | 31 | 状态栏摘要 | Rust 六项、显示项配置、恢复默认、原始数值复制已验收；排除筛掉行、保留手动隐藏行的统计已接 Rust 并通过全量回归，见[既有记录](docs/status-bar-wave.md) |
-| 32 | Excel Table | 待接入 |
+| 32 | Excel Table | 创建、重命名、转普通区域已接通 Rust／Worker／React，专项 E2E 5/5 通过；全量 E2E 仍在运行，整批未验收。Table 样式、汇总行界面、列名编辑与自动扩展待补 |
 | 33 | 外部数据连接 | 原计划延后；不以本地 fixture 宣称完成 |
 | 34–35 | 批注、备注及协作 | 待接入；身份、通知及持久服务需要明确的真实契约 |
 | 37–39 | 更改记录、版本、个人视图 | 待接入；本地 undo 不能替代版本服务 |
@@ -58,6 +58,10 @@
 ## 批次账本
 
 ### Excel Table 基础操作（进行中，未验收）
+
+当前提交状态：三个操作已通过现有 Worker 命令和 UI Core command atom 接入 React `Tables` 面板；Table 目录随同一份 projection 返回，不维护第二份目录。Summary 原始数据含 `DemoTable`（A80:B83），B5 的结构化引用初始为 60，初始化不占撤销历史。工作表改名、删除和恢复时的已保存 LAMBDA 引用与精确撤销也已补齐。
+
+本次提交前已重建 lite／full WASM：根构建、类型检查、lint、循环依赖与文档检查通过；Vitest **336 文件／5,445 项通过**；Rust core 全量 lib 默认 **1,652 passed／3 ignored**、lite **1,629 passed／3 ignored**，WASM lib **149 passed／1 ignored**。Table 专项 E2E **5/5**，含桌面／窄屏弹窗与键盘焦点。全量 **733 项 E2E 仍在运行**（`/tmp/excel-table-final-e2e.log`），不提前宣布整批验收；以下记录保留各阶段当时的状态。
 
 本批只做三个用户功能：创建表格、重命名表格、转换为普通区域。上一批名称框已提交推送为 `23256ded`。上方 Table 审计描述的是启动前状态，不是当前完成度；完整 #32 范围继续保留。
 
@@ -87,7 +91,13 @@
 
 本阶段全量 lib 默认／lite 已分别 **1652／1629 passed，各 3 ignored**（`/tmp/excel-table-context-lib-default.log`、`/tmp/excel-table-context-lib-lite.log`）；它们启动于最后的无效错误包装清理之前。扩大集成回归双配置均为 **15 套／104 passed、0 failed**（`/tmp/excel-table-context-regression-default.log`、`/tmp/excel-table-context-regression-lite.log`）。清理后的重点回归双配置均为 **5 套／22 passed**，会话 `79663` 已退出 0（`/tmp/excel-table-context-cleanup-default.log`、`/tmp/excel-table-context-cleanup-lite.log`）。会话 `92631` 已完成双配置 lib 及 WASM crate 检查并退出 0，检查日志 `/tmp/excel-table-context-wasm-check.log`。最新 `cargo check`、文档、展现层边界及差异检查通过。新增／修改普通文件均 ≤300 行；`workbook_structural_history.rs` 为 304 行，属于同一结构事务的预检／回放算法，按核心算法 ≤500 行保留。
 
-当前未完成项：继续核对转换后的保存闭包在工作表改名／删除时的引用恢复；代码检查显示 `workbook_topology.rs`、`workbook_sheet_removal.rs` 目前只处理单元格和条件公式，尚未接入保存闭包改写。还需 Worker／React 接入、WASM 构件及整批最终验证。本次提交仅保存上述原生修复与回归，整批保持未验收。
+上述区域与上下文修复已提交推送为 `04fd298a`，整批仍未验收。
+
+工作表拓扑阶段：改名／删除现在复用 `FormulaLambdaChange` 改写保存及捕获的闭包，历史保存实际应用的差异，撤销恢复原闭包身份，不重新求值或捕获。改名保留原先悬空的新表名引用；撤销新增表保留原始悬空闭包；历史外修改在任何写入前拒绝，失败不消耗归档。新增 `table_convert_topology.rs` 先复现 3 项失败（`/tmp/excel-table-topology-before.log`），再覆盖改名、移动、归档恢复、连续撤销／重做及冲突解除后的重试。测试另暴露 `ROW(#REF!)` 被误改为类型错误，以及归档表重新挂接后继续读到脱离工作簿时的名称错误；现分别保留原错误、使现有公式及 facade 缓存失效。普通改名／移动不会触发归档挂接处理。
+
+拓扑阶段双配置全量 lib 分别 **1652／1629 passed，各 3 ignored**，会话 `29512` 已完成双配置及 WASM crate 检查并退出 0（`/tmp/excel-table-topology-lib-default.log`、`/tmp/excel-table-topology-lib-lite.log`、`/tmp/excel-table-topology-wasm-check.log`）。这些是最终惰性修复前的阶段证据：扩大集成回归随后暴露恢复归档会迫使无关公式求值（`/tmp/excel-table-topology-final-default.log`、`/tmp/excel-table-topology-regression-lite.log`）。现去掉挂接时的 epoch 推进，仅将已有 facade 标记为过期，读到才求值；其它工作表仍由拓扑 epoch 发布。最新双配置均为 **3 套／23 passed、0 failed**，覆盖全部新增拓扑测试及工作表归档／历史，会话 `49732` 已退出 0（`/tmp/excel-table-topology-lazy-facade-default.log`、`/tmp/excel-table-topology-lazy-facade-lite.log`）。文档、展现层边界与差异检查通过；本阶段修改文件均 ≤300 行。
+
+WASM 已开始接交互入口：`change_table` 解码创建／改名／转换三种载荷，直接进入同一原生历史栈；旧注册表原语与目录读取接口保留。`wasm_workbook_table_commands.rs` 只负责载荷分发，`wasm_tests/table_commands.rs` 验证单条历史、精确撤销、跨表误操作与非法载荷；原生边界专项 **3/3**，会话 `95280` 已退出 0（`/tmp/excel-table-wire-native.log`）。尚未连接 Worker／UI Core／React，也未重建浏览器 WASM 构件。当前改动未提交，整批最终验证及完整 41 项计划继续待办。
 
 ### 名称框与命名定位（本批已验收）
 

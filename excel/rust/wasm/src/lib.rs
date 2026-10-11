@@ -109,6 +109,7 @@ pub struct WasmWorkbook {
 
 include!("wasm_workbook_topology.rs");
 include!("wasm_workbook_tables.rs");
+include!("wasm_workbook_table_commands.rs");
 include!("wasm_workbook_visibility.rs");
 include!("wasm_workbook_manual_visibility.rs");
 include!("wasm_workbook_table_totals.rs");
@@ -171,6 +172,7 @@ mod tests {
     include!("wasm_tests/advanced_number_formats.rs");
     include!("wasm_tests/number_format_preview.rs");
     include!("wasm_tests/tables.rs");
+    include!("wasm_tests/table_commands.rs");
     include!("wasm_tests/hidden_rows.rs");
     include!("wasm_tests/manual_visibility.rs");
     include!("wasm_tests/structure_history.rs");

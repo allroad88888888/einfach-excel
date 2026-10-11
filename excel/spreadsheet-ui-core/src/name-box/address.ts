@@ -1,5 +1,5 @@
 import type { CellCoord, CellRange } from '../shared'
-import { EXCEL_MAX_COLS, EXCEL_MAX_ROWS } from '../selection'
+import { EXCEL_MAX_COLS, EXCEL_MAX_ROWS } from '../shared/grid-coordinates'
 
 const COLUMN_LABEL_PATTERN = /^([A-Za-z]+)(\d+)$/
 

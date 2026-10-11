@@ -250,3 +250,17 @@ Summary 原始数据已含 `SampleAmounts = Summary!C65:C67`，B4 的 `=SUM(Samp
 名称框只允许单个连续选区，创建期间只读，失焦不会重复创建。完整验收状态以功能进度为准。
 本批只提供工作簿级矩形区域，不包括命名公式或工作表局部作用域。底层 v1 JSON 保存恢复已有测试，
 但页面保存／打开和刷新恢复尚未接通，刷新会重新载入 demo 原始数据。
+
+## Table 基础操作
+
+工具栏 `Tables` 打开当前工作表的 Table 目录。
+
+- 创建：选择一个连续区域，填名称（留空由 Rust 自动命名），点击 `Create table`。
+  第一行是表头；空白和重复表头会规范化为唯一列名。
+- 改名：选择目录中的 Table，修改名称，点击 `Rename table`。现有结构化引用由 Rust 一起改写。
+- 转普通区域：选择 Table，点击 `Convert to range`。数据和格式保留，Table 引用改为普通地址。
+- 三个动作都进入同一条 Rust Undo／Redo 历史；重叠、重名等错误保留草稿供修改。
+
+Summary 的 `DemoTable` 位于 A80:B83，B5 的 `=SUM(DemoTable[Amount])` 初始为 60；
+可以直接试改名、转换和修改 B81 的数值。初始样例不占用撤销历史。
+本批不包含 Table 样式、汇总行界面、列名编辑与自动扩展；验收结果见 [功能进度](../FEATURE_PROGRESS.md)。

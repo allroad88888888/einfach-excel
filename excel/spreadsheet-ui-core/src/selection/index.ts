@@ -1,4 +1,6 @@
 import { atom } from '@einfach/core'
+import { EXCEL_MAX_ROWS, EXCEL_MAX_COLS } from '../shared/grid-coordinates'
+export { EXCEL_MAX_ROWS, EXCEL_MAX_COLS } from '../shared/grid-coordinates'
 import { projectionSnapshotBackingAtom } from '../projection/state'
 import { projectMergedSelection, mergedActiveCell } from './merged-selection'
 import type { Atom, Getter, Setter } from '@einfach/core'
@@ -21,9 +23,6 @@ import type {
 } from './types'
 
 export * from './types'
-
-export const EXCEL_MAX_ROWS = 1_048_576
-export const EXCEL_MAX_COLS = 16_384
 
 export const DEFAULT_SELECTION_BOUNDS: SelectionBounds = Object.freeze({
   rowCount: EXCEL_MAX_ROWS,

@@ -14,6 +14,9 @@ import {
   SUMMARY_NAMED_RANGE_CELLS,
 } from '../../../../src/page/demo/sales-orders/data/named-range-seed'
 import {
+  SUMMARY_TABLES, SUMMARY_TABLE_CELLS,
+} from '../../../../src/page/demo/sales-orders/data/table-seed'
+import {
   SALES_ORDER_SUMMARY_CELLS,
   SUMMARY_SIZES,
   SUMMARY_MERGES,
@@ -44,6 +47,7 @@ describe('Sales Orders workbook definition', () => {
         dataValidations: SUMMARY_VALIDATIONS,
         outline: SUMMARY_OUTLINE,
         namedRanges: SUMMARY_NAMED_RANGES,
+        tables: SUMMARY_TABLES,
       },
     ])
   })
@@ -52,11 +56,12 @@ describe('Sales Orders workbook definition', () => {
     const chunks = SALES_ORDERS_WORKBOOK_DEFINITION.createImportChunks() as Iterable<
       readonly unknown[]
     >
-    expect([...chunks].slice(-4)).toEqual([
+    expect([...chunks].slice(-5)).toEqual([
       SALES_ORDER_SUMMARY_CELLS,
       SUMMARY_VALIDATION_CELLS,
       SUMMARY_OUTLINE_CELLS,
       SUMMARY_NAMED_RANGE_CELLS,
+      SUMMARY_TABLE_CELLS,
     ])
     expect(SALES_ORDER_SUMMARY_CELLS).toEqual(
       expect.arrayContaining([
@@ -76,5 +81,14 @@ describe('Sales Orders workbook definition', () => {
         }),
       ]),
     )
+  })
+  it('declares a real Table with explicit header data and a structured-reference formula', () => {
+    expect(SUMMARY_TABLES).toEqual([{ name: 'DemoTable',
+      range: { rowStart: 79, rowEnd: 82, colStart: 0, colEnd: 1 } }])
+    expect(SUMMARY_TABLE_CELLS).toEqual(expect.arrayContaining([
+      expect.objectContaining({ sheet: 1, row: 79, col: 1, kind: 'text', value: 'Amount' }),
+      expect.objectContaining({ sheet: 1, row: 4, col: 1, kind: 'formula',
+        value: '=SUM(DemoTable[Amount])' }),
+    ]))
   })
 })

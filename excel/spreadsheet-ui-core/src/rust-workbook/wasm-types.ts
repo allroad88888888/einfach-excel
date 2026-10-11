@@ -18,6 +18,7 @@ import type { ConditionalFormatChange, NativeConditionalFormats } from './condit
 import type { NativeDataValidationRule } from '../data-validation/native-rule'
 import type { NativeOutlineAction } from '../outline/native-state'
 import type { NativeNamedRange, NativeNamedRangeAction } from '../named-ranges/native-types'
+import type { NativeTable, NativeTableAction } from '../tables/native-types'
 
 export interface RustCellSnapshot {
   readonly sheet: number
@@ -56,6 +57,8 @@ export interface RustFormatRangeSnapshot {
 }
 
 export interface WasmWorkbook {
+  listTables?: () => readonly NativeTable[]
+  change_table?: (sheet: number, action: NativeTableAction) => boolean
   list_named_ranges?: () => readonly NativeNamedRange[]
   change_named_range?: (sheet: number, action: NativeNamedRangeAction) => boolean
   change_outline?: (sheet: number, axis: 'row' | 'column', action: NativeOutlineAction) => boolean

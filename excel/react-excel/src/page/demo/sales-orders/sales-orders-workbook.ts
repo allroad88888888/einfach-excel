@@ -4,6 +4,7 @@ import { SALES_ORDER_COLUMNS, SALES_ORDER_SHEET_ROW_COUNT } from './data/sheet'
 import { SUMMARY_VALIDATION_CELLS, SUMMARY_VALIDATIONS } from './data/validation-seed'
 import { SUMMARY_OUTLINE, SUMMARY_OUTLINE_CELLS } from './data/outline-seed'
 import { SUMMARY_NAMED_RANGES, SUMMARY_NAMED_RANGE_CELLS } from './data/named-range-seed'
+import { SUMMARY_TABLES, SUMMARY_TABLE_CELLS } from './data/table-seed'
 import {
   SALES_ORDER_SUMMARY_CELLS,
   SUMMARY_SIZES,
@@ -36,6 +37,7 @@ export const SALES_ORDERS_WORKBOOK_DEFINITION: RustWorkbookDefinition = Object.f
       dataValidations: SUMMARY_VALIDATIONS,
       outline: SUMMARY_OUTLINE,
       namedRanges: SUMMARY_NAMED_RANGES,
+      tables: SUMMARY_TABLES,
     },
   ]),
   createImportChunks: () => [
@@ -44,5 +46,6 @@ export const SALES_ORDERS_WORKBOOK_DEFINITION: RustWorkbookDefinition = Object.f
     SUMMARY_VALIDATION_CELLS,
     SUMMARY_OUTLINE_CELLS,
     SUMMARY_NAMED_RANGE_CELLS,
+    SUMMARY_TABLE_CELLS,
   ],
 })

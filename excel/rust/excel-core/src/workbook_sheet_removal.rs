@@ -1,17 +1,19 @@
 //! workbook sheet removal operations.
 
+use super::workbook_formula_lambda_change::FormulaLambdaChange;
 use super::*;
 
 impl Workbook {
     pub fn remove_sheet(&mut self, idx: usize) -> Option<Sheet> {
         self.remove_sheet_with_conditional_refs(idx, false)
+            .map(|(sheet, _)| sheet)
     }
 
     pub(super) fn remove_sheet_with_conditional_refs(
         &mut self,
         idx: usize,
         preserve: bool,
-    ) -> Option<Sheet> {
+    ) -> Option<(Sheet, Vec<FormulaLambdaChange>)> {
         if self.is_inside_custom_call() {
             return None; // re-entrancy guard
         }
@@ -28,6 +30,12 @@ impl Workbook {
                 .collect()
         };
         self.validate_conditional_rule_sources(&conditional).ok()?;
+        // 撤销新增表保留悬空引用；普通删除把静态引用改为 #REF!。
+        let lambdas = if preserve {
+            Vec::new()
+        } else {
+            FormulaLambdaChange::for_sheet_refs(self, &self.names[idx], None)
+        };
         let store = self.store.clone();
         let mut removed = None;
         store.batch(|_| {
@@ -56,6 +64,12 @@ impl Workbook {
             // SUBTOTAL 1-11 / 101-111 start filtering against another sheet's rows.
             self.atom_context.remap_hidden_rows_after_sheet_remove(idx);
             self.rebuild_name_lookup();
+            for lambda in &lambdas {
+                lambda.apply(self, false);
+            }
+            if !lambdas.is_empty() {
+                self.publish_atom_names();
+            }
             self.sync_atom_topology();
             // The MANUAL half is engine-owned since E2 and rides the `Sheet` that
             // just moved, so re-assert the mirror from the owning side (and drop
@@ -75,6 +89,6 @@ impl Workbook {
             }
             removed = Some(sheet);
         });
-        removed
+        removed.map(|sheet| (sheet, lambdas))
     }
 }

@@ -23,6 +23,7 @@ import { FindReplaceTools } from './FindReplaceTools'
 import { GoToTools } from './GoToTools'
 import { QuickFormulaTools } from './QuickFormulaTools'
 import { NamedRangeTools } from './NamedRangeTools'
+import { TableTools } from './TableTools'
 import { ConditionalFormatTools } from './ConditionalFormatTools'
 import { DataValidationTools } from './DataValidationTools'
 import { ColorTools } from './ColorTools'
@@ -216,6 +217,7 @@ export function WorkbookRibbon() {
         <NumberFormatTools />
         <QuickFormulaTools />
         <NamedRangeTools />
+        <TableTools />
         <span className="tool-separator" aria-hidden="true" />
         <ToolButton
           icon="⌫"

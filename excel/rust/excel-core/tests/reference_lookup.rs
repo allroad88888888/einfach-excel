@@ -179,3 +179,14 @@ fn xlookup_round_trip() {
         Value::Error(ValueError::NotAvailable)
     );
 }
+#[test]
+fn row_and_column_preserve_deleted_reference_errors() {
+    let mut wb = Workbook::new();
+    for (addr, formula) in [("A1", "=ROW(#REF!)"), ("A2", "=COLUMN(#REF!)")] {
+        assert!(wb.set_formula(0, addr, formula));
+        assert_eq!(
+            wb.get_cell("Sheet1", addr),
+            Value::Error(ValueError::InvalidRef)
+        );
+    }
+}

@@ -111,6 +111,13 @@ export const startRustWorkbookRuntimeAtom = atom(
       }
       if (!ownsConnection(get, sessionId, connection)) return
 
+      // 表头已全部导入，再用同一原生命令建立 Table；这仍属于启动，不加入用户历史。
+      const tables = definition.sheets.flatMap((sheet) =>
+        (sheet.tables ?? []).map((table) => ({ ...table, sheetId: sheet.id })))
+      if (tables.length) {
+        await connection.request('workbook.importCells', { cells: [], tables })
+        if (!ownsConnection(get, sessionId, connection)) return
+      }
       set(initializeWorkbookDocumentAtom, {
         title: definition.title,
         sheets: documentSheets,

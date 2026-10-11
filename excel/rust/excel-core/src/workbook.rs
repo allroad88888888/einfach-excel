@@ -86,6 +86,9 @@ mod workbook_named_ranges;
 use workbook_named_range_structure::NamedRangeShift;
 #[path = "workbook_named_range_edit.rs"]
 mod workbook_named_range_edit;
+#[path = "workbook_named_range_snapshot.rs"]
+mod workbook_named_range_snapshot;
+pub use workbook_named_range_snapshot::NamedRangeSnapshot;
 pub use workbook_named_range_edit::NamedRangeAction;
 pub(crate) use workbook_named_range_edit::NamedRangeChange;
 #[path = "workbook_names.rs"]

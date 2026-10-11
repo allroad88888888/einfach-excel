@@ -51,6 +51,11 @@ impl Sheet {
             .collect()
     }
 
+    /// 投影顺序复用 Store 的实际依赖，不从公式文本另建一张图。
+    pub(crate) fn formula_inner_atom(&self, addr: CellAddress) -> Option<AtomId> {
+        self.formula_inner_family.borrow().get(&addr)
+    }
+
     pub(super) fn store_root_range_geometry_atoms_for_addr_into(
         &self,
         addr: CellAddress,

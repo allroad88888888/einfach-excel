@@ -90,6 +90,9 @@ impl WasmWorkbook {
         for sheet in payload.sheets.iter().skip(1) {
             workbook.add_sheet(&sheet.name);
         }
+        // 先有名称定义，再安装公式；首次 spill 投影就能读取完整工作簿事实。
+        // 后续 Table 恢复仍检查共享名称冲突；任何失败均不替换当前工作簿。
+        Self::restore_named_ranges_json(&mut workbook, payload.named_ranges)?;
         let restored_print_configs = workbook
             .restore_print_configs(print_configs)
             .map_err(|error| format!("persistence restore print configs failed: {error}"))?

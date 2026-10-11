@@ -14,6 +14,7 @@ import { initializeWorkbook } from './initialize-workbook'
 import { changeMerge } from './merge-io'
 import { changeFreeze } from './freeze-io'
 import { changeOutline } from './outline-io'
+import { changeNamedRange } from './named-range-commands'
 import { editWorkbookSheet } from './sheet-edit'
 import { changeStructure } from './structure-io'
 import { writeImportedCellFormats } from './format-io'
@@ -84,6 +85,17 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       return initialize(input.sheets)
     }
     const current = currentWorkbook()
+    if (command === 'namedRange.change') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      const changed = changeNamedRange(current, sheetsById, input, revision)
+      if (changed) revision += 1
+      return {
+        changed,
+        projection: readVisibleProjection(
+          current, sheetIndex(input.sheetId), input.projection, revision,
+        ),
+      }
+    }
     if (command === 'validation.read') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
       if (!current.getDataValidation) throw new Error('Rust data validation is unavailable.')

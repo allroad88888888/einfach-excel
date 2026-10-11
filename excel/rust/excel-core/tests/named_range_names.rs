@@ -20,6 +20,7 @@ fn accepted_names_parse_read_and_spill_through_normal_formulas() {
         "_Sales",
         r"\Sales",
         "Sales.Quarter",
+        "NewSales",
         "A1销售",
         "A1.销售",
         "_1",
@@ -47,6 +48,16 @@ fn unicode_names_are_case_insensitive_in_lookup_update_and_delete() {
     assert_eq!(wb.get_cell("Sheet1", "C1"), Value::Number(10.0));
     assert!(wb.undefine_name("éQUIPE"));
     assert!(wb.named_names().next().is_none());
+}
+
+#[test]
+fn long_ascii_names_are_not_misread_as_overflowing_column_addresses() {
+    let (mut wb, range) = source();
+    let name = "Z".repeat(255);
+    wb.define_named_range(&name, 0, range).unwrap();
+    assert!(wb.set_formula(0, "C1", &format!("=SUM({name})")));
+    assert_eq!(wb.get_cell("Sheet1", "C1"), Value::Number(30.0));
+    assert!(wb.define_named_range(&"Z".repeat(256), 0, range).is_err());
 }
 
 #[test]

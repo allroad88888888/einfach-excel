@@ -192,9 +192,44 @@ impl Workbook {
         &mut self,
         groups: Vec<(usize, HashSet<CellAddress>)>,
     ) {
-        for (sheet_idx, addrs) in groups {
-            if let Some(sheet) = self.sheets.get_mut(sheet_idx) {
-                sheet.recompute_array_formulas_in(&addrs);
+        let mut candidates: Vec<_> = groups
+            .into_iter()
+            .flat_map(|(sheet, addrs)| addrs.into_iter().map(move |addr| (sheet, addr)))
+            .collect();
+        candidates.sort_unstable_by_key(|(sheet, addr)| (*sheet, addr.row, addr.col));
+        let mut anchors = HashMap::new();
+        let mut roots = Vec::new();
+        for (sheet, addr) in candidates {
+            if let Some(id) = self
+                .sheets
+                .get(sheet)
+                .and_then(|s| s.formula_inner_atom(addr))
+            {
+                anchors.insert(id, (sheet, addr));
+                roots.push(id);
+            }
+        }
+        // 下游 C1# 必须等 C1 的几何更新后才投影；表顺序/行主序不是依赖顺序。
+        // 只遍历现有 Store 边，临时后序栈不保存第二份依赖关系或公式结果。
+        // 无依赖的候选仍以表/行/列顺序打破 spill 位置冲突。
+        let mut visited = HashSet::new();
+        for root in roots {
+            let mut stack = vec![(root, false)];
+            while let Some((id, ready)) = stack.pop() {
+                if ready {
+                    if let Some((sheet, addr)) = anchors.remove(&id) {
+                        self.sheets[sheet].recompute_array_formulas_in(&HashSet::from([addr]));
+                    }
+                } else if visited.insert(id) {
+                    stack.push((id, true));
+                    stack.extend(
+                        self.store
+                            .direct_dependencies(id)
+                            .into_iter()
+                            .rev()
+                            .map(|dependency| (dependency, false)),
+                    );
+                }
             }
         }
     }

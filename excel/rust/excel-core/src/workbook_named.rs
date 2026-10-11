@@ -34,10 +34,7 @@ impl std::fmt::Display for WorkbookError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             WorkbookError::ReservedName => write!(f, "name collides with a built-in function name"),
-            WorkbookError::InvalidName => write!(
-                f,
-                "name must match [A-Za-z_][A-Za-z0-9_]* and be 1..=255 chars"
-            ),
+            WorkbookError::InvalidName => write!(f, "the defined name is invalid"),
             WorkbookError::ParseFailed => write!(f, "formula text failed to parse"),
             WorkbookError::EvalFailed(e) => write!(f, "formula evaluation surfaced {}", e),
             WorkbookError::MutationDuringCustomCall => write!(
@@ -45,7 +42,7 @@ impl std::fmt::Display for WorkbookError {
                 "workbook mutations are forbidden while a custom-formula callback is executing"
             ),
             WorkbookError::NameConflict => {
-                write!(f, "name collides with an existing Excel Table name")
+                write!(f, "the name is already in use")
             }
         }
     }

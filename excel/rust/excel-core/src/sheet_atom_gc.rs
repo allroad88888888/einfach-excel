@@ -189,9 +189,9 @@ impl Sheet {
         }
     }
 
-    /// Full-sheet replacement temporarily has no live sheet content, so every
-    /// removable family node is old-world state. Fixed-point peeling follows
-    /// Store's actual edges and preserves any facade still read externally.
+    /// Peel unobserved family nodes during full-sheet replacement. The final
+    /// cleanup also sees newly installed arrays: their live dependency roots
+    /// must survive even when nobody has read the anchor's facade yet.
     pub(super) fn prune_all_family_atoms(&self) {
         loop {
             let before = self.atoms_owned.get();
@@ -213,6 +213,11 @@ impl Sheet {
                 .map(|(key, _)| *key)
                 .collect();
             for key in inner_keys {
+                // 数组投影靠这个 inner 的 Store 边跟随源值；目标格只读投影 atom，
+                // 没有 facade 读者不代表公式已废弃。安装前清空存储时此条件为 false。
+                if self.formula_needs_spill_maintenance(key) {
+                    continue;
+                }
                 self.evict_owned_family_key(&self.formula_inner_family, &key);
             }
 

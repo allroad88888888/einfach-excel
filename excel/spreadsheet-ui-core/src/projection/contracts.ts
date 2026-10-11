@@ -11,6 +11,7 @@ import type {
 } from '../backend'
 import type { CellRange, SheetRef } from '../shared'
 import { validSheetVisibility } from '../viewport/hidden-state'
+import { validNativeNamedRanges } from '../named-ranges/native-types'
 import { validFilterRange, validFilterRules } from '../rust-workbook/filter-commands'
 import { validNativeConditionalFormats } from '../rust-workbook/conditional-format-commands'
 import { validFrozenProjection, validProjectionViewport } from './frozen-validation'
@@ -216,6 +217,9 @@ export function validateProjectionResult(
     return makeInvalid('STALE_RESULT', 'Projection result does not match its request.')
   }
   const range = getProjectionResultRange(result)
+  if (result.kind === 'visible-window' && result.namedRanges !== undefined &&
+    !validNativeNamedRanges(result.namedRanges))
+    return makeInvalid('CELL_OUT_OF_RANGE', 'Invalid Rust named-range projection.')
   if (result.kind === 'visible-window' && result.conditionalFormats !== undefined &&
     !validNativeConditionalFormats(result.conditionalFormats))
     return makeInvalid('CELL_OUT_OF_RANGE', 'Invalid Rust conditional-format rules.')

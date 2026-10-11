@@ -210,13 +210,8 @@ impl NamedRangeChange {
             }
         }
         let arrays = workbook.named_array_dependents();
-        // bulk formula restoration has direct address listeners; defer them until every source is final.
-        let observers: Vec<_> = self
-            .formulas
-            .iter()
-            .map(|formula| formula.sheet)
-            .collect::<BTreeSet<_>>()
-            .into_iter()
+        // 名称可以影响任意表的订阅；只暂存已有监听，不扫描或复制单元格。
+        let observers: Vec<_> = (0..workbook.sheets.len())
             .map(|index| {
                 (
                     index,
@@ -241,8 +236,10 @@ impl NamedRangeChange {
                 };
                 workbook.sheets[formula.sheet].restore_formula_source(formula.addr, source);
             }
-            workbook.recompute_array_formula_groups(arrays);
         });
+        // Store batch 结束才传播间接依赖。先让公式值落定，再更新 spill 几何；
+        // 否则 C1 已变成单格，E1=C1# 仍可能把缓存的旧数组重新装回去。
+        workbook.recompute_array_formula_groups(arrays);
         for (index, listeners) in observers {
             workbook.sheets[index].resume_structure_notifications(listeners);
         }

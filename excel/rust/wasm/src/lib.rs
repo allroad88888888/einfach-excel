@@ -153,6 +153,7 @@ include!("wasm_freeze_persistence.rs");
 include!("wasm_outline_persistence.rs");
 include!("wasm_data_validation_wire.rs");
 include!("wasm_data_validation_persistence.rs");
+include!("wasm_workbook_named_ranges.rs");
 
 include!("wasm_sparse_install.rs");
 include!("wasm_write_errors.rs");
@@ -194,6 +195,8 @@ mod tests {
     include!("wasm_tests/conditional_visuals.rs");
     include!("wasm_tests/data_validation_persistence.rs");
     include!("wasm_tests/outline_persistence.rs");
+    include!("wasm_tests/named_range_persistence.rs");
+    include!("wasm_tests/named_range_wire.rs");
     include!("wasm_tests/diagnostics.rs");
     include!("wasm_tests/history_topology.rs");
 }

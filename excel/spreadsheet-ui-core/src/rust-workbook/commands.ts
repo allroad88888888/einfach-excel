@@ -24,6 +24,7 @@ import type { RustQuickFormulaCommands } from './quick-formula-commands'
 import type { RustConditionalFormatCommands } from './conditional-format-commands'
 import type { RustDataValidationCommands } from './data-validation-commands'
 import type { RustOutlineCommands } from './outline-io'
+import type { RustNamedRangeCommands } from './named-range-commands'
 import type { NativeOutline } from '../outline/native-state'
 import type { NativeDataValidationRule } from '../data-validation/native-rule'
 import type { NativeConditionalFormatRule, ConditionalFormatScope } from '../conditional-formatting/types'
@@ -134,7 +135,8 @@ export interface RustClearRangeRequest {
 export interface RustWorkbookCommands
   extends RustFindCommands, RustSortCommands, RustFilterCommands,
     RustTextColumnsCommands, RustRemoveDuplicatesCommands, RustQuickFormulaCommands,
-    RustConditionalFormatCommands, RustDataValidationCommands, RustOutlineCommands {
+    RustConditionalFormatCommands, RustDataValidationCommands,
+    RustOutlineCommands, RustNamedRangeCommands {
   readonly 'format.preview': WorkerCommand<
     {
       readonly sheetId: string

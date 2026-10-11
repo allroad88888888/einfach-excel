@@ -255,6 +255,8 @@ struct WorkbookPersistenceV1JSON {
     conditional_formats: Vec<ConditionalFormatConfigSnapshotJSON>,
     #[serde(default, rename = "dataValidations", skip_serializing_if = "Vec::is_empty")]
     data_validations: Vec<SheetDataValidationJSON>,
+    #[serde(default, rename = "namedRanges", skip_serializing_if = "Vec::is_empty")]
+    named_ranges: Vec<NamedRangeJSON>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

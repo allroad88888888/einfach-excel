@@ -17,6 +17,7 @@ import type { NativeQuickFormulaRequest, QuickFormulaSuggestion } from './quick-
 import type { ConditionalFormatChange, NativeConditionalFormats } from './conditional-format-commands'
 import type { NativeDataValidationRule } from '../data-validation/native-rule'
 import type { NativeOutlineAction } from '../outline/native-state'
+import type { NativeNamedRange, NativeNamedRangeAction } from '../named-ranges/native-types'
 
 export interface RustCellSnapshot {
   readonly sheet: number
@@ -55,6 +56,8 @@ export interface RustFormatRangeSnapshot {
 }
 
 export interface WasmWorkbook {
+  list_named_ranges?: () => readonly NativeNamedRange[]
+  change_named_range?: (sheet: number, action: NativeNamedRangeAction) => boolean
   change_outline?: (sheet: number, axis: 'row' | 'column', action: NativeOutlineAction) => boolean
   getDataValidation?: (sheet: number, row: number, col: number) => NativeDataValidationRule | null
   setDataValidation?: (sheet: number, rowStart: number, colStart: number,

@@ -76,7 +76,11 @@ fn cross_sheet_range_array_reads_final_world() {
     prims.insert(addr("A2"), Value::Number(1.0));
     prims.insert(addr("A3"), Value::Number(2.0));
     let payload = vec![
-        (0usize, HashMap::new(), fmap(&[("C1", "=SORT(Sheet2!A1:A3)")])),
+        (
+            0usize,
+            HashMap::new(),
+            fmap(&[("C1", "=SORT(Sheet2!A1:A3)")]),
+        ),
         (1usize, prims, HashMap::new()),
     ];
     wb.install_workbook_bulk(payload).expect("install");
@@ -136,4 +140,31 @@ fn single_sheet_install_shrinks_other_sheets_array() {
         Value::Null,
         "缩短后的数组不能留下旧投影格"
     );
+}
+
+/// 安装结束时尚未读取 anchor，清理也不能丢掉它的响应依赖。
+#[test]
+fn installed_array_keeps_source_dependencies_without_an_anchor_read() {
+    let mut wb = Workbook::new();
+    wb.add_sheet("Sheet2");
+    wb.install_workbook_bulk(vec![
+        (0, HashMap::new(), fmap(&[("C1", "=SORT(Sheet2!A1:A2)")])),
+        (
+            1,
+            HashMap::from([
+                (addr("A1"), Value::Number(10.0)),
+                (addr("A2"), Value::Number(20.0)),
+            ]),
+            HashMap::new(),
+        ),
+    ])
+    .unwrap();
+    // 只读非 anchor 的投影格，避免读取 C1 意外重新建立被回收的 Store 边。
+    assert_eq!(wb.get_cell("Sheet1", "C2"), Value::Number(20.0));
+    wb.set_cell(1, "A2", Value::Number(40.0));
+    assert_eq!(wb.get_cell("Sheet1", "C2"), Value::Number(40.0));
+    wb.install_sheet_bulk(0, HashMap::new(), HashMap::new())
+        .unwrap();
+    wb.set_cell(1, "A2", Value::Number(99.0));
+    assert_eq!(wb.get_cell("Sheet1", "C2"), Value::Null);
 }

@@ -28,6 +28,7 @@ export function readVisibleProjection(
     ...(visibility?.filterRules ? { filterRules: visibility.filterRules } : {}),
     ...(visibility?.filterRange ? { filterRange: visibility.filterRange } : {}),
     ...(workbook.history_state ? { history: workbook.history_state() } : {}),
+    ...(workbook.list_named_ranges ? { namedRanges: workbook.list_named_ranges() } : {}),
     ...(workbook.listConditionalFormats
       ? { conditionalFormats: workbook.listConditionalFormats(sheetIndex) } : {}),
     sheetId: request.sheetId,

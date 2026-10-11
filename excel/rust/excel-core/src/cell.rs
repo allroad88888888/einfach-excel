@@ -88,7 +88,8 @@ fn col_letters_to_index(s: &str) -> Option<u32> {
         if digit > 25 {
             return None;
         }
-        result = result * 26 + digit + 1;
+        // 公式解析会试读名称中的字母；长名称不是地址，不能 panic 或回绕。
+        result = result.checked_mul(26)?.checked_add(digit + 1)?;
     }
     Some(result - 1) // convert to 0-based
 }
@@ -235,6 +236,14 @@ mod tests {
         let addr = CellAddress::parse("AZ1").unwrap();
         assert_eq!(addr.col, 51);
         assert_eq!(CellAddress::new(0, 51).to_string_repr(), "AZ1");
+    }
+
+    #[test]
+    fn oversized_column_is_not_an_address() {
+        assert!(CellAddress::parse("NewSales1").is_none());
+        assert!(CellAddress::parse(&format!("{}1", "Z".repeat(255))).is_none());
+        // 地址解析仍兼容既有的超网格坐标，不在溢出修复中改变网格语义。
+        assert_eq!(CellAddress::parse("XFE1"), Some(CellAddress::new(0, 16384)));
     }
 
     #[test]

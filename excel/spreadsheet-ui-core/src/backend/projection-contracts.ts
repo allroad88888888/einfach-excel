@@ -1,5 +1,6 @@
 import type { ViewportRowHeight, ViewportColumnWidth } from './viewport-contracts'
 import type { RustHistoryState } from '../history/rust-history-types'
+import type { NativeNamedRange } from '../named-ranges/native-types'
 import type { SheetVisibilityProjection } from '../viewport/hidden-state'
 import type { ColumnFilterRule } from '../filter-sort/types'
 import type { ConditionalFormatRuleEntry } from '../conditional-formatting/types'
@@ -52,6 +53,8 @@ export interface VisibleProjectionResult extends SheetRef {
   colWidths?: ViewportColumnWidth[]
   /** 同一次原生命令返回的历史目录，不携带回放数据。 */
   history?: RustHistoryState
+  /** 工作簿级名称目录与单元格来自同一 Rust 修订版，不单独刷新或本地修改。 */
+  namedRanges?: readonly NativeNamedRange[]
   /** 整张表的隐藏索引；不能只返回窗口内部分，否则屏幕外定位会漂移。 */
   visibility?: SheetVisibilityProjection
   /** 当前表已提交的原生条件，随投影返回，面板不另建权威副本。 */

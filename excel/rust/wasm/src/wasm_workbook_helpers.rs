@@ -97,6 +97,7 @@ impl WasmWorkbook {
             print_configs: self.print_configs_json(),
             conditional_formats: self.conditional_formats_json().unwrap_or_default(),
             data_validations: self.data_validations_json(),
+            named_ranges: self.named_ranges_json(),
         }
     }
 

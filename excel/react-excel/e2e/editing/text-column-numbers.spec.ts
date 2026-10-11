@@ -61,7 +61,8 @@ for (const width of [1280, 390]) test(`regional number seed converts and restore
   await expect(dialog).toHaveCount(0)
   await expect(await select(page, 'B100', '99:1')).toHaveText('1234.5')
   await expect(cell(page, '99:2')).toHaveText('-12.50%')
-  await expect(cell(page, '99:3')).toHaveText('001')
+  // 大纲栏也占视口宽度；窄屏下逐个定位结果，不要求离屏格保持挂载。
+  await expect(await select(page, 'D100', '99:3')).toHaveText('001')
   await select(page, 'B100:C100', '99:1')
   await expect(button(page, 'Copy Sum')).toHaveText('Sum: 1,234.375')
   await button(page, 'Undo').click()

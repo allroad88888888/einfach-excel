@@ -178,3 +178,32 @@ test('outline wire bounds and boot definition copies are checked without a secon
   expect(definition.sheets[0].outline!.rows[0].end).toBe(3)
   expect(Object.isFrozen(definition.sheets[0].outline!.rows[0])).toBe(true)
 })
+
+test.each(['selection', 'clear'] as const)(
+  'late native outline response does not overwrite a newer %s intent',
+  async (intent) => {
+    const { store, change } = await setup()
+    let finish!: (value: Awaited<ReturnType<typeof change>>) => void
+    change.mockImplementationOnce(() => new Promise((resolve) => { finish = resolve }))
+    const pending = store.setter(runNativeOutlineAtom, {
+      axis: 'row', action: { kind: 'group' },
+    })
+    if (intent === 'clear') store.setter(clearWorkbookDocumentAtom)
+    else store.setter(selectCellAtom, { sheetId: 's', coord: { row: 8, col: 6 } })
+    const input = change.mock.calls[0][0]
+    finish({
+      changed: true,
+      projection: { ...input.projection, cells: [], revision: 2, visibility },
+    })
+    expect(await pending).toBe(intent !== 'clear')
+    expect(store.getter(nativeOutlineFeedbackAtom)).toEqual({ busy: false, error: '' })
+    if (intent === 'clear') {
+      expect(store.getter(nativeOutlineProjectionBackingAtom)).toEqual({})
+    } else {
+      expect(store.getter(nativeOutlineAtom)).toEqual(visibility.outline)
+      expect(store.getter(selectionSnapshotAtom).activeCell).toEqual({
+        sheetId: 's', row: 8, col: 6,
+      })
+    }
+  },
+)

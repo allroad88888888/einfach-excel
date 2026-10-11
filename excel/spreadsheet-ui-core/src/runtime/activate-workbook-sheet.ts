@@ -1,7 +1,7 @@
 import { atom } from '@einfach/core'
 import { workbookDocumentAtom, type WorkbookDocumentSheet } from './workbook-document'
 import { selectCellAtom, setMultiRegionSelectionAtom, setSelectionBoundsAtom } from '../selection'
-import { setViewportMetricsAtom, viewportMetricsAtom } from '../viewport/metrics'
+import { viewportMetricsAtom } from '../viewport/metrics'
 import { activateSheetTabAtom } from '../sheet-tabs/basic-commands'
 import { sheetViewsBackingAtom } from './sheet-view-state'
 
@@ -32,7 +32,8 @@ export const activateWorkbookSheetAtom = atom(
     if (remembered) set(setMultiRegionSelectionAtom, remembered.selection)
     else set(selectCellAtom, { sheetId: sheet.id, coord: { row: 0, col: 0 }, extend: false })
     // 表与画布尺寸同步切换，返回离屏编辑源也无需等 React 再补一轮旧尺寸。
-    set(setViewportMetricsAtom, {
+    // 旧表面积不能裁剪新表记住的位置（大纲栏可不同）；交给新表的 DOM 测量裁剪。
+    set(viewportMetricsAtom, {
       ...metrics, sheetId: sheet.id,
       rowCount: sheet.rowCount, colCount: sheet.colCount,
       scrollTop: remembered?.scrollTop ?? 0, scrollLeft: remembered?.scrollLeft ?? 0,

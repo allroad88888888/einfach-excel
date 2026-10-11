@@ -56,7 +56,7 @@ for (const width of [1280, 390]) test(`field types convert native seed and undo 
   await expect(dialog).toHaveCount(0)
   await expect(cell(page, '94:1')).toHaveText('1')
   await expect(cell(page, '94:2')).toHaveText('2024-02-29')
-  await expect(cell(page, '94:3')).toHaveText('=1+2')
+  await expect(await select(page, 'D95', '94:3')).toHaveText('=1+2')
   await expect(await select(page, 'E95', '94:4')).toHaveText('001,29/02/2024,ignore,=1+2')
   await expect(await select(page, 'F95', '94:5')).toHaveText('')
   await select(page, 'B95:C95', '94:1')

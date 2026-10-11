@@ -5,7 +5,7 @@ import {
   runVisibleProjectionAtom,
   cancelEditingAtom, commitCellEditingAtom, pickFormulaReferenceAtom,
   startEditingAtom, syncFormulaReferenceCaretAtom,
-  initializeViewportMetricsAtom, visibleWindowAtom,
+  initializeViewportMetricsAtom, visibleWindowAtom, setViewportSizeAtom,
   selectionSnapshotAtom, setMultiRegionSelectionAtom, setRustWorkbookConnectionAtom,
   setSelectionAtom, setViewportMetricsAtom, setViewportScrollAtom, viewportMetricsAtom,
   editingSessionAtom, type EditingCommitRequest, type SelectionState, type VisibleProjectionRequest,
@@ -96,7 +96,30 @@ test('renaming and reordering use stable IDs while changed canvas bounds clamp r
   ])
   await switchTo('orders')
   expect(store.getter(selectionSnapshotAtom).activeCell).toEqual({ sheetId: 'orders', row: 19, col: 4 })
+  // 恢复坐标须在宿主报告目标表的实际面积后裁剪，不能用来源表面积。
+  store.setter(setViewportSizeAtom, {
+    viewportHeight: 480, viewportWidth: 480, preserveEdges: false,
+  })
   expect(store.getter(viewportMetricsAtom)).toMatchObject({ scrollTop: 0, scrollLeft: 0 })
+})
+
+test('restoring a narrower outline viewport does not clamp against the previous sheet then pin to its end', async () => {
+  const { store, switchTo } = setup()
+  await switchTo('summary')
+  store.setter(setViewportSizeAtom, {
+    viewportHeight: 440, viewportWidth: 440, preserveEdges: false,
+  })
+  store.setter(setViewportScrollAtom, { scrollTop: 1940, scrollLeft: 308 })
+  await switchTo('orders')
+  store.setter(setViewportSizeAtom, {
+    viewportHeight: 480, viewportWidth: 480, preserveEdges: false,
+  })
+  await switchTo('summary')
+  expect(store.getter(viewportMetricsAtom)).toMatchObject({ scrollTop: 1940, scrollLeft: 308 })
+  store.setter(setViewportSizeAtom, {
+    viewportHeight: 440, viewportWidth: 440, preserveEdges: false,
+  })
+  expect(store.getter(viewportMetricsAtom)).toMatchObject({ scrollTop: 1940, scrollLeft: 308 })
 })
 
 test('removed sheets and reinitialized workbooks cannot resurrect an old view', async () => {

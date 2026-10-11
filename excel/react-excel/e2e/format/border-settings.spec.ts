@@ -135,6 +135,8 @@ test('native border seed styles reopen correctly and clearing does not clear val
 test('merged cell outside uses the full merged rectangle', async ({ page }) => {
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
   await select(page, 'B8:C9', '7:1')
+  await page.getByRole('button', { name: 'Clear contents', exact: true }).click()
+  await expect(cell(page, '8:1')).toHaveText('')
   await page.getByRole('combobox', { name: 'Merge cells', exact: true }).selectOption('merge')
   const merged = page.locator('[data-merged-cell][data-cell="7:1"]')
   await expect(merged).toBeVisible()

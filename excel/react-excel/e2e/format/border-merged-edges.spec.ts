@@ -18,6 +18,9 @@ async function paint(page: Page, address: string, coord: string, preset: string,
 }
 async function merge(page: Page) {
   await select(page, 'B8:D10', '7:1')
+  // 本用例需要空合并区域；Summary 分组示例现在在 B9 有原生数值。
+  await page.getByRole('button', { name: 'Clear contents', exact: true }).click()
+  await expect(page.locator('td[data-cell="8:1"]')).toHaveText('')
   await page.getByRole('combobox', { name: 'Merge cells', exact: true }).selectOption('merge')
   await expect(merged(page)).toBeVisible()
 }

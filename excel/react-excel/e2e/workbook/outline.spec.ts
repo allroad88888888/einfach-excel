@@ -128,6 +128,12 @@ for (const width of [1280, 390]) test(`outline controls fit ${width}px and remai
   const scroll = (await page.getByTestId('sheet-scroll').boundingBox())!
   const gutter = (await page.locator('.outline-row').boundingBox())!
   expect(gutter.x + gutter.width).toBeLessThanOrEqual(scroll.x + 1)
+  const columnGutter = (await page.locator('.outline-column').boundingBox())!
+  const columnToggle = (await button(page, 'Collapse columns B–C, level 1').boundingBox())!
+  expect(columnToggle.x).toBeGreaterThanOrEqual(columnGutter.x)
+  expect(columnToggle.x + columnToggle.width).toBeLessThanOrEqual(
+    columnGutter.x + columnGutter.width,
+  )
   await page.screenshot({ path: info.outputPath(`outline-${width}.png`) })
   expect(errors).toEqual([])
 })

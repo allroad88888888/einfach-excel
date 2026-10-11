@@ -72,9 +72,22 @@ impl Workbook {
             range,
             logical_target.is_some(),
         )?;
-        let planned = paste_values::plan_cells(self, snapshot, sheet_idx, range, options, &merges)?;
-        let validation_formulas =
+        let mut planned = paste_values::plan_cells(self, snapshot, sheet_idx, range, options, &merges)?;
+        let explicit_count = planned.len();
+        let expansion = if !snapshot.cut && options.unlocked_ranges.is_none()
+            && options.mode != ClipboardPasteMode::Formats && !merges.changed() {
+            crate::workbook::TableDefinitionChange::prepare_paste_expansion(
+                self, sheet_idx, range, &mut planned)?
+        } else { None };
+        let mut validation_formulas =
             paste_values::validate_inputs(self, sheet_idx, options.mode, &planned)?;
+        // 模板是引擎补写的输入，沿用手动扩表校验；显式公式粘贴仍保留原模式语义。
+        validation_formulas.extend(planned[explicit_count..].iter().filter_map(|(addr, value, _)| {
+            (matches!(value, Some(ClipboardValue::Formula { .. }))
+                && self.sheets[sheet_idx].data_validation_at(*addr).is_some()).then_some(*addr)
+        }));
+        validation_formulas.sort_unstable_by_key(|addr| (addr.row, addr.col));
+        validation_formulas.dedup();
         // 无历史的原生调用也必须可原子拒绝；临时历史只用于失败恢复，不暴露给宿主。
         let mut rollback = crate::workbook_history::WorkbookHistory::default();
         let enters_table = options.mode != ClipboardPasteMode::Formats
@@ -103,6 +116,27 @@ impl Workbook {
         } else {
             Vec::new()
         };
+
+        if let Some(change) = expansion {
+            let mut affected = range;
+            for addr in planned.iter().map(|(addr, _, _)| *addr).chain(
+                crate::sheet::border_plan_range(&borders).into_iter().flat_map(|range| [range.start, range.end]),
+            ) {
+                affected.start.row = affected.start.row.min(addr.row);
+                affected.start.col = affected.start.col.min(addr.col);
+                affected.end.row = affected.end.row.max(addr.row);
+                affected.end.col = affected.end.col.max(addr.col);
+            }
+            // 无宿主历史时仍复用同一个原子事务，局部历史随调用结束释放。
+            let mut temporary = crate::workbook_history::WorkbookHistory::default();
+            history.as_deref_mut().unwrap_or(&mut temporary).paste_expanding_table(
+                self, change, affected, |workbook| apply::apply_paste(
+                    workbook, snapshot, sheet_idx, options, planned, &dependents, &merges,
+                    borders, &validation_formulas, None,
+                ),
+            )?;
+            return Ok(range);
+        }
 
         if let Some(history) = history.as_deref_mut() {
             let mut targets = history_targets::targets(

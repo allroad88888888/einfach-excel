@@ -2,9 +2,6 @@
 use super::*;
 use crate::{CellSnapshot, workbook_history::MAX_BYTES};
 
-#[path = "workbook_table_header_insert.rs"]
-mod insert;
-
 impl TableDefinitionChange {
     pub(crate) fn prepare_headers(
         workbook: &Workbook, name: &str, enabled: bool, row_count: u32,
@@ -21,7 +18,7 @@ impl TableDefinitionChange {
         // 零记录的输入位置可原地变成表头；隐藏唯一表头则保留该位置，不能吞入邻行。
         let reuse_row = if enabled { before.insert_row } else { before.range.rows() == 1 };
         if enabled && !reuse_row && before.range.start.row == 0 {
-            return insert::prepare(workbook, sheet, before, row_count).map(Some);
+            return row_insert::prepare(workbook, sheet, before, row_count, row_insert::InsertRow::Header).map(Some);
         }
         let row = if enabled && !reuse_row {
             before.range.start.row.checked_sub(1).ok_or("There is no room above the table for headers.")?
@@ -39,7 +36,7 @@ impl TableDefinitionChange {
             || workbook.sheets[sheet].spill_intersecting(range).is_some()
             || workbook.tables.values().any(|entry| entry.name() != before.name()
                 && entry.sheet_name() == before.sheet_name() && entry.range().intersects(range))) {
-            return insert::prepare(workbook, sheet, before, row_count).map(Some);
+            return row_insert::prepare(workbook, sheet, before, row_count, row_insert::InsertRow::Header).map(Some);
         }
         validate_cells(workbook, sheet, range)?;
         let mut after = before.clone();

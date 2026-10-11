@@ -17,6 +17,8 @@ mod resize_totals;
 mod resize_inheritance;
 #[path = "workbook_table_input.rs"]
 mod input;
+#[path = "workbook_table_paste.rs"]
+mod paste;
 #[path = "workbook_table_style_change.rs"]
 mod style;
 #[path = "workbook_table_convert.rs"]
@@ -25,6 +27,10 @@ mod convert;
 mod calculated_input;
 #[path = "workbook_table_headers.rs"]
 mod headers;
+#[path = "workbook_table_row_insert.rs"]
+mod row_insert;
+#[path = "workbook_table_append.rs"]
+mod append;
 #[path = "workbook_table_registry_change.rs"]
 mod registry;
 #[path = "workbook_table_validation_shift.rs"]

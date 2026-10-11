@@ -2,7 +2,7 @@
 use super::*;
 use crate::{parse_formula, render_formula, CellStyle};
 
-pub(super) type PlannedCell = (CellAddress, Option<ClipboardValue>, Option<CellStyle>);
+pub(crate) type PlannedCell = (CellAddress, Option<ClipboardValue>, Option<CellStyle>);
 
 /// 值类粘贴检查最终计划而非源显示文本；运算生成的公式必须等整批写完再判断。
 pub(super) fn validate_inputs(

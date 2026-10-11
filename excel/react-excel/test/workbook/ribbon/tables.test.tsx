@@ -37,6 +37,26 @@ async function click(name: string) {
 async function change(label: string, value: string) {
   await act(async () => { fireEvent.change(screen.getByLabelText(label), { target: { value } }) })
 }
+test('add data row keeps the table panel open with the native range and reports failure', async () => {
+  const request = setup()
+  request.mockImplementationOnce(async (_, payload) => {
+    const input = payload as RustWorkbookCommands['table.change']['payload']
+    return { changed: true, projection: { ...input.projection, cells: [], revision: 2, tables: [
+      { name: 'Sales', sheet: 'Sheet', sheetIndex: 0, range: 'A1:B5',
+        hasHeaders: true, hasTotals: false, columns: ['Product', 'Amount'] },
+    ] } }
+  })
+  await click('Tables'); await click('Edit table Sales'); await click('Add data row')
+  expect(request.mock.calls[0]).toMatchObject(['table.change', { action: { kind: 'append-row', name: 'Sales' } }])
+  expect(screen.getByLabelText('Table range', { exact: true })).toHaveValue('A1:B5')
+  expect(screen.getByRole('dialog')).toBeVisible()
+  request.mockRejectedValueOnce(new Error('No space for another row'))
+  await click('Add data row')
+  expect(screen.getByRole('alert')).toHaveTextContent('No space for another row')
+  expect(screen.getByRole('button', { name: 'Add data row' })).toBeEnabled()
+  expect(screen.getByLabelText('Table range', { exact: true })).toHaveValue('A1:B5')
+})
+
 test('appearance controls read the returned style, retain the dialog and recover from errors', async () => {
   const request = setup()
   request.mockImplementation(async (_, payload) => {

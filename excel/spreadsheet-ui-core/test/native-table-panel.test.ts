@@ -26,6 +26,24 @@ function setup(catalog: NativeTable[] = tables) {
     store.setter(runNativeTablePanelAtom, action) }
 }
 
+test('adding a row sends its native identity and only accepts the returned geometry', async () => {
+  const { store, request, run } = setup()
+  request.mockImplementationOnce(async (_, input) => ({ changed: true,
+    projection: { ...input.projection, cells: [], revision: 2,
+      tables: [{ ...tables[0], range: 'A1:B5' }] } }))
+  await run('open'); await run({ edit: 'Sales' }); await run({ name: 'Unsaved' })
+  expect(await run('append-row')).toBe(true)
+  expect(request).toHaveBeenCalledTimes(1)
+  expect(request.mock.calls[0][1].action).toEqual({ kind: 'append-row', name: 'Sales' })
+  expect(store.getter(nativeTablePanelAtom)).toMatchObject({
+    open: true, name: 'Unsaved', range: 'A1:B5', revision: 2,
+  })
+  request.mockRejectedValueOnce(new Error('No space for another row'))
+  expect(await run('append-row')).toBe(false)
+  expect(store.getter(nativeTablePanelAtom)).toMatchObject({ range: 'A1:B5',
+    error: 'No space for another row', currentTable: { range: 'A1:B5' } })
+})
+
 test('column rename uses the native identity and reselects the returned column, including totals', async () => {
   const { store, request, run } = setup()
   request.mockImplementationOnce(async (_, input) => ({ changed: true,

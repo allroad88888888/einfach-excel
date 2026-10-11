@@ -39,6 +39,7 @@ export interface NativeTable {
   readonly style?: NativeTableStyle
 }
 export type TableChange =
+  | { readonly kind: 'append-row'; readonly name: string }
   | { readonly kind: 'header-row'; readonly name: string; readonly enabled: boolean }
   | { readonly kind: 'style'; readonly name: string; readonly style: NativeTableStyle }
   | { readonly kind: 'create'; readonly name?: string; readonly range: CellRange }
@@ -49,7 +50,9 @@ export type TableChange =
   | { readonly kind: 'totals-row'; readonly name: string; readonly enabled: boolean }
   | { readonly kind: 'total-function'; readonly name: string; readonly column: string;
     readonly function: NativeTotalFunction }
-export type NativeTableAction = Exclude<TableChange, { kind: 'create' | 'resize' | 'totals-row' | 'header-row' }> |
+export type NativeTableAction = Exclude<TableChange,
+{ kind: 'create' | 'resize' | 'totals-row' | 'header-row' | 'append-row' }> |
+  { readonly kind: 'append-row'; readonly name: string; readonly rowCount: number } |
   { readonly kind: 'create'; readonly name?: string; readonly range: readonly [number, number, number, number] } |
   { readonly kind: 'resize'; readonly name: string; readonly range: readonly [number, number, number, number] } |
   { readonly kind: 'totals-row' | 'header-row'; readonly name: string;

@@ -2,6 +2,11 @@
 #[derive(Deserialize)]
 #[serde(tag = "kind", rename_all = "kebab-case", deny_unknown_fields)]
 enum TableActionJSON {
+    AppendRow {
+        name: String,
+        #[serde(rename = "rowCount")]
+        row_count: u32,
+    },
     HeaderRow {
         name: String,
         enabled: bool,
@@ -68,6 +73,7 @@ impl WasmWorkbook {
             .name(sheet)
             .ok_or("The worksheet no longer exists.")?;
         if let TableActionJSON::Rename { name, .. }
+        | TableActionJSON::AppendRow { name, .. }
         | TableActionJSON::HeaderRow { name, .. }
         | TableActionJSON::Style { name, .. }
         | TableActionJSON::Resize { name, .. }
@@ -85,6 +91,9 @@ impl WasmWorkbook {
             }
         }
         match action {
+            TableActionJSON::AppendRow { name, row_count } => {
+                self.history.append_table_row(&mut self.workbook, &name, row_count).map(|_| true)
+            }
             TableActionJSON::HeaderRow { name, enabled, row_count } => {
                 self.history.set_table_headers(&mut self.workbook, &name, enabled,
                     row_count.unwrap_or(1_048_576))

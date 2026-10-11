@@ -22,6 +22,7 @@ mod history_targets;
 mod merge;
 #[path = "clipboard_paste_values.rs"]
 mod paste_values;
+pub(crate) use paste_values::PlannedCell;
 pub use paste_target::{ClipboardPasteMode, ClipboardPasteOptions};
 #[path = "clipboard_tsv.rs"]
 mod tsv;
@@ -31,7 +32,7 @@ pub const MAX_CLIPBOARD_TEXT_BYTES: usize = 16 * 1024 * 1024;
 pub type ClipboardError = &'static str;
 
 #[derive(Clone, Debug, PartialEq)]
-enum ClipboardValue {
+pub(crate) enum ClipboardValue {
     Formula {
         source: String,
         evaluated: Option<Value>,

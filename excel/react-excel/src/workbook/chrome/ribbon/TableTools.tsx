@@ -78,6 +78,8 @@ export function TableTools() {
           <button type="button" disabled={state.busy || !state.editingName}
             onClick={() => void run('convert')}>Convert to range</button>
           {state.editingName && <button type="button" disabled={state.busy}
+            onClick={() => void run('append-row')}>Add data row</button>}
+          {state.editingName && <button type="button" disabled={state.busy}
             onClick={() => void run('resize')}>Resize table</button>}
           <button type="button" disabled={state.busy} onClick={() => void run('close')}>Cancel</button>
           <button type="submit" disabled={state.busy}>

@@ -51,7 +51,7 @@ export const nativeTablePanelAtom = atom((get) => {
 
 /** 打开/编辑只改草稿；每次提交均为一次 Rust 命令和一次返回投影。 */
 export const runNativeTablePanelAtom = atom(null, async (get, set,
-  action: 'open' | 'new' | 'close' | 'save' | 'convert' | 'resize' |
+  action: 'open' | 'new' | 'close' | 'save' | 'convert' | 'resize' | 'append-row' |
   'show-headers' | 'hide-headers' | 'show-totals' | 'hide-totals' |
   'save-total' | 'save-column' | { edit: string } | Partial<Draft> |
   { style: Partial<NativeTableStyle> },
@@ -108,7 +108,11 @@ export const runNativeTablePanelAtom = atom(null, async (get, set,
   const styleAction = typeof action === 'object' && 'style' in action
   const totalsAction = action === 'show-totals' || action === 'hide-totals' || action === 'save-total'
   const headersAction = action === 'show-headers' || action === 'hide-headers'
-  if (styleAction) {
+  if (action === 'append-row') {
+    const entry = get(nativeTablePanelAtom).currentTable
+    if (!entry) return fail('Choose a table first.')
+    change = { kind: 'append-row', name: entry.name }
+  } else if (styleAction) {
     const entry = get(nativeTablePanelAtom).currentTable
     if (!entry) return fail('Choose a table first.')
     const style = { ...(entry.style ?? DEFAULT_NATIVE_TABLE_STYLE), ...action.style }
@@ -180,7 +184,7 @@ export const runNativeTablePanelAtom = atom(null, async (get, set,
       const column = action === 'resize' && entry?.columns.includes(state.column) ? state.column
         : entry?.columns[Math.max(0, columnIndex)] ?? entry?.columns[0] ?? ''
       const retainPanel = styleAction || headersAction || totalsAction ||
-        action === 'save-column' || action === 'resize'
+        action === 'save-column' || action === 'resize' || action === 'append-row'
       set(draftAtom, retainPanel && entry ? { ...state, range: entry.range,
         column, newColumnName: action === 'save-column' || action === 'resize' ? column : state.newColumnName,
         ...totalDraft(entry, state.totalColumn === state.column ? column : state.totalColumn),

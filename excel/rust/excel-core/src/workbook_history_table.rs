@@ -3,6 +3,31 @@ use super::*;
 use crate::workbook::{TableCreation, TableDefinitionChange};
 
 impl WorkbookHistory {
+    /// 按表宽追加数据，不插入整张工作表行；汇总与下方内容只在该列带内移动。
+    pub fn append_table_row(&mut self, workbook: &mut Workbook, name: &str, row_count: u32)
+        -> Result<u32, String> {
+        if self.pending.is_some() || workbook.is_inside_custom_call() {
+            return Err("Another history command is pending.".into());
+        }
+        let (change, row) = TableDefinitionChange::prepare_append_row(workbook, name, row_count)?;
+        change.apply_appending_row(workbook, row)?;
+        self.record_table_change(workbook, change, "Add table row");
+        Ok(row)
+    }
+
+    /// 自动扩表是一次粘贴，不先记录 Resize 再另记格子写入。
+    pub(crate) fn paste_expanding_table(
+        &mut self, workbook: &mut Workbook, mut change: TableDefinitionChange, range: CellRange,
+        write: impl FnOnce(&mut Workbook) -> Result<(), &'static str>,
+    ) -> Result<(), &'static str> {
+        if self.pending.is_some() || workbook.is_inside_custom_call() {
+            return Err("Another history command is pending.");
+        }
+        change.apply_expanding_paste(workbook, range, write)?;
+        self.record_table_change(workbook, change, "Paste and expand table");
+        Ok(())
+    }
+
     /// 列名一直归 Table 所有，表头格与筛选在同一条历史内显隐。
     pub fn set_table_headers(&mut self, workbook: &mut Workbook, name: &str, enabled: bool, row_count: u32)
         -> Result<bool, String> {

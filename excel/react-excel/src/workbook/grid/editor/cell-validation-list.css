@@ -1,0 +1,14 @@
+.cell-validation-list {
+  position: absolute;
+  z-index: 7;
+  box-sizing: border-box;
+  padding: 0;
+  border: 1px solid var(--primary);
+  border-radius: 0;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.cell-validation-list:focus-visible { outline: 2px solid var(--primary); }

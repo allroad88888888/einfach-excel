@@ -58,6 +58,8 @@ const feedbackAtom = atom<SystemClipboardFeedback>({ busy: false, error: false, 
 export const systemClipboardFeedbackAtom = atom((get) => get(feedbackAtom))
 
 const ERROR_MESSAGES: Readonly<Record<string, string>> = {
+  DATA_VALIDATION_FAILED:
+    'A pasted value does not meet its cell’s data validation rule. Nothing was pasted.',
   CLIPBOARD_PARTIAL_MERGE: 'Select whole merged cells before copying or pasting.',
   CLIPBOARD_MERGE_CONTENT:
     'The paste would hide cell content. Unmerge the destination or change the selection first.',

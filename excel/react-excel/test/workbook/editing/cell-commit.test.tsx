@@ -40,7 +40,9 @@ describe('Rust workbook cell commit', () => {
     await waitFor(() => expect(screen.queryByRole('textbox', { name: 'Cell editor' })).toBeNull())
     expect(await firstEditingCell()).toHaveTextContent('Edited order')
     expect(controlled.readVisibleProjection).toHaveBeenCalledTimes(1)
-    expect(controlled.commands).toEqual(['projection.readVisible', 'cell.setInput'])
+    // 活动格读规则是独立只读请求；编辑仍只写一次，不额外请求投影。
+    expect(controlled.commands.filter((command) => command !== 'validation.read'))
+      .toEqual(['projection.readVisible', 'cell.setInput'])
     await waitFor(() => expect(document.activeElement).toBe(grid))
 
     fireEvent.keyDown(document.activeElement!, { key: 'F2' })

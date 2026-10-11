@@ -49,6 +49,16 @@ export function snapshotRustWorkbookDefinition(
     }
     const hiddenRows = hidden(sheet.hiddenRows, sheet.rowCount)
     const hiddenColumns = hidden(sheet.hiddenColumns, sheet.colCount)
+    const dataValidations = sheet.dataValidations?.map(({ range, rule }) => {
+      if (![range.rowStart, range.rowEnd, range.colStart, range.colEnd].every(
+        (n) => Number.isSafeInteger(n) && n >= 0) || range.rowStart > range.rowEnd ||
+        range.colStart > range.colEnd || range.rowEnd >= sheet.rowCount ||
+        range.colEnd >= sheet.colCount)
+        throw new Error('Invalid initial data-validation range.')
+      return Object.freeze({ range: Object.freeze({ ...range }),
+        rule: Object.freeze(rule.kind === 'list'
+          ? { ...rule, items: Object.freeze([...rule.items]) } : { ...rule }) })
+    })
     const conditionalFormats = sheet.conditionalFormats?.map((entry) => {
       const range = entry.scope.range
       if (![range.rowStart, range.rowEnd, range.colStart, range.colEnd].every(
@@ -116,6 +126,7 @@ export function snapshotRustWorkbookDefinition(
       ...(mergedRanges ? { mergedRanges: Object.freeze(mergedRanges) } : {}),
       ...(freeze ? { freeze: Object.freeze({ ...freeze }) } : {}),
       ...(conditionalFormats ? { conditionalFormats: Object.freeze(conditionalFormats) } : {}),
+      ...(dataValidations ? { dataValidations: Object.freeze(dataValidations) } : {}),
     })
   })
   if (title.length === 0 || sheets.length === 0) {

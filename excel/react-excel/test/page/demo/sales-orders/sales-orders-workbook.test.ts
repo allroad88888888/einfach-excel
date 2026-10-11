@@ -4,6 +4,7 @@ import {
   SALES_ORDER_SHEET_ROW_COUNT,
 } from '../../../../src/page/demo/sales-orders/data/sheet'
 import { SALES_ORDERS_WORKBOOK_DEFINITION } from '../../../../src/page/demo/sales-orders/sales-orders-workbook'
+import { SUMMARY_VALIDATION_CELLS, SUMMARY_VALIDATIONS } from '../../../../src/page/demo/sales-orders/data/validation-seed'
 import {
   SALES_ORDER_SUMMARY_CELLS,
   SUMMARY_SIZES,
@@ -32,6 +33,7 @@ describe('Sales Orders workbook definition', () => {
         hiddenColumns: [6],
         mergedRanges: SUMMARY_MERGES,
         conditionalFormats: SUMMARY_CONDITIONAL_FORMATS,
+        dataValidations: SUMMARY_VALIDATIONS,
       },
     ])
   })
@@ -40,7 +42,7 @@ describe('Sales Orders workbook definition', () => {
     const chunks = SALES_ORDERS_WORKBOOK_DEFINITION.createImportChunks() as Iterable<
       readonly unknown[]
     >
-    expect([...chunks].at(-1)).toEqual(SALES_ORDER_SUMMARY_CELLS)
+    expect([...chunks].slice(-2)).toEqual([SALES_ORDER_SUMMARY_CELLS, SUMMARY_VALIDATION_CELLS])
     expect(SALES_ORDER_SUMMARY_CELLS).toEqual(
       expect.arrayContaining([
         expect.objectContaining({

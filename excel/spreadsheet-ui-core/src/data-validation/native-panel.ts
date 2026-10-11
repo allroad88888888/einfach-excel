@@ -44,6 +44,14 @@ export const runNativeDataValidationAtom = atom(null, async (get, set,
   const connection = get(rustWorkbookConnectionAtom)
   if (!sheet || !connection) return false
   const fail = (error: unknown) => {
+    // 旧 Worker 的失败与成功一样不能泄漏到新工作簿。
+    if (get(rustWorkbookConnectionAtom) !== connection ||
+      get(activeWorkbookSheetAtom)?.id !== sheet.id) {
+      const current = get(nativeDataValidationPanelAtom)
+      if (current.connection === connection && current.sheetId === sheet.id)
+        set(nativeDataValidationPanelAtom, CLOSED)
+      return false
+    }
     set(nativeDataValidationPanelAtom, { ...get(nativeDataValidationPanelAtom), busy: false,
       error: error instanceof Error ? error.message : String(error) })
     return false
@@ -60,7 +68,8 @@ export const runNativeDataValidationAtom = atom(null, async (get, set,
       if (get(nativeDataValidationPanelAtom) !== pending ||
         get(rustWorkbookConnectionAtom) !== connection ||
         get(activeWorkbookSheetAtom)?.id !== sheet.id) {
-        set(nativeDataValidationPanelAtom, CLOSED)
+        if (get(nativeDataValidationPanelAtom) === pending)
+          set(nativeDataValidationPanelAtom, CLOSED)
         return false
       }
       set(nativeDataValidationPanelAtom, { ...pending, busy: false,

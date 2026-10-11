@@ -15,7 +15,9 @@ export function editingCommitFeedback(
     case 'rejected':
       return {
         kind: 'error',
-        message: 'That edit was not saved.',
+        message: lifecycle.error?.endsWith('DATA_VALIDATION_FAILED')
+          ? 'This value does not meet the cell’s data validation rule. Change it or press Escape.'
+          : 'That edit was not saved.',
         detail: lifecycle.error || undefined,
       }
     case 'outcome-unknown':

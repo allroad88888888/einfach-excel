@@ -15,6 +15,7 @@ import { useWorkbookViewport, type WorkbookViewport } from '../../projection/use
 import { SpreadsheetGrid } from '../cells/SpreadsheetGrid'
 import { MergedCells } from '../cells/MergedCells'
 import { CellEditor } from '../editor/CellEditor'
+import { CellValidationList } from '../editor/CellValidationList'
 import { ResizeGuide } from './ResizeGuide'
 import {
   WORKBOOK_GRID_COLUMN_WIDTH,
@@ -200,6 +201,7 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
           <FrozenGrid focusGrid={events.focusGrid} />
           <FillHandle scrollRef={events.scrollRef} focusGrid={events.focusGrid} />
           <CellEditor focusGrid={events.focusGrid} />
+          <CellValidationList focusGrid={events.focusGrid} />
           <ResizeGuide />
         </div>
       </div>

@@ -13,6 +13,14 @@ function lifecycle(
 }
 
 describe('editing commit feedback', () => {
+  it('explains a native validation rejection without exposing transport details', () => {
+    const feedback = editingCommitFeedback(lifecycle('rejected',
+      'Editing commit was rejected and may be retried: DATA_VALIDATION_FAILED'))
+    expect(feedback?.message).toContain('data validation rule')
+    expect(feedback?.message).toContain('Escape')
+    expect(feedback?.message).not.toContain('DATA_VALIDATION_FAILED')
+  })
+
   it('maps each unresolved terminal lifecycle state to error feedback', () => {
     expect(editingCommitFeedback(lifecycle('rejected', 'boom'))).toEqual({
       kind: 'error',

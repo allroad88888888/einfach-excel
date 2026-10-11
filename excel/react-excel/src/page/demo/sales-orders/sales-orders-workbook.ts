@@ -1,6 +1,7 @@
 import type { RustWorkbookDefinition } from '@einfach/spreadsheet-ui-core'
 import { createSalesOrderImportChunks } from './data/import-seed'
 import { SALES_ORDER_COLUMNS, SALES_ORDER_SHEET_ROW_COUNT } from './data/sheet'
+import { SUMMARY_VALIDATION_CELLS, SUMMARY_VALIDATIONS } from './data/validation-seed'
 import {
   SALES_ORDER_SUMMARY_CELLS,
   SUMMARY_SIZES,
@@ -30,7 +31,10 @@ export const SALES_ORDERS_WORKBOOK_DEFINITION: RustWorkbookDefinition = Object.f
       mergedRanges: SUMMARY_MERGES,
       freeze: SUMMARY_FREEZE,
       conditionalFormats: SUMMARY_CONDITIONAL_FORMATS,
+      dataValidations: SUMMARY_VALIDATIONS,
     },
   ]),
-  createImportChunks: () => [...createSalesOrderImportChunks(), SALES_ORDER_SUMMARY_CELLS],
+  createImportChunks: () => [
+    ...createSalesOrderImportChunks(), SALES_ORDER_SUMMARY_CELLS, SUMMARY_VALIDATION_CELLS,
+  ],
 })

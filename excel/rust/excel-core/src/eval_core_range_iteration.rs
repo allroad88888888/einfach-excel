@@ -69,6 +69,18 @@ pub(super) fn for_each_arg_value_indexed(
     provider: &dyn EvalProvider,
     f: &mut dyn FnMut(Option<CellAddress>, u64, Value),
 ) -> Option<u64> {
+    // 先选分支，再走该分支的引用/值路径。若先尝试引用再回退整个 IF，
+    // 标量或 #VALUE! 分支会让有副作用的条件被执行两次。
+    if let Expr::FuncCall { name, args } = arg {
+        if name == "IF" {
+            match eval_fn_logical::selected_if_branch(args, provider) {
+                Ok(Some(branch)) => return for_each_arg_value_indexed(branch, provider, f),
+                Ok(None) => f(None, 1, Value::Boolean(false)),
+                Err(error) => f(None, 1, Value::Error(error)),
+            }
+            return None;
+        }
+    }
     match runtime_ref_from_expr(arg, provider) {
         Ok(r) => for_each_ref_value_indexed(&r, provider, f),
         Err(ValueError::InvalidValue) => {

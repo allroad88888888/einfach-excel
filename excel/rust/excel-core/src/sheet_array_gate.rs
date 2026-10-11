@@ -86,22 +86,17 @@ pub(crate) fn expr_may_produce_array(expr: &Expr) -> bool {
             if !crate::eval::is_builtin_function_name(name) {
                 return true;
             }
-            args.iter().any(expr_may_produce_array)
+            args.iter().any(|arg| {
+                // SUM 等函数消费区域，不会仅因直接区域参数就返回数组。
+                // IF/LET 等可直接返回该参数，需按值上下文判定。
+                (!matches!(arg, Expr::Range { .. } | Expr::SheetRange { .. })
+                    || forwards_range_value(name))
+                    && expr_may_produce_array(arg)
+            })
         }
         Expr::BinOp { left, right, .. } => {
-            // A binop now broadcasts when either operand is a multi-cell
-            // range or array literal (eval.rs § `broadcast_binop`). Range
-            // operands always produce multi-cell at the binop boundary,
-            // so flag the binop as array-producing whenever an operand
-            // is a `Range` / `SheetRange` — the broadcast path on the
-            // eval side handles the single-cell range collapse so we
-            // only over-flag, never under-flag.
-            let operand_is_range =
-                |e: &Expr| matches!(e, Expr::Range { .. } | Expr::SheetRange { .. });
-            operand_is_range(left)
-                || operand_is_range(right)
-                || expr_may_produce_array(left)
-                || expr_may_produce_array(right)
+            // 区域本身已是数组候选，广播操作不再维护另一份区域判断。
+            expr_may_produce_array(left) || expr_may_produce_array(right)
         }
         Expr::Negate(inner) | Expr::Percent(inner) => expr_may_produce_array(inner),
         // An immediate-call could be `MAP(...)(...)` chained, but even a
@@ -114,7 +109,10 @@ pub(crate) fn expr_may_produce_array(expr: &Expr) -> bool {
         // so a top-level `={1,2,3}` must take the eager spill re-eval
         // path just like a SEQUENCE / UNIQUE call would.
         Expr::ArrayLit { .. } => true,
-        Expr::SpillRef(_) | Expr::DynamicRange { .. } => true,
+        Expr::Range { .. }
+        | Expr::SheetRange { .. }
+        | Expr::SpillRef(_)
+        | Expr::DynamicRange { .. } => true,
         // A structured (Table) reference materializes its resolved region
         // as a `Value::Array` in value context, so a bare `=Table1[Col]`
         // must take the eager spill re-eval path (design doc §5.3).
@@ -146,8 +144,8 @@ pub(crate) fn expr_may_produce_array(expr: &Expr) -> bool {
 ///   - `Expr::ArrayLit` (`={1,2}`) → `{`,
 ///   - `Expr::SpillRef` / `Expr::DynamicRange` (`=A1#`) → `#`,
 ///   - `Expr::TableRef` (`=Table1[Col]`) → `[`,
-///   - a broadcasting `Expr::BinOp` over a range operand (`=A1:A3*2`) →
-///     both a `:` and a binary-operator byte.
+///   - ordinary ranges → `:` without a consuming function, or with a
+///     value-forwarding function / binary operator. Plain SUM(range) stays lazy.
 ///
 /// Over-flagging is free (the candidate just gets parsed and then rejected
 /// by the AST gate); under-flagging would silently drop a spill, hence the
@@ -164,6 +162,8 @@ pub(crate) fn source_may_produce_array(source: &str) -> bool {
     let bytes = body.as_bytes();
     let mut has_colon = false;
     let mut has_operator = false;
+    let mut has_function = false;
+    let mut has_forwarding_function = false;
     let mut ident_start: Option<usize> = None;
     // One pass: collect the cheap markers and test every identifier token
     // against the array-function list. A function name is a whole token —
@@ -178,6 +178,10 @@ pub(crate) fn source_may_produce_array(source: &str) -> bool {
         }
         if let Some(start) = ident_start.take() {
             let token = &body[start..i];
+            if b == b'(' {
+                has_function = true;
+                has_forwarding_function |= forwards_range_value(token);
+            }
             if is_array_function_token(token) || is_named_range_token(token) {
                 return true;
             }
@@ -189,9 +193,13 @@ pub(crate) fn source_may_produce_array(source: &str) -> bool {
             }
         }
         match b {
-            b'{' | b'#' | b'[' => return true,
+            // 引号内的表名可能含 SUM(A1) 等文本；不要让它伪装成消费区域的函数。
+            // 候选允许多报，后续 AST 判定会过滤普通单格引用。
+            b'{' | b'#' | b'[' | b'\'' => return true,
             b':' => has_colon = true,
-            b'+' | b'-' | b'*' | b'/' | b'^' | b'&' | b'=' | b'<' | b'>' => has_operator = true,
+            b'+' | b'-' | b'*' | b'/' | b'^' | b'&' | b'=' | b'<' | b'>' | b'%' => {
+                has_operator = true
+            }
             _ => {}
         }
     }
@@ -200,7 +208,16 @@ pub(crate) fn source_may_produce_array(source: &str) -> bool {
             return true;
         }
     }
-    has_colon && has_operator
+    has_colon && (has_operator || !has_function || has_forwarding_function)
+}
+
+/// 这些内建函数可能把参数的区域值直接作为返回值，不是区域聚合器。
+fn forwards_range_value(name: &str) -> bool {
+    [
+        "IF", "IFERROR", "IFNA", "IFS", "SWITCH", "CHOOSE", "LET", "LAMBDA", "XLOOKUP",
+    ]
+    .iter()
+    .any(|candidate| name.eq_ignore_ascii_case(candidate))
 }
 
 /// 纯数字、普通 A1 引用和内建函数保持原来的零解析快路；裸名称可能是数组范围。
@@ -212,7 +229,9 @@ fn is_named_range_token(token: &str) -> bool {
         && !token.eq_ignore_ascii_case("TRUE")
         && !token.eq_ignore_ascii_case("FALSE")
         && !is_builtin_function_token(token)
-        && CellAddress::parse(token).is_none()
+        // 与解析器一致：Table1 虽长得像地址，但列号超出网格，应视为名称。
+        && CellAddress::parse(token)
+            .is_none_or(|addr| addr.row >= EXCEL_MAX_ROWS || addr.col >= EXCEL_MAX_COLS)
 }
 
 /// Case-insensitive whole-token membership test against

@@ -97,18 +97,13 @@ pub fn eval_expr_with_provider(expr: &Expr, provider: &dyn EvalProvider) -> Valu
 
         Expr::FuncCall { name, args } => eval_func(name, args, provider),
 
-        Expr::Range { start, end, .. } | Expr::SheetRange { start, end, .. } => {
-            // Ranges should be handled by function evaluators, not standalone
-            // If we get here, collect all values into... just return an error
-            let _ = (start, end);
-            Value::Error(ValueError::InvalidValue)
-        }
-
-        Expr::SpillRef(_) | Expr::DynamicRange { .. } | Expr::TableRef { .. } => {
-            // A structured reference in value context materializes its
-            // resolved region as a `Value::Array` (spilling like `A1#` /
-            // `A1:INDEX(...)`), or collapses to the scalar for a 1×1 region
-            // (design doc §5.3 value-context arm).
+        Expr::Range { .. }
+        | Expr::SheetRange { .. }
+        | Expr::SpillRef(_)
+        | Expr::DynamicRange { .. }
+        | Expr::TableRef { .. } => {
+            // 普通地址与 Table 地址使用同一取值/数组尺寸限制；转换 Table 后
+            // 不能因地址写法变了而丢失 spill。1×1 区域仍收敛为标量。
             match runtime_ref_from_expr(expr, provider) {
                 Ok(r) => runtime_ref_to_value(&r, provider),
                 Err(e) => Value::Error(e),

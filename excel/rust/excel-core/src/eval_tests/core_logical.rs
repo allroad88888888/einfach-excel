@@ -6,6 +6,43 @@ use super::super::*;
 use super::common::*;
 
 #[test]
+fn conditional_reference_fallback_does_not_evaluate_the_condition_twice() {
+    struct Provider(std::cell::Cell<usize>);
+    impl EvalProvider for Provider {
+        fn cell(&self, _: CellAddress) -> Value {
+            Value::Null
+        }
+        fn sheet_cell(&self, _: &str, _: CellAddress) -> Value {
+            Value::Null
+        }
+        fn call_custom(&self, name: &str, _: &[Value]) -> Option<Value> {
+            assert_eq!(name, "TICK");
+            self.0.set(self.0.get() + 1);
+            Some(Value::Boolean(self.0.get() == 1))
+        }
+    }
+    for (formula, expected) in [
+        ("=IF(TICK(),2,99)", Value::Number(2.0)),
+        ("=SUM(IF(TICK(),2,99))", Value::Number(2.0)),
+        ("=IF(TICK(),2,99)+1", Value::Number(3.0)),
+        ("=SUM(IF(TICK(),{2;3},99))", Value::Number(5.0)),
+        (
+            "=SUM(IF(TICK(),#VALUE!,99))",
+            Value::Error(ValueError::InvalidValue),
+        ),
+    ] {
+        let provider = Provider(std::cell::Cell::new(0));
+        let expr = crate::formula::parse_formula(formula).unwrap();
+        assert_eq!(
+            eval_expr_with_provider(&expr, &provider),
+            expected,
+            "{formula}"
+        );
+        assert_eq!(provider.0.get(), 1, "{formula}");
+    }
+}
+
+#[test]
 fn eval_if_true() {
     let (cm, vs) = make_test_env();
     // IF(A1, 100, 200) → A1=10 (truthy) → 100

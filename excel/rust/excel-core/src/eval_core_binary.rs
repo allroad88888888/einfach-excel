@@ -96,7 +96,6 @@ pub(super) fn finite_or_overflow(n: f64) -> Value {
     }
 }
 
-
 pub(super) fn eval_compare(op: BinOperator, l: &Value, r: &Value) -> bool {
     let cmp = if let (Some(ln), Some(rn)) = (coerce_to_number(l), coerce_to_number(r)) {
         ln.partial_cmp(&rn)
@@ -133,6 +132,16 @@ pub(super) fn eval_compare(op: BinOperator, l: &Value, r: &Value) -> bool {
 /// `Value::Array`, but a single-cell range collapses to its scalar so
 /// `=A1+1` keeps the scalar-arithmetic fast path.
 pub(super) fn eval_operand_for_binop(expr: &Expr, provider: &dyn EvalProvider) -> Value {
+    // 与区域迭代一致：只对选中的分支尝试引用解析，不重新执行条件。
+    if let Expr::FuncCall { name, args } = expr {
+        if name == "IF" {
+            return match eval_fn_logical::selected_if_branch(args, provider) {
+                Ok(Some(branch)) => eval_operand_for_binop(branch, provider),
+                Ok(None) => Value::Boolean(false),
+                Err(error) => Value::Error(error),
+            };
+        }
+    }
     match runtime_ref_from_expr(expr, provider) {
         Ok(r) => return runtime_ref_to_value(&r, provider),
         Err(ValueError::InvalidValue) => {}

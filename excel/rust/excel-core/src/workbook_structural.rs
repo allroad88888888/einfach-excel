@@ -1,5 +1,6 @@
 //! workbook structural operations.
 
+use super::workbook_formula_lambda_change::FormulaLambdaChange;
 use super::*;
 
 impl Workbook {
@@ -49,13 +50,16 @@ impl Workbook {
         &mut self,
         sheet_index: usize,
         edit: crate::shift::ShiftEdit,
-    ) {
+    ) -> Vec<FormulaLambdaChange> {
         if self.is_inside_custom_call() {
-            return;
+            return Vec::new();
         }
         let Some(name) = self.names.get(sheet_index).cloned() else {
-            return;
+            return Vec::new();
         };
+        // 同一份实际位移差异交回历史层，不再扫描/改写闭包第二遍。
+        let lambdas = FormulaLambdaChange::for_structural_shift(self, &name, edit);
+        let ranges = self.shifted_named_ranges(sheet_index, edit);
         let store = self.store.clone();
         store.batch(|_| {
             self.shift_sheet_and_tables(sheet_index, edit);
@@ -64,8 +68,15 @@ impl Workbook {
                 sheet.retarget_sheet_references(&name, edit);
             }
             // 最终坐标落地后再发布名称，数组引用不会读到一半位移的来源。
-            self.remap_named_ranges(sheet_index, edit);
+            for lambda in &lambdas {
+                lambda.apply(self, false);
+            }
+            self.restore_named_range_coordinates(&ranges, false);
+            if ranges.is_empty() && !lambdas.is_empty() {
+                self.sync_atom_names();
+            }
         });
+        lambdas
     }
 
     fn shift_sheet_and_tables(&mut self, sheet_index: usize, edit: crate::shift::ShiftEdit) {

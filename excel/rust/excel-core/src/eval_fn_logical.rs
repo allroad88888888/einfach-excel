@@ -2,30 +2,30 @@
 
 use super::*;
 
-pub(super) fn eval_fn_logical(
-    name: &str,
-    args: &[Expr],
+/// IF 的值求值与引用解析共用一次条件选择；未选分支不能被求值。
+pub(super) fn selected_if_branch<'a>(
+    args: &'a [Expr],
     provider: &dyn EvalProvider,
-) -> Value {
-    match name {"IF" => {
-            if args.len() < 2 || args.len() > 3 {
-                return Value::Error(ValueError::WrongArgCount);
-            }
-            let cond = eval_expr_with_provider(&args[0], provider);
-            let is_true = match cond {
-                Value::Boolean(b) => b,
-                Value::Number(n) => n != 0.0,
-                Value::Error(e) => return Value::Error(e),
-                _ => false,
-            };
-            if is_true {
-                eval_expr_with_provider(&args[1], provider)
-            } else if args.len() == 3 {
-                eval_expr_with_provider(&args[2], provider)
-            } else {
-                Value::Boolean(false)
-            }
-        }
+) -> Result<Option<&'a Expr>, ValueError> {
+    if !(2..=3).contains(&args.len()) {
+        return Err(ValueError::WrongArgCount);
+    }
+    let is_true = match eval_expr_with_provider(&args[0], provider) {
+        Value::Boolean(value) => value,
+        Value::Number(value) => value != 0.0,
+        Value::Error(error) => return Err(error),
+        _ => false,
+    };
+    Ok(args.get(if is_true { 1 } else { 2 }))
+}
+
+pub(super) fn eval_fn_logical(name: &str, args: &[Expr], provider: &dyn EvalProvider) -> Value {
+    match name {
+        "IF" => match selected_if_branch(args, provider) {
+            Ok(Some(branch)) => eval_expr_with_provider(branch, provider),
+            Ok(None) => Value::Boolean(false),
+            Err(error) => Value::Error(error),
+        },
 
         "AND" => {
             let mut result = true;
@@ -252,6 +252,6 @@ pub(super) fn eval_fn_logical(
         // than references, so a named "x = A1" stores `10`, not the
         // ref to A1. Refining that requires storing the source Expr
         // for each name; we deliberately defer.
-                _ => unreachable!(),
+        _ => unreachable!(),
     }
 }

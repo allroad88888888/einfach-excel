@@ -103,44 +103,40 @@ fn saved_lambdas_keep_live_range_references_and_local_parameters() {
 }
 
 #[test]
-fn unresolved_caller_relative_lambdas_reject_before_any_registry_or_formula_write() {
-    for lambda in ["=LAMBDA(Inventory[@Amount])", "=LAMBDA([@Amount])"] {
-        let mut wb = seed();
-        wb.define_name("CallerRow", lambda).unwrap();
-        wb.set_formula(0, "D1", "=SUM(Inventory[Amount])");
-        let mut history = WorkbookHistory::default();
-        history
-            .rename_table(&mut wb, "Inventory", "Renamed")
-            .unwrap();
-        history.undo(&mut wb).unwrap();
-        let tables = wb.snapshot_tables();
-        let closure = wb.get_named("CallerRow");
-        assert!(history
-            .convert_table_to_range(&mut wb, "Inventory")
-            .is_err());
-        assert_eq!(wb.snapshot_tables(), tables);
-        assert_eq!(wb.get_named("CallerRow"), closure);
-        assert_eq!(history.redo_count(), 1);
-        assert_eq!(
-            wb.sheet(0)
-                .unwrap()
-                .formula_text_at(CellAddress::parse("D1").unwrap())
-                .as_deref(),
-            Some("=SUM(Inventory[Amount])")
-        );
-    }
-}
-
-#[test]
-fn rules_crossing_table_context_reject_atomically_until_supported() {
+fn rules_crossing_table_context_keep_their_per_cell_meaning() {
     let mut wb = seed();
-    install(&mut wb, 0, "row", "B2", "B4", "=[@Amount]>15");
-    let original = wb.conditional_format_config(0).unwrap();
+    wb.set_cell(0, "D1", Value::Text("Amount".into()));
+    wb.set_cell(0, "D2", Value::Number(50.0));
+    wb.define_table(Some("OtherTable"), 0, range("D1", "E3"), true)
+        .unwrap();
+    install(&mut wb, 0, "row", "B1", "E4", "=[@Amount]>15");
+    let original = wb.conditional_format_config(0).unwrap().rules.clone();
+    let addresses = ["B1", "B2", "B3", "B4", "C2", "D2", "E2", "E4"];
+    let expected: Vec<_> = addresses.iter().map(|addr| bold(&wb, 0, addr)).collect();
+    assert_eq!(
+        expected,
+        [false, false, true, false, false, true, true, false]
+    );
     let mut history = WorkbookHistory::default();
-    assert!(history
+    history
         .convert_table_to_range(&mut wb, "Inventory")
-        .is_err());
-    assert_eq!(history.undo_count(), 0);
-    assert!(wb.get_table("Inventory").is_some());
-    assert_eq!(wb.conditional_format_config(0).unwrap(), original);
+        .unwrap();
+    assert_eq!(history.undo_count(), 1);
+    for _ in 0..3 {
+        for (addr, expected) in addresses.iter().zip(&expected) {
+            assert_eq!(bold(&wb, 0, addr), *expected, "{addr}");
+        }
+        assert_eq!(
+            wb.conditional_format_config(0).unwrap().rules.len(),
+            1,
+            "do not split one rule into a collection of per-cell rules"
+        );
+        history.undo(&mut wb).unwrap();
+        assert_eq!(wb.conditional_format_config(0).unwrap().rules, original);
+        history.redo(&mut wb).unwrap();
+    }
+    wb.set_cell(0, "A2", Value::Number(19.0));
+    wb.set_cell(0, "D2", Value::Number(5.0));
+    assert!(bold(&wb, 0, "B2"));
+    assert!(!bold(&wb, 0, "E2"));
 }

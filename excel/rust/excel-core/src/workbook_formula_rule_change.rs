@@ -10,8 +10,8 @@ pub(super) struct FormulaRuleChange {
 impl FormulaRuleChange {
     pub fn prepare(
         workbook: &Workbook,
-        rewrite: &impl Fn(usize, CellRange, &mut Expr) -> Result<bool, &'static str>,
-    ) -> Result<Vec<Self>, &'static str> {
+        rewrite: &impl Fn(usize, CellRange, &mut Expr) -> bool,
+    ) -> Vec<Self> {
         let mut changes = Vec::new();
         for (sheet, config) in workbook.conditional_formats.iter().enumerate() {
             let mut entries = Vec::new();
@@ -30,7 +30,7 @@ impl FormulaRuleChange {
                     CellAddress::new(entry.row_start, entry.col_start),
                     CellAddress::new(entry.row_end, entry.col_end),
                 );
-                if !rewrite(sheet, range, &mut expr)? {
+                if !rewrite(sheet, range, &mut expr) {
                     continue;
                 }
                 json["formula"] = serde_json::Value::String(crate::render_formula(&expr));
@@ -47,7 +47,7 @@ impl FormulaRuleChange {
                 });
             }
         }
-        Ok(changes)
+        changes
     }
 
     pub fn validate(&self, workbook: &Workbook, undo: bool) -> Result<(), &'static str> {

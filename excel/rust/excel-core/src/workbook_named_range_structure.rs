@@ -78,11 +78,6 @@ impl Workbook {
         Ok(())
     }
 
-    pub(super) fn remap_named_ranges(&mut self, sheet: usize, edit: ShiftEdit) {
-        let changes = self.shifted_named_ranges(sheet, edit);
-        self.restore_named_range_coordinates(&changes, false);
-    }
-
     pub(super) fn validate_named_range_restore(
         &self,
         sheet: usize,

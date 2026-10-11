@@ -43,6 +43,16 @@ fn source_gate_is_superset_of_ast_gate() {
         "=A1:A3=B1:B3",
         "=-A1:A3",
         "=Sheet2!A1:A3*2",
+        "=A1:A3",
+        "=(A1:A3)",
+        "=Sheet2!$A$1:$B$3",
+        "='SUM(A1)'!B1:B3",
+        "=IF(TRUE,A1:A3,B1:B3)",
+        "=IFERROR(A1:A3,0)",
+        "=XLOOKUP(99,A1:A3,A1:A3,A1:A3)",
+        "=LET(values,A1:A3,values)",
+        "=SUM(A1:A3%)",
+        "=Table1",
         "=A:A*2",
         // 宿主自定义公式（Wave 8）能返回 `Value::Array`，但名字在编译期
         // 不可知，静态表里永远不会有。两道门都靠「非内建名」放行它们，
@@ -96,6 +106,10 @@ fn source_gate_skips_ordinary_formulas() {
         assert!(
             !source_may_produce_array(src),
             "{src:?} must not become a spill-projection candidate"
+        );
+        assert!(
+            !expr_may_produce_array(&parse_formula(src).unwrap()),
+            "{src:?} must remain lazy at the AST gate too"
         );
     }
 }

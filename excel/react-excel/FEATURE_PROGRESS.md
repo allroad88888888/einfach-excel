@@ -75,7 +75,19 @@
 
 补充证据：含旧 Table 结构随动的重命名专项默认配置 6 套／36 项全部通过（`/tmp/excel-table-rename-final.log`），随后 `cargo check` WASM crate 退出 0（`/tmp/excel-table-rename-wasm-check.log`）。这些均为转换改动之前的阶段证据，不是当前源码、浏览器 WASM 构件或整批验收。
 
-当前已知未完成项：转换测试 `conversion_preserves_data_formats_and_total_formulas_with_exact_undo` 在跨表直接区域引用的 spill 子格断言失败（实际 Null，预期 30；`/tmp/excel-table-convert-parser.log`）。调用位置相关的保存／返回 LAMBDA，以及跨 Table 边界的条件规则，目前仅在写入前明确拒绝，仍须实现，不能算作已支持。保留失败回归测试；转换、前端接入和整批最终验证继续待办。
+本批原生基础已按 WIP 提交推送为 `81b01edb`，不是整批验收。提交时转换测试 `conversion_preserves_data_formats_and_total_formulas_with_exact_undo` 在跨表直接区域引用的 spill 子格断言失败（实际 Null，预期 30；`/tmp/excel-table-convert-parser.log`）。
+
+后续修复：普通 `Range`／`SheetRange` 在值上下文改用已有 `runtime_ref_to_value`，与 Table 共用区域取值、数组尺寸上限和 spill 投影；不额外保存结果。两道候选判断同步覆盖普通区域及 IF／LET 等参数返回路径，同时保留 SUM 等标量聚合的惰性载入。源码候选判断也与解析器统一网格边界，避免把默认 `Table1` 误判成地址；引号内表名不会伪装成函数而漏掉数组。新增 `range_value_spill.rs` 验证直接输入、批量载入、跨表更新、间接 `#` 消费者、单格收敛、阻挡恢复及数组内存上限，并补默认表名批量载入回归。原失败的转换历史测试已通过，精确撤销与连续重做断言保留。
+
+普通区域修复阶段的扩大集成回归双配置均为 **12 套／80 passed、0 failed**，日志为 `/tmp/excel-table-range-regression-default.log`、`/tmp/excel-table-range-regression-lite.log`。随后将 XLOOKUP 的备用区域结果纳入参数返回路径：双配置全量 lib 分别 **1651／1628 passed，各 3 ignored**，区域专项均 **4/4**，日志 `/tmp/excel-table-range-complete-default.log`、`/tmp/excel-table-range-complete-lite.log`，顺序任务已退出 0。这些是以下上下文转换改动之前的阶段证据。未重建 WASM 构件，未执行本批浏览器验收。
+
+上下文转换已移除临时拒绝分支：保存／返回／捕获的 LAMBDA 用普通 `IF`、`INDEX`、`ROW` 引用保留调用行；裸引用通过当前行列／工作表判断，在原区域内使用普通地址，区域外仍解析其它 Table。跨边界条件格式仍是一条规则，不拆成逐格规则，也不保留已删除 Table 的隐藏注册项。区域边界用整个范围的起点与长度计算，使删除首尾行时正常收缩。参考 [INDEX 的引用形式](https://support.microsoft.com/en-us/excel/functions/index-function)，这是一份可持久化的普通公式，不是新的求值指令。
+
+新增 `table_convert_context.rs` 覆盖不同调用行／工作表、返回和捕获闭包、缺列与越界错误、连续转换两个表、结构插删后的普通地址及跨表 spill、精确撤销与历史外闭包编辑拒绝。`IF` 的值／引用路径共用条件选择；调用次数测试先复现标量分支把条件执行两次，再由聚合／二元运算直接继续所选分支修复（`/tmp/excel-table-if-once-before.log`、`/tmp/excel-table-if-once-after.log`）。结构插行也先复现失效，再复用现有地址位移与 `FormulaLambdaChange` 保存真正变化的闭包；直接操作把实际差异交回历史，不重新扫描一遍。已删除不再需要的 `remap_named_ranges` 转发及改写阶段的无效 `Result` 包装；写入前的历史冲突校验保留。
+
+本阶段全量 lib 默认／lite 已分别 **1652／1629 passed，各 3 ignored**（`/tmp/excel-table-context-lib-default.log`、`/tmp/excel-table-context-lib-lite.log`）；它们启动于最后的无效错误包装清理之前。扩大集成回归双配置均为 **15 套／104 passed、0 failed**（`/tmp/excel-table-context-regression-default.log`、`/tmp/excel-table-context-regression-lite.log`）。清理后的重点回归双配置均为 **5 套／22 passed**，会话 `79663` 已退出 0（`/tmp/excel-table-context-cleanup-default.log`、`/tmp/excel-table-context-cleanup-lite.log`）。会话 `92631` 已完成双配置 lib 及 WASM crate 检查并退出 0，检查日志 `/tmp/excel-table-context-wasm-check.log`。最新 `cargo check`、文档、展现层边界及差异检查通过。新增／修改普通文件均 ≤300 行；`workbook_structural_history.rs` 为 304 行，属于同一结构事务的预检／回放算法，按核心算法 ≤500 行保留。
+
+当前未完成项：继续核对转换后的保存闭包在工作表改名／删除时的引用恢复；代码检查显示 `workbook_topology.rs`、`workbook_sheet_removal.rs` 目前只处理单元格和条件公式，尚未接入保存闭包改写。还需 Worker／React 接入、WASM 构件及整批最终验证。本次提交仅保存上述原生修复与回归，整批保持未验收。
 
 ### 名称框与命名定位（本批已验收）
 

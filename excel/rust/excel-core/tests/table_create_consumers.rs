@@ -4,6 +4,36 @@ use einfach_excel_core::workbook_history::WorkbookHistory;
 use einfach_excel_core::{CellAddress, CellRange, Workbook};
 
 #[test]
+fn generated_table_name_spills_when_its_formula_is_bulk_loaded() {
+    let mut wb = Workbook::new();
+    let mut history = WorkbookHistory::default();
+    history
+        .create_table(
+            &mut wb,
+            0,
+            CellRange::new(CellAddress::new(0, 0), CellAddress::new(2, 0)),
+            None,
+        )
+        .unwrap();
+    assert!(wb.get_table("Table1").is_some());
+    wb.set_cell(0, "A3", Value::Number(20.0));
+    let other = wb.add_sheet("Other");
+    wb.install_sheet_bulk(
+        other,
+        Default::default(),
+        [(CellAddress::new(0, 0), "=Table1".to_owned())]
+            .into_iter()
+            .collect(),
+    )
+    .unwrap();
+    assert_eq!(
+        wb.sheet(other).unwrap().spill_info(CellAddress::new(0, 0)),
+        Some((2, 1))
+    );
+    assert_eq!(wb.get_cell("Other", "A2"), Value::Number(20.0));
+}
+
+#[test]
 fn existing_structured_arrays_and_spill_consumers_follow_create_undo_redo() {
     let mut wb = Workbook::new();
     let other = wb.add_sheet("Other");

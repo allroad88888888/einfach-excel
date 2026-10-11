@@ -106,15 +106,15 @@ impl NamedRangeChange {
         if let (Some(old), Some(new)) = (&before, &after) {
             if old.canonical_name != new.canonical_name {
                 let rewrite = |expr: &mut Expr| {
-                    Ok(crate::shift::rename_named_reference(
+                    crate::shift::rename_named_reference(
                         expr,
                         &old.canonical_name,
                         &new.canonical_name,
-                    ))
+                    )
                 };
-                rules = FormulaRuleChange::prepare(workbook, &|_, _, expr| rewrite(expr))?;
-                lambdas = FormulaLambdaChange::prepare(workbook, &rewrite)?;
-                formulas = FormulaSourceChange::prepare(workbook, &|_, _, expr| rewrite(expr))?;
+                rules = FormulaRuleChange::prepare(workbook, &|_, _, expr| rewrite(expr));
+                lambdas = FormulaLambdaChange::prepare(workbook, &rewrite);
+                formulas = FormulaSourceChange::prepare(workbook, &|_, _, expr| rewrite(expr));
             }
         }
         Ok(Some(Self {

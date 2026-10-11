@@ -1,4 +1,4 @@
-//! 已保存 LAMBDA 的自由名称改写；闭包捕获与参数继续按原词法作用域绑定。
+//! 已保存 LAMBDA 的公式改写；闭包捕获与参数继续按原词法作用域绑定。
 use super::*;
 
 #[derive(Debug)]
@@ -9,14 +9,22 @@ pub(super) struct FormulaLambdaChange {
 }
 
 impl FormulaLambdaChange {
-    pub fn prepare(
+    /// 保存的闭包没有所属单元格，只位移显式指向目标表的地址。
+    pub fn for_structural_shift(
         workbook: &Workbook,
-        rewrite: &impl Fn(&mut Expr) -> Result<bool, &'static str>,
-    ) -> Result<Vec<Self>, &'static str> {
+        sheet: &str,
+        edit: crate::shift::ShiftEdit,
+    ) -> Vec<Self> {
+        Self::prepare(workbook, &|expr| {
+            crate::shift::rewrite_structural_refs(expr, sheet, false, edit)
+        })
+    }
+
+    pub fn prepare(workbook: &Workbook, rewrite: &impl Fn(&mut Expr) -> bool) -> Vec<Self> {
         let mut changes = Vec::new();
         for (key, entry) in &workbook.named_values {
             if let NamedDefinition::Value(value) = &entry.definition {
-                if let Some(value) = rewrite_value(value, rewrite)? {
+                if let Some(value) = rewrite_value(value, rewrite) {
                     changes.push(Self {
                         key: key.clone(),
                         before: entry.clone(),
@@ -28,7 +36,7 @@ impl FormulaLambdaChange {
                 }
             }
         }
-        Ok(changes)
+        changes
     }
 
     pub fn validate(&self, workbook: &Workbook, undo: bool) -> Result<(), &'static str> {
@@ -48,20 +56,17 @@ impl FormulaLambdaChange {
     }
 }
 
-fn rewrite_value(
-    value: &Value,
-    rewrite: &impl Fn(&mut Expr) -> Result<bool, &'static str>,
-) -> Result<Option<Value>, &'static str> {
+fn rewrite_value(value: &Value, rewrite: &impl Fn(&mut Expr) -> bool) -> Option<Value> {
     let Value::Lambda(value) = value else {
-        return Ok(None);
+        return None;
     };
     let Some(lambda) = value.as_any().downcast_ref::<ExcelLambda>() else {
-        return Ok(None);
+        return None;
     };
     let mut captured = lambda.captured.clone();
     let mut changed = false;
     for (_, value) in &mut captured {
-        if let Some(next) = rewrite_value(value, rewrite)? {
+        if let Some(next) = rewrite_value(value, rewrite) {
             *value = next;
             changed = true;
         }
@@ -78,9 +83,9 @@ fn rewrite_value(
         name: "LAMBDA".into(),
         args,
     };
-    changed |= rewrite(&mut wrapper)?;
+    changed |= rewrite(&mut wrapper);
     if !changed {
-        return Ok(None);
+        return None;
     }
     let Expr::FuncCall { mut args, .. } = wrapper else {
         unreachable!()
@@ -98,9 +103,9 @@ fn rewrite_value(
     for ((name, _), next) in captured.iter_mut().zip(&names) {
         *name = next.clone();
     }
-    Ok(Some(Value::Lambda(Arc::new(ExcelLambda {
+    Some(Value::Lambda(Arc::new(ExcelLambda {
         params: names[captured.len()..].to_vec(),
         body,
         captured,
-    }))))
+    })))
 }

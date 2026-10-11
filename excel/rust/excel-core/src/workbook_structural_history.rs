@@ -1,4 +1,5 @@
 //! 结构历史只保留被位移的稀疏带及带外真正改写的公式，不复制无关工作表。
+use super::workbook_formula_lambda_change::FormulaLambdaChange;
 use super::*;
 use crate::filter::SheetAutoFilter;
 use crate::history_snapshot::HistorySnapshot;
@@ -11,6 +12,7 @@ pub(crate) struct StructuralHistoryChange {
     before: StructuralSnapshot,
     after: StructuralSnapshot,
     named_ranges: Vec<NamedRangeShift>,
+    named_lambdas: Vec<FormulaLambdaChange>,
 }
 
 #[derive(Debug)]
@@ -95,7 +97,8 @@ impl StructuralHistoryChange {
             .collect();
         let before = StructuralSnapshot::capture(workbook, sheet, &targets, &rule_sheets);
         let named_ranges = workbook.shifted_named_ranges(sheet, edit);
-        workbook.try_structural_edit(sheet, edit)?;
+        // 上方已完成结构预检；执行并保存实际闭包差异，避免重新求值/扫描。
+        let named_lambdas = workbook.apply_structural_shift_with_table_follow(sheet, edit);
         let after = StructuralSnapshot::capture(workbook, sheet, &targets, &rule_sheets);
         Ok(Some((
             Self {
@@ -104,6 +107,7 @@ impl StructuralHistoryChange {
                 before,
                 after,
                 named_ranges,
+                named_lambdas,
             },
             range,
         )))
@@ -136,6 +140,9 @@ impl StructuralHistoryChange {
         }
         let snapshot = if undo { &self.before } else { &self.after };
         workbook.validate_named_range_restore(sheet, &self.named_ranges, undo)?;
+        for lambda in &self.named_lambdas {
+            lambda.validate(workbook, undo)?;
+        }
         for (owner, rules) in &snapshot.conditional_formats {
             let config = &workbook.conditional_formats[*owner];
             if config.rules != *rules && config.revision == u64::MAX {
@@ -214,7 +221,13 @@ impl StructuralHistoryChange {
                 }
                 workbook.bump_tables_epoch();
             }
+            for lambda in &self.named_lambdas {
+                lambda.apply(workbook, undo);
+            }
             workbook.restore_named_range_coordinates(&self.named_ranges, undo);
+            if self.named_ranges.is_empty() && !self.named_lambdas.is_empty() {
+                workbook.sync_atom_names();
+            }
             for (index, candidates) in anchors {
                 workbook.sheets[index].project_bulk_spill_anchors(candidates);
             }
@@ -229,6 +242,7 @@ impl StructuralHistoryChange {
         self.name.len()
             + self.before.retained_bytes()
             + self.after.retained_bytes()
+            + crate::sheet::metadata_bytes(&self.named_lambdas)
             + self
                 .named_ranges
                 .iter()

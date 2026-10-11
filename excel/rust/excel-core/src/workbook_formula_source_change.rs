@@ -13,8 +13,8 @@ pub(super) struct FormulaSourceChange {
 impl FormulaSourceChange {
     pub fn prepare(
         workbook: &Workbook,
-        rewrite: &impl Fn(usize, CellRange, &mut Expr) -> Result<bool, &'static str>,
-    ) -> Result<Vec<Self>, &'static str> {
+        rewrite: &impl Fn(usize, CellRange, &mut Expr) -> bool,
+    ) -> Vec<Self> {
         let all = CellRange::new(
             CellAddress::new(0, 0),
             CellAddress::new(GRID_MAX_ROW, GRID_MAX_COL),
@@ -30,7 +30,7 @@ impl FormulaSourceChange {
                 let Some(mut expr) = parse_formula(&before) else {
                     continue;
                 };
-                if rewrite(sheet_index, CellRange::single(addr), &mut expr)? {
+                if rewrite(sheet_index, CellRange::single(addr), &mut expr) {
                     changes.push(Self {
                         sheet: sheet_index,
                         sheet_key: workbook.sheet_keys[sheet_index],
@@ -41,7 +41,7 @@ impl FormulaSourceChange {
                 }
             }
         }
-        Ok(changes)
+        changes
     }
 
     pub fn validate(&self, workbook: &Workbook, undo: bool) -> Result<(), &'static str> {

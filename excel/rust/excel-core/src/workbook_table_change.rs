@@ -37,19 +37,11 @@ impl TableDefinitionChange {
             .ok_or(TableError::SheetNotFound)?;
         let mut after = before.clone();
         after.canonical_name = new_name.into();
-        let rewrite = |expr: &mut Expr| {
-            Ok(crate::shift::rename_table_reference(
-                expr,
-                before.name(),
-                new_name,
-            ))
-        };
-        let formulas = FormulaSourceChange::prepare(workbook, &|_, _, expr| rewrite(expr))
-            .map_err(|_| TableError::FormulaRewriteConflict)?;
-        let rules = FormulaRuleChange::prepare(workbook, &|_, _, expr| rewrite(expr))
-            .map_err(|_| TableError::FormulaRewriteConflict)?;
-        let lambdas = FormulaLambdaChange::prepare(workbook, &rewrite)
-            .map_err(|_| TableError::FormulaRewriteConflict)?;
+        let rewrite =
+            |expr: &mut Expr| crate::shift::rename_table_reference(expr, before.name(), new_name);
+        let formulas = FormulaSourceChange::prepare(workbook, &|_, _, expr| rewrite(expr));
+        let rules = FormulaRuleChange::prepare(workbook, &|_, _, expr| rewrite(expr));
+        let lambdas = FormulaLambdaChange::prepare(workbook, &rewrite);
         Ok(Some(Self {
             sheet,
             range: before.range(),
@@ -78,10 +70,9 @@ impl TableDefinitionChange {
             table: &table,
         };
         let rewrite = |sheet, range, expr: &mut Expr| converter.rewrite(expr, Some((sheet, range)));
-        let formulas = FormulaSourceChange::prepare(workbook, &rewrite)?;
-        let rules = FormulaRuleChange::prepare(workbook, &rewrite)?;
-        let lambdas =
-            FormulaLambdaChange::prepare(workbook, &|expr| converter.rewrite(expr, None))?;
+        let formulas = FormulaSourceChange::prepare(workbook, &rewrite);
+        let rules = FormulaRuleChange::prepare(workbook, &rewrite);
+        let lambdas = FormulaLambdaChange::prepare(workbook, &|expr| converter.rewrite(expr, None));
         Ok(Self {
             sheet,
             range: before.range(),

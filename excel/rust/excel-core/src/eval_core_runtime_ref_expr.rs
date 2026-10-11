@@ -5,6 +5,13 @@ pub(super) fn runtime_ref_from_expr(
     provider: &dyn EvalProvider,
 ) -> Result<RuntimeRef, ValueError> {
     match arg {
+        Expr::Error(error) => Err(error.clone()),
+        // 条件引用保留所选分支的地址，供 ROWS/SUM/INDEX 等原有消费者使用。
+        Expr::FuncCall { name, args } if name == "IF" => {
+            let branch = eval_fn_logical::selected_if_branch(args, provider)?
+                .ok_or(ValueError::InvalidValue)?;
+            runtime_ref_from_expr(branch, provider)
+        }
         Expr::Name(name) if lookup_let_binding(name).is_none() => {
             if let Some((sheet, range)) = provider.lookup_named_range(name)? {
                 return Ok(RuntimeRef {

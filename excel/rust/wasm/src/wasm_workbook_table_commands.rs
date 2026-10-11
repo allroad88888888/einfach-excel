@@ -2,6 +2,10 @@
 #[derive(Deserialize)]
 #[serde(tag = "kind", rename_all = "kebab-case", deny_unknown_fields)]
 enum TableActionJSON {
+    HeaderRow {
+        name: String,
+        enabled: bool,
+    },
     Style {
         name: String,
         style: einfach_excel_core::TableStyle,
@@ -62,6 +66,7 @@ impl WasmWorkbook {
             .name(sheet)
             .ok_or("The worksheet no longer exists.")?;
         if let TableActionJSON::Rename { name, .. }
+        | TableActionJSON::HeaderRow { name, .. }
         | TableActionJSON::Style { name, .. }
         | TableActionJSON::Resize { name, .. }
         | TableActionJSON::RenameColumn { name, .. }
@@ -78,6 +83,9 @@ impl WasmWorkbook {
             }
         }
         match action {
+            TableActionJSON::HeaderRow { name, enabled } => {
+                self.history.set_table_headers(&mut self.workbook, &name, enabled)
+            }
             TableActionJSON::Style { name, style } => {
                 self.history.set_table_style(&mut self.workbook, &name, style)
             }

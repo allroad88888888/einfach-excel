@@ -4,17 +4,22 @@ fn table_style_wire_history_and_persistence_round_trip() {
     let mut book = workbook_with_inventory_table();
     let action = serde_json::from_value(serde_json::json!({
         "kind": "style", "name": "Inventory",
-        "style": { "preset": "green", "bandedRows": false, "firstColumn": true }
+        "style": { "preset": "green", "bandedRows": false, "firstColumn": true,
+            "bandedColumns": true, "lastColumn": true }
     })).unwrap();
     assert!(book.apply_table_action(0, action).unwrap());
     let style = book.workbook.get_table("Inventory").unwrap().style();
     assert_eq!(style.preset, einfach_excel_core::TableStylePreset::Green);
     assert!(!style.banded_rows);
     assert!(style.first_column);
+    assert!(style.banded_columns);
+    assert!(style.last_column);
     assert_eq!(book.history.undo_count(), 1);
     let snapshot = book.snapshot_persistence_v1_json();
     let json = serde_json::to_value(&snapshot).unwrap();
     assert_eq!(json["tables"][0]["style"]["preset"], "green");
+    assert_eq!(json["tables"][0]["style"]["bandedColumns"], true);
+    assert_eq!(json["tables"][0]["style"]["lastColumn"], true);
     let mut restored = WasmWorkbook::new();
     restored.restore_persistence_v1_json(snapshot).unwrap();
     assert_eq!(restored.workbook.get_table("Inventory").unwrap().style(), style);

@@ -3,19 +3,26 @@ import { expect, test } from '@playwright/test'
 
 const wasmUrl = `/@fs${fileURLToPath(new URL('../../../excel-wasm/', import.meta.url))}`
 // 验证真实 WASM 的 JSON 保存边界，不把它当作页面保存菜单已实现的证据。
-for (const variant of ['lite', 'full']) test(`${variant} table style survives save, grow, convert and undo`, async ({ page }) => {
+for (const variant of ['lite', 'full']) for (const columns of [false, true]) test(
+  `${variant} table style survives save, grow, convert and undo (columns=${columns})`, async ({ page }) => {
   await page.goto('/')
-  const result = await page.evaluate(async (url) => {
+  const result = await page.evaluate(async ({ url, columns }) => {
     const module = await import(url)
     await module.default()
     const source = new module.WasmWorkbook(), restored = new module.WasmWorkbook()
     try {
       source.set_cell_input(0, 'A1', 'Amount'); source.set_cell_input(0, 'A2', '10')
       source.change_table(0, { kind: 'create', name: 'Sales', range: [0, 0, 1, 0] })
-      const style = { preset: 'green', bandedRows: true, firstColumn: true }
+      const style = { preset: 'green', bandedRows: true, firstColumn: true,
+        ...(columns ? { bandedColumns: true, lastColumn: true } : {}) }
       source.change_table(0, { kind: 'style', name: 'Sales', style })
       source.set_cell_input(0, 'D1', '=SUM(Sales[Amount])')
       const snapshot = JSON.parse(JSON.stringify(source.snapshot_persistence_v1()))
+      // 旧文件保存的三字段 style 仍可恢复，新字段明确使用 false。
+      if (!columns) {
+        delete snapshot.tables[0].style.bandedColumns
+        delete snapshot.tables[0].style.lastColumn
+      }
       restored.restore_persistence_v1(snapshot)
       const restoredStyle = restored.listTables()[0].style
       const cleanHistory = !restored.history_apply('undo')
@@ -41,8 +48,9 @@ for (const variant of ['lite', 'full']) test(`${variant} table style survives sa
       return { restoredStyle, cleanHistory, protectedRange, grown, preserved, total, undone,
         rejected, unchanged: unchanged === JSON.stringify(restored.snapshot_persistence_v1()) }
     } finally { source.free(); restored.free() }
-  }, `${wasmUrl}${variant}/einfach_wasm.js`)
-  const style = { preset: 'green', bandedRows: true, firstColumn: true }
+  }, { url: `${wasmUrl}${variant}/einfach_wasm.js`, columns })
+  const style = { preset: 'green', bandedRows: true, firstColumn: true,
+    bandedColumns: columns, lastColumn: columns }
   expect(result.restoredStyle).toEqual(style)
   expect(result.cleanHistory).toBe(true)
   expect(result.protectedRange).toBe('A1:A2')

@@ -104,6 +104,11 @@ pub(super) fn resolve_table_ref(
     };
 
     let range = resolved.reference_range(area, columns, provider.current_cell())?;
+    // 隐藏的表头没有单元格地址；Table epoch 保证重新显示后恢复真实表头值。
+    let materialized = if area == TableArea::Headers && !resolved.has_headers {
+        let len = checked_array_len(1, u64::from(range.cols()))?;
+        Some(Arc::new(ArrayData::new(1, range.cols(), vec![Value::Number(0.0); len])))
+    } else { None };
 
     // Same-sheet Tables resolve as a bare (`sheet: None`) range so the
     // dependency edges are byte-for-byte identical to a typed `A1:A10`;
@@ -118,6 +123,6 @@ pub(super) fn resolve_table_ref(
     Ok(RuntimeRef {
         sheet,
         range,
-        materialized: None,
+        materialized,
     })
 }

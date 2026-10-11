@@ -29,9 +29,22 @@ export function TableAppearance() {
         Banded rows
       </label>
       <label className="table-style-option">
+        <input type="checkbox" checked={style.bandedColumns ?? false}
+          disabled={style.preset === 'none'}
+          onChange={(event) => void run({
+            style: { bandedColumns: event.currentTarget.checked },
+          })} />
+        Banded columns
+      </label>
+      <label className="table-style-option">
         <input type="checkbox" checked={style.firstColumn} disabled={style.preset === 'none'}
           onChange={(event) => void run({ style: { firstColumn: event.currentTarget.checked } })} />
         First column emphasis
+      </label>
+      <label className="table-style-option">
+        <input type="checkbox" checked={style.lastColumn ?? false} disabled={style.preset === 'none'}
+          onChange={(event) => void run({ style: { lastColumn: event.currentTarget.checked } })} />
+        Last column emphasis
       </label>
     </fieldset>
   </section>

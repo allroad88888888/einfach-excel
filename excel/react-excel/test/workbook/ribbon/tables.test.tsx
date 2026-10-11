@@ -49,6 +49,8 @@ test('appearance controls read the returned style, retain the dialog and recover
   })
   await click('Tables'); await click('Edit table Sales')
   expect(screen.getByLabelText('Banded rows')).toBeDisabled()
+  expect(screen.getByLabelText('Banded columns')).toBeDisabled()
+  expect(screen.getByLabelText('Last column emphasis')).toBeDisabled()
   await change('Style preset', 'green')
   expect(screen.getByLabelText('Style preset')).toHaveValue('green')
   await act(async () => { fireEvent.click(screen.getByLabelText('Banded rows')) })
@@ -57,6 +59,19 @@ test('appearance controls read the returned style, retain the dialog and recover
   expect(screen.getByLabelText('First column emphasis')).toBeChecked()
   expect(request.mock.calls[2]).toMatchObject(['table.change', { action: { kind: 'style', name: 'Sales',
     style: { preset: 'green', bandedRows: false, firstColumn: true } } }])
+  for (const [label, flag] of [['Banded columns', 'bandedColumns'],
+    ['Last column emphasis', 'lastColumn']] as const) {
+    expect(screen.getByLabelText(label)).not.toBeChecked()
+    await act(async () => { fireEvent.click(screen.getByLabelText(label)) })
+    expect(screen.getByLabelText(label)).toBeChecked()
+    expect(request.mock.lastCall).toMatchObject(['table.change', { action: {
+      kind: 'style', style: { [flag]: true },
+    } }])
+    request.mockRejectedValueOnce(new Error('Style rejected'))
+    await act(async () => { fireEvent.click(screen.getByLabelText(label)) })
+    expect(screen.getByLabelText(label)).toBeChecked()
+    expect(screen.getByRole('alert')).toHaveTextContent('Style rejected')
+  }
   request.mockRejectedValueOnce(new Error('Style rejected'))
   await change('Style preset', 'gray')
   expect(screen.getByRole('alert')).toHaveTextContent('Style rejected')
@@ -111,6 +126,8 @@ test('pending command disables fields until the returned projection closes the d
   await click('Tables'); await click('Edit table Sales'); await click('Convert to range')
   expect(screen.getByRole('status')).toHaveTextContent('Saving table changes')
   expect(screen.getByLabelText('Table name')).toBeDisabled()
+  expect(screen.getByLabelText('Banded columns')).toBeDisabled()
+  expect(screen.getByLabelText('Last column emphasis')).toBeDisabled()
   expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled()
   expect(screen.getByRole('button', { name: 'Show totals row' })).toBeDisabled()
   const input = request.mock.calls[0][1] as RustWorkbookCommands['table.change']['payload']

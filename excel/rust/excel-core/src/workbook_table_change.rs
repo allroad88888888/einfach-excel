@@ -23,6 +23,8 @@ mod style;
 mod convert;
 #[path = "workbook_table_calculated_input.rs"]
 mod calculated_input;
+#[path = "workbook_table_headers.rs"]
+mod headers;
 
 #[derive(Debug)]
 pub(crate) struct TableDefinitionChange {
@@ -35,6 +37,8 @@ pub(crate) struct TableDefinitionChange {
     lambdas: Vec<FormulaLambdaChange>,
     // 范围调整可同时触及表头与远处汇总行，只保存这些不相交的局部区域。
     cells: Vec<(HistorySnapshot, HistorySnapshot)>,
+    // 表头关闭时只移除属于该表的筛选；与定义和单元格一起回放。
+    filter: Option<(Option<crate::filter::SheetAutoFilter>, Option<crate::filter::SheetAutoFilter>)>,
 }
 
 impl TableDefinitionChange {
@@ -74,6 +78,7 @@ impl TableDefinitionChange {
             rules,
             lambdas,
             cells: Vec::new(),
+            filter: None,
         }))
     }
 
@@ -130,6 +135,12 @@ impl TableDefinitionChange {
         for lambda in &self.lambdas {
             lambda.validate(workbook, undo)?;
         }
+        if let Some((before, after)) = &self.filter {
+            let expected = if undo { after } else { before };
+            if workbook.sheets[self.sheet].filter() != expected.as_ref() {
+                return Err("The table filter changed outside history.");
+            }
+        }
         let mut next_cells = Vec::with_capacity(self.cells.len());
         for (before, after) in &self.cells {
             let (expected, next) = if undo {
@@ -150,7 +161,7 @@ impl TableDefinitionChange {
         let definition_changed = expected != next;
         let geometry_changed = definition_changed && !matches!((expected, next), (Some(old), Some(new))
             if old.same_formula_definition(new));
-        if definition_changed && !geometry_changed && self.cells.is_empty() {
+        if definition_changed && !geometry_changed && self.cells.is_empty() && self.filter.is_none() {
             // 纯外观变更不失效公式的 Table epoch，也不遍历/重投数组消费者。
             let next = next.unwrap();
             workbook.tables.insert(next.name().to_ascii_uppercase(), next.clone());
@@ -179,6 +190,10 @@ impl TableDefinitionChange {
         let store = workbook.store.clone();
         let mut result = Ok(());
         store.batch(|_| {
+            if let Some((before, after)) = &self.filter {
+                workbook.sheets[self.sheet].commit_filter_state(if undo { before } else { after }.clone());
+                workbook.republish_hidden(self.sheet);
+            }
             if definition_changed {
                 if let Some(key) = old_key {
                     workbook.tables.remove(&key);
@@ -238,6 +253,7 @@ impl TableDefinitionChange {
                 .sum::<usize>()
             + crate::sheet::metadata_bytes(&self.rules)
             + crate::sheet::metadata_bytes(&self.lambdas)
+            + crate::sheet::metadata_bytes(&self.filter)
             + self.cells.iter().map(|(before, after)| {
                 before.retained_bytes() + after.retained_bytes()
             }).sum::<usize>()

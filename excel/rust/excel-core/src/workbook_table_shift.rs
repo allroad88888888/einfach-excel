@@ -12,7 +12,7 @@ impl Workbook {
         let mut templates_changed = false;
         for key in keys {
             let before = &self.tables[&key];
-            let (range, columns) = match remap_table_geometry(before.range, &before.columns, edit) {
+            let (range, columns) = match remap_table_geometry(before.range, &before.columns, before.has_headers, edit) {
                 TableRemap::Keep => (before.range, before.columns.clone()),
                 TableRemap::Resize { range, columns } => {
                     geometry_changed = true;

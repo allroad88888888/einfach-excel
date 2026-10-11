@@ -52,7 +52,8 @@ export const nativeTablePanelAtom = atom((get) => {
 /** 打开/编辑只改草稿；每次提交均为一次 Rust 命令和一次返回投影。 */
 export const runNativeTablePanelAtom = atom(null, async (get, set,
   action: 'open' | 'new' | 'close' | 'save' | 'convert' | 'resize' |
-  'show-totals' | 'hide-totals' | 'save-total' | 'save-column' | { edit: string } | Partial<Draft> |
+  'show-headers' | 'hide-headers' | 'show-totals' | 'hide-totals' |
+  'save-total' | 'save-column' | { edit: string } | Partial<Draft> |
   { style: Partial<NativeTableStyle> },
 ): Promise<boolean> => {
   const state = get(draftAtom)
@@ -106,12 +107,17 @@ export const runNativeTablePanelAtom = atom(null, async (get, set,
   let change: TableChange
   const styleAction = typeof action === 'object' && 'style' in action
   const totalsAction = action === 'show-totals' || action === 'hide-totals' || action === 'save-total'
+  const headersAction = action === 'show-headers' || action === 'hide-headers'
   if (styleAction) {
     const entry = get(nativeTablePanelAtom).currentTable
     if (!entry) return fail('Choose a table first.')
     const style = { ...(entry.style ?? DEFAULT_NATIVE_TABLE_STYLE), ...action.style }
     if (!validNativeTableStyle(style)) return fail('Choose a valid table style.')
     change = { kind: 'style', name: entry.name, style }
+  } else if (headersAction) {
+    const entry = get(nativeTablePanelAtom).currentTable
+    if (!entry) return fail('Choose a table first.')
+    change = { kind: 'header-row', name: entry.name, enabled: action === 'show-headers' }
   } else if (action === 'save-column') {
     const entry = get(nativeTablePanelAtom).currentTable
     if (!entry || !entry.columns.includes(state.column)) return fail('Choose a table column.')
@@ -173,7 +179,9 @@ export const runNativeTablePanelAtom = atom(null, async (get, set,
         ?.columns.indexOf(state.column) ?? 0
       const column = action === 'resize' && entry?.columns.includes(state.column) ? state.column
         : entry?.columns[Math.max(0, columnIndex)] ?? entry?.columns[0] ?? ''
-      set(draftAtom, (styleAction || totalsAction || action === 'save-column' || action === 'resize') && entry ? { ...state, range: entry.range,
+      const retainPanel = styleAction || headersAction || totalsAction ||
+        action === 'save-column' || action === 'resize'
+      set(draftAtom, retainPanel && entry ? { ...state, range: entry.range,
         column, newColumnName: action === 'save-column' || action === 'resize' ? column : state.newColumnName,
         ...totalDraft(entry, state.totalColumn === state.column ? column : state.totalColumn),
         revision: reply.projection.revision, error: '' } : CLOSED)

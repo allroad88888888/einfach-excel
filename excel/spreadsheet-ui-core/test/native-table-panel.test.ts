@@ -41,6 +41,26 @@ test('column rename uses the native identity and reselects the returned column, 
   expect(request).toHaveBeenCalledTimes(1)
 })
 
+test.each([false, true])('header toggle enabled=%s uses native geometry and keeps editable panel state', async (enabled) => {
+  const original = { ...tables[0], hasHeaders: !enabled, range: enabled ? 'A2:B4' : 'A1:B4' }
+  const { store, request, run } = setup([original])
+  request.mockImplementationOnce(async (_, input) => ({ changed: true,
+    projection: { ...input.projection, revision: 2, cells: [], tables: [
+      { ...original, hasHeaders: enabled, range: enabled ? 'A1:B4' : 'A2:B4' },
+    ] } }))
+  await run('open'); await run({ edit: 'Sales' }); await run({ name: 'Unsaved' })
+  expect(await run(enabled ? 'show-headers' : 'hide-headers')).toBe(true)
+  expect(request).toHaveBeenCalledTimes(1)
+  expect(request.mock.calls[0][1].action).toEqual({ kind: 'header-row', name: 'Sales', enabled })
+  expect(store.getter(nativeTablePanelAtom)).toMatchObject({ open: true, name: 'Unsaved',
+    range: enabled ? 'A1:B4' : 'A2:B4', currentTable: { hasHeaders: enabled } })
+  request.mockRejectedValueOnce(new Error('Header destination occupied'))
+  expect(await run(enabled ? 'hide-headers' : 'show-headers')).toBe(false)
+  expect(store.getter(nativeTablePanelAtom)).toMatchObject({
+    error: 'Header destination occupied', currentTable: { hasHeaders: enabled },
+  })
+})
+
 test('style changes merge against the returned catalog and never publish a local style mirror', async () => {
   const initial = { preset: 'blue' as const, bandedRows: true, firstColumn: false }
   const { store, request, run } = setup([{ ...tables[0], style: initial }])
@@ -62,6 +82,31 @@ test('style changes merge against the returned catalog and never publish a local
   store.setter(setSheetProtectionAtom, { sheetId: 's', state: { mode: 'protected', unlockedRanges: [] } })
   expect(await run({ style: { bandedRows: true } })).toBe(false)
   expect(request).toHaveBeenCalledTimes(2)
+})
+
+test.each(['bandedColumns', 'lastColumn'] as const)('%s is one native command with no optimistic flags', async (flag) => {
+  const initial = { preset: 'blue' as const, bandedRows: false, firstColumn: false }
+  const { store, request, run } = setup([{ ...tables[0], style: initial }])
+  let finish!: (value: Awaited<ReturnType<typeof request>>) => void
+  request.mockImplementationOnce(() => new Promise((resolve) => { finish = resolve }))
+  await run('open'); await run({ edit: 'Sales' })
+  const pending = run({ style: { [flag]: true } })
+  await Promise.resolve()
+  expect(store.getter(nativeTablePanelAtom)).toMatchObject({
+    busy: true, currentTable: { style: initial },
+  })
+  expect(await run({ style: { [flag]: false } })).toBe(false)
+  expect(request).toHaveBeenCalledTimes(1)
+  const payload = request.mock.calls[0][1]
+  expect(payload.action).toEqual({ kind: 'style', name: 'Sales', style: { ...initial, [flag]: true } })
+  finish({ changed: true, projection: { ...payload.projection, revision: 2, cells: [],
+    tables: [{ ...tables[0], style: { ...initial, [flag]: true } }] } })
+  expect(await pending).toBe(true)
+  expect(store.getter(nativeTablePanelAtom)).toMatchObject({ busy: false,
+    currentTable: { style: { ...initial, [flag]: true } } })
+  request.mockRejectedValueOnce(new Error('Style rejected'))
+  expect(await run({ style: { [flag]: false } })).toBe(false)
+  expect(store.getter(nativeTablePanelAtom).currentTable?.style?.[flag]).toBe(true)
 })
 
 test('blank and conflicting column names keep the old catalog and editable draft', async () => {

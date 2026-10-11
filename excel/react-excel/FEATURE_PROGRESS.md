@@ -42,7 +42,7 @@
 | 29 | 排序与筛选 | 升序、降序、多列排序已验收，见[排序批次](docs/sort-wave.md)；原生条件筛选、重新应用、清除筛选及复制/排序/统计交叉已验收；指定区域、表头入口、单列清除已通过全量回归，其它排序/筛选选项待补 |
 | 30 | 删除重复项 | Rust 区域内原子去重、比较列、表头及文本比较选项已验收，完整 E2E 603/603 通过。分页预览、重复记录定位、首条保留记录定位已验收，完整 E2E 608/608、Rust 默认 3002/lite 2962 项通过；不以旧 UI Core scanner 测试宣称产品完成 |
 | 31 | 状态栏摘要 | Rust 六项、显示项配置、恢复默认、原始数值复制已验收；排除筛掉行、保留手动隐藏行的统计已接 Rust 并通过全量回归，见[既有记录](docs/status-bar-wave.md) |
-| 32 | Excel Table | 创建、重命名、转普通区域、汇总行、列名编辑／定位、手动范围调整、输入自动扩展及样式预设／隔行底色／首列强调已分批验收：最新完整 E2E 776/776、Vitest 5481/5481；计算列、粘贴扩展、其余样式选项、汇总行新增数据交互等仍待补 |
+| 32 | Excel Table | 创建、重命名、转普通区域、汇总行、列名编辑／定位、手动范围调整、输入自动扩展、样式预设／隔行底色／首列强调及计算列三项已分批验收：最新完整 E2E 789/789、Vitest 5492/5492，当前提交 Rust 默认／lite 全量 CI 通过；粘贴扩展、其余样式选项、汇总行新增数据交互等仍待补 |
 | 33 | 外部数据连接 | 原计划延后；不以本地 fixture 宣称完成 |
 | 34–35 | 批注、备注及协作 | 待接入；身份、通知及持久服务需要明确的真实契约 |
 | 37–39 | 更改记录、版本、个人视图 | 待接入；本地 undo 不能替代版本服务 |
@@ -57,7 +57,25 @@
 
 ## 批次账本
 
-### Excel Table 计算列（进行中，未验收）
+### Excel Table 列样式与表头（进行中，未验收）
+
+提交检查点：按用户要求保存并推送当前进度，不作为整批验收。隔列底色与末列强调已接入 React；表头显隐已初步接入 Rust 历史、WASM 命令与 UI Core，React 入口尚未接入。表头原生专项 6/6 与 UI Core 专项 34/34 通过，UI Core 构建通过；相关原生默认配置回归已通过，lite 队列尚未结束。最新 WASM 表头专项为 **1 passed / 1 failed**：JSON 恢复后，隐藏表头的数组引用溢出格应为 0，实际为 Null（`table_headers_wire_history_and_persistence`）。保留失败回归，不跳过或放宽断言；已占用表头目标行、首行及无数据行的处理仍待完善。此前列样式 E2E 24/24 属于表头续改之前的构件，不能代替当前整批验收。
+
+本批三项：隔列底色、末列强调、表头显示／隐藏。样式选项参考 [Excel Table 格式说明](https://support.microsoft.com/en-us/excel/format-an-excel-table)；表头开关参考[官方表头说明](https://support.microsoft.com/en-us/excel/turn-excel-table-headers-on-or-off)，必须处理表头原值、引用与筛选，不能用 CSS 隐藏代替原生语义。沿现有 Table 命令、Rust 历史和返回投影实现，不新增适配层。
+
+起步已扩展原生 `TableStyle` 的 `bandedColumns`／`lastColumn` 两个开关，旧配置缺字段默认为关闭。条纹按 Table 起始列计算，与隔行底色独立；首末列强调随实际表范围变化，手动格式与条件格式仍覆盖 Table 默认样式，不向真实格样式逐格写入。新增 `table_style_columns.rs` 专测列条纹、末列随扩表变化、历史、手动覆盖和旧配置兼容；WASM 既有样式保存恢复用例补充两个新字段。专项正在运行，UI 与表头事务尚未实现，不能宣称本批已可交付。
+
+上一批 `ae582ddf` 的 CI 已全部成功，包括 Rust 后续 WASM 与浏览器步骤；本地重复 lite 任务因已有同提交全量 CI 证据、需要释放下一批构建锁而明确结束（退出 143），不是超时重启，也不记录为本地全量通过。
+
+列样式默认配置专项 **10/10** 通过（既有 7 项与新增 3 项，`/tmp/excel-table-column-style-default.log`，原命令退出 0）。lite 与 WASM 样式专项已按顺序启动，尚待结果。新增测试 90 行，样式规则 74 行，沿既有结构实现；文档与 diff 检查通过，修改未提交。
+
+列样式续接 UI：在原 `TableAppearance` 增加两个复选框，仍使用 `useAtomValue/useSetAtom`，复用 `runNativeTablePanelAtom`／`table.change`，没有新增草稿或命令层。UI Core 类型允许旧配置省略新字段，但拒绝非布尔值；组件只显示 Rust 回包，不乐观更新。Summary 的 `CalculatedOrders` 原生种子改为隔列绿色底色、末列加粗，计算公式不变。UI Core／React 专项 **48/48** 通过，默认／lite 原生专项各 **10/10**，WASM 样式专项 **2/2**，两种浏览器构件重建完成。类型、UI Core 构建、展现层边界通过。
+
+浏览器首轮 **23 passed / 1 failed**：`uncheck()` 在异步 Rust 回包之前立即检查受控复选框，测试动作提前报错。改为实际点击后等待未选中断言，原生样式及历史断言全部保留；同组复验 **24/24**（20.2 秒）通过（`/tmp/excel-table-column-style-final-e2e.log`），含新列样式、既有样式与计算列回归及 lite/full 新旧配置持久化。已检查 1280／390 像素截图，控件无横向溢出，键盘空格切换及 Escape 焦点恢复通过；沿用现有语义颜色与布局，没有重设计。表头事务仍未实现、完整批次门禁尚未运行，本批继续未验收、未提交。
+
+### Excel Table 计算列（已验收）
+
+最终验收对应 `ae582ddf`：空列输入公式自动填列、修改统一计算列公式整列更新、向下扩展继承公式三项完成。UI Core 验证单次输入／单次原生投影，React 验证多格显示及拒绝保留草稿，真实 Worker E2E 验证三项入口、原生种子、例外、清空及历史；lite/full 二进制覆盖保存恢复、保护策略和结构变化。完整 Vitest **5,492/5,492**、E2E **789/789**、根构建、类型、lint、展现层边界、循环依赖及文档检查通过，WASM lib **167 passed / 1 ignored**。当前提交 [CI Rust 任务](https://github.com/allroad88888888/einfach-excel/actions/runs/38142669309/job/114479550437) 的 core、excel-core 默认与 lite 三项完整 `cargo test --locked` 步骤均已结束且为 `success`；Node 22.12／24 任务也已成功。CI 后续 benchmark／WASM 步骤与本地 lite 原进程仍在运行，不宣称整条 CI 或本地队列已完成。本地默认全量 **3,341 passed / 10 ignored**。演示 `http://127.0.0.1:5183/` 当前 HTTP 200；Summary `A46:C49` 可测试计算列，初值 `C47:C49 = 10,40,90`。该验收不关闭 #32 或完整 41 项计划；下方为阶段历史记录，曾经的“未提交／未验收”不代表最终状态。
 
 本批只做三项：空数据列输入公式后自动填满该列、修改计算列公式后整列更新、Table 向下扩展时继承计算列公式。行为依据 [Excel 网页版计算列说明](https://support.microsoft.com/en-us/excel/use-calculated-columns-in-a-table-in-excel-for-the-web)：列里已有其他普通数据时不自动覆盖。例外值、相对／绝对与结构化引用、撤销重做、数据验证、保护、结构变化和保存恢复都属于本批交叉验证，不另起 TS 公式实现。
 
@@ -136,6 +154,8 @@ lite/full 构件已从当前源码重建，顺序构建退出 0（`/tmp/excel-ca
 当前修复的默认／lite 原生专项均 **32/32**，顺序命令退出 0；全量 Vitest 再次 **5,492/5,492**（339 文件，37.16 秒）通过（`/tmp/excel-input-named-array-history-vitest.log`）。最终 **789 项**完整 E2E 已启动（`/tmp/excel-input-named-array-final-all-e2e.log`），当前源码的 Rust 默认→lite 全量也已启动（`/tmp/excel-input-named-array-final-all-default.log`、`/tmp/excel-input-named-array-final-all-lite.log`）。这是修复后的新验收队列，前次已完成且失败的浏览器进程不再使用；验证期间冻结源码和 WASM，仍不宣告本批完成、不进入下一批、不自动提交。
 
 修复后的完整 E2E 最终 **789/789**（11.4 分钟）通过，原命令退出 0（`/tmp/excel-input-named-array-final-all-e2e.log`）。包含上次失败的命名区域持久化场景及新增 Table 源格、输入撤销重做，共四种 lite/full 组合；其余计算列、格式、剪贴板与历史回归也全部通过，没有跳过或放宽断言。期间生产源码及 WASM 未修改。当前仅剩修复后 Rust 默认→lite 全量的完整结果待验收，默认仍在原进程继续执行集成测试，未记录整条命令通过；本批未完成、修复未提交。演示服务 `http://127.0.0.1:5183/` 已确认 HTTP 200。
+
+当前数组刷新修复已按用户要求提交推送为 `ae582ddf`；提交门禁的文档、展现层边界、lint 与类型检查通过，相关 Vitest 筛选未匹配测试，不作为新增测试通过证据，仍以上述全量 5,492 项和 E2E 789 项为准。修复后 Rust 默认配置全量现已结束，累计 **3,341 passed / 10 ignored**（235 个结果组，含 doc-tests）；原顺序命令已进入 lite 编译，证明默认命令退出 0。日志为 `/tmp/excel-input-named-array-final-all-default.log`；lite 最终结果及当前提交的 [CI](https://github.com/allroad88888888/einfach-excel/actions/runs/38142669309) 仍待核对，本批暂不标记验收完成。
 
 ### Excel Table 样式（已验收）
 

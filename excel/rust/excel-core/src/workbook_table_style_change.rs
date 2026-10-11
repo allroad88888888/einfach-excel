@@ -32,6 +32,7 @@ impl TableDefinitionChange {
             rules: Vec::new(),
             lambdas: Vec::new(),
             cells: Vec::new(),
+            filter: None,
         }))
     }
 }

@@ -102,6 +102,7 @@ fn shrink_interval(lo: u32, hi: u32, d0: u32, d1: u32) -> Option<(u32, u32)> {
 pub(crate) fn remap_table_geometry(
     range: CellRange,
     columns: &[String],
+    has_headers: bool,
     edit: crate::shift::ShiftEdit,
 ) -> TableRemap {
     use crate::shift::ShiftEdit;
@@ -149,7 +150,7 @@ pub(crate) fn remap_table_geometry(
             let d0 = at;
             let d1 = at + count - 1;
             // Header row (row 0 of the range) swallowed → drop the Table.
-            if d0 <= s_r && s_r <= d1 {
+            if has_headers && d0 <= s_r && s_r <= d1 {
                 return TableRemap::Delete;
             }
             match shrink_interval(s_r, e_r, d0, d1) {

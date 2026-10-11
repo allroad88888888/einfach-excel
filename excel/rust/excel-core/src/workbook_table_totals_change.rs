@@ -108,6 +108,7 @@ impl TableDefinitionChange {
             rules: Vec::new(),
             lambdas: Vec::new(),
             cells: vec![(original, next)],
+            filter: None,
         }))
     }
 }

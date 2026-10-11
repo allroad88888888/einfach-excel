@@ -149,6 +149,7 @@ impl TableDefinitionChange {
             rules,
             lambdas,
             cells,
+            filter: None,
         }))
     }
 }

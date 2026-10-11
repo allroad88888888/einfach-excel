@@ -42,6 +42,13 @@ impl TableToRange<'_> {
             Ok(range) => range,
             Err(error) => return Expr::Error(error),
         };
+        if area == TableArea::Headers && !self.table.has_headers {
+            // 转普通区域时冻结隐藏表头的零值，不能误转成首条数据的地址。
+            return if range.cols() == 1 { Expr::Number(0.0) } else {
+                Expr::ArrayLit { rows: 1, cols: range.cols(),
+                    data: vec![Expr::Number(0.0); range.cols() as usize] }
+            };
+        }
         // 整区固定；ThisRow 保留行相对性，让普通复制与条件规则沿行继续平移。
         let abs = RefAbs::new(true, area != TableArea::ThisRow);
         table_address(self.table, range, abs)

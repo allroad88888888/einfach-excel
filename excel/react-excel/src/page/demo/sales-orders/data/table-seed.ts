@@ -6,7 +6,8 @@ export const SUMMARY_TABLES: RustWorkbookSheetInput['tables'] = [
     style: { preset: 'blue', bandedRows: true, firstColumn: false } },
   { name: 'CalculatedOrders', range: { rowStart: 45, rowEnd: 48, colStart: 0, colEnd: 2 },
     calculatedColumns: [null, null, '=[@Quantity]*[@Price]'],
-    style: { preset: 'green', bandedRows: true, firstColumn: false } },
+    style: { preset: 'green', bandedRows: false, firstColumn: false,
+      bandedColumns: true, lastColumn: true } },
 ]
 export const SUMMARY_TABLE_CELLS: readonly RustImportCell[] = [
   { sheet: 1, row: 4, col: 0, kind: 'text', value: 'Table total', format: { bold: true } },

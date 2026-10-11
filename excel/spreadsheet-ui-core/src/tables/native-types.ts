@@ -9,6 +9,9 @@ export interface NativeTableStyle {
   readonly preset: typeof NATIVE_TABLE_STYLE_PRESETS[number]
   readonly bandedRows: boolean
   readonly firstColumn: boolean
+  /** 旧保存文件可省略，Rust 按 false 恢复。 */
+  readonly bandedColumns?: boolean
+  readonly lastColumn?: boolean
 }
 export const DEFAULT_NATIVE_TABLE_STYLE: NativeTableStyle = {
   preset: 'none', bandedRows: true, firstColumn: false,
@@ -18,7 +21,9 @@ export function validNativeTableStyle(value: unknown): value is NativeTableStyle
   if (!value || typeof value !== 'object') return false
   const style = value as NativeTableStyle
   return NATIVE_TABLE_STYLE_PRESETS.includes(style.preset) &&
-    typeof style.bandedRows === 'boolean' && typeof style.firstColumn === 'boolean'
+    typeof style.bandedRows === 'boolean' && typeof style.firstColumn === 'boolean' &&
+    (style.bandedColumns === undefined || typeof style.bandedColumns === 'boolean') &&
+    (style.lastColumn === undefined || typeof style.lastColumn === 'boolean')
 }
 
 /** Rust Table 注册表的只读投影，不在 UI Core 重建定义。 */
@@ -34,6 +39,7 @@ export interface NativeTable {
   readonly style?: NativeTableStyle
 }
 export type TableChange =
+  | { readonly kind: 'header-row'; readonly name: string; readonly enabled: boolean }
   | { readonly kind: 'style'; readonly name: string; readonly style: NativeTableStyle }
   | { readonly kind: 'create'; readonly name?: string; readonly range: CellRange }
   | { readonly kind: 'resize'; readonly name: string; readonly range: CellRange }

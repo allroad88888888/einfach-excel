@@ -17,9 +17,10 @@ impl ResolvedTable {
             .unwrap_or(full.start.row);
         let (row_start, row_end) = match area {
             TableArea::All => (full.start.row, full.end.row),
-            TableArea::Headers if self.has_headers => (full.start.row, full.start.row),
+            // 隐藏表头仍验证列身份并提供一行的形状；调用方必须物化为零，不能读数据首行。
+            TableArea::Headers => (full.start.row, full.start.row),
             TableArea::Totals if self.has_totals => (full.end.row, full.end.row),
-            TableArea::Headers | TableArea::Totals => return Err(ValueError::InvalidRef),
+            TableArea::Totals => return Err(ValueError::InvalidRef),
             TableArea::Data => {
                 if data_end < data_start {
                     return Err(ValueError::InvalidRef);

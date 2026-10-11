@@ -98,6 +98,7 @@ impl TableDefinitionChange {
             rules,
             lambdas,
             cells: cells.into_iter().collect(),
+            filter: None,
         }))
     }
 }

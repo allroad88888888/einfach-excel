@@ -18,6 +18,10 @@ pub struct TableStyle {
     pub preset: TableStylePreset,
     pub banded_rows: bool,
     pub first_column: bool,
+    #[serde(default)]
+    pub banded_columns: bool,
+    #[serde(default)]
+    pub last_column: bool,
 }
 
 impl Default for TableStyle {
@@ -27,6 +31,8 @@ impl Default for TableStyle {
             preset: TableStylePreset::None,
             banded_rows: true,
             first_column: false,
+            banded_columns: false,
+            last_column: false,
         }
     }
 }
@@ -43,7 +49,10 @@ impl TableStyle {
         let is_header = table.has_headers() && addr.row == range.start.row;
         let is_total = table.has_totals() && addr.row == range.end.row;
         let data_start = range.start.row + u32::from(table.has_headers());
-        let band = self.banded_rows && !is_header && (addr.row - data_start) % 2 == 0;
+        // 条纹锚定表的实际起点，不随视口、隐藏行列或手动格式重新编号。
+        // 两个开关独立：命中任一条纹即可着色，表头与汇总仍优先。
+        let band = !is_header && ((self.banded_rows && (addr.row - data_start) % 2 == 0)
+            || (self.banded_columns && (addr.col - range.start.col) % 2 == 0));
         CellStyle {
             background: Some(Some(
                 if is_header {
@@ -56,7 +65,9 @@ impl TableStyle {
                 .into(),
             )),
             color: Some(Some(if is_header { "#ffffff" } else { "#1f2937" }.into())),
-            bold: Some(is_header || is_total || (self.first_column && addr.col == range.start.col)),
+            bold: Some(is_header || is_total
+                || (self.first_column && addr.col == range.start.col)
+                || (self.last_column && addr.col == range.end.col)),
             ..Default::default()
         }
     }

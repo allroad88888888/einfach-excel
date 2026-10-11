@@ -68,7 +68,11 @@ test('resize maps only coordinates and returns the same native mutation projecti
   expect(change).toHaveBeenCalledTimes(1)
 })
 test.each([
+  { kind: 'header-row', name: 'Sales', enabled: false },
+  { kind: 'header-row', name: 'Sales', enabled: true },
   { kind: 'style', name: 'Sales', style: { preset: 'green', bandedRows: false, firstColumn: true } },
+  { kind: 'style', name: 'Sales', style: { preset: 'blue', bandedRows: false,
+    firstColumn: false, bandedColumns: true, lastColumn: true } },
   { kind: 'rename', name: 'Sales', newName: 'Revenue' },
   { kind: 'rename-column', name: 'Sales', column: 'Amount', newName: 'Revenue [net]' },
   { kind: 'convert-to-range', name: 'Sales' },
@@ -110,6 +114,8 @@ test('table projection validation rejects malformed coordinates and column lists
     { sheetIndex: -1 }, { columns: [1, 2] }, { hasHeaders: null },
     { style: null }, { style: { preset: 'pink', bandedRows: true, firstColumn: false } },
     { style: { preset: 'blue', bandedRows: 1, firstColumn: false } },
+    { style: { preset: 'blue', bandedRows: false, firstColumn: false, bandedColumns: 1 } },
+    { style: { preset: 'blue', bandedRows: false, firstColumn: false, lastColumn: null } },
     { hasTotals: true, totalFunctions: ['sum'] }, { hasTotals: true, totalFunctions: ['sum', 'fake'] }])
     expect(validNativeTables([{ ...tables[0], ...patch }])).toBe(false)
 })

@@ -190,6 +190,7 @@ mod tests {
     include!("wasm_tests/filters_wire_contract.rs");
     include!("wasm_tests/table_restore.rs");
     include!("wasm_tests/table_style.rs");
+    include!("wasm_tests/table_headers.rs");
     include!("wasm_tests/table_column_formula.rs");
     include!("wasm_tests/sort_and_sheet.rs");
     include!("wasm_tests/workbook_sparse.rs");

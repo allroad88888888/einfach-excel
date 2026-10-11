@@ -82,6 +82,7 @@ impl TableDefinitionChange {
             sheet, range, before: table.clone(), after: Some(after),
             formulas: Vec::new(), rules: Vec::new(), lambdas: Vec::new(),
             cells: vec![(before_cells, after_cells)],
+            filter: None,
         }))
     }
 

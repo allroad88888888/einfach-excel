@@ -3,6 +3,19 @@ use super::*;
 use crate::workbook::{TableCreation, TableDefinitionChange};
 
 impl WorkbookHistory {
+    /// 列名一直归 Table 所有，表头格与筛选在同一条历史内显隐。
+    pub fn set_table_headers(&mut self, workbook: &mut Workbook, name: &str, enabled: bool)
+        -> Result<bool, String> {
+        if self.pending.is_some() || workbook.is_inside_custom_call() {
+            return Err("Another history command is pending.".into());
+        }
+        let Some(change) = TableDefinitionChange::prepare_headers(workbook, name, enabled)?
+            else { return Ok(false); };
+        self.finish_table_change(workbook, change,
+            if enabled { "Show table headers" } else { "Hide table headers" })?;
+        Ok(true)
+    }
+
     /// 预设、隔行底色与首列强调共用一个原生元数据命令。
     pub fn set_table_style(&mut self, workbook: &mut Workbook, name: &str, style: crate::TableStyle)
         -> Result<bool, String> {

@@ -15,7 +15,8 @@ impl Workbook {
             return Err("History worksheet no longer exists.");
         }
         if snapshots.iter().any(|(_, snapshot)| snapshot.merges.is_some()) {
-            return self.restore_merged_history_snapshots(snapshots);
+            let parts: Vec<_> = snapshots.iter().map(|(sheet, snapshot)| (*sheet, snapshot)).collect();
+            return self.restore_merged_history_snapshots(&parts);
         }
         let arrays = snapshots.iter().filter(|(_, snapshot)| snapshot.cells.is_some())
             .flat_map(|(sheet, snapshot)| self.array_dependents_for_range(*sheet, snapshot.range))

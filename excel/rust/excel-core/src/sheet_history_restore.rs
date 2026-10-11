@@ -98,6 +98,8 @@ impl Sheet {
                         .cells
                         .borrow_mut()
                         .insert(cell.addr, CellSlot::Plain(value.clone()));
+                    // 底层写入的数组没有公式源码，也要在最终几何安装后恢复子格。
+                    if matches!(value, Value::Array(_)) { anchors.push(cell.addr); }
                 }
                 self.invalidate_formula_value(cell.addr);
             }

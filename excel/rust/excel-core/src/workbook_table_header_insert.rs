@@ -8,8 +8,31 @@ pub(super) fn prepare(
     let row = before.range.start.row;
     let columns = (before.range.start.col, before.range.end.col);
     let range = CellRange::new(before.range.start, CellAddress::new(GRID_MAX_ROW, columns.1));
-    validate_cells(workbook, sheet, range)?;
     let target = &workbook.sheets[sheet];
+    // 只检查已安装的矩形（包含空值子格）；不能凭非空单元格判断是否切开数组。
+    for anchor in target.spill_anchor_addr.values().copied() {
+        let (rows, cols) = target.spill_info(anchor).unwrap_or((1, 1));
+        let spilled = CellRange::new(anchor,
+            CellAddress::new(anchor.row + rows.max(1) - 1, anchor.col + cols.max(1) - 1));
+        if !spilled.intersects(range) { continue; }
+        if !range.contains(spilled.start) || !range.contains(spilled.end)
+            || spilled.intersects(before.range) {
+            return Err("The header insertion would split a spilled array or overlap the table.".into());
+        }
+        if spilled.end.row + 1 >= row_count {
+            return Err("The header insertion would move a spilled array outside this worksheet.".into());
+        }
+    }
+    // 合并是不可拆的矩形；只允许整块位于移动列带内且不占用 Table 的合并格。
+    for merged in target.merged_ranges().iter().filter(|merged| merged.intersects(range)) {
+        if !range.contains(merged.start) || !range.contains(merged.end)
+            || merged.intersects(before.range) {
+            return Err("The header insertion would split a merged cell or overlap the table.".into());
+        }
+        if merged.end.row + 1 >= row_count {
+            return Err("The header insertion would move a merged cell outside this worksheet.".into());
+        }
+    }
     if before.range.end.row + 1 >= row_count {
         return Err("The header insertion would move the table outside this worksheet.".into());
     }
@@ -35,7 +58,9 @@ pub(super) fn prepare(
         shifted_tables.push((table.clone(), moved));
     }
     let named_ranges = workbook.named_ranges_for_row_band_insert(sheet, row, columns, row_count)?;
-    let original = HistorySnapshot::capture(target, range, true);
+    // 腾位始终保存完整几何，即使当前没有合并／spill；移动后的标量公式也可能展开数组。
+    // 恢复时先安装全部源码，再重投子格；不把计算结果当作待搬运的内容。
+    let original = HistorySnapshot::capture_with_merges(target, range, true, true);
     if original.cells.as_ref().unwrap().iter().any(|cell| cell.addr.row + 1 >= row_count)
         || original.formats.cell_styles.iter().any(|(addr, _)| addr.row + 1 >= row_count) {
         return Err("The header insertion would move cells outside this worksheet.".into());
@@ -63,6 +88,10 @@ pub(super) fn prepare(
         CellSnapshot::value(CellAddress::new(row, columns.0 + offset as u32), Value::Text(name.clone()))));
     next.cells.as_mut().unwrap().sort_by_key(|cell| (cell.addr.row, cell.addr.col));
     for (addr, _) in &mut next.formats.cell_styles { addr.row += 1; }
+    for merged in next.merges.iter_mut().flatten() {
+        merged.start.row += 1;
+        merged.end.row += 1;
+    }
     let mut formulas = FormulaSourceChange::prepare(workbook, &|owner, bounds, template, expr| {
         (template.is_some() || owner != sheet || !range.intersects(bounds)) && rewrite(owner, expr)
     });

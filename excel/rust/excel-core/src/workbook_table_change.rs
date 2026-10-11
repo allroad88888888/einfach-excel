@@ -139,10 +139,12 @@ impl TableDefinitionChange {
             } else {
                 (before, after)
             };
-            if expected.cells.is_some() {
+            // 合并移动可能放开原先阻塞的 spill。前后像只比较源码，派生子格随几何重投。
+            if expected.merges.is_none() && expected.cells.is_some() {
                 validate_cells(workbook, self.sheet, expected.range)?;
             }
-            if HistorySnapshot::capture(&workbook.sheets[self.sheet], expected.range, expected.cells.is_some())
+            if HistorySnapshot::capture_with_merges(&workbook.sheets[self.sheet], expected.range,
+                expected.cells.is_some(), expected.merges.is_some())
                 != *expected
             {
                 return Err("The table cells changed outside history.");
@@ -210,7 +212,9 @@ impl TableDefinitionChange {
             }
             for cells in next_cells {
                 if result.is_ok() {
-                    result = cells.restore(workbook, self.sheet);
+                    result = if cells.merges.is_some() {
+                        workbook.restore_merged_history_snapshots(&[(self.sheet, cells)])
+                    } else { cells.restore(workbook, self.sheet) };
                 }
             }
             for rule in &self.rules {

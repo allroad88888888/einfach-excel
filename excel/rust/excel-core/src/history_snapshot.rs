@@ -49,7 +49,7 @@ impl HistorySnapshot {
         }
     }
 
-    /// 只有会改变合并几何的命令才携带它，普通输入/格式历史仍只记录原有字段。
+    /// 区域搬运要保留合并几何（含空列表），普通输入/格式历史仍只记录原有字段。
     pub(crate) fn capture_with_merges(
         sheet: &Sheet,
         range: CellRange,

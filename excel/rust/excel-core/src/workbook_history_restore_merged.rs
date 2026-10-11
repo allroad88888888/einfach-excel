@@ -5,7 +5,7 @@ use crate::history_snapshot::HistorySnapshot;
 impl Workbook {
     pub(crate) fn restore_merged_history_snapshots(
         &mut self,
-        snapshots: &[(usize, HistorySnapshot)],
+        snapshots: &[(usize, &HistorySnapshot)],
     ) -> Result<(), &'static str> {
         if self.is_inside_custom_call() {
             return Err("MUTATION_DURING_CUSTOM_CALL");
@@ -28,7 +28,7 @@ impl Workbook {
                 let parts: Vec<_> = snapshots
                     .iter()
                     .filter(|(sheet, _)| sheet == index)
-                    .map(|(_, snapshot)| snapshot)
+                    .map(|(_, snapshot)| *snapshot)
                     .collect();
                 let sheet = &mut self.sheets[*index];
                 anchors.push((*index, sheet.restore_structure_content(&parts)));
@@ -44,7 +44,18 @@ impl Workbook {
                     }
                 }
             }
-            for (index, anchors) in anchors {
+            for (index, mut anchors) in anchors {
+                anchors.sort_unstable_by_key(|addr| (addr.row, addr.col));
+                anchors.dedup();
+                // set_array 写入的是原始数组值，不是公式结果；先恢复它的投影再读取公式消费者。
+                for addr in &anchors {
+                    if self.sheets[index].formula_text_at(*addr).is_none() {
+                        if let Value::Array(values) = self.sheets[index].peek_value(*addr) {
+                            self.sheets[index].set_array(&addr.to_string(), values)
+                                .expect("snapshot addresses are valid");
+                        }
+                    }
+                }
                 self.sheets[index].project_bulk_spill_anchors(anchors);
             }
         });

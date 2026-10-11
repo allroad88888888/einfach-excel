@@ -31,13 +31,15 @@ impl TableDefinitionChange {
         };
         let range = CellRange::new(CellAddress::new(row, before.range.start.col),
             CellAddress::new(row, before.range.end.col));
-        validate_cells(workbook, sheet, range)?;
         let original = HistorySnapshot::capture(&workbook.sheets[sheet], range, true);
         if enabled && (!original.cells.as_ref().unwrap().is_empty()
+            || workbook.sheets[sheet].merged_ranges().iter().any(|merged| merged.intersects(range))
+            || workbook.sheets[sheet].spill_intersecting(range).is_some()
             || workbook.tables.values().any(|entry| entry.name() != before.name()
                 && entry.sheet_name() == before.sheet_name() && entry.range().intersects(range))) {
             return insert::prepare(workbook, sheet, before, row_count).map(Some);
         }
+        validate_cells(workbook, sheet, range)?;
         let mut after = before.clone();
         after.has_headers = enabled;
         after.range.start.row = if enabled { row } else { row + 1 };

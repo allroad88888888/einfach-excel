@@ -2,18 +2,18 @@ import { createStore } from '@einfach/core'
 import { expect, test, vi } from 'vitest'
 import { initializeWorkbookDocumentAtom, setRustWorkbookConnectionAtom, beginProjectionAtom,
   resolveProjectionAtom, runNativeTablePanelAtom, nativeTablePanelAtom, setSheetProtectionAtom,
-  type RustWorkbookCommands, type RustWorkbookConnection } from '../src'
+  type RustWorkbookCommands, type RustWorkbookConnection, type NativeTable, type NativeTotalFunction } from '../src'
 
 type Input = RustWorkbookCommands['table.change']['payload']
 const tables = [{ name: 'Sales', sheet: 'Sheet', sheetIndex: 0, range: 'A1:B4',
   hasHeaders: true, hasTotals: false, columns: ['Product', 'Amount'] }]
-function setup(catalog = tables) {
+function setup(catalog: NativeTable[] = tables) {
   const store = createStore()
   store.setter(initializeWorkbookDocumentAtom, { title: 'Book', sheets: [
     { id: 's', index: 0, name: 'Sheet', rowCount: 100, colCount: 8 },
   ] })
   const request = vi.fn(async (_: string, input: Input) => ({ changed: true,
-    projection: { ...input.projection, cells: [], revision: 2, tables: [] as typeof tables } }))
+    projection: { ...input.projection, cells: [], revision: 2, tables: [] as NativeTable[] } }))
   store.setter(setRustWorkbookConnectionAtom, {
     request: request as RustWorkbookConnection['request'], dispose() {},
   })
@@ -23,7 +23,8 @@ function setup(catalog = tables) {
   store.setter(resolveProjectionAtom, { request: read.request,
     result: { ...read.request, revision: 1, cells: [], tables: catalog } })
   return { store, request, run: (action: 'open' | 'new' | 'close' | 'save' | 'convert' |
-    { edit: string } | { name?: string; range?: string }) =>
+    'show-totals' | 'hide-totals' | 'save-total' | { edit: string } |
+    { name?: string; range?: string; totalColumn?: string; totalFunction?: NativeTotalFunction }) =>
     store.setter(runNativeTablePanelAtom, action) }
 }
 test('new table draft uses coordinates, blank name lets Rust choose, no optimistic registry', async () => {
@@ -35,6 +36,39 @@ test('new table draft uses coordinates, blank name lets Rust choose, no optimist
   }, revision: 1 }])
   expect(store.getter(nativeTablePanelAtom).open).toBe(false)
   expect(store.getter(nativeTablePanelAtom).tables).toEqual([])
+})
+
+test('totals actions retain the panel and derive each new draft from the returned projection', async () => {
+  const { store, request, run } = setup()
+  const updated: NativeTable = { ...tables[0], range: 'A1:B5', hasTotals: true,
+    totalFunctions: ['none', 'sum'] }
+  request.mockImplementation(async (_, input) => ({ changed: true,
+    projection: { ...input.projection, cells: [], revision: 2, tables: [updated] } }))
+  await run('open'); await run({ edit: 'Sales' }); await run({ name: 'UnsavedName' })
+  await run('show-totals')
+  expect(request.mock.calls[0][1].action).toEqual({ kind: 'totals-row', name: 'Sales', enabled: true })
+  expect(store.getter(nativeTablePanelAtom)).toMatchObject({ open: true, name: 'UnsavedName',
+    range: 'A1:B5', totalColumn: 'Amount', totalFunction: 'sum' })
+  await run({ totalColumn: 'Product' })
+  expect(store.getter(nativeTablePanelAtom).totalFunction).toBe('none')
+  await run({ totalFunction: 'count' }); await run('save-total')
+  expect(request.mock.calls[1][1]).toMatchObject({ revision: 2,
+    action: { kind: 'total-function', name: 'Sales', column: 'Product', function: 'count' } })
+  // 回包仍是 none；UI 不把草稿 count 当作已保存的事实。
+  expect(store.getter(nativeTablePanelAtom).totalFunction).toBe('none')
+  await run('hide-totals')
+  expect(request.mock.calls[2][1].action).toEqual({ kind: 'totals-row', name: 'Sales', enabled: false })
+})
+
+test('custom total content is explicit and cannot be submitted as a native function', async () => {
+  const { store, request, run } = setup([{ ...tables[0], hasTotals: true, totalFunctions: ['none', null] }])
+  await run('open'); await run({ edit: 'Sales' })
+  expect(store.getter(nativeTablePanelAtom).totalFunction).toBe('custom')
+  expect(await run('save-total')).toBe(false)
+  expect(request).not.toHaveBeenCalled()
+  request.mockRejectedValueOnce(new Error('Totals row blocked'))
+  expect(await run('hide-totals')).toBe(false)
+  expect(store.getter(nativeTablePanelAtom)).toMatchObject({ open: true, error: 'Totals row blocked' })
 })
 test.each(['save', 'convert'] as const)('%s uses original table identity, not draft identity', async (action) => {
   const { request, run } = setup()

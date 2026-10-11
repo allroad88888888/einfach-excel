@@ -31,7 +31,10 @@ export function changeTable(workbook: WasmWorkbook,
   let action: NativeTableAction
   if (input.action.kind === 'create') {
     action = { kind: 'create', name: input.action.name, range: tableBounds(sheet, input.action.range) }
-  } else if (input.action.kind === 'rename' || input.action.kind === 'convert-to-range') {
+  } else if (input.action.kind === 'totals-row') {
+    action = { ...input.action, rowCount: sheet.rowCount ?? 1_048_576 }
+  } else if (input.action.kind === 'rename' || input.action.kind === 'convert-to-range' ||
+    input.action.kind === 'total-function') {
     action = input.action
   } else throw new Error('Invalid table action.')
   return workbook.change_table(sheet.index, action)
@@ -39,13 +42,16 @@ export function changeTable(workbook: WasmWorkbook,
 
 /** 只用于未发布的启动工作簿；导入后建立表头定义，调用者统一清除启动历史。 */
 export function importTables(workbook: WasmWorkbook, sheets: ReadonlyMap<string, RustWorkbookSheet>,
-  tables: readonly { sheetId: string; name: string; range: CellRange }[],
+  tables: readonly { sheetId: string; name: string; range: CellRange; totals?: boolean }[],
 ): void {
   for (const table of tables) {
     const sheet = sheets.get(table.sheetId)
     if (!sheet || !workbook.change_table) throw new Error('Rust initial tables are unavailable.')
     workbook.change_table(sheet.index, {
       kind: 'create', name: table.name, range: tableBounds(sheet, table.range),
+    })
+    if (table.totals) workbook.change_table(sheet.index, {
+      kind: 'totals-row', name: table.name, enabled: true, rowCount: sheet.rowCount ?? 1_048_576,
     })
   }
 }

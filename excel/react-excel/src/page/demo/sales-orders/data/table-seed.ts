@@ -1,8 +1,8 @@
 import type { RustImportCell, RustWorkbookSheetInput } from '@einfach/spreadsheet-ui-core'
 
-/** A80:B83 是原生 Table，B5 使用结构化引用；改名/转换均可直接测试。 */
+/** A80:B83 导入为 Table，Rust 在第 84 行生成汇总；B5 使用结构化引用。 */
 export const SUMMARY_TABLES: RustWorkbookSheetInput['tables'] = [
-  { name: 'DemoTable', range: { rowStart: 79, rowEnd: 82, colStart: 0, colEnd: 1 } },
+  { name: 'DemoTable', range: { rowStart: 79, rowEnd: 82, colStart: 0, colEnd: 1 }, totals: true },
 ]
 export const SUMMARY_TABLE_CELLS: readonly RustImportCell[] = [
   { sheet: 1, row: 4, col: 0, kind: 'text', value: 'Table total', format: { bold: true } },

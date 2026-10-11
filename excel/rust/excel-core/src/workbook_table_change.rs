@@ -1,8 +1,12 @@
-//! Table 定义变更的原子前后像；重命名与转换共用同一次消费者回放。
+//! Table 变更的原子前后像；定义、局部单元格与公式消费者共用历史回放。
 use super::workbook_formula_lambda_change::FormulaLambdaChange;
 use super::workbook_formula_rule_change::FormulaRuleChange;
 use super::workbook_formula_source_change::FormulaSourceChange;
 use super::*;
+use crate::history_snapshot::HistorySnapshot;
+
+#[path = "workbook_table_totals_change.rs"]
+mod totals;
 
 #[derive(Debug)]
 pub(crate) struct TableDefinitionChange {
@@ -13,6 +17,7 @@ pub(crate) struct TableDefinitionChange {
     formulas: Vec<FormulaSourceChange>,
     rules: Vec<FormulaRuleChange>,
     lambdas: Vec<FormulaLambdaChange>,
+    cells: Option<(HistorySnapshot, HistorySnapshot)>,
 }
 
 impl TableDefinitionChange {
@@ -50,6 +55,7 @@ impl TableDefinitionChange {
             formulas,
             rules,
             lambdas,
+            cells: None,
         }))
     }
 
@@ -81,6 +87,7 @@ impl TableDefinitionChange {
             formulas,
             rules,
             lambdas,
+            cells: None,
         })
     }
 
@@ -118,12 +125,12 @@ impl TableDefinitionChange {
             workbook
                 .validate_table_name(next.name(), old_key.as_deref())
                 .map_err(|_| "The table name is no longer available.")?;
-            if old_key.is_none()
-                && (workbook.tables.len() >= MAX_TABLES
-                    || workbook.tables.values().any(|entry| {
-                        entry.sheet_name() == next.sheet_name()
-                            && entry.range().intersects(next.range())
-                    }))
+            if (old_key.is_none() && workbook.tables.len() >= MAX_TABLES)
+                || workbook.tables.iter().any(|(key, entry)| {
+                    Some(key) != old_key.as_ref()
+                        && entry.sheet_name() == next.sheet_name()
+                        && entry.range().intersects(next.range())
+                })
             {
                 return Err("The table range or registry capacity is no longer available.");
             }
@@ -137,8 +144,28 @@ impl TableDefinitionChange {
         for lambda in &self.lambdas {
             lambda.validate(workbook, undo)?;
         }
-        let mut arrays =
-            workbook.array_dependents_for_atoms(&workbook.atom_context.table_dependent_atoms());
+        let next_cells = if let Some((before, after)) = &self.cells {
+            let (expected, next) = if undo {
+                (after, before)
+            } else {
+                (before, after)
+            };
+            validate_cells(workbook, self.sheet, expected.range)?;
+            if HistorySnapshot::capture(&workbook.sheets[self.sheet], expected.range, true)
+                != *expected
+            {
+                return Err("The table cells changed outside history.");
+            }
+            Some(next)
+        } else {
+            None
+        };
+        let definition_changed = expected != next;
+        let mut arrays = if definition_changed {
+            workbook.array_dependents_for_atoms(&workbook.atom_context.table_dependent_atoms())
+        } else {
+            Vec::new()
+        };
         if !self.lambdas.is_empty() {
             arrays.extend(workbook.named_array_dependents());
         }
@@ -148,17 +175,23 @@ impl TableDefinitionChange {
             .map(|sheet| sheet.suspend_structure_notifications())
             .collect();
         let store = workbook.store.clone();
+        let mut result = Ok(());
         store.batch(|_| {
-            if let Some(key) = old_key {
-                workbook.tables.remove(&key);
+            if definition_changed {
+                if let Some(key) = old_key {
+                    workbook.tables.remove(&key);
+                }
+                if let Some(next) = next {
+                    workbook
+                        .tables
+                        .insert(next.name().to_ascii_uppercase(), next.clone());
+                }
+                // 新定义先可见，安装重写后的公式时不会经历一次不存在的表名。
+                workbook.sync_atom_tables();
             }
-            if let Some(next) = next {
-                workbook
-                    .tables
-                    .insert(next.name().to_ascii_uppercase(), next.clone());
+            if let Some(cells) = next_cells {
+                result = cells.restore(workbook, self.sheet);
             }
-            // 新定义先可见，安装重写后的公式时不会经历一次不存在的表名。
-            workbook.sync_atom_tables();
             for rule in &self.rules {
                 rule.apply(workbook, undo);
             }
@@ -171,13 +204,16 @@ impl TableDefinitionChange {
             for formula in &self.formulas {
                 formula.apply(workbook, undo);
             }
-            workbook.bump_tables_epoch();
+            // 只改某列汇总函数时让单元格 atom 自己传播，不失效整份 Table 目录。
+            if definition_changed {
+                workbook.bump_tables_epoch();
+            }
         });
         workbook.recompute_array_formula_groups(arrays);
         for (sheet, listeners) in workbook.sheets.iter_mut().zip(observers) {
             sheet.resume_structure_notifications(listeners);
         }
-        Ok(())
+        result
     }
 
     pub(crate) fn retained_bytes(&self) -> usize {
@@ -190,5 +226,26 @@ impl TableDefinitionChange {
                 .sum::<usize>()
             + crate::sheet::metadata_bytes(&self.rules)
             + crate::sheet::metadata_bytes(&self.lambdas)
+            + self.cells.as_ref().map_or(0, |(before, after)| {
+                before.retained_bytes() + after.retained_bytes()
+            })
     }
+}
+
+/// 汇总行不能覆盖合并格或数组；在任何注册表/单元格写入前检查。
+fn validate_cells(workbook: &Workbook, sheet: usize, range: CellRange) -> Result<(), &'static str> {
+    let target = workbook
+        .sheet(sheet)
+        .ok_or("The worksheet no longer exists.")?;
+    if range.end.row > GRID_MAX_ROW
+        || range.end.col > GRID_MAX_COL
+        || target
+            .merged_ranges()
+            .iter()
+            .any(|merged| merged.intersects(range))
+        || target.spill_intersecting(range).is_some()
+    {
+        return Err("The totals row overlaps a merge, spilled array or worksheet boundary.");
+    }
+    Ok(())
 }

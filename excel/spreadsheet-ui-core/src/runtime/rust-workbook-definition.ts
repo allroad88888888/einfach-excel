@@ -60,7 +60,13 @@ export function snapshotRustWorkbookDefinition(
       return Object.freeze({ name: rangeName, range: Object.freeze({ ...range }) })
     })
     const namedRanges = snapshotRanges(sheet.namedRanges, 'named range')
-    const tables = snapshotRanges(sheet.tables, 'table range')
+    const tables = snapshotRanges(sheet.tables, 'table range')?.map((table, index) => {
+      const totals = sheet.tables![index].totals
+      if (totals !== undefined && (typeof totals !== 'boolean' ||
+        (totals && table.range.rowEnd + 1 >= sheet.rowCount)))
+        throw new Error('Invalid initial table totals row.')
+      return Object.freeze({ ...table, ...(totals === undefined ? {} : { totals }) })
+    })
     if (sheet.outline && (!validNativeOutline(sheet.outline) ||
       sheet.outline.rows.some((group) => group.end >= sheet.rowCount) ||
       sheet.outline.columns.some((group) => group.end >= sheet.colCount)))

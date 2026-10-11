@@ -12,9 +12,9 @@ import { applyVisibleProjectionAtom, createVisibleProjectionRequest,
   issueProjectionRequestIdAtom, projectionSnapshotAtom } from '../projection'
 import { validateProjectionResult } from '../projection/contracts'
 import type { ProjectionRevision } from '../backend'
-import type { TableChange } from './native-types'
+import { NATIVE_TOTAL_FUNCTIONS, type NativeTable, type NativeTotalFunction, type TableChange } from './native-types'
 
-interface Draft { name: string; range: string }
+interface Draft { name: string; range: string; totalColumn: string; totalFunction: NativeTotalFunction | 'custom' }
 interface Panel extends Draft {
   ownerSheetId: string | null
   connection: RustWorkbookConnection | null
@@ -23,7 +23,7 @@ interface Panel extends Draft {
   error: string
 }
 const CLOSED: Panel = { ownerSheetId: null, connection: null, editingName: null,
-  name: '', range: '', error: '' }
+  name: '', range: '', totalColumn: '', totalFunction: 'sum', error: '' }
 const draftAtom = atom<Panel>(CLOSED)
 const pendingConnectionAtom = atom<RustWorkbookConnection | null>(null)
 /** 草稿与忙碌是 UI 状态；目录始终直接读取当前 Rust 投影。 */
@@ -40,12 +40,15 @@ export const nativeTablePanelAtom = atom((get) => {
     open: Boolean(connection && state.connection === connection &&
       state.ownerSheetId === sheet?.id),
     tables: ready ? result.tables!.filter((entry) => entry.sheetIndex === sheet?.index) : [],
+    currentTable: ready ? result.tables!.find((entry) =>
+      entry.sheetIndex === sheet?.index && entry.name === state.editingName) : undefined,
   }
 })
 
-/** 打开/编辑只改草稿；提交三个动作均为一次 Rust 命令和一次返回投影。 */
+/** 打开/编辑只改草稿；每次提交均为一次 Rust 命令和一次返回投影。 */
 export const runNativeTablePanelAtom = atom(null, async (get, set,
-  action: 'open' | 'new' | 'close' | 'save' | 'convert' | { edit: string } | Partial<Draft>,
+  action: 'open' | 'new' | 'close' | 'save' | 'convert' |
+  'show-totals' | 'hide-totals' | 'save-total' | { edit: string } | Partial<Draft>,
 ): Promise<boolean> => {
   const state = get(draftAtom)
   const connection = get(rustWorkbookConnectionAtom)
@@ -77,7 +80,11 @@ export const runNativeTablePanelAtom = atom(null, async (get, set,
         table.sheetIndex === sheet.index && table.name === action.edit)
       if (!entry) return fail('The table no longer exists.')
       set(draftAtom, { ...state, name: entry.name, editingName: entry.name, range: entry.range,
-        revision: result.revision, error: '' })
+        ...totalDraft(entry), revision: result.revision, error: '' })
+    } else if ('totalColumn' in action) {
+      const entry = get(nativeTablePanelAtom).currentTable
+      if (!entry || !entry.columns.includes(action.totalColumn!)) return fail('Choose a table column.')
+      set(draftAtom, { ...state, ...totalDraft(entry, action.totalColumn), error: '' })
     } else set(draftAtom, { ...state, ...action, error: '' })
     return true
   }
@@ -87,7 +94,18 @@ export const runNativeTablePanelAtom = atom(null, async (get, set,
     return fail('Unprotect the worksheets before changing tables.')
   if (state.revision !== result.revision) return fail('The workbook changed. Reopen Tables.')
   let change: TableChange
-  if (action === 'convert') {
+  const totalsAction = action === 'show-totals' || action === 'hide-totals' || action === 'save-total'
+  if (totalsAction) {
+    const entry = get(nativeTablePanelAtom).currentTable
+    if (!entry) return fail('Choose a table first.')
+    if (action === 'save-total') {
+      if (!entry.hasTotals || !entry.columns.includes(state.totalColumn) ||
+        !NATIVE_TOTAL_FUNCTIONS.includes(state.totalFunction as NativeTotalFunction))
+        return fail('Choose a column and a total function.')
+      change = { kind: 'total-function', name: entry.name, column: state.totalColumn,
+        function: state.totalFunction as NativeTotalFunction }
+    } else change = { kind: 'totals-row', name: entry.name, enabled: action === 'show-totals' }
+  } else if (action === 'convert') {
     if (!state.editingName) return fail('Choose a table to convert.')
     change = { kind: 'convert-to-range', name: state.editingName }
   } else if (state.editingName) {
@@ -124,7 +142,11 @@ export const runNativeTablePanelAtom = atom(null, async (get, set,
       witness, request: projection, result: reply.projection,
     })
     if (applied.status !== 'applied') throw new Error('The view changed. Reopen Tables.')
-    if (get(draftAtom) === state) set(draftAtom, CLOSED)
+    if (get(draftAtom) === state) {
+      const entry = reply.projection.tables.find((table) => table.name === state.editingName)
+      set(draftAtom, totalsAction && entry ? { ...state, range: entry.range,
+        ...totalDraft(entry, state.totalColumn), revision: reply.projection.revision, error: '' } : CLOSED)
+    }
     return true
   } catch (error) {
     if (get(draftAtom) !== state || get(rustWorkbookConnectionAtom) !== connection ||
@@ -134,3 +156,11 @@ export const runNativeTablePanelAtom = atom(null, async (get, set,
     if (get(pendingConnectionAtom) === connection) set(pendingConnectionAtom, null)
   }
 })
+
+/** 下拉框草稿取自 Rust 返回的函数投影；无法识别的用户公式明确显示为 Custom。 */
+function totalDraft(table: NativeTable, requested?: string): Pick<Draft, 'totalColumn' | 'totalFunction'> {
+  const index = Math.max(0, requested && table.columns.includes(requested)
+    ? table.columns.indexOf(requested) : table.columns.length - 1)
+  return { totalColumn: table.columns[index] ?? '',
+    totalFunction: table.hasTotals ? table.totalFunctions?.[index] ?? 'custom' : 'sum' }
+}

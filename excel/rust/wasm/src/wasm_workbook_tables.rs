@@ -84,7 +84,9 @@ impl WasmWorkbook {
     /// name (the engine's stable order).
     #[wasm_bindgen(js_name = "listTables")]
     pub fn list_tables(&self) -> Result<JsValue, JsValue> {
-        serde_wasm_bindgen::to_value(&self.tables_json())
+        let projection = self.table_projection_json().map_err(|error| JsValue::from_str(&error))?;
+        // flatten 仍需输出普通对象；自定义内容的函数选项用 null，不用 undefined。
+        projection.serialize(&serde_wasm_bindgen::Serializer::json_compatible())
             .map_err(|err| JsValue::from_str(&format!("serialize tables: {err}")))
     }
 

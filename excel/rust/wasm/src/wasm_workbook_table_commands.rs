@@ -14,6 +14,17 @@ enum TableActionJSON {
     ConvertToRange {
         name: String,
     },
+    TotalsRow {
+        name: String,
+        enabled: bool,
+        #[serde(rename = "rowCount")]
+        row_count: u32,
+    },
+    TotalFunction {
+        name: String,
+        column: String,
+        function: String,
+    },
 }
 
 #[wasm_bindgen]
@@ -36,8 +47,10 @@ impl WasmWorkbook {
             .workbook
             .name(sheet)
             .ok_or("The worksheet no longer exists.")?;
-        if let TableActionJSON::Rename { name, .. } | TableActionJSON::ConvertToRange { name } =
-            &action
+        if let TableActionJSON::Rename { name, .. }
+        | TableActionJSON::ConvertToRange { name }
+        | TableActionJSON::TotalsRow { name, .. }
+        | TableActionJSON::TotalFunction { name, .. } = &action
         {
             let table = self
                 .workbook
@@ -68,6 +81,36 @@ impl WasmWorkbook {
                 self.history
                     .convert_table_to_range(&mut self.workbook, &name)?;
                 Ok(true)
+            }
+            TableActionJSON::TotalsRow {
+                name,
+                enabled,
+                row_count,
+            } => {
+                let table = self.workbook.get_table(&name).unwrap();
+                if enabled
+                    && !table.has_totals()
+                    && (row_count == 0
+                        || row_count > 1_048_576
+                        || table.range().end.row + 1 >= row_count)
+                {
+                    return Err(
+                        "The totals row is outside this worksheet. Make room below the table."
+                            .into(),
+                    );
+                }
+                self.history
+                    .set_table_totals_row(&mut self.workbook, &name, enabled)
+            }
+            TableActionJSON::TotalFunction {
+                name,
+                column,
+                function,
+            } => {
+                let function =
+                    TotalsFunction::from_id(&function).ok_or("Invalid total function.")?;
+                self.history
+                    .set_table_total_function(&mut self.workbook, &name, &column, function)
             }
         }
     }

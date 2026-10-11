@@ -53,10 +53,18 @@ test('creation uses one native history command and one returned projection', asy
 test.each([
   { kind: 'rename', name: 'Sales', newName: 'Revenue' },
   { kind: 'convert-to-range', name: 'Sales' },
+  { kind: 'total-function', name: 'Sales', column: 'Amount', function: 'average' },
 ])('forwards $kind without emulating cell or registry writes', async (action) => {
   const { call, change } = await setup()
   expect((await call('table.change', { ...input, action })).ok).toBe(true)
   expect(change).toHaveBeenCalledWith(0, action)
+})
+test('totals row forwards the native canvas bound and returns one authoritative projection', async () => {
+  const { call, change, read } = await setup()
+  expect((await call('table.change', { ...input,
+    action: { kind: 'totals-row', name: 'Sales', enabled: true } })).ok).toBe(true)
+  expect(change).toHaveBeenCalledWith(0, { kind: 'totals-row', name: 'Sales', enabled: true, rowCount: 100 })
+  expect(read).toHaveBeenCalledTimes(1)
 })
 test('rejects stale, foreign, out-of-bounds and malformed requests before native mutation', async () => {
   const { call, change } = await setup()
@@ -80,8 +88,19 @@ test('native errors and no-ops preserve revision; normal reads include the regis
 test('table projection validation rejects malformed coordinates and column lists', () => {
   expect(validNativeTables(tables)).toBe(true)
   for (const patch of [{ range: 'A0:B2' }, { columns: ['Product'] },
-    { sheetIndex: -1 }, { columns: [1, 2] }, { hasHeaders: null }])
+    { sheetIndex: -1 }, { columns: [1, 2] }, { hasHeaders: null },
+    { hasTotals: true, totalFunctions: ['sum'] }, { hasTotals: true, totalFunctions: ['sum', 'fake'] }])
     expect(validNativeTables([{ ...tables[0], ...patch }])).toBe(false)
+})
+
+test('seed totals are established after the table and before startup history is cleared', async () => {
+  const { call, change, clear } = await setup()
+  expect((await call('workbook.importCells', { cells: [], tables: [
+    { sheetId: 's', name: 'Sales', range: input.action.range, totals: true },
+  ] })).ok).toBe(true)
+  expect(change.mock.calls.map((entry) => entry[1].kind)).toEqual(['create', 'totals-row'])
+  expect(change.mock.calls[1][1]).toEqual({ kind: 'totals-row', name: 'Sales', enabled: true, rowCount: 100 })
+  expect(change.mock.invocationCallOrder[1]).toBeLessThan(clear.mock.invocationCallOrder.at(-1)!)
 })
 test('initial tables are built after imported cells and before clearing startup history', async () => {
   const { call, bulk, change, clear } = await setup()

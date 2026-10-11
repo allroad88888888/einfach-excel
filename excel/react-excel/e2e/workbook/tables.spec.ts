@@ -72,7 +72,7 @@ test('seed table has imported headers, live structured references and no startup
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
   await expect(cell(page, '4:1')).toHaveText('60')
   await open(page); await button(page, 'Edit table DemoTable').click()
-  await expect(page.getByLabel('Table range', { exact: true })).toHaveValue('A80:B83')
+  await expect(page.getByLabel('Table range', { exact: true })).toHaveValue('A80:B84')
   await page.getByLabel('Table name', { exact: true }).fill('SampleTable')
   await save(page, 'Rename table')
   await select(page, 'B5', '4:1')

@@ -7,7 +7,7 @@ import type { WorkerLike } from '../src/rust-worker'
 
 function definition() {
   return { title: 'Book', sheets: [{ id: 's', name: 'Sheet', rowCount: 10, colCount: 2,
-    tables: [{ name: 'Sales', range: { rowStart: 0, rowEnd: 3, colStart: 0, colEnd: 1 } }],
+    tables: [{ name: 'Sales', range: { rowStart: 0, rowEnd: 3, colStart: 0, colEnd: 1 }, totals: true }],
   }], createImportChunks: () => [] }
 }
 test('initial tables are frozen independently of the caller and bounded by the canvas', () => {
@@ -16,7 +16,10 @@ test('initial tables are frozen independently of the caller and bounded by the c
   source.sheets[0].tables[0].range.rowEnd = 10
   expect(copied.sheets[0].tables![0].range.rowEnd).toBe(3)
   expect(Object.isFrozen(copied.sheets[0].tables![0].range)).toBe(true)
+  expect(copied.sheets[0].tables![0].totals).toBe(true)
   expect(() => snapshotRustWorkbookDefinition(source)).toThrow('Invalid initial table range')
+  source.sheets[0].tables[0].range.rowEnd = 9
+  expect(() => snapshotRustWorkbookDefinition(source)).toThrow('Invalid initial table totals row')
 })
 test('runtime sends tables only after every content chunk, before publishing ready', async () => {
   const calls: { command: string; payload: Record<string, unknown> }[] = []

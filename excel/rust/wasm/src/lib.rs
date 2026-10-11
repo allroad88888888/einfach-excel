@@ -39,6 +39,7 @@ include!("wasm_conditional_format_wire.rs");
 include!("wasm_print_config_wire.rs");
 include!("wasm_sort_wire.rs");
 include!("wasm_table_wire.rs");
+include!("wasm_table_projection.rs");
 include!("wasm_filter_wire.rs");
 include!("wasm_listener.rs");
 
@@ -173,6 +174,7 @@ mod tests {
     include!("wasm_tests/number_format_preview.rs");
     include!("wasm_tests/tables.rs");
     include!("wasm_tests/table_commands.rs");
+    include!("wasm_tests/table_totals_commands.rs");
     include!("wasm_tests/hidden_rows.rs");
     include!("wasm_tests/manual_visibility.rs");
     include!("wasm_tests/structure_history.rs");

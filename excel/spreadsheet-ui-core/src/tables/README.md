@@ -2,7 +2,8 @@
 
 ## 当前 React 主线
 
-三个用户操作：创建 Table、重命名 Table、转换为普通区域。第一行作为表头，Rust 规范化空白／重复列名。
+基础操作：创建 Table、重命名 Table、转换为普通区域。第一行作为表头，Rust 规范化空白／重复列名。
+汇总操作：显示汇总行、设置列汇总函数、隐藏汇总行；继续使用同一个 command atom 和 Worker 命令。
 
 调用链：`TableTools` → `runNativeTablePanelAtom` → `table.change` → WASM `change_table`
 → Rust `WorkbookHistory` → 同次返回的可见区投影。一次操作只有一次 Worker 往返；撤销仍走已有原生历史。
@@ -11,8 +12,10 @@
 - `native-panel.ts`：弹窗草稿、忙碌与错误状态；Table 目录直接读取 `projection.result.tables`。
 - `../rust-workbook/table-commands.ts`：画布坐标校验及原生命令分发，不保存注册表。
 - 初始 Table 在全部单元格导入后创建，表头来自真实 Rust 数据；启动结束统一清除历史。
+- 汇总函数从 Rust 中的真实公式派生为 `totalFunctions`，不写入 Table 持久化元数据或第二份函数配置。
+- 修改某列函数只写该单元格；显示／隐藏同时修改表范围与汇总行内容，均由 Rust 原生历史记录。
 
-创建／改名／转换已接入 React；汇总行、列名编辑、Table 样式及其余 #32 计划不在本批。
+创建／改名／转换已验收；汇总行正在验收。列名编辑、Table 样式及其余 #32 计划仍待后续批次。
 完整验收状态见 [React 功能进度](../../../react-excel/FEATURE_PROGRESS.md)。
 
 ## 历史接口记录（非当前 React 运行路径）

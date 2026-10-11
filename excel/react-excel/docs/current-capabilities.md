@@ -261,6 +261,24 @@ Summary 原始数据已含 `SampleAmounts = Summary!C65:C67`，B4 的 `=SUM(Samp
 - 转普通区域：选择 Table，点击 `Convert to range`。数据和格式保留，Table 引用改为普通地址。
 - 三个动作都进入同一条 Rust Undo／Redo 历史；重叠、重名等错误保留草稿供修改。
 
-Summary 的 `DemoTable` 位于 A80:B83，B5 的 `=SUM(DemoTable[Amount])` 初始为 60；
+Summary 的 `DemoTable` 位于 A80:B84（第 84 行为汇总行），B5 的 `=SUM(DemoTable[Amount])` 初始为 60；
 可以直接试改名、转换和修改 B81 的数值。初始样例不占用撤销历史。
-本批不包含 Table 样式、汇总行界面、列名编辑与自动扩展；验收结果见 [功能进度](../FEATURE_PROGRESS.md)。
+Table 样式、列名编辑与自动扩展仍未接入；验收结果见 [功能进度](../FEATURE_PROGRESS.md)。
+
+## Table 汇总行
+
+打开 `Tables`，选择 `DemoTable`，下方 `Totals row` 提供三个动作：
+
+- `Show totals row`：在表格下方增加汇总行，默认在最后一列写入 SUM。
+- 选择 `Total column` 和 `Total function`，点 `Apply total`：支持求和、平均、计数、
+  数字计数、最大值、最小值、样本标准差、样本方差；`None` 清除该列的汇总内容。
+- `Hide totals row`：清除汇总行内的内容，缩回 Table 范围，保留数据区与格式。
+
+三个动作立即生效，各占一个原生 Undo／Redo 步骤；弹窗保持打开以便继续操作，Cancel／Escape
+只关闭弹窗，不撤销已应用的汇总动作。下方已有内容、合并格、溢出数组、其他 Table 或超过画布边界时拒绝，
+不会覆盖已有数据。
+
+Summary!B84 是 Rust 生成的 `=SUBTOTAL(109,DemoTable[Amount])`，初始显示 `60`，
+可以把 Amount 改为 Average，应显示 `20`；改 B81 的数值或隐藏数据行，汇总会跟着更新。
+菜单从真实公式读取当前函数；手动写入其他公式或文字会显示 `Custom content`，不会伪装成旧选项。
+启动样例不占撤销历史。该批完整验收状态仍以功能进度为准。

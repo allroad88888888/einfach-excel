@@ -42,7 +42,7 @@
 | 29 | 排序与筛选 | 升序、降序、多列排序已验收，见[排序批次](docs/sort-wave.md)；原生条件筛选、重新应用、清除筛选及复制/排序/统计交叉已验收；指定区域、表头入口、单列清除已通过全量回归，其它排序/筛选选项待补 |
 | 30 | 删除重复项 | Rust 区域内原子去重、比较列、表头及文本比较选项已验收，完整 E2E 603/603 通过。分页预览、重复记录定位、首条保留记录定位已验收，完整 E2E 608/608、Rust 默认 3002/lite 2962 项通过；不以旧 UI Core scanner 测试宣称产品完成 |
 | 31 | 状态栏摘要 | Rust 六项、显示项配置、恢复默认、原始数值复制已验收；排除筛掉行、保留手动隐藏行的统计已接 Rust 并通过全量回归，见[既有记录](docs/status-bar-wave.md) |
-| 32 | Excel Table | 创建、重命名、转普通区域已接通 Rust／Worker／React，专项 E2E 5/5 通过；全量 E2E 仍在运行，整批未验收。Table 样式、汇总行界面、列名编辑与自动扩展待补 |
+| 32 | Excel Table | 创建、重命名、转普通区域已验收：完整 E2E 735/735、Vitest 5445/5445、Table 相关 Rust 集成默认／lite 各 188 项通过；汇总行界面进入下一批，Table 样式、列名编辑、范围调整及自动扩展等仍待补 |
 | 33 | 外部数据连接 | 原计划延后；不以本地 fixture 宣称完成 |
 | 34–35 | 批注、备注及协作 | 待接入；身份、通知及持久服务需要明确的真实契约 |
 | 37–39 | 更改记录、版本、个人视图 | 待接入；本地 undo 不能替代版本服务 |
@@ -53,17 +53,33 @@
 
 - 条件格式原先仅保存不透明 JSON。现已由[原生规则解析](../rust/excel-core/src/workbook_conditional_format_rule.rs)和[显示投影](../rust/excel-core/src/workbook_conditional_format_projection.rs)消费数值、公式、排名、色阶和数据条规则，React Worker 已接入；[规则写入与删除](../rust/excel-core/src/workbook_conditional_format.rs)的 revision 溢出检查也已移到实际修改之前，拒绝原子性测试通过。上述五类规则已通过当前批次完整回归；高级阈值、图标集等尚未接入，不能据此宣布完整条件格式完成。
 - [`define_name`](../rust/excel-core/src/workbook_names.rs) 仍保留原有“求值后保存常量／LAMBDA”语义；新命名区域通过 [`define_named_range`](../rust/excel-core/src/workbook_named_ranges.rs) 在同一名称表内保存稳定表身份与范围，不保存值快照。动态求值与结构随动已接入，名称 CRUD 历史、持久化与前端管理仍须本批补齐，不能据此宣布完整名称管理完成。
-- Excel Table 已有[原生注册与重命名](../rust/excel-core/src/workbook_table_registry.rs)、[几何随动](../rust/excel-core/src/workbook_table_geometry.rs)及 [WASM 保存恢复入口](../rust/wasm/src/wasm_workbook_tables.rs)。但当前 `createTable` 只注册区域与列名，`deleteTable` 只删注册项，不把引用它的公式改写成普通范围；现有注册快照入口本身也不代表已接入 `WorkbookHistory`。后续不能用三个薄菜单包装这些入口就宣布 Table 完成：需核实表头单元格与列名的一致性、原生原子历史、转换后公式及前端投影。此处仅记录只读证据，仍未启动 Table 批次。
+- Excel Table 低层[注册接口](../rust/excel-core/src/workbook_table_registry.rs)与 [WASM 保存恢复入口](../rust/wasm/src/wasm_workbook_tables.rs)仍保留；React 交互现通过 [`change_table`](../rust/wasm/src/wasm_workbook_table_commands.rs)调用[原生历史](../rust/excel-core/src/workbook_history_table.rs)，不把低层 `deleteTable` 当成转换。表头规范化、公式消费者改写、撤销重做及同一次返回投影已接入；验收进度见下方 Table 批次，不能据此宣布完整 #32 完成。
 
 ## 批次账本
 
-### Excel Table 基础操作（进行中，未验收）
+### Excel Table 汇总行（进行中，未验收）
+
+本批只做三个动作：显示汇总行、设置某列的汇总函数、隐藏汇总行。复用 `table.change` 与同一次返回投影；Rust 写入真实 SUBTOTAL 公式，表范围、公式与撤销历史一次提交。先补现有低层汇总操作的原子历史与完整拒绝检查，再接 Worker／UI Core／React。不得把已有低层接口或核心单测视为 React 功能完成。
+
+原生阶段已实现：`WorkbookHistory` 的汇总行开关与列函数操作复用 `TableDefinitionChange`；只捕获被覆盖的一行或一个单元格，不复制数据区。低层旧接口转用相同预检／提交；已补占用、合并、spill、其他 Table 与网格边界拒绝，失败／无操作不消耗 redo。只改函数不发布 Table 几何 epoch，继续由单元格 atom 传播。新增历史专项 **6/6**，旧汇总／改名／转换 **29/29** 已通过；上述证据在最后一处 epoch 优化前。优化后的默认／lite 扩大回归正在运行（`/tmp/excel-table-totals-regression-default.log`、`/tmp/excel-table-totals-regression-lite.log`），随后检查 WASM crate。尚未扩展 Worker 命令、重建 WASM 构件或接 React 控件，本批未验收。
+
+最新原生证据：epoch 优化后的默认配置 **9 套／54 passed／0 failed** 已通过，包含新增汇总历史 6 项；同一顺序任务正在执行 lite 配置，结束后自动检查 WASM crate。所有新增／大改原生文件均低于 300 行，未新增历史栈、注册表副本或函数配置副本。
+
+接线阶段：上述默认／lite 各 **54 项** 回归与 WASM crate 检查已结束通过。现已扩展同一个 `table.change` 命令，接入 `TableTotals` 控件；汇总函数由 Rust 复用公式 AST 读取，支持自定义内容标记，派生选项不进入持久化元数据。Summary 的 DemoTable 通过原生初始化开启汇总，B84 为 SUM=60，不占启动历史。lite／full WASM 已重建；UI Core／React 专项 **33/33**、真实浏览器 Table 专项 **15/15**（含本批 8 项）、完整 Vitest **336 文件／5,454 项**、WASM lib **151 passed／1 ignored** 通过。根构建与类型检查通过；lint／循环依赖门禁、原生双配置扩大回归和 **743 项完整 E2E** 仍在收集结果（`/tmp/excel-table-totals-full-e2e.log`），本批不提前验收。
+
+### Excel Table 基础操作（已验收）
+
+最终验收：修正后的完整 E2E **735/735 通过**，任务退出 0（`/tmp/excel-table-accepted-e2e.log`）；Vitest **336 文件／5,445 项**、根构建、类型检查、lint、架构边界、循环依赖及文档检查通过。Rust core 全量 lib 默认 **1,652 passed／3 ignored**、lite **1,629 passed／3 ignored**，WASM lib **149 passed／1 ignored**；Table 相关集成回归双配置各 **17 套／188 passed**。创建、改名、转普通区域这三项已完成，不代表整个 #32 完成。下文保留阶段记录。
 
 当前提交状态：三个操作已通过现有 Worker 命令和 UI Core command atom 接入 React `Tables` 面板；Table 目录随同一份 projection 返回，不维护第二份目录。Summary 原始数据含 `DemoTable`（A80:B83），B5 的结构化引用初始为 60，初始化不占撤销历史。工作表改名、删除和恢复时的已保存 LAMBDA 引用与精确撤销也已补齐。
 
 本次提交前已重建 lite／full WASM：根构建、类型检查、lint、循环依赖与文档检查通过；Vitest **336 文件／5,445 项通过**；Rust core 全量 lib 默认 **1,652 passed／3 ignored**、lite **1,629 passed／3 ignored**，WASM lib **149 passed／1 ignored**。Table 专项 E2E **5/5**，含桌面／窄屏弹窗与键盘焦点。全量 **733 项 E2E 仍在运行**（`/tmp/excel-table-final-e2e.log`），不提前宣布整批验收；以下记录保留各阶段当时的状态。
 
-本批只做三个用户功能：创建表格、重命名表格、转换为普通区域。上一批名称框已提交推送为 `23256ded`。上方 Table 审计描述的是启动前状态，不是当前完成度；完整 #32 范围继续保留。
+本批只做三个用户功能：创建表格、重命名表格、转换为普通区域。上一批名称框已提交推送为 `23256ded`；本批 React 接线与原生拓扑修复已提交推送为 `8f9e2984`。完整 #32 范围继续保留。
+
+提交后补查：全量 E2E 首轮发现日期输入用例把 Summary!A80 当成空白，但新增 Table 在此处已有 `Product` 表头；撤销实际正确恢复了原值。该用例改用真实新建的空白工作表，保留原有空值／格式恢复断言。新增两条 Table 交叉 E2E 覆盖跨表消费者改名、转换、撤销／重做后的持续更新，以及空白／重复／公式表头规范化的精确撤销；后者同样在新表上验证，避开 Summary 的既有隐藏 G 列。日期 11 项加新增 2 项合计 **13/13 通过**（`/tmp/excel-table-integrity-e2e3.log`），类型检查通过；首轮全量仍在运行，不能将定向复测写成全量通过。桌面 1280px／窄屏 390px 的已填充弹窗均无横向溢出，正文 13px、对比度 14.08、最小控件高度 34px，浏览器无 pageerror。
+
+首轮全量已结束：**732 passed／1 failed**，唯一失败即上述已修正的日期用例（`/tmp/excel-table-final-e2e.log`）。修正后的 **735 项完整 E2E** 已启动，日志 `/tmp/excel-table-accepted-e2e.log`，结果待收齐。原生 Table、结构化引用、转换上下文、工作表拓扑与小计集成回归默认／lite 双配置均为 **17 套／188 passed／0 failed／0 ignored**，顺序任务退出 0（`/tmp/excel-table-final-integration-default.log`、`/tmp/excel-table-final-integration-lite.log`）。尚未开启下一批功能。
 
 先补 Rust 原子操作，再接 UI Core command atom 与 React 入口。创建操作复用既有 Table 名称／交叠校验，规范化后的列名写回表头，与单个表定义一起进入原生历史；快照只覆盖表头，不复制数据区或整个 Table 注册表。非法范围、合并／spill 交叠及历史外修改在写入前拒绝。重命名与转换必须处理公式消费者，不能把删除注册项包装成“转换为区域”。
 

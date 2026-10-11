@@ -3,6 +3,53 @@ use super::*;
 use crate::workbook::{TableCreation, TableDefinitionChange};
 
 impl WorkbookHistory {
+    /// 汇总行的范围与公式是同一条历史；空操作或拒绝不截断 redo。
+    pub fn set_table_totals_row(
+        &mut self,
+        workbook: &mut Workbook,
+        name: &str,
+        enabled: bool,
+    ) -> Result<bool, String> {
+        if self.pending.is_some() || workbook.is_inside_custom_call() {
+            return Err("Another history command is pending.".into());
+        }
+        let Some(change) = TableDefinitionChange::prepare_totals_row(workbook, name, enabled)
+            .map_err(|error| error.to_string())?
+        else {
+            return Ok(false);
+        };
+        self.finish_table_change(
+            workbook,
+            change,
+            if enabled {
+                "Show table totals"
+            } else {
+                "Hide table totals"
+            },
+        )?;
+        Ok(true)
+    }
+
+    pub fn set_table_total_function(
+        &mut self,
+        workbook: &mut Workbook,
+        name: &str,
+        column: &str,
+        function: crate::TotalsFunction,
+    ) -> Result<bool, String> {
+        if self.pending.is_some() || workbook.is_inside_custom_call() {
+            return Err("Another history command is pending.".into());
+        }
+        let Some(change) =
+            TableDefinitionChange::prepare_total_function(workbook, name, column, function)
+                .map_err(|error| error.to_string())?
+        else {
+            return Ok(false);
+        };
+        self.finish_table_change(workbook, change, "Set table total function")?;
+        Ok(true)
+    }
+
     /// 改名影响的所有公式与表定义共用一条历史，拒绝/无操作不截断 redo。
     pub fn rename_table(
         &mut self,

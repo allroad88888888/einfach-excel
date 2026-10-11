@@ -54,6 +54,9 @@ test('seed dates retain bold, italic, underline and the compatibility leap day',
 })
 
 test('cell and formula-bar input share numeric dates; undo restores both value and format', async ({ page }) => {
+  // 此场景需要空白原值；Summary!A80 已是原生 Table 的表头样例。
+  await page.getByRole('button', { name: 'New sheet', exact: true }).click()
+  await expect(page.getByRole('tab', { name: 'Sheet3', exact: true })).toHaveAttribute('aria-selected', 'true')
   await select(page, 'A80')
   await cell(page, '79:0').dblclick()
   const editor = page.getByRole('textbox', { name: 'Cell editor' })

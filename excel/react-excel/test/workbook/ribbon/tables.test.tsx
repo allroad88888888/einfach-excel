@@ -1,12 +1,13 @@
 import { createStore } from '@einfach/core'
 import { initializeWorkbookDocumentAtom, beginProjectionAtom, resolveProjectionAtom,
-  type RustWorkbookCommands, type RustWorkbookConnection } from '@einfach/spreadsheet-ui-core'
+  type RustWorkbookCommands, type RustWorkbookConnection,
+  type NativeTable, type NativeTotalFunction } from '@einfach/spreadsheet-ui-core'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { expect, test, vi } from 'vitest'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
 import { TableTools } from '../../../src/workbook/chrome/ribbon/TableTools'
 
-function setup(empty = false) {
+function setup(empty = false, totals?: readonly (NativeTotalFunction | null)[]) {
   const store = createStore()
   store.setter(initializeWorkbookDocumentAtom, { title: 'Book', sheets: [
     { id: 's', index: 0, name: 'Sheet', rowCount: 100, colCount: 8 },
@@ -17,13 +18,13 @@ function setup(empty = false) {
   store.setter(resolveProjectionAtom, { request: read.request, result: {
     ...read.request, cells: [], revision: 1, tables: empty ? [] : [
       { name: 'Sales', sheet: 'Sheet', sheetIndex: 0, range: 'A1:B4',
-        hasHeaders: true, hasTotals: false, columns: ['Product', 'Amount'] },
+        hasHeaders: true, hasTotals: Boolean(totals), columns: ['Product', 'Amount'], totalFunctions: totals ?? [] },
     ],
   } })
   const request = vi.fn(async (_: string, payload: unknown) => {
     const input = payload as RustWorkbookCommands['table.change']['payload']
     return { changed: true,
-      projection: { ...input.projection, cells: [], revision: 2, tables: [] } }
+      projection: { ...input.projection, cells: [], revision: 2, tables: [] as NativeTable[] } }
   })
   render(<WorkbookStoreProvider store={store} connection={{
     request: request as RustWorkbookConnection['request'], dispose() {},
@@ -85,8 +86,53 @@ test('pending command disables fields until the returned projection closes the d
   expect(screen.getByRole('status')).toHaveTextContent('Saving table changes')
   expect(screen.getByLabelText('Table name')).toBeDisabled()
   expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: 'Show totals row' })).toBeDisabled()
   const input = request.mock.calls[0][1] as RustWorkbookCommands['table.change']['payload']
   await act(async () => finish({ changed: true,
     projection: { ...input.projection, cells: [], revision: 2, tables: [] } }))
   expect(screen.queryByRole('dialog')).toBeNull()
+})
+
+test.each([false, true])('totals toggle (enabled=%s) dispatches the existing command atom', async (enabled) => {
+  const request = setup(false, enabled ? ['none', 'sum'] : undefined)
+  await click('Tables'); await click('Edit table Sales')
+  await click(enabled ? 'Hide totals row' : 'Show totals row')
+  expect(request).toHaveBeenCalledTimes(1)
+  expect(request.mock.calls[0]).toMatchObject(['table.change', {
+    action: { kind: 'totals-row', name: 'Sales', enabled: !enabled },
+  }])
+})
+
+test('column choice reads native function state and Apply returns the saved function', async () => {
+  const request = setup(false, ['none', 'sum'])
+  request.mockImplementationOnce(async (_, payload) => {
+    const input = payload as RustWorkbookCommands['table.change']['payload']
+    return { changed: true, projection: { ...input.projection, cells: [], revision: 2, tables: [
+      { name: 'Sales', sheet: 'Sheet', sheetIndex: 0, range: 'A1:B4',
+        hasHeaders: true, hasTotals: true, columns: ['Product', 'Amount'], totalFunctions: ['count', 'sum'] },
+    ] } }
+  })
+  await click('Tables'); await click('Edit table Sales')
+  expect(screen.getByLabelText('Total function')).toHaveValue('sum')
+  await change('Total column', 'Product')
+  expect(screen.getByLabelText('Total function')).toHaveValue('none')
+  await change('Total function', 'count'); await click('Apply total')
+  expect(request.mock.calls[0]).toMatchObject(['table.change', {
+    action: { kind: 'total-function', name: 'Sales', column: 'Product', function: 'count' },
+  }])
+  expect(screen.getByRole('dialog')).toBeVisible()
+  expect(screen.getByLabelText('Total function')).toHaveValue('count')
+})
+
+test('custom contents are shown honestly and failure preserves a correctable total draft', async () => {
+  const request = setup(false, ['none', null])
+  await click('Tables'); await click('Edit table Sales')
+  expect(screen.getByLabelText('Total function')).toHaveValue('custom')
+  expect(screen.getByRole('button', { name: 'Apply total' })).toBeDisabled()
+  await change('Total function', 'average')
+  request.mockRejectedValueOnce(new Error('Totals row blocked'))
+  await click('Apply total')
+  expect(screen.getByRole('alert')).toHaveTextContent('Totals row blocked')
+  expect(screen.getByLabelText('Total function')).toHaveValue('average')
+  expect(screen.getByRole('button', { name: 'Apply total' })).toBeEnabled()
 })

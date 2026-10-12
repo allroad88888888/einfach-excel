@@ -117,11 +117,11 @@ test('multi-region input is explicitly rejected rather than scanning only the pr
   expect(locate).not.toHaveBeenCalled()
 })
 
-test('format never sends a primary-only write after multi-area locating', async () => {
+test('borders never send a primary-only write after multi-area locating', async () => {
   const { store, request } = await setup()
   await store.setter(runGoToSpecialAtom, 'constants')
   request.mockClear()
-  expect(await store.setter(applySelectionFormatAtom, 'bold')).toBe('blocked')
+  expect(await store.setter(applySelectionFormatAtom, 'all-borders')).toBe('blocked')
   expect(request).not.toHaveBeenCalled()
   expect(store.getter(selectionRangesAtom)).toEqual(ranges)
 })

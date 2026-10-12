@@ -472,7 +472,7 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
         acknowledgement,
         ...('direction' in request || fontSizeWrite
           ? { sizes: readSizes(current, sheetIndex(request.sheetId),
-            'range' in request ? request.range : affectedRange) } : {}),
+            'direction' in request ? request.range : affectedRange) } : {}),
         ...(colWidths ? { colWidths } : {}),
         projection: readVisibleProjection(
           current,

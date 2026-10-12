@@ -20,7 +20,7 @@ async function runtime(preview = vi.fn(() => '02-Jan-00'), available = true) {
     preview_number_format = available ? preview : undefined
     read_sparse_range = read
     history_begin = begin
-    patch_format_range = write
+    patch_format_selection = write
     snapshot_format_range() { return { cellStyles: [], rowStyles: [], columnStyles: [] } }
   }
   installRustWorkbookRuntime({ default: async () => {}, WasmWorkbook: TestWorkbook })

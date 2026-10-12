@@ -27,7 +27,7 @@ export function WorkbookFooter() {
       {mutation.busy && <span className="visually-hidden" role="status">Updating selection…</span>}
       {multiple && <div className="selection-limit-note" role="status" aria-label="Multi-area selection">
         {selectedCellCount} cells selected in multiple areas.{' '}
-        Clear applies to all areas. Select one continuous range to format.
+        Clear and formatting apply to all areas. Borders require one continuous range.
       </div>}
       <WorkbookSheetTabs />
       <div className="status-items">

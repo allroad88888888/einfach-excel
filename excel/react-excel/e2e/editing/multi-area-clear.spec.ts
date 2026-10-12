@@ -29,7 +29,7 @@ for (const mode of ['Clear contents', 'Clear formatting', 'Clear all']) {
     await expect(cell(page, '92:4')).toHaveCSS('text-decoration-line', 'underline')
     await locate(page, 'Constants')
     await expect(page.getByRole('status', { name: 'Multi-area selection' }))
-      .toContainText('Clear applies to all areas')
+      .toContainText('Clear and formatting apply to all areas')
     await button(page, mode).click()
     const contents = mode !== 'Clear formatting'
     const formats = mode !== 'Clear contents'

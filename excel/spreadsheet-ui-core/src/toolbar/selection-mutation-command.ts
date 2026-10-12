@@ -40,8 +40,8 @@ export const runSelectionMutationAtom = atom(
   null,
   async (get, set, input: SelectionMutation): Promise<SelectionMutationOutcome> => {
     const regions = get(selectionRegionsAtom)
-    // 本批只接多区清除，普通格式仍明确限制为连续区域。
-    if (input.kind === 'format' && regions.length !== 1) return 'blocked'
+    // 多区属性 patch 与清除已接原子事务；几何边框仍要求连续范围。
+    if (input.kind === 'format' && input.borderPatch && regions.length !== 1) return 'blocked'
     if (get(selectionMutationFeedbackAtom).busy) return 'blocked'
     if (get(selectionStructureFeedbackAtom).busy || get(selectionMergeFeedbackAtom).busy) return 'blocked'
     const selection = get(selectionSnapshotAtom)
@@ -56,9 +56,12 @@ export const runSelectionMutationAtom = atom(
     )
       return 'blocked'
     if (input.kind === 'clear' && get(editingSessionAtom).source !== null) return 'blocked'
-    const fail = (error: string) => set(feedbackAtom, { connection, busy: false, error })
+    // 格式面板已有自己的错误与重试入口；底栏只承担没有面板的清除错误，避免重复播报。
+    const fail = (error: string) => set(feedbackAtom, {
+      connection, busy: false, error: input.kind === 'clear' ? error : null,
+    })
     if (regions.some((region) => region.sheetId !== selection.selection.sheetId)) {
-      fail('Select cells on one worksheet before clearing.')
+      fail('Select cells on one worksheet before changing them.')
       return 'blocked'
     }
     const ranges = get(selectionRangesAtom)
@@ -112,6 +115,7 @@ export const runSelectionMutationAtom = atom(
                 clearFormatFields: input.clearFormatFields,
                 ...(input.borderPatch ? { borderPatch: input.borderPatch, scope: 'cell' as const } : {}),
                 writeMode: 'patch',
+                targets,
               },
               projection,
             })
@@ -133,7 +137,7 @@ export const runSelectionMutationAtom = atom(
       // 大字号可改变屏幕外行高；复用稀疏尺寸缓存，不增加一次 Worker 往返。
       if (applied.status === 'applied' && result.sizes)
         applyProjectionSizes(get, set, {
-          ...result.projection, window: base.range, ...result.sizes,
+          ...result.projection, window: ack.affectedRange ?? base.range, ...result.sizes,
         })
       return applied.status === 'applied' ? 'completed' : 'superseded'
     } catch (error) {

@@ -17,7 +17,7 @@
 | 原编号 | 能力 | React 当前状态 / 剩余工作 |
 | --- | --- | --- |
 | 01 | 工作表管理 | 创建、切换、重命名、删除、左右移动及单元格/剪贴板静态跨表引用随动已有；会话内每表视图记忆通过全量 E2E 578/578；衍生引用随动及刷新持久化待补 |
-| 02 | 行列结构、清空 | 清除内容/格式/全部、连续选区行列插删及原生历史已接 React；单元格局部位移等扩展待补 |
+| 02 | 行列结构、清空 | 清除内容/格式/全部、连续选区行列插删及原生历史已接 React；多区域三种清除及一次撤销／重做已验收（完整 E2E 959/959、Vitest 5711/5711）。单元格局部位移等扩展待补 |
 | 03 | 行高、列宽、隐藏 | 大字体撑高所在行；输入/拖拽/自动适应行高列宽、恢复默认尺寸、隐藏/恢复行列已接入；本批三项已验收，合并格策略见[本批记录](docs/size-interaction-wave.md) |
 | 04 | 合并与拆分 | 合并、合并后居中、取消合并三项已验收，含剪贴板/导航回归及原生种子；冻结交叉已验证，见[合并记录](docs/merge-wave.md)及[冻结记录](docs/freeze-wave.md) |
 | 05 | 冻结窗格 | 首行、首列、按当前格冻结／取消冻结三项交互已验收，含原生种子、编辑遮挡修正及全量 E2E；原生文件保存／打开恢复已接入，自动刷新恢复仍待补，见[本批记录](docs/freeze-wave.md) |
@@ -57,7 +57,48 @@
 
 ## 批次账本
 
-### 多区域清除内容、清除格式、全部清除（已接入，待全量验收）
+### 多区域文字样式、颜色、数字格式（实现中）
+
+本批三项：对全部选区设置文字样式、设置字体／填充颜色、设置数字格式。复用已有工具栏及 command atom，不把 TypeScript 循环写区当成原子操作；多区域边框等其余能力不据此宣称完成。
+目标调用链：React 既有入口 → UI Core 一次格式命令 → 一次 Rust 多目标 patch → 一次投影。值、cellStyle／rowStyle／columnStyle、行高与撤销仍由 Rust 管理。
+
+原生阶段已在既有 `workbook_history_format.rs` 扩展 `patch_format_selection`（文件 130 行），未添加新的事务框架。
+1–500 个目标全部预检后，在一次 Store batch 中调用现有属性 patch 并生成一次历史；超过 100000 个寻址格、无效后区、部分合并格会在写入前整次拒绝。
+行列目标的历史覆盖原有画布外样式交叉点，但不保存／恢复单元格值；相同 patch 重叠或重复应用不制造额外历史。自动颜色仍用显式清除覆盖继承色，不以黑色冒充。
+新测试 `format_selection.rs`（132 行）验证三类格式、间隙保留、公式不变、一次撤销／重做、后区拒绝、重叠幂等、远处样式及目标行字号撑高。
+默认原生格式／清除／边框历史专项 **19/19**（`63815` 退出 0），日志 `/tmp/excel-multi-format-native.log`。
+
+lite 原生格式／清除／边框历史／工作簿历史／历史边界专项 **30/30**（`6919` 退出 0），日志 `/tmp/excel-multi-format-native-lite.log`。
+WASM `patch_format_selection` 只解码多目标与现有 CellStyle patch；wire **2/2**（`49792` 退出 0）。API 快照仅新增这一条导出，架构检查 **10 passed / 1 ignored**（`41288` 退出 0）。
+lite/full WASM 已重建（`6545` 退出 0）。普通稀疏格式统一走原生事务，Worker 不再给普通 patch 外套 JS 历史；完整格式旧接口未删除，几何边框仍保留单区域命令。
+UI Core 收集全部目标、逐区校验保护，一次发出既有 `format.setRange`；字号尺寸按原生返回的完整受影响范围更新，覆盖后续离屏选区，不只缓存主区域。
+React 继续使用已有字体、颜色和数字格式入口，仅改底栏提示。多区域边框仍明确拒绝，不会悄悄只写第一块。
+
+原始种子保留 E93 的文本数字 `30`，新增 H93 的数值 `0.25` 与蓝色字体；选 Summary `A93:H94` → `Go to special` → `Constants`，可对照第一块与 H93 的格式变化、D93 公式间隙不变、一次撤销。
+初轮浏览器 **26 passed / 3 failed**（`2340` 退出 1）暴露测试把 E93 当数值及窄屏检查未挂载列的问题；保留原文本数据，改用 H93 真数值作为第二块对照。
+后续原生浏览器测试又把 `getCellDisplay` 原始显示当成数字格式结果；对照实际 API 后，分别断言原值不变与 `snapshotCell.formattedDisplay`。General 不提供后者，数字格式才提供，未改变生产逻辑来迎合错误断言。
+最终专项 E2E **16/16**（12.9 秒，`9380` 退出 0），日志 `/tmp/excel-multi-format-final-focused-v2.log`：包含 lite/full 三类格式保存恢复、一次历史、字体撑高目标行、非法后区整次拒绝后重试、桌面／390px 面板。
+UI Core 专项 **28/28**（`93705` 退出 0）；完整 Vitest **5728/5728**（369 文件，`9019` 退出 0）；React **428/428**（95 文件）、循环依赖和文档检查通过（`24524` 退出 0）。
+根构建通过；主线 lint 首轮发现新测试一行超长，已仅折行修正。已查看 `/tmp/excel-multi-format-panel-390.png` 与 `/tmp/excel-multi-format-result-1280.png`，现有样式与底栏无文字溢出；沿用持久 Playwright 视觉／浏览器错误检查，未新增视觉框架。
+新增源码及测试均低于 300 行；既有 `runtime.ts` 保持 500 行，只修正尺寸读取范围，不扩大为无关重构。
+
+原生完整 lib 回归已通过（`8444` 退出 0）：默认 **1655 passed / 3 ignored**、lite **1632 passed / 3 ignored**、WASM **189 passed / 1 ignored**。
+日志 `/tmp/excel-multi-format-core-lib.log`、`/tmp/excel-multi-format-lite-lib.log`、`/tmp/excel-multi-format-wasm-lib.log`。
+主线 lint 通过；追加 E2E lint 的两处长行已仅折行修正，最终 E2E lint／文档／差异检查通过（`61054` 退出 0）。5183 演示服务返回 HTTP 200。
+
+**当前续跑点：本批完整 E2E 原会话 `28464` 正在运行，日志 `/tmp/excel-multi-format-full-e2e-frozen.log`。本轮源码、测试和 WASM 冻结到终态，只轮询同一进程，不因观察超时重启。**
+WASM SHA-256：lite `ca49c99da95d44ade27496604ba6fc9905c2b993f3f238af50abd894aa6dad27`；full `a7df0cffba4c14c58c36a21c84841d7232d93419f00771edc3b46b2f14c8c4ac`。
+源码／测试清单校验和 `483fcc275b2dd0bf17f80e67906f4a1309e2d42664345fa6725dc15c84a638ef`：在仓库根对以下路径执行 `git ls-files -z --cached --others --exclude-standard -- <paths> | xargs -0 shasum -a 256 | shasum -a 256`，paths 依次为 `excel/react-excel/src`、`excel/react-excel/test`、`excel/react-excel/e2e`、`excel/spreadsheet-ui-core/src`、`excel/spreadsheet-ui-core/test`、`excel/rust/excel-core/src`、`excel/rust/excel-core/tests`、`excel/rust/wasm/src`，不包含允许更新的文档。
+三项已接入但尚未全量验收，不能以上一批 959 项通过替代本批回归。
+本次按用户要求将本批与上一批重复报错修复一并提交、推送为阶段快照；提交不代表完整 E2E 已验收，完整 41 项目标保持不变。
+提交前核对源码／测试校验和与上述冻结值一致；暂存会改变清单中原未跟踪文件的排序，后续比较应按文件路径排序后核对内容，不能把清单顺序变化当成源码修改。
+另有待确认边界：整行／整列格式目标只穿过部分合并格时，新增预检是否过度拒绝。当前只是只读审查疑点，尚未复现或修复；保留后续核对，不据此宣称合并格交叉行为已验收。
+
+### 多区域清除内容、清除格式、全部清除（已验收）
+
+最终验收：修复后的完整 E2E **959/959**（13.6 分钟，原会话 `39947` 正常退出 0），日志 `/tmp/excel-multi-clear-final-full-e2e.log`，没有失败、跳过或重试。
+整轮源码、测试与 WASM 冻结，结束后 SHA-256 与启动时完全一致。结合下述原生、Vitest、构建和静态检查，本批三项完成；完整 41 项计划仍有未完成项。
+主体代码已随 `5632dce6` 推送；重复报错修复及本次验收文档随上述多区域格式阶段快照提交。下方失败／运行中记录保留为过程证据，以本段终态为准。
 
 本批只扩展既有三种清除到全部选区，每次命令保留一次撤销／重做；普通格式写入的多区支持仍待后续，不把三个清除模式等同于全部多区操作完成。
 调用链保持 React 既有清除入口 → UI Core 清除 command atom → 一次 Rust 请求 → 原生多范围历史事务 → 一次返回投影。
@@ -80,9 +121,24 @@ Summary `A93` 斜体、`C93` 粗体、`E93` 下划线，未选中的 `D93` 公�
 
 最终完整 Vitest **5710/5710**（367 文件），日志 `/tmp/excel-multi-clear-final-unit.log`；React **422/422**（94 文件）及根构建通过，日志 `/tmp/excel-multi-clear-react-all-v3.log`、`/tmp/excel-multi-clear-build-v3.log`，保留既有大包提示。
 页面清除／定位专项 **24/24**（`72468` 退出 0）；最新多区页面及 lite/full 原生浏览器专项 **14/14**，日志 `/tmp/excel-multi-clear-final-focused.log`，覆盖持久化恢复、一次历史、容量拒绝、稀疏整表清除、数组拒绝和桌面／390px 重试。
-构建中发现的测试类型错误已修正；最新专项 E2E lint 的变量遮蔽与长行也已修正，提交前复验。
+构建中发现的测试类型错误已修正；最新专项 E2E lint 的变量遮蔽与长行也已修正并通过复验。
+提交前循环依赖检查通过（749 modules／2154 dependencies），文档与展现层边界通过；提交门禁 **2334/2334**、主线类型及 lint 通过。
+本批及上一批长区域活动格修复已在 `5632dce6` 提交并推送 `origin/main`。
 
-**当前续跑点：按用户要求提交并推送检查点。本批完整 E2E 尚未启动，不能用上一批 946 项替代本批验收；下一步固定源码、测试及 WASM 后执行完整 E2E，终态前不改动或重启。**
+完整 959 项 E2E 原会话 `22583` 已退出 1：**953 passed / 6 failed**（13.6 分钟），日志 `/tmp/excel-multi-clear-full-e2e-frozen.log`，不能将本批标为已验收。
+测试基线为 `5632dce6`，整轮只更新文档，源码、测试及 WASM 保持冻结；结束后核对 WASM 哈希未变，没有中途重启。
+WASM SHA-256：lite `9cc734eb24b66b8dcaed8fbc4dc37ca087ca48383c0325346dfb55f1671fcb4a`；full `73e1b2616c1172965001995a7dde986bf257db750b5d88b083f3ac6e54fc3497`。
+六项失败来自颜色、字号、数字格式、文字布局的拒绝重试用例：格式面板已有错误提示，新增底栏又重复展示同一次错误，导致双重 alert。
+待原会话终态后补 UI Core 回归，先得到 **1 failed / 16 passed**（`95277` 退出 1），日志 `/tmp/excel-clear-feedback-red.log`。
+修复仅让底栏接收清除错误，格式错误继续由原有面板处理；没有改测试定位器来绕开双重提示，没有新增状态层或改动 Rust。
+修复后格式／清除专项 E2E **42/42**（49.3 秒，`94668` 退出 0），完整 Vitest **5711/5711**、React **422/422**（`54474` 退出 0），构建／lint／循环依赖／文档通过（`40950` 退出 0）。
+日志分别为 `/tmp/excel-clear-feedback-focused-e2e.log`、`/tmp/excel-clear-feedback-unit.log`、`/tmp/excel-clear-feedback-react.log`、`/tmp/excel-clear-feedback-build.log`、`/tmp/excel-clear-feedback-lint.log`、`/tmp/excel-clear-feedback-cycles.log`、`/tmp/excel-clear-feedback-docs.log`。
+已查看专项生成的 390px 数字格式错误截图及 1280px 清除错误截图：前者只在面板显示，后者保留底栏提示，无文字截断；缺少共享 visual-runtime，沿用持久 Playwright 的尺寸／溢出／浏览器错误检查。
+源码文件 157 行、回归文件 199 行；复用既有 UI Core 命令，只区分错误显示归属，没有新增文件或状态层。
+修复后完整 959 项 E2E 原会话 `39947` 已退出 0，日志 `/tmp/excel-multi-clear-final-full-e2e.log`；不要再轮询或重启已完成的进程。
+本轮为 `5632dce6` 加未提交修复；命令文件 SHA-256 `ed49a16f0d08eeb373d2c8b568a2ddc331d432850fdef267a7fb9b13cd62d4af`，回归文件 SHA-256 `78bd260f012b63b574eaec01692b0cc073c6e7b91f03143d172ed63c1a96f0f7`；WASM 哈希同上。
+本批以修复后的完整 959 项通过验收，不以上一轮 953 项通过替代；本次修复未提交或推送。
+本批已完成，可选择下一批三个相关功能；完整 41 项目标继续保持，不能以本批完成代替整个计划。
 
 ### 定位常量、定位公式、定位空白格（已验收）
 

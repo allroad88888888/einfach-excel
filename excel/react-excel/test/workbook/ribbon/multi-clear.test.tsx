@@ -44,7 +44,7 @@ test.each([
     { rowStart: 4, rowEnd: 4, colStart: 2, colEnd: 2, scope: 'cell' },
   ] })
   expect(screen.getByRole('status', { name: 'Multi-area selection' }))
-    .toHaveTextContent('Clear applies to all areas')
+    .toHaveTextContent('Clear and formatting apply to all areas')
 })
 
 test('pending buttons disable together; a native rejection is visible and permits retry', async () => {

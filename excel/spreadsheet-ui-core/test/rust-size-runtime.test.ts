@@ -15,7 +15,7 @@ async function runtime() {
     postMessage: post,
   })
   const resize = vi.fn()
-  const format = vi.fn()
+  const format = vi.fn((request) => request.targets[0])
   const fit = vi.fn(() => true)
   const begin = vi.fn()
   const finish = vi.fn()
@@ -30,7 +30,7 @@ async function runtime() {
     }
 
     resize_range = resize
-    patch_format_range = format
+    patch_format_selection = format
     auto_fit_dimensions = fit
     history_begin = begin
     history_finish = finish
@@ -96,7 +96,8 @@ describe('Rust size transport', () => {
         return
       }
       expect(format).toHaveBeenCalledTimes(1)
-      expect(format).toHaveBeenCalledWith(0, 50, 1, 60, 3, { fontSize: 37 }, 'column')
+      expect(format).toHaveBeenCalledWith({ sheet: 0, patch: { fontSize: 37 },
+        targets: [{ ...input.range, scope: 'column' }] })
       expect(response.result.sizes).toEqual({
         rowHeights: [{ rowIndex: 50, heightPx: 40 }],
         colWidths: [{ colIndex: 1, widthPx: 200 }],

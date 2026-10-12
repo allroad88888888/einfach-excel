@@ -17,7 +17,7 @@ test('footer counts all areas and removes the write limitation when returning to
   render(<WorkbookStoreProvider store={store}><WorkbookFooter /></WorkbookStoreProvider>)
   expect(screen.getByText('Selected: 4')).toBeVisible()
   expect(screen.getByRole('status', { name: 'Multi-area selection' }))
-    .toHaveTextContent('Clear applies to all areas. Select one continuous range to format.')
+    .toHaveTextContent('Clear and formatting apply to all areas. Borders require one continuous range.')
   act(() => store.setter(selectCellAtom, { sheetId: 's', coord: { row: 5, col: 5 } }))
   expect(screen.getByText('Selected: 1')).toBeVisible()
   expect(screen.queryByRole('status', { name: 'Multi-area selection' })).toBeNull()

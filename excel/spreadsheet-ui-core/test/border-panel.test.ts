@@ -124,7 +124,7 @@ test('duplicate apply cannot send another write while one is pending', async () 
 test('transport delegates border history extent to the single native operation', () => {
   const border = vi.fn(), begin = vi.fn(), finish = vi.fn(), format = vi.fn()
   const workbook = { patch_range_borders: border, history_begin: begin, history_finish: finish,
-    patch_format_range: format } as unknown as WasmWorkbook
+    patch_format_selection: format } as unknown as WasmWorkbook
   const range = { rowStart: 2, rowEnd: 4, colStart: 1, colEnd: 3 }
   const borderPatch = { preset: 'outside', style: 'double', color: '#123abc' } as const
   writeTrackedMutation(workbook, 0, { kind: 'set-format-range', sheetId: 's', range,

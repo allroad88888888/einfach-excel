@@ -138,6 +138,7 @@ include!("wasm_workbook_calculation.rs");
 include!("wasm_workbook_aggregate.rs");
 include!("wasm_workbook_history.rs");
 include!("wasm_workbook_clear.rs");
+include!("wasm_workbook_format_selection.rs");
 include!("wasm_workbook_structure.rs");
 include!("wasm_workbook_merge.rs");
 include!("wasm_workbook_freeze.rs");

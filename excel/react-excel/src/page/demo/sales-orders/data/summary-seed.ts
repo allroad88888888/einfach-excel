@@ -105,6 +105,8 @@ export const SALES_ORDER_SUMMARY_CELLS: readonly RustImportCell[] = [
   { sheet: 1, row: 92, col: 3, kind: 'formula', value: '=A93*2', format: { bgColor: '#fff2cc' } },
   { sheet: 1, row: 92, col: 4, kind: 'text', value: '30', format: { underline: true } },
   { sheet: 1, row: 92, col: 5, kind: 'boolean', value: true },
+  // 多区数字格式：H93 是第二块区域的真实数值，E93 仍保留文本数字作对照。
+  { sheet: 1, row: 92, col: 7, kind: 'number', value: 0.25, format: { fgColor: '#0070c0' } },
   // A94:C94 看似空白或报错，但都有内容：非空计数为 3，数值计数为 0。
   { sheet: 1, row: 93, col: 0, kind: 'text', value: '' },
   { sheet: 1, row: 93, col: 1, kind: 'formula', value: '=""' },

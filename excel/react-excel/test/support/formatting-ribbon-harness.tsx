@@ -33,6 +33,7 @@ export async function renderFormattingRibbon(
 ): Promise<{
   readonly writes: SetFormatRangeRequest[]
   readonly clears: RustClearRangeRequest[]
+  readonly store: ReturnType<typeof createStore>
 }> {
   let format: SpreadsheetCellFormat = {}
   let revision = 1
@@ -82,5 +83,5 @@ export async function renderFormattingRibbon(
       reason: 'viewport',
     })
   })
-  return { writes, clears }
+  return { writes, clears, store }
 }

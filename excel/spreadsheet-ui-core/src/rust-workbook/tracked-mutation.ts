@@ -16,11 +16,10 @@ export function writeTrackedMutation(
 ) {
   if ('direction' in request) return fillRange(workbook, sheet, request)
   if ('mode' in request) return clearRange(workbook, sheet, request)
-  // 共边邻格的撤销范围由 Rust 计算，不能再套一个较窄的 JS 事务。
-  if ('borderPatch' in request && request.borderPatch) {
-    writeRangeFormat(workbook, sheet, request)
-    return { ...request.range }
-  }
+  // 稀疏格式与边框都由 Rust 记录一次历史，不能外套 JS 事务。
+  if (('writeMode' in request && request.writeMode === 'patch') ||
+    ('borderPatch' in request && request.borderPatch))
+    return writeRangeFormat(workbook, sheet, request)
   if ('row' in request) {
     const range = {
       rowStart: request.row,

@@ -15,36 +15,32 @@ export function writeRangeFormat(
   workbook: WasmWorkbook,
   sheet: number,
   request: SetFormatRangeRequest,
-): void {
+) {
   const range = request.range
+  if (request.targets?.length !== undefined && request.targets.length !== 1 &&
+    (request.borderPatch || request.writeMode !== 'patch'))
+    throw new Error('This format command requires one continuous range.')
   if (request.borderPatch) {
     if (!workbook.patch_range_borders) throw new Error('WasmWorkbook.patch_range_borders is unavailable')
     workbook.patch_range_borders(
       sheet, range.rowStart, range.colStart, range.rowEnd, range.colEnd, request.borderPatch,
     )
-    return
+    return range
   }
   if (request.writeMode === 'patch') {
-    const patchFormatRange = workbook.patch_format_range
-    if (!patchFormatRange) {
-      throw Object.assign(new Error('WasmWorkbook.patch_format_range is unavailable'), {
+    const patchSelection = workbook.patch_format_selection
+    if (!patchSelection) {
+      throw Object.assign(new Error('WasmWorkbook.patch_format_selection is unavailable'), {
         code: 'WASM_METHOD_UNAVAILABLE',
       })
     }
-    if (request.format === null) return
+    if (request.format === null) return range
     const patch: Record<string, unknown> = { ...request.format }
     for (const field of request.clearFormatFields ?? []) patch[field] = null
-    patchFormatRange.call(
-      workbook,
-      sheet,
-      range.rowStart,
-      range.colStart,
-      range.rowEnd,
-      range.colEnd,
-      patch,
-      request.scope ?? 'cell',
-    )
-    return
+    return patchSelection.call(workbook, {
+      sheet, patch,
+      targets: request.targets ?? [{ ...range, scope: request.scope ?? 'cell' }],
+    })
   }
   requiredSetFormatRange(workbook).call(
     workbook,
@@ -55,4 +51,5 @@ export function writeRangeFormat(
     range.colEnd,
     request.format,
   )
+  return range
 }

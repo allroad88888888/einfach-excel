@@ -18,6 +18,8 @@ export interface SetFormatRangeRequest extends SheetRef {
   writeMode?: 'patch'
   /** patch 最终写入 cellStyle、rowStyle 或 columnStyle。 */
   scope?: 'cell' | 'row' | 'column'
+  /** 全部格式目标由一次原生事务处理；缺省为上面的单一区域。 */
+  targets?: readonly (CellRange & { readonly scope: 'cell' | 'row' | 'column' })[]
   /** patch 模式下需要明确清除、而不是继续继承的属性。 */
   clearFormatFields?: readonly (keyof SpreadsheetCellFormat)[]
   /** 几何边框只写有限选区的 cellStyle，不扩大成整轴属性。 */

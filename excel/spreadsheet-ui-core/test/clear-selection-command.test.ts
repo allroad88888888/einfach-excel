@@ -3,7 +3,9 @@ import {
   clearSelectionAtom,
   createSpreadsheetUi,
   dispatchGridCellKeyboardInputAtom,
+  fontSizePanelAtom,
   projectionSnapshotAtom,
+  runFontSizeAtom,
   runVisibleProjectionAtom,
   selectRowsAtom,
   selectCellAtom,
@@ -42,7 +44,9 @@ async function setup(failure: 'none' | 'reject' | 'bad-ack' = 'none') {
   )
   const read = vi.fn(async (request: VisibleProjectionRequest) => projection(request))
   const { store } = createSpreadsheetUi({
-    connection: createTestRustWorkbookConnection({ readVisibleProjection: read, clearRange }),
+    connection: createTestRustWorkbookConnection({ readVisibleProjection: read, clearRange,
+      async setRangeFormat() { throw new Error('Native format rejection') },
+    }),
   })
   store.setter(setSelectionBoundsAtom, { rowCount: 10, colCount: 5 })
   store.setter(selectCellAtom, { sheetId: 'sheet-1', coord: { row: 1, col: 1 } })
@@ -55,6 +59,15 @@ async function setup(failure: 'none' | 'reject' | 'bad-ack' = 'none') {
 }
 
 describe('clear selection command', () => {
+  test('format failures stay in their panel rather than duplicating the clear error in the footer', async () => {
+    const { store } = await setup('reject')
+    await store.setter(clearSelectionAtom, 'all')
+    expect(store.getter(selectionMutationFeedbackAtom).error).toBe('Rejected clear')
+    expect(await store.setter(runFontSizeAtom, 'increase')).toBe(false)
+    expect(store.getter(fontSizePanelAtom).error).toContain('Check the cell before retrying')
+    expect(store.getter(selectionMutationFeedbackAtom)).toMatchObject({ busy: false, error: null })
+  })
+
   test.each(['contents', 'formats', 'all'] as const)('clears every selected area with one %s request', async (mode) => {
     const { store, clearRange, read } = await setup()
     store.setter(setMultiRegionSelectionAtom, { regions: [

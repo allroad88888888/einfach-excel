@@ -18,7 +18,7 @@ async function runtime() {
     clear = vi.fn(),
     apply = vi.fn(() => true)
   const input = vi.fn(),
-    format = vi.fn(),
+    format = vi.fn(() => range),
     clearRange = vi.fn(() => range),
     paste = vi.fn(() => [1, 0, 2, 1])
   const edit = vi.fn(() => 0)
@@ -51,7 +51,7 @@ async function runtime() {
     }
 
     set_cell_input = input
-    patch_format_range = format
+    patch_format_selection = format
     clear_selection = clearRange
     paste_clipboard = paste
     capture_clipboard() {
@@ -102,6 +102,22 @@ async function runtime() {
 }
 
 describe('Rust history transport', () => {
+  test('multi-area formatting owns one native history and leaves revision unchanged on rejection', async () => {
+    const r = await runtime()
+    const targets = [{ ...range, scope: 'cell' },
+      { rowStart: 9, rowEnd: 9, colStart: 3, colEnd: 3, scope: 'cell' }]
+    const payload = { projection, request: { kind: 'set-format-range', sheetId: 'orders',
+      requestId: 2, range, targets, format: { bold: true }, writeMode: 'patch' } }
+    expect((await r.call('format.setRange', payload)).ok).toBe(true)
+    expect(r.format).toHaveBeenCalledTimes(1)
+    expect(r.format).toHaveBeenCalledWith({ sheet: 0, targets, patch: { bold: true } })
+    expect(r.begin).not.toHaveBeenCalled()
+    expect(r.finish).not.toHaveBeenCalled()
+    r.format.mockImplementationOnce(() => { throw new Error('Invalid later target') })
+    expect((await r.call('format.setRange', payload)).ok).toBe(false)
+    expect((await r.call('projection.readVisible', { request: projection })).result.revision).toBe(1)
+  })
+
   test('cell input owns its native history without an outer JS group and keeps raw input', async () => {
     const r = await runtime()
     const result = await r.call('cell.setInput', {

@@ -1,5 +1,5 @@
 import type { DisplayCell, SpreadsheetCellFormat, SpreadsheetNumberFormat, ViewportRowHeight, ViewportColumnWidth } from '../backend'
-import type { RangeBorderPatch } from '../backend/format-contracts'
+import type { RangeBorderPatch, SetFormatRangeRequest } from '../backend/format-contracts'
 import type { NativeFunctionCatalog } from '../formula-functions/types'
 import type { RustImportCell, RustImportStats, RustClearRangeRequest } from './commands'
 import type { RustClipboardCapture, RustClipboardPasteRequest } from './clipboard-commands'
@@ -260,15 +260,11 @@ export interface WasmWorkbook extends WasmSpillQueries, WasmFindQueries {
     endCol: number,
     format: SpreadsheetCellFormat | null,
   ) => number
-  patch_format_range?: (
-    sheet: number,
-    startRow: number,
-    startCol: number,
-    endRow: number,
-    endCol: number,
-    patch: Readonly<Record<string, unknown>>,
-    scope: 'cell' | 'row' | 'column',
-  ) => number
+  patch_format_selection?: (request: {
+    sheet: number
+    targets: NonNullable<SetFormatRangeRequest['targets']>
+    patch: Readonly<Record<string, unknown>>
+  }) => CellRange
   patch_range_borders?: (
     sheet: number, startRow: number, startCol: number, endRow: number, endCol: number,
     patch: RangeBorderPatch,

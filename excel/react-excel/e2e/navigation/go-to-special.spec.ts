@@ -38,7 +38,7 @@ for (const [kind, coordinates] of [
   await expect(button(page, 'Undo')).toBeDisabled()
 })
 
-for (const action of ['Bold']) test(`${action} cannot silently mutate only the primary area`, async ({ page }) => {
+for (const action of ['Borders']) test(`${action} cannot silently mutate only the primary area`, async ({ page }) => {
   await go(page, 'A93:F94')
   await locate(page, 'Constants')
   await button(page, action).click()

@@ -175,6 +175,15 @@
   color: #a12622;
 }
 
+.selection-limit-note {
+  box-sizing: border-box;
+  flex: 0 0 100%;
+  min-width: 0;
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--border);
+  overflow-wrap: anywhere;
+}
+
 .zoom-control {
   display: flex;
   height: 100%;

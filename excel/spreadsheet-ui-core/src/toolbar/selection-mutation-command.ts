@@ -12,7 +12,7 @@ import {
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import { applyProjectionSizes } from '../projection/projection-sizes'
 import type { RustClearRangeMode, RustSetRangeFormatResult } from '../rust-workbook/commands'
-import { selectionSnapshotAtom } from '../selection'
+import { selectionRegionsAtom, selectionSnapshotAtom } from '../selection'
 import { selectionStructureFeedbackAtom } from './selection-structure-state'
 import { selectionMergeFeedbackAtom } from './selection-merge-state'
 
@@ -30,6 +30,8 @@ type SelectionMutation =
 export const runSelectionMutationAtom = atom(
   null,
   async (get, set, input: SelectionMutation): Promise<SelectionMutationOutcome> => {
+    // 多区原子写入尚未接入；不能高亮全部区域却静默只写主区域。底栏明确提示限制。
+    if (get(selectionRegionsAtom).length !== 1) return 'blocked'
     if (get(selectionStructureFeedbackAtom).busy || get(selectionMergeFeedbackAtom).busy) return 'blocked'
     const selection = get(selectionSnapshotAtom)
     const witness = get(projectionSnapshotAtom)

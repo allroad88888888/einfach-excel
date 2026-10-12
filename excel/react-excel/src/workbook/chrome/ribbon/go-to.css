@@ -38,3 +38,5 @@
 .go-to-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
 .go-to-dialog .go-to-primary { color: var(--primary-strong); background: var(--primary-soft); }
 .go-to-error { color: #b42318; margin: 0; overflow-wrap: anywhere; }
+.go-to-special-options { display: grid; gap: 8px; margin: 16px 0; }
+.go-to-special-options button { text-align: left; }

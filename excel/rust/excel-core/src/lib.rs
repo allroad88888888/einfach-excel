@@ -38,6 +38,8 @@ pub mod undo;
 pub mod workbook;
 pub mod workbook_history;
 mod workbook_find;
+mod workbook_locate;
+pub use workbook_locate::{LocateKind, LocatedCells};
 mod workbook_aggregate;
 pub use workbook_aggregate::SelectionNumbers;
 pub use workbook_find::{FindLookIn, FindMatch, FindPage, FindQuery};

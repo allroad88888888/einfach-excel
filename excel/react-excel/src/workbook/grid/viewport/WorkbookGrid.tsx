@@ -5,7 +5,6 @@ import {
   getAxisOffsetForIndex,
   getViewportRowHeight,
   getViewportColumnWidth,
-  selectionSnapshotAtom,
   viewportGeometrySizesAtom,
   projectedFreezeAtom,
   type WorkbookDocumentSheet,
@@ -58,7 +57,6 @@ function projectionState(viewport: WorkbookViewport) {
 
 function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: WorkbookDocumentSheet }) {
   const painter = useAtomValue(formatPainterAtom)
-  const selection = useAtomValue(selectionSnapshotAtom)
   const freeze = useAtomValue(projectedFreezeAtom)
   const sizeOverrides = useAtomValue(viewportGeometrySizesAtom)
   const gridWindow = useWorkbookGridWindow()
@@ -192,7 +190,6 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
               <SpreadsheetGrid
                 cells={viewport.cells}
                 mergedRanges={viewport.mergedRanges}
-                selected={selection.range}
                 window={bodyWindow}
                 rowHeights={visibleRowHeights}
                 columnWidths={columnWidths.slice(bodyWindow.colStart, bodyWindow.colEnd + 1)}

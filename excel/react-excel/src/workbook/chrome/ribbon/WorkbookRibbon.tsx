@@ -21,6 +21,7 @@ import { MergeTools } from './MergeTools'
 import { FreezeTools } from './FreezeTools'
 import { FindReplaceTools } from './FindReplaceTools'
 import { GoToTools } from './GoToTools'
+import { GoToSpecialTools } from './GoToSpecialTools'
 import { QuickFormulaTools } from './QuickFormulaTools'
 import { InsertFunctionTools } from './InsertFunctionTools'
 import { CalculationTools } from './CalculationTools'
@@ -246,6 +247,7 @@ export function WorkbookRibbon() {
         <div className="toolbar-spacer" />
           <FindReplaceTools />
         <GoToTools />
+        <GoToSpecialTools />
         <ToolButton icon="⋮" label="More tools" />
       </div>
     </div>

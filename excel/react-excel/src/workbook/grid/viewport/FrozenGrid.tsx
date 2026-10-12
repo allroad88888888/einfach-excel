@@ -6,7 +6,6 @@ import {
   projectionSnapshotAtom,
   viewportGeometrySizesAtom,
   viewportMetricsAtom,
-  selectionSnapshotAtom,
   type CellRange,
 } from '@einfach/spreadsheet-ui-core'
 import type { CSSProperties } from 'react'
@@ -21,7 +20,6 @@ export function FrozenGrid({ focusGrid }: { focusGrid: () => void }) {
   const result = useAtomValue(projectionSnapshotAtom).result
   const metrics = useAtomValue(viewportMetricsAtom)
   const sizes = useAtomValue(viewportGeometrySizesAtom)
-  const selection = useAtomValue(selectionSnapshotAtom)
   if (result?.kind !== 'visible-window' || result.sheetId !== metrics.sheetId || !result.frozen)
     return null
   const { frozen, freeze } = result
@@ -81,7 +79,6 @@ export function FrozenGrid({ focusGrid }: { focusGrid: () => void }) {
                       window={range}
                       cells={region.cells}
                       mergedRanges={result.mergedRanges}
-                      selected={selection.range}
                       rowHeights={Array.from(
                         { length: range.rowEnd - range.rowStart + 1 },
                         (_, i) => rowHeight(range.rowStart + i),

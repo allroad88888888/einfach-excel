@@ -129,6 +129,7 @@ include!("wasm_workbook_viewport_persistence.rs");
 include!("wasm_workbook_auto_fit.rs");
 include!("wasm_workbook_number_format_preview.rs");
 include!("wasm_workbook_find.rs");
+include!("wasm_workbook_locate.rs");
 include!("wasm_workbook_text_columns.rs");
 include!("wasm_workbook_remove_duplicates.rs");
 include!("wasm_workbook_quick_formula.rs");

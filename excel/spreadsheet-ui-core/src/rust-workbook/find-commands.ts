@@ -39,6 +39,11 @@ export interface RustReplaceRequest extends Pick<RustFindRequest, 'targets' | 'q
 }
 
 export interface RustFindCommands {
+  readonly 'workbook.locate': WorkerCommand<
+    { readonly sheetId: string; readonly range: CellRange;
+      readonly kind: LocateKind; readonly limit: number },
+    LocatedCells & { readonly revision: number }
+  >
   readonly 'workbook.find': WorkerCommand<
     RustFindRequest,
     {
@@ -71,4 +76,20 @@ export interface NativeFindMatch extends Omit<RustFindMatch, 'sheetId'> {
 export interface NativeReplaceRequest extends Pick<NativeFindRequest, 'targets' | 'query'> {
   readonly replacement: string
   readonly current?: NativeFindMatch
+}
+
+export type LocateKind = 'constants' | 'formulas' | 'blanks'
+export interface LocatedCells {
+  /** 原生实际查询范围，包含与输入范围相交的完整合并格。 */
+  readonly scope: CellRange
+  readonly ranges: readonly CellRange[]
+  readonly cellCount: number
+}
+
+/** 原生查找/定位协议；不在 JS 镜像任何工作簿索引。 */
+export interface WasmFindQueries {
+  find_cells?: (request: NativeFindRequest) => { total: number; matches: NativeFindMatch[] }
+  replace_by_query?: (request: NativeReplaceRequest) => { cells: number; occurrences: number }
+  locate_cells?: (request: { readonly sheet: number; readonly range: CellRange;
+    readonly kind: LocateKind; readonly limit: number }) => LocatedCells
 }

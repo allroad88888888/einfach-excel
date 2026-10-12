@@ -864,6 +864,12 @@ export const selectionRegionsAtom = atom((get): readonly SelectionState[] =>
 )
 selectionRegionsAtom.debugLabel = 'spreadsheet.selection.regions'
 
+/** 所有可见选区的几何；普通区、冻结区和合并格共享，不复制可写状态。 */
+export const selectionRangesAtom = atom((get): readonly CellRange[] => {
+  const bounds = get(selectionBoundsAtom)
+  return get(selectionRegionsAtom).map((region) => getSelectionRange(region, bounds))
+})
+
 export const primarySelectionRegionAtom = atom(
   (get): SelectionState => copySelection(getPrimaryRegion(get(_multiSelectionAtom))),
 )

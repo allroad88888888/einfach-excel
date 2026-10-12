@@ -2,7 +2,8 @@ import { useAtomValue } from '@einfach/react'
 import {
   activeWorkbookSheetAtom,
   formatPainterAtom,
-  selectionSnapshotAtom,
+  selectionCellCountAtom,
+  selectionRegionsAtom,
   systemClipboardFeedbackAtom,
 } from '@einfach/spreadsheet-ui-core'
 import './footer.css'
@@ -12,15 +13,17 @@ import { SelectionStatus } from './SelectionStatus'
 /** Renders sheet tabs and selection status for the active UI-core workbook. */
 export function WorkbookFooter() {
   const activeSheet = useAtomValue(activeWorkbookSheetAtom)
-  const selection = useAtomValue(selectionSnapshotAtom)
+  const selectedCellCount = useAtomValue(selectionCellCountAtom)
+  const multiple = useAtomValue(selectionRegionsAtom).length > 1
   const clipboard = useAtomValue(systemClipboardFeedbackAtom)
   const painting = useAtomValue(formatPainterAtom).mode !== 'idle'
-  const selectedCellCount =
-    (selection.range.colEnd - selection.range.colStart + 1) *
-    (selection.range.rowEnd - selection.range.rowStart + 1)
 
   return (
     <footer className="workbook-footer">
+      {multiple && <div className="selection-limit-note" role="status" aria-label="Multi-area selection">
+        {selectedCellCount} cells selected in multiple areas.{' '}
+        Select one continuous range to format or clear.
+      </div>}
       <WorkbookSheetTabs />
       <div className="status-items">
         {clipboard.message && !painting && (

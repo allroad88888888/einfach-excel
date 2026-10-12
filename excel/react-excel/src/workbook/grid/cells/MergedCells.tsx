@@ -2,7 +2,7 @@ import { useAtomValue } from '@einfach/react'
 import {
   getViewportRangeRectangle,
   projectionSnapshotAtom,
-  selectionSnapshotAtom,
+  selectionRangesAtom,
   viewportGeometrySizesAtom,
   viewportMetricsAtom,
   showFormulasAtom, formulaViewText,
@@ -20,7 +20,7 @@ export function MergedCells({ window, anchors }: {
   anchors?: readonly DisplayCell[]
 } = {}) {
   const snapshot = useAtomValue(projectionSnapshotAtom)
-  const selection = useAtomValue(selectionSnapshotAtom)
+  const selections = useAtomValue(selectionRangesAtom)
   const sizes = useAtomValue(viewportGeometrySizesAtom)
   const metrics = useAtomValue(viewportMetricsAtom)
   const showFormulas = useAtomValue(showFormulasAtom)
@@ -39,11 +39,9 @@ export function MergedCells({ window, anchors }: {
         }
         const rect = getViewportRangeRectangle(metrics, sizes, range)
         if (rect.width === 0 || rect.height === 0) return null
-        const selected =
-          selection.range.rowStart <= range.rowStart &&
-          selection.range.rowEnd >= range.rowEnd &&
-          selection.range.colStart <= range.colStart &&
-          selection.range.colEnd >= range.colEnd
+        const selected = selections.some((selection) =>
+          selection.rowStart <= range.rowStart && selection.rowEnd >= range.rowEnd &&
+          selection.colStart <= range.colStart && selection.colEnd >= range.colEnd)
         return (
           <div
             key={`${cell.row}:${cell.col}`}

@@ -252,6 +252,11 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       }))
       return { ...current.aggregate_selection(targets), revision }
     }
+    if (command === 'workbook.locate') {
+      const { sheetId, ...input } = payload as RustWorkbookCommands[typeof command]['payload']
+      if (!current.locate_cells) throw new Error('Rust locate command is unavailable.')
+      return { ...current.locate_cells({ ...input, sheet: sheetIndex(sheetId) }), revision }
+    }
     if (command === 'workbook.find')
       return findWorkbook(
         current,

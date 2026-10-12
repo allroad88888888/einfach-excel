@@ -6,7 +6,7 @@ import type { RustClipboardCapture, RustClipboardPasteRequest } from './clipboar
 import type { RustHistoryState } from '../history/rust-history-types'
 import type { SheetVisibilityProjection } from '../viewport/hidden-state'
 import type { AutoFitText } from './auto-fit-measurement'
-import type { NativeFindMatch, NativeFindRequest, NativeReplaceRequest } from './find-commands'
+import type { WasmFindQueries } from './find-commands'
 import type { CellRange } from '../shared'
 import type { SelectionNumbers } from '../status-bar/types'
 import type { RustSortKey } from './sort-commands'
@@ -58,7 +58,7 @@ export interface RustFormatRangeSnapshot {
   readonly dataBars?: readonly ({ readonly addr: string } & NonNullable<DisplayCell['dataBar']>)[]
 }
 
-export interface WasmWorkbook extends WasmSpillQueries {
+export interface WasmWorkbook extends WasmSpillQueries, WasmFindQueries {
   recalculate?: (sheet?: number) => number
   snapshot_persistence_v1?: () => unknown
   restore_persistence_v1?: (value: unknown) => unknown
@@ -135,8 +135,6 @@ export interface WasmWorkbook extends WasmSpillQueries {
   aggregate_selection?: (
     targets: readonly (CellRange & { readonly sheet: number })[],
   ) => SelectionNumbers
-  find_cells?: (request: NativeFindRequest) => { total: number; matches: NativeFindMatch[] }
-  replace_by_query?: (request: NativeReplaceRequest) => { cells: number; occurrences: number }
   auto_fit_dimensions?: (
     sheet: number,
     startRow: number,

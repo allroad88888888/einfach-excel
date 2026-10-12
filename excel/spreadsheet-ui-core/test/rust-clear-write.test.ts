@@ -13,58 +13,36 @@ const request: RustClearRangeRequest = {
 
 describe('Rust clear writer', () => {
   test.each(['contents', 'formats', 'all'] as const)('clears only the requested %s', (mode) => {
-    const clear = vi.fn()
-    const patch = vi.fn()
-    const workbook = { clear_range: clear, patch_format_range: patch } as unknown as WasmWorkbook
-    clearRange(workbook, 0, { ...request, mode })
-    if (mode === 'formats') expect(clear).not.toHaveBeenCalled()
-    else expect(clear).toHaveBeenCalledWith(0, 1, 2, 3, 4)
-    if (mode === 'contents') expect(patch).not.toHaveBeenCalled()
-    else {
-      expect(patch).toHaveBeenCalledWith(
-        0,
-        1,
-        2,
-        3,
-        4,
-        expect.objectContaining({ bold: false, fgColor: null, numberFormat: { kind: 'general' } }),
-        'cell',
-      )
-      expect(patch.mock.calls[0]?.[5]).not.toHaveProperty('height')
-      expect(patch.mock.calls[0]?.[5]).not.toHaveProperty('width')
-    }
+    const clear = vi.fn(() => request.range)
+    const workbook = { clear_selection: clear } as unknown as WasmWorkbook
+    expect(clearRange(workbook, 0, { ...request, mode })).toEqual(request.range)
+    expect(clear).toHaveBeenCalledTimes(1)
+    expect(clear).toHaveBeenCalledWith({ sheet: 0, mode,
+      targets: [{ ...request.range, scope: 'cell' }] })
   })
 
   test.each(['row', 'column'] as const)('clears inherited formatting through %s scope', (scope) => {
-    const patch = vi.fn()
-    clearRange({ patch_format_range: patch } as unknown as WasmWorkbook, 0, {
+    const clear = vi.fn(() => request.range)
+    clearRange({ clear_selection: clear } as unknown as WasmWorkbook, 0, {
       ...request,
       scope,
       mode: 'formats',
     })
-    expect(patch.mock.calls[0]?.[6]).toBe(scope)
+    expect(clear).toHaveBeenCalledWith({ sheet: 0, mode: 'formats',
+      targets: [{ ...request.range, scope }] })
   })
 
-  test('preflights all required methods before changing anything', () => {
-    const clear = vi.fn()
-    expect(() => clearRange({ clear_range: clear } as unknown as WasmWorkbook, 0, request)).toThrow(
-      'patch_format_range',
-    )
-    expect(clear).not.toHaveBeenCalled()
+  test('refuses a missing native transaction rather than falling back to partial writes', () => {
+    expect(() => clearRange({} as WasmWorkbook, 0, request)).toThrow('clear_selection')
   })
 
-  test('does not clear values if Rust rejects the style patch', () => {
-    const clear = vi.fn()
-    const patch = vi.fn(() => {
-      throw new Error('Invalid style')
-    })
-    expect(() =>
-      clearRange(
-        { clear_range: clear, patch_format_range: patch } as unknown as WasmWorkbook,
-        0,
-        request,
-      ),
-    ).toThrow('Invalid style')
-    expect(clear).not.toHaveBeenCalled()
+  test('forwards every target once and preserves native rejection without a JS history group', () => {
+    const clear = vi.fn(() => { throw new Error('Invalid second target') })
+    const targets = [{ ...request.range, scope: 'cell' as const },
+      { rowStart: 9, rowEnd: 10, colStart: 2, colEnd: 4, scope: 'row' as const }]
+    expect(() => clearRange({ clear_selection: clear } as unknown as WasmWorkbook, 3,
+      { ...request, targets })).toThrow('Invalid second target')
+    expect(clear).toHaveBeenCalledTimes(1)
+    expect(clear).toHaveBeenCalledWith({ sheet: 3, mode: 'all', targets })
   })
 })

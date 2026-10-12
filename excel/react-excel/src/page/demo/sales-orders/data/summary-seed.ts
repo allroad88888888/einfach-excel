@@ -98,11 +98,12 @@ export const SALES_ORDER_SUMMARY_CELLS: readonly RustImportCell[] = [
   { sheet: 1, row: 85, col: 2, kind: 'text', value: 'SKU-*' },
   { sheet: 1, row: 86, col: 0, kind: 'text', value: 'SKU-😀' },
   // 状态栏示例 A93:F93：数值 4 个，和 26，平均 6.5；文本数字和布尔不计数。
-  { sheet: 1, row: 92, col: 0, kind: 'number', value: 10 },
+  // 多区清除复用这些原始样式：A93 斜体、C93 粗体、E93 下划线；D93 是未选中的公式间隙。
+  { sheet: 1, row: 92, col: 0, kind: 'number', value: 10, format: { italic: true } },
   { sheet: 1, row: 92, col: 1, kind: 'number', value: 0 },
-  { sheet: 1, row: 92, col: 2, kind: 'number', value: -4 },
-  { sheet: 1, row: 92, col: 3, kind: 'formula', value: '=A93*2' },
-  { sheet: 1, row: 92, col: 4, kind: 'text', value: '30' },
+  { sheet: 1, row: 92, col: 2, kind: 'number', value: -4, format: { bold: true } },
+  { sheet: 1, row: 92, col: 3, kind: 'formula', value: '=A93*2', format: { bgColor: '#fff2cc' } },
+  { sheet: 1, row: 92, col: 4, kind: 'text', value: '30', format: { underline: true } },
   { sheet: 1, row: 92, col: 5, kind: 'boolean', value: true },
   // A94:C94 看似空白或报错，但都有内容：非空计数为 3，数值计数为 0。
   { sheet: 1, row: 93, col: 0, kind: 'text', value: '' },

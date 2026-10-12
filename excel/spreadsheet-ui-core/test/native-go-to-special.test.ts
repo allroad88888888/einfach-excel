@@ -3,7 +3,7 @@ import { createSpreadsheetUi, initializeWorkbookDocumentAtom, runVisibleProjecti
   goToSpecialAvailableAtom, goToSpecialPanelAtom, runGoToSpecialAtom,
   selectionRangesAtom, selectionSnapshotAtom, selectCellAtom, setMultiRegionSelectionAtom,
   applyGoToTargetAtom, startEditingAtom, setRustWorkbookConnectionAtom,
-  applySelectionFormatAtom, clearSelectionAtom,
+  applySelectionFormatAtom,
   type RustWorkbookConnection, type VisibleProjectionRequest } from '../src'
 import type { LocatedCells } from '../src/rust-workbook/find-commands'
 
@@ -35,6 +35,7 @@ test.each(['constants', 'formulas', 'blanks'] as const)('%s uses one native quer
   expect(await store.setter(runGoToSpecialAtom, kind)).toBe(true)
   expect(request).toHaveBeenLastCalledWith('workbook.locate', { sheetId: 's', range: scope, kind, limit: 500 })
   expect(store.getter(selectionRangesAtom)).toEqual(ranges)
+  expect(store.getter(selectionSnapshotAtom).activeCell).toEqual({ sheetId: 's', row: 2, col: 1 })
   expect(store.getter(goToSpecialPanelAtom)).toMatchObject({ open: false, busy: false,
     notice: 'Selected 4 cells in 2 areas. Searched A1:H100.' })
   expect(request).toHaveBeenCalledTimes(2)
@@ -116,12 +117,11 @@ test('multi-region input is explicitly rejected rather than scanning only the pr
   expect(locate).not.toHaveBeenCalled()
 })
 
-test.each(['format', 'clear'] as const)('%s never sends a primary-only write after multi-area locating', async (kind) => {
+test('format never sends a primary-only write after multi-area locating', async () => {
   const { store, request } = await setup()
   await store.setter(runGoToSpecialAtom, 'constants')
   request.mockClear()
-  expect(await (kind === 'format' ? store.setter(applySelectionFormatAtom, 'bold')
-    : store.setter(clearSelectionAtom, 'contents'))).toBe('blocked')
+  expect(await store.setter(applySelectionFormatAtom, 'bold')).toBe('blocked')
   expect(request).not.toHaveBeenCalled()
   expect(store.getter(selectionRangesAtom)).toEqual(ranges)
 })

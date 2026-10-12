@@ -95,7 +95,7 @@ export {
 export {
   DEFAULT_FONT_SIZE, FONT_SIZE_PRESETS, fontSizePanelAtom, runFontSizeAtom,
 } from './toolbar/font-size-command'
-export { clearSelectionAtom } from './toolbar/selection-mutation-command'
+export { clearSelectionAtom, selectionMutationFeedbackAtom } from './toolbar/selection-mutation-command'
 export { selectionSizePanelAtom, runSelectionSizeAtom } from './toolbar/selection-size-command'
 export { resizeDragAtom, runResizeDragAtom } from './viewport/resize-drag'
 export type { AutoFitLayout } from './rust-workbook/auto-fit-measurement'

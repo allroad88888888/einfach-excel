@@ -4,6 +4,7 @@ import {
   formatPainterAtom,
   selectionCellCountAtom,
   selectionRegionsAtom,
+  selectionMutationFeedbackAtom,
   systemClipboardFeedbackAtom,
 } from '@einfach/spreadsheet-ui-core'
 import './footer.css'
@@ -17,12 +18,16 @@ export function WorkbookFooter() {
   const multiple = useAtomValue(selectionRegionsAtom).length > 1
   const clipboard = useAtomValue(systemClipboardFeedbackAtom)
   const painting = useAtomValue(formatPainterAtom).mode !== 'idle'
+  const mutation = useAtomValue(selectionMutationFeedbackAtom)
 
   return (
     <footer className="workbook-footer">
+      {mutation.error && <div className="selection-limit-note sheet-command-error"
+        role="alert" aria-label="Selection change error">{mutation.error}</div>}
+      {mutation.busy && <span className="visually-hidden" role="status">Updating selection…</span>}
       {multiple && <div className="selection-limit-note" role="status" aria-label="Multi-area selection">
         {selectedCellCount} cells selected in multiple areas.{' '}
-        Select one continuous range to format or clear.
+        Clear applies to all areas. Select one continuous range to format.
       </div>}
       <WorkbookSheetTabs />
       <div className="status-items">

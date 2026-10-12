@@ -146,6 +146,8 @@ export interface RustClearRangeRequest {
   readonly range: CellRange
   readonly scope: 'cell' | 'row' | 'column'
   readonly mode: RustClearRangeMode
+  /** 全部选区一次提交；省略时仍可表达现有单范围调用。 */
+  readonly targets?: readonly (CellRange & { readonly scope: 'cell' | 'row' | 'column' })[]
 }
 
 export interface RustWorkbookCommands

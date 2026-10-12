@@ -98,8 +98,9 @@ export const runGoToSpecialAtom = atom(null, async (get, set,
     if (!result.ranges.length) throw new Error('No matching cells found. Choose another condition or range.')
     set(setMultiRegionSelectionAtom, { regions: result.ranges.map((range) => ({
       kind: 'range' as const, sheetId: sheet.id,
-      anchor: { row: range.rowStart, col: range.colStart },
-      focus: { row: range.rowEnd, col: range.colEnd },
+      // focus 是活动格，须与下方滚动目标一致；反向 anchor 不改变选区范围。
+      anchor: { row: range.rowEnd, col: range.colEnd },
+      focus: { row: range.rowStart, col: range.colStart },
     })), primaryIndex: 0 })
     const first = result.ranges[0]
     set(scrollToCellAtom, { coord: { row: first.rowStart, col: first.colStart },

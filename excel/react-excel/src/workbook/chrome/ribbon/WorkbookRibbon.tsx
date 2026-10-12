@@ -1,10 +1,9 @@
 import {
   activeCellFormatAtom,
   applySelectionFormatAtom,
-  clearSelectionAtom,
-  editingSessionAtom,
 } from '@einfach/spreadsheet-ui-core'
 import { ClipboardTools } from './ClipboardTools'
+import { ClearTools } from './ClearTools'
 import { FormatPainterTools } from './FormatPainterTools'
 import { SelectionSizeTools } from './SelectionSizeTools'
 import { HistoryTools } from './HistoryTools'
@@ -69,8 +68,6 @@ function ToolButton({ icon, label, onClick, pressed, disabled }: ToolButtonProps
 export function WorkbookRibbon() {
   const activeFormat = useAtomValue(activeCellFormatAtom)
   const applyFormat = useSetAtom(applySelectionFormatAtom)
-  const clearSelection = useSetAtom(clearSelectionAtom)
-  const editing = useAtomValue(editingSessionAtom).source !== null
 
   return (
     <div className="ribbon-shell">
@@ -226,24 +223,7 @@ export function WorkbookRibbon() {
         <NamedRangeTools />
         <TableTools />
         <span className="tool-separator" aria-hidden="true" />
-        <ToolButton
-          icon="⌫"
-          label="Clear contents"
-          disabled={editing}
-          onClick={() => void clearSelection('contents')}
-        />
-        <ToolButton
-          icon="A×"
-          label="Clear formatting"
-          disabled={editing}
-          onClick={() => void clearSelection('formats')}
-        />
-        <ToolButton
-          icon="×"
-          label="Clear all"
-          disabled={editing}
-          onClick={() => void clearSelection('all')}
-        />
+        <ClearTools />
         <div className="toolbar-spacer" />
           <FindReplaceTools />
         <GoToTools />

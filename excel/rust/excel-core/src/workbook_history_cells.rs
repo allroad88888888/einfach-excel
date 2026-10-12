@@ -61,10 +61,13 @@ impl WorkbookHistory {
     }
 
     pub fn finish(&mut self, workbook: &mut Workbook, success: bool) -> Result<(), &'static str> {
-        let pending = self
+        let mut pending = self
             .pending
             .take()
             .ok_or("No history command is pending.")?;
+        // 邻边等额外快照可能在后续子操作前追加；撤销必须倒放这些 before-image，
+        // 最后恢复事务起点，不能让较晚的中间态覆盖最早的原值。
+        pending.before.reverse();
         let after = pending
             .before
             .iter()

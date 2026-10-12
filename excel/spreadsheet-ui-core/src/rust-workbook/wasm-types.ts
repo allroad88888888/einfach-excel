@@ -1,7 +1,7 @@
 import type { DisplayCell, SpreadsheetCellFormat, SpreadsheetNumberFormat, ViewportRowHeight, ViewportColumnWidth } from '../backend'
 import type { RangeBorderPatch } from '../backend/format-contracts'
 import type { NativeFunctionCatalog } from '../formula-functions/types'
-import type { RustImportCell, RustImportStats } from './commands'
+import type { RustImportCell, RustImportStats, RustClearRangeRequest } from './commands'
 import type { RustClipboardCapture, RustClipboardPasteRequest } from './clipboard-commands'
 import type { RustHistoryState } from '../history/rust-history-types'
 import type { SheetVisibilityProjection } from '../viewport/hidden-state'
@@ -247,13 +247,11 @@ export interface WasmWorkbook extends WasmSpillQueries, WasmFindQueries {
   rename_sheet(index: number, name: string): boolean
   snapshotCell(sheet: number, addr: string): RustCellSnapshot
   bulk_import_cells(cells: readonly RustImportCell[]): RustImportStats
-  clear_range?: (
-    sheet: number,
-    startRow: number,
-    startCol: number,
-    endRow: number,
-    endCol: number,
-  ) => number
+  clear_selection?: (request: {
+    sheet: number
+    mode: RustClearRangeRequest['mode']
+    targets: NonNullable<RustClearRangeRequest['targets']>
+  }) => CellRange
   set_format_range?: (
     sheet: number,
     startRow: number,

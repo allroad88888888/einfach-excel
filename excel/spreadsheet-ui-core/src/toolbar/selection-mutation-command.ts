@@ -11,8 +11,8 @@ import {
 } from '../projection'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import { applyProjectionSizes } from '../projection/projection-sizes'
-import type { RustClearRangeMode, RustSetRangeFormatResult } from '../rust-workbook/commands'
-import { selectionRegionsAtom, selectionSnapshotAtom } from '../selection'
+import type { RustClearRangeMode, RustClearRangeRequest, RustWorkbookConnection } from '../rust-workbook/commands'
+import { selectionRegionsAtom, selectionRangesAtom, selectionSnapshotAtom } from '../selection'
 import { selectionStructureFeedbackAtom } from './selection-structure-state'
 import { selectionMergeFeedbackAtom } from './selection-merge-state'
 
@@ -26,12 +26,23 @@ type SelectionMutation =
     }
   | { readonly kind: 'clear'; readonly mode: RustClearRangeMode }
 
+const feedbackAtom = atom({ connection: null as RustWorkbookConnection | null,
+  busy: false, error: null as string | null })
+/** 忙碌和失败需要实际显示；连接改变时不能把旧工作簿的错误带入新文档。 */
+export const selectionMutationFeedbackAtom = atom((get) => {
+  const feedback = get(feedbackAtom)
+  return feedback.connection === get(rustWorkbookConnectionAtom)
+    ? feedback : { busy: false, error: null }
+})
+
 /** 区域写入共用一次保护检查、一次 Rust RPC 和一次返回投影发布。 */
 export const runSelectionMutationAtom = atom(
   null,
   async (get, set, input: SelectionMutation): Promise<SelectionMutationOutcome> => {
-    // 多区原子写入尚未接入；不能高亮全部区域却静默只写主区域。底栏明确提示限制。
-    if (get(selectionRegionsAtom).length !== 1) return 'blocked'
+    const regions = get(selectionRegionsAtom)
+    // 本批只接多区清除，普通格式仍明确限制为连续区域。
+    if (input.kind === 'format' && regions.length !== 1) return 'blocked'
+    if (get(selectionMutationFeedbackAtom).busy) return 'blocked'
     if (get(selectionStructureFeedbackAtom).busy || get(selectionMergeFeedbackAtom).busy) return 'blocked'
     const selection = get(selectionSnapshotAtom)
     const witness = get(projectionSnapshotAtom)
@@ -45,13 +56,28 @@ export const runSelectionMutationAtom = atom(
     )
       return 'blocked'
     if (input.kind === 'clear' && get(editingSessionAtom).source !== null) return 'blocked'
-    const resolution = set(resolveContentMutationAtom, {
-      kind: input.kind === 'format' ? 'set-format-range' : 'clear-range',
-      sheetId: selection.selection.sheetId,
-      range: selection.range,
-    })
-    if (resolution.status === 'blocked') return 'blocked'
-    const range = resolution.ranges?.[0]
+    const fail = (error: string) => set(feedbackAtom, { connection, busy: false, error })
+    if (regions.some((region) => region.sheetId !== selection.selection.sheetId)) {
+      fail('Select cells on one worksheet before clearing.')
+      return 'blocked'
+    }
+    const ranges = get(selectionRangesAtom)
+    const targets: NonNullable<RustClearRangeRequest['targets']>[number][] = []
+    for (const [index, region] of regions.entries()) {
+      const resolution = set(resolveContentMutationAtom, {
+        kind: input.kind === 'format' ? 'set-format-range' : 'clear-range',
+        sheetId: selection.selection.sheetId, range: ranges[index],
+      })
+      if (resolution.status === 'blocked') {
+        fail(resolution.diagnostic.message)
+        return 'blocked'
+      }
+      const range = resolution.ranges?.[0]
+      if (!range) return 'blocked'
+      targets.push({ ...range, scope: region.kind === 'row' ? 'row'
+        : region.kind === 'column' ? 'column' : 'cell' })
+    }
+    const range = selection.range
     const requestId = set(issueProjectionRequestIdAtom)
     if (!range || requestId === null) return 'blocked'
 
@@ -73,9 +99,10 @@ export const runSelectionMutationAtom = atom(
       requestId,
       reason: 'toolbar',
     })
-    let result: RustSetRangeFormatResult
+    const pending = { connection, busy: true, error: null }
+    set(feedbackAtom, pending)
     try {
-      result =
+      const response =
         input.kind === 'format'
           ? await connection.request('format.setRange', {
               request: {
@@ -89,28 +116,33 @@ export const runSelectionMutationAtom = atom(
               projection,
             })
           : await connection.request('range.clear', {
-              request: { ...base, mode: input.mode },
+              request: { ...base, mode: input.mode, targets },
               projection,
             })
-    } catch {
+      await Promise.resolve()
+      if (get(feedbackAtom) === pending) set(feedbackAtom, pending)
+      const result = await response
+      if (get(rustWorkbookConnectionAtom) !== connection) return 'superseded'
+      const ack = result.acknowledgement
+      if (ack.sheetId !== base.sheetId || ack.requestId !== requestId ||
+        ack.revision !== result.projection.revision)
+        throw new Error('The mutation response did not match this request. Try again.')
+      const applied = set(applyVisibleProjectionAtom, {
+        witness, request: projection, result: result.projection,
+      })
+      // 大字号可改变屏幕外行高；复用稀疏尺寸缓存，不增加一次 Worker 往返。
+      if (applied.status === 'applied' && result.sizes)
+        applyProjectionSizes(get, set, {
+          ...result.projection, window: base.range, ...result.sizes,
+        })
+      return applied.status === 'applied' ? 'completed' : 'superseded'
+    } catch (error) {
+      if (get(rustWorkbookConnectionAtom) !== connection) return 'superseded'
+      fail(error instanceof Error ? error.message : String(error))
       return 'rejected'
+    } finally {
+      if (get(feedbackAtom) === pending) set(feedbackAtom, { ...pending, busy: false })
     }
-    const ack = result.acknowledgement
-    if (
-      ack.sheetId !== base.sheetId ||
-      ack.requestId !== requestId ||
-      ack.revision !== result.projection.revision
-    )
-      return 'rejected'
-    const applied = set(applyVisibleProjectionAtom, {
-      witness,
-      request: projection,
-      result: result.projection,
-    })
-    // 大字号也会改变屏幕外的行高；复用已有稀疏尺寸缓存，不增加一次 Worker 往返。
-    if (applied.status === 'applied' && result.sizes)
-      applyProjectionSizes(get, set, { ...result.projection, window: base.range, ...result.sizes })
-    return applied.status === 'applied' ? 'completed' : 'superseded'
   },
 )
 runSelectionMutationAtom.debugLabel = 'spreadsheet.toolbar.runSelectionMutation'

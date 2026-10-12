@@ -19,7 +19,7 @@ async function runtime() {
     apply = vi.fn(() => true)
   const input = vi.fn(),
     format = vi.fn(),
-    clearRange = vi.fn(),
+    clearRange = vi.fn(() => range),
     paste = vi.fn(() => [1, 0, 2, 1])
   const edit = vi.fn(() => 0)
   let undoCount = 1
@@ -52,7 +52,7 @@ async function runtime() {
 
     set_cell_input = input
     patch_format_range = format
-    clear_range = clearRange
+    clear_selection = clearRange
     paste_clipboard = paste
     capture_clipboard() {
       return { text: 'copy' }
@@ -114,20 +114,21 @@ describe('Rust history transport', () => {
     expect(r.finish).not.toHaveBeenCalled()
     expect(result.result.projection.history.undoCount).toBe(1)
   })
-  test('clear-all groups format and content; scope captures complete intersecting styles', async () => {
+  test('clear-all forwards native targets and receives history without an outer JS group', async () => {
     const r = await runtime()
     const result = await r.call('range.clear', {
       projection,
       request: { sheetId: 'orders', requestId: 1, range, scope: 'row', mode: 'all' },
     })
     expect(result.ok).toBe(true)
-    expect(r.begin.mock.calls).toEqual([[0, 1, 0, 2, 16383, 'Clear all', true]])
-    expect(r.format).toHaveBeenCalledTimes(1)
-    expect(r.clearRange.mock.calls).toEqual([[0, 1, 0, 2, 1]])
-    expect(r.finish.mock.calls).toEqual([[true]])
-    expect(r.format.mock.invocationCallOrder[0]).toBeLessThan(
-      r.clearRange.mock.invocationCallOrder[0]!,
-    )
+    expect(r.begin).not.toHaveBeenCalled()
+    expect(r.format).not.toHaveBeenCalled()
+    expect(r.clearRange).toHaveBeenCalledTimes(1)
+    expect(r.clearRange).toHaveBeenCalledWith({ sheet: 0, mode: 'all',
+      targets: [{ ...range, scope: 'row' }] })
+    expect(r.finish).not.toHaveBeenCalled()
+    expect(result.result.acknowledgement.affectedRange).toEqual(range)
+    expect(result.result.projection.history.undoCount).toBe(1)
   })
   test('native input rejection leaves transport revision unchanged without a JS history group', async () => {
     const r = await runtime()

@@ -38,7 +38,7 @@ for (const [kind, coordinates] of [
   await expect(button(page, 'Undo')).toBeDisabled()
 })
 
-for (const action of ['Bold', 'Clear contents']) test(`${action} cannot silently mutate only the primary area`, async ({ page }) => {
+for (const action of ['Bold']) test(`${action} cannot silently mutate only the primary area`, async ({ page }) => {
   await go(page, 'A93:F94')
   await locate(page, 'Constants')
   await button(page, action).click()
@@ -84,6 +84,30 @@ test('single-cell scope finds offscreen formulas and keeps frozen and hidden geo
   await expect(cell(page, '92:0')).not.toHaveAttribute('data-selected')
   await expect(cell(page, '93:6')).toHaveCount(0)
   await expect(button(page, 'Undo')).toBeDisabled()
+})
+
+for (const width of [1280, 390]) test(`long located range keeps its first cell editable at ${width}px`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 850 })
+  await page.getByRole('tab', { name: 'Sales Orders', exact: true }).click()
+  await go(page, 'G1001')
+  await expect(cell(page, '1000:6')).toBeVisible()
+  await locate(page, 'Formulas')
+  await expect(nameBox(page)).toHaveValue('G2:G1001')
+  await expect(cell(page, '1:6')).toBeVisible()
+  await expect(cell(page, '1000:6')).toHaveCount(0)
+  await expect(page.getByText('Selected: 1000', { exact: true })).toHaveCount(1)
+  const formula = page.getByRole('textbox', { name: 'Active cell value' })
+  await expect(formula).toBeEnabled()
+  await expect(formula).toHaveValue('=E2*F2')
+  await expect(button(page, 'Undo')).toBeDisabled()
+  await formula.fill('12345')
+  await formula.press('Enter')
+  await expect(cell(page, '1:6')).toHaveText('12345')
+  await button(page, 'Undo').click()
+  await go(page, 'G2')
+  await expect(formula).toHaveValue('=E2*F2')
+  await go(page, 'G1001')
+  await expect(formula).toHaveValue('=E1001*F1001')
 })
 
 test('merged constants never select neighboring blanks through bounding-box expansion', async ({ page }) => {
@@ -150,8 +174,9 @@ for (const variant of ['lite', 'full']) test(`${variant} native locate handles a
       const empty = book.locate_cells({ sheet: 0, range, kind: 'blanks', limit: 500 })
       for (let row = 0; row <= 1000; row += 2) book.set_cell_input(0, `A${row + 1}`, '1')
       let error = ''
-      try { book.locate_cells({ sheet: 0, range, kind: 'constants', limit: 500 }) }
-      catch (cause) { error = String(cause) }
+      try { book.locate_cells({ sheet: 0, range, kind: 'constants', limit: 500 }) } catch (cause) {
+        error = String(cause)
+      }
       return { empty, error, unchanged: book.getCellDisplay(0, 'A1001') }
     } finally { book.free() }
   }, `${wasmBase}${variant}/einfach_wasm.js`)

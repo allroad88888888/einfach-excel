@@ -41,6 +41,9 @@ use entry::entry_bytes;
 mod borders;
 #[path = "workbook_history_format.rs"]
 mod format;
+#[path = "workbook_history_clear.rs"]
+mod clear;
+pub use clear::ClearSelectionMode;
 #[path = "workbook_history_merge.rs"]
 mod merge;
 #[path = "workbook_history_replace.rs"]

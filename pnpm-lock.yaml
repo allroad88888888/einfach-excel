@@ -347,6 +347,22 @@ importers:
         specifier: ^3.5.41
         version: 3.5.41(typescript@5.8.3)
 
+  packages/canvas:
+    devDependencies:
+      '@einfach/core':
+        specifier: ^0.4.0
+        version: 0.4.0
+      '@types/node':
+        specifier: ^20.11.30
+        version: 20.19.43
+      typescript:
+        specifier: ^5.7.2
+        version: 5.8.3
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(@types/node@20.19.43)(jsdom@25.0.1)(lightningcss@1.33.0)(terser@5.39.0)
+
+
 packages:
 
   '@adobe/css-tools@4.4.2':

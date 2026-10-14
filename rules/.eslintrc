@@ -259,6 +259,17 @@
   },
   "overrides": [
     {
+      "files": ["packages/canvas/**"],
+      "parserOptions": {
+        "project": ["./packages/canvas/tsconfig.json"]
+      },
+      "rules": {
+        "react-hooks/rules-of-hooks": "off",
+        "react-hooks/exhaustive-deps": "off",
+        "max-lines": ["error", 300]
+      }
+    },
+    {
       "files": [
         "**/*.test.ts",
         "**/*.test.tsx"

@@ -167,7 +167,23 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
   const onDoubleClick = (event: ReactMouseEvent<HTMLDivElement>) => {
     if (activeSheet === null || viewport.retained || pickingReference || painter.mode !== 'idle') return
     const cell = workbookCellAt(event)
-    if (cell !== null) startCellEditing({ sheetId: activeSheet.id, cell })
+    if (cell === null) return
+    const frame = event.currentTarget
+    const isCurrent = () => frame.isConnected &&
+      (document.activeElement === document.body || document.activeElement === gridRef.current)
+    const restoreDraftFocus = (started: boolean) => {
+      // command 保留旧草稿时，只恢复其 DOM 焦点，不另建编辑会话。
+      if (started || !isCurrent() || editingSession.source === null) return
+      const selector = editingSession.source.source === 'formula-bar'
+        ? '[data-formula-input="true"]' : '[data-cell-editor] textarea'
+      gridRef.current?.closest('.workbook')
+        ?.querySelector<HTMLTextAreaElement>(selector)?.focus({ preventScroll: true })
+    }
+    const started = startCellEditing({
+      sheetId: activeSheet.id, cell, waitForPending: true, isCurrent,
+    })
+    if (typeof started === 'boolean') restoreDraftFocus(started)
+    else void started.then(restoreDraftFocus)
   }
 
   return {

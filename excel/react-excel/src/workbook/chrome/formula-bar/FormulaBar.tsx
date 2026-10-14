@@ -77,8 +77,22 @@ export function FormulaBar() {
     if (inputSource === 'formula-bar') inputRef.current?.focus({ preventScroll: true })
   }, [inputSource])
   const commitFormula = (event: FocusEvent<HTMLTextAreaElement>) => {
+    if (!hasEditingSource || busy) return
     if (event.relatedTarget?.closest('[data-cell-editor]')) return
     void commitEditing()
+  }
+  const focusGrid = () => {
+    inputRef.current?.closest('.workbook')
+      ?.querySelector<HTMLElement>('[data-workbook-grid="true"]')?.focus({ preventScroll: true })
+  }
+  const commitFromKeyboard = async () => {
+    const input = inputRef.current
+    const outcome = await commitEditing()
+    // 禁用输入框会让焦点落到 body；迟到响应不能抢走用户已移到其它控件的焦点。
+    if (!input?.isConnected ||
+      (document.activeElement !== document.body && document.activeElement !== input)) return
+    if (outcome === 'completed') focusGrid()
+    else if (outcome === 'rejected' || outcome === 'blocked') input.focus({ preventScroll: true })
   }
   const handleFormulaKey = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     event.stopPropagation()
@@ -97,10 +111,13 @@ export function FormulaBar() {
     }
     if (event.key === 'Escape') {
       event.preventDefault()
-      cancelEditing()
+      let cancelled = false
+      // 先结束 atom 草稿再移焦点，让 blur 不会重新提交刚取消的内容。
+      flushSync(() => { cancelled = cancelEditing() === true })
+      if (cancelled) focusGrid()
     } else if (event.key === 'Enter') {
       event.preventDefault()
-      void commitEditing()
+      if (!busy) void commitFromKeyboard()
     }
   }
 

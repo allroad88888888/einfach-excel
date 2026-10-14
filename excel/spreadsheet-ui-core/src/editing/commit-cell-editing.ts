@@ -80,11 +80,7 @@ function authorityIsCurrent(
 /** Submits the current draft and directly publishes the projection returned by Rust. */
 export const commitCellEditingAtom = atom(
   null,
-  async (
-    get,
-    set,
-    input?: CommitCellEditingInput,
-  ): Promise<EditingCommitOutcome> => {
+  async (get, set, input?: CommitCellEditingInput): Promise<EditingCommitOutcome> => {
     if (get(activeEditingCommitTicketAtom) !== null) return 'blocked'
 
     const session = get(editingSessionBackingAtom)
@@ -124,7 +120,8 @@ export const commitCellEditingAtom = atom(
       col: target.col,
       input: session.draft,
       ...(getSheetProtection(get(sheetProtectionAtom), session.source.sheetId).mode === 'protected'
-        ? { expandTables: false } : {}),
+        ? { expandTables: false }
+        : {}),
       requestId,
     })
     const projectionRequest = Object.freeze(
@@ -136,65 +133,89 @@ export const commitCellEditingAtom = atom(
         reason: visibleRequest.reason,
       }),
     )
-    const ticket: EditingCommitTicket = Object.freeze({ request })
+    let resolveCompletion!: (outcome: EditingCommitOutcome) => void
+    const completion = new Promise<EditingCommitOutcome>((resolve) => {
+      resolveCompletion = resolve
+    })
+    const finish = (outcome: EditingCommitOutcome): EditingCommitOutcome => {
+      resolveCompletion(outcome)
+      return outcome
+    }
+    const ticket: EditingCommitTicket = Object.freeze({ request, completion })
     const pendingLifecycle = lifecycleFor('pending')
 
     // The ticket is the lock. Publish it before launching any asynchronous work.
     set(activeEditingCommitTicketAtom, ticket)
     set(editingCommitLifecycleBackingAtom, pendingLifecycle)
 
-    const transport = await runBoundedEditingOperation(
-      () => set(setRustCellInputAtom, { request, projection: projectionRequest }),
-      normalizeEditingTimeout(input?.timeoutMs),
-    )
-    if (!editingTicketIsCurrent(get, ticket, pendingLifecycle)) return 'blocked'
+    try {
+      const transport = await runBoundedEditingOperation(
+        () => set(setRustCellInputAtom, { request, projection: projectionRequest }),
+        normalizeEditingTimeout(input?.timeoutMs),
+      )
+      if (!editingTicketIsCurrent(get, ticket, pendingLifecycle)) return finish('blocked')
 
-    if (transport.kind === 'timeout') {
-      set(
-        editingCommitLifecycleBackingAtom,
-        lifecycleFor('outcome-unknown', 'Editing commit timed out; its backend outcome is unknown.'),
-      )
-      // Keep the ticket: blindly retrying an unknown write can duplicate a mutation.
-      return 'outcome-unknown'
-    }
-    if (transport.kind === 'rejected') {
-      return rejectCommit(
-        set,
-        `Editing commit was rejected and may be retried: ${editingErrorMessage(transport.error)}`,
-      )
-    }
-    if (!responseAcknowledgesRequest(transport.value, request)) {
-      set(
-        editingCommitLifecycleBackingAtom,
-        lifecycleFor('outcome-unknown', 'Editing acknowledgement did not match the active request.'),
-      )
-      return 'outcome-unknown'
-    }
+      if (transport.kind === 'timeout') {
+        set(
+          editingCommitLifecycleBackingAtom,
+          lifecycleFor(
+            'outcome-unknown',
+            'Editing commit timed out; its backend outcome is unknown.',
+          ),
+        )
+        // Keep the ticket: blindly retrying an unknown write can duplicate a mutation.
+        return finish('outcome-unknown')
+      }
+      if (transport.kind === 'rejected') {
+        return finish(
+          rejectCommit(
+            set,
+            `Editing commit was rejected and may be retried: ${editingErrorMessage(transport.error)}`,
+          ),
+        )
+      }
+      if (!responseAcknowledgesRequest(transport.value, request)) {
+        set(
+          editingCommitLifecycleBackingAtom,
+          lifecycleFor(
+            'outcome-unknown',
+            'Editing acknowledgement did not match the active request.',
+          ),
+        )
+        return finish('outcome-unknown')
+      }
 
-    // A newer viewport wins. Otherwise use the projection bundled with this exact mutation.
-    set(applyVisibleProjectionAtom, {
-      witness: projectionWitness,
-      request: projectionRequest,
-      result: transport.value.projection,
-    })
-    set(resetFormulaReferenceStateAtom)
-    set(editingSessionBackingAtom, createEditingSessionState())
-    set(editingCommitLifecycleBackingAtom, lifecycleFor('ready'))
-    set(keyboardModeAtom, 'navigation')
-    set(activeEditingCommitTicketAtom, null)
-    // 写入目标来自编辑源，投影来自当前浏览表；确认后才回源，不在拾取期间改工作簿。
-    // 等待 Rust 期间已定位到其它格时，不让旧提交把用户拉回原位置。
-    if (input?.returnToSource !== false &&
-      get(activeWorkbookSheetAtom)?.id === browsingSheetId &&
-      get(selectionAuthorityWitnessAtom) === selectionWitness)
-      returnToEditingSource(get, set, session)
-    else if (input?.returnToSource !== false) {
-      // 用户在等待期间已主动定位：保留新位置，把它作为之后的普通视图。
-      const memory = get(sheetViewsBackingAtom)
-      if (memory.referenceBrowsing)
-        set(sheetViewsBackingAtom, { ...memory, referenceBrowsing: false })
+      // A newer viewport wins. Otherwise use the projection bundled with this exact mutation.
+      set(applyVisibleProjectionAtom, {
+        witness: projectionWitness,
+        request: projectionRequest,
+        result: transport.value.projection,
+      })
+      set(resetFormulaReferenceStateAtom)
+      set(editingSessionBackingAtom, createEditingSessionState())
+      set(editingCommitLifecycleBackingAtom, lifecycleFor('ready'))
+      set(keyboardModeAtom, 'navigation')
+      set(activeEditingCommitTicketAtom, null)
+      // 写入目标来自编辑源，投影来自当前浏览表；确认后才回源，不在拾取期间改工作簿。
+      // 等待 Rust 期间已定位到其它格时，不让旧提交把用户拉回原位置。
+      if (
+        input?.returnToSource !== false &&
+        get(activeWorkbookSheetAtom)?.id === browsingSheetId &&
+        get(selectionAuthorityWitnessAtom) === selectionWitness
+      )
+        returnToEditingSource(get, set, session)
+      else if (input?.returnToSource !== false) {
+        // 用户在等待期间已主动定位：保留新位置，把它作为之后的普通视图。
+        const memory = get(sheetViewsBackingAtom)
+        if (memory.referenceBrowsing)
+          set(sheetViewsBackingAtom, { ...memory, referenceBrowsing: false })
+      }
+      return finish('completed')
+    } catch (error) {
+      // 异常也结束等待；原有锁和错误恢复规则不由后续编辑改写。
+      finish('blocked')
+      throw error
     }
-    return 'completed'
   },
 )
 

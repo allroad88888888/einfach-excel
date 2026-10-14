@@ -71,6 +71,7 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
 
   if (cell === null || editingFromFormulaBar) return null
 
+  const fieldIdentity = `cell-editor-r${cell.row}-c${cell.col}`
   const sheetId = activeSheet?.id ?? ''
   const merge =
     projection?.kind === 'visible-window' && projection.sheetId === sheetId
@@ -98,6 +99,8 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
   const frozenCol = freeze?.sheetId === sheetId && cell.col < freeze.cols
 
   const restoreFocus = (outcome: EditorKeyboardOutcome) => {
+    // 同一个 textarea 已用于下一格时，上一格的 Enter 不能抢走新编辑器焦点。
+    if (inputRef.current !== null && inputRef.current.id !== fieldIdentity) return
     // 原输入框卸载/禁用会把焦点交给 body；用户已进入其它控件时，旧请求不能抢回焦点。
     if (document.activeElement !== document.body && document.activeElement !== inputRef.current)
       return
@@ -186,8 +189,6 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
     '--editor-width': `${rect.width}px`,
     clipPath: `inset(${clipTop}px ${clipRight}px ${clipBottom}px ${clipLeft}px)`,
   } as CSSProperties
-  const fieldIdentity = `cell-editor-r${cell.row}-c${cell.col}`
-
   return (
     <div
       className="cell-editor"

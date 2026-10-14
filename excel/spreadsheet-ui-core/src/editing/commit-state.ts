@@ -2,6 +2,7 @@
 import { atom, type Atom, type Getter } from '@einfach/core'
 import type {
   EditingCommitLifecycleState,
+  EditingCommitOutcome,
   EditingCommitRequest,
   EditingSessionState,
 } from './types'
@@ -10,6 +11,8 @@ import { createEditingSessionState } from './session-domain'
 export interface EditingCommitTicket {
   /** Object identity, not duplicated status fields, owns the asynchronous lane. */
   readonly request: EditingCommitRequest
+  /** 后续编辑等这一次写入的结果，不重发请求，也不另建队列。 */
+  readonly completion: Promise<EditingCommitOutcome>
 }
 
 const INITIAL_EDITING_LIFECYCLE: EditingCommitLifecycleState = Object.freeze({

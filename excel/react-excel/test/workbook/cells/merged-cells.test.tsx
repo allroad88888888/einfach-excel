@@ -16,7 +16,7 @@ import {
 import { act, render, screen } from '@testing-library/react'
 import { expect, test } from 'vitest'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
-import { MergedCells } from '../../../src/workbook/grid/cells/MergedCells'
+import { MergedCells } from '@einfach/react-cells'
 
 async function setup(bordered = false, hidden = false) {
   const request = (async (_command: string, input: { request: VisibleProjectionRequest }) => ({

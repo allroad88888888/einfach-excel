@@ -9,8 +9,7 @@ import {
   type CellRange,
 } from '@einfach/spreadsheet-ui-core'
 import type { CSSProperties } from 'react'
-import { SpreadsheetGrid } from '../cells/SpreadsheetGrid'
-import { MergedCells } from '../cells/MergedCells'
+import { CellRenderer } from './CellRenderer'
 import { GridHeading } from './GridHeading'
 import { WORKBOOK_GRID_ROW_HEADER_WIDTH, WORKBOOK_GRID_ROW_HEIGHT } from './workbook-grid-config'
 import './frozen-grid.css'
@@ -75,8 +74,9 @@ export function FrozenGrid({ focusGrid }: { focusGrid: () => void }) {
                     key={`${range.rowStart}:${range.colStart}`}
                     style={style}
                   >
-                    <SpreadsheetGrid
+                    <CellRenderer
                       window={range}
+                      anchors={region.mergeAnchors}
                       cells={region.cells}
                       mergedRanges={result.mergedRanges}
                       rowHeights={Array.from(
@@ -88,7 +88,6 @@ export function FrozenGrid({ focusGrid }: { focusGrid: () => void }) {
                         (_, i) => colWidth(range.colStart + i),
                       )}
                     />
-                    <MergedCells window={range} anchors={region.mergeAnchors} />
                   </div>
                 )
               })}

@@ -11,7 +11,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import { expect, test, vi } from 'vitest'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
 import { FilterTools } from '../../../src/workbook/chrome/ribbon/FilterTools'
-import { CellFilterButton } from '../../../src/workbook/grid/cells/CellFilterButton'
+import { CellFilterButton } from '@einfach/react-cells'
 
 type Input = RustWorkbookCommands['sheet.filter']['payload']
 const result = (p: Input) => ({

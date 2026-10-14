@@ -6,7 +6,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import { expect, test, vi } from 'vitest'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
 import { FilterTools } from '../../../src/workbook/chrome/ribbon/FilterTools'
-import { SpreadsheetGrid } from '../../../src/workbook/grid/cells/SpreadsheetGrid'
+import { SpreadsheetGrid } from '@einfach/react-cells'
 
 type Input = RustWorkbookCommands['table.change']['payload']
 const window = { rowStart: 0, rowEnd: 9, colStart: 0, colEnd: 4 }

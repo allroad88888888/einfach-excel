@@ -1,9 +1,11 @@
 import type { ViewportMetrics } from '@einfach/spreadsheet-ui-core'
 
-export const WORKBOOK_GRID_ROW_HEIGHT = 28
+import { DEFAULT_CELL_ROW_HEIGHT, DEFAULT_CELL_COLUMN_WIDTH } from '@einfach/react-cells'
+
+export const WORKBOOK_GRID_ROW_HEIGHT = DEFAULT_CELL_ROW_HEIGHT
 export const WORKBOOK_GRID_WINDOW_ROW_COUNT = 32
 export const WORKBOOK_GRID_ROW_HEADER_WIDTH = 46
-export const WORKBOOK_GRID_COLUMN_WIDTH = 120
+export const WORKBOOK_GRID_COLUMN_WIDTH = DEFAULT_CELL_COLUMN_WIDTH
 export const WORKBOOK_GRID_WINDOW_COLUMN_COUNT = 8
 
 /** Creates the default React viewport metrics for one workbook sheet. */

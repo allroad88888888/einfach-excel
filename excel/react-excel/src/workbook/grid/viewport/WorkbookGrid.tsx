@@ -11,8 +11,7 @@ import {
 } from '@einfach/spreadsheet-ui-core'
 import type { CSSProperties } from 'react'
 import { useWorkbookViewport, type WorkbookViewport } from '../../projection/use-workbook-viewport'
-import { SpreadsheetGrid } from '../cells/SpreadsheetGrid'
-import { MergedCells } from '../cells/MergedCells'
+import { CellRenderer } from './CellRenderer'
 import { CellEditor } from '../editor/CellEditor'
 import { CellValidationList } from '../editor/CellValidationList'
 import { ResizeGuide } from './ResizeGuide'
@@ -72,8 +71,8 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
   const frozenCols = freeze?.sheetId === activeSheet.id ? freeze.cols : 0
   const bodyWindow = {
     ...viewport.window,
-    rowStart: Math.max(viewport.window.rowStart, frozenRows),
-    colStart: Math.max(viewport.window.colStart, frozenCols),
+    rowStart: Math.max(viewport.placementWindow.rowStart, frozenRows),
+    colStart: Math.max(viewport.placementWindow.colStart, frozenCols),
   }
   const rows = rowNumbers(bodyWindow.rowStart, bodyWindow.rowEnd)
   const rowHeights = sizeOverrides.rowHeightsBySheet[activeSheet.id]
@@ -187,7 +186,8 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
             tabIndex={viewport.retained ? -1 : 0}
           >
             {projectionState(viewport) ?? (
-              <SpreadsheetGrid
+              <CellRenderer
+                interactive={!viewport.retained}
                 cells={viewport.cells}
                 mergedRanges={viewport.mergedRanges}
                 window={bodyWindow}
@@ -195,7 +195,6 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
                 columnWidths={columnWidths.slice(bodyWindow.colStart, bodyWindow.colEnd + 1)}
               />
             )}
-            <MergedCells window={bodyWindow} />
           </div>
           <FrozenGrid focusGrid={events.focusGrid} />
           <FillHandle scrollRef={events.scrollRef} focusGrid={events.focusGrid} />

@@ -1,3 +1,4 @@
+import { canvasCellAt } from '@einfach/canvas-cells'
 import {
   getAxisStartIndexAtOffset,
   type CellCoord,
@@ -27,15 +28,17 @@ export function workbookCellAt(
 ): CellCoord | null {
   const eventCell =
     event.target instanceof Element ? event.target.closest<HTMLElement>('[data-cell]') : null
-  return cellCoordinate(eventCell) ?? workbookCellAtPoint(event.clientX, event.clientY)
+  const target = event.target instanceof Element ? event.target : null
+  return cellCoordinate(eventCell) ??
+    canvasCellAt(target, event.clientX, event.clientY) ??
+    workbookCellAtPoint(event.clientX, event.clientY)
 }
 
 /** Resolves viewport coordinates after the grid has moved beneath a captured pointer. */
 export function workbookCellAtPoint(clientX: number, clientY: number): CellCoord | null {
-  const pointCell = document
-    .elementFromPoint?.(clientX, clientY)
-    ?.closest<HTMLElement>('[data-cell]')
-  return cellCoordinate(pointCell)
+  const target = document.elementFromPoint?.(clientX, clientY)
+  return canvasCellAt(target, clientX, clientY) ??
+    cellCoordinate(target?.closest<HTMLElement>('[data-cell]'))
 }
 
 /** Maps viewport pixels to a cell while retained projection DOM is temporarily non-interactive. */

@@ -126,3 +126,5 @@ export { DEFAULT_NATIVE_TABLE_STYLE, NATIVE_TABLE_STYLE_PRESETS } from './tables
 export { activeCellInputTextAtom } from './projection/editable-source-text'
 export { toggleFormulaReferenceAtom } from './formula-reference/toggle-reference'
 export { spillAvailableAtom, spillPanelAtom, runSpillAtom } from './spill/command'
+
+export { createCellBorderResolver, sharedBorder } from './viewport/cell-border-resolver'

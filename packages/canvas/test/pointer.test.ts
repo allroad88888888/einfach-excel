@@ -123,3 +123,15 @@ test('capture delivers events outside the canvas while clipped cells receive no 
   expect(canvas.hasPointerCapture(1)).toBe(false)
   surface.dispose()
 })
+
+test('a custom grid hit-test can disable the per-cell pointer dispatcher', () => {
+  const { canvas } = canvasFixture()
+  const surface = createCanvas(canvas, {
+    store: createStore(), width: 200, height: 100, pointerEvents: false,
+  })
+  const down = vi.fn()
+  surface.createCell(bounds, () => { onPointerDown(down); return () => {} })
+  pointer(canvas, 'pointerdown', 10, 10)
+  expect(down).not.toHaveBeenCalled()
+  surface.dispose()
+})

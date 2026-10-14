@@ -2,7 +2,9 @@ import type { CellPointerType, PointerTarget } from './events.js'
 import type { Rect } from './paint.js'
 
 /** One native listener set per canvas, with cell-local dispatch and pointer capture. */
-export function createPointerDispatcher(canvas: HTMLCanvasElement, viewport: () => Rect) {
+export function createPointerDispatcher(
+  canvas: HTMLCanvasElement, viewport: () => Rect, enabled = true,
+) {
   const targets = new Set<PointerTarget>()
   const captured = new Map<number, PointerTarget>()
   const hovered = new Map<number, PointerTarget>()
@@ -98,8 +100,10 @@ export function createPointerDispatcher(canvas: HTMLCanvasElement, viewport: () 
   }
   const types = ['pointerdown', 'pointermove', 'pointerup', 'pointercancel',
     'pointerleave', 'lostpointercapture']
-  for (const type of types) canvas.addEventListener(type, handle)
-  canvas.ownerDocument.addEventListener('scroll', refreshHover, true)
+  if (enabled) {
+    for (const type of types) canvas.addEventListener(type, handle)
+    canvas.ownerDocument.addEventListener('scroll', refreshHover, true)
+  }
 
   function remove(target: PointerTarget) {
     if (!target.active) return

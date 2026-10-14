@@ -9,6 +9,7 @@ export interface CanvasOptions {
   readonly store: Store
   readonly width: number
   readonly height: number
+  readonly pointerEvents?: boolean
   readonly pixelRatio?: number
   readonly onFrame?: (stats: FrameStats) => void
 }
@@ -44,7 +45,7 @@ export function createCanvas(canvas: HTMLCanvasElement, options: CanvasOptions):
     const cells = new Set<PaintCell>()
     const dirty = new Set<Rect>()
     let viewport: Rect = { x: 0, y: 0, width: options.width, height: options.height }
-    const pointer = createPointerDispatcher(canvas, () => viewport)
+    const pointer = createPointerDispatcher(canvas, () => viewport, options.pointerEvents !== false)
     onCleanup(pointer.dispose)
     let full = true
     let frame: number | undefined

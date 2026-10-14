@@ -62,3 +62,5 @@ pnpm --filter @einfach/canvas typecheck
 pnpm --filter @einfach/canvas build
 pnpm --filter @einfach/canvas-demo dev
 ```
+
+规则网格可以设置 `pointerEvents: false` 关闭通用 cell 事件分发，由上层使用行列索引实现命中；这时 `onPointer*` hooks 不会收到事件。`canvas-cells` 使用此模式，避免每次指针移动扫描 cell。

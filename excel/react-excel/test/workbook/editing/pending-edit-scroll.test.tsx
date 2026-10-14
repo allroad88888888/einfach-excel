@@ -96,9 +96,9 @@ describe('pending edit projection scrolling', () => {
         value: SALES_ORDER_SHEET_ROW_COUNT * WORKBOOK_GRID_ROW_HEIGHT,
       },
     })
-    fireEvent.scroll(scroll, { target: { scrollTop: 20 * WORKBOOK_GRID_ROW_HEIGHT } })
-    await waitFor(() => expect(requests.map((request) => request.window.rowStart)).toContain(20))
-    await waitFor(() => expect(document.querySelector('[data-cell="20:0"]')).not.toBeNull())
+    fireEvent.scroll(scroll, { target: { scrollTop: 64 * WORKBOOK_GRID_ROW_HEIGHT } })
+    await waitFor(() => expect(requests.map((request) => request.window.rowStart)).toContain(32))
+    await waitFor(() => expect(document.querySelector('[data-cell="64:0"]')).not.toBeNull())
 
     if (mutationRequest === undefined) throw new Error('Expected the mutation to start.')
     mutation.resolve({
@@ -109,10 +109,10 @@ describe('pending edit projection scrolling', () => {
 
     await waitFor(() => expect(screen.queryByRole('textbox', { name: 'Cell editor' })).toBeNull())
     // The combined cell command computed its captured row-0 window, but UI
-    // Core discards it because the independent row-20 scroll won.
-    await waitFor(() => expect(requests.map((request) => request.window.rowStart)).toEqual([0, 20]))
+    // Core discards it because the independent row-64 scroll won.
+    await waitFor(() => expect(requests.map((request) => request.window.rowStart)).toEqual([0, 32]))
     expect(bundledRequests.map((request) => request.window.rowStart)).toEqual([0])
-    expect(document.querySelector('[data-cell="20:0"]')).toHaveTextContent('R20C0')
+    expect(document.querySelector('[data-cell="64:0"]')).toHaveTextContent('R64C0')
     expect(setCellInput).toHaveBeenCalledTimes(1)
   })
 })

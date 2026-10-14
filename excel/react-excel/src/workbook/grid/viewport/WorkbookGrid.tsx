@@ -71,8 +71,8 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
   const frozenCols = freeze?.sheetId === activeSheet.id ? freeze.cols : 0
   const bodyWindow = {
     ...viewport.window,
-    rowStart: Math.max(viewport.placementWindow.rowStart, frozenRows),
-    colStart: Math.max(viewport.placementWindow.colStart, frozenCols),
+    rowStart: Math.max(viewport.window.rowStart, frozenRows),
+    colStart: Math.max(viewport.window.colStart, frozenCols),
   }
   const rows = rowNumbers(bodyWindow.rowStart, bodyWindow.rowEnd)
   const rowHeights = sizeOverrides.rowHeightsBySheet[activeSheet.id]
@@ -101,8 +101,9 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
     WORKBOOK_GRID_ROW_HEIGHT,
     rowHeights,
   )
+  // 等待新投影时，旧格仍留在真实坐标；搬到新窗口会让内容先跳一下再换回来。
   const windowOffset = getAxisOffsetForIndex(
-    Math.max(viewport.placementWindow.rowStart, frozenRows),
+    Math.max(viewport.window.rowStart, frozenRows),
     activeSheet.rowCount,
     WORKBOOK_GRID_ROW_HEIGHT,
     rowHeights,
@@ -129,10 +130,10 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
   } as CSSProperties
   const cellWindowStyle = {
     ...windowStyle,
-    '--grid-window-offset-x': `${columnOffset(Math.max(viewport.placementWindow.colStart, frozenCols))}px`,
+    '--grid-window-offset-x': `${columnOffset(Math.max(viewport.window.colStart, frozenCols))}px`,
     '--grid-window-width': `${
-      columnOffset(Math.max(viewport.placementWindow.colEnd + 1, frozenCols)) -
-      columnOffset(Math.max(viewport.placementWindow.colStart, frozenCols))
+      columnOffset(Math.max(viewport.window.colEnd + 1, frozenCols)) -
+      columnOffset(Math.max(viewport.window.colStart, frozenCols))
     }px`,
   } as CSSProperties
 

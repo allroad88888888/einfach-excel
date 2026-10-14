@@ -30,9 +30,13 @@ export function createCellBorderResolver({
       ...ownProjection.frozen?.regions.flatMap((region) => region.mergeBorderCells ?? []) ?? [],
     ]
     : cells).map((cell) => [`${cell.row}:${cell.col}`, cell.format]))
-  const rows = Array.from({ length: Math.max(0, cellWindow.rowEnd - cellWindow.rowStart + 1) }, (_, i) => i)
+  const rows = Array.from(
+    { length: Math.max(0, cellWindow.rowEnd - cellWindow.rowStart + 1) }, (_, i) => i,
+  )
     .filter((i) => rowHeights?.[i] !== 0).map((i) => i + cellWindow.rowStart)
-  const cols = Array.from({ length: Math.max(0, cellWindow.colEnd - cellWindow.colStart + 1) }, (_, i) => i)
+  const cols = Array.from(
+    { length: Math.max(0, cellWindow.colEnd - cellWindow.colStart + 1) }, (_, i) => i,
+  )
     .filter((i) => columnWidths?.[i] !== 0).map((i) => i + cellWindow.colStart)
   const rowPosition = new Map(rows.map((row, i) => [row, i]))
   const colPosition = new Map(cols.map((col, i) => [col, i]))
@@ -93,7 +97,8 @@ export function createCellBorderResolver({
     const ri = rowPosition.get(row)!, ci = colPosition.get(col)!
     // 合并外沿可在隐藏轴上；普通格保持索引查找，仅这类外沿查相邻可见坐标。
     const top = (ri === undefined ? rows.findLast((r) => r < row) : rows[ri - 1]) ??
-      (scrollTop === 0 && after(row, cellWindow.rowEnd, hiddenRows) === bodyRow ? frozenRow : undefined)
+      (scrollTop === 0 && after(row, cellWindow.rowEnd, hiddenRows) === bodyRow
+        ? frozenRow : undefined)
     const left = (ci === undefined ? cols.findLast((c) => c < col) : cols[ci - 1]) ??
       (scrollLeft === 0 && after(col, cellWindow.colEnd, hiddenCols) === bodyCol
         ? frozenCol : undefined)

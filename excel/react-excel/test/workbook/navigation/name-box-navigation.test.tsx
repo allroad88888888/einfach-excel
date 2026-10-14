@@ -19,13 +19,13 @@ function projectionFor(request: VisibleProjectionRequest): VisibleProjectionResu
     requestId: request.requestId,
     sheetId: request.sheetId,
     window: request.window,
-    cells: [
-      {
-        row: request.window.rowStart,
+    cells: Array.from({ length: request.window.rowEnd - request.window.rowStart + 1 }, (_, index) =>
+      ({
+        row: request.window.rowStart + index,
         col: 1,
-        displayValue: `B${request.window.rowStart + 1}`,
-      },
-    ],
+        displayValue: `B${request.window.rowStart + index + 1}`,
+      }),
+    ),
   }
 }
 
@@ -78,7 +78,8 @@ describe('workbook name box navigation', () => {
     expect(store.getter(selectionSnapshotAtom).activeCell).toMatchObject({ row: 99, col: 1 })
     expect(store.getter(viewportMetricsAtom).scrollTop).toBe(99 * WORKBOOK_GRID_ROW_HEIGHT)
     await waitFor(() => expect(requests).toHaveLength(2))
-    expect(requests[1]?.window.rowStart).toBe(99)
+    expect(requests[1]?.window.rowStart).toBeLessThan(99)
+    expect(requests[1]?.window.rowEnd).toBeGreaterThanOrEqual(99)
     await waitFor(() =>
       expect(document.querySelector('[data-cell="99:1"]')).toHaveTextContent('B100'),
     )

@@ -32,8 +32,7 @@ describe('workbook arrow-key navigation', () => {
 
     expect(store.getter(selectionSnapshotAtom).activeCell).toMatchObject({ row: 32, col: 0 })
     expect(store.getter(viewportMetricsAtom).scrollTop).toBe(WORKBOOK_GRID_ROW_HEIGHT)
-    await waitFor(() => expect(requests).toHaveLength(2))
-    expect(requests[1]?.window.rowStart).toBe(1)
+    expect(requests).toHaveLength(1)
     await waitFor(() => expect(document.querySelector('[data-cell="32:0"]')).toBeInTheDocument())
     expect(grid).toHaveFocus()
   })

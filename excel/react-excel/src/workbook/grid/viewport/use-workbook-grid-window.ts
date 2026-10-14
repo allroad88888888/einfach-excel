@@ -2,7 +2,9 @@ import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   activeWorkbookSheetAtom,
   initializeViewportMetricsAtom,
-  visibleWindowAtom,
+  getBufferedProjectionWindow,
+  viewportMetricsAtom,
+  viewportGeometrySizesAtom,
   type CellRange,
 } from '@einfach/spreadsheet-ui-core'
 import { useEffect } from 'react'
@@ -11,7 +13,8 @@ import { workbookViewportMetrics } from './workbook-grid-config'
 /** Initializes viewport metrics from the active workbook sheet. */
 export function useWorkbookGridWindow(): CellRange {
   const activeSheet = useAtomValue(activeWorkbookSheetAtom)
-  const window = useAtomValue(visibleWindowAtom)
+  const metrics = useAtomValue(viewportMetricsAtom)
+  const sizes = useAtomValue(viewportGeometrySizesAtom)
   const setViewportMetrics = useSetAtom(initializeViewportMetricsAtom)
   const sheetId = activeSheet?.id
   const rowCount = activeSheet?.rowCount
@@ -22,5 +25,7 @@ export function useWorkbookGridWindow(): CellRange {
     setViewportMetrics(workbookViewportMetrics(rowCount, colCount, sheetId))
   }, [colCount, rowCount, setViewportMetrics, sheetId])
 
-  return window
+  return getBufferedProjectionWindow(metrics,
+    sheetId ? sizes.rowHeightsBySheet[sheetId] : undefined,
+    sheetId ? sizes.colWidthsBySheet[sheetId] : undefined)
 }

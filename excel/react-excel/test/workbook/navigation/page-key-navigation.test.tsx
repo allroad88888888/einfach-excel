@@ -21,13 +21,13 @@ describe('workbook page-key navigation', () => {
     expect(store.getter(viewportMetricsAtom).scrollTop).toBe(
       32 * WORKBOOK_GRID_ROW_HEIGHT,
     )
-    await waitFor(() => expect(requests).toHaveLength(2))
+    expect(requests).toHaveLength(1)
     await waitFor(() => expect(document.querySelector('[data-cell="32:0"]')).toBeInTheDocument())
 
     fireEvent.keyDown(grid, { key: 'PageUp' })
 
     expect(store.getter(selectionSnapshotAtom).activeCell).toMatchObject({ row: 0, col: 0 })
     expect(store.getter(viewportMetricsAtom).scrollTop).toBe(0)
-    await waitFor(() => expect(requests).toHaveLength(3))
+    expect(requests).toHaveLength(1)
   })
 })

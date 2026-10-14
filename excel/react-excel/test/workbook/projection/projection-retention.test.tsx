@@ -9,8 +9,6 @@ import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { SALES_ORDER_SHEET_ROW_COUNT } from '../../../src/page/demo/sales-orders/data/sheet'
 import {
   WORKBOOK_GRID_ROW_HEIGHT,
-  WORKBOOK_GRID_WINDOW_COLUMN_COUNT,
-  WORKBOOK_GRID_WINDOW_ROW_COUNT,
 } from '../../../src/workbook/grid/viewport/workbook-grid-config'
 import { createTestRustWorkbookConnection } from '../../support/rust-workbook-connection'
 import {
@@ -21,7 +19,7 @@ import {
 } from '../../support/projection-harness'
 
 describe('Rust workbook projection retention', () => {
-  it('retains one complete projection frame during a one-row scroll', async () => {
+  it('retains one complete projection frame when scrolling into the next buffer bucket', async () => {
     const nextProjection = deferredProjection<VisibleProjectionResult>()
     const requests: VisibleProjectionRequest[] = []
     const readVisibleProjection = vi.fn(async (request: VisibleProjectionRequest) => {
@@ -41,20 +39,22 @@ describe('Rust workbook projection retention', () => {
         value: SALES_ORDER_SHEET_ROW_COUNT * WORKBOOK_GRID_ROW_HEIGHT,
       },
     })
-    fireEvent.scroll(scroll, { target: { scrollTop: WORKBOOK_GRID_ROW_HEIGHT } })
+    fireEvent.scroll(scroll, { target: { scrollTop: 64 * WORKBOOK_GRID_ROW_HEIGHT } })
     await waitFor(() => expect(requests).toHaveLength(2))
 
     expect(screen.queryByText('Loading visible cells…')).not.toBeInTheDocument()
     expect(document.querySelectorAll('td')).toHaveLength(
-      WORKBOOK_GRID_WINDOW_ROW_COUNT * WORKBOOK_GRID_WINDOW_COLUMN_COUNT,
+      (requests[0]!.window.rowEnd + 1) * (requests[0]!.window.colEnd + 1),
     )
     expect(document.querySelector('[data-cell="0:0"]')).toHaveTextContent('Order')
     expect(document.querySelector('[data-cell="31:0"]')).toHaveTextContent('SO-10031')
-    expect(document.querySelector('[data-cell="32:0"]')).toBeNull()
+    expect(document.querySelector(`[data-cell="${requests[0]!.window.rowEnd + 1}:0"]`)).toBeNull()
+    expect(screen.getByLabelText('Sales Orders cells').style.getPropertyValue('--grid-window-offset'))
+      .toBe('0px')
 
     act(() => nextProjection.resolve(projectionResultFor(requests[1]!)))
     await waitFor(() => {
-      expect(document.querySelector('[data-cell="32:0"]')).toHaveTextContent('SO-10032')
+      expect(document.querySelector(`[data-cell="${requests[1]!.window.rowEnd}:0"]`)).not.toBeNull()
     })
   })
 
@@ -71,7 +71,7 @@ describe('Rust workbook projection retention', () => {
     await waitFor(() => expect(document.querySelector('[data-cell="0:0"]')).not.toBeNull())
     const scroll = screen.getByTestId('sheet-scroll')
 
-    fireEvent.scroll(scroll, { target: { scrollTop: WORKBOOK_GRID_ROW_HEIGHT } })
+    fireEvent.scroll(scroll, { target: { scrollTop: 64 * WORKBOOK_GRID_ROW_HEIGHT } })
     await waitFor(() => expect(requests).toHaveLength(2))
     const grid = screen.getByLabelText('Sales Orders cells')
     grid.focus()
@@ -83,7 +83,7 @@ describe('Rust workbook projection retention', () => {
     await waitFor(() => expect(grid).toHaveAttribute('data-projection-retained', 'false'))
   })
 
-  it('places a distant retained frame in view without exposing stale interactions', async () => {
+  it('never relocates distant retained data or exposes stale interactions', async () => {
     const nextProjection = deferredProjection<VisibleProjectionResult>()
     const requests: VisibleProjectionRequest[] = []
     const readVisibleProjection = vi.fn(async (request: VisibleProjectionRequest) => {
@@ -106,13 +106,13 @@ describe('Rust workbook projection retention', () => {
     fireEvent.scroll(scroll, { target: { scrollTop: 400 * WORKBOOK_GRID_ROW_HEIGHT } })
     await waitFor(() => expect(requests).toHaveLength(2))
 
-    expect(requests[1]?.window.rowStart).toBe(400)
+    expect(requests[1]!.window.rowStart).toBeLessThan(400)
+    expect(requests[1]!.window.rowEnd).toBeGreaterThan(400)
     const grid = screen.getByLabelText('Sales Orders cells')
     const frameTop = Number.parseFloat(grid.style.getPropertyValue('--grid-window-offset'))
-    const frameBottom = frameTop + WORKBOOK_GRID_WINDOW_ROW_COUNT * WORKBOOK_GRID_ROW_HEIGHT
-    expect(frameTop).toBe(400 * WORKBOOK_GRID_ROW_HEIGHT)
-    expect(frameTop).toBeLessThan(scroll.scrollTop + scroll.clientHeight)
-    expect(frameBottom).toBeGreaterThan(scroll.scrollTop)
+    const frameBottom = frameTop + (requests[0]!.window.rowEnd + 1) * WORKBOOK_GRID_ROW_HEIGHT
+    expect(frameTop).toBe(0)
+    expect(frameBottom).toBeLessThan(scroll.scrollTop)
     expect(grid).toHaveAttribute('data-projection-retained', 'true')
     expect(grid).toHaveAttribute('tabindex', '-1')
 
@@ -128,7 +128,7 @@ describe('Rust workbook projection retention', () => {
     expect(document.querySelector('[data-cell="0:0"]')).toHaveTextContent('Order')
     expect(document.querySelector('[data-cell="400:0"]')).toBeNull()
     expect(document.querySelectorAll('td')).toHaveLength(
-      WORKBOOK_GRID_WINDOW_ROW_COUNT * WORKBOOK_GRID_WINDOW_COLUMN_COUNT,
+      (requests[0]!.window.rowEnd + 1) * (requests[0]!.window.colEnd + 1),
     )
 
     act(() => nextProjection.resolve(projectionResultFor(requests[1]!)))
@@ -140,7 +140,7 @@ describe('Rust workbook projection retention', () => {
     expect(grid).toHaveAttribute('data-projection-retained', 'false')
     expect(grid).toHaveAttribute('tabindex', '0')
     expect(grid.style.getPropertyValue('--grid-window-offset')).toBe(
-      `${400 * WORKBOOK_GRID_ROW_HEIGHT}px`,
+      `${requests[1]!.window.rowStart * WORKBOOK_GRID_ROW_HEIGHT}px`,
     )
 
     dispatchProjectionPointer(readyCell as HTMLElement, 'pointerdown')

@@ -6,6 +6,8 @@ import ts from 'typescript'
 // 这里只检查能稳定机械判断的边界；抽象是否有必要由 react-excel/SKILL.md 审查。
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const reactSourceRoot = path.join(repositoryRoot, 'excel/react-excel/src')
+const reactCellsSourceRoot = path.join(repositoryRoot, 'packages/react-cells/src')
+const canvasCellsSourceRoot = path.join(repositoryRoot, 'packages/canvas-cells/src')
 const uiCoreSourceRoot = path.join(repositoryRoot, 'excel/spreadsheet-ui-core/src')
 const sourceExtensions = new Set(['.ts', '.tsx'])
 const violations = []
@@ -61,6 +63,10 @@ function isConcreteDemoImport(moduleName) {
 
 function isViewFrameworkModule(moduleName) {
   return (
+    moduleName === '@einfach/canvas' ||
+    moduleName === '@einfach/canvas-cells' ||
+    moduleName === '@einfach/react-cells' ||
+    moduleName.startsWith('@einfach/react-cells/') ||
     moduleName === 'react' ||
     moduleName.startsWith('react/') ||
     moduleName === '@einfach/react' ||
@@ -82,6 +88,11 @@ function visitReactSource(filePath, sourceFile) {
   function visit(node) {
     if (ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier)) {
       const moduleName = node.moduleSpecifier.text
+      if (filePath.startsWith(`${reactCellsSourceRoot}${path.sep}`) &&
+        (moduleName.startsWith('@einfach/react-excel') ||
+          moduleName.includes('react-excel/'))) {
+        report(filePath, node, 'React cell 包不能反向依赖产品宿主 react-excel')
+      }
       if (isDemoHostFile(filePath) && isConcreteDemoImport(moduleName)) {
         report(filePath, node, `演示站外壳不能直接依赖具体 demo：${moduleName}`)
       }
@@ -195,6 +206,20 @@ function parseSource(filePath) {
 
 for (const filePath of collectSourceFiles(reactSourceRoot)) {
   visitReactSource(filePath, parseSource(filePath))
+}
+for (const filePath of collectSourceFiles(reactCellsSourceRoot)) {
+  visitReactSource(filePath, parseSource(filePath))
+}
+for (const filePath of collectSourceFiles(canvasCellsSourceRoot)) {
+  const sourceFile = parseSource(filePath)
+  for (const node of sourceFile.statements) {
+    if (!ts.isImportDeclaration(node) || !ts.isStringLiteral(node.moduleSpecifier)) continue
+    const moduleName = node.moduleSpecifier.text
+    if (/^(?:react(?:\/|$)|react-dom(?:\/|$)|@einfach\/react)/.test(moduleName) ||
+      moduleName.includes('react-excel/')) {
+      report(filePath, node, 'Canvas cell 包不能依赖 React 或 React 产品宿主')
+    }
+  }
 }
 for (const filePath of collectSourceFiles(uiCoreSourceRoot)) {
   visitUiCoreSource(filePath, parseSource(filePath))

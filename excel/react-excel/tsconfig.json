@@ -8,6 +8,9 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
+      "@einfach/canvas-cells": ["../../packages/canvas-cells/src/index.ts"],
+      "@einfach/canvas": ["../../packages/canvas/src/index.ts"],
+      "@einfach/react-cells": ["../../packages/react-cells/src/index.ts"],
       "@einfach/spreadsheet-ui-core": ["../spreadsheet-ui-core/src/index.ts"],
       "@einfach/spreadsheet-ui-core/*": ["../spreadsheet-ui-core/src/*"]
     },

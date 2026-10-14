@@ -17,7 +17,7 @@
     "check:docs": "node scripts/check-doc-links.mjs",
     "check:presentation": "node scripts/check-presentation-boundary.mjs",
     "check:cycles": "depcruise --config .dependency-cruiser.cjs --output-type err-long excel/excel-core-ts/src excel/spreadsheet-ui-core/src excel/react-excel/src",
-    "lint:check": "npx eslint --config rules/.eslintrc --ext=.ts,.tsx --ignore-path ./rules/.eslintignore excel/excel-core-ts/src excel/excel-core-ts/test excel/react-excel/src excel/react-excel/test excel/spreadsheet-ui-core/src excel/spreadsheet-ui-core/test packages/canvas/src packages/canvas/test",
+    "lint:check": "npx eslint --config rules/.eslintrc --ext=.ts,.tsx --ignore-path ./rules/.eslintignore excel/excel-core-ts/src excel/excel-core-ts/test excel/react-excel/src excel/react-excel/test excel/spreadsheet-ui-core/src excel/spreadsheet-ui-core/test packages/canvas/src packages/canvas/test packages/react-cells/src packages/react-cells/test packages/canvas-cells/src packages/canvas-cells/test",
     "typecheck:mainline": "tsc -build excel/spreadsheet-ui-core && pnpm --filter @einfach/react-excel typecheck",
     "test": "vitest run --workspace vitest.workspace.ts",
     "test:coverage": "vitest run --workspace vitest.workspace.ts --coverage",

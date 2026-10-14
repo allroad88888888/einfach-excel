@@ -190,12 +190,18 @@ importers:
 
   excel/react-excel:
     dependencies:
+      '@einfach/canvas-cells':
+        specifier: workspace:*
+        version: link:../../packages/canvas-cells
       '@einfach/core':
         specifier: ^0.4.0
         version: 0.4.0
       '@einfach/react':
         specifier: ^0.4.0
         version: 0.4.0(react@18.3.1)
+      '@einfach/react-cells':
+        specifier: workspace:*
+        version: link:../../packages/react-cells
       '@einfach/spreadsheet-ui-core':
         specifier: workspace:*
         version: link:../spreadsheet-ui-core
@@ -362,6 +368,30 @@ importers:
         specifier: ^2.1.9
         version: 2.1.9(@types/node@20.19.43)(jsdom@25.0.1)(lightningcss@1.33.0)(terser@5.39.0)
 
+  packages/canvas-cells:
+    devDependencies:
+      '@einfach/canvas':
+        specifier: workspace:*
+        version: link:../canvas
+      '@einfach/core':
+        specifier: ^0.4.0
+        version: 0.4.0
+      '@einfach/spreadsheet-ui-core':
+        specifier: workspace:*
+        version: link:../../excel/spreadsheet-ui-core
+      '@types/node':
+        specifier: ^20.11.30
+        version: 20.19.43
+      typescript:
+        specifier: ^5.7.2
+        version: 5.8.3
+      vite:
+        specifier: ^5.4.21
+        version: 5.4.21(@types/node@20.19.43)(lightningcss@1.33.0)(terser@5.39.0)
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(@types/node@20.19.43)(jsdom@25.0.1)(lightningcss@1.33.0)(terser@5.39.0)
+
   packages/canvas-demo:
     dependencies:
       '@einfach/core':
@@ -383,6 +413,54 @@ importers:
       vite:
         specifier: ^5.4.21
         version: 5.4.21(@types/node@20.19.43)(lightningcss@1.33.0)(terser@5.39.0)
+
+  packages/react-cells:
+    devDependencies:
+      '@einfach/core':
+        specifier: ^0.4.0
+        version: 0.4.0
+      '@einfach/react':
+        specifier: ^0.4.0
+        version: 0.4.0(react@18.3.1)
+      '@einfach/spreadsheet-ui-core':
+        specifier: workspace:*
+        version: link:../../excel/spreadsheet-ui-core
+      '@testing-library/jest-dom':
+        specifier: ^6.4.5
+        version: 6.6.3
+      '@testing-library/react':
+        specifier: ^16.3.0
+        version: 16.3.0(@testing-library/dom@10.4.0)(@types/react-dom@18.3.6(@types/react@18.3.20))(@types/react@18.3.20)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@types/node':
+        specifier: ^20.11.30
+        version: 20.19.43
+      '@types/react':
+        specifier: ^18.3.20
+        version: 18.3.20
+      '@types/react-dom':
+        specifier: ^18.3.6
+        version: 18.3.6(@types/react@18.3.20)
+      '@vitejs/plugin-react':
+        specifier: ^4.7.0
+        version: 4.7.0(vite@5.4.21(@types/node@20.19.43)(lightningcss@1.33.0)(terser@5.39.0))
+      jsdom:
+        specifier: ^25.0.1
+        version: 25.0.1
+      react:
+        specifier: ^18.3.1
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.3.1
+        version: 18.3.1(react@18.3.1)
+      typescript:
+        specifier: ^5.7.2
+        version: 5.8.3
+      vite:
+        specifier: ^5.4.21
+        version: 5.4.21(@types/node@20.19.43)(lightningcss@1.33.0)(terser@5.39.0)
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(@types/node@20.19.43)(jsdom@25.0.1)(lightningcss@1.33.0)(terser@5.39.0)
 
 packages:
 

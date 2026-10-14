@@ -1,0 +1,29 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": false,
+    "incremental": false,
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@einfach/spreadsheet-ui-core": [
+        "../../excel/spreadsheet-ui-core/src/index.ts"
+      ],
+      "@einfach/canvas": [
+        "../canvas/src/index.ts"
+      ]
+    },
+    "types": [
+      "vite/client",
+      "node",
+      "vitest/globals"
+    ]
+  },
+  "include": [
+    "src",
+    "test",
+    "vite.config.ts",
+    "vitest.config.ts"
+  ]
+}

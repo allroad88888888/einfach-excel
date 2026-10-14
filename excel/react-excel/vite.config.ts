@@ -10,6 +10,9 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
+      '@einfach/canvas-cells': path.resolve(repoRoot, 'packages/canvas-cells/src'),
+      '@einfach/canvas': path.resolve(repoRoot, 'packages/canvas/src'),
+      '@einfach/react-cells': path.resolve(repoRoot, 'packages/react-cells/src'),
       '@einfach/spreadsheet-ui-core': path.resolve(repoRoot, 'excel/spreadsheet-ui-core/src'),
     },
   },

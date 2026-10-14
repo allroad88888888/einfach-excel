@@ -1,0 +1,20 @@
+/* 覆盖普通网格线，合并框仍使用全尺寸；裁切层不抢占未合并格的鼠标事件。 */
+.merged-cell-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.grid-surface .merged-cell {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  pointer-events: auto;
+  font-size: 12px;
+}
+.grid-surface .merged-cell:last-child {
+  border-right: 1px solid var(--gridline);
+}
+.grid-surface[data-projection-retained='true'] .merged-cell {
+  pointer-events: none;
+}

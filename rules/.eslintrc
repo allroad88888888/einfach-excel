@@ -259,6 +259,16 @@
   },
   "overrides": [
     {
+      "files": ["packages/canvas-cells/**"],
+      "parserOptions": { "project": ["./packages/canvas-cells/tsconfig.json"] },
+      "rules": { "max-lines": ["error", 300], "react-hooks/rules-of-hooks": "off" }
+    },
+    {
+      "files": ["packages/react-cells/**"],
+      "parserOptions": { "project": ["./packages/react-cells/tsconfig.json"] },
+      "rules": { "max-lines": ["error", 300] }
+    },
+    {
       "files": ["packages/canvas-demo/**"],
       "parserOptions": {
         "project": ["./packages/canvas-demo/tsconfig.json"]

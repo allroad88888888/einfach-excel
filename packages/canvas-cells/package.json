@@ -1,0 +1,39 @@
+{
+  "name": "@einfach/canvas-cells",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Canvas spreadsheet cells with owned atom subscriptions",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "vite build && tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "@einfach/core": "^0.4.0",
+    "@einfach/canvas": "workspace:*",
+    "@einfach/spreadsheet-ui-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@einfach/core": "^0.4.0",
+    "@einfach/canvas": "workspace:*",
+    "@einfach/spreadsheet-ui-core": "workspace:*",
+    "@types/node": "^20.11.30",
+    "typescript": "^5.7.2",
+    "vite": "^5.4.21",
+    "vitest": "^2.1.9"
+  }
+}

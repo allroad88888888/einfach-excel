@@ -1,0 +1,2 @@
+export const DEFAULT_CELL_ROW_HEIGHT = 28
+export const DEFAULT_CELL_COLUMN_WIDTH = 120

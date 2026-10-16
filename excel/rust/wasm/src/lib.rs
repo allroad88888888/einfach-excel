@@ -70,6 +70,8 @@ pub struct WasmWorkbook {
     workbook: Workbook,
     history: einfach_excel_core::workbook_history::WorkbookHistory,
     clipboard: Option<einfach_excel_core::clipboard::ClipboardSnapshot>,
+    /// 浏览器确认写入前临时持有；失败不能替换上一次成功的快照。
+    pending_clipboard: Option<einfach_excel_core::clipboard::ClipboardSnapshot>,
     /// 格式刷独立占一个原生快照槽，不能覆盖用户普通复制／剪切的内容。
     format_painter: Option<einfach_excel_core::clipboard::ClipboardSnapshot>,
     /// Workbook-level ownership for opaque JS subscription tokens. Each entry
@@ -186,6 +188,7 @@ mod tests {
     include!("wasm_tests/hidden_rows.rs");
     include!("wasm_tests/manual_visibility.rs");
     include!("wasm_tests/structure_history.rs");
+    include!("wasm_tests/clipboard_recovery.rs");
     include!("wasm_tests/merge.rs");
     include!("wasm_tests/frozen_panes.rs");
     include!("wasm_tests/find_wire.rs");

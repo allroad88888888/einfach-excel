@@ -1,9 +1,12 @@
+import { translateFeedback } from '../../../i18n/translate-feedback'
+import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { runWorkbookSheetCommandAtom, sheetTabsAtom } from '@einfach/spreadsheet-ui-core'
 import { useEffect, useRef } from 'react'
 
 /** 删除确认使用原生模态框；确认对象及异步结果仍由 UI Core 持有。 */
 export function SheetDeleteConfirmation() {
+  const { i18n, t } = useLingui()
   const state = useAtomValue(sheetTabsAtom)
   const run = useSetAtom(runWorkbookSheetCommandAtom)
   const dialogRef = useRef<HTMLDialogElement>(null)
@@ -29,14 +32,14 @@ export function SheetDeleteConfirmation() {
         if (!busy) void run({ operation: 'cancel-delete' })
       }}
     >
-      <h2 id="sheet-delete-title">Delete worksheet?</h2>
-      <p id="sheet-delete-description">
+      <h2 id="sheet-delete-title"><Trans>Delete worksheet?</Trans></h2>
+      <p id="sheet-delete-description"><Trans>
         Delete “{confirmation.sheetName}” and all its data? Undo is available within session history
         limits.
-      </p>
+      </Trans></p>
       {state.error && (
         <p className="sheet-command-error" role="alert">
-          {state.error}
+          {translateFeedback(i18n, state.error)}
         </p>
       )}
       <div className="sheet-delete-actions">
@@ -44,16 +47,16 @@ export function SheetDeleteConfirmation() {
           type="button"
           disabled={busy}
           onClick={() => void run({ operation: 'cancel-delete' })}
-        >
+        ><Trans>
           Cancel
-        </button>
+        </Trans></button>
         <button
           type="button"
           disabled={busy}
           className="sheet-delete-confirm"
           onClick={() => void run({ operation: 'delete' })}
         >
-          {busy ? 'Deleting…' : 'Delete worksheet'}
+          {busy ? t`Deleting…` : t`Delete worksheet`}
         </button>
       </div>
     </dialog>

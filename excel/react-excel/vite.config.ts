@@ -1,13 +1,14 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import react from '@vitejs/plugin-react'
+import { lingui } from '@lingui/vite-plugin'
 import { defineConfig } from 'vite'
 
 const dirName = path.dirname(fileURLToPath(import.meta.url))
 const repoRoot = path.resolve(dirName, '../..')
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), lingui({ cwd: dirName, macroTransform: true, failOnMissing: 'catalog', failOnCompileError: true })],
   resolve: {
     alias: {
       '@einfach/canvas-cells': path.resolve(repoRoot, 'packages/canvas-cells/src'),

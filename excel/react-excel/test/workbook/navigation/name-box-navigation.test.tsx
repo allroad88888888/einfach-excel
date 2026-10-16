@@ -49,6 +49,19 @@ function renderWorkbook() {
 }
 
 describe('workbook name box navigation', () => {
+  it('selects an already visible cell without scrolling or requesting a new projection', async () => {
+    const { requests, store } = renderWorkbook()
+    await waitFor(() => expect(requests).toHaveLength(1))
+    const nameBox = screen.getByRole('textbox', { name: 'Name box' })
+    fireEvent.focus(nameBox)
+    fireEvent.input(nameBox, { target: { value: 'B8' } })
+    fireEvent.keyDown(nameBox, { key: 'Enter' })
+    expect(store.getter(selectionSnapshotAtom).activeCell).toMatchObject({ row: 7, col: 1 })
+    expect(store.getter(viewportMetricsAtom)).toMatchObject({ scrollTop: 0, scrollLeft: 0 })
+    expect(requests).toHaveLength(1)
+    expect(screen.getByLabelText('Sales Orders cells')).toHaveFocus()
+  })
+
   it('uses the current DOM width when a resize has not reached the viewport atom yet', async () => {
     const { requests, store } = renderWorkbook()
     await waitFor(() => expect(requests).toHaveLength(1))
@@ -76,7 +89,9 @@ describe('workbook name box navigation', () => {
     fireEvent.keyDown(nameBox, { key: 'Enter' })
 
     expect(store.getter(selectionSnapshotAtom).activeCell).toMatchObject({ row: 99, col: 1 })
-    expect(store.getter(viewportMetricsAtom).scrollTop).toBe(99 * WORKBOOK_GRID_ROW_HEIGHT)
+    expect(store.getter(viewportMetricsAtom).scrollTop).toBe(
+      100 * WORKBOOK_GRID_ROW_HEIGHT - store.getter(viewportMetricsAtom).viewportHeight,
+    )
     await waitFor(() => expect(requests).toHaveLength(2))
     expect(requests[1]?.window.rowStart).toBeLessThan(99)
     expect(requests[1]?.window.rowEnd).toBeGreaterThanOrEqual(99)

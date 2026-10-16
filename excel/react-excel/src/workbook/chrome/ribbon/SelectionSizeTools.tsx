@@ -1,3 +1,5 @@
+import { translateFeedback } from '../../../i18n/translate-feedback'
+import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   editingSessionAtom,
@@ -9,6 +11,7 @@ import './selection-size.css'
 
 /** DOM 模态框只负责输入与焦点；选区目标、草稿、异步结果由 command atom 管理。 */
 export function SelectionSizeTools() {
+  const { i18n, t } = useLingui()
   const state = useAtomValue(selectionSizePanelAtom)
   const editing = useAtomValue(editingSessionAtom).source !== null
   const run = useSetAtom(runSelectionSizeAtom)
@@ -32,16 +35,16 @@ export function SelectionSizeTools() {
       <button
         ref={buttonRef}
         className="tool-button"
-        aria-label="Row and column size"
-        title="Row and column size"
+        aria-label={t`Row and column size`}
+        title={t`Row and column size`}
         disabled={editing || state.busy}
         type="button"
         onClick={() => void run('open')}
       >
         ↔
       </button>
-      {!target && state.error && <span role="alert" className="size-error">{state.error}</span>}
-      {!target && state.busy && <span role="status">Saving sizes…</span>}
+      {!target && state.error && <span role="alert" className="size-error">{translateFeedback(i18n, state.error)}</span>}
+      {!target && state.busy && <span role="status"><Trans>Saving sizes…</Trans></span>}
       {target && (
         <dialog
           ref={ref}
@@ -53,11 +56,11 @@ export function SelectionSizeTools() {
             void run('close')
           }}
         >
-          <h2 id={`${id}-title`}>Row and column size</h2>
-          <p id={`${id}-description`}>
+          <h2 id={`${id}-title`}><Trans>Row and column size</Trans></h2>
+          <p id={`${id}-description`}><Trans>
             Applies to rows {target.range.rowStart + 1}–{target.range.rowEnd + 1} and columns{' '}
             {target.range.colStart + 1}–{target.range.colEnd + 1}. Sizes are in pixels.
-          </p>
+          </Trans></p>
           {(['height', 'width'] as const).map((field) => (
             <form
               key={field}
@@ -67,7 +70,7 @@ export function SelectionSizeTools() {
               }}
             >
               <label htmlFor={`${id}-${field}`}>
-                {field === 'height' ? 'Row height' : 'Column width'}
+                {field === 'height' ? t`Row height` : t`Column width`}
               </label>
               <input
                 id={`${id}-${field}`}
@@ -81,27 +84,27 @@ export function SelectionSizeTools() {
                 onChange={(event) => void run({ field, value: event.currentTarget.value })}
               />
               <button type="submit" disabled={state.busy}>
-                {field === 'height' ? 'Set row height' : 'Set column width'}
+                {field === 'height' ? t`Set row height` : t`Set column width`}
               </button>
             </form>
           ))}
           {state.error && (
             <p role="alert" className="size-error">
-              {state.error}
+              {translateFeedback(i18n, state.error)}
             </p>
           )}
           <div className="size-actions">
-            <button type="button" disabled={state.busy} onClick={() => void run('reset')}>
+            <button type="button" disabled={state.busy} onClick={() => void run('reset')}><Trans>
               Reset selected sizes
-            </button>
-            <button type="button" disabled={state.busy} onClick={() => void run('close')}>
+            </Trans></button>
+            <button type="button" disabled={state.busy} onClick={() => void run('close')}><Trans>
               Cancel
-            </button>
+            </Trans></button>
           </div>
-          <p className="size-hint">
+          <p className="size-hint"><Trans>
             Reset sizes keeps cell values and formatting. It does not auto-fit text.
-          </p>
-          {state.busy && <p role="status">Saving sizes…</p>}
+          </Trans></p>
+          {state.busy && <p role="status"><Trans>Saving sizes…</Trans></p>}
         </dialog>
       )}
     </>

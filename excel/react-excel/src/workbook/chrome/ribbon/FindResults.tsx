@@ -1,3 +1,4 @@
+import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   coordToA1,
@@ -8,6 +9,7 @@ import {
 
 /** 展示原生结果页；翻页和定位都回到同一个查找命令，不缓存第二份选区。 */
 export function FindResults() {
+  const { t } = useLingui()
   const state = useAtomValue(findReplacePanelAtom)
   const workbook = useAtomValue(workbookDocumentAtom)
   const run = useSetAtom(runFindReplaceAtom)
@@ -17,17 +19,17 @@ export function FindResults() {
   const last = Math.floor((result.total - 1) / 100) * 100
   const busy = state.busy !== null
   return (
-    <section className="find-results" aria-label="All search results">
-      <p role="status">
+    <section className="find-results" aria-label={t`All search results`}>
+      <p role="status"><Trans>
         Results {page.offset + 1}–{page.offset + page.matches.length} of {result.total}
-      </p>
+      </Trans></p>
       <div className="find-results-scroll">
         <table>
           <thead>
             <tr>
               <th>#</th>
-              <th>Sheet / cell</th>
-              <th>Position</th>
+              <th><Trans>Sheet / cell</Trans></th>
+              <th><Trans>Position</Trans></th>
             </tr>
           </thead>
           <tbody>
@@ -42,7 +44,7 @@ export function FindResults() {
                     <button
                       type="button"
                       disabled={busy}
-                      aria-label={`Go to ${address}, match ${position + 1}`}
+                      aria-label={t`Go to ${address}, match ${position + 1}`}
                       onClick={() => void run({ match: position })}
                     >
                       {address}
@@ -57,35 +59,35 @@ export function FindResults() {
           </tbody>
         </table>
       </div>
-      <nav className="find-actions" aria-label="Search result pages">
+      <nav className="find-actions" aria-label={t`Search result pages`}>
         <button
           type="button"
           disabled={busy || page.offset === 0}
           onClick={() => void run({ page: 0 })}
-        >
+        ><Trans>
           First page
-        </button>
+        </Trans></button>
         <button
           type="button"
           disabled={busy || page.offset === 0}
           onClick={() => void run({ page: Math.max(0, page.offset - 100) })}
-        >
+        ><Trans>
           Previous page
-        </button>
+        </Trans></button>
         <button
           type="button"
           disabled={busy || page.offset >= last}
           onClick={() => void run({ page: page.offset + 100 })}
-        >
+        ><Trans>
           Next page
-        </button>
+        </Trans></button>
         <button
           type="button"
           disabled={busy || page.offset >= last}
           onClick={() => void run({ page: last })}
-        >
+        ><Trans>
           Last page
-        </button>
+        </Trans></button>
       </nav>
     </section>
   )

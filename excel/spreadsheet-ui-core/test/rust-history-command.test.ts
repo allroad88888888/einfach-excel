@@ -16,6 +16,7 @@ import {
   type RustWorkbookConnection,
   type VisibleProjectionRequest,
 } from '../src'
+import { deferred } from './editing-test-support'
 
 const range = { rowStart: 50, rowEnd: 50, colStart: 1, colEnd: 1 }
 async function setup(failure = false, affectedSheets = [0]) {
@@ -31,7 +32,8 @@ async function setup(failure = false, affectedSheets = [0]) {
           ...input.projection,
           cells: [],
           revision: 1,
-          history: { ...history, undoCount: 0, redoCount: 1 },
+          history: { ...history, undoCount: input.direction === 'undo' ? 0 : 1,
+            redoCount: input.direction === 'undo' ? 1 : 0 },
         },
         sheetId: 'orders',
         range,
@@ -123,7 +125,8 @@ describe('Rust history command', () => {
     expect(store.getter(rustHistoryPanelAtom).error).toContain('Unprotect')
   })
   test('failure preserves the projection and allows retry', async () => {
-    const { store, apply } = await setup(true)
+    const { store, apply } = await setup()
+    apply.mockRejectedValueOnce(new Error('History failed'))
     const before = store.getter(projectionSnapshotAtom)
     expect(await store.setter(runRustHistoryAtom, 'undo')).toBe(false)
     expect(store.getter(projectionSnapshotAtom)).toBe(before)
@@ -131,8 +134,12 @@ describe('Rust history command', () => {
       busy: false,
       error: 'History failed',
     })
-    expect(await store.setter(runRustHistoryAtom, 'undo')).toBe(false)
+    expect(await store.setter(runRustHistoryAtom, 'undo')).toBe(true)
     expect(apply).toHaveBeenCalledTimes(2)
+    expect(store.getter(rustHistoryStateAtom)).toMatchObject({ undoCount: 0, redoCount: 1 })
+    expect(store.getter(rustHistoryPanelAtom)).toMatchObject({ busy: false, error: null })
+    expect(await store.setter(runRustHistoryAtom, 'redo')).toBe(true)
+    expect(store.getter(rustHistoryStateAtom)).toMatchObject({ undoCount: 1, redoCount: 0 })
   })
   test('pending blocks repeated commands and disposal prevents stale publication', async () => {
     const { store, apply } = await setup()
@@ -170,5 +177,62 @@ describe('Rust history command', () => {
     expect(await store.setter(runRustHistoryAtom, 'undo')).toBe(false)
     expect(store.getter(projectionSnapshotAtom)).toBe(before)
     expect(store.getter(rustHistoryPanelAtom).error).toContain('mismatched')
+  })
+
+  test.each(['source-sheet', 'request-id', 'unexpected-sheets', 'visibility'] as const)(
+    '%s corruption preserves history and geometry, then permits a valid undo', async (field) => {
+      const { store, apply } = await setup()
+      const before = store.getter(projectionSnapshotAtom)
+      const sizes = store.getter(viewportSizeOverridesAtom)
+      const original = apply.getMockImplementation()!
+      apply.mockImplementationOnce(async (input) => {
+        const result = await original(input)
+        if (field === 'source-sheet') return { ...result, sheetId: 'summary' }
+        if (field === 'request-id') return { ...result, projection: {
+          ...result.projection, requestId: input.projection.requestId + 1,
+        } }
+        if (field === 'unexpected-sheets') return { ...result, sheets: [
+          { id: 'alien', index: 0, name: 'Alien', key: 'alien', rowCount: 100, colCount: 8 },
+        ] }
+        return { ...result, visibility: { manualRows: [-1], manualColumns: [], filterRows: [] } }
+      })
+      expect(await store.setter(runRustHistoryAtom, 'undo')).toBe(false)
+      expect(store.getter(projectionSnapshotAtom)).toBe(before)
+      expect(store.getter(viewportSizeOverridesAtom)).toBe(sizes)
+      expect(store.getter(rustHistoryStateAtom)).toMatchObject({ undoCount: 1, redoCount: 0 })
+      expect(await store.setter(runRustHistoryAtom, 'undo')).toBe(true)
+      expect(store.getter(rustHistoryStateAtom)).toMatchObject({ undoCount: 0, redoCount: 1 })
+    },
+  )
+
+  test('missing affected sheet blocks history before native write', async () => {
+    const { store, apply } = await setup(false, [0, 99])
+    expect(await store.setter(runRustHistoryAtom, 'undo')).toBe(false)
+    expect(apply).not.toHaveBeenCalled()
+    expect(store.getter(rustHistoryPanelAtom).error).toContain('Unprotect')
+  })
+
+  test.each(['success', 'failure'] as const)('late %s after connection replacement cannot change the new projection', async (outcome) => {
+    const { store, apply } = await setup()
+    const response = deferred<RustWorkbookCommands['history.apply']['result']>()
+    const original = apply.getMockImplementation()!
+    apply.mockReturnValueOnce(response.promise)
+    const pending = store.setter(runRustHistoryAtom, 'undo')
+    await Promise.resolve()
+    const input = apply.mock.calls[0][0]
+    const replacement = { request: vi.fn(async (_command, payload: {
+      request: VisibleProjectionRequest,
+    }) => ({ ...payload.request, revision: 77, cells: [],
+      history: { undoCount: 0, redoCount: 0, entries: [], notice: null } })), dispose() {} }
+    store.setter(setRustWorkbookConnectionAtom, replacement as RustWorkbookConnection)
+    await store.setter(runVisibleProjectionAtom, { sheetId: 'summary', reason: 'viewport',
+      window: { rowStart: 0, rowEnd: 9, colStart: 0, colEnd: 4 } })
+    const current = store.getter(projectionSnapshotAtom)
+    if (outcome === 'success') response.resolve(await original(input))
+    else response.reject(new Error('old worker failed'))
+    expect(await pending).toBe(false)
+    expect(store.getter(projectionSnapshotAtom)).toBe(current)
+    expect(store.getter(viewportSizeOverridesAtom).rowHeightsBySheet.orders).toBeUndefined()
+    expect(store.getter(rustHistoryPanelAtom)).toMatchObject({ busy: false, error: null })
   })
 })

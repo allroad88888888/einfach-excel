@@ -1,3 +1,4 @@
+import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useId } from 'react'
 import {
@@ -12,6 +13,7 @@ import { FilterValueChoices } from './FilterValueChoices'
 
 /** 条件字段只编辑面板草稿，不读取工作簿数据或决定哪些行隐藏。 */
 export function FilterConditionFields() {
+  const { t } = useLingui()
   const sheet = useAtomValue(activeWorkbookSheetAtom)
   const panel = useAtomValue(nativeFilterPanelAtom)
   const feedback = useAtomValue(nativeFilterFeedbackAtom)
@@ -23,11 +25,11 @@ export function FilterConditionFields() {
     <>
       {panel.conditions.map((item, index) => (
         <fieldset key={index} disabled={feedback.busy}>
-          <legend>{index === 0 ? 'Show rows where' : 'And'}</legend>
-          <label htmlFor={`${id}-col-${index}`}>Column</label>
+          <legend>{index === 0 ? t`Show rows where` : t`And`}</legend>
+          <label htmlFor={`${id}-col-${index}`}><Trans>Column</Trans></label>
           <select
             id={`${id}-col-${index}`}
-            aria-label={`Filter column ${index + 1}`}
+            aria-label={t`Filter column ${index + 1}`}
             value={item.col}
             disabled={panel.column !== undefined}
             onChange={(event) =>
@@ -48,10 +50,10 @@ export function FilterConditionFields() {
               </option>
             ))}
           </select>
-          <label htmlFor={`${id}-kind-${index}`}>Condition</label>
+          <label htmlFor={`${id}-kind-${index}`}><Trans>Condition</Trans></label>
           <select
             id={`${id}-kind-${index}`}
-            aria-label={`Filter condition ${index + 1}`}
+            aria-label={t`Filter condition ${index + 1}`}
             value={item.kind}
             onChange={(event) =>
               void configure({
@@ -61,18 +63,18 @@ export function FilterConditionFields() {
               })
             }
           >
-            <option value="equals">Equals</option>
-            <option value="contains">Contains</option>
-            <option value="range">Number range</option>
-            <option value="list">One of these values</option>
+            <option value="equals"><Trans>Equals</Trans></option>
+            <option value="contains"><Trans>Contains</Trans></option>
+            <option value="range"><Trans>Number range</Trans></option>
+            <option value="list"><Trans>One of these values</Trans></option>
           </select>
           {panel.browser?.index !== index && (item.kind === 'range' ? (
             <>
               {(['min', 'max'] as const).map((bound) => (
                 <label key={bound} className="filter-number-bound">
-                  {bound === 'min' ? 'Minimum' : 'Maximum'}
+                  {bound === 'min' ? t`Minimum` : t`Maximum`}
                   <input
-                    aria-label={`${bound === 'min' ? 'Minimum' : 'Maximum'} ${index + 1}`}
+                    aria-label={bound === 'min' ? t`Minimum ${index + 1}` : t`Maximum ${index + 1}`}
                     inputMode="decimal"
                     value={item[bound]}
                     onChange={(event) =>
@@ -89,12 +91,12 @@ export function FilterConditionFields() {
           ) : (
             <>
               <label htmlFor={`${id}-value-${index}`}>
-                {item.kind === 'list' ? 'Values (one per line)' : 'Value'}
+                {item.kind === 'list' ? t`Values (one per line)` : t`Value`}
               </label>
               {item.kind === 'list' ? (
                 <textarea
                   id={`${id}-value-${index}`}
-                  aria-label={`Filter value ${index + 1}`}
+                  aria-label={t`Filter value ${index + 1}`}
                   value={item.values.join('\n')}
                   readOnly={item.values.some((value) => value.includes('\n'))}
                   onChange={(event) =>
@@ -108,7 +110,7 @@ export function FilterConditionFields() {
               ) : (
                 <input
                   id={`${id}-value-${index}`}
-                  aria-label={`Filter value ${index + 1}`}
+                  aria-label={t`Filter value ${index + 1}`}
                   value={item.value}
                   onChange={(event) =>
                     void configure({
@@ -131,24 +133,24 @@ export function FilterConditionFields() {
                         patch: { caseSensitive: event.currentTarget.checked },
                       })
                     }
-                  />
+                  /><Trans>
                   Match case
-                </label>
+                </Trans></label>
               )}
             </>
           ))}
           <FilterValueChoices index={index} />
           {panel.browser?.index !== index && item.kind === 'list' && item.values.some((value) => value.includes('\n')) &&
-            <p className="size-hint filter-values-hint">Multi-line values stay intact. Use Choose values to change them.</p>}
+            <p className="size-hint filter-values-hint"><Trans>Multi-line values stay intact. Use Choose values to change them.</Trans></p>}
           {panel.column === undefined && (
             <button
               type="button"
-              aria-label={`Remove condition ${index + 1}`}
+              aria-label={t`Remove condition ${index + 1}`}
               disabled={panel.conditions.length === 1}
               onClick={() => void configure({ type: 'remove', index })}
-            >
+            ><Trans>
               Remove
-            </button>
+            </Trans></button>
           )}
         </fieldset>
       ))}

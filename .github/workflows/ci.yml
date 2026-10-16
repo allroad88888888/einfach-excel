@@ -11,8 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # 22.12.0 是 engines 基线下限(ADR 0018),必须精确钉住;24 验证当前主流版本。
-        node-version: ['22.12.0', 24]
+        # Lingui 6 的开发工具要求 22.19+；对外包的 22.12 基线在构建后另验。
+        node-version: ['22.19.0', 24]
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -53,8 +53,19 @@ jobs:
       # node:test 契约测试(脚本生成器 + 站点 demo 契约),纯 node 内置模块,
       # 秒级、不依赖构建产物，因此作为 Vitest workspace 之外的契约测试直接执行。
       - run: npm run test:scripts
+      - run: pnpm --filter @einfach/react-excel i18n:extract
+      - run: pnpm --filter @einfach/react-excel i18n:check
       - run: npm run build
       - run: npm test
+      - uses: actions/setup-node@v4
+        if: matrix.node-version == '22.19.0'
+        with:
+          node-version: '22.12.0'
+      - name: Consumer Node baseline (ADR 0018, built ESM and CJS)
+        if: matrix.node-version == '22.19.0'
+        run: |
+          node --input-type=module -e "await import('./excel/spreadsheet-ui-core/esm/index.mjs'); await import('./excel/excel-core-ts/esm/index.mjs')"
+          node -e "require('./excel/spreadsheet-ui-core/cjs/index.cjs'); require('./excel/excel-core-ts/cjs/index.cjs')"
 
   # Rust 引擎门禁。三个 crate 的 2700+ 个 #[test] 此前不在任何 workflow 里,
   # 纯靠人工本地跑。命令口径来自 excel/rust/docs/archive/RELEASE_GATE_PLAN.md

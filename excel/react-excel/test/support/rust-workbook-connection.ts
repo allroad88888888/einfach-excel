@@ -64,6 +64,7 @@ export function createTestRustWorkbookConnection(
     if (command === 'clipboard.capture' && handlers.captureClipboard) {
       return handlers.captureClipboard(payload as RustClipboardCaptureRequest)
     }
+    if (command === 'clipboard.finishCapture') return
     if (command === 'clipboard.paste' && handlers.pasteClipboard) {
       const input = payload as {
         request: RustClipboardPasteRequest

@@ -40,9 +40,8 @@ jobs:
           version: 10
       - uses: actions/setup-node@v4
         with:
-          # ADR 0018 的对外基线下界。发布环境钉在下界上，发出的产物才顺带证明
-          # 基线可用；不要悄悄抬到更高的 Node。
-          node-version: 22.12.0
+          # 仓库安装含 Lingui 6，开发工具要求 22.19+；消费者 22.12 基线由 CI 另验。
+          node-version: 22.19.0
           cache: pnpm
           registry-url: https://registry.npmjs.org
       - uses: dtolnay/rust-toolchain@stable

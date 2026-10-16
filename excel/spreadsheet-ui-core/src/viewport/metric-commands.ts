@@ -1,6 +1,11 @@
 import { atom } from '@einfach/core'
-import { normalizeViewportMetrics, setViewportMetricsAtom, viewportMetricsAtom } from './metrics'
+import {
+  getCellViewportRect, getViewportScrollForCell,
+  normalizeViewportMetrics, setViewportMetricsAtom, viewportMetricsAtom,
+} from './metrics'
 import { viewportGeometrySizesAtom } from './geometry-sizes'
+import { projectedFreezeAtom } from './projected-freeze'
+import { selectionSnapshotAtom } from '../selection'
 import type { ViewportMetrics } from './types'
 
 /** 换表重置位置，不重置浏览器已测量的可见面积；同表结构变动保留位置。 */
@@ -54,19 +59,42 @@ export const setViewportSizeAtom = atom(null, (get, set, input: SetViewportSizeI
   }
   const sizes = get(viewportGeometrySizesAtom)
   const { viewportHeight, viewportWidth } = input
+  const rows = metrics.sheetId ? sizes.rowHeightsBySheet[metrics.sheetId] : undefined
+  const cols = metrics.sheetId ? sizes.colWidthsBySheet[metrics.sheetId] : undefined
   const max = normalizeViewportMetrics({
     ...metrics, scrollTop: Number.MAX_VALUE, scrollLeft: Number.MAX_VALUE,
-  }, metrics.sheetId ? sizes.rowHeightsBySheet[metrics.sheetId] : undefined,
-  metrics.sheetId ? sizes.colWidthsBySheet[metrics.sheetId] : undefined)
+  }, rows, cols)
+  const pinBottom = input.preserveEdges !== false && metrics.scrollTop > 0 &&
+    Math.abs(max.scrollTop - metrics.scrollTop) <= 1
+  const pinRight = input.preserveEdges !== false && metrics.scrollLeft > 0 &&
+    Math.abs(max.scrollLeft - metrics.scrollLeft) <= 1
   // 已贴边时随可见面积变化保持贴边；普通中途浏览不因底栏换行或窗口缩放而跳动。
-  set(setViewportMetricsAtom, {
+  const next = {
     ...metrics, viewportHeight, viewportWidth,
-    scrollTop: input.preserveEdges !== false && metrics.scrollTop > 0 &&
-      Math.abs(max.scrollTop - metrics.scrollTop) <= 1
-      ? max.scrollTop + metrics.viewportHeight - input.viewportHeight : metrics.scrollTop,
-    scrollLeft: input.preserveEdges !== false && metrics.scrollLeft > 0 &&
-      Math.abs(max.scrollLeft - metrics.scrollLeft) <= 1
-      ? max.scrollLeft + metrics.viewportWidth - input.viewportWidth : metrics.scrollLeft,
-  })
+    scrollTop: pinBottom
+      ? max.scrollTop + metrics.viewportHeight - viewportHeight : metrics.scrollTop,
+    scrollLeft: pinRight
+      ? max.scrollLeft + metrics.viewportWidth - viewportWidth : metrics.scrollLeft,
+  }
+  const selection = get(selectionSnapshotAtom)
+  const projectedFreeze = get(projectedFreezeAtom)
+  const freeze = projectedFreeze && projectedFreeze.sheetId === metrics.sheetId
+    ? projectedFreeze : undefined
+  const coord = selection.activeCell
+  const rect = getCellViewportRect(coord, metrics, rows, cols)
+  const visibleRow = freeze && coord.row < freeze.rows ||
+    rect.top < metrics.viewportHeight && rect.top + rect.height > (freeze?.height ?? 0)
+  const visibleCol = freeze && coord.col < freeze.cols ||
+    rect.left < metrics.viewportWidth && rect.left + rect.width > (freeze?.width ?? 0)
+  // 多行公式栏增高不能把当前格挤出投影，否则公式栏失去值又缩回，形成布局循环。
+  // 只保住原本可见的格；手动滚离它、切表首次测量或扩大窗口都不追踪选区。
+  if (input.preserveEdges !== false && selection.selection.sheetId === metrics.sheetId &&
+    coord.row < metrics.rowCount && coord.col < metrics.colCount &&
+    rect.height > 0 && rect.width > 0 && visibleRow && visibleCol) {
+    const nearest = getViewportScrollForCell(next, { coord }, rows, cols, freeze)
+    if (!pinBottom && viewportHeight < metrics.viewportHeight) next.scrollTop = nearest.scrollTop
+    if (!pinRight && viewportWidth < metrics.viewportWidth) next.scrollLeft = nearest.scrollLeft
+  }
+  set(setViewportMetricsAtom, next)
 })
 setViewportSizeAtom.debugLabel = 'spreadsheet.viewport.setSize'

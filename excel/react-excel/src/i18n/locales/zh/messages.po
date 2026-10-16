@@ -1,0 +1,4800 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-10-16 11:04+0800\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: zh\n"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid " · Disabled"
+msgstr " · 已禁用"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid " · Stop if true"
+msgstr " · 为真则停止"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid " Both dates are included."
+msgstr "包含起止日期。"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid " Both times are included."
+msgstr "包含起止时间。"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid " duplicate records (one undo restores them)"
+msgstr "条重复记录（一次撤销即可恢复）"
+
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid " Every condition must match. After editing values, use Reapply filter."
+msgstr "所有条件必须同时满足。修改数据后，请重新应用筛选。"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid " occupied destination cells"
+msgstr "个已有内容的目标单元格"
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid " of "
+msgstr " / "
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "(Blanks)"
+msgstr "（空白）"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "(Empty)"
+msgstr "（空）"
+
+#. placeholder {0}: entry.value.length
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "(Whitespace: {0})"
+msgstr "（空白字符：{0}）"
+
+#. placeholder {0}: sheet.name
+#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+msgid "{0} — double-click or F2 to rename"
+msgstr "{0} — 双击或按 F2 重命名"
+
+#. placeholder {0}: activeSheet.name
+#: src/workbook/grid/viewport/WorkbookGrid.tsx
+msgid "{0} cells"
+msgstr "{0} 单元格"
+
+#. placeholder {0}: preview.scannedRows
+#. placeholder {1}: preview.excludedRows
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "{0} data rows compared; {1} filtered-out rows unchanged."
+msgstr "已比较 {0} 行数据；{1} 行被筛除的数据保持不变。"
+
+#. placeholder {0}: preview.removedRows
+#. placeholder {1}: preview.uniqueRows
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "{0} duplicate records; {1} unique records remain."
+msgstr "共 {0} 条重复记录；保留 {1} 条唯一记录。"
+
+#. placeholder {0}: panel.table
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "{0} filter conditions"
+msgstr "{0} 筛选条件"
+
+#. placeholder {0}: panel.total
+#: src/workbook/chrome/ribbon/InsertFunctionTools.tsx
+msgid "{0} functions available in this build. Insert a draft, then enter arguments in the formula bar."
+msgstr "当前版本提供 {0} 个函数。插入公式草稿后，请在公式栏输入参数。"
+
+#. placeholder {0}: result!.index + 1
+#. placeholder {1}: result!.total
+#. placeholder {2}: matchSheet?.name
+#. placeholder {3}: coordToA1(match)
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "{0} of {1} · {2}!{3}"
+msgstr "第 {0} 项，共 {1} 项 · {2}!{3}"
+
+#. placeholder {0}: activeSheet.rowCount
+#: src/workbook/chrome/footer/WorkbookFooter.tsx
+#: src/workbook/chrome/header/WorkbookHeader.tsx
+msgid "{0} rows"
+msgstr "{0} 行"
+
+#. placeholder {0}: state.selected.length
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "{0} selected"
+msgstr "已选择 {0} 项"
+
+#. placeholder {0}: state.preview.sourceColumnCount
+#: src/workbook/chrome/ribbon/TextColumnTypes.tsx
+msgid "{0} source fields. "
+msgstr "共 {0} 个源字段。"
+
+#. placeholder {0}: state.undoCount
+#. placeholder {1}: state.redoCount
+#: src/workbook/chrome/ribbon/HistoryTools.tsx
+msgid "{0} undo · {1} redo"
+msgstr "{0} 次可撤销 · {1} 次可重做"
+
+#. placeholder {0}: activeSheet.name
+#: src/workbook/grid/viewport/WorkbookGrid.tsx
+msgid "{0} worksheet"
+msgstr "{0} 工作表"
+
+#: src/i18n/translate-feedback.ts
+msgid "{category}. Argument help is not available yet."
+msgstr "{category}。暂未提供参数说明。"
+
+#: src/i18n/translate-feedback.ts
+msgid "{detail} Current workbook kept."
+msgstr "{detail} 当前工作簿已保留。"
+
+#: src/i18n/translate-feedback.ts
+msgid "{rows} × {cols} cells ready to move. Paste to finish."
+msgstr "{rows} × {cols} 个单元格已准备移动，请粘贴以完成。"
+
+#: src/i18n/translate-feedback.ts
+msgid "{rows} rows filtered out."
+msgstr "已筛除 {rows} 行。"
+
+#: src/workbook/chrome/footer/WorkbookFooter.tsx
+msgid "{selectedCellCount} cells selected in multiple areas. Clear and formatting apply to all areas. Borders require one continuous range."
+msgstr "已在多个区域选中 {selectedCellCount} 个单元格。清除和格式操作应用于所有区域；边框操作仅支持单个连续区域。"
+
+#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+msgid "{tabLabel} tools"
+msgstr "{tabLabel}工具"
+
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "{table} filter conditions…"
+msgstr "{table} 筛选条件…"
+
+#. placeholder {0}: rules.length ? ` (${rules.length})` : ''
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "{table} filter{0}"
+msgstr "{table} 筛选{0}"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "* = any text, ? = one character, ~ escapes *, ? or ~. "
+msgstr "* 表示任意文本，? 表示单个字符，~ 用于转义 *、? 或 ~。"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "1 = one day. [h] shows total hours; other styles repeat every 24 hours."
+msgstr "1 表示一天。[h] 显示累计小时数；其他格式每 24 小时循环。"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "2 colors"
+msgstr "双色"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "2-color scale"
+msgstr "双色色阶"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "3 colors"
+msgstr "三色"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "3-color scale"
+msgstr "三色色阶"
+
+#: src/workbook/chrome/ribbon/GoToTools.tsx
+msgid "A defined name, A1, B2:D10, R12C3, R[2]C[-1], or 'Sales Orders'!B2. Hidden rows and columns stay hidden."
+msgstr "可输入已定义的名称、A1、B2:D10、R12C3、R[2]C[-1] 或 'Sales Orders'!B2。隐藏的行列仍保持隐藏。"
+
+#: src/i18n/feedback-messages.ts
+msgid "A formula refers to a larger range. Moving part of that range is not supported yet."
+msgstr "公式引用了更大的区域，暂不支持仅移动该区域的一部分。"
+
+#: src/i18n/feedback-messages.ts
+msgid "A pasted value does not meet its cell’s data validation rule. Nothing was pasted."
+msgstr "粘贴值不符合目标单元格的数据验证规则，未粘贴任何内容。"
+
+#: src/workbook/chrome/formula-bar/FormulaBar.tsx
+msgid "Active cell value"
+msgstr "活动单元格内容"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Add"
+msgstr "加"
+
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Add a totals row below the table. Existing cells are never overwritten."
+msgstr "在表格下方添加汇总行，不会覆盖已有单元格。"
+
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "Add condition"
+msgstr "添加条件"
+
+#: src/i18n/feedback-messages.ts
+msgid "Add conditional format"
+msgstr "添加条件格式"
+
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "Add data row"
+msgstr "添加数据行"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Add level"
+msgstr "添加排序级别"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Add rule"
+msgstr "添加规则"
+
+#: src/i18n/feedback-messages.ts
+msgid "Add table row"
+msgstr "添加表格行"
+
+#: src/i18n/feedback-messages.ts
+msgid "Add worksheet"
+msgstr "添加工作表"
+
+#: src/i18n/feedback-messages.ts
+msgid "Adds all the numbers in a range of cells."
+msgstr "计算单元格区域内所有数字之和。"
+
+#: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
+msgid "Advanced number parsing"
+msgstr "高级数字解析"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "All borders"
+msgstr "所有框线"
+
+#: src/workbook/chrome/ribbon/InsertFunctionTools.tsx
+msgid "All categories"
+msgstr "所有类别"
+
+#: src/workbook/grid/viewport/WorkbookGrid.tsx
+msgid "All columns are hidden. Use Hide / Unhide to restore them."
+msgstr "所有列已隐藏，请使用“隐藏 / 取消隐藏”恢复。"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "All contents and formatting"
+msgstr "所有内容和格式"
+
+#: src/workbook/grid/viewport/WorkbookGrid.tsx
+msgid "All rows are hidden. Use Hide / Unhide to restore them."
+msgstr "所有行已隐藏，请使用“隐藏 / 取消隐藏”恢复。"
+
+#: src/workbook/chrome/ribbon/FindResults.tsx
+msgid "All search results"
+msgstr "全部搜索结果"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Allow"
+msgstr "允许"
+
+#: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
+msgid "Allow trailing minus (123- becomes -123)"
+msgstr "允许末尾负号（123- 转为 -123）"
+
+#: src/i18n/feedback-messages.ts
+msgid "Already in order."
+msgstr "数据已按此顺序排列。"
+
+#: src/i18n/feedback-messages.ts
+msgid "An array result cannot be cut independently."
+msgstr "不能单独剪切数组结果。"
+
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+msgid "And"
+msgstr "并且"
+
+#: src/i18n/feedback-messages.ts
+msgid "Another mutation is in progress."
+msgstr "另一项更改正在进行，请稍后重试。"
+
+#: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
+msgid "Apostrophe (')"
+msgstr "单引号（'）"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Applies to"
+msgstr "应用范围"
+
+#. placeholder {0}: target.range.rowStart + 1
+#. placeholder {1}: target.range.rowEnd + 1
+#. placeholder {2}: target.range.colStart + 1
+#. placeholder {3}: target.range.colEnd + 1
+#: src/workbook/chrome/ribbon/SelectionSizeTools.tsx
+msgid "Applies to rows {0}–{1} and columns {2}–{3}. Sizes are in pixels."
+msgstr "应用于第 {0}–{1} 行、第 {2}–{3} 列。尺寸单位为像素。"
+
+#: src/workbook/chrome/footer/SelectionStatisticsSettings.tsx
+msgid "Applies to this workbook session. Reloading restores all six summaries."
+msgstr "仅在当前工作簿会话中生效。刷新后恢复全部六项统计。"
+
+#: src/workbook/chrome/ribbon/ColorTools.tsx
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Apply"
+msgstr "应用"
+
+#: src/workbook/chrome/ribbon/FontSizeTools.tsx
+msgid "Apply an integer size from 1 to 512 pixels to the selected cells."
+msgstr "为选中的单元格设置 1 到 512 像素的整数字号。"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Apply borders"
+msgstr "应用边框"
+
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "Apply filter"
+msgstr "应用筛选"
+
+#: src/workbook/chrome/ribbon/FontSizeTools.tsx
+msgid "Apply font size"
+msgstr "应用字号"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Apply number format"
+msgstr "应用数字格式"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Apply paste"
+msgstr "粘贴"
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "Apply series"
+msgstr "填充序列"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Apply sort"
+msgstr "应用排序"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Apply split"
+msgstr "应用分列"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Apply to the selected cells. Other borders and formatting stay unchanged."
+msgstr "应用于选中的单元格。其他边框和格式保持不变。"
+
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Apply total"
+msgstr "应用汇总"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Applying borders…"
+msgstr "正在应用边框…"
+
+#: src/workbook/chrome/ribbon/ColorTools.tsx
+msgid "Applying color…"
+msgstr "正在应用颜色…"
+
+#: src/workbook/chrome/ribbon/FontSizeTools.tsx
+msgid "Applying font size…"
+msgstr "正在应用字号…"
+
+#: src/workbook/chrome/ribbon/TextLayoutTools.tsx
+msgid "Applying layout…"
+msgstr "正在应用布局…"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Applying number format…"
+msgstr "正在应用数字格式…"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Applying split…"
+msgstr "正在分列…"
+
+#: src/i18n/feedback-messages.ts
+msgid "Arrays"
+msgstr "数组"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Ascending"
+msgstr "升序"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "At least"
+msgstr "大于或等于"
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "At least 2 numbered labels, such as Item001, Item003. Matching padding is preserved."
+msgstr "至少需要两个带编号的文本，例如 Item001、Item003。保留原有的补零格式。"
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "At least 2 numbers with a constant non-zero difference, including decimals."
+msgstr "至少需要两个差值固定且非零的数字，支持小数。"
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "At least 3 numeric samples. Rust fits a least-squares line using all samples."
+msgstr "至少需要三个数字样本。Rust 使用全部样本进行最小二乘线性拟合。"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "At most"
+msgstr "小于或等于"
+
+#: src/workbook/chrome/ribbon/TextLayoutTools.tsx
+msgid "Auto"
+msgstr "自动"
+
+#: src/workbook/chrome/ribbon/QuickFormulaTools.tsx
+msgid "Auto sum"
+msgstr "自动求和"
+
+#: src/workbook/chrome/ribbon/QuickFormulaTools.tsx
+msgid "Auto sum (review in formula bar)"
+msgstr "自动求和（在公式栏中确认）"
+
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "Automatic name"
+msgstr "自动命名"
+
+#: src/workbook/chrome/ribbon/ColorTools.tsx
+msgid "Automatic text color"
+msgstr "自动字体颜色"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Average"
+msgstr "平均值"
+
+#: src/workbook/chrome/ribbon/QuickFormulaTools.tsx
+msgid "AVERAGE — Mean"
+msgstr "AVERAGE — 平均值"
+
+#: src/workbook/chrome/ribbon/TableAppearance.tsx
+msgid "Banded columns"
+msgstr "隔列底色"
+
+#: src/workbook/chrome/ribbon/TableAppearance.tsx
+msgid "Banded rows"
+msgstr "隔行底色"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Bars use the full range and a shared zero axis. Negative values extend left; cell values stay visible."
+msgstr "数据条基于整个范围计算，共用零轴。负值向左延伸，单元格数值保持可见。"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Begins with"
+msgstr "开头是"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Between"
+msgstr "介于"
+
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Blanks"
+msgstr "空白单元格"
+
+#. placeholder {0}: coordToA1(info.blocker)
+#: src/workbook/chrome/ribbon/SpillTools.tsx
+msgid "Blocked by {0}."
+msgstr "被 {0} 阻挡。"
+
+#: src/workbook/chrome/ribbon/TableAppearance.tsx
+msgid "Blue"
+msgstr "蓝色"
+
+#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+msgid "Bold"
+msgstr "粗体"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Border color"
+msgstr "边框颜色"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Border color {color}"
+msgstr "边框颜色 {color}"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Border settings"
+msgstr "边框设置"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+msgid "Borders"
+msgstr "边框"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/chrome/ribbon/TextLayoutTools.tsx
+msgid "Bottom"
+msgstr "底部"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Bottom {count} items"
+msgstr "最小的 {count} 项"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Bottom {count}%"
+msgstr "最小的 {count}%"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Bottom border"
+msgstr "下框线"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Break positions"
+msgstr "分隔位置"
+
+#: src/workbook/chrome/footer/SelectionStatus.tsx
+msgid "Calculating selection…"
+msgstr "正在计算选区…"
+
+#: src/workbook/chrome/footer/SheetDeleteConfirmation.tsx
+#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+#: src/workbook/chrome/ribbon/FontSizeTools.tsx
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+#: src/workbook/chrome/ribbon/GoToTools.tsx
+#: src/workbook/chrome/ribbon/InsertFunctionTools.tsx
+#: src/workbook/chrome/ribbon/MergeConfirmation.tsx
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+#: src/workbook/chrome/ribbon/SelectionSizeTools.tsx
+#: src/workbook/chrome/ribbon/SortTools.tsx
+#: src/workbook/chrome/ribbon/TableTools.tsx
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Cancel"
+msgstr "取消"
+
+#: src/workbook/grid/viewport/CanvasCells.tsx
+msgid "Canvas worksheet cells"
+msgstr "画布工作表单元格"
+
+#: src/i18n/feedback-messages.ts
+msgid "Capturing formatting…"
+msgstr "正在读取格式…"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Case sensitive"
+msgstr "区分大小写"
+
+#: src/workbook/chrome/ribbon/InsertFunctionTools.tsx
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Category"
+msgstr "类别"
+
+#: src/workbook/grid/editor/CellEditor.tsx
+msgid "Cell editor"
+msgstr "单元格编辑器"
+
+#: src/workbook/chrome/ribbon/HistoryTools.tsx
+msgid "Cell edits, formatting, clearing, paste, cut moves, row/column sizes and worksheets. Up to 50 steps in this session."
+msgstr "记录单元格编辑、格式、清除、粘贴、剪切移动、行列尺寸和工作表操作。本次会话最多保留 50 步。"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Cell value"
+msgstr "单元格值"
+
+#: src/workbook/chrome/ribbon/TextLayoutTools.tsx
+msgid "Center"
+msgstr "居中"
+
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Changes apply immediately and can be undone."
+msgstr "更改立即生效，可以撤销。"
+
+#: src/workbook/chrome/ribbon/TableAppearance.tsx
+msgid "Changes apply immediately. Manual cell, row and column formatting stays in place."
+msgstr "更改立即生效。保留手动设置的单元格、行和列格式。"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Changes the display only. The original date value stays unchanged."
+msgstr "只改变显示方式，原始日期值保持不变。"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Changes whole columns only. Cell contents, styles and row heights stay unchanged."
+msgstr "仅修改整列。单元格内容、样式和行高保持不变。"
+
+#. placeholder {0}: label.toLowerCase()
+#: src/workbook/chrome/ribbon/ColorTools.tsx
+msgid "Choose {0}"
+msgstr "选择{0}"
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose a column and a total function."
+msgstr "请选择列和汇总函数。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose a named range to delete."
+msgstr "请选择要删除的命名区域。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose a non-empty workbook file no larger than 64 MiB."
+msgstr "请选择非空且不大于 64 MiB 的工作簿文件。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose a source field number from 1 to 16384."
+msgstr "请选择 1–16384 之间的源字段编号。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose a supported border position and line style."
+msgstr "请选择支持的边框位置和线条样式。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose a supported category."
+msgstr "请选择支持的类别。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose a table column."
+msgstr "请选择一个表格列。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose a table first."
+msgstr "请先选择表格。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose a table to convert."
+msgstr "请选择要转换的表格。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose a table to resize."
+msgstr "请选择要调整范围的表格。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose a valid table style."
+msgstr "请选择有效的表格样式。"
+
+#: src/workbook/grid/editor/CellValidationList.tsx
+msgid "Choose a value from the validation list"
+msgstr "从验证列表中选择一个值"
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose at least one comparison column."
+msgstr "请至少选择一个比较列。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose at least one delimiter."
+msgstr "请至少选择一个分隔符。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose at most 1,000 values, or use a text or number condition."
+msgstr "最多选择 1,000 个值，或改用文本、数字条件。"
+
+#: src/workbook/grid/editor/CellValidationList.tsx
+msgid "Choose cell value"
+msgstr "选择单元格值"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Choose custom border color"
+msgstr "选择自定义边框颜色"
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose one contiguous selection before opening Find."
+msgstr "打开查找前，请先选择一个连续区域。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose one continuous range."
+msgstr "请选择一个连续区域。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose one of the supported date formats."
+msgstr "请选择支持的日期格式。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose one of the supported time formats."
+msgstr "请选择支持的时间格式。"
+
+#: src/workbook/chrome/footer/SelectionStatisticsSettings.tsx
+msgid "Choose the summaries shown below. Click a value to copy its full precision."
+msgstr "选择底部显示的统计项。点击数值可复制完整精度的结果。"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Choose values for condition {0}"
+msgstr "选择条件 {0} 的值"
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Choose values to show. Other column filters still apply."
+msgstr "选择要显示的值。其他列的筛选条件仍然生效。"
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Choose values…"
+msgstr "选择值…"
+
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "Clear {table} filter"
+msgstr "清除 {table} 筛选"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/ClearTools.tsx
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Clear all"
+msgstr "全部清除"
+
+#. placeholder {0}: getColumnLabel(panel.column)
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "Clear column {0} filter"
+msgstr "清除 {0} 列筛选"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/ClearTools.tsx
+msgid "Clear contents"
+msgstr "清除内容"
+
+#: src/i18n/feedback-messages.ts
+msgid "Clear data validation"
+msgstr "清除数据验证"
+
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "Clear filter"
+msgstr "清除筛选"
+
+#: src/i18n/feedback-messages.ts
+msgid "Clear formats"
+msgstr "清除格式"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/ClearTools.tsx
+msgid "Clear formatting"
+msgstr "清除格式"
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Clear selection"
+msgstr "清除选择"
+
+#: src/i18n/feedback-messages.ts
+msgid "Clear the filter before cutting this range. No cells were moved."
+msgstr "请先清除筛选再剪切此区域，未移动任何单元格。"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Clear validation"
+msgstr "清除数据验证"
+
+#: src/i18n/feedback-messages.ts
+msgid "Clipboard access is unavailable."
+msgstr "无法访问剪贴板。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Clipboard permission was denied. Allow clipboard access and try again."
+msgstr "剪贴板权限被拒绝，请允许访问剪贴板后重试。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Clipboard permission was denied. Use Ctrl/⌘+V in the grid."
+msgstr "剪贴板权限被拒绝，请在网格中使用 Ctrl/⌘+V。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Clipboard read is unavailable. Use the browser paste shortcut."
+msgstr "无法读取剪贴板，请使用浏览器粘贴快捷键。"
+
+#: src/workbook/chrome/footer/WorkbookFooter.tsx
+msgid "Clipboard status"
+msgstr "剪贴板状态"
+
+#: src/i18n/feedback-messages.ts
+msgid "Clipboard write is unavailable. Use the browser copy shortcut."
+msgstr "无法写入剪贴板，请使用浏览器复制快捷键。"
+
+#: src/workbook/chrome/header/WorkbookFileTools.tsx
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+#: src/workbook/chrome/ribbon/SpillTools.tsx
+msgid "Close"
+msgstr "关闭"
+
+#: src/workbook/chrome/ribbon/ColorTools.tsx
+msgid "Close color palette"
+msgstr "关闭调色板"
+
+#: src/workbook/chrome/ribbon/HistoryTools.tsx
+msgid "Close history"
+msgstr "关闭历史记录"
+
+#. placeholder {0}: group.level
+#: src/workbook/grid/viewport/OutlineGutters.tsx
+msgid "Collapse {label}, level {0}"
+msgstr "折叠{label}，第 {0} 级"
+
+#: src/workbook/chrome/ribbon/OutlineTools.tsx
+msgid "Collapse all column groups"
+msgstr "折叠所有列分组"
+
+#: src/workbook/chrome/ribbon/OutlineTools.tsx
+msgid "Collapse all row groups"
+msgstr "折叠所有行分组"
+
+#: src/i18n/feedback-messages.ts
+msgid "Collapse group"
+msgstr "折叠分组"
+
+#: src/workbook/chrome/ribbon/ColorTools.tsx
+msgid "Color {color}"
+msgstr "颜色 {color}"
+
+#: src/workbook/chrome/ribbon/ColorTools.tsx
+msgid "Color hex"
+msgstr "十六进制颜色"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Color scale"
+msgstr "色阶"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Colors use the full range minimum and maximum. The third color marks the median (50th percentile)."
+msgstr "色阶基于整个范围的最小值和最大值。第三种颜色表示中位数（第 50 百分位）。"
+
+#: src/workbook/grid/viewport/GridResizeHandle.tsx
+msgid "column"
+msgstr "列"
+
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+#: src/workbook/chrome/ribbon/SortTools.tsx
+#: src/workbook/chrome/ribbon/TableColumns.tsx
+msgid "Column"
+msgstr "列"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Column "
+msgstr "列"
+
+#: src/workbook/chrome/ribbon/TableColumns.tsx
+msgid "Column names"
+msgstr "列名"
+
+#: src/workbook/grid/viewport/OutlineGutters.tsx
+msgid "Column outline"
+msgstr "列分组"
+
+#: src/workbook/chrome/ribbon/SelectionSizeTools.tsx
+msgid "Column width"
+msgstr "列宽"
+
+#: src/i18n/feedback-messages.ts
+msgid "Column widths cannot be combined with arithmetic, transpose or skip blanks."
+msgstr "粘贴列宽不能与运算、转置或跳过空白组合使用。"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Column widths only"
+msgstr "仅列宽"
+
+#. placeholder {0}: toA1(0, group.start).slice(0, -1)
+#. placeholder {1}: toA1(0, group.end).slice(0, -1)
+#: src/workbook/grid/viewport/OutlineGutters.tsx
+msgid "columns {0}–{1}"
+msgstr "第 {0}–{1} 列"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Combine options for this paste. Ordinary Paste stays unchanged."
+msgstr "组合本次粘贴的选项，不影响普通粘贴。"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Comma"
+msgstr "逗号"
+
+#: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
+msgid "Comma (,)"
+msgstr "逗号（,）"
+
+#. placeholder {0}: toA1(0, col).slice(0, -1)
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Compare column {0}"
+msgstr "比较第 {0} 列"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Compare displayed values and keep the first record. Only cells inside the selected range move. Filtered-out rows stay in place; manually hidden rows are included."
+msgstr "比较显示值并保留第一条记录。仅移动选区内的单元格。筛除的行保持原位；手动隐藏的行参与处理。"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Compares calculated values across all applied ranges, ignoring text case. Blank cells, empty text and errors are skipped; numbers and text are different."
+msgstr "比较所有应用范围中的计算值，不区分大小写。跳过空白单元格、空文本和错误；数字与文本视为不同值。"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Comparison columns"
+msgstr "比较列"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+msgid "Condition"
+msgstr "条件"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Conditional formatting"
+msgstr "条件格式"
+
+#: src/workbook/chrome/ribbon/TextColumnTypes.tsx
+msgid "Configured field types"
+msgstr "已配置的字段类型"
+
+#: src/i18n/feedback-messages.ts
+msgid "Confirm overwriting the occupied destination cells before applying."
+msgstr "应用前，请确认覆盖目标区域中已有内容的单元格。"
+
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Constants"
+msgstr "常量"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+msgid "Contains"
+msgstr "包含"
+
+#: src/i18n/feedback-messages.ts
+msgid "Convert table to range"
+msgstr "转换表格为普通区域"
+
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "Convert to range"
+msgstr "转换为普通区域"
+
+#: src/i18n/feedback-messages.ts
+msgid "Converts text to lowercase."
+msgstr "将文本转换为小写。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Converts text to uppercase."
+msgstr "将文本转换为大写。"
+
+#: src/i18n/translate-feedback.ts
+msgid "Copied {label}."
+msgstr "已复制{label}。"
+
+#: src/i18n/translate-feedback.ts
+msgid "Copied {rows} × {cols} cells as {format}."
+msgstr "已将 {rows} × {cols} 个单元格复制为 {format}。"
+
+#: src/i18n/translate-feedback.ts
+msgid "Copied {rows} × {cols} cells."
+msgstr "已复制 {rows} × {cols} 个单元格。"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Copy"
+msgstr "复制"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Copy (Ctrl/⌘+C)"
+msgstr "复制 (Ctrl/⌘+C)"
+
+#: src/workbook/chrome/footer/SelectionStatus.tsx
+msgid "Copy {label}"
+msgstr "复制{label}"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Copy as"
+msgstr "复制为"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Copy as HTML table"
+msgstr "复制为 HTML 表格"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Copy as Markdown"
+msgstr "复制为 Markdown"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Copy as plain text"
+msgstr "复制为纯文本"
+
+#: src/i18n/feedback-messages.ts
+msgid "Copy conditional format"
+msgstr "复制条件格式"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Copy rule {0}"
+msgstr "复制规则 {0}"
+
+#: src/workbook/chrome/ribbon/FillTools.tsx
+msgid "Copy the first selected row down or the first selected column right"
+msgstr "将选区首行向下复制，或将选区首列向右复制"
+
+#: src/i18n/feedback-messages.ts
+msgid "copy…"
+msgstr "正在复制…"
+
+#: src/i18n/feedback-messages.ts
+msgid "Copying statistic…"
+msgstr "正在复制统计值…"
+
+#: src/i18n/translate-feedback.ts
+msgid "Could not capture formatting: {detail}"
+msgstr "无法读取格式：{detail}"
+
+#: src/i18n/feedback-messages.ts
+msgid "Could not confirm removal. Check the sheet before retrying."
+msgstr "无法确认删除结果，请检查工作表后再重试。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Could not confirm the borders. Check the cells before retrying."
+msgstr "无法确认边框更改，请检查单元格后再重试。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Could not confirm the color change. Check the cell before retrying."
+msgstr "无法确认颜色更改，请检查单元格后再重试。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Could not confirm the font size. Check the cell before retrying."
+msgstr "无法确认字号更改，请检查单元格后再重试。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Could not confirm the layout change. Check the cell before retrying."
+msgstr "无法确认布局更改，请检查单元格后再重试。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Could not confirm the number format. Check the cells before retrying."
+msgstr "无法确认数字格式更改，请检查单元格后再重试。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Could not confirm the split. Check the sheet before retrying."
+msgstr "无法确认分列结果，请检查工作表后再重试。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Could not preview duplicate records."
+msgstr "无法预览重复记录。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Could not preview this split."
+msgstr "无法预览此次分列。"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Count"
+msgstr "计数"
+
+#: src/workbook/chrome/ribbon/QuickFormulaTools.tsx
+msgid "COUNT — Numbers"
+msgstr "COUNT — 数值计数"
+
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Count numbers"
+msgstr "数值计数"
+
+#: src/i18n/feedback-messages.ts
+msgid "Counts the cells in a range that meet a given criterion."
+msgstr "统计区域内满足指定条件的单元格数量。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Counts the number of cells that contain numbers."
+msgstr "统计包含数字的单元格数量。"
+
+#: src/workbook/chrome/header/WorkbookFileTools.tsx
+msgid "Create a blank workbook and replace the current workbook? Download first to keep unsaved changes."
+msgstr "新建空白工作簿并替换当前工作簿？请先下载以保留未保存的更改。"
+
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "Create a named table from a range, or manage tables on this worksheet."
+msgstr "从选区创建命名表格，或管理当前工作表中的表格。"
+
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "Create name"
+msgstr "创建名称"
+
+#: src/i18n/feedback-messages.ts
+msgid "Create named range"
+msgstr "创建命名区域"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "Create table"
+msgstr "创建表格"
+
+#: src/i18n/feedback-messages.ts
+msgid "Create table failed: that name is already in use."
+msgstr "创建表格失败：该名称已被使用。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Create table failed: that name is reserved by a built-in function."
+msgstr "创建表格失败：该名称为内置函数保留名称。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Create table failed: the name looks like a cell reference. Choose another name."
+msgstr "创建表格失败：名称类似单元格引用，请使用其他名称。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Create table failed: the selection overlaps an existing table."
+msgstr "创建表格失败：选区与已有表格重叠。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Create table failed: the table name is invalid."
+msgstr "创建表格失败：表格名称无效。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Create table failed: the target sheet could not be found."
+msgstr "创建表格失败：找不到目标工作表。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Create table failed: this workbook already has the maximum number of tables."
+msgstr "创建表格失败：此工作簿的表格数量已达上限。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Create table needs a selection with a header row and at least one data row."
+msgstr "创建表格的选区需包含表头和至少一行数据。"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Currency"
+msgstr "货币"
+
+#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+msgid "Currency format"
+msgstr "货币格式"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Currency symbol"
+msgstr "货币符号"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Current sheet"
+msgstr "当前工作表"
+
+#: src/workbook/chrome/ribbon/CalculationTools.tsx
+msgid "Current worksheet"
+msgstr "当前工作表"
+
+#: src/workbook/chrome/ribbon/ColorTools.tsx
+msgid "Custom color"
+msgstr "自定义颜色"
+
+#: src/workbook/chrome/ribbon/ColorTools.tsx
+msgid "Custom color picker"
+msgstr "自定义取色器"
+
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Custom content"
+msgstr "自定义内容"
+
+#: src/workbook/chrome/ribbon/FontSizeTools.tsx
+msgid "Custom font size"
+msgstr "自定义字号"
+
+#: src/i18n/feedback-messages.ts
+msgid "Custom list"
+msgstr "自定义列表"
+
+#: src/i18n/feedback-messages.ts
+msgid "Custom list is limited to 16384 characters."
+msgstr "自定义列表最多包含 16384 个字符。"
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "Custom list items"
+msgstr "自定义列表项"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Custom sort"
+msgstr "自定义排序"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Custom sort…"
+msgstr "自定义排序…"
+
+#: src/workbook/chrome/ribbon/FontSizeTools.tsx
+msgid "Custom…"
+msgstr "自定义…"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Cut"
+msgstr "剪切"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Cut (Ctrl/⌘+X)"
+msgstr "剪切 (Ctrl/⌘+X)"
+
+#: src/i18n/feedback-messages.ts
+msgid "Cut between sheets is not supported yet."
+msgstr "暂不支持跨工作表剪切。"
+
+#: src/i18n/feedback-messages.ts
+msgid "cut…"
+msgstr "正在剪切…"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Dashed"
+msgstr "虚线"
+
+#: src/workbook/chrome/ribbon/RibbonTabs.tsx
+msgid "Data"
+msgstr "数据"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Data bar"
+msgstr "数据条"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Data validation"
+msgstr "数据验证"
+
+#: src/i18n/feedback-messages.ts
+msgid "Database"
+msgstr "数据库"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Date"
+msgstr "日期"
+
+#: src/workbook/chrome/ribbon/TextColumnTypes.tsx
+msgid "Date — DMY"
+msgstr "日期 — 日月年"
+
+#: src/workbook/chrome/ribbon/TextColumnTypes.tsx
+msgid "Date — DYM"
+msgstr "日期 — 日年月"
+
+#: src/workbook/chrome/ribbon/TextColumnTypes.tsx
+msgid "Date — MDY"
+msgstr "日期 — 月日年"
+
+#: src/workbook/chrome/ribbon/TextColumnTypes.tsx
+msgid "Date — MYD"
+msgstr "日期 — 月年日"
+
+#: src/workbook/chrome/ribbon/TextColumnTypes.tsx
+msgid "Date — YDM"
+msgstr "日期 — 年日月"
+
+#: src/workbook/chrome/ribbon/TextColumnTypes.tsx
+msgid "Date — YMD"
+msgstr "日期 — 年月日"
+
+#: src/i18n/feedback-messages.ts
+msgid "Date & time"
+msgstr "日期与时间"
+
+#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+msgid "Date format"
+msgstr "日期格式"
+
+#: src/i18n/feedback-messages.ts
+msgid "Date sequence"
+msgstr "日期序列"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Date style"
+msgstr "日期格式"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Decimal"
+msgstr "小数"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Decimal places"
+msgstr "小数位数"
+
+#: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
+msgid "Decimal separator"
+msgstr "小数分隔符"
+
+#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+msgid "Decrease decimal places"
+msgstr "减少小数位数"
+
+#: src/workbook/chrome/ribbon/FontSizeTools.tsx
+msgid "Decrease font size"
+msgstr "减小字号"
+
+#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+msgid "Decrease indent"
+msgstr "减少缩进"
+
+#: src/workbook/chrome/ribbon/TextLayoutTools.tsx
+msgid "Default"
+msgstr "默认"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Delete"
+msgstr "删除"
+
+#. placeholder {0}: confirmation.sheetName
+#: src/workbook/chrome/footer/SheetDeleteConfirmation.tsx
+msgid "Delete “{0}” and all its data? Undo is available within session history limits."
+msgstr "删除“{0}”及其全部数据？在当前会话的历史记录保留范围内可以撤销。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Delete columns"
+msgstr "删除列"
+
+#: src/i18n/feedback-messages.ts
+msgid "Delete failed: the table could not be found."
+msgstr "删除失败：找不到表格。"
+
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "Delete name"
+msgstr "删除名称"
+
+#: src/i18n/feedback-messages.ts
+msgid "Delete named range"
+msgstr "删除命名区域"
+
+#: src/i18n/feedback-messages.ts
+msgid "Delete rows"
+msgstr "删除行"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Delete rule {0}"
+msgstr "删除规则 {0}"
+
+#: src/workbook/chrome/ribbon/StructureTools.tsx
+msgid "Delete selected columns"
+msgstr "删除选中的列"
+
+#: src/workbook/chrome/ribbon/StructureTools.tsx
+msgid "Delete selected rows"
+msgstr "删除选中的行"
+
+#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+msgid "Delete sheet"
+msgstr "删除工作表"
+
+#: src/i18n/feedback-messages.ts
+msgid "Delete table"
+msgstr "删除表格"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/footer/SheetDeleteConfirmation.tsx
+msgid "Delete worksheet"
+msgstr "删除工作表"
+
+#: src/workbook/chrome/footer/SheetDeleteConfirmation.tsx
+msgid "Delete worksheet?"
+msgstr "删除工作表？"
+
+#: src/workbook/chrome/footer/SheetDeleteConfirmation.tsx
+msgid "Deleting…"
+msgstr "正在删除…"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Delimited"
+msgstr "分隔符"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Delimiters"
+msgstr "分隔符"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Denominator"
+msgstr "分母"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Descending"
+msgstr "降序"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Destination cell"
+msgstr "目标单元格"
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "Direction"
+msgstr "方向"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Disable"
+msgstr "禁用"
+
+#: src/i18n/feedback-messages.ts
+msgid "Disable conditional format"
+msgstr "禁用条件格式"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Disable rule {0}"
+msgstr "禁用规则 {0}"
+
+#: src/workbook/chrome/ribbon/TextLayoutTools.tsx
+msgid "Dismiss layout error"
+msgstr "关闭布局错误提示"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Displayed values"
+msgstr "显示值"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Divide"
+msgstr "除"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Does not contain"
+msgstr "不包含"
+
+#: src/workbook/chrome/footer/SelectionStatisticsSettings.tsx
+msgid "Done"
+msgstr "完成"
+
+#: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
+msgid "Dot (.)"
+msgstr "点（.）"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Dotted"
+msgstr "点线"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Double"
+msgstr "双线"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Double quote (\")"
+msgstr "双引号（\"）"
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "Down"
+msgstr "向下"
+
+#: src/i18n/feedback-messages.ts
+msgid "Download requested. Keep the file to save your work."
+msgstr "已请求下载，请保留文件以保存工作。"
+
+#: src/workbook/chrome/header/WorkbookFileTools.tsx
+msgid "Download workbook"
+msgstr "下载工作簿"
+
+#: src/workbook/grid/fill/FillHandle.tsx
+msgid "Drag to fill"
+msgstr "拖动填充"
+
+#: src/workbook/grid/fill/FillHandle.tsx
+msgid "Drag to fill. Hold Ctrl/⌘ to copy; Escape to cancel."
+msgstr "拖动填充，按住 Ctrl/⌘ 复制，按 Escape 取消。"
+
+#: src/workbook/grid/viewport/GridResizeHandle.tsx
+msgid "Drag to resize {axisLabel}; double-click or Enter to auto-fit; arrow keys adjust by 10 px"
+msgstr "拖动调整{axisLabel}尺寸；双击或按 Enter 自动适应；方向键每次调整 10 像素"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Duplicate"
+msgstr "重复值"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Duplicate / unique values"
+msgstr "重复值 / 唯一值"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Duplicate preview pages"
+msgstr "重复记录预览分页"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Duplicate records to remove"
+msgstr "待删除的重复记录"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Duplicate samples"
+msgstr "重复记录样本"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Duplicate values"
+msgstr "重复值"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Each page shows up to 20 duplicate rows, 12 columns and 120 characters per field. Removal processes the full selected range."
+msgstr "每页最多显示 20 行重复记录、12 列，每个字段最多 120 个字符。删除操作处理整个选区。"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Edit"
+msgstr "编辑"
+
+#. placeholder {0}: entry.name
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "Edit {0}"
+msgstr "编辑 {0}"
+
+#: src/i18n/feedback-messages.ts
+msgid "Edit cell"
+msgstr "编辑单元格"
+
+#: src/i18n/feedback-messages.ts
+msgid "Edit conditional format"
+msgstr "编辑条件格式"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "Edit named range"
+msgstr "编辑命名区域"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Edit rule"
+msgstr "编辑规则"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Edit rule {0}"
+msgstr "编辑规则 {0}"
+
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "Edit table"
+msgstr "编辑表格"
+
+#. placeholder {0}: table.name
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "Edit table {0}"
+msgstr "编辑表格 {0}"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Empty cell position"
+msgstr "空白单元格位置"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Empty cells "
+msgstr "空白单元格"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Enable"
+msgstr "启用"
+
+#: src/i18n/feedback-messages.ts
+msgid "Enable conditional format"
+msgstr "启用条件格式"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Enable rule {0}"
+msgstr "启用规则 {0}"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Ends with"
+msgstr "结尾是"
+
+#: src/i18n/feedback-messages.ts
+msgid "Engineering"
+msgstr "工程"
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "English short/full names or Chinese names. One source sample advances by one; more samples infer the cyclic step."
+msgstr "支持英文缩写、英文全称或中文名称。单个样本按步长 1 递增；多个样本用于推断循环步长。"
+
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "Enter a cell or range on the selected worksheet, for example A1:A100."
+msgstr "输入所选工作表中的单元格或区域，例如 A1:A100。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter a color as #RRGGBB, for example #c00000."
+msgstr "请输入 #RRGGBB 格式的颜色，例如 #c00000。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter a column name."
+msgstr "请输入列名。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter a defined name or a valid A1 or R1C1 reference, optionally prefixed by a worksheet name."
+msgstr "请输入已定义的名称或有效的 A1、R1C1 引用，也可在前面加上工作表名称。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter a destination cell such as C1."
+msgstr "请输入目标单元格，例如 C1。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter a name or cell address."
+msgstr "请输入名称或单元格地址。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter a name."
+msgstr "请输入名称。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter a non-empty column name or press Escape."
+msgstr "请输入非空列名，或按 Escape 取消。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter a range inside the selected worksheet, for example A1:A100."
+msgstr "请输入所选工作表内的区域，例如 A1:A100。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter a six-digit color such as #1a73e8."
+msgstr "请输入六位十六进制颜色，例如 #1a73e8。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter a table name."
+msgstr "请输入表格名称。"
+
+#: src/i18n/translate-feedback.ts
+msgid "Enter a whole number from {min} to {max} pixels."
+msgstr "请输入 {min}–{max} 像素之间的整数。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter a whole number of decimal places from 0 to 15."
+msgstr "请输入 0–15 之间的整数小数位数。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter a whole-number font size from 1 to 512 pixels."
+msgstr "请输入 1–512 像素之间的整数字号。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter both minimum and maximum."
+msgstr "请输入最小值和最大值。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter increasing positive character positions, for example 2, 5."
+msgstr "请输入递增的正整数字符位置，例如 2、5。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter one range inside this worksheet, for example A1:C10."
+msgstr "请输入此工作表内的单个区域，例如 A1:C10。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter ranges inside this worksheet, separated by commas, for example A1:A10, C1:C10."
+msgstr "请输入此工作表内的区域，多个区域用逗号分隔，例如 A1:A10, C1:C10。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter text to find."
+msgstr "请输入查找内容。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter the comparison value."
+msgstr "请输入比较值。"
+
+#: src/workbook/chrome/ribbon/CalculationTools.tsx
+msgid "Entire workbook"
+msgstr "整个工作簿"
+
+#: src/i18n/feedback-messages.ts
+msgid "Entire worksheet canvas"
+msgstr "整个工作表"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Equal to"
+msgstr "等于"
+
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+msgid "Equals"
+msgstr "等于"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Exact text"
+msgstr "精确文本"
+
+#. placeholder {0}: group.level
+#: src/workbook/grid/viewport/OutlineGutters.tsx
+msgid "Expand {label}, level {0}"
+msgstr "展开{label}，第 {0} 级"
+
+#: src/workbook/chrome/ribbon/OutlineTools.tsx
+msgid "Expand all column groups"
+msgstr "展开所有列分组"
+
+#: src/workbook/chrome/ribbon/OutlineTools.tsx
+msgid "Expand all row groups"
+msgstr "展开所有行分组"
+
+#: src/i18n/feedback-messages.ts
+msgid "Expand group"
+msgstr "展开分组"
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "Extending series…"
+msgstr "正在扩展序列…"
+
+#: src/workbook/chrome/ribbon/TextColumnTypes.tsx
+msgid "Field "
+msgstr "字段"
+
+#: src/workbook/chrome/ribbon/TextColumnTypes.tsx
+msgid "Field numbers refer to the source, before skipping. Unspecified fields keep text. General converts recognized numbers, booleans and unambiguous dates; formulas stay text. Date uses the chosen order; invalid dates stay text. Two-digit years: 00–29 = 2000–2029, 30–99 = 1930–1999. Skip packs remaining fields left. Changing split rules resets field types."
+msgstr "字段编号以跳过前的源字段为准。未指定的字段保留文本。“常规”转换可识别的数字、布尔值和明确的日期，公式保留为文本。日期按所选顺序解析，无效日期保留文本。两位年份：00–29 表示 2000–2029，30–99 表示 1930–1999。跳过字段后，其余字段向左排列。修改分列规则会重置字段类型。"
+
+#: src/workbook/chrome/ribbon/TextColumnTypes.tsx
+msgid "Field type"
+msgstr "字段类型"
+
+#: src/workbook/chrome/ribbon/TextColumnTypes.tsx
+msgid "Field types"
+msgstr "字段类型"
+
+#: src/workbook/chrome/header/WorkbookFileTools.tsx
+msgid "File"
+msgstr "文件"
+
+#: src/workbook/chrome/ribbon/FillTools.tsx
+msgid "Fill"
+msgstr "填充"
+
+#: src/workbook/chrome/ribbon/ColorTools.tsx
+msgid "Fill color"
+msgstr "填充颜色"
+
+#: src/i18n/feedback-messages.ts
+msgid "Fill custom-list series"
+msgstr "填充自定义列表"
+
+#: src/i18n/feedback-messages.ts
+msgid "Fill date series"
+msgstr "填充日期序列"
+
+#: src/i18n/feedback-messages.ts
+msgid "Fill down"
+msgstr "向下填充"
+
+#: src/workbook/chrome/ribbon/FillTools.tsx
+msgid "Fill down (Ctrl/⌘+D)"
+msgstr "向下填充（Ctrl/⌘+D）"
+
+#: src/i18n/feedback-messages.ts
+msgid "Fill linear-trend series"
+msgstr "填充线性趋势"
+
+#: src/i18n/feedback-messages.ts
+msgid "Fill month-name series"
+msgstr "填充月份名称"
+
+#: src/i18n/feedback-messages.ts
+msgid "Fill number series"
+msgstr "填充等差数列"
+
+#: src/i18n/feedback-messages.ts
+msgid "Fill right"
+msgstr "向右填充"
+
+#: src/workbook/chrome/ribbon/FillTools.tsx
+msgid "Fill right (Ctrl/⌘+R)"
+msgstr "向右填充（Ctrl/⌘+R）"
+
+#: src/workbook/chrome/ribbon/FillTools.tsx
+msgid "Fill selected range"
+msgstr "填充选区"
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "Fill series"
+msgstr "填充序列"
+
+#: src/workbook/chrome/ribbon/FillTools.tsx
+msgid "Fill status"
+msgstr "填充状态"
+
+#: src/i18n/feedback-messages.ts
+msgid "Fill text-number series"
+msgstr "填充文本编号"
+
+#: src/i18n/feedback-messages.ts
+msgid "Fill was not applied. Try again."
+msgstr "填充未生效，请重试。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Fill weekday-name series"
+msgstr "填充星期名称"
+
+#: src/i18n/translate-feedback.ts
+msgid "Filled down."
+msgstr "已向下填充。"
+
+#: src/i18n/translate-feedback.ts
+msgid "Filled right."
+msgstr "已向右填充。"
+
+#: src/i18n/translate-feedback.ts
+msgid "Filling down…"
+msgstr "正在向下填充…"
+
+#: src/i18n/translate-feedback.ts
+msgid "Filling right…"
+msgstr "正在向右填充…"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "Filter"
+msgstr "筛选"
+
+#. placeholder {0}: rules.length
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "Filter ({0})"
+msgstr "筛选（{0}）"
+
+#: src/i18n/feedback-messages.ts
+msgid "Filter cleared. Manually hidden rows are unchanged."
+msgstr "已清除筛选，手动隐藏的行保持不变。"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+msgid "Filter column {0}"
+msgstr "筛选列 {0}"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+msgid "Filter condition {0}"
+msgstr "筛选条件 {0}"
+
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "Filter conditions"
+msgstr "筛选条件"
+
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "Filter conditions…"
+msgstr "筛选条件…"
+
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "Filter selected range (first row is header)"
+msgstr "筛选选区（首行为表头）"
+
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "Filter status"
+msgstr "筛选状态"
+
+#: src/i18n/feedback-messages.ts
+msgid "Filter table"
+msgstr "筛选表格"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+msgid "Filter value {0}"
+msgstr "筛选值 {0}"
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Filter values"
+msgstr "筛选值"
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Filter values page"
+msgstr "筛选值分页"
+
+#: src/i18n/feedback-messages.ts
+msgid "Filter was not applied. Try again."
+msgstr "筛选未生效，请重试。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Filtering…"
+msgstr "正在筛选…"
+
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "Filters the worksheet’s used rows, not just the selection. Row 1 stays visible."
+msgstr "筛选工作表中已使用的行，而非仅筛选选区。第 1 行保持可见。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Financial"
+msgstr "财务"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Find"
+msgstr "查找"
+
+#: src/i18n/feedback-messages.ts
+msgid "Find a match before replacing it."
+msgstr "请先找到匹配项再替换。"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Find all"
+msgstr "查找全部"
+
+#: src/i18n/feedback-messages.ts
+msgid "Find all before choosing a result."
+msgstr "请先执行“查找全部”再选择结果。"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Find and replace"
+msgstr "查找和替换"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Find and replace (Ctrl/⌘+F)"
+msgstr "查找和替换（Ctrl/⌘+F）"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Find next"
+msgstr "查找下一个"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Find or replace"
+msgstr "查找或替换"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Find what"
+msgstr "查找内容"
+
+#: src/workbook/chrome/ribbon/QuickFormulaTools.tsx
+msgid "Finding formula range…"
+msgstr "正在查找公式范围…"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Finding…"
+msgstr "正在查找…"
+
+#: src/i18n/feedback-messages.ts
+msgid "Finish editing the cell before applying a format."
+msgstr "应用格式前，请先完成单元格编辑。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Finish editing the cell before applying borders."
+msgstr "应用边框前，请先完成单元格编辑。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Finish editing the cell first."
+msgstr "请先完成单元格编辑。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Finish the current edit or history operation first."
+msgstr "请先完成当前编辑或历史操作。"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/GoToTools.tsx
+msgid "Finish the current operation before navigating."
+msgstr "请先完成当前操作，再跳转。"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "First"
+msgstr "最前"
+
+#: src/workbook/chrome/ribbon/TableAppearance.tsx
+msgid "First column emphasis"
+msgstr "突出首列"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "First occurrence"
+msgstr "首次出现位置"
+
+#: src/workbook/chrome/ribbon/FindResults.tsx
+msgid "First page"
+msgstr "首页"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "First row contains headers"
+msgstr "首行包含表头"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "First row is a header"
+msgstr "首行为表头"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Fixed width"
+msgstr "固定宽度"
+
+#. placeholder {0}: state.draft.denominator
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Fixed: {0}"
+msgstr "固定：{0}"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Fixed: {value}"
+msgstr "固定：{value}"
+
+#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+msgid "Font family"
+msgstr "字体"
+
+#: src/workbook/chrome/ribbon/FontSizeTools.tsx
+msgid "Font size"
+msgstr "字号"
+
+#: src/workbook/chrome/ribbon/FontSizeTools.tsx
+msgid "Font size (pixels)"
+msgstr "字号（像素）"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "For example $, €, ¥ or USD. Leave blank for no symbol."
+msgstr "例如 $、€、¥ 或 USD。留空表示不使用符号。"
+
+#: src/workbook/chrome/ribbon/InsertFunctionTools.tsx
+msgid "For example, XLOOKUP"
+msgstr "例如 XLOOKUP"
+
+#: src/i18n/feedback-messages.ts
+msgid "Format borders"
+msgstr "设置边框格式"
+
+#: src/i18n/feedback-messages.ts
+msgid "Format cells"
+msgstr "设置单元格格式"
+
+#: src/workbook/chrome/ribbon/FormatPainterTools.tsx
+msgid "Format painter"
+msgstr "格式刷"
+
+#: src/workbook/chrome/ribbon/FormatPainterTools.tsx
+msgid "Format painter status"
+msgstr "格式刷状态"
+
+#: src/workbook/chrome/ribbon/FormatPainterTools.tsx
+msgid "Format painter: click once, double-click to keep painting. Esc to stop."
+msgstr "格式刷：单击使用一次，双击连续使用，按 Esc 退出。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Format range"
+msgstr "设置区域格式"
+
+#: src/i18n/feedback-messages.ts
+msgid "Format selection"
+msgstr "设置选区格式"
+
+#: src/i18n/feedback-messages.ts
+msgid "Format table"
+msgstr "设置表格格式"
+
+#: src/i18n/feedback-messages.ts
+msgid "Formatting applied."
+msgstr "格式已应用。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Formatting applied. Select another range; Esc to stop."
+msgstr "格式已应用。可继续选择其他区域，按 Esc 退出。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Formatting exceeds 100,000 addressed cells. Choose a smaller selection."
+msgstr "格式设置范围超过 100,000 个单元格，请缩小选区。"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Formatting only"
+msgstr "仅格式"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Formula"
+msgstr "公式"
+
+#: src/workbook/formula/FormulaAssist.tsx
+msgid "Formula arguments"
+msgstr "公式参数"
+
+#. placeholder {0}: coordToA1(info.anchor)
+#: src/workbook/chrome/ribbon/SpillTools.tsx
+msgid "Formula cell: {0}"
+msgstr "公式单元格：{0}"
+
+#: src/workbook/formula/FormulaAssist.tsx
+msgid "Formula functions"
+msgstr "公式函数"
+
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+#: src/workbook/chrome/ribbon/RibbonTabs.tsx
+msgid "Formulas"
+msgstr "公式"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Formulas / raw values"
+msgstr "公式 / 原始值"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Formulas and number formats"
+msgstr "公式和数字格式"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Formulas only"
+msgstr "仅公式"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Fraction"
+msgstr "分数"
+
+#: src/workbook/chrome/ribbon/FreezeTools.tsx
+msgid "Freeze at active cell"
+msgstr "在活动单元格处冻结"
+
+#: src/workbook/chrome/ribbon/FreezeTools.tsx
+msgid "Freeze first column"
+msgstr "冻结首列"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/FreezeTools.tsx
+msgid "Freeze panes"
+msgstr "冻结窗格"
+
+#: src/workbook/chrome/ribbon/FreezeTools.tsx
+msgid "Freeze top row"
+msgstr "冻结首行"
+
+#: src/workbook/chrome/ribbon/InsertFunctionTools.tsx
+msgid "Function"
+msgstr "函数"
+
+#: src/workbook/formula/FormulaAssist.tsx
+msgid "Functions "
+msgstr "函数"
+
+#: src/workbook/chrome/ribbon/TextColumnTypes.tsx
+msgid "General"
+msgstr "常规"
+
+#: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
+msgid "General fields"
+msgstr "常规字段"
+
+#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+msgid "General format"
+msgstr "常规格式"
+
+#: src/workbook/chrome/ribbon/GoToTools.tsx
+msgid "Go"
+msgstr "定位"
+
+#: src/workbook/chrome/ribbon/GoToTools.tsx
+msgid "Go to"
+msgstr "定位"
+
+#: src/workbook/chrome/ribbon/GoToTools.tsx
+msgid "Go to (Ctrl/⌘+G or F5)"
+msgstr "定位（Ctrl/⌘+G 或 F5）"
+
+#. placeholder {0}: position + 1
+#: src/workbook/chrome/ribbon/FindResults.tsx
+msgid "Go to {address}, match {0}"
+msgstr "定位到 {address}，第 {0} 个匹配项"
+
+#. placeholder {0}: row.row + 1
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Go to duplicate row {0}"
+msgstr "定位到重复记录第 {0} 行"
+
+#. placeholder {0}: row.firstRow + 1
+#. placeholder {1}: row.row + 1
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Go to first occurrence row {0} for duplicate row {1}"
+msgstr "定位到第 {1} 行重复记录的首次出现位置：第 {0} 行"
+
+#: src/workbook/chrome/ribbon/SpillTools.tsx
+msgid "Go to formula cell"
+msgstr "定位到公式单元格"
+
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Go to special"
+msgstr "定位条件"
+
+#. placeholder {0}: table.name
+#: src/workbook/chrome/ribbon/NamedTableList.tsx
+msgid "Go to table {0}"
+msgstr "定位到表格 {0}"
+
+#: src/workbook/chrome/ribbon/TableAppearance.tsx
+msgid "Gray"
+msgstr "灰色"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Greater than"
+msgstr "大于"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Greater than or equal to"
+msgstr "大于或等于"
+
+#: src/workbook/chrome/ribbon/TableAppearance.tsx
+msgid "Green"
+msgstr "绿色"
+
+#: src/i18n/feedback-messages.ts
+msgid "Group"
+msgstr "分组"
+
+#: src/workbook/chrome/ribbon/OutlineTools.tsx
+msgid "Group / Outline"
+msgstr "分组 / 大纲"
+
+#: src/workbook/chrome/ribbon/OutlineTools.tsx
+msgid "Group selected columns"
+msgstr "将选中列分组"
+
+#: src/workbook/chrome/ribbon/OutlineTools.tsx
+msgid "Group selected rows"
+msgstr "将选中行分组"
+
+#: src/workbook/chrome/ribbon/TableAppearance.tsx
+msgid "Header row"
+msgstr "表头行"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Hex color"
+msgstr "十六进制颜色"
+
+#: src/workbook/chrome/ribbon/SpillTools.tsx
+msgid "Hidden rows and columns stay hidden. No cells are changed."
+msgstr "隐藏的行列保持隐藏，不会修改任何单元格。"
+
+#: src/workbook/chrome/ribbon/VisibilityTools.tsx
+msgid "Hide / Unhide"
+msgstr "隐藏／取消隐藏"
+
+#: src/i18n/feedback-messages.ts
+msgid "Hide columns"
+msgstr "隐藏列"
+
+#: src/i18n/feedback-messages.ts
+msgid "Hide rows"
+msgstr "隐藏行"
+
+#: src/workbook/chrome/ribbon/VisibilityTools.tsx
+msgid "Hide selected columns"
+msgstr "隐藏选中列"
+
+#: src/workbook/chrome/ribbon/VisibilityTools.tsx
+msgid "Hide selected rows"
+msgstr "隐藏选中行"
+
+#: src/i18n/feedback-messages.ts
+msgid "Hide table headers"
+msgstr "隐藏表头"
+
+#: src/i18n/feedback-messages.ts
+msgid "Hide table totals"
+msgstr "隐藏表格汇总行"
+
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Hide totals row"
+msgstr "隐藏汇总行"
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Hide values"
+msgstr "收起值列表"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Hide values for condition {0}"
+msgstr "收起条件 {0} 的值列表"
+
+#: src/workbook/chrome/ribbon/TableAppearance.tsx
+msgid "Hiding headers keeps column names and clears this table’s filter."
+msgstr "隐藏表头会保留列名，并清除此表格的筛选。"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Highlight fill"
+msgstr "突出显示填充色"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Highlight text"
+msgstr "突出显示文字色"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Highlight values"
+msgstr "突出显示值"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Highlight values with conditions, color scales or data bars. Higher rules win when colors overlap."
+msgstr "通过条件、色阶或数据条突出显示数值。颜色冲突时，上方规则优先。"
+
+#: src/workbook/chrome/ribbon/TextLayoutTools.tsx
+msgid "Horizontal alignment"
+msgstr "水平对齐"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Ignore blank cells"
+msgstr "忽略空白单元格"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Ignore case"
+msgstr "忽略大小写"
+
+#: src/workbook/chrome/header/WorkbookHeader.tsx
+msgid "In memory"
+msgstr "保存在内存中"
+
+#: src/i18n/feedback-messages.ts
+msgid "Include a source row or column and at least one destination."
+msgstr "请选择来源行或列，并至少包含一个目标单元格。"
+
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Includes hidden cells. Merged cells are selected as a whole."
+msgstr "包含隐藏单元格，合并单元格按整体选中。"
+
+#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+msgid "Increase decimal places"
+msgstr "增加小数位数"
+
+#: src/workbook/chrome/ribbon/FontSizeTools.tsx
+msgid "Increase font size"
+msgstr "增大字号"
+
+#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+msgid "Increase indent"
+msgstr "增加缩进"
+
+#: src/i18n/feedback-messages.ts
+msgid "Information"
+msgstr "信息"
+
+#: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
+msgid "Input rules only; Text and Date fields are unchanged. Thousands groups must contain three digits. Invalid numbers keep their original text. Change options, then update the preview."
+msgstr "仅影响输入解析规则；文本和日期字段不变。千位分组必须为三位数字。无效数字保留原始文本。更改选项后，请更新预览。"
+
+#: src/workbook/chrome/ribbon/RibbonTabs.tsx
+msgid "Insert"
+msgstr "插入"
+
+#: src/workbook/chrome/ribbon/StructureTools.tsx
+msgid "Insert / Delete"
+msgstr "插入 / 删除"
+
+#: src/i18n/feedback-messages.ts
+msgid "Insert columns"
+msgstr "插入列"
+
+#: src/workbook/chrome/ribbon/InsertFunctionTools.tsx
+msgid "Insert draft"
+msgstr "插入公式草稿"
+
+#: src/workbook/chrome/ribbon/InsertFunctionTools.tsx
+msgid "Insert function"
+msgstr "插入函数"
+
+#: src/workbook/chrome/ribbon/StructureTools.tsx
+msgid "Insert or delete rows and columns"
+msgstr "插入或删除行列"
+
+#: src/i18n/feedback-messages.ts
+msgid "Insert rows"
+msgstr "插入行"
+
+#: src/workbook/chrome/ribbon/StructureTools.tsx
+msgid "Insert selected columns"
+msgstr "插入选中的列"
+
+#: src/workbook/chrome/ribbon/StructureTools.tsx
+msgid "Insert selected rows"
+msgstr "插入选中的行"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Inside borders"
+msgstr "内部框线"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Inside horizontal"
+msgstr "内部横框线"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Inside vertical"
+msgstr "内部竖框线"
+
+#: src/workbook/chrome/header/LanguageSelect.tsx
+msgid "Interface language"
+msgstr "界面语言"
+
+#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+msgid "Italic"
+msgstr "斜体"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Items"
+msgstr "项数"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Items, one per line"
+msgstr "列表项，每行一项"
+
+#: src/i18n/feedback-messages.ts
+msgid "Joins several text strings into one."
+msgstr "将多个文本字符串连接为一个。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Keep at least one worksheet."
+msgstr "请至少保留一张工作表。"
+
+#: src/workbook/chrome/ribbon/TextColumnTypes.tsx
+msgid "Keep text (existing format)"
+msgstr "保留文本（现有格式）"
+
+#: src/i18n/feedback-messages.ts
+msgid "Lambda"
+msgstr "Lambda 函数"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Last"
+msgstr "最后"
+
+#: src/workbook/chrome/ribbon/TableAppearance.tsx
+msgid "Last column emphasis"
+msgstr "突出末列"
+
+#: src/workbook/chrome/ribbon/FindResults.tsx
+msgid "Last page"
+msgstr "末页"
+
+#: src/workbook/chrome/ribbon/TextLayoutTools.tsx
+msgid "Left"
+msgstr "左对齐"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Left border"
+msgstr "左框线"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Less than"
+msgstr "小于"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Less than or equal to"
+msgstr "小于或等于"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Limit new input in the selected range. Existing values are kept."
+msgstr "限制选区内的新输入，保留已有值。"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Line style"
+msgstr "线条样式"
+
+#: src/i18n/feedback-messages.ts
+msgid "Linear trend"
+msgstr "线性趋势"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "List"
+msgstr "列表"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Loading preview…"
+msgstr "正在加载预览…"
+
+#: src/page/WorkbookRuntimeProvider.tsx
+msgid "Loading Rust/WASM workbook…"
+msgstr "正在加载 Rust/WASM 工作簿…"
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Loading values…"
+msgstr "正在加载值…"
+
+#: src/workbook/grid/viewport/WorkbookGrid.tsx
+msgid "Loading visible cells…"
+msgstr "正在加载可见单元格…"
+
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Locating cells…"
+msgstr "正在定位单元格…"
+
+#: src/i18n/feedback-messages.ts
+msgid "Logical"
+msgstr "逻辑"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Look in"
+msgstr "查找范围"
+
+#: src/i18n/feedback-messages.ts
+msgid "Looks up a value in the first column of a range and returns a value from a column in the same row."
+msgstr "在区域首列查找值，并返回同一行中指定列的值。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Lookup & reference"
+msgstr "查找与引用"
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "Low\n"
+"Medium\n"
+"High"
+msgstr "低\n"
+"中\n"
+"高"
+
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Match case"
+msgstr "区分大小写"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Match entire cell"
+msgstr "匹配整个单元格"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Matches literal text, ignoring case. Spaces are kept; * and ? are ordinary characters."
+msgstr "按字面文本匹配，不区分大小写。保留空格；* 和 ? 作为普通字符处理。"
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Matching rows"
+msgstr "匹配行数"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Matching text"
+msgstr "匹配文本"
+
+#: src/i18n/feedback-messages.ts
+msgid "Math & statistics"
+msgstr "数学与统计"
+
+#: src/i18n/feedback-messages.ts
+msgid "Max"
+msgstr "最大值"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Maximum"
+msgstr "最大值"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+msgid "Maximum {0}"
+msgstr "最大值 {0}"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Maximum color"
+msgstr "最大值颜色"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Medium"
+msgstr "中等"
+
+#: src/workbook/chrome/ribbon/MergeTools.tsx
+msgid "Merge / Unmerge"
+msgstr "合并 / 取消合并"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/MergeTools.tsx
+msgid "Merge and center"
+msgstr "合并后居中"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/MergeConfirmation.tsx
+#: src/workbook/chrome/ribbon/MergeTools.tsx
+msgid "Merge cells"
+msgstr "合并单元格"
+
+#: src/workbook/chrome/ribbon/MergeConfirmation.tsx
+msgid "Merge these cells?"
+msgstr "合并这些单元格？"
+
+#: src/i18n/feedback-messages.ts
+msgid "Merged cells cannot be pasted inside an Excel Table."
+msgstr "不能将合并单元格粘贴到表格内。"
+
+#: src/workbook/chrome/ribbon/MergeTools.tsx
+msgid "Merging cells…"
+msgstr "正在合并单元格…"
+
+#: src/workbook/chrome/ribbon/MergeConfirmation.tsx
+msgid "Merging…"
+msgstr "正在合并…"
+
+#: src/workbook/chrome/ribbon/TextLayoutTools.tsx
+msgid "Middle"
+msgstr "垂直居中"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Midpoint color"
+msgstr "中间值颜色"
+
+#: src/i18n/feedback-messages.ts
+msgid "Min"
+msgstr "最小值"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Minimum"
+msgstr "最小值"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+msgid "Minimum {0}"
+msgstr "最小值 {0}"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Minimum color"
+msgstr "最小值颜色"
+
+#: src/i18n/feedback-messages.ts
+msgid "Month names"
+msgstr "月份名称"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "More paste options"
+msgstr "更多粘贴选项"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Move down"
+msgstr "下移"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Move rule {0} down"
+msgstr "下移规则 {0}"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Move rule {0} up"
+msgstr "上移规则 {0}"
+
+#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+msgid "Move sheet left"
+msgstr "向左移动工作表"
+
+#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+msgid "Move sheet right"
+msgstr "向右移动工作表"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Move sort level {0} down"
+msgstr "下移排序级别 {0}"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Move sort level {0} up"
+msgstr "上移排序级别 {0}"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Move up"
+msgstr "上移"
+
+#: src/i18n/feedback-messages.ts
+msgid "Move worksheet"
+msgstr "移动工作表"
+
+#: src/workbook/chrome/footer/WorkbookFooter.tsx
+msgid "Multi-area selection"
+msgstr "多区域选区"
+
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+msgid "Multi-line values stay intact. Use Choose values to change them."
+msgstr "多行文本保持完整。请通过“选择值”修改。"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Multiply"
+msgstr "乘"
+
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "Name"
+msgstr "名称"
+
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "Name a cell or range to use it in formulas. Names are available throughout this workbook."
+msgstr "为单元格或区域命名，以便在公式中引用。名称在整个工作簿内可用。"
+
+#: src/workbook/chrome/formula-bar/NameBox.tsx
+msgid "Name box"
+msgstr "名称框"
+
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "Name manager"
+msgstr "名称管理器"
+
+#: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
+msgid "Narrow nonbreaking space"
+msgstr "窄不换行空格"
+
+#: src/workbook/chrome/header/WorkbookFileTools.tsx
+msgid "Native .einfach.json files only, up to 64 MiB. Not XLSX. Opening or creating a workbook replaces this view and starts a fresh Undo history."
+msgstr "仅支持原生 .einfach.json 文件，最大 64 MiB，不支持 XLSX。打开或新建工作簿会替换当前视图，并重新开始撤销历史。"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Negative bar color"
+msgstr "负值数据条颜色"
+
+#: src/workbook/chrome/header/WorkbookFileTools.tsx
+msgid "New blank workbook"
+msgstr "新建空白工作簿"
+
+#: src/workbook/chrome/ribbon/TableColumns.tsx
+msgid "New column name"
+msgstr "新列名"
+
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "New name"
+msgstr "新名称"
+
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "New named range"
+msgstr "新建命名区域"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "New rule"
+msgstr "新建规则"
+
+#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+msgid "New sheet"
+msgstr "新建工作表"
+
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "New table"
+msgstr "新建表格"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "New typing and external paste stay as text, including leading zeros and formulas. Existing values and formulas are not converted."
+msgstr "新输入和外部粘贴均保留为文本，包括前导零和公式。不会转换已有值和公式。"
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Next"
+msgstr "下一项"
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Next filter values page"
+msgstr "下一页筛选值"
+
+#: src/workbook/chrome/ribbon/FindResults.tsx
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Next page"
+msgstr "下一页"
+
+#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+msgid "Next sheet"
+msgstr "下一张工作表"
+
+#: src/workbook/chrome/ribbon/SpillTools.tsx
+msgid "No blocking cell can be identified. Check worksheet limits or the array size."
+msgstr "未找到具体的阻挡单元格，请检查工作表边界或数组大小。"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "No borders"
+msgstr "无框线"
+
+#: src/workbook/chrome/ribbon/ColorTools.tsx
+msgid "No fill"
+msgstr "无填充颜色"
+
+#: src/i18n/feedback-messages.ts
+msgid "No matches found."
+msgstr "未找到匹配项。"
+
+#: src/i18n/feedback-messages.ts
+msgid "No matching cells found. Choose another condition or range."
+msgstr "未找到匹配单元格，请选择其他条件或区域。"
+
+#: src/workbook/chrome/ribbon/InsertFunctionTools.tsx
+msgid "No matching functions. Change the search or category."
+msgstr "没有匹配的函数，请修改搜索内容或类别。"
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "No matching values. Try another search."
+msgstr "没有匹配的值，请修改搜索内容。"
+
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "No named ranges yet. Create one below."
+msgstr "尚无命名区域，可在下方创建。"
+
+#: src/workbook/chrome/ribbon/GoToTools.tsx
+msgid "No recent locations yet."
+msgstr "尚无最近定位记录。"
+
+#: src/workbook/chrome/ribbon/HistoryTools.tsx
+msgid "No recorded operations yet."
+msgstr "暂无操作记录。"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "No rules yet."
+msgstr "尚无规则。"
+
+#: src/workbook/chrome/footer/SelectionStatus.tsx
+msgid "No statistics selected"
+msgstr "未选择统计项"
+
+#: src/workbook/chrome/ribbon/NamedTableList.tsx
+msgid "No tables in this workbook."
+msgstr "此工作簿中没有表格。"
+
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "No tables yet. Choose a range below."
+msgstr "尚无表格，请在下方选择区域。"
+
+#: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
+msgid "Nonbreaking space"
+msgstr "不换行空格"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+#: src/workbook/chrome/ribbon/TableAppearance.tsx
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+#: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "None"
+msgstr "无"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Not between"
+msgstr "不介于"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Not equal to"
+msgstr "不等于"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Number"
+msgstr "数字"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Number format"
+msgstr "数字格式"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Number format category"
+msgstr "数字格式类别"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Number format preview"
+msgstr "数字格式预览"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Number format settings"
+msgstr "数字格式设置"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Number of items"
+msgstr "项数"
+
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+msgid "Number range"
+msgstr "数值范围"
+
+#: src/i18n/feedback-messages.ts
+msgid "Number sequence"
+msgstr "等差数列"
+
+#: src/i18n/feedback-messages.ts
+msgid "Numerical count"
+msgstr "数值计数"
+
+#: src/i18n/feedback-messages.ts
+msgid "Older operations were dropped to keep history within its memory limit."
+msgstr "为控制历史记录的内存占用，已移除较早的操作。"
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "One date advances by a day. Two or more dates infer day, week or month steps; month ends stay at month end."
+msgstr "单个日期按天递增。两个或更多日期用于推断天、周或月步长；月末日期保持在月末。"
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "One item per line (2–512 unique items). One source sample follows the list; more samples infer a cyclic step."
+msgstr "每行一项（2–512 个不重复项）。单个样本按列表顺序递增；多个样本用于推断循环步长。"
+
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+msgid "One of these values"
+msgstr "属于这些值"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Only the selected rectangle moves. Filtered rows stay in place; manually hidden rows participate. Levels are applied from top to bottom."
+msgstr "仅移动选中的矩形区域。筛除的行保持原位，手动隐藏的行参与排序。排序级别从上到下依次应用。"
+
+#: src/workbook/chrome/ribbon/MergeConfirmation.tsx
+msgid "Only the upper-left cell's content will remain. Other cell contents will be deleted. Undo can restore them."
+msgstr "只保留左上角单元格的内容，其他单元格内容将被删除，可以撤销恢复。"
+
+#: src/workbook/chrome/header/WorkbookFileTools.tsx
+msgid "Open this file and replace the current workbook? Download first to keep unsaved changes."
+msgstr "打开此文件并替换当前工作簿？请先下载以保留未保存的更改。"
+
+#: src/workbook/chrome/header/WorkbookFileTools.tsx
+msgid "Open workbook"
+msgstr "打开工作簿"
+
+#: src/i18n/feedback-messages.ts
+msgid "Opening workbook…"
+msgstr "正在打开工作簿…"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Operation"
+msgstr "运算"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Order"
+msgstr "顺序"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Original selection"
+msgstr "原始选区"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Other delimiter characters"
+msgstr "其他分隔字符"
+
+#: src/workbook/chrome/footer/SelectionStatus.tsx
+msgid "Out of range"
+msgstr "超出范围"
+
+#: src/workbook/chrome/ribbon/OutlineTools.tsx
+msgid "Outline groups"
+msgstr "大纲分组"
+
+#. placeholder {0}: toA1(preview.target.rowStart, preview.target.colStart)
+#. placeholder {1}: toA1(preview.target.rowEnd, preview.target.colEnd)
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Output: {0}:{1}"
+msgstr "输出：{0}:{1}"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Outside borders"
+msgstr "外侧框线"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Overwrite "
+msgstr "覆盖"
+
+#: src/i18n/feedback-messages.ts
+msgid "Painting formatting…"
+msgstr "正在应用格式…"
+
+#: src/workbook/chrome/ribbon/FreezeTools.tsx
+msgid "Panes frozen"
+msgstr "窗格已冻结"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste"
+msgstr "粘贴"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste (Ctrl/⌘+V)"
+msgstr "粘贴 (Ctrl/⌘+V)"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste and add"
+msgstr "粘贴并相加"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste and divide"
+msgstr "粘贴并相除"
+
+#: src/i18n/feedback-messages.ts
+msgid "Paste and expand table"
+msgstr "粘贴并扩展表格"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste and multiply"
+msgstr "粘贴并相乘"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste and subtract"
+msgstr "粘贴并相减"
+
+#: src/i18n/feedback-messages.ts
+msgid "Paste arithmetic needs cell contents, not formatting only."
+msgstr "粘贴运算需要单元格内容，不能仅粘贴格式。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Paste cannot overwrite an array result."
+msgstr "粘贴不能覆盖数组结果。"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste column widths only"
+msgstr "仅粘贴列宽"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Paste content"
+msgstr "粘贴内容"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste formatting only"
+msgstr "仅粘贴格式"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste formulas and number formats"
+msgstr "粘贴公式和数字格式"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste formulas only"
+msgstr "仅粘贴公式"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste options"
+msgstr "粘贴选项"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste skipping blanks"
+msgstr "粘贴时跳过空白"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Paste special"
+msgstr "选择性粘贴"
+
+#: src/i18n/feedback-messages.ts
+msgid "Paste special requires Copy, not Cut. The cut cells are unchanged."
+msgstr "选择性粘贴仅支持复制，不支持剪切。剪切的单元格保持不变。"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste transposed"
+msgstr "转置粘贴"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste values and formatting"
+msgstr "粘贴值和格式"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste values and number formats"
+msgstr "粘贴值和数字格式"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste values only"
+msgstr "仅粘贴值"
+
+#: src/i18n/feedback-messages.ts
+msgid "Paste would extend beyond the sheet. Choose another cell."
+msgstr "粘贴内容将超出工作表边界，请选择其他单元格。"
+
+#: src/i18n/feedback-messages.ts
+msgid "paste…"
+msgstr "正在粘贴…"
+
+#: src/i18n/feedback-messages.ts
+msgid "Pasted cells."
+msgstr "已粘贴单元格。"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Pasting…"
+msgstr "正在粘贴…"
+
+#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+msgid "Percent format"
+msgstr "百分比格式"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Percentage"
+msgstr "百分比"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+#: src/workbook/chrome/ribbon/FindResults.tsx
+msgid "Position"
+msgstr "位置"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Positive bar color"
+msgstr "正值数据条颜色"
+
+#: src/i18n/feedback-messages.ts
+msgid "Preparing download…"
+msgstr "正在准备下载…"
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Press Search to load matching values."
+msgstr "点击“搜索”加载匹配的值。"
+
+#. placeholder {0}: state.target?.addr
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Preview · {0}"
+msgstr "预览 · {0}"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Preview cells"
+msgstr "预览单元格"
+
+#: src/i18n/feedback-messages.ts
+msgid "Preview unavailable. Change a setting to try again."
+msgstr "预览不可用，请修改设置后重试。"
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Previous"
+msgstr "上一项"
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Previous filter values page"
+msgstr "上一页筛选值"
+
+#: src/workbook/chrome/ribbon/FindResults.tsx
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Previous page"
+msgstr "上一页"
+
+#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+msgid "Previous sheet"
+msgstr "上一张工作表"
+
+#: src/workbook/chrome/ribbon/QuickFormulaTools.tsx
+msgid "Quick formula"
+msgstr "快捷公式"
+
+#. placeholder {0}: getColumnLabel(panel.range.colStart)
+#. placeholder {1}: panel.range.rowStart + 1
+#. placeholder {2}: getColumnLabel(panel.range.colEnd)
+#. placeholder {3}: panel.range.rowEnd + 1
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "Range {0}{1}:{2}{3}. Its first row stays visible."
+msgstr "范围 {0}{1}:{2}{3}。首行保持可见。"
+
+#. placeholder {0}: target && `${toA1(target.range.rowStart, target.range.colStart)}:${toA1(target.range.rowEnd, target.range.colEnd)}`
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Range: {0}"
+msgstr "范围：{0}"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Rank by"
+msgstr "排名依据"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Rank direction"
+msgstr "排名方向"
+
+#: src/workbook/chrome/ribbon/SpillTools.tsx
+msgid "Reading spill details…"
+msgstr "正在读取溢出详情…"
+
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "Reapply {table} filter"
+msgstr "重新应用 {table} 筛选"
+
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "Reapply filter"
+msgstr "重新应用筛选"
+
+#: src/workbook/chrome/ribbon/CalculationTools.tsx
+msgid "Recalculate"
+msgstr "重新计算"
+
+#: src/workbook/chrome/ribbon/CalculationTools.tsx
+msgid "Recalculating…"
+msgstr "正在重新计算…"
+
+#: src/workbook/chrome/ribbon/GoToTools.tsx
+msgid "Recent locations"
+msgstr "最近定位"
+
+#: src/workbook/chrome/ribbon/HistoryTools.tsx
+msgid "Recent operations"
+msgstr "最近操作"
+
+#: src/i18n/feedback-messages.ts
+msgid "Records were removed, but the view could not be updated. Check the sheet before retrying."
+msgstr "记录已删除，但视图更新失败。请检查工作表后再重试。"
+
+#: src/workbook/chrome/ribbon/HistoryTools.tsx
+msgid "Redo"
+msgstr "重做"
+
+#: src/workbook/chrome/ribbon/HistoryTools.tsx
+msgid "Redo (Ctrl/⌘+Shift+Z or Ctrl+Y)"
+msgstr "重做 (Ctrl/⌘+Shift+Z 或 Ctrl+Y)"
+
+#: src/workbook/chrome/ribbon/GoToTools.tsx
+msgid "Reference"
+msgstr "引用"
+
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "Refers to"
+msgstr "引用位置"
+
+#: src/workbook/chrome/ribbon/SpillTools.tsx
+msgid "Refresh"
+msgstr "刷新"
+
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Remove"
+msgstr "移除"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Remove "
+msgstr "删除"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+msgid "Remove condition {0}"
+msgstr "移除条件 {0}"
+
+#: src/i18n/feedback-messages.ts
+msgid "Remove conditional format"
+msgstr "删除条件格式"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Remove duplicates"
+msgstr "删除重复项"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Remove records"
+msgstr "删除记录"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Remove sort level {0}"
+msgstr "移除排序级别 {0}"
+
+#: src/i18n/feedback-messages.ts
+msgid "Removes extra spaces from a text string."
+msgstr "删除文本字符串中的多余空格。"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Removing duplicates…"
+msgstr "正在删除重复项…"
+
+#: src/workbook/chrome/ribbon/TableColumns.tsx
+msgid "Rename a column here or edit its header cell. Formulas update with the name."
+msgstr "在此重命名列，或编辑其表头单元格。公式会随名称更新。"
+
+#: src/workbook/chrome/ribbon/TableColumns.tsx
+msgid "Rename column"
+msgstr "重命名列"
+
+#: src/i18n/feedback-messages.ts
+msgid "Rename failed: that column name is already in use."
+msgstr "重命名失败：该列名已被使用。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Rename failed: that name is already in use."
+msgstr "重命名失败：该名称已被使用。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Rename failed: that name is reserved by a built-in function."
+msgstr "重命名失败：该名称为内置函数保留名称。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Rename failed: the column could not be found."
+msgstr "重命名失败：找不到列。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Rename failed: the column name is invalid."
+msgstr "重命名失败：列名无效。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Rename failed: the name looks like a cell reference. Choose another name."
+msgstr "重命名失败：名称类似单元格引用，请使用其他名称。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Rename failed: the table could not be found."
+msgstr "重命名失败：找不到表格。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Rename failed: the table name is invalid."
+msgstr "重命名失败：表格名称无效。"
+
+#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+msgid "Rename sheet"
+msgstr "重命名工作表"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "Rename table"
+msgstr "重命名表格"
+
+#: src/i18n/feedback-messages.ts
+msgid "Rename table column"
+msgstr "重命名表格列"
+
+#: src/i18n/feedback-messages.ts
+msgid "Rename worksheet"
+msgstr "重命名工作表"
+
+#: src/i18n/feedback-messages.ts
+msgid "Reorder conditional formats"
+msgstr "调整条件格式顺序"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Replace"
+msgstr "替换"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Replace all"
+msgstr "替换全部"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Replace current"
+msgstr "替换当前项"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Replace with"
+msgstr "替换为"
+
+#: src/i18n/translate-feedback.ts
+msgid "Replaced {occurrences} occurrence(s) in {cells} cell(s). Find next to continue."
+msgstr "已在 {cells} 个单元格中替换 {occurrences} 处内容。可继续查找下一个。"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Replacements can be undone together."
+msgstr "所有替换可以一次撤销。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Replaces characters; does not translate between languages."
+msgstr "替换字符，不进行语言翻译。"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Replacing…"
+msgstr "正在替换…"
+
+#: src/workbook/chrome/ribbon/SelectionSizeTools.tsx
+msgid "Reset selected sizes"
+msgstr "重置选中行列尺寸"
+
+#: src/workbook/chrome/ribbon/SelectionSizeTools.tsx
+msgid "Reset sizes keeps cell values and formatting. It does not auto-fit text."
+msgstr "重置尺寸会保留单元格值和格式，不会根据文本自动调整。"
+
+#: src/workbook/grid/viewport/GridResizeHandle.tsx
+msgid "Resize {axisLabel} {label}"
+msgstr "调整{axisLabel} {label} 的尺寸"
+
+#: src/i18n/feedback-messages.ts
+msgid "Resize column"
+msgstr "调整列宽"
+
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "Resize keeps the header row fixed. Include the totals row when shown. Convert to range keeps your data and formatting."
+msgstr "调整范围时，表头行位置保持不变。如有汇总行，请将其包含在内。转换为普通区域会保留数据和格式。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Resize row"
+msgstr "调整行高"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "Resize table"
+msgstr "调整表格范围"
+
+#: src/workbook/chrome/footer/SelectionStatisticsSettings.tsx
+msgid "Restore defaults"
+msgstr "恢复默认"
+
+#. placeholder {0}: page.offset + 1
+#. placeholder {1}: page.offset + page.matches.length
+#. placeholder {2}: result.total
+#: src/workbook/chrome/ribbon/FindResults.tsx
+msgid "Results {0}–{1} of {2}"
+msgstr "第 {0}–{1} 项结果，共 {2} 项"
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Retry values"
+msgstr "重新加载值"
+
+#: src/i18n/feedback-messages.ts
+msgid "Returns a positive square root."
+msgstr "返回正平方根。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Returns display text; does not create a clickable link."
+msgstr "返回显示文本，不创建可点击链接。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Returns image metadata as text; does not display an image."
+msgstr "以文本形式返回图片元数据，不显示图片。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Returns one value if the condition is true and another otherwise."
+msgstr "条件为真时返回一个值，否则返回另一个值。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Returns the absolute value of a number."
+msgstr "返回数字的绝对值。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Returns the arithmetic mean of its arguments."
+msgstr "返回所有参数的算术平均值。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Returns the largest numeric value in the arguments."
+msgstr "返回参数中的最大数值。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Returns the number of characters in a text string."
+msgstr "返回文本字符串的字符数。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Returns the remainder after a number is divided by a divisor."
+msgstr "返回数字除以除数后的余数。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Returns the smallest numeric value in the arguments."
+msgstr "返回参数中的最小数值。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Returns TRUE if all arguments are TRUE."
+msgstr "所有参数均为 TRUE 时返回 TRUE。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Returns TRUE if any argument is TRUE."
+msgstr "任意参数为 TRUE 时返回 TRUE。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Reverses the logical value of its argument."
+msgstr "返回参数逻辑值的相反值。"
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+#: src/workbook/chrome/ribbon/TextLayoutTools.tsx
+msgid "Right"
+msgstr "右对齐"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Right border"
+msgstr "右框线"
+
+#: src/i18n/feedback-messages.ts
+msgid "Rounds a number to a specified number of digits."
+msgstr "将数字四舍五入到指定小数位数。"
+
+#: src/workbook/grid/viewport/GridResizeHandle.tsx
+msgid "row"
+msgstr "行"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Row"
+msgstr "行"
+
+#: src/workbook/chrome/ribbon/SelectionSizeTools.tsx
+msgid "Row and column size"
+msgstr "行高和列宽"
+
+#: src/workbook/chrome/ribbon/VisibilityTools.tsx
+msgid "Row and column visibility"
+msgstr "行列显隐"
+
+#: src/workbook/chrome/ribbon/SelectionSizeTools.tsx
+msgid "Row height"
+msgstr "行高"
+
+#: src/workbook/grid/viewport/OutlineGutters.tsx
+msgid "Row outline"
+msgstr "行分组"
+
+#: src/workbook/grid/viewport/OutlineGutters.tsx
+msgid "Row outline levels"
+msgstr "行分组级别"
+
+#. placeholder {0}: group.start + 1
+#. placeholder {1}: group.end + 1
+#: src/workbook/grid/viewport/OutlineGutters.tsx
+msgid "rows {0}–{1}"
+msgstr "第 {0}–{1} 行"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Rule type"
+msgstr "规则类型"
+
+#: src/workbook/shell/WorkbookView.tsx
+msgid "Rust/WASM ready"
+msgstr "Rust/WASM 已就绪"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Sample shortened: up to 20 rows, 12 columns and 120 characters per field. Apply processes all source rows."
+msgstr "样本已截断：最多显示 20 行、12 列，每个字段最多 120 个字符。应用时处理全部源数据行。"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Sample values"
+msgstr "样本值"
+
+#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+msgid "Save"
+msgstr "保存"
+
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "Save changes"
+msgstr "保存更改"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Save rule"
+msgstr "保存规则"
+
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "Saving changes…"
+msgstr "正在保存更改…"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Saving conditional formatting…"
+msgstr "正在保存条件格式…"
+
+#: src/workbook/chrome/ribbon/SelectionSizeTools.tsx
+msgid "Saving sizes…"
+msgstr "正在保存尺寸…"
+
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "Saving table changes…"
+msgstr "正在保存表格更改…"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Scale colors"
+msgstr "色阶颜色"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Scientific"
+msgstr "科学记数"
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Search"
+msgstr "搜索"
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Search filter values"
+msgstr "搜索筛选值"
+
+#: src/workbook/chrome/ribbon/InsertFunctionTools.tsx
+msgid "Search functions"
+msgstr "搜索函数"
+
+#: src/workbook/chrome/ribbon/FindResults.tsx
+msgid "Search result pages"
+msgstr "搜索结果分页"
+
+#: src/i18n/feedback-messages.ts
+msgid "Search text is too long."
+msgstr "查找文本过长。"
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Search values"
+msgstr "搜索值"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Searches literal text, including offscreen cells. "
+msgstr "按字面文本搜索，包含屏幕外的单元格。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Select a header and at least one data row for the filter range."
+msgstr "筛选区域需包含表头和至少一行数据。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Select a source column first."
+msgstr "请先选择源列。"
+
+#: src/workbook/chrome/ribbon/NamedTableList.tsx
+msgid "Select a table to go to its range. Use Tables to change its name or columns."
+msgstr "选择表格以定位到其范围。通过“表格”修改名称或列。"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Select all"
+msgstr "全选"
+
+#: src/workbook/grid/viewport/GridHeaders.tsx
+msgid "Select all cells"
+msgstr "选中所有单元格"
+
+#: src/i18n/feedback-messages.ts
+msgid "Select an editable range and wait for the worksheet to finish loading."
+msgstr "请选择可编辑区域，并等待工作表加载完成。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Select at least two data rows. Include all columns to move together."
+msgstr "请至少选择两行数据，并包含所有需要一起移动的列。"
+
+#: src/workbook/chrome/ribbon/SpillTools.tsx
+msgid "Select blocking cell"
+msgstr "选中阻挡单元格"
+
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Select cells by condition"
+msgstr "按条件选择单元格"
+
+#: src/i18n/feedback-messages.ts
+msgid "Select cells on one worksheet before changing them."
+msgstr "请先在同一工作表中选择单元格再修改。"
+
+#: src/workbook/chrome/footer/SelectionStatus.tsx
+msgid "Select cells to calculate"
+msgstr "选择单元格以计算统计结果"
+
+#: src/i18n/feedback-messages.ts
+msgid "Select cells to paint. Press Esc to stop."
+msgstr "请选择要应用格式的单元格，按 Esc 退出。"
+
+#: src/workbook/grid/viewport/GridHeading.tsx
+msgid "Select column {label}"
+msgstr "选择列 {label}"
+
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Select constants, formulas or blanks"
+msgstr "选择常量、公式或空白单元格"
+
+#: src/i18n/feedback-messages.ts
+msgid "Select one continuous column of cells."
+msgstr "请选择同一列中的连续单元格。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Select one continuous fill range."
+msgstr "请选择一个连续的填充区域。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Select one continuous filter range, including its header."
+msgstr "请选择一个包含表头的连续筛选区域。"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Select one continuous range before using Go to special."
+msgstr "使用“定位条件”前，请先选择一个连续区域。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Select one continuous range to merge cells."
+msgstr "请先选择一个连续区域再合并单元格。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Select one continuous range to name."
+msgstr "请先选择一个连续区域再命名。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Select one continuous sort range."
+msgstr "请选择一个连续的排序区域。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Select one row or column with enough samples and at least one destination."
+msgstr "请选择同一行或列，包含足够的样本和至少一个目标单元格。"
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Select page"
+msgstr "选择当前页"
+
+#: src/workbook/grid/viewport/GridHeading.tsx
+msgid "Select row {label}"
+msgstr "选择行 {label}"
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "Select samples and destinations in one row or column. Keep the first samples; extend their pattern into the remaining cells, including hidden cells."
+msgstr "在同一行或列中选择样本和目标。保留开头的样本，将其规律扩展到剩余单元格，包含隐藏单元格。"
+
+#: src/workbook/chrome/ribbon/SpillTools.tsx
+msgid "Select spill range"
+msgstr "选中溢出区域"
+
+#: src/i18n/feedback-messages.ts
+msgid "Select the entire merged cell before formatting."
+msgstr "设置格式前，请选中完整的合并单元格。"
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Select value {label}"
+msgstr "选择值 {label}"
+
+#: src/i18n/feedback-messages.ts
+msgid "Select whole merged cells before copying or pasting."
+msgstr "复制或粘贴前，请选中完整的合并单元格。"
+
+#: src/i18n/translate-feedback.ts
+msgid "Selected {cells} cells in {areas} areas. Searched {range}."
+msgstr "已选中 {areas} 个区域中的 {cells} 个单元格，搜索范围为 {range}。"
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Selected filter values"
+msgstr "已选筛选值"
+
+#: src/i18n/feedback-messages.ts
+msgid "Selected range"
+msgstr "所选区域"
+
+#: src/workbook/chrome/footer/WorkbookFooter.tsx
+msgid "Selected: {selectedCellCount}"
+msgstr "已选中：{selectedCellCount}"
+
+#: src/workbook/chrome/footer/WorkbookFooter.tsx
+msgid "Selection change error"
+msgstr "选区修改错误"
+
+#: src/i18n/feedback-messages.ts
+msgid "Selection changed. Paste again."
+msgstr "选区已更改，请重新粘贴。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Selection changed. Start Format painter again."
+msgstr "选区已更改，请重新启用格式刷。"
+
+#: src/workbook/chrome/footer/SelectionStatisticsSettings.tsx
+#: src/workbook/chrome/footer/SelectionStatus.tsx
+msgid "Selection statistics"
+msgstr "选区统计"
+
+#: src/i18n/feedback-messages.ts
+msgid "Selection statistics failed."
+msgstr "选区统计失败。"
+
+#: src/workbook/chrome/footer/SelectionStatisticsSettings.tsx
+msgid "Selection statistics settings"
+msgstr "选区统计设置"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Semicolon"
+msgstr "分号"
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "Sequence type"
+msgstr "序列类型"
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "Series…"
+msgstr "序列…"
+
+#: src/workbook/chrome/ribbon/SelectionSizeTools.tsx
+msgid "Set column width"
+msgstr "设置列宽"
+
+#: src/i18n/feedback-messages.ts
+msgid "Set data validation"
+msgstr "设置数据验证"
+
+#: src/workbook/chrome/ribbon/SelectionSizeTools.tsx
+msgid "Set row height"
+msgstr "设置行高"
+
+#: src/i18n/feedback-messages.ts
+msgid "Set table total function"
+msgstr "设置表格汇总函数"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Settings start from the active cell. Apply changes only the number format of the selection."
+msgstr "设置以活动单元格为初始值，应用时仅修改选区的数字格式。"
+
+#: src/workbook/chrome/ribbon/FindResults.tsx
+msgid "Sheet / cell"
+msgstr "工作表 / 单元格"
+
+#: src/i18n/feedback-messages.ts
+msgid "Sheet list failed to load"
+msgstr "工作表列表加载失败。"
+
+#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+msgid "Sheet name"
+msgstr "工作表名称"
+
+#: src/i18n/feedback-messages.ts
+msgid "Sheet name cannot be empty"
+msgstr "工作表名称不能为空。"
+
+#. placeholder {0}: i + 1
+#: src/workbook/grid/viewport/OutlineGutters.tsx
+msgid "Show column outline level {0}"
+msgstr "显示第 {0} 级列分组"
+
+#: src/workbook/chrome/ribbon/CalculationTools.tsx
+msgid "Show formulas"
+msgstr "显示公式"
+
+#: src/i18n/feedback-messages.ts
+msgid "Show outline level"
+msgstr "显示分组级别"
+
+#. placeholder {0}: i + 1
+#: src/workbook/grid/viewport/OutlineGutters.tsx
+msgid "Show row outline level {0}"
+msgstr "显示第 {0} 级行分组"
+
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+msgid "Show rows where"
+msgstr "显示满足以下条件的行"
+
+#: src/i18n/feedback-messages.ts
+msgid "Show table headers"
+msgstr "显示表头"
+
+#: src/i18n/feedback-messages.ts
+msgid "Show table totals"
+msgstr "显示表格汇总行"
+
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Show totals row"
+msgstr "显示汇总行"
+
+#. placeholder {0}: preview.sampleOffset + 1
+#. placeholder {1}: preview.sampleOffset + preview.sample.length
+#. placeholder {2}: preview.removedRows
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Showing {0}–{1} of {2} duplicate records"
+msgstr "显示第 {0}–{1} 条，共 {2} 条重复记录"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Single quote (')"
+msgstr "单引号（'）"
+
+#: src/workbook/chrome/ribbon/FontSizeTools.tsx
+msgid "Size (px)"
+msgstr "字号（像素）"
+
+#. placeholder {0}: info.range.rowEnd - info.range.rowStart + 1
+#. placeholder {1}: info.range.colEnd - info.range.colStart + 1
+#: src/workbook/chrome/ribbon/SpillTools.tsx
+msgid "Size: {0} × {1} (rows × columns)"
+msgstr "大小：{0} × {1}（行 × 列）"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Skip blanks"
+msgstr "跳过空白单元格"
+
+#: src/workbook/chrome/ribbon/TextColumnTypes.tsx
+msgid "Skip field"
+msgstr "跳过字段"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Sort"
+msgstr "排序"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Sort ascending"
+msgstr "升序排序"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Sort by"
+msgstr "主要关键字"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Sort column {0}"
+msgstr "排序列 {0}"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Sort descending"
+msgstr "降序排序"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Sort order {0}"
+msgstr "排序顺序 {0}"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Sort selected data by its first column; select all columns that should move together"
+msgstr "按选区首列排序；请选中所有需要一起移动的列"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Sort selected range"
+msgstr "排序选区"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Sort status"
+msgstr "排序状态"
+
+#: src/i18n/feedback-messages.ts
+msgid "Sort was not applied. Try again."
+msgstr "排序未生效，请重试。"
+
+#: src/i18n/translate-feedback.ts
+msgid "Sorted {rows} rows."
+msgstr "已排序 {rows} 行。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Sorting…"
+msgstr "正在排序…"
+
+#: src/workbook/chrome/ribbon/TextColumnTypes.tsx
+msgid "Source field number"
+msgstr "源字段编号"
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "Source sample count"
+msgstr "源样本数量"
+
+#. placeholder {0}: state.target && `${toA1(state.target.source.rowStart, state.target.source.colStart)}:${toA1(state.target.source.rowEnd, state.target.source.colEnd)}`
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Source: {0}"
+msgstr "源区域：{0}"
+
+#: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Space"
+msgstr "空格"
+
+#: src/workbook/chrome/ribbon/SpillTools.tsx
+msgid "Spill details"
+msgstr "溢出详情"
+
+#: src/i18n/feedback-messages.ts
+msgid "Spill details are out of date. Refresh to try again."
+msgstr "溢出详情已过期，请刷新后重试。"
+
+#. placeholder {0}: rangeToA1(info.range)
+#: src/workbook/chrome/ribbon/SpillTools.tsx
+msgid "Spill range: {0}"
+msgstr "溢出区域：{0}"
+
+#: src/i18n/feedback-messages.ts
+msgid "Spilled arrays cannot be entered inside a table. Use a single-value formula or press Escape."
+msgstr "表格内不能输入溢出数组。请使用单值公式，或按 Escape 取消。"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Split after these character positions, for example 2, 5. Unicode code points count as one."
+msgstr "在这些字符位置后分列，例如 2、5。每个 Unicode 码点计为一个字符。"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Split mode"
+msgstr "分列方式"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Split one source column. Fields keep text unless you select a different type. Empty fields clear destination cells. Hidden rows are included."
+msgstr "拆分一个源列。除非选择其他类型，字段均保留文本。空字段会清空目标单元格。包含隐藏行。"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Split preview"
+msgstr "分列预览"
+
+#: src/workbook/chrome/ribbon/ColorTools.tsx
+msgid "Standard colors"
+msgstr "标准颜色"
+
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Standard deviation"
+msgstr "标准差"
+
+#: src/workbook/chrome/ribbon/RibbonTabs.tsx
+msgid "Start"
+msgstr "开始"
+
+#: src/workbook/chrome/footer/SelectionStatus.tsx
+msgid "Statistic copy status"
+msgstr "统计值复制状态"
+
+#: src/workbook/chrome/footer/SelectionStatus.tsx
+msgid "Statistics unavailable"
+msgstr "统计暂不可用"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Stop if true"
+msgstr "为真则停止"
+
+#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+msgid "Strikethrough"
+msgstr "删除线"
+
+#: src/workbook/chrome/ribbon/TableAppearance.tsx
+msgid "Style preset"
+msgstr "预设样式"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Subtract"
+msgstr "减"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Sum"
+msgstr "求和"
+
+#: src/workbook/chrome/ribbon/QuickFormulaTools.tsx
+msgid "SUM — Total"
+msgstr "SUM — 求和"
+
+#: src/i18n/feedback-messages.ts
+msgid "Sums the cells in a range that meet a given criterion."
+msgstr "对区域内满足指定条件的单元格求和。"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Tab"
+msgstr "制表符"
+
+#. placeholder {0}: panel.table
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "Table {0}. Only its data rows are checked; headers and totals are excluded."
+msgstr "表格 {0}。仅检查数据行，不包含表头和汇总行。"
+
+#: src/i18n/translate-feedback.ts
+msgid "Table {table} filter cleared. Manually hidden rows are unchanged."
+msgstr "已清除表格 {table} 的筛选，手动隐藏的行保持不变。"
+
+#: src/i18n/translate-feedback.ts
+msgid "Table {table}. {rows} rows filtered out in this worksheet."
+msgstr "表格 {table}，此工作表已筛除 {rows} 行。"
+
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "Table name"
+msgstr "表格名称"
+
+#: src/i18n/feedback-messages.ts
+msgid "Table operation failed: a custom formula is still running. Try again."
+msgstr "表格操作失败：自定义公式仍在运行，请稍后重试。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Table operation failed: that column name is already in use."
+msgstr "表格操作失败：该列名已被使用。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Table operation failed: the column could not be found."
+msgstr "表格操作失败：找不到列。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Table operation failed: the column name is invalid."
+msgstr "表格操作失败：列名无效。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Table operation failed: the table could not be found."
+msgstr "表格操作失败：找不到表格。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Table operation failed."
+msgstr "表格操作失败。"
+
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "Table range"
+msgstr "表格范围"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/TableAppearance.tsx
+msgid "Table style"
+msgstr "表格样式"
+
+#: src/i18n/feedback-messages.ts
+msgid "Table totals"
+msgstr "表格汇总"
+
+#: src/workbook/chrome/ribbon/NamedTableList.tsx
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "Tables"
+msgstr "表格"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+#: src/workbook/chrome/ribbon/TextColumnTypes.tsx
+msgid "Text"
+msgstr "文本"
+
+#: src/workbook/chrome/ribbon/ColorTools.tsx
+msgid "Text color"
+msgstr "字体颜色"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Text comparison"
+msgstr "文本比较"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Text condition"
+msgstr "文本条件"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Text length"
+msgstr "文本长度"
+
+#: src/i18n/feedback-messages.ts
+msgid "Text numbering"
+msgstr "文本编号"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Text qualifier"
+msgstr "文本限定符"
+
+#: src/workbook/chrome/ribbon/TextLayoutTools.tsx
+msgid "Text rotation"
+msgstr "文字旋转"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Text to columns"
+msgstr "文本分列"
+
+#: src/i18n/feedback-messages.ts
+msgid "That edit was not saved."
+msgstr "此次编辑未保存。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The active cell is not inside a table. Select a cell within a table to toggle its totals row."
+msgstr "活动单元格不在表格中，请选择表格内的单元格后再切换汇总行。"
+
+#: src/workbook/grid/viewport/WorkbookGrid.tsx
+msgid "The active workbook sheet is unavailable."
+msgstr "当前活动工作表不可用。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The clipboard contains an invalid formula. Nothing was pasted."
+msgstr "剪贴板包含无效公式，未粘贴任何内容。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The clipboard does not contain cell text."
+msgstr "剪贴板中没有单元格文本。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The clipboard text has unmatched quotes. Nothing was pasted."
+msgstr "剪贴板文本的引号不匹配，未粘贴任何内容。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The copied worksheet was deleted. Copy cells again before pasting."
+msgstr "复制来源工作表已删除，请重新复制后再粘贴。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The cut cells changed. Cut the range again before pasting."
+msgstr "剪切来源单元格已更改，请重新剪切后再粘贴。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The fill source selection changed. Drag again."
+msgstr "填充来源选区已更改，请重新拖动。"
+
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "The first row becomes the header. Blank or duplicate headers receive unique names."
+msgstr "首行作为表头。空白或重复的表头会自动分配唯一名称。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The matched cell is outside the current worksheet."
+msgstr "匹配单元格超出了当前工作表范围。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The named range no longer exists."
+msgstr "此命名区域已不存在。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The new column name is the same as the current name."
+msgstr "新列名与当前列名相同。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The new name is the same as the current name."
+msgstr "新名称与当前名称相同。"
+
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "The original range was deleted. Enter a new range to repair this name."
+msgstr "原引用区域已删除，请输入新区域以修复此名称。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The paste would hide cell content. Unmerge the destination or change the selection first."
+msgstr "此次粘贴会隐藏单元格内容，请先取消目标区域的合并，或修改选区。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The rule no longer exists."
+msgstr "此规则已不存在。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The search worksheet no longer exists."
+msgstr "查找的工作表已不存在。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The selected range cannot be changed."
+msgstr "无法修改所选区域。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The selected range must fit whole copies of the clipboard. Nothing was pasted."
+msgstr "选区尺寸必须能完整容纳剪贴板内容，未粘贴任何内容。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The selected sheet is no longer available"
+msgstr "所选工作表已不可用。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The selection changed. Choose Merge again."
+msgstr "选区已更改，请重新选择合并。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The selection changed. Close and reopen Series."
+msgstr "选区已更改，请关闭并重新打开序列设置。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The selection changed. Close and reopen Sort."
+msgstr "选区已更改，请关闭并重新打开排序。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The selection changed. Close the dialog and select the target again."
+msgstr "选区已更改，请关闭弹窗并重新选择目标。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The selection changed. Close the palette and select the target again."
+msgstr "选区已更改，请关闭调色板并重新选择目标。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The selection changed. Refresh spill details for the current cell."
+msgstr "选区已更改，请刷新当前单元格的溢出详情。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The selection or workbook changed. Close this dialog and select the range again."
+msgstr "选区或工作簿已更改，请关闭弹窗并重新选择区域。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The selection or workbook changed. Close this dialog and select the source again."
+msgstr "选区或工作簿已更改，请关闭弹窗并重新选择源区域。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The selection or workbook changed. Close this dialog and select the target again."
+msgstr "选区或工作簿已更改，请关闭弹窗并重新选择目标。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The selection or worksheet changed. Try locating cells again."
+msgstr "选区或工作表已更改，请重新定位。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The source or destination includes locked cells."
+msgstr "来源或目标区域包含锁定单元格。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The split was applied, but the view could not be updated. Check the sheet before retrying."
+msgstr "分列已应用，但视图更新失败。请检查工作表后再重试。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The table change was not applied."
+msgstr "表格更改未生效。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The table changed. Close and reopen Filter."
+msgstr "表格已更改，请关闭并重新打开筛选。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The table filter was not applied."
+msgstr "表格筛选未生效。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The table name looks like a cell reference. Choose another name."
+msgstr "表格名称类似单元格引用，请使用其他名称。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The table no longer exists."
+msgstr "此表格已不存在。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The table no longer refers to an available worksheet range."
+msgstr "此表格已不再引用有效的工作表区域。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The target cells are locked on a protected sheet."
+msgstr "目标单元格已被工作表保护锁定。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The view changed. Reopen Tables."
+msgstr "视图已更改，请重新打开表格设置。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The view changed. Reopen the name editor."
+msgstr "视图已更改，请重新打开名称编辑器。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The view changed. Try again after the worksheet finishes loading."
+msgstr "视图已更改，请等待工作表加载完成后重试。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The workbook changed. Close and reopen Data validation."
+msgstr "工作簿已更改，请关闭并重新打开数据验证。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The workbook changed. Close and reopen Filter."
+msgstr "工作簿已更改，请关闭并重新打开筛选。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The workbook changed. Find again."
+msgstr "工作簿已更改，请重新查找。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The workbook changed. Find all again before choosing a result."
+msgstr "工作簿已更改，请重新查找全部后再选择结果。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The workbook changed. Paste again."
+msgstr "工作簿已更改，请重新粘贴。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The workbook changed. Reopen Tables."
+msgstr "工作簿已更改，请重新打开表格设置。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The workbook changed. Reopen the name editor."
+msgstr "工作簿已更改，请重新打开名称编辑器。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The workbook changed. Try locating cells again."
+msgstr "工作簿已更改，请重新定位。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The workbook did not return an HTML table."
+msgstr "工作簿未返回 HTML 表格。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The workbook file has an invalid sheet canvas."
+msgstr "工作簿文件中的工作表数据无效。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The workbook file has mismatched sheet canvases."
+msgstr "工作簿文件中的工作表数据不匹配。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The workbook file has no sheet canvases."
+msgstr "工作簿文件中没有工作表。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The workbook is unavailable."
+msgstr "工作簿不可用。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The workbook or worksheet changed. Close and reopen Conditional formatting."
+msgstr "工作簿或工作表已更改，请关闭并重新打开条件格式。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The worksheet changed. Close and reopen Filter."
+msgstr "工作表已更改，请关闭并重新打开筛选。"
+
+#: src/workbook/chrome/ribbon/SpillTools.tsx
+msgid "The worksheet changed. Refresh spill details before navigating."
+msgstr "工作表已更改，请刷新溢出详情后再定位。"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Then by ({0})"
+msgstr "次要关键字（{0}）"
+
+#: src/i18n/feedback-messages.ts
+msgid "These cells have already been moved. Copy or cut again to paste."
+msgstr "这些单元格已移动，请重新复制或剪切后再粘贴。"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Thick"
+msgstr "粗线"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Thin"
+msgstr "细线"
+
+#: src/i18n/feedback-messages.ts
+msgid "This address is outside the current worksheet canvas."
+msgstr "此地址超出了当前工作表范围。"
+
+#: src/i18n/feedback-messages.ts
+msgid "This browser cannot write the clipboard. Use a secure HTTPS or localhost page."
+msgstr "此浏览器无法写入剪贴板，请使用安全的 HTTPS 或 localhost 页面。"
+
+#: src/workbook/chrome/ribbon/SpillTools.tsx
+msgid "This cell is not part of a spilled array."
+msgstr "此单元格不属于溢出数组。"
+
+#: src/i18n/feedback-messages.ts
+msgid "This cell type cannot be used in paste arithmetic."
+msgstr "此单元格类型不支持粘贴运算。"
+
+#: src/i18n/feedback-messages.ts
+msgid "This clipboard has no workbook formatting. Copy cells in this workbook first."
+msgstr "剪贴板中没有工作簿格式，请先复制此工作簿中的单元格。"
+
+#: src/i18n/feedback-messages.ts
+msgid "This clipboard range is too large. Select a smaller range."
+msgstr "剪贴板区域过大，请选择更小的区域。"
+
+#: src/i18n/feedback-messages.ts
+msgid "This edit was not confirmed — it may or may not have been saved."
+msgstr "无法确认此次编辑是否已保存，请检查单元格后再操作。"
+
+#: src/i18n/feedback-messages.ts
+msgid "This is not a valid .einfach.json workbook file."
+msgstr "这不是有效的 .einfach.json 工作簿文件。"
+
+#: src/i18n/feedback-messages.ts
+msgid "This match is in a hidden row or column. Unhide it to view the cell."
+msgstr "匹配项位于隐藏行或列中，请取消隐藏后查看。"
+
+#: src/i18n/feedback-messages.ts
+msgid "This named range no longer refers to an available worksheet range."
+msgstr "此命名区域已不再引用有效的工作表区域。"
+
+#: src/i18n/feedback-messages.ts
+msgid "This recent location is no longer available."
+msgstr "此最近定位位置已不可用。"
+
+#: src/i18n/feedback-messages.ts
+msgid "This result changed. Update the preview."
+msgstr "此结果已更改，请更新预览。"
+
+#: src/i18n/feedback-messages.ts
+msgid "This rule type cannot be edited here yet."
+msgstr "暂不支持在此编辑这种规则。"
+
+#: src/i18n/feedback-messages.ts
+msgid "This selection has no unfiltered rows to copy."
+msgstr "选区中没有可复制的未筛除行。"
+
+#: src/i18n/feedback-messages.ts
+msgid "This spill target is outside the current worksheet canvas."
+msgstr "此溢出目标超出了当前工作表范围。"
+
+#: src/i18n/feedback-messages.ts
+msgid "This statistic has no finite value to copy."
+msgstr "此统计项没有可复制的有限数值。"
+
+#: src/i18n/feedback-messages.ts
+msgid "This table already has a column with that name. Choose a different column name."
+msgstr "此表格已有同名列，请使用其他列名。"
+
+#: src/i18n/feedback-messages.ts
+msgid "This value does not meet the cell’s data validation rule. Change it or press Escape."
+msgstr "此值不符合该单元格的数据验证规则。请修改，或按 Escape 取消。"
+
+#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+msgid "Thousands format"
+msgstr "千位分隔格式"
+
+#: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
+msgid "Thousands separator"
+msgstr "千位分隔符"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Time"
+msgstr "时间"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Time format"
+msgstr "时间格式"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "To replace a formula, choose Formulas / raw values. Calculated results are not overwritten."
+msgstr "要替换公式，请选择“公式 / 原始值”。不会覆盖计算结果。"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/chrome/ribbon/TextLayoutTools.tsx
+msgid "Top"
+msgstr "顶部"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Top {count} items"
+msgstr "最大的 {count} 项"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Top {count}%"
+msgstr "最大的 {count}%"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Top / bottom"
+msgstr "最大 / 最小值"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Top border"
+msgstr "上框线"
+
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Total column"
+msgstr "汇总列"
+
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Total function"
+msgstr "汇总函数"
+
+#: src/i18n/feedback-messages.ts
+msgid "Totals function failed: enable the totals row first."
+msgstr "汇总函数操作失败：请先启用汇总行。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Totals function failed: that aggregate is not recognized."
+msgstr "汇总函数操作失败：无法识别此汇总类型。"
+
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Totals row"
+msgstr "汇总行"
+
+#: src/i18n/feedback-messages.ts
+msgid "Totals row failed: the row below the table is occupied. Clear it and try again."
+msgstr "汇总行操作失败：表格下方的行已有内容，请清空后重试。"
+
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Totals use SUBTOTAL and exclude filtered and manually hidden rows."
+msgstr "汇总使用 SUBTOTAL，排除筛除和手动隐藏的行。"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Transpose"
+msgstr "转置"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Treat consecutive delimiters as one"
+msgstr "将连续分隔符视为一个"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Trim and ignore case"
+msgstr "去除首尾空白并忽略大小写"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Trim whitespace"
+msgstr "去除首尾空白"
+
+#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+msgid "Underline"
+msgstr "下划线"
+
+#: src/workbook/chrome/ribbon/HistoryTools.tsx
+msgid "Undo"
+msgstr "撤销"
+
+#: src/workbook/chrome/ribbon/HistoryTools.tsx
+msgid "Undo (Ctrl/⌘+Z)"
+msgstr "撤销 (Ctrl/⌘+Z)"
+
+#: src/workbook/chrome/ribbon/HistoryTools.tsx
+msgid "Undone"
+msgstr "已撤销"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/FreezeTools.tsx
+msgid "Unfreeze panes"
+msgstr "取消冻结窗格"
+
+#: src/i18n/feedback-messages.ts
+msgid "Ungroup"
+msgstr "取消分组"
+
+#: src/workbook/chrome/ribbon/OutlineTools.tsx
+msgid "Ungroup selected columns"
+msgstr "取消选中列分组"
+
+#: src/workbook/chrome/ribbon/OutlineTools.tsx
+msgid "Ungroup selected rows"
+msgstr "取消选中行分组"
+
+#: src/workbook/chrome/ribbon/VisibilityTools.tsx
+msgid "Unhide all rows and columns"
+msgstr "取消隐藏所有行列"
+
+#: src/i18n/feedback-messages.ts
+msgid "Unhide rows and columns"
+msgstr "取消隐藏行列"
+
+#: src/workbook/chrome/ribbon/VisibilityTools.tsx
+msgid "Unhide selected rows and columns"
+msgstr "取消隐藏选中行列"
+
+#: src/i18n/feedback-messages.ts
+msgid "Unhide this row or column before locating the record."
+msgstr "定位记录前，请先取消隐藏该行或列。"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Unique"
+msgstr "唯一值"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Unique values"
+msgstr "唯一值"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/MergeTools.tsx
+msgid "Unmerge cells"
+msgstr "取消合并单元格"
+
+#: src/i18n/feedback-messages.ts
+msgid "Unprotect the affected worksheet before undoing or redoing."
+msgstr "撤销或重做前，请先取消相关工作表保护。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Unprotect the target worksheets before replacing."
+msgstr "替换前，请先取消目标工作表保护。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Unprotect the worksheet before changing conditional formatting."
+msgstr "修改条件格式前，请先取消工作表保护。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Unprotect the worksheet before changing data validation."
+msgstr "修改数据验证前，请先取消工作表保护。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Unprotect the worksheet before changing its filter."
+msgstr "修改筛选前，请先取消工作表保护。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Unprotect the worksheet before changing row or column sizes."
+msgstr "修改行高或列宽前，请先取消工作表保护。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Unprotect the worksheet before filling cells."
+msgstr "填充单元格前，请先取消工作表保护。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Unprotect the worksheet before hiding or showing rows and columns."
+msgstr "隐藏或显示行列前，请先取消工作表保护。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Unprotect the worksheet before merging cells."
+msgstr "合并单元格前，请先取消工作表保护。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Unprotect the worksheet before pasting column widths."
+msgstr "粘贴列宽前，请先取消工作表保护。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Unprotect the worksheet before sorting cells."
+msgstr "排序前，请先取消工作表保护。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Unprotect the worksheets before changing tables."
+msgstr "修改表格前，请先取消工作表保护。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Unprotect the worksheets before changing workbook names."
+msgstr "修改工作簿名称前，请先取消工作表保护。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Unprotect the worksheets before inserting or deleting rows and columns."
+msgstr "插入或删除行列前，请先取消工作表保护。"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Unsupported rule (not editable yet)"
+msgstr "不支持的规则（暂不可编辑）"
+
+#: src/i18n/feedback-messages.ts
+msgid "Unsupported workbook file. Choose an .einfach.json file exported by this app."
+msgstr "不支持此工作簿文件，请选择由本应用导出的 .einfach.json 文件。"
+
+#. placeholder {0}: state.draft.datePattern
+#. placeholder {0}: state.draft.pattern
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Unsupported: {0}"
+msgstr "不支持：{0}"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Up to 1 digit"
+msgstr "最多一位数"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Up to 2 digits"
+msgstr "最多两位数"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Up to 3 digits"
+msgstr "最多三位数"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Update preview"
+msgstr "更新预览"
+
+#: src/i18n/feedback-messages.ts
+msgid "Update the preview before applying."
+msgstr "应用前，请先更新预览。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Update the preview before removing records."
+msgstr "删除记录前，请先更新预览。"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Update the preview to apply your changes."
+msgstr "请更新预览后应用更改。"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Update the preview to review your changes."
+msgstr "请更新预览以查看更改。"
+
+#: src/workbook/chrome/ribbon/FreezeTools.tsx
+msgid "Updating freeze…"
+msgstr "正在更新冻结窗格…"
+
+#: src/workbook/chrome/ribbon/OutlineTools.tsx
+msgid "Updating outline…"
+msgstr "正在更新分组…"
+
+#: src/workbook/chrome/ribbon/StructureTools.tsx
+msgid "Updating rows and columns…"
+msgstr "正在更新行列…"
+
+#: src/workbook/chrome/footer/WorkbookFooter.tsx
+msgid "Updating selection…"
+msgstr "正在更新选区…"
+
+#: src/workbook/chrome/ribbon/VisibilityTools.tsx
+msgid "Updating visibility…"
+msgstr "正在更新行列显隐…"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Use a clock time from 00:00 to 23:59:59."
+msgstr "请输入 00:00 至 23:59:59 之间的时间。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Use a positive whole-number denominator, at most 4294967295."
+msgstr "分母必须为正整数，最大为 4294967295。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Use at most 16 characters for the currency symbol, without control characters."
+msgstr "货币符号最多 16 个字符，不能包含控制字符。"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Use commas between ranges. Write the formula for the first range’s top-left cell. Use $ to lock a row or column."
+msgstr "多个区域用逗号分隔。以第一个区域的左上角单元格为基准编写公式，使用 $ 锁定行或列。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Use Ctrl/⌘+V in the grid to paste from the clipboard."
+msgstr "请在网格中使用 Ctrl/⌘+V 从剪贴板粘贴。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Use different columns and valid numbers; minimum cannot exceed maximum."
+msgstr "请选择不同的列并输入有效数字；最小值不能大于最大值。"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Use thousands separator"
+msgstr "使用千位分隔符"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Use wildcards"
+msgstr "使用通配符"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Use YYYY-MM-DD."
+msgstr "请使用 YYYY-MM-DD 格式。"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+msgid "Value"
+msgstr "值"
+
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+msgid "Values (one per line)"
+msgstr "值（每行一个）"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Values and formatting"
+msgstr "值和格式"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Values and number formats"
+msgstr "值和数字格式"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Values must be below the minimum or above the maximum. Both boundaries are excluded."
+msgstr "值必须小于最小值或大于最大值，不包含边界值。"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Values only"
+msgstr "仅值"
+
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Variance"
+msgstr "方差"
+
+#: src/workbook/chrome/ribbon/TextLayoutTools.tsx
+msgid "Vertical"
+msgstr "竖排"
+
+#: src/workbook/chrome/ribbon/TextLayoutTools.tsx
+msgid "Vertical alignment"
+msgstr "垂直对齐"
+
+#: src/workbook/chrome/ribbon/RibbonTabs.tsx
+msgid "View"
+msgstr "视图"
+
+#: src/i18n/feedback-messages.ts
+msgid "Wait for the Rust worksheet to finish loading."
+msgstr "请等待工作表加载完成。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Wait for the selected sheet to load."
+msgstr "请等待所选工作表加载完成。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Wait for the worksheet to finish loading."
+msgstr "请等待工作表加载完成。"
+
+#: src/workbook/chrome/ribbon/NamedTableList.tsx
+msgid "Waiting for the table list…"
+msgstr "正在等待表格列表…"
+
+#: src/i18n/feedback-messages.ts
+msgid "Weekday names"
+msgstr "星期名称"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "When this rule matches, skip all lower rules for that cell."
+msgstr "此规则匹配时，跳过该单元格的所有下方规则。"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Whole number"
+msgstr "整数"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Within"
+msgstr "范围"
+
+#: src/workbook/chrome/header/WorkbookHeader.tsx
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Workbook"
+msgstr "工作簿"
+
+#: src/workbook/chrome/ribbon/RibbonTabs.tsx
+msgid "Workbook commands"
+msgstr "工作簿命令"
+
+#: src/page/WorkbookRuntimeProvider.tsx
+msgid "Workbook failed to open"
+msgstr "无法打开工作簿"
+
+#: src/workbook/chrome/header/WorkbookFileTools.tsx
+msgid "Workbook files"
+msgstr "工作簿文件"
+
+#: src/i18n/feedback-messages.ts
+msgid "Workbook files must be 64 MiB or smaller."
+msgstr "工作簿文件不能大于 64 MiB。"
+
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "Workbook names"
+msgstr "工作簿名称"
+
+#: src/i18n/translate-feedback.ts
+msgid "Workbook recalculated ({count} formulas)."
+msgstr "已重新计算工作簿（{count} 个公式）。"
+
+#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+msgid "Workbook sheets"
+msgstr "工作簿工作表"
+
+#: src/workbook/chrome/ribbon/NamedTableList.tsx
+msgid "Workbook tables"
+msgstr "工作簿表格"
+
+#: src/i18n/feedback-messages.ts
+msgid "Workbook title must contain 1–256 characters."
+msgstr "工作簿标题长度必须为 1–256 个字符。"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Working…"
+msgstr "正在处理…"
+
+#: src/workbook/chrome/ribbon/HistoryTools.tsx
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "Worksheet"
+msgstr "工作表"
+
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "Worksheet filter"
+msgstr "工作表筛选"
+
+#: src/i18n/feedback-messages.ts
+msgid "Worksheet history changed the clipboard source. Copy or cut again to paste."
+msgstr "工作表历史操作改变了剪贴板来源，请重新复制或剪切后再粘贴。"
+
+#: src/i18n/translate-feedback.ts
+msgid "Worksheet recalculated ({count} formulas)."
+msgstr "已重新计算工作表（{count} 个公式）。"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Worksheet rules"
+msgstr "工作表规则"
+
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "Worksheet tables"
+msgstr "工作表表格"
+
+#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+msgid "Wrap text"
+msgstr "自动换行"
+
+#: src/workbook/chrome/header/WorkbookFileTools.tsx
+msgid "Your workbook is in memory. Download a file to keep your changes."
+msgstr "工作簿保存在内存中，请下载文件以保留更改。"
+
+#: src/workbook/chrome/footer/WorkbookFooter.tsx
+msgid "Zoom 100 percent"
+msgstr "缩放 100%"
+
+#: src/workbook/chrome/footer/WorkbookFooter.tsx
+msgid "Zoom in"
+msgstr "放大"
+
+#: src/workbook/chrome/footer/WorkbookFooter.tsx
+msgid "Zoom out"
+msgstr "缩小"

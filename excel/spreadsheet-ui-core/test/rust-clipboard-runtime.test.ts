@@ -20,6 +20,7 @@ async function runtime() {
     cut,
   }))
   const paste = vi.fn<NonNullable<WasmWorkbook['paste_clipboard']>>(() => [0, 0, 0, 0])
+  const finish = vi.fn()
   const capturePainter = vi.fn(() => ({ text: '123', rows: 1, cols: 1, cut: false }))
   const sizes = vi.fn((_sheet: number, _r0: number, c0: number, _r1: number, c1: number) => ({
     rowHeights: [],
@@ -35,6 +36,8 @@ async function runtime() {
     }
 
     capture_clipboard = capture
+    prepare_clipboard = capture
+    finish_clipboard_capture = finish
     capture_format_painter = capturePainter
     paste_clipboard = paste
     snapshot_viewport_sizes = sizes
@@ -54,9 +57,13 @@ async function runtime() {
     default: async () => {},
     WasmWorkbook: TestWorkbook,
   } as RustWasmModule)
-  const call = async (command: string, payload: unknown) => {
+  const call = async (command: string, payload: unknown, confirm = true) => {
     await onMessage({ data: { id: posted.mock.calls.length + 1, command, payload } })
-    return posted.mock.lastCall?.[0]
+    const response = posted.mock.lastCall?.[0]
+    // 默认模拟浏览器成功写入；恢复用例显式关闭确认，单独控制成功/失败。
+    if (confirm && command === 'clipboard.capture' && response.ok && !(payload as { painter?: boolean }).painter)
+      await call('clipboard.finishCapture', { token: response.result.token, commit: true })
+    return response
   }
   await call('workbook.initialize', { sheets: [{ id: 'orders', name: 'Test' }] })
   const captureInput = {
@@ -83,10 +90,40 @@ async function runtime() {
       reason: 'toolbar',
     },
   })
-  return { call, capture, capturePainter, paste, captureInput, pasteInput, sizes }
+  return { call, capture, capturePainter, paste, captureInput, pasteInput, sizes, finish }
 }
 
 describe('Rust clipboard transport', () => {
+  test('late capture confirmation rejects after a workbook mutation without replacing the old snapshot', async () => {
+    const { call, captureInput, pasteInput, paste, finish } = await runtime()
+    const original = await call('clipboard.capture', { ...captureInput, cut: false })
+    const pending = await call('clipboard.capture', captureInput, false)
+    await call('clipboard.paste', pasteInput('external'))
+    const result = await call('clipboard.finishCapture', { token: pending.result.token, commit: true })
+    expect(result.ok).toBe(false)
+    expect(finish).toHaveBeenLastCalledWith(false)
+    await call('clipboard.paste', pasteInput(original.result.token))
+    expect(paste.mock.lastCall?.[4]).toBe(true)
+  })
+
+  test('failed browser write keeps the previous internal token and ignores stale confirmations', async () => {
+    const { call, captureInput, pasteInput, paste, finish } = await runtime()
+    const original = await call('clipboard.capture', { ...captureInput, cut: false })
+    const rejected = await call('clipboard.capture', captureInput, false)
+    await call('clipboard.finishCapture', { token: rejected.result.token, commit: false })
+    expect(finish).toHaveBeenLastCalledWith(false)
+    await call('clipboard.paste', pasteInput(original.result.token))
+    expect(paste.mock.lastCall?.[4]).toBe(true)
+    const retry = await call('clipboard.capture', captureInput, false)
+    const count = finish.mock.calls.length
+    await call('clipboard.finishCapture', { token: rejected.result.token, commit: true })
+    expect(finish).toHaveBeenCalledTimes(count)
+    await call('clipboard.finishCapture', { token: retry.result.token, commit: true })
+    await call('clipboard.paste', pasteInput(retry.result.token))
+    expect(paste.mock.lastCall?.[4]).toBe(true)
+    expect((await call('clipboard.paste', pasteInput(retry.result.token))).ok).toBe(false)
+  })
+
   test('format painter has its own native slot and cannot consume or replace a normal cut', async () => {
     const { call, capture, capturePainter, paste, captureInput, pasteInput } = await runtime()
     const copied = await call('clipboard.capture', captureInput)

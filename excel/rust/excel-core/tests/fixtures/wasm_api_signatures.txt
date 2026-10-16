@@ -122,6 +122,7 @@ impl WasmWorkbook :: [] :: pub fn edit_sheet(&mut self, index: Option<u32>, name
 impl WasmWorkbook :: [] :: pub fn edit_structure( &mut self, sheet: u32, action: &str, at: u32, count: u32, ) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn filter_values(&self, request: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn find_cells(&self, request: JsValue) -> Result<JsValue, JsValue>
+impl WasmWorkbook :: [] :: pub fn finish_clipboard_capture(&mut self, commit: bool)
 impl WasmWorkbook :: [] :: pub fn frozen_panes(&self, sheet: u32) -> Result<Vec<u32>, JsValue>
 impl WasmWorkbook :: [] :: pub fn get_display(&self, sheet_idx: u32, addr: &str) -> String
 impl WasmWorkbook :: [] :: pub fn get_formula(&self, sheet_idx: u32, addr: &str) -> String
@@ -145,6 +146,7 @@ impl WasmWorkbook :: [] :: pub fn paste_clipboard( &mut self, sheet_idx: u32, ro
 impl WasmWorkbook :: [] :: pub fn patch_format_range( &mut self, sheet_idx: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, patch: JsValue, scope: &str, ) -> Result<u32, JsValue>
 impl WasmWorkbook :: [] :: pub fn patch_format_selection(&mut self, request: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn patch_range_borders( &mut self, sheet_idx: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, input: JsValue, ) -> Result<u32, JsValue>
+impl WasmWorkbook :: [] :: pub fn prepare_clipboard( &mut self, sheet_idx: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, cut: bool, ) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn preview_number_format( &self, sheet_idx: u32, addr: &str, format: JsValue, ) -> Result<String, JsValue>
 impl WasmWorkbook :: [] :: pub fn preview_remove_duplicates(&self, request: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn preview_text_columns(&self, request: JsValue) -> Result<JsValue, JsValue>

@@ -1,13 +1,14 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import react from '@vitejs/plugin-react'
+import { lingui } from '@lingui/vite-plugin'
 import { defineConfig } from 'vitest/config'
 
 const directory = path.dirname(fileURLToPath(import.meta.url))
 
 /** Runs react-excel unit and component tests against source modules. */
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), lingui({ cwd: directory, macroTransform: true, failOnMissing: 'catalog', failOnCompileError: true })],
   resolve: {
     alias: {
       '@einfach/canvas-cells': path.resolve(directory, '../../packages/canvas-cells/src'),

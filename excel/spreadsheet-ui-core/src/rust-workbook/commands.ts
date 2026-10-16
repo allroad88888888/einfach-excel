@@ -276,6 +276,7 @@ export interface RustWorkbookCommands
   >
   readonly 'clipboard.export': WorkerCommand<RustClipboardExportRequest, RustClipboardExport>
   readonly 'clipboard.capture': WorkerCommand<RustClipboardCaptureRequest, RustClipboardCapture>
+  readonly 'clipboard.finishCapture': WorkerCommand<{ token: string; commit: boolean }, void>
   readonly 'clipboard.paste': WorkerCommand<
     { readonly request: RustClipboardPasteRequest; readonly projection: VisibleProjectionRequest },
     RustSetRangeFormatResult & { readonly colWidths?: ViewportColumnWidth[] }

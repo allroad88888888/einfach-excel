@@ -1,3 +1,4 @@
+import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   editingSessionAtom,
@@ -9,9 +10,11 @@ import {
 } from '@einfach/spreadsheet-ui-core'
 import { useEffect, useId, useRef } from 'react'
 import './history.css'
+import { Trans, useLingui } from '@lingui/react/macro'
 
 /** 历史列表只展示 Rust 的操作目录，不能在 React 回放工作簿数据。 */
 export function HistoryTools() {
+  const { i18n, t } = useLingui()
   const state = useAtomValue(rustHistoryStateAtom)
   const panel = useAtomValue(rustHistoryPanelAtom)
   const editing = useAtomValue(editingSessionAtom).source !== null
@@ -36,8 +39,8 @@ export function HistoryTools() {
       <button
         className="tool-button"
         type="button"
-        aria-label="Undo"
-        title="Undo (Ctrl/⌘+Z)"
+        aria-label={t`Undo`}
+        title={t`Undo (Ctrl/⌘+Z)`}
         disabled={editing || panel.busy || state.undoCount === 0}
         onClick={() => void run('undo')}
       >
@@ -46,8 +49,8 @@ export function HistoryTools() {
       <button
         className="tool-button"
         type="button"
-        aria-label="Redo"
-        title="Redo (Ctrl/⌘+Shift+Z or Ctrl+Y)"
+        aria-label={t`Redo`}
+        title={t`Redo (Ctrl/⌘+Shift+Z or Ctrl+Y)`}
         disabled={editing || panel.busy || state.redoCount === 0}
         onClick={() => void run('redo')}
       >
@@ -57,15 +60,15 @@ export function HistoryTools() {
         ref={triggerRef}
         className="tool-button"
         type="button"
-        aria-label="Recent operations"
-        title="Recent operations"
+        aria-label={t`Recent operations`}
+        title={t`Recent operations`}
         onClick={() => void run('open')}
       >
         ◷
       </button>
       {panel.error && !panel.open && (
         <span className="history-error" role="alert">
-          {panel.error}
+          {translateFeedback(i18n, panel.error)}
         </span>
       )}
       {panel.open && (
@@ -78,26 +81,26 @@ export function HistoryTools() {
             void run('close')
           }}
         >
-          <h2 id={`${id}-title`}>Recent operations</h2>
-          <p>
+          <h2 id={`${id}-title`}><Trans>Recent operations</Trans></h2>
+          <p><Trans>
             {state.undoCount} undo · {state.redoCount} redo
-          </p>
-          <p className="history-hint">
-            Cell edits, formatting, clearing, paste, cut moves, row/column sizes and worksheets. Up
-            to 50 steps in this session.
-          </p>
+          </Trans></p>
+          <p className="history-hint"><Trans>
+            Cell edits, formatting, clearing, paste, cut moves, row/column sizes and worksheets.
+            Up to 50 steps in this session.
+          </Trans></p>
           {state.notice && (
             <p role="status" className="history-hint">
-              {state.notice}
+              {translateFeedback(i18n, state.notice)}
             </p>
           )}
           {state.entries.length === 0 ? (
-            <p>No recorded operations yet.</p>
+            <p><Trans>No recorded operations yet.</Trans></p>
           ) : (
             <ol>
               {state.entries.map((entry, index) => (
                 <li key={index} className={index < state.undoCount ? '' : 'history-undone'}>
-                  <span>{entry.label}</span>
+                  <span>{translateFeedback(i18n, entry.label)}</span>
                   <small>
                     {document.sheets.find((sheet) =>
                       entry.sheetKey
@@ -105,9 +108,9 @@ export function HistoryTools() {
                         : sheet.index === entry.sheetIndex,
                     )?.name ?? entry.sheetName}
                     {entry.sheetChange
-                      ? ' · Worksheet'
+                      ? ` · ${t`Worksheet`}`
                       : ` · ${toA1(entry.range.rowStart, entry.range.colStart)}:${toA1(entry.range.rowEnd, entry.range.colEnd)}`}
-                    {index >= state.undoCount ? ' · Undone' : ''}
+                    {index >= state.undoCount ? ` · ${t`Undone`}` : ''}
                   </small>
                 </li>
               ))}
@@ -115,7 +118,7 @@ export function HistoryTools() {
           )}
           {panel.error && (
             <p role="alert" className="history-error">
-              {panel.error}
+              {translateFeedback(i18n, panel.error)}
             </p>
           )}
           <button
@@ -123,9 +126,9 @@ export function HistoryTools() {
             type="button"
             disabled={panel.busy}
             onClick={() => void run('close')}
-          >
+          ><Trans>
             Close history
-          </button>
+          </Trans></button>
         </dialog>
       )}
     </>

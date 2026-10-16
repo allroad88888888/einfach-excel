@@ -179,6 +179,7 @@ impl WasmWorkbook {
         self.workbook = workbook;
         self.history = Default::default();
         self.clipboard = None;
+        self.pending_clipboard = None;
         self.format_painter = None;
         Ok(stats)
     }

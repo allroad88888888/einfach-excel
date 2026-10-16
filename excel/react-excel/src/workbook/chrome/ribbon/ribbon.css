@@ -18,6 +18,12 @@
   gap: 2px;
 }
 
+.ribbon-panel { display: flex; flex: 1; min-width: 0; }
+.ribbon-tool-group { display: flex; flex: none; align-items: center; gap: 2px; }
+/* 分类只隐藏入口，不卸载或遮住由网格快捷键打开的模态弹窗。 */
+.ribbon-tool-group[data-inactive='true'] { display: contents; }
+.ribbon-tool-group[data-inactive='true'] > :not(dialog) { display: none; }
+
 .ribbon-tab {
   height: 28px;
   border: 0;
@@ -161,23 +167,25 @@
   .ribbon-shell {
     min-height: 43px;
     gap: 5px;
-    overflow-x: auto;
+    flex-wrap: wrap;
     padding-inline: 7px;
   }
 
   .ribbon-tabs {
-    /* 窄屏标签随整条工具栏滚动，避免盖住滚入视野的粘贴选项。 */
+    /* 分类独占一行，全部可达；下方工具独立横向滚动。 */
     padding-right: 5px;
     background: #ffffff;
+    width: 100%;
+    overflow-x: auto;
   }
 
-  .ribbon-tab:nth-child(n + 4) {
+  .toolbar-divider {
     display: none;
   }
 
   .ribbon-tools {
-    min-width: max-content;
-    overflow: visible;
+    min-width: 0;
+    overflow-x: auto;
   }
 
   .toolbar-spacer {

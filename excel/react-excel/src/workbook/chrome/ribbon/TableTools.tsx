@@ -1,3 +1,5 @@
+import { translateFeedback } from '../../../i18n/translate-feedback'
+import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useId, useLayoutEffect, useRef } from 'react'
 import { editingSessionAtom, nativeTablePanelAtom, nativeTableFeedbackAtom,
@@ -10,6 +12,7 @@ import './table-panel.css'
 
 /** React 只负责弹窗与焦点；Table 目录、草稿和动作直接读写 UI Core atoms。 */
 export function TableTools() {
+  const { i18n, t } = useLingui()
   const state = useAtomValue(nativeTablePanelAtom)
   const feedback = useAtomValue(nativeTableFeedbackAtom)
   const run = useSetAtom(runNativeTablePanelAtom)
@@ -37,56 +40,56 @@ export function TableTools() {
       control.focus({ preventScroll: true })
   }, [state.busy, state.open])
   return <>
-    <button ref={trigger} className="tool-button" type="button" aria-label="Tables" title="Tables"
+    <button ref={trigger} className="tool-button" type="button" aria-label={t`Tables`} title={t`Tables`}
       disabled={!state.ready || editing || state.busy} onClick={() => void run('open')}>
       <span aria-hidden="true">▤</span>
     </button>
-    {!state.open && feedback.error && <span role="alert">{feedback.error}</span>}
+    {!state.open && feedback.error && <span role="alert">{translateFeedback(i18n, feedback.error)}</span>}
     {state.open && <dialog ref={dialogRef} className="table-panel" aria-labelledby={`${id}-title`}
       onFocusCapture={(event) => {
         if (event.target !== event.currentTarget) focusedControl.current = event.target
       }}
       onKeyDown={cycleDialogFocus} onCancel={(event) => { event.preventDefault(); void run('close') }}>
-      <h2 id={`${id}-title`}>Tables</h2>
-      <p>Create a named table from a range, or manage tables on this worksheet.</p>
-      <div className="table-panel-list" role="group" aria-label="Worksheet tables">
-        {state.tables.length === 0 && <p>No tables yet. Choose a range below.</p>}
+      <h2 id={`${id}-title`}><Trans>Tables</Trans></h2>
+      <p><Trans>Create a named table from a range, or manage tables on this worksheet.</Trans></p>
+      <div className="table-panel-list" role="group" aria-label={t`Worksheet tables`}>
+        {state.tables.length === 0 && <p><Trans>No tables yet. Choose a range below.</Trans></p>}
         {state.tables.map((table) => <button type="button" key={table.name} disabled={state.busy}
-          aria-label={`Edit table ${table.name}`} aria-pressed={state.editingName === table.name}
+          aria-label={t`Edit table ${table.name}`} aria-pressed={state.editingName === table.name}
           onClick={() => void run({ edit: table.name })}>
           <strong>{table.name}</strong><span>{table.range}</span>
         </button>)}
       </div>
       <form onSubmit={(event) => { event.preventDefault(); void run('save') }}>
         <div className="table-panel-heading">
-          <h3>{state.editingName ? 'Edit table' : 'Create table'}</h3>
-          <button type="button" disabled={state.busy} onClick={() => void run('new')}>New table</button>
+          <h3>{state.editingName ? t`Edit table` : t`Create table`}</h3>
+          <button type="button" disabled={state.busy} onClick={() => void run('new')}><Trans>New table</Trans></button>
         </div>
         <fieldset disabled={state.busy}>
-          <label htmlFor={`${id}-name`}>Table name</label>
-          <input id={`${id}-name`} value={state.name} autoComplete="off" placeholder="Automatic name"
+          <label htmlFor={`${id}-name`}><Trans>Table name</Trans></label>
+          <input id={`${id}-name`} value={state.name} autoComplete="off" placeholder={t`Automatic name`}
             required={Boolean(state.editingName)}
             onChange={(event) => void run({ name: event.currentTarget.value })} />
-          <label htmlFor={`${id}-range`}>Table range</label>
+          <label htmlFor={`${id}-range`}><Trans>Table range</Trans></label>
           <input id={`${id}-range`} value={state.range} required
             aria-describedby={`${id}-hint`} placeholder="A1:C10"
             onChange={(event) => void run({ range: event.currentTarget.value })} />
         </fieldset>
         <p id={`${id}-hint`}>{state.editingName
-          ? 'Resize keeps the header row fixed. Include the totals row when shown. Convert to range keeps your data and formatting.'
-          : 'The first row becomes the header. Blank or duplicate headers receive unique names.'}</p>
-        {state.error && <p role="alert">{state.error}</p>}
-        {state.busy && <p role="status">Saving table changes…</p>}
+          ? t`Resize keeps the header row fixed. Include the totals row when shown. Convert to range keeps your data and formatting.`
+          : t`The first row becomes the header. Blank or duplicate headers receive unique names.`}</p>
+        {state.error && <p role="alert">{translateFeedback(i18n, state.error)}</p>}
+        {state.busy && <p role="status"><Trans>Saving table changes…</Trans></p>}
         <div className="table-panel-actions">
           <button type="button" disabled={state.busy || !state.editingName}
-            onClick={() => void run('convert')}>Convert to range</button>
+            onClick={() => void run('convert')}><Trans>Convert to range</Trans></button>
           {state.editingName && <button type="button" disabled={state.busy}
-            onClick={() => void run('append-row')}>Add data row</button>}
+            onClick={() => void run('append-row')}><Trans>Add data row</Trans></button>}
           {state.editingName && <button type="button" disabled={state.busy}
-            onClick={() => void run('resize')}>Resize table</button>}
-          <button type="button" disabled={state.busy} onClick={() => void run('close')}>Cancel</button>
+            onClick={() => void run('resize')}><Trans>Resize table</Trans></button>}
+          <button type="button" disabled={state.busy} onClick={() => void run('close')}><Trans>Cancel</Trans></button>
           <button type="submit" disabled={state.busy}>
-            {state.editingName ? 'Rename table' : 'Create table'}
+            {state.editingName ? t`Rename table` : t`Create table`}
           </button>
         </div>
       </form>

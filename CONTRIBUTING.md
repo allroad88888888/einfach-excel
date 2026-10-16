@@ -4,10 +4,12 @@
 
 ## 环境要求
 
-- Node.js >= 22.12（CI 覆盖 22.12 与 24）
+- Node.js >= 22.19（Lingui 6 开发工具要求；CI 覆盖 22.19 与 24）
 - [pnpm](https://pnpm.io/) 10
 - 完整构建或涉及 Worker 的验证还需要 Rust 工具链、`wasm32-unknown-unknown` target 与
   [wasm-pack](https://rustwasm.github.io/wasm-pack/)
+
+这只是贡献者工具链要求；对外已构建包仍支持 Node.js 22.12，CI 单独验证 ESM/CJS 入口。
 
 ## 开始
 

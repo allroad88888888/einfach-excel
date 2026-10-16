@@ -1,3 +1,4 @@
+import { useLingui } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   activeWorkbookSheetAtom,
@@ -27,6 +28,8 @@ export function GridResizeHandle({
   label: string
   focusGrid: () => void
 }) {
+  const { t } = useLingui()
+  const axisLabel = axis === 'row' ? t`row` : t`column`
   const sheet = useAtomValue(activeWorkbookSheetAtom)
   const drag = useAtomValue(resizeDragAtom)
   const run = useSetAtom(runResizeDragAtom)
@@ -77,13 +80,13 @@ export function GridResizeHandle({
       className={`grid-resize-handle grid-resize-${axis}`}
       role="separator"
       tabIndex={disabled ? -1 : 0}
-      aria-label={`Resize ${axis} ${label}`}
+      aria-label={t`Resize ${axisLabel} ${label}`}
       aria-orientation={axis === 'row' ? 'horizontal' : 'vertical'}
       aria-valuemin={axis === 'row' ? 16 : 40}
       aria-valuemax={axis === 'row' ? 512 : 1024}
       aria-valuenow={pixels}
       aria-disabled={disabled}
-      title={`Drag to resize ${axis}; double-click or Enter to auto-fit; arrow keys adjust by 10 px`}
+      title={t`Drag to resize ${axisLabel}; double-click or Enter to auto-fit; arrow keys adjust by 10 px`}
       onPointerDown={(event) => {
         event.preventDefault()
         event.stopPropagation()

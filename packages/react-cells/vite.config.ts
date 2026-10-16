@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [react()],
   build: {
     lib: { entry: 'src/index.ts', formats: ['es'], fileName: 'index' },
-    rollupOptions: {
+    rolldownOptions: {
       external: (id) => /^(?:react(?:\/|$)|@einfach\/)/.test(id),
     },
   },

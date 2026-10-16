@@ -1,9 +1,11 @@
+import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { runSelectionMergeAtom, selectionMergeFeedbackAtom } from '@einfach/spreadsheet-ui-core'
 import { useEffect, useRef } from 'react'
 
 /** 沿用工作表确认框的原生模态布局，默认先聚焦取消。 */
 export function MergeConfirmation() {
+  const { t } = useLingui()
   const state = useAtomValue(selectionMergeFeedbackAtom)
   const run = useSetAtom(runSelectionMergeAtom)
   const ref = useRef<HTMLDialogElement>(null)
@@ -27,17 +29,17 @@ export function MergeConfirmation() {
         if (!state.busy) void run('cancel')
       }}
     >
-      <h2 id="merge-confirm-title">Merge these cells?</h2>
-      <p id="merge-confirm-description">
+      <h2 id="merge-confirm-title"><Trans>Merge these cells?</Trans></h2>
+      <p id="merge-confirm-description"><Trans>
         Only the upper-left cell's content will remain. Other cell contents will be deleted. Undo
         can restore them.
-      </p>
+      </Trans></p>
       <div className="sheet-delete-actions">
-        <button type="button" disabled={state.busy} onClick={() => void run('cancel')}>
+        <button type="button" disabled={state.busy} onClick={() => void run('cancel')}><Trans>
           Cancel
-        </button>
+        </Trans></button>
         <button type="button" disabled={state.busy} onClick={() => void run('confirm')}>
-          {state.busy ? 'Merging…' : 'Merge cells'}
+          {state.busy ? t`Merging…` : t`Merge cells`}
         </button>
       </div>
     </dialog>

@@ -7,9 +7,11 @@ import './workbook.css'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { runFindReplaceAtom, formatPainterAtom, runFormatPainterAtom,
   runGoToReferenceAtom } from '@einfach/spreadsheet-ui-core'
+import { Trans, useLingui } from '@lingui/react/macro'
 
 /** Composes the shared spreadsheet chrome around the active Rust workbook. */
 export function WorkbookView() {
+  const { i18n } = useLingui()
   const runFind = useSetAtom(runFindReplaceAtom)
   const runGoTo = useSetAtom(runGoToReferenceAtom)
   const painter = useAtomValue(formatPainterAtom)
@@ -17,6 +19,7 @@ export function WorkbookView() {
   return (
     <div
       className="workbook"
+      lang={i18n.locale}
       data-runtime-state="ready"
       onKeyDownCapture={(event) => {
         if (event.key === 'Escape' && !event.nativeEvent.isComposing && painter.mode !== 'idle') {
@@ -45,9 +48,9 @@ export function WorkbookView() {
       }}
     >
       <WorkbookHeader />
-      <div className="rust-runtime-status" role="status">
+      <div className="rust-runtime-status" role="status"><Trans>
         Rust/WASM ready
-      </div>
+      </Trans></div>
       <WorkbookRibbon />
       <FormulaBar />
       <WorkbookGrid />

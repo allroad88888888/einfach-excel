@@ -218,6 +218,8 @@ export interface WasmWorkbook extends WasmSpillQueries, WasmFindQueries {
   capture_format_painter?: (
     sheet: number, startRow: number, startCol: number, endRow: number, endCol: number,
   ) => Omit<RustClipboardCapture, 'token'>
+  prepare_clipboard?: WasmWorkbook['capture_clipboard']
+  finish_clipboard_capture?: (commit: boolean) => void
   paste_clipboard?: (
     sheet: number,
     row: number,

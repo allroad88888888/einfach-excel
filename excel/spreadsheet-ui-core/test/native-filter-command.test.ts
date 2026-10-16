@@ -114,6 +114,10 @@ test('native rejection and invalid projection preserve the old result', async ()
   }))
   expect(await store.setter(runNativeFilterAtom, { action: 'apply', rules })).toBe(false)
   expect(store.getter(projectionSnapshotAtom)).toBe(before)
+  expect(await store.setter(runNativeFilterAtom, { action: 'apply', rules })).toBe(true)
+  expect(filter).toHaveBeenCalledTimes(3)
+  expect(store.getter(projectionSnapshotAtom)).not.toBe(before)
+  expect(store.getter(nativeFilterFeedbackAtom)).toMatchObject({ busy: false, error: '' })
 })
 
 test('clear publishes when a viewport read started before it finishes first', async () => {

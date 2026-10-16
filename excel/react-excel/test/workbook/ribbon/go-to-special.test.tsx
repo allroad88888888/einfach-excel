@@ -6,8 +6,8 @@ import { createSpreadsheetUi, initializeWorkbookDocumentAtom, runVisibleProjecti
   type RustWorkbookConnection, type VisibleProjectionRequest } from '@einfach/spreadsheet-ui-core'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
 import { GoToSpecialTools } from '../../../src/workbook/chrome/ribbon/GoToSpecialTools'
-import { SpreadsheetGrid } from '../../../src/workbook/grid/cells/SpreadsheetGrid'
-import { MergedCells } from '../../../src/workbook/grid/cells/MergedCells'
+import { SpreadsheetGrid } from '@einfach/react-cells'
+import { MergedCells } from '@einfach/react-cells'
 
 const scope = { rowStart: 0, rowEnd: 99, colStart: 0, colEnd: 7 }
 const regions = [{ rowStart: 0, rowEnd: 1, colStart: 0, colEnd: 1 },

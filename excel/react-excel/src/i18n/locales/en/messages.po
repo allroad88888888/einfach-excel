@@ -1,0 +1,4800 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-10-16 11:04+0800\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: en\n"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid " · Disabled"
+msgstr " · Disabled"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid " · Stop if true"
+msgstr " · Stop if true"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid " Both dates are included."
+msgstr " Both dates are included."
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid " Both times are included."
+msgstr " Both times are included."
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid " duplicate records (one undo restores them)"
+msgstr " duplicate records (one undo restores them)"
+
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid " Every condition must match. After editing values, use Reapply filter."
+msgstr " Every condition must match. After editing values, use Reapply filter."
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid " occupied destination cells"
+msgstr " occupied destination cells"
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid " of "
+msgstr " of "
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "(Blanks)"
+msgstr "(Blanks)"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "(Empty)"
+msgstr "(Empty)"
+
+#. placeholder {0}: entry.value.length
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "(Whitespace: {0})"
+msgstr "(Whitespace: {0})"
+
+#. placeholder {0}: sheet.name
+#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+msgid "{0} — double-click or F2 to rename"
+msgstr "{0} — double-click or F2 to rename"
+
+#. placeholder {0}: activeSheet.name
+#: src/workbook/grid/viewport/WorkbookGrid.tsx
+msgid "{0} cells"
+msgstr "{0} cells"
+
+#. placeholder {0}: preview.scannedRows
+#. placeholder {1}: preview.excludedRows
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "{0} data rows compared; {1} filtered-out rows unchanged."
+msgstr "{0} data rows compared; {1} filtered-out rows unchanged."
+
+#. placeholder {0}: preview.removedRows
+#. placeholder {1}: preview.uniqueRows
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "{0} duplicate records; {1} unique records remain."
+msgstr "{0} duplicate records; {1} unique records remain."
+
+#. placeholder {0}: panel.table
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "{0} filter conditions"
+msgstr "{0} filter conditions"
+
+#. placeholder {0}: panel.total
+#: src/workbook/chrome/ribbon/InsertFunctionTools.tsx
+msgid "{0} functions available in this build. Insert a draft, then enter arguments in the formula bar."
+msgstr "{0} functions available in this build. Insert a draft, then enter arguments in the formula bar."
+
+#. placeholder {0}: result!.index + 1
+#. placeholder {1}: result!.total
+#. placeholder {2}: matchSheet?.name
+#. placeholder {3}: coordToA1(match)
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "{0} of {1} · {2}!{3}"
+msgstr "{0} of {1} · {2}!{3}"
+
+#. placeholder {0}: activeSheet.rowCount
+#: src/workbook/chrome/footer/WorkbookFooter.tsx
+#: src/workbook/chrome/header/WorkbookHeader.tsx
+msgid "{0} rows"
+msgstr "{0} rows"
+
+#. placeholder {0}: state.selected.length
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "{0} selected"
+msgstr "{0} selected"
+
+#. placeholder {0}: state.preview.sourceColumnCount
+#: src/workbook/chrome/ribbon/TextColumnTypes.tsx
+msgid "{0} source fields. "
+msgstr "{0} source fields. "
+
+#. placeholder {0}: state.undoCount
+#. placeholder {1}: state.redoCount
+#: src/workbook/chrome/ribbon/HistoryTools.tsx
+msgid "{0} undo · {1} redo"
+msgstr "{0} undo · {1} redo"
+
+#. placeholder {0}: activeSheet.name
+#: src/workbook/grid/viewport/WorkbookGrid.tsx
+msgid "{0} worksheet"
+msgstr "{0} worksheet"
+
+#: src/i18n/translate-feedback.ts
+msgid "{category}. Argument help is not available yet."
+msgstr "{category}. Argument help is not available yet."
+
+#: src/i18n/translate-feedback.ts
+msgid "{detail} Current workbook kept."
+msgstr "{detail} Current workbook kept."
+
+#: src/i18n/translate-feedback.ts
+msgid "{rows} × {cols} cells ready to move. Paste to finish."
+msgstr "{rows} × {cols} cells ready to move. Paste to finish."
+
+#: src/i18n/translate-feedback.ts
+msgid "{rows} rows filtered out."
+msgstr "{rows} rows filtered out."
+
+#: src/workbook/chrome/footer/WorkbookFooter.tsx
+msgid "{selectedCellCount} cells selected in multiple areas. Clear and formatting apply to all areas. Borders require one continuous range."
+msgstr "{selectedCellCount} cells selected in multiple areas. Clear and formatting apply to all areas. Borders require one continuous range."
+
+#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+msgid "{tabLabel} tools"
+msgstr "{tabLabel} tools"
+
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "{table} filter conditions…"
+msgstr "{table} filter conditions…"
+
+#. placeholder {0}: rules.length ? ` (${rules.length})` : ''
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "{table} filter{0}"
+msgstr "{table} filter{0}"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "* = any text, ? = one character, ~ escapes *, ? or ~. "
+msgstr "* = any text, ? = one character, ~ escapes *, ? or ~. "
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "1 = one day. [h] shows total hours; other styles repeat every 24 hours."
+msgstr "1 = one day. [h] shows total hours; other styles repeat every 24 hours."
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "2 colors"
+msgstr "2 colors"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "2-color scale"
+msgstr "2-color scale"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "3 colors"
+msgstr "3 colors"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "3-color scale"
+msgstr "3-color scale"
+
+#: src/workbook/chrome/ribbon/GoToTools.tsx
+msgid "A defined name, A1, B2:D10, R12C3, R[2]C[-1], or 'Sales Orders'!B2. Hidden rows and columns stay hidden."
+msgstr "A defined name, A1, B2:D10, R12C3, R[2]C[-1], or 'Sales Orders'!B2. Hidden rows and columns stay hidden."
+
+#: src/i18n/feedback-messages.ts
+msgid "A formula refers to a larger range. Moving part of that range is not supported yet."
+msgstr "A formula refers to a larger range. Moving part of that range is not supported yet."
+
+#: src/i18n/feedback-messages.ts
+msgid "A pasted value does not meet its cell’s data validation rule. Nothing was pasted."
+msgstr "A pasted value does not meet its cell’s data validation rule. Nothing was pasted."
+
+#: src/workbook/chrome/formula-bar/FormulaBar.tsx
+msgid "Active cell value"
+msgstr "Active cell value"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Add"
+msgstr "Add"
+
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Add a totals row below the table. Existing cells are never overwritten."
+msgstr "Add a totals row below the table. Existing cells are never overwritten."
+
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "Add condition"
+msgstr "Add condition"
+
+#: src/i18n/feedback-messages.ts
+msgid "Add conditional format"
+msgstr "Add conditional format"
+
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "Add data row"
+msgstr "Add data row"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Add level"
+msgstr "Add level"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Add rule"
+msgstr "Add rule"
+
+#: src/i18n/feedback-messages.ts
+msgid "Add table row"
+msgstr "Add table row"
+
+#: src/i18n/feedback-messages.ts
+msgid "Add worksheet"
+msgstr "Add worksheet"
+
+#: src/i18n/feedback-messages.ts
+msgid "Adds all the numbers in a range of cells."
+msgstr "Adds all the numbers in a range of cells."
+
+#: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
+msgid "Advanced number parsing"
+msgstr "Advanced number parsing"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "All borders"
+msgstr "All borders"
+
+#: src/workbook/chrome/ribbon/InsertFunctionTools.tsx
+msgid "All categories"
+msgstr "All categories"
+
+#: src/workbook/grid/viewport/WorkbookGrid.tsx
+msgid "All columns are hidden. Use Hide / Unhide to restore them."
+msgstr "All columns are hidden. Use Hide / Unhide to restore them."
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "All contents and formatting"
+msgstr "All contents and formatting"
+
+#: src/workbook/grid/viewport/WorkbookGrid.tsx
+msgid "All rows are hidden. Use Hide / Unhide to restore them."
+msgstr "All rows are hidden. Use Hide / Unhide to restore them."
+
+#: src/workbook/chrome/ribbon/FindResults.tsx
+msgid "All search results"
+msgstr "All search results"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Allow"
+msgstr "Allow"
+
+#: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
+msgid "Allow trailing minus (123- becomes -123)"
+msgstr "Allow trailing minus (123- becomes -123)"
+
+#: src/i18n/feedback-messages.ts
+msgid "Already in order."
+msgstr "Already in order."
+
+#: src/i18n/feedback-messages.ts
+msgid "An array result cannot be cut independently."
+msgstr "An array result cannot be cut independently."
+
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+msgid "And"
+msgstr "And"
+
+#: src/i18n/feedback-messages.ts
+msgid "Another mutation is in progress."
+msgstr "Another mutation is in progress."
+
+#: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
+msgid "Apostrophe (')"
+msgstr "Apostrophe (')"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Applies to"
+msgstr "Applies to"
+
+#. placeholder {0}: target.range.rowStart + 1
+#. placeholder {1}: target.range.rowEnd + 1
+#. placeholder {2}: target.range.colStart + 1
+#. placeholder {3}: target.range.colEnd + 1
+#: src/workbook/chrome/ribbon/SelectionSizeTools.tsx
+msgid "Applies to rows {0}–{1} and columns {2}–{3}. Sizes are in pixels."
+msgstr "Applies to rows {0}–{1} and columns {2}–{3}. Sizes are in pixels."
+
+#: src/workbook/chrome/footer/SelectionStatisticsSettings.tsx
+msgid "Applies to this workbook session. Reloading restores all six summaries."
+msgstr "Applies to this workbook session. Reloading restores all six summaries."
+
+#: src/workbook/chrome/ribbon/ColorTools.tsx
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Apply"
+msgstr "Apply"
+
+#: src/workbook/chrome/ribbon/FontSizeTools.tsx
+msgid "Apply an integer size from 1 to 512 pixels to the selected cells."
+msgstr "Apply an integer size from 1 to 512 pixels to the selected cells."
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Apply borders"
+msgstr "Apply borders"
+
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "Apply filter"
+msgstr "Apply filter"
+
+#: src/workbook/chrome/ribbon/FontSizeTools.tsx
+msgid "Apply font size"
+msgstr "Apply font size"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Apply number format"
+msgstr "Apply number format"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Apply paste"
+msgstr "Apply paste"
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "Apply series"
+msgstr "Apply series"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Apply sort"
+msgstr "Apply sort"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Apply split"
+msgstr "Apply split"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Apply to the selected cells. Other borders and formatting stay unchanged."
+msgstr "Apply to the selected cells. Other borders and formatting stay unchanged."
+
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Apply total"
+msgstr "Apply total"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Applying borders…"
+msgstr "Applying borders…"
+
+#: src/workbook/chrome/ribbon/ColorTools.tsx
+msgid "Applying color…"
+msgstr "Applying color…"
+
+#: src/workbook/chrome/ribbon/FontSizeTools.tsx
+msgid "Applying font size…"
+msgstr "Applying font size…"
+
+#: src/workbook/chrome/ribbon/TextLayoutTools.tsx
+msgid "Applying layout…"
+msgstr "Applying layout…"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Applying number format…"
+msgstr "Applying number format…"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Applying split…"
+msgstr "Applying split…"
+
+#: src/i18n/feedback-messages.ts
+msgid "Arrays"
+msgstr "Arrays"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Ascending"
+msgstr "Ascending"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "At least"
+msgstr "At least"
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "At least 2 numbered labels, such as Item001, Item003. Matching padding is preserved."
+msgstr "At least 2 numbered labels, such as Item001, Item003. Matching padding is preserved."
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "At least 2 numbers with a constant non-zero difference, including decimals."
+msgstr "At least 2 numbers with a constant non-zero difference, including decimals."
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "At least 3 numeric samples. Rust fits a least-squares line using all samples."
+msgstr "At least 3 numeric samples. Rust fits a least-squares line using all samples."
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "At most"
+msgstr "At most"
+
+#: src/workbook/chrome/ribbon/TextLayoutTools.tsx
+msgid "Auto"
+msgstr "Auto"
+
+#: src/workbook/chrome/ribbon/QuickFormulaTools.tsx
+msgid "Auto sum"
+msgstr "Auto sum"
+
+#: src/workbook/chrome/ribbon/QuickFormulaTools.tsx
+msgid "Auto sum (review in formula bar)"
+msgstr "Auto sum (review in formula bar)"
+
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "Automatic name"
+msgstr "Automatic name"
+
+#: src/workbook/chrome/ribbon/ColorTools.tsx
+msgid "Automatic text color"
+msgstr "Automatic text color"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Average"
+msgstr "Average"
+
+#: src/workbook/chrome/ribbon/QuickFormulaTools.tsx
+msgid "AVERAGE — Mean"
+msgstr "AVERAGE — Mean"
+
+#: src/workbook/chrome/ribbon/TableAppearance.tsx
+msgid "Banded columns"
+msgstr "Banded columns"
+
+#: src/workbook/chrome/ribbon/TableAppearance.tsx
+msgid "Banded rows"
+msgstr "Banded rows"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Bars use the full range and a shared zero axis. Negative values extend left; cell values stay visible."
+msgstr "Bars use the full range and a shared zero axis. Negative values extend left; cell values stay visible."
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Begins with"
+msgstr "Begins with"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Between"
+msgstr "Between"
+
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Blanks"
+msgstr "Blanks"
+
+#. placeholder {0}: coordToA1(info.blocker)
+#: src/workbook/chrome/ribbon/SpillTools.tsx
+msgid "Blocked by {0}."
+msgstr "Blocked by {0}."
+
+#: src/workbook/chrome/ribbon/TableAppearance.tsx
+msgid "Blue"
+msgstr "Blue"
+
+#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+msgid "Bold"
+msgstr "Bold"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Border color"
+msgstr "Border color"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Border color {color}"
+msgstr "Border color {color}"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Border settings"
+msgstr "Border settings"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+msgid "Borders"
+msgstr "Borders"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/chrome/ribbon/TextLayoutTools.tsx
+msgid "Bottom"
+msgstr "Bottom"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Bottom {count} items"
+msgstr "Bottom {count} items"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Bottom {count}%"
+msgstr "Bottom {count}%"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Bottom border"
+msgstr "Bottom border"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Break positions"
+msgstr "Break positions"
+
+#: src/workbook/chrome/footer/SelectionStatus.tsx
+msgid "Calculating selection…"
+msgstr "Calculating selection…"
+
+#: src/workbook/chrome/footer/SheetDeleteConfirmation.tsx
+#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+#: src/workbook/chrome/ribbon/FontSizeTools.tsx
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+#: src/workbook/chrome/ribbon/GoToTools.tsx
+#: src/workbook/chrome/ribbon/InsertFunctionTools.tsx
+#: src/workbook/chrome/ribbon/MergeConfirmation.tsx
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+#: src/workbook/chrome/ribbon/SelectionSizeTools.tsx
+#: src/workbook/chrome/ribbon/SortTools.tsx
+#: src/workbook/chrome/ribbon/TableTools.tsx
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Cancel"
+msgstr "Cancel"
+
+#: src/workbook/grid/viewport/CanvasCells.tsx
+msgid "Canvas worksheet cells"
+msgstr "Canvas worksheet cells"
+
+#: src/i18n/feedback-messages.ts
+msgid "Capturing formatting…"
+msgstr "Capturing formatting…"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Case sensitive"
+msgstr "Case sensitive"
+
+#: src/workbook/chrome/ribbon/InsertFunctionTools.tsx
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Category"
+msgstr "Category"
+
+#: src/workbook/grid/editor/CellEditor.tsx
+msgid "Cell editor"
+msgstr "Cell editor"
+
+#: src/workbook/chrome/ribbon/HistoryTools.tsx
+msgid "Cell edits, formatting, clearing, paste, cut moves, row/column sizes and worksheets. Up to 50 steps in this session."
+msgstr "Cell edits, formatting, clearing, paste, cut moves, row/column sizes and worksheets. Up to 50 steps in this session."
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Cell value"
+msgstr "Cell value"
+
+#: src/workbook/chrome/ribbon/TextLayoutTools.tsx
+msgid "Center"
+msgstr "Center"
+
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Changes apply immediately and can be undone."
+msgstr "Changes apply immediately and can be undone."
+
+#: src/workbook/chrome/ribbon/TableAppearance.tsx
+msgid "Changes apply immediately. Manual cell, row and column formatting stays in place."
+msgstr "Changes apply immediately. Manual cell, row and column formatting stays in place."
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Changes the display only. The original date value stays unchanged."
+msgstr "Changes the display only. The original date value stays unchanged."
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Changes whole columns only. Cell contents, styles and row heights stay unchanged."
+msgstr "Changes whole columns only. Cell contents, styles and row heights stay unchanged."
+
+#. placeholder {0}: label.toLowerCase()
+#: src/workbook/chrome/ribbon/ColorTools.tsx
+msgid "Choose {0}"
+msgstr "Choose {0}"
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose a column and a total function."
+msgstr "Choose a column and a total function."
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose a named range to delete."
+msgstr "Choose a named range to delete."
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose a non-empty workbook file no larger than 64 MiB."
+msgstr "Choose a non-empty workbook file no larger than 64 MiB."
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose a source field number from 1 to 16384."
+msgstr "Choose a source field number from 1 to 16384."
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose a supported border position and line style."
+msgstr "Choose a supported border position and line style."
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose a supported category."
+msgstr "Choose a supported category."
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose a table column."
+msgstr "Choose a table column."
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose a table first."
+msgstr "Choose a table first."
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose a table to convert."
+msgstr "Choose a table to convert."
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose a table to resize."
+msgstr "Choose a table to resize."
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose a valid table style."
+msgstr "Choose a valid table style."
+
+#: src/workbook/grid/editor/CellValidationList.tsx
+msgid "Choose a value from the validation list"
+msgstr "Choose a value from the validation list"
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose at least one comparison column."
+msgstr "Choose at least one comparison column."
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose at least one delimiter."
+msgstr "Choose at least one delimiter."
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose at most 1,000 values, or use a text or number condition."
+msgstr "Choose at most 1,000 values, or use a text or number condition."
+
+#: src/workbook/grid/editor/CellValidationList.tsx
+msgid "Choose cell value"
+msgstr "Choose cell value"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Choose custom border color"
+msgstr "Choose custom border color"
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose one contiguous selection before opening Find."
+msgstr "Choose one contiguous selection before opening Find."
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose one continuous range."
+msgstr "Choose one continuous range."
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose one of the supported date formats."
+msgstr "Choose one of the supported date formats."
+
+#: src/i18n/feedback-messages.ts
+msgid "Choose one of the supported time formats."
+msgstr "Choose one of the supported time formats."
+
+#: src/workbook/chrome/footer/SelectionStatisticsSettings.tsx
+msgid "Choose the summaries shown below. Click a value to copy its full precision."
+msgstr "Choose the summaries shown below. Click a value to copy its full precision."
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Choose values for condition {0}"
+msgstr "Choose values for condition {0}"
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Choose values to show. Other column filters still apply."
+msgstr "Choose values to show. Other column filters still apply."
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Choose values…"
+msgstr "Choose values…"
+
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "Clear {table} filter"
+msgstr "Clear {table} filter"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/ClearTools.tsx
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Clear all"
+msgstr "Clear all"
+
+#. placeholder {0}: getColumnLabel(panel.column)
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "Clear column {0} filter"
+msgstr "Clear column {0} filter"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/ClearTools.tsx
+msgid "Clear contents"
+msgstr "Clear contents"
+
+#: src/i18n/feedback-messages.ts
+msgid "Clear data validation"
+msgstr "Clear data validation"
+
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "Clear filter"
+msgstr "Clear filter"
+
+#: src/i18n/feedback-messages.ts
+msgid "Clear formats"
+msgstr "Clear formats"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/ClearTools.tsx
+msgid "Clear formatting"
+msgstr "Clear formatting"
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Clear selection"
+msgstr "Clear selection"
+
+#: src/i18n/feedback-messages.ts
+msgid "Clear the filter before cutting this range. No cells were moved."
+msgstr "Clear the filter before cutting this range. No cells were moved."
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Clear validation"
+msgstr "Clear validation"
+
+#: src/i18n/feedback-messages.ts
+msgid "Clipboard access is unavailable."
+msgstr "Clipboard access is unavailable."
+
+#: src/i18n/feedback-messages.ts
+msgid "Clipboard permission was denied. Allow clipboard access and try again."
+msgstr "Clipboard permission was denied. Allow clipboard access and try again."
+
+#: src/i18n/feedback-messages.ts
+msgid "Clipboard permission was denied. Use Ctrl/⌘+V in the grid."
+msgstr "Clipboard permission was denied. Use Ctrl/⌘+V in the grid."
+
+#: src/i18n/feedback-messages.ts
+msgid "Clipboard read is unavailable. Use the browser paste shortcut."
+msgstr "Clipboard read is unavailable. Use the browser paste shortcut."
+
+#: src/workbook/chrome/footer/WorkbookFooter.tsx
+msgid "Clipboard status"
+msgstr "Clipboard status"
+
+#: src/i18n/feedback-messages.ts
+msgid "Clipboard write is unavailable. Use the browser copy shortcut."
+msgstr "Clipboard write is unavailable. Use the browser copy shortcut."
+
+#: src/workbook/chrome/header/WorkbookFileTools.tsx
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+#: src/workbook/chrome/ribbon/SpillTools.tsx
+msgid "Close"
+msgstr "Close"
+
+#: src/workbook/chrome/ribbon/ColorTools.tsx
+msgid "Close color palette"
+msgstr "Close color palette"
+
+#: src/workbook/chrome/ribbon/HistoryTools.tsx
+msgid "Close history"
+msgstr "Close history"
+
+#. placeholder {0}: group.level
+#: src/workbook/grid/viewport/OutlineGutters.tsx
+msgid "Collapse {label}, level {0}"
+msgstr "Collapse {label}, level {0}"
+
+#: src/workbook/chrome/ribbon/OutlineTools.tsx
+msgid "Collapse all column groups"
+msgstr "Collapse all column groups"
+
+#: src/workbook/chrome/ribbon/OutlineTools.tsx
+msgid "Collapse all row groups"
+msgstr "Collapse all row groups"
+
+#: src/i18n/feedback-messages.ts
+msgid "Collapse group"
+msgstr "Collapse group"
+
+#: src/workbook/chrome/ribbon/ColorTools.tsx
+msgid "Color {color}"
+msgstr "Color {color}"
+
+#: src/workbook/chrome/ribbon/ColorTools.tsx
+msgid "Color hex"
+msgstr "Color hex"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Color scale"
+msgstr "Color scale"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Colors use the full range minimum and maximum. The third color marks the median (50th percentile)."
+msgstr "Colors use the full range minimum and maximum. The third color marks the median (50th percentile)."
+
+#: src/workbook/grid/viewport/GridResizeHandle.tsx
+msgid "column"
+msgstr "column"
+
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+#: src/workbook/chrome/ribbon/SortTools.tsx
+#: src/workbook/chrome/ribbon/TableColumns.tsx
+msgid "Column"
+msgstr "Column"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Column "
+msgstr "Column "
+
+#: src/workbook/chrome/ribbon/TableColumns.tsx
+msgid "Column names"
+msgstr "Column names"
+
+#: src/workbook/grid/viewport/OutlineGutters.tsx
+msgid "Column outline"
+msgstr "Column outline"
+
+#: src/workbook/chrome/ribbon/SelectionSizeTools.tsx
+msgid "Column width"
+msgstr "Column width"
+
+#: src/i18n/feedback-messages.ts
+msgid "Column widths cannot be combined with arithmetic, transpose or skip blanks."
+msgstr "Column widths cannot be combined with arithmetic, transpose or skip blanks."
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Column widths only"
+msgstr "Column widths only"
+
+#. placeholder {0}: toA1(0, group.start).slice(0, -1)
+#. placeholder {1}: toA1(0, group.end).slice(0, -1)
+#: src/workbook/grid/viewport/OutlineGutters.tsx
+msgid "columns {0}–{1}"
+msgstr "columns {0}–{1}"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Combine options for this paste. Ordinary Paste stays unchanged."
+msgstr "Combine options for this paste. Ordinary Paste stays unchanged."
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Comma"
+msgstr "Comma"
+
+#: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
+msgid "Comma (,)"
+msgstr "Comma (,)"
+
+#. placeholder {0}: toA1(0, col).slice(0, -1)
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Compare column {0}"
+msgstr "Compare column {0}"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Compare displayed values and keep the first record. Only cells inside the selected range move. Filtered-out rows stay in place; manually hidden rows are included."
+msgstr "Compare displayed values and keep the first record. Only cells inside the selected range move. Filtered-out rows stay in place; manually hidden rows are included."
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Compares calculated values across all applied ranges, ignoring text case. Blank cells, empty text and errors are skipped; numbers and text are different."
+msgstr "Compares calculated values across all applied ranges, ignoring text case. Blank cells, empty text and errors are skipped; numbers and text are different."
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Comparison columns"
+msgstr "Comparison columns"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+msgid "Condition"
+msgstr "Condition"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Conditional formatting"
+msgstr "Conditional formatting"
+
+#: src/workbook/chrome/ribbon/TextColumnTypes.tsx
+msgid "Configured field types"
+msgstr "Configured field types"
+
+#: src/i18n/feedback-messages.ts
+msgid "Confirm overwriting the occupied destination cells before applying."
+msgstr "Confirm overwriting the occupied destination cells before applying."
+
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Constants"
+msgstr "Constants"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+msgid "Contains"
+msgstr "Contains"
+
+#: src/i18n/feedback-messages.ts
+msgid "Convert table to range"
+msgstr "Convert table to range"
+
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "Convert to range"
+msgstr "Convert to range"
+
+#: src/i18n/feedback-messages.ts
+msgid "Converts text to lowercase."
+msgstr "Converts text to lowercase."
+
+#: src/i18n/feedback-messages.ts
+msgid "Converts text to uppercase."
+msgstr "Converts text to uppercase."
+
+#: src/i18n/translate-feedback.ts
+msgid "Copied {label}."
+msgstr "Copied {label}."
+
+#: src/i18n/translate-feedback.ts
+msgid "Copied {rows} × {cols} cells as {format}."
+msgstr "Copied {rows} × {cols} cells as {format}."
+
+#: src/i18n/translate-feedback.ts
+msgid "Copied {rows} × {cols} cells."
+msgstr "Copied {rows} × {cols} cells."
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Copy"
+msgstr "Copy"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Copy (Ctrl/⌘+C)"
+msgstr "Copy (Ctrl/⌘+C)"
+
+#: src/workbook/chrome/footer/SelectionStatus.tsx
+msgid "Copy {label}"
+msgstr "Copy {label}"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Copy as"
+msgstr "Copy as"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Copy as HTML table"
+msgstr "Copy as HTML table"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Copy as Markdown"
+msgstr "Copy as Markdown"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Copy as plain text"
+msgstr "Copy as plain text"
+
+#: src/i18n/feedback-messages.ts
+msgid "Copy conditional format"
+msgstr "Copy conditional format"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Copy rule {0}"
+msgstr "Copy rule {0}"
+
+#: src/workbook/chrome/ribbon/FillTools.tsx
+msgid "Copy the first selected row down or the first selected column right"
+msgstr "Copy the first selected row down or the first selected column right"
+
+#: src/i18n/feedback-messages.ts
+msgid "copy…"
+msgstr "copy…"
+
+#: src/i18n/feedback-messages.ts
+msgid "Copying statistic…"
+msgstr "Copying statistic…"
+
+#: src/i18n/translate-feedback.ts
+msgid "Could not capture formatting: {detail}"
+msgstr "Could not capture formatting: {detail}"
+
+#: src/i18n/feedback-messages.ts
+msgid "Could not confirm removal. Check the sheet before retrying."
+msgstr "Could not confirm removal. Check the sheet before retrying."
+
+#: src/i18n/feedback-messages.ts
+msgid "Could not confirm the borders. Check the cells before retrying."
+msgstr "Could not confirm the borders. Check the cells before retrying."
+
+#: src/i18n/feedback-messages.ts
+msgid "Could not confirm the color change. Check the cell before retrying."
+msgstr "Could not confirm the color change. Check the cell before retrying."
+
+#: src/i18n/feedback-messages.ts
+msgid "Could not confirm the font size. Check the cell before retrying."
+msgstr "Could not confirm the font size. Check the cell before retrying."
+
+#: src/i18n/feedback-messages.ts
+msgid "Could not confirm the layout change. Check the cell before retrying."
+msgstr "Could not confirm the layout change. Check the cell before retrying."
+
+#: src/i18n/feedback-messages.ts
+msgid "Could not confirm the number format. Check the cells before retrying."
+msgstr "Could not confirm the number format. Check the cells before retrying."
+
+#: src/i18n/feedback-messages.ts
+msgid "Could not confirm the split. Check the sheet before retrying."
+msgstr "Could not confirm the split. Check the sheet before retrying."
+
+#: src/i18n/feedback-messages.ts
+msgid "Could not preview duplicate records."
+msgstr "Could not preview duplicate records."
+
+#: src/i18n/feedback-messages.ts
+msgid "Could not preview this split."
+msgstr "Could not preview this split."
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Count"
+msgstr "Count"
+
+#: src/workbook/chrome/ribbon/QuickFormulaTools.tsx
+msgid "COUNT — Numbers"
+msgstr "COUNT — Numbers"
+
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Count numbers"
+msgstr "Count numbers"
+
+#: src/i18n/feedback-messages.ts
+msgid "Counts the cells in a range that meet a given criterion."
+msgstr "Counts the cells in a range that meet a given criterion."
+
+#: src/i18n/feedback-messages.ts
+msgid "Counts the number of cells that contain numbers."
+msgstr "Counts the number of cells that contain numbers."
+
+#: src/workbook/chrome/header/WorkbookFileTools.tsx
+msgid "Create a blank workbook and replace the current workbook? Download first to keep unsaved changes."
+msgstr "Create a blank workbook and replace the current workbook? Download first to keep unsaved changes."
+
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "Create a named table from a range, or manage tables on this worksheet."
+msgstr "Create a named table from a range, or manage tables on this worksheet."
+
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "Create name"
+msgstr "Create name"
+
+#: src/i18n/feedback-messages.ts
+msgid "Create named range"
+msgstr "Create named range"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "Create table"
+msgstr "Create table"
+
+#: src/i18n/feedback-messages.ts
+msgid "Create table failed: that name is already in use."
+msgstr "Create table failed: that name is already in use."
+
+#: src/i18n/feedback-messages.ts
+msgid "Create table failed: that name is reserved by a built-in function."
+msgstr "Create table failed: that name is reserved by a built-in function."
+
+#: src/i18n/feedback-messages.ts
+msgid "Create table failed: the name looks like a cell reference. Choose another name."
+msgstr "Create table failed: the name looks like a cell reference. Choose another name."
+
+#: src/i18n/feedback-messages.ts
+msgid "Create table failed: the selection overlaps an existing table."
+msgstr "Create table failed: the selection overlaps an existing table."
+
+#: src/i18n/feedback-messages.ts
+msgid "Create table failed: the table name is invalid."
+msgstr "Create table failed: the table name is invalid."
+
+#: src/i18n/feedback-messages.ts
+msgid "Create table failed: the target sheet could not be found."
+msgstr "Create table failed: the target sheet could not be found."
+
+#: src/i18n/feedback-messages.ts
+msgid "Create table failed: this workbook already has the maximum number of tables."
+msgstr "Create table failed: this workbook already has the maximum number of tables."
+
+#: src/i18n/feedback-messages.ts
+msgid "Create table needs a selection with a header row and at least one data row."
+msgstr "Create table needs a selection with a header row and at least one data row."
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Currency"
+msgstr "Currency"
+
+#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+msgid "Currency format"
+msgstr "Currency format"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Currency symbol"
+msgstr "Currency symbol"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Current sheet"
+msgstr "Current sheet"
+
+#: src/workbook/chrome/ribbon/CalculationTools.tsx
+msgid "Current worksheet"
+msgstr "Current worksheet"
+
+#: src/workbook/chrome/ribbon/ColorTools.tsx
+msgid "Custom color"
+msgstr "Custom color"
+
+#: src/workbook/chrome/ribbon/ColorTools.tsx
+msgid "Custom color picker"
+msgstr "Custom color picker"
+
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Custom content"
+msgstr "Custom content"
+
+#: src/workbook/chrome/ribbon/FontSizeTools.tsx
+msgid "Custom font size"
+msgstr "Custom font size"
+
+#: src/i18n/feedback-messages.ts
+msgid "Custom list"
+msgstr "Custom list"
+
+#: src/i18n/feedback-messages.ts
+msgid "Custom list is limited to 16384 characters."
+msgstr "Custom list is limited to 16384 characters."
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "Custom list items"
+msgstr "Custom list items"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Custom sort"
+msgstr "Custom sort"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Custom sort…"
+msgstr "Custom sort…"
+
+#: src/workbook/chrome/ribbon/FontSizeTools.tsx
+msgid "Custom…"
+msgstr "Custom…"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Cut"
+msgstr "Cut"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Cut (Ctrl/⌘+X)"
+msgstr "Cut (Ctrl/⌘+X)"
+
+#: src/i18n/feedback-messages.ts
+msgid "Cut between sheets is not supported yet."
+msgstr "Cut between sheets is not supported yet."
+
+#: src/i18n/feedback-messages.ts
+msgid "cut…"
+msgstr "cut…"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Dashed"
+msgstr "Dashed"
+
+#: src/workbook/chrome/ribbon/RibbonTabs.tsx
+msgid "Data"
+msgstr "Data"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Data bar"
+msgstr "Data bar"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Data validation"
+msgstr "Data validation"
+
+#: src/i18n/feedback-messages.ts
+msgid "Database"
+msgstr "Database"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Date"
+msgstr "Date"
+
+#: src/workbook/chrome/ribbon/TextColumnTypes.tsx
+msgid "Date — DMY"
+msgstr "Date — DMY"
+
+#: src/workbook/chrome/ribbon/TextColumnTypes.tsx
+msgid "Date — DYM"
+msgstr "Date — DYM"
+
+#: src/workbook/chrome/ribbon/TextColumnTypes.tsx
+msgid "Date — MDY"
+msgstr "Date — MDY"
+
+#: src/workbook/chrome/ribbon/TextColumnTypes.tsx
+msgid "Date — MYD"
+msgstr "Date — MYD"
+
+#: src/workbook/chrome/ribbon/TextColumnTypes.tsx
+msgid "Date — YDM"
+msgstr "Date — YDM"
+
+#: src/workbook/chrome/ribbon/TextColumnTypes.tsx
+msgid "Date — YMD"
+msgstr "Date — YMD"
+
+#: src/i18n/feedback-messages.ts
+msgid "Date & time"
+msgstr "Date & time"
+
+#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+msgid "Date format"
+msgstr "Date format"
+
+#: src/i18n/feedback-messages.ts
+msgid "Date sequence"
+msgstr "Date sequence"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Date style"
+msgstr "Date style"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Decimal"
+msgstr "Decimal"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Decimal places"
+msgstr "Decimal places"
+
+#: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
+msgid "Decimal separator"
+msgstr "Decimal separator"
+
+#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+msgid "Decrease decimal places"
+msgstr "Decrease decimal places"
+
+#: src/workbook/chrome/ribbon/FontSizeTools.tsx
+msgid "Decrease font size"
+msgstr "Decrease font size"
+
+#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+msgid "Decrease indent"
+msgstr "Decrease indent"
+
+#: src/workbook/chrome/ribbon/TextLayoutTools.tsx
+msgid "Default"
+msgstr "Default"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Delete"
+msgstr "Delete"
+
+#. placeholder {0}: confirmation.sheetName
+#: src/workbook/chrome/footer/SheetDeleteConfirmation.tsx
+msgid "Delete “{0}” and all its data? Undo is available within session history limits."
+msgstr "Delete “{0}” and all its data? Undo is available within session history limits."
+
+#: src/i18n/feedback-messages.ts
+msgid "Delete columns"
+msgstr "Delete columns"
+
+#: src/i18n/feedback-messages.ts
+msgid "Delete failed: the table could not be found."
+msgstr "Delete failed: the table could not be found."
+
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "Delete name"
+msgstr "Delete name"
+
+#: src/i18n/feedback-messages.ts
+msgid "Delete named range"
+msgstr "Delete named range"
+
+#: src/i18n/feedback-messages.ts
+msgid "Delete rows"
+msgstr "Delete rows"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Delete rule {0}"
+msgstr "Delete rule {0}"
+
+#: src/workbook/chrome/ribbon/StructureTools.tsx
+msgid "Delete selected columns"
+msgstr "Delete selected columns"
+
+#: src/workbook/chrome/ribbon/StructureTools.tsx
+msgid "Delete selected rows"
+msgstr "Delete selected rows"
+
+#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+msgid "Delete sheet"
+msgstr "Delete sheet"
+
+#: src/i18n/feedback-messages.ts
+msgid "Delete table"
+msgstr "Delete table"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/footer/SheetDeleteConfirmation.tsx
+msgid "Delete worksheet"
+msgstr "Delete worksheet"
+
+#: src/workbook/chrome/footer/SheetDeleteConfirmation.tsx
+msgid "Delete worksheet?"
+msgstr "Delete worksheet?"
+
+#: src/workbook/chrome/footer/SheetDeleteConfirmation.tsx
+msgid "Deleting…"
+msgstr "Deleting…"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Delimited"
+msgstr "Delimited"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Delimiters"
+msgstr "Delimiters"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Denominator"
+msgstr "Denominator"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Descending"
+msgstr "Descending"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Destination cell"
+msgstr "Destination cell"
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "Direction"
+msgstr "Direction"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Disable"
+msgstr "Disable"
+
+#: src/i18n/feedback-messages.ts
+msgid "Disable conditional format"
+msgstr "Disable conditional format"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Disable rule {0}"
+msgstr "Disable rule {0}"
+
+#: src/workbook/chrome/ribbon/TextLayoutTools.tsx
+msgid "Dismiss layout error"
+msgstr "Dismiss layout error"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Displayed values"
+msgstr "Displayed values"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Divide"
+msgstr "Divide"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Does not contain"
+msgstr "Does not contain"
+
+#: src/workbook/chrome/footer/SelectionStatisticsSettings.tsx
+msgid "Done"
+msgstr "Done"
+
+#: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
+msgid "Dot (.)"
+msgstr "Dot (.)"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Dotted"
+msgstr "Dotted"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Double"
+msgstr "Double"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Double quote (\")"
+msgstr "Double quote (\")"
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "Down"
+msgstr "Down"
+
+#: src/i18n/feedback-messages.ts
+msgid "Download requested. Keep the file to save your work."
+msgstr "Download requested. Keep the file to save your work."
+
+#: src/workbook/chrome/header/WorkbookFileTools.tsx
+msgid "Download workbook"
+msgstr "Download workbook"
+
+#: src/workbook/grid/fill/FillHandle.tsx
+msgid "Drag to fill"
+msgstr "Drag to fill"
+
+#: src/workbook/grid/fill/FillHandle.tsx
+msgid "Drag to fill. Hold Ctrl/⌘ to copy; Escape to cancel."
+msgstr "Drag to fill. Hold Ctrl/⌘ to copy; Escape to cancel."
+
+#: src/workbook/grid/viewport/GridResizeHandle.tsx
+msgid "Drag to resize {axisLabel}; double-click or Enter to auto-fit; arrow keys adjust by 10 px"
+msgstr "Drag to resize {axisLabel}; double-click or Enter to auto-fit; arrow keys adjust by 10 px"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Duplicate"
+msgstr "Duplicate"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Duplicate / unique values"
+msgstr "Duplicate / unique values"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Duplicate preview pages"
+msgstr "Duplicate preview pages"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Duplicate records to remove"
+msgstr "Duplicate records to remove"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Duplicate samples"
+msgstr "Duplicate samples"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Duplicate values"
+msgstr "Duplicate values"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Each page shows up to 20 duplicate rows, 12 columns and 120 characters per field. Removal processes the full selected range."
+msgstr "Each page shows up to 20 duplicate rows, 12 columns and 120 characters per field. Removal processes the full selected range."
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Edit"
+msgstr "Edit"
+
+#. placeholder {0}: entry.name
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "Edit {0}"
+msgstr "Edit {0}"
+
+#: src/i18n/feedback-messages.ts
+msgid "Edit cell"
+msgstr "Edit cell"
+
+#: src/i18n/feedback-messages.ts
+msgid "Edit conditional format"
+msgstr "Edit conditional format"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "Edit named range"
+msgstr "Edit named range"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Edit rule"
+msgstr "Edit rule"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Edit rule {0}"
+msgstr "Edit rule {0}"
+
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "Edit table"
+msgstr "Edit table"
+
+#. placeholder {0}: table.name
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "Edit table {0}"
+msgstr "Edit table {0}"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Empty cell position"
+msgstr "Empty cell position"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Empty cells "
+msgstr "Empty cells "
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Enable"
+msgstr "Enable"
+
+#: src/i18n/feedback-messages.ts
+msgid "Enable conditional format"
+msgstr "Enable conditional format"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Enable rule {0}"
+msgstr "Enable rule {0}"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Ends with"
+msgstr "Ends with"
+
+#: src/i18n/feedback-messages.ts
+msgid "Engineering"
+msgstr "Engineering"
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "English short/full names or Chinese names. One source sample advances by one; more samples infer the cyclic step."
+msgstr "English short/full names or Chinese names. One source sample advances by one; more samples infer the cyclic step."
+
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "Enter a cell or range on the selected worksheet, for example A1:A100."
+msgstr "Enter a cell or range on the selected worksheet, for example A1:A100."
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter a color as #RRGGBB, for example #c00000."
+msgstr "Enter a color as #RRGGBB, for example #c00000."
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter a column name."
+msgstr "Enter a column name."
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter a defined name or a valid A1 or R1C1 reference, optionally prefixed by a worksheet name."
+msgstr "Enter a defined name or a valid A1 or R1C1 reference, optionally prefixed by a worksheet name."
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter a destination cell such as C1."
+msgstr "Enter a destination cell such as C1."
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter a name or cell address."
+msgstr "Enter a name or cell address."
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter a name."
+msgstr "Enter a name."
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter a non-empty column name or press Escape."
+msgstr "Enter a non-empty column name or press Escape."
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter a range inside the selected worksheet, for example A1:A100."
+msgstr "Enter a range inside the selected worksheet, for example A1:A100."
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter a six-digit color such as #1a73e8."
+msgstr "Enter a six-digit color such as #1a73e8."
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter a table name."
+msgstr "Enter a table name."
+
+#: src/i18n/translate-feedback.ts
+msgid "Enter a whole number from {min} to {max} pixels."
+msgstr "Enter a whole number from {min} to {max} pixels."
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter a whole number of decimal places from 0 to 15."
+msgstr "Enter a whole number of decimal places from 0 to 15."
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter a whole-number font size from 1 to 512 pixels."
+msgstr "Enter a whole-number font size from 1 to 512 pixels."
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter both minimum and maximum."
+msgstr "Enter both minimum and maximum."
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter increasing positive character positions, for example 2, 5."
+msgstr "Enter increasing positive character positions, for example 2, 5."
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter one range inside this worksheet, for example A1:C10."
+msgstr "Enter one range inside this worksheet, for example A1:C10."
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter ranges inside this worksheet, separated by commas, for example A1:A10, C1:C10."
+msgstr "Enter ranges inside this worksheet, separated by commas, for example A1:A10, C1:C10."
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter text to find."
+msgstr "Enter text to find."
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter the comparison value."
+msgstr "Enter the comparison value."
+
+#: src/workbook/chrome/ribbon/CalculationTools.tsx
+msgid "Entire workbook"
+msgstr "Entire workbook"
+
+#: src/i18n/feedback-messages.ts
+msgid "Entire worksheet canvas"
+msgstr "Entire worksheet canvas"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Equal to"
+msgstr "Equal to"
+
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+msgid "Equals"
+msgstr "Equals"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Exact text"
+msgstr "Exact text"
+
+#. placeholder {0}: group.level
+#: src/workbook/grid/viewport/OutlineGutters.tsx
+msgid "Expand {label}, level {0}"
+msgstr "Expand {label}, level {0}"
+
+#: src/workbook/chrome/ribbon/OutlineTools.tsx
+msgid "Expand all column groups"
+msgstr "Expand all column groups"
+
+#: src/workbook/chrome/ribbon/OutlineTools.tsx
+msgid "Expand all row groups"
+msgstr "Expand all row groups"
+
+#: src/i18n/feedback-messages.ts
+msgid "Expand group"
+msgstr "Expand group"
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "Extending series…"
+msgstr "Extending series…"
+
+#: src/workbook/chrome/ribbon/TextColumnTypes.tsx
+msgid "Field "
+msgstr "Field "
+
+#: src/workbook/chrome/ribbon/TextColumnTypes.tsx
+msgid "Field numbers refer to the source, before skipping. Unspecified fields keep text. General converts recognized numbers, booleans and unambiguous dates; formulas stay text. Date uses the chosen order; invalid dates stay text. Two-digit years: 00–29 = 2000–2029, 30–99 = 1930–1999. Skip packs remaining fields left. Changing split rules resets field types."
+msgstr "Field numbers refer to the source, before skipping. Unspecified fields keep text. General converts recognized numbers, booleans and unambiguous dates; formulas stay text. Date uses the chosen order; invalid dates stay text. Two-digit years: 00–29 = 2000–2029, 30–99 = 1930–1999. Skip packs remaining fields left. Changing split rules resets field types."
+
+#: src/workbook/chrome/ribbon/TextColumnTypes.tsx
+msgid "Field type"
+msgstr "Field type"
+
+#: src/workbook/chrome/ribbon/TextColumnTypes.tsx
+msgid "Field types"
+msgstr "Field types"
+
+#: src/workbook/chrome/header/WorkbookFileTools.tsx
+msgid "File"
+msgstr "File"
+
+#: src/workbook/chrome/ribbon/FillTools.tsx
+msgid "Fill"
+msgstr "Fill"
+
+#: src/workbook/chrome/ribbon/ColorTools.tsx
+msgid "Fill color"
+msgstr "Fill color"
+
+#: src/i18n/feedback-messages.ts
+msgid "Fill custom-list series"
+msgstr "Fill custom-list series"
+
+#: src/i18n/feedback-messages.ts
+msgid "Fill date series"
+msgstr "Fill date series"
+
+#: src/i18n/feedback-messages.ts
+msgid "Fill down"
+msgstr "Fill down"
+
+#: src/workbook/chrome/ribbon/FillTools.tsx
+msgid "Fill down (Ctrl/⌘+D)"
+msgstr "Fill down (Ctrl/⌘+D)"
+
+#: src/i18n/feedback-messages.ts
+msgid "Fill linear-trend series"
+msgstr "Fill linear-trend series"
+
+#: src/i18n/feedback-messages.ts
+msgid "Fill month-name series"
+msgstr "Fill month-name series"
+
+#: src/i18n/feedback-messages.ts
+msgid "Fill number series"
+msgstr "Fill number series"
+
+#: src/i18n/feedback-messages.ts
+msgid "Fill right"
+msgstr "Fill right"
+
+#: src/workbook/chrome/ribbon/FillTools.tsx
+msgid "Fill right (Ctrl/⌘+R)"
+msgstr "Fill right (Ctrl/⌘+R)"
+
+#: src/workbook/chrome/ribbon/FillTools.tsx
+msgid "Fill selected range"
+msgstr "Fill selected range"
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "Fill series"
+msgstr "Fill series"
+
+#: src/workbook/chrome/ribbon/FillTools.tsx
+msgid "Fill status"
+msgstr "Fill status"
+
+#: src/i18n/feedback-messages.ts
+msgid "Fill text-number series"
+msgstr "Fill text-number series"
+
+#: src/i18n/feedback-messages.ts
+msgid "Fill was not applied. Try again."
+msgstr "Fill was not applied. Try again."
+
+#: src/i18n/feedback-messages.ts
+msgid "Fill weekday-name series"
+msgstr "Fill weekday-name series"
+
+#: src/i18n/translate-feedback.ts
+msgid "Filled down."
+msgstr "Filled down."
+
+#: src/i18n/translate-feedback.ts
+msgid "Filled right."
+msgstr "Filled right."
+
+#: src/i18n/translate-feedback.ts
+msgid "Filling down…"
+msgstr "Filling down…"
+
+#: src/i18n/translate-feedback.ts
+msgid "Filling right…"
+msgstr "Filling right…"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "Filter"
+msgstr "Filter"
+
+#. placeholder {0}: rules.length
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "Filter ({0})"
+msgstr "Filter ({0})"
+
+#: src/i18n/feedback-messages.ts
+msgid "Filter cleared. Manually hidden rows are unchanged."
+msgstr "Filter cleared. Manually hidden rows are unchanged."
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+msgid "Filter column {0}"
+msgstr "Filter column {0}"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+msgid "Filter condition {0}"
+msgstr "Filter condition {0}"
+
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "Filter conditions"
+msgstr "Filter conditions"
+
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "Filter conditions…"
+msgstr "Filter conditions…"
+
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "Filter selected range (first row is header)"
+msgstr "Filter selected range (first row is header)"
+
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "Filter status"
+msgstr "Filter status"
+
+#: src/i18n/feedback-messages.ts
+msgid "Filter table"
+msgstr "Filter table"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+msgid "Filter value {0}"
+msgstr "Filter value {0}"
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Filter values"
+msgstr "Filter values"
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Filter values page"
+msgstr "Filter values page"
+
+#: src/i18n/feedback-messages.ts
+msgid "Filter was not applied. Try again."
+msgstr "Filter was not applied. Try again."
+
+#: src/i18n/feedback-messages.ts
+msgid "Filtering…"
+msgstr "Filtering…"
+
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "Filters the worksheet’s used rows, not just the selection. Row 1 stays visible."
+msgstr "Filters the worksheet’s used rows, not just the selection. Row 1 stays visible."
+
+#: src/i18n/feedback-messages.ts
+msgid "Financial"
+msgstr "Financial"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Find"
+msgstr "Find"
+
+#: src/i18n/feedback-messages.ts
+msgid "Find a match before replacing it."
+msgstr "Find a match before replacing it."
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Find all"
+msgstr "Find all"
+
+#: src/i18n/feedback-messages.ts
+msgid "Find all before choosing a result."
+msgstr "Find all before choosing a result."
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Find and replace"
+msgstr "Find and replace"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Find and replace (Ctrl/⌘+F)"
+msgstr "Find and replace (Ctrl/⌘+F)"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Find next"
+msgstr "Find next"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Find or replace"
+msgstr "Find or replace"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Find what"
+msgstr "Find what"
+
+#: src/workbook/chrome/ribbon/QuickFormulaTools.tsx
+msgid "Finding formula range…"
+msgstr "Finding formula range…"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Finding…"
+msgstr "Finding…"
+
+#: src/i18n/feedback-messages.ts
+msgid "Finish editing the cell before applying a format."
+msgstr "Finish editing the cell before applying a format."
+
+#: src/i18n/feedback-messages.ts
+msgid "Finish editing the cell before applying borders."
+msgstr "Finish editing the cell before applying borders."
+
+#: src/i18n/feedback-messages.ts
+msgid "Finish editing the cell first."
+msgstr "Finish editing the cell first."
+
+#: src/i18n/feedback-messages.ts
+msgid "Finish the current edit or history operation first."
+msgstr "Finish the current edit or history operation first."
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/GoToTools.tsx
+msgid "Finish the current operation before navigating."
+msgstr "Finish the current operation before navigating."
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "First"
+msgstr "First"
+
+#: src/workbook/chrome/ribbon/TableAppearance.tsx
+msgid "First column emphasis"
+msgstr "First column emphasis"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "First occurrence"
+msgstr "First occurrence"
+
+#: src/workbook/chrome/ribbon/FindResults.tsx
+msgid "First page"
+msgstr "First page"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "First row contains headers"
+msgstr "First row contains headers"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "First row is a header"
+msgstr "First row is a header"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Fixed width"
+msgstr "Fixed width"
+
+#. placeholder {0}: state.draft.denominator
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Fixed: {0}"
+msgstr "Fixed: {0}"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Fixed: {value}"
+msgstr "Fixed: {value}"
+
+#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+msgid "Font family"
+msgstr "Font family"
+
+#: src/workbook/chrome/ribbon/FontSizeTools.tsx
+msgid "Font size"
+msgstr "Font size"
+
+#: src/workbook/chrome/ribbon/FontSizeTools.tsx
+msgid "Font size (pixels)"
+msgstr "Font size (pixels)"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "For example $, €, ¥ or USD. Leave blank for no symbol."
+msgstr "For example $, €, ¥ or USD. Leave blank for no symbol."
+
+#: src/workbook/chrome/ribbon/InsertFunctionTools.tsx
+msgid "For example, XLOOKUP"
+msgstr "For example, XLOOKUP"
+
+#: src/i18n/feedback-messages.ts
+msgid "Format borders"
+msgstr "Format borders"
+
+#: src/i18n/feedback-messages.ts
+msgid "Format cells"
+msgstr "Format cells"
+
+#: src/workbook/chrome/ribbon/FormatPainterTools.tsx
+msgid "Format painter"
+msgstr "Format painter"
+
+#: src/workbook/chrome/ribbon/FormatPainterTools.tsx
+msgid "Format painter status"
+msgstr "Format painter status"
+
+#: src/workbook/chrome/ribbon/FormatPainterTools.tsx
+msgid "Format painter: click once, double-click to keep painting. Esc to stop."
+msgstr "Format painter: click once, double-click to keep painting. Esc to stop."
+
+#: src/i18n/feedback-messages.ts
+msgid "Format range"
+msgstr "Format range"
+
+#: src/i18n/feedback-messages.ts
+msgid "Format selection"
+msgstr "Format selection"
+
+#: src/i18n/feedback-messages.ts
+msgid "Format table"
+msgstr "Format table"
+
+#: src/i18n/feedback-messages.ts
+msgid "Formatting applied."
+msgstr "Formatting applied."
+
+#: src/i18n/feedback-messages.ts
+msgid "Formatting applied. Select another range; Esc to stop."
+msgstr "Formatting applied. Select another range; Esc to stop."
+
+#: src/i18n/feedback-messages.ts
+msgid "Formatting exceeds 100,000 addressed cells. Choose a smaller selection."
+msgstr "Formatting exceeds 100,000 addressed cells. Choose a smaller selection."
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Formatting only"
+msgstr "Formatting only"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Formula"
+msgstr "Formula"
+
+#: src/workbook/formula/FormulaAssist.tsx
+msgid "Formula arguments"
+msgstr "Formula arguments"
+
+#. placeholder {0}: coordToA1(info.anchor)
+#: src/workbook/chrome/ribbon/SpillTools.tsx
+msgid "Formula cell: {0}"
+msgstr "Formula cell: {0}"
+
+#: src/workbook/formula/FormulaAssist.tsx
+msgid "Formula functions"
+msgstr "Formula functions"
+
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+#: src/workbook/chrome/ribbon/RibbonTabs.tsx
+msgid "Formulas"
+msgstr "Formulas"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Formulas / raw values"
+msgstr "Formulas / raw values"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Formulas and number formats"
+msgstr "Formulas and number formats"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Formulas only"
+msgstr "Formulas only"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Fraction"
+msgstr "Fraction"
+
+#: src/workbook/chrome/ribbon/FreezeTools.tsx
+msgid "Freeze at active cell"
+msgstr "Freeze at active cell"
+
+#: src/workbook/chrome/ribbon/FreezeTools.tsx
+msgid "Freeze first column"
+msgstr "Freeze first column"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/FreezeTools.tsx
+msgid "Freeze panes"
+msgstr "Freeze panes"
+
+#: src/workbook/chrome/ribbon/FreezeTools.tsx
+msgid "Freeze top row"
+msgstr "Freeze top row"
+
+#: src/workbook/chrome/ribbon/InsertFunctionTools.tsx
+msgid "Function"
+msgstr "Function"
+
+#: src/workbook/formula/FormulaAssist.tsx
+msgid "Functions "
+msgstr "Functions "
+
+#: src/workbook/chrome/ribbon/TextColumnTypes.tsx
+msgid "General"
+msgstr "General"
+
+#: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
+msgid "General fields"
+msgstr "General fields"
+
+#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+msgid "General format"
+msgstr "General format"
+
+#: src/workbook/chrome/ribbon/GoToTools.tsx
+msgid "Go"
+msgstr "Go"
+
+#: src/workbook/chrome/ribbon/GoToTools.tsx
+msgid "Go to"
+msgstr "Go to"
+
+#: src/workbook/chrome/ribbon/GoToTools.tsx
+msgid "Go to (Ctrl/⌘+G or F5)"
+msgstr "Go to (Ctrl/⌘+G or F5)"
+
+#. placeholder {0}: position + 1
+#: src/workbook/chrome/ribbon/FindResults.tsx
+msgid "Go to {address}, match {0}"
+msgstr "Go to {address}, match {0}"
+
+#. placeholder {0}: row.row + 1
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Go to duplicate row {0}"
+msgstr "Go to duplicate row {0}"
+
+#. placeholder {0}: row.firstRow + 1
+#. placeholder {1}: row.row + 1
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Go to first occurrence row {0} for duplicate row {1}"
+msgstr "Go to first occurrence row {0} for duplicate row {1}"
+
+#: src/workbook/chrome/ribbon/SpillTools.tsx
+msgid "Go to formula cell"
+msgstr "Go to formula cell"
+
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Go to special"
+msgstr "Go to special"
+
+#. placeholder {0}: table.name
+#: src/workbook/chrome/ribbon/NamedTableList.tsx
+msgid "Go to table {0}"
+msgstr "Go to table {0}"
+
+#: src/workbook/chrome/ribbon/TableAppearance.tsx
+msgid "Gray"
+msgstr "Gray"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Greater than"
+msgstr "Greater than"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Greater than or equal to"
+msgstr "Greater than or equal to"
+
+#: src/workbook/chrome/ribbon/TableAppearance.tsx
+msgid "Green"
+msgstr "Green"
+
+#: src/i18n/feedback-messages.ts
+msgid "Group"
+msgstr "Group"
+
+#: src/workbook/chrome/ribbon/OutlineTools.tsx
+msgid "Group / Outline"
+msgstr "Group / Outline"
+
+#: src/workbook/chrome/ribbon/OutlineTools.tsx
+msgid "Group selected columns"
+msgstr "Group selected columns"
+
+#: src/workbook/chrome/ribbon/OutlineTools.tsx
+msgid "Group selected rows"
+msgstr "Group selected rows"
+
+#: src/workbook/chrome/ribbon/TableAppearance.tsx
+msgid "Header row"
+msgstr "Header row"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Hex color"
+msgstr "Hex color"
+
+#: src/workbook/chrome/ribbon/SpillTools.tsx
+msgid "Hidden rows and columns stay hidden. No cells are changed."
+msgstr "Hidden rows and columns stay hidden. No cells are changed."
+
+#: src/workbook/chrome/ribbon/VisibilityTools.tsx
+msgid "Hide / Unhide"
+msgstr "Hide / Unhide"
+
+#: src/i18n/feedback-messages.ts
+msgid "Hide columns"
+msgstr "Hide columns"
+
+#: src/i18n/feedback-messages.ts
+msgid "Hide rows"
+msgstr "Hide rows"
+
+#: src/workbook/chrome/ribbon/VisibilityTools.tsx
+msgid "Hide selected columns"
+msgstr "Hide selected columns"
+
+#: src/workbook/chrome/ribbon/VisibilityTools.tsx
+msgid "Hide selected rows"
+msgstr "Hide selected rows"
+
+#: src/i18n/feedback-messages.ts
+msgid "Hide table headers"
+msgstr "Hide table headers"
+
+#: src/i18n/feedback-messages.ts
+msgid "Hide table totals"
+msgstr "Hide table totals"
+
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Hide totals row"
+msgstr "Hide totals row"
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Hide values"
+msgstr "Hide values"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Hide values for condition {0}"
+msgstr "Hide values for condition {0}"
+
+#: src/workbook/chrome/ribbon/TableAppearance.tsx
+msgid "Hiding headers keeps column names and clears this table’s filter."
+msgstr "Hiding headers keeps column names and clears this table’s filter."
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Highlight fill"
+msgstr "Highlight fill"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Highlight text"
+msgstr "Highlight text"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Highlight values"
+msgstr "Highlight values"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Highlight values with conditions, color scales or data bars. Higher rules win when colors overlap."
+msgstr "Highlight values with conditions, color scales or data bars. Higher rules win when colors overlap."
+
+#: src/workbook/chrome/ribbon/TextLayoutTools.tsx
+msgid "Horizontal alignment"
+msgstr "Horizontal alignment"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Ignore blank cells"
+msgstr "Ignore blank cells"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Ignore case"
+msgstr "Ignore case"
+
+#: src/workbook/chrome/header/WorkbookHeader.tsx
+msgid "In memory"
+msgstr "In memory"
+
+#: src/i18n/feedback-messages.ts
+msgid "Include a source row or column and at least one destination."
+msgstr "Include a source row or column and at least one destination."
+
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Includes hidden cells. Merged cells are selected as a whole."
+msgstr "Includes hidden cells. Merged cells are selected as a whole."
+
+#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+msgid "Increase decimal places"
+msgstr "Increase decimal places"
+
+#: src/workbook/chrome/ribbon/FontSizeTools.tsx
+msgid "Increase font size"
+msgstr "Increase font size"
+
+#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+msgid "Increase indent"
+msgstr "Increase indent"
+
+#: src/i18n/feedback-messages.ts
+msgid "Information"
+msgstr "Information"
+
+#: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
+msgid "Input rules only; Text and Date fields are unchanged. Thousands groups must contain three digits. Invalid numbers keep their original text. Change options, then update the preview."
+msgstr "Input rules only; Text and Date fields are unchanged. Thousands groups must contain three digits. Invalid numbers keep their original text. Change options, then update the preview."
+
+#: src/workbook/chrome/ribbon/RibbonTabs.tsx
+msgid "Insert"
+msgstr "Insert"
+
+#: src/workbook/chrome/ribbon/StructureTools.tsx
+msgid "Insert / Delete"
+msgstr "Insert / Delete"
+
+#: src/i18n/feedback-messages.ts
+msgid "Insert columns"
+msgstr "Insert columns"
+
+#: src/workbook/chrome/ribbon/InsertFunctionTools.tsx
+msgid "Insert draft"
+msgstr "Insert draft"
+
+#: src/workbook/chrome/ribbon/InsertFunctionTools.tsx
+msgid "Insert function"
+msgstr "Insert function"
+
+#: src/workbook/chrome/ribbon/StructureTools.tsx
+msgid "Insert or delete rows and columns"
+msgstr "Insert or delete rows and columns"
+
+#: src/i18n/feedback-messages.ts
+msgid "Insert rows"
+msgstr "Insert rows"
+
+#: src/workbook/chrome/ribbon/StructureTools.tsx
+msgid "Insert selected columns"
+msgstr "Insert selected columns"
+
+#: src/workbook/chrome/ribbon/StructureTools.tsx
+msgid "Insert selected rows"
+msgstr "Insert selected rows"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Inside borders"
+msgstr "Inside borders"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Inside horizontal"
+msgstr "Inside horizontal"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Inside vertical"
+msgstr "Inside vertical"
+
+#: src/workbook/chrome/header/LanguageSelect.tsx
+msgid "Interface language"
+msgstr "Interface language"
+
+#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+msgid "Italic"
+msgstr "Italic"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Items"
+msgstr "Items"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Items, one per line"
+msgstr "Items, one per line"
+
+#: src/i18n/feedback-messages.ts
+msgid "Joins several text strings into one."
+msgstr "Joins several text strings into one."
+
+#: src/i18n/feedback-messages.ts
+msgid "Keep at least one worksheet."
+msgstr "Keep at least one worksheet."
+
+#: src/workbook/chrome/ribbon/TextColumnTypes.tsx
+msgid "Keep text (existing format)"
+msgstr "Keep text (existing format)"
+
+#: src/i18n/feedback-messages.ts
+msgid "Lambda"
+msgstr "Lambda"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Last"
+msgstr "Last"
+
+#: src/workbook/chrome/ribbon/TableAppearance.tsx
+msgid "Last column emphasis"
+msgstr "Last column emphasis"
+
+#: src/workbook/chrome/ribbon/FindResults.tsx
+msgid "Last page"
+msgstr "Last page"
+
+#: src/workbook/chrome/ribbon/TextLayoutTools.tsx
+msgid "Left"
+msgstr "Left"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Left border"
+msgstr "Left border"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Less than"
+msgstr "Less than"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Less than or equal to"
+msgstr "Less than or equal to"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Limit new input in the selected range. Existing values are kept."
+msgstr "Limit new input in the selected range. Existing values are kept."
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Line style"
+msgstr "Line style"
+
+#: src/i18n/feedback-messages.ts
+msgid "Linear trend"
+msgstr "Linear trend"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "List"
+msgstr "List"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Loading preview…"
+msgstr "Loading preview…"
+
+#: src/page/WorkbookRuntimeProvider.tsx
+msgid "Loading Rust/WASM workbook…"
+msgstr "Loading Rust/WASM workbook…"
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Loading values…"
+msgstr "Loading values…"
+
+#: src/workbook/grid/viewport/WorkbookGrid.tsx
+msgid "Loading visible cells…"
+msgstr "Loading visible cells…"
+
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Locating cells…"
+msgstr "Locating cells…"
+
+#: src/i18n/feedback-messages.ts
+msgid "Logical"
+msgstr "Logical"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Look in"
+msgstr "Look in"
+
+#: src/i18n/feedback-messages.ts
+msgid "Looks up a value in the first column of a range and returns a value from a column in the same row."
+msgstr "Looks up a value in the first column of a range and returns a value from a column in the same row."
+
+#: src/i18n/feedback-messages.ts
+msgid "Lookup & reference"
+msgstr "Lookup & reference"
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "Low\n"
+"Medium\n"
+"High"
+msgstr "Low\n"
+"Medium\n"
+"High"
+
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Match case"
+msgstr "Match case"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Match entire cell"
+msgstr "Match entire cell"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Matches literal text, ignoring case. Spaces are kept; * and ? are ordinary characters."
+msgstr "Matches literal text, ignoring case. Spaces are kept; * and ? are ordinary characters."
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Matching rows"
+msgstr "Matching rows"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Matching text"
+msgstr "Matching text"
+
+#: src/i18n/feedback-messages.ts
+msgid "Math & statistics"
+msgstr "Math & statistics"
+
+#: src/i18n/feedback-messages.ts
+msgid "Max"
+msgstr "Max"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Maximum"
+msgstr "Maximum"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+msgid "Maximum {0}"
+msgstr "Maximum {0}"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Maximum color"
+msgstr "Maximum color"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Medium"
+msgstr "Medium"
+
+#: src/workbook/chrome/ribbon/MergeTools.tsx
+msgid "Merge / Unmerge"
+msgstr "Merge / Unmerge"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/MergeTools.tsx
+msgid "Merge and center"
+msgstr "Merge and center"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/MergeConfirmation.tsx
+#: src/workbook/chrome/ribbon/MergeTools.tsx
+msgid "Merge cells"
+msgstr "Merge cells"
+
+#: src/workbook/chrome/ribbon/MergeConfirmation.tsx
+msgid "Merge these cells?"
+msgstr "Merge these cells?"
+
+#: src/i18n/feedback-messages.ts
+msgid "Merged cells cannot be pasted inside an Excel Table."
+msgstr "Merged cells cannot be pasted inside an Excel Table."
+
+#: src/workbook/chrome/ribbon/MergeTools.tsx
+msgid "Merging cells…"
+msgstr "Merging cells…"
+
+#: src/workbook/chrome/ribbon/MergeConfirmation.tsx
+msgid "Merging…"
+msgstr "Merging…"
+
+#: src/workbook/chrome/ribbon/TextLayoutTools.tsx
+msgid "Middle"
+msgstr "Middle"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Midpoint color"
+msgstr "Midpoint color"
+
+#: src/i18n/feedback-messages.ts
+msgid "Min"
+msgstr "Min"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Minimum"
+msgstr "Minimum"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+msgid "Minimum {0}"
+msgstr "Minimum {0}"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Minimum color"
+msgstr "Minimum color"
+
+#: src/i18n/feedback-messages.ts
+msgid "Month names"
+msgstr "Month names"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "More paste options"
+msgstr "More paste options"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Move down"
+msgstr "Move down"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Move rule {0} down"
+msgstr "Move rule {0} down"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Move rule {0} up"
+msgstr "Move rule {0} up"
+
+#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+msgid "Move sheet left"
+msgstr "Move sheet left"
+
+#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+msgid "Move sheet right"
+msgstr "Move sheet right"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Move sort level {0} down"
+msgstr "Move sort level {0} down"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Move sort level {0} up"
+msgstr "Move sort level {0} up"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Move up"
+msgstr "Move up"
+
+#: src/i18n/feedback-messages.ts
+msgid "Move worksheet"
+msgstr "Move worksheet"
+
+#: src/workbook/chrome/footer/WorkbookFooter.tsx
+msgid "Multi-area selection"
+msgstr "Multi-area selection"
+
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+msgid "Multi-line values stay intact. Use Choose values to change them."
+msgstr "Multi-line values stay intact. Use Choose values to change them."
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Multiply"
+msgstr "Multiply"
+
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "Name"
+msgstr "Name"
+
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "Name a cell or range to use it in formulas. Names are available throughout this workbook."
+msgstr "Name a cell or range to use it in formulas. Names are available throughout this workbook."
+
+#: src/workbook/chrome/formula-bar/NameBox.tsx
+msgid "Name box"
+msgstr "Name box"
+
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "Name manager"
+msgstr "Name manager"
+
+#: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
+msgid "Narrow nonbreaking space"
+msgstr "Narrow nonbreaking space"
+
+#: src/workbook/chrome/header/WorkbookFileTools.tsx
+msgid "Native .einfach.json files only, up to 64 MiB. Not XLSX. Opening or creating a workbook replaces this view and starts a fresh Undo history."
+msgstr "Native .einfach.json files only, up to 64 MiB. Not XLSX. Opening or creating a workbook replaces this view and starts a fresh Undo history."
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Negative bar color"
+msgstr "Negative bar color"
+
+#: src/workbook/chrome/header/WorkbookFileTools.tsx
+msgid "New blank workbook"
+msgstr "New blank workbook"
+
+#: src/workbook/chrome/ribbon/TableColumns.tsx
+msgid "New column name"
+msgstr "New column name"
+
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "New name"
+msgstr "New name"
+
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "New named range"
+msgstr "New named range"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "New rule"
+msgstr "New rule"
+
+#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+msgid "New sheet"
+msgstr "New sheet"
+
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "New table"
+msgstr "New table"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "New typing and external paste stay as text, including leading zeros and formulas. Existing values and formulas are not converted."
+msgstr "New typing and external paste stay as text, including leading zeros and formulas. Existing values and formulas are not converted."
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Next"
+msgstr "Next"
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Next filter values page"
+msgstr "Next filter values page"
+
+#: src/workbook/chrome/ribbon/FindResults.tsx
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Next page"
+msgstr "Next page"
+
+#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+msgid "Next sheet"
+msgstr "Next sheet"
+
+#: src/workbook/chrome/ribbon/SpillTools.tsx
+msgid "No blocking cell can be identified. Check worksheet limits or the array size."
+msgstr "No blocking cell can be identified. Check worksheet limits or the array size."
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "No borders"
+msgstr "No borders"
+
+#: src/workbook/chrome/ribbon/ColorTools.tsx
+msgid "No fill"
+msgstr "No fill"
+
+#: src/i18n/feedback-messages.ts
+msgid "No matches found."
+msgstr "No matches found."
+
+#: src/i18n/feedback-messages.ts
+msgid "No matching cells found. Choose another condition or range."
+msgstr "No matching cells found. Choose another condition or range."
+
+#: src/workbook/chrome/ribbon/InsertFunctionTools.tsx
+msgid "No matching functions. Change the search or category."
+msgstr "No matching functions. Change the search or category."
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "No matching values. Try another search."
+msgstr "No matching values. Try another search."
+
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "No named ranges yet. Create one below."
+msgstr "No named ranges yet. Create one below."
+
+#: src/workbook/chrome/ribbon/GoToTools.tsx
+msgid "No recent locations yet."
+msgstr "No recent locations yet."
+
+#: src/workbook/chrome/ribbon/HistoryTools.tsx
+msgid "No recorded operations yet."
+msgstr "No recorded operations yet."
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "No rules yet."
+msgstr "No rules yet."
+
+#: src/workbook/chrome/footer/SelectionStatus.tsx
+msgid "No statistics selected"
+msgstr "No statistics selected"
+
+#: src/workbook/chrome/ribbon/NamedTableList.tsx
+msgid "No tables in this workbook."
+msgstr "No tables in this workbook."
+
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "No tables yet. Choose a range below."
+msgstr "No tables yet. Choose a range below."
+
+#: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
+msgid "Nonbreaking space"
+msgstr "Nonbreaking space"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+#: src/workbook/chrome/ribbon/TableAppearance.tsx
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+#: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "None"
+msgstr "None"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Not between"
+msgstr "Not between"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Not equal to"
+msgstr "Not equal to"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Number"
+msgstr "Number"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Number format"
+msgstr "Number format"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Number format category"
+msgstr "Number format category"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Number format preview"
+msgstr "Number format preview"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Number format settings"
+msgstr "Number format settings"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Number of items"
+msgstr "Number of items"
+
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+msgid "Number range"
+msgstr "Number range"
+
+#: src/i18n/feedback-messages.ts
+msgid "Number sequence"
+msgstr "Number sequence"
+
+#: src/i18n/feedback-messages.ts
+msgid "Numerical count"
+msgstr "Numerical count"
+
+#: src/i18n/feedback-messages.ts
+msgid "Older operations were dropped to keep history within its memory limit."
+msgstr "Older operations were dropped to keep history within its memory limit."
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "One date advances by a day. Two or more dates infer day, week or month steps; month ends stay at month end."
+msgstr "One date advances by a day. Two or more dates infer day, week or month steps; month ends stay at month end."
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "One item per line (2–512 unique items). One source sample follows the list; more samples infer a cyclic step."
+msgstr "One item per line (2–512 unique items). One source sample follows the list; more samples infer a cyclic step."
+
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+msgid "One of these values"
+msgstr "One of these values"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Only the selected rectangle moves. Filtered rows stay in place; manually hidden rows participate. Levels are applied from top to bottom."
+msgstr "Only the selected rectangle moves. Filtered rows stay in place; manually hidden rows participate. Levels are applied from top to bottom."
+
+#: src/workbook/chrome/ribbon/MergeConfirmation.tsx
+msgid "Only the upper-left cell's content will remain. Other cell contents will be deleted. Undo can restore them."
+msgstr "Only the upper-left cell's content will remain. Other cell contents will be deleted. Undo can restore them."
+
+#: src/workbook/chrome/header/WorkbookFileTools.tsx
+msgid "Open this file and replace the current workbook? Download first to keep unsaved changes."
+msgstr "Open this file and replace the current workbook? Download first to keep unsaved changes."
+
+#: src/workbook/chrome/header/WorkbookFileTools.tsx
+msgid "Open workbook"
+msgstr "Open workbook"
+
+#: src/i18n/feedback-messages.ts
+msgid "Opening workbook…"
+msgstr "Opening workbook…"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Operation"
+msgstr "Operation"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Order"
+msgstr "Order"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Original selection"
+msgstr "Original selection"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Other delimiter characters"
+msgstr "Other delimiter characters"
+
+#: src/workbook/chrome/footer/SelectionStatus.tsx
+msgid "Out of range"
+msgstr "Out of range"
+
+#: src/workbook/chrome/ribbon/OutlineTools.tsx
+msgid "Outline groups"
+msgstr "Outline groups"
+
+#. placeholder {0}: toA1(preview.target.rowStart, preview.target.colStart)
+#. placeholder {1}: toA1(preview.target.rowEnd, preview.target.colEnd)
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Output: {0}:{1}"
+msgstr "Output: {0}:{1}"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Outside borders"
+msgstr "Outside borders"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Overwrite "
+msgstr "Overwrite "
+
+#: src/i18n/feedback-messages.ts
+msgid "Painting formatting…"
+msgstr "Painting formatting…"
+
+#: src/workbook/chrome/ribbon/FreezeTools.tsx
+msgid "Panes frozen"
+msgstr "Panes frozen"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste"
+msgstr "Paste"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste (Ctrl/⌘+V)"
+msgstr "Paste (Ctrl/⌘+V)"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste and add"
+msgstr "Paste and add"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste and divide"
+msgstr "Paste and divide"
+
+#: src/i18n/feedback-messages.ts
+msgid "Paste and expand table"
+msgstr "Paste and expand table"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste and multiply"
+msgstr "Paste and multiply"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste and subtract"
+msgstr "Paste and subtract"
+
+#: src/i18n/feedback-messages.ts
+msgid "Paste arithmetic needs cell contents, not formatting only."
+msgstr "Paste arithmetic needs cell contents, not formatting only."
+
+#: src/i18n/feedback-messages.ts
+msgid "Paste cannot overwrite an array result."
+msgstr "Paste cannot overwrite an array result."
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste column widths only"
+msgstr "Paste column widths only"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Paste content"
+msgstr "Paste content"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste formatting only"
+msgstr "Paste formatting only"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste formulas and number formats"
+msgstr "Paste formulas and number formats"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste formulas only"
+msgstr "Paste formulas only"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste options"
+msgstr "Paste options"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste skipping blanks"
+msgstr "Paste skipping blanks"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Paste special"
+msgstr "Paste special"
+
+#: src/i18n/feedback-messages.ts
+msgid "Paste special requires Copy, not Cut. The cut cells are unchanged."
+msgstr "Paste special requires Copy, not Cut. The cut cells are unchanged."
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste transposed"
+msgstr "Paste transposed"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste values and formatting"
+msgstr "Paste values and formatting"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste values and number formats"
+msgstr "Paste values and number formats"
+
+#: src/workbook/chrome/ribbon/ClipboardTools.tsx
+msgid "Paste values only"
+msgstr "Paste values only"
+
+#: src/i18n/feedback-messages.ts
+msgid "Paste would extend beyond the sheet. Choose another cell."
+msgstr "Paste would extend beyond the sheet. Choose another cell."
+
+#: src/i18n/feedback-messages.ts
+msgid "paste…"
+msgstr "paste…"
+
+#: src/i18n/feedback-messages.ts
+msgid "Pasted cells."
+msgstr "Pasted cells."
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Pasting…"
+msgstr "Pasting…"
+
+#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+msgid "Percent format"
+msgstr "Percent format"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Percentage"
+msgstr "Percentage"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+#: src/workbook/chrome/ribbon/FindResults.tsx
+msgid "Position"
+msgstr "Position"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Positive bar color"
+msgstr "Positive bar color"
+
+#: src/i18n/feedback-messages.ts
+msgid "Preparing download…"
+msgstr "Preparing download…"
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Press Search to load matching values."
+msgstr "Press Search to load matching values."
+
+#. placeholder {0}: state.target?.addr
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Preview · {0}"
+msgstr "Preview · {0}"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Preview cells"
+msgstr "Preview cells"
+
+#: src/i18n/feedback-messages.ts
+msgid "Preview unavailable. Change a setting to try again."
+msgstr "Preview unavailable. Change a setting to try again."
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Previous"
+msgstr "Previous"
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Previous filter values page"
+msgstr "Previous filter values page"
+
+#: src/workbook/chrome/ribbon/FindResults.tsx
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Previous page"
+msgstr "Previous page"
+
+#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+msgid "Previous sheet"
+msgstr "Previous sheet"
+
+#: src/workbook/chrome/ribbon/QuickFormulaTools.tsx
+msgid "Quick formula"
+msgstr "Quick formula"
+
+#. placeholder {0}: getColumnLabel(panel.range.colStart)
+#. placeholder {1}: panel.range.rowStart + 1
+#. placeholder {2}: getColumnLabel(panel.range.colEnd)
+#. placeholder {3}: panel.range.rowEnd + 1
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "Range {0}{1}:{2}{3}. Its first row stays visible."
+msgstr "Range {0}{1}:{2}{3}. Its first row stays visible."
+
+#. placeholder {0}: target && `${toA1(target.range.rowStart, target.range.colStart)}:${toA1(target.range.rowEnd, target.range.colEnd)}`
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Range: {0}"
+msgstr "Range: {0}"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Rank by"
+msgstr "Rank by"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Rank direction"
+msgstr "Rank direction"
+
+#: src/workbook/chrome/ribbon/SpillTools.tsx
+msgid "Reading spill details…"
+msgstr "Reading spill details…"
+
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "Reapply {table} filter"
+msgstr "Reapply {table} filter"
+
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "Reapply filter"
+msgstr "Reapply filter"
+
+#: src/workbook/chrome/ribbon/CalculationTools.tsx
+msgid "Recalculate"
+msgstr "Recalculate"
+
+#: src/workbook/chrome/ribbon/CalculationTools.tsx
+msgid "Recalculating…"
+msgstr "Recalculating…"
+
+#: src/workbook/chrome/ribbon/GoToTools.tsx
+msgid "Recent locations"
+msgstr "Recent locations"
+
+#: src/workbook/chrome/ribbon/HistoryTools.tsx
+msgid "Recent operations"
+msgstr "Recent operations"
+
+#: src/i18n/feedback-messages.ts
+msgid "Records were removed, but the view could not be updated. Check the sheet before retrying."
+msgstr "Records were removed, but the view could not be updated. Check the sheet before retrying."
+
+#: src/workbook/chrome/ribbon/HistoryTools.tsx
+msgid "Redo"
+msgstr "Redo"
+
+#: src/workbook/chrome/ribbon/HistoryTools.tsx
+msgid "Redo (Ctrl/⌘+Shift+Z or Ctrl+Y)"
+msgstr "Redo (Ctrl/⌘+Shift+Z or Ctrl+Y)"
+
+#: src/workbook/chrome/ribbon/GoToTools.tsx
+msgid "Reference"
+msgstr "Reference"
+
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "Refers to"
+msgstr "Refers to"
+
+#: src/workbook/chrome/ribbon/SpillTools.tsx
+msgid "Refresh"
+msgstr "Refresh"
+
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Remove"
+msgstr "Remove"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Remove "
+msgstr "Remove "
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+msgid "Remove condition {0}"
+msgstr "Remove condition {0}"
+
+#: src/i18n/feedback-messages.ts
+msgid "Remove conditional format"
+msgstr "Remove conditional format"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Remove duplicates"
+msgstr "Remove duplicates"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Remove records"
+msgstr "Remove records"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Remove sort level {0}"
+msgstr "Remove sort level {0}"
+
+#: src/i18n/feedback-messages.ts
+msgid "Removes extra spaces from a text string."
+msgstr "Removes extra spaces from a text string."
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Removing duplicates…"
+msgstr "Removing duplicates…"
+
+#: src/workbook/chrome/ribbon/TableColumns.tsx
+msgid "Rename a column here or edit its header cell. Formulas update with the name."
+msgstr "Rename a column here or edit its header cell. Formulas update with the name."
+
+#: src/workbook/chrome/ribbon/TableColumns.tsx
+msgid "Rename column"
+msgstr "Rename column"
+
+#: src/i18n/feedback-messages.ts
+msgid "Rename failed: that column name is already in use."
+msgstr "Rename failed: that column name is already in use."
+
+#: src/i18n/feedback-messages.ts
+msgid "Rename failed: that name is already in use."
+msgstr "Rename failed: that name is already in use."
+
+#: src/i18n/feedback-messages.ts
+msgid "Rename failed: that name is reserved by a built-in function."
+msgstr "Rename failed: that name is reserved by a built-in function."
+
+#: src/i18n/feedback-messages.ts
+msgid "Rename failed: the column could not be found."
+msgstr "Rename failed: the column could not be found."
+
+#: src/i18n/feedback-messages.ts
+msgid "Rename failed: the column name is invalid."
+msgstr "Rename failed: the column name is invalid."
+
+#: src/i18n/feedback-messages.ts
+msgid "Rename failed: the name looks like a cell reference. Choose another name."
+msgstr "Rename failed: the name looks like a cell reference. Choose another name."
+
+#: src/i18n/feedback-messages.ts
+msgid "Rename failed: the table could not be found."
+msgstr "Rename failed: the table could not be found."
+
+#: src/i18n/feedback-messages.ts
+msgid "Rename failed: the table name is invalid."
+msgstr "Rename failed: the table name is invalid."
+
+#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+msgid "Rename sheet"
+msgstr "Rename sheet"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "Rename table"
+msgstr "Rename table"
+
+#: src/i18n/feedback-messages.ts
+msgid "Rename table column"
+msgstr "Rename table column"
+
+#: src/i18n/feedback-messages.ts
+msgid "Rename worksheet"
+msgstr "Rename worksheet"
+
+#: src/i18n/feedback-messages.ts
+msgid "Reorder conditional formats"
+msgstr "Reorder conditional formats"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Replace"
+msgstr "Replace"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Replace all"
+msgstr "Replace all"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Replace current"
+msgstr "Replace current"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Replace with"
+msgstr "Replace with"
+
+#: src/i18n/translate-feedback.ts
+msgid "Replaced {occurrences} occurrence(s) in {cells} cell(s). Find next to continue."
+msgstr "Replaced {occurrences} occurrence(s) in {cells} cell(s). Find next to continue."
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Replacements can be undone together."
+msgstr "Replacements can be undone together."
+
+#: src/i18n/feedback-messages.ts
+msgid "Replaces characters; does not translate between languages."
+msgstr "Replaces characters; does not translate between languages."
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Replacing…"
+msgstr "Replacing…"
+
+#: src/workbook/chrome/ribbon/SelectionSizeTools.tsx
+msgid "Reset selected sizes"
+msgstr "Reset selected sizes"
+
+#: src/workbook/chrome/ribbon/SelectionSizeTools.tsx
+msgid "Reset sizes keeps cell values and formatting. It does not auto-fit text."
+msgstr "Reset sizes keeps cell values and formatting. It does not auto-fit text."
+
+#: src/workbook/grid/viewport/GridResizeHandle.tsx
+msgid "Resize {axisLabel} {label}"
+msgstr "Resize {axisLabel} {label}"
+
+#: src/i18n/feedback-messages.ts
+msgid "Resize column"
+msgstr "Resize column"
+
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "Resize keeps the header row fixed. Include the totals row when shown. Convert to range keeps your data and formatting."
+msgstr "Resize keeps the header row fixed. Include the totals row when shown. Convert to range keeps your data and formatting."
+
+#: src/i18n/feedback-messages.ts
+msgid "Resize row"
+msgstr "Resize row"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "Resize table"
+msgstr "Resize table"
+
+#: src/workbook/chrome/footer/SelectionStatisticsSettings.tsx
+msgid "Restore defaults"
+msgstr "Restore defaults"
+
+#. placeholder {0}: page.offset + 1
+#. placeholder {1}: page.offset + page.matches.length
+#. placeholder {2}: result.total
+#: src/workbook/chrome/ribbon/FindResults.tsx
+msgid "Results {0}–{1} of {2}"
+msgstr "Results {0}–{1} of {2}"
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Retry values"
+msgstr "Retry values"
+
+#: src/i18n/feedback-messages.ts
+msgid "Returns a positive square root."
+msgstr "Returns a positive square root."
+
+#: src/i18n/feedback-messages.ts
+msgid "Returns display text; does not create a clickable link."
+msgstr "Returns display text; does not create a clickable link."
+
+#: src/i18n/feedback-messages.ts
+msgid "Returns image metadata as text; does not display an image."
+msgstr "Returns image metadata as text; does not display an image."
+
+#: src/i18n/feedback-messages.ts
+msgid "Returns one value if the condition is true and another otherwise."
+msgstr "Returns one value if the condition is true and another otherwise."
+
+#: src/i18n/feedback-messages.ts
+msgid "Returns the absolute value of a number."
+msgstr "Returns the absolute value of a number."
+
+#: src/i18n/feedback-messages.ts
+msgid "Returns the arithmetic mean of its arguments."
+msgstr "Returns the arithmetic mean of its arguments."
+
+#: src/i18n/feedback-messages.ts
+msgid "Returns the largest numeric value in the arguments."
+msgstr "Returns the largest numeric value in the arguments."
+
+#: src/i18n/feedback-messages.ts
+msgid "Returns the number of characters in a text string."
+msgstr "Returns the number of characters in a text string."
+
+#: src/i18n/feedback-messages.ts
+msgid "Returns the remainder after a number is divided by a divisor."
+msgstr "Returns the remainder after a number is divided by a divisor."
+
+#: src/i18n/feedback-messages.ts
+msgid "Returns the smallest numeric value in the arguments."
+msgstr "Returns the smallest numeric value in the arguments."
+
+#: src/i18n/feedback-messages.ts
+msgid "Returns TRUE if all arguments are TRUE."
+msgstr "Returns TRUE if all arguments are TRUE."
+
+#: src/i18n/feedback-messages.ts
+msgid "Returns TRUE if any argument is TRUE."
+msgstr "Returns TRUE if any argument is TRUE."
+
+#: src/i18n/feedback-messages.ts
+msgid "Reverses the logical value of its argument."
+msgstr "Reverses the logical value of its argument."
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+#: src/workbook/chrome/ribbon/TextLayoutTools.tsx
+msgid "Right"
+msgstr "Right"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Right border"
+msgstr "Right border"
+
+#: src/i18n/feedback-messages.ts
+msgid "Rounds a number to a specified number of digits."
+msgstr "Rounds a number to a specified number of digits."
+
+#: src/workbook/grid/viewport/GridResizeHandle.tsx
+msgid "row"
+msgstr "row"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Row"
+msgstr "Row"
+
+#: src/workbook/chrome/ribbon/SelectionSizeTools.tsx
+msgid "Row and column size"
+msgstr "Row and column size"
+
+#: src/workbook/chrome/ribbon/VisibilityTools.tsx
+msgid "Row and column visibility"
+msgstr "Row and column visibility"
+
+#: src/workbook/chrome/ribbon/SelectionSizeTools.tsx
+msgid "Row height"
+msgstr "Row height"
+
+#: src/workbook/grid/viewport/OutlineGutters.tsx
+msgid "Row outline"
+msgstr "Row outline"
+
+#: src/workbook/grid/viewport/OutlineGutters.tsx
+msgid "Row outline levels"
+msgstr "Row outline levels"
+
+#. placeholder {0}: group.start + 1
+#. placeholder {1}: group.end + 1
+#: src/workbook/grid/viewport/OutlineGutters.tsx
+msgid "rows {0}–{1}"
+msgstr "rows {0}–{1}"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Rule type"
+msgstr "Rule type"
+
+#: src/workbook/shell/WorkbookView.tsx
+msgid "Rust/WASM ready"
+msgstr "Rust/WASM ready"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Sample shortened: up to 20 rows, 12 columns and 120 characters per field. Apply processes all source rows."
+msgstr "Sample shortened: up to 20 rows, 12 columns and 120 characters per field. Apply processes all source rows."
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Sample values"
+msgstr "Sample values"
+
+#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+msgid "Save"
+msgstr "Save"
+
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "Save changes"
+msgstr "Save changes"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Save rule"
+msgstr "Save rule"
+
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "Saving changes…"
+msgstr "Saving changes…"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Saving conditional formatting…"
+msgstr "Saving conditional formatting…"
+
+#: src/workbook/chrome/ribbon/SelectionSizeTools.tsx
+msgid "Saving sizes…"
+msgstr "Saving sizes…"
+
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "Saving table changes…"
+msgstr "Saving table changes…"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Scale colors"
+msgstr "Scale colors"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Scientific"
+msgstr "Scientific"
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Search"
+msgstr "Search"
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Search filter values"
+msgstr "Search filter values"
+
+#: src/workbook/chrome/ribbon/InsertFunctionTools.tsx
+msgid "Search functions"
+msgstr "Search functions"
+
+#: src/workbook/chrome/ribbon/FindResults.tsx
+msgid "Search result pages"
+msgstr "Search result pages"
+
+#: src/i18n/feedback-messages.ts
+msgid "Search text is too long."
+msgstr "Search text is too long."
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Search values"
+msgstr "Search values"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Searches literal text, including offscreen cells. "
+msgstr "Searches literal text, including offscreen cells. "
+
+#: src/i18n/feedback-messages.ts
+msgid "Select a header and at least one data row for the filter range."
+msgstr "Select a header and at least one data row for the filter range."
+
+#: src/i18n/feedback-messages.ts
+msgid "Select a source column first."
+msgstr "Select a source column first."
+
+#: src/workbook/chrome/ribbon/NamedTableList.tsx
+msgid "Select a table to go to its range. Use Tables to change its name or columns."
+msgstr "Select a table to go to its range. Use Tables to change its name or columns."
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Select all"
+msgstr "Select all"
+
+#: src/workbook/grid/viewport/GridHeaders.tsx
+msgid "Select all cells"
+msgstr "Select all cells"
+
+#: src/i18n/feedback-messages.ts
+msgid "Select an editable range and wait for the worksheet to finish loading."
+msgstr "Select an editable range and wait for the worksheet to finish loading."
+
+#: src/i18n/feedback-messages.ts
+msgid "Select at least two data rows. Include all columns to move together."
+msgstr "Select at least two data rows. Include all columns to move together."
+
+#: src/workbook/chrome/ribbon/SpillTools.tsx
+msgid "Select blocking cell"
+msgstr "Select blocking cell"
+
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Select cells by condition"
+msgstr "Select cells by condition"
+
+#: src/i18n/feedback-messages.ts
+msgid "Select cells on one worksheet before changing them."
+msgstr "Select cells on one worksheet before changing them."
+
+#: src/workbook/chrome/footer/SelectionStatus.tsx
+msgid "Select cells to calculate"
+msgstr "Select cells to calculate"
+
+#: src/i18n/feedback-messages.ts
+msgid "Select cells to paint. Press Esc to stop."
+msgstr "Select cells to paint. Press Esc to stop."
+
+#: src/workbook/grid/viewport/GridHeading.tsx
+msgid "Select column {label}"
+msgstr "Select column {label}"
+
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Select constants, formulas or blanks"
+msgstr "Select constants, formulas or blanks"
+
+#: src/i18n/feedback-messages.ts
+msgid "Select one continuous column of cells."
+msgstr "Select one continuous column of cells."
+
+#: src/i18n/feedback-messages.ts
+msgid "Select one continuous fill range."
+msgstr "Select one continuous fill range."
+
+#: src/i18n/feedback-messages.ts
+msgid "Select one continuous filter range, including its header."
+msgstr "Select one continuous filter range, including its header."
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Select one continuous range before using Go to special."
+msgstr "Select one continuous range before using Go to special."
+
+#: src/i18n/feedback-messages.ts
+msgid "Select one continuous range to merge cells."
+msgstr "Select one continuous range to merge cells."
+
+#: src/i18n/feedback-messages.ts
+msgid "Select one continuous range to name."
+msgstr "Select one continuous range to name."
+
+#: src/i18n/feedback-messages.ts
+msgid "Select one continuous sort range."
+msgstr "Select one continuous sort range."
+
+#: src/i18n/feedback-messages.ts
+msgid "Select one row or column with enough samples and at least one destination."
+msgstr "Select one row or column with enough samples and at least one destination."
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Select page"
+msgstr "Select page"
+
+#: src/workbook/grid/viewport/GridHeading.tsx
+msgid "Select row {label}"
+msgstr "Select row {label}"
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "Select samples and destinations in one row or column. Keep the first samples; extend their pattern into the remaining cells, including hidden cells."
+msgstr "Select samples and destinations in one row or column. Keep the first samples; extend their pattern into the remaining cells, including hidden cells."
+
+#: src/workbook/chrome/ribbon/SpillTools.tsx
+msgid "Select spill range"
+msgstr "Select spill range"
+
+#: src/i18n/feedback-messages.ts
+msgid "Select the entire merged cell before formatting."
+msgstr "Select the entire merged cell before formatting."
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Select value {label}"
+msgstr "Select value {label}"
+
+#: src/i18n/feedback-messages.ts
+msgid "Select whole merged cells before copying or pasting."
+msgstr "Select whole merged cells before copying or pasting."
+
+#: src/i18n/translate-feedback.ts
+msgid "Selected {cells} cells in {areas} areas. Searched {range}."
+msgstr "Selected {cells} cells in {areas} areas. Searched {range}."
+
+#: src/workbook/chrome/ribbon/FilterValueChoices.tsx
+msgid "Selected filter values"
+msgstr "Selected filter values"
+
+#: src/i18n/feedback-messages.ts
+msgid "Selected range"
+msgstr "Selected range"
+
+#: src/workbook/chrome/footer/WorkbookFooter.tsx
+msgid "Selected: {selectedCellCount}"
+msgstr "Selected: {selectedCellCount}"
+
+#: src/workbook/chrome/footer/WorkbookFooter.tsx
+msgid "Selection change error"
+msgstr "Selection change error"
+
+#: src/i18n/feedback-messages.ts
+msgid "Selection changed. Paste again."
+msgstr "Selection changed. Paste again."
+
+#: src/i18n/feedback-messages.ts
+msgid "Selection changed. Start Format painter again."
+msgstr "Selection changed. Start Format painter again."
+
+#: src/workbook/chrome/footer/SelectionStatisticsSettings.tsx
+#: src/workbook/chrome/footer/SelectionStatus.tsx
+msgid "Selection statistics"
+msgstr "Selection statistics"
+
+#: src/i18n/feedback-messages.ts
+msgid "Selection statistics failed."
+msgstr "Selection statistics failed."
+
+#: src/workbook/chrome/footer/SelectionStatisticsSettings.tsx
+msgid "Selection statistics settings"
+msgstr "Selection statistics settings"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Semicolon"
+msgstr "Semicolon"
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "Sequence type"
+msgstr "Sequence type"
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "Series…"
+msgstr "Series…"
+
+#: src/workbook/chrome/ribbon/SelectionSizeTools.tsx
+msgid "Set column width"
+msgstr "Set column width"
+
+#: src/i18n/feedback-messages.ts
+msgid "Set data validation"
+msgstr "Set data validation"
+
+#: src/workbook/chrome/ribbon/SelectionSizeTools.tsx
+msgid "Set row height"
+msgstr "Set row height"
+
+#: src/i18n/feedback-messages.ts
+msgid "Set table total function"
+msgstr "Set table total function"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Settings start from the active cell. Apply changes only the number format of the selection."
+msgstr "Settings start from the active cell. Apply changes only the number format of the selection."
+
+#: src/workbook/chrome/ribbon/FindResults.tsx
+msgid "Sheet / cell"
+msgstr "Sheet / cell"
+
+#: src/i18n/feedback-messages.ts
+msgid "Sheet list failed to load"
+msgstr "Sheet list failed to load"
+
+#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+msgid "Sheet name"
+msgstr "Sheet name"
+
+#: src/i18n/feedback-messages.ts
+msgid "Sheet name cannot be empty"
+msgstr "Sheet name cannot be empty"
+
+#. placeholder {0}: i + 1
+#: src/workbook/grid/viewport/OutlineGutters.tsx
+msgid "Show column outline level {0}"
+msgstr "Show column outline level {0}"
+
+#: src/workbook/chrome/ribbon/CalculationTools.tsx
+msgid "Show formulas"
+msgstr "Show formulas"
+
+#: src/i18n/feedback-messages.ts
+msgid "Show outline level"
+msgstr "Show outline level"
+
+#. placeholder {0}: i + 1
+#: src/workbook/grid/viewport/OutlineGutters.tsx
+msgid "Show row outline level {0}"
+msgstr "Show row outline level {0}"
+
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+msgid "Show rows where"
+msgstr "Show rows where"
+
+#: src/i18n/feedback-messages.ts
+msgid "Show table headers"
+msgstr "Show table headers"
+
+#: src/i18n/feedback-messages.ts
+msgid "Show table totals"
+msgstr "Show table totals"
+
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Show totals row"
+msgstr "Show totals row"
+
+#. placeholder {0}: preview.sampleOffset + 1
+#. placeholder {1}: preview.sampleOffset + preview.sample.length
+#. placeholder {2}: preview.removedRows
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Showing {0}–{1} of {2} duplicate records"
+msgstr "Showing {0}–{1} of {2} duplicate records"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Single quote (')"
+msgstr "Single quote (')"
+
+#: src/workbook/chrome/ribbon/FontSizeTools.tsx
+msgid "Size (px)"
+msgstr "Size (px)"
+
+#. placeholder {0}: info.range.rowEnd - info.range.rowStart + 1
+#. placeholder {1}: info.range.colEnd - info.range.colStart + 1
+#: src/workbook/chrome/ribbon/SpillTools.tsx
+msgid "Size: {0} × {1} (rows × columns)"
+msgstr "Size: {0} × {1} (rows × columns)"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Skip blanks"
+msgstr "Skip blanks"
+
+#: src/workbook/chrome/ribbon/TextColumnTypes.tsx
+msgid "Skip field"
+msgstr "Skip field"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Sort"
+msgstr "Sort"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Sort ascending"
+msgstr "Sort ascending"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Sort by"
+msgstr "Sort by"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Sort column {0}"
+msgstr "Sort column {0}"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Sort descending"
+msgstr "Sort descending"
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Sort order {0}"
+msgstr "Sort order {0}"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Sort selected data by its first column; select all columns that should move together"
+msgstr "Sort selected data by its first column; select all columns that should move together"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Sort selected range"
+msgstr "Sort selected range"
+
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Sort status"
+msgstr "Sort status"
+
+#: src/i18n/feedback-messages.ts
+msgid "Sort was not applied. Try again."
+msgstr "Sort was not applied. Try again."
+
+#: src/i18n/translate-feedback.ts
+msgid "Sorted {rows} rows."
+msgstr "Sorted {rows} rows."
+
+#: src/i18n/feedback-messages.ts
+msgid "Sorting…"
+msgstr "Sorting…"
+
+#: src/workbook/chrome/ribbon/TextColumnTypes.tsx
+msgid "Source field number"
+msgstr "Source field number"
+
+#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+msgid "Source sample count"
+msgstr "Source sample count"
+
+#. placeholder {0}: state.target && `${toA1(state.target.source.rowStart, state.target.source.colStart)}:${toA1(state.target.source.rowEnd, state.target.source.colEnd)}`
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Source: {0}"
+msgstr "Source: {0}"
+
+#: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Space"
+msgstr "Space"
+
+#: src/workbook/chrome/ribbon/SpillTools.tsx
+msgid "Spill details"
+msgstr "Spill details"
+
+#: src/i18n/feedback-messages.ts
+msgid "Spill details are out of date. Refresh to try again."
+msgstr "Spill details are out of date. Refresh to try again."
+
+#. placeholder {0}: rangeToA1(info.range)
+#: src/workbook/chrome/ribbon/SpillTools.tsx
+msgid "Spill range: {0}"
+msgstr "Spill range: {0}"
+
+#: src/i18n/feedback-messages.ts
+msgid "Spilled arrays cannot be entered inside a table. Use a single-value formula or press Escape."
+msgstr "Spilled arrays cannot be entered inside a table. Use a single-value formula or press Escape."
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Split after these character positions, for example 2, 5. Unicode code points count as one."
+msgstr "Split after these character positions, for example 2, 5. Unicode code points count as one."
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Split mode"
+msgstr "Split mode"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Split one source column. Fields keep text unless you select a different type. Empty fields clear destination cells. Hidden rows are included."
+msgstr "Split one source column. Fields keep text unless you select a different type. Empty fields clear destination cells. Hidden rows are included."
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Split preview"
+msgstr "Split preview"
+
+#: src/workbook/chrome/ribbon/ColorTools.tsx
+msgid "Standard colors"
+msgstr "Standard colors"
+
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Standard deviation"
+msgstr "Standard deviation"
+
+#: src/workbook/chrome/ribbon/RibbonTabs.tsx
+msgid "Start"
+msgstr "Start"
+
+#: src/workbook/chrome/footer/SelectionStatus.tsx
+msgid "Statistic copy status"
+msgstr "Statistic copy status"
+
+#: src/workbook/chrome/footer/SelectionStatus.tsx
+msgid "Statistics unavailable"
+msgstr "Statistics unavailable"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Stop if true"
+msgstr "Stop if true"
+
+#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+msgid "Strikethrough"
+msgstr "Strikethrough"
+
+#: src/workbook/chrome/ribbon/TableAppearance.tsx
+msgid "Style preset"
+msgstr "Style preset"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Subtract"
+msgstr "Subtract"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Sum"
+msgstr "Sum"
+
+#: src/workbook/chrome/ribbon/QuickFormulaTools.tsx
+msgid "SUM — Total"
+msgstr "SUM — Total"
+
+#: src/i18n/feedback-messages.ts
+msgid "Sums the cells in a range that meet a given criterion."
+msgstr "Sums the cells in a range that meet a given criterion."
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Tab"
+msgstr "Tab"
+
+#. placeholder {0}: panel.table
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "Table {0}. Only its data rows are checked; headers and totals are excluded."
+msgstr "Table {0}. Only its data rows are checked; headers and totals are excluded."
+
+#: src/i18n/translate-feedback.ts
+msgid "Table {table} filter cleared. Manually hidden rows are unchanged."
+msgstr "Table {table} filter cleared. Manually hidden rows are unchanged."
+
+#: src/i18n/translate-feedback.ts
+msgid "Table {table}. {rows} rows filtered out in this worksheet."
+msgstr "Table {table}. {rows} rows filtered out in this worksheet."
+
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "Table name"
+msgstr "Table name"
+
+#: src/i18n/feedback-messages.ts
+msgid "Table operation failed: a custom formula is still running. Try again."
+msgstr "Table operation failed: a custom formula is still running. Try again."
+
+#: src/i18n/feedback-messages.ts
+msgid "Table operation failed: that column name is already in use."
+msgstr "Table operation failed: that column name is already in use."
+
+#: src/i18n/feedback-messages.ts
+msgid "Table operation failed: the column could not be found."
+msgstr "Table operation failed: the column could not be found."
+
+#: src/i18n/feedback-messages.ts
+msgid "Table operation failed: the column name is invalid."
+msgstr "Table operation failed: the column name is invalid."
+
+#: src/i18n/feedback-messages.ts
+msgid "Table operation failed: the table could not be found."
+msgstr "Table operation failed: the table could not be found."
+
+#: src/i18n/feedback-messages.ts
+msgid "Table operation failed."
+msgstr "Table operation failed."
+
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "Table range"
+msgstr "Table range"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/TableAppearance.tsx
+msgid "Table style"
+msgstr "Table style"
+
+#: src/i18n/feedback-messages.ts
+msgid "Table totals"
+msgstr "Table totals"
+
+#: src/workbook/chrome/ribbon/NamedTableList.tsx
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "Tables"
+msgstr "Tables"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+#: src/workbook/chrome/ribbon/TextColumnTypes.tsx
+msgid "Text"
+msgstr "Text"
+
+#: src/workbook/chrome/ribbon/ColorTools.tsx
+msgid "Text color"
+msgstr "Text color"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Text comparison"
+msgstr "Text comparison"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Text condition"
+msgstr "Text condition"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Text length"
+msgstr "Text length"
+
+#: src/i18n/feedback-messages.ts
+msgid "Text numbering"
+msgstr "Text numbering"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Text qualifier"
+msgstr "Text qualifier"
+
+#: src/workbook/chrome/ribbon/TextLayoutTools.tsx
+msgid "Text rotation"
+msgstr "Text rotation"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Text to columns"
+msgstr "Text to columns"
+
+#: src/i18n/feedback-messages.ts
+msgid "That edit was not saved."
+msgstr "That edit was not saved."
+
+#: src/i18n/feedback-messages.ts
+msgid "The active cell is not inside a table. Select a cell within a table to toggle its totals row."
+msgstr "The active cell is not inside a table. Select a cell within a table to toggle its totals row."
+
+#: src/workbook/grid/viewport/WorkbookGrid.tsx
+msgid "The active workbook sheet is unavailable."
+msgstr "The active workbook sheet is unavailable."
+
+#: src/i18n/feedback-messages.ts
+msgid "The clipboard contains an invalid formula. Nothing was pasted."
+msgstr "The clipboard contains an invalid formula. Nothing was pasted."
+
+#: src/i18n/feedback-messages.ts
+msgid "The clipboard does not contain cell text."
+msgstr "The clipboard does not contain cell text."
+
+#: src/i18n/feedback-messages.ts
+msgid "The clipboard text has unmatched quotes. Nothing was pasted."
+msgstr "The clipboard text has unmatched quotes. Nothing was pasted."
+
+#: src/i18n/feedback-messages.ts
+msgid "The copied worksheet was deleted. Copy cells again before pasting."
+msgstr "The copied worksheet was deleted. Copy cells again before pasting."
+
+#: src/i18n/feedback-messages.ts
+msgid "The cut cells changed. Cut the range again before pasting."
+msgstr "The cut cells changed. Cut the range again before pasting."
+
+#: src/i18n/feedback-messages.ts
+msgid "The fill source selection changed. Drag again."
+msgstr "The fill source selection changed. Drag again."
+
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "The first row becomes the header. Blank or duplicate headers receive unique names."
+msgstr "The first row becomes the header. Blank or duplicate headers receive unique names."
+
+#: src/i18n/feedback-messages.ts
+msgid "The matched cell is outside the current worksheet."
+msgstr "The matched cell is outside the current worksheet."
+
+#: src/i18n/feedback-messages.ts
+msgid "The named range no longer exists."
+msgstr "The named range no longer exists."
+
+#: src/i18n/feedback-messages.ts
+msgid "The new column name is the same as the current name."
+msgstr "The new column name is the same as the current name."
+
+#: src/i18n/feedback-messages.ts
+msgid "The new name is the same as the current name."
+msgstr "The new name is the same as the current name."
+
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "The original range was deleted. Enter a new range to repair this name."
+msgstr "The original range was deleted. Enter a new range to repair this name."
+
+#: src/i18n/feedback-messages.ts
+msgid "The paste would hide cell content. Unmerge the destination or change the selection first."
+msgstr "The paste would hide cell content. Unmerge the destination or change the selection first."
+
+#: src/i18n/feedback-messages.ts
+msgid "The rule no longer exists."
+msgstr "The rule no longer exists."
+
+#: src/i18n/feedback-messages.ts
+msgid "The search worksheet no longer exists."
+msgstr "The search worksheet no longer exists."
+
+#: src/i18n/feedback-messages.ts
+msgid "The selected range cannot be changed."
+msgstr "The selected range cannot be changed."
+
+#: src/i18n/feedback-messages.ts
+msgid "The selected range must fit whole copies of the clipboard. Nothing was pasted."
+msgstr "The selected range must fit whole copies of the clipboard. Nothing was pasted."
+
+#: src/i18n/feedback-messages.ts
+msgid "The selected sheet is no longer available"
+msgstr "The selected sheet is no longer available"
+
+#: src/i18n/feedback-messages.ts
+msgid "The selection changed. Choose Merge again."
+msgstr "The selection changed. Choose Merge again."
+
+#: src/i18n/feedback-messages.ts
+msgid "The selection changed. Close and reopen Series."
+msgstr "The selection changed. Close and reopen Series."
+
+#: src/i18n/feedback-messages.ts
+msgid "The selection changed. Close and reopen Sort."
+msgstr "The selection changed. Close and reopen Sort."
+
+#: src/i18n/feedback-messages.ts
+msgid "The selection changed. Close the dialog and select the target again."
+msgstr "The selection changed. Close the dialog and select the target again."
+
+#: src/i18n/feedback-messages.ts
+msgid "The selection changed. Close the palette and select the target again."
+msgstr "The selection changed. Close the palette and select the target again."
+
+#: src/i18n/feedback-messages.ts
+msgid "The selection changed. Refresh spill details for the current cell."
+msgstr "The selection changed. Refresh spill details for the current cell."
+
+#: src/i18n/feedback-messages.ts
+msgid "The selection or workbook changed. Close this dialog and select the range again."
+msgstr "The selection or workbook changed. Close this dialog and select the range again."
+
+#: src/i18n/feedback-messages.ts
+msgid "The selection or workbook changed. Close this dialog and select the source again."
+msgstr "The selection or workbook changed. Close this dialog and select the source again."
+
+#: src/i18n/feedback-messages.ts
+msgid "The selection or workbook changed. Close this dialog and select the target again."
+msgstr "The selection or workbook changed. Close this dialog and select the target again."
+
+#: src/i18n/feedback-messages.ts
+msgid "The selection or worksheet changed. Try locating cells again."
+msgstr "The selection or worksheet changed. Try locating cells again."
+
+#: src/i18n/feedback-messages.ts
+msgid "The source or destination includes locked cells."
+msgstr "The source or destination includes locked cells."
+
+#: src/i18n/feedback-messages.ts
+msgid "The split was applied, but the view could not be updated. Check the sheet before retrying."
+msgstr "The split was applied, but the view could not be updated. Check the sheet before retrying."
+
+#: src/i18n/feedback-messages.ts
+msgid "The table change was not applied."
+msgstr "The table change was not applied."
+
+#: src/i18n/feedback-messages.ts
+msgid "The table changed. Close and reopen Filter."
+msgstr "The table changed. Close and reopen Filter."
+
+#: src/i18n/feedback-messages.ts
+msgid "The table filter was not applied."
+msgstr "The table filter was not applied."
+
+#: src/i18n/feedback-messages.ts
+msgid "The table name looks like a cell reference. Choose another name."
+msgstr "The table name looks like a cell reference. Choose another name."
+
+#: src/i18n/feedback-messages.ts
+msgid "The table no longer exists."
+msgstr "The table no longer exists."
+
+#: src/i18n/feedback-messages.ts
+msgid "The table no longer refers to an available worksheet range."
+msgstr "The table no longer refers to an available worksheet range."
+
+#: src/i18n/feedback-messages.ts
+msgid "The target cells are locked on a protected sheet."
+msgstr "The target cells are locked on a protected sheet."
+
+#: src/i18n/feedback-messages.ts
+msgid "The view changed. Reopen Tables."
+msgstr "The view changed. Reopen Tables."
+
+#: src/i18n/feedback-messages.ts
+msgid "The view changed. Reopen the name editor."
+msgstr "The view changed. Reopen the name editor."
+
+#: src/i18n/feedback-messages.ts
+msgid "The view changed. Try again after the worksheet finishes loading."
+msgstr "The view changed. Try again after the worksheet finishes loading."
+
+#: src/i18n/feedback-messages.ts
+msgid "The workbook changed. Close and reopen Data validation."
+msgstr "The workbook changed. Close and reopen Data validation."
+
+#: src/i18n/feedback-messages.ts
+msgid "The workbook changed. Close and reopen Filter."
+msgstr "The workbook changed. Close and reopen Filter."
+
+#: src/i18n/feedback-messages.ts
+msgid "The workbook changed. Find again."
+msgstr "The workbook changed. Find again."
+
+#: src/i18n/feedback-messages.ts
+msgid "The workbook changed. Find all again before choosing a result."
+msgstr "The workbook changed. Find all again before choosing a result."
+
+#: src/i18n/feedback-messages.ts
+msgid "The workbook changed. Paste again."
+msgstr "The workbook changed. Paste again."
+
+#: src/i18n/feedback-messages.ts
+msgid "The workbook changed. Reopen Tables."
+msgstr "The workbook changed. Reopen Tables."
+
+#: src/i18n/feedback-messages.ts
+msgid "The workbook changed. Reopen the name editor."
+msgstr "The workbook changed. Reopen the name editor."
+
+#: src/i18n/feedback-messages.ts
+msgid "The workbook changed. Try locating cells again."
+msgstr "The workbook changed. Try locating cells again."
+
+#: src/i18n/feedback-messages.ts
+msgid "The workbook did not return an HTML table."
+msgstr "The workbook did not return an HTML table."
+
+#: src/i18n/feedback-messages.ts
+msgid "The workbook file has an invalid sheet canvas."
+msgstr "The workbook file has an invalid sheet canvas."
+
+#: src/i18n/feedback-messages.ts
+msgid "The workbook file has mismatched sheet canvases."
+msgstr "The workbook file has mismatched sheet canvases."
+
+#: src/i18n/feedback-messages.ts
+msgid "The workbook file has no sheet canvases."
+msgstr "The workbook file has no sheet canvases."
+
+#: src/i18n/feedback-messages.ts
+msgid "The workbook is unavailable."
+msgstr "The workbook is unavailable."
+
+#: src/i18n/feedback-messages.ts
+msgid "The workbook or worksheet changed. Close and reopen Conditional formatting."
+msgstr "The workbook or worksheet changed. Close and reopen Conditional formatting."
+
+#: src/i18n/feedback-messages.ts
+msgid "The worksheet changed. Close and reopen Filter."
+msgstr "The worksheet changed. Close and reopen Filter."
+
+#: src/workbook/chrome/ribbon/SpillTools.tsx
+msgid "The worksheet changed. Refresh spill details before navigating."
+msgstr "The worksheet changed. Refresh spill details before navigating."
+
+#. placeholder {0}: index + 1
+#: src/workbook/chrome/ribbon/SortTools.tsx
+msgid "Then by ({0})"
+msgstr "Then by ({0})"
+
+#: src/i18n/feedback-messages.ts
+msgid "These cells have already been moved. Copy or cut again to paste."
+msgstr "These cells have already been moved. Copy or cut again to paste."
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Thick"
+msgstr "Thick"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Thin"
+msgstr "Thin"
+
+#: src/i18n/feedback-messages.ts
+msgid "This address is outside the current worksheet canvas."
+msgstr "This address is outside the current worksheet canvas."
+
+#: src/i18n/feedback-messages.ts
+msgid "This browser cannot write the clipboard. Use a secure HTTPS or localhost page."
+msgstr "This browser cannot write the clipboard. Use a secure HTTPS or localhost page."
+
+#: src/workbook/chrome/ribbon/SpillTools.tsx
+msgid "This cell is not part of a spilled array."
+msgstr "This cell is not part of a spilled array."
+
+#: src/i18n/feedback-messages.ts
+msgid "This cell type cannot be used in paste arithmetic."
+msgstr "This cell type cannot be used in paste arithmetic."
+
+#: src/i18n/feedback-messages.ts
+msgid "This clipboard has no workbook formatting. Copy cells in this workbook first."
+msgstr "This clipboard has no workbook formatting. Copy cells in this workbook first."
+
+#: src/i18n/feedback-messages.ts
+msgid "This clipboard range is too large. Select a smaller range."
+msgstr "This clipboard range is too large. Select a smaller range."
+
+#: src/i18n/feedback-messages.ts
+msgid "This edit was not confirmed — it may or may not have been saved."
+msgstr "This edit was not confirmed — it may or may not have been saved."
+
+#: src/i18n/feedback-messages.ts
+msgid "This is not a valid .einfach.json workbook file."
+msgstr "This is not a valid .einfach.json workbook file."
+
+#: src/i18n/feedback-messages.ts
+msgid "This match is in a hidden row or column. Unhide it to view the cell."
+msgstr "This match is in a hidden row or column. Unhide it to view the cell."
+
+#: src/i18n/feedback-messages.ts
+msgid "This named range no longer refers to an available worksheet range."
+msgstr "This named range no longer refers to an available worksheet range."
+
+#: src/i18n/feedback-messages.ts
+msgid "This recent location is no longer available."
+msgstr "This recent location is no longer available."
+
+#: src/i18n/feedback-messages.ts
+msgid "This result changed. Update the preview."
+msgstr "This result changed. Update the preview."
+
+#: src/i18n/feedback-messages.ts
+msgid "This rule type cannot be edited here yet."
+msgstr "This rule type cannot be edited here yet."
+
+#: src/i18n/feedback-messages.ts
+msgid "This selection has no unfiltered rows to copy."
+msgstr "This selection has no unfiltered rows to copy."
+
+#: src/i18n/feedback-messages.ts
+msgid "This spill target is outside the current worksheet canvas."
+msgstr "This spill target is outside the current worksheet canvas."
+
+#: src/i18n/feedback-messages.ts
+msgid "This statistic has no finite value to copy."
+msgstr "This statistic has no finite value to copy."
+
+#: src/i18n/feedback-messages.ts
+msgid "This table already has a column with that name. Choose a different column name."
+msgstr "This table already has a column with that name. Choose a different column name."
+
+#: src/i18n/feedback-messages.ts
+msgid "This value does not meet the cell’s data validation rule. Change it or press Escape."
+msgstr "This value does not meet the cell’s data validation rule. Change it or press Escape."
+
+#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+msgid "Thousands format"
+msgstr "Thousands format"
+
+#: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
+msgid "Thousands separator"
+msgstr "Thousands separator"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Time"
+msgstr "Time"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Time format"
+msgstr "Time format"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "To replace a formula, choose Formulas / raw values. Calculated results are not overwritten."
+msgstr "To replace a formula, choose Formulas / raw values. Calculated results are not overwritten."
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/chrome/ribbon/TextLayoutTools.tsx
+msgid "Top"
+msgstr "Top"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Top {count} items"
+msgstr "Top {count} items"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Top {count}%"
+msgstr "Top {count}%"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Top / bottom"
+msgstr "Top / bottom"
+
+#: src/workbook/chrome/ribbon/BorderTools.tsx
+msgid "Top border"
+msgstr "Top border"
+
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Total column"
+msgstr "Total column"
+
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Total function"
+msgstr "Total function"
+
+#: src/i18n/feedback-messages.ts
+msgid "Totals function failed: enable the totals row first."
+msgstr "Totals function failed: enable the totals row first."
+
+#: src/i18n/feedback-messages.ts
+msgid "Totals function failed: that aggregate is not recognized."
+msgstr "Totals function failed: that aggregate is not recognized."
+
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Totals row"
+msgstr "Totals row"
+
+#: src/i18n/feedback-messages.ts
+msgid "Totals row failed: the row below the table is occupied. Clear it and try again."
+msgstr "Totals row failed: the row below the table is occupied. Clear it and try again."
+
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Totals use SUBTOTAL and exclude filtered and manually hidden rows."
+msgstr "Totals use SUBTOTAL and exclude filtered and manually hidden rows."
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Transpose"
+msgstr "Transpose"
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Treat consecutive delimiters as one"
+msgstr "Treat consecutive delimiters as one"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Trim and ignore case"
+msgstr "Trim and ignore case"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Trim whitespace"
+msgstr "Trim whitespace"
+
+#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+msgid "Underline"
+msgstr "Underline"
+
+#: src/workbook/chrome/ribbon/HistoryTools.tsx
+msgid "Undo"
+msgstr "Undo"
+
+#: src/workbook/chrome/ribbon/HistoryTools.tsx
+msgid "Undo (Ctrl/⌘+Z)"
+msgstr "Undo (Ctrl/⌘+Z)"
+
+#: src/workbook/chrome/ribbon/HistoryTools.tsx
+msgid "Undone"
+msgstr "Undone"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/FreezeTools.tsx
+msgid "Unfreeze panes"
+msgstr "Unfreeze panes"
+
+#: src/i18n/feedback-messages.ts
+msgid "Ungroup"
+msgstr "Ungroup"
+
+#: src/workbook/chrome/ribbon/OutlineTools.tsx
+msgid "Ungroup selected columns"
+msgstr "Ungroup selected columns"
+
+#: src/workbook/chrome/ribbon/OutlineTools.tsx
+msgid "Ungroup selected rows"
+msgstr "Ungroup selected rows"
+
+#: src/workbook/chrome/ribbon/VisibilityTools.tsx
+msgid "Unhide all rows and columns"
+msgstr "Unhide all rows and columns"
+
+#: src/i18n/feedback-messages.ts
+msgid "Unhide rows and columns"
+msgstr "Unhide rows and columns"
+
+#: src/workbook/chrome/ribbon/VisibilityTools.tsx
+msgid "Unhide selected rows and columns"
+msgstr "Unhide selected rows and columns"
+
+#: src/i18n/feedback-messages.ts
+msgid "Unhide this row or column before locating the record."
+msgstr "Unhide this row or column before locating the record."
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Unique"
+msgstr "Unique"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Unique values"
+msgstr "Unique values"
+
+#: src/i18n/feedback-messages.ts
+#: src/workbook/chrome/ribbon/MergeTools.tsx
+msgid "Unmerge cells"
+msgstr "Unmerge cells"
+
+#: src/i18n/feedback-messages.ts
+msgid "Unprotect the affected worksheet before undoing or redoing."
+msgstr "Unprotect the affected worksheet before undoing or redoing."
+
+#: src/i18n/feedback-messages.ts
+msgid "Unprotect the target worksheets before replacing."
+msgstr "Unprotect the target worksheets before replacing."
+
+#: src/i18n/feedback-messages.ts
+msgid "Unprotect the worksheet before changing conditional formatting."
+msgstr "Unprotect the worksheet before changing conditional formatting."
+
+#: src/i18n/feedback-messages.ts
+msgid "Unprotect the worksheet before changing data validation."
+msgstr "Unprotect the worksheet before changing data validation."
+
+#: src/i18n/feedback-messages.ts
+msgid "Unprotect the worksheet before changing its filter."
+msgstr "Unprotect the worksheet before changing its filter."
+
+#: src/i18n/feedback-messages.ts
+msgid "Unprotect the worksheet before changing row or column sizes."
+msgstr "Unprotect the worksheet before changing row or column sizes."
+
+#: src/i18n/feedback-messages.ts
+msgid "Unprotect the worksheet before filling cells."
+msgstr "Unprotect the worksheet before filling cells."
+
+#: src/i18n/feedback-messages.ts
+msgid "Unprotect the worksheet before hiding or showing rows and columns."
+msgstr "Unprotect the worksheet before hiding or showing rows and columns."
+
+#: src/i18n/feedback-messages.ts
+msgid "Unprotect the worksheet before merging cells."
+msgstr "Unprotect the worksheet before merging cells."
+
+#: src/i18n/feedback-messages.ts
+msgid "Unprotect the worksheet before pasting column widths."
+msgstr "Unprotect the worksheet before pasting column widths."
+
+#: src/i18n/feedback-messages.ts
+msgid "Unprotect the worksheet before sorting cells."
+msgstr "Unprotect the worksheet before sorting cells."
+
+#: src/i18n/feedback-messages.ts
+msgid "Unprotect the worksheets before changing tables."
+msgstr "Unprotect the worksheets before changing tables."
+
+#: src/i18n/feedback-messages.ts
+msgid "Unprotect the worksheets before changing workbook names."
+msgstr "Unprotect the worksheets before changing workbook names."
+
+#: src/i18n/feedback-messages.ts
+msgid "Unprotect the worksheets before inserting or deleting rows and columns."
+msgstr "Unprotect the worksheets before inserting or deleting rows and columns."
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Unsupported rule (not editable yet)"
+msgstr "Unsupported rule (not editable yet)"
+
+#: src/i18n/feedback-messages.ts
+msgid "Unsupported workbook file. Choose an .einfach.json file exported by this app."
+msgstr "Unsupported workbook file. Choose an .einfach.json file exported by this app."
+
+#. placeholder {0}: state.draft.datePattern
+#. placeholder {0}: state.draft.pattern
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Unsupported: {0}"
+msgstr "Unsupported: {0}"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Up to 1 digit"
+msgstr "Up to 1 digit"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Up to 2 digits"
+msgstr "Up to 2 digits"
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Up to 3 digits"
+msgstr "Up to 3 digits"
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Update preview"
+msgstr "Update preview"
+
+#: src/i18n/feedback-messages.ts
+msgid "Update the preview before applying."
+msgstr "Update the preview before applying."
+
+#: src/i18n/feedback-messages.ts
+msgid "Update the preview before removing records."
+msgstr "Update the preview before removing records."
+
+#: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+msgid "Update the preview to apply your changes."
+msgstr "Update the preview to apply your changes."
+
+#: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+msgid "Update the preview to review your changes."
+msgstr "Update the preview to review your changes."
+
+#: src/workbook/chrome/ribbon/FreezeTools.tsx
+msgid "Updating freeze…"
+msgstr "Updating freeze…"
+
+#: src/workbook/chrome/ribbon/OutlineTools.tsx
+msgid "Updating outline…"
+msgstr "Updating outline…"
+
+#: src/workbook/chrome/ribbon/StructureTools.tsx
+msgid "Updating rows and columns…"
+msgstr "Updating rows and columns…"
+
+#: src/workbook/chrome/footer/WorkbookFooter.tsx
+msgid "Updating selection…"
+msgstr "Updating selection…"
+
+#: src/workbook/chrome/ribbon/VisibilityTools.tsx
+msgid "Updating visibility…"
+msgstr "Updating visibility…"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Use a clock time from 00:00 to 23:59:59."
+msgstr "Use a clock time from 00:00 to 23:59:59."
+
+#: src/i18n/feedback-messages.ts
+msgid "Use a positive whole-number denominator, at most 4294967295."
+msgstr "Use a positive whole-number denominator, at most 4294967295."
+
+#: src/i18n/feedback-messages.ts
+msgid "Use at most 16 characters for the currency symbol, without control characters."
+msgstr "Use at most 16 characters for the currency symbol, without control characters."
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Use commas between ranges. Write the formula for the first range’s top-left cell. Use $ to lock a row or column."
+msgstr "Use commas between ranges. Write the formula for the first range’s top-left cell. Use $ to lock a row or column."
+
+#: src/i18n/feedback-messages.ts
+msgid "Use Ctrl/⌘+V in the grid to paste from the clipboard."
+msgstr "Use Ctrl/⌘+V in the grid to paste from the clipboard."
+
+#: src/i18n/feedback-messages.ts
+msgid "Use different columns and valid numbers; minimum cannot exceed maximum."
+msgstr "Use different columns and valid numbers; minimum cannot exceed maximum."
+
+#: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+msgid "Use thousands separator"
+msgstr "Use thousands separator"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Use wildcards"
+msgstr "Use wildcards"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Use YYYY-MM-DD."
+msgstr "Use YYYY-MM-DD."
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+msgid "Value"
+msgstr "Value"
+
+#: src/workbook/chrome/ribbon/FilterConditionFields.tsx
+msgid "Values (one per line)"
+msgstr "Values (one per line)"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Values and formatting"
+msgstr "Values and formatting"
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Values and number formats"
+msgstr "Values and number formats"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Values must be below the minimum or above the maximum. Both boundaries are excluded."
+msgstr "Values must be below the minimum or above the maximum. Both boundaries are excluded."
+
+#: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
+msgid "Values only"
+msgstr "Values only"
+
+#: src/workbook/chrome/ribbon/TableTotals.tsx
+msgid "Variance"
+msgstr "Variance"
+
+#: src/workbook/chrome/ribbon/TextLayoutTools.tsx
+msgid "Vertical"
+msgstr "Vertical"
+
+#: src/workbook/chrome/ribbon/TextLayoutTools.tsx
+msgid "Vertical alignment"
+msgstr "Vertical alignment"
+
+#: src/workbook/chrome/ribbon/RibbonTabs.tsx
+msgid "View"
+msgstr "View"
+
+#: src/i18n/feedback-messages.ts
+msgid "Wait for the Rust worksheet to finish loading."
+msgstr "Wait for the Rust worksheet to finish loading."
+
+#: src/i18n/feedback-messages.ts
+msgid "Wait for the selected sheet to load."
+msgstr "Wait for the selected sheet to load."
+
+#: src/i18n/feedback-messages.ts
+msgid "Wait for the worksheet to finish loading."
+msgstr "Wait for the worksheet to finish loading."
+
+#: src/workbook/chrome/ribbon/NamedTableList.tsx
+msgid "Waiting for the table list…"
+msgstr "Waiting for the table list…"
+
+#: src/i18n/feedback-messages.ts
+msgid "Weekday names"
+msgstr "Weekday names"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "When this rule matches, skip all lower rules for that cell."
+msgstr "When this rule matches, skip all lower rules for that cell."
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Whole number"
+msgstr "Whole number"
+
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Within"
+msgstr "Within"
+
+#: src/workbook/chrome/header/WorkbookHeader.tsx
+#: src/workbook/chrome/ribbon/FindReplaceTools.tsx
+msgid "Workbook"
+msgstr "Workbook"
+
+#: src/workbook/chrome/ribbon/RibbonTabs.tsx
+msgid "Workbook commands"
+msgstr "Workbook commands"
+
+#: src/page/WorkbookRuntimeProvider.tsx
+msgid "Workbook failed to open"
+msgstr "Workbook failed to open"
+
+#: src/workbook/chrome/header/WorkbookFileTools.tsx
+msgid "Workbook files"
+msgstr "Workbook files"
+
+#: src/i18n/feedback-messages.ts
+msgid "Workbook files must be 64 MiB or smaller."
+msgstr "Workbook files must be 64 MiB or smaller."
+
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "Workbook names"
+msgstr "Workbook names"
+
+#: src/i18n/translate-feedback.ts
+msgid "Workbook recalculated ({count} formulas)."
+msgstr "Workbook recalculated ({count} formulas)."
+
+#: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
+msgid "Workbook sheets"
+msgstr "Workbook sheets"
+
+#: src/workbook/chrome/ribbon/NamedTableList.tsx
+msgid "Workbook tables"
+msgstr "Workbook tables"
+
+#: src/i18n/feedback-messages.ts
+msgid "Workbook title must contain 1–256 characters."
+msgstr "Workbook title must contain 1–256 characters."
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Working…"
+msgstr "Working…"
+
+#: src/workbook/chrome/ribbon/HistoryTools.tsx
+#: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+msgid "Worksheet"
+msgstr "Worksheet"
+
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid "Worksheet filter"
+msgstr "Worksheet filter"
+
+#: src/i18n/feedback-messages.ts
+msgid "Worksheet history changed the clipboard source. Copy or cut again to paste."
+msgstr "Worksheet history changed the clipboard source. Copy or cut again to paste."
+
+#: src/i18n/translate-feedback.ts
+msgid "Worksheet recalculated ({count} formulas)."
+msgstr "Worksheet recalculated ({count} formulas)."
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Worksheet rules"
+msgstr "Worksheet rules"
+
+#: src/workbook/chrome/ribbon/TableTools.tsx
+msgid "Worksheet tables"
+msgstr "Worksheet tables"
+
+#: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+msgid "Wrap text"
+msgstr "Wrap text"
+
+#: src/workbook/chrome/header/WorkbookFileTools.tsx
+msgid "Your workbook is in memory. Download a file to keep your changes."
+msgstr "Your workbook is in memory. Download a file to keep your changes."
+
+#: src/workbook/chrome/footer/WorkbookFooter.tsx
+msgid "Zoom 100 percent"
+msgstr "Zoom 100 percent"
+
+#: src/workbook/chrome/footer/WorkbookFooter.tsx
+msgid "Zoom in"
+msgstr "Zoom in"
+
+#: src/workbook/chrome/footer/WorkbookFooter.tsx
+msgid "Zoom out"
+msgstr "Zoom out"

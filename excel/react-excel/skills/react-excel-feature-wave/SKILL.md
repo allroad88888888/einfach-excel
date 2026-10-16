@@ -37,7 +37,7 @@ For every batch, add all applicable evidence:
    Rust/WASM artifact. A temporary browser script is supplemental, not a replacement.
 4. Seed-data E2E when initial formatted or calculated examples were added.
 
-Run at least:
+Run targeted tests while developing. Run the following gates once on the final batch candidate:
 
 ```bash
 pnpm check:presentation
@@ -50,5 +50,19 @@ pnpm --filter @einfach/react-excel e2e
 pnpm --filter @einfach/react-excel build
 git diff --check
 ```
+
+## Verification cost and CI follow-through
+
+- Record the tested source revision, command, and final result. Reuse passing evidence when its
+  inputs are unchanged; documentation-only edits do not require another full product regression.
+- Keep only one full E2E run active. Freeze its source, tests, and WASM until it finishes; observe
+  the same process instead of restarting after a tool timeout. After a failure, reproduce and fix
+  it with targeted tests before starting the next full acceptance run.
+- Resume from the latest handoff and relevant files, not repeated reads of the entire history.
+- When WASM exports change, run the existing `wasm_public_api_signatures_unchanged` Rust test and
+  review the API snapshot diff in the same change. Never regenerate blindly to silence a failure.
+- After an authorized push, inspect workflows for that exact commit. Fix actual failures before
+  another feature batch; distinguish `action_required` from a test failure and request approval
+  without bypassing repository security. Report pending checks as pending, not successful.
 
 Hand off with the three functions, seed examples, E2E result, service URL, and commit state.

@@ -1,3 +1,4 @@
+import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   editingSessionAtom,
@@ -7,16 +8,19 @@ import {
   projectionSnapshotAtom,
   runFreezeAtom,
 } from '@einfach/spreadsheet-ui-core'
+import { msg } from '@lingui/core/macro'
+import { Trans, useLingui } from '@lingui/react/macro'
 
 const OPTIONS = [
-  ['first-row', 'Freeze top row'],
-  ['first-column', 'Freeze first column'],
-  ['selection', 'Freeze at active cell'],
-  ['unfreeze', 'Unfreeze panes'],
+  ['first-row', msg`Freeze top row`],
+  ['first-column', msg`Freeze first column`],
+  ['selection', msg`Freeze at active cell`],
+  ['unfreeze', msg`Unfreeze panes`],
 ] as const
 
 /** 菜单只提交动作，当前冻结状态直接读原生投影。 */
 export function FreezeTools() {
+  const { i18n, t } = useLingui()
   const run = useSetAtom(runFreezeAtom)
   const feedback = useAtomValue(freezeFeedbackAtom)
   const freeze = useAtomValue(projectedFreezeAtom)
@@ -28,8 +32,8 @@ export function FreezeTools() {
   return (
     <>
       <select
-        className="paste-options-select"
-        aria-label="Freeze panes"
+        className="tool-select paste-options-select"
+        aria-label={t`Freeze panes`}
         value=""
         disabled={!ready || editing || feedback.busy}
         onChange={(event) => {
@@ -38,16 +42,16 @@ export function FreezeTools() {
         }}
       >
         <option value="" disabled>
-          {frozen ? 'Panes frozen' : 'Freeze panes'}
+          {frozen ? t`Panes frozen` : t`Freeze panes`}
         </option>
         {OPTIONS.map(([value, label]) => (
           <option key={value} value={value} disabled={value === 'unfreeze' && !frozen}>
-            {label}
+            {i18n._(label)}
           </option>
         ))}
       </select>
-      {feedback.busy && <span role="status">Updating freeze…</span>}
-      {feedback.error && <span role="alert">{feedback.error}</span>}
+      {feedback.busy && <span role="status"><Trans>Updating freeze…</Trans></span>}
+      {feedback.error && <span role="alert">{translateFeedback(i18n, feedback.error)}</span>}
     </>
   )
 }

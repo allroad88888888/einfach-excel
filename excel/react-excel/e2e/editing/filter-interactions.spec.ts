@@ -47,9 +47,11 @@ test('filtered formula copy stays frozen after clear and pastes compacted formul
   expect((await copy(page)).split('\n')).toHaveLength(2)
   await filterMenu(page).selectOption('clear')
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
-  await select(page, 'E30')
   // 只粘贴两条筛选结果；相邻格可能有其它演示种子，必须保留原值。
+  // 名称框只保证目标可见，不保证目标后面两行也已挂载。
+  await select(page, 'E32')
   const adjacentBefore = await cell(page, '31:4').innerText()
+  await select(page, 'E30')
   await page.getByRole('button', { name: 'Paste', exact: true }).click()
   await expect(page.getByLabel('Clipboard status')).toContainText('Pasted')
   await select(page, 'E30')

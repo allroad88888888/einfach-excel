@@ -131,22 +131,35 @@ test('bounds and protection reject before write; native errors preserve the draf
   expect(await run('save')).toBe(false)
   expect(store.getter(nativeDataValidationPanelAtom)).toMatchObject({
     busy: false, min: '9', max: '2', error: 'Invalid data validation range' })
+  await run({ min: '2', max: '9' })
+  expect(await run('save')).toBe(true)
+  expect(request).toHaveBeenCalledTimes(3)
+  expect(request.mock.lastCall).toMatchObject(['validation.change', {
+    range: { rowStart: 4, rowEnd: 4, colStart: 1, colEnd: 1 },
+    rule: { min: 2, max: 9 },
+  }])
+  expect(store.getter(nativeDataValidationPanelAtom)).toMatchObject({ sheetId: null, busy: false })
 })
 
-test.each([false, true])('disconnected pending read ignores success/error (%s)', async (reject) => {
+test.each([
+  ['open', false], ['open', true], ['save', false], ['save', true],
+] as const)('disconnected pending %s ignores success/error (%s)', async (action, reject) => {
   const { store, request, run } = setup()
+  if (action === 'save') await run('open')
+  const before = store.getter(projectionSnapshotAtom)
   let finish!: (value: unknown) => void
   let fail!: (error: Error) => void
   request.mockImplementationOnce(() => new Promise((resolve, rejectRead) => {
     finish = resolve; fail = rejectRead
   }))
-  const pending = run('open')
+  const pending = run(action)
   expect(await run('close')).toBe(false)
   store.setter(setRustWorkbookConnectionAtom, null)
   if (reject) fail(new Error('Old worker failed'))
   else finish(null)
   expect(await pending).toBe(false)
   expect(store.getter(nativeDataValidationPanelAtom).sheetId).toBeNull()
+  expect(store.getter(projectionSnapshotAtom)).toBe(before)
 })
 
 test.each(['001', '=1+2'])('list selection %s reuses one normal literal edit', async (item) => {

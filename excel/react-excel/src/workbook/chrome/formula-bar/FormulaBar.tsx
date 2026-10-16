@@ -1,3 +1,4 @@
+import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   cancelEditingAtom,
@@ -19,9 +20,11 @@ import { useFormulaInput } from '../../grid/editor/use-formula-input'
 import { FormulaAssist } from '../../formula/FormulaAssist'
 import { NameBox } from './NameBox'
 import './formula-bar.css'
+import { useLingui } from '@lingui/react/macro'
 
 /** Edits the active cell through the same atom session as the in-cell editor. */
 export function FormulaBar() {
+  const { i18n, t } = useLingui()
   const selection = useAtomValue(selectionSnapshotAtom)
   const sourceText = useAtomValue(activeCellInputTextAtom)
   const editingSession = useAtomValue(editingSessionAtom)
@@ -131,7 +134,7 @@ export function FormulaBar() {
         </span>
         <textarea
           ref={inputRef}
-          aria-label="Active cell value"
+          aria-label={t`Active cell value`}
           aria-autocomplete="list"
           aria-controls={formulaInput.activeOption ? formulaInput.listId : undefined}
           aria-activedescendant={formulaInput.activeOption}
@@ -157,7 +160,7 @@ export function FormulaBar() {
       <FormulaAssist inputRef={inputRef} id={formulaInput.listId} source="formula-bar" />
       {feedback && (
         <p className="formula-edit-feedback" id="formula-edit-feedback" role="alert">
-          {feedback.message}
+          {translateFeedback(i18n, feedback.message)}
         </p>
       )}
     </>

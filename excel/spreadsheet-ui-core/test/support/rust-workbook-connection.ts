@@ -21,6 +21,7 @@ export interface TestRustWorkbookHandlers {
   previewNumberFormat?: (request: RustWorkbookCommands['format.preview']['payload']) => Promise<string>
   exportClipboard?: (request: RustClipboardExportRequest) => Promise<RustClipboardExport>
   captureClipboard?: (request: RustClipboardCaptureRequest) => Promise<RustClipboardCapture>
+  finishClipboardCapture?: (request: RustWorkbookCommands['clipboard.finishCapture']['payload']) => Promise<void>
   pasteClipboard?: (
     request: RustClipboardPasteRequest,
     projection: VisibleProjectionRequest,
@@ -50,6 +51,8 @@ export function createTestRustWorkbookConnection(
     if (command === 'clipboard.capture' && handlers.captureClipboard) {
       return handlers.captureClipboard(payload as RustClipboardCaptureRequest)
     }
+    if (command === 'clipboard.finishCapture')
+      return handlers.finishClipboardCapture?.(payload as RustWorkbookCommands['clipboard.finishCapture']['payload'])
     if (command === 'clipboard.paste' && handlers.pasteClipboard) {
       const input = payload as {
         request: RustClipboardPasteRequest

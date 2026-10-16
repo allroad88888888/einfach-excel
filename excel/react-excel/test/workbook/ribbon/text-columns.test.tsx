@@ -62,6 +62,74 @@ test('shows native preview, keeps drafts inert and returns focus after applying'
   expect(screen.getByRole('button', { name: 'Text to columns' })).toHaveFocus()
 })
 
+test('preview failure keeps the draft and explicit preview retry enables one apply', async () => {
+  const { write, preview } = await setup()
+  await change('Destination cell', 'C1')
+  preview.mockRejectedValueOnce(new Error('Preview unavailable'))
+  await click('Update preview')
+  expect(screen.getByRole('alert')).toHaveTextContent('Preview unavailable')
+  expect(screen.getByLabelText('Destination cell')).toHaveValue('C1')
+  expect(screen.getByRole('button', { name: 'Apply split' })).toBeDisabled()
+  expect(write).not.toHaveBeenCalled()
+  expect(preview).toHaveBeenCalledTimes(2)
+  await click('Update preview')
+  expect(screen.queryByRole('alert')).toBeNull()
+  expect(screen.getByRole('button', { name: 'Apply split' })).toBeEnabled()
+  await click('Apply split')
+  expect(write).toHaveBeenCalledTimes(1)
+  expect(preview).toHaveBeenCalledTimes(3)
+  expect(screen.queryByRole('dialog')).toBeNull()
+})
+
+test('unconfirmed apply requires a fresh preview and overwrite consent before explicit retry',
+  async () => {
+    const { write, preview } = await setup(2)
+    await act(async () => {
+      fireEvent.click(screen.getByRole('checkbox', { name: /Overwrite 2/ }))
+    })
+    write.mockRejectedValueOnce(new Error('Confirmation lost'))
+    await click('Apply split')
+    expect(screen.getByRole('alert')).toHaveTextContent('Confirmation lost')
+    expect(screen.getByRole('button', { name: 'Apply split' })).toBeDisabled()
+    expect(screen.queryByRole('table', { name: 'Split preview' })).toBeNull()
+    expect(write).toHaveBeenCalledTimes(1)
+    expect(preview).toHaveBeenCalledTimes(1)
+    await click('Update preview')
+    const overwrite = screen.getByRole('checkbox', { name: /Overwrite 2/ })
+    expect(overwrite).not.toBeChecked()
+    expect(screen.getByRole('button', { name: 'Apply split' })).toBeDisabled()
+    await act(async () => { fireEvent.click(overwrite) })
+    await click('Apply split')
+    expect(write).toHaveBeenCalledTimes(2)
+    expect(write.mock.calls[1][0].projection.requestId)
+      .not.toBe(write.mock.calls[0][0].projection.requestId)
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Text to columns' })).toHaveFocus()
+  })
+
+test('pending apply blocks cancellation and duplicate submission until acknowledgement', async () => {
+  const { write } = await setup()
+  let finish!: (value: Awaited<ReturnType<typeof write>>) => void
+  write.mockImplementationOnce(() => new Promise((resolve) => { finish = resolve }))
+  await click('Apply split')
+  const dialog = screen.getByRole('dialog')
+  expect(screen.getByRole('button', { name: 'Apply split' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled()
+  expect(screen.getByLabelText('Destination cell')).toBeDisabled()
+  await act(async () => {
+    fireEvent(dialog, new Event('cancel', { cancelable: true }))
+    fireEvent.submit(dialog.querySelector('form')!)
+  })
+  expect(screen.getByRole('dialog')).toBe(dialog)
+  expect(write).toHaveBeenCalledTimes(1)
+  await act(async () => finish({
+    changedCells: 4, target: { rowStart: 0, rowEnd: 1, colStart: 2, colEnd: 3 },
+    projection: { ...write.mock.calls[0][0].projection, revision: 1, cells: [] },
+  }))
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(screen.getByRole('button', { name: 'Text to columns' })).toHaveFocus()
+})
+
 test('overwrite checkbox gates Apply and is cleared after a draft change', async () => {
   const { write } = await setup(2)
   const apply = screen.getByRole('button', { name: 'Apply split' })

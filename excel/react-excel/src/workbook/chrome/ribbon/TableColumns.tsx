@@ -1,3 +1,4 @@
+import { Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useId } from 'react'
 import { nativeTablePanelAtom, runNativeTablePanelAtom } from '@einfach/spreadsheet-ui-core'
@@ -10,21 +11,22 @@ export function TableColumns() {
   const table = state.currentTable
   if (!table) return null
   return <section className="table-panel-columns" aria-labelledby={`${id}-title`}>
-    <h3 id={`${id}-title`}>Column names</h3>
-    <p>Rename a column here or edit its header cell. Formulas update with the name.</p>
+    <h3 id={`${id}-title`}><Trans>Column names</Trans></h3>
+    <p><Trans>Rename a column here or edit its header cell.
+      Formulas update with the name.</Trans></p>
     <form onSubmit={(event) => { event.preventDefault(); void run('save-column') }}>
       <fieldset disabled={state.busy}>
-        <label htmlFor={`${id}-column`}>Column</label>
+        <label htmlFor={`${id}-column`}><Trans>Column</Trans></label>
         <select id={`${id}-column`} value={state.column}
           onChange={(event) => void run({ column: event.currentTarget.value })}>
           {table.columns.map((column) => <option key={column} value={column}>{column}</option>)}
         </select>
-        <label htmlFor={`${id}-name`}>New column name</label>
+        <label htmlFor={`${id}-name`}><Trans>New column name</Trans></label>
         <input id={`${id}-name`} value={state.newColumnName} required autoComplete="off"
           onChange={(event) => void run({ newColumnName: event.currentTarget.value })} />
       </fieldset>
       <div className="table-panel-actions">
-        <button type="submit" disabled={state.busy}>Rename column</button>
+        <button type="submit" disabled={state.busy}><Trans>Rename column</Trans></button>
       </div>
     </form>
   </section>

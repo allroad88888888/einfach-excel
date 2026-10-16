@@ -130,3 +130,40 @@ fn automatic_color_masks_inheritance_only_in_selected_cells() {
     history.undo(&mut book).unwrap();
     assert_eq!(book.sheet(0).unwrap().get_format("A1").color.as_deref(), Some("#ff0000"));
 }
+
+#[test]
+fn axis_formats_cross_merged_anchors_or_covered_cells_without_expanding_the_axis() {
+    for scope in [StyleScope::Row, StyleScope::Column] {
+        for selected in ["C3", "D4"] {
+            let mut book = Workbook::new();
+            let mut history = WorkbookHistory::default();
+            book.set_formula(0, "C3", "=10*2");
+            let merge = range("C3", "D4");
+            book.sheet_mut(0).unwrap().restore_merged_ranges(vec![merge]).unwrap();
+            let target = range(selected, selected);
+            let before = book.sheet(0).unwrap().snapshot_format_range(range("A1", "Z9"));
+            let patch = CellStyle { bold: Some(true), color: Some(Some("#ff0000".into())),
+                number_format: Some(NumberFormat::Percent { digits: 0 }), ..Default::default() };
+            history.patch_format_selection(&mut book, 0, &[(target, scope)], patch.clone()).unwrap();
+            for address in ["B3", "C3", "D3", "C4", "D4", "E4", "C5", "D5"] {
+                let cell = CellAddress::parse(address).unwrap();
+                let affected = if scope == StyleScope::Row {
+                    cell.row == target.start.row
+                } else { cell.col == target.start.col };
+                let mut expected = CellFormat::default();
+                if affected { patch.apply_to(&mut expected); }
+                assert_eq!(book.sheet(0).unwrap().get_format(address), expected, "{address}");
+            }
+            let after = book.sheet(0).unwrap().snapshot_format_range(range("A1", "Z9"));
+            assert_eq!(history.undo_count(), 1);
+            history.undo(&mut book).unwrap();
+            assert_eq!(book.sheet(0).unwrap().snapshot_format_range(range("A1", "Z9")), before);
+            assert_eq!(history.undo_count(), 0);
+            history.redo(&mut book).unwrap();
+            assert_eq!(book.sheet(0).unwrap().snapshot_format_range(range("A1", "Z9")), after);
+            assert_eq!(book.sheet(0).unwrap().merged_ranges(), &[merge]);
+            assert_eq!(book.get_cell("Sheet1", "C3"), Value::Number(20.0));
+            assert_eq!(book.sheet(0).unwrap().get_formula("C3").as_deref(), Some("=10*2"));
+        }
+    }
+}

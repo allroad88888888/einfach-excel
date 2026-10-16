@@ -11,6 +11,12 @@ struct ClipboardCaptureJSON {
     cut: bool,
 }
 
+enum ClipboardSlot {
+    Clipboard,
+    Pending,
+    Painter,
+}
+
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct ClipboardPastePolicyJSON {
@@ -36,6 +42,22 @@ struct ClipboardRangeJSON {
 
 #[wasm_bindgen]
 impl WasmWorkbook {
+    /// 浏览器剪贴板写入可能失败，先暂存，不改变正式快照。
+    pub fn prepare_clipboard(
+        &mut self, sheet_idx: u32, start_row: u32, start_col: u32,
+        end_row: u32, end_col: u32, cut: bool,
+    ) -> Result<JsValue, JsValue> {
+        self.capture_clipboard_slot(sheet_idx, start_row, start_col, end_row, end_col, cut, ClipboardSlot::Pending)
+    }
+
+    /// 成功才提升临时快照；失败立即释放，不复制工作簿或新增历史。
+    pub fn finish_clipboard_capture(&mut self, commit: bool) {
+        let pending = self.pending_clipboard.take();
+        if commit && pending.is_some() {
+            self.clipboard = pending;
+        }
+    }
+
     pub fn capture_clipboard(
         &mut self,
         sheet_idx: u32,
@@ -45,7 +67,7 @@ impl WasmWorkbook {
         end_col: u32,
         cut: bool,
     ) -> Result<JsValue, JsValue> {
-        self.capture_clipboard_slot(sheet_idx, start_row, start_col, end_row, end_col, cut, false)
+        self.capture_clipboard_slot(sheet_idx, start_row, start_col, end_row, end_col, cut, ClipboardSlot::Clipboard)
     }
 
     /// 格式刷使用独立快照槽；保持普通剪贴板既有导出签名。
@@ -57,14 +79,14 @@ impl WasmWorkbook {
         end_row: u32,
         end_col: u32,
     ) -> Result<JsValue, JsValue> {
-        self.capture_clipboard_slot(sheet_idx, start_row, start_col, end_row, end_col, false, true)
+        self.capture_clipboard_slot(sheet_idx, start_row, start_col, end_row, end_col, false, ClipboardSlot::Painter)
     }
 }
 
 impl WasmWorkbook {
     fn capture_clipboard_slot(
         &mut self, sheet_idx: u32, start_row: u32, start_col: u32,
-        end_row: u32, end_col: u32, cut: bool, painter: bool,
+        end_row: u32, end_col: u32, cut: bool, slot: ClipboardSlot,
     ) -> Result<JsValue, JsValue> {
         let snapshot = self
             .workbook
@@ -84,10 +106,10 @@ impl WasmWorkbook {
             cut,
         })
         .map_err(|err| JsValue::from_str(&err.to_string()))?;
-        if painter {
-            self.format_painter = Some(snapshot);
-        } else {
-            self.clipboard = Some(snapshot);
+        match slot {
+            ClipboardSlot::Clipboard => self.clipboard = Some(snapshot),
+            ClipboardSlot::Pending => self.pending_clipboard = Some(snapshot),
+            ClipboardSlot::Painter => self.format_painter = Some(snapshot),
         }
         Ok(result)
     }

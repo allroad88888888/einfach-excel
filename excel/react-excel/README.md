@@ -63,6 +63,7 @@ Summary 的 `A46:C49` 是 `CalculatedOrders`：数量 × 单价，`C47:C49` 初�
 src/
 ├── main.tsx
 ├── app/                              # 演示站入口和全局样式
+├── i18n/                             # Lingui 界面语言与中英文 PO 词典
 ├── page/
 │   ├── DemoPage.tsx                  # 左侧导航与当前 demo 内容
 │   ├── PageSidebar.tsx               # 根据注册表渲染 demo 菜单
@@ -108,6 +109,37 @@ test/
 `App.tsx`、`DemoPage.tsx`、`WorkbookRuntimeProvider.tsx` 与 `workbook/**` 都不需要修改。
 
 ## 启动与验证
+
+开发环境要求 Node.js **22.19+**、pnpm 10。当前主线使用 Vite 8、React 插件 6、Vitest 5；
+暂停中的 Solid／Vue 应用不随本轮迁移。仓库根 `vitest.config.ts` 通过 `test.projects` 统一运行主线测试。
+
+### 界面语言
+
+右上角选择 English／中文，或打开 `/?locale=zh-CN`、`/?locale=en-US`。
+初始化优先级是 URL、已保存的语言偏好、浏览器语言，最后回退英文；不支持的语言会跳过。
+切换时保存偏好，已有 `locale` 参数也会同步，刷新后不反跳。存储被禁用时仍能切换。
+
+覆盖工具栏、现有功能弹窗、统计详情、工作表操作、加载状态及可访问标签。
+编辑拒绝、复制粘贴、定位、排序筛选、文件恢复等已知提示在显示时翻译；
+Core／Rust 返回值不变，未知诊断保留原文，不能据词典“缺失为零”宣称所有底层异常已翻译。
+原始数据、表名、公式函数名和工作簿数字格式语义不翻译。
+
+同页工作簿共用 Lingui 的界面语言，但各自保留 atom store 与 Rust runtime。
+使用官方 `I18nProvider`、`useLingui`／`Trans`／`msg`，不新增语言 atom 或自定义翻译 Hook。
+Vite 与 Vitest 共用官方 Lingui 插件的原生宏转换，直接编译 `.po`，修改词典走 Vite 热更新，
+不提交另一份编译后的 JS 词典，也不依赖 Babel 宏插件。
+
+```bash
+pnpm --filter @einfach/react-excel i18n:extract # 从源码提取并清理词条
+# 编辑 src/i18n/locales/zh/messages.po，再检查缺失／非法翻译
+pnpm --filter @einfach/react-excel i18n:check
+```
+
+生产构建也会拒绝词典缺失和编译错误。新增文案必须用可静态提取的宏，
+模块级菜单用 `msg` 保存描述符、渲染时 `i18n._()`，不能提前翻译或用动态字符串充当消息 ID。
+Core 的已知提示收在 `i18n/feedback-messages.ts`，带参数结果由 `translate-feedback.ts` 精确匹配。
+这两个文件只处理展现文案，不能用于翻译用户数据。新增提示应补提取词条及对应回归。
+`test/i18n/source-copy.test.ts` 阻止产品 JSX 和可访问标签重新出现未标记的英文常量。
 
 ```bash
 pnpm --filter @einfach/excel-wasm build:wasm # Rust 源码变化后重建本地 WASM

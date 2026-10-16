@@ -1,3 +1,5 @@
+import { translateFeedback } from '../../../i18n/translate-feedback'
+import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   editingSessionAtom,
@@ -6,14 +8,15 @@ import {
 } from '@einfach/spreadsheet-ui-core'
 import { MergeConfirmation } from './MergeConfirmation'
 
-const OPTIONS = [
-  ['merge', 'Merge cells'],
-  ['center', 'Merge and center'],
-  ['unmerge', 'Unmerge cells'],
-] as const
-
 /** 合并菜单只发 command atom；确认、保护和数据写入不放进 React。 */
 export function MergeTools() {
+  const { i18n, t } = useLingui()
+  const OPTIONS = [
+    ['merge', t`Merge cells`],
+    ['center', t`Merge and center`],
+    ['unmerge', t`Unmerge cells`],
+  ] as const
+
   const run = useSetAtom(runSelectionMergeAtom)
   const state = useAtomValue(selectionMergeFeedbackAtom)
   const editing = useAtomValue(editingSessionAtom).source !== null
@@ -21,7 +24,7 @@ export function MergeTools() {
     <>
       <select
         className="tool-select paste-options-select"
-        aria-label="Merge cells"
+        aria-label={t`Merge cells`}
         value=""
         disabled={editing || state.busy || state.pending !== null}
         onChange={(event) => {
@@ -29,17 +32,17 @@ export function MergeTools() {
           if (option) void run(option[0])
         }}
       >
-        <option value="" disabled>
+        <option value="" disabled><Trans>
           Merge / Unmerge
-        </option>
+        </Trans></option>
         {OPTIONS.map(([value, label]) => (
           <option key={value} value={value}>
             {label}
           </option>
         ))}
       </select>
-      {state.busy && <span role="status">Merging cells…</span>}
-      {state.error && <span role="alert">{state.error}</span>}
+      {state.busy && <span role="status"><Trans>Merging cells…</Trans></span>}
+      {state.error && <span role="alert">{translateFeedback(i18n, state.error)}</span>}
       <MergeConfirmation />
     </>
   )

@@ -1,3 +1,4 @@
+import { useLingui } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   activeWorkbookSheetAtom,
@@ -20,6 +21,7 @@ export function GridHeading({
   focusGrid: () => void
   style?: CSSProperties
 }) {
+  const { t } = useLingui()
   const sheet = useAtomValue(activeWorkbookSheetAtom)
   const selection = useAtomValue(selectionSnapshotAtom)
   const select = useSetAtom(selectGridHeaderAtom)
@@ -34,7 +36,7 @@ export function GridHeading({
         className="sheet-heading-button"
         role={axis === 'column' ? 'columnheader' : undefined}
         type="button"
-        aria-label={`Select ${axis} ${label}`}
+        aria-label={axis === 'row' ? t`Select row ${label}` : t`Select column ${label}`}
         aria-selected={axis === 'column' ? selected : undefined}
         aria-pressed={axis === 'row' ? selected : undefined}
         onPointerDown={(event) => {

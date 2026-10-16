@@ -1,3 +1,4 @@
+import { useLingui } from '@lingui/react/macro'
 import { useStore } from '@einfach/react'
 import { createCanvasCells, type CanvasCellsInput } from '@einfach/canvas-cells'
 import { useLayoutEffect, useRef } from 'react'
@@ -5,6 +6,7 @@ import { bindCanvasViewport } from './canvas-viewport'
 
 /** React only owns the canvas element; the renderer owns its cell lifetimes and subscriptions. */
 export function CanvasCells(input: CanvasCellsInput) {
+  const { t } = useLingui()
   const canvas = useRef<HTMLCanvasElement>(null)
   const renderer = useRef<ReturnType<typeof createCanvasCells>>()
   const viewport = useRef<ReturnType<typeof bindCanvasViewport>>()
@@ -38,6 +40,6 @@ export function CanvasCells(input: CanvasCellsInput) {
     // Position, backing-store resize and pixels must be ready in the same browser paint.
     viewport.current?.sync()
   }, [input])
-  return <canvas ref={canvas} aria-label="Canvas worksheet cells" role="img"
+  return <canvas ref={canvas} aria-label={t`Canvas worksheet cells`} role="img"
     style={{ display: 'block', touchAction: 'none' }} />
 }

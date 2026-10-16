@@ -54,7 +54,7 @@ test('clear formatting overrides inherited row styles only inside the target', a
   await page.getByRole('button', { name: 'Clear formatting', exact: true }).click()
   await expect(cell).toHaveCSS('font-weight', '400')
   await expect(page.locator('td[data-cell="2:0"]')).toHaveCSS('font-weight', '700')
-  await page.getByRole('columnheader', { name: 'Select column B' }).click()
+  await page.getByRole('columnheader', { name: 'Select column B', exact: true }).click()
   await page.getByRole('button', { name: 'Bold', exact: true }).click()
   await expect(cell).toHaveCSS('font-weight', '700')
 })

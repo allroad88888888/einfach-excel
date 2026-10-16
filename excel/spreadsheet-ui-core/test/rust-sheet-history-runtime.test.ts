@@ -78,9 +78,11 @@ async function setup() {
       return { rowHeights: [], colWidths: [] }
     }
 
-    capture_clipboard() {
+    prepare_clipboard() {
       return { text: 'value' }
     }
+
+    finish_clipboard_capture() {}
 
     paste_clipboard = paste
   }
@@ -203,6 +205,7 @@ test('native reorder is resolved by keys, not stale indices or names', async () 
 test('a structural history response invalidates the old clipboard token before native paste', async () => {
   const r = await setup()
   const copied = await r.call('clipboard.capture', { sheetId: 'orders', range, cut: false })
+  await r.call('clipboard.finishCapture', { token: copied.result.token, commit: true })
   r.record('1', 0, 'Rename worksheet')
   expect((await r.call('history.apply', { direction: 'undo', projection })).ok).toBe(true)
   const result = await r.call('clipboard.paste', {

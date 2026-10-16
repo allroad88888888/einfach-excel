@@ -5,7 +5,7 @@ import { createSpreadsheetUi, initializeWorkbookDocumentAtom, runVisibleProjecti
   type VisibleProjectionRequest, type RustWorkbookCommands } from '@einfach/spreadsheet-ui-core'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
 import { CalculationTools } from '../../../src/workbook/chrome/ribbon/CalculationTools'
-import { SpreadsheetGrid } from '../../../src/workbook/grid/cells/SpreadsheetGrid'
+import { SpreadsheetGrid } from '@einfach/react-cells'
 
 type Input = RustWorkbookCommands['formula.recalculate']['payload']
 const window = { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 1 }

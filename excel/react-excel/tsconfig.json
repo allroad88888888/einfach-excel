@@ -23,6 +23,8 @@
     "./test/**/*.tsx",
     "./e2e/**/*.ts",
     "./playwright.config.ts",
+    "./lingui.config.ts",
+    "./vite.config.ts",
     "./vitest.config.ts"
   ]
 }

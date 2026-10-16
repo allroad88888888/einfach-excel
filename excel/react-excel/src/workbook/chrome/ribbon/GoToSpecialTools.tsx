@@ -1,3 +1,5 @@
+import { translateFeedback } from '../../../i18n/translate-feedback'
+import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useEffect, useId, useRef } from 'react'
 import { goToSpecialAvailableAtom, goToSpecialPanelAtom, runGoToSpecialAtom } from '@einfach/spreadsheet-ui-core'
@@ -6,6 +8,7 @@ import './go-to.css'
 
 /** 三种条件共享一个原生查询命令；组件只负责选项、提示与 DOM 焦点。 */
 export function GoToSpecialTools() {
+  const { i18n, t } = useLingui()
   const panel = useAtomValue(goToSpecialPanelAtom)
   const available = useAtomValue(goToSpecialAvailableAtom)
   const run = useSetAtom(runGoToSpecialAtom)
@@ -27,26 +30,26 @@ export function GoToSpecialTools() {
     }
   }, [panel.open])
   return <>
-    <button ref={buttonRef} type="button" className="tool-button" aria-label="Go to special"
-      title="Select constants, formulas or blanks" disabled={!available} onClick={() => void run('open')}>
+    <button ref={buttonRef} type="button" className="tool-button" aria-label={t`Go to special`}
+      title={t`Select constants, formulas or blanks`} disabled={!available} onClick={() => void run('open')}>
       <span aria-hidden="true">⌖</span>
     </button>
-    {panel.notice && <span role="status" className="visually-hidden">{panel.notice}</span>}
+    {panel.notice && <span role="status" className="visually-hidden">{translateFeedback(i18n, panel.notice)}</span>}
     {panel.open && <dialog ref={dialogRef} className="go-to-dialog" aria-labelledby={`${id}-title`}
       aria-busy={panel.busy} onKeyDown={cycleDialogFocus}
       onCancel={(event) => { event.preventDefault(); void run('close') }}>
-      <h2 id={`${id}-title`}>Go to special</h2>
-      <p className="go-to-hint">{panel.scope}</p>
-      <p className="go-to-hint">Includes hidden cells. Merged cells are selected as a whole.</p>
-      <div className="go-to-special-options" role="group" aria-label="Select cells by condition">
-        <button ref={firstRef} disabled={!available || !panel.continuous} onClick={() => void run('constants')}>Constants</button>
-        <button disabled={!available || !panel.continuous} onClick={() => void run('formulas')}>Formulas</button>
-        <button disabled={!available || !panel.continuous} onClick={() => void run('blanks')}>Blanks</button>
+      <h2 id={`${id}-title`}><Trans>Go to special</Trans></h2>
+      <p className="go-to-hint">{translateFeedback(i18n, panel.scope)}</p>
+      <p className="go-to-hint"><Trans>Includes hidden cells. Merged cells are selected as a whole.</Trans></p>
+      <div className="go-to-special-options" role="group" aria-label={t`Select cells by condition`}>
+        <button ref={firstRef} disabled={!available || !panel.continuous} onClick={() => void run('constants')}><Trans>Constants</Trans></button>
+        <button disabled={!available || !panel.continuous} onClick={() => void run('formulas')}><Trans>Formulas</Trans></button>
+        <button disabled={!available || !panel.continuous} onClick={() => void run('blanks')}><Trans>Blanks</Trans></button>
       </div>
-      {!panel.continuous && <p role="alert" className="go-to-error">Select one continuous range before using Go to special.</p>}
-      {panel.busy && <p role="status">Locating cells…</p>}
-      {panel.error && <p role="alert" className="go-to-error">{panel.error}</p>}
-      <div className="go-to-actions"><button type="button" onClick={() => void run('close')}>Cancel</button></div>
+      {!panel.continuous && <p role="alert" className="go-to-error"><Trans>Select one continuous range before using Go to special.</Trans></p>}
+      {panel.busy && <p role="status"><Trans>Locating cells…</Trans></p>}
+      {panel.error && <p role="alert" className="go-to-error">{translateFeedback(i18n, panel.error)}</p>}
+      <div className="go-to-actions"><button type="button" onClick={() => void run('close')}><Trans>Cancel</Trans></button></div>
     </dialog>}
   </>
 }

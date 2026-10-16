@@ -1,3 +1,5 @@
+import { translateFeedback } from '../../../i18n/translate-feedback'
+import { useLingui, Trans } from '@lingui/react/macro'
 import { useEffect, useId, useRef } from 'react'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
@@ -8,26 +10,27 @@ import {
 import { readBrowserClipboard } from '../../clipboard/browser-clipboard'
 import './paste-special.css'
 
-const MODES = [
-  ['all', 'All contents and formatting'],
-  ['values', 'Values only'],
-  ['formats', 'Formatting only'],
-  ['values-formats', 'Values and formatting'],
-  ['formulas', 'Formulas only'],
-  ['formulas-number-formats', 'Formulas and number formats'],
-  ['values-number-formats', 'Values and number formats'],
-  ['column-widths', 'Column widths only'],
-] as const
-const ARITHMETIC = [
-  ['none', 'None'],
-  ['add', 'Add'],
-  ['subtract', 'Subtract'],
-  ['multiply', 'Multiply'],
-  ['divide', 'Divide'],
-] as const
-
 /** 模态框只处理 DOM；选项直接读取 UI Core atom，提交时才读取系统剪贴板。 */
 export function PasteSpecialTools() {
+  const { i18n, t } = useLingui()
+  const MODES = [
+    ['all', t`All contents and formatting`],
+    ['values', t`Values only`],
+    ['formats', t`Formatting only`],
+    ['values-formats', t`Values and formatting`],
+    ['formulas', t`Formulas only`],
+    ['formulas-number-formats', t`Formulas and number formats`],
+    ['values-number-formats', t`Values and number formats`],
+    ['column-widths', t`Column widths only`],
+  ] as const
+  const ARITHMETIC = [
+    ['none', t`None`],
+    ['add', t`Add`],
+    ['subtract', t`Subtract`],
+    ['multiply', t`Multiply`],
+    ['divide', t`Divide`],
+  ] as const
+
   const state = useAtomValue(pasteSpecialPanelAtom)
   const editing = useAtomValue(editingSessionAtom).source !== null
   const run = useSetAtom(runPasteSpecialPanelAtom)
@@ -53,8 +56,8 @@ export function PasteSpecialTools() {
         ref={buttonRef}
         className="tool-button"
         type="button"
-        aria-label="Paste special"
-        title="Paste special"
+        aria-label={t`Paste special`}
+        title={t`Paste special`}
         disabled={editing || state.busy}
         onClick={() => void run('open')}
       >
@@ -71,15 +74,15 @@ export function PasteSpecialTools() {
             void run('close')
           }}
         >
-          <h2 id={`${id}-title`}>Paste special</h2>
-          <p id={`${id}-hint`}>Combine options for this paste. Ordinary Paste stays unchanged.</p>
+          <h2 id={`${id}-title`}><Trans>Paste special</Trans></h2>
+          <p id={`${id}-hint`}><Trans>Combine options for this paste. Ordinary Paste stays unchanged.</Trans></p>
           <form
             onSubmit={(event) => {
               event.preventDefault()
               void run({ action: 'apply', read: readBrowserClipboard })
             }}
           >
-            <label htmlFor={`${id}-mode`}>Paste content</label>
+            <label htmlFor={`${id}-mode`}><Trans>Paste content</Trans></label>
             <select
               id={`${id}-mode`}
               value={state.mode}
@@ -95,7 +98,7 @@ export function PasteSpecialTools() {
                 </option>
               ))}
             </select>
-            <label htmlFor={`${id}-arithmetic`}>Operation</label>
+            <label htmlFor={`${id}-arithmetic`}><Trans>Operation</Trans></label>
             <select
               id={`${id}-arithmetic`}
               value={state.arithmetic}
@@ -120,28 +123,28 @@ export function PasteSpecialTools() {
                     disabled={state.busy || widths}
                     onChange={(event) => void run({ field, value: event.currentTarget.checked })}
                   />
-                  {field === 'transpose' ? 'Transpose' : 'Skip blanks'}
+                  {field === 'transpose' ? t`Transpose` : t`Skip blanks`}
                 </label>
               ))}
             </div>
             {widths && (
-              <p>
+              <p><Trans>
                 Changes whole columns only. Cell contents, styles and row heights stay unchanged.
-              </p>
+              </Trans></p>
             )}
             {state.error && (
               <p role="alert" className="paste-special-error">
-                {state.error}
+                {translateFeedback(i18n, state.error)}
               </p>
             )}
-            {state.busy && <p role="status">Pasting…</p>}
+            {state.busy && <p role="status"><Trans>Pasting…</Trans></p>}
             <div className="paste-special-actions">
-              <button type="button" disabled={state.busy} onClick={() => void run('close')}>
+              <button type="button" disabled={state.busy} onClick={() => void run('close')}><Trans>
                 Cancel
-              </button>
-              <button type="submit" disabled={state.busy}>
+              </Trans></button>
+              <button type="submit" disabled={state.busy}><Trans>
                 Apply paste
-              </button>
+              </Trans></button>
             </div>
           </form>
         </dialog>

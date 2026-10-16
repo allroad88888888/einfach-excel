@@ -1,3 +1,6 @@
+import { useLingui, Trans } from '@lingui/react/macro'
+import type { I18n } from '@lingui/core'
+import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useAtomValue } from '@einfach/react'
 import {
   activeWorkbookSheetAtom,
@@ -36,25 +39,26 @@ function rowNumbers(rowStart: number, rowEnd: number): readonly number[] {
   )
 }
 
-function projectionState(viewport: WorkbookViewport) {
+function projectionState(viewport: WorkbookViewport, i18n: I18n) {
   if (viewport.status === 'error') {
     return (
       <div className="grid-projection-state" role="alert">
-        {viewport.error?.message}
+        {translateFeedback(i18n, viewport.error?.message)}
       </div>
     )
   }
   if (viewport.status !== 'ready' && !viewport.hasResult) {
     return (
-      <div className="grid-projection-state" role="status">
+      <div className="grid-projection-state" role="status"><Trans>
         Loading visible cells…
-      </div>
+      </Trans></div>
     )
   }
   return null
 }
 
 function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: WorkbookDocumentSheet }) {
+  const { t, i18n } = useLingui()
   const painter = useAtomValue(formatPainterAtom)
   const freeze = useAtomValue(projectedFreezeAtom)
   const sizeOverrides = useAtomValue(viewportGeometrySizesAtom)
@@ -138,13 +142,12 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
   } as CSSProperties
 
   return (
-    <section className="worksheet-panel" aria-label={`${activeSheet.name} worksheet`}>
+    <section className="worksheet-panel" aria-label={t`${activeSheet.name} worksheet`}>
       <OutlineGutters focusGrid={events.focusGrid} />
       {(sheetContentHeight === 0 || sheetContentWidth === 0) && (
-        <div className="grid-visibility-state" role="status">
-          All {sheetContentHeight === 0 ? 'rows' : 'columns'} are hidden. Use Hide / Unhide to
-          restore them.
-        </div>
+        <div className="grid-visibility-state" role="status">{sheetContentHeight === 0
+          ? t`All rows are hidden. Use Hide / Unhide to restore them.`
+          : t`All columns are hidden. Use Hide / Unhide to restore them.`}</div>
       )}
       <div
         ref={events.scrollRef}
@@ -167,6 +170,7 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
           onPointerMove={events.onPointerMove}
           onPointerUp={events.onPointerUp}
           onPointerCancel={events.onPointerCancel}
+          onLostPointerCapture={events.onPointerCancel}
         >
           <GridHeaders
             rowStart={bodyWindow.rowStart}
@@ -182,11 +186,11 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
             data-row-count={activeSheet.rowCount}
             data-projection-retained={viewport.retained ? 'true' : 'false'}
             aria-busy={viewport.retained}
-            aria-label={`${activeSheet.name} cells`}
+            aria-label={t`${activeSheet.name} cells`}
             style={cellWindowStyle}
             tabIndex={viewport.retained ? -1 : 0}
           >
-            {projectionState(viewport) ?? (
+            {projectionState(viewport, i18n) ?? (
               <CellRenderer
                 interactive={!viewport.retained}
                 cells={viewport.cells}
@@ -212,7 +216,7 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
 export function WorkbookGrid() {
   const activeSheet = useAtomValue(activeWorkbookSheetAtom)
   if (activeSheet === null) {
-    return <div role="alert">The active workbook sheet is unavailable.</div>
+    return <div role="alert"><Trans>The active workbook sheet is unavailable.</Trans></div>
   }
   return <WorkbookGridProjection activeSheet={activeSheet} />
 }

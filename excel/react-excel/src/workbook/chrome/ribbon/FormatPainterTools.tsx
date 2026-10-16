@@ -1,15 +1,18 @@
+import { translateFeedback } from '../../../i18n/translate-feedback'
+import { useLingui } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { editingSessionAtom, formatPainterAtom, runFormatPainterAtom } from '@einfach/spreadsheet-ui-core'
 
 /** 单击刷一次、双击连续刷；按钮不读取或传递任何单元格格式。 */
 export function FormatPainterTools() {
+  const { i18n, t } = useLingui()
   const painter = useAtomValue(formatPainterAtom)
   const run = useSetAtom(runFormatPainterAtom)
   const editing = useAtomValue(editingSessionAtom).source !== null
   return (
     <>
-      <button type="button" className="tool-button" aria-label="Format painter"
-        title="Format painter: click once, double-click to keep painting. Esc to stop."
+      <button type="button" className="tool-button" aria-label={t`Format painter`}
+        title={t`Format painter: click once, double-click to keep painting. Esc to stop.`}
         aria-pressed={painter.mode !== 'idle'} aria-busy={painter.busy}
         data-painter-mode={painter.mode} disabled={editing}
         onPointerDown={(event) => event.preventDefault()}
@@ -23,8 +26,8 @@ export function FormatPainterTools() {
           <path d="M11 4h2v5H7v4" /><rect x="6" y="11" width="2" height="3" rx=".5" />
         </svg>
       </button>
-      {painter.message && <span className="fill-feedback" aria-label="Format painter status"
-        role={painter.error ? 'alert' : 'status'}>{painter.message}</span>}
+      {painter.message && <span className="fill-feedback" aria-label={t`Format painter status`}
+        role={painter.error ? 'alert' : 'status'}>{translateFeedback(i18n, painter.message)}</span>}
     </>
   )
 }

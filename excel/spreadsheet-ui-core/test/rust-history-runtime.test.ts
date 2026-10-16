@@ -54,9 +54,11 @@ async function runtime() {
     patch_format_selection = format
     clear_selection = clearRange
     paste_clipboard = paste
-    capture_clipboard() {
+    prepare_clipboard() {
       return { text: 'copy' }
     }
+
+    finish_clipboard_capture() {}
 
     read_sparse_range() {
       return []
@@ -201,7 +203,9 @@ describe('Rust history transport', () => {
   })
   test('copy and paste never clear native history; paste returns the native history directory', async () => {
     const r = await runtime()
-    await r.call('clipboard.capture', { sheetId: 'orders', range, cut: false })
+    const copied = await r.call('clipboard.capture', { sheetId: 'orders', range, cut: false })
+    expect(copied.ok).toBe(true)
+    await r.call('clipboard.finishCapture', { token: copied.result.token, commit: true })
     expect(r.clear).not.toHaveBeenCalled()
     r.paste.mockImplementationOnce(() => {
       throw new Error('Paste rejected')

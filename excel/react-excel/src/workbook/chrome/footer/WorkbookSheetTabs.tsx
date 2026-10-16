@@ -1,3 +1,5 @@
+import { translateFeedback } from '../../../i18n/translate-feedback'
+import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   activeWorkbookSheetAtom,
@@ -15,6 +17,7 @@ import { SheetDeleteConfirmation } from './SheetDeleteConfirmation'
 
 /** 工作表标签交互；名称草稿、命令状态都由 UI Core 持有。 */
 export function WorkbookSheetTabs() {
+  const { i18n, t } = useLingui()
   const document = useAtomValue(workbookDocumentAtom)
   const active = useAtomValue(activeWorkbookSheetAtom)
   const state = useAtomValue(sheetTabsAtom)
@@ -48,7 +51,7 @@ export function WorkbookSheetTabs() {
         <button
           className="sheet-nav"
           type="button"
-          aria-label="Previous sheet"
+          aria-label={t`Previous sheet`}
           disabled={busy || index <= 0}
           onPointerDown={(event) => event.preventDefault()}
           onClick={() => void run({ operation: 'switch', sheetId: document.sheets[index - 1]!.id })}
@@ -58,7 +61,7 @@ export function WorkbookSheetTabs() {
         <button
           className="sheet-nav"
           type="button"
-          aria-label="Next sheet"
+          aria-label={t`Next sheet`}
           disabled={busy || index >= document.sheets.length - 1}
           onPointerDown={(event) => event.preventDefault()}
           onClick={() => void run({ operation: 'switch', sheetId: document.sheets[index + 1]!.id })}
@@ -68,15 +71,15 @@ export function WorkbookSheetTabs() {
         <button
           className="add-sheet"
           type="button"
-          aria-label="New sheet"
-          title="New sheet"
+          aria-label={t`New sheet`}
+          title={t`New sheet`}
           disabled={structureBusy}
           onPointerDown={(event) => event.preventDefault()}
           onClick={() => void run({ operation: 'add' })}
         >
           ＋
         </button>
-        <div className="sheet-tab-list" role="tablist" aria-label="Workbook sheets" ref={tabsRef}>
+        <div className="sheet-tab-list" role="tablist" aria-label={t`Workbook sheets`} ref={tabsRef}>
           {document.sheets.map((sheet) => (
             <button
               className={sheet.id === active?.id ? 'sheet-tab active' : 'sheet-tab'}
@@ -84,7 +87,7 @@ export function WorkbookSheetTabs() {
               type="button"
               role="tab"
               aria-selected={sheet.id === active?.id}
-              title={`${sheet.name} — double-click or F2 to rename`}
+              title={t`${sheet.name} — double-click or F2 to rename`}
               disabled={busy}
               onPointerDown={(event) => event.preventDefault()}
               onClick={() => void run({ operation: 'switch', sheetId: sheet.id })}
@@ -104,8 +107,8 @@ export function WorkbookSheetTabs() {
         <button
           className="rename-sheet"
           type="button"
-          aria-label="Rename sheet"
-          title="Rename sheet"
+          aria-label={t`Rename sheet`}
+          title={t`Rename sheet`}
           disabled={structureBusy || !active}
           onPointerDown={(event) => event.preventDefault()}
           onClick={() => active && void run({ operation: 'begin-rename', sheetId: active.id })}
@@ -115,8 +118,8 @@ export function WorkbookSheetTabs() {
         <button
           className="sheet-action"
           type="button"
-          aria-label="Move sheet left"
-          title="Move sheet left"
+          aria-label={t`Move sheet left`}
+          title={t`Move sheet left`}
           disabled={structureBusy || index <= 0}
           onPointerDown={(event) => event.preventDefault()}
           onClick={() => void run({ operation: 'move-left' })}
@@ -126,8 +129,8 @@ export function WorkbookSheetTabs() {
         <button
           className="sheet-action"
           type="button"
-          aria-label="Move sheet right"
-          title="Move sheet right"
+          aria-label={t`Move sheet right`}
+          title={t`Move sheet right`}
           disabled={structureBusy || index >= document.sheets.length - 1}
           onPointerDown={(event) => event.preventDefault()}
           onClick={() => void run({ operation: 'move-right' })}
@@ -137,8 +140,8 @@ export function WorkbookSheetTabs() {
         <button
           className="sheet-action"
           type="button"
-          aria-label="Delete sheet"
-          title="Delete sheet"
+          aria-label={t`Delete sheet`}
+          title={t`Delete sheet`}
           disabled={structureBusy || document.sheets.length <= 1}
           onPointerDown={(event) => event.preventDefault()}
           onClick={() => void run({ operation: 'request-delete' })}
@@ -156,7 +159,7 @@ export function WorkbookSheetTabs() {
         >
           <input
             ref={inputRef}
-            aria-label="Sheet name"
+            aria-label={t`Sheet name`}
             value={state.rename.draftName}
             aria-invalid={!!state.error}
             aria-describedby={state.error ? 'sheet-command-error' : undefined}
@@ -171,21 +174,21 @@ export function WorkbookSheetTabs() {
               }
             }}
           />
-          <button type="submit" disabled={busy}>
+          <button type="submit" disabled={busy}><Trans>
             Save
-          </button>
+          </Trans></button>
           <button
             type="button"
             disabled={busy}
             onClick={() => void run({ operation: 'cancel-rename' })}
-          >
+          ><Trans>
             Cancel
-          </button>
+          </Trans></button>
         </form>
       )}
       {state.error && !state.deleteConfirmation && (
         <p id="sheet-command-error" className="sheet-command-error" role="alert">
-          {state.error}
+          {translateFeedback(i18n, state.error)}
         </p>
       )}
       <SheetDeleteConfirmation />

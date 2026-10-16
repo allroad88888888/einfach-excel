@@ -1,3 +1,5 @@
+import { translateFeedback } from '../../../i18n/translate-feedback'
+import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useId, useLayoutEffect, useRef } from 'react'
 import { insertFunctionPanelAtom, runInsertFunctionAtom,
@@ -7,6 +9,7 @@ import './insert-function.css'
 
 /** 函数目录只读原生元数据，插入后由公式栏接管草稿与焦点。 */
 export function InsertFunctionTools() {
+  const { i18n, t } = useLingui()
   const panel = useAtomValue(insertFunctionPanelAtom)
   const run = useSetAtom(runInsertFunctionAtom)
   const trigger = useRef<HTMLButtonElement>(null)
@@ -22,43 +25,44 @@ export function InsertFunctionTools() {
     return () => { dialog.close?.(); opener?.focus({ preventScroll: true }) }
   }, [panel.open])
   return <>
-    <button ref={trigger} type="button" className="tool-button" aria-label="Insert function"
-      title="Insert function" disabled={!panel.available} onClick={() => run('open')}>ƒx</button>
+    <button ref={trigger} type="button" className="tool-button" aria-label={t`Insert function`}
+      title={t`Insert function`} disabled={!panel.available} onClick={() => run('open')}>ƒx</button>
     {panel.open && <dialog ref={dialogRef} className="insert-function-panel" aria-labelledby={`${id}-title`}
       onKeyDown={(event) => {
         if (event.key === 'Escape' && !event.nativeEvent.isComposing) {
           event.preventDefault(); event.stopPropagation(); run('close')
         } else cycleDialogFocus(event)
       }} onCancel={(event) => { event.preventDefault(); run('close') }}>
-      <h2 id={`${id}-title`}>Insert function</h2>
-      <p>{panel.total} functions available in this build.
-        Insert a draft, then enter arguments in the formula bar.</p>
+      <h2 id={`${id}-title`}><Trans>Insert function</Trans></h2>
+      <p><Trans>{panel.total} functions available in this build.
+        Insert a draft, then enter arguments in the formula bar.</Trans></p>
       <form onSubmit={(event) => { event.preventDefault(); run('insert') }}>
-        <label htmlFor={`${id}-search`}>Search functions</label>
+        <label htmlFor={`${id}-search`}><Trans>Search functions</Trans></label>
         <input id={`${id}-search`} type="search" autoComplete="off" value={panel.query}
-          placeholder="For example, XLOOKUP" onChange={(event) => run({ query: event.currentTarget.value })} />
-        <label htmlFor={`${id}-category`}>Category</label>
+          placeholder={t`For example, XLOOKUP`} onChange={(event) => run({ query: event.currentTarget.value })} />
+        <label htmlFor={`${id}-category`}><Trans>Category</Trans></label>
         <select id={`${id}-category`} value={panel.category}
           onChange={(event) => run({ category: event.currentTarget.value })}>
-          <option value="">All categories</option>
-          {panel.categories.map((category) => <option key={category}>{category}</option>)}
+          <option value=""><Trans>All categories</Trans></option>
+          {panel.categories.map((category) => <option key={category} value={category}>
+            {translateFeedback(i18n, category)}</option>)}
         </select>
-        <label htmlFor={`${id}-function`}>Function</label>
+        <label htmlFor={`${id}-function`}><Trans>Function</Trans></label>
         <select id={`${id}-function`} size={7} value={panel.selected?.name ?? ''}
           disabled={!panel.functions.length}
           onChange={(event) => run({ name: event.currentTarget.value })}>
           {panel.functions.map((entry) => <option key={entry.name}>{entry.name}</option>)}
         </select>
-        {!panel.functions.length && <p role="status">No matching functions. Change the search or category.</p>}
+        {!panel.functions.length && <p role="status"><Trans>No matching functions. Change the search or category.</Trans></p>}
         {panel.selected && <div className="insert-function-description" aria-live="polite">
           <code>{panel.selected.signatureAvailable
             ? renderFormulaFunctionSignature(panel.selected) : `${panel.selected.name}(…)`}</code>
-          <p>{panel.selected.summary}</p>
+          <p>{translateFeedback(i18n, panel.selected.summary)}</p>
         </div>}
-        {panel.error && <p role="alert">{panel.error}</p>}
+        {panel.error && <p role="alert">{translateFeedback(i18n, panel.error)}</p>}
         <div className="insert-function-actions">
-          <button type="button" onClick={() => run('close')}>Cancel</button>
-          <button type="submit" disabled={!panel.selected}>Insert draft</button>
+          <button type="button" onClick={() => run('close')}><Trans>Cancel</Trans></button>
+          <button type="submit" disabled={!panel.selected}><Trans>Insert draft</Trans></button>
         </div>
       </form>
     </dialog>}

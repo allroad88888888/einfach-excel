@@ -53,9 +53,11 @@ async function setup() {
       return { manualRows: [], manualColumns: [], filterRows: [] }
     }
 
-    capture_clipboard() {
+    prepare_clipboard() {
       return { text: 'copy' }
     }
+
+    finish_clipboard_capture() {}
 
     history_state() {
       return {
@@ -131,6 +133,7 @@ test.each(['edit', 'undo'] as const)(
     const r = await setup()
     await r.structure()
     const copied = await r.call('clipboard.capture', { sheetId: 's', range, cut: true })
+    await r.call('clipboard.finishCapture', { token: copied.result.token, commit: true })
     if (operation === 'edit') await r.structure()
     else await r.call('history.apply', { direction: 'undo', projection })
     const result = await r.call('clipboard.paste', {

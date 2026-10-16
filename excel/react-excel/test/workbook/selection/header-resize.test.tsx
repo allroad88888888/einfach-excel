@@ -2,6 +2,7 @@ import {
   createSpreadsheetUi,
   initializeWorkbookDocumentAtom,
   runVisibleProjectionAtom,
+  resizeDragAtom,
   selectCellAtom,
   type RustWorkbookCommands,
   type RustWorkbookConnection,
@@ -40,14 +41,56 @@ async function setup() {
     window: { rowStart: 0, rowEnd: 9, colStart: 0, colEnd: 7 },
     reason: 'viewport',
   })
-  render(
+  const view = render(
     <WorkbookStoreProvider store={store}>
       <GridHeading axis="column" index={1} focusGrid={() => {}} />
       <SelectionSizeTools />
     </WorkbookStoreProvider>,
   )
-  return { resize }
+  return { resize, store, view }
 }
+
+test.each(['Escape', 'blur', 'lostpointercapture', 'unmount'])(
+  '%s cancels a resize draft without committing and allows a fresh drag', async (reason) => {
+    const { resize, store, view } = await setup()
+    const handle = screen.getByRole('separator', { name: 'Resize column B' })
+    const release = vi.fn()
+    Object.defineProperties(handle, {
+      setPointerCapture: { value: vi.fn() },
+      hasPointerCapture: { value: () => true },
+      releasePointerCapture: { value: release },
+    })
+    const pointer = (type: string, x: number) => {
+      const event = new Event(type, { bubbles: true, cancelable: true })
+      Object.defineProperties(event, {
+        pointerId: { value: 7 }, button: { value: 0 }, isPrimary: { value: true },
+        clientX: { value: x }, clientY: { value: 0 },
+      })
+      fireEvent(handle, event)
+    }
+    const before = handle.getAttribute('aria-valuenow')
+    pointer('pointerdown', 100)
+    pointer('pointermove', 150)
+    expect(handle).toHaveAttribute('aria-valuenow', String(Number(before) + 50))
+    if (reason === 'Escape') fireEvent.keyDown(document, { key: 'Escape' })
+    else if (reason === 'blur') fireEvent(window, new Event('blur'))
+    else if (reason === 'unmount') view.unmount()
+    else pointer(reason, 150)
+    expect(store.getter(resizeDragAtom)).toBeNull()
+    expect(resize).not.toHaveBeenCalled()
+    if (reason === 'Escape' || reason === 'blur') expect(release).toHaveBeenCalledWith(7)
+    if (reason === 'unmount') return
+    expect(handle).toHaveAttribute('aria-valuenow', before)
+    // 取消后旧 pointerup 不能落库；新的拖拽仍可正常提交一次。
+    await act(async () => pointer('pointerup', 150))
+    expect(resize).not.toHaveBeenCalled()
+    pointer('pointerdown', 100)
+    pointer('pointermove', 120)
+    await act(async () => pointer('pointerup', 120))
+    expect(resize).toHaveBeenCalledTimes(1)
+    expect(resize.mock.calls[0][0].pixels).toBe(Number(before) + 20)
+  },
+)
 
 test('keyboard handle resizing uses one command without opening a dialog', async () => {
   const { resize } = await setup()

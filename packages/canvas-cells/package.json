@@ -23,17 +23,17 @@
     "test": "vitest run"
   },
   "peerDependencies": {
-    "@einfach/core": "^0.4.0",
     "@einfach/canvas": "workspace:*",
+    "@einfach/core": "^0.4.0",
     "@einfach/spreadsheet-ui-core": "workspace:*"
   },
   "devDependencies": {
-    "@einfach/core": "^0.4.0",
     "@einfach/canvas": "workspace:*",
+    "@einfach/core": "^0.4.0",
     "@einfach/spreadsheet-ui-core": "workspace:*",
-    "@types/node": "^20.11.30",
+    "@types/node": "^22.19.0",
     "typescript": "^5.7.2",
-    "vite": "^5.4.21",
-    "vitest": "^2.1.9"
+    "vite": "8.3.4",
+    "vitest": "5.0.5"
   }
 }

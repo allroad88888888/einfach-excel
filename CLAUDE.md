@@ -184,7 +184,7 @@ Every modal under `excel/solid-excel/src/*/Spreadsheet*Dialog.tsx` follows the s
 
 - Vitest；各包按需要选择 node 或 jsdom environment
 - React、Solid、Vue 各用自己的 Vite 转换链，包内配置负责源码 alias
-- `vitest.workspace.ts` 只编排当前主线包；暂停包仍保留可独立运行的 Vitest 配置
+- `vitest.config.ts` 的 `test.projects` 只编排当前主线包；暂停包仍保留可独立运行的 Vitest 配置
 - Solid tests use `@solidjs/testing-library`
 - Always create a fresh store per test via `createStore()`
 - active spreadsheet suites: `pnpm --filter @einfach/spreadsheet-ui-core test` and `pnpm --filter @einfach/react-excel test`

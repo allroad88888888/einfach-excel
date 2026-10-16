@@ -1,3 +1,4 @@
+import { useLingui } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useEffect } from 'react'
 import {
@@ -13,6 +14,7 @@ import './cell-validation-list.css'
 
 /** 原生 select 只负责选项交互；选项写入复用普通编辑 command。 */
 export function CellValidationList({ focusGrid }: { readonly focusGrid: () => void }) {
+  const { t } = useLingui()
   const target = useAtomValue(nativeValidationTargetAtom)
   const state = useAtomValue(nativeValidationListAtom)
   const projection = useAtomValue(projectionSnapshotAtom)
@@ -49,8 +51,8 @@ export function CellValidationList({ focusGrid }: { readonly focusGrid: () => vo
   const clipRight = Math.max(0, left + width - viewLeft - metrics.viewportWidth)
   const clipBottom = Math.max(0, top + height - viewTop - metrics.viewportHeight)
   if (width <= clipLeft + clipRight || height <= clipTop + clipBottom) return null
-  return <select className="cell-validation-list" aria-label="Choose cell value"
-    title="Choose a value from the validation list" value=""
+  return <select className="cell-validation-list" aria-label={t`Choose cell value`}
+    title={t`Choose a value from the validation list`} value=""
     style={{ top, left, width, height,
       clipPath: `inset(${clipTop}px ${clipRight}px ${clipBottom}px ${clipLeft}px)` }}
     onPointerDown={(event) => event.stopPropagation()}

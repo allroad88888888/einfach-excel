@@ -211,6 +211,16 @@ test('native errors retain draft and local invalid ranges do not send a request'
   request.mockRejectedValueOnce(new Error('Overlap'))
   expect(await run('save')).toBe(false)
   expect(store.getter(nativeTablePanelAtom)).toMatchObject({ open: true, name: 'Sales', error: 'Overlap' })
+  await run({ name: 'FreshTable' })
+  request.mockImplementationOnce(async (_, input) => ({ changed: true,
+    projection: { ...input.projection, cells: [], revision: 2,
+      tables: [{ ...tables[0], name: 'FreshTable' }] } }))
+  expect(await run('save')).toBe(true)
+  expect(request).toHaveBeenCalledTimes(2)
+  expect(request.mock.calls[1][1].action).toMatchObject({ kind: 'create', name: 'FreshTable' })
+  expect(store.getter(nativeTablePanelAtom)).toMatchObject({
+    open: false, busy: false, error: '',
+  })
 })
 test('pending command blocks double submit, and replacement workbook ignores the old result', async () => {
   const { store, request, run } = setup()

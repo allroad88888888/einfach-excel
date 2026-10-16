@@ -1,8 +1,17 @@
 # 快检查在前(秒级失败)。全量 clean build + 全量 Vitest 的门禁在 CI
 # (ci.yml 每次 push/PR 都跑 `npm run build` + `npm test`);提交门禁只保留
 # 文档/展现层边界/lint/主线类型检查 + 受本次改动影响的 Vitest。
+# 改动 WASM 导出或快照检查时，先拦住接口与快照不同步；不自动生成快照。
+if ! git diff --cached --quiet -- excel/rust/wasm/src \
+  excel/rust/excel-core/tests/fixtures/wasm_api_signatures.txt \
+  excel/rust/excel-core/tests/architecture_invariants.rs \
+  excel/rust/excel-core/tests/support/wasm_api_signatures.rs \
+  excel/rust/excel-core/tests/support/architecture_sources.rs; then
+  cargo test --locked --manifest-path excel/rust/excel-core/Cargo.toml \
+    --test architecture_invariants wasm_public_api_signatures_unchanged -- --exact
+fi
 npm run check:docs
 npm run check:presentation
 npm run lint:check
 npm run typecheck:mainline
-pnpm exec vitest run --workspace vitest.workspace.ts --changed --passWithNoTests
+pnpm exec vitest run --changed --passWithNoTests

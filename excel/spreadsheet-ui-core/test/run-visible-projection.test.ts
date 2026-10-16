@@ -6,8 +6,9 @@ import {
   type VisibleProjectionResult,
 } from '../src'
 import { createStore } from '@einfach/core'
-import { describe, expect, test } from 'vitest'
+import { describe, expect, test, vi } from 'vitest'
 import { createTestRustWorkbookConnection } from './support/rust-workbook-connection'
+import { deferred } from './editing-test-support'
 
 function projectionResult(request: VisibleProjectionRequest): VisibleProjectionResult {
   return {
@@ -28,6 +29,69 @@ function projectionInput(rowStart: number) {
 }
 
 describe('runVisibleProjectionAtom', () => {
+  test.each(['reject', 'wrong-sheet', 'wrong-id'] as const)(
+    'an old %s response still drains only the newest queued window', async (failure) => {
+      const firstResponse = deferred<VisibleProjectionResult>()
+      const read = vi.fn(async (request: VisibleProjectionRequest) => projectionResult(request))
+      read.mockReturnValueOnce(firstResponse.promise)
+      const { store } = createSpreadsheetUi({ connection: createTestRustWorkbookConnection({
+        readVisibleProjection: read,
+      }) })
+      const first = store.setter(runVisibleProjectionAtom, projectionInput(0))
+      const middle = store.setter(runVisibleProjectionAtom, projectionInput(10))
+      const latest = store.setter(runVisibleProjectionAtom, projectionInput(20))
+      expect(read).toHaveBeenCalledOnce()
+      const wrong = projectionResult(read.mock.calls[0][0])
+      if (failure === 'reject') firstResponse.reject(new Error('old read failed'))
+      else firstResponse.resolve({ ...wrong, ...(failure === 'wrong-sheet'
+        ? { sheetId: 'other' } : { requestId: wrong.requestId + 100 }) })
+      expect(await first).toEqual({ status: 'superseded' })
+      expect(await middle).toEqual({ status: 'superseded' })
+      expect(await latest).toEqual({ status: 'ready' })
+      expect(read.mock.calls.map(([request]) => request.window.rowStart)).toEqual([0, 20])
+      expect(store.getter(projectionSnapshotAtom)).toMatchObject({
+        status: 'ready', result: { window: projectionInput(20).window },
+      })
+    },
+  )
+
+  test('latest queued failure preserves the previous frame and permits an explicit retry', async () => {
+    const read = vi.fn(async (request: VisibleProjectionRequest) => projectionResult(request))
+    const { store } = createSpreadsheetUi({ connection: createTestRustWorkbookConnection({
+      readVisibleProjection: read,
+    }) })
+    await store.setter(runVisibleProjectionAtom, projectionInput(0))
+    const retained = store.getter(projectionSnapshotAtom).result
+    const response = deferred<VisibleProjectionResult>()
+    read.mockReturnValueOnce(response.promise).mockRejectedValueOnce(new Error('latest unavailable'))
+    const first = store.setter(runVisibleProjectionAtom, {
+      ...projectionInput(10), retainResult: true,
+    })
+    const latest = store.setter(runVisibleProjectionAtom, {
+      ...projectionInput(20), retainResult: true,
+    })
+    response.reject(new Error('old unavailable'))
+    expect(await first).toEqual({ status: 'superseded' })
+    expect(await latest).toEqual({ status: 'failed', error: 'latest unavailable' })
+    expect(store.getter(projectionSnapshotAtom).result).toBe(retained)
+    expect(await store.setter(runVisibleProjectionAtom, projectionInput(20))).toEqual({ status: 'ready' })
+    expect(store.getter(projectionSnapshotAtom).error).toBeUndefined()
+    expect(read.mock.calls.map(([request]) => request.window.rowStart)).toEqual([0, 10, 20, 20])
+  })
+
+  test('invalid windows never consume the transport or prevent the next valid read', async () => {
+    const read = vi.fn(async (request: VisibleProjectionRequest) => projectionResult(request))
+    const { store } = createSpreadsheetUi({ connection: createTestRustWorkbookConnection({
+      readVisibleProjection: read,
+    }) })
+    for (const rowStart of [-1, NaN, Infinity, 0.5])
+      expect(await store.setter(runVisibleProjectionAtom, projectionInput(rowStart)))
+        .toMatchObject({ status: 'failed' })
+    expect(read).not.toHaveBeenCalled()
+    expect(await store.setter(runVisibleProjectionAtom, projectionInput(0))).toEqual({ status: 'ready' })
+    expect(read).toHaveBeenCalledOnce()
+  })
+
   test('owns the backend transport and publishes the projection', async () => {
     const requests: VisibleProjectionRequest[] = []
     const connection = createTestRustWorkbookConnection({

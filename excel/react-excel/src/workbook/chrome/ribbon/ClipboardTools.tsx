@@ -1,3 +1,5 @@
+import { msg } from '@lingui/core/macro'
+import { Trans, useLingui } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   editingSessionAtom,
@@ -12,39 +14,40 @@ import {
 import { PasteSpecialTools } from './PasteSpecialTools'
 
 const COPY_FORMATS = [
-  { value: 'text', label: 'Copy as plain text' },
-  { value: 'markdown', label: 'Copy as Markdown' },
-  { value: 'html', label: 'Copy as HTML table' },
+  { value: 'text', label: msg`Copy as plain text` },
+  { value: 'markdown', label: msg`Copy as Markdown` },
+  { value: 'html', label: msg`Copy as HTML table` },
 ] as const
 
 const PASTE_OPTIONS = [
-  { value: 'add', label: 'Paste and add', paste: { arithmetic: 'add' } },
-  { value: 'subtract', label: 'Paste and subtract', paste: { arithmetic: 'subtract' } },
-  { value: 'multiply', label: 'Paste and multiply', paste: { arithmetic: 'multiply' } },
-  { value: 'divide', label: 'Paste and divide', paste: { arithmetic: 'divide' } },
-  { value: 'column-widths', label: 'Paste column widths only', paste: { mode: 'column-widths' } },
-  { value: 'transpose', label: 'Paste transposed', paste: { transpose: true } },
-  { value: 'skip-blanks', label: 'Paste skipping blanks', paste: { skipBlanks: true } },
+  { value: 'add', label: msg`Paste and add`, paste: { arithmetic: 'add' } },
+  { value: 'subtract', label: msg`Paste and subtract`, paste: { arithmetic: 'subtract' } },
+  { value: 'multiply', label: msg`Paste and multiply`, paste: { arithmetic: 'multiply' } },
+  { value: 'divide', label: msg`Paste and divide`, paste: { arithmetic: 'divide' } },
+  { value: 'column-widths', label: msg`Paste column widths only`, paste: { mode: 'column-widths' } },
+  { value: 'transpose', label: msg`Paste transposed`, paste: { transpose: true } },
+  { value: 'skip-blanks', label: msg`Paste skipping blanks`, paste: { skipBlanks: true } },
   {
     value: 'values-formats',
-    label: 'Paste values and formatting',
+    label: msg`Paste values and formatting`,
     paste: { mode: 'values-formats' },
   },
-  { value: 'formulas', label: 'Paste formulas only', paste: { mode: 'formulas' } },
+  { value: 'formulas', label: msg`Paste formulas only`, paste: { mode: 'formulas' } },
   {
     value: 'formulas-number-formats',
-    label: 'Paste formulas and number formats',
+    label: msg`Paste formulas and number formats`,
     paste: { mode: 'formulas-number-formats' },
   },
   {
     value: 'values-number-formats',
-    label: 'Paste values and number formats',
+    label: msg`Paste values and number formats`,
     paste: { mode: 'values-number-formats' },
   },
 ] as const
 
 /** 剪贴板入口只转发浏览器 I/O；下拉选择是一次命令，不保存另一份粘贴状态。 */
 export function ClipboardTools() {
+  const { i18n, t } = useLingui()
   const run = useSetAtom(runSystemClipboardAtom)
   const feedback = useAtomValue(systemClipboardFeedbackAtom)
   const editing = useAtomValue(editingSessionAtom).source !== null
@@ -55,9 +58,9 @@ export function ClipboardTools() {
           className="tool-button"
           type="button"
           key={operation}
-          aria-label={{ paste: 'Paste', cut: 'Cut', copy: 'Copy' }[operation]}
+          aria-label={{ paste: t`Paste`, cut: t`Cut`, copy: t`Copy` }[operation]}
           title={
-            { paste: 'Paste (Ctrl/⌘+V)', cut: 'Cut (Ctrl/⌘+X)', copy: 'Copy (Ctrl/⌘+C)' }[operation]
+            { paste: t`Paste (Ctrl/⌘+V)`, cut: t`Cut (Ctrl/⌘+X)`, copy: t`Copy (Ctrl/⌘+C)` }[operation]
           }
           disabled={feedback.busy || editing}
           onPointerDown={(event) => event.preventDefault()}
@@ -77,8 +80,8 @@ export function ClipboardTools() {
           className="tool-button"
           type="button"
           key={mode}
-          aria-label={mode === 'values' ? 'Paste values only' : 'Paste formatting only'}
-          title={mode === 'values' ? 'Paste values only' : 'Paste formatting only'}
+          aria-label={mode === 'values' ? t`Paste values only` : t`Paste formatting only`}
+          title={mode === 'values' ? t`Paste values only` : t`Paste formatting only`}
           disabled={feedback.busy || editing}
           onPointerDown={(event) => event.preventDefault()}
           onClick={() => void run({ operation: 'paste', mode, read: readBrowserClipboard })}
@@ -88,8 +91,8 @@ export function ClipboardTools() {
       ))}
       <select
         className="tool-select paste-options-select"
-        aria-label="More paste options"
-        title="More paste options"
+        aria-label={t`More paste options`}
+        title={t`More paste options`}
         defaultValue=""
         disabled={feedback.busy || editing}
         onChange={(event) => {
@@ -98,20 +101,20 @@ export function ClipboardTools() {
           if (option) void run({ ...option.paste, operation: 'paste', read: readBrowserClipboard })
         }}
       >
-        <option value="" disabled>
+        <option value="" disabled><Trans>
           Paste options
-        </option>
+        </Trans></option>
         {PASTE_OPTIONS.map(({ value, label }) => (
           <option key={value} value={value}>
-            {label}
+            {i18n._(label)}
           </option>
         ))}
       </select>
       <PasteSpecialTools />
       <select
         className="tool-select copy-as-select"
-        aria-label="Copy as"
-        title="Copy as"
+        aria-label={t`Copy as`}
+        title={t`Copy as`}
         defaultValue=""
         disabled={feedback.busy || editing}
         onChange={(event) => {
@@ -127,12 +130,12 @@ export function ClipboardTools() {
             })
         }}
       >
-        <option value="" disabled>
+        <option value="" disabled><Trans>
           Copy as
-        </option>
+        </Trans></option>
         {COPY_FORMATS.map(({ value, label }) => (
           <option key={value} value={value}>
-            {label}
+            {i18n._(label)}
           </option>
         ))}
       </select>

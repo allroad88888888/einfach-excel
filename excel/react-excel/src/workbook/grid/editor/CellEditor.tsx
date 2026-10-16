@@ -1,3 +1,4 @@
+import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   commitCellEditingAtom,
@@ -20,6 +21,7 @@ import {
 import type { CSSProperties, FocusEvent, KeyboardEvent, PointerEvent } from 'react'
 import { useEffect, useRef } from 'react'
 import { flushSync } from 'react-dom'
+import { useLingui } from '@lingui/react/macro'
 import './cell-editor.css'
 import { useFormulaInput } from './use-formula-input'
 import { FormulaAssist } from '../../formula/FormulaAssist'
@@ -35,6 +37,7 @@ export interface CellEditorProps {
 
 /** Renders the active in-cell input over its Rust-projected grid cell. */
 export function CellEditor({ focusGrid }: CellEditorProps) {
+  const { i18n, t } = useLingui()
   const session = useAtomValue(editingSessionAtom)
   const draft = useAtomValue(editingDraftAtom)
   const lifecycle = useAtomValue(editingCommitLifecycleAtom)
@@ -199,7 +202,7 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
     >
       <textarea
         ref={inputRef}
-        aria-label="Cell editor"
+        aria-label={t`Cell editor`}
         aria-autocomplete="list"
         aria-controls={formulaInput.activeOption ? formulaInput.listId : undefined}
         aria-activedescendant={formulaInput.activeOption}
@@ -219,7 +222,7 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
       <FormulaAssist inputRef={inputRef} id={formulaInput.listId} source="cell" />
       {feedback && (
         <div className="cell-editor-feedback" id={`${fieldIdentity}-feedback`} role="alert">
-          <span>{feedback.message}</span>
+          <span>{translateFeedback(i18n, feedback.message)}</span>
         </div>
       )}
     </div>

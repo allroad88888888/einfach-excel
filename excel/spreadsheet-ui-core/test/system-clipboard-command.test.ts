@@ -1,7 +1,5 @@
 import { describe, expect, test, vi } from 'vitest'
 import {
-  createSpreadsheetUi,
-  initializeWorkbookDocumentAtom,
   selectCellAtom,
   setSelectionAtom,
   runVisibleProjectionAtom,
@@ -10,51 +8,8 @@ import {
   projectionSnapshotAtom,
   protectSheetAtom,
   startCellEditingFromProjectionAtom,
-  type RustClipboardCaptureRequest,
-  type RustClipboardPasteRequest,
-  type VisibleProjectionRequest,
 } from '../src'
-import { createTestRustWorkbookConnection } from './support/rust-workbook-connection'
-
-async function setup() {
-  const projection = (request: VisibleProjectionRequest, revision = 0) => ({
-    ...request,
-    revision,
-    cells: [{ row: 0, col: 0, displayValue: revision ? 'pasted' : 'old' }],
-  })
-  const capture = vi.fn(async (request: RustClipboardCaptureRequest) => ({
-    text: 'old',
-    rows: 1,
-    cols: 1,
-    cut: request.cut,
-    token: 'snapshot-token',
-  }))
-  const paste = vi.fn(
-    async (request: RustClipboardPasteRequest, visible: VisibleProjectionRequest) => ({
-      acknowledgement: { sheetId: request.sheetId, requestId: request.requestId, revision: 1 },
-      projection: projection(visible, 1),
-    }),
-  )
-  const read = vi.fn(async (request: VisibleProjectionRequest) => projection(request))
-  const { store } = createSpreadsheetUi({
-    connection: createTestRustWorkbookConnection({
-      captureClipboard: capture,
-      pasteClipboard: paste,
-      readVisibleProjection: read,
-    }),
-  })
-  store.setter(initializeWorkbookDocumentAtom, {
-    title: 'Test',
-    sheets: [{ id: 'sheet-1', index: 0, name: 'Test', rowCount: 10, colCount: 5 }],
-  })
-  store.setter(selectCellAtom, { sheetId: 'sheet-1', coord: { row: 0, col: 0 } })
-  await store.setter(runVisibleProjectionAtom, {
-    sheetId: 'sheet-1',
-    reason: 'viewport',
-    window: { rowStart: 0, rowEnd: 9, colStart: 0, colEnd: 4 },
-  })
-  return { store, capture, paste, read }
-}
+import { setupClipboardStore as setup } from './support/system-clipboard-store'
 
 describe('system clipboard commands', () => {
   test.each([
@@ -161,14 +116,18 @@ describe('system clipboard commands', () => {
     expect(store.getter(projectionSnapshotAtom)).toBe(before)
     expect(store.getter(systemClipboardFeedbackAtom).message).toContain('whole copies')
   })
-  test.each(['copy', 'cut'] as const)(
-    '%s captures Rust data without mutating or reading projection again',
-    async (operation) => {
-      const { store, capture, paste, read } = await setup()
+  test.each(['copy', 'cut'].flatMap((operation) => [false, true].map((denied) =>
+    [operation as 'copy' | 'cut', denied] as const)))(
+    '%s confirms capture only after browser write (denied=%s)',
+    async (operation, denied) => {
+      const { store, capture, paste, read, finish } = await setup()
       const write = vi.fn(async (data) => {
         expect(await data).toMatchObject({ text: 'old' })
+        expect(finish).not.toHaveBeenCalled()
+        if (denied) throw new Error('Permission denied')
       })
-      expect(await store.setter(runSystemClipboardAtom, { operation, write })).toBe(true)
+      expect(await store.setter(runSystemClipboardAtom, { operation, write })).toBe(!denied)
+      expect(finish.mock.calls).toEqual([[{ token: 'snapshot-token', commit: !denied }]])
       expect(capture).toHaveBeenCalledWith(expect.objectContaining({ cut: operation === 'cut' }))
       expect(write).toHaveBeenCalledTimes(1)
       expect(paste).not.toHaveBeenCalled()

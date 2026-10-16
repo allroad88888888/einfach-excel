@@ -6,6 +6,7 @@ import { rpcError } from '../rust-worker/transport'
 import { writeTrackedMutation } from './tracked-mutation'
 import { applyRustHistory } from './history-apply'
 import { exportClipboard } from './clipboard-export'
+import { captureClipboard, finishClipboardCapture } from './clipboard-capture'
 import { changeSheetStructure } from './sheet-structure'
 import { readSizes } from './size-io'
 import { changeSize } from './resize-io'
@@ -36,7 +37,6 @@ import { exportWorkbookFile, openWorkbookFile } from './file-io'
 import { inspectSpill } from './spill-commands'
 
 type CommandName = keyof RustWorkbookCommands
-
 /** 在 Worker 内维护唯一 Rust 工作簿，并处理 UI Core 的直接命令。 */
 export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
   const scope = self as unknown as DedicatedWorkerGlobalScope
@@ -45,6 +45,7 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
   let initPromise: Promise<unknown> | undefined
   let revision = 0
   let painterToken: string | undefined
+  let pendingClipboard: { token: string; cut: boolean; revision: number } | undefined
   let clipboard:
     | { token: string; cut: boolean; consumed?: boolean; invalidated?: boolean }
     | undefined
@@ -62,6 +63,7 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
     workbook = initialized.workbook
     revision = 0
     clipboard = undefined
+    pendingClipboard = undefined
     painterToken = undefined
     sheetsById.clear()
     for (const sheet of initialized.sheets) sheetsById.set(sheet.id, sheet)
@@ -95,6 +97,7 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       workbook = restored.workbook
       revision = 0
       clipboard = undefined
+      pendingClipboard = undefined
       painterToken = undefined
       sheetsById.clear()
       for (const sheet of restored.metadata.sheets) sheetsById.set(sheet.id, sheet)
@@ -377,22 +380,19 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
     }
     if (command === 'clipboard.capture') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
-      const capture = input.painter ? current.capture_format_painter : current.capture_clipboard
-      if (!capture) throw new Error('Rust clipboard export is unavailable')
-      if (input.painter && input.cut) throw new Error('CLIPBOARD_INVALID_POLICY')
-      const range = input.range
-      const coordinates = [
-        sheetIndex(input.sheetId), range.rowStart, range.colStart, range.rowEnd, range.colEnd,
-      ] as const
-      const captured = input.painter
-        ? current.capture_format_painter!(...coordinates)
-        : current.capture_clipboard!(...coordinates, input.cut)
-      if (input.painter) {
-        painterToken = crypto.randomUUID()
-        return { ...captured, token: painterToken }
-      }
-      clipboard = { token: crypto.randomUUID(), cut: input.cut }
-      return { ...captured, token: clipboard.token }
+      const captured = captureClipboard(current, sheetIndex(input.sheetId), input)
+      if (input.painter) painterToken = captured.token
+      else pendingClipboard = { token: captured.token, cut: input.cut, revision }
+      return captured
+    }
+    if (command === 'clipboard.finishCapture') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      if (input.token !== pendingClipboard?.token) return
+      const pending = pendingClipboard
+      pendingClipboard = undefined
+      finishClipboardCapture(current, input.commit, pending.revision === revision)
+      if (input.commit) clipboard = { token: pending.token, cut: pending.cut }
+      return
     }
     if (command === 'workbook.importCells') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']

@@ -1,3 +1,5 @@
+import { translateFeedback } from '../../i18n/translate-feedback'
+import { Trans, useLingui } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useLayoutEffect, useRef, type RefObject } from 'react'
 import { createPortal, flushSync } from 'react-dom'
@@ -22,6 +24,7 @@ export function FormulaAssist({
   id: string
   source: 'cell' | 'formula-bar'
 }) {
+  const { i18n, t } = useLingui()
   const session = useAtomValue(editingSessionAtom)
   const lifecycle = useAtomValue(editingCommitLifecycleAtom)
   const suggestions = useAtomValue(formulaFunctionSuggestionsAtom)
@@ -87,13 +90,13 @@ export function FormulaAssist({
     >
       {suggestions.length > 0 ? (
         <>
-          <div className="formula-assist-heading">
-            Functions <span>↑ ↓ · Tab / Enter</span>
+          <div className="formula-assist-heading"><Trans>
+            Functions </Trans><span>↑ ↓ · Tab / Enter</span>
           </div>
           <div
             id={id}
             role="listbox"
-            aria-label="Formula functions"
+            aria-label={t`Formula functions`}
             className="formula-function-list"
           >
             {suggestions.map(({ spec }, index) => (
@@ -104,12 +107,12 @@ export function FormulaAssist({
                 role="option"
                 tabIndex={-1}
                 aria-selected={index === cursor}
-                aria-label={`${spec.name} ${spec.summary}`}
-                title={spec.summary}
+                aria-label={`${spec.name} ${translateFeedback(i18n, spec.summary)}`}
+                title={translateFeedback(i18n, spec.summary)}
                 onClick={() => acceptName(spec.name)}
               >
                 <code>{spec.name}</code>
-                <span>{spec.summary}</span>
+                <span>{translateFeedback(i18n, spec.summary)}</span>
               </button>
             ))}
           </div>
@@ -118,7 +121,7 @@ export function FormulaAssist({
         signature && (
           <div
             id={`${id}-signature`}
-            aria-label="Formula arguments"
+            aria-label={t`Formula arguments`}
             role="status"
             className="formula-signature"
           >

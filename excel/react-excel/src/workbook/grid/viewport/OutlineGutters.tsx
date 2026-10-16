@@ -1,3 +1,4 @@
+import { useLingui } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   activeWorkbookSheetAtom,
@@ -25,6 +26,7 @@ const STEP = 20
 
 /** 大纲放在滚动容器外；只投影像素位置，不进入格子事件或保存分组副本。 */
 export function OutlineGutters({ focusGrid }: { readonly focusGrid: () => void }) {
+  const { t } = useLingui()
   const outline = useAtomValue(nativeOutlineAtom)
   const sheet = useAtomValue(activeWorkbookSheetAtom)
   const metrics = useAtomValue(viewportMetricsAtom)
@@ -47,14 +49,14 @@ export function OutlineGutters({ focusGrid }: { readonly focusGrid: () => void }
   }
   return (
     <>
-      <div className="outline-corner" style={{ width, height }} aria-label="Row outline levels">
+      <div className="outline-corner" style={{ width, height }} aria-label={t`Row outline levels`}>
         {rowDepth > 0 &&
           Array.from({ length: rowDepth + 1 }, (_, i) => (
             <button
               key={i}
               type="button"
               disabled={disabled}
-              aria-label={`Show row outline level ${i + 1}`}
+              aria-label={t`Show row outline level ${i + 1}`}
               onClick={() => showLevel('row', i + 1)}
             >
               {i + 1}
@@ -83,7 +85,7 @@ export function OutlineGutters({ focusGrid }: { readonly focusGrid: () => void }
           <div
             key={axis}
             className={`outline-gutter outline-${axis}`}
-            aria-label={`${vertical ? 'Row' : 'Column'} outline`}
+            aria-label={vertical ? t`Row outline` : t`Column outline`}
             style={vertical ? { width } : { height }}
           >
             {!vertical && columnDepth > 0 && (
@@ -93,7 +95,7 @@ export function OutlineGutters({ focusGrid }: { readonly focusGrid: () => void }
                     key={i}
                     type="button"
                     disabled={disabled}
-                    aria-label={`Show column outline level ${i + 1}`}
+                    aria-label={t`Show column outline level ${i + 1}`}
                     onClick={() => showLevel('column', i + 1)}
                   >
                     {i + 1}
@@ -115,8 +117,8 @@ export function OutlineGutters({ focusGrid }: { readonly focusGrid: () => void }
                   { start: Math.max(group.start, frozen), end: group.end + 1, fixed: false },
                 ]
                 const label = vertical
-                  ? `rows ${group.start + 1}–${group.end + 1}`
-                  : `columns ${toA1(0, group.start).slice(0, -1)}–${toA1(0, group.end).slice(0, -1)}`
+                  ? t`rows ${group.start + 1}–${group.end + 1}`
+                  : t`columns ${toA1(0, group.start).slice(0, -1)}–${toA1(0, group.end).slice(0, -1)}`
                 return (
                   <div key={group.index}>
                     {!group.collapsed &&
@@ -157,7 +159,8 @@ export function OutlineGutters({ focusGrid }: { readonly focusGrid: () => void }
                             ? { left: cross - 9, top: buttonPosition }
                             : { top: cross - 9, left: buttonPosition }
                         }
-                        aria-label={`${group.collapsed ? 'Expand' : 'Collapse'} ${label}, level ${group.level}`}
+                        aria-label={group.collapsed
+                          ? t`Expand ${label}, level ${group.level}` : t`Collapse ${label}, level ${group.level}`}
                         aria-expanded={!group.collapsed}
                         title={label}
                         onClick={() =>

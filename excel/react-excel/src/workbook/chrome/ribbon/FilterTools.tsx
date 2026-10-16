@@ -1,3 +1,5 @@
+import { translateFeedback } from '../../../i18n/translate-feedback'
+import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useEffect, useId, useRef } from 'react'
 import {
@@ -16,6 +18,7 @@ import './filter.css'
 
 /** 工具栏和数据表头复用同一个条件弹窗，区域只读 Rust 投影。 */
 export function FilterTools() {
+  const { i18n, t } = useLingui()
   const sheet = useAtomValue(activeWorkbookSheetAtom)
   const panel = useAtomValue(nativeFilterPanelAtom)
   const feedback = useAtomValue(nativeFilterFeedbackAtom)
@@ -45,8 +48,8 @@ export function FilterTools() {
     <>
       <select
         ref={toolbarTrigger}
-        className="ribbon-select"
-        aria-label="Worksheet filter"
+        className="tool-select paste-options-select"
+        aria-label={t`Worksheet filter`}
         value=""
         disabled={feedback.busy || editing || !sheet}
         onChange={(event) => {
@@ -57,26 +60,26 @@ export function FilterTools() {
         }}
       >
         <option value="" disabled>
-          {table ? `${table} filter${rules.length ? ` (${rules.length})` : ''}`
-            : rules.length ? `Filter (${rules.length})` : 'Filter'}
+          {table ? t`${table} filter${rules.length ? ` (${rules.length})` : ''}`
+            : rules.length ? t`Filter (${rules.length})` : t`Filter`}
         </option>
-        <option value="selection">Filter selected range (first row is header)</option>
-        <option value="open">{table ? `${table} filter conditions…` : 'Filter conditions…'}</option>
+        <option value="selection"><Trans>Filter selected range (first row is header)</Trans></option>
+        <option value="open">{table ? t`${table} filter conditions…` : t`Filter conditions…`}</option>
         <option value="reapply" disabled={!rules.length}>
-          {table ? `Reapply ${table} filter` : 'Reapply filter'}
+          {table ? t`Reapply ${table} filter` : t`Reapply filter`}
         </option>
         <option value="clear" disabled={!rules.length && (table !== undefined || !range)}>
-          {table ? `Clear ${table} filter` : 'Clear filter'}
+          {table ? t`Clear ${table} filter` : t`Clear filter`}
         </option>
       </select>
       {(feedback.error || feedback.message) && (
         <span
           className="filter-feedback"
-          title={feedback.error || feedback.message}
-          aria-label="Filter status"
+          title={translateFeedback(i18n, feedback.error || feedback.message)}
+          aria-label={t`Filter status`}
           role={feedback.error ? 'alert' : 'status'}
         >
-          {feedback.error || feedback.message}
+          {translateFeedback(i18n, feedback.error || feedback.message)}
         </span>
       )}
       {target && (
@@ -90,14 +93,14 @@ export function FilterTools() {
             void configure('close')
           }}
         >
-          <h2 id={`${id}-title`}>{panel.table ? `${panel.table} filter conditions` : 'Filter conditions'}</h2>
+          <h2 id={`${id}-title`}>{panel.table ? t`${panel.table} filter conditions` : t`Filter conditions`}</h2>
           <p id={`${id}-help`}>
             {panel.table
-              ? `Table ${panel.table}. Only its data rows are checked; headers and totals are excluded.`
+              ? t`Table ${panel.table}. Only its data rows are checked; headers and totals are excluded.`
               : panel.range
-              ? `Range ${getColumnLabel(panel.range.colStart)}${panel.range.rowStart + 1}:${getColumnLabel(panel.range.colEnd)}${panel.range.rowEnd + 1}. Its first row stays visible.`
-              : 'Filters the worksheet’s used rows, not just the selection. Row 1 stays visible.'}
-            {' Every condition must match. After editing values, use Reapply filter.'}
+              ? t`Range ${getColumnLabel(panel.range.colStart)}${panel.range.rowStart + 1}:${getColumnLabel(panel.range.colEnd)}${panel.range.rowEnd + 1}. Its first row stays visible.`
+              : t`Filters the worksheet’s used rows, not just the selection. Row 1 stays visible.`}
+            {t` Every condition must match. After editing values, use Reapply filter.`}
           </p>
           <form
             onSubmit={(event) => {
@@ -120,9 +123,9 @@ export function FilterTools() {
                     )
                 }
                 onClick={() => void configure('add')}
-              >
+              ><Trans>
                 Add condition
-              </button>
+              </Trans></button>
             )}
             {panel.column !== undefined && (
               <button
@@ -130,26 +133,26 @@ export function FilterTools() {
                 disabled={feedback.busy ||
                   !panel.rules.some((rule) => rule.colIndex === panel.column)}
                 onClick={() => void configure('clear-column')}
-              >
+              ><Trans>
                 Clear column {getColumnLabel(panel.column)} filter
-              </button>
+              </Trans></button>
             )}
             {panel.error && (
               <p role="alert" className="size-error">
-                {panel.error}
+                {translateFeedback(i18n, panel.error)}
               </p>
             )}
             <div className="size-actions">
-              <button type="submit" disabled={feedback.busy}>
+              <button type="submit" disabled={feedback.busy}><Trans>
                 Apply filter
-              </button>
+              </Trans></button>
               <button
                 type="button"
                 disabled={feedback.busy}
                 onClick={() => void configure('close')}
-              >
+              ><Trans>
                 Cancel
-              </button>
+              </Trans></button>
             </div>
           </form>
         </dialog>

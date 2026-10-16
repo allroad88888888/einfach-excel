@@ -46,7 +46,8 @@ DOM 事件 → 一个 UI Core command atom → 一次 Rust 请求 → 发布结�
 
 ## 启动 React 演示
 
-要求 Node.js >= 22.12、pnpm 10，以及 Rust、`wasm32-unknown-unknown` 和 `wasm-pack`。
+开发要求 Node.js >= 22.19、pnpm 10，以及 Rust、`wasm32-unknown-unknown` 和 `wasm-pack`。
+已构建包的消费者基线仍为 Node.js >= 22.12；Lingui 6 提高的是仓库开发工具要求。
 
 ```bash
 pnpm install

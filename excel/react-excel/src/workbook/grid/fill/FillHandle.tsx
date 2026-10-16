@@ -1,3 +1,4 @@
+import { useLingui } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { directionalFillFeedbackAtom, dragFillHandleAtom, editingSessionAtom, fillHandleDragAtom,
   projectedFreezeAtom, projectionSnapshotAtom, selectionSnapshotAtom, selectionRegionsAtom,
@@ -13,6 +14,7 @@ import './fill-handle.css'
 export function FillHandle({ scrollRef, focusGrid }: {
   scrollRef: RefObject<HTMLDivElement>; focusGrid: () => void
 }) {
+  const { t } = useLingui()
   const selection = useAtomValue(selectionSnapshotAtom)
   const regions = useAtomValue(selectionRegionsAtom)
   const metrics = useAtomValue(viewportMetricsAtom)
@@ -104,9 +106,9 @@ export function FillHandle({ scrollRef, focusGrid }: {
     {preview && drag?.direction && <div className="fill-handle-preview" data-testid="fill-preview"
       style={{ left: preview.left + gutter, top: preview.top + heading,
         width: preview.width, height: preview.height }} />}
-    <button ref={button} type="button" aria-label="Drag to fill" tabIndex={-1}
+    <button ref={button} type="button" aria-label={t`Drag to fill`} tabIndex={-1}
       disabled={!enabled && !drag}
-      title="Drag to fill. Hold Ctrl/⌘ to copy; Escape to cancel."
+      title={t`Drag to fill. Hold Ctrl/⌘ to copy; Escape to cancel.`}
       className="fill-handle" data-mode={drag?.copy ? 'copy' : 'auto'}
       style={{ left: gutter + corner.cornerX - 6, top: heading + corner.cornerY - 6,
         visibility: (enabled || drag) && corner.cornerVisible ? 'visible' : 'hidden' }}

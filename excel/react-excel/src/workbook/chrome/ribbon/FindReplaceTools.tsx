@@ -1,3 +1,5 @@
+import { translateFeedback } from '../../../i18n/translate-feedback'
+import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useEffect, useId, useRef } from 'react'
 import {
@@ -13,6 +15,7 @@ import { cycleDialogFocus } from './dialog-focus'
 
 /** 只处理 DOM 控件与焦点；草稿、查询、替换、导航由同一个 command atom 执行。 */
 export function FindReplaceTools() {
+  const { i18n, t } = useLingui()
   const state = useAtomValue(findReplacePanelAtom)
   const editing = useAtomValue(editingSessionAtom).source !== null
   const workbook = useAtomValue(workbookDocumentAtom)
@@ -47,8 +50,8 @@ export function FindReplaceTools() {
         ref={buttonRef}
         type="button"
         className="tool-button"
-        aria-label="Find and replace"
-        title="Find and replace (Ctrl/⌘+F)"
+        aria-label={t`Find and replace`}
+        title={t`Find and replace (Ctrl/⌘+F)`}
         disabled={editing || busy}
         onClick={() => void run({ open: 'find' })}
       >
@@ -65,11 +68,11 @@ export function FindReplaceTools() {
             void run('close')
           }}
         >
-          <h2 id={`${id}-title`}>Find and replace</h2>
+          <h2 id={`${id}-title`}><Trans>Find and replace</Trans></h2>
           <div
             className="find-tabs"
             role="tablist"
-            aria-label="Find or replace"
+            aria-label={t`Find or replace`}
             onKeyDown={(event) => {
               if (busy || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return
               event.preventDefault()
@@ -99,7 +102,7 @@ export function FindReplaceTools() {
                 disabled={busy}
                 onClick={() => void run({ open: tab })}
               >
-                {tab === 'find' ? 'Find' : 'Replace'}
+                {tab === 'find' ? t`Find` : t`Replace`}
               </button>
             ))}
           </div>
@@ -112,7 +115,7 @@ export function FindReplaceTools() {
               void run('next')
             }}
           >
-            <label htmlFor={`${id}-needle`}>Find what</label>
+            <label htmlFor={`${id}-needle`}><Trans>Find what</Trans></label>
             <input
               ref={inputRef}
               id={`${id}-needle`}
@@ -124,7 +127,7 @@ export function FindReplaceTools() {
             />
             {state.tab === 'replace' && (
               <>
-                <label htmlFor={`${id}-replacement`}>Replace with</label>
+                <label htmlFor={`${id}-replacement`}><Trans>Replace with</Trans></label>
                 <input
                   id={`${id}-replacement`}
                   value={form.replacement}
@@ -138,9 +141,9 @@ export function FindReplaceTools() {
               </>
             )}
             <div className="find-options">
-              <label>
+              <label><Trans>
                 Within
-                <select
+                </Trans><select
                   value={form.scope}
                   disabled={busy}
                   onChange={(event) =>
@@ -151,14 +154,14 @@ export function FindReplaceTools() {
                     })
                   }
                 >
-                  <option value="sheet">Current sheet</option>
-                  <option value="workbook">Workbook</option>
-                  <option value="current-selection">Original selection</option>
+                  <option value="sheet"><Trans>Current sheet</Trans></option>
+                  <option value="workbook"><Trans>Workbook</Trans></option>
+                  <option value="current-selection"><Trans>Original selection</Trans></option>
                 </select>
               </label>
-              <label>
+              <label><Trans>
                 Look in
-                <select
+                </Trans><select
                   value={form.lookIn}
                   disabled={busy}
                   onChange={(event) =>
@@ -169,8 +172,8 @@ export function FindReplaceTools() {
                     })
                   }
                 >
-                  <option value="formulas">Formulas / raw values</option>
-                  <option value="values">Displayed values</option>
+                  <option value="formulas"><Trans>Formulas / raw values</Trans></option>
+                  <option value="values"><Trans>Displayed values</Trans></option>
                 </select>
               </label>
             </div>
@@ -183,9 +186,9 @@ export function FindReplaceTools() {
                   onChange={(event) =>
                     void run({ form: { wildcards: event.currentTarget.checked } })
                   }
-                />
+                /><Trans>
                 Use wildcards
-              </label>
+              </Trans></label>
               <label>
                 <input
                   type="checkbox"
@@ -194,9 +197,9 @@ export function FindReplaceTools() {
                   onChange={(event) =>
                     void run({ form: { caseSensitive: event.currentTarget.checked } })
                   }
-                />
+                /><Trans>
                 Match case
-              </label>
+              </Trans></label>
               <label>
                 <input
                   type="checkbox"
@@ -205,75 +208,75 @@ export function FindReplaceTools() {
                   onChange={(event) =>
                     void run({ form: { wholeCell: event.currentTarget.checked } })
                   }
-                />
+                /><Trans>
                 Match entire cell
-              </label>
+              </Trans></label>
             </div>
             {match && (
-              <p className="find-match" role="status">
+              <p className="find-match" role="status"><Trans>
                 {result!.index + 1} of {result!.total} · {matchSheet?.name}!{coordToA1(match)}
-              </p>
+              </Trans></p>
             )}
-            {state.notice && <p role="status">{state.notice}</p>}
+            {state.notice && <p role="status">{translateFeedback(i18n, state.notice)}</p>}
             {state.error && (
               <p role="alert" className="find-error">
-                {state.error}
+                {translateFeedback(i18n, state.error)}
               </p>
             )}
-            {busy && <p role="status">{state.busy === 'find' ? 'Finding…' : 'Replacing…'}</p>}
+            {busy && <p role="status">{state.busy === 'find' ? t`Finding…` : t`Replacing…`}</p>}
             <div className="find-actions">
-              <button type="button" disabled={busy || !match} onClick={() => void run('previous')}>
+              <button type="button" disabled={busy || !match} onClick={() => void run('previous')}><Trans>
                 Previous
-              </button>
-              <button type="submit" className="find-primary" disabled={busy || !form.needle}>
+              </Trans></button>
+              <button type="submit" className="find-primary" disabled={busy || !form.needle}><Trans>
                 Find next
-              </button>
+              </Trans></button>
               <button
                 type="button"
                 disabled={busy || !form.needle}
                 onClick={() => void run('find-all')}
-              >
+              ><Trans>
                 Find all
-              </button>
+              </Trans></button>
               {state.tab === 'replace' && (
                 <>
                   <button
                     type="button"
                     disabled={busy || !match}
                     onClick={() => void run('replace-current')}
-                  >
+                  ><Trans>
                     Replace current
-                  </button>
+                  </Trans></button>
                   <button
                     type="button"
                     disabled={busy || !form.needle}
                     onClick={() => void run('replace-all')}
-                  >
+                  ><Trans>
                     Replace all
-                  </button>
+                  </Trans></button>
                 </>
               )}
               <button
                 type="button"
                 disabled={state.busy === 'replace'}
                 onClick={() => void run('close')}
-              >
+              ><Trans>
                 Close
-              </button>
+              </Trans></button>
             </div>
           </form>
           <FindResults />
           <p className="find-hint">
             {form.wildcards
-              ? '* = any text, ? = one character, ~ escapes *, ? or ~. '
-              : 'Searches literal text, including offscreen cells. '}
+              ? t`* = any text, ? = one character, ~ escapes *, ? or ~. `
+              : t`Searches literal text, including offscreen cells. `}<Trans>
             Replacements can be undone together.
-          </p>
+          </Trans></p>
           {form.lookIn === 'values' && state.tab === 'replace' && (
-            <p className="find-hint">
+            <p className="find-hint"><Trans>
               To replace a formula, choose Formulas / raw values. Calculated results are not
               overwritten.
-            </p>
+            </Trans></p>
           )}
         </dialog>
       )}

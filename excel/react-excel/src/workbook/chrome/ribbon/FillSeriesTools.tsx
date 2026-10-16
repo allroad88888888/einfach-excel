@@ -1,3 +1,5 @@
+import { translateFeedback } from '../../../i18n/translate-feedback'
+import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useEffect, useId, useRef } from 'react'
 import {
@@ -9,6 +11,7 @@ import './fill-series.css'
 
 /** 序列面板只负责 DOM 与模态焦点；样本推断全部留在 Rust。 */
 export function FillSeriesTools() {
+  const { i18n, t } = useLingui()
   const state = useAtomValue(fillSeriesPanelAtom)
   const feedback = useAtomValue(directionalFillFeedbackAtom)
   const editing = useAtomValue(editingSessionAtom).source !== null
@@ -26,16 +29,16 @@ export function FillSeriesTools() {
     return () => { dialog.close?.(); button?.focus({ preventScroll: true }) }
   }, [target])
   return <>
-    <button ref={buttonRef} type="button" className="tool-select" aria-label="Fill series"
-      disabled={editing || feedback.busy} onClick={() => void run('open')}>Series…</button>
+    <button ref={buttonRef} type="button" className="tool-select" aria-label={t`Fill series`}
+      disabled={editing || feedback.busy} onClick={() => void run('open')}><Trans>Series…</Trans></button>
     {target && <dialog ref={ref} className="selection-size-dialog fill-series-dialog"
       aria-labelledby={`${id}-title`} aria-describedby={`${id}-help`}
       onCancel={(event) => { event.preventDefault(); void run('close') }}>
-      <h2 id={`${id}-title`}>Fill series</h2>
-      <p id={`${id}-help`}>Select samples and destinations in one row or column. Keep the first samples;
-        extend their pattern into the remaining cells, including hidden cells.</p>
+      <h2 id={`${id}-title`}><Trans>Fill series</Trans></h2>
+      <p id={`${id}-help`}><Trans>Select samples and destinations in one row or column. Keep the first samples;
+        extend their pattern into the remaining cells, including hidden cells.</Trans></p>
       <form onSubmit={(event) => { event.preventDefault(); void run('apply') }}>
-        <label htmlFor={`${id}-kind`}>Sequence type</label>
+        <label htmlFor={`${id}-kind`}><Trans>Sequence type</Trans></label>
         <select id={`${id}-kind`} value={state.kind} disabled={feedback.busy}
           onChange={(event) => {
             const kind = FILL_SERIES_OPTIONS.find(
@@ -44,43 +47,45 @@ export function FillSeriesTools() {
             if (kind) void run({ field: 'kind', value: kind })
           }}>
           {FILL_SERIES_OPTIONS.map(({ kind, label }) =>
-            <option key={kind} value={kind}>{label}</option>)}
+            <option key={kind} value={kind}>{translateFeedback(i18n, label)}</option>)}
         </select>
-        <label htmlFor={`${id}-direction`}>Direction</label>
+        <label htmlFor={`${id}-direction`}><Trans>Direction</Trans></label>
         <select id={`${id}-direction`} value={state.direction} disabled={feedback.busy}
           onChange={(event) => {
             const value = event.currentTarget.value
             if (value === 'down' || value === 'right') void run({ field: 'direction', value })
           }}>
-          <option value="down">Down</option><option value="right">Right</option>
+          <option value="down"><Trans>Down</Trans></option><option value="right"><Trans>Right</Trans></option>
         </select>
-        <label htmlFor={`${id}-count`}>Source sample count</label>
+        <label htmlFor={`${id}-count`}><Trans>Source sample count</Trans></label>
         <input id={`${id}-count`} type="number" min={minimumFillSamples(state.kind)} step="1"
           required value={state.sourceCount} disabled={feedback.busy}
           onChange={(event) => void run({ field: 'sourceCount', value: event.currentTarget.value })} />
         {state.kind === 'custom-list' && <>
-          <label htmlFor={`${id}-list`}>Custom list items</label>
+          <label htmlFor={`${id}-list`}><Trans>Custom list items</Trans></label>
           <textarea id={`${id}-list`} rows={5} maxLength={16_384} required
             value={state.listText} disabled={feedback.busy}
-            placeholder={'Low\nMedium\nHigh'}
+            placeholder={t`Low
+Medium
+High`}
             onChange={(event) => void run({ field: 'listText', value: event.currentTarget.value })} />
         </>}
         <p className="size-hint">{state.kind === 'date'
-          ? 'One date advances by a day. Two or more dates infer day, week or month steps; month ends stay at month end.'
+          ? t`One date advances by a day. Two or more dates infer day, week or month steps; month ends stay at month end.`
           : minimumFillSamples(state.kind) === 1
           ? state.kind === 'custom-list'
-            ? 'One item per line (2–512 unique items). One source sample follows the list; more samples infer a cyclic step.'
-            : 'English short/full names or Chinese names. One source sample advances by one; more samples infer the cyclic step.'
+            ? t`One item per line (2–512 unique items). One source sample follows the list; more samples infer a cyclic step.`
+            : t`English short/full names or Chinese names. One source sample advances by one; more samples infer the cyclic step.`
           : state.kind === 'linear-trend'
-          ? 'At least 3 numeric samples. Rust fits a least-squares line using all samples.'
+          ? t`At least 3 numeric samples. Rust fits a least-squares line using all samples.`
           : state.kind === 'text-number'
-            ? 'At least 2 numbered labels, such as Item001, Item003. Matching padding is preserved.'
-            : 'At least 2 numbers with a constant non-zero difference, including decimals.'}</p>
-        {state.error && <p role="alert" className="size-error">{state.error}</p>}
-        {feedback.busy && <p role="status">Extending series…</p>}
+            ? t`At least 2 numbered labels, such as Item001, Item003. Matching padding is preserved.`
+            : t`At least 2 numbers with a constant non-zero difference, including decimals.`}</p>
+        {state.error && <p role="alert" className="size-error">{translateFeedback(i18n, state.error)}</p>}
+        {feedback.busy && <p role="status"><Trans>Extending series…</Trans></p>}
         <div className="size-actions">
-          <button type="submit" disabled={feedback.busy}>Apply series</button>
-          <button type="button" disabled={feedback.busy} onClick={() => void run('close')}>Cancel</button>
+          <button type="submit" disabled={feedback.busy}><Trans>Apply series</Trans></button>
+          <button type="button" disabled={feedback.busy} onClick={() => void run('close')}><Trans>Cancel</Trans></button>
         </div>
       </form>
     </dialog>}

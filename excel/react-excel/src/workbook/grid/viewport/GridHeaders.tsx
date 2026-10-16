@@ -1,3 +1,4 @@
+import { useLingui } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   activeWorkbookSheetAtom,
@@ -22,6 +23,7 @@ export function GridHeaders({
   rowStyle: CSSProperties
   focusGrid: () => void
 }) {
+  const { t } = useLingui()
   const sheet = useAtomValue(activeWorkbookSheetAtom)
   const selection = useAtomValue(selectionSnapshotAtom)
   const freeze = useAtomValue(projectedFreezeAtom)
@@ -33,7 +35,7 @@ export function GridHeaders({
       <button
         className="sheet-corner"
         type="button"
-        aria-label="Select all cells"
+        aria-label={t`Select all cells`}
         aria-pressed={selection.selection.kind === 'all'}
         onPointerDown={(event) => {
           event.preventDefault()

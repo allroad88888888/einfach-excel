@@ -9,8 +9,88 @@ import {
 } from '../src/viewport'
 import { viewportSizeOverridesAtom } from '../src/viewport/size-overrides'
 import { sheetHiddenRowsBackingAtom, viewportHiddenColsBackingAtom } from '../src/viewport/hidden-state'
+import { selectCellAtom, selectionSnapshotAtom } from '../src/selection'
+import { projectionSnapshotBackingAtom } from '../src/projection/state'
 
 describe('viewport metric commands', () => {
+  test('shrinking keeps a visible active cell inside both edges without changing the selection', () => {
+    const store = createStore()
+    store.setter(setViewportMetricsAtom, {
+      ...store.getter(viewportMetricsAtom), sheetId: 's',
+      rowCount: 100, colCount: 20, rowHeight: 20, colWidth: 80,
+      viewportHeight: 300, viewportWidth: 400,
+    })
+    store.setter(selectCellAtom, { sheetId: 's', coord: { row: 14, col: 4 } })
+    const selection = store.getter(selectionSnapshotAtom)
+    store.setter(setViewportSizeAtom, { viewportHeight: 260, viewportWidth: 350 })
+    expect(store.getter(viewportMetricsAtom)).toMatchObject({ scrollTop: 40, scrollLeft: 50 })
+    expect(store.getter(selectionSnapshotAtom)).toBe(selection)
+    // 公式栏再次变化不能把刚保住的格子移出窗口；扩大也不跳回旧位置。
+    store.setter(setViewportSizeAtom, { viewportHeight: 260, viewportWidth: 350 })
+    store.setter(setViewportSizeAtom, { viewportHeight: 300, viewportWidth: 400 })
+    expect(store.getter(viewportMetricsAtom)).toMatchObject({ scrollTop: 40, scrollLeft: 50 })
+  })
+
+  test.each([
+    ['frozen corner', 0, 0, 200, 160],
+    ['occluded by frozen rows', 10, 6, 200, 160],
+    ['occluded by frozen columns', 24, 2, 200, 160],
+    ['visible body cell', 24, 6, 240, 210],
+  ] as const)('resizing respects %s', (_name, row, col, scrollTop, scrollLeft) => {
+    const store = createStore()
+    store.setter(setViewportMetricsAtom, {
+      ...store.getter(viewportMetricsAtom), sheetId: 's',
+      rowCount: 100, colCount: 20, rowHeight: 20, colWidth: 80,
+      viewportHeight: 300, viewportWidth: 400, scrollTop: 200, scrollLeft: 160,
+    })
+    store.setter(projectionSnapshotBackingAtom, {
+      status: 'ready', result: {
+        kind: 'visible-window', sheetId: 's', requestId: 1, cells: [],
+        window: { rowStart: 10, rowEnd: 24, colStart: 2, colEnd: 6 },
+        freeze: { rows: 2, cols: 1 }, frozen: { height: 40, width: 80, regions: [] },
+      },
+    })
+    store.setter(selectCellAtom, { sheetId: 's', coord: { row, col } })
+    store.setter(setViewportSizeAtom, { viewportHeight: 260, viewportWidth: 350 })
+    expect(store.getter(viewportMetricsAtom)).toMatchObject({ scrollTop, scrollLeft })
+  })
+
+  test('a partially visible custom-height cell remains visible when the formula bar grows', () => {
+    const store = createStore()
+    store.setter(viewportSizeOverridesAtom, {
+      rowHeightsBySheet: { s: { '14': 52 } }, colWidthsBySheet: {},
+    })
+    store.setter(setViewportMetricsAtom, {
+      ...store.getter(viewportMetricsAtom), sheetId: 's',
+      rowCount: 100, colCount: 20, rowHeight: 20, colWidth: 80,
+      viewportHeight: 310, viewportWidth: 400,
+    })
+    store.setter(selectCellAtom, { sheetId: 's', coord: { row: 14, col: 4 } })
+    store.setter(setViewportSizeAtom, { viewportHeight: 270, viewportWidth: 400 })
+    expect(store.getter(viewportMetricsAtom)).toMatchObject({ scrollTop: 62, scrollLeft: 0 })
+  })
+
+  test.each(['offscreen', 'other sheet', 'initial measurement', 'hidden row'])(
+    '%s does not chase the active cell during resize', (reason) => {
+      const store = createStore()
+      store.setter(setViewportMetricsAtom, {
+        ...store.getter(viewportMetricsAtom), sheetId: 's',
+        rowCount: 100, colCount: 20, rowHeight: 20, colWidth: 80,
+        viewportHeight: 300, viewportWidth: 400, scrollTop: 200,
+      })
+      store.setter(selectCellAtom, {
+        sheetId: reason === 'other sheet' ? 'other' : 's',
+        coord: { row: reason === 'offscreen' ? 0 : 24, col: 4 },
+      })
+      if (reason === 'hidden row') store.setter(sheetHiddenRowsBackingAtom, { s: [24] })
+      store.setter(setViewportSizeAtom, {
+        viewportHeight: 260, viewportWidth: 350,
+        preserveEdges: reason !== 'initial measurement',
+      })
+      expect(store.getter(viewportMetricsAtom)).toMatchObject({ scrollTop: 200, scrollLeft: 0 })
+    },
+  )
+
   test('same-sheet canvas changes preserve physical scroll and measured viewport', () => {
     const store = createStore()
     const initial = {

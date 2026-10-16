@@ -135,7 +135,7 @@ test('pending apply cannot be submitted twice, edited or cancelled', async () =>
 })
 
 test('rejected mutation clears consent and demands a fresh preview before retry', async () => {
-  const { store, write, run } = await setup()
+  const { store, preview, write, run } = await setup()
   write.mockRejectedValueOnce(new Error('revision changed'))
   await run('open')
   await run({ type: 'confirm', value: true })
@@ -144,6 +144,16 @@ test('rejected mutation clears consent and demands a fresh preview before retry'
     preview: null, confirmed: false, error: 'revision changed' })
   expect(await run('apply')).toBe(false)
   expect(write).toHaveBeenCalledTimes(1)
+  expect(await run('preview')).toBe(true)
+  expect(store.getter(nativeDuplicatesPanelAtom).confirmed).toBe(false)
+  expect(await run('apply')).toBe(false)
+  await run({ type: 'confirm', value: true })
+  expect(await run('apply')).toBe(true)
+  expect(preview).toHaveBeenCalledTimes(2)
+  expect(write).toHaveBeenCalledTimes(2)
+  expect(write.mock.calls[1][0].projection.requestId)
+    .not.toBe(write.mock.calls[0][0].projection.requestId)
+  expect(store.getter(nativeDuplicatesPanelAtom).target).toBeNull()
 })
 
 test('paging pins the native revision, drops deletion consent and replaces rather than appends samples', async () => {

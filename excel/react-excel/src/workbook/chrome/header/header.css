@@ -60,6 +60,18 @@
   flex: 1;
 }
 
+.language-select {
+  flex: none;
+  max-width: 88px;
+  min-height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text);
+  background: #ffffff;
+  font: inherit;
+  font-size: 12px;
+}
+
 .save-state {
   display: flex;
   align-items: center;
@@ -92,11 +104,13 @@
 
   .workbook-identity {
     min-width: 0;
+    overflow: hidden;
     flex-direction: column;
     gap: 0;
   }
 
   .workbook-subtitle,
+  .row-count-badge,
   .save-state {
     display: none;
   }

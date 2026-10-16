@@ -19,8 +19,8 @@
     "check:cycles": "depcruise --config .dependency-cruiser.cjs --output-type err-long excel/excel-core-ts/src excel/spreadsheet-ui-core/src excel/react-excel/src",
     "lint:check": "npx eslint --config rules/.eslintrc --ext=.ts,.tsx --ignore-path ./rules/.eslintignore excel/excel-core-ts/src excel/excel-core-ts/test excel/react-excel/src excel/react-excel/test excel/spreadsheet-ui-core/src excel/spreadsheet-ui-core/test packages/canvas/src packages/canvas/test packages/react-cells/src packages/react-cells/test packages/canvas-cells/src packages/canvas-cells/test",
     "typecheck:mainline": "tsc -build excel/spreadsheet-ui-core && pnpm --filter @einfach/react-excel typecheck",
-    "test": "vitest run --workspace vitest.workspace.ts",
-    "test:coverage": "vitest run --workspace vitest.workspace.ts --coverage",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:scripts": "node --test scripts/generate-ad509-benchmark-fixtures.test.mjs scripts/generate-ad806-filled-tsv.test.mjs scripts/measure-ad512-size-composition.test.mjs",
     "clearTypes": "node clean.js",
     "ensureWasm": "test -f excel/excel-wasm/lite/einfach_wasm.js || npm run build:wasm -w @einfach/excel-wasm",
@@ -67,14 +67,15 @@
     "@testing-library/jest-dom": "^6.4.5",
     "@testing-library/react": "^16.0.0",
     "@testing-library/user-event": "^14.5.2",
-    "@types/node": "^20.11.30",
-    "@vitest/coverage-v8": "^2.1.9",
+    "@types/node": "^22.19.0",
+    "@vitest/coverage-v8": "^5.0.5",
     "dependency-cruiser": "^16.10.4",
     "husky": "^9.0.11",
     "prettier": "^3.3.3",
     "rimraf": "^6.0.1",
     "rollup": "^4.27.4",
     "solid-js": "^1.9.12",
-    "vitest": "^2.1.9"
+    "vitest": "5.0.5",
+    "vite": "8.3.4"
   }
 }

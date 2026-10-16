@@ -158,7 +158,14 @@ export const runSystemClipboardAtom = atom(
         })
         // 浏览器写入与 Rust 响应一起结算，即使权限同步失败也接住 RPC 拒绝。
         const written = new Promise<void>((resolve) => resolve(input.write(captured)))
-        const [data] = await Promise.all([captured, written])
+        const [captureResult, writeResult] = await Promise.allSettled([captured, written])
+        if (captureResult.status === 'rejected') throw captureResult.reason
+        const data = captureResult.value
+        // 浏览器拒绝权限时丢弃暂存快照，保留上一次复制的公式、样式与剪切身份。
+        await connection.request('clipboard.finishCapture', {
+          token: data.token, commit: writeResult.status === 'fulfilled',
+        })
+        if (writeResult.status === 'rejected') throw writeResult.reason
         set(feedbackAtom, {
           busy: false,
           error: false,

@@ -24,7 +24,8 @@ impl WorkbookHistory {
         for &(range, scope) in targets {
             validate_target(workbook, sheet, range)?;
             let source = workbook.sheet(sheet).unwrap();
-            if source.merged_ranges().iter().any(|merged| merged.intersects(range)
+            // 行列样式只作用于指定轴；穿过合并框不应扩大或拒绝整行／整列操作。
+            if scope == StyleScope::Cell && source.merged_ranges().iter().any(|merged| merged.intersects(range)
                 && (!range.contains(merged.start) || !range.contains(merged.end))) {
                 return Err("Select the entire merged cell before formatting.");
             }

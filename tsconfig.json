@@ -31,7 +31,7 @@
     "inlineSourceMap": true
   },
   "include": [
-    "./vitest.workspace.ts",
+    "./vitest.config.ts",
     "rollup.config.mjs",
     "./**/*.test.ts",
     "./**/*.test.tsx",

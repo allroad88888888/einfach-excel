@@ -1,4 +1,6 @@
+import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useAtomValue, useSetAtom } from '@einfach/react'
+import { useLingui } from '@lingui/react/macro'
 import {
   blurNameBoxAtom,
   commitNameBoxAtom,
@@ -31,6 +33,7 @@ function navigationCoord(target: NameBoxCommitTarget): CellCoord | null {
 
 /** Adapts the shared name-box atoms to one address input. */
 export function NameBox() {
+  const { i18n, t } = useLingui()
   const state = useAtomValue(nameBoxStateAtom)
   const busy = useAtomValue(nativeNameChangeBusyAtom)
   const errorId = useId()
@@ -52,7 +55,8 @@ export function NameBox() {
     const viewportHeight = getWorkbookGridViewportHeight(scroll?.clientHeight ?? 0)
     const viewportWidth = getWorkbookGridViewportWidth(scroll?.clientWidth ?? 0)
     scrollToCell({
-      coord, rowAlign: 'start', colAlign: 'nearest',
+      // 已可见时只改选区；离屏时只滚动到刚好可见。
+      coord, rowAlign: 'nearest', colAlign: 'nearest',
       viewport: viewportHeight > 0 && viewportWidth > 0
         ? { viewportHeight, viewportWidth } : undefined,
     })
@@ -129,7 +133,7 @@ export function NameBox() {
       <input
         ref={inputRef}
         aria-invalid={state.error || undefined}
-        aria-label="Name box"
+        aria-label={t`Name box`}
         aria-describedby={state.error ? errorId : undefined}
         aria-busy={busy || undefined}
         readOnly={busy}
@@ -144,7 +148,7 @@ export function NameBox() {
         value={value}
       />
       {state.errorMessage && <span id={errorId} role="alert" className="name-box-feedback">
-        {state.errorMessage}
+        {translateFeedback(i18n, state.errorMessage)}
       </span>}
     </span>
   )

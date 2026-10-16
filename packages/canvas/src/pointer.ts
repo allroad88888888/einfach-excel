@@ -15,8 +15,8 @@ export function createPointerDispatcher(
     const box = canvas.getBoundingClientRect()
     const view = viewport()
     return {
-      x: box.width ? (event.clientX - box.left) * view.width / box.width : -1,
-      y: box.height ? (event.clientY - box.top) * view.height / box.height : -1,
+      x: view.x + (box.width ? (event.clientX - box.left) * view.width / box.width : -1),
+      y: view.y + (box.height ? (event.clientY - box.top) * view.height / box.height : -1),
     }
   }
   function hit(event: PointerEvent): PointerTarget | undefined {

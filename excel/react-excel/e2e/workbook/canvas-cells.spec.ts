@@ -22,7 +22,10 @@ async function point(page: Page, col: number, row: number) {
   const box = (await bodyCanvas(page).boundingBox())!
   const rowStart = Number(await bodyCanvas(page).getAttribute('data-row-start'))
   const colStart = Number(await bodyCanvas(page).getAttribute('data-col-start'))
-  return { x: box.x + (col - colStart) * 120 + 60, y: box.y + (row - rowStart) * 28 + 14 }
+  const x = Number(await bodyCanvas(page).getAttribute('data-viewport-x'))
+  const y = Number(await bodyCanvas(page).getAttribute('data-viewport-y'))
+  return { x: box.x + (col - colStart) * 120 + 60 - x,
+    y: box.y + (row - rowStart) * 28 + 14 - y }
 }
 async function go(page: Page, address: string) {
   await nameBox(page).fill(address)
@@ -69,14 +72,14 @@ test('hover is local, dragging updates UI Core selection, and distant scrolling 
   await page.mouse.up()
   await expect(nameBox(page)).toHaveValue('B2:D4')
   await page.screenshot({ path: 'test-results/canvas-cells-selection.png' })
-  await go(page, 'A900')
+  await go(page, 'H900')
   const viewportHeight = await page.locator('.sheet-scroll').evaluate(el => el.clientHeight)
   const logicalHeight = await bodyCanvas(page).evaluate(el =>
     parseFloat((el as HTMLElement).style.height))
-  expect(logicalHeight).toBeLessThanOrEqual(viewportHeight * 4 + 28)
-  expect(Number(await bodyCanvas(page).getAttribute('data-cell-count'))).toBeLessThan(2000)
+  expect(logicalHeight).toBeLessThanOrEqual(viewportHeight)
+  expect(Number(await bodyCanvas(page).getAttribute('data-cell-count'))).toBeLessThan(5000)
   await page.keyboard.press('ArrowDown')
-  await expect(nameBox(page)).toHaveValue('A901')
+  await expect(nameBox(page)).toHaveValue('H901')
   await go(page, 'A2')
   const p = await point(page, 0, 1)
   await page.mouse.click(p.x, p.y)

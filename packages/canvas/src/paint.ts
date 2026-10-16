@@ -29,15 +29,20 @@ export function paintCells(
   dirty: readonly Rect[],
   viewport: Rect,
   ratio: number,
+  background?: string,
 ): number {
   let painted = 0
   context.save()
   try {
-    context.setTransform(ratio, 0, 0, ratio, 0, 0)
+    context.setTransform(ratio, 0, 0, ratio, (0 - viewport.x) * ratio, (0 - viewport.y) * ratio)
     context.beginPath()
     for (const rect of dirty) context.rect(rect.x, rect.y, rect.width, rect.height)
     context.clip()
-    context.clearRect(0, 0, viewport.width, viewport.height)
+    context.clearRect(viewport.x, viewport.y, viewport.width, viewport.height)
+    if (background) {
+      context.fillStyle = background
+      context.fillRect(viewport.x, viewport.y, viewport.width, viewport.height)
+    }
     for (const cell of cells) {
       const affected = dirty.some(rect => intersects(rect, cell.bounds))
       if (!intersects(cell.bounds, viewport) || !affected) {

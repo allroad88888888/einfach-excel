@@ -1,5 +1,5 @@
 import { atom, type Atom } from '@einfach/core'
-import { createCanvas, useAtomValue, type CanvasCell } from '@einfach/canvas'
+import { createCanvas, useAtomValue, type CanvasCell, type Rect } from '@einfach/canvas'
 import {
   getViewportRangeRectangle, projectionSnapshotAtom, viewportMetricsAtom, viewportGeometrySizesAtom,
   type CellCoord, type CellRange,
@@ -22,7 +22,9 @@ export function createCanvasCells(canvas: HTMLCanvasElement, initial: CanvasCell
     model: CellPaintModel
   }>()
   const surface = createCanvas(canvas, { store, width: 1, height: 1,
-    pixelRatio: options.pixelRatio, pointerEvents: false, onFrame: options.onFrame })
+    background: theme.background, pixelRatio: options.pixelRatio,
+    pointerEvents: false, onFrame: options.onFrame })
+  let viewport = options.viewport
   let input = initial
   let layout: ReturnType<typeof createLayout>
   let disposed = false
@@ -35,8 +37,8 @@ export function createCanvasCells(canvas: HTMLCanvasElement, initial: CanvasCell
   }
   function point(clientX: number, clientY: number) {
     const box = canvas.getBoundingClientRect()
-    return { x: box.width ? (clientX - box.left) * width / box.width : -1,
-      y: box.height ? (clientY - box.top) * height / box.height : -1 }
+    return { x: (viewport?.x ?? 0) + (box.width ? (clientX - box.left) * width / box.width : -1),
+      y: (viewport?.y ?? 0) + (box.height ? (clientY - box.top) * height / box.height : -1) }
   }
   function hitTest(clientX: number, clientY: number) {
     if (disposed || input.interactive === false) return null
@@ -63,6 +65,21 @@ export function createCanvasCells(canvas: HTMLCanvasElement, initial: CanvasCell
     if (next && records.has(next)) refreshCell(records.get(next)!)
     canvas.style.cursor = next ? 'cell' : 'default'
   }
+  function resizeViewport() {
+    const view = viewport ?? { x: 0, y: 0, width: layout.width, height: layout.height }
+    const nextRatio = options.pixelRatio ?? globalThis.devicePixelRatio ?? 1
+    if (width !== view.width || height !== view.height || ratio !== nextRatio) {
+      width = view.width; height = view.height; ratio = nextRatio
+      surface.resize(Math.max(1, width), Math.max(1, height), ratio)
+      canvas.style.width = `${width}px`; canvas.style.height = `${height}px`
+    }
+    surface.setViewport({ ...view, width: Math.max(1, width), height: Math.max(1, height) })
+    canvas.dataset.viewportX = String(view.x); canvas.dataset.viewportY = String(view.y)
+  }
+  function setViewport(view: Rect) {
+    viewport = view
+    resizeViewport()
+  }
   function update(next: CanvasCellsInput) {
     if (disposed) throw new Error('Canvas cells have been disposed.')
     input = next
@@ -82,12 +99,7 @@ export function createCanvasCells(canvas: HTMLCanvasElement, initial: CanvasCell
           width: rect.width, height: rect.height }
       } : undefined,
     })
-    const nextRatio = options.pixelRatio ?? globalThis.devicePixelRatio ?? 1
-    if (width !== layout.width || height !== layout.height || ratio !== nextRatio) {
-      width = layout.width; height = layout.height; ratio = nextRatio
-      surface.resize(Math.max(1, width), Math.max(1, height), ratio)
-      canvas.style.width = `${width}px`; canvas.style.height = `${height}px`
-    }
+    resizeViewport()
     if (input.interactive === false) hovered = undefined
     appearance = appearanceReader(store, input)
     const nextItems = new Map(layout.items.map(item => [item.key, item]))
@@ -136,5 +148,5 @@ export function createCanvasCells(canvas: HTMLCanvasElement, initial: CanvasCell
     cleanup.push(bindEvents(canvas, store, { hit: hitTest, point, hover,
       model: coord => recordAt(coord)?.model }))
   } catch (error) { dispose(); throw error }
-  return { update, hitTest, flush: surface.flush, dispose }
+  return { update, setViewport, hitTest, flush: surface.flush, dispose }
 }

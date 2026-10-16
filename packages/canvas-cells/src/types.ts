@@ -24,6 +24,8 @@ export interface CanvasCellsTheme {
 }
 export interface CanvasCellsOptions {
   store: Store
+  /** Visible rectangle relative to the supplied projection window. */
+  viewport?: Rect
   pixelRatio?: number
   theme?: Partial<CanvasCellsTheme>
   onFrame?: (stats: FrameStats) => void

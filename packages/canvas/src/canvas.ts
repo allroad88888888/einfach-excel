@@ -10,6 +10,7 @@ export interface CanvasOptions {
   readonly width: number
   readonly height: number
   readonly pointerEvents?: boolean
+  readonly background?: string
   readonly pixelRatio?: number
   readonly onFrame?: (stats: FrameStats) => void
 }
@@ -24,6 +25,7 @@ export interface CanvasSurface {
   /** Enter the region lifetime to create its shared cached atom factories. */
   run<T>(fn: () => T): T
   resize(width: number, height: number, pixelRatio?: number): void
+  setViewport(bounds: Rect): void
   invalidate(): void
   flush(): void
   dispose(): void
@@ -55,6 +57,8 @@ export function createCanvas(canvas: HTMLCanvasElement, options: CanvasOptions):
     }
     function invalidate(rect?: Rect) {
       if (owner.disposed) return
+      if (rect && (rect.x >= viewport.x + viewport.width || rect.y >= viewport.y + viewport.height
+        || rect.x + rect.width <= viewport.x || rect.y + rect.height <= viewport.y)) return
       if (!rect) { full = true; dirty.clear() } else if (!full) dirty.add(rect)
       schedule()
     }
@@ -67,7 +71,7 @@ export function createCanvas(canvas: HTMLCanvasElement, options: CanvasOptions):
       dirty.clear()
       const started = performance.now()
       try {
-        const count = paintCells(context!, cells, areas, viewport, ratio)
+        const count = paintCells(context!, cells, areas, viewport, ratio, options.background)
         options.onFrame?.({ cells: count, elapsed: performance.now() - started })
       } catch (error) {
         // A caller may fix its painter and explicitly invalidate/flush again.
@@ -81,11 +85,25 @@ export function createCanvas(canvas: HTMLCanvasElement, options: CanvasOptions):
       positive(height)
       positive(pixelRatio)
       ratio = pixelRatio
-      viewport = { x: 0, y: 0, width, height }
+      viewport = { ...viewport, width, height }
       canvas.width = Math.round(width * ratio)
       canvas.height = Math.round(height * ratio)
       canvas.style.width = `${width}px`
       canvas.style.height = `${height}px`
+      invalidate()
+    }
+    function setViewport(bounds: Rect) {
+      if (owner.disposed) throw new Error('Canvas region has been disposed.')
+      positive(bounds.width); positive(bounds.height)
+      if (!Number.isFinite(bounds.x) || !Number.isFinite(bounds.y)) {
+        throw new Error('Canvas viewport coordinates must be finite.')
+      }
+      if (bounds.x === viewport.x && bounds.y === viewport.y
+        && bounds.width === viewport.width && bounds.height === viewport.height) return
+      if (bounds.width !== viewport.width || bounds.height !== viewport.height) {
+        resize(bounds.width, bounds.height)
+      }
+      viewport = { ...bounds }
       invalidate()
     }
     function createCell(bounds: Rect, setup: () => Paint): CanvasCell {
@@ -128,7 +146,7 @@ export function createCanvas(canvas: HTMLCanvasElement, options: CanvasOptions):
     })
     resize(options.width, options.height, ratio)
     return {
-      createCell, resize, flush, dispose,
+      createCell, resize, setViewport, flush, dispose,
       invalidate: () => invalidate(),
       run: <T>(fn: () => T) => runWithOwner(owner, () => withStore(options.store, fn)),
     }

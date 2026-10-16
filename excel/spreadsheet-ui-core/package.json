@@ -1,6 +1,6 @@
 {
   "name": "@einfach/spreadsheet-ui-core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Framework-agnostic spreadsheet UI core powered by Einfach atoms",
   "type": "module",
   "main": "./cjs/index.cjs",

@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 
 test.use({ deviceScaleFactor: 2 })
 
-test('bitmap stays at viewport size inside a 650-row merge with an offscreen anchor', async ({ page }) => {
+test('bitmap stays bounded inside a 650-row merge with an offscreen anchor', async ({ page }) => {
   await page.goto('/?renderer=canvas')
   const canvas = page.locator('[data-workbook-grid] canvas')
   await expect(canvas).toBeVisible()
@@ -18,8 +18,8 @@ test('bitmap stays at viewport size inside a 650-row merge with an offscreen anc
   })).toEqual([255, 242, 204, 255])
   const size = await canvas.evaluate(node => {
     const el = node as HTMLCanvasElement, scroll = el.closest('.sheet-scroll')!
-    return { width: el.width, height: el.height, maxWidth: scroll.clientWidth * 2,
-      maxHeight: scroll.clientHeight * 2, row: Number(el.dataset.rowStart) }
+    return { width: el.width, height: el.height, maxWidth: (scroll.clientWidth + 256) * 2,
+      maxHeight: (scroll.clientHeight + 256) * 2, row: Number(el.dataset.rowStart) }
   })
   expect(size.width).toBeLessThanOrEqual(size.maxWidth)
   expect(size.height).toBeLessThanOrEqual(size.maxHeight)

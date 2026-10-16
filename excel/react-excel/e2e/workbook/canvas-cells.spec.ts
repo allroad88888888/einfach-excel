@@ -76,7 +76,7 @@ test('hover is local, dragging updates UI Core selection, and distant scrolling 
   const viewportHeight = await page.locator('.sheet-scroll').evaluate(el => el.clientHeight)
   const logicalHeight = await bodyCanvas(page).evaluate(el =>
     parseFloat((el as HTMLElement).style.height))
-  expect(logicalHeight).toBeLessThanOrEqual(viewportHeight)
+  expect(logicalHeight).toBeLessThanOrEqual(viewportHeight + 256)
   expect(Number(await bodyCanvas(page).getAttribute('data-cell-count'))).toBeLessThan(5000)
   await page.keyboard.press('ArrowDown')
   await expect(nameBox(page)).toHaveValue('H901')

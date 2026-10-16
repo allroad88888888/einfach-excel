@@ -3,6 +3,10 @@
 一个独立运行的 Vite 工作簿演示站。站点外壳负责选择 demo；当前第一个 demo 是由 Einfach
 Rust/WASM 引擎驱动的销售订单工作簿。
 
+默认 Sales Orders 保留原有 66 组合并与 128 列演示画布，不为测试删改样例。
+需要完整 1,000 条订单的 E2E 使用 `e2e/fixtures/plain-sales-orders/`，
+仅隔离导入数据，仍复用产品视图、UI Core 和真实 Rust/WASM Worker。
+
 ## 当前能力
 
 已接入编辑、选区与导航、常用格式、剪贴板、工作表管理、行列尺寸、冻结、查找及状态栏统计。

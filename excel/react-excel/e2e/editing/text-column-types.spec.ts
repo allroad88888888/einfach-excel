@@ -21,7 +21,7 @@ async function open(page: Page, source = 'E95', coord = '94:4', destination = 'B
   await refresh(page)
 }
 test.beforeEach(async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/plain-sales-orders/')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
   await expect(cell(page, '0:0')).toHaveText('First order total')

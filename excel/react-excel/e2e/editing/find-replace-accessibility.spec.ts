@@ -9,7 +9,7 @@ for (const width of [1280, 390]) {
       if (message.type() === 'error') errors.push(message.text())
     })
     await page.setViewportSize({ width, height: 800 })
-    await page.goto('/')
+  await page.goto('/e2e/fixtures/plain-sales-orders/')
     await expect(page.locator('td[data-cell="1:0"]')).toHaveText('SO-10001')
     const grid = page.locator('[data-workbook-grid="true"]')
     await grid.focus()

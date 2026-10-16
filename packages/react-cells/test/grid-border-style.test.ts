@@ -53,6 +53,20 @@ test('hidden row and column do not own a visible edge', () => {
   })
 })
 
+test('a clipped buffered neighbor keeps its border facts but no longer owns the painted edge', () => {
+  const cells = [cell(1, 0, { borders: { right: blue } }),
+    cell(0, 1, { borders: { bottom: red } })]
+  const style = (visible: boolean) => createGridBorderStyles({
+    cells, window, scrollTop: 28, scrollLeft: 100,
+    isCellVisible: (row, col) => visible || row > 0 && col > 0,
+  })(1, 1)
+  expect(style(false)).toMatchObject({
+    borderTopWidth: '3px', borderTopColor: '#c00000',
+    borderLeftWidth: '1px', borderLeftColor: '#123abc',
+  })
+  expect(style(true)).toMatchObject({ borderTopWidth: '0px', borderLeftWidth: '0px' })
+})
+
 test('frozen seam joins only adjacent cells at zero scroll in the same projection', () => {
   const cells = [cell(1, 1, { borders: { top: blue, left: blue } })]
   const frozen = [cell(0, 1, { borders: { bottom: red } }),

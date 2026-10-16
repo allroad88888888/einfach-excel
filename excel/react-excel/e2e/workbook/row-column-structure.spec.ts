@@ -13,7 +13,7 @@ async function structure(page: Page, action: string) {
   await expect(page.getByRole('alert')).toHaveCount(0)
 }
 test.beforeEach(async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/plain-sales-orders/')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
 })
 

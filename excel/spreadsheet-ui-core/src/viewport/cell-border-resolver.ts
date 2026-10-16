@@ -15,10 +15,13 @@ export function sharedBorder(a?: SpreadsheetBorderSpec, b?: SpreadsheetBorderSpe
 /** 只拼同一投影的可见数据，避免冻结接缝两边各自画线；不保留工作簿状态。 */
 export function createCellBorderResolver({
   cells, window: cellWindow, rowHeights, columnWidths, projection, scrollTop, scrollLeft,
+  isCellVisible,
 }: {
   cells: readonly DisplayCell[]; window: CellRange
   rowHeights?: readonly number[]; columnWidths?: readonly number[]
   projection?: VisibleProjectionResult; scrollTop: number; scrollLeft: number
+  /** 渲染端的裁剪结果；缓存中存在的格不一定仍能画出共边。 */
+  isCellVisible?: (row: number, col: number) => boolean
 }) {
   const ownProjection = projection && (projection.cells === cells ||
     projection.frozen?.regions.some((region) => region.cells === cells)) ? projection : undefined
@@ -112,6 +115,10 @@ export function createCellBorderResolver({
       bottom: sharedBorder(current?.borders?.bottom, format(bottom, col)?.borders?.top),
       right: sharedBorder(current?.borders?.right, format(row, right)?.borders?.left),
     }
-    return { borders, suppressTop: top !== undefined, suppressLeft: left !== undefined }
+    return {
+      borders,
+      suppressTop: top !== undefined && (isCellVisible?.(top, col) ?? true),
+      suppressLeft: left !== undefined && (isCellVisible?.(row, left) ?? true),
+    }
   }
 }

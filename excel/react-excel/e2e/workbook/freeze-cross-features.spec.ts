@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { select } from '../support/clipboard'
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/plain-sales-orders/')
 })
 
 test('a merge across both freeze boundaries is editable from its fixed fragment after scrolling', async ({
@@ -87,7 +87,7 @@ test('freeze panes stay aligned and usable on desktop and narrow screens', async
   page.on('pageerror', (error) => errors.push(error.message))
   for (const width of [1280, 390]) {
     await page.setViewportSize({ width, height: 800 })
-    await page.goto('/')
+    await page.goto('/e2e/fixtures/plain-sales-orders/')
     await select(page, 'B3', '2:1')
     const menu = page.getByRole('combobox', { name: 'Freeze panes' })
     await menu.scrollIntoViewIfNeeded()

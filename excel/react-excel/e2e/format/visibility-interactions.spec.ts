@@ -12,7 +12,7 @@ async function visibility(page: Page, action: string) {
   await expect(menu).toHaveValue('')
 }
 test.beforeEach(async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/plain-sales-orders/')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
 })
 

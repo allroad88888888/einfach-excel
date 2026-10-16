@@ -10,7 +10,9 @@ import {
 } from './index'
 import type { BeginVisibleProjectionInput } from './types'
 import { selectionSnapshotAtom } from '../selection'
-import { scrollToCellAtom, viewportMetricsAtom } from '../viewport/metrics'
+import { viewportGeometrySizesAtom } from '../viewport/geometry-sizes'
+import { getViewportScrollForCell, scrollToCellAtom, viewportMetricsAtom } from '../viewport/metrics'
+import { projectedFreezeAtom } from '../viewport/projected-freeze'
 import { isCellInVisibleWindow, visibleWindowAtom } from '../viewport/visible-window'
 
 export type RunVisibleProjectionInput = Omit<BeginVisibleProjectionInput, 'kind'>
@@ -53,14 +55,25 @@ async function drainVisibleProjectionQueue(
       const firstSheetFrame = renderedSheetId !== result.sheetId
       // 等待 Worker 时可能已通过名称框定位；取发布原生尺寸前的当前窗口，不能用旧请求窗口。
       const intendedWindow = get(visibleWindowAtom)
+      const metricsBefore = get(viewportMetricsAtom)
+      const selectionBefore = get(selectionSnapshotAtom)
+      const sizesBefore = get(viewportGeometrySizesAtom)
+      const freezeBefore = get(projectedFreezeAtom)
+      const scrollBefore = firstSheetFrame && getViewportScrollForCell(metricsBefore, {
+        coord: { row: selectionBefore.range.rowStart, col: selectionBefore.range.colStart },
+      }, sizesBefore.rowHeightsBySheet[result.sheetId],
+      sizesBefore.colWidthsBySheet[result.sheetId],
+      freezeBefore?.sheetId === result.sheetId ? freezeBefore : undefined)
       const outcome = set(resolveProjectionAtom, { request, result })
       // 切表后首帧才拿到真实冻结／隐藏／尺寸。名称框若已跳转，修正估算坐标以免目标被冻结区盖住。
-      // 只校正本就在当前窗口内的目标；切表恢复浏览位置时，离屏选区不能把用户拉回去。
+      // 只校正原本完整可见的目标；缓冲窗口里被裁掉的选区不能把恢复的浏览位置拉回去。
       const current = get(projectionSnapshotAtom).result
       const selection = get(selectionSnapshotAtom)
       if (outcome.status === 'accepted' && current?.sheetId === result.sheetId)
         renderedSheetId = result.sheetId
       if (firstSheetFrame && outcome.status === 'accepted' && current?.sheetId === result.sheetId &&
+        scrollBefore && scrollBefore.scrollTop === metricsBefore.scrollTop &&
+        scrollBefore.scrollLeft === metricsBefore.scrollLeft &&
         selection.selection.sheetId === result.sheetId &&
         get(viewportMetricsAtom).sheetId === result.sheetId &&
         isCellInVisibleWindow({ row: selection.range.rowStart, col: selection.range.colStart },

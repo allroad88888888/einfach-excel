@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test'
 
 const panel = (page: Page) => page.getByRole('dialog', { name: 'Find and replace' })
 async function open(page: Page, query: string) {
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/plain-sales-orders/')
   await expect(page.locator('td[data-cell="1:0"]')).toHaveText('SO-10001')
   await page.locator('[data-workbook-grid="true"]').focus()
   await page.keyboard.press('Control+f')

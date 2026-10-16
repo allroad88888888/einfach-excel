@@ -27,7 +27,7 @@ async function west(page: Page) {
   await expect(page.getByLabel('Filter status')).toHaveText('2 rows filtered out.')
 }
 test.beforeEach(async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/plain-sales-orders/')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
 })
@@ -152,9 +152,14 @@ for (const width of [1280, 390]) {
     await page.setViewportSize({ width, height: 800 })
     const errors: string[] = []
     page.on('pageerror', (error) => errors.push(error.message))
-    await enable(page)
     const ribbon = page.locator('.ribbon-shell')
-    await expect.poll(async () => (await ribbon.boundingBox())!.height).toBeLessThanOrEqual(46)
+    // 窄屏分类、工具分两行（68px）；筛选反馈不能再撑高，而非强制退回旧单行布局。
+    const height = width === 390 ? 68 : 46
+    await expect.poll(async () => (await ribbon.boundingBox())!.height).toBe(height)
+    await enable(page)
+    await expect.poll(async () => (await ribbon.boundingBox())!.height).toBe(height)
+    for (const tab of await page.getByRole('tablist', { name: 'Workbook commands' })
+      .getByRole('tab').all()) await expect(tab).toBeInViewport()
     await expect.poll(async () => (await page.getByLabel('Filter status').boundingBox())!.height).toBe(16)
     await header(page, 'A').focus()
     await page.screenshot({ path: info.outputPath(`filter-header-${width}.png`) })
@@ -170,7 +175,7 @@ for (const width of [1280, 390]) {
     await expect(header(page, 'A')).toBeFocused()
     await menu(page).selectOption('clear')
     await expect(header(page, 'A')).toHaveCount(0)
-    await expect.poll(async () => (await ribbon.boundingBox())!.height).toBeLessThanOrEqual(46)
+    await expect.poll(async () => (await ribbon.boundingBox())!.height).toBe(height)
     expect(errors).toEqual([])
   })
 }

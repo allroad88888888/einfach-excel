@@ -13,7 +13,7 @@ async function apply(page: Page) {
   await expect(page.getByRole('dialog', { name: 'Number format', exact: true })).toHaveCount(0)
 }
 test.beforeEach(async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/plain-sales-orders/')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
 })
 

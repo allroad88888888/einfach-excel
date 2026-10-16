@@ -3,7 +3,7 @@ import { expect, test, type Page } from '@playwright/test'
 const cell = (page: Page, row: number, col: number) => page.locator(`td[data-cell="${row}:${col}"]`)
 
 test('row headers select full rows and Shift click extends the selection', async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/plain-sales-orders/')
   await expect(cell(page, 2, 0)).toBeVisible()
   await page.getByRole('button', { name: 'Select row 3', exact: true }).click()
   await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('A3:P3')
@@ -21,7 +21,7 @@ test('row headers select full rows and Shift click extends the selection', async
 test('column style reaches the last row and later row/column formatting wins at intersections', async ({
   page,
 }) => {
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/plain-sales-orders/')
   await expect(cell(page, 2, 0)).toBeVisible()
   const row = page.getByRole('button', { name: 'Select row 3', exact: true })
   const column = page.getByRole('columnheader', { name: 'Select column B' })
@@ -58,7 +58,7 @@ test('column style reaches the last row and later row/column formatting wins at 
 test('the corner selects and formats the full sheet including cells outside the viewport', async ({
   page,
 }) => {
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/plain-sales-orders/')
   await expect(cell(page, 0, 0)).toBeVisible()
   const corner = page.getByRole('button', { name: 'Select all cells' })
   await corner.click()
@@ -79,7 +79,7 @@ test('the corner selects and formats the full sheet including cells outside the 
 })
 
 test('clicking a header during editing saves the value once before selecting', async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/plain-sales-orders/')
   await cell(page, 2, 0).dblclick()
   const editor = page.getByRole('textbox', { name: 'Cell editor' })
   await editor.fill('Header commit')

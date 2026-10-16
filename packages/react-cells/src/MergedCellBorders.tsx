@@ -16,6 +16,16 @@ export function MergedCellBorders({ range, window }: { range: CellRange; window:
   const borderStyle = createGridBorderStyles({
     cells: region?.cells ?? result.cells, window, projection: result,
     scrollTop: metrics.scrollTop, scrollLeft: metrics.scrollLeft,
+    isCellVisible: (row, col) => {
+      const rect = getViewportRangeRectangle(metrics, sizes,
+        { rowStart: row, rowEnd: row, colStart: col, colEnd: col })
+      const frozenRow = row < (result.freeze?.rows ?? 0)
+      const frozenCol = col < (result.freeze?.cols ?? 0)
+      const top = frozenRow ? 0 : metrics.scrollTop + (result.frozen?.height ?? 0)
+      const left = frozenCol ? 0 : metrics.scrollLeft + (result.frozen?.width ?? 0)
+      return rect.height > 0 && rect.width > 0 && rect.top + rect.height > top
+        && rect.left + rect.width > left
+    },
     rowHeights: Array.from({ length: window.rowEnd - window.rowStart + 1 }, (_, i) =>
       getViewportRowHeight(sizes, result.sheetId, window.rowStart + i, metrics.rowHeight)),
     columnWidths: Array.from({ length: window.colEnd - window.colStart + 1 }, (_, i) =>

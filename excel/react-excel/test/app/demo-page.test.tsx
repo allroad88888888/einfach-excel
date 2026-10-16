@@ -40,4 +40,13 @@ describe('demo page', () => {
     )
     expect(screen.getByTestId('workbook-view')).toBeVisible()
   })
+
+  it('keeps a readable navigation name when narrow screens hide the label', () => {
+    window.history.replaceState({}, '', '/')
+    render(<App />)
+
+    expect(screen.getByRole('link', { name: 'Sales Orders' })).toHaveAttribute('aria-label', 'Sales Orders')
+    expect(screen.getByRole('link', { name: 'Sales Orders' })).toHaveAttribute('title', 'Sales Orders')
+    expect(screen.getAllByTestId('workbook-view')).toHaveLength(1)
+  })
 })

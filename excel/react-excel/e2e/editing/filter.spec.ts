@@ -22,7 +22,7 @@ async function applyWest(page: Page) {
   await expect(page.getByLabel('Filter status')).toHaveText('750 rows filtered out.')
 }
 test.beforeEach(async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/plain-sales-orders/')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
 })
 

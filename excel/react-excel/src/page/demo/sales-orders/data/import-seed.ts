@@ -1,5 +1,4 @@
 import type { RustImportCell, SpreadsheetCellFormat } from '@einfach/spreadsheet-ui-core'
-import { applySalesOrderMerge } from './merge-seed'
 import { SALES_ORDER_COLUMNS, SALES_ORDER_RECORD_COUNT, SALES_ORDER_SHEET_ROW_COUNT } from './sheet'
 
 export const SALES_ORDER_CELL_COUNT = SALES_ORDER_SHEET_ROW_COUNT * SALES_ORDER_COLUMNS.length
@@ -139,7 +138,7 @@ export function createSalesOrderImportChunks(
   ]
   const chunks: SalesOrderImportCell[][] = []
   for (let start = 0; start < cells.length; start += chunkSize) {
-    chunks.push(cells.slice(start, start + chunkSize).map(applySalesOrderMerge))
+    chunks.push(cells.slice(start, start + chunkSize))
   }
   return chunks
 }

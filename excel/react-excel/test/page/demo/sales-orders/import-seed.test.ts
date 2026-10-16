@@ -10,6 +10,21 @@ import {
 } from '../../../../src/page/demo/sales-orders/data/sheet'
 
 describe('Sales Orders import seed', () => {
+  it('keeps all 1,000 ordinary records intact for filtering, sorting and copying', () => {
+    const cells = createSalesOrderImportChunks().flat()
+    const column = (col: number) => cells.filter(cell => cell.row > 0 && cell.col === col)
+    const orders = column(0)
+    expect(orders).toHaveLength(1_000)
+    expect(orders.every(cell => cell.kind === 'text')).toBe(true)
+    const ids = orders.map(cell => cell.kind === 'text' ? cell.value : null)
+    expect(new Set(ids).size).toBe(1_000)
+    expect(ids.at(-1)).toBe('SO-11000')
+    for (const region of ['North', 'East', 'South', 'West'])
+      expect(column(2).filter(cell => cell.kind === 'text' && cell.value === region)).toHaveLength(250)
+    expect(column(4).every(cell => cell.kind === 'number')).toBe(true)
+    expect(column(6).every(cell => cell.kind === 'formula')).toBe(true)
+  })
+
   it('provides schema-shaped initial cells in bounded chunks', () => {
     const chunks = createSalesOrderImportChunks()
     const importedCells = chunks.flat()

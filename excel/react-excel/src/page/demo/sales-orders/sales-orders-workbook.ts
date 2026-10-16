@@ -1,5 +1,5 @@
 import type { RustWorkbookDefinition } from '@einfach/spreadsheet-ui-core'
-import { SALES_ORDER_MERGES, SALES_ORDER_MERGE_COLUMN_COUNT,
+import { applySalesOrderMerge, SALES_ORDER_MERGES, SALES_ORDER_MERGE_COLUMN_COUNT,
   SALES_ORDER_EXTRA_MERGE_CELLS } from './data/merge-seed'
 import { createSalesOrderImportChunks } from './data/import-seed'
 import { SALES_ORDER_SHEET_ROW_COUNT } from './data/sheet'
@@ -50,7 +50,7 @@ export const SALES_ORDERS_WORKBOOK_DEFINITION: RustWorkbookDefinition = Object.f
     },
   ]),
   createImportChunks: () => [
-    ...createSalesOrderImportChunks(),
+    ...createSalesOrderImportChunks().map(chunk => chunk.map(applySalesOrderMerge)),
     SALES_ORDER_EXTRA_MERGE_CELLS,
     SALES_ORDER_SUMMARY_CELLS,
     SUMMARY_VALIDATION_CELLS,

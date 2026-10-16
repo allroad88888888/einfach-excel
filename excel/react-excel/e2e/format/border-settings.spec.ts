@@ -16,7 +16,7 @@ async function apply(page: Page) {
   await expect(page.getByRole('dialog', { name: 'Borders', exact: true })).toHaveCount(0)
 }
 test.beforeEach(async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/plain-sales-orders/')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
 })
 
@@ -56,16 +56,20 @@ test('all six line styles render exact widths, do not alter row height, and undo
   ]) {
     await open(page, 'all', style)
     await apply(page)
-    await expect(cell(page, '9:2')).toHaveCSS('border-top-style', css!)
-    await expect(cell(page, '9:2')).toHaveCSS('border-top-width', width!)
+    // 上沿由上邻格的底边绘制；断言真实线宽，而不是被抑制的另一面。
+    await expect(cell(page, '8:2')).toHaveCSS('border-bottom-style', css!)
+    await expect(cell(page, '8:2')).toHaveCSS('border-bottom-width', width!)
+    await expect(cell(page, '8:2')).toHaveCSS('border-bottom-color', 'rgb(192, 0, 0)')
+    await expect(cell(page, '9:2')).toHaveCSS('border-top-width', '0px')
     await expect(cell(page, '9:3')).toHaveCSS('border-left-width', '0px')
     await expect(cell(page, '10:2')).toHaveCSS('border-top-width', '0px')
     expect((await cell(page, '9:2').boundingBox())!.height).toBe(height)
     await page.getByRole('button', { name: 'Undo', exact: true }).click()
+    await expect(cell(page, '8:2')).not.toHaveCSS('border-bottom-color', 'rgb(192, 0, 0)')
     await expect(cell(page, '9:2')).toHaveCSS('border-top-width', '0px')
   }
   await page.getByRole('button', { name: 'Redo', exact: true }).click()
-  await expect(cell(page, '9:2')).toHaveCSS('border-top-style', 'double')
+  await expect(cell(page, '8:2')).toHaveCSS('border-bottom-style', 'double')
   await cell(page, '9:5').click()
   await page.screenshot({ path: info.outputPath('double-border-grid.png') })
 })

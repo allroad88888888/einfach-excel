@@ -28,7 +28,7 @@ async function sourceToTarget(page: Page, writer: string, source = 'A2', coord =
 }
 test.beforeEach(async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/plain-sales-orders/')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
   await select(page, 'A2', '1:0')
   await border(page, 'left', 'thin', '#123abc')

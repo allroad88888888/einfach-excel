@@ -30,7 +30,7 @@ async function european(page: Page, group = '.') {
   await page.getByRole('checkbox', { name: /Allow trailing minus/ }).check()
 }
 test.beforeEach(async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/plain-sales-orders/')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
   await expect(cell(page, '0:0')).toHaveText('First order total')

@@ -34,6 +34,8 @@ export function PageSidebar({ activeDemoId }: PageSidebarProps) {
                   <a
                     className="page-menu__item"
                     href={demoPageHref(demo.id)}
+                    aria-label={demo.title}
+                    title={demo.title}
                     aria-current={demo.id === activeDemoId ? 'page' : undefined}
                   >
                     <span className="page-menu__file-mark" aria-hidden="true">

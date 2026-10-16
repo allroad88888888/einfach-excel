@@ -26,7 +26,7 @@ async function records(page: Page, expected: string[]) {
     await expect(cell(page, `${25 + index}:2`)).toHaveText(expected[index]!)
 }
 test.beforeEach(async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/plain-sales-orders/')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
   await page.getByRole('tab', { name: 'Summary', exact: true }).click()
   await select(page, 'A25:C29')

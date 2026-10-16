@@ -42,7 +42,7 @@ for (const width of [1280, 390]) {
     ))
     await select(page, 'B8', '7:1')
     expect(await offsets()).toEqual({ top: 0, left: 0 })
-    // B100 已位于压力合并 B99:D101，普通单格定位使用未合并的 B300。
+    // 使用较远单格，覆盖首次原生尺寸回传后仍保持目标可见。
     await select(page, 'B300', '299:1')
     const below = await offsets()
     expect(below.top).toBeGreaterThan(0)

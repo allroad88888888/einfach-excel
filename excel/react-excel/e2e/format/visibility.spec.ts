@@ -15,7 +15,7 @@ async function locate(page: Page, address: string) {
   await name.press('Enter')
 }
 test.beforeEach(async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/plain-sales-orders/')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
 })
 

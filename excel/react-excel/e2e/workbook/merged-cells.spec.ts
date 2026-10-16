@@ -15,7 +15,7 @@ async function merge(page: Page, action = 'merge') {
   await expect(menu(page)).toBeEnabled()
 }
 test.beforeEach(async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/e2e/fixtures/plain-sales-orders/')
   await expect(page.locator('td[data-cell="1:0"]')).toHaveText('SO-10001')
 })
 
@@ -107,7 +107,7 @@ test('merge menu and confirmation fit desktop and narrow screens', async ({ page
   page.on('pageerror', (error) => errors.push(error.message))
   for (const width of [1280, 390]) {
     await page.setViewportSize({ width, height: 800 })
-    await page.goto('/')
+  await page.goto('/e2e/fixtures/plain-sales-orders/')
     await select(page, 'B2:C3', '1:1')
     await menu(page).scrollIntoViewIfNeeded()
     await menu(page).selectOption('center')

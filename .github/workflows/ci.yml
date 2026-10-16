@@ -31,16 +31,16 @@ jobs:
         with:
           targets: wasm32-unknown-unknown
 
-      - name: Cache cargo registry + build
+      # 不缓存 target：三个独立 crate 的双配置测试产物曾填满 runner 磁盘。
+      - name: Cache cargo registry
         uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            excel/rust/wasm/target
-          key: ${{ runner.os }}-cargo-ci-${{ hashFiles('excel/rust/**/Cargo.lock', 'excel/rust/**/Cargo.toml') }}
+          key: ${{ runner.os }}-cargo-registry-v2-${{ hashFiles('excel/rust/**/Cargo.lock', 'excel/rust/**/Cargo.toml') }}
           restore-keys: |
-            ${{ runner.os }}-cargo-ci-
+            ${{ runner.os }}-cargo-registry-v2-
 
       - name: Install wasm-pack
         run: |
@@ -76,6 +76,10 @@ jobs:
   rust:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      # CI 只校验行为，不需要为每个默认/lite/wasm 测试二进制保留 DWARF。
+      CARGO_PROFILE_DEV_DEBUG: 0
+      CARGO_PROFILE_TEST_DEBUG: 0
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -83,18 +87,15 @@ jobs:
           targets: wasm32-unknown-unknown
 
       # 三个 crate 没有 workspace 根,target 目录各自独立。
-      - name: Cache cargo registry + build
+      - name: Cache cargo registry
         uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            excel/rust/core/target
-            excel/rust/excel-core/target
-            excel/rust/wasm/target
-          key: ${{ runner.os }}-cargo-rust-${{ hashFiles('excel/rust/**/Cargo.lock', 'excel/rust/**/Cargo.toml') }}
+          key: ${{ runner.os }}-cargo-registry-v2-${{ hashFiles('excel/rust/**/Cargo.lock', 'excel/rust/**/Cargo.toml') }}
           restore-keys: |
-            ${{ runner.os }}-cargo-rust-
+            ${{ runner.os }}-cargo-registry-v2-
 
       - name: cargo test (einfach-core)
         run: cargo test --locked --manifest-path excel/rust/core/Cargo.toml

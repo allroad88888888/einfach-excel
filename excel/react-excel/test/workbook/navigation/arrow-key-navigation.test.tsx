@@ -3,7 +3,7 @@ import {
   viewportMetricsAtom,
 } from '@einfach/spreadsheet-ui-core'
 import { describe, expect, it } from 'vitest'
-import { fireEvent, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { WORKBOOK_GRID_ROW_HEIGHT } from '../../../src/workbook/grid/viewport/workbook-grid-config'
 import {
   createProjectionConnection,
@@ -26,9 +26,12 @@ describe('workbook arrow-key navigation', () => {
     fireEvent.keyDown(grid, { key: 'ArrowUp' })
     expect(store.getter(selectionSnapshotAtom).activeCell).toMatchObject({ row: 0, col: 0 })
 
-    for (let row = 0; row < 32; row += 1) {
-      fireEvent.keyDown(grid, { key: 'ArrowDown' })
-    }
+    // 检查连续导航的最终窗口；不为每个同步按键重绘整块虚拟网格。
+    act(() => {
+      for (let row = 0; row < 32; row += 1) {
+        fireEvent.keyDown(grid, { key: 'ArrowDown' })
+      }
+    })
 
     expect(store.getter(selectionSnapshotAtom).activeCell).toMatchObject({ row: 32, col: 0 })
     expect(store.getter(viewportMetricsAtom).scrollTop).toBe(WORKBOOK_GRID_ROW_HEIGHT)

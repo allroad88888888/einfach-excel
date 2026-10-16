@@ -1,6 +1,8 @@
 import type { RustWorkbookDefinition } from '@einfach/spreadsheet-ui-core'
+import { SALES_ORDER_MERGES, SALES_ORDER_MERGE_COLUMN_COUNT,
+  SALES_ORDER_EXTRA_MERGE_CELLS } from './data/merge-seed'
 import { createSalesOrderImportChunks } from './data/import-seed'
-import { SALES_ORDER_COLUMNS, SALES_ORDER_SHEET_ROW_COUNT } from './data/sheet'
+import { SALES_ORDER_SHEET_ROW_COUNT } from './data/sheet'
 import { SUMMARY_VALIDATION_CELLS, SUMMARY_VALIDATIONS } from './data/validation-seed'
 import { SUMMARY_OUTLINE, SUMMARY_OUTLINE_CELLS } from './data/outline-seed'
 import { SUMMARY_NAMED_RANGES, SUMMARY_NAMED_RANGE_CELLS } from './data/named-range-seed'
@@ -23,7 +25,8 @@ export const SALES_ORDERS_WORKBOOK_DEFINITION: RustWorkbookDefinition = Object.f
       id: 'orders',
       name: 'Sales Orders',
       rowCount: SALES_ORDER_SHEET_ROW_COUNT,
-      colCount: SALES_ORDER_COLUMNS.length,
+      colCount: SALES_ORDER_MERGE_COLUMN_COUNT,
+      mergedRanges: SALES_ORDER_MERGES,
     },
     {
       id: 'summary',
@@ -43,6 +46,7 @@ export const SALES_ORDERS_WORKBOOK_DEFINITION: RustWorkbookDefinition = Object.f
   ]),
   createImportChunks: () => [
     ...createSalesOrderImportChunks(),
+    SALES_ORDER_EXTRA_MERGE_CELLS,
     SALES_ORDER_SUMMARY_CELLS,
     SUMMARY_VALIDATION_CELLS,
     SUMMARY_OUTLINE_CELLS,

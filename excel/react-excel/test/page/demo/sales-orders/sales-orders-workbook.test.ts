@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest'
 import type { RustImportCell } from '@einfach/spreadsheet-ui-core'
 import { SUMMARY_CONDITIONAL_TEXT_CELLS, SUMMARY_CONDITIONAL_TEXT_RULES } from '../../../../src/page/demo/sales-orders/data/conditional-text-seed'
 import {
-  SALES_ORDER_COLUMNS,
   SALES_ORDER_SHEET_ROW_COUNT,
 } from '../../../../src/page/demo/sales-orders/data/sheet'
+import { SALES_ORDER_MERGES, SALES_ORDER_MERGE_COLUMN_COUNT } from '../../../../src/page/demo/sales-orders/data/merge-seed'
 import { SALES_ORDERS_WORKBOOK_DEFINITION } from '../../../../src/page/demo/sales-orders/sales-orders-workbook'
 import { SUMMARY_VALIDATION_CELLS, SUMMARY_VALIDATIONS } from '../../../../src/page/demo/sales-orders/data/validation-seed'
 import {
@@ -33,7 +33,8 @@ describe('Sales Orders workbook definition', () => {
         id: 'orders',
         name: 'Sales Orders',
         rowCount: SALES_ORDER_SHEET_ROW_COUNT,
-        colCount: SALES_ORDER_COLUMNS.length,
+        colCount: SALES_ORDER_MERGE_COLUMN_COUNT,
+        mergedRanges: SALES_ORDER_MERGES,
       },
       {
         id: 'summary',

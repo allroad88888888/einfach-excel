@@ -9,6 +9,7 @@ export type Paint = (context: CanvasRenderingContext2D, bounds: Rect) => void
 
 export interface FrameStats {
   readonly cells: number
+  readonly reusedPixels?: number
   readonly elapsed: number
 }
 

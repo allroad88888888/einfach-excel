@@ -9,7 +9,8 @@ export function fixture() {
   })
   vi.stubGlobal('cancelAnimationFrame', (key: number) => frames.delete(key))
   const context = {
-    save: vi.fn(), restore: vi.fn(), setTransform: vi.fn(), beginPath: vi.fn(), closePath: vi.fn(),
+    save: vi.fn(), restore: vi.fn(), drawImage: vi.fn(),
+    setTransform: vi.fn(), beginPath: vi.fn(), closePath: vi.fn(),
     rect: vi.fn(), clip: vi.fn(), clearRect: vi.fn(), fillText: vi.fn(), fillRect: vi.fn(),
     strokeRect: vi.fn(), setLineDash: vi.fn(), moveTo: vi.fn(), lineTo: vi.fn(), stroke: vi.fn(),
     fill: vi.fn(), translate: vi.fn(), rotate: vi.fn(),

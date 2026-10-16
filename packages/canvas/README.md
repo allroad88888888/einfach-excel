@@ -64,3 +64,5 @@ pnpm --filter @einfach/canvas-demo dev
 ```
 
 规则网格可以设置 `pointerEvents: false` 关闭通用 cell 事件分发，由上层使用行列索引实现命中；这时 `onPointer*` hooks 不会收到事件。`canvas-cells` 使用此模式，避免每次指针移动扫描 cell。
+
+`setViewport(rect)` 指定画布显示的世界坐标区域，实际像素缓冲只按其宽高分配。`CanvasCell.setBounds(rect)` 更新 cell 位置并清理旧区域，不重建 owner 或订阅。对按世界坐标绘制并正确调用失效通知的 painter，可设置 `reusePixels: true`，滚动时复制重叠像素并补画新露出的区域；不满足精确像素平移条件时自动完整重画。

@@ -21,7 +21,10 @@ export function CanvasCells(input: CanvasCellsInput) {
       theme: { background: color('--surface', '#fff'),
         foreground: color('--text', '#252b37'),
         gridline: color('--gridline', '#dce1e8'), selection: color('--primary', '#315cda') },
-      onFrame: stats => { element.dataset.paintedCells = String(stats.cells) },
+      onFrame: stats => {
+        element.dataset.paintedCells = String(stats.cells)
+        element.dataset.reusedPixels = String(stats.reusedPixels ?? 0)
+      },
     })
     renderer.current = view
     viewport.current = bindCanvasViewport(element, view)

@@ -2,6 +2,7 @@ import type { Store } from '@einfach/core'
 import { withInvalidation, withStore } from './atom.js'
 import { createRoot, createScope, getOwner, onCleanup, runWithOwner } from './owner.js'
 import { paintCells, type FrameStats, type Paint, type PaintCell, type Rect } from './paint.js'
+import { scrollPixels } from './scroll-pixels.js'
 import { withCellEvents } from './events.js'
 import { createPointerDispatcher } from './pointer.js'
 
@@ -10,6 +11,7 @@ export interface CanvasOptions {
   readonly width: number
   readonly height: number
   readonly pointerEvents?: boolean
+  readonly reusePixels?: boolean
   readonly background?: string
   readonly pixelRatio?: number
   readonly onFrame?: (stats: FrameStats) => void
@@ -50,6 +52,7 @@ export function createCanvas(canvas: HTMLCanvasElement, options: CanvasOptions):
     let viewport: Rect = { x: 0, y: 0, width: options.width, height: options.height }
     const pointer = createPointerDispatcher(canvas, () => viewport, options.pointerEvents !== false)
     onCleanup(pointer.dispose)
+    let paintedViewport: Rect | undefined
     let full = true
     let frame: number | undefined
     function schedule() {
@@ -66,14 +69,21 @@ export function createCanvas(canvas: HTMLCanvasElement, options: CanvasOptions):
     function flush() {
       if (owner.disposed) return
       if (frame !== undefined) { cancelAnimationFrame(frame); frame = undefined }
-      if (!full && !dirty.size) return
-      const areas = full ? [viewport] : Array.from(dirty)
-      full = false
-      dirty.clear()
+      const moved = paintedViewport !== undefined
+        && (paintedViewport.x !== viewport.x || paintedViewport.y !== viewport.y)
+      if (!full && !dirty.size && !moved) return
       const started = performance.now()
       try {
+        const copied = !full && moved && options.reusePixels && paintedViewport
+          ? scrollPixels(context!, canvas, paintedViewport, viewport, ratio) : undefined
+        const areas = full || moved && !copied ? [viewport]
+          : [...dirty, ...copied?.exposed ?? []]
+        full = false
+        dirty.clear()
         const count = paintCells(context!, cells, areas, viewport, ratio, options.background)
-        options.onFrame?.({ cells: count, elapsed: performance.now() - started })
+        paintedViewport = { ...viewport }
+        options.onFrame?.({ cells: count, elapsed: performance.now() - started,
+          reusedPixels: copied?.pixels ?? 0 })
       } catch (error) {
         // A caller may fix its painter and explicitly invalidate/flush again.
         full = true
@@ -105,7 +115,7 @@ export function createCanvas(canvas: HTMLCanvasElement, options: CanvasOptions):
         resize(bounds.width, bounds.height)
       }
       viewport = { ...bounds }
-      invalidate()
+      schedule()
     }
     function createCell(bounds: Rect, setup: () => Paint): CanvasCell {
       positive(bounds.width)

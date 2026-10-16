@@ -38,3 +38,22 @@ test('clips a giant merge while retaining its real bounds and offscreen anchor',
   expect(f.context.rect).toHaveBeenCalledWith(0, 0, 120, 28000)
   renderer.dispose()
 })
+
+test('late projection data repaints a stationary camera after a distant jump', () => {
+  const f = fixture(), frame = vi.fn()
+  const renderer = createCanvasCells(f.canvas, {
+    window: { rowStart: 0, rowEnd: 10, colStart: 0, colEnd: 1 }, cells: [],
+  }, { store: f.store, onFrame: frame,
+    viewport: { x: 0, y: 0, width: 120, height: 56 } })
+  renderer.flush()
+  renderer.setViewport({ x: 0, y: 2800, width: 120, height: 56 })
+  renderer.flush()
+  expect(frame.mock.lastCall?.[0].cells).toBe(0)
+  renderer.update({ window: { rowStart: 90, rowEnd: 110, colStart: 0, colEnd: 1 },
+    cells: [{ row: 100, col: 0, displayValue: 'Arrived' }] })
+  renderer.setViewport({ x: 0, y: 280, width: 120, height: 56 })
+  renderer.flush()
+  expect(f.context.fillText).toHaveBeenCalledWith('Arrived', expect.any(Number), expect.any(Number))
+  expect(renderer.hitTest(10, 10)).toEqual({ row: 100, col: 0 })
+  renderer.dispose()
+})

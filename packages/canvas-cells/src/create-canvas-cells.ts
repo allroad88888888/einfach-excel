@@ -19,6 +19,7 @@ export function createCanvasCells(canvas: HTMLCanvasElement, initial: CanvasCell
     model: CellPaintModel
   }>()
   const surface = createCanvas(canvas, { store, width: 1, height: 1,
+    reusePixels: options.reusePixels ?? true,
     background: theme.background, pixelRatio: options.pixelRatio,
     pointerEvents: false, onFrame: options.onFrame })
   let viewport = options.viewport
@@ -96,6 +97,12 @@ export function createCanvasCells(canvas: HTMLCanvasElement, initial: CanvasCell
       }
       resizeViewport()
       return
+    }
+    // Keep the camera in sheet space while a replacement projection changes its local origin.
+    // Otherwise incoming cells can be discarded as offscreen before the host synchronizes again.
+    if (layout && viewport) viewport = { ...viewport,
+      x: viewport.x + layout.origin.x - nextLayout.origin.x,
+      y: viewport.y + layout.origin.y - nextLayout.origin.y,
     }
     layout = nextLayout
     canvas.dataset.layoutBuilds = String(++layoutBuilds)

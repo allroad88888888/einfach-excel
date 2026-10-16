@@ -26,6 +26,8 @@ export interface CanvasCellsOptions {
   store: Store
   /** Visible rectangle relative to the supplied projection window. */
   viewport?: Rect
+  /** Disable pixel reuse for comparison or custom rendering diagnostics. */
+  reusePixels?: boolean
   pixelRatio?: number
   theme?: Partial<CanvasCellsTheme>
   onFrame?: (stats: FrameStats) => void

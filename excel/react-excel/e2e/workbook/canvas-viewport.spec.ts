@@ -46,3 +46,20 @@ test('scrolling within the prefetched window does not rebuild the cell layout', 
   })
   expect(new Set(samples).size).toBe(1)
 })
+
+test('one-row scrolling reuses most pixels and paints only the exposed strip', async ({ page }) => {
+  await page.goto('/?renderer=canvas')
+  const canvas = page.locator('[data-workbook-grid] canvas')
+  await expect(canvas).toHaveAttribute('data-cell-count', /[1-9]\d*/)
+  await expect(page.locator('[data-workbook-grid]')).toHaveAttribute('data-projection-retained', 'false')
+  const sample = await canvas.evaluate(async node => {
+    const el = node as HTMLCanvasElement, scroll = el.closest('.sheet-scroll')!
+    const full = Number(el.dataset.paintedCells)
+    scroll.scrollTop += 28
+    await new Promise(requestAnimationFrame)
+    return { full, painted: Number(el.dataset.paintedCells),
+      reused: Number(el.dataset.reusedPixels), total: el.width * el.height }
+  })
+  expect(sample.painted).toBeLessThan(sample.full / 2)
+  expect(sample.reused).toBeGreaterThan(sample.total * 0.8)
+})

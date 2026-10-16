@@ -3,7 +3,7 @@ import { vi } from 'vitest'
 
 export function canvasFixture() {
   const context = {
-    save: vi.fn(), restore: vi.fn(), setTransform: vi.fn(), beginPath: vi.fn(),
+    save: vi.fn(), restore: vi.fn(), drawImage: vi.fn(), setTransform: vi.fn(), beginPath: vi.fn(),
     rect: vi.fn(), clip: vi.fn(), clearRect: vi.fn(), fillText: vi.fn(),
   }
   const native = new EventTarget()

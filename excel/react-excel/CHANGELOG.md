@@ -1,0 +1,10 @@
+# @einfach/react-excel
+
+## 0.0.1
+
+### Patch Changes
+
+- Updated dependencies [9622ccd]
+  - @einfach/spreadsheet-ui-core@0.2.0
+  - @einfach/canvas-cells@1.0.0
+  - @einfach/react-cells@1.0.0

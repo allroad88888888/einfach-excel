@@ -1,6 +1,6 @@
 {
   "name": "@einfach/react-excel",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "private": true,
   "description": "React workbook product powered by the Einfach Rust/WASM engine",
   "type": "module",

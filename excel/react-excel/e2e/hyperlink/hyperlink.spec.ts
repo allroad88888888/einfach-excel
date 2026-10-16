@@ -1,0 +1,156 @@
+import { readFile } from 'node:fs/promises'
+import { expect, test, type Page } from '@playwright/test'
+import { copy, paste, select } from '../support/clipboard'
+
+const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
+const cell = (page: Page, coordinate: string) => page.locator(`td[data-cell="${coordinate}"]`)
+const link = (page: Page, coordinate: string) => cell(page, coordinate).locator('[data-cell-hyperlink]')
+const editor = (page: Page) => page.getByRole('dialog', { name: /^(Insert|Edit) hyperlink$/ })
+async function openEditor(page: Page) {
+  await button(page, 'Hyperlink').click()
+  await expect(editor(page)).toBeVisible()
+  await expect(page.getByLabel('Link address')).toBeFocused()
+}
+test.beforeEach(async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await page.goto('/')
+  await expect(cell(page, '1:0')).toHaveText('SO-10001')
+})
+
+test('Rust seed links select normally; Ctrl/Meta+click opens without changing the selection', async ({ page, context }) => {
+  await expect(link(page, '1:1')).toHaveAttribute('href', 'https://example.com/customers/acme')
+  await expect(link(page, '2:1')).toHaveAttribute('href', 'https://example.com/customers/northwind')
+  await cell(page, '1:1').click()
+  await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('B2')
+  expect(context.pages()).toHaveLength(1)
+  await page.route('https://example.com/**', (route) => route.fulfill({ body: 'Test link destination' }))
+  const popup = page.waitForEvent('popup')
+  await cell(page, '2:1').click({ modifiers: ['ControlOrMeta'] })
+  const opened = await popup
+  await expect(opened).toHaveURL('https://example.com/customers/northwind')
+  await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('B2')
+  await opened.close()
+})
+
+test('insert, edit and remove use native undo/redo while preserving text and formatting', async ({ page }) => {
+  await select(page, 'A2', '1:0'); await openEditor(page)
+  await page.getByLabel('Link address').fill('https://example.com/order')
+  await button(page, 'Insert link').click()
+  await expect(editor(page)).toHaveCount(0)
+  await expect(link(page, '1:0')).toHaveAttribute('href', 'https://example.com/order')
+  await expect(cell(page, '1:0')).toHaveText('SO-10001')
+  await expect(cell(page, '1:0')).toHaveCSS('font-weight', '700')
+  await button(page, 'Undo').click(); await expect(link(page, '1:0')).toHaveCount(0)
+  await button(page, 'Redo').click(); await expect(link(page, '1:0')).toHaveCount(1)
+  await openEditor(page)
+  await page.getByLabel('Link address').fill('https://example.com/new')
+  await page.getByLabel('Display text').fill('Order website')
+  await button(page, 'Save changes').click()
+  await expect(cell(page, '1:0')).toHaveText('Order website')
+  await expect(link(page, '1:0')).toHaveAttribute('href', 'https://example.com/new')
+  await button(page, 'Undo').click()
+  await expect(cell(page, '1:0')).toHaveText('SO-10001')
+  await expect(link(page, '1:0')).toHaveAttribute('href', 'https://example.com/order')
+  await openEditor(page)
+  await page.getByLabel('Link address').fill('invalid unsaved input')
+  await page.getByLabel('Display text').fill('discard')
+  await button(page, 'Remove link').click()
+  await expect(cell(page, '1:0')).toHaveText('SO-10001')
+  await expect(link(page, '1:0')).toHaveCount(0)
+  await button(page, 'Undo').click(); await expect(link(page, '1:0')).toHaveCount(1)
+})
+
+test('dangerous URL fails without changing text or losing a retryable draft', async ({ page }) => {
+  await select(page, 'A2', '1:0'); await openEditor(page)
+  await page.getByLabel('Link address').fill('javascript:alert(1)')
+  await page.getByLabel('Display text').fill('safe label')
+  await button(page, 'Insert link').click()
+  await expect(editor(page).getByRole('alert')).toHaveText('Enter a valid http:// or https:// address.')
+  await expect(cell(page, '1:0')).toHaveText('SO-10001')
+  await expect(button(page, 'Undo')).toBeDisabled()
+  await expect(editor(page).getByRole('link')).toHaveCount(0)
+  await page.getByLabel('Link address').fill('https://example.com/safe')
+  await button(page, 'Insert link').click()
+  await expect(cell(page, '1:0')).toHaveText('safe label')
+  await expect(link(page, '1:0')).toHaveAttribute('href', 'https://example.com/safe')
+})
+
+test('Ctrl/Meta+K preserves a formula when only its link changes; copy/cut undo keep URLs', async ({ page }) => {
+  await select(page, 'G2', '1:6')
+  await page.locator('[data-workbook-grid]').press('ControlOrMeta+k')
+  await expect(editor(page)).toBeVisible()
+  await page.getByLabel('Link address').fill('https://example.com/total')
+  await button(page, 'Insert link').click()
+  await expect(page.getByRole('textbox', { name: 'Active cell value' })).toHaveValue('=E2*F2')
+  await select(page, 'B2', '1:1'); await copy(page)
+  await select(page, 'A4', '3:0'); await paste(page)
+  await expect(link(page, '3:0')).toHaveAttribute('href', 'https://example.com/customers/acme')
+  await copy(page, 'Cut'); await select(page, 'A5', '4:0'); await paste(page)
+  await expect(link(page, '3:0')).toHaveCount(0)
+  await expect(link(page, '4:0')).toHaveAttribute('href', 'https://example.com/customers/acme')
+  await button(page, 'Undo').click()
+  await expect(link(page, '3:0')).toHaveCount(1)
+  await expect(link(page, '4:0')).toHaveCount(0)
+})
+
+test('existing download/open file path preserves URL metadata, invalid files keep the workbook', async ({ page }) => {
+  await button(page, 'File').click()
+  const downloading = page.waitForEvent('download')
+  await button(page, 'Download workbook').click()
+  const downloaded = await downloading
+  const path = await downloaded.path()
+  const text = await readFile(path!, 'utf8')
+  const file = JSON.parse(text)
+  expect(file.workbook.hyperlinks).toContainEqual({ sheet: 0, row: 1, col: 1, url: 'https://example.com/customers/acme' })
+  await button(page, 'Close').click()
+  await select(page, 'B2', '1:1'); await openEditor(page); await button(page, 'Remove link').click()
+  await expect(link(page, '1:1')).toHaveCount(0)
+  await button(page, 'File').click()
+  page.once('dialog', (dialog) => dialog.accept())
+  await page.getByLabel('Open workbook', { exact: true }).setInputFiles({
+    name: 'Links.einfach.json', mimeType: 'application/json', buffer: Buffer.from(text),
+  })
+  await expect(page.getByRole('dialog', { name: 'Workbook files' })).toHaveCount(0)
+  await expect(link(page, '1:1')).toHaveAttribute('href', 'https://example.com/customers/acme')
+  file.workbook.hyperlinks[0].url = 'javascript:alert(1)'
+  await button(page, 'File').click()
+  page.once('dialog', (dialog) => dialog.accept())
+  await page.getByLabel('Open workbook', { exact: true }).setInputFiles({
+    name: 'Bad.einfach.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(file)),
+  })
+  await expect(page.getByRole('alert')).toContainText('Current workbook kept')
+  await button(page, 'Close').click()
+  await expect(link(page, '1:1')).toHaveAttribute('href', 'https://example.com/customers/acme')
+})
+
+test('hyperlink dialog fits desktop and narrow viewports, traps focus and restores it on Escape', async ({ page }, info) => {
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 800 })
+    await select(page, 'B2', '1:1'); await openEditor(page)
+    const dialog = editor(page)
+    const bounds = await dialog.boundingBox()
+    expect(bounds!.x).toBeGreaterThanOrEqual(0)
+    expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(width)
+    expect(await dialog.evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true)
+    await page.getByLabel('Link address').press('Shift+Tab')
+    await expect(dialog.getByRole('link')).toBeFocused()
+    await dialog.getByRole('link').press('Tab')
+    await expect(page.getByLabel('Link address')).toBeFocused()
+    await page.screenshot({ path: info.outputPath(`hyperlink-${width}.png`) })
+    await page.getByLabel('Link address').press('Escape')
+    await expect(dialog).toHaveCount(0)
+    await expect(button(page, 'Hyperlink')).toBeFocused()
+  }
+})
+
+test('Chinese hyperlink editor and native URL rejection are translated', async ({ page }) => {
+  await page.goto('/?locale=zh')
+  await page.getByRole('button', { name: '超链接', exact: true }).click()
+  const dialog = page.getByRole('dialog', { name: '插入超链接' })
+  await expect(dialog.getByLabel('链接地址')).toBeFocused()
+  await dialog.getByLabel('链接地址').fill('javascript:alert(1)')
+  await dialog.getByRole('button', { name: '插入链接', exact: true }).click()
+  await expect(dialog.getByRole('alert')).toHaveText('请输入有效的 http:// 或 https:// 地址。')
+  await dialog.getByRole('button', { name: '取消', exact: true }).click()
+  await expect(dialog).toHaveCount(0)
+})

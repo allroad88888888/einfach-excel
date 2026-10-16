@@ -35,6 +35,10 @@ describe('Sales Orders workbook definition', () => {
         rowCount: SALES_ORDER_SHEET_ROW_COUNT,
         colCount: SALES_ORDER_MERGE_COLUMN_COUNT,
         mergedRanges: SALES_ORDER_MERGES,
+        hyperlinks: [
+          { row: 1, col: 1, url: 'https://example.com/customers/acme' },
+          { row: 2, col: 1, url: 'https://example.com/customers/northwind' },
+        ],
       },
       {
         id: 'summary',

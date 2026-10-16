@@ -18,6 +18,7 @@ pub(super) fn logical_target(
 }
 
 pub(super) struct MergePastePlan {
+    pub target: CellRange,
     remove: Vec<CellRange>,
     insert: Vec<CellRange>,
     pub scalar: bool,
@@ -129,6 +130,7 @@ impl MergePastePlan {
         remove.retain(|old| !insert.contains(old));
         insert.retain(|new| !sheet.merged_ranges().contains(new));
         Ok(Self {
+            target,
             remove,
             insert,
             scalar,

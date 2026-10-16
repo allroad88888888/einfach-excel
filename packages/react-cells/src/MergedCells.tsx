@@ -12,6 +12,7 @@ import {
 import { cellFormatStyle, cellTextRotationStyle } from './cell-format-style'
 import { MergedCellBorders } from './MergedCellBorders'
 import { CellDataBar } from './CellDataBar'
+import { CellHyperlink } from './hyperlink/CellHyperlink'
 import './merged-cells.css'
 
 /** 叠加完整合并框并裁到可见窗口，滚动不改变文本在原矩形里的位置。 */
@@ -72,7 +73,10 @@ export function MergedCells({ window, anchors }: {
             <CellDataBar bar={cell.dataBar} />
             <span className="cell-content">
               <span style={cellTextRotationStyle(cell.format)}>
-                {formulaViewText(cell, showFormulas)}
+                <CellHyperlink url={showFormulas ? undefined : cell.hyperlink}
+                  color={cell.format?.fgColor}>
+                  {formulaViewText(cell, showFormulas)}
+                </CellHyperlink>
               </span>
             </span>
           </div>

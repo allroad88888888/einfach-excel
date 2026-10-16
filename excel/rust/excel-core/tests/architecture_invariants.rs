@@ -59,7 +59,11 @@ fn store_rs() -> String {
 }
 
 fn wasm_family_sources() -> Vec<(String, String)> {
-    source_family_sources("../wasm/src/lib.rs", "wasm_")
+    let mut sources = source_family_sources("../wasm/src/lib.rs", "wasm_");
+    // 独立功能目录同样属于公开 WASM 边界，不能因文件拆分绕过快照。
+    sources.push(("hyperlink/mod.rs".into(),
+        read(&manifest_dir().join("../wasm/src/hyperlink/mod.rs"))));
+    sources
 }
 
 fn wasm_lib_rs() -> String {

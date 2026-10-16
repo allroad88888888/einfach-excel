@@ -27,6 +27,11 @@ export const SALES_ORDERS_WORKBOOK_DEFINITION: RustWorkbookDefinition = Object.f
       rowCount: SALES_ORDER_SHEET_ROW_COUNT,
       colCount: SALES_ORDER_MERGE_COLUMN_COUNT,
       mergedRanges: SALES_ORDER_MERGES,
+      // 原始链接由 Rust 初始化；客户文字仍来自唯一的订单种子。
+      hyperlinks: [
+        { row: 1, col: 1, url: 'https://example.com/customers/acme' },
+        { row: 2, col: 1, url: 'https://example.com/customers/northwind' },
+      ],
     },
     {
       id: 'summary',

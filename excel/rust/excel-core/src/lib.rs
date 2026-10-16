@@ -24,6 +24,7 @@ pub mod format;
 pub mod formula;
 pub mod general_text;
 pub mod history_snapshot;
+pub mod hyperlink;
 pub mod range;
 pub mod sheet;
 pub mod shift;

@@ -145,6 +145,8 @@ impl WasmWorkbook {
                     .and_then(|sheet| sheet.get_formula(&addr_str))
                     .unwrap_or_default();
                 out.push(CellSnapshotJSON {
+                    hyperlink: self.workbook.sheet(sheet_idx)
+                        .and_then(|sheet| sheet.hyperlink(addr)).map(str::to_owned),
                     formatted_display: native_number_display(&self.workbook, sheet_idx, &addr_str, &value),
                     sheet: sheet_idx,
                     addr: addr_str,
@@ -155,6 +157,7 @@ impl WasmWorkbook {
                     formula,
                 });
             });
+        self.append_empty_hyperlink_cells(sheet_idx, range, &mut out);
         serde_wasm_bindgen::to_value(&out)
             .map_err(|err| JsValue::from_str(&format!("serialize sparse range: {err}")))
     }

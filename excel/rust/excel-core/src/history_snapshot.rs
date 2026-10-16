@@ -8,6 +8,7 @@ pub struct HistorySnapshot {
     pub cells: Option<Vec<CellSnapshot>>,
     pub formats: FormatRangeSnapshot,
     pub column_widths: Vec<(u32, u32)>,
+    pub(crate) hyperlinks: Vec<(crate::CellAddress, String)>,
     pub(crate) merges: Option<Vec<CellRange>>,
 }
 
@@ -45,6 +46,7 @@ impl HistorySnapshot {
             cells,
             formats: sheet.snapshot_format_range(range),
             column_widths: sheet.col_widths_in_range(range.start.col, range.end.col),
+            hyperlinks: sheet.hyperlinks_in_range(range),
             merges: None,
         }
     }
@@ -84,6 +86,7 @@ impl HistorySnapshot {
                 .sum()
         });
         cells
+            + self.hyperlinks.iter().map(|(_, url)| 32 + url.len()).sum::<usize>()
             + (self.formats.cell_styles.len()
                 + self.formats.row_styles.len()
                 + self.formats.column_styles.len())

@@ -1,6 +1,6 @@
 /// <reference lib="WebWorker" />
 
-import type { BackendMutationResult } from '../backend'
+import type { BackendMutationResult, VisibleProjectionRequest } from '../backend'
 import type { WorkerRequestWire } from '../rust-worker/types'
 import { rpcError } from '../rust-worker/transport'
 import { writeTrackedMutation } from './tracked-mutation'
@@ -35,6 +35,7 @@ import { changeConditionalFormat } from './conditional-format-io'
 import { changeDataValidation } from './data-validation-commands'
 import { exportWorkbookFile, openWorkbookFile } from './file-io'
 import { inspectSpill } from './spill-commands'
+import { changeHyperlink } from './hyperlink/command'
 
 type CommandName = keyof RustWorkbookCommands
 /** 在 Worker 内维护唯一 Rust 工作簿，并处理 UI Core 的直接命令。 */
@@ -83,6 +84,16 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
     return sheet.index
   }
 
+  /** 这些元数据命令共用一次版本推进和一次投影，不为每种功能重复接线。 */
+  function projectChange(changed: boolean, input: {
+    sheetId: string; projection: VisibleProjectionRequest
+  }) {
+    if (changed) revision += 1
+    return { changed, projection: readVisibleProjection(
+      currentWorkbook(), sheetIndex(input.sheetId), input.projection, revision,
+    ) }
+  }
+
   async function dispatch(command: CommandName, payload: unknown): Promise<unknown> {
     if (command === 'formula.catalog') {
       await ensureWasm()
@@ -108,6 +119,10 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       return initialize(input.sheets)
     }
     const current = currentWorkbook()
+    if (command === 'hyperlink.change') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      return projectChange(changeHyperlink(current, sheetsById, input, revision), input)
+    }
     if (command === 'formula.inspectSpill') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
       return { inspection: inspectSpill(current, sheetIndex(input.sheetId), input.cell), revision }
@@ -128,22 +143,11 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
     }
     if (command === 'table.change') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
-      const changed = changeTable(current, sheetsById, input, revision)
-      if (changed) revision += 1
-      return { changed, projection: readVisibleProjection(
-        current, sheetIndex(input.sheetId), input.projection, revision,
-      ) }
+      return projectChange(changeTable(current, sheetsById, input, revision), input)
     }
     if (command === 'namedRange.change') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
-      const changed = changeNamedRange(current, sheetsById, input, revision)
-      if (changed) revision += 1
-      return {
-        changed,
-        projection: readVisibleProjection(
-          current, sheetIndex(input.sheetId), input.projection, revision,
-        ),
-      }
+      return projectChange(changeNamedRange(current, sheetsById, input, revision), input)
     }
     if (command === 'validation.read') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
@@ -293,12 +297,9 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
     }
     if (command === 'outline.change') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
-      const index = sheetIndex(input.sheetId)
+      sheetIndex(input.sheetId)
       const changed = changeOutline(current, sheetsById.get(input.sheetId)!, input, revision)
-      if (changed) revision += 1
-      return {
-        changed, projection: readVisibleProjection(current, index, input.projection, revision),
-      }
+      return projectChange(changed, input)
     }
     if (command === 'range.merge') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
@@ -341,11 +342,7 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       if (input.sheetId !== input.projection.sheetId) throw new Error('PROJECTION_SHEET_MISMATCH')
       const index = sheetIndex(input.sheetId)
       const changed = changeVisibility(current, index, input, sheetsById.get(input.sheetId)!)
-      if (changed) revision += 1
-      return {
-        changed,
-        projection: readVisibleProjection(current, index, input.projection, revision),
-      }
+      return projectChange(changed, input)
     }
     if (command === 'workbook.changeSheets') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']

@@ -537,6 +537,7 @@ msgstr "Calculating selection…"
 #: src/workbook/chrome/ribbon/SortTools.tsx
 #: src/workbook/chrome/ribbon/TableTools.tsx
 #: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+#: src/workbook/hyperlink/HyperlinkTools.tsx
 msgid "Cancel"
 msgstr "Cancel"
 
@@ -556,6 +557,10 @@ msgstr "Case sensitive"
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
 msgid "Category"
 msgstr "Category"
+
+#: src/workbook/hyperlink/HyperlinkTools.tsx
+msgid "Cell {address}. Click to select; Ctrl/⌘+click to open the link."
+msgstr "Cell {address}. Click to select; Ctrl/⌘+click to open the link."
 
 #: src/workbook/grid/editor/CellEditor.tsx
 msgid "Cell editor"
@@ -588,6 +593,10 @@ msgstr "Changes the display only. The original date value stays unchanged."
 #: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
 msgid "Changes whole columns only. Cell contents, styles and row heights stay unchanged."
 msgstr "Changes whole columns only. Cell contents, styles and row heights stay unchanged."
+
+#: src/workbook/hyperlink/HyperlinkTools.tsx
+msgid "Changing display text replaces the cell content with text. Leave it unchanged to keep its value or formula."
+msgstr "Changing display text replaces the cell content with text. Leave it unchanged to keep its value or formula."
 
 #. placeholder {0}: label.toLowerCase()
 #: src/workbook/chrome/ribbon/ColorTools.tsx
@@ -1031,6 +1040,10 @@ msgid "Could not preview this split."
 msgstr "Could not preview this split."
 
 #: src/i18n/feedback-messages.ts
+msgid "Could not update the hyperlink display text."
+msgstr "Could not update the hyperlink display text."
+
+#: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/TableTotals.tsx
 msgid "Count"
 msgstr "Count"
@@ -1379,6 +1392,10 @@ msgstr "Disable rule {0}"
 msgid "Dismiss layout error"
 msgstr "Dismiss layout error"
 
+#: src/workbook/hyperlink/HyperlinkTools.tsx
+msgid "Display text"
+msgstr "Display text"
+
 #: src/workbook/chrome/ribbon/FindReplaceTools.tsx
 msgid "Displayed values"
 msgstr "Displayed values"
@@ -1443,6 +1460,10 @@ msgstr "Duplicate"
 msgid "Duplicate / unique values"
 msgstr "Duplicate / unique values"
 
+#: src/i18n/feedback-messages.ts
+msgid "Duplicate hyperlink cell in workbook file."
+msgstr "Duplicate hyperlink cell in workbook file."
+
 #: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
 msgid "Duplicate preview pages"
 msgstr "Duplicate preview pages"
@@ -1481,6 +1502,11 @@ msgid "Edit conditional format"
 msgstr "Edit conditional format"
 
 #: src/i18n/feedback-messages.ts
+#: src/workbook/hyperlink/HyperlinkTools.tsx
+msgid "Edit hyperlink"
+msgstr "Edit hyperlink"
+
+#: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/NamedRangeTools.tsx
 msgid "Edit named range"
 msgstr "Edit named range"
@@ -1502,6 +1528,10 @@ msgstr "Edit table"
 #: src/workbook/chrome/ribbon/TableTools.tsx
 msgid "Edit table {0}"
 msgstr "Edit table {0}"
+
+#: src/i18n/feedback-messages.ts
+msgid "Edit the table cell text before changing its hyperlink."
+msgstr "Edit the table cell text before changing its hyperlink."
 
 #: src/workbook/chrome/ribbon/SortTools.tsx
 msgid "Empty cell position"
@@ -1579,6 +1609,10 @@ msgstr "Enter a six-digit color such as #1a73e8."
 #: src/i18n/feedback-messages.ts
 msgid "Enter a table name."
 msgstr "Enter a table name."
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter a valid http:// or https:// address."
+msgstr "Enter a valid http:// or https:// address."
 
 #: src/i18n/translate-feedback.ts
 msgid "Enter a whole number from {min} to {max} pixels."
@@ -1894,6 +1928,10 @@ msgstr "Finish editing the cell first."
 #: src/i18n/feedback-messages.ts
 msgid "Finish the current edit or history operation first."
 msgstr "Finish the current edit or history operation first."
+
+#: src/i18n/feedback-messages.ts
+msgid "Finish the current operation before changing a hyperlink."
+msgstr "Finish the current operation before changing a hyperlink."
 
 #: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/GoToTools.tsx
@@ -2231,6 +2269,14 @@ msgstr "Highlight values with conditions, color scales or data bars. Higher rule
 msgid "Horizontal alignment"
 msgstr "Horizontal alignment"
 
+#: src/workbook/hyperlink/HyperlinkTools.tsx
+msgid "Hyperlink"
+msgstr "Hyperlink"
+
+#: src/workbook/hyperlink/HyperlinkTools.tsx
+msgid "Hyperlink (Ctrl/⌘+K)"
+msgstr "Hyperlink (Ctrl/⌘+K)"
+
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
 msgid "Ignore blank cells"
 msgstr "Ignore blank cells"
@@ -2291,6 +2337,15 @@ msgstr "Insert draft"
 msgid "Insert function"
 msgstr "Insert function"
 
+#: src/i18n/feedback-messages.ts
+#: src/workbook/hyperlink/HyperlinkTools.tsx
+msgid "Insert hyperlink"
+msgstr "Insert hyperlink"
+
+#: src/workbook/hyperlink/HyperlinkTools.tsx
+msgid "Insert link"
+msgstr "Insert link"
+
 #: src/workbook/chrome/ribbon/StructureTools.tsx
 msgid "Insert or delete rows and columns"
 msgstr "Insert or delete rows and columns"
@@ -2322,6 +2377,10 @@ msgstr "Inside vertical"
 #: src/workbook/chrome/header/LanguageSelect.tsx
 msgid "Interface language"
 msgstr "Interface language"
+
+#: src/i18n/feedback-messages.ts
+msgid "Invalid hyperlink projection request."
+msgstr "Invalid hyperlink projection request."
 
 #: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
 msgid "Italic"
@@ -2391,6 +2450,10 @@ msgstr "Line style"
 #: src/i18n/feedback-messages.ts
 msgid "Linear trend"
 msgstr "Linear trend"
+
+#: src/workbook/hyperlink/HyperlinkTools.tsx
+msgid "Link address"
+msgstr "Link address"
 
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
 msgid "List"
@@ -2825,6 +2888,10 @@ msgstr "Only the selected rectangle moves. Filtered rows stay in place; manually
 msgid "Only the upper-left cell's content will remain. Other cell contents will be deleted. Undo can restore them."
 msgstr "Only the upper-left cell's content will remain. Other cell contents will be deleted. Undo can restore them."
 
+#: src/workbook/hyperlink/HyperlinkTools.tsx
+msgid "Open link in a new tab"
+msgstr "Open link in a new tab"
+
 #: src/workbook/chrome/header/WorkbookFileTools.tsx
 msgid "Open this file and replace the current workbook? Download first to keep unsaved changes."
 msgstr "Open this file and replace the current workbook? Download first to keep unsaved changes."
@@ -3145,6 +3212,14 @@ msgstr "Remove conditional format"
 msgid "Remove duplicates"
 msgstr "Remove duplicates"
 
+#: src/i18n/feedback-messages.ts
+msgid "Remove hyperlink"
+msgstr "Remove hyperlink"
+
+#: src/workbook/hyperlink/HyperlinkTools.tsx
+msgid "Remove link"
+msgstr "Remove link"
+
 #: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
 msgid "Remove records"
 msgstr "Remove records"
@@ -3404,6 +3479,14 @@ msgstr "rows {0}–{1}"
 msgid "Rule type"
 msgstr "Rule type"
 
+#: src/i18n/feedback-messages.ts
+msgid "Rust hyperlink editing is unavailable."
+msgstr "Rust hyperlink editing is unavailable."
+
+#: src/i18n/feedback-messages.ts
+msgid "Rust returned a mismatched hyperlink result."
+msgstr "Rust returned a mismatched hyperlink result."
+
 #: src/workbook/shell/WorkbookView.tsx
 msgid "Rust/WASM ready"
 msgstr "Rust/WASM ready"
@@ -3421,6 +3504,7 @@ msgid "Save"
 msgstr "Save"
 
 #: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+#: src/workbook/hyperlink/HyperlinkTools.tsx
 msgid "Save changes"
 msgstr "Save changes"
 
@@ -3435,6 +3519,10 @@ msgstr "Saving changes…"
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Saving conditional formatting…"
 msgstr "Saving conditional formatting…"
+
+#: src/workbook/hyperlink/HyperlinkTools.tsx
+msgid "Saving hyperlink…"
+msgstr "Saving hyperlink…"
 
 #: src/workbook/chrome/ribbon/SelectionSizeTools.tsx
 msgid "Saving sizes…"
@@ -3584,6 +3672,10 @@ msgstr "Select samples and destinations in one row or column. Keep the first sam
 #: src/workbook/chrome/ribbon/SpillTools.tsx
 msgid "Select spill range"
 msgstr "Select spill range"
+
+#: src/i18n/feedback-messages.ts
+msgid "Select the anchor cell before changing its hyperlink."
+msgstr "Select the anchor cell before changing its hyperlink."
 
 #: src/i18n/feedback-messages.ts
 msgid "Select the entire merged cell before formatting."
@@ -4044,6 +4136,18 @@ msgid "The first row becomes the header. Blank or duplicate headers receive uniq
 msgstr "The first row becomes the header. Blank or duplicate headers receive unique names."
 
 #: src/i18n/feedback-messages.ts
+msgid "The hyperlink cell is outside the worksheet."
+msgstr "The hyperlink cell is outside the worksheet."
+
+#: src/i18n/feedback-messages.ts
+msgid "The hyperlink display text is too long or invalid."
+msgstr "The hyperlink display text is too long or invalid."
+
+#: src/i18n/feedback-messages.ts
+msgid "The hyperlink worksheet no longer exists."
+msgstr "The hyperlink worksheet no longer exists."
+
+#: src/i18n/feedback-messages.ts
 msgid "The matched cell is outside the current worksheet."
 msgstr "The matched cell is outside the current worksheet."
 
@@ -4198,6 +4302,10 @@ msgstr "The workbook changed. Paste again."
 #: src/i18n/feedback-messages.ts
 msgid "The workbook changed. Reopen Tables."
 msgstr "The workbook changed. Reopen Tables."
+
+#: src/i18n/feedback-messages.ts
+msgid "The workbook changed. Reopen the hyperlink editor."
+msgstr "The workbook changed. Reopen the hyperlink editor."
 
 #: src/i18n/feedback-messages.ts
 msgid "The workbook changed. Reopen the name editor."

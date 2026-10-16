@@ -18,6 +18,10 @@ export function initializeWorkbook(
   inputs.forEach((input, index) => importSheetOutline(workbook, index, input))
   // 初始矩形只写 Rust；后续导入锚点内容，启动历史不暴露为用户操作。
   inputs.forEach((input, index) => {
+    for (const link of input.hyperlinks ?? []) {
+      if (!workbook.change_hyperlink) throw new Error('Rust hyperlink editing is unavailable.')
+      workbook.change_hyperlink(index, link.row, link.col, link.url)
+    }
     // 先建立原生名称，后续导入公式直接解析；初始化末尾统一清除历史。
     for (const { name, range } of input.namedRanges ?? []) {
       if (!workbook.change_named_range) throw new Error('Rust named ranges are unavailable.')

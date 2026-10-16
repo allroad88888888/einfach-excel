@@ -92,6 +92,7 @@ impl ClipboardSnapshot {
                         Value::Text(input.into())
                     }),
                     format: None,
+                    hyperlink: None,
                 });
             }
         }

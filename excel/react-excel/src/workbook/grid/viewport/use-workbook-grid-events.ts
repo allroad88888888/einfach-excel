@@ -39,6 +39,7 @@ import {
   WORKBOOK_GRID_ROW_HEIGHT,
 } from './workbook-grid-config'
 import { useWorkbookGridViewportMeasurement } from './use-workbook-grid-viewport-measurement'
+import { useGridHyperlink } from '../../hyperlink/use-grid-hyperlink'
 
 /** Coordinates DOM events for the active workbook grid. */
 export function useWorkbookGridEvents(viewport: WorkbookViewport) {
@@ -55,6 +56,7 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
   const startCellEditing = useSetAtom(startCellEditingFromProjectionAtom)
   const setViewportScroll = useSetAtom(setViewportScrollAtom)
   const updatePointerSelection = useSetAtom(updatePointerSelectionAtom)
+  const hyperlink = useGridHyperlink()
   const gridRef = useRef<HTMLDivElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   useWorkbookGridViewportMeasurement(scrollRef)
@@ -116,6 +118,7 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
   const onKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
     if (event.target instanceof HTMLElement && event.target.closest('button, input, textarea')) return
     if (activeSheet === null || editingSession.source !== null) return
+    if (painter.mode === 'idle' && hyperlink.onKeyDown(event)) return
     if (painter.mode !== 'idle' && !event.nativeEvent.isComposing) {
       if (event.key === 'Enter') {
         event.preventDefault()
@@ -144,6 +147,7 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
   }
   const onPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (viewport.retained) return
+    if (!pickingReference && painter.mode === 'idle' && hyperlink.onPointerDown(event)) return
     const coord = workbookCellAt(event)
     if (coord === null) return
     if (!pickingReference) focusGrid()

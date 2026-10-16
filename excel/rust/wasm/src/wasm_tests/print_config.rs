@@ -61,6 +61,7 @@ fn invalid_print_config_persistence_does_not_replace_the_live_workbook() {
         freeze: vec![],
         outlines: vec![],
         named_ranges: vec![],
+        hyperlinks: vec![],
     };
 
     assert!(workbook.restore_persistence_v1_json(payload).is_err());

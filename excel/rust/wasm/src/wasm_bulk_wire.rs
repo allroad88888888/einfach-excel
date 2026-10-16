@@ -154,6 +154,8 @@ struct CellSnapshotJSON {
     #[serde(rename = "isError")]
     is_error: bool,
     formula: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    hyperlink: Option<String>,
 }
 
 /// 原生格式文本与原始数值分开返回；display 仍供统计与输入使用。
@@ -185,6 +187,8 @@ struct WorkbookPersistenceV1JSON {
     version: u32,
     sheets: Vec<WorkbookPersistenceSheetMetaJSON>,
     cells: Vec<SparseCellJSON>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    hyperlinks: Vec<HyperlinkJSON>,
     /// 合并矩形属于工作表几何，不混进单元格格式；旧快照缺省为空。
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     merges: Vec<SheetMergesJSON>,

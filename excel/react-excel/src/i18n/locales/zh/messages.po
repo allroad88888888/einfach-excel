@@ -537,6 +537,7 @@ msgstr "正在计算选区…"
 #: src/workbook/chrome/ribbon/SortTools.tsx
 #: src/workbook/chrome/ribbon/TableTools.tsx
 #: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+#: src/workbook/hyperlink/HyperlinkTools.tsx
 msgid "Cancel"
 msgstr "取消"
 
@@ -556,6 +557,10 @@ msgstr "区分大小写"
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
 msgid "Category"
 msgstr "类别"
+
+#: src/workbook/hyperlink/HyperlinkTools.tsx
+msgid "Cell {address}. Click to select; Ctrl/⌘+click to open the link."
+msgstr "单元格 {address}。单击选中；按住 Ctrl/⌘ 单击打开链接。"
 
 #: src/workbook/grid/editor/CellEditor.tsx
 msgid "Cell editor"
@@ -588,6 +593,10 @@ msgstr "只改变显示方式，原始日期值保持不变。"
 #: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
 msgid "Changes whole columns only. Cell contents, styles and row heights stay unchanged."
 msgstr "仅修改整列。单元格内容、样式和行高保持不变。"
+
+#: src/workbook/hyperlink/HyperlinkTools.tsx
+msgid "Changing display text replaces the cell content with text. Leave it unchanged to keep its value or formula."
+msgstr "修改显示文字会将单元格内容替换为文本。保持不变则保留原值或公式。"
 
 #. placeholder {0}: label.toLowerCase()
 #: src/workbook/chrome/ribbon/ColorTools.tsx
@@ -1031,6 +1040,10 @@ msgid "Could not preview this split."
 msgstr "无法预览此次分列。"
 
 #: src/i18n/feedback-messages.ts
+msgid "Could not update the hyperlink display text."
+msgstr "无法更新超链接显示文字。"
+
+#: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/TableTotals.tsx
 msgid "Count"
 msgstr "计数"
@@ -1379,6 +1392,10 @@ msgstr "禁用规则 {0}"
 msgid "Dismiss layout error"
 msgstr "关闭布局错误提示"
 
+#: src/workbook/hyperlink/HyperlinkTools.tsx
+msgid "Display text"
+msgstr "显示文字"
+
 #: src/workbook/chrome/ribbon/FindReplaceTools.tsx
 msgid "Displayed values"
 msgstr "显示值"
@@ -1443,6 +1460,10 @@ msgstr "重复值"
 msgid "Duplicate / unique values"
 msgstr "重复值 / 唯一值"
 
+#: src/i18n/feedback-messages.ts
+msgid "Duplicate hyperlink cell in workbook file."
+msgstr "工作簿文件中存在重复的超链接单元格。"
+
 #: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
 msgid "Duplicate preview pages"
 msgstr "重复记录预览分页"
@@ -1481,6 +1502,11 @@ msgid "Edit conditional format"
 msgstr "编辑条件格式"
 
 #: src/i18n/feedback-messages.ts
+#: src/workbook/hyperlink/HyperlinkTools.tsx
+msgid "Edit hyperlink"
+msgstr "编辑超链接"
+
+#: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/NamedRangeTools.tsx
 msgid "Edit named range"
 msgstr "编辑命名区域"
@@ -1502,6 +1528,10 @@ msgstr "编辑表格"
 #: src/workbook/chrome/ribbon/TableTools.tsx
 msgid "Edit table {0}"
 msgstr "编辑表格 {0}"
+
+#: src/i18n/feedback-messages.ts
+msgid "Edit the table cell text before changing its hyperlink."
+msgstr "请先编辑表格单元格的文字，再修改其超链接。"
 
 #: src/workbook/chrome/ribbon/SortTools.tsx
 msgid "Empty cell position"
@@ -1579,6 +1609,10 @@ msgstr "请输入六位十六进制颜色，例如 #1a73e8。"
 #: src/i18n/feedback-messages.ts
 msgid "Enter a table name."
 msgstr "请输入表格名称。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter a valid http:// or https:// address."
+msgstr "请输入有效的 http:// 或 https:// 地址。"
 
 #: src/i18n/translate-feedback.ts
 msgid "Enter a whole number from {min} to {max} pixels."
@@ -1894,6 +1928,10 @@ msgstr "请先完成单元格编辑。"
 #: src/i18n/feedback-messages.ts
 msgid "Finish the current edit or history operation first."
 msgstr "请先完成当前编辑或历史操作。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Finish the current operation before changing a hyperlink."
+msgstr "请先完成当前操作，再修改超链接。"
 
 #: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/GoToTools.tsx
@@ -2231,6 +2269,14 @@ msgstr "通过条件、色阶或数据条突出显示数值。颜色冲突时，
 msgid "Horizontal alignment"
 msgstr "水平对齐"
 
+#: src/workbook/hyperlink/HyperlinkTools.tsx
+msgid "Hyperlink"
+msgstr "超链接"
+
+#: src/workbook/hyperlink/HyperlinkTools.tsx
+msgid "Hyperlink (Ctrl/⌘+K)"
+msgstr "超链接（Ctrl/⌘+K）"
+
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
 msgid "Ignore blank cells"
 msgstr "忽略空白单元格"
@@ -2291,6 +2337,15 @@ msgstr "插入公式草稿"
 msgid "Insert function"
 msgstr "插入函数"
 
+#: src/i18n/feedback-messages.ts
+#: src/workbook/hyperlink/HyperlinkTools.tsx
+msgid "Insert hyperlink"
+msgstr "插入超链接"
+
+#: src/workbook/hyperlink/HyperlinkTools.tsx
+msgid "Insert link"
+msgstr "插入链接"
+
 #: src/workbook/chrome/ribbon/StructureTools.tsx
 msgid "Insert or delete rows and columns"
 msgstr "插入或删除行列"
@@ -2322,6 +2377,10 @@ msgstr "内部竖框线"
 #: src/workbook/chrome/header/LanguageSelect.tsx
 msgid "Interface language"
 msgstr "界面语言"
+
+#: src/i18n/feedback-messages.ts
+msgid "Invalid hyperlink projection request."
+msgstr "超链接的可见区域请求无效。"
 
 #: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
 msgid "Italic"
@@ -2391,6 +2450,10 @@ msgstr "线条样式"
 #: src/i18n/feedback-messages.ts
 msgid "Linear trend"
 msgstr "线性趋势"
+
+#: src/workbook/hyperlink/HyperlinkTools.tsx
+msgid "Link address"
+msgstr "链接地址"
 
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
 msgid "List"
@@ -2825,6 +2888,10 @@ msgstr "仅移动选中的矩形区域。筛除的行保持原位，手动隐藏
 msgid "Only the upper-left cell's content will remain. Other cell contents will be deleted. Undo can restore them."
 msgstr "只保留左上角单元格的内容，其他单元格内容将被删除，可以撤销恢复。"
 
+#: src/workbook/hyperlink/HyperlinkTools.tsx
+msgid "Open link in a new tab"
+msgstr "在新标签页打开链接"
+
 #: src/workbook/chrome/header/WorkbookFileTools.tsx
 msgid "Open this file and replace the current workbook? Download first to keep unsaved changes."
 msgstr "打开此文件并替换当前工作簿？请先下载以保留未保存的更改。"
@@ -3145,6 +3212,14 @@ msgstr "删除条件格式"
 msgid "Remove duplicates"
 msgstr "删除重复项"
 
+#: src/i18n/feedback-messages.ts
+msgid "Remove hyperlink"
+msgstr "移除超链接"
+
+#: src/workbook/hyperlink/HyperlinkTools.tsx
+msgid "Remove link"
+msgstr "移除链接"
+
 #: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
 msgid "Remove records"
 msgstr "删除记录"
@@ -3404,6 +3479,14 @@ msgstr "第 {0}–{1} 行"
 msgid "Rule type"
 msgstr "规则类型"
 
+#: src/i18n/feedback-messages.ts
+msgid "Rust hyperlink editing is unavailable."
+msgstr "Rust 超链接编辑功能不可用。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Rust returned a mismatched hyperlink result."
+msgstr "Rust 返回的超链接结果与当前操作不匹配。"
+
 #: src/workbook/shell/WorkbookView.tsx
 msgid "Rust/WASM ready"
 msgstr "Rust/WASM 已就绪"
@@ -3421,6 +3504,7 @@ msgid "Save"
 msgstr "保存"
 
 #: src/workbook/chrome/ribbon/NamedRangeTools.tsx
+#: src/workbook/hyperlink/HyperlinkTools.tsx
 msgid "Save changes"
 msgstr "保存更改"
 
@@ -3435,6 +3519,10 @@ msgstr "正在保存更改…"
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Saving conditional formatting…"
 msgstr "正在保存条件格式…"
+
+#: src/workbook/hyperlink/HyperlinkTools.tsx
+msgid "Saving hyperlink…"
+msgstr "正在保存超链接…"
 
 #: src/workbook/chrome/ribbon/SelectionSizeTools.tsx
 msgid "Saving sizes…"
@@ -3584,6 +3672,10 @@ msgstr "在同一行或列中选择样本和目标。保留开头的样本，将
 #: src/workbook/chrome/ribbon/SpillTools.tsx
 msgid "Select spill range"
 msgstr "选中溢出区域"
+
+#: src/i18n/feedback-messages.ts
+msgid "Select the anchor cell before changing its hyperlink."
+msgstr "请先选中主单元格，再修改其超链接。"
 
 #: src/i18n/feedback-messages.ts
 msgid "Select the entire merged cell before formatting."
@@ -4044,6 +4136,18 @@ msgid "The first row becomes the header. Blank or duplicate headers receive uniq
 msgstr "首行作为表头。空白或重复的表头会自动分配唯一名称。"
 
 #: src/i18n/feedback-messages.ts
+msgid "The hyperlink cell is outside the worksheet."
+msgstr "超链接单元格超出了工作表范围。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The hyperlink display text is too long or invalid."
+msgstr "超链接显示文字过长或包含无效字符。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The hyperlink worksheet no longer exists."
+msgstr "超链接所在的工作表已不存在。"
+
+#: src/i18n/feedback-messages.ts
 msgid "The matched cell is outside the current worksheet."
 msgstr "匹配单元格超出了当前工作表范围。"
 
@@ -4198,6 +4302,10 @@ msgstr "工作簿已更改，请重新粘贴。"
 #: src/i18n/feedback-messages.ts
 msgid "The workbook changed. Reopen Tables."
 msgstr "工作簿已更改，请重新打开表格设置。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The workbook changed. Reopen the hyperlink editor."
+msgstr "工作簿已更改，请重新打开超链接编辑器。"
 
 #: src/i18n/feedback-messages.ts
 msgid "The workbook changed. Reopen the name editor."

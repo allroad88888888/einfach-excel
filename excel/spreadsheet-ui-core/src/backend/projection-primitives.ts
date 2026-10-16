@@ -38,6 +38,8 @@ export interface DisplayCell {
   displayValue: string
   /** Rust 提供的原始编辑文本，与经过数字格式舍入的 displayValue 分开。 */
   inputText?: string
+  /** Rust 保存的外部链接地址；显示文字仍使用普通单元格内容。 */
+  hyperlink?: string
   valueKind?: 'blank' | 'number' | 'string' | 'boolean' | 'error'
   /** Read-only projection fact: the canonical finite number before display formatting. */
   numericValue?: number

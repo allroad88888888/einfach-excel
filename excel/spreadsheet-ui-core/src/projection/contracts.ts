@@ -120,7 +120,7 @@ export function countRangeCells(range: CellRange): number {
   return (range.rowEnd - range.rowStart + 1) * (range.colEnd - range.colStart + 1)
 }
 
-export function isCellInRange(cell: DisplayCell, range: CellRange): boolean {
+export function isCellInRange(cell: Pick<DisplayCell, 'row' | 'col'>, range: CellRange): boolean {
   return (
     cell.row >= range.rowStart &&
     cell.row <= range.rowEnd &&

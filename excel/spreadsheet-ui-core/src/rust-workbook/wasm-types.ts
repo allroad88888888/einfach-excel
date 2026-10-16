@@ -28,6 +28,7 @@ export interface RustCellSnapshot {
   readonly display: string
   readonly formattedDisplay?: string
   readonly inputText?: string
+  readonly hyperlink?: string
   readonly type: 'number' | 'text' | 'boolean' | 'error' | 'null'
   readonly isError: boolean
   readonly formula: string
@@ -59,6 +60,8 @@ export interface RustFormatRangeSnapshot {
 }
 
 export interface WasmWorkbook extends WasmSpillQueries, WasmFindQueries {
+  change_hyperlink?: (sheet: number, row: number, col: number,
+    url?: string, text?: string) => boolean
   recalculate?: (sheet?: number) => number
   snapshot_persistence_v1?: () => unknown
   restore_persistence_v1?: (value: unknown) => unknown

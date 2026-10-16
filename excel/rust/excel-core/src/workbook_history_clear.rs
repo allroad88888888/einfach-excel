@@ -85,6 +85,9 @@ impl WorkbookHistory {
                         CellStyle::from_format(CellFormat::default()))?;
                 }
                 if content { workbook.clear_range(sheet, range); }
+                if mode == ClearSelectionMode::All {
+                    workbook.sheet_mut(sheet).unwrap().restore_hyperlinks(range, &[]);
+                }
                 Ok(())
             });
             if let Err(error) = self.finish(workbook, outcome.is_ok()) { outcome = Err(error); }

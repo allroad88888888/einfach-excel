@@ -38,6 +38,7 @@ impl Sheet {
             cell_subscriptions: HashMap::new(),
             next_cell_sub_id: 0,
             cell_styles: HashMap::new(),
+            hyperlinks: HashMap::new(),
             row_styles: BTreeMap::new(),
             column_styles: BTreeMap::new(),
             merged_ranges: Vec::new(),

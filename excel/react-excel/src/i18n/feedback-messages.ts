@@ -3,6 +3,22 @@ import type { MessageDescriptor } from '@lingui/core'
 
 /** Core 提示的展现层词典：键保留原文以兼容现有结果；翻译由 Lingui 提取和切换。 */
 export const feedbackMessages: Readonly<Record<string, MessageDescriptor>> = {
+  'Enter a valid http:// or https:// address.': msg`Enter a valid http:// or https:// address.`,
+  'Select the anchor cell before changing its hyperlink.': msg`Select the anchor cell before changing its hyperlink.`,
+  'The hyperlink display text is too long or invalid.': msg`The hyperlink display text is too long or invalid.`,
+  'Edit the table cell text before changing its hyperlink.': msg`Edit the table cell text before changing its hyperlink.`,
+  'Could not update the hyperlink display text.': msg`Could not update the hyperlink display text.`,
+  'The hyperlink cell is outside the worksheet.': msg`The hyperlink cell is outside the worksheet.`,
+  'Finish the current operation before changing a hyperlink.': msg`Finish the current operation before changing a hyperlink.`,
+  'The workbook changed. Reopen the hyperlink editor.': msg`The workbook changed. Reopen the hyperlink editor.`,
+  'Rust returned a mismatched hyperlink result.': msg`Rust returned a mismatched hyperlink result.`,
+  'Invalid hyperlink projection request.': msg`Invalid hyperlink projection request.`,
+  'Rust hyperlink editing is unavailable.': msg`Rust hyperlink editing is unavailable.`,
+  'Duplicate hyperlink cell in workbook file.': msg`Duplicate hyperlink cell in workbook file.`,
+  'The hyperlink worksheet no longer exists.': msg`The hyperlink worksheet no longer exists.`,
+  'Insert hyperlink': msg`Insert hyperlink`,
+  'Edit hyperlink': msg`Edit hyperlink`,
+  'Remove hyperlink': msg`Remove hyperlink`,
   'Older operations were dropped to keep history within its memory limit.':
     msg`Older operations were dropped to keep history within its memory limit.`,
   'The workbook did not return an HTML table.': msg`The workbook did not return an HTML table.`,

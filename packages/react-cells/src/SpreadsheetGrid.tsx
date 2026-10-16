@@ -4,6 +4,7 @@ import { mergeRangeAt, nativeFilterRangeAtom, nativeTableFiltersAtom, formulaRef
 import { useAtomValue } from '@einfach/react'
 import { CellFilterButton } from './CellFilterButton'
 import { CellDataBar } from './CellDataBar'
+import { CellHyperlink } from './hyperlink/CellHyperlink'
 import { SelectionOutlines } from './SelectionOutlines'
 import type { CSSProperties } from 'react'
 import { cellFormatStyle, cellTextRotationStyle } from './cell-format-style'
@@ -106,13 +107,14 @@ export function SpreadsheetGrid({
               visibility: merged ? 'hidden' : undefined,
             }}
           >
-            {rotationStyle ? (
+            <CellHyperlink url={showFormulas ? undefined : cell?.hyperlink}
+              color={cell?.format?.fgColor}>{rotationStyle ? (
               <span className="cell-rotated-text" style={rotationStyle}>
                 {displayValue}
               </span>
             ) : (
               displayValue
-            )}
+            )}</CellHyperlink>
           </span>
           {filterHeader && <CellFilterButton col={col} table={filterTable} />}
         </td>,

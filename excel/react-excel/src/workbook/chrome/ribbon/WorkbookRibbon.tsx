@@ -35,6 +35,7 @@ import { TextLayoutTools } from './TextLayoutTools'
 import { FontSizeTools } from './FontSizeTools'
 import { NumberFormatTools } from './NumberFormatTools'
 import { BorderTools } from './BorderTools'
+import { HyperlinkTools } from '../../hyperlink/HyperlinkTools'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useId, useLayoutEffect, useRef } from 'react'
 import { RibbonTabs, ribbonTabLabels } from './RibbonTabs'
@@ -115,6 +116,7 @@ export function WorkbookRibbon() {
           <div className="ribbon-tool-group" data-inactive={!all && tab !== 'Insert'}>
             <StructureTools />
             <TableTools />
+            <HyperlinkTools />
           </div>
           <div className="ribbon-tool-group" data-inactive={!all}>
             <span className="tool-separator" aria-hidden="true" />

@@ -1,5 +1,5 @@
 import type { Rect } from '@einfach/canvas'
-import type { DisplayCell } from '@einfach/spreadsheet-ui-core'
+import { externalHyperlink, type DisplayCell } from '@einfach/spreadsheet-ui-core'
 import type { CanvasCellsTheme } from './types'
 
 function ellipsis(ctx: CanvasRenderingContext2D, text: string, width: number) {
@@ -33,9 +33,10 @@ function wrap(ctx: CanvasRenderingContext2D, text: string, width: number, maxLin
 /** Text layout stays inside the full cell rectangle, including offscreen merged anchors. */
 export function paintText(
   ctx: CanvasRenderingContext2D, bounds: Rect, cell: DisplayCell | undefined,
-  text: string, theme: CanvasCellsTheme, filter: boolean) {
+  text: string, theme: CanvasCellsTheme, filter: boolean, showFormulas = false) {
   if (!text) return
   const format = cell?.format
+  const hyperlink = !showFormulas && Boolean(externalHyperlink(cell?.hyperlink))
   const fontSize = Math.min(512, Math.max(1, format?.fontSize ?? 12))
   const family = format?.fontFamily && /^[A-Za-z0-9, "'\-]+$/.test(format.fontFamily)
     ? format.fontFamily : theme.fontFamily
@@ -51,7 +52,7 @@ export function paintText(
     ctx.rect(bounds.x + 7 + indent, bounds.y + 3, width, height)
     ctx.clip()
     ctx.font = font(fontSize)
-    ctx.fillStyle = theme.foreground
+    ctx.fillStyle = hyperlink ? theme.selection : theme.foreground
     if (format?.fgColor) ctx.fillStyle = format.fgColor
     const wrapping = format?.overflow === 'wrap' || format?.wrap
     const vertical = format?.rotation === 'vertical'
@@ -84,14 +85,15 @@ export function paintText(
     lines.forEach((line, index) => {
       const top = y + index * lineHeight
       ctx.fillText(line, x, top)
-      if (format?.underline || format?.strikethrough) {
+      if (format?.underline || hyperlink || format?.strikethrough) {
         const measured = ctx.measureText(line).width
         const from = ctx.textAlign === 'right' ? x - measured
           : ctx.textAlign === 'center' ? x - measured / 2 : x
         ctx.strokeStyle = ctx.fillStyle
         ctx.lineWidth = 1
         const decorations = [
-          format.underline ? size : null, format.strikethrough ? size * 0.55 : null,
+          format?.underline || hyperlink ? size : null,
+          format?.strikethrough ? size * 0.55 : null,
         ]
         for (const offset of decorations) {
           if (offset === null) continue

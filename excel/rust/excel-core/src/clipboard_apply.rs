@@ -72,6 +72,7 @@ pub(super) fn apply_paste(
         }
         let sheet = workbook.sheet_mut(sheet_idx).unwrap();
         if snapshot.cut {
+            sheet.hyperlinks.retain(|addr, _| !snapshot.source.contains(*addr));
             sheet.patch_format_range(
                 snapshot.source,
                 StyleScope::Cell,
@@ -79,6 +80,14 @@ pub(super) fn apply_paste(
             );
         }
         for (addr, _, format) in planned {
+            // 普通粘贴携带链接；仅值/公式/格式不改变目标的链接元数据。
+            // 扩表可额外生成粘贴矩形外的表头；它们没有对应剪贴板源格。
+            if options.mode == ClipboardPasteMode::All
+                && options.arithmetic == ClipboardArithmetic::None && merges.target.contains(addr) {
+                let (_, source) = snapshot.cell_at_target(addr, merges.target, options.transpose);
+                if let Some(url) = &source.hyperlink { sheet.hyperlinks.insert(addr, url.clone()); }
+                else { sheet.hyperlinks.remove(&addr); }
+            }
             if let Some(format) = format {
                 // 默认格式也要压住目标原有的行/列样式。
                 sheet.patch_format_range(CellRange::single(addr), StyleScope::Cell, format);

@@ -130,3 +130,5 @@ export { toggleFormulaReferenceAtom } from './formula-reference/toggle-reference
 export { spillAvailableAtom, spillPanelAtom, runSpillAtom } from './spill/command'
 
 export { createCellBorderResolver, sharedBorder } from './viewport/cell-border-resolver'
+export { hyperlinkPanelAtom, runHyperlinkAtom, readCellHyperlinkAtom } from './hyperlink/command'
+export { externalHyperlink } from './hyperlink/url'

@@ -29,6 +29,8 @@ use conditional_format::ConditionalFormatChange;
 mod data_validation;
 #[path = "workbook_history_input.rs"]
 mod input;
+#[path = "hyperlink/history.rs"]
+mod hyperlink;
 #[path = "workbook_history_named_range.rs"]
 mod named_range;
 #[path = "workbook_history_table.rs"]

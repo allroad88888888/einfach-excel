@@ -21,7 +21,7 @@ function parseA1(address: string): { row: number; col: number } | null {
 /** 把 Rust 快照变成 UI 投影格，空快照不会进入稀疏结果。 */
 export function displayCell(snapshot: RustCellSnapshot): DisplayCell | null {
   const coord = parseA1(snapshot.addr)
-  if (!coord || (snapshot.type === 'null' && !snapshot.formula && !snapshot.display)) return null
+  if (!coord || (snapshot.type === 'null' && !snapshot.formula && !snapshot.display && !snapshot.hyperlink)) return null
   const valueKind = snapshot.isError
     ? 'error'
     : snapshot.type === 'text'
@@ -33,6 +33,7 @@ export function displayCell(snapshot: RustCellSnapshot): DisplayCell | null {
     ...coord, displayValue: snapshot.formattedDisplay ?? snapshot.display, valueKind,
   }
   cell.inputText = snapshot.inputText ?? (snapshot.formula || snapshot.display)
+  if (snapshot.hyperlink) cell.hyperlink = snapshot.hyperlink
   if (snapshot.type === 'number') {
     const numericValue = Number(snapshot.display)
     if (Number.isFinite(numericValue)) cell.numericValue = numericValue

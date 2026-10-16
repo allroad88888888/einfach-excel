@@ -47,7 +47,8 @@ export function paintCell(
       ctx.fillRect(b.x + 2 + width * bar.axis / 100, b.y + 3, 1, Math.max(0, b.height - 6))
     }
   }
-  paintText(ctx, b, cell, formulaViewText(cell, a.showFormulas), theme, Boolean(a.filter))
+  paintText(ctx, b, cell, formulaViewText(cell, a.showFormulas), theme, Boolean(a.filter),
+    a.showFormulas)
   for (const border of item.borders) paintBorder(ctx, border, theme.gridline)
   if (a.filter) {
     const x = b.x + b.width - 21, y = b.y + b.height / 2 - 10

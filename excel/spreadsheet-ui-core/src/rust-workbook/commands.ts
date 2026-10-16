@@ -29,6 +29,7 @@ import type { RustNamedRangeCommands } from './named-range-commands'
 import type { RustTableCommands } from './table-commands'
 import type { RustWorkbookFileCommands } from './file-commands'
 import type { RustSpillCommands } from './spill-commands'
+import type { RustHyperlinkCommands } from './hyperlink/command'
 import type { NativeTableStyle } from '../tables/native-types'
 import type { NativeOutline } from '../outline/native-state'
 import type { NativeDataValidationRule } from '../data-validation/native-rule'
@@ -56,6 +57,9 @@ export interface RustWorkbookSheetInput {
   readonly mergedRanges?: readonly CellRange[]
   readonly freeze?: { readonly rows: number; readonly cols: number }
   readonly outline?: NativeOutline
+  readonly hyperlinks?: readonly {
+    readonly row: number; readonly col: number; readonly url: string
+  }[]
   /** 工作簿级名称；范围属于本张表，事实在 Rust 初始化时建立。 */
   readonly namedRanges?: readonly { readonly name: string; readonly range: CellRange }[]
   /** 表头来自导入数据；Table 必须在全部内容导入后建立。 */
@@ -154,7 +158,8 @@ export interface RustWorkbookCommands
   extends RustFindCommands, RustSortCommands, RustFilterCommands,
     RustTextColumnsCommands, RustRemoveDuplicatesCommands, RustQuickFormulaCommands,
     RustConditionalFormatCommands, RustDataValidationCommands, RustSpillCommands,
-    RustOutlineCommands, RustNamedRangeCommands, RustTableCommands, RustWorkbookFileCommands {
+    RustOutlineCommands, RustNamedRangeCommands, RustTableCommands, RustWorkbookFileCommands,
+    RustHyperlinkCommands {
   readonly 'format.preview': WorkerCommand<
     {
       readonly sheetId: string

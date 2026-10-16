@@ -129,6 +129,7 @@ impl WasmWorkbook {
         Self::restore_outlines_json(&mut workbook, payload.outlines)?;
         Self::restore_hidden_columns_json(&mut workbook, payload.hidden_columns)?;
         Self::restore_data_validations_json(&mut workbook, payload.data_validations)?;
+        Self::restore_hyperlinks_json(&mut workbook, payload.hyperlinks)?;
         let mut restored_formats = 0u32;
         for (sheet_idx, snapshot) in format_snapshots {
             let sheet = workbook

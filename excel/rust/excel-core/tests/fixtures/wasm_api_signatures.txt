@@ -102,6 +102,7 @@ impl WasmWorkbook :: [] :: pub fn bulk_import_cells(&mut self, cells: JsValue) -
 impl WasmWorkbook :: [] :: pub fn bulk_install_workbook(&mut self, payload: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn capture_clipboard( &mut self, sheet_idx: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, cut: bool, ) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn capture_format_painter( &mut self, sheet_idx: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, ) -> Result<JsValue, JsValue>
+impl WasmWorkbook :: [] :: pub fn change_hyperlink( &mut self, sheet: u32, row: u32, col: u32, url: Option<String>, text: Option<String>, ) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn change_named_range(&mut self, sheet: u32, action: JsValue) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn change_outline(&mut self, sheet: u32, axis: &str, action: JsValue) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn change_table(&mut self, sheet: u32, action: JsValue) -> Result<bool, JsValue>

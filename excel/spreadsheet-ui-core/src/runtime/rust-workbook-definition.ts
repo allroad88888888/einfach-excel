@@ -53,6 +53,12 @@ export function snapshotRustWorkbookDefinition(
     }
     const hiddenRows = hidden(sheet.hiddenRows, sheet.rowCount)
     const hiddenColumns = hidden(sheet.hiddenColumns, sheet.colCount)
+    const hyperlinks = sheet.hyperlinks?.map((link) => {
+      if (![link.row, link.col].every((n) => Number.isSafeInteger(n) && n >= 0) ||
+        link.row >= sheet.rowCount || link.col >= sheet.colCount || typeof link.url !== 'string')
+        throw new Error('Invalid initial hyperlink cell.')
+      return Object.freeze({ ...link })
+    })
     const snapshotRanges = (entries: RustWorkbookSheetInput['namedRanges'], label: string) =>
       entries?.map(({ name: rangeName, range }) => {
       if (![range.rowStart, range.rowEnd, range.colStart, range.colEnd].every(
@@ -175,6 +181,7 @@ export function snapshotRustWorkbookDefinition(
       ...(colWidths ? { colWidths: Object.freeze(colWidths) } : {}),
       ...(hiddenRows ? { hiddenRows } : {}),
       ...(hiddenColumns ? { hiddenColumns } : {}),
+      ...(hyperlinks ? { hyperlinks: Object.freeze(hyperlinks) } : {}),
       ...(outline ? { outline } : {}),
       ...(namedRanges ? { namedRanges: Object.freeze(namedRanges) } : {}),
       ...(tables ? { tables: Object.freeze(tables) } : {}),

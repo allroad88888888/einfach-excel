@@ -67,6 +67,8 @@ pub struct Sheet {
     pub(super) next_cell_sub_id: u64,
     /// 稀疏 cellStyle；只保存单元格自己明确接管的显示属性。
     pub(crate) cell_styles: HashMap<CellAddress, CellStyle>,
+    /// 链接是单元格内容元数据，不属于 cellStyle，也不为每个链接新建 atom。
+    pub(crate) hyperlinks: HashMap<CellAddress, String>,
     /// 稀疏 rowStyle；行显示格式与行高共用这一份权威数据。
     pub(crate) row_styles: BTreeMap<u32, crate::cell_style::RowStyle>,
     /// 稀疏 columnStyle；列宽仍由 `SheetInterior::col_widths` 单独负责。

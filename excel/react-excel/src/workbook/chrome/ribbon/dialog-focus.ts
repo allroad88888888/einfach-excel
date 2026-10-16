@@ -4,7 +4,8 @@ import type { KeyboardEvent } from 'react'
 export function cycleDialogFocus(event: KeyboardEvent<HTMLDialogElement>) {
   if (event.key !== 'Tab') return
   const controls = event.currentTarget.querySelectorAll<HTMLElement>(
-    'button:not(:disabled):not([tabindex="-1"]), input:not(:disabled), select:not(:disabled)',
+    'button:not(:disabled):not([tabindex="-1"]), input:not(:disabled), ' +
+    'select:not(:disabled), a[href]:not([tabindex="-1"])',
   )
   const first = controls[0]
   const last = controls[controls.length - 1]

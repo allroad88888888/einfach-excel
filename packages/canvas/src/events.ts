@@ -16,7 +16,7 @@ export type CellPointerType = 'pointerdown' | 'pointermove' | 'pointerup'
   | 'pointercancel' | 'pointerenter' | 'pointerleave'
 
 export interface PointerTarget {
-  readonly bounds: Rect
+  bounds: Rect
   readonly handlers: Map<CellPointerType, Set<CellPointerHandler>>
   active: boolean
 }

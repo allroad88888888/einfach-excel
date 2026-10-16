@@ -28,3 +28,21 @@ test('bitmap stays at viewport size inside a 650-row merge with an offscreen anc
   await page.mouse.click(viewport.x + 75, viewport.y + 100)
   await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('CG341:CH990')
 })
+
+test('scrolling within the prefetched window does not rebuild the cell layout', async ({ page }) => {
+  await page.goto('/?renderer=canvas')
+  const canvas = page.locator('[data-workbook-grid] canvas')
+  await expect(canvas).toHaveAttribute('data-cell-count', /[1-9]\d*/)
+  await expect(page.locator('[data-workbook-grid]')).toHaveAttribute('data-projection-retained', 'false')
+  const samples = await canvas.evaluate(async node => {
+    const el = node as HTMLElement, scroll = el.closest('.sheet-scroll')!
+    const counts = [el.dataset.layoutBuilds]
+    for (let frame = 0; frame < 12; frame++) {
+      scroll.scrollTop += 7
+      await new Promise(requestAnimationFrame)
+      counts.push(el.dataset.layoutBuilds)
+    }
+    return counts
+  })
+  expect(new Set(samples).size).toBe(1)
+})

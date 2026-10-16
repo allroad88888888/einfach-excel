@@ -3,7 +3,7 @@ import { vi } from 'vitest'
 
 export function fixture() {
   const frames = new Map<number, FrameRequestCallback>()
-  let id = 0, subscriptions = 0
+  let id = 0, subscriptions = 0, created = 0, released = 0
   vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
     frames.set(++id, callback); return id
   })
@@ -32,10 +32,11 @@ export function fixture() {
   } as unknown as HTMLCanvasElement
   const original = createStore()
   const store: Store = { ...original, sub(entity, listener) {
-    const stop = original.sub(entity, listener); subscriptions++
-    return () => { subscriptions--; stop() }
+    const stop = original.sub(entity, listener); subscriptions++; created++
+    return () => { subscriptions--; released++; stop() }
   } }
-  return { canvas, context, store, subscriptions: () => subscriptions, pending: () => frames.size,
+  return { canvas, context, store, created: () => created, released: () => released,
+    subscriptions: () => subscriptions, pending: () => frames.size,
     move(x: number, y: number) {
       documentEvents.dispatchEvent(Object.assign(new Event('pointermove'), {
         clientX: x, clientY: y, isPrimary: true, pointerType: 'mouse', pointerId: 1,

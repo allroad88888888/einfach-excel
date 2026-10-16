@@ -35,6 +35,6 @@ test('clips a giant merge while retaining its real bounds and offscreen anchor',
   renderer.flush()
   expect(f.canvas.height).toBe(100)
   expect(renderer.hitTest(10, 10)).toEqual({ row: 0, col: 0 })
-  expect(f.context.rect).toHaveBeenCalledWith(0, -11200, 120, 28000)
+  expect(f.context.rect).toHaveBeenCalledWith(0, 0, 120, 28000)
   renderer.dispose()
 })

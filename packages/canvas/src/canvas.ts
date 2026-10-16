@@ -16,6 +16,7 @@ export interface CanvasOptions {
 }
 
 export interface CanvasCell {
+  setBounds(bounds: Rect): void
   invalidate(): void
   dispose(): void
 }
@@ -112,7 +113,7 @@ export function createCanvas(canvas: HTMLCanvasElement, options: CanvasOptions):
       if (!Number.isFinite(bounds.x) || !Number.isFinite(bounds.y)) {
         throw new Error('Cell coordinates must be finite.')
       }
-      const rect = Object.freeze({ ...bounds })
+      let rect = Object.freeze({ ...bounds })
       return runWithOwner(owner, () => withStore(options.store, () => createScope(stop => {
         const cellOwner = getOwner()!
         const target = pointer.add(rect)
@@ -130,7 +131,20 @@ export function createCanvas(canvas: HTMLCanvasElement, options: CanvasOptions):
         record = { bounds: rect, paint }
         cells.add(record)
         repaint()
-        return { invalidate: repaint, dispose: stop }
+        return { invalidate: repaint, dispose: stop, setBounds(next: Rect) {
+          if (cellOwner.disposed) return
+          positive(next.width); positive(next.height)
+          if (!Number.isFinite(next.x) || !Number.isFinite(next.y)) {
+            throw new Error('Cell coordinates must be finite.')
+          }
+          if (rect.x === next.x && rect.y === next.y
+            && rect.width === next.width && rect.height === next.height) return
+          invalidate(rect)
+          rect = Object.freeze({ ...next })
+          target.bounds = rect
+          record!.bounds = rect
+          repaint()
+        } }
       })))
     }
     onCleanup(() => {

@@ -1,11 +1,8 @@
 import { atom, type Atom } from '@einfach/core'
 import { createCanvas, useAtomValue, type CanvasCell, type Rect } from '@einfach/canvas'
-import {
-  getViewportRangeRectangle, projectionSnapshotAtom, viewportMetricsAtom, viewportGeometrySizesAtom,
-  type CellCoord, type CellRange,
-} from '@einfach/spreadsheet-ui-core'
+import type { CellCoord } from '@einfach/spreadsheet-ui-core'
 import { appearanceAtoms, appearanceReader, sameAppearance } from './appearance'
-import { createLayout } from './layout'
+import { createProjectionLayout } from './projection-layout'
 import { paintCell } from './paint-cell'
 import { bindEvents } from './events'
 import { registerHitTest } from './hit-test'
@@ -26,7 +23,9 @@ export function createCanvasCells(canvas: HTMLCanvasElement, initial: CanvasCell
     pointerEvents: false, onFrame: options.onFrame })
   let viewport = options.viewport
   let input = initial
-  let layout: ReturnType<typeof createLayout>
+  const project = createProjectionLayout(store)
+  let layout: ReturnType<typeof project>
+  let layoutBuilds = 0
   let disposed = false
   let hovered: string | undefined
   let width = -1, height = -1, ratio = options.pixelRatio ?? globalThis.devicePixelRatio ?? 1
@@ -37,8 +36,12 @@ export function createCanvasCells(canvas: HTMLCanvasElement, initial: CanvasCell
   }
   function point(clientX: number, clientY: number) {
     const box = canvas.getBoundingClientRect()
-    return { x: (viewport?.x ?? 0) + (box.width ? (clientX - box.left) * width / box.width : -1),
-      y: (viewport?.y ?? 0) + (box.height ? (clientY - box.top) * height / box.height : -1) }
+    return {
+      x: layout.origin.x + (viewport?.x ?? 0)
+        + (box.width ? (clientX - box.left) * width / box.width : -1),
+      y: layout.origin.y + (viewport?.y ?? 0)
+        + (box.height ? (clientY - box.top) * height / box.height : -1),
+    }
   }
   function hitTest(clientX: number, clientY: number) {
     if (disposed || input.interactive === false) return null
@@ -73,7 +76,8 @@ export function createCanvasCells(canvas: HTMLCanvasElement, initial: CanvasCell
       surface.resize(Math.max(1, width), Math.max(1, height), ratio)
       canvas.style.width = `${width}px`; canvas.style.height = `${height}px`
     }
-    surface.setViewport({ ...view, width: Math.max(1, width), height: Math.max(1, height) })
+    surface.setViewport({ x: layout.origin.x + view.x, y: layout.origin.y + view.y,
+      width: Math.max(1, width), height: Math.max(1, height) })
     canvas.dataset.viewportX = String(view.x); canvas.dataset.viewportY = String(view.y)
   }
   function setViewport(view: Rect) {
@@ -82,30 +86,26 @@ export function createCanvasCells(canvas: HTMLCanvasElement, initial: CanvasCell
   }
   function update(next: CanvasCellsInput) {
     if (disposed) throw new Error('Canvas cells have been disposed.')
+    const previous = input
     input = next
-    const metrics = store.getter(viewportMetricsAtom)
-    const sizes = store.getter(viewportGeometrySizesAtom)
-    const result = store.getter(projectionSnapshotAtom).result
-    const projection = result?.kind === 'visible-window' ? result : undefined
-    const ownsProjection = projection && (projection.cells === next.cells ||
-      projection.frozen?.regions.some(region => region.cells === next.cells))
-    const rangeRect = (range: CellRange) => getViewportRangeRectangle(metrics, sizes, range)
-    const origin = rangeRect(next.window)
-    layout = createLayout(next, {
-      projection, scrollTop: metrics.scrollTop, scrollLeft: metrics.scrollLeft,
-      rectangle: ownsProjection ? range => {
-        const rect = rangeRect(range)
-        return { x: rect.left - origin.left, y: rect.top - origin.top,
-          width: rect.width, height: rect.height }
-      } : undefined,
-    })
+    const nextLayout = project(next)
+    if (layout === nextLayout) {
+      if (previous.selected !== next.selected || previous.interactive !== next.interactive) {
+        if (next.interactive === false) hovered = undefined
+        refresh()
+      }
+      resizeViewport()
+      return
+    }
+    layout = nextLayout
+    canvas.dataset.layoutBuilds = String(++layoutBuilds)
     resizeViewport()
     if (input.interactive === false) hovered = undefined
     appearance = appearanceReader(store, input)
     const nextItems = new Map(layout.items.map(item => [item.key, item]))
     for (const [key, record] of records) {
       const item = nextItems.get(key)
-      if (!item || JSON.stringify(item?.bounds) !== JSON.stringify(record.model.item.bounds)) {
+      if (!item) {
         record.view.dispose(); records.delete(key)
       }
     }
@@ -113,6 +113,7 @@ export function createCanvasCells(canvas: HTMLCanvasElement, initial: CanvasCell
       const current = records.get(item.key)
       const model = { item, appearance: appearance(item, hovered === item.key) }
       if (current) {
+        current.view.setBounds(item.bounds)
         if (current.model.item.signature !== item.signature
           || !sameAppearance(current.model.appearance, model.appearance)) {
           current.model = model; store.setter(current.entity, model)

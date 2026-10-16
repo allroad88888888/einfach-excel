@@ -29,16 +29,18 @@ export function includes(range: CellRange, row: number, col: number) {
     && col >= range.colStart && col <= range.colEnd
 }
 export function createLayout(input: CanvasCellsInput, options: {
+  origin?: { x: number; y: number }
   rectangle?: (range: CellRange) => Rect
   projection?: VisibleProjectionResult
   scrollTop?: number
   scrollLeft?: number
 } = {}) {
+  const origin = options.origin ?? { x: 0, y: 0 }
   const window = input.window
   const rows = axis(window.rowStart, window.rowEnd, input.rowHeights, 28)
   const cols = axis(window.colStart, window.colEnd, input.columnWidths, 120)
   const rectangle = options.rectangle ?? ((range: CellRange): Rect => ({
-    x: cols.offset(range.colStart), y: rows.offset(range.rowStart),
+    x: origin.x + cols.offset(range.colStart), y: origin.y + rows.offset(range.rowStart),
     width: cols.offset(range.colEnd + 1) - cols.offset(range.colStart),
     height: rows.offset(range.rowEnd + 1) - rows.offset(range.rowStart),
   }))
@@ -54,8 +56,9 @@ export function createLayout(input: CanvasCellsInput, options: {
   const items: LayoutCell[] = []
   function add(range: CellRange, merged: boolean, cell = data.get(`${range.rowStart}:${range.colStart}`)) {
     const bounds = rectangle(range)
-    if (bounds.width <= 0 || bounds.height <= 0 || bounds.x >= cols.size || bounds.y >= rows.size
-      || bounds.x + bounds.width <= 0 || bounds.y + bounds.height <= 0) return
+    if (bounds.width <= 0 || bounds.height <= 0
+      || bounds.x >= origin.x + cols.size || bounds.y >= origin.y + rows.size
+      || bounds.x + bounds.width <= origin.x || bounds.y + bounds.height <= origin.y) return
     const borders: BorderSegment[] = []
     if (!merged) {
       const resolved = resolve(range.rowStart, range.colStart, cell?.format)
@@ -95,9 +98,9 @@ export function createLayout(input: CanvasCellsInput, options: {
   }
   for (const { cell, range } of merges) add(range, true, cell)
   return {
-    items, width: cols.size, height: rows.size, rectangle,
+    items, origin, width: cols.size, height: rows.size, rectangle,
     hit(x: number, y: number) {
-      const row = rows.hit(y), col = cols.hit(x)
+      const row = rows.hit(y - origin.y), col = cols.hit(x - origin.x)
       if (row === null || col === null) return null
       const merged = merges.find(item => includes(item.range, row, col))
       return merged ? { row: merged.cell.row, col: merged.cell.col } : { row, col }

@@ -13,7 +13,7 @@ export interface FrameStats {
 }
 
 export interface PaintCell {
-  readonly bounds: Rect
+  bounds: Rect
   readonly paint: Paint
 }
 

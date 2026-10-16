@@ -1,5 +1,9 @@
 import type { Getter, Setter } from '@einfach/core'
 import type { VisibleProjectionResult } from '../backend'
+import { selectionSnapshotAtom } from '../selection'
+import { viewportGeometrySizesAtom } from '../viewport/geometry-sizes'
+import { getViewportScrollForCell, scrollToCellAtom, viewportMetricsAtom } from '../viewport/metrics'
+import { projectedFreezeAtom } from '../viewport/projected-freeze'
 import {
   reconcileRowHeightWindow,
   reconcileColumnWidthWindow,
@@ -63,6 +67,14 @@ export function applyProjectionSizes(
   }
   if (sameSparseSizes(currentSheet, nextSheet) && sameSparseSizes(currentColumns, nextColumns))
     return
+  const metrics = get(viewportMetricsAtom)
+  const selection = get(selectionSnapshotAtom)
+  const sizes = get(viewportGeometrySizesAtom)
+  const freeze = get(projectedFreezeAtom)
+  const navigation = { coord: selection.activeCell, range: selection.range }
+  const before = getViewportScrollForCell(metrics, navigation,
+    sizes.rowHeightsBySheet[result.sheetId], sizes.colWidthsBySheet[result.sheetId],
+    freeze?.sheetId === result.sheetId ? freeze : undefined)
   set(viewportSizeOverridesAtom, {
     ...current,
     rowHeightsBySheet: {
@@ -71,6 +83,11 @@ export function applyProjectionSizes(
     },
     colWidthsBySheet: { ...current.colWidthsBySheet, [result.sheetId]: nextColumns },
   })
+  // 首次投影才获知行高时，不让原本完整可见的目标被挤出边缘。
+  // 用户已滚离选区则绝不追踪；无需保留“待定位”状态或再发刷新命令。
+  if (metrics.sheetId === result.sheetId && selection.selection.sheetId === result.sheetId &&
+    before.scrollTop === metrics.scrollTop && before.scrollLeft === metrics.scrollLeft)
+    set(scrollToCellAtom, navigation)
 }
 
 function sameSparseSizes(

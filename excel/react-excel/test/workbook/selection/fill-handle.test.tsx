@@ -12,7 +12,10 @@ import { FillHandle } from '../../../src/workbook/grid/fill/FillHandle'
 afterEach(() => vi.unstubAllGlobals())
 type Input = RustWorkbookCommands['range.fill']['payload']
 async function setup() {
-  vi.stubGlobal('PointerEvent', MouseEvent)
+  vi.stubGlobal('PointerEvent', class extends MouseEvent {
+    readonly pointerId = 1
+    readonly isPrimary = true
+  })
   const fill = vi.fn(async (p: Input) => ({
     acknowledgement: { sheetId: 's', requestId: p.request.requestId, revision: 1 },
     projection: { ...p.projection, cells: [], revision: 1 },
@@ -51,11 +54,24 @@ async function setup() {
     type: 'pointerDown' | 'pointerMove' | 'pointerUp' | 'pointerCancel', copy = false,
   ) => {
     await act(async () => {
-      fireEvent[type](button, { button: 0, clientX: 100, clientY: 150, ctrlKey: copy })
+      fireEvent[type](button, { button: 0, clientX: 100,
+        clientY: type === 'pointerDown' ? 80 : 150, ctrlKey: copy })
     })
   }
   return { store, fill, button, focus, event }
 }
+
+test('pressing without moving does not schedule edge autoscroll or write data', async () => {
+  const { button, fill, event, store } = await setup()
+  const frame = vi.fn(() => 1)
+  vi.stubGlobal('requestAnimationFrame', frame)
+  await event('pointerDown')
+  expect(frame).not.toHaveBeenCalled()
+  expect(store.getter(fillHandleDragAtom)?.direction).toBeNull()
+  await event('pointerUp')
+  expect(fill).not.toHaveBeenCalled()
+  expect(button.releasePointerCapture).toHaveBeenCalled()
+})
 
 test('pointer capture drives preview, live modifier and one native command', async () => {
   const { store, fill, button, focus, event } = await setup()

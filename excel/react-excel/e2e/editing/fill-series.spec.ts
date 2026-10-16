@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { unmergeSalesFillRange } from '../support/fill-range'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const dialog = (page: Page) => page.getByRole('dialog', { name: 'Fill series', exact: true })
@@ -122,7 +123,7 @@ test('invalid geometry and count never allocate native history', async ({ page }
 })
 
 test('a thousand-row sequence reaches the final native record and one undo restores targets', async ({ page }) => {
-  await page.getByRole('tab', { name: 'Sales Orders', exact: true }).click()
+  await unmergeSalesFillRange(page)
   await write(page, 'A2', '1')
   await write(page, 'A3', '3')
   await open(page, 'A2:A1001')

@@ -16,9 +16,11 @@ async function begin(page: Page, address: string) {
   await page.mouse.down()
 }
 async function move(page: Page, coord: string) {
+  // nearest 定位把源范围放在边缘；先露出目的格，不能向缓存的屏外坐标拖拽。
+  await cell(page, coord).scrollIntoViewIfNeeded()
   const box = await cell(page, coord).boundingBox()
   expect(box).not.toBeNull()
-  await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2, { steps: 5 })
+  await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2)
   await expect(page.getByTestId('fill-preview')).toBeVisible()
 }
 async function finish(page: Page, range: string) {
@@ -107,8 +109,7 @@ for (const modifier of ['Control', 'Meta']) {
 
 test('upwards drag extends numbers before the source', async ({ page }) => {
   await select(page, 'A40:A41')
-  const scroll = page.getByTestId('sheet-scroll')
-  await scroll.evaluate((el) => { el.scrollTop -= 200 })
+  // nearest 使源范围在底部，上方目的格已经可见；不沿用旧顶对齐的固定滚动量。
   await expect(cell(page, '37:0')).toBeInViewport()
   await handle(page).hover()
   await page.mouse.down()

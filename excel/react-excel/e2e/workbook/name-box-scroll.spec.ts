@@ -42,14 +42,15 @@ for (const width of [1280, 390]) {
     ))
     await select(page, 'B8', '7:1')
     expect(await offsets()).toEqual({ top: 0, left: 0 })
-    await select(page, 'B100', '99:1')
+    // B100 已位于压力合并 B99:D101，普通单格定位使用未合并的 B300。
+    await select(page, 'B300', '299:1')
     const below = await offsets()
     expect(below.top).toBeGreaterThan(0)
-    const rect = await page.locator('[data-cell="99:1"]').boundingBox()
+    const rect = await page.locator('[data-cell="299:1"]').boundingBox()
     const viewport = (await scroll.boundingBox())!
     expect(rect!.y + rect!.height).toBeLessThanOrEqual(viewport.y + viewport.height + 1)
     expect(rect!.y).toBeGreaterThan(viewport.y + 28)
-    await select(page, 'B99', '98:1')
+    await select(page, 'B299', '298:1')
     expect(await offsets()).toEqual(below)
     await select(page, 'B2', '1:1')
     expect((await offsets()).top).toBeLessThan(below.top)

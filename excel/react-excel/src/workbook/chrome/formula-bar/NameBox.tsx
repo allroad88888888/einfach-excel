@@ -55,8 +55,9 @@ export function NameBox() {
     const viewportHeight = getWorkbookGridViewportHeight(scroll?.clientHeight ?? 0)
     const viewportWidth = getWorkbookGridViewportWidth(scroll?.clientWidth ?? 0)
     scrollToCell({
-      // 已可见时只改选区；离屏时只滚动到刚好可见。
+      // 放得下时让范围末端的填充柄也可见；已经可见则不多滚。
       coord, rowAlign: 'nearest', colAlign: 'nearest',
+      range: target.kind === 'range' || target.kind === 'named-range' ? target.range : undefined,
       viewport: viewportHeight > 0 && viewportWidth > 0
         ? { viewportHeight, viewportWidth } : undefined,
     })

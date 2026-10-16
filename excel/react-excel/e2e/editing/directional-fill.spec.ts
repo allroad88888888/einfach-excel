@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { unmergeSalesFillRange } from '../support/fill-range'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const menu = (page: Page) => page.getByRole('combobox', { name: 'Fill selected range' })
@@ -154,7 +155,7 @@ test('fill leaves the existing copy snapshot untouched', async ({ page, context 
 })
 
 test('fills all 1,000 sales records through Rust and restores them in one undo', async ({ page }) => {
-  await page.getByRole('tab', { name: 'Sales Orders', exact: true }).click()
+  await unmergeSalesFillRange(page)
   await select(page, 'A2:A1001')
   await fill(page, 'down')
   await select(page, 'A1001')

@@ -34,6 +34,8 @@ export interface ViewportScrollPosition {
 
 export interface ScrollToCellInput {
   coord: CellCoord
+  /** 范围放得下时整体可见；过大时仍定位 coord，不追逐屏外的末端。 */
+  range?: CellRange
   rowAlign?: ViewportCellAlign
   colAlign?: ViewportCellAlign
   /** 导航事件可携带即时 DOM 测量，避免等待 ResizeObserver 时使用旧面积。 */

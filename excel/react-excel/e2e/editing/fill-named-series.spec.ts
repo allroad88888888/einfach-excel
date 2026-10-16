@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { unmergeSalesFillRange } from '../support/fill-range'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const dialog = (page: Page) => page.getByRole('dialog', { name: 'Fill series', exact: true })
@@ -30,8 +31,9 @@ async function drag(page: Page, address: string, target: string, copy = false) {
   const handle = page.getByRole('button', { name: 'Drag to fill' })
   await handle.hover()
   await page.mouse.down()
+  await cell(page, target).scrollIntoViewIfNeeded()
   const box = await cell(page, target).boundingBox()
-  await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2, { steps: 5 })
+  await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2)
   if (copy) await page.keyboard.down('Control')
   await page.mouse.up()
   if (copy) await page.keyboard.up('Control')
@@ -160,7 +162,7 @@ test('hidden rows participate and named fill does not replace the clipboard snap
 })
 
 test('a thousand-row named series reaches the final record and undoes atomically', async ({ page }) => {
-  await page.getByRole('tab', { name: 'Sales Orders', exact: true }).click()
+  await unmergeSalesFillRange(page)
   await write(page, 'A2', 'Friday')
   await open(page, 'A2:A1001', 'weekday-name')
   await apply(page)

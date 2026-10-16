@@ -27,7 +27,7 @@ export function FillHandle({ scrollRef, focusGrid }: {
   const dragging = drag !== null
   const command = useSetAtom(dragFillHandleAtom)
   const button = useRef<HTMLButtonElement>(null)
-  const pointer = useRef<number | null>(null)
+  const pointer = useRef<{ id: number; x: number; y: number; moved: boolean } | null>(null)
   const freeze = projectedFreeze?.sheetId === metrics.sheetId ? projectedFreeze : null
   const enabled = ['cell', 'range'].includes(selection.selection.kind) && regions.length === 1 &&
     !editing.source && !feedback.busy && projection.status === 'ready' &&
@@ -58,9 +58,9 @@ export function FillHandle({ scrollRef, focusGrid }: {
   const stopAutoscroll = autoscroll.stop
   const stop = useCallback(() => {
     stopAutoscroll()
-    const id = pointer.current
+    const id = pointer.current?.id
     pointer.current = null
-    if (id !== null && button.current?.hasPointerCapture(id))
+    if (id !== undefined && button.current?.hasPointerCapture(id))
       button.current.releasePointerCapture(id)
   }, [stopAutoscroll])
   useEffect(() => {
@@ -93,7 +93,7 @@ export function FillHandle({ scrollRef, focusGrid }: {
   const preview = drag && fillHandleGeometry(drag.range, metrics, sizes, freeze)
   const finish = (event: PointerEvent<HTMLButtonElement>, cancel = false) => {
     event.stopPropagation()
-    if (pointer.current !== event.pointerId) return
+    if (pointer.current?.id !== event.pointerId) return
     if (!cancel && drag?.direction) update(event)
     stop()
     void command(cancel ? { type: 'cancel' } : { type: 'finish', copy: event.ctrlKey || event.metaKey })
@@ -117,17 +117,20 @@ export function FillHandle({ scrollRef, focusGrid }: {
         event.stopPropagation()
         if (!enabled || event.button !== 0 || event.isPrimary === false) return
         event.preventDefault()
-        pointer.current = event.pointerId
+        pointer.current = { id: event.pointerId, x: event.clientX, y: event.clientY, moved: false }
         event.currentTarget.setPointerCapture(event.pointerId)
         void command({ type: 'start', copy: event.ctrlKey || event.metaKey })
-        autoscroll.start(event)
       }}
       onPointerMove={(event) => {
         event.stopPropagation()
-        if (pointer.current !== event.pointerId) return
+        const point = pointer.current
+        if (point?.id !== event.pointerId) return
+        // 边缘按住不算拖动；否则填充柄刚被定位到底边就会自行滚动、填值。
+        if (!point.moved && Math.hypot(event.clientX - point.x, event.clientY - point.y) < 3) return
+        point.moved = true
         update(event)
         void command({ type: 'copy', copy: event.ctrlKey || event.metaKey })
-        autoscroll.track(event)
+        autoscroll.start(event)
       }}
       onPointerUp={(event) => finish(event)} onPointerCancel={(event) => finish(event, true)}
       onLostPointerCapture={() => {

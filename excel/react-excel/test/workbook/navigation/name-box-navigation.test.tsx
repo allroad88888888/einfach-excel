@@ -49,6 +49,25 @@ function renderWorkbook() {
 }
 
 describe('workbook name box navigation', () => {
+  it('reveals the bottom-right corner of a range using the measured viewport', async () => {
+    const { requests, store } = renderWorkbook()
+    await waitFor(() => expect(requests).toHaveLength(1))
+    Object.defineProperties(screen.getByTestId('sheet-scroll'), {
+      clientWidth: { value: 333 }, clientHeight: { value: 600 },
+    })
+    const nameBox = screen.getByRole('textbox', { name: 'Name box' })
+    fireEvent.focus(nameBox)
+    fireEvent.input(nameBox, { target: { value: 'C40:D41' } })
+    fireEvent.keyDown(nameBox, { key: 'Enter' })
+    expect(store.getter(viewportMetricsAtom)).toMatchObject({
+      scrollTop: 41 * WORKBOOK_GRID_ROW_HEIGHT - 572, scrollLeft: 193,
+    })
+    expect(store.getter(selectionSnapshotAtom).range)
+      .toEqual({ rowStart: 39, rowEnd: 40, colStart: 2, colEnd: 3 })
+    await waitFor(() => expect(requests.at(-1)?.window.rowEnd).toBeGreaterThanOrEqual(40))
+    expect(screen.getByLabelText('Sales Orders cells')).toHaveFocus()
+  })
+
   it('selects an already visible cell without scrolling or requesting a new projection', async () => {
     const { requests, store } = renderWorkbook()
     await waitFor(() => expect(requests).toHaveLength(1))

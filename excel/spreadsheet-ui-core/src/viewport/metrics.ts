@@ -115,10 +115,16 @@ export function getViewportScrollForCell(
   freeze?: { rows: number; cols: number; height: number; width: number },
 ): ViewportScrollPosition {
   const normalized = normalizeViewportMetrics(metrics, rowHeights, colWidths)
-  const row = clampViewportIndex(input.coord.row, normalized.rowCount)
-  const col = clampViewportIndex(input.coord.col, normalized.colCount)
   const frozenHeight = freeze?.height ?? 0
   const frozenWidth = freeze?.width ?? 0
+  const [row, rowEnd] = getNavigationSpan(input.coord.row,
+    input.range && [input.range.rowStart, input.range.rowEnd],
+    normalized.rowCount, normalized.rowHeight, rowHeights,
+    freeze?.rows ?? 0, normalized.viewportHeight - frozenHeight)
+  const [col, colEnd] = getNavigationSpan(input.coord.col,
+    input.range && [input.range.colStart, input.range.colEnd],
+    normalized.colCount, normalized.colWidth, colWidths,
+    freeze?.cols ?? 0, normalized.viewportWidth - frozenWidth)
   return {
     scrollTop:
       freeze && (row < freeze.rows || frozenHeight >= normalized.viewportHeight)
@@ -132,7 +138,7 @@ export function getViewportScrollForCell(
               frozenHeight,
             cellSize: getAxisSpanSize(
               row,
-              row,
+              rowEnd,
               normalized.rowCount,
               normalized.rowHeight,
               rowHeights,
@@ -157,7 +163,7 @@ export function getViewportScrollForCell(
               frozenWidth,
             cellSize: getAxisSpanSize(
               col,
-              col,
+              colEnd,
               normalized.colCount,
               normalized.colWidth,
               colWidths,
@@ -171,6 +177,23 @@ export function getViewportScrollForCell(
               ) - frozenWidth,
           }),
   }
+}
+
+/** 按轴判断能否容纳范围：只考虑非冻结部分，隐藏行列沿用零尺寸几何。 */
+function getNavigationSpan(
+  index: number, range: [number, number] | undefined,
+  count: number, size: number, overrides: Record<string, number> | undefined,
+  frozenCount: number, viewportSize: number,
+): [number, number] {
+  const cell = clampViewportIndex(index, count)
+  if (range) {
+    const start = Math.max(frozenCount, clampViewportIndex(range[0], count))
+    const end = clampViewportIndex(range[1], count)
+    // 太大的选区不能为显示填充柄而把活动格滚走；横纵轴各自回退。
+    if (start <= end && getAxisSpanSize(start, end, count, size, overrides) <= viewportSize)
+      return [start, end]
+  }
+  return [cell, cell]
 }
 
 export const viewportMetricsAtom = atom<ViewportMetrics>(DEFAULT_VIEWPORT_METRICS)

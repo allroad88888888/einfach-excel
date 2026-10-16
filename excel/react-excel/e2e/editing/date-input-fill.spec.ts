@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { unmergeSalesFillRange } from '../support/fill-range'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const dialog = (page: Page) => page.getByRole('dialog', { name: 'Fill series', exact: true })
@@ -29,8 +30,9 @@ async function drag(page: Page, address: string, target: string, copy = false) {
   await select(page, address)
   await page.getByRole('button', { name: 'Drag to fill' }).hover()
   await page.mouse.down()
+  await cell(page, target).scrollIntoViewIfNeeded()
   const box = await cell(page, target).boundingBox()
-  await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2, { steps: 5 })
+  await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2)
   if (copy) await page.keyboard.down('Control')
   await page.mouse.up()
   if (copy) await page.keyboard.up('Control')
@@ -162,7 +164,7 @@ test('auto-fit measures the native date display instead of a serial or JS leap-d
 })
 
 test('a thousand-row date series reaches offscreen data and undoes in one step', async ({ page }) => {
-  await page.getByRole('tab', { name: 'Sales Orders', exact: true }).click()
+  await unmergeSalesFillRange(page)
   await write(page, 'A2', '2024-01-01')
   await open(page, 'A2:A1001')
   await apply(page)

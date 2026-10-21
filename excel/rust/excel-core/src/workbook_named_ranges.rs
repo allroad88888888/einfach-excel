@@ -14,7 +14,12 @@ impl Workbook {
         if self.is_inside_custom_call() {
             return Err(WorkbookError::MutationDuringCustomCall);
         }
+        self.ensure_workbook_unprotected().map_err(|_| WorkbookError::ProtectedWorkbook)?;
         let key = self.validate_named_range_name(name)?;
+        if self.named_values.get(&key)
+            .is_some_and(|entry| matches!(entry.definition, NamedDefinition::CustomFormula(_))) {
+            return Err(WorkbookError::NameConflict);
+        }
         let definition = self.named_range_definition(sheet_index, range)?;
         self.named_values.insert(
             key,

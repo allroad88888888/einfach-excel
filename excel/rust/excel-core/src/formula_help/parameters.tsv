@@ -1,0 +1,190 @@
+# Parameter aliases, exact role in English, exact role in Chinese.
+number|number1|number2	Numeric value or numeric expression; range support depends on the function.	数字值或数字表达式；能否使用区域由函数决定。
+value|value_if_true|value_if_false|value_if_error|value_if_na|default|result	Value or expression returned or examined at this position; branch results are evaluated only when selected.	此位置需要检查或返回的值或表达式；分支结果仅在选中时计算。
+text|text1|text2	Text value; the function may coerce scalar values to text.	文本值；函数可能将标量值转换为文本。
+array|array1|array2|array_x|array_y|data_array|values	Input array or cell range containing the values to process.	包含待处理值的输入数组或单元格区域。
+range|reference	Cell, range or reference expression; supported reference forms depend on the function.	单元格、区域或引用表达式；支持的引用形式由函数决定。
+logical|logical_test	Logical value or condition expression; supported numeric values coerce to Boolean.	逻辑值或条件表达式；支持的数字值会转换为逻辑值。
+expression	Expression compared against each subsequent case value.	与后续各匹配值进行比较的表达式。
+case	Match value paired with the following result.	与紧随其后结果成对的匹配值。
+name	Bare identifier receiving the following binding value; each binding can reference earlier bindings.	接收后续绑定值的标识符；每次绑定可引用之前的绑定。
+parameter	Bare identifier declared as a LAMBDA parameter; zero or more parameters may precede the body.	声明为 LAMBDA 形参的标识符；函数体之前可有零个或多个形参。
+calculation	Final expression evaluated in the declared lexical scope.	在声明的词法作用域中计算的末尾表达式。
+lambda	LAMBDA value; parameter count must match the selected array operation.	LAMBDA 函数值，形参数须符合所选数组操作。
+initial_value	Initial scalar accumulator; this engine requires this argument for REDUCE and SCAN.	初始标量累积值；本引擎的 REDUCE 与 SCAN 必须提供此参数。
+num_digits|decimals	Decimal places; negative values round to positions left of the decimal point.	小数位数，负数表示舍入小数点左侧的位数。
+significance|multiple	Rounding multiple; allowed sign and zero behavior follow the selected rounding function.	舍入基数，其符号及零值规则由所选舍入函数决定。
+mode	Negative-number rounding mode; zero or omitted uses the function's default direction.	负数舍入模式，零或省略时使用函数默认方向。
+power	Exponent to which the first numeric value is raised.	第一个数字所取的幂指数。
+divisor|denominator	Number dividing the preceding numerator; zero produces a division error.	用于除前面被除数的数字，零会产生除零错误。
+numerator	Number to be divided by the denominator.	需要除以分母的被除数。
+base	Logarithm base; omitted means ten; it must be positive and not one.	对数底数，省略时为十，必须为正数且不为一。
+radix	Integer numeral base from two through thirty-six.	从二到三十六的整数进制。
+min_length	Minimum output character count; shorter results are padded with leading zeroes.	输出最少字符数，不足时补前导零。
+number_chosen	Nonnegative selection count, truncated to an integer.	非负选取数量，向零截断为整数。
+x|y|z|x_num|y_num	Numeric evaluation coordinate or observation used by the function.	函数使用的数字坐标或观测值。
+angle	Angle to convert, in degrees for RADIANS or radians for DEGREES.	待转换角度，RADIANS 输入角度，DEGREES 输入弧度。
+n	Starting power in the series expansion.	级数展开的初始幂指数。
+m	Increment between consecutive powers in the series expansion.	级数相邻项幂指数的增量。
+coefficients	Array or range of numeric coefficients, used in order.	按顺序使用的数字系数数组或区域。
+form	Roman numeral compactness form from zero through four; omitted means zero.	罗马数字简写程度，零到四，省略时为零。
+function_num	Aggregation code: SUBTOTAL supports 1–11/101–111; AGGREGATE supports 1–19.	汇总功能码：SUBTOTAL 支持 1–11/101–111，AGGREGATE 支持 1–19。
+options	AGGREGATE exclusion options from zero through seven for nested results, hidden rows and errors.	AGGREGATE 的排除选项 0–7，控制嵌套结果、隐藏行及错误。
+k	One-based rank or the selected AGGREGATE function's percentile/quartile parameter.	从一开始的排名，或所选 AGGREGATE 功能的百分位/四分位参数。
+criteria	Condition value, comparison text or criteria table; wildcard conditions use *, ? and ~ escaping.	条件值、比较文本或条件表；通配条件使用 *、? 及 ~ 转义。
+criteria_range	Range or array tested against the immediately following criterion; repeated pairs must have compatible shapes.	用于检查紧随其后条件的区域或数组；重复成对区域须形状兼容。
+sum_range	Numeric range or array whose corresponding matching values are summed.	对对应匹配项求和的数字区域或数组。
+average_range	Numeric range or array whose corresponding matching values are averaged.	对对应匹配项求平均的数字区域或数组。
+max_range	Numeric range or array from which the largest matching value is selected.	从中选取最大匹配值的数字区域或数组。
+min_range	Numeric range or array from which the smallest matching value is selected.	从中选取最小匹配值的数字区域或数组。
+lookup_value	Value to find in the search vector or table.	需要在搜索向量或表中查找的值。
+table_array	Two-dimensional search table; VLOOKUP searches its first column and HLOOKUP its first row.	二维查找表，VLOOKUP 搜索首列，HLOOKUP 搜索首行。
+col_index_num	One-based result column index within the search table.	查找表内从一开始的结果列号。
+row_index_num	One-based result row index within the search table.	查找表内从一开始的结果行号。
+range_lookup	TRUE or omitted uses approximate matching on sorted data; FALSE selects exact matching.	TRUE 或省略时在排序数据上近似匹配，FALSE 表示精确匹配。
+lookup_array|lookup_vector	One-dimensional search range or array; ordering requirements depend on the match/search mode.	一维搜索区域或数组，排序要求取决于匹配及搜索模式。
+return_array|result_vector	Values corresponding to the lookup range, with compatible dimensions.	与查找区域对应且维度兼容的返回值。
+match_type	MATCH mode: 0 exact, 1 ascending approximate (default), -1 descending approximate.	MATCH 模式：0 精确、1 升序近似（默认）、-1 降序近似。
+match_mode	Mode code; XLOOKUP/XMATCH use 0 exact, -1 next smaller, 1 next larger, 2 wildcard; text splitting uses 0 sensitive or 1 insensitive.	模式代码；查找函数为 0 精确、-1 次小、1 次大、2 通配；文本拆分为 0 区分或 1 忽略大小写。
+search_mode	Search direction: 1 forward, -1 reverse, 2 binary ascending, -2 binary descending.	搜索方向：1 正向、-1 反向、2 升序二分、-2 降序二分。
+if_not_found|if_empty	Fallback result when no match or no included row/column exists.	没有匹配或没有被包含的行列时返回的备用结果。
+row_num|column_num	Row or column index; normally one-based, with negative-from-end indices in CHOOSEROWS/CHOOSECOLS.	行或列索引，通常从一开始，CHOOSEROWS/CHOOSECOLS 可用负数从末尾计数。
+rows|cols|columns	Requested row or column count; TAKE/DROP allow negative counts from the end.	指定行数或列数；TAKE/DROP 的负数表示从末尾计数。
+height|width	Requested positive height or width, in cells for references and pixels for IMAGE sizing three.	指定正数高度或宽度，引用以单元格计，IMAGE 模式 3 以像素计。
+index_num	One-based index choosing one of the following value arguments.	从一开始的索引，用于选择后续值参数。
+abs_num	Address mode: 1 absolute, 2 absolute row, 3 absolute column, 4 relative; omitted means one.	地址模式：1 全绝对、2 行绝对、3 列绝对、4 相对；省略时为一。
+a1	TRUE or omitted selects A1 notation; FALSE selects R1C1 notation.	TRUE 或省略为 A1 引用格式，FALSE 为 R1C1 格式。
+sheet_text	Optional sheet name to qualify the generated address.	用于限定生成地址的可选工作表名称。
+ref_text	Reference text in the selected A1 or R1C1 notation.	按所选 A1 或 R1C1 格式编写的引用文本。
+error_val	Error value whose engine error classification code is requested.	需要获取引擎分类代码的错误值。
+info_type	CELL metadata key such as address, row, col, contents, type, width or format.	CELL 元数据键，例如 address、row、col、contents、type、width、format。
+type_text	Supported INFO runtime-information key.	受支持的 INFO 运行信息键。
+database	Table including a header row followed by records.	首行为字段标题、后续行为记录的表。
+field	One-based column index or field header name to aggregate.	需要汇总的字段，使用从一开始的列号或标题名称。
+find_text	Literal text to locate within the following text.	需要在后续文本中定位的字面文本。
+within_text	Text in which the search is performed.	执行搜索的文本。
+start_num	One-based starting character position; omitted search position defaults to one.	从一开始的字符起始位置，查找时省略默认为一。
+num_chars	Nonnegative character count; LEFT/RIGHT default to one when omitted.	非负字符数量，LEFT/RIGHT 省略时默认为一。
+old_text	Original text, or the substring being replaced in SUBSTITUTE.	原始文本，或 SUBSTITUTE 中待替换的子文本。
+new_text|replacement	Replacement text inserted into the result.	用于插入结果的替换文本。
+instance_num	Occurrence number; text-before/after allow negative counts from the end; SUBSTITUTE accepts positive occurrences.	匹配次数；TEXTBEFORE/AFTER 可用负数从尾计数，SUBSTITUTE 仅接受正数。
+number_times	Nonnegative repetition count, truncated toward zero.	非负重复次数，向零截断。
+format_text	Engine-supported spreadsheet number-format string.	引擎支持的电子表格数字格式字符串。
+delimiter|col_delimiter|row_delimiter	Separator text or supported separator array; column delimiter is required for TEXTSPLIT.	分隔文本或受支持的分隔符数组；TEXTSPLIT 的列分隔符必填。
+ignore_empty	TRUE skips empty values or empty split fields; FALSE retains them.	TRUE 跳过空值或空拆分项，FALSE 保留。
+no_commas	TRUE omits grouping separators; FALSE or omitted includes them.	TRUE 省略分组分隔符，FALSE 或省略时保留。
+from_characters	Characters to replace, indexed by position.	按位置索引的待替换字符表。
+to_characters	Replacement characters by corresponding position; missing positions remove characters.	按对应位置替换的字符表，缺少的位置会删除字符。
+match_end	Zero or omitted requires a delimiter; one also treats the text boundary as a delimiter.	零或省略时必须有分隔符，一表示同时将文本边界视为分隔符。
+decimal_separator	Decimal separator character; omitted means dot.	小数分隔字符，省略时为点。
+group_separator	Grouping separator character; omitted means comma.	分组分隔字符，省略时为逗号。
+format	Text rendering format: zero or omitted concise, one strict.	文本呈现格式：零或省略为简洁格式，一为严格格式。
+pattern	Regular expression in the engine's supported Rust regex syntax.	使用引擎所支持 Rust 语法的正则表达式。
+case_insensitive	Zero or omitted is case-sensitive; any nonzero numeric value ignores case.	零或省略时区分大小写，任意非零数值表示忽略大小写。
+return_mode	REGEXEXTRACT mode: 0 first match, 1 all matches vertically, 2 first-match capture groups horizontally.	正则提取模式：0 首个匹配、1 全部匹配纵向返回、2 首个匹配的捕获组横向返回。
+occurrence	REGEXREPLACE occurrence: 0 all, positive counts from start, negative counts from end.	正则替换次数：0 全部，正数从头计数，负数从尾计数。
+start_byte	One-based position in DBCS units (not UTF-8 bytes).	从一开始的双字节单位位置，不是 UTF-8 字节位置。
+num_bytes	Nonnegative count in DBCS units (not UTF-8 bytes).	非负双字节单位数量，不是 UTF-8 字节数量。
+link_location|source	Source URL or location text; IMAGE requires nonempty source.	来源 URL 或位置文本，IMAGE 的来源不得为空。
+friendly_name	Display text returned instead of the link location.	替代链接位置返回的显示文本。
+alt_text	Optional image alternative text stored in the returned metadata.	存入返回元数据中的可选图片替代文本。
+sizing	IMAGE sizing code: 0 original, 1 stretch, 2 preserve aspect, 3 custom height and width.	图片尺寸代码：0 原尺寸、1 拉伸、2 保持比例、3 自定义高宽。
+start	First numeric value of the generated sequence; omitted means one.	生成序列的首个数值，省略时为一。
+step	Increment between sequence values; omitted means one.	序列相邻值的增量，省略时为一。
+min|max	Inclusive lower or upper bound for generated random values.	生成随机数的下界或上界。
+whole_number	TRUE generates integers; FALSE or omitted generates decimal values.	TRUE 生成整数，FALSE 或省略时生成小数。
+by_col	TRUE processes columns; FALSE or omitted processes rows.	TRUE 按列处理，FALSE 或省略时按行处理。
+exactly_once	TRUE retains only entries occurring once; FALSE or omitted deduplicates all entries.	TRUE 仅保留出现一次的项，FALSE 或省略时对全部项去重。
+sort_index	One-based sort key column (or row when by_col is TRUE); omitted means one.	从一开始的排序键列号，by_col 为 TRUE 时为行号；省略时为一。
+sort_order|order	Zero/omitted order means descending for RANK; SORT/SORTBY use 1 ascending and -1 descending.	RANK 顺序为零或省略时降序；SORT/SORTBY 使用 1 升序、-1 降序。
+by_array	Row-aligned key array for the following optional sort order.	与数据行对应的排序键数组，之后可指定排序方向。
+include	Boolean row or column vector with dimensions matching the input array.	维度与输入数组匹配的逻辑行向量或列向量。
+pad_with	Value used for newly added cells; omitted means #N/A.	填充新增单元格的值，省略时为 #N/A。
+ignore	Flattening exclusion code: 0 none, 1 blanks, 2 errors, 3 blanks and errors.	展平时的排除代码：0 不排除、1 空白、2 错误、3 空白与错误。
+scan_by_column	TRUE scans column-first; FALSE or omitted scans row-first.	TRUE 优先按列扫描，FALSE 或省略时优先按行扫描。
+vector	Single-row or single-column array or range to wrap.	需要换行或换列的单行或单列数组或区域。
+wrap_count	Positive number of items per output row or column.	每个输出行或列包含的正数项数。
+dimension	Positive integer size of the square identity matrix.	方形单位矩阵的正整数阶数。
+year|month|day	Calendar component passed to DATE; out-of-range months/days roll into adjacent dates.	传入 DATE 的日历部分，超范围的月日按日历顺延。
+serial_number	Date/time serial, with the integer part representing days and fractional part time of day.	日期时间序列值，整数部分表示天，小数部分表示一天内时间。
+hour|minute|second	Nonnegative time component; TIME wraps a total of 24 hours into a day.	非负时间部分，TIME 将总量按 24 小时循环。
+return_type	Week numbering convention; omitted uses Sunday-first numbering; available codes depend on WEEKDAY/WEEKNUM.	星期或周数编号规则，省略时使用周日为首日；可用代码由 WEEKDAY/WEEKNUM 决定。
+start_date|end_date	Date serial used as the inclusive start/end or date-difference boundary.	作为包含端点的起止日期或日期差边界的日期序列值。
+months	Signed month offset, truncated toward zero.	有符号月偏移量，向零截断。
+days	Signed workday offset; positive moves forward and negative backward.	有符号工作日偏移，正数向前、负数向后。
+unit	DATEDIF unit text: Y, M, D, YM, MD or YD.	日期差单位文本：Y、M、D、YM、MD 或 YD。
+date_text	Date text in YYYY-MM-DD or YYYY/MM/DD form.	YYYY-MM-DD 或 YYYY/MM/DD 形式的日期文本。
+time_text	Time text in HH:MM or HH:MM:SS form.	HH:MM 或 HH:MM:SS 形式的时间文本。
+basis	Day-count basis: 0 US 30/360 (default), 1 actual/actual, 2 actual/360, 3 actual/365, 4 European 30/360.	日计数基准：0 美式 30/360（默认）、1 实际/实际、2 实际/360、3 实际/365、4 欧式 30/360。
+holidays	Array or range of date serials to exclude from working days.	从工作日中排除的节假日日期序列值数组或区域。
+weekend	Weekend code (1–7 or 11–17), or seven-character Monday-to-Sunday mask; 1 marks nonworking days.	周末代码（1–7 或 11–17），或从周一到周日的七字符掩码，1 表示休息日。
+method	FALSE or omitted uses US 30/360; TRUE uses European 30/360.	FALSE 或省略使用美式 30/360，TRUE 使用欧式 30/360。
+quart	Quartile index: inclusive supports 0–4, exclusive supports 1–3.	四分位索引：包含端点支持 0–4，不含端点支持 1–3。
+known_y	Observed response values for regression; exponential models require positive values.	回归观测响应值，指数模型要求值为正数。
+known_x	Observed predictor values aligned with known_y; omission in array regression uses sequential indices.	与 known_y 对应的预测变量观测值；数组回归中省略时使用顺序索引。
+new_x	Predictor values at which to estimate results; omitted uses the original predictors.	需要预测结果的自变量值，省略时使用原自变量。
+const	TRUE or omitted fits an intercept; FALSE fixes the linear intercept at zero (exponential factor at one).	TRUE 或省略时拟合截距，FALSE 将线性截距固定为零（指数因子为一）。
+stats	TRUE returns regression statistics; FALSE or omitted returns coefficients only.	TRUE 返回回归统计量，FALSE 或省略时仅返回系数。
+percent	Fraction of observations to trim symmetrically, from zero inclusive to one exclusive.	对称裁剪的观测值比例，大于等于零且小于一。
+mean	Distribution mean; lognormal functions use the mean of the logarithm.	分布均值，对数正态函数使用对数均值。
+standard_dev|sigma	Positive standard deviation; lognormal functions use deviation of the logarithm.	正数标准差，对数正态函数使用对数标准差。
+bins_array	Numeric upper bin boundaries; FREQUENCY adds one overflow bin.	数字分组上界，FREQUENCY 会额外增加超上界分组。
+x_range	Possible numeric outcomes corresponding to the probability vector.	与概率向量对应的可能数字结果。
+prob_range	Probabilities corresponding to x_range, each greater than zero and at most one, summing to one.	与 x_range 对应的概率，每项大于零且不超过一，总和为一。
+lower_limit|upper_limit|lower_bound|upper_bound	Lower or upper integration, probability or distribution-domain boundary.	积分、概率区间或分布定义域的下界或上界。
+bottom|top	Inclusive lower or upper integer random-number bound.	包含端点的随机整数下界或上界。
+probability|probability_s	Probability value between zero and one; inverse functions may require strict interior bounds.	零到一之间的概率值，逆函数可能要求严格介于两者之间。
+cumulative	TRUE selects cumulative probability; FALSE selects density or probability mass.	TRUE 选择累积概率，FALSE 选择密度或概率质量。
+deg_freedom|deg_freedom1|deg_freedom2	Positive distribution degrees of freedom, truncated where required by the evaluator.	正数分布自由度，求值器要求时会截断为整数。
+alpha|beta	Positive distribution shape/scale, or significance/probability level as specified by the function.	正数分布形状或尺度，或由函数指定的显著性或概率水平。
+tails	Number of tails in the test, exactly one or two.	检验尾数，必须为一或二。
+trials	Nonnegative integer count of independent binomial trials.	二项分布独立试验的非负整数次数。
+number_s|number_s2	Success count or inclusive success-count bound.	成功次数或包含端点的成功次数边界。
+sample_s	Number of successes in the sample.	样本中的成功次数。
+number_sample	Total sample draw count.	样本总抽取数量。
+population_s	Total successes in the population.	总体中的成功数量。
+number_population	Total population size.	总体总数量。
+number_f	Number of failures before the required success count.	达到指定成功次数之前的失败次数。
+size	Sample size, requiring a positive integer (greater than one for t confidence).	样本量，须为正整数，t 置信区间要求大于一。
+actual_range|expected_range	Observed or expected frequency table; tables must have matching shape.	观测或期望频数表，两者形状必须匹配。
+rate	Interest rate per period, or annual coupon rate in security functions; keep units consistent with periods.	每期利率或证券函数中的年票息率，须与期间单位一致。
+nper	Total number of payment or growth periods.	付款或增长的总期数。
+pv	Present value; cash received and paid use opposite signs.	现值，流入与流出现金使用相反符号。
+fv	Future value; omitted annuity future value defaults to zero.	终值，年金终值省略时默认为零。
+pmt	Payment amount per period; use opposite signs for received and paid cash flows.	每期付款额，现金流入与流出使用相反符号。
+type	Payment timing: zero or omitted is period end, one is period beginning.	付款时点，零或省略为期末，一为期初。
+guess	Initial rate estimate for the iterative solver; omitted means 0.1.	迭代求解的初始利率估计值，省略时为 0.1。
+per|period	Depreciation/payment period index; annuity indices start at one, ISPMT starts at zero.	折旧或付款期间索引，年金从一开始，ISPMT 从零开始。
+cost	Initial asset acquisition cost.	资产初始购置成本。
+salvage	Asset value remaining at the end of useful life.	资产使用寿命结束后的残值。
+life	Useful asset life measured in the same units as periods.	以与期间相同单位计量的资产使用寿命。
+factor	Declining-balance depreciation multiplier; omitted means two.	余额递减折旧乘数，省略时为二。
+start_period|end_period	Start/end period boundary; VDB permits fractional boundaries, cumulative payment functions use inclusive one-based periods.	起止期间边界，VDB 允许小数，累计付款函数使用包含端点且从一开始的期数。
+no_switch	TRUE prevents switching to straight-line depreciation; FALSE or omitted allows it.	TRUE 禁止切换直线折旧法，FALSE 或省略允许切换。
+nominal_rate|effect_rate	Positive nominal or effective annual interest rate.	正数名义年利率或实际年利率。
+npery	Positive number of compounding periods per year, truncated to an integer.	每年正数复利次数，截断为整数。
+issue|date_purchased	Security issue date or asset purchase date as a date serial.	证券发行日或资产购入日的日期序列值。
+first_interest|first_coupon	First interest or coupon date as a date serial.	首次付息日的日期序列值。
+settlement|maturity	Security settlement or maturity date as a date serial; settlement must precede maturity.	证券结算日或到期日的日期序列值，结算须早于到期。
+par|principal	Security face value or principal amount.	证券面值或本金金额。
+frequency	Coupon payments per year, exactly one, two or four.	每年付息次数，必须为一、二或四。
+calc_method	Numeric accrual method flag, accepted but ignored by this engine's simplified ACCRINT calculation.	数值应计方法标志，本引擎简化 ACCRINT 接受但不使用此值。
+pr	Security price per 100 face value.	每 100 面值的证券价格。
+redemption	Redemption amount, expressed per 100 face value for quoted securities.	兑付金额，报价证券以每 100 面值计量。
+investment	Amount invested in a security.	证券投资金额。
+discount	Annual security discount rate.	证券年贴现率。
+dates	Date array aligned with cash-flow values; XIRR/XNPV use 365-day discounting.	与现金流对应的日期数组，XIRR/XNPV 使用 365 天折现基准。
+finance_rate|reinvest_rate	Financing rate for negative cash flows or reinvestment rate for positive cash flows.	负现金流的融资利率或正现金流的再投资利率。
+yld	Annual security yield.	证券年收益率。
+coupon	Annual security coupon rate.	证券年票息率。
+fractional_dollar|decimal_dollar	Quoted fractional or decimal dollar amount to convert.	需要转换的分数或十进制美元报价。
+fraction	Positive integer denominator of a fractional-dollar quotation.	分数美元报价的正整数分母。
+first_period	First accounting period end date as a date serial.	首个会计期间结束日的日期序列值。
+last_interest	Last coupon date before settlement for an odd final period.	不规则末期中结算前的上一付息日。
+schedule	Array or range of periodic interest rates applied successively.	依次应用的每期利率数组或区域。
+places	Optional zero-padded output width from one through ten; negative results ignore padding.	可选补零输出位数，一到十，负数结果忽略补零。
+shift_amount	Signed integer bit count from -53 through 53; negative shifts reverse direction.	有符号整数位移量，-53 到 53，负数表示反向移动。
+real_num|i_num	Real or imaginary numeric component of a complex number.	复数的实部或虚部数字分量。
+suffix	Imaginary suffix text, exactly lowercase i or j; omitted means i.	虚部后缀文本，必须为小写 i 或 j，省略时为 i。
+inumber|inumber1|inumber2	Complex number as numeric scalar or text using i or j suffix.	复数，可为数字标量或使用 i、j 后缀的文本。
+from_unit|to_unit	Supported case-sensitive source or destination unit symbol.	受支持且区分大小写的来源或目标单位符号。

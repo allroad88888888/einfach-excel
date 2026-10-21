@@ -1,6 +1,8 @@
 import { atom } from '@einfach/core'
 import type { CellValueRule, FormulaRule, TopBottomRule, ColorScaleRule, DataBarRule, NativeConditionalFormatRule } from './types'
 import type { TextMatchRule, DuplicateValuesRule } from './types'
+import type { IconSetRule } from './advanced/types'
+import { copyAdvancedVisualRule } from './advanced/snapshot'
 import { editingSessionAtom } from '../editing/session-atoms'
 import { rangeToA1 } from '../name-box/address'
 import { conditionalFormatScopeToA1, parseConditionalFormatScope } from './scope'
@@ -42,7 +44,7 @@ type Action = 'open' | 'close' | 'new' | 'save'
   | { type: 'kind'; kind: NativeConditionalFormatRule['kind'] }
   | { type: 'edit'; id: string }
   | { type: 'remove' | 'duplicate' | 'enable' | 'disable' | 'move-up' | 'move-down'; id: string }
-  | { type: 'draft'; range?: string; rule?: Partial<Omit<CellValueRule, 'kind'> & Omit<FormulaRule, 'kind'> & Omit<TopBottomRule, 'kind'> & Omit<ColorScaleRule, 'kind'> & Omit<DataBarRule, 'kind'> & Omit<TextMatchRule, 'kind'> & Omit<DuplicateValuesRule, 'kind'>> }
+  | { type: 'draft'; range?: string; rule?: Partial<Omit<CellValueRule, 'kind'> & Omit<FormulaRule, 'kind'> & Omit<TopBottomRule, 'kind'> & Omit<ColorScaleRule, 'kind'> & Omit<DataBarRule, 'kind'> & Omit<TextMatchRule, 'kind'> & Omit<DuplicateValuesRule, 'kind'> & Omit<IconSetRule, 'kind'>> }
 
 /** 一个入口负责草稿与提交；规则判断不进入 TS，复用现有可见投影发布。 */
 export const runNativeConditionalFormatAtom = atom(null, async (
@@ -81,6 +83,8 @@ export const runNativeConditionalFormatAtom = atom(null, async (
     // 换种类从新草稿开始，不能把 operator/value 等旧字段混进公式或排名规则。
     const rule: NativeConditionalFormatRule = action.kind === 'color-scale'
       ? { ...enabled, kind: 'color-scale', minColor: '#f8696b', maxColor: '#63be7b' }
+      : action.kind === 'icon-set'
+        ? { ...enabled, kind: 'icon-set', iconSet: 'three-arrows' }
       : action.kind === 'data-bar'
         ? { ...enabled, kind: 'data-bar', minColor: '#f8696b', maxColor: '#638ec6' }
       : action.kind === 'text'
@@ -104,10 +108,10 @@ export const runNativeConditionalFormatAtom = atom(null, async (
   }
   if (typeof action === 'object' && action.type === 'edit') {
     const entry = config.rules.find((rule) => rule.id === action.id)
-    if (!entry || !['cell-value', 'formula', 'top-bottom', 'color-scale', 'data-bar', 'text', 'duplicate-values'].includes(entry.rule.kind))
+    if (!entry || !['cell-value', 'formula', 'top-bottom', 'color-scale', 'data-bar', 'text', 'duplicate-values', 'icon-set'].includes(entry.rule.kind))
       return fail('This rule type cannot be edited here yet.')
     set(nativeConditionalFormatPanelAtom, { ...state, error: '', ruleId: entry.id,
-      rule: 'format' in entry.rule ? { ...entry.rule, format: { ...entry.rule.format } } : { ...entry.rule }, priority: entry.priority,
+      rule: 'format' in entry.rule ? { ...entry.rule, format: { ...entry.rule.format } } : copyAdvancedVisualRule(entry.rule), priority: entry.priority,
       range: conditionalFormatScopeToA1(entry.scope), revision: config.revision,
     })
     return true
@@ -132,7 +136,7 @@ export const runNativeConditionalFormatAtom = atom(null, async (
       return fail('Enter ranges inside this worksheet, separated by commas, for example A1:A10, C1:C10.')
     let rule = state.rule
     if (rule.kind === 'color-scale' && rule.midColor === undefined) {
-      const { midColor: _unused, ...twoColors } = rule
+      const { midColor: _unused, midThreshold: _unusedThreshold, ...twoColors } = rule
       rule = twoColors
     }
     if (rule.kind === 'cell-value' && rule.operator !== 'between' && rule.operator !== 'not-between') {

@@ -92,7 +92,7 @@ fn inherited_validation_or_array_failure_restores_the_complete_transaction() {
             setup.set_cell_input(&mut book, 0, "B2", "=IF(ROW()=3,SEQUENCE(2),1)").unwrap();
         } else {
             book.sheet_mut(0).unwrap().set_data_validation(range("B2", "B3"), Some(DataValidationRule {
-                kind: DataValidationKind::WholeNumber { min: 1., max: 10. },
+                options: Default::default(), kind: DataValidationKind::WholeNumber { min: 1., max: 10. },
                 ignore_blank: false, operator: Default::default(),
             })).unwrap();
         }

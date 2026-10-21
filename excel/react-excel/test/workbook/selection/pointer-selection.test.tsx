@@ -34,6 +34,7 @@ function dispatchPointer(
   pointerId: number,
   row: number,
   col: number,
+  shiftKey = false,
 ): void {
   const event = new Event(type, { bubbles: true, cancelable: true })
   Object.defineProperties(event, {
@@ -42,11 +43,31 @@ function dispatchPointer(
     clientY: { value: row },
     isPrimary: { value: true },
     pointerId: { value: pointerId },
+    shiftKey: { value: shiftKey },
   })
   fireEvent(target, event)
 }
 
 describe('React pointer selection adapter', () => {
+  it('Shift click and drag preserve the original anchor, then a plain click starts over', () => {
+    const store = createStore()
+    store.setter(setSelectionBoundsAtom, { rowCount: 20, colCount: 10 })
+    render(<WorkbookStoreProvider store={store}><SelectionSurface /></WorkbookStoreProvider>)
+    const surface = screen.getByLabelText('selection surface')
+    dispatchPointer(surface, 'pointerdown', 1, 2, 1)
+    dispatchPointer(surface, 'pointerup', 1, 2, 1)
+    dispatchPointer(surface, 'pointerdown', 2, 5, 4, true)
+    expect(surface).toHaveTextContent('2:1-5:4')
+    dispatchPointer(surface, 'pointermove', 2, 6, 5, true)
+    expect(surface).toHaveTextContent('2:1-6:5')
+    dispatchPointer(surface, 'pointerup', 2, 6, 5, true)
+    dispatchPointer(surface, 'pointerdown', 3, 3, 2, true)
+    expect(surface).toHaveTextContent('2:1-3:2')
+    dispatchPointer(surface, 'pointerup', 3, 3, 2, true)
+    dispatchPointer(surface, 'pointerdown', 4, 4, 4)
+    expect(surface).toHaveTextContent('4:4-4:4')
+  })
+
   it('preserves click, drag, commit and cancel behavior', () => {
     const store = createStore()
     store.setter(setSelectionBoundsAtom, { rowCount: 20, colCount: 10 })

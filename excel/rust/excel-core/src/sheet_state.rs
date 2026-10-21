@@ -69,8 +69,13 @@ pub struct Sheet {
     pub(crate) cell_styles: HashMap<CellAddress, CellStyle>,
     /// 链接是单元格内容元数据，不属于 cellStyle，也不为每个链接新建 atom。
     pub(crate) hyperlinks: HashMap<CellAddress, String>,
+    /// 备注独立于单元格值；普通内容覆盖不会删除它。
+    pub(crate) notes: HashMap<CellAddress, String>,
+    pub(crate) comments: HashMap<CellAddress, crate::comments::NativeCommentThread>,
     /// 稀疏 rowStyle；行显示格式与行高共用这一份权威数据。
     pub(crate) row_styles: BTreeMap<u32, crate::cell_style::RowStyle>,
+    /// 仅供正在记录的原生历史区分显式轴尺寸与内容/字号派生行高；不是尺寸源或文件数据。
+    pub(super) explicit_dimension_generations: [u64; 2],
     /// 稀疏 columnStyle；列宽仍由 `SheetInterior::col_widths` 单独负责。
     pub(crate) column_styles: BTreeMap<u32, CellStyle>,
     /// 合并区域只记录不重叠的矩形；不为被覆盖的空格创建 atom 或样式副本。

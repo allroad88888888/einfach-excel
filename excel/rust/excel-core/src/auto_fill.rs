@@ -10,6 +10,7 @@ use unicode_normalization::char::canonical_combining_class;
 
 mod inference;
 mod apply;
+mod adjacent;
 
 const NUMBER_EPSILON: f64 = 1e-10;
 

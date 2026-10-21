@@ -47,7 +47,7 @@ fn formula_paste_sees_the_new_record_before_input_validation() {
     let (mut book, mut history) = seed();
     book.set_formula(0, "C3", "=IFERROR(ROWS(Orders[Amount]),0)");
     book.sheet_mut(0).unwrap().set_data_validation(range("C3", "C3"), Some(DataValidationRule {
-        kind: DataValidationKind::WholeNumber { min: 1., max: 1. },
+        options: Default::default(), kind: DataValidationKind::WholeNumber { min: 1., max: 1. },
         ignore_blank: false, operator: Default::default(),
     })).unwrap();
     // 值运算才校验公式结果；普通公式粘贴本来就不执行数据验证。
@@ -60,7 +60,7 @@ fn formula_paste_sees_the_new_record_before_input_validation() {
     assert!(book.get_table("Orders").unwrap().has_insert_row());
     assert_eq!(book.get_cell("Sheet1", "C3"), Value::Number(0.));
     book.sheet_mut(0).unwrap().set_data_validation(range("C3", "C3"), Some(DataValidationRule {
-        kind: DataValidationKind::WholeNumber { min: 2., max: 2. },
+        options: Default::default(), kind: DataValidationKind::WholeNumber { min: 2., max: 2. },
         ignore_blank: false, operator: Default::default(),
     })).unwrap();
     let before = book.snapshot_tables();
@@ -137,7 +137,7 @@ fn rejected_direct_formula_input_restores_the_empty_table() {
     use einfach_excel_core::data_validation::{DataValidationKind, DataValidationRule};
     let (mut book, _) = seed();
     book.sheet_mut(0).unwrap().set_data_validation(range("A3", "A3"), Some(DataValidationRule {
-        kind: DataValidationKind::WholeNumber { min: 2., max: 2. },
+        options: Default::default(), kind: DataValidationKind::WholeNumber { min: 2., max: 2. },
         ignore_blank: false, operator: Default::default(),
     })).unwrap();
     let before = book.snapshot_tables();

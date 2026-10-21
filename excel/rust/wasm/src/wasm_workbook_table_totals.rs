@@ -118,6 +118,10 @@ impl WasmWorkbook {
             .map(|addr| addr.to_string())
             .unwrap_or_else(|| addr.to_ascii_uppercase());
         serde_wasm_bindgen::to_value(&CellSnapshotJSON {
+            comment_indicator: CellAddress::parse(&addr).and_then(|addr|
+                self.workbook.sheet(sheet_idx_usize)?.comment(addr).map(|_| true)),
+            note_indicator: CellAddress::parse(&addr).and_then(|addr|
+                self.workbook.sheet(sheet_idx_usize)?.note(addr).map(|_| true)),
             hyperlink: CellAddress::parse(&addr).and_then(|addr|
                 self.workbook.sheet(sheet_idx_usize)?.hyperlink(addr).map(str::to_owned)),
             formatted_display: native_number_display(&self.workbook, sheet_idx_usize, &addr, &value),

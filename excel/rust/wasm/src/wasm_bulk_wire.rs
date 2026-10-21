@@ -156,6 +156,10 @@ struct CellSnapshotJSON {
     formula: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     hyperlink: Option<String>,
+    #[serde(rename = "noteIndicator", skip_serializing_if = "Option::is_none")]
+    note_indicator: Option<bool>,
+    #[serde(rename = "commentIndicator", skip_serializing_if = "Option::is_none")]
+    comment_indicator: Option<bool>,
 }
 
 /// 原生格式文本与原始数值分开返回；display 仍供统计与输入使用。
@@ -189,6 +193,14 @@ struct WorkbookPersistenceV1JSON {
     cells: Vec<SparseCellJSON>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     hyperlinks: Vec<HyperlinkJSON>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    notes: Vec<NoteJSON>,
+    #[serde(default)]
+    comments: Vec<CommentJSON>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    protection: Vec<SheetProtectionJSON>,
+    #[serde(default, rename = "customFormulas", skip_serializing_if = "Vec::is_empty")]
+    custom_formulas: Vec<einfach_excel_core::custom_formulas::CustomFormulaDefinition>,
     /// 合并矩形属于工作表几何，不混进单元格格式；旧快照缺省为空。
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     merges: Vec<SheetMergesJSON>,

@@ -409,6 +409,8 @@ pub enum FilterError {
     /// A custom-formula callback tried to mutate the workbook it is being
     /// evaluated inside. Mirrors `TableError::MutationDuringCustomCall`.
     MutationDuringCustomCall,
+    /// 保护规则是原生写入权限，允许编辑的格子也不能改筛选元数据。
+    ProtectedWorksheet,
     /// The predicate scan would exceed [`MAX_FILTER_PREDICATE_CELLS`].
     /// NOTHING is mutated: the filter does not activate, no rules are
     /// stored, and the previous visibility stands. Truncating instead

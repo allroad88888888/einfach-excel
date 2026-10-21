@@ -1,0 +1,48 @@
+.comment-panel {
+  box-sizing: border-box;
+  width: min(500px, calc(100vw - 24px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  padding: 20px;
+  border: 1px solid var(--border, #dce1e8);
+  border-radius: 10px;
+  color: var(--text, #252b37);
+  background: var(--surface, #fff);
+  font: 13px/1.5 Arial, sans-serif;
+  box-shadow: 0 12px 40px #0003;
+}
+.comment-panel::backdrop { background: #0004; }
+.comment-panel h2 { margin: 0 0 8px; font-size: 16px; }
+.comment-panel p { line-height: 1.45; }
+.comment-panel label { display: block; margin-bottom: 6px; font-weight: 600; }
+.comment-panel input, .comment-panel textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 9px;
+  border: 1px solid var(--border, #dce1e8);
+  border-radius: 5px;
+  color: inherit;
+  background: var(--surface, #fff);
+  font: inherit;
+  line-height: 1.5;
+}
+.comment-panel textarea { min-height: 100px; resize: vertical; }
+.comment-panel :focus-visible { outline: 2px solid var(--primary, #315cda); outline-offset: 2px; }
+.comment-hint { color: var(--muted-text, #596579); font-size: 12px; }
+.comment-count { display: block; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.comment-error { color: var(--danger, #b42318); overflow-wrap: anywhere; }
+.comment-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+.comment-actions button {
+  min-height: 32px; padding: 5px 10px; font: inherit; border: 1px solid var(--border, #dce1e8);
+  border-radius: 4px; background: var(--surface, #fff); color: inherit; cursor: pointer;
+}
+.comment-actions button:disabled { opacity: .5; cursor: default; }
+.comment-actions button[type="submit"] { color: #fff; background: var(--primary, #315cda); border-color: var(--primary, #315cda); }
+.comment-timeline { list-style: none; margin: 12px 0 18px; padding: 0; }
+.comment-entry { padding: 10px 0; border-bottom: 1px solid var(--border, #dce1e8); }
+.comment-byline { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.comment-byline strong { overflow-wrap: anywhere; }
+.comment-byline time { color: var(--muted-text, #596579); font-size: 12px; }
+.comment-entry p { margin: 6px 0 0; }
+.comment-body { white-space: pre-wrap; overflow-wrap: anywhere; }
+.comment-state { color: var(--muted-text, #596579); }

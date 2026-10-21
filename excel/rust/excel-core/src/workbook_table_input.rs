@@ -4,35 +4,100 @@ use crate::cell_input::{parse_formatted_input, CellInput};
 use crate::CellSnapshot;
 
 impl TableDefinitionChange {
+    /// 表头文字先随原 Table 原子安装，再验证真实依赖；拒绝时回放同一个变更。
+    pub(crate) fn apply_validated_header(
+        &self,
+        workbook: &mut Workbook,
+        addr: CellAddress,
+    ) -> Result<(), String> {
+        let observers: Vec<_> = workbook
+            .sheets
+            .iter_mut()
+            .map(Sheet::suspend_structure_notifications)
+            .collect();
+        let store = workbook.store.clone();
+        let mut result = Ok(());
+        store.batch(|_| {
+            result = self
+                .apply(workbook, false)
+                .map_err(str::to_string)
+                .and_then(|()| {
+                    workbook.settle_validation_candidate(self.sheet, self.range);
+                    let value = crate::sheet::collapse_array_for_eval(
+                        workbook.sheets[self.sheet].peek_value(addr),
+                    );
+                    if let Err(error) = workbook.validate_input_value(self.sheet, addr, &value) {
+                        self.apply(workbook, true)
+                            .expect("header rollback keeps the prepared table cells");
+                        workbook.settle_validation_candidate(self.sheet, self.range);
+                        return Err(error.into());
+                    }
+                    Ok(())
+                });
+        });
+        for (sheet, observer) in workbook.sheets.iter_mut().zip(observers) {
+            sheet.resume_structure_notifications(observer);
+        }
+        result
+    }
+
     /// 首次输入不扩坐标，只把原生待输入行变成数据行；定义与格子共用输入事务。
     pub(crate) fn prepare_insert_row_input(
-        workbook: &Workbook, sheet: usize, addr: CellAddress, input: &str, inherit_columns: bool,
+        workbook: &Workbook,
+        sheet: usize,
+        addr: CellAddress,
+        input: &str,
+        inherit_columns: bool,
     ) -> Result<Option<Self>, String> {
-        if input.is_empty() { return Ok(None); }
+        if input.is_empty() {
+            return Ok(None);
+        }
         let sheet_name = workbook.name(sheet).ok_or("INVALID_SHEET")?;
         let Some(before) = workbook.tables.values().find(|table| {
-            table.insert_row && table.sheet_name() == sheet_name && table.range.contains(addr)
+            table.insert_row
+                && table.sheet_name() == sheet_name
+                && table.range.contains(addr)
                 && addr.row == table.range.start.row + u32::from(table.has_headers)
-        }) else { return Ok(None); };
+        }) else {
+            return Ok(None);
+        };
+        workbook.ensure_workbook_unprotected()?;
         let mut after = before.clone();
         after.insert_row = false;
         if inherit_columns {
             let format = workbook.sheets[sheet].get_format(&addr.to_string());
-            if let CellInput::Formula(source) = parse_formatted_input(input, true, &format.number_format) {
+            if let CellInput::Formula(source) =
+                parse_formatted_input(input, true, &format.number_format)
+            {
                 let column = (addr.col - before.range.start.col) as usize;
                 after.calculated_columns.resize(after.columns.len(), None);
-                after.calculated_columns[column] = Some(crate::TableColumnFormula::new(addr.row, &source)?);
+                after.calculated_columns[column] =
+                    Some(crate::TableColumnFormula::new(addr.row, &source)?);
             }
         }
         let range = if inherit_columns && before.calculated_columns.iter().any(Option::is_some) {
-            CellRange::new(CellAddress::new(addr.row, before.range.start.col),
-                CellAddress::new(addr.row, before.range.end.col))
-        } else { CellRange::single(addr) };
+            CellRange::new(
+                CellAddress::new(addr.row, before.range.start.col),
+                CellAddress::new(addr.row, before.range.end.col),
+            )
+        } else {
+            CellRange::single(addr)
+        };
         validate_cells(workbook, sheet, range)?;
-        Ok(Some(Self { sheet, range, before: before.clone(), after: Some(after),
-            formulas: Vec::new(), rules: Vec::new(), lambdas: Vec::new(), cells: Vec::new(),
-            filter: None, named_ranges: Vec::new(), shifted_tables: Vec::new(),
-            validations: ValidationShift::default() }))
+        Ok(Some(Self {
+            sheet,
+            range,
+            before: before.clone(),
+            after: Some(after),
+            formulas: Vec::new(),
+            rules: Vec::new(),
+            lambdas: Vec::new(),
+            cells: Vec::new(),
+            filter: None,
+            named_ranges: Vec::new(),
+            shifted_tables: Vec::new(),
+            validations: ValidationShift::default(),
+        }))
     }
 
     pub(crate) fn prepare_input_expansion(
@@ -93,14 +158,18 @@ impl TableDefinitionChange {
             .ok_or("The table did not expand.")?;
         // 右侧输入将纳入新数据列；预先把标记纳入同一份前后像，不能让底层写入另改定义。
         if table.has_insert_row()
-            && addr.row == table.range().start.row + u32::from(table.has_headers()) {
+            && addr.row == table.range().start.row + u32::from(table.has_headers())
+        {
             let after = change.after.as_mut().unwrap();
             after.insert_row = false;
             let format = workbook.sheets[sheet].get_format(&addr.to_string());
-            if let CellInput::Formula(source) = parse_formatted_input(input, true, &format.number_format) {
+            if let CellInput::Formula(source) =
+                parse_formatted_input(input, true, &format.number_format)
+            {
                 after.calculated_columns.resize(after.columns.len(), None);
                 let column = (addr.col - after.range.start.col) as usize;
-                after.calculated_columns[column] = Some(crate::TableColumnFormula::new(addr.row, &source)?);
+                after.calculated_columns[column] =
+                    Some(crate::TableColumnFormula::new(addr.row, &source)?);
             }
         }
         if table.has_headers() && addr.row == table.range().start.row {
@@ -136,35 +205,59 @@ impl TableDefinitionChange {
         inherit_columns: bool,
     ) -> Result<(), String> {
         if self.before.has_headers && addr.row == self.before.range.start.row {
-            return self.apply(workbook, false).map_err(str::to_string);
+            return self.apply_validated_header(workbook, addr);
         }
         // 空表只有一条新记录，走原来的整行安装/校验，不另起一个新计算列事务。
-        let mut calculated = if inherit_columns && !self.before.insert_row && addr.col > self.before.range.end.col {
-            Self::prepare_calculated_column(workbook, self.sheet, addr, input,
-                self.after.as_ref().expect("input expands a table"))?
-        } else { None };
+        let mut calculated =
+            if inherit_columns && !self.before.insert_row && addr.col > self.before.range.end.col {
+                Self::prepare_calculated_column(
+                    workbook,
+                    self.sheet,
+                    addr,
+                    input,
+                    self.after.as_ref().expect("input expands a table"),
+                )?
+            } else {
+                None
+            };
         let inherited_row = inherit_columns
             && !(self.before.has_totals && addr.row == self.before.range.end.row)
             && (self.before.insert_row || addr.row > self.before.range.end.row)
             && self.before.calculated_columns.iter().any(Option::is_some);
-        // 输入公式可能依赖同一新行里稍后继承的计算列，必须等整行写完再验证。
-        let deferred_formula = if inherited_row {
-            match parse_formatted_input(input, true,
-                &workbook.sheets[self.sheet].get_format(&addr.to_string()).number_format) {
-                CellInput::Formula(source) => Some(source),
-                _ => None,
+        // 所有输入类型的 custom 约束都可能依赖稍后继承的计算列，整行完成后统一验证。
+        let (deferred_formula, mut deferred_literal) = if inherited_row {
+            match parse_formatted_input(
+                input,
+                true,
+                &workbook.sheets[self.sheet]
+                    .get_format(&addr.to_string())
+                    .number_format,
+            ) {
+                CellInput::Formula(source) => (Some(source), None),
+                other => (None, Some(other)),
             }
-        } else { None };
+        } else {
+            (None, None)
+        };
         let input_range = if inherited_row {
-            let first = if self.before.insert_row { self.before.range.start.row + u32::from(self.before.has_headers) }
-                else { addr.row };
-            CellRange::new(CellAddress::new(first, self.before.range.start.col),
-                CellAddress::new(addr.row, self.before.range.end.col.max(addr.col)))
-        } else if let Some(calculated) = &calculated { calculated.range
-        } else { CellRange::single(addr) };
+            let first = if self.before.insert_row {
+                self.before.range.start.row + u32::from(self.before.has_headers)
+            } else {
+                addr.row
+            };
+            CellRange::new(
+                CellAddress::new(first, self.before.range.start.col),
+                CellAddress::new(addr.row, self.before.range.end.col.max(addr.col)),
+            )
+        } else if let Some(calculated) = &calculated {
+            calculated.range
+        } else {
+            CellRange::single(addr)
+        };
         // 整列计划已有前后像，不能再复制一份同范围历史。
-        let before = calculated.is_none().then(||
-            HistorySnapshot::capture(&workbook.sheets[self.sheet], input_range, true));
+        let before = calculated
+            .is_none()
+            .then(|| HistorySnapshot::capture(&workbook.sheets[self.sheet], input_range, true));
         let mut roots = workbook.atom_context.table_dependent_atoms();
         roots.extend(workbook.sheets[self.sheet].store_root_atoms_for_addr(addr));
         let dependents = workbook.store.reverse_dependents(&roots);
@@ -190,14 +283,24 @@ impl TableDefinitionChange {
             } else if deferred_formula.is_some() {
                 // 显式公式与本行继承公式一起安装，不能先对着半行数据投影。
                 Ok(())
+            } else if let Some(parsed) = deferred_literal.take() {
+                workbook
+                    .install_parsed_input(self.sheet, addr, parsed)
+                    .map_err(str::to_string)
             } else {
-                workbook.set_cell_input(self.sheet, &addr.to_string(), input).map_err(str::to_string)
+                workbook
+                    .set_cell_input(self.sheet, &addr.to_string(), input)
+                    .map_err(str::to_string)
             };
             // Table 数据格不能成为 spill 锚点，失败必须还原输入与表定义。
             if result.is_ok()
                 && calculated.is_none()
-                && (workbook.sheets[self.sheet].spill_intersecting(CellRange::single(addr)).is_some()
-                    || workbook.sheets[self.sheet].blocked_anchor_shape(addr).is_some())
+                && (workbook.sheets[self.sheet]
+                    .spill_intersecting(CellRange::single(addr))
+                    .is_some()
+                    || workbook.sheets[self.sheet]
+                        .blocked_anchor_shape(addr)
+                        .is_some())
             {
                 result = Err("Spilled arrays cannot be entered inside a table.".into());
             }
@@ -207,48 +310,77 @@ impl TableDefinitionChange {
                 if let Some(source) = &deferred_formula {
                     formulas.push(CellSnapshot::formula(addr, source.clone()));
                 }
-                result = (input_range.start.row..=input_range.end.row).try_for_each(|row| {
-                    self.before.calculated_columns.iter().enumerate().try_for_each(|(offset, formula)| {
-                        let Some(formula) = formula else { return Ok(()); };
-                        let target = CellAddress::new(row, self.before.range.start.col + offset as u32);
-                        // 手工输入优先；扩进范围的已有数据同样保留，不把它当空格覆盖。
-                        if target == addr || workbook.sheets[self.sheet].formula_text_at(target).is_some()
-                            || workbook.sheets[self.sheet].peek_value(target) != Value::Null {
-                            return Ok(());
-                        }
-                        formulas.push(CellSnapshot::formula(target, formula.formula_at(row)?));
-                        changed.push(target);
-                        Ok(())
+                result = (input_range.start.row..=input_range.end.row)
+                    .try_for_each(|row| {
+                        self.before
+                            .calculated_columns
+                            .iter()
+                            .enumerate()
+                            .try_for_each(|(offset, formula)| {
+                                let Some(formula) = formula else {
+                                    return Ok(());
+                                };
+                                let target = CellAddress::new(
+                                    row,
+                                    self.before.range.start.col + offset as u32,
+                                );
+                                // 手工输入优先；扩进范围的已有数据同样保留，不把它当空格覆盖。
+                                if target == addr
+                                    || workbook.sheets[self.sheet]
+                                        .formula_text_at(target)
+                                        .is_some()
+                                    || workbook.sheets[self.sheet].peek_value(target) != Value::Null
+                                {
+                                    return Ok(());
+                                }
+                                formulas
+                                    .push(CellSnapshot::formula(target, formula.formula_at(row)?));
+                                changed.push(target);
+                                Ok(())
+                            })
                     })
-                }).map_err(str::to_string);
+                    .map_err(str::to_string);
                 if result.is_ok() {
-                    result = workbook.set_table_formulas(self.sheet, &formulas).map_err(str::to_string);
+                    result = workbook
+                        .set_table_formulas(self.sheet, &formulas)
+                        .map_err(str::to_string);
                 }
                 if result.is_ok() {
-                    result = changed.iter().try_for_each(|target| {
-                        let value = crate::sheet::collapse_array_for_eval(
-                            workbook.sheets[self.sheet].peek_value(*target));
-                        workbook.validate_input_value(self.sheet, *target, &value)
-                    }).map_err(str::to_string);
+                    workbook.settle_validation_candidate(self.sheet, input_range);
+                    result = changed
+                        .iter()
+                        .try_for_each(|target| {
+                            let value = crate::sheet::collapse_array_for_eval(
+                                workbook.sheets[self.sheet].peek_value(*target),
+                            );
+                            workbook.validate_input_value(self.sheet, *target, &value)
+                        })
+                        .map_err(str::to_string);
                 }
             }
             if result.is_err() {
                 if let Some(before) = &before {
-                    before.restore(workbook, self.sheet).expect("input keeps its worksheet");
+                    before
+                        .restore(workbook, self.sheet)
+                        .expect("input keeps its worksheet");
                 }
                 self.apply(workbook, true)
                     .expect("input rollback keeps the prepared table cells");
+                workbook.settle_validation_candidate(self.sheet, input_range);
             } else {
                 if let Some(calculated) = &mut calculated {
                     // 扩列的表头/几何与计算列共用同一条 Table 历史，不嵌套 push。
                     self.after = calculated.after.take();
                     self.cells.append(&mut calculated.cells);
                 } else if let Some(before) = before {
-                    let after = HistorySnapshot::capture(&workbook.sheets[self.sheet], before.range, true);
+                    let after =
+                        HistorySnapshot::capture(&workbook.sheets[self.sheet], before.range, true);
                     self.cells.push((before, after));
                 }
                 if self.retained_bytes() > crate::workbook_history::MAX_BYTES {
-                    self.apply(workbook, true).expect("expanded input rollback keeps its snapshots");
+                    self.apply(workbook, true)
+                        .expect("expanded input rollback keeps its snapshots");
+                    workbook.settle_validation_candidate(self.sheet, input_range);
                     result = Err("Expanding this table exceeds the 32 MiB undo budget.".into());
                 }
             }

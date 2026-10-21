@@ -61,6 +61,7 @@ impl TableDefinitionChange {
         name: &str,
         new_name: &str,
     ) -> Result<Option<Self>, TableError> {
+        workbook.ensure_workbook_unprotected().map_err(|_| TableError::ProtectedWorkbook)?;
         if workbook.is_inside_custom_call() {
             return Err(TableError::MutationDuringCustomCall);
         }
@@ -112,6 +113,7 @@ impl TableDefinitionChange {
     }
 
     pub(crate) fn apply(&self, workbook: &mut Workbook, undo: bool) -> Result<(), &'static str> {
+        workbook.ensure_workbook_unprotected()?;
         if workbook.is_inside_custom_call() {
             return Err("Cannot change a table during a custom call.");
         }

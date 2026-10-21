@@ -50,6 +50,7 @@ export interface DisplayCell {
   mergedSpan?: MergeSpan
   mergeAnchor?: CellCoord
   noteIndicator?: boolean
+  commentIndicator?: boolean
   commentThreadId?: string
   validation?: ValidationOutcome
   conditionalFormat?: SpreadsheetCellFormat
@@ -59,6 +60,12 @@ export interface DisplayCell {
     readonly width: number
     readonly axis?: number
     readonly color: string
+  }
+  /** 图标档位已由 Rust 求解，显示层不重新比较阈值。 */
+  conditionalIcon?: {
+    readonly set: 'three-arrows' | 'three-traffic-lights' | 'three-flags'
+    readonly index: 0 | 1 | 2
+    readonly showValue: boolean
   }
   richValue?: DisplayCellRichValue
   /** Locked indicator from a protected sheet; gating logic uses unlockedRanges on the UI side. */

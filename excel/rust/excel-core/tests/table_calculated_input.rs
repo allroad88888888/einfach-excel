@@ -86,7 +86,7 @@ fn validation_failure_on_later_row_rolls_back_without_publishing_or_losing_redo(
     let observed = hits.clone();
     book.sheet_mut(report).unwrap().subscribe_cell("A1", move || observed.set(observed.get() + 1));
     book.sheet_mut(0).unwrap().set_data_validation(range("B4", "B4"), Some(DataValidationRule {
-        kind: DataValidationKind::WholeNumber { min: 0., max: 50. },
+        options: Default::default(), kind: DataValidationKind::WholeNumber { min: 0., max: 50. },
         ignore_blank: true, operator: Default::default(),
     })).unwrap();
     history.set_cell_input(&mut book, 0, "D1", "7").unwrap();
@@ -173,7 +173,7 @@ fn failed_inherited_formula_rolls_back_input_and_geometry_without_losing_redo() 
     let (mut book, mut history) = seed();
     history.set_cell_input(&mut book, 0, "B2", "=A2*2").unwrap();
     book.sheet_mut(0).unwrap().set_data_validation(range("B5", "B5"), Some(DataValidationRule {
-        kind: DataValidationKind::WholeNumber { min: 0., max: 50. },
+        options: Default::default(), kind: DataValidationKind::WholeNumber { min: 0., max: 50. },
         ignore_blank: true, operator: Default::default(),
     })).unwrap();
     history.set_cell_input(&mut book, 0, "D1", "7").unwrap();
@@ -232,7 +232,7 @@ fn validation_checks_final_column_values_instead_of_partially_filled_dependencie
         let (mut book, mut history) = seed();
         book.set_cell(0, "B5", Value::Number(1.));
         book.sheet_mut(0).unwrap().set_data_validation(range("B2", "B2"), Some(DataValidationRule {
-            kind: DataValidationKind::WholeNumber { min: max, max },
+            options: Default::default(), kind: DataValidationKind::WholeNumber { min: max, max },
             ignore_blank: true, operator: Default::default(),
         })).unwrap();
         let result = history.set_cell_input(&mut book, 0, "B2", "=B3+1");

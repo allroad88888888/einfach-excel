@@ -34,6 +34,7 @@ impl Workbook {
         if self.is_inside_custom_call() {
             return Err(WorkbookError::MutationDuringCustomCall);
         }
+        self.ensure_workbook_unprotected().map_err(|_| WorkbookError::ProtectedWorkbook)?;
         let mut next = BTreeMap::new();
         for entry in entries {
             let key = self.validate_named_range_name(&entry.name)?;
@@ -41,7 +42,8 @@ impl Workbook {
                 || self
                     .named_values
                     .get(&key)
-                    .is_some_and(|entry| matches!(entry.definition, NamedDefinition::Value(_)))
+                    .is_some_and(|entry| matches!(entry.definition,
+                        NamedDefinition::Value(_) | NamedDefinition::CustomFormula(_)))
             {
                 return Err(WorkbookError::NameConflict);
             }
@@ -68,7 +70,8 @@ impl Workbook {
             .map(Sheet::suspend_structure_notifications)
             .collect();
         self.named_values
-            .retain(|_, entry| matches!(entry.definition, NamedDefinition::Value(_)));
+            .retain(|_, entry| matches!(entry.definition,
+                NamedDefinition::Value(_) | NamedDefinition::CustomFormula(_)));
         self.named_values.extend(next);
         self.sync_atom_names();
         for (sheet, observers) in self.sheets.iter_mut().zip(observers) {

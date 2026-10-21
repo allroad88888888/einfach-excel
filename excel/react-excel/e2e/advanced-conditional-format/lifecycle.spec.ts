@@ -1,0 +1,90 @@
+import { readFile } from 'node:fs/promises'
+import { expect, test } from '@playwright/test'
+import { start, open, save, threshold, icon, cell, button, cleanNeighbor, addIcons, go, dialog, input } from './support'
+
+for (const width of [1280, 390]) {
+  test(`native advanced icon seed displays without history at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 850 }); await page.goto('/?locale=en-US')
+    await expect(cell(page, '1:0')).toHaveText('SO-10001')
+    await page.getByRole('tab', { name: 'Summary', exact: true }).click(); await go(page, 'H75:H79')
+    for (const [offset, index] of ['0', '0', '1', '2', '2'].entries())
+      await expect(icon(page, `${74 + offset}:7`)).toHaveAttribute('data-icon-index', index)
+    await expect(button(page, 'Undo')).toBeDisabled()
+    await expect(cell(page, '74:7')).toContainText('0')
+    await expect(cell(page, '78:7')).toContainText('100')
+    await go(page, 'E75')
+    await expect(cell(page, '74:4').locator('[data-data-bar]')).toHaveCount(1)
+  })
+
+  test(`invalid threshold stays correctable and cancel restores focus at ${width}px`, async ({ page }) => {
+    await start(page, width); await open(page, 'color-scale')
+    await threshold(page, 'Maximum', 'percentile', '101')
+    await button(page, 'Add rule').click()
+    await expect(dialog(page).getByRole('alert')).toContainText('between 0 and 100')
+    await expect(dialog(page).getByRole('listitem')).toHaveCount(0)
+    await expect(page.getByLabel('Maximum threshold value', { exact: true })).toHaveValue('101')
+    await cleanNeighbor(page)
+    await page.getByLabel('Maximum threshold value', { exact: true }).press('Escape')
+    await expect(dialog(page)).toHaveCount(0)
+    await expect(button(page, 'Conditional formatting')).toBeFocused()
+    await open(page, 'color-scale'); await threshold(page, 'Maximum', 'percentile', '50'); await save(page)
+    await open(page); await expect(dialog(page).getByRole('listitem')).toHaveCount(1)
+  })
+
+  test(`icons combine with highlight until stop and priority exclude lower rules at ${width}px`, async ({ page }) => {
+    await start(page, width); await addIcons(page); await open(page)
+    await page.getByLabel('Value', { exact: true }).fill('5'); await save(page)
+    await expect(icon(page, '1:0')).toHaveCount(1)
+    await expect(cell(page, '1:0')).toHaveCSS('background-color', 'rgb(255, 199, 206)')
+    await open(page); await button(page, 'Edit rule 1').click()
+    await page.getByLabel('Stop if true', { exact: true }).check(); await save(page, true)
+    await expect(icon(page, '1:0')).toHaveCount(0); await expect(icon(page, '0:0')).toHaveCount(1)
+    await cleanNeighbor(page)
+    await open(page); await button(page, 'Move rule 1 down').click()
+    await expect(dialog(page)).toHaveCount(0); await expect(icon(page, '1:0')).toHaveCount(1)
+    await button(page, 'Undo').click(); await expect(icon(page, '1:0')).toHaveCount(0)
+    await button(page, 'Undo').click(); await expect(icon(page, '1:0')).toHaveCount(1)
+  })
+
+  test(`advanced rules survive workbook download and open without baked display metadata at ${width}px`, async ({ page }) => {
+    await start(page, width); await open(page, 'icon-set')
+    await threshold(page, 'Lower icon', 'percentile', '50')
+    await page.getByLabel('Show icon only', { exact: true }).check(); await save(page)
+    await button(page, 'File').click()
+    const downloading = page.waitForEvent('download'); await button(page, 'Download workbook').click()
+    const text = await readFile((await (await downloading).path())!, 'utf8')
+    const file = JSON.parse(text)
+    expect(file.workbook.conditionalFormats[0].rules[0].rule).toMatchObject({ kind: 'icon-set', showValue: false,
+      lowerThreshold: { type: 'percentile', value: '50' } })
+    expect(text).not.toContain('conditionalIcons'); expect(text).not.toContain('dataBars')
+    await button(page, 'Close').click(); await open(page)
+    await button(page, 'Delete rule 1').click(); await expect(icon(page, '1:0')).toHaveCount(0)
+    await button(page, 'File').click(); page.once('dialog', dialog => dialog.accept())
+    await page.getByLabel('Open workbook', { exact: true }).setInputFiles({ name: 'Advanced.einfach.json',
+      mimeType: 'application/json', buffer: Buffer.from(text) })
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+    await expect(icon(page, '1:0')).toHaveAttribute('data-icon-index', '1')
+    await expect(button(page, 'Undo')).toBeDisabled(); await cleanNeighbor(page)
+    await go(page, 'A2'); await expect(input(page)).toHaveValue('10')
+  })
+
+  test(`advanced editor fits and preserves data through English and Chinese at ${width}px`, async ({ page }, info) => {
+    const errors: string[] = []; page.on('pageerror', error => errors.push(error.message))
+    await start(page, width); await addIcons(page); await open(page)
+    await button(page, 'Edit rule 1').click()
+    expect(await dialog(page).evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true)
+    await page.screenshot({ path: info.outputPath(`advanced-en-${width}.png`), fullPage: true })
+    await page.keyboard.press('Escape')
+    await page.getByRole('combobox', { name: 'Interface language', exact: true }).selectOption('zh')
+    await button(page, '条件格式').click()
+    const localized = page.getByRole('dialog', { name: '条件格式', exact: true })
+    await expect(localized).toBeVisible()
+    await localized.getByRole('combobox', { name: '规则类型', exact: true }).selectOption('icon-set')
+    await expect(localized.getByLabel('图标样式', { exact: true })).toBeVisible()
+    expect(await localized.evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true)
+    await page.screenshot({ path: info.outputPath(`advanced-zh-${width}.png`), fullPage: true })
+    await page.keyboard.press('Escape')
+    await expect(icon(page, '1:0')).toHaveCount(1); await expect(cell(page, '1:2')).toHaveText('Neighbor')
+    expect(errors).toEqual([])
+  })
+}

@@ -153,13 +153,34 @@ test.each([
     finish = resolve; fail = rejectRead
   }))
   const pending = run(action)
-  expect(await run('close')).toBe(false)
+  expect(await run('close')).toBe(action === 'open')
+  expect(store.getter(nativeDataValidationPanelAtom).phase)
+    .toBe(action === 'open' ? null : 'saving')
   store.setter(setRustWorkbookConnectionAtom, null)
   if (reject) fail(new Error('Old worker failed'))
   else finish(null)
   expect(await pending).toBe(false)
   expect(store.getter(nativeDataValidationPanelAtom).sheetId).toBeNull()
   expect(store.getter(projectionSnapshotAtom)).toBe(before)
+})
+
+test.each([false, true])('cancelled reading cannot revive on late completion (%s)', async (reject) => {
+  const { store, request, run } = setup()
+  const before = store.getter(projectionSnapshotAtom)
+  let finish!: (value: unknown) => void
+  let fail!: (error: Error) => void
+  request.mockImplementationOnce(() => new Promise((resolve, rejectRead) => {
+    finish = resolve; fail = rejectRead
+  }))
+  const pending = run('open')
+  expect(await run('close')).toBe(true)
+  if (reject) fail(new Error('Cancelled read failed'))
+  else finish({ kind: 'decimal', min: 1, max: 9, ignoreBlank: false })
+  expect(await pending).toBe(false)
+  expect(store.getter(nativeDataValidationPanelAtom))
+    .toMatchObject({ sheetId: null, phase: null, error: '' })
+  expect(store.getter(projectionSnapshotAtom)).toBe(before)
+  expect(request).toHaveBeenCalledTimes(1)
 })
 
 test.each(['001', '=1+2'])('list selection %s reuses one normal literal edit', async (item) => {

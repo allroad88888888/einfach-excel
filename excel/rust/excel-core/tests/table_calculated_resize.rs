@@ -87,7 +87,7 @@ fn invalid_last_new_row_rolls_back_totals_geometry_values_and_notifications() {
     history.set_table_totals_row(&mut book, "Orders", true).unwrap();
     book.set_cell(0, "A5", Value::Number(100.));
     book.sheet_mut(0).unwrap().set_data_validation(range("B5", "B5"), Some(DataValidationRule {
-        kind: DataValidationKind::WholeNumber { min: 0., max: 10. },
+        options: Default::default(), kind: DataValidationKind::WholeNumber { min: 0., max: 10. },
         ignore_blank: true, operator: Default::default(),
     })).unwrap();
     history.clear("");

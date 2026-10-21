@@ -79,6 +79,8 @@ pub struct SortRangeReport {
 /// leaves the sheet untouched.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SortRangeError {
+    /// Current native protection forbids changing at least one addressed cell.
+    ProtectedRange,
     /// Range exceeds the Excel grid, or (workbook entry point) the sheet
     /// index does not exist.
     InvalidRange,
@@ -391,6 +393,9 @@ impl Workbook {
         keys: &[SortKey],
         excluded_rows: &[u32],
     ) -> Result<SortRangeReport, SortRangeError> {
+        if self.sheet(sheet_idx).is_none() { return Err(SortRangeError::InvalidRange); }
+        self.ensure_range_editable(sheet_idx, range.normalize())
+            .map_err(|_| SortRangeError::ProtectedRange)?;
         let Some(sheet) = self.sheet_mut(sheet_idx) else {
             return Err(SortRangeError::InvalidRange);
         };

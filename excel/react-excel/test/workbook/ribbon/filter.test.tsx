@@ -68,6 +68,23 @@ async function setup(withHeader = false) {
   return { filter }
 }
 
+for (const header of [false, true]) test.each([false, true])(
+  `Tab shift=%s cycles in filter header=${header} without native writes`, async (shiftKey) => {
+    const { filter } = await setup(header)
+    if (header) await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Filter column C' }))
+    })
+    else await choose('open')
+    const first = screen.getByLabelText(header ? 'Filter condition 1' : 'Filter column 1')
+    const last = screen.getByRole('button', { name: 'Cancel' })
+    const origin = shiftKey ? first : last
+    origin.focus()
+    expect(fireEvent.keyDown(origin, { key: 'Tab', shiftKey })).toBe(false)
+    expect(shiftKey ? last : first).toHaveFocus()
+    expect(filter).not.toHaveBeenCalled()
+  },
+)
+
 test('header opens only its own column and returns focus after applying or clearing it', async () => {
   const { filter } = await setup(true)
   const button = screen.getByRole('button', { name: 'Filter column C' })

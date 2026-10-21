@@ -1,0 +1,48 @@
+# Audited against eval_fn_text_*, eval_text_* and eval_regex.rs.
+CONCATENATE|CONCAT	text*?	Joins values and range contents as text.	将值及区域内容连接为文本。	"a","b"
+LEN	text	Counts Unicode characters in text.	统计文本中的 Unicode 字符数。	"abc"
+LEFT	text,num_chars?	Returns characters from the start; default count is one.	从文本开头返回指定字符数，默认为一。	"abc",2
+RIGHT	text,num_chars?	Returns characters from the end; default count is one.	从文本末尾返回指定字符数，默认为一。	"abc",2
+MID	text,start_num,num_chars	Returns characters from a one-based starting position.	从一开始计数的指定位置返回字符。	"abcd",2,2
+UPPER	text	Converts text to uppercase.	将文本转为大写。	"abc"
+LOWER	text	Converts text to lowercase.	将文本转为小写。	"ABC"
+TRIM	text	Trims and collapses ASCII spaces, preserving other whitespace.	去除首尾并合并连续 ASCII 空格，保留其他空白字符。	" a  b "
+TEXT	value,format_text	Formats a value using the engine number-format implementation.	使用引擎数字格式规则将值转为文本。	12.34,"0.0"
+FIND	find_text,within_text,start_num?	Finds case-sensitive literal text and returns its one-based position.	区分大小写查找文本并返回从一开始的位置。	"b","abc"
+SEARCH	find_text,within_text,start_num?	Finds case-insensitive literal text and returns its one-based position.	不区分大小写查找字面文本并返回从一开始的位置。	"B","abc"
+SUBSTITUTE	text,old_text,new_text,instance_num?	Replaces all occurrences, or only the specified positive occurrence.	替换全部匹配文本，或仅替换指定的正数次匹配。	"abab","a","x",2
+REPLACE	old_text,start_num,num_chars,new_text	Replaces a character span starting at a one-based position.	替换从一开始计数的指定字符区间。	"abcd",2,2,"X"
+REPT	text,number_times	Repeats text a nonnegative integer number of times, up to 32767 characters.	按非负整数次数重复文本，总长度最多 32767 字符。	"ab",3
+EXACT	text1,text2	Compares text with case sensitivity.	区分大小写比较两段文本。	"a","A"
+VALUE	text	Converts numeric text to a number.	将数字文本转为数字。	"12.5"
+T	value	Returns text values unchanged; nontext values become empty text.	原样返回文本，非文本值返回空文本。	"abc"
+CHAR|UNICHAR	number	Returns the Unicode scalar character for a positive code point.	返回正数码点对应的 Unicode 字符。	65
+CODE|UNICODE	text	Returns the Unicode code point of the first character.	返回首个字符的 Unicode 码点。	"A"
+CLEAN	text	Removes ASCII control characters with codes zero through 31.	删除码点 0–31 的 ASCII 控制字符。	"abc"
+PROPER	text	Capitalizes the first letter of each word and lowercases other letters.	将每个单词首字母大写，其余字母小写。	"hello WORLD"
+TEXTJOIN	delimiter,ignore_empty,text*	Joins values with a delimiter and optionally skips empty values.	用分隔符连接值，可选择忽略空值。	",",TRUE,"a","b"
+DOLLAR	number,decimals?	Formats a number as dollar text; the default is two decimal places.	将数字格式化为美元文本，默认保留两位小数。	1234.5,2
+FIXED	number,decimals?,no_commas?	Formats a number as fixed-decimal text with optional grouping separators.	将数字转为固定小数位文本，可选择省略千位分隔符。	1234.5,2,TRUE
+TRANSLATE	text,from_characters,to_characters	Replaces characters by their positions in the source and target character lists.	按源字符表与目标字符表中的位置替换字符。	"abc","ab","xy"
+TEXTSPLIT	text,col_delimiter,row_delimiter?,ignore_empty?,match_mode?,pad_with?	Splits text into an array using column and optional row delimiters.	按列分隔符及可选的行分隔符将文本拆成数组。	"a,b",","
+TEXTBEFORE	text,delimiter,instance_num?,match_mode?,match_end?,if_not_found?	Returns text before the selected delimiter occurrence.	返回指定次分隔符之前的文本。	"a:b",":"
+TEXTAFTER	text,delimiter,instance_num?,match_mode?,match_end?,if_not_found?	Returns text after the selected delimiter occurrence.	返回指定次分隔符之后的文本。	"a:b",":"
+ENCODEURL	text	Percent-encodes text using UTF-8 and RFC 3986 unreserved characters.	按 UTF-8 及 RFC 3986 保留字符规则进行百分号编码。	"a b"
+NUMBERVALUE	text,decimal_separator?,group_separator?	Parses a number using explicit decimal and grouping separators, defaulting to dot and comma.	使用指定的小数与分组分隔符解析数字，默认为点与逗号。	"1.234,5",",","."
+ARRAYTOTEXT	array,format?	Renders an array as text; format zero is concise and one is strict.	将数组转为文本；格式 0 为简洁格式，1 为严格格式。	{1,2;3,4},1
+VALUETOTEXT	value,format?	Renders a value as text; format zero is concise and one is strict.	将值转为文本；格式 0 为简洁格式，1 为严格格式。	12,1
+REGEXTEST	text,pattern,case_insensitive?	Tests whether a regular expression matches; case flag zero is sensitive and nonzero is insensitive.	检测正则匹配；大小写标志为零时区分大小写，非零时忽略。	"abc","b"
+REGEXEXTRACT	text,pattern,return_mode?,case_insensitive?	Extracts the first match (0), all matches (1), or first-match capture groups (2).	提取首个匹配（0）、全部匹配（1）或首个匹配的捕获组（2）。	"a1b2","[0-9]",1
+REGEXREPLACE	text,pattern,replacement,occurrence?,case_insensitive?	Replaces regex matches; occurrence zero means all, positive counts from start and negative from end.	替换正则匹配；次数 0 表示全部，正数从头计数，负数从尾计数。	"a1b2","[0-9]","X"
+ASC	text	Converts supported full-width ASCII and Japanese kana to half-width forms.	将支持的全角 ASCII 与日文假名转为半角。	"ＡＢＣ"
+JIS|DBCS	text	Converts supported half-width ASCII and Japanese kana to full-width forms.	将支持的半角 ASCII 与日文假名转为全角。	"ABC"
+PHONETIC	text	Returns the source text unchanged because phonetic annotations are not stored.	不存储注音元数据，原样返回来源文本。	"漢字"
+LENB	text	Counts DBCS units: supported East Asian and full-width characters count as two.	统计双字节单位：支持的东亚与全角字符计为二。	"A中"
+LEFTB	text,num_bytes?	Returns a prefix by DBCS unit count; the default count is one.	按双字节单位数返回前缀，默认数量为一。	"A中B",3
+RIGHTB	text,num_bytes?	Returns a suffix by DBCS unit count; the default count is one.	按双字节单位数返回后缀，默认数量为一。	"A中B",3
+MIDB	text,start_byte,num_bytes	Returns a span measured in one-based DBCS units.	按从一开始计数的双字节单位返回指定区间。	"A中B",2,2
+FINDB	find_text,within_text,start_byte?	Finds literal text case-sensitively and returns a one-based DBCS unit position.	区分大小写查找文本，返回从一开始的双字节单位位置。	"中","A中B"
+SEARCHB	find_text,within_text,start_byte?	Finds text case-insensitively using DBCS unit positions.	不区分大小写查找文本，使用双字节单位位置。	"b","A中B"
+REPLACEB	old_text,start_byte,num_bytes,new_text	Replaces a span measured in DBCS units.	替换按双字节单位计量的区间。	"A中B",2,2,"X"
+HYPERLINK	link_location,friendly_name?	Returns friendly display text, or the link location when omitted.	返回友好显示文本；省略时返回链接位置。	"https://example.com","Example"
+IMAGE	source,alt_text?,sizing?,height?,width?	Returns image metadata as text; sizing three requires positive height and width.	返回图片元数据文本；sizing 为 3 时必须提供正数高度与宽度。	"https://example.com/image.png","Example"

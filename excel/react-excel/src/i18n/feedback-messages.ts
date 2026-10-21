@@ -1,8 +1,10 @@
 import { msg } from '@lingui/core/macro'
 import type { MessageDescriptor } from '@lingui/core'
+import { sevenFeatureFeedback } from './seven-feature-feedback'
 
 /** Core 提示的展现层词典：键保留原文以兼容现有结果；翻译由 Lingui 提取和切换。 */
 export const feedbackMessages: Readonly<Record<string, MessageDescriptor>> = {
+  ...sevenFeatureFeedback,
   'Enter a valid http:// or https:// address.': msg`Enter a valid http:// or https:// address.`,
   'Select the anchor cell before changing its hyperlink.': msg`Select the anchor cell before changing its hyperlink.`,
   'The hyperlink display text is too long or invalid.': msg`The hyperlink display text is too long or invalid.`,
@@ -147,10 +149,17 @@ export const feedbackMessages: Readonly<Record<string, MessageDescriptor>> = {
   'The fill source selection changed. Drag again.': msg`The fill source selection changed. Drag again.`,
   'Include a source row or column and at least one destination.': msg`Include a source row or column and at least one destination.`,
   'Unprotect the worksheet before filling cells.': msg`Unprotect the worksheet before filling cells.`,
+  'No adjacent continuous data to fill.': msg`No adjacent continuous data to fill.`,
   'The selected range cannot be changed.': msg`The selected range cannot be changed.`,
   'The selection changed. Close and reopen Series.': msg`The selection changed. Close and reopen Series.`,
   'Select one row or column with enough samples and at least one destination.': msg`Select one row or column with enough samples and at least one destination.`,
   'Custom list is limited to 16384 characters.': msg`Custom list is limited to 16384 characters.`,
+  'Enter a list name of 1–64 characters.': msg`Enter a list name of 1–64 characters.`,
+  'A list with this name already exists.': msg`A list with this name already exists.`,
+  'Enter 2–512 non-empty, unique list items.': msg`Enter 2–512 non-empty, unique list items.`,
+  'You can save at most 32 custom lists per workbook session.': msg`You can save at most 32 custom lists per workbook session.`,
+  'List saved.': msg`List saved.`,
+  'List deleted.': msg`List deleted.`,
   'Fill was not applied. Try again.': msg`Fill was not applied. Try again.`,
   'Number sequence': msg`Number sequence`,
   'Date sequence': msg`Date sequence`,
@@ -303,6 +312,8 @@ export const feedbackMessages: Readonly<Record<string, MessageDescriptor>> = {
   'Returns the remainder after a number is divided by a divisor.': msg`Returns the remainder after a number is divided by a divisor.`,
   'Looks up a value in the first column of a range and returns a value from a column in the same row.': msg`Looks up a value in the first column of a range and returns a value from a column in the same row.`,
   'Math & statistics': msg`Math & statistics`,
+  'Custom': msg`Custom`,
+  'Linked content': msg`Linked content`,
   'Logical': msg`Logical`,
   'Lookup & reference': msg`Lookup & reference`,
   'Date & time': msg`Date & time`,

@@ -21,6 +21,7 @@ import type {
   ConditionalFormatRulesLoadState,
   ConditionalFormatScope,
 } from './types'
+import { copyAdvancedVisualRule } from './advanced/snapshot'
 
 export function copyRange(range: Readonly<CellRange>): CellRange {
   return {
@@ -60,7 +61,8 @@ export function copyRule(rule: ConditionalFormatRule): ConditionalFormatRule {
       return { ...rule, format: copyFormat(rule.format) }
     case 'data-bar':
     case 'color-scale':
-      return { ...rule }
+    case 'icon-set':
+      return copyAdvancedVisualRule(rule)
   }
 }
 
@@ -91,6 +93,8 @@ export function freezeRule(rule: ConditionalFormatRule): ConditionalFormatRule {
   const result = copyRule(rule)
   if ('format' in result)
     result.format = freezeFormat(result.format)
+  if (result.kind === 'data-bar' || result.kind === 'color-scale' || result.kind === 'icon-set')
+    return Object.freeze(copyAdvancedVisualRule(result, true))
   return Object.freeze(result)
 }
 
@@ -173,6 +177,8 @@ export function defaultRuleForKind(kind: ConditionalFormatRuleKind): Conditional
       return { kind, formula: '=TRUE()', format: { bgColor: '#fef3c7' } }
     case 'data-bar':
       return { kind }
+    case 'icon-set':
+      return { kind, iconSet: 'three-arrows' }
     case 'color-scale':
       return { kind, minColor: '#ff0000', maxColor: '#00ff00' }
     case 'top-bottom':

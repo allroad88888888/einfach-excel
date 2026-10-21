@@ -37,6 +37,18 @@ async function apply() {
   await act(async () => { fireEvent.submit(screen.getByRole('dialog').querySelector('form')!) })
 }
 
+test.each([false, true])('Tab shift=%s cycles in custom sort without native writes', async (shiftKey) => {
+  const { sort } = await setup()
+  await choose('custom')
+  const first = screen.getByRole('checkbox', { name: 'First row is a header' })
+  const last = screen.getByRole('button', { name: 'Cancel' })
+  const origin = shiftKey ? first : last
+  origin.focus()
+  expect(fireEvent.keyDown(origin, { key: 'Tab', shiftKey })).toBe(false)
+  expect(shiftKey ? last : first).toHaveFocus()
+  expect(sort).not.toHaveBeenCalled()
+})
+
 test.each(['asc', 'desc'])('%s dispatches directly and announces completion', async (direction) => {
   const { sort } = await setup()
   await choose(direction)

@@ -1,0 +1,108 @@
+import { expect, test, type Page } from '@playwright/test'
+import { select } from '../support/clipboard'
+
+const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
+const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
+const control = (page: Page) => page.getByRole('combobox', { name: 'Font size', exact: true })
+const dialog = (page: Page) => page.getByRole('dialog', { name: 'Custom font size', exact: true })
+test.beforeEach(async ({ page }) => {
+  await page.goto('/e2e/fixtures/plain-sales-orders/')
+  await expect(cell(page, '1:0')).toHaveText('SO-10001')
+  await select(page, 'H2', '1:7')
+  const input = page.getByRole('textbox', { name: 'Active cell value' })
+  await input.fill('Keep font redo'); await input.press('Enter')
+  await expect(cell(page, '1:7')).toHaveText('Keep font redo')
+  await button(page, 'Undo').click()
+  await expect(cell(page, '1:7')).not.toHaveText('Keep font redo')
+  await select(page, 'B3', '2:1')
+})
+
+for (const action of ['Cancel', 'Escape']) for (const width of [1280, 390])
+  test(`${action} custom font size discards draft and preserves redo at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 850 })
+    const height = (await cell(page, '2:1').boundingBox())!.height
+    await control(page).selectOption('custom')
+    await page.getByRole('spinbutton', { name: 'Custom font size' }).fill('513')
+    if (action === 'Escape') await page.keyboard.press('Escape')
+    else await button(page, 'Cancel').click()
+    await expect(dialog(page)).toHaveCount(0)
+    await expect(control(page)).toBeFocused()
+    await expect(control(page)).toHaveValue('12')
+    await expect(cell(page, '2:1')).toHaveText('Northwind')
+    await expect(cell(page, '2:1')).toHaveCSS('font-size', '12px')
+    expect((await cell(page, '2:1').boundingBox())!.height).toBe(height)
+    await control(page).selectOption('custom')
+    await expect(page.getByRole('spinbutton', { name: 'Custom font size' })).toHaveValue('12')
+    await expect(dialog(page).getByRole('alert')).toHaveCount(0)
+    await button(page, 'Cancel').click()
+    await expect(button(page, 'Undo')).toBeDisabled()
+    await button(page, 'Redo').click()
+    await select(page, 'H2', '1:7')
+    await expect(page.getByRole('textbox', { name: 'Active cell value' })).toHaveValue('Keep font redo')
+  })
+
+for (const width of [1280, 390])
+  test(`invalid custom font size retries once and restores row geometry on undo at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 850 })
+    const height = (await cell(page, '2:1').boundingBox())!.height
+    const neighborHeight = (await cell(page, '3:1').boundingBox())!.height
+    await control(page).selectOption('custom')
+    const input = page.getByRole('spinbutton', { name: 'Custom font size' })
+    for (const value of ['', '0', '-1', '12.5', '513']) {
+      await input.fill(value)
+      await button(page, 'Apply font size').click()
+      await expect(dialog(page).getByRole('alert')).toContainText('whole-number')
+      await expect(input).toHaveAttribute('aria-invalid', 'true')
+      await expect(cell(page, '2:1')).toHaveCSS('font-size', '12px')
+      expect((await cell(page, '2:1').boundingBox())!.height).toBe(height)
+      await expect(button(page, 'Undo')).toBeDisabled()
+      await expect(button(page, 'Redo')).toBeEnabled()
+    }
+    // 此行本有两行文字，23px 不一定比已有行高大；37px 确保触发增高。
+    await input.fill('37')
+    await button(page, 'Apply font size').click()
+    await expect(dialog(page)).toHaveCount(0)
+    await expect(control(page)).toBeFocused()
+    await expect(cell(page, '2:1')).toHaveCSS('font-size', '37px')
+    await expect(cell(page, '2:1')).toHaveText('Northwind')
+    await expect.poll(async () => (await cell(page, '2:1').boundingBox())!.height).toBeGreaterThan(height)
+    expect((await cell(page, '3:1').boundingBox())!.height).toBe(neighborHeight)
+    await expect(button(page, 'Redo')).toBeDisabled()
+    await button(page, 'Undo').click()
+    await expect(cell(page, '2:1')).toHaveCSS('font-size', '12px')
+    await expect.poll(async () => (await cell(page, '2:1').boundingBox())!.height).toBe(height)
+    await expect(button(page, 'Undo')).toBeDisabled()
+    await button(page, 'Redo').click()
+    await expect(cell(page, '2:1')).toHaveCSS('font-size', '37px')
+  })
+
+for (const action of ['Open', 'Tab', 'Shift+Tab']) for (const width of [1280, 390])
+  test(`${action} custom font dialog keeps focus and does not write at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 850 })
+    const height = (await cell(page, '2:1').boundingBox())!.height
+    await control(page).selectOption('custom')
+    const input = page.getByRole('spinbutton', { name: 'Custom font size' })
+    await expect(input).toBeFocused()
+    await expect(input).toHaveValue('12')
+    if (action !== 'Open') {
+      await input.fill('37')
+      if (action === 'Tab') await button(page, 'Apply font size').focus()
+      else await input.focus()
+      await page.keyboard.press(action)
+      await expect(action === 'Tab' ? input : button(page, 'Apply font size')).toBeFocused()
+      await expect(input).toHaveValue('37')
+    }
+    const box = (await dialog(page).boundingBox())!
+    expect(box.x).toBeGreaterThanOrEqual(0)
+    expect(box.x + box.width).toBeLessThanOrEqual(width)
+    await expect(cell(page, '2:1')).toHaveCSS('font-size', '12px')
+    expect((await cell(page, '2:1').boundingBox())!.height).toBe(height)
+    await expect(cell(page, '2:1')).toHaveText('Northwind')
+    await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('B3')
+    await button(page, 'Cancel').click()
+    await expect(control(page)).toBeFocused()
+    await expect(button(page, 'Undo')).toBeDisabled()
+    await button(page, 'Redo').click()
+    await select(page, 'H2', '1:7')
+    await expect(page.getByRole('textbox', { name: 'Active cell value' })).toHaveValue('Keep font redo')
+  })

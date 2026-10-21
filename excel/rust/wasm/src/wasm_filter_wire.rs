@@ -216,6 +216,8 @@ fn filter_error_to_js(err: FilterError) -> JsValue {
             Some("Choose a header and at least one data row; filter columns must be inside the range.")),
         FilterError::HistoryPending => sort_error_to_js("history-pending", None, None),
         FilterError::InvalidSheet => sort_error_to_js("invalid-sheet", None, None),
+        FilterError::ProtectedWorksheet => sort_error_to_js("protected-sheet", None,
+            Some(einfach_excel_core::protection::PROTECTED_ERROR)),
         FilterError::MutationDuringCustomCall => {
             sort_error_to_js("mutation-during-custom-call", None, None)
         }
@@ -263,6 +265,7 @@ fn table_error_id(err: TableError) -> &'static str {
         TableError::MutationDuringCustomCall => "mutation-during-custom-call",
         TableError::MalformedSnapshot => "malformed-snapshot",
         TableError::FormulaRewriteConflict => "formula-rewrite-conflict",
+        TableError::ProtectedWorkbook => einfach_excel_core::protection::PROTECTED_ERROR,
     }
 }
 

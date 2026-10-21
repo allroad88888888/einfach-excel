@@ -64,7 +64,7 @@ fn first_formula_becomes_a_calculated_column_and_continues_into_the_next_row() {
 fn restrict(book: &mut Workbook, address: &str, min: f64, max: f64) {
     use einfach_excel_core::data_validation::{DataValidationKind, DataValidationRule};
     book.sheet_mut(0).unwrap().set_data_validation(range(address, address),
-        Some(DataValidationRule { kind: DataValidationKind::WholeNumber { min, max },
+        Some(DataValidationRule { options: Default::default(), kind: DataValidationKind::WholeNumber { min, max },
             ignore_blank: false, operator: Default::default() })).unwrap();
 }
 

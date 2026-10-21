@@ -9,6 +9,39 @@ async function navigateTo(page: Page, address: string, coordinate: string) {
   return cell
 }
 
+for (const width of [1280, 390]) for (const [
+  action, address, coord, before, after, raw, outside,
+] of [
+  ['Increase decimal places', 'O4', '3:14', '10.00%', '10.000%', '0.1', '4:14'],
+  ['Decrease decimal places', 'O4', '3:14', '10.00%', '10.0%', '0.1', '4:14'],
+  ['General format', 'P3', '2:15', '$125', '125.02', '125.02', '3:15'],
+] as const) test(`${action} is independent and undoes once at ${width}px`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 850 })
+  await page.goto('/')
+  const target = await navigateTo(page, address, coord)
+  const formula = page.getByRole('textbox', { name: 'Active cell value' })
+  const neighbor = page.locator(`td[data-cell="${outside}"]`)
+  const neighborText = await neighbor.innerText()
+  const weight = await target.evaluate(node => getComputedStyle(node).fontWeight)
+  await expect(target).toHaveText(before)
+  await page.getByRole('button', { name: action, exact: true }).click()
+  await expect(target).toHaveText(after)
+  await expect(formula).toHaveValue(raw)
+  await expect(target).toHaveCSS('font-weight', weight)
+  await expect(neighbor).toHaveText(neighborText)
+  await page.getByRole('button', { name: 'Undo', exact: true }).click()
+  await expect(target).toHaveText(before)
+  await expect(formula).toHaveValue(raw)
+  await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+  await page.getByRole('button', { name: 'Redo', exact: true }).click()
+  await expect(target).toHaveText(after)
+  await navigateTo(page, 'A900', '899:0')
+  await navigateTo(page, address, coord)
+  await expect(target).toHaveText(after)
+  await expect(target).toHaveCSS('font-weight', weight)
+  await expect(neighbor).toHaveText(neighborText)
+})
+
 test('adjusts percent precision and retains it after scrolling away and back', async ({ page }) => {
   await page.goto('/')
   const cell = await navigateTo(page, 'O4', '3:14')

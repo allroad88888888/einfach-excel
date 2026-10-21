@@ -1,0 +1,27 @@
+.formula-parameter-help {
+  color: var(--text);
+  min-width: 0;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.formula-parameter-help code { font-size: inherit; white-space: pre-wrap; }
+.formula-help-signature { display: block; color: var(--primary-strong); }
+.formula-help-signature strong { text-decoration: underline; text-underline-offset: 3px; }
+.formula-parameter-help h3 { margin: 10px 0 4px; font-size: 12px; font-weight: 650; }
+.formula-help-summary { margin: 5px 0; }
+.formula-help-group, .formula-help-qualifier { color: var(--text); font-size: 11px; }
+.formula-help-group { margin: 4px 0; }
+.formula-help-parameters { margin: 0; }
+.formula-help-parameters > div { padding: 5px 0; border-top: 1px solid var(--border); }
+.formula-help-parameters dt { font-weight: 600; }
+.formula-help-parameters dd { margin: 2px 0 0; color: var(--text); font-size: 12px; }
+.formula-help-examples > code { display: block; margin: 3px 0; }
+.formula-help-limitations { border-left: 2px solid var(--border-strong); padding-left: 8px; }
+.formula-help-limitations ul { margin: 4px 0; padding-left: 16px; }
+.formula-help-limitations li + li { margin-top: 4px; }
+.formula-parameter-help.is-compact { max-height: min(350px, 40vh); overflow-y: auto; }
+.is-compact .formula-help-summary, .formula-help-active { margin: 5px 0; }
+.is-compact h3 { font-size: 11px; margin-top: 6px; }
+@media (max-width: 480px) {
+  .formula-help-parameters dt { display: flex; flex-wrap: wrap; gap: 2px 6px; }
+}

@@ -53,6 +53,10 @@ impl Sheet {
         let style = self.row_styles.entry(row_index).or_default();
         let changed = style.height != Some(height_px);
         style.height = Some(height_px);
+        if changed {
+            self.explicit_dimension_generations[0] =
+                self.explicit_dimension_generations[0].wrapping_add(1);
+        }
         changed
     }
 
@@ -63,6 +67,10 @@ impl Sheet {
         let changed = style.height.take().is_some();
         if style.is_empty() {
             self.row_styles.remove(&row_index);
+        }
+        if changed {
+            self.explicit_dimension_generations[0] =
+                self.explicit_dimension_generations[0].wrapping_add(1);
         }
         changed
     }
@@ -94,19 +102,35 @@ impl Sheet {
         if width_px == 0 {
             return self.clear_col_width(col_index);
         }
-        self.interior
+        let changed = self
+            .interior
             .col_widths
             .borrow_mut()
             .insert(col_index, width_px)
-            != Some(width_px)
+            != Some(width_px);
+        if changed {
+            self.explicit_dimension_generations[1] =
+                self.explicit_dimension_generations[1].wrapping_add(1);
+        }
+        changed
     }
 
     pub fn clear_col_width(&mut self, col_index: u32) -> bool {
-        self.interior
+        let changed = self
+            .interior
             .col_widths
             .borrow_mut()
             .remove(&col_index)
-            .is_some()
+            .is_some();
+        if changed {
+            self.explicit_dimension_generations[1] =
+                self.explicit_dimension_generations[1].wrapping_add(1);
+        }
+        changed
+    }
+
+    pub(crate) fn dimension_generations(&self) -> [u64; 2] {
+        self.explicit_dimension_generations
     }
 
     pub fn col_width(&self, col_index: u32) -> Option<u32> {

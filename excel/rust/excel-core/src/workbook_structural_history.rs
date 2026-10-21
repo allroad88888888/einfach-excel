@@ -57,8 +57,12 @@ impl StructuralHistoryChange {
         let name = workbook.name(sheet).unwrap().to_owned();
         let mut targets = vec![(sheet, tail)];
         // 在空表汇总行前插入时，原待输入行位于移动带上方；只补实际继承格的快照。
-        targets.extend(inherited.iter().filter(|cell| !tail.contains(cell.addr))
-            .map(|cell| (sheet, CellRange::single(cell.addr))));
+        targets.extend(
+            inherited
+                .iter()
+                .filter(|cell| !tail.contains(cell.addr))
+                .map(|cell| (sheet, CellRange::single(cell.addr))),
+        );
         for (index, current) in workbook.sheets.iter().enumerate() {
             let mut addrs: Vec<_> = current
                 .formula_addrs_in_range(CellRange::new(CellAddress::new(0, 0), end))
@@ -90,25 +94,46 @@ impl StructuralHistoryChange {
                     .then_some(owner)
             })
             .collect();
-        let before = StructuralSnapshot::capture(workbook, sheet, &targets, &rule_sheets);
+        let validation_sheets = workbook.validation_reference_sheets(sheet, edit);
+        let before = StructuralSnapshot::capture(
+            workbook,
+            sheet,
+            &targets,
+            &rule_sheets,
+            &validation_sheets,
+        );
         let named_ranges = workbook.shifted_named_ranges(sheet, edit);
         if !inherited.is_empty() {
-            let bytes = inherited.iter().map(|cell| 96 + cell.formula.as_ref().unwrap().len()).sum::<usize>();
+            let bytes = inherited
+                .iter()
+                .map(|cell| 96 + cell.formula.as_ref().unwrap().len())
+                .sum::<usize>();
             if 2 * before.retained_bytes() + bytes > crate::workbook_history::MAX_BYTES {
                 return Err("Table row inheritance exceeds the 32 MiB undo budget.");
             }
             // 拒绝也必须能恢复规则，不能把最后一次 revision 消耗在尚未验证的位移上。
-            if rule_sheets.iter().any(|owner| workbook.conditional_formats[*owner].revision >= u64::MAX - 1) {
+            if rule_sheets
+                .iter()
+                .any(|owner| workbook.conditional_formats[*owner].revision >= u64::MAX - 1)
+            {
                 return Err("Conditional-format revision cannot support structural rollback.");
             }
         }
-        let observers: Vec<_> = if inherited.is_empty() { Vec::new() } else {
-            workbook.sheets.iter_mut().map(Sheet::suspend_structure_notifications).collect()
+        let observers: Vec<_> = if inherited.is_empty() {
+            Vec::new()
+        } else {
+            workbook
+                .sheets
+                .iter_mut()
+                .map(Sheet::suspend_structure_notifications)
+                .collect()
         };
         let store = workbook.store.clone();
         let mut outcome = None;
+        let mut validation_range = range;
         store.batch(|_| {
-            let (named_lambdas, templates) = workbook.apply_structural_shift_with_table_follow(sheet, edit);
+            let (named_lambdas, templates) =
+                workbook.apply_structural_shift_with_table_follow(sheet, edit);
             let mut arrays = Vec::new();
             let mut result = Ok(());
             if !inherited.is_empty() {
@@ -117,22 +142,52 @@ impl StructuralHistoryChange {
                     affected.start.row = affected.start.row.min(cell.addr.row);
                     affected.end.row = affected.end.row.max(cell.addr.row);
                 }
+                validation_range = affected;
                 arrays = workbook.array_dependents_for_range(sheet, affected);
-                arrays.extend(workbook.array_dependents_for_atoms(&workbook.atom_context.table_dependent_atoms()));
-                result = workbook.set_table_formulas(sheet, &inherited).and_then(|_| {
-                    inherited.iter().try_for_each(|cell| {
-                        let value = crate::sheet::collapse_array_for_eval(workbook.sheets[sheet].peek_value(cell.addr));
-                        workbook.validate_input_value(sheet, cell.addr, &value)
+                arrays
+                    .extend(workbook.array_dependents_for_atoms(
+                        &workbook.atom_context.table_dependent_atoms(),
+                    ));
+                result = workbook
+                    .set_table_formulas(sheet, &inherited)
+                    .and_then(|_| {
+                        workbook.settle_validation_candidate(sheet, affected);
+                        inherited.iter().try_for_each(|cell| {
+                            let value = crate::sheet::collapse_array_for_eval(
+                                workbook.sheets[sheet].peek_value(cell.addr),
+                            );
+                            workbook.validate_input_value(sheet, cell.addr, &value)
+                        })
                     })
-                }).and_then(|_| workbook.validate_inserted_table_arrays(sheet, edit));
+                    .and_then(|_| workbook.validate_inserted_table_arrays(sheet, edit));
             }
-            let after = StructuralSnapshot::capture(workbook, sheet, &targets, &rule_sheets);
-            let change = Self { edit, name, before, after, named_ranges, named_lambdas, templates };
-            if !inherited.is_empty() && change.retained_bytes() > crate::workbook_history::MAX_BYTES {
+            let after = StructuralSnapshot::capture(
+                workbook,
+                sheet,
+                &targets,
+                &rule_sheets,
+                &validation_sheets,
+            );
+            let change = Self {
+                edit,
+                name,
+                before,
+                after,
+                named_ranges,
+                named_lambdas,
+                templates,
+            };
+            if !inherited.is_empty() && change.retained_bytes() > crate::workbook_history::MAX_BYTES
+            {
                 result = Err("Table row inheritance exceeds the 32 MiB undo budget.");
             }
             if result.is_err() {
-                change.apply(workbook, sheet, true).expect("structural preflight reserved rollback");
+                change
+                    .apply(workbook, sheet, true)
+                    .expect("structural preflight reserved rollback");
+                if !inherited.is_empty() {
+                    workbook.settle_validation_candidate(sheet, validation_range);
+                }
             }
             outcome = Some((change, result, arrays));
         });
@@ -151,6 +206,12 @@ impl StructuralHistoryChange {
             .iter()
             .map(|(sheet, _)| *sheet)
             .chain(self.templates.iter().map(|change| change.sheet))
+            .chain(
+                self.before
+                    .referenced_validations
+                    .iter()
+                    .map(|(sheet, _)| *sheet),
+            )
             .chain(
                 self.before
                     .conditional_formats
@@ -176,7 +237,9 @@ impl StructuralHistoryChange {
         for lambda in &self.named_lambdas {
             lambda.validate(workbook, undo)?;
         }
-        for template in &self.templates { template.validate(workbook, undo)?; }
+        for template in &self.templates {
+            template.validate(workbook, undo)?;
+        }
         for (owner, rules) in &snapshot.conditional_formats {
             let config = &workbook.conditional_formats[*owner];
             if config.rules != *rules && config.revision == u64::MAX {
@@ -193,19 +256,29 @@ impl StructuralHistoryChange {
         }
         // 身份检查由 HistoryEntry 在进入这里之前完成，之后恢复原生快照没有可失败的写入分支。
         let indices = self.affected_sheets();
-        let tables_changed = workbook.tables.values().filter(|table| table.sheet_name == self.name).count()
-            != snapshot.tables.len() || snapshot.tables.iter().any(|table| {
+        let tables_changed = workbook
+            .tables
+            .values()
+            .filter(|table| table.sheet_name == self.name)
+            .count()
+            != snapshot.tables.len()
+            || snapshot.tables.iter().any(|table| {
                 workbook.tables.get(&table.name().to_ascii_uppercase()) != Some(table)
             });
         let mut arrays = if tables_changed {
             workbook.array_dependents_for_atoms(&workbook.atom_context.table_dependent_atoms())
-        } else { Vec::new() };
+        } else {
+            Vec::new()
+        };
         for (owner, cells) in &snapshot.cells {
             arrays.extend(workbook.array_dependents_for_range(*owner, cells.range));
         }
         // Table 数组消费者可能没有源码变化，不能只暂停快照所属表的直接监听。
-        let observers: Vec<_> = workbook.sheets.iter_mut()
-            .map(Sheet::suspend_structure_notifications).collect();
+        let observers: Vec<_> = workbook
+            .sheets
+            .iter_mut()
+            .map(Sheet::suspend_structure_notifications)
+            .collect();
         let store = workbook.store.clone();
         store.batch(|_| {
             let mut anchors = Vec::new();
@@ -217,7 +290,9 @@ impl StructuralHistoryChange {
                     .map(|(_, snapshot)| snapshot)
                     .collect();
                 // 只有模板/规则变化的表不恢复单元格，也不拆装无关数组或增加求值。
-                if cells.is_empty() { continue; }
+                if cells.is_empty() {
+                    continue;
+                }
                 anchors.push((
                     *index,
                     workbook.sheets[*index].restore_structure_content(&cells),
@@ -235,6 +310,21 @@ impl StructuralHistoryChange {
             workbook.sheets[sheet]
                 .data_validations
                 .clone_from(&snapshot.data_validations);
+            for (owner, rules) in &snapshot.referenced_validations {
+                workbook.sheets[*owner].data_validations.clone_from(rules);
+            }
+            // 权限不进入内容历史；只让当前配置随本次回放的几何移动。
+            let edit = if undo {
+                match self.edit {
+                    ShiftEdit::RowInsert { at, count } => ShiftEdit::RowDelete { at, count },
+                    ShiftEdit::RowDelete { at, count } => ShiftEdit::RowInsert { at, count },
+                    ShiftEdit::ColInsert { at, count } => ShiftEdit::ColDelete { at, count },
+                    ShiftEdit::ColDelete { at, count } => ShiftEdit::ColInsert { at, count },
+                }
+            } else {
+                self.edit
+            };
+            workbook.shift_protection_ranges(sheet, edit);
             for (owner, rules) in &snapshot.conditional_formats {
                 workbook
                     .replace_conditional_format_rules(*owner, rules.clone())
@@ -256,7 +346,9 @@ impl StructuralHistoryChange {
             for lambda in &self.named_lambdas {
                 lambda.apply(workbook, undo);
             }
-            for template in &self.templates { template.apply(workbook, undo); }
+            for template in &self.templates {
+                template.apply(workbook, undo);
+            }
             workbook.restore_named_range_coordinates(&self.named_ranges, undo);
             if self.named_ranges.is_empty() && !self.named_lambdas.is_empty() {
                 workbook.sync_atom_names();
@@ -277,7 +369,11 @@ impl StructuralHistoryChange {
             + self.before.retained_bytes()
             + self.after.retained_bytes()
             + crate::sheet::metadata_bytes(&self.named_lambdas)
-            + self.templates.iter().map(FormulaSourceChange::retained_bytes).sum::<usize>()
+            + self
+                .templates
+                .iter()
+                .map(FormulaSourceChange::retained_bytes)
+                .sum::<usize>()
             + self
                 .named_ranges
                 .iter()

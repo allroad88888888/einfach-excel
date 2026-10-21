@@ -1,6 +1,7 @@
 #[wasm_bindgen]
 impl WasmWorkbook {
     pub fn bulk_install_workbook(&mut self, payload: JsValue) -> Result<JsValue, JsValue> {
+        self.ensure_protection_workbook()?;
         let sheets: Vec<SheetBulkInstallJSON> = serde_wasm_bindgen::from_value(payload)
             .map_err(|err| JsValue::from_str(&format!("invalid bulk install payload: {err}")))?;
 

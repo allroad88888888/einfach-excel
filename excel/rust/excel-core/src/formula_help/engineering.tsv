@@ -1,0 +1,51 @@
+# Audited against radix_conversion/bitwise, complex_core/transforms, bessel_eval and convert_eval.
+BIN2DEC	number	Converts a signed ten-digit binary numeral to decimal.	将最多十位的有符号二进制文本转为十进制。	"1010"
+OCT2DEC	number	Converts a signed ten-digit octal numeral to decimal.	将最多十位的有符号八进制文本转为十进制。	"12"
+HEX2DEC	number	Converts a signed ten-digit hexadecimal numeral to decimal.	将最多十位的有符号十六进制文本转为十进制。	"A"
+DEC2BIN	number,places?	Converts decimal integers from -512 through 511 to binary text.	将 -512 到 511 的十进制整数转为二进制文本。	10,8
+DEC2OCT	number,places?	Converts a signed decimal integer to octal text with optional zero padding.	将有符号十进制整数转为八进制文本，可补前导零。	10,4
+DEC2HEX	number,places?	Converts a signed decimal integer to uppercase hexadecimal text.	将有符号十进制整数转为大写十六进制文本。	10,4
+BIN2HEX	number,places?	Converts signed binary text to hexadecimal text.	将有符号二进制文本转为十六进制文本。	"1010",4
+BIN2OCT	number,places?	Converts signed binary text to octal text.	将有符号二进制文本转为八进制文本。	"1010",4
+HEX2BIN	number,places?	Converts signed hexadecimal text to ten-digit-range binary text.	将有符号十六进制文本转为十位范围的二进制文本。	"A",8
+HEX2OCT	number,places?	Converts signed hexadecimal text to octal text.	将有符号十六进制文本转为八进制文本。	"A",4
+OCT2BIN	number,places?	Converts signed octal text to ten-digit-range binary text.	将有符号八进制文本转为十位范围的二进制文本。	"12",8
+OCT2HEX	number,places?	Converts signed octal text to hexadecimal text.	将有符号八进制文本转为十六进制文本。	"12",4
+BITAND	number1,number2	Returns bitwise AND of nonnegative integers below 2^48.	返回小于 2^48 的非负整数的按位与。	5,3
+BITOR	number1,number2	Returns bitwise OR of nonnegative integers below 2^48.	返回小于 2^48 的非负整数的按位或。	5,3
+BITXOR	number1,number2	Returns bitwise XOR of nonnegative integers below 2^48.	返回小于 2^48 的非负整数的按位异或。	5,3
+BITLSHIFT	number,shift_amount	Shifts a nonnegative integer left; a negative shift reverses direction.	将非负整数左移，负数位移量表示反向移动。	5,1
+BITRSHIFT	number,shift_amount	Shifts a nonnegative integer right; a negative shift reverses direction.	将非负整数右移，负数位移量表示反向移动。	5,1
+DELTA	number1,number2?	Returns one when numbers are equal and zero otherwise; number2 defaults to zero.	数字相等时返回一，否则返回零；第二个数字默认为零。	2,2
+GESTEP	number,step?	Returns one when number is at least step and zero otherwise; step defaults to zero.	数字不小于阈值时返回一，否则返回零；阈值默认为零。	2,1
+COMPLEX	real_num,i_num,suffix?	Creates complex text from real and imaginary parts; suffix defaults to i and may be i or j.	由实部与虚部创建复数文本；后缀默认为 i，可为 i 或 j。	1,2
+IMABS	inumber	Returns a complex number's magnitude.	返回复数的模。	"3+4i"
+IMAGINARY	inumber	Returns a complex number's imaginary component.	返回复数的虚部。	"3+4i"
+IMREAL	inumber	Returns a complex number's real component.	返回复数的实部。	"3+4i"
+IMARGUMENT	inumber	Returns a complex number's argument in radians.	返回复数的辐角，单位为弧度。	"1+i"
+IMCONJUGATE	inumber	Returns complex conjugate text.	返回共轭复数文本。	"1+2i"
+IMSUM	inumber*	Adds one or more complex numbers.	将一个或多个复数相加。	"1+i","2+i"
+IMSUB	inumber1,inumber2	Subtracts the second complex number from the first.	返回第一个复数减第二个复数。	"3+2i","1+i"
+IMPRODUCT	inumber*	Multiplies one or more complex numbers.	将一个或多个复数相乘。	"1+i","2+i"
+IMDIV	inumber1,inumber2	Divides the first complex number by the second.	返回第一个复数除以第二个复数。	"3+2i","1+i"
+IMEXP	inumber	Returns the complex exponential.	返回复数指数函数值。	"1+i"
+IMLN	inumber	Returns the complex natural logarithm.	返回复数自然对数。	"1+i"
+IMLOG10	inumber	Returns the complex base-ten logarithm.	返回复数以十为底的对数。	"1+i"
+IMLOG2	inumber	Returns the complex base-two logarithm.	返回复数以二为底的对数。	"1+i"
+IMSQRT	inumber	Returns the principal complex square root.	返回复数主平方根。	"1+i"
+IMPOWER	inumber,number	Raises a complex number to a real power.	返回复数的实数次幂。	"1+i",2
+IMCOS	inumber	Returns complex cosine.	返回复数余弦。	"1+i"
+IMCOSH	inumber	Returns complex hyperbolic cosine.	返回复数双曲余弦。	"1+i"
+IMSIN	inumber	Returns complex sine.	返回复数正弦。	"1+i"
+IMSINH	inumber	Returns complex hyperbolic sine.	返回复数双曲正弦。	"1+i"
+IMTAN	inumber	Returns complex tangent.	返回复数正切。	"1+i"
+IMSEC	inumber	Returns complex secant.	返回复数正割。	"1+i"
+IMCSC	inumber	Returns complex cosecant.	返回复数余割。	"1+i"
+IMCOT	inumber	Returns complex cotangent.	返回复数余切。	"1+i"
+IMSECH	inumber	Returns complex hyperbolic secant.	返回复数双曲正割。	"1+i"
+IMCSCH	inumber	Returns complex hyperbolic cosecant.	返回复数双曲余割。	"1+i"
+BESSELJ	x,n	Returns the Bessel function of the first kind for nonnegative integer order n.	返回非负整数阶 n 的第一类贝塞尔函数值。	2,1
+BESSELY	x,n	Returns the Bessel function of the second kind for positive x and nonnegative integer order n.	返回正数 x 及非负整数阶 n 的第二类贝塞尔函数值。	2,1
+BESSELI	x,n	Returns the modified Bessel function of the first kind.	返回第一类修正贝塞尔函数值。	2,1
+BESSELK	x,n	Returns the modified Bessel function of the second kind for positive x.	返回正数 x 的第二类修正贝塞尔函数值。	2,1
+CONVERT	number,from_unit,to_unit	Converts between supported units of the same physical category.	在支持的相同物理类别单位之间转换数值。	1,"m","cm"

@@ -63,7 +63,7 @@ fn invalid_last_row_restores_geometry_header_and_column_without_losing_redo_or_n
     let (mut book, mut history) = seed();
     let calls = observe(&mut book);
     book.sheet_mut(0).unwrap().set_data_validation(range("C4", "C4"), Some(DataValidationRule {
-        kind: DataValidationKind::WholeNumber { min: 0., max: 50. },
+        options: Default::default(), kind: DataValidationKind::WholeNumber { min: 0., max: 50. },
         ignore_blank: true, operator: Default::default(),
     })).unwrap();
     history.set_cell_input(&mut book, 0, "F1", "7").unwrap();

@@ -1,12 +1,16 @@
 //! Table 命令接入唯一原生历史栈；失败不消耗 redo。
 use super::*;
-use crate::{ColumnFilterRule, FilterApplyReport};
 use crate::workbook::{TableCreation, TableDefinitionChange};
+use crate::{ColumnFilterRule, FilterApplyReport};
 
 impl WorkbookHistory {
     /// 三个 Table 筛选动作共用原 Table 历史，精确保存条件与当时隐藏集合。
-    pub fn apply_table_filter(&mut self, workbook: &mut Workbook, name: &str,
-        rules: &[ColumnFilterRule]) -> Result<FilterApplyReport, String> {
+    pub fn apply_table_filter(
+        &mut self,
+        workbook: &mut Workbook,
+        name: &str,
+        rules: &[ColumnFilterRule],
+    ) -> Result<FilterApplyReport, String> {
         if self.pending.is_some() || workbook.is_inside_custom_call() {
             return Err("Another history command is pending.".into());
         }
@@ -18,21 +22,35 @@ impl WorkbookHistory {
         Ok(report)
     }
 
-    pub fn clear_table_filter(&mut self, workbook: &mut Workbook, name: &str)
-        -> Result<FilterApplyReport, String> {
+    pub fn clear_table_filter(
+        &mut self,
+        workbook: &mut Workbook,
+        name: &str,
+    ) -> Result<FilterApplyReport, String> {
         self.apply_table_filter(workbook, name, &[])
     }
 
-    pub fn reapply_table_filter(&mut self, workbook: &mut Workbook, name: &str)
-        -> Result<FilterApplyReport, String> {
-        let rules = workbook.get_table(name).ok_or("The table no longer exists.")?
-            .auto_filter().map(|filter| filter.rules().to_vec()).unwrap_or_default();
+    pub fn reapply_table_filter(
+        &mut self,
+        workbook: &mut Workbook,
+        name: &str,
+    ) -> Result<FilterApplyReport, String> {
+        let rules = workbook
+            .get_table(name)
+            .ok_or("The table no longer exists.")?
+            .auto_filter()
+            .map(|filter| filter.rules().to_vec())
+            .unwrap_or_default();
         self.apply_table_filter(workbook, name, &rules)
     }
 
     /// 按表宽追加数据，不插入整张工作表行；汇总与下方内容只在该列带内移动。
-    pub fn append_table_row(&mut self, workbook: &mut Workbook, name: &str, row_count: u32)
-        -> Result<u32, String> {
+    pub fn append_table_row(
+        &mut self,
+        workbook: &mut Workbook,
+        name: &str,
+        row_count: u32,
+    ) -> Result<u32, String> {
         if self.pending.is_some() || workbook.is_inside_custom_call() {
             return Err("Another history command is pending.".into());
         }
@@ -44,7 +62,10 @@ impl WorkbookHistory {
 
     /// 自动扩表是一次粘贴，不先记录 Resize 再另记格子写入。
     pub(crate) fn paste_expanding_table(
-        &mut self, workbook: &mut Workbook, mut change: TableDefinitionChange, range: CellRange,
+        &mut self,
+        workbook: &mut Workbook,
+        mut change: TableDefinitionChange,
+        range: CellRange,
         write: impl FnOnce(&mut Workbook) -> Result<(), &'static str>,
     ) -> Result<(), &'static str> {
         if self.pending.is_some() || workbook.is_inside_custom_call() {
@@ -56,25 +77,46 @@ impl WorkbookHistory {
     }
 
     /// 列名一直归 Table 所有，表头格与筛选在同一条历史内显隐。
-    pub fn set_table_headers(&mut self, workbook: &mut Workbook, name: &str, enabled: bool, row_count: u32)
-        -> Result<bool, String> {
+    pub fn set_table_headers(
+        &mut self,
+        workbook: &mut Workbook,
+        name: &str,
+        enabled: bool,
+        row_count: u32,
+    ) -> Result<bool, String> {
         if self.pending.is_some() || workbook.is_inside_custom_call() {
             return Err("Another history command is pending.".into());
         }
-        let Some(change) = TableDefinitionChange::prepare_headers(workbook, name, enabled, row_count)?
-            else { return Ok(false); };
-        self.finish_table_change(workbook, change,
-            if enabled { "Show table headers" } else { "Hide table headers" })?;
+        let Some(change) =
+            TableDefinitionChange::prepare_headers(workbook, name, enabled, row_count)?
+        else {
+            return Ok(false);
+        };
+        self.finish_table_change(
+            workbook,
+            change,
+            if enabled {
+                "Show table headers"
+            } else {
+                "Hide table headers"
+            },
+        )?;
         Ok(true)
     }
 
     /// 预设、隔行底色与首列强调共用一个原生元数据命令。
-    pub fn set_table_style(&mut self, workbook: &mut Workbook, name: &str, style: crate::TableStyle)
-        -> Result<bool, String> {
+    pub fn set_table_style(
+        &mut self,
+        workbook: &mut Workbook,
+        name: &str,
+        style: crate::TableStyle,
+    ) -> Result<bool, String> {
         if self.pending.is_some() || workbook.is_inside_custom_call() {
             return Err("Another history command is pending.".into());
         }
-        let Some(change) = TableDefinitionChange::prepare_style(workbook, name, style)? else { return Ok(false); };
+        let Some(change) = TableDefinitionChange::prepare_style(workbook, name, style)? else {
+            return Ok(false);
+        };
         self.finish_table_change(workbook, change, "Format table")?;
         Ok(true)
     }
@@ -108,9 +150,12 @@ impl WorkbookHistory {
         if self.pending.is_some() || workbook.is_inside_custom_call() {
             return Err("Another history command is pending.".into());
         }
-        let Some(change) = TableDefinitionChange::prepare_column_rename(workbook, name, old_column, new_column)
-            .map_err(|error| error.to_string())?
-        else { return Ok(false); };
+        let Some(change) =
+            TableDefinitionChange::prepare_column_rename(workbook, name, old_column, new_column)
+                .map_err(|error| error.to_string())?
+        else {
+            return Ok(false);
+        };
         self.finish_table_change(workbook, change, "Rename table column")?;
         Ok(true)
     }

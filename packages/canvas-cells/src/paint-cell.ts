@@ -1,6 +1,7 @@
 import { formulaViewText } from '@einfach/spreadsheet-ui-core'
 import type { BorderSegment, CanvasCellsTheme, CellPaintModel } from './types'
 import { paintText } from './text'
+import { paintCellMetadata } from './cell-metadata/paint-metadata'
 
 function paintBorder(ctx: CanvasRenderingContext2D, segment: BorderSegment, gridline: string) {
   const { side, bounds: b } = segment
@@ -47,8 +48,13 @@ export function paintCell(
       ctx.fillRect(b.x + 2 + width * bar.axis / 100, b.y + 3, 1, Math.max(0, b.height - 6))
     }
   }
-  paintText(ctx, b, cell, formulaViewText(cell, a.showFormulas), theme, Boolean(a.filter),
-    a.showFormulas)
+  if (cell?.conditionalIcon?.showValue !== false) {
+    const textBounds = cell?.conditionalIcon
+      ? { ...b, x: b.x + 15, width: Math.max(0, b.width - 15) } : b
+    paintText(ctx, textBounds, cell, formulaViewText(cell, a.showFormulas), theme,
+      Boolean(a.filter), a.showFormulas)
+  }
+  paintCellMetadata(ctx, b, cell)
   for (const border of item.borders) paintBorder(ctx, border, theme.gridline)
   if (a.filter) {
     const x = b.x + b.width - 21, y = b.y + b.height / 2 - 10

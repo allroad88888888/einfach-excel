@@ -17,6 +17,7 @@ impl FilterChange {
         key: u64,
         undo: bool,
     ) -> Result<(), &'static str> {
+        workbook.ensure_sheet_unprotected(sheet)?;
         if workbook.is_inside_custom_call() || workbook.sheet_key(sheet) != Some(key) {
             return Err("The worksheet changed outside history.");
         }
@@ -36,7 +37,8 @@ impl FilterChange {
             .iter()
             .chain(self.after.iter())
             .map(|state| {
-                std::mem::size_of::<SheetAutoFilter>() + state.hidden_set().len() * 32
+                std::mem::size_of::<SheetAutoFilter>()
+                    + state.hidden_set().len() * 32
                     + state
                         .rules()
                         .iter()
@@ -59,7 +61,10 @@ impl FilterChange {
 
 impl WorkbookHistory {
     pub fn apply_filter_range(
-        &mut self, workbook: &mut Workbook, sheet: usize, range: CellRange,
+        &mut self,
+        workbook: &mut Workbook,
+        sheet: usize,
+        range: CellRange,
         rules: &[ColumnFilterRule],
     ) -> Result<FilterApplyReport, FilterError> {
         self.change_filter(workbook, sheet, "Filter selected range", |book| {

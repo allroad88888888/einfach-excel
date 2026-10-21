@@ -1,6 +1,6 @@
 //! 条件格式仅覆盖返回的显示快照；持久基础样式与格式刷快照保持原样。
-use super::conditional_color_scale::NumericBounds;
 use super::conditional_data_bar::DataBarDisplay;
+use super::advanced_conditional_format::ConditionalIconDisplay;
 use super::conditional_format_rule::{NativeRule, NativeRuleKind};
 use super::*;
 use crate::sheet::{EXCEL_MAX_COLS, EXCEL_MAX_ROWS};
@@ -11,6 +11,7 @@ use crate::FormatRangeSnapshot;
 pub struct DisplayFormatRangeSnapshot {
     pub formats: FormatRangeSnapshot,
     pub data_bars: Vec<(CellAddress, DataBarDisplay)>,
+    pub conditional_icons: Vec<(CellAddress, ConditionalIconDisplay)>,
 }
 impl Workbook {
     pub fn snapshot_display_format_range(
@@ -37,14 +38,14 @@ impl Workbook {
                 NativeRule::parse(&entry.rule_json)
                     .ok()
                     .filter(NativeRule::enabled)
-                    .map(|rule| {
+                    .and_then(|mut rule| {
                         let statistic = rule
                             .statistic()
                             .map(|statistic| {
                                 self.conditional_range_statistics(sheet, entry, statistic)
                             })
                             .unwrap_or(Value::Null);
-                        (entry, rule, statistic)
+                        rule.resolve(self, sheet, entry, &statistic).then_some((entry, rule, statistic))
                     })
             })
             .collect();
@@ -52,6 +53,7 @@ impl Workbook {
             return Ok(DisplayFormatRangeSnapshot {
                 formats: snapshot,
                 data_bars: Vec::new(),
+                conditional_icons: Vec::new(),
             });
         }
         // 数字较小的优先级更高；同优先级时，列表中较前的规则优先。
@@ -62,6 +64,7 @@ impl Workbook {
             .map(|(addr, style)| ((addr.row, addr.col), style))
             .collect();
         let mut data_bars = BTreeMap::new();
+        let mut conditional_icons = BTreeMap::new();
         for row in range.start.row..=range.end.row {
             for col in range.start.col..=range.end.col {
                 if !rules.iter().any(|(entry, _, _)| entry.contains(row, col)) {
@@ -97,23 +100,27 @@ impl Workbook {
                             CellAddress::new(row, col),
                         ),
                         NativeRuleKind::ColorScale(rule) => {
-                            if let (Some(Value::Number(number)), Some(bounds)) =
-                                (scalar, NumericBounds::from_value(statistic))
-                            {
+                            if let Some(Value::Number(number)) = scalar {
                                 if number.is_finite() {
-                                    patches.push(rule.style(*number, bounds));
+                                    patches.push(rule.style(*number));
                                 }
                             }
                             false
                         }
                         NativeRuleKind::DataBar(rule) => {
-                            if let (Some(Value::Number(number)), Some(bounds)) =
-                                (scalar, NumericBounds::from_value(statistic))
-                            {
+                            if let Some(Value::Number(number)) = scalar {
                                 if number.is_finite() {
                                     data_bars
                                         .entry((row, col))
-                                        .or_insert_with(|| rule.display(*number, bounds));
+                                        .or_insert_with(|| rule.display(*number));
+                                }
+                            }
+                            false
+                        }
+                        NativeRuleKind::IconSet(rule) => {
+                            if let Some(Value::Number(number)) = scalar {
+                                if number.is_finite() {
+                                    conditional_icons.entry((row, col)).or_insert_with(|| rule.display(*number));
                                 }
                             }
                             false
@@ -142,6 +149,8 @@ impl Workbook {
                 .into_iter()
                 .map(|((row, col), bar)| (CellAddress::new(row, col), bar))
                 .collect(),
+            conditional_icons: conditional_icons.into_iter()
+                .map(|((row, col), icon)| (CellAddress::new(row, col), icon)).collect(),
         })
     }
 }

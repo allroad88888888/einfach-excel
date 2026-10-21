@@ -4,7 +4,7 @@ use super::*;
 
 impl Workbook {
     pub fn set_eval_filter_hidden_rows(&mut self, sheet_index: usize, rows: &[u32]) {
-        if self.is_inside_custom_call() {
+        if self.is_inside_custom_call() || self.ensure_sheet_unprotected(sheet_index).is_err() {
             return;
         }
         let Some(sheet) = self.sheets.get_mut(sheet_index) else {
@@ -96,6 +96,11 @@ impl Workbook {
         if self.is_inside_custom_call() {
             return Err(FilterError::MutationDuringCustomCall);
         }
+        self.sheets
+            .get(sheet_index)
+            .ok_or(FilterError::InvalidSheet)?;
+        self.ensure_sheet_unprotected(sheet_index)
+            .map_err(|_| FilterError::ProtectedWorksheet)?;
         let sheet = self
             .sheets
             .get_mut(sheet_index)

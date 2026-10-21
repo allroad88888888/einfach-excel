@@ -71,6 +71,8 @@ struct AutoFillListWitnessJSON {
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct AutoFillRequestJSON {
+    #[serde(default)]
+    validation_confirmation: Option<String>,
     sheet: u32,
     source_range: AutoFillRangeJSON,
     target_range: AutoFillRangeJSON,

@@ -10,6 +10,9 @@ export interface SetCellInputRequest extends SheetRef {
   input: string
   /** 保护表仍允许解锁格的普通输入，但不能隐式改变 Table 范围。 */
   expandTables?: boolean
+  /** 仅用户明确继续 Warning/Information 后发送，默认仍拒绝无效输入。 */
+  validationConfirmation?: 'continue'
+  validationRevision?: ProjectionRevision
   requestId?: ProjectionRequestId
   revision?: ProjectionRevision
 }

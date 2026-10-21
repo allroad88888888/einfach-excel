@@ -9,7 +9,7 @@ fn range(first: &str, last: &str) -> CellRange {
     CellRange::new(CellAddress::parse(first).unwrap(), CellAddress::parse(last).unwrap())
 }
 fn rule() -> DataValidationRule {
-    DataValidationRule { kind: DataValidationKind::List { items: vec!["Ready".into(), "On hold".into()] },
+    DataValidationRule { options: Default::default(), kind: DataValidationKind::List { items: vec!["Ready".into(), "On hold".into()] },
         ignore_blank: false, operator: Default::default() }
 }
 fn seed() -> (Workbook, WorkbookHistory) {

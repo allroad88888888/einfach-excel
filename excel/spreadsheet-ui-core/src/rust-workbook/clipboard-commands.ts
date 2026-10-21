@@ -1,4 +1,5 @@
 import type { CellRange } from '../shared'
+import type { ProjectionRevision } from '../backend'
 
 export type RustClipboardExportFormat = 'text' | 'markdown' | 'html'
 
@@ -43,6 +44,8 @@ export interface RustClipboardCaptureRequest {
 }
 
 export interface RustClipboardPasteRequest {
+  readonly validationConfirmation?: 'continue'
+  readonly validationRevision?: ProjectionRevision
   readonly painter?: boolean
   readonly arithmetic?: 'none' | 'add' | 'subtract' | 'multiply' | 'divide'
   readonly mode?: RustClipboardPasteMode

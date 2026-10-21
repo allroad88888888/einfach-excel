@@ -73,6 +73,7 @@ impl Sheet {
 
     pub(super) fn shift_data_validations(&mut self, edit: ShiftEdit) {
         self.data_validations.retain_mut(|entry| {
+            let old_range = entry.range;
             let (start, end, limit) = if edit.is_row_edit() {
                 (
                     &mut entry.range.start.row,
@@ -95,16 +96,46 @@ impl Sheet {
                 }
             };
             // 整行/整列验证固定在表格边界；普通有限范围随内容位移。
-            if *start == 0 && *end == limit - 1 {
-                return true;
-            }
-            if let Some((lo, hi)) = shift_interval(*start, *end, at, count, insert, limit) {
+            if !(*start == 0 && *end == limit - 1) {
+                let Some((lo, hi)) = shift_interval(*start, *end, at, count, insert, limit) else {
+                    return false;
+                };
                 *start = lo;
                 *end = hi;
-                true
-            } else {
-                false
             }
+            // 即使全轴范围保持边界，公式引用和相对锚点也必须跟随真实内容位移。
+            if let crate::data_validation::DataValidationKind::CustomFormula { formula, anchor } =
+                &mut Arc::make_mut(&mut entry.rule).kind
+            {
+                let next_anchor = edit.apply(*anchor);
+                if let Some(mut expression) = crate::parse_formula(formula) {
+                    if next_anchor.row >= EXCEL_MAX_ROWS || next_anchor.col >= EXCEL_MAX_COLS {
+                        // 原锚点被删时，把公式先重定到第一个幸存格的旧坐标。
+                        let mut survivor = old_range.start;
+                        let axis = if edit.is_row_edit() {
+                            &mut survivor.row
+                        } else {
+                            &mut survivor.col
+                        };
+                        if !insert && *axis >= at && *axis < at.saturating_add(count) {
+                            *axis = at.saturating_add(count);
+                        }
+                        if let Ok(rebased) = crate::shift::shift_copy_formula(
+                            &expression,
+                            i64::from(survivor.row) - i64::from(anchor.row),
+                            i64::from(survivor.col) - i64::from(anchor.col),
+                        ) {
+                            expression = rebased;
+                        }
+                        *anchor = entry.range.start;
+                    } else {
+                        *anchor = next_anchor;
+                    }
+                    crate::shift::rewrite_structural_refs(&mut expression, "", true, edit);
+                    *formula = crate::render_formula(&expression);
+                }
+            }
+            true
         });
     }
 }

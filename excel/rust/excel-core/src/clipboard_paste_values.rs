@@ -11,20 +11,16 @@ pub(super) fn validate_inputs(
     mode: ClipboardPasteMode,
     planned: &[PlannedCell],
 ) -> Result<Vec<CellAddress>, ClipboardError> {
-    if !matches!(
-        mode,
-        ClipboardPasteMode::Values
-            | ClipboardPasteMode::ValuesAndFormats
-            | ClipboardPasteMode::ValuesAndNumberFormats
-    ) {
+    if matches!(mode, ClipboardPasteMode::Formats | ClipboardPasteMode::ColumnWidths) {
         return Ok(Vec::new());
     }
     let mut formulas = Vec::new();
     for (addr, value, _) in planned {
         match value {
-            Some(ClipboardValue::Literal(value)) => {
-                workbook.validate_input_value(sheet, *addr, value)?
-            }
+            // 自定义公式可能依赖同批其它格的新值；必须在完整安装后校验并原子回滚。
+            Some(ClipboardValue::Literal(_)) if workbook.sheets[sheet].data_validation_at(*addr)
+                .is_some_and(|rule| matches!(rule.kind, crate::data_validation::DataValidationKind::CustomFormula { .. })) => formulas.push(*addr),
+            Some(ClipboardValue::Literal(value)) => workbook.validate_input_value(sheet, *addr, value)?,
             Some(ClipboardValue::Formula { .. })
                 if workbook.sheets[sheet].data_validation_at(*addr).is_some() =>
             {

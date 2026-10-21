@@ -108,11 +108,18 @@ export function FillHandle({ scrollRef, focusGrid }: {
         width: preview.width, height: preview.height }} />}
     <button ref={button} type="button" aria-label={t`Drag to fill`} tabIndex={-1}
       disabled={!enabled && !drag}
-      title={t`Drag to fill. Hold Ctrl/⌘ to copy; Escape to cancel.`}
+      title={t`Drag to fill. Double-click to fill down. Hold Ctrl/⌘ to copy; Escape to cancel.`}
       className="fill-handle" data-mode={drag?.copy ? 'copy' : 'auto'}
       style={{ left: gutter + corner.cornerX - 6, top: heading + corner.cornerY - 6,
         visibility: (enabled || drag) && corner.cornerVisible ? 'visible' : 'hidden' }}
-      onDoubleClick={(event) => event.stopPropagation()}
+      onDoubleClick={(event) => {
+        event.preventDefault()
+        event.stopPropagation()
+        if (!enabled) return
+        stop()
+        void command({ type: 'extend-down', copy: event.ctrlKey || event.metaKey })
+        focusGrid()
+      }}
       onPointerDown={(event) => {
         event.stopPropagation()
         if (!enabled || event.button !== 0 || event.isPrimary === false) return

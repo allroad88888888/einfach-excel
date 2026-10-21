@@ -118,6 +118,7 @@ fn invalid_validation_snapshot_keeps_current_workbook_and_history() {
                 },
                 ignore_blank: true,
                 operator: Default::default(),
+                options: Default::default(),
             }),
         )
         .unwrap();

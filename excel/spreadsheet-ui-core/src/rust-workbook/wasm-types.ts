@@ -21,6 +21,10 @@ import type { NativeOutlineAction } from '../outline/native-state'
 import type { NativeNamedRange, NativeNamedRangeAction } from '../named-ranges/native-types'
 import type { NativeTable, NativeTableAction } from '../tables/native-types'
 import type { WasmSpillQueries } from './spill-commands'
+import type { WasmNoteQueries } from './notes/command'
+import type { WasmCommentQueries } from './comments/command'
+import type { WasmProtectionQueries } from './protection/commands'
+import type { WasmCustomFormulaQueries } from './custom-formulas/command'
 
 export interface RustCellSnapshot {
   readonly sheet: number
@@ -29,6 +33,8 @@ export interface RustCellSnapshot {
   readonly formattedDisplay?: string
   readonly inputText?: string
   readonly hyperlink?: string
+  readonly noteIndicator?: boolean
+  readonly commentIndicator?: boolean
   readonly type: 'number' | 'text' | 'boolean' | 'error' | 'null'
   readonly isError: boolean
   readonly formula: string
@@ -57,9 +63,11 @@ export interface RustFormatRangeSnapshot {
   readonly rowStyles: readonly RustIndexedRowStyleSnapshot[]
   readonly columnStyles: readonly RustIndexedStyleSnapshot[]
   readonly dataBars?: readonly ({ readonly addr: string } & NonNullable<DisplayCell['dataBar']>)[]
+  readonly conditionalIcons?: readonly ({ readonly addr: string } & NonNullable<DisplayCell['conditionalIcon']>)[]
 }
 
-export interface WasmWorkbook extends WasmSpillQueries, WasmFindQueries {
+export interface WasmWorkbook extends WasmSpillQueries, WasmFindQueries, WasmCustomFormulaQueries,
+  WasmNoteQueries, WasmCommentQueries, WasmProtectionQueries {
   change_hyperlink?: (sheet: number, row: number, col: number,
     url?: string, text?: string) => boolean
   recalculate?: (sheet?: number) => number
@@ -119,6 +127,7 @@ export interface WasmWorkbook extends WasmSpillQueries, WasmFindQueries {
     | { readonly ok: true; readonly movedRows: number }
     | { readonly ok: false; readonly code: string; readonly message?: string }
   apply_auto_fill?: (input: {
+    readonly validationConfirmation?: 'continue'
     readonly sheet: number
     readonly sourceRange: { startRow: number; endRow: number; startCol: number; endCol: number }
     readonly targetRange: { startRow: number; endRow: number; startCol: number; endCol: number }
@@ -135,6 +144,9 @@ export interface WasmWorkbook extends WasmSpillQueries, WasmFindQueries {
     readonly infer?: boolean
     readonly list?: { listName: string; values: readonly string[]; locale: string }
   }) => { readonly written: number }
+  find_fill_down_end?: (sheet: number,
+    source: { startRow: number; endRow: number; startCol: number; endCol: number }, limit: number,
+  ) => number | undefined
   aggregate_selection?: (
     targets: readonly (CellRange & { readonly sheet: number })[],
   ) => SelectionNumbers
@@ -207,6 +219,10 @@ export interface WasmWorkbook extends WasmSpillQueries, WasmFindQueries {
     colWidths?: ViewportColumnWidth[]
   }
   set_cell_input?: (sheet: number, address: string, input: string) => void
+  getLastValidationFailure?: () => unknown
+  setCellInputConfirmed?: (
+    sheet: number, address: string, input: string, expandTables: boolean,
+  ) => void
   set_cell_input_with_table_expansion?: (
     sheet: number, address: string, input: string, expandTables: boolean,
   ) => void

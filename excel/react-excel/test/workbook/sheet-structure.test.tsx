@@ -45,6 +45,36 @@ async function setup() {
 }
 
 describe('worksheet structural controls', () => {
+  test.each([false, true])('deletion confirmation cycles Tab focus with shift=%s', async (shiftKey) => {
+    const { changeSheets } = await setup()
+    fireEvent.click(screen.getByRole('button', { name: 'Delete sheet' }))
+    const dialog = await screen.findByRole('alertdialog')
+    const first = within(dialog).getByRole('button', { name: 'Cancel' })
+    const last = within(dialog).getByRole('button', { name: 'Delete worksheet' })
+    const from = shiftKey ? first : last
+    from.focus()
+    fireEvent.keyDown(from, { key: 'Tab', shiftKey })
+    expect(shiftKey ? last : first).toHaveFocus()
+    expect(changeSheets).not.toHaveBeenCalled()
+  })
+
+  for (const origin of ['grid', 'delete button'])
+    test.each(['Cancel', 'Escape'])(`%s restores ${origin} focus after closing deletion confirmation`, async (cancel) => {
+      const { changeSheets } = await setup()
+      const grid = document.querySelector<HTMLElement>('[data-workbook-grid]')!
+      const previous = origin === 'grid' ? grid : screen.getByRole('button', { name: 'Delete sheet' })
+      previous.focus()
+      fireEvent.click(screen.getByRole('button', { name: 'Delete sheet' }))
+      const dialog = await screen.findByRole('alertdialog')
+      const cancelButton = within(dialog).getByRole('button', { name: 'Cancel' })
+      cancelButton.focus()
+      if (cancel === 'Cancel') fireEvent.click(cancelButton)
+      else fireEvent(dialog, new Event('cancel', { bubbles: true, cancelable: true }))
+      await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull())
+      expect(previous).toHaveFocus()
+      expect(changeSheets).not.toHaveBeenCalled()
+    })
+
   test('moves both directions without switching the active worksheet', async () => {
     const { store, changeSheets } = await setup()
     expect(screen.getByRole('button', { name: 'Move sheet left' })).toBeDisabled()

@@ -157,6 +157,8 @@ impl WorkbookAtomContext {
         self.depend_names(args);
         match self.names.borrow().get(&name.to_uppercase())? {
             crate::workbook::NamedDefinition::Value(value) => Some(value.clone()),
+            crate::workbook::NamedDefinition::CustomFormula(definition) => Some(definition.lambda_value(|name|
+                matches!(self.names.borrow().get(name), Some(crate::workbook::NamedDefinition::CustomFormula(_))))),
             crate::workbook::NamedDefinition::Range { .. } => None,
         }
     }

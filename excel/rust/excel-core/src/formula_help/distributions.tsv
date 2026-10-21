@@ -1,0 +1,50 @@
+# Audited against eval_statistics_distribution_*, legacy_distribution, hypothesis*.
+NORM.DIST|NORMDIST	x,mean,standard_dev,cumulative	Returns normal cumulative probability (TRUE) or density (FALSE).	返回正态分布的累积概率（TRUE）或密度（FALSE）。	0,0,1,TRUE
+NORM.INV|NORMINV	probability,mean,standard_dev	Returns the normal quantile for a probability strictly between zero and one.	返回严格介于零与一之间概率的正态分位数。	0.5,0,1
+NORM.S.DIST	z,cumulative	Returns standard-normal cumulative probability or density.	返回标准正态分布的累积概率或密度。	0,TRUE
+NORMSDIST	z	Returns standard-normal cumulative probability.	返回标准正态分布的累积概率。	0
+NORM.S.INV|NORMSINV	probability	Returns a standard-normal quantile.	返回标准正态分位数。	0.5
+T.DIST	x,deg_freedom,cumulative	Returns Student t cumulative probability or density.	返回学生 t 分布的累积概率或密度。	1,10,TRUE
+T.DIST.RT|T.DIST.2T	x,deg_freedom	Returns right-tail or two-tail Student t probability respectively.	分别返回学生 t 分布的右尾或双尾概率。	1,10
+T.INV	probability,deg_freedom	Returns a left-tail Student t quantile.	返回学生 t 分布的左尾分位数。	0.9,10
+T.INV.2T|TINV	probability,deg_freedom	Returns a two-tail Student t quantile.	返回学生 t 分布的双尾分位数。	0.1,10
+TDIST	x,deg_freedom,tails	Returns legacy t probability; tails must be one or two.	返回旧式 t 分布概率，尾数必须为一或二。	1,10,2
+F.DIST	x,deg_freedom1,deg_freedom2,cumulative	Returns F cumulative probability or density.	返回 F 分布的累积概率或密度。	1,5,10,TRUE
+F.DIST.RT|FDIST	x,deg_freedom1,deg_freedom2	Returns right-tail F probability.	返回 F 分布右尾概率。	1,5,10
+F.INV	probability,deg_freedom1,deg_freedom2	Returns a left-tail F quantile.	返回 F 分布左尾分位数。	0.9,5,10
+F.INV.RT|FINV	probability,deg_freedom1,deg_freedom2	Returns a right-tail F quantile.	返回 F 分布右尾分位数。	0.1,5,10
+CHISQ.DIST	x,deg_freedom,cumulative	Returns chi-square cumulative probability or density.	返回卡方分布的累积概率或密度。	2,5,TRUE
+CHISQ.DIST.RT|CHIDIST	x,deg_freedom	Returns right-tail chi-square probability.	返回卡方分布右尾概率。	2,5
+CHISQ.INV	probability,deg_freedom	Returns a left-tail chi-square quantile.	返回卡方分布左尾分位数。	0.9,5
+CHISQ.INV.RT|CHIINV	probability,deg_freedom	Returns a right-tail chi-square quantile.	返回卡方分布右尾分位数。	0.1,5
+EXPON.DIST|EXPONDIST	x,lambda,cumulative	Returns exponential cumulative probability or density for a positive rate lambda.	按正数速率 lambda 返回指数分布的累积概率或密度。	1,2,TRUE
+WEIBULL.DIST|WEIBULL	x,alpha,beta,cumulative	Returns Weibull cumulative probability or density with positive shape and scale.	使用正数形状与尺度参数返回威布尔分布的累积概率或密度。	1,2,3,TRUE
+BETA.DIST	x,alpha,beta,cumulative,lower_bound?,upper_bound?	Returns beta probability or density on bounds defaulting to zero and one.	返回贝塔分布概率或密度，默认下界零、上界一。	0.5,2,3,TRUE
+BETADIST	x,alpha,beta,lower_bound?,upper_bound?	Returns legacy beta cumulative probability; it has no cumulative argument.	返回旧式贝塔累积概率，不接受 cumulative 参数。	0.5,2,3
+BETA.INV|BETAINV	probability,alpha,beta,lower_bound?,upper_bound?	Returns a beta quantile on bounds defaulting to zero and one.	返回贝塔分位数，默认下界零、上界一。	0.5,2,3
+GAMMA.DIST|GAMMADIST	x,alpha,beta,cumulative	Returns gamma cumulative probability or density with positive shape and scale.	使用正数形状与尺度参数返回伽马分布的累积概率或密度。	1,2,3,TRUE
+GAMMA.INV|GAMMAINV	probability,alpha,beta	Returns a gamma quantile.	返回伽马分布分位数。	0.5,2,3
+BINOM.DIST|BINOMDIST	number_s,trials,probability_s,cumulative	Returns binomial cumulative probability or probability mass.	返回二项分布的累积概率或概率质量。	2,5,0.5,FALSE
+BINOM.INV|CRITBINOM	trials,probability_s,alpha	Returns the smallest integer whose binomial cumulative probability reaches alpha.	返回二项累积概率达到 alpha 的最小整数。	5,0.5,0.5
+BINOM.DIST.RANGE	trials,probability_s,number_s,number_s2?	Returns binomial probability over an inclusive success-count interval.	返回包含端点的成功次数区间内的二项概率。	5,0.5,2,3
+POISSON.DIST|POISSON	x,mean,cumulative	Returns Poisson cumulative probability or probability mass.	返回泊松分布的累积概率或概率质量。	2,3,FALSE
+HYPGEOM.DIST	sample_s,number_sample,population_s,number_population,cumulative	Returns hypergeometric cumulative probability or probability mass.	返回超几何分布的累积概率或概率质量。	1,3,4,10,FALSE
+HYPGEOMDIST	sample_s,number_sample,population_s,number_population	Returns legacy hypergeometric probability mass; it has no cumulative argument.	返回旧式超几何概率质量，不接受 cumulative 参数。	1,3,4,10
+NEGBINOM.DIST	number_f,number_s,probability_s,cumulative	Returns negative-binomial cumulative probability or probability mass.	返回负二项分布的累积概率或概率质量。	2,3,0.5,FALSE
+NEGBINOMDIST	number_f,number_s,probability_s	Returns legacy negative-binomial probability mass; it has no cumulative argument.	返回旧式负二项概率质量，不接受 cumulative 参数。	2,3,0.5
+LOGNORM.DIST	x,mean,standard_dev,cumulative	Returns lognormal cumulative probability or density for positive x.	返回正数 x 的对数正态累积概率或密度。	1,0,1,TRUE
+LOGNORMDIST	x,mean,standard_dev	Returns legacy lognormal cumulative probability; it has no cumulative argument.	返回旧式对数正态累积概率，不接受 cumulative 参数。	1,0,1
+LOGNORM.INV|LOGINV	probability,mean,standard_dev	Returns a lognormal quantile.	返回对数正态分位数。	0.5,0,1
+GAMMA	number	Returns the gamma function.	返回伽马函数值。	3
+GAMMALN|GAMMALN.PRECISE	x	Returns the natural logarithm of the gamma function for positive x.	返回正数 x 的伽马函数自然对数。	3
+ERF	lower_limit,upper_limit?	Returns the error function at the lower limit, or its difference between two limits.	返回下限处的误差函数值，或上下限之间的误差函数差。	0,1
+ERF.PRECISE	lower_limit,upper_limit?	Uses the same one- or two-limit implementation as ERF.	使用与 ERF 相同的一个或两个界限实现。	1
+ERFC|ERFC.PRECISE	x	Returns the complementary error function at x.	返回 x 处的互补误差函数值。	1
+GAUSS	z	Returns standard-normal cumulative probability minus one half.	返回标准正态累积概率减二分之一。	1
+PHI	z	Returns standard-normal probability density.	返回标准正态概率密度。	1
+CONFIDENCE|CONFIDENCE.NORM	alpha,standard_dev,size	Returns the normal confidence-interval half-width for the sample mean.	返回样本均值的正态置信区间半宽。	0.05,2,30
+CONFIDENCE.T	alpha,standard_dev,size	Returns the Student t confidence-interval half-width for the sample mean.	返回样本均值的学生 t 置信区间半宽。	0.05,2,30
+CHISQ.TEST|CHITEST	actual_range,expected_range	Returns the chi-square independence-test probability for matching tables.	返回形状相同列联表的卡方独立性检验概率。	A1:B2,A1:B2
+F.TEST|FTEST	array1,array2	Returns the two-tail probability for equality of two sample variances.	返回两个样本方差相等检验的双尾概率。	{1,2,4},{2,3,5}
+T.TEST|TTEST	array1,array2,tails,type	Returns a paired (1), equal-variance (2), or unequal-variance (3) t-test probability.	返回配对（1）、等方差（2）或异方差（3）t 检验概率。	{1,2,4},{2,3,5},2,2
+Z.TEST|ZTEST	array,x,sigma?	Returns a one-tail z-test probability; omitted sigma uses sample standard deviation.	返回单尾 z 检验概率；省略 sigma 时使用样本标准差。	{1,2,4},2

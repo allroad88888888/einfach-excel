@@ -14,8 +14,11 @@ impl Workbook {
             Some(a) => a,
             None => return false,
         };
-
+        if self.ensure_range_editable(sheet_idx, CellRange::single(addr)).is_err() {
+            return false;
+        }
         let rows = self.insert_rows_for_writes([(sheet_idx, addr)]);
+        if !rows.is_empty() && self.ensure_workbook_unprotected().is_err() { return false; }
         self.write_with_insert_rows(rows, |book| {
             let array_dependents = book.cross_sheet_array_dependents_for_addr(sheet_idx, addr);
             let expr = match parse_formula(formula_text) {
@@ -58,7 +61,12 @@ impl Workbook {
         let Some(addr) = CellAddress::parse(addr_str) else {
             return;
         };
+        if self.ensure_range_editable(sheet_idx, CellRange::single(addr)).is_err() {
+            return;
+        }
         let rows = self.insert_rows_for_writes([(sheet_idx, addr)]);
+        if !rows.is_empty() && !matches!(value, Value::Null)
+            && self.ensure_workbook_unprotected().is_err() { return; }
         self.write_with_insert_rows(rows, |book| {
             let array_dependents = book.cross_sheet_array_dependents_for_addr(sheet_idx, addr);
             book.sheets[sheet_idx].set_cell(addr_str, value);
@@ -78,6 +86,9 @@ impl Workbook {
         let Some(addr) = CellAddress::parse(addr_str) else {
             return;
         };
+        if self.ensure_range_editable(sheet_idx, CellRange::single(addr)).is_err() {
+            return;
+        }
         let array_dependents = self.cross_sheet_array_dependents_for_addr(sheet_idx, addr);
         self.sheets[sheet_idx].clear_cell(addr_str);
         self.recompute_array_formula_groups(array_dependents);
@@ -102,7 +113,12 @@ impl Workbook {
             return Err(SheetError::InvalidAddress);
         }
         let addr = CellAddress::parse(addr_str).ok_or(SheetError::InvalidAddress)?;
+        self.ensure_range_editable(sheet_idx, CellRange::single(addr))
+            .map_err(|_| SheetError::ProtectedCell)?;
         let rows = self.insert_rows_for_writes([(sheet_idx, addr)]);
+        if !rows.is_empty() && !matches!(value, Value::Null) {
+            self.ensure_workbook_unprotected().map_err(|_| SheetError::ProtectedCell)?;
+        }
         self.write_with_insert_rows(rows, |book| {
             let array_dependents = book.cross_sheet_array_dependents_for_addr(sheet_idx, addr);
             book.sheets[sheet_idx].try_set_cell(addr_str, value)?;
@@ -123,6 +139,8 @@ impl Workbook {
             return Err(SheetError::InvalidAddress);
         }
         let addr = CellAddress::parse(addr_str).ok_or(SheetError::InvalidAddress)?;
+        self.ensure_range_editable(sheet_idx, CellRange::single(addr))
+            .map_err(|_| SheetError::ProtectedCell)?;
         let array_dependents = self.cross_sheet_array_dependents_for_addr(sheet_idx, addr);
         self.sheets[sheet_idx].try_clear_cell(addr_str)?;
         self.recompute_array_formula_groups(array_dependents);
@@ -153,7 +171,12 @@ impl Workbook {
         if sheet_idx >= self.sheets.len() {
             return Err(SheetError::InvalidAddress);
         }
-        CellAddress::parse(addr_str).ok_or(SheetError::InvalidAddress)?;
+        let addr = CellAddress::parse(addr_str).ok_or(SheetError::InvalidAddress)?;
+        self.ensure_range_editable(sheet_idx, CellRange::single(addr))
+            .map_err(|_| SheetError::ProtectedCell)?;
+        if !self.insert_rows_for_writes([(sheet_idx, addr)]).is_empty() {
+            self.ensure_workbook_unprotected().map_err(|_| SheetError::ProtectedCell)?;
+        }
         Ok(self.set_formula(sheet_idx, addr_str, formula_text))
     }
 
@@ -244,6 +267,7 @@ impl Workbook {
     /// every address in that range. The metadata scan is sparse and does
     /// not evaluate formulas; `bulk_load` coalesces all Store propagation.
     pub fn clear_range(&mut self, sheet_idx: usize, range: CellRange) -> usize {
+        if self.ensure_range_editable(sheet_idx, range).is_err() { return 0; }
         let Some(sheet) = self.sheets.get(sheet_idx) else {
             return 0;
         };

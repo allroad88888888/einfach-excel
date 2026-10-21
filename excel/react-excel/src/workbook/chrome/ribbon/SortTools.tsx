@@ -6,6 +6,7 @@ import { configureSortAtom, editingSessionAtom, sortFeedbackAtom, sortPanelAtom,
   sortSelectionAtom, getColumnLabel } from '@einfach/spreadsheet-ui-core'
 import './selection-size.css'
 import './sort.css'
+import { cycleDialogFocus } from './dialog-focus'
 
 /** 排序入口只发用户选项；dialog 的显示及焦点是这里唯一持有的 DOM 状态。 */
 export function SortTools() {
@@ -47,6 +48,7 @@ export function SortTools() {
       role={feedback.error ? 'alert' : 'status'}>{translateFeedback(i18n, feedback.error || feedback.message)}</span>}
     {target && <dialog ref={ref} className="selection-size-dialog sort-dialog"
       aria-labelledby={`${id}-title`} aria-describedby={`${id}-help`}
+      onKeyDown={cycleDialogFocus}
       onCancel={(event) => { event.preventDefault(); void configure('close') }}>
       <h2 id={`${id}-title`}><Trans>Custom sort</Trans></h2>
       <p id={`${id}-help`}><Trans>Only the selected rectangle moves. Filtered rows stay in place;

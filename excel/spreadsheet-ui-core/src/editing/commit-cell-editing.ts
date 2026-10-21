@@ -30,6 +30,7 @@ import { activeWorkbookSheetAtom } from '../runtime/workbook-document'
 import { sheetViewsBackingAtom } from '../runtime/sheet-view-state'
 import { selectionAuthorityWitnessAtom } from '../selection'
 import { getSheetProtection, sheetProtectionAtom } from '../protection'
+import { offerNativeValidationConfirmationAtom } from '../data-validation/advanced/confirmation-state'
 import type {
   CommitCellEditingInput,
   EditingCommitOutcome,
@@ -119,6 +120,9 @@ export const commitCellEditingAtom = atom(
       row: target.row,
       col: target.col,
       input: session.draft,
+      ...(input?.validationConfirmation === 'continue' ? {
+        validationConfirmation: 'continue', validationRevision: input.validationRevision,
+      } : {}),
       ...(getSheetProtection(get(sheetProtectionAtom), session.source.sheetId).mode === 'protected'
         ? { expandTables: false }
         : {}),
@@ -167,6 +171,8 @@ export const commitCellEditingAtom = atom(
         return finish('outcome-unknown')
       }
       if (transport.kind === 'rejected') {
+        set(offerNativeValidationConfirmationAtom, { error: transport.error,
+          operation: { command: 'cell.setInput' }, witness: projectionWitness })
         return finish(
           rejectCommit(
             set,

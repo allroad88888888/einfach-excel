@@ -36,6 +36,10 @@ import { FontSizeTools } from './FontSizeTools'
 import { NumberFormatTools } from './NumberFormatTools'
 import { BorderTools } from './BorderTools'
 import { HyperlinkTools } from '../../hyperlink/HyperlinkTools'
+import { NoteTools } from '../../notes/NoteTools'
+import { CommentTools } from '../../comments/CommentTools'
+import { ProtectionTools } from '../../protection/ProtectionTools'
+import { CustomFormulaTools } from '../../custom-formulas/CustomFormulaTools'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useId, useLayoutEffect, useRef } from 'react'
 import { RibbonTabs, ribbonTabLabels } from './RibbonTabs'
@@ -106,6 +110,7 @@ export function WorkbookRibbon() {
             <TextColumnsTools />
             <RemoveDuplicatesTools />
             <DataValidationTools />
+            <ProtectionTools />
           </div>
           <div className="ribbon-tool-group" data-inactive={!all && tab !== 'View'}>
             <VisibilityTools />
@@ -117,6 +122,8 @@ export function WorkbookRibbon() {
             <StructureTools />
             <TableTools />
             <HyperlinkTools />
+            <NoteTools />
+            <CommentTools />
           </div>
           <div className="ribbon-tool-group" data-inactive={!all}>
             <span className="tool-separator" aria-hidden="true" />
@@ -244,6 +251,7 @@ export function WorkbookRibbon() {
           <div className="ribbon-tool-group" data-inactive={!all && tab !== 'Formulas'}>
             <QuickFormulaTools />
             <InsertFunctionTools />
+            <CustomFormulaTools />
             <CalculationTools />
             <SpillTools />
             <NamedRangeTools />

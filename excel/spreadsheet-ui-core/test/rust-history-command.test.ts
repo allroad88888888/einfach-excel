@@ -3,6 +3,7 @@ import { createStore } from '@einfach/core'
 import { dispatchKeyboardInputAtom } from '../src/keyboard'
 import {
   createSpreadsheetUi,
+  dispatchGridCellKeyboardInputAtom,
   initializeWorkbookDocumentAtom,
   runVisibleProjectionAtom,
   runRustHistoryAtom,
@@ -73,6 +74,23 @@ async function setup(failure = false, affectedSheets = [0]) {
 
 describe('Rust history command', () => {
   test.each([
+    [{ key: 'z', ctrlKey: true }, 'undo'], [{ key: 'z', metaKey: true }, 'undo'],
+    [{ key: 'y', ctrlKey: true }, 'redo'], [{ key: 'z', metaKey: true, shiftKey: true }, 'redo'],
+  ] as const)(
+    'grid %j can %s while stale-cell editing is blocked', async (keyboard, action) => {
+      const { store, apply } = await setup()
+      if (action === 'redo') await store.setter(runRustHistoryAtom, 'undo')
+      apply.mockClear()
+      store.setter(dispatchGridCellKeyboardInputAtom, {
+        sheetId: 'summary', cell: { row: 0, col: 0 }, keyboard, allowEditing: false,
+      })
+      await vi.waitFor(() => expect(store.getter(rustHistoryStateAtom).undoCount)
+        .toBe(action === 'undo' ? 0 : 1))
+      expect(apply).toHaveBeenCalledTimes(1)
+      expect(apply.mock.calls[0][0].direction).toBe(action)
+    },
+  )
+  test.each([
     [{ key: 'z', metaKey: true }, 'history.undo'],
     [{ key: 'Z', metaKey: true, shiftKey: true }, 'history.redo'],
     [{ key: 'z', ctrlKey: true, shiftKey: true }, 'history.redo'],
@@ -104,15 +122,21 @@ describe('Rust history command', () => {
     expect(store.getter(rustHistoryPanelAtom).open).toBe(false)
     expect(apply).not.toHaveBeenCalled()
   })
-  test('protection checks the affected sheet, not only the displayed sheet', async () => {
+  test('native protection checks the affected sheet and rejection preserves its history', async () => {
     const { store, apply } = await setup()
     store.setter(setSheetProtectionAtom, {
       sheetId: 'orders',
       state: { mode: 'protected', unlockedRanges: [] },
     })
+    apply.mockRejectedValueOnce(new Error('This worksheet is protected.'))
+    const before = store.getter(projectionSnapshotAtom)
+    const sizes = store.getter(viewportSizeOverridesAtom)
     expect(await store.setter(runRustHistoryAtom, 'undo')).toBe(false)
-    expect(store.getter(rustHistoryPanelAtom).error).toContain('Unprotect')
-    expect(apply).not.toHaveBeenCalled()
+    expect(store.getter(rustHistoryPanelAtom).error).toContain('protected')
+    expect(apply).toHaveBeenCalledTimes(1)
+    expect(store.getter(projectionSnapshotAtom)).toBe(before)
+    expect(store.getter(viewportSizeOverridesAtom)).toBe(sizes)
+    expect(store.getter(rustHistoryStateAtom)).toMatchObject({ undoCount: 1, redoCount: 0 })
   })
   test('a cut history cannot rewrite a protected dependent worksheet', async () => {
     const { store, apply } = await setup(false, [0, 1])
@@ -120,9 +144,23 @@ describe('Rust history command', () => {
       sheetId: 'summary',
       state: { mode: 'protected', unlockedRanges: [] },
     })
+    apply.mockRejectedValueOnce(new Error('This worksheet is protected.'))
+    const before = store.getter(projectionSnapshotAtom)
     expect(await store.setter(runRustHistoryAtom, 'undo')).toBe(false)
-    expect(apply).not.toHaveBeenCalled()
-    expect(store.getter(rustHistoryPanelAtom).error).toContain('Unprotect')
+    expect(apply).toHaveBeenCalledTimes(1)
+    expect(store.getter(projectionSnapshotAtom)).toBe(before)
+    expect(store.getter(rustHistoryPanelAtom).error).toContain('protected')
+  })
+  test('protected editable-range history accepts native undo and redo acknowledgements', async () => {
+    const { store, apply } = await setup()
+    store.setter(setSheetProtectionAtom, {
+      sheetId: 'orders', state: { mode: 'protected', unlockedRanges: [range] },
+    })
+    expect(await store.setter(runRustHistoryAtom, 'undo')).toBe(true)
+    expect(store.getter(rustHistoryStateAtom)).toMatchObject({ undoCount: 0, redoCount: 1 })
+    expect(await store.setter(runRustHistoryAtom, 'redo')).toBe(true)
+    expect(store.getter(rustHistoryStateAtom)).toMatchObject({ undoCount: 1, redoCount: 0 })
+    expect(apply).toHaveBeenCalledTimes(2)
   })
   test('failure preserves the projection and allows retry', async () => {
     const { store, apply } = await setup()
@@ -209,7 +247,7 @@ describe('Rust history command', () => {
     const { store, apply } = await setup(false, [0, 99])
     expect(await store.setter(runRustHistoryAtom, 'undo')).toBe(false)
     expect(apply).not.toHaveBeenCalled()
-    expect(store.getter(rustHistoryPanelAtom).error).toContain('Unprotect')
+    expect(store.getter(rustHistoryPanelAtom).error).toBe('The worksheet no longer exists.')
   })
 
   test.each(['success', 'failure'] as const)('late %s after connection replacement cannot change the new projection', async (outcome) => {

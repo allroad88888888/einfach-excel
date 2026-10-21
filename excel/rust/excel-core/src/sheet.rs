@@ -100,7 +100,7 @@ mod format_snapshot;
 #[path = "sheet_format_write.rs"]
 mod format_write;
 pub use borders::BorderPreset;
-pub(crate) use borders::{border_plan_range, BorderPlan};
+pub(crate) use borders::{border_plan_range, border_plan_ranges, BorderPlan};
 #[path = "sheet_border_replacement.rs"]
 mod border_replacement;
 #[path = "sheet_formula_state.rs"]

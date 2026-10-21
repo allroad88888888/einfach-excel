@@ -36,6 +36,7 @@ impl Workbook {
         primitives: HashMap<CellAddress, Value>,
         formulas: HashMap<CellAddress, String>,
     ) -> Result<BulkInstallStats, InstallError> {
+        self.ensure_workbook_unprotected().map_err(|_| InstallError::ProtectedWorkbook)?;
         let store = self.store.clone();
         let mut result = None;
         store.batch(|_| {
@@ -147,6 +148,7 @@ impl Workbook {
             HashMap<CellAddress, String>,
         )>,
     ) -> Result<Vec<BulkInstallStats>, InstallError> {
+        self.ensure_workbook_unprotected().map_err(|_| InstallError::ProtectedWorkbook)?;
         if self.is_inside_custom_call() {
             return Err(InstallError::MutationDuringCustomCall);
         }

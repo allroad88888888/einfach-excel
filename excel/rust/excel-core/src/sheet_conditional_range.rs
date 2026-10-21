@@ -3,13 +3,11 @@ use super::*;
 
 pub(crate) enum ConditionalStatistic {
     Duplicates,
+    SortedNumbers,
     Rank {
         count: u32,
         percent: bool,
         bottom: bool,
-    },
-    Bounds {
-        median: bool,
     },
 }
 
@@ -97,6 +95,13 @@ impl ConditionalStatistic {
     fn summarize(&self, numbers: &mut [f64]) -> Value {
         match *self {
             Self::Duplicates => unreachable!("duplicate keys use the sparse value scan"),
+            Self::SortedNumbers => {
+                numbers.sort_by(f64::total_cmp);
+                Value::Array(Arc::new(ArrayData::new(
+                    1, numbers.len() as u32,
+                    numbers.iter().copied().map(Value::Number).collect(),
+                )))
+            }
             Self::Rank {
                 count,
                 percent,
@@ -118,38 +123,6 @@ impl ConditionalStatistic {
                     numbers.len() - take
                 };
                 Value::Number(*numbers.select_nth_unstable_by(index, f64::total_cmp).1)
-            }
-            Self::Bounds { median } => {
-                let min = numbers.iter().copied().fold(f64::INFINITY, f64::min);
-                let max = numbers.iter().copied().fold(f64::NEG_INFINITY, f64::max);
-                let middle = if median {
-                    let even = numbers.len() % 2 == 0;
-                    let index = numbers.len() / 2;
-                    let (lower, upper, _) = numbers.select_nth_unstable_by(index, f64::total_cmp);
-                    if even {
-                        let lower = lower.iter().copied().fold(f64::NEG_INFINITY, f64::max);
-                        let sum = lower + *upper;
-                        // 先相加，避免极小数分别减半后归零；和溢出时才分别减半。
-                        if sum.is_finite() {
-                            sum / 2.0
-                        } else {
-                            lower / 2.0 + *upper / 2.0
-                        }
-                    } else {
-                        *upper
-                    }
-                } else {
-                    min
-                };
-                Value::Array(Arc::new(ArrayData::new(
-                    1,
-                    3,
-                    vec![
-                        Value::Number(min),
-                        Value::Number(middle),
-                        Value::Number(max),
-                    ],
-                )))
             }
         }
     }

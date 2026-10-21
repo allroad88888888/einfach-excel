@@ -21,7 +21,8 @@ function parseA1(address: string): { row: number; col: number } | null {
 /** 把 Rust 快照变成 UI 投影格，空快照不会进入稀疏结果。 */
 export function displayCell(snapshot: RustCellSnapshot): DisplayCell | null {
   const coord = parseA1(snapshot.addr)
-  if (!coord || (snapshot.type === 'null' && !snapshot.formula && !snapshot.display && !snapshot.hyperlink)) return null
+  if (!coord || (snapshot.type === 'null' && !snapshot.formula && !snapshot.display &&
+    !snapshot.hyperlink && !snapshot.noteIndicator && !snapshot.commentIndicator)) return null
   const valueKind = snapshot.isError
     ? 'error'
     : snapshot.type === 'text'
@@ -34,6 +35,8 @@ export function displayCell(snapshot: RustCellSnapshot): DisplayCell | null {
   }
   cell.inputText = snapshot.inputText ?? (snapshot.formula || snapshot.display)
   if (snapshot.hyperlink) cell.hyperlink = snapshot.hyperlink
+  if (snapshot.noteIndicator) cell.noteIndicator = true
+  if (snapshot.commentIndicator) cell.commentIndicator = true
   if (snapshot.type === 'number') {
     const numericValue = Number(snapshot.display)
     if (Number.isFinite(numericValue)) cell.numericValue = numericValue
@@ -51,8 +54,14 @@ export function writeCellInput(
   col: number,
   input: string,
   expandTables?: boolean,
+  validationConfirmation?: 'continue',
 ): void {
   const address = toA1(row, col)
+  if (validationConfirmation === 'continue') {
+    requiredMethod(workbook.setCellInputConfirmed, 'setCellInputConfirmed')
+      .call(workbook, sheet, address, input, expandTables !== false)
+    return
+  }
   if (expandTables === false) {
     requiredMethod(workbook.set_cell_input_with_table_expansion, 'set_cell_input_with_table_expansion')
       .call(workbook, sheet, address, input, false)

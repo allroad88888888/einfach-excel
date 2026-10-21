@@ -34,7 +34,8 @@ export const dispatchGridCellKeyboardInputAtom = atom(
       void set(fillSelectionAtom, intent.direction)
       return intent
     }
-    if ((intent.type === 'history.undo' || intent.type === 'history.redo') && input.allowEditing) {
+    // 历史操作不读取旧画面的单元格；保留帧只禁止就地编辑，不吞撤销／重做。
+    if (intent.type === 'history.undo' || intent.type === 'history.redo') {
       void set(runRustHistoryAtom, intent.type === 'history.undo' ? 'undo' : 'redo')
       return intent
     }

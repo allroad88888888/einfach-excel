@@ -67,11 +67,16 @@ for (const [tab, button, heading, copy] of panels) {
         .toHaveAttribute('value', 'date')
     }
     if (button === '插入函数') {
+      await expect(dialog.getByLabel('类别', { exact: true }).locator('option[value="Custom"]'))
+        .toHaveText('自定义')
+      await expect(dialog.getByLabel('类别', { exact: true }).locator('option[value="Linked content"]'))
+        .toHaveText('链接内容')
       await dialog.getByLabel('类别', { exact: true }).selectOption('Math & statistics')
       await expect(dialog.getByLabel('类别', { exact: true })).toHaveValue('Math & statistics')
       await expect(dialog.getByRole('option', { name: '数学与统计', exact: true })).toHaveAttribute('value', 'Math & statistics')
       await dialog.getByLabel('函数', { exact: true }).selectOption('SUM')
-      await expect(dialog).toContainText('计算单元格区域内所有数字之和。')
+      await expect(dialog.locator('[data-formula-help="SUM"] .formula-help-summary'))
+        .toHaveText('求数字参数及区域中数字单元格的和。')
     }
     await page.keyboard.press('Escape')
     await expect(dialog).toHaveCount(0)

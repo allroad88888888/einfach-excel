@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { FORMULA_FUNCTION_SPECS } from '../../../spreadsheet-ui-core/src/formula-functions/registry'
 import { select } from '../support/clipboard'
 
-/** 已提供详细参数帮助的 21 项逐一验证；完整原生目录另有分发表一致性与页面测试。 */
+/** 保留旧21项计算示例回归；完整原生参数帮助目录另有逐项DOM验证。 */
 const examples: Record<string, [string, string]> = {
   SUM: ['SUM(E2:E3)', '3'],
   AVERAGE: ['AVERAGE(E2:E3)', '1.5'],

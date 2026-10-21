@@ -14,6 +14,8 @@ impl Workbook {
         if sheet_index >= self.sheets.len() {
             return Err(FilterError::InvalidSheet);
         }
+        self.ensure_sheet_unprotected(sheet_index)
+            .map_err(|_| FilterError::ProtectedWorksheet)?;
 
         // Phase 1 — scan, behind `&self`, into locals. Nothing is committed
         // yet, so a rejection below leaves the workbook untouched.
@@ -164,6 +166,8 @@ impl Workbook {
     /// Scan-free by construction — it installs a remembered answer rather
     /// than recomputing one.
     pub fn restore_filters(&mut self, snapshot: FilterSnapshot) -> Result<u32, FilterError> {
+        self.ensure_workbook_unprotected()
+            .map_err(|_| FilterError::ProtectedWorksheet)?;
         if self.is_inside_custom_call() {
             return Err(FilterError::MutationDuringCustomCall);
         }
@@ -176,7 +180,11 @@ impl Workbook {
             let index = entry.sheet_index;
             if let Some(range) = entry.range {
                 crate::workbook::workbook_filter_range::validate_filter_range(range, &entry.rules)?;
-                if entry.hidden_rows.iter().any(|row| *row <= range.start.row || *row > range.end.row) {
+                if entry
+                    .hidden_rows
+                    .iter()
+                    .any(|row| *row <= range.start.row || *row > range.end.row)
+                {
                     return Err(FilterError::InvalidRange);
                 }
             }
@@ -187,11 +195,16 @@ impl Workbook {
             let next = match entry {
                 Some(entry) => {
                     restored += 1;
-                    if entry.range.is_none() && entry.rules.is_empty() && entry.hidden_rows.is_empty() {
+                    if entry.range.is_none()
+                        && entry.rules.is_empty()
+                        && entry.hidden_rows.is_empty()
+                    {
                         None
                     } else {
                         let mut state = crate::filter::SheetAutoFilter::new(
-                            entry.rules, entry.hidden_rows.into_iter().collect());
+                            entry.rules,
+                            entry.hidden_rows.into_iter().collect(),
+                        );
                         state.range = entry.range;
                         Some(state)
                     }

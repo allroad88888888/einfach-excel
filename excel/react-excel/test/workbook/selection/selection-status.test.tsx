@@ -51,6 +51,19 @@ test('renders all Rust statistics and preserves precise values in titles', async
   expect(screen.getByText('Max: 7')).toHaveAttribute('title', '7')
 })
 
+test.each([false, true])('Tab shift=%s stays inside statistics settings without recalculating', async (shiftKey) => {
+  const { aggregate } = await setup()
+  fireEvent.click(screen.getByRole('button', { name: 'Selection statistics settings' }))
+  const first = screen.getByRole('checkbox', { name: 'Count' })
+  const last = screen.getByRole('button', { name: 'Done' })
+  const origin = shiftKey ? first : last
+  origin.focus()
+  expect(fireEvent.keyDown(origin, { key: 'Tab', shiftKey })).toBe(false)
+  expect(shiftKey ? last : first).toHaveFocus()
+  expect(screen.getByRole('checkbox', { name: 'Sum' })).toBeChecked()
+  expect(aggregate).toHaveBeenCalledTimes(1)
+})
+
 test('statistics wait locally and a late old selection cannot reappear', async () => {
   let finish!: (value: Numbers) => void
   const r = await setup(new Promise((resolve) => { finish = resolve }))

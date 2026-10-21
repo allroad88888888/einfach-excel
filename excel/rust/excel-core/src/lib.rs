@@ -25,6 +25,10 @@ pub mod formula;
 pub mod general_text;
 pub mod history_snapshot;
 pub mod hyperlink;
+pub mod notes;
+pub mod comments;
+pub mod protection;
+pub mod custom_formulas;
 pub mod range;
 pub mod sheet;
 pub mod shift;
@@ -57,7 +61,8 @@ mod table_column_formula;
 pub use table_column_formula::TableColumnFormula;
 pub use csv::{export_csv, import_csv, parse_csv, to_csv};
 pub use eval::{
-    builtin_function_catalog, BuiltinFunction, eval_expr, is_builtin_function_name, CustomFunctionRegistry, EvalProvider,
+    builtin_function_catalog, BuiltinFunction, BuiltinFunctionHelp, FormulaParameter,
+    FormulaRepeatGroup, FormulaLimitation, eval_expr, is_builtin_function_name, CustomFunctionRegistry, EvalProvider,
     DYNAMIC_ARRAY_CELL_CAP,
 };
 pub use filter::{
@@ -83,7 +88,7 @@ pub use sort::{
 pub use undo::{CellSnapshot, Edit, UndoStack};
 pub use workbook::{
     BulkInstallStats, ConditionalFormatConfigSnapshot, ConditionalFormatError,
-    DataBarDisplay, DisplayFormatRangeSnapshot,
+    ConditionalIconDisplay, DataBarDisplay, DisplayFormatRangeSnapshot,
     ConditionalFormatRuleEntry, FilterSnapshot, HeaderFooterFields, HiddenRowsError,
     HiddenRowsSnapshot, InstallError, ManualPageBreak, ManualPageBreakAxis, MergeAction,
     PrintConfig, PrintConfigError, PrintConfigSnapshot, PrintOrientation, PrintScale,

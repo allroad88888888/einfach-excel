@@ -1,0 +1,79 @@
+# Dispatch: aggregate_core, math_basic/rounding/combinatorics/trigonometry/hyperbolic/advanced.
+SUM	number*?	Adds numeric arguments and numeric cells in ranges.	求数字参数及区域中数字单元格的和。	1,2,3
+AVERAGE	number*?	Returns the mean of numeric values; no numbers produces a division error.	返回数字的平均值；没有数字时返回除零错误。	1,2,3
+COUNT	value*?	Counts numeric values, ignoring text and empty cells in references.	统计数字值，忽略引用中的文本与空单元格。	1,2,"x"
+COUNTA	value*?	Counts nonempty values, including text and errors.	统计包括文本与错误在内的非空值。	1,"x"
+COUNTBLANK	range	Counts blank cells in a reference or array.	统计引用或数组中的空单元格。	A1:A3
+MIN	number*?	Returns the smallest numeric value, or zero when none exists.	返回最小数字；没有数字时返回零。	1,2,3
+MAX	number*?	Returns the largest numeric value, or zero when none exists.	返回最大数字；没有数字时返回零。	1,2,3
+SUBTOTAL	function_num,reference*	Aggregates references using function codes 1–11 or 101–111, excluding filtered rows and nested subtotals.	按 1–11 或 101–111 功能码汇总引用，排除筛选隐藏行及嵌套分类汇总。	9,A1:A3
+AGGREGATE	function_num,options,array*,k?	Aggregates using codes 1–19 and options 0–7; codes 14–19 require a final k argument.	使用 1–19 功能码及 0–7 选项汇总；14–19 需末尾 k 参数。	9,0,A1:A3
+ABS	number	Returns the absolute value.	返回绝对值。	-3
+SQRT	number	Returns the nonnegative square root.	返回非负平方根。	9
+ROUND	number,num_digits	Rounds to the given number of decimal places.	按指定小数位数四舍五入。	3.14159,2
+ROUNDUP	number,num_digits	Rounds away from zero to the specified decimal places.	按指定小数位数向远离零的方向舍入。	3.14159,2
+ROUNDDOWN	number,num_digits	Rounds toward zero to the specified decimal places.	按指定小数位数向零舍入。	3.14159,2
+TRUNC	number,num_digits?	Truncates decimal digits toward zero; the default digit count is zero.	向零截断小数，默认位数为零。	-3.7
+INT	number	Rounds downward to an integer.	向负无穷方向取整。	-3.7
+SIGN	number	Returns -1, 0, or 1 according to the sign.	按符号返回 -1、0 或 1。	-3
+CEILING	number	Rounds upward to an integer; this engine accepts one argument only.	向上取整；本引擎只接受一个参数。	3.2
+FLOOR	number	Rounds downward to an integer; this engine accepts one argument only.	向下取整；本引擎只接受一个参数。	3.2
+CEILING.MATH	number,significance?,mode?	Rounds upward to a multiple; mode controls rounding negative values.	向上舍入为基数倍数，mode 控制负数舍入方式。	-3.2,1,0
+FLOOR.MATH	number,significance?,mode?	Rounds downward to a multiple; mode controls rounding negative values.	向下舍入为基数倍数，mode 控制负数舍入方式。	-3.2,1,0
+CEILING.PRECISE|ISO.CEILING	number,significance?	Rounds upward using the absolute significance, defaulting to one.	使用基数绝对值向上舍入，默认基数为一。	3.2,1
+FLOOR.PRECISE	number,significance?	Rounds downward using the absolute significance, defaulting to one.	使用基数绝对值向下舍入，默认基数为一。	3.2,1
+MROUND	number,multiple	Rounds to the nearest multiple.	舍入到最接近的指定倍数。	7,3
+POWER	number,power	Raises a number to a power.	返回数字的指定次幂。	2,3
+MOD	number,divisor	Returns the Euclidean nonnegative remainder.	返回非负的欧几里得余数。	7,3
+QUOTIENT	numerator,denominator	Returns the integer portion of a division, truncating toward zero.	返回商向零截断后的整数部分。	7,3
+EXP	number	Returns e raised to a power.	返回 e 的指定次幂。	1
+LN	number	Returns the natural logarithm of a positive number.	返回正数的自然对数。	2
+LOG	number,base?	Returns the logarithm; the default base is ten.	返回对数，默认底数为十。	100
+LOG10	number	Returns the base-ten logarithm.	返回以十为底的对数。	100
+PI		Returns the constant pi.	返回圆周率。	
+PRODUCT	number*?	Multiplies numeric values.	返回数字值的乘积。	2,3,4
+FACT	number	Returns the factorial of a nonnegative integer after truncation.	将非负数截断取整后返回阶乘。	5
+FACTDOUBLE	number	Returns the double factorial.	返回双阶乘。	5
+COMBIN	number,number_chosen	Counts combinations without repetition.	计算不允许重复的组合数。	5,2
+COMBINA	number,number_chosen	Counts combinations with repetition.	计算允许重复的组合数。	5,2
+GCD	number*	Returns the greatest common divisor of nonnegative integers.	返回非负整数的最大公约数。	12,18
+LCM	number*	Returns the least common multiple of nonnegative integers.	返回非负整数的最小公倍数。	4,6
+MULTINOMIAL	number*	Returns the factorial of the sum divided by the product of factorials.	返回和的阶乘除以各数阶乘的乘积。	2,3
+SERIESSUM	x,n,m,coefficients	Sums coefficients times x raised to n, n+m, and subsequent powers.	计算系数乘以 x 的 n、n+m 等次幂的级数和。	2,1,1,{1,2,3}
+SQRTPI	number	Returns the square root of number times pi.	返回数字与圆周率乘积的平方根。	2
+SUMSQ	number*?	Returns the sum of squares of numeric values.	返回数字值的平方和。	1,2,3
+SUMPRODUCT	array*	Multiplies equally shaped arrays elementwise and sums the products.	将形状相同的数组逐项相乘后求和。	{1,2},{3,4}
+SUMX2MY2	array_x,array_y	Sums x squared minus y squared for corresponding reference entries.	计算对应引用元素的平方差之和。	A1:A3,B1:B3
+SUMX2PY2	array_x,array_y	Sums x squared plus y squared for corresponding reference entries.	计算对应引用元素的平方和之和。	A1:A3,B1:B3
+SUMXMY2	array_x,array_y	Sums squared differences between corresponding reference entries.	计算对应引用元素差的平方和。	A1:A3,B1:B3
+ROMAN	number,form?	Converts an integer to Roman numerals; form selects compactness.	将整数转为罗马数字，form 指定简写程度。	49,0
+ARABIC	text	Converts Roman numerals to a number.	将罗马数字转为数值。	"XLIX"
+BASE	number,radix,min_length?	Formats a nonnegative integer in base 2–36 with optional zero padding.	将非负整数转为 2–36 进制文本，可补前导零。	31,16,2
+DECIMAL	text,radix	Parses text in base 2–36 into a decimal number.	将 2–36 进制文本转为十进制数字。	"1F",16
+ODD	number	Rounds away from zero to an odd integer.	向远离零方向舍入到奇数。	2.2
+EVEN	number	Rounds away from zero to an even integer.	向远离零方向舍入到偶数。	2.2
+SIN	number	Returns sine; input is in radians.	返回正弦，输入单位为弧度。	0.5
+COS	number	Returns cosine; input is in radians.	返回余弦，输入单位为弧度。	0.5
+TAN	number	Returns tangent; input is in radians.	返回正切，输入单位为弧度。	0.5
+ASIN	number	Returns inverse sine in radians for values from -1 to 1.	返回 -1 到 1 之间数值的反正弦弧度值。	0.5
+ACOS	number	Returns inverse cosine in radians for values from -1 to 1.	返回 -1 到 1 之间数值的反余弦弧度值。	0.5
+ATAN	number	Returns inverse tangent in radians.	返回反正切弧度值。	0.5
+ATAN2	x_num,y_num	Returns the angle in radians for the point (x, y).	返回点 (x, y) 对应的角度，单位为弧度。	1,1
+RADIANS	angle	Converts degrees to radians.	将角度转为弧度。	180
+DEGREES	angle	Converts radians to degrees.	将弧度转为角度。	PI()
+SINH	number	Returns hyperbolic sine.	返回双曲正弦。	1
+COSH	number	Returns hyperbolic cosine.	返回双曲余弦。	1
+TANH	number	Returns hyperbolic tangent.	返回双曲正切。	1
+ASINH	number	Returns inverse hyperbolic sine.	返回反双曲正弦。	1
+ACOSH	number	Returns inverse hyperbolic cosine for numbers at least one.	返回大于等于一的数的反双曲余弦。	2
+ATANH	number	Returns inverse hyperbolic tangent for absolute values below one.	返回绝对值小于一的数的反双曲正切。	0.5
+CSC	number	Returns the reciprocal sine of a radian angle.	返回弧度角的余割。	1
+SEC	number	Returns the reciprocal cosine of a radian angle.	返回弧度角的正割。	1
+COT	number	Returns the reciprocal tangent of a radian angle.	返回弧度角的余切。	1
+CSCH	number	Returns hyperbolic cosecant.	返回双曲余割。	1
+SECH	number	Returns hyperbolic secant.	返回双曲正割。	1
+COTH	number	Returns hyperbolic cotangent.	返回双曲余切。	1
+ACSC	number	Returns inverse cosecant in radians for absolute values at least one.	返回绝对值不小于一的数的反余割弧度值。	2
+ASEC	number	Returns inverse secant in radians for absolute values at least one.	返回绝对值不小于一的数的反正割弧度值。	2
+ACOT	number	Returns inverse cotangent in radians between zero and pi.	返回零到圆周率之间的反余切弧度值。	1
+ACOTH	number	Returns inverse hyperbolic cotangent for absolute values greater than one.	返回绝对值大于一的数的反双曲余切。	2

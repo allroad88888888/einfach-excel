@@ -3,6 +3,7 @@ import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { runWorkbookSheetCommandAtom, sheetTabsAtom } from '@einfach/spreadsheet-ui-core'
 import { useEffect, useRef } from 'react'
+import { cycleDialogFocus } from '../ribbon/dialog-focus'
 
 /** 删除确认使用原生模态框；确认对象及异步结果仍由 UI Core 持有。 */
 export function SheetDeleteConfirmation() {
@@ -15,9 +16,15 @@ export function SheetDeleteConfirmation() {
   useEffect(() => {
     const dialog = dialogRef.current
     if (!dialog || !confirmation) return
+    const previousFocus = dialog.ownerDocument.activeElement
     if (dialog.showModal) dialog.showModal()
     else dialog.setAttribute('open', '')
-    return () => dialog.close?.()
+    return () => {
+      dialog.close?.()
+      // 条件渲染先移除了 dialog，浏览器不再自动还原焦点；只恢复原 DOM 目标。
+      if (previousFocus instanceof HTMLElement && previousFocus.isConnected)
+        previousFocus.focus({ preventScroll: true })
+    }
   }, [confirmation])
   if (!confirmation) return null
   return (
@@ -27,6 +34,7 @@ export function SheetDeleteConfirmation() {
       role="alertdialog"
       aria-labelledby="sheet-delete-title"
       aria-describedby="sheet-delete-description"
+      onKeyDown={cycleDialogFocus}
       onCancel={(event) => {
         event.preventDefault()
         if (!busy) void run({ operation: 'cancel-delete' })

@@ -157,6 +157,7 @@ impl Workbook {
         cut: bool,
     ) -> Result<ClipboardSnapshot, ClipboardError> {
         validate_range(range)?;
+        if cut { self.ensure_range_editable(sheet_idx, range)?; }
         let sheet = self.sheet(sheet_idx).ok_or("CLIPBOARD_INVALID_SHEET")?;
         let hidden = sheet.filter_hidden_set();
         let source_rows: Vec<u32> = (range.start.row..=range.end.row)

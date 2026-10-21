@@ -180,6 +180,12 @@ impl<'a> WorkbookLoader<'a> {
     /// 另一条公式的溢出矩形里，先投影会让碰撞判定看到半个世界。
     pub(crate) fn flush(self) {
         let WorkbookLoader { wb, ops_by_sheet } = self;
+        // 原始批量端口也必须整批拒绝；逐格跳过会留下半次跨表写入。
+        if ops_by_sheet.iter().any(|(sheet, ops)| ops.iter().any(|op| {
+            let addr = match op { WorkbookOp::SetCell { addr, .. }
+                | WorkbookOp::SetFormula { addr, .. } | WorkbookOp::ClearCell { addr } => *addr };
+            wb.ensure_range_editable(*sheet, CellRange::single(addr)).is_err()
+        })) { return; }
         let rows = wb.insert_rows_for_writes(ops_by_sheet.iter().flat_map(|(sheet, ops)| {
             ops.iter().map(move |op| {
                 (
@@ -192,6 +198,7 @@ impl<'a> WorkbookLoader<'a> {
                 )
             })
         }));
+        if !rows.is_empty() && wb.ensure_workbook_unprotected().is_err() { return; }
         wb.write_with_insert_rows(rows, |wb| {
             for (sheet_idx, ops) in ops_by_sheet {
                 let Some(sheet) = wb.sheets.get_mut(sheet_idx) else {

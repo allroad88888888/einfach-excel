@@ -11,6 +11,7 @@ impl WasmWorkbook {
         axis: &str,
         pixels: u32,
     ) -> Result<(), JsValue> {
+        self.ensure_protection_sheet(sheet_idx)?;
         let sheet = self
             .workbook
             .sheet_mut(sheet_idx as usize)
@@ -28,6 +29,7 @@ impl WasmWorkbook {
     }
 
     pub fn set_row_height(&mut self, sheet_idx: u32, row_index: u32, height_px: u32) -> bool {
+        if self.ensure_protection_sheet(sheet_idx).is_err() { return false; }
         let Some(sheet) = self.workbook.sheet_mut(sheet_idx as usize) else {
             return false;
         };
@@ -42,6 +44,7 @@ impl WasmWorkbook {
     /// Persist a sparse column-width fact on a workbook sheet. Empty columns are
     /// not materialized; this only updates sheet metadata.
     pub fn set_col_width(&mut self, sheet_idx: u32, col_index: u32, width_px: u32) -> bool {
+        if self.ensure_protection_sheet(sheet_idx).is_err() { return false; }
         let Some(sheet) = self.workbook.sheet_mut(sheet_idx as usize) else {
             return false;
         };

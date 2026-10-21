@@ -1,5 +1,7 @@
 import type { CellRange, SheetRef } from '../shared'
 import type { ProjectionRequestId, ProjectionRevision, SpreadsheetCellFormat } from '../backend'
+import type { ConditionalFormatThreshold, IconSetRule } from './advanced/types'
+export type { ConditionalFormatThreshold, IconSetRule, AdvancedVisualRule } from './advanced/types'
 
 export type ConditionalFormatRuleId = string
 
@@ -11,6 +13,7 @@ export type ConditionalFormatRuleKind =
   | 'top-bottom'
   | 'text'
   | 'duplicate-values'
+  | 'icon-set'
 
 interface HighlightOptions {
   enabled?: boolean
@@ -46,6 +49,8 @@ export interface DataBarRule {
   enabled?: boolean
   minColor?: string
   maxColor?: string
+  minThreshold?: ConditionalFormatThreshold
+  maxThreshold?: ConditionalFormatThreshold
 }
 
 export interface ColorScaleRule {
@@ -54,6 +59,9 @@ export interface ColorScaleRule {
   minColor: string
   midColor?: string
   maxColor: string
+  minThreshold?: ConditionalFormatThreshold
+  midThreshold?: ConditionalFormatThreshold
+  maxThreshold?: ConditionalFormatThreshold
 }
 
 export interface TopBottomRule extends HighlightOptions {
@@ -87,6 +95,7 @@ export type NativeConditionalFormatRule =
   | TopBottomRule
   | ColorScaleRule
   | DataBarRule
+  | IconSetRule
 
 export type ConditionalFormatRule =
   | TextMatchRule
@@ -96,6 +105,7 @@ export type ConditionalFormatRule =
   | DataBarRule
   | ColorScaleRule
   | TopBottomRule
+  | IconSetRule
 
 export interface ConditionalFormatRuleEntry {
   id: ConditionalFormatRuleId

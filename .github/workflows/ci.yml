@@ -50,12 +50,13 @@ jobs:
           wasm-pack --version
 
       - run: pnpm install --frozen-lockfile
-      # node:test 契约测试(脚本生成器 + 站点 demo 契约),纯 node 内置模块,
-      # 秒级、不依赖构建产物，因此作为 Vitest workspace 之外的契约测试直接执行。
+      # node:test 脚本契约及 Playwright 元数据采集回归，不启动浏览器、不依赖构建产物。
       - run: npm run test:scripts
       - run: pnpm --filter @einfach/react-excel i18n:extract
       - run: pnpm --filter @einfach/react-excel i18n:check
       - run: npm run build
+      # 元数据门禁不下载浏览器；实际运行结果由 Playwright 报告另验，不能混称通过。
+      - run: pnpm check:e2e-features
       - run: npm test
       - uses: actions/setup-node@v4
         if: matrix.node-version == '22.19.0'

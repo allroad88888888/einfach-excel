@@ -8,7 +8,7 @@ struct FunctionCatalogJSON {
 #[wasm_bindgen]
 pub fn function_catalog() -> Result<JsValue, JsValue> {
     serde_wasm_bindgen::to_value(&FunctionCatalogJSON {
-        version: 1,
+        version: 2,
         functions: einfach_excel_core::builtin_function_catalog(),
     }).map_err(|error| JsValue::from_str(&error.to_string()))
 }

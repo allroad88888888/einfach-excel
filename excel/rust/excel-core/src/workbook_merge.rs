@@ -17,6 +17,7 @@ impl Workbook {
         action: MergeAction,
         discard: bool,
     ) -> Result<(), &'static str> {
+        self.ensure_sheet_unprotected(sheet)?;
         if self.is_inside_custom_call() {
             return Err("MUTATION_DURING_CUSTOM_CALL");
         }

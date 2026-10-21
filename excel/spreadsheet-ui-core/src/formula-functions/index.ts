@@ -8,7 +8,8 @@ import {
 } from './registry'
 import { nativeFunctionCatalogAtom } from './native-catalog'
 import { searchFormulaFunctions } from './search'
-import { findEnclosingFunctionCall, findFunctionNameFragmentAtCaret } from './parse'
+import { findEnclosingFormulaHelpCall, findFunctionNameFragmentAtCaret } from './parse'
+import { formulaHelpArgumentIndex, formulaHelpSignatureSlots } from './help/signature'
 import type {
   FormulaFunctionSignatureState,
   FormulaFunctionSuggestion,
@@ -17,6 +18,7 @@ import type {
 export * from './registry'
 export * from './parse'
 export * from './types'
+export { formulaHelpArgumentIndex, formulaHelpSignatureSlots } from './help/signature'
 export { nativeFunctionCatalogAtom, publishNativeFunctionCatalogAtom } from './native-catalog'
 
 /** Max rows to surface in the dropdown — keeps the UI compact. */
@@ -119,13 +121,14 @@ export const formulaFunctionSignatureAtom = atom<FormulaFunctionSignatureState |
   if (!draft.startsWith('=')) return null
   const caret = get(formulaReferenceCaretAtom)
   if (caret < 0) return null
-  const enclosing = findEnclosingFunctionCall(draft, caret)
+  const enclosing = findEnclosingFormulaHelpCall(draft, caret)
   if (!enclosing) return null
   const spec = get(nativeFunctionCatalogAtom)
     .find((entry) => entry.name === enclosing.name.toUpperCase())
   if (!spec || !spec.signatureAvailable) return null
-  const lastIndex = spec.args.length - 1
-  const activeArgIndex = Math.min(enclosing.activeArgIndex, lastIndex)
+  const activeArgIndex = formulaHelpArgumentIndex(
+    spec, enclosing.activeArgIndex, enclosing.argumentCount, enclosing.firstArgument,
+  )
   return { spec, activeArgIndex }
 })
 formulaFunctionSignatureAtom.debugLabel = 'spreadsheet.formulaFunctions.signature'
@@ -163,11 +166,9 @@ export interface RenderedSignatureSlot {
 export function renderActiveSignatureSlots(
   state: FormulaFunctionSignatureState,
 ): RenderedSignatureSlot[] {
-  return state.spec.args.map((arg, i) => {
-    const tail = arg.repeats ? `${arg.name}, ...` : arg.name
-    const slot = arg.optional ? `[${tail}]` : tail
-    return { text: slot, active: i === state.activeArgIndex }
-  })
+  return formulaHelpSignatureSlots(state.spec).map((text, i) => ({
+    text, active: i === state.activeArgIndex,
+  }))
 }
 
 /** Re-export the plain renderer for tests / fallback rendering. */

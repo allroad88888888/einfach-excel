@@ -70,7 +70,7 @@ export function useGridPointerSelection(
 
       event.preventDefault()
       cancelActivePointer()
-      startPointerSelection({ sheetId, coord })
+      startPointerSelection({ sheetId, coord, extend: event.shiftKey })
       activePointer.current = { id: event.pointerId, target: event.currentTarget }
       try {
         event.currentTarget.setPointerCapture(event.pointerId)

@@ -104,7 +104,7 @@ fn rejected_inherited_value_restores_structure_and_suppresses_transient_callback
     book.set_conditional_format_rule(0, 0, rules::rule("r", range("B2", "B4"), "gt", "0")).unwrap();
     let old_rules = book.conditional_format_config(0).unwrap().rules;
     book.sheet_mut(0).unwrap().set_data_validation(range("B2", "B4"), Some(DataValidationRule {
-        kind: DataValidationKind::WholeNumber { min: 1., max: 10. },
+        options: Default::default(), kind: DataValidationKind::WholeNumber { min: 1., max: 10. },
         ignore_blank: true, operator: Default::default(),
     })).unwrap();
     history.set_cell_input(&mut book, 0, "D1", "7").unwrap();

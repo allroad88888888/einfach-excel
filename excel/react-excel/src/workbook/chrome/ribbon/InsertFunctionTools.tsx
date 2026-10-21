@@ -3,7 +3,8 @@ import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useId, useLayoutEffect, useRef } from 'react'
 import { insertFunctionPanelAtom, runInsertFunctionAtom,
-  renderFormulaFunctionSignature } from '@einfach/spreadsheet-ui-core'
+} from '@einfach/spreadsheet-ui-core'
+import { FormulaParameterHelp } from '../../formula-help/FormulaParameterHelp'
 import { cycleDialogFocus } from './dialog-focus'
 import './insert-function.css'
 
@@ -55,9 +56,7 @@ export function InsertFunctionTools() {
         </select>
         {!panel.functions.length && <p role="status"><Trans>No matching functions. Change the search or category.</Trans></p>}
         {panel.selected && <div className="insert-function-description" aria-live="polite">
-          <code>{panel.selected.signatureAvailable
-            ? renderFormulaFunctionSignature(panel.selected) : `${panel.selected.name}(…)`}</code>
-          <p>{translateFeedback(i18n, panel.selected.summary)}</p>
+          <FormulaParameterHelp spec={panel.selected} />
         </div>}
         {panel.error && <p role="alert">{translateFeedback(i18n, panel.error)}</p>}
         <div className="insert-function-actions">

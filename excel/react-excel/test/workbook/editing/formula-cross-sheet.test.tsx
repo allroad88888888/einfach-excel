@@ -60,6 +60,8 @@ test('rejected cross-sheet write stays correctable in formula bar; Escape return
   await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('not saved'))
   expect(bar).toHaveAttribute('aria-invalid', 'true')
   expect(bar).toHaveValue('=SUM(')
+  expect(screen.getByLabelText('Formula arguments').closest('.formula-assist'))
+    .toHaveClass('formula-assist-signature')
   expect(screen.getByRole('tab', { name: 'Summary' })).toHaveAttribute('aria-selected', 'true')
   fireEvent.keyDown(bar, { key: 'Escape' })
   await waitFor(() => expect(screen.getByRole('tab', { name: 'Sales Orders' }))

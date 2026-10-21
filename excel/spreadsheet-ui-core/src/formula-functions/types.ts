@@ -13,6 +13,8 @@
 export interface FormulaFunctionArg {
   /** Display name shown in the signature tooltip (e.g. 'number1', 'range'). */
   name: string
+  description?: string
+  descriptionZh?: string
   /**
    * Whether the argument is optional. Optional args are wrapped in square
    * brackets in the rendered signature: `SUM(number1, [number2], ...)`.
@@ -39,16 +41,42 @@ export interface FormulaFunctionSpec {
   args: FormulaFunctionArg[]
   /** One-line description shown beside the name in the dropdown. */
   summary: string
+  summaryZh?: string
+  /** One prototype group, with any fixed arguments after it kept at the end. */
+  repeat?: { start: number; length: number; minGroups: number }
+  examples?: readonly string[]
+  limitations?: readonly { en: string; zh: string }[]
 }
 
 /** Actual compiled Rust functions; reserved names remain a separate cross-build policy. */
 export interface NativeFunctionCatalog {
-  readonly version: 1
+  readonly version: 1 | 2
   readonly functions: readonly {
     readonly name: string
     readonly category: string
     readonly note?: string | null
+    readonly help?: NativeFormulaHelp
   }[]
+}
+
+export interface NativeFormulaHelp {
+  readonly summary: string
+  readonly summary_zh: string
+  readonly args: readonly {
+    readonly name: string
+    readonly description: string
+    readonly description_zh: string
+    readonly optional: boolean
+    readonly repeats: boolean
+  }[]
+  /** None may be undefined/omitted at the WASM boundary, or null in native JSON. */
+  readonly repeat?: {
+    readonly start: number
+    readonly length: number
+    readonly min_groups: number
+  } | null
+  readonly examples: readonly string[]
+  readonly limitations: readonly { readonly en: string; readonly zh: string }[]
 }
 
 /**

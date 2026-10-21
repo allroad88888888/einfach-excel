@@ -4,6 +4,7 @@ import { useAtomValue, useSetAtom } from '@einfach/react'
 import { workbookFilePanelAtom, runWorkbookFileAtom } from '@einfach/spreadsheet-ui-core'
 import './workbook-file.css'
 import { Trans, useLingui } from '@lingui/react/macro'
+import { cycleDialogFocus } from '../ribbon/dialog-focus'
 
 /** 原生文件入口：DOM 负责文件选择、替换确认、下载与模态焦点。 */
 export function WorkbookFileTools() {
@@ -28,6 +29,7 @@ export function WorkbookFileTools() {
     <button type="button" className="workbook-file-trigger" ref={triggerRef}
       disabled={state.disabled} onClick={() => void run({ action: 'show' })}><Trans>File</Trans></button>
     <dialog ref={dialogRef} className="workbook-file-dialog" aria-labelledby="workbook-file-title"
+      onKeyDown={cycleDialogFocus}
       onCancel={(event) => { event.preventDefault(); void run({ action: 'close' }) }}>
       <h2 id="workbook-file-title"><Trans>Workbook files</Trans></h2>
       <p><Trans>Your workbook is in memory. Download a file to keep your changes.</Trans></p>

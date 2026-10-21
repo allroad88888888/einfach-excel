@@ -5,6 +5,7 @@ use super::*;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum HiddenRowsError {
     MutationDuringCustomCall,
+    ProtectedWorksheet,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -25,6 +26,7 @@ pub enum TableError {
     MutationDuringCustomCall,
     MalformedSnapshot,
     FormulaRewriteConflict,
+    ProtectedWorkbook,
 }
 
 impl std::fmt::Display for TableError {
@@ -46,6 +48,7 @@ impl std::fmt::Display for TableError {
             Self::MutationDuringCustomCall => write!(f, "table registry mutations are forbidden while a custom-formula callback is executing"),
             Self::MalformedSnapshot => write!(f, "table snapshot entry is malformed: column count does not match the range width"),
             Self::FormulaRewriteConflict => write!(f, "a table formula consumer changed or cannot be rewritten"),
+            Self::ProtectedWorkbook => write!(f, "{}", crate::protection::PROTECTED_ERROR),
         }
     }
 }

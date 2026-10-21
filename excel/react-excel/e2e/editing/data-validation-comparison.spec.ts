@@ -37,16 +37,33 @@ for (const [operator, valid, invalid] of [
   if (range) await page.getByLabel('Maximum').fill('4')
   else await expect(page.getByLabel('Maximum')).toHaveCount(0)
   await button(page, 'Apply').click(); await expect(dialog(page)).toHaveCount(0)
+  if (range) for (const boundary of ['2', '4']) {
+    await go(page, 'D45'); await write(page, boundary)
+    if (operator === 'between') {
+      await expect(cell(page, '44:3')).toHaveText(boundary)
+      await button(page, 'Undo').click(); await expect(cell(page, '44:3')).toHaveText('')
+    } else {
+      await expect(page.getByRole('alert')).toContainText('data validation rule')
+      await expect(cell(page, '44:3')).toHaveText(''); await bar(page).press('Escape')
+    }
+  }
+  await go(page, 'D45')
   await write(page, valid); await expect(cell(page, '44:3')).toHaveText(valid)
   await go(page, 'D45'); await write(page, invalid)
   await expect(page.getByRole('alert')).toContainText('data validation rule')
   await expect(cell(page, '44:3')).toHaveText(valid)
   await expect(bar(page)).toHaveValue(invalid)
-  await bar(page).press('Escape')
+  // 直接修正同一份被拒草稿；等值提交不应额外占用一个历史步骤。
+  await write(page, valid)
+  await expect(page.getByRole('alert')).toHaveCount(0)
+  await expect(cell(page, '44:7')).toHaveText('5')
+  await expect(cell(page, '45:7')).toHaveText('0.5')
   await button(page, 'Undo').click(); await expect(cell(page, '44:3')).toHaveText('')
   await button(page, 'Undo').click(); await expect(button(page, 'Undo')).toBeDisabled()
   await button(page, 'Redo').click()
   await open(page); await expect(page.getByLabel('Condition', { exact: true })).toHaveValue(operator)
+  await expect(page.getByLabel(range ? 'Minimum' : 'Value', { exact: true })).toHaveValue('2')
+  if (range) await expect(page.getByLabel('Maximum')).toHaveValue('4')
 })
 
 for (const [kind, operator, cutoff, valid, invalid] of [

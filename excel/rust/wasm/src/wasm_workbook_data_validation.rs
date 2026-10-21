@@ -32,10 +32,14 @@ impl WasmWorkbook {
             serde_wasm_bindgen::from_value(rule).map_err(|error| {
                 JsValue::from_str(&format!("invalid data-validation rule: {error}"))
             })?;
-        let rule = rule
+        let mut rule = rule
             .map(DataValidationRuleJSON::into_rule)
             .transpose()
             .map_err(JsValue::from_str)?;
+        // 保存表单时公式按新选区左上角解释；文件恢复沿 wire 中已保存的 anchor。
+        if let Some(DataValidationRule { kind: DataValidationKind::CustomFormula { anchor, .. }, .. }) = &mut rule {
+            *anchor = CellAddress::new(start_row, start_col);
+        }
         self.history
             .set_data_validation(
                 &mut self.workbook,

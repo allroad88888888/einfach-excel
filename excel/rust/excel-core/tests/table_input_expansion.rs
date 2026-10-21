@@ -106,7 +106,7 @@ fn invalid_formula_spill_or_validation_rolls_back_expansion_and_preserves_redo()
                 .set_data_validation(
                     range("C2", "C2"),
                     Some(DataValidationRule {
-                        kind: DataValidationKind::WholeNumber { min: 0., max: 10. },
+                        options: Default::default(), kind: DataValidationKind::WholeNumber { min: 0., max: 10. },
                         ignore_blank: true,
                         operator: Default::default(),
                     }),

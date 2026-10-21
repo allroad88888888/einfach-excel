@@ -7,6 +7,7 @@ impl Workbook {
         if self.is_inside_custom_call() {
             return Err(WorkbookError::MutationDuringCustomCall);
         }
+        self.ensure_workbook_unprotected().map_err(|_| WorkbookError::ProtectedWorkbook)?;
         let expr = parse_formula(formula).ok_or(WorkbookError::ParseFailed)?;
 
         // Evaluate against a workbook provider rooted on sheet 0. Sheet
@@ -42,6 +43,7 @@ impl Workbook {
         if self.is_inside_custom_call() {
             return Err(WorkbookError::MutationDuringCustomCall);
         }
+        self.ensure_workbook_unprotected().map_err(|_| WorkbookError::ProtectedWorkbook)?;
         Self::validate_name(name)?;
         let key = name.to_uppercase();
         if is_builtin_function_name(&key) {
@@ -51,7 +53,8 @@ impl Workbook {
         // reverse direction): a defined name may not shadow an existing
         // Table name. The forward direction — a Table refusing an existing
         // defined name — is enforced in `validate_table_name`.
-        if self.tables.contains_key(&key) {
+        if self.tables.contains_key(&key) || self.named_values.get(&key)
+            .is_some_and(|entry| matches!(entry.definition, NamedDefinition::CustomFormula(_))) {
             return Err(WorkbookError::NameConflict);
         }
         self.named_values.insert(
@@ -71,10 +74,14 @@ impl Workbook {
     /// the same way `define_name` does, so formulas that recorded that Store
     /// dependency re-evaluate and now surface `#NAME?`.
     pub fn undefine_name(&mut self, name: &str) -> bool {
-        if self.is_inside_custom_call() {
+        if self.is_inside_custom_call() || self.ensure_workbook_unprotected().is_err() {
             return false; // re-entrancy guard
         }
         let key = name.to_uppercase();
+        if self.named_values.get(&key)
+            .is_some_and(|entry| matches!(entry.definition, NamedDefinition::CustomFormula(_))) {
+            return false;
+        }
         let removed = self.named_values.remove(&key).is_some();
         if removed {
             self.sync_atom_names();
@@ -93,6 +100,9 @@ impl Workbook {
         let key = name.to_uppercase();
         match &self.named_values.get(&key)?.definition {
             NamedDefinition::Value(value) => Some(value.clone()),
+            NamedDefinition::CustomFormula(definition) => Some(definition.lambda_value(|name|
+                self.named_values.get(name).is_some_and(|entry|
+                    matches!(entry.definition, NamedDefinition::CustomFormula(_))))),
             NamedDefinition::Range { .. } => None,
         }
     }

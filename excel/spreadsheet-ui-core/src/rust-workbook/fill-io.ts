@@ -12,7 +12,20 @@ const nativeRange = (range: CellRange) => ({
 export function fillRange(
   workbook: WasmWorkbook, sheet: number, input: RustFillRangeRequest,
 ): CellRange {
-  const { range, direction } = input
+  const { direction } = input
+  let { range } = input
+  if (input.adjacent) {
+    if (direction !== 'down' || !input.sourceRange || input.series ||
+      !Number.isSafeInteger(input.adjacent.rowLimit) || input.adjacent.rowLimit < 1 ||
+      input.adjacent.rowLimit > 1_048_576)
+      throw new Error('Adjacent fill requires a downward source range.')
+    if (!workbook.find_fill_down_end) throw new Error('Rust adjacent fill is unavailable.')
+    const end = workbook.find_fill_down_end(
+      sheet, nativeRange(input.sourceRange), input.adjacent.rowLimit,
+    )
+    if (end === undefined) throw new Error('No adjacent continuous data to fill.')
+    range = { ...input.sourceRange, rowEnd: end }
+  }
   const vertical = direction === 'down' || direction === 'up'
   const rows = range.rowEnd - range.rowStart + 1
   const cols = range.colEnd - range.colStart + 1
@@ -58,14 +71,30 @@ export function fillRange(
     : direction === 'up' ? { ...range, rowEnd: source.rowStart - 1 }
       : direction === 'right' ? { ...range, colStart: source.colEnd + 1 }
         : { ...range, colEnd: source.colStart - 1 }
-  withHistory(workbook, sheet, destination, `Fill ${series ? `${series.kind} series` : direction}`, true, () =>
-    workbook.apply_auto_fill!({
-      sheet, sourceRange: nativeRange(source), targetRange: nativeRange(range), direction,
-      series: series?.kind === 'number' ? 'integer-step'
-        : series?.kind === 'date' ? 'date-day' : series?.kind ?? 'copy',
-      ...(series || input.auto ? { infer: true } : {}),
-      ...(custom ? { list: { listName: 'custom-fill', values: custom, locale: 'en' } } : {}),
-    }),
+  withHistory(
+    workbook,
+    sheet,
+    destination,
+    `Fill ${series ? `${series.kind} series` : direction}`,
+    true,
+    () =>
+      workbook.apply_auto_fill!({
+        sheet,
+        sourceRange: nativeRange(source),
+        targetRange: nativeRange(range),
+        direction,
+        ...(input.validationConfirmation
+          ? { validationConfirmation: input.validationConfirmation }
+          : {}),
+        series:
+          series?.kind === 'number'
+            ? 'integer-step'
+            : series?.kind === 'date'
+              ? 'date-day'
+              : (series?.kind ?? 'copy'),
+        ...(series || input.auto ? { infer: true } : {}),
+        ...(custom ? { list: { listName: 'custom-fill', values: custom, locale: 'en' } } : {}),
+      }),
   )
   return destination
 }

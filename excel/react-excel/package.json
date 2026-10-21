@@ -21,7 +21,7 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite",
-    "e2e": "playwright test",
+    "e2e": "node ../../scripts/check-react-e2e-features.mjs && playwright test",
     "e2e:install": "playwright install chromium",
     "i18n:extract": "lingui extract --clean",
     "i18n:check": "lingui compile --strict",

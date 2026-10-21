@@ -1,5 +1,6 @@
 //! 条件公式的工作表引用随动；历史以稳定 sheet key 保存被改写的规则目录。
 use super::*;
+use super::advanced_conditional_format::rewrite_rule_formulas;
 
 pub(super) type ConditionalRuleSources = Vec<(u64, Vec<ConditionalFormatRuleEntry>)>;
 
@@ -19,18 +20,12 @@ impl Workbook {
                     else {
                         continue;
                     };
-                    if json["kind"] != "formula" {
-                        continue;
-                    }
-                    let Some(mut expr) = json["formula"].as_str().and_then(parse_formula) else {
-                        continue;
-                    };
-                    let before = expr.clone();
-                    rewrite_sheet_refs(&mut expr, old, new);
-                    if before != expr {
-                        json["formula"] = serde_json::Value::String(crate::render_formula(&expr));
-                        entry.rule_json = json.to_string();
-                    }
+                    if rewrite_rule_formulas(&mut json, |text| {
+                        let mut expr = parse_formula(text)?;
+                        let before = expr.clone();
+                        rewrite_sheet_refs(&mut expr, old, new);
+                        (before != expr).then(|| crate::render_formula(&expr))
+                    }) { entry.rule_json = json.to_string(); }
                 }
                 (rules != config.rules).then_some((self.sheet_keys[sheet], rules))
             })

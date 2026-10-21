@@ -15,6 +15,11 @@ Read [the react-excel architecture skill](../../SKILL.md) before changing code.
   test them in one pass.
 - Do not open a task tree for an ordinary batch. Do not commit until the user asks after testing.
 - Finish the current three functions completely before selecting another batch.
+- If the user requests persistent goal-mode work, the batch is a verification unit, not the goal's
+  completion condition. Report a verified batch in commentary and continue the next in-scope batch.
+  Keep the goal active until its agreed overall scope is achieved; do not narrow it to the current
+  three functions. Persistence does not authorize commits, pushes, new product scope or bypassing
+  a required user decision.
 
 ## Implementation boundary
 
@@ -26,6 +31,26 @@ Read [the react-excel architecture skill](../../SKILL.md) before changing code.
 - If a function has visible persisted state, add a few obvious examples to that demo's original
   Rust seed data. Do not hard-code coordinate-specific styles in React.
 - Split files by responsibility and obey the repository line limits.
+
+## Per-function E2E
+
+- Maintain [`e2e/FEATURES.md`](../../e2e/FEATURES.md) independently from the existing tests: inspect
+  the UI entry points and user actions first. Never generate the feature scope from test counts.
+- Register each function with a stable ID, one concrete user action, its E2E file and exact primary
+  test title. Variants and cross-feature regressions may add tests, but one broad primary test cannot
+  stand in for separate functions. Split mouse/keyboard entry points and separate menu actions.
+- A primary test must perform that actual DOM interaction and assert its result and unaffected
+  neighbors; showing a menu or dispatching a Core atom from a browser helper does not prove the entry.
+- New functionality, changed behavior and bug fixes must add or update their corresponding test
+  and row in the same change. For a bug, reproduce the actual UI failure before fixing it where
+  practical. Unit tests do not substitute for that browser entry point.
+- Run `pnpm check:e2e-features` to detect deleted/renamed, duplicate, skipped, fixme or expected-failing
+  primary tests. This only verifies registration. After execution, use
+  `pnpm check:e2e-features --results /path/to/playwright.json` for actual per-function pass evidence.
+- Do not mark a function done if its primary test is missing or unexecuted. Report historical
+  backfill gaps and unfinished catalog granularity explicitly; a green catalog gate does not prove
+  all UI actions have been inventoried. In particular, Shift+click, Shift+arrows and Shift+headers
+  are separate interactions, not interchangeable coverage.
 
 ## Acceptance gate
 
@@ -41,6 +66,7 @@ Run targeted tests while developing. Run the following gates once on the final b
 
 ```bash
 pnpm check:presentation
+pnpm check:e2e-features
 pnpm check:cycles
 pnpm lint:check
 pnpm --filter @einfach/spreadsheet-ui-core build

@@ -44,6 +44,28 @@ test('native seed shows formula, top items and bottom percentage without adding 
   await expect(cell(page, '65:3')).toHaveCSS('background-color', blue)
 })
 
+for (const width of [1280, 390]) test(`formula condition uses mixed references and undoes once at ${width}px`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 850 })
+  await go(page, 'B65:B67'); await open(page)
+  await page.getByLabel('Rule type').selectOption('formula')
+  await page.getByLabel('Formula', { exact: true }).fill('=$C65>3'); await save(page)
+  await expect(cell(page, '64:1')).not.toHaveCSS('background-color', red)
+  for (const row of [65, 66]) {
+    await expect(cell(page, `${row}:1`)).toHaveCSS('background-color', red)
+    await expect(cell(page, `${row}:1`)).toHaveText('')
+  }
+  await expect(cell(page, '65:2')).toHaveText('4')
+  await expect(cell(page, '65:3')).toHaveCSS('background-color', blue)
+  await button(page, 'Undo').click()
+  await expect(cell(page, '65:1')).not.toHaveCSS('background-color', red)
+  await expect(button(page, 'Undo')).toBeDisabled()
+  await button(page, 'Redo').click()
+  await expect(cell(page, '65:1')).toHaveCSS('background-color', red)
+  await open(page); await button(page, 'Edit rule 1').click()
+  await expect(page.getByLabel('Formula', { exact: true })).toHaveValue('=$C65>3')
+  await expect(page.getByLabel('Applies to', { exact: true })).toHaveValue('B65:B67')
+})
+
 test('formula highlights blank cells using mixed references; edit, disable and undo use native history', async ({ page }) => {
   await go(page, 'B65:B67'); await open(page)
   await page.getByLabel('Rule type').selectOption('formula')

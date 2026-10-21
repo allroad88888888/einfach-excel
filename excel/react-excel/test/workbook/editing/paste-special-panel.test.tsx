@@ -68,6 +68,18 @@ test('the dialog combines options using atom commands and closes after a success
   expect(screen.getByRole('button', { name: 'Paste special' })).toHaveFocus()
 })
 
+test.each([false, true])('paste special cycles Tab focus with shift=%s without reading clipboard', async (shiftKey) => {
+  const { paste } = await setup()
+  const first = screen.getByLabelText('Paste content')
+  const last = screen.getByRole('button', { name: 'Apply paste' })
+  const from = shiftKey ? first : last
+  from.focus()
+  fireEvent.keyDown(from, { key: 'Tab', shiftKey })
+  expect(shiftKey ? last : first).toHaveFocus()
+  expect(readBrowserClipboard).not.toHaveBeenCalled()
+  expect(paste).not.toHaveBeenCalled()
+})
+
 test('width-only mode disables incompatible controls and cancellation performs no clipboard read', async () => {
   const { paste } = await setup()
   fireEvent.change(screen.getByLabelText('Operation'), { target: { value: 'multiply' } })

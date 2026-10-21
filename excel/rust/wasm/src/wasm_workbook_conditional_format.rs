@@ -5,6 +5,7 @@ impl WasmWorkbook {
     /// 复制、启停与重排都由原生目录一次修改，一次进入历史。
     #[wasm_bindgen(js_name = manageConditionalFormatRule)]
     pub fn manage_conditional_format_rule(&mut self, sheet: u32, request: JsValue) -> Result<JsValue, JsValue> {
+        self.workbook.ensure_sheet_unprotected(sheet as usize).map_err(JsValue::from_str)?;
         let request: ManageConditionalFormatRuleJSON = serde_wasm_bindgen::from_value(request)
             .map_err(|error| JsValue::from_str(&format!("invalid conditional-format action: {error}")))?;
         let snapshot = self.history.manage_conditional_format_rule(
@@ -32,6 +33,7 @@ impl WasmWorkbook {
         sheet: u32,
         request: JsValue,
     ) -> Result<JsValue, JsValue> {
+        self.workbook.ensure_sheet_unprotected(sheet as usize).map_err(JsValue::from_str)?;
         let request: SetConditionalFormatRuleJSON = serde_wasm_bindgen::from_value(request)
             .map_err(|error| {
                 JsValue::from_str(&format!("invalid conditional-format rule: {error}"))
@@ -63,6 +65,7 @@ impl WasmWorkbook {
         sheet: u32,
         request: JsValue,
     ) -> Result<JsValue, JsValue> {
+        self.workbook.ensure_sheet_unprotected(sheet as usize).map_err(JsValue::from_str)?;
         let request: RemoveConditionalFormatRuleJSON = serde_wasm_bindgen::from_value(request)
             .map_err(|error| {
                 JsValue::from_str(&format!("invalid conditional-format removal: {error}"))
@@ -92,6 +95,8 @@ impl WasmWorkbook {
             formats: FormatRangeSnapshotJSON::from_snapshot(&snapshot.formats, Some(sheet)),
             data_bars: snapshot.data_bars.into_iter().map(|(addr, bar)|
                 DisplayDataBarJSON { addr: addr.to_string(), bar }).collect(),
+            conditional_icons: snapshot.conditional_icons.into_iter().map(|(addr, icon)|
+                DisplayConditionalIconJSON { addr: addr.to_string(), icon }).collect(),
         };
         wire.serialize(&serde_wasm_bindgen::Serializer::json_compatible())
             .map_err(|error| JsValue::from_str(&format!("serialize display formatting: {error}")))
@@ -129,6 +134,15 @@ struct DisplayFormatRangeSnapshotJSON {
     formats: FormatRangeSnapshotJSON,
     #[serde(rename = "dataBars")]
     data_bars: Vec<DisplayDataBarJSON>,
+    #[serde(rename = "conditionalIcons")]
+    conditional_icons: Vec<DisplayConditionalIconJSON>,
+}
+
+#[derive(Serialize)]
+struct DisplayConditionalIconJSON {
+    addr: String,
+    #[serde(flatten)]
+    icon: einfach_excel_core::ConditionalIconDisplay,
 }
 
 #[derive(Serialize)]

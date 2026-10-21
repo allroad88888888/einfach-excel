@@ -109,10 +109,17 @@ test('failed formula replacement rolls back the earlier text cells and can be co
   page,
 }) => {
   await summary(page)
+  await select(page, 'A85')
+  await expect(cell(page, '84:0')).toHaveText('😀alpha alpha')
   await open(page, 'alpha', true)
   await dialog(page).getByRole('textbox', { name: 'Replace with' }).fill('"')
   await dialog(page).getByRole('button', { name: 'Replace all', exact: true }).click()
   await expect(dialog(page).getByRole('alert')).toHaveText('INVALID_FORMULA')
+  await expect(cell(page, '84:0')).toHaveText('😀alpha alpha')
+  await expect(cell(page, '84:1')).toHaveText('ALPHA')
+  await expect(cell(page, '84:2')).toHaveText('5')
+  await expect(dialog(page).getByRole('textbox', { name: 'Replace with' })).toHaveValue('"')
+  await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
   await dialog(page).getByRole('textbox', { name: 'Replace with' }).fill('beta')
   await dialog(page).getByRole('button', { name: 'Replace all', exact: true }).click()
   await expect(dialog(page).getByText(/Replaced 4 occurrence\(s\) in 3 cell/)).toBeVisible()
@@ -122,10 +129,17 @@ test('failed formula replacement rolls back the earlier text cells and can be co
   await expect(cell(page, '84:2')).toHaveText('4')
   await page.getByRole('button', { name: 'Undo', exact: true }).click()
   await expect(cell(page, '84:0')).toHaveText('😀alpha alpha')
+  await expect(cell(page, '84:1')).toHaveText('ALPHA')
   await expect(cell(page, '84:2')).toHaveText('5')
+  await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+  await page.getByRole('button', { name: 'Redo', exact: true }).click()
+  await expect(cell(page, '84:0')).toHaveText('😀beta beta')
+  await expect(cell(page, '84:1')).toHaveText('beta')
+  await expect(cell(page, '84:2')).toHaveText('4')
+  await expect(cell(page, '0:1')).toHaveText('79')
 })
 
-test('displayed-value search locates a formula result but replacement preserves its source', async ({
+test('displayed-value replacement rejects formula writes and allows corrected raw replacement', async ({
   page,
 }) => {
   await summary(page)
@@ -138,11 +152,28 @@ test('displayed-value search locates a formula result but replacement preserves 
   await dialog(page).getByRole('textbox', { name: 'Replace with' }).fill('6')
   await dialog(page).getByRole('button', { name: 'Replace current', exact: true }).click()
   await expect(dialog(page).getByRole('alert')).toContainText('Choose Formulas')
+  await expect(cell(page, '84:2')).toHaveText('5')
+  await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+  await dialog(page).getByRole('combobox', { name: 'Look in' }).selectOption('formulas')
+  await dialog(page).getByRole('textbox', { name: 'Find what' }).fill('alpha')
+  await dialog(page).getByRole('textbox', { name: 'Replace with' }).fill('beta')
+  await dialog(page).getByRole('button', { name: 'Find next' }).click()
+  await expect(dialog(page).getByText('1 of 1 · Summary!C85', { exact: true })).toBeVisible()
+  await dialog(page).getByRole('button', { name: 'Replace current', exact: true }).click()
+  await expect(dialog(page).getByText(/Replaced 1 occurrence\(s\) in 1 cell/)).toBeVisible()
   await close(page)
+  await expect(cell(page, '84:2')).toHaveText('4')
+  await expect(page.getByRole('textbox', { name: 'Active cell value' })).toHaveValue('=LEN("beta")')
+  await expect(cell(page, '84:0')).toHaveText('😀alpha alpha')
+  await expect(cell(page, '84:1')).toHaveText('ALPHA')
+  await page.getByRole('button', { name: 'Undo', exact: true }).click()
   await expect(cell(page, '84:2')).toHaveText('5')
   await expect(page.getByRole('textbox', { name: 'Active cell value' })).toHaveValue(
     '=LEN("alpha")',
   )
+  await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+  await page.getByRole('button', { name: 'Redo', exact: true }).click()
+  await expect(cell(page, '84:2')).toHaveText('4')
 })
 
 for (const modifier of ['Control', 'Meta']) {

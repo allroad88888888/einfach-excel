@@ -12,6 +12,7 @@ import { readSizes } from './size-io'
 import { changeSize } from './resize-io'
 import { findWorkbook, replaceWorkbook } from './find-io'
 import { initializeWorkbook } from './initialize-workbook'
+import { readComment, changeComment } from './comments/command'
 import { changeMerge } from './merge-io'
 import { changeFreeze } from './freeze-io'
 import { changeOutline } from './outline-io'
@@ -36,6 +37,10 @@ import { changeDataValidation } from './data-validation-commands'
 import { exportWorkbookFile, openWorkbookFile } from './file-io'
 import { inspectSpill } from './spill-commands'
 import { changeHyperlink } from './hyperlink/command'
+import { readNote, changeNote } from './notes/command'
+import { readProtection, changeProtection } from './protection/commands'
+import { readCustomFormulas, changeCustomFormula } from './custom-formulas/command'
+import { takeValidationErrorDetail } from './validation-error-detail'
 
 type CommandName = keyof RustWorkbookCommands
 /** 在 Worker 内维护唯一 Rust 工作簿，并处理 UI Core 的直接命令。 */
@@ -58,9 +63,10 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
 
   async function initialize(
     sheets: readonly RustWorkbookSheetInput[],
+    customFormulas?: RustWorkbookCommands['workbook.initialize']['payload']['customFormulas'],
   ): Promise<RustWorkbookSheet[]> {
     await ensureWasm()
-    const initialized = initializeWorkbook(wasm, sheets)
+    const initialized = initializeWorkbook(wasm, sheets, customFormulas)
     workbook = initialized.workbook
     revision = 0
     clipboard = undefined
@@ -116,9 +122,47 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
     }
     if (command === 'workbook.initialize') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
-      return initialize(input.sheets)
+      return initialize(input.sheets, input.customFormulas)
     }
     const current = currentWorkbook()
+    if (command === 'customFormula.read') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      return { definitions: readCustomFormulas(current, input, revision), revision }
+    }
+    if (command === 'customFormula.change') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      const result = projectChange(changeCustomFormula(current, sheetsById, input, revision), input)
+      return { ...result, definitions: readCustomFormulas(current, { revision }, revision) }
+    }
+    if (command === 'notes.read') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      return { text: readNote(current, sheetsById, input, revision), revision }
+    }
+    if (command === 'comments.read') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      return { thread: readComment(current, sheetsById, input, revision), revision }
+    }
+    if (command === 'comments.change') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      const result = projectChange(changeComment(current, sheetsById, input, revision), input)
+      return {
+        ...result,
+        thread: readComment(current, sheetsById, { ...input, revision }, revision),
+      }
+    }
+    if (command === 'notes.change') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      return projectChange(changeNote(current, sheetsById, input, revision), input)
+    }
+    if (command === 'protection.read') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      return readProtection(current, sheetsById, input)
+    }
+    if (command === 'protection.change') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      const result = projectChange(changeProtection(current, sheetsById, input, revision), input)
+      return { ...result, protection: readProtection(current, sheetsById, input) }
+    }
     if (command === 'hyperlink.change') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
       return projectChange(changeHyperlink(current, sheetsById, input, revision), input)
@@ -415,6 +459,10 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       command === 'clipboard.paste'
     ) {
       const { request, projection } = payload as RustWorkbookCommands[typeof command]['payload']
+      if ('validationConfirmation' in request && request.validationConfirmation !== undefined) {
+        if (request.validationConfirmation !== 'continue' || request.validationRevision !== revision)
+          throw new Error('The workbook changed. Submit the operation again.')
+      }
       // 跨表公式编辑：写入原单元格，但返回正在浏览表的真实投影。
       if (command !== 'cell.setInput' && projection.sheetId !== request.sheetId) {
         throw Object.assign(new Error('Mutation and projection must target the same sheet'), {
@@ -469,7 +517,7 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
         acknowledgement,
         ...('direction' in request || fontSizeWrite
           ? { sizes: readSizes(current, sheetIndex(request.sheetId),
-            'direction' in request ? request.range : affectedRange) } : {}),
+            'direction' in request && !request.adjacent ? request.range : affectedRange) } : {}),
         ...(colWidths ? { colWidths } : {}),
         projection: readVisibleProjection(
           current,
@@ -488,10 +536,16 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
     const message = event.data as WorkerRequestWire
     if (typeof message?.id !== 'number' || typeof message.command !== 'string') return
     try {
+      // 原生失败详情是一次性的；新写请求先清理此前未消费的失败。
+      if (['cell.setInput', 'clipboard.paste', 'range.fill'].includes(message.command))
+        workbook?.getLastValidationFailure?.()
       const result = await dispatch(message.command as CommandName, message.payload)
       scope.postMessage({ id: message.id, ok: true, result })
     } catch (error) {
-      scope.postMessage({ id: message.id, ok: false, error: rpcError(error) })
+      scope.postMessage({ id: message.id, ok: false, error: rpcError(
+        workbook && ['cell.setInput', 'clipboard.paste', 'range.fill'].includes(message.command)
+          ? takeValidationErrorDetail(workbook, error) : error,
+      ) })
     }
   })
 }

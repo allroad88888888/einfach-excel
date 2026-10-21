@@ -27,6 +27,7 @@ fn rule(book: &mut Workbook, first: &str, last: &str, ignore_blank: bool) {
                 },
                 ignore_blank,
                 operator: Default::default(),
+                options: Default::default(),
             }),
         )
         .unwrap();
@@ -186,15 +187,41 @@ fn valid_formula_paste_is_one_history_step_and_rejected_retry_keeps_redo() {
 }
 
 #[test]
-fn ordinary_paste_does_not_treat_validation_as_a_database_constraint() {
+fn ordinary_all_paste_obeys_stop_validation_and_preserves_history_on_rejection() {
     let mut book = Workbook::new();
+    book.set_cell_input(0, "A1", "4").unwrap();
+    book.set_cell_input(0, "B1", "9").unwrap();
     rule(&mut book, "A1", "A1", true);
+    let rules = book.sheet(0).unwrap().data_validations().to_vec();
+    let options = ClipboardPasteOptions::new(range("A1", "A1"));
     let clip = ClipboardSnapshot::from_tsv("20", Mode::All).unwrap();
-    book.paste_clipboard(&clip, 0, &ClipboardPasteOptions::new(range("A1", "A1")))
-        .unwrap();
-    assert_eq!(book.get_cell("Sheet1", "A1"), Value::Number(20.0));
+    assert_eq!(
+        book.paste_clipboard(&clip, 0, &options),
+        Err("DATA_VALIDATION_FAILED")
+    );
+    let mut history = WorkbookHistory::default();
+    assert_eq!(
+        book.paste_clipboard_with_history(&clip, 0, &options, &mut history),
+        Err("DATA_VALIDATION_FAILED")
+    );
+    assert_eq!(book.get_cell("Sheet1", "A1"), Value::Number(4.0));
+    assert_eq!(book.get_cell("Sheet1", "B1"), Value::Number(9.0));
+    assert_eq!(book.sheet(0).unwrap().data_validations(), rules);
+    assert_eq!((history.undo_count(), history.redo_count()), (0, 0));
+    assert!(!history.is_pending());
     assert_eq!(
         book.set_cell_input(0, "A1", "21"),
         Err("DATA_VALIDATION_FAILED")
     );
+    let valid = ClipboardSnapshot::from_tsv("6", Mode::All).unwrap();
+    book.paste_clipboard_with_history(&valid, 0, &options, &mut history)
+        .unwrap();
+    assert_eq!(book.get_cell("Sheet1", "A1"), Value::Number(6.0));
+    assert_eq!((history.undo_count(), history.redo_count()), (1, 0));
+    history.undo(&mut book).unwrap();
+    assert_eq!(book.get_cell("Sheet1", "A1"), Value::Number(4.0));
+    history.redo(&mut book).unwrap();
+    assert_eq!(book.get_cell("Sheet1", "A1"), Value::Number(6.0));
+    assert_eq!(book.get_cell("Sheet1", "B1"), Value::Number(9.0));
+    assert_eq!(book.sheet(0).unwrap().data_validations(), rules);
 }

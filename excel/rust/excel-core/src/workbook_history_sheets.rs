@@ -10,6 +10,7 @@ impl WorkbookHistory {
         name: &str,
     ) -> Result<usize, &'static str> {
         self.require_idle()?;
+        workbook.ensure_workbook_unprotected()?;
         let (index, change) = SheetHistoryChange::edit(workbook, index, name)?;
         if let Some(change) = change {
             self.push_sheet(
@@ -34,6 +35,7 @@ impl WorkbookHistory {
         index: usize,
     ) -> Result<(), &'static str> {
         self.require_idle()?;
+        workbook.ensure_workbook_unprotected()?;
         let key = workbook
             .sheet_key(index)
             .ok_or("The worksheet no longer exists.")?;
@@ -50,6 +52,7 @@ impl WorkbookHistory {
         to: usize,
     ) -> Result<(), &'static str> {
         self.require_idle()?;
+        workbook.ensure_workbook_unprotected()?;
         if let Some(change) = SheetHistoryChange::move_to(workbook, from, to)? {
             self.push_sheet(
                 workbook,

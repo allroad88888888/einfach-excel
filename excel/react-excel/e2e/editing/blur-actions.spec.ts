@@ -1,0 +1,43 @@
+import { expect, test, type Page } from '@playwright/test'
+import { select } from '../support/clipboard'
+
+const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
+
+for (const width of [1280, 390]) for (const source of ['cell', 'formula'] as const)
+  test(`${source} blur commits once without stealing the new control focus at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 850 })
+    await page.goto('/e2e/fixtures/plain-sales-orders/')
+    await expect(cell(page, '1:0')).toHaveText('SO-10001')
+    await select(page, 'E2', '1:4')
+    if (source === 'cell') await cell(page, '1:4').dblclick()
+    const input = page.getByRole('textbox', {
+      name: source === 'cell' ? 'Cell editor' : 'Active cell value', exact: true,
+    })
+    await input.fill('3')
+    await expect(cell(page, '1:4')).toHaveText('1')
+    await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+    const nextControl = page.getByRole('tab', { name: 'Insert', exact: true })
+    await nextControl.click()
+    await expect(cell(page, '1:4')).toHaveText('3')
+    await expect(cell(page, '1:4')).toHaveCSS('color', 'rgb(192, 0, 0)')
+    await expect(page.getByRole('textbox', { name: 'Cell editor', exact: true })).toHaveCount(0)
+    await expect(nextControl).toBeFocused()
+    await expect(nextControl).toHaveAttribute('aria-selected', 'true')
+    await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('E2')
+    await select(page, 'G2', '1:6')
+    await expect(cell(page, '1:6')).toHaveText('237')
+    await expect(page.getByRole('textbox', { name: 'Active cell value', exact: true }))
+      .toHaveValue('=E2*F2')
+    await page.getByRole('button', { name: 'Undo', exact: true }).click()
+    await expect(cell(page, '1:6')).toHaveText('79')
+    await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+    await page.getByRole('button', { name: 'Redo', exact: true }).click()
+    await expect(cell(page, '1:6')).toHaveText('237')
+    await select(page, 'E2', '1:4')
+    await expect(cell(page, '1:4')).toHaveText('3')
+    await expect(cell(page, '1:5')).toHaveText('79')
+    await select(page, 'A2', '1:0')
+    await expect(cell(page, '1:0')).toHaveText('SO-10001')
+    await expect(cell(page, '1:0')).toHaveCSS('font-weight', '700')
+    await expect(cell(page, '1:1')).toHaveCSS('font-style', 'italic')
+  })

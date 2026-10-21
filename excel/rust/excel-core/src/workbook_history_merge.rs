@@ -18,6 +18,7 @@ impl MergeChange {
         sheet: usize,
         undo: bool,
     ) -> Result<(), &'static str> {
+        workbook.ensure_sheet_unprotected(sheet)?;
         if workbook.is_inside_custom_call() {
             return Err("MUTATION_DURING_CUSTOM_CALL");
         }

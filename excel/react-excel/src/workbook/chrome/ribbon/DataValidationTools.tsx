@@ -5,6 +5,7 @@ import { useId, useLayoutEffect, useRef } from 'react'
 import { editingSessionAtom, nativeDataValidationPanelAtom, runNativeDataValidationAtom,
   type NativeDataValidationOperator, type NativeDataValidationRule } from '@einfach/spreadsheet-ui-core'
 import { cycleDialogFocus } from './dialog-focus'
+import { AdvancedValidationFields } from '../../advanced-validation/AdvancedValidationFields'
 import './data-validation-panel.css'
 
 /** 展示草稿与错误；原生规则没有 React 本地副本。 */
@@ -17,6 +18,7 @@ export function DataValidationTools() {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const id = useId()
   const open = state.sheetId !== null
+  const reading = state.phase === 'reading'
   const temporal = state.kind === 'date' || state.kind === 'time'
   const twoBounds = state.operator === 'between' || state.operator === 'not-between'
   const boundHint = state.kind === 'date' ? 'YYYY-MM-DD' : state.kind === 'time' ? 'HH:mm:ss' : undefined
@@ -30,9 +32,11 @@ export function DataValidationTools() {
     if (!open || !dialog) return
     if (dialog.showModal) dialog.showModal()
     else dialog.setAttribute('open', '')
-    dialog.querySelector<HTMLInputElement>('input')?.focus()
     return () => { dialog.close?.(); opener?.focus({ preventScroll: true }) }
   }, [open])
+  useLayoutEffect(() => {
+    if (open && !reading) dialogRef.current?.querySelector<HTMLInputElement>('input')?.focus()
+  }, [open, reading])
   return <>
     <button ref={trigger} type="button" className="tool-button" aria-label={t`Data validation`}
       title={t`Data validation`} disabled={editing || state.busy}
@@ -55,12 +59,13 @@ export function DataValidationTools() {
             <option value="date"><Trans>Date</Trans></option>
             <option value="time"><Trans>Time</Trans></option>
             <option value="text-length"><Trans>Text length</Trans></option>
+            <option value="custom-formula"><Trans>Custom formula</Trans></option>
           </select>
           {state.kind === 'list' ? <>
             <label htmlFor={`${id}-items`}><Trans>Items, one per line</Trans></label>
             <textarea id={`${id}-items`} value={state.items} rows={5} required
               onChange={(event) => void run({ items: event.currentTarget.value })} />
-          </> : <>
+          </> : state.kind !== 'custom-formula' && <>
             <label htmlFor={`${id}-operator`}><Trans>Condition</Trans></label>
             <select id={`${id}-operator`} value={state.operator}
               onChange={(event) => {
@@ -89,18 +94,20 @@ export function DataValidationTools() {
           <label htmlFor={`${id}-blank`}><Trans>Ignore blank cells</Trans></label>
           <input id={`${id}-blank`} type="checkbox" checked={state.ignoreBlank}
             onChange={(event) => void run({ ignoreBlank: event.currentTarget.checked })} />
+          <AdvancedValidationFields id={id} />
         </fieldset>
         {temporal && <p id={`${id}-hint`}>
           {boundHelp}{state.operator === 'between' ? inclusiveHelp : ''}
         </p>}
-        {state.kind !== 'list' && state.operator === 'not-between' &&
+        {state.kind !== 'list' && state.kind !== 'custom-formula' && state.operator === 'not-between' &&
           <p><Trans>Values must be below the minimum or above the maximum.
             Both boundaries are excluded.</Trans></p>}
         {state.error && <p role="alert">{translateFeedback(i18n, state.error)}</p>}
-        {state.busy && <p role="status"><Trans>Working…</Trans></p>}
+        {state.busy && <p role="status">{state.phase === 'saving'
+          ? t`Saving validation…` : t`Loading validation…`}</p>}
         <div className="data-validation-actions">
           <button type="button" disabled={state.busy} onClick={() => void run('clear')}><Trans>Clear validation</Trans></button>
-          <button type="button" disabled={state.busy} onClick={() => void run('close')}><Trans>Cancel</Trans></button>
+          <button type="button" disabled={state.phase === 'saving'} onClick={() => void run('close')}><Trans>Cancel</Trans></button>
           <button type="submit" disabled={state.busy}><Trans>Apply</Trans></button>
         </div>
       </form>

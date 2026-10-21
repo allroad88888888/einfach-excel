@@ -13,11 +13,13 @@ pub struct BulkInstallStats {
 pub enum InstallError {
     SheetOutOfRange(usize),
     MutationDuringCustomCall,
+    ProtectedWorkbook,
 }
 
 impl std::fmt::Display for InstallError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::ProtectedWorkbook => write!(f, "{}", crate::protection::PROTECTED_ERROR),
             Self::SheetOutOfRange(index) => {
                 write!(f, "sheet index {index} is outside the workbook")
             }

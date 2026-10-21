@@ -8,7 +8,6 @@ import {
 } from '../projection'
 import { validateProjectionResult } from '../projection/contracts'
 import { applyProjectionSizes } from '../projection/projection-sizes'
-import { getSheetProtection, sheetProtectionAtom } from '../protection'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import {
   workbookDocumentAtom,
@@ -72,21 +71,11 @@ export const runRustHistoryAtom = atom(
       return false
     }
     const affected = entry.affectedSheets ?? [entry.sheetIndex]
-    if (
-      entry.sheetChange
-        ? workbook.sheets.some(
-            (candidate) =>
-              getSheetProtection(get(sheetProtectionAtom), candidate.id).mode === 'protected',
-          )
-        : affected.some((index) => {
-            const target = workbook.sheets.find((candidate) => candidate.index === index)
-            return (
-              !target ||
-              getSheetProtection(get(sheetProtectionAtom), target.id).mode === 'protected'
-            )
-          })
-    )
-      return fail('Unprotect the affected worksheet before undoing or redoing.')
+    if (!entry.sheetChange && affected.some((index) =>
+      !workbook.sheets.some((candidate) => candidate.index === index)))
+      return fail('The worksheet no longer exists.')
+    // Only Rust knows this entry's actual cell, metadata and dimension writes.
+    // A protected sheet may still permit cell history inside editable ranges.
     const requestId = set(issueProjectionRequestIdAtom)
     if (requestId === null) return false
     const projection = createVisibleProjectionRequest({

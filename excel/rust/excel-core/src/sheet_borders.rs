@@ -246,3 +246,20 @@ pub(crate) fn border_plan_range(writes: &BorderPlan) -> Option<CellRange> {
         Some(range)
     })
 }
+
+/// 按实际地址压缩连续行段；历史与权限不能把锁定角格或稀疏间隙算作写入。
+pub(crate) fn border_plan_ranges(writes: &BorderPlan) -> Vec<CellRange> {
+    let mut addresses: Vec<_> = writes.keys().copied().collect();
+    addresses.sort_by_key(|addr| (addr.row, addr.col));
+    let mut ranges: Vec<CellRange> = Vec::new();
+    for addr in addresses {
+        if let Some(last) = ranges.last_mut() {
+            if last.end.row == addr.row && last.end.col.checked_add(1) == Some(addr.col) {
+                last.end = addr;
+                continue;
+            }
+        }
+        ranges.push(CellRange::single(addr));
+    }
+    ranges
+}

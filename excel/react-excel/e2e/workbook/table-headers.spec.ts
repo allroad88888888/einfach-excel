@@ -26,6 +26,25 @@ test.beforeEach(async ({ page }) => {
   await select(page, 'A46', '45:0')
 })
 
+for (const width of [1280, 390]) test(`hide table headers preserves data and undoes once at ${width}px`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 850 })
+  await open(page); await toggle(page, false)
+  await expect(page.getByLabel('Table range', { exact: true })).toHaveValue('A47:C49')
+  await expect(page.getByLabel('Column', { exact: true })).toHaveValue('Quantity')
+  await close(page)
+  await expect(cell(page, '45:0')).toHaveText('')
+  await expect(cell(page, '46:0')).toHaveText('1')
+  await expect(cell(page, '46:2')).toHaveText('10')
+  await button(page, 'Undo').click()
+  await expect(cell(page, '45:0')).toHaveText('Quantity')
+  await expect(cell(page, '46:2')).toHaveText('10')
+  await expect(button(page, 'Undo')).toBeDisabled()
+  await open(page); await expect(page.getByLabel('Header row', { exact: true })).toBeChecked()
+  await close(page); await button(page, 'Redo').click()
+  await expect(cell(page, '45:0')).toHaveText('')
+  await expect(cell(page, '46:2')).toHaveText('10')
+})
+
 test('seed headers toggle without moving calculated data and undo restores the same table', async ({ page }) => {
   await expect(button(page, 'Undo')).toBeDisabled()
   await expect(cell(page, '45:0')).toHaveText('Quantity')
@@ -55,6 +74,25 @@ test('seed headers toggle without moving calculated data and undo restores the s
   await expect(cell(page, '45:0')).toHaveText('Units')
   await expect(cell(page, '46:2')).toHaveText('10')
   await select(page, 'B6', '5:1'); await expect(cell(page, '5:1')).toHaveText('140')
+})
+
+for (const width of [1280, 390]) test(`show table headers is one undoable action after hiding at ${width}px`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 850 })
+  await open(page); await toggle(page, false); await close(page)
+  await expect(cell(page, '45:0')).toHaveText('')
+  await open(page); await toggle(page, true)
+  await expect(page.getByLabel('Table range', { exact: true })).toHaveValue('A46:C49')
+  await close(page)
+  await expect(cell(page, '45:0')).toHaveText('Quantity')
+  await expect(cell(page, '46:2')).toHaveText('10')
+  await button(page, 'Undo').click()
+  await expect(cell(page, '45:0')).toHaveText('')
+  await expect(cell(page, '46:2')).toHaveText('10')
+  await button(page, 'Recent operations').click()
+  await expect(page.getByRole('dialog', { name: 'Recent operations' })).toContainText('1 undo · 1 redo')
+  await button(page, 'Close history').click()
+  await button(page, 'Redo').click()
+  await expect(cell(page, '45:0')).toHaveText('Quantity')
 })
 
 test('cross-sheet header arrays become zero and recover through native history', async ({ page }) => {

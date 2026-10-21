@@ -23,6 +23,8 @@ for (const [fn, col, index, expected] of [
 ] as const) test(`${fn} infers native seed range, confirms once and supports undo, redo and recalculation`, async ({ page }) => {
   await go(page, `${col}68`)
   await expect(cell(page, `69:${index}`)).toHaveText(expected)
+  const neighbor = cell(page, `67:${index + 1}`)
+  const neighborText = await neighbor.innerText()
   await menu(page).selectOption(fn)
   await expect(bar(page)).toHaveValue(`=${fn.toUpperCase()}(${col}65:${col}67)`)
   await expect(bar(page)).toBeFocused()
@@ -35,6 +37,9 @@ for (const [fn, col, index, expected] of [
   await expect(button(page, 'Undo')).toBeDisabled()
   await button(page, 'Redo').click()
   await expect(cell(page, `67:${index}`)).toHaveText(expected)
+  await expect(neighbor).toHaveText(neighborText)
+  for (const [row, value] of [[64, '2'], [65, '4'], [66, '6']] as const)
+    await expect(cell(page, `${row}:${index}`)).toHaveText(value)
   await go(page, `${col}65`)
   await bar(page).fill('8')
   await bar(page).press('Enter')
@@ -55,6 +60,13 @@ test('explicit selection uses an empty trailing cell, permits draft correction a
   await expect(bar(page)).toHaveValue('=SUM(C65:C67)')
   await bar(page).fill('=SUM(C65:C66)')
   await bar(page).press('Enter')
+  await expect(cell(page, '67:2')).toHaveText('6')
+  await expect(cell(page, '66:2')).toHaveText('6')
+  await expect(cell(page, '69:2')).toHaveText('12')
+  await button(page, 'Undo').click()
+  await expect(cell(page, '67:2')).toHaveText('')
+  await expect(button(page, 'Undo')).toBeDisabled()
+  await button(page, 'Redo').click()
   await expect(cell(page, '67:2')).toHaveText('6')
 })
 
@@ -84,7 +96,9 @@ test('occupied result, merged source and hidden result reject without modifying 
 })
 
 test('no nearby number and canvas edge stay correctable', async ({ page }) => {
-  await go(page, 'H80')
+  await go(page, 'H81')
+  await expect(bar(page)).toHaveValue('')
+  await expect(button(page, 'Undo')).toBeDisabled()
   await button(page, 'Auto sum').click()
   await expect(page.getByRole('alert')).toContainText('immediately below or right')
   await go(page, 'A100:B100')

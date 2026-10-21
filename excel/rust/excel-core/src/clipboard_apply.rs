@@ -72,7 +72,9 @@ pub(super) fn apply_paste(
         }
         let sheet = workbook.sheet_mut(sheet_idx).unwrap();
         if snapshot.cut {
-            sheet.hyperlinks.retain(|addr, _| !snapshot.source.contains(*addr));
+            sheet
+                .hyperlinks
+                .retain(|addr, _| !snapshot.source.contains(*addr));
             sheet.patch_format_range(
                 snapshot.source,
                 StyleScope::Cell,
@@ -83,10 +85,15 @@ pub(super) fn apply_paste(
             // 普通粘贴携带链接；仅值/公式/格式不改变目标的链接元数据。
             // 扩表可额外生成粘贴矩形外的表头；它们没有对应剪贴板源格。
             if options.mode == ClipboardPasteMode::All
-                && options.arithmetic == ClipboardArithmetic::None && merges.target.contains(addr) {
+                && options.arithmetic == ClipboardArithmetic::None
+                && merges.target.contains(addr)
+            {
                 let (_, source) = snapshot.cell_at_target(addr, merges.target, options.transpose);
-                if let Some(url) = &source.hyperlink { sheet.hyperlinks.insert(addr, url.clone()); }
-                else { sheet.hyperlinks.remove(&addr); }
+                if let Some(url) = &source.hyperlink {
+                    sheet.hyperlinks.insert(addr, url.clone());
+                } else {
+                    sheet.hyperlinks.remove(&addr);
+                }
             }
             if let Some(format) = format {
                 // 默认格式也要压住目标原有的行/列样式。
@@ -96,6 +103,9 @@ pub(super) fn apply_paste(
         sheet.apply_border_plan(borders);
         if merges.changed() {
             sheet.project_bulk_spill_anchors(anchors);
+        }
+        if !validation_formulas.is_empty() {
+            workbook.settle_validation_candidate(sheet_idx, merges.target);
         }
         let valid = validation_formulas.iter().try_for_each(|addr| {
             let value =
@@ -108,6 +118,9 @@ pub(super) fn apply_paste(
         } else {
             valid
         };
+        if outcome.is_err() && !validation_formulas.is_empty() {
+            workbook.settle_validation_candidate(sheet_idx, merges.target);
+        }
     });
     for (index, observers) in observers {
         workbook.sheets[index].resume_structure_notifications(observers);

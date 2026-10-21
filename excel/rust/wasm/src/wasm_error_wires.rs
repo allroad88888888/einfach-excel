@@ -10,6 +10,7 @@ fn workbook_error_to_js(err: WorkbookError) -> JsValue {
         // internal error-formatting helper is not part of the wasm export
         // surface, so no snapshot regeneration is needed.
         WorkbookError::NameConflict => "name-conflict".to_string(),
+        WorkbookError::ProtectedWorkbook => einfach_excel_core::protection::PROTECTED_ERROR.to_string(),
     };
     JsValue::from_str(&msg)
 }
@@ -49,6 +50,9 @@ fn sort_range_error_to_js(err: SortRangeError) -> JsValue {
         SortRangeError::EmptyKeys => sort_error_to_js("empty-keys", None, None),
         SortRangeError::KeyOutOfRange => sort_error_to_js("key-out-of-range", None, None),
         SortRangeError::MergeIntersectsRange => sort_error_to_js("merge-in-range", None, None),
+        SortRangeError::ProtectedRange => sort_error_to_js(
+            "protected-range", None, Some(einfach_excel_core::protection::PROTECTED_ERROR),
+        ),
         SortRangeError::SpillIntersectsRange { anchor } => {
             sort_error_to_js("spill-in-range", Some(&anchor.to_string()), None)
         }

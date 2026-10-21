@@ -78,6 +78,8 @@ impl Workbook {
                     .ok_or("History worksheet no longer exists.")?;
                 target.restore_format_range_snapshot(snapshot.formats.clone());
                 target.restore_hyperlinks(snapshot.range, &snapshot.hyperlinks);
+                target.restore_notes(snapshot.range, &snapshot.notes);
+                target.restore_comments(snapshot.range, &snapshot.comments);
                 for (col, _) in
                     target.col_widths_in_range(snapshot.range.start.col, snapshot.range.end.col)
                 {

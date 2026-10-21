@@ -120,6 +120,7 @@ impl TableDefinitionChange {
 }
 
 fn totals_target(workbook: &Workbook, name: &str) -> Result<(usize, TableEntry), TableError> {
+    workbook.ensure_workbook_unprotected().map_err(|_| TableError::ProtectedWorkbook)?;
     if workbook.is_inside_custom_call() {
         return Err(TableError::MutationDuringCustomCall);
     }

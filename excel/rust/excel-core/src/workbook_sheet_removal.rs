@@ -31,6 +31,11 @@ impl Workbook {
                 .collect()
         };
         self.validate_conditional_rule_sources(&conditional).ok()?;
+        let validations = if preserve { Vec::new() } else {
+            self.validation_sheet_ref_rewrites(&self.names[idx], None).into_iter()
+                .filter(|(key, _)| *key != self.sheet_keys[idx]).collect()
+        };
+        self.validate_validation_rule_sources(&validations).ok()?;
         // 撤销新增表保留悬空引用；普通删除把静态引用改为 #REF!。
         let lambdas = if preserve {
             Vec::new()
@@ -45,6 +50,7 @@ impl Workbook {
         let mut removed = None;
         store.batch(|_| {
             self.apply_conditional_rule_sources(&conditional);
+            self.apply_validation_rule_sources(&validations);
             self.clear_conditional_range_atoms(idx);
             let sheet = self.sheets.remove(idx);
             self.sheet_keys.remove(idx);

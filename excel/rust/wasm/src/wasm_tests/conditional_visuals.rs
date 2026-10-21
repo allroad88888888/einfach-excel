@@ -114,6 +114,7 @@ fn visual_snapshot_wire_flattens_geometry_and_preserves_the_base_snapshot_shape(
         .snapshot_display_format_range(0, range)
         .unwrap();
     let wire = DisplayFormatRangeSnapshotJSON {
+        conditional_icons: Vec::new(),
         formats: FormatRangeSnapshotJSON::from_snapshot(&display.formats, Some(0)),
         data_bars: display
             .data_bars

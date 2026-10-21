@@ -5,6 +5,8 @@ import type { NativeTable } from '../tables/native-types'
 import type { SheetVisibilityProjection } from '../viewport/hidden-state'
 import type { ColumnFilterRule } from '../filter-sort/types'
 import type { ConditionalFormatRuleEntry } from '../conditional-formatting/types'
+import type { SheetProtectionState } from '../protection/types'
+import type { NativeCustomFormulaDefinition } from '../custom-formulas/expression-types'
 import type { CellRange, SheetRef } from '../shared'
 import type { FrozenProjection, ProjectionViewport } from './frozen-projection-contracts'
 export type { FrozenProjection, FrozenProjectionRegion, ProjectionViewport } from './frozen-projection-contracts'
@@ -56,6 +58,10 @@ export interface VisibleProjectionResult extends SheetRef {
   colWidths?: ViewportColumnWidth[]
   /** 同一次原生命令返回的历史目录，不携带回放数据。 */
   history?: RustHistoryState
+  /** 当前表的原生保护事实；旧 UI gate 仅消费这份返回投影。 */
+  protection?: SheetProtectionState
+  /** 原生表达式目录随文件/历史/初始投影统一同步。 */
+  customFormulaDefinitions?: readonly NativeCustomFormulaDefinition[]
   /** 工作簿级名称目录与单元格来自同一 Rust 修订版，不单独刷新或本地修改。 */
   namedRanges?: readonly NativeNamedRange[]
   /** 整张表的隐藏索引；不能只返回窗口内部分，否则屏幕外定位会漂移。 */

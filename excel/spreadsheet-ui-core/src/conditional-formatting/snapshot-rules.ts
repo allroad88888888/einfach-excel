@@ -1,4 +1,5 @@
 import { CONDITIONAL_FORMAT_RULES_MAX } from './constants'
+import { snapshotAdvancedVisualRule } from './advanced/snapshot'
 import {
   isObjectRecord,
   isOneOf,
@@ -68,27 +69,9 @@ export function snapshotRule(value: unknown): ConditionalFormatRule | null {
           : null
       }
       case 'data-bar':
-        return (value.minColor !== undefined && typeof value.minColor !== 'string') ||
-          (value.maxColor !== undefined && typeof value.maxColor !== 'string')
-          ? null
-          : {
-              ...options,
-              kind: value.kind,
-              ...(value.minColor === undefined ? {} : { minColor: value.minColor }),
-              ...(value.maxColor === undefined ? {} : { maxColor: value.maxColor }),
-            }
       case 'color-scale':
-        return typeof value.minColor !== 'string' ||
-          typeof value.maxColor !== 'string' ||
-          (value.midColor !== undefined && typeof value.midColor !== 'string')
-          ? null
-          : {
-              ...options,
-              kind: value.kind,
-              minColor: value.minColor,
-              ...(value.midColor === undefined ? {} : { midColor: value.midColor }),
-              maxColor: value.maxColor,
-            }
+      case 'icon-set':
+        return snapshotAdvancedVisualRule(value)
       case 'top-bottom': {
         const format = snapshotFormat(value.format)
         if (

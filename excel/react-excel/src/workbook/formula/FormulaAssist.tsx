@@ -9,9 +9,9 @@ import {
   formulaFunctionSuggestionsAtom,
   formulaFunctionSuggestionCursorAtom,
   formulaFunctionSignatureAtom,
-  renderActiveSignatureSlots,
   acceptFormulaSuggestionAtom,
 } from '@einfach/spreadsheet-ui-core'
+import { FormulaParameterHelp } from '../formula-help/FormulaParameterHelp'
 import './formula-assist.css'
 
 /** 两个编辑入口共用同一个 atom 提示视图；ref 只用于 DOM 定位和保留输入焦点。 */
@@ -83,15 +83,16 @@ export function FormulaAssist({
   }
   return createPortal(
     <div
-      className="formula-assist"
+      className={`formula-assist${suggestions.length > 0 ? '' : ' formula-assist-signature'}`}
       ref={popupRef}
       onPointerDown={(event) => event.stopPropagation()}
       onMouseDown={(event) => event.preventDefault()}
     >
       {suggestions.length > 0 ? (
         <>
-          <div className="formula-assist-heading"><Trans>
-            Functions </Trans><span>↑ ↓ · Tab / Enter</span>
+          <div className="formula-assist-heading">
+            <Trans>Functions </Trans>
+            <span>↑ ↓ · Tab / Enter</span>
           </div>
           <div
             id={id}
@@ -107,12 +108,23 @@ export function FormulaAssist({
                 role="option"
                 tabIndex={-1}
                 aria-selected={index === cursor}
-                aria-label={`${spec.name} ${translateFeedback(i18n, spec.summary)}`}
-                title={translateFeedback(i18n, spec.summary)}
+                aria-label={`${spec.name} ${translateFeedback(
+                  i18n,
+                  i18n.locale.startsWith('zh') ? (spec.summaryZh ?? spec.summary) : spec.summary,
+                )}`}
+                title={translateFeedback(
+                  i18n,
+                  i18n.locale.startsWith('zh') ? (spec.summaryZh ?? spec.summary) : spec.summary,
+                )}
                 onClick={() => acceptName(spec.name)}
               >
                 <code>{spec.name}</code>
-                <span>{translateFeedback(i18n, spec.summary)}</span>
+                <span>
+                  {translateFeedback(
+                    i18n,
+                    i18n.locale.startsWith('zh') ? (spec.summaryZh ?? spec.summary) : spec.summary,
+                  )}
+                </span>
               </button>
             ))}
           </div>
@@ -125,16 +137,11 @@ export function FormulaAssist({
             role="status"
             className="formula-signature"
           >
-            <code>
-              {signature.spec.name}(
-              {renderActiveSignatureSlots(signature).map((slot, index) => (
-                <span key={index}>
-                  {index > 0 ? ', ' : ''}
-                  {slot.active ? <strong>{slot.text}</strong> : slot.text}
-                </span>
-              ))}
-              )
-            </code>
+            <FormulaParameterHelp
+              spec={signature.spec}
+              activeArgIndex={signature.activeArgIndex}
+              compact
+            />
           </div>
         )
       )}

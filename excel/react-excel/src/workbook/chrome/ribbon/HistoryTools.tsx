@@ -11,6 +11,7 @@ import {
 import { useEffect, useId, useRef } from 'react'
 import './history.css'
 import { Trans, useLingui } from '@lingui/react/macro'
+import { cycleDialogFocus } from './dialog-focus'
 
 /** 历史列表只展示 Rust 的操作目录，不能在 React 回放工作簿数据。 */
 export function HistoryTools() {
@@ -76,6 +77,7 @@ export function HistoryTools() {
           ref={dialogRef}
           className="history-dialog"
           aria-labelledby={`${id}-title`}
+          onKeyDown={cycleDialogFocus}
           onCancel={(event) => {
             event.preventDefault()
             void run('close')

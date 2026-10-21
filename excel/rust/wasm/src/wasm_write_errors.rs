@@ -41,6 +41,10 @@ fn sheet_error_to_js(err: SheetError) -> JsValue {
             )
             .ok();
         }
+        SheetError::ProtectedCell => {
+            js_sys::Reflect::set(&obj, &JsValue::from_str("code"),
+                &JsValue::from_str("SHEET_PROTECTED")).ok();
+        }
         SheetError::MutationDuringCustomCall => {
             // Wave 8 codex-review fix #1. Host code attempted to write
             // through the workbook from inside a custom-formula JS

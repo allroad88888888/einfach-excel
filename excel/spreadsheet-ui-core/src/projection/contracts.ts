@@ -17,6 +17,7 @@ import { validFilterRange, validFilterRules } from '../rust-workbook/filter-comm
 import { validNativeConditionalFormats } from '../rust-workbook/conditional-format-commands'
 import { validFrozenProjection, validProjectionViewport } from './frozen-validation'
 import { validMergeBorderCells } from './merge-border-cells'
+import { validProjectionMetadata } from './metadata-validation'
 import type {
   ProjectionLimitOptions,
   ProjectionRequest,
@@ -218,6 +219,8 @@ export function validateProjectionResult(
     return makeInvalid('STALE_RESULT', 'Projection result does not match its request.')
   }
   const range = getProjectionResultRange(result)
+  if (!validProjectionMetadata(result))
+    return makeInvalid('CELL_OUT_OF_RANGE', 'Invalid Rust cell metadata or protection projection.')
   if (result.kind === 'visible-window' && result.namedRanges !== undefined &&
     !validNativeNamedRanges(result.namedRanges))
     return makeInvalid('CELL_OUT_OF_RANGE', 'Invalid Rust named-range projection.')

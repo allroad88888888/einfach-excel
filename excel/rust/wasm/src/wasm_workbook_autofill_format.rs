@@ -27,9 +27,16 @@ impl WasmWorkbook {
                 )
             })?;
         let infer = request.infer;
-        let request = if infer {
+        let confirmed = match request.validation_confirmation.as_deref() {
+            None => false,
+            Some("continue") => true,
+            _ => return Err(JsValue::from_str("INVALID_VALIDATION_CONFIRMATION")),
+        };
+        let request: AutoFillRequest = request.into();
+        let automatic = infer && request.series == AutoFillSeries::Copy;
+        let request = if infer && !automatic {
             self.workbook
-                .infer_auto_fill_request(request.into())
+                .infer_auto_fill_request(request)
                 .map_err(|err| {
                     auto_fill_rejection(
                         auto_fill_error_code(&err),
@@ -37,9 +44,13 @@ impl WasmWorkbook {
                     )
                 })?
         } else {
-            request.into()
+            request
         };
-        let report = self.history.apply_auto_fill(&mut self.workbook, &request).map_err(|err| {
+        let history = &mut self.history;
+        let report = self.workbook.with_validation_confirmation(confirmed, |workbook| {
+            if automatic { history.apply_inferred_auto_fill(workbook, &request) }
+            else { history.apply_auto_fill(workbook, &request) }
+        }).map_err(|err| {
             auto_fill_rejection(
                 auto_fill_error_code(&err),
                 format!("auto-fill rejected: {err}"),
@@ -47,6 +58,16 @@ impl WasmWorkbook {
         })?;
         serde_wasm_bindgen::to_value(&AutoFillReportJSON::from(report))
             .map_err(|err| JsValue::from_str(&format!("serialize auto-fill report: {err}")))
+    }
+
+    /// 双击填充只返回原生判定的末行，不把相邻列值传给 JS 再扫描。
+    pub fn find_fill_down_end(
+        &self, sheet: u32, source: JsValue, row_limit: u32,
+    ) -> Result<Option<u32>, JsValue> {
+        let source: AutoFillRangeJSON = serde_wasm_bindgen::from_value(source)
+            .map_err(|err| JsValue::from_str(&format!("invalid fill source: {err}")))?;
+        self.workbook.find_fill_down_end(sheet as usize, source.into(), row_limit)
+            .map_err(|err| auto_fill_rejection(auto_fill_error_code(&err), err.to_string()))
     }
 
     /// 兼容旧调用：把完整格式逐格写进 cellStyle。
@@ -69,6 +90,7 @@ impl WasmWorkbook {
             CellAddress::new(start_row, start_col),
             CellAddress::new(end_row, end_col),
         );
+        self.ensure_protection_range(sheet_idx, range)?;
         let sheet = self
             .workbook
             .sheet_mut(sheet_idx as usize)
@@ -130,6 +152,8 @@ impl WasmWorkbook {
             .map_err(|err| JsValue::from_str(&format!("invalid format range snapshot: {err}")))?;
         let sheet_idx = snapshot.sheet.unwrap_or(0);
         let snapshot = snapshot.into_snapshot()?;
+        // 行列样式与跨格边框也可在快照内，不能只检查可见 cellStyle。
+        self.ensure_protection_sheet(sheet_idx)?;
         let sheet = self
             .workbook
             .sheet_mut(sheet_idx as usize)

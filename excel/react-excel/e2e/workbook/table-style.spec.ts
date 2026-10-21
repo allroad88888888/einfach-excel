@@ -50,21 +50,49 @@ test('seed style is rendered by Rust without startup history', async ({ page }) 
   await expect(page.getByLabel('First column emphasis')).not.toBeChecked()
 })
 
-test('preset changes are one undo step and None removes only table styling', async ({ page }) => {
-  await open(page); await preset(page, 'green'); await close(page)
-  await expect(cell(page, '79:0')).toHaveCSS('background-color', 'rgb(39, 99, 71)')
+for (const width of [1280, 390]) for (const [value, color] of [
+  ['green', 'rgb(39, 99, 71)'], ['gray', 'rgb(75, 85, 99)'], ['none', 'rgb(255, 255, 255)'],
+]) test(`table preset ${value} preserves values and undoes once at ${width}px`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 850 })
+  const outside = await cell(page, '80:2').evaluate(node => getComputedStyle(node).backgroundColor)
+  await open(page); await preset(page, value!)
+  if (value === 'none') await expect(page.getByLabel('Banded rows')).toBeDisabled()
+  await close(page)
+  await expect(cell(page, '79:0')).toHaveCSS('background-color', color!)
+  await expect(cell(page, '79:0')).toHaveCSS('font-weight', '700')
+  await expect(cell(page, '80:1')).toHaveText('10')
+  await expect(cell(page, '80:2')).toHaveCSS('background-color', outside)
   await button(page, 'Undo').click()
   await expect(cell(page, '79:0')).toHaveCSS('background-color', 'rgb(31, 78, 120)')
   await expect(button(page, 'Undo')).toBeDisabled()
   await button(page, 'Redo').click()
-  await expect(cell(page, '79:0')).toHaveCSS('background-color', 'rgb(39, 99, 71)')
-  await open(page); await preset(page, 'gray'); await close(page)
-  await expect(cell(page, '79:0')).toHaveCSS('background-color', 'rgb(75, 85, 99)')
-  await open(page); await preset(page, 'none')
-  await expect(page.getByLabel('Banded rows')).toBeDisabled(); await close(page)
-  await expect(cell(page, '79:0')).not.toHaveCSS('background-color', 'rgb(75, 85, 99)')
-  await expect(cell(page, '79:0')).toHaveCSS('font-weight', '700')
+  await expect(cell(page, '79:0')).toHaveCSS('background-color', color!)
+})
+
+for (const width of [1280, 390]) for (const [label, coord, property, value] of [
+  ['Banded rows', '80:1', 'background-color', 'rgb(255, 255, 255)'],
+  ['First column emphasis', '80:0', 'font-weight', '700'],
+]) test(`${label} changes independently and undoes once at ${width}px`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 850 })
+  const before = await cell(page, coord!).evaluate(
+    (node, prop) => getComputedStyle(node).getPropertyValue(prop), property!,
+  )
+  await open(page)
+  const option = page.getByLabel(label!, { exact: true })
+  const checked = await option.isChecked()
+  await option.click()
+  await expect(option).toBeChecked({ checked: !checked })
+  await expect(option).toBeEnabled(); await close(page)
+  await expect(cell(page, coord!)).toHaveCSS(property!, value!)
   await expect(cell(page, '80:1')).toHaveText('10')
+  await expect(cell(page, '80:1')).toHaveCSS('font-weight', '400')
+  await expect(cell(page, '79:0')).toHaveCSS('background-color', 'rgb(31, 78, 120)')
+  await button(page, 'Undo').click()
+  await expect(cell(page, coord!)).toHaveCSS(property!, before)
+  await expect(button(page, 'Undo')).toBeDisabled()
+  await open(page); await expect(page.getByLabel(label!, { exact: true })).toBeChecked({ checked })
+  await close(page); await button(page, 'Redo').click()
+  await expect(cell(page, coord!)).toHaveCSS(property!, value!)
 })
 
 test('banding and first-column emphasis are independent and reversible', async ({ page }) => {
@@ -108,7 +136,8 @@ for (const width of [1280, 390]) test(`style controls fit ${width}px with keyboa
   await expect(page.getByLabel('First column emphasis')).toBeChecked()
   expect(await dialog.evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true)
   const bounds = (await dialog.boundingBox())!
-  expect(bounds.x).toBeGreaterThanOrEqual(0); expect(bounds.x + bounds.width).toBeLessThanOrEqual(width)
+  expect(bounds.x).toBeGreaterThanOrEqual(0)
+  expect(bounds.x + bounds.width).toBeLessThanOrEqual(width)
   await page.getByLabel('Style preset').scrollIntoViewIfNeeded()
   await page.screenshot({ path: info.outputPath(`table-style-${width}.png`) })
   await page.keyboard.press('Escape'); await expect(dialog).toHaveCount(0)

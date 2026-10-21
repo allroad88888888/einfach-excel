@@ -58,28 +58,84 @@ test('changing Stop, priority and enabled state updates lower rules with one-ste
   await expect(cell(page, '84:4')).toHaveCSS('background-color', green)
 })
 
-for (const condition of ['contains', 'not-contains', 'begins-with', 'ends-with'])
+// 不能都用完整单词：中间片段、前缀、后缀与带空格样本才能区分四种算法。
+for (const [condition, fragment, spacedMatches] of [
+  ['contains', 'apl', true], ['not-contains', 'apl', false],
+  ['begins-with', 'map', false], ['ends-with', 'le', false],
+] as const)
   test(`text ${condition} uses real values and native rejection preserves the draft`, async ({ page }) => {
     await go(page, 'D32:D39'); await open(page)
     await page.getByLabel('Rule type').selectOption('text')
     await page.getByLabel('Text condition').selectOption(condition)
     await button(page, 'Add rule').click()
     await expect(dialog(page).getByRole('alert')).toContainText('1 and 1024')
-    await page.getByLabel('Matching text').fill('maple')
+    await page.getByLabel('Matching text').fill(fragment)
     await save(page)
     const matched = condition !== 'not-contains'
-    for (const row of [33, 34]) {
+    for (const row of [32, 33, 34]) {
       if (matched) await expect(cell(page, `${row}:3`)).toHaveCSS('background-color', red)
       else await expect(cell(page, `${row}:3`)).not.toHaveCSS('background-color', red)
     }
     if (!matched) await expect(cell(page, '36:3')).toHaveCSS('background-color', red)
     else await expect(cell(page, '36:3')).not.toHaveCSS('background-color', red)
+    if (spacedMatches) await expect(cell(page, '35:3')).toHaveCSS('background-color', red)
+    else await expect(cell(page, '35:3')).not.toHaveCSS('background-color', red)
+    await expect(cell(page, '32:4')).toHaveText('East')
+    await expect(cell(page, '32:4')).not.toHaveCSS('background-color', red)
     await button(page, 'Undo').click()
     await expect(cell(page, '33:3')).not.toHaveCSS('background-color', red)
+    await expect(button(page, 'Undo')).toBeDisabled()
     await button(page, 'Redo').click()
+    if (spacedMatches) await expect(cell(page, '35:3')).toHaveCSS('background-color', red)
+    else await expect(cell(page, '35:3')).not.toHaveCSS('background-color', red)
+    await go(page, 'D36')
+    await expect(page.getByRole('textbox', { name: 'Active cell value' })).toHaveValue(' Maple ')
     await open(page)
-    await expect(dialog(page).getByRole('listitem').first()).toContainText('maple')
+    await expect(dialog(page).getByRole('listitem').first()).toContainText(fragment)
   })
+
+for (const width of [1280, 390]) test(`duplicate values ignores text case but keeps spaces in one undo at ${width}px`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 850 })
+  await go(page, 'D33:D39'); await open(page)
+  await page.getByLabel('Rule type').selectOption('duplicate-values')
+  await page.getByLabel('Highlight values').selectOption('duplicate'); await save(page)
+  for (const row of [32, 33, 34])
+    await expect(cell(page, `${row}:3`)).toHaveCSS('background-color', red)
+  for (const row of [35, 36, 37, 38])
+    await expect(cell(page, `${row}:3`)).not.toHaveCSS('background-color', red)
+  await expect(cell(page, '31:3')).toHaveText('Key')
+  await expect(cell(page, '31:3')).toHaveCSS('font-weight', '700')
+  await expect(cell(page, '32:4')).toHaveText('East')
+  await button(page, 'Undo').click()
+  await expect(cell(page, '32:3')).not.toHaveCSS('background-color', red)
+  await expect(button(page, 'Undo')).toBeDisabled()
+  await button(page, 'Redo').click()
+  await expect(cell(page, '32:3')).toHaveCSS('background-color', red)
+  await expect(cell(page, '35:3')).not.toHaveCSS('background-color', red)
+})
+
+for (const width of [1280, 390]) test(`unique values changes the seeded rule and undoes once at ${width}px`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 850 })
+  await open(page); await button(page, 'Edit rule 10').click()
+  const count = await dialog(page).getByRole('listitem').count()
+  await page.getByLabel('Highlight values').selectOption('unique'); await save(page, true)
+  await expect(cell(page, '86:5')).toHaveCSS('background-color', red)
+  for (const row of [84, 85, 87, 88])
+    await expect(cell(page, `${row}:5`)).not.toHaveCSS('background-color', red)
+  await expect(cell(page, '86:5')).toHaveText('Birch')
+  await expect(cell(page, '87:5')).toHaveText('Cedar')
+  await expect(cell(page, '84:4')).toHaveCSS('background-color', green)
+  await button(page, 'Undo').click()
+  await expect(cell(page, '86:5')).not.toHaveCSS('background-color', red)
+  await expect(cell(page, '84:5')).toHaveCSS('background-color', red)
+  await expect(button(page, 'Undo')).toBeDisabled()
+  await button(page, 'Redo').click()
+  await expect(cell(page, '86:5')).toHaveCSS('background-color', red)
+  await open(page); await button(page, 'Edit rule 10').click()
+  await expect(page.getByLabel('Highlight values')).toHaveValue('unique')
+  await expect(page.getByLabel('Applies to')).toHaveValue('F85:F89')
+  await expect(dialog(page).getByRole('listitem')).toHaveCount(count)
+})
 
 test('duplicate and unique use the whole scope, update on edits and restore with undo', async ({ page }) => {
   await open(page); await button(page, 'Edit rule 10').click()
@@ -111,6 +167,11 @@ test('Stop blocks lower data bars without removing numbers or base styles', asyn
   await expect(cell(page, '76:4')).toHaveText('5')
   await button(page, 'Undo').click()
   await expect(cell(page, '76:4').locator('[data-data-bar]')).toHaveCount(1)
+  await expect(button(page, 'Undo')).toBeDisabled()
+  await button(page, 'Redo').click()
+  await expect(cell(page, '76:4').locator('[data-data-bar]')).toHaveCount(0)
+  await expect(cell(page, '76:4')).toHaveText('5')
+  await expect(cell(page, '74:4').locator('[data-data-bar]')).toHaveCount(1)
 })
 
 for (const width of [1280, 390]) test(`text options fit and cancel restores focus at ${width}px`, async ({ page }) => {

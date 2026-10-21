@@ -57,6 +57,10 @@ test('descending numeric sort is stable and a repeated sort creates no history s
   await page.getByRole('button', { name: 'Undo', exact: true }).click()
   await records(page, ['W20', 'E10', 'W10', 'E30'])
   await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+  await page.getByRole('button', { name: 'Redo', exact: true }).click()
+  await records(page, ['E30', 'W20', 'E10', 'W10'])
+  await expect(cell(page, '24:1')).toHaveText('Score')
+  await expect(cell(page, '25:0')).toHaveText('West')
 })
 
 test('custom sort keeps the header and uses ordered, mixed-direction keys', async ({ page }) => {
@@ -73,6 +77,13 @@ test('custom sort keeps the header and uses ordered, mixed-direction keys', asyn
   await records(page, ['E30', 'E10', 'W20', 'W10'])
   await page.getByRole('button', { name: 'Undo', exact: true }).click()
   await records(page, ['W20', 'E10', 'W10', 'E30'])
+  await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+  await page.getByRole('button', { name: 'Redo', exact: true }).click()
+  await records(page, ['E30', 'E10', 'W20', 'W10'])
+  await expect(cell(page, '24:0')).toHaveText('Team')
+  await expect(cell(page, '25:2')).toHaveCSS('text-decoration-line', 'underline')
+  await expect(cell(page, '26:2')).toHaveCSS('font-style', 'italic')
+  await expect(cell(page, '27:2')).toHaveCSS('font-weight', '700')
 })
 
 test('blank cells stay last in both directions and formulas remain formulas', async ({ page }) => {
@@ -185,7 +196,10 @@ for (const width of [1280, 390]) {
     for (const name of ['Sort column 1', 'Sort order 1', 'Sort column 2', 'Sort order 2'])
       await expect(dialog.getByLabel(name)).toBeInViewport()
     await expect(dialog.getByRole('button', { name: 'Apply sort' })).toBeInViewport()
-    expect(await dialog.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true)
+    const dialogFits = await dialog.evaluate(
+      (element) => element.scrollWidth <= element.clientWidth,
+    )
+    expect(dialogFits).toBe(true)
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     await page.screenshot({ path: info.outputPath(`sort-${width}.png`) })
     await dialog.getByRole('button', { name: 'Apply sort' }).click()

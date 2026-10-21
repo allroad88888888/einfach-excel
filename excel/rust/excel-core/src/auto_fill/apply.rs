@@ -1,10 +1,12 @@
 //! 填充的一次预检与原子应用；普通调用和历史入口共用同一计划。
 use super::*;
 use crate::{
-    sheet::{border_plan_range, BorderPlan},
+    sheet::{border_plan_ranges, BorderPlan},
     workbook_history::WorkbookHistory,
     CellStyle, StyleScope,
 };
+
+mod inferred;
 
 #[derive(Default)]
 struct FillPlan {
@@ -20,7 +22,7 @@ impl Workbook {
         request: &AutoFillRequest,
     ) -> Result<AutoFillReport, AutoFillError> {
         let plan = self.plan_auto_fill(request)?;
-        Ok(self.apply_fill_plan(request.sheet_idx, plan))
+        self.apply_fill_plan(request.sheet_idx, plan)
     }
 
     fn plan_auto_fill(&self, request: &AutoFillRequest) -> Result<FillPlan, AutoFillError> {
@@ -68,6 +70,7 @@ impl Workbook {
                 .map(|cell| (cell.addr, cell.format.borders.clone())),
             sheet.merged_ranges(),
         );
+        self.ensure_fill_protection(request.sheet_idx, &cells, &borders)?;
         Ok(FillPlan {
             cells,
             write_range,
@@ -75,19 +78,75 @@ impl Workbook {
         })
     }
 
-    fn apply_fill_plan(&mut self, sheet: usize, plan: FillPlan) -> AutoFillReport {
+    /// Bulk loaders are intentionally raw; the complete fill plan is checked before using one.
+    fn ensure_fill_protection(
+        &self,
+        sheet: usize,
+        cells: &[PlannedCell],
+        borders: &BorderPlan,
+    ) -> Result<(), AutoFillError> {
+        for addr in cells
+            .iter()
+            .map(|cell| cell.addr)
+            .chain(borders.keys().copied())
+        {
+            self.ensure_range_editable(sheet, CellRange::single(addr))
+                .map_err(AutoFillError::InvalidGeometry)?;
+        }
+        if !self
+            .insert_rows_for_writes(cells.iter().map(|cell| (sheet, cell.addr)))
+            .is_empty()
+        {
+            self.ensure_workbook_unprotected()
+                .map_err(AutoFillError::InvalidGeometry)?;
+        }
+        Ok(())
+    }
+
+    fn apply_fill_plan(
+        &mut self,
+        sheet: usize,
+        plan: FillPlan,
+    ) -> Result<AutoFillReport, AutoFillError> {
         let FillPlan {
             cells,
             write_range,
             borders,
         } = plan;
         if write_range.is_none() {
-            return AutoFillReport {
+            return Ok(AutoFillReport {
                 write_range,
                 written: 0,
-            };
+            });
         }
+        let validations: Vec<_> = cells
+            .iter()
+            .filter_map(|cell| {
+                self.sheets[sheet]
+                    .data_validation_at(cell.addr)
+                    .map(|_| cell.addr)
+            })
+            .collect();
+        // 公式与跨格条件必须读取整批新值；私有回滚事务不会成为用户的额外一条历史。
+        let mut rollback = WorkbookHistory::default();
+        if !validations.is_empty() {
+            rollback
+                .begin(self, sheet, write_range.unwrap(), "Validate fill", true)
+                .map_err(AutoFillError::InvalidGeometry)?;
+            for range in border_plan_ranges(&borders) {
+                rollback.capture_extra_formats(self.sheet(sheet).unwrap(), sheet, range);
+            }
+        }
+        let observers: Vec<_> = if validations.is_empty() {
+            Vec::new()
+        } else {
+            self.sheets
+                .iter_mut()
+                .map(|sheet| sheet.suspend_structure_notifications())
+                .collect()
+        };
         let store = self.store.clone();
+        let mut result = Ok(());
         // 内容、格式与邻格共边在一个 batch 内发布，观察者不看到中间状态。
         store.batch(|_| {
             self.bulk_load(|loader| {
@@ -117,11 +176,32 @@ impl Workbook {
                 );
             }
             target.apply_border_plan(borders);
+            if !validations.is_empty() {
+                self.settle_validation_candidate(sheet, write_range.unwrap());
+            }
+            result = validations.iter().try_for_each(|addr| {
+                let value =
+                    crate::sheet::collapse_array_for_eval(self.sheets[sheet].peek_value(*addr));
+                self.validate_input_value(sheet, *addr, &value)
+            });
+            if !validations.is_empty() {
+                let valid = result.is_ok();
+                if let Err(error) = rollback.finish(self, valid) {
+                    result = Err(error);
+                }
+                if !valid {
+                    self.settle_validation_candidate(sheet, write_range.unwrap());
+                }
+            }
         });
-        AutoFillReport {
+        for (sheet, observer) in self.sheets.iter_mut().zip(observers) {
+            sheet.resume_structure_notifications(observer);
+        }
+        result.map_err(AutoFillError::InvalidGeometry)?;
+        Ok(AutoFillReport {
             write_range,
             written: cells.len(),
-        }
+        })
     }
 }
 
@@ -133,13 +213,19 @@ impl WorkbookHistory {
         request: &AutoFillRequest,
     ) -> Result<AutoFillReport, AutoFillError> {
         let plan = workbook.plan_auto_fill(request)?;
-        if let Some(range) = border_plan_range(&plan.borders) {
-            self.capture_extra_formats(
-                workbook.sheet(request.sheet_idx).unwrap(),
-                request.sheet_idx,
-                range,
-            );
+        self.apply_planned_fill(workbook, request.sheet_idx, plan)
+    }
+
+    // 两种填充入口共用共边快照和最终 batch；多条序列仍只有一次历史。
+    fn apply_planned_fill(
+        &mut self,
+        workbook: &mut Workbook,
+        sheet: usize,
+        plan: FillPlan,
+    ) -> Result<AutoFillReport, AutoFillError> {
+        for range in border_plan_ranges(&plan.borders) {
+            self.capture_extra_formats(workbook.sheet(sheet).unwrap(), sheet, range);
         }
-        Ok(workbook.apply_fill_plan(request.sheet_idx, plan))
+        workbook.apply_fill_plan(sheet, plan)
     }
 }

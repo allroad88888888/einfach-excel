@@ -90,6 +90,7 @@ pub enum PrintConfigError {
     InvalidPrintArea,
     DuplicateSheetSnapshot,
     MutationDuringCustomCall,
+    ProtectedWorksheet,
 }
 
 impl std::fmt::Display for PrintConfigError {
@@ -99,6 +100,7 @@ impl std::fmt::Display for PrintConfigError {
             Self::InvalidScale => write!(f, "print scale is invalid"),
             Self::InvalidPrintArea => write!(f, "print area must be normalized"),
             Self::DuplicateSheetSnapshot => write!(f, "print snapshot has duplicate sheet entries"),
+            Self::ProtectedWorksheet => write!(f, "{}", crate::protection::PROTECTED_ERROR),
             Self::MutationDuringCustomCall => {
                 write!(
                     f,
@@ -129,6 +131,7 @@ impl Workbook {
         sheet: usize,
         config: PrintConfig,
     ) -> Result<PrintConfigSnapshot, PrintConfigError> {
+        self.ensure_sheet_unprotected(sheet).map_err(|_| PrintConfigError::ProtectedWorksheet)?;
         if self.is_inside_custom_call() {
             return Err(PrintConfigError::MutationDuringCustomCall);
         }
@@ -164,6 +167,7 @@ impl Workbook {
         &mut self,
         snapshots: Vec<PrintConfigSnapshot>,
     ) -> Result<usize, PrintConfigError> {
+        self.ensure_workbook_unprotected().map_err(|_| PrintConfigError::ProtectedWorksheet)?;
         if self.is_inside_custom_call() {
             return Err(PrintConfigError::MutationDuringCustomCall);
         }

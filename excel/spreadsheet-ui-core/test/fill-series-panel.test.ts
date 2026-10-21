@@ -58,7 +58,7 @@ test('invalid count, wrong direction, changed selection and cancel never write',
   expect(fill).not.toHaveBeenCalled()
 })
 
-test('native failure keeps choices for retry and protection uses the common guard', async () => {
+test('native failure keeps choices for retry and protection uses the native guard', async () => {
   const { store, fill } = await setup()
   fill.mockRejectedValueOnce(new Error('Samples are not equally spaced'))
   expect(await store.setter(configureFillSeriesAtom, 'apply')).toBe(false)
@@ -68,9 +68,21 @@ test('native failure keeps choices for retry and protection uses the common guar
   expect(await store.setter(configureFillSeriesAtom, 'apply')).toBe(true)
   await store.setter(configureFillSeriesAtom, 'open')
   store.setter(setSheetProtectionAtom, { sheetId: 's', state: { mode: 'protected', unlockedRanges: [] } })
+  fill.mockRejectedValueOnce(new Error('This worksheet is protected.'))
   expect(await store.setter(configureFillSeriesAtom, 'apply')).toBe(false)
-  expect(store.getter(fillSeriesPanelAtom).error).toContain('Unprotect')
-  expect(fill).toHaveBeenCalledTimes(2)
+  expect(store.getter(fillSeriesPanelAtom)).toMatchObject({
+    kind: 'number', sourceCount: '2', error: 'This worksheet is protected.',
+  })
+  expect(fill).toHaveBeenCalledTimes(3)
+})
+
+test('native accepts an editable series destination with locked read-only samples', async () => {
+  const { store, fill } = await setup()
+  store.setter(setSheetProtectionAtom, { sheetId: 's', state: { mode: 'protected',
+    unlockedRanges: [{ rowStart: 2, rowEnd: 9, colStart: 0, colEnd: 0 }] } })
+  expect(await store.setter(configureFillSeriesAtom, 'apply')).toBe(true)
+  expect(fill).toHaveBeenCalledTimes(1)
+  expect(store.getter(fillSeriesPanelAtom).target).toBeNull()
 })
 
 test('pending fill prevents editing options, dismissal and duplicate submission', async () => {

@@ -111,6 +111,7 @@ impl WasmWorkbook {
     /// the additive install variant Phase 6.4 deferred. The fresh-shell
     /// restore (`restore_persistence_v1`) IS routed storage-primary.
     pub fn restore_sparse(&mut self, cells: JsValue) -> Result<u32, JsValue> {
+        self.ensure_protection_workbook()?;
         // Routes through `Workbook::bulk_load`, which Phase 2/3 made
         // lazy — see `CAP_REMOVAL_2026-06-11.md`. No per-call payload
         // cap is needed.
@@ -145,6 +146,10 @@ impl WasmWorkbook {
                     .and_then(|sheet| sheet.get_formula(&addr_str))
                     .unwrap_or_default();
                 out.push(CellSnapshotJSON {
+                    comment_indicator: self.workbook.sheet(sheet_idx)
+                        .and_then(|sheet| sheet.comment(addr)).map(|_| true),
+                    note_indicator: self.workbook.sheet(sheet_idx)
+                        .and_then(|sheet| sheet.note(addr)).map(|_| true),
                     hyperlink: self.workbook.sheet(sheet_idx)
                         .and_then(|sheet| sheet.hyperlink(addr)).map(str::to_owned),
                     formatted_display: native_number_display(&self.workbook, sheet_idx, &addr_str, &value),
@@ -158,6 +163,8 @@ impl WasmWorkbook {
                 });
             });
         self.append_empty_hyperlink_cells(sheet_idx, range, &mut out);
+        self.append_note_cells(sheet_idx, range, &mut out);
+        self.append_comment_cells(sheet_idx, range, &mut out);
         serde_wasm_bindgen::to_value(&out)
             .map_err(|err| JsValue::from_str(&format!("serialize sparse range: {err}")))
     }

@@ -1,0 +1,29 @@
+# Audited against eval_fn_dynamic_*, eval_array_expand.rs, eval_wrap.rs and matrix_functions.
+SEQUENCE	rows,columns?,start?,step?	Creates a numeric grid; columns, start and step default to one.	创建数字数组；列数、起点与步长默认为一。	2,3,1,1
+RANDARRAY	rows?,columns?,min?,max?,whole_number?	Creates random values; defaults are one row, one column, minimum zero, maximum one and decimals.	创建随机数数组；默认一行一列、下界零、上界一、允许小数。	2,2,1,9,TRUE
+UNIQUE	array,by_col?,exactly_once?	Returns distinct rows or columns, or only those occurring exactly once.	返回不重复的行或列，也可仅返回恰好出现一次的项。	{1;1;2}
+SORT	array,sort_index?,sort_order?,by_col?	Sorts rows by a column, or columns by a row; index and order default to one.	按列排序行，或按行排序列；索引与排序方向默认为一。	{3;1;2}
+SORTBY	array,by_array*,sort_order*?	Sorts rows using one or more key-array/order pairs; the last order may be omitted and defaults to one.	使用一组或多组键数组与顺序对来排序行；最后的顺序可省略，默认为一。	{30;10;20},{3;1;2},1
+FILTER	array,include,if_empty?	Filters rows or columns using a matching Boolean vector.	使用形状匹配的逻辑向量筛选行或列。	{1;2;3},{TRUE;FALSE;TRUE}
+MAP	array*,lambda	Applies the final lambda elementwise to equally shaped arrays; lambda arity must equal the array count.	将末尾函数逐元素应用于同形数组，函数形参数须与数组数一致。	{1,2},LAMBDA(x,x*2)
+REDUCE	initial_value,array,lambda	Folds an array in row-major order with a two-parameter lambda and returns its final scalar accumulator.	使用双参数函数按行顺序归约数组，返回最终标量累积值。	0,{1,2,3},LAMBDA(a,v,a+v)
+SCAN	initial_value,array,lambda	Returns each intermediate scalar accumulator of a two-parameter lambda in input-array shape.	使用双参数函数计算逐步累积值，返回与输入同形的数组。	0,{1,2,3},LAMBDA(a,v,a+v)
+BYROW	array,lambda	Applies a one-parameter lambda to each row and returns one scalar per row.	将单参数函数应用于每一行，每行返回一个标量。	{1,2;3,4},LAMBDA(r,SUM(r))
+BYCOL	array,lambda	Applies a one-parameter lambda to each column and returns one scalar per column.	将单参数函数应用于每一列，每列返回一个标量。	{1,2;3,4},LAMBDA(c,SUM(c))
+MAKEARRAY	rows,columns,lambda	Builds an array with a two-parameter lambda receiving one-based row and column indices.	使用接收从一开始行列索引的双参数函数创建数组。	2,2,LAMBDA(r,c,r+c)
+TAKE	array,rows,columns?	Takes rows and optional columns; negative counts select from the end.	提取指定行数及可选列数，负数表示从末尾提取。	{1,2;3,4},1
+DROP	array,rows,columns?	Drops rows and optional columns; negative counts remove from the end.	删除指定行数及可选列数，负数表示从末尾删除。	{1,2;3,4},1
+EXPAND	array,rows,columns?,pad_with?	Expands to the requested dimensions, padding new cells with #N/A unless specified.	扩展到指定行列数，新增单元格默认填充 #N/A。	{1,2},2,3,0
+VSTACK	array*	Stacks arrays vertically, padding missing columns with #N/A.	垂直堆叠数组，缺少的列填充 #N/A。	{1,2},{3,4}
+HSTACK	array*	Stacks arrays horizontally, padding missing rows with #N/A.	水平堆叠数组，缺少的行填充 #N/A。	{1;2},{3;4}
+CHOOSEROWS	array,row_num*	Selects rows by nonzero indices; negative indices count from the end.	按非零索引选择行，负数从末尾计数。	{1,2;3,4},2,1
+CHOOSECOLS	array,column_num*	Selects columns by nonzero indices; negative indices count from the end.	按非零索引选择列，负数从末尾计数。	{1,2;3,4},2,1
+TOROW	array,ignore?,scan_by_column?	Flattens an array to one row; ignore is 0 all, 1 blanks, 2 errors, 3 both.	将数组展平为一行；ignore 为 0 保留、1 忽略空白、2 忽略错误、3 同时忽略。	{1,2;3,4}
+TOCOL	array,ignore?,scan_by_column?	Flattens an array to one column; ignore is 0 all, 1 blanks, 2 errors, 3 both.	将数组展平为一列；ignore 为 0 保留、1 忽略空白、2 忽略错误、3 同时忽略。	{1,2;3,4}
+WRAPROWS	vector,wrap_count,pad_with?	Wraps a one-dimensional vector into rows of wrap_count elements.	将一维向量按每行 wrap_count 个元素换行。	{1,2,3},2,0
+WRAPCOLS	vector,wrap_count,pad_with?	Wraps a one-dimensional vector into columns of wrap_count elements.	将一维向量按每列 wrap_count 个元素换列。	{1,2,3},2,0
+MDETERM	reference	Returns the determinant of a square numeric matrix reference.	返回方形数字矩阵引用的行列式。	A1:B2
+MMULT	array1,array2	Multiplies compatible numeric matrices.	对维度兼容的数字矩阵进行乘法。	{1,2;3,4},{1;1}
+MINVERSE	array	Returns the inverse of a nonsingular square numeric matrix.	返回非奇异方形数字矩阵的逆矩阵。	{1,0;0,2}
+MUNIT	dimension	Returns an identity matrix of the requested positive size.	返回指定正整数阶数的单位矩阵。	2
+TRANSPOSE	array	Swaps rows and columns of a reference or array.	交换引用或数组的行列。	{1,2;3,4}

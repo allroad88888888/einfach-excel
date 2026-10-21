@@ -727,6 +727,18 @@ fn the_entry_points_reject_an_unknown_sheet() {
     );
     assert_eq!(wb.reapply_filter(9).unwrap_err(), FilterError::InvalidSheet);
     assert_eq!(wb.clear_filter(9).unwrap_err(), FilterError::InvalidSheet);
+    assert_eq!(
+        wb.apply_filter_range(
+            9,
+            einfach_excel_core::CellRange::new(
+                einfach_excel_core::CellAddress::new(0, 0),
+                einfach_excel_core::CellAddress::new(1, 0),
+            ),
+            &[],
+        )
+        .unwrap_err(),
+        FilterError::InvalidSheet
+    );
     assert!(wb.filter_rules(9).is_empty());
     assert!(wb.filter_hidden_rows(9).is_empty());
 }

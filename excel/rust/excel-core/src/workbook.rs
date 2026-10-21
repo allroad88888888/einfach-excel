@@ -24,6 +24,12 @@ use crate::sheet::{
     SheetError, WorkbookAtomContext,
 };
 
+#[path = "advanced_conditional_format/mod.rs"]
+pub(crate) mod advanced_conditional_format;
+pub use advanced_conditional_format::ConditionalIconDisplay;
+#[path = "advanced_validation/mod.rs"]
+pub mod advanced_validation;
+
 #[path = "workbook_conditional_color_scale.rs"]
 mod conditional_color_scale;
 #[path = "workbook_conditional_data_bar.rs"]
@@ -65,6 +71,7 @@ mod workbook_conditional_format;
 #[path = "workbook_conditional_format_types.rs"]
 mod workbook_conditional_format_types;
 use conditional_format_sheet_refs::ConditionalRuleSources;
+use self::advanced_validation::ValidationRuleSources;
 #[path = "workbook_custom.rs"]
 mod workbook_custom;
 #[path = "workbook_cycles.rs"]
@@ -188,7 +195,7 @@ pub use self::workbook_conditional_format_types::{
 };
 pub use self::workbook_errors::{HiddenRowsError, TableError, TotalsFunction};
 pub use self::workbook_loader::WorkbookLoader;
-pub(crate) use self::workbook_named::NamedDefinition;
+pub(crate) use self::workbook_named::{NamedDefinition, NamedEntry};
 pub use self::workbook_named::WorkbookError;
 pub use self::workbook_print_config::{
     HeaderFooterFields, ManualPageBreak, ManualPageBreakAxis, PrintConfig, PrintConfigError,
@@ -215,6 +222,9 @@ pub struct Workbook {
     pub(super) cycle_ast_walk_count: Cell<usize>,
     pub(super) named_values: BTreeMap<String, NamedEntry>,
     pub(super) custom_functions: Option<Arc<dyn CustomFunctionRegistry>>,
+    pub(crate) protection: BTreeMap<u64, crate::protection::SheetProtection>,
+    pub(crate) validation_confirmation: Rc<Cell<bool>>,
+    pub(crate) validation_failure: std::cell::RefCell<Option<advanced_validation::ValidationFailure>>,
     pub(crate) custom_call_depth: Rc<Cell<usize>>,
     pub(super) content_revision: u64,
     pub(super) tables: BTreeMap<String, TableEntry>,

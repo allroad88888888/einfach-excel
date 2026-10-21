@@ -57,3 +57,4 @@
 README 的操作内容按职责迁到 [current-capabilities.md](current-capabilities.md)，不删减功能范围。
 
 后续名称识别扩展见[名称序列批次](fill-named-series-wave.md)；上面的未包含范围描述的是本批验收时点。
+多行列独立推断与双击延伸见[独立序列与双击填充](fill-independent-wave.md)。

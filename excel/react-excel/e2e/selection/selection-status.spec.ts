@@ -76,6 +76,9 @@ test('empty strings and errors count as content, but clearing a minimum removes 
 
 test('an entire column includes offscreen formulas and scrolling keeps the same statistics', async ({ page }) => {
   await summary(page)
+  await select(page, 'D30:D31')
+  await expect(page.locator('td[data-cell="29:3"]')).toHaveText('3')
+  await expect(page.locator('td[data-cell="30:3"]')).toHaveText('20')
   await select(page, 'D62')
   const randomValue = Number(await page.locator('td[data-cell="61:3"]').textContent())
   expect(randomValue).toBeGreaterThanOrEqual(0)
@@ -86,14 +89,14 @@ test('an entire column includes offscreen formulas and scrolling keeps the same 
   }
   await page.getByRole('columnheader', { name: 'Select column D', exact: true }).click()
   // 原五个数值合计 36；D75:D79 的色阶样例另有五个、合计 25。
-  // 新的 D61 标题和 D62 RAND 也参加统计；滚动不能使随机公式意外重算。
-  await expect(status(page)).toContainText('Numerical count: 11')
+  // D30:D31 的横向填充样本再加 2 个、合计 23；D62 RAND 也参与且滚动不能重算。
+  await expect(status(page)).toContainText('Numerical count: 13')
   await expect(status(page)).not.toContainText('Calculating selection')
-  for (const [name, expected] of [['Sum', 61 + randomValue], ['Average', (61 + randomValue) / 11]] as const) {
+  for (const [name, expected] of [['Sum', 84 + randomValue], ['Average', (84 + randomValue) / 13]] as const) {
     const text = await status(page).getByRole('button', { name: `Copy ${name}`, exact: true }).textContent()
     expect(Number(text!.slice(name.length + 2))).toBeCloseTo(expected, 8)
   }
-  await extrema(page, 20, '-10', '20')
+  await extrema(page, 22, '-10', '20')
   const before = await status(page).textContent()
   await page.getByTestId('sheet-scroll').evaluate((element) => { element.scrollTop = element.scrollHeight })
   await expect(page.locator('td[data-cell="92:3"]')).toBeVisible()

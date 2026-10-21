@@ -102,6 +102,10 @@ impl WasmCustomFormulaRegistry {
 }
 
 impl CustomFunctionRegistry for WasmCustomFormulaRegistry {
+    fn contains(&self, name: &str) -> bool {
+        self.inner.lock().map(|map| map.contains_key(&name.to_ascii_uppercase())).unwrap_or(false)
+    }
+
     fn lookup(&self, name: &str, args: &[Value]) -> Option<Value> {
         let key = name.to_ascii_uppercase();
         let callback = {

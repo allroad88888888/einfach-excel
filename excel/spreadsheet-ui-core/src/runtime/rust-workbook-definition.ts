@@ -4,6 +4,7 @@ import { validNativeOutline } from '../outline/native-state'
 import { validNativeTableStyle } from '../tables/native-types'
 import { validFilterRules } from '../rust-workbook/filter-commands'
 import { cloneFilterSortRule } from '../backend/projection-helpers'
+import { validateCustomFormulaDefinitions, type NativeCustomFormulaDefinition } from '../custom-formulas/expression-types'
 
 export interface RustWorkbookSheetDefinition extends RustWorkbookSheetInput {
   readonly id: string
@@ -15,6 +16,7 @@ export interface RustWorkbookSheetDefinition extends RustWorkbookSheetInput {
 export interface RustWorkbookDefinition {
   readonly title: string
   readonly sheets: readonly RustWorkbookSheetDefinition[]
+  readonly customFormulas?: readonly NativeCustomFormulaDefinition[]
   createImportChunks():
     | Iterable<readonly RustImportCell[]>
     | AsyncIterable<readonly RustImportCell[]>
@@ -30,6 +32,11 @@ export function snapshotRustWorkbookDefinition(
   input: RustWorkbookDefinition,
 ): RustWorkbookDefinition {
   const title = input.title.trim()
+  const customFormulas = input.customFormulas === undefined ? undefined : Object.freeze(
+    validateCustomFormulaDefinitions(input.customFormulas).map(definition => Object.freeze({
+      name: definition.name, expression: definition.expression,
+      parameters: Object.freeze([...definition.parameters]),
+    })))
   const ids = new Set<string>()
   const sheets = input.sheets.map((sheet) => {
     const id = sheet.id.trim()
@@ -59,6 +66,29 @@ export function snapshotRustWorkbookDefinition(
         throw new Error('Invalid initial hyperlink cell.')
       return Object.freeze({ ...link })
     })
+    const notes = sheet.notes?.map((note) => {
+      if (![note.row, note.col].every((n) => Number.isSafeInteger(n) && n >= 0) ||
+        note.row >= sheet.rowCount || note.col >= sheet.colCount || typeof note.text !== 'string')
+        throw new Error('Invalid initial note cell.')
+      return Object.freeze({ ...note })
+    })
+    const editableRanges = sheet.editableRanges?.map((range) => {
+      if (![range.rowStart, range.rowEnd, range.colStart, range.colEnd].every(
+        (n) => Number.isSafeInteger(n) && n >= 0) || range.rowStart > range.rowEnd ||
+        range.colStart > range.colEnd || range.rowEnd >= sheet.rowCount ||
+        range.colEnd >= sheet.colCount)
+        throw new Error('Invalid initial editable range.')
+      return Object.freeze({ ...range })
+    })
+    const comments = sheet.comments?.map(comment => {
+      if (![comment.row, comment.col].every(n => Number.isSafeInteger(n) && n >= 0) ||
+        comment.row >= sheet.rowCount || comment.col >= sheet.colCount ||
+        typeof comment.author !== 'string' || typeof comment.body !== 'string')
+        throw new Error('Invalid initial comment cell.')
+      return Object.freeze({ ...comment })
+    })
+    if (editableRanges && editableRanges.length > 256)
+      throw new Error('A worksheet supports at most 256 editable ranges.')
     const snapshotRanges = (entries: RustWorkbookSheetInput['namedRanges'], label: string) =>
       entries?.map(({ name: rangeName, range }) => {
       if (![range.rowStart, range.rowEnd, range.colStart, range.colEnd].every(
@@ -182,6 +212,9 @@ export function snapshotRustWorkbookDefinition(
       ...(hiddenRows ? { hiddenRows } : {}),
       ...(hiddenColumns ? { hiddenColumns } : {}),
       ...(hyperlinks ? { hyperlinks: Object.freeze(hyperlinks) } : {}),
+      ...(notes ? { notes: Object.freeze(notes) } : {}),
+      ...(comments ? { comments: Object.freeze(comments) } : {}),
+      ...(editableRanges ? { editableRanges: Object.freeze(editableRanges) } : {}),
       ...(outline ? { outline } : {}),
       ...(namedRanges ? { namedRanges: Object.freeze(namedRanges) } : {}),
       ...(tables ? { tables: Object.freeze(tables) } : {}),
@@ -197,6 +230,7 @@ export function snapshotRustWorkbookDefinition(
   return Object.freeze({
     title,
     sheets: Object.freeze(sheets),
+    ...(customFormulas ? { customFormulas } : {}),
     createImportChunks: input.createImportChunks,
   })
 }

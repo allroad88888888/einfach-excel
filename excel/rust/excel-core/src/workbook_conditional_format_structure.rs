@@ -4,6 +4,7 @@ use crate::sheet::{EXCEL_MAX_COLS, EXCEL_MAX_ROWS};
 use crate::shift::{
     render_formula, rewrite_structural_refs, shift_copy_formula, shift_interval, ShiftEdit,
 };
+use super::advanced_conditional_format::rewrite_rule_formulas;
 
 impl Workbook {
     pub(super) fn shifted_conditional_format_rules(
@@ -52,8 +53,8 @@ impl Workbook {
                     next.set_ranges(ranges);
                 }
                 if let Ok(mut json) = serde_json::from_str::<serde_json::Value>(&entry.rule_json) {
-                    if json["kind"] == "formula" {
-                        if let Some(mut expr) = json["formula"].as_str().and_then(parse_formula) {
+                    let changed = rewrite_rule_formulas(&mut json, |text| {
+                        if let Some(mut expr) = parse_formula(text) {
                             if origin_delta != (0, 0) {
                                 let Ok(shifted) = shift_copy_formula(
                                     &expr,
@@ -61,7 +62,7 @@ impl Workbook {
                                     origin_delta.1,
                                 ) else {
                                     // 不支持的旧 AST 仍保留原文，不能因显示原点改变就丢掉规则。
-                                    return Some(next);
+                                    return None;
                                 };
                                 expr = shifted;
                             }
@@ -72,11 +73,12 @@ impl Workbook {
                                 edit,
                             );
                             if changed || origin_delta != (0, 0) {
-                                json["formula"] = serde_json::Value::String(render_formula(&expr));
-                                next.rule_json = json.to_string();
+                                return Some(render_formula(&expr));
                             }
                         }
-                    }
+                        None
+                    });
+                    if changed { next.rule_json = json.to_string(); }
                 }
                 Some(next)
             })

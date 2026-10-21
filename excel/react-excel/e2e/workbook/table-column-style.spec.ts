@@ -35,6 +35,34 @@ test('native seed shows column banding and last-column emphasis with no startup 
   await expect(page.getByLabel('Last column emphasis')).toBeChecked()
 })
 
+for (const width of [1280, 390]) for (const [label, coord, property, value] of [
+  ['Banded columns', '46:0', 'background-color', 'rgb(255, 255, 255)'],
+  ['Last column emphasis', '46:2', 'font-weight', '400'],
+]) test(`${label} changes independently and undoes once at ${width}px`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 850 })
+  const before = await cell(page, coord!).evaluate(
+    (node, prop) => getComputedStyle(node).getPropertyValue(prop), property!,
+  )
+  await open(page)
+  const option = page.getByLabel(label!, { exact: true })
+  await expect(option).toBeChecked()
+  // 勾选值以 Rust 回包为准；等待投影，而不是要求点击返回时同步改值。
+  await option.click()
+  await expect(option).not.toBeChecked()
+  await expect(option).toBeEnabled(); await close(page)
+  await expect(cell(page, coord!)).toHaveCSS(property!, value!)
+  await expect(cell(page, '46:0')).toHaveText('1')
+  await expect(cell(page, '46:2')).toHaveText('10')
+  if (label === 'Banded columns') await expect(cell(page, '46:2')).toHaveCSS('font-weight', '700')
+  else await expect(cell(page, '46:0')).toHaveCSS('background-color', 'rgb(226, 239, 218)')
+  await button(page, 'Undo').click()
+  await expect(cell(page, coord!)).toHaveCSS(property!, before)
+  await expect(button(page, 'Undo')).toBeDisabled()
+  await open(page); await expect(page.getByLabel(label!, { exact: true })).toBeChecked()
+  await close(page); await button(page, 'Redo').click()
+  await expect(cell(page, coord!)).toHaveCSS(property!, value!)
+})
+
 test('column options update independently and undo restores native metadata', async ({ page }) => {
   await open(page)
   await page.getByLabel('Banded columns').click()

@@ -36,12 +36,26 @@ impl WorkbookHistory {
         validate_target(workbook, sheet, range)?;
         for (sheet, range, _) in targets {
             validate_target(workbook, *sheet, *range)?;
+            workbook.ensure_range_editable(*sheet, *range)?;
+        }
+        let table_rows = workbook.insert_rows_for_ranges(targets);
+        if !table_rows.is_empty() {
+            workbook.ensure_workbook_unprotected()?;
         }
         self.pending = Some(PendingEdit {
             label: label.to_owned(),
             sheet,
             range,
-            table_rows: workbook.insert_rows_for_ranges(targets),
+            table_rows,
+            dimension_generations: targets
+                .iter()
+                .map(|(sheet, _, _)| {
+                    (
+                        *sheet,
+                        workbook.sheet(*sheet).unwrap().dimension_generations(),
+                    )
+                })
+                .collect(),
             before: targets
                 .iter()
                 .map(|(index, range, content)| {
@@ -111,6 +125,12 @@ impl WorkbookHistory {
             .collect::<std::collections::BTreeSet<_>>()
             .into_iter()
             .collect();
+        let dimensions = CellDimensionChanges::capture(
+            workbook,
+            &pending.before,
+            &after,
+            &pending.dimension_generations,
+        );
         self.push(HistoryEntry {
             label: pending.label,
             sheet: pending.sheet,
@@ -127,6 +147,7 @@ impl WorkbookHistory {
                 before: pending.before,
                 after,
                 table_rows,
+                dimensions,
             },
         });
         Ok(())

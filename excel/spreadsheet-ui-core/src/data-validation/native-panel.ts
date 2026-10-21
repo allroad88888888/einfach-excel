@@ -10,8 +10,10 @@ import { rustHistoryPanelAtom } from '../history/rust-history-command'
 import { getSheetProtection, sheetProtectionAtom } from '../protection'
 import { applyVisibleProjectionAtom, createVisibleProjectionRequest, issueProjectionRequestIdAtom, projectionSnapshotAtom } from '../projection'
 import { validateProjectionResult } from '../projection/contracts'
+import { advancedValidationOptions, EMPTY_ADVANCED_VALIDATION, readAdvancedValidationDraft,
+  type AdvancedValidationDraft } from './advanced/draft'
 
-interface Draft {
+export interface NativeDataValidationDraft extends AdvancedValidationDraft {
   range: string
   kind: NativeDataValidationRule['kind']
   operator: NativeDataValidationOperator
@@ -20,23 +22,25 @@ interface Draft {
   items: string
   ignoreBlank: boolean
 }
-interface Panel extends Draft {
+interface Panel extends NativeDataValidationDraft {
   sheetId: string | null
   connection: RustWorkbookConnection | null
   busy: boolean
   error: string
+  phase: 'reading' | 'saving' | null
 }
 const CLOSED: Panel = { sheetId: null, connection: null, busy: false, error: '',
-  range: '', kind: 'whole-number', operator: 'between', min: '0', max: '100', items: '', ignoreBlank: true }
+  range: '', kind: 'whole-number', operator: 'between', min: '0', max: '100', items: '', ignoreBlank: true,
+  ...EMPTY_ADVANCED_VALIDATION, phase: null }
 /** 只保留表单草稿；已有规则每次打开时向 Rust 读取。 */
 export const nativeDataValidationPanelAtom = atom<Panel>(CLOSED)
 
 export const runNativeDataValidationAtom = atom(null, async (get, set,
-  action: 'open' | 'close' | 'save' | 'clear' | Partial<Draft>,
+  action: 'open' | 'close' | 'save' | 'clear' | Partial<NativeDataValidationDraft>,
 ): Promise<boolean> => {
   const state = get(nativeDataValidationPanelAtom)
   if (action === 'close') {
-    if (state.busy) return false
+    if (state.phase === 'saving') return false
     set(nativeDataValidationPanelAtom, CLOSED)
     return true
   }
@@ -46,51 +50,94 @@ export const runNativeDataValidationAtom = atom(null, async (get, set,
   if (!sheet || !connection) return false
   const fail = (error: unknown) => {
     // 旧 Worker 的失败与成功一样不能泄漏到新工作簿。
-    if (get(rustWorkbookConnectionAtom) !== connection ||
-      get(activeWorkbookSheetAtom)?.id !== sheet.id) {
+    if (
+      get(rustWorkbookConnectionAtom) !== connection ||
+      get(activeWorkbookSheetAtom)?.id !== sheet.id
+    ) {
       const current = get(nativeDataValidationPanelAtom)
       if (current.connection === connection && current.sheetId === sheet.id)
         set(nativeDataValidationPanelAtom, CLOSED)
       return false
     }
-    set(nativeDataValidationPanelAtom, { ...get(nativeDataValidationPanelAtom), busy: false,
-      error: error instanceof Error ? error.message : String(error) })
+    set(nativeDataValidationPanelAtom, {
+      ...get(nativeDataValidationPanelAtom),
+      busy: false,
+      phase: null,
+      error: error instanceof Error ? error.message : String(error),
+    })
     return false
   }
   if (action === 'open') {
     if (get(editingSessionAtom).source) return false
     const selection = get(selectionSnapshotAtom)
-    const pending = { ...CLOSED, sheetId: sheet.id, connection, busy: true,
-      range: get(selectionRegionsAtom).length === 1 ? rangeToA1(selection.range) : '' }
+    const pending: Panel = {
+      ...CLOSED,
+      sheetId: sheet.id,
+      connection,
+      busy: true,
+      phase: 'reading',
+      range: get(selectionRegionsAtom).length === 1 ? rangeToA1(selection.range) : '',
+    }
     set(nativeDataValidationPanelAtom, pending)
     try {
-      const rule = await connection.request('validation.read', { sheetId: sheet.id,
-        row: selection.activeCell.row, col: selection.activeCell.col })
-      if (get(nativeDataValidationPanelAtom) !== pending ||
+      const request = connection.request('validation.read', {
+        sheetId: sheet.id,
+        row: selection.activeCell.row,
+        col: selection.activeCell.col,
+      })
+      await Promise.resolve()
+      if (get(nativeDataValidationPanelAtom) === pending)
+        set(nativeDataValidationPanelAtom, pending)
+      const rule = await request
+      if (
+        get(nativeDataValidationPanelAtom) !== pending ||
         get(rustWorkbookConnectionAtom) !== connection ||
-        get(activeWorkbookSheetAtom)?.id !== sheet.id) {
+        get(activeWorkbookSheetAtom)?.id !== sheet.id
+      ) {
         if (get(nativeDataValidationPanelAtom) === pending)
           set(nativeDataValidationPanelAtom, CLOSED)
         return false
       }
-      set(nativeDataValidationPanelAtom, { ...pending, busy: false,
-        ...(rule ? { kind: rule.kind, ignoreBlank: rule.ignoreBlank,
-          ...(rule.kind === 'list' ? { items: rule.items.join('\n') }
-            : { min: String(rule.min), max: String(rule.max), operator: rule.operator ?? 'between' }) } : {}),
+      set(nativeDataValidationPanelAtom, {
+        ...pending,
+        busy: false,
+        phase: null,
+        ...(rule
+          ? {
+              kind: rule.kind,
+              ignoreBlank: rule.ignoreBlank,
+              ...readAdvancedValidationDraft(rule),
+              ...(rule.kind === 'list'
+                ? { items: rule.items.join('\n') }
+                : rule.kind === 'custom-formula'
+                  ? { formula: rule.formula }
+                  : {
+                      min: String(rule.min),
+                      max: String(rule.max),
+                      operator: rule.operator ?? 'between',
+                    }),
+            }
+          : {}),
         error: pending.range ? '' : 'Choose one continuous range.',
       })
       return true
-    } catch (error) { return fail(error) }
+    } catch (error) {
+      if (get(nativeDataValidationPanelAtom) !== pending) return false
+      return fail(error)
+    }
   }
   if (state.sheetId !== sheet.id || state.connection !== connection)
     return fail('The workbook changed. Close and reopen Data validation.')
   if (typeof action === 'object') {
     // 类型变化仅重置表单边界，不在 UI Core 把日期换算成工作簿数值。
-    const defaults = action.kind && action.kind !== state.kind
-      ? action.kind === 'date' ? { min: '1900-01-01', max: '9999-12-31' }
-        : action.kind === 'time' ? { min: '00:00', max: '23:59:59' }
-          : { min: '0', max: action.kind === 'decimal' ? '1' : '100' }
-      : {}
+    const defaults =
+      action.kind && action.kind !== state.kind
+        ? action.kind === 'date'
+          ? { min: '1900-01-01', max: '9999-12-31' }
+          : action.kind === 'time'
+            ? { min: '00:00', max: '23:59:59' }
+            : { min: '0', max: action.kind === 'decimal' ? '1' : '100' }
+        : {}
     set(nativeDataValidationPanelAtom, { ...state, ...defaults, ...action, error: '' })
     return true
   }
@@ -99,23 +146,58 @@ export const runNativeDataValidationAtom = atom(null, async (get, set,
   if (getSheetProtection(get(sheetProtectionAtom), sheet.id).mode === 'protected')
     return fail('Unprotect the worksheet before changing data validation.')
   const cell = parseA1Cell(state.range)
-  const range = parseA1Range(state.range) ?? (cell
-    ? { rowStart: cell.row, rowEnd: cell.row, colStart: cell.col, colEnd: cell.col } : null)
+  const range =
+    parseA1Range(state.range) ??
+    (cell ? { rowStart: cell.row, rowEnd: cell.row, colStart: cell.col, colEnd: cell.col } : null)
   if (!range || range.rowEnd >= sheet.rowCount || range.colEnd >= sheet.colCount)
     return fail('Enter a cell or range inside this worksheet, for example A1:A100.')
   const twoBounds = state.operator === 'between' || state.operator === 'not-between'
-  if (action === 'save' && state.kind !== 'list' && (!state.min.trim() || (twoBounds && !state.max.trim())))
+  if (action === 'save' && state.kind === 'custom-formula' && !state.formula.trim())
+    return fail('Enter a validation formula.')
+  if (
+    action === 'save' &&
+    state.kind !== 'list' &&
+    state.kind !== 'custom-formula' &&
+    (!state.min.trim() || (twoBounds && !state.max.trim()))
+  )
     return fail(twoBounds ? 'Enter both minimum and maximum.' : 'Enter the comparison value.')
   // 单值条件只提交可见输入，不让隐藏的旧 maximum 参与规则定义。
   const max = twoBounds ? state.max : state.min
   const comparison = state.operator === 'between' ? {} : { operator: state.operator }
-  const rule: NativeDataValidationRule | null = action === 'clear' ? null
-    : state.kind === 'list' ? { kind: 'list', items: state.items.split(/\r?\n/),
-      ignoreBlank: state.ignoreBlank }
-      : state.kind === 'date' || state.kind === 'time'
-        ? { kind: state.kind, min: state.min, max, ...comparison, ignoreBlank: state.ignoreBlank }
-      : { kind: state.kind, min: Number(state.min), max: Number(max), ...comparison,
-        ignoreBlank: state.ignoreBlank }
+  const rule: NativeDataValidationRule | null =
+    action === 'clear'
+      ? null
+      : state.kind === 'custom-formula'
+        ? {
+            kind: 'custom-formula',
+            formula: state.formula,
+            ignoreBlank: state.ignoreBlank,
+            ...advancedValidationOptions(state),
+          }
+        : state.kind === 'list'
+          ? {
+              kind: 'list',
+              items: state.items.split(/\r?\n/),
+              ignoreBlank: state.ignoreBlank,
+              ...advancedValidationOptions(state),
+            }
+          : state.kind === 'date' || state.kind === 'time'
+            ? {
+                kind: state.kind,
+                min: state.min,
+                max,
+                ...comparison,
+                ignoreBlank: state.ignoreBlank,
+                ...advancedValidationOptions(state),
+              }
+            : {
+                kind: state.kind,
+                min: Number(state.min),
+                max: Number(max),
+                ...comparison,
+                ignoreBlank: state.ignoreBlank,
+                ...advancedValidationOptions(state),
+              }
   const witness = get(projectionSnapshotAtom)
   const visible = witness.request
   if (visible?.kind !== 'visible-window' || visible.sheetId !== sheet.id)
@@ -124,10 +206,14 @@ export const runNativeDataValidationAtom = atom(null, async (get, set,
   if (requestId === null) return false
   const projection = createVisibleProjectionRequest({ sheetId: sheet.id, requestId,
     window: visible.window, viewport: visible.viewport, reason: 'toolbar' })
-  set(nativeDataValidationPanelAtom, { ...state, busy: true, error: '' })
+  const pending: Panel = { ...state, busy: true, phase: 'saving', error: '' }
+  set(nativeDataValidationPanelAtom, pending)
   try {
-    const result = await connection.request('validation.change', {
+    const request = connection.request('validation.change', {
       sheetId: sheet.id, range, rule, projection })
+    await Promise.resolve()
+    if (get(nativeDataValidationPanelAtom) === pending) set(nativeDataValidationPanelAtom, pending)
+    const result = await request
     if (get(rustWorkbookConnectionAtom) !== connection ||
       get(activeWorkbookSheetAtom)?.id !== sheet.id) {
       set(nativeDataValidationPanelAtom, CLOSED)

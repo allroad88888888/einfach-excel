@@ -77,12 +77,20 @@ export function applyVisibleFormats(
     return [addr, bar] as const
   }))
   const result: DisplayCell[] = []
+  const icons = new Map((snapshot.conditionalIcons ?? []).map(({ addr, ...icon }) => {
+    if (!['three-arrows', 'three-traffic-lights', 'three-flags'].includes(icon.set) ||
+      ![0, 1, 2].includes(icon.index) || typeof icon.showValue !== 'boolean')
+      throw new Error('Rust returned invalid conditional-icon metadata.')
+    return [addr, icon] as const
+  }))
 
   for (let row = window.rowStart; row <= window.rowEnd; row += 1) {
     for (let col = window.colStart; col <= window.colEnd; col += 1) {
       const source = cellsByCoordinate.get(`${row}:${col}`)
       const dataBar = dataBars.get(toA1(row, col))
-      const cell = source && { ...source, dataBar }
+      const conditionalIcon = icons.get(toA1(row, col))
+      // 每帧都显式替换视觉字段，撤销规则后不能遗留旧图标或数据条。
+      const cell = source && { ...source, dataBar, conditionalIcon }
       const format = formatAt(cellStyles, rowStyles, columnStyles, row, col)
       if (cell) {
         result.push(

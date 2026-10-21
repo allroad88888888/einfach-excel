@@ -94,7 +94,7 @@ fn table_headers_insert_checks_the_view_canvas_and_keeps_the_original_row() {
         CellRange::new(CellAddress::new(5, 0), CellAddress::new(7, 1)),
         &[ColumnFilterRule::Range { col_index: 1, min: Some(11.), max: None }]).unwrap();
     let validation = DataValidationRule { kind: DataValidationKind::WholeNumber { min: 0., max: 20. },
-        ignore_blank: true, operator: Default::default() };
+        ignore_blank: true, operator: Default::default(), options: Default::default() };
     book.workbook.sheet_mut(0).unwrap().set_data_validation(
         CellRange::new(CellAddress::new(1, 0), CellAddress::new(3, 3)), Some(validation.clone())).unwrap();
     let before = serde_json::to_value(book.snapshot_persistence_v1_json()).unwrap();

@@ -16,6 +16,8 @@ pub(crate) enum SheetHistoryChange {
         after_refs: FormulaSources,
         before_rules: ConditionalRuleSources,
         after_rules: ConditionalRuleSources,
+        before_validations: ValidationRuleSources,
+        after_validations: ValidationRuleSources,
         lambdas: Vec<FormulaLambdaChange>,
         templates: Vec<FormulaSourceChange>,
     },
@@ -77,12 +79,17 @@ impl SheetHistoryChange {
                 .map(|(key, _)| key)
                 .collect();
             let before_rules = workbook.capture_conditional_rule_sources(&rule_keys);
+            let validation_keys = workbook.validation_sheet_ref_rewrites(&before, Some(&after))
+                .into_iter().chain(workbook.validation_sheet_ref_rewrites(&after, Some(&before)))
+                .map(|(key, _)| key).collect();
+            let before_validations = workbook.capture_validation_rule_sources(&validation_keys);
             workbook.validate_sheet_name(Some(index), name)?;
             let lambdas = FormulaLambdaChange::for_sheet_refs(workbook, &before, Some(&after));
             let templates = FormulaSourceChange::for_sheet_templates(workbook, &before, Some(&after));
             if !workbook.rename_sheet_with_formula_consumers(
                 index,
                 &after,
+                None,
                 None,
                 Some((&lambdas, false)),
                 Some((&templates, false)),
@@ -91,6 +98,7 @@ impl SheetHistoryChange {
             }
             let after_refs = capture(workbook);
             let after_rules = workbook.capture_conditional_rule_sources(&rule_keys);
+            let after_validations = workbook.capture_validation_rule_sources(&validation_keys);
             Ok((
                 index,
                 Some(Self::Rename {
@@ -102,6 +110,8 @@ impl SheetHistoryChange {
                     after_refs,
                     before_rules,
                     after_rules,
+                    before_validations,
+                    after_validations,
                     lambdas,
                     templates,
                 }),
@@ -167,6 +177,8 @@ impl SheetHistoryChange {
                 after_refs,
                 before_rules,
                 after_rules,
+                before_validations,
+                after_validations,
                 lambdas,
                 templates,
             } => {
@@ -180,8 +192,10 @@ impl SheetHistoryChange {
                     return Err("The worksheet changed outside history.");
                 }
                 let rules = if undo { before_rules } else { after_rules };
+                let validations = if undo { before_validations } else { after_validations };
                 workbook.validate_sheet_name(Some(*index), next)?;
                 workbook.validate_conditional_rule_sources(rules)?;
+                workbook.validate_validation_rule_sources(validations)?;
                 let store = workbook.store.clone();
                 let mut result = Ok(());
                 store.batch(|_| {
@@ -190,6 +204,7 @@ impl SheetHistoryChange {
                             *index,
                             next,
                             Some(rules),
+                            Some(validations),
                             Some((lambdas, undo)),
                             Some((templates, undo)),
                         )
@@ -258,6 +273,8 @@ impl SheetHistoryChange {
                 after_refs,
                 before_rules,
                 after_rules,
+                before_validations,
+                after_validations,
                 lambdas,
                 templates,
                 ..
@@ -266,6 +283,8 @@ impl SheetHistoryChange {
                     + after.len()
                     + crate::sheet::metadata_bytes(before_rules)
                     + crate::sheet::metadata_bytes(after_rules)
+                    + crate::sheet::metadata_bytes(before_validations)
+                    + crate::sheet::metadata_bytes(after_validations)
                     + crate::sheet::metadata_bytes(lambdas)
                     + templates.iter().map(FormulaSourceChange::retained_bytes).sum::<usize>()
                     + before_refs

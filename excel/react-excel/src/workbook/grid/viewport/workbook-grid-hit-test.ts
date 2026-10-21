@@ -41,10 +41,11 @@ export function workbookCellAtPoint(clientX: number, clientY: number): CellCoord
     cellCoordinate(target?.closest<HTMLElement>('[data-cell]'))
 }
 
-/** Maps viewport pixels to a cell while retained projection DOM is temporarily non-interactive. */
+/** Captured drags clamp headings to the nearest cell while projection DOM is non-interactive. */
 export function workbookCellAtViewportPoint(input: WorkbookViewportPoint): CellCoord | null {
-  const x = input.clientX - input.bounds.left - input.rowHeaderWidth
-  const y = input.clientY - input.bounds.top - input.rowHeight
+  // 指针可以停在表头内；仍按当前滚动位置扩选，不能把负值误判为冻结区而丢弃。
+  const x = Math.max(0, input.clientX - input.bounds.left - input.rowHeaderWidth)
+  const y = Math.max(0, input.clientY - input.bounds.top - input.rowHeight)
   const contentX = x + (x < (input.frozenWidth ?? 0) ? 0 : input.scrollLeft)
   const contentY = y + (y < (input.frozenHeight ?? 0) ? 0 : input.scrollTop)
   if (contentX < 0 || contentY < 0) return null

@@ -6,14 +6,15 @@ pub(super) type FormulaOverlay<'a> = HashMap<(usize, CellAddress), Option<&'a Ex
 
 #[derive(Clone, Debug, PartialEq)]
 pub(crate) struct NamedEntry {
-    pub(super) canonical_name: String,
-    pub(super) definition: NamedDefinition,
+    pub(crate) canonical_name: String,
+    pub(crate) definition: NamedDefinition,
 }
 
 /// 名称只有一份定义。范围保存稳定表身份，不保存当时读到的单元格值。
 #[derive(Clone, Debug, PartialEq)]
 pub(crate) enum NamedDefinition {
     Value(Value),
+    CustomFormula(crate::custom_formulas::CustomFormulaDefinition),
     Range {
         sheet_key: u64,
         range: Option<CellRange>,
@@ -28,6 +29,7 @@ pub enum WorkbookError {
     EvalFailed(ValueError),
     MutationDuringCustomCall,
     NameConflict,
+    ProtectedWorkbook,
 }
 
 impl std::fmt::Display for WorkbookError {
@@ -44,6 +46,7 @@ impl std::fmt::Display for WorkbookError {
             WorkbookError::NameConflict => {
                 write!(f, "the name is already in use")
             }
+            WorkbookError::ProtectedWorkbook => write!(f, "{}", crate::protection::PROTECTED_ERROR),
         }
     }
 }

@@ -8,6 +8,8 @@ import {
 } from '@einfach/spreadsheet-ui-core'
 import './selection-size.css'
 import './fill-series.css'
+import { CustomFillLists } from './fill-series/CustomFillLists'
+import { cycleDialogFocus } from './dialog-focus'
 
 /** 序列面板只负责 DOM 与模态焦点；样本推断全部留在 Rust。 */
 export function FillSeriesTools() {
@@ -33,6 +35,7 @@ export function FillSeriesTools() {
       disabled={editing || feedback.busy} onClick={() => void run('open')}><Trans>Series…</Trans></button>
     {target && <dialog ref={ref} className="selection-size-dialog fill-series-dialog"
       aria-labelledby={`${id}-title`} aria-describedby={`${id}-help`}
+      onKeyDown={cycleDialogFocus}
       onCancel={(event) => { event.preventDefault(); void run('close') }}>
       <h2 id={`${id}-title`}><Trans>Fill series</Trans></h2>
       <p id={`${id}-help`}><Trans>Select samples and destinations in one row or column. Keep the first samples;
@@ -61,15 +64,7 @@ export function FillSeriesTools() {
         <input id={`${id}-count`} type="number" min={minimumFillSamples(state.kind)} step="1"
           required value={state.sourceCount} disabled={feedback.busy}
           onChange={(event) => void run({ field: 'sourceCount', value: event.currentTarget.value })} />
-        {state.kind === 'custom-list' && <>
-          <label htmlFor={`${id}-list`}><Trans>Custom list items</Trans></label>
-          <textarea id={`${id}-list`} rows={5} maxLength={16_384} required
-            value={state.listText} disabled={feedback.busy}
-            placeholder={t`Low
-Medium
-High`}
-            onChange={(event) => void run({ field: 'listText', value: event.currentTarget.value })} />
-        </>}
+        {state.kind === 'custom-list' && <CustomFillLists />}
         <p className="size-hint">{state.kind === 'date'
           ? t`One date advances by a day. Two or more dates infer day, week or month steps; month ends stay at month end.`
           : minimumFillSamples(state.kind) === 1
@@ -82,6 +77,7 @@ High`}
             ? t`At least 2 numbered labels, such as Item001, Item003. Matching padding is preserved.`
             : t`At least 2 numbers with a constant non-zero difference, including decimals.`}</p>
         {state.error && <p role="alert" className="size-error">{translateFeedback(i18n, state.error)}</p>}
+        {state.notice && <p role="status">{translateFeedback(i18n, state.notice)}</p>}
         {feedback.busy && <p role="status"><Trans>Extending series…</Trans></p>}
         <div className="size-actions">
           <button type="submit" disabled={feedback.busy}><Trans>Apply series</Trans></button>

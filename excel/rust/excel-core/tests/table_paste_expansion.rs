@@ -136,7 +136,7 @@ fn failed_inherited_validation_does_not_publish_partial_values_or_consume_redo()
     let (mut book, mut setup) = seed();
     setup.set_cell_input(&mut book, 0, "B2", "=[@Qty]*2").unwrap();
     book.sheet_mut(0).unwrap().set_data_validation(range("B3", "B4"), Some(DataValidationRule {
-        kind: DataValidationKind::WholeNumber { min: 0., max: 5. },
+        options: Default::default(), kind: DataValidationKind::WholeNumber { min: 0., max: 5. },
         ignore_blank: false, operator: Default::default(),
     })).unwrap();
     let calls = Rc::new(Cell::new(0));

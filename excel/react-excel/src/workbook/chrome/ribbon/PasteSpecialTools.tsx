@@ -8,6 +8,7 @@ import {
   runPasteSpecialPanelAtom,
 } from '@einfach/spreadsheet-ui-core'
 import { readBrowserClipboard } from '../../clipboard/browser-clipboard'
+import { cycleDialogFocus } from './dialog-focus'
 import './paste-special.css'
 
 /** 模态框只处理 DOM；选项直接读取 UI Core atom，提交时才读取系统剪贴板。 */
@@ -69,6 +70,7 @@ export function PasteSpecialTools() {
           className="paste-special-dialog"
           aria-labelledby={`${id}-title`}
           aria-describedby={`${id}-hint`}
+          onKeyDown={cycleDialogFocus}
           onCancel={(event) => {
             event.preventDefault()
             void run('close')

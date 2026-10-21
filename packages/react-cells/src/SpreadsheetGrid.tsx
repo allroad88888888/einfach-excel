@@ -5,6 +5,7 @@ import { useAtomValue } from '@einfach/react'
 import { CellFilterButton } from './CellFilterButton'
 import { CellDataBar } from './CellDataBar'
 import { CellHyperlink } from './hyperlink/CellHyperlink'
+import { CellMetadata, type CellMetadataLabels } from './cell-metadata/CellMetadata'
 import { SelectionOutlines } from './SelectionOutlines'
 import type { CSSProperties } from 'react'
 import { cellFormatStyle, cellTextRotationStyle } from './cell-format-style'
@@ -19,6 +20,7 @@ export interface SpreadsheetGridProps {
   readonly selected?: CellRange
   readonly rowHeights?: readonly number[]
   readonly columnWidths?: readonly number[]
+  readonly metadataLabels?: CellMetadataLabels
 }
 
 function isSelectedCell(selected: CellRange | undefined, row: number, col: number): boolean {
@@ -38,6 +40,7 @@ export function SpreadsheetGrid({
   selected: selectionRange,
   rowHeights,
   columnWidths,
+  metadataLabels,
 }: SpreadsheetGridProps) {
   const filterRange = useAtomValue(nativeFilterRangeAtom)
   const tableFilters = useAtomValue(nativeTableFiltersAtom)
@@ -92,7 +95,7 @@ export function SpreadsheetGrid({
       rowCells.push(
         <td
           key={col}
-          className={`cell${isSelected ? ' cell-selected' : ''}${filterHeader ? ' cell-filter-header' : ''}${cell?.dataBar && !merged ? ' cell-data-bar-host' : ''}`}
+          className={`cell cell-metadata-host${isSelected ? ' cell-selected' : ''}${filterHeader ? ' cell-filter-header' : ''}${cell?.dataBar && !merged ? ' cell-data-bar-host' : ''}`}
           data-cell={`${row}:${col}`}
           title={showFormulas ? cell?.formula : undefined}
           aria-hidden={merged || undefined}
@@ -100,8 +103,11 @@ export function SpreadsheetGrid({
           style={formatStyle}
         >
           {!merged && <CellDataBar bar={cell?.dataBar} />}
+          {!merged && <CellMetadata cell={cell} labels={metadataLabels} />}
           <span
             className="cell-content"
+            data-conditional-icon-value={!merged && cell?.conditionalIcon
+              ? cell.conditionalIcon.showValue ? 'visible' : 'hidden' : undefined}
             style={{
               maxHeight: Math.max(0, height - 6 - topBorder - bottomBorder),
               visibility: merged ? 'hidden' : undefined,

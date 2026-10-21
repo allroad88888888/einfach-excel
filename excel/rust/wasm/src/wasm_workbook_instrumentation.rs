@@ -2,6 +2,7 @@
 impl WasmWorkbook {
     #[wasm_bindgen(js_name = "bulkImportCellsInstrumented")]
     pub fn bulk_import_cells_instrumented(&mut self, cells: JsValue) -> Result<JsValue, JsValue> {
+        self.ensure_protection_workbook()?;
         use einfach_excel_core::bulk_import_trace::{
             run_bulk_import_with_phase_timings, BulkImportCellInput, BulkImportCellKind,
         };

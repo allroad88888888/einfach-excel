@@ -35,6 +35,7 @@ impl Workbook {
         if self.is_inside_custom_call() {
             return Err("Cannot edit worksheet structure during a custom call.");
         }
+        self.ensure_workbook_unprotected()?;
         let sheet = self
             .sheet(sheet_index)
             .ok_or("The worksheet no longer exists.")?;

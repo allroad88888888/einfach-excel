@@ -1,0 +1,41 @@
+.note-panel {
+  box-sizing: border-box;
+  width: min(440px, calc(100vw - 24px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  padding: 20px;
+  border: 1px solid var(--border, #dce1e8);
+  border-radius: 10px;
+  color: var(--text, #252b37);
+  background: var(--surface, #fff);
+  font: 13px/1.5 Arial, sans-serif;
+  box-shadow: 0 12px 40px #0003;
+}
+.note-panel::backdrop { background: #0004; }
+.note-panel h2 { margin: 0 0 8px; font-size: 16px; }
+.note-panel p { line-height: 1.45; }
+.note-panel label { display: block; margin-bottom: 6px; font-weight: 600; }
+.note-panel textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 150px;
+  resize: vertical;
+  padding: 10px;
+  border: 1px solid var(--border, #dce1e8);
+  border-radius: 5px;
+  color: inherit;
+  background: var(--surface, #fff);
+  font: inherit;
+  line-height: 1.5;
+}
+.note-panel :focus-visible { outline: 2px solid var(--primary, #315cda); outline-offset: 2px; }
+.note-hint { color: var(--muted-text, #596579); font-size: 12px; }
+.note-count { display: block; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.note-error { color: var(--danger, #b42318); overflow-wrap: anywhere; }
+.note-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+.note-actions button { min-height: 32px; padding: 5px 10px; font: inherit;
+  border: 1px solid var(--border, #dce1e8); border-radius: 4px;
+  background: var(--surface, #fff); color: inherit; cursor: pointer; }
+.note-actions button:disabled { opacity: .5; cursor: default; }
+.note-actions button[type="submit"] { color: #fff; background: var(--primary, #315cda);
+  border-color: var(--primary, #315cda); }

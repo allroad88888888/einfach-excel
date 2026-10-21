@@ -1,5 +1,6 @@
 import type {
   SetCellInputRequest,
+  ProjectionRevision,
   SetFormatRangeRequest,
   SpreadsheetCellFormat,
   SpreadsheetNumberFormat,
@@ -30,6 +31,11 @@ import type { RustTableCommands } from './table-commands'
 import type { RustWorkbookFileCommands } from './file-commands'
 import type { RustSpillCommands } from './spill-commands'
 import type { RustHyperlinkCommands } from './hyperlink/command'
+import type { RustNoteCommands } from './notes/command'
+import type { RustCommentCommands } from './comments/command'
+import type { RustProtectionCommands } from './protection/commands'
+import type { RustCustomFormulaCommands } from './custom-formulas/command'
+import type { NativeCustomFormulaDefinition } from '../custom-formulas/expression-types'
 import type { NativeTableStyle } from '../tables/native-types'
 import type { NativeOutline } from '../outline/native-state'
 import type { NativeDataValidationRule } from '../data-validation/native-rule'
@@ -60,6 +66,14 @@ export interface RustWorkbookSheetInput {
   readonly hyperlinks?: readonly {
     readonly row: number; readonly col: number; readonly url: string
   }[]
+  readonly notes?: readonly {
+    readonly row: number; readonly col: number; readonly text: string
+  }[]
+  readonly comments?: readonly {
+    readonly row: number; readonly col: number; readonly author: string; readonly body: string
+  }[]
+  /** 仅配置初始允许区，工作表仍默认 open。 */
+  readonly editableRanges?: readonly CellRange[]
   /** 工作簿级名称；范围属于本张表，事实在 Rust 初始化时建立。 */
   readonly namedRanges?: readonly { readonly name: string; readonly range: CellRange }[]
   /** 表头来自导入数据；Table 必须在全部内容导入后建立。 */
@@ -155,11 +169,24 @@ export interface RustClearRangeRequest {
 }
 
 export interface RustWorkbookCommands
-  extends RustFindCommands, RustSortCommands, RustFilterCommands,
-    RustTextColumnsCommands, RustRemoveDuplicatesCommands, RustQuickFormulaCommands,
-    RustConditionalFormatCommands, RustDataValidationCommands, RustSpillCommands,
-    RustOutlineCommands, RustNamedRangeCommands, RustTableCommands, RustWorkbookFileCommands,
-    RustHyperlinkCommands {
+  extends RustFindCommands,
+    RustSortCommands,
+    RustFilterCommands,
+    RustTextColumnsCommands,
+    RustRemoveDuplicatesCommands,
+    RustQuickFormulaCommands,
+    RustConditionalFormatCommands,
+    RustDataValidationCommands,
+    RustSpillCommands,
+    RustOutlineCommands,
+    RustNamedRangeCommands,
+    RustTableCommands,
+    RustWorkbookFileCommands,
+    RustHyperlinkCommands,
+    RustNoteCommands,
+    RustCommentCommands,
+    RustProtectionCommands,
+    RustCustomFormulaCommands {
   readonly 'format.preview': WorkerCommand<
     {
       readonly sheetId: string
@@ -170,9 +197,12 @@ export interface RustWorkbookCommands
   >
   readonly 'range.fill': WorkerCommand<
     { readonly request: RustFillRangeRequest; readonly projection: VisibleProjectionRequest },
-    RustSetRangeFormatResult & { readonly sizes: {
-      readonly rowHeights: ViewportRowHeight[]; readonly colWidths: ViewportColumnWidth[]
-    } }
+    RustSetRangeFormatResult & {
+      readonly sizes: {
+        readonly rowHeights: ViewportRowHeight[]
+        readonly colWidths: ViewportColumnWidth[]
+      }
+    }
   >
   readonly 'selection.aggregate': WorkerCommand<
     { readonly targets: readonly { readonly sheetId: string; readonly range: CellRange }[] },
@@ -291,13 +321,19 @@ export interface RustWorkbookCommands
     RustSetRangeFormatResult
   >
   readonly 'workbook.initialize': WorkerCommand<
-    { readonly sheets: readonly RustWorkbookSheetInput[] },
+    {
+      readonly sheets: readonly RustWorkbookSheetInput[]
+      readonly customFormulas?: readonly NativeCustomFormulaDefinition[]
+    },
     readonly RustWorkbookSheet[]
   >
   readonly 'workbook.importCells': WorkerCommand<
-    { readonly cells: readonly RustImportCell[]; readonly tables?: readonly (
-      NonNullable<RustWorkbookSheetInput['tables']>[number] & { readonly sheetId: string }
-    )[] },
+    {
+      readonly cells: readonly RustImportCell[]
+      readonly tables?: readonly (NonNullable<RustWorkbookSheetInput['tables']>[number] & {
+        readonly sheetId: string
+      })[]
+    },
     RustImportStats
   >
   readonly 'projection.readVisible': WorkerCommand<
@@ -323,12 +359,16 @@ export interface RustWorkbookCommands
 export type RustWorkbookConnection = WorkerTransport<RustWorkbookCommands>
 
 export interface RustFillRangeRequest {
+  readonly validationConfirmation?: 'continue'
+  readonly validationRevision?: ProjectionRevision
   readonly sheetId: string
   readonly requestId: number
   readonly range: CellRange
   readonly direction: 'down' | 'right' | 'up' | 'left'
   readonly sourceRange?: CellRange
   readonly auto?: boolean
+  /** 双击只提交来源与工作表边界；相邻连续数据的末行由 Rust 决定。 */
+  readonly adjacent?: { readonly rowLimit: number }
   readonly series?: {
     readonly kind: FillSeriesKind
     readonly sourceCount: number

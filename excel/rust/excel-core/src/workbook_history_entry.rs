@@ -36,12 +36,14 @@ impl HistoryEntry {
         {
             return Err("History belongs to a different workbook.");
         }
+        self.ensure_current_protection(workbook, undo)?;
         if matches!(
             self.change,
             HistoryChange::Cells { .. }
                 | HistoryChange::Structure(_)
                 | HistoryChange::Merge(_)
                 | HistoryChange::NamedRange(_)
+                | HistoryChange::CustomFormula(_)
                 | HistoryChange::TableCreate(_)
                 | HistoryChange::TableDefinition(_)
         ) {
@@ -56,7 +58,12 @@ impl HistoryEntry {
                 before,
                 after,
                 table_rows,
-            } => workbook.restore_cell_history(if undo { before } else { after }, table_rows, undo),
+                dimensions,
+            } => {
+                let snapshots =
+                    dimensions.restore_parts(workbook, if undo { before } else { after }, undo);
+                workbook.restore_cell_history(&snapshots, table_rows, undo)
+            }
             HistoryChange::Sheet(change) => change.apply(workbook, undo),
             HistoryChange::Visibility(change) => {
                 change.apply(workbook, self.sheet, self.sheet_key, undo)
@@ -78,6 +85,7 @@ impl HistoryEntry {
             }
             HistoryChange::Structure(change) => change.apply(workbook, self.sheet, undo),
             HistoryChange::NamedRange(change) => change.apply(workbook, undo),
+            HistoryChange::CustomFormula(change) => change.apply(workbook, undo),
             HistoryChange::TableCreate(change) => change.apply(workbook, undo),
             HistoryChange::TableDefinition(change) => change.apply(workbook, undo),
             HistoryChange::Merge(change) => change.apply(workbook, self.sheet, undo),
@@ -91,6 +99,7 @@ pub(super) fn entry_bytes(entry: &HistoryEntry) -> usize {
             before,
             after,
             table_rows,
+            dimensions,
         } => {
             before
                 .iter()
@@ -101,6 +110,7 @@ pub(super) fn entry_bytes(entry: &HistoryEntry) -> usize {
                     .iter()
                     .map(crate::sheet::metadata_bytes)
                     .sum::<usize>()
+                + dimensions.retained_bytes()
         }
         HistoryChange::Sheet(change) => change.retained_bytes(),
         HistoryChange::Visibility(change) => change.retained_bytes(),
@@ -111,6 +121,7 @@ pub(super) fn entry_bytes(entry: &HistoryEntry) -> usize {
         HistoryChange::DataValidation(change) => change.retained_bytes(),
         HistoryChange::Structure(change) => change.retained_bytes(),
         HistoryChange::NamedRange(change) => change.retained_bytes(),
+        HistoryChange::CustomFormula(change) => change.retained_bytes(),
         HistoryChange::TableCreate(change) => change.retained_bytes(),
         HistoryChange::TableDefinition(change) => change.retained_bytes(),
         HistoryChange::Merge(change) => change.retained_bytes(),

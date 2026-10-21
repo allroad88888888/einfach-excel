@@ -1,11 +1,16 @@
 use super::*;
 
+#[path = "formula_help/mod.rs"]
+mod formula_help;
+pub use formula_help::{BuiltinFunctionHelp, FormulaLimitation, FormulaParameter, FormulaRepeatGroup};
+
 /// Metadata for functions actually compiled into this engine, not the reserved-name policy.
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize)]
 pub struct BuiltinFunction {
     pub name: &'static str,
     pub category: &'static str,
     pub note: Option<&'static str>,
+    pub help: BuiltinFunctionHelp,
 }
 
 /// One definition drives evaluation and discovery; cfg gates apply to both.
@@ -24,6 +29,7 @@ macro_rules! define_builtin_dispatch {
                 $( functions.push(BuiltinFunction {
                     name: $name,
                     category: $category,
+                    help: formula_help::function_help($name),
                     note: match $name {
                         "IMAGE" => Some("Returns image metadata as text; does not display an image."),
                         "HYPERLINK" => Some("Returns display text; does not create a clickable link."),

@@ -99,6 +99,9 @@ test('invalid input stays correctable; Escape does not create a rule or history'
   await expect(dialog(page)).toHaveCount(0)
   await expect(button(page, 'Conditional formatting')).toBeFocused()
   await expect(button(page, 'Undo')).toBeDisabled()
+  await expect(cell(page, '65:2')).toHaveText('4')
+  await expect(cell(page, '65:2')).toHaveCSS('background-color', 'rgb(255, 199, 206)')
+  await expect(cell(page, '65:3')).toHaveCSS('background-color', 'rgb(217, 234, 247)')
 })
 
 test('row insertion shifts the rule with cells and undo restores the original scope', async ({ page }) => {

@@ -1,0 +1,47 @@
+import { expect, test, type Page } from '@playwright/test'
+import { select, copy } from '../support/clipboard'
+
+const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
+
+// 单独验收剪贴板按钮入口；复制准备不等价于实际执行目标粘贴动作。
+for (const width of [1280, 390]) for (const action of ['Cut button', 'Paste button', 'Paste keyboard'] as const)
+  test(`${action} preserves native styles and has one undo at ${width}px`, async ({ page, context }) => {
+    await page.setViewportSize({ width, height: 850 })
+    await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+    await page.goto('/e2e/fixtures/plain-sales-orders/')
+    await expect(cell(page, '1:0')).toHaveText('SO-10001')
+    await select(page, 'B2', '1:1')
+    const cut = action === 'Cut button'
+    await copy(page, cut ? 'Cut' : 'Copy')
+    await expect(cell(page, '1:1')).toHaveText('Acme Co.')
+    await expect(cell(page, '1:1')).toHaveCSS('font-style', 'italic')
+    const undo = page.getByRole('button', { name: 'Undo', exact: true })
+    await expect(undo).toBeDisabled()
+    await select(page, 'B3', '2:1')
+    await expect(cell(page, '2:1')).toHaveText('Northwind')
+    if (action === 'Paste keyboard') {
+      await expect(page.locator('[data-workbook-grid]')).toBeFocused()
+      await page.keyboard.press('ControlOrMeta+v')
+    } else await page.getByRole('button', { name: 'Paste', exact: true }).click()
+    await expect(page.getByLabel('Clipboard status')).toHaveText('Pasted cells.')
+    await expect(cell(page, '2:1')).toHaveText('Acme Co.')
+    await expect(cell(page, '2:1')).toHaveCSS('font-style', 'italic')
+    await expect(cell(page, '1:1')).toHaveText(cut ? '' : 'Acme Co.')
+    await expect(cell(page, '2:2')).toHaveText('East')
+    await expect(cell(page, '1:0')).toHaveCSS('font-weight', '700')
+    await undo.click()
+    await expect(cell(page, '2:1')).toHaveText('Northwind')
+    await expect(cell(page, '2:1')).toHaveCSS('font-style', 'normal')
+    await expect(cell(page, '1:1')).toHaveText('Acme Co.')
+    await expect(cell(page, '1:1')).toHaveCSS('font-style', 'italic')
+    await expect(undo).toBeDisabled()
+    await page.getByRole('button', { name: 'Redo', exact: true }).click()
+    await expect(cell(page, '2:1')).toHaveText('Acme Co.')
+    await expect(cell(page, '2:1')).toHaveCSS('font-style', 'italic')
+    await expect(cell(page, '1:1')).toHaveText(cut ? '' : 'Acme Co.')
+    await page.getByRole('tab', { name: 'Summary', exact: true }).click()
+    await select(page, 'B2', '1:1')
+    await expect(cell(page, '1:1')).toHaveText('Acme Co.')
+    await expect(page.getByRole('textbox', { name: 'Active cell value', exact: true }))
+      .toHaveValue(cut ? /Sales Orders.*B3/ : "='Sales Orders'!B2")
+  })

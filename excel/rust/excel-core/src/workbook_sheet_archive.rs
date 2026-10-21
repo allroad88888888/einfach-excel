@@ -16,6 +16,7 @@ pub struct ArchivedWorksheet {
     // 只保存删除真正改写过的其它表公式；Sheet 自己的公式由原对象保留。
     references: Vec<(usize, CellAddress, String)>,
     conditional_references: ConditionalRuleSources,
+    validation_references: ValidationRuleSources,
     lambdas: Vec<FormulaLambdaChange>,
     templates: Vec<FormulaSourceChange>,
     remaining_names: Vec<String>,
@@ -47,6 +48,7 @@ impl ArchivedWorksheet {
             + metadata_bytes(&self.tables)
             + metadata_bytes(&self.references)
             + metadata_bytes(&self.conditional_references)
+            + metadata_bytes(&self.validation_references)
             + metadata_bytes(&self.lambdas)
             + self.templates.iter().map(FormulaSourceChange::retained_bytes).sum::<usize>()
             + metadata_bytes(&self.remaining_names)
@@ -68,6 +70,7 @@ impl ArchivedWorksheet {
     /// 拒绝跨 Workbook 恢复或覆盖另一次拓扑修改；失败时把原资源完整交还调用者。
     pub fn restore(mut self, workbook: &mut Workbook) -> Result<usize, Self> {
         if workbook.is_inside_custom_call()
+            || workbook.ensure_workbook_unprotected().is_err()
             || !self
                 .origin
                 .upgrade()
@@ -77,6 +80,7 @@ impl ArchivedWorksheet {
             || workbook
                 .validate_conditional_rule_sources(&self.conditional_references)
                 .is_err()
+            || workbook.validate_validation_rule_sources(&self.validation_references).is_err()
             || self.tables.iter().any(|table| {
                 workbook
                     .tables
@@ -124,6 +128,7 @@ impl ArchivedWorksheet {
             workbook.sync_atom_topology();
             workbook.republish_hidden_all();
             workbook.apply_conditional_rule_sources(&self.conditional_references);
+            workbook.apply_validation_rule_sources(&self.validation_references);
             for (sheet, addr, source) in self.references.drain(..) {
                 workbook.set_formula(sheet, &addr.to_string_repr(), &source);
             }
@@ -152,7 +157,10 @@ impl Workbook {
         index: usize,
         preserve: bool,
     ) -> Option<ArchivedWorksheet> {
-        if self.is_inside_custom_call() || self.sheet_count() <= 1 {
+        if self.is_inside_custom_call()
+            || self.ensure_workbook_unprotected().is_err()
+            || self.sheet_count() <= 1
+        {
             return None;
         }
         let name = self.name(index)?.to_owned();
@@ -165,6 +173,9 @@ impl Workbook {
             .filter_map(|(owner, _)| (owner != key).then_some(owner))
             .collect();
         let conditional_references = self.capture_conditional_rule_sources(&rule_keys);
+        let validation_keys = self.validation_sheet_ref_rewrites(&name, None).into_iter()
+            .filter_map(|(owner, _)| (owner != key).then_some(owner)).collect();
+        let validation_references = self.capture_validation_rule_sources(&validation_keys);
         let tables = self
             .tables
             .values()
@@ -195,6 +206,7 @@ impl Workbook {
             tables,
             references,
             conditional_references,
+            validation_references,
             lambdas,
             templates,
             remaining_names: self.names.clone(),

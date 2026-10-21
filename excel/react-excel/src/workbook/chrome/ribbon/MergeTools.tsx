@@ -7,6 +7,7 @@ import {
   selectionMergeFeedbackAtom,
 } from '@einfach/spreadsheet-ui-core'
 import { MergeConfirmation } from './MergeConfirmation'
+import { useRef } from 'react'
 
 /** 合并菜单只发 command atom；确认、保护和数据写入不放进 React。 */
 export function MergeTools() {
@@ -20,9 +21,11 @@ export function MergeTools() {
   const run = useSetAtom(runSelectionMergeAtom)
   const state = useAtomValue(selectionMergeFeedbackAtom)
   const editing = useAtomValue(editingSessionAtom).source !== null
+  const menuRef = useRef<HTMLSelectElement>(null)
   return (
     <>
       <select
+        ref={menuRef}
         className="tool-select paste-options-select"
         aria-label={t`Merge cells`}
         value=""
@@ -43,7 +46,7 @@ export function MergeTools() {
       </select>
       {state.busy && <span role="status"><Trans>Merging cells…</Trans></span>}
       {state.error && <span role="alert">{translateFeedback(i18n, state.error)}</span>}
-      <MergeConfirmation />
+      <MergeConfirmation openerRef={menuRef} />
     </>
   )
 }

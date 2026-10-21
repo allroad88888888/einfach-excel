@@ -15,6 +15,9 @@ import type {
 } from './types'
 import { applyProjectionSizes } from './projection-sizes'
 import { applySheetVisibility } from '../viewport/hidden-state'
+import { setSheetProtectionAtom } from '../protection'
+import { hydrateCustomFormulaDefinitionsAtom } from '../custom-formulas/expression-catalog'
+import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 
 /** Publishes the projection bundled with a mutation without opening a second read lane. */
 export const applyVisibleProjectionAtom = atom(
@@ -55,6 +58,14 @@ export const applyVisibleProjectionAtom = atom(
       )
       applyProjectionSizes(get, set, result)
       if (result.visibility) applySheetVisibility(get, set, result.sheetId, result.visibility)
+      if (result.protection)
+        set(setSheetProtectionAtom, { sheetId: result.sheetId, state: result.protection })
+      const connection = get(rustWorkbookConnectionAtom)
+      if (connection && result.customFormulaDefinitions)
+        set(hydrateCustomFormulaDefinitionsAtom, {
+          connection,
+          definitions: result.customFormulaDefinitions,
+        })
       return Object.freeze({ status: 'applied' })
     } catch (cause) {
       const error = projectionErrorFrom(cause)

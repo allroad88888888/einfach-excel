@@ -2,10 +2,52 @@
 use einfach_excel_core::data_validation::{
     DataValidationKind, DataValidationOperator, DataValidationRule,
 };
+use einfach_excel_core::workbook::advanced_validation::AdvancedValidationOptions;
+
+#[derive(Clone, Debug)]
+struct DataValidationRuleJSON {
+    rule: DataValidationKindJSON,
+    options: AdvancedValidationOptions,
+}
+
+// 高级字段先从对象取出，再用 deny_unknown_fields 解析规则本身；未知属性不会被 flatten 吞掉。
+impl<'de> Deserialize<'de> for DataValidationRuleJSON {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let mut value = serde_json::Value::deserialize(deserializer)?;
+        let object = value.as_object_mut().ok_or_else(|| serde::de::Error::custom("Expected validation object"))?;
+        let mut options = serde_json::Map::new();
+        for key in ["inputMessage", "errorAlert"] {
+            if let Some(value) = object.remove(key) { options.insert(key.into(), value); }
+        }
+        Ok(Self {
+            rule: serde_json::from_value(value).map_err(serde::de::Error::custom)?,
+            options: serde_json::from_value(serde_json::Value::Object(options)).map_err(serde::de::Error::custom)?,
+        })
+    }
+}
+impl Serialize for DataValidationRuleJSON {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let mut value = serde_json::to_value(&self.rule).map_err(serde::ser::Error::custom)?;
+        let options = serde_json::to_value(&self.options).map_err(serde::ser::Error::custom)?;
+        value.as_object_mut().unwrap().extend(options.as_object().unwrap().clone());
+        value.serialize(serializer)
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ValidationAnchorJSON { row: u32, col: u32 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "kebab-case", deny_unknown_fields)]
-enum DataValidationRuleJSON {
+enum DataValidationKindJSON {
+    CustomFormula {
+        formula: String,
+        #[serde(default)]
+        anchor: Option<ValidationAnchorJSON>,
+        #[serde(default = "validation_ignore_blank_default", rename = "ignoreBlank")]
+        ignore_blank: bool,
+    },
     WholeNumber {
         min: f64,
         max: f64,
@@ -63,8 +105,14 @@ fn validation_operator_is_default(value: &DataValidationOperator) -> bool {
 
 impl DataValidationRuleJSON {
     fn into_rule(self) -> Result<DataValidationRule, &'static str> {
-        let (kind, ignore_blank, operator) = match self {
-            Self::WholeNumber {
+        use DataValidationKindJSON::*;
+        let (kind, ignore_blank, operator) = match self.rule {
+            CustomFormula { formula, anchor, ignore_blank } => {
+                let anchor = anchor.unwrap_or(ValidationAnchorJSON { row: 0, col: 0 });
+                (DataValidationKind::CustomFormula { formula, anchor: CellAddress::new(anchor.row, anchor.col) },
+                    ignore_blank, DataValidationOperator::Between)
+            }
+            WholeNumber {
                 min,
                 max,
                 ignore_blank,
@@ -74,7 +122,7 @@ impl DataValidationRuleJSON {
                 ignore_blank,
                 operator,
             ),
-            Self::Decimal {
+            Decimal {
                 min,
                 max,
                 ignore_blank,
@@ -84,7 +132,7 @@ impl DataValidationRuleJSON {
                 ignore_blank,
                 operator,
             ),
-            Self::Date {
+            Date {
                 min,
                 max,
                 ignore_blank,
@@ -94,7 +142,7 @@ impl DataValidationRuleJSON {
                 ignore_blank,
                 operator,
             ),
-            Self::Time {
+            Time {
                 min,
                 max,
                 ignore_blank,
@@ -104,7 +152,7 @@ impl DataValidationRuleJSON {
                 ignore_blank,
                 operator,
             ),
-            Self::TextLength {
+            TextLength {
                 min,
                 max,
                 ignore_blank,
@@ -114,7 +162,7 @@ impl DataValidationRuleJSON {
                 ignore_blank,
                 operator,
             ),
-            Self::List {
+            List {
                 items,
                 ignore_blank,
             } => (
@@ -127,6 +175,7 @@ impl DataValidationRuleJSON {
             kind,
             ignore_blank,
             operator,
+            options: self.options,
         };
         rule.validate_definition()?;
         Ok(rule)
@@ -135,42 +184,47 @@ impl DataValidationRuleJSON {
     fn from_rule(rule: &DataValidationRule) -> Self {
         let ignore_blank = rule.ignore_blank;
         let operator = rule.operator;
-        match &rule.kind {
-            DataValidationKind::WholeNumber { min, max } => Self::WholeNumber {
+        use DataValidationKindJSON::*;
+        let kind = match &rule.kind {
+            DataValidationKind::CustomFormula { formula, anchor } => CustomFormula {
+                formula: formula.clone(), anchor: Some(ValidationAnchorJSON { row: anchor.row, col: anchor.col }), ignore_blank,
+            },
+            DataValidationKind::WholeNumber { min, max } => WholeNumber {
                 min: *min,
                 max: *max,
                 ignore_blank,
                 operator,
             },
-            DataValidationKind::Decimal { min, max } => Self::Decimal {
+            DataValidationKind::Decimal { min, max } => Decimal {
                 min: *min,
                 max: *max,
                 ignore_blank,
                 operator,
             },
-            DataValidationKind::List { items } => Self::List {
+            DataValidationKind::List { items } => List {
                 items: items.clone(),
                 ignore_blank,
             },
-            DataValidationKind::Date { min, max } => Self::Date {
+            DataValidationKind::Date { min, max } => Date {
                 min: min.clone(),
                 max: max.clone(),
                 ignore_blank,
                 operator,
             },
-            DataValidationKind::Time { min, max } => Self::Time {
+            DataValidationKind::Time { min, max } => Time {
                 min: min.clone(),
                 max: max.clone(),
                 ignore_blank,
                 operator,
             },
-            DataValidationKind::TextLength { min, max } => Self::TextLength {
+            DataValidationKind::TextLength { min, max } => TextLength {
                 min: *min,
                 max: *max,
                 ignore_blank,
                 operator,
             },
-        }
+        };
+        Self { rule: kind, options: rule.options.clone() }
     }
 }
 

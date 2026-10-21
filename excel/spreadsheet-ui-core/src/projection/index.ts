@@ -43,6 +43,9 @@ import type {
 } from './types'
 import { applyProjectionSizes } from './projection-sizes'
 import { applySheetVisibility } from '../viewport/hidden-state'
+import { setSheetProtectionAtom } from '../protection'
+import { hydrateCustomFormulaDefinitionsAtom } from '../custom-formulas/expression-catalog'
+import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import { cellAtProjection } from './cell-at'
 
 export * from './contracts'
@@ -265,7 +268,16 @@ export const resolveProjectionAtom = atom(
           ) {
             set(projectionSnapshotBackingAtom, freezeProjectionSnapshot({ ...current, result }))
             if (result.kind === 'visible-window') applyProjectionSizes(get, set, result)
-            if (result.kind === 'visible-window' && result.visibility) applySheetVisibility(get, set, result.sheetId, result.visibility)
+            if (result.kind === 'visible-window' && result.visibility)
+              applySheetVisibility(get, set, result.sheetId, result.visibility)
+            if (result.kind === 'visible-window' && result.protection)
+              set(setSheetProtectionAtom, { sheetId: result.sheetId, state: result.protection })
+            const connection = get(rustWorkbookConnectionAtom)
+            if (connection && result.kind === 'visible-window' && result.customFormulaDefinitions)
+              set(hydrateCustomFormulaDefinitionsAtom, {
+                connection,
+                definitions: result.customFormulaDefinitions,
+              })
           }
         }
         return Object.freeze({
@@ -293,7 +305,16 @@ export const resolveProjectionAtom = atom(
         }),
       )
       if (result.kind === 'visible-window') applyProjectionSizes(get, set, result)
-      if (result.kind === 'visible-window' && result.visibility) applySheetVisibility(get, set, result.sheetId, result.visibility)
+      if (result.kind === 'visible-window' && result.visibility)
+        applySheetVisibility(get, set, result.sheetId, result.visibility)
+      if (result.kind === 'visible-window' && result.protection)
+        set(setSheetProtectionAtom, { sheetId: result.sheetId, state: result.protection })
+      const connection = get(rustWorkbookConnectionAtom)
+      if (connection && result.kind === 'visible-window' && result.customFormulaDefinitions)
+        set(hydrateCustomFormulaDefinitionsAtom, {
+          connection,
+          definitions: result.customFormulaDefinitions,
+        })
       return Object.freeze({ status: 'accepted', result })
     }
 

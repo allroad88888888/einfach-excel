@@ -42,18 +42,39 @@ test.each(['down', 'right'] as const)('%s sends one mutation and publishes nativ
   expect(store.getter(viewportSizeOverridesAtom).rowHeightsBySheet.s?.['50']).toBe(60)
 })
 
-test('invalid geometry and protection stop before transport', async () => {
+test('invalid geometry stops before transport and native locked destinations cannot publish', async () => {
   const { store, fill } = await setup()
   store.setter(selectCellAtom, { sheetId: 's', coord: { row: 0, col: 0 } })
   expect(await store.setter(fillSelectionAtom, 'down')).toBe(false)
   expect(await store.setter(fillSelectionAtom, 'right')).toBe(false)
+  expect(fill).not.toHaveBeenCalled()
   store.setter(selectCellAtom, { sheetId: 's', coord: { row: 2, col: 2 }, extend: true })
   store.setter(setSheetProtectionAtom, {
     sheetId: 's', state: { mode: 'protected', unlockedRanges: [] },
   })
+  const before = store.getter(projectionSnapshotAtom)
+  const sizes = store.getter(viewportSizeOverridesAtom)
+  fill.mockRejectedValueOnce(new Error('The source or destination includes locked cells.'))
   expect(await store.setter(fillSelectionAtom, 'down')).toBe(false)
-  expect(store.getter(directionalFillFeedbackAtom).error).toContain('Unprotect')
-  expect(fill).not.toHaveBeenCalled()
+  expect(store.getter(directionalFillFeedbackAtom).error).toContain('locked cells')
+  expect(fill).toHaveBeenCalledTimes(1)
+  expect(store.getter(projectionSnapshotAtom)).toBe(before)
+  expect(store.getter(viewportSizeOverridesAtom)).toBe(sizes)
+})
+
+test('protected fill sends allowed destinations even when the source is read-only', async () => {
+  const { store, fill } = await setup()
+  store.setter(setSheetProtectionAtom, {
+    sheetId: 's', state: { mode: 'protected', unlockedRanges: [
+      { rowStart: 1, rowEnd: 50, colStart: 1, colEnd: 2 },
+    ] },
+  })
+  expect(await store.setter(fillSelectionAtom, 'down')).toBe(true)
+  expect(fill).toHaveBeenCalledTimes(1)
+  expect(fill.mock.calls[0]![0].request.range).toEqual({
+    rowStart: 0, rowEnd: 50, colStart: 1, colEnd: 2,
+  })
+  expect(store.getter(projectionSnapshotAtom).result?.revision).toBe(2)
 })
 
 test('native failure and invalid acknowledgement cannot publish, then retry succeeds', async () => {

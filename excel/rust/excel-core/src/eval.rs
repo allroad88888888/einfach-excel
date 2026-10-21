@@ -180,7 +180,8 @@ use eval_information_formulatext::*;
 use eval_text_encodeurl::*;
 
 pub use eval_builtin_names::is_builtin_function_name;
-pub use eval_core_dispatch::{builtin_function_catalog, BuiltinFunction};
+pub use eval_core_dispatch::{builtin_function_catalog, BuiltinFunction, BuiltinFunctionHelp,
+    FormulaParameter, FormulaRepeatGroup, FormulaLimitation};
 pub use eval_core_custom_registry::CustomFunctionRegistry;
 pub use eval_core_array_2d::DYNAMIC_ARRAY_CELL_CAP;
 use eval_core_array_2d::*;

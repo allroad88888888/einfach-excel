@@ -178,6 +178,14 @@ msgstr "三色"
 msgid "3-color scale"
 msgstr "三色色阶"
 
+#: src/i18n/seven-feature-feedback.ts
+msgid "A comment thread cannot exceed 1000 entries."
+msgstr "一个批注线程不能超过1000条记录。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "A comment thread must contain 1 to 1000 entries."
+msgstr "一个批注线程必须包含1至1000条记录。"
+
 #: src/workbook/chrome/ribbon/GoToTools.tsx
 msgid "A defined name, A1, B2:D10, R12C3, R[2]C[-1], or 'Sales Orders'!B2. Hidden rows and columns stay hidden."
 msgstr "可输入已定义的名称、A1、B2:D10、R12C3、R[2]C[-1] 或 'Sales Orders'!B2。隐藏的行列仍保持隐藏。"
@@ -187,8 +195,20 @@ msgid "A formula refers to a larger range. Moving part of that range is not supp
 msgstr "公式引用了更大的区域，暂不支持仅移动该区域的一部分。"
 
 #: src/i18n/feedback-messages.ts
+msgid "A list with this name already exists."
+msgstr "已存在同名列表。"
+
+#: src/workbook/comments/CommentTools.tsx
+msgid "A name stored in this workbook, not an authenticated identity. Up to {COMMENT_AUTHOR_MAX} characters."
+msgstr "此名称保存在工作簿中，并非已认证身份，最多 {COMMENT_AUTHOR_MAX} 个字符。"
+
+#: src/i18n/feedback-messages.ts
 msgid "A pasted value does not meet its cell’s data validation rule. Nothing was pasted."
 msgstr "粘贴值不符合目标单元格的数据验证规则，未粘贴任何内容。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "A worksheet supports at most 256 editable ranges."
+msgstr "每个工作表最多支持 256 个允许编辑范围。"
 
 #: src/workbook/chrome/formula-bar/FormulaBar.tsx
 msgid "Active cell value"
@@ -265,6 +285,10 @@ msgstr "全部搜索结果"
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
 msgid "Allow"
 msgstr "允许"
+
+#: src/workbook/protection/ProtectionTools.tsx
+msgid "Allow editing in selection"
+msgstr "允许编辑选区"
 
 #: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
 msgid "Allow trailing minus (123- becomes -123)"
@@ -420,6 +444,14 @@ msgstr "自动求和"
 msgid "Auto sum (review in formula bar)"
 msgstr "自动求和（在公式栏中确认）"
 
+#: src/workbook/advanced-conditional-format/ThresholdFields.tsx
+msgid "Automatic"
+msgstr "自动"
+
+#: src/workbook/advanced-conditional-format/AdvancedConditionalFormatFields.tsx
+msgid "Automatic icon thresholds are 33% and 67% of the full numeric range. Equal values enter the higher band."
+msgstr "自动图标阈值为完整数值范围的33%和67%。等于阈值的数值归入较高档。"
+
 #: src/workbook/chrome/ribbon/TableTools.tsx
 msgid "Automatic name"
 msgstr "自动命名"
@@ -427,6 +459,10 @@ msgstr "自动命名"
 #: src/workbook/chrome/ribbon/ColorTools.tsx
 msgid "Automatic text color"
 msgstr "自动字体颜色"
+
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Automatic thresholds use the full numeric range. Advanced threshold fields override the default endpoints."
+msgstr "自动阈值使用完整数值范围，高级阈值字段会覆盖默认端点。"
 
 #: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/TableTotals.tsx
@@ -444,10 +480,6 @@ msgstr "隔列底色"
 #: src/workbook/chrome/ribbon/TableAppearance.tsx
 msgid "Banded rows"
 msgstr "隔行底色"
-
-#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
-msgid "Bars use the full range and a shared zero axis. Negative values extend left; cell values stay visible."
-msgstr "数据条基于整个范围计算，共用零轴。负值向左延伸，单元格数值保持可见。"
 
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Begins with"
@@ -517,6 +549,11 @@ msgstr "分隔位置"
 msgid "Calculating selection…"
 msgstr "正在计算选区…"
 
+#: src/i18n/seven-feature-feedback.ts
+msgid "Call only built-in functions or registered custom formulas in custom formula expressions."
+msgstr "自定义公式表达式只能调用内置函数或已注册的自定义公式。"
+
+#: src/workbook/advanced-validation/ValidationErrorAlert.tsx
 #: src/workbook/chrome/footer/SheetDeleteConfirmation.tsx
 #: src/workbook/chrome/footer/WorkbookSheetTabs.tsx
 #: src/workbook/chrome/ribbon/BorderTools.tsx
@@ -537,7 +574,9 @@ msgstr "正在计算选区…"
 #: src/workbook/chrome/ribbon/SortTools.tsx
 #: src/workbook/chrome/ribbon/TableTools.tsx
 #: src/workbook/chrome/ribbon/TextColumnsTools.tsx
+#: src/workbook/custom-formulas/CustomFormulaTools.tsx
 #: src/workbook/hyperlink/HyperlinkTools.tsx
+#: src/workbook/notes/NoteTools.tsx
 msgid "Cancel"
 msgstr "取消"
 
@@ -562,6 +601,10 @@ msgstr "类别"
 msgid "Cell {address}. Click to select; Ctrl/⌘+click to open the link."
 msgstr "单元格 {address}。单击选中；按住 Ctrl/⌘ 单击打开链接。"
 
+#: src/workbook/comments/CommentTools.tsx
+msgid "Cell comments"
+msgstr "单元格批注"
+
 #: src/workbook/grid/editor/CellEditor.tsx
 msgid "Cell editor"
 msgstr "单元格编辑器"
@@ -569,6 +612,14 @@ msgstr "单元格编辑器"
 #: src/workbook/chrome/ribbon/HistoryTools.tsx
 msgid "Cell edits, formatting, clearing, paste, cut moves, row/column sizes and worksheets. Up to 50 steps in this session."
 msgstr "记录单元格编辑、格式、清除、粘贴、剪切移动、行列尺寸和工作表操作。本次会话最多保留 50 步。"
+
+#: src/workbook/grid/viewport/CellRenderer.tsx
+msgid "Cell has a note"
+msgstr "单元格有备注"
+
+#: src/workbook/grid/viewport/CellRenderer.tsx
+msgid "Cell has comments"
+msgstr "单元格有批注"
 
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Cell value"
@@ -646,6 +697,10 @@ msgstr "请选择要调整范围的表格。"
 #: src/i18n/feedback-messages.ts
 msgid "Choose a valid table style."
 msgstr "请选择有效的表格样式。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Choose a valid three-icon set and thresholds."
+msgstr "请选择有效的三档图标集和阈值。"
 
 #: src/workbook/grid/editor/CellValidationList.tsx
 msgid "Choose a value from the validation list"
@@ -780,12 +835,17 @@ msgstr "无法写入剪贴板，请使用浏览器复制快捷键。"
 #: src/workbook/chrome/header/WorkbookFileTools.tsx
 #: src/workbook/chrome/ribbon/FindReplaceTools.tsx
 #: src/workbook/chrome/ribbon/SpillTools.tsx
+#: src/workbook/protection/ProtectionTools.tsx
 msgid "Close"
 msgstr "关闭"
 
 #: src/workbook/chrome/ribbon/ColorTools.tsx
 msgid "Close color palette"
 msgstr "关闭调色板"
+
+#: src/workbook/comments/CommentTools.tsx
+msgid "Close comments"
+msgstr "关闭批注"
 
 #: src/workbook/chrome/ribbon/HistoryTools.tsx
 msgid "Close history"
@@ -819,10 +879,6 @@ msgstr "十六进制颜色"
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Color scale"
 msgstr "色阶"
-
-#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
-msgid "Colors use the full range minimum and maximum. The third color marks the median (50th percentile)."
-msgstr "色阶基于整个范围的最小值和最大值。第三种颜色表示中位数（第 50 百分位）。"
 
 #: src/workbook/grid/viewport/GridResizeHandle.tsx
 msgid "column"
@@ -876,6 +932,30 @@ msgstr "逗号"
 msgid "Comma (,)"
 msgstr "逗号（,）"
 
+#: src/workbook/comments/CommentTimeline.tsx
+msgid "Comment history"
+msgstr "批注历史"
+
+#: src/workbook/comments/CommentTools.tsx
+msgid "Comment text"
+msgstr "批注内容"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Comment text cannot contain a null character."
+msgstr "批注内容不能包含空字符。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Comment text cannot exceed 32767 characters."
+msgstr "批注内容不能超过32767个字符。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Comment text is missing."
+msgstr "缺少批注内容。"
+
+#: src/workbook/comments/CommentTools.tsx
+msgid "Comments"
+msgstr "批注"
+
 #. placeholder {0}: toA1(0, col).slice(0, -1)
 #: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
 msgid "Compare column {0}"
@@ -904,6 +984,10 @@ msgstr "条件"
 msgid "Conditional formatting"
 msgstr "条件格式"
 
+#: src/workbook/protection/ProtectionTools.tsx
+msgid "Configure editable ranges before protecting the worksheet. Cells inside those ranges remain editable; worksheet settings stay locked."
+msgstr "请先设置可编辑区域，再保护工作表。这些区域内的单元格仍可编辑，工作表设置保持锁定。"
+
 #: src/workbook/chrome/ribbon/TextColumnTypes.tsx
 msgid "Configured field types"
 msgstr "已配置的字段类型"
@@ -920,6 +1004,14 @@ msgstr "常量"
 #: src/workbook/chrome/ribbon/FilterConditionFields.tsx
 msgid "Contains"
 msgstr "包含"
+
+#: src/workbook/advanced-validation/ValidationErrorAlert.tsx
+msgid "Continue"
+msgstr "继续"
+
+#: src/workbook/advanced-validation/ValidationErrorAlert.tsx
+msgid "Continue with this input?"
+msgstr "是否继续使用此输入？"
 
 #: src/i18n/feedback-messages.ts
 msgid "Convert table to range"
@@ -1137,6 +1229,10 @@ msgstr "当前工作表"
 msgid "Current worksheet"
 msgstr "当前工作表"
 
+#: src/i18n/feedback-messages.ts
+msgid "Custom"
+msgstr "自定义"
+
 #: src/workbook/chrome/ribbon/ColorTools.tsx
 msgid "Custom color"
 msgstr "自定义颜色"
@@ -1153,6 +1249,30 @@ msgstr "自定义内容"
 msgid "Custom font size"
 msgstr "自定义字号"
 
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Custom formula"
+msgstr "自定义公式"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Custom formula definitions cannot contain a recursive call cycle."
+msgstr "自定义公式定义不能包含递归调用环。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Custom formula parameters must be unique."
+msgstr "自定义公式参数名称不可重复。"
+
+#: src/workbook/custom-formulas/CustomFormulaTools.tsx
+msgid "Custom formulas"
+msgstr "自定义公式"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Custom formulas do not support comparison operators."
+msgstr "自定义公式不支持比较运算条件。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Custom formulas must be restored into a fresh workbook."
+msgstr "自定义公式必须恢复到新工作簿中。"
+
 #: src/i18n/feedback-messages.ts
 msgid "Custom list"
 msgstr "自定义列表"
@@ -1161,9 +1281,13 @@ msgstr "自定义列表"
 msgid "Custom list is limited to 16384 characters."
 msgstr "自定义列表最多包含 16384 个字符。"
 
-#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+#: src/workbook/chrome/ribbon/fill-series/CustomFillLists.tsx
 msgid "Custom list items"
 msgstr "自定义列表项"
+
+#: src/workbook/chrome/ribbon/fill-series/CustomFillLists.tsx
+msgid "Custom lists"
+msgstr "自定义列表"
 
 #: src/workbook/chrome/ribbon/SortTools.tsx
 msgid "Custom sort"
@@ -1288,6 +1412,10 @@ msgstr "减少缩进"
 msgid "Default"
 msgstr "默认"
 
+#: src/workbook/custom-formulas/CustomFormulaTools.tsx
+msgid "Define a formula once, then call it in any sheet."
+msgstr "定义一次公式，即可在任意工作表中调用。"
+
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Delete"
 msgstr "删除"
@@ -1305,6 +1433,10 @@ msgstr "删除列"
 msgid "Delete failed: the table could not be found."
 msgstr "删除失败：找不到表格。"
 
+#: src/workbook/chrome/ribbon/fill-series/CustomFillLists.tsx
+msgid "Delete list"
+msgstr "删除列表"
+
 #: src/workbook/chrome/ribbon/NamedRangeTools.tsx
 msgid "Delete name"
 msgstr "删除名称"
@@ -1312,6 +1444,10 @@ msgstr "删除名称"
 #: src/i18n/feedback-messages.ts
 msgid "Delete named range"
 msgstr "删除命名区域"
+
+#: src/workbook/notes/NoteTools.tsx
+msgid "Delete note"
+msgstr "删除备注"
 
 #: src/i18n/feedback-messages.ts
 msgid "Delete rows"
@@ -1388,9 +1524,25 @@ msgstr "禁用条件格式"
 msgid "Disable rule {0}"
 msgstr "禁用规则 {0}"
 
+#: src/workbook/comments/CommentTools.tsx
+msgid "Discussion for cell {address}"
+msgstr "单元格 {address} 的讨论"
+
 #: src/workbook/chrome/ribbon/TextLayoutTools.tsx
 msgid "Dismiss layout error"
 msgstr "关闭布局错误提示"
+
+#: src/workbook/advanced-validation/ValidationErrorAlert.tsx
+msgid "Dismiss validation message"
+msgstr "关闭验证提示"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Display name cannot contain control characters."
+msgstr "显示名不能包含控制字符。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Display name cannot exceed 100 characters."
+msgstr "显示名不能超过100个字符。"
 
 #: src/workbook/hyperlink/HyperlinkTools.tsx
 msgid "Display text"
@@ -1445,8 +1597,8 @@ msgid "Drag to fill"
 msgstr "拖动填充"
 
 #: src/workbook/grid/fill/FillHandle.tsx
-msgid "Drag to fill. Hold Ctrl/⌘ to copy; Escape to cancel."
-msgstr "拖动填充，按住 Ctrl/⌘ 复制，按 Escape 取消。"
+msgid "Drag to fill. Double-click to fill down. Hold Ctrl/⌘ to copy; Escape to cancel."
+msgstr "拖动填充，双击向下填充。按住 Ctrl/⌘ 复制；Escape 取消。"
 
 #: src/workbook/grid/viewport/GridResizeHandle.tsx
 msgid "Drag to resize {axisLabel}; double-click or Enter to auto-fit; arrow keys adjust by 10 px"
@@ -1460,9 +1612,21 @@ msgstr "重复值"
 msgid "Duplicate / unique values"
 msgstr "重复值 / 唯一值"
 
+#: src/i18n/seven-feature-feedback.ts
+msgid "Duplicate comment cell in workbook file."
+msgstr "工作簿文件中有重复的批注单元格。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Duplicate custom formula in workbook file."
+msgstr "工作簿文件含有重复的自定义公式。"
+
 #: src/i18n/feedback-messages.ts
 msgid "Duplicate hyperlink cell in workbook file."
 msgstr "工作簿文件中存在重复的超链接单元格。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Duplicate note cell in workbook file."
+msgstr "工作簿文件包含重复的备注单元格。"
 
 #: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
 msgid "Duplicate preview pages"
@@ -1479,6 +1643,10 @@ msgstr "重复记录样本"
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Duplicate values"
 msgstr "重复值"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Duplicate worksheet protection configuration."
+msgstr "工作表保护配置重复。"
 
 #: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
 msgid "Each page shows up to 20 duplicate rows, 12 columns and 120 characters per field. Removal processes the full selected range."
@@ -1511,6 +1679,10 @@ msgstr "编辑超链接"
 msgid "Edit named range"
 msgstr "编辑命名区域"
 
+#: src/workbook/notes/NoteTools.tsx
+msgid "Edit note"
+msgstr "编辑备注"
+
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Edit rule"
 msgstr "编辑规则"
@@ -1532,6 +1704,14 @@ msgstr "编辑表格 {0}"
 #: src/i18n/feedback-messages.ts
 msgid "Edit the table cell text before changing its hyperlink."
 msgstr "请先编辑表格单元格的文字，再修改其超链接。"
+
+#: src/workbook/protection/ProtectionTools.tsx
+msgid "Editable ranges"
+msgstr "可编辑区域"
+
+#: src/workbook/protection/ProtectionTools.tsx
+msgid "Editing protection prevents accidental changes. It does not encrypt the workbook or keep its contents confidential."
+msgstr "编辑保护用于防止意外修改。它不加密工作簿，也不保证内容保密。"
 
 #: src/workbook/chrome/ribbon/SortTools.tsx
 msgid "Empty cell position"
@@ -1566,6 +1746,10 @@ msgstr "工程"
 msgid "English short/full names or Chinese names. One source sample advances by one; more samples infer the cyclic step."
 msgstr "支持英文缩写、英文全称或中文名称。单个样本按步长 1 递增；多个样本用于推断循环步长。"
 
+#: src/i18n/feedback-messages.ts
+msgid "Enter 2–512 non-empty, unique list items."
+msgstr "请输入 2–512 个非空且不重复的列表项。"
+
 #: src/workbook/chrome/ribbon/NamedRangeTools.tsx
 msgid "Enter a cell or range on the selected worksheet, for example A1:A100."
 msgstr "输入所选工作表中的单元格或区域，例如 A1:A100。"
@@ -1578,6 +1762,10 @@ msgstr "请输入 #RRGGBB 格式的颜色，例如 #c00000。"
 msgid "Enter a column name."
 msgstr "请输入列名。"
 
+#: src/i18n/seven-feature-feedback.ts
+msgid "Enter a custom formula name and expression."
+msgstr "请输入自定义公式名称和表达式。"
+
 #: src/i18n/feedback-messages.ts
 msgid "Enter a defined name or a valid A1 or R1C1 reference, optionally prefixed by a worksheet name."
 msgstr "请输入已定义的名称或有效的 A1、R1C1 引用，也可在前面加上工作表名称。"
@@ -1585,6 +1773,18 @@ msgstr "请输入已定义的名称或有效的 A1、R1C1 引用，也可在前�
 #: src/i18n/feedback-messages.ts
 msgid "Enter a destination cell such as C1."
 msgstr "请输入目标单元格，例如 C1。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Enter a finite threshold number."
+msgstr "请输入有限的阈值数值。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Enter a formula of at most 8192 bytes with a valid range anchor."
+msgstr "请输入不超过 8192 字节且锚点有效的公式。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Enter a list name of 1–64 characters."
+msgstr "请输入 1–64 个字符的列表名称。"
 
 #: src/i18n/feedback-messages.ts
 msgid "Enter a name or cell address."
@@ -1610,9 +1810,29 @@ msgstr "请输入六位十六进制颜色，例如 #1a73e8。"
 msgid "Enter a table name."
 msgstr "请输入表格名称。"
 
+#: src/i18n/seven-feature-feedback.ts
+msgid "Enter a valid formula expression."
+msgstr "请输入有效的公式表达式。"
+
 #: src/i18n/feedback-messages.ts
 msgid "Enter a valid http:// or https:// address."
 msgstr "请输入有效的 http:// 或 https:// 地址。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Enter a valid LET or LAMBDA expression."
+msgstr "请输入有效的 LET 或 LAMBDA 表达式。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Enter a valid threshold formula."
+msgstr "请输入有效的阈值公式。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Enter a valid validation formula."
+msgstr "请输入有效的验证公式。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Enter a validation formula."
+msgstr "请输入验证公式。"
 
 #: src/i18n/translate-feedback.ts
 msgid "Enter a whole number from {min} to {max} pixels."
@@ -1626,13 +1846,25 @@ msgstr "请输入 0–15 之间的整数小数位数。"
 msgid "Enter a whole-number font size from 1 to 512 pixels."
 msgstr "请输入 1–512 像素之间的整数字号。"
 
+#: src/i18n/seven-feature-feedback.ts
+msgid "Enter a workbook display name."
+msgstr "请输入工作簿内显示名。"
+
 #: src/i18n/feedback-messages.ts
 msgid "Enter both minimum and maximum."
 msgstr "请输入最小值和最大值。"
 
+#: src/i18n/seven-feature-feedback.ts
+msgid "Enter comment text."
+msgstr "请输入批注内容。"
+
 #: src/i18n/feedback-messages.ts
 msgid "Enter increasing positive character positions, for example 2, 5."
 msgstr "请输入递增的正整数字符位置，例如 2、5。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Enter note text. Use Delete note to remove an existing note."
+msgstr "请输入备注内容。要移除已有备注，请使用“删除备注”。"
 
 #: src/i18n/feedback-messages.ts
 msgid "Enter one range inside this worksheet, for example A1:C10."
@@ -1667,9 +1899,29 @@ msgstr "等于"
 msgid "Equals"
 msgstr "等于"
 
+#: src/workbook/advanced-validation/AdvancedValidationFields.tsx
+msgid "Error alert"
+msgstr "错误提示"
+
+#: src/workbook/advanced-validation/AdvancedValidationFields.tsx
+msgid "Error message"
+msgstr "错误内容"
+
+#: src/workbook/advanced-validation/AdvancedValidationFields.tsx
+msgid "Error title"
+msgstr "错误标题"
+
 #: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
 msgid "Exact text"
 msgstr "精确文本"
+
+#: src/workbook/custom-formulas/CustomFormulaTools.tsx
+msgid "Example: DOUBLE with parameter amount and expression =amount*2. Pass cells and ranges as arguments. Every parameter is required."
+msgstr "示例：DOUBLE，参数为 amount，表达式为 =amount*2。请将单元格和区域作为实参传入。每个参数均为必填。"
+
+#: src/workbook/formula-help/FormulaParameterHelp.tsx
+msgid "Examples"
+msgstr "示例"
 
 #. placeholder {0}: group.level
 #: src/workbook/grid/viewport/OutlineGutters.tsx
@@ -1687,6 +1939,10 @@ msgstr "展开所有行分组"
 #: src/i18n/feedback-messages.ts
 msgid "Expand group"
 msgstr "展开分组"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Expected an icon-set rule."
+msgstr "此处需要图标集规则。"
 
 #: src/workbook/chrome/ribbon/FillSeriesTools.tsx
 msgid "Extending series…"
@@ -1929,9 +2185,21 @@ msgstr "请先完成单元格编辑。"
 msgid "Finish the current edit or history operation first."
 msgstr "请先完成当前编辑或历史操作。"
 
+#: src/i18n/seven-feature-feedback.ts
+msgid "Finish the current operation before changing a custom formula."
+msgstr "请完成当前操作后再修改自定义公式。"
+
 #: src/i18n/feedback-messages.ts
 msgid "Finish the current operation before changing a hyperlink."
 msgstr "请先完成当前操作，再修改超链接。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Finish the current operation before changing a note."
+msgstr "请先完成当前操作，再更改备注。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Finish the current operation before changing comments."
+msgstr "请先完成当前操作再修改批注。"
 
 #: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/GoToTools.tsx
@@ -2043,6 +2311,7 @@ msgstr "格式设置范围超过 100,000 个单元格，请缩小选区。"
 msgid "Formatting only"
 msgstr "仅格式"
 
+#: src/workbook/advanced-conditional-format/ThresholdFields.tsx
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Formula"
 msgstr "公式"
@@ -2055,6 +2324,10 @@ msgstr "公式参数"
 #: src/workbook/chrome/ribbon/SpillTools.tsx
 msgid "Formula cell: {0}"
 msgstr "公式单元格：{0}"
+
+#: src/workbook/custom-formulas/CustomFormulaTools.tsx
+msgid "Formula expression"
+msgstr "公式表达式"
 
 #: src/workbook/formula/FormulaAssist.tsx
 msgid "Formula functions"
@@ -2101,6 +2374,10 @@ msgstr "冻结首行"
 #: src/workbook/chrome/ribbon/InsertFunctionTools.tsx
 msgid "Function"
 msgstr "函数"
+
+#: src/workbook/custom-formulas/CustomFormulaTools.tsx
+msgid "Function name"
+msgstr "函数名称"
 
 #: src/workbook/formula/FormulaAssist.tsx
 msgid "Functions "
@@ -2249,6 +2526,10 @@ msgstr "收起条件 {0} 的值列表"
 msgid "Hiding headers keeps column names and clears this table’s filter."
 msgstr "隐藏表头会保留列名，并清除此表格的筛选。"
 
+#: src/workbook/advanced-conditional-format/ThresholdFields.tsx
+msgid "Highest value"
+msgstr "最高值"
+
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Highlight fill"
 msgstr "突出显示填充色"
@@ -2277,6 +2558,14 @@ msgstr "超链接"
 msgid "Hyperlink (Ctrl/⌘+K)"
 msgstr "超链接（Ctrl/⌘+K）"
 
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Icon set"
+msgstr "图标集"
+
+#: src/workbook/advanced-conditional-format/AdvancedConditionalFormatFields.tsx
+msgid "Icon style"
+msgstr "图标样式"
+
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
 msgid "Ignore blank cells"
 msgstr "忽略空白单元格"
@@ -2284,6 +2573,10 @@ msgstr "忽略空白单元格"
 #: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
 msgid "Ignore case"
 msgstr "忽略大小写"
+
+#: src/workbook/formula-help/FormulaParameterHelp.tsx
+msgid "Implementation limits"
+msgstr "实现限制"
 
 #: src/workbook/chrome/header/WorkbookHeader.tsx
 msgid "In memory"
@@ -2310,12 +2603,21 @@ msgid "Increase indent"
 msgstr "增加缩进"
 
 #: src/i18n/feedback-messages.ts
+#: src/workbook/advanced-validation/AdvancedValidationFields.tsx
 msgid "Information"
 msgstr "信息"
+
+#: src/workbook/advanced-validation/AdvancedValidationFields.tsx
+msgid "Input message"
+msgstr "输入提示内容"
 
 #: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
 msgid "Input rules only; Text and Date fields are unchanged. Thousands groups must contain three digits. Invalid numbers keep their original text. Change options, then update the preview."
 msgstr "仅影响输入解析规则；文本和日期字段不变。千位分组必须为三位数字。无效数字保留原始文本。更改选项后，请更新预览。"
+
+#: src/workbook/advanced-validation/AdvancedValidationFields.tsx
+msgid "Input title"
+msgstr "输入提示标题"
 
 #: src/workbook/chrome/ribbon/RibbonTabs.tsx
 msgid "Insert"
@@ -2345,6 +2647,10 @@ msgstr "插入超链接"
 #: src/workbook/hyperlink/HyperlinkTools.tsx
 msgid "Insert link"
 msgstr "插入链接"
+
+#: src/workbook/notes/NoteTools.tsx
+msgid "Insert note"
+msgstr "新增备注"
 
 #: src/workbook/chrome/ribbon/StructureTools.tsx
 msgid "Insert or delete rows and columns"
@@ -2378,9 +2684,65 @@ msgstr "内部竖框线"
 msgid "Interface language"
 msgstr "界面语言"
 
+#: src/i18n/seven-feature-feedback.ts
+msgid "Invalid comment display name."
+msgstr "批注显示名无效。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Invalid comment line endings."
+msgstr "批注换行符无效。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Invalid comment projection request."
+msgstr "批注投影请求无效。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Invalid comment thread history."
+msgstr "批注历史无效。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Invalid comment thread status."
+msgstr "批注状态无效。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Invalid comment timestamp."
+msgstr "批注时间无效。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Invalid custom formula action."
+msgstr "自定义公式操作无效。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Invalid custom formula projection request."
+msgstr "自定义公式投影请求无效。"
+
 #: src/i18n/feedback-messages.ts
 msgid "Invalid hyperlink projection request."
 msgstr "超链接的可见区域请求无效。"
+
+#: src/workbook/advanced-validation/ValidationErrorAlert.tsx
+msgid "Invalid input"
+msgstr "无效输入"
+
+#: src/workbook/advanced-validation/AdvancedValidationFields.tsx
+msgid "Invalid input requires an explicit Continue or Cancel choice."
+msgstr "无效输入需要明确选择继续或取消。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Invalid note projection request."
+msgstr "备注投影请求无效。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Invalid note text."
+msgstr "备注内容无效。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Invalid protection change."
+msgstr "保护更改无效。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Invalid protection projection request."
+msgstr "保护投影请求无效。"
 
 #: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
 msgid "Italic"
@@ -2455,9 +2817,41 @@ msgstr "线性趋势"
 msgid "Link address"
 msgstr "链接地址"
 
+#: src/i18n/feedback-messages.ts
+msgid "Linked content"
+msgstr "链接内容"
+
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
 msgid "List"
 msgstr "列表"
+
+#: src/i18n/feedback-messages.ts
+msgid "List deleted."
+msgstr "列表已删除。"
+
+#: src/workbook/chrome/ribbon/fill-series/CustomFillLists.tsx
+msgid "List name"
+msgstr "列表名称"
+
+#: src/i18n/feedback-messages.ts
+msgid "List saved."
+msgstr "列表已保存。"
+
+#: src/workbook/chrome/ribbon/fill-series/CustomFillLists.tsx
+msgid "Lists stay in this workbook session only. Save list stores a preset; Apply series changes cells. Unsaved edits do not change the saved list."
+msgstr "列表仅保留在当前工作簿会话中。“保存列表”保存填充预设，“应用序列”才修改单元格。未保存的编辑不会改变已有列表。"
+
+#: src/workbook/comments/CommentTools.tsx
+msgid "Loading comments…"
+msgstr "正在加载批注…"
+
+#: src/workbook/custom-formulas/CustomFormulaTools.tsx
+msgid "Loading custom formulas…"
+msgstr "正在加载自定义公式…"
+
+#: src/workbook/notes/NoteTools.tsx
+msgid "Loading note…"
+msgstr "正在加载备注…"
 
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
 #: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
@@ -2468,6 +2862,10 @@ msgstr "正在加载预览…"
 #: src/page/WorkbookRuntimeProvider.tsx
 msgid "Loading Rust/WASM workbook…"
 msgstr "正在加载 Rust/WASM 工作簿…"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Loading validation…"
+msgstr "正在加载验证…"
 
 #: src/workbook/chrome/ribbon/FilterValueChoices.tsx
 msgid "Loading values…"
@@ -2497,13 +2895,25 @@ msgstr "在区域首列查找值，并返回同一行中指定列的值。"
 msgid "Lookup & reference"
 msgstr "查找与引用"
 
-#: src/workbook/chrome/ribbon/FillSeriesTools.tsx
+#: src/workbook/chrome/ribbon/fill-series/CustomFillLists.tsx
 msgid "Low\n"
 "Medium\n"
 "High"
 msgstr "低\n"
 "中\n"
 "高"
+
+#: src/workbook/advanced-conditional-format/ThresholdFields.tsx
+msgid "Lower icon threshold type"
+msgstr "图标下限阈值类型"
+
+#: src/workbook/advanced-conditional-format/ThresholdFields.tsx
+msgid "Lower icon threshold value"
+msgstr "图标下限阈值数值"
+
+#: src/workbook/advanced-conditional-format/ThresholdFields.tsx
+msgid "Lowest value"
+msgstr "最低值"
 
 #: src/workbook/chrome/ribbon/FilterConditionFields.tsx
 #: src/workbook/chrome/ribbon/FindReplaceTools.tsx
@@ -2550,6 +2960,14 @@ msgstr "最大值 {0}"
 msgid "Maximum color"
 msgstr "最大值颜色"
 
+#: src/workbook/advanced-conditional-format/ThresholdFields.tsx
+msgid "Maximum threshold type"
+msgstr "最大阈值类型"
+
+#: src/workbook/advanced-conditional-format/ThresholdFields.tsx
+msgid "Maximum threshold value"
+msgstr "最大阈值数值"
+
 #: src/workbook/chrome/ribbon/BorderTools.tsx
 msgid "Medium"
 msgstr "中等"
@@ -2593,6 +3011,14 @@ msgstr "垂直居中"
 msgid "Midpoint color"
 msgstr "中间值颜色"
 
+#: src/workbook/advanced-conditional-format/ThresholdFields.tsx
+msgid "Midpoint threshold type"
+msgstr "中点阈值类型"
+
+#: src/workbook/advanced-conditional-format/ThresholdFields.tsx
+msgid "Midpoint threshold value"
+msgstr "中点阈值数值"
+
 #: src/i18n/feedback-messages.ts
 msgid "Min"
 msgstr "最小值"
@@ -2612,6 +3038,14 @@ msgstr "最小值 {0}"
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Minimum color"
 msgstr "最小值颜色"
+
+#: src/workbook/advanced-conditional-format/ThresholdFields.tsx
+msgid "Minimum threshold type"
+msgstr "最小阈值类型"
+
+#: src/workbook/advanced-conditional-format/ThresholdFields.tsx
+msgid "Minimum threshold value"
+msgstr "最小阈值数值"
 
 #: src/i18n/feedback-messages.ts
 msgid "Month names"
@@ -2709,6 +3143,19 @@ msgstr "新建空白工作簿"
 msgid "New column name"
 msgstr "新列名"
 
+#: src/i18n/seven-feature-feedback.ts
+#: src/workbook/comments/CommentTools.tsx
+msgid "New comment"
+msgstr "新建批注"
+
+#: src/workbook/custom-formulas/CustomFormulaTools.tsx
+msgid "New formula"
+msgstr "新公式"
+
+#: src/workbook/chrome/ribbon/fill-series/CustomFillLists.tsx
+msgid "New list"
+msgstr "新建列表"
+
 #: src/workbook/chrome/ribbon/NamedRangeTools.tsx
 msgid "New name"
 msgstr "新名称"
@@ -2733,6 +3180,10 @@ msgstr "新建表格"
 msgid "New typing and external paste stay as text, including leading zeros and formulas. Existing values and formulas are not converted."
 msgstr "新输入和外部粘贴均保留为文本，包括前导零和公式。不会转换已有值和公式。"
 
+#: src/workbook/chrome/ribbon/fill-series/CustomFillLists.tsx
+msgid "New unsaved list"
+msgstr "新建未保存列表"
+
 #: src/workbook/chrome/ribbon/FilterValueChoices.tsx
 msgid "Next"
 msgstr "下一项"
@@ -2750,6 +3201,10 @@ msgstr "下一页"
 msgid "Next sheet"
 msgstr "下一张工作表"
 
+#: src/i18n/feedback-messages.ts
+msgid "No adjacent continuous data to fill."
+msgstr "相邻列没有可向下延续的连续数据。"
+
 #: src/workbook/chrome/ribbon/SpillTools.tsx
 msgid "No blocking cell can be identified. Check worksheet limits or the array size."
 msgstr "未找到具体的阻挡单元格，请检查工作表边界或数组大小。"
@@ -2757,6 +3212,18 @@ msgstr "未找到具体的阻挡单元格，请检查工作表边界或数组大
 #: src/workbook/chrome/ribbon/BorderTools.tsx
 msgid "No borders"
 msgstr "无框线"
+
+#: src/workbook/comments/CommentTimeline.tsx
+msgid "No comments yet. Start a discussion about this cell."
+msgstr "暂无批注。开始讨论这个单元格。"
+
+#: src/workbook/custom-formulas/CustomFormulaTools.tsx
+msgid "No custom formulas yet."
+msgstr "还没有自定义公式。"
+
+#: src/workbook/protection/ProtectionTools.tsx
+msgid "No editable ranges."
+msgstr "尚无可编辑区域。"
 
 #: src/workbook/chrome/ribbon/ColorTools.tsx
 msgid "No fill"
@@ -2828,6 +3295,27 @@ msgstr "不介于"
 msgid "Not equal to"
 msgstr "不等于"
 
+#: src/workbook/notes/NoteTools.tsx
+msgid "Note"
+msgstr "备注"
+
+#: src/workbook/notes/NoteTools.tsx
+msgid "Note for cell {address}"
+msgstr "单元格 {address} 的备注"
+
+#: src/workbook/notes/NoteTools.tsx
+msgid "Note text"
+msgstr "备注内容"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Note text cannot contain a null character."
+msgstr "备注内容不能包含空字符。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Note text cannot exceed 32767 characters."
+msgstr "备注内容不能超过 32767 个字符。"
+
+#: src/workbook/advanced-conditional-format/ThresholdFields.tsx
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
 msgid "Number"
 msgstr "数字"
@@ -2888,6 +3376,10 @@ msgstr "仅移动选中的矩形区域。筛除的行保持原位，手动隐藏
 msgid "Only the upper-left cell's content will remain. Other cell contents will be deleted. Undo can restore them."
 msgstr "只保留左上角单元格的内容，其他单元格内容将被删除，可以撤销恢复。"
 
+#: src/workbook/comments/CommentTimeline.tsx
+msgid "Open discussion"
+msgstr "讨论中"
+
 #: src/workbook/hyperlink/HyperlinkTools.tsx
 msgid "Open link in a new tab"
 msgstr "在新标签页打开链接"
@@ -2907,6 +3399,10 @@ msgstr "正在打开工作簿…"
 #: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
 msgid "Operation"
 msgstr "运算"
+
+#: src/workbook/formula-help/FormulaParameterHelp.tsx
+msgid "Optional"
+msgstr "可选"
 
 #: src/workbook/chrome/ribbon/SortTools.tsx
 msgid "Order"
@@ -2949,6 +3445,18 @@ msgstr "正在应用格式…"
 #: src/workbook/chrome/ribbon/FreezeTools.tsx
 msgid "Panes frozen"
 msgstr "窗格已冻结"
+
+#: src/workbook/formula-help/FormulaParameterHelp.tsx
+msgid "Parameters"
+msgstr "参数"
+
+#: src/workbook/custom-formulas/CustomFormulaTools.tsx
+msgid "Parameters, separated by commas"
+msgstr "参数，以逗号分隔"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Pass cell and range references as custom formula arguments."
+msgstr "请将单元格和区域引用作为自定义公式实参传入。"
 
 #: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/ClipboardTools.tsx
@@ -3055,14 +3563,34 @@ msgstr "已粘贴单元格。"
 msgid "Pasting…"
 msgstr "正在粘贴…"
 
+#: src/workbook/advanced-conditional-format/ThresholdFields.tsx
+msgid "Percent"
+msgstr "百分比"
+
 #: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
 msgid "Percent format"
 msgstr "百分比格式"
+
+#: src/workbook/advanced-conditional-format/AdvancedConditionalFormatFields.tsx
+msgid "Percent uses the minimum-to-maximum span; percentile uses the sorted numeric values. Threshold formulas use the first range’s top-left cell."
+msgstr "百分比使用最小值到最大值的跨度；百分位使用排序后的数值。阈值公式以第一个区域的左上角单元格为上下文。"
 
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
 msgid "Percentage"
 msgstr "百分比"
+
+#: src/workbook/advanced-conditional-format/ThresholdFields.tsx
+msgid "Percentile"
+msgstr "百分位"
+
+#: src/workbook/notes/NoteTools.tsx
+msgid "Plain text, up to {NOTE_MAX_CHARACTERS} characters. Use Delete note to remove it."
+msgstr "纯文本，最多 {NOTE_MAX_CHARACTERS} 个字符。请使用“删除备注”移除。"
+
+#: src/workbook/comments/CommentTools.tsx
+msgid "Plain text. Times use this device's local clock."
+msgstr "仅纯文本，时间使用此设备的本机时钟。"
 
 #: src/workbook/chrome/ribbon/BorderTools.tsx
 #: src/workbook/chrome/ribbon/FindResults.tsx
@@ -3072,6 +3600,10 @@ msgstr "位置"
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Positive bar color"
 msgstr "正值数据条颜色"
+
+#: src/workbook/comments/CommentTools.tsx
+msgid "Post reply"
+msgstr "发表回复"
 
 #: src/i18n/feedback-messages.ts
 msgid "Preparing download…"
@@ -3112,6 +3644,14 @@ msgstr "上一页"
 msgid "Previous sheet"
 msgstr "上一张工作表"
 
+#: src/workbook/protection/ProtectionTools.tsx
+msgid "Protect worksheet"
+msgstr "保护工作表"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Protection refers to a missing worksheet."
+msgstr "保护配置引用了不存在的工作表。"
+
 #: src/workbook/chrome/ribbon/QuickFormulaTools.tsx
 msgid "Quick formula"
 msgstr "快捷公式"
@@ -3140,6 +3680,10 @@ msgstr "排名方向"
 #: src/workbook/chrome/ribbon/SpillTools.tsx
 msgid "Reading spill details…"
 msgstr "正在读取溢出详情…"
+
+#: src/workbook/protection/ProtectionTools.tsx
+msgid "Reading worksheet protection…"
+msgstr "正在读取工作表保护…"
 
 #: src/workbook/chrome/ribbon/FilterTools.tsx
 msgid "Reapply {table} filter"
@@ -3181,6 +3725,10 @@ msgstr "重做 (Ctrl/⌘+Shift+Z 或 Ctrl+Y)"
 msgid "Reference"
 msgstr "引用"
 
+#: src/workbook/advanced-validation/AdvancedValidationFields.tsx
+msgid "References are relative to the top left cell of Applies to. The formula must return TRUE."
+msgstr "引用以应用区域左上角为基准。公式必须返回 TRUE。"
+
 #: src/workbook/chrome/ribbon/NamedRangeTools.tsx
 msgid "Refers to"
 msgstr "引用位置"
@@ -3189,8 +3737,17 @@ msgstr "引用位置"
 msgid "Refresh"
 msgstr "刷新"
 
+#: src/i18n/seven-feature-feedback.ts
+msgid "Register custom formula"
+msgstr "注册自定义公式"
+
+#: src/workbook/custom-formulas/CustomFormulaTools.tsx
+msgid "Register formula"
+msgstr "注册公式"
+
 #: src/workbook/chrome/ribbon/FilterConditionFields.tsx
 #: src/workbook/chrome/ribbon/SortTools.tsx
+#: src/workbook/protection/ProtectionTools.tsx
 msgid "Remove"
 msgstr "移除"
 
@@ -3207,10 +3764,22 @@ msgstr "移除条件 {0}"
 msgid "Remove conditional format"
 msgstr "删除条件格式"
 
+#: src/i18n/seven-feature-feedback.ts
+msgid "Remove custom formula"
+msgstr "移除自定义公式"
+
 #: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
 msgid "Remove duplicates"
 msgstr "删除重复项"
+
+#: src/workbook/protection/ProtectionTools.tsx
+msgid "Remove editable range {address}"
+msgstr "删除可编辑区域 {address}"
+
+#: src/workbook/custom-formulas/CustomFormulaTools.tsx
+msgid "Remove formula"
+msgstr "移除公式"
 
 #: src/i18n/feedback-messages.ts
 msgid "Remove hyperlink"
@@ -3294,9 +3863,33 @@ msgstr "重命名表格列"
 msgid "Rename worksheet"
 msgstr "重命名工作表"
 
+#: src/i18n/seven-feature-feedback.ts
+msgid "Reopen comment"
+msgstr "重新打开批注"
+
+#: src/workbook/comments/CommentTools.tsx
+msgid "Reopen discussion"
+msgstr "重新打开讨论"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Reopen the thread before replying."
+msgstr "请先重新打开讨论再回复。"
+
+#: src/workbook/comments/CommentTimeline.tsx
+msgid "Reopened this discussion"
+msgstr "已重新打开此讨论"
+
 #: src/i18n/feedback-messages.ts
 msgid "Reorder conditional formats"
 msgstr "调整条件格式顺序"
+
+#: src/workbook/formula-help/FormulaParameterHelp.tsx
+msgid "Repeat the marked parameters together, in order."
+msgstr "按顺序一起重复标记的参数。"
+
+#: src/workbook/formula-help/FormulaParameterHelp.tsx
+msgid "Repeating group"
+msgstr "重复组"
 
 #: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/FindReplaceTools.tsx
@@ -3310,6 +3903,14 @@ msgstr "替换全部"
 #: src/workbook/chrome/ribbon/FindReplaceTools.tsx
 msgid "Replace current"
 msgstr "替换当前项"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Replace custom formula"
+msgstr "替换自定义公式"
+
+#: src/workbook/custom-formulas/CustomFormulaTools.tsx
+msgid "Replace formula"
+msgstr "替换公式"
 
 #: src/workbook/chrome/ribbon/FindReplaceTools.tsx
 msgid "Replace with"
@@ -3330,6 +3931,18 @@ msgstr "替换字符，不进行语言翻译。"
 #: src/workbook/chrome/ribbon/FindReplaceTools.tsx
 msgid "Replacing…"
 msgstr "正在替换…"
+
+#: src/workbook/comments/CommentTools.tsx
+msgid "Reply text"
+msgstr "回复内容"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Reply to comment"
+msgstr "回复批注"
+
+#: src/workbook/formula-help/FormulaParameterHelp.tsx
+msgid "Required"
+msgstr "必填"
 
 #: src/workbook/chrome/ribbon/SelectionSizeTools.tsx
 msgid "Reset selected sizes"
@@ -3359,6 +3972,22 @@ msgstr "调整行高"
 #: src/workbook/chrome/ribbon/TableTools.tsx
 msgid "Resize table"
 msgstr "调整表格范围"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Resolve comment"
+msgstr "解决批注"
+
+#: src/workbook/comments/CommentTools.tsx
+msgid "Resolve discussion"
+msgstr "解决讨论"
+
+#: src/workbook/comments/CommentTimeline.tsx
+msgid "Resolved"
+msgstr "已解决"
+
+#: src/workbook/comments/CommentTimeline.tsx
+msgid "Resolved this discussion"
+msgstr "已解决此讨论"
 
 #: src/workbook/chrome/footer/SelectionStatisticsSettings.tsx
 msgid "Restore defaults"
@@ -3423,6 +4052,10 @@ msgstr "所有参数均为 TRUE 时返回 TRUE。"
 msgid "Returns TRUE if any argument is TRUE."
 msgstr "任意参数为 TRUE 时返回 TRUE。"
 
+#: src/workbook/advanced-conditional-format/AdvancedConditionalFormatFields.tsx
+msgid "Reverse icon order"
+msgstr "反转图标顺序"
+
 #: src/i18n/feedback-messages.ts
 msgid "Reverses the logical value of its argument."
 msgstr "返回参数逻辑值的相反值。"
@@ -3479,13 +4112,61 @@ msgstr "第 {0}–{1} 行"
 msgid "Rule type"
 msgstr "规则类型"
 
+#: src/i18n/seven-feature-feedback.ts
+msgid "Rust comment editing is unavailable."
+msgstr "原生批注编辑不可用。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Rust custom formula editing is unavailable."
+msgstr "Rust 自定义公式编辑暂不可用。"
+
 #: src/i18n/feedback-messages.ts
 msgid "Rust hyperlink editing is unavailable."
 msgstr "Rust 超链接编辑功能不可用。"
 
+#: src/i18n/seven-feature-feedback.ts
+msgid "Rust note editing is unavailable."
+msgstr "原生备注编辑暂不可用。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Rust returned a mismatched comment result."
+msgstr "原生引擎返回的批注结果不匹配。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Rust returned a mismatched custom formula result."
+msgstr "Rust 返回的自定义公式结果不匹配。"
+
 #: src/i18n/feedback-messages.ts
 msgid "Rust returned a mismatched hyperlink result."
 msgstr "Rust 返回的超链接结果与当前操作不匹配。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Rust returned a mismatched note result."
+msgstr "原生备注结果与请求不匹配。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Rust returned a mismatched protection result."
+msgstr "原生引擎返回的保护结果不匹配。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Rust returned a mismatched validation confirmation result."
+msgstr "原生引擎返回的验证确认结果不匹配。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Rust returned an invalid comment thread."
+msgstr "原生引擎返回的批注线程无效。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Rust returned an invalid custom formula directory."
+msgstr "Rust 返回的自定义公式目录无效。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Rust returned invalid worksheet protection."
+msgstr "原生引擎返回的工作表保护配置无效。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Rust worksheet protection is unavailable."
+msgstr "原生工作表保护不可用。"
 
 #: src/workbook/shell/WorkbookView.tsx
 msgid "Rust/WASM ready"
@@ -3508,21 +4189,49 @@ msgstr "保存"
 msgid "Save changes"
 msgstr "保存更改"
 
+#: src/workbook/chrome/ribbon/fill-series/CustomFillLists.tsx
+msgid "Save list"
+msgstr "保存列表"
+
+#: src/workbook/notes/NoteTools.tsx
+msgid "Save note"
+msgstr "保存备注"
+
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Save rule"
 msgstr "保存规则"
+
+#: src/workbook/custom-formulas/CustomFormulaTools.tsx
+msgid "Saved formula"
+msgstr "已保存的公式"
+
+#: src/workbook/chrome/ribbon/fill-series/CustomFillLists.tsx
+msgid "Saved lists"
+msgstr "已保存列表"
 
 #: src/workbook/chrome/ribbon/NamedRangeTools.tsx
 msgid "Saving changes…"
 msgstr "正在保存更改…"
 
+#: src/workbook/comments/CommentTools.tsx
+msgid "Saving comment…"
+msgstr "正在保存批注…"
+
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Saving conditional formatting…"
 msgstr "正在保存条件格式…"
 
+#: src/workbook/custom-formulas/CustomFormulaTools.tsx
+msgid "Saving custom formula…"
+msgstr "正在保存自定义公式…"
+
 #: src/workbook/hyperlink/HyperlinkTools.tsx
 msgid "Saving hyperlink…"
 msgstr "正在保存超链接…"
+
+#: src/workbook/notes/NoteTools.tsx
+msgid "Saving note…"
+msgstr "正在保存备注…"
 
 #: src/workbook/chrome/ribbon/SelectionSizeTools.tsx
 msgid "Saving sizes…"
@@ -3531,6 +4240,14 @@ msgstr "正在保存尺寸…"
 #: src/workbook/chrome/ribbon/TableTools.tsx
 msgid "Saving table changes…"
 msgstr "正在保存表格更改…"
+
+#: src/workbook/chrome/ribbon/DataValidationTools.tsx
+msgid "Saving validation…"
+msgstr "正在保存验证…"
+
+#: src/workbook/protection/ProtectionTools.tsx
+msgid "Saving worksheet protection…"
+msgstr "正在保存工作表保护…"
 
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Scale colors"
@@ -3653,6 +4370,10 @@ msgstr "请先选择一个连续区域再命名。"
 msgid "Select one continuous sort range."
 msgstr "请选择一个连续的排序区域。"
 
+#: src/workbook/protection/ProtectionTools.tsx
+msgid "Select one rectangular range to allow editing."
+msgstr "请选择一个矩形区域以允许编辑。"
+
 #: src/i18n/feedback-messages.ts
 msgid "Select one row or column with enough samples and at least one destination."
 msgstr "请选择同一行或列，包含足够的样本和至少一个目标单元格。"
@@ -3673,9 +4394,17 @@ msgstr "在同一行或列中选择样本和目标。保留开头的样本，将
 msgid "Select spill range"
 msgstr "选中溢出区域"
 
+#: src/i18n/seven-feature-feedback.ts
+msgid "Select the anchor cell before changing its comments."
+msgstr "请先选择合并区域的起始单元格再修改批注。"
+
 #: src/i18n/feedback-messages.ts
 msgid "Select the anchor cell before changing its hyperlink."
 msgstr "请先选中主单元格，再修改其超链接。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Select the anchor cell before changing its note."
+msgstr "请先选择合并区域的锚点单元格，再更改备注。"
 
 #: src/i18n/feedback-messages.ts
 msgid "Select the entire merged cell before formatting."
@@ -3786,6 +4515,14 @@ msgstr "显示第 {0} 级列分组"
 #: src/workbook/chrome/ribbon/CalculationTools.tsx
 msgid "Show formulas"
 msgstr "显示公式"
+
+#: src/workbook/advanced-conditional-format/AdvancedConditionalFormatFields.tsx
+msgid "Show icon only"
+msgstr "仅显示图标"
+
+#: src/workbook/advanced-validation/AdvancedValidationFields.tsx
+msgid "Show input message when selected"
+msgstr "选中时显示输入提示"
 
 #: src/i18n/feedback-messages.ts
 msgid "Show outline level"
@@ -3963,6 +4700,10 @@ msgstr "统计值复制状态"
 msgid "Statistics unavailable"
 msgstr "统计暂不可用"
 
+#: src/workbook/advanced-validation/AdvancedValidationFields.tsx
+msgid "Stop"
+msgstr "停止"
+
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Stop if true"
 msgstr "为真则停止"
@@ -3974,6 +4715,10 @@ msgstr "删除线"
 #: src/workbook/chrome/ribbon/TableAppearance.tsx
 msgid "Style preset"
 msgstr "预设样式"
+
+#: src/workbook/advanced-validation/ValidationErrorAlert.tsx
+msgid "Submitting input…"
+msgstr "正在提交输入…"
 
 #: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
 msgid "Subtract"
@@ -4119,13 +4864,45 @@ msgstr "剪贴板中没有单元格文本。"
 msgid "The clipboard text has unmatched quotes. Nothing was pasted."
 msgstr "剪贴板文本的引号不匹配，未粘贴任何内容。"
 
+#: src/i18n/seven-feature-feedback.ts
+msgid "The comment cell is outside the worksheet."
+msgstr "批注单元格超出工作表范围。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "The comment thread no longer exists."
+msgstr "此批注线程已不存在。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "The comment worksheet no longer exists."
+msgstr "批注所在工作表已不存在。"
+
 #: src/i18n/feedback-messages.ts
 msgid "The copied worksheet was deleted. Copy cells again before pasting."
 msgstr "复制来源工作表已删除，请重新复制后再粘贴。"
 
+#: src/i18n/seven-feature-feedback.ts
+msgid "The custom formula changed outside history."
+msgstr "自定义公式已在历史记录之外被更改。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "The custom formula name conflicts with a built-in function."
+msgstr "自定义公式名称与内置函数冲突。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "The custom formula name is already in use."
+msgstr "自定义公式名称已被使用。"
+
 #: src/i18n/feedback-messages.ts
 msgid "The cut cells changed. Cut the range again before pasting."
 msgstr "剪切来源单元格已更改，请重新剪切后再粘贴。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "The editable range is outside the worksheet."
+msgstr "允许编辑范围超出工作表。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "The editable range no longer exists."
+msgstr "此允许编辑范围已不存在。"
 
 #: src/i18n/feedback-messages.ts
 msgid "The fill source selection changed. Drag again."
@@ -4147,6 +4924,18 @@ msgstr "超链接显示文字过长或包含无效字符。"
 msgid "The hyperlink worksheet no longer exists."
 msgstr "超链接所在的工作表已不存在。"
 
+#: src/i18n/seven-feature-feedback.ts
+msgid "The input was not accepted. Review the draft and submit again."
+msgstr "输入未被接受，请检查草稿后重新提交。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "The insertion would move a comment outside the worksheet."
+msgstr "此插入操作会将批注移出工作表。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "The insertion would move a note outside the worksheet."
+msgstr "插入操作会将备注移出工作表。"
+
 #: src/i18n/feedback-messages.ts
 msgid "The matched cell is outside the current worksheet."
 msgstr "匹配单元格超出了当前工作表范围。"
@@ -4162,6 +4951,14 @@ msgstr "新列名与当前列名相同。"
 #: src/i18n/feedback-messages.ts
 msgid "The new name is the same as the current name."
 msgstr "新名称与当前名称相同。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "The note cell is outside the worksheet."
+msgstr "备注单元格超出工作表范围。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "The note worksheet no longer exists."
+msgstr "备注所在的工作表已不存在。"
 
 #: src/workbook/chrome/ribbon/NamedRangeTools.tsx
 msgid "The original range was deleted. Enter a new range to repair this name."
@@ -4275,6 +5072,10 @@ msgstr "视图已更改，请重新打开表格设置。"
 msgid "The view changed. Reopen the name editor."
 msgstr "视图已更改，请重新打开名称编辑器。"
 
+#: src/i18n/seven-feature-feedback.ts
+msgid "The view changed. Reopen worksheet protection."
+msgstr "视图已更改，请重新打开工作表保护。"
+
 #: src/i18n/feedback-messages.ts
 msgid "The view changed. Try again after the worksheet finishes loading."
 msgstr "视图已更改，请等待工作表加载完成后重试。"
@@ -4303,6 +5104,14 @@ msgstr "工作簿已更改，请重新粘贴。"
 msgid "The workbook changed. Reopen Tables."
 msgstr "工作簿已更改，请重新打开表格设置。"
 
+#: src/i18n/seven-feature-feedback.ts
+msgid "The workbook changed. Reopen the comment editor."
+msgstr "工作簿已更改，请重新打开批注编辑器。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "The workbook changed. Reopen the custom formula editor."
+msgstr "工作簿已更改，请重新打开自定义公式编辑器。"
+
 #: src/i18n/feedback-messages.ts
 msgid "The workbook changed. Reopen the hyperlink editor."
 msgstr "工作簿已更改，请重新打开超链接编辑器。"
@@ -4310,6 +5119,18 @@ msgstr "工作簿已更改，请重新打开超链接编辑器。"
 #: src/i18n/feedback-messages.ts
 msgid "The workbook changed. Reopen the name editor."
 msgstr "工作簿已更改，请重新打开名称编辑器。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "The workbook changed. Reopen the note editor."
+msgstr "工作簿已更改，请重新打开备注编辑器。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "The workbook changed. Reopen worksheet protection."
+msgstr "工作簿已更改，请重新打开工作表保护。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "The workbook changed. Submit the operation again."
+msgstr "工作簿已更改，请重新提交操作。"
 
 #: src/i18n/feedback-messages.ts
 msgid "The workbook changed. Try locating cells again."
@@ -4347,6 +5168,14 @@ msgstr "工作表已更改，请关闭并重新打开筛选。"
 msgid "The worksheet changed. Refresh spill details before navigating."
 msgstr "工作表已更改，请刷新溢出详情后再定位。"
 
+#: src/i18n/seven-feature-feedback.ts
+msgid "The worksheet dimensions changed outside history."
+msgstr "工作表尺寸已在历史记录之外更改。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "The worksheet no longer exists."
+msgstr "工作表已不存在。"
+
 #. placeholder {0}: index + 1
 #: src/workbook/chrome/ribbon/SortTools.tsx
 msgid "Then by ({0})"
@@ -4372,6 +5201,10 @@ msgstr "此地址超出了当前工作表范围。"
 msgid "This browser cannot write the clipboard. Use a secure HTTPS or localhost page."
 msgstr "此浏览器无法写入剪贴板，请使用安全的 HTTPS 或 localhost 页面。"
 
+#: src/i18n/seven-feature-feedback.ts
+msgid "This cell already has a comment thread."
+msgstr "此单元格已有批注线程。"
+
 #: src/workbook/chrome/ribbon/SpillTools.tsx
 msgid "This cell is not part of a spilled array."
 msgstr "此单元格不属于溢出数组。"
@@ -4391,6 +5224,10 @@ msgstr "剪贴板区域过大，请选择更小的区域。"
 #: src/i18n/feedback-messages.ts
 msgid "This edit was not confirmed — it may or may not have been saved."
 msgstr "无法确认此次编辑是否已保存，请检查单元格后再操作。"
+
+#: src/workbook/advanced-validation/ValidationErrorAlert.tsx
+msgid "This input does not satisfy the cell's data validation rule."
+msgstr "此输入不符合单元格的数据验证规则。"
 
 #: src/i18n/feedback-messages.ts
 msgid "This is not a valid .einfach.json workbook file."
@@ -4432,9 +5269,25 @@ msgstr "此统计项没有可复制的有限数值。"
 msgid "This table already has a column with that name. Choose a different column name."
 msgstr "此表格已有同名列，请使用其他列名。"
 
+#: src/i18n/seven-feature-feedback.ts
+msgid "This validation formula cannot be translated across the range."
+msgstr "无法在此区域平移该验证公式。"
+
 #: src/i18n/feedback-messages.ts
 msgid "This value does not meet the cell’s data validation rule. Change it or press Escape."
 msgstr "此值不符合该单元格的数据验证规则。请修改，或按 Escape 取消。"
+
+#: src/workbook/protection/ProtectionTools.tsx
+msgid "This worksheet is open for editing."
+msgstr "此工作表可自由编辑。"
+
+#: src/workbook/protection/ProtectionTools.tsx
+msgid "This worksheet is protected."
+msgstr "此工作表已受保护。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "This worksheet is protected. Unprotect it before changing locked cells."
+msgstr "此工作表已受保护，请先取消保护再更改锁定单元格。"
 
 #: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
 msgid "Thousands format"
@@ -4443,6 +5296,22 @@ msgstr "千位分隔格式"
 #: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
 msgid "Thousands separator"
 msgstr "千位分隔符"
+
+#: src/workbook/advanced-conditional-format/AdvancedConditionalFormatFields.tsx
+msgid "Three arrows"
+msgstr "三箭头"
+
+#: src/workbook/advanced-conditional-format/AdvancedConditionalFormatFields.tsx
+msgid "Three flags"
+msgstr "三旗帜"
+
+#: src/workbook/advanced-conditional-format/AdvancedConditionalFormatFields.tsx
+msgid "Three traffic lights"
+msgstr "三交通灯"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Threshold percentages must be between 0 and 100."
+msgstr "阈值百分比必须介于0到100之间。"
 
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
@@ -4456,6 +5325,10 @@ msgstr "时间格式"
 #: src/workbook/chrome/ribbon/FindReplaceTools.tsx
 msgid "To replace a formula, choose Formulas / raw values. Calculated results are not overwritten."
 msgstr "要替换公式，请选择“公式 / 原始值”。不会覆盖计算结果。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Too many custom formulas."
+msgstr "自定义公式数量超过上限。"
 
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 #: src/workbook/chrome/ribbon/TextLayoutTools.tsx
@@ -4640,6 +5513,10 @@ msgstr "修改工作簿名称前，请先取消工作表保护。"
 msgid "Unprotect the worksheets before inserting or deleting rows and columns."
 msgstr "插入或删除行列前，请先取消工作表保护。"
 
+#: src/workbook/protection/ProtectionTools.tsx
+msgid "Unprotect worksheet"
+msgstr "取消工作表保护"
+
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Unsupported rule (not editable yet)"
 msgstr "不支持的规则（暂不可编辑）"
@@ -4707,9 +5584,21 @@ msgstr "正在更新选区…"
 msgid "Updating visibility…"
 msgstr "正在更新行列显隐…"
 
+#: src/workbook/advanced-conditional-format/ThresholdFields.tsx
+msgid "Upper icon threshold type"
+msgstr "图标上限阈值类型"
+
+#: src/workbook/advanced-conditional-format/ThresholdFields.tsx
+msgid "Upper icon threshold value"
+msgstr "图标上限阈值数值"
+
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
 msgid "Use a clock time from 00:00 to 23:59:59."
 msgstr "请输入 00:00 至 23:59:59 之间的时间。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Use a formula name beginning with a letter or underscore, without cell references."
+msgstr "公式名称须以字母或下划线开头，且不能是单元格地址。"
 
 #: src/i18n/feedback-messages.ts
 msgid "Use a positive whole-number denominator, at most 4294967295."
@@ -4718,6 +5607,14 @@ msgstr "分母必须为正整数，最大为 4294967295。"
 #: src/i18n/feedback-messages.ts
 msgid "Use at most 16 characters for the currency symbol, without control characters."
 msgstr "货币符号最多 16 个字符，不能包含控制字符。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Use at most 64 custom formula parameters."
+msgstr "自定义公式最多支持64个参数。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Use at most 8192 characters in a custom formula expression."
+msgstr "自定义公式表达式不能超过8192个字符。"
 
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Use commas between ranges. Write the formula for the first range’s top-left cell. Use $ to lock a row or column."
@@ -4731,9 +5628,17 @@ msgstr "请在网格中使用 Ctrl/⌘+V 从剪贴板粘贴。"
 msgid "Use different columns and valid numbers; minimum cannot exceed maximum."
 msgstr "请选择不同的列并输入有效数字；最小值不能大于最大值。"
 
+#: src/i18n/seven-feature-feedback.ts
+msgid "Use only declared parameters and local LET or LAMBDA names in custom formula expressions."
+msgstr "自定义公式表达式只能使用已声明的参数及 LET 或 LAMBDA 局部名称。"
+
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
 msgid "Use thousands separator"
 msgstr "使用千位分隔符"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Use valid local LET or LAMBDA parameter names."
+msgstr "请使用有效的 LET 或 LAMBDA 局部参数名称。"
 
 #: src/workbook/chrome/ribbon/FindReplaceTools.tsx
 msgid "Use wildcards"
@@ -4742,6 +5647,30 @@ msgstr "使用通配符"
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
 msgid "Use YYYY-MM-DD."
 msgstr "请使用 YYYY-MM-DD 格式。"
+
+#: src/workbook/advanced-validation/AdvancedValidationFields.tsx
+msgid "Validation formula"
+msgstr "验证公式"
+
+#: src/workbook/advanced-validation/ValidationErrorAlert.tsx
+msgid "Validation information"
+msgstr "数据验证信息"
+
+#: src/workbook/advanced-validation/ValidationInputMessage.tsx
+msgid "Validation input message"
+msgstr "数据验证输入提示"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Validation messages cannot contain a null character."
+msgstr "验证提示不能包含空字符。"
+
+#: src/i18n/seven-feature-feedback.ts
+msgid "Validation titles allow 32 characters and messages allow 255 characters."
+msgstr "验证标题最多 32 个字符，正文最多 255 个字符。"
+
+#: src/workbook/advanced-validation/ValidationErrorAlert.tsx
+msgid "Validation warning"
+msgstr "数据验证警告"
 
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
@@ -4801,6 +5730,10 @@ msgstr "请等待工作表加载完成。"
 msgid "Waiting for the table list…"
 msgstr "正在等待表格列表…"
 
+#: src/workbook/advanced-validation/AdvancedValidationFields.tsx
+msgid "Warning"
+msgstr "警告"
+
 #: src/i18n/feedback-messages.ts
 msgid "Weekday names"
 msgstr "星期名称"
@@ -4825,6 +5758,10 @@ msgstr "工作簿"
 #: src/workbook/chrome/ribbon/RibbonTabs.tsx
 msgid "Workbook commands"
 msgstr "工作簿命令"
+
+#: src/workbook/comments/CommentTools.tsx
+msgid "Workbook display name"
+msgstr "工作簿内显示名"
 
 #: src/page/WorkbookRuntimeProvider.tsx
 msgid "Workbook failed to open"
@@ -4858,10 +5795,6 @@ msgstr "工作簿表格"
 msgid "Workbook title must contain 1–256 characters."
 msgstr "工作簿标题长度必须为 1–256 个字符。"
 
-#: src/workbook/chrome/ribbon/DataValidationTools.tsx
-msgid "Working…"
-msgstr "正在处理…"
-
 #: src/workbook/chrome/ribbon/HistoryTools.tsx
 #: src/workbook/chrome/ribbon/NamedRangeTools.tsx
 msgid "Worksheet"
@@ -4874,6 +5807,10 @@ msgstr "工作表筛选"
 #: src/i18n/feedback-messages.ts
 msgid "Worksheet history changed the clipboard source. Copy or cut again to paste."
 msgstr "工作表历史操作改变了剪贴板来源，请重新复制或剪切后再粘贴。"
+
+#: src/workbook/protection/ProtectionTools.tsx
+msgid "Worksheet protection"
+msgstr "工作表保护"
 
 #: src/i18n/translate-feedback.ts
 msgid "Worksheet recalculated ({count} formulas)."
@@ -4890,6 +5827,10 @@ msgstr "工作表表格"
 #: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
 msgid "Wrap text"
 msgstr "自动换行"
+
+#: src/i18n/feedback-messages.ts
+msgid "You can save at most 32 custom lists per workbook session."
+msgstr "每个工作簿会话最多保存 32 个自定义列表。"
 
 #: src/workbook/chrome/header/WorkbookFileTools.tsx
 msgid "Your workbook is in memory. Download a file to keep your changes."

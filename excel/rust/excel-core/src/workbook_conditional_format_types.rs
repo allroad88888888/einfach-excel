@@ -49,6 +49,7 @@ pub enum ConditionalFormatError {
     DuplicateRuleId,
     DuplicateSheetSnapshot,
     MutationDuringCustomCall,
+    SheetProtected,
 }
 
 impl std::fmt::Display for ConditionalFormatError {
@@ -72,6 +73,7 @@ impl std::fmt::Display for ConditionalFormatError {
                 f,
                 "conditional-format mutations are forbidden during a custom-formula callback"
             ),
+            Self::SheetProtected => write!(f, "Unprotect the worksheet before changing conditional formatting."),
         }
     }
 }

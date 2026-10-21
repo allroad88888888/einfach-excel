@@ -38,6 +38,8 @@ import { nativeTableFeedbackAtom } from '../tables/native-feedback'
 export type ContentMutationKind =
   | 'set-cell-input'
   | 'change-hyperlink'
+  | 'change-note'
+  | 'change-comment'
   | 'clear-range'
   | 'fill-range'
   | 'fill-series'

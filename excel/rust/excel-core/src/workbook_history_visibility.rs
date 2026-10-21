@@ -40,6 +40,7 @@ impl WorkbookHistory {
         range: CellRange,
         action: &str,
     ) -> Result<bool, &'static str> {
+        workbook.ensure_sheet_unprotected(sheet)?;
         if self.pending.is_some() {
             return Err("Another history command is pending.");
         }

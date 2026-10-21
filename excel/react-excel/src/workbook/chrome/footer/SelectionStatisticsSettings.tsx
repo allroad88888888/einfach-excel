@@ -6,6 +6,7 @@ import {
   configureSelectionStatisticsAtom, selectionStatisticsPreferencesAtom,
   selectionStatisticLabels, type SelectionStatistic,
 } from '@einfach/spreadsheet-ui-core'
+import { cycleDialogFocus } from '../ribbon/dialog-focus'
 
 /** 配置弹窗只处理原生对话框及焦点，勾选状态直接来自 UI Core。 */
 export function SelectionStatisticsSettings() {
@@ -31,6 +32,7 @@ export function SelectionStatisticsSettings() {
       aria-label={t`Selection statistics settings`} title={t`Selection statistics settings`}
       aria-haspopup="dialog" onClick={() => configure('open')}>⋯</button>
     {open && <dialog ref={dialogRef} className="statistics-settings" aria-labelledby={titleId}
+      onKeyDown={cycleDialogFocus}
       onCancel={(event) => { event.preventDefault(); configure('close') }}>
       <h2 id={titleId}><Trans>Selection statistics</Trans></h2>
       <p><Trans>Choose the summaries shown below.

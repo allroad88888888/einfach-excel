@@ -18,6 +18,25 @@ test.beforeEach(async ({ page, context }) => {
   await expect(statistics(page)).toContainText('Sum: 26')
 })
 
+for (const width of [1280, 390])
+  test(`column statistics include all offscreen native records at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 850 })
+    await page.getByRole('tab', { name: 'Sales Orders', exact: true }).click()
+    await page.getByRole('columnheader', { name: 'Select column A', exact: true }).click()
+    // 原合并 demo 的 A341:A940 只有锚点有值；599 个覆盖格为空，1001 - 599 = 402。
+    await expect(statistics(page).getByRole('button', { name: 'Copy Count', exact: true })).toHaveText('Count: 402')
+    await expect(statistics(page).getByRole('button', { name: 'Copy Numerical count', exact: true })).toHaveText('Numerical count: 0')
+    await expect(statistics(page).getByRole('button', { name: 'Copy Sum', exact: true })).toBeDisabled()
+    expect(await page.locator('td[data-cell$=":0"]').count()).toBeLessThan(1001)
+    await expect(cell(page, '1:0')).toHaveText('SO-10001')
+    await expect(cell(page, '1:0')).toHaveCSS('font-weight', '700')
+    await expect(cell(page, '3:0')).toHaveText('00123')
+    await select(page, 'A1001')
+    await expect(cell(page, '1000:0')).toHaveText('SO-11000')
+    await expect(statistics(page).getByRole('button', { name: 'Copy Count', exact: true })).toHaveText('Count: 1')
+    await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+  })
+
 test('show/hide and restore defaults preserve the native selection, data and history', async ({ page }) => {
   await settings(page).click()
   const dialog = page.getByRole('dialog', { name: 'Selection statistics' })
@@ -77,7 +96,8 @@ test('copying a statistic never creates a cut token or clears the source on past
   await expect(page.getByLabel('Clipboard status')).toContainText('ready to move')
   await statistics(page).getByRole('button', { name: 'Copy Sum' }).click()
   await expect(page.getByLabel('Statistic copy status')).toHaveText('Copied Sum.')
-  const items = await page.evaluate(async () => (await navigator.clipboard.read()).map((item) => item.types))
+  const items = await page.evaluate(async () =>
+    (await navigator.clipboard.read()).map((item) => item.types))
   expect(items).toEqual([['text/plain']])
   await select(page, 'A95')
   await page.getByRole('button', { name: 'Paste', exact: true }).click()

@@ -1,0 +1,26 @@
+import { expect, test } from '@playwright/test'
+import { button, cell, marker, timeline, openComments, closeComments, expectNeighbors } from './fixtures'
+
+for (const width of [1280, 390]) test(`Chinese comments retain authored text when switching to English at ${width}px`, async ({ page }, info) => {
+  await page.setViewportSize({ width, height: 850 })
+  await page.goto('/e2e/fixtures/plain-sales-orders/?locale=zh-CN')
+  await expect(cell(page, '1:0')).toHaveText('SO-10001')
+  const name = page.getByRole('textbox', { name: '名称框' })
+  await name.fill('A2'); await name.press('Enter')
+  await button(page, '批注').click()
+  const dialog = page.getByRole('dialog', { name: '单元格批注', exact: true })
+  await expect(dialog).toBeVisible()
+  await page.getByLabel('工作簿内显示名', { exact: true }).fill('张三')
+  await page.getByLabel('批注内容', { exact: true }).fill('第一行\nEnglish 🙂')
+  await button(page, '新建批注').click()
+  await expect(page.getByRole('list', { name: '批注历史', exact: true })).toContainText('张三')
+  await expect(dialog.getByText('第一行\nEnglish 🙂', { exact: true })).toBeVisible()
+  expect(await dialog.evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true)
+  await page.screenshot({ path: info.outputPath(`comments-zh-${width}.png`) })
+  await button(page, '关闭批注').click(); await expect(marker(page, '1:0')).toHaveCount(1)
+  await page.getByRole('combobox', { name: '界面语言', exact: true }).selectOption('en')
+  await openComments(page); await expect(timeline(page)).toContainText('第一行\nEnglish 🙂')
+  await expect(timeline(page)).toContainText('张三')
+  await page.screenshot({ path: info.outputPath(`comments-en-${width}.png`) })
+  await closeComments(page); await expectNeighbors(page)
+})

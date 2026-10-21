@@ -2,6 +2,20 @@
 
 目标：按每批三个相关功能持续交付完整 React Excel，生产链路仅使用 UI Core atom + Rust/WASM。
 
+## 七项扩展最终候选（2026-10-21，完整回归通过）
+
+备注、原生工作表保护、高级条件格式、公式数据验证、完整参数帮助、工作簿自定义表达式及本地线程批注
+已从既有 React → Core → Worker → Rust 链路接入。已合并131个新增独立操作登记，保留原824个唯一主绑定；
+955项登记已逐项核验最终同一报告中的成功结果。完整参数帮助的内部构件目录检查不冒充用户入口，原插入/搜索/取消入口不重复登记。
+七项共用原生历史、结构与文件恢复，备注与批注独立；保护不进入内容Undo，工作簿文件的保护最后恢复。
+最终单次真实 Worker/WASM 完整 E2E 为2474/2474通过，零失败、跳过、重试或flaky；
+备注26、保护26、高级条件格式70、高级验证34、参数帮助16、自定义公式31、批注51及跨域共存2项全部通过。
+1280/390中英截图已独立审阅，包含验证提示与Stop同显/滚动、中文表单及帮助底部动作/实现限制。
+原生默认3646/0/10 ignored、lite3606/0/10 ignored、WASM205/0/1 ignored及Chrome7/7均通过；ignored为既有生成器/基准测试，不新增跳过。
+Core修复后的根六project6261项、最终受影响React615项、scripts17项及类型/构建/lint/循环/展现层/文档门禁均有持久证据；不把分段结果拼成最终完整通过。
+最终运行全程冻结2579个源码/测试文件、发布lite/full WASM及21个执行配置，结束后逐文件校验全通过。
+显式尺寸历史权限与内容/格式派生行高的交叉边界已有原生回归；本轮未提交或推送，也不等于整个41项计划完成。
+
 ## 范围与完成口径
 
 - 原 React 三项启动任务已完成，不能据此宣布完整产品完成。
@@ -12,7 +26,429 @@
   一律记为部分完成。外部数据、身份、持久化服务不能用本地假数据替代验收。
 - 下面按原编号合并展示相关项，不删减原清单；原计划明确延后的外部连接保留为延后状态。
 
-## 当前修复轮（2026-10-14）
+## 持续验收 goal（2026-10-20，既有入口验收已完成）
+
+用户要求连续推进至整个既有入口的验收目标，不在每三个功能后结束 turn。
+三项一批仅作为验证单位，不作为结束整体目标的条件。本轮已完成当前源码入口矩阵核对及最终候选
+完整回归：2218/2218 通过，824 个登记操作逐项有唯一主用例的成功证据；没有跳过、失败或重试。
+下列保留分批执行经过，其中“继续／待验收”等描述是当时状态，最终结果以下方“最终候选全量验收”为准。
+不扩为实现未完成功能，不自动 commit／push。原自定义列表三项 goal 已结束，不能沿用它的完成状态
+冒充当前整体目标完成。当前从界面源码逐项核对，不按测试数量倒推范围。
+
+- 数字格式 Tab／Shift+Tab／非法小数位纠正：含桌面、窄屏及原格式交叉回归共 60/60 通过，报告 `/tmp/react-excel-number-dialog-complete.json`。同报告包含原生拒绝后重试、处理中禁止重复及取消、空白／文本／错误值只读预览，分别登记 NUM-022..024；复用已执行的独立用例，不为登记数重复测试或新增生产层。当前继续定位的命名失效交叉回归。
+
+- 条件格式启用／停用／复制：新增六条桌面／窄屏用例，管理文件 12/12 通过。
+  证据 `/tmp/react-excel-cf-management-independent.json`；未改生产代码。
+- 规则上移／下移／新草稿重置：新增六条，管理文件 18/18 通过。
+  证据 `/tmp/react-excel-cf-priority-independent.json`；未改生产代码。
+- 名称管理器新增／改名／删除：新增六条，名称管理文件 12/12 通过。
+  证据 `/tmp/react-excel-names-independent.json`；直接使用原生名称种子，未改生产代码。
+- 范围修改／工作表修改／新草稿重置：复用范围独立用例并新增四条，名称管理文件 16/16 通过。
+  证据 `/tmp/react-excel-names-targets-independent.json`；未改生产代码。
+- Table 创建／改名／转普通区域：新增六条，Table 文件 11/11 通过。
+  证据 `/tmp/react-excel-tables-independent.json`；转换后的数值、格式、引用和历史均验证。
+- 文件下载／新建／打开入口已独立验收：宽屏和窄屏验证下载不清历史、新建取消及确认、取消后重新选择同一文件打开。文件用例共 11/11 通过，证据 `/tmp/react-excel-files-independent.json`。
+- 水平左对齐／居中／右对齐：新增六条独立用例，格式文件 13/13 通过；证据 `/tmp/react-excel-horizontal-independent.json`。
+- 垂直顶端／居中／底端对齐：新增六条独立用例，格式文件 19/19 通过；证据 `/tmp/react-excel-vertical-independent.json`。
+- 自动水平对齐／默认垂直对齐／取消文字旋转：格式交互 14/14 通过，证据 `/tmp/react-excel-layout-restore-independent.json`。
+- 文字旋转 -90°／-45°／45°：格式文件 25/25 通过，证据 `/tmp/react-excel-rotation-independent.json`。
+- 文字旋转 90°／竖排文字／增加缩进：格式及文本文件共 37/37 通过，证据 `/tmp/react-excel-rotation-indent-independent.json`。
+- 减小缩进／增大字号／减小字号：字号及文本文件共 27/27 通过，证据 `/tmp/react-excel-font-actions-independent.json`。
+- 细线／中线／粗线边框：边框文件 24/24 通过；证据 `/tmp/react-excel-border-solid-independent.json`。
+- 虚线／点线／双线边框：边框文件 30/30 通过；证据 `/tmp/react-excel-border-pattern-independent.json`。
+- 按活动格冻结／取消冻结／拆分合并单元格：视图文件共 13/13 通过；证据 `/tmp/react-excel-freeze-unmerge-independent.json`。
+- 确认合并／取消合并／删除列：合并及结构文件共 20/20 通过；证据 `/tmp/react-excel-merge-structure-independent.json`。
+- Table 面板／格内／公式栏的列重命名：列操作文件 10/10 通过；证据 `/tmp/react-excel-table-column-entry-independent.json`。
+- Table 范围调整／添加数据行／重置新草稿：相关文件共 25/25 通过；证据 `/tmp/react-excel-table-structure-independent.json`。
+- Table 样式预设／行条纹／首列强调：外观文件 15/15 通过；证据 `/tmp/react-excel-table-style-independent.json`。首轮测试对白色邻格的错误假设已修正为操作前后值比较，未改生产实现。
+- Table 列条纹／末列强调／隐藏表头：相关文件 17/17 通过；证据 `/tmp/react-excel-table-header-style-independent.json`。测试改为点击后等待 Rust 投影状态，未把同步勾选假设改入生产链路。
+- Table 显示表头／显示汇总行／隐藏汇总行：相关文件 23/23 通过；证据 `/tmp/react-excel-table-visibility-independent.json`。
+- Table 不汇总／求和／平均值：桌面／窄屏 6/6 通过；证据 `/tmp/react-excel-table-total-basics-independent.json`。
+- Table 非空计数／数值计数／最大值：函数文件 12/12 通过；证据 `/tmp/react-excel-table-total-counts-independent.json`。
+- Table 最小值／标准差／方差：九选项及汇总交叉回归 31/31 通过；证据 `/tmp/react-excel-table-total-statistics-independent.json`。
+- React 类型、展现层边界、循环依赖、文档链接、差异及 29 个改动测试文件 Lint 通过；测试三行长度超限已修正，最大测试文件 275 行。
+  生产源码指纹仍为 `d9329e109bbad7e32606de0d71932aac14fd2305`，lite WASM 仍为 `6d992f8ffd2d90f950ab18c180cc9dbddbf20c9a`；本 goal 未改生产代码。
+- Go To 命名区域／名称框命名跳转／名称管理器 Table 定位：相关文件 17/17 通过；证据 `/tmp/react-excel-named-navigation-independent.json`。未选中格实际省略属性，补强测试修正了对 `false` 字符串的错误假设，未改生产实现。
+- 仅公式／公式与数值格式／值与数值格式三种粘贴：补单次撤销与不受影响字段检查，相关文件 8/8 通过；证据 `/tmp/react-excel-formula-paste-independent.json`。
+- 超链接新增／修改／移除：桌面／窄屏及旧交叉回归 13/13 通过；证据 `/tmp/react-excel-hyperlink-actions-independent.json`。
+- Ctrl/Command 点击链接／快捷键插入链接／弹窗链接打开新标签页：相关文件 17/17 通过；证据 `/tmp/react-excel-hyperlink-entries-independent.json`。
+- 取消链接草稿／Escape 丢弃草稿／非法地址拒绝后重试：超链接文件 19/19 通过；证据 `/tmp/react-excel-hyperlink-recovery-independent.json`。
+- 快捷公式 SUM／AVERAGE／COUNT 下拉入口：相关文件 9/9 通过；证据 `/tmp/react-excel-quick-formula-independent.json`。
+- 百分比／货币／千分位三个快捷按钮：专项 3/3 通过；证据 `/tmp/react-excel-number-shortcuts-independent.json`。
+- 增加小数位／减少小数位／恢复常规格式：桌面／窄屏及相关回归 9/9 通过；证据 `/tmp/react-excel-number-precision-independent.json`。
+- 日期快捷按钮／日期样式设置／文本格式设置：格式会话与错误恢复文件 14/14 通过；证据 `/tmp/react-excel-date-text-formats-independent.json`。
+- 自动求和按钮／函数选择器插入草稿／取消函数选择器：相关文件 18/18 通过；证据 `/tmp/react-excel-formula-drafts-independent.json`。
+- 函数搜索／分类筛选／列表选择：函数文件 11/11 通过；证据 `/tmp/react-excel-function-catalog-independent.json`。
+- 格内补全／公式栏补全／Escape 关闭函数选择器：函数文件 17/17 通过；证据 `/tmp/react-excel-formula-completion-independent.json`。
+- 本阶段类型检查通过；36 个改动测试文件 Lint 发现小数位测试一处超长循环声明，已整理。该文件及本批颜色／边框测试 Lint 复检通过，差异检查通过。
+- 无填充／自动文字色／快捷边框：格式与色板文件 44/44 通过；证据 `/tmp/react-excel-color-resets-independent.json`。
+- 填充预设色／文字预设色／自定义填充 Hex：桌面／窄屏 6/6 通过；证据 `/tmp/react-excel-color-application-independent.json`。颜色应用写入放在独立的 `color-application.spec.ts`，旧色板文件保留交叉与恢复场景。
+- 自定义文字 Hex／原生填充颜色控件／原生文字颜色控件：颜色应用文件 12/12 通过；证据 `/tmp/react-excel-custom-color-independent.json`。
+- 色板关闭按钮／遮罩／Escape 三种取消入口：色板文件 22/22 通过；证据 `/tmp/react-excel-palette-dismissal-independent.json`。
+- 文本条件格式包含／不包含／开头是：相关文件 10/10 通过；证据 `/tmp/react-excel-conditional-text-independent.json`。补中间片段、前缀、后缀与原始空格样本，避免测试数据无法区分匹配算法。
+- 结尾是／重复值／唯一值条件格式：相关文件 14/14 通过；证据 `/tmp/react-excel-conditional-duplicates-independent.json`。
+- Stop if true／公式条件／前 N 项排名：相关文件 27/27 通过；证据 `/tmp/react-excel-conditional-rule-kinds-independent.json`。排名使用与种子不同的绿色，撤销逐格恢复原色，避免既有红色规则掩盖结果；首轮错误的清空颜色假设已修正，未改生产实现。
+- 前百分比／后 N 项／后百分比排名：排名文件 8/8 通过；证据 `/tmp/react-excel-conditional-rank-options-independent.json`。
+- 双色阶／三色阶／数据条：视觉条件文件 16/16 通过；证据 `/tmp/react-excel-conditional-visual-kinds-independent.json`。
+- 数值条件大于／小于／等于：桌面／窄屏 6/6 通过；证据 `/tmp/react-excel-conditional-comparison-basic-independent.json`。
+- 不等于／大于等于／小于等于：数值条件文件 12/12 通过；证据 `/tmp/react-excel-conditional-comparison-inclusive-independent.json`。
+- 介于／不介于／取消规则草稿：相关文件 24/24 通过；证据 `/tmp/react-excel-conditional-bounds-cancel-independent.json`。
+- Escape／条件文字颜色／越界范围纠正重试：相关文件 21/21 通过；证据 `/tmp/react-excel-conditional-recovery-independent.json`。
+- 条件规则、排名、视觉种类与数值比较的对应主用例结果已分文件核对；没有拿旧报告替代后来新增的选项。React 类型检查通过，44 个改动测试文件均不超过 300 行；Lint 发现旧视觉用例两处超长断言，已仅换行修正，复检进行中。
+- 生产源码与 lite WASM 指纹仍为 `d9329e109bbad7e32606de0d71932aac14fd2305`／`6d992f8ffd2d90f950ab18c180cc9dbddbf20c9a`。当前继续整数／小数／列表规则创建的独立验收。
+- 上述阶段的展现边界、循环依赖、文档链接、44 个改动 E2E 的 Lint 均通过（视觉用例仅换行复检）。
+- **真实缺陷，修复验收中**：创建规则测试在 D46 复现自动扩列表头绕过验证；独立浏览器用例又在 B80 复现已有表头改名绕过验证。失败证据 `/tmp/react-excel-validation-create-basic-independent.json`、`/tmp/react-excel-table-header-validation-before.json`。原生修复前专项 1 通过／2 失败，日志 `/tmp/table-header-input-validation-before.log`。
+  根因是两个表头输入分支直接更新 Table 元数据／快照，没有调用既有 `validate_input_value`。仅在 Rust 用户输入入口校验最终规范化文字，未加 React／Core 拦截层。原生专项及扩表、插表头、首行输入、架构相关测试 37 通过（架构原有 1 条忽略），API 签名不变；日志 `/tmp/table-header-input-validation-after.log`。
+  lite/full WASM 重建通过，指纹为 `b39441a7ed61a241fd16ebe1df4e604691ae4ef5`／`c67c17cf62ef1b113ab507fd8cf4ef68bae23245`；58/58 相关浏览器回归通过，包含两种表头的桌面／窄屏拒绝、redo 保留、正确文字重试和单次撤销、lite/full 保存恢复。报告 `/tmp/react-excel-table-header-validation-after.json`。React 类型及新增两文件 Lint 通过；旧 WASM 全量报告不冒充新产物的全量通过。
+- 整数／小数／列表规则创建：上述 58 条包含本批六项独立验收。继续日期／时间／文本长度；普通输入边界在 D45 检查，表头绕过保留独立专项，避免拒绝原因互相掩盖。
+- 日期／时间／文本长度规则创建：六种创建方式共 12/12 通过；证据 `/tmp/react-excel-validation-create-typed-independent.json`。
+- 清除验证／取消草稿／Escape 退出：规则文件 18/18 通过；证据 `/tmp/react-excel-validation-rule-lifecycle-independent.json`。
+- 忽略空白启用／禁用与非法日期／时间边界纠正重试：相关文件 38/38 通过；证据 `/tmp/react-excel-validation-blank-recovery-independent.json`。
+- 验证条件介于／不介于／等于：比较文件 15/15 通过；证据 `/tmp/react-excel-validation-comparisons-independent.json`。上下界分别验证，拒绝后直接纠正同一草稿，等值重试未增加历史。
+- 不等于／大于／大于等于已有独立主用例，本次 15 条也全部执行；逐项登记并复用同输入结果，不重复启动浏览器。
+- 小于／小于等于同样复用本次比较文件结果；修改验证范围及规则文件 24/24 通过，证据 `/tmp/react-excel-validation-range-independent.json`。
+- 27 个验证功能与两种 Table 表头输入约束共 29 项已核对各自最新文件结果（同一新版 WASM，非拼接冒充一次全量）。Core 相关 Vitest 115/115、React 相关 24/24、类型、48 个改动 E2E 的 Lint／300 行限制、展现边界、文档链接、差异检查通过。
+- 降序排序／自定义多级排序／区分大小写：相关文件 19/19 通过；证据 `/tmp/react-excel-sort-entry-independent.json`。补单次撤销／重做、样式跟随及未选中区域不变；选项先切到反向草稿再选目标，避免依赖默认值通过。
+- 空白排前／排后复用本次独立结果；添加排序层级桌面／窄屏 2/2 通过，证据 `/tmp/react-excel-sort-add-level-independent.json`。
+- 删除／上移／下移层级：层级文件 8/8 通过；证据 `/tmp/react-excel-sort-level-actions-independent.json`。实际排序、焦点、样式和单次历史均检查。
+- 首行表头选项／取消／Escape：选项文件 14/14 通过；证据 `/tmp/react-excel-sort-header-dismissal-independent.json`。表头选项包含勾选／取消勾选的桌面／窄屏变体，未提交键和选项不污染数据或历史。
+- 弹窗排序列／升序／降序字段：选项文件 20/20 通过；证据 `/tmp/react-excel-sort-key-fields-independent.json`。表头与排序字段测试共用本文件内的原始记录断言，未加生产层。
+- 设置选区筛选／表头列筛选／清除单列筛选：相关文件 12/12 通过；证据 `/tmp/react-excel-filter-range-actions-independent.json`。范围外数据、其它列条件、撤销及重做均检查。
+- 包含文字／数值区间／值列表筛选及原有交叉回归 16/16 通过；证据 `/tmp/react-excel-filter-condition-kinds-independent.json`。检查数值上下界、样式、范围外公式及单次历史。
+- 筛选大小写选项／添加条件／移除条件：条件文件 12/12 通过，证据 `/tmp/react-excel-filter-condition-actions-independent.json`。首轮测试误依赖当前活动列，已改为实际选择 A 列；未改生产代码。
+- 筛选取消／Escape／非法区间纠正重试：桌面／窄屏 6/6 通过；证据 `/tmp/react-excel-filter-recovery-independent.json`。既有筛选与 redo 保留，纠正后只产生一次操作。
+- 候选值展开／收起／搜索按钮：桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-filter-value-controls-independent.json`。浏览与搜索不先写工作簿，收起保留草稿原值。
+- 候选值勾选／选择当前页／清空选择：候选控件文件 12/12 通过，证据 `/tmp/react-excel-filter-value-selection-independent.json`。空集合筛掉所有数据行，撤销恢复；与清除筛选区分。
+- 候选值 Enter 搜索／下一页／上一页及旧交叉回归 12/12 通过，证据 `/tmp/react-excel-filter-value-paging-independent.json`。1,000 个 ID 的页界、跨页选择、页外搜索及单次历史均检查。
+- Table 表头筛选／清除目标 Table 筛选／重新应用及相关回归 12/12 通过，证据 `/tmp/react-excel-table-filter-actions-independent.json`，包括 lite/full 快照恢复。新增重做检查首轮插入位置错误，已调整为撤销之后执行；未改生产代码。
+- Table 单列清除／取消／Escape 及相关回归 16/16 通过，证据 `/tmp/react-excel-table-filter-recovery-independent.json`。冲突条件解除后对应记录恢复，汇总正确，原规则与 redo 保留。
+- 创建行分组／创建列分组／取消行分组：桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-outline-group-actions-independent.json`。种子 A4 本身是文本 `00123`，测试已按实际种子校正，未改生产代码。
+- 取消列分组／全部折叠行／全部展开行：相关文件 12/12 通过，证据 `/tmp/react-excel-outline-membership-bulk-independent.json`。手动隐藏保留，重复状态不制造历史或清 redo。
+- 全部折叠列／全部展开列／侧边按钮折叠行子组：相关文件 10/10 通过，证据 `/tmp/react-excel-outline-column-bulk-toggle-independent.json`。菜单与侧边按钮独立验收。
+- 侧边行展开／列折叠／列展开：侧边文件 8/8 通过，证据 `/tmp/react-excel-outline-gutter-actions-independent.json`。窄屏横向滚动、焦点回表格、手动隐藏和单次历史均检查。
+- 行大纲第 1／2／3 级：桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-outline-row-levels-independent.json`。分别验证外组折叠、子组折叠、全部展开；第三级先折叠再验证实际变化。
+- 列大纲第 1／2 级／部分重叠拒绝后纠正及交叉回归 25/25 通过，证据 `/tmp/react-excel-outline-level-recovery-independent.json`，包含 lite/full 保存恢复、空投影恢复及投影竞态。拒绝不清 redo，纠正后一次提交。
+- 查找当前工作表范围／原始选区范围／区分大小写及原有替换回归 14/14 通过，证据 `/tmp/react-excel-find-scope-case-independent.json`。导航后原始选区稳定，数据与历史不变。
+- 匹配整个单元格／通配符／按显示值查找：选项文件 12/12 通过，证据 `/tmp/react-excel-find-match-options-independent.json`；星号、问号、转义及显示结果均检查。
+- 源码查找／非法公式替换原子回滚及纠正／显示值替换拒绝后改为源码替换及相关回归 22/22 通过，证据 `/tmp/react-excel-find-source-recovery-independent.json`。失败前先将 A85 定位进虚拟视口，以便失败后立即检查未部分修改；未改生产代码。
+- 查找全部／结果第一页／上一页：桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-find-first-previous-independent.json`。旧综合分页用例保留交叉回归，页界、选中位置与无历史分别核对。
+- 查找结果下一页／最后一页／点击结果定位及旧回归 17/17 通过，证据 `/tmp/react-excel-find-result-actions-independent.json`。末页 99 条、实际可见目标、Unicode 原值与无历史均检查。
+- 查找下一个按钮／上一个按钮／Enter：桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-find-navigation-independent.json`。同格多次匹配、首尾循环、原值与无历史均检查。
+- 工具栏打开查找／Ctrl+F／Command+F：桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-find-panel-entries-independent.json`。初始焦点、关闭后原选区及原值不变。
+- Ctrl+H／Command+H／鼠标替换标签：面板入口文件 12/12 通过，证据 `/tmp/react-excel-find-replace-entries-independent.json`。只切面板、草稿保留，未提交替换不写数据。
+- 鼠标查找标签／关闭按钮／Escape：面板文件 18/18 通过，证据 `/tmp/react-excel-find-panel-dismissal-independent.json`。退出后实际重做成功，草稿未破坏原值或历史。
+- 标签右箭头／左箭头／Home：桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-find-tabs-independent.json`，焦点、roving tabindex、标签与面板同步。
+- End／Tab 首尾循环／Shift+Tab 反向循环及旧可访问性回归 14/14 通过，证据 `/tmp/react-excel-find-focus-cycle-independent.json`，焦点不逃出弹窗，草稿与原值不变。
+- 空查询禁用后纠正／超长 UTF-8 查询拒绝后纠正／无匹配后纠正：桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-find-query-recovery-independent.json`。旧结果失效，英文与中文字节上限分别验证，redo 保留。
+- 查找 39 个主验收已逐项核对各文件最新报告成功，无跳过／重试；不是一次全量运行。React 类型、70 个改动 E2E 的 Lint／300 行限制通过；Core 查找／大纲相关 Vitest 44/44、React 查找／历史相关 16/16 通过，日志 `/tmp/react-excel-find-outline-core-vitest.log`、`/tmp/react-excel-find-history-react-vitest.log`。
+- 撤销按钮／重做按钮／最近操作列表：桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-history-actions-independent.json`。跨表重算、原表格式、原生地址及列表不改历史均检查。
+- 关闭历史按钮／Escape／Ctrl+Z：相关文件 12/12 通过，证据 `/tmp/react-excel-history-dismissal-independent.json`。焦点回列表触发器、redo 与原格格式保留。
+- 当前继续 Command+Z／Ctrl+Y／Ctrl+Shift+Z，逐个真实按键验证单次原生历史。
+- **真实缺陷，已修复**：窗口大小改变后的投影保留帧会吞 Ctrl/Command+Z；普通快捷键用例曾偶发失败，独立控序的真实 Worker 浏览器用例稳定复现（`/tmp/react-excel-history-resize-before.json`），Core 新增两条也均先失败（`/tmp/react-excel-history-key-core-before.log`）。根因是撤销与格内编辑共用了 `allowEditing` 限制；只移除历史分支这一限制，仍由原 `runRustHistoryAtom` 检查编辑会话、忙碌与保护状态，不添加状态或重试层。
+- 上述快捷键及保留帧缺陷修复浏览器 10/10 通过（`/tmp/react-excel-history-shortcuts-fixed.json`）；Core 60/60、React 12/12、React 类型检查通过。React 控序测试按真实 Worker 顺序先送达在途读取、后送达历史操作结果。继续 Command+Shift+Z／Command+Y／撤销后重新编辑分支。
+- Command+Shift+Z／Command+Y／新编辑清除旧重做分支及既有历史交叉回归 21/21 通过，证据 `/tmp/react-excel-history-remaining-independent.json`。继续状态栏总数／数值个数／求和显示开关独立验收。
+- 总数／数值个数／求和显示开关：桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-statistics-count-preferences.json`。继续平均值／最小值／最大值开关。
+- 六个统计显示开关 12/12 通过，证据 `/tmp/react-excel-statistics-extrema-preferences.json`。继续打开／完成／Escape；勾选即时生效，关闭保留配置及原生 redo。
+- 统计设置入口及开关文件 18/18 通过，证据 `/tmp/react-excel-statistics-settings-entries.json`；三个入口均验证真实 redo 仍能执行。继续复制总数／数值个数／平均值，分别经真实系统剪贴板粘贴并检查单次历史。
+- 复制总数／数值个数／平均值：桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-statistics-copy-counts.json`。继续最小值／最大值／恢复全部默认显示；旧综合设置用例保留交叉回归，不再替代恢复默认的独立主验收。
+- 最小值／最大值／恢复全部默认显示及统计交叉回归 37/37 通过，证据 `/tmp/react-excel-statistics-complete-actions.json`。包含精度、权限恢复、旧剪切状态及实际重做；原生统计接口的浏览器测试继续保留，但不能代替整列统计的真实 DOM 主验收。
+- 整列统计／权限失败重试／旧剪切状态文件 8/8 通过，证据 `/tmp/react-excel-statistics-offscreen-recovery.json`。初轮预期 1001 有误：原 demo 的 A341:A940 合并中 599 个覆盖格本为空，非空总数 402 正确；仅修正测试预期，保留原合并示例。
+- 统计 19 个主验收已逐项核对最新文件报告成功。Core 相关 37/37、React 15/15、React 类型、展现边界、76 个改动 E2E 的 Lint／300 行限制通过；Lint 两处超长行已仅换行并复检。日志 `/tmp/react-excel-statistics-history-core-vitest.log`、`/tmp/react-excel-statistics-history-react-vitest.log`、`/tmp/react-excel-history-statistics-lint-recheck.log`。新增重做保留帧 Core 分支后，历史专项 22/22 通过（`/tmp/react-excel-history-key-redo-core.log`），浏览器完整历史专项运行中。
+- 当前候选历史操作完整专项 35/35 通过，证据 `/tmp/react-excel-history-current-candidate.json`；包含刷新期间撤销及重做、六种键盘组合、编辑器草稿保护和跨功能历史。继续溢出详情打开／失败后刷新／选区域三个真实入口。
+- 历史 14 个主验收均已核对本次 35 条报告成功。溢出详情打开／读取失败后刷新／选择原生区域：桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-spill-read-range-independent.json`。继续定位公式格／定位阻挡格／关闭按钮；定位不得修改阻挡内容、隐藏列或重做记录。
+- 定位溢出公式格／阻挡格／关闭按钮：桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-spill-navigation-independent.json`。继续 Escape／Tab／Shift+Tab；焦点不能逃出对话框，退出仍保留原值及 redo。
+- Escape／Tab／Shift+Tab 及溢出旧回归 27/27 通过，证据 `/tmp/react-excel-spill-dialog-complete.json`，包含 lite/full 原生一格数组、数组收缩／恢复、隐藏列和清除阻挡的历史链。继续普通格／草稿禁用／超画布定位拒绝三项边界。
+- 普通格／草稿禁用／超画布拒绝后继续定位：桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-spill-availability-independent.json`。取消草稿回读原公式而非显示文本；超画布范围不被悄悄截断，失败不增加历史，正常定位与单次撤销／重做仍可用。
+- 溢出 12 个主验收已按最新文件报告核对成功；Core 40/40、React 5/5、类型及两个新增 E2E Lint 通过，日志 `/tmp/react-excel-spill-core-vitest.log`、`/tmp/react-excel-spill-react-vitest.log`、`/tmp/react-excel-spill-typecheck.log`。继续预设边框颜色／Hex／原生颜色控件。
+- 边框预设色／Hex／原生颜色控件：桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-border-colors-independent.json`；1px 单边、原值／原样式、邻格、单次撤销重做及原生设置回读均检查。继续取消／Escape／非法 Hex 纠正。
+- 边框取消／Escape／非法 Hex 纠正：桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-border-recovery-independent.json`。无效草稿不写历史，退出回读原生双线红色，实际 redo 保留；窄屏邻格断言先定位目标再检查。继续打开设置／Tab／Shift+Tab。
+- 边框打开／Tab／Shift+Tab：桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-border-dialog-independent.json`。原生双线／颜色回读、草稿不写数据、焦点循环与窄屏边界均检查。继续自定义字号取消／Escape／非法输入纠正，恢复场景另放独立文件，不继续塞进 275 行的旧字号测试。
+- 自定义字号取消／Escape／非法输入纠正：桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-font-size-recovery-independent.json`。原种子行已有两行文字，23px 不必继续增高；改用 37px 确实触发增高，再检查单次撤销恢复原行高及其它行不变。仅修正测试样本，不改生产规则。继续打开／Tab／Shift+Tab。
+- 字号打开／Tab／Shift+Tab 及边框、字号完整相关回归 77/77 通过，证据 `/tmp/react-excel-border-font-dialog-regression.json`。原生失败重试、提交中禁用、合并／冻结片段、跨行列样式及精确边框线型均执行。
+- 增大字号失败后重试／减小字号失败后重试／提交中禁止编辑与取消已有独立主用例，本次直接补登记并复用上述同一候选报告，不重复启动浏览器。继续普通网格方向键的独立入口。
+- 上述报告内 37 个边框／字号主验收已逐项核对成功（不包含本次未跑的快捷边框及其它字号主项）；Core 73/73、React 7/7、React 类型、四个新增格式 E2E 的 Lint、UI Core 构建均通过。日志 `/tmp/react-excel-border-font-core-vitest.log`、`/tmp/react-excel-border-font-react-vitest.log`、`/tmp/react-excel-border-font-typecheck.log`。
+- 普通上／下／左导航：桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-grid-arrows-initial.json`。单格选中、目标完整可见、焦点留网格、不进入编辑、不改邻格／样式／历史均检查。继续向右／Enter／Shift+Enter。
+- 普通向右／Enter／Shift+Enter：桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-grid-enter-navigation.json`。继续 Tab／Shift+Tab／Home，验证不逃出网格、不写数据。
+- Tab／Shift+Tab／Home：桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-grid-tab-home-navigation.json`。继续 End／Ctrl+Home／Command+Home。
+- End／Ctrl+Home／Command+Home：桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-grid-end-home-navigation.json`。继续两种 End 组合键及 Ctrl+向上，检查最后一行、最右列的完整露出。
+- Ctrl+End／Command+End／Ctrl+向上：桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-grid-corner-navigation.json`；原生最末格值、完整可见与无历史均检查。继续 Command+向上及两种向下组合键。
+- Command+向上／Ctrl+向下／Command+向下：桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-grid-vertical-boundary-navigation.json`。继续两种向左及 Ctrl+向右。
+- Ctrl+向左／Command+向左／Ctrl+向右：桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-grid-horizontal-boundary-navigation.json`。继续 Command+向右及 PageDown／PageUp，后两项按真实可视高度校验精确行号。
+- 普通导航完整专项 48/48 通过，证据 `/tmp/react-excel-grid-navigation-complete.json`；24 个主验收逐项匹配成功，无跳过或重试。翻页按 DOM 实际高度验证精确行号及往返恢复。继续双击／F2／直接打字三个编辑入口。
+- 导航 Core 47/47、React 29/29、React 类型及两个导航 E2E Lint 通过，日志 `/tmp/react-excel-grid-navigation-core.log`、`/tmp/react-excel-grid-navigation-react.log`。双击／F2／直接打字桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-editing-entries-independent.json`；原文选中／末尾光标／新字符光标、单次历史与邻格格式均检查。继续 Backspace／Delete／Escape。
+- Backspace／Delete／Escape：桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-cell-key-actions-independent.json`；空草稿不先清原值、立即清除重算、取消保留 redo 分别验证。继续格内 Enter／Shift+Enter／Tab 提交导航。
+- 格内 Enter／Shift+Enter／Tab：桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-editing-commit-navigation.json`；提交后精确选中及可见、原生公式重算、单次撤销重做与邻格样式均检查。继续 Shift+Tab／公式栏 Enter／公式栏 Escape。
+- Shift+Tab／公式栏 Enter／Escape 及本文件回归 12/12 通过，证据 `/tmp/react-excel-editing-commit-bar-regression.json`。继续两种失焦提交及格内拒绝草稿纠正，复用已有真实拒绝用例，不添加重复生产层。
+- 两种失焦提交及拒绝恢复、连续双击交叉回归 19/19 通过，证据 `/tmp/react-excel-editing-blur-recovery.json`。新控件保持焦点，拒绝草稿不能被下一格替换；在途写入、较新定位与下一格编辑互不覆盖。公式栏拒绝后纠正、两入口显式取消已有各自独立用例，本次补登记并复用同一报告。
+- 格内／公式栏鼠标接受候选及格内 Enter：桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-formula-assist-acceptance.json`；仅插入草稿、光标与参数帮助、不提前写历史，最终确认后单次撤销重做均检查。继续公式栏 Enter 及格内上下候选导航。
+- 公式栏 Enter／格内上下候选导航：桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-formula-assist-key-selection.json`。首轮测试定位把工具栏 SUM 与候选 SUM 混在一起，已限定到候选列表，仅修正测试定位；生产未变。继续公式栏上下候选及格内 Escape 两级取消。
+- 公式栏上下候选及格内 Escape：桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-formula-assist-navigation-dismissal.json`；候选选中与 aria 光标一致、第一次只关列表、第二次才丢草稿，原生 redo 保留。继续公式栏 Escape 及两个入口嵌套参数提示。
+- 公式栏 Escape／两个入口嵌套参数帮助及补全专项 24/24 通过，证据 `/tmp/react-excel-formula-assist-arguments-regression.json`；共 12 个细项的各自主入口已跑。继续两个入口点击拾取引用及反向范围拖拽，复用现有独立用例。
+- 编辑／补全 Core 67/67、React 21/21、React 类型与八个新增 E2E Lint 通过；18 个编辑／清除及 12 个补全主验收已按各文件最新报告逐项匹配成功（非一次全量）。日志 `/tmp/react-excel-editing-assist-core.log`、`/tmp/react-excel-editing-assist-react.log`、`/tmp/react-excel-editing-assist-types.log`。
+- 两入口点击拾取／反向引用拖拽及相关回归 7/7 通过，证据 `/tmp/react-excel-formula-pointer-reference.json`。继续两入口独立 F4 四种锁定循环及格内 F2 文字／引用切换；原跨复制回归继续保留。
+- 两入口 F4／格内 F2 及引用键盘交叉回归 14/14 通过，证据 `/tmp/react-excel-formula-reference-key-regression.json`；隐藏轴、合并、冻结与离屏草稿、迟到提交不抢名称框均执行。继续公式栏 F2 与两种跨表点击引用入口。
+- 公式栏 F2／两种跨表点击引用及跨表交叉回归 17/17 通过，证据 `/tmp/react-excel-formula-cross-sheet-key-regression.json`；原表坐标、转义表名、失败纠正、在途禁用与返回离屏原格均检查。两入口键盘拾取／跨表反向拖拽、跨表键盘／F2 重开／Escape 各已有独立用例，按三项两组补登记并复用上述最新报告，无需重复运行。
+- 引用 Core 48/48、React 8/8、类型与新增引用键盘 E2E Lint 通过，日志 `/tmp/react-excel-formula-reference-core.log`、`/tmp/react-excel-formula-reference-react.log`。拖拽列宽／Enter 自动适应行高／双击自动适应行高及相关回归 11/11 通过，证据 `/tmp/react-excel-size-autofit-drag-regression.json`。继续尺寸手柄上／下／左三个键盘入口。
+- 尺寸手柄上／下／左：桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-resize-keyboard-initial.json`；精确十像素、表头及格子同步、旁边行列不变、原值样式与单次历史均检查。继续向右／Escape 取消／窗口切离取消，取消后还需实际重做并重新拖拽。
+- 向右／Escape／窗口 blur 及键盘尺寸完整专项 12/12 通过，证据 `/tmp/react-excel-resize-cancellation-final.json`。原切标签诊断没有收到 blur 或 visibilitychange，是无头环境不模拟 OS 焦点；取消用例明确注入 DOM blur，后续真实拖拽、Rust 历史与重做均检查，不声称实机切窗验证，不改产品逻辑。继续 Enter 自动适应列宽／尺寸 Cancel／Escape。
+- Enter 列宽／尺寸 Cancel／Escape 桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-size-dialog-cancel.json`，离屏粗体字号参与测量、邻列不变、焦点及原生历史保留均检查。继续弹窗打开回读／非法行高／非法列宽纠正。
+- 尺寸打开／非法行高／非法列宽桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-size-validation-final.json`；首轮 ValidityState 序列化为空导致断言失败，改为读取实际 validity.valid，生产未改。上下界、小数、必填检查后在同一弹窗纠正，原生单次历史及邻行列不变。SIZE-013～024 十二个主验收按三份最新完整文件报告逐项匹配成功；Core 28/28、React 18/18、类型及五个新增尺寸 E2E Lint 通过，日志 `/tmp/react-excel-size-core.log`、`/tmp/react-excel-size-react.log`、`/tmp/react-excel-size-types.log`。继续上一张／下一张／按钮打开重命名。
+- 工作表前后按钮（桌面）／重命名按钮（桌面及窄屏）4/4 通过，证据 `/tmp/react-excel-sheet-entries-final.json`。首轮窄屏超时核实为现有 CSS 刻意隐藏前后按钮，已按实际入口限定测试，不改产品、不宣称窄屏具备按钮。继续双击／F2／Save。
+- 双击／F2／Save 桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-sheet-rename-entries.json`；单引号表名转义、跨表原式回读、单次撤销／重做后继续修改源格均执行。继续 Cancel／Escape／重名纠正。
+- 重命名 Cancel／Escape／重名纠正桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-sheet-rename-recovery-initial.json`；草稿退出后实际重做旧值，拒绝后同一输入纠正并只新增一次原生历史。继续非法字符／空名／超长名三个恢复边界。
+- 非法字符／空名／超长名及重命名恢复回归 12/12 通过，证据 `/tmp/react-excel-sheet-rename-validation.json`。继续保留名 History／独立向左及向右移动；原双向综合用例保留为回归，SHEET-004 主绑定改为独立向右入口。
+- 保留名及左右移动完整相关回归 18/18 通过，证据 `/tmp/react-excel-sheet-movement-recovery.json`；移动后身份、选区、尺寸与原生单次历史保持，修改源表仍重算 Summary。继续删除确认打开／Cancel／Escape，关闭后用原始键盘事件检查焦点，不使用会替测试聚焦的 locator.press。
+- **真实缺陷，已修复**：删除确认 Cancel 后网格失焦，原始方向键无法继续选格。浏览器先失败 `/tmp/react-excel-sheet-delete-recovery-before.json`，React 新增两条也先失败 `/tmp/react-excel-sheet-delete-focus-before.log`；原因是条件渲染先移除 dialog，原生 close 不会恢复焦点。仅在 `SheetDeleteConfirmation.tsx` 既有 effect 捕获并恢复仍连接的原 DOM 焦点，未加 atom／命令／Hook 层。修后 React 14/14（含两种焦点来源、Cancel／Escape）、桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-sheet-delete-focus-after.log`、`/tmp/react-excel-sheet-delete-recovery-after.json`。继续 Tab／Shift+Tab／删除传输失败原地重试。
+- **第二个真实缺陷，已修复**：删除确认尾按钮按 Tab 焦点逃入浏览器，浏览器 `/tmp/react-excel-sheet-delete-dialog-regression.json` 与 React 两条 `/tmp/react-excel-sheet-delete-tab-before.log` 均先失败。复用现有 `cycleDialogFocus`，没有新增焦点抽象。修后 React 16/16、删除框完整专项 12/12（含传输发送前失败一次、同框原生重试及单次撤销／重做）通过，证据 `/tmp/react-excel-sheet-delete-tab-after.log`、`/tmp/react-excel-sheet-delete-dialog-final.json`。桌面／窄屏截图已查看，无对话框溢出；技能自带 visual-runtime 脚本未安装，使用既有 Playwright 截图与 DOM 溢出／焦点检查，不声称执行了不存在的工具。工作表 Core 17/17、类型通过；新增 E2E 两处 no-shadow 已改名，Lint 待复验。继续旧工作表交叉回归，随后检查尺寸弹窗同类问题。
+- 工作表旧交叉回归 39/39 通过，证据 `/tmp/react-excel-sheet-existing-regression.json`；工作表 26 个主验收按各文件最新完整报告匹配成功，Lint 复验通过 `/tmp/react-excel-sheet-lint-final.log`。下一组三项为尺寸弹窗 Tab／Shift+Tab／传输失败原地重试。前两项 React 2/2 先失败，浏览器 Tab 也先失败，证据 `/tmp/react-excel-size-tab-before.log`、`/tmp/react-excel-size-interaction-before.json`；仅在原尺寸 dialog 接现有焦点循环函数，修后验收进行中。
+- 尺寸弹窗键盘循环修后桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-size-interaction-after.json`，发送失败同框保留 44px 草稿，原生重试只有一条历史，旁边行不变。React 20/20、类型、Lint 通过（`/tmp/react-excel-size-interaction-react.log`、`/tmp/react-excel-size-interaction-types.log`、`/tmp/react-excel-size-interaction-lint.log`），桌面／窄屏截图已查看。继续合并确认 Cancel／Escape／Tab，不在此批结束时终止 goal。
+- **合并确认两项真实交互缺陷，已修复**：Cancel 关闭后失焦、Tab 越过尾按钮，分别先在浏览器 `/tmp/react-excel-merge-dialog-before.json`、`/tmp/react-excel-merge-tab-reproduction.json` 失败；React 四条也先失败 `/tmp/react-excel-merge-dialog-unit-before.log`。确认框复用既有焦点循环，原菜单单独传一个 DOM ref 恢复焦点，不传 atom／命令对象。修后桌面／窄屏 6/6 `/tmp/react-excel-merge-dialog-after.json`，相关 React 29/29、类型通过；Lint 一处签名超长已换行，待复验。桌面／窄屏截图已查看。继续 Shift+Tab／打开确认／确认发送失败重新确认。
+- 合并打开／Shift+Tab／确认发送失败重试及原有合并回归 22/22 通过，证据 `/tmp/react-excel-merge-complete.json`；合并 9 个主验收逐项匹配成功。首次确认发送失败保留原多格内容，重新选择必须再次确认，随后原生单次撤销／重做恢复值与格式。演示中原合并区域、隐藏锚点与离屏合并回归均保留。继续门禁及格式刷单次／拖拽／连续刷入口。
+- 对话框相关 Core 20/20、React 构建、展现层边界检查、合并最终 Lint 通过（`/tmp/react-excel-dialog-commands-core.log`、`/tmp/react-excel-dialog-build.log`、`/tmp/react-excel-dialog-presentation.log`、`/tmp/react-excel-merge-lint-clean.log`）。构建只有既有大 chunk 警告，不新增依赖或切分任务。格式刷源码三个入口各有现成独立用例，本批补登记并运行完整文件，不再复制一份测试。
+- 格式刷单次／拖拽／双击连续刷及相关完整回归 14/14 通过，证据 `/tmp/react-excel-format-painter-candidate.json`，包括剪贴板权限独立、捕获快照、跨表退出、冻结离屏及失败纠正。本批只补独立绑定，无生产改动。继续 Enter 应用／再点按钮退出／Escape 退出；三项同样有独立用例且已在该报告执行，补登记后复用同一候选证据，不重复浏览器运行。
+- Enter 应用／按钮退出／Escape 退出已复用上述成功报告，格式刷 Core 12/12、React 4/4 通过，日志 `/tmp/react-excel-painter-core.log`、`/tmp/react-excel-painter-react.log`。继续格式刷尺寸错误纠正（现有独立用例复用成功证据）／工具栏剪切／工具栏粘贴；后两项新增真实按钮入口验收，检查跨表消费者及原生单次历史。
+- 工具栏剪切／粘贴桌面／窄屏 4/4 通过，证据 `/tmp/react-excel-clipboard-button-entries.json`；剪切源在 Paste 前不清除，移动后跨表公式跟随目标，值／样式及原生单次历史验证。格式刷错误纠正复用已跑报告。继续键盘 Paste／打开选择性粘贴／Cancel 草稿；剪贴板捕获放在 Undo 准备之后，不能用失效的旧捕获掩盖会话语义。
+- 键盘 Paste／选择性粘贴打开及 Cancel、按钮回归 10/10 通过，证据 `/tmp/react-excel-clipboard-session-entries.json`；目标原值、默认选项及实际 redo 均检查，桌面／窄屏截图已查看。继续 Escape／Tab／Shift+Tab，先复现焦点行为再决定生产修改。
+- **选择性粘贴键盘缺陷，已修复**：Escape 正常，Tab 从尾按钮逃出弹窗，浏览器 `/tmp/react-excel-paste-session-before.json` 及 React 两条 `/tmp/react-excel-paste-tab-unit-before.log` 均先失败。仅补现有焦点循环导入与绑定两行；Core 48/48、React 23/23、类型及四文件 Lint 通过（`/tmp/react-excel-clipboard-session-core.log`、`/tmp/react-excel-clipboard-session-react.log`、`/tmp/react-excel-clipboard-session-types.log`、`/tmp/react-excel-clipboard-session-lint.log`）。48/48 浏览器剪贴板交叉回归通过 `/tmp/react-excel-clipboard-session-regression.json`。格式刷 7 个主验收已匹配成功，继续弹窗全部／仅值／仅格式，不用同名按钮代替。
+- 弹窗全部／仅值／仅格式桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-paste-content-initial.json`；取值、字体归属、邻格、原生单次撤销／重做均检查。CLIP-023～030 八个主验收已匹配本次完整回归报告成功。继续值及格式／仅公式／公式及数字格式，使用原生带格式公式种子验证冻结值与实时计算的差别。
+- 弹窗值及格式／仅公式／公式及数字格式桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-paste-formula-dialog-initial.json`；原始值、相对引用、数字格式、字体归属及修改依赖后的冻结／实时计算均检查。继续值及数字格式／弹窗仅列宽／原生拒绝后纠正，复用已有独立列宽主用例，不为登记数重复造测试。
+- 弹窗值及数字格式／列宽／拒绝纠正及相关回归 16/16 通过，证据 `/tmp/react-excel-paste-dialog-modes-final.json`，列宽复用同候选 `/tmp/react-excel-clipboard-session-regression.json`。CLIP-034～039 六个主验收逐项匹配成功。继续弹窗不运算／加法／减法，检查原生依赖公式、目标格式及单次历史。
+- 弹窗不运算／加法／减法桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-paste-dialog-arithmetic-initial.json`；目标值、原生依赖计算、源与邻格、格式及一次撤销／重做均检查。继续乘法／除法／转置，转置单独文件只负责复选框对矩形形状的影响。
+- 弹窗乘法／除法／转置及运算回归 12/12 通过，证据 `/tmp/react-excel-paste-dialog-operations-final.json`；纵向目标两格及其依赖、邻列、源数据和一次历史均检查。继续跳过空白／列宽互斥／权限等待，复用并加强既有两条会话用例。
+- 弹窗跳过空白／列宽互斥／权限等待及相关回归 12/12 通过，证据 `/tmp/react-excel-paste-dialog-options-final.json`；空白保留公式，0／false 实际写入；列宽清掉运算／转置／跳过空白，权限等待不能重复提交或 Escape 关闭。继续历史 Tab／Shift+Tab／空历史，先浏览器复现。
+- 历史弹窗 Tab 逃出实际关闭按钮，浏览器 `/tmp/react-excel-history-dialog-before.json` 先 1 passed／1 failed，React `/tmp/react-excel-history-tab-unit-before.log` 正反两条均失败。只加既有 `cycleDialogFocus` 的导入与绑定两行，不增 atom 或历史层；剪贴板 CLIP-031～048 十八个主验收已按完整文件最新报告逐项匹配成功。
+- 历史最终专项 41/41 通过，证据 `/tmp/react-excel-history-dialog-regression.json`；HIST-001～017 全部主验收逐项匹配成功。React 11/11、Core 31/31、类型及八文件 Lint 通过（`/tmp/react-excel-history-dialog-react-after.log`、`/tmp/react-excel-history-dialog-core.log`、`/tmp/react-excel-history-dialog-types.log`、`/tmp/react-excel-history-paste-lint.log`），桌面／窄屏截图已查看。继续序列填充打开／Cancel／Escape。
+- 序列填充打开／Cancel／Escape 桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-series-session-initial.json`；默认数值／方向／样本数、源与邻格格式、草稿重置及真实重做检查。继续 Tab／Shift+Tab／非法样本数纠正；未把只读面板行为额外复制为另一套状态。
+- 序列填充 Tab 同样逃出模态框，浏览器 `/tmp/react-excel-series-dialog-before.json` 先 3 passed／1 failed，React `/tmp/react-excel-series-tab-unit-before.log` 两条均失败。只补现有焦点循环导入及绑定两行；非法样本数测试另负责 HTML 必填／小数／下界及 Core 目的区校验，未改推断与写入链路。
+- 序列／日期／自定义列表最终交叉 54/54 通过，证据 `/tmp/react-excel-series-dialog-after.json`；React 15/15、Core 68/68、类型通过（`/tmp/react-excel-series-dialog-react-after.log`、`/tmp/react-excel-series-dialog-core.log`、`/tmp/react-excel-series-dialog-types.log`），桌面／窄屏截图已查看。Lint 一处测试行 102 字符仅换行修正，正在重检；继续自定义列表三个草稿入口并汇总单测及构建门禁，不把本批等同整体 goal 完成。
+- 汇总门禁：UI Core 全量 3444/3444（239 文件）、React 全量 561/561（105 文件）、两包构建、展现层边界、循环依赖和序列 Lint 复检通过；日志 `/tmp/react-excel-dialog-milestone-{core-full,react-full,core-build,react-build,presentation,cycles}.log`、`/tmp/react-excel-series-dialog-lint-final.log`。构建只有既有 500kB chunk 提示。FILL-003～008、012～020 十五个主验收按本次 54 项报告匹配成功；这不是整个产品的浏览器全量证据。继续自定义列表新建按钮／选择保存项／下拉框未保存项。
+- 自定义列表新建按钮／下拉未保存项／保存项选择桌面与窄屏 6/6 通过，证据 `/tmp/react-excel-custom-list-entries.json`；丢弃未保存草稿不删预设、不写格，Apply 后一次历史含格式恢复。继续序列方向向下／向右／日期；日期主验收复用本次已跑 54 项报告，不重复启动未变输入。
+- 序列方向下拉向下／向右桌面／窄屏 4/4 通过，证据 `/tmp/react-excel-series-directions.json`；实际切换到相反方向再改回，目标公式及布尔值可一次恢复，源和邻格不变。日期序列主用例复用 `/tmp/react-excel-series-dialog-after.json`。继续填充柄向下／向上／无拖动点击，原测试已独立，复用而非复制。
+- 填充柄及矩阵完整专项 22/22 通过，证据 `/tmp/react-excel-fill-handle-current.json`；向下／向上／不拖动已独立绑定。继续 Ctrl 强制复制／Command 强制复制／公式拖填三项，均复用该同候选完整文件报告，不重复测试代码。
+- 填充柄 Ctrl／Command 强制复制及公式拖填六个主验收（含上一批）逐项匹配成功；底边自动滚动／右边自动滚动并提交／合并目标拒绝后重试三项继续复用 `/tmp/react-excel-fill-handle-current.json` 的已执行证据。下一批拆左右拖填及 Escape，不让综合用例代替独立入口。
+- 左／右拖填及 Escape 中断后重新拖填桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-fill-horizontal-cancel-initial.json`；下划线、源与邻格、原生一次历史及既有 redo 保留均检查。继续 pointercancel／真实释放指针捕获／窗口 blur，注入事件明确标注 DOM 测试，不冒充真实系统应用切换。
+- 中断扩展首轮 2 passed／1 failed（`/tmp/react-excel-fill-cancellation-final.json`）：失捕获测试只调用 releasePointerCapture，漏了后续原生 pointer 事件，尚未观察到浏览器派发 lostpointercapture。补读实际 pointerId、真实鼠标移动及事件到达断言，不把该测试步骤问题记为产品缺陷；原预览、源、redo 和重新拖填断言全部保留。
+- 中断恢复最终 8/8 通过，证据 `/tmp/react-excel-fill-cancellation-verified.json`；真实捕获丢失和 DOM pointercancel／blur 均保留旧 redo、原始源及选区，再次拖填只产生一条原生历史，生产未改。继续 Ctrl+D／Command+D／Ctrl+R，拆开原来 D/R 综合快捷键用例。
+- Ctrl+D／Command+D／Ctrl+R 桌面／窄屏 6/6 通过，证据 `/tmp/react-excel-fill-shortcuts-initial.json`；真实网格焦点、相对／绝对引用、下划线／粗体继承及一次撤销／重做检查。继续 Command+R／上边持续自动滚动／左边持续自动滚动，保留原综合回归不删除。
+- Command+R／上边持续滚动／左边持续滚动及定向填充完整专项 23/23 通过，证据 `/tmp/react-excel-fill-shortcuts-reverse-scroll.json`；按住边缘不再移动鼠标也继续滚动，Escape 后不写格、不增加历史。继续冻结源拖填／列表拒绝后纠正／非法序列几何三项，复用已执行的独立用例，不新增重复测试。
+- 冻结源拖填／列表拒绝后纠正／非法序列几何独立绑定完成，FILL-036～050 十五个主验收按最新完整文件报告匹配成功。下一批文件面板打开／关闭／Escape；另补跑双击填充旧专项作为当前候选证据。
+- 文件面板打开／关闭／Escape 与双击填充完整专项 12/12 通过（`/tmp/react-excel-file-dialog-initial-fixed.json`）。首轮新测试误写种子深红色，按原始 `#c00000` 修正，未修改产品。下一批 Tab／Shift+Tab／无效文件原地纠正，先证明浏览器是否逃焦点。
+- 文件面板 Tab 真实逃出，浏览器先 5 passed／1 failed（`/tmp/react-excel-file-dialog-tab-before.json`），React 正反两条均失败（`/tmp/react-excel-file-tab-unit-before.log`）；复用焦点循环，仅增加导入与绑定两行。修复后 React 8/8、Core 33/33、类型与十文件 Lint 通过（一处旧断言仅换行后复检），证据 `/tmp/react-excel-file-tab-unit-after.log`、`/tmp/react-excel-file-dialog-core.log`、`/tmp/react-excel-file-dialog-types.log`、`/tmp/react-excel-file-fill-lint-final.log`；继续浏览器完整文件回归。
+- 文件完整回归 23/23 通过（`/tmp/react-excel-file-dialog-after.json`），桌面及窄屏截图已查看，保持原生保存／打开、错误纠正及替换后全新历史。继续统计设置 Tab／Shift+Tab／刷新恢复六项默认值，不新增本地保存能力。
+- 统计设置 Tab 先真实失败（`/tmp/react-excel-statistics-tab-before.json`），React 正反两条也均失败（`/tmp/react-excel-statistics-tab-unit-before.log`）；仍只加既有焦点循环的导入与绑定两行。修复后 React 9/9、Core 19/19、三文件 Lint 通过（`/tmp/react-excel-statistics-tab-unit-after.log`、`/tmp/react-excel-statistics-tab-core.log`、`/tmp/react-excel-statistics-tab-lint.log`）。FILE-001～010 十个主验收逐项匹配本次完整文件回归成功，统计浏览器全专项继续执行。
+- 统计显示／复制／权限恢复／会话设置专项 44/44 通过（`/tmp/react-excel-statistics-dialog-after.json`）；STAT-001～022 全部主验收逐项匹配成功。桌面及窄屏截图已查看，只有既有 DOM 焦点修复，不改原生计算；继续 Go To 打开／Cancel／Escape。
+- Go To 打开／取消／Escape 桌面与窄屏 6/6 通过（`/tmp/react-excel-go-to-session-initial.json`）；原选区、原滚动、目标未提交、草稿重置和原生 redo 保留均验证。继续 Tab／Shift+Tab／非法地址原地纠正，保留旧跨表综合用例。
+- Go To Tab／Shift+Tab／非法地址纠正与原复杂定位回归 22/22 通过（`/tmp/react-excel-go-to-dialog-current.json`）；桌面及窄屏截图已查看。继续 A1 区域／相对 R1C1／带引号跨表地址的实际 Go 按钮入口，不新增定位状态层。
+- A1 区域／相对 R1C1／带引号跨表 Go 按钮独立专项 6/6 通过（`/tmp/react-excel-go-to-references.json`），定位后网格焦点、最近记录规范化、原生邻格及无额外历史均检查。源码核对发现排序／筛选弹窗未接焦点循环，下一批排序打开／Tab／Shift+Tab 先复现，导航剩余入口随后继续。
+- 排序面板 Tab 原生逃焦先复现 1 passed／1 failed（`/tmp/react-excel-sort-dialog-before.json`），React 正反两条也均失败（`/tmp/react-excel-sort-tab-unit-before.log`）。只补既有焦点工具导入与绑定；修复后 React 8/8、Core 17/17、五文件 Lint 通过（`/tmp/react-excel-sort-tab-unit-after.log`、`/tmp/react-excel-sort-tab-core.log`、`/tmp/react-excel-sort-navigation-lint.log`）。继续完整排序浏览器回归。
+- 排序完整专项 45/45 通过（`/tmp/react-excel-sort-dialog-after.json`），桌面及窄屏截图已查看并留存 `/tmp/react-excel-sort-open-{1280,390}.png`。继续筛选打开／Tab／Shift+Tab，同时覆盖 Table 表头列入口，验证禁用列选择器不能成为焦点循环起点。
+- 筛选 Tab 原生逃焦先复现 1 passed／1 failed（`/tmp/react-excel-filter-dialog-before.json`）；首轮 React 两条工具栏循环失败，另两条表头测试漏 await act 导致面板尚未渲染，不把后者算产品缺陷。只补生产焦点工具导入与绑定两行，并纠正测试等待；最终 React 14/14、Core 41/41、Lint 通过（`/tmp/react-excel-filter-tab-unit-final.log`、`/tmp/react-excel-filter-tab-core.log`、`/tmp/react-excel-filter-tab-lint-final.log`）。继续筛选／Table 筛选／候选值全部专项。
+- 筛选／候选值／Table 筛选完整专项 101/101 通过（`/tmp/react-excel-filter-dialog-after.json`），包含两个真实 WASM 版本的保存恢复。桌面工具栏、窄屏 Table 表头截图已查看并留存 `/tmp/react-excel-filter-toolbar-1280.png`、`/tmp/react-excel-filter-table-column-390.png`；两种入口首控件不同，均正确跳过禁用项。当前四个新缺陷的生产改动合计四文件八行，仅复用焦点循环。继续 React 全量及构建汇总，再推进未完成入口清单，不将此检查点视作 goal 完成。
+- 汇总 React 全量 571/571（105 文件）通过（`/tmp/react-excel-modal-milestone-react-full.log`），全项目 Lint、展现边界、698 项登记校验及循环依赖通过。类型检查发现三份新 RTL 单测误用 Playwright 的 exact 参数，只删除不被支持的选项；RTL 字符串 name 本身精确匹配，断言未弱化。最终相关 24/24、类型、构建及三文件 Lint 再过（`/tmp/react-excel-modal-milestone-{tests-final,types-final,react-build,tests-lint-final}.log`）。生产源 SHA-1 清单摘要 `a8d79a25188a45ad4bd0be2ae479945347ee4fea`，WASM lite/full 摘要仍为 `b39441a7ed61a241fd16ebe1df4e604691ae4ef5`／`c67c17cf62ef1b113ab507fd8cf4ef68bae23245`；本轮 47 个新主验收按最新专项报告逐项匹配成功。继续 Enter 定位／最近位置点击／无匹配条件纠正三项。
+- Enter 提交／最近位置点击及定位条件完整专项 18/18 通过（`/tmp/react-excel-go-to-submit-special.json`），含两版实际 WASM 的极大空区域与拒绝溢出。最近位置使用当时绝对坐标，不会随当前格漂移；原公式、字体及历史不变。继续定位条件打开／取消／Escape 三项，生产未改。
+- 定位条件打开／取消／Escape 桌面及窄屏 6/6 通过（`/tmp/react-excel-go-to-special-session-initial.json`），截图已查看并留存 `/tmp/react-excel-special-open-{1280,390}.png`；有界作用域、错误值、原样式、原生 redo 不变。继续正反焦点循环及分类 End 三项。
+- 定位条件正反 Tab 及分类 End 共 12/12 通过（`/tmp/react-excel-navigation-dialog-ribbon.json`），没有生产改动。继续分类 ArrowRight／ArrowLeft／Home，保留原分类综合测试验证普通移动与隐藏工具快捷键。
+- 分类左右键／Home 及原分类完整回归 11/11 通过（`/tmp/react-excel-ribbon-keyboard-complete.json`）；ARIA 单选、首尾循环、焦点、公式及格式不变、原生 redo 保留均验证。继续数字格式打开／取消／Escape 三项，原数值格式与公式不因预览写入。
+- 数字格式打开／取消／Escape 桌面和窄屏 6/6 通过（`/tmp/react-excel-number-dialog-initial.json`）；原生千分位回读、美元草稿预览不落盘、关闭后原设置与 redo 保留均验证。截图已查看并留存 `/tmp/react-excel-number-settings-open-{1280,390}.png`。继续 Tab／Shift+Tab／非法小数位纠正三项，生产未改。
+- 整表公式查询／名称改名及删除／失效名称定位：相关文件 21/21 通过（`/tmp/react-excel-navigation-names-current.json`），未改生产源码。导航与数字格式新增五文件 Lint 通过。继续 Ctrl／Command 双击及矩阵强制复制，新增测试文件只负责双击 modifier 的复制语义。
+- 填充双击、矩阵与错误恢复 15/15 通过（`/tmp/react-excel-fill-double-copy-final.json`）。首次 Control 双击失败后真实事件诊断证明 macOS 只发送 contextmenu，不发送 dblclick；Meta 两宽度原本即通过，并非产品 bug。测试明确验证 Mac 原生右键不写入后可用 Meta 复制，非 Mac 分支验证真实 Ctrl 复制，不注入假事件、不跳过用例。无相邻延续／合并拒绝后重试／右邻首个间隙三个独立用例也复用这份实际结果，登记 FILL-054..056。未改生产代码；继续去重表头及两种记录定位。
+- 去重首行表头／重复记录定位／首条记录定位及原分页交叉回归 11/11 通过（`/tmp/react-excel-duplicates-navigation-current.json`）。继续三个文字比较策略的独立实际删除验收，不把预览计数当成数据变更已正确。
+- 精确／忽略大小写／去首尾空白：桌面及窄屏实际删除 6/6 通过（`/tmp/react-excel-duplicates-comparison-basic.json`），逐条检查稳定保留顺序、样式随记录移动、整次单撤销及重做。继续组合比较／选择全部列／清空列，列选择测试只负责预览与确认失效及 redo 保留。
+- 组合比较／选择全部列／清空列及四种策略交叉回归 12/12 通过（`/tmp/react-excel-duplicates-column-choices.json`）；旧确认不能沿用，空比较列原地报错后可更正，取消不破坏 redo。继续面板打开／取消／Escape，独立文件只负责未提交草稿的会话边界。
+- 去重面板打开／取消／Escape 桌面及窄屏 6/6 通过（`/tmp/react-excel-duplicates-dialog-initial.json`），初始焦点、选区、默认字段恢复、原样式与 redo 保留均验证，截图已生成。继续正反 Tab 及更新预览后重新确认三项。
+- 去重 Tab／Shift+Tab／刷新后重新确认及会话回归 12/12 通过（`/tmp/react-excel-duplicates-dialog-final.json`），取消焦点和 redo 均正确；桌面／窄屏截图已查看并留存 `/tmp/react-excel-duplicates-open-{1280,390}.png`。继续分列打开／取消／Escape；未新增生产状态或逻辑。
+- 分列打开／取消／Escape 桌面及窄屏 6/6 通过（`/tmp/react-excel-text-columns-session-initial.json`），默认目标、源文字、目标原值及字体、redo 均保留。截图已查看并留存 `/tmp/react-excel-text-columns-open-{1280,390}.png`。继续正反 Tab 与非法目标纠正；目标测试只负责拒绝到合法提交的单次历史边界。
+- 分列正反 Tab／非法目标纠正及复杂源区回归 20/20 通过（`/tmp/react-excel-text-columns-dialog-final.json`），覆盖纠正后的实际覆盖、一次撤销与重做分支替换，以及重叠／合并／溢出拒绝。继续 Preserve／General／Text 三种显式字段类型，使用日期目标格式区分保留、重置和强制文字语义；测试文件只负责文字类字段转换。
+- Preserve／General／Text 桌面及窄屏 6/6 通过（`/tmp/react-excel-text-column-literal-types-final.json`），值、原格式保留或替换、字体、公式样文字不计算及原子历史均检查。首次测试误认为数字面板存在 General 分类；源码明确映射为 Number 草稿，修正该预期后原断言全部保留，非产品缺陷。继续三种常用日期顺序；新文件只负责显式日期顺序转换。
+- MDY／DMY／YMD 显式日期顺序桌面及窄屏 6/6 通过（`/tmp/react-excel-text-column-date-basic.json`），日期显示、原始序号 45351、源文本及邻格保留、两次原生写入分别撤销／重做均检查。继续 MYD／DYM／YDM 并交叉跑既有字段类型回归。
+- 六种日期顺序及既有字段类型回归 24/24 通过（`/tmp/react-excel-text-column-date-complete.json`），包含 400 行和预览列上限外的字段转换。继续 Skip／源字段编号纠正／更换规则清空类型三个入口。
+- 验证记录纠正：此前源码指纹管道未固定 `rg --files` 枚举顺序，同一内容会产生不同汇总值。后续统一 `LC_ALL=C sort` 后逐文件计算，当前为 `30d41083df6ccc11c7161addf6c9801c9c0b6849`；本轮生产文件无 15:11 之后修改，新增内容仅为 E2E 与文档，不能把无序汇总值的变化误报为代码变化。
+- Skip／源字段编号纠正／更换规则重置类型桌面及窄屏 6/6 通过（`/tmp/react-excel-text-column-field-rules.json`），结果压紧、原始字段索引、四种非法编号及单次历史均验证。继续三个预设分隔符入口，测试文件只负责分隔符勾选后的原生拆分。
+- Tab／分号／空格分隔符桌面及窄屏 6/6 通过（`/tmp/react-excel-text-column-delimiters.json`），保留前导零、源区、邻格及两次写入的独立历史。继续自定义字符／单引号／关闭引号保护，测试文件只负责分隔边界，不用 JS 解析器替代 Rust 结果。
+- 自定义分隔符／单引号保护／关闭引号保护桌面及窄屏 6/6 通过（`/tmp/react-excel-text-column-qualifiers.json`），逐字符验证原始引号和空格、前导零、输出边界及原子历史。继续连续分隔符合并开关与双引号保护；新文件只负责空字段覆盖时的格式保持。
+- 连续分隔符合并开关／双引号保护桌面及窄屏 6/6 通过（`/tmp/react-excel-text-column-empty-fields.json`），空字段实际清掉 C98 原有文字而保留斜体，整次覆盖可撤销／重做。继续小数分隔符／千位分隔符／尾随负号的独立入口，测试只负责数字选项的原生类型与历史。
+- 小数分隔符／千位分隔符／尾随负号及原地区解析 11/11 通过（`/tmp/react-excel-text-column-number-controls.json`），统计 Sum 额外验证数值类型，包含 400 行不间断空格解析。30 个分列细项主用例逐项匹配最新文件结果，新增分列测试 Lint、React 类型、展现层边界均通过。登记门禁目前为 773 项（仅绑定检查，不是全量执行证明）。固定排序源码指纹仍为 `30d41083df6ccc11c7161addf6c9801c9c0b6849`；继续去重下一页／上一页／直接比较列切换。
+- 去重下一页／上一页／单列比较键切换及列选择回归 10/10 通过（`/tmp/react-excel-duplicates-pages-current.json`），第二页全部 20 条记录、首条来源、翻页清确认及只保留原粘贴历史均检查。继续名称管理器打开／正反 Tab；新增测试文件只负责管理器会话边界。
+- 名称管理器打开／正反 Tab 桌面及窄屏 6/6 通过（`/tmp/react-excel-name-manager-dialog-initial.json`），默认字段、原公式与字体、名称种子及 redo 不变。继续 Cancel／Escape／重名原地纠正；纠错测试只负责同一草稿拒绝到一次成功创建的历史边界。
+- Tables 打开／正反 Tab 桌面及窄屏 6/6 通过（`/tmp/react-excel-table-dialog-initial-final.json`）。首次用例误认为 DemoTable 是目录首项，实际按名称排序的 CalculatedOrders 在前；修正该测试假设，未改生产实现。继续 Cancel／Escape／范围重叠原地纠正，新文件只负责拒绝到创建的原子历史。
+- Tables 会话／重叠纠正／原 CRUD 回归 25/25 通过（`/tmp/react-excel-table-dialog-complete.json`）；原表、结构化引用、斜体及历史分支均保持正确。继续条件格式打开／正反 Tab，新文件只负责规则管理面板的只读会话边界。
+- 条件格式打开／正反 Tab 桌面及窄屏 6/6 通过（`/tmp/react-excel-conditional-dialog-current.json`），规则目录、条件色、选区及 redo 均不变。继续数据验证打开／正反 Tab，新文件只负责已有列表规则的只读面板会话。
+- 数据验证打开／正反 Tab 桌面及窄屏 6/6 通过（`/tmp/react-excel-validation-dialog-current.json`），已有列表、相邻验证值及跨表 redo 不变。继续函数选择器打开／正反 Tab，新文件只负责浏览原生目录时的公式与历史隔离。
+- 函数选择器打开／正反 Tab 桌面及窄屏 6/6 通过（`/tmp/react-excel-function-dialog-current.json`），目录、原公式、字体及 redo 不变。继续超链接打开／正反 Tab，新文件只负责动态出现链接时的面板焦点边界。
+- 超链接打开／正反 Tab 桌面及窄屏 6/6 通过（`/tmp/react-excel-hyperlink-dialog-current.json`），空 URL／合法 URL 动态边界、公式、字体与 redo 均验证。继续填充色板打开／正反 Tab，新文件只负责未提交颜色草稿的面板会话。
+- 填充色板打开／正反 Tab 桌面及窄屏 6/6 通过（`/tmp/react-excel-fill-palette-dialog-current.json`），未提交自定义草稿不写颜色、公式或历史。继续文字色板同三个入口，沿用同一会话测试的 kind 变体，主验收仍分别登记两个真实按钮。
+- 两种色板及既有颜色交叉回归 46/46 通过（`/tmp/react-excel-palette-dialog-complete.json`）。本阶段 11 个新增／改动 E2E 的 Lint、React 类型、差异检查通过；登记门禁为 806 项，仅证明绑定。继续横向／斜向滚动及多行定位，复用既有细粒度用例，不重复编写同一行为的测试。
+- 横向／斜向滚动及多行定位相关 7/7 通过（`/tmp/react-excel-scroll-stability-current.json`），中间帧绝对坐标、retained 状态、公式栏高度及仅必要滚动均检查。继续普通拖选下／右／上边缘，新文件只负责持续捕获时的自动滚动，不与填充柄混用主验收。
+- **真实缺陷，修复中**：下／右通过，上边缘实际滚动但 Name box 始终为 H300（`/tmp/react-excel-selection-edge-initial.json`，2 passed／1 failed，余项因 max-failures 未执行；trace `/tmp/react-excel-selection-top-before-trace.zip`）。坐标 fallback 将表头处负 y 当成冻结区外负坐标，返回 null 而丢弃扩选。新增 `drag-hit-test.test.ts` 只负责捕获拖选时表头坐标到真实单元格的映射，先跑修复前失败证据；不改变 atom 或 Rust 数据链。
+- 表头拖选坐标修复：真实修复前单测 `/tmp/react-excel-drag-hit-before-real.log` 为 6 failed／1 passed（最初脚本相对路径写错导致的采集失败不算复现证据）。仅将局部 x／y 限为非负，保留原有冻结／尺寸映射；相关 React 6 文件 28/28、类型检查通过。下／右／上桌面及窄屏 E2E 6/6 通过（`/tmp/react-excel-selection-edge-after.json`）。继续左／斜向／松手停止，同一文件覆盖四边捕获的会话边界，随后回归共用映射的填充及冻结场景。
+- 普通四边／斜向／松手停止及填充、冻结、公式引用拖选回归 27/27 通过（`/tmp/react-excel-selection-edge-complete.json`），无额外原生历史，redo 保留。继续布局错误关闭／重试／处理中防重复；后两项复用原有独立用例，新增文件只负责错误提示关闭的无写入边界。源码复核还发现 NameBox 的失焦提交与 Escape 取消须独立登记，保留为下一批，不宣称源码核对已穷尽。
+- 布局错误关闭／原生拒绝重试／处理中防重复及原布局交叉回归 16/16 通过（`/tmp/react-excel-layout-recovery-current.json`）；关闭不写原生历史，旧 redo 保留。继续名称框失焦定位／Escape 取消／失焦创建名称；新文件只负责 NameBox 提交入口的只读与写入历史边界。
+- 名称框失焦定位／Escape／失焦创建名称桌面及窄屏 6/6 通过（`/tmp/react-excel-name-box-session-current.json`），真实点击切换分类后异步回包不抢焦点，创建只增一条名称历史。继续点击即替换全地址／空白失焦还原／越界地址原地纠正，保持同一文件的 NameBox 会话职责。
+- 名称框六种入口、原命名定位及视口交叉回归 23/23 通过（`/tmp/react-excel-name-box-session-complete.json`）。本轮发现的入口缺口已补登记，下一步是冻结候选的全量验收；下方矩阵不是全量通过证明。能力说明中把未编辑 Enter 误写成进入编辑，现按实际源码／NAV-019 修正文档，未修改键盘行为。
+
+### 当前 React 入口核对矩阵（2026-10-20，已核对并通过全量验收）
+
+核对对象是 `src/workbook` 的实际事件入口：按钮、菜单项、选择框、表单提交、格内／公式栏键盘、
+指针捕获及失焦。不把所有 Rust API 或内置公式名称各算作一个新 UI 入口，也不从测试数量倒推范围。
+同一控件的等价颜色／尺寸／文字参数及平台原生修饰键是变体；不同按钮、命令、提交入口及转换语义
+在 [FEATURES](e2e/FEATURES.md) 分别绑定主验收。下面是源码到登记分组的人工复核索引，不代替逐项运行。
+
+| React 源码入口（相对 `src/workbook`） | 已核对的操作范围 | 功能分组 |
+| --- | --- | --- |
+| `selection/use-grid-pointer-selection.ts`、`use-grid-drag-autoscroll.ts`、`grid/viewport/GridHeading.tsx` | 单选／矩形／Shift／表头／四边拖选／捕获结束 | SEL |
+| `grid/viewport/use-workbook-grid-events.ts`、UI Core keyboard intents | 方向／首页末页／翻页／修饰键扩选；编辑入口及历史快捷键 | NAV、SEL、EDIT、HIST |
+| `grid/editor/CellEditor.tsx`、`chrome/formula-bar/FormulaBar.tsx` | 两种编辑器的键盘／失焦／拒绝纠正／IME／原始类型 | EDIT |
+| `chrome/formula-bar/NameBox.tsx` | 地址／区域／名称、Enter／失焦、Escape／空白／越界纠正、点击全选 | NAV |
+| `formula/FormulaAssist.tsx`、`grid/editor/use-formula-input.ts` | 鼠标／键盘补全、参数帮助、引用拾取／锁定／跨表 | CALC |
+| `clipboard/use-grid-clipboard.ts`、`chrome/ribbon/ClipboardTools.tsx`、`PasteSpecialTools.tsx` | 系统事件／按钮、复制格式、各粘贴语义及组合、失败恢复 | CLIP |
+| `chrome/ribbon/ClearTools.tsx`、网格 Delete | 清内容／格式／全部，单区及多区原子边界 | CLEAR |
+| `chrome/ribbon/HistoryTools.tsx` | 撤销／重做、列表／关闭／焦点循环；网格快捷键另列 | HIST |
+| `chrome/ribbon/FillTools.tsx`、`FillSeriesTools.tsx`、`fill-series/CustomFillLists.tsx`、`grid/fill/FillHandle.tsx` | 定向／序列／名称列表／自定义预设、拖拽／双击、边缘及取消恢复 | FILL |
+| `chrome/ribbon/WorkbookRibbon.tsx`、`FontSizeTools.tsx` | 字体／字号／粗斜下划删除线／缩进／换行及自定义字号会话 | FONT |
+| `chrome/ribbon/TextLayoutTools.tsx`、`ColorTools.tsx` | 对齐／旋转／双颜色入口、预设／原生控件／Hex、错误及只读会话 | STYLE |
+| `chrome/ribbon/NumberFormatTools.tsx`、快捷格式按钮 | 数字类别／快捷格式／精度／只读预览／草稿及错误恢复 | NUM |
+| `chrome/ribbon/BorderTools.tsx`、快捷边框按钮 | 十种位置／六种线型／三种颜色入口／会话及纠正 | BORDER |
+| `chrome/ribbon/FormatPainterTools.tsx` | 单次／连续／取消、格式隔离及尺寸错误恢复 | PAINT |
+| `chrome/ribbon/ConditionalFormatTools.tsx` | 原生规则 CRUD／排序／启用／复制、各规则语义与会话 | CF |
+| `chrome/ribbon/SelectionSizeTools.tsx`、`grid/viewport/GridResizeHandle.tsx` | 行列尺寸、拖拽／四方向键／双击／Enter、取消及原生尺寸恢复 | SIZE |
+| `chrome/ribbon/VisibilityTools.tsx`、`FreezeTools.tsx` | 行列隐藏／恢复、首行首列／当前格冻结及取消 | SIZE、FREEZE |
+| `chrome/ribbon/OutlineTools.tsx`、`grid/viewport/OutlineGutters.tsx` | 行列分组／取消、展开／折叠／级别与嵌套 | OUTLINE |
+| `chrome/ribbon/StructureTools.tsx`、`MergeTools.tsx`、`MergeConfirmation.tsx` | 插删行列／合并／拆分、确认／取消及引用保持 | STRUCT、MERGE |
+| `chrome/footer/WorkbookSheetTabs.tsx`、`SheetDeleteConfirmation.tsx` | 新增／切换／移动／多入口改名／删除确认及视图记忆 | SHEET |
+| `chrome/ribbon/NamedRangeTools.tsx`、`NamedTableList.tsx` | 名称 CRUD／范围／工作表／定位 Table、只读会话／重名恢复 | NAME、NAV |
+| `chrome/ribbon/TableTools.tsx`、`TableAppearance.tsx`、`TableColumns.tsx`、`TableTotals.tsx` | Table 目录／结构／外观／列名／九种汇总及输入约束 | TABLE |
+| `chrome/ribbon/SortTools.tsx`、`FilterTools.tsx`、`FilterConditionFields.tsx`、`FilterValueChoices.tsx` | 快捷／多级排序、区域／列／Table 筛选、候选分页及错误恢复 | DATA、TABLE |
+| `chrome/ribbon/TextColumnsTools.tsx`、`TextColumnTypes.tsx`、`TextColumnNumberOptions.tsx`、`RemoveDuplicatesTools.tsx` | 分列各转换语义／覆盖／预览、去重比较／分页／定位／确认及纠正 | DATA |
+| `chrome/ribbon/FindReplaceTools.tsx`、`FindResults.tsx` | 查询选项／翻页／导航／替换、各快捷键与只读／拒绝恢复 | FIND |
+| `chrome/ribbon/DataValidationTools.tsx`、`grid/editor/CellValidationList.tsx` | 六种规则／八种比较／空白／输入列表、清除／会话／纠正 | RULE |
+| `chrome/ribbon/QuickFormulaTools.tsx`、`InsertFunctionTools.tsx`、`CalculationTools.tsx` | 快捷公式／函数目录／重算／显示公式及目录会话 | CALC |
+| `chrome/ribbon/SpillTools.tsx` | 查询／刷新／定位／选区、不可定位提示与只读会话 | SPILL |
+| `hyperlink/HyperlinkTools.tsx`、`use-grid-hyperlink.ts` | 按钮／快捷键／平台点击、新增修改移除／打开与拒绝恢复 | LINK |
+| `chrome/footer/SelectionStatus.tsx`、`SelectionStatisticsSettings.tsx` | 六统计／复制／显示偏好／恢复默认／刷新／权限恢复 | STAT |
+| `chrome/header/WorkbookFileTools.tsx` | 下载／打开／新建／确认、同文件重选及坏文件恢复 | FILE |
+| `chrome/ribbon/RibbonTabs.tsx`、`chrome/header/LanguageSelect.tsx`、viewport 渲染 | 分类鼠标／键盘、实时语言、三轴稳定滚动及多行定位 | VIEW |
+
+范围边界仍保持用户要求：不改缩放、不加自动保存、不动 Solid／Vue，不删默认合并演示或旧工作区改动，
+不自动提交／推送。未实现的保护 UI、非连续区域手动追加、协作及其它完整产品计划不以占位测试充数。
+本轮真实产品修复是表头拖选坐标映射；最终候选源码固定排序指纹为
+`90f086d36e74371fe5c9f2d614e63c6dc74c6c62`，lite/full WASM 沿用现有已修复表头验证的构件。
+单次全量 E2E 执行前冻结源码、测试及 WASM；通过后再按唯一主用例逐项核对，不能拼接专项报告冒充全量。
+
+### 最终候选全量验收（2026-10-20，已通过）
+
+- 基线 HEAD 为 `1c47e643`，包含原工作区未提交改动，不自动提交或推送。
+- React／UI Core 源码固定排序 SHA-1：`90f086d36e74371fe5c9f2d614e63c6dc74c6c62`；
+  E2E 目录固定排序 SHA-1：`828bd25d211013249b5aa44a28a1ca9a86a1de95`。
+- lite WASM：`b39441a7ed61a241fd16ebe1df4e604691ae4ef5`；
+  full WASM：`c67c17cf62ef1b113ab507fd8cf4ef68bae23245`。
+- 当前候选 React Vitest 578/578（106 文件）、UI Core Vitest 3444/3444（239 文件），
+  类型、根 Lint、改动 E2E Lint、构建、展现层边界、循环依赖、文档链接及差异检查通过。
+  功能清单检查器自身 7/7 通过；登记检查与下面的实际执行检查分别完成。
+- 执行命令：`PLAYWRIGHT_JSON_OUTPUT_FILE=/tmp/react-excel-final-implemented-entry-full.json pnpm --filter @einfach/react-excel e2e --max-failures=1 --reporter=json`。
+  输出日志 `/tmp/react-excel-final-implemented-entry-full.log`；执行期间源码、测试及 WASM 冻结，
+  只运行这一条完整回归，原进程退出 0。完整 E2E 为 2218/2218，耗时 55.1 分钟，
+  skipped／unexpected／flaky／报告级错误均为 0；每个测试恰好一个 passed 结果，retry 均为 0。
+- 执行 `pnpm check:e2e-features --results /tmp/react-excel-final-implemented-entry-full.json`，
+  824 个登记操作全部有同报告中的唯一主用例成功证据，未拼接专项报告充数。
+  结束后复核上述源码、E2E 目录及两种 WASM 指纹与执行前完全一致。
+- 全量结束后仅更新这两份验收文档；E2E TypeScript 源码固定排序 SHA-1 为
+  `c590c96030ceb4e80d8e4e1f063ab77d49f92bc6`，不因清单说明文字更新重跑产品测试。
+- 本轮真实产品问题：捕获指针停在上／左表头时，负坐标被误当作冻结区，页面继续滚动而选区停止延伸。
+  首次真实浏览器失败和修复前单测均已保留；只在既有 DOM 命中计算中把坐标限制到最近单元格，
+  不增加 atom、状态镜像或传输层。四边、斜向、松开停止及冻结／尺寸变体有独立回归，最终全量也通过。
+- 宽屏／390px 窄屏面板与原合并演示截图已留存并复核；共享 visual-runtime 脚本不可用，
+  使用持久 Playwright 的截图、真实焦点及溢出断言，不声称运行了不存在的视觉工具。
+  当前候选仍未提交或推送。完整产品的未实现范围继续保留，不以此次既有入口验收冒充全产品完成。
+
+- 排序／筛选／Table 筛选／大纲共 65 个主验收已按对应最新文件报告核对成功（不是一次全量运行）；React 类型、64 个改动 E2E 的 Lint／300 行限制、差异检查通过。
+- 本阶段 React 类型、展现边界、54 个改动 E2E 的 300 行限制及 Lint 通过（两处旧超长断言整理换行后专项复检通过）；排序与筛选对应 28 个主验收已按最新文件报告核对，无缺失／重试。
+- 历史 Table、文件、格式细项、导航及其它已实现入口仍在核对中，未宣布清单穷尽。
+
+## 前一批验收补强（2026-10-20，已验收）
+
+本轮只补条件格式三个现有入口的独立验收：新增、修改、删除，分别登记为
+[CF-001／CF-002／CF-003](e2e/FEATURES.md)，不再把旧的综合生命周期用例当作三个功能的主验收。
+新增 [规则生命周期 E2E](e2e/format/conditional-rule-lifecycle.spec.ts)，各操作分别在 1280px／390px
+执行，新增专项 6/6；条件格式与 lite/full 保存恢复相关回归 52/52（含这 6 项，1.4 分钟）通过，
+零失败／跳过／flaky／重试。原综合用例保留，继续检查连续三次原生操作的历史链。
+
+新增覆盖实际按钮、规则数量、范围／阈值／颜色回读、非命中格及相邻规则不变、原数值不变、
+单次撤销／重做；新增规则包含无效数值后纠正重试，修改规则包含取消后重新打开仍为原值。
+修改／删除直接用现有 Summary 规则，不依赖测试先新增成功；没有改演示数据或生产实现。
+React 条件格式 Vitest 18/18、Core 相关 Vitest 67/67、脚本契约 17/17、React 类型检查、
+功能登记、展现边界、循环依赖、文档链接及差异检查通过。对照表现有 175 项，历史细项仍待继续回填。
+
+验收基线仍为 `1c47e643` 加旧工作区。开始时旧候选指纹与前轮 `ca9df2a…` 完全一致；
+本轮前后生产源码指纹均为 `d9329e109bbad7e32606de0d71932aac14fd2305`，
+旧 E2E（不含对照表及本轮新文件）均为 `1e8aa1b0d888ac5a00dc38be1b21db4f0de49ccc`，
+lite WASM 仍为 `6d992f8ffd2d90f950ab18c180cc9dbddbf20c9a`。
+因此沿用前轮 1129 条全量、全量单测、构建及 Lint 的同输入证据，不把专项重测称作新一轮全量。
+新文件指纹 `18c7e4d4855de63c24454ad4572ebf77a89c4f02`；原链路仍为
+React 按钮 → `runNativeConditionalFormatAtom` → Rust 原生命令及返回投影 → React，未加运行层。
+
+报告 `/tmp/react-excel-conditional-lifecycle.json`、`/tmp/react-excel-conditional-lifecycle-related.json`；
+新三项独立结果检查通过。旧全量报告单独核对会明确缺少 CF-001～003；
+仅在确认原输入未变后，旧 172 项加新三项的分批证据核对为 175 项全部有成功记录。
+本批已验收，完整历史功能点清单仍未穷尽；未 commit／push，旧工作区改动全部保留。
+
+## 上一轮验收补强（2026-10-19，已验收）
+
+按用户要求落地“功能点 → 独立主 E2E”对应规则，登记在 [E2E 对照表](e2e/FEATURES.md)，
+由 `pnpm check:e2e-features` 核对真实 Playwright 采集结果；已接入 E2E 命令及 CI。
+同一主用例不能重复充当多个功能的验收；skip／fixme／预期失败不算覆盖。
+登记不等于运行通过，结果需用 `--results` 对照同一候选代码的 JSON 报告。
+首轮登记 172 项；历史 CRUD、菜单选项等细项仍需回填、拆分，不能把登记数当完整产品覆盖率。
+
+用户指出的 Shift 点击确实未接入。新增测试先复现只选中 B6 而非 A3:B6，
+React 只转交 `extend`，既有 Core command 复用原锚点，同一次转换同步选区及指针；
+不新增 atom、Rust 请求或状态层。已覆盖普通选择、Shift 点击、反向缩选、拖拽、
+Shift 四方向／PageUp／PageDown、鼠标键盘混用，以及扩选后批量格式及单次撤销。
+新增 36 条真实浏览器用例，桌面 1280px／窄屏 390px 分别执行。
+最终完整 E2E 单轮 1129/1129，耗时 29.8 分钟，零失败／跳过／flaky／重试；
+`pnpm check:e2e-features --results /tmp/react-excel-e2e-contract-full.json` 核对 172 项全部通过。
+旧的 1093 条报告会明确缺失本轮 18 个选区主用例，不能当作这轮成功证据。
+另修前置采集继承 JSON 输出环境变量、可能覆盖正式报告的问题；真实 CLI 回归已补，
+脚本契约 17/17、Core 全量 3440/3440、React 全量 541/541 通过。
+两包构建、React 类型、展现边界、循环依赖、Lint、文档链接及差异检查通过。
+验收基线为 `1c47e643` 加当前工作区；浏览器运行前后 React 源码／E2E／Core 源码／
+采集脚本指纹均为 `ca9df2a1bb5cdc187739722cd195c5f06ab85845`，lite WASM 均为
+`6d992f8ffd2d90f950ab18c180cc9dbddbf20c9a`。原生未改，沿用前批原生验收。
+日志 `/tmp/react-excel-e2e-contract-full.log`；服务 `http://127.0.0.1:5183/` 返回 200，
+测试服务 5191 已退出。本轮选区修复与门禁已验收，历史功能清单的细粒度回填仍未完成。
+treehelp／treehelp2 属于用户另一个项目，未纳入本仓；旧工作区改动保留，未 commit／push。
+
+## 上一批次（2026-10-19，已验收）
+
+继续 #12 的三个自定义填充列表功能：新增并复用、修改、删除。仅作为当前工作簿会话的填充预设，
+保存／修改／删除不写格子、不生成原生历史；点击“应用序列”才复用已有 Rust 填充命令。
+切表保留，新建／成功打开另一工作簿或刷新清空；不恢复已暂停的本地自动保存，不接拖拽自动识别。
+具体操作、归属及证据见[自定义列表预设](docs/custom-fill-lists-wave.md)。
+旧响应复活预设的边界先由单测复现再修复，Core 专项 23/23、React 专项 13/13、
+真实 Worker 新列表专项最终 9/9 通过。Core 全量 3439/3439、React 全量 540/540；
+完整 E2E 单轮 1093/1093，耗时 27.9 分钟，零失败／跳过／flaky，结束后代码与 WASM 指纹未变。
+桌面／窄屏／中文截图已目检；两包构建、类型、Lint、边界、循环依赖及差异检查通过。
+本批三个功能已验收，原生代码未改，沿用上一批原生全量证据；完整产品仍有未完成项。
+上一批改动继续保留，不自动 commit／push。服务保持 `http://127.0.0.1:5183/`。
+
+## 前一批（2026-10-16，已验收）
+
+按用户要求，先将上一轮合并演示、测试夹具隔离、滚动边框及首帧修复提交为 `1c47e643`，未 push。
+以下旧段落中的“未提交”是当时状态；上一轮 goal 已完成，完整产品 41 项范围并未完成。
+
+本批按三项继续 #12：多列竖向独立序列、多行横向独立序列、双击填充柄沿相邻连续数据向下延伸。
+原生先整体预检再统一写入，复用一条 Worker 请求、一次历史及既有 command atom；没有新的运行层。
+保留原 66 组合并 demo，只增加 6 个空白格种子。缩放与已暂停的本地自动保存均未改。
+具体规则、手测样例及证据见[独立序列与双击填充](docs/fill-independent-wave.md)。
+本批已验收：新增浏览器专项 11/11、Rust 全量 3537 passed／10 ignored、WASM 192 passed／1 ignored；
+Core 全量 3427/3427、React 最终全量 537/537。来源行高缓存专项先复现再修复。
+完整 E2E 首轮 735 通过／1 失败／348 未运行；旧统计用例漏算新 D30:D31 样例，
+保留精确总和及滚动断言并更新预期后，统计文件 7/7、剩余续跑 344/344 通过。
+三份报告按测试 ID 去重，1084/1084 全部覆盖，无遗漏；不是一轮完整零失败运行。
+桌面／窄屏截图已目检；静态门禁、类型、构建和差异检查通过。技能约束本批只交付三项，
+没有新增运行层；存量超限文件仅做必要接线并在批次文档列明，不借本批扩大重构。
+本批 goal 已完成，完整 41 项目标仍有剩余。本批不自动 commit／push；服务保持 `http://127.0.0.1:5183/`。
+
+## 历史修复轮（2026-10-14 起）
 
 ### 保留合并演示、隔离测试数据与滚动边框修复（2026-10-16）
 
@@ -356,12 +792,12 @@ React 行/分支覆盖 **97.41%/89.09%**，UI Core **90.50%/83.45%**。
 | 03 | 行高、列宽、隐藏 | 大字体撑高所在行；输入/拖拽/自动适应行高列宽、恢复默认尺寸、隐藏/恢复行列已接入；本批三项已验收，合并格策略见[本批记录](docs/size-interaction-wave.md) |
 | 04 | 合并与拆分 | 合并、合并后居中、取消合并三项已验收，含剪贴板/导航回归及原生种子；冻结交叉已验证，见[合并记录](docs/merge-wave.md)及[冻结记录](docs/freeze-wave.md) |
 | 05 | 冻结窗格 | 首行、首列、按当前格冻结／取消冻结三项交互已验收，含原生种子、编辑遮挡修正及全量 E2E；原生文件保存／打开恢复已接入，自动刷新恢复仍待补，见[本批记录](docs/freeze-wave.md) |
-| 06 | 选区、定位 | 单区、行列整表、键盘、名称框已有；A1／R1C1 定位弹窗、跨表定位、最近 10 次定位已验收。常量／公式／空白原生定位、多区域结果显示及去重计数已验收，含长区域活动格修复，完整 E2E 946/946、Vitest 5699/5699 通过。手动非连续多区、其他 Go To Special 条件及完整多区域操作仍待补 |
+| 06 | 选区、定位 | 单区、行列整表、键盘、名称框已有；本轮补接鼠标 Shift 点击／拖拽扩选，新增选区 E2E 36 项，完整回归 1129/1129 通过。A1／R1C1 定位弹窗、跨表定位、最近 10 次定位已验收。常量／公式／空白原生定位、多区域结果显示及去重计数已验收，含长区域活动格修复，完整 E2E 946/946、Vitest 5699/5699 通过。手动非连续多区、其他 Go To Special 条件及完整多区域操作仍待补 |
 | 07 | 分组与大纲 | 行分组／取消、列分组／取消、折叠／展开三项已验收，含嵌套、层级控件、原生历史及 lite/full 保存恢复；完整 E2E 709/709、Vitest 5371/5371 通过。页面刷新持久化仍随 #41 核对 |
 | 08 | 直接编辑 | 编辑、提交、取消、连续编辑、原始数值、强制文本、布尔值、百分比、无歧义日期输入、Alt+Enter 换行和输入法组合键保护已有；24 小时／累计时长、AM/PM、显式带分数输入通过全量 E2E 492/492；地区日期、日期时间组合、亚秒及真实系统输入法跨浏览器交互仍待补 |
-| 09 | 公式栏与引用 | 公式栏可编辑，同表点击/拖选引用、F4 相对/绝对/混合引用已验收；键盘引用拾取、Shift 扩展、F2 模式切换及跨表点击/拖选/键盘引用已有；完整原生目录补全及插入草稿通过全量 E2E 914/914，保留 21 项常用参数帮助。完整参数帮助与全部引用着色仍待补 |
+| 09 | 公式栏与引用 | 公式栏可编辑，同表点击/拖选引用、F4 相对/绝对/混合引用已验收；键盘引用拾取、Shift 扩展、F2 模式切换及跨表点击/拖选/键盘引用已有。完整原生目录补全、插入草稿及 lite499/full502 内置条目的中英文参数帮助已验收，含可选／重复组、示例及实现限制；最终完整 E2E 2474/2474 通过。完整参数填写表单与全部引用着色仍待补 |
 | 10–11 | 剪贴板、选择性粘贴 | 系统复制/同表剪切/矩形粘贴、内容模式、转置、跳过空白、平铺、加减乘除、组合选项面板、仅列宽、Copy As 文本/Markdown/HTML 已接入 Rust 数据；跨表剪切、部分公式范围移动、多区域、Copy As 图片及完整投影、批注等选项待补 |
-| 12 | 自动填充与序列 | 定向复制、序列面板、四方向填充柄及星期／月份／自定义列表面板已验收，见[名称序列记录](docs/fill-named-series-wave.md)；日期面板与拖拽已接入，见[日期记录](docs/date-input-wave.md)；自定义列表管理与拖拽、多行列独立序列及双击填充等仍待补 |
+| 12 | 自动填充与序列 | 定向复制、序列面板、四方向填充柄及星期／月份／自定义列表面板已验收，见[名称序列记录](docs/fill-named-series-wave.md)；日期面板与拖拽已接入，见[日期记录](docs/date-input-wave.md)；多行列独立序列及双击填充已验收，见[独立序列记录](docs/fill-independent-wave.md)；自定义列表会话预设的新增复用／修改／删除已验收，见[预设记录](docs/custom-fill-lists-wave.md)，自定义列表拖拽识别仍待补 |
 | 13 | 分列 | 分隔符拆列、固定宽度拆列、目标位置与覆盖确认已验收；逐列常规／文本、显式日期顺序、跳过列已验收；小数／千位分隔符及尾随负号已验收（全量 E2E 597/597）；月份名称及文件导入等仍待补 |
 | 14 | 查找替换 | 字面量／通配符查找、分页完整结果列表、结果定位、当前／全部替换已验收；格式及保护交叉语义随对应项继续核对，见[列表批次](docs/find-results-wave.md) |
 | 15、36 | 撤销重做及历史 | 单格输入、格式、清除、行列尺寸/隐藏、粘贴、同表剪切、工作表管理的 Rust 撤销/重做及最近操作列表已有；其余命令历史与持久版本待补 |
@@ -369,9 +805,9 @@ React 行/分支覆盖 **97.41%/89.09%**，UI Core **90.50%/83.45%**。
 | 17 | 常用格式工具 | 常用字体、颜色、对齐等已有；颜色选择/恢复默认已通过全量 E2E 432/432；水平/垂直对齐及旋转直接选择通过全量 442/442；自定义字号、增大/减小字号通过全量 455/455，其余完整工具待补 |
 | 18–19 | 单元格格式、数字格式 | 数字/百分比/货币设置弹窗通过全量 E2E 469/469；科学计数、分数、时间通过全量 479/479；日期样式、文本格式和原生预览通过全量 E2E 569/569；完整格式会话与其余类别待补 |
 | 20 | 格式刷 | 单次、连续、退出三项普通格式刷已接 Rust，含完整替换／平铺、原生历史、剪贴板隔离、失败重试；全量 E2E 506/506 通过，条件格式规则随对应引擎能力继续核对 |
-| 21–22 | 条件格式、数据验证 | 数值、公式、排名、色阶、数据条、字面量文本、按类型和值的重复／唯一值及停止后续规则已验收，最新完整 E2E 900/900、Vitest 5577/5577。高级阈值、图标集、通配符／地区比较、按显示格式比较重复等仍待补。整数／小数、列表、日期／时间、文本长度验证及八种比较条件均已验收：完整 E2E 697/697、Vitest 5349/5349、Rust 默认 3102／lite 3062 项通过。公式来源、提示／警告等其他高级验证能力待补 |
+| 21–22 | 条件格式、数据验证 | 数值、公式、排名、色阶、数据条、字面量文本、按类型和值的重复／唯一值及停止后续规则已验收；本轮补齐自动／数值／百分比／百分位／公式阈值及三箭头／交通灯／旗帜图标集。整数／小数、列表、日期／时间、文本长度验证及八种比较条件已有；相对公式验证、选格输入提示及 Stop／Warning／Information 已验收，后两者仅明确 Continue 后提交，非法 Stop 批量输入整次拒绝。最终完整 E2E 2474/2474，其中高级条件格式70、验证34项全过。通配符／地区比较、按显示格式比较重复及其它未列高级能力仍待补 |
 | 23 | 边框、旋转及格式投影 | 边框位置、六种线型、颜色设置及共边后写覆盖、清除/撤销、冻结接缝已验收，通过全量 E2E 557/557，含合并/隐藏/填充/粘贴交叉；对角线、高级旋转及条件格式边框交叉等仍待补 |
-| 24–26 | 公式解析、函数目录、自定义公式 | SUM／AVERAGE／COUNT 快捷草稿、原生完整目录搜索／分类、插入草稿及扩展补全已验收。显式单格数组引用保形、溢出范围查看、阻挡格定位已验收：完整 E2E 931/931、Vitest 5671/5671。参数表单、完整帮助与自定义公式产品入口仍待补 |
+| 24–26 | 公式解析、函数目录、自定义公式 | SUM／AVERAGE／COUNT 快捷草稿、原生完整目录搜索／分类、插入草稿及扩展补全已验收；显式单格数组引用保形、溢出范围查看与阻挡格定位已有。当前 lite499/full502 内置条目的完整中英文原生帮助及 Formulas → Custom formulas 入口已验收：注册／替换／移除工作簿级 Rust 参数表达式、跨表调用／重算、历史和文件往返，不执行任意脚本。最终完整 E2E 2474/2474，其中帮助16、自定义公式31项全过。完整参数填写表单及宿主脚本／异步函数产品能力仍未完成，不等于 #24–26 全部范围完成 |
 | 27 | 命名区域与名称管理 | 管理器的新建、修改、删除已验收，含 Rust 动态范围、原子历史、结构随动、名称消费者改写及 v1 保存恢复；最终完整 E2E 721/721、Vitest 5401/5401、Rust 默认 3164／lite 3124 项通过。名称框定位／快捷创建与 Go To 名称定位已验收（完整 E2E 728/728、Vitest 5423/5423）；命名公式及局部作用域仍待补，不能将本批视为 #27 全部完成 |
 | 28 | 重算与异步公式 | 当前表／整个工作簿手动重算、显示公式已验收：完整 E2E 922/922、Vitest 5648/5648；自动／手动计算模式、真实异步调用及失败恢复仍待补。当前主线只接 Rust，不恢复 TS/Solid 产品路线 |
 | 29 | 排序与筛选 | 升序、降序、多列排序、级别优先级调整、区分大小写及空格置顶／沉底已验收，见[排序批次](docs/sort-wave.md)，全量 E2E 888/888。原生条件筛选、重新应用、清除筛选及复制/排序/统计交叉已验收；指定区域、表头入口、单列清除、完整候选值勾选／搜索／分页已验收。查询全选、高级筛选、颜色／自定义顺序等仍待补 |
@@ -379,14 +815,14 @@ React 行/分支覆盖 **97.41%/89.09%**，UI Core **90.50%/83.45%**。
 | 31 | 状态栏摘要 | Rust 六项、显示项配置、恢复默认、原始数值复制已验收；排除筛掉行、保留手动隐藏行的统计已接 Rust 并通过全量回归，见[既有记录](docs/status-bar-wave.md) |
 | 32 | Excel Table | 创建、重命名、转普通区域、汇总行、列名编辑／定位、手动范围调整、输入自动扩展、样式预设／隔行底色／首列强调及计算列已分批验收；隔列底色、末列强调、表头显隐及空表输入位置交叉已验收。向下／向右粘贴扩表、新记录继承计算列、面板追加行、Tab 末格追加及 Shift+Tab 反向跨行均已验收。Table 独立条件筛选／清除／重新应用已验收：完整 E2E 872/872、Vitest 5542/5542，含多作用域共存、结构随动、原生历史和 lite/full 保存恢复；其余样式选项及完整 Table 数据管理交叉能力仍待核对 |
 | 33 | 外部数据连接 | 原计划延后；不以本地 fixture 宣称完成 |
-| 34–35 | 批注、备注及协作 | 待接入；身份、通知及持久服务需要明确的真实契约 |
+| 34–35 | 批注、备注及协作 | Note 纯文本备注与 Comments 本地线程已接入并验收，含新增／修改／删除、回复／解决／重开、独立同格共存、结构位移、原生历史与文件往返；最终完整 E2E 中备注26、批注51、共存2项全过。显示名与本机时间不是认证身份；远程协作、身份、通知及服务端持久服务仍需真实契约，不以本地线程替代 |
 | 37–39 | 更改记录、版本、个人视图 | 待接入；本地 undo 不能替代版本服务 |
-| 40 | 保护与解锁 | 核心有检查；Rust 权威写入与 React UI 待核对接入 |
+| 40 | 保护与解锁 | Data → Worksheet protection 的保护／解除、允许编辑范围新增／移除已接 Rust 权威写入守卫及 React UI，并验证 raw lite/full WASM、历史和文件往返；最终完整 E2E 中保护26项全过。允许区可改内容／格式，锁格原子拒绝，工作表设置仍锁定；保护配置不进入内容 Undo。不包含密码认证、加密或服务端权限 |
 | 41 | 加载、投影、恢复 | Rust 初始化、可见窗口和过期结果防护已有；原生文件下载／打开、空白工作簿三项已验收：完整 E2E 907/907、Vitest 5610/5610。自动保存、刷新恢复、完整错误恢复及服务端持久化仍待补，不以本地文件替代版本服务 |
 
 ### 后续边界只读核对
 
-- 条件格式原先仅保存不透明 JSON。现已由[原生规则解析](../rust/excel-core/src/workbook_conditional_format_rule.rs)和[显示投影](../rust/excel-core/src/workbook_conditional_format_projection.rs)消费数值、公式、排名、色阶和数据条规则，React Worker 已接入；[规则写入与删除](../rust/excel-core/src/workbook_conditional_format.rs)的 revision 溢出检查也已移到实际修改之前，拒绝原子性测试通过。上述五类规则已通过当前批次完整回归；高级阈值、图标集等尚未接入，不能据此宣布完整条件格式完成。
+- 条件格式原先仅保存不透明 JSON。现已由[原生规则解析](../rust/excel-core/src/workbook_conditional_format_rule.rs)和[显示投影](../rust/excel-core/src/workbook_conditional_format_projection.rs)消费数值、公式、排名、色阶和数据条规则，React Worker 已接入；[规则写入与删除](../rust/excel-core/src/workbook_conditional_format.rs)的 revision 溢出检查也已移到实际修改之前，拒绝原子性测试通过。本轮高级阈值与三类图标集已接原生计算、投影、历史及文件并通过最终回归；通配符／地区比较、按显示格式比较重复等未列能力仍保留，不能据此宣布完整条件格式完成。
 - [`define_name`](../rust/excel-core/src/workbook_names.rs) 仍保留原有“求值后保存常量／LAMBDA”语义；新命名区域通过 [`define_named_range`](../rust/excel-core/src/workbook_named_ranges.rs) 在同一名称表内保存稳定表身份与范围，不保存值快照。动态求值与结构随动已接入，名称 CRUD 历史、持久化与前端管理仍须本批补齐，不能据此宣布完整名称管理完成。
 - Excel Table 低层[注册接口](../rust/excel-core/src/workbook_table_registry.rs)与 [WASM 保存恢复入口](../rust/wasm/src/wasm_workbook_tables.rs)仍保留；React 交互现通过 [`change_table`](../rust/wasm/src/wasm_workbook_table_commands.rs)调用[原生历史](../rust/excel-core/src/workbook_history_table.rs)，不把低层 `deleteTable` 当成转换。表头规范化、公式消费者改写、撤销重做及同一次返回投影已接入；验收进度见下方 Table 批次，不能据此宣布完整 #32 完成。
 

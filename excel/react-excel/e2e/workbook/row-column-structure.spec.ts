@@ -74,6 +74,28 @@ test('delete rows removes data, exposes reference errors and undo restores cross
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
 })
 
+for (const width of [1280, 390]) test(`delete columns works from the original seed with one undo at ${width}px`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 850 })
+  await select(page, 'C2', '1:2')
+  const shifted = await cell(page, '1:3').innerText()
+  await structure(page, 'delete-columns')
+  await expect(cell(page, '1:2')).toHaveText(shifted)
+  await expect(cell(page, '1:2')).toHaveCSS('background-color', 'rgb(255, 242, 204)')
+  await expect(cell(page, '1:0')).toHaveText('SO-10001')
+  await expect(cell(page, '1:0')).toHaveCSS('font-weight', '700')
+  await expect(cell(page, '1:1')).toHaveText('Acme Co.')
+  await expect(cell(page, '1:1')).toHaveCSS('font-style', 'italic')
+  await expect(cell(page, '1:5')).toHaveText('79')
+  await page.getByRole('button', { name: 'Undo', exact: true }).click()
+  await expect(cell(page, '1:2')).toHaveText('North')
+  await expect(cell(page, '1:2')).toHaveCSS('text-decoration-line', 'underline')
+  await expect(cell(page, '1:6')).toHaveText('79')
+  await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+  await page.getByRole('button', { name: 'Redo', exact: true }).click()
+  await expect(cell(page, '1:2')).toHaveText(shifted)
+  await expect(cell(page, '1:5')).toHaveText('79')
+})
+
 test('tail deletion clamps the selected cell and keyboard boundary to the resized canvas', async ({
   page,
 }) => {

@@ -30,6 +30,8 @@ use super::*;
 /// satisfy this bound.
 pub trait CustomFunctionRegistry: Send + Sync + std::fmt::Debug {
     fn lookup(&self, name: &str, args: &[Value]) -> Option<Value>;
+    /// 查询宿主已占用的名称，不调用函数或制造异步工作。
+    fn contains(&self, _name: &str) -> bool { false }
 
     /// True when `name` is registered as an ASYNC custom formula. Async
     /// functions are never dispatched through `lookup` during evaluation —

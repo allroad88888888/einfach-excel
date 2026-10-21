@@ -1,0 +1,56 @@
+# Audited against eval_financial_tvm_*, depreciation_*, securities_* and investment_*.
+PMT	rate,nper,pv,fv?,type?	Returns the periodic payment for a constant-rate annuity.	返回固定利率年金的每期付款额。	0.01,12,1000
+PV	rate,nper,pmt,fv?,type?	Returns an annuity's present value.	返回年金现值。	0.01,12,-100
+FV	rate,nper,pmt,pv?,type?	Returns an annuity's future value.	返回年金终值。	0.01,12,-100
+NPER	rate,pmt,pv,fv?,type?	Returns the period count for an annuity.	返回年金期数。	0.01,-100,1000
+NPV	rate,value*	Discounts periodic cash flows beginning at the end of period one.	对从第一期末开始的定期现金流进行折现。	0.1,-100,60,60
+IRR	values,guess?	Solves the periodic internal rate of return for referenced cash flows; guess defaults to 0.1.	求引用区域中定期现金流的内部收益率，默认估计值为 0.1。	J1:J3
+RATE	nper,pmt,pv,fv?,type?,guess?	Solves an annuity's periodic interest rate; guess defaults to 0.1.	求年金的每期利率，默认估计值为 0.1。	12,-100,1000
+IPMT	rate,per,nper,pv,fv?,type?	Returns the interest part of an annuity payment for a one-based period.	返回年金指定期付款中的利息部分，期数从一开始。	0.01,1,12,1000
+PPMT	rate,per,nper,pv,fv?,type?	Returns the principal part of an annuity payment for a one-based period.	返回年金指定期付款中的本金部分，期数从一开始。	0.01,1,12,1000
+SLN	cost,salvage,life	Returns straight-line depreciation per period.	返回每期直线折旧额。	1000,100,5
+SYD	cost,salvage,life,per	Returns sum-of-years-digits depreciation for a period.	返回指定期的年数总和法折旧额。	1000,100,5,1
+DB	cost,salvage,life,period,month?	Returns fixed declining-balance depreciation; first-year month count defaults to twelve.	返回固定余额递减法折旧额，第一年月数默认为十二。	1000,100,5,1
+DDB	cost,salvage,life,period,factor?	Returns declining-balance depreciation; factor defaults to two.	返回余额递减法折旧额，默认加速因子为二。	1000,100,5,1
+VDB	cost,salvage,life,start_period,end_period,factor?,no_switch?	Returns depreciation over a fractional period interval, optionally preventing a switch to straight-line.	返回可含小数的期间区间折旧额，可禁止切换为直线法。	1000,100,5,0,1
+CUMIPMT	rate,nper,pv,start_period,end_period,type	Sums interest payments over inclusive one-based periods.	计算包含首尾的一段期间内的利息付款总额，期数从一开始。	0.01,12,1000,1,3,0
+CUMPRINC	rate,nper,pv,start_period,end_period,type	Sums principal payments over inclusive one-based periods.	计算包含首尾的一段期间内的本金付款总额，期数从一开始。	0.01,12,1000,1,3,0
+EFFECT	nominal_rate,npery	Returns the effective annual rate for nominal rate and compounding count.	按名义年利率及每年复利次数返回实际年利率。	0.12,12
+NOMINAL	effect_rate,npery	Returns the nominal annual rate for an effective rate and compounding count.	按实际年利率及每年复利次数返回名义年利率。	0.12,12
+ISPMT	rate,per,nper,pv	Returns interest for an equal-principal loan using zero-based period numbering.	按从零开始的期数返回等额本金贷款利息。	0.01,0,12,1000
+ACCRINT	issue,first_interest,settlement,rate,par,frequency,basis?,calc_method?	Returns accrued interest using principal times rate times the issue-to-settlement year fraction.	以本金乘利率再乘发行至结算的年分数计算应计利息。	DATE(2024,1,1),DATE(2024,7,1),DATE(2024,4,1),0.05,1000,2
+ACCRINTM	issue,settlement,rate,par,basis?	Returns accrued interest for a security paying interest at maturity.	返回到期付息证券的应计利息。	DATE(2024,1,1),DATE(2024,7,1),0.05,1000
+DISC	settlement,maturity,pr,redemption,basis?	Returns a security's annual discount rate.	返回证券的年贴现率。	DATE(2024,1,1),DATE(2024,7,1),95,100
+INTRATE	settlement,maturity,investment,redemption,basis?	Returns the annual interest rate for a fully invested security.	返回一次性投资证券的年利率。	DATE(2024,1,1),DATE(2024,7,1),950,1000
+RECEIVED	settlement,maturity,investment,discount,basis?	Returns the maturity amount of a discounted security.	返回贴现证券的到期收款额。	DATE(2024,1,1),DATE(2024,7,1),1000,0.05
+TBILLEQ	settlement,maturity,discount	Returns the bond-equivalent yield for a Treasury bill.	返回短期国库券的等价债券收益率。	DATE(2024,1,1),DATE(2024,7,1),0.05
+TBILLPRICE	settlement,maturity,discount	Returns a Treasury bill price per 100 face value.	返回面值 100 的短期国库券价格。	DATE(2024,1,1),DATE(2024,7,1),0.05
+TBILLYIELD	settlement,maturity,pr	Returns the yield of a Treasury bill priced per 100 face value.	返回以面值 100 报价的短期国库券收益率。	DATE(2024,1,1),DATE(2024,7,1),98
+XIRR	values,dates,guess?	Solves the return of irregular dated cash flows using a 365-day year.	按 365 天年基准求不定期现金流收益率。	{-100;110},{45292;45658}
+XNPV	rate,values,dates	Discounts irregular dated cash flows relative to the first date using a 365-day year.	按 365 天年基准，相对首日期折现不定期现金流。	0.1,{-100;110},{45292;45658}
+MIRR	values,finance_rate,reinvest_rate	Returns the modified internal rate for referenced cash flows using separate financing and reinvestment rates.	使用融资与再投资利率计算引用区域中现金流的修正内部收益率。	J1:J3,0.1,0.12
+PRICE	settlement,maturity,rate,yld,redemption,frequency,basis?	Returns a periodic-coupon security's clean price per 100 face value.	返回定期付息证券每 100 面值的净价。	DATE(2024,1,1),DATE(2026,1,1),0.05,0.04,100,2
+YIELD	settlement,maturity,rate,pr,redemption,frequency,basis?	Solves the annual yield from a periodic-coupon security's price.	按定期付息证券价格求年收益率。	DATE(2024,1,1),DATE(2026,1,1),0.05,100,100,2
+DURATION	settlement,maturity,coupon,yld,frequency,basis?	Returns Macaulay duration for a periodic-coupon security.	返回定期付息证券的麦考利久期。	DATE(2024,1,1),DATE(2026,1,1),0.05,0.04,2
+MDURATION	settlement,maturity,coupon,yld,frequency,basis?	Returns modified duration for a periodic-coupon security.	返回定期付息证券的修正久期。	DATE(2024,1,1),DATE(2026,1,1),0.05,0.04,2
+PRICEDISC	settlement,maturity,discount,redemption,basis?	Returns the price per 100 face value of a discounted security.	返回贴现证券每 100 面值的价格。	DATE(2024,1,1),DATE(2024,7,1),0.05,100
+YIELDDISC	settlement,maturity,pr,redemption,basis?	Returns the annual yield of a discounted security.	返回贴现证券的年收益率。	DATE(2024,1,1),DATE(2024,7,1),95,100
+PRICEMAT	settlement,maturity,issue,rate,yld,basis?	Returns the price per 100 face value of a security paying interest at maturity.	返回到期付息证券每 100 面值的价格。	DATE(2024,4,1),DATE(2025,1,1),DATE(2024,1,1),0.05,0.04
+YIELDMAT	settlement,maturity,issue,rate,pr,basis?	Returns the annual yield of a security paying interest at maturity.	返回到期付息证券的年收益率。	DATE(2024,4,1),DATE(2025,1,1),DATE(2024,1,1),0.05,100
+DOLLARDE	fractional_dollar,fraction	Converts a fractional-dollar quotation to decimal form.	将分数美元报价转为十进制。	1.02,16
+DOLLARFR	decimal_dollar,fraction	Converts a decimal-dollar quotation to fractional form.	将十进制美元报价转为分数形式。	1.125,16
+COUPDAYBS	settlement,maturity,frequency,basis?	Returns days from the previous coupon date to settlement.	返回上一付息日至结算日的天数。	DATE(2024,4,1),DATE(2026,1,1),2
+COUPDAYS	settlement,maturity,frequency,basis?	Returns the day count of the coupon period containing settlement.	返回包含结算日的付息周期天数。	DATE(2024,4,1),DATE(2026,1,1),2
+COUPNUM	settlement,maturity,frequency,basis?	Returns the number of coupon payments from settlement to maturity.	返回结算日至到期日的付息次数。	DATE(2024,4,1),DATE(2026,1,1),2
+COUPNCD	settlement,maturity,frequency,basis?	Returns the next coupon date after settlement.	返回结算日之后的下一付息日。	DATE(2024,4,1),DATE(2026,1,1),2
+COUPPCD	settlement,maturity,frequency,basis?	Returns the previous coupon date at or before settlement.	返回结算日或之前最近的付息日。	DATE(2024,4,1),DATE(2026,1,1),2
+COUPDAYSNC	settlement,maturity,frequency,basis?	Returns days from settlement to the next coupon date.	返回结算日至下一付息日的天数。	DATE(2024,4,1),DATE(2026,1,1),2
+AMORDEGRC	cost,date_purchased,first_period,salvage,period,rate,basis?	Returns period depreciation with the amortization life coefficient and salvage cap.	使用折旧年限系数及残值上限返回指定期折旧额。	1000,DATE(2024,1,1),DATE(2024,12,31),100,1,0.2
+AMORLINC	cost,date_purchased,first_period,salvage,period,rate,basis?	Returns linear period depreciation with a prorated first period.	返回线性期间折旧额，首期按比例计算。	1000,DATE(2024,1,1),DATE(2024,12,31),100,1,0.2
+ODDFPRICE	settlement,maturity,issue,first_coupon,rate,yld,redemption,frequency,basis?	Returns price for a security with an odd first coupon period.	返回首个付息周期不规则的证券价格。	DATE(2024,2,1),DATE(2026,1,1),DATE(2024,1,1),DATE(2024,7,1),0.05,0.04,100,2
+ODDFYIELD	settlement,maturity,issue,first_coupon,rate,pr,redemption,frequency,basis?	Solves yield for a security with an odd first coupon period.	求首个付息周期不规则的证券收益率。	DATE(2024,2,1),DATE(2026,1,1),DATE(2024,1,1),DATE(2024,7,1),0.05,100,100,2
+ODDLPRICE	settlement,maturity,last_interest,rate,yld,redemption,frequency,basis?	Returns price for a security with an odd last coupon period.	返回最后付息周期不规则的证券价格。	DATE(2024,4,1),DATE(2025,2,1),DATE(2024,1,1),0.05,0.04,100,2
+ODDLYIELD	settlement,maturity,last_interest,rate,pr,redemption,frequency,basis?	Returns yield for a security with an odd last coupon period.	返回最后付息周期不规则的证券收益率。	DATE(2024,4,1),DATE(2025,2,1),DATE(2024,1,1),0.05,100,100,2
+PDURATION	rate,pv,fv	Returns periods needed for present value to grow to future value at a positive rate.	返回现值按正利率增长为终值所需的期数。	0.1,100,200
+RRI	nper,pv,fv	Returns the equivalent periodic growth rate between present and future value.	返回现值增长为终值的等效每期增长率。	5,100,200
+FVSCHEDULE	principal,schedule	Compounds principal using a sequence of periodic interest rates.	使用每期利率序列计算本金复利终值。	100,{0.1,0.2}

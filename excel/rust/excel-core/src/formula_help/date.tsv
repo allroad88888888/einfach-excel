@@ -1,0 +1,26 @@
+# Audited against eval_fn_date_* and date arithmetic/workday helpers.
+TODAY		Returns today's date as a serial number.	返回今天日期的序列值。	
+NOW		Returns the current date and time as a serial number.	返回当前日期与时间的序列值。	
+DATE	year,month,day	Creates a date serial; out-of-range months and days roll across calendar boundaries.	创建日期序列值，超出范围的月日按日历顺延。	2024,1,15
+YEAR	serial_number	Extracts the calendar year from a date serial.	从日期序列值提取年份。	DATE(2024,1,15)
+MONTH	serial_number	Extracts the month number from a date serial.	从日期序列值提取月份。	DATE(2024,1,15)
+DAY	serial_number	Extracts the day of the month from a date serial.	从日期序列值提取日。	DATE(2024,1,15)
+HOUR	serial_number	Extracts the hour from the fractional part of a date-time serial.	从日期时间序列值的小数部分提取小时。	TIME(12,30,0)
+MINUTE	serial_number	Extracts the minute from a date-time serial.	从日期时间序列值提取分钟。	TIME(12,30,0)
+SECOND	serial_number	Extracts the second from a date-time serial.	从日期时间序列值提取秒。	TIME(12,30,5)
+TIME	hour,minute,second	Creates a fractional-day serial from nonnegative hour, minute and second values, wrapping at 24 hours.	用非负时分秒创建一天内的时间序列值，超过 24 小时循环。	12,30,0
+WEEKDAY	serial_number,return_type?	Returns the weekday index; return type selects the first day and numbering convention.	返回星期索引，return_type 指定起始日及编号规则。	DATE(2024,1,15),2
+WEEKNUM	serial_number,return_type?	Returns the week number using the selected week-start convention.	按指定周起始规则返回周数。	DATE(2024,1,15),2
+ISOWEEKNUM	serial_number	Returns the ISO 8601 week number.	返回 ISO 8601 周数。	DATE(2024,1,15)
+EOMONTH	start_date,months	Returns the last date of the month offset by months.	返回偏移指定月数后的月末日期。	DATE(2024,1,15),1
+EDATE	start_date,months	Returns the date offset by months, clamping the day to the target month's end.	返回偏移指定月数后的日期，日数最多为目标月末。	DATE(2024,1,31),1
+DAYS	end_date,start_date	Returns end_date minus start_date in days.	返回结束日期减开始日期的天数。	DATE(2024,2,1),DATE(2024,1,1)
+DATEDIF	start_date,end_date,unit	Returns a date difference in Y, M, D, YM, MD or YD units.	按 Y、M、D、YM、MD 或 YD 单位返回日期差。	DATE(2020,1,1),DATE(2024,1,1),"Y"
+DATEVALUE	date_text	Parses a date in YYYY-MM-DD or YYYY/MM/DD form.	解析 YYYY-MM-DD 或 YYYY/MM/DD 格式的日期。	"2024-01-15"
+TIMEVALUE	time_text	Parses a time in HH:MM or HH:MM:SS form.	解析 HH:MM 或 HH:MM:SS 格式的时间。	"12:30:00"
+YEARFRAC	start_date,end_date,basis?	Returns the year fraction between dates; basis defaults to zero (US 30/360).	返回两日期之间的年分数，默认基准为 0（美式 30/360）。	DATE(2024,1,1),DATE(2024,7,1),3
+NETWORKDAYS	start_date,end_date,holidays?	Counts inclusive workdays excluding Saturday, Sunday and optional holidays.	统计含首尾日期的工作日，排除周六、周日及可选节假日。	DATE(2024,1,1),DATE(2024,1,5)
+NETWORKDAYS.INTL	start_date,end_date,weekend?,holidays?	Counts inclusive workdays using a weekend code or seven-character mask.	使用周末代码或七字符掩码统计含首尾的工作日。	DATE(2024,1,1),DATE(2024,1,5),1
+WORKDAY	start_date,days,holidays?	Moves forward or backward by workdays, excluding weekends and holidays.	排除周末及节假日后向前或向后移动指定工作日数。	DATE(2024,1,1),5
+WORKDAY.INTL	start_date,days,weekend?,holidays?	Moves by workdays using a weekend code or seven-character mask.	使用周末代码或七字符掩码移动指定工作日数。	DATE(2024,1,1),5,1
+DAYS360	start_date,end_date,method?	Returns the 30/360 day count; FALSE selects US and TRUE European rules.	返回 30/360 规则天数；FALSE 为美式，TRUE 为欧式。	DATE(2024,1,1),DATE(2024,7,1),FALSE

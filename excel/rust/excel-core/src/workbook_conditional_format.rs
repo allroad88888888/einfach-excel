@@ -51,6 +51,7 @@ impl Workbook {
         expected_revision: u64,
         rule: ConditionalFormatRuleEntry,
     ) -> Result<ConditionalFormatConfigSnapshot, ConditionalFormatError> {
+        self.ensure_sheet_unprotected(sheet).map_err(|_| ConditionalFormatError::SheetProtected)?;
         if self.is_inside_custom_call() {
             return Err(ConditionalFormatError::MutationDuringCustomCall);
         }
@@ -82,6 +83,7 @@ impl Workbook {
         expected_revision: u64,
         rule_id: &str,
     ) -> Result<ConditionalFormatConfigSnapshot, ConditionalFormatError> {
+        self.ensure_sheet_unprotected(sheet).map_err(|_| ConditionalFormatError::SheetProtected)?;
         if self.is_inside_custom_call() {
             return Err(ConditionalFormatError::MutationDuringCustomCall);
         }

@@ -6,6 +6,7 @@ use crate::shift::{shift_interval, ShiftEdit};
 impl crate::Workbook {
     /// 导入/历史的替换入口。折叠影响 SUBTOTAL 101–111，但不改变手动隐藏集合。
     pub fn set_outline(&mut self, sheet_index: usize, outline: SheetOutline) -> Result<bool, &'static str> {
+        self.ensure_sheet_unprotected(sheet_index)?;
         if self.is_inside_custom_call() {
             return Err("Cannot change outline during a custom call.");
         }

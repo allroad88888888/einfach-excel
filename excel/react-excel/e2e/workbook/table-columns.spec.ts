@@ -18,6 +18,9 @@ async function close(page: Page) {
 }
 async function assertReferences(page: Page, name: string) {
   await select(page, 'B80', '79:1'); await expect(cell(page, '79:1')).toHaveText(name)
+  await expect(cell(page, '79:0')).toHaveText('Product')
+  for (const [row, value] of [[80, '10'], [81, '20'], [82, '30']] as const)
+    await expect(cell(page, `${row}:1`)).toHaveText(value)
   await select(page, 'B84', '83:1')
   await expect(cell(page, '83:1')).toHaveText('60')
   await expect(formula(page)).toHaveValue(`=SUBTOTAL(109,DemoTable[${name}])`)
@@ -126,6 +129,10 @@ test('name manager locates a Table on another worksheet without adding history',
   await expect(page.getByRole('dialog')).toHaveCount(0)
   await expect(page.getByRole('tab', { name: 'Summary', exact: true })).toHaveAttribute('aria-selected', 'true')
   await expect(cell(page, '79:0')).toBeVisible()
+  await expect(cell(page, '79:0')).toHaveText('Product')
+  await expect(cell(page, '80:1')).toHaveText('10')
+  await expect(cell(page, '83:1')).toHaveText('60')
+  await expect(cell(page, '79:2')).not.toHaveAttribute('data-selected', 'true')
   await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('A80:B84')
   await expect(page.locator('[data-workbook-grid]')).toBeFocused()
   await expect(button(page, 'Undo')).toBeDisabled()

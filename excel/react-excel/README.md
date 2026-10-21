@@ -13,6 +13,23 @@ Rust/WASM 引擎驱动的销售订单工作簿。
 填充支持定向复制、序列面板与四方向拖拽；详细操作、原始样例与已知限制统一放在
 [当前能力与操作说明](docs/current-capabilities.md)，完整计划见[功能进度](FEATURE_PROGRESS.md)。
 
+## 本轮七项扩展（完整回归通过）
+
+Insert 中的 Note 保存独立纯文本备注，Comments 保存含显示名、本机时间及解决/重开事件的本地线程；
+二者可在同格共存，不会替代值或公式。显示名不是认证身份，也不提供远程协作或通知。
+Data 中的 Worksheet protection 在保护前配置允许编辑范围；允许区保留内容/格式编辑，工作表设置仍锁定。
+条件格式可覆盖自动端点，支持数值、百分比、百分位和公式阈值，以及三箭头/交通灯/旗帜图标。
+数据验证可用相对公式、选格提示及 Stop/Warning/Information 错误级别；后两者必须明确 Continue 才提交。
+函数选择器、格内编辑与公式栏展示当前原生构件的参数、重复组、示例及实现限制，不宣称 Office 全兼容。
+Formulas 中的 Custom formulas 将参数表达式保存为工作簿数据，沿原生 LAMBDA 求值；单元格引用经实参传入，
+不执行文件内 JavaScript 或外部脚本。
+
+Sales Orders B2 是备注示例；Summary 原生示例：A71:A73 允许区（初始不保护）、H75:H79 图标阈值、H83 的 ORDER_NET 调用、H84 线程。
+这些种子不产生启动历史。2026-10-21 最终单次真实 Worker/WASM 完整回归 2474/2474 通过，
+同一报告核验 955/955 已登记操作，零失败、跳过或重试；1280px/390px 中英文截图已独立审阅。
+原生双配置、WASM、JavaScript、类型、构建及静态门禁证据均已收齐；本轮未提交或推送，
+不据此宣称整个功能计划或 Office 兼容范围完成。
+
 ## Rust-only 运行边界
 
 ```text
@@ -150,6 +167,7 @@ pnpm --filter @einfach/excel-wasm build:wasm # Rust 源码变化后重建本地 
 pnpm --filter @einfach/react-excel dev
 pnpm --filter @einfach/react-excel typecheck
 pnpm --filter @einfach/react-excel test
+pnpm check:e2e-features # 功能点逐项对应可执行 E2E，不代表已运行通过
 pnpm --filter @einfach/react-excel e2e:install # 首次运行或 Playwright 升级后安装配套浏览器
 pnpm --filter @einfach/react-excel e2e
 pnpm --filter @einfach/react-excel build
@@ -160,3 +178,8 @@ pnpm --filter @einfach/react-excel build
 React 测试覆盖 demo 数据、共享启动生命周期、Store 隔离、选区交互、可见窗口投影、连续单元格编辑，
 以及 mutation 等待期间滚动后仍保持最新窗口等场景。UI-core 的 command atom 测试位于
 `excel/spreadsheet-ui-core/test/`。
+
+功能点与独立主用例登记在 [E2E 对照表](e2e/FEATURES.md)。鼠标 Shift 点击、键盘 Shift 扩选、
+Shift 行列头扩选分别验收，不能互相替代。`e2e` 命令会先检查缺失／改名／重复绑定／跳过用例；
+CI 也运行此元数据门禁。历史细项仍在逐项回填，不凭 E2E 总数宣称所有交互已覆盖。
+真实执行后用 `pnpm check:e2e-features --results /path/to/playwright.json` 核对报告中的逐项结果。

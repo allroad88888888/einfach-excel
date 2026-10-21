@@ -53,10 +53,16 @@ it before coding.
 
 ## Verification
 
+Every user-visible function needs its own stable ID and primary E2E in
+[`e2e/FEATURES.md`](e2e/FEATURES.md). Follow the per-function acceptance rules in the
+[feature-wave skill](skills/react-excel-feature-wave/SKILL.md#per-function-e2e).
+Passing test totals never substitute for checking the actual interaction entry point.
+
 Run:
 
 ```bash
 pnpm check:presentation
+pnpm check:e2e-features
 pnpm --filter @einfach/spreadsheet-ui-core build
 pnpm --filter @einfach/react-excel typecheck
 pnpm --filter @einfach/react-excel test

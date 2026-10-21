@@ -165,6 +165,10 @@ export function cloneCell(cell: DisplayCell): DisplayCell {
   if (cell.format) clone.format = cloneFormat(cell.format)
   if (cell.conditionalFormat) clone.conditionalFormat = cloneFormat(cell.conditionalFormat)
   if (cell.dataBar) clone.dataBar = { ...cell.dataBar }
+  if (cell.conditionalIcon) clone.conditionalIcon = { ...cell.conditionalIcon }
+  if (cell.noteIndicator !== undefined) clone.noteIndicator = cell.noteIndicator
+  if (cell.commentIndicator !== undefined) clone.commentIndicator = cell.commentIndicator
+  if (cell.commentThreadId !== undefined) clone.commentThreadId = cell.commentThreadId
   if (cell.validation) clone.validation = { ...cell.validation }
   if (cell.richValue) clone.richValue = cloneRichValue(cell.richValue)
   if (cell.mergedSpan) clone.mergedSpan = { ...cell.mergedSpan }
@@ -249,6 +253,8 @@ export function conditionalRuleFormat(
       return normalizeFormat({ bgColor: rule.maxColor ?? '#bfdbfe' })
     case 'color-scale':
       return normalizeFormat({ bgColor: rule.maxColor })
+    case 'icon-set':
+      return undefined
   }
 }
 

@@ -107,6 +107,8 @@ impl Workbook {
             }
         }
         self.remap_tables_after_shift(sheet_index, edit);
+        self.retarget_validation_sheet_references(sheet_index, edit);
+        self.shift_protection_ranges(sheet_index, edit);
         for owner in 0..self.sheets.len() {
             let rules = self.shifted_conditional_format_rules(owner, sheet_index, edit);
             self.replace_conditional_format_rules(owner, rules)

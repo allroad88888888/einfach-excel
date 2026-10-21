@@ -19,6 +19,7 @@ impl Workbook {
         sheet_index: usize,
         state: &SheetVisibility,
     ) -> Result<(), &'static str> {
+        self.ensure_sheet_unprotected(sheet_index)?;
         if self.is_inside_custom_call() {
             return Err("Cannot change visibility during a custom call.");
         }
@@ -39,7 +40,7 @@ impl Workbook {
     }
 
     pub fn set_eval_hidden_rows(&mut self, sheet_index: usize, rows: &[u32]) {
-        if self.is_inside_custom_call() {
+        if self.is_inside_custom_call() || self.ensure_sheet_unprotected(sheet_index).is_err() {
             return;
         }
         let Some(sheet) = self.sheets.get_mut(sheet_index) else {
@@ -80,7 +81,7 @@ impl Workbook {
         sheet_index: usize,
         mutate: impl FnOnce(&mut Sheet) -> bool,
     ) -> bool {
-        if self.is_inside_custom_call() {
+        if self.is_inside_custom_call() || self.ensure_sheet_unprotected(sheet_index).is_err() {
             return false;
         }
         let Some(sheet) = self.sheets.get_mut(sheet_index) else {
@@ -187,6 +188,7 @@ impl Workbook {
     /// matters because a host that snapshots hidden state in every undo
     /// transaction will restore identical state most of the time.
     pub fn restore_hidden(&mut self, snapshot: HiddenRowsSnapshot) -> Result<u32, HiddenRowsError> {
+        self.ensure_workbook_unprotected().map_err(|_| HiddenRowsError::ProtectedWorksheet)?;
         if self.is_inside_custom_call() {
             return Err(HiddenRowsError::MutationDuringCustomCall);
         }

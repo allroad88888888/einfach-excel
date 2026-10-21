@@ -63,6 +63,7 @@ impl WorkbookHistory {
         action: ConditionalFormatRuleAction,
     ) -> Result<ConditionalFormatConfigSnapshot, String> {
         use ConditionalFormatRuleAction::*;
+        workbook.ensure_sheet_unprotected(sheet)?;
         if self.pending.is_some() || workbook.is_inside_custom_call() {
             return Err("Another history command is pending.".into());
         }
@@ -163,6 +164,7 @@ impl WorkbookHistory {
         revision: u64,
         rule: ConditionalFormatRuleEntry,
     ) -> Result<ConditionalFormatConfigSnapshot, String> {
+        workbook.ensure_sheet_unprotected(sheet)?;
         if self.pending.is_some() || workbook.is_inside_custom_call() {
             return Err("Another history command is pending.".into());
         }
@@ -193,6 +195,7 @@ impl WorkbookHistory {
         revision: u64,
         id: &str,
     ) -> Result<ConditionalFormatConfigSnapshot, String> {
+        workbook.ensure_sheet_unprotected(sheet)?;
         if self.pending.is_some() || workbook.is_inside_custom_call() {
             return Err("Another history command is pending.".into());
         }

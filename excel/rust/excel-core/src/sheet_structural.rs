@@ -29,6 +29,8 @@ impl Sheet {
         if at >= limit || count > limit - at {
             return Err("Invalid structural edit range.");
         }
+        self.validate_note_shift(edit)?;
+        self.validate_comment_shift(edit)?;
         if !insert || count == 0 {
             return Ok(());
         }
@@ -191,6 +193,8 @@ impl Sheet {
             sheet.shift_frozen_panes(edit);
             sheet.shift_outline(edit);
             sheet.shift_data_validations(edit);
+            sheet.shift_notes(edit);
+            sheet.shift_comments(edit);
             match edit {
                 crate::shift::ShiftEdit::RowInsert { at, count } => {
                     Self::shift_dimension_insert(&mut sheet.row_styles, at, count);

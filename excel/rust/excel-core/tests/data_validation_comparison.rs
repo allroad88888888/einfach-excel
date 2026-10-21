@@ -11,6 +11,7 @@ fn rule(kind: Kind, operator: Op) -> Rule {
         kind,
         operator,
         ignore_blank: false,
+        options: Default::default(),
     }
 }
 

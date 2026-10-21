@@ -86,6 +86,10 @@ impl WasmWorkbook {
             sheets,
             cells: self.snapshot_sparse_cells(),
             hyperlinks: self.hyperlinks_json(),
+            notes: self.notes_json(),
+            comments: self.comments_json(),
+            protection: self.protection_json(),
+            custom_formulas: self.workbook.custom_formula_definitions(),
             merges: self.merges_json(),
             freeze: self.freeze_json(),
             outlines: self.outlines_json(),
@@ -139,7 +143,10 @@ impl WasmWorkbook {
         }
         self.workbook
             .restore_filters(Self::filter_snapshot_from_json(payload.filters))
-            .map_err(|_| "mutation-during-custom-call".to_string())
+            .map_err(|error| match error {
+                FilterError::ProtectedWorksheet => einfach_excel_core::protection::PROTECTED_ERROR.to_string(),
+                _ => format!("{error:?}"),
+            })
     }
 
     fn filter_result_to_js(
@@ -172,6 +179,9 @@ impl WasmWorkbook {
         }
         self.workbook
             .restore_hidden(Self::hidden_snapshot_from_json(payload.hidden))
-            .map_err(|_| "mutation-during-custom-call".to_string())
+            .map_err(|error| match error {
+                einfach_excel_core::HiddenRowsError::MutationDuringCustomCall => "mutation-during-custom-call",
+                einfach_excel_core::HiddenRowsError::ProtectedWorksheet => einfach_excel_core::protection::PROTECTED_ERROR,
+            }.to_string())
     }
 }

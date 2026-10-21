@@ -17,6 +17,8 @@ import { useWorkbookViewport, type WorkbookViewport } from '../../projection/use
 import { CellRenderer } from './CellRenderer'
 import { CellEditor } from '../editor/CellEditor'
 import { CellValidationList } from '../editor/CellValidationList'
+import { ValidationInputMessage } from '../../advanced-validation/ValidationInputMessage'
+import { ValidationErrorAlert } from '../../advanced-validation/ValidationErrorAlert'
 import { ResizeGuide } from './ResizeGuide'
 import {
   WORKBOOK_GRID_COLUMN_WIDTH,
@@ -207,6 +209,10 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
           <CellValidationList focusGrid={events.focusGrid} />
           <ResizeGuide />
         </div>
+      </div>
+      <div className="grid-validation-feedback">
+        <ValidationInputMessage />
+        <ValidationErrorAlert />
       </div>
     </section>
   )

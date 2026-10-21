@@ -1,0 +1,57 @@
+import { expect, test, type Page } from '@playwright/test'
+import { select } from '../support/clipboard'
+
+const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
+
+// 删除确认的非破坏入口；关闭后直接发送键盘事件，不用 locator.press 偷偷补回焦点。
+for (const width of [1280, 390]) for (const action of ['Open', 'Cancel', 'Escape', 'Tab', 'Shift+Tab'] as const)
+  test(`${action} delete confirmation preserves cells and redo at ${width}px`, async ({ page }, info) => {
+    await page.setViewportSize({ width, height: 850 })
+    await page.goto('/e2e/fixtures/plain-sales-orders/')
+    await expect(cell(page, '1:0')).toHaveText('SO-10001')
+    await select(page, 'H2', '1:7')
+    const bar = page.getByRole('textbox', { name: 'Active cell value', exact: true })
+    const undo = page.getByRole('button', { name: 'Undo', exact: true })
+    const redo = page.getByRole('button', { name: 'Redo', exact: true })
+    await bar.fill('Keep delete redo')
+    await bar.press('Enter')
+    await expect(cell(page, '1:7')).toHaveText('Keep delete redo')
+    await undo.click()
+    await select(page, 'B2', '1:1')
+    await expect(page.locator('[data-workbook-grid]')).toBeFocused()
+    await page.getByRole('button', { name: 'Delete sheet', exact: true }).click()
+    const dialog = page.getByRole('alertdialog', { name: 'Delete worksheet?', exact: true })
+    await expect(dialog).toBeInViewport()
+    await expect(dialog).toContainText('Sales Orders')
+    await expect(dialog).toContainText('session history limits')
+    await expect(dialog.getByRole('button', { name: 'Cancel', exact: true })).toBeFocused()
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+    if (action === 'Open') await page.screenshot({ path: info.outputPath(`sheet-delete-${width}.png`) })
+    if (action === 'Tab' || action === 'Shift+Tab') {
+      const first = dialog.getByRole('button', { name: 'Cancel', exact: true })
+      const last = dialog.getByRole('button', { name: 'Delete worksheet', exact: true })
+      await (action === 'Tab' ? last : first).focus()
+      await page.keyboard.press(action)
+      await expect(action === 'Tab' ? first : last).toBeFocused()
+    }
+    if (action === 'Escape') await page.keyboard.press('Escape')
+    else await dialog.getByRole('button', { name: 'Cancel', exact: true }).click()
+    await expect(dialog).toHaveCount(0)
+    await expect(page.getByRole('tablist', { name: 'Workbook sheets' }).getByRole('tab'))
+      .toHaveText(['Sales Orders', 'Summary'])
+    await expect(cell(page, '1:1')).toHaveText('Acme Co.')
+    await expect(cell(page, '1:1')).toHaveCSS('font-style', 'italic')
+    if (action !== 'Open') {
+      await page.keyboard.press('ArrowDown')
+      await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('B3')
+      await expect(page.locator('[data-workbook-grid]')).toBeFocused()
+      await expect(cell(page, '2:1')).toHaveText('Northwind')
+    }
+    await expect(undo).toBeDisabled()
+    await redo.click()
+    await select(page, 'H2', '1:7')
+    await expect(cell(page, '1:7')).toHaveText('Keep delete redo')
+    await select(page, 'A2', '1:0')
+    await expect(cell(page, '1:0')).toHaveText('SO-10001')
+    await expect(cell(page, '1:0')).toHaveCSS('font-weight', '700')
+  })

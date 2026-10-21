@@ -92,21 +92,35 @@ test('invalid rule stays correctable and cancel creates no history', async ({ pa
   await expect(button(page, 'Undo')).toBeDisabled()
 })
 
-test('values paste rejects atomically while ordinary paste bypasses entry validation', async ({ page, context }) => {
+test('values and ordinary paste obey Stop validation with atomic rejection and undoable valid input', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await go(page, 'H45:H46')
   await page.evaluate(() => navigator.clipboard.writeText('7\n2'))
   await button(page, 'Paste values only').click()
   await expect(page.getByRole('alert', { name: 'Clipboard status' })).toContainText('Nothing was pasted')
+  await expect(button(page, 'Paste')).toBeEnabled()
   await expect(cell(page, '44:7')).toHaveText('5')
   await expect(cell(page, '45:7')).toHaveText('0.5')
   await expect(button(page, 'Undo')).toBeDisabled()
   await button(page, 'Paste').click()
+  await expect(page.getByRole('alert', { name: 'Clipboard status' })).toContainText('Nothing was pasted')
+  await expect(button(page, 'Paste')).toBeEnabled()
+  await expect(cell(page, '44:7')).toHaveText('5')
+  await expect(cell(page, '45:7')).toHaveText('0.5')
+  await expect(button(page, 'Undo')).toBeDisabled()
+  await expect(cell(page, '46:7')).toHaveText('Ready')
+  await page.evaluate(() => navigator.clipboard.writeText('7\n0.75'))
+  await button(page, 'Paste').click()
   await expect(cell(page, '44:7')).toHaveText('7')
-  await expect(cell(page, '45:7')).toHaveText('2')
+  await expect(cell(page, '45:7')).toHaveText('0.75')
+  await expect(cell(page, '46:7')).toHaveText('Ready')
   await button(page, 'Undo').click()
   await expect(cell(page, '44:7')).toHaveText('5')
   await expect(cell(page, '45:7')).toHaveText('0.5')
+  await button(page, 'Redo').click()
+  await expect(cell(page, '44:7')).toHaveText('7')
+  await expect(cell(page, '45:7')).toHaveText('0.75')
+  await expect(cell(page, '46:7')).toHaveText('Ready')
 })
 
 test('row insertion moves list rule and undo restores the original cell', async ({ page }) => {
@@ -175,6 +189,8 @@ test('bad date and time bounds stay correctable without creating history', async
   await button(page, 'Undo').click(); await expect(cell(page, '44:3')).toHaveText('')
   await button(page, 'Undo').click(); await expect(button(page, 'Undo')).toBeDisabled()
   await open(page); await expect(page.getByLabel('Allow')).toHaveValue('whole-number')
+  await expect(cell(page, '44:7')).toHaveText('5')
+  await expect(cell(page, '48:7')).toHaveText('2026-10-11')
 })
 
 test('length zero permits clearing when blank cells are not ignored', async ({ page }) => {

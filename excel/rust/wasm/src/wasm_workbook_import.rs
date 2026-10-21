@@ -1,6 +1,7 @@
 #[wasm_bindgen]
 impl WasmWorkbook {
     pub fn bulk_import_cells(&mut self, cells: JsValue) -> Result<JsValue, JsValue> {
+        self.ensure_protection_workbook()?;
         // No per-call payload cap. The pre-Phase-2 path needed one to
         // dodge a WASM allocator panic on the eager formula-install
         // loop; the Phase 2/3 lazy `bulk_load` makes single-call 5M+

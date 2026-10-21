@@ -1,4 +1,5 @@
 //! 数据验证的原生规则；只判断候选值，不写单元格、不改变公式重算。
+pub use crate::workbook::advanced_validation::AdvancedValidationOptions;
 use crate::{excel_general_to_text, CellRange};
 use einfach_core::Value;
 use std::sync::Arc;
@@ -43,12 +44,33 @@ impl DataValidationOperator {
 /// 闭区间与显式列表；日期/时间边界保留输入文本，复用唯一原生解析器。
 #[derive(Clone, Debug, PartialEq)]
 pub enum DataValidationKind {
-    WholeNumber { min: f64, max: f64 },
-    Decimal { min: f64, max: f64 },
-    Date { min: String, max: String },
-    Time { min: String, max: String },
-    TextLength { min: f64, max: f64 },
-    List { items: Vec<String> },
+    WholeNumber {
+        min: f64,
+        max: f64,
+    },
+    Decimal {
+        min: f64,
+        max: f64,
+    },
+    Date {
+        min: String,
+        max: String,
+    },
+    Time {
+        min: String,
+        max: String,
+    },
+    TextLength {
+        min: f64,
+        max: f64,
+    },
+    List {
+        items: Vec<String>,
+    },
+    CustomFormula {
+        formula: String,
+        anchor: crate::CellAddress,
+    },
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -56,6 +78,7 @@ pub struct DataValidationRule {
     pub kind: DataValidationKind,
     pub ignore_blank: bool,
     pub operator: DataValidationOperator,
+    pub options: AdvancedValidationOptions,
 }
 
 /// 区域拆分共享不可变规则，不为大选区创建逐格配置或复制下拉选项。
@@ -80,12 +103,29 @@ impl DataValidationRule {
                 crate::date_serial::parse_iso_date(max)?,
             )),
             DataValidationKind::Time { min, max } => Some((clock_bound(min)?, clock_bound(max)?)),
-            DataValidationKind::List { .. } => None,
+            DataValidationKind::List { .. } | DataValidationKind::CustomFormula { .. } => None,
         }
     }
 
     pub fn validate_definition(&self) -> Result<(), &'static str> {
+        self.options.validate()?;
         match &self.kind {
+            DataValidationKind::CustomFormula { formula, anchor } => {
+                if formula.len() > 8192
+                    || anchor.row >= crate::sheet::EXCEL_MAX_ROWS
+                    || anchor.col >= crate::sheet::EXCEL_MAX_COLS
+                {
+                    return Err("Enter a formula of at most 8192 bytes with a valid range anchor.");
+                }
+                let expression = crate::parse_formula(formula.trim())
+                    .ok_or("Enter a valid validation formula.")?;
+                crate::shift::shift_copy_formula(&expression, 0, 0).map_err(|_| {
+                    "This validation formula cannot be translated across the range."
+                })?;
+                if self.operator != DataValidationOperator::Between {
+                    return Err("Custom formulas do not support comparison operators.");
+                }
+            }
             DataValidationKind::WholeNumber { min, max }
             | DataValidationKind::Decimal { min, max }
             | DataValidationKind::TextLength { min, max } => {
@@ -139,6 +179,8 @@ impl DataValidationRule {
                 DataValidationKind::TextLength { min, max } if self.operator.accepts(0.0, min, max));
         }
         match &self.kind {
+            // 自定义公式需要工作簿上下文，不能靠纯值接口错误地放行。
+            DataValidationKind::CustomFormula { .. } => false,
             DataValidationKind::WholeNumber { .. }
             | DataValidationKind::Decimal { .. }
             | DataValidationKind::Date { .. }

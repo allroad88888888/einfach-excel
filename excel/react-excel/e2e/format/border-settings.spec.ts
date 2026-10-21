@@ -47,13 +47,15 @@ for (const preset of ['outside', 'inside', 'all', 'horizontal', 'vertical', 'top
   })
 }
 
-test('all six line styles render exact widths, do not alter row height, and undo once', async ({ page }, info) => {
-  await select(page, 'C10:D11', '9:2')
-  const height = (await cell(page, '9:2').boundingBox())!.height
+for (const viewportWidth of [1280, 390]) {
   for (const [style, css, width] of [
     ['thin', 'solid', '1px'], ['medium', 'solid', '2px'], ['thick', 'solid', '3px'],
     ['dashed', 'dashed', '1px'], ['dotted', 'dotted', '1px'], ['double', 'double', '3px'],
-  ]) {
+  ] as const) test(`${style} border has exact width and one undo step at ${viewportWidth}px`, async ({ page }, info) => {
+    await page.setViewportSize({ width: viewportWidth, height: 850 })
+    await select(page, 'C10:D11', '9:2')
+    const height = (await cell(page, '9:2').boundingBox())!.height
+    const before = await cell(page, '9:2').innerText()
     await open(page, 'all', style)
     await apply(page)
     // 上沿由上邻格的底边绘制；断言真实线宽，而不是被抑制的另一面。
@@ -63,16 +65,19 @@ test('all six line styles render exact widths, do not alter row height, and undo
     await expect(cell(page, '9:2')).toHaveCSS('border-top-width', '0px')
     await expect(cell(page, '9:3')).toHaveCSS('border-left-width', '0px')
     await expect(cell(page, '10:2')).toHaveCSS('border-top-width', '0px')
+    await expect(cell(page, '9:2')).toHaveText(before)
+    await expect(cell(page, '9:4')).not.toHaveCSS('border-bottom-color', 'rgb(192, 0, 0)')
     expect((await cell(page, '9:2').boundingBox())!.height).toBe(height)
     await page.getByRole('button', { name: 'Undo', exact: true }).click()
     await expect(cell(page, '8:2')).not.toHaveCSS('border-bottom-color', 'rgb(192, 0, 0)')
     await expect(cell(page, '9:2')).toHaveCSS('border-top-width', '0px')
-  }
-  await page.getByRole('button', { name: 'Redo', exact: true }).click()
-  await expect(cell(page, '8:2')).toHaveCSS('border-bottom-style', 'double')
-  await cell(page, '9:5').click()
-  await page.screenshot({ path: info.outputPath('double-border-grid.png') })
-})
+    await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+    await page.getByRole('button', { name: 'Redo', exact: true }).click()
+    await expect(cell(page, '8:2')).toHaveCSS('border-bottom-style', css)
+    await expect(cell(page, '8:2')).toHaveCSS('border-bottom-width', width)
+    await page.screenshot({ path: info.outputPath(`${style}-border-grid-${viewportWidth}.png`) })
+  })
+}
 
 test('single side preserves seeded formats, color palette and native settings survive scroll and sheet switches', async ({ page }) => {
   await select(page, 'A2', '1:0')

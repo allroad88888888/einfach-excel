@@ -1,6 +1,9 @@
 .fill-series-dialog form {
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
+.fill-series-dialog form > p,
+.fill-series-dialog form > .size-actions,
+.fill-series-dialog form > fieldset { grid-column: 1 / -1; }
 .fill-series-dialog select,
 .fill-series-dialog textarea {
   min-height: 34px;
@@ -16,3 +19,21 @@
 .fill-series-dialog .size-actions {
   justify-content: flex-end;
 }
+.custom-fill-lists {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+}
+.custom-fill-lists legend { padding: 0 4px; font-weight: 600; }
+.custom-fill-lists label[for$="-items"],
+.custom-fill-lists textarea,
+.custom-fill-lists .size-hint,
+.custom-list-actions { grid-column: 1 / -1; }
+.custom-fill-lists textarea { min-height: 76px; }
+.custom-fill-lists .size-hint { margin: 0; }
+.custom-list-actions { display: flex; flex-wrap: wrap; gap: 6px; }

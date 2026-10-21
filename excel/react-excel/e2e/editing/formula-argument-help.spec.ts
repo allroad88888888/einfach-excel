@@ -1,0 +1,43 @@
+import { expect, test, type Page } from '@playwright/test'
+import { select } from '../support/clipboard'
+
+const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
+
+for (const width of [1280, 390]) for (const source of ['cell', 'formula'] as const)
+  test(`${source} nested argument help follows the active call without writing at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 850 })
+    await page.goto('/e2e/fixtures/plain-sales-orders/')
+    await expect(cell(page, '1:0')).toHaveText('SO-10001')
+    await select(page, 'B3', '2:1')
+    if (source === 'cell') await cell(page, '2:1').dblclick()
+    const input = page.getByRole('textbox', {
+      name: source === 'cell' ? 'Cell editor' : 'Active cell value', exact: true,
+    })
+    const help = page.getByLabel('Formula arguments')
+    await input.fill('=IF(TRUE,SUM(')
+    await expect(help).toContainText('SUM(')
+    await expect(help.locator('strong')).toHaveText('[number, ...]')
+    await input.pressSequentially('1,')
+    await expect(help.locator('strong')).toHaveText('[number, ...]')
+    await input.pressSequentially('2),')
+    await expect(help).toContainText('IF(')
+    await expect(help.locator('strong')).toHaveText('[value_if_false]')
+    await expect(input).toBeFocused()
+    await expect(cell(page, '2:1')).toHaveText('Northwind')
+    await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+    await input.pressSequentially('0)')
+    await expect(help).toHaveCount(0)
+    await page.keyboard.press('Enter')
+    await expect(cell(page, '2:1')).toHaveText('3')
+    await expect(page.locator('[data-workbook-grid]')).toBeFocused()
+    await expect(cell(page, '2:0')).toHaveText('SO-10002')
+    await expect(cell(page, '2:2')).toHaveText('East')
+    await page.getByRole('button', { name: 'Undo', exact: true }).click()
+    await expect(cell(page, '2:1')).toHaveText('Northwind')
+    await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+    await page.getByRole('button', { name: 'Redo', exact: true }).click()
+    await expect(cell(page, '2:1')).toHaveText('3')
+    await select(page, 'A2', '1:0')
+    await expect(cell(page, '1:0')).toHaveCSS('font-weight', '700')
+    await expect(cell(page, '1:1')).toHaveCSS('font-style', 'italic')
+  })

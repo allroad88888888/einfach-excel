@@ -13,16 +13,11 @@ import type {
 
 export * from './types'
 
-// Sheet protection is UI-core canonical (CANONICAL_OWNERSHIP flip step 4,
-// #40). Enforcement always lived on the UI side — the W2 mutation gateway
-// (`editing/mutation-gateway.ts`) gates every content mutation through
-// `isRangeFullyUnlocked` — and this module now also owns the protection
-// configuration itself. The backend `setSheetProtection` / `setRangeLock`
-// ports degrade to a fire-and-forget persistence mirror and
-// `readSheetProtection` degrades to a one-shot hydration seed. No ACK
-// lifecycle, no authority ticket, no revision witness: protect /
-// unprotect / unlock commands commit synchronously and work with backends
-// that expose no protection port at all.
+// React's Rust Worker path hydrates this UI projection from accepted native
+// results. Rust owns protection configuration and rejects native writes;
+// isRangeFullyUnlocked is only an early UI affordance in that path.
+// The synchronous commands and optional persistence ports below remain for
+// legacy hosts. They must not be used as the Rust workbook's authority.
 //
 // Protection changes are intentionally NOT recorded in undo history:
 // Excel does not undo protect/unprotect or allow-edit-range changes, and
@@ -254,6 +249,13 @@ export interface SheetProtectionDiagnostic {
 
 const sheetProtectionDiagnosticBackingAtom = atom<SheetProtectionDiagnostic | null>(null)
 sheetProtectionDiagnosticBackingAtom.debugLabel = 'spreadsheet.protection.diagnosticBacking'
+
+/** 工作簿连接被替换时回收旧投影；普通切表由原生返回事实重新发布。 */
+export const resetSheetProtectionProjectionAtom = atom(null, (_get, set): void => {
+  set(sheetProtectionSourceAtom, EMPTY_SHEET_PROTECTION)
+  set(sheetProtectionSeededSheetsAtom, new Set<string>())
+  set(sheetProtectionDiagnosticBackingAtom, null)
+})
 
 /** Read-only projection of the last persistence-hook failure. Local state is never rolled back. */
 export const sheetProtectionDiagnosticAtom: Atom<SheetProtectionDiagnostic | null> = atom((get) =>

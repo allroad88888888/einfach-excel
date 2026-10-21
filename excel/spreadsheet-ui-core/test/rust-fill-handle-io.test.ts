@@ -49,3 +49,30 @@ test('forced copy omits inference and native failure rolls back history', () => 
   expect(apply_auto_fill.mock.lastCall![0]).not.toHaveProperty('infer')
   expect(history_finish).toHaveBeenCalledWith(false)
 })
+
+test('double-click resolves the end in Rust before allocating destination history', () => {
+  const { workbook, apply_auto_fill, history_begin } = setup()
+  workbook.find_fill_down_end = vi.fn(() => 11)
+  expect(fillRange(workbook, 0, { sheetId: 's', requestId: 1, range: sourceRange,
+    sourceRange, direction: 'down', auto: true, adjacent: { rowLimit: 100 } }))
+    .toEqual({ ...sourceRange, rowStart: 5, rowEnd: 11 })
+  expect(workbook.find_fill_down_end).toHaveBeenCalledWith(0,
+    { startRow: 3, endRow: 4, startCol: 3, endCol: 4 }, 100)
+  expect(apply_auto_fill.mock.lastCall![0]).toMatchObject({ infer: true,
+    targetRange: { startRow: 3, endRow: 11, startCol: 3, endCol: 4 } })
+  expect(history_begin).toHaveBeenCalledWith(0, 5, 3, 11, 4, 'Fill down', true)
+})
+
+test('absent adjacent data, invalid limits and unavailable exports never start history', () => {
+  const { workbook, apply_auto_fill, history_begin } = setup()
+  const fill = (rowLimit = 100) => fillRange(workbook, 0, { sheetId: 's', requestId: 1,
+    range: sourceRange, sourceRange, direction: 'down', adjacent: { rowLimit } })
+  expect(() => fill()).toThrow('unavailable')
+  const find = vi.fn(() => undefined)
+  workbook.find_fill_down_end = find
+  expect(() => fill()).toThrow('No adjacent continuous data')
+  for (const rowLimit of [-1, 1.5, 1_048_577]) expect(() => fill(rowLimit)).toThrow()
+  expect(find).toHaveBeenCalledTimes(1)
+  expect(history_begin).not.toHaveBeenCalled()
+  expect(apply_auto_fill).not.toHaveBeenCalled()
+})

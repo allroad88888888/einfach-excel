@@ -111,6 +111,11 @@ pub struct WasmWorkbook {
     last_bulk_import_phase_ms: Cell<Option<[f64; 12]>>,
 }
 
+include!("notes/mod.rs");
+include!("comments/mod.rs");
+include!("protection/mod.rs");
+include!("custom_formulas/mod.rs");
+
 include!("wasm_workbook_topology.rs");
 include!("wasm_workbook_tables.rs");
 include!("wasm_workbook_table_commands.rs");
@@ -149,6 +154,7 @@ include!("wasm_workbook_outline.rs");
 include!("wasm_workbook_print_config.rs");
 include!("wasm_workbook_conditional_format.rs");
 include!("wasm_workbook_data_validation.rs");
+include!("advanced_validation/confirmed_input.rs");
 
 impl Default for WasmWorkbook {
     fn default() -> Self {

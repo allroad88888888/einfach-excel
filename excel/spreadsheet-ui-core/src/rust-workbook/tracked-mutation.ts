@@ -28,7 +28,8 @@ export function writeTrackedMutation(
       colEnd: request.col,
     }
     // Rust 根据输入位置决定普通编辑或表头改名，并在原生侧记录一条完整历史。
-    writeCellInput(workbook, sheet, request.row, request.col, request.input, request.expandTables)
+    writeCellInput(workbook, sheet, request.row, request.col, request.input,
+      request.expandTables, request.validationConfirmation)
     return range
   }
   const range = historyFormatRange(request.range, request.scope ?? 'cell')

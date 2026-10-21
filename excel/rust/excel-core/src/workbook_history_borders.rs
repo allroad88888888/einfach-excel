@@ -1,7 +1,7 @@
 //! 共边会影响相邻格，只在 Rust 内计算并保存实际受影响的样式范围。
 use super::*;
 use crate::{
-    sheet::{border_plan_range, BorderPreset},
+    sheet::{border_plan_ranges, BorderPreset},
     BorderSpec,
 };
 
@@ -26,15 +26,14 @@ impl WorkbookHistory {
         if writes.is_empty() {
             return Ok(0);
         }
-        let affected = border_plan_range(&writes).unwrap();
-        self.begin_ranges(
-            workbook,
-            sheet,
-            range,
-            "Format borders",
-            &[(sheet, affected, false)],
-            false,
-        )?;
+        let targets: Vec<_> = border_plan_ranges(&writes)
+            .into_iter()
+            .map(|range| (sheet, range, false))
+            .collect();
+        for addr in writes.keys() {
+            workbook.ensure_range_editable(sheet, CellRange::single(*addr))?;
+        }
+        self.begin_ranges(workbook, sheet, range, "Format borders", &targets, false)?;
         let store = workbook.store.clone();
         let mut count = 0;
         let mut outcome = Ok(());

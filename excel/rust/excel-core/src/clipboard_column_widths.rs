@@ -10,6 +10,7 @@ impl Workbook {
         range: CellRange,
         mut history: Option<&mut WorkbookHistory>,
     ) -> Result<CellRange, ClipboardError> {
+        self.ensure_sheet_unprotected(sheet_idx)?;
         if snapshot.column_widths.len() != snapshot.cols() as usize {
             return Err("CLIPBOARD_NO_FORMATS");
         }

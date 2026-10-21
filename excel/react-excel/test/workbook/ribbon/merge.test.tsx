@@ -69,6 +69,31 @@ async function choose(action: string) {
   })
 }
 
+test.each(['cancel', 'escape', 'Tab', 'Shift+Tab'])('merge confirmation %s preserves keyboard focus', async (action) => {
+  const { change } = await setup()
+  change.mockRejectedValueOnce(new Error('MERGE_CONTENT_CONFIRMATION_REQUIRED'))
+  menu().focus()
+  await choose('merge')
+  const dialog = screen.getByRole('alertdialog', { name: 'Merge these cells?' })
+  const first = within(dialog).getByRole('button', { name: 'Cancel' })
+  const last = within(dialog).getByRole('button', { name: 'Merge cells' })
+  if (action === 'Tab' || action === 'Shift+Tab') {
+    const shiftKey = action === 'Shift+Tab'
+    const from = shiftKey ? first : last
+    from.focus()
+    fireEvent.keyDown(from, { key: 'Tab', shiftKey })
+    expect(shiftKey ? last : first).toHaveFocus()
+  } else {
+    first.focus()
+    await act(async () => {
+      if (action === 'cancel') fireEvent.click(first)
+      else fireEvent(dialog, new Event('cancel', { cancelable: true }))
+    })
+    expect(menu()).toHaveFocus()
+  }
+  expect(change).toHaveBeenCalledTimes(1)
+})
+
 test.each(['merge', 'center', 'unmerge'])(
   '%s sends one command for the selected rectangle and resets the menu',
   async (action) => {

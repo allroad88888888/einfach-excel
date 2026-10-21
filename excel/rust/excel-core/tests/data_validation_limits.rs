@@ -8,6 +8,7 @@ fn rule(kind: Kind) -> Rule {
         kind,
         ignore_blank: false,
         operator: Default::default(),
+        options: Default::default(),
     }
 }
 fn date(min: &str, max: &str) -> Kind {

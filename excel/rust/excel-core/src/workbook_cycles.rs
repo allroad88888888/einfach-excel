@@ -409,8 +409,17 @@ impl Workbook {
                         )
                     });
             }
-            let NamedDefinition::Value(value) = &entry.definition else {
-                unreachable!()
+            let lambda;
+            let value = match &entry.definition {
+                NamedDefinition::Value(value) => value,
+                NamedDefinition::CustomFormula(definition) => {
+                    lambda = definition.lambda_value(|name| matches!(
+                        self.named_values.get(name),
+                        Some(NamedEntry { definition: NamedDefinition::CustomFormula(_), .. })
+                    ));
+                    &lambda
+                }
+                NamedDefinition::Range { .. } => return false,
             };
             self.collect_value_cycle_refs(
                 value,

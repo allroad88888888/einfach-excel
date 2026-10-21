@@ -99,6 +99,34 @@ test('reset is field-specific and preserves the other color and text style', asy
   await expect(cell(page, '1:1')).toHaveCSS('color', 'rgb(67, 67, 67)')
 })
 
+for (const width of [1280, 390]) for (const entry of [
+  { kind: 'fill', label: 'No fill', addr: 'D2', coord: '1:3', reference: '2:3',
+    property: 'background-color', original: 'rgb(255, 242, 204)' },
+  { kind: 'text', label: 'Automatic text color', addr: 'E2', coord: '1:4', reference: '2:4',
+    property: 'color', original: 'rgb(192, 0, 0)' },
+]) test(`${entry.label} resets the seeded color in one step at ${width}px`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 850 })
+  const target = await select(page, entry.addr, entry.coord)
+  const text = await target.innerText()
+  const reset = await cell(page, entry.reference).evaluate(
+    (node, property) => getComputedStyle(node).getPropertyValue(property), entry.property,
+  )
+  await expect(target).toHaveCSS(entry.property, entry.original)
+  await open(page, entry.kind)
+  await page.getByRole('button', { name: entry.label, exact: true }).click()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(target).toHaveCSS(entry.property, reset)
+  await expect(target).toHaveText(text)
+  await expect(cell(page, '1:1')).toHaveText('Acme Co.')
+  await expect(cell(page, '1:1')).toHaveCSS('font-style', 'italic')
+  await page.getByRole('button', { name: 'Undo', exact: true }).click()
+  await expect(target).toHaveCSS(entry.property, entry.original)
+  await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+  await page.getByRole('button', { name: 'Redo', exact: true }).click()
+  await expect(target).toHaveCSS(entry.property, reset)
+  await expect(target).toHaveText(text)
+})
+
 test('No fill masks an inherited column color only at the target cell', async ({ page }) => {
   const original = await cell(page, '2:1').evaluate((node) => getComputedStyle(node).backgroundColor)
   await page.getByRole('columnheader', { name: 'Select column B', exact: true }).click()
@@ -171,14 +199,40 @@ test('merged frozen fragments share native color; both editing entries disable t
   await expect(corner).toHaveText('Acme Co.')
 })
 
-test('native custom picker and backdrop dismissal do not create writes', async ({ page }) => {
+for (const width of [1280, 390]) for (const kind of ['fill', 'text'])
+  test(`backdrop dismisses ${kind} palette without writes at ${width}px`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 850 })
   await select(page, 'B3', '2:1')
-  await open(page)
+  const property = kind === 'fill' ? 'background-color' : 'color'
+  const before = await cell(page, '2:1').evaluate(
+    (node, key) => getComputedStyle(node).getPropertyValue(key), property,
+  )
+  await open(page, kind)
   await page.getByLabel('Custom color picker').fill('#123456')
   await expect(page.getByRole('textbox', { name: 'Color hex' })).toHaveValue('#123456')
   await page.mouse.click(10, 10)
   await expect(page.getByRole('dialog')).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+  await expect(cell(page, '2:1')).toHaveCSS(property, before)
+  await expect(cell(page, '2:1')).toHaveText('Northwind')
+})
+
+for (const width of [1280, 390]) for (const kind of ['fill', 'text'])
+  test(`close ${kind} palette discards the draft without history at ${width}px`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 850 })
+  await select(page, 'B3', '2:1')
+  await open(page, kind)
+  const hex = page.getByRole('textbox', { name: 'Color hex' })
+  const originalDraft = await hex.inputValue()
+  await hex.fill('#123456')
+  await page.getByRole('button', { name: 'Close color palette' }).click()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: `Choose ${kind} color` })).toBeFocused()
+  await expect(cell(page, '2:1')).toHaveText('Northwind')
+  await expect(cell(page, '2:0')).toHaveText('SO-10002')
+  await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+  await open(page, kind)
+  await expect(hex).toHaveValue(originalDraft)
 })
 
 test('pending native format write disables palette actions until the single response arrives', async ({ page }) => {
@@ -225,10 +279,12 @@ for (const width of [1280, 390]) {
     await expect(page.getByRole('button', { name: 'Close color palette' })).toBeFocused()
     await page.keyboard.press('Shift+Tab')
     await expect(page.getByRole('button', { name: 'Apply', exact: true })).toBeFocused()
+    await page.getByRole('textbox', { name: 'Color hex' }).fill('#123456')
     await page.screenshot({ path: info.outputPath(`color-palette-${width}.png`) })
     await page.keyboard.press('Escape')
     await expect(dialog).toHaveCount(0)
     await expect(page.getByRole('button', { name: 'Choose fill color' })).toBeFocused()
+    await expect(cell(page, '1:3')).toHaveCSS('background-color', 'rgb(255, 242, 204)')
     await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
   })
 }

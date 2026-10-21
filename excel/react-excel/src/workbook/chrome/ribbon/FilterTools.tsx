@@ -15,6 +15,7 @@ import {
 import { FilterConditionFields } from './FilterConditionFields'
 import './selection-size.css'
 import './filter.css'
+import { cycleDialogFocus } from './dialog-focus'
 
 /** 工具栏和数据表头复用同一个条件弹窗，区域只读 Rust 投影。 */
 export function FilterTools() {
@@ -88,6 +89,7 @@ export function FilterTools() {
           className="selection-size-dialog filter-dialog"
           aria-labelledby={`${id}-title`}
           aria-describedby={`${id}-help`}
+          onKeyDown={cycleDialogFocus}
           onCancel={(event) => {
             event.preventDefault()
             void configure('close')

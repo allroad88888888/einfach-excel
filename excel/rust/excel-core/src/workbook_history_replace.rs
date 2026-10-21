@@ -122,6 +122,10 @@ impl WorkbookHistory {
             .iter()
             .map(|(sheet, addr, _)| (*sheet, CellRange::single(*addr), true))
             .collect();
+        // Check the entire frozen plan before any replacement can reach the input writer.
+        for &(sheet, range, _) in &history_targets {
+            workbook.ensure_range_editable(sheet, range)?;
+        }
         let (sheet, range, _) = history_targets[0];
         self.begin_ranges(workbook, sheet, range, "Replace", &history_targets, false)?;
         let store = workbook.store.clone();

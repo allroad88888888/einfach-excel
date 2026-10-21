@@ -15,6 +15,7 @@ impl Workbook {
         default_col: u32,
         mut measure: impl FnMut(&Value, &CellFormat, f64) -> Result<f64, String>,
     ) -> Result<bool, String> {
+        self.ensure_sheet_unprotected(sheet_index)?;
         if !matches!(axis, "row" | "column")
             || !(16..=512).contains(&default_row)
             || !(40..=1024).contains(&default_col)

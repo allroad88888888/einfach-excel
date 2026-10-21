@@ -16,6 +16,7 @@ impl FreezeChange {
         key: u64,
         undo: bool,
     ) -> Result<(), &'static str> {
+        workbook.ensure_sheet_unprotected(sheet)?;
         if workbook.is_inside_custom_call() || workbook.sheet_key(sheet) != Some(key) {
             return Err("The worksheet changed outside history.");
         }
@@ -34,6 +35,7 @@ impl WorkbookHistory {
         sheet: usize,
         freeze: FrozenPanes,
     ) -> Result<bool, &'static str> {
+        workbook.ensure_sheet_unprotected(sheet)?;
         if self.pending.is_some() || workbook.is_inside_custom_call() {
             return Err("Another history command is pending.");
         }

@@ -124,7 +124,7 @@ fn failed_inheritance_restores_cells_above_the_shift_band_and_preserves_redo() {
     for at in [3, 4] {
         let (mut book, mut history) = seed(true, Some("=A4*2"));
         book.sheet_mut(0).unwrap().set_data_validation(range("B4", "B4"), Some(DataValidationRule {
-            kind: DataValidationKind::WholeNumber { min: 1., max: 10. },
+            options: Default::default(), kind: DataValidationKind::WholeNumber { min: 1., max: 10. },
             ignore_blank: true, operator: Default::default(),
         })).unwrap();
         history.set_cell_input(&mut book, 0, "F1", "9").unwrap();

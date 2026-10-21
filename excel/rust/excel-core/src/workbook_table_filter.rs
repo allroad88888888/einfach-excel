@@ -27,6 +27,7 @@ impl Workbook {
         }
         let table = self.get_table(name).ok_or("The table no longer exists.")?;
         let sheet = self.index_of(table.sheet_name()).ok_or("The worksheet no longer exists.")?;
+        self.ensure_sheet_unprotected(sheet)?;
         if !table.has_headers && !rules.is_empty() {
             return Err("Show table headers before filtering its columns.".into());
         }
@@ -56,8 +57,9 @@ impl Workbook {
     pub(crate) fn commit_table_filter(&mut self, name: &str, next: Option<SheetAutoFilter>)
         -> Result<bool, String> {
         let table = self.get_table(name).ok_or("The table no longer exists.")?;
-        if table.auto_filter == next { return Ok(false); }
         let sheet = self.index_of(table.sheet_name()).ok_or("The worksheet no longer exists.")?;
+        self.ensure_sheet_unprotected(sheet)?;
+        if table.auto_filter == next { return Ok(false); }
         let arrays = self.array_dependents_for_atoms(&self.atom_context.filter_dependent_atoms());
         let store = self.store.clone();
         store.batch(|_| {

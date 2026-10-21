@@ -17,7 +17,9 @@ async function setup() {
     readonly isPrimary = true
   })
   const fill = vi.fn(async (p: Input) => ({
-    acknowledgement: { sheetId: 's', requestId: p.request.requestId, revision: 1 },
+    acknowledgement: { sheetId: 's', requestId: p.request.requestId, revision: 1,
+      ...(p.request.adjacent ? { affectedRange: { ...p.request.range,
+        rowStart: p.request.range.rowEnd + 1, rowEnd: 8 } } : {}) },
     projection: { ...p.projection, cells: [], revision: 1 },
     sizes: { rowHeights: [], colWidths: [] },
   }))
@@ -71,6 +73,20 @@ test('pressing without moving does not schedule edge autoscroll or write data', 
   await event('pointerUp')
   expect(fill).not.toHaveBeenCalled()
   expect(button.releasePointerCapture).toHaveBeenCalled()
+})
+
+test.each([false, true])('double-click uses the existing fill command once (copy=%s)', async copy => {
+  const { store, fill, button, focus, event } = await setup()
+  // 模拟双击前的两次单击：都不写入，只有 dblclick 提交。
+  for (let click = 0; click < 2; click++) { await event('pointerDown'); await event('pointerUp') }
+  expect(fill).not.toHaveBeenCalled()
+  await act(async () => { fireEvent.doubleClick(button, { ctrlKey: copy }) })
+  expect(fill).toHaveBeenCalledTimes(1)
+  expect(fill.mock.lastCall![0].request).toMatchObject({
+    adjacent: { rowLimit: 100 }, auto: !copy, direction: 'down',
+  })
+  expect(store.getter(fillHandleDragAtom)).toBeNull()
+  expect(focus).toHaveBeenCalled()
 })
 
 test('pointer capture drives preview, live modifier and one native command', async () => {

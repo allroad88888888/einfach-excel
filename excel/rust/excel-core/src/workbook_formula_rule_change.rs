@@ -23,20 +23,16 @@ impl FormulaRuleChange {
                 else {
                     continue;
                 };
-                if json["kind"] != "formula" {
-                    continue;
-                }
-                let Some(mut expr) = json["formula"].as_str().and_then(parse_formula) else {
-                    continue;
-                };
                 let range = CellRange::new(
                     CellAddress::new(entry.row_start, entry.col_start),
                     CellAddress::new(entry.row_end, entry.col_end),
                 );
-                if !rewrite(sheet, range, &mut expr) {
+                if !advanced_conditional_format::rewrite_rule_formulas(&mut json, |source| {
+                    let mut expr = parse_formula(source)?;
+                    rewrite(sheet, range, &mut expr).then(|| crate::render_formula(&expr))
+                }) {
                     continue;
                 }
-                json["formula"] = serde_json::Value::String(crate::render_formula(&expr));
                 let mut after = entry.clone();
                 after.rule_json = json.to_string();
                 if after != *entry {

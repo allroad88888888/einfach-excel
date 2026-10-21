@@ -14,7 +14,7 @@ fn seed(required: f64) -> (Workbook, WorkbookHistory) {
     history.set_cell_input(&mut book, 0, "B2", "=10").unwrap();
     book.sheet_mut(0).unwrap().set_data_validation(CellRange::single(CellAddress::new(3, 0)),
         Some(DataValidationRule {
-            kind: DataValidationKind::WholeNumber { min: required, max: required },
+            options: Default::default(), kind: DataValidationKind::WholeNumber { min: required, max: required },
             ignore_blank: true, operator: Default::default(),
         })).unwrap();
     history.clear("");

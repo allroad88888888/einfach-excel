@@ -1,4 +1,4 @@
-import type { ProjectionRequestId, SetCellInputRequest } from '../backend/types'
+import type { ProjectionRequestId, ProjectionRevision, SetCellInputRequest } from '../backend/types'
 import type { CellCoord } from '../shared'
 
 export type EditingInputSource = 'cell' | 'formula-bar' | 'keyboard' | 'paste'
@@ -51,6 +51,8 @@ export type EditingCommitOutcome = 'completed' | 'blocked' | 'rejected' | 'outco
 
 /** 提交选项；普通确认不传参数，切表提交自行决定下一张表。 */
 export interface CommitCellEditingInput {
+  readonly validationConfirmation?: 'continue'
+  readonly validationRevision?: ProjectionRevision
   /** 默认回编辑源；切表命令会自己去用户指定的表，不先往返一次。 */
   readonly returnToSource?: boolean
   readonly timeoutMs?: number

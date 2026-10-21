@@ -36,6 +36,11 @@ impl Workbook {
         let sheet = self.sheet(sheet_idx).ok_or("CLIPBOARD_INVALID_SHEET")?;
         let logical_target = merge::logical_target(snapshot, sheet, options);
         let range = snapshot.paste_target(options, logical_target)?;
+        // UI unlocked_ranges is only an extra restriction; native settings are authoritative.
+        let protected = self.read_protection(sheet_idx)?.mode == crate::protection::ProtectionMode::Protected;
+        if snapshot.cut {
+            self.ensure_range_editable(snapshot.source_sheet.ok_or("CLIPBOARD_INVALID_SHEET")?, snapshot.source)?;
+        }
         if options.mode == ClipboardPasteMode::ColumnWidths {
             return self.paste_column_widths(snapshot, sheet_idx, range, history);
         }
@@ -72,9 +77,10 @@ impl Workbook {
             range,
             logical_target.is_some(),
         )?;
+        if merges.changed() { self.ensure_sheet_unprotected(sheet_idx)?; }
         let mut planned = paste_values::plan_cells(self, snapshot, sheet_idx, range, options, &merges)?;
         let explicit_count = planned.len();
-        let expansion = if !snapshot.cut && options.unlocked_ranges.is_none()
+        let expansion = if !protected && !snapshot.cut && options.unlocked_ranges.is_none()
             && options.mode != ClipboardPasteMode::Formats && !merges.changed() {
             crate::workbook::TableDefinitionChange::prepare_paste_expansion(
                 self, sheet_idx, range, &mut planned)?
@@ -94,6 +100,7 @@ impl Workbook {
             && !self
                 .insert_rows_for_writes(planned.iter().map(|(addr, _, _)| (sheet_idx, *addr)))
                 .is_empty();
+        if enters_table { self.ensure_workbook_unprotected()?; }
         let mut history = history
             .or_else(|| (enters_table || !validation_formulas.is_empty()).then_some(&mut rollback));
         let sheet = self.sheet(sheet_idx).unwrap();
@@ -116,6 +123,19 @@ impl Workbook {
         } else {
             Vec::new()
         };
+
+        // Preflight every actual destination even for the public no-history API.
+        // skipBlanks leaves locked blank destinations untouched, matching the native plan.
+        for (addr, _, _) in &planned {
+            self.ensure_range_editable(sheet_idx, CellRange::single(*addr))?;
+        }
+        for (sheet, addr, _) in &dependents {
+            self.ensure_range_editable(*sheet, CellRange::single(*addr))?;
+        }
+        for addr in borders.keys() {
+            self.ensure_range_editable(sheet_idx, CellRange::single(*addr))?;
+        }
+        if expansion.is_some() { self.ensure_workbook_unprotected()?; }
 
         if let Some(change) = expansion {
             let mut affected = range;
@@ -147,7 +167,7 @@ impl Workbook {
                 planned.iter().map(|(addr, _, _)| *addr),
                 &dependents,
             );
-            if let Some(affected) = crate::sheet::border_plan_range(&borders) {
+            for affected in crate::sheet::border_plan_ranges(&borders) {
                 targets.push((sheet_idx, affected, false));
             }
             history.begin_ranges(

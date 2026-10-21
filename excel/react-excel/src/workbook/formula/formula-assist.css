@@ -19,6 +19,8 @@
   background: var(--chrome);
 }
 .formula-assist-heading span { color: #535867; }
+/* 只读参数帮助不拦截下方网格的引用点击或拖选；建议按钮仍保留指针交互。 */
+.formula-assist-signature { pointer-events: none; }
 .formula-function-list { max-height: min(240px, 40vh); overflow-y: auto; }
 .formula-function-list button {
   display: grid;

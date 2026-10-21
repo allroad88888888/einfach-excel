@@ -1,12 +1,13 @@
 import { atom } from '@einfach/core'
 import { pointerSessionAtom, startPointerAtom, updatePointerAtom, commitPointerAtom, cancelPointerAtom } from '../pointer'
 import type { CellCoord } from '../shared'
-import { setSelectionWithAuthorityReceiptAtom } from './index'
+import { selectionSnapshotAtom, setSelectionWithAuthorityReceiptAtom } from './index'
 import { formulaReferenceSessionAtom, pickFormulaReferenceAtom } from '../formula-reference'
 
 export interface StartPointerSelectionInput {
   readonly sheetId: string
   readonly coord: CellCoord
+  readonly extend?: boolean
 }
 
 export interface UpdatePointerSelectionInput {
@@ -37,10 +38,16 @@ export const startPointerSelectionAtom = atom(
         pickAnchor: input.coord, pickFocus: input.coord, dragging: true })
       return { status: 'applied', coord: input.coord }
     }
+    const current = get(selectionSnapshotAtom).selection
+    // Shift 沿用原起点；焦点和拖拽终点仍由本次指针位置决定，不能把上一次终点当起点。
+    const anchor = !input.extend || current.sheetId !== input.sheetId ? input.coord
+      : current.kind === 'cell' || current.kind === 'range' ? current.anchor
+      : current.kind === 'row' ? { row: current.rowAnchor, col: 0 }
+      : current.kind === 'column' ? { row: 0, col: current.colAnchor } : { row: 0, col: 0 }
     const receipt = set(setSelectionWithAuthorityReceiptAtom, {
-      kind: 'cell',
+      kind: input.extend ? 'range' : 'cell',
       sheetId: input.sheetId,
-      anchor: input.coord,
+      anchor,
       focus: input.coord,
     })
     if (receipt === null || (receipt.selection.kind !== 'cell' && receipt.selection.kind !== 'range')) {
@@ -50,7 +57,7 @@ export const startPointerSelectionAtom = atom(
     set(startPointerAtom, {
       kind: 'drag-selection',
       sheetId: receipt.selection.sheetId,
-      anchor: coord,
+      anchor: Object.freeze({ ...receipt.selection.anchor }),
       focus: coord,
       source: 'pointer',
     })

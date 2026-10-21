@@ -31,6 +31,7 @@ test('resizing moves totals, adds a native column and keeps one undo step', asyn
   await open(page); await resize(page, 'A80:C88')
   await expect(page.getByLabel('Column', { exact: true }).locator('option')).toHaveText(['Product', 'Amount', 'Column1'])
   await close(page)
+  await expect(cell(page, '4:1')).toHaveText('60')
   await select(page, 'C80', '79:2'); await expect(cell(page, '79:2')).toHaveText('Column1')
   await select(page, 'B88', '87:1'); await expect(cell(page, '87:1')).toHaveText('60')
   await expect(formula(page)).toHaveValue('=SUBTOTAL(109,DemoTable[Amount])')

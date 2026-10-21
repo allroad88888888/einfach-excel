@@ -52,12 +52,16 @@ test('new seed table records inherit calculated formulas with one undo', async (
   await expect(page.getByLabel('Table range', { exact: true })).toHaveValue('A46:C50')
   await close(page)
   await expect(cell(page, '49:2')).toHaveText('0')
+  await expect(cell(page, '48:2')).toHaveText('90')
   await select(page, 'C50', '49:2')
   await expect(page.getByRole('textbox', { name: 'Active cell value' }))
     .toHaveValue(/\[@Quantity\].*\[@Price\]/)
   await button(page, 'Undo').click()
   await expect(cell(page, '49:2')).toHaveText('')
   await expect(button(page, 'Undo')).toBeDisabled()
+  await button(page, 'Redo').click()
+  await expect(cell(page, '49:2')).toHaveText('0')
+  await expect(cell(page, '48:2')).toHaveText('90')
 })
 
 for (const width of [1280, 390]) test(`append control fits ${width}px and retains keyboard focus`,

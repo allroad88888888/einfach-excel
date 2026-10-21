@@ -1,8 +1,10 @@
 //! 色阶只生成显示填充；阈值来自完整范围的原生统计，不写入 cellStyle。
 use super::conditional_format_highlight::{enabled_by_default, parse_color};
 use crate::CellStyle;
-use einfach_core::Value;
 use serde::Deserialize;
+use super::advanced_conditional_format::{NumericDomain, Threshold};
+use super::Workbook;
+use crate::CellAddress;
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -13,6 +15,9 @@ struct ColorScaleJson {
     min_color: String,
     mid_color: Option<String>,
     max_color: String,
+    min_threshold: Option<Threshold>,
+    mid_threshold: Option<Threshold>,
+    max_threshold: Option<Threshold>,
 }
 
 pub(crate) struct ColorScaleRule {
@@ -20,6 +25,10 @@ pub(crate) struct ColorScaleRule {
     min: [u8; 3],
     mid: Option<[u8; 3]>,
     max: [u8; 3],
+    low: Threshold,
+    middle: Threshold,
+    high: Threshold,
+    resolved: Option<NumericBounds>,
 }
 
 #[derive(Clone, Copy)]
@@ -29,28 +38,32 @@ pub(super) struct NumericBounds {
     pub max: f64,
 }
 
-impl NumericBounds {
-    pub(super) fn from_value(value: &Value) -> Option<Self> {
-        let Value::Array(array) = value else { return None; };
-        let (Some(Value::Number(min)), Some(Value::Number(median)), Some(Value::Number(max))) =
-            (array.get(0, 0), array.get(0, 1), array.get(0, 2)) else { return None; };
-        Some(Self { min: *min, median: *median, max: *max })
-    }
-}
-
 impl ColorScaleRule {
     pub(super) fn parse(json: &str) -> Result<Self, &'static str> {
         let rule: ColorScaleJson = serde_json::from_str(json)
             .map_err(|_| "Use two or three valid colors for the color scale.")?;
         if rule.kind != "color-scale" { return Err("Expected a color-scale rule."); }
+        let low = rule.min_threshold.unwrap_or(Threshold::Min);
+        let middle = rule.mid_threshold.unwrap_or(Threshold::Percentile { value: "50".into() });
+        let high = rule.max_threshold.unwrap_or(Threshold::Max);
+        low.validate()?; middle.validate()?; high.validate()?;
         Ok(Self { enabled: rule.enabled, min: parse_color(&rule.min_color)?,
             mid: rule.mid_color.as_deref().map(parse_color).transpose()?,
-            max: parse_color(&rule.max_color)? })
+            max: parse_color(&rule.max_color)?, low, middle, high, resolved: None })
     }
 
-    pub(super) fn needs_median(&self) -> bool { self.mid.is_some() }
+    pub(super) fn resolve(&mut self, domain: &NumericDomain, book: &Workbook, sheet: usize, origin: CellAddress) -> bool {
+        self.resolved = (|| {
+            let min = self.low.resolve(domain, book, sheet, origin)?;
+            let max = self.high.resolve(domain, book, sheet, origin)?;
+            let median = if self.mid.is_some() { self.middle.resolve(domain, book, sheet, origin)? } else { min };
+            (min <= median && median <= max).then_some(NumericBounds { min, median, max })
+        })();
+        self.resolved.is_some()
+    }
 
-    pub(super) fn style(&self, value: f64, bounds: NumericBounds) -> CellStyle {
+    pub(super) fn style(&self, value: f64) -> CellStyle {
+        let bounds = self.resolved.expect("resolved before projection");
         let color = if let Some(mid) = self.mid {
             // 重复的最高值仍使用最高色；中点是数值成员的第 50 百分位。
             if value >= bounds.max { self.max }

@@ -93,6 +93,8 @@ impl WasmWorkbook {
         // 先有名称定义，再安装公式；首次 spill 投影就能读取完整工作簿事实。
         // 后续 Table 恢复仍检查共享名称冲突；任何失败均不替换当前工作簿。
         Self::restore_named_ranges_json(&mut workbook, payload.named_ranges)?;
+        workbook.restore_custom_formula_definitions(payload.custom_formulas)
+            .map_err(|error| format!("persistence restore custom formulas failed: {error}"))?;
         // Table 定义与名称一样，必须先于数组公式安装。安装时即生成 spill；
         // 若此时缺少注册表，引用会先得到 #REF!，后补定义不能创建遗漏的溢出格。
         let restored_tables = workbook
@@ -130,6 +132,8 @@ impl WasmWorkbook {
         Self::restore_hidden_columns_json(&mut workbook, payload.hidden_columns)?;
         Self::restore_data_validations_json(&mut workbook, payload.data_validations)?;
         Self::restore_hyperlinks_json(&mut workbook, payload.hyperlinks)?;
+        Self::restore_notes_json(&mut workbook, payload.notes)?;
+        Self::restore_comments_json(&mut workbook, payload.comments)?;
         let mut restored_formats = 0u32;
         for (sheet_idx, snapshot) in format_snapshots {
             let sheet = workbook
@@ -164,6 +168,8 @@ impl WasmWorkbook {
             .restore_filters(filter_snapshot)
             .map_err(|_| "persistence restore filters failed".to_string())?;
 
+        // 保护最后恢复；前面的候选构造必须先完整验证，不产生半次受保护导入。
+        Self::restore_protection_json(&mut workbook, payload.protection)?;
         let stats = WorkbookPersistenceRestoreStatsJSON {
             restored_cells,
             restored_formats,

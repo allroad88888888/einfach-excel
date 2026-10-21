@@ -36,11 +36,18 @@ impl Workbook {
             return Err(FilterError::MutationDuringCustomCall);
         }
         self.sheet(sheet).ok_or(FilterError::InvalidSheet)?;
+        self.ensure_sheet_unprotected(sheet)
+            .map_err(|_| FilterError::ProtectedWorksheet)?;
         validate_filter_range(range, rules)?;
-        let data = CellRange::new(CellAddress::new(range.start.row + 1, range.start.col), range.end);
+        let data = CellRange::new(
+            CellAddress::new(range.start.row + 1, range.start.col),
+            range.end,
+        );
         let report = self.scan_filter_data(sheet, Some(data), rules)?;
         let mut state = crate::filter::SheetAutoFilter::new(
-            rules.to_vec(), report.hidden_rows.iter().copied().collect());
+            rules.to_vec(),
+            report.hidden_rows.iter().copied().collect(),
+        );
         state.range = Some(range);
         if self.sheets[sheet].commit_filter_state(Some(state)) {
             self.republish_hidden(sheet);

@@ -7,6 +7,7 @@ import {
   selectionSizePanelAtom,
 } from '@einfach/spreadsheet-ui-core'
 import { useEffect, useId, useRef } from 'react'
+import { cycleDialogFocus } from './dialog-focus'
 import './selection-size.css'
 
 /** DOM 模态框只负责输入与焦点；选区目标、草稿、异步结果由 command atom 管理。 */
@@ -51,6 +52,7 @@ export function SelectionSizeTools() {
           className="selection-size-dialog"
           aria-labelledby={`${id}-title`}
           aria-describedby={`${id}-description`}
+          onKeyDown={cycleDialogFocus}
           onCancel={(event) => {
             event.preventDefault()
             void run('close')

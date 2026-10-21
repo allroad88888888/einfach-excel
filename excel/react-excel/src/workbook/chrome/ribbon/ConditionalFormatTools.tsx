@@ -7,10 +7,11 @@ import { nativeConditionalFormatPanelAtom, nativeConditionalFormatsAtom,
   editingSessionAtom, conditionalFormatScopeToA1, type CellValueRule, type ConditionalFormatRule,
   type NativeConditionalFormatRule } from '@einfach/spreadsheet-ui-core'
 import { cycleDialogFocus } from './dialog-focus'
+import { AdvancedConditionalFormatFields } from '../../advanced-conditional-format/AdvancedConditionalFormatFields'
 import './conditional-format-panel.css'
 
 function supported(rule: ConditionalFormatRule): rule is NativeConditionalFormatRule {
-  return ['cell-value', 'formula', 'top-bottom', 'color-scale', 'data-bar', 'text', 'duplicate-values'].includes(rule.kind)
+  return ['cell-value', 'formula', 'top-bottom', 'color-scale', 'data-bar', 'text', 'duplicate-values', 'icon-set'].includes(rule.kind)
 }
 
 /** 显示原生规则目录；每个输入只更新 command atom 的未提交草稿。 */
@@ -38,6 +39,7 @@ export function ConditionalFormatTools() {
     }
     if (rule.kind === 'color-scale') return rule.midColor ? t`3-color scale` : t`2-color scale`
     if (rule.kind === 'data-bar') return t`Data bar`
+    if (rule.kind === 'icon-set') return t`Icon set`
     return t`Unsupported rule (not editable yet)`
   }
 
@@ -117,6 +119,7 @@ export function ConditionalFormatTools() {
             <option value="duplicate-values"><Trans>Duplicate / unique values</Trans></option>
             <option value="color-scale"><Trans>Color scale</Trans></option>
             <option value="data-bar"><Trans>Data bar</Trans></option>
+            <option value="icon-set"><Trans>Icon set</Trans></option>
           </select>
           {state.rule.kind === 'text' && <>
             <label htmlFor={`${id}-condition`}><Trans>Text condition</Trans></label>
@@ -210,10 +213,12 @@ export function ConditionalFormatTools() {
             <label htmlFor={`${id}-high-color`}>{state.rule.kind === 'color-scale' ? t`Maximum color` : t`Positive bar color`}</label>
             <input id={`${id}-high-color`} type="color" value={state.rule.maxColor ?? '#638ec6'}
               onChange={(event) => void run({ type: 'draft', rule: { maxColor: event.currentTarget.value } })} />
-            <p>{state.rule.kind === 'data-bar'
-              ? t`Bars use the full range and a shared zero axis. Negative values extend left; cell values stay visible.`
-              : t`Colors use the full range minimum and maximum. The third color marks the median (50th percentile).`}</p>
+            <p><Trans>
+              Automatic thresholds use the full numeric range.
+              Advanced threshold fields override the default endpoints.
+            </Trans></p>
           </>}
+          <AdvancedConditionalFormatFields idPrefix={id} />
           {highlight && <>
           <label htmlFor={`${id}-stop`}><Trans>Stop if true</Trans></label>
           <input id={`${id}-stop`} type="checkbox"

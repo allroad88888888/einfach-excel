@@ -22,6 +22,18 @@ async function click(name: string) {
   await act(async () => { fireEvent.click(screen.getByRole('button', { name })) })
 }
 
+test.each([false, true])('Tab shift=%s cycles inside the file dialog without Rust writes', async (shiftKey) => {
+  const { request } = setup()
+  await click('File')
+  const first = screen.getByRole('button', { name: 'Download workbook' })
+  const last = screen.getByRole('button', { name: 'Close' })
+  const origin = shiftKey ? first : last
+  origin.focus()
+  expect(fireEvent.keyDown(origin, { key: 'Tab', shiftKey })).toBe(false)
+  expect(shiftKey ? last : first).toHaveFocus()
+  expect(request).not.toHaveBeenCalled()
+})
+
 test('header tells the truth about in-memory state; File opens and closes with focus restoration', async () => {
   setup()
   expect(screen.queryByText('Saved locally')).toBeNull()

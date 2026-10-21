@@ -22,11 +22,21 @@ export const fillHandleDragAtom = atom((get) => {
     rangeEquals(drag.source, selection.range) ? drag : null
 })
 type Action = { type: 'start'; copy: boolean } | { type: 'move'; coord: CellCoord } |
-  { type: 'copy'; copy: boolean } | { type: 'cancel' } | { type: 'finish'; copy: boolean }
+  { type: 'copy'; copy: boolean } | { type: 'cancel' } | { type: 'finish'; copy: boolean } |
+  { type: 'extend-down'; copy: boolean }
 
 /** 指针只提交坐标；松手才复用一次 range.fill，取消不产生历史。 */
 export const dragFillHandleAtom = atom(null, async (get, set, action: Action): Promise<void> => {
   if (action.type === 'cancel') { set(dragAtom, null); return }
+  if (action.type === 'extend-down') {
+    set(dragAtom, null)
+    const { selection, range } = get(selectionSnapshotAtom)
+    if (!selection.sheetId || !['cell', 'range'].includes(selection.kind)) return
+    await set(fillSelectionAtom, { direction: 'down', sheetId: selection.sheetId,
+      sourceRange: range, range, auto: !action.copy,
+      adjacent: { rowLimit: get(selectionBoundsAtom).rowCount } })
+    return
+  }
   if (action.type === 'start') {
     const selection = get(selectionSnapshotAtom)
     const projection = get(projectionSnapshotAtom)

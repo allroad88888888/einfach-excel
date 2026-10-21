@@ -60,6 +60,103 @@ test('insert, edit and remove use native undo/redo while preserving text and for
   await button(page, 'Undo').click(); await expect(link(page, '1:0')).toHaveCount(1)
 })
 
+for (const width of [1280, 390]) test.describe(`${width}px hyperlink actions`, () => {
+  test.use({ viewport: { width, height: 850 } })
+
+  for (const action of ['insert', 'edit', 'remove']) {
+    test(`${action} hyperlink is independent and undoes once at ${width}px`, async ({ page }) => {
+      const inserting = action === 'insert'
+      const coord = inserting ? '1:0' : '1:1'
+      const originalText = inserting ? 'SO-10001' : 'Acme Co.'
+      const originalUrl = 'https://example.com/customers/acme'
+      const updatedUrl = 'https://example.com/reviewed'
+      const target = await select(page, inserting ? 'A2' : 'B2', coord)
+      const font = await target.evaluate(node => ({
+        weight: getComputedStyle(node).fontWeight, style: getComputedStyle(node).fontStyle,
+      }))
+      await expect(button(page, 'Undo')).toBeDisabled()
+      await openEditor(page)
+      await expect(page.getByLabel('Display text')).toHaveValue(originalText)
+      await page.getByLabel('Link address').fill(action === 'remove' ? 'invalid unsaved draft' : updatedUrl)
+      await page.getByLabel('Display text').fill('Reviewed link')
+      await button(page, action === 'remove' ? 'Remove link' : inserting ? 'Insert link' : 'Save changes').click()
+      await expect(editor(page)).toHaveCount(0)
+      await expect(button(page, 'Hyperlink')).toBeFocused()
+      const updatedText = action === 'remove' ? originalText : 'Reviewed link'
+      await expect(target).toHaveText(updatedText)
+      if (action === 'remove') await expect(link(page, coord)).toHaveCount(0)
+      else await expect(link(page, coord)).toHaveAttribute('href', updatedUrl)
+      await expect(target).toHaveCSS('font-weight', font.weight)
+      await expect(target).toHaveCSS('font-style', font.style)
+      await expect(cell(page, '2:1')).toHaveText('Northwind')
+      await expect(link(page, '2:1')).toHaveAttribute('href', 'https://example.com/customers/northwind')
+      await button(page, 'Undo').click()
+      await expect(target).toHaveText(originalText)
+      if (inserting) await expect(link(page, coord)).toHaveCount(0)
+      else await expect(link(page, coord)).toHaveAttribute('href', originalUrl)
+      await expect(button(page, 'Undo')).toBeDisabled()
+      await button(page, 'Redo').click()
+      await expect(target).toHaveText(updatedText)
+      if (action === 'remove') await expect(link(page, coord)).toHaveCount(0)
+      else await expect(link(page, coord)).toHaveAttribute('href', updatedUrl)
+    })
+  }
+
+  test(`keyboard hyperlink insert keeps the formula and undoes once at ${width}px`, async ({ page }) => {
+    await select(page, 'G2', '1:6')
+    await page.locator('[data-workbook-grid]').press('ControlOrMeta+k')
+    await expect(editor(page)).toBeVisible()
+    await expect(page.getByLabel('Link address')).toBeFocused()
+    await expect(page.getByLabel('Display text')).toHaveValue('79')
+    await page.getByLabel('Link address').fill('https://example.com/formula')
+    await button(page, 'Insert link').click()
+    const formula = page.getByRole('textbox', { name: 'Active cell value' })
+    await expect(formula).toHaveValue('=E2*F2')
+    await expect(cell(page, '1:6')).toHaveText('79')
+    await expect(link(page, '1:6')).toHaveAttribute('href', 'https://example.com/formula')
+    await expect(cell(page, '2:6')).toHaveText('658')
+    await button(page, 'Undo').click()
+    await expect(link(page, '1:6')).toHaveCount(0)
+    await expect(formula).toHaveValue('=E2*F2')
+    await expect(button(page, 'Undo')).toBeDisabled()
+    await button(page, 'Redo').click()
+    await expect(link(page, '1:6')).toHaveAttribute('href', 'https://example.com/formula')
+  })
+
+  test(`dialog link opens a new tab without changing workbook or selection at ${width}px`, async ({ page }) => {
+    await select(page, 'B2', '1:1'); await openEditor(page)
+    await page.route('https://example.com/**', route => route.fulfill({ body: 'Test link destination' }))
+    const popup = page.waitForEvent('popup')
+    await editor(page).getByRole('link', { name: 'Open link in a new tab' }).click()
+    const opened = await popup
+    await expect(opened).toHaveURL('https://example.com/customers/acme')
+    await opened.close()
+    await expect(editor(page)).toBeVisible()
+    await expect(page.getByLabel('Link address')).toHaveValue('https://example.com/customers/acme')
+    await button(page, 'Cancel').click()
+    await expect(page.getByRole('textbox', { name: 'Name box' })).toHaveValue('B2')
+    await expect(cell(page, '1:1')).toHaveText('Acme Co.')
+    await expect(link(page, '2:1')).toHaveAttribute('href', 'https://example.com/customers/northwind')
+    await expect(button(page, 'Undo')).toBeDisabled()
+  })
+
+  test(`cancel hyperlink discards both fields without history at ${width}px`, async ({ page }) => {
+    await select(page, 'B2', '1:1'); await openEditor(page)
+    await page.getByLabel('Link address').fill('https://example.com/discarded')
+    await page.getByLabel('Display text').fill('Discarded label')
+    await button(page, 'Cancel').click()
+    await expect(editor(page)).toHaveCount(0)
+    await expect(button(page, 'Hyperlink')).toBeFocused()
+    await expect(cell(page, '1:1')).toHaveText('Acme Co.')
+    await expect(link(page, '1:1')).toHaveAttribute('href', 'https://example.com/customers/acme')
+    await expect(cell(page, '2:1')).toHaveText('Northwind')
+    await expect(button(page, 'Undo')).toBeDisabled()
+    await openEditor(page)
+    await expect(page.getByLabel('Link address')).toHaveValue('https://example.com/customers/acme')
+    await expect(page.getByLabel('Display text')).toHaveValue('Acme Co.')
+  })
+})
+
 test('dangerous URL fails without changing text or losing a retryable draft', async ({ page }) => {
   await select(page, 'A2', '1:0'); await openEditor(page)
   await page.getByLabel('Link address').fill('javascript:alert(1)')
@@ -73,6 +170,11 @@ test('dangerous URL fails without changing text or losing a retryable draft', as
   await button(page, 'Insert link').click()
   await expect(cell(page, '1:0')).toHaveText('safe label')
   await expect(link(page, '1:0')).toHaveAttribute('href', 'https://example.com/safe')
+  await expect(cell(page, '2:0')).toHaveText('SO-10002')
+  await button(page, 'Undo').click()
+  await expect(cell(page, '1:0')).toHaveText('SO-10001')
+  await expect(link(page, '1:0')).toHaveCount(0)
+  await expect(button(page, 'Undo')).toBeDisabled()
 })
 
 test('Ctrl/Meta+K preserves a formula when only its link changes; copy/cut undo keep URLs', async ({ page }) => {
@@ -136,10 +238,15 @@ test('hyperlink dialog fits desktop and narrow viewports, traps focus and restor
     await expect(dialog.getByRole('link')).toBeFocused()
     await dialog.getByRole('link').press('Tab')
     await expect(page.getByLabel('Link address')).toBeFocused()
+    await page.getByLabel('Link address').fill('https://example.com/escaped')
+    await page.getByLabel('Display text').fill('Escaped label')
     await page.screenshot({ path: info.outputPath(`hyperlink-${width}.png`) })
     await page.getByLabel('Link address').press('Escape')
     await expect(dialog).toHaveCount(0)
     await expect(button(page, 'Hyperlink')).toBeFocused()
+    await expect(cell(page, '1:1')).toHaveText('Acme Co.')
+    await expect(link(page, '1:1')).toHaveAttribute('href', 'https://example.com/customers/acme')
+    await expect(button(page, 'Undo')).toBeDisabled()
   }
 })
 

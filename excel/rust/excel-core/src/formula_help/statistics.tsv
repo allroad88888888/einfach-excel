@@ -1,0 +1,62 @@
+# Audited against statistics_core/descriptive/regression, criteria_family and descriptive_extended.
+COUNTIF	range,criteria	Counts cells matching one criterion, including supported wildcard comparisons.	统计满足单个条件的单元格，支持通配符比较。	{1,2,3},">1"
+SUMIF	range,criteria,sum_range?	Sums corresponding cells matching one criterion; sum_range defaults to range.	对满足单个条件的对应单元格求和，默认求和区域为条件区域。	{1,2,3},">1"
+AVERAGEIF	range,criteria,average_range?	Averages corresponding numeric cells matching one criterion.	对满足单个条件的对应数字单元格求平均值。	A1:A3,">1"
+COUNTIFS	criteria_range*,criteria*	Counts cells satisfying every repeated range/criterion pair.	统计满足每组成对区域与条件的单元格。	A1:A3,">1",B1:B3,"<7"
+SUMIFS	sum_range,criteria_range*,criteria*	Sums cells satisfying every repeated range/criterion pair.	对满足每组成对区域与条件的单元格求和。	A1:A3,A1:A3,">1"
+AVERAGEIFS	average_range,criteria_range*,criteria*	Averages cells satisfying every repeated range/criterion pair.	对满足每组成对区域与条件的单元格求平均值。	A1:A3,A1:A3,">1"
+MAXIFS	max_range,criteria_range*,criteria*	Returns the largest numeric cell satisfying all criteria.	返回满足所有条件的最大数字单元格值。	A1:A3,A1:A3,">1"
+MINIFS	min_range,criteria_range*,criteria*	Returns the smallest numeric cell satisfying all criteria.	返回满足所有条件的最小数字单元格值。	A1:A3,A1:A3,">1"
+MEDIAN	number*?	Returns the middle numeric value, averaging the two middle values for even counts.	返回数字的中位数，数量为偶数时取中间两数的平均值。	1,2,3
+MODE|MODE.SNGL	number*?	Returns the first-occurring most frequent numeric value; no repeated value produces #VALUE!.	返回最早出现的众数；没有重复值时返回 #VALUE!。	1,1,2
+MODE.MULT	number*?	Returns a column array of all most-frequent numeric values.	以列数组返回所有出现次数最多的数字。	1,1,2,2
+STDEV|STDEV.S	number*?	Returns sample standard deviation, requiring at least two numeric values.	返回样本标准差，至少需要两个数字。	1,2,3
+VAR|VAR.S	number*?	Returns sample variance, requiring at least two numeric values.	返回样本方差，至少需要两个数字。	1,2,3
+STDEV.P|STDEVP	number*?	Returns population standard deviation.	返回总体标准差。	1,2,3
+VAR.P|VARP	number*?	Returns population variance.	返回总体方差。	1,2,3
+AVERAGEA	value*?	Returns the mean including logical values as one or zero and text as zero.	计算平均值，将逻辑值计为一或零，文本计为零。	1,TRUE,3
+MAXA	value*?	Returns the maximum including logical values and text as zero.	计算最大值，包含逻辑值并将文本计为零。	1,TRUE,3
+MINA	value*?	Returns the minimum including logical values and text as zero.	计算最小值，包含逻辑值并将文本计为零。	1,FALSE,3
+STDEVA	value*?	Returns sample standard deviation including logical values and text as zero.	返回样本标准差，包含逻辑值并将文本计为零。	1,TRUE,3
+STDEVPA	value*?	Returns population standard deviation including logical values and text as zero.	返回总体标准差，包含逻辑值并将文本计为零。	1,TRUE,3
+VARA	value*?	Returns sample variance including logical values and text as zero.	返回样本方差，包含逻辑值并将文本计为零。	1,TRUE,3
+VARPA	value*?	Returns population variance including logical values and text as zero.	返回总体方差，包含逻辑值并将文本计为零。	1,TRUE,3
+LARGE	array,k	Returns the kth largest numeric value, with k starting at one.	返回第 k 大的数字，k 从一开始。	{1,2,3},2
+SMALL	array,k	Returns the kth smallest numeric value, with k starting at one.	返回第 k 小的数字，k 从一开始。	{1,2,3},2
+RANK|RANKEQ|RANK.EQ	number,reference,order?	Returns a numeric rank with equal values sharing a rank; zero or omitted order means descending.	返回数字排名，相同值同名次；顺序为零或省略时为降序。	2,{1,2,3},0
+RANKAVG|RANK.AVG	number,reference,order?	Returns a numeric rank, averaging tied ranks; zero or omitted order means descending.	返回数字排名，并对并列名次取平均；默认降序。	2,{1,2,2,3},0
+PERCENTILE|PERCENTILE.INC	array,k	Returns an interpolated inclusive percentile for k between zero and one.	返回 k 在零到一之间的包含端点插值百分位数。	{1,2,3},0.5
+PERCENTILE.EXC	array,k	Returns an interpolated exclusive percentile, rejecting positions outside the sample.	返回不含端点的插值百分位数，超出样本位置时拒绝。	{1,2,3},0.5
+QUARTILE|QUARTILE.INC	array,quart	Returns the inclusive quartile numbered zero through four.	返回编号为零到四的包含端点四分位数。	{1,2,3,4},2
+QUARTILE.EXC	array,quart	Returns an exclusive quartile numbered one through three.	返回编号为一到三的不含端点四分位数。	{1,2,3,4},2
+PERCENTRANK|PERCENTRANK.INC	array,x,significance?	Returns the inclusive relative rank, truncated to the requested digits (default three).	返回包含端点的相对排名，按指定位数截断，默认三位。	{1,2,3},2
+PERCENTRANK.EXC	array,x,significance?	Returns the exclusive relative rank, truncated to the requested digits (default three).	返回不含端点的相对排名，按指定位数截断，默认三位。	{1,2,3},2
+CORREL|PEARSON	array1,array2	Returns Pearson correlation for paired numeric values.	返回成对数字值的皮尔逊相关系数。	A1:A3,B1:B3
+COVAR|COVAR.P|COVARIANCE.P	array1,array2	Returns population covariance for paired numeric values.	返回成对数字值的总体协方差。	A1:A3,B1:B3
+COVAR.S|COVARIANCE.S	array1,array2	Returns sample covariance for paired numeric values.	返回成对数字值的样本协方差。	A1:A3,B1:B3
+SLOPE	known_y,known_x	Returns the least-squares regression slope for paired observations.	返回成对观测值的最小二乘回归斜率。	B1:B3,A1:A3
+INTERCEPT	known_y,known_x	Returns the least-squares regression intercept for paired observations.	返回成对观测值的最小二乘回归截距。	B1:B3,A1:A3
+LINEST	known_y,known_x?,const?,stats?	Returns linear regression coefficients and optional statistics; omitted known_x uses sequential indices.	返回线性回归系数及可选统计量；省略 known_x 时使用顺序索引。	{2;4;6},{1;2;3},TRUE,FALSE
+LOGEST	known_y,known_x?,const?,stats?	Fits exponential regression to positive known_y and returns exponential coefficients.	对正数 known_y 进行指数回归，返回指数系数。	{2;4;8},{1;2;3},TRUE,FALSE
+TREND	known_y,known_x?,new_x?,const?	Predicts linear-regression values at new_x or the original x values.	预测 new_x 或原始 x 位置上的线性回归值。	{2;4;6},{1;2;3},{4;5}
+GROWTH	known_y,known_x?,new_x?,const?	Predicts exponential-regression values for positive known_y.	对正数 known_y 进行指数回归预测。	{2;4;8},{1;2;3},{4;5}
+FORECAST|FORECAST.LINEAR	x,known_y,known_x	Predicts a value at x using simple linear regression.	使用简单线性回归预测 x 对应的值。	4,{2,4,6},{1,2,3}
+STEYX	known_y,known_x	Returns the standard error of predicted y in a simple linear regression.	返回简单线性回归中预测 y 的标准误差。	B1:B3,A1:A3
+RSQ	known_y,known_x	Returns the square of the Pearson correlation coefficient.	返回皮尔逊相关系数的平方。	B1:B3,A1:A3
+KURT	number*?	Returns excess sample kurtosis; at least four numeric values are required.	返回样本超额峰度，至少需要四个数字。	1,2,3,4,5
+SKEW	number*?	Returns sample skewness; at least three numeric values are required.	返回样本偏度，至少需要三个数字。	1,2,4
+SKEW.P	number*?	Returns population skewness.	返回总体偏度。	1,2,4
+AVEDEV	number*?	Returns the mean absolute deviation from the arithmetic mean.	返回相对于算术平均值的平均绝对偏差。	1,2,3
+DEVSQ	number*?	Returns the sum of squared deviations from the arithmetic mean.	返回相对于算术平均值的离差平方和。	1,2,3
+GEOMEAN	number*?	Returns the geometric mean of positive numeric values.	返回正数值的几何平均数。	1,2,4
+HARMEAN	number*?	Returns the harmonic mean of positive numeric values.	返回正数值的调和平均数。	1,2,4
+TRIMMEAN	array,percent	Returns a mean after symmetrically removing a fraction of the extreme values.	对称删除指定比例的极端值后返回平均数。	{1,2,3,4,100},0.4
+STANDARDIZE	x,mean,standard_dev	Returns the standardized value (x minus mean) divided by positive standard deviation.	返回 x 减均值后除以正数标准差的标准化值。	3,1,2
+FISHER	x	Applies the Fisher transformation to x strictly between -1 and 1.	对严格介于 -1 与 1 之间的 x 应用费舍尔变换。	0.5
+FISHERINV	y	Returns the inverse Fisher transformation.	返回费舍尔逆变换。	0.5
+FREQUENCY	data_array,bins_array	Counts numeric observations into upper-bound bins, plus an overflow bin.	按上界分组统计数字观测值，并附加超出上界的一组。	{1,2,3,4},{2,3}
+PROB	x_range,prob_range,lower_limit,upper_limit?	Sums probabilities for values between inclusive limits; an omitted upper limit equals the lower limit.	对包含端点的上下限之间的值求概率和，省略上限时等于下限。	A1:A3,C1:C3,2,3
+RAND		Returns a new random number from zero inclusive to one exclusive.	返回大于等于零且小于一的随机数。	
+RANDBETWEEN	bottom,top	Returns a random integer between inclusive bounds.	返回包含上下界的随机整数。	1,10
+PERMUT	number,number_chosen	Counts ordered selections without repetition.	计算不允许重复的排列数。	5,2
+PERMUTATIONA	number,number_chosen	Counts ordered selections with repetition.	计算允许重复的排列数。	5,2

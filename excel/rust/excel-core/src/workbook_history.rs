@@ -8,6 +8,9 @@ use std::rc::{Rc, Weak};
 
 #[path = "workbook_history_cells.rs"]
 mod cells;
+#[path = "workbook_history_dimensions.rs"]
+mod dimensions;
+use dimensions::CellDimensionChanges;
 #[path = "workbook_history_sheets.rs"]
 mod sheets;
 #[path = "workbook_history_visibility.rs"]
@@ -25,14 +28,22 @@ use filter::FilterChange;
 #[path = "workbook_history_conditional_format.rs"]
 mod conditional_format;
 use conditional_format::ConditionalFormatChange;
+#[path = "comments/history.rs"]
+mod comments;
+#[path = "custom_formulas/history.rs"]
+mod custom_formulas;
 #[path = "workbook_history_data_validation.rs"]
 mod data_validation;
-#[path = "workbook_history_input.rs"]
-mod input;
 #[path = "hyperlink/history.rs"]
 mod hyperlink;
+#[path = "workbook_history_input.rs"]
+mod input;
 #[path = "workbook_history_named_range.rs"]
 mod named_range;
+#[path = "notes/history.rs"]
+mod notes;
+#[path = "protection/history.rs"]
+mod protection;
 #[path = "workbook_history_table.rs"]
 mod table;
 use data_validation::DataValidationChange;
@@ -41,10 +52,10 @@ mod entry;
 use entry::entry_bytes;
 #[path = "workbook_history_borders.rs"]
 mod borders;
-#[path = "workbook_history_format.rs"]
-mod format;
 #[path = "workbook_history_clear.rs"]
 mod clear;
+#[path = "workbook_history_format.rs"]
+mod format;
 pub use clear::ClearSelectionMode;
 #[path = "workbook_history_merge.rs"]
 mod merge;
@@ -81,6 +92,7 @@ enum HistoryChange {
         before: Vec<(usize, HistorySnapshot)>,
         after: Vec<(usize, HistorySnapshot)>,
         table_rows: Vec<TableEntry>,
+        dimensions: CellDimensionChanges,
     },
     Sheet(Box<SheetHistoryChange>),
     Visibility(VisibilityChange),
@@ -91,6 +103,7 @@ enum HistoryChange {
     DataValidation(DataValidationChange),
     Structure(Box<StructuralHistoryChange>),
     NamedRange(Box<crate::workbook::NamedRangeChange>),
+    CustomFormula(Box<crate::custom_formulas::CustomFormulaChange>),
     TableCreate(Box<crate::workbook::TableCreation>),
     TableDefinition(Box<crate::workbook::TableDefinitionChange>),
     Merge(Box<MergeChange>),
@@ -102,6 +115,7 @@ struct PendingEdit {
     range: CellRange,
     before: Vec<(usize, HistorySnapshot)>,
     table_rows: Vec<TableEntry>,
+    dimension_generations: std::collections::BTreeMap<usize, [u64; 2]>,
 }
 
 #[derive(Default)]

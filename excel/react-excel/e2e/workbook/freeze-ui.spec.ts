@@ -53,7 +53,7 @@ test('freezes the first column while horizontal scrolling and keeps row headers 
   )
 })
 
-test('freezes at B3, follows keyboard moves below the fixed band and unfreezes with undo', async ({
+test('freezes at B3 and follows keyboard moves below the fixed band with one undo', async ({
   page,
 }) => {
   await select(page, 'B3', '2:1')
@@ -66,8 +66,29 @@ test('freezes at B3, follows keyboard moves below the fixed band and unfreezes w
   const body = (await page.locator('td[data-cell="2:1"]').boundingBox())!
   const corner = (await page.locator('[data-frozen-pane="corner"]').boundingBox())!
   expect(body.y).toBeGreaterThanOrEqual(corner.y + corner.height - 1)
+  await page.getByRole('button', { name: 'Undo', exact: true }).click()
+  await expect(page.locator('[data-frozen-pane]')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+  await page.getByRole('button', { name: 'Redo', exact: true }).click()
+  await expect(page.locator('.sheet-grid-frame')).toHaveAttribute('data-frozen-rows', '2')
+  await expect(page.locator('.sheet-grid-frame')).toHaveAttribute('data-frozen-cols', '1')
+})
+
+for (const width of [1280, 390]) test(`unfreeze uses the seeded panes and undoes once at ${width}px`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 850 })
+  await page.getByRole('tab', { name: 'Summary', exact: true }).click()
+  const frame = page.locator('.sheet-grid-frame')
+  const menu = page.getByRole('combobox', { name: 'Freeze panes' })
+  await expect(frame).toHaveAttribute('data-frozen-rows', '1')
   await menu.selectOption('unfreeze')
   await expect(page.locator('[data-frozen-pane]')).toHaveCount(0)
+  await expect(page.locator('td[data-cell="0:1"]')).toHaveText('79')
+  await expect(page.locator('td[data-cell="1:1"]')).toHaveText('Acme Co.')
+  await expect(menu.locator('option[value="unfreeze"]')).toBeDisabled()
   await page.getByRole('button', { name: 'Undo', exact: true }).click()
-  await expect(page.locator('.sheet-grid-frame')).toHaveAttribute('data-frozen-rows', '2')
+  await expect(frame).toHaveAttribute('data-frozen-rows', '1')
+  await expect(page.locator('[data-frozen-pane="top"] td[data-cell="0:1"]')).toHaveText('79')
+  await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+  await page.getByRole('button', { name: 'Redo', exact: true }).click()
+  await expect(page.locator('[data-frozen-pane]')).toHaveCount(0)
 })

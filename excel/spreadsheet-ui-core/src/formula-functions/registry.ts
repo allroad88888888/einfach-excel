@@ -1,4 +1,5 @@
 import type { FormulaFunctionSpec } from './types'
+import { formulaHelpSignatureSlots } from './help/signature'
 
 /**
  * Argument-help metadata. Names must be upper-case. The order here is the
@@ -148,10 +149,6 @@ export function getFormulaFunctionSpec(name: string): FormulaFunctionSpec | unde
  * markers — `SUM(number1, [number2, ...])`. Used by the signature tooltip.
  */
 export function renderFormulaFunctionSignature(spec: FormulaFunctionSpec): string {
-  const parts: string[] = []
-  for (const arg of spec.args) {
-    const tail = arg.repeats ? `${arg.name}, ...` : arg.name
-    parts.push(arg.optional ? `[${tail}]` : tail)
-  }
+  const parts = formulaHelpSignatureSlots(spec)
   return `${spec.name}(${parts.join(', ')})`
 }

@@ -13,12 +13,14 @@ import { cellFormatStyle, cellTextRotationStyle } from './cell-format-style'
 import { MergedCellBorders } from './MergedCellBorders'
 import { CellDataBar } from './CellDataBar'
 import { CellHyperlink } from './hyperlink/CellHyperlink'
+import { CellMetadata, type CellMetadataLabels } from './cell-metadata/CellMetadata'
 import './merged-cells.css'
 
 /** 叠加完整合并框并裁到可见窗口，滚动不改变文本在原矩形里的位置。 */
-export function MergedCells({ window, anchors }: {
+export function MergedCells({ window, anchors, metadataLabels }: {
   window?: CellRange
   anchors?: readonly DisplayCell[]
+  metadataLabels?: CellMetadataLabels
 } = {}) {
   const snapshot = useAtomValue(projectionSnapshotAtom)
   const selections = useAtomValue(selectionRangesAtom)
@@ -53,7 +55,7 @@ export function MergedCells({ window, anchors }: {
             data-merged-cell="true"
             title={showFormulas ? cell.formula : undefined}
             aria-selected={selected}
-            className={`cell merged-cell${cell.dataBar ? ' cell-data-bar-host' : ''}`}
+            className={`cell merged-cell cell-metadata-host${cell.dataBar ? ' cell-data-bar-host' : ''}`}
             style={{
               ...cellFormatStyle({ ...cell.format, borders: undefined }, cell.valueKind),
               border: 0,
@@ -71,7 +73,9 @@ export function MergedCells({ window, anchors }: {
           >
             <MergedCellBorders range={range} window={window ?? result.window} />
             <CellDataBar bar={cell.dataBar} />
-            <span className="cell-content">
+            <CellMetadata cell={cell} labels={metadataLabels} />
+            <span className="cell-content" data-conditional-icon-value={cell.conditionalIcon
+              ? cell.conditionalIcon.showValue ? 'visible' : 'hidden' : undefined}>
               <span style={cellTextRotationStyle(cell.format)}>
                 <CellHyperlink url={showFormulas ? undefined : cell.hyperlink}
                   color={cell.format?.fgColor}>

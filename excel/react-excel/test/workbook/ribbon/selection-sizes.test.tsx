@@ -52,6 +52,17 @@ async function click(name: string) {
 }
 
 describe('size controls', () => {
+  test.each([false, true])('cycles size dialog Tab focus with shift=%s', async (shiftKey) => {
+    const { resize } = await setup()
+    const first = screen.getByRole('spinbutton', { name: 'Row height' })
+    const last = screen.getByRole('button', { name: 'Cancel' })
+    const from = shiftKey ? first : last
+    from.focus()
+    fireEvent.keyDown(from, { key: 'Tab', shiftKey })
+    expect(shiftKey ? last : first).toHaveFocus()
+    expect(resize).not.toHaveBeenCalled()
+  })
+
   test.each(['row', 'column', 'reset'] as const)(
     '%s dispatches its single semantic command',
     async (axis) => {

@@ -59,6 +59,9 @@ export function updateEditingDraftState(
 ): EditingSessionState {
   // A draft without a source cell is not actionable, so idle writes are intentional no-ops.
   if (state.status === 'idle' && state.source === null) return state
+  if (state.status === 'drafting' && state.source !== null &&
+    state.draft === input.draft &&
+    (input.source ?? state.source.source) === state.source.source) return state
 
   return snapshotSession({
     ...state,

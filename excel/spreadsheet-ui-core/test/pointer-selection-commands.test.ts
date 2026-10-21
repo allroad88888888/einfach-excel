@@ -2,6 +2,8 @@ import { createStore } from '@einfach/core'
 import { describe, expect, test } from 'vitest'
 import {
   pointerSessionAtom,
+  endPointerSelectionAtom,
+  selectCellAtom,
   selectionSnapshotAtom,
   setSelectionBoundsAtom,
   startPointerSelectionAtom,
@@ -9,6 +11,36 @@ import {
 } from '../src'
 
 describe('pointer selection commands', () => {
+  test('Shift reuses the original anchor across clicks, drag and reversal, but never across sheets', () => {
+    const store = createStore()
+    store.setter(setSelectionBoundsAtom, { rowCount: 20, colCount: 10 })
+    store.setter(selectCellAtom, { sheetId: 'sheet-1', coord: { row: 4, col: 2 } })
+    for (const coord of [{ row: 8, col: 5 }, { row: 5, col: 3 }, { row: 1, col: 0 }]) {
+      store.setter(startPointerSelectionAtom, { sheetId: 'sheet-1', coord, extend: true })
+      expect(store.getter(selectionSnapshotAtom).selection).toMatchObject({
+        anchor: { row: 4, col: 2 }, focus: coord,
+      })
+      expect(store.getter(pointerSessionAtom).interaction).toMatchObject({
+        anchor: { row: 4, col: 2 }, focus: coord,
+      })
+      store.setter(endPointerSelectionAtom)
+    }
+    store.setter(startPointerSelectionAtom, {
+      sheetId: 'sheet-1', coord: { row: 7, col: 5 }, extend: true,
+    })
+    store.setter(updatePointerSelectionAtom, { sheetId: 'sheet-1', coord: { row: 9, col: 6 } })
+    expect(store.getter(selectionSnapshotAtom).selection).toMatchObject({
+      anchor: { row: 4, col: 2 },
+    })
+    store.setter(endPointerSelectionAtom)
+    store.setter(startPointerSelectionAtom, {
+      sheetId: 'sheet-2', coord: { row: 1, col: 1 }, extend: true,
+    })
+    expect(store.getter(selectionSnapshotAtom).range).toEqual({
+      rowStart: 1, rowEnd: 1, colStart: 1, colEnd: 1,
+    })
+  })
+
   test('start and update keep selection and pointer state in one command each', () => {
     const store = createStore()
     store.setter(setSelectionBoundsAtom, { rowCount: 20, colCount: 10 })

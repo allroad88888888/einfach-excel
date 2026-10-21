@@ -8,6 +8,10 @@ use super::conditional_format_rank::RankRule;
 use super::conditional_format_text::TextRule;
 use crate::cell_style::CellStyle;
 use crate::sheet::ConditionalStatistic;
+use super::advanced_conditional_format::{IconSetRule, NumericDomain};
+use super::{Workbook, ConditionalFormatRuleEntry};
+use crate::CellAddress;
+use einfach_core::Value;
 
 pub(crate) enum NativeRuleKind {
     Numeric(NumericRule),
@@ -17,6 +21,7 @@ pub(crate) enum NativeRuleKind {
     DataBar(DataBarRule),
     Text(TextRule),
     Duplicates(DuplicateRule),
+    IconSet(IconSetRule),
 }
 
 pub(crate) struct NativeRule {
@@ -45,12 +50,13 @@ impl NativeRule {
             Some("data-bar") => DataBarRule::parse(&json).map(NativeRuleKind::DataBar),
             Some("text") => TextRule::parse(&json).map(NativeRuleKind::Text),
             Some("duplicate-values") => DuplicateRule::parse(&json).map(NativeRuleKind::Duplicates),
+            Some("icon-set") => IconSetRule::parse(&json).map(NativeRuleKind::IconSet),
             _ => Err("This conditional-format kind is not supported yet."),
         }?;
         if stop_if_true
             && matches!(
                 kind,
-                NativeRuleKind::ColorScale(_) | NativeRuleKind::DataBar(_)
+                NativeRuleKind::ColorScale(_) | NativeRuleKind::DataBar(_) | NativeRuleKind::IconSet(_)
             )
         {
             return Err("Stop if true is available only for highlight rules.");
@@ -67,6 +73,7 @@ impl NativeRule {
             NativeRuleKind::DataBar(rule) => rule.enabled,
             NativeRuleKind::Text(rule) => rule.enabled,
             NativeRuleKind::Duplicates(rule) => rule.enabled,
+            NativeRuleKind::IconSet(rule) => rule.enabled,
         }
     }
 
@@ -77,19 +84,30 @@ impl NativeRule {
             NativeRuleKind::Rank(rule) => Some(&rule.style),
             NativeRuleKind::Text(rule) => Some(&rule.style),
             NativeRuleKind::Duplicates(rule) => Some(&rule.style),
-            NativeRuleKind::ColorScale(_) | NativeRuleKind::DataBar(_) => None,
+            NativeRuleKind::ColorScale(_) | NativeRuleKind::DataBar(_) | NativeRuleKind::IconSet(_) => None,
         }
     }
 
     pub(super) fn statistic(&self) -> Option<ConditionalStatistic> {
         match &self.kind {
             NativeRuleKind::Rank(rule) => Some(rule.statistic()),
-            NativeRuleKind::ColorScale(rule) => Some(ConditionalStatistic::Bounds {
-                median: rule.needs_median(),
-            }),
-            NativeRuleKind::DataBar(_) => Some(ConditionalStatistic::Bounds { median: false }),
+            NativeRuleKind::ColorScale(_) | NativeRuleKind::DataBar(_) | NativeRuleKind::IconSet(_) =>
+                Some(ConditionalStatistic::SortedNumbers),
             NativeRuleKind::Duplicates(_) => Some(ConditionalStatistic::Duplicates),
             _ => None,
+        }
+    }
+
+    pub(super) fn resolve(&mut self, book: &Workbook, sheet: usize, entry: &ConditionalFormatRuleEntry, statistic: &Value) -> bool {
+        let origin = CellAddress::new(entry.row_start, entry.col_start);
+        match &mut self.kind {
+            NativeRuleKind::ColorScale(rule) => NumericDomain::from_value(statistic)
+                .is_some_and(|domain| rule.resolve(&domain, book, sheet, origin)),
+            NativeRuleKind::DataBar(rule) => NumericDomain::from_value(statistic)
+                .is_some_and(|domain| rule.resolve(&domain, book, sheet, origin)),
+            NativeRuleKind::IconSet(rule) => NumericDomain::from_value(statistic)
+                .is_some_and(|domain| rule.resolve(&domain, book, sheet, origin)),
+            _ => true,
         }
     }
 }

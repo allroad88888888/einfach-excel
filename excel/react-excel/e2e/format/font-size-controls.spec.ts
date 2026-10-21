@@ -252,3 +252,24 @@ for (const width of [1280, 390]) {
     await expect(increase).toBeFocused()
   })
 }
+
+for (const width of [1280, 390]) for (const [action, size] of [['Increase', 14], ['Decrease', 11]] as const) {
+  test(`${action} font size changes only the target and undoes once at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 850 })
+    await select(page, 'B2', '1:1')
+    const target = cell(page, '1:1')
+    const height = (await target.boundingBox())!.height
+    await page.getByRole('button', { name: `${action} font size`, exact: true }).click()
+    await expect(sizeControl(page)).toHaveValue(String(size))
+    await expect(target).toHaveCSS('font-size', `${size}px`)
+    await expect(target).toHaveCSS('font-style', 'italic')
+    await expect(target).toHaveText('Acme Co.')
+    await expect(cell(page, '2:1')).toHaveCSS('font-size', '12px')
+    expect((await target.boundingBox())!.height).toBeGreaterThanOrEqual(height)
+    await page.getByRole('button', { name: 'Undo', exact: true }).click()
+    await expect(target).toHaveCSS('font-size', '12px')
+    await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+    await page.getByRole('button', { name: 'Redo', exact: true }).click()
+    await expect(target).toHaveCSS('font-size', `${size}px`)
+  })
+}

@@ -89,6 +89,10 @@ export const SALES_ORDER_SUMMARY_CELLS: readonly RustImportCell[] = [
       sheet: 1, row: 74 + offset, col, kind: 'number', value,
     }))),
   // 查找示例保存在原生数据：emoji 的匹配位置、大小写与公式源分别可验收。
+  { sheet: 1, row: 73, col: 7, kind: 'text', value: 'Icon thresholds', format: { bold: true } },
+  ...[0, 10, 50, 75, 100].map((value, offset): RustImportCell => ({
+    sheet: 1, row: 74 + offset, col: 7, kind: 'number', value,
+  })),
   { sheet: 1, row: 84, col: 0, kind: 'text', value: '😀alpha alpha' },
   { sheet: 1, row: 84, col: 1, kind: 'text', value: 'ALPHA' },
   { sheet: 1, row: 84, col: 2, kind: 'formula', value: '=LEN("alpha")' },

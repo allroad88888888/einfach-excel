@@ -1,0 +1,28 @@
+import { expect, test } from '@playwright/test'
+import { button, cell, marker, openNote } from './fixtures'
+
+for (const width of [1280, 390]) test(`Chinese note editor preserves text through language switching at ${width}px`, async ({ page }, testInfo) => {
+  await page.setViewportSize({ width, height: 850 })
+  await page.goto('/e2e/fixtures/plain-sales-orders/?locale=zh-CN')
+  await expect(cell(page, '1:0')).toHaveText('SO-10001')
+  const name = page.getByRole('textbox', { name: '名称框' })
+  await name.fill('A2'); await name.press('Enter')
+  await button(page, '备注').click()
+  const dialog = page.getByRole('dialog', { name: '新增备注' })
+  await expect(dialog).toBeVisible()
+  await page.getByLabel('备注内容', { exact: true }).fill('第一行\nEnglish 🙂')
+  await button(page, '新增备注').click(); await expect(marker(page, '1:0')).toHaveCount(1)
+  await button(page, '备注').click()
+  await expect(page.getByRole('dialog', { name: '编辑备注' })).toBeVisible()
+  await expect(page.getByLabel('备注内容', { exact: true })).toHaveValue('第一行\nEnglish 🙂')
+  await page.screenshot({ path: testInfo.outputPath(`notes-zh-${width}.png`) })
+  await button(page, '取消').click()
+  await page.getByRole('combobox', { name: '界面语言' }).selectOption('en')
+  await openNote(page)
+  await expect(page.getByLabel('Note text', { exact: true })).toHaveValue('第一行\nEnglish 🙂')
+  await button(page, 'Cancel').click()
+  await button(page, 'Undo').click(); await expect(marker(page, '1:0')).toHaveCount(0)
+  await expect(button(page, 'Undo')).toBeDisabled()
+  await expect(cell(page, '1:0')).toHaveText('SO-10001')
+  await expect(cell(page, '2:0')).toHaveText('SO-10002')
+})

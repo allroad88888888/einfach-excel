@@ -18,6 +18,7 @@ impl WorkbookHistory {
         // 即使预检失败／等待覆盖确认，也不能留下本次读取的传播队列。
         workbook.store.settle_pending_reads();
         let plan = plan?;
+        workbook.ensure_range_editable(request.sheet, plan.target)?;
         if plan.overwritten_cells > 0 && !overwrite {
             return Err("TEXT_COLUMNS_OVERWRITE_CONFIRMATION_REQUIRED");
         }
@@ -63,19 +64,30 @@ impl WorkbookHistory {
                         let value = field.value;
                         let address_text = address.to_string();
                         let sheet = workbook.sheet(request.sheet).unwrap();
-                        let format_changed = field.number_format.as_ref().is_some_and(|format|
-                            sheet.get_format(&address_text).number_format != *format);
-                        if !sheet.has_formula_at(address) && sheet.peek_value(address) == value && !format_changed {
+                        let format_changed = field.number_format.as_ref().is_some_and(|format| {
+                            sheet.get_format(&address_text).number_format != *format
+                        });
+                        if !sheet.has_formula_at(address)
+                            && sheet.peek_value(address) == value
+                            && !format_changed
+                        {
                             return Ok(());
                         }
                         workbook
                             .try_set_cell(request.sheet, &address_text, value)
                             .map_err(|_| "Could not write split output.")?;
                         if format_changed {
-                            workbook.sheet_mut(request.sheet).unwrap().patch_format_range(
-                                CellRange::single(address), StyleScope::Cell,
-                                CellStyle { number_format: field.number_format, ..Default::default() },
-                            );
+                            workbook
+                                .sheet_mut(request.sheet)
+                                .unwrap()
+                                .patch_format_range(
+                                    CellRange::single(address),
+                                    StyleScope::Cell,
+                                    CellStyle {
+                                        number_format: field.number_format,
+                                        ..Default::default()
+                                    },
+                                );
                         }
                         changed_cells += 1;
                         Ok(())

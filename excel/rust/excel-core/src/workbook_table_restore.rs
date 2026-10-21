@@ -4,6 +4,7 @@ use super::*;
 
 impl Workbook {
     pub fn restore_tables(&mut self, snapshot: TableRegistrySnapshot) -> Result<usize, TableError> {
+        self.ensure_workbook_unprotected().map_err(|_| TableError::ProtectedWorkbook)?;
         if self.is_inside_custom_call() {
             return Err(TableError::MutationDuringCustomCall);
         }

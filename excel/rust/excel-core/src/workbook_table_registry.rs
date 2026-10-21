@@ -25,6 +25,7 @@ impl Workbook {
         range: CellRange,
         has_headers: bool,
     ) -> Result<TableEntry, TableError> {
+        self.ensure_workbook_unprotected().map_err(|_| TableError::ProtectedWorkbook)?;
         if self.is_inside_custom_call() {
             return Err(TableError::MutationDuringCustomCall);
         }
@@ -74,6 +75,7 @@ impl Workbook {
     /// 仅删除低层注册项，引用它的公式会失效；这不是用户的“转换为区域”。
     /// 交互转换使用 WorkbookHistory::convert_table_to_range，同时改写公式并记录历史。
     pub fn delete_table(&mut self, name: &str) -> Result<(), TableError> {
+        self.ensure_workbook_unprotected().map_err(|_| TableError::ProtectedWorkbook)?;
         if self.is_inside_custom_call() {
             return Err(TableError::MutationDuringCustomCall);
         }

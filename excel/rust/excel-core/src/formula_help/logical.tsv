@@ -1,0 +1,16 @@
+# Signatures audited against eval_fn_logical.rs and eval_fn_lambda.rs.
+IF	logical_test,value_if_true,value_if_false?	Returns the selected branch; the unselected branch is not evaluated.	按条件返回分支，只计算被选中的分支。	TRUE,1,0
+IFERROR	value,value_if_error	Returns the fallback when value is any error.	出现任意错误时返回备用值。	1/0,0
+IFNA	value,value_if_na	Returns the fallback only for #N/A.	仅在出现 #N/A 时返回备用值。	NA(),0
+AND	logical*	Returns TRUE when every nonblank logical value is true.	所有非空逻辑值均为真时返回 TRUE。	TRUE,TRUE
+OR	logical*	Returns TRUE when any nonblank logical value is true.	任一非空逻辑值为真时返回 TRUE。	FALSE,TRUE
+XOR	logical*	Returns TRUE for an odd count of true logical values.	真值数量为奇数时返回 TRUE。	TRUE,FALSE
+NOT	logical	Reverses a logical value.	反转逻辑值。	TRUE
+IFS	logical_test*,result*	Returns the result paired with the first true test.	返回首个真条件对应的结果。	TRUE,7,FALSE,0
+SWITCH	expression,case*,result*,default?	Matches an expression against case/result pairs, with an optional final default.	按匹配值与结果成对查找，可在末尾指定默认值。	2,1,"one",2,"two","other"
+TRUE		Returns the logical constant TRUE.	返回逻辑常量 TRUE。	
+FALSE		Returns the logical constant FALSE.	返回逻辑常量 FALSE。	
+NA		Returns the #N/A error value.	返回 #N/A 错误值。	
+LET	name*,value*,calculation	Binds name/value pairs sequentially, then evaluates the final calculation in that scope.	依次绑定名称与值，最后在该作用域计算表达式。	x,3,x*2
+LAMBDA	parameter*?,calculation	Creates a function whose final argument is its body; preceding arguments are parameter names.	创建函数，最后一个参数为函数体，前面的参数为形参名称。	x,x*2
+ISOMITTED	value	Tests whether a LAMBDA argument is omitted; it must run inside a LAMBDA invocation.	检测 LAMBDA 参数是否省略，必须在 LAMBDA 调用内运行。	=LAMBDA(x,ISOMITTED(x))()

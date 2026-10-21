@@ -1,0 +1,49 @@
+# Audited against lookup_classic/modern, reference_position/resolution, information_* and database.
+VLOOKUP	lookup_value,table_array,col_index_num,range_lookup?	Searches the first table column and returns a value from a one-based result column; approximate matching defaults to TRUE.	搜索首列并返回指定列的值，列号从一开始；默认近似匹配。	2,A1:B3,2,FALSE
+HLOOKUP	lookup_value,table_array,row_index_num,range_lookup?	Searches the first table row and returns a value from a one-based result row; approximate matching defaults to TRUE.	搜索首行并返回指定行的值，行号从一开始；默认近似匹配。	2,A1:B2,2,FALSE
+INDEX	array,row_num,column_num?	Returns a value from a two-dimensional reference using one-based row and optional column indices.	按从一开始的行号及可选列号返回二维引用的值。	A1:B2,2,1
+MATCH	lookup_value,lookup_array,match_type?	Returns a one-based match position; match type defaults to one (ascending approximate).	返回从一开始的匹配位置，默认匹配类型为 1（升序近似）。	2,{1,2,3},0
+XLOOKUP	lookup_value,lookup_array,return_array,if_not_found?,match_mode?,search_mode?	Finds a value and returns the corresponding item or row/column; defaults to exact match and forward search.	查找值并返回对应项或行列，默认精确匹配并正向搜索。	2,A1:A3,B1:B3
+XMATCH	lookup_value,lookup_array,match_mode?,search_mode?	Returns a one-based position with exact, next-smaller, next-larger or wildcard matching.	按精确、次小、次大或通配符模式返回从一开始的位置。	2,{1,2,3}
+LOOKUP	lookup_value,lookup_vector,result_vector?	Looks up the last qualifying value in an ascending vector or array.	在升序向量或数组中查找最后一个符合条件的值。	2,{1,2,3},{10,20,30}
+OFFSET	reference,rows,cols,height?,width?	Returns a reference offset from the supplied reference with optional dimensions.	返回相对于原引用偏移的引用，可指定区域尺寸。	A1,1,0,2,1
+ROW	reference?	Returns the one-based row number, using the evaluation cell when reference is omitted.	返回从一开始的行号，省略引用时使用当前计算单元格。	A1
+COLUMN	reference?	Returns the one-based column number, using the evaluation cell when reference is omitted.	返回从一开始的列号，省略引用时使用当前计算单元格。	B1
+ROWS	reference	Returns the row count of a reference.	返回引用的行数。	A1:B2
+COLUMNS	reference	Returns the column count of a reference.	返回引用的列数。	A1:B2
+AREAS	reference	Counts disjoint areas in a reference expression.	统计引用表达式中互不相连的区域数。	A1:B2
+CHOOSE	index_num,value*	Returns the value at a one-based index without evaluating the other choices.	按从一开始的索引返回值，不计算其他候选值。	2,"a","b"
+ADDRESS	row_num,column_num,abs_num?,a1?,sheet_text?	Creates an A1 or R1C1 address string; absolute mode defaults to one.	生成 A1 或 R1C1 地址文本，默认绝对引用模式为一。	2,3
+INDIRECT	ref_text,a1?	Resolves A1 or R1C1 reference text; A1 mode defaults to TRUE.	解析 A1 或 R1C1 引用文本，默认使用 A1 模式。	"A1"
+FORMULATEXT	reference	Returns the saved formula source of a referenced cell.	返回引用单元格中保存的公式原文。	A1
+ISNUMBER	value	Tests whether a value is numeric without coercion.	不做类型转换，检测值是否为数字。	1
+ISTEXT	value	Tests whether a value is text without coercion.	不做类型转换，检测值是否为文本。	"a"
+ISBLANK	value	Tests whether a value is an empty cell value.	检测值是否为空单元格值。	A1
+ISERROR	value	Tests for any error value.	检测任意错误值。	1/0
+ISERR	value	Tests for errors other than #N/A.	检测除 #N/A 外的错误。	1/0
+ISNA	value	Tests for the #N/A error.	检测 #N/A 错误。	NA()
+ISLOGICAL	value	Tests whether a value is Boolean.	检测值是否为逻辑值。	TRUE
+ISNONTEXT	value	Tests whether a value is not text.	检测值是否不是文本。	1
+ISEVEN	value	Tests whether the integer portion of a numeric value is even.	检测数字值的整数部分是否为偶数。	2
+ISODD	value	Tests whether the integer portion of a numeric value is odd.	检测数字值的整数部分是否为奇数。	3
+N	value	Converts numbers unchanged, TRUE to one, FALSE and text to zero; errors propagate.	保留数字，TRUE 转一，FALSE 与文本转零，错误继续传播。	TRUE
+TYPE	value	Returns type codes: number 1, text 2, logical 4, error 16, array 64, lambda 128.	返回类型码：数字 1、文本 2、逻辑 4、错误 16、数组 64、函数 128。	{1,2}
+ERROR.TYPE	error_val	Returns the engine's numeric code for an error value.	返回错误值对应的引擎数字代码。	NA()
+ISREF	value	Tests whether the argument expression is a literal reference.	检测参数表达式是否为字面引用。	A1
+CELL	info_type,reference?	Returns selected metadata for the reference or current cell.	返回引用单元格或当前单元格的指定元数据。	"address",A1
+ISFORMULA	reference	Tests whether a referenced cell has a saved formula.	检测引用单元格是否保存了公式。	A1
+SHEET	value?	Returns the one-based sheet index for a reference or sheet name, or the current sheet.	返回引用或工作表名称对应的从一开始的索引，省略时为当前表。	
+SHEETS	reference?	Returns the workbook sheet count, or the count in the supplied reference.	返回工作簿工作表数，或指定引用涉及的表数。	
+INFO	type_text	Returns supported runtime metadata such as release, system, recalc or numfile.	返回受支持的运行信息，例如版本、系统、重算模式与文件数。	"recalc"
+DSUM	database,field,criteria	Sums database records matching the criteria table.	对满足条件表的数据库记录求和。	D1:E4,2,G1:G2
+DAVERAGE	database,field,criteria	Returns the mean for database records matching the criteria table.	对满足条件表的数据库记录求平均值。	D1:E4,2,G1:G2
+DCOUNT	database,field,criteria	Counts numeric fields in matching database records.	统计满足条件的数据库记录中的数字字段。	D1:E4,2,G1:G2
+DCOUNTA	database,field,criteria	Counts nonempty fields in matching database records.	统计满足条件的数据库记录中的非空字段。	D1:E4,2,G1:G2
+DMAX	database,field,criteria	Returns the largest matching database field value.	返回满足条件的数据库字段最大值。	D1:E4,2,G1:G2
+DMIN	database,field,criteria	Returns the smallest matching database field value.	返回满足条件的数据库字段最小值。	D1:E4,2,G1:G2
+DPRODUCT	database,field,criteria	Multiplies numeric fields in matching database records.	返回满足条件的数据库数字字段的乘积。	D1:E4,2,G1:G2
+DGET	database,field,criteria	Returns a field value only when exactly one database record matches.	仅在恰好一条数据库记录满足条件时返回字段值。	D1:E4,2,H1:H2
+DSTDEV	database,field,criteria	Returns sample standard deviation for matching database records.	返回满足条件的数据库记录的样本标准差。	D1:E4,2,G1:G2
+DSTDEVP	database,field,criteria	Returns population standard deviation for matching database records.	返回满足条件的数据库记录的总体标准差。	D1:E4,2,G1:G2
+DVAR	database,field,criteria	Returns sample variance for matching database records.	返回满足条件的数据库记录的样本方差。	D1:E4,2,G1:G2
+DVARP	database,field,criteria	Returns population variance for matching database records.	返回满足条件的数据库记录的总体方差。	D1:E4,2,G1:G2

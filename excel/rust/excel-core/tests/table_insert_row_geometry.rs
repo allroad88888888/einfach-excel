@@ -139,7 +139,7 @@ fn inherited_validation_failure_rolls_back_adjacent_formula_and_the_original_emp
     for addr in ["A5", "C4"] {
         let (mut book, mut history) = seed(false);
         book.sheet_mut(0).unwrap().set_data_validation(range("B4", "B4"), Some(DataValidationRule {
-            kind: DataValidationKind::WholeNumber { min: 1., max: 10. },
+            options: Default::default(), kind: DataValidationKind::WholeNumber { min: 1., max: 10. },
             ignore_blank: true, operator: Default::default(),
         })).unwrap();
         let before = book.snapshot_tables();
@@ -159,7 +159,7 @@ fn adjacent_formula_validates_after_the_existing_column_is_inherited() {
         Some(TableColumnFormula::new(3, "=5").unwrap())]);
     book.restore_tables(TableRegistrySnapshot::from_entries(vec![table])).unwrap();
     book.sheet_mut(0).unwrap().set_data_validation(range("C4", "C4"), Some(DataValidationRule {
-        kind: DataValidationKind::WholeNumber { min: 6., max: 6. },
+        options: Default::default(), kind: DataValidationKind::WholeNumber { min: 6., max: 6. },
         ignore_blank: true, operator: Default::default(),
     })).unwrap();
     let before = book.snapshot_tables();

@@ -22,6 +22,9 @@ import type {
 import { selectionSnapshotAtom, selectionAuthorityWitnessAtom } from '../selection'
 import { validateProjectionResult } from '../projection/contracts'
 import { applyProjectionSizes } from '../projection/projection-sizes'
+import { offerNativeValidationConfirmationAtom } from '../data-validation/advanced/confirmation-state'
+import type { RustWorkbookCommands, RustWorkbookConnection } from '../rust-workbook/commands'
+import type { ProjectionSnapshot } from '../projection'
 
 export interface SystemClipboardData {
   readonly painter?: boolean
@@ -211,7 +214,7 @@ export const runSystemClipboardAtom = atom(
         requestId,
         reason: 'toolbar',
       })
-      const result = await connection.request('clipboard.paste', {
+      const payload = {
         request: {
           sheetId: sheet.id,
           requestId,
@@ -229,15 +232,41 @@ export const runSystemClipboardAtom = atom(
           unlockedRanges: protection?.mode === 'protected' ? protection.unlockedRanges : undefined,
         },
         projection,
-      })
+      }
+      return await set(resumeValidatedPasteAtom, { connection, witness, payload })
+    } catch (error) {
+      set(feedbackAtom, { busy: false, error: true, message: clipboardErrorMessage(error) })
+      return false
+    }
+  },
+)
+
+/** 原始粘贴和确认继续只共享这条成功/失败链，不重新读取剪贴板或选区。 */
+export const resumeValidatedPasteAtom = atom(null, async (get, set, input: {
+  readonly connection: RustWorkbookConnection
+  readonly witness: ProjectionSnapshot
+  readonly payload: RustWorkbookCommands['clipboard.paste']['payload']
+}): Promise<boolean> => {
+  const { connection, witness, payload } = input
+  const { request, projection } = payload
+  const { row, col, sheetId, requestId } = request
+  if (get(rustWorkbookConnectionAtom) !== connection) return false
+  const busy = { busy: true, error: false, message: 'paste…' }
+  set(feedbackAtom, busy)
+  try {
+      const pending = connection.request('clipboard.paste', payload)
+      await Promise.resolve()
+      if (get(feedbackAtom) === busy) set(feedbackAtom, busy)
+      const result = await pending
+      if (get(rustWorkbookConnectionAtom) !== connection) return false
       const ack = result.acknowledgement
       if (
-        ack.sheetId !== sheet.id ||
+        ack.sheetId !== sheetId ||
         ack.requestId !== requestId ||
         ack.revision !== result.projection.revision
       )
         throw new Error('Invalid paste acknowledgement.')
-      if (input.mode === 'column-widths') {
+      if (request.mode === 'column-widths') {
         if (get(rustWorkbookConnectionAtom) !== connection)
           throw new Error('The workbook changed. Paste again.')
         const range = ack.affectedRange
@@ -248,10 +277,10 @@ export const runSystemClipboardAtom = atom(
           !Object.values(range).every(Number.isSafeInteger) ||
           range.rowStart !== row ||
           range.rowEnd < row ||
-          range.rowEnd >= sheet.rowCount ||
+          range.rowEnd >= request.rowCount ||
           range.colStart !== col ||
           range.colEnd < col ||
-          range.colEnd >= sheet.colCount
+          range.colEnd >= request.colCount
         )
           throw new Error('Invalid column width result.')
         // 合并整个粘贴目标的列宽，屏幕外列也参与滚动定位；不再发第二次刷新。
@@ -263,13 +292,19 @@ export const runSystemClipboardAtom = atom(
         })
       }
       set(applyVisibleProjectionAtom, { witness, request: projection, result: result.projection })
-      set(feedbackAtom, { busy: false, error: false, message: data.painter ? '' : 'Pasted cells.' })
+      set(feedbackAtom, { busy: false, error: false, message: request.painter ? '' : 'Pasted cells.' })
       return true
     } catch (error) {
+      if (!request.validationConfirmation && get(rustWorkbookConnectionAtom) === connection)
+        set(offerNativeValidationConfirmationAtom, {
+          error, operation: { command: 'clipboard.paste', payload }, witness,
+        })
       set(feedbackAtom, { busy: false, error: true, message: clipboardErrorMessage(error) })
+      if (request.validationConfirmation === 'continue') throw error
       return false
-    }
-  },
-)
+  } finally {
+    if (get(feedbackAtom) === busy) set(feedbackAtom, { busy: false, error: false, message: '' })
+  }
+})
 runSystemClipboardAtom.debugLabel = 'spreadsheet.clipboard.runSystemClipboard'
 systemClipboardFeedbackAtom.debugLabel = 'spreadsheet.clipboard.systemFeedback'

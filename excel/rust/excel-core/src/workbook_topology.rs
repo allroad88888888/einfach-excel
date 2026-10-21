@@ -6,7 +6,7 @@ use super::*;
 
 impl Workbook {
     pub fn add_sheet(&mut self, name: &str) -> usize {
-        if self.is_inside_custom_call() {
+        if self.is_inside_custom_call() || self.ensure_workbook_unprotected().is_err() {
             // Re-entrancy guard. Return the existing index if the name
             // happens to exist (idempotent — matches the dup-name branch
             // below) or 0 (Sheet1, always exists) so the caller gets a
@@ -69,7 +69,7 @@ impl Workbook {
     ///
     /// Retarget static references before publishing the renamed topology.
     pub fn rename_sheet(&mut self, idx: usize, new_name: &str) -> bool {
-        self.rename_sheet_with_formula_consumers(idx, new_name, None, None, None)
+        self.rename_sheet_with_formula_consumers(idx, new_name, None, None, None, None)
     }
 
     /// 历史给出原始规则、闭包与模板差异，避免逆向改写碰到原先悬空的新表名引用。
@@ -78,10 +78,11 @@ impl Workbook {
         idx: usize,
         new_name: &str,
         restored: Option<&ConditionalRuleSources>,
+        restored_validations: Option<&ValidationRuleSources>,
         restored_lambdas: Option<(&[FormulaLambdaChange], bool)>,
         restored_templates: Option<(&[FormulaSourceChange], bool)>,
     ) -> bool {
-        if self.is_inside_custom_call() {
+        if self.is_inside_custom_call() || self.ensure_workbook_unprotected().is_err() {
             return false; // re-entrancy guard
         }
         if self.by_name.contains_key(new_name) {
@@ -94,6 +95,10 @@ impl Workbook {
         let conditional = restored.cloned().unwrap_or_else(|| {
             self.conditional_sheet_ref_rewrites(&self.names[idx], Some(new_name))
         });
+        let validations = restored_validations.cloned().unwrap_or_else(|| {
+            self.validation_sheet_ref_rewrites(&self.names[idx], Some(new_name))
+        });
+        if self.validate_validation_rule_sources(&validations).is_err() { return false; }
         if self
             .validate_conditional_rule_sources(&conditional)
             .is_err()
@@ -156,6 +161,7 @@ impl Workbook {
             // 新名字与闭包一起落地，再由拓扑发布修复受影响的 spill。
             self.sync_atom_topology();
             self.apply_conditional_rule_sources(&conditional);
+            self.apply_validation_rule_sources(&validations);
             for (sheet, addr, text) in rewrites {
                 self.set_formula(sheet, &addr.to_string_repr(), &text);
             }
@@ -175,7 +181,7 @@ impl Workbook {
     /// Formula ASTs store sheet names, so reordering updates the shared
     /// topology atom after the vectors and lookup are rebuilt.
     pub fn move_sheet(&mut self, from: usize, to: usize) -> bool {
-        if self.is_inside_custom_call() {
+        if self.is_inside_custom_call() || self.ensure_workbook_unprotected().is_err() {
             return false; // re-entrancy guard
         }
         if from >= self.sheets.len() || to >= self.sheets.len() {

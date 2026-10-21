@@ -9,6 +9,11 @@ async function records(page: Page, values: readonly string[]) {
   for (let index = 0; index < values.length; index++)
     await expect(cell(page, `${32 + index}:5`)).toHaveText(values[index]!)
 }
+async function recordsWithHeader(page: Page, values: readonly string[]) {
+  for (const [index, value] of values.entries())
+    await expect(cell(page, `${24 + index}:2`)).toHaveText(value)
+  await expect(cell(page, '24:3')).toHaveText('')
+}
 async function open(page: Page) {
   await menu(page).selectOption('custom')
   await page.getByLabel('First row is a header').check()
@@ -34,11 +39,15 @@ for (const [caseSensitive, position, direction, expected] of [
 ] as const) test(`native seed sort case=${caseSensitive} empty=${position} order=${direction} is stable and undoable`,
   async ({ page }) => {
     await open(page)
+    // 先设相反草稿，再选目标选项，避免只靠默认值“通过”入口测试。
+    await page.getByLabel('Case sensitive', { exact: true }).setChecked(!caseSensitive)
     await page.getByLabel('Case sensitive', { exact: true }).setChecked(caseSensitive)
+    await page.getByLabel('Empty cell position').selectOption(position === 'first' ? 'last' : 'first')
     await page.getByLabel('Empty cell position').selectOption(position)
     await page.getByLabel('Sort order 1').selectOption(direction)
     await apply(page); await records(page, expected)
     await expect(cell(page, '31:3')).toHaveText('Key')
+    await expect(cell(page, '31:2')).toHaveText('')
     await expect(cell(page, `${32 + expected.indexOf('M1')}:5`)).toHaveCSS('font-style', 'italic')
     await expect(cell(page, `${32 + expected.indexOf('P1')}:5`)).toHaveCSS('text-decoration-line', 'underline')
     // 同选项再次排序为 no-op，不增加历史。
@@ -94,6 +103,60 @@ test('empty-first respects filtered slots, includes manual hidden rows and keeps
   await expect(cell(page, '33:5')).toHaveCount(0)
 })
 
+for (const width of [1280, 390]) for (const header of [true, false])
+  test(`sort header option ${header} controls first-row movement at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 850 })
+    await select(page, 'A25:C29', '24:0'); await open(page)
+    await page.getByLabel('First row is a header').setChecked(header)
+    const expected = header ? ['Record', 'E10', 'E30', 'W20', 'W10']
+      : ['E10', 'E30', 'Record', 'W20', 'W10']
+    await apply(page); await recordsWithHeader(page, expected)
+    await button(page, 'Undo').click()
+    await recordsWithHeader(page, ['Record', 'W20', 'E10', 'W10', 'E30'])
+    await expect(button(page, 'Undo')).toBeDisabled()
+    await button(page, 'Redo').click(); await recordsWithHeader(page, expected)
+    await expect(cell(page, `${24 + expected.indexOf('Record')}:2`)).toHaveCSS('font-weight', '700')
+  })
+
+for (const width of [1280, 390]) for (const entry of [
+  { action: 'column', column: '2', direction: 'asc', expected: ['E10', 'E30', 'W10', 'W20'] },
+  { action: 'order-asc', column: '0', direction: 'asc', expected: ['E10', 'E30', 'W20', 'W10'] },
+  { action: 'order-desc', column: '0', direction: 'desc', expected: ['W20', 'W10', 'E10', 'E30'] },
+]) test(`custom sort ${entry.action} changes the chosen key in one undo at ${width}px`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 850 })
+  await select(page, 'A25:C29', '24:0'); await open(page)
+  await page.getByLabel('Sort column 1').selectOption(entry.column)
+  if (entry.action === 'order-asc') await page.getByLabel('Sort order 1').selectOption('desc')
+  await page.getByLabel('Sort order 1').selectOption(entry.direction)
+  await expect(page.getByLabel('Sort column 1')).toHaveValue(entry.column)
+  await expect(page.getByLabel('Sort order 1')).toHaveValue(entry.direction)
+  await apply(page); await recordsWithHeader(page, ['Record', ...entry.expected])
+  await button(page, 'Undo').click()
+  await recordsWithHeader(page, ['Record', 'W20', 'E10', 'W10', 'E30'])
+  await expect(button(page, 'Undo')).toBeDisabled()
+  await button(page, 'Redo').click(); await recordsWithHeader(page, ['Record', ...entry.expected])
+  await expect(cell(page, '24:0')).toHaveText('Team')
+})
+
+for (const width of [1280, 390])
+  test(`cancel sort discards keys and options without history at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 850 })
+    await open(page); await button(page, 'Add level').click()
+    await page.getByLabel('Sort column 1').selectOption('5')
+    await page.getByLabel('Sort order 1').selectOption('desc')
+    await page.getByLabel('Case sensitive', { exact: true }).check()
+    await page.getByLabel('Empty cell position').selectOption('first')
+    await button(page, 'Cancel').click()
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+    await expect(menu(page)).toBeFocused(); await expect(button(page, 'Undo')).toBeDisabled()
+    await records(page, original); await expect(cell(page, '31:3')).toHaveText('Key')
+    await menu(page).selectOption('custom')
+    await expect(page.getByLabel('Sort column 1')).toHaveValue('3')
+    await expect(page.getByLabel('Sort column 2')).toHaveCount(0)
+    await expect(page.getByLabel('Case sensitive', { exact: true })).not.toBeChecked()
+    await expect(page.getByLabel('Empty cell position')).toHaveValue('last')
+  })
+
 for (const width of [1280, 390]) test(`sort options and priority controls fit ${width}px; cancel does not write`,
   async ({ page }) => {
     await page.setViewportSize({ width, height: 800 })
@@ -111,6 +174,8 @@ for (const width of [1280, 390]) test(`sort options and priority controls fit ${
     await expect(dialog).toHaveCount(0)
     await expect(menu(page)).toBeFocused()
     await expect(button(page, 'Undo')).toBeDisabled()
+    await records(page, original)
+    await expect(cell(page, '31:3')).toHaveText('Key')
     await menu(page).selectOption('custom')
     await expect(page.getByLabel('Case sensitive', { exact: true })).not.toBeChecked()
     await expect(page.getByLabel('Empty cell position')).toHaveValue('last')

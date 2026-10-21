@@ -19,6 +19,7 @@ fn install(book: &mut Workbook, address: &str, kind: Kind) {
                 kind,
                 ignore_blank: true,
                 operator: Default::default(),
+                options: Default::default(),
             }),
         )
         .unwrap();

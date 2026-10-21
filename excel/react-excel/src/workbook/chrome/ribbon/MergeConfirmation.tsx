@@ -1,10 +1,15 @@
 import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { runSelectionMergeAtom, selectionMergeFeedbackAtom } from '@einfach/spreadsheet-ui-core'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type RefObject } from 'react'
+import { cycleDialogFocus } from './dialog-focus'
 
 /** 沿用工作表确认框的原生模态布局，默认先聚焦取消。 */
-export function MergeConfirmation() {
+export function MergeConfirmation({
+  openerRef,
+}: {
+  readonly openerRef: RefObject<HTMLSelectElement>
+}) {
   const { t } = useLingui()
   const state = useAtomValue(selectionMergeFeedbackAtom)
   const run = useSetAtom(runSelectionMergeAtom)
@@ -12,10 +17,15 @@ export function MergeConfirmation() {
   useEffect(() => {
     const dialog = ref.current
     if (!state.pending || !dialog) return
+    const opener = openerRef.current
     if (dialog.showModal) dialog.showModal()
     else dialog.setAttribute('open', '')
-    return () => dialog.close?.()
-  }, [state.pending])
+    return () => {
+      dialog.close?.()
+      // 合并菜单在等待确认时禁用，不能依赖浏览器记住原焦点。
+      if (opener?.isConnected) opener.focus({ preventScroll: true })
+    }
+  }, [state.pending, openerRef])
   if (!state.pending) return null
   return (
     <dialog
@@ -24,6 +34,7 @@ export function MergeConfirmation() {
       role="alertdialog"
       aria-labelledby="merge-confirm-title"
       aria-describedby="merge-confirm-description"
+      onKeyDown={cycleDialogFocus}
       onCancel={(event) => {
         event.preventDefault()
         if (!state.busy) void run('cancel')

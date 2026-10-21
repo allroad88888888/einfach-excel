@@ -37,6 +37,7 @@ impl NamedRangeChange {
         workbook: &Workbook,
         action: NamedRangeAction,
     ) -> Result<Option<Self>, &'static str> {
+        workbook.ensure_workbook_unprotected()?;
         let read = |name: &str| -> Result<NamedEntry, &'static str> {
             match workbook.named_values.get(&name.to_uppercase()) {
                 Some(
@@ -154,6 +155,7 @@ impl NamedRangeChange {
     }
 
     pub(crate) fn apply(&self, workbook: &mut Workbook, undo: bool) -> Result<(), &'static str> {
+        workbook.ensure_workbook_unprotected()?;
         if workbook.is_inside_custom_call() {
             return Err("Cannot edit names during a custom call.");
         }

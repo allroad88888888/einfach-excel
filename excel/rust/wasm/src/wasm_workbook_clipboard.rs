@@ -20,6 +20,7 @@ enum ClipboardSlot {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct ClipboardPastePolicyJSON {
+    validation_confirmation: Option<String>,
     painter: Option<bool>,
     mode: Option<String>,
     arithmetic: Option<String>,
@@ -129,6 +130,11 @@ impl WasmWorkbook {
     ) -> Result<Vec<u32>, JsValue> {
         let policy: ClipboardPastePolicyJSON = serde_wasm_bindgen::from_value(policy)
             .map_err(|_| JsValue::from_str("CLIPBOARD_INVALID_POLICY"))?;
+        let confirmed = match policy.validation_confirmation.as_deref() {
+            None => false,
+            Some("continue") => true,
+            _ => return Err(JsValue::from_str("CLIPBOARD_INVALID_POLICY")),
+        };
         let mode = match policy.mode.as_deref().unwrap_or("all") {
             "all" => ClipboardPasteMode::All,
             "values" => ClipboardPasteMode::Values,
@@ -187,9 +193,9 @@ impl WasmWorkbook {
             &external
         };
         let cut = snapshot.is_cut();
-        let range = self
-            .workbook
-            .paste_clipboard_with_history(
+        let history = &mut self.history;
+        let range = self.workbook.with_validation_confirmation(confirmed, |workbook|
+            workbook.paste_clipboard_with_history(
                 snapshot,
                 sheet_idx as usize,
                 &ClipboardPasteOptions {
@@ -202,8 +208,8 @@ impl WasmWorkbook {
                     col_count: policy.col_count,
                     unlocked_ranges: unlocked,
                 },
-                &mut self.history,
-            )
+                history,
+            ))
             .map_err(JsValue::from_str)?;
         if cut {
             self.clipboard = None;

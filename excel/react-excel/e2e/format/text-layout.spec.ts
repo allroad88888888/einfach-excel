@@ -1,6 +1,6 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 
-async function selectTestCell(page: import('@playwright/test').Page) {
+async function selectTestCell(page: Page) {
   await page.goto('/')
   const cell = page.locator('td[data-cell="2:1"]')
   await expect(cell).toBeVisible()
@@ -82,4 +82,39 @@ test('shows the text layout examples from the original Rust seed', async ({ page
   await nameBox.fill('N2')
   await nameBox.press('Enter')
   await expect(page.locator('td[data-cell="1:13"]')).toHaveCSS('padding-left', '16px')
+})
+
+for (const width of [1280, 390]) test(`increase indent preserves text and undoes once at ${width}px`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 850 })
+  const target = await selectTestCell(page)
+  await expect(target).toHaveCSS('padding-left', '7px')
+  await page.getByRole('button', { name: 'Increase indent', exact: true }).click()
+  await expect(target).toHaveCSS('padding-left', '8px')
+  await expect(target).toHaveText('Northwind')
+  await expect(page.locator('td[data-cell="3:1"]')).toHaveCSS('padding-left', '7px')
+  await page.getByRole('button', { name: 'Undo', exact: true }).click()
+  await expect(target).toHaveCSS('padding-left', '7px')
+  await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+  await page.getByRole('button', { name: 'Redo', exact: true }).click()
+  await expect(target).toHaveCSS('padding-left', '8px')
+})
+
+for (const width of [1280, 390]) test(`decrease indent uses the seeded value and undoes once at ${width}px`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 850 })
+  await selectTestCell(page)
+  const nameBox = page.getByRole('textbox', { name: 'Name box' })
+  await nameBox.fill('N2')
+  await nameBox.press('Enter')
+  const target = page.locator('td[data-cell="1:13"]')
+  const before = await target.innerText()
+  await expect(target).toHaveCSS('padding-left', '16px')
+  await page.getByRole('button', { name: 'Decrease indent', exact: true }).click()
+  await expect(target).toHaveCSS('padding-left', '8px')
+  await expect(target).toHaveText(before)
+  await expect(page.locator('td[data-cell="2:13"]')).toHaveCSS('padding-left', '7px')
+  await page.getByRole('button', { name: 'Undo', exact: true }).click()
+  await expect(target).toHaveCSS('padding-left', '16px')
+  await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+  await page.getByRole('button', { name: 'Redo', exact: true }).click()
+  await expect(target).toHaveCSS('padding-left', '8px')
 })

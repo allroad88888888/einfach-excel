@@ -30,15 +30,20 @@ impl WorkbookHistory {
         let mut snapshots = Vec::new();
         for &(range, scope) in targets {
             validate_target(workbook, sheet, range)?;
+            workbook.ensure_range_editable(sheet, range)?;
             let source = workbook.sheet(sheet).unwrap();
-            if source.merged_ranges().iter().any(|merged| merged.intersects(range)
-                && (!range.contains(merged.start) || !range.contains(merged.end))) {
+            if source.merged_ranges().iter().any(|merged| {
+                merged.intersects(range)
+                    && (!range.contains(merged.start) || !range.contains(merged.end))
+            }) {
                 return Err("Select the entire merged cell before clearing.");
             }
             visits += u64::from(range.rows()) * u64::from(range.cols());
             // 内容清除是稀疏扫描，不设理论格数上限；格式清除会写 cellStyle，须先限量。
             if formats && visits > 100_000 {
-                return Err("Format clearing exceeds 100,000 addressed cells. Choose a smaller selection.");
+                return Err(
+                    "Format clearing exceeds 100,000 addressed cells. Choose a smaller selection.",
+                );
             }
             affected.start.row = affected.start.row.min(range.start.row);
             affected.start.col = affected.start.col.min(range.start.col);
@@ -48,24 +53,36 @@ impl WorkbookHistory {
             // 行列格式会改显示画布外已有的交叉样式，但不能把那些格子的值纳入恢复。
             if formats && scope != StyleScope::Cell {
                 let axis = match scope {
-                    StyleScope::Row => CellRange::new(CellAddress::new(range.start.row, 0),
-                        CellAddress::new(range.end.row, 16_383)),
-                    _ => CellRange::new(CellAddress::new(0, range.start.col),
-                        CellAddress::new(1_048_575, range.end.col)),
+                    StyleScope::Row => CellRange::new(
+                        CellAddress::new(range.start.row, 0),
+                        CellAddress::new(range.end.row, 16_383),
+                    ),
+                    _ => CellRange::new(
+                        CellAddress::new(0, range.start.col),
+                        CellAddress::new(1_048_575, range.end.col),
+                    ),
                 };
                 snapshots.push((sheet, axis, false));
+                workbook.ensure_range_editable(sheet, axis)?;
             }
         }
         let source = workbook.sheet(sheet).unwrap();
         if content {
             // 部分数组子格没有独立可清除的源；锚点可位于本次另一个区域中。
             for &anchor in source.spill_anchor_addr.values() {
-                let Some((rows, cols)) = source.spill_info(anchor) else { continue };
-                if rows == 0 || cols == 0 { continue; }
-                let spill = CellRange::new(anchor,
-                    CellAddress::new(anchor.row + rows - 1, anchor.col + cols - 1));
+                let Some((rows, cols)) = source.spill_info(anchor) else {
+                    continue;
+                };
+                if rows == 0 || cols == 0 {
+                    continue;
+                }
+                let spill = CellRange::new(
+                    anchor,
+                    CellAddress::new(anchor.row + rows - 1, anchor.col + cols - 1),
+                );
                 if targets.iter().any(|(range, _)| range.intersects(spill))
-                    && !targets.iter().any(|(range, _)| range.contains(anchor)) {
+                    && !targets.iter().any(|(range, _)| range.contains(anchor))
+                {
                     return Err("Cannot clear only a spill result. Include its formula cell.");
                 }
             }
@@ -81,16 +98,28 @@ impl WorkbookHistory {
         store.batch(|_| {
             outcome = targets.iter().try_for_each(|&(range, scope)| {
                 if formats {
-                    self.patch_format_range(workbook, sheet, range, scope,
-                        CellStyle::from_format(CellFormat::default()))?;
+                    self.patch_format_range(
+                        workbook,
+                        sheet,
+                        range,
+                        scope,
+                        CellStyle::from_format(CellFormat::default()),
+                    )?;
                 }
-                if content { workbook.clear_range(sheet, range); }
+                if content {
+                    workbook.clear_range(sheet, range);
+                }
                 if mode == ClearSelectionMode::All {
-                    workbook.sheet_mut(sheet).unwrap().restore_hyperlinks(range, &[]);
+                    workbook
+                        .sheet_mut(sheet)
+                        .unwrap()
+                        .restore_hyperlinks(range, &[]);
                 }
                 Ok(())
             });
-            if let Err(error) = self.finish(workbook, outcome.is_ok()) { outcome = Err(error); }
+            if let Err(error) = self.finish(workbook, outcome.is_ok()) {
+                outcome = Err(error);
+            }
         });
         outcome?;
         Ok(affected)

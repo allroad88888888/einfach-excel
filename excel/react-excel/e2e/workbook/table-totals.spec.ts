@@ -43,6 +43,42 @@ test('seed totals are real SUBTOTAL formulas with no startup history', async ({ 
   await expect(page.getByLabel('Total function', { exact: true })).toHaveValue('none')
 })
 
+for (const width of [1280, 390]) test.describe(`${width}px totals visibility`, () => {
+  test.use({ viewport: { width, height: 850 } })
+
+  test(`show totals uses the seeded table without totals and undoes once at ${width}px`, async ({ page }) => {
+    await button(page, 'Tables').click(); await button(page, 'Edit table CalculatedOrders').click()
+    await button(page, 'Show totals row').click()
+    await expect(page.getByLabel('Table range', { exact: true })).toHaveValue('A46:C50')
+    await expect(button(page, 'Hide totals row')).toBeEnabled(); await close(page)
+    await select(page, 'C50', '49:2')
+    await expect(cell(page, '49:2')).toHaveText('140')
+    await expect(formula(page)).toHaveValue('=SUBTOTAL(109,CalculatedOrders[Total])')
+    await expect(cell(page, '48:2')).toHaveText('90')
+    await button(page, 'Undo').click()
+    await expect(cell(page, '49:2')).toHaveText('')
+    await expect(cell(page, '48:2')).toHaveText('90')
+    await expect(button(page, 'Undo')).toBeDisabled()
+    await button(page, 'Redo').click(); await expect(cell(page, '49:2')).toHaveText('140')
+  })
+
+  test(`hide seeded totals preserves table data and undoes once at ${width}px`, async ({ page }) => {
+    await select(page, 'B84', '83:1')
+    await expect(cell(page, '83:1')).toHaveText('60')
+    await open(page); await button(page, 'Hide totals row').click()
+    await expect(page.getByLabel('Table range', { exact: true })).toHaveValue('A80:B83')
+    await expect(button(page, 'Show totals row')).toBeEnabled(); await close(page)
+    await expect(cell(page, '83:1')).toHaveText('')
+    await expect(cell(page, '79:0')).toHaveText('Product')
+    await expect(cell(page, '80:1')).toHaveText('10')
+    await button(page, 'Undo').click()
+    await expect(cell(page, '83:1')).toHaveText('60')
+    await expect(button(page, 'Undo')).toBeDisabled()
+    await button(page, 'Redo').click(); await expect(cell(page, '83:1')).toHaveText('')
+    await expect(cell(page, '80:1')).toHaveText('10')
+  })
+})
+
 test('show, choose and hide retain one native history entry per action', async ({ page }) => {
   await open(page); await button(page, 'Hide totals row').click()
   await expect(button(page, 'Show totals row')).toBeVisible()

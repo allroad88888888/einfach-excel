@@ -81,6 +81,17 @@ async function click(name: string) {
 }
 
 describe('history controls', () => {
+  test.each([false, true])('Tab shift=%s stays in the history dialog without applying history', async (shiftKey) => {
+    const { apply } = await setup()
+    await click('Recent operations')
+    const close = screen.getByRole('button', { name: 'Close history' })
+    close.focus()
+    expect(fireEvent.keyDown(close, { key: 'Tab', shiftKey })).toBe(false)
+    expect(close).toHaveFocus()
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(apply).not.toHaveBeenCalled()
+  })
+
   test('pending native undo visibly disables controls and sheet tabs before the reply', async () => {
     const { apply } = await setup()
     let finish!: (value: Awaited<ReturnType<typeof apply>>) => void

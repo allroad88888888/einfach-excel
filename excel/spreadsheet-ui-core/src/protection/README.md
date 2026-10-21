@@ -2,12 +2,15 @@
 
 Sheet protection and locked-cell state for the spreadsheet UI core.
 
-**UI-core canonical** (CANONICAL_OWNERSHIP flip step 4, #40). Enforcement always lived on the
-UI side — the W2 mutation gateway (`editing/mutation-gateway.ts`) gates every content mutation
-through `isRangeFullyUnlocked` — and this module now also owns the protection configuration.
-The backend `setSheetProtection` / `setRangeLock` / `readSheetProtection` ports are an optional
-persistence hook (fire-and-forget mirror + one-shot hydration seed), not an authority. Backends
-that expose none of them keep the full feature.
+The maintained React Rust Worker path uses native workbook protection as the authority.
+Native commands reject locked writes, native persistence stores configuration, and every
+accepted visible projection hydrates `sheetProtectionAtom`. UI range checks only provide
+early feedback; they cannot grant a native write. Document replacement clears this projection
+and its legacy hydration bookkeeping before the next workbook is installed.
+
+The synchronous commands and optional `setSheetProtection` / `setRangeLock` /
+`readSheetProtection` ports remain for legacy hosts. The behavior described below applies
+to those compatibility APIs, not to ownership of the Rust workbook.
 
 ## State Decision Template
 

@@ -1,0 +1,42 @@
+import { expect, test } from '@playwright/test'
+import { select } from '../support/clipboard'
+import { argumentsPanel, cell, field } from './fixtures'
+
+for (const width of [1280, 390]) for (const locale of ['en', 'zh'] as const)
+  test(`argument form focus, errors and controls fit ${locale} at ${width}px`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width, height: 850 })
+    await page.goto('/e2e/fixtures/plain-sales-orders/')
+    await expect(cell(page, '1:0')).toHaveText('SO-10001'); await select(page, 'B3', '2:1')
+    if (locale === 'zh') await page.getByRole('combobox', { name: 'Interface language' }).selectOption('zh')
+    const chinese = locale === 'zh'
+    const opener = page.getByRole('button', { name: chinese ? '插入函数' : 'Insert function', exact: true })
+    await opener.click()
+    await page.getByRole('listbox').selectOption('LET')
+    await page.getByRole('button', { name: chinese ? '填写参数' : 'Fill arguments', exact: true }).click()
+    const panel = argumentsPanel(page)
+    const first = field(page, 'name')
+    const create = panel.getByRole('button', { name: chinese ? '生成公式草稿' : 'Create formula draft', exact: true })
+    await expect(first).toBeFocused()
+    await first.press('Shift+Tab'); await expect(create).toBeFocused()
+    await create.press('Tab'); await expect(first).toBeFocused()
+    await first.fill('x'); await create.click()
+    await expect(panel.getByRole('alert')).toContainText(chinese ? '重复组' : 'repeated group')
+    await expect(field(page, 'value')).toBeFocused()
+    expect(await panel.evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true)
+    const bounds = (await panel.boundingBox())!
+    expect(bounds.x).toBeGreaterThanOrEqual(0)
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(width)
+    expect(bounds.y).toBeGreaterThanOrEqual(0)
+    expect(bounds.y + bounds.height).toBeLessThanOrEqual(850)
+    await panel.evaluate((node) => { node.scrollTop = 0 })
+    await page.screenshot({ path: testInfo.outputPath(`formula-arguments-${locale}-${width}-top.png`) })
+    await create.scrollIntoViewIfNeeded()
+    await expect(create).toBeInViewport({ ratio: 1 })
+    await expect(panel.getByRole('button', { name: chinese ? '取消' : 'Cancel', exact: true }))
+      .toBeInViewport({ ratio: 1 })
+    await page.screenshot({ path: testInfo.outputPath(`formula-arguments-${locale}-${width}-footer.png`) })
+    await page.keyboard.press('Escape')
+    await expect(panel).toHaveCount(0); await expect(opener).toBeFocused()
+    await expect(cell(page)).toHaveText('Northwind')
+    await expect(page.getByRole('button', { name: chinese ? '撤销' : 'Undo', exact: true })).toBeDisabled()
+  })

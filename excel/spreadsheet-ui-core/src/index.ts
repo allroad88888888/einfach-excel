@@ -31,6 +31,8 @@ export * from './custom-formulas'
 export * from './custom-formulas/expression-types'
 export * from './custom-formulas/expression-catalog'
 export * from './custom-formulas/expression-command'
+export { formulaArgumentsPanelAtom, runFormulaArgumentsAtom,
+  type FormulaArgumentsAction } from './formula-arguments'
 export * from './comments'
 export * from './history'
 export * from './backend'

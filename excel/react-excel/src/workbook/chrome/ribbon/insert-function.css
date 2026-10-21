@@ -18,7 +18,7 @@
 .insert-function-panel option { padding: 5px 8px; }
 .insert-function-description { min-height: 62px; overflow-wrap: anywhere; }
 .insert-function-description code { display: block; margin-top: 8px; }
-.insert-function-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.insert-function-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
 .insert-function-actions button[type='submit'] { background: var(--primary); color: white; }
 .insert-function-panel :disabled { opacity: .5; }
 .insert-function-panel :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }

@@ -36,6 +36,18 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | MRSEL-008 | 查看重叠多区的去重统计 | `multi-range-selection/overlap-statistics.spec.ts` | overlapping manual areas count and aggregate each cell once at 1280px |
 | AFORM-001 | 公式栏提交同源 JSON 异步公式并传播原生依赖 | `async-formulas/settlement.spec.ts` | enter FETCHJSON through the formula bar and settle real HTTP with native dependents |
 | AFORM-002 | 现有重算入口重试失败异步公式 | `async-formulas/settlement.spec.ts` | retry a failed FETCHJSON with the existing Recalculate control |
+| FARG-001 | 参数表单生成并提交 SUM 公式 | `formula-arguments/native-calls.spec.ts` | FARG-001 SUM arguments create one native formula edit |
+| FARG-002 | IF 表单省略未使用的可选参数 | `formula-arguments/native-calls.spec.ts` | FARG-002 IF omits an unused optional argument |
+| FARG-003 | XLOOKUP 表单保留中间可选参数空位 | `formula-arguments/native-calls.spec.ts` | FARG-003 XLOOKUP preserves an optional middle argument hole |
+| FARG-004 | LET 表单编辑重复绑定与固定尾参数 | `formula-arguments/native-calls.spec.ts` | FARG-004 LET edits repeated bindings before its fixed calculation |
+| FARG-005 | 参数表单生成 TODAY 零参数调用 | `formula-arguments/native-calls.spec.ts` | FARG-005 TODAY creates a zero-argument native call |
+| FARG-006 | 参数表单使用原生自定义表达式参数 | `formula-arguments/native-calls.spec.ts` | FARG-006 ORDER_NET uses native custom expression parameters |
+| FARG-007 | 取消参数表单与生成草稿 | `formula-arguments/cancel-errors.spec.ts` | FARG-007 cancelling argument forms and generated drafts writes nothing |
+| FARG-008 | 必填或重复参数不完整时纠正表单 | `formula-arguments/cancel-errors.spec.ts` | FARG-008 required and incomplete repeated arguments keep the form draft |
+| FARG-009 | 添加重复参数组并保留固定尾参数 | `formula-arguments/group-actions.spec.ts` | FARG-009 adding an argument group keeps the fixed final expression |
+| FARG-010 | 移除重复参数组并保留其余参数 | `formula-arguments/group-actions.spec.ts` | FARG-010 removing an argument group preserves the remaining parameters |
+| FARG-011 | 取消按钮丢弃未提交的参数表单 | `formula-arguments/group-actions.spec.ts` | FARG-011 Cancel button discards the argument form without a write |
+| FARG-012 | Escape 丢弃参数表单并恢复触发器焦点 | `formula-arguments/group-actions.spec.ts` | FARG-012 Escape discards the argument form and restores its trigger |
 | XSCUT-001 | 键盘跨表剪切并原子改写三表引用 | `cross-sheet-cut/move.spec.ts` | XSCUT-01 keyboard cut across tabs retargets mixed references in three sheets with one undo |
 | XSCUT-002 | 工具栏跨表剪切格式、链接与空白格 | `cross-sheet-cut/move.spec.ts` | XSCUT-02 toolbar cut across tabs moves formatting hyperlinks and blank payloads |
 | XSCUT-003 | 部分引用范围拒绝后修正目标重试 | `cross-sheet-cut/recovery.spec.ts` | XSCUT-03 partial range rejection preserves data redo and the same cut for a corrected retry |

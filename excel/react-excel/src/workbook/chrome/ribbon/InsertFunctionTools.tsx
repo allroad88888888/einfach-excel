@@ -3,8 +3,10 @@ import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useId, useLayoutEffect, useRef } from 'react'
 import { insertFunctionPanelAtom, runInsertFunctionAtom,
+  runFormulaArgumentsAtom,
 } from '@einfach/spreadsheet-ui-core'
 import { FormulaParameterHelp } from '../../formula-help/FormulaParameterHelp'
+import { FormulaArgumentsDialog } from '../../formula-arguments/FormulaArgumentsDialog'
 import { cycleDialogFocus } from './dialog-focus'
 import './insert-function.css'
 
@@ -13,6 +15,7 @@ export function InsertFunctionTools() {
   const { i18n, t } = useLingui()
   const panel = useAtomValue(insertFunctionPanelAtom)
   const run = useSetAtom(runInsertFunctionAtom)
+  const runArguments = useSetAtom(runFormulaArgumentsAtom)
   const trigger = useRef<HTMLButtonElement>(null)
   const dialogRef = useRef<HTMLDialogElement>(null)
   const id = useId()
@@ -26,7 +29,7 @@ export function InsertFunctionTools() {
     return () => { dialog.close?.(); opener?.focus({ preventScroll: true }) }
   }, [panel.open])
   return <>
-    <button ref={trigger} type="button" className="tool-button" aria-label={t`Insert function`}
+    <button ref={trigger} type="button" className="tool-button" data-insert-function-trigger aria-label={t`Insert function`}
       title={t`Insert function`} disabled={!panel.available} onClick={() => run('open')}>ƒx</button>
     {panel.open && <dialog ref={dialogRef} className="insert-function-panel" aria-labelledby={`${id}-title`}
       onKeyDown={(event) => {
@@ -61,9 +64,14 @@ export function InsertFunctionTools() {
         {panel.error && <p role="alert">{translateFeedback(i18n, panel.error)}</p>}
         <div className="insert-function-actions">
           <button type="button" onClick={() => run('close')}><Trans>Cancel</Trans></button>
+          <button type="button" disabled={!panel.selected || panel.selected.signatureAvailable === false}
+            onClick={() => {
+              if (panel.selected && runArguments({ open: panel.selected.name })) run('close')
+            }}><Trans>Fill arguments</Trans></button>
           <button type="submit" disabled={!panel.selected}><Trans>Insert draft</Trans></button>
         </div>
       </form>
     </dialog>}
+    <FormulaArgumentsDialog />
   </>
 }

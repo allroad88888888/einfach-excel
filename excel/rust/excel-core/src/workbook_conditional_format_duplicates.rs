@@ -3,6 +3,8 @@ use super::conditional_format_highlight::{enabled_by_default, Highlight};
 use crate::cell_style::CellStyle;
 use einfach_core::Value;
 use serde::Deserialize;
+use super::advanced_formatting::{display_key, DuplicateComparison};
+use crate::{CellFormat, sheet::ConditionalStatistic};
 
 #[derive(Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -18,11 +20,14 @@ struct DuplicateRuleJson {
     #[serde(default = "enabled_by_default")]
     enabled: bool,
     mode: Mode,
+    #[serde(default, rename = "compareBy")]
+    compare_by: DuplicateComparison,
     format: Highlight,
 }
 
 pub(crate) struct DuplicateRule {
     unique: bool,
+    compare_by: DuplicateComparison,
     pub(super) enabled: bool,
     pub(super) style: CellStyle,
 }
@@ -49,13 +54,25 @@ impl DuplicateRule {
         }
         Ok(Self {
             unique: matches!(rule.mode, Mode::Unique),
+            compare_by: rule.compare_by,
             enabled: rule.enabled,
             style: rule.format.into_style()?,
         })
     }
 
-    pub(super) fn matches(&self, value: &Value, statistic: &Value) -> bool {
-        let (Some(key), Value::Array(keys)) = (value_key(value), statistic) else {
+    pub(super) fn statistic(&self) -> ConditionalStatistic {
+        match self.compare_by {
+            DuplicateComparison::Value => ConditionalStatistic::Duplicates,
+            DuplicateComparison::DisplayText => ConditionalStatistic::DisplayTextDuplicates,
+        }
+    }
+
+    pub(super) fn matches(&self, value: &Value, statistic: &Value, format: &CellFormat) -> bool {
+        let key = match self.compare_by {
+            DuplicateComparison::Value => value_key(value),
+            DuplicateComparison::DisplayText => display_key(value, format),
+        };
+        let (Some(key), Value::Array(keys)) = (key, statistic) else {
             return false;
         };
         let duplicate = keys

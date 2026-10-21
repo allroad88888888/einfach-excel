@@ -75,7 +75,8 @@ export interface TopBottomRule extends HighlightOptions {
 
 export interface TextMatchRule extends HighlightOptions {
   kind: 'text'
-  condition: 'contains' | 'not-contains' | 'begins-with' | 'ends-with'
+  condition: 'contains' | 'not-contains' | 'begins-with' | 'ends-with' |
+    'matches-wildcard' | 'not-matches-wildcard'
   text: string
   format: SpreadsheetCellFormat
 }
@@ -83,6 +84,7 @@ export interface TextMatchRule extends HighlightOptions {
 export interface DuplicateValuesRule extends HighlightOptions {
   kind: 'duplicate-values'
   mode: 'duplicate' | 'unique'
+  compareBy?: 'value' | 'display-text'
   format: SpreadsheetCellFormat
 }
 

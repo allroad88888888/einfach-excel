@@ -18,7 +18,7 @@ impl Workbook {
             }))
         };
         // 求值之前释放缓存借用，避免公式读取重入时发生 RefCell 冲突。
-        atom.read()
+        atom.read(&self.sheets[sheet], entry.ranges())
     }
 
     pub(super) fn clear_conditional_range_atoms(&self, sheet: usize) {

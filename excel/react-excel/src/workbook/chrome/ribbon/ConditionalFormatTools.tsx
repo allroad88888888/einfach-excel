@@ -8,6 +8,7 @@ import { nativeConditionalFormatPanelAtom, nativeConditionalFormatsAtom,
   type NativeConditionalFormatRule } from '@einfach/spreadsheet-ui-core'
 import { cycleDialogFocus } from './dialog-focus'
 import { AdvancedConditionalFormatFields } from '../../advanced-conditional-format/AdvancedConditionalFormatFields'
+import { AdvancedFormattingFields } from '../../advanced-formatting/AdvancedFormattingFields'
 import './conditional-format-panel.css'
 
 function supported(rule: ConditionalFormatRule): rule is NativeConditionalFormatRule {
@@ -24,6 +25,7 @@ export function ConditionalFormatTools() {
   const TEXT_CONDITIONS = {
     contains: t`Contains`, 'not-contains': t`Does not contain`,
     'begins-with': t`Begins with`, 'ends-with': t`Ends with`,
+    'matches-wildcard': t`Matches wildcard`, 'not-matches-wildcard': t`Does not match wildcard`,
   }
   function ruleLabel(rule: ConditionalFormatRule): string {
     if (rule.kind === 'text') return `${TEXT_CONDITIONS[rule.condition]} “${rule.text}”`
@@ -121,35 +123,7 @@ export function ConditionalFormatTools() {
             <option value="data-bar"><Trans>Data bar</Trans></option>
             <option value="icon-set"><Trans>Icon set</Trans></option>
           </select>
-          {state.rule.kind === 'text' && <>
-            <label htmlFor={`${id}-condition`}><Trans>Text condition</Trans></label>
-            <select id={`${id}-condition`} value={state.rule.condition}
-              onChange={(event) => void run({ type: 'draft', rule: {
-                condition: event.currentTarget.value as keyof typeof TEXT_CONDITIONS,
-              } })}>
-              {Object.entries(TEXT_CONDITIONS).map(([value, label]) =>
-                <option key={value} value={value}>{label}</option>)}
-            </select>
-            <label htmlFor={`${id}-match-text`}><Trans>Matching text</Trans></label>
-            <input id={`${id}-match-text`} value={state.rule.text} spellCheck={false}
-              onChange={(event) => void run({ type: 'draft',
-                rule: { text: event.currentTarget.value } })} />
-            <p><Trans>Matches literal text, ignoring case. Spaces are kept;
-              * and ? are ordinary characters.</Trans></p>
-          </>}
-          {state.rule.kind === 'duplicate-values' && <>
-            <label htmlFor={`${id}-duplicates`}><Trans>Highlight values</Trans></label>
-            <select id={`${id}-duplicates`} value={state.rule.mode}
-              onChange={(event) => void run({ type: 'draft', rule: {
-                mode: event.currentTarget.value === 'unique' ? 'unique' : 'duplicate',
-              } })}>
-              <option value="duplicate"><Trans>Duplicate</Trans></option>
-              <option value="unique"><Trans>Unique</Trans></option>
-            </select>
-            <p><Trans>Compares calculated values across all applied ranges, ignoring text case.
-              Blank cells, empty text and errors are skipped;
-              numbers and text are different.</Trans></p>
-          </>}
+          <AdvancedFormattingFields idPrefix={id} />
           {state.rule.kind === 'cell-value' && <>
           <label htmlFor={`${id}-operator`}><Trans>Condition</Trans></label>
           <select id={`${id}-operator`} value={state.rule.operator}

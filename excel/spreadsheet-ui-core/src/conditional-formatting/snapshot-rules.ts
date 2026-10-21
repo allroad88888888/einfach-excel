@@ -1,5 +1,6 @@
 import { CONDITIONAL_FORMAT_RULES_MAX } from './constants'
 import { snapshotAdvancedVisualRule } from './advanced/snapshot'
+import { snapshotAdvancedFormattingRule } from '../advanced-formatting/snapshot'
 import {
   isObjectRecord,
   isOneOf,
@@ -23,18 +24,9 @@ export function snapshotRule(value: unknown): ConditionalFormatRule | null {
       ...(value.stopIfTrue === undefined ? {} : { stopIfTrue: value.stopIfTrue as boolean }),
     }
     switch (value.kind) {
-      case 'text': {
-        const format = snapshotFormat(value.format)
-        return format && typeof value.text === 'string' &&
-          isOneOf(value.condition, ['contains', 'not-contains', 'begins-with', 'ends-with'] as const)
-          ? { ...options, kind: value.kind, text: value.text, condition: value.condition, format }
-          : null
-      }
-      case 'duplicate-values': {
-        const format = snapshotFormat(value.format)
-        return format && isOneOf(value.mode, ['duplicate', 'unique'] as const)
-          ? { ...options, kind: value.kind, mode: value.mode, format } : null
-      }
+      case 'text':
+      case 'duplicate-values':
+        return snapshotAdvancedFormattingRule(value)
       case 'cell-value': {
         const format = snapshotFormat(value.format)
         if (

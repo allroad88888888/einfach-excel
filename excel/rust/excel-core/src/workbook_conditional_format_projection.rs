@@ -91,7 +91,8 @@ impl Workbook {
                         NativeRuleKind::Text(rule) => matches!(scalar,
                             Some(Value::Text(text)) if rule.matches(text)),
                         NativeRuleKind::Duplicates(rule) => {
-                            scalar.is_some_and(|value| rule.matches(value, statistic))
+                            scalar.is_some_and(|value| rule.matches(value, statistic,
+                                &target.base_format_at(CellAddress::new(row, col))))
                         }
                         NativeRuleKind::Formula(rule) => rule.matches(
                             self,

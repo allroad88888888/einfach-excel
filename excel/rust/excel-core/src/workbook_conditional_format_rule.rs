@@ -93,7 +93,7 @@ impl NativeRule {
             NativeRuleKind::Rank(rule) => Some(rule.statistic()),
             NativeRuleKind::ColorScale(_) | NativeRuleKind::DataBar(_) | NativeRuleKind::IconSet(_) =>
                 Some(ConditionalStatistic::SortedNumbers),
-            NativeRuleKind::Duplicates(_) => Some(ConditionalStatistic::Duplicates),
+            NativeRuleKind::Duplicates(rule) => Some(rule.statistic()),
             _ => None,
         }
     }

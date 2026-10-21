@@ -1,0 +1,101 @@
+import { readFile } from 'node:fs/promises'
+import { expect, test } from '@playwright/test'
+import { start, go, open, save, highlighted, cleanNeighbor, compareDisplay, numberFormat,
+  button, dialog, valueInput, cell } from './support'
+
+for (const width of [1280, 390]) {
+  test(`display-text rules preserve comparison through edit copy enable clear and history at ${width}px`, async ({ page }) => {
+    await start(page, width, ['1', '="1"'])
+    await compareDisplay(page); await highlighted(page, 0); await highlighted(page, 1)
+    await open(page); await button(page, 'Copy rule 1').click()
+    await open(page); await expect(dialog(page).getByRole('listitem')).toHaveCount(2)
+    await button(page, 'Edit rule 2').click()
+    await expect(page.getByLabel('Compare by', { exact: true })).toHaveValue('display-text')
+    await button(page, 'Cancel').click()
+    await open(page); await button(page, 'Disable rule 1').click()
+    await highlighted(page, 0)
+    await open(page); await button(page, 'Disable rule 2').click()
+    await highlighted(page, 0, false)
+    await open(page); await button(page, 'Enable rule 1').click()
+    await highlighted(page, 0)
+    await open(page); await button(page, 'Delete rule 1').click()
+    await highlighted(page, 0, false)
+    await button(page, 'Undo').click(); await highlighted(page, 0)
+    await button(page, 'Redo').click(); await highlighted(page, 0, false)
+    await cleanNeighbor(page)
+    await go(page, 'A1'); await expect(valueInput(page)).toHaveValue('1')
+  })
+
+  test(`wildcard and display-text rules survive download and reopen with native base formats at ${width}px`, async ({ page }) => {
+    await start(page, width, ['0.5', '="50%"', '中文🙂*'])
+    await numberFormat(page, 'A1', 'percent')
+    await go(page, 'A1:A2'); await compareDisplay(page)
+    await go(page, 'A3'); await open(page, 'text')
+    await page.getByLabel('Text condition', { exact: true }).selectOption('matches-wildcard')
+    await page.getByLabel('Matching text', { exact: true }).fill('中文?~*'); await save(page)
+    await button(page, 'File').click()
+    const downloading = page.waitForEvent('download'); await button(page, 'Download workbook').click()
+    const text = await readFile((await (await downloading).path())!, 'utf8')
+    const file = JSON.parse(text)
+    const rules = file.workbook.conditionalFormats[0].rules.map((entry: { rule: unknown }) => entry.rule)
+    expect(rules).toEqual(expect.arrayContaining([
+      expect.objectContaining({ kind: 'duplicate-values', compareBy: 'display-text' }),
+      expect.objectContaining({ kind: 'text', condition: 'matches-wildcard', text: '中文?~*' }),
+    ]))
+    expect(text).not.toContain('format_input')
+    await button(page, 'Close').click(); await open(page); await button(page, 'Delete rule 1').click()
+    await highlighted(page, 2, false)
+    await button(page, 'File').click(); page.once('dialog', prompt => prompt.accept())
+    await page.getByLabel('Open workbook', { exact: true }).setInputFiles({ name: 'Formatting.einfach.json',
+      mimeType: 'application/json', buffer: Buffer.from(text) })
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+    for (let row = 0; row < 3; row++) await highlighted(page, row)
+    await expect(button(page, 'Undo')).toBeDisabled()
+    await go(page, 'A1'); await expect(valueInput(page)).toHaveValue('0.5')
+    await button(page, 'General format').click()
+    await highlighted(page, 0, false); await highlighted(page, 1, false)
+    await highlighted(page, 2); await cleanNeighbor(page)
+  })
+
+  test(`wildcard scope follows row insertion and history without changing neighboring values at ${width}px`, async ({ page }) => {
+    await start(page, width, ['a*', 'abc'])
+    // New blank workbooks fill the row limit; release an empty row before testing insertion.
+    const grid = page.locator('[data-workbook-grid]')
+    await expect(grid).toHaveAttribute('data-row-count', '1048576')
+    await go(page, 'A1048576'); await expect(valueInput(page)).toHaveValue('')
+    await expect(cell(page, '1048575:0')).toHaveText('')
+    await page.getByRole('combobox', { name: 'Insert or delete rows and columns', exact: true }).selectOption('delete-rows')
+    await expect(grid).toHaveAttribute('data-row-count', '1048575')
+    await go(page, 'A1'); await open(page, 'text')
+    await page.getByLabel('Text condition', { exact: true }).selectOption('matches-wildcard')
+    await page.getByLabel('Matching text', { exact: true }).fill('a~*'); await save(page)
+    await page.getByRole('combobox', { name: 'Insert or delete rows and columns', exact: true }).selectOption('insert-rows')
+    await expect(grid).toHaveAttribute('data-row-count', '1048576')
+    await expect(cell(page, '0:0')).toHaveText('')
+    await expect(cell(page, '1:0')).toHaveText('a*')
+    await expect(cell(page, '2:0')).toHaveText('abc')
+    await highlighted(page, 0, false); await highlighted(page, 1)
+    await expect(cell(page, '1:1')).toHaveText('Neighbor')
+    await open(page); await expect(dialog(page).getByRole('region', { name: 'Worksheet rules', exact: true })).toContainText('A2')
+    await button(page, 'Cancel').click(); await button(page, 'Undo').click()
+    await expect(grid).toHaveAttribute('data-row-count', '1048575')
+    await expect(cell(page, '0:0')).toHaveText('a*')
+    await expect(cell(page, '1:0')).toHaveText('abc')
+    await highlighted(page, 0); await highlighted(page, 1, false); await cleanNeighbor(page)
+    await open(page); await expect(dialog(page).getByRole('region', { name: 'Worksheet rules', exact: true })).toContainText('A1')
+    await button(page, 'Cancel').click()
+  })
+
+  test(`original literal conditions remain literal when switching from wildcard at ${width}px`, async ({ page }) => {
+    await start(page, width, ['a*', 'abc'])
+    await open(page, 'text')
+    await page.getByLabel('Text condition', { exact: true }).selectOption('contains')
+    await page.getByLabel('Matching text', { exact: true }).fill('*'); await save(page)
+    await highlighted(page, 0); await highlighted(page, 1, false)
+    await open(page); await button(page, 'Edit rule 1').click()
+    await page.getByLabel('Text condition', { exact: true }).selectOption('matches-wildcard'); await save(page, true)
+    await highlighted(page, 0); await highlighted(page, 1)
+    await button(page, 'Undo').click(); await highlighted(page, 0); await highlighted(page, 1, false)
+    await cleanNeighbor(page)
+  })
+}

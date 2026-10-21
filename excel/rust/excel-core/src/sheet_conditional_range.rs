@@ -3,6 +3,7 @@ use super::*;
 
 pub(crate) enum ConditionalStatistic {
     Duplicates,
+    DisplayTextDuplicates,
     SortedNumbers,
     Rank {
         count: u32,
@@ -14,11 +15,15 @@ pub(crate) enum ConditionalStatistic {
 pub(crate) struct ConditionalRangeAtom {
     store: Store,
     atom: AtomId,
+    format_input: Option<AtomId>,
     owned: Rc<Cell<usize>>,
 }
 
 impl ConditionalRangeAtom {
-    pub(crate) fn read(&self) -> Value {
+    pub(crate) fn read(&self, sheet: &Sheet, ranges: impl Iterator<Item = CellRange>) -> Value {
+        if let Some(input) = self.format_input {
+            crate::workbook::advanced_formatting::sync_format_input(&self.store, input, sheet, ranges);
+        }
         self.store.get(self.atom)
     }
 }
@@ -27,6 +32,10 @@ impl Drop for ConditionalRangeAtom {
     fn drop(&mut self) {
         if self.store.has_atom(self.atom) {
             self.store.destroy_atom(self.atom);
+            self.owned.set(self.owned.get().saturating_sub(1));
+        }
+        if let Some(input) = self.format_input.filter(|input| self.store.has_atom(*input)) {
+            self.store.destroy_atom(input);
             self.owned.set(self.owned.get().saturating_sub(1));
         }
     }
@@ -39,9 +48,13 @@ impl Sheet {
         statistic: ConditionalStatistic,
     ) -> ConditionalRangeAtom {
         let ctx = self.facade_ctx();
+        let format_input = matches!(statistic, ConditionalStatistic::DisplayTextDuplicates)
+            .then(|| ctx.owned_create_atom(Value::Null));
         let atom = ctx.owned_create_derived_ctx({
             let ctx = ctx.clone();
             move |args| {
+                let display_keys = format_input.map(|input|
+                    crate::workbook::advanced_formatting::read_format_keys(args.get(input))).unwrap_or_default();
                 let provider = AtomFormulaProvider {
                     args,
                     ctx: ctx.clone(),
@@ -52,11 +65,13 @@ impl Sheet {
                 let mut duplicates = std::collections::BTreeSet::new();
                 // 范围在写入前已确保不相交，统计每个稀疏成员一次。
                 for range in &ranges {
-                    provider.for_each_range_cell(*range, &mut |_, value| {
-                        if matches!(statistic, ConditionalStatistic::Duplicates) {
-                            if let Some(key) =
-                                crate::workbook::conditional_format_duplicates::value_key(&value)
-                            {
+                    provider.for_each_range_cell(*range, &mut |addr, value| {
+                        if matches!(statistic, ConditionalStatistic::Duplicates | ConditionalStatistic::DisplayTextDuplicates) {
+                            let key = if matches!(statistic, ConditionalStatistic::DisplayTextDuplicates) {
+                                if matches!(value, Value::Number(_)) { display_keys.get(&addr).cloned() }
+                                else { crate::workbook::advanced_formatting::display_key(&value, &CellFormat::default()) }
+                            } else { crate::workbook::conditional_format_duplicates::value_key(&value) };
+                            if let Some(key) = key {
                                 if !seen.insert(key.clone()) {
                                     duplicates.insert(key);
                                 }
@@ -70,7 +85,7 @@ impl Sheet {
                         }
                     });
                 }
-                if matches!(statistic, ConditionalStatistic::Duplicates) {
+                if matches!(statistic, ConditionalStatistic::Duplicates | ConditionalStatistic::DisplayTextDuplicates) {
                     let keys = duplicates
                         .into_iter()
                         .map(|key| Value::Text(key.into()))
@@ -86,6 +101,7 @@ impl Sheet {
         ConditionalRangeAtom {
             store: self.store.clone(),
             atom,
+            format_input,
             owned: Rc::clone(&self.atoms_owned),
         }
     }
@@ -94,7 +110,7 @@ impl Sheet {
 impl ConditionalStatistic {
     fn summarize(&self, numbers: &mut [f64]) -> Value {
         match *self {
-            Self::Duplicates => unreachable!("duplicate keys use the sparse value scan"),
+            Self::Duplicates | Self::DisplayTextDuplicates => unreachable!("duplicate keys use the sparse value scan"),
             Self::SortedNumbers => {
                 numbers.sort_by(f64::total_cmp);
                 Value::Array(Arc::new(ArrayData::new(

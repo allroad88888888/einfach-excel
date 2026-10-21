@@ -48,6 +48,11 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | FARG-010 | 移除重复参数组并保留其余参数 | `formula-arguments/group-actions.spec.ts` | FARG-010 removing an argument group preserves the remaining parameters |
 | FARG-011 | 取消按钮丢弃未提交的参数表单 | `formula-arguments/group-actions.spec.ts` | FARG-011 Cancel button discards the argument form without a write |
 | FARG-012 | Escape 丢弃参数表单并恢复触发器焦点 | `formula-arguments/group-actions.spec.ts` | FARG-012 Escape discards the argument form and restores its trigger |
+| AFMT-001 | 工具栏通配符匹配文本规则 | `advanced-formatting/wildcard-match.spec.ts` | AFMT-001 toolbar wildcard match preserves Unicode and escapes at 1280px |
+| AFMT-002 | 工具栏通配符不匹配文本规则 | `advanced-formatting/wildcard-not-match.spec.ts` | AFMT-002 toolbar wildcard non-match uses whole text and skips errors at 1280px |
+| AFMT-003 | 按基础显示文本标记重复值 | `advanced-formatting/display-duplicates.spec.ts` | AFMT-003 toolbar duplicate rule compares native base display text at 1280px |
+| AFMT-004 | 按基础显示文本标记唯一值 | `advanced-formatting/display-unique.spec.ts` | AFMT-004 toolbar unique rule distinguishes equal values with different displays at 1280px |
+| AFMT-005 | 修改数字格式即刻更新显示文本判重 | `advanced-formatting/format-invalidation.spec.ts` | AFMT-005 number format changes immediately refresh display duplicates at 1280px |
 | AFILT-001 | 添加 OR 组并应用任一组匹配 | `advanced-filter/add-or-group.spec.ts` | advanced filter Add OR group includes either alternative in one apply at 1280px |
 | AFILT-002 | 为当前 AND 组添加交集条件 | `advanced-filter/add-and-condition.spec.ts` | advanced filter Add condition intersects only its AND group at 1280px |
 | AFILT-003 | 编辑分组中的一个条件 | `advanced-filter/edit-condition.spec.ts` | advanced filter editing one grouped condition preserves the other group at 1280px |

@@ -6,6 +6,7 @@ import { snapshotRule } from './snapshot-rules'
 import { conditionalFormatEditorStateAtom, conditionalFormatRulesCacheStateAtom } from './state'
 import type { ConditionalFormatEditorDraft, ConditionalFormatScope } from './types'
 import { freezeEditorState } from './value-domain'
+import { advancedFormattingDraftError } from '../advanced-formatting/draft'
 
 export type ConditionalFormatEditorDraftUpdate =
   | { readonly kind: 'scope'; readonly scope: unknown }
@@ -71,10 +72,11 @@ export function conditionalFormatEditorDraftError(
       return Number.isSafeInteger(rule.count) && rule.count > 0
         ? null
         : 'Top and bottom rules require a positive whole-number count'
+    case 'text':
+      return advancedFormattingDraftError(rule)
     case 'data-bar':
     case 'color-scale':
     case 'icon-set':
-    case 'text':
     case 'duplicate-values':
       return null
   }

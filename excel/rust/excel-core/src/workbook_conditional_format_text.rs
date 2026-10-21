@@ -2,6 +2,7 @@
 use super::conditional_format_highlight::{enabled_by_default, Highlight};
 use crate::cell_style::CellStyle;
 use serde::Deserialize;
+use super::advanced_formatting::TextWildcard;
 
 #[derive(Deserialize)]
 #[serde(rename_all = "kebab-case")]
@@ -10,6 +11,8 @@ enum Operator {
     NotContains,
     BeginsWith,
     EndsWith,
+    MatchesWildcard,
+    NotMatchesWildcard,
 }
 
 #[derive(Deserialize)]
@@ -26,6 +29,7 @@ struct TextRuleJson {
 pub(crate) struct TextRule {
     operator: Operator,
     text: String,
+    wildcard: Option<TextWildcard>,
     pub(super) enabled: bool,
     pub(super) style: CellStyle,
 }
@@ -38,6 +42,9 @@ impl TextRule {
             return Err("Enter text between 1 and 1024 characters.");
         }
         Ok(Self {
+            wildcard: if matches!(rule.condition, Operator::MatchesWildcard | Operator::NotMatchesWildcard) {
+                Some(TextWildcard::new(&rule.text)?)
+            } else { None },
             operator: rule.condition,
             text: rule.text.to_lowercase(),
             enabled: rule.enabled,
@@ -45,14 +52,20 @@ impl TextRule {
         })
     }
 
-    /// 字面量、忽略大小写，保留空白；不是通配符或地区语言比较。
+    /// Four literal operations retain their original semantics; wildcard rules match whole values.
     pub(super) fn matches(&self, text: &str) -> bool {
+        if let Some(wildcard) = &self.wildcard {
+            return wildcard.matches(text).is_ok_and(|matched| {
+                matched != matches!(self.operator, Operator::NotMatchesWildcard)
+            });
+        }
         let text = text.to_lowercase();
         match self.operator {
             Operator::Contains => text.contains(&self.text),
             Operator::NotContains => !text.contains(&self.text),
             Operator::BeginsWith => text.starts_with(&self.text),
             Operator::EndsWith => text.ends_with(&self.text),
+            Operator::MatchesWildcard | Operator::NotMatchesWildcard => unreachable!("compiled wildcard"),
         }
     }
 }

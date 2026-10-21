@@ -5,6 +5,8 @@ use einfach_core::Value;
 
 #[path = "clipboard_arithmetic.rs"]
 mod arithmetic;
+#[path = "cross_sheet_cut/mod.rs"]
+mod cross_sheet_cut;
 #[path = "clipboard_move.rs"]
 mod move_refs;
 #[path = "clipboard_paste.rs"]

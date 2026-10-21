@@ -25,6 +25,7 @@ import { applyProjectionSizes } from '../projection/projection-sizes'
 import { offerNativeValidationConfirmationAtom } from '../data-validation/advanced/confirmation-state'
 import type { RustWorkbookCommands, RustWorkbookConnection } from '../rust-workbook/commands'
 import type { ProjectionSnapshot } from '../projection'
+import { crossSheetCutErrors } from './cross-sheet-cut/errors'
 
 export interface SystemClipboardData {
   readonly painter?: boolean
@@ -61,6 +62,7 @@ const feedbackAtom = atom<SystemClipboardFeedback>({ busy: false, error: false, 
 export const systemClipboardFeedbackAtom = atom((get) => get(feedbackAtom))
 
 const ERROR_MESSAGES: Readonly<Record<string, string>> = {
+  ...crossSheetCutErrors,
   DATA_VALIDATION_FAILED:
     'A pasted value does not meet its cell’s data validation rule. Nothing was pasted.',
   CLIPBOARD_PARTIAL_MERGE: 'Select whole merged cells before copying or pasting.',
@@ -82,7 +84,6 @@ const ERROR_MESSAGES: Readonly<Record<string, string>> = {
   CLIPBOARD_SPILL_TARGET: 'Paste cannot overwrite an array result.',
   CLIPBOARD_PARTIAL_REFERENCE_MOVE:
     'A formula refers to a larger range. Moving part of that range is not supported yet.',
-  CLIPBOARD_CROSS_SHEET_CUT: 'Cut between sheets is not supported yet.',
   CLIPBOARD_LOCKED: 'The source or destination includes locked cells.',
   CLIPBOARD_CUT_CONSUMED: 'These cells have already been moved. Copy or cut again to paste.',
   CLIPBOARD_SHEET_HISTORY_CHANGED:

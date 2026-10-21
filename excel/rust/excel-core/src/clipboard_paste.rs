@@ -33,6 +33,9 @@ impl Workbook {
         if self.is_inside_custom_call() {
             return Err("CLIPBOARD_MUTATION_DURING_CUSTOM_CALL");
         }
+        if snapshot.cut && snapshot.source_sheet != Some(sheet_idx) {
+            return cross_sheet_cut::paste(self, snapshot, sheet_idx, options, history);
+        }
         let sheet = self.sheet(sheet_idx).ok_or("CLIPBOARD_INVALID_SHEET")?;
         let logical_target = merge::logical_target(snapshot, sheet, options);
         let range = snapshot.paste_target(options, logical_target)?;
@@ -52,9 +55,6 @@ impl Workbook {
                     .is_some()
             }) {
                 return Err("CLIPBOARD_FILTERED_CUT");
-            }
-            if snapshot.source_sheet != Some(sheet_idx) {
-                return Err("CLIPBOARD_CROSS_SHEET_CUT");
             }
             if sheet.merges_in_range(snapshot.source) != snapshot.merges {
                 return Err("CLIPBOARD_CUT_SOURCE_CHANGED");

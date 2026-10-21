@@ -36,6 +36,14 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | MRSEL-008 | 查看重叠多区的去重统计 | `multi-range-selection/overlap-statistics.spec.ts` | overlapping manual areas count and aggregate each cell once at 1280px |
 | AFORM-001 | 公式栏提交同源 JSON 异步公式并传播原生依赖 | `async-formulas/settlement.spec.ts` | enter FETCHJSON through the formula bar and settle real HTTP with native dependents |
 | AFORM-002 | 现有重算入口重试失败异步公式 | `async-formulas/settlement.spec.ts` | retry a failed FETCHJSON with the existing Recalculate control |
+| XSCUT-001 | 键盘跨表剪切并原子改写三表引用 | `cross-sheet-cut/move.spec.ts` | XSCUT-01 keyboard cut across tabs retargets mixed references in three sheets with one undo |
+| XSCUT-002 | 工具栏跨表剪切格式、链接与空白格 | `cross-sheet-cut/move.spec.ts` | XSCUT-02 toolbar cut across tabs moves formatting hyperlinks and blank payloads |
+| XSCUT-003 | 部分引用范围拒绝后修正目标重试 | `cross-sheet-cut/recovery.spec.ts` | XSCUT-03 partial range rejection preserves data redo and the same cut for a corrected retry |
+| XSCUT-004 | Stop 验证拒绝后修正跨表剪切目标 | `cross-sheet-cut/recovery.spec.ts` | XSCUT-04 stop validation rolls back the cross-sheet cut and permits a corrected destination |
+| XSCUT-005 | Warning 取消与明确继续跨表剪切 | `cross-sheet-cut/recovery.spec.ts` | XSCUT-05 warning cancel keeps the cut and explicit continue moves it with one history entry |
+| XSCUT-006 | 合并目标拒绝后保留剪切并重试普通格 | `cross-sheet-cut/recovery.spec.ts` | XSCUT-06 merged destination rejects atomically and the same cut can move to an ordinary cell |
+| XSCUT-007 | 解除第三表依赖保护后重试跨表剪切 | `cross-sheet-cut/protection.spec.ts` | XSCUT-07 protected third-sheet dependents block a cross-sheet cut until explicitly unprotected |
+| XSCUT-008 | 浏览器剪切写入失败后保留原复制 | `cross-sheet-cut/browser-failure.spec.ts` | XSCUT-08 failed browser cut write leaves the source untouched and preserves the previous copy across tabs |
 | SEL-001 | 单元格点击单选 | `selection/basic-selection.spec.ts` | single cell click replaces the selection at 1280px |
 | SEL-002 | 鼠标拖拽矩形选区 | `selection/basic-selection.spec.ts` | pointer drag selects a rectangle at 1280px |
 | SEL-003 | 行号选择整行 | `selection/basic-selection.spec.ts` | row header selects its complete extent at 1280px |

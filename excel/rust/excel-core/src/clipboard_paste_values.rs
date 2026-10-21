@@ -98,7 +98,11 @@ pub(super) fn plan_cells(
                     ClipboardValue::Formula { source, .. } => {
                         let mut expr = parse_formula(source).ok_or("CLIPBOARD_INVALID_FORMULA")?;
                         let original = expr.clone();
-                        if snapshot.cut {
+                        if snapshot.cut && snapshot.source_sheet != Some(sheet_idx) {
+                            cross_sheet_cut::rewrite_moved_formula(
+                                workbook, snapshot, sheet_idx, range.start, &mut expr,
+                            )?;
+                        } else if snapshot.cut {
                             move_refs::rewrite(
                                 &mut expr,
                                 true,

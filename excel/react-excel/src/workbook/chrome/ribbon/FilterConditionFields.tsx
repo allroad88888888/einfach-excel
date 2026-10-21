@@ -12,7 +12,9 @@ import {
 import { FilterValueChoices } from './FilterValueChoices'
 
 /** 条件字段只编辑面板草稿，不读取工作簿数据或决定哪些行隐藏。 */
-export function FilterConditionFields() {
+export function FilterConditionFields({ indices, grouped = false }: {
+  indices?: readonly number[]; grouped?: boolean
+} = {}) {
   const { t } = useLingui()
   const sheet = useAtomValue(activeWorkbookSheetAtom)
   const panel = useAtomValue(nativeFilterPanelAtom)
@@ -23,9 +25,9 @@ export function FilterConditionFields() {
   const end = panel.range?.colEnd ?? (sheet?.colCount ?? 1) - 1
   return (
     <>
-      {panel.conditions.map((item, index) => (
+      {panel.conditions.map((item, index) => (!indices || indices.includes(index)) && (
         <fieldset key={index} disabled={feedback.busy}>
-          <legend>{index === 0 ? t`Show rows where` : t`And`}</legend>
+          <legend>{index === (indices?.[0] ?? 0) ? t`Show rows where` : t`And`}</legend>
           <label htmlFor={`${id}-col-${index}`}><Trans>Column</Trans></label>
           <select
             id={`${id}-col-${index}`}
@@ -44,7 +46,8 @@ export function FilterConditionFields() {
               <option
                 key={col}
                 value={col}
-                disabled={panel.conditions.some((other, i) => i !== index && other.col === col)}
+                disabled={!grouped && panel.conditions.some((other, i) =>
+                  i !== index && other.col === col)}
               >
                 {getColumnLabel(col)}
               </option>
@@ -146,7 +149,7 @@ export function FilterConditionFields() {
             <button
               type="button"
               aria-label={t`Remove condition ${index + 1}`}
-              disabled={panel.conditions.length === 1}
+              disabled={(indices?.length ?? panel.conditions.length) === 1}
               onClick={() => void configure({ type: 'remove', index })}
             ><Trans>
               Remove

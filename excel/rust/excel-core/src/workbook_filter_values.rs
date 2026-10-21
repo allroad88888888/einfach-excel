@@ -1,5 +1,6 @@
 //! 列值选择器：从原生筛选作用域读取完整候选，查询不提交筛选或创建历史。
 use super::*;
+use crate::advanced_filter::{ColumnFilterGroup, FilterCriteria, MAX_SELECTION_BYTES};
 
 /// 普通区域使用已提交的范围；Table 通过名称解析，前端不复制其几何。
 pub struct FilterValuesQuery<'a> {
@@ -28,6 +29,18 @@ pub struct FilterValuesPage {
 impl Workbook {
     pub fn filter_values(&self, sheet: usize, query: FilterValuesQuery<'_>)
         -> Result<FilterValuesPage, String> {
+        self.filter_values_query(sheet, query, false)
+    }
+
+    /// One bounded scan returns complete search membership, never a truncated "all" result.
+    pub fn filter_all_values(&self, sheet: usize, query: FilterValuesQuery<'_>)
+        -> Result<FilterValuesPage, String> {
+        if query.offset != 0 { return Err("Search selection must start at the first match.".into()); }
+        self.filter_values_query(sheet, query, true)
+    }
+
+    fn filter_values_query(&self, sheet: usize, query: FilterValuesQuery<'_>, all: bool)
+        -> Result<FilterValuesPage, String> {
         if self.is_inside_custom_call() {
             return Err("Cannot browse filter values during a custom formula call.".into());
         }
@@ -36,13 +49,13 @@ impl Workbook {
             || query.search.encode_utf16().count() > 32767 {
             return Err("Choose a valid column, search text and page size (1–100).".into());
         }
-        let (data, rules) = if let Some(name) = query.table {
+        let (data, filter) = if let Some(name) = query.table {
             let table = self.get_table(name).ok_or("The table no longer exists.")?;
             if self.index_of(table.sheet_name()) != Some(sheet) || !table.has_headers
                 || query.column < table.range.start.col || query.column > table.range.end.col {
                 return Err("Choose a column in a table with visible headers on this worksheet.".into());
             }
-            (table.filter_data_range(), table.auto_filter().map(|filter| filter.rules()).unwrap_or(&[]))
+            (table.filter_data_range(), table.auto_filter())
         } else {
             let data = if let Some(range) = self.filter_range(sheet) {
                 if query.column < range.start.col || query.column > range.end.col {
@@ -50,17 +63,26 @@ impl Workbook {
                 }
                 Some(CellRange::new(CellAddress::new(range.start.row + 1, range.start.col), range.end))
             } else { self.filter_values_used_range(sheet) };
-            (data, source.filter().map(|filter| filter.rules()).unwrap_or(&[]))
+            (data, source.filter())
         };
         let Some(data) = data else { return Ok(FilterValuesPage::default()); };
         // 当前列条件不能限制自己的候选；其它列继续复用原生谓词，绝不在 JS 重算。
-        let other_rules: Vec<_> = rules.iter().filter(|rule| rule.col_index() != query.column).cloned().collect();
-        let mut columns: BTreeSet<_> = other_rules.iter().map(ColumnFilterRule::col_index).collect();
+        let other_rules: Vec<_> = filter.into_iter().flat_map(|filter| filter.rules())
+            .filter(|rule| rule.col_index() != query.column).cloned().collect();
+        let groups: Vec<_> = filter.into_iter().flat_map(|filter| filter.groups()).map(|group|
+            ColumnFilterGroup { rules: group.rules.iter().filter(|rule| rule.col_index() != query.column)
+                .cloned().collect() }).collect();
+        // Removing the queried column may empty an OR branch. For candidate browsing
+        // that branch is unrestricted, unlike an invalid empty committed group.
+        let criteria = if groups.is_empty() || groups.iter().any(|group| group.rules.is_empty()) {
+            FilterCriteria::Flat(&other_rules)
+        } else { FilterCriteria::Groups(&groups) };
+        let mut columns = criteria.columns();
         columns.insert(query.column);
         if data.rows().saturating_mul(columns.len() as u32) > crate::filter::MAX_FILTER_PREDICATE_CELLS {
             return Err("Filter values exceed the 50,000-cell scan budget. Select a smaller filter range.".into());
         }
-        let mut excluded: BTreeSet<_> = self.scan_filter_data(sheet, Some(data), &other_rules)
+        let mut excluded: BTreeSet<_> = self.scan_filter_data_criteria(sheet, Some(data), criteria)
             .map_err(|error| format!("{error:?}"))?.hidden_rows.into_iter().collect();
         // 其它作用域只读上次提交的隐藏快照；查询不会偷偷重新应用它们。
         if query.table.is_some() {
@@ -84,8 +106,13 @@ impl Workbook {
         let search = query.search.to_lowercase();
         counts.retain(|value, _| value.to_lowercase().contains(&search));
         let total = counts.len() as u32;
+        if all && (total > 1000 || counts.keys().map(|value| value.len() + 24).sum::<usize>() > MAX_SELECTION_BYTES
+            || counts.keys().any(|value| value.encode_utf16().count() > 32767)) {
+            return Err("All search matches exceed the 1,000-value or 1 MiB selection budget. Narrow the search.".into());
+        }
         let offset = query.offset.min(total);
-        let values = counts.into_iter().skip(offset as usize).take(query.limit as usize)
+        let limit = if all { total } else { query.limit };
+        let values = counts.into_iter().skip(offset as usize).take(limit as usize)
             .map(|(value, count)| FilterValueEntry { value, count }).collect();
         Ok(FilterValuesPage { values, total, offset })
     }

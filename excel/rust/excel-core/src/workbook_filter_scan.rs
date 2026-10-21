@@ -1,15 +1,15 @@
 //! 普通区域与 Table 共用数据行扫描；只计算候选隐藏集合，不修改任何筛选状态。
 use super::*;
+use crate::advanced_filter::FilterCriteria;
 
 impl Workbook {
-    pub(super) fn scan_filter_data(
-        &self, sheet: usize, data: Option<CellRange>, rules: &[ColumnFilterRule],
-    ) -> Result<FilterApplyReport, FilterError> {
+    pub(crate) fn scan_filter_data_criteria(&self, sheet: usize, data: Option<CellRange>,
+        criteria: FilterCriteria<'_>) -> Result<FilterApplyReport, FilterError> {
         let source = self.sheet(sheet).ok_or(FilterError::InvalidSheet)?;
-        let Some(data) = data.filter(|_| !rules.is_empty()) else {
+        let Some(data) = data.filter(|_| !criteria.is_empty()) else {
             return Ok(FilterApplyReport::default());
         };
-        let cols: BTreeSet<u32> = rules.iter().map(ColumnFilterRule::col_index).collect();
+        let cols = criteria.columns();
         let rows = data.rows();
         let predicate_cells = rows.saturating_mul(cols.len() as u32);
         if predicate_cells > crate::filter::MAX_FILTER_PREDICATE_CELLS {
@@ -28,7 +28,7 @@ impl Workbook {
         }
         self.store.settle_pending_reads();
         let hidden_rows = (data.start.row..=data.end.row).filter(|row| {
-            !crate::filter::row_matches_rules(rules, |col|
+            !criteria.matches(|col|
                 values.get(&(*row, col)).cloned().unwrap_or_default())
         }).collect();
         Ok(FilterApplyReport { hidden_rows, scanned_rows: rows, predicate_cells })

@@ -1,3 +1,5 @@
+include!("advanced_filter/wire.rs");
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "lowercase")]
 enum ColumnFilterRuleJSON {
@@ -133,6 +135,8 @@ struct ApplyFilterPayloadJSON {
     #[serde(default)]
     rules: Vec<ColumnFilterRuleJSON>,
     #[serde(default)]
+    groups: Vec<ColumnFilterGroupJSON>,
+    #[serde(default)]
     range: Option<FilterRangeJSON>,
 }
 
@@ -163,6 +167,8 @@ struct SheetFilterStateJSON {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     range: Option<FilterRangeJSON>,
     rules: Vec<ColumnFilterRuleJSON>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    groups: Vec<ColumnFilterGroupJSON>,
     /// The rows those rules hid. Carried alongside the rules, not re-derived
     /// on restore: re-deriving would evaluate against whatever the cells say
     /// at restore time, which is live evaluation wearing an undo costume.
@@ -180,6 +186,7 @@ impl SheetFilterStateJSON {
                 .iter()
                 .map(ColumnFilterRuleJSON::from_rule)
                 .collect(),
+            groups: entry.groups.iter().map(ColumnFilterGroupJSON::from_group).collect(),
             hidden_rows: entry.hidden_rows.clone(),
         }
     }
@@ -193,6 +200,7 @@ impl SheetFilterStateJSON {
                 .into_iter()
                 .map(ColumnFilterRuleJSON::into_rule)
                 .collect(),
+            groups: self.groups.into_iter().map(ColumnFilterGroupJSON::into_group).collect(),
             hidden_rows: self.hidden_rows,
         }
     }
@@ -212,6 +220,8 @@ struct FilterSnapshotJSON {
 /// twin of the adapter's `FILTER_SORT_SOURCE_TOO_LARGE`.
 fn filter_error_to_js(err: FilterError) -> JsValue {
     match err {
+        FilterError::InvalidGroups => sort_error_to_js("invalid-groups", None,
+            Some("Use nonempty groups with valid filter conditions.")),
         FilterError::InvalidRange => sort_error_to_js("invalid-range", None,
             Some("Choose a header and at least one data row; filter columns must be inside the range.")),
         FilterError::HistoryPending => sort_error_to_js("history-pending", None, None),

@@ -10,7 +10,12 @@ const filterProjectionAtom = atom((get) => {
   return result?.kind === 'visible-window' && result.sheetId === get(activeWorkbookSheetAtom)?.id
     ? result : undefined
 })
-export const nativeFilterRulesAtom = atom((get) => get(filterProjectionAtom)?.filterRules ?? [])
+export const nativeFilterGroupsAtom = atom((get) => get(filterProjectionAtom)?.filterGroups ?? [])
+export const nativeFilterRulesAtom = atom((get) => {
+  const groups = get(nativeFilterGroupsAtom)
+  return groups.length ? groups.flatMap((group) => group.rules)
+    : get(filterProjectionAtom)?.filterRules ?? []
+})
 export const nativeFilterRangeAtom = atom((get) => get(filterProjectionAtom)?.filterRange)
 
 export const nativeTableFiltersAtom = atom((get) => {
@@ -18,7 +23,10 @@ export const nativeTableFiltersAtom = atom((get) => {
   return (get(filterProjectionAtom)?.tables ?? []).flatMap((table) => {
     const range = parseA1Range(table.range)
     return table.sheetIndex === sheet?.index && table.hasHeaders && range
-      ? [{ table: table.name, range, rules: table.autoFilter?.rules ?? [] }] : []
+      ? [{ table: table.name, range, groups: table.autoFilter?.groups ?? [],
+          rules: table.autoFilter?.groups?.length
+            ? table.autoFilter.groups.flatMap((group) => group.rules)
+            : table.autoFilter?.rules ?? [] }] : []
   })
 })
 
@@ -27,5 +35,6 @@ export const nativeFilterTargetAtom = atom((get) => {
   const { row, col } = get(selectionSnapshotAtom).activeCell
   return get(nativeTableFiltersAtom).find(({ range }) =>
     row >= range.rowStart && row <= range.rowEnd && col >= range.colStart && col <= range.colEnd)
-    ?? { table: undefined, range: get(nativeFilterRangeAtom), rules: get(nativeFilterRulesAtom) }
+    ?? { table: undefined, range: get(nativeFilterRangeAtom), rules: get(nativeFilterRulesAtom),
+      groups: get(nativeFilterGroupsAtom) }
 })

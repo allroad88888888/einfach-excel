@@ -5,6 +5,7 @@ import { activeWorkbookSheetAtom } from '../runtime/workbook-document'
 import type { RustFilterValuesPage } from '../rust-workbook/filter-commands'
 import { nativeFilterFeedbackAtom } from './command'
 import { filterPanelStateAtom, type FilterValuesBrowser } from './panel-state'
+import { filterSelectionWithinBudget } from '../advanced-filter/contracts'
 
 const pageSize = 50
 export const nativeFilterValuesAtom = atom((get) => {
@@ -17,7 +18,7 @@ export const nativeFilterValuesAtom = atom((get) => {
 export type FilterValuesAction = { type: 'open'; index: number } | { type: 'search-text'; value: string }
   | 'search'
   | { type: 'toggle'; value: string } | 'next' | 'previous' | 'retry' | 'close'
-  | 'select-page' | 'clear-selection'
+  | 'select-page' | 'clear-selection' | 'select-search' | 'clear-search'
 
 /** Rust 页数据必须完整、唯一且匹配页界；拒绝坏页，不在前端修补或重新排序。 */
 function validPage(page: RustFilterValuesPage, offset: number): boolean {
@@ -74,15 +75,54 @@ export const configureNativeFilterValuesAtom = atom(null,
         if (selected.has(action.value)) selected.delete(action.value)
         else selected.add(action.value)
       }
-      if (selected.size > 1000) {
+      if (!filterSelectionWithinBudget([...selected])) {
         set(filterPanelStateAtom, { ...state, browser: { ...browser,
-          error: 'Choose at most 1,000 values, or use a text or number condition.' } })
+          error: 'Choose at most 1,000 values within 1 MiB, or narrow the search.' } })
         return false
       }
       set(filterPanelStateAtom, { ...state, error: '', browser: { ...browser, error: '' },
         conditions: state.conditions.map((item, i) =>
         i === index ? { ...item, kind: 'list' as const, values: [...selected] } : item) })
       return true
+    }
+    if (action === 'select-search' || action === 'clear-search') {
+      if (!browser?.page) return false
+      const pending: FilterValuesBrowser = { ...browser, busy: true, error: '' }
+      set(filterPanelStateAtom, { ...state, browser: pending })
+      try {
+        const matches = await connection.request('sheet.filterValues', { sheetId: state.sheetId,
+          column: condition.col, table: state.table, search: browser.search, offset: 0,
+          limit: pageSize, allMatches: true, expectedRevision: state.revision })
+        if (get(filterPanelStateAtom).browser !== pending) return false
+        if (get(rustWorkbookConnectionAtom) !== connection ||
+          get(activeWorkbookSheetAtom)?.id !== state.sheetId ||
+          get(projectionSnapshotAtom).result?.revision !== state.revision)
+          throw new Error('The workbook changed. Close and reopen Filter.')
+        if (!matches || matches.revision !== state.revision || matches.offset !== 0 ||
+          !Number.isSafeInteger(matches.total) || matches.total < 0 || matches.total > 1000 ||
+          !Array.isArray(matches.values) || matches.values.length !== matches.total ||
+          !matches.values.every((entry) => entry && typeof entry.value === 'string' &&
+            Number.isSafeInteger(entry.count) && entry.count > 0 && entry.count <= 50_000) ||
+          new Set(matches.values.map((entry) => entry.value)).size !== matches.total ||
+          !filterSelectionWithinBudget(matches.values.map((entry) => entry.value)))
+          throw new Error('Rust returned incomplete search matches. The selection was not changed.')
+        const selected = new Set(condition.kind === 'list' ? condition.values : [])
+        for (const { value } of matches.values) {
+          if (action === 'select-search') selected.add(value)
+          else selected.delete(value)
+        }
+        if (!filterSelectionWithinBudget([...selected]))
+          throw new Error('All search matches exceed the 1,000-value or 1 MiB selection budget. Narrow the search.')
+        set(filterPanelStateAtom, { ...state, error: '', browser: { ...browser, error: '' },
+          conditions: state.conditions.map((item, i) => i === index
+            ? { ...item, kind: 'list' as const, values: [...selected] } : item) })
+        return true
+      } catch (error) {
+        if (get(filterPanelStateAtom).browser !== pending) return false
+        set(filterPanelStateAtom, { ...state, browser: { ...browser,
+          error: error instanceof Error ? error.message : String(error) } })
+        return false
+      }
     }
     let offset = 0
     if (action === 'next' || action === 'previous') {

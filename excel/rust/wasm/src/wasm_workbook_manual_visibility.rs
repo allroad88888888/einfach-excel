@@ -13,6 +13,8 @@ struct SheetVisibilityJSON {
     outline: Option<einfach_excel_core::outline::SheetOutline>,
     // 与隐藏集合取自同一原生状态，避免宿主再读一份完整筛选快照。
     filter_rules: Vec<ColumnFilterRuleJSON>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    filter_groups: Vec<ColumnFilterGroupJSON>,
     #[serde(skip_serializing_if = "Option::is_none")]
     filter_range: Option<FilterRangeJSON>,
 }
@@ -96,6 +98,8 @@ impl WasmWorkbook {
             filter_range: self.workbook.filter_range(sheet as usize).map(FilterRangeJSON::from_range),
             filter_rules: self.workbook.filter_rules(sheet as usize)
                 .iter().map(ColumnFilterRuleJSON::from_rule).collect(),
+            filter_groups: self.workbook.filter_groups(sheet)
+                .iter().map(ColumnFilterGroupJSON::from_group).collect(),
         })
     }
 }

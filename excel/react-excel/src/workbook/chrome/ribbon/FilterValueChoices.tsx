@@ -3,6 +3,7 @@ import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useId } from 'react'
 import { configureNativeFilterValuesAtom, nativeFilterValuesAtom } from '@einfach/spreadsheet-ui-core'
+import { FilterSearchSelection } from '../../advanced-filter/FilterSearchSelection'
 
 /** 候选、数量和页界直接来自 Rust；选中的原始字符串留在 UI Core 条件草稿。 */
 export function FilterValueChoices({ index }: { index: number }) {
@@ -41,6 +42,7 @@ export function FilterValueChoices({ index }: { index: number }) {
           <button type="button" disabled={!state.selected.length}
             onClick={() => void run('clear-selection')}><Trans>Clear selection</Trans></button>
           <span aria-label={t`Selected filter values`}><Trans>{state.selected.length} selected</Trans></span>
+          <FilterSearchSelection />
         </div>
         {page.values.length ? <div className="filter-values-list">
           {page.values.map((entry) => {

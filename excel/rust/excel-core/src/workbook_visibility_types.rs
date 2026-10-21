@@ -40,6 +40,7 @@ pub struct SheetFilterState {
     pub sheet_index: usize,
     pub range: Option<CellRange>,
     pub rules: Vec<ColumnFilterRule>,
+    pub groups: Vec<crate::advanced_filter::ColumnFilterGroup>,
     pub hidden_rows: Vec<u32>,
 }
 

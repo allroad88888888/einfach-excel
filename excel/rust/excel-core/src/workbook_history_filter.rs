@@ -39,20 +39,8 @@ impl FilterChange {
             .map(|state| {
                 std::mem::size_of::<SheetAutoFilter>()
                     + state.hidden_set().len() * 32
-                    + state
-                        .rules()
-                        .iter()
-                        .map(|rule| {
-                            std::mem::size_of::<ColumnFilterRule>()
-                                + match rule {
-                                    ColumnFilterRule::Equals { value, .. }
-                                    | ColumnFilterRule::Contains { value, .. } => value.len(),
-                                    ColumnFilterRule::List { values, .. } => {
-                                        values.iter().map(|value| value.len() + 24).sum()
-                                    }
-                                    ColumnFilterRule::Range { .. } => 0,
-                                }
-                        })
+                    + crate::advanced_filter::FilterCriteria::from_filter(state).rules()
+                        .map(crate::advanced_filter::rule_retained_bytes)
                         .sum::<usize>()
             })
             .sum()
@@ -103,7 +91,7 @@ impl WorkbookHistory {
         })
     }
 
-    fn change_filter(
+    pub(crate) fn change_filter(
         &mut self,
         workbook: &mut Workbook,
         sheet: usize,

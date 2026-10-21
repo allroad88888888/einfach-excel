@@ -3,6 +3,7 @@ import type { WorkerLike } from '../rust-worker'
 import { validNativeOutline } from '../outline/native-state'
 import { validNativeTableStyle } from '../tables/native-types'
 import { validFilterRules } from '../rust-workbook/filter-commands'
+import { validFilterGroups } from '../advanced-filter/contracts'
 import { cloneFilterSortRule } from '../backend/projection-helpers'
 import { validateCustomFormulaDefinitions, type NativeCustomFormulaDefinition } from '../custom-formulas/expression-types'
 
@@ -104,6 +105,12 @@ export function snapshotRustWorkbookDefinition(
       const style = sheet.tables![index].style
       const calculatedColumns = sheet.tables![index].calculatedColumns
       const filterRules = sheet.tables![index].filterRules
+      const filterGroups = sheet.tables![index].filterGroups
+      if (filterGroups !== undefined && (!validFilterGroups(filterGroups, sheet.colCount) ||
+        (filterGroups.length > 0 && Boolean(filterRules?.length)) ||
+        filterGroups.some(group => group.rules.some(rule =>
+          rule.colIndex < table.range.colStart || rule.colIndex > table.range.colEnd))))
+        throw new Error('Invalid initial table filter.')
       if (filterRules !== undefined && (!validFilterRules(filterRules, sheet.colCount) ||
         filterRules.some((rule) =>
           rule.colIndex < table.range.colStart || rule.colIndex > table.range.colEnd)))
@@ -124,6 +131,13 @@ export function snapshotRustWorkbookDefinition(
           if (copied.kind === 'list') Object.freeze(copied.values)
           return Object.freeze(copied)
           })) }),
+        ...(filterGroups === undefined ? {} : { filterGroups:
+          Object.freeze(filterGroups.map(group =>
+          Object.freeze({ rules: Object.freeze(group.rules.map(rule => {
+            const copied = cloneFilterSortRule(rule)
+            if (copied.kind === 'list') Object.freeze(copied.values)
+            return Object.freeze(copied)
+          })) }))) }),
         ...(calculatedColumns === undefined ? {} : {
           calculatedColumns: Object.freeze([...calculatedColumns]),
         }),

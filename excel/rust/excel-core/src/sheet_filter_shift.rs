@@ -6,7 +6,7 @@ use crate::shift::shift_interval;
 impl crate::filter::SheetAutoFilter {
     /// 普通区域与 Table 共用列身份位移；被删除的列条件随列一起移除。
     pub(crate) fn shift_rule_columns(&mut self, edit: ShiftEdit) {
-        self.rules_mut().retain_mut(|rule| {
+        self.retain_conditions(|rule| {
             let col = match rule {
                 ColumnFilterRule::Equals { col_index, .. }
                 | ColumnFilterRule::Contains { col_index, .. }
@@ -18,7 +18,7 @@ impl crate::filter::SheetAutoFilter {
             *col = next;
             true
         });
-        if self.rules().is_empty() { self.hidden_set_mut().clear(); }
+        if !self.has_conditions() { self.hidden_set_mut().clear(); }
     }
 
     /// 局部腾位只搬完整列带内的显式区域；其它筛选保留原矩形与隐藏快照。
@@ -56,6 +56,11 @@ impl Sheet {
             return;
         };
         let Some(mut range) = filter.range else {
+            // New grouped filters keep column identity even without an explicit
+            // rectangle; preserve the legacy flat-filter displacement contract.
+            if !filter.groups().is_empty() && !edit.is_row_edit() {
+                filter.shift_rule_columns(edit);
+            }
             return;
         };
         let (at, count, insert, rows) = match edit {

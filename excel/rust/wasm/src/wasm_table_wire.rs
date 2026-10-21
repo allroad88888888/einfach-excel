@@ -25,7 +25,10 @@ struct TableJSON {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct TableFilterJSON {
+    #[serde(default)]
     rules: Vec<ColumnFilterRuleJSON>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    groups: Vec<ColumnFilterGroupJSON>,
     #[serde(rename = "hiddenRows", default, skip_serializing_if = "Vec::is_empty")]
     hidden_rows: Vec<u32>,
 }
@@ -55,6 +58,7 @@ impl TableJSON {
             calculated_columns: entry.calculated_columns().to_vec(),
             auto_filter: entry.auto_filter().map(|filter| TableFilterJSON {
                 rules: filter.rules().iter().map(ColumnFilterRuleJSON::from_rule).collect(),
+                groups: filter.groups().iter().map(ColumnFilterGroupJSON::from_group).collect(),
                 hidden_rows: if snapshot { filter.hidden_rows() } else { Vec::new() },
             }),
         }
@@ -84,8 +88,18 @@ impl TableJSON {
         ).with_insert_row(self.insert_row).with_style(self.style)
             .with_calculated_columns(self.calculated_columns);
         Ok(match self.auto_filter {
-            Some(filter) => entry.with_filter(
-                filter.rules.into_iter().map(ColumnFilterRuleJSON::into_rule).collect(), filter.hidden_rows),
+            Some(filter) => {
+                if !filter.rules.is_empty() && !filter.groups.is_empty() {
+                    return Err("Use either flat rules or condition groups, not both.".into());
+                }
+                if filter.groups.is_empty() {
+                    entry.with_filter(filter.rules.into_iter().map(ColumnFilterRuleJSON::into_rule).collect(),
+                        filter.hidden_rows)
+                } else {
+                    entry.with_filter_groups(filter.groups.into_iter().map(ColumnFilterGroupJSON::into_group).collect(),
+                        filter.hidden_rows)
+                }
+            }
             None => entry,
         })
     }

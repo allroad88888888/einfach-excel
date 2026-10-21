@@ -116,7 +116,19 @@ impl WasmWorkbook {
             .into_iter()
             .map(ColumnFilterRuleJSON::into_rule)
             .collect();
-        Self::filter_result_to_js(if let Some(range) = payload.range {
+        if !rules.is_empty() && !payload.groups.is_empty() {
+            return Ok(sort_error_to_js("invalid-payload", None,
+                Some("Use either flat rules or condition groups, not both.")));
+        }
+        let groups = payload.groups.into_iter().map(ColumnFilterGroupJSON::into_group).collect::<Vec<_>>();
+        Self::filter_result_to_js(if !groups.is_empty() {
+            if let Some(range) = payload.range {
+                self.history.apply_filter_range_groups(&mut self.workbook, sheet_idx as usize,
+                    range.into_range(), &groups)
+            } else {
+                self.history.apply_filter_groups(&mut self.workbook, sheet_idx as usize, &groups)
+            }
+        } else if let Some(range) = payload.range {
             self.history.apply_filter_range(&mut self.workbook, sheet_idx as usize,
                 range.into_range(), &rules)
         } else {
@@ -163,6 +175,8 @@ impl WasmWorkbook {
                 .iter()
                 .map(ColumnFilterRuleJSON::from_rule)
                 .collect(),
+            groups: self.workbook.filter_groups(sheet_idx).iter()
+                .map(ColumnFilterGroupJSON::from_group).collect(),
             hidden_rows: self.workbook.filter_hidden_rows(sheet_idx),
         };
         serde_wasm_bindgen::to_value(&entry)

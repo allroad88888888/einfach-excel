@@ -7,6 +7,7 @@ import { writeCellInput } from './cell-io'
 import type { WasmWorkbook } from './wasm-types'
 import type { CellRange } from '../shared'
 import { validFilterRules } from './filter-commands'
+import { validFilterGroups } from '../advanced-filter/contracts'
 
 export interface RustTableCommands {
   'table.change': WorkerCommand<{
@@ -37,7 +38,10 @@ export function changeTable(workbook: WasmWorkbook,
     input.action.kind === 'append-row') {
     action = { ...input.action, rowCount: sheet.rowCount ?? 1_048_576 }
   } else if (input.action.kind === 'filter') {
-    if (!validFilterRules(input.action.rules, sheet.colCount))
+    if (!validFilterRules(input.action.rules, sheet.colCount) ||
+      (input.action.groups !== undefined &&
+        !validFilterGroups(input.action.groups, sheet.colCount)) ||
+      (input.action.rules.length > 0 && Boolean(input.action.groups?.length)))
       throw new Error('Choose valid table filter conditions.')
     action = input.action
   } else if (input.action.kind === 'clear-filter' || input.action.kind === 'reapply-filter' ||
@@ -69,7 +73,12 @@ export function importTables(workbook: WasmWorkbook, sheets: ReadonlyMap<string,
       if (formula !== null) writeCellInput(workbook, sheet.index,
         table.range.rowStart + 1, table.range.colStart + column, formula)
     })
-    if (table.filterRules?.length) {
+    if (table.filterGroups?.length) {
+      if (table.filterRules?.length || !validFilterGroups(table.filterGroups, sheet.colCount))
+        throw new Error('Invalid initial table filter.')
+      workbook.change_table(sheet.index, { kind: 'filter', name: table.name,
+        rules: [], groups: table.filterGroups })
+    } else if (table.filterRules?.length) {
       if (!validFilterRules(table.filterRules, sheet.colCount)) throw new Error('Invalid initial table filter.')
       workbook.change_table(sheet.index, { kind: 'filter', name: table.name, rules: table.filterRules })
     }

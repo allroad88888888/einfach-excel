@@ -1,0 +1,30 @@
+import { expect, test } from '@playwright/test'
+import { summary, alternatives, button, dialog, apply, field } from './support'
+
+for (const width of [1280, 390]) for (const locale of ['en', 'zh'] as const)
+  test(`advanced filter groups and complete search controls fit ${locale} at ${width}px`, async ({ page }, info) => {
+    await page.setViewportSize({ width, height: 850 })
+    const errors: string[] = []
+    page.on('pageerror', (error) => errors.push(error.message))
+    await summary(page); await alternatives(page)
+    await button(page, 'Add condition').click(); await field(page, 3, '20')
+    await apply(page)
+    if (locale === 'zh') await page.getByRole('combobox', { name: 'Interface language', exact: true }).selectOption('zh')
+    await page.getByRole('combobox', { name: locale === 'zh' ? '工作表筛选' : 'Worksheet filter', exact: true }).selectOption('open')
+    await button(page, locale === 'zh' ? '选择条件 1 的值' : 'Choose values for condition 1').click()
+    const panel = locale === 'zh' ? page.getByRole('dialog', { name: '筛选条件', exact: true }) : dialog(page)
+    await expect(panel).toBeVisible()
+    await expect(page.getByRole('button', { name: locale === 'zh' ? '全选搜索匹配项' : 'Select all search matches', exact: true })).toBeVisible()
+    expect(await panel.evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+    await page.screenshot({ path: info.outputPath(`advanced-filter-${locale}-${width}-top.png`) })
+    const applyButton = page.getByRole('button', { name: locale === 'zh' ? '应用筛选' : 'Apply filter', exact: true })
+    await applyButton.scrollIntoViewIfNeeded()
+    await expect(applyButton).toBeInViewport()
+    await page.screenshot({ path: info.outputPath(`advanced-filter-${locale}-${width}-footer.png`) })
+    const cancel = page.getByRole('button', { name: locale === 'zh' ? '取消' : 'Cancel', exact: true })
+    await cancel.focus(); await cancel.press('Tab')
+    await expect(page.getByLabel(locale === 'zh' ? '筛选列 1' : 'Filter column 1', { exact: true })).toBeFocused()
+    await page.keyboard.press('Escape'); await expect(panel).toHaveCount(0)
+    expect(errors).toEqual([])
+  })

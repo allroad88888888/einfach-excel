@@ -91,6 +91,14 @@ impl TableEntry {
         self
     }
 
+    pub fn with_filter_groups(mut self, groups: Vec<crate::advanced_filter::ColumnFilterGroup>,
+        hidden_rows: Vec<u32>) -> Self {
+        self.auto_filter = if groups.is_empty() && hidden_rows.is_empty() { None } else {
+            Some(crate::filter::SheetAutoFilter::new_grouped(groups, hidden_rows.into_iter().collect()))
+        };
+        self
+    }
+
     /// 恢复时由注册表检查长度，不在这里静默丢掉错误的列映射。
     pub fn with_calculated_columns(mut self, columns: Vec<Option<crate::TableColumnFormula>>) -> Self {
         self.calculated_columns = columns;

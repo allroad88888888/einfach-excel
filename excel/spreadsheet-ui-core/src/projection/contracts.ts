@@ -14,6 +14,7 @@ import { validSheetVisibility } from '../viewport/hidden-state'
 import { validNativeNamedRanges } from '../named-ranges/native-types'
 import { validNativeTables } from '../tables/native-types'
 import { validFilterRange, validFilterRules } from '../rust-workbook/filter-commands'
+import { validFilterGroups } from '../advanced-filter/contracts'
 import { validNativeConditionalFormats } from '../rust-workbook/conditional-format-commands'
 import { validFrozenProjection, validProjectionViewport } from './frozen-validation'
 import { validMergeBorderCells } from './merge-border-cells'
@@ -229,9 +230,15 @@ export function validateProjectionResult(
   if (result.kind === 'visible-window' && result.conditionalFormats !== undefined &&
     !validNativeConditionalFormats(result.conditionalFormats))
     return makeInvalid('CELL_OUT_OF_RANGE', 'Invalid Rust conditional-format rules.')
+  if (result.kind === 'visible-window' && result.filterGroups !== undefined &&
+    (!validFilterGroups(result.filterGroups) ||
+      (result.filterGroups.length > 0 && Boolean(result.filterRules?.length))))
+    return makeInvalid('CELL_OUT_OF_RANGE', 'Invalid Rust filter groups.')
   if (result.kind === 'visible-window' && result.filterRange !== undefined && (
     !validFilterRange(result.filterRange) || result.filterRules?.some((rule) =>
-      rule.colIndex < result.filterRange!.colStart || rule.colIndex > result.filterRange!.colEnd)
+      rule.colIndex < result.filterRange!.colStart || rule.colIndex > result.filterRange!.colEnd) ||
+    result.filterGroups?.some(group => group.rules.some(rule =>
+      rule.colIndex < result.filterRange!.colStart || rule.colIndex > result.filterRange!.colEnd))
   )) return makeInvalid('CELL_OUT_OF_RANGE', 'Invalid Rust filter range.')
   if (result.kind === 'visible-window' && !validFrozenProjection(result, options.maxCells ?? DEFAULT_MAX_PROJECTION_CELLS))
     return makeInvalid('CELL_OUT_OF_RANGE', 'Invalid Rust frozen-region projection.')

@@ -1,5 +1,6 @@
 //! 显式筛选区域：首行是表头，仅判断区域内数据行，不猜测 Total/Summary。
 use super::*;
+use crate::advanced_filter::FilterCriteria;
 
 pub(super) fn validate_filter_range(
     range: CellRange,
@@ -32,22 +33,24 @@ impl Workbook {
         range: CellRange,
         rules: &[ColumnFilterRule],
     ) -> Result<FilterApplyReport, FilterError> {
+        self.apply_filter_range_criteria(sheet, range, FilterCriteria::Flat(rules))
+    }
+
+    pub(crate) fn apply_filter_range_criteria(&mut self, sheet: usize, range: CellRange,
+        criteria: FilterCriteria<'_>) -> Result<FilterApplyReport, FilterError> {
         if self.is_inside_custom_call() {
             return Err(FilterError::MutationDuringCustomCall);
         }
         self.sheet(sheet).ok_or(FilterError::InvalidSheet)?;
         self.ensure_sheet_unprotected(sheet)
             .map_err(|_| FilterError::ProtectedWorksheet)?;
-        validate_filter_range(range, rules)?;
+        validate_filter_range(range, &criteria.rules().cloned().collect::<Vec<_>>())?;
         let data = CellRange::new(
             CellAddress::new(range.start.row + 1, range.start.col),
             range.end,
         );
-        let report = self.scan_filter_data(sheet, Some(data), rules)?;
-        let mut state = crate::filter::SheetAutoFilter::new(
-            rules.to_vec(),
-            report.hidden_rows.iter().copied().collect(),
-        );
+        let report = self.scan_filter_data_criteria(sheet, Some(data), criteria)?;
+        let mut state = criteria.state(report.hidden_rows.iter().copied().collect());
         state.range = Some(range);
         if self.sheets[sheet].commit_filter_state(Some(state)) {
             self.republish_hidden(sheet);

@@ -48,6 +48,14 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | FARG-010 | 移除重复参数组并保留其余参数 | `formula-arguments/group-actions.spec.ts` | FARG-010 removing an argument group preserves the remaining parameters |
 | FARG-011 | 取消按钮丢弃未提交的参数表单 | `formula-arguments/group-actions.spec.ts` | FARG-011 Cancel button discards the argument form without a write |
 | FARG-012 | Escape 丢弃参数表单并恢复触发器焦点 | `formula-arguments/group-actions.spec.ts` | FARG-012 Escape discards the argument form and restores its trigger |
+| AFILT-001 | 添加 OR 组并应用任一组匹配 | `advanced-filter/add-or-group.spec.ts` | advanced filter Add OR group includes either alternative in one apply at 1280px |
+| AFILT-002 | 为当前 AND 组添加交集条件 | `advanced-filter/add-and-condition.spec.ts` | advanced filter Add condition intersects only its AND group at 1280px |
+| AFILT-003 | 编辑分组中的一个条件 | `advanced-filter/edit-condition.spec.ts` | advanced filter editing one grouped condition preserves the other group at 1280px |
+| AFILT-004 | 移除组内条件并保留非空组 | `advanced-filter/remove-condition.spec.ts` | advanced filter Remove condition retains its nonempty group at 1280px |
+| AFILT-005 | 移除单个 OR 组 | `advanced-filter/remove-group.spec.ts` | advanced filter Remove group removes only that OR alternative at 1280px |
+| AFILT-006 | 跨候选页全选当前搜索匹配项 | `advanced-filter/select-search.spec.ts` | advanced filter Select all search matches includes off-page values at 1280px |
+| AFILT-007 | 跨候选页取消当前搜索匹配项 | `advanced-filter/clear-search.spec.ts` | advanced filter Clear all search matches removes only the complete current query at 1280px |
+| AFILT-008 | 原重新应用入口刷新分组筛选快照 | `advanced-filter/reapply.spec.ts` | advanced filter Reapply refreshes grouped snapshots only on demand at 1280px |
 | XSCUT-001 | 键盘跨表剪切并原子改写三表引用 | `cross-sheet-cut/move.spec.ts` | XSCUT-01 keyboard cut across tabs retargets mixed references in three sheets with one undo |
 | XSCUT-002 | 工具栏跨表剪切格式、链接与空白格 | `cross-sheet-cut/move.spec.ts` | XSCUT-02 toolbar cut across tabs moves formatting hyperlinks and blank payloads |
 | XSCUT-003 | 部分引用范围拒绝后修正目标重试 | `cross-sheet-cut/recovery.spec.ts` | XSCUT-03 partial range rejection preserves data redo and the same cut for a corrected retry |

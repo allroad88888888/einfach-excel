@@ -1,6 +1,7 @@
 //! workbook filter engine operations.
 
 use super::*;
+use crate::advanced_filter::FilterCriteria;
 
 impl Workbook {
     pub(crate) fn run_filter(
@@ -8,6 +9,11 @@ impl Workbook {
         sheet_index: usize,
         rules: Vec<ColumnFilterRule>,
     ) -> Result<FilterApplyReport, FilterError> {
+        self.run_filter_criteria(sheet_index, FilterCriteria::Flat(&rules))
+    }
+
+    pub(crate) fn run_filter_criteria(&mut self, sheet_index: usize,
+        criteria: FilterCriteria<'_>) -> Result<FilterApplyReport, FilterError> {
         if self.is_inside_custom_call() {
             return Err(FilterError::MutationDuringCustomCall);
         }
@@ -19,7 +25,7 @@ impl Workbook {
 
         // Phase 1 — scan, behind `&self`, into locals. Nothing is committed
         // yet, so a rejection below leaves the workbook untouched.
-        let (hidden, scanned_rows, predicate_cells) = self.scan_filter(sheet_index, &rules)?;
+        let (hidden, scanned_rows, predicate_cells) = self.scan_filter(sheet_index, criteria)?;
 
         // Phase 2 — commit, then republish the mirror from the owning side.
         let report = FilterApplyReport {
@@ -27,7 +33,14 @@ impl Workbook {
             scanned_rows,
             predicate_cells,
         };
-        if self.sheets[sheet_index].commit_filter(rules, hidden) {
+        let changed = match criteria {
+            FilterCriteria::Flat(rules) => self.sheets[sheet_index].commit_filter(rules.to_vec(), hidden),
+            FilterCriteria::Groups(_) => {
+                let next = (!criteria.is_empty()).then(|| criteria.state(hidden));
+                self.sheets[sheet_index].commit_filter_state(next)
+            }
+        };
+        if changed {
             self.republish_hidden(sheet_index);
         }
         Ok(report)
@@ -51,7 +64,7 @@ impl Workbook {
     fn scan_filter(
         &self,
         sheet_index: usize,
-        rules: &[ColumnFilterRule],
+        criteria: FilterCriteria<'_>,
     ) -> Result<(BTreeSet<u32>, u32, u32), FilterError> {
         let sheet = self
             .sheets
@@ -66,11 +79,15 @@ impl Workbook {
         // empty rule set here would make CLEARING a filter fail on any
         // sheet too large to scan — a workbook could get permanently stuck
         // filtered. Applying no rules is a pure state change.
-        if rules.is_empty() {
+        if criteria.is_empty() {
             return Ok((BTreeSet::new(), 0, 0));
         }
 
-        let cols = crate::filter::predicate_columns(rules);
+        let mut cols = match criteria {
+            FilterCriteria::Flat(rules) => crate::filter::predicate_columns(rules),
+            FilterCriteria::Groups(_) => criteria.columns(),
+        };
+        cols.insert(0);
 
         let mut max_row: Option<u32> = None;
         sheet.for_each_non_empty(|addr| {
@@ -111,9 +128,13 @@ impl Workbook {
         // the host side. Sparse iteration only visits non-empty cells, so
         // this is where blank rows acquire the `""` that `Number("")` then
         // turns into 0 for a `range` rule.
-        let hidden = crate::filter::hidden_rows_for_scan(rules, scanned_rows, |row, col| {
-            values.get(&(row, col)).cloned().unwrap_or_default()
-        });
+        let read = |row, col| values.get(&(row, col)).cloned().unwrap_or_default();
+        let last = if crate::filter::is_filter_sort_summary_row(&read(last_row, 0), last_row)
+            { last_row.saturating_sub(1) } else { last_row };
+        let hidden = match criteria {
+            FilterCriteria::Flat(rules) => crate::filter::hidden_rows_for_scan(rules, scanned_rows, read),
+            FilterCriteria::Groups(_) => (1..=last).filter(|row| !criteria.matches(|col| read(*row, col))).collect(),
+        };
         Ok((hidden, scanned_rows, predicate_cells))
     }
 
@@ -146,6 +167,7 @@ impl Workbook {
                         sheet_index,
                         range: filter.range(),
                         rules: filter.rules().to_vec(),
+                        groups: filter.groups().to_vec(),
                         hidden_rows: filter.hidden_rows(),
                     })
                 })
@@ -178,8 +200,15 @@ impl Workbook {
                 continue; // captured against a wider workbook
             }
             let index = entry.sheet_index;
+            if !entry.rules.is_empty() && !entry.groups.is_empty() {
+                return Err(FilterError::InvalidGroups);
+            }
+            crate::advanced_filter::validate_groups(&entry.groups)?;
             if let Some(range) = entry.range {
                 crate::workbook::workbook_filter_range::validate_filter_range(range, &entry.rules)?;
+                for group in &entry.groups {
+                    crate::workbook::workbook_filter_range::validate_filter_range(range, &group.rules)?;
+                }
                 if entry
                     .hidden_rows
                     .iter()
@@ -197,14 +226,16 @@ impl Workbook {
                     restored += 1;
                     if entry.range.is_none()
                         && entry.rules.is_empty()
+                        && entry.groups.is_empty()
                         && entry.hidden_rows.is_empty()
                     {
                         None
                     } else {
-                        let mut state = crate::filter::SheetAutoFilter::new(
-                            entry.rules,
-                            entry.hidden_rows.into_iter().collect(),
-                        );
+                        let mut state = if entry.groups.is_empty() {
+                            crate::filter::SheetAutoFilter::new(entry.rules, entry.hidden_rows.into_iter().collect())
+                        } else {
+                            crate::filter::SheetAutoFilter::new_grouped(entry.groups, entry.hidden_rows.into_iter().collect())
+                        };
                         state.range = entry.range;
                         Some(state)
                     }

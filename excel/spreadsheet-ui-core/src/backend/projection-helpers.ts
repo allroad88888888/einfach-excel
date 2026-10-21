@@ -60,11 +60,14 @@ export function cloneFilterSortRule(rule: ColumnFilterRule): ColumnFilterRule {
 }
 
 export function cloneFilterSortState(state: FilterSortState): FilterSortState {
-  return { rules: state.rules.map(cloneFilterSortRule) }
+  return { rules: state.rules.map(cloneFilterSortRule),
+    ...(state.groups === undefined ? {} : { groups: state.groups.map(group => ({
+      rules: group.rules.map(cloneFilterSortRule),
+    })) }) }
 }
 
 export function filterSortHasEffect(state: FilterSortState | undefined): boolean {
-  return !!state && state.rules.length > 0
+  return !!state && (state.rules.length > 0 || Boolean(state.groups?.length))
 }
 
 export function numericValue(text: string): number | null {

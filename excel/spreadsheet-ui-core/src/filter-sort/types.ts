@@ -16,6 +16,10 @@ export type ColumnFilterRule =
   | { kind: 'range'; colIndex: number; min?: number; max?: number }
   | { kind: 'list'; colIndex: number; values: readonly string[] }
 
+export interface ColumnFilterGroup {
+  readonly rules: readonly ColumnFilterRule[]
+}
+
 /**
  * Column filter visibility only. Sort is NOT part of this state: the display
  * permutation was retired with #29/#24 — sorting is a physical engine DATA
@@ -24,6 +28,7 @@ export type ColumnFilterRule =
  */
 export interface FilterSortState {
   rules: readonly ColumnFilterRule[]
+  groups?: readonly ColumnFilterGroup[]
 }
 
 export type FilterSortStateBySheet = Record<string, FilterSortState>

@@ -7,8 +7,10 @@ impl TableEntry {
     pub(super) fn valid_filter(&self) -> bool {
         let Some(filter) = self.auto_filter() else { return true; };
         let data = self.filter_data_range();
-        self.has_headers && !filter.rules().is_empty() && filter.range().is_none()
-            && filter.rules().iter().all(|rule|
+        self.has_headers && filter.has_conditions() && filter.range().is_none()
+            && (filter.groups().is_empty() || filter.rules().is_empty())
+            && crate::advanced_filter::validate_groups(filter.groups()).is_ok()
+            && crate::advanced_filter::FilterCriteria::from_filter(filter).rules().all(|rule|
                 self.range.start.col <= rule.col_index() && rule.col_index() <= self.range.end.col)
             && filter.hidden_set().iter().all(|row|
                 data.is_some_and(|data| data.start.row <= *row && *row <= data.end.row))
@@ -22,9 +24,9 @@ impl TableEntry {
         }
         let data = self.filter_data_range();
         let Some(filter) = self.auto_filter.as_mut() else { return; };
-        filter.rules_mut().retain(|rule|
+        filter.retain_conditions(|rule|
             self.range.start.col <= rule.col_index() && rule.col_index() <= self.range.end.col);
-        if filter.rules().is_empty() {
+        if !filter.has_conditions() {
             self.auto_filter = None;
             return;
         }

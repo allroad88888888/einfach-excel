@@ -76,6 +76,13 @@ impl Workbook {
     ///
     /// A sheet with no committed filter reapplies to nothing.
     pub fn reapply_filter(&mut self, sheet_index: usize) -> Result<FilterApplyReport, FilterError> {
+        let groups = self.sheets.get(sheet_index).ok_or(FilterError::InvalidSheet)?
+            .filter().map(|filter| filter.groups().to_vec()).unwrap_or_default();
+        if !groups.is_empty() {
+            return if let Some(range) = self.filter_range(sheet_index) {
+                self.apply_filter_range_groups(sheet_index, range, &groups)
+            } else { self.apply_filter_groups(sheet_index, &groups) };
+        }
         let rules = self
             .sheets
             .get(sheet_index)
@@ -118,6 +125,11 @@ impl Workbook {
             .and_then(Sheet::filter)
             .map(|filter| filter.rules().to_vec())
             .unwrap_or_default()
+    }
+
+    pub fn filter_groups(&self, sheet_index: usize) -> Vec<crate::advanced_filter::ColumnFilterGroup> {
+        self.sheets.get(sheet_index).and_then(Sheet::filter)
+            .map(|filter| filter.groups().to_vec()).unwrap_or_default()
     }
 
     /// The rows `sheet_index`'s filter currently hides, ascending.

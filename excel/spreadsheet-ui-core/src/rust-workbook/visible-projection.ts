@@ -44,6 +44,7 @@ export function readVisibleProjection(
     ...(frozen ? { frozen } : {}),
     ...(visibility ? { visibility } : {}),
     ...(visibility?.filterRules ? { filterRules: visibility.filterRules } : {}),
+    ...(visibility?.filterGroups ? { filterGroups: visibility.filterGroups } : {}),
     ...(visibility?.filterRange ? { filterRange: visibility.filterRange } : {}),
     ...(workbook.history_state ? { history: workbook.history_state() } : {}),
     ...(workbook.read_protection ? { protection: workbook.read_protection(sheetIndex) } : {}),

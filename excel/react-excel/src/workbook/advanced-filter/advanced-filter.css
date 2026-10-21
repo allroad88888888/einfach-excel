@@ -1,0 +1,10 @@
+.advanced-filter-groups { display: grid; gap: 10px; min-width: 0; }
+.advanced-filter-group { min-width: 0; }
+.filter-dialog .advanced-filter-group > fieldset { display: block; margin: 0; padding: 10px; border: 1px solid var(--border); border-radius: 6px; }
+.advanced-filter-group > fieldset > legend { padding: 0 5px; font-weight: 600; }
+.advanced-filter-group-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.advanced-filter-or { margin: 0 0 8px; font-weight: 600; text-align: center; }
+@media (max-width: 480px) {
+  .filter-dialog .advanced-filter-group > fieldset { padding: 8px; }
+  .advanced-filter-group-actions > button { flex: 1 1 auto; }
+}

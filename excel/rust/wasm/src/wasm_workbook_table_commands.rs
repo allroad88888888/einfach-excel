@@ -2,7 +2,8 @@
 #[derive(Deserialize)]
 #[serde(tag = "kind", rename_all = "kebab-case", deny_unknown_fields)]
 enum TableActionJSON {
-    Filter { name: String, rules: Vec<ColumnFilterRuleJSON> },
+    Filter { name: String, #[serde(default)] rules: Vec<ColumnFilterRuleJSON>,
+        #[serde(default)] groups: Vec<ColumnFilterGroupJSON> },
     ClearFilter { name: String },
     ReapplyFilter { name: String },
     AppendRow {
@@ -98,9 +99,17 @@ impl WasmWorkbook {
         }
         let epoch = self.workbook.tables_epoch();
         match action {
-            TableActionJSON::Filter { name, rules } => {
+            TableActionJSON::Filter { name, rules, groups } => {
+                if !rules.is_empty() && !groups.is_empty() {
+                    return Err("Use either flat rules or condition groups, not both.".into());
+                }
                 let rules = rules.into_iter().map(ColumnFilterRuleJSON::into_rule).collect::<Vec<_>>();
-                self.history.apply_table_filter(&mut self.workbook, &name, &rules)?;
+                if groups.is_empty() {
+                    self.history.apply_table_filter(&mut self.workbook, &name, &rules)?;
+                } else {
+                    let groups = groups.into_iter().map(ColumnFilterGroupJSON::into_group).collect::<Vec<_>>();
+                    self.history.apply_table_filter_groups(&mut self.workbook, &name, &groups)?;
+                }
                 Ok(self.workbook.tables_epoch() != epoch)
             }
             TableActionJSON::ClearFilter { name } => {

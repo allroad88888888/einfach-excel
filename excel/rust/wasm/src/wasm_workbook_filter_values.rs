@@ -13,12 +13,16 @@ struct FilterValuesRequestJSON {
     #[serde(default)]
     offset: u32,
     limit: u32,
+    #[serde(default)]
+    all_matches: bool,
 }
 
 impl FilterValuesRequestJSON {
     fn query(&self, workbook: &Workbook) -> Result<FilterValuesPage, String> {
-        workbook.filter_values(self.sheet, FilterValuesQuery { column: self.column,
-            table: self.table.as_deref(), search: &self.search, offset: self.offset, limit: self.limit })
+        let query = FilterValuesQuery { column: self.column, table: self.table.as_deref(),
+            search: &self.search, offset: self.offset, limit: self.limit };
+        if self.all_matches { workbook.filter_all_values(self.sheet, query) }
+        else { workbook.filter_values(self.sheet, query) }
     }
 }
 

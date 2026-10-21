@@ -3,7 +3,9 @@ import { activeWorkbookSheetAtom } from '../runtime/workbook-document'
 import { selectionSnapshotAtom } from '../selection'
 import type { ColumnFilterRule } from '../filter-sort/types'
 import { validFilterRules } from '../rust-workbook/filter-commands'
-import { nativeFilterTargetAtom, nativeTableFiltersAtom } from './scope'
+import { nativeFilterGroupsAtom, nativeFilterTargetAtom, nativeTableFiltersAtom } from './scope'
+import { draftGroups, conditionRule, ruleCondition } from '../advanced-filter/groups'
+import { validFilterGroups } from '../advanced-filter/contracts'
 import { projectionSnapshotAtom } from '../projection/state'
 import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import {
@@ -42,6 +44,7 @@ export const configureNativeFilterAtom = atom(
   async (get, set, action: Action): Promise<boolean> => {
     if (get(nativeFilterFeedbackAtom).busy) return false
     const state = get(stateAtom)
+    if (action === 'apply' && state.browser?.busy) return false
     const sheet = get(activeWorkbookSheetAtom)
     if (action === 'close') {
       set(stateAtom, initial)
@@ -56,10 +59,12 @@ export const configureNativeFilterAtom = atom(
       const target = action === 'open' ? get(nativeFilterTargetAtom)
         : action.table ? get(nativeTableFiltersAtom).find((entry) => entry.table === action.table)
           : { table: undefined, range: get(nativeFilterRangeAtom),
-              rules: get(nativeFilterRulesAtom) }
+              rules: get(nativeFilterRulesAtom), groups: get(nativeFilterGroupsAtom) }
       if (!target) return false
       const { range, table } = target
-      const column = typeof action === 'object' ? action.col : undefined
+      // A column-only editor cannot safely preserve OR branches. Open the complete
+      // group draft for an already grouped filter, retaining every other condition.
+      const column = typeof action === 'object' && !target.groups.length ? action.col : undefined
       if (column !== undefined && (!range || column < range.colStart || column > range.colEnd))
         return false
       const rules = target.rules.filter(
@@ -74,7 +79,11 @@ export const configureNativeFilterAtom = atom(
         column,
         browser: undefined,
         error: '',
-        conditions: rules.length
+        advanced: target.groups.length > 0,
+        conditions: target.groups.length
+          ? target.groups.flatMap((group, index) =>
+              group.rules.map((rule) => ruleCondition(rule, index)))
+          : rules.length
           ? rules.map((rule) => ({
               ...condition(rule.colIndex),
               kind: rule.kind,
@@ -128,7 +137,8 @@ export const configureNativeFilterAtom = atom(
     if (typeof action === 'object') {
       if (
         !state.conditions[action.index] ||
-        (action.type === 'remove' && state.conditions.length === 1)
+        (action.type === 'remove' && state.conditions.filter((item) =>
+          (item.group ?? 0) === (state.conditions[action.index]!.group ?? 0)).length === 1)
       )
         return false
       set(stateAtom, {
@@ -144,34 +154,27 @@ export const configureNativeFilterAtom = atom(
       })
       return true
     }
-    let rules: ColumnFilterRule[] = state.conditions.map((item) => {
-      const colIndex = item.col
-      if (item.kind === 'range')
-        return {
-          kind: 'range',
-          colIndex,
-          ...(item.min.trim() ? { min: Number(item.min) } : {}),
-          ...(item.max.trim() ? { max: Number(item.max) } : {}),
-        }
-      if (item.kind === 'list') return { kind: 'list', colIndex, values: item.values }
-      return { kind: item.kind, colIndex, value: item.value, caseSensitive: item.caseSensitive }
-    })
+    let rules: ColumnFilterRule[] = state.conditions.map(conditionRule)
     if (state.column !== undefined) {
       rules = [
         ...get(nativeFilterPanelAtom).rules.filter((rule) => rule.colIndex !== state.column),
         ...(action === 'clear-column' ? [] : rules),
       ]
     }
-    if (!validFilterRules(rules, sheet.colCount)) {
+    const groups = state.advanced ? draftGroups(state.conditions) : undefined
+    if (groups ? !validFilterGroups(groups, sheet.colCount)
+      : !validFilterRules(rules, sheet.colCount)) {
       set(stateAtom, {
         ...state,
-        error: 'Use different columns and valid numbers; minimum cannot exceed maximum.',
+        error: groups ? 'Use nonempty groups and valid numbers; minimum cannot exceed maximum.'
+          : 'Use different columns and valid numbers; minimum cannot exceed maximum.',
       })
       return false
     }
     const completed = await set(runNativeFilterAtom, {
       action: 'apply',
-      rules,
+      rules: groups ? [] : rules,
+      ...(groups ? { groups } : {}),
       ...(state.table ? { table: state.table } : state.range ? { range: state.range } : {}),
     })
     if (get(stateAtom) !== state || get(rustWorkbookConnectionAtom) !== state.connection)

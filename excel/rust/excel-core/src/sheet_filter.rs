@@ -74,7 +74,7 @@ impl Sheet {
                 if *filter.hidden_set() == rows {
                     return false;
                 }
-                if rows.is_empty() && filter.rules().is_empty() {
+                if rows.is_empty() && !filter.has_conditions() {
                     self.filter = None;
                     return true;
                 }

@@ -10,7 +10,7 @@ import type { WasmFindQueries } from './find-commands'
 import type { CellRange } from '../shared'
 import type { SelectionNumbers } from '../status-bar/types'
 import type { RustSortKey } from './sort-commands'
-import type { ColumnFilterRule } from '../filter-sort/types'
+import type { ColumnFilterGroup, ColumnFilterRule } from '../filter-sort/types'
 import type { RustFilterReport, RustFilterValuesPage, RustFilterValuesQuery } from './filter-commands'
 import type { NativeTextColumnsRequest, RustTextColumnsPreview, RustTextColumnsReport } from './text-columns-commands'
 import type { NativeRemoveDuplicatesRequest, RustRemoveDuplicatesPreview } from './remove-duplicates-commands'
@@ -185,6 +185,7 @@ export interface WasmWorkbook extends WasmSpillQueries, WasmFindQueries, WasmCus
   ) => boolean
   sheet_visibility?: (sheet: number) => SheetVisibilityProjection & {
     readonly filterRules?: readonly ColumnFilterRule[]
+    readonly filterGroups?: readonly ColumnFilterGroup[]
     readonly filterRange?: CellRange
   }
   history_begin?: (

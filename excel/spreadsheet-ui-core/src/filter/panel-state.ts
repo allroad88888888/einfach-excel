@@ -6,6 +6,8 @@ import type { RustFilterValuesPage } from '../rust-workbook/filter-commands'
 import type { CellRange } from '../shared'
 
 export interface FilterCondition {
+  /** Draft-only group position; persisted criteria use ColumnFilterGroup. */
+  group: number
   col: number
   kind: ColumnFilterRule['kind']
   value: string
@@ -15,7 +17,7 @@ export interface FilterCondition {
   caseSensitive: boolean
 }
 export const filterCondition = (col: number): FilterCondition => ({
-  col, kind: 'equals', value: '', values: [''], min: '', max: '', caseSensitive: false,
+  group: 0, col, kind: 'equals', value: '', values: [''], min: '', max: '', caseSensitive: false,
 })
 
 export interface FilterValuesBrowser {
@@ -35,6 +37,7 @@ export const initialFilterPanel = {
   range: undefined as CellRange | undefined,
   column: undefined as number | undefined,
   conditions: [] as readonly FilterCondition[],
+  advanced: false,
   browser: undefined as FilterValuesBrowser | undefined,
   error: '',
 }

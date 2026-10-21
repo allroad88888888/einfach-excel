@@ -30,11 +30,27 @@ impl WorkbookHistory {
         self.apply_table_filter(workbook, name, &[])
     }
 
+    pub fn apply_table_filter_groups(&mut self, workbook: &mut Workbook, name: &str,
+        groups: &[crate::advanced_filter::ColumnFilterGroup]) -> Result<FilterApplyReport, String> {
+        if self.pending.is_some() || workbook.is_inside_custom_call() {
+            return Err("Another history command is pending.".into());
+        }
+        let (change, report) = TableDefinitionChange::prepare_filter_groups(workbook, name, groups)?;
+        if let Some(change) = change {
+            change.apply(workbook, false)?;
+            self.record_table_change(workbook, change, "Filter table");
+        }
+        Ok(report)
+    }
+
     pub fn reapply_table_filter(
         &mut self,
         workbook: &mut Workbook,
         name: &str,
     ) -> Result<FilterApplyReport, String> {
+        let groups = workbook.get_table(name).ok_or("The table no longer exists.")?
+            .auto_filter().map(|filter| filter.groups().to_vec()).unwrap_or_default();
+        if !groups.is_empty() { return self.apply_table_filter_groups(workbook, name, &groups); }
         let rules = workbook
             .get_table(name)
             .ok_or("The table no longer exists.")?

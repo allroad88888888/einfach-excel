@@ -2,6 +2,7 @@ import type { RustFilterCommands } from './filter-commands'
 import { validFilterRange, validFilterRules } from './filter-commands'
 import type { WasmWorkbook } from './wasm-types'
 import type { RustWorkbookSheet } from './commands'
+import { validFilterGroups } from '../advanced-filter/contracts'
 
 /** 只读当前版本的一页候选；Worker 不读取单元格，也不改变可见性或历史。 */
 export function readFilterValues(workbook: WasmWorkbook, sheet: RustWorkbookSheet | undefined,
@@ -14,11 +15,14 @@ export function readFilterValues(workbook: WasmWorkbook, sheet: RustWorkbookShee
     !Number.isSafeInteger(input.offset) || input.offset < 0 || input.offset > 1_048_576 ||
     !Number.isSafeInteger(input.limit) || input.limit < 1 || input.limit > 100 ||
     typeof input.search !== 'string' || input.search.length > 32767 ||
+    (input.allMatches !== undefined && typeof input.allMatches !== 'boolean') ||
+    (input.allMatches === true && input.offset !== 0) ||
     (input.table !== undefined && (typeof input.table !== 'string' || !input.table)))
     throw new Error('Choose a valid filter column, search text and page.')
   if (!workbook.filter_values) throw new Error('Rust filter values are unavailable.')
   const page = workbook.filter_values({ sheet: sheet.index, column: input.column,
     search: input.search, offset: input.offset, limit: input.limit,
+    ...(input.allMatches ? { allMatches: true } : {}),
     ...(input.table === undefined ? {} : { table: input.table }) })
   return { ...page, revision }
 }
@@ -34,16 +38,18 @@ export function changeFilter(
   if (input.sheetId !== input.projection.sheetId) throw new Error('PROJECTION_SHEET_MISMATCH')
   if (
     !['apply', 'clear', 'reapply'].includes(input.action) ||
-    (input.action === 'apply' && !validFilterRules(input.rules, columns))
+    (input.action === 'apply' && (!Array.isArray(input.rules) ||
+      (input.groups !== undefined && !validFilterGroups(input.groups, columns)) ||
+      (input.groups?.length ? input.rules.length !== 0 : !validFilterRules(input.rules, columns))))
   )
-    throw new Error('Choose up to eight different columns with valid filter conditions.')
+    throw new Error('Choose valid filter conditions in nonempty groups, or up to eight different columns.')
   if (
     input.action === 'apply' &&
     input.range !== undefined &&
     (!validFilterRange(input.range) ||
       input.range.colEnd >= columns ||
       input.range.rowEnd >= rows ||
-      input.rules.some(
+      [...input.rules, ...(input.groups ?? []).flatMap((group) => group.rules)].some(
         (rule) => rule.colIndex < input.range!.colStart || rule.colIndex > input.range!.colEnd,
       ))
   )
@@ -64,6 +70,7 @@ export function changeFilter(
     input.action === 'apply'
       ? workbook.applyFilter(sheet, {
           rules: input.rules,
+          ...(input.groups?.length ? { groups: input.groups } : {}),
           ...(input.range ? { range: input.range } : {}),
         })
       : input.action === 'clear'

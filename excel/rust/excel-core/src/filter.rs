@@ -342,14 +342,23 @@ pub fn row_matches_rules(rules: &[ColumnFilterRule], read_value: impl Fn(u32) ->
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct SheetAutoFilter {
     rules: Vec<ColumnFilterRule>,
+    groups: Vec<crate::advanced_filter::ColumnFilterGroup>,
     hidden: BTreeSet<u32>,
     pub(crate) range: Option<crate::CellRange>,
 }
 
 impl SheetAutoFilter {
     pub(crate) fn new(rules: Vec<ColumnFilterRule>, hidden: BTreeSet<u32>) -> Self {
-        SheetAutoFilter { rules, hidden, range: None }
+        SheetAutoFilter { rules, groups: Vec::new(), hidden, range: None }
     }
+
+    pub(crate) fn new_grouped(groups: Vec<crate::advanced_filter::ColumnFilterGroup>, hidden: BTreeSet<u32>) -> Self {
+        Self { rules: Vec::new(), groups, hidden, range: None }
+    }
+
+    pub fn groups(&self) -> &[crate::advanced_filter::ColumnFilterGroup] { &self.groups }
+    pub fn has_conditions(&self) -> bool { !self.rules.is_empty() || !self.groups.is_empty() }
+    pub(crate) fn groups_mut(&mut self) -> &mut Vec<crate::advanced_filter::ColumnFilterGroup> { &mut self.groups }
 
     pub fn range(&self) -> Option<crate::CellRange> { self.range }
 
@@ -400,6 +409,8 @@ pub struct FilterApplyReport {
 /// § "Engine physical sort wire").
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum FilterError {
+    /// Groups must be nonempty, bounded, and contain valid leaf conditions.
+    InvalidGroups,
     /// 区域必须包含表头与数据，条件列必须属于此区域。
     InvalidRange,
     /// A history transaction already owns the workbook mutation boundary.

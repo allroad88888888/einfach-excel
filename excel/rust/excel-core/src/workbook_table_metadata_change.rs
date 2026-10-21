@@ -32,6 +32,16 @@ impl TableDefinitionChange {
         Ok((change, report))
     }
 
+    pub(crate) fn prepare_filter_groups(workbook: &Workbook, name: &str,
+        groups: &[crate::advanced_filter::ColumnFilterGroup])
+        -> Result<(Option<Self>, FilterApplyReport), String> {
+        let (after, report) = workbook.prepare_table_filter_groups(name, groups)?;
+        let before = workbook.get_table(name).unwrap().clone();
+        let change = if before == after { None }
+            else { Some(Self::metadata_change(workbook, before, after)?) };
+        Ok((change, report))
+    }
+
     fn metadata_change(workbook: &Workbook, before: TableEntry, after: TableEntry) -> Result<Self, String> {
         let sheet = workbook.index_of(before.sheet_name()).ok_or("The worksheet no longer exists.")?;
         let change = Self {

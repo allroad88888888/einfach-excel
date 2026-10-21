@@ -3,7 +3,7 @@ import type { RustHistoryState } from '../history/rust-history-types'
 import type { NativeNamedRange } from '../named-ranges/native-types'
 import type { NativeTable } from '../tables/native-types'
 import type { SheetVisibilityProjection } from '../viewport/hidden-state'
-import type { ColumnFilterRule } from '../filter-sort/types'
+import type { ColumnFilterGroup, ColumnFilterRule } from '../filter-sort/types'
 import type { ConditionalFormatRuleEntry } from '../conditional-formatting/types'
 import type { SheetProtectionState } from '../protection/types'
 import type { NativeCustomFormulaDefinition } from '../custom-formulas/expression-types'
@@ -68,6 +68,7 @@ export interface VisibleProjectionResult extends SheetRef {
   visibility?: SheetVisibilityProjection
   /** 当前表已提交的原生条件，随投影返回，面板不另建权威副本。 */
   filterRules?: readonly ColumnFilterRule[]
+  filterGroups?: readonly ColumnFilterGroup[]
   filterRange?: CellRange
   /** 原生规则目录随显示投影返回；面板只保存未提交的草稿。 */
   conditionalFormats?: {

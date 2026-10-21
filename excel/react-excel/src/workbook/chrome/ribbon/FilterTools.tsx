@@ -13,6 +13,7 @@ import {
   runNativeFilterAtom,
 } from '@einfach/spreadsheet-ui-core'
 import { FilterConditionFields } from './FilterConditionFields'
+import { AdvancedFilterGroups } from '../../advanced-filter/AdvancedFilterGroups'
 import './selection-size.css'
 import './filter.css'
 import { cycleDialogFocus } from './dialog-focus'
@@ -102,7 +103,9 @@ export function FilterTools() {
               : panel.range
               ? t`Range ${getColumnLabel(panel.range.colStart)}${panel.range.rowStart + 1}:${getColumnLabel(panel.range.colEnd)}${panel.range.rowEnd + 1}. Its first row stays visible.`
               : t`Filters the worksheet’s used rows, not just the selection. Row 1 stays visible.`}
-            {t` Every condition must match. After editing values, use Reapply filter.`}
+            {panel.column === undefined
+              ? t` Conditions in each group must all match. Any group may match. After editing values, use Reapply filter.`
+              : t` Every condition must match. After editing values, use Reapply filter.`}
           </p>
           <form
             onSubmit={(event) => {
@@ -110,25 +113,7 @@ export function FilterTools() {
               void configure('apply')
             }}
           >
-            <FilterConditionFields />
-            {panel.column === undefined && (
-              <button
-                type="button"
-                disabled={
-                  feedback.busy ||
-                  panel.conditions.length >=
-                    Math.min(
-                      8,
-                      panel.range
-                        ? panel.range.colEnd - panel.range.colStart + 1
-                        : (sheet?.colCount ?? 0),
-                    )
-                }
-                onClick={() => void configure('add')}
-              ><Trans>
-                Add condition
-              </Trans></button>
-            )}
+            {panel.column === undefined ? <AdvancedFilterGroups /> : <FilterConditionFields />}
             {panel.column !== undefined && (
               <button
                 type="button"
@@ -145,7 +130,7 @@ export function FilterTools() {
               </p>
             )}
             <div className="size-actions">
-              <button type="submit" disabled={feedback.busy}><Trans>
+              <button type="submit" disabled={feedback.busy || panel.browser?.busy}><Trans>
                 Apply filter
               </Trans></button>
               <button

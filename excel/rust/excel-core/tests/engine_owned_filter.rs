@@ -850,12 +850,14 @@ fn restore_drops_entries_for_sheets_that_no_longer_exist() {
             sheet_index: 0,
             range: None,
             rules: vec![contains(0, "a")],
+            groups: Vec::new(),
             hidden_rows: vec![4],
         },
         SheetFilterState {
             sheet_index: 7,
             range: None,
             rules: vec![contains(0, "z")],
+            groups: Vec::new(),
             hidden_rows: vec![1],
         },
     ]);

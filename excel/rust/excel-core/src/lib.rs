@@ -18,6 +18,7 @@ mod time_format;
 pub use fraction_format::FractionDenominator;
 pub mod eval;
 pub mod filter;
+pub mod advanced_filter;
 mod find_text;
 mod find_wildcard;
 pub mod format;

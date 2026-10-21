@@ -89,7 +89,8 @@ export const runNativeFilterAtom = atom(
         const projection = await set(
           changeNativeTableAtom,
           action.action === 'apply'
-            ? { kind: 'filter', name: action.table, rules: action.rules }
+            ? { kind: 'filter', name: action.table, rules: action.rules,
+              ...(action.groups?.length ? { groups: action.groups } : {}) }
             : {
                 kind: action.action === 'clear' ? 'clear-filter' : 'reapply-filter',
                 name: action.table,

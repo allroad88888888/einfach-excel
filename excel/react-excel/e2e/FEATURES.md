@@ -34,6 +34,8 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | MRSEL-006 | 格式化手动追加的所有区域 | `multi-range-selection/multi-format.spec.ts` | formatting manually appended areas changes every target and preserves the gap at 1280px |
 | MRSEL-007 | 清除手动追加的所有区域 | `multi-range-selection/multi-clear.spec.ts` | clearing manually appended areas preserves gap values and undoes in one step at 1280px |
 | MRSEL-008 | 查看重叠多区的去重统计 | `multi-range-selection/overlap-statistics.spec.ts` | overlapping manual areas count and aggregate each cell once at 1280px |
+| AFORM-001 | 公式栏提交同源 JSON 异步公式并传播原生依赖 | `async-formulas/settlement.spec.ts` | enter FETCHJSON through the formula bar and settle real HTTP with native dependents |
+| AFORM-002 | 现有重算入口重试失败异步公式 | `async-formulas/settlement.spec.ts` | retry a failed FETCHJSON with the existing Recalculate control |
 | SEL-001 | 单元格点击单选 | `selection/basic-selection.spec.ts` | single cell click replaces the selection at 1280px |
 | SEL-002 | 鼠标拖拽矩形选区 | `selection/basic-selection.spec.ts` | pointer drag selects a rectangle at 1280px |
 | SEL-003 | 行号选择整行 | `selection/basic-selection.spec.ts` | row header selects its complete extent at 1280px |

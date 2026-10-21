@@ -1,5 +1,6 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { installRustWorkbookRuntime } from '../src/rust-workbook/runtime'
+import { EmptyAsyncFormulaWorkbook } from './next-version-integration/empty-async-workbook'
 
 afterEach(() => vi.unstubAllGlobals())
 
@@ -10,9 +11,10 @@ async function runtime(preview = vi.fn(() => '02-Jan-00'), available = true) {
   const begin = vi.fn()
   const write = vi.fn()
   vi.stubGlobal('self', {
+    location: { origin: 'http://localhost' },
     addEventListener: (_: string, fn: typeof receive) => { receive = fn }, postMessage: post,
   })
-  class TestWorkbook {
+  class TestWorkbook extends EmptyAsyncFormulaWorkbook {
     names = ['Orders']
     rename_sheet() { return true }
     sheet_name(index: number) { return this.names[index] }

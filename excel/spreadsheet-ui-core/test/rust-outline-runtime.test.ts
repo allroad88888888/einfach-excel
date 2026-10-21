@@ -1,5 +1,6 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { installRustWorkbookRuntime } from '../src/rust-workbook/runtime'
+import { EmptyAsyncFormulaWorkbook } from './next-version-integration/empty-async-workbook'
 import type { RustWorkbookSheetInput } from '../src/rust-workbook/commands'
 
 afterEach(() => vi.unstubAllGlobals())
@@ -10,12 +11,13 @@ async function setup(outline?: RustWorkbookSheetInput['outline']) {
     clear = vi.fn(),
     read = vi.fn(() => [])
   vi.stubGlobal('self', {
+    location: { origin: 'http://localhost' },
     addEventListener: (_: string, fn: typeof receive) => {
       receive = fn
     },
     postMessage: post,
   })
-  class TestWorkbook {
+  class TestWorkbook extends EmptyAsyncFormulaWorkbook {
     rename_sheet() {
       return true
     }

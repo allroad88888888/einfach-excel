@@ -16,6 +16,7 @@ function worker(reply: (request: WireRequest) => unknown | Promise<unknown>) {
     postMessage(message) {
       const request = message as WireRequest
       requests.push(request)
+      if (request.command === 'formula.awaitAsync') return
       void Promise.resolve().then(() => request.command === 'formula.catalog'
         ? TEST_FUNCTION_CATALOG : reply(request)).then((result) => {
         listener?.({ data: { id: request.id, ok: true, result } } as MessageEvent)
@@ -101,7 +102,9 @@ test('new requires confirmation and creates one full blank canvas without seed i
   expect(await store.setter(runWorkbookFileAtom, { action: 'new', confirmed: false })).toBe(false)
   expect(candidate.requests).toEqual([])
   expect(await store.setter(runWorkbookFileAtom, { action: 'new', confirmed: true })).toBe(true)
-  expect(candidate.requests.map((request) => request.command)).toEqual(['workbook.initialize', 'formula.catalog'])
+  expect(candidate.requests.map((request) => request.command)).toEqual([
+    'workbook.initialize', 'formula.catalog', 'formula.awaitAsync',
+  ])
   expect(store.getter(workbookDocumentAtom)).toMatchObject({ title: 'Untitled workbook', sheets: [
     { name: 'Sheet1', rowCount: 1_048_576, colCount: 16_384 },
   ] })

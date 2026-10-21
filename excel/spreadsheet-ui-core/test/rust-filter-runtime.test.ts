@@ -1,5 +1,6 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { installRustWorkbookRuntime } from '../src/rust-workbook/runtime'
+import { EmptyAsyncFormulaWorkbook } from './next-version-integration/empty-async-workbook'
 import type { RustFilterReport } from '../src/rust-workbook/filter-commands'
 
 afterEach(() => vi.unstubAllGlobals())
@@ -14,6 +15,7 @@ async function runtime() {
   let receive!: (event: { data: unknown }) => Promise<void>
   const post = vi.fn()
   vi.stubGlobal('self', {
+    location: { origin: 'http://localhost' },
     addEventListener: (_: string, fn: typeof receive) => {
       receive = fn
     },
@@ -31,7 +33,7 @@ async function runtime() {
   const values = vi.fn((_input: unknown) => ({
     values: [{ value: 'West', count: 12 }], total: 101, offset: 50,
   }))
-  class TestWorkbook {
+  class TestWorkbook extends EmptyAsyncFormulaWorkbook {
     rename_sheet() {
       return true
     }

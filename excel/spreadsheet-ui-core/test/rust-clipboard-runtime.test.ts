@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, test, vi } from 'vitest'
 import { installRustWorkbookRuntime } from '../src/rust-workbook/runtime'
+import { EmptyAsyncFormulaWorkbook } from './next-version-integration/empty-async-workbook'
 import type { RustWasmModule, WasmWorkbook } from '../src/rust-workbook/wasm-types'
 
 afterEach(() => vi.unstubAllGlobals())
@@ -8,6 +9,7 @@ async function runtime() {
   let onMessage: (event: { data: unknown }) => Promise<void>
   const posted = vi.fn()
   vi.stubGlobal('self', {
+    location: { origin: 'http://localhost' },
     addEventListener: (_type: string, callback: typeof onMessage) => {
       onMessage = callback
     },
@@ -26,7 +28,7 @@ async function runtime() {
     rowHeights: [],
     colWidths: c0 <= 5 && c1 >= 5 ? [{ colIndex: 5, widthPx: 200 }] : [],
   }))
-  class TestWorkbook {
+  class TestWorkbook extends EmptyAsyncFormulaWorkbook {
     rename_sheet() {
       return true
     }

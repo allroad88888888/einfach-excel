@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, test, vi } from 'vitest'
 import { installRustWorkbookRuntime } from '../src/rust-workbook/runtime'
+import { EmptyAsyncFormulaWorkbook } from './next-version-integration/empty-async-workbook'
 import type { NativeFindRequest, NativeReplaceRequest } from '../src/rust-workbook/find-commands'
 
 afterEach(() => vi.unstubAllGlobals())
@@ -17,6 +18,7 @@ async function runtime() {
   let receive!: (event: { data: unknown }) => Promise<void>
   const post = vi.fn()
   vi.stubGlobal('self', {
+    location: { origin: 'http://localhost' },
     addEventListener: (_: string, fn: typeof receive) => {
       receive = fn
     },
@@ -29,7 +31,7 @@ async function runtime() {
   const write = vi.fn((_request: NativeReplaceRequest) => ({ cells: 600, occurrences: 1200 }))
   const read = vi.fn(() => [])
   const begin = vi.fn()
-  class TestWorkbook {
+  class TestWorkbook extends EmptyAsyncFormulaWorkbook {
     names = ['Orders']
     rename_sheet() {
       return true

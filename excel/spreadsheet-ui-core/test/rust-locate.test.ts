@@ -1,14 +1,16 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { installRustWorkbookRuntime } from '../src/rust-workbook/runtime'
+import { EmptyAsyncFormulaWorkbook } from './next-version-integration/empty-async-workbook'
 
 afterEach(() => vi.unstubAllGlobals())
 test('Worker forwards native classification with the resolved sheet index and does not mutate revision', async () => {
   let receive!: (event: { data: unknown }) => Promise<void>
   const post = vi.fn()
-  vi.stubGlobal('self', { addEventListener: (_: string, callback: typeof receive) => { receive = callback }, postMessage: post })
+  vi.stubGlobal('self', {
+    location: { origin: 'http://localhost' }, addEventListener: (_: string, callback: typeof receive) => { receive = callback }, postMessage: post })
   const range = { rowStart: 0, colStart: 0, rowEnd: 9, colEnd: 5 }
   const locate = vi.fn(() => ({ scope: range, ranges: [range], cellCount: 60 }))
-  class Book {
+  class Book extends EmptyAsyncFormulaWorkbook {
     rename_sheet = () => true
     add_sheet = () => 1
     sheet_name = () => 'Sheet'

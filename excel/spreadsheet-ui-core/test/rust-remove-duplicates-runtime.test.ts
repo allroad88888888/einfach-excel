@@ -1,5 +1,6 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { installRustWorkbookRuntime } from '../src/rust-workbook/runtime'
+import { EmptyAsyncFormulaWorkbook } from './next-version-integration/empty-async-workbook'
 import type { NativeRemoveDuplicatesRequest } from '../src/rust-workbook/remove-duplicates-commands'
 
 afterEach(() => vi.unstubAllGlobals())
@@ -13,12 +14,13 @@ const report = { scannedRows: 399, removedRows: 200, uniqueRows: 199, excludedRo
 async function runtime() {
   let receive!: (event: { data: unknown }) => Promise<void>
   const post = vi.fn()
-  vi.stubGlobal('self', { addEventListener: (_: string, callback: typeof receive) => { receive = callback }, postMessage: post })
+  vi.stubGlobal('self', {
+    location: { origin: 'http://localhost' }, addEventListener: (_: string, callback: typeof receive) => { receive = callback }, postMessage: post })
   const preview = vi.fn((_request: NativeRemoveDuplicatesRequest) => report)
   const write = vi.fn((_request: NativeRemoveDuplicatesRequest) => report)
   const read = vi.fn(() => [])
   const begin = vi.fn()
-  class TestWorkbook {
+  class TestWorkbook extends EmptyAsyncFormulaWorkbook {
     rename_sheet() { return true }
     sheet_name() { return 'Orders' }
     preview_remove_duplicates = preview

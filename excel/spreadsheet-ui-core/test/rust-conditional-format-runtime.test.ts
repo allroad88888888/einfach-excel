@@ -1,5 +1,6 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { installRustWorkbookRuntime } from '../src/rust-workbook/runtime'
+import { EmptyAsyncFormulaWorkbook } from './next-version-integration/empty-async-workbook'
 
 afterEach(() => vi.unstubAllGlobals())
 const range = { rowStart: 1, rowEnd: 3, colStart: 0, colEnd: 0 }
@@ -17,6 +18,7 @@ async function setup() {
   let receive!: (event: { data: unknown }) => Promise<void>
   const post = vi.fn()
   vi.stubGlobal('self', {
+    location: { origin: 'http://localhost' },
     addEventListener: (_: string, callback: typeof receive) => {
       receive = callback
     },
@@ -34,7 +36,7 @@ async function setup() {
     ...base(),
     cellStyles: [{ addr: 'A2', format: { bgColor: '#ffc7ce' } }],
   }))
-  class TestWorkbook {
+  class TestWorkbook extends EmptyAsyncFormulaWorkbook {
     rename_sheet() {
       return true
     }

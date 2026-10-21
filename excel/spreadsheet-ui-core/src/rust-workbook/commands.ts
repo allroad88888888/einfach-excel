@@ -35,6 +35,7 @@ import type { RustNoteCommands } from './notes/command'
 import type { RustCommentCommands } from './comments/command'
 import type { RustProtectionCommands } from './protection/commands'
 import type { RustCustomFormulaCommands } from './custom-formulas/command'
+import type { RustAsyncFormulaCommands } from './async-formulas/commands'
 import type { NativeCustomFormulaDefinition } from '../custom-formulas/expression-types'
 import type { NativeTableStyle } from '../tables/native-types'
 import type { NativeOutline } from '../outline/native-state'
@@ -186,7 +187,8 @@ export interface RustWorkbookCommands
     RustNoteCommands,
     RustCommentCommands,
     RustProtectionCommands,
-    RustCustomFormulaCommands {
+    RustCustomFormulaCommands,
+    RustAsyncFormulaCommands {
   readonly 'format.preview': WorkerCommand<
     {
       readonly sheetId: string

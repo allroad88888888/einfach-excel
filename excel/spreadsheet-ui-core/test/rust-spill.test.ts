@@ -1,6 +1,7 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { inspectSpill } from '../src/rust-workbook/spill-commands'
 import { installRustWorkbookRuntime } from '../src/rust-workbook/runtime'
+import { EmptyAsyncFormulaWorkbook } from './next-version-integration/empty-async-workbook'
 
 function workbook() {
   return { spillAnchor: vi.fn((): string | null => 'B3'),
@@ -49,9 +50,10 @@ afterEach(() => vi.unstubAllGlobals())
 test('Worker dispatch uses the selected sheet and does not advance history or revision', async () => {
   let receive!: (event: { data: unknown }) => Promise<void>
   const post = vi.fn()
-  vi.stubGlobal('self', { addEventListener: (_: string, callback: typeof receive) => { receive = callback }, postMessage: post })
+  vi.stubGlobal('self', {
+    location: { origin: 'http://localhost' }, addEventListener: (_: string, callback: typeof receive) => { receive = callback }, postMessage: post })
   const queries = workbook()
-  class Book {
+  class Book extends EmptyAsyncFormulaWorkbook {
     rename_sheet = () => true
     sheet_name = () => 'Sheet'
     spillAnchor = queries.spillAnchor

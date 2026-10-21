@@ -3,6 +3,41 @@
 use super::*;
 
 impl WorkbookAtomContext {
+    /// Explicit recalculation may retry failed calls, while successful and in-flight
+    /// memos retain their identities. Only entries observed by the selected formulas
+    /// are reset; shared calls naturally update every observer of the same memo.
+    pub(crate) fn retry_failed_async_custom_calls(&self, formulas: &HashSet<AtomId>) {
+        let failed: Vec<_> = {
+            let state = self.async_custom.borrow();
+            state.entries.iter().filter_map(|(key, entry)| {
+                if entry.generation != state.generation ||
+                    !matches!(self.store.get(entry.atom), Value::Error(error) if error != ValueError::Busy)
+                {
+                    return None;
+                }
+                let observers = self.store.reverse_dependents(&[entry.atom]);
+                observers.iter().any(|atom| formulas.contains(atom))
+                    .then_some((key.clone(), entry.atom))
+            }).collect()
+        };
+        {
+            let mut state = self.async_custom.borrow_mut();
+            let stale = state.generation.wrapping_sub(1);
+            for (key, _) in &failed {
+                let call_id = if let Some(entry) = state.entries.get_mut(key) {
+                    entry.generation = stale;
+                    Some(entry.call_id)
+                } else { None };
+                if let Some(call_id) = call_id { state.by_call_id.remove(&call_id); }
+            }
+        }
+        self.store.batch(|store| {
+            for (_, atom) in failed {
+                store.set(atom, Value::Error(ValueError::Busy));
+            }
+        });
+    }
+
     pub(crate) fn take_pending_async_custom_calls(&self) -> Vec<PendingAsyncCustomCall> {
         self.sweep_async_custom_entries();
         std::mem::take(&mut self.async_custom.borrow_mut().pending)

@@ -44,6 +44,7 @@ test('runtime sends tables only after every content chunk, before publishing rea
     postMessage(message) {
       const input = message as { id: number; command: string; payload: Record<string, unknown> }
       calls.push(input)
+      if (input.command === 'formula.awaitAsync') return
       const result = input.command === 'formula.catalog' ? TEST_FUNCTION_CATALOG : input.command === 'workbook.initialize'
         ? [{ id: 's', index: 0, name: 'Sheet' }]
         : { accepted: (input.payload.cells as unknown[]).length, errors: 0, rejectedFormulas: 0 }
@@ -62,7 +63,7 @@ test('runtime sends tables only after every content chunk, before publishing rea
   })
   expect(calls.map((call) => call.command)).toEqual([
     'workbook.initialize', 'workbook.importCells', 'workbook.importCells', 'workbook.importCells',
-    'formula.catalog',
+    'formula.catalog', 'formula.awaitAsync',
   ])
   expect(calls[1].payload.tables).toBeUndefined()
   expect(calls[2].payload.tables).toBeUndefined()

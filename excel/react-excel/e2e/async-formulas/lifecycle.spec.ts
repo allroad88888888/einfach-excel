@@ -1,0 +1,122 @@
+import { expect, test } from '@playwright/test'
+import { select } from '../support/clipboard'
+import { download, openFile, openEditor } from '../custom-formulas/fixtures'
+import { bar, button, cell, controlledJson, formula, neighbors, openAsyncDemo, write } from './fixtures'
+
+test.beforeEach(async ({ page }) => openAsyncDemo(page))
+
+test('changed formula arguments cannot display an older in-flight HTTP response', async ({ page }) => {
+  const old = await controlledJson(page, 'old-argument')
+  const next = await controlledJson(page, 'new-argument')
+  await write(page, 'B11', '10:1', '/demo/async-formulas/old-argument.json')
+  await write(page, 'B12', '11:1', '=FETCHJSON(B11)')
+  await expect(cell(page, '11:1')).toHaveText('#BUSY!')
+  await write(page, 'B11', '10:1', '/demo/async-formulas/new-argument.json')
+  await old.release(0, 99)
+  await select(page, 'B12', '11:1')
+  await expect(cell(page, '11:1')).toHaveText('#BUSY!')
+  await next.release(0, 8)
+  await expect(cell(page, '11:1')).toHaveText('8')
+  await neighbors(page)
+})
+
+test('overwriting a pending formula preserves the user value after late HTTP settlement', async ({ page }) => {
+  const http = await controlledJson(page, 'overwritten')
+  await write(page, 'B12', '11:1', formula('overwritten'))
+  await expect(cell(page, '11:1')).toHaveText('#BUSY!')
+  await write(page, 'B12', '11:1', 'keep')
+  await http.release(0, 99)
+  await expect(cell(page, '11:1')).toHaveText('keep')
+  await expect(bar(page)).not.toHaveValue('99')
+  await neighbors(page)
+})
+
+test('Undo and Redo around pending I/O preserve one edit and reuse the native memo', async ({ page }) => {
+  const http = await controlledJson(page, 'history')
+  await write(page, 'B12', '11:1', formula('history'))
+  await expect(cell(page, '11:1')).toHaveText('#BUSY!')
+  await button(page, 'Undo').click()
+  await expect(cell(page, '11:1')).toHaveText('')
+  await http.release(0, 7)
+  await expect(cell(page, '11:1')).toHaveText('')
+  await button(page, 'Redo').click()
+  await expect(cell(page, '11:1')).toHaveText('7')
+  expect(http.requests).toHaveLength(1)
+  await neighbors(page)
+})
+
+test('openFile disposes the old pending HTTP owner and the late result cannot enter the replacement workbook', async ({ page }) => {
+  const file = await download(page)
+  const http = await controlledJson(page, 'old-file')
+  await write(page, 'B12', '11:1', formula('old-file'))
+  await expect(cell(page, '11:1')).toHaveText('#BUSY!')
+  await openFile(page, file)
+  await expect(page.getByRole('dialog', { name: 'Workbook files' })).toHaveCount(0)
+  await http.release(0, 99)
+  await select(page, 'B12', '11:1')
+  await expect(cell(page, '11:1')).toHaveText('')
+  await expect(button(page, 'Undo')).toBeDisabled()
+  await neighbors(page)
+})
+
+test('file reopen restores only FETCHJSON formula data and trusted application code performs fresh HTTP', async ({ page }) => {
+  const http = await controlledJson(page, 'reopen')
+  await write(page, 'B12', '11:1', formula('reopen'))
+  await http.release(0, 3)
+  await expect(cell(page, '11:1')).toHaveText('3')
+  const file = await download(page)
+  expect(file.workbook).not.toHaveProperty('customFormulas')
+  await openFile(page, file)
+  await expect(page.getByRole('dialog', { name: 'Workbook files' })).toHaveCount(0)
+  await select(page, 'B12', '11:1')
+  await expect(cell(page, '11:1')).toHaveText('#BUSY!')
+  await http.release(1, 6)
+  await expect(cell(page, '11:1')).toHaveText('6')
+  await expect(bar(page)).toHaveValue(formula('reopen'))
+  await neighbors(page)
+})
+
+test('settlement refreshes the current sheet and scrolled window without returning to its source cell', async ({ page }) => {
+  const http = await controlledJson(page, 'scrolled')
+  await write(page, 'B12', '11:1', formula('scrolled'))
+  const summary = page.getByRole('tab', { name: 'Async Summary', exact: true })
+  const nameBox = page.getByRole('textbox', { name: 'Name box', exact: true })
+  const scroll = page.getByTestId('sheet-scroll')
+  const dependentFormula = "='Async JSON'!B12+1"
+  await summary.click()
+  await write(page, 'B40', '39:1', dependentFormula)
+  await expect(cell(page, '39:1')).toHaveText('#BUSY!')
+  await expect(summary).toHaveAttribute('aria-selected', 'true')
+  await expect(nameBox).toHaveValue('B40')
+  await expect(bar(page)).toHaveValue(dependentFormula)
+  await expect.poll(() => scroll.evaluate(element => element.scrollTop)).toBeGreaterThan(0)
+  const scrollTop = await scroll.evaluate(element => element.scrollTop)
+  await http.release(0, 10)
+  await expect(cell(page, '39:1')).toHaveText('11')
+  await expect(summary).toHaveAttribute('aria-selected', 'true')
+  await expect(nameBox).toHaveValue('B40')
+  await expect(bar(page)).toHaveValue(dependentFormula)
+  await expect.poll(() => scroll.evaluate(element => element.scrollTop)).toBe(scrollTop)
+})
+
+test('custom definition UI cannot replace the trusted FETCHJSON provider', async ({ page }) => {
+  await openEditor(page)
+  await page.getByLabel('Function name', { exact: true }).fill('FETCHJSON')
+  await page.getByLabel('Parameters, separated by commas', { exact: true }).fill('url')
+  await page.getByLabel('Formula expression', { exact: true }).fill('=999')
+  await button(page, 'Register formula').click()
+  await expect(page.getByRole('alert')).toContainText('already in use')
+  await button(page, 'Cancel').click()
+  await neighbors(page)
+})
+
+test('file containing a FETCHJSON expression conflict is rejected atomically', async ({ page }) => {
+  const file = await download(page)
+  file.workbook.customFormulas = []
+  file.workbook.customFormulas.push({ name: 'FETCHJSON', parameters: ['URL'], expression: '=999' })
+  await openFile(page, file)
+  await expect(page.getByRole('dialog', { name: 'Workbook files' }).getByRole('alert'))
+    .toContainText('Current workbook kept')
+  await button(page, 'Close').click()
+  await neighbors(page)
+})

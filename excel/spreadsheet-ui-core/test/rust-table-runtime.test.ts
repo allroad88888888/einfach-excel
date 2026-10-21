@@ -1,5 +1,6 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { installRustWorkbookRuntime } from '../src/rust-workbook/runtime'
+import { EmptyAsyncFormulaWorkbook } from './next-version-integration/empty-async-workbook'
 import { validNativeTables, type NativeTableAction } from '../src/tables/native-types'
 
 afterEach(() => vi.unstubAllGlobals())
@@ -18,9 +19,10 @@ async function setup() {
   const write = vi.fn()
   const change = vi.fn((_sheet: number, _action: NativeTableAction) => true)
   const list = vi.fn(() => tables)
-  vi.stubGlobal('self', { addEventListener: (_: string, fn: typeof receive) => { receive = fn },
+  vi.stubGlobal('self', {
+    location: { origin: 'http://localhost' }, addEventListener: (_: string, fn: typeof receive) => { receive = fn },
     postMessage: post })
-  class TestWorkbook {
+  class TestWorkbook extends EmptyAsyncFormulaWorkbook {
     rename_sheet() { return true }
     add_sheet() { return 1 }
     sheet_name() { return 'Sheet' }

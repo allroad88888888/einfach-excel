@@ -40,6 +40,7 @@ function createRuntimeWorker(
       }
       commands.push(request.command)
       payloads.push(request.payload)
+      if (request.command === 'formula.awaitAsync') return
       const result = request.command === 'formula.catalog' ? catalog :
         request.command === 'workbook.initialize'
           ? initializedSheets
@@ -115,7 +116,9 @@ describe('Rust workbook runtime commands', () => {
       workerFactory: () => testWorker.worker,
     })
 
-    expect(testWorker.commands).toEqual(['workbook.initialize', 'workbook.importCells', 'formula.catalog'])
+    expect(testWorker.commands).toEqual([
+      'workbook.initialize', 'workbook.importCells', 'formula.catalog', 'formula.awaitAsync',
+    ])
     expect(store.getter(spreadsheetRuntimeAtom)).toEqual({ status: 'ready' })
     expect(store.getter(rustWorkbookConnectionAtom)).not.toBeNull()
     expect(store.getter(workbookDocumentAtom).title).toBe('Sales Orders')

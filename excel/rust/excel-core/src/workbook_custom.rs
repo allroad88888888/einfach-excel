@@ -76,6 +76,18 @@ impl Workbook {
         self.atom_context.async_custom_entry_count()
     }
 
+    /// Recalculation retries only failed async memos read by its selected sheet(s).
+    /// This is computation state: no cell write, protection bypass or history entry.
+    pub(crate) fn retry_failed_async_custom_calls(&self, sheet: Option<usize>) {
+        let all = CellRange::new(CellAddress::new(0, 0), CellAddress::new(u32::MAX, u32::MAX));
+        let formulas = self.sheets.iter().enumerate()
+            .filter(|(index, _)| sheet.is_none_or(|target| target == *index))
+            .flat_map(|(_, sheet)| sheet.formula_addrs_in_range(all).into_iter()
+                .filter_map(|addr| sheet.formula_inner_atom(addr)))
+            .collect();
+        self.atom_context.retry_failed_async_custom_calls(&formulas);
+    }
+
     /// Settle an async custom-formula call: write `value` into the per-call
     /// result atom and let Store propagation recompute the observers.
     /// Returns `Ok(false)` when the call_id is unknown or stale (the

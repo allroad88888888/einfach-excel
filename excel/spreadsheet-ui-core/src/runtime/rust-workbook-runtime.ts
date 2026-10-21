@@ -2,6 +2,7 @@ import { atom, type Getter } from '@einfach/core'
 import { createRustWorkbookConnection, type RustWorkbookConnection } from '../rust-workbook'
 import type { WorkerLike } from '../rust-worker'
 import { editingSessionAtom } from '../editing/session-atoms'
+import { watchAsyncFormulaSettlementsAtom } from '../async-formulas/watch-settlements'
 import { resetWorkbookViewAtom } from './reset-workbook-view'
 import { publishNativeFunctionCatalogAtom, validateFunctionCatalog } from '../formula-functions/native-catalog'
 import {
@@ -135,6 +136,7 @@ export const startRustWorkbookRuntimeAtom = atom(
         sheets: documentSheets,
       })
       set(resolveSpreadsheetRuntimeAtom, { connection })
+      set(watchAsyncFormulaSettlementsAtom, connection)
     } catch (error) {
       if (!ownsConnection(get, sessionId, connection)) return
       disposeConnection(connection)
@@ -186,6 +188,7 @@ export const replaceRustWorkbookRuntimeAtom = atom(
       set(publishNativeFunctionCatalogAtom, { connection: candidate, catalog })
       set(initializeWorkbookDocumentAtom, { title: metadata.title, sheets })
       set(resolveSpreadsheetRuntimeAtom, { connection: candidate })
+      set(watchAsyncFormulaSettlementsAtom, candidate)
       disposeConnection(previous.connection)
       return true
     } finally {

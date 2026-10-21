@@ -6,7 +6,7 @@ impl Workbook {
     /// `Some(index)` 强制重算该表，`None` 强制重算整个工作簿。
     /// 跨表下游仍由 Store 传播；无关表的公式不强制失效。
     /// 只枚举已有公式（包括尚未读取的导入公式），不扫描空白网格。
-    /// 不更改内容、格式或历史；异步自定义函数沿用现有请求缓存策略。
+    /// 不更改内容、格式或历史；仅重试当前范围消费的异步失败缓存。
     pub fn recalculate(&mut self, sheet: Option<usize>) -> Result<usize, &'static str> {
         if self.is_inside_custom_call() {
             return Err("Cannot recalculate inside a custom-formula callback.");
@@ -14,6 +14,7 @@ impl Workbook {
         if sheet.is_some_and(|index| index >= self.sheets.len()) {
             return Err("Unknown worksheet.");
         }
+        self.retry_failed_async_custom_calls(sheet);
         // 这里只做稀疏索引的 contains 筛选，绝不迭代这个坐标矩形。
         let all = CellRange::new(CellAddress::new(0, 0), CellAddress::new(u32::MAX, u32::MAX));
         let selected: Vec<_> = self

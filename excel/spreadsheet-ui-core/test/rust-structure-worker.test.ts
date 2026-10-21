@@ -1,5 +1,6 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { installRustWorkbookRuntime } from '../src/rust-workbook/runtime'
+import { EmptyAsyncFormulaWorkbook } from './next-version-integration/empty-async-workbook'
 import type { RustWasmModule } from '../src/rust-workbook/wasm-types'
 
 afterEach(() => vi.unstubAllGlobals())
@@ -15,6 +16,7 @@ async function setup() {
   let receive!: (event: { data: unknown }) => Promise<void>
   const post = vi.fn()
   vi.stubGlobal('self', {
+    location: { origin: 'http://localhost' },
     postMessage: post,
     addEventListener: (_: string, callback: typeof receive) => {
       receive = callback
@@ -23,7 +25,7 @@ async function setup() {
   const edit = vi.fn(() => true)
   const paste = vi.fn(() => [0, 0, 0, 0])
   const apply = vi.fn(() => true)
-  class Native {
+  class Native extends EmptyAsyncFormulaWorkbook {
     rename_sheet() {}
     sheet_count() {
       return 1

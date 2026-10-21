@@ -25,6 +25,7 @@ import type { WasmNoteQueries } from './notes/command'
 import type { WasmCommentQueries } from './comments/command'
 import type { WasmProtectionQueries } from './protection/commands'
 import type { WasmCustomFormulaQueries } from './custom-formulas/command'
+import type { WasmAsyncFormulaQueries } from './async-formulas/commands'
 
 export interface RustCellSnapshot {
   readonly sheet: number
@@ -67,7 +68,7 @@ export interface RustFormatRangeSnapshot {
 }
 
 export interface WasmWorkbook extends WasmSpillQueries, WasmFindQueries, WasmCustomFormulaQueries,
-  WasmNoteQueries, WasmCommentQueries, WasmProtectionQueries {
+  WasmNoteQueries, WasmCommentQueries, WasmProtectionQueries, WasmAsyncFormulaQueries {
   change_hyperlink?: (sheet: number, row: number, col: number,
     url?: string, text?: string) => boolean
   recalculate?: (sheet?: number) => number

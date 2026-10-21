@@ -1,5 +1,6 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { installRustWorkbookRuntime } from '../src/rust-workbook/runtime'
+import { EmptyAsyncFormulaWorkbook } from './next-version-integration/empty-async-workbook'
 
 afterEach(() => vi.unstubAllGlobals())
 
@@ -7,13 +8,14 @@ async function setup() {
   let receive!: (event: { data: unknown }) => Promise<void>
   const post = vi.fn()
   vi.stubGlobal('self', {
+    location: { origin: 'http://localhost' },
     addEventListener: (_: string, fn: typeof receive) => { receive = fn },
     postMessage: post,
   })
   const aggregate = vi.fn((_targets: unknown) => ({
     count: 12, numericCount: 10, sum: 100, average: 10, min: 10, max: 10,
   }))
-  class Workbook {
+  class Workbook extends EmptyAsyncFormulaWorkbook {
     names = ['Sheet']
     rename_sheet() { return true }
     sheet_name(index: number) { return this.names[index] }

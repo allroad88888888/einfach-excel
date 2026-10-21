@@ -1,3 +1,5 @@
+include!("async_formulas/json_value.rs");
+
 #[wasm_bindgen]
 impl WasmWorkbook {
     #[wasm_bindgen(js_name = "registerCustomFormula")]
@@ -61,9 +63,11 @@ impl WasmWorkbook {
     /// and calls this same entry — there is no separate reject API.
     /// Returns `false` when the call is unknown or stale (registry
     /// changed while the Promise was in flight); the value is dropped.
+    /// Explicit `{ json: scalar_or_rectangular_array }` successes preserve
+    /// JSON strings literally; existing `{ error }` objects take precedence.
     #[wasm_bindgen(js_name = "resolveAsyncCustomCall")]
     pub fn resolve_async_custom_call(&mut self, call_id: f64, value: JsValue) -> bool {
-        let settled = js_to_value(&value);
+        let settled = async_custom_settlement_value(&value);
         self.workbook
             .resolve_async_custom_call(call_id as u64, settled)
             .unwrap_or(false)

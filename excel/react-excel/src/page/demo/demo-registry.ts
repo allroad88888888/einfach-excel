@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react'
 import { PageSalesOrders } from './sales-orders/PageSalesOrders'
+import { PageAsyncFormulas } from './async-formulas/PageAsyncFormulas'
 
 export interface DemoPageRegistration {
   readonly id: string
@@ -15,6 +16,12 @@ export const DEMO_PAGES: readonly DemoPageRegistration[] = Object.freeze([
     marker: 'S',
     title: 'Sales Orders',
     Page: PageSalesOrders,
+  },
+  {
+    id: 'async-formulas',
+    marker: 'A',
+    title: 'Async formulas',
+    Page: PageAsyncFormulas,
   },
 ])
 

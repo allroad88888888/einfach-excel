@@ -1,5 +1,6 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { installRustWorkbookRuntime } from '../src/rust-workbook/runtime'
+import { EmptyAsyncFormulaWorkbook } from './next-version-integration/empty-async-workbook'
 import type { NativeTextColumnsRequest } from '../src/rust-workbook/text-columns-commands'
 
 afterEach(() => vi.unstubAllGlobals())
@@ -19,6 +20,7 @@ async function runtime() {
   let receive!: (event: { data: unknown }) => Promise<void>
   const post = vi.fn()
   vi.stubGlobal('self', {
+    location: { origin: 'http://localhost' },
     addEventListener: (_: string, callback: typeof receive) => { receive = callback },
     postMessage: post,
   })
@@ -31,7 +33,7 @@ async function runtime() {
   }))
   const read = vi.fn(() => [])
   const begin = vi.fn()
-  class TestWorkbook {
+  class TestWorkbook extends EmptyAsyncFormulaWorkbook {
     rename_sheet() { return true }
     sheet_name() { return 'Orders' }
     preview_text_columns = preview

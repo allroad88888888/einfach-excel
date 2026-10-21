@@ -1,15 +1,17 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { installRustWorkbookRuntime } from '../src/rust-workbook/runtime'
+import { EmptyAsyncFormulaWorkbook } from './next-version-integration/empty-async-workbook'
 
 afterEach(() => vi.unstubAllGlobals())
 async function runtime() {
   let receive!: (event: { data: unknown }) => Promise<void>
   const post = vi.fn()
-  vi.stubGlobal('self', { addEventListener: (_: string, callback: typeof receive) => { receive = callback }, postMessage: post })
+  vi.stubGlobal('self', {
+    location: { origin: 'http://localhost' }, addEventListener: (_: string, callback: typeof receive) => { receive = callback }, postMessage: post })
   const recalculate = vi.fn(() => 3)
   const read = vi.fn(() => [])
   const begin = vi.fn()
-  class TestWorkbook {
+  class TestWorkbook extends EmptyAsyncFormulaWorkbook {
     rename_sheet() { return true }
     sheet_name() { return 'Orders' }
     recalculate = recalculate

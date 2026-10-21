@@ -41,6 +41,7 @@ import { readNote, changeNote } from './notes/command'
 import { readProtection, changeProtection } from './protection/commands'
 import { readCustomFormulas, changeCustomFormula } from './custom-formulas/command'
 import { takeValidationErrorDetail } from './validation-error-detail'
+import { createAsyncFormulaIo, type AsyncFormulaIo } from './async-formulas/io'
 
 type CommandName = keyof RustWorkbookCommands
 /** 在 Worker 内维护唯一 Rust 工作簿，并处理 UI Core 的直接命令。 */
@@ -50,6 +51,7 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
   let workbook: WasmWorkbook | undefined
   let initPromise: Promise<unknown> | undefined
   let revision = 0
+  let asyncFormulas: AsyncFormulaIo | undefined
   let painterToken: string | undefined
   let pendingClipboard: { token: string; cut: boolean; revision: number } | undefined
   let clipboard:
@@ -67,7 +69,18 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
   ): Promise<RustWorkbookSheet[]> {
     await ensureWasm()
     const initialized = initializeWorkbook(wasm, sheets, customFormulas)
+    let io: AsyncFormulaIo
+    try {
+      io = createAsyncFormulaIo(initialized.workbook, scope.location.origin,
+        () => { revision += 1 })
+    } catch (error) {
+      initialized.workbook.free?.()
+      throw error
+    }
+    asyncFormulas?.dispose()
+    workbook?.free?.()
     workbook = initialized.workbook
+    asyncFormulas = io
     revision = 0
     clipboard = undefined
     pendingClipboard = undefined
@@ -110,8 +123,17 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
       await ensureWasm()
       const restored = openWorkbookFile(wasm, input.text, input.idPrefix)
+      let io: AsyncFormulaIo
+      try {
+        io = createAsyncFormulaIo(restored.workbook, scope.location.origin, () => { revision += 1 })
+      } catch (error) {
+        restored.workbook.free?.()
+        throw error
+      }
+      asyncFormulas?.dispose()
       workbook?.free?.()
       workbook = restored.workbook
+      asyncFormulas = io
       revision = 0
       clipboard = undefined
       pendingClipboard = undefined
@@ -125,6 +147,7 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       return initialize(input.sheets, input.customFormulas)
     }
     const current = currentWorkbook()
+    if (command === 'formula.awaitAsync') return asyncFormulas!.awaitSettlement()
     if (command === 'customFormula.read') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
       return { definitions: readCustomFormulas(current, input, revision), revision }
@@ -540,6 +563,7 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       if (['cell.setInput', 'clipboard.paste', 'range.fill'].includes(message.command))
         workbook?.getLastValidationFailure?.()
       const result = await dispatch(message.command as CommandName, message.payload)
+        .finally(() => { asyncFormulas?.drain() })
       scope.postMessage({ id: message.id, ok: true, result })
     } catch (error) {
       scope.postMessage({ id: message.id, ok: false, error: rpcError(

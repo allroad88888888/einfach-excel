@@ -13,6 +13,7 @@ import {
   viewportMetricsAtom,
   viewportGeometrySizesAtom,
   projectedFreezeAtom,
+  pointerSessionAtom,
   type KeyboardInput,
   type ViewportMetrics,
 } from '@einfach/spreadsheet-ui-core'
@@ -48,6 +49,7 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
   const editingSession = useAtomValue(editingSessionAtom)
   const pickingReference = useAtomValue(formulaReferenceActiveAtom)
   const painter = useAtomValue(formatPainterAtom)
+  const pointer = useAtomValue(pointerSessionAtom)
   const runPainter = useSetAtom(runFormatPainterAtom)
   const viewportMetrics = useAtomValue(viewportMetricsAtom)
   const sizeOverrides = useAtomValue(viewportGeometrySizesAtom)
@@ -99,6 +101,11 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
     scrollRef,
     onStep: updateSelectionAtPoint,
   })
+  const stopSelectionAutoscroll = dragAutoscroll.stop
+  const selecting = pointer.status === 'active' && pointer.interaction?.kind === 'drag-selection'
+  useEffect(() => {
+    if (!selecting) stopSelectionAutoscroll()
+  }, [selecting, stopSelectionAutoscroll])
 
   useEffect(() => {
     const scroll = scrollRef.current
@@ -151,7 +158,7 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
     const coord = workbookCellAt(event)
     if (coord === null) return
     if (!pickingReference) focusGrid()
-    pointerHandlers.onPointerDown(event)
+    if (!pointerHandlers.onPointerDown(event)) return
     if (coord !== null && event.button === 0 && event.isPrimary !== false) {
       dragAutoscroll.start(event)
     }
@@ -237,7 +244,7 @@ function getGridKeyboardInput(
     if (event.ctrlKey || event.metaKey || event.altKey) return null
     return { ...input, pageRowDelta: visiblePageRowCount(metrics) }
   }
-  if (event.key === 'F2' || event.key === 'Backspace' || event.key === 'Delete') {
+  if (event.key === 'Escape' || event.key === 'F2' || event.key === 'Backspace' || event.key === 'Delete') {
     return event.ctrlKey || event.metaKey || event.altKey ? null : input
   }
   if (isPrintableCellEntry(event)) return input

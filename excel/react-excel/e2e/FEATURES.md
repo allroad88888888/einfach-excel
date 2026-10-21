@@ -26,6 +26,14 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 
 | 编号 | 功能点 | E2E 文件（相对本目录） | 完整主用例标题 |
 | --- | --- | --- | --- |
+| MRSEL-001 | Ctrl 点击追加单元格 | `multi-range-selection/modifier-click.spec.ts` | Control click appends a disjoint cell and keeps the gap unselected at 1280px |
+| MRSEL-002 | Command 点击追加单元格 | `multi-range-selection/modifier-click.spec.ts` | Meta click appends a disjoint cell and keeps the gap unselected at 1280px |
+| MRSEL-003 | 修饰键拖动追加矩形 | `multi-range-selection/modifier-drag.spec.ts` | modifier drag appends a rectangle without replacing previous cells at 1280px |
+| MRSEL-004 | 普通点击退出多区 | `multi-range-selection/exit.spec.ts` | ordinary click replaces manually appended areas with one cell at 1280px |
+| MRSEL-005 | Escape 保留主区退出 | `multi-range-selection/exit.spec.ts` | Escape exits manual multi-area selection and keeps only the primary rectangle at 1280px |
+| MRSEL-006 | 格式化手动追加的所有区域 | `multi-range-selection/multi-format.spec.ts` | formatting manually appended areas changes every target and preserves the gap at 1280px |
+| MRSEL-007 | 清除手动追加的所有区域 | `multi-range-selection/multi-clear.spec.ts` | clearing manually appended areas preserves gap values and undoes in one step at 1280px |
+| MRSEL-008 | 查看重叠多区的去重统计 | `multi-range-selection/overlap-statistics.spec.ts` | overlapping manual areas count and aggregate each cell once at 1280px |
 | SEL-001 | 单元格点击单选 | `selection/basic-selection.spec.ts` | single cell click replaces the selection at 1280px |
 | SEL-002 | 鼠标拖拽矩形选区 | `selection/basic-selection.spec.ts` | pointer drag selects a rectangle at 1280px |
 | SEL-003 | 行号选择整行 | `selection/basic-selection.spec.ts` | row header selects its complete extent at 1280px |

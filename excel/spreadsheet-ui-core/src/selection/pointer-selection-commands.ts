@@ -3,11 +3,15 @@ import { pointerSessionAtom, startPointerAtom, updatePointerAtom, commitPointerA
 import type { CellCoord } from '../shared'
 import { selectionSnapshotAtom, setSelectionWithAuthorityReceiptAtom } from './index'
 import { formulaReferenceSessionAtom, pickFormulaReferenceAtom } from '../formula-reference'
+import { formatPainterAtom } from '../format-painter/state'
+import { appendPointerRegionAtom, finishAppendPointerAtom, resetAppendPointerAtom } from './multi-range/pointer-append'
 
 export interface StartPointerSelectionInput {
   readonly sheetId: string
   readonly coord: CellCoord
   readonly extend?: boolean
+  /** Ctrl/Command appends a local rectangle; Shift and formula picks take priority. */
+  readonly append?: boolean
 }
 
 export interface UpdatePointerSelectionInput {
@@ -19,7 +23,8 @@ export type PointerSelectionCommandOutcome =
   | { readonly status: 'applied'; readonly coord: Readonly<CellCoord> }
   | {
       readonly status: 'ignored'
-      readonly reason: 'invalid' | 'inactive' | 'interaction-mismatch' | 'sheet-mismatch'
+      readonly reason: 'invalid' | 'inactive' | 'interaction-mismatch' | 'sheet-mismatch' |
+        'area-limit' | 'selection-changed'
     }
 
 function sameCoord(left: CellCoord, right: CellCoord): boolean {
@@ -30,6 +35,7 @@ function sameCoord(left: CellCoord, right: CellCoord): boolean {
 export const startPointerSelectionAtom = atom(
   null,
   (get, set, input: StartPointerSelectionInput): PointerSelectionCommandOutcome => {
+    set(resetAppendPointerAtom)
     const reference = get(formulaReferenceSessionAtom)
     if (reference?.sheetId === input.sheetId) {
       set(startPointerAtom, { kind: 'drag-selection', sheetId: input.sheetId,
@@ -44,12 +50,21 @@ export const startPointerSelectionAtom = atom(
       : current.kind === 'cell' || current.kind === 'range' ? current.anchor
       : current.kind === 'row' ? { row: current.rowAnchor, col: 0 }
       : current.kind === 'column' ? { row: 0, col: current.colAnchor } : { row: 0, col: 0 }
-    const receipt = set(setSelectionWithAuthorityReceiptAtom, {
+    const selection = {
       kind: input.extend ? 'range' : 'cell',
       sheetId: input.sheetId,
       anchor,
       focus: input.coord,
-    })
+    } as const
+    const append = Boolean(input.append && !input.extend && current.sheetId === input.sheetId &&
+      get(formatPainterAtom).mode === 'idle')
+    const outcome = append ? set(appendPointerRegionAtom, { phase: 'start', region: selection }) : null
+    if (outcome?.status === 'ignored') {
+      set(cancelPointerAtom)
+      return outcome
+    }
+    const receipt = outcome?.status === 'applied' ? outcome.receipt
+      : set(setSelectionWithAuthorityReceiptAtom, selection)
     if (receipt === null || (receipt.selection.kind !== 'cell' && receipt.selection.kind !== 'range')) {
       return Object.freeze({ status: 'ignored', reason: 'invalid' })
     }
@@ -60,6 +75,7 @@ export const startPointerSelectionAtom = atom(
       anchor: Object.freeze({ ...receipt.selection.anchor }),
       focus: coord,
       source: 'pointer',
+      append,
     })
     return Object.freeze({ status: 'applied', coord })
   },
@@ -87,12 +103,20 @@ export const updatePointerSelectionAtom = atom(
       set(updatePointerAtom, { kind: 'drag-selection', focus: input.coord, source: 'pointer' })
       return { status: 'applied', coord: input.coord }
     }
-    const receipt = set(setSelectionWithAuthorityReceiptAtom, {
+    const selection = {
       kind: 'range',
       sheetId: pointer.interaction.sheetId,
       anchor: pointer.interaction.anchor,
       focus: input.coord,
-    })
+    } as const
+    const outcome = pointer.interaction.append
+      ? set(appendPointerRegionAtom, { phase: 'update', region: selection }) : null
+    if (outcome?.status === 'ignored') {
+      set(cancelPointerAtom)
+      return outcome
+    }
+    const receipt = outcome?.status === 'applied' ? outcome.receipt
+      : set(setSelectionWithAuthorityReceiptAtom, selection)
     if (receipt === null || (receipt.selection.kind !== 'cell' && receipt.selection.kind !== 'range')) {
       return Object.freeze({ status: 'ignored', reason: 'invalid' })
     }
@@ -126,6 +150,7 @@ export const endPointerSelectionAtom = atom(null, (get, set, cancel = false) => 
   if (reference?.dragging && reference.pickAnchor && reference.pickFocus)
     set(pickFormulaReferenceAtom, { sheetId: reference.sheetId,
       pickAnchor: reference.pickAnchor, pickFocus: reference.pickFocus, dragging: false })
+  set(finishAppendPointerAtom)
   if (cancel) set(cancelPointerAtom)
   else set(commitPointerAtom)
 })

@@ -3,6 +3,7 @@ import { useAtomValue } from '@einfach/react'
 import {
   activeWorkbookSheetAtom,
   formatPainterAtom,
+  multiRangeSelectionFeedbackAtom,
   selectionCellCountAtom,
   selectionRegionsAtom,
   selectionMutationFeedbackAtom,
@@ -22,9 +23,12 @@ export function WorkbookFooter() {
   const clipboard = useAtomValue(systemClipboardFeedbackAtom)
   const painting = useAtomValue(formatPainterAtom).mode !== 'idle'
   const mutation = useAtomValue(selectionMutationFeedbackAtom)
+  const selectionError = useAtomValue(multiRangeSelectionFeedbackAtom)
 
   return (
     <footer className="workbook-footer">
+      {selectionError && <div className="selection-limit-note sheet-command-error"
+        role="alert" aria-label={t`Selection change error`}>{translateFeedback(i18n, selectionError)}</div>}
       {mutation.error && <div className="selection-limit-note sheet-command-error"
         role="alert" aria-label={t`Selection change error`}>{translateFeedback(i18n, mutation.error)}</div>}
       {mutation.busy && <span className="visually-hidden" role="status"><Trans>Updating selection…</Trans></span>}

@@ -9,6 +9,8 @@ import {
   selectionRegionsAtom,
 } from '../selection'
 import { applyKeyboardMove } from './apply-keyboard-move'
+import { cancelPointerAtom } from '../pointer'
+import { resetAppendPointerAtom } from '../selection/multi-range/pointer-append'
 import { getKeyboardMovementIntent } from './keyboard-movement'
 import { sheetHiddenRowsBackingAtom, viewportHiddenColsBackingAtom, viewportFilterHiddenBackingAtom } from '../viewport/hidden-state'
 import type {
@@ -43,6 +45,10 @@ clearKeyboardIntentAtom.debugLabel = 'spreadsheet.keyboard.clearIntent'
 export const dispatchKeyboardInputAtom = atom(
   (get) => get(lastKeyboardIntentAtom),
   (get, set, input: KeyboardInput): KeyboardCommandIntent => {
+    if (get(keyboardModeAtom) === 'navigation' && !input.isComposing && input.key === 'Escape') {
+      set(cancelPointerAtom)
+      set(resetAppendPointerAtom)
+    }
     const result = get(projectionSnapshotBackingAtom).result
     const mergedRanges =
       result?.kind === 'visible-window' && result.sheetId === get(selectionAtom).sheetId

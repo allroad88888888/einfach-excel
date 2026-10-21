@@ -23,6 +23,10 @@ msgstr "包含起止日期。"
 msgid " Both times are included."
 msgstr "包含起止时间。"
 
+#: src/workbook/chrome/ribbon/FilterTools.tsx
+msgid " Conditions in each group must all match. Any group may match. After editing values, use Reapply filter."
+msgstr " 每组内的条件必须全部匹配，满足任一组即可。编辑数值后，请重新应用筛选。"
+
 #: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
 msgid " duplicate records (one undo restores them)"
 msgstr "条重复记录（一次撤销即可恢复）"
@@ -99,6 +103,11 @@ msgstr "第 {0} 项，共 {1} 项 · {2}!{3}"
 #: src/workbook/chrome/header/WorkbookHeader.tsx
 msgid "{0} rows"
 msgstr "{0} 行"
+
+#. placeholder {0}: state.page.total
+#: src/workbook/advanced-filter/FilterSearchSelection.tsx
+msgid "{0} search matches"
+msgstr "{0} 个搜索匹配项"
 
 #. placeholder {0}: state.selected.length
 #: src/workbook/chrome/ribbon/FilterValueChoices.tsx
@@ -222,9 +231,18 @@ msgstr "加"
 msgid "Add a totals row below the table. Existing cells are never overwritten."
 msgstr "在表格下方添加汇总行，不会覆盖已有单元格。"
 
-#: src/workbook/chrome/ribbon/FilterTools.tsx
+#: src/workbook/formula-arguments/FormulaArgumentsDialog.tsx
+msgid "Add argument group"
+msgstr "添加参数组"
+
+#: src/workbook/advanced-filter/AdvancedFilterGroups.tsx
 msgid "Add condition"
 msgstr "添加条件"
+
+#. placeholder {0}: position + 1
+#: src/workbook/advanced-filter/AdvancedFilterGroups.tsx
+msgid "Add condition to group {0}"
+msgstr "为第 {0} 组添加条件"
 
 #: src/i18n/feedback-messages.ts
 msgid "Add conditional format"
@@ -237,6 +255,10 @@ msgstr "添加数据行"
 #: src/workbook/chrome/ribbon/SortTools.tsx
 msgid "Add level"
 msgstr "添加排序级别"
+
+#: src/workbook/advanced-filter/AdvancedFilterGroups.tsx
+msgid "Add OR group"
+msgstr "添加或组"
 
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Add rule"
@@ -270,6 +292,10 @@ msgstr "所有类别"
 msgid "All columns are hidden. Use Hide / Unhide to restore them."
 msgstr "所有列已隐藏，请使用“隐藏 / 取消隐藏”恢复。"
 
+#: src/workbook/advanced-filter/AdvancedFilterGroups.tsx
+msgid "All conditions in a group must match. Any group can show a row."
+msgstr "组内条件全部满足时匹配，任意一组匹配即可显示该行。"
+
 #: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
 msgid "All contents and formatting"
 msgstr "所有内容和格式"
@@ -277,6 +303,10 @@ msgstr "所有内容和格式"
 #: src/workbook/grid/viewport/WorkbookGrid.tsx
 msgid "All rows are hidden. Use Hide / Unhide to restore them."
 msgstr "所有行已隐藏，请使用“隐藏 / 取消隐藏”恢复。"
+
+#: src/i18n/next-version-feedback.ts
+msgid "All search matches exceed the 1,000-value or 1 MiB selection budget. Narrow the search."
+msgstr "搜索匹配项超出 1,000 个值或 1 MiB 的选择预算，请缩小搜索范围。"
 
 #: src/workbook/chrome/ribbon/FindResults.tsx
 msgid "All search results"
@@ -404,6 +434,11 @@ msgstr "正在应用数字格式…"
 msgid "Applying split…"
 msgstr "正在分列…"
 
+#. placeholder {0}: group.index + 1
+#: src/workbook/formula-arguments/FormulaArgumentsDialog.tsx
+msgid "Argument group {0}"
+msgstr "参数组 {0}"
+
 #: src/i18n/feedback-messages.ts
 msgid "Arrays"
 msgstr "数组"
@@ -481,6 +516,11 @@ msgstr "隔列底色"
 msgid "Banded rows"
 msgstr "隔行底色"
 
+#: src/workbook/advanced-formatting/AdvancedFormattingFields.tsx
+msgid "Base display text"
+msgstr "基础显示文本"
+
+#: src/workbook/advanced-formatting/AdvancedFormattingFields.tsx
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Begins with"
 msgstr "开头是"
@@ -575,6 +615,7 @@ msgstr "自定义公式表达式只能调用内置函数或已注册的自定义
 #: src/workbook/chrome/ribbon/TableTools.tsx
 #: src/workbook/chrome/ribbon/TextColumnsTools.tsx
 #: src/workbook/custom-formulas/CustomFormulaTools.tsx
+#: src/workbook/formula-arguments/FormulaArgumentsDialog.tsx
 #: src/workbook/hyperlink/HyperlinkTools.tsx
 #: src/workbook/notes/NoteTools.tsx
 msgid "Cancel"
@@ -714,6 +755,10 @@ msgstr "请至少选择一个比较列。"
 msgid "Choose at least one delimiter."
 msgstr "请至少选择一个分隔符。"
 
+#: src/i18n/next-version-feedback.ts
+msgid "Choose at most 1,000 values within 1 MiB, or narrow the search."
+msgstr "最多选择 1,000 个值且不超过 1 MiB，或缩小搜索范围。"
+
 #: src/i18n/feedback-messages.ts
 msgid "Choose at most 1,000 values, or use a text or number condition."
 msgstr "最多选择 1,000 个值，或改用文本、数字条件。"
@@ -725,6 +770,10 @@ msgstr "选择单元格值"
 #: src/workbook/chrome/ribbon/BorderTools.tsx
 msgid "Choose custom border color"
 msgstr "选择自定义边框颜色"
+
+#: src/i18n/next-version-feedback.ts
+msgid "Choose nonempty groups with valid filter conditions."
+msgstr "请选择含有效筛选条件的非空组。"
 
 #: src/i18n/feedback-messages.ts
 msgid "Choose one contiguous selection before opening Find."
@@ -745,6 +794,10 @@ msgstr "请选择支持的时间格式。"
 #: src/workbook/chrome/footer/SelectionStatisticsSettings.tsx
 msgid "Choose the summaries shown below. Click a value to copy its full precision."
 msgstr "选择底部显示的统计项。点击数值可复制完整精度的结果。"
+
+#: src/i18n/next-version-feedback.ts
+msgid "Choose valid filter conditions in nonempty groups, or up to eight different columns."
+msgstr "请在非空组中设置有效筛选条件，或选择最多八个不同列。"
 
 #. placeholder {0}: index + 1
 #: src/workbook/chrome/ribbon/FilterValueChoices.tsx
@@ -768,6 +821,10 @@ msgstr "清除 {table} 筛选"
 #: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
 msgid "Clear all"
 msgstr "全部清除"
+
+#: src/workbook/advanced-filter/FilterSearchSelection.tsx
+msgid "Clear all search matches"
+msgstr "取消所有搜索匹配项"
 
 #. placeholder {0}: getColumnLabel(panel.column)
 #: src/workbook/chrome/ribbon/FilterTools.tsx
@@ -956,6 +1013,10 @@ msgstr "缺少批注内容。"
 msgid "Comments"
 msgstr "批注"
 
+#: src/workbook/advanced-formatting/AdvancedFormattingFields.tsx
+msgid "Compare by"
+msgstr "比较依据"
+
 #. placeholder {0}: toA1(0, col).slice(0, -1)
 #: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
 msgid "Compare column {0}"
@@ -965,13 +1026,21 @@ msgstr "比较第 {0} 列"
 msgid "Compare displayed values and keep the first record. Only cells inside the selected range move. Filtered-out rows stay in place; manually hidden rows are included."
 msgstr "比较显示值并保留第一条记录。仅移动选区内的单元格。筛除的行保持原位；手动隐藏的行参与处理。"
 
-#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/advanced-formatting/AdvancedFormattingFields.tsx
 msgid "Compares calculated values across all applied ranges, ignoring text case. Blank cells, empty text and errors are skipped; numbers and text are different."
 msgstr "比较所有应用范围中的计算值，不区分大小写。跳过空白单元格、空文本和错误；数字与文本视为不同值。"
+
+#: src/workbook/advanced-formatting/AdvancedFormattingFields.tsx
+msgid "Compares native base display text across all applied ranges, ignoring text case. Number formats are included; conditional formatting is excluded. Blank cells, empty text and errors are skipped."
+msgstr "比较所有应用范围中的原生基础显示文本，不区分大小写。包含数字格式，不含条件格式。跳过空白单元格、空文本和错误。"
 
 #: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
 msgid "Comparison columns"
 msgstr "比较列"
+
+#: src/i18n/next-version-feedback.ts
+msgid "Complete every required parameter in each repeated group."
+msgstr "请补齐每个重复组内的必填参数。"
 
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
@@ -1000,6 +1069,7 @@ msgstr "应用前，请确认覆盖目标区域中已有内容的单元格。"
 msgid "Constants"
 msgstr "常量"
 
+#: src/workbook/advanced-formatting/AdvancedFormattingFields.tsx
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 #: src/workbook/chrome/ribbon/FilterConditionFields.tsx
 msgid "Contains"
@@ -1008,6 +1078,10 @@ msgstr "包含"
 #: src/workbook/advanced-validation/ValidationErrorAlert.tsx
 msgid "Continue"
 msgstr "继续"
+
+#: src/workbook/formula-arguments/FormulaArgumentsDialog.tsx
+msgid "Continue editing in the formula bar"
+msgstr "在公式栏继续编辑"
 
 #: src/workbook/advanced-validation/ValidationErrorAlert.tsx
 msgid "Continue with this input?"
@@ -1163,6 +1237,10 @@ msgstr "新建空白工作簿并替换当前工作簿？请先下载以保留未
 #: src/workbook/chrome/ribbon/TableTools.tsx
 msgid "Create a named table from a range, or manage tables on this worksheet."
 msgstr "从选区创建命名表格，或管理当前工作表中的表格。"
+
+#: src/workbook/formula-arguments/FormulaArgumentsDialog.tsx
+msgid "Create formula draft"
+msgstr "生成公式草稿"
 
 #: src/workbook/chrome/ribbon/NamedRangeTools.tsx
 msgid "Create name"
@@ -1556,9 +1634,15 @@ msgstr "显示值"
 msgid "Divide"
 msgstr "除"
 
+#: src/workbook/advanced-formatting/AdvancedFormattingFields.tsx
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Does not contain"
 msgstr "不包含"
+
+#: src/workbook/advanced-formatting/AdvancedFormattingFields.tsx
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Does not match wildcard"
+msgstr "不匹配通配符"
 
 #: src/workbook/chrome/footer/SelectionStatisticsSettings.tsx
 msgid "Done"
@@ -1604,7 +1688,7 @@ msgstr "拖动填充，双击向下填充。按住 Ctrl/⌘ 复制；Escape 取�
 msgid "Drag to resize {axisLabel}; double-click or Enter to auto-fit; arrow keys adjust by 10 px"
 msgstr "拖动调整{axisLabel}尺寸；双击或按 Enter 自动适应；方向键每次调整 10 像素"
 
-#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/advanced-formatting/AdvancedFormattingFields.tsx
 msgid "Duplicate"
 msgstr "重复值"
 
@@ -1734,6 +1818,7 @@ msgstr "启用条件格式"
 msgid "Enable rule {0}"
 msgstr "启用规则 {0}"
 
+#: src/workbook/advanced-formatting/AdvancedFormattingFields.tsx
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid "Ends with"
 msgstr "结尾是"
@@ -1858,6 +1943,14 @@ msgstr "请输入最小值和最大值。"
 msgid "Enter comment text."
 msgstr "请输入批注内容。"
 
+#: src/i18n/next-version-feedback.ts
+msgid "Enter every required argument."
+msgstr "请填写所有必填参数。"
+
+#: src/workbook/formula-arguments/FormulaArgumentsDialog.tsx
+msgid "Enter Excel expressions: \"text\" for text, A1:A3 for ranges, or 'Sheet name'!A1 for another sheet. Nested functions and array constants are allowed."
+msgstr "输入 Excel 表达式：文本使用 \"文本\"，区域使用 A1:A3，跨表引用使用 '工作表名称'!A1。可使用嵌套函数和数组常量。"
+
 #: src/i18n/feedback-messages.ts
 msgid "Enter increasing positive character positions, for example 2, 5."
 msgstr "请输入递增的正整数字符位置，例如 2、5。"
@@ -1972,6 +2065,10 @@ msgstr "文件"
 msgid "Fill"
 msgstr "填充"
 
+#: src/workbook/chrome/ribbon/InsertFunctionTools.tsx
+msgid "Fill arguments"
+msgstr "填写参数"
+
 #: src/workbook/chrome/ribbon/ColorTools.tsx
 msgid "Fill color"
 msgstr "填充颜色"
@@ -2083,6 +2180,11 @@ msgstr "筛选条件"
 #: src/workbook/chrome/ribbon/FilterTools.tsx
 msgid "Filter conditions…"
 msgstr "筛选条件…"
+
+#. placeholder {0}: position + 1
+#: src/workbook/advanced-filter/AdvancedFilterGroups.tsx
+msgid "Filter group {0}"
+msgstr "筛选组 {0}"
 
 #: src/workbook/chrome/ribbon/FilterTools.tsx
 msgid "Filter selected range (first row is header)"
@@ -2205,6 +2307,10 @@ msgstr "请先完成当前操作再修改批注。"
 #: src/workbook/chrome/ribbon/GoToTools.tsx
 msgid "Finish the current operation before navigating."
 msgstr "请先完成当前操作，再跳转。"
+
+#: src/i18n/next-version-feedback.ts
+msgid "Finish the wildcard escape with *, ? or ~."
+msgstr "请使用 *、? 或 ~ 补全通配符转义。"
 
 #: src/workbook/chrome/ribbon/SortTools.tsx
 msgid "First"
@@ -2375,6 +2481,10 @@ msgstr "冻结首行"
 msgid "Function"
 msgstr "函数"
 
+#: src/workbook/formula-arguments/FormulaArgumentsDialog.tsx
+msgid "Function arguments"
+msgstr "函数参数"
+
 #: src/workbook/custom-formulas/CustomFormulaTools.tsx
 msgid "Function name"
 msgstr "函数名称"
@@ -2457,6 +2567,11 @@ msgstr "绿色"
 msgid "Group"
 msgstr "分组"
 
+#. placeholder {0}: position + 1
+#: src/workbook/advanced-filter/AdvancedFilterGroups.tsx
+msgid "Group {0} · AND"
+msgstr "第 {0} 组 · 且"
+
 #: src/workbook/chrome/ribbon/OutlineTools.tsx
 msgid "Group / Outline"
 msgstr "分组 / 大纲"
@@ -2538,7 +2653,7 @@ msgstr "突出显示填充色"
 msgid "Highlight text"
 msgstr "突出显示文字色"
 
-#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/advanced-formatting/AdvancedFormattingFields.tsx
 msgid "Highlight values"
 msgstr "突出显示值"
 
@@ -2924,15 +3039,24 @@ msgstr "区分大小写"
 msgid "Match entire cell"
 msgstr "匹配整个单元格"
 
-#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/advanced-formatting/AdvancedFormattingFields.tsx
 msgid "Matches literal text, ignoring case. Spaces are kept; * and ? are ordinary characters."
 msgstr "按字面文本匹配，不区分大小写。保留空格；* 和 ? 作为普通字符处理。"
+
+#: src/workbook/advanced-formatting/AdvancedFormattingFields.tsx
+msgid "Matches the whole text, ignoring case. * matches any text, ? matches one Unicode character, and ~ escapes *, ? or ~. Spaces are kept."
+msgstr "匹配完整文本，不区分大小写。* 匹配任意文本，? 匹配一个 Unicode 字符，~ 用于转义 *、? 或 ~。保留空格。"
+
+#: src/workbook/advanced-formatting/AdvancedFormattingFields.tsx
+#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+msgid "Matches wildcard"
+msgstr "匹配通配符"
 
 #: src/workbook/chrome/ribbon/FilterValueChoices.tsx
 msgid "Matching rows"
 msgstr "匹配行数"
 
-#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/advanced-formatting/AdvancedFormattingFields.tsx
 msgid "Matching text"
 msgstr "匹配文本"
 
@@ -3054,6 +3178,10 @@ msgstr "月份名称"
 #: src/workbook/chrome/ribbon/ClipboardTools.tsx
 msgid "More paste options"
 msgstr "更多粘贴选项"
+
+#: src/i18n/next-version-feedback.ts
+msgid "Move cells outside Excel Tables before cutting between sheets. No cells were moved."
+msgstr "请先将单元格移出 Excel 表格，再跨表剪切。未移动任何单元格。"
 
 #: src/workbook/chrome/ribbon/SortTools.tsx
 msgid "Move down"
@@ -3400,9 +3528,14 @@ msgstr "正在打开工作簿…"
 msgid "Operation"
 msgstr "运算"
 
+#: src/workbook/formula-arguments/FormulaArgumentsDialog.tsx
 #: src/workbook/formula-help/FormulaParameterHelp.tsx
 msgid "Optional"
 msgstr "可选"
+
+#: src/workbook/advanced-filter/AdvancedFilterGroups.tsx
+msgid "Or"
+msgstr "或"
 
 #: src/workbook/chrome/ribbon/SortTools.tsx
 msgid "Order"
@@ -3411,6 +3544,10 @@ msgstr "顺序"
 #: src/workbook/chrome/ribbon/FindReplaceTools.tsx
 msgid "Original selection"
 msgstr "原始选区"
+
+#: src/workbook/advanced-formatting/AdvancedFormattingFields.tsx
+msgid "Original value and type"
+msgstr "原始值和类型"
 
 #: src/workbook/chrome/ribbon/TextColumnsTools.tsx
 msgid "Other delimiter characters"
@@ -3781,6 +3918,16 @@ msgstr "删除可编辑区域 {address}"
 msgid "Remove formula"
 msgstr "移除公式"
 
+#: src/workbook/advanced-filter/AdvancedFilterGroups.tsx
+#: src/workbook/formula-arguments/FormulaArgumentsDialog.tsx
+msgid "Remove group"
+msgstr "移除组"
+
+#. placeholder {0}: position + 1
+#: src/workbook/advanced-filter/AdvancedFilterGroups.tsx
+msgid "Remove group {0}"
+msgstr "移除第 {0} 组"
+
 #: src/i18n/feedback-messages.ts
 msgid "Remove hyperlink"
 msgstr "移除超链接"
@@ -3940,6 +4087,7 @@ msgstr "回复内容"
 msgid "Reply to comment"
 msgstr "回复批注"
 
+#: src/workbook/formula-arguments/FormulaArgumentsDialog.tsx
 #: src/workbook/formula-help/FormulaParameterHelp.tsx
 msgid "Required"
 msgstr "必填"
@@ -4160,6 +4308,10 @@ msgstr "原生引擎返回的批注线程无效。"
 msgid "Rust returned an invalid custom formula directory."
 msgstr "Rust 返回的自定义公式目录无效。"
 
+#: src/i18n/next-version-feedback.ts
+msgid "Rust returned incomplete search matches. The selection was not changed."
+msgstr "原生引擎返回的搜索匹配项不完整，选择未改变。"
+
 #: src/i18n/seven-feature-feedback.ts
 msgid "Rust returned invalid worksheet protection."
 msgstr "原生引擎返回的工作表保护配置无效。"
@@ -4273,6 +4425,10 @@ msgstr "搜索函数"
 msgid "Search result pages"
 msgstr "搜索结果分页"
 
+#: src/i18n/next-version-feedback.ts
+msgid "Search selection must start at the first match."
+msgstr "搜索选择必须从首个匹配项开始。"
+
 #: src/i18n/feedback-messages.ts
 msgid "Search text is too long."
 msgstr "查找文本过长。"
@@ -4304,6 +4460,10 @@ msgstr "全选"
 #: src/workbook/grid/viewport/GridHeaders.tsx
 msgid "Select all cells"
 msgstr "选中所有单元格"
+
+#: src/workbook/advanced-filter/FilterSearchSelection.tsx
+msgid "Select all search matches"
+msgstr "全选搜索匹配项"
 
 #: src/i18n/feedback-messages.ts
 msgid "Select an editable range and wait for the worksheet to finish loading."
@@ -4433,6 +4593,10 @@ msgstr "所选区域"
 #: src/workbook/chrome/footer/WorkbookFooter.tsx
 msgid "Selected: {selectedCellCount}"
 msgstr "已选中：{selectedCellCount}"
+
+#: src/i18n/next-version-feedback.ts
+msgid "Selection area limit reached. Keep the current selection or start a new selection."
+msgstr "选区数量已达上限。请保留当前选区，或重新开始选择。"
 
 #: src/workbook/chrome/footer/WorkbookFooter.tsx
 msgid "Selection change error"
@@ -4815,7 +4979,7 @@ msgstr "字体颜色"
 msgid "Text comparison"
 msgstr "文本比较"
 
-#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/advanced-formatting/AdvancedFormattingFields.tsx
 msgid "Text condition"
 msgstr "文本条件"
 
@@ -4896,6 +5060,10 @@ msgstr "自定义公式名称已被使用。"
 msgid "The cut cells changed. Cut the range again before pasting."
 msgstr "剪切来源单元格已更改，请重新剪切后再粘贴。"
 
+#: src/i18n/next-version-feedback.ts
+msgid "The cut cells overlap a named range. Change or remove that name in Name manager before moving cells between sheets. No cells were moved."
+msgstr "剪切区域与命名范围重叠。请先在名称管理器中修改或删除该名称，再跨表移动单元格。未移动任何单元格。"
+
 #: src/i18n/seven-feature-feedback.ts
 msgid "The editable range is outside the worksheet."
 msgstr "允许编辑范围超出工作表。"
@@ -4911,6 +5079,10 @@ msgstr "填充来源选区已更改，请重新拖动。"
 #: src/workbook/chrome/ribbon/TableTools.tsx
 msgid "The first row becomes the header. Blank or duplicate headers receive unique names."
 msgstr "首行作为表头。空白或重复的表头会自动分配唯一名称。"
+
+#: src/workbook/formula-arguments/FormulaArgumentsDialog.tsx
+msgid "The formula bar opens next. Press Enter to save or Escape to cancel."
+msgstr "接下来会打开公式栏。按 Enter 保存，或按 Escape 取消。"
 
 #: src/i18n/feedback-messages.ts
 msgid "The hyperlink cell is outside the worksheet."
@@ -5225,6 +5397,10 @@ msgstr "剪贴板区域过大，请选择更小的区域。"
 msgid "This edit was not confirmed — it may or may not have been saved."
 msgstr "无法确认此次编辑是否已保存，请检查单元格后再操作。"
 
+#: src/workbook/formula-arguments/FormulaArgumentsDialog.tsx
+msgid "This function takes no arguments."
+msgstr "此函数不需要参数。"
+
 #: src/workbook/advanced-validation/ValidationErrorAlert.tsx
 msgid "This input does not satisfy the cell's data validation rule."
 msgstr "此输入不符合单元格的数据验证规则。"
@@ -5444,7 +5620,7 @@ msgstr "取消隐藏选中行列"
 msgid "Unhide this row or column before locating the record."
 msgstr "定位记录前，请先取消隐藏该行或列。"
 
-#: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/advanced-formatting/AdvancedFormattingFields.tsx
 msgid "Unique"
 msgstr "唯一值"
 
@@ -5456,6 +5632,10 @@ msgstr "唯一值"
 #: src/workbook/chrome/ribbon/MergeTools.tsx
 msgid "Unmerge cells"
 msgstr "取消合并单元格"
+
+#: src/i18n/next-version-feedback.ts
+msgid "Unmerge the source and destination before moving cells between sheets. No cells were moved."
+msgstr "跨表移动前，请取消源区域和目标区域的合并。未移动任何单元格。"
 
 #: src/i18n/feedback-messages.ts
 msgid "Unprotect the affected worksheet before undoing or redoing."
@@ -5543,6 +5723,10 @@ msgstr "最多两位数"
 msgid "Up to 3 digits"
 msgstr "最多三位数"
 
+#: src/workbook/advanced-filter/AdvancedFilterGroups.tsx
+msgid "Up to 8 groups and 32 conditions; each group can contain up to 8 conditions."
+msgstr "最多 8 组、共 32 个条件；每组最多 8 个条件。"
+
 #: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
 #: src/workbook/chrome/ribbon/TextColumnsTools.tsx
 msgid "Update preview"
@@ -5627,6 +5811,14 @@ msgstr "请在网格中使用 Ctrl/⌘+V 从剪贴板粘贴。"
 #: src/i18n/feedback-messages.ts
 msgid "Use different columns and valid numbers; minimum cannot exceed maximum."
 msgstr "请选择不同的列并输入有效数字；最小值不能大于最大值。"
+
+#: src/i18n/next-version-feedback.ts
+msgid "Use nonempty groups and valid numbers; minimum cannot exceed maximum."
+msgstr "请使用非空组和有效数字；最小值不能大于最大值。"
+
+#: src/i18n/next-version-feedback.ts
+msgid "Use nonempty groups with valid filter conditions."
+msgstr "请使用含有效筛选条件的非空组。"
 
 #: src/i18n/seven-feature-feedback.ts
 msgid "Use only declared parameters and local LET or LAMBDA names in custom formula expressions."

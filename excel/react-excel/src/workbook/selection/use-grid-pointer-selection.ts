@@ -1,6 +1,7 @@
-import { useSetAtom } from '@einfach/react'
+import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   endPointerSelectionAtom,
+  pointerSessionAtom,
   runFormatPainterAtom,
   startPointerSelectionAtom,
   updatePointerSelectionAtom,
@@ -19,7 +20,8 @@ export interface GridPointerSelectionOptions {
 
 export interface GridPointerSelectionHandlers {
   onPointerCancel(event: ReactPointerEvent<HTMLElement>): void
-  onPointerDown(event: ReactPointerEvent<HTMLElement>): void
+  /** Returns whether a selection stream was actually accepted and captured. */
+  onPointerDown(event: ReactPointerEvent<HTMLElement>): boolean
   onPointerMove(event: ReactPointerEvent<HTMLElement>): void
   onPointerUp(event: ReactPointerEvent<HTMLElement>): void
 }
@@ -47,6 +49,7 @@ export function useGridPointerSelection(
   const startPointerSelection = useSetAtom(startPointerSelectionAtom)
   const updatePointerSelection = useSetAtom(updatePointerSelectionAtom)
   const activePointer = useRef<ActivePointer | null>(null)
+  const pointerSession = useAtomValue(pointerSessionAtom)
 
   const cancelActivePointer = useCallback(() => {
     const pointer = activePointer.current
@@ -59,24 +62,35 @@ export function useGridPointerSelection(
   useEffect(() => {
     if (!enabled) cancelActivePointer()
     return cancelActivePointer
-  }, [cancelActivePointer, enabled])
+  }, [cancelActivePointer, enabled, sheetId])
+
+  useEffect(() => {
+    if (pointerSession.status === 'active' && pointerSession.interaction?.kind === 'drag-selection') return
+    const pointer = activePointer.current
+    if (pointer === null) return
+    activePointer.current = null
+    releasePointerCapture(pointer)
+  }, [pointerSession])
 
   const onPointerDown = useCallback(
     (event: ReactPointerEvent<HTMLElement>) => {
-      if (!enabled) return
-      if (event.isPrimary === false || event.button !== 0) return
+      if (!enabled) return false
+      if (event.isPrimary === false || event.button !== 0) return false
       const coord = getCellCoord(event)
-      if (coord === null) return
+      if (coord === null) return false
 
       event.preventDefault()
       cancelActivePointer()
-      startPointerSelection({ sheetId, coord, extend: event.shiftKey })
+      const outcome = startPointerSelection({ sheetId, coord, extend: event.shiftKey,
+        append: event.ctrlKey || event.metaKey })
+      if (outcome.status !== 'applied') return false
       activePointer.current = { id: event.pointerId, target: event.currentTarget }
       try {
         event.currentTarget.setPointerCapture(event.pointerId)
       } catch {
         // Capture can fail when a browser has already settled a native stream.
       }
+      return true
     },
     [cancelActivePointer, enabled, getCellCoord, sheetId, startPointerSelection],
   )

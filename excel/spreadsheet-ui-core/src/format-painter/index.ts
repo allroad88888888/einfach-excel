@@ -7,32 +7,10 @@ import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import { activeWorkbookSheetAtom } from '../runtime/workbook-document'
 import { selectionSnapshotAtom, selectionAuthorityWitnessAtom } from '../selection'
 import { workspaceActiveSheetAuthorityWitnessAtom } from '../workspace'
-import type { RustWorkbookConnection } from '../rust-workbook'
 import { endPointerSelectionAtom } from '../selection/pointer-selection-commands'
 import { pointerSessionAtom } from '../pointer'
-
-type PainterMode = 'idle' | 'armed' | 'sticky'
-interface PainterSession {
-  readonly connection: RustWorkbookConnection
-  readonly workspace: unknown
-}
-interface PainterState {
-  readonly mode: PainterMode
-  readonly busy: boolean
-  readonly message: string
-  readonly error: boolean
-  readonly session: PainterSession | null
-  readonly token?: string
-}
-const IDLE: PainterState = { mode: 'idle', busy: false, message: '', error: false, session: null }
-const painterStateAtom = atom<PainterState>(IDLE)
-
-/** 这里只保留 UI 模式和 Rust 快照凭证，不缓存任何单元格样式。切表／换连接后永久失效。 */
-export const formatPainterAtom = atom((get) => {
-  const state = get(painterStateAtom)
-  return state.session && (state.session.connection !== get(rustWorkbookConnectionAtom) ||
-    state.session.workspace !== get(workspaceActiveSheetAuthorityWitnessAtom)) ? IDLE : state
-})
+import { formatPainterAtom, IDLE, painterStateAtom } from './state'
+export { formatPainterAtom } from './state'
 
 export const runFormatPainterAtom = atom(null, async (get, set,
   action: 'arm' | 'sticky' | 'apply' | 'end-selection' | 'exit',
@@ -97,5 +75,4 @@ export const runFormatPainterAtom = atom(null, async (get, set,
         || 'Formatting was not applied. Select cells and retry.' })
   return applied
 })
-formatPainterAtom.debugLabel = 'spreadsheet.formatPainter'
 runFormatPainterAtom.debugLabel = 'spreadsheet.runFormatPainter'

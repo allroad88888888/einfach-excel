@@ -1,10 +1,12 @@
 import { msg } from '@lingui/core/macro'
 import type { MessageDescriptor } from '@lingui/core'
 import { sevenFeatureFeedback } from './seven-feature-feedback'
+import { nextVersionFeedback } from './next-version-feedback'
 
 /** Core 提示的展现层词典：键保留原文以兼容现有结果；翻译由 Lingui 提取和切换。 */
 export const feedbackMessages: Readonly<Record<string, MessageDescriptor>> = {
   ...sevenFeatureFeedback,
+  ...nextVersionFeedback,
   'Enter a valid http:// or https:// address.': msg`Enter a valid http:// or https:// address.`,
   'Select the anchor cell before changing its hyperlink.': msg`Select the anchor cell before changing its hyperlink.`,
   'The hyperlink display text is too long or invalid.': msg`The hyperlink display text is too long or invalid.`,

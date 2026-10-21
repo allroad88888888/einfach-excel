@@ -350,7 +350,7 @@ type SelectionInputSnapshot<T> =
   | { readonly kind: 'valid'; readonly value: T }
   | { readonly kind: 'invalid' }
 
-const MAX_SELECTION_REGIONS = 10_000
+export const MAX_SELECTION_REGIONS = 10_000
 const MAX_SELECTION_SHEET_ID_LENGTH = 512
 
 function validSafeInteger(value: unknown): value is number {
@@ -1202,6 +1202,24 @@ export const setMultiRegionSelectionAtom = atom(
   },
 )
 setMultiRegionSelectionAtom.debugLabel = 'spreadsheet.selection.setMultiRegion'
+
+/** Multi-range pointer writes consume the committed primary before the outer atom flush. */
+export const setMultiRegionSelectionWithAuthorityReceiptAtom = atom(
+  null,
+  (get, set, input: SetMultiRegionSelectionInput): SelectionAuthorityReceipt | null => {
+    const captured = captureSelectionWriteAuthority(get)
+    const nextInput = snapshotSetMultiRegionSelectionInput(input)
+    if (nextInput.kind === 'invalid' || nextInput.value.regions.length === 0 ||
+      !selectionWriteAuthorityIsCurrent(get, captured)) return null
+    const authority = commitMultiSelectionState(get, set, {
+      regions: nextInput.value.regions.map((region) => normalizeSelection(region, captured.bounds)),
+      primaryIndex: nextInput.value.primaryIndex ?? 0,
+    })
+    return createSelectionAuthorityReceipt(authority)
+  },
+)
+setMultiRegionSelectionWithAuthorityReceiptAtom.debugLabel =
+  'spreadsheet.selection.setMultiRegionWithAuthorityReceipt'
 
 export const clearNonPrimaryRegionsAtom = atom(
   (get) => snapshotMultiSelectionState(get(_multiSelectionAtom)),

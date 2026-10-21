@@ -1,5 +1,6 @@
 export * from './auto-fill'
 export { selectionCellCountAtom } from './selection/cell-count'
+export { multiRangeSelectionFeedbackAtom } from './selection/multi-range/pointer-append'
 export { goToSpecialAvailableAtom, goToSpecialPanelAtom, runGoToSpecialAtom } from './go-to/native-special'
 export { sortFeedbackAtom, sortSelectionAtom } from './sort/command'
 export { sortPanelAtom, configureSortAtom } from './sort/panel'

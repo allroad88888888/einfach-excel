@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test'
+import { packageServer } from './playwright.package.config'
 
 const port = Number(process.env.REACT_EXCEL_E2E_PORT ?? 5191)
 const baseURL = `http://127.0.0.1:${port}`
@@ -28,10 +29,10 @@ export default defineConfig({
     // 本地不重试，也要保留首次失败的请求与浏览器事件。
     trace: 'retain-on-failure',
   },
-  webServer: {
+  webServer: [{
     command: `pnpm dev --host 127.0.0.1 --port ${port} --strictPort`,
     url: baseURL,
     reuseExistingServer: process.env.REACT_EXCEL_E2E_REUSE_SERVER === '1',
     timeout: 30_000,
-  },
+  }, packageServer],
 })

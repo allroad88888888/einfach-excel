@@ -59,6 +59,7 @@ jobs:
       # build:publish 只构建当前发包项目的声明 + rollup 产物，不含根项目的全仓
       # 测试型检查 —— 那是 ci.yml 的门禁职责，不是发布物的组成部分。
       - run: npm run build:publish
+      - run: pnpm --filter @einfach/react-excel verify:package-artifact
       - name: Create Release PR or Publish
         if: ${{ inputs.mode != 'first-publish' }}
         uses: changesets/action@v1

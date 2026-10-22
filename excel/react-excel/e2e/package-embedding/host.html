@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Spreadsheet embedding host</title>
+<style>
+body { margin: 13px; min-height: 1600px; color: rgb(80, 40, 20); background: rgb(249, 247, 243); font-family: Georgia, serif; }
+button, input, table { font-family: Georgia, serif; font-size: 17px; }
+button { padding: 11px; color: rgb(80, 40, 20); }
+.host-controls { display: flex; gap: 8px; flex-wrap: wrap; }
+.host-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; margin-block: 16px; }
+.host-slot { min-width: 0; height: 560px; border: 2px solid #876; }
+#host-table { border-collapse: separate; border-spacing: 7px; }
+@media(max-width: 760px) { .host-grid { grid-template-columns: minmax(0, 1fr); } }
+</style></head>
+<body>
+<h1>Host document</h1>
+<div class="host-controls"><button id="host-button" class="tool-button">Host button</button>
+<input id="host-input" value="Host input"><button id="unmount-first">Unmount first</button>
+<button id="canvas-first">Use canvas in first</button><button id="locale-first">Control first in Chinese</button></div>
+<table id="host-table" class="spreadsheet-grid"><tbody><tr><td class="cell"><span class="cell-content">Host table</span></td></tr></tbody></table>
+<div class="host-grid"><section id="first" class="host-slot"></section><section id="second" class="host-slot"></section></div>
+<p id="host-bottom">The surrounding document remains scrollable.</p>
+<script type="module" src="./host.tsx"></script>
+</body></html>

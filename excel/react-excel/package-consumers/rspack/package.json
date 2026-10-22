@@ -1,0 +1,6 @@
+{
+  "name": "packed-rspack-consumer", "private": true, "type": "module",
+  "scripts": { "typecheck": "tsc", "build": "rspack build" },
+  "dependencies": { "react": "18.3.1", "react-dom": "18.3.1", "@einfach/core": "0.4.0", "@einfach/react": "0.4.0" },
+  "devDependencies": { "@rspack/core": "2.2.9", "@rspack/cli": "2.2.9", "typescript": "5.9.3", "@types/react": "18.3.20", "@types/react-dom": "18.3.6" }
+}

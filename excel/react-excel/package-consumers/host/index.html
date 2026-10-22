@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Installed React workbook consumer</title>
+<style>
+body { margin: 18px; font: 17px Georgia,serif; color: #603d24; background: #f6efe5 }
+#host-button { font: inherit; color: inherit; padding: 7px; border: 2px solid #825a35 }
+#books { display: flex; gap: 12px; margin-top: 12px; align-items: start }
+.slot { width: min(100%, 780px); height: 620px; min-width: 0; flex: 1 }
+#host-text { height: 1200px }
+@media(max-width:700px) { #books { display: block } .slot { margin-bottom: 12px } }
+</style></head><body>
+<h1>Host document</h1><button id="host-button">Host control</button><input id="host-input" value="Host text">
+<button id="unmount">Unmount first</button><button id="remount">Remount first</button>
+<button id="fail">Fail first factory</button><button id="fail-native">Fail first initialization</button>
+<div id="books"><div class="slot" id="first"></div><div class="slot" id="second"></div></div>
+<p id="host-text">Scrollable host content</p><script type="module" src="./app.tsx"></script>
+</body></html>

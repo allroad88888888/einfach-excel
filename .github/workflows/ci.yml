@@ -68,6 +68,45 @@ jobs:
           node --input-type=module -e "await import('./excel/spreadsheet-ui-core/esm/index.mjs'); await import('./excel/excel-core-ts/esm/index.mjs')"
           node -e "require('./excel/spreadsheet-ui-core/cjs/index.cjs'); require('./excel/excel-core-ts/cjs/index.cjs')"
 
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.19.0
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - name: Install wasm-pack
+        run: |
+          if ! command -v wasm-pack >/dev/null; then
+            curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+          fi
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @einfach/excel-wasm build:wasm:both
+      - run: pnpm build:publish
+      - run: pnpm --filter @einfach/react-excel exec playwright install --with-deps chromium
+      # e2e 先准备真实 pnpm tarball 和仓外 strict-peer 消费者，再用同一配置执行全部主用例。
+      - name: Full React and packed consumer browser acceptance
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_FILE: ${{ github.workspace }}/.codex-artifacts/react-excel-package-004/playwright.json
+        run: pnpm --filter @einfach/react-excel e2e --reporter=list,json
+      - name: Verify every registered primary result
+        run: pnpm check:e2e-features --results .codex-artifacts/react-excel-package-004/playwright.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: react-package-browser
+          path: |
+            .codex-artifacts/react-excel-package-004/
+            excel/react-excel/test-results/
+
   # Rust 引擎门禁。三个 crate 的 2700+ 个 #[test] 此前不在任何 workflow 里,
   # 纯靠人工本地跑。命令口径来自 excel/rust/docs/archive/RELEASE_GATE_PLAN.md
   # 的 blocking gate 与 docs/PARITY_BACKLOG_HANDOFF_2026-08-04.md 的验证纪律:

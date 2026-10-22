@@ -6,6 +6,8 @@
 
 清单按当前 React 工作簿的实际用户入口人工核对，不从测试数反推完整功能范围。
 本轮既有入口的源码核对矩阵、最终候选及执行证据见 [FEATURE_PROGRESS](../FEATURE_PROGRESS.md)。
+2026-10-22 独立组件包新增 11 个 EMBED 与 17 个 PKG 主绑定，原 998 行原样保留，共 1026 行。
+包消费者走已安装 tarball 的真实 Worker/WASM；本轮实际完整结果另记进度，不沿用下面的历史通过数。
 原有824个具体操作的旧候选证据仍保留；前版最终单次完整2474/2474通过，同一JSON核验955/955登记操作各恰一次成功。
 本版六项进阶能力新增43个主操作，共998条登记，原955个file/title保留；最终单次完整2617/2617通过，同一JSON核验998/998主绑定，无失败、跳过、重试或flaky。
 条件格式的规则管理、八种数值条件、文本／重复值／公式／排名、色阶／数据条及取消／纠错已分别登记。
@@ -27,6 +29,34 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 
 | 编号 | 功能点 | E2E 文件（相对本目录） | 完整主用例标题 |
 | --- | --- | --- | --- |
+| EMBED-001 | 内嵌加载保留宿主控件样式与文档滚动 | `package-embedding/host-isolation.spec.ts` | embedded workbook styles preserve host controls and document scrolling |
+| EMBED-002 | 双击编辑仅修改所属实例 | `package-embedding/host-isolation.spec.ts` | editing one embedded workbook leaves its sibling data unchanged |
+| EMBED-003 | wheel 滚动仅移动所属工作表 | `package-embedding/host-isolation.spec.ts` | scrolling an embedded worksheet leaves its sibling and host stationary |
+| EMBED-004 | 卸载一实例后继续编辑与撤销兄弟实例 | `package-embedding/host-isolation.spec.ts` | unmounting one embedded workbook preserves sibling editing and history |
+| EMBED-005 | 宿主偏移/滚动布局里点击自身公式候选 | `package-embedding/host-isolation.spec.ts` | formula assistance keeps its instance theme geometry and editing focus |
+| EMBED-006 | 所属语言下拉不改兄弟与宿主偏好 | `package-embedding/presentation.spec.ts` | embedded language selection is independent and never changes host preferences |
+| EMBED-007 | 宿主受控 locale 只禁用自身下拉 | `package-embedding/presentation.spec.ts` | host locale control disables only its own language selector |
+| EMBED-008 | 注入共享 I18n 后语言联动而工作簿独立 | `package-embedding/presentation.spec.ts` | explicit shared I18n injection shares language while retaining independent workbook state |
+| EMBED-009 | 宿主显式切换单实例 Canvas | `package-embedding/presentation.spec.ts` | host renderer prop selects canvas independently of the URL and sibling |
+| EMBED-010 | 双实例同坐标错误仅朗读自身反馈 | `package-embedding/editor-isolation.spec.ts` | same-coordinate rejected editors describe only their own instance feedback |
+| EMBED-011 | 宿主缩父容器后继续点击自身公式候选 | `package-embedding/editor-isolation.spec.ts` | formula assistance follows host-only resizing without moving sibling or document at 1280px |
+| PKG-001 | 真包挂载完整双实例并读取千行多表 typed 数据 | `package-host/mutations.spec.ts` | installed vite package embeds complete isolated workbooks and typed thousand-row data |
+| PKG-002 | 真包双击编辑后按原生范围增量保存 | `package-host/mutations.spec.ts` | installed vite DOM editing publishes actual native ranges for incremental saving |
+| PKG-003 | 真包外部键盘粘贴发布 typed 输入 | `package-host/mutations.spec.ts` | installed vite external keyboard paste publishes typed cell inputs |
+| PKG-004 | 真包 Delete 清除实际输入并抑制 noop 通知 | `package-host/mutations.spec.ts` | installed vite Delete clears actual cells without notifying blank neighbors |
+| PKG-005 | 真包键盘填充发布目标范围与公式 | `package-host/mutations.spec.ts` | installed vite keyboard fill emits actual target ranges and preserves formula sources |
+| PKG-006 | 真包工具栏撤销重做发布 history 事件 | `package-host/mutations.spec.ts` | installed vite toolbar undo and redo publish history changes with original typed values |
+| PKG-007 | 宿主 typed 批量写入保留字面量并一次撤销 | `package-host/host-api.spec.ts` | installed vite host typed batch writes literal strings and formulas in one transaction |
+| PKG-008 | 宿主失败/noop/refresh/import/重算不误记用户 dirty | `package-host/host-api.spec.ts` | installed vite failure noop refresh import and recalculation do not create user dirty events |
+| PKG-009 | 真包键盘跨表剪切报告源/目标/第三表公式 | `package-host/host-api.spec.ts` | installed vite keyboard cross-sheet cut reports source destination and rewritten third-sheet formula |
+| PKG-010 | 真包卸载释放 Worker 后继续编辑兄弟实例 | `package-host/lifecycle.spec.ts` | installed vite unmount terminates its Worker and sibling editing remains independent |
+| PKG-011 | 宿主 Worker 工厂失败后重挂恢复 | `package-host/lifecycle.spec.ts` | installed vite failed Worker factory recovers without retaining the prior workbook |
+| PKG-012 | 原生初始化失败释放 Worker 后重挂恢复 | `package-host/lifecycle.spec.ts` | installed vite failed native initialization terminates its Worker and remount recovers |
+| PKG-013 | 宿主 readOnly 拒绝实际键盘编辑 | `package-host/controls.spec.ts` | installed vite read-only rejects keyboard edits with en feedback |
+| PKG-014 | 宿主 busy 拒绝外部键盘粘贴 | `package-host/controls.spec.ts` | installed vite busy rejects external keyboard paste with en feedback |
+| PKG-015 | 宿主结构策略拒绝新建表按钮 | `package-host/controls.spec.ts` | installed vite structure policy rejects New sheet button with en feedback |
+| PKG-016 | 宿主结构策略拒绝工具栏插入行 | `package-host/controls.spec.ts` | installed vite structure policy rejects row insertion toolbar with en feedback |
+| PKG-017 | 原生保护允许区仍受宿主控制 | `package-host/controls.spec.ts` | installed vite native protection keeps its allowed range editable under host controls |
 | MRSEL-001 | Ctrl 点击追加单元格 | `multi-range-selection/modifier-click.spec.ts` | Control click appends a disjoint cell and keeps the gap unselected at 1280px |
 | MRSEL-002 | Command 点击追加单元格 | `multi-range-selection/modifier-click.spec.ts` | Meta click appends a disjoint cell and keeps the gap unselected at 1280px |
 | MRSEL-003 | 修饰键拖动追加矩形 | `multi-range-selection/modifier-drag.spec.ts` | modifier drag appends a rectangle without replacing previous cells at 1280px |

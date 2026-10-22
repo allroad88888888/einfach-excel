@@ -63,9 +63,15 @@ export function GridHeaders({
         })}
       </div>
       <div className="row-headers grid-window" style={rowStyle}>
+        {/* 用真实行作身份，避免切窗时把正在点击的行头复用成另一行。 */}
         {rowHeights.map((height, index) =>
           height === 0 ? null : (
-            <GridHeading key={index} axis="row" index={rowStart + index} focusGrid={focusGrid} />
+            <GridHeading
+              key={rowStart + index}
+              axis="row"
+              index={rowStart + index}
+              focusGrid={focusGrid}
+            />
           ),
         )}
       </div>

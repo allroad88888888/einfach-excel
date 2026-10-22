@@ -1,6 +1,10 @@
+import { createStore } from '@einfach/core'
 import { selectionSnapshotAtom } from '@einfach/spreadsheet-ui-core'
-import { fireEvent, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, test } from 'vitest'
+import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
+import { GridHeaders } from '../../../src/workbook/grid/viewport/GridHeaders'
+import { initializeSalesOrdersStore } from '../../support/initialize-sales-orders-store'
 import {
   createControlledCellEditingConnection,
   firstEditingCell,
@@ -9,6 +13,25 @@ import {
 } from '../../support/cell-editing-harness'
 
 describe('workbook header selection', () => {
+  test('keeps row DOM identity tied to its actual row when the visible window changes', () => {
+    const store = createStore()
+    initializeSalesOrdersStore(store)
+    const headers = (rowStart: number) => (
+      <WorkbookStoreProvider store={store}>
+        <GridHeaders rowStart={rowStart} rowHeights={[28, 28, 28, 28, 28, 28]}
+          columnWidths={[]} rowStyle={{}} focusGrid={() => {}} />
+      </WorkbookStoreProvider>
+    )
+    const view = render(headers(0))
+    const row2 = screen.getByRole('button', { name: /^Select row 2$/ })
+    const row5 = screen.getByRole('button', { name: /^Select row 5$/ })
+    view.rerender(headers(3))
+    expect(row2.isConnected).toBe(false)
+    expect(row5.isConnected).toBe(true)
+    expect(row5).toHaveAttribute('aria-label', 'Select row 5')
+    expect(screen.getByRole('button', { name: /^Select row 5$/ })).toBe(row5)
+  })
+
   test('selects rows, columns and the whole workbook with visible feedback and grid focus', async () => {
     const controlled = createControlledCellEditingConnection()
     const store = renderSalesOrdersEditingWorksheet(controlled)

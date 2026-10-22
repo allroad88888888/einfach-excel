@@ -68,7 +68,9 @@ test('inserting within a frozen band moves its boundary and undo restores its ge
 }) => {
   await select(page, 'C4', '3:2')
   await page.getByRole('combobox', { name: 'Freeze panes' }).selectOption('selection')
+  // 保留原全局行头入口，验证冻结切窗后仍选择用户指定的第2行。
   await page.getByRole('button', { name: 'Select row 2', exact: true }).click()
+  await expect(page.getByRole('textbox', { name: 'Name box', exact: true })).toHaveValue('A2:P2')
   await page
     .getByRole('combobox', { name: 'Insert or delete rows and columns' })
     .selectOption('insert-rows')

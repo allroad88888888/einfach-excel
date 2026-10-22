@@ -610,7 +610,7 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | STRUCT-004 | 删除所选列 | `workbook/row-column-structure.spec.ts` | delete columns works from the original seed with one undo at 1280px |
 | FREEZE-001 | 冻结首行 | `workbook/freeze-ui.spec.ts` | freezes the first row while vertical scrolling and edits the fixed cells |
 | FREEZE-002 | 冻结首列 | `workbook/freeze-ui.spec.ts` | freezes the first column while horizontal scrolling and keeps row headers aligned |
-| FREEZE-003 | 按活动格冻结 | `workbook/freeze-ui.spec.ts` | freezes at B3 and follows keyboard moves below the fixed band with one undo |
+| FREEZE-003 | 按活动格冻结，切窗保持行头身份（交叉回归见 freeze-cross-features） | `workbook/freeze-ui.spec.ts` | freezes at B3 and follows keyboard moves below the fixed band with one undo |
 | FREEZE-004 | 取消冻结 | `workbook/freeze-ui.spec.ts` | unfreeze uses the seeded panes and undoes once at 1280px |
 | MERGE-001 | 确认合并单元格 | `workbook/merged-cells.spec.ts` | confirmed merge keeps its anchor and restores discarded values in one undo |
 | MERGE-002 | 合并后居中 | `workbook/merged-cells.spec.ts` | merge and center has one outer frame and both editors use its anchor |

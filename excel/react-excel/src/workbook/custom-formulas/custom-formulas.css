@@ -1,4 +1,4 @@
-.custom-formula-panel {
+:where(.einfach-spreadsheet) .custom-formula-panel {
   box-sizing: border-box;
   width: min(480px, calc(100vw - 24px));
   max-height: calc(100dvh - 32px);
@@ -11,12 +11,12 @@
   font: 13px/1.5 Arial, sans-serif;
   box-shadow: 0 12px 40px #0003;
 }
-.custom-formula-panel::backdrop { background: #0004; }
-.custom-formula-panel h2 { margin: 0 0 8px; font-size: 16px; }
-.custom-formula-panel label { display: block; margin: 12px 0 6px; font-weight: 600; }
-.custom-formula-panel input,
-.custom-formula-panel textarea,
-.custom-formula-panel select {
+:where(.einfach-spreadsheet) .custom-formula-panel::backdrop { background: #0004; }
+:where(.einfach-spreadsheet) .custom-formula-panel h2 { margin: 0 0 8px; font-size: 16px; }
+:where(.einfach-spreadsheet) .custom-formula-panel label { display: block; margin: 12px 0 6px; font-weight: 600; }
+:where(.einfach-spreadsheet) .custom-formula-panel input,
+:where(.einfach-spreadsheet) .custom-formula-panel textarea,
+:where(.einfach-spreadsheet) .custom-formula-panel select {
   box-sizing: border-box;
   width: 100%;
   min-height: 34px;
@@ -27,13 +27,13 @@
   background: var(--surface, #fff);
   font: inherit;
 }
-.custom-formula-panel textarea { resize: vertical; font-family: ui-monospace, monospace; }
-.custom-formula-panel :focus-visible { outline: 2px solid var(--primary, #315cda); outline-offset: 2px; }
-.custom-formula-hint { color: var(--muted-text, #596579); font-size: 12px; overflow-wrap: anywhere; }
-.custom-formula-library { border-bottom: 1px solid var(--border, #dce1e8); padding-bottom: 12px; }
-.custom-formula-error { color: var(--danger, #b42318); overflow-wrap: anywhere; }
-.custom-formula-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 16px; }
-.custom-formula-actions button {
+:where(.einfach-spreadsheet) .custom-formula-panel textarea { resize: vertical; font-family: ui-monospace, monospace; }
+:where(.einfach-spreadsheet) .custom-formula-panel :focus-visible { outline: 2px solid var(--primary, #315cda); outline-offset: 2px; }
+:where(.einfach-spreadsheet) .custom-formula-hint { color: var(--muted-text, #596579); font-size: 12px; overflow-wrap: anywhere; }
+:where(.einfach-spreadsheet) .custom-formula-library { border-bottom: 1px solid var(--border, #dce1e8); padding-bottom: 12px; }
+:where(.einfach-spreadsheet) .custom-formula-error { color: var(--danger, #b42318); overflow-wrap: anywhere; }
+:where(.einfach-spreadsheet) .custom-formula-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+:where(.einfach-spreadsheet) .custom-formula-actions button {
   min-height: 34px;
   padding: 5px 10px;
   font: inherit;
@@ -43,5 +43,5 @@
   color: inherit;
   cursor: pointer;
 }
-.custom-formula-actions button:disabled { opacity: .5; cursor: default; }
-.custom-formula-actions button[type="submit"] { color: #fff; background: var(--primary, #315cda); }
+:where(.einfach-spreadsheet) .custom-formula-actions button:disabled { opacity: .5; cursor: default; }
+:where(.einfach-spreadsheet) .custom-formula-actions button[type="submit"] { color: #fff; background: var(--primary, #315cda); }

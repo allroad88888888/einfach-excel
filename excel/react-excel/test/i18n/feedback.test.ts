@@ -1,8 +1,19 @@
 import { afterEach, expect, test } from 'vitest'
-import { activateUiLocale, i18n } from '../../src/i18n/runtime'
+import { activateUiLocale, i18n } from '../../src/page/demo/demo-presentation'
 import { translateFeedback } from '../../src/i18n/translate-feedback'
+import { createWorkbookI18n } from '../../src/i18n/runtime'
 
 afterEach(() => activateUiLocale('en'))
+
+test.each([
+  ['HOST_READ_ONLY', 'This workbook is read-only.', '此工作簿为只读。'],
+  ['HOST_BUSY', 'The workbook is busy. Try again when it is ready.', '工作簿正忙，请在就绪后重试。'],
+  ['HOST_STRUCTURE_DISABLED', 'Worksheet structure changes are disabled.', '已禁用工作表结构修改。'],
+])('renders the known host policy code %s as bilingual user feedback', (code, english, chinese) => {
+  expect(translateFeedback(createWorkbookI18n('en'), code)).toBe(english)
+  expect(translateFeedback(createWorkbookI18n('zh'), code)).toBe(chinese)
+  expect(translateFeedback(createWorkbookI18n('zh'), 'HOST_UNKNOWN')).toBe('HOST_UNKNOWN')
+})
 
 test.each([
   ['That edit was not saved.', '此次编辑未保存。'],

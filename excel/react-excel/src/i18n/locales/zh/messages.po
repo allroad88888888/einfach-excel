@@ -7,6 +7,18 @@ msgstr ""
 "X-Generator: @lingui/cli\n"
 "Language: zh\n"
 
+#: src/i18n/feedback-messages.ts
+msgid "This workbook is read-only."
+msgstr "此工作簿为只读。"
+
+#: src/i18n/feedback-messages.ts
+msgid "The workbook is busy. Try again when it is ready."
+msgstr "工作簿正忙，请在就绪后重试。"
+
+#: src/i18n/feedback-messages.ts
+msgid "Worksheet structure changes are disabled."
+msgstr "已禁用工作表结构修改。"
+
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid " · Disabled"
 msgstr " · 已禁用"

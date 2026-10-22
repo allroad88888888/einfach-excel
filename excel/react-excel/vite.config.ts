@@ -19,7 +19,7 @@ export default defineConfig({
   },
   build: {
     emptyOutDir: true,
-    outDir: 'dist',
+    outDir: 'dist-demo',
   },
   preview: {
     host: '127.0.0.1',

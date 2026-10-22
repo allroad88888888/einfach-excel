@@ -1,4 +1,4 @@
-.formula-bar {
+:where(.einfach-spreadsheet) .formula-bar {
   display: flex;
   min-height: 36px;
   flex: none;
@@ -10,13 +10,13 @@
   font-size: 12px;
 }
 
-.name-box-control {
+:where(.einfach-spreadsheet) .name-box-control {
   position: relative;
   display: flex;
   flex: none;
 }
 
-.name-box-feedback {
+:where(.einfach-spreadsheet) .name-box-feedback {
   position: absolute;
   z-index: 10;
   top: calc(100% + 4px);
@@ -32,7 +32,7 @@
   white-space: normal;
 }
 
-.name-box {
+:where(.einfach-spreadsheet) .name-box {
   width: 86px;
   height: 27px;
   flex: none;
@@ -48,21 +48,21 @@
   white-space: nowrap;
 }
 
-.name-box:focus {
+:where(.einfach-spreadsheet) .name-box:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 1px var(--primary-soft);
 }
 
-.name-box-error {
+:where(.einfach-spreadsheet) .name-box-error {
   border-color: #c72f42;
   color: #a52334;
 }
 
-.formula-divider {
+:where(.einfach-spreadsheet) .formula-divider {
   display: none;
 }
 
-.insert-function {
+:where(.einfach-spreadsheet) .insert-function {
   display: grid;
   width: 28px;
   height: 27px;
@@ -76,7 +76,7 @@
   font-style: italic;
 }
 
-.formula-value {
+:where(.einfach-spreadsheet) .formula-value {
   min-height: 27px;
   max-height: 90px;
   resize: none;
@@ -94,18 +94,18 @@
   white-space: pre-wrap;
 }
 
-.formula-value:focus {
+:where(.einfach-spreadsheet) .formula-value:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 1px var(--primary-soft);
 }
 
-.formula-value:disabled {
+:where(.einfach-spreadsheet) .formula-value:disabled {
   color: var(--muted);
   background: var(--chrome);
 }
 
 /* 公式栏与格内编辑共用提交状态；错误行留在网格外，窄屏也不会被裁掉。 */
-.formula-edit-feedback {
+:where(.einfach-spreadsheet) .formula-edit-feedback {
   flex: none;
   margin: 0;
   padding: 6px 8px;

@@ -7,22 +7,24 @@ import {
   startRustWorkbookRuntimeAtom,
   type RustWorkbookDefinition,
 } from '@einfach/spreadsheet-ui-core'
-import RustWorkbookWorker from '@einfach/spreadsheet-ui-core/rust-runtime?worker'
+import type { WorkerLike } from '@einfach/spreadsheet-ui-core/rust-worker'
 import { useEffect, useMemo, type ReactNode } from 'react'
-import { I18nProvider } from '@lingui/react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { i18n as uiI18n } from '../i18n/runtime'
+import { WorkbookPresentationProvider, type WorkbookPresentationProps } from './WorkbookPresentationProvider'
 import { translateFeedback } from '../i18n/translate-feedback'
+import { createDefaultWorkbookWorker } from '../worker/create-workbook-worker'
 
-export interface WorkbookRuntimeProviderProps {
+export interface WorkbookRuntimeProviderProps extends WorkbookPresentationProps {
   readonly children: ReactNode
   readonly definition: RustWorkbookDefinition
   readonly store?: Store
+  readonly workerFactory?: () => WorkerLike
 }
 
 function WorkbookRuntimeMount({
   children,
   definition,
+  workerFactory = createDefaultWorkbookWorker,
 }: Omit<WorkbookRuntimeProviderProps, 'store'>): ReactNode {
   const { i18n } = useLingui()
   const state = useAtomValue(spreadsheetRuntimeAtom)
@@ -30,9 +32,10 @@ function WorkbookRuntimeMount({
   const disposeRuntime = useSetAtom(disposeRustWorkbookRuntimeAtom)
 
   useEffect(() => {
-    void startRuntime({ definition, workerFactory: () => new RustWorkbookWorker() })
+    void startRuntime({ definition, workerFactory })
+    // Core 统一清理成功、失败及初始化中的 runtime，React 不重复终止 Worker。
     return () => disposeRuntime()
-  }, [definition, disposeRuntime, startRuntime])
+  }, [definition, disposeRuntime, startRuntime, workerFactory])
 
   if (state.status === 'loading') {
     return <div role="status"><Trans>Loading Rust/WASM workbook…</Trans></div>
@@ -54,12 +57,16 @@ export function WorkbookRuntimeProvider({
   children,
   definition,
   store,
+  workerFactory,
+  ...presentation
 }: WorkbookRuntimeProviderProps): ReactNode {
   const runtimeStore = useMemo(() => store ?? createStore(), [store])
 
   return (
-    <I18nProvider i18n={uiI18n}><AtomProvider store={runtimeStore}>
-      <WorkbookRuntimeMount definition={definition}>{children}</WorkbookRuntimeMount>
-    </AtomProvider></I18nProvider>
+    <WorkbookPresentationProvider {...presentation}><AtomProvider store={runtimeStore}>
+      <WorkbookRuntimeMount definition={definition} workerFactory={workerFactory}>
+        {children}
+      </WorkbookRuntimeMount>
+    </AtomProvider></WorkbookPresentationProvider>
   )
 }

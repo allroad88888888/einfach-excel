@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { PageSidebar } from '../../../src/page/PageSidebar'
 import { WorkbookRuntimeProvider } from '../../../src/page/WorkbookRuntimeProvider'
+import { demoPresentation } from '../../../src/page/demo/demo-presentation'
 import { WorkbookView } from '../../../src/workbook/shell/WorkbookView'
 import { PLAIN_SALES_ORDERS } from './workbook'
 import '../../../src/app/app.css'
@@ -13,7 +14,7 @@ createRoot(document.getElementById('root')!).render(
     <div className="demo-page">
       <PageSidebar activeDemoId="sales-orders" />
       <main id="demo-content" className="demo-page__content" aria-label="工作簿演示内容">
-        <WorkbookRuntimeProvider definition={PLAIN_SALES_ORDERS}>
+        <WorkbookRuntimeProvider definition={PLAIN_SALES_ORDERS} {...demoPresentation()}>
           <WorkbookView />
         </WorkbookRuntimeProvider>
       </main>

@@ -1,7 +1,8 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import {
-  activateUiLocale, i18n, resolveUiLocale, supportedUiLocale, UI_LOCALE_STORAGE_KEY,
-} from '../../src/i18n/runtime'
+  activateUiLocale, i18n, resolveUiLocale, UI_LOCALE_STORAGE_KEY,
+} from '../../src/page/demo/demo-presentation'
+import { supportedUiLocale } from '../../src/i18n/runtime'
 
 afterEach(() => {
   vi.restoreAllMocks()

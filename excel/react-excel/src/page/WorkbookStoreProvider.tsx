@@ -2,10 +2,9 @@ import { createStore, type Store } from '@einfach/core'
 import { Provider as AtomProvider } from '@einfach/react'
 import { createSpreadsheetUi, type RustWorkbookConnection } from '@einfach/spreadsheet-ui-core'
 import { useMemo, type ReactNode } from 'react'
-import { I18nProvider } from '@lingui/react'
-import { i18n } from '../i18n/runtime'
+import { WorkbookPresentationProvider, type WorkbookPresentationProps } from './WorkbookPresentationProvider'
 
-export interface WorkbookStoreProviderProps {
+export interface WorkbookStoreProviderProps extends WorkbookPresentationProps {
   readonly children: ReactNode
   readonly connection?: RustWorkbookConnection
   readonly store?: Store
@@ -16,6 +15,7 @@ export function WorkbookStoreProvider({
   children,
   connection,
   store,
+  ...presentation
 }: WorkbookStoreProviderProps): ReactNode {
   const runtimeStore = useMemo(() => {
     if (connection !== undefined) {
@@ -25,8 +25,8 @@ export function WorkbookStoreProvider({
   }, [connection, store])
 
   return (
-    <I18nProvider i18n={i18n}>
+    <WorkbookPresentationProvider {...presentation}>
       <AtomProvider store={runtimeStore}>{children}</AtomProvider>
-    </I18nProvider>
+    </WorkbookPresentationProvider>
   )
 }

@@ -1,4 +1,4 @@
-.font-size-dialog {
+:where(.einfach-spreadsheet) .font-size-dialog {
   box-sizing: border-box;
   width: 300px;
   max-width: calc(100vw - 24px);
@@ -9,11 +9,11 @@
   color: var(--text);
   font-size: 13px;
 }
-.font-size-dialog::backdrop { background: rgb(20 25 45 / 25%); }
-.font-size-dialog h2 { margin: 0; font-size: 16px; }
-.font-size-dialog p { line-height: 1.5; }
-.font-size-dialog form { display: grid; grid-template-columns: 1fr 90px; gap: 12px; align-items: center; }
-.font-size-dialog input, .font-size-dialog button {
+:where(.einfach-spreadsheet) .font-size-dialog::backdrop { background: rgb(20 25 45 / 25%); }
+:where(.einfach-spreadsheet) .font-size-dialog h2 { margin: 0; font-size: 16px; }
+:where(.einfach-spreadsheet) .font-size-dialog p { line-height: 1.5; }
+:where(.einfach-spreadsheet) .font-size-dialog form { display: grid; grid-template-columns: 1fr 90px; gap: 12px; align-items: center; }
+:where(.einfach-spreadsheet) .font-size-dialog input, :where(.einfach-spreadsheet) .font-size-dialog button {
   box-sizing: border-box;
   min-width: 0;
   min-height: 32px;
@@ -24,8 +24,8 @@
   color: inherit;
   background: var(--surface);
 }
-.font-size-actions { display: flex; grid-column: 1 / -1; gap: 8px; justify-content: flex-end; }
-.font-size-actions button[type='submit'] { background: var(--primary); color: white; }
-.font-size-dialog :disabled { opacity: .5; }
-.font-size-dialog :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
-.font-size-dialog [role='alert'] { color: #a12622; }
+:where(.einfach-spreadsheet) .font-size-actions { display: flex; grid-column: 1 / -1; gap: 8px; justify-content: flex-end; }
+:where(.einfach-spreadsheet) .font-size-actions button[type='submit'] { background: var(--primary); color: white; }
+:where(.einfach-spreadsheet) .font-size-dialog :disabled { opacity: .5; }
+:where(.einfach-spreadsheet) .font-size-dialog :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+:where(.einfach-spreadsheet) .font-size-dialog [role='alert'] { color: #a12622; }

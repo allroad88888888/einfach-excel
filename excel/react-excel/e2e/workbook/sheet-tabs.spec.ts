@@ -92,7 +92,7 @@ test('duplicate, invalid and reserved names leave the old tab intact and allow r
     await input.press('Enter')
     await expect(input).toHaveAttribute('aria-invalid', 'true')
     await expect(input).toBeEnabled()
-    await expect(page.locator('#sheet-command-error')).toContainText(error!)
+    await expect(page.locator('[data-sheet-command-error]')).toContainText(error!)
     await expect(page.getByRole('tab', { name: 'Sales Orders' })).toHaveAttribute(
       'aria-selected',
       'true',
@@ -101,7 +101,7 @@ test('duplicate, invalid and reserved names leave the old tab intact and allow r
   await input.fill('Budget')
   await input.press('Enter')
   await expect(page.getByRole('tab', { name: 'Budget' })).toBeVisible()
-  await expect(page.locator('#sheet-command-error')).toBeHidden()
+  await expect(page.locator('[data-sheet-command-error]')).toBeHidden()
 })
 
 test('F2 opens rename and Escape cancels without changing the sheet', async ({ page }) => {
@@ -184,7 +184,7 @@ test('sheet controls stay reachable with many tabs on desktop and narrow viewpor
   const input = page.getByLabel('Sheet name')
   await input.fill('Summary')
   await input.press('Enter')
-  await expect(page.locator('#sheet-command-error')).toBeInViewport()
+  await expect(page.locator('[data-sheet-command-error]')).toBeInViewport()
   await expect(input).toBeInViewport()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   await page.screenshot({ path: info.outputPath('sheet-tabs-narrow.png') })

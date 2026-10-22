@@ -12,10 +12,8 @@ import { WorkbookRuntimeProvider } from '../../src/page/WorkbookRuntimeProvider'
 const { mockCreateWorker } = vi.hoisted(() => ({ mockCreateWorker: vi.fn() }))
 
 vi.mock(
-  '@einfach/spreadsheet-ui-core/rust-runtime?worker',
-  () => ({ default: class TestWorker {
-    constructor() { return mockCreateWorker() }
-  } }),
+  '../../src/worker/create-workbook-worker',
+  () => ({ createDefaultWorkbookWorker: mockCreateWorker }),
 )
 
 type RuntimeWorker = ReturnType<StartRustWorkbookRuntimeInput['workerFactory']>
@@ -69,6 +67,49 @@ const DEFINITION: RustWorkbookDefinition = {
 }
 
 describe('WorkbookRuntimeProvider lifecycle', () => {
+  it('uses the supplied Store and replaces a custom factory without double disposal', async () => {
+    const first = createReadyWorker()
+    const next = createReadyWorker()
+    const store = createStore()
+    const firstFactory = vi.fn(() => first.worker)
+    const nextFactory = vi.fn(() => next.worker)
+    const view = render(
+      <WorkbookRuntimeProvider definition={DEFINITION} store={store} workerFactory={firstFactory}>
+        Custom workbook
+      </WorkbookRuntimeProvider>,
+    )
+    expect(await screen.findByText('Custom workbook')).toBeVisible()
+    expect(store.getter(workbookDocumentAtom).title).toBe('Test workbook')
+    expect(store.getter(spreadsheetRuntimeAtom)).toEqual({ status: 'ready' })
+    view.rerender(
+      <WorkbookRuntimeProvider definition={DEFINITION} store={store} workerFactory={nextFactory}>
+        Custom workbook
+      </WorkbookRuntimeProvider>,
+    )
+    expect(await screen.findByText('Custom workbook')).toBeVisible()
+    expect(firstFactory).toHaveBeenCalledTimes(1)
+    expect(nextFactory).toHaveBeenCalledTimes(1)
+    expect(first.terminate).toHaveBeenCalledTimes(1)
+    expect(next.terminate).not.toHaveBeenCalled()
+    expect(mockCreateWorker).not.toHaveBeenCalled()
+    view.unmount()
+    expect(first.terminate).toHaveBeenCalledTimes(1)
+    expect(next.terminate).toHaveBeenCalledTimes(1)
+  })
+
+  it('renders a custom factory failure through the existing Core error state', async () => {
+    const factory = vi.fn(() => { throw new Error('Custom worker unavailable') })
+    render(
+      <WorkbookRuntimeProvider definition={DEFINITION} workerFactory={factory}>
+        Custom workbook
+      </WorkbookRuntimeProvider>,
+    )
+    expect(await screen.findByRole('alert')).toHaveTextContent('Custom worker unavailable')
+    expect(screen.queryByText('Custom workbook')).toBeNull()
+    expect(factory).toHaveBeenCalledTimes(1)
+    expect(mockCreateWorker).not.toHaveBeenCalled()
+  })
+
   it('keeps workbook content hidden until native initialization finishes', async () => {
     const runtime = createReadyWorker(true)
     mockCreateWorker.mockReturnValueOnce(runtime.worker)

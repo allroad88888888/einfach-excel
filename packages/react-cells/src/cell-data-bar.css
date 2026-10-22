@@ -1,19 +1,19 @@
 /* 数据条不参与 table 尺寸计算，也不拦截编辑、拖选和边框命中。 */
-.cell-data-bar-host { position: relative; }
-.cell-data-bar-host > .cell-content { position: relative; z-index: 1; }
-.cell-data-bar {
+:where(.einfach-spreadsheet) .cell-data-bar-host { position: relative; }
+:where(.einfach-spreadsheet) .cell-data-bar-host > .cell-content { position: relative; z-index: 1; }
+:where(.einfach-spreadsheet) .cell-data-bar {
   position: absolute;
   inset: 3px 2px;
   pointer-events: none;
   z-index: 0;
 }
-.cell-data-bar-fill {
+:where(.einfach-spreadsheet) .cell-data-bar-fill {
   position: absolute;
   top: 0;
   bottom: 0;
   opacity: 0.6;
 }
-.cell-data-bar-axis {
+:where(.einfach-spreadsheet) .cell-data-bar-axis {
   position: absolute;
   top: 0;
   bottom: 0;

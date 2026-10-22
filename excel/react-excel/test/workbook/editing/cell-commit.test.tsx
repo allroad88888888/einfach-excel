@@ -22,8 +22,8 @@ describe('Rust workbook cell commit', () => {
     fireEvent.keyDown(document.activeElement!, { key: 'F2' })
     const editor = await focusedCellEditor()
     expect(editor).toHaveValue('Order')
-    expect(editor).toHaveAttribute('id', 'cell-editor-r0-c0')
-    expect(editor).toHaveAttribute('name', 'cell-editor-r0-c0')
+    expect(editor.id).toMatch(/^cell-editor-.+-r0-c0$/)
+    expect(editor).toHaveAttribute('name', editor.id)
     fireEvent.change(editor, { target: { value: 'Edited order' } })
     expect(store.getter(editingSessionAtom)).toMatchObject({
       status: 'drafting',

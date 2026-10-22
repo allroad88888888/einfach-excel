@@ -1,12 +1,12 @@
 /* Owns the shared workbook viewport and grid styling. */
-.worksheet-panel {
+:where(.einfach-spreadsheet) .worksheet-panel {
   position: relative;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr);
 }
 
-.grid-visibility-state {
+:where(.einfach-spreadsheet) .grid-visibility-state {
   position: absolute;
   z-index: 1;
   top: 48px;
@@ -17,17 +17,17 @@
   line-height: 1.5;
 }
 
-.grid-viewport-frame {
+:where(.einfach-spreadsheet) .grid-viewport-frame {
   min-height: var(--grid-sheet-height);
   min-width: var(--grid-sheet-width);
 }
 
-.grid-window {
+:where(.einfach-spreadsheet) .grid-window {
   align-self: start;
   will-change: transform;
 }
 
-.grid-projection-state {
+:where(.einfach-spreadsheet) .grid-projection-state {
   display: grid;
   min-height: 112px;
   place-items: center;
@@ -37,7 +37,7 @@
   font-size: 12px;
 }
 
-.sheet-scroll {
+:where(.einfach-spreadsheet) .sheet-scroll {
   grid-area: 2 / 2;
   width: 100%;
   height: 100%;
@@ -46,7 +46,7 @@
   overscroll-behavior: contain;
 }
 
-.sheet-grid-frame {
+:where(.einfach-spreadsheet) .sheet-grid-frame {
   position: relative;
   display: grid;
   width: max(100%, var(--grid-sheet-width));
@@ -54,7 +54,7 @@
   grid-template-rows: var(--grid-row-height) auto;
 }
 
-.sheet-corner {
+:where(.einfach-spreadsheet) .sheet-corner {
   /* 冻结覆盖层占两行两列；角按钮必须显式定位，不能参与自动排格。 */
   grid-area: 1 / 1;
   padding: 0;
@@ -70,7 +70,7 @@
   cursor: pointer;
 }
 
-.column-headers {
+:where(.einfach-spreadsheet) .column-headers {
   grid-area: 1 / 2;
   position: sticky;
   top: 0;
@@ -82,7 +82,7 @@
   background: var(--chrome);
 }
 
-.sheet-heading {
+:where(.einfach-spreadsheet) .sheet-heading {
   display: grid;
   min-width: 0;
   place-items: center;
@@ -96,29 +96,29 @@
   cursor: pointer;
 }
 
-.sheet-heading:hover,
-.sheet-corner:hover,
-.sheet-corner[aria-pressed='true'] {
+:where(.einfach-spreadsheet) .sheet-heading:hover,
+:where(.einfach-spreadsheet) .sheet-corner:hover,
+:where(.einfach-spreadsheet) .sheet-corner[aria-pressed='true'] {
   background: #e5e9ff;
 }
 
-.sheet-heading:focus-visible,
-.sheet-corner:focus-visible {
+:where(.einfach-spreadsheet) .sheet-heading:focus-visible,
+:where(.einfach-spreadsheet) .sheet-corner:focus-visible {
   outline: 1px solid var(--primary);
   outline-offset: -1px;
 }
 
-.column-headers .sheet-heading:last-child .sheet-heading-button {
+:where(.einfach-spreadsheet) .column-headers .sheet-heading:last-child .sheet-heading-button {
   border-right: 0;
 }
 
-.heading-selected {
+:where(.einfach-spreadsheet) .heading-selected {
   color: var(--primary-strong);
   background: #e5e9ff;
   font-weight: 600;
 }
 
-.row-headers {
+:where(.einfach-spreadsheet) .row-headers {
   grid-area: 2 / 1;
   position: sticky;
   left: 0;
@@ -130,12 +130,12 @@
   background: var(--chrome);
 }
 
-.row-headers .sheet-heading-button {
+:where(.einfach-spreadsheet) .row-headers .sheet-heading-button {
   border-right: 1px solid var(--border-strong);
   border-bottom: 1px solid var(--border);
 }
 
-.grid-surface {
+:where(.einfach-spreadsheet) .grid-surface {
   position: relative;
   width: var(--grid-window-width);
   min-width: var(--grid-window-width);
@@ -144,11 +144,11 @@
   user-select: none;
 }
 
-.sheet-grid-frame > .grid-surface {
+:where(.einfach-spreadsheet) .sheet-grid-frame > .grid-surface {
   grid-area: 2 / 2;
 }
 
-.grid-viewport-frame[data-format-painter] [data-cell],
-.grid-viewport-frame[data-format-painter] [data-merged-cell] {
+:where(.einfach-spreadsheet) .grid-viewport-frame[data-format-painter] [data-cell],
+:where(.einfach-spreadsheet) .grid-viewport-frame[data-format-painter] [data-merged-cell] {
   cursor: crosshair;
 }

@@ -14,7 +14,7 @@ import {
   startCellEditingFromProjectionAtom,
 } from '@einfach/spreadsheet-ui-core'
 import type { FocusEvent, FormEvent, KeyboardEvent } from 'react'
-import { useLayoutEffect, useRef } from 'react'
+import { useId, useLayoutEffect, useRef } from 'react'
 import { flushSync } from 'react-dom'
 import { useFormulaInput } from '../../grid/editor/use-formula-input'
 import { FormulaAssist } from '../../formula/FormulaAssist'
@@ -25,6 +25,8 @@ import { useLingui } from '@lingui/react/macro'
 /** Edits the active cell through the same atom session as the in-cell editor. */
 export function FormulaBar() {
   const { i18n, t } = useLingui()
+  const inputId = useId()
+  const feedbackId = useId()
   const selection = useAtomValue(selectionSnapshotAtom)
   const sourceText = useAtomValue(activeCellInputTextAtom)
   const editingSession = useAtomValue(editingSessionAtom)
@@ -139,12 +141,12 @@ export function FormulaBar() {
           aria-controls={formulaInput.activeOption ? formulaInput.listId : undefined}
           aria-activedescendant={formulaInput.activeOption}
           aria-invalid={feedback ? true : undefined}
-          aria-describedby={feedback ? 'formula-edit-feedback' : formulaInput.signatureId}
+          aria-describedby={feedback ? feedbackId : formulaInput.signatureId}
           autoComplete="off"
           className="formula-value"
           data-formula-input="true"
           disabled={busy || (!hasEditingSource && sourceText === undefined)}
-          id="formula-input"
+          id={inputId}
           name="formula-input"
           onBlur={commitFormula}
           onFocus={beginFormulaEditing}
@@ -159,7 +161,7 @@ export function FormulaBar() {
       </div>
       <FormulaAssist inputRef={inputRef} id={formulaInput.listId} source="formula-bar" />
       {feedback && (
-        <p className="formula-edit-feedback" id="formula-edit-feedback" role="alert">
+        <p className="formula-edit-feedback" id={feedbackId} role="alert">
           {translateFeedback(i18n, feedback.message)}
         </p>
       )}

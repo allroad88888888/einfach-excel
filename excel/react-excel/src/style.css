@@ -1,0 +1,56 @@
+/* 库样式只拥有组件根；全屏布局与宿主滚动策略由消费方负责。 */
+.einfach-spreadsheet {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  container-type: inline-size;
+  container-name: einfach-spreadsheet;
+  color: #292b35;
+  background: #ffffff;
+  font-family: Inter, "Segoe UI", ui-sans-serif, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 16px;
+  line-height: normal;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  --primary: #274fee;
+  --primary-strong: #1e3dbe;
+  --primary-soft: #eef1ff;
+  --border: #e2e4ea;
+  --border-strong: #c8cbd4;
+  --chrome: #f6f7f9;
+  --control-hover: #f1f2f5;
+  --gridline: #e3e5ea;
+  --muted: #777b8c;
+  --surface: #ffffff;
+  --text: #292b35;
+}
+
+.einfach-spreadsheet,
+:where(.einfach-spreadsheet) *,
+:where(.einfach-spreadsheet) *::before,
+:where(.einfach-spreadsheet) *::after {
+  box-sizing: border-box;
+}
+
+:where(.einfach-spreadsheet) :is(button, input, table, select, textarea) { font: inherit; }
+:where(.einfach-spreadsheet) button { color: inherit; }
+
+:where(.einfach-spreadsheet) .visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(.einfach-spreadsheet) *,
+  :where(.einfach-spreadsheet) *::before,
+  :where(.einfach-spreadsheet) *::after { scroll-behavior: auto !important; }
+}

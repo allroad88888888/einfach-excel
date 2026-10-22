@@ -1,7 +1,7 @@
 import { translateFeedback } from '../../i18n/translate-feedback'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
-import { useLayoutEffect, useRef, type RefObject } from 'react'
+import { useLayoutEffect, useMemo, useRef, type RefObject } from 'react'
 import { createPortal, flushSync } from 'react-dom'
 import {
   editingSessionAtom,
@@ -32,6 +32,12 @@ export function FormulaAssist({
   const signature = useAtomValue(formulaFunctionSignatureAtom)
   const accept = useSetAtom(acceptFormulaSuggestionAtom)
   const popupRef = useRef<HTMLDivElement>(null)
+  // 独占 DOM 容器先接收 portal，再在 ref 提交后挂到所属根；初次就有草稿也不依赖旧 ref。
+  const portal = useMemo(() => {
+    const element = document.createElement('div')
+    element.style.display = 'contents'
+    return element
+  }, [])
   const active =
     session.status === 'drafting' &&
     (source === 'formula-bar') === (session.source?.source === 'formula-bar')
@@ -39,36 +45,52 @@ export function FormulaAssist({
 
   useLayoutEffect(() => {
     if (!visible) return
+    const root = inputRef.current?.closest('.einfach-spreadsheet')
+    if (!root) return
+    root.append(portal)
     const position = () => {
       const input = inputRef.current
       const popup = popupRef.current
       if (!input || !popup) return
       const rect = input.getBoundingClientRect()
-      const width = document.documentElement.clientWidth
-      const height = document.documentElement.clientHeight
-      popup.style.visibility = rect.bottom <= 0 || rect.top >= height ||
-        rect.right <= 0 || rect.left >= width ? 'hidden' : 'visible'
-      popup.style.left = `${Math.max(8, Math.min(rect.left, width - popup.offsetWidth - 8))}px`
+      const bounds = root.getBoundingClientRect()
+      popup.style.visibility = rect.bottom <= bounds.top || rect.top >= bounds.bottom ||
+        rect.right <= bounds.left || rect.left >= bounds.right ? 'hidden' : 'visible'
+      popup.style.left = `${Math.max(8,
+        Math.min(rect.left - bounds.left, bounds.width - popup.offsetWidth - 8))}px`
       // 格内提交错误占用输入框下方；参数帮助接在错误之后，不盖住失败原因。
       const feedback = input.closest('[data-cell-editor]')?.querySelector('[role="alert"]')
-      const below = Math.max(rect.bottom, feedback?.getBoundingClientRect().bottom ?? 0) + 4
+      const below = Math.max(rect.bottom,
+        feedback?.getBoundingClientRect().bottom ?? 0) - bounds.top + 4
       popup.style.top = `${Math.max(
         8,
-        below + popup.offsetHeight <= height - 8 ? below : rect.top - popup.offsetHeight - 4,
+        below + popup.offsetHeight <= bounds.height - 8
+          ? below : rect.top - bounds.top - popup.offsetHeight - 4,
       )}px`
     }
     position()
-    popupRef.current
-      ?.querySelector('[aria-selected="true"]')
-      ?.scrollIntoView?.({ block: 'nearest' })
+    const list = popupRef.current?.querySelector<HTMLElement>('.formula-function-list')
+    const option = list?.querySelector<HTMLElement>('[aria-selected="true"]')
+    if (list && option) {
+      const bounds = list.getBoundingClientRect()
+      const activeBounds = option.getBoundingClientRect()
+      if (activeBounds.top < bounds.top) list.scrollTop += activeBounds.top - bounds.top
+      else if (activeBounds.bottom > bounds.bottom)
+        list.scrollTop += activeBounds.bottom - bounds.bottom
+    }
+    // 宿主布局缩放不一定触发 window resize；仅观察本根并复用同一 DOM 定位。
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(position)
+    observer?.observe(root)
     // 滚动只改 DOM 几何，不把像素坐标变成第二份业务状态。
     window.addEventListener('resize', position)
     window.addEventListener('scroll', position, true)
     return () => {
+      observer?.disconnect()
       window.removeEventListener('resize', position)
       window.removeEventListener('scroll', position, true)
+      portal.remove()
     }
-  }, [visible, inputRef, suggestions, signature, cursor, lifecycle])
+  }, [visible, inputRef, suggestions, signature, cursor, lifecycle, portal])
 
   if (!visible) return null
   const acceptName = (name: string) => {
@@ -146,6 +168,6 @@ export function FormulaAssist({
         )
       )}
     </div>,
-    document.body,
+    portal,
   )
 }

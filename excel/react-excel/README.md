@@ -1,7 +1,11 @@
 # React Excel
 
-一个独立运行的 Vite 工作簿演示站。站点外壳负责选择 demo；当前第一个 demo 是由 Einfach
-Rust/WASM 引擎驱动的销售订单工作簿。
+可嵌入浏览器宿主的 React 工作簿组件包，同时保留独立 Vite 演示站。主线为
+React DOM → UI Core command atom → Rust Worker/WASM → atom 结果 → React。
+
+外部接入请读[安装、尺寸、语言与 Worker](docs/package/README.md)、
+[同 Store 原始值与修改事件](docs/package/host-data.md)和[兼容范围及发行清单](docs/package/release.md)。
+当前改动尚未发布到 npm；本地可通过 `pnpm prepare:package-consumers` 安装模拟发行 tarball。
 
 默认 Sales Orders 保留原有 66 组合并与 128 列演示画布，不为测试删改样例。
 需要完整 1,000 条订单的 E2E 使用 `e2e/fixtures/plain-sales-orders/`，
@@ -66,7 +70,7 @@ React 视图
   跨 atom 状态转换、可见窗口与 Rust 命令。
 - React 负责共享视图、挂载 effect、DOM 事件、焦点、pointer capture 和滚动事件适配。
 - React 源码不使用 `useState/useReducer`，也不在本包内声明工作簿 atom。
-- Vite 的 `?worker` 语法只存在于共享 `WorkbookRuntimeProvider`；所有 demo 共用它。
+- 共享 Provider 通过标准模块 URL 启动随包 Worker；所有 demo 复用同一装配，不要求宿主 Vite loader。
 
 普通单元格提交只走一次 `cell.setInput` Worker RPC，结果包含严格 ACK 和同一修订版投影。提交期间
 如果用户滚动，独立的滚动投影优先，旧窗口的编辑投影不会覆盖新窗口。
@@ -137,7 +141,7 @@ test/
     └── selection/                    # 点击、拖选和取消测试
 ```
 
-产品模块使用精确的相对路径导入。本应用没有公共包入口，也不建立内部 barrel。
+产品内部使用精确的相对路径；包根只公开 Spreadsheet、三个装配组件及其 Props 类型。
 
 ## 新增 demo
 
@@ -162,7 +166,8 @@ test/
 Core／Rust 返回值不变，未知诊断保留原文，不能据词典“缺失为零”宣称所有底层异常已翻译。
 原始数据、表名、公式函数名和工作簿数字格式语义不翻译。
 
-同页工作簿共用 Lingui 的界面语言，但各自保留 atom store 与 Rust runtime。
+库组件默认各用独立 Lingui 实例；只有宿主显式注入同一个 I18n 才共享语言。
+各工作簿必须使用不同 Store 与 Rust runtime，demo 的 URL/存储语言策略只属于演示站。
 使用官方 `I18nProvider`、`useLingui`／`Trans`／`msg`，不新增语言 atom 或自定义翻译 Hook。
 Vite 与 Vitest 共用官方 Lingui 插件的原生宏转换，直接编译 `.po`，修改词典走 Vite 热更新，
 不提交另一份编译后的 JS 词典，也不依赖 Babel 宏插件。

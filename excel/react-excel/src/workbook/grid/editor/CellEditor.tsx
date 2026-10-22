@@ -19,7 +19,7 @@ import {
   type EditorKeyboardOutcome,
 } from '@einfach/spreadsheet-ui-core'
 import type { CSSProperties, FocusEvent, KeyboardEvent, PointerEvent } from 'react'
-import { useEffect, useRef } from 'react'
+import { useEffect, useId, useRef } from 'react'
 import { flushSync } from 'react-dom'
 import { useLingui } from '@lingui/react/macro'
 import './cell-editor.css'
@@ -50,6 +50,7 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
   const dispatchEditorKeyboard = useSetAtom(dispatchEditorKeyboardInputAtom)
   const setDraft = useSetAtom(updateFormulaDraftAtom)
   const insertLineBreak = useSetAtom(insertEditingLineBreakAtom)
+  const instanceId = useId()
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const formulaInput = useFormulaInput(inputRef, 'cell')
   const committingRef = useRef(false)
@@ -74,7 +75,8 @@ export function CellEditor({ focusGrid }: CellEditorProps) {
 
   if (cell === null || editingFromFormulaBar) return null
 
-  const fieldIdentity = `cell-editor-r${cell.row}-c${cell.col}`
+  // 实例前缀隔离 ARIA；坐标后缀仍识别旧异步提交，避免完成时抢走下一格焦点。
+  const fieldIdentity = `cell-editor-${instanceId}-r${cell.row}-c${cell.col}`
   const sheetId = activeSheet?.id ?? ''
   const merge =
     projection?.kind === 'visible-window' && projection.sheetId === sheetId

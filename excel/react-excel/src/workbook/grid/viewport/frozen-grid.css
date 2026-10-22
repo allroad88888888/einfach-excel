@@ -1,5 +1,5 @@
 /* sticky 只负责固定容器，内部格坐标仍由同一份尺寸投影计算。 */
-.frozen-viewport {
+:where(.einfach-spreadsheet) .frozen-viewport {
   position: sticky;
   grid-area: 1 / 1 / 3 / 3;
   align-self: start;
@@ -11,9 +11,9 @@
   overflow: hidden;
 }
 
-.frozen-pane,
-.frozen-row-headers,
-.frozen-column-headers {
+:where(.einfach-spreadsheet) .frozen-pane,
+:where(.einfach-spreadsheet) .frozen-row-headers,
+:where(.einfach-spreadsheet) .frozen-column-headers {
   position: absolute;
   overflow: hidden;
   pointer-events: auto;
@@ -21,13 +21,13 @@
 }
 
 /* 接缝使用真实单元格的边，不再用覆盖阴影把彩色细线染成灰色。 */
-.frozen-pane .cell:last-child { border-right: 1px solid var(--gridline); }
+:where(.einfach-spreadsheet) .frozen-pane .cell:last-child { border-right: 1px solid var(--gridline); }
 
-.frozen-row-headers,
-.frozen-column-headers {
+:where(.einfach-spreadsheet) .frozen-row-headers,
+:where(.einfach-spreadsheet) .frozen-column-headers {
   background: var(--chrome);
 }
 
-.frozen-row-headers .sheet-heading-button {
+:where(.einfach-spreadsheet) .frozen-row-headers .sheet-heading-button {
   border-bottom: 1px solid var(--border);
 }

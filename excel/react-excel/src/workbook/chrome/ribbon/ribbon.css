@@ -1,4 +1,4 @@
-.ribbon-shell {
+:where(.einfach-spreadsheet) .ribbon-shell {
   display: flex;
   min-height: 46px;
   flex: none;
@@ -10,7 +10,7 @@
   background: #ffffff;
 }
 
-.ribbon-tabs {
+:where(.einfach-spreadsheet) .ribbon-tabs {
   display: flex;
   height: 34px;
   flex: none;
@@ -18,13 +18,13 @@
   gap: 2px;
 }
 
-.ribbon-panel { display: flex; flex: 1; min-width: 0; }
-.ribbon-tool-group { display: flex; flex: none; align-items: center; gap: 2px; }
+:where(.einfach-spreadsheet) .ribbon-panel { display: flex; flex: 1; min-width: 0; }
+:where(.einfach-spreadsheet) .ribbon-tool-group { display: flex; flex: none; align-items: center; gap: 2px; }
 /* 分类只隐藏入口，不卸载或遮住由网格快捷键打开的模态弹窗。 */
-.ribbon-tool-group[data-inactive='true'] { display: contents; }
-.ribbon-tool-group[data-inactive='true'] > :not(dialog) { display: none; }
+:where(.einfach-spreadsheet) .ribbon-tool-group[data-inactive='true'] { display: contents; }
+:where(.einfach-spreadsheet) .ribbon-tool-group[data-inactive='true'] > :not(dialog) { display: none; }
 
-.ribbon-tab {
+:where(.einfach-spreadsheet) .ribbon-tab {
   height: 28px;
   border: 0;
   border-radius: 7px;
@@ -34,18 +34,18 @@
   font-size: 11px;
 }
 
-.ribbon-tab:hover {
+:where(.einfach-spreadsheet) .ribbon-tab:hover {
   background: var(--control-hover);
 }
 
-.ribbon-tab.active {
+:where(.einfach-spreadsheet) .ribbon-tab.active {
   color: var(--primary);
   background: var(--primary-soft);
   font-weight: 650;
 }
 
-.toolbar-divider,
-.tool-separator {
+:where(.einfach-spreadsheet) .toolbar-divider,
+:where(.einfach-spreadsheet) .tool-separator {
   display: block;
   width: 1px;
   height: 22px;
@@ -53,7 +53,7 @@
   background: var(--border);
 }
 
-.ribbon-tools {
+:where(.einfach-spreadsheet) .ribbon-tools {
   display: flex;
   min-width: 0;
   flex: 1;
@@ -64,16 +64,16 @@
   scrollbar-width: none;
 }
 
-.ribbon-tools::-webkit-scrollbar {
+:where(.einfach-spreadsheet) .ribbon-tools::-webkit-scrollbar {
   display: none;
 }
 
-.text-layout-tools { display: inline-flex; flex: none; align-items: center; gap: 2px; }
-.text-layout-select { width: 76px; padding: 0 4px; }
-.text-layout-error { display: inline-flex; align-items: center; max-width: 260px; color: #a12622; }
+:where(.einfach-spreadsheet) .text-layout-tools { display: inline-flex; flex: none; align-items: center; gap: 2px; }
+:where(.einfach-spreadsheet) .text-layout-select { width: 76px; padding: 0 4px; }
+:where(.einfach-spreadsheet) .text-layout-error { display: inline-flex; align-items: center; max-width: 260px; color: #a12622; }
 
-.tool-button,
-.tool-select {
+:where(.einfach-spreadsheet) .tool-button,
+:where(.einfach-spreadsheet) .tool-select {
   height: 28px;
   flex: none;
   border: 0;
@@ -83,56 +83,56 @@
   font-size: 12px;
 }
 
-.tool-button {
+:where(.einfach-spreadsheet) .tool-button {
   display: grid;
   width: 28px;
   place-items: center;
   padding: 0;
 }
 
-.tool-button:hover,
-.tool-select:hover {
+:where(.einfach-spreadsheet) .tool-button:hover,
+:where(.einfach-spreadsheet) .tool-select:hover {
   background: var(--control-hover);
 }
 
-.tool-button:disabled,
-.tool-select:disabled {
+:where(.einfach-spreadsheet) .tool-button:disabled,
+:where(.einfach-spreadsheet) .tool-select:disabled {
   opacity: 0.4;
   cursor: default;
 }
 
-.tool-button[aria-label='Bold'] {
+:where(.einfach-spreadsheet) .tool-button[aria-label='Bold'] {
   font-weight: 700;
 }
 
-.tool-button[aria-pressed='true'] {
+:where(.einfach-spreadsheet) .tool-button[aria-pressed='true'] {
   color: var(--primary);
   background: var(--primary-soft);
 }
 
-.tool-select {
+:where(.einfach-spreadsheet) .tool-select {
   cursor: pointer;
   padding: 0 8px;
   border: 1px solid transparent;
 }
 
-.tool-select:hover {
+:where(.einfach-spreadsheet) .tool-select:hover {
   border-color: var(--border);
 }
 
-.font-family-select {
+:where(.einfach-spreadsheet) .font-family-select {
   width: 108px;
 }
 
-.paste-options-select {
+:where(.einfach-spreadsheet) .paste-options-select {
   width: 132px;
 }
 
-.copy-as-select {
+:where(.einfach-spreadsheet) .copy-as-select {
   width: 100px;
 }
 
-.fill-feedback {
+:where(.einfach-spreadsheet) .fill-feedback {
   flex: none;
   max-width: 280px;
   color: #3f4352;
@@ -141,37 +141,37 @@
   overflow-wrap: anywhere;
 }
 
-.fill-feedback[role='alert'] {
+:where(.einfach-spreadsheet) .fill-feedback[role='alert'] {
   color: #a12622;
 }
 
-.font-size-select {
+:where(.einfach-spreadsheet) .font-size-select {
   width: 56px;
 }
 
-.number-format-select {
+:where(.einfach-spreadsheet) .number-format-select {
   width: 78px;
 }
 
-.tool-separator {
+:where(.einfach-spreadsheet) .tool-separator {
   height: 18px;
   margin: 0 3px;
 }
 
-.toolbar-spacer {
+:where(.einfach-spreadsheet) .toolbar-spacer {
   min-width: 8px;
   flex: 1;
 }
 
-@media (max-width: 760px) {
-  .ribbon-shell {
+@container einfach-spreadsheet (max-width: 760px) {
+  :where(.einfach-spreadsheet) .ribbon-shell {
     min-height: 43px;
     gap: 5px;
     flex-wrap: wrap;
     padding-inline: 7px;
   }
 
-  .ribbon-tabs {
+  :where(.einfach-spreadsheet) .ribbon-tabs {
     /* 分类独占一行，全部可达；下方工具独立横向滚动。 */
     padding-right: 5px;
     background: #ffffff;
@@ -179,16 +179,16 @@
     overflow-x: auto;
   }
 
-  .toolbar-divider {
+  :where(.einfach-spreadsheet) .toolbar-divider {
     display: none;
   }
 
-  .ribbon-tools {
+  :where(.einfach-spreadsheet) .ribbon-tools {
     min-width: 0;
     overflow-x: auto;
   }
 
-  .toolbar-spacer {
+  :where(.einfach-spreadsheet) .toolbar-spacer {
     display: none;
   }
 }

@@ -1,4 +1,4 @@
-.go-to-dialog {
+:where(.einfach-spreadsheet) .go-to-dialog {
   box-sizing: border-box;
   width: 400px;
   max-width: calc(100vw - 24px);
@@ -11,12 +11,12 @@
   background: var(--surface);
   font-size: 13px;
 }
-.go-to-dialog::backdrop { background: rgb(20 25 45 / 25%); }
-.go-to-dialog h2 { margin: 0 0 12px; font-size: 16px; }
-.go-to-dialog h3 { margin: 8px 0; font-size: 13px; }
-.go-to-dialog form { display: grid; gap: 8px; }
-.go-to-dialog button,
-.go-to-dialog input {
+:where(.einfach-spreadsheet) .go-to-dialog::backdrop { background: rgb(20 25 45 / 25%); }
+:where(.einfach-spreadsheet) .go-to-dialog h2 { margin: 0 0 12px; font-size: 16px; }
+:where(.einfach-spreadsheet) .go-to-dialog h3 { margin: 8px 0; font-size: 13px; }
+:where(.einfach-spreadsheet) .go-to-dialog form { display: grid; gap: 8px; }
+:where(.einfach-spreadsheet) .go-to-dialog button,
+:where(.einfach-spreadsheet) .go-to-dialog input {
   box-sizing: border-box;
   min-width: 0;
   min-height: 32px;
@@ -27,16 +27,16 @@
   color: inherit;
   background: var(--surface);
 }
-.go-to-dialog input { width: 100%; }
-.go-to-dialog button { cursor: pointer; overflow-wrap: anywhere; }
-.go-to-dialog button:disabled { cursor: default; opacity: 0.5; }
-.go-to-dialog :focus-visible { outline: 2px solid var(--primary-strong); outline-offset: 2px; }
-.go-to-hint { color: #626777; line-height: 1.5; margin: 0; overflow-wrap: anywhere; }
-.go-to-recent { list-style: none; padding: 3px; margin: 0; max-height: 200px; overflow: auto; }
-.go-to-recent button { text-align: left; width: 100%; margin-bottom: 4px; }
-.go-to-recent button:hover { background: var(--control-hover); }
-.go-to-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
-.go-to-dialog .go-to-primary { color: var(--primary-strong); background: var(--primary-soft); }
-.go-to-error { color: #b42318; margin: 0; overflow-wrap: anywhere; }
-.go-to-special-options { display: grid; gap: 8px; margin: 16px 0; }
-.go-to-special-options button { text-align: left; }
+:where(.einfach-spreadsheet) .go-to-dialog input { width: 100%; }
+:where(.einfach-spreadsheet) .go-to-dialog button { cursor: pointer; overflow-wrap: anywhere; }
+:where(.einfach-spreadsheet) .go-to-dialog button:disabled { cursor: default; opacity: 0.5; }
+:where(.einfach-spreadsheet) .go-to-dialog :focus-visible { outline: 2px solid var(--primary-strong); outline-offset: 2px; }
+:where(.einfach-spreadsheet) .go-to-hint { color: #626777; line-height: 1.5; margin: 0; overflow-wrap: anywhere; }
+:where(.einfach-spreadsheet) .go-to-recent { list-style: none; padding: 3px; margin: 0; max-height: 200px; overflow: auto; }
+:where(.einfach-spreadsheet) .go-to-recent button { text-align: left; width: 100%; margin-bottom: 4px; }
+:where(.einfach-spreadsheet) .go-to-recent button:hover { background: var(--control-hover); }
+:where(.einfach-spreadsheet) .go-to-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+:where(.einfach-spreadsheet) .go-to-dialog .go-to-primary { color: var(--primary-strong); background: var(--primary-soft); }
+:where(.einfach-spreadsheet) .go-to-error { color: #b42318; margin: 0; overflow-wrap: anywhere; }
+:where(.einfach-spreadsheet) .go-to-special-options { display: grid; gap: 8px; margin: 16px 0; }
+:where(.einfach-spreadsheet) .go-to-special-options button { text-align: left; }

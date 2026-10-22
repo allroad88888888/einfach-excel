@@ -1,4 +1,4 @@
-.grid-surface .spreadsheet-grid {
+:where(.einfach-spreadsheet) .grid-surface .spreadsheet-grid {
   width: var(--grid-window-width);
   min-width: var(--grid-window-width);
   border-collapse: separate;
@@ -8,11 +8,11 @@
   font-size: 12px;
 }
 
-.grid-surface[data-projection-retained='true'] .spreadsheet-grid {
+:where(.einfach-spreadsheet) .grid-surface[data-projection-retained='true'] .spreadsheet-grid {
   pointer-events: none;
 }
 
-.grid-surface .cell {
+:where(.einfach-spreadsheet) .grid-surface .cell {
   height: inherit;
   box-sizing: border-box;
   padding: 3px 7px;
@@ -28,18 +28,18 @@
   white-space: nowrap;
 }
 
-.grid-surface .cell:last-child {
+:where(.einfach-spreadsheet) .grid-surface .cell:last-child {
   border-right: 0;
 }
 
 /* 内容可以裁切，但不能推翻 Rust 行高撑开 HTML table。 */
-.cell-content {
+:where(.einfach-spreadsheet) .cell-content {
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.selection-outline {
+:where(.einfach-spreadsheet) .selection-outline {
   position: absolute;
   z-index: 1;
   top: var(--selection-top);
@@ -51,24 +51,24 @@
   pointer-events: none;
 }
 
-.selection-outline-top {
+:where(.einfach-spreadsheet) .selection-outline-top {
   border-top-width: 1px;
 }
 
-.selection-outline-right {
+:where(.einfach-spreadsheet) .selection-outline-right {
   border-right-width: 1px;
 }
 
-.selection-outline-bottom {
+:where(.einfach-spreadsheet) .selection-outline-bottom {
   border-bottom-width: 1px;
 }
 
-.selection-outline-left {
+:where(.einfach-spreadsheet) .selection-outline-left {
   border-left-width: 1px;
 }
 
 /* 引用拾取不是工作簿选区：用绿色虚线保留两者的视觉区别。 */
-.formula-reference-outline {
+:where(.einfach-spreadsheet) .formula-reference-outline {
   border-color: #00856a;
   border-style: dashed;
 }

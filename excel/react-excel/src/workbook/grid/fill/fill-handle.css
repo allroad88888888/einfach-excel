@@ -1,4 +1,4 @@
-.fill-handle-viewport {
+:where(.einfach-spreadsheet) .fill-handle-viewport {
   position: sticky;
   grid-area: 1 / 1 / 3 / 3;
   align-self: start;
@@ -10,7 +10,7 @@
   overflow: hidden;
 }
 
-.fill-handle {
+:where(.einfach-spreadsheet) .fill-handle {
   position: absolute;
   width: 12px;
   height: 12px;
@@ -24,8 +24,8 @@
   touch-action: none;
 }
 
-.fill-handle[data-mode='copy'] { cursor: copy; }
-.fill-handle-preview {
+:where(.einfach-spreadsheet) .fill-handle[data-mode='copy'] { cursor: copy; }
+:where(.einfach-spreadsheet) .fill-handle-preview {
   position: absolute;
   box-sizing: border-box;
   border: 1px dashed var(--primary);

@@ -1,4 +1,4 @@
-.text-columns-dialog {
+:where(.einfach-spreadsheet) .text-columns-dialog {
   box-sizing: border-box;
   width: 660px;
   max-width: calc(100vw - 24px);
@@ -11,13 +11,13 @@
   color: var(--text);
   font-size: 13px;
 }
-.text-columns-dialog::backdrop { background: rgb(20 25 45 / 25%); }
-.text-columns-dialog h2 { margin: 0; font-size: 16px; }
-.text-columns-dialog p { line-height: 1.5; }
-.text-columns-dialog form { display: grid; gap: 14px; }
-.text-columns-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.text-columns-dialog label { display: grid; gap: 6px; min-width: 0; }
-.text-columns-dialog input:not([type='checkbox']), .text-columns-dialog select, .text-columns-dialog button {
+:where(.einfach-spreadsheet) .text-columns-dialog::backdrop { background: rgb(20 25 45 / 25%); }
+:where(.einfach-spreadsheet) .text-columns-dialog h2 { margin: 0; font-size: 16px; }
+:where(.einfach-spreadsheet) .text-columns-dialog p { line-height: 1.5; }
+:where(.einfach-spreadsheet) .text-columns-dialog form { display: grid; gap: 14px; }
+:where(.einfach-spreadsheet) .text-columns-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+:where(.einfach-spreadsheet) .text-columns-dialog label { display: grid; gap: 6px; min-width: 0; }
+:where(.einfach-spreadsheet) .text-columns-dialog input:not([type='checkbox']), :where(.einfach-spreadsheet) .text-columns-dialog select, :where(.einfach-spreadsheet) .text-columns-dialog button {
   box-sizing: border-box;
   width: 100%;
   min-width: 0;
@@ -29,33 +29,33 @@
   color: inherit;
   font: inherit;
 }
-.text-columns-dialog fieldset { margin: 0; padding: 10px; border: 1px solid var(--border); }
-.text-columns-delimiters { display: flex; flex-wrap: wrap; gap: 8px 20px; }
-.text-columns-delimiters label, .text-columns-dialog .text-columns-check {
+:where(.einfach-spreadsheet) .text-columns-dialog fieldset { margin: 0; padding: 10px; border: 1px solid var(--border); }
+:where(.einfach-spreadsheet) .text-columns-delimiters { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+:where(.einfach-spreadsheet) .text-columns-delimiters label, :where(.einfach-spreadsheet) .text-columns-dialog .text-columns-check {
   display: flex; gap: 8px; align-items: center;
 }
-.text-columns-hint { color: #596174; font-size: 12px; line-height: 1.5; }
-.text-columns-source { font-variant-numeric: tabular-nums; }
-.text-columns-type-summary { max-height: 90px; overflow: auto; margin-bottom: 0; padding-left: 20px; }
-.text-columns-number-options summary { cursor: pointer; padding: 6px 0; }
-.text-columns-number-options .text-columns-check { margin-top: 12px; }
-.text-columns-preview { min-width: 0; display: grid; gap: 10px; }
-.text-columns-table-scroll { max-height: 180px; overflow: auto; border: 1px solid var(--border); }
-.text-columns-dialog table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
-.text-columns-dialog caption { text-align: left; padding: 8px; font-weight: 600; }
-.text-columns-dialog th, .text-columns-dialog td {
+:where(.einfach-spreadsheet) .text-columns-hint { color: #596174; font-size: 12px; line-height: 1.5; }
+:where(.einfach-spreadsheet) .text-columns-source { font-variant-numeric: tabular-nums; }
+:where(.einfach-spreadsheet) .text-columns-type-summary { max-height: 90px; overflow: auto; margin-bottom: 0; padding-left: 20px; }
+:where(.einfach-spreadsheet) .text-columns-number-options summary { cursor: pointer; padding: 6px 0; }
+:where(.einfach-spreadsheet) .text-columns-number-options .text-columns-check { margin-top: 12px; }
+:where(.einfach-spreadsheet) .text-columns-preview { min-width: 0; display: grid; gap: 10px; }
+:where(.einfach-spreadsheet) .text-columns-table-scroll { max-height: 180px; overflow: auto; border: 1px solid var(--border); }
+:where(.einfach-spreadsheet) .text-columns-dialog table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+:where(.einfach-spreadsheet) .text-columns-dialog caption { text-align: left; padding: 8px; font-weight: 600; }
+:where(.einfach-spreadsheet) .text-columns-dialog th, :where(.einfach-spreadsheet) .text-columns-dialog td {
   min-width: 70px; max-width: 200px; padding: 7px 10px; text-align: left;
   border: 1px solid var(--border); overflow-wrap: anywhere; white-space: pre-wrap;
 }
-.text-columns-dialog th { font-weight: 500; background: #f5f6fa; }
-.text-columns-warning { padding: 10px; border: 1px solid #c99b42; border-radius: 4px; background: #fff9ec; }
-.text-columns-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
-.text-columns-actions button { width: auto; }
-.text-columns-actions button[type='submit'] { background: var(--primary); color: white; }
-.text-columns-dialog [role='alert'] { margin: 0; color: #a12622; overflow-wrap: anywhere; }
-.text-columns-dialog :disabled { opacity: .5; }
-.text-columns-dialog :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
-@media (max-width: 480px) {
-  .text-columns-dialog { padding: 14px; }
-  .text-columns-fields { grid-template-columns: 1fr; gap: 10px; }
+:where(.einfach-spreadsheet) .text-columns-dialog th { font-weight: 500; background: #f5f6fa; }
+:where(.einfach-spreadsheet) .text-columns-warning { padding: 10px; border: 1px solid #c99b42; border-radius: 4px; background: #fff9ec; }
+:where(.einfach-spreadsheet) .text-columns-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+:where(.einfach-spreadsheet) .text-columns-actions button { width: auto; }
+:where(.einfach-spreadsheet) .text-columns-actions button[type='submit'] { background: var(--primary); color: white; }
+:where(.einfach-spreadsheet) .text-columns-dialog [role='alert'] { margin: 0; color: #a12622; overflow-wrap: anywhere; }
+:where(.einfach-spreadsheet) .text-columns-dialog :disabled { opacity: .5; }
+:where(.einfach-spreadsheet) .text-columns-dialog :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+@container einfach-spreadsheet (max-width: 480px) {
+  :where(.einfach-spreadsheet) .text-columns-dialog { padding: 14px; }
+  :where(.einfach-spreadsheet) .text-columns-fields { grid-template-columns: 1fr; gap: 10px; }
 }

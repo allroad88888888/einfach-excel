@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import ts from 'typescript'
 
 // 这里只检查能稳定机械判断的边界；抽象是否有必要由 react-excel/SKILL.md 审查。
@@ -53,8 +53,19 @@ function isConcreteDemoInfrastructureFile(filePath) {
   )
 }
 
-function isRustRuntimeHost(filePath) {
-  return reactRelativePath(filePath) === 'page/WorkbookRuntimeProvider.tsx'
+function isWorkerLikeTypeImport(filePath, node) {
+  const relative = reactRelativePath(filePath)
+  if (relative !== 'page/WorkbookRuntimeProvider.tsx' && relative !== 'worker/create-workbook-worker.ts') return false
+  const clause = node.importClause
+  return !clause?.name && clause?.namedBindings && ts.isNamedImports(clause.namedBindings) &&
+    clause.namedBindings.elements.length === 1 && clause.namedBindings.elements.every(specifier =>
+    importedName(specifier) === 'WorkerLike' && (clause.isTypeOnly || specifier.isTypeOnly))
+}
+
+function isPureRustRuntimeEntry(filePath, node, sourceFile) {
+  // 唯一发行 Worker 叶只装配 Core；不能把目录或视图整体放行。
+  return reactRelativePath(filePath) === 'worker/workbook.worker.ts' && !node.importClause &&
+    sourceFile.statements.length === 1 && node.moduleSpecifier.text === '@einfach/spreadsheet-ui-core/rust-runtime'
 }
 
 function isConcreteDemoImport(moduleName) {
@@ -106,14 +117,15 @@ function visitReactSource(filePath, sourceFile) {
       ) {
         report(filePath, node, `React 主线不能依赖 Solid：${moduleName}`)
       }
-      if (moduleName.includes('@einfach/spreadsheet-ui-core/rust-worker')) {
+      if (moduleName.includes('@einfach/spreadsheet-ui-core/rust-worker') &&
+        !(moduleName === '@einfach/spreadsheet-ui-core/rust-worker' && isWorkerLikeTypeImport(filePath, node))) {
         report(filePath, node, 'React 不能绕过 UI Core command atoms 直接使用 Worker 传输')
       }
       if (
         moduleName.includes('@einfach/spreadsheet-ui-core/rust-runtime') &&
-        !isRustRuntimeHost(filePath)
+        !isPureRustRuntimeEntry(filePath, node, sourceFile)
       ) {
-        report(filePath, node, 'Rust Worker 入口只能由共享 WorkbookRuntimeProvider 加载')
+        report(filePath, node, 'Rust runtime 只能由唯一的纯装配 Worker 叶加载')
       }
 
       const namedBindings = node.importClause?.namedBindings
@@ -138,6 +150,12 @@ function visitReactSource(filePath, sourceFile) {
 
     if (ts.isCallExpression(node)) {
       const callee = node.expression
+      if (callee.kind === ts.SyntaxKind.ImportKeyword && ts.isStringLiteral(node.arguments[0])) {
+        const moduleName = node.arguments[0].text
+        if (moduleName.includes('@einfach/spreadsheet-ui-core/rust-worker') ||
+          moduleName.includes('@einfach/spreadsheet-ui-core/rust-runtime'))
+          report(filePath, node, 'React 不能动态加载 Worker 传输或 Rust runtime')
+      }
       if (ts.isIdentifier(callee) && callee.text === 'atom') {
         report(filePath, node, 'React 包不能声明 spreadsheet atom')
       }
@@ -194,40 +212,49 @@ function visitUiCoreSource(filePath, sourceFile) {
   visit(sourceFile)
 }
 
-function parseSource(filePath) {
+function parseSource(filePath, source = fs.readFileSync(filePath, 'utf8')) {
   return ts.createSourceFile(
     filePath,
-    fs.readFileSync(filePath, 'utf8'),
+    source,
     ts.ScriptTarget.Latest,
     true,
     filePath.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
   )
 }
 
-for (const filePath of collectSourceFiles(reactSourceRoot)) {
-  visitReactSource(filePath, parseSource(filePath))
-}
-for (const filePath of collectSourceFiles(reactCellsSourceRoot)) {
-  visitReactSource(filePath, parseSource(filePath))
-}
-for (const filePath of collectSourceFiles(canvasCellsSourceRoot)) {
-  const sourceFile = parseSource(filePath)
-  for (const node of sourceFile.statements) {
-    if (!ts.isImportDeclaration(node) || !ts.isStringLiteral(node.moduleSpecifier)) continue
-    const moduleName = node.moduleSpecifier.text
-    if (/^(?:react(?:\/|$)|react-dom(?:\/|$)|@einfach\/react)/.test(moduleName) ||
-      moduleName.includes('react-excel/')) {
-      report(filePath, node, 'Canvas cell 包不能依赖 React 或 React 产品宿主')
-    }
-  }
-}
-for (const filePath of collectSourceFiles(uiCoreSourceRoot)) {
-  visitUiCoreSource(filePath, parseSource(filePath))
+export function checkReactSource(relative, source) {
+  const start = violations.length
+  const filePath = path.join(reactSourceRoot, relative)
+  visitReactSource(filePath, parseSource(filePath, source))
+  return violations.splice(start)
 }
 
-if (violations.length > 0) {
-  console.error(`展现层边界校验失败（${violations.length} 项）：\n${violations.sort().join('\n')}`)
-  process.exitCode = 1
-} else {
-  console.log('展现层边界校验通过：React -> UI Core atoms -> Rust/WASM')
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+  for (const filePath of collectSourceFiles(reactSourceRoot)) {
+    visitReactSource(filePath, parseSource(filePath))
+  }
+  for (const filePath of collectSourceFiles(reactCellsSourceRoot)) {
+    visitReactSource(filePath, parseSource(filePath))
+  }
+  for (const filePath of collectSourceFiles(canvasCellsSourceRoot)) {
+    const sourceFile = parseSource(filePath)
+    for (const node of sourceFile.statements) {
+      if (!ts.isImportDeclaration(node) || !ts.isStringLiteral(node.moduleSpecifier)) continue
+      const moduleName = node.moduleSpecifier.text
+      if (/^(?:react(?:\/|$)|react-dom(?:\/|$)|@einfach\/react)/.test(moduleName) ||
+        moduleName.includes('react-excel/')) {
+        report(filePath, node, 'Canvas cell 包不能依赖 React 或 React 产品宿主')
+      }
+    }
+  }
+  for (const filePath of collectSourceFiles(uiCoreSourceRoot)) {
+    visitUiCoreSource(filePath, parseSource(filePath))
+  }
+
+  if (violations.length > 0) {
+    console.error(`展现层边界校验失败（${violations.length} 项）：\n${violations.sort().join('\n')}`)
+    process.exitCode = 1
+  } else {
+    console.log('展现层边界校验通过：React -> UI Core atoms -> Rust/WASM')
+  }
 }

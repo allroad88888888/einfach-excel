@@ -1,46 +1,46 @@
 /* 复用工作簿语义颜色；表名和坐标分列，窄屏按内容换行。 */
-.table-panel {
+:where(.einfach-spreadsheet) .table-panel {
   box-sizing: border-box; width: 500px; max-width: calc(100vw - 24px);
   max-height: calc(100vh - 24px); overflow: auto; padding: 20px;
   border: 1px solid var(--border); border-radius: 8px;
   background: var(--surface); color: var(--text); font-size: 13px;
 }
-.table-panel::backdrop { background: rgb(20 25 45 / 25%); }
-.table-panel h2 { margin: 0; font-size: 17px; }
-.table-panel h3 { margin: 0; font-size: 13px; }
-.table-panel p { line-height: 1.5; }
-.table-panel button, .table-panel input, .table-panel select {
+:where(.einfach-spreadsheet) .table-panel::backdrop { background: rgb(20 25 45 / 25%); }
+:where(.einfach-spreadsheet) .table-panel h2 { margin: 0; font-size: 17px; }
+:where(.einfach-spreadsheet) .table-panel h3 { margin: 0; font-size: 13px; }
+:where(.einfach-spreadsheet) .table-panel p { line-height: 1.5; }
+:where(.einfach-spreadsheet) .table-panel button, :where(.einfach-spreadsheet) .table-panel input, :where(.einfach-spreadsheet) .table-panel select {
   box-sizing: border-box; min-width: 0; min-height: 34px; padding: 5px 8px;
   font: inherit; color: inherit; background: var(--surface);
   border: 1px solid var(--border); border-radius: 4px;
 }
-.table-panel-list { max-height: 180px; overflow: auto; border-block: 1px solid var(--border); }
-.table-panel-list > button {
+:where(.einfach-spreadsheet) .table-panel-list { max-height: 180px; overflow: auto; border-block: 1px solid var(--border); }
+:where(.einfach-spreadsheet) .table-panel-list > button {
   display: flex; justify-content: space-between; gap: 12px; width: 100%;
   text-align: left; border: 0; border-radius: 0; overflow-wrap: anywhere;
 }
-.table-panel-list > button:hover { background: var(--control-hover); }
-.table-panel-list > button[aria-pressed='true'] { background: var(--primary-soft); color: var(--primary); }
-.table-panel-list span { font-family: ui-monospace, monospace; font-size: 12px; }
-.table-panel-heading { display: flex; justify-content: space-between; align-items: center; margin: 16px 0; }
-.table-panel fieldset {
+:where(.einfach-spreadsheet) .table-panel-list > button:hover { background: var(--control-hover); }
+:where(.einfach-spreadsheet) .table-panel-list > button[aria-pressed='true'] { background: var(--primary-soft); color: var(--primary); }
+:where(.einfach-spreadsheet) .table-panel-list span { font-family: ui-monospace, monospace; font-size: 12px; }
+:where(.einfach-spreadsheet) .table-panel-heading { display: flex; justify-content: space-between; align-items: center; margin: 16px 0; }
+:where(.einfach-spreadsheet) .table-panel fieldset {
   display: grid; grid-template-columns: 100px minmax(0, 1fr); align-items: center;
   gap: 10px; padding: 0; margin: 0; border: 0; min-width: 0;
 }
-.table-panel-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 16px; }
-.table-panel-actions button[type='submit'] { background: var(--primary); color: white; }
-.table-panel-actions button:first-child { margin-right: auto; }
-.table-panel :disabled { opacity: .5; }
-.table-panel :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
-.table-panel [role='alert'] { color: #a12622; overflow-wrap: anywhere; }
-.table-panel-totals { border-top: 1px solid var(--border); margin-top: 16px; }
-.table-panel-columns { border-top: 1px solid var(--border); margin-top: 16px; padding-top: 16px; }
-.table-panel-totals select { width: 100%; }
-.table-panel-totals .table-panel-actions button { margin-left: auto; margin-right: 0; }
-.table-panel-appearance { border-top: 1px solid var(--border); margin-top: 16px; padding-top: 16px; }
-.table-style-option { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; min-height: 34px; }
-.table-style-option input { flex: 0 0 auto; width: 16px; min-height: 16px; margin: 0; accent-color: var(--primary); }
-@media (max-width: 420px) {
-  .table-panel fieldset { grid-template-columns: 1fr; gap: 6px; }
-  .table-panel-list > button { flex-wrap: wrap; gap: 4px; }
+:where(.einfach-spreadsheet) .table-panel-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+:where(.einfach-spreadsheet) .table-panel-actions button[type='submit'] { background: var(--primary); color: white; }
+:where(.einfach-spreadsheet) .table-panel-actions button:first-child { margin-right: auto; }
+:where(.einfach-spreadsheet) .table-panel :disabled { opacity: .5; }
+:where(.einfach-spreadsheet) .table-panel :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+:where(.einfach-spreadsheet) .table-panel [role='alert'] { color: #a12622; overflow-wrap: anywhere; }
+:where(.einfach-spreadsheet) .table-panel-totals { border-top: 1px solid var(--border); margin-top: 16px; }
+:where(.einfach-spreadsheet) .table-panel-columns { border-top: 1px solid var(--border); margin-top: 16px; padding-top: 16px; }
+:where(.einfach-spreadsheet) .table-panel-totals select { width: 100%; }
+:where(.einfach-spreadsheet) .table-panel-totals .table-panel-actions button { margin-left: auto; margin-right: 0; }
+:where(.einfach-spreadsheet) .table-panel-appearance { border-top: 1px solid var(--border); margin-top: 16px; padding-top: 16px; }
+:where(.einfach-spreadsheet) .table-style-option { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; min-height: 34px; }
+:where(.einfach-spreadsheet) .table-style-option input { flex: 0 0 auto; width: 16px; min-height: 16px; margin: 0; accent-color: var(--primary); }
+@container einfach-spreadsheet (max-width: 420px) {
+  :where(.einfach-spreadsheet) .table-panel fieldset { grid-template-columns: 1fr; gap: 6px; }
+  :where(.einfach-spreadsheet) .table-panel-list > button { flex-wrap: wrap; gap: 4px; }
 }

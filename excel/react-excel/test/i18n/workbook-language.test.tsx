@@ -2,9 +2,8 @@ import { createStore } from '@einfach/core'
 import {
   editingDraftAtom, editingSessionAtom, selectionSnapshotAtom, workbookRibbonTabAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
-import { afterEach, beforeEach, expect, test } from 'vitest'
-import { activateUiLocale } from '../../src/i18n/runtime'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { afterEach, expect, test } from 'vitest'
 import { WorkbookStoreProvider } from '../../src/page/WorkbookStoreProvider'
 import { LanguageSelect } from '../../src/workbook/chrome/header/LanguageSelect'
 import { RibbonTabs } from '../../src/workbook/chrome/ribbon/RibbonTabs'
@@ -13,10 +12,8 @@ import {
   renderSalesOrdersEditingWorksheet,
 } from '../support/cell-editing-harness'
 
-beforeEach(() => act(() => activateUiLocale('en')))
 afterEach(() => {
   cleanup()
-  act(() => activateUiLocale('en'))
   window.localStorage.clear()
 })
 
@@ -55,7 +52,7 @@ test('switches live labels without remounting the editor, resetting selection or
   expect(store.getter(workbookRibbonTabAtom)).toBe('Formulas')
 })
 
-test('two workbooks share UI language but keep independent ribbon state', () => {
+test('two default workbooks keep independent UI language and ribbon state', () => {
   const first = createStore()
   const second = createStore()
   render(<>
@@ -67,9 +64,10 @@ test('two workbooks share UI language but keep independent ribbon state', () => 
   fireEvent.change(screen.getAllByRole('combobox', { name: 'Interface language' })[0], {
     target: { value: 'zh' },
   })
-  expect(screen.getAllByRole('combobox', { name: '界面语言' })).toHaveLength(2)
+  expect(screen.getAllByRole('combobox', { name: '界面语言' })).toHaveLength(1)
+  expect(screen.getAllByRole('combobox', { name: 'Interface language' })).toHaveLength(1)
   expect(within(lists[0]).getByRole('tab', { name: '开始' })).toHaveAttribute('aria-selected', 'true')
-  expect(within(lists[1]).getByRole('tab', { name: '公式' })).toHaveAttribute('aria-selected', 'true')
+  expect(within(lists[1]).getByRole('tab', { name: 'Formulas' })).toHaveAttribute('aria-selected', 'true')
   expect(first.getter(workbookRibbonTabAtom)).toBe('Start')
   expect(second.getter(workbookRibbonTabAtom)).toBe('Formulas')
 })

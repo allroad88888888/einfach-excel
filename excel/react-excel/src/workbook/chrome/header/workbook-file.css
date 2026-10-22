@@ -1,12 +1,12 @@
 /* File 操作沿用工作簿已有 token，不引入第二套面板视觉。 */
-.workbook-file-trigger {
+:where(.einfach-spreadsheet) .workbook-file-trigger {
   padding: 6px 10px;
   border: 1px solid var(--border);
   border-radius: 6px;
   color: var(--text);
   background: #fff;
 }
-.workbook-file-dialog {
+:where(.einfach-spreadsheet) .workbook-file-dialog {
   box-sizing: border-box;
   width: min(400px, calc(100vw - 24px));
   max-height: calc(100dvh - 32px);
@@ -18,10 +18,10 @@
   background: #fff;
   font: inherit;
 }
-.workbook-file-dialog::backdrop { background: rgb(28 35 60 / 24%); }
-.workbook-file-dialog h2 { margin: 0 0 10px; font-size: 16px; }
-.workbook-file-dialog p { font-size: 12px; line-height: 1.5; }
-.workbook-file-dialog button, .workbook-file-picker {
+:where(.einfach-spreadsheet) .workbook-file-dialog::backdrop { background: rgb(28 35 60 / 24%); }
+:where(.einfach-spreadsheet) .workbook-file-dialog h2 { margin: 0 0 10px; font-size: 16px; }
+:where(.einfach-spreadsheet) .workbook-file-dialog p { font-size: 12px; line-height: 1.5; }
+:where(.einfach-spreadsheet) .workbook-file-dialog button, :where(.einfach-spreadsheet) .workbook-file-picker {
   display: block;
   box-sizing: border-box;
   width: 100%;
@@ -35,13 +35,13 @@
   font-size: 12px;
   text-align: left;
 }
-.workbook-file-picker input { display: block; width: 100%; margin-top: 7px; font: inherit; }
-.workbook-file-dialog .workbook-file-close { width: auto; margin-left: auto; text-align: center; }
-.workbook-file-hint { color: var(--muted); }
-.workbook-file-dialog [role="alert"] { color: #b42318; }
-.workbook-file-dialog button:hover, .workbook-file-trigger:hover { background: var(--control-hover); }
-.workbook-file-dialog button:disabled, .workbook-file-trigger:disabled { opacity: 0.5; }
-.workbook-file-dialog :focus-visible, .workbook-file-trigger:focus-visible {
+:where(.einfach-spreadsheet) .workbook-file-picker input { display: block; width: 100%; margin-top: 7px; font: inherit; }
+:where(.einfach-spreadsheet) .workbook-file-dialog .workbook-file-close { width: auto; margin-left: auto; text-align: center; }
+:where(.einfach-spreadsheet) .workbook-file-hint { color: var(--muted); }
+:where(.einfach-spreadsheet) .workbook-file-dialog [role="alert"] { color: #b42318; }
+:where(.einfach-spreadsheet) .workbook-file-dialog button:hover, :where(.einfach-spreadsheet) .workbook-file-trigger:hover { background: var(--control-hover); }
+:where(.einfach-spreadsheet) .workbook-file-dialog button:disabled, :where(.einfach-spreadsheet) .workbook-file-trigger:disabled { opacity: 0.5; }
+:where(.einfach-spreadsheet) .workbook-file-dialog :focus-visible, :where(.einfach-spreadsheet) .workbook-file-trigger:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
 }

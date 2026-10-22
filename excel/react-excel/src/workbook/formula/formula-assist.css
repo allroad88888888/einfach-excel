@@ -1,8 +1,8 @@
-.formula-assist {
-  position: fixed;
+:where(.einfach-spreadsheet) .formula-assist {
+  position: absolute;
   z-index: 40;
   width: 340px;
-  max-width: calc(100vw - 16px);
+  max-width: calc(100% - 16px);
   overflow: hidden;
   border: 1px solid var(--border-strong);
   border-radius: 6px;
@@ -11,18 +11,18 @@
   box-shadow: 0 4px 14px #292b3520;
   font-size: 12px;
 }
-.formula-assist-heading {
+:where(.einfach-spreadsheet) .formula-assist-heading {
   display: flex;
   justify-content: space-between;
   padding: 6px 9px;
   border-bottom: 1px solid var(--border);
   background: var(--chrome);
 }
-.formula-assist-heading span { color: #535867; }
+:where(.einfach-spreadsheet) .formula-assist-heading span { color: #535867; }
 /* 只读参数帮助不拦截下方网格的引用点击或拖选；建议按钮仍保留指针交互。 */
-.formula-assist-signature { pointer-events: none; }
-.formula-function-list { max-height: min(240px, 40vh); overflow-y: auto; }
-.formula-function-list button {
+:where(.einfach-spreadsheet) .formula-assist-signature { pointer-events: none; }
+:where(.einfach-spreadsheet) .formula-function-list { max-height: min(240px, 40vh); overflow-y: auto; }
+:where(.einfach-spreadsheet) .formula-function-list button {
   display: grid;
   grid-template-columns: 74px minmax(0, 1fr);
   gap: 8px;
@@ -35,9 +35,9 @@
   cursor: pointer;
   font: inherit;
 }
-.formula-function-list button[aria-selected='true'] { background: var(--primary-soft); }
-.formula-function-list button:hover { background: var(--control-hover); }
-.formula-function-list code { color: var(--primary-strong); font-size: 12px; }
-.formula-function-list button > span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.formula-signature { padding: 8px 10px; overflow-wrap: anywhere; line-height: 1.6; }
-.formula-signature strong { color: var(--primary-strong); text-decoration: underline; }
+:where(.einfach-spreadsheet) .formula-function-list button[aria-selected='true'] { background: var(--primary-soft); }
+:where(.einfach-spreadsheet) .formula-function-list button:hover { background: var(--control-hover); }
+:where(.einfach-spreadsheet) .formula-function-list code { color: var(--primary-strong); font-size: 12px; }
+:where(.einfach-spreadsheet) .formula-function-list button > span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+:where(.einfach-spreadsheet) .formula-signature { padding: 8px 10px; overflow-wrap: anywhere; line-height: 1.6; }
+:where(.einfach-spreadsheet) .formula-signature strong { color: var(--primary-strong); text-decoration: underline; }

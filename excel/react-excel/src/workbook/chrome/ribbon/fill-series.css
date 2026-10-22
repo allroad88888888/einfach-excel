@@ -1,11 +1,11 @@
-.fill-series-dialog form {
+:where(.einfach-spreadsheet) .fill-series-dialog form {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
-.fill-series-dialog form > p,
-.fill-series-dialog form > .size-actions,
-.fill-series-dialog form > fieldset { grid-column: 1 / -1; }
-.fill-series-dialog select,
-.fill-series-dialog textarea {
+:where(.einfach-spreadsheet) .fill-series-dialog form > p,
+:where(.einfach-spreadsheet) .fill-series-dialog form > .size-actions,
+:where(.einfach-spreadsheet) .fill-series-dialog form > fieldset { grid-column: 1 / -1; }
+:where(.einfach-spreadsheet) .fill-series-dialog select,
+:where(.einfach-spreadsheet) .fill-series-dialog textarea {
   min-height: 34px;
   max-width: 100%;
   border: 1px solid var(--border);
@@ -15,11 +15,11 @@
   color: inherit;
   font: inherit;
 }
-.fill-series-dialog textarea { resize: vertical; min-height: 100px; }
-.fill-series-dialog .size-actions {
+:where(.einfach-spreadsheet) .fill-series-dialog textarea { resize: vertical; min-height: 100px; }
+:where(.einfach-spreadsheet) .fill-series-dialog .size-actions {
   justify-content: flex-end;
 }
-.custom-fill-lists {
+:where(.einfach-spreadsheet) .custom-fill-lists {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 6px;
@@ -29,11 +29,11 @@
   border: 1px solid var(--border);
   border-radius: 5px;
 }
-.custom-fill-lists legend { padding: 0 4px; font-weight: 600; }
-.custom-fill-lists label[for$="-items"],
-.custom-fill-lists textarea,
-.custom-fill-lists .size-hint,
-.custom-list-actions { grid-column: 1 / -1; }
-.custom-fill-lists textarea { min-height: 76px; }
-.custom-fill-lists .size-hint { margin: 0; }
-.custom-list-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+:where(.einfach-spreadsheet) .custom-fill-lists legend { padding: 0 4px; font-weight: 600; }
+:where(.einfach-spreadsheet) .custom-fill-lists label[for$="-items"],
+:where(.einfach-spreadsheet) .custom-fill-lists textarea,
+:where(.einfach-spreadsheet) .custom-fill-lists .size-hint,
+:where(.einfach-spreadsheet) .custom-list-actions { grid-column: 1 / -1; }
+:where(.einfach-spreadsheet) .custom-fill-lists textarea { min-height: 76px; }
+:where(.einfach-spreadsheet) .custom-fill-lists .size-hint { margin: 0; }
+:where(.einfach-spreadsheet) .custom-list-actions { display: flex; flex-wrap: wrap; gap: 6px; }

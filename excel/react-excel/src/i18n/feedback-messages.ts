@@ -7,6 +7,9 @@ import { nextVersionFeedback } from './next-version-feedback'
 export const feedbackMessages: Readonly<Record<string, MessageDescriptor>> = {
   ...sevenFeatureFeedback,
   ...nextVersionFeedback,
+  HOST_READ_ONLY: msg`This workbook is read-only.`,
+  HOST_BUSY: msg`The workbook is busy. Try again when it is ready.`,
+  HOST_STRUCTURE_DISABLED: msg`Worksheet structure changes are disabled.`,
   'Enter a valid http:// or https:// address.': msg`Enter a valid http:// or https:// address.`,
   'Select the anchor cell before changing its hyperlink.': msg`Select the anchor cell before changing its hyperlink.`,
   'The hyperlink display text is too long or invalid.': msg`The hyperlink display text is too long or invalid.`,

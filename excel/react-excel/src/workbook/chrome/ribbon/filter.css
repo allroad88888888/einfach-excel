@@ -1,6 +1,6 @@
-.filter-dialog { width: 460px; max-height: calc(100dvh - 32px); overflow-y: auto; }
-.filter-dialog form { display: flex; flex-direction: column; align-items: stretch; }
-.filter-dialog fieldset {
+:where(.einfach-spreadsheet) .filter-dialog { width: 460px; max-height: calc(100dvh - 32px); overflow-y: auto; }
+:where(.einfach-spreadsheet) .filter-dialog form { display: flex; flex-direction: column; align-items: stretch; }
+:where(.einfach-spreadsheet) .filter-dialog fieldset {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
   align-items: center;
@@ -11,18 +11,18 @@
   border-radius: 5px;
   min-width: 0;
 }
-.filter-dialog legend { font-weight: 600; padding: 0 4px; }
-.filter-dialog :is(select, textarea) {
+:where(.einfach-spreadsheet) .filter-dialog legend { font-weight: 600; padding: 0 4px; }
+:where(.einfach-spreadsheet) .filter-dialog :is(select, textarea) {
   min-width: 0; min-height: 32px; padding: 4px 8px; border: 1px solid var(--border);
   border-radius: 5px; background: white; color: inherit; font: inherit;
 }
-.filter-dialog textarea { resize: vertical; }
-.filter-dialog .filter-number-bound { display: grid; grid-column: 1 / -1; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 8px; align-items: center; }
-.filter-dialog .filter-case { display: flex; align-items: center; gap: 8px; grid-column: 1 / -1; }
-.filter-dialog input[type='checkbox'] { width: 16px; min-height: 16px; margin: 0; }
-.filter-dialog :is(button, input, select, textarea):focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
-.filter-dialog .size-actions button[type='submit'] { background: var(--primary); color: white; }
-.filter-feedback {
+:where(.einfach-spreadsheet) .filter-dialog textarea { resize: vertical; }
+:where(.einfach-spreadsheet) .filter-dialog .filter-number-bound { display: grid; grid-column: 1 / -1; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 8px; align-items: center; }
+:where(.einfach-spreadsheet) .filter-dialog .filter-case { display: flex; align-items: center; gap: 8px; grid-column: 1 / -1; }
+:where(.einfach-spreadsheet) .filter-dialog input[type='checkbox'] { width: 16px; min-height: 16px; margin: 0; }
+:where(.einfach-spreadsheet) .filter-dialog :is(button, input, select, textarea):focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+:where(.einfach-spreadsheet) .filter-dialog .size-actions button[type='submit'] { background: var(--primary); color: white; }
+:where(.einfach-spreadsheet) .filter-feedback {
   /* 工具栏横向滚动，提示不能被 flex 压窄后逐字换行、挤掉表格高度。 */
   flex: none;
   max-width: 320px;
@@ -33,21 +33,21 @@
   font-size: 12px;
   line-height: 16px;
 }
-.filter-feedback[role='alert'] { color: #a12622; }
+:where(.einfach-spreadsheet) .filter-feedback[role='alert'] { color: #a12622; }
 
-.filter-values, .filter-values-hint { grid-column: 1 / -1; min-width: 0; }
-.filter-values section { margin-top: 8px; }
-.filter-values p { margin: 8px 0; }
-.filter-values-search { display: flex; gap: 8px; }
-.filter-values-search input { min-width: 0; flex: 1; }
-.filter-values-actions, .filter-values-pages {
+:where(.einfach-spreadsheet) .filter-values, :where(.einfach-spreadsheet) .filter-values-hint { grid-column: 1 / -1; min-width: 0; }
+:where(.einfach-spreadsheet) .filter-values section { margin-top: 8px; }
+:where(.einfach-spreadsheet) .filter-values p { margin: 8px 0; }
+:where(.einfach-spreadsheet) .filter-values-search { display: flex; gap: 8px; }
+:where(.einfach-spreadsheet) .filter-values-search input { min-width: 0; flex: 1; }
+:where(.einfach-spreadsheet) .filter-values-actions, :where(.einfach-spreadsheet) .filter-values-pages {
   display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 8px;
 }
-.filter-values-actions span, .filter-values-pages span { font-variant-numeric: tabular-nums; }
-.filter-values-pages { justify-content: space-between; }
-.filter-values-list { max-height: 180px; overflow-y: auto; border: 1px solid var(--border); margin-top: 8px; }
-.filter-values-list label { display: flex; align-items: flex-start; gap: 8px; padding: 6px 8px; cursor: pointer; }
-.filter-values-list label:hover, .filter-values-list label:focus-within { background: var(--primary-soft); }
-.filter-values-list input[type='checkbox'] { flex: none; margin-top: 2px; }
-.filter-values-label { min-width: 0; flex: 1; white-space: pre-wrap; overflow-wrap: anywhere; }
-.filter-values-count { flex: none; font-variant-numeric: tabular-nums; }
+:where(.einfach-spreadsheet) .filter-values-actions span, :where(.einfach-spreadsheet) .filter-values-pages span { font-variant-numeric: tabular-nums; }
+:where(.einfach-spreadsheet) .filter-values-pages { justify-content: space-between; }
+:where(.einfach-spreadsheet) .filter-values-list { max-height: 180px; overflow-y: auto; border: 1px solid var(--border); margin-top: 8px; }
+:where(.einfach-spreadsheet) .filter-values-list label { display: flex; align-items: flex-start; gap: 8px; padding: 6px 8px; cursor: pointer; }
+:where(.einfach-spreadsheet) .filter-values-list label:hover, :where(.einfach-spreadsheet) .filter-values-list label:focus-within { background: var(--primary-soft); }
+:where(.einfach-spreadsheet) .filter-values-list input[type='checkbox'] { flex: none; margin-top: 2px; }
+:where(.einfach-spreadsheet) .filter-values-label { min-width: 0; flex: 1; white-space: pre-wrap; overflow-wrap: anywhere; }
+:where(.einfach-spreadsheet) .filter-values-count { flex: none; font-variant-numeric: tabular-nums; }

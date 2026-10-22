@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "declarationMap": false,
+    "types": ["vite/client"],
+    "paths": {
+      "@einfach/canvas-cells": ["../../packages/canvas-cells/src/index.ts"],
+      "@einfach/canvas": ["../../packages/canvas/src/index.ts"],
+      "@einfach/react-cells": ["../../packages/react-cells/src/index.ts"]
+    }
+  },
+  "include": ["src/index.ts", "src/i18n/catalogs.d.ts"],
+  "exclude": ["test", "e2e", "src/page/demo", "src/app", "src/main.tsx"]
+}

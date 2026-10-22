@@ -1,16 +1,16 @@
 /* 状态栏沿用现有字体与颜色；统计区预留固定高度，等待态不能移动正在点击的单元格。 */
-.workbook-footer {
+:where(.einfach-spreadsheet) .workbook-footer {
   flex-wrap: wrap;
 }
 /* 保留两张初始工作表及操作按钮的空间；统计或剪贴板提示变长时自然换行。 */
-.workbook-footer .workbook-sheet-controls {
+:where(.einfach-spreadsheet) .workbook-footer .workbook-sheet-controls {
   flex: 1 0 min(100%, 480px);
 }
-.workbook-footer .status-items {
+:where(.einfach-spreadsheet) .workbook-footer .status-items {
   max-width: 100%;
   box-sizing: border-box;
 }
-.selection-statistics {
+:where(.einfach-spreadsheet) .selection-statistics {
   display: flex;
   flex: 1;
   min-width: 0;
@@ -23,44 +23,44 @@
   scrollbar-width: none;
   font-variant-numeric: tabular-nums;
 }
-.selection-statistics > span,
-.selection-statistic {
+:where(.einfach-spreadsheet) .selection-statistics > span,
+:where(.einfach-spreadsheet) .selection-statistic {
   flex: none;
   white-space: nowrap;
 }
-.selection-status {
+:where(.einfach-spreadsheet) .selection-status {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   min-width: 0;
   gap: 0 6px;
 }
-.status-items .selection-statistic {
+:where(.einfach-spreadsheet) .status-items .selection-statistic {
   height: auto;
   padding: 0;
   color: inherit;
   font: inherit;
   text-align: left;
 }
-.selection-statistic:focus-visible,
-.statistics-settings-button:focus-visible {
+:where(.einfach-spreadsheet) .selection-statistic:focus-visible,
+:where(.einfach-spreadsheet) .statistics-settings-button:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
-.status-items .statistics-settings-button {
+:where(.einfach-spreadsheet) .status-items .statistics-settings-button {
   height: 26px;
   width: 26px;
   flex: none;
 }
-.statistic-copy-feedback {
+:where(.einfach-spreadsheet) .statistic-copy-feedback {
   flex-basis: 100%;
   padding-bottom: 4px;
   overflow-wrap: anywhere;
 }
-.statistic-copy-feedback[role='alert'] {
+:where(.einfach-spreadsheet) .statistic-copy-feedback[role='alert'] {
   color: #a12622;
 }
-.statistics-settings {
+:where(.einfach-spreadsheet) .statistics-settings {
   width: 320px;
   max-width: calc(100vw - 32px);
   box-sizing: border-box;
@@ -71,67 +71,67 @@
   background: white;
   font-size: 13px;
 }
-.statistics-settings::backdrop {
+:where(.einfach-spreadsheet) .statistics-settings::backdrop {
   background: #20243455;
 }
-.statistics-settings h2 {
+:where(.einfach-spreadsheet) .statistics-settings h2 {
   margin: 0 0 12px;
   font-size: 16px;
 }
-.statistics-settings p {
+:where(.einfach-spreadsheet) .statistics-settings p {
   line-height: 1.5;
 }
-.statistics-settings label {
+:where(.einfach-spreadsheet) .statistics-settings label {
   display: flex;
   align-items: center;
   gap: 8px;
   padding-block: 4px;
 }
-.statistics-settings-actions {
+:where(.einfach-spreadsheet) .statistics-settings-actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
 }
-.status-items .statistics-settings-actions button {
+:where(.einfach-spreadsheet) .status-items .statistics-settings-actions button {
   height: auto;
   padding: 7px 10px;
   border: 1px solid var(--border);
   border-radius: 4px;
 }
-.selection-statistics-error {
+:where(.einfach-spreadsheet) .selection-statistics-error {
   color: #a12622;
 }
 /* 常见桌面及窄屏固定分行，查询等待态不能让网格高度来回变化。 */
-@media (max-width: 1400px) {
-  .workbook-footer {
+@container einfach-spreadsheet (max-width: 1400px) {
+  :where(.einfach-spreadsheet) .workbook-footer {
     flex-wrap: wrap;
   }
-  .workbook-footer .workbook-sheet-controls {
+  :where(.einfach-spreadsheet) .workbook-footer .workbook-sheet-controls {
     flex: 1 0 100%;
     max-width: 100%;
   }
-  .workbook-footer .status-items {
+  :where(.einfach-spreadsheet) .workbook-footer .status-items {
     width: 100%;
     box-sizing: border-box;
     gap: 8px;
     padding-inline: 8px;
     border-top: 1px solid var(--border);
   }
-  .selection-status {
+  :where(.einfach-spreadsheet) .selection-status {
     flex: 1;
   }
 }
 
 /* 窄屏默认六项全部展开；即使只显示等待文字，也保留三行，避免双击目标跳动。
    极长数值仍可横向滚动读取，不缩小字体，也不改 Rust 返回的值。 */
-@media (max-width: 760px) {
-  .selection-statistics {
+@container einfach-spreadsheet (max-width: 760px) {
+  :where(.einfach-spreadsheet) .selection-statistics {
     display: grid;
     grid-template-columns: repeat(2, minmax(max-content, 1fr));
     grid-template-rows: repeat(3, 18px);
     height: 74px;
   }
-  .selection-statistics > span {
+  :where(.einfach-spreadsheet) .selection-statistics > span {
     grid-column: 1 / -1;
   }
 }

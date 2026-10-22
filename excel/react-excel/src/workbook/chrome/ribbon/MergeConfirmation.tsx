@@ -1,7 +1,7 @@
 import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { runSelectionMergeAtom, selectionMergeFeedbackAtom } from '@einfach/spreadsheet-ui-core'
-import { useEffect, useRef, type RefObject } from 'react'
+import { useEffect, useId, useRef, type RefObject } from 'react'
 import { cycleDialogFocus } from './dialog-focus'
 
 /** 沿用工作表确认框的原生模态布局，默认先聚焦取消。 */
@@ -11,6 +11,8 @@ export function MergeConfirmation({
   readonly openerRef: RefObject<HTMLSelectElement>
 }) {
   const { t } = useLingui()
+  const titleId = useId()
+  const descriptionId = useId()
   const state = useAtomValue(selectionMergeFeedbackAtom)
   const run = useSetAtom(runSelectionMergeAtom)
   const ref = useRef<HTMLDialogElement>(null)
@@ -32,16 +34,16 @@ export function MergeConfirmation({
       ref={ref}
       className="sheet-delete-dialog"
       role="alertdialog"
-      aria-labelledby="merge-confirm-title"
-      aria-describedby="merge-confirm-description"
+      aria-labelledby={titleId}
+      aria-describedby={descriptionId}
       onKeyDown={cycleDialogFocus}
       onCancel={(event) => {
         event.preventDefault()
         if (!state.busy) void run('cancel')
       }}
     >
-      <h2 id="merge-confirm-title"><Trans>Merge these cells?</Trans></h2>
-      <p id="merge-confirm-description"><Trans>
+      <h2 id={titleId}><Trans>Merge these cells?</Trans></h2>
+      <p id={descriptionId}><Trans>
         Only the upper-left cell's content will remain. Other cell contents will be deleted. Undo
         can restore them.
       </Trans></p>

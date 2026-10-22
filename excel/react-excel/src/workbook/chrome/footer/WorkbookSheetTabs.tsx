@@ -12,12 +12,13 @@ import {
   editingCommitLifecycleAtom,
   formulaReferenceActiveAtom,
 } from '@einfach/spreadsheet-ui-core'
-import { useEffect, useRef } from 'react'
+import { useEffect, useId, useRef } from 'react'
 import { SheetDeleteConfirmation } from './SheetDeleteConfirmation'
 
 /** 工作表标签交互；名称草稿、命令状态都由 UI Core 持有。 */
 export function WorkbookSheetTabs() {
   const { i18n, t } = useLingui()
+  const errorId = useId()
   const document = useAtomValue(workbookDocumentAtom)
   const active = useAtomValue(activeWorkbookSheetAtom)
   const state = useAtomValue(sheetTabsAtom)
@@ -40,9 +41,13 @@ export function WorkbookSheetTabs() {
     inputRef.current?.select()
   }, [state.rename?.sheetId])
   useEffect(() => {
-    tabsRef.current
-      ?.querySelector('[aria-selected="true"]')
-      ?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' })
+    const list = tabsRef.current
+    const tab = list?.querySelector<HTMLElement>('[aria-selected="true"]')
+    if (!list || !tab) return
+    const bounds = list.getBoundingClientRect(), activeBounds = tab.getBoundingClientRect()
+    // 只滚动本实例的页签列表，不能让 scrollIntoView 连带移动宿主文档。
+    if (activeBounds.left < bounds.left) list.scrollLeft += activeBounds.left - bounds.left
+    else if (activeBounds.right > bounds.right) list.scrollLeft += activeBounds.right - bounds.right
   }, [active?.id, active?.name, active?.index])
 
   return (
@@ -162,7 +167,7 @@ export function WorkbookSheetTabs() {
             aria-label={t`Sheet name`}
             value={state.rename.draftName}
             aria-invalid={!!state.error}
-            aria-describedby={state.error ? 'sheet-command-error' : undefined}
+            aria-describedby={state.error ? errorId : undefined}
             disabled={busy}
             onChange={(event) =>
               void run({ operation: 'change-name', name: event.currentTarget.value })
@@ -187,7 +192,7 @@ export function WorkbookSheetTabs() {
         </form>
       )}
       {state.error && !state.deleteConfirmation && (
-        <p id="sheet-command-error" className="sheet-command-error" role="alert">
+        <p id={errorId} data-sheet-command-error className="sheet-command-error" role="alert">
           {translateFeedback(i18n, state.error)}
         </p>
       )}

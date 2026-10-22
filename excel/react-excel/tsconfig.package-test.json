@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.lib.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "emitDeclarationOnly": false,
+    "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom/vitest"]
+  },
+  "include": [
+    "src/i18n/catalogs.d.ts",
+    "test/package/**/*.ts",
+    "test/package/**/*.tsx",
+    "test/page/workbook-runtime-provider.test.tsx"
+  ],
+  "exclude": []
+}

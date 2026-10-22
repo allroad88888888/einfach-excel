@@ -1,34 +1,34 @@
 /* Protection uses the workbook dialog tokens; ranges wrap without shrinking the type. */
-.protection-panel {
+:where(.einfach-spreadsheet) .protection-panel {
   box-sizing: border-box; width: 480px; max-width: calc(100vw - 24px);
   max-height: calc(100dvh - 24px); overflow: auto; padding: 20px;
   border: 1px solid var(--border); border-radius: 8px;
   background: var(--surface); color: var(--text); font-size: 13px;
 }
-.protection-panel::backdrop { background: rgb(20 25 45 / 25%); }
-.protection-panel h2 { margin: 0; font-size: 17px; }
-.protection-panel h3 { margin: 18px 0 0; font-size: 13px; }
-.protection-panel p { line-height: 1.5; }
-.protection-sheet { font-weight: 600; overflow-wrap: anywhere; }
-.protection-status { padding: 10px; background: var(--primary-soft); border-radius: 4px; }
-.protection-panel button {
+:where(.einfach-spreadsheet) .protection-panel::backdrop { background: rgb(20 25 45 / 25%); }
+:where(.einfach-spreadsheet) .protection-panel h2 { margin: 0; font-size: 17px; }
+:where(.einfach-spreadsheet) .protection-panel h3 { margin: 18px 0 0; font-size: 13px; }
+:where(.einfach-spreadsheet) .protection-panel p { line-height: 1.5; }
+:where(.einfach-spreadsheet) .protection-sheet { font-weight: 600; overflow-wrap: anywhere; }
+:where(.einfach-spreadsheet) .protection-status { padding: 10px; background: var(--primary-soft); border-radius: 4px; }
+:where(.einfach-spreadsheet) .protection-panel button {
   box-sizing: border-box; min-height: 34px; padding: 6px 10px; font: inherit;
   color: inherit; background: var(--surface); border: 1px solid var(--border); border-radius: 4px;
 }
-.protection-panel button:hover:enabled { background: var(--control-hover); }
-.protection-panel button:disabled { opacity: .5; }
-.protection-panel :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
-.protection-ranges { list-style: none; padding: 0; max-height: 180px; overflow: auto; }
-.protection-ranges li {
+:where(.einfach-spreadsheet) .protection-panel button:hover:enabled { background: var(--control-hover); }
+:where(.einfach-spreadsheet) .protection-panel button:disabled { opacity: .5; }
+:where(.einfach-spreadsheet) .protection-panel :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+:where(.einfach-spreadsheet) .protection-ranges { list-style: none; padding: 0; max-height: 180px; overflow: auto; }
+:where(.einfach-spreadsheet) .protection-ranges li {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: 6px 0; border-bottom: 1px solid var(--border);
 }
-.protection-panel code { overflow-wrap: anywhere; }
-.protection-allow { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; width: 100%; }
-.protection-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 20px; }
-.protection-actions .protection-primary { color: white; background: var(--primary); }
-.protection-panel [role='alert'] { color: var(--danger, #a12622); overflow-wrap: anywhere; }
-@media (max-width: 420px) {
-  .protection-panel { padding: 16px; }
-  .protection-actions button { flex: 1 1 auto; }
+:where(.einfach-spreadsheet) .protection-panel code { overflow-wrap: anywhere; }
+:where(.einfach-spreadsheet) .protection-allow { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; width: 100%; }
+:where(.einfach-spreadsheet) .protection-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+:where(.einfach-spreadsheet) .protection-actions .protection-primary { color: white; background: var(--primary); }
+:where(.einfach-spreadsheet) .protection-panel [role='alert'] { color: var(--danger, #a12622); overflow-wrap: anywhere; }
+@container einfach-spreadsheet (max-width: 420px) {
+  :where(.einfach-spreadsheet) .protection-panel { padding: 16px; }
+  :where(.einfach-spreadsheet) .protection-actions button { flex: 1 1 auto; }
 }

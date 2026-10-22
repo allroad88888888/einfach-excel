@@ -1,5 +1,5 @@
 /* Owns the shared workbook identity bar styling. */
-.workbook-header {
+:where(.einfach-spreadsheet) .workbook-header {
   display: flex;
   min-height: 48px;
   align-items: center;
@@ -10,7 +10,7 @@
   background: #ffffff;
 }
 
-.univer-mark {
+:where(.einfach-spreadsheet) .univer-mark {
   display: grid;
   width: 30px;
   height: 30px;
@@ -24,24 +24,24 @@
   box-shadow: 0 3px 8px rgba(39, 79, 238, 0.22);
 }
 
-.univer-mark span {
+:where(.einfach-spreadsheet) .univer-mark span {
   border-radius: 2px;
   background: #ffffff;
 }
 
-.univer-mark span:nth-child(2),
-.univer-mark span:nth-child(3) {
+:where(.einfach-spreadsheet) .univer-mark span:nth-child(2),
+:where(.einfach-spreadsheet) .univer-mark span:nth-child(3) {
   opacity: 0.68;
 }
 
-.workbook-identity {
+:where(.einfach-spreadsheet) .workbook-identity {
   display: flex;
   min-width: 220px;
   align-items: baseline;
   gap: 9px;
 }
 
-.workbook-name {
+:where(.einfach-spreadsheet) .workbook-name {
   overflow: hidden;
   font-size: 14px;
   font-weight: 650;
@@ -50,17 +50,17 @@
   white-space: nowrap;
 }
 
-.workbook-subtitle {
+:where(.einfach-spreadsheet) .workbook-subtitle {
   color: var(--muted);
   font-size: 11px;
   white-space: nowrap;
 }
 
-.header-spacer {
+:where(.einfach-spreadsheet) .header-spacer {
   flex: 1;
 }
 
-.language-select {
+:where(.einfach-spreadsheet) .language-select {
   flex: none;
   max-width: 88px;
   min-height: 28px;
@@ -72,7 +72,7 @@
   font-size: 12px;
 }
 
-.save-state {
+:where(.einfach-spreadsheet) .save-state {
   display: flex;
   align-items: center;
   gap: 5px;
@@ -80,7 +80,7 @@
   font-size: 11px;
 }
 
-.row-count-badge {
+:where(.einfach-spreadsheet) .row-count-badge {
   padding: 4px 8px;
   border: 1px solid #dfe3f7;
   border-radius: 999px;
@@ -90,28 +90,28 @@
   font-weight: 600;
 }
 
-@media (max-width: 640px) {
-  .workbook-header {
+@container einfach-spreadsheet (max-width: 640px) {
+  :where(.einfach-spreadsheet) .workbook-header {
     min-height: 44px;
     gap: 9px;
     padding: 0 10px;
   }
 
-  .univer-mark {
+  :where(.einfach-spreadsheet) .univer-mark {
     width: 28px;
     height: 28px;
   }
 
-  .workbook-identity {
+  :where(.einfach-spreadsheet) .workbook-identity {
     min-width: 0;
     overflow: hidden;
     flex-direction: column;
     gap: 0;
   }
 
-  .workbook-subtitle,
-  .row-count-badge,
-  .save-state {
+  :where(.einfach-spreadsheet) .workbook-subtitle,
+  :where(.einfach-spreadsheet) .row-count-badge,
+  :where(.einfach-spreadsheet) .save-state {
     display: none;
   }
 }

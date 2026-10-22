@@ -7,12 +7,20 @@ import {
 
 beforeEach(() => {
   // jsdom 不做布局；浏览器中的贴边/滚动几何由真实 E2E 覆盖。
+  const originalBounds = HTMLElement.prototype.getBoundingClientRect
+  vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+    return this.classList.contains('einfach-spreadsheet')
+      ? new DOMRect(0, 0, 1280, 800) : originalBounds.call(this)
+  })
   vi.spyOn(HTMLTextAreaElement.prototype, 'getBoundingClientRect')
     .mockReturnValue(new DOMRect(100, 100, 200, 30))
   vi.spyOn(document.documentElement, 'clientHeight', 'get').mockReturnValue(800)
   vi.spyOn(document.documentElement, 'clientWidth', 'get').mockReturnValue(1280)
 })
-afterEach(() => vi.restoreAllMocks())
+afterEach(() => {
+  vi.restoreAllMocks()
+  vi.unstubAllGlobals()
+})
 
 test('cell completion supports keyboard selection, preserves focus and writes only on final Enter', async () => {
   const connection = createControlledCellEditingConnection()
@@ -95,4 +103,40 @@ test('a rejected formula announces its error while retaining parameter help and 
   fireEvent.keyDown(input, { key: 'Enter' })
   await waitFor(() => expect(screen.queryByRole('alert')).toBeNull())
   expect(connection.setCellInput).toHaveBeenCalledTimes(2)
+})
+
+test('formula assistance observes only its own root and releases geometry resources when hidden', async () => {
+  const observers: {
+    observe: ReturnType<typeof vi.fn>
+    disconnect: ReturnType<typeof vi.fn>
+    notify: () => void
+  }[] = []
+  vi.stubGlobal('ResizeObserver', class {
+    observe = vi.fn()
+    disconnect = vi.fn()
+    constructor(notify: () => void) {
+      observers.push({ observe: this.observe, disconnect: this.disconnect, notify })
+    }
+  })
+  const connection = createControlledCellEditingConnection()
+  renderSalesOrdersEditingWorksheet(connection)
+  fireEvent.doubleClick(await firstEditingCell())
+  const input = await focusedCellEditor()
+  fireEvent.change(input, { target: { value: '=SU' } })
+  const root = input.closest('.einfach-spreadsheet')!
+  const observer = observers.find(candidate =>
+    candidate.observe.mock.calls.some(([node]) => node === root))!
+  expect(observer).toBeDefined()
+  expect(observer.observe).toHaveBeenCalledTimes(1)
+  const popup = root.querySelector<HTMLElement>('.formula-assist')!
+  const initialLeft = popup.style.left
+  expect(initialLeft).not.toBe('')
+  popup.style.left = '999px'
+  observer.notify()
+  expect(popup.style.left).toBe(initialLeft)
+  fireEvent.keyDown(input, { key: 'Escape' })
+  expect(observer.disconnect).toHaveBeenCalledTimes(1)
+  expect(root.querySelector('.formula-assist')).toBeNull()
+  expect(input).toHaveValue('=SU')
+  expect(input).toHaveFocus()
 })

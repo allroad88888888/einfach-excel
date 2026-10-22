@@ -1,35 +1,65 @@
 {
   "name": "@einfach/react-excel",
   "version": "0.0.0",
-  "private": true,
+  "private": false,
   "description": "React workbook product powered by the Einfach Rust/WASM engine",
   "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./style.css": "./dist/style.css",
+    "./package.json": "./package.json"
+  },
+  "files": ["dist", "docs/package", "LICENSE", "NOTICE"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/allroad88888888/einfach-excel.git",
+    "directory": "excel/react-excel"
+  },
+  "publishConfig": { "access": "public" },
+  "sideEffects": ["**/*.css"],
   "engines": {
     "node": ">=22.19.0"
   },
   "dependencies": {
+    "@lingui/core": "6.9.1",
+    "@lingui/react": "6.9.1"
+  },
+  "peerDependencies": {
+    "@einfach/core": "^0.4.0",
+    "@einfach/react": "^0.4.0",
+    "@einfach/spreadsheet-ui-core": "^0.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "scripts": {
+    "build": "pnpm build:lib && pnpm build:demo",
+    "build:lib": "vite build --config vite.lib.config.ts && node scripts/build-declarations.mjs && node ../../scripts/generate-package-notices.mjs && node scripts/verify-package-artifact.mjs",
+    "build:demo": "vite build",
+    "dev": "vite",
+    "e2e": "node ../../scripts/check-react-e2e-features.mjs && pnpm package:prepare && playwright test",
+    "e2e:install": "playwright install chromium",
+    "package:prepare": "node ../../scripts/prepare-react-package-consumers.mjs",
+    "e2e:package": "pnpm package:prepare && playwright test --config playwright.package.config.ts",
+    "i18n:extract": "lingui extract --clean",
+    "i18n:check": "lingui compile --strict",
+    "test": "vitest run",
+    "test:package": "vitest run test/package test/page/workbook-runtime-provider.test.tsx && tsc -p tsconfig.package-test.json",
+    "verify:package-artifact": "node scripts/verify-package-artifact.mjs && node scripts/check-package-contents.mjs",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p tsconfig.json --noEmit --pretty false"
+  },
+  "devDependencies": {
     "@einfach/canvas-cells": "workspace:*",
     "@einfach/core": "^0.4.0",
     "@einfach/react": "^0.4.0",
     "@einfach/react-cells": "workspace:*",
     "@einfach/spreadsheet-ui-core": "workspace:*",
-    "@lingui/core": "6.9.1",
-    "@lingui/react": "6.9.1",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
-  },
-  "scripts": {
-    "build": "vite build",
-    "dev": "vite",
-    "e2e": "node ../../scripts/check-react-e2e-features.mjs && playwright test",
-    "e2e:install": "playwright install chromium",
-    "i18n:extract": "lingui extract --clean",
-    "i18n:check": "lingui compile --strict",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "typecheck": "tsc -p tsconfig.json --noEmit --pretty false"
-  },
-  "devDependencies": {
     "@lingui/cli": "6.9.1",
     "@lingui/format-po": "6.9.1",
     "@lingui/vite-plugin": "6.9.1",
@@ -41,6 +71,9 @@
     "@types/react-dom": "^18.3.6",
     "@vitejs/plugin-react": "6.1.2",
     "jsdom": "^25.0.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.7.2",
     "vite": "8.3.4",
     "vitest": "5.0.5"
   }

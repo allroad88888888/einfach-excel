@@ -2,12 +2,14 @@ import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { runWorkbookSheetCommandAtom, sheetTabsAtom } from '@einfach/spreadsheet-ui-core'
-import { useEffect, useRef } from 'react'
+import { useEffect, useId, useRef } from 'react'
 import { cycleDialogFocus } from '../ribbon/dialog-focus'
 
 /** 删除确认使用原生模态框；确认对象及异步结果仍由 UI Core 持有。 */
 export function SheetDeleteConfirmation() {
   const { i18n, t } = useLingui()
+  const titleId = useId()
+  const descriptionId = useId()
   const state = useAtomValue(sheetTabsAtom)
   const run = useSetAtom(runWorkbookSheetCommandAtom)
   const dialogRef = useRef<HTMLDialogElement>(null)
@@ -32,16 +34,16 @@ export function SheetDeleteConfirmation() {
       ref={dialogRef}
       className="sheet-delete-dialog"
       role="alertdialog"
-      aria-labelledby="sheet-delete-title"
-      aria-describedby="sheet-delete-description"
+      aria-labelledby={titleId}
+      aria-describedby={descriptionId}
       onKeyDown={cycleDialogFocus}
       onCancel={(event) => {
         event.preventDefault()
         if (!busy) void run({ operation: 'cancel-delete' })
       }}
     >
-      <h2 id="sheet-delete-title"><Trans>Delete worksheet?</Trans></h2>
-      <p id="sheet-delete-description"><Trans>
+      <h2 id={titleId}><Trans>Delete worksheet?</Trans></h2>
+      <p id={descriptionId}><Trans>
         Delete “{confirmation.sheetName}” and all its data? Undo is available within session history
         limits.
       </Trans></p>

@@ -1,4 +1,4 @@
-.grid-validation-feedback {
+:where(.einfach-spreadsheet) .grid-validation-feedback {
   position: absolute;
   z-index: 8;
   inset-inline: 8px;
@@ -8,7 +8,7 @@
   gap: 8px;
   pointer-events: none;
 }
-.validation-input-message {
+:where(.einfach-spreadsheet) .validation-input-message {
   box-sizing: border-box;
   width: min(320px, 100%);
   padding: 10px 12px;
@@ -21,8 +21,8 @@
   overflow-wrap: anywhere;
   pointer-events: none;
 }
-.validation-input-message p { margin: 4px 0 0; }
-.validation-error-alert {
+:where(.einfach-spreadsheet) .validation-input-message p { margin: 4px 0 0; }
+:where(.einfach-spreadsheet) .validation-error-alert {
   pointer-events: auto;
   width: min(420px, calc(100vw - 32px));
   max-height: calc(100dvh - 32px);
@@ -33,12 +33,12 @@
   border: 1px solid var(--border);
   border-radius: 8px;
 }
-.validation-error-alert::backdrop { background: rgb(12 22 32 / 25%); }
-.validation-error-alert h2 { margin: 0 0 12px; font-size: 17px; }
-.validation-error-alert p { white-space: pre-wrap; overflow-wrap: anywhere; }
-.validation-alert-actions { display: flex; justify-content: flex-end; gap: 8px; }
-.validation-alert-actions button { min-height: 32px; padding: 4px 12px; }
-.validation-stop-message {
+:where(.einfach-spreadsheet) .validation-error-alert::backdrop { background: rgb(12 22 32 / 25%); }
+:where(.einfach-spreadsheet) .validation-error-alert h2 { margin: 0 0 12px; font-size: 17px; }
+:where(.einfach-spreadsheet) .validation-error-alert p { white-space: pre-wrap; overflow-wrap: anywhere; }
+:where(.einfach-spreadsheet) .validation-alert-actions { display: flex; justify-content: flex-end; gap: 8px; }
+:where(.einfach-spreadsheet) .validation-alert-actions button { min-height: 32px; padding: 4px 12px; }
+:where(.einfach-spreadsheet) .validation-stop-message {
   position: relative; box-sizing: border-box;
   width: min(360px, 100%);
   padding: 10px 32px 10px 12px;
@@ -46,7 +46,7 @@
   border: 1px solid var(--border); border-radius: 6px;
   overflow-wrap: anywhere;
 }
-.validation-stop-message p { margin: 4px 0 0; white-space: pre-wrap; }
-.validation-stop-message button {
+:where(.einfach-spreadsheet) .validation-stop-message p { margin: 4px 0 0; white-space: pre-wrap; }
+:where(.einfach-spreadsheet) .validation-stop-message button {
   position: absolute; top: 4px; right: 4px; pointer-events: auto;
 }

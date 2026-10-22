@@ -1,6 +1,6 @@
-.grid-surface td.cell-metadata-host { position: relative; }
+:where(.einfach-spreadsheet) .grid-surface td.cell-metadata-host { position: relative; }
 
-.cell-conditional-icon {
+:where(.einfach-spreadsheet) .cell-conditional-icon {
   position: absolute;
   left: 4px;
   top: 50%;
@@ -15,11 +15,11 @@
   pointer-events: none;
 }
 
-.cell-content[data-conditional-icon-value='visible'] { padding-left: 15px; }
-.cell-content[data-conditional-icon-value='hidden'] { opacity: 0; }
+:where(.einfach-spreadsheet) .cell-content[data-conditional-icon-value='visible'] { padding-left: 15px; }
+:where(.einfach-spreadsheet) .cell-content[data-conditional-icon-value='hidden'] { opacity: 0; }
 
-.cell-note-indicator,
-.cell-comment-indicator {
+:where(.einfach-spreadsheet) .cell-note-indicator,
+:where(.einfach-spreadsheet) .cell-comment-indicator {
   position: absolute;
   top: 1px;
   right: 1px;
@@ -27,18 +27,18 @@
   pointer-events: none;
 }
 
-.cell-note-indicator {
+:where(.einfach-spreadsheet) .cell-note-indicator {
   width: 0;
   height: 0;
   border-top: 6px solid #c93639;
   border-left: 6px solid transparent;
 }
 
-.cell-comment-indicator {
+:where(.einfach-spreadsheet) .cell-comment-indicator {
   width: 5px;
   height: 5px;
   border-radius: 50%;
   background: #6b4fbb;
 }
 
-.cell-note-indicator + .cell-comment-indicator { right: 9px; }
+:where(.einfach-spreadsheet) .cell-note-indicator + .cell-comment-indicator { right: 9px; }

@@ -1,4 +1,4 @@
-.cell-validation-list {
+:where(.einfach-spreadsheet) .cell-validation-list {
   position: absolute;
   z-index: 7;
   box-sizing: border-box;
@@ -11,4 +11,4 @@
   cursor: pointer;
 }
 
-.cell-validation-list:focus-visible { outline: 2px solid var(--primary); }
+:where(.einfach-spreadsheet) .cell-validation-list:focus-visible { outline: 2px solid var(--primary); }

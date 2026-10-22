@@ -4,6 +4,7 @@ import { WorkbookHeader } from '../chrome/header/WorkbookHeader'
 import { WorkbookRibbon } from '../chrome/ribbon/WorkbookRibbon'
 import { WorkbookGrid } from '../grid/viewport/WorkbookGrid'
 import './workbook.css'
+import '../../style.css'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { runFindReplaceAtom, formatPainterAtom, runFormatPainterAtom,
   runGoToReferenceAtom } from '@einfach/spreadsheet-ui-core'
@@ -18,7 +19,7 @@ export function WorkbookView() {
   const runPainter = useSetAtom(runFormatPainterAtom)
   return (
     <div
-      className="workbook"
+      className="einfach-spreadsheet workbook"
       lang={i18n.locale}
       data-runtime-state="ready"
       onKeyDownCapture={(event) => {

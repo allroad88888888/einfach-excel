@@ -1,36 +1,36 @@
-.formula-arguments-panel {
+:where(.einfach-spreadsheet) .formula-arguments-panel {
   box-sizing: border-box; width: 560px; max-width: calc(100vw - 24px);
   max-height: calc(100dvh - 24px); overflow: auto; padding: 20px;
   border: 1px solid var(--border); border-radius: 8px;
   background: var(--surface); color: var(--text); font-size: 13px;
 }
-.formula-arguments-panel::backdrop { background: rgb(20 25 45 / 25%); }
-.formula-arguments-panel h2 { margin: 0 0 10px; font-size: 17px; overflow-wrap: anywhere; }
-.formula-arguments-panel form { display: grid; min-width: 0; gap: 12px; }
-.formula-arguments-hint { color: var(--muted-text, #596579); font-size: 12px; line-height: 1.5; }
-.formula-argument-field { min-width: 0; }
-.formula-argument-field label { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-bottom: 5px; }
-.formula-argument-field label code { overflow-wrap: anywhere; }
-.formula-argument-field label span { color: var(--muted-text, #596579); font-size: 12px; }
-.formula-argument-field p { margin: 4px 0 0; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
-.formula-arguments-panel button, .formula-arguments-panel input {
+:where(.einfach-spreadsheet) .formula-arguments-panel::backdrop { background: rgb(20 25 45 / 25%); }
+:where(.einfach-spreadsheet) .formula-arguments-panel h2 { margin: 0 0 10px; font-size: 17px; overflow-wrap: anywhere; }
+:where(.einfach-spreadsheet) .formula-arguments-panel form { display: grid; min-width: 0; gap: 12px; }
+:where(.einfach-spreadsheet) .formula-arguments-hint { color: var(--muted-text, #596579); font-size: 12px; line-height: 1.5; }
+:where(.einfach-spreadsheet) .formula-argument-field { min-width: 0; }
+:where(.einfach-spreadsheet) .formula-argument-field label { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-bottom: 5px; }
+:where(.einfach-spreadsheet) .formula-argument-field label code { overflow-wrap: anywhere; }
+:where(.einfach-spreadsheet) .formula-argument-field label span { color: var(--muted-text, #596579); font-size: 12px; }
+:where(.einfach-spreadsheet) .formula-argument-field p { margin: 4px 0 0; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+:where(.einfach-spreadsheet) .formula-arguments-panel button, :where(.einfach-spreadsheet) .formula-arguments-panel input {
   box-sizing: border-box; min-width: 0; min-height: 36px; padding: 7px 9px;
   font: inherit; color: inherit; background: var(--surface);
   border: 1px solid var(--border); border-radius: 4px;
 }
-.formula-arguments-panel input { width: 100%; font-family: ui-monospace, monospace; }
-.formula-arguments-panel input[aria-invalid='true'] { border-color: #a12622; }
-.formula-arguments-panel fieldset { min-width: 0; margin: 0; padding: 10px; border: 1px solid var(--border); }
-.formula-argument-group { display: grid; gap: 10px; border-radius: 5px; }
-.formula-argument-group legend { padding: 0 5px; color: var(--muted-text, #596579); font-size: 12px; }
-.formula-argument-group > button, .formula-arguments-add { justify-self: start; }
-.formula-arguments-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
-.formula-arguments-actions button[type='submit'] { background: var(--primary); color: white; }
-.formula-arguments-panel :disabled { opacity: .5; }
-.formula-arguments-panel :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
-.formula-arguments-panel [role='alert'] { margin: 0; color: #a12622; overflow-wrap: anywhere; }
-.formula-arguments-panel .formula-parameter-help.is-compact { max-height: 160px; }
-@media (max-width: 480px) {
-  .formula-arguments-panel { padding: 16px; }
-  .formula-arguments-actions > button { flex: 1 1 110px; }
+:where(.einfach-spreadsheet) .formula-arguments-panel input { width: 100%; font-family: ui-monospace, monospace; }
+:where(.einfach-spreadsheet) .formula-arguments-panel input[aria-invalid='true'] { border-color: #a12622; }
+:where(.einfach-spreadsheet) .formula-arguments-panel fieldset { min-width: 0; margin: 0; padding: 10px; border: 1px solid var(--border); }
+:where(.einfach-spreadsheet) .formula-argument-group { display: grid; gap: 10px; border-radius: 5px; }
+:where(.einfach-spreadsheet) .formula-argument-group legend { padding: 0 5px; color: var(--muted-text, #596579); font-size: 12px; }
+:where(.einfach-spreadsheet) .formula-argument-group > button, :where(.einfach-spreadsheet) .formula-arguments-add { justify-self: start; }
+:where(.einfach-spreadsheet) .formula-arguments-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
+:where(.einfach-spreadsheet) .formula-arguments-actions button[type='submit'] { background: var(--primary); color: white; }
+:where(.einfach-spreadsheet) .formula-arguments-panel :disabled { opacity: .5; }
+:where(.einfach-spreadsheet) .formula-arguments-panel :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+:where(.einfach-spreadsheet) .formula-arguments-panel [role='alert'] { margin: 0; color: #a12622; overflow-wrap: anywhere; }
+:where(.einfach-spreadsheet) .formula-arguments-panel .formula-parameter-help.is-compact { max-height: 160px; }
+@container einfach-spreadsheet (max-width: 480px) {
+  :where(.einfach-spreadsheet) .formula-arguments-panel { padding: 16px; }
+  :where(.einfach-spreadsheet) .formula-arguments-actions > button { flex: 1 1 110px; }
 }

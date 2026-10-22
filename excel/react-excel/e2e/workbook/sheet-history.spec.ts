@@ -147,7 +147,7 @@ test('failed and unchanged renames preserve the redo branch', async ({ page }) =
   await page.getByRole('button', { name: 'Rename sheet' }).click()
   await page.getByLabel('Sheet name').fill('bad/name')
   await page.getByLabel('Sheet name').press('Enter')
-  await expect(page.locator('#sheet-command-error')).toContainText('cannot contain')
+  await expect(page.locator('[data-sheet-command-error]')).toContainText('cannot contain')
   await page.getByLabel('Sheet name').press('Escape')
   await rename(page, 'Sales Orders')
   await history(page, 'Redo')

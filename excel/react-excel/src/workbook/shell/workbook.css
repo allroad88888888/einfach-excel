@@ -1,5 +1,5 @@
 /* Owns the shared workbook shell layout. */
-.workbook {
+.einfach-spreadsheet.workbook {
   display: flex;
   width: 100%;
   height: 100%;
@@ -8,13 +8,13 @@
   background: var(--surface);
 }
 
-.worksheet-panel {
+:where(.einfach-spreadsheet) .worksheet-panel {
   min-height: 0;
   flex: 1;
   background: #ffffff;
 }
 
-.rust-runtime-status {
+:where(.einfach-spreadsheet) .rust-runtime-status {
   padding: 4px 12px;
   color: var(--primary-strong);
   background: var(--primary-soft);

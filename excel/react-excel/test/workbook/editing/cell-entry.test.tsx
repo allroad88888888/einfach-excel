@@ -35,8 +35,8 @@ describe('Rust workbook cell entry', () => {
 
       const editor = await focusedCellEditor()
       expect(editor).toHaveValue('R1C1')
-      expect(editor).toHaveAttribute('id', 'cell-editor-r1-c1')
-      expect(editor).toHaveAttribute('name', 'cell-editor-r1-c1')
+      expect(editor.id).toMatch(/^cell-editor-.+-r1-c1$/)
+      expect(editor).toHaveAttribute('name', editor.id)
     } finally {
       Object.defineProperty(document, 'elementFromPoint', {
         configurable: true,

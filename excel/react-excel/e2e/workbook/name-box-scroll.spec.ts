@@ -16,7 +16,7 @@ for (const width of [1280, 390]) {
       for (let i = 0; i < 16; i++) {
         await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
         const scroll = document.querySelector<HTMLElement>('.sheet-scroll')!
-        const input = document.querySelector<HTMLTextAreaElement>('#formula-input')!
+        const input = document.querySelector<HTMLTextAreaElement>('[data-formula-input]')!
         const row = document.querySelector('[aria-label="Select row 90"]')
         frames.push({ height: scroll.clientHeight, value: input.value, rows: input.rows,
           hasRow: row !== null })

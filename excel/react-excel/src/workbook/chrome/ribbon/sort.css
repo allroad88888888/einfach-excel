@@ -1,16 +1,16 @@
-.sort-dialog {
+:where(.einfach-spreadsheet) .sort-dialog {
   width: 460px;
   max-height: calc(100dvh - 32px);
   overflow-y: auto;
 }
-.sort-dialog form { display: flex; flex-direction: column; align-items: stretch; }
-.sort-dialog .sort-header { display: flex; align-items: center; gap: 8px; }
-.sort-options, .sort-level-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
-.sort-options { justify-content: space-between; margin: 8px 0; }
-.sort-options > label { display: flex; align-items: center; gap: 8px; }
-.sort-level-actions { grid-column: 1 / -1; }
-.sort-dialog input[type='checkbox'] { width: 16px; min-height: 16px; margin: 0; }
-.sort-dialog fieldset {
+:where(.einfach-spreadsheet) .sort-dialog form { display: flex; flex-direction: column; align-items: stretch; }
+:where(.einfach-spreadsheet) .sort-dialog .sort-header { display: flex; align-items: center; gap: 8px; }
+:where(.einfach-spreadsheet) .sort-options, :where(.einfach-spreadsheet) .sort-level-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+:where(.einfach-spreadsheet) .sort-options { justify-content: space-between; margin: 8px 0; }
+:where(.einfach-spreadsheet) .sort-options > label { display: flex; align-items: center; gap: 8px; }
+:where(.einfach-spreadsheet) .sort-level-actions { grid-column: 1 / -1; }
+:where(.einfach-spreadsheet) .sort-dialog input[type='checkbox'] { width: 16px; min-height: 16px; margin: 0; }
+:where(.einfach-spreadsheet) .sort-dialog fieldset {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
@@ -21,8 +21,8 @@
   border-radius: 5px;
   min-width: 0;
 }
-.sort-dialog legend { font-weight: 600; padding: 0 4px; }
-.sort-dialog select {
+:where(.einfach-spreadsheet) .sort-dialog legend { font-weight: 600; padding: 0 4px; }
+:where(.einfach-spreadsheet) .sort-dialog select {
   min-width: 0;
   min-height: 32px;
   padding: 4px 8px;
@@ -32,5 +32,5 @@
   color: inherit;
   font: inherit;
 }
-.sort-dialog :is(button, input, select):focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
-.sort-dialog .size-actions button[type='submit'] { background: var(--primary); color: white; }
+:where(.einfach-spreadsheet) .sort-dialog :is(button, input, select):focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+:where(.einfach-spreadsheet) .sort-dialog .size-actions button[type='submit'] { background: var(--primary); color: white; }

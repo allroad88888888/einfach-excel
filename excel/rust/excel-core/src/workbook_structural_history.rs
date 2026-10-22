@@ -20,6 +20,14 @@ pub(crate) struct StructuralHistoryChange {
 }
 
 impl StructuralHistoryChange {
+    pub(crate) fn mutation_ranges(&self) -> Vec<(usize, Option<CellRange>)> {
+        self.before.cells.iter().zip(&self.after.cells)
+            .flat_map(|((sheet, before), (_, after))|
+                crate::host::changed_ranges(before, after).into_iter().map(|range| (*sheet, Some(range))))
+            .chain(self.templates.iter().map(|change| (change.sheet, change.mutation_range())))
+            .collect()
+    }
+
     pub(crate) fn edit(
         workbook: &mut Workbook,
         sheet: usize,

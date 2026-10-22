@@ -49,6 +49,9 @@ mod table;
 use data_validation::DataValidationChange;
 #[path = "workbook_history_entry.rs"]
 mod entry;
+#[path = "host/mutation.rs"]
+mod mutation;
+pub use mutation::MutationFact;
 use entry::entry_bytes;
 #[path = "workbook_history_borders.rs"]
 mod borders;
@@ -124,10 +127,13 @@ pub struct WorkbookHistory {
     cursor: usize,
     pending: Option<PendingEdit>,
     notice: Option<String>,
+    mutation_sequence: u64,
+    last_mutation: Option<MutationFact>,
 }
 
 impl WorkbookHistory {
     fn push(&mut self, entry: HistoryEntry) {
+        self.record_mutation(&entry);
         self.entries.truncate(self.cursor);
         self.entries.push_back(entry);
         self.cursor = self.entries.len();
@@ -160,6 +166,8 @@ impl WorkbookHistory {
             return Ok(false);
         }
         self.entries[self.cursor - 1].apply(workbook, true)?;
+        let fact = self.entries[self.cursor - 1].mutation_ranges();
+        self.publish_mutation(fact);
         self.cursor -= 1;
         self.enforce_budget();
         Ok(true)
@@ -173,6 +181,8 @@ impl WorkbookHistory {
             return Ok(false);
         };
         entry.apply(workbook, false)?;
+        let fact = entry.mutation_ranges();
+        self.publish_mutation(fact);
         self.cursor += 1;
         self.enforce_budget();
         Ok(true)

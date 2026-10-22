@@ -25,6 +25,7 @@ pub mod format;
 pub mod formula;
 pub mod general_text;
 pub mod history_snapshot;
+pub mod host;
 pub mod hyperlink;
 pub mod notes;
 pub mod comments;

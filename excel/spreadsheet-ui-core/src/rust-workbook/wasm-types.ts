@@ -26,6 +26,7 @@ import type { WasmCommentQueries } from './comments/command'
 import type { WasmProtectionQueries } from './protection/commands'
 import type { WasmCustomFormulaQueries } from './custom-formulas/command'
 import type { WasmAsyncFormulaQueries } from './async-formulas/commands'
+import type { HostWasmCommands } from '../host/types'
 
 export interface RustCellSnapshot {
   readonly sheet: number
@@ -67,7 +68,8 @@ export interface RustFormatRangeSnapshot {
   readonly conditionalIcons?: readonly ({ readonly addr: string } & NonNullable<DisplayCell['conditionalIcon']>)[]
 }
 
-export interface WasmWorkbook extends WasmSpillQueries, WasmFindQueries, WasmCustomFormulaQueries,
+export interface WasmWorkbook extends HostWasmCommands, WasmSpillQueries,
+  WasmFindQueries, WasmCustomFormulaQueries,
   WasmNoteQueries, WasmCommentQueries, WasmProtectionQueries, WasmAsyncFormulaQueries {
   change_hyperlink?: (sheet: number, row: number, col: number,
     url?: string, text?: string) => boolean

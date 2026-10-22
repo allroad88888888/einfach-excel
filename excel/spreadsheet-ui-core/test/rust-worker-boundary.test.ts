@@ -41,7 +41,7 @@ describe('Rust Worker ownership boundary', () => {
     }
     const transport = createWorkerTransport(() => worker)
 
-    expect(Object.keys(transport).sort()).toEqual(['dispose', 'request'])
+    expect(Object.keys(transport).sort()).toEqual(['dispose', 'request', 'subscribe'])
     transport.dispose()
     expect(listeners.size).toBe(0)
   })

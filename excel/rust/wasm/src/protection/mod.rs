@@ -20,7 +20,11 @@ impl WasmWorkbook {
         }
         let change = serde_wasm_bindgen::from_value(change)
             .map_err(|error| JsValue::from_str(&format!("Invalid protection change: {error}")))?;
-        self.workbook.change_protection(sheet as usize, change).map_err(JsValue::from_str)
+        let changed = self.workbook.change_protection(sheet as usize, change).map_err(JsValue::from_str)?;
+        if changed {
+            self.history.record_metadata_mutation(self.workbook.sheet_key(sheet as usize).unwrap());
+        }
+        Ok(changed)
     }
 }
 

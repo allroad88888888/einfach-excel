@@ -152,3 +152,4 @@ export { NOTE_MAX_CHARACTERS, validateNoteText } from './notes/text'
 export type { RustNoteCommands, WasmNoteQueries } from './rust-workbook/notes/command'
 export { nativeProtectionPanelAtom, nativeProtectionOpenAtom,
   runNativeProtectionAtom } from './protection/native/panel'
+export * from './host'

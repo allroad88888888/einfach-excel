@@ -13,6 +13,13 @@ pub(crate) struct FormulaSourceChange {
 }
 
 impl FormulaSourceChange {
+    pub(crate) fn mutation_sheet_key(&self) -> u64 { self.sheet_key }
+
+    pub(crate) fn mutation_range(&self) -> Option<CellRange> {
+        // 计算列模板是目录数据；模板原点不能冒充实际单元格写入位置。
+        self.table_key.is_none().then(|| CellRange::single(self.addr))
+    }
+
     /// 该格已由局部快照接管时，不再保留第二份源码历史；模板不是单元格。
     pub(super) fn cell_in_range(&self, sheet: usize, range: CellRange) -> bool {
         self.sheet == sheet && self.table_key.is_none() && range.contains(self.addr)

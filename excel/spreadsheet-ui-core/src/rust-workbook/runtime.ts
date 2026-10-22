@@ -1,8 +1,7 @@
 /// <reference lib="WebWorker" />
 
 import type { BackendMutationResult, VisibleProjectionRequest } from '../backend'
-import type { WorkerRequestWire } from '../rust-worker/types'
-import { rpcError } from '../rust-worker/transport'
+import { installHostWorkerGateway } from '../host/worker'
 import { writeTrackedMutation } from './tracked-mutation'
 import { applyRustHistory } from './history-apply'
 import { exportClipboard } from './clipboard-export'
@@ -40,7 +39,6 @@ import { changeHyperlink } from './hyperlink/command'
 import { readNote, changeNote } from './notes/command'
 import { readProtection, changeProtection } from './protection/commands'
 import { readCustomFormulas, changeCustomFormula } from './custom-formulas/command'
-import { takeValidationErrorDetail } from './validation-error-detail'
 import { createAsyncFormulaIo, type AsyncFormulaIo } from './async-formulas/io'
 
 type CommandName = keyof RustWorkbookCommands
@@ -555,21 +553,8 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
     })
   }
 
-  scope.addEventListener('message', async (event: MessageEvent) => {
-    const message = event.data as WorkerRequestWire
-    if (typeof message?.id !== 'number' || typeof message.command !== 'string') return
-    try {
-      // 原生失败详情是一次性的；新写请求先清理此前未消费的失败。
-      if (['cell.setInput', 'clipboard.paste', 'range.fill'].includes(message.command))
-        workbook?.getLastValidationFailure?.()
-      const result = await dispatch(message.command as CommandName, message.payload)
-        .finally(() => { asyncFormulas?.drain() })
-      scope.postMessage({ id: message.id, ok: true, result })
-    } catch (error) {
-      scope.postMessage({ id: message.id, ok: false, error: rpcError(
-        workbook && ['cell.setInput', 'clipboard.paste', 'range.fill'].includes(message.command)
-          ? takeValidationErrorDetail(workbook, error) : error,
-      ) })
-    }
-  })
+  installHostWorkerGateway({ scope, workbook: () => workbook, sheets: () => sheetsById,
+    revision: () => revision, advanceRevision: () => ++revision,
+    drain: () => { asyncFormulas?.drain() },
+  }, dispatch)
 }

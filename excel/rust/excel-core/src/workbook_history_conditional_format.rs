@@ -13,6 +13,10 @@ pub(super) struct ConditionalFormatChange {
 }
 
 impl ConditionalFormatChange {
+    pub(super) fn mutation_ranges(&self) -> Vec<CellRange> {
+        crate::host::conditional_ranges(&self.before, &self.after)
+    }
+
     pub(super) fn apply(
         &self,
         workbook: &mut Workbook,

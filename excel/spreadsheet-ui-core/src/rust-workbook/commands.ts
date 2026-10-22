@@ -12,7 +12,8 @@ import type {
 import type { WorkerCommand, WorkerLike, WorkerTransport } from '../rust-worker'
 import type { FillSeriesKind } from '../auto-fill/series-options'
 import type { CellRange } from '../shared'
-import { createWorkerTransport } from '../rust-worker'
+import { createHostWorkbookConnection } from '../host/connection'
+import type { HostCommands } from '../host/types'
 import type { SheetVisibilityProjection } from '../viewport/hidden-state'
 import type { StructuralEdit } from './structure-geometry'
 import type { AutoFitLayout } from './auto-fit-measurement'
@@ -171,7 +172,7 @@ export interface RustClearRangeRequest {
 }
 
 export interface RustWorkbookCommands
-  extends RustFindCommands,
+  extends HostCommands, RustFindCommands,
     RustSortCommands,
     RustFilterCommands,
     RustTextColumnsCommands,
@@ -383,5 +384,5 @@ export interface RustFillRangeRequest {
 export function createRustWorkbookConnection(
   workerFactory: () => WorkerLike,
 ): RustWorkbookConnection {
-  return createWorkerTransport<RustWorkbookCommands>(workerFactory)
+  return createHostWorkbookConnection(workerFactory)
 }

@@ -18,6 +18,7 @@ export interface WorkerTransport<Commands extends WorkerCommandMap> {
     command: Name,
     payload: CommandPayload<Commands, Name>,
   ): Promise<CommandResult<Commands, Name>>
+  subscribe?(listener: (event: unknown) => void): () => void
   dispose(): void
 }
 
@@ -48,8 +49,14 @@ export function createWorkerTransport<Commands extends WorkerCommandMap>(
   let nextRequestId = 1
   let disposed = false
   let workerFailure: Error | undefined
+  const listeners = new Set<(event: unknown) => void>()
 
   const onMessage = (event: MessageEvent) => {
+    if (disposed || workerFailure) return
+    if (event.data?.type === 'event') {
+      for (const listener of listeners) listener(event.data.event)
+      return
+    }
     const response = event.data as WorkerResponseWire
     if (typeof response?.id !== 'number' || typeof response.ok !== 'boolean') return
     const request = pending.get(response.id)
@@ -66,8 +73,9 @@ export function createWorkerTransport<Commands extends WorkerCommandMap>(
   }
   const fail = (event: Event) => {
     const source = event as ErrorEvent
-    const error = new Error(source.message || `Worker ${event.type}`)
+    const error = Object.assign(new Error(source.message || `Worker ${event.type}`), { code: 'WORKER_TRANSPORT_FAILED' })
     workerFailure = error
+    listeners.clear()
     for (const request of pending.values()) request.reject(error)
     pending.clear()
   }
@@ -75,8 +83,13 @@ export function createWorkerTransport<Commands extends WorkerCommandMap>(
   eventWorker.addEventListener('messageerror', fail)
 
   return {
+    subscribe(listener) {
+      if (disposed) return () => {}
+      listeners.add(listener)
+      return () => { listeners.delete(listener) }
+    },
     request(command, payload) {
-      if (disposed) return Promise.reject(new Error('Worker transport has been disposed'))
+      if (disposed) return Promise.reject(Object.assign(new Error('Worker transport has been disposed'), { code: 'WORKER_DISPOSED' }))
       if (workerFailure) return Promise.reject(workerFailure)
       const id = nextRequestId++
       return new Promise((resolve, reject) => {
@@ -85,7 +98,8 @@ export function createWorkerTransport<Commands extends WorkerCommandMap>(
           worker.postMessage({ id, command, payload })
         } catch (error) {
           pending.delete(id)
-          reject(error)
+          reject(Object.assign(new Error(error instanceof Error ? error.message : String(error)),
+            { code: 'WORKER_TRANSPORT_FAILED' }))
         }
       })
     },
@@ -96,9 +110,10 @@ export function createWorkerTransport<Commands extends WorkerCommandMap>(
       eventWorker.removeEventListener('error', fail)
       eventWorker.removeEventListener('messageerror', fail)
       for (const request of pending.values()) {
-        request.reject(new Error('Worker transport has been disposed'))
+        request.reject(Object.assign(new Error('Worker transport has been disposed'), { code: 'WORKER_DISPOSED' }))
       }
       pending.clear()
+      listeners.clear()
       worker.terminate()
     },
   }

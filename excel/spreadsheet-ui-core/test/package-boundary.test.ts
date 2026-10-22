@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync, statSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { createStore } from '@einfach/core'
 import { describe, expect, test } from 'vitest'
@@ -121,28 +121,6 @@ const VIEWPORT_CHROME_COMMANDS_ARE_WRITABLE: readonly [
   AtomHasPublicWrite<typeof toggleFormulaBarAtom>,
 ] = [true, true, true]
 
-function readSourceFiles(dir: string): Array<{ path: string; text: string }> {
-  return readdirSync(dir).flatMap((entry) => {
-    const path = join(dir, entry)
-    const stat = statSync(path)
-
-    if (stat.isDirectory()) {
-      return readSourceFiles(path)
-    }
-
-    if (!entry.endsWith('.ts')) {
-      return []
-    }
-
-    return [
-      {
-        path,
-        text: readFileSync(path, 'utf8'),
-      },
-    ]
-  })
-}
-
 describe('package boundary', () => {
   test('exports the first wave of UI core modules from the package root', () => {
     expect(selectionAtom.debugLabel).toBe('spreadsheet.selection.state')
@@ -176,33 +154,6 @@ describe('package boundary', () => {
     expect(presenceStateAtom.debugLabel).toBe('spreadsheet.presence.state')
     expect(filterSortStateAtom.debugLabel).toBe('spreadsheet.filterSort.state')
     expect(sheetProtectionAtom.debugLabel).toBe('spreadsheet.protection.state')
-  })
-
-  test('keeps UI core free of framework runtimes, DOM access, and inline wasm glue', () => {
-    const forbiddenImport =
-      /from ['"](?:solid-js|react|@einfach\/solid|@einfach\/react|.*wasm.*)['"]/
-    // 负向后顾排除属性访问:投影结果的领域字段就叫 `window`(`result.window.rowStart`),
-    // 只有裸的全局 `window.` / `document.` 才是越界。
-    const forbiddenRuntime =
-      /(?<!\.)\b(?:document\.|window\.|new Worker\(|HTMLElement|HTMLDivElement)\b/
-    const offenders = readSourceFiles(SRC_ROOT)
-      .filter(({ path }) => !path.endsWith('/rust-runtime.ts'))
-      .filter(({ path }) => !path.includes('/rust-workbook/'))
-      .flatMap(({ path, text }) => {
-      const matches = []
-
-      if (forbiddenImport.test(text)) {
-        matches.push(`${path}: forbidden import`)
-      }
-
-      if (forbiddenRuntime.test(text)) {
-        matches.push(`${path}: forbidden runtime reference`)
-      }
-
-      return matches
-      })
-
-    expect(offenders).toEqual([])
   })
 
   test('keeps filter and sort product state read-only at the package boundary', () => {

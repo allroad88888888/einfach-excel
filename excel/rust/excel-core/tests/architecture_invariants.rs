@@ -62,7 +62,7 @@ fn wasm_family_sources() -> Vec<(String, String)> {
     let mut sources = source_family_sources("../wasm/src/lib.rs", "wasm_");
     // 独立功能目录同样属于公开 WASM 边界，不能因文件拆分绕过快照。
     for path in ["hyperlink/mod.rs", "notes/mod.rs", "comments/mod.rs", "protection/mod.rs",
-        "custom_formulas/mod.rs", "advanced_validation/confirmed_input.rs"] {
+        "custom_formulas/mod.rs", "advanced_validation/confirmed_input.rs", "host/mod.rs"] {
         sources.push((path.into(), read(&manifest_dir().join("../wasm/src").join(path))));
     }
     sources

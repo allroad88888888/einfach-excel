@@ -3,6 +3,8 @@ use super::workbook_formula_lambda_change::FormulaLambdaChange;
 use super::workbook_formula_source_change::FormulaSourceChange;
 use super::*;
 use std::rc::Weak;
+#[path = "host/sheet_presence.rs"]
+mod mutation;
 
 pub struct ArchivedWorksheet {
     // 成功恢复时取走；只有仍持有 Sheet 的归档被丢弃才释放原生资源。

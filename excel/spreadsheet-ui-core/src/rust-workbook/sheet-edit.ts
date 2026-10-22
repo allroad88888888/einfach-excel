@@ -17,15 +17,19 @@ export function editWorkbookSheet(
   }
   // 在修改名称前检查投影目标，失败时不能留下半个成功的操作。
   const visibleIndex = input.projection ? indexFor(input.projection.sheetId) : undefined
+  const id = input.sheetId ?? crypto.randomUUID()
   const index = workbook.edit_sheet(input.sheetId ? indexFor(input.sheetId) : undefined, input.name)
-  const sheet = Object.freeze({
+  // 原生提交后先登记稳定身份；后续名称/投影读取失败也不能令提交事件失去 sheetId。
+  const identity = Object.freeze({
     ...(input.sheetId ? sheets.get(input.sheetId) : {}),
-    id: input.sheetId ?? crypto.randomUUID(),
+    id,
     index,
-    name: workbook.sheet_name(index),
+    name: input.name.trim(),
     ...(workbook.sheet_key ? { key: workbook.sheet_key(index) } : {}),
     ...(input.rowCount ? { rowCount: input.rowCount, colCount: input.colCount } : {}),
   })
+  sheets.set(id, identity)
+  const sheet = Object.freeze({ ...identity, name: workbook.sheet_name(index) })
   sheets.set(sheet.id, sheet)
   return {
     sheet,

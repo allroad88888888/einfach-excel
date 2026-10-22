@@ -31,6 +31,7 @@ pub(crate) enum SheetHistoryChange {
         key: u64,
         created: bool,
         archive: Option<ArchivedWorksheet>,
+        mutation: Vec<(u64, Vec<CellRange>)>,
         bytes: usize,
     },
 }
@@ -125,6 +126,7 @@ impl SheetHistoryChange {
                     key: workbook.sheet_key(index).unwrap(),
                     created: true,
                     archive: None,
+                    mutation: Vec::new(),
                     bytes: 0,
                 }),
             ))
@@ -136,11 +138,13 @@ impl SheetHistoryChange {
             .archive_sheet(index)
             .ok_or("Could not delete the worksheet.")?;
         let bytes = archive.retained_bytes();
+        let mutation = archive.mutation_ranges(workbook);
         Ok(Self::Presence {
             index,
             key: archive.key(),
             created: false,
             archive: Some(archive),
+            mutation,
             bytes,
         })
     }
@@ -231,6 +235,7 @@ impl SheetHistoryChange {
                 key,
                 created,
                 archive,
+                mutation,
                 bytes,
             } => {
                 let remove = *created == undo;
@@ -246,6 +251,7 @@ impl SheetHistoryChange {
                     });
                     let saved = saved.ok_or("Could not delete the worksheet.")?;
                     *bytes = saved.retained_bytes();
+                    *mutation = saved.mutation_ranges(workbook);
                     *archive = Some(saved);
                     Ok(())
                 } else {
@@ -295,7 +301,7 @@ impl SheetHistoryChange {
             }
             Self::Move { .. } => 32,
             // 恢复进工作簿后也预留归档预算，下一次 redo 不会绕过上限。
-            Self::Presence { bytes, .. } => *bytes,
+            Self::Presence { bytes, mutation, .. } => *bytes + crate::sheet::metadata_bytes(mutation),
         }
     }
 }

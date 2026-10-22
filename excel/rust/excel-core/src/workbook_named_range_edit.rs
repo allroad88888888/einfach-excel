@@ -33,6 +33,10 @@ pub(crate) struct NamedRangeChange {
 }
 
 impl NamedRangeChange {
+    pub(crate) fn mutation_ranges(&self) -> Vec<(usize, Option<CellRange>)> {
+        self.formulas.iter().map(|change| (change.sheet, change.mutation_range())).collect()
+    }
+
     pub(crate) fn prepare(
         workbook: &Workbook,
         action: NamedRangeAction,

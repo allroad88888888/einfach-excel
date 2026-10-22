@@ -36,6 +36,8 @@ mod registry;
 #[path = "workbook_table_validation_shift.rs"]
 mod validation_shift;
 use validation_shift::ValidationShift;
+#[path = "host/table_mutation.rs"]
+mod host_mutation;
 
 #[derive(Debug)]
 pub(crate) struct TableDefinitionChange {

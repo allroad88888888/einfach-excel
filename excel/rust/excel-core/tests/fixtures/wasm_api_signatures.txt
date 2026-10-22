@@ -141,6 +141,9 @@ impl WasmWorkbook :: [] :: pub fn history_begin( &mut self, sheet: u32, start_ro
 impl WasmWorkbook :: [] :: pub fn history_clear(&mut self, notice: &str)
 impl WasmWorkbook :: [] :: pub fn history_finish(&mut self, success: bool) -> Result<(), JsValue>
 impl WasmWorkbook :: [] :: pub fn history_state(&self) -> Result<JsValue, JsValue>
+impl WasmWorkbook :: [] :: pub fn host_mutation_state(&self) -> Result<JsValue, JsValue>
+impl WasmWorkbook :: [] :: pub fn host_read_ranges(&self, targets: JsValue) -> Result<JsValue, JsValue>
+impl WasmWorkbook :: [] :: pub fn host_write_cells(&mut self, cells: JsValue) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn insert_col(&mut self, sheet_idx: u32, at: u32, count: u32)
 impl WasmWorkbook :: [] :: pub fn insert_row(&mut self, sheet_idx: u32, at: u32, count: u32)
 impl WasmWorkbook :: [] :: pub fn is_error(&self, sheet_idx: u32, addr: &str) -> bool

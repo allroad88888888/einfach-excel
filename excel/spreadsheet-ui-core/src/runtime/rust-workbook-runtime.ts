@@ -4,6 +4,10 @@ import type { WorkerLike } from '../rust-worker'
 import { editingSessionAtom } from '../editing/session-atoms'
 import { watchAsyncFormulaSettlementsAtom } from '../async-formulas/watch-settlements'
 import { resetWorkbookViewAtom } from './reset-workbook-view'
+import { hostControlsBackingAtom, workbookReplacementErrorBackingAtom } from '../host/state'
+import { hostCommandError } from '../host/errors'
+import { assertHostCommandAllowed } from '../host/policy'
+import { synchronizeHostControls } from '../host/binding'
 import { publishNativeFunctionCatalogAtom, validateFunctionCatalog } from '../formula-functions/native-catalog'
 import {
   beginSpreadsheetRuntimeAtom,
@@ -130,6 +134,8 @@ export const startRustWorkbookRuntimeAtom = atom(
       }
       const catalog = validateFunctionCatalog(await connection.request('formula.catalog', {}))
       if (!ownsConnection(get, sessionId, connection)) return
+      await synchronizeHostControls(get, connection)
+      if (!ownsConnection(get, sessionId, connection)) return
       set(publishNativeFunctionCatalogAtom, { connection, catalog })
       set(initializeWorkbookDocumentAtom, {
         title: definition.title,
@@ -153,12 +159,15 @@ export const replaceRustWorkbookRuntimeAtom = atom(
   null,
   async (get, set, text: string | null): Promise<boolean> => {
     const previous = get(runtimeOwnerAtom)
-    if (!previous.connection || !previous.workerFactory)
-      throw new Error('The workbook is not ready.')
-    if (get(editingSessionAtom).source) throw new Error('Finish editing the cell first.')
-    const sessionId = nextSessionId(previous.sessionId)
-    const candidate = createRustWorkbookConnection(previous.workerFactory)
+    set(workbookReplacementErrorBackingAtom, null)
+    let candidate: RustWorkbookConnection | undefined
     try {
+      assertHostCommandAllowed(get(hostControlsBackingAtom), 'workbook.openReplacement')
+      if (!previous.connection || !previous.workerFactory)
+        throw new Error('The workbook is not ready.')
+      if (get(editingSessionAtom).source) throw new Error('Finish editing the cell first.')
+      const sessionId = nextSessionId(previous.sessionId)
+      candidate = createRustWorkbookConnection(previous.workerFactory)
       const metadata = text === null ? {
         title: 'Untitled workbook',
         sheets: await candidate.request('workbook.initialize', { sheets: [{
@@ -178,8 +187,11 @@ export const replaceRustWorkbookRuntimeAtom = atom(
       if (!sheets.length || new Set(sheets.map((sheet) => sheet.id)).size !== sheets.length)
         throw new Error('Rust returned invalid workbook sheets.')
       const catalog = validateFunctionCatalog(await candidate.request('formula.catalog', {}))
+      await synchronizeHostControls(get, candidate)
       if (get(runtimeOwnerAtom) !== previous) return false
       if (get(editingSessionAtom).source) throw new Error('Finish editing the cell first.')
+      // 候选等待期间控制可能收紧；交换所有权前必须按当前 Store 再次门禁。
+      assertHostCommandAllowed(get(hostControlsBackingAtom), 'workbook.openReplacement')
       // 只有此处切换所有权；旧请求随后拒绝，不能再填入新工作簿的投影队列。
       set(runtimeOwnerAtom, {
         sessionId, connection: candidate, workerFactory: previous.workerFactory,
@@ -191,8 +203,12 @@ export const replaceRustWorkbookRuntimeAtom = atom(
       set(watchAsyncFormulaSettlementsAtom, candidate)
       disposeConnection(previous.connection)
       return true
+    } catch (error) {
+      if (get(runtimeOwnerAtom) === previous)
+        set(workbookReplacementErrorBackingAtom, hostCommandError(error))
+      return false
     } finally {
-      if (get(runtimeOwnerAtom).connection !== candidate) disposeConnection(candidate)
+      if (candidate && get(runtimeOwnerAtom).connection !== candidate) disposeConnection(candidate)
     }
   },
 )

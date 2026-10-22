@@ -11,6 +11,9 @@ const INPUT_ERRORS = [
     'Spilled arrays cannot be entered inside a table. Use a single-value formula or press Escape.'],
 ] as const
 
+// 稳定宿主诊断由现有展现层词典翻译；Core 不复制英文文案或放宽拒写门禁。
+const HOST_ERRORS = ['HOST_READ_ONLY', 'HOST_BUSY', 'HOST_STRUCTURE_DISABLED'] as const
+
 /** Error feedback for editing lifecycle states that leave a draft open. */
 export interface EditingCommitFeedback {
   readonly kind: 'error'
@@ -26,7 +29,8 @@ export function editingCommitFeedback(
     case 'rejected':
       return {
         kind: 'error',
-        message: INPUT_ERRORS.find(([suffix]) => lifecycle.error?.endsWith(suffix))?.[1]
+        message: HOST_ERRORS.find((code) => lifecycle.error?.endsWith(code))
+          ?? INPUT_ERRORS.find(([suffix]) => lifecycle.error?.endsWith(suffix))?.[1]
           ?? 'That edit was not saved.',
         detail: lifecycle.error || undefined,
       }

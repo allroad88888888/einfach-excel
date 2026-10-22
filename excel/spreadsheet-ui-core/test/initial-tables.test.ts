@@ -38,33 +38,57 @@ test('initial table filters reject columns outside their table before starting a
   expect(() => snapshotRustWorkbookDefinition(source)).toThrow('Invalid initial table filter')
 })
 test('runtime sends tables only after every content chunk, before publishing ready', async () => {
+  const store = createStore()
   const calls: { command: string; payload: Record<string, unknown> }[] = []
   let receive: (event: MessageEvent) => void = () => {}
+  let configureId: number | undefined
   const worker: WorkerLike = {
     postMessage(message) {
       const input = message as { id: number; command: string; payload: Record<string, unknown> }
       calls.push(input)
       if (input.command === 'formula.awaitAsync') return
-      const result = input.command === 'formula.catalog' ? TEST_FUNCTION_CATALOG : input.command === 'workbook.initialize'
-        ? [{ id: 's', index: 0, name: 'Sheet' }]
-        : { accepted: (input.payload.cells as unknown[]).length, errors: 0, rejectedFormulas: 0 }
+      // 配置完成前不发布 ready；显式延迟 ACK，不能把无 cells 的控制命令当作导入。
+      if (input.command === 'host.configure') { configureId = input.id; return }
+      let result
+      switch (input.command) {
+        case 'workbook.initialize': result = [{ id: 's', index: 0, name: 'Sheet' }]; break
+        case 'formula.catalog': result = TEST_FUNCTION_CATALOG; break
+        case 'workbook.importCells':
+          result = { accepted: (input.payload.cells as unknown[]).length,
+            errors: 0, rejectedFormulas: 0 }
+          break
+        default: throw new Error(`Unexpected startup command: ${input.command}`)
+      }
       receive({ data: { id: input.id, ok: true, result } } as MessageEvent)
     },
     addEventListener(type, listener) { if (type === 'message') receive = listener },
     removeEventListener() {}, terminate: vi.fn(),
   }
-  const source: RustWorkbookDefinition = { ...definition(), createImportChunks: () => [
+  const chunks = [
     [{ sheet: 0, row: 0, col: 0, kind: 'text', value: 'Product' }],
     [{ sheet: 0, row: 1, col: 0, kind: 'text', value: 'Keyboard' }],
-  ] }
-  const store = createStore()
-  await store.setter(startRustWorkbookRuntimeAtom, {
+  ] as const
+  const source: RustWorkbookDefinition = { ...definition(), createImportChunks: () => chunks }
+  const starting = store.setter(startRustWorkbookRuntimeAtom, {
     definition: source, workerFactory: () => worker,
   })
+  await vi.waitFor(() => expect(configureId).toBeTypeOf('number'))
+  expect(store.getter(spreadsheetRuntimeAtom)).toEqual({ status: 'loading' })
   expect(calls.map((call) => call.command)).toEqual([
     'workbook.initialize', 'workbook.importCells', 'workbook.importCells', 'workbook.importCells',
-    'formula.catalog', 'formula.awaitAsync',
+    'formula.catalog', 'host.configure',
   ])
+  expect(calls[5].payload).toEqual({ readOnly: false, busy: false, allowSheetStructure: true })
+  receive({ data: { id: configureId!, ok: true, result: undefined } } as MessageEvent)
+  await starting
+  await vi.waitFor(() => expect(calls.at(-1)?.command).toBe('formula.awaitAsync'))
+  expect(calls.map((call) => call.command)).toEqual([
+    'workbook.initialize', 'workbook.importCells', 'workbook.importCells', 'workbook.importCells',
+    'formula.catalog', 'host.configure', 'formula.awaitAsync',
+  ])
+  expect(calls[0].payload).toEqual({ sheets: source.sheets, customFormulas: undefined })
+  expect(calls[1].payload).toEqual({ cells: chunks[0] })
+  expect(calls[2].payload).toEqual({ cells: chunks[1] })
   expect(calls[1].payload.tables).toBeUndefined()
   expect(calls[2].payload.tables).toBeUndefined()
   expect(calls[3].payload).toEqual({ cells: [], tables: [{ sheetId: 's',
@@ -72,4 +96,5 @@ test('runtime sends tables only after every content chunk, before publishing rea
   }] })
   expect(store.getter(spreadsheetRuntimeAtom)).toEqual({ status: 'ready' })
   store.setter(disposeRustWorkbookRuntimeAtom)
+  expect(worker.terminate).toHaveBeenCalledOnce()
 })

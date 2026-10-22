@@ -76,3 +76,28 @@ fn registered_async_host_name_rejects_user_definition_without_rewriting_memo_or_
     book.resolve_async_custom_call(before[0].call_id, Value::Number(4.0)).unwrap();
     assert_eq!(book.get_cell("Sheet1", "A1"), Value::Number(4.0));
 }
+
+#[test]
+fn identical_async_formula_and_settlement_reads_do_not_create_persistent_mutation_facts() {
+    use einfach_excel_core::host::{read_range, HostCellInput, HostCellWrite};
+    let mut book = book();
+    let mut history = WorkbookHistory::default();
+    let range = CellRange::single(CellAddress::new(0, 0));
+    history.set_cell_input(&mut book, 0, "A1", "=FETCHJSON(1)").unwrap();
+    let sequence = history.mutation_sequence();
+    assert_eq!(book.get_cell("Sheet1", "A1"), busy());
+    let call = book.take_pending_async_custom_calls()[0].call_id;
+    // 结算发生在前后快照之间，也只改变缓存，不改变保存的公式源。
+    history.begin(&book, 0, range, "Same formula", true).unwrap();
+    book.resolve_async_custom_call(call, Value::Number(7.)).unwrap();
+    book.set_cell_input(0, "A1", "=FETCHJSON(1)").unwrap();
+    history.finish(&mut book, true).unwrap();
+    history.set_cell_input(&mut book, 0, "A1", "=FETCHJSON(1)").unwrap();
+    assert!(!history.write_host_cells(&mut book, &[HostCellWrite { sheet: 0, row: 0, col: 0,
+        input: HostCellInput::Formula { formula: "=FETCHJSON(1)".into() } }]).unwrap());
+    assert_eq!(read_range(&book, 0, range).unwrap()[0].value,
+        einfach_excel_core::host::RawCellValue::Number { value: 7. });
+    book.recalculate(None).unwrap();
+    assert_eq!(history.mutation_sequence(), sequence);
+    assert_eq!(history.undo_count(), 1);
+}

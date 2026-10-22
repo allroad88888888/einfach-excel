@@ -4,6 +4,7 @@ import { WORKBOOK_FILE_MAX_BYTES } from '../rust-workbook/file-commands'
 import { replaceRustWorkbookRuntimeAtom } from './rust-workbook-runtime'
 import { rustWorkbookConnectionAtom } from './workbook-connection'
 import { workbookDocumentAtom } from './workbook-document'
+import { workbookReplacementErrorAtom } from '../host/state'
 
 interface WorkbookFilePanel {
   readonly open: boolean
@@ -65,7 +66,11 @@ export const runWorkbookFileAtom = atom(null, async (
       }
       if (get(rustWorkbookConnectionAtom) !== connection) return false
       replaced = await set(replaceRustWorkbookRuntimeAtom, text)
-      if (!replaced) return false
+      if (!replaced) {
+        const error = get(workbookReplacementErrorAtom)
+        if (error) throw new Error(error.message)
+        return false
+      }
     }
     set(stateAtom, { open: input.action === 'download', busy: false, error: false,
       message: input.action === 'download' ? 'Download requested. Keep the file to save your work.' : '' })

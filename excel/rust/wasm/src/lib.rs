@@ -145,6 +145,7 @@ include!("wasm_function_catalog.rs");
 include!("wasm_workbook_calculation.rs");
 include!("wasm_workbook_aggregate.rs");
 include!("wasm_workbook_history.rs");
+include!("host/mod.rs");
 include!("wasm_workbook_clear.rs");
 include!("wasm_workbook_format_selection.rs");
 include!("wasm_workbook_structure.rs");

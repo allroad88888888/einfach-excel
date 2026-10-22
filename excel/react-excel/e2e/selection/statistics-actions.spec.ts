@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type Page } from '../support/input-stall-fixture'
 
 const statistics = (page: Page) => page.getByRole('status', { name: 'Selection statistics' })
 const settings = (page: Page) => page.getByRole('button', { name: 'Selection statistics settings' })

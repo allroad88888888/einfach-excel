@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from '../support/input-stall-fixture'
 import { select } from '../support/clipboard'
 
 for (const width of [1280, 390]) for (const action of ['Open', 'Tab', 'Shift+Tab', 'Cancel', 'Escape'])

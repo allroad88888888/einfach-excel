@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises'
 import { expect, test } from '@playwright/test'
+import { select } from '../support/clipboard'
 import { start, go, open, save, highlighted, cleanNeighbor, compareDisplay, numberFormat,
   button, dialog, valueInput, cell } from './support'
 
@@ -29,15 +30,19 @@ for (const width of [1280, 390]) {
   test(`wildcard and display-text rules survive download and reopen with native base formats at ${width}px`, async ({ page }) => {
     await start(page, width, ['0.5', '="50%"', '中文🙂*'])
     await numberFormat(page, 'A1', 'percent')
-    await go(page, 'A1:A2'); await compareDisplay(page)
-    await go(page, 'A3'); await open(page, 'text')
+    // 本例验证持久化；初始化仍覆盖定位对话框，后续选区用公开名称框，避免重复打开对话框。
+    await select(page, 'A1:A2', '0:0'); await compareDisplay(page)
+    await select(page, 'A3', '2:0'); await open(page, 'text')
     await page.getByLabel('Text condition', { exact: true }).selectOption('matches-wildcard')
     await page.getByLabel('Matching text', { exact: true }).fill('中文?~*'); await save(page)
     await button(page, 'File').click()
-    const downloading = page.waitForEvent('download'); await button(page, 'Download workbook').click()
+    const downloading = page.waitForEvent('download')
+    await button(page, 'Download workbook').click()
     const text = await readFile((await (await downloading).path())!, 'utf8')
     const file = JSON.parse(text)
-    const rules = file.workbook.conditionalFormats[0].rules.map((entry: { rule: unknown }) => entry.rule)
+    const rules = file.workbook.conditionalFormats[0].rules.map(
+      (entry: { rule: unknown }) => entry.rule,
+    )
     expect(rules).toEqual(expect.arrayContaining([
       expect.objectContaining({ kind: 'duplicate-values', compareBy: 'display-text' }),
       expect.objectContaining({ kind: 'text', condition: 'matches-wildcard', text: '中文?~*' }),
@@ -51,7 +56,7 @@ for (const width of [1280, 390]) {
     await expect(page.getByRole('dialog')).toHaveCount(0)
     for (let row = 0; row < 3; row++) await highlighted(page, row)
     await expect(button(page, 'Undo')).toBeDisabled()
-    await go(page, 'A1'); await expect(valueInput(page)).toHaveValue('0.5')
+    await select(page, 'A1', '0:0'); await expect(valueInput(page)).toHaveValue('0.5')
     await button(page, 'General format').click()
     await highlighted(page, 0, false); await highlighted(page, 1, false)
     await highlighted(page, 2); await cleanNeighbor(page)

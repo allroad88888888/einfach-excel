@@ -12,6 +12,13 @@
 - 44张受派发中英/两宽图片已独立实看；原合并demo保留。批注仅工作簿本地线程，保护不是认证/加密，自定义公式仅Rust表达式；远程协作、自动保存、任意脚本、完整参数填写表单及整个41项计划不在本次完成声明内。
 - 交付报告见 [008-report.md](reports/008-report.md)，原始证据在 `.codex-artifacts/react-excel-seven-features/acceptance-20261021.LeIzkC/`。无本任务活测试过程，未commit/push。
 
+## 2026-10-23 完成复核
+
+- root 直接解析上述原始 `report.json`：2474 项均单次通过、retry 0；七项及同格共存精确为 256 项。按文件、完整标题路径及 project 与 `.codex-artifacts/react-excel-package-004/full-attempt3-results.json` 逐项匹配，256 项全部仍单次通过，没有遗漏、跳过或改名替代。
+- 核对当前七个 React 功能目录、实际工具栏/格子入口、Core Worker command 及 Rust/WASM 入口；不是仅凭目录或旧 done 标签认定完成。对最近完整回归冻结清单内 React src/e2e/test、Core src、Rust Core src 共 1902 个输入重新算 SHA，当前只有已记录的 8 项差异，唯一产品源码差异是随后已定向验证及实际包验证的 `GridHeaders.tsx`；七项领域产品源码没有后续差异。
+- 本次只读复核复用真实证据，未重跑完整测试、未新增产品代码。七项原目标维持完成；独立包另有发行门禁未关闭（最近完整轮 2674/2677，后续定向修复及 React 18 候选包 44/44 不能冒充最终完整全绿），不得把两者合并声明为全库可发布。
+- 用户最新范围仅完善表格库；保持 React 18.3 / Einfach 0.4，不进入或修改 `/Volumes/work/web/excel-plugin`，不发布，不自动 commit/push。
+
 ## 全局约束
 
 - 工作目录 /Volumes/work/self/excel，HEAD 1c47e6439657ee18d66db1d194d61dfa44bdf103。开始前工作区已有 106 个跟踪文件修改、135 个未跟踪条目；全部属于用户/先前批次，不能 reset、checkout、删除或覆盖。基线备份目录 /tmp/react-excel-seven-features.QjzUox；共享文件必须与当前工作区比较，不仅比较 HEAD。

@@ -9,8 +9,21 @@
 - 阶段二：宿主通过同一 Einfach Store 安全读写原始工作簿，收到成功修改通知；独立 Vite/Rspack 消费者完成真实 Worker/WASM 验收。
 - 不做 DeepFOS 插件业务，不修改 `/Volumes/work/web/excel-plugin`；其契约仅作只读需求参考。
 
-## 当前交接（整体验收未完成）
+## 当前交接（本地完整验收通过；历史卡顿根因未解决）
 
+- 最终签收：唯一同候选完整序列95.5457min自然exit0，2679/2679、同JSON1026/1026，均单次passed/retry0；真实包44与嵌入18也在该轮全部通过。开始/结束6276输入f31481b8…73efa零漂移，1439旧证据保全，自有进程/5191/5193已清理。作者报告577行起、独审337行起APPROVED_WITH_CONCERNS，无新增C/I/M；原I2按其完整门禁定义关闭，验收7/PKG-13和001–004本地交付均done。
+- **用户要求的历史卡顿修复未被证实完成**：两挂点本次均通过，18份观测没有预设症状，watcher零触发、没有故障栈，根因仍unknown；没有据猜测改产品。完整通过不是历史root cause修复。M1字号差异保持已接受非阻断限制。
+- 已按职责正常提交e64fcb5e、c1cac1be，最终文档/任务随收尾提交。本地签收时尚未推送；用户已授权push，根单独核对精确SHA远端CI，实时Git状态以提交/远端及最终交接为准。不npm发布、不应用工作区版本、不改excel-plugin。
+
+以下交接按各阶段当时状态保留；旧“尚未通过”“未授权push”等不能覆盖上述最新签收与授权。
+
+- 2026-10-23 最新用户明确要求“做完剩下的这三个”：授权定位并修复历史输入卡顿、最终完整回归、分批 commit 与 push；覆盖旧阶段禁止 full/commit/push 的限制，但不授权 npm 发布、应用工作区版本或修改 excel-plugin。原三处失败已定向修复，新包44/44已成立；从004末节的新收尾阶段续跑，不重复打包和未变原生验证。旧I2两轮定位未复现，按skill第三轮交新负责人，原独审者只读审查，最多一个浏览器过程。
+- 收尾阶段已正常分批提交 `e64fcb5e`（候选证据隔离及真实包行头回归）、`c1cac1be`（CI完整Vitest前构建真实full WASM，修复远端39709168980干净环境缺full的问题）；两批docs/presentation/lint/mainline types均通过，changed Vitest无受影响文件，既有44结果复用。未push。新负责人和独审者均从原trace确认TABLE的fill底层已成功但after/before snapshot各约3秒无响应，Enter从未实际触发，不能归为提交业务；I2原因仍未知。只在忽略证据目录准备症状触发自有renderer原生采样，首次自有Node能力自检6秒无有效栈，事实保留，尚未启动新full。
+- 唯一最终full于2026-10-23T05:48:33.854Z启动：session96300、controller15306、launcher15309、watcher15307，2679例/370文件、workers1/retries0/CI未设/原30s；新目录`final-closeout-r1`独立保留。输入6276项聚合`f31481b8c7515224189c67159f63fa38e9323e4368539add71477ec681373efa`，独审逐键确认相对新React18候选仅CI变化，其他6275字节一致。去掉-mayDie的不同条件自有Node sample1.431s自然0、真实75132字节栈，自检不是bug复现；watcher SHA14a3f571…f84f7已单列启动记录，最多2次症状触发×2自有renderer，非持续Profiler、页面映射未知。独审预检查无阻断，不预签full/I2；运行中冻结输入，只监测同一进程。
+- 06:18Z守护进程重启后根先核实旧进程仍活、日志356通过/零失败，未重复启动full或Git操作；旧agent会话已失，按004末节交新恢复负责人接管同一15306/15310过程与独立证据目录。冻结仍有效，任何最终结论待原过程自然退出。
+- 2026-10-23 用户确认“react 18 继续”：React 18.3 继续作为唯一声明基线，不升级 React 19、不改插件仓库整仓依赖。恢复004，授权当前已提交候选重新 build:lib、独立 pack/严格安装及 Vite/Rspack 包级定向验收；不自动启动第四次完整E2E，不提交/推送/应用工作区版本/发布。执行前保全旧实物索引及失败证据，新日志/manifest/freeze放独立目录；具体边界见004末节。
+- 同日用户明确选择“暂时只完善表格库”：后续保持本仓范围，excel-plugin仅只读参考，不修改其引擎适配器或React/Einfach依赖；真实插件接入不计为本轮交付。
+- React18新候选实物已整合并独审APPROVED_WITH_CONCERNS，无新增质量发现：build:lib/artifact与仓外strict-peer安装、类型、Vite/Rspack构建均自然通过；唯一包级JSON原42+行头身份/冻结回归2，共44/44、54.1725s、零失败/跳过/重试/flaky。新freeze6276项aca47bd9…f6761结束changed[]，新证据独立在react18-candidate-r1；8015旧对象SHA/mtime不变，89新证据索引及真实tarball经独立只读核对。旧包未含key修复这一缺口已消除；自有进程已退出，无后台验收。但总004/I2/最终完整门禁尚未关闭，不发布。
 - 001/002/003实现与独审已完成，004真实包消费通过，但最终全量E2E未通过；不得标记本轮done或可发布。
 - 旧候选全Vitest6496通过；真实包42项、嵌入18项在同次完整运行中通过。历史attempt2为2675通过/2超时，主绑定1024/1026，6268冻结输入结束零差异；最新完整attempt3与本轮定向结果见下文，不能混用候选。
 - 两失败分别卡在名称框fill及公式栏Enter，尚未执行各自主功能；8+20+10+20次无改动串行诊断均通过，不能证明根因或替代完整结果。repeat-each每次新worker，不能当作长寿命浏览器等价证据。
@@ -38,19 +51,19 @@
 
 | id | 表面/状态 | 精确入口/路径 | 归属 | 验证证据 | 状态 |
 |---|---|---|---|---|---|
-| PKG-01 | 外部安装/公开JS与声明 | react-excel/package.json、src/index.ts、src/Spreadsheet.tsx | 001 | reports/001-report.md、001-review.md、004-report.md | 本叶done；真实安装与声明通过，整体未过 |
-| PKG-02 | 默认Worker/自定义工厂/失败/销毁 | page/WorkbookRuntimeProvider.tsx、library build | 001 | reports/001-report.md、001-review.md、004-report.md | 本叶done；真实浏览器通过，整体未过 |
-| PKG-03 | 依赖闭包/无源码alias/无消费者宏 | react-excel library config、内部cells构建 | 001 | reports/001-report.md、001-review.md、004-report.md | 本叶done；严格peer仓外安装通过，整体未过 |
-| PKG-04 | 宿主样式/滚动/尺寸/多实例 | app/app.css、workbook/**/*.css、style.css | 002 | reports/002-report.md、002-review.md、004-report.md | 本叶done；嵌入同次18/18通过；M1非阻断；整体未过 |
-| PKG-05 | 中英/独立语言/无URL存储副作用 | i18n、Provider、LanguageSelect | 002 | reports/002-report.md、002-review.md、004-report.md | 本叶done；中英/Canvas迁移与同次嵌入通过，整体未过 |
-| PKG-06 | 类型化多区域原始值/公式读写 | UI Core host/、Rust原生接口 | 003 | reports/003-report.md、003-review.md、004-review.md | native/真包同次通过；整体未过 |
-| PKG-07 | 用户输入/粘贴/清除/填充成功事件 | rust-workbook/runtime、Rust mutation facts | 003 | reports/003-report.md、003-review.md、004-review.md | native/真包DOM同次通过；整体未过 |
-| PKG-08 | 撤销重做/跨表剪切/公式重定位事件 | history、cross_sheet_cut、native history facts | 003 | reports/003-report.md、003-review.md、004-review.md | native/真包同次通过；整体未过 |
-| PKG-09 | 失败/noop/导入刷新/旧连接隔离 | host/、runtime/rust-workbook-runtime.ts | 003 | reports/003-report.md、003-review.md、004-review.md | Core/真包同次通过；整体未过 |
-| PKG-10 | 原生保护/宿主交互锁/结构策略 | host/、mutation gateway、Worker dispatch | 003 | reports/003-report.md、003-review.md、004-review.md | R2/真包中英DOM同次通过；整体未过 |
-| PKG-11 | 包级Vite/Rspack真实浏览器 | package-consumer fixtures、Playwright | 004 | reports/004-report.md、004-review.md | 同次完整中的包42/42通过；整体未过 |
-| PKG-12 | 千行多表→UI修改→增量读取闭环 | package-consumer scenarios | 004 | reports/004-report.md、004-review.md | 双打包器同次通过；整体未过 |
-| PKG-13 | 构建/单测/原有E2E/发布准备 | 根scripts、CI、README、changeset | 004 | reports/004-report.md、004-review.md | 6496单测/构建/静态通过；最新完整2674/2677、主绑定1026/1026，独审未通过 |
+| PKG-01 | 外部安装/公开JS与声明 | react-excel/package.json、src/index.ts、src/Spreadsheet.tsx | 001 | reports/001-report.md、001-review.md、004-report.md | passed；真实安装与声明通过，最终完整2679通过 |
+| PKG-02 | 默认Worker/自定义工厂/失败/销毁 | page/WorkbookRuntimeProvider.tsx、library build | 001 | reports/001-report.md、001-review.md、004-report.md | passed；同次真实包44及完整回归通过 |
+| PKG-03 | 依赖闭包/无源码alias/无消费者宏 | react-excel library config、内部cells构建 | 001 | reports/001-report.md、001-review.md、004-report.md | passed；strict peer仓外安装与最终完整通过 |
+| PKG-04 | 宿主样式/滚动/尺寸/多实例 | app/app.css、workbook/**/*.css、style.css | 002 | reports/002-report.md、002-review.md、004-report.md | passed；同次嵌入18通过；M1非阻断保留 |
+| PKG-05 | 中英/独立语言/无URL存储副作用 | i18n、Provider、LanguageSelect | 002 | reports/002-report.md、002-review.md、004-report.md | passed；中英/Canvas及最终同次嵌入通过 |
+| PKG-06 | 类型化多区域原始值/公式读写 | UI Core host/、Rust原生接口 | 003 | reports/003-report.md、003-review.md、004-review.md | passed；native与最终真包DOM通过 |
+| PKG-07 | 用户输入/粘贴/清除/填充成功事件 | rust-workbook/runtime、Rust mutation facts | 003 | reports/003-report.md、003-review.md、004-review.md | passed；最终同次真包DOM通过 |
+| PKG-08 | 撤销重做/跨表剪切/公式重定位事件 | history、cross_sheet_cut、native history facts | 003 | reports/003-report.md、003-review.md、004-review.md | passed；native与最终同次真包通过 |
+| PKG-09 | 失败/noop/导入刷新/旧连接隔离 | host/、runtime/rust-workbook-runtime.ts | 003 | reports/003-report.md、003-review.md、004-review.md | passed；Core与最终同次真包通过 |
+| PKG-10 | 原生保护/宿主交互锁/结构策略 | host/、mutation gateway、Worker dispatch | 003 | reports/003-report.md、003-review.md、004-review.md | passed；R2与最终真包中英DOM通过 |
+| PKG-11 | 包级Vite/Rspack真实浏览器 | package-consumer fixtures、Playwright | 004 | reports/004-report.md、004-review.md | passed；最终完整同JSON44/44及独审通过 |
+| PKG-12 | 千行多表→UI修改→增量读取闭环 | package-consumer scenarios | 004 | reports/004-report.md、004-review.md | passed；最终同候选双打包器44项通过 |
+| PKG-13 | 构建/单测/原有E2E/发布准备 | 根scripts、CI、README、changeset | 004 | reports/004-report.md、004-review.md | passed（本地）；最终2679/2679及1026主绑定、独审通过；远端CI另核 |
 
 ## 任务树与状态
 
@@ -59,7 +72,7 @@
 | 001 | 外部项目可安装并嵌入完整工作簿 | 无 | gpt-6.1-sol xhigh | done |
 | 002 | 嵌入工作簿不污染宿主页面及其他实例 | 001 | gpt-6.1-sol xhigh | done |
 | 003 | 插件宿主安全读写并订阅真实成功修改 | 无 | gpt-6.1-sol xhigh | done |
-| 004 | 打包产物通过独立消费者验收并具备发布条件 | 001,002,003 | gpt-6.1-sol xhigh | running |
+| 004 | 打包产物通过独立消费者验收并具备发布条件 | 001,002,003 | gpt-6.1-sol xhigh | done（本地，卡顿根因另列遗留） |
 
 001与003可并行：React/包构建与Core/Rust分别所有；002顺序消费001入口；004独立验收风险边界。
 不是按文件拆叶：001交付可安装库，002交付宿主环境隔离，003交付插件数据闭环，004验证真实发布物。

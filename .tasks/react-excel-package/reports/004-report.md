@@ -547,3 +547,73 @@ support.ts未变，临时观察imports/env分支/脚本均已撤下；其原源�
 
 旧attempt1失败终止历史、attempt2两输入停顿根因未知、attempt3三失败均未改写。当前三处有针对性处理与局部证据，不等于旧完整门禁通过；历史输入长停顿的产品原因仍未知。M1工具栏字号差异继续非阻断限制；旧长协议停顿可能缺profile的诊断盲区仍在。
 下一步仅交原独审者只读核对本节与cross-regression-r1证据；004/I2是否进一步整合新实物及最终完整须由根明确安排，本轮不自行执行。
+
+## React 18 当前候选实物整合（2026-10-23）
+
+回执：**DONE_WITH_CONCERNS**。基于dcc7ebc3，本轮只闭合最新行头真实key进入发行实物及仓外包级验收的缺口；React/Core/Rust产品源码、依赖版本、工作区版本/changesets未改。React保持18.3.1、Einfach保持0.4.0，未改外部插件，未运行完整序列、commit/push/npm发布。
+
+三份既有prepare/serve/freeze脚本只统一新增可选`REACT_EXCEL_PACKAGE_EVIDENCE_DIR`（根目录解析，默认不变）；新30行脚本测试执行实际AST初始化表达式验证目录选择，3/3通过。既有package-host lifecycle新增Vite/Rspack各一例真实冻结切窗回归：离窗row2旧节点断开、重叠row5保持原节点/label，再经全局row2点击验证A2:T2、插入冻结带4/Undo回3及原值/邻实例/Worker/错误断言。无需force/dispatch或冻结专用selector；这组身份断言能区分旧slot key，新旧编译产物的key分别为实际行与slot，见`key-closure-check.json`。旧42例及原预算/重试未改，源/测试文件均≤300行。
+
+本轮全部证据位于`.codex-artifacts/react-excel-package-004/react18-candidate-r1/`，只使用其中新`consumers.json`，不复用旧manifest。主要命令及自然结果：
+
+| 命令 | 结果/证据 |
+| --- | --- |
+| `node --test scripts/react-package-evidence.test.mjs`，四文件`node --check` | 3/3、全部exit0；`scripts-test.log` |
+| `pnpm --filter @einfach/react-excel build:lib`及`verify:package-artifact` | exit0；`build-lib.log`、`artifact-check.log` |
+| 同包`typecheck`、带现有rules配置的lifecycle scoped ESLint、`git diff --check` | exit0；`typecheck.log`、`lint.log` |
+| 上述环境变量下`node scripts/prepare-react-package-consumers.mjs` | exit0；`prepare.log`、`commands.json`记录18条内层命令的UTC/退出结果 |
+| 默认关闭OBSERVE/PROFILE的package配置、workers1/retries0/trace on/list+json | 唯一session44817自然exit0，44/44；精确CLI及PID见`commands.json` |
+
+Prepare仅在全新mktemp staging按既有Changesets流程应用候选版本，真实pack五包；两仓外消费者只安装React/UI Core/WASM三份tarball，strict-peer安装、实际依赖树、类型、Vite/Rspack生产构建均exit0。无alias/link/宏插件/私有TS引擎回退；`dependency-audit.json`确认React/ReactDOM18.3.1及Einfach0.4.0。新React tarball SHA256为`ba1f2bbe664144295cdd417e4546caa0c80de2ba7c7e9111321b3f1343068438`；安装JS与新dist、安装release.md与本轮说明完全一致，最新真实行key已入包。其余四tarball与旧版逐字节相同，Core/WASM的1930项构件SHA/mtime未变；未重跑其原生/全仓单测。
+
+同一`package-results.json`于02:25:17.192Z启动，54172.546ms后自然结束：44 expected、0 unexpected/skipped/flaky、errors[]，每例单result/retry0；包含原42及新增2例，不与旧嵌入18/源demo结果相加。总预算600s、原单例30s不变。开始/结束freeze均为6276输入，aggregate `aca47bd9297b96dafe25c9893d84f48dae686d103017eefcdae04844526f6761`，`frozen-verification.json`的changed[]为空；冻结覆盖当前源码、真实dist/Core/WASM、消费者生产页面及tarball。
+
+`preservation.json`证明8015个旧证据/旧consumer/tarball对象SHA/mtime未变；旧报告52680字节前缀校验见`final-audit.json`。自有launcher77466/Playwright77474/server77509/worker77510/browser77511均已退出，5191/5193无监听；`cleanup-and-source.json`保留核验结果，未终止其他进程。顶层命令UTC为日志创建/最后写入边界，不伪作精确退出时刻，明细见`commands.json`。
+
+发行说明在pack前最小同步attempt3及后续定向状态、已分批本地提交但未push/发布，旧历史未重写。根另批准结束后仅在FEATURE_PROGRESS最上方追加本次44/44交接；此普通Markdown不在freeze/发行白名单，作为docs-only后置delta独立记录于`progress-postrun-delta.json`，未改已打包release.md或重建实物。
+
+**仍缺最终同候选完整通过：004/I2/验收7不关闭、不可发布。** 最新历史attempt3为2674通过/1超时/2断言失败，后续定向修复及本次44通过不能抵消完整失败；原两输入长停顿根因仍未知。M1工具栏字体差异继续为已接受Minor，未改。旧attempt1/2/3与R1/R2证据保留。本轮仅交原reviewer只读复核新manifest、同JSON、freeze及保护/清理，不追加运行。
+
+## 最终候选完整回归与守护进程重启续接（2026-10-23）
+
+回执：**DONE_WITH_CONCERNS**。唯一授权的同候选完整序列自然exit0，2679/2679及同JSON主绑定1026/1026通过；本叶执行收尾完成。**用户要求的历史卡顿修复仍未证实：原两处长停顿本轮未复现，根因unknown，不声称已修复或三项要求均完成。** 总004/I2的最终裁决交独审与根，Git提交/推送由根单独执行。
+
+### 原过程与同候选最终结果
+
+原启动回执为`final-closeout-r1/full-start.json`，controller15306、launcher15309、Playwright15310、watcher15307；05:48:33.854Z启动、07:24:07.145Z自然结束，code0/signal null。服务重启未终止原过程；恢复负责人06:19Z后核对PPID1及同PGID15306，续看同一日志，没有重新准备、自检、list、测试、构建或pack。模型会话中断期间根也仅只读接管，未重启原测试。`recovery-start.json`与`recovery-progress.jsonl`保留恢复回执。
+
+精确CLI与环境以原`full-start.json`为准：根目录运行`pnpm --filter @einfach/react-excel exec playwright test --config playwright.config.ts --reporter=list,json --workers=1 --retries=0 --output=.../final-closeout-r1/full-results`；JSON写入同目录`full-results.json`，CI未设，原30s、repeatEach1。服务只读使用`react18-candidate-r1/consumers.json`；冻结目录使用本轮复制且逐字节相同的manifest。OBSERVE=1、PROFILE=0仅覆盖原两spec18项，其余2661项不启用该观测；没有连续CPU Profiler或第二个完整过程。
+
+原`full-results.json` SHA256为`c764bc2a5d89bdd6f02ebb7e770b7f3f25720e17d3542aa5c5b22907d050d8e1`：05:48:34.273Z开始，5732742.036ms（95.5457min），370文件2679项；每项恰一个passed result、retry0，expected2679、unexpected/skipped/flaky均0，errors[]。workers配置1，实际先后workerIndex0/1，不能把单一CLI误称全程同寿命浏览器。
+
+| 同一完整JSON中的场景 | 结果 |
+| --- | --- |
+| 真实仓外Vite/Rspack包级（含新行头身份/冻结2例） | 44/44 |
+| 源demo嵌入场景 | 18/18，与真实包分组独立 |
+| 历史attempt3的390px格式下载重开 | passed22194ms |
+| 历史attempt3的390px向左填充 | passed1418ms |
+| 历史attempt3的冻结带内插入 | passed1081ms |
+| 原STAT-019，复制统计值且不清源 | passed1507ms，07:06:25.484Z开始 |
+| 原TABLE-036，1280px Open Tables | passed1675ms，07:17:58.215Z开始 |
+
+结束后仅运行原freeze的`--verify`及纯结果门禁：07:24:28.950Z确认6276项、aggregate `f31481b8c7515224189c67159f63fa38e9323e4368539add71477ec681373efa`、changed[]；`pnpm check:e2e-features --results .../final-closeout-r1/full-results.json`自然exit0，1026个主绑定逐项有该份报告中的成功证据。`frozen-verification.json`、`freeze-end.log`、`features-result-gate.log`为对应原回执，未重跑浏览器。既有full WASM精确layout测试在完整启动前为5/5（`core-layout.log`），恢复后复用该结果，没有再跑。
+
+### 卡顿结论、观测覆盖与限制
+
+根与独审在启动前已从旧attempt2 trace确认：TABLE的fill底层动作已完成，但其after/before snapshot各有约3s无响应；Enter实际未发出，不能归为表格提交业务执行了30s。STAT旧名称框fill的产品原因同样未明。以上只能收窄旧挂点，不能证明Node、renderer、Worker或特定产品同步循环已是根因；本轮没有有证据的卡顿产品修复。
+
+原生能力自检事实分开保留：首次自有Node sample 6s期限内未取得有效栈，文件0字节；随后去掉`-mayDie`的不同条件自有Node自检1.431s自然exit0、75132字节、含目标PID与Call graph。二者都是能力检查，均非产品缺陷复现；恢复者未重跑。一次性watcher SHA256仍为`14a3f571fe3442c32aab4e3ef3adb6b3468f3ed4700cef64659b1f48731f84f7`，仅允许两症状目标、最多2次触发×2个自有renderer、单sample≤15s、每触发≤20s，页面到renderer映射unknown且可能含spare。
+
+最终`native-watch-events.jsonl`只有watch-start与07:24:07.147Z的watch-end，triggers0，watcher自然exit0；本轮未取得任何症状栈。18份`input-stall.jsonl`均有observer-end且rpcStillPending=false；原STAT目标maxNodeGap257.121ms/maxPageGap454.8ms，原TABLE目标255.430ms/277.9ms，均未出现预设触发条件。没有诊断诱发失败记录不等于零扰动，且短采样能力、无触发和完整通过均不能证明旧长停顿已修。**I2根因保持unknown；用户第一项仍未被证实完成。** M1跨打包器字号差异继续为已接受非阻断限制。
+
+### 保护、资源与后置文档
+
+`final-audit.json`/修正后的`final-result-audit.json`核对1439个旧证据对象（352406207字节）SHA、大小与原Node schema的mtimeMs均不变，旧报告57124字节前缀SHA保持。初版派生审计用Python秒数转mtimeMs引入<0.001ms浮点假差异，并误给spec.file添加e2e前缀导致空分组；已保留`final-result-audit-initial.json`并纠正为实际44/18，原始JSON、旧证据和freeze未改。原始结果与freeze/verify为权威，不靠派生统计覆盖事实。
+
+07:25Z资源核对：原PGID15306无存活进程，controller/launcher/Playwright/watcher与自有服务已自然退出，5191/5193均无监听（lsof exit1/空输出）。18份观测无pending RPC，未终止其他任务进程。清理证据在上述最终审计的cleanup字段；没有后台验收。
+
+根在完整结束后授权仅更新`FEATURE_PROGRESS.md`与`docs/package/release.md`当前状态，两个Markdown均不在执行freeze，单列`docs-before.json`和`docs-postrun-delta.json`；未改变源码、测试、FEATURES、配置、WASM或实物。五tarball仍逐字节匹配冻结，React tgz SHA256仍为`ba1f2bbe664144295cdd417e4546caa0c80de2ba7c7e9111321b3f1343068438`。其内release.md仍为打包时4056字节/SHA `e515f0b815f3d6946fe8a61a7b6df4c028b54cb0c879809a0107ed7691ebafae`，不含本次状态新文字；未为docs-only变化重建/pack/重跑未变产物。
+
+本轮执行者未进行Git提交或推送；根在full前已完成`e64fcb5e`/`c1cac1be`两批本地提交，最终推送另记。未npm发布、未应用工作区Changesets、未改外部excel-plugin。原失败历史保留。本次只交最终同候选完整通过与真实限制，等待独审；不能据完整全绿关闭未知卡顿根因。
+
+独审后最终docs-only收尾：`004-review.md:337`已APPROVED_WITH_CONCERNS，004/验收7/PKG-13本地完整验收通过、原I2按完整门禁定义关闭；两份状态文档已同步此裁决，将旧包级/失败阶段标为历史，Git采用本地验收时点口径，继续明示卡顿根因unknown及包内文档为打包时快照。`docs-postrun-delta.json`已更新两份最终SHA；`pnpm check:docs`通过（490活文档/4518文件），本次未运行测试、构建或pack，未改原JSON、执行freeze或产品输入。

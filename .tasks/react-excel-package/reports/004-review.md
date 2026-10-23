@@ -307,3 +307,68 @@ Critical：无新增。Important：无新增实现缺陷；**既有I2继续开�
 ❌ 总004/验收7/PKG-13仍缺当前候选的完整成功与更新后的发行物验收。React dist、五tarball、消费者生产页面等实物仍保持旧hash，**不含本次行key修复**；旧包42/18、完整6496及旧构建只能代表此前输入，不能冒充新源码发行证明。attempt3原2674/2677失败记录及历史挂点未知事实不变。下一步若根另行授权，应先安排当前候选实物整合与相应验收，再按同一冻结候选的自然完整结果裁决；本轮审查不启动新build/pack/full、不放宽预算、不自动发布。
 
 本轮回执：`APPROVED_WITH_CONCERNS`（三项定向收敛成立）；总004仍`REJECTED / 未完成`，I2 open。无commit/push/应用版本、远端CI成功或npm发布声明。
+
+## React 18 当前候选实物整合独审（2026-10-23）
+
+本轮包级交付：`APPROVED_WITH_CONCERNS`；**总004仍`REJECTED / 未完成`，I2/验收7/PKG-13保持开放**。已读当前index、任务末节及作者551行起正式报告，使用本轮base `dcc7ebc3b1c92614f30e522893f8393bd4f54eb6`审范围diff与新增文件，只读核对新目录`react18-candidate-r1/`的原始证据；未运行测试、浏览器、构建、pack或修改作者报告，仅追加本节。复用已审001–003及未变原生证据，不重审历史架构/非阻断M1；按既有React、feature-wave、one-file-one-thing规则检查本轮边界，learn-project继续暂停。
+
+| 本轮验收 | 判定与证据 |
+|---|---|
+| 1–3. 最小范围与新证据目录 | ✅ 三脚本仅将evidence统一改为仓库根下`path.resolve(root, env || default)`，prepare日志/manifest、serve读取及freeze写入均使用该变量；未设置或空值保留原默认。新30行测试通过TypeScript AST取得三个脚本**实际initializer**再在VM执行，非复制选择逻辑，覆盖undefined/空值/相对/绝对目录；原始scripts-test.log为3/3。三脚本93/23/57行，lifecycle105行，未引入框架、依赖或产品逻辑。 |
+| 4. 已修源码进入真实发行物 | ✅ 重新build:lib/artifact检查自然exit0。直接读取新tar中的index.js，普通row map的index与React key均为`e+n`，不再是slot `n`；所有非package.json的tar内容均与当前发行白名单文件逐字节一致，包括声明、CSS、Worker、许可证/NOTICE和发行说明。两份仓外安装JS也与tar逐字节一致，不只看root dist或汇总JSON。 |
+| 4–5. 版本、严格安装与闭包 | ✅ mktemp `react-excel-packed-0Z3FTK`的既有Changesets staging产生React0.1.0与Core/styles/TS core/WASM0.2.0，工作区版本及pending计划未改。两份原始install日志均为`--strict-peer-deps`自然exit0；实际package-lock各只有React/ReactDOM18.3.1、Einfach core/react0.4.0，无link/私有cells/TS引擎回退。React的peer Core^0.2.0与真实包匹配。仓外配置无源码alias或消费侧宏插件配置，strict类型skipLibCheck:false与两种生产构建均过；Lingui传递依赖存在宏相关包不等于宿主需要宏构建插件。 |
+| 5–6. 能区分旧key的真包DOM回归 | ✅ 新两例先保留row2/row5真实ElementHandle，冻结后要求row2断开、row5保持同节点及label，再用所属工作簿的全局row2入口点击，断言A2:T2、冻结带4/Undo回3、原值/邻实例/Worker live2及零错误。旧slot key会保留原row2节点并更改其行号，身份断言能明确拒绝它；没有force、Core dispatch或冻结专用selector。两份真实trace中的spec内容SHA与当前文件完全相同、无trace error。 |
+| 6. 原42项与新2项同次成功 | ✅ 直接解析package-results.json并比较历史包场景精确标题：原42项无缺失，仅新增Vite/Rspack各一例；base diff也没有删改旧动作/断言。44项各恰一条passed/retry0，0skip/unexpected/flaky、errors=[]；单worker、原30s、global600s，OBSERVE/PROFILE关闭。独立执行54.173s，不混入旧嵌入18项或demo结果。 |
+| 7. 静态、构件复用与保护 | ✅ 原package typecheck、artifact检查、相关原规则lint、脚本node-check/3项单测及diff检查exit0证据齐。独立检查1930份Core/WASM复用构件SHA/mtime不变；另外四个新tar的实际SHA与旧包相同。保护记录覆盖8015个旧文件/链接、旧consumer/tarball，changed[]；抽核其中18份关键原始失败JSON/log/freeze、旧manifest/tarball的SHA/mtime均吻合，不再执行旧套件。 |
+| 8. 报告、说明与最终边界 | ✅ 报告仅追加，原52680字节前缀SHA保持42f02cb5…672a2d。pack前发行说明同步历史attempt3、后续定向及本地提交/未push发布；包内“正在包验收”是生成时保守状态，没有冒称最终成功。结束后FEATURE_PROGRESS仅追加当前44/44及总门禁未过，后置docs-only delta明确不在freeze/包内，已打包release.md未变。没有新完整序列或外部插件改动。 |
+
+### 同候选指纹与自然终态
+
+新React tarball SHA为`ba1f2bbe664144295cdd417e4546caa0c80de2ba7c7e9111321b3f1343068438`；独立重算五个tar SHA均吻合manifest。React tar与旧e9b8a442…84969不同，真实行key缺口已闭合，不能再沿用上一节“新实物尚无修复”的当前状态；该旧节仍是当时事实。
+
+唯一包级session44817于02:25:17.192Z开始，54172.546ms后自然exit0，原log明确44 passed；JSON SHA为`94780a6a3450d2e8b43dba6f417a27b52b93c5977f844e1e1810f484b71c3400`。开始02:25:05.057Z与结束02:26:29.053Z均6276项、aggregate `aca47bd9297b96dafe25c9893d84f48dae686d103017eefcdae04844526f6761`、changed[]；独立读取当前全部6276内容重算同值，六项运行源码/说明快照也相符。新manifest明确指向新mktemp消费者，未误读旧consumers.json。
+
+正式final-audit索引89份本轮文件，逐项SHA全部匹配；作者报告完整SHA及旧前缀与索引一致。cleanup记录本轮自有launcher77466、Playwright77474、server77509、worker77510、browser77511均退出，5191/5193无监听；未操作其他任务进程。命令时间按日志边界与内层真实UTC分开记录，不伪造精确退出时刻。
+
+质量发现：无新增Critical/Important/Minor。原Important I2仍未关闭：本轮仅证明当前React18发行物及44项包级闭环，**没有当前候选最终单次完整成功**，不抵消attempt3的三项失败，也不解释历史两处30s输入挂点。既有M1保持接受的样式一致性限制，不宣称pixel parity。历史原生/构建/单测与源demo证据按未变范围复用，不混成新包全量证明。
+
+本轮回执：`APPROVED_WITH_CONCERNS`（当前实物整合/包级验收通过）；总004/I2/验收7仍未完成、不可发布。此前本地分批提交事实不变，本轮未commit/push、应用工作区版本、执行远端CI或npm发布；下一完整门禁仍须根明确安排，独审未自动启动。
+
+## 最终同候选完整门禁独审（2026-10-23）
+
+本轮回执：`APPROVED_WITH_CONCERNS`。**当前候选的最终完整E2E及同JSON功能门禁通过，原Important I2按其“最终单次完整E2E及同JSON功能结果门禁未通过”的定义关闭，验收7/PKG-13的本地完整回归缺口关闭。历史两处输入长停顿根因仍unknown，用户要求的卡顿定位修复未被证实完成。** 两个结论分别成立，不能把本轮未复现、无触发或全绿写成历史原因已修，也不能据此宣称用户三个收尾目标全部完成。
+
+已读恢复独审边界、index当前交接、作者577行起正式收尾及原I2定义；静态核对已提交`e64fcb5e`、`c1cac1be`与未提交文档，复用已审React18实物及未变原生证据。全过程未启动测试、浏览器、构建、打包或采样，未改产品、作者报告或任务状态，仅在原56044字节审查前缀后追加本节。该前缀SHA仍为`9e77a640f3da4e227b3438fb3ef15b9043c36684bad9bb0131dcfebf3af94318`。
+
+### 原过程、完整结果与逐项功能证据
+
+唯一完整过程为controller15306、launcher15309/Playwright15310、watcher15307；`full-start.json`记录05:48:33.854Z启动，`full-status.json`记录07:24:07.145Z自然code0/signal null、watcher code0。恢复记录延续同PID/PGID及原日志，没有因agent服务重启另开完整过程。实际CLI使用默认config、workers1、retries0、repeatEach1、原30000ms，CI未设；没有grep、shard、skip或放宽预算。
+
+独立解析原`final-closeout-r1/full-results.json`，并将启动`full-list.log`的文件、行列与完整嵌套标题逐项按重数比较：**2679项/370文件完全一致，无遗漏或替换；每项恰一个passed result/retry0，expectedStatus均passed，0失败/跳过/interrupted/flaky，report errors=[]**。JSON开始05:48:34.273Z、耗时5732742.036ms（95.5457min）。实际先后workerIndex0/1，单一CLI不能外推为全部用例同一寿命浏览器。
+
+- JSON SHA256：`c764bc2a5d89bdd6f02ebb7e770b7f3f25720e17d3542aa5c5b22907d050d8e1`；完整日志SHA256：`28bfb53612b7df7c8c5e6ff28d3b396cafbea6c2b0c6b6ea58019392125842c3`，日志自然终态为2679 passed。
+- 按当前FEATURES逐行独立匹配该JSON的精确file/title：1026个唯一ID、1026个唯一主绑定，各恰一个匹配且单次成功，和原`features-result-gate.log`的1026/1026一致；不是只读取总数或把登记检查当浏览器结果。
+- 真实包44项与源demo嵌入18项均在该次完整JSON中通过。按包配置的相对根补齐`package-host/`后，新候选原44个精确标题全部匹配，没有拿此前54.173s包级运行或旧18项相加替代完整序列。
+- 历史attempt3的390px格式下载重开、向左填充、冻结带内插入，在本次分别单次passed22194ms、1418ms、1081ms。STAT-019与TABLE-036分别单次passed1507ms、1675ms；历史失败JSON/log/trace仍保留，没有改写旧结论。
+
+### 同候选实物、冻结与证据保护
+
+启动冻结05:45:15.527Z与结束verify07:24:28.950Z均为6276项、aggregate `f31481b8c7515224189c67159f63fa38e9323e4368539add71477ec681373efa`，结束changed[]。独立重算清单aggregate并在终态后逐份读取全部6276内容，均匹配；相对已审React18候选6276项，唯一SHA变化是CI显式full WASM构建，其他6275项一致。`e64fcb5e`仅收录既审目录隔离与真实包行头回归；`c1cac1be`仅在两个Node矩阵Vitest前新增既有full构建命令，502签名断言和真实full导入未弱化。原`core-layout-results.json`为5/5，属于完整启动前的既有本地证据；远端clean CI是否通过须以后续push的精确SHA结果为准。
+
+本轮复制manifest与`react18-candidate-r1/consumers.json`逐字节相同，五份真实tarball逐份SHA匹配冻结；React tgz仍为`ba1f2bbe664144295cdd417e4546caa0c80de2ba7c7e9111321b3f1343068438`。Vite/Rspack安装的实际JS均与tar内dist/index.js逐字节相同，SHA为`513ad7da10929e057177956fbb991c6e9d686dc4384d779669014fb9420a15d4`；两份安装锁均为React/ReactDOM18.3.1、Einfach core/react0.4.0。最新真实行key仍在同一发行物中，没有新产品输入或外部插件改动。
+
+独立读取1439个旧证据对象（352406207字节），SHA、大小及mtime与preflight一致；旧作者报告57124字节前缀SHA保持`170446d94725389cfd808b61c23f9dff74ede111f9b193a843fd3a8891bb63d5`。初版派生审计的e2e路径前缀造成空组、秒转毫秒造成浮点假差异，均非原始结果/证据变化；初版已另存且SHA匹配，修正后的审计为真实44/18、preservation.changed[]，与本次直接解析一致。
+
+### 卡顿结论与观测边界
+
+直接重读attempt2原trace：STAT的A93 fill停在visible/enabled/editable等待，无底层after；TABLE的底层fill34.636ms成功，外层约3008.8ms后才收尾，后续press底层开始至首个locator等待又约3011.9ms，未见locator成功解析或Enter实际键动作。该事实收窄了旧挂点，但不能归因为表格提交业务、特定renderer/Worker循环或已证环境负载；本轮没有有证据的历史卡顿产品修复。
+
+一次性watcher的实际SHA与启动记录一致（`14a3f571fe3442c32aab4e3ef3adb6b3468f3ed4700cef64659b1f48731f84f7`），仅针对原两症状目录；有明确worker→browser→renderer所有权检查，最多2次触发×2个renderer、单sample期限15s/每触发20s，页面到renderer映射明确unknown且可能含spare。最终事件只有watch-start/watch-end、triggers0，本轮没有症状采样栈。首次自有Node能力检查6s无有效栈与后续去掉-mayDie的不同条件1.431s/75132字节成功自检均保留；两者都不是产品复现。
+
+独立解析18份原observer JSONL：各start/end单次、rpcStillPending=false，无pageerror/crash/page-close或Profiler动作；最大Node gap286.600ms、页面454.8ms、到达1114.080ms。原两case均drop0，记录的node15366/browser15367一致。PROFILE=0，原18项之外2661项没有该观测；没有诊断失败记录不证明零扰动。无预设症状触发及两case通过只说明本轮未复现，**历史卡顿根因与修复仍未证实，是用户第一项要求的真实遗留**。
+
+### 文档、清理与最终边界
+
+作者终态资源证据为PGID15306无存活、5191/5193均lsof exit1/空输出，watcher自然退出且18份observer均已收尾，没有后台验收或误停他人过程。终态后两份普通Markdown状态更新与`docs-postrun-delta.json`一致，明确排除在执行freeze之外；React tar内release.md仍是打包时4056字节/SHA `e515f0b815f3d6946fe8a61a7b6df4c028b54cb0c879809a0107ed7691ebafae`，未包含新状态文字。当前说明与包内快照的边界已明示，未为docs-only变化重建或冒称包内文档已刷新。
+
+质量发现：无新增Critical/Important/Minor；原I2的完整门禁阻断关闭，M1工具栏字号差异仍是已接受非阻断限制。**本地004候选完整验收通过；用户历史卡顿定位修复尚未完成，根的提交推送及精确SHA远端CI仍须按各自真实结果收尾。** 根在完整前已有e64fcb5e/c1cac1be两批正常提交；本审查及执行者未提交/推送。未应用工作区Changesets、未发布npm、未修改外部excel-plugin，不作所有用户目标已完成或已发布声明。

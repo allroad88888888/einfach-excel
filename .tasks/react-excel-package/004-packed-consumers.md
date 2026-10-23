@@ -5,10 +5,10 @@ kind: leaf
 parent: null
 depends_on: ['001','002','003']
 model: gpt-6.1-sol
-status: running
+status: done
 created: 2026-10-22
-done: null
-base: 08caefbce8cb4934ceea4f0c26115d910569a47c
+done: 2026-10-23
+base: dcc7ebc3b1c92614f30e522893f8393bd4f54eb6
 files:
   - excel/react-excel/package.json
   - excel/react-excel/README.md
@@ -258,3 +258,65 @@ R1会改变诊断测试输入，旧6268零差异只属于旧候选；报告必�
 ## 后续用户授权：分批commit
 
 用户明确授权分批本地提交现有改动，覆盖前述阶段的未commit限制；仅改变Git记录，不授权push、应用版本或npm发布。实施/审查报告及失败原证据不改写，批次和提交钩子的真实通过/一次超时记录见index末节。正常钩子最终通过后才产生相应commit，没有放宽测试、no-verify或跳过钩子。FEATURE_PROGRESS同步最新验收状态，其文档字节变化另计；本次无生产/测试源码修改、新build/pack或完整E2E，总004/I2/验收7继续未完成。
+
+## 2026-10-23：React 18 当前候选实物整合
+
+用户“react 18 继续”确认保留React 18.3，不升React 19。当前HEAD为dcc7ebc3b1c92614f30e522893f8393bd4f54eb6，恢复前工作区干净；原base 08caefbc及其历史审查仅对应各自已记录输入。延续本叶，先闭合“源码已修、发行实物未刷新”的缺口，不修改外部excel-plugin，也不扩业务功能。
+
+### 本轮执行与证据边界
+
+1. 只读恢复index当前交接、004-report/review的最后交叉回归节；001–003实现和原生证据复用，不重做全部历史。核对自有旧进程及5191/5193端口，不能误停其他任务。
+2. 开工先回最小文件清单与命令计划。仅本叶包脚本/消费者测试/说明可改；不得改React/Core/Rust产品逻辑、依赖版本、旧断言、超时/重试或非阻断M1。React保持18.3，Einfach保持0.4。
+3. 旧.codex-artifacts/react-excel-package-004内全部原有文件及旧临时consumer/tarball只读保全SHA/mtime；不得让原prepare固定输出覆盖它们。允许prepare-react-package-consumers.mjs、serve-react-package-consumers.mjs、freeze-react-package-inputs.mjs统一新增一个可选REACT_EXCEL_PACKAGE_EVIDENCE_DIR（仓库根解析，默认行为不变），让本轮manifest/log/freeze使用新的.codex-artifacts/react-excel-package-004/react18-candidate-r1目录。不得为此新增通用配置/框架或复制整套脚本。
+4. 重新运行React build:lib和实际产物检查，把已提交行header真实key修复纳入发行物。Core/WASM源及对应构件未变时复用旧构件/原生证据，逐项hash确认，不重跑Rust/default/lite/全仓Vitest。发布版本只在mktemp staging里按既有Changesets流程应用；工作区版本及pending changesets不动。
+5. 在全新mktemp消费者中实际pack→strict-peer安装→类型→Vite/Rspack构建。保留无alias/link/宏插件/私有TS引擎依赖的既有要求。新包必须包含最新修复；必要时在既有package-host测试内补真实行头身份/冻结切窗回归（保持≤300行），不直接dispatch Core绕过DOM、不弱化已有42项。
+6. 冻结本轮输入后串行执行新候选包级测试（现有42项加必要的行头回归），workers1/retries0/原超时，默认关闭INPUT_STALL_OBSERVE/PROFILE。原嵌入18项及源demo证据明确标为历史；若运行源demo嵌入/冻结定向，用独立JSON且不能当作新tarball证据。浏览器总预算≤10min，不启动默认全2677序列、不跑repeat、失败后先交精确原因与证据，不自行多轮盲跑。
+7. 修改脚本需局部node-check/相关就近测试；相关包类型/artifact检查与git diff --check通过。可追加必要就近脚本测试，但不得引入新依赖。记录每个命令UTC/自然退出、候选和tarball/hash、实际依赖树、开始/结束freeze及全部旧证据保护。旧consumer/dist与新candidate是不同输入，不能混用旧聚合。
+8. 只追加reports/004-report.md的React18候选节，执行者不改任务账本或review。交DONE_WITH_CONCERNS与精确结果/仍缺项/资源清理，随后原reviewer只读核验，复用执行证据，不重复build/test/pack。新候选包级通过也不关闭总004/I2/验收7；原长停顿根因仍未知，同候选完整最终门禁未过。不commit/push/publish，不启动下一完整或扩大到插件实现。
+
+### 本轮执行及独审收尾
+
+作者正式报告004-report.md:551起，原reviewer已追加004-review.md并判本轮APPROVED_WITH_CONCERNS，无新增Critical/Important/Minor。根独立解析同次JSON确认44/44、每例单result/retry0/errors[]，结束freeze6276/aca47bd9…f6761 changed[]；独审核对真实新tarball已含实际行key、安装字节及依赖锁、89新索引和8015旧对象保护。Core/WASM1930构件复用不变。FEATURE_PROGRESS仅有明确排除在freeze/打包白名单外的docs-only后置追加。自有进程已退出、无后台验收。
+
+本轮新候选包级交付完成，React18保持原基线，用户明确暂时只完善表格库；未改外部插件、未commit/push/应用工作区版本/npm发布。总004/I2/验收7继续未完成：原两长停顿根因未知、最新历史完整仍失败，不能用44项替代同候选最终完整门禁。
+
+## 2026-10-23 用户授权最终收尾：卡顿、完整回归、提交推送
+
+用户要求完成剩下三个点，覆盖历史不跑第四full/不commit/push限制。React18.3/Einfach0.4不变，仅本仓；不发布npm、不应用工作区Changesets、不改excel-plugin。编排者负责Git提交/推送，执行者禁止commit/push。当前HEAD仍为base，工作区12项现有改动须保留，具体由git status核对。
+
+### 执行负责人（第三轮换新 agent）
+
+- 只恢复index当前交接及本任务本节，按需读004-report/review的I2及最近收尾节，不重做001–003、Rust或打包。已有新React18候选及消费者实物复用，`REACT_EXCEL_PACKAGE_EVIDENCE_DIR=.codex-artifacts/react-excel-package-004/react18-candidate-r1`供只读服务，所有新日志/JSON/trace/freeze放独立`final-closeout-r1`目录，不覆盖旧文件。运行freeze脚本需使用新目录，consumer服务与冻结目录不同则用现有脚本直接指定/记录，不复制新框架。
+- 先给根最短诊断计划：精确检查attempt2原STAT-019名称框fill、TABLE-036公式栏Enter的trace，分开浏览器/Node/Worker卡顿与产品焦点或同步循环。前两轮受控采样不是原缺陷复现，当前全量未复现也不能证明根因已修。重点找可证伪的具体解释，不再堆重复次数或诊断框架。
+- 可写本叶已有测试侧诊断路径、必要局部回归与本任务004-report.md追加。任何生产修复或范围外测试文件须先回根给确切路径、证据、最小修复与必要验证，获范围裁决后再动。保留既有行为/中文注释/层级规则，不加重试、sleep、force、放宽断言/超时/skip、TS工作簿镜像或新常驻控制层。
+- 原两挂点的补充浏览器诊断先给明确条件/预算（最多20分钟），只串行一个浏览器；旧结果/原始字节不改。不在缺乏原因时机械重复长序列。定位若仍未知，交根原始证据与可执行下一步，不冒称修复；根会独审后决定是否满足关闭条件。
+- 在产品/测试候选稳定、必要定向检查通过且根确认后，运行**一次同候选最终完整默认Playwright序列**，保留原30s、workers1、retries0、全部用例与1026主登记；预计约100分钟。仅一个进程，执行前冻结源码/测试/配置/WASM与实际包/consumer，结束核对零差异。运行中不得修改输入或因工具等待返回而重启；失败先保留原始证据并交根，不能自行多次重跑。当前新包新增2例，实际总数应由list/原JSON确定，不能硬写2677。
+- 完整验证前先回根命令、实际采集总数、freeze、日志与自身PID；根确认启动。源/包服务启动按现有配置，不运行会重建/prepare覆盖旧候选的e2e包装脚本。必要输入观测只用现有有界能力并明确覆盖/缺失，不能因诊断诱发失败误判产品。
+- 完整运行后同一JSON检查每项及FEATURES实际结果门禁。必要相关类型/测试/静态检查复用已知输入证据；若生产改动进入发行包，必须更新实际包并重验受影响消费者，不能用旧44项冒充新代码。最终文档状态由执行者在完整退出后更新；任何打包输入后置变化需明确，不能把旧tar内容称最终文档。
+- 报告只追加004-report.md，给原挂点结论及证据、最终完整JSON/指纹、资源清理、真实未结事项。没有明确证据不得将I2关闭；完整全绿不等于历史根因已查明。所有自有进程结束后交独审，不进入下一功能。
+
+### 独立审查
+
+沿用原004独审者。可先只读审查原两输入失败及新负责人最小方案，给出尚缺的具体证据；不启动浏览器/构建、不改产品/作者报告、不与执行者抢资源。最终仅追加004-review.md，审核实际diff、原始JSON/单次结果、全部登记、前后冻结及卡顿结论，不以总数代替根因。无未结Important/Critical且完整门禁成立后根才可标done。低风险已审部分不重复跑；M1已知非阻断保留。
+
+### Git收尾
+
+仅根操作：独审后按职责分批正常commit，保留原有6提交，不跳过钩子。push前核对origin/main无冲突、pending changesets仍保留（常规push只开Version PR不发npm），不force、不merge版本PR、不触发手动发布。推送后检查精确SHA的CI；失败修真实原因，人工批准或外部阻塞如实报告，不绕过安全设置。
+
+### 本次推送前已知CI缺口
+
+root只读核对origin/main的CI run39709168980：唯一失败套件`spreadsheet-ui-core/test/formula-arguments/layout.test.ts`静态导入full WASM，而test job的`npm run build`仅保证lite，clean runner没有full；不是产品断言失败。允许独立CI执行者只改`.github/workflows/ci.yml`，在两个Node矩阵运行完整Vitest之前显式构建该真实full构件（沿用Publish/browser已有命令），保留502目录全部断言，禁止skip/fallback到lite/伪造目录。先给最小diff并做YAML/命令契约检查；不运行重型构建或浏览器，与004定位不争资源。报告由该执行者回根消息，root记账，004最终复用现有full构件跑该精确测试；远端clean环境是否成功以push后的精确SHA CI为准。
+
+### 守护进程重启后的续接（2026-10-23T06:18Z）
+
+服务重启只打断agent会话，原完整测试实际仍在运行；不得重新启动或重做提交。根已核对：HEAD c1cac1be，e64fcb5e/c1cac1be两提交均存在，工作区仅原docs/账本待收尾。controller15306（现PPID1）、launcher15309、Playwright15310、watcher15307仍活，日志到356 passed且无✘，新JSON尚未终态。原执行agent已随服务重启消失，恢复负责人只续接这一个过程（可读ps/log/结束文件，不要求旧tool session仍可用）。freeze6276/f31481b8…73efa、full-start.json与原目录全保留；不得覆盖日志、自检或启动记录。
+
+恢复者按前述最后收尾阶段继续监测，别重跑自检/list/Core测试/prepare/build/full。先核对自身完整进程关联与新日志真实计数，直到原2679例自然结束再运行结束freeze verify、同JSON主功能门禁和资源清理；若失败先回根原始证据，不自行追加长运行或改输入。最终004-report.md只追加本阶段报告，原作者和独审历史字节保留。任何生产修复/新的范围仍须先回根裁决。完整结束前仅可写报告/账本之外的忽略证据，不动源码、测试、配置、构件。
+
+恢复独立审查者：只读当前收尾阶段、index当前交接、004-report/review的最终React18段和原I2定义（review第90行），不重读全部001–003或运行任何检查。可在原full继续时准备静态审查，最终须等原JSON/结束verify/作者报告再判。核查已提交e64fcb5e/c1cac1be及未提交文档、真实新tarball/consumer指纹、watcher边界和各单次结果；只追加004-review.md。I2原发现是“最终完整E2E及同JSON功能门禁未过”，若本轮满足可据完整证据裁决该门禁，但必须单独明确历史输入卡顿根因是否仍未知，不能将验收通过偷换成历史原因已修。若用户所需根因仍未解决须列真实遗留，不能因为没有复现就编造修复。未发布；外部插件保持不改。
+
+### 最终本地签收
+
+原完整过程自然exit0，2679/2679、1026/1026，同一JSON每项单次passed/retry0；结束6276输入零差异、1439旧证据保全、自有进程和服务全部退出。作者报告577行起，独审337行起判APPROVED_WITH_CONCERNS，无新增Critical/Important/Minor。根已直接阅读签核及原始JSON/verify/门禁，按原定义关闭I2完整门禁与验收7/PKG-13，001–004本地交付均done。
+
+这不等于三个用户收尾目标全部完成：**历史输入卡顿根因仍unknown、无症状栈、没有已证实的修复，是独立真实遗留**；M1继续为已接受样式限制。本地签收时尚未推送，用户已授权Git收尾，由根正常提交并核对精确SHA远端CI，最终Git事实以提交/远端及最后交接为准。未发布npm、未应用工作区版本、未改外部插件。后置两份状态文档与执行freeze/包内文档快照的差别已明示，不为文字重建或重跑。

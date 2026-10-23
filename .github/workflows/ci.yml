@@ -57,6 +57,9 @@ jobs:
       - run: npm run build
       # 元数据门禁不下载浏览器；实际运行结果由 Playwright 报告另验，不能混称通过。
       - run: pnpm check:e2e-features
+      # 原生签名测试静态导入 full WASM；根 build 只保证 lite，clean runner 需显式构建。
+      - name: Build full WASM for native catalog tests
+        run: npm run build:wasm:full -w @einfach/excel-wasm
       - run: npm test
       - uses: actions/setup-node@v4
         if: matrix.node-version == '22.19.0'

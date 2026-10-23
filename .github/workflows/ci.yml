@@ -71,9 +71,14 @@ jobs:
           node --input-type=module -e "await import('./excel/spreadsheet-ui-core/esm/index.mjs'); await import('./excel/excel-core-ts/esm/index.mjs')"
           node -e "require('./excel/spreadsheet-ui-core/cjs/index.cjs'); require('./excel/excel-core-ts/cjs/index.cjs')"
 
-  browser:
+  browser-shard:
     runs-on: ubuntu-latest
     timeout-minutes: 180
+    strategy:
+      # 每个 runner 拥有自己的端口、候选产物和报告；失败不取消其他分片证据。
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -95,20 +100,67 @@ jobs:
       - run: pnpm --filter @einfach/excel-wasm build:wasm:both
       - run: pnpm build:publish
       - run: pnpm --filter @einfach/react-excel exec playwright install --with-deps chromium
-      # e2e 先准备真实 pnpm tarball 和仓外 strict-peer 消费者，再用同一配置执行全部主用例。
+      # 每个分片只准备一次真实消费者；跨 runner 并行，避免单机争抢 WASM/DOM 资源。
       - name: Full React and packed consumer browser acceptance
         env:
-          PLAYWRIGHT_JSON_OUTPUT_FILE: ${{ github.workspace }}/.codex-artifacts/react-excel-package-004/playwright.json
-        run: pnpm --filter @einfach/react-excel e2e --reporter=list,json
-      - name: Verify every registered primary result
-        run: pnpm check:e2e-features --results .codex-artifacts/react-excel-package-004/playwright.json
+          PLAYWRIGHT_BLOB_OUTPUT_DIR: ${{ github.workspace }}/blob-report
+        run: pnpm --filter @einfach/react-excel e2e --shard=${{ matrix.shard }}/4 --reporter=list,blob
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: react-package-browser
+          name: react-browser-blob-${{ matrix.shard }}
+          path: blob-report/
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: react-package-browser-${{ matrix.shard }}
+          include-hidden-files: true
           path: |
             .codex-artifacts/react-excel-package-004/
             excel/react-excel/test-results/
+
+  # 保留原 browser 检查名作为汇总门禁，避免分片通过掩盖全量失败。
+  browser:
+    needs: browser-shard
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.19.0
+          cache: pnpm
+      # 合并只需 Playwright，不构建 WASM、不启动浏览器或包消费者。
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - uses: actions/download-artifact@v4
+        with:
+          path: all-blob-reports
+          pattern: react-browser-blob-*
+          merge-multiple: true
+      - name: Require all four shard reports
+        run: test "$(find all-blob-reports -maxdepth 1 -name '*.zip' | wc -l)" -eq 4
+      - name: Merge browser results
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_FILE: ${{ github.workspace }}/.codex-artifacts/react-e2e-merged/playwright.json
+        run: pnpm --filter @einfach/react-excel exec playwright merge-reports --config playwright.config.ts --reporter=json ../../all-blob-reports
+      - name: Verify every registered primary result
+        run: pnpm check:e2e-features --results .codex-artifacts/react-e2e-merged/playwright.json
+      - name: Require successful browser shards
+        if: always()
+        env:
+          SHARDS_RESULT: ${{ needs.browser-shard.result }}
+        run: test "$SHARDS_RESULT" = success
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: react-browser-results
+          include-hidden-files: true
+          if-no-files-found: error
+          path: .codex-artifacts/react-e2e-merged/
 
   # Rust 引擎门禁。三个 crate 的 2700+ 个 #[test] 此前不在任何 workflow 里,
   # 纯靠人工本地跑。命令口径来自 excel/rust/docs/archive/RELEASE_GATE_PLAN.md

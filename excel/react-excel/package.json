@@ -43,6 +43,8 @@
     "build:demo": "vite build",
     "dev": "vite",
     "e2e": "node ../../scripts/check-react-e2e-features.mjs && pnpm package:prepare && playwright test",
+    "e2e:serial": "pnpm e2e --workers=1",
+    "e2e:input-stall": "playwright test --config playwright.input-stall.config.ts",
     "e2e:install": "playwright install chromium",
     "package:prepare": "node ../../scripts/prepare-react-package-consumers.mjs",
     "e2e:package": "pnpm package:prepare && playwright test --config playwright.package.config.ts",

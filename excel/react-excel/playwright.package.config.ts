@@ -11,7 +11,7 @@ export const packageServer = {
 export default defineConfig({
   testDir: './e2e/package-host',
   fullyParallel: false,
-  workers: 1,
+  workers: process.env.CI ? 1 : 2,
   forbidOnly: true,
   retries: 0,
   reporter: 'list',

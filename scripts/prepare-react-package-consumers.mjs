@@ -6,7 +6,9 @@ import { spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 
 const root = fileURLToPath(new URL('../', import.meta.url))
-const evidence = path.join(root, '.codex-artifacts/react-excel-package-004')
+// 按仓库根解析独立证据目录，重建候选不能覆盖旧验收实物与失败记录。
+const evidence = path.resolve(root, process.env.REACT_EXCEL_PACKAGE_EVIDENCE_DIR ||
+  '.codex-artifacts/react-excel-package-004')
 const temporary = await mkdtemp(path.join(tmpdir(), 'react-excel-packed-'))
 const stage = path.join(temporary, 'release')
 const tarballs = path.join(temporary, 'tarballs')

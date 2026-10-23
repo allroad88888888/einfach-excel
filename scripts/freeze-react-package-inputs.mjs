@@ -5,7 +5,9 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = fileURLToPath(new URL('../', import.meta.url))
-const evidence = path.join(root, '.codex-artifacts/react-excel-package-004')
+// 冻结跟随候选证据目录，不能把新实物写进旧候选的清单。
+const evidence = path.resolve(root, process.env.REACT_EXCEL_PACKAGE_EVIDENCE_DIR ||
+  '.codex-artifacts/react-excel-package-004')
 const manifest = path.join(evidence, 'frozen-inputs.json')
 const hash = bytes => createHash('sha256').update(bytes).digest('hex')
 const files = new Map()

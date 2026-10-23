@@ -65,4 +65,41 @@ for (const bundler of ['vite', 'rspack']) {
     })
     await expect(page.locator('#second td[data-cell="0:1"]')).toHaveText('Order 1')
   })
+
+  test(`installed ${bundler} frozen window keeps actual row header identity and inserts within its band`, async ({
+    page,
+  }) => {
+    const errors = await start(page, bundler)
+    await select(page, 'C4', '3:2')
+    const first = book(page)
+    const header = (row: number) => first.getByRole('button', {
+      name: `Select row ${row}`, exact: true,
+    })
+    const priorRow2 = (await header(2).elementHandle())!
+    const priorRow5 = (await header(5).elementHandle())!
+    await first.getByRole('combobox', { name: 'Freeze panes' }).selectOption('selection')
+    await expect(first.locator('.sheet-grid-frame')).toHaveAttribute('data-frozen-rows', '3')
+    await expect(first.locator('[data-workbook-grid]'))
+      .toHaveAttribute('data-projection-retained', 'false')
+    // 旧slot key会把原row2节点变为普通row5；不只检查新标签或限定冻结选择器。
+    await expect.poll(() => priorRow2.evaluate(node => node.isConnected)).toBe(false)
+    expect(await priorRow5.evaluate(node => node.isConnected)).toBe(true)
+    expect(await priorRow5.getAttribute('aria-label')).toBe('Select row 5')
+    expect(await header(5).evaluate((node, previous) => node === previous, priorRow5)).toBe(true)
+    await header(2).click()
+    await expect(first.getByRole('textbox', { name: 'Name box', exact: true }))
+      .toHaveValue('A2:T2')
+    await first.getByRole('combobox', { name: 'Insert or delete rows and columns' })
+      .selectOption('insert-rows')
+    await expect(first.locator('.sheet-grid-frame')).toHaveAttribute('data-frozen-rows', '4')
+    await first.getByRole('button', { name: 'Undo', exact: true }).click()
+    await expect(first.locator('.sheet-grid-frame')).toHaveAttribute('data-frozen-rows', '3')
+    await expect(cell(page, '1:0')).toHaveText('2')
+    await expect(cell(page, '0:0')).toHaveText('1')
+    await expect(page.locator('#second td[data-cell="1:0"]')).toHaveText('2')
+    expect(await page.evaluate(() => window.packageHost.workers.live)).toBe(2)
+    expect(errors).toEqual([])
+    await priorRow2.dispose()
+    await priorRow5.dispose()
+  })
 }

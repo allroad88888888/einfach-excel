@@ -4,8 +4,10 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = fileURLToPath(new URL('../', import.meta.url))
-const manifest = JSON.parse(await readFile(path.join(root,
-  '.codex-artifacts/react-excel-package-004/consumers.json'), 'utf8'))
+// 与准备/冻结脚本选择同一候选；未指定时保留原默认行为。
+const evidence = path.resolve(root, process.env.REACT_EXCEL_PACKAGE_EVIDENCE_DIR ||
+  '.codex-artifacts/react-excel-package-004')
+const manifest = JSON.parse(await readFile(path.join(evidence, 'consumers.json'), 'utf8'))
 const port = Number(process.env.REACT_EXCEL_PACKAGE_PORT ?? 5193)
 const types = { '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.html': 'text/html',
   '.wasm': 'application/wasm', '.json': 'application/json' }

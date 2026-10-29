@@ -1006,13 +1006,14 @@ Table 的创建／改名／转区域、列改名、范围／行结构、外观�
 | CUSTOM-018 | 跨工作表重算 | `custom-formulas/history-file.spec.ts` | custom expression replacement recalculates consumers in another worksheet |
 | CUSTOM-019 | 非法文件拒绝 | `custom-formulas/history-file.spec.ts` | invalid custom formula file is rejected atomically and never executes source |
 | CUSTOM-020 | 中文和切换语言 | `custom-formulas/localization.spec.ts` | Chinese custom formula editor preserves definitions after language change at 1280px |
-| HELP-002 | 浏览每个真实函数的完整参数帮助 | `formula-help/catalog.spec.ts` | HELP-002 every real picker entry renders its own help at 1280px |
+| HELP-002 | 浏览每个真实函数的完整参数帮助 | `formula-help/catalog.spec.ts` | HELP-002 picker lists every real entry with custom help and fitting layout at 1280px |
 | HELP-003 | 中文参数及实现限制 | `formula-help/catalog.spec.ts` | HELP-003 Chinese parameters and implementation limits at 1280px |
 | HELP-004 | 格内真实参数组与固定尾参帮助 | `formula-help/editing.spec.ts` | HELP-004 cell actual parameter groups and suffixes at 1280px |
 | HELP-008 | 公式栏真实参数组与固定尾参帮助 | `formula-help/editing.spec.ts` | HELP-004 formula actual parameter groups and suffixes at 1280px |
 
 参数帮助的构件目录检查（HELP-001）属于补充原生证据，不登记为用户DOM操作。
 HELP-005/007扩展原CALC插入/搜索/取消操作，保留原唯一primary；HELP-006为只读文件跨域补充。
+HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数帮助按名称排序分段为同编号附加用例，各段并集即完整目录。
 
 | ID | 操作 | E2E 文件 | 主测试精确标题 |
 | --- | --- | --- | --- |

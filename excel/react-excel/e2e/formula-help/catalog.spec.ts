@@ -1,31 +1,22 @@
-import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { catalogPart, expectPickerHelp, nativeCatalog as catalog } from '../support/native-function-help'
 
-type NativeHelp = {
-  summary: string; summary_zh: string
-  args: { name: string; description: string; description_zh: string; optional: boolean; repeats: boolean }[]
-  examples: string[]; limitations: { en: string; zh: string }[]
-}
-type Catalog = { version: number; functions: { name: string; help: NativeHelp }[] }
-const wasmBase = `/@fs${fileURLToPath(new URL('../../../excel-wasm/', import.meta.url))}`
-const validatorUrl = `/@fs${fileURLToPath(new URL('../../../spreadsheet-ui-core/src/formula-functions/native-catalog.ts', import.meta.url))}`
-async function catalog(page: Page, variant: string): Promise<Catalog> {
-  return page.evaluate(async ({ url, validatorUrl }) => {
-    const wasm = await import(url)
-    await wasm.default()
-    const native = wasm.function_catalog()
-    const { validateFunctionCatalog } = await import(validatorUrl)
-    validateFunctionCatalog(native)
-    validateFunctionCatalog(JSON.parse(JSON.stringify(native)))
-    return native
-  }, { url: `${wasmBase}${variant}/einfach_wasm.js`, validatorUrl })
-}
+/** Per-entry help checks are split so each test stays well under the timeout on slow CI runners. */
+const HELP_PARTS = 12
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/')
   await expect(page.locator('[data-cell="1:0"]')).toHaveText('SO-10001')
 })
+
+async function openPicker(page: Page) {
+  const opener = page.getByRole('button', { name: 'Insert function', exact: true })
+  await opener.click()
+  const dialog = page.getByRole('dialog', { name: 'Insert function' })
+  const list = dialog.getByRole('listbox', { name: 'Function', exact: true })
+  return { opener, dialog, list }
+}
 
 for (const variant of ['lite', 'full']) test(`HELP-001 ${variant} artifact contains complete actual help`, async ({ page }) => {
   const native = await catalog(page, variant)
@@ -46,30 +37,17 @@ for (const variant of ['lite', 'full']) test(`HELP-001 ${variant} artifact conta
   }
 })
 
-for (const width of [1280, 390]) test(`HELP-002 every real picker entry renders its own help at ${width}px`, async ({ page }, testInfo) => {
-  test.setTimeout(180_000)
+for (const width of [1280, 390]) test(`HELP-002 picker lists every real entry with custom help and fitting layout at ${width}px`, async ({ page }, testInfo) => {
   await page.setViewportSize({ width, height: 850 })
   const native = await catalog(page, 'lite')
   await select(page, 'B2', '1:1')
-  const opener = page.getByRole('button', { name: 'Insert function', exact: true })
-  await opener.click()
-  const dialog = page.getByRole('dialog', { name: 'Insert function' })
-  const list = dialog.getByRole('listbox', { name: 'Function', exact: true })
+  const { opener, dialog, list } = await openPicker(page)
   await expect(list.locator('option')).toHaveCount(native.functions.length + 1)
   expect((await list.locator('option').allTextContents()).sort())
     .toEqual([...native.functions.map(({ name }) => name), 'ORDER_NET'].sort())
-  for (const { name, help } of native.functions) {
-    await test.step(name, async () => {
-      await list.selectOption(name)
-      const section = dialog.locator(`[data-formula-help="${name}"]`)
-      await expect(section).toBeVisible()
-      await expect(section.locator('.formula-help-summary')).toHaveText(help.summary)
-      await expect(section.locator('[data-parameter]')).toHaveCount(help.args.length)
-      await expect(section.locator('dd')).toHaveText(help.args.map((arg) => arg.description))
-      await expect(section.locator('.formula-help-examples code')).toHaveText(help.examples)
-      await expect(section.locator('.formula-help-limitations li')).toHaveText(help.limitations.map((item) => item.en))
-    })
-  }
+  const names = (entries: { name: string }[]) => entries.map(({ name }) => name).sort()
+  const parts = Array.from({ length: HELP_PARTS }, (_, i) => catalogPart(native, i, HELP_PARTS))
+  expect(names(parts.flat())).toEqual(names(native.functions))
   await list.selectOption('ORDER_NET')
   const custom = dialog.locator('[data-formula-help="ORDER_NET"]')
   await expect(custom.locator('[data-formula-help-signature]')).toHaveText('ORDER_NET(QUANTITY, PRICE)')
@@ -92,6 +70,19 @@ for (const width of [1280, 390]) test(`HELP-002 every real picker entry renders 
   await expect(page.locator('[data-cell="2:1"]')).toHaveText('Northwind')
   await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
 })
+
+for (const width of [1280, 390]) for (let part = 0; part < HELP_PARTS; part++) {
+  test(`HELP-002 picker entries part ${part + 1}/${HELP_PARTS} render their own help at ${width}px`, async ({ page }) => {
+    test.setTimeout(90_000)
+    await page.setViewportSize({ width, height: 850 })
+    const entries = catalogPart(await catalog(page, 'lite'), part, HELP_PARTS)
+    expect(entries.length).toBeGreaterThan(0)
+    const { dialog, list } = await openPicker(page)
+    for (const { name, help } of entries) {
+      await test.step(name, () => expectPickerHelp(dialog, list, name, help))
+    }
+  })
+}
 
 for (const width of [1280, 390]) test(`HELP-003 Chinese parameters and implementation limits at ${width}px`, async ({ page }, testInfo) => {
   await page.setViewportSize({ width, height: 850 })

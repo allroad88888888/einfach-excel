@@ -100,6 +100,17 @@ for (const width of [1280, 390]) {
     await expect(first.locator('td[data-cell="1:0"]')).toHaveText('3')
     await expect(first.locator('td[data-cell="1:1"]')).toHaveText('Neighbor')
     await expect(second.locator('td[data-cell="1:0"]')).toHaveText('Original')
-    expect(await scrollPositions(page)).toEqual(scroll)
+    // Enter 把活动格移到 A3；本实例可纵向自滚以保住它完整可见（Linux 字体下工具栏更高，
+    // 400px 宿主里表格视口只剩 111px，A3 底边 112px）。守卫的是宿主文档与兄弟实例不动。
+    const committed = await scrollPositions(page)
+    expect(committed.window).toEqual(scroll.window)
+    expect(committed.sheets[1]).toEqual(scroll.sheets[1])
+    expect(committed.sheets[0][0]).toBe(scroll.sheets[0][0])
+    expect(await first.locator('td[data-cell="2:0"]').evaluate(cell => {
+      const scroller = cell.closest('.sheet-scroll')!
+      const bounds = cell.getBoundingClientRect()
+      const top = scroller.getBoundingClientRect().top + scroller.clientTop
+      return bounds.top >= top && bounds.bottom <= top + scroller.clientHeight
+    })).toBe(true)
   })
 }

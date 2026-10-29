@@ -42,7 +42,7 @@
 该阶段总004/I2/验收7尚未完成：React发行实物尚未包含本次行key修复，仍缺新实物及同候选最终完整通过。
 已按用户新授权分批本地commit；未push/npm发布，未应用工作区Changesets。
 Rspack内部控件字号大于Vite仍是已接受的非阻断Minor，首版不承诺跨打包器像素一致。
-详见`.tasks/react-excel-package/reports/004-report.md`与`004-review.md`，历史失败证据全部保留。
+任务账本已删除，过程报告见 Git 历史（`.tasks/react-excel-package/reports/`，最后存在于 `24d5f893`）。
 
 ## 六项进阶能力（2026-10-21，完整回归通过）
 

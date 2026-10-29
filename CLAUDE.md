@@ -146,7 +146,7 @@ ui-core 的 exports：`.`（无副作用的 atom、类型、connection factory�
 - 每个用户可见功能都要在 `excel/react-excel/e2e/FEATURES.md` 有独立 ID 和一条真实 DOM 主用例；
   测试总数通过不能替代检查真实交互入口。
 - 进度与交接：`excel/react-excel/FEATURE_PROGRESS.md`、`excel/react-excel/docs/current-capabilities.md`，
-  以及 `.tasks/<feature>/` 任务树（task-tree skill）。
+  过程细节写进提交说明，不再维护 `.tasks/` 任务账本（历史在 Git 里）。
 - 包对外说明：`excel/react-excel/docs/package/`（安装、宿主数据、发行清单）。React 18.3 是唯一声明基线。
 - 发布只走 CI（[ADR 0016](docs/decisions/0016-ci-only-npm-publish.md)），Changesets 管版本；未经授权不 npm 发布。
 

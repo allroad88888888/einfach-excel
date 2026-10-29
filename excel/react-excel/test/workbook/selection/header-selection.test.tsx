@@ -19,7 +19,7 @@ describe('workbook header selection', () => {
     const headers = (rowStart: number) => (
       <WorkbookStoreProvider store={store}>
         <GridHeaders rowStart={rowStart} rowHeights={[28, 28, 28, 28, 28, 28]}
-          columnWidths={[]} rowStyle={{}} focusGrid={() => {}} />
+          colStart={0} columnWidths={[]} rowStyle={{}} columnStyle={{}} focusGrid={() => {}} />
       </WorkbookStoreProvider>
     )
     const view = render(headers(0))
@@ -30,6 +30,27 @@ describe('workbook header selection', () => {
     expect(row5.isConnected).toBe(true)
     expect(row5).toHaveAttribute('aria-label', 'Select row 5')
     expect(screen.getByRole('button', { name: /^Select row 5$/ })).toBe(row5)
+  })
+
+  test('renders only the column window and keeps column identity when it scrolls', () => {
+    const store = createStore()
+    initializeSalesOrdersStore(store)
+    // 16384 列的空白工作簿也只能挂窗口内的表头，否则替换工作簿会卡住主线程数秒。
+    const headers = (colStart: number) => (
+      <WorkbookStoreProvider store={store}>
+        <GridHeaders rowStart={0} rowHeights={[]} colStart={colStart}
+          columnWidths={[100, 0, 100, 100]} rowStyle={{}} columnStyle={{}}
+          focusGrid={() => {}} />
+      </WorkbookStoreProvider>
+    )
+    const view = render(headers(2))
+    const labels = () => screen.getAllByRole('columnheader').map((header) =>
+      header.getAttribute('aria-label'))
+    expect(labels()).toEqual(['Select column C', 'Select column E', 'Select column F'])
+    const columnE = screen.getByRole('columnheader', { name: 'Select column E' })
+    view.rerender(headers(4))
+    expect(labels()).toEqual(['Select column E', 'Select column G', 'Select column H'])
+    expect(screen.getByRole('columnheader', { name: 'Select column E' })).toBe(columnE)
   })
 
   test('selects rows, columns and the whole workbook with visible feedback and grid focus', async () => {

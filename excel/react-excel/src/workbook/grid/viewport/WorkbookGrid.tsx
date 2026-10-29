@@ -82,9 +82,11 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
   }
   const rows = rowNumbers(bodyWindow.rowStart, bodyWindow.rowEnd)
   const rowHeights = sizeOverrides.rowHeightsBySheet[activeSheet.id]
-  const columnWidths = Array.from({ length: activeSheet.colCount }, (_, col) =>
-    getViewportColumnWidth(sizeOverrides, activeSheet.id, col, WORKBOOK_GRID_COLUMN_WIDTH),
-  )
+  // 只取投影窗口内的列：空白工作簿有 16384 列，整行表头会让一次替换卡住主线程数秒。
+  const columnCount = Math.max(0, bodyWindow.colEnd - bodyWindow.colStart + 1)
+  const columnWidths = Array.from({ length: columnCount }, (_, index) =>
+    getViewportColumnWidth(
+      sizeOverrides, activeSheet.id, bodyWindow.colStart + index, WORKBOOK_GRID_COLUMN_WIDTH))
   const columnOffset = (index: number) =>
     getAxisOffsetForIndex(
       index,
@@ -115,12 +117,7 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
     rowHeights,
   )
   const frameStyle = {
-    '--grid-column-count': columnWidths.filter((width) => width > 0).length,
     '--grid-column-width': `${WORKBOOK_GRID_COLUMN_WIDTH}px`,
-    '--grid-column-widths': columnWidths
-      .filter((width) => width > 0)
-      .map((width) => `${width}px`)
-      .join(' '),
     '--grid-row-height': `${WORKBOOK_GRID_ROW_HEIGHT}px`,
     '--grid-row-header-width': `${WORKBOOK_GRID_ROW_HEADER_WIDTH}px`,
     '--grid-sheet-content-width': `${sheetContentWidth}px`,
@@ -134,9 +131,17 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
       .map((height) => `${height}px`)
       .join(' '),
   } as CSSProperties
+  const windowOffsetX = `${columnOffset(bodyWindow.colStart)}px`
+  const columnWindowStyle = {
+    '--grid-window-offset-x': windowOffsetX,
+    '--grid-window-column-widths': columnWidths
+      .filter((width) => width > 0)
+      .map((width) => `${width}px`)
+      .join(' '),
+  } as CSSProperties
   const cellWindowStyle = {
     ...windowStyle,
-    '--grid-window-offset-x': `${columnOffset(Math.max(viewport.window.colStart, frozenCols))}px`,
+    '--grid-window-offset-x': windowOffsetX,
     '--grid-window-width': `${
       columnOffset(Math.max(viewport.window.colEnd + 1, frozenCols)) -
       columnOffset(Math.max(viewport.window.colStart, frozenCols))
@@ -177,8 +182,10 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
           <GridHeaders
             rowStart={bodyWindow.rowStart}
             rowHeights={visibleRowHeights}
+            colStart={bodyWindow.colStart}
             columnWidths={columnWidths}
             rowStyle={windowStyle}
+            columnStyle={columnWindowStyle}
             focusGrid={events.focusGrid}
           />
           <div
@@ -199,7 +206,7 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
                 mergedRanges={viewport.mergedRanges}
                 window={bodyWindow}
                 rowHeights={visibleRowHeights}
-                columnWidths={columnWidths.slice(bodyWindow.colStart, bodyWindow.colEnd + 1)}
+                columnWidths={columnWidths}
               />
             )}
           </div>

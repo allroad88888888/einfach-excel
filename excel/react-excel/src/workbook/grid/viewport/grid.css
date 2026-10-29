@@ -76,8 +76,11 @@
   top: 0;
   z-index: 4;
   display: grid;
+  box-sizing: border-box;
   width: var(--grid-sheet-content-width);
-  grid-template-columns: var(--grid-column-widths);
+  /* 只排投影窗口内的列，窗口之前的列宽留作左内边距。 */
+  padding-left: var(--grid-window-offset-x);
+  grid-template-columns: var(--grid-window-column-widths);
   border-bottom: 1px solid var(--border-strong);
   background: var(--chrome);
 }

@@ -2,33 +2,34 @@ import { useLingui } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   activeWorkbookSheetAtom,
-  projectedFreezeAtom,
   selectionSnapshotAtom,
   selectGridHeaderAtom,
 } from '@einfach/spreadsheet-ui-core'
 import type { CSSProperties } from 'react'
 import { GridHeading } from './GridHeading'
 
-/** 渲染可滚动表头；冻结的标题由固定区域渲染，避免同一个标题出现两次。 */
+/** 只渲染投影窗口内的可滚动表头；冻结的标题由固定区域渲染，避免同一个标题出现两次。 */
 export function GridHeaders({
   rowStart,
   rowHeights,
+  colStart,
   columnWidths,
   rowStyle,
+  columnStyle,
   focusGrid,
 }: {
   rowStart: number
   rowHeights: readonly number[]
+  colStart: number
   columnWidths: readonly number[]
   rowStyle: CSSProperties
+  columnStyle: CSSProperties
   focusGrid: () => void
 }) {
   const { t } = useLingui()
   const sheet = useAtomValue(activeWorkbookSheetAtom)
   const selection = useAtomValue(selectionSnapshotAtom)
-  const freeze = useAtomValue(projectedFreezeAtom)
   const select = useSetAtom(selectGridHeaderAtom)
-  const cols = freeze?.sheetId === sheet?.id ? (freeze?.cols ?? 0) : 0
   let columnTrack = 0
   return (
     <>
@@ -47,15 +48,16 @@ export function GridHeaders({
       >
         <span aria-hidden="true">◢</span>
       </button>
-      <div className="column-headers" role="row">
-        {columnWidths.map((width, col) => {
+      <div className="column-headers" role="row" style={columnStyle}>
+        {/* 列窗口起点已越过冻结列，与行头一样按真实列号作身份。 */}
+        {columnWidths.map((width, index) => {
           if (width === 0) return null
           columnTrack++
-          return col < cols ? null : (
+          return (
             <GridHeading
-              key={col}
+              key={colStart + index}
               axis="column"
-              index={col}
+              index={colStart + index}
               focusGrid={focusGrid}
               style={{ gridColumn: columnTrack }}
             />

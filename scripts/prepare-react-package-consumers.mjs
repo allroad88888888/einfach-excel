@@ -17,7 +17,9 @@ await mkdir(stage)
 await mkdir(tarballs)
 const run = (command, args, cwd, name) => {
   const start = new Date().toISOString()
+  // 单步 15 分钟上限：子进程挂起（如浅克隆里 changesets 无限 deepen）时尽快失败并留下日志。
   const result = spawnSync(command, args, { cwd, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024,
+    timeout: 15 * 60 * 1000, stdio: ['ignore', 'pipe', 'pipe'],
     env: { ...process.env, HUSKY: '0', CI: '1' } })
   const output = `${start}\n${command} ${args.join(' ')}\n${result.stdout ?? ''}${result.stderr ?? ''}`
   return writeFile(path.join(evidence, `${name}.log`),

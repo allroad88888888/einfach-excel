@@ -80,7 +80,11 @@ jobs:
       matrix:
         shard: [1, 2, 3, 4]
     steps:
+      # package:prepare 在临时克隆里跑 changeset version；浅克隆时 changesets 会无限
+      # `git fetch --deepen` 找添加 changeset 的提交（源头本身也浅，永远补不到），必须完整历史。
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: pnpm/action-setup@v4
         with:
           version: 10

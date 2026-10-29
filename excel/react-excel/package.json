@@ -1,6 +1,6 @@
 {
   "name": "@einfach/react-excel",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": false,
   "description": "React workbook product powered by the Einfach Rust/WASM engine",
   "type": "module",
@@ -14,15 +14,24 @@
     "./style.css": "./dist/style.css",
     "./package.json": "./package.json"
   },
-  "files": ["dist", "docs/package", "LICENSE", "NOTICE"],
+  "files": [
+    "dist",
+    "docs/package",
+    "LICENSE",
+    "NOTICE"
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/allroad88888888/einfach-excel.git",
     "directory": "excel/react-excel"
   },
-  "publishConfig": { "access": "public" },
-  "sideEffects": ["**/*.css"],
+  "publishConfig": {
+    "access": "public"
+  },
+  "sideEffects": [
+    "**/*.css"
+  ],
   "engines": {
     "node": ">=22.19.0"
   },

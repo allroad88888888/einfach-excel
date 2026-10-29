@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { centerRowForHorizontalDrag } from '../support/fill-drag'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const handle = (page: Page) => page.getByRole('button', { name: 'Drag to fill', exact: true })
@@ -9,8 +10,10 @@ async function select(page: Page, address: string) {
   await expect(name(page)).toHaveValue(address)
   await expect(page.locator('[data-workbook-grid]')).toHaveAttribute('data-projection-retained', 'false')
 }
-async function begin(page: Page, address: string) {
+/** `row` 给出横向拖拽所在行的任一格，按下前把该行移出上下自动滚动区。 */
+async function begin(page: Page, address: string, row?: string) {
   await select(page, address)
+  if (row) await centerRowForHorizontalDrag(page, row)
   await expect(handle(page)).toBeVisible()
   await handle(page).hover()
   await page.mouse.down()
@@ -83,11 +86,11 @@ test('horizontal decimals extend in both directions from the same native samples
     await input.fill(value!)
     await input.press('Enter')
   }
-  await begin(page, 'C50:D50')
+  await begin(page, 'C50:D50', '49:3')
   await move(page, '49:5')
   await finish(page, 'C50:F50')
   await expect(cell(page, '49:5')).toHaveText('1.75')
-  await begin(page, 'C50:D50')
+  await begin(page, 'C50:D50', '49:3')
   await move(page, '49:0')
   await finish(page, 'A50:D50')
   await expect(cell(page, '49:0')).toHaveText('-0.75')
@@ -121,12 +124,12 @@ test('upwards drag extends numbers before the source', async ({ page }) => {
 })
 
 test('left and right drag copy text with underline and leave source intact', async ({ page }) => {
-  await begin(page, 'D71')
+  await begin(page, 'D71', '70:3')
   await move(page, '70:5')
   await finish(page, 'D71:F71')
   await expect(cell(page, '70:5')).toHaveText('Fill me')
   await expect(cell(page, '70:5')).toHaveCSS('text-decoration-line', 'underline')
-  await begin(page, 'D71')
+  await begin(page, 'D71', '70:3')
   await move(page, '70:2')
   await finish(page, 'C71:D71')
   await expect(cell(page, '70:2')).toHaveText('Fill me')

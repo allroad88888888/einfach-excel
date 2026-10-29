@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { centerRowForHorizontalDrag } from '../support/fill-drag'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 const name = (page: Page) => page.getByRole('textbox', { name: 'Name box' })
@@ -8,6 +9,8 @@ async function drag(page: Page, source: string, corner: string, target: string, 
   await select(page, source, corner)
   // 窄屏只需露出源区域右下角，不假定整个矩形都放得下。
   await cell(page, corner).scrollIntoViewIfNeeded()
+  const sameRow = corner.split(':')[0] === target.split(':')[0]
+  if (sameRow) await centerRowForHorizontalDrag(page, corner)
   const handle = page.getByRole('button', { name: 'Drag to fill', exact: true })
   await expect(handle).toBeVisible()
   await handle.hover()

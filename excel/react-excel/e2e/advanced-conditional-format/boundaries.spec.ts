@@ -8,10 +8,10 @@ for (const width of [1280, 390]) {
     await page.getByRole('combobox', { name: 'Row and column visibility', exact: true }).selectOption('hide-rows')
     await expect(cell(page, '2:0')).toHaveCount(0)
     const fill = cell(page, '1:0').locator('.cell-data-bar-fill')
-    expect(await fill.evaluate((node: HTMLElement) => parseFloat(node.style.width))).toBeCloseTo(10)
+    await expect.poll(() => fill.evaluate((node: HTMLElement) => parseFloat(node.style.width))).toBeCloseTo(10)
     await cleanNeighbor(page); await button(page, 'Undo').click()
     await expect(cell(page, '2:0')).toHaveText('100')
-    expect(await fill.evaluate((node: HTMLElement) => parseFloat(node.style.width))).toBeCloseTo(10)
+    await expect.poll(() => fill.evaluate((node: HTMLElement) => parseFloat(node.style.width))).toBeCloseTo(10)
   })
 
   test(`merged anchor renders the native icon once at ${width}px`, async ({ page }) => {

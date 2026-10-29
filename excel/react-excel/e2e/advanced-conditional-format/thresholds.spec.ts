@@ -33,11 +33,11 @@ for (const width of [1280, 390]) for (const scenario of cases) {
     await save(page)
     const fill = cell(page, '1:0').locator('.cell-data-bar-fill')
     await expect(fill).toBeVisible()
-    expect(await fill.evaluate((node: HTMLElement) => parseFloat(node.style.width))).toBeCloseTo(scenario.width)
+    await expect.poll(() => fill.evaluate((node: HTMLElement) => parseFloat(node.style.width))).toBeCloseTo(scenario.width)
     await expect(cell(page, '1:0')).toHaveText('10'); await cleanNeighbor(page)
     await button(page, 'Undo').click(); await expect(fill).toHaveCount(0)
     await button(page, 'Redo').click(); await expect(fill).toBeVisible()
-    expect(await fill.evaluate((node: HTMLElement) => parseFloat(node.style.width))).toBeCloseTo(scenario.width)
+    await expect.poll(() => fill.evaluate((node: HTMLElement) => parseFloat(node.style.width))).toBeCloseTo(scenario.width)
   })
 }
 
@@ -58,9 +58,11 @@ for (const width of [1280, 390]) {
     await open(page); await button(page, 'Edit rule 1').click()
     await threshold(page, 'Maximum', 'auto'); await save(page, true)
     const fill = cell(page, '1:0').locator('.cell-data-bar-fill')
-    expect(await fill.evaluate((node: HTMLElement) => parseFloat(node.style.width))).toBeCloseTo(10)
+    await expect.poll(() => fill.evaluate((node: HTMLElement) => parseFloat(node.style.width))).toBeCloseTo(10)
     await cleanNeighbor(page); await button(page, 'Undo').click()
-    expect(await fill.evaluate((node: HTMLElement) => parseFloat(node.style.width))).toBeCloseTo(50)
+    // 撤销是一次异步 Rust 往返；只读一次会读到发布前的旧宽度。
+    await expect.poll(() => fill.evaluate((node: HTMLElement) => parseFloat(node.style.width)))
+      .toBeCloseTo(50)
   })
 
   test(`formula threshold tracks a changed reference without changing its rule at ${width}px`, async ({ page }) => {

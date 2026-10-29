@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { select } from '../support/clipboard'
+import { centerRowForHorizontalDrag } from '../support/fill-drag'
 
 const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
 
@@ -12,19 +13,8 @@ for (const width of [1280, 390]) for (const direction of ['left', 'right'])
     await select(page, 'D71', '70:3')
     const target = cell(page, direction === 'left' ? '70:2' : '70:5')
     await expect(target).toHaveText('')
-    // 本例只验证水平复制；先用真实滚轮把目标移出底边自动滚动区，再按下拖拽。
-    // 否则等待预览断言时，持续滚动会改变静止指针下的行，合法地转成向下填充。
-    if (direction === 'left') {
-      await target.scrollIntoViewIfNeeded()
-      const scroll = page.getByTestId('sheet-scroll')
-      const viewport = (await scroll.boundingBox())!
-      await page.mouse.move(viewport.x + viewport.width / 2, viewport.y + viewport.height / 2)
-      await page.mouse.wheel(0, 168)
-      await expect.poll(async () => {
-        const box = (await target.boundingBox())!
-        return viewport.y + viewport.height - (box.y + box.height / 2)
-      }).toBeGreaterThan(48)
-    }
+    // 本例只验证水平复制；两个方向都先把这一行移出上下自动滚动区再按下拖拽。
+    await centerRowForHorizontalDrag(page, '70:3')
     await page.getByRole('button', { name: 'Drag to fill', exact: true }).hover()
     await page.mouse.down()
     if (direction === 'right') await target.scrollIntoViewIfNeeded()

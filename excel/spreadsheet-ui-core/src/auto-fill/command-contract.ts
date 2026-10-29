@@ -41,7 +41,7 @@ export interface AutoFillControllerPort {
   resolveDataEdge?(request: ResolveDataEdgeRequest): Promise<ResolveDataEdgeResult>
 }
 
-export interface AutoFillCommandBase {
+interface AutoFillCommandBase {
   source: AutoFillControllerPort
   refreshProjection(sheetId: string): Promise<void>
   /** Host guard captured with the mutation ticket after a backend ACK. */

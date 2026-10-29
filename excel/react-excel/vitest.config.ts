@@ -19,6 +19,9 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
+    // 组件测试会渲染整本工作簿（约 5000 个 DOM 元素），Testing Library 的 role/label 查询
+    // 在 jsdom 里一次要几十毫秒；空闲时单测 <1s，并发争抢 CPU 时会被拖到 5s 默认上限之外。
+    testTimeout: 15_000,
     globals: true,
     include: ['test/**/*.test.{ts,tsx}'],
     setupFiles: ['./test/setup-vitest.ts'],

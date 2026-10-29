@@ -1,26 +1,5 @@
 import type { Getter, Setter } from '@einfach/core'
 import { acquireHistoryProducerReservationAtom, nextHistoryTransactionId } from '../history'
-import type { HistoryLocalReplayPayload } from '../history'
-import {
-  applyOutlineStructuralShiftAtom,
-  getOutlineGroupsForSheet,
-  OUTLINE_REPLAY_KEY,
-  outlineAtom,
-} from '../outline'
-import {
-  applyViewportFreezeStructuralShiftAtom,
-  getViewportFreezeForSheet,
-  VIEWPORT_FREEZE_REPLAY_KEY,
-  viewportFreezeAtom,
-} from '../viewport/freeze'
-import {
-  applyViewportHiddenStructuralShiftAtom,
-  getHiddenColumnsForSheet,
-  getHiddenRowsForSheet,
-  VIEWPORT_HIDDEN_REPLAY_KEY,
-  viewportHiddenAtom,
-} from '../viewport/hidden'
-import { applyViewportFilterHiddenStructuralShiftAtom } from '../viewport/effective-hidden'
 import { acknowledgedStructureOperation } from './structure-acknowledgement'
 import {
   STRUCTURE_OPERATION_ACKNOWLEDGEMENT_ERROR,
@@ -34,8 +13,6 @@ import {
 import {
   captureStructureOperationHistoryEntryRecorder,
   recordStructureOperationHistory,
-  sameIndexArrays,
-  sameOutlineGroupArrays,
 } from './structure-history'
 import {
   activeStructureOperationTicketAtom,
@@ -59,6 +36,7 @@ import {
   structureOperationErrorMessage,
   withStructureOperationTimeout,
 } from './structure-transport'
+import { shiftStructureViewFacts } from './structure-view-shift'
 
 export async function runStructureOperation(
   get: Getter,
@@ -196,80 +174,12 @@ export async function runStructureOperation(
   // membership, so undo/redo of this backend transaction replays the
   // exact recorded view facts instead (see HistoryEntry.localSidePayloads).
   const sheetId = ticket.intent.sheetId
-  const freezeBefore = getViewportFreezeForSheet(get(viewportFreezeAtom), sheetId)
-  const hiddenStateBefore = get(viewportHiddenAtom)
-  const hiddenRowsBefore = getHiddenRowsForSheet(hiddenStateBefore, sheetId)
-  const hiddenColsBefore = getHiddenColumnsForSheet(hiddenStateBefore, sheetId)
-  const outlineStateBefore = get(outlineAtom)
-  const outlineRowsBefore = getOutlineGroupsForSheet(outlineStateBefore, sheetId, 'row')
-  const outlineColsBefore = getOutlineGroupsForSheet(outlineStateBefore, sheetId, 'column')
-  if (acknowledgement.structuralShift) {
-    set(applyViewportFreezeStructuralShiftAtom, {
-      sheetId,
-      shift: acknowledgement.structuralShift,
-    })
-    set(applyViewportHiddenStructuralShiftAtom, {
-      sheetId,
-      shift: acknowledgement.structuralShift,
-    })
-    set(applyViewportFilterHiddenStructuralShiftAtom, {
-      sheetId,
-      shift: acknowledgement.structuralShift,
-    })
-    set(applyOutlineStructuralShiftAtom, {
-      sheetId,
-      shift: acknowledgement.structuralShift,
-    })
-  }
-  const localSidePayloads: HistoryLocalReplayPayload[] = []
-  const freezeAfter = getViewportFreezeForSheet(get(viewportFreezeAtom), sheetId)
-  if (
-    (freezeBefore === null) !== (freezeAfter === null) ||
-    (freezeBefore !== null &&
-      freezeAfter !== null &&
-      (freezeBefore.rows !== freezeAfter.rows || freezeBefore.cols !== freezeAfter.cols))
-  ) {
-    localSidePayloads.push({
-      applyKey: VIEWPORT_FREEZE_REPLAY_KEY,
-      sheetId,
-      before: freezeBefore,
-      after: freezeAfter,
-    })
-  }
-  const hiddenStateAfter = get(viewportHiddenAtom)
-  const hiddenRowsAfter = getHiddenRowsForSheet(hiddenStateAfter, sheetId)
-  const hiddenColsAfter = getHiddenColumnsForSheet(hiddenStateAfter, sheetId)
-  if (
-    !sameIndexArrays(hiddenRowsBefore, hiddenRowsAfter) ||
-    !sameIndexArrays(hiddenColsBefore, hiddenColsAfter)
-  ) {
-    localSidePayloads.push({
-      applyKey: VIEWPORT_HIDDEN_REPLAY_KEY,
-      sheetId,
-      before: { rows: [...hiddenRowsBefore], cols: [...hiddenColsBefore] },
-      after: { rows: [...hiddenRowsAfter], cols: [...hiddenColsAfter] },
-    })
-  }
-  // FILTER-hidden rows carry NO history side payload since E8. The engine owns
-  // the filter (rules + derived hidden set) and its own `restoreFilters`
-  // snapshot restores it on undo/redo; UI core re-hydrates the render cache
-  // (`viewportFilterHiddenAtom`) from the engine afterwards
-  // (`readSheetHiddenState.filterRows`) — see the provider's undo/redo refresh.
-  // The forward shift above is the optimistic same-tick projection only.
-  const outlineStateAfter = get(outlineAtom)
-  const outlineRowsAfter = getOutlineGroupsForSheet(outlineStateAfter, sheetId, 'row')
-  const outlineColsAfter = getOutlineGroupsForSheet(outlineStateAfter, sheetId, 'column')
-  if (
-    !sameOutlineGroupArrays(outlineRowsBefore, outlineRowsAfter) ||
-    !sameOutlineGroupArrays(outlineColsBefore, outlineColsAfter)
-  ) {
-    localSidePayloads.push({
-      applyKey: OUTLINE_REPLAY_KEY,
-      sheetId,
-      before: { rows: [...outlineRowsBefore], cols: [...outlineColsBefore] },
-      after: { rows: [...outlineRowsAfter], cols: [...outlineColsAfter] },
-    })
-  }
+  const localSidePayloads = shiftStructureViewFacts(
+    get,
+    set,
+    sheetId,
+    acknowledgement.structuralShift,
+  )
 
   if (!structureOperationTicketIsCurrent(get, ticket)) return 'stale'
   const historyRecordResult = recordStructureOperationHistory(set, ticket, {

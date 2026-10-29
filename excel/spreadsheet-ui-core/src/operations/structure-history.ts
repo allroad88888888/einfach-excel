@@ -1,28 +1,8 @@
 import type { Setter } from '@einfach/core'
 import { pushReservedHistoryAtom } from '../history'
 import type { HistoryEntry, HistoryEntryRecorder, HistoryRecordResult } from '../history'
-import type { OutlineGroup } from '../outline'
 import type { RunStructureOperationInput } from './structure-contract'
 import type { StructureOperationTicket } from './structure-lifecycle'
-
-export function sameIndexArrays(left: readonly number[], right: readonly number[]): boolean {
-  return left.length === right.length && left.every((value, offset) => value === right[offset])
-}
-
-export function sameOutlineGroupArrays(
-  left: readonly OutlineGroup[],
-  right: readonly OutlineGroup[],
-): boolean {
-  return (
-    left.length === right.length &&
-    left.every(
-      (group, offset) =>
-        group.start === right[offset].start &&
-        group.end === right[offset].end &&
-        group.collapsed === right[offset].collapsed,
-    )
-  )
-}
 
 export function captureStructureOperationHistoryEntryRecorder(
   input: RunStructureOperationInput,

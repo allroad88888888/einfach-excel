@@ -4,11 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-在线表格栈（einfach-excel）。**当前唯一产品主线**：
+浏览器表格栈（einfach-excel）。**当前唯一产品主线**：
 
 ```
 excel/react-excel  →  @einfach/spreadsheet-ui-core  →  Rust Worker / @einfach/excel-wasm  →  einfach-excel-core (Rust)
 ```
+
+**产品目标是单用户、可嵌入宿主的本地表格组件，不是在线协作表格。** 多人协作、身份与通知、
+更改记录（Show Changes）、版本历史、个人视图（Sheet Views）、自动保存与服务端持久化**全部暂停**：
+不要为它们设计服务端契约、预留接口或补占位实现。批注/备注只做工作簿本地数据。
 
 状态管理由上游 einfach（Jotai 风格 atom 引擎）提供：`@einfach/core` 与 `@einfach/react` 从 npm
 消费（当前基线 `^0.4.0`），源码不在本仓，Vitest 也不做 alias —— 本仓必须跑在**已发布**的 core 上

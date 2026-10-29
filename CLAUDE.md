@@ -51,6 +51,7 @@ pnpm --filter @einfach/react-excel i18n:extract            # Lingui；CI 会跑 
 # Rust 引擎（各 crate 独立，无 workspace 根 Cargo.toml）
 cd excel/rust/excel-core && cargo test                     # 另有 --no-default-features（lite）变体
 cd excel/rust/excel-core && cargo bench                    # 口径见 excel/rust/docs/PERF.md
+npm run clean:rust       # 删各 crate 的 target/debug（cargo 不自动回收）；post-commit 在超 20 GiB 时后台自动跑
 
 # 改了 excel/rust/ 后刷新 WASM 产物
 npm run build:wasm -w @einfach/excel-wasm        # → excel/excel-wasm/lite/

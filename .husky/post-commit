@@ -1,0 +1,2 @@
+# Rust 本机 debug 缓存超过 20 GiB 时在后台清理，不阻塞提交；未超限时保留增量编译缓存。
+nohup node scripts/clean-rust-targets.mjs --if-over 20 >/dev/null 2>&1 < /dev/null &

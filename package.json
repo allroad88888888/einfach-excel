@@ -30,7 +30,8 @@
     "release:version": "changeset version && pnpm install --lockfile-only",
     "build:publish": "npm run clearTypes&&npm run ensureWasm&&tsc -build excel/spreadsheet-ui-core excel/excel-core-ts&&npx rollup -c ./rollup.config.mjs&&pnpm --filter @einfach/react-excel build:lib",
     "prepare:package-consumers": "node scripts/prepare-react-package-consumers.mjs",
-    "prepare": "husky"
+    "prepare": "husky",
+    "clean:rust": "node scripts/clean-rust-targets.mjs"
   },
   "keywords": [],
   "author": "dol",

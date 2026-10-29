@@ -12,3 +12,8 @@ criterion = "0.5"
 [[bench]]
 name = "store_bench"
 harness = false
+
+# 本地 dev/test 只保留行号调试信息：测试二进制体积大幅缩小，回溯仍带文件行号。
+# CI 另以 CARGO_PROFILE_{DEV,TEST}_DEBUG=0 完全关闭。
+[profile.dev]
+debug = "line-tables-only"

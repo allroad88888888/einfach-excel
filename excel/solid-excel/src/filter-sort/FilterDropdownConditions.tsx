@@ -4,7 +4,7 @@ import type {
   FilterConditionKind,
   FilterSortDraftPatch,
   FilterSortDraftState,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 interface FilterDropdownConditionsProps {
   readonly draft: Accessor<FilterSortDraftState>

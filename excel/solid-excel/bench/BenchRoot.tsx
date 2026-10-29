@@ -6,7 +6,7 @@ import { BenchEmbed } from './BenchEmbed'
 import { FIRST_SCREEN_EMBED_PARAM } from './scenario-first-screen'
 import '../demo/app-shell.css'
 import '../demo/legacy-table.css'
-import '@einfach/spreadsheet-ui-styles/styles.css'
+import '@einfach-excel/spreadsheet-ui-styles/styles.css'
 
 function isFirstScreenEmbed(): boolean {
   return new URLSearchParams(window.location.search).get('embed') === FIRST_SCREEN_EMBED_PARAM

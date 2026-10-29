@@ -2,7 +2,7 @@ import type {
   DisplayCell,
   RichTextRunFormat,
   SpreadsheetCellFormat,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 export function getCellFormatStyle(
   format: SpreadsheetCellFormat | undefined,

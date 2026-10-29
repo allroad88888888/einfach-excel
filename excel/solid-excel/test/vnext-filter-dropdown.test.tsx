@@ -9,7 +9,7 @@ import type {
   SetFilterSortRequest,
   SortRangeRequest,
   SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   FILTER_SORT_ACKNOWLEDGEMENT_ERROR,
   FILTER_SORT_CAPABILITY_ERROR,
@@ -25,7 +25,7 @@ import {
   setFilterSortAtom,
   setViewportFilterHiddenRowsAtom,
   setWorkspaceActiveSheetAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetFilterDropdown } from '../src/filter-sort'
 import { SpreadsheetUiProvider, spreadsheetProjectionSnapshotAtom } from '../src/provider'
 import { seedReadyVisibleProjection } from './projection-test-fixture'

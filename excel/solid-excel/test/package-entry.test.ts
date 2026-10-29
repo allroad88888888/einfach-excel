@@ -18,9 +18,9 @@ const packageJson = JSON.parse(
   readFileSync(path.resolve(__dirname, '../package.json'), 'utf8'),
 ) as SolidExcelPackageJson
 
-describe('@einfach/solid-excel package entry', () => {
+describe('@einfach-excel/solid-excel package entry', () => {
   it('maps root to the current API and keeps legacy isolated', () => {
-    expect(packageJson.name).toBe('@einfach/solid-excel')
+    expect(packageJson.name).toBe('@einfach-excel/solid-excel')
     expect(packageJson.main).toBe('./esm/src/index.mjs')
     expect(packageJson.types).toBe('./@types/src/index.d.ts')
     expect(packageJson.exports['.']).toEqual({

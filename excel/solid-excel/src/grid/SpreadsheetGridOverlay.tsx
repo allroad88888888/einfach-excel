@@ -1,5 +1,5 @@
 import { onCleanup, onMount } from 'solid-js'
-import type { DisplayCell } from '@einfach/spreadsheet-ui-core'
+import type { DisplayCell } from '@einfach-excel/spreadsheet-ui-core'
 import { useSpreadsheetUiStore } from '../provider'
 import { OverlayRenderer } from './overlay-canvas-renderer'
 import type { OverlayContextFactory } from './overlay-types'

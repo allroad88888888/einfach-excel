@@ -1,6 +1,6 @@
 # einfach-excel Vite starter
 
-最小可运行工程：`@einfach/solid-excel` + Vite + `vite-plugin-solid`（`solid`
+最小可运行工程：`@einfach-excel/solid-excel` + Vite + `vite-plugin-solid`（`solid`
 导出条件走源码编译，worker 与 WASM 由 Vite 自动接线，零特殊配置）。
 `src/main.tsx` 就是 [Quickstart](../../docs/QUICKSTART.md) 里那 20 行。
 

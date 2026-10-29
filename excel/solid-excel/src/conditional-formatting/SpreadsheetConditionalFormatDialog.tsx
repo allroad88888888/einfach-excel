@@ -18,7 +18,7 @@ import {
   useSelectionForConditionalFormatEditorScopeAtom,
   workspaceSessionAtom,
   type ConditionalFormatRuleKind,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { ConditionalFormatRuleFields } from './ConditionalFormatRuleFields'
 import { useOverlayInteraction } from '../overlay'
 import { refreshVisibleProjection, useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider'
@@ -29,8 +29,8 @@ import { refreshVisibleProjection, useSpreadsheetBackend, useSpreadsheetUiStore 
 // blocked when no CSS transform is configured. The co-located
 // `.css.d.ts` keeps tsc satisfied under the Bundler moduleResolution.
 if (typeof process === 'undefined' || process.env.VITEST !== 'true') {
-  void import('@einfach/spreadsheet-ui-styles/features/conditional-format-dialog.css')
-  void import('@einfach/spreadsheet-ui-styles/features/conditional-format-fields.css')
+  void import('@einfach-excel/spreadsheet-ui-styles/features/conditional-format-dialog.css')
+  void import('@einfach-excel/spreadsheet-ui-styles/features/conditional-format-fields.css')
 }
 
 export interface SpreadsheetConditionalFormatDialogProps {

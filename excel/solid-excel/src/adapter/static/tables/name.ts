@@ -1,7 +1,7 @@
 // 一句话：Excel Table 名字的合法性判定与自动命名。
 
-import type { TableMutationRejectionCode } from '@einfach/spreadsheet-ui-core'
-import { ENGINE_BUILTIN_FORMULA_NAMES } from '@einfach/spreadsheet-ui-core'
+import type { TableMutationRejectionCode } from '@einfach-excel/spreadsheet-ui-core'
+import { ENGINE_BUILTIN_FORMULA_NAMES } from '@einfach-excel/spreadsheet-ui-core'
 import type { StaticBackendState } from '../state'
 
 const TABLE_RESERVED_NAMES: ReadonlySet<string> = new Set(ENGINE_BUILTIN_FORMULA_NAMES)

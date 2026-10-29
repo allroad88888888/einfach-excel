@@ -24,12 +24,12 @@ import { sitePath } from '../../../data/site-path'
     <pre><code>{`git clone https://github.com/allroad88888888/einfach-excel.git
 cd einfach-excel
 pnpm install
-pnpm --filter @einfach/react-excel dev`}</code></pre>
+pnpm --filter @einfach-excel/react-excel dev`}</code></pre>
     <p>开发服务器监听 <code>http://127.0.0.1:5183</code>。</p>
 
     <h2>2. 理解 Rust-only 运行时</h2>
     <p>
-      应用从 <code>@einfach/solid-excel/vnext-worker-runtime?worker</code> 创建 backend。
+      应用从 <code>@einfach-excel/solid-excel/vnext-worker-runtime?worker</code> 创建 backend。
       工作簿读取和确认后的编辑会跨过 worker 边界进入 Rust/WASM；没有 TypeScript 引擎、静态 backend
       或运行时 fallback。
     </p>
@@ -43,9 +43,9 @@ pnpm --filter @einfach/react-excel dev`}</code></pre>
     <p>按 Escape 可取消编辑且不写入。</p>
 
     <h2>4. 验证产品</h2>
-    <pre><code>{`pnpm --filter @einfach/react-excel typecheck
-pnpm --filter @einfach/react-excel build
-pnpm --filter @einfach/react-excel test`}</code></pre>
+    <pre><code>{`pnpm --filter @einfach-excel/react-excel typecheck
+pnpm --filter @einfach-excel/react-excel build
+pnpm --filter @einfach-excel/react-excel test`}</code></pre>
 
     <h2>5. 阅读产品源码</h2>
     <div class="docs-guide-next">

@@ -2,7 +2,7 @@ import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useId } from 'react'
-import { configureNativeFilterValuesAtom, nativeFilterValuesAtom } from '@einfach/spreadsheet-ui-core'
+import { configureNativeFilterValuesAtom, nativeFilterValuesAtom } from '@einfach-excel/spreadsheet-ui-core'
 import { FilterSearchSelection } from '../../advanced-filter/FilterSearchSelection'
 
 /** 候选、数量和页界直接来自 Rust；选中的原始字符串留在 UI Core 条件草稿。 */

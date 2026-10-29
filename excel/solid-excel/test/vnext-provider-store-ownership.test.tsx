@@ -5,7 +5,7 @@ import { atom, createStore, type Store } from '@einfach/core'
 import { useAtomValue } from '@einfach/solid'
 import { cleanup, render, waitFor } from '@solidjs/testing-library'
 import { onMount } from 'solid-js'
-import type { SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
+import type { SpreadsheetBackend } from '@einfach-excel/spreadsheet-ui-core'
 
 import { SpreadsheetUiProvider, useSpreadsheetUiCore } from '../src/provider'
 

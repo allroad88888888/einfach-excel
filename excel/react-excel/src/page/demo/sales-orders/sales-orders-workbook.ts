@@ -1,4 +1,4 @@
-import type { RustWorkbookDefinition } from '@einfach/spreadsheet-ui-core'
+import type { RustWorkbookDefinition } from '@einfach-excel/spreadsheet-ui-core'
 import { applySalesOrderMerge, SALES_ORDER_MERGES, SALES_ORDER_MERGE_COLUMN_COUNT,
   SALES_ORDER_EXTRA_MERGE_CELLS } from './data/merge-seed'
 import { createSalesOrderImportChunks } from './data/import-seed'

@@ -5,7 +5,7 @@ import type {
   ConditionalFormatEditorDraft,
   ConditionalFormatEditorDraftUpdate,
   TopBottomRule,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 interface TopBottomRuleFieldsProps {
   readonly draft: Accessor<ConditionalFormatEditorDraft | null>

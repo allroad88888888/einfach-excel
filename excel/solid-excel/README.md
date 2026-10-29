@@ -1,9 +1,9 @@
-# @einfach/solid-excel
+# @einfach-excel/solid-excel
 
 > **暂停维护。** 源码仅保留作考古参考；该包已退出默认构建、测试、CI、发布与 React
 > 主线兼容范围。当前产品入口是 [`../react-excel`](../react-excel/README.md)。
 
-Solid.js spreadsheet surface for the active Einfach stack. The package wires `@einfach/spreadsheet-ui-core` atoms into Solid components, ships static and worker-backed adapters, and bundles a WASM build of the Rust formula engine.
+Solid.js spreadsheet surface for the active Einfach stack. The package wires `@einfach-excel/spreadsheet-ui-core` atoms into Solid components, ships static and worker-backed adapters, and bundles a WASM build of the Rust formula engine.
 
 feature 归属（哪些事实归引擎、哪些归 UI core）的现行规范源是 [docs/CANONICAL_OWNERSHIP.md](./docs/CANONICAL_OWNERSHIP.md)，判据见 [ADR 0003](../../docs/decisions/0003-engine-owns-filter-sort.md)。
 
@@ -64,10 +64,10 @@ Layering rules: components read atoms via `@einfach/solid`; mutations dispatch a
 | `history/`                | `SpreadsheetHistoryTimeline`                                                                                                                                                                                                                                                  |
 | `demos/`                  | `VNextSmokeDemo` (static), `VNextWorkerDemo` (worker + WASM)                                                                                                                                                                                                                  |
 
-Public exports flow through `src/public.ts`. Import via the `@einfach/solid-excel` subpath:
+Public exports flow through `src/public.ts`. Import via the `@einfach-excel/solid-excel` subpath:
 
 ```ts
-import { SpreadsheetUiProvider, SpreadsheetGrid } from '@einfach/solid-excel'
+import { SpreadsheetUiProvider, SpreadsheetGrid } from '@einfach-excel/solid-excel'
 ```
 
 **worker 工厂是第二个入口，不在上面那个 barrel 里。** 它靠 `import.meta.url` 解析 worker
@@ -75,8 +75,8 @@ bundle，放进 barrel 会让不支持 `import.meta` 的测试转换链崩在
 `Cannot use 'import.meta' outside a module`。宿主从独立子路径取得真实 factory，并把它交给根入口导出的 worker backend：
 
 ```ts
-import { createWorkerWorkbookSpreadsheetBackend } from '@einfach/solid-excel'
-import { defaultVNextWorkbookWorkerFactory } from '@einfach/solid-excel/worker-factory'
+import { createWorkerWorkbookSpreadsheetBackend } from '@einfach-excel/solid-excel'
+import { defaultVNextWorkbookWorkerFactory } from '@einfach-excel/solid-excel/worker-factory'
 
 const backend = createWorkerWorkbookSpreadsheetBackend({
   workerFactory: defaultVNextWorkbookWorkerFactory,
@@ -101,7 +101,7 @@ dependency graph instead of adding a component-level workaround:
 
 ```bash
 grep -oE '^  solid-js@[0-9.]+' pnpm-lock.yaml | sort -u
-pnpm --filter @einfach/solid-excel exec vitest run test/provider-remount-1912.test.tsx
+pnpm --filter @einfach-excel/solid-excel exec vitest run test/provider-remount-1912.test.tsx
 ```
 
 The package runtime cannot reliably discover another `solid-js` branch in the
@@ -116,16 +116,16 @@ one-off measurements, and animation handles.
 
 ```bash
 # Refresh the WASM artifacts from excel/rust/wasm, then run Vite
-npm run build -w @einfach/solid-excel
+npm run build -w @einfach-excel/solid-excel
 
 # Dev server (assumes excel/excel-wasm/lite is built)
-npm run dev -w @einfach/solid-excel
+npm run dev -w @einfach-excel/solid-excel
 
 # Rebuild only the WASM bundle
-npm run build:wasm -w @einfach/excel-wasm
+npm run build:wasm -w @einfach-excel/excel-wasm
 ```
 
-WASM 产物归 `@einfach/excel-wasm`（`excel/excel-wasm/lite/` 与 `full/`）；本包的
+WASM 产物归 `@einfach-excel/excel-wasm`（`excel/excel-wasm/lite/` 与 `full/`）；本包的
 `build:wasm` 只是它的委托。真正的构建是 `wasm-pack build --target web --out-dir
 ../../excel-wasm/lite ../rust/wasm` —— `--out-dir` 相对 **crate 目录**解析。 The
 repo-level `npm run build` invokes the same step before `tsc -build`, so a fresh
@@ -133,14 +133,14 @@ clone must have `wasm-pack` and a working Rust toolchain on `PATH`.
 
 ## Testing
 
-Vitest 套件在 `test/` 下（历史文件名可能仍含 `vnext`），另有 legacy `legacy/` 的 parity 套件。Solid 组件用 `@solidjs/testing-library`。规模现场算，不记数字：`pnpm --filter @einfach/solid-excel exec vitest list | wc -l`。
+Vitest 套件在 `test/` 下（历史文件名可能仍含 `vnext`），另有 legacy `legacy/` 的 parity 套件。Solid 组件用 `@solidjs/testing-library`。规模现场算，不记数字：`pnpm --filter @einfach-excel/solid-excel exec vitest list | wc -l`。
 
 ```bash
 # Whole package
-pnpm --filter @einfach/solid-excel test
+pnpm --filter @einfach-excel/solid-excel test
 
 # Single active spec (historical filename)
-pnpm --filter @einfach/solid-excel exec vitest run test/vnext-grid.test.tsx
+pnpm --filter @einfach-excel/solid-excel exec vitest run test/vnext-grid.test.tsx
 
 # Type gate
 npx tsc -p excel/solid-excel/tsconfig.json --noEmit --pretty false
@@ -149,7 +149,7 @@ npx tsc -p excel/solid-excel/tsconfig.json --noEmit --pretty false
 End-to-end specs use Playwright against the Vite dev preview:
 
 ```bash
-NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach/solid-excel -- e2e/smoke/vnext-smoke.spec.ts
+NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach-excel/solid-excel -- e2e/smoke/vnext-smoke.spec.ts
 ```
 
 Interaction, clipboard, worker, or viewport changes must also clear an MCP Playwright pass; `excel/spreadsheet-ui-core/docs/CONVENTIONS.md` 列了要记录的项（URL、操作路径、可视 cell 数、console warning/error、与 Excel 的一致性结论）。

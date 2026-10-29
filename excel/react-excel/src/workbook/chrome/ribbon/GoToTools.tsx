@@ -5,7 +5,7 @@ import { useEffect, useId, useRef } from 'react'
 import {
   goToErrorMessageAtom, goToHistoryAtom, goToInputAtom, goToOpenAtom,
   goToReferenceAvailableAtom, runGoToReferenceAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { cycleDialogFocus } from './dialog-focus'
 import './go-to.css'
 

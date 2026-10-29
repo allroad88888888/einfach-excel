@@ -6,7 +6,7 @@ import {
   lockedEditFeedbackAtom,
   openProtectionUnlockAtom,
   type LockedEditFeedback,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { createMemo, Show } from 'solid-js'
 import { useT } from '../i18n'
 

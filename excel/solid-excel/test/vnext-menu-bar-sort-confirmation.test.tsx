@@ -7,12 +7,12 @@ import type {
   SortRangeRequest,
   SortRangeResult,
   SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   filterSortEntrypointStateAtom,
   selectionAtom,
   setWorkspaceActiveSheetAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetMenuBar } from '../src/menu-bar'
 import { SpreadsheetUiProvider } from '../src/provider'
 import { SpreadsheetToolbar } from '../src/toolbar'

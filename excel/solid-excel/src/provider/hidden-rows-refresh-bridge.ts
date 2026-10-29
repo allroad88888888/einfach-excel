@@ -1,5 +1,5 @@
 import type { Store } from '@einfach/core'
-import { sheetHiddenRowsAtom, type SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
+import { sheetHiddenRowsAtom, type SpreadsheetBackend } from '@einfach-excel/spreadsheet-ui-core'
 import { refreshVisibleProjection } from './projection-refresh'
 
 /**

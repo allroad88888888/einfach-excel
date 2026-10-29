@@ -1,5 +1,5 @@
 import { useAtomValue } from '@einfach/react'
-import { activeWorkbookSheetAtom, workbookDocumentAtom } from '@einfach/spreadsheet-ui-core'
+import { activeWorkbookSheetAtom, workbookDocumentAtom } from '@einfach-excel/spreadsheet-ui-core'
 import './header.css'
 import { WorkbookFileTools } from './WorkbookFileTools'
 import { Trans, useLingui } from '@lingui/react/macro'

@@ -1,4 +1,4 @@
-import type { SpreadsheetCellFormat } from '@einfach/spreadsheet-ui-core'
+import type { SpreadsheetCellFormat } from '@einfach-excel/spreadsheet-ui-core'
 
 import {
   cellFormatStyle,

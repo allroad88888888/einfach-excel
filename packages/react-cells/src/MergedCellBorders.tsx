@@ -2,7 +2,7 @@ import { useAtomValue } from '@einfach/react'
 import {
   getViewportColumnWidth, getViewportRowHeight, getViewportRangeRectangle,
   projectionSnapshotAtom, viewportGeometrySizesAtom, viewportMetricsAtom, type CellRange,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { CSSProperties } from 'react'
 import { createGridBorderStyles } from './grid-border-style'
 

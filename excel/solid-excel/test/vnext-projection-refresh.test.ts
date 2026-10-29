@@ -8,7 +8,7 @@ import {
   type SpreadsheetBackend,
   type VisibleProjectionRequest,
   type VisibleProjectionResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { refreshVisibleProjection } from '../src/provider/projection-refresh'
 
 const WINDOW = { rowStart: 0, rowEnd: 1, colStart: 0, colEnd: 1 } as const

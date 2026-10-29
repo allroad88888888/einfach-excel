@@ -23,7 +23,7 @@ import {
   textToColumnsSessionAtom,
   textToColumnsWizardAtom,
   type TextToColumnsIntent,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider/hooks'
 import { createHistoryEntryRecorder } from '../provider/history-entry-recorder'
 import { refreshVisibleProjection } from '../provider/projection-refresh'
@@ -33,7 +33,7 @@ import {
   restoreTextToColumnsFocus,
   trapTextToColumnsDialogTab,
 } from './text-to-columns-dialog-focus'
-import '@einfach/spreadsheet-ui-styles/features/text-to-columns-dialog.css'
+import '@einfach-excel/spreadsheet-ui-styles/features/text-to-columns-dialog.css'
 
 export interface SpreadsheetTextToColumnsDialogProps {
   class?: string

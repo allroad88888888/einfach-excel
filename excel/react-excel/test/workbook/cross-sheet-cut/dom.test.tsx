@@ -1,7 +1,7 @@
 import { createStore } from '@einfach/core'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, expect, test, vi } from 'vitest'
-import type { RustClipboardPasteRequest, VisibleProjectionRequest } from '@einfach/spreadsheet-ui-core'
+import type { RustClipboardPasteRequest, VisibleProjectionRequest } from '@einfach-excel/spreadsheet-ui-core'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
 import { WorkbookView } from '../../../src/workbook/shell/WorkbookView'
 import type * as BrowserClipboard from '../../../src/workbook/clipboard/browser-clipboard'

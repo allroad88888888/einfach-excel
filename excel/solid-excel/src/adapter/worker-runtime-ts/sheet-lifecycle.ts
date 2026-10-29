@@ -4,7 +4,7 @@ import type {
   Cell,
   PrintConfigSnapshot,
   Workbook,
-} from '@einfach/excel-core-ts'
+} from '@einfach-excel/excel-core-ts'
 
 import type { TsConditionalFormatConfigs } from '../worker-runtime-ts-conditional-format'
 import type { WorkbookPersistenceSnapshotWire } from '../worker-protocol'

@@ -37,5 +37,5 @@
 Overlay 焦点恢复契约捕获；不新增产品状态，也不改 Core 或 Provider。以下命令均通过：
 
 - `npx jest excel/solid-excel/test/vnext-print-preview-menu-focus.test.tsx --runInBand`
-- `EINFACH_E2E_PORT=5175 NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach/solid-excel -- e2e/print/print-preview-menu.spec.ts --project=wasm --reporter=line`
-- `EINFACH_E2E_PORT=5176 NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach/solid-excel -- e2e/print/print-preview-menu.spec.ts --project=ts --reporter=line`
+- `EINFACH_E2E_PORT=5175 NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach-excel/solid-excel -- e2e/print/print-preview-menu.spec.ts --project=wasm --reporter=line`
+- `EINFACH_E2E_PORT=5176 NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach-excel/solid-excel -- e2e/print/print-preview-menu.spec.ts --project=ts --reporter=line`

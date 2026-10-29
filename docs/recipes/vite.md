@@ -10,7 +10,7 @@
 // package.json
 {
   "dependencies": {
-    "@einfach/solid-excel": "0.1.0",
+    "@einfach-excel/solid-excel": "0.1.0",
     "@einfach/core": "^0.4.0",     // peer
     "@einfach/solid": "^0.4.0",    // peer
     "solid-js": "1.9.12"           // peer；应用内只能有一份（ADR 0001）
@@ -36,7 +36,7 @@ export default defineConfig({
 })
 ```
 
-入口代码见 [Quickstart](../QUICKSTART.md) 的 20 行示例（或渲染 `@einfach/solid-excel/demos` 的
+入口代码见 [Quickstart](../QUICKSTART.md) 的 20 行示例（或渲染 `@einfach-excel/solid-excel/demos` 的
 `VNextWorkerDemo` 看全功能外壳）。
 
 ## 关键注意点
@@ -46,11 +46,11 @@ export default defineConfig({
   `new Worker(new URL('./worker-runtime.ts', import.meta.url), { type: 'module' })`
   被 Vite 静态分析，自动切出 worker chunk 并发射 `einfach_wasm_bg-*.wasm` 资产。
   实测产物：`worker-runtime`、`worker-entry-ts` 等 worker chunk + wasm 二进制。
-- worker factory 从 `@einfach/solid-excel/worker-factory` **子路径** import
+- worker factory 从 `@einfach-excel/solid-excel/worker-factory` **子路径** import
   （ADR 0004，不在根入口 barrel）。
-- 样式：`import '@einfach/solid-excel/styles.css'`。
+- 样式：`import '@einfach-excel/solid-excel/styles.css'`。
 - full WASM 变体（`--features regex-formulas`）：宿主用
-  `import FullWorker from '@einfach/solid-excel/worker-runtime-full?worker'` 自行
+  `import FullWorker from '@einfach-excel/solid-excel/worker-runtime-full?worker'` 自行
   拉入（见 `worker-factory.ts` 头注释）；**未在仓外冒烟验证**。
 
 ## 未验证
@@ -63,7 +63,7 @@ export default defineConfig({
 
 ## 已知边界:`vite dev` 需要一行配置(0.1.0)
 
-`@einfach/solid-excel@0.1.0` 经 `@lingui/core` 传递依赖了含 CJS 的
+`@einfach-excel/solid-excel@0.1.0` 经 `@lingui/core` 传递依赖了含 CJS 的
 `@messageformat/parser`,**dev 模式**的 ESM interop 会白屏(build + preview 不受影响,
 零上下文走查实测)。修法(Vite 8 实测有效):
 
@@ -73,8 +73,8 @@ export default defineConfig({
   plugins: [solidPlugin()],
   optimizeDeps: {
     include: [
-      '@einfach/solid-excel > @lingui/core',
-      '@einfach/solid-excel > @lingui/core > @messageformat/parser',
+      '@einfach-excel/solid-excel > @lingui/core',
+      '@einfach-excel/solid-excel > @lingui/core > @messageformat/parser',
     ],
   },
 })

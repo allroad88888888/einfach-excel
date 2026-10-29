@@ -4,7 +4,7 @@ import {
   type CellCoord,
   type CellRange,
   type SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 /**
  * Resolve the data region the toolbar / menu sort should physically reorder

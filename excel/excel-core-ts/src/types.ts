@@ -1,5 +1,5 @@
 /**
- * Public type contracts for `@einfach/excel-core-ts`.
+ * Public type contracts for `@einfach-excel/excel-core-ts`.
  *
  * **This file is the source of truth shared by every Wave B/C/D/E agent.**
  * Anything that crosses a track boundary — parser AST, evaluator value

@@ -20,7 +20,7 @@
 | --- | --- |
 | CI 浏览器分片 | 浅克隆导致 `changeset version` 无限 `git fetch --deepen`；已改 `fetch-depth: 0` 并给打包步骤加 15 分钟上限，等分片转绿 |
 | 历史输入卡顿 | STAT-019 名称框 fill、TABLE-036 公式栏 Enter 曾长时间停顿；之后的完整回归未复现，根因未知 |
-| 首次发布 | `@einfach/react-excel` 仍是 0.0.0；仓外 Vite/Rspack 已按真实 tarball 验收，CI 转绿后走 Changesets 发 0.1.0 |
+| 首次发布 | `@einfach-excel/react-excel` 仍是 0.0.0；仓外 Vite/Rspack 已按真实 tarball 验收，CI 转绿后走 Changesets 发 0.1.0 |
 
 ## 41 项状态
 

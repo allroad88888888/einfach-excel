@@ -16,12 +16,12 @@
 ┌──────────────────────────────────────────────────────────────┐
 │ Worker (excel/solid-excel/src/adapter/worker-runtime-ts.ts)        │
 │  - postMessage → request decoder                             │
-│  - Calls into @einfach/excel-core-ts                         │
+│  - Calls into @einfach-excel/excel-core-ts                         │
 └─────────────────┬────────────────────────────────────────────┘
                   │ in-process function calls
                   ▼
 ┌──────────────────────────────────────────────────────────────┐
-│ @einfach/excel-core-ts (this package)                        │
+│ @einfach-excel/excel-core-ts (this package)                        │
 │                                                              │
 │  workbook.ts  ─→  sheets: Map<id, sheetAtom>                 │
 │                   names:  Map<name, NamedRange>              │
@@ -41,7 +41,7 @@
 └──────────────────────────────────────────────────────────────┘
 ```
 
-Key property: **`@einfach/excel-core-ts` does not import `solid-js`, the DOM, or anything UI-specific**. Same discipline as `excel/spreadsheet-ui-core`. It depends only on `@einfach/core`.
+Key property: **`@einfach-excel/excel-core-ts` does not import `solid-js`, the DOM, or anything UI-specific**. Same discipline as `excel/spreadsheet-ui-core`. It depends only on `@einfach/core`.
 
 ## 2. Data model
 
@@ -316,7 +316,7 @@ This is the contract that keeps the port boring: no UI change.
 Unchanged in shape, swap in implementation:
 
 - `worker-factory.ts` — exposes the separate WASM-lite factory and TS-core factory; the latter spawns `worker-entry-ts.ts`, which installs `worker-runtime-ts.ts`.
-- `worker-runtime-ts.ts` — decodes postMessage requests, dispatches them against the `@einfach/excel-core-ts` workbook state, and encodes responses.
+- `worker-runtime-ts.ts` — decodes postMessage requests, dispatches them against the `@einfach-excel/excel-core-ts` workbook state, and encodes responses.
 - `worker-workbook-backend.ts` — UI-facing port; sends requests over postMessage.
 
-The TS runtime keeps its `@einfach/excel-core-ts` `Workbook` state behind the same worker protocol as the WASM backend.
+The TS runtime keeps its `@einfach-excel/excel-core-ts` `Workbook` state behind the same worker protocol as the WASM backend.

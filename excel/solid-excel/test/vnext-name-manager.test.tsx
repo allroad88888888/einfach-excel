@@ -36,7 +36,7 @@ import {
   type SpreadsheetBackend,
   type SpreadsheetTableDescriptor,
   type TableMutationResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetNameManagerDialog } from '../src/named-ranges'
 import { SpreadsheetUiProvider, type NamedRangeCapabilityPort } from '../src/provider'
 import { setLocale } from '../src/i18n'

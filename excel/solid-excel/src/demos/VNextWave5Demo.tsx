@@ -12,7 +12,7 @@ import {
   unregisterCustomFormulaAtom,
   viewportShowFormulaBarAtom,
   workspaceSessionAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetCommentThread } from '../comments'
 import { SpreadsheetConditionalFormatDialog } from '../conditional-formatting'
 import { SpreadsheetContextMenu } from '../context-menu'

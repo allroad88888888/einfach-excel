@@ -1,4 +1,4 @@
-import type { CellRange } from '@einfach/spreadsheet-ui-core'
+import type { CellRange } from '@einfach-excel/spreadsheet-ui-core'
 
 export interface OverlayRect {
   x: number

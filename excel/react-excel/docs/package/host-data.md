@@ -2,12 +2,12 @@
 
 从 `@einfach/core` 创建 Store，将同一个实例传入 `<Spreadsheet store={store} />`。
 React 产品组件使用 `@einfach/react` hooks；以下是宿主服务代码，不是 React 工作簿状态副本。
-UI Core 的所有公开 atom/类型从 `@einfach/spreadsheet-ui-core` 根导入。
+UI Core 的所有公开 atom/类型从 `@einfach-excel/spreadsheet-ui-core` 根导入。
 
 ```ts
 import { createStore } from '@einfach/core'
 import { readWorkbookRangesAtom, writeWorkbookCellsAtom, workbookChangeAtom,
-  configureHostControlsAtom } from '@einfach/spreadsheet-ui-core'
+  configureHostControlsAtom } from '@einfach-excel/spreadsheet-ui-core'
 
 export const store = createStore()
 const stop = store.sub(workbookChangeAtom, () => {

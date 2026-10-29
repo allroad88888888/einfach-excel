@@ -19,10 +19,10 @@ cd my-sheet
 ## 1. 安装
 
 ```bash
-npm install @einfach/solid-excel @einfach/core @einfach/solid solid-js
+npm install @einfach-excel/solid-excel @einfach/core @einfach/solid solid-js
 ```
 
-`@einfach/solid-excel@0.1.0` 会带上其余 `@einfach` 表格包（fixed group，五包同步升级；
+`@einfach-excel/solid-excel@0.1.0` 会带上其余 `@einfach` 表格包（fixed group，五包同步升级；
 `0.x` 阶段 minor 可能破坏兼容，需要稳定面就钉 `~0.1.0`）。`solid-js`、`@einfach/core`、
 `@einfach/solid` 是 peer —— 应用里**只能各有一份**（ADR 0001 单实例不变式）。
 
@@ -36,9 +36,9 @@ import {
   createWorkerWorkbookSpreadsheetBackend,
   SpreadsheetGrid,
   SpreadsheetUiProvider,
-} from '@einfach/solid-excel'
-import { defaultVNextWorkbookWorkerFactory } from '@einfach/solid-excel/worker-factory'
-import '@einfach/solid-excel/styles.css'
+} from '@einfach-excel/solid-excel'
+import { defaultVNextWorkbookWorkerFactory } from '@einfach-excel/solid-excel/worker-factory'
+import '@einfach-excel/solid-excel/styles.css'
 
 const backend = createWorkerWorkbookSpreadsheetBackend({
   workerFactory: defaultVNextWorkbookWorkerFactory,
@@ -57,7 +57,7 @@ render(() => (
 
 1. **worker 后端** —— `createWorkerWorkbookSpreadsheetBackend` 起一个 Web Worker，
    里面跑 Rust/WASM 公式引擎；`defaultVNextWorkbookWorkerFactory` 必须从
-   `@einfach/solid-excel/worker-factory` **子路径** import
+   `@einfach-excel/solid-excel/worker-factory` **子路径** import
    （它依赖 `import.meta.url`，刻意不在根入口 barrel 里，
    [ADR 0004](decisions/0004-worker-factory-out-of-barrel.md)）。
 2. **`SpreadsheetUiProvider`** —— 建 UI store，把 backend 接进 atom 体系。
@@ -86,9 +86,9 @@ npm run dev
 ## 下一步
 
 - 完整表格外壳（菜单栏、工具栏、公式栏、sheet 页签、对话框）：见
-  `@einfach/solid-excel/demos` 的 `VNextWorkerDemo` 源码
+  `@einfach-excel/solid-excel/demos` 的 `VNextWorkerDemo` 源码
   （`excel/solid-excel/src/demos/VNextWorkerDemo.tsx`），所有 chrome 组件都从
-  `@einfach/solid-excel` 导出，按需挂。
+  `@einfach-excel/solid-excel` 导出，按需挂。
 - 预置数据：`createWorkerWorkbookSpreadsheetBackend` 的 `afterInit(client, sheets)`
   回调里 `client.setCell` / `client.setFormulaDetailed`。
 - 不用 Solid、只要 headless UI core：[UI-core-only 路径](UI_CORE_ONLY.md)。
@@ -104,7 +104,7 @@ npm run dev
 
 ## 已知边界:`vite dev` 需要一行配置(0.1.0)
 
-`@einfach/solid-excel@0.1.0` 经 `@lingui/core` 传递依赖了含 CJS 的
+`@einfach-excel/solid-excel@0.1.0` 经 `@lingui/core` 传递依赖了含 CJS 的
 `@messageformat/parser`,**dev 模式**的 ESM interop 会白屏(build + preview 不受影响,
 零上下文走查实测)。修法(Vite 8 实测有效):
 
@@ -114,8 +114,8 @@ export default defineConfig({
   plugins: [solidPlugin()],
   optimizeDeps: {
     include: [
-      '@einfach/solid-excel > @lingui/core',
-      '@einfach/solid-excel > @lingui/core > @messageformat/parser',
+      '@einfach-excel/solid-excel > @lingui/core',
+      '@einfach-excel/solid-excel > @lingui/core > @messageformat/parser',
     ],
   },
 })

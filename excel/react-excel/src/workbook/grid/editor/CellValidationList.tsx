@@ -7,7 +7,7 @@ import {
   nativeValidationTargetAtom, projectedFreezeAtom, projectionSnapshotAtom,
   refreshNativeValidationListAtom,
   viewportGeometrySizesAtom, viewportMetricsAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { WORKBOOK_GRID_COLUMN_WIDTH, WORKBOOK_GRID_ROW_HEADER_WIDTH,
   WORKBOOK_GRID_ROW_HEIGHT } from '../viewport/workbook-grid-config'
 import './cell-validation-list.css'

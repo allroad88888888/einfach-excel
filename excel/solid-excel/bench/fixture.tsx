@@ -1,7 +1,7 @@
 // 一句话：基准夹具 —— 把 worker/WASM 后端 + vnext 网格挂进容器，按档位灌数并等首批单元格上屏。
 
 import { render } from 'solid-js/web'
-import type { ViewportMetrics } from '@einfach/spreadsheet-ui-core'
+import type { ViewportMetrics } from '@einfach-excel/spreadsheet-ui-core'
 import {
   createWorkerWorkbookSpreadsheetBackend,
   refreshVisibleProjection,

@@ -1,3 +1,3 @@
-# @einfach/excel-core-ts
+# @einfach-excel/excel-core-ts
 
 ## 0.2.0

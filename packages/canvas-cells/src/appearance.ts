@@ -3,7 +3,7 @@ import {
   selectionRangesAtom, formulaReferenceSessionAtom, showFormulasAtom,
   nativeFilterRangeAtom, nativeFilterRulesAtom, nativeTableFiltersAtom,
   nativeFilterFeedbackAtom, editingSessionAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { CanvasCellsInput, CellAppearance, LayoutCell } from './types'
 
 export const appearanceAtoms = [selectionRangesAtom, formulaReferenceSessionAtom, showFormulasAtom,

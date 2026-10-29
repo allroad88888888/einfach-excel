@@ -11,7 +11,7 @@
     "skipLibCheck": true,
     "types": ["vite/client", "node"],
     "paths": {
-      "@einfach/canvas": ["../canvas/src/index.ts"]
+      "@einfach-excel/canvas": ["../canvas/src/index.ts"]
     }
   },
   "include": ["src", "e2e", "*.config.ts"]

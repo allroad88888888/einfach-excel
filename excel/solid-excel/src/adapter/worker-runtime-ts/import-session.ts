@@ -1,4 +1,4 @@
-import type { BulkCellInput, BulkTypedCellInput, ErrorCode } from '@einfach/excel-core-ts'
+import type { BulkCellInput, BulkTypedCellInput, ErrorCode } from '@einfach-excel/excel-core-ts'
 
 import type { ImportCellWire, SparseCellWire, WorkbookImportStatsWire } from '../worker-protocol'
 import { rpcError } from './runtime-errors'

@@ -10,7 +10,7 @@ import type {
   SpreadsheetCellFormat,
   SpreadsheetSheetMetadata,
   ViewportFreezeConfig,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 /**
  * Reverse-delta history (audit D-2).

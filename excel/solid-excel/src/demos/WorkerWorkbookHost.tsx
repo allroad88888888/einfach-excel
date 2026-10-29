@@ -1,5 +1,5 @@
 import { Show } from 'solid-js'
-import { acceptFormulaSuggestion } from '@einfach/spreadsheet-ui-core'
+import { acceptFormulaSuggestion } from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetCommentThread } from '../comments'
 import { SpreadsheetConditionalFormatDialog } from '../conditional-formatting'
 import { SpreadsheetContextMenu } from '../context-menu'

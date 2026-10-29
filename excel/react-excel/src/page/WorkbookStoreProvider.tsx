@@ -1,6 +1,6 @@
 import { createStore, type Store } from '@einfach/core'
 import { Provider as AtomProvider } from '@einfach/react'
-import { createSpreadsheetUi, type RustWorkbookConnection } from '@einfach/spreadsheet-ui-core'
+import { createSpreadsheetUi, type RustWorkbookConnection } from '@einfach-excel/spreadsheet-ui-core'
 import { useMemo, type ReactNode } from 'react'
 import { WorkbookPresentationProvider, type WorkbookPresentationProps } from './WorkbookPresentationProvider'
 

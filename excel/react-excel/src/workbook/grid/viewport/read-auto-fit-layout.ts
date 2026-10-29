@@ -1,4 +1,4 @@
-import type { AutoFitLayout } from '@einfach/spreadsheet-ui-core'
+import type { AutoFitLayout } from '@einfach-excel/spreadsheet-ui-core'
 
 /** 只量一个无格式的临时格，避免把可见格的字体当成整表默认值。 */
 export function readAutoFitLayout(handle: HTMLElement): AutoFitLayout | null {

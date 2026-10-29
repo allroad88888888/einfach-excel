@@ -25,7 +25,7 @@ import {
   type SheetTabsState,
   type SpreadsheetBackend,
   type SpreadsheetSheetMetadata,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 import { createSheetTabFocusRegistry, resolveSheetTabKeyboardTarget } from './sheet-tab-focus'
 

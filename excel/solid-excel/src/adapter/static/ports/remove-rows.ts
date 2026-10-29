@@ -5,7 +5,7 @@ import type {
   RemoveRowsExactResult,
   RemoveRowsRequest,
   RemoveRowsResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { StaticSpreadsheetBackend } from '../backend-contract'
 import { applyStaticRowsRemoval, planStaticRemoveRowsExact } from '../remove-rows'
 import { bumpRevision } from '../revision'

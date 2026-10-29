@@ -1,7 +1,7 @@
 // 一句话：把 Table 注册表项投成对外描述符。
 
-import type { SpreadsheetTableDescriptor } from '@einfach/spreadsheet-ui-core'
-import { toA1 } from '@einfach/spreadsheet-ui-core'
+import type { SpreadsheetTableDescriptor } from '@einfach-excel/spreadsheet-ui-core'
+import { toA1 } from '@einfach-excel/spreadsheet-ui-core'
 import type { StaticBackendState, StaticTableEntry } from '../state'
 
 export function tableDescriptor(

@@ -7,7 +7,7 @@ import {
   type AutoFillControllerPort,
   type PointerFillHandleCommitIntent,
   type RunAutoFillInput,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { createHistoryEntryRecorder, reportCommandFailure } from '../provider'
 import type { GridContextMenuApi } from './grid-context-menu'
 import type { GridProjectionControllerApi } from './grid-projection-controller'

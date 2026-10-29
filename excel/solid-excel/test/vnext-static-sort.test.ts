@@ -11,7 +11,7 @@ import {
   createStaticSpreadsheetBackend,
   type StaticSpreadsheetBackend,
 } from '../src/adapter/static-backend'
-import type { CellRange, DisplayCell, SortRangeKey } from '@einfach/spreadsheet-ui-core'
+import type { CellRange, DisplayCell, SortRangeKey } from '@einfach-excel/spreadsheet-ui-core'
 
 const SHEET = 'sheet-1'
 

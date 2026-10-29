@@ -1,7 +1,7 @@
 import { useId, useLayoutEffect, useRef } from 'react'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { nativeProtectionPanelAtom, runNativeProtectionAtom, rangeToA1 } from '@einfach/spreadsheet-ui-core'
+import { nativeProtectionPanelAtom, runNativeProtectionAtom, rangeToA1 } from '@einfach-excel/spreadsheet-ui-core'
 import { cycleDialogFocus } from '../chrome/ribbon/dialog-focus'
 import { translateFeedback } from '../../i18n/translate-feedback'
 import './protection.css'

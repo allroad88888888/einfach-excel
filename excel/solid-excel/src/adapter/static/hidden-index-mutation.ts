@@ -6,7 +6,7 @@ import type {
   ProjectionRevision,
   UnhideColumnsRequest,
   UnhideRowsRequest,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { beginUndoableMutation, recordHiddenIndexBefore } from './history-record'
 import { nextRevisionOrThrow } from './revision'
 import type { StaticBackendState } from './state'

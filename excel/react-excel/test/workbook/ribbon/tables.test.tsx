@@ -1,7 +1,7 @@
 import { createStore } from '@einfach/core'
 import { initializeWorkbookDocumentAtom, beginProjectionAtom, resolveProjectionAtom,
   type RustWorkbookCommands, type RustWorkbookConnection,
-  type NativeTable, type NativeTotalFunction } from '@einfach/spreadsheet-ui-core'
+  type NativeTable, type NativeTotalFunction } from '@einfach-excel/spreadsheet-ui-core'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { expect, test, vi } from 'vitest'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'

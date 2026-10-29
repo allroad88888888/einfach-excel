@@ -12,13 +12,13 @@ import {
   runCommentMutationAtom,
   setCommentDraftAtom,
   type CommentMutationAction,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider/hooks'
 import { CommentThreadPresentation } from './CommentThreadPresentation'
 import { useCommentThreadInteraction } from './use-comment-thread-interaction'
 
 if (typeof process === 'undefined' || process.env.VITEST !== 'true') {
-  void import('@einfach/spreadsheet-ui-styles/features/comment-thread.css')
+  void import('@einfach-excel/spreadsheet-ui-styles/features/comment-thread.css')
 }
 
 export interface SpreadsheetCommentThreadProps {

@@ -4,7 +4,7 @@ import {
   sheetTabsAtom,
   sheetTabsSheetsAtom,
   workspaceSessionAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 import { useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider'
 import { SpreadsheetSheetTabActions } from './SpreadsheetSheetTabActions'

@@ -7,7 +7,7 @@ import type {
   RemoveDuplicatesComparison,
   RemoveDuplicatesRange,
   RemoveDuplicatesScanResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { useT } from '../i18n'
 
 export const REMOVE_DUPLICATES_DIALOG_TITLE_ID = 'remove-duplicates-dialog-title'

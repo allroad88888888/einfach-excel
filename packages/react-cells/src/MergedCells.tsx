@@ -8,7 +8,7 @@ import {
   showFormulasAtom, formulaViewText,
   type CellRange,
   type DisplayCell,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { cellFormatStyle, cellTextRotationStyle } from './cell-format-style'
 import { MergedCellBorders } from './MergedCellBorders'
 import { CellDataBar } from './CellDataBar'

@@ -7,7 +7,7 @@ import {
   needsReanchor,
   planAnchorPlacement,
   type AxisScrollGeometry,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 const VIEWPORT = 480
 const ROW_HEIGHT = 24

@@ -16,10 +16,10 @@
 
 | mode | build command（仓库根目录）                       | candidate path                                         | raw bytes | gzip bytes |
 | ---- | ------------------------------------------------- | ------------------------------------------------------ | --------: | ---------: |
-| lite | `npm run build:wasm -w @einfach/solid-excel`      | `excel/solid-excel/wasm-pkg/einfach_wasm_bg.wasm`      | 1,892,911 |    613,545 |
-| full | `npm run build:wasm:full -w @einfach/solid-excel` | `excel/solid-excel/wasm-pkg-full/einfach_wasm_bg.wasm` | 2,831,449 |    927,852 |
+| lite | `npm run build:wasm -w @einfach-excel/solid-excel`      | `excel/solid-excel/wasm-pkg/einfach_wasm_bg.wasm`      | 1,892,911 |    613,545 |
+| full | `npm run build:wasm:full -w @einfach-excel/solid-excel` | `excel/solid-excel/wasm-pkg-full/einfach_wasm_bg.wasm` | 2,831,449 |    927,852 |
 
-两行均先由 `npm run build:wasm:both -w @einfach/solid-excel` 在本次记录的修订上重新生成，
+两行均先由 `npm run build:wasm:both -w @einfach-excel/solid-excel` 在本次记录的修订上重新生成，
 然后逐个候选文件以规程命令测量：
 
 ```bash

@@ -1,7 +1,7 @@
 import { useId, useLayoutEffect, useRef } from 'react'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useLingui, Trans } from '@lingui/react/macro'
-import { notePanelAtom, runNoteAtom, NOTE_MAX_CHARACTERS, toA1 } from '@einfach/spreadsheet-ui-core'
+import { notePanelAtom, runNoteAtom, NOTE_MAX_CHARACTERS, toA1 } from '@einfach-excel/spreadsheet-ui-core'
 import { cycleDialogFocus } from '../chrome/ribbon/dialog-focus'
 import { translateFeedback } from '../../i18n/translate-feedback'
 import './notes.css'

@@ -11,7 +11,7 @@ import {
   selectionSizePanelAtom,
   viewportGeometrySizesAtom,
   viewportMetricsAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { useEffect, useRef } from 'react'
 import { readAutoFitLayout } from './read-auto-fit-layout'
 import './grid-resize.css'

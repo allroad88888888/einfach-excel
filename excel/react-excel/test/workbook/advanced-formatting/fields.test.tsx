@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import { expect, test, vi } from 'vitest'
 import { beginProjectionAtom, resolveProjectionAtom, initializeWorkbookDocumentAtom,
   nativeConditionalFormatPanelAtom, runNativeConditionalFormatAtom,
-  type RustWorkbookConnection, type RustWorkbookCommands } from '@einfach/spreadsheet-ui-core'
+  type RustWorkbookConnection, type RustWorkbookCommands } from '@einfach-excel/spreadsheet-ui-core'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
 import { AdvancedFormattingFields } from '../../../src/workbook/advanced-formatting/AdvancedFormattingFields'
 

@@ -26,8 +26,8 @@ import type {
   CellRange,
   RunFormatCellsSaveInput,
   SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
-import '@einfach/spreadsheet-ui-styles/features/number-format-dialog.css'
+} from '@einfach-excel/spreadsheet-ui-core'
+import '@einfach-excel/spreadsheet-ui-styles/features/number-format-dialog.css'
 
 export interface SpreadsheetNumberFormatDialogsProps {
   class?: string

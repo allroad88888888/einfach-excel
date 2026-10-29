@@ -8,8 +8,8 @@ import type {
   SpreadsheetBackend,
   VisibleProjectionRequest,
   VisibleProjectionResult,
-} from '@einfach/spreadsheet-ui-core'
-import { planSnappedScrollPlacement, setViewportRowHeightAtom } from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
+import { planSnappedScrollPlacement, setViewportRowHeightAtom } from '@einfach-excel/spreadsheet-ui-core'
 import { createSignal } from 'solid-js'
 import { SpreadsheetGrid } from '../src/grid'
 import { SpreadsheetUiProvider } from '../src/provider'

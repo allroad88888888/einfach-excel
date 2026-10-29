@@ -6,7 +6,7 @@ import type {
   NamedRangeListResult,
   NamedRangeMutationResult,
   SetNamedRangeRequest,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { StaticSpreadsheetBackend } from '../backend-contract'
 import { beginUndoableMutation, recordNamedRangesBefore } from '../history-record'
 import {

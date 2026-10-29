@@ -9,7 +9,7 @@ import type {
   SpreadsheetBackend,
   VisibleProjectionRequest,
   VisibleProjectionResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   captureTextToColumnsCapabilityAtom,
   diagnosticsAtom,
@@ -19,7 +19,7 @@ import {
   textToColumnsLifecycleAtom,
   textToColumnsOpenAtom,
   textToColumnsWizardAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetUiProvider } from '../src/provider'
 import { SpreadsheetTextToColumnsDialog } from '../src/text-to-columns'
 import { seedReadyVisibleProjection } from './projection-test-fixture'

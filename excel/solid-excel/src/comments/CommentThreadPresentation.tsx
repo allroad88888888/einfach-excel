@@ -5,7 +5,7 @@ import type {
   CommentMutationAction,
   CommentMutationState,
   CommentSessionState,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 export const COMMENT_THREAD_TITLE_ID = 'spreadsheet-comment-thread-title'
 export const COMMENT_THREAD_STATUS_ID = 'spreadsheet-comment-thread-status'

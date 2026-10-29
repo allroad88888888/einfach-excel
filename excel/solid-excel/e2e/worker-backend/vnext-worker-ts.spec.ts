@@ -1,7 +1,7 @@
 /**
  * Wave F / track F2 — TS-backend parity probe.
  *
- * Verifies that the @einfach/excel-core-ts worker (the TypeScript port of the
+ * Verifies that the @einfach-excel/excel-core-ts worker (the TypeScript port of the
  * Rust formula engine) is wired correctly through a real Web Worker thread
  * inside the vNext UI demo. This is NOT a full e2e migration — F1's fill-out
  * is still in flight and migrating every spec to `?backend=ts` is its own

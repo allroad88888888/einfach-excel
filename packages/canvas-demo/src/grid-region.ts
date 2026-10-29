@@ -1,4 +1,4 @@
-import { createCanvas, useAtomValue, useCache, type CanvasCell, type FrameStats } from '@einfach/canvas'
+import { createCanvas, useAtomValue, useCache, type CanvasCell, type FrameStats } from '@einfach-excel/canvas'
 import { drawGridCell } from './drawing'
 import { observedStore } from './ui'
 import { createGridAtom, createGridSelection, type SelectionInfo } from './grid-selection'

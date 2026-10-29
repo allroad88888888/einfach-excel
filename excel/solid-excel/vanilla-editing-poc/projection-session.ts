@@ -11,7 +11,7 @@ import {
   type DisplayCell,
   type SpreadsheetBackend,
   type VisibleProjectionRequest,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 import type { VanillaEditingProjectionSession } from './types'
 

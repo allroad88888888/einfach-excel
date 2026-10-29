@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 浏览器表格栈（einfach-excel）。**当前唯一产品主线**：
 
 ```
-excel/react-excel  →  @einfach/spreadsheet-ui-core  →  Rust Worker / @einfach/excel-wasm  →  einfach-excel-core (Rust)
+excel/react-excel  →  @einfach-excel/spreadsheet-ui-core  →  Rust Worker / @einfach-excel/excel-wasm  →  einfach-excel-core (Rust)
 ```
 
 **产品目标是单用户、可嵌入宿主的本地表格组件，不是在线协作表格。** 多人协作、身份与通知、
@@ -26,12 +26,12 @@ excel/react-excel  →  @einfach/spreadsheet-ui-core  →  Rust Worker / @einfac
 
 ```bash
 pnpm install && npm run ensureWasm              # 缺 excel/excel-wasm/lite 时调 wasm-pack
-pnpm --filter @einfach/react-excel dev           # React 演示（Vite）；?renderer=canvas 切 Canvas 单元格
+pnpm --filter @einfach-excel/react-excel dev           # React 演示（Vite）；?renderer=canvas 切 Canvas 单元格
 
 npm run build            # clearTypes → ensureWasm → check:presentation → tsc → rollup → react-excel build
 npm test                 # 根 Vitest projects：canvas / react-cells / canvas-cells / excel-core-ts / ui-core / react-excel
-pnpm --filter @einfach/react-excel exec vitest run path/to/file.test.ts
-pnpm --filter @einfach/spreadsheet-ui-core test
+pnpm --filter @einfach-excel/react-excel exec vitest run path/to/file.test.ts
+pnpm --filter @einfach-excel/spreadsheet-ui-core test
 
 npm run check:presentation   # 展现层机械边界门禁（见下文 React 规则）
 npm run check:e2e-features   # e2e/FEATURES.md 登记与用例绑定
@@ -41,12 +41,12 @@ npm run check:docs           # 文档链接门禁（CONTRIBUTING §文档规则�
 npm run check:cycles         # dependency-cruiser 循环依赖
 
 # e2e（Playwright，真实 Worker/WASM；按功能目录组织，FEATURES.md 是功能登记权威）
-pnpm --filter @einfach/react-excel e2e:install
-pnpm --filter @einfach/react-excel e2e                     # 先跑 check:e2e-features + package:prepare
-pnpm --filter @einfach/react-excel e2e -- e2e/editing/     # 只跑一个功能目录
-pnpm --filter @einfach/react-excel e2e:package             # 打包后的仓外 Vite/Rspack 消费者验收
+pnpm --filter @einfach-excel/react-excel e2e:install
+pnpm --filter @einfach-excel/react-excel e2e                     # 先跑 check:e2e-features + package:prepare
+pnpm --filter @einfach-excel/react-excel e2e -- e2e/editing/     # 只跑一个功能目录
+pnpm --filter @einfach-excel/react-excel e2e:package             # 打包后的仓外 Vite/Rspack 消费者验收
 
-pnpm --filter @einfach/react-excel i18n:extract            # Lingui；CI 会跑 extract + compile --strict
+pnpm --filter @einfach-excel/react-excel i18n:extract            # Lingui；CI 会跑 extract + compile --strict
 
 # Rust 引擎（各 crate 独立，无 workspace 根 Cargo.toml）
 cd excel/rust/excel-core && cargo test                     # 另有 --no-default-features（lite）变体
@@ -54,8 +54,8 @@ cd excel/rust/excel-core && cargo bench                    # 口径见 excel/rus
 npm run clean:rust       # 删各 crate 的 target/debug（cargo 不自动回收）；post-commit 在超 20 GiB 时后台自动跑
 
 # 改了 excel/rust/ 后刷新 WASM 产物
-npm run build:wasm -w @einfach/excel-wasm        # → excel/excel-wasm/lite/
-npm run build:wasm:full -w @einfach/excel-wasm   # --features regex-formulas → full/；完整 Vitest 的原生目录测试需要它
+npm run build:wasm -w @einfach-excel/excel-wasm        # → excel/excel-wasm/lite/
+npm run build:wasm:full -w @einfach-excel/excel-wasm   # --features regex-formulas → full/；完整 Vitest 的原生目录测试需要它
 ```
 
 pre-commit（husky）：改到 WASM 导出时先跑 `wasm_public_api_signatures_unchanged`，再依次跑

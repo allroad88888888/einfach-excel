@@ -1,4 +1,4 @@
-import { editingCommitLifecycleAtom, editingSessionAtom } from '@einfach/spreadsheet-ui-core'
+import { editingCommitLifecycleAtom, editingSessionAtom } from '@einfach-excel/spreadsheet-ui-core'
 import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import {

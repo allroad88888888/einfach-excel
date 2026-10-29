@@ -10,7 +10,7 @@ import {
   type RangeProjectionResult,
   type SortDirection,
   type SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 export interface MenuBarCommandContext {
   readonly backend: SpreadsheetBackend

@@ -15,7 +15,7 @@ export default defineConfig({
   plugins: [wasm(), topLevelAwait(), solidPlugin()],
   resolve: {
     alias: {
-      '@einfach/spreadsheet-ui-core': path.resolve(
+      '@einfach-excel/spreadsheet-ui-core': path.resolve(
         repoRoot,
         'excel/spreadsheet-ui-core/src',
       ),
@@ -23,7 +23,7 @@ export default defineConfig({
       // excel-core-ts straight from source. Otherwise vite would pick up the
       // stale published esm/cjs outputs and ?backend=ts would crash when the
       // worker calls debug RPCs added in Phase 1.
-      '@einfach/excel-core-ts': path.resolve(repoRoot, 'excel/excel-core-ts/src'),
+      '@einfach-excel/excel-core-ts': path.resolve(repoRoot, 'excel/excel-core-ts/src'),
       // @einfach/core 与 @einfach/solid 不再 alias 到源码:拆仓后它们是
       // doc-check: allow-stale-paths —— 下面两行说明的正是被移除的旧路径
       // npm 依赖,由 node_modules 解析已发布的产物。原先指向 core/core/src

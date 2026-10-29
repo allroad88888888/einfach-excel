@@ -1,7 +1,7 @@
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { nativeConditionalFormatPanelAtom, runNativeConditionalFormatAtom,
-  type TextMatchRule } from '@einfach/spreadsheet-ui-core'
+  type TextMatchRule } from '@einfach-excel/spreadsheet-ui-core'
 
 /** These controls edit the existing native draft; all matching stays in Rust. */
 export function AdvancedFormattingFields({ idPrefix }: { idPrefix: string }) {

@@ -1,4 +1,4 @@
-import type { CellCoord } from '@einfach/spreadsheet-ui-core'
+import type { CellCoord } from '@einfach-excel/spreadsheet-ui-core'
 
 const hitTests = new WeakMap<Element, (x: number, y: number) => CellCoord | null>()
 

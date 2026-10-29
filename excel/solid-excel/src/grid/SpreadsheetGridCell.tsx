@@ -1,4 +1,4 @@
-import { formulaReferenceSessionAtom, selectCellAtom, toA1 } from '@einfach/spreadsheet-ui-core'
+import { formulaReferenceSessionAtom, selectCellAtom, toA1 } from '@einfach-excel/spreadsheet-ui-core'
 import { Show } from 'solid-js'
 import { getDataBarProjection } from '../adapter/data-bar-projection'
 import { SpreadsheetCellBorders } from './SpreadsheetCellBorders'

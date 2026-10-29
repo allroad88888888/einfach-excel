@@ -7,9 +7,9 @@
     "declarationMap": false,
     "types": ["vite/client"],
     "paths": {
-      "@einfach/canvas-cells": ["../../packages/canvas-cells/src/index.ts"],
-      "@einfach/canvas": ["../../packages/canvas/src/index.ts"],
-      "@einfach/react-cells": ["../../packages/react-cells/src/index.ts"]
+      "@einfach-excel/canvas-cells": ["../../packages/canvas-cells/src/index.ts"],
+      "@einfach-excel/canvas": ["../../packages/canvas/src/index.ts"],
+      "@einfach-excel/react-cells": ["../../packages/react-cells/src/index.ts"]
     }
   },
   "include": ["src/index.ts", "src/i18n/catalogs.d.ts"],

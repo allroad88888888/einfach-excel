@@ -21,7 +21,7 @@ import {
   historyStackAtom,
   selectCellAtom,
   setWorkspaceActiveSheetAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 import {
   installWorkerRuntimeTs,

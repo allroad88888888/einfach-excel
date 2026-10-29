@@ -1,5 +1,5 @@
 import { atom, type AtomEntity } from '@einfach/core'
-import type { VisibleProjectionRequest } from '@einfach/solid-excel'
+import type { VisibleProjectionRequest } from '@einfach-excel/solid-excel'
 
 export interface PerformanceMetrics {
   projectionWindow: string

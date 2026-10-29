@@ -39,8 +39,8 @@
  *  - `range` against a non-numeric cell yields `false` (not "no opinion").
  */
 
-import type { ColumnFilterRule, FilterSortState } from '@einfach/spreadsheet-ui-core'
-import { filterSortHasEffect, numericValue } from '@einfach/spreadsheet-ui-core'
+import type { ColumnFilterRule, FilterSortState } from '@einfach-excel/spreadsheet-ui-core'
+import { filterSortHasEffect, numericValue } from '@einfach-excel/spreadsheet-ui-core'
 
 export function normalizeFilterText(value: string, caseSensitive: boolean | undefined): string {
   return caseSensitive ? value : value.toLocaleLowerCase()

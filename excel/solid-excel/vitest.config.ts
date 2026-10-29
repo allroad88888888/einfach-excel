@@ -21,11 +21,11 @@ export default defineConfig({
     dedupe: ['solid-js'],
     conditions: ['development', 'browser'],
     alias: {
-      '@einfach/spreadsheet-ui-core': path.resolve(
+      '@einfach-excel/spreadsheet-ui-core': path.resolve(
         repositoryRoot,
         'excel/spreadsheet-ui-core/src',
       ),
-      '@einfach/excel-core-ts': path.resolve(repositoryRoot, 'excel/excel-core-ts/src'),
+      '@einfach-excel/excel-core-ts': path.resolve(repositoryRoot, 'excel/excel-core-ts/src'),
     },
   },
   test: {

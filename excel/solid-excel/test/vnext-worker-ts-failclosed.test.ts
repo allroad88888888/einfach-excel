@@ -27,7 +27,7 @@
  */
 
 import { describe, expect, test } from 'vitest'
-import { createVisibleProjectionRequest } from '@einfach/spreadsheet-ui-core'
+import { createVisibleProjectionRequest } from '@einfach-excel/spreadsheet-ui-core'
 
 import {
   createWorkerRuntimeTs,

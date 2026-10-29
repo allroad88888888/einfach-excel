@@ -1,7 +1,7 @@
 import { useId, useLayoutEffect, useRef } from 'react'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { customFormulaPanelAtom, runCustomFormulaAtom } from '@einfach/spreadsheet-ui-core'
+import { customFormulaPanelAtom, runCustomFormulaAtom } from '@einfach-excel/spreadsheet-ui-core'
 import { cycleDialogFocus } from '../chrome/ribbon/dialog-focus'
 import { translateFeedback } from '../../i18n/translate-feedback'
 import './custom-formulas.css'

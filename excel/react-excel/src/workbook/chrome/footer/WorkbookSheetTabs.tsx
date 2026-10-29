@@ -11,7 +11,7 @@ import {
   editingSessionAtom,
   editingCommitLifecycleAtom,
   formulaReferenceActiveAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { useEffect, useId, useRef } from 'react'
 import { SheetDeleteConfirmation } from './SheetDeleteConfirmation'
 

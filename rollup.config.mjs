@@ -56,9 +56,9 @@ const config = defineConfig({
   external: [
     '@swc/core',
     '@einfach/core',
-    '@einfach/excel-wasm',
-    '@einfach/excel-wasm/full',
-    '@einfach/spreadsheet-ui-core',
+    '@einfach-excel/excel-wasm',
+    '@einfach-excel/excel-wasm/full',
+    '@einfach-excel/spreadsheet-ui-core',
     '@einfach/react',
     '@einfach/utils',
     'react',

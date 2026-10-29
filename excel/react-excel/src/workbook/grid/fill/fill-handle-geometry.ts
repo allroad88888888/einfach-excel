@@ -1,5 +1,5 @@
 import { getViewportRangeRectangle, type CellRange, type ViewportMetrics,
-  type ViewportSizeOverrideState } from '@einfach/spreadsheet-ui-core'
+  type ViewportSizeOverrideState } from '@einfach-excel/spreadsheet-ui-core'
 
 /** 把工作表范围裁到可见区域；冻结区不减滚动偏移，滚动区不能穿过冻结遮罩。 */
 export function fillHandleGeometry(

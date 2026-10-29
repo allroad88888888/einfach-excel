@@ -8,7 +8,7 @@ import {
   findReplacePanelAtom,
   runFindReplaceAtom,
   workbookDocumentAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import './find-replace.css'
 import { FindResults } from './FindResults'
 import { cycleDialogFocus } from './dialog-focus'

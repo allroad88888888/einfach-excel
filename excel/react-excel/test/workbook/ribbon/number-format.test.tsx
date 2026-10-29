@@ -2,7 +2,7 @@ import {
   SELECTION_CURRENCY_FORMAT,
   SELECTION_PERCENT_FORMAT,
   SELECTION_THOUSANDS_FORMAT,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { describe, expect, test } from 'vitest'
 import { renderFormattingRibbon } from '../../support/formatting-ribbon-harness'

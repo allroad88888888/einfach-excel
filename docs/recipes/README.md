@@ -13,16 +13,16 @@
 | 静态文档站里嵌交互表格 | Astro + Solid island | `recipe-astro.md` |
 | React（Next）项目里要公式引擎 / headless 状态层 | 引擎包 + UI core，**不挂 Solid 组件** | `recipe-next.md` |
 | Vue（Nuxt）项目里要公式引擎 / headless 状态层 | 同上 | `recipe-nuxt.md` |
-| 只要框架无关状态层，数据源自己接 | 单包 `@einfach/spreadsheet-ui-core` | [UI-core-only](../UI_CORE_ONLY.md) |
+| 只要框架无关状态层，数据源自己接 | 单包 `@einfach-excel/spreadsheet-ui-core` | [UI-core-only](../UI_CORE_ONLY.md) |
 | 五分钟先跑起来 | Vite + 20 行示例 | [Quickstart](../QUICKSTART.md) |
 
-一条硬边界，四份配方各自重复过，这里再说一次：**`@einfach/solid-excel` 的组件只能
+一条硬边界，四份配方各自重复过，这里再说一次：**`@einfach-excel/solid-excel` 的组件只能
 挂在 Solid 运行时里**。React/Vue 框架下它仅「可安装解析」（peer 可消解），组件不渲染；
 那两条配方给的是引擎与 UI core 的用法。
 
 ## 双形态（ADR 0019）怎么在各配方里起作用
 
-`@einfach/solid-excel` 每个入口在 `exports` 里成对给出两种形态：
+`@einfach-excel/solid-excel` 每个入口在 `exports` 里成对给出两种形态：
 
 - **`solid` 条件 → 源码（`.tsx`/`.ts`）**：装了 `vite-plugin-solid` 的消费者命中，
   由你的构建编译，Solid 生态标准做法（编译最优）。→ `recipe-vite.md`（AD-138 验证）。
@@ -40,7 +40,7 @@ npm 消费路径未冒烟（见该配方「未验证」）。
 - Node **>= 22.12.0**（ADR 0018）；四份冒烟全部在基线下界 22.12.0 上执行。
 - `solid-js` / `@einfach/core` / `@einfach/solid` 是 peer，应用内**各只能一份**
   （ADR 0001）；打包器给 `dedupe: ['solid-js']` 一类保险不亏。
-- worker factory 一律从 `@einfach/solid-excel/worker-factory` 子路径 import
+- worker factory 一律从 `@einfach-excel/solid-excel/worker-factory` 子路径 import
   （ADR 0004，不在 barrel）。
 - 面向打包器环境交付；bare-Node 直接 `import` 不支持（仓根 README）。
 - WASM 二进制（lite 约 1.8~2.2 MB，随打包器口径浮动）由 Vite/webpack 对

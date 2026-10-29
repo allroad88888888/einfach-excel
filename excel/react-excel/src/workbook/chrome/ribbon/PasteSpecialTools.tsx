@@ -6,7 +6,7 @@ import {
   editingSessionAtom,
   pasteSpecialPanelAtom,
   runPasteSpecialPanelAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { readBrowserClipboard } from '../../clipboard/browser-clipboard'
 import { cycleDialogFocus } from './dialog-focus'
 import './paste-special.css'

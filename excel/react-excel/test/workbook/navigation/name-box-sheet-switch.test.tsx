@@ -1,5 +1,5 @@
 import { createStore } from '@einfach/core'
-import { initializeWorkbookDocumentAtom, selectionSnapshotAtom } from '@einfach/spreadsheet-ui-core'
+import { initializeWorkbookDocumentAtom, selectionSnapshotAtom } from '@einfach-excel/spreadsheet-ui-core'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { expect, test } from 'vitest'
 import { projectionSnapshotBackingAtom } from '../../../../spreadsheet-ui-core/src/projection/state'

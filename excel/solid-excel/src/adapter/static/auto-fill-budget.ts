@@ -1,6 +1,6 @@
 // 一句话：单次拖拽填充目标区的失败关闭上限。
 
-import type { CellRange } from '@einfach/spreadsheet-ui-core'
+import type { CellRange } from '@einfach-excel/spreadsheet-ui-core'
 
 /**
  * Fail-closed size budget for one drag-fill: one full Excel column

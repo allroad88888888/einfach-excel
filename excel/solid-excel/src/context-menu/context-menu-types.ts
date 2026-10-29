@@ -1,4 +1,4 @@
-import type { MenuCommandKind } from '@einfach/spreadsheet-ui-core'
+import type { MenuCommandKind } from '@einfach-excel/spreadsheet-ui-core'
 
 /** Commands that can be rendered by the spreadsheet context-menu manifest. */
 export type ContextMenuCommandKind = MenuCommandKind | 'clipboard.pasteSpecial'

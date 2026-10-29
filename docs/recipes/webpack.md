@@ -11,7 +11,7 @@
 // package.json
 {
   "dependencies": {
-    "@einfach/solid-excel": "0.1.0",
+    "@einfach-excel/solid-excel": "0.1.0",
     "@einfach/core": "^0.4.0",
     "@einfach/solid": "^0.4.0",
     "solid-js": "1.9.12"
@@ -47,8 +47,8 @@ module.exports = {
 ```js
 // src/main.js —— 纯 JS 入口，无 JSX、无 Solid 编译插件
 import { createComponent, render } from 'solid-js/web'
-import { VNextWorkerDemo } from '@einfach/solid-excel/demos'
-import '@einfach/solid-excel/styles.css'
+import { VNextWorkerDemo } from '@einfach-excel/solid-excel/demos'
+import '@einfach-excel/solid-excel/styles.css'
 
 render(() => createComponent(VNextWorkerDemo, {}), document.getElementById('root'))
 ```

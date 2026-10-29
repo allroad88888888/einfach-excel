@@ -1,5 +1,5 @@
 import { createStore } from '@einfach/core'
-import { setSelectionAtom } from '@einfach/spreadsheet-ui-core'
+import { setSelectionAtom } from '@einfach-excel/spreadsheet-ui-core'
 import { describe, expect, it, vi } from 'vitest'
 import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import {

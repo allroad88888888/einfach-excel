@@ -1,5 +1,5 @@
 import { useAtomValue, useSetAtom } from '@einfach/react'
-import { activeWorkbookSheetAtom, setViewportSizeAtom } from '@einfach/spreadsheet-ui-core'
+import { activeWorkbookSheetAtom, setViewportSizeAtom } from '@einfach-excel/spreadsheet-ui-core'
 import { useLayoutEffect, type RefObject } from 'react'
 import {
   WORKBOOK_GRID_ROW_HEADER_WIDTH,

@@ -1,7 +1,7 @@
 // 一句话：以 "row:col" 为键的单元格 Map 的坐标级操作。
 
-import type { DisplayCell } from '@einfach/spreadsheet-ui-core'
-import { keyFor } from '@einfach/spreadsheet-ui-core'
+import type { DisplayCell } from '@einfach-excel/spreadsheet-ui-core'
+import { keyFor } from '@einfach-excel/spreadsheet-ui-core'
 
 export function parseKey(key: string): { row: number; col: number } | null {
   const [rowPart, colPart] = key.split(':')

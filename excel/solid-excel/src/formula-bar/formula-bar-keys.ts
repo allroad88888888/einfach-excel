@@ -12,7 +12,7 @@ import {
   formulaFunctionSuggestionCursorAtom,
   formulaFunctionSuggestionsAtom,
   readActiveFormulaSuggestion,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 /** `keyCode` 分支留着给不填 `key`/`code` 的老 IME 与合成事件。 */
 export function isCommitKey(event: KeyboardEvent): boolean {

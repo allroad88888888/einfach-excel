@@ -5,7 +5,7 @@ import type {
   FormatCellsDraft,
   SpreadsheetAlignment,
   SpreadsheetVerticalAlignment,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { HORIZONTAL_ALIGNS, VERTICAL_ALIGNS } from './format-cells-config'
 import type { FormatCellsPanelProps } from './format-cells-panel-types'
 

@@ -1,5 +1,5 @@
 {
-  "name": "@einfach/excel-wasm",
+  "name": "@einfach-excel/excel-wasm",
   "version": "0.2.0",
   "description": "Prebuilt WASM formula engine for the einfach spreadsheet stack (lite and full variants)",
   "type": "module",

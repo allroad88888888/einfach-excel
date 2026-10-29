@@ -1,4 +1,4 @@
-import type { RustImportCell, RustWorkbookSheetInput } from '@einfach/spreadsheet-ui-core'
+import type { RustImportCell, RustWorkbookSheetInput } from '@einfach-excel/spreadsheet-ui-core'
 
 /** H45:H47 基础、H49:H51 类型、H53:H55 比较条件，均交给 Rust 初始化。 */
 export const SUMMARY_VALIDATION_CELLS: readonly RustImportCell[] = [

@@ -66,7 +66,7 @@ let (fn_norm, policy) = if (1..=11).contains(&fn_int) {
 
 **2. 数据路径必须逐条对齐。** 复制、Copy As、TSV/图片导出这些"动数据"的路径,都要学会跳过筛选隐藏的行(Excel 的复制对手动隐藏行照常生效、只对筛选隐藏行跳过——两个集合不能读错)。导出侧的实现刻意把隐藏集作为**请求参数**从 UI core 传入,适配器不碰自己的筛选快照——"an adapter that consulted its own `setFilterSort` snapshot would be a second, staler authority"(`filter-hidden-rows.ts`)。
 
-**3. 第二个引擎跟不上就整个撤下。** TS 后端(`@einfach/excel-core-ts`)没有引擎侧隐藏建模,它的能力证词直接声明 `engineHiddenState: false`,宿主随之撤下 `setFilterSort` 端口,筛选入口在 TS 后端上**整体消失**(fail-closed),而不是假装扫一遍谓词。功能可以没有,假 ACK 不行。
+**3. 第二个引擎跟不上就整个撤下。** TS 后端(`@einfach-excel/excel-core-ts`)没有引擎侧隐藏建模,它的能力证词直接声明 `engineHiddenState: false`,宿主随之撤下 `setFilterSort` 端口,筛选入口在 TS 后端上**整体消失**(fail-closed),而不是假装扫一遍谓词。功能可以没有,假 ACK 不行。
 
 **4. 归属翻转本身的迁移成本。** UI core 里原本承载筛选可见性的写路径、local-replay undo 分支、display→源行回映射,整批退役;结构位移(插删行)的前向平移保留。这些在 `CANONICAL_OWNERSHIP.md` #29 那格里有逐条记录。
 

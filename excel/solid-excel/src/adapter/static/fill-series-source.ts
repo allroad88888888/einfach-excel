@@ -5,8 +5,8 @@ import type {
   FillSeriesRequest,
   RangeFormatLayer,
   SpreadsheetCellFormat,
-} from '@einfach/spreadsheet-ui-core'
-import { getEffectiveFormat, keyFor, numericValue } from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
+import { getEffectiveFormat, keyFor, numericValue } from '@einfach-excel/spreadsheet-ui-core'
 import { invalidFillSeries } from './fill-series-geometry'
 
 export function readCanonicalFillSeriesValue(cell: DisplayCell | undefined): number {

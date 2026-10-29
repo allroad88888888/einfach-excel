@@ -11,7 +11,7 @@ import {
   dispatchFormulaInputKeyAtom,
   editingSessionAtom,
   formulaFunctionSignatureAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 /** React 仅负责 DOM 光标/键盘；补全、引用拼接与 F4 都由 UI Core command atom 决定。 */
 export function useFormulaInput(

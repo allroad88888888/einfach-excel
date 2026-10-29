@@ -61,7 +61,7 @@ Summary 原 E55 的 Low／下划线示例直接复用，原订单与合并 demo 
 `6d992f8ffd2d90f950ab18c180cc9dbddbf20c9a`。命令为：
 
 ```bash
-PLAYWRIGHT_JSON_OUTPUT_NAME=/tmp/react-excel-custom-lists-full.json pnpm --filter @einfach/react-excel e2e --reporter=list,json --max-failures=1
+PLAYWRIGHT_JSON_OUTPUT_NAME=/tmp/react-excel-custom-lists-full.json pnpm --filter @einfach-excel/react-excel e2e --reporter=list,json --max-failures=1
 ```
 
 Rust/WASM 源码及产物相对此前已验收的独立序列批次未变，因此沿用该批原生单测证据，

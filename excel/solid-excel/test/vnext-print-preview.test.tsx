@@ -3,14 +3,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import { cleanup, fireEvent, render } from '@solidjs/testing-library'
-import type { SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
+import type { SpreadsheetBackend } from '@einfach-excel/spreadsheet-ui-core'
 import {
   pageSetupDialogOpenAtom,
   printPreviewOpenAtom,
   setPrintConfigAtom,
   setWorkspaceActiveSheetAtom,
   togglePrintPreviewAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetUiProvider } from '../src/provider'
 import { SpreadsheetPrintPreviewOverlay } from '../src/print'
 

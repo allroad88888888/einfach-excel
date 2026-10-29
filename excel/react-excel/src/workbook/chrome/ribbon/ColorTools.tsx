@@ -4,7 +4,7 @@ import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   activeCellFormatAtom, colorPaletteAtom, editingSessionAtom,
   runColorPaletteAtom, toolbarActiveSurfaceAtom, type ToolbarPaletteKind,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { useId, useLayoutEffect, useRef, type CSSProperties } from 'react'
 import { cycleDialogFocus } from './dialog-focus'
 import { COLORS } from './color-swatches'

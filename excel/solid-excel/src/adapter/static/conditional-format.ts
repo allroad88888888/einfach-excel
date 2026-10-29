@@ -7,7 +7,7 @@ import type {
   RemoveConditionalFormatRuleRequest,
   SetConditionalFormatRuleRequest,
   SpreadsheetCellFormat,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   cloneConditionalFormatRule,
   cloneConditionalFormatRuleEntry,
@@ -17,7 +17,7 @@ import {
   isCoordInsideRange,
   nextConditionalFormatRuleId,
   normalizeRange,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   colorScaleFormat,
   colorScaleNumericValue,

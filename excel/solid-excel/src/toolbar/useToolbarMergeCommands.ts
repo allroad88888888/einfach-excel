@@ -1,4 +1,4 @@
-import type { CellRange, ToolbarMutationStep } from '@einfach/spreadsheet-ui-core'
+import type { CellRange, ToolbarMutationStep } from '@einfach-excel/spreadsheet-ui-core'
 import { isVisibleProjectionResult } from '../provider'
 import type { MergePreset } from './MergeDropdown'
 import type { ToolbarActionDeps } from './ToolbarActionDeps'

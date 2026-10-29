@@ -1,7 +1,7 @@
 import { Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useId } from 'react'
-import { nativeTablePanelAtom, runNativeTablePanelAtom } from '@einfach/spreadsheet-ui-core'
+import { nativeTablePanelAtom, runNativeTablePanelAtom } from '@einfach-excel/spreadsheet-ui-core'
 
 /** 列名草稿属于 UI Core；提交后只显示 Rust 返回的表头定义。 */
 export function TableColumns() {

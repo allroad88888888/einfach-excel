@@ -10,7 +10,7 @@ import {
   formulaFunctionSuggestionCursorAtom,
   formulaFunctionSignatureAtom,
   acceptFormulaSuggestionAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { FormulaParameterHelp } from '../formula-help/FormulaParameterHelp'
 import './formula-assist.css'
 

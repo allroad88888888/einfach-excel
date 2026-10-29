@@ -9,7 +9,7 @@ import {
   historyLifecycleAtom,
   historyStackAtom,
   type HistoryEntry,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { dispatchRedo, dispatchUndo, retryHistoryRefresh } from '../provider/history-dispatch'
 import { useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider/hooks'
 import { useAtomFeedbackPresentation } from '../feedback/use-atom-feedback-presentation'

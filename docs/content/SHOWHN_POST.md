@@ -17,7 +17,7 @@
 Einfach Excel is an MIT-licensed spreadsheet stack: a framework-agnostic UI core, Solid.js components, and a Rust/WASM formula engine that runs in a Web Worker.
 
 Live demo: https://allroad88888888.github.io/einfach-excel/
-Install: `npm install @einfach/solid-excel solid-js`
+Install: `npm install @einfach-excel/solid-excel solid-js`
 
 I built it because embeddable spreadsheets tend to couple the grid to their own data model. Here the UI talks to the workbook only through a backend port, so you can put your own data source behind a real spreadsheet surface.
 

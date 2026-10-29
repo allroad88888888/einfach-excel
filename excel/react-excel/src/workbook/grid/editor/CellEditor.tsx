@@ -17,7 +17,7 @@ import {
   viewportMetricsAtom,
   viewportGeometrySizesAtom,
   type EditorKeyboardOutcome,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { CSSProperties, FocusEvent, KeyboardEvent, PointerEvent } from 'react'
 import { useEffect, useId, useRef } from 'react'
 import { flushSync } from 'react-dom'

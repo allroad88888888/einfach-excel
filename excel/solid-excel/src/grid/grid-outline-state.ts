@@ -5,7 +5,7 @@ import {
   toggleOutlineGroupCollapsedAtom,
   type OutlineAxis,
   type OutlineGroupWithLevel,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   GRID_ROW_HEADER_WIDTH,
   OUTLINE_GUTTER_PADDING_PX,

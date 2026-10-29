@@ -5,7 +5,7 @@ import type {
   ReadPrintConfigResult,
   SetPrintConfigRequest,
   SetPrintConfigResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { StaticSpreadsheetBackend } from '../backend-contract'
 import type { StaticBackendState } from '../state'
 

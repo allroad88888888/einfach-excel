@@ -15,7 +15,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import type { FilterSortState } from '@einfach/spreadsheet-ui-core'
+import type { FilterSortState } from '@einfach-excel/spreadsheet-ui-core'
 import { filterHiddenRowsFromDisplayRows } from '../src/adapter/filter-hidden-rows'
 import { buildFilterSortDisplayRows } from '../src/adapter/filter-predicate'
 

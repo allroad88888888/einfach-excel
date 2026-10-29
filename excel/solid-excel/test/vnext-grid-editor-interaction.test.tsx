@@ -8,14 +8,14 @@ import type {
   SetCellInputRequest,
   SpreadsheetBackend,
   VisibleProjectionRequest,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   editingCommitLifecycleAtom,
   editingSessionAtom,
   protectionUnlockStateAtom,
   selectionSnapshotAtom,
   setSheetProtectionAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetGrid } from '../src/grid'
 import { SpreadsheetUiProvider } from '../src/provider'
 import { SpreadsheetProtectionUnlockDialog } from '../src/protection'

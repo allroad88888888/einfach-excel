@@ -6,7 +6,7 @@ import {
   selectCellAtom,
   type VisibleProjectionRequest,
   type RustWorkbookConnection,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { expect, test } from 'vitest'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'

@@ -14,7 +14,7 @@ import {
   togglePrintPreviewAtom,
   workspaceSessionAtom,
   type MenuItemDispatch,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   createHistoryEntryRecorder,
   dispatchCopyAs,

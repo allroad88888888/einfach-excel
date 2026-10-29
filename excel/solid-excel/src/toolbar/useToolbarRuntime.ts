@@ -20,7 +20,7 @@ import {
   selectionLockedAtom,
   selectionSnapshotAtom,
   type CapturedFormat,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { openNumberFormatDialogAtom } from '../format-cells'
 import {
   createHistoryEntryRecorder,

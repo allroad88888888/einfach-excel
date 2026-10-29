@@ -7,7 +7,7 @@ import {
   selectCellAtom,
   type CellRange,
   type HistoryEntry,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   createHistoryEntryRecorder,
   dispatchEditingCommit,

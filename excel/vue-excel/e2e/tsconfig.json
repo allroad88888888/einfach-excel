@@ -4,8 +4,8 @@
     "baseUrl": ".",
     "noEmit": true,
     "paths": {
-      "@einfach/vue-excel": ["../src/index.ts"],
-      "@einfach/vue-excel/pointer-selection": ["../src/use-spreadsheet-pointer-selection.ts"]
+      "@einfach-excel/vue-excel": ["../src/index.ts"],
+      "@einfach-excel/vue-excel/pointer-selection": ["../src/use-spreadsheet-pointer-selection.ts"]
     },
     "types": ["node"]
   },

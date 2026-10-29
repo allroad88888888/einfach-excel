@@ -1,6 +1,6 @@
 /// <reference lib="WebWorker" />
 
-import * as wasm from '@einfach/excel-wasm'
+import * as wasm from '@einfach-excel/excel-wasm'
 import { installWorkerRuntime } from '../src/adapter/worker-runtime'
 
 // 旧壳的 worker 入口：与 vnext 的 lite 入口共用同一个 dispatcher，也共用同一份

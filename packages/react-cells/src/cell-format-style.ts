@@ -1,6 +1,6 @@
 import type {
   DisplayCell, SpreadsheetBorderSpec, SpreadsheetCellFormat,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { CSSProperties } from 'react'
 
 const COLOR_HEX_RE = /^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/

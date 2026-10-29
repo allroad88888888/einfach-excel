@@ -28,7 +28,7 @@ import {
   workspaceSessionAtom,
   type GoToLocatorKind,
   type GoToValueKindFilter,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { useT } from '../i18n'
 import { useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider/hooks'
 import { useDialogInteractions } from '../find-replace/dialog-interactions'

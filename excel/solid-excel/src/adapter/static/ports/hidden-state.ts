@@ -5,7 +5,7 @@ import type {
   SetEvalHiddenRowsRequest,
   SheetHiddenStateRequest,
   SheetHiddenStateResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { StaticSpreadsheetBackend } from '../backend-contract'
 import {
   applyHiddenIndexMutationPlan,

@@ -5,10 +5,10 @@
 ## 范围
 
 验证 2026-08-17 发布到 registry.npmjs.org 的五个 0.1.0 包在**仓外** Nuxt 3（Vue）项目里可安装、
-可解析；其中框架中立的三个包（`@einfach/spreadsheet-ui-core`、`@einfach/excel-core-ts`、
-`@einfach/excel-wasm`）在 Nuxt/Vite/Nitro 工具链下真实可用（SSR 构建 + 客户端运行）。
-`@einfach/solid-excel` 是 Solid 组件库，Nuxt 挂载不了 —— 本冒烟只验证它（连同 peer
-`solid-js@^1.9.12`）能安装解析，不渲染。`@einfach/spreadsheet-ui-styles` 同样只验证安装解析。
+可解析；其中框架中立的三个包（`@einfach-excel/spreadsheet-ui-core`、`@einfach-excel/excel-core-ts`、
+`@einfach-excel/excel-wasm`）在 Nuxt/Vite/Nitro 工具链下真实可用（SSR 构建 + 客户端运行）。
+`@einfach-excel/solid-excel` 是 Solid 组件库，Nuxt 挂载不了 —— 本冒烟只验证它（连同 peer
+`solid-js@^1.9.12`）能安装解析，不渲染。`@einfach-excel/spreadsheet-ui-styles` 同样只验证安装解析。
 
 ## 环境
 
@@ -24,15 +24,15 @@
 1. 手写最小 Nuxt 3 项目：`package.json`（五个 @einfach 包 + nuxt + vue + solid-js）、
    `nuxt.config.ts`（仅 compatibilityDate，零特殊配置）、单页 `app.vue`。
 2. `app.vue` 三段：
-   - (a) `@einfach/excel-core-ts`：`createWorkbook([{id:'s1',name:'Sheet1'}])`，
+   - (a) `@einfach-excel/excel-core-ts`：`createWorkbook([{id:'s1',name:'Sheet1'}])`，
      `setCell` 写 A1=6、B1=7、A2=`=A1*B1+1`，经
      `wb.store.getter(wb.sheet('s1').formulaCellAtom(keyFor(1,0)))` 读回 `{kind:'number', value:43}`。
      顶层同步执行（SSR + 客户端都跑）。
-   - (b) `@einfach/excel-wasm`：`onMounted` 里 `await import('@einfach/excel-wasm')` →
+   - (b) `@einfach-excel/excel-wasm`：`onMounted` 里 `await import('@einfach-excel/excel-wasm')` →
      `await mod.default()`（init）→ `new mod.WasmWorkbook()` → `set_number(0,'A1',6)`、
      `set_number(0,'B1',7)`、`set_formula(0,'C1','=A1*B1+1')` → `get_display(0,'C1')` 渲染 `C1=43`。
      结果段包在 `<ClientOnly>` 里。
-   - (c) `@einfach/spreadsheet-ui-core`：`createSpreadsheetUi({ backend: 三方法 stub })`，
+   - (c) `@einfach-excel/spreadsheet-ui-core`：`createSpreadsheetUi({ backend: 三方法 stub })`，
      返回对象含 store + backend 即渲染 `loaded`。
 3. `pnpm run build` → 通过（client + ssr + nitro 三段构建零报错）。Vite 正确把
    wasm-pack `--target web` 产物里的 `new URL('einfach_wasm_bg.wasm', import.meta.url)`
@@ -68,7 +68,7 @@ probe 退出码 0，一次通过，无返工。
 
 - 只证明「安装 + 解析 + 三个中立包在 Nuxt 构建产物里跑通一条最小路径」。不覆盖：
   solid-excel 组件的实际挂载（Nuxt 不能挂 Solid）、worker 后端路径（`vnext-worker-factory`）、
-  spreadsheet-ui-styles 的样式正确性（只装未 import 使用）、full 变体 `@einfach/excel-wasm/full`。
+  spreadsheet-ui-styles 的样式正确性（只装未 import 使用）、full 变体 `@einfach-excel/excel-wasm/full`。
 - (a) 段在 SSR 与客户端各跑一次都得 43 —— 顺带证明 excel-core-ts 在纯 node（Nitro SSR）
   环境可用；但这不是对 SSR 水合一致性的系统验证。
 - solid-js 解析到 1.9.14（范围内最新）。主仓钉 1.9.12 是 monorepo 单实例不变式，

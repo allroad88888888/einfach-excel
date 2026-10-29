@@ -16,7 +16,7 @@ import {
   type HistoryEntryRecorder,
   type RemoveDuplicatesControllerPort,
   type RemoveRowsExactRequest,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type {
   CellFormatJSON,
   CellRefWire,

@@ -7,7 +7,7 @@ import './workbook.css'
 import '../../style.css'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { runFindReplaceAtom, formatPainterAtom, runFormatPainterAtom,
-  runGoToReferenceAtom } from '@einfach/spreadsheet-ui-core'
+  runGoToReferenceAtom } from '@einfach-excel/spreadsheet-ui-core'
 import { Trans, useLingui } from '@lingui/react/macro'
 
 /** Composes the shared spreadsheet chrome around the active Rust workbook. */

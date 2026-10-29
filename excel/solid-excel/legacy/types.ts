@@ -1,4 +1,4 @@
-import type { SpreadsheetNumberFormat } from '@einfach/spreadsheet-ui-core'
+import type { SpreadsheetNumberFormat } from '@einfach-excel/spreadsheet-ui-core'
 
 /**
  * Interface matching the WasmSheet API from einfach-wasm.
@@ -219,7 +219,7 @@ export interface CellFormatJSON {
 
 /**
  * Wave 6.3 widening: `NumberFormatJSON` now mirrors the canonical
- * `SpreadsheetNumberFormat` discriminated union from `@einfach/spreadsheet-ui-core`.
+ * `SpreadsheetNumberFormat` discriminated union from `@einfach-excel/spreadsheet-ui-core`.
  * The alias is kept so existing call sites continue to compile.
  */
 export type NumberFormatJSON = SpreadsheetNumberFormat

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { createWorkerWorkbookSpreadsheetBackend as createCoreWorkerBackend } from '@einfach/spreadsheet-ui-core/rust-worker'
+import { createWorkerWorkbookSpreadsheetBackend as createCoreWorkerBackend } from '@einfach-excel/spreadsheet-ui-core/rust-worker'
 import {
   SpreadsheetGrid,
   SpreadsheetUiProvider,
@@ -17,7 +17,7 @@ const packageJson = JSON.parse(
   exports: Record<string, unknown>
 }
 
-describe('@einfach/solid-excel/vnext subpath', () => {
+describe('@einfach-excel/solid-excel/vnext subpath', () => {
   it('exposes the vNext public API without importing demos', () => {
     expect(typeof SpreadsheetUiProvider).toBe('function')
     expect(typeof SpreadsheetGrid).toBe('function')

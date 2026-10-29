@@ -1,12 +1,12 @@
 // 一句话：静态后端的序列填充（fillSeries）实现。
 
-import { excelGeneralToText } from '@einfach/excel-core-ts'
+import { excelGeneralToText } from '@einfach-excel/excel-core-ts'
 import type {
   CellRange,
   FillSeriesRequest,
   ProjectionRevision,
   SpreadsheetCellFormat,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   cloneFormat,
   cloneRange,
@@ -14,7 +14,7 @@ import {
   getFillHandleSourceCoord,
   getFillHandleWriteRange,
   keyFor,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { assertAutoFillWithinCellBudget } from './auto-fill-budget'
 import { createFillSeriesValueGenerator } from './fill-series-generator'
 import {

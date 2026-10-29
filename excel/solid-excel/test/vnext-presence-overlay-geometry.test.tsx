@@ -8,7 +8,7 @@ import {
   remoteCursorsAtom,
   setWorkspaceActiveSheetAtom,
   type SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetPresenceOverlay } from '../src/presence'
 import { SpreadsheetUiProvider } from '../src/provider'
 

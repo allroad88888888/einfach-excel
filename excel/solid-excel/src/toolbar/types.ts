@@ -2,7 +2,7 @@ import type { JSX } from 'solid-js'
 import type {
   ToolbarCommandAvailability,
   ToolbarFormatCommandKind,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 export interface SpreadsheetToolbarProps {
   class?: string

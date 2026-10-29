@@ -1,4 +1,4 @@
-# @einfach/vue-excel
+# @einfach-excel/vue-excel
 
 Vue adapter source for the framework-neutral spreadsheet UI core. It exposes
 controlled grid projections plus hooks that read or dispatch the nearest
@@ -21,10 +21,10 @@ spreadsheet application.
   navigation, and sheet tabs.
 - `getSpreadsheetGridGeometry` derives visible grid geometry without owning
   Vue product state.
-- `@einfach/vue-excel/pointer-selection` exposes the pointer-selection hook
+- `@einfach-excel/vue-excel/pointer-selection` exposes the pointer-selection hook
   as a separate adapter entry point.
 
-All spreadsheet product state remains in `@einfach/spreadsheet-ui-core` atoms.
+All spreadsheet product state remains in `@einfach-excel/spreadsheet-ui-core` atoms.
 Vue reactivity bridges subscriptions and cleanup; it does not create a second
 spreadsheet store.
 
@@ -87,7 +87,7 @@ application-level parity.
 Run these commands from the repository root:
 
 ```bash
-pnpm --filter @einfach/vue-excel test
+pnpm --filter @einfach-excel/vue-excel test
 npx tsc -p excel/vue-excel/tsconfig.json --noEmit --pretty false
 ```
 

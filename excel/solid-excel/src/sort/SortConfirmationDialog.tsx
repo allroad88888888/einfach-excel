@@ -4,7 +4,7 @@ import type { SortConfirmationEntrypoint, SortConfirmationState } from './sort-c
 import { formatSortColumn, formatSortRange } from './sort-range-label'
 
 if (typeof process === 'undefined' || process.env.VITEST !== 'true') {
-  void import('@einfach/spreadsheet-ui-styles/features/sort-confirmation-dialog.css')
+  void import('@einfach-excel/spreadsheet-ui-styles/features/sort-confirmation-dialog.css')
 }
 
 interface SortConfirmationDialogProps {

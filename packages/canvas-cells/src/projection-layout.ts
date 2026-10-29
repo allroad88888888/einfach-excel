@@ -1,7 +1,7 @@
 import type { Store } from '@einfach/core'
 import {
   getViewportRangeRectangle, projectionSnapshotAtom, viewportMetricsAtom, viewportGeometrySizesAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { createLayout } from './layout'
 import type { CanvasCellsInput } from './types'
 

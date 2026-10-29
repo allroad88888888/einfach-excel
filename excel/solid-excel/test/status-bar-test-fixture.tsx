@@ -6,8 +6,8 @@ import type {
   DisplayCell,
   SpreadsheetBackend,
   VisibleProjectionRequest,
-} from '@einfach/spreadsheet-ui-core'
-import { beginProjectionAtom, resolveProjectionAtom } from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
+import { beginProjectionAtom, resolveProjectionAtom } from '@einfach-excel/spreadsheet-ui-core'
 
 /** 状态栏 / 诊断读数条各测试文件共用的后端替身与投影驱动器。 */
 

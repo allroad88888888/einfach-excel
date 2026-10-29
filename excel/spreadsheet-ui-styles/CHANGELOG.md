@@ -1,4 +1,4 @@
-# @einfach/spreadsheet-ui-styles
+# @einfach-excel/spreadsheet-ui-styles
 
 ## 0.2.0
 

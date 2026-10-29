@@ -18,11 +18,11 @@ export default defineConfig({
         replacement: `${uiCoreSource}/$1`,
       },
       {
-        find: '@einfach/vue-excel/pointer-selection',
+        find: '@einfach-excel/vue-excel/pointer-selection',
         replacement: path.resolve(packageRoot, 'src/use-spreadsheet-pointer-selection.ts'),
       },
       {
-        find: '@einfach/vue-excel',
+        find: '@einfach-excel/vue-excel',
         replacement: path.resolve(packageRoot, 'src/index.ts'),
       },
     ],

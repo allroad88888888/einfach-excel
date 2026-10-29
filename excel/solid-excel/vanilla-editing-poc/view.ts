@@ -1,6 +1,6 @@
 // 一句话：把受控编辑状态渲染到原生 DOM，并只拥有自己的事件监听器。
 
-import type { EditingSessionState } from '@einfach/spreadsheet-ui-core'
+import type { EditingSessionState } from '@einfach-excel/spreadsheet-ui-core'
 
 export interface VanillaEditingView {
   readonly destroy: () => void

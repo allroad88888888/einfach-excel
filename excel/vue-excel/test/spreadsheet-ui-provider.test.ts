@@ -1,5 +1,5 @@
 import { createStore, type Store } from '@einfach/core'
-import type { SpreadsheetBackend, SpreadsheetUiCore } from '@einfach/spreadsheet-ui-core'
+import type { SpreadsheetBackend, SpreadsheetUiCore } from '@einfach-excel/spreadsheet-ui-core'
 import { describe, expect, it, vi } from 'vitest'
 import { createApp, defineComponent, h, nextTick, shallowRef } from 'vue'
 import { SpreadsheetUiProvider, useSpreadsheetUiCore } from '../src'

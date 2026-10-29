@@ -3,7 +3,7 @@ import {
   setSelectionBoundsAtom,
   type DisplayCell,
   type SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 export const vueDemoSheetId = 'vue-demo-sheet'
 export const vueDemoRange = { rowStart: 0, rowEnd: 3, colStart: 0, colEnd: 3 }

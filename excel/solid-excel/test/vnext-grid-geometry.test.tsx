@@ -7,12 +7,12 @@ import type {
   DisplayCell,
   SpreadsheetBackend,
   VisibleProjectionRequest,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   addOutlineGroupAtom,
   setFreezeConfigAtom,
   viewportMetricsAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetGrid } from '../src/grid'
 import { SpreadsheetUiProvider } from '../src/provider'
 

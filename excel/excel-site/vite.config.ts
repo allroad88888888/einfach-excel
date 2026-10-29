@@ -15,8 +15,8 @@ export default defineConfig({
   plugins: [wasm(), topLevelAwait(), solidPlugin()],
   resolve: {
     alias: {
-      '@einfach/spreadsheet-ui-core': path.resolve(repoRoot, 'excel/spreadsheet-ui-core/src'),
-      '@einfach/excel-core-ts': path.resolve(repoRoot, 'excel/excel-core-ts/src'),
+      '@einfach-excel/spreadsheet-ui-core': path.resolve(repoRoot, 'excel/spreadsheet-ui-core/src'),
+      '@einfach-excel/excel-core-ts': path.resolve(repoRoot, 'excel/excel-core-ts/src'),
       // @einfach/core 与 @einfach/solid 不再 alias 到源码:拆仓后它们是
       // npm 依赖,由 node_modules 解析已发布的产物。原先指向 core 包本地
       // 源码目录的 alias 在本仓是死路径,会让 dev server 报
@@ -31,7 +31,7 @@ export default defineConfig({
   // solid-excel is consumed as linked source so its worker `new URL(...)`
   // modules must be bundled from source, not prebundled.
   optimizeDeps: {
-    exclude: ['@einfach/solid-excel', '@einfach/solid-excel/worker-factory'],
+    exclude: ['@einfach-excel/solid-excel', '@einfach-excel/solid-excel/worker-factory'],
   },
   server: {
     host: '127.0.0.1',

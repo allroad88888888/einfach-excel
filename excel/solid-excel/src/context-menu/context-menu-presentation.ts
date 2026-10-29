@@ -1,4 +1,4 @@
-import type { MenuTarget } from '@einfach/spreadsheet-ui-core'
+import type { MenuTarget } from '@einfach-excel/spreadsheet-ui-core'
 
 import {
   resolveContextMenuCommands,

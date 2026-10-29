@@ -2,7 +2,7 @@ import { createStore } from '@einfach/core'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, expect, test, vi } from 'vitest'
 import { initializeWorkbookDocumentAtom, startEditingAtom,
-  type RustWorkbookConnection } from '@einfach/spreadsheet-ui-core'
+  type RustWorkbookConnection } from '@einfach-excel/spreadsheet-ui-core'
 import { WorkbookStoreProvider } from '../../src/page/WorkbookStoreProvider'
 import { WorkbookHeader } from '../../src/workbook/chrome/header/WorkbookHeader'
 

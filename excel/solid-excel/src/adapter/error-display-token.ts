@@ -9,7 +9,7 @@
  * Both TS surfaces on this side of the wire carry an engine-internal error
  * vocabulary that is WIDER than Excel's:
  *
- *  - `@einfach/excel-core-ts`'s `ErrorCode` union (consumed by
+ *  - `@einfach-excel/excel-core-ts`'s `ErrorCode` union (consumed by
  *    `worker-runtime-ts.ts`), and
  *  - the `'#…'`-prefixed strings the static demo evaluator passes around
  *    (`static-formula-eval.ts`).

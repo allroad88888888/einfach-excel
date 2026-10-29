@@ -4,7 +4,7 @@ import {
   MAX_CUSTOM_FORMULA_REGISTRY_ENTRIES,
   type CustomFormulaRegistration,
   type SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 type CustomFormulaOp =
   | { kind: 'unregister'; name: string }

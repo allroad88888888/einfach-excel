@@ -1,1 +1,1 @@
-export * from '@einfach/spreadsheet-ui-core/rust-worker/adapter/top-bottom-projection'
+export * from '@einfach-excel/spreadsheet-ui-core/rust-worker/adapter/top-bottom-projection'

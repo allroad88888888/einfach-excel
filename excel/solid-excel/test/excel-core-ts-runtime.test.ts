@@ -1,7 +1,7 @@
 /**
  * Wave D smoke — verifies the postMessage dispatch in
  * `worker-runtime-ts.ts` end-to-end without actually spawning a Worker.
- * Confirms the wire protocol is wired to `@einfach/excel-core-ts` and
+ * Confirms the wire protocol is wired to `@einfach-excel/excel-core-ts` and
  * that a SUM round-trip lights up:
  *   initWorkbook → setFormula → readCells → cell carries the sum
  */

@@ -1,4 +1,4 @@
-import type { SpreadsheetNumberFormat } from '@einfach/spreadsheet-ui-core'
+import type { SpreadsheetNumberFormat } from '@einfach-excel/spreadsheet-ui-core'
 
 /** Stable command ids understood by the toolbar runtime. */
 export type NumberFormatId =

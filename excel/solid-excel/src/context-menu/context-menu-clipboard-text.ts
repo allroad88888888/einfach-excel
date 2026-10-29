@@ -8,7 +8,7 @@ import {
   type MenuTarget,
   type RangeProjectionResult,
   type SpreadsheetError,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 import type { BrowserClipboardWrite } from '../clipboard/browser-clipboard'
 

@@ -9,11 +9,11 @@
 ## 场景 1:缺 WASM 产物 —— 缺口已就地修复
 
 实测(临时移走 `excel/excel-wasm/lite/` 后跑 jest):默认报错是
-`Could not locate module @einfach/excel-wasm mapped as: …` 加一段 moduleNameMapper
+`Could not locate module @einfach-excel/excel-wasm mapped as: …` 加一段 moduleNameMapper
 配置转储 —— 说了哪坏了,不说怎么修。
 
 **修复**:`jest.config.mjs` 在配置加载期探测产物,缺失时定向报错并给出重建命令
-(`npm run build:wasm -w @einfach/excel-wasm` / 根 `ensureWasm`)与工具链指引。
+(`npm run build:wasm -w @einfach-excel/excel-wasm` / 根 `ensureWasm`)与工具链指引。
 两态复验:缺失 → 定向报错;在场 → 套件正常。其余开发者路径本就自愈:根 `build`
 链含 `ensureWasm`,playwright `webServer` 先跑 `build:wasm`。
 

@@ -6,7 +6,7 @@ import {
   type ProjectionRequestReason,
   type SpreadsheetBackend,
   type VisibleProjectionRequest,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { isVisibleProjectionResult, spreadsheetProjectionSnapshotAtom } from './atoms'
 
 /**

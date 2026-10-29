@@ -1,4 +1,4 @@
-import type { HistoryEntryRecorder, SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
+import type { HistoryEntryRecorder, SpreadsheetBackend } from '@einfach-excel/spreadsheet-ui-core'
 
 import { backendSupportsHistory } from './history-dispatch'
 

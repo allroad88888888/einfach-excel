@@ -1,5 +1,5 @@
 import type { Store } from '@einfach/core'
-import type { SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
+import type { SpreadsheetBackend } from '@einfach-excel/spreadsheet-ui-core'
 import type { SpreadsheetGridProps } from './SpreadsheetGrid'
 import type { GridAtomAccessors } from './grid-atom-accessors'
 import type { GridDomAdapter } from './grid-dom-adapter'

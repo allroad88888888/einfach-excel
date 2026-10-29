@@ -16,7 +16,7 @@ On the bulk-import and ordinary formula-read path, formula values stay unevaluat
 
 const availabilityBoundary = `## Availability and adoption boundary
 
-Five fixed-group packages, including \`@einfach/solid-excel\`, were published to npm at version \`0.1.0\` on 2026-08-17. Solid is the published UI binding. \`excel/react-excel\` is a private repository Vite product backed only by a Rust/WASM worker; the Vue page remains a controlled-projection source reference. Neither is a published package. The project is pre-1.0, has no paid support SLA, and its demos make no production performance or capacity promise.`
+Five fixed-group packages, including \`@einfach-excel/solid-excel\`, were published to npm at version \`0.1.0\` on 2026-08-17. Solid is the published UI binding. \`excel/react-excel\` is a private repository Vite product backed only by a Rust/WASM worker; the Vue page remains a controlled-projection source reference. Neither is a published package. The project is pre-1.0, has no paid support SLA, and its demos make no production performance or capacity promise.`
 
 /** Renders concise and expanded AI-readable indexes from the same site catalogue and source projections. */
 export function renderLlmsIndex(): string {
@@ -46,7 +46,7 @@ ${demoLinks}
 
 ## Install
 
-\`npm install @einfach/solid-excel @einfach/core @einfach/solid solid-js\`
+\`npm install @einfach-excel/solid-excel @einfach/core @einfach/solid solid-js\`
 
 ## Runtime boundary
 

@@ -10,7 +10,7 @@ import {
   selectionRangeAtom,
   selectionRegionsAtom,
   type CellRange,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { createMemo, type Accessor } from 'solid-js'
 import { FORMULA_REFERENCE_PALETTE, type OverlayRect } from './overlay-types'
 import { computeOverlayRectForRange } from './overlayGeometry'

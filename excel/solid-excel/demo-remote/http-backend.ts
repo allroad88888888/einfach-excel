@@ -13,7 +13,7 @@ import type {
   SpreadsheetBackend,
   VisibleProjectionRequest,
   VisibleProjectionResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 export interface HttpSpreadsheetBackendOptions {
   /** 形如 `http://127.0.0.1:5303`，结尾不带斜杠。 */

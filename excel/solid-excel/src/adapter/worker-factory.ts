@@ -12,12 +12,12 @@ import type { WorkerLike } from './worker-protocol'
  *
  * ```ts
  * // 宿主侧（Vite）：?worker 让打包器只在这里把 full 入口拉进图
- * import FullWorkbookWorker from '@einfach/solid-excel/vnext-worker-runtime-full?worker'
+ * import FullWorkbookWorker from '@einfach-excel/solid-excel/vnext-worker-runtime-full?worker'
  * createWorkerWorkbookSpreadsheetBackend({ workerFactory: () => new FullWorkbookWorker() })
  * ```
  *
  * 用自建 wasm-pack 产物的宿主则自己写三行入口，import
- * `@einfach/solid-excel/vnext-worker-runtime-core` 的 `installWorkerRuntime(wasm)`。
+ * `@einfach-excel/solid-excel/vnext-worker-runtime-core` 的 `installWorkerRuntime(wasm)`。
  * 选型与语义差异见 `excel/rust/wasm/README.md` §「怎么选 full」。
  */
 export const defaultVNextWorkbookWorkerFactory = (): WorkerLike =>

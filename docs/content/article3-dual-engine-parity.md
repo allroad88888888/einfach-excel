@@ -1,10 +1,10 @@
 # 双引擎 parity 怎么钉住:同一批用例,两个运行时,零人肉对照
 
-我们的表格栈里有两个公式引擎:Rust 编译成 WASM 的主引擎(`excel/rust/excel-core` + `excel/rust/wasm`),和一个纯 TypeScript 的实现(`@einfach/excel-core-ts`)。Rust 是现役主引擎;TS 版是 parity 参照,兼一条不依赖 WASM 的纯 JS 部署路径。两个引擎、一套协议、一份 UI——这个组合最大的风险不是"哪个引擎有 bug",而是**两个引擎对同一个公式给出不同答案,而没有人发现**。这篇文章讲我们怎么把 parity 钉住:不靠人肉对照文档,靠同一批用例双跑;以及哪些差异是刻意允许的。
+我们的表格栈里有两个公式引擎:Rust 编译成 WASM 的主引擎(`excel/rust/excel-core` + `excel/rust/wasm`),和一个纯 TypeScript 的实现(`@einfach-excel/excel-core-ts`)。Rust 是现役主引擎;TS 版是 parity 参照,兼一条不依赖 WASM 的纯 JS 部署路径。两个引擎、一套协议、一份 UI——这个组合最大的风险不是"哪个引擎有 bug",而是**两个引擎对同一个公式给出不同答案,而没有人发现**。这篇文章讲我们怎么把 parity 钉住:不靠人肉对照文档,靠同一批用例双跑;以及哪些差异是刻意允许的。
 
 ## 为什么养两个引擎
 
-TS 引擎不是历史包袱,它有两个现役职能。第一,它是**语义参照物**:Rust 引擎的每一类求值行为,都有一个独立实现可以对照——两个引擎在同一个输入上分歧,至少有一个是错的,这比"对照 Excel 文档"可执行得多。第二,它是**纯 JS 部署路径**:不能或不想加载 WASM 的宿主,可以换一个 worker 入口跑在 TS 引擎上。两套 worker 运行时(`worker-runtime.ts` / `worker-runtime-full.ts` 对 `worker-runtime-ts.ts`)实现同一个 RPC 协议,消息循环共用 `worker-runtime-core.ts`,WASM 侧的两个入口只是各自静态 import `@einfach/excel-wasm` 与 `@einfach/excel-wasm/full` 的叶子文件。
+TS 引擎不是历史包袱,它有两个现役职能。第一,它是**语义参照物**:Rust 引擎的每一类求值行为,都有一个独立实现可以对照——两个引擎在同一个输入上分歧,至少有一个是错的,这比"对照 Excel 文档"可执行得多。第二,它是**纯 JS 部署路径**:不能或不想加载 WASM 的宿主,可以换一个 worker 入口跑在 TS 引擎上。两套 worker 运行时(`worker-runtime.ts` / `worker-runtime-full.ts` 对 `worker-runtime-ts.ts`)实现同一个 RPC 协议,消息循环共用 `worker-runtime-core.ts`,WASM 侧的两个入口只是各自静态 import `@einfach-excel/excel-wasm` 与 `@einfach-excel/excel-wasm/full` 的叶子文件。
 
 但"两个实现一套协议"这句话只有在被持续验证时才成立。验证机制有两层。
 

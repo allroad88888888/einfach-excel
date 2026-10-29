@@ -1,5 +1,5 @@
-import type { Rect } from '@einfach/canvas'
-import { createCellBorderResolver, type CellRange, type VisibleProjectionResult } from '@einfach/spreadsheet-ui-core'
+import type { Rect } from '@einfach-excel/canvas'
+import { createCellBorderResolver, type CellRange, type VisibleProjectionResult } from '@einfach-excel/spreadsheet-ui-core'
 import type { CanvasCellsInput, LayoutCell, BorderSegment } from './types'
 
 function axis(start: number, end: number, sizes: readonly number[] | undefined, fallback: number) {

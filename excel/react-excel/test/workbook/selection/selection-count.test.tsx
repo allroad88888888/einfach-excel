@@ -1,7 +1,7 @@
 import { createStore } from '@einfach/core'
 import { act, render, screen } from '@testing-library/react'
 import { expect, test } from 'vitest'
-import { initializeWorkbookDocumentAtom, selectCellAtom, setMultiRegionSelectionAtom } from '@einfach/spreadsheet-ui-core'
+import { initializeWorkbookDocumentAtom, selectCellAtom, setMultiRegionSelectionAtom } from '@einfach-excel/spreadsheet-ui-core'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
 import { WorkbookFooter } from '../../../src/workbook/chrome/footer/WorkbookFooter'
 

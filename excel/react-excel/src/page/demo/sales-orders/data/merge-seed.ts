@@ -1,4 +1,4 @@
-import type { CellRange, RustImportCell } from '@einfach/spreadsheet-ui-core'
+import type { CellRange, RustImportCell } from '@einfach-excel/spreadsheet-ui-core'
 
 /** Wider than the buffered viewport, with anchors that can scroll off both axes. */
 export const SALES_ORDER_MERGE_COLUMN_COUNT = 128

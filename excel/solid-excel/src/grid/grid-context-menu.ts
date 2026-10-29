@@ -10,7 +10,7 @@ import {
   type CellCoord,
   type CellRange,
   type MenuOpenInput,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { installGridFeature, type GridRuntimeBase } from './grid-runtime'
 import type { GridMergeAnchorPort, GridSelectionContextPort } from './grid-runtime-ports'
 import type { GridViewStateApi } from './grid-view-state'

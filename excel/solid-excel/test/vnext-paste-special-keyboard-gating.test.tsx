@@ -9,7 +9,7 @@ import type {
   SpreadsheetBackend,
   VisibleProjectionRequest,
   VisibleProjectionResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   capturePasteSpecialCapabilityAtom,
   copyClipboardAtom,
@@ -17,7 +17,7 @@ import {
   pasteSpecialOpenAtom,
   setWorkspaceActiveSheetAtom,
   topMenuOpenAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetGrid } from '../src/grid'
 import { SpreadsheetMenuBar } from '../src/menu-bar'
 import { SpreadsheetUiProvider } from '../src/provider'

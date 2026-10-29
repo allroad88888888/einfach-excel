@@ -16,12 +16,12 @@ import {
   sheetTabsSheetsAtom,
   settleNameManagerTableRenameAtom,
   workspaceSessionAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { useT } from '../i18n'
 import { useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider'
 import { NameManagerEditor } from './NameManagerEditor'
 import { NameManagerTables } from './NameManagerTables'
-import '@einfach/spreadsheet-ui-styles/features/name-manager-dialog.css'
+import '@einfach-excel/spreadsheet-ui-styles/features/name-manager-dialog.css'
 
 export interface SpreadsheetNameManagerDialogProps {
   class?: string

@@ -2,7 +2,7 @@ import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { editingSessionAtom, nativeDuplicatesPanelAtom, runNativeDuplicatesPanelAtom,
-  toA1 } from '@einfach/spreadsheet-ui-core'
+  toA1 } from '@einfach-excel/spreadsheet-ui-core'
 import { useId, useLayoutEffect, useRef } from 'react'
 import { cycleDialogFocus } from './dialog-focus'
 import './remove-duplicates.css'

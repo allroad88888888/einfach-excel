@@ -3,7 +3,7 @@ import {
   createRangeProjectionRequest,
   type CellRange,
   type SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { createStaticSpreadsheetBackend } from '../src/adapter'
 
 /**

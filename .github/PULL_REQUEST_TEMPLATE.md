@@ -8,7 +8,7 @@
 
 - [ ] `npm test`
 - [ ] `npm run lint:check`
-- [ ] 涉及 React 产品：`pnpm --filter @einfach/react-excel test && pnpm --filter @einfach/react-excel build`
+- [ ] 涉及 React 产品：`pnpm --filter @einfach-excel/react-excel test && pnpm --filter @einfach-excel/react-excel build`
 
 ## 文档同步
 

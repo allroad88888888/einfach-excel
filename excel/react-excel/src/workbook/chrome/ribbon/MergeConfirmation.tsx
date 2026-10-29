@@ -1,6 +1,6 @@
 import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
-import { runSelectionMergeAtom, selectionMergeFeedbackAtom } from '@einfach/spreadsheet-ui-core'
+import { runSelectionMergeAtom, selectionMergeFeedbackAtom } from '@einfach-excel/spreadsheet-ui-core'
 import { useEffect, useId, useRef, type RefObject } from 'react'
 import { cycleDialogFocus } from './dialog-focus'
 

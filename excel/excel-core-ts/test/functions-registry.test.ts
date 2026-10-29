@@ -21,7 +21,7 @@ import {
   type EvalContext,
 } from '../src'
 
-describe('@einfach/excel-core-ts — Wave C registry merge', () => {
+describe('@einfach-excel/excel-core-ts — Wave C registry merge', () => {
   test('exposes a non-empty frozen registry', () => {
     expect(BUILTIN_FUNCTIONS.size).toBeGreaterThanOrEqual(40)
     expect(Object.isFrozen(BUILTIN_FUNCTIONS)).toBe(true)
@@ -68,7 +68,7 @@ describe('@einfach/excel-core-ts — Wave C registry merge', () => {
   })
 })
 
-describe('@einfach/excel-core-ts — evaluator dispatches Wave C registry', () => {
+describe('@einfach-excel/excel-core-ts — evaluator dispatches Wave C registry', () => {
   function makeCtx(): EvalContext {
     return {
       cells: new Map(),
@@ -127,7 +127,7 @@ describe('@einfach/excel-core-ts — evaluator dispatches Wave C registry', () =
   })
 })
 
-describe('@einfach/excel-core-ts — workbook + evaluator + registry integration', () => {
+describe('@einfach-excel/excel-core-ts — workbook + evaluator + registry integration', () => {
   test('formulaCellAtom round-trips a function call through sheetAtom', () => {
     const workbook = createWorkbook([{ id: 's1', name: 'Sheet1' }])
     workbook.setCell('s1', 0, 0, '10')

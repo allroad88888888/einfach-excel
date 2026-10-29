@@ -3,13 +3,13 @@
 import type {
   ClearValidationRuleRequest,
   SetValidationRuleRequest,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   keyFor,
   normalizeRange,
   validationMessageForRule,
   validationSeverityForMode,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { isCellInsideRange, upsertBlankCell } from './cell-map'
 import { recordCellBefore } from './history-record'
 import type { StaticBackendState } from './state'

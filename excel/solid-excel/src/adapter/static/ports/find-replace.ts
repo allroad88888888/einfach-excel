@@ -1,7 +1,7 @@
 // 一句话：查找替换端口。
 
-import type { FindReplaceTarget } from '@einfach/spreadsheet-ui-core'
-import { normalizeRange } from '@einfach/spreadsheet-ui-core'
+import type { FindReplaceTarget } from '@einfach-excel/spreadsheet-ui-core'
+import { normalizeRange } from '@einfach-excel/spreadsheet-ui-core'
 import type { StaticSpreadsheetBackend } from '../backend-contract'
 import { updateCell } from '../cell-update'
 import { collectLiteralFindSpans, collectRegexFindSpans } from '../find-spans'

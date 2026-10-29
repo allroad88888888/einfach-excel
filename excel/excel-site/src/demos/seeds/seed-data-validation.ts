@@ -26,13 +26,13 @@ import type {
   DisplayCell,
   StaticSeedMatrix,
   StaticSpreadsheetSeed,
-} from '@einfach/solid-excel'
+} from '@einfach-excel/solid-excel'
 import {
   validationMessageForRule,
   validationSeverityForMode,
   type ValidationMode,
   type ValidationRule,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 const qtyRule: ValidationRule = { kind: 'range', min: 1, max: 999, integerOnly: true }
 const qtyMode: ValidationMode = 'reject'

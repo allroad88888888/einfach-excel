@@ -7,7 +7,7 @@ import type {
   WorkbookDocumentSheet,
   WriteWorkbookCellsInput,
   WriteWorkbookCellsResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 type Instance = 'first' | 'second'
 

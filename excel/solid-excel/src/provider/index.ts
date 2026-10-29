@@ -8,7 +8,7 @@ export {
   notifyDraftTypedChar,
   readActiveFormulaSuggestion,
   syncFormulaReferenceCaret,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 export * from './history-entry-recorder'
 export * from './history-dispatch'
 export * from './hooks'

@@ -23,7 +23,7 @@ import type {
   SpreadsheetBackend,
   VisibleProjectionRequest,
   VisibleProjectionResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 export interface MinimalSeedCell {
   row: number

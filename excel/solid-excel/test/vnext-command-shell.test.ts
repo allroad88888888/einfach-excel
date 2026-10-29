@@ -3,7 +3,7 @@ import {
   getToolbarCommandAvailability,
   type MenuItemDescriptor,
   type MenuTarget,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 import {
   dispatchResolvedCommand,

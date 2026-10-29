@@ -8,7 +8,7 @@ import {
   workspaceSessionAtom,
   type SpreadsheetBackend,
   type SpreadsheetSheetMetadata,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 import { SpreadsheetSheetTabs } from '../src/sheet-tabs'
 import { SpreadsheetUiProvider } from '../src/provider'

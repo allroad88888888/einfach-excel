@@ -1,7 +1,7 @@
 // 一句话：从表头行派生 Table 的列名。
 
-import type { CellRange } from '@einfach/spreadsheet-ui-core'
-import { keyFor } from '@einfach/spreadsheet-ui-core'
+import type { CellRange } from '@einfach-excel/spreadsheet-ui-core'
+import { keyFor } from '@einfach-excel/spreadsheet-ui-core'
 import { evaluateFormula, formatEvalResult } from '../../static-formula-eval'
 import { evalHiddenRowsForSheet, filterHiddenRowsForSheet } from '../hidden-rows'
 import type { StaticBackendState } from '../state'

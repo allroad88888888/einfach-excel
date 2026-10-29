@@ -4,7 +4,7 @@ import type {
   ProjectionRevision,
   RemoveConditionalFormatRuleRequest,
   SetConditionalFormatRuleRequest,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { StaticBackendState } from './state'
 
 type ConditionalFormatMutationRequest =

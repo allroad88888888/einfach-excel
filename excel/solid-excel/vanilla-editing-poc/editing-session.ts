@@ -8,7 +8,7 @@ import {
   startEditingAtom,
   type CellCoord,
   type SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 import type { VanillaEditingProjectionSession, VanillaEditingSession } from './types'
 

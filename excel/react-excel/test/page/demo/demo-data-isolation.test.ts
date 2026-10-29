@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { RustImportCell, RustWorkbookDefinition } from '@einfach/spreadsheet-ui-core'
+import type { RustImportCell, RustWorkbookDefinition } from '@einfach-excel/spreadsheet-ui-core'
 import { SALES_ORDERS_WORKBOOK_DEFINITION as demo } from '../../../src/page/demo/sales-orders/sales-orders-workbook'
 import { SALES_ORDER_MERGES } from '../../../src/page/demo/sales-orders/data/merge-seed'
 import { PLAIN_SALES_ORDERS as fixture } from '../../../e2e/fixtures/plain-sales-orders/workbook'

@@ -1,5 +1,5 @@
 {
-  "name": "@einfach/solid-excel",
+  "name": "@einfach-excel/solid-excel",
   "version": "0.1.1",
   "private": true,
   "description": "SolidJS Excel table component powered by Rust WASM engine",
@@ -122,9 +122,9 @@
     "test:bench": "EINFACH_PERF=1 vitest run",
     "test:watch": "vitest",
     "build": "npm run build:wasm && vite build",
-    "build:wasm": "pnpm --filter @einfach/excel-wasm run build:wasm",
-    "build:wasm:full": "pnpm --filter @einfach/excel-wasm run build:wasm:full",
-    "build:wasm:both": "pnpm --filter @einfach/excel-wasm run build:wasm:both",
+    "build:wasm": "pnpm --filter @einfach-excel/excel-wasm run build:wasm",
+    "build:wasm:full": "pnpm --filter @einfach-excel/excel-wasm run build:wasm:full",
+    "build:wasm:both": "pnpm --filter @einfach-excel/excel-wasm run build:wasm:both",
     "e2e": "playwright test",
     "e2e:install": "playwright install --with-deps chromium"
   },
@@ -140,10 +140,10 @@
     "einfach"
   ],
   "dependencies": {
-    "@einfach/excel-core-ts": "workspace:*",
-    "@einfach/excel-wasm": "workspace:*",
-    "@einfach/spreadsheet-ui-core": "workspace:*",
-    "@einfach/spreadsheet-ui-styles": "workspace:*",
+    "@einfach-excel/excel-core-ts": "workspace:*",
+    "@einfach-excel/excel-wasm": "workspace:*",
+    "@einfach-excel/spreadsheet-ui-core": "workspace:*",
+    "@einfach-excel/spreadsheet-ui-styles": "workspace:*",
     "@lingui/core": "^6.0.1"
   },
   "peerDependencies": {

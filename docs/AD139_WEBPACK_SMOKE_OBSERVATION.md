@@ -4,9 +4,9 @@
 
 ## 范围
 
-验证已发布 npm 包 `@einfach/solid-excel@0.1.0`(及其依赖 `@einfach/excel-wasm@0.1.0`、
-`@einfach/spreadsheet-ui-core@0.1.0`、`@einfach/spreadsheet-ui-styles@0.1.0`、
-`@einfach/excel-core-ts@0.1.0`)能在 **webpack 5** 下构建并运行。关键点:webpack 没有
+验证已发布 npm 包 `@einfach-excel/solid-excel@0.1.0`(及其依赖 `@einfach-excel/excel-wasm@0.1.0`、
+`@einfach-excel/spreadsheet-ui-core@0.1.0`、`@einfach-excel/spreadsheet-ui-styles@0.1.0`、
+`@einfach-excel/excel-core-ts@0.1.0`)能在 **webpack 5** 下构建并运行。关键点:webpack 没有
 `solid` 导出条件,exports 解析落到 `import`/`default` → 包内**预编译 ESM**(`esm/` 目录,
 `.mjs`),此路径此前未被任何真实打包器验证过(仓内自用的是 Vite,且 Vite 走 `solid` 条件
 从源码编译)。
@@ -30,8 +30,8 @@
 未加任何 resolve condition(尤其**没有**加 `solid` 条件),未加 wasm/worker 相关配置:
 
 - worker:包内 factory 写法 `new Worker(new URL('./worker-runtime.mjs', import.meta.url), { type: 'module' })` 被 webpack 5 静态识别,自动切出 worker chunk。
-- wasm:`@einfach/excel-wasm` 是 wasm-pack `--target web` 产物,`einfach_wasm_bg.wasm` 经 `new URL(..., import.meta.url)` 被 webpack 5 asset module 自动发射,无需 asset/resource 规则。
-- css:`@einfach/solid-excel/vnext-styles.css` 及 spreadsheet-ui-styles 的 CSS 由 css-loader/style-loader 正常吃下;包的 `sideEffects: ["**/*.css"]` 保住了样式不被摇掉。
+- wasm:`@einfach-excel/excel-wasm` 是 wasm-pack `--target web` 产物,`einfach_wasm_bg.wasm` 经 `new URL(..., import.meta.url)` 被 webpack 5 asset module 自动发射,无需 asset/resource 规则。
+- css:`@einfach-excel/solid-excel/vnext-styles.css` 及 spreadsheet-ui-styles 的 CSS 由 css-loader/style-loader 正常吃下;包的 `sideEffects: ["**/*.css"]` 保住了样式不被摇掉。
 
 仅有的 warning 是 webpack 默认 244 KiB 体积上限提示(main.js 1.16 MiB、wasm 1.78 MiB、
 818.js 364 KiB),属预期,非错误。

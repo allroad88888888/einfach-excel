@@ -1,5 +1,5 @@
 import { atom } from '@einfach/core'
-import { createCanvas, onCleanup, useAtomValue } from '@einfach/canvas'
+import { createCanvas, onCleanup, useAtomValue } from '@einfach-excel/canvas'
 import { action, element, find, listen, observedStore, write } from '../ui'
 import { drawCard } from '../drawing'
 

@@ -1,5 +1,5 @@
 import { createEffect, Show } from 'solid-js'
-import { selectCellAtom } from '@einfach/spreadsheet-ui-core'
+import { selectCellAtom } from '@einfach-excel/spreadsheet-ui-core'
 import { reportCommandFailure } from '../provider'
 import { SpreadsheetPresenceOverlay } from '../presence'
 import { syncGridActiveDescendant } from './focus-grid-active-descendant'

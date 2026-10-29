@@ -16,7 +16,7 @@ import {
   type ApplyFormatPainterInput,
   type CellRange,
   type SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { refreshVisibleProjection, useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider'
 
 export interface SpreadsheetFormatPainterProps {

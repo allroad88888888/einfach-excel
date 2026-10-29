@@ -11,8 +11,8 @@ import {
   sheetTabsSheetsAtom,
   workspaceSessionAtom,
   reorderSheetMetadata,
-} from '@einfach/spreadsheet-ui-core'
-import type { SpreadsheetBackend, SpreadsheetSheetMetadata } from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
+import type { SpreadsheetBackend, SpreadsheetSheetMetadata } from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetSheetTabs } from '../src/sheet-tabs'
 import { SpreadsheetUiProvider } from '../src/provider'
 

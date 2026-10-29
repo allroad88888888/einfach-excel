@@ -1,4 +1,4 @@
-import type { DisplayCell } from '@einfach/spreadsheet-ui-core'
+import type { DisplayCell } from '@einfach-excel/spreadsheet-ui-core'
 import {
   activeCellAtom,
   activeSpillRegionAtom,
@@ -12,7 +12,7 @@ import {
   viewportHiddenAtom,
   viewportMetricsAtom,
   viewportSizeOverridesAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { createSignal, onCleanup, onMount } from 'solid-js'
 import { spreadsheetProjectionSnapshotAtom, useSpreadsheetUiStore } from '../provider'
 import { createOverlaySvgGeometry } from './overlay-svg-geometry'

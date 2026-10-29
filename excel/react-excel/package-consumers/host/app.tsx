@@ -13,7 +13,7 @@ import {
   type WriteWorkbookCellsInput,
   type HostControls,
   type WorkbookChangeEvent,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { definition } from './definition'
 import type { PackageHost } from './bridge'
 
@@ -50,8 +50,8 @@ window.Worker = class extends OriginalWorker {
   }
 }
 // 先采集宿主样式，再加载已安装库及显式 CSS；没有源码入口或 alias。
-const { Spreadsheet } = await import('@einfach/react-excel')
-await import('@einfach/react-excel/style.css')
+const { Spreadsheet } = await import('@einfach-excel/react-excel')
+await import('@einfach-excel/react-excel/style.css')
 const stores = { first: createStore(), second: createStore() }
 const events: Record<keyof typeof stores, WorkbookChangeEvent[]> = { first: [], second: [] }
 for (const key of ['first', 'second'] as const)

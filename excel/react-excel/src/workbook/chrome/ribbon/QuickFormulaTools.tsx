@@ -2,7 +2,7 @@ import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   quickFormulaAvailableAtom, quickFormulaFeedbackAtom, runQuickFormulaAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { msg } from '@lingui/core/macro'
 import { Trans, useLingui } from '@lingui/react/macro'
 

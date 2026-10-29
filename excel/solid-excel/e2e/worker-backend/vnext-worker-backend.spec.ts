@@ -80,7 +80,7 @@ declare global {
 
 test.describe('Solid Excel vNext worker backend', () => {
   // Runs identically on both wasm and ts projects after the Phase 4 vite
-  // alias for @einfach/excel-core-ts. Any per-test failures observed on ts
+  // alias for @einfach-excel/excel-core-ts. Any per-test failures observed on ts
   // also reproduce on wasm — they're pre-existing demo-side regressions
   // (visible-cells count mismatch, sparse-facts shape drift) tracked
   // separately, not a backend-parity gap.

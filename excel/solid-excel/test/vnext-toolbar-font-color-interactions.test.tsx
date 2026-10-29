@@ -7,7 +7,7 @@ import {
   selectCellAtom,
   setWorkspaceActiveSheetAtom,
   type SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { createSignal } from 'solid-js'
 import { setLocale } from '../src/i18n'
 import { SpreadsheetUiProvider } from '../src/provider'

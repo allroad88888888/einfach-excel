@@ -6,7 +6,7 @@ import {
   nativeOutlineFeedbackAtom,
   projectionSnapshotAtom,
   runNativeOutlineAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 /** 与现有原生菜单一致；React 只把一次选择交给 command atom。 */
 export function OutlineTools() {

@@ -67,7 +67,7 @@ export default defineConfig({
     // in excel/rust/wasm changed.
     //
     // Deliberately the LITE artifact (no REGEXTEST / REGEXEXTRACT /
-    // REGEXREPLACE) — that is what `@einfach/excel-wasm` holds and what every demo
+    // REGEXREPLACE) — that is what `@einfach-excel/excel-wasm` holds and what every demo
     // statically imports. No e2e spec writes a regex formula. Building the
     // full artifact here would double a cold run's wasm-pack time for an
     // engine no spec loads; use `build:wasm:full` if a spec ever needs it.

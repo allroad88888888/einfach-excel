@@ -1,4 +1,4 @@
-import { formatA1, type ErrorCode, type Value, type Workbook } from '@einfach/excel-core-ts'
+import { formatA1, type ErrorCode, type Value, type Workbook } from '@einfach-excel/excel-core-ts'
 
 import {
   createAsyncCustomPump,

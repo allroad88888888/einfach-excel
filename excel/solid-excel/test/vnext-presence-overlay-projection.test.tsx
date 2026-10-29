@@ -9,7 +9,7 @@ import {
   setWorkspaceActiveSheetAtom,
   type SpreadsheetBackend,
   workspaceSessionAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetPresenceOverlay } from '../src/presence'
 import { SpreadsheetUiProvider } from '../src/provider'
 

@@ -6,7 +6,7 @@ import {
   viewportMetricsAtom,
   viewportGeometrySizesAtom,
   type CellRange,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { useEffect } from 'react'
 import { workbookViewportMetrics } from './workbook-grid-config'
 

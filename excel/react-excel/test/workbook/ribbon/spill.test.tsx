@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { expect, test, vi } from 'vitest'
 import { createSpreadsheetUi, initializeWorkbookDocumentAtom, runVisibleProjectionAtom,
   startEditingAtom, cancelEditingAtom, selectionSnapshotAtom,
-  type RustWorkbookConnection, type VisibleProjectionRequest } from '@einfach/spreadsheet-ui-core'
+  type RustWorkbookConnection, type VisibleProjectionRequest } from '@einfach-excel/spreadsheet-ui-core'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
 import { SpillTools } from '../../../src/workbook/chrome/ribbon/SpillTools'
 import type { SpillInspection } from '../../../../spreadsheet-ui-core/src/rust-workbook/spill-commands'

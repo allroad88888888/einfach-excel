@@ -1,1 +1,1 @@
-export * from '@einfach/spreadsheet-ui-core/rust-worker/adapter/color-scale-projection'
+export * from '@einfach-excel/spreadsheet-ui-core/rust-worker/adapter/color-scale-projection'

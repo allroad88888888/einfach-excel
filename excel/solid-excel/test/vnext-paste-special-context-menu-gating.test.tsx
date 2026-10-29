@@ -7,7 +7,7 @@ import type {
   PasteRangeRequest,
   SpreadsheetBackend,
   VisibleProjectionResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   capturePasteSpecialCapabilityAtom,
   copyClipboardAtom,
@@ -18,7 +18,7 @@ import {
   pasteSpecialOpenAtom,
   pasteSpecialSessionIdAtom,
   setWorkspaceActiveSheetAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetContextMenu } from '../src/context-menu'
 import { SpreadsheetUiProvider } from '../src/provider'
 

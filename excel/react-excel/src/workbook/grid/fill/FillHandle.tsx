@@ -2,7 +2,7 @@ import { useLingui } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { directionalFillFeedbackAtom, dragFillHandleAtom, editingSessionAtom, fillHandleDragAtom,
   projectedFreezeAtom, projectionSnapshotAtom, selectionSnapshotAtom, selectionRegionsAtom,
-  viewportGeometrySizesAtom, viewportMetricsAtom } from '@einfach/spreadsheet-ui-core'
+  viewportGeometrySizesAtom, viewportMetricsAtom } from '@einfach-excel/spreadsheet-ui-core'
 import { useCallback, useEffect, useRef, type PointerEvent, type RefObject } from 'react'
 import { useGridDragAutoscroll } from '../../selection/use-grid-drag-autoscroll'
 import { workbookCellAtViewportPoint } from '../viewport/workbook-grid-hit-test'

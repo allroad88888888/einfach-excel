@@ -3,11 +3,11 @@ import { expect, test, vi } from 'vitest'
 import { createSpreadsheetUi, initializeWorkbookDocumentAtom, runVisibleProjectionAtom,
   selectionRangesAtom, startEditingAtom, cancelEditingAtom, applyGoToTargetAtom,
   setViewportMetricsAtom, viewportMetricsAtom,
-  type RustWorkbookConnection, type VisibleProjectionRequest } from '@einfach/spreadsheet-ui-core'
+  type RustWorkbookConnection, type VisibleProjectionRequest } from '@einfach-excel/spreadsheet-ui-core'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
 import { GoToSpecialTools } from '../../../src/workbook/chrome/ribbon/GoToSpecialTools'
-import { SpreadsheetGrid } from '@einfach/react-cells'
-import { MergedCells } from '@einfach/react-cells'
+import { SpreadsheetGrid } from '@einfach-excel/react-cells'
+import { MergedCells } from '@einfach-excel/react-cells'
 
 const scope = { rowStart: 0, rowEnd: 99, colStart: 0, colEnd: 7 }
 const regions = [{ rowStart: 0, rowEnd: 1, colStart: 0, colEnd: 1 },

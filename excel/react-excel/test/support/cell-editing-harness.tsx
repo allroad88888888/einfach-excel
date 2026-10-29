@@ -5,7 +5,7 @@ import {
   type EditingCommitRequest,
   type VisibleProjectionRequest,
   type VisibleProjectionResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { vi, type MockedFunction } from 'vitest'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { SALES_ORDER_COLUMNS } from '../../src/page/demo/sales-orders/data/sheet'

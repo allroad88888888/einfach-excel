@@ -13,7 +13,7 @@ import type {
   SetFormatRangeRequest,
   VisibleProjectionRequest,
   VisibleProjectionResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 export interface TestRustWorkbookHandlers {
   previewNumberFormat?: (request: RustWorkbookCommands['format.preview']['payload']) => Promise<string>

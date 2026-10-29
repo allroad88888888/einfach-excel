@@ -12,7 +12,7 @@ import {
   updateNameBoxInputAtom,
   type CellCoord,
   type NameBoxCommitTarget,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { useId, useRef, type FocusEvent, type FormEvent, type KeyboardEvent } from 'react'
 import { flushSync } from 'react-dom'
 import {

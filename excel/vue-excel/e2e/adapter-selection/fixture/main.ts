@@ -4,13 +4,13 @@ import {
   type CellCoord,
   type DisplayCell,
   type SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   SpreadsheetGridView,
   SpreadsheetUiProvider,
   useSpreadsheetSelection,
-} from '@einfach/vue-excel'
-import { useSpreadsheetPointerSelection } from '@einfach/vue-excel/pointer-selection'
+} from '@einfach-excel/vue-excel'
+import { useSpreadsheetPointerSelection } from '@einfach-excel/vue-excel/pointer-selection'
 import { createApp, defineComponent, h } from 'vue'
 
 const sheetId = 'vue-e2e-sheet'

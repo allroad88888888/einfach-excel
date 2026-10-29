@@ -1,1 +1,1 @@
-export * from '@einfach/spreadsheet-ui-core/rust-worker/adapter/filter-hidden-rows'
+export * from '@einfach-excel/spreadsheet-ui-core/rust-worker/adapter/filter-hidden-rows'

@@ -12,7 +12,7 @@ import {
   type PasteRangeRequest,
   type PasteRangeResult,
   type SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 import { createSpreadsheetBackendHandle } from '../src/provider/backend-handle'
 import { createHistoryEntryRecorder } from '../src/provider/history-entry-recorder'

@@ -1,8 +1,8 @@
 /** @jsxImportSource solid-js */
 
 import { useAtomValue } from '@einfach/solid'
-import { editingCommitFeedback, editingCommitLifecycleAtom } from '@einfach/spreadsheet-ui-core'
-import type { EditingCommitLifecycleState } from '@einfach/spreadsheet-ui-core'
+import { editingCommitFeedback, editingCommitLifecycleAtom } from '@einfach-excel/spreadsheet-ui-core'
+import type { EditingCommitLifecycleState } from '@einfach-excel/spreadsheet-ui-core'
 
 import { SpreadsheetFeedbackSurface } from './SpreadsheetFeedbackSurface'
 import { useAtomFeedbackPresentation } from './use-atom-feedback-presentation'

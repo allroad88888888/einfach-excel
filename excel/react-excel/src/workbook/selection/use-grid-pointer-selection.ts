@@ -6,7 +6,7 @@ import {
   startPointerSelectionAtom,
   updatePointerSelectionAtom,
   type CellCoord,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { useCallback, useEffect, useRef, type PointerEvent as ReactPointerEvent } from 'react'
 
 export interface GridPointerSelectionOptions {

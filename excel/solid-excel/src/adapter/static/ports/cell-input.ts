@@ -1,7 +1,7 @@
 // 一句话：单元格写入端口。
 
-import type { ImportCellChunksRequest, ImportCellsRequest } from '@einfach/spreadsheet-ui-core'
-import { keyFor } from '@einfach/spreadsheet-ui-core'
+import type { ImportCellChunksRequest, ImportCellsRequest } from '@einfach-excel/spreadsheet-ui-core'
+import { keyFor } from '@einfach-excel/spreadsheet-ui-core'
 import type { StaticSpreadsheetBackend } from '../backend-contract'
 import { updateCell, updateCellRichValue } from '../cell-update'
 import { applyStateDelta } from '../history-apply'

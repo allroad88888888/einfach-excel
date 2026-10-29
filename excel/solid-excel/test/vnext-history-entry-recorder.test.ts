@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { HistoryEntry, SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
+import type { HistoryEntry, SpreadsheetBackend } from '@einfach-excel/spreadsheet-ui-core'
 
 import { createSpreadsheetBackendHandle } from '../src/provider/backend-handle'
 import { createHistoryEntryRecorder } from '../src/provider/history-entry-recorder'

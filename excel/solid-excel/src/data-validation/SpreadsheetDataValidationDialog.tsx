@@ -9,7 +9,7 @@ import {
   updateValidationRuleFormAtom,
   validationRuleEditorAtom,
   validationRuleFormAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { useT } from '../i18n'
 import { refreshVisibleProjection, useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider'
 import {
@@ -21,7 +21,7 @@ import { dataValidationRangeLabel } from './data-validation-dialog-range'
 import { ValidationRuleDialogContent } from './ValidationRuleDialogContent'
 
 if (typeof process === 'undefined' || process.env.VITEST !== 'true') {
-  void import('@einfach/spreadsheet-ui-styles/features/data-validation-dialog.css')
+  void import('@einfach-excel/spreadsheet-ui-styles/features/data-validation-dialog.css')
 }
 
 export interface SpreadsheetDataValidationDialogProps {

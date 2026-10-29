@@ -2,7 +2,7 @@
 
 import { afterEach, describe, expect, it } from 'vitest'
 import { createStore } from '@einfach/core'
-import { formatNumberValue, workbookLocaleAtom } from '@einfach/spreadsheet-ui-core'
+import { formatNumberValue, workbookLocaleAtom } from '@einfach-excel/spreadsheet-ui-core'
 import { cleanup, render, waitFor } from '@solidjs/testing-library'
 import { setLocale } from '../src/i18n'
 import { SpreadsheetUiProvider } from '../src/provider'

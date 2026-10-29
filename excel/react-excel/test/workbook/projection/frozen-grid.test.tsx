@@ -4,7 +4,7 @@ import {
   setViewportMetricsAtom,
   viewportMetricsAtom,
   type VisibleProjectionResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { projectionSnapshotBackingAtom } from '../../../../spreadsheet-ui-core/src/projection/state'
 import { viewportSizeOverridesAtom } from '../../../../spreadsheet-ui-core/src/viewport/size-overrides'
 import { act, render, screen } from '@testing-library/react'

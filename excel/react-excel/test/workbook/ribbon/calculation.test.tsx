@@ -2,10 +2,10 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { expect, test, vi } from 'vitest'
 import { createSpreadsheetUi, initializeWorkbookDocumentAtom, runVisibleProjectionAtom,
   startEditingAtom, cancelEditingAtom, type RustWorkbookConnection,
-  type VisibleProjectionRequest, type RustWorkbookCommands } from '@einfach/spreadsheet-ui-core'
+  type VisibleProjectionRequest, type RustWorkbookCommands } from '@einfach-excel/spreadsheet-ui-core'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
 import { CalculationTools } from '../../../src/workbook/chrome/ribbon/CalculationTools'
-import { SpreadsheetGrid } from '@einfach/react-cells'
+import { SpreadsheetGrid } from '@einfach-excel/react-cells'
 
 type Input = RustWorkbookCommands['formula.recalculate']['payload']
 const window = { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 1 }

@@ -1,6 +1,6 @@
 # Spreadsheet grid
 
-The Solid grid is an adapter over `@einfach/spreadsheet-ui-core`. `SpreadsheetGrid.tsx`
+The Solid grid is an adapter over `@einfach-excel/spreadsheet-ui-core`. `SpreadsheetGrid.tsx`
 is the composition root: it creates one local runtime, hydrates persisted viewport
 metadata through UI-core commands, and installs the focused controllers below.
 

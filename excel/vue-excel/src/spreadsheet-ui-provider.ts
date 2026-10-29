@@ -3,7 +3,7 @@ import {
   createSpreadsheetUi,
   type SpreadsheetBackend,
   type SpreadsheetUiCore,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { computed, defineComponent, provide, type PropType } from 'vue'
 import { SpreadsheetUiContext } from './spreadsheet-ui-context'
 

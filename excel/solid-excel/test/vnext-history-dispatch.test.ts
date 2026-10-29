@@ -4,7 +4,7 @@ import {
   historyStackAtom,
   type HistoryEntry,
   type SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 import { backendSupportsHistory, recordHistoryEntry } from '../src/provider/history-dispatch'
 

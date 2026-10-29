@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client'
-import type { RustWorkbookDefinition } from '@einfach/spreadsheet-ui-core'
+import type { RustWorkbookDefinition } from '@einfach-excel/spreadsheet-ui-core'
 
 /** 先测宿主原样式，再动态载入真实公开源码入口及其 CSS。 */
 function hostStyles() {

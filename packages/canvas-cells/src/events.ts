@@ -1,4 +1,4 @@
-import { configureNativeFilterAtom, type CellCoord } from '@einfach/spreadsheet-ui-core'
+import { configureNativeFilterAtom, type CellCoord } from '@einfach-excel/spreadsheet-ui-core'
 import type { Store } from '@einfach/core'
 import type { CellPaintModel } from './types'
 

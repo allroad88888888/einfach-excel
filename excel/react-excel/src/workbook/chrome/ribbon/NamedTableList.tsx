@@ -1,7 +1,7 @@
 import { Trans, useLingui } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useId } from 'react'
-import { nativeNameManagerAtom, runNativeNameManagerAtom } from '@einfach/spreadsheet-ui-core'
+import { nativeNameManagerAtom, runNativeNameManagerAtom } from '@einfach-excel/spreadsheet-ui-core'
 
 /** 名称管理器里的 Table 是原生目录的只读导航，不是可编辑的命名区域。 */
 export function NamedTableList() {

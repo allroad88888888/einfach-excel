@@ -3,7 +3,7 @@ import {
   type CellRange,
   type DisplayCell,
   type ViewportMetrics,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { defineComponent, h, type PropType } from 'vue'
 import { SpreadsheetGridView } from './SpreadsheetGridView'
 

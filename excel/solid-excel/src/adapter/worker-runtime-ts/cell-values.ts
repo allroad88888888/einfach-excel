@@ -8,7 +8,7 @@ import {
   type Cell,
   type ErrorCode,
   type Value,
-} from '@einfach/excel-core-ts'
+} from '@einfach-excel/excel-core-ts'
 
 import { errorDisplayToken } from '../error-display-token'
 import type {

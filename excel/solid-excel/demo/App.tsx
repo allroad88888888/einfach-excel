@@ -23,7 +23,7 @@ import './app-shell.css'
 import './navigation.css'
 import './import-toolbar.css'
 import './legacy-table.css'
-import '@einfach/spreadsheet-ui-styles/styles.css'
+import '@einfach-excel/spreadsheet-ui-styles/styles.css'
 
 interface DemoTab {
   id: string

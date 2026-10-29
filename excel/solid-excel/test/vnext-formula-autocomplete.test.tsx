@@ -9,8 +9,8 @@ import type {
   SpreadsheetBackend,
   VisibleProjectionRequest,
   VisibleProjectionResult,
-} from '@einfach/spreadsheet-ui-core'
-import { setFormulaReferenceCaretAtom, startEditingAtom } from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
+import { setFormulaReferenceCaretAtom, startEditingAtom } from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetFormulaAutocomplete } from '../src/formula-autocomplete'
 import { SpreadsheetUiProvider } from '../src/provider'
 

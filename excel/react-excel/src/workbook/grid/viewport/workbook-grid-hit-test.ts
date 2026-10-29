@@ -1,8 +1,8 @@
-import { canvasCellAt } from '@einfach/canvas-cells'
+import { canvasCellAt } from '@einfach-excel/canvas-cells'
 import {
   getAxisStartIndexAtOffset,
   type CellCoord,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react'
 
 interface WorkbookViewportPoint {

@@ -10,7 +10,7 @@ import {
   type CopyAsResult,
   type EncodeSelectionAsImageResult,
   type SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 import { mirrorCopyAsResultForE2E, writeImageCopyAsToClipboard } from './copy-as-browser-clipboard'
 import { readCopyAsImageSizeEstimate, withCopyAsHostImageRenderer } from './copy-as-image-renderer'

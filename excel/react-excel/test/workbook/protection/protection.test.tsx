@@ -2,7 +2,7 @@ import { createStore } from '@einfach/core'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { expect, test, vi } from 'vitest'
 import { initializeWorkbookDocumentAtom, beginProjectionAtom, resolveProjectionAtom,
-  setSelectionAtom, type RustWorkbookConnection } from '@einfach/spreadsheet-ui-core'
+  setSelectionAtom, type RustWorkbookConnection } from '@einfach-excel/spreadsheet-ui-core'
 import type { RustProtectionCommands } from '../../../../spreadsheet-ui-core/src/rust-workbook/protection/commands'
 import type { SheetProtectionState } from '../../../../spreadsheet-ui-core/src/protection/types'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'

@@ -1,7 +1,7 @@
 import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { nativeConditionalFormatPanelAtom, runNativeConditionalFormatAtom,
-  type ConditionalFormatThreshold } from '@einfach/spreadsheet-ui-core'
+  type ConditionalFormatThreshold } from '@einfach-excel/spreadsheet-ui-core'
 
 type Slot = 'minThreshold' | 'midThreshold' | 'maxThreshold' | 'lowerThreshold' | 'upperThreshold'
 interface Props { idPrefix: string; slot: Slot }

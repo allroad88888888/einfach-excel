@@ -1,5 +1,5 @@
 import { useAtomValue, useSetAtom } from '@einfach/react'
-import { editingSessionAtom, runSystemClipboardAtom } from '@einfach/spreadsheet-ui-core'
+import { editingSessionAtom, runSystemClipboardAtom } from '@einfach-excel/spreadsheet-ui-core'
 import type { ClipboardEvent } from 'react'
 import { clipboardToken, writeBrowserClipboard } from './browser-clipboard'
 

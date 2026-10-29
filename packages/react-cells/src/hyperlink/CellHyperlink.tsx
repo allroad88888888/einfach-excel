@@ -1,4 +1,4 @@
-import { externalHyperlink } from '@einfach/spreadsheet-ui-core'
+import { externalHyperlink } from '@einfach-excel/spreadsheet-ui-core'
 import type { ReactNode } from 'react'
 
 /** 链接外观只作用于文字；不修改原有 cellStyle，移除链接即可恢复原样。 */

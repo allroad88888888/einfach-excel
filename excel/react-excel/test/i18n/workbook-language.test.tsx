@@ -1,7 +1,7 @@
 import { createStore } from '@einfach/core'
 import {
   editingDraftAtom, editingSessionAtom, selectionSnapshotAtom, workbookRibbonTabAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, expect, test } from 'vitest'
 import { WorkbookStoreProvider } from '../../src/page/WorkbookStoreProvider'

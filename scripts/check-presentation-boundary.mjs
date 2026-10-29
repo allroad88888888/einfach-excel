@@ -65,7 +65,7 @@ function isWorkerLikeTypeImport(filePath, node) {
 function isPureRustRuntimeEntry(filePath, node, sourceFile) {
   // 唯一发行 Worker 叶只装配 Core；不能把目录或视图整体放行。
   return reactRelativePath(filePath) === 'worker/workbook.worker.ts' && !node.importClause &&
-    sourceFile.statements.length === 1 && node.moduleSpecifier.text === '@einfach/spreadsheet-ui-core/rust-runtime'
+    sourceFile.statements.length === 1 && node.moduleSpecifier.text === '@einfach-excel/spreadsheet-ui-core/rust-runtime'
 }
 
 function isConcreteDemoImport(moduleName) {
@@ -74,10 +74,10 @@ function isConcreteDemoImport(moduleName) {
 
 function isViewFrameworkModule(moduleName) {
   return (
-    moduleName === '@einfach/canvas' ||
-    moduleName === '@einfach/canvas-cells' ||
-    moduleName === '@einfach/react-cells' ||
-    moduleName.startsWith('@einfach/react-cells/') ||
+    moduleName === '@einfach-excel/canvas' ||
+    moduleName === '@einfach-excel/canvas-cells' ||
+    moduleName === '@einfach-excel/react-cells' ||
+    moduleName.startsWith('@einfach-excel/react-cells/') ||
     moduleName === 'react' ||
     moduleName.startsWith('react/') ||
     moduleName === '@einfach/react' ||
@@ -100,7 +100,7 @@ function visitReactSource(filePath, sourceFile) {
     if (ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier)) {
       const moduleName = node.moduleSpecifier.text
       if (filePath.startsWith(`${reactCellsSourceRoot}${path.sep}`) &&
-        (moduleName.startsWith('@einfach/react-excel') ||
+        (moduleName.startsWith('@einfach-excel/react-excel') ||
           moduleName.includes('react-excel/'))) {
         report(filePath, node, 'React cell 包不能反向依赖产品宿主 react-excel')
       }
@@ -108,8 +108,8 @@ function visitReactSource(filePath, sourceFile) {
         report(filePath, node, `演示站外壳不能直接依赖具体 demo：${moduleName}`)
       }
       if (
-        moduleName === '@einfach/solid-excel' ||
-        moduleName.startsWith('@einfach/solid-excel/') ||
+        moduleName === '@einfach-excel/solid-excel' ||
+        moduleName.startsWith('@einfach-excel/solid-excel/') ||
         moduleName === '@einfach/solid' ||
         moduleName.startsWith('@einfach/solid/') ||
         moduleName === 'solid-js' ||
@@ -117,12 +117,12 @@ function visitReactSource(filePath, sourceFile) {
       ) {
         report(filePath, node, `React 主线不能依赖 Solid：${moduleName}`)
       }
-      if (moduleName.includes('@einfach/spreadsheet-ui-core/rust-worker') &&
-        !(moduleName === '@einfach/spreadsheet-ui-core/rust-worker' && isWorkerLikeTypeImport(filePath, node))) {
+      if (moduleName.includes('@einfach-excel/spreadsheet-ui-core/rust-worker') &&
+        !(moduleName === '@einfach-excel/spreadsheet-ui-core/rust-worker' && isWorkerLikeTypeImport(filePath, node))) {
         report(filePath, node, 'React 不能绕过 UI Core command atoms 直接使用 Worker 传输')
       }
       if (
-        moduleName.includes('@einfach/spreadsheet-ui-core/rust-runtime') &&
+        moduleName.includes('@einfach-excel/spreadsheet-ui-core/rust-runtime') &&
         !isPureRustRuntimeEntry(filePath, node, sourceFile)
       ) {
         report(filePath, node, 'Rust runtime 只能由唯一的纯装配 Worker 叶加载')
@@ -139,7 +139,7 @@ function visitReactSource(filePath, sourceFile) {
             report(filePath, specifier, `React 表格状态不能使用 ${name}，请放入 UI Core atom`)
           }
           if (
-            moduleName.startsWith('@einfach/spreadsheet-ui-core') &&
+            moduleName.startsWith('@einfach-excel/spreadsheet-ui-core') &&
             (name === 'rustWorkbookConnectionAtom' || name === 'setRustWorkbookConnectionAtom')
           ) {
             report(filePath, specifier, 'React 视图不能直接读写 Rust connection atom')
@@ -152,8 +152,8 @@ function visitReactSource(filePath, sourceFile) {
       const callee = node.expression
       if (callee.kind === ts.SyntaxKind.ImportKeyword && ts.isStringLiteral(node.arguments[0])) {
         const moduleName = node.arguments[0].text
-        if (moduleName.includes('@einfach/spreadsheet-ui-core/rust-worker') ||
-          moduleName.includes('@einfach/spreadsheet-ui-core/rust-runtime'))
+        if (moduleName.includes('@einfach-excel/spreadsheet-ui-core/rust-worker') ||
+          moduleName.includes('@einfach-excel/spreadsheet-ui-core/rust-runtime'))
           report(filePath, node, 'React 不能动态加载 Worker 传输或 Rust runtime')
       }
       if (ts.isIdentifier(callee) && callee.text === 'atom') {

@@ -1,7 +1,7 @@
 import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { nativeConditionalFormatPanelAtom, runNativeConditionalFormatAtom,
-  type IconSetRule } from '@einfach/spreadsheet-ui-core'
+  type IconSetRule } from '@einfach-excel/spreadsheet-ui-core'
 import type { ReactElement } from 'react'
 import { ThresholdFields } from './ThresholdFields'
 

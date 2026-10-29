@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { RustImportCell } from '@einfach/spreadsheet-ui-core'
+import type { RustImportCell } from '@einfach-excel/spreadsheet-ui-core'
 import { SUMMARY_FILL_CELLS } from '../../../../src/page/demo/sales-orders/data/fill-seed'
 import { SUMMARY_CONDITIONAL_TEXT_CELLS, SUMMARY_CONDITIONAL_TEXT_RULES } from '../../../../src/page/demo/sales-orders/data/conditional-text-seed'
 import {

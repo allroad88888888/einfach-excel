@@ -6,7 +6,7 @@ import type {
   FormulaReferenceToken,
   PointerSessionState,
   SelectionState,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 export const FORMULA_REFERENCE_PALETTE = [
   '#1d6f42',

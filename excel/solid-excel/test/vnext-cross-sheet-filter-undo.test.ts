@@ -11,7 +11,7 @@ import {
   setViewportFilterHiddenRowsAtom,
   viewportFilterHiddenAtom,
   type CellRange,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 import { createStaticSpreadsheetBackend } from '../src/adapter'
 import { dispatchRedo, dispatchUndo } from '../src/provider/history-dispatch'

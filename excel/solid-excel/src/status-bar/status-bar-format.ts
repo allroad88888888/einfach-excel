@@ -5,7 +5,7 @@ import type {
   SelectionState,
   StatusBarAggregateKey,
   StatusBarInputMode,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { useT } from '../i18n'
 
 /** Pure text formatting for the status bar — no Solid, no DOM, no atoms. */

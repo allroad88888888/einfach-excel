@@ -20,8 +20,8 @@
 
 | mode | 生成命令                                        | 候选文件                                     |
 | ---- | ----------------------------------------------- | -------------------------------------------- |
-| lite | `npm run build:wasm -w @einfach/excel-wasm`     | `excel/excel-wasm/lite/einfach_wasm_bg.wasm` |
-| full | `npm run build:wasm:full -w @einfach/excel-wasm` | `excel/excel-wasm/full/einfach_wasm_bg.wasm` |
+| lite | `npm run build:wasm -w @einfach-excel/excel-wasm`     | `excel/excel-wasm/lite/einfach_wasm_bg.wasm` |
+| full | `npm run build:wasm:full -w @einfach-excel/excel-wasm` | `excel/excel-wasm/full/einfach_wasm_bg.wasm` |
 
 不要以目录是否已存在替代对应生成命令。每次记录先执行表中该 mode 的命令，再对
 该命令刚生成的精确路径采集。

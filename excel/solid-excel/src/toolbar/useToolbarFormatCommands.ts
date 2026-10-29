@@ -8,7 +8,7 @@ import {
   type SpreadsheetNumberFormat,
   type ToolbarFormatCommandInput,
   type ToolbarFormatCommandIntent,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { refreshVisibleProjection } from '../provider'
 import { formatForToolbarCommand } from './ToolbarFormatLogic'
 import type { ToolbarActionDeps } from './ToolbarActionDeps'

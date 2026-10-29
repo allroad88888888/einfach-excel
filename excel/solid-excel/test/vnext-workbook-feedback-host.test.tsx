@@ -8,7 +8,7 @@ import {
   diagnosticsAtom,
   resolveContentMutationAtom,
   setSheetProtectionAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 import {
   beginSpreadsheetWorkbookLifecycleAtom,

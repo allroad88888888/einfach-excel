@@ -9,7 +9,7 @@ import {
   DEFAULT_SHEET_TABS_STATE,
   type SheetTabsState,
   type SpreadsheetSheetMetadata,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetSheetTabOverlays } from '../src/sheet-tabs/SpreadsheetSheetTabOverlays'
 
 afterEach(cleanup)

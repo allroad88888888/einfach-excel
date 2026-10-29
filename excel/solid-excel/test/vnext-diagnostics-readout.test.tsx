@@ -8,7 +8,7 @@ import {
   rejectProjectionAtom,
   selectCellAtom,
   setClipboardErrorAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetDiagnosticsReadout } from '../src/diagnostics'
 import { SpreadsheetUiProvider } from '../src/provider'
 import { setLocale } from '../src/i18n'

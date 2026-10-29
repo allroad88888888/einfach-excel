@@ -10,7 +10,7 @@ import {
   type ProjectionStatus,
   type SpreadsheetError,
   type VisibleProjectionResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { useEffect, useMemo } from 'react'
 
 export interface UseWorkbookViewportOptions {

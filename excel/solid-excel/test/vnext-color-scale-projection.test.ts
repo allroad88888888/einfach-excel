@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import type { SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
+import type { SpreadsheetBackend } from '@einfach-excel/spreadsheet-ui-core'
 import { createWorkerWorkbookSpreadsheetBackend } from '../src/adapter'
 import { createStaticSpreadsheetBackend } from '../src/adapter/static/backend'
 import { installWorkerRuntimeTs, type WorkerContext } from '../src/adapter/worker-runtime-ts'

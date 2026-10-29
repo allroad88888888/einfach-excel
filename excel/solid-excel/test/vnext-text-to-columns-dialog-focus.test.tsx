@@ -7,8 +7,8 @@ import type {
   BackendMutationResult,
   ImportCellChunksRequest,
   SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
-import { openTextToColumnsAtom, textToColumnsOpenAtom } from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
+import { openTextToColumnsAtom, textToColumnsOpenAtom } from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetUiProvider } from '../src/provider'
 import { SpreadsheetTextToColumnsDialog } from '../src/text-to-columns'
 

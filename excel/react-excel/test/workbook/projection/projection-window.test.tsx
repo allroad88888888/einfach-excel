@@ -3,7 +3,7 @@ import {
   setViewportSizeAtom,
   visibleWindowAtom,
   viewportMetricsAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { describe, expect, it } from 'vitest'
 import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import {

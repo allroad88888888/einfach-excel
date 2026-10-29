@@ -1,7 +1,7 @@
 // 一句话：按筛选规则求出一张 sheet 的可见行序列。
 
-import type { DisplayCell, FilterSortState } from '@einfach/spreadsheet-ui-core'
-import { keyFor } from '@einfach/spreadsheet-ui-core'
+import type { DisplayCell, FilterSortState } from '@einfach-excel/spreadsheet-ui-core'
+import { keyFor } from '@einfach-excel/spreadsheet-ui-core'
 import { buildFilterSortDisplayRows as buildFilterSortDisplayRowsShared } from '../filter-predicate'
 import type { EvalCellLookup } from '../static-formula-eval'
 import { evaluateFormula, formatEvalResult } from '../static-formula-eval'

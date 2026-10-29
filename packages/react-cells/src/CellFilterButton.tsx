@@ -6,7 +6,7 @@ import {
   nativeFilterFeedbackAtom,
   nativeFilterRulesAtom,
   nativeTableFiltersAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import './cell-filter.css'
 
 /** 数据表头的入口；拦住网格拖选/编辑事件，键盘仍能正常聚焦和激活。 */

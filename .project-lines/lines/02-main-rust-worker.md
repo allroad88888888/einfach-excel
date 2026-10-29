@@ -7,9 +7,9 @@
 ## 入口（一个实例从哪开始；引 file:line）
 
 - 页面入口在 `App`：创建 backend，等待 `ready`，按 loading/error/ready 分支渲染，并在 effect 清理时 `dispose`；ready 后把 backend 注入 UI provider（`excel/react-excel/demo/App.tsx:29-76`）。
-- backend 入口只导入 `@einfach/solid-excel/worker-backend` 与 `@einfach/solid-excel/vnext-worker-runtime?worker`，worker factory 直接 `new RustWorkbookWorker()`；这里没有 TS factory/runtime 或主线程 fallback（`excel/react-excel/demo/rust-demo-backend.ts:1-2`, `excel/react-excel/demo/rust-demo-backend.ts:74-83`）。
+- backend 入口只导入 `@einfach-excel/solid-excel/worker-backend` 与 `@einfach-excel/solid-excel/vnext-worker-runtime?worker`，worker factory 直接 `new RustWorkbookWorker()`；这里没有 TS factory/runtime 或主线程 fallback（`excel/react-excel/demo/rust-demo-backend.ts:1-2`, `excel/react-excel/demo/rust-demo-backend.ts:74-83`）。
 - 包子路径把 `worker-backend` 指到中性 adapter，把 `vnext-worker-runtime` 指到 lite WASM 叶子入口；二者是 React demo 构建不可缺的跨包入口（`excel/solid-excel/package.json:39-49`）。
-- lite 叶子静态导入 `@einfach/excel-wasm` 后把模块交给共享 dispatcher（`excel/solid-excel/src/adapter/worker-runtime.ts:3-16`, `excel/solid-excel/src/adapter/worker-runtime.ts:31`）；host 在 init 后创建唯一 `WasmWorkbook`（`excel/solid-excel/src/adapter/worker-workbook-host.ts:27-58`）。
+- lite 叶子静态导入 `@einfach-excel/excel-wasm` 后把模块交给共享 dispatcher（`excel/solid-excel/src/adapter/worker-runtime.ts:3-16`, `excel/solid-excel/src/adapter/worker-runtime.ts:31`）；host 在 init 后创建唯一 `WasmWorkbook`（`excel/solid-excel/src/adapter/worker-workbook-host.ts:27-58`）。
 
 ## 数据怎么走（逐步；每步引 file:line）
 
@@ -61,8 +61,8 @@
 ### 另一类（同目录、不同机制）
 
 - `worker-factory.ts` 是通用宿主入口：默认 factory 仍启动 lite WASM；它同时提供 TS factory，二者共享 wire/backend，但这不等于 React demo 可混用（`excel/solid-excel/src/adapter/worker-factory.ts:23-39`）。
-- TS worker 是真实、受测的另一引擎实现，不是本主线漂移：专用 entry 安装 `worker-runtime-ts`，后者有自己的 state/dispatch，并明确依赖 `@einfach/excel-core-ts`（`excel/solid-excel/src/adapter/worker-entry-ts.ts:4-16`, `excel/solid-excel/src/adapter/worker-runtime-ts.ts:3-32`, `excel/solid-excel/src/adapter/worker-runtime-ts.ts:93-140`）。
-- full WASM 也是 Rust 的显式 opt-in 变体：与 lite 共用 dispatcher，但静态 import `@einfach/excel-wasm/full`，不能由 barrel/factory 隐式拉入（`excel/solid-excel/src/adapter/worker-runtime-full.ts:3-21`）。
+- TS worker 是真实、受测的另一引擎实现，不是本主线漂移：专用 entry 安装 `worker-runtime-ts`，后者有自己的 state/dispatch，并明确依赖 `@einfach-excel/excel-core-ts`（`excel/solid-excel/src/adapter/worker-entry-ts.ts:4-16`, `excel/solid-excel/src/adapter/worker-runtime-ts.ts:3-32`, `excel/solid-excel/src/adapter/worker-runtime-ts.ts:93-140`）。
+- full WASM 也是 Rust 的显式 opt-in 变体：与 lite 共用 dispatcher，但静态 import `@einfach-excel/excel-wasm/full`，不能由 barrel/factory 隐式拉入（`excel/solid-excel/src/adapter/worker-runtime-full.ts:3-21`）。
 
 ### 漂移 / 遗留（少、晚、不合形状——引用并说明；是「别模仿」不是「删」）
 

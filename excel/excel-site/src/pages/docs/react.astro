@@ -23,12 +23,12 @@ import { sitePath } from '../../data/site-path'
     <pre><code>{`git clone https://github.com/allroad88888888/einfach-excel.git
 cd einfach-excel
 pnpm install
-pnpm --filter @einfach/react-excel dev`}</code></pre>
+pnpm --filter @einfach-excel/react-excel dev`}</code></pre>
     <p>The development server listens on <code>http://127.0.0.1:5183</code>.</p>
 
     <h2>2. Follow the Rust-only runtime</h2>
     <p>
-      The application creates its backend from <code>@einfach/solid-excel/vnext-worker-runtime?worker</code>.
+      The application creates its backend from <code>@einfach-excel/solid-excel/vnext-worker-runtime?worker</code>.
       Workbook reads and acknowledged edits cross the worker boundary into Rust/WASM; there is no TypeScript engine,
       static backend, or runtime fallback.
     </p>
@@ -42,9 +42,9 @@ pnpm --filter @einfach/react-excel dev`}</code></pre>
     <p>Press Escape to cancel an edit without writing it.</p>
 
     <h2>4. Verify the product</h2>
-    <pre><code>{`pnpm --filter @einfach/react-excel typecheck
-pnpm --filter @einfach/react-excel build
-pnpm --filter @einfach/react-excel test`}</code></pre>
+    <pre><code>{`pnpm --filter @einfach-excel/react-excel typecheck
+pnpm --filter @einfach-excel/react-excel build
+pnpm --filter @einfach-excel/react-excel test`}</code></pre>
 
     <h2>5. Read the product source</h2>
     <div class="docs-guide-next">

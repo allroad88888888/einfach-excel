@@ -3,8 +3,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
-import type { SpreadsheetBackend, VerifySheetProtectionPort } from '@einfach/spreadsheet-ui-core'
-import { openProtectionUnlockAtom, setSheetProtectionAtom } from '@einfach/spreadsheet-ui-core'
+import type { SpreadsheetBackend, VerifySheetProtectionPort } from '@einfach-excel/spreadsheet-ui-core'
+import { openProtectionUnlockAtom, setSheetProtectionAtom } from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetUiProvider } from '../src/provider'
 import { SpreadsheetProtectionUnlockDialog } from '../src/protection'
 

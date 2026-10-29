@@ -6,7 +6,7 @@ import type {
   ConditionalFormatEditorDraft,
   ConditionalFormatEditorDraftUpdate,
   DataBarRule,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 interface ColorRuleFieldsProps {
   readonly draft: Accessor<ConditionalFormatEditorDraft | null>

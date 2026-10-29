@@ -1,18 +1,18 @@
 /** @vitest-environment node */
 
 import { beforeAll, describe, expect, vi, test } from 'vitest'
-import { DEFAULT_PRINT_CONFIG, type PrintConfig } from '@einfach/spreadsheet-ui-core'
+import { DEFAULT_PRINT_CONFIG, type PrintConfig } from '@einfach-excel/spreadsheet-ui-core'
 import type {
   WorkerLike,
   WorkerWorkbookClient,
   WorkerWorkbookSpreadsheetBackend,
 } from '../src/adapter'
 
-vi.mock('@einfach/excel-wasm', async () => {
+vi.mock('@einfach-excel/excel-wasm', async () => {
   /* eslint-disable @typescript-eslint/no-var-requires */
   const { readFileSync } = await import('node:fs')
   const nodePath = await import('node:path')
-  const real = await vi.importActual('@einfach/excel-wasm') as {
+  const real = await vi.importActual('@einfach-excel/excel-wasm') as {
     initSync: (input: { module: ArrayBufferLike }) => unknown
     WasmWorkbook: unknown
   }

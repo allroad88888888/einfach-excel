@@ -6,7 +6,7 @@
 
 ```mermaid
 flowchart TB
-    subgraph UI["@einfach/spreadsheet-ui-core（无头：atom + 类型 + 投影契约）"]
+    subgraph UI["@einfach-excel/spreadsheet-ui-core（无头：atom + 类型 + 投影契约）"]
         ATOMS[UI 状态 atoms<br/>选区 / 编辑 / 历史 / 视口]
         PROJ[有界投影<br/>projectionSnapshotAtom]
         CMD[命令层<br/>只调用存在的端口]

@@ -8,7 +8,7 @@ import type {
   SpreadsheetBackend,
   VisibleProjectionRequest,
   VisibleProjectionResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   addSelectionRegionAtom,
   clipboardStateAtom,
@@ -19,7 +19,7 @@ import {
   setFreezeConfigAtom,
   setSelectionAtom,
   visibleWindowAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetGrid } from '../src/grid'
 import {
   OverlayRenderer,

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { SpreadsheetUiProvider } from '@einfach/vue-excel'
+import { SpreadsheetUiProvider } from '@einfach-excel/vue-excel'
 import VueAdapterDemoGrid from './VueAdapterDemoGrid.vue'
 import { vueDemoBackend, vueDemoStore } from './vue-adapter-demo-projection'
 

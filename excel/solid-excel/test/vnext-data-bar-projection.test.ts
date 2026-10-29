@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import type { SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
+import type { SpreadsheetBackend } from '@einfach-excel/spreadsheet-ui-core'
 import { createWorkerWorkbookSpreadsheetBackend } from '../src/adapter'
 import { dataBarProjection, getDataBarProjection } from '../src/adapter/data-bar-projection'
 import { createStaticSpreadsheetBackend } from '../src/adapter/static/backend'

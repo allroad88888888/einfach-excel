@@ -9,7 +9,7 @@ import {
   setViewportRowHeightAtom,
   startPointerAtom,
   updatePointerAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { reportCommandFailure } from '../provider/command-failure'
 import { clampDimension } from './grid-auto-fit'
 import type { GridAutoFitControllerApi } from './grid-auto-fit-controller'

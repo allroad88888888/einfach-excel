@@ -10,7 +10,7 @@ import type {
   RemoveConditionalFormatRuleRequest,
   SetConditionalFormatRuleRequest,
   SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   conditionalFormatEditorAtom,
   conditionalFormatRulesCacheAtom,
@@ -18,7 +18,7 @@ import {
   openConditionalFormatEditorAtom,
   runConditionalFormatMutationAtom,
   workspaceSessionAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetConditionalFormatDialog } from '../src/conditional-formatting'
 import { SpreadsheetUiProvider } from '../src/provider'
 

@@ -6,7 +6,7 @@ import {
   cancelPointerAtom,
   setViewportColumnWidthAtom,
   setViewportRowHeightAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { reportCommandFailure } from '../provider/command-failure'
 import { clampDimension, measureAutoFitHeight, measureAutoFitWidth } from './grid-auto-fit'
 import { installGridFeature, type GridRuntimeBase } from './grid-runtime'

@@ -12,14 +12,14 @@ import type {
   UnhideRowsRequest,
   ViewportSizeProjectionRequest,
   VisibleProjectionRequest,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   hideRowsAtom,
   selectColumnsAtom,
   selectRowsAtom,
   selectionAtom,
   viewportHiddenAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetContextMenu } from '../src/context-menu'
 import { SpreadsheetGrid } from '../src/grid'
 import { SpreadsheetUiProvider } from '../src/provider'

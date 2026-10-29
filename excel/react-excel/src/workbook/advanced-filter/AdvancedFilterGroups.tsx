@@ -3,7 +3,7 @@ import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   configureAdvancedFilterAtom, configureNativeFilterAtom, nativeAdvancedFilterGroupsAtom,
   nativeFilterFeedbackAtom, nativeFilterPanelAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { FilterConditionFields } from '../chrome/ribbon/FilterConditionFields'
 import './advanced-filter.css'
 

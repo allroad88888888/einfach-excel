@@ -20,7 +20,7 @@ import {
   type StatusBarAggregateConfig,
   type StatusBarAggregateKey,
   type StatusBarInputMode,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 import { useT } from '../i18n'
 import { StatusBarAggregateMenu } from './StatusBarAggregateMenu'

@@ -11,7 +11,7 @@ import {
   viewportGeometrySizesAtom,
   projectedFreezeAtom,
   type WorkbookDocumentSheet,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { CSSProperties } from 'react'
 import { useWorkbookViewport, type WorkbookViewport } from '../../projection/use-workbook-viewport'
 import { CellRenderer } from './CellRenderer'

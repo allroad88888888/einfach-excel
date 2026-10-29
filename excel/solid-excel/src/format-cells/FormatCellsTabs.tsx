@@ -1,7 +1,7 @@
 /** @jsxImportSource solid-js */
 
 import { For, type Accessor } from 'solid-js'
-import type { FormatCellsTabId } from '@einfach/spreadsheet-ui-core'
+import type { FormatCellsTabId } from '@einfach-excel/spreadsheet-ui-core'
 import { FORMAT_CELLS_TABS } from './format-cells-config'
 
 interface FormatCellsTabsProps {

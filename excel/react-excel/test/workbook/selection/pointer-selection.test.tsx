@@ -4,7 +4,7 @@ import {
   pointerSessionAtom,
   selectionSnapshotAtom,
   setSelectionBoundsAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { describe, expect, it } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
 import type { PointerEvent as ReactPointerEvent } from 'react'

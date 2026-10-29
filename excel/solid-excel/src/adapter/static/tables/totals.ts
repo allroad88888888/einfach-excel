@@ -1,7 +1,7 @@
 // 一句话：Table 汇总行单元格的写入。
 
-import type { CellRange, TableTotalsFunction } from '@einfach/spreadsheet-ui-core'
-import { keyFor } from '@einfach/spreadsheet-ui-core'
+import type { CellRange, TableTotalsFunction } from '@einfach-excel/spreadsheet-ui-core'
+import { keyFor } from '@einfach-excel/spreadsheet-ui-core'
 import { updateCell } from '../cell-update'
 import { recordCellBefore } from '../history-record'
 import type { StaticBackendState, StaticTableEntry } from '../state'

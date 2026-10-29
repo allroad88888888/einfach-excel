@@ -3,7 +3,7 @@ import {
   SPILL_PROJECTION_LOOKBACK,
   type Cell,
   type CellRange,
-} from '@einfach/excel-core-ts'
+} from '@einfach-excel/excel-core-ts'
 
 import type { CellSnapshotWire, SparseCellWire, SparseRangeWire } from '../worker-protocol'
 import { readCellSnapshot, readCellValue, readSparseCell } from './cell-values'

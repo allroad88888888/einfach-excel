@@ -6,7 +6,7 @@ import {
   activeWorkbookSheetAtom, editingSessionAtom, nativeNameManagerAtom, nativeNamedRangesAtom,
   projectionSnapshotAtom, runNativeNameManagerAtom, nativeNameManagerOpenAtom,
   workbookDocumentAtom, rangeToA1,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { cycleDialogFocus } from './dialog-focus'
 import { NamedTableList } from './NamedTableList'
 import './named-range-panel.css'

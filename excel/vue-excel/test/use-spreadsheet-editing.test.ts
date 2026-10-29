@@ -1,5 +1,5 @@
 import { createStore, type Store } from '@einfach/core'
-import { editingSessionAtom, type SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
+import { editingSessionAtom, type SpreadsheetBackend } from '@einfach-excel/spreadsheet-ui-core'
 import { describe, expect, it } from 'vitest'
 import { createApp, defineComponent, h, nextTick } from 'vue'
 import { SpreadsheetUiProvider } from '../src/spreadsheet-ui-provider'

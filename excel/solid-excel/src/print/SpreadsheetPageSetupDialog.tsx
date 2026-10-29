@@ -13,12 +13,12 @@ import {
   runPageSetupSaveAtom,
   updatePageSetupDraftAtom,
   type PrintScale,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { useOverlayInteraction } from '../overlay'
 import { useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider'
 
 if (typeof process === 'undefined' || process.env.VITEST !== 'true') {
-  void import('@einfach/spreadsheet-ui-styles/features/page-setup-dialog.css')
+  void import('@einfach-excel/spreadsheet-ui-styles/features/page-setup-dialog.css')
 }
 
 const PAGE_SETUP_DIALOG_TITLE_ID = 'spreadsheet-page-setup-title'

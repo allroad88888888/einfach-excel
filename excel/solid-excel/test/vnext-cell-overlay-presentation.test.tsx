@@ -2,7 +2,7 @@
 
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, render } from '@solidjs/testing-library'
-import type { DisplayCell } from '@einfach/spreadsheet-ui-core'
+import type { DisplayCell } from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetCellDisplayValue } from '../src/grid/SpreadsheetCellDisplayValue'
 
 afterEach(cleanup)

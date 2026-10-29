@@ -1,1 +1,1 @@
-export * from '@einfach/spreadsheet-ui-core/rust-worker/adapter/worker-runtime-resources'
+export * from '@einfach-excel/spreadsheet-ui-core/rust-worker/adapter/worker-runtime-resources'

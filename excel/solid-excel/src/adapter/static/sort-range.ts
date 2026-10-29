@@ -6,8 +6,8 @@ import type {
   SortRangeRejectionCode,
   SortRangeRequest,
   SortRangeResult,
-} from '@einfach/spreadsheet-ui-core'
-import { cloneRange, keyFor, normalizeRange, rangesIntersect } from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
+import { cloneRange, keyFor, normalizeRange, rangesIntersect } from '@einfach-excel/spreadsheet-ui-core'
 import { MAX_SORT_SOURCE_CELLS, planPhysicalSort } from '../sort-order'
 import type { EvalCellLookup } from '../static-formula-eval'
 import { evalHiddenRowsForSheet, filterHiddenRowsForSheet } from './hidden-rows'

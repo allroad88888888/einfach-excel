@@ -7,7 +7,7 @@ import {
   setWorkspaceActiveSheetAtom,
   unregisterCustomFormulaAtom,
   workspaceSessionAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { useSpreadsheetUiStore } from '../provider'
 import { WorkerLazyProbeLogger } from './WorkerLazyProbeLogger'
 import { WorkerWorkbookHost } from './WorkerWorkbookHost'

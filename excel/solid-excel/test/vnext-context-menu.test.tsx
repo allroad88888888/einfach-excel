@@ -19,7 +19,7 @@ import type {
   SetCellInputRequest,
   SpreadsheetBackend,
   VisibleProjectionRequest,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   clipboardStateAtom,
   diagnosticsAtom,
@@ -31,7 +31,7 @@ import {
   setSheetProtectionAtom,
   structureOperationLifecycleAtom,
   viewportFreezeAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetContextMenu } from '../src/context-menu'
 import { spreadsheetProjectionSnapshotAtom, SpreadsheetUiProvider } from '../src/provider'
 import { seedReadyVisibleProjection } from './projection-test-fixture'

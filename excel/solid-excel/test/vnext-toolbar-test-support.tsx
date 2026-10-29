@@ -11,7 +11,7 @@ import type {
   UnmergeRangeRequest,
   VisibleProjectionResult,
   VisibleProjectionRequest,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   beginProjectionAtom,
   findReplaceOpenAtom,
@@ -26,7 +26,7 @@ import {
   toolbarActiveSurfaceAtom,
   toolbarIntentAtom,
   toolbarMutationLifecycleAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { setLocale } from '../src/i18n'
 import { SpreadsheetFormatCellsDialog, numberFormatDialogAtom } from '../src/format-cells'
 import { SpreadsheetUiProvider, spreadsheetProjectionSnapshotAtom } from '../src/provider'

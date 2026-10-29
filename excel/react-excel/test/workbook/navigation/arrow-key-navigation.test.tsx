@@ -1,7 +1,7 @@
 import {
   selectionSnapshotAtom,
   viewportMetricsAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { describe, expect, it } from 'vitest'
 import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { WORKBOOK_GRID_ROW_HEIGHT } from '../../../src/workbook/grid/viewport/workbook-grid-config'

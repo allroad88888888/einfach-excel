@@ -1,9 +1,9 @@
-# @einfach/canvas-demo
+# @einfach-excel/canvas-demo
 
-Vite + TypeScript 的 Canvas demo 包，使用 `@einfach/canvas` 与 `@einfach/core`。
+Vite + TypeScript 的 Canvas demo 包，使用 `@einfach-excel/canvas` 与 `@einfach/core`。
 
 ```sh
-pnpm --filter @einfach/canvas-demo dev
+pnpm --filter @einfach-excel/canvas-demo dev
 ```
 
 打开 http://127.0.0.1:5180 。每个页面的显示区只有一张 Canvas，cell 均由 Canvas 2D 绘制。导航、操作按钮和诊断面板是普通 HTML，属于 demo 外壳。
@@ -15,8 +15,8 @@ pnpm --filter @einfach/canvas-demo dev
 Vite 将包入口指向相邻 `packages/canvas` 源码，基础包修改直接热更新。每个 demo 独占 store，页面切换清理画布和订阅；网格隐藏只销毁 cell，区域销毁后清空其 store。
 
 ```sh
-pnpm --filter @einfach/canvas-demo build
-pnpm --filter @einfach/canvas-demo test:e2e
+pnpm --filter @einfach-excel/canvas-demo build
+pnpm --filter @einfach-excel/canvas-demo test:e2e
 ```
 
-浏览器测试使用 5181 端口访问生产构建，检查真实 Canvas 像素、绘制命令和生命周期。首次运行需要 `pnpm --filter @einfach/canvas-demo exec playwright install chromium`。截图在 `test-results`。
+浏览器测试使用 5181 端口访问生产构建，检查真实 Canvas 像素、绘制命令和生命周期。首次运行需要 `pnpm --filter @einfach-excel/canvas-demo exec playwright install chromium`。截图在 `test-results`。

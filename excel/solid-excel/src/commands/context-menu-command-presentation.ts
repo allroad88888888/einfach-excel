@@ -1,4 +1,4 @@
-import type { MenuCommandKind, MenuTarget, MenuTargetKind } from '@einfach/spreadsheet-ui-core'
+import type { MenuCommandKind, MenuTarget, MenuTargetKind } from '@einfach-excel/spreadsheet-ui-core'
 
 import type { CommandAvailability, ResolvedCommand } from './command-shell'
 

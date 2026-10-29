@@ -1,6 +1,6 @@
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { clearSelectionAtom, editingSessionAtom,
-  selectionMutationFeedbackAtom } from '@einfach/spreadsheet-ui-core'
+  selectionMutationFeedbackAtom } from '@einfach-excel/spreadsheet-ui-core'
 import { msg } from '@lingui/core/macro'
 import { useLingui } from '@lingui/react/macro'
 

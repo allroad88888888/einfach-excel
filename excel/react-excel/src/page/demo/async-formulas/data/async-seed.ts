@@ -1,4 +1,4 @@
-import type { RustImportCell } from '@einfach/spreadsheet-ui-core'
+import type { RustImportCell } from '@einfach-excel/spreadsheet-ui-core'
 
 /** Public same-origin JSON examples are evaluated by Rust; no result is copied into the UI. */
 export const ASYNC_FORMULA_CELLS: readonly RustImportCell[] = [

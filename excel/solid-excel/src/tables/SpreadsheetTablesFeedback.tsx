@@ -4,7 +4,7 @@ import {
   lastCreatedTableNameAtom,
   lastToggledTableTotalsAtom,
   tableDiagnosticAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { Show } from 'solid-js'
 
 export interface SpreadsheetTablesFeedbackProps {

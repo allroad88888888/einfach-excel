@@ -8,7 +8,7 @@ import {
   snapshotWorkbookPrintConfigs,
   type PrintConfigSnapshot,
   type Workbook,
-} from '@einfach/excel-core-ts'
+} from '@einfach-excel/excel-core-ts'
 import type { PrintConfigSnapshotWire } from './worker-protocol'
 
 export interface PrintConfigSheet {

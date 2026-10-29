@@ -1,6 +1,6 @@
 // 一句话：按序列种类挑出「相对序号 → 值」的取值函数。
 
-import type { DisplayCell, FillSeriesRequest } from '@einfach/spreadsheet-ui-core'
+import type { DisplayCell, FillSeriesRequest } from '@einfach-excel/spreadsheet-ui-core'
 import {
   BUILTIN_FILL_SERIES_MONTH_LONG_NAMES,
   BUILTIN_FILL_SERIES_MONTH_NAMES,
@@ -16,7 +16,7 @@ import {
   isFillSeriesInteger,
   normalizeCustomFillSeriesListWitness,
   parseFillSeriesTextNumber,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { invalidFillSeries } from './fill-series-geometry'
 import { readCanonicalFillSeriesText, readCanonicalFillSeriesValue } from './fill-series-source'
 import {

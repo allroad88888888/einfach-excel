@@ -4,7 +4,7 @@ import {
   formulaReferenceSessionAtom,
   pickFormulaReferenceAtom,
   type CellCoord,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 export interface FormulaReferencePointerSessionOptions {
   readonly event: PointerEvent

@@ -5,7 +5,7 @@ import {
   resizeDragAtom,
   viewportGeometrySizesAtom,
   viewportMetricsAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { WORKBOOK_GRID_ROW_HEADER_WIDTH, WORKBOOK_GRID_ROW_HEIGHT } from './workbook-grid-config'
 
 /** 参考线放在统一视口，避免被普通／冻结表头的容器裁掉。 */

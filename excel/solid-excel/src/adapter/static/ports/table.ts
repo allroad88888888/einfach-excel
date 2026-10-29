@@ -11,8 +11,8 @@ import type {
   RenameTableColumnRequest,
   RenameTableRequest,
   TableMutationResult,
-} from '@einfach/spreadsheet-ui-core'
-import { cloneRange, normalizeRange, rangesIntersect } from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
+import { cloneRange, normalizeRange, rangesIntersect } from '@einfach-excel/spreadsheet-ui-core'
 import type { StaticSpreadsheetBackend } from '../backend-contract'
 import { tableRejected } from '../mutation-result'
 import { bumpRevision } from '../revision'

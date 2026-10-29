@@ -8,7 +8,7 @@ import {
   viewportSizeOverridesAtom,
   type RustWorkbookConnection,
   type VisibleProjectionRequest,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   sheetHiddenRowsBackingAtom,
   viewportHiddenColsBackingAtom,
@@ -16,7 +16,7 @@ import {
 import { act, render, screen } from '@testing-library/react'
 import { expect, test } from 'vitest'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
-import { MergedCells } from '@einfach/react-cells'
+import { MergedCells } from '@einfach-excel/react-cells'
 
 async function setup(bordered = false, hidden = false) {
   const request = (async (_command: string, input: { request: VisibleProjectionRequest }) => ({

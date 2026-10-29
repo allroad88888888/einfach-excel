@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createRangeProjectionRequest, type DisplayCell } from '@einfach/spreadsheet-ui-core'
+import { createRangeProjectionRequest, type DisplayCell } from '@einfach-excel/spreadsheet-ui-core'
 import { createStaticSpreadsheetBackend } from '../src/adapter'
 
 // Pins the static-backend structural remap of merge ranges and freeze

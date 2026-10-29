@@ -6,8 +6,8 @@
 
 ```text
 excel/react-excel
-  → @einfach/spreadsheet-ui-core
-  → Rust Worker / @einfach/excel-wasm
+  → @einfach-excel/spreadsheet-ui-core
+  → Rust Worker / @einfach-excel/excel-wasm
   → einfach-excel-core
 ```
 
@@ -52,7 +52,7 @@ DOM 事件 → 一个 UI Core command atom → 一次 Rust 请求 → 发布结�
 ```bash
 pnpm install
 npm run ensureWasm
-pnpm --filter @einfach/react-excel dev
+pnpm --filter @einfach-excel/react-excel dev
 ```
 
 Vite 输出的本地地址就是当前 demo。
@@ -62,8 +62,8 @@ Vite 输出的本地地址就是当前 demo。
 ```bash
 pnpm check:presentation
 pnpm typecheck:mainline
-pnpm --filter @einfach/react-excel test
-pnpm --filter @einfach/react-excel build
+pnpm --filter @einfach-excel/react-excel test
+pnpm --filter @einfach-excel/react-excel build
 pnpm check:cycles
 ```
 

@@ -6,7 +6,7 @@ import {
   keyboardModeAtom,
   startEditingAtom,
   syncFormulaReferenceCaret,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 describe('vNext formula-reference state bridge', () => {
   it('routes a DOM caret update through UI-core and enters reference mode', () => {

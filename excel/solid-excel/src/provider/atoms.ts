@@ -8,7 +8,7 @@ import {
   type ProjectionSnapshot,
   type SpreadsheetBackend,
   type VisibleProjectionResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 /**
  * @deprecated Workbook ports are runtime context, never Atom state. Use

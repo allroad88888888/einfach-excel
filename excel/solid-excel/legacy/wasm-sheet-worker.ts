@@ -26,7 +26,7 @@
 //                    - once per `read_initial` request (cache hydration
 //                      for ad-hoc reads without a permanent subscription).
 
-import init, { WasmSheet } from '@einfach/excel-wasm'
+import init, { WasmSheet } from '@einfach-excel/excel-wasm'
 
 const ctx = self as unknown as DedicatedWorkerGlobalScope
 

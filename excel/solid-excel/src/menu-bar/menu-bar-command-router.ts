@@ -1,4 +1,4 @@
-import { type MenuItemDispatch } from '@einfach/spreadsheet-ui-core'
+import { type MenuItemDispatch } from '@einfach-excel/spreadsheet-ui-core'
 import { dispatchMenuBarDataCommand } from './menu-bar-command-data'
 import type { MenuBarCommandContext } from './menu-bar-command-context'
 import { dispatchMenuBarEditCommand } from './menu-bar-command-edit'

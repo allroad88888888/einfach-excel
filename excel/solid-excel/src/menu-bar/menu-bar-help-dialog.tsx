@@ -1,6 +1,6 @@
 import { For, Show } from 'solid-js'
 import { useT } from '../i18n'
-import '@einfach/spreadsheet-ui-styles/features/menu-help-dialog.css'
+import '@einfach-excel/spreadsheet-ui-styles/features/menu-help-dialog.css'
 
 interface MenuBarHelpDialogProps {
   kind: 'closed' | 'shortcuts' | 'about'

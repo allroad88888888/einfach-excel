@@ -6,8 +6,8 @@ const directory = path.dirname(fileURLToPath(import.meta.url))
 export default defineConfig({
   resolve: {
     alias: {
-      '@einfach/canvas': path.resolve(directory, '../canvas/src/index.ts'),
-      '@einfach/spreadsheet-ui-core': path.resolve(directory, '../../excel/spreadsheet-ui-core/src'),
+      '@einfach-excel/canvas': path.resolve(directory, '../canvas/src/index.ts'),
+      '@einfach-excel/spreadsheet-ui-core': path.resolve(directory, '../../excel/spreadsheet-ui-core/src'),
     },
   },
   test: {

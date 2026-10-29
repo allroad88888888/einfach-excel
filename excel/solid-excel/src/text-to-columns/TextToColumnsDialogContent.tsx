@@ -8,7 +8,7 @@ import type {
   TextToColumnsLifecycleState,
   TextToColumnsPreviewRow,
   TextToColumnsWizardState,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { TextToColumnsWizardSteps } from './TextToColumnsWizardSteps'
 
 interface TextToColumnsDialogContentProps {

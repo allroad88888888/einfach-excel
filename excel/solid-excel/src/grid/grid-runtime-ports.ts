@@ -1,4 +1,4 @@
-import type { CellRange, DisplayCell } from '@einfach/spreadsheet-ui-core'
+import type { CellRange, DisplayCell } from '@einfach-excel/spreadsheet-ui-core'
 
 /** Narrow feature dependencies that avoid coupling installers to the composed host. */
 export interface GridFocusPort {

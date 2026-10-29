@@ -7,7 +7,7 @@ import {
   setWorkspaceActiveSheetAtom,
   workspaceSessionAtom,
   type ViewportMetrics,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { defaultExcelCoreTsWorkerFactory } from '../adapter/worker-factory'
 import {
   createWorkerNamedRangeCapabilityPort,
@@ -43,7 +43,7 @@ import { SpreadsheetUiProvider, useSpreadsheetUiStore } from '../provider'
 
 /**
  * Wave D demo — same vnext UI surface as `VNextWorkerDemo` but backed by
- * the TypeScript core (`@einfach/excel-core-ts`) running inside a dedicated
+ * the TypeScript core (`@einfach-excel/excel-core-ts`) running inside a dedicated
  * worker bundle. The wire protocol is identical to the WASM worker, so
  * `createWorkerWorkbookSpreadsheetBackend` drives both — only the
  * `workerFactory` argument differs.
@@ -200,7 +200,7 @@ export function SpreadsheetTsWorkerDemo() {
       <div class="demo-header">
         <h3>vNext Worker Spreadsheet — TS core</h3>
         <p class="demo-desc" data-testid="vnext-worker-ts-banner">
-          vNext UI backed by <code>@einfach/excel-core-ts</code> (the TypeScript port of the Rust
+          vNext UI backed by <code>@einfach-excel/excel-core-ts</code> (the TypeScript port of the Rust
           formula engine) running inside a dedicated worker. Toggle via <code>?backend=ts</code> in
           the URL.
         </p>

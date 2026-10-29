@@ -38,7 +38,7 @@ import type {
   DisplayCell,
   RangeTsvExportRequest,
   SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 // ---------------------------------------------------------------------------
 // The pure band filter

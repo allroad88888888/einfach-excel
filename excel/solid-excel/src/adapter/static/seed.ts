@@ -1,13 +1,13 @@
 // 一句话：把种子输入规范成一份初始 StaticBackendState。
 
-import { excelGeneralToText, PrintConfigRegistry } from '@einfach/excel-core-ts'
+import { excelGeneralToText, PrintConfigRegistry } from '@einfach-excel/excel-core-ts'
 import type {
   DisplayCell,
   ProjectionRevision,
   SpreadsheetCellFormat,
   SpreadsheetSheetMetadata,
-} from '@einfach/spreadsheet-ui-core'
-import { cloneCell, keyFor, normalizeFormat } from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
+import { cloneCell, keyFor, normalizeFormat } from '@einfach-excel/spreadsheet-ui-core'
 import type {
   StaticSeedCells,
   StaticSeedMatrix,

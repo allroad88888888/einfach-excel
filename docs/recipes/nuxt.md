@@ -2,9 +2,9 @@
 
 > 事实来源：`docs/AD141_NUXT_SMOKE_OBSERVATION.md`（2026-08-17 仓外冒烟，通过）
 > 及该冒烟工程的实际代码。
-> **硬边界先说**：Nuxt 挂载不了 Solid 组件，`@einfach/solid-excel` 在 Nuxt 里只验证过
-> 「能安装解析」，不渲染。可用的是三个框架中立包：`@einfach/excel-core-ts`、
-> `@einfach/excel-wasm`、`@einfach/spreadsheet-ui-core`（SSR 构建 + 客户端运行均实跑）。
+> **硬边界先说**：Nuxt 挂载不了 Solid 组件，`@einfach-excel/solid-excel` 在 Nuxt 里只验证过
+> 「能安装解析」，不渲染。可用的是三个框架中立包：`@einfach-excel/excel-core-ts`、
+> `@einfach-excel/excel-wasm`、`@einfach-excel/spreadsheet-ui-core`（SSR 构建 + 客户端运行均实跑）。
 
 ## 依赖清单（冒烟实测版本）
 
@@ -12,17 +12,17 @@
 // package.json
 {
   "dependencies": {
-    "@einfach/spreadsheet-ui-core": "0.1.0",
-    "@einfach/excel-core-ts": "0.1.0",
-    "@einfach/excel-wasm": "0.1.0",
+    "@einfach-excel/spreadsheet-ui-core": "0.1.0",
+    "@einfach-excel/excel-core-ts": "0.1.0",
+    "@einfach-excel/excel-wasm": "0.1.0",
     "nuxt": "^3.17.0",             // 实测 3.21.11，内置 vite 7.3.6
     "vue": "^3.5.0"
   }
 }
 ```
 
-只要这三个中立包的话 `@einfach/solid-excel` / `solid-js` /
-`@einfach/spreadsheet-ui-styles` 不必装。Node >= 22.12.0。
+只要这三个中立包的话 `@einfach-excel/solid-excel` / `solid-js` /
+`@einfach-excel/spreadsheet-ui-styles` 不必装。Node >= 22.12.0。
 
 ## 完整配置
 
@@ -41,17 +41,17 @@ export default defineNuxtConfig({
 
 | 包 | 哪边能跑 | 写法 |
 | --- | --- | --- |
-| `@einfach/excel-core-ts` | **SSR + 客户端**（冒烟里两边各求值一次都得 43） | `<script setup>` 顶层同步调用 |
-| `@einfach/excel-wasm` | **只能客户端** | `onMounted` 里动态 `import` + `await mod.default()`；结果段包 `<ClientOnly>` |
-| `@einfach/spreadsheet-ui-core` | SSR + 客户端均可加载 | `<script setup>` 顶层 |
-| `@einfach/solid-excel` | 不挂载 | 不 import 组件 |
+| `@einfach-excel/excel-core-ts` | **SSR + 客户端**（冒烟里两边各求值一次都得 43） | `<script setup>` 顶层同步调用 |
+| `@einfach-excel/excel-wasm` | **只能客户端** | `onMounted` 里动态 `import` + `await mod.default()`；结果段包 `<ClientOnly>` |
+| `@einfach-excel/spreadsheet-ui-core` | SSR + 客户端均可加载 | `<script setup>` 顶层 |
+| `@einfach-excel/solid-excel` | 不挂载 | 不 import 组件 |
 
 ## 代码片段（冒烟原样，节选）
 
 ```vue
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { createWorkbook, keyFor } from '@einfach/excel-core-ts'
+import { createWorkbook, keyFor } from '@einfach-excel/excel-core-ts'
 
 // (a) TS 引擎：SSR 与客户端都跑
 const wb = createWorkbook([{ id: 's1', name: 'Sheet1' }])
@@ -63,7 +63,7 @@ const value = wb.store.getter(wb.sheet('s1')!.formulaCellAtom(keyFor(1, 0))) // 
 // (b) WASM 引擎：仅客户端
 const wasmResult = ref('pending')
 onMounted(async () => {
-  const mod = await import('@einfach/excel-wasm')
+  const mod = await import('@einfach-excel/excel-wasm')
   await mod.default()
   const wbw = new mod.WasmWorkbook()
   if (wbw.sheet_count() === 0) wbw.add_sheet('Sheet1')
@@ -94,6 +94,6 @@ onMounted(async () => {
 
 ## 未验证
 
-- worker 后端（`worker-factory`）、full WASM 变体（`@einfach/excel-wasm/full`）。
-- `@einfach/spreadsheet-ui-styles` 的样式正确性（只装未 import）。
+- worker 后端（`worker-factory`）、full WASM 变体（`@einfach-excel/excel-wasm/full`）。
+- `@einfach-excel/spreadsheet-ui-styles` 的样式正确性（只装未 import）。
 - Nuxt 4 / Vite 之外的 builder。浏览器仅 Chromium headless。

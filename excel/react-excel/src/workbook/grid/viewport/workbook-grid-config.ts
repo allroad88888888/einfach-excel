@@ -1,6 +1,6 @@
-import type { ViewportMetrics } from '@einfach/spreadsheet-ui-core'
+import type { ViewportMetrics } from '@einfach-excel/spreadsheet-ui-core'
 
-import { DEFAULT_CELL_ROW_HEIGHT, DEFAULT_CELL_COLUMN_WIDTH } from '@einfach/react-cells'
+import { DEFAULT_CELL_ROW_HEIGHT, DEFAULT_CELL_COLUMN_WIDTH } from '@einfach-excel/react-cells'
 
 export const WORKBOOK_GRID_ROW_HEIGHT = DEFAULT_CELL_ROW_HEIGHT
 export const WORKBOOK_GRID_WINDOW_ROW_COUNT = 32

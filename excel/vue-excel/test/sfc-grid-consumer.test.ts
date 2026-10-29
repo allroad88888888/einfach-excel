@@ -9,7 +9,7 @@ import * as vueRuntime from 'vue'
 import * as vueExcel from '../src'
 
 const FIXTURE_PATH = join(__dirname, 'fixtures', 'sfc-grid-consumer.vue')
-const ALLOWED_IMPORTS = new Set(['vue', '@einfach/vue-excel'])
+const ALLOWED_IMPORTS = new Set(['vue', '@einfach-excel/vue-excel'])
 const IMPORT_SOURCE_RE = /\bfrom\s*['"]([^'"]+)['"]/g
 
 type CompiledModule = { exports: { default?: Component } }
@@ -29,7 +29,7 @@ function parseImportSources(source: string): Set<string> {
 
 function loadSfcDependency(specifier: string): unknown {
   if (specifier === 'vue') return vueRuntime
-  if (specifier === '@einfach/vue-excel') return vueExcel
+  if (specifier === '@einfach-excel/vue-excel') return vueExcel
   throw new Error(`The SFC may only import Vue or the Vue adapter, received ${specifier}.`)
 }
 

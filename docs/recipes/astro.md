@@ -25,8 +25,8 @@ import DemoIsland from '../spreadsheet/DemoIsland'
 
 ```ts
 // src/spreadsheet/backends.ts（节选，仓内实文件）
-import { createWorkerWorkbookSpreadsheetBackend } from '@einfach/solid-excel'
-import { defaultVNextWorkbookWorkerFactory } from '@einfach/solid-excel/worker-factory'
+import { createWorkerWorkbookSpreadsheetBackend } from '@einfach-excel/solid-excel'
+import { defaultVNextWorkbookWorkerFactory } from '@einfach-excel/solid-excel/worker-factory'
 
 export function makeWasmWorkerBackend(options?: WorkerWorkbookSpreadsheetBackendOptions) {
   return createWorkerWorkbookSpreadsheetBackend({
@@ -56,7 +56,7 @@ export default defineConfig({
       dedupe: ['solid-js'], // 单实例不变式（ADR 0001），保留
     },
     optimizeDeps: {
-      exclude: ['@einfach/solid-excel', '@einfach/solid-excel/worker-factory'],
+      exclude: ['@einfach-excel/solid-excel', '@einfach-excel/solid-excel/worker-factory'],
     },
     build: {
       target: 'esnext',

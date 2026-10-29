@@ -8,10 +8,10 @@ Playwright 浏览器测试，**按功能点分目录**。每个目录一份 `CAS
 ## 怎么跑
 
 ```bash
-npm run e2e:install -w @einfach/solid-excel                        # 首次装浏览器
-NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach/solid-excel   # 全量
-npm run e2e -w @einfach/solid-excel -- e2e/smoke/                  # 只跑一个功能目录
-npm run e2e -w @einfach/solid-excel -- e2e/formula/formulas-wasm.spec.ts
+npm run e2e:install -w @einfach-excel/solid-excel                        # 首次装浏览器
+NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach-excel/solid-excel   # 全量
+npm run e2e -w @einfach-excel/solid-excel -- e2e/smoke/                  # 只跑一个功能目录
+npm run e2e -w @einfach-excel/solid-excel -- e2e/formula/formulas-wasm.spec.ts
 ```
 
 CI 是 4 片矩阵（`.github/workflows/e2e.yml`，advisory 模式）。`--shard=x/4` 按测试**文件**均分，
@@ -63,5 +63,5 @@ CI 是 4 片矩阵（`.github/workflows/e2e.yml`，advisory 模式）。`--shard
 「源码路径引用 + 单文件行数登记」，需要总数时现场算：
 
 ```bash
-npx playwright test --list -w @einfach/solid-excel 2>/dev/null | tail -1
+npx playwright test --list -w @einfach-excel/solid-excel 2>/dev/null | tail -1
 ```

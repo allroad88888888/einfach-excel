@@ -1,4 +1,4 @@
-import type { CommentSessionState } from '@einfach/spreadsheet-ui-core'
+import type { CommentSessionState } from '@einfach-excel/spreadsheet-ui-core'
 
 const VIEWPORT_GUTTER = 12
 const ANCHOR_GAP = 8

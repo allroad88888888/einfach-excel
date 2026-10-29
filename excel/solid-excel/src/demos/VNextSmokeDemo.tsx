@@ -6,7 +6,7 @@ import {
   selectionAtom,
   setWorkspaceActiveSheetAtom,
   workspaceSessionAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { createStaticNamedRangeCapabilityPort, createStaticSpreadsheetBackend } from '../adapter'
 import { SpreadsheetCommentThread } from '../comments'
 import { SpreadsheetConditionalFormatDialog } from '../conditional-formatting'

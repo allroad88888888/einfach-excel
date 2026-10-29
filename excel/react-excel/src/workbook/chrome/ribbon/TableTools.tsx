@@ -3,7 +3,7 @@ import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useId, useLayoutEffect, useRef } from 'react'
 import { editingSessionAtom, nativeTablePanelAtom, nativeTableFeedbackAtom,
-  runNativeTablePanelAtom } from '@einfach/spreadsheet-ui-core'
+  runNativeTablePanelAtom } from '@einfach-excel/spreadsheet-ui-core'
 import { cycleDialogFocus } from './dialog-focus'
 import { TableTotals } from './TableTotals'
 import { TableColumns } from './TableColumns'

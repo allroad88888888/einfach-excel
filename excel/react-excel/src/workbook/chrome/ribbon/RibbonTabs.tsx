@@ -3,7 +3,7 @@ import {
   WORKBOOK_RIBBON_TABS,
   workbookRibbonTabAtom,
   selectWorkbookRibbonTabAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { msg } from '@lingui/core/macro'
 import { useLingui } from '@lingui/react/macro'
 

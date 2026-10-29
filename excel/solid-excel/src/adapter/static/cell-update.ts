@@ -1,13 +1,13 @@
 // 一句话：把一次单元格输入写成存储态的 DisplayCell。
 
-import { excelGeneralToText } from '@einfach/excel-core-ts'
+import { excelGeneralToText } from '@einfach-excel/excel-core-ts'
 import type {
   DisplayCell,
   DisplayCellRichValue,
   SetCellInputRequest,
   SetCellRichValueRequest,
-} from '@einfach/spreadsheet-ui-core'
-import { cloneRichValue, getRichValueText, keyFor } from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
+import { cloneRichValue, getRichValueText, keyFor } from '@einfach-excel/spreadsheet-ui-core'
 
 export function updateCell(
   cells: Map<string, DisplayCell>,

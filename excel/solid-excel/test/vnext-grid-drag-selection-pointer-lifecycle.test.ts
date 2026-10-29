@@ -5,7 +5,7 @@ import {
   pointerSessionAtom,
   type CellCoord,
   type SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { createGridDomAdapter } from '../src/grid/grid-dom-adapter'
 import { installGridPointerSelection } from '../src/grid/grid-pointer-selection'
 

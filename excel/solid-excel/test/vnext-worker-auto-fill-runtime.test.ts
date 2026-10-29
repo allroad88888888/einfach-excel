@@ -14,7 +14,7 @@ const mockWorkbook = {
   drainAsyncCustomRequests: () => [],
 }
 
-vi.mock('@einfach/excel-wasm', () => ({
+vi.mock('@einfach-excel/excel-wasm', () => ({
   __esModule: true,
   default: vi.fn(async () => undefined),
   WasmWorkbook: vi.fn(() => mockWorkbook),

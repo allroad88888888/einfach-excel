@@ -7,7 +7,7 @@ import type {
   RangeProjectionResult,
   VisibleProjectionRequest,
   VisibleProjectionResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { StaticSeedCells, StaticSeedMatrix } from '../types'
 import { buildProjectionResult } from './projection'
 import { buildState, matrixToCells, sparseCellsToCells } from './seed'

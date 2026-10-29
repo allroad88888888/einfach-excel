@@ -1,4 +1,4 @@
-# @einfach/canvas
+# @einfach-excel/canvas
 
 Canvas cell 的基础包：cell 生命周期、atom 直接订阅、按帧合并重绘、区域缓存。
 
@@ -6,7 +6,7 @@ Canvas cell 的基础包：cell 生命周期、atom 直接订阅、按帧合并�
 
 ```ts
 import { atom, createStore } from '@einfach/core'
-import { createCanvas, useAtomValue, useCache } from '@einfach/canvas'
+import { createCanvas, useAtomValue, useCache } from '@einfach-excel/canvas'
 
 const store = createStore()
 const surface = createCanvas(canvasElement, { store, width: 800, height: 600 })
@@ -57,10 +57,10 @@ Canvas 创建时捕获 `devicePixelRatio`，可通过 `resize` 更新。painter 
 本包只清理自己的订阅和缓存，不会对传入的共享 store 自动调用 `clear()`；Core 的派生 atom 依赖图仍由 Core 管理。区域若独占 store，可在 `surface.dispose()` 后清理该 store。
 
 ```sh
-pnpm --filter @einfach/canvas test
-pnpm --filter @einfach/canvas typecheck
-pnpm --filter @einfach/canvas build
-pnpm --filter @einfach/canvas-demo dev
+pnpm --filter @einfach-excel/canvas test
+pnpm --filter @einfach-excel/canvas typecheck
+pnpm --filter @einfach-excel/canvas build
+pnpm --filter @einfach-excel/canvas-demo dev
 ```
 
 规则网格可以设置 `pointerEvents: false` 关闭通用 cell 事件分发，由上层使用行列索引实现命中；这时 `onPointer*` hooks 不会收到事件。`canvas-cells` 使用此模式，避免每次指针移动扫描 cell。

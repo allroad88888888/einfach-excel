@@ -1,4 +1,4 @@
-import type { SpreadsheetUiCore } from '@einfach/spreadsheet-ui-core'
+import type { SpreadsheetUiCore } from '@einfach-excel/spreadsheet-ui-core'
 import { inject, type ComputedRef, type InjectionKey } from 'vue'
 
 /** Holds the reactive spreadsheet core supplied by the nearest Vue provider. */

@@ -9,7 +9,7 @@ import {
   resolveProjectionAtom,
   viewportMetricsAtom,
   type AxisScrollGeometry, type CellRange, type RangeProjectionResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { createEffect, untrack } from 'solid-js'
 import { runVisibleProjectionTransport, spreadsheetProjectionSnapshotAtom } from '../provider'
 import { GRID_ROW_HEADER_WIDTH } from './grid-constants'

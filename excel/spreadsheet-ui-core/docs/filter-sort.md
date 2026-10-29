@@ -1,6 +1,6 @@
 # filter-sort
 
-Column filtering for `@einfach/spreadsheet-ui-core`.
+Column filtering for `@einfach-excel/spreadsheet-ui-core`.
 
 Rewritten 2026-07-21 for #27 (filter redo). The previous version of this file
 described a **display-compaction** filter (matching rows packed into consecutive

@@ -4,8 +4,8 @@ import type {
   SetColumnWidthRequest,
   SetFormatRangeRequest,
   SetRowHeightRequest,
-} from '@einfach/spreadsheet-ui-core'
-import { normalizeDimensionSize, normalizeFormat } from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
+import { normalizeDimensionSize, normalizeFormat } from '@einfach-excel/spreadsheet-ui-core'
 import type { StaticSpreadsheetBackend } from '../backend-contract'
 import {
   beginUndoableMutation,

@@ -8,11 +8,11 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "@einfach/canvas-cells": ["../../packages/canvas-cells/src/index.ts"],
-      "@einfach/canvas": ["../../packages/canvas/src/index.ts"],
-      "@einfach/react-cells": ["../../packages/react-cells/src/index.ts"],
-      "@einfach/spreadsheet-ui-core": ["../spreadsheet-ui-core/src/index.ts"],
-      "@einfach/spreadsheet-ui-core/*": ["../spreadsheet-ui-core/src/*"]
+      "@einfach-excel/canvas-cells": ["../../packages/canvas-cells/src/index.ts"],
+      "@einfach-excel/canvas": ["../../packages/canvas/src/index.ts"],
+      "@einfach-excel/react-cells": ["../../packages/react-cells/src/index.ts"],
+      "@einfach-excel/spreadsheet-ui-core": ["../spreadsheet-ui-core/src/index.ts"],
+      "@einfach-excel/spreadsheet-ui-core/*": ["../spreadsheet-ui-core/src/*"]
     },
     "types": ["vite/client", "node", "vitest/globals", "@testing-library/jest-dom"]
   },

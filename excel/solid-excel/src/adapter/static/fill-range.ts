@@ -6,7 +6,7 @@ import type {
   FillRangeRequest,
   ProjectionRevision,
   SpreadsheetCellFormat,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   cloneCell,
   cloneFormat,
@@ -16,7 +16,7 @@ import {
   getFillHandleWriteRange,
   keyFor,
   shiftFormulaRefs,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { assertAutoFillWithinCellBudget } from './auto-fill-budget'
 import { isCellInsideRange } from './cell-map'
 import {

@@ -10,7 +10,7 @@ import type {
   TextToColumnsIntent,
   TextToColumnsTextQualifier,
   TextToColumnsWizardState,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 const DELIMITER_KEYS: readonly TextToColumnsDelimiter[] = [
   'tab',

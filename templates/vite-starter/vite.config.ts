@@ -6,8 +6,8 @@ export default defineConfig({
   // 0.1.0 的 @lingui/core CJS 传递依赖在 dev 下需要预打包,否则白屏(build 不受影响)。
   optimizeDeps: {
     include: [
-      '@einfach/solid-excel > @lingui/core',
-      '@einfach/solid-excel > @lingui/core > @messageformat/parser',
+      '@einfach-excel/solid-excel > @lingui/core',
+      '@einfach-excel/solid-excel > @lingui/core > @messageformat/parser',
     ],
   },
 })

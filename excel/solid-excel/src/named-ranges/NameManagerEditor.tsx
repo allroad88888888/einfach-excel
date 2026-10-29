@@ -19,7 +19,7 @@ import {
   sheetTabsSheetsAtom,
   type NameManagerKind,
   type NamedRange,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { locale, useT } from '../i18n'
 import { useSpreadsheetUiStore } from '../provider'
 import {

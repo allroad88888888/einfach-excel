@@ -16,13 +16,13 @@ export default defineConfig({
     plugins: [wasm(), topLevelAwait()],
     resolve: {
       alias: {
-        '@einfach/spreadsheet-ui-core': path.resolve(repoRoot, 'excel/spreadsheet-ui-core/src'),
-        '@einfach/excel-core-ts': path.resolve(repoRoot, 'excel/excel-core-ts/src'),
-        '@einfach/solid-excel/worker-factory': path.resolve(
+        '@einfach-excel/spreadsheet-ui-core': path.resolve(repoRoot, 'excel/spreadsheet-ui-core/src'),
+        '@einfach-excel/excel-core-ts': path.resolve(repoRoot, 'excel/excel-core-ts/src'),
+        '@einfach-excel/solid-excel/worker-factory': path.resolve(
           repoRoot,
           'excel/solid-excel/src/adapter/worker-factory.ts',
         ),
-        '@einfach/spreadsheet-ui-styles/styles.css': path.resolve(
+        '@einfach-excel/spreadsheet-ui-styles/styles.css': path.resolve(
           repoRoot,
           'excel/spreadsheet-ui-styles/styles/index.css',
         ),
@@ -30,7 +30,7 @@ export default defineConfig({
       dedupe: ['solid-js'],
     },
     optimizeDeps: {
-      exclude: ['@einfach/solid-excel', '@einfach/solid-excel/worker-factory'],
+      exclude: ['@einfach-excel/solid-excel', '@einfach-excel/solid-excel/worker-factory'],
     },
     server: {
       fs: {

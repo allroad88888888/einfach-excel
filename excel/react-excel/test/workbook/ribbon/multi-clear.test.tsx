@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { expect, test, vi } from 'vitest'
 import { createSpreadsheetUi, initializeWorkbookDocumentAtom, runVisibleProjectionAtom,
   setMultiRegionSelectionAtom, type RustClearRangeRequest,
-  type VisibleProjectionRequest } from '@einfach/spreadsheet-ui-core'
+  type VisibleProjectionRequest } from '@einfach-excel/spreadsheet-ui-core'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
 import { ClearTools } from '../../../src/workbook/chrome/ribbon/ClearTools'
 import { WorkbookFooter } from '../../../src/workbook/chrome/footer/WorkbookFooter'

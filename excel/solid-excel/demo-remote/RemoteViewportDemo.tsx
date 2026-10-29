@@ -12,7 +12,7 @@ import {
   setWorkspaceActiveSheetAtom,
   workspaceSessionAtom,
   type ViewportMetrics,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetFormulaBar } from '../src/formula-bar'
 import { SpreadsheetGrid } from '../src/grid'
 import { SpreadsheetStatusBar } from '../src/status-bar'

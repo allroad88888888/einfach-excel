@@ -6,9 +6,9 @@ import {
   selectionAtom,
   workspaceSessionAtom,
   type ViewportMetrics,
-} from '@einfach/spreadsheet-ui-core'
-import type { SpreadsheetUiProviderProps } from '@einfach/solid-excel'
-import { SpreadsheetGrid, useSpreadsheetUiStore } from '@einfach/solid-excel'
+} from '@einfach-excel/spreadsheet-ui-core'
+import type { SpreadsheetUiProviderProps } from '@einfach-excel/solid-excel'
+import { SpreadsheetGrid, useSpreadsheetUiStore } from '@einfach-excel/solid-excel'
 import SpreadsheetChrome from '../../spreadsheet/SpreadsheetChrome'
 
 interface DemoGridProps {

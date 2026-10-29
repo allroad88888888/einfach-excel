@@ -1,5 +1,5 @@
 import type { Store } from '@einfach/core'
-import { applyPresenceUpdateAtom, type SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
+import { applyPresenceUpdateAtom, type SpreadsheetBackend } from '@einfach-excel/spreadsheet-ui-core'
 
 /**
  * Subscribe to the optional backend transport without allowing a detached

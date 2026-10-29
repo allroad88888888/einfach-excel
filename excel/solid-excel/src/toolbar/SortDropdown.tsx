@@ -1,5 +1,5 @@
 import { createEffect, For, onCleanup } from 'solid-js'
-import type { SortDirection } from '@einfach/spreadsheet-ui-core'
+import type { SortDirection } from '@einfach-excel/spreadsheet-ui-core'
 import { SortConfirmationDialog } from '../sort/SortConfirmationDialog'
 import { useSortConfirmation } from '../sort/useSortConfirmation'
 import { ToolbarAnchoredMenu } from './ToolbarAnchoredMenu'

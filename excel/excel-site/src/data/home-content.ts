@@ -152,7 +152,7 @@ export const homeContent: Record<HomeLocale, HomeContent> = {
       title: 'From npm to your first formula.',
       description:
         'Follow the five-minute Solid guide to install the packages, mount the Worker backend, and verify =1+2 in a real cell.',
-      command: 'npm install @einfach/solid-excel @einfach/core @einfach/solid solid-js',
+      command: 'npm install @einfach-excel/solid-excel @einfach/core @einfach/solid solid-js',
       primaryAction: 'Open the five-minute guide',
       secondaryAction: 'Browse the API',
       note: 'Current release: 0.1.0 · Node.js 22.12+ · Pin the minor for a stable API surface',
@@ -247,7 +247,7 @@ export const homeContent: Record<HomeLocale, HomeContent> = {
       index: '04 / START BUILDING',
       title: '从 npm 到第一个公式。',
       description: '跟着五分钟 Solid 指南安装依赖、挂载 Worker 后端，并在真实单元格里验证 =1+2。',
-      command: 'npm install @einfach/solid-excel @einfach/core @einfach/solid solid-js',
+      command: 'npm install @einfach-excel/solid-excel @einfach/core @einfach/solid solid-js',
       primaryAction: '打开五分钟指南',
       secondaryAction: '浏览 API',
       note: '当前版本：0.1.0 · Node.js 22.12+ · 需要稳定 API 时请锁定次版本',

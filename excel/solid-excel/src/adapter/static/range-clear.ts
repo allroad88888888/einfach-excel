@@ -6,13 +6,13 @@ import type {
   DisplayCell,
   RangeFormatLayer,
   SpreadsheetCellFormat,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   cloneRange,
   isCoordInsideRange,
   normalizeRange,
   rangesIntersect,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { isCellInsideRange, parseKey } from './cell-map'
 import {
   recordCellFormatsBeforeInRange,

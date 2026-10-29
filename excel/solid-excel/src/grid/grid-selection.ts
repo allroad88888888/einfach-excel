@@ -16,7 +16,7 @@ import {
   type RangeSelection,
   type SelectionRegion,
   type SelectionState,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { installGridFeature, type GridRuntimeBase } from './grid-runtime'
 import type { GridFocusPort, GridMergeRangePort } from './grid-runtime-ports'
 import type { GridViewStateApi } from './grid-view-state'

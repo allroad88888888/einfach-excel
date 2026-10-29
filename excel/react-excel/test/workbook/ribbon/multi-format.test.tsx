@@ -1,4 +1,4 @@
-import { setMultiRegionSelectionAtom } from '@einfach/spreadsheet-ui-core'
+import { setMultiRegionSelectionAtom } from '@einfach-excel/spreadsheet-ui-core'
 import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { expect, test } from 'vitest'
 import { renderFormattingRibbon } from '../../support/formatting-ribbon-harness'

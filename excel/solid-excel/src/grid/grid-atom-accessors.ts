@@ -15,7 +15,7 @@ import {
   viewportShowGridlinesAtom,
   viewportShowHeadingsAtom,
   viewportSizeOverridesAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { spreadsheetProjectionSnapshotAtom } from '../provider'
 
 /** Direct, fine-grained Solid subscriptions used by the grid render tree. */

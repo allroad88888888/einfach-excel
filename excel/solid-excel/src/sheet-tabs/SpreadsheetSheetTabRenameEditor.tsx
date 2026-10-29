@@ -1,6 +1,6 @@
 import { Show } from 'solid-js'
 import type { Accessor } from 'solid-js'
-import type { SheetTabsState, SpreadsheetSheetMetadata } from '@einfach/spreadsheet-ui-core'
+import type { SheetTabsState, SpreadsheetSheetMetadata } from '@einfach-excel/spreadsheet-ui-core'
 
 import type { createSheetTabInteractionController } from './sheet-tab-controller'
 

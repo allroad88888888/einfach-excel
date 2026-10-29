@@ -24,11 +24,11 @@ React 18当前候选的包级44项及同候选最终完整浏览器门禁均已�
 仓库根命令：
 
 ```sh
-pnpm --filter @einfach/excel-wasm build:wasm:both
+pnpm --filter @einfach-excel/excel-wasm build:wasm:both
 pnpm build:publish
 pnpm prepare:package-consumers
-pnpm --filter @einfach/react-excel exec playwright test --config playwright.package.config.ts
-pnpm --filter @einfach/react-excel e2e # 准备仓外消费者，再运行 demo + embedding + package-host 全部用例
+pnpm --filter @einfach-excel/react-excel exec playwright test --config playwright.package.config.ts
+pnpm --filter @einfach-excel/react-excel e2e # 准备仓外消费者，再运行 demo + embedding + package-host 全部用例
 ```
 
 pack 准备脚本在 mktemp 副本运行现有 Changesets version + lockfile 流程，pnpm pack 五个发行包。

@@ -15,7 +15,7 @@ import { sitePath } from '../../../data/site-path'
     <section class="docs-guide-callout docs-guide-callout-warning" aria-label="Vue 适配器状态">
       <p class="docs-guide-label">状态：仅仓库源码</p>
       <p>
-        <code>@einfach/vue-excel</code> 是版本为 <code>0.0.0</code> 的私有 workspace 包。它尚未发布 npm，
+        <code>@einfach-excel/vue-excel</code> 是版本为 <code>0.0.0</code> 的私有 workspace 包。它尚未发布 npm，
         没有默认 Worker 或 WASM 后端，也不是完整电子表格应用。请把它作为可评估的源码，而不是可安装的包。
       </p>
     </section>
@@ -28,7 +28,7 @@ pnpm install`}</code></pre>
 
     <h2>2. 运行已验证的 Vue fixture</h2>
     <pre><code>{`NO_PROXY=localhost,127.0.0.1 \
-pnpm --filter @einfach/vue-excel run e2e`}</code></pre>
+pnpm --filter @einfach-excel/vue-excel run e2e`}</code></pre>
     <p>
       此命令会启动仓库内 Vite fixture、打开 Chromium、在受控单元格间拖动，并验证投影后的选区。成功时会报告一个
       通过的 Vue adapter 测试。
@@ -48,11 +48,11 @@ import type {
   CellRange,
   DisplayCell,
   SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   SpreadsheetGridView,
   SpreadsheetUiProvider,
-} from '@einfach/vue-excel'
+} from '@einfach-excel/vue-excel'
 
 defineProps<{
   backend: SpreadsheetBackend

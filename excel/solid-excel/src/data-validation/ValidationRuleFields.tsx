@@ -5,7 +5,7 @@ import type {
   ValidationMode,
   ValidationRuleFormState,
   ValidationRuleKind,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 interface ValidationRuleFieldsProps {
   readonly form: Accessor<Readonly<ValidationRuleFormState>>

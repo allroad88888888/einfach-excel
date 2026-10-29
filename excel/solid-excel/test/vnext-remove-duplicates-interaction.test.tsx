@@ -13,7 +13,7 @@ import type {
   SpreadsheetBackend,
   VisibleProjectionRequest,
   VisibleProjectionResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   createVisibleProjectionRequest,
   dispatchRemoveDuplicatesIntentAtom,
@@ -21,7 +21,7 @@ import {
   removeDuplicatesLifecycleAtom,
   selectionAtom,
   setWorkspaceActiveSheetAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetUiProvider } from '../src/provider'
 import { SpreadsheetRemoveDuplicatesDialog } from '../src/remove-duplicates'
 import { seedReadyVisibleProjection } from './projection-test-fixture'

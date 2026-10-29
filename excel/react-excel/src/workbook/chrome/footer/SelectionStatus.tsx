@@ -5,7 +5,7 @@ import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   selectionAggregatesAtom, selectionStatisticsPreferencesAtom, selectionStatisticLabels,
   copySelectionStatisticAtom, selectionStatisticCopyFeedbackAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { writeBrowserClipboardText } from '../../clipboard/browser-clipboard'
 import { SelectionStatisticsSettings } from './SelectionStatisticsSettings'
 import './selection-status.css'

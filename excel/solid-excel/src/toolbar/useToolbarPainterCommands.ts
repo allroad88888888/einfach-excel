@@ -3,7 +3,7 @@ import {
   armFormatPainterStickyAtom,
   exitFormatPainterAtom,
   type CapturedFormat,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { Accessor } from 'solid-js'
 import type { ToolbarActionDeps } from './ToolbarActionDeps'
 

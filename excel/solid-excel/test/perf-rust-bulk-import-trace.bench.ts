@@ -37,7 +37,7 @@
  * (ratio of phase_ms between 100k and 1M, with 10× = linear).
  *
  * Invocation:
- *   pnpm --filter @einfach/solid-excel test:bench -- test/perf-rust-bulk-import-trace.bench.ts \
+ *   pnpm --filter @einfach-excel/solid-excel test:bench -- test/perf-rust-bulk-import-trace.bench.ts \
  *     --testTimeout 1800000
  *
  * Gated on EINFACH_PERF=1 — without it the spec is skipped so the

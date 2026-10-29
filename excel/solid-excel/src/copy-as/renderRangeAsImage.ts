@@ -24,7 +24,7 @@ import {
   type DisplayCell,
   type RangeImageExportResult,
   type SheetRef,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 /** PoC defaults — kept small so a 2×2 demo fits in one screen pixel grid. */
 const DEFAULT_COL_WIDTH_PX = 96

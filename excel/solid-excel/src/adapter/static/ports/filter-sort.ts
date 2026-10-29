@@ -5,8 +5,8 @@ import type {
   SetFilterSortResult,
   SortRangeRequest,
   SortRangeResult,
-} from '@einfach/spreadsheet-ui-core'
-import { cloneFilterSortState, filterSortHasEffect, keyFor } from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
+import { cloneFilterSortState, filterSortHasEffect, keyFor } from '@einfach-excel/spreadsheet-ui-core'
 import { filterHiddenRowsFromDisplayRows } from '../../filter-hidden-rows'
 import type { EvalCellLookup } from '../../static-formula-eval'
 import type { StaticSpreadsheetBackend } from '../backend-contract'

@@ -1,5 +1,5 @@
 import { useLingui, Trans } from '@lingui/react/macro'
-import type { NativeCommentThread } from '@einfach/spreadsheet-ui-core'
+import type { NativeCommentThread } from '@einfach-excel/spreadsheet-ui-core'
 
 /** React 文本节点保留原文；从不把作者或正文解释成 HTML。 */
 export function CommentTimeline({

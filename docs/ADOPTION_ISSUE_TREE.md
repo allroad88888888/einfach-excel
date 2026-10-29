@@ -24,8 +24,8 @@
 
 | 原编号 | 裁决                                                                          | 影响的叶子             |
 | ------ | ----------------------------------------------------------------------------- | ---------------------- |
-| D1     | [ADR 0014](decisions/0014-publish-excel-core-ts.md)：`@einfach/excel-core-ts` 公开发布 | AD-115、AD-119、AD-120 |
-| D2     | [ADR 0015](decisions/0015-wasm-distribution-single-package.md)：`@einfach/excel-wasm` 单包双入口，CI 预构建 | AD-101~110             |
+| D1     | [ADR 0014](decisions/0014-publish-excel-core-ts.md)：`@einfach-excel/excel-core-ts` 公开发布 | AD-115、AD-119、AD-120 |
+| D2     | [ADR 0015](decisions/0015-wasm-distribution-single-package.md)：`@einfach-excel/excel-wasm` 单包双入口，CI 预构建 | AD-101~110             |
 | D3     | [ADR 0016](decisions/0016-ci-only-npm-publish.md)：只走 CI 发布，凭据填入仓库 secret | AD-132、AD-133、AD-137 |
 | D4     | [ADR 0017](decisions/0017-initial-release-version-0-1-0.md)：首发版本 `0.1.0`  | AD-129~131、AD-712     |
 | D5     | [ADR 0018](decisions/0018-node-baseline-22-12.md)：Node 基线 `>=22.12.0`       | AD-121、AD-136~141     |
@@ -47,8 +47,8 @@ AD-505 的验收契约（路由 `/?bench=1`、dev 即启、registry 单点登记
 - AD-000 对外采用与推广（总控）
   - [**AD-100 让人装得上（发布链路）**](adoption-issues/AD-100-publish-pipeline.md) —— **首发已完成（2026-08-17，五包 0.1.0 上线并经离体验证）**；AD-101~130、AD-132~143 完成（发布链路全组收官,仅 AD-131 待维护者重定义）
     - AD-101~114 WASM 分发、引用切换与回归
-    - AD-115~124 `@einfach/solid-excel` 可发布性
-    - AD-125~128 `@einfach/spreadsheet-ui-core` 元数据与离体验证
+    - AD-115~124 `@einfach-excel/solid-excel` 可发布性
+    - AD-125~128 `@einfach-excel/spreadsheet-ui-core` 元数据与离体验证
     - AD-129~135 版本与发布流程
     - AD-136~142 本地 registry 与装机冒烟
   - [**AD-200 让人五分钟内跑起来**](adoption-issues/AD-200-onboarding.md) —— AD-201~203、AD-205~211 完成（最小示例 20 行实测可跑、Quickstart、五框架配方、UI-core-only 路径）；剩 AD-221（dev CJS 治本,走查立叶,issue #12）

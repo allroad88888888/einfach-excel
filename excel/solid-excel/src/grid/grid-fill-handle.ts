@@ -4,7 +4,7 @@ import {
   createFillHandlePreview,
   startPointerAtom,
   updatePointerAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { GridContextMenuApi } from './grid-context-menu'
 import type { GridFillControllerApi } from './grid-fill-controller'
 import { startFillPointerSession } from './grid-fill-pointer-session'

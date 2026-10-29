@@ -11,10 +11,10 @@ export default defineConfig({
   plugins: [react(), lingui({ cwd: directory, macroTransform: true, failOnMissing: 'catalog', failOnCompileError: true })],
   resolve: {
     alias: {
-      '@einfach/canvas-cells': path.resolve(directory, '../../packages/canvas-cells/src'),
-      '@einfach/canvas': path.resolve(directory, '../../packages/canvas/src'),
-      '@einfach/react-cells': path.resolve(directory, '../../packages/react-cells/src'),
-      '@einfach/spreadsheet-ui-core': path.resolve(directory, '../spreadsheet-ui-core/src'),
+      '@einfach-excel/canvas-cells': path.resolve(directory, '../../packages/canvas-cells/src'),
+      '@einfach-excel/canvas': path.resolve(directory, '../../packages/canvas/src'),
+      '@einfach-excel/react-cells': path.resolve(directory, '../../packages/react-cells/src'),
+      '@einfach-excel/spreadsheet-ui-core': path.resolve(directory, '../spreadsheet-ui-core/src'),
     },
   },
   test: {

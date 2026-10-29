@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { getVisibleWindow, type ViewportMetrics } from '@einfach/spreadsheet-ui-core'
+import { getVisibleWindow, type ViewportMetrics } from '@einfach-excel/spreadsheet-ui-core'
 import { getBufferedProjectionWindow } from '../src/viewport/buffered-projection-window'
 
 const metrics: ViewportMetrics = {

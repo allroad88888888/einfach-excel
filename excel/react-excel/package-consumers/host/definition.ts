@@ -1,4 +1,4 @@
-import type { RustImportCell, RustWorkbookDefinition } from '@einfach/spreadsheet-ui-core'
+import type { RustImportCell, RustWorkbookDefinition } from '@einfach-excel/spreadsheet-ui-core'
 
 export const definition: RustWorkbookDefinition = {
   title: 'Packed workbook',

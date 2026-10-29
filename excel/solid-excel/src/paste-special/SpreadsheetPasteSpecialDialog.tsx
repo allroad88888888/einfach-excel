@@ -22,7 +22,7 @@ import {
   resolveContentMutationAtom,
   type PasteSpecialKind,
   type PasteSpecialOp,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   createHistoryEntryRecorder,
   refreshVisibleProjection,
@@ -37,7 +37,7 @@ import { useOverlayInteraction } from '../overlay'
 // blocked when no CSS transform is configured. The co-located
 // `.css.d.ts` keeps tsc satisfied under the Bundler moduleResolution.
 if (typeof process === 'undefined' || process.env.VITEST !== 'true') {
-  void import('@einfach/spreadsheet-ui-styles/features/paste-special-dialog.css')
+  void import('@einfach-excel/spreadsheet-ui-styles/features/paste-special-dialog.css')
 }
 
 export interface SpreadsheetPasteSpecialDialogProps {

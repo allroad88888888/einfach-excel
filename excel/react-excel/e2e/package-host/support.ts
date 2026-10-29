@@ -1,6 +1,6 @@
 import { expect, type Page } from '@playwright/test'
 import type {} from '../../package-consumers/host/bridge'
-import type { WorkbookChangeEvent } from '@einfach/spreadsheet-ui-core'
+import type { WorkbookChangeEvent } from '@einfach-excel/spreadsheet-ui-core'
 import { packageURL } from '../../playwright.package.config'
 
 export const book = (page: Page) => page.locator('#first .workbook[data-runtime-state="ready"]')

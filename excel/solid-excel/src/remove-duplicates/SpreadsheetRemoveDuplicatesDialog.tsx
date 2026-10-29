@@ -24,7 +24,7 @@ import {
   retryRemoveDuplicatesReadAtom,
   runRemoveDuplicatesConfirmAtom,
   type RemoveDuplicatesComparison,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { useOverlayInteraction } from '../overlay'
 import {
   createHistoryEntryRecorder,
@@ -40,7 +40,7 @@ import {
 } from './RemoveDuplicatesDialogContent'
 
 if (typeof process === 'undefined' || process.env.VITEST !== 'true') {
-  void import('@einfach/spreadsheet-ui-styles/features/remove-duplicates-dialog.css')
+  void import('@einfach-excel/spreadsheet-ui-styles/features/remove-duplicates-dialog.css')
 }
 
 export interface SpreadsheetRemoveDuplicatesDialogProps {

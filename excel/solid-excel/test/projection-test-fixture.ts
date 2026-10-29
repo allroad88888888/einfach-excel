@@ -4,7 +4,7 @@ import {
   resolveProjectionAtom,
   type ProjectionSnapshot,
   type VisibleProjectionResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 type ReadyVisibleProjectionSnapshot = Omit<ProjectionSnapshot, 'status' | 'result'> & {
   readonly status: 'ready'

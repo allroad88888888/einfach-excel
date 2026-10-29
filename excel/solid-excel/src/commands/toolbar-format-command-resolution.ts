@@ -2,7 +2,7 @@ import {
   isToolbarFormatCommandAvailable,
   type ToolbarCommandAvailability,
   type ToolbarFormatCommandInput,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 import type { CommandAvailability, ResolvedCommand } from './command-shell'
 

@@ -16,7 +16,7 @@ import {
   pointerSessionAtom,
   type KeyboardInput,
   type ViewportMetrics,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   useCallback,
   useEffect,

@@ -1,7 +1,7 @@
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { Trans } from '@lingui/react/macro'
 import { nativeDataValidationPanelAtom, runNativeDataValidationAtom,
-  type NativeValidationErrorStyle } from '@einfach/spreadsheet-ui-core'
+  type NativeValidationErrorStyle } from '@einfach-excel/spreadsheet-ui-core'
 
 export interface AdvancedValidationFieldsProps { readonly id: string }
 

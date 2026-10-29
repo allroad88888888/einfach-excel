@@ -1,1 +1,1 @@
-export * from '@einfach/spreadsheet-ui-core/rust-worker/adapter/worker-wire-telemetry'
+export * from '@einfach-excel/spreadsheet-ui-core/rust-worker/adapter/worker-wire-telemetry'

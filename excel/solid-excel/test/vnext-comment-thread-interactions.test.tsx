@@ -8,12 +8,12 @@ import type {
   RangeProjectionRequest,
   SpreadsheetBackend,
   VisibleProjectionRequest,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   commentSessionAtom,
   openCommentSessionAtom,
   setCommentDraftAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetCommentThread } from '../src/comments'
 import { SpreadsheetUiProvider } from '../src/provider'
 

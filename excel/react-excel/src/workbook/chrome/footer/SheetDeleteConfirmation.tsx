@@ -1,7 +1,7 @@
 import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
-import { runWorkbookSheetCommandAtom, sheetTabsAtom } from '@einfach/spreadsheet-ui-core'
+import { runWorkbookSheetCommandAtom, sheetTabsAtom } from '@einfach-excel/spreadsheet-ui-core'
 import { useEffect, useId, useRef } from 'react'
 import { cycleDialogFocus } from '../ribbon/dialog-focus'
 

@@ -6,7 +6,7 @@ import {
   formatCellsEditorAtom,
   retryToolbarMutationRefreshAtom,
   toolbarMutationLifecycleAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { For, Show, createEffect, onCleanup } from 'solid-js'
 import type { JSX } from 'solid-js'
 import { useT } from '../i18n'

@@ -4,7 +4,7 @@ import type {
   RemoveRowsExactRequest,
   RemoveRowsExactResult,
   SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 export interface StaticSpreadsheetBackend extends SpreadsheetBackend {
   removeRowsExact(request: RemoveRowsExactRequest): Promise<RemoveRowsExactResult>

@@ -1,5 +1,5 @@
 import type { Store } from '@einfach/core'
-import type { SpreadsheetBackend, SpreadsheetOperationSource } from '@einfach/spreadsheet-ui-core'
+import type { SpreadsheetBackend, SpreadsheetOperationSource } from '@einfach-excel/spreadsheet-ui-core'
 import { refreshVisibleProjection } from '../provider/projection-refresh'
 
 export interface DispatchStructuralCommandInput<Command extends string = string> {

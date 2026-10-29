@@ -8,7 +8,7 @@
 
 ## 当前基线
 
-仓库当前的框架表面是 Solid：`@einfach/solid-excel` 的包元数据把自己描述为
+仓库当前的框架表面是 Solid：`@einfach-excel/solid-excel` 的包元数据把自己描述为
 SolidJS 组件，且其导出仍指向源码。React 和 Vue 是后续适配目标，不是已有的
 对外能力。
 
@@ -50,4 +50,4 @@ UI、批注与协作、保护与身份集成、右键菜单、工作表管理、
 - [AD-300 框架适配的依赖顺序](adoption-issues/AD-300-framework-adapters.md)
 - [框架适配档 1 范围](FRAMEWORK_ADAPTER_TIER1_SCOPE.md)
 - [ADR 0012：UI-core 下沉目标](decisions/0012-ui-core-extraction-target.md)
-- [`@einfach/solid-excel` 当前包元数据](../excel/solid-excel/package.json)
+- [`@einfach-excel/solid-excel` 当前包元数据](../excel/solid-excel/package.json)

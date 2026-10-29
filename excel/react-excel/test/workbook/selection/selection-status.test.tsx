@@ -2,7 +2,7 @@ import { createStore } from '@einfach/core'
 import {
   runVisibleProjectionAtom, setSelectionAtom, setSelectionBoundsAtom,
   type RustWorkbookCommands, type RustWorkbookConnection, type VisibleProjectionRequest,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { expect, test, vi } from 'vitest'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'

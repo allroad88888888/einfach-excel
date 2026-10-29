@@ -3,7 +3,7 @@
 import type {
   ViewportSizeProjectionRequest,
   ViewportSizeProjectionResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { StaticBackendState } from './state'
 
 export function buildViewportSizeProjectionResult(

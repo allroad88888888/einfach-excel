@@ -28,20 +28,20 @@
  * swaps in the heavy tier (same assertions, bigger workbook) — same env
  * gate `scale-parity.test.ts` uses.
  *
- *   pnpm --filter @einfach/solid-excel test -- test/perf-functional-budgets.test.ts
- *   EINFACH_SCALE=1 pnpm --filter @einfach/solid-excel test -- test/perf-functional-budgets.test.ts
+ *   pnpm --filter @einfach-excel/solid-excel test -- test/perf-functional-budgets.test.ts
+ *   EINFACH_SCALE=1 pnpm --filter @einfach-excel/solid-excel test -- test/perf-functional-budgets.test.ts
  */
 
 import { beforeAll, describe, expect, vi, test } from 'vitest'
-import type { CellRange, ImportCellInput, VisibleWindow } from '@einfach/spreadsheet-ui-core'
+import type { CellRange, ImportCellInput, VisibleWindow } from '@einfach-excel/spreadsheet-ui-core'
 
 import type { WorkerLike, WorkerWorkbookSpreadsheetBackend } from '../src/adapter'
 
-vi.mock('@einfach/excel-wasm', async () => {
+vi.mock('@einfach-excel/excel-wasm', async () => {
   /* eslint-disable @typescript-eslint/no-var-requires */
   const { readFileSync } = await import('node:fs')
   const nodePath = await import('node:path')
-  const real = await vi.importActual('@einfach/excel-wasm') as {
+  const real = await vi.importActual('@einfach-excel/excel-wasm') as {
     initSync: (input: { module: ArrayBufferLike }) => unknown
     WasmWorkbook: unknown
   }

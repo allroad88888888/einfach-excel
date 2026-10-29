@@ -1,5 +1,5 @@
 import { afterEach, expect, test, vi } from 'vitest'
-import { selectCellAtom } from '@einfach/spreadsheet-ui-core'
+import { selectCellAtom } from '@einfach-excel/spreadsheet-ui-core'
 import { createCanvasCells, canvasCellAt } from '../src/index'
 import { fixture } from './fixture'
 

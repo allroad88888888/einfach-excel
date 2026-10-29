@@ -2,8 +2,8 @@ import { onCleanup, onMount } from 'solid-js'
 import {
   registerCustomFormulaAtom,
   unregisterCustomFormulaAtom,
-} from '@einfach/spreadsheet-ui-core'
-import { useSpreadsheetUiStore } from '@einfach/solid-excel'
+} from '@einfach-excel/spreadsheet-ui-core'
+import { useSpreadsheetUiStore } from '@einfach-excel/solid-excel'
 
 const formulas = [
   { name: 'MYTAX', source: 'return Number(args[0]) * 0.2', paramLabels: ['amount'] },

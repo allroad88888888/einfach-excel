@@ -27,7 +27,7 @@
  * 挂在值上，不再往 worker 控制台里塞东西。单元格显示的 token 两侧一致。
  */
 
-import { EXCEL_MAX_ROW } from '@einfach/excel-core-ts'
+import { EXCEL_MAX_ROW } from '@einfach-excel/excel-core-ts'
 
 /**
  * 数组回程的格数上限。
@@ -36,7 +36,7 @@ import { EXCEL_MAX_ROW } from '@einfach/excel-core-ts'
  * （`SEQUENCE` / `MAKEARRAY` / `MAP` / `MMULT` 共用的那一个）。TS 引擎里
  * 数值相同的那两个常数（`eval/evaluate.ts` 的 `ARRAY_CELL_CAP`、
  * `eval/functions/array.ts` 的 `MAX_ARRAY_CELLS`）都是模块私有、没有从
- * `@einfach/excel-core-ts` 导出，所以这里从**已导出**的 `EXCEL_MAX_ROW`
+ * `@einfach-excel/excel-core-ts` 导出，所以这里从**已导出**的 `EXCEL_MAX_ROW`
  * 推出同一个数（Excel 最大行数 1_048_576 = `EXCEL_MAX_ROW` + 1，正是那两个
  * 私有常数各自的来历），而不是再写死第三份字面量。
  */

@@ -21,7 +21,7 @@
 
 所有类型都从包的公开出口拿：`excel/spreadsheet-ui-core/src/index.ts` 有
 `export * from './backend'` 与 `export * from './shared'`，示例里
-`import type { SpreadsheetBackend, ... } from '@einfach/spreadsheet-ui-core'`
+`import type { SpreadsheetBackend, ... } from '@einfach-excel/spreadsheet-ui-core'`
 即可，不需要 deep import。
 
 ## 示例满足的三条硬约束（逐条对应源码）
@@ -56,7 +56,7 @@
 ## 挂载方式
 
 ```tsx
-import { SpreadsheetUiProvider } from '@einfach/solid-excel' // 以实际导出为准
+import { SpreadsheetUiProvider } from '@einfach-excel/solid-excel' // 以实际导出为准
 import { createMinimalSpreadsheetBackend } from './minimal-backend'
 
 const backend = createMinimalSpreadsheetBackend({
@@ -84,7 +84,7 @@ $ npx tsc --version # → Version 5.8.3
 ```
 
 tsconfig 要点（见同目录 `tsconfig.json`）：`strict: true`、
-`moduleResolution: "bundler"`、`paths` 把 `@einfach/spreadsheet-ui-core`
+`moduleResolution: "bundler"`、`paths` 把 `@einfach-excel/spreadsheet-ui-core`
 指到仓库已构建的声明 `excel/spreadsheet-ui-core/@types/index.d.ts`；
 `lib` 需要 `["ES2022", "DOM"]`——ui-core 的公开类型面引用了 `Blob`
 （`@types/copy-as/*.d.ts`），`@einfach/core` 的声明引用了

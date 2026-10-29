@@ -22,7 +22,7 @@ import {
   clipboardStateAtom,
   historyStackAtom,
   projectionSnapshotAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   clickCell,
   createRefusingBackend,

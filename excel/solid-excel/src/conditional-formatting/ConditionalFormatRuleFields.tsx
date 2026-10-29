@@ -4,7 +4,7 @@ import { Match, Switch, type Accessor } from 'solid-js'
 import type {
   ConditionalFormatEditorDraft,
   ConditionalFormatEditorDraftUpdate,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { CellValueRuleFields } from './CellValueRuleFields'
 import { ColorRuleFields } from './ColorRuleFields'
 import { FormulaRuleFields } from './FormulaRuleFields'

@@ -4,7 +4,7 @@ import { createStore } from '@einfach/core'
 import {
   activeWorkbookSheetAtom, initializeWorkbookDocumentAtom, selectionSnapshotAtom,
   startEditingAtom, goToHistoryAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
 import { GoToTools } from '../../../src/workbook/chrome/ribbon/GoToTools'
 

@@ -1,1 +1,1 @@
-import '@einfach/spreadsheet-ui-core/rust-runtime'
+import '@einfach-excel/spreadsheet-ui-core/rust-runtime'

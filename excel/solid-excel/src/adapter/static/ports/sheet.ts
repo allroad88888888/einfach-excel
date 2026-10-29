@@ -1,7 +1,7 @@
 // 一句话：sheet 生命周期端口。
 
-import type { ReorderSheetRequest, SpreadsheetSheetMetadata } from '@einfach/spreadsheet-ui-core'
-import { reorderSheetMetadata } from '@einfach/spreadsheet-ui-core'
+import type { ReorderSheetRequest, SpreadsheetSheetMetadata } from '@einfach-excel/spreadsheet-ui-core'
+import { reorderSheetMetadata } from '@einfach-excel/spreadsheet-ui-core'
 import type { StaticSpreadsheetBackend } from '../backend-contract'
 import {
   beginUndoableMutation,

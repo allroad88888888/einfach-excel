@@ -3,7 +3,7 @@ import type {
   RustClipboardExport,
   RustClipboardExportFormat,
   SystemClipboardData,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 function escapeHtml(text: string): string {
   return text

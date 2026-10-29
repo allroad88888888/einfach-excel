@@ -24,9 +24,9 @@ import type {
   CellWriteOutcomeWire,
   FormulaWriteOutcomeWire,
 } from '../src/adapter/cell-write-reject'
-import { WasmWorkbook } from '@einfach/excel-wasm'
+import { WasmWorkbook } from '@einfach-excel/excel-wasm'
 
-vi.mock('@einfach/excel-wasm', () => ({
+vi.mock('@einfach-excel/excel-wasm', () => ({
   __esModule: true,
   default: vi.fn(async () => undefined),
   WasmWorkbook: vi.fn(),

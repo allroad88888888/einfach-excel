@@ -1,4 +1,4 @@
-import type { RustImportCell, RustWorkbookSheetInput } from '@einfach/spreadsheet-ui-core'
+import type { RustImportCell, RustWorkbookSheetInput } from '@einfach-excel/spreadsheet-ui-core'
 
 /** Summary 的已有数值 C65:C67 被命名；B4 直接显示 Rust 计算的 12。 */
 export const SUMMARY_NAMED_RANGES: RustWorkbookSheetInput['namedRanges'] = [

@@ -52,14 +52,14 @@ jobs:
       - run: pnpm install --frozen-lockfile
       # node:test 脚本契约及 Playwright 元数据采集回归，不启动浏览器、不依赖构建产物。
       - run: npm run test:scripts
-      - run: pnpm --filter @einfach/react-excel i18n:extract
-      - run: pnpm --filter @einfach/react-excel i18n:check
+      - run: pnpm --filter @einfach-excel/react-excel i18n:extract
+      - run: pnpm --filter @einfach-excel/react-excel i18n:check
       - run: npm run build
       # 元数据门禁不下载浏览器；实际运行结果由 Playwright 报告另验，不能混称通过。
       - run: pnpm check:e2e-features
       # 原生签名测试静态导入 full WASM；根 build 只保证 lite，clean runner 需显式构建。
       - name: Build full WASM for native catalog tests
-        run: npm run build:wasm:full -w @einfach/excel-wasm
+        run: npm run build:wasm:full -w @einfach-excel/excel-wasm
       - run: npm test
       - uses: actions/setup-node@v4
         if: matrix.node-version == '22.19.0'
@@ -101,14 +101,14 @@ jobs:
             curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
           fi
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @einfach/excel-wasm build:wasm:both
+      - run: pnpm --filter @einfach-excel/excel-wasm build:wasm:both
       - run: pnpm build:publish
-      - run: pnpm --filter @einfach/react-excel exec playwright install --with-deps chromium
+      - run: pnpm --filter @einfach-excel/react-excel exec playwright install --with-deps chromium
       # 每个分片只准备一次真实消费者；跨 runner 并行，避免单机争抢 WASM/DOM 资源。
       - name: Full React and packed consumer browser acceptance
         env:
           PLAYWRIGHT_BLOB_OUTPUT_DIR: ${{ github.workspace }}/blob-report
-        run: pnpm --filter @einfach/react-excel e2e --shard=${{ matrix.shard }}/4 --reporter=list,blob
+        run: pnpm --filter @einfach-excel/react-excel e2e --shard=${{ matrix.shard }}/4 --reporter=list,blob
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -150,7 +150,7 @@ jobs:
       - name: Merge browser results
         env:
           PLAYWRIGHT_JSON_OUTPUT_FILE: ${{ github.workspace }}/.codex-artifacts/react-e2e-merged/playwright.json
-        run: pnpm --filter @einfach/react-excel exec playwright merge-reports --config playwright.config.ts --reporter=json ../../all-blob-reports
+        run: pnpm --filter @einfach-excel/react-excel exec playwright merge-reports --config playwright.config.ts --reporter=json ../../all-blob-reports
       - name: Verify every registered primary result
         run: pnpm check:e2e-features --results .codex-artifacts/react-e2e-merged/playwright.json
       - name: Require successful browser shards

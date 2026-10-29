@@ -5,7 +5,7 @@ import {
   directionalFillFeedbackAtom,
   editingSessionAtom,
   fillSelectionAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 /** 只收集填充方向；源区域、原生写入及结果发布由同一个 command 负责。 */
 export function FillTools() {

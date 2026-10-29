@@ -6,7 +6,7 @@ import {
   formulaReferenceSessionAtom,
   keyboardModeAtom,
   startEditingAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   getFormulaReferenceFocusTarget,
   restoreFormulaReferenceFocus,

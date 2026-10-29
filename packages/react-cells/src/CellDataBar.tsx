@@ -1,4 +1,4 @@
-import type { DisplayCell } from '@einfach/spreadsheet-ui-core'
+import type { DisplayCell } from '@einfach-excel/spreadsheet-ui-core'
 import './cell-data-bar.css'
 
 /** 只绘制 Rust 返回的百分比几何；不扫描数值、不计算阈值、不改基础样式。 */

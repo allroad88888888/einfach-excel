@@ -9,7 +9,7 @@ import {
   selectCellAtom,
   selectionAggregatesAtom,
   statusBarProjectionCellsAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { spreadsheetProjectionSnapshotAtom, SpreadsheetUiProvider } from '../src/provider'
 import { SpreadsheetStatusBar } from '../src/status-bar'
 import { setLocale } from '../src/i18n'

@@ -1,6 +1,6 @@
 import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { expect, test } from 'vitest'
-import { selectionSnapshotAtom, setSelectionAtom } from '@einfach/spreadsheet-ui-core'
+import { selectionSnapshotAtom, setSelectionAtom } from '@einfach-excel/spreadsheet-ui-core'
 import {
   createControlledCellEditingConnection, firstEditingCell, renderSalesOrdersEditingWorksheet,
 } from '../support/cell-editing-harness'

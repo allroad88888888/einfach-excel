@@ -1,5 +1,5 @@
 /**
- * Public surface of `@einfach/excel-core-ts`.
+ * Public surface of `@einfach-excel/excel-core-ts`.
  *
  * Phase 0: only re-exports the frozen type contracts (`types.ts`).
  * Subsequent phases add: workbook factory, parser, evaluator, function

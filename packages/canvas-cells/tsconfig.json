@@ -7,10 +7,10 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "@einfach/spreadsheet-ui-core": [
+      "@einfach-excel/spreadsheet-ui-core": [
         "../../excel/spreadsheet-ui-core/src/index.ts"
       ],
-      "@einfach/canvas": [
+      "@einfach-excel/canvas": [
         "../canvas/src/index.ts"
       ]
     },

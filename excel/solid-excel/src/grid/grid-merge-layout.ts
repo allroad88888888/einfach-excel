@@ -3,7 +3,7 @@ import {
   isMergeCovered,
   type CellRange,
   type DisplayCell,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 interface GridMergeLayoutInput {
   getCell: (row: number, col: number) => DisplayCell | undefined

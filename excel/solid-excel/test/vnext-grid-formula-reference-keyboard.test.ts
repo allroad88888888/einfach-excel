@@ -6,7 +6,7 @@ import {
   enterFormulaReferenceAtom,
   formulaReferenceSessionAtom,
   startEditingAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 function makeStore() {
   const store = createStore()

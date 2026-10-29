@@ -3,7 +3,7 @@ import type {
   FindReplaceCapabilityProjection,
   FindReplaceFormState,
   FindReplaceScope,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { useT } from '../i18n'
 
 export interface FindReplaceDialogFieldsProps {

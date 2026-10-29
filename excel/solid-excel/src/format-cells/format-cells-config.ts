@@ -4,7 +4,7 @@ import type {
   SpreadsheetAlignment,
   SpreadsheetBorderStyle,
   SpreadsheetVerticalAlignment,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 export interface FormatCellsTabDescriptor {
   readonly id: FormatCellsTabId

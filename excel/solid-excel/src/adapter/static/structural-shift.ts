@@ -4,8 +4,8 @@ import type {
   DisplayCell,
   RangeFormatLayer,
   SpreadsheetCellFormat,
-} from '@einfach/spreadsheet-ui-core'
-import { cloneCell, cloneFormat, keyFor } from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
+import { cloneCell, cloneFormat, keyFor } from '@einfach-excel/spreadsheet-ui-core'
 import { parseKey } from './cell-map'
 import type { StaticBackendState } from './state'
 

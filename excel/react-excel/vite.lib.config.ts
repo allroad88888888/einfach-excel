@@ -7,7 +7,7 @@ import { defineConfig } from 'vite'
 const directory = path.dirname(fileURLToPath(import.meta.url))
 const repoRoot = path.resolve(directory, '../..')
 const singletonPeers = [
-  'react', 'react-dom', '@einfach/core', '@einfach/react', '@einfach/spreadsheet-ui-core',
+  'react', 'react-dom', '@einfach/core', '@einfach/react', '@einfach-excel/spreadsheet-ui-core',
 ]
 
 export default defineConfig({
@@ -19,9 +19,9 @@ export default defineConfig({
   resolve: {
     // 私有绘制实现内联；Core 使用发行入口并 external，保持宿主 atom 的单例身份。
     alias: {
-      '@einfach/canvas-cells': path.resolve(repoRoot, 'packages/canvas-cells/src'),
-      '@einfach/canvas': path.resolve(repoRoot, 'packages/canvas/src'),
-      '@einfach/react-cells': path.resolve(repoRoot, 'packages/react-cells/src'),
+      '@einfach-excel/canvas-cells': path.resolve(repoRoot, 'packages/canvas-cells/src'),
+      '@einfach-excel/canvas': path.resolve(repoRoot, 'packages/canvas/src'),
+      '@einfach-excel/react-cells': path.resolve(repoRoot, 'packages/react-cells/src'),
     },
   },
   worker: { format: 'es' },

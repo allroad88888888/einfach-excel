@@ -1,6 +1,6 @@
 import { Show, createEffect } from 'solid-js'
 import { useAtomValue, useSetAtom } from '@einfach/solid'
-import type { ReplaceMatchesRequest, ReplaceMatchesResult } from '@einfach/spreadsheet-ui-core'
+import type { ReplaceMatchesRequest, ReplaceMatchesResult } from '@einfach-excel/spreadsheet-ui-core'
 import {
   captureFindReplaceCapabilityAtom,
   closeFindReplaceAtom,
@@ -21,14 +21,14 @@ import {
   syncFindReplaceTargetAtom,
   updateFindReplaceFormAtom,
   workspaceSessionAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { useT } from '../i18n'
 import { useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider/hooks'
 import { createHistoryEntryRecorder } from '../provider/history-entry-recorder'
 import { refreshVisibleProjection } from '../provider/projection-refresh'
 import { FindReplaceDialogContent } from './FindReplaceDialogContent'
 import { useDialogInteractions } from './dialog-interactions'
-import '@einfach/spreadsheet-ui-styles/features/find-replace-dialog.css'
+import '@einfach-excel/spreadsheet-ui-styles/features/find-replace-dialog.css'
 
 export interface SpreadsheetFindReplaceDialogProps {
   class?: string

@@ -4,7 +4,7 @@ import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useId, useLayoutEffect, useRef } from 'react'
 import { insertFunctionPanelAtom, runInsertFunctionAtom,
   runFormulaArgumentsAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { FormulaParameterHelp } from '../../formula-help/FormulaParameterHelp'
 import { FormulaArgumentsDialog } from '../../formula-arguments/FormulaArgumentsDialog'
 import { cycleDialogFocus } from './dialog-focus'

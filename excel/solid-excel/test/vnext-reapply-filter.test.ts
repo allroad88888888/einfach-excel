@@ -33,8 +33,8 @@ import {
   setWorkspaceActiveSheetAtom,
   updateFilterSortDraftAtom,
   viewportFilterHiddenAtom,
-} from '@einfach/spreadsheet-ui-core'
-import type { HistoryEntryRecorder, SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
+import type { HistoryEntryRecorder, SpreadsheetBackend } from '@einfach-excel/spreadsheet-ui-core'
 import { createStaticSpreadsheetBackend } from '../src/adapter'
 
 const SHEET = 'sheet-1'

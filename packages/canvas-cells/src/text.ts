@@ -1,5 +1,5 @@
-import type { Rect } from '@einfach/canvas'
-import { externalHyperlink, type DisplayCell } from '@einfach/spreadsheet-ui-core'
+import type { Rect } from '@einfach-excel/canvas'
+import { externalHyperlink, type DisplayCell } from '@einfach-excel/spreadsheet-ui-core'
 import type { CanvasCellsTheme } from './types'
 
 function ellipsis(ctx: CanvasRenderingContext2D, text: string, width: number) {

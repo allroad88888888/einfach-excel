@@ -1,6 +1,6 @@
 import { Trans, useLingui } from '@lingui/react/macro'
 import { renderActiveSignatureSlots, renderFormulaFunctionSignature,
-  type FormulaFunctionSpec } from '@einfach/spreadsheet-ui-core'
+  type FormulaFunctionSpec } from '@einfach-excel/spreadsheet-ui-core'
 import { translateFeedback } from '../../i18n/translate-feedback'
 import './formula-parameter-help.css'
 

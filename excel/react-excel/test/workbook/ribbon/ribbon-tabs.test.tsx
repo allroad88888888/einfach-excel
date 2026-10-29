@@ -1,5 +1,5 @@
 import { createStore } from '@einfach/core'
-import { workbookRibbonTabAtom } from '@einfach/spreadsheet-ui-core'
+import { workbookRibbonTabAtom } from '@einfach-excel/spreadsheet-ui-core'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { expect, test } from 'vitest'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'

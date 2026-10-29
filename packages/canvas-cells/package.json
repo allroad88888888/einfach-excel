@@ -1,5 +1,5 @@
 {
-  "name": "@einfach/canvas-cells",
+  "name": "@einfach-excel/canvas-cells",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -23,14 +23,14 @@
     "test": "vitest run"
   },
   "peerDependencies": {
-    "@einfach/canvas": "workspace:*",
+    "@einfach-excel/canvas": "workspace:*",
     "@einfach/core": "^0.4.0",
-    "@einfach/spreadsheet-ui-core": "workspace:*"
+    "@einfach-excel/spreadsheet-ui-core": "workspace:*"
   },
   "devDependencies": {
-    "@einfach/canvas": "workspace:*",
+    "@einfach-excel/canvas": "workspace:*",
     "@einfach/core": "^0.4.0",
-    "@einfach/spreadsheet-ui-core": "workspace:*",
+    "@einfach-excel/spreadsheet-ui-core": "workspace:*",
     "@types/node": "^22.19.0",
     "typescript": "^5.7.2",
     "vite": "8.3.4",

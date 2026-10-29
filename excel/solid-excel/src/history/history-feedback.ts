@@ -1,4 +1,4 @@
-import type { HistoryLifecycleState } from '@einfach/spreadsheet-ui-core'
+import type { HistoryLifecycleState } from '@einfach-excel/spreadsheet-ui-core'
 
 import type { SpreadsheetFeedback } from '../feedback/types'
 

@@ -3,7 +3,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { createStore } from '@einfach/core'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
-import type { SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
+import type { SpreadsheetBackend } from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetMenuBar } from '../src/menu-bar'
 import { SpreadsheetPrintPreviewOverlay } from '../src/print'
 import { SpreadsheetUiProvider } from '../src/provider'

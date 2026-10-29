@@ -17,7 +17,7 @@ import {
   selectionSnapshotAtom,
   sheetTabsSheetsAtom,
   workspaceSessionAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   dispatchCopyAs,
   dispatchCopyAsImage,

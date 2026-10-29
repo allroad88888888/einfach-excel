@@ -5,7 +5,7 @@ import {
   editingSessionAtom,
   runSelectionMergeAtom,
   selectionMergeFeedbackAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { MergeConfirmation } from './MergeConfirmation'
 import { useRef } from 'react'
 

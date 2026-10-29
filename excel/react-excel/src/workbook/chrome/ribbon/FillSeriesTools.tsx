@@ -5,7 +5,7 @@ import { useEffect, useId, useRef } from 'react'
 import {
   configureFillSeriesAtom, directionalFillFeedbackAtom, editingSessionAtom, fillSeriesPanelAtom,
   FILL_SERIES_OPTIONS, minimumFillSamples,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import './selection-size.css'
 import './fill-series.css'
 import { CustomFillLists } from './fill-series/CustomFillLists'

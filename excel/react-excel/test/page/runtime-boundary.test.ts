@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { createRustWorkbookConnection } from '@einfach/spreadsheet-ui-core'
-import { createWorkerTransport } from '@einfach/spreadsheet-ui-core/rust-worker'
+import { createRustWorkbookConnection } from '@einfach-excel/spreadsheet-ui-core'
+import { createWorkerTransport } from '@einfach-excel/spreadsheet-ui-core/rust-worker'
 import packageJson from '../../../spreadsheet-ui-core/package.json'
 
 describe('React workbook Rust runtime boundary', () => {

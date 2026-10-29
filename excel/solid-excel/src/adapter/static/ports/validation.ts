@@ -4,7 +4,7 @@ import type {
   BackendMutationResult,
   ClearValidationRuleRequest,
   SetValidationRuleRequest,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { StaticSpreadsheetBackend } from '../backend-contract'
 import { beginUndoableMutation } from '../history-record'
 import { mutationResult } from '../mutation-result'

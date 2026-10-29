@@ -7,7 +7,7 @@ import {
   rustHistoryStateAtom,
   toA1,
   workbookDocumentAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { useEffect, useId, useRef } from 'react'
 import './history.css'
 import { Trans, useLingui } from '@lingui/react/macro'

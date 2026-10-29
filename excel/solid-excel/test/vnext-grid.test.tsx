@@ -23,7 +23,7 @@ import type {
   VisibleProjectionResult,
   ViewportSizeProjectionRequest,
   ViewportSizeProjectionResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   BUILTIN_FILL_SERIES_WEEKDAY_NAMES,
   clipboardStateAtom,
@@ -55,7 +55,7 @@ import {
   viewportHiddenDiagnosticAtom,
   historyStackAtom,
   getFillHandleWriteRange,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   createWorkerWorkbookSpreadsheetBackend,
   type WorkerWorkbookClient,

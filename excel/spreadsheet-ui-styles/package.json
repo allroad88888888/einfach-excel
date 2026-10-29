@@ -1,5 +1,5 @@
 {
-  "name": "@einfach/spreadsheet-ui-styles",
+  "name": "@einfach-excel/spreadsheet-ui-styles",
   "version": "0.2.0",
   "description": "Framework-neutral CSS layer for Einfach spreadsheet surfaces",
   "type": "module",

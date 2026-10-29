@@ -1,6 +1,6 @@
 import { atom, type Atom } from '@einfach/core'
-import { createCanvas, useAtomValue, type CanvasCell, type Rect } from '@einfach/canvas'
-import type { CellCoord } from '@einfach/spreadsheet-ui-core'
+import { createCanvas, useAtomValue, type CanvasCell, type Rect } from '@einfach-excel/canvas'
+import type { CellCoord } from '@einfach-excel/spreadsheet-ui-core'
 import { appearanceAtoms, appearanceReader, sameAppearance } from './appearance'
 import { createProjectionLayout } from './projection-layout'
 import { paintCell } from './paint-cell'

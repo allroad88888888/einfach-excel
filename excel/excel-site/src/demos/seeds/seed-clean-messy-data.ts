@@ -2,7 +2,7 @@ import type {
   DisplayCell,
   StaticSeedMatrix,
   StaticSpreadsheetSeed,
-} from '@einfach/solid-excel'
+} from '@einfach-excel/solid-excel'
 
 const matrix: StaticSeedMatrix = [
   ['Full Name', 'Department', 'Q1 Sales', 'Q2 Sales', 'Total', 'Values-only target'],

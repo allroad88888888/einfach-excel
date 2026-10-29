@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import { vi } from 'vitest'
 import { initializeWorkbookDocumentAtom, runVisibleProjectionAtom, selectCellAtom,
   type RustWorkbookCommands, type RustWorkbookConnection, type VisibleProjectionRequest,
-  type ColumnFilterGroup, type ColumnFilterRule } from '@einfach/spreadsheet-ui-core'
+  type ColumnFilterGroup, type ColumnFilterRule } from '@einfach-excel/spreadsheet-ui-core'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
 import { FilterTools } from '../../../src/workbook/chrome/ribbon/FilterTools'
 

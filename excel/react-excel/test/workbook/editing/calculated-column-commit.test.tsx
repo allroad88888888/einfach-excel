@@ -2,7 +2,7 @@ import { createStore } from '@einfach/core'
 import {
   editingSessionAtom, editingCommitLifecycleAtom, type DisplayCell, type EditingCommitRequest,
   type VisibleProjectionRequest, type VisibleProjectionResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { expect, test, vi } from 'vitest'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'

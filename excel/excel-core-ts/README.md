@@ -1,4 +1,4 @@
-# @einfach/excel-core-ts
+# @einfach-excel/excel-core-ts
 
 TypeScript 公式引擎：分词器 + 解析器 + 求值器 + Workbook 数据模型。响应式那一层委托给
 [`@einfach/core`](https://github.com/allroad88888888/einfach)（走 npm，见
@@ -38,7 +38,7 @@ src/types.ts       跨轨道公共契约（AST、Value、函数签名、变更�
 跨文件重名由测试拦截：
 
 ```bash
-pnpm --filter @einfach/excel-core-ts exec vitest run test/functions-registry.test.ts
+pnpm --filter @einfach-excel/excel-core-ts exec vitest run test/functions-registry.test.ts
 ```
 
 ## 包边界
@@ -56,8 +56,8 @@ pnpm --filter @einfach/excel-core-ts exec vitest run test/functions-registry.tes
 ## 开发
 
 ```bash
-npm run build -w @einfach/excel-core-ts                 # tsc
-pnpm --filter @einfach/excel-core-ts test               # 本包全部单测
+npm run build -w @einfach-excel/excel-core-ts                 # tsc
+pnpm --filter @einfach-excel/excel-core-ts test               # 本包全部单测
 npx tsc --noEmit -p excel/excel-core-ts/tsconfig.json   # 只类型检查
 ```
 

@@ -1,4 +1,4 @@
-# @einfach/excel-wasm
+# @einfach-excel/excel-wasm
 
 einfach 表格栈的预构建 WASM 公式引擎（[ADR 0015](../../docs/decisions/0015-wasm-distribution-single-package.md)
 裁决的单包双入口交付形态）。产物由 `excel/rust/wasm` crate 经 wasm-pack 构建，
@@ -7,8 +7,8 @@ einfach 表格栈的预构建 WASM 公式引擎（[ADR 0015](../../docs/decision
 ## 入口
 
 ```js
-import init, { WasmWorkbook } from '@einfach/excel-wasm' // lite（默认）
-import init, { WasmWorkbook } from '@einfach/excel-wasm/full' // full（--features regex-formulas）
+import init, { WasmWorkbook } from '@einfach-excel/excel-wasm' // lite（默认）
+import init, { WasmWorkbook } from '@einfach-excel/excel-wasm/full' // full（--features regex-formulas）
 ```
 
 - **TS 消费者要求**：`lib` 须含 ES2023+（d.ts 用了 `Symbol.dispose`）与 `DOM`
@@ -23,9 +23,9 @@ import init, { WasmWorkbook } from '@einfach/excel-wasm/full' // full（--featur
 ## 构建（仓内开发者）
 
 ```bash
-npm run build:wasm -w @einfach/excel-wasm        # lite → lite/
-npm run build:wasm:full -w @einfach/excel-wasm   # full → full/
-npm run build:wasm:both -w @einfach/excel-wasm   # 两个都要
+npm run build:wasm -w @einfach-excel/excel-wasm        # lite → lite/
+npm run build:wasm:full -w @einfach-excel/excel-wasm   # full → full/
+npm run build:wasm:both -w @einfach-excel/excel-wasm   # 两个都要
 ```
 
 `lite/` 与 `full/` 是构建产物目录，不进 git；构建末尾会剥调试名

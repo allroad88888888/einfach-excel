@@ -1,6 +1,6 @@
 # 同 Store 宿主数据接口
 
-`@einfach/spreadsheet-ui-core` 根入口导出本页所有 atom/类型。宿主使用组件的同一个
+`@einfach-excel/spreadsheet-ui-core` 根入口导出本页所有 atom/类型。宿主使用组件的同一个
 `@einfach/core` Store。一个 Store 同时只属于一个工作簿；多个组件实例必须各用一个
 Store。React 产品代码继续只使用 `@einfach/react` hooks。
 

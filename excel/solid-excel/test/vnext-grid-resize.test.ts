@@ -7,7 +7,7 @@ import {
   projectionSnapshotAtom,
   viewportSizeOverridesAtom,
   type SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { createGridDomAdapter } from '../src/grid/grid-dom-adapter'
 import { installGridAutoFitController } from '../src/grid/grid-auto-fit-controller'
 import { installGridResizeController } from '../src/grid/grid-resize-controller'

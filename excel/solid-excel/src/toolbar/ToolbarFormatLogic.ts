@@ -5,7 +5,7 @@ import type {
   SpreadsheetCellFormat,
   SpreadsheetNumberFormat,
   ToolbarFormatCommandIntent,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { BordersPreset } from './BordersDropdown'
 import { DEFAULT_FONT_SIZE, FONT_SIZE_MAX, FONT_SIZE_MIN } from './FontSizeDropdown'
 

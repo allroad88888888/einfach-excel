@@ -14,7 +14,7 @@ import {
   textToColumnsCapabilityAtom,
   type PresenceUpdate,
   type SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { cleanup, render, waitFor } from '@solidjs/testing-library'
 import { createSignal } from 'solid-js'
 import {

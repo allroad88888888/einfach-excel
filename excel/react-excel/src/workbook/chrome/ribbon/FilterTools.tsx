@@ -11,7 +11,7 @@ import {
   nativeFilterPanelAtom,
   nativeFilterTargetAtom,
   runNativeFilterAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { FilterConditionFields } from './FilterConditionFields'
 import { AdvancedFilterGroups } from '../../advanced-filter/AdvancedFilterGroups'
 import './selection-size.css'

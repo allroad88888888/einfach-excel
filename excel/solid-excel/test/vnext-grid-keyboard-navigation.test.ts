@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { createStore } from '@einfach/core'
-import type { CellRange, SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
+import type { CellRange, SpreadsheetBackend } from '@einfach-excel/spreadsheet-ui-core'
 import {
   selectCellAtom,
   selectionSnapshotAtom,
@@ -8,7 +8,7 @@ import {
   setSelectionBoundsAtom,
   setViewportMetricsAtom,
   viewportMetricsAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { installGridKeyboardController } from '../src/grid/grid-keyboard-controller'
 import { createGridDomAdapter } from '../src/grid/grid-dom-adapter'
 

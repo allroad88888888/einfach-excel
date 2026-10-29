@@ -1,5 +1,5 @@
 import { createStore, type Store } from '@einfach/core'
-import { onCleanup } from '@einfach/canvas'
+import { onCleanup } from '@einfach-excel/canvas'
 
 /** Plain HTML controls belong only to this demo's shell. */
 export function listen(target: EventTarget, type: string, callback: () => void): void {

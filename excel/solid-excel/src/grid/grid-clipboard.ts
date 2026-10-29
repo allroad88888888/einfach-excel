@@ -17,7 +17,7 @@ import {
   viewportFilterHiddenAtom,
   type ClipboardTransferInput,
   type HistoryEntry,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { createHistoryEntryRecorder, reportCommandFailure } from '../provider'
 import {
   readBrowserClipboardText,

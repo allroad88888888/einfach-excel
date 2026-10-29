@@ -1,6 +1,6 @@
 /// <reference lib="WebWorker" />
 
-import { restoreWorkbookPrintConfigs } from '@einfach/excel-core-ts'
+import { restoreWorkbookPrintConfigs } from '@einfach-excel/excel-core-ts'
 import type { CellRefWire, RpcErrorWire, RpcResponseWire } from './worker-protocol'
 import {
   preserveTsWorkerConditionalFormats,

@@ -1,4 +1,4 @@
-import type { MenuItemDescriptor } from '@einfach/spreadsheet-ui-core'
+import type { MenuItemDescriptor } from '@einfach-excel/spreadsheet-ui-core'
 
 import type { CommandAvailability, ResolvedCommand } from './command-shell'
 

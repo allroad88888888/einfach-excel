@@ -6,7 +6,7 @@ import type {
   SpreadsheetCellFormat,
   SelectionSnapshot,
   ToolbarCommandAvailability,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { useSpreadsheetUiStore } from '../provider'
 
 /** Stable host dependencies shared by toolbar command controllers. */

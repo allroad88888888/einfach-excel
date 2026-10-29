@@ -5,7 +5,7 @@ import {
   startPointerAtom,
   updatePointerAtom,
   type CellCoord,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { getCurrentScope, onScopeDispose } from 'vue'
 import { useSpreadsheetUiCore } from './spreadsheet-ui-context'
 

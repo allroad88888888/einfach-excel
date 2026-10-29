@@ -39,7 +39,7 @@
  */
 import { describe, expect, test } from 'vitest'
 
-import { createWorkbook } from '@einfach/excel-core-ts'
+import { createWorkbook } from '@einfach-excel/excel-core-ts'
 
 import { createWorkerRuntimeTs } from '../src/adapter/worker-runtime-ts'
 

@@ -9,7 +9,7 @@ import {
   viewportFreezeAtom,
   viewportMetricsAtom,
   workspaceSessionAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { spreadsheetProjectionSnapshotAtom } from '../provider'
 import type { GridProjectionControllerApi } from './grid-projection-controller'
 import { type GridRuntimeBase } from './grid-runtime'

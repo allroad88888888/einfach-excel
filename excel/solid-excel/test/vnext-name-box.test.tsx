@@ -13,7 +13,7 @@ import type {
   NamedRangeMutationResult,
   SetNamedRangeRequest,
   SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   addSelectionRegionAtom,
   classifyNameBoxInput,
@@ -36,7 +36,7 @@ import {
   setWorkspaceActiveSheetAtom,
   viewportMetricsAtom,
   workspaceSessionAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetNameBox } from '../src/name-box'
 import { SpreadsheetUiProvider } from '../src/provider'
 import { setLocale } from '../src/i18n'

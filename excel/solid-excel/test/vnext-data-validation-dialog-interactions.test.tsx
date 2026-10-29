@@ -7,12 +7,12 @@ import type {
   RangeProjectionRequest,
   SpreadsheetBackend,
   VisibleProjectionRequest,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   dataValidationMutationBlockedAtom,
   openValidationRuleEditorAtom,
   validationRuleEditorAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetDataValidationDialog } from '../src/data-validation'
 import { setLocale } from '../src/i18n'
 import { SpreadsheetUiProvider } from '../src/provider'

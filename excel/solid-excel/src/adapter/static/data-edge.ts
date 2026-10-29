@@ -4,7 +4,7 @@ import type {
   DisplayCell,
   ResolveDataEdgeRequest,
   ResolveDataEdgeResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { StaticBackendState } from './state'
 import { getOrCreateSheetCells } from './state'
 

@@ -7,7 +7,7 @@ import type {
   SetRangeLockRequest,
   SpreadsheetBackend,
   VerifySheetProtectionPort,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   isRangeFullyUnlocked,
   openProtectionUnlockAtom,
@@ -15,7 +15,7 @@ import {
   protectionUnlockStateAtom,
   setSheetProtectionAtom,
   sheetProtectionAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetUiProvider } from '../src/provider'
 import { SpreadsheetProtectionUnlockDialog } from '../src/protection'
 

@@ -1,4 +1,4 @@
-import { excelGeneralToText } from '@einfach/excel-core-ts'
+import { excelGeneralToText } from '@einfach-excel/excel-core-ts'
 import type { CellValue, ISheet } from './types'
 
 /**

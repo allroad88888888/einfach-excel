@@ -1,4 +1,4 @@
-import type { WorkerLike } from '@einfach/solid-excel'
+import type { WorkerLike } from '@einfach-excel/solid-excel'
 
 interface WorkerMessageCounter {
   sent(): void

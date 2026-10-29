@@ -1,7 +1,7 @@
 // 一句话：合并区注册表的读取与向投影结果的注入。
 
-import type { CellRange, DisplayCell } from '@einfach/spreadsheet-ui-core'
-import { isCoordInsideRange, rangesIntersect } from '@einfach/spreadsheet-ui-core'
+import type { CellRange, DisplayCell } from '@einfach-excel/spreadsheet-ui-core'
+import { isCoordInsideRange, rangesIntersect } from '@einfach-excel/spreadsheet-ui-core'
 import { upsertBlankCell } from './cell-map'
 import type { StaticBackendState } from './state'
 

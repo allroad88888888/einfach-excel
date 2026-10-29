@@ -29,10 +29,10 @@ gzip 固定使用 `gzip -n -9 -c`，不写回输入文件。
 旧候选物误当作刚生成的结果。例如，测量 Solid Vite 候选目录：
 
 ```bash
-npm run build -w @einfach/solid-excel
+npm run build -w @einfach-excel/solid-excel
 node scripts/measure-ad512-size-composition.mjs \
   --candidate excel/solid-excel/dist \
-  --build-command 'npm run build -w @einfach/solid-excel' \
+  --build-command 'npm run build -w @einfach-excel/solid-excel' \
   > /tmp/ad512-solid-candidate.json
 ```
 

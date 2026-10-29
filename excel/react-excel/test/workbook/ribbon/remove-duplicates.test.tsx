@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import { expect, test, vi } from 'vitest'
 import { createStore } from '@einfach/core'
 import { runVisibleProjectionAtom, selectionSnapshotAtom, setSelectionAtom, setSelectionBoundsAtom,
-  type RustWorkbookConnection, type VisibleProjectionRequest } from '@einfach/spreadsheet-ui-core'
+  type RustWorkbookConnection, type VisibleProjectionRequest } from '@einfach-excel/spreadsheet-ui-core'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
 import { RemoveDuplicatesTools } from '../../../src/workbook/chrome/ribbon/RemoveDuplicatesTools'
 

@@ -8,7 +8,7 @@ import {
   type MenuItemDispatch,
   type TopMenuDescriptor,
   type TopMenuId,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 type MenuItemActivation = (
   item: MenuItemDescriptor,

@@ -4,14 +4,14 @@ import type {
   DisplayCell,
   RangeFormatLayer,
   SpreadsheetCellFormat,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   cloneCell,
   formatNumberValue,
   getEffectiveFormat,
   keyFor,
   numericValue,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { EvalCellLookup } from '../static-formula-eval'
 import { evaluateFormula, formatEvalResult } from '../static-formula-eval'
 

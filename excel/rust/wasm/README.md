@@ -3,7 +3,7 @@
 `einfach-excel-core` 的 WASM 绑定。把 `Sheet` / `Workbook` 以 `WasmSheet` / `WasmWorkbook`
 暴露给 JS。
 
-由 `wasm-pack` 构建：产物归 `@einfach/excel-wasm` 包，lite 落在
+由 `wasm-pack` 构建：产物归 `@einfach-excel/excel-wasm` 包，lite 落在
 **`excel/excel-wasm/lite/`**，full 落在 `excel/excel-wasm/full/`（都不在本 crate 目录里
 —— `wasm-pack` 的 `--out-dir` 相对 crate 目录解析，见根 `package.json` 的 `ensureWasm`
 与 excel-wasm 的 `build:wasm*` 那几条）。
@@ -21,14 +21,14 @@ REGEX* 三个内建（`REGEXTEST` / `REGEXEXTRACT` / `REGEXREPLACE`）靠 `regex
 | | **lite** | **full** |
 |---|---|---|
 | 目录 | `excel/excel-wasm/lite/` | `excel/excel-wasm/full/` |
-| 构建 | `npm run build:wasm -w @einfach/excel-wasm` | `npm run build:wasm:full -w @einfach/excel-wasm` |
+| 构建 | `npm run build:wasm -w @einfach-excel/excel-wasm` | `npm run build:wasm:full -w @einfach-excel/excel-wasm` |
 | cargo feature | 无（默认） | `--features regex-formulas` |
 | REGEX* | 不存在，求值为 `#NAME?` | 可用 |
 
-两份一起构建用 `npm run build:wasm:both -w @einfach/excel-wasm`。
+两份一起构建用 `npm run build:wasm:both -w @einfach-excel/excel-wasm`。
 
 **lite 是默认**：`wasm-pack build` 不带参数出的就是它，`ensureWasm`、playwright 的
-`webServer`、以及 React Worker 都指向 `@einfach/excel-wasm`（lite 入口）。full 产物仍可供
+`webServer`、以及 React Worker 都指向 `@einfach-excel/excel-wasm`（lite 入口）。full 产物仍可供
 Rust/WASM 的专项验证使用，但 React 当前不发布第二套 Worker 入口。
 
 极性是刻意反的：`einfach-excel-core` 那侧 `regex-formulas` 在 `default` 里（Rust 消费者
@@ -87,7 +87,7 @@ gzip -9 -c excel/excel-wasm/lite/einfach_wasm_bg.wasm | wc -c
 ### 另一条轴：TS 后端与 WASM 后端的 REGEX* 方言
 
 上一节说的是 **lite ↔ full** 这条轴。还有一条正交的轴：worker 有两份运行时实现
-（`worker-runtime.ts` 走 wasm，`worker-runtime-ts.ts` 走 `@einfach/excel-core-ts`），
+（`worker-runtime.ts` 走 wasm，`worker-runtime-ts.ts` 走 `@einfach-excel/excel-core-ts`），
 而 REGEX* 在两边是**两套正则引擎**——Rust 的 `regex` crate 与 JS 的 `RegExp`。
 
 Excel 的 REGEX* 三函数用 **PCRE2** 方言（微软 support 文档在三个函数页各写了一遍
@@ -179,11 +179,11 @@ TS 的 REGEX* 会让上面那两份对称钉子失去一侧，对拍能力直接
 ### React 使用的产物
 
 React 目前只走 lite，唯一入口是
-`@einfach/spreadsheet-ui-core/rust-worker/runtime`：
+`@einfach-excel/spreadsheet-ui-core/rust-worker/runtime`：
 
 ```ts
-import { createWorkerWorkbookSpreadsheetBackend } from '@einfach/spreadsheet-ui-core/rust-worker'
-import WorkbookWorker from '@einfach/spreadsheet-ui-core/rust-worker/runtime?worker'
+import { createWorkerWorkbookSpreadsheetBackend } from '@einfach-excel/spreadsheet-ui-core/rust-worker'
+import WorkbookWorker from '@einfach-excel/spreadsheet-ui-core/rust-worker/runtime?worker'
 createWorkerWorkbookSpreadsheetBackend({ workerFactory: () => new WorkbookWorker() })
 ```
 

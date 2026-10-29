@@ -1,5 +1,5 @@
 import { createStore } from '@einfach/core'
-import { selectionSnapshotAtom } from '@einfach/spreadsheet-ui-core'
+import { selectionSnapshotAtom } from '@einfach-excel/spreadsheet-ui-core'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, test } from 'vitest'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'

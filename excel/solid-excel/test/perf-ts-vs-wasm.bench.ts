@@ -1,7 +1,7 @@
 /**
  * TS-core vs WASM-core perf bench.
  *
- * Compares `@einfach/excel-core-ts` (the new TS engine) against
+ * Compares `@einfach-excel/excel-core-ts` (the new TS engine) against
  * `excel/rust/excel-core` (via the wasm-pack output in `excel/solid-excel/wasm-pkg/`)
  * on identical workloads. Reports:
  *
@@ -33,7 +33,7 @@
  * results without modifying the historical report.
  *
  * Invocation:
- *   pnpm --filter @einfach/solid-excel test:bench -- test/perf-ts-vs-wasm.bench.ts
+ *   pnpm --filter @einfach-excel/solid-excel test:bench -- test/perf-ts-vs-wasm.bench.ts
  *
  * The normal Vitest config excludes `.bench.ts`; `test:bench` switches
  * discovery to benchmark files.
@@ -57,7 +57,7 @@ if (!g.TextDecoder) g.TextDecoder = TextDecoder
 if (!g.TextEncoder) g.TextEncoder = TextEncoder
 
 // ---------------------------------------------------------------------------
-// Gate the whole bench on EINFACH_PERF=1 — without it the default `pnpm --filter @einfach/solid-excel exec vitest run`
+// Gate the whole bench on EINFACH_PERF=1 — without it the default `pnpm --filter @einfach-excel/solid-excel exec vitest run`
 // run skips every spec immediately. We still build all the helpers/types so
 // the file compiles cleanly under `tsc -b`.
 // ---------------------------------------------------------------------------

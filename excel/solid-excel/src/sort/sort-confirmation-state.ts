@@ -5,7 +5,7 @@ import type {
   FilterSortEntrypoint,
   FilterSortEntrypointTarget,
   SortDirection,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 export const SORT_RANGE_UNAVAILABLE_ERROR =
   'The sortable data range could not be determined. Check the sheet data and try again.'

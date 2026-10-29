@@ -1,6 +1,6 @@
 import { useAtomValue } from '@einfach/react'
-import { projectionSnapshotAtom, type DisplayCell } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetGrid, MergedCells, type SpreadsheetGridProps } from '@einfach/react-cells'
+import { projectionSnapshotAtom, type DisplayCell } from '@einfach-excel/spreadsheet-ui-core'
+import { SpreadsheetGrid, MergedCells, type SpreadsheetGridProps } from '@einfach-excel/react-cells'
 import { CanvasCells } from './CanvasCells'
 import { useLingui } from '@lingui/react/macro'
 import { useContext } from 'react'

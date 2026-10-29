@@ -4,7 +4,7 @@ import {
   clipboardStateAtom,
   type MenuCommandIntent,
   type SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 import { createContextMenuClipboardExecutor } from '../src/context-menu/context-menu-clipboard-executor'
 

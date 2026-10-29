@@ -6,7 +6,7 @@ import {
   type CellRange,
   type FillSeriesRequest,
   type SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { createStaticSpreadsheetBackend } from '../src/adapter'
 
 const SHEET_ID = 'sheet-1'

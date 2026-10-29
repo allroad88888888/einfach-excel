@@ -2,7 +2,7 @@
 
 import { afterEach, describe, expect, it } from 'vitest'
 import { createStore } from '@einfach/core'
-import type { SpreadsheetBackend, VisibleProjectionRequest } from '@einfach/spreadsheet-ui-core'
+import type { SpreadsheetBackend, VisibleProjectionRequest } from '@einfach-excel/spreadsheet-ui-core'
 import { cleanup, render, waitFor } from '@solidjs/testing-library'
 import { createSignal } from 'solid-js'
 import {

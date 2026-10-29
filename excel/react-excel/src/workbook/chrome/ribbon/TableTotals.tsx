@@ -1,7 +1,7 @@
 import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useId } from 'react'
-import { nativeTablePanelAtom, runNativeTablePanelAtom, type NativeTotalFunction } from '@einfach/spreadsheet-ui-core'
+import { nativeTablePanelAtom, runNativeTablePanelAtom, type NativeTotalFunction } from '@einfach-excel/spreadsheet-ui-core'
 
 /** 控件直接读写 Table atom；当前函数来自 Rust 的单元格公式投影。 */
 export function TableTotals() {

@@ -22,7 +22,7 @@ import {
   menuCommandIntentAtom,
   toolbarIntentAtom,
   visibleWindowAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 import { spreadsheetProjectionSnapshotAtom } from '../provider'
 import { useT } from '../i18n'

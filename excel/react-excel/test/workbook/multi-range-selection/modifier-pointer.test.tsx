@@ -3,7 +3,7 @@ import { useAtomValue } from '@einfach/react'
 import {
   dispatchKeyboardInputAtom, pointerSessionAtom, selectionCellCountAtom, selectionRegionsAtom,
   selectionSnapshotAtom, setMultiRegionSelectionAtom, setSelectionBoundsAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'

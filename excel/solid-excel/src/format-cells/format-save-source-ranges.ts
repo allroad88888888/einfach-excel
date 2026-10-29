@@ -1,5 +1,5 @@
 import type { Store } from '@einfach/core'
-import { resolveContentMutationAtom, type CellRange } from '@einfach/spreadsheet-ui-core'
+import { resolveContentMutationAtom, type CellRange } from '@einfach-excel/spreadsheet-ui-core'
 
 /**
  * Mutation-gateway resolution for a Format Cells dialog save: remaps the

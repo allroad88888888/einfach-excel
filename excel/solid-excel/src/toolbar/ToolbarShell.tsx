@@ -1,5 +1,5 @@
 import { createEffect, createSignal, onCleanup, type JSX } from 'solid-js'
-import '@einfach/spreadsheet-ui-styles/features/toolbar-shell.css'
+import '@einfach-excel/spreadsheet-ui-styles/features/toolbar-shell.css'
 
 interface ToolbarShellProps {
   children: JSX.Element

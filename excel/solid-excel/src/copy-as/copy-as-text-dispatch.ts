@@ -9,7 +9,7 @@ import {
   viewportFilterHiddenAtom,
   type CellRange,
   type SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 import { advanceSpreadsheetProjectionRequestIdAtom } from '../provider/atoms'
 import {

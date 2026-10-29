@@ -4,14 +4,14 @@ import { createStore, type Store } from '@einfach/core'
 import { Provider } from '@einfach/solid'
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, render, waitFor } from '@solidjs/testing-library'
-import type { EditingCommitLifecycleState } from '@einfach/spreadsheet-ui-core'
+import type { EditingCommitLifecycleState } from '@einfach-excel/spreadsheet-ui-core'
 import {
   editingCommitFeedback,
   editingCommitLifecycleAtom,
   editingSessionAtom,
   runEditingCommitAtom,
   startEditingAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 import { SpreadsheetWorkbookFeedbackHost } from '../src/feedback'
 

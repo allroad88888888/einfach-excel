@@ -1,4 +1,4 @@
-import { formatA1, parseA1, type CellCoord } from '@einfach/excel-core-ts'
+import { formatA1, parseA1, type CellCoord } from '@einfach-excel/excel-core-ts'
 import type { CellRefWire, CellWire } from '../worker-protocol'
 import { normalizeAddr, normalizeSparseRange } from '../worker-wire-guards'
 import {

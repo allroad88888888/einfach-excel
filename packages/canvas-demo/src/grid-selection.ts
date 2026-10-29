@@ -2,7 +2,7 @@ import { atom, type Store } from '@einfach/core'
 import {
   onPointerDown, onPointerMove, onPointerUp, onPointerCancel, onPointerEnter, onPointerLeave,
   type CellPointerEvent,
-} from '@einfach/canvas'
+} from '@einfach-excel/canvas'
 
 export interface GridAppearance {
   hovered: boolean

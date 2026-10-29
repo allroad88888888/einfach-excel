@@ -2,7 +2,7 @@ import type {
   WorkerWorkbookBackendSheet,
   WorkerWorkbookBackendSheetInput,
   WorkerWorkbookClient,
-} from '@einfach/solid-excel'
+} from '@einfach-excel/solid-excel'
 
 export const customFormulaSheets: WorkerWorkbookBackendSheetInput[] = [
   { id: 'items', name: 'Items' },

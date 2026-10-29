@@ -4,7 +4,7 @@ import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   activeCellFormatAtom, DEFAULT_FONT_SIZE, editingSessionAtom, FONT_SIZE_PRESETS,
   fontSizePanelAtom, runFontSizeAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { useId, useLayoutEffect, useRef } from 'react'
 import { cycleDialogFocus } from './dialog-focus'
 import { preserveToolFocus } from './tool-focus'

@@ -12,7 +12,7 @@ import {
   type HistoryEntry,
   type SheetHiddenStateRequest,
   type SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 import { isVisibleProjectionResult, spreadsheetProjectionSnapshotAtom } from './atoms'
 import { historyRefreshTargetSheetIdAtom } from './history-refresh-target-atom'

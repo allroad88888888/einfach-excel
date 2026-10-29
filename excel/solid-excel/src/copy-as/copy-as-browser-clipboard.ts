@@ -1,4 +1,4 @@
-import type { CopyAsResult, CopyAsTextResult } from '@einfach/spreadsheet-ui-core'
+import type { CopyAsResult, CopyAsTextResult } from '@einfach-excel/spreadsheet-ui-core'
 
 export type TextClipboardWriteResult = 'rich-triple' | 'rich-no-markdown' | 'plain-text' | null
 

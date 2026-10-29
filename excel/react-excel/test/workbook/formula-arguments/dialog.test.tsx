@@ -1,6 +1,6 @@
 import { act, fireEvent, screen, within } from '@testing-library/react'
 import { expect, test } from 'vitest'
-import { editingSessionAtom, selectCellAtom, setSheetProtectionAtom, startEditingAtom } from '@einfach/spreadsheet-ui-core'
+import { editingSessionAtom, selectCellAtom, setSheetProtectionAtom, startEditingAtom } from '@einfach-excel/spreadsheet-ui-core'
 import { showArguments } from './harness'
 
 function open(name: string) {

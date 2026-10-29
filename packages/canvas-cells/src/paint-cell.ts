@@ -1,4 +1,4 @@
-import { formulaViewText } from '@einfach/spreadsheet-ui-core'
+import { formulaViewText } from '@einfach-excel/spreadsheet-ui-core'
 import type { BorderSegment, CanvasCellsTheme, CellPaintModel } from './types'
 import { paintText } from './text'
 import { paintCellMetadata } from './cell-metadata/paint-metadata'

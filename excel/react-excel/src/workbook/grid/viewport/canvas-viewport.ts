@@ -1,4 +1,4 @@
-import type { createCanvasCells } from '@einfach/canvas-cells'
+import type { createCanvasCells } from '@einfach-excel/canvas-cells'
 import { WORKBOOK_GRID_ROW_HEADER_WIDTH, WORKBOOK_GRID_ROW_HEIGHT } from './workbook-grid-config'
 
 /** Keep a bounded painted margin for native scrolling ahead of the main thread. */

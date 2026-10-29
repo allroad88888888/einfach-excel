@@ -7,7 +7,7 @@ import {
   type CellCoord,
   type FilterSortEntrypointTarget,
   type SortDirection,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   createHistoryEntryRecorder,
   refreshVisibleProjection,

@@ -10,14 +10,14 @@ import {
   printPreviewOpenAtom,
   workspaceSessionAtom,
   type PrintConfig,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 import { useOverlayInteraction } from '../overlay'
 import { useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider'
 import { SpreadsheetPageSetupDialog } from './SpreadsheetPageSetupDialog'
 
 if (typeof process === 'undefined' || process.env.VITEST !== 'true') {
-  void import('@einfach/spreadsheet-ui-styles/features/print-preview-dialog.css')
+  void import('@einfach-excel/spreadsheet-ui-styles/features/print-preview-dialog.css')
 }
 
 export interface SpreadsheetPrintPreviewOverlayProps {

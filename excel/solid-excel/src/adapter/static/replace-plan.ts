@@ -1,7 +1,7 @@
 // 一句话：把一次替换请求编译成逐格写入计划。
 
-import type { ReplaceMatchInput, ReplaceMatchesResponse } from '@einfach/spreadsheet-ui-core'
-import { keyFor } from '@einfach/spreadsheet-ui-core'
+import type { ReplaceMatchInput, ReplaceMatchesResponse } from '@einfach-excel/spreadsheet-ui-core'
+import { keyFor } from '@einfach-excel/spreadsheet-ui-core'
 import type { StaticBackendState } from './state'
 
 interface StaticReplacementCellPlan {

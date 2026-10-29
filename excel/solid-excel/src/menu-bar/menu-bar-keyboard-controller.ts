@@ -5,7 +5,7 @@ import {
   openTopMenuAtom,
   topMenuOpenAtom,
   type TopMenuId,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { Store } from '@einfach/core'
 
 type MenuItemFocus = 'first' | 'last'

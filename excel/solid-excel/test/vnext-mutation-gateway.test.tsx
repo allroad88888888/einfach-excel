@@ -11,12 +11,12 @@ import type {
   SetCellInputRequest,
   SpreadsheetBackend,
   VisibleProjectionResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   clipboardStateAtom,
   getFillHandleWriteRange,
   setSheetProtectionAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetGrid } from '../src/grid'
 import { SpreadsheetUiProvider } from '../src/provider'
 

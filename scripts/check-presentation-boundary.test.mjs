@@ -2,8 +2,8 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { checkReactSource } from './check-presentation-boundary.mjs'
 
-const transport = '@einfach/spreadsheet-ui-core/rust-worker'
-const runtime = '@einfach/spreadsheet-ui-core/rust-runtime'
+const transport = '@einfach-excel/spreadsheet-ui-core/rust-worker'
+const runtime = '@einfach-excel/spreadsheet-ui-core/rust-runtime'
 for (const file of ['page/WorkbookRuntimeProvider.tsx', 'worker/create-workbook-worker.ts']) {
   test(`${file} permits only erased WorkerLike references`, () => {
     assert.deepEqual(checkReactSource(file, `import type { WorkerLike } from '${transport}'`), [])
@@ -31,7 +31,7 @@ test('other React views cannot import transport or runtime even as types', () =>
 })
 test('package exceptions retain atom connection and direct Store bans', () => {
   for (const file of ['worker/create-workbook-worker.ts', 'page/WorkbookRuntimeProvider.tsx']) {
-    for (const source of ["import { rustWorkbookConnectionAtom } from '@einfach/spreadsheet-ui-core'",
+    for (const source of ["import { rustWorkbookConnectionAtom } from '@einfach-excel/spreadsheet-ui-core'",
       "import { atom } from '@einfach/core'", 'store.getter(state)', 'store.setter(command)', 'store.sub(state, listener)'])
       assert.ok(checkReactSource(file, source).length > 0)
   }

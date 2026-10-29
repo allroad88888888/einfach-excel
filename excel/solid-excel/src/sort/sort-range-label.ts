@@ -1,4 +1,4 @@
-import { toA1, type CellRange } from '@einfach/spreadsheet-ui-core'
+import { toA1, type CellRange } from '@einfach-excel/spreadsheet-ui-core'
 
 export function formatSortRange(range: CellRange): string {
   return `${toA1(range.rowStart, range.colStart)}:${toA1(range.rowEnd, range.colEnd)}`

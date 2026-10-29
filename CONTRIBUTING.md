@@ -86,11 +86,11 @@ pnpm exec vitest run path/to/file.test.ts
 ## 项目结构
 
 ```
-excel/spreadsheet-ui-core/ → @einfach/spreadsheet-ui-core  # 框架无关的表格 UI 核心（atoms / 类型 / 投影契约）
-excel/react-excel/         → @einfach/react-excel          # 当前 React 产品与 Vite 演示
-excel/solid-excel/         → @einfach/solid-excel          # 已暂停，仅保留源码考古
-excel/excel-site/          → @einfach/excel-site           # 已暂停，依赖 Solid 的旧站点
-excel/excel-core-ts/       → @einfach/excel-core-ts        # TS 公式引擎（private，parity 参照 + 第二 worker 后端）
+excel/spreadsheet-ui-core/ → @einfach-excel/spreadsheet-ui-core  # 框架无关的表格 UI 核心（atoms / 类型 / 投影契约）
+excel/react-excel/         → @einfach-excel/react-excel          # 当前 React 产品与 Vite 演示
+excel/solid-excel/         → @einfach-excel/solid-excel          # 已暂停，仅保留源码考古
+excel/excel-site/          → @einfach-excel/excel-site           # 已暂停，依赖 Solid 的旧站点
+excel/excel-core-ts/       → @einfach-excel/excel-core-ts        # TS 公式引擎（private，parity 参照 + 第二 worker 后端）
 excel/rust/core/           → einfach-core (crate)          # Rust atom store
 excel/rust/excel-core/     → einfach-excel-core (crate)    # Rust 公式 / 工作簿引擎
 excel/rust/wasm/           → einfach-wasm (crate)          # WASM 绑定
@@ -170,9 +170,9 @@ pnpm exec changeset publish  # 发布到 npm
 ```bash
 pnpm test                                                   # 全量（不采覆盖率；报告用 pnpm run test:coverage）
 pnpm exec vitest run path/to/file.test.ts                    # 单个文件
-pnpm --filter @einfach/spreadsheet-ui-core test              # 分区套件
-pnpm --filter @einfach/react-excel test
-pnpm --filter @einfach/react-excel build
+pnpm --filter @einfach-excel/spreadsheet-ui-core test              # 分区套件
+pnpm --filter @einfach-excel/react-excel test
+pnpm --filter @einfach-excel/react-excel build
 ```
 
 ## 许可证

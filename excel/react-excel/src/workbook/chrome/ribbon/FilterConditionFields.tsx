@@ -8,7 +8,7 @@ import {
   nativeFilterFeedbackAtom,
   nativeFilterPanelAtom,
   type ColumnFilterRule,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { FilterValueChoices } from './FilterValueChoices'
 
 /** 条件字段只编辑面板草稿，不读取工作簿数据或决定哪些行隐藏。 */

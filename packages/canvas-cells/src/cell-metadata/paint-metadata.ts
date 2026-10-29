@@ -1,5 +1,5 @@
-import type { Rect } from '@einfach/canvas'
-import type { DisplayCell } from '@einfach/spreadsheet-ui-core'
+import type { Rect } from '@einfach-excel/canvas'
+import type { DisplayCell } from '@einfach-excel/spreadsheet-ui-core'
 
 /** 绘制原生备注、线程及条件图标；不计算规则或读取工作簿。 */
 export function paintCellMetadata(

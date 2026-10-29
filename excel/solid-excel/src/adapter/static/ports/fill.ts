@@ -1,6 +1,6 @@
 // 一句话：拖拽填充端口。
 
-import { cloneRange } from '@einfach/spreadsheet-ui-core'
+import { cloneRange } from '@einfach-excel/spreadsheet-ui-core'
 import type { StaticSpreadsheetBackend } from '../backend-contract'
 import { applyFillRangePlan, preflightFillRange } from '../fill-range'
 import { applyFillSeriesPlan, preflightFillSeries } from '../fill-series'

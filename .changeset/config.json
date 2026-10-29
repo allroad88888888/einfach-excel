@@ -4,10 +4,10 @@
   "commit": false,
   "fixed": [
     [
-      "@einfach/spreadsheet-ui-core",
-      "@einfach/spreadsheet-ui-styles",
-      "@einfach/excel-core-ts",
-      "@einfach/excel-wasm"
+      "@einfach-excel/spreadsheet-ui-core",
+      "@einfach-excel/spreadsheet-ui-styles",
+      "@einfach-excel/excel-core-ts",
+      "@einfach-excel/excel-wasm"
     ]
   ],
   "linked": [],

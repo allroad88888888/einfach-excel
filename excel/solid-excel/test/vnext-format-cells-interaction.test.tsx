@@ -7,13 +7,13 @@ import type {
   BackendMutationResult,
   SetFormatRangeRequest,
   SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   clearSheetProtectionAtom,
   formatCellsEditorAtom,
   openFormatCellsAtom,
   setSheetProtectionAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { setLocale } from '../src/i18n'
 import { SpreadsheetFormatCellsDialog } from '../src/format-cells'
 import { SpreadsheetUiProvider } from '../src/provider'

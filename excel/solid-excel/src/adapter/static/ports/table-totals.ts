@@ -4,8 +4,8 @@ import type {
   SetTableTotalFunctionRequest,
   SetTableTotalsRowRequest,
   TableMutationResult,
-} from '@einfach/spreadsheet-ui-core'
-import { keyFor } from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
+import { keyFor } from '@einfach-excel/spreadsheet-ui-core'
 import type { StaticSpreadsheetBackend } from '../backend-contract'
 import { beginUndoableMutation, recordCellBefore } from '../history-record'
 import { tableRejected } from '../mutation-result'

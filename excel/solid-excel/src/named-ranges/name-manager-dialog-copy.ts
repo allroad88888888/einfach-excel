@@ -3,7 +3,7 @@ import type {
   NamedRangeBackendCapabilities,
   NamedRangeScope,
   TableDiagnosticCode,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 export function scopeToString(scope: NamedRangeScope): string {
   return scope === 'workbook' ? 'workbook' : `sheet:${scope.sheetId}`

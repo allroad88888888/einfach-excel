@@ -10,7 +10,7 @@ import {
   type NamedRangeBackendCapabilities,
   type SetNamedRangeRequest,
   type SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { describe, expect, it, vi } from 'vitest'
 import { createApp, defineComponent, h, nextTick, ref } from 'vue'
 import { SpreadsheetUiProvider } from '../src/spreadsheet-ui-provider'

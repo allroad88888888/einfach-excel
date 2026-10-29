@@ -7,7 +7,7 @@ import {
   openValidationRuleEditorAtom,
   retryFilterSortRefreshAtom,
   selectionSnapshotAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { refreshVisibleProjection } from '../provider'
 import { dispatchRedo, dispatchUndo } from '../provider/history-dispatch'
 import type { ToolbarActionDeps } from './ToolbarActionDeps'

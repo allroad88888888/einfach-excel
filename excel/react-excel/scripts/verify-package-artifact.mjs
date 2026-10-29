@@ -19,7 +19,7 @@ for (const required of ['index.js', 'index.d.ts', 'style.css']) {
   if (!files.includes(required)) fail(`Missing artifact: ${required}`)
 }
 if (!files.some((file) => /workbook\.worker.*\.js$/.test(file))) fail('Missing module Worker asset')
-const forbiddenDependencies = ['@einfach/react-cells', '@einfach/canvas-cells', '@einfach/canvas']
+const forbiddenDependencies = ['@einfach-excel/react-cells', '@einfach-excel/canvas-cells', '@einfach-excel/canvas']
 const allowedImports = new Set([...Object.keys(manifest.dependencies), ...Object.keys(manifest.peerDependencies)])
 const externalImports = new Set()
 const embeddedWasmAssets = []

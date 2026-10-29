@@ -9,7 +9,7 @@ import {
   captureTableCapabilityAtom,
   captureTextToColumnsCapabilityAtom,
   type SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { captureCustomFormulasCapabilityAtom } from './atoms'
 
 /** Capture every provider-owned backend capability projection in one place. */

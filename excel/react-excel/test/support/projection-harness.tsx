@@ -3,7 +3,7 @@ import {
   type RustWorkbookConnection,
   type VisibleProjectionRequest,
   type VisibleProjectionResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { vi } from 'vitest'
 import { fireEvent, render } from '@testing-library/react'
 import { SALES_ORDER_COLUMNS } from '../../src/page/demo/sales-orders/data/sheet'

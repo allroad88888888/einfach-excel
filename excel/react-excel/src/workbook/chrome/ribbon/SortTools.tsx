@@ -3,7 +3,7 @@ import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useEffect, useId, useRef } from 'react'
 import { configureSortAtom, editingSessionAtom, sortFeedbackAtom, sortPanelAtom,
-  sortSelectionAtom, getColumnLabel } from '@einfach/spreadsheet-ui-core'
+  sortSelectionAtom, getColumnLabel } from '@einfach-excel/spreadsheet-ui-core'
 import './selection-size.css'
 import './sort.css'
 import { cycleDialogFocus } from './dialog-focus'

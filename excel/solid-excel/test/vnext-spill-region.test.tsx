@@ -19,7 +19,7 @@ import {
   type SpreadsheetBackend,
   type SpillRegionRequest,
   type VisibleProjectionRequest,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetGrid } from '../src/grid'
 import { SpreadsheetUiProvider } from '../src/provider'
 

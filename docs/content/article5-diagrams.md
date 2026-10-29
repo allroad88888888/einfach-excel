@@ -19,7 +19,7 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    subgraph L1["UI-core（@einfach/spreadsheet-ui-core）— 完全 DOM-free"]
+    subgraph L1["UI-core（@einfach-excel/spreadsheet-ui-core）— 完全 DOM-free"]
         F1[工作簿/UI 事实与命令<br/>选区 · 编辑状态机 · 键盘意图 · 历史]
         F2[纯领域规则<br/>A1 引用解析 · 提交编排 · 剪贴板文本转换]
         F3[已下沉的几何<br/>viewport/axis-geometry · scroll-anchor · freeze]

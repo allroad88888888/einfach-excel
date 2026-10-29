@@ -59,7 +59,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
       // 外层 E2E 可以写 JSON 报告；这里只读 stdout，不能继承后覆盖正式报告。
       for (const suffix of ['NAME', 'DIR', 'FILE']) delete collectionEnv[`PLAYWRIGHT_JSON_OUTPUT_${suffix}`]
       const collected = spawnSync(process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm', [
-        '--filter', '@einfach/react-excel', 'exec', 'playwright', 'test', '--list', '--reporter=json',
+        '--filter', '@einfach-excel/react-excel', 'exec', 'playwright', 'test', '--list', '--reporter=json',
       ], { cwd: repoRoot, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024,
         env: collectionEnv })
       if (collected.error) throw collected.error

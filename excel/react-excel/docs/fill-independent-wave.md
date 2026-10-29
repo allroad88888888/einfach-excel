@@ -69,7 +69,7 @@
   生产 JS 仍有既有 500 kB 分块提醒，不是构建失败。
 
 执行口径：两包分别 `exec vitest run --maxWorkers=2`；完整浏览器使用
-`pnpm --filter @einfach/react-excel e2e --reporter=list,json --max-failures=1`，
+`pnpm --filter @einfach-excel/react-excel e2e --reporter=list,json --max-failures=1`，
 失败后仅重跑相关文件并从报告续跑未完成文件，不反复重启全量。
 Rust 使用 `cargo test --manifest-path excel/rust/excel-core/Cargo.toml --quiet`。
 

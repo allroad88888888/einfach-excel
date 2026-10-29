@@ -10,7 +10,7 @@
  * 现在都取自引擎的 `SPILL_PROJECTION_LOOKBACK`。
  */
 
-import { SPILL_PROJECTION_LOOKBACK } from '@einfach/excel-core-ts'
+import { SPILL_PROJECTION_LOOKBACK } from '@einfach-excel/excel-core-ts'
 
 export interface SpillProbeShape {
   rows: number

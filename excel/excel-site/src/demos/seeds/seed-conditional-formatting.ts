@@ -27,8 +27,8 @@
  * port: `StaticSpreadsheetSeed` has no `conditionalFormatRules` field, only
  * `revision` / `sheets` / `matrix` / `cells`.
  */
-import type { StaticSeedMatrix, StaticSpreadsheetSeed } from '@einfach/solid-excel'
-import type { SetConditionalFormatRuleRequest } from '@einfach/spreadsheet-ui-core'
+import type { StaticSeedMatrix, StaticSpreadsheetSeed } from '@einfach-excel/solid-excel'
+import type { SetConditionalFormatRuleRequest } from '@einfach-excel/spreadsheet-ui-core'
 
 /** `normalizeStaticSheets` assigns `sheet-${index + 1}` for a single string sheet name. */
 export const CONDITIONAL_FORMATTING_SHEET_ID = 'sheet-1'

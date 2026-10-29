@@ -5,7 +5,7 @@ import {
   findReplacePanelAtom,
   runFindReplaceAtom,
   workbookDocumentAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 /** 展示原生结果页；翻页和定位都回到同一个查找命令，不缓存第二份选区。 */
 export function FindResults() {

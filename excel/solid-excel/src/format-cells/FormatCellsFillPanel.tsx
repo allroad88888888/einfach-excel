@@ -1,6 +1,6 @@
 /** @jsxImportSource solid-js */
 
-import type { FormatCellsDraft } from '@einfach/spreadsheet-ui-core'
+import type { FormatCellsDraft } from '@einfach-excel/spreadsheet-ui-core'
 import type { FormatCellsPanelProps } from './format-cells-panel-types'
 
 export function FormatCellsFillPanel(props: FormatCellsPanelProps) {

@@ -1,6 +1,6 @@
 import { createStore } from '@einfach/core'
 import { useAtomValue } from '@einfach/react'
-import { setViewportMetricsAtom, viewportMetricsAtom } from '@einfach/spreadsheet-ui-core'
+import { setViewportMetricsAtom, viewportMetricsAtom } from '@einfach-excel/spreadsheet-ui-core'
 import { describe, expect, it } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { useRef } from 'react'

@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import type { RustImportCell } from '@einfach/spreadsheet-ui-core'
+import type { RustImportCell } from '@einfach-excel/spreadsheet-ui-core'
 import { SUMMARY_FILL_CELLS } from '../../../../src/page/demo/sales-orders/data/fill-seed'
 import { SALES_ORDERS_WORKBOOK_DEFINITION as demo } from '../../../../src/page/demo/sales-orders/sales-orders-workbook'
 

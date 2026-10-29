@@ -1,6 +1,6 @@
 import { useLingui } from '@lingui/react/macro'
 import { useStore } from '@einfach/react'
-import { createCanvasCells, type CanvasCellsInput } from '@einfach/canvas-cells'
+import { createCanvasCells, type CanvasCellsInput } from '@einfach-excel/canvas-cells'
 import { useLayoutEffect, useRef } from 'react'
 import { bindCanvasViewport } from './canvas-viewport'
 

@@ -1,5 +1,5 @@
 import { createEffect, onCleanup, type Accessor } from 'solid-js'
-import type { CommentSessionState } from '@einfach/spreadsheet-ui-core'
+import type { CommentSessionState } from '@einfach-excel/spreadsheet-ui-core'
 import { useOverlayInteraction } from '../overlay'
 import { findCommentCellAnchor, positionCommentThread } from './comment-thread-dom'
 

@@ -1,7 +1,7 @@
 /** @jsxImportSource solid-js */
 
 import { For, Show, type Accessor } from 'solid-js'
-import type { FormatCellsNumberCategory } from '@einfach/spreadsheet-ui-core'
+import type { FormatCellsNumberCategory } from '@einfach-excel/spreadsheet-ui-core'
 import { NUMBER_CATEGORIES, SUPPORTED_CATEGORIES } from './format-cells-config'
 import type { FormatCellsPanelProps } from './format-cells-panel-types'
 

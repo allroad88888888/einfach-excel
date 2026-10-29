@@ -1,4 +1,4 @@
-import type { SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
+import type { SpreadsheetBackend } from '@einfach-excel/spreadsheet-ui-core'
 
 export interface SpreadsheetBackendHandle {
   readonly backend: SpreadsheetBackend

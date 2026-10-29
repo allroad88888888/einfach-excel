@@ -1,6 +1,6 @@
 # presence
 
-Remote collaborator cursors and edit attribution for `@einfach/spreadsheet-ui-core`.
+Remote collaborator cursors and edit attribution for `@einfach-excel/spreadsheet-ui-core`.
 
 ## State Decision Template
 

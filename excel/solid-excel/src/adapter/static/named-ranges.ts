@@ -6,12 +6,12 @@ import type {
   NamedRange,
   NamedRangeListResult,
   SetNamedRangeRequest,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   cloneNamedRange,
   namedRangeIdentity,
   normalizeNamedRangeName,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { StaticBackendState } from './state'
 
 export function namedRangeMatches(

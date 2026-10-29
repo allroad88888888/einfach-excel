@@ -12,7 +12,7 @@ import {
   activeCellInputTextAtom,
   selectionSnapshotAtom,
   startCellEditingFromProjectionAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { FocusEvent, FormEvent, KeyboardEvent } from 'react'
 import { useId, useLayoutEffect, useRef } from 'react'
 import { flushSync } from 'react-dom'

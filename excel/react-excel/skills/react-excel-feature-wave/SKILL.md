@@ -69,11 +69,11 @@ pnpm check:presentation
 pnpm check:e2e-features
 pnpm check:cycles
 pnpm lint:check
-pnpm --filter @einfach/spreadsheet-ui-core build
-pnpm --filter @einfach/react-excel typecheck
-pnpm --filter @einfach/react-excel test
-pnpm --filter @einfach/react-excel e2e
-pnpm --filter @einfach/react-excel build
+pnpm --filter @einfach-excel/spreadsheet-ui-core build
+pnpm --filter @einfach-excel/react-excel typecheck
+pnpm --filter @einfach-excel/react-excel test
+pnpm --filter @einfach-excel/react-excel e2e
+pnpm --filter @einfach-excel/react-excel build
 git diff --check
 ```
 

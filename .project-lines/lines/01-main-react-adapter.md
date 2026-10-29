@@ -1,5 +1,5 @@
 # 线：React 适配层主线
-一句话：`@einfach/react-excel` 把 React 宿主接入框架无关 UI core，再把受控投影交回宿主。
+一句话：`@einfach-excel/react-excel` 把 React 宿主接入框架无关 UI core，再把受控投影交回宿主。
 类型：主线
 
 ## 入口（一个实例从哪开始；引 file:line）
@@ -29,7 +29,7 @@
 ## 形状（分支线：目录/文件形状 + 计数；必需 vs 可选）
 - 这是 flat-src 主线，不是目录家族：tracked `src` 共 18 文件；其中 hook 12 个。人工按 `useSpreadsheetUiCore` 调用计得 10/12 为 Provider-bound，另外 2/12 见“另一类”（`excel/react-excel/src/spreadsheet-ui-context.ts:8`）。
 - 10 个 Provider-bound hooks 中 8/10 通过 `useSpreadsheetValue` 订阅 atoms；pointer、keyboard 2/10 仅派发命令/读取即时 intent（`excel/react-excel/src/use-spreadsheet-pointer-selection.ts:40`；`excel/react-excel/src/use-spreadsheet-keyboard-navigation.ts:25`）。
-- 18 个 src 文件中 15/18 直接 import `@einfach/spreadsheet-ui-core`；`index.ts`、`use-spreadsheet-value.ts`、`use-spreadsheet-ime-composition.ts` 不 import core（`excel/react-excel/src/index.ts:1`；`excel/react-excel/src/use-spreadsheet-ime-composition.ts:1`）。
+- 18 个 src 文件中 15/18 直接 import `@einfach-excel/spreadsheet-ui-core`；`index.ts`、`use-spreadsheet-value.ts`、`use-spreadsheet-ime-composition.ts` 不 import core（`excel/react-excel/src/index.ts:1`；`excel/react-excel/src/use-spreadsheet-ime-composition.ts:1`）。
 - 必需：Provider-bound hook 从 Context 取 core；读状态时用 stable source + `useSyncExternalStore`；写操作派发公开 command atom。可选：只有需要 transport 的 hook 才拿 backend，只有 DOM 事件适配才返回 React handlers（`excel/react-excel/src/use-spreadsheet-history.ts:46`；`excel/react-excel/src/use-spreadsheet-pointer-selection.ts:19`）。
 - core backend 只有 3 个必需 port：visible projection、range projection、cell input；其余能力都是可选 port（`excel/spreadsheet-ui-core/src/backend/types.ts:1091`）。
 
@@ -59,7 +59,7 @@
 
 ## 文档与代码不一致处
 - README 说 Provider-bound hooks 的 exception 是 `useSpreadsheetValue`；代码还有不取 Provider 的 `useSpreadsheetImeComposition`（`excel/react-excel/README.md:68`；`excel/react-excel/src/use-spreadsheet-ime-composition.ts:21`）。
-- README 把 pointer 与其它 hooks 并列，却没说明它只能从 `@einfach/react-excel/pointer-selection` 导入；根 barrel 没导出它（`excel/react-excel/README.md:38`；`excel/react-excel/package.json:13`；`excel/react-excel/src/index.ts:1`）。
+- README 把 pointer 与其它 hooks 并列，却没说明它只能从 `@einfach-excel/react-excel/pointer-selection` 导入；根 barrel 没导出它（`excel/react-excel/README.md:38`；`excel/react-excel/package.json:13`；`excel/react-excel/src/index.ts:1`）。
 - README 说本地 demo 的 formula bar 只读，clipboard/sheet/history commands 未接线；代码吻合：formula bar 用 `<output>`，ribbon/footer 只是按钮外观（`excel/react-excel/README.md:21`；`excel/react-excel/demo/FormulaBar.tsx:7`；`excel/react-excel/demo/WorkbookRibbon.tsx:34`；`excel/react-excel/demo/WorkbookFooter.tsx:6`）。
 
 ## 证据核过：commit `5cd1132eab3d82129510c783b5595450d04d5c82`，2026-09-01；本次打开文件数：53

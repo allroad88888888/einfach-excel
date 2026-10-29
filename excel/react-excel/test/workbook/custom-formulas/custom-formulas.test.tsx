@@ -1,6 +1,6 @@
 import { createStore } from '@einfach/core'
 import { initializeWorkbookDocumentAtom, beginProjectionAtom, resolveProjectionAtom,
-  type RustWorkbookConnection } from '@einfach/spreadsheet-ui-core'
+  type RustWorkbookConnection } from '@einfach-excel/spreadsheet-ui-core'
 import type { RustCustomFormulaCommands } from '../../../../spreadsheet-ui-core/src/rust-workbook/custom-formulas/command'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { expect, test, vi } from 'vitest'

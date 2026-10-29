@@ -9,7 +9,7 @@ import {
   type Participant,
   type RemoteCursor,
   type SelectionState,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 export interface PresenceSelectionRect {
   left: number

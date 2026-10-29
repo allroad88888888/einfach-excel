@@ -11,7 +11,7 @@ import { describe, expect, it } from 'vitest'
 const PACKAGE_ROOT = join(__dirname, '..')
 const runCommand = promisify(execFile)
 
-describe('@einfach/solid-excel stylesheet aliases', () => {
+describe('@einfach-excel/solid-excel stylesheet aliases', () => {
   it.each(['styles.css', 'vnext-styles.css'])(
     'keeps %s in a production tree-shaken build',
     async (stylesheet) => {
@@ -21,7 +21,7 @@ describe('@einfach/solid-excel stylesheet aliases', () => {
 
     try {
       // This verifies workspace-source exports only; packed, published, and tarball checks are AD-124.
-      await writeFile(entryFile, `import '@einfach/solid-excel/${stylesheet}'\n`)
+      await writeFile(entryFile, `import '@einfach-excel/solid-excel/${stylesheet}'\n`)
       await writeFile(
         join(consumerDirectory, 'index.html'),
         '<script type="module" src="/main.ts"></script>\n',

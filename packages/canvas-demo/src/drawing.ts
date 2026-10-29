@@ -1,4 +1,4 @@
-import type { Rect } from '@einfach/canvas'
+import type { Rect } from '@einfach-excel/canvas'
 import type { GridAppearance } from './grid-selection'
 
 export function drawCard(

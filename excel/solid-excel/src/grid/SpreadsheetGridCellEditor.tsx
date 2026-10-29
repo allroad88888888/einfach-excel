@@ -12,7 +12,7 @@ import {
   notifyDraftTypedChar,
   readActiveFormulaSuggestion,
   syncFormulaReferenceCaret,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { useAtomValue } from '@einfach/solid'
 import { Show } from 'solid-js'
 import { dispatchEditingCancel } from '../provider'

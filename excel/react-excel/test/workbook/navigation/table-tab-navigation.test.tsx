@@ -1,5 +1,5 @@
 import { selectCellAtom, selectionSnapshotAtom, type NativeTable, type RustWorkbookCommands,
-  type RustWorkbookConnection, type VisibleProjectionRequest } from '@einfach/spreadsheet-ui-core'
+  type RustWorkbookConnection, type VisibleProjectionRequest } from '@einfach-excel/spreadsheet-ui-core'
 import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { expect, test, vi } from 'vitest'
 import { projectionResultFor, renderSalesOrdersProjectionWorksheet } from '../../support/projection-harness'

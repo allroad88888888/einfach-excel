@@ -9,13 +9,13 @@ import type {
   SetFormatRangeRequest,
   SpreadsheetBackend,
   VisibleProjectionRequest,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   closeFormatCellsAtom,
   formatCellsEditorAtom,
   openFormatCellsAtom,
   setSheetProtectionAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { setLocale } from '../src/i18n'
 import { SpreadsheetUiProvider } from '../src/provider'
 import {

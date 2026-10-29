@@ -2,7 +2,7 @@
 
 import { afterEach, describe, expect, it } from 'vitest'
 import { createStore } from '@einfach/core'
-import { topMenuOpenAtom, type SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
+import { topMenuOpenAtom, type SpreadsheetBackend } from '@einfach-excel/spreadsheet-ui-core'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import { SpreadsheetMenuBar } from '../src/menu-bar'
 import { SpreadsheetUiProvider } from '../src/provider'

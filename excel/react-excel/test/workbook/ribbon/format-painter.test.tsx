@@ -2,7 +2,7 @@ import { createStore } from '@einfach/core'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { expect, test, vi } from 'vitest'
 import { initializeWorkbookDocumentAtom, selectCellAtom, runVisibleProjectionAtom,
-  startCellEditingFromProjectionAtom } from '@einfach/spreadsheet-ui-core'
+  startCellEditingFromProjectionAtom } from '@einfach-excel/spreadsheet-ui-core'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
 import { FormatPainterTools } from '../../../src/workbook/chrome/ribbon/FormatPainterTools'
 import { createTestRustWorkbookConnection } from '../../support/rust-workbook-connection'

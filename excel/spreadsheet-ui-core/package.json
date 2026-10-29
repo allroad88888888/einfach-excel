@@ -1,5 +1,5 @@
 {
-  "name": "@einfach/spreadsheet-ui-core",
+  "name": "@einfach-excel/spreadsheet-ui-core",
   "version": "0.2.0",
   "description": "Framework-agnostic spreadsheet UI core powered by Einfach atoms",
   "type": "module",
@@ -66,7 +66,7 @@
   ],
   "dependencies": {
     "@einfach/core": "^0.4.0",
-    "@einfach/excel-wasm": "workspace:*"
+    "@einfach-excel/excel-wasm": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.19.0",

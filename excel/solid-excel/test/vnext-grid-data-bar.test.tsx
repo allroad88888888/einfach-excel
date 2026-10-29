@@ -2,7 +2,7 @@
 
 import { afterEach, describe, expect, test } from 'vitest'
 import { cleanup, render } from '@solidjs/testing-library'
-import type { DisplayCell } from '@einfach/spreadsheet-ui-core'
+import type { DisplayCell } from '@einfach-excel/spreadsheet-ui-core'
 import { withDataBarProjection } from '../src/adapter/data-bar-projection'
 import { SpreadsheetGridDataBar } from '../src/grid/SpreadsheetGridDataBar'
 

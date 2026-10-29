@@ -91,7 +91,7 @@ AD-313 decides one.
 ## Decisions still required
 
 1. Choose the owner package for the shared interaction layer: extending
-   `@einfach/spreadsheet-ui-core` couples it to DOM types; a small new package
+   `@einfach-excel/spreadsheet-ui-core` couples it to DOM types; a small new package
    keeps UI-core headless but adds package/build work.
 2. Decide whether DOM controllers belong in the first React/Vue MVP from
    AD-301. If not, AD-312b can be deferred without blocking the pure contracts

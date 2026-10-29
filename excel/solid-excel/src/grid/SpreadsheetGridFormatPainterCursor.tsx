@@ -2,7 +2,7 @@
 
 import { createEffect, onCleanup, type Accessor } from 'solid-js'
 import { useAtomValue } from '@einfach/solid'
-import { formatPainterStateAtom } from '@einfach/spreadsheet-ui-core'
+import { formatPainterStateAtom } from '@einfach-excel/spreadsheet-ui-core'
 
 export interface SpreadsheetGridFormatPainterCursorProps {
   readonly gridRoot: Accessor<HTMLDivElement | undefined>

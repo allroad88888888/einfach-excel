@@ -129,7 +129,7 @@
 | Inspect before adopting   | Live workbench, viewport, formula, and backend demos link to source    |
 | Keep work bounded         | Projection contracts validate requested rectangles                     |
 | Keep UI responsive        | The Solid worker path runs Rust/WASM workbook work off the main thread |
-| Start from a real package | `@einfach/solid-excel@0.1.0` is available from npm                     |
+| Start from a real package | `@einfach-excel/solid-excel@0.1.0` is available from npm                     |
 
 ## Goals
 

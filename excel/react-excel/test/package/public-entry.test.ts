@@ -1,6 +1,6 @@
 import type { Store } from '@einfach/core'
-import type { RustWorkbookDefinition } from '@einfach/spreadsheet-ui-core'
-import type { WorkerLike } from '@einfach/spreadsheet-ui-core/rust-worker'
+import type { RustWorkbookDefinition } from '@einfach-excel/spreadsheet-ui-core'
+import type { WorkerLike } from '@einfach-excel/spreadsheet-ui-core/rust-worker'
 import type { CSSProperties } from 'react'
 import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest'
 import type {

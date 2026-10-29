@@ -42,7 +42,7 @@ import { sitePath } from '../../data/site-path'
     </ul>
 
     <h2 id="install">1. Install the Solid integration</h2>
-    <pre><code>{`npm install @einfach/solid-excel @einfach/core @einfach/solid solid-js`}</code></pre>
+    <pre><code>{`npm install @einfach-excel/solid-excel @einfach/core @einfach/solid solid-js`}</code></pre>
     <p>
       The three non-UI packages are peers. Keep one physical copy of each in the application dependency graph; the
       provider and its consumers must share the same Solid runtime.
@@ -55,9 +55,9 @@ import {
   createWorkerWorkbookSpreadsheetBackend,
   SpreadsheetGrid,
   SpreadsheetUiProvider,
-} from '@einfach/solid-excel'
-import { defaultVNextWorkbookWorkerFactory } from '@einfach/solid-excel/worker-factory'
-import '@einfach/solid-excel/styles.css'
+} from '@einfach-excel/solid-excel'
+import { defaultVNextWorkbookWorkerFactory } from '@einfach-excel/solid-excel/worker-factory'
+import '@einfach-excel/solid-excel/styles.css'
 
 const backend = createWorkerWorkbookSpreadsheetBackend({
   workerFactory: defaultVNextWorkbookWorkerFactory,
@@ -101,8 +101,8 @@ render(() => (
       </p>
       <pre><code>{`optimizeDeps: {
   include: [
-    '@einfach/solid-excel > @lingui/core',
-    '@einfach/solid-excel > @lingui/core > @messageformat/parser',
+    '@einfach-excel/solid-excel > @lingui/core',
+    '@einfach-excel/solid-excel > @lingui/core > @messageformat/parser',
   ],
 }`}</code></pre>
     </details>

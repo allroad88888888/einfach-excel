@@ -1,4 +1,4 @@
-import type { DisplayCell } from '@einfach/spreadsheet-ui-core'
+import type { DisplayCell } from '@einfach-excel/spreadsheet-ui-core'
 import { errorDisplayToken } from './error-display-token'
 import { Parser } from './static-formula/parser'
 import { tokenize } from './static-formula/tokenizer'

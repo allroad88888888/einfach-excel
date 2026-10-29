@@ -1,6 +1,6 @@
 // 一句话：合并单元格端口。
 
-import { cloneRange, normalizeRange, rangesIntersect } from '@einfach/spreadsheet-ui-core'
+import { cloneRange, normalizeRange, rangesIntersect } from '@einfach-excel/spreadsheet-ui-core'
 import type { StaticSpreadsheetBackend } from '../backend-contract'
 import { beginUndoableMutation, recordMergeRangesBefore } from '../history-record'
 import { getMergeRanges } from '../merge-overlay'

@@ -29,19 +29,19 @@ pnpm publish --registry http://localhost:4873 --no-git-checks
 ## 消费者安装与验证（AD-137 下半场 + AD-119）
 
 空目录 + `.npmrc` 指向本地 registry，执行一次
-`npm install @einfach/solid-excel@0.1.0 solid-js@1.9.12`：
+`npm install @einfach-excel/solid-excel@0.1.0 solid-js@1.9.12`：
 
 - `node_modules/@einfach/` 出现全部七个包：本仓五包来自本地 registry，
   `core`、`solid` 作为 peer 自动装自 npmjs 代理。
-- **AD-119**：`@einfach/excel-core-ts` 作为 solid-excel 的依赖从 registry 解析成功，
-  且 `import('@einfach/excel-core-ts')` 可执行。
-- `import('@einfach/excel-wasm')` 返回的 `WasmWorkbook` 为 `function`。
-- `import('@einfach/solid-excel/vnext')` 在**裸 node** 下因 CSS import 报
+- **AD-119**：`@einfach-excel/excel-core-ts` 作为 solid-excel 的依赖从 registry 解析成功，
+  且 `import('@einfach-excel/excel-core-ts')` 可执行。
+- `import('@einfach-excel/excel-wasm')` 返回的 `WasmWorkbook` 为 `function`。
+- `import('@einfach-excel/solid-excel/vnext')` 在**裸 node** 下因 CSS import 报
   `Unknown file extension ".css"` —— 设计内行为（ADR 0019 刻意保留 CSS 副作用，
   该包面向打包器环境；打包器实跑归 AD-138~141 冒烟）。
 - 消费者 `tsc`（`moduleResolution: Bundler`、`lib ["ESNext","DOM"]`、`types: []`、
-  `jsxImportSource: solid-js`）对 `@einfach/solid-excel/vnext`、
-  `/vnext-worker-factory`、`@einfach/spreadsheet-ui-core`、`@einfach/excel-wasm`
+  `jsxImportSource: solid-js`）对 `@einfach-excel/solid-excel/vnext`、
+  `/vnext-worker-factory`、`@einfach-excel/spreadsheet-ui-core`、`@einfach-excel/excel-wasm`
   联合类型检查零错。附注：消费者若启用默认 `@types/node` 自动引入，会撞上
   lib.dom 与 node types 的 TextEncoder/TextDecoder 已知冲突 —— 属环境组合问题，
   与本仓包无关。

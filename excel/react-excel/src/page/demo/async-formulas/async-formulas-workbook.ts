@@ -1,4 +1,4 @@
-import type { RustWorkbookDefinition } from '@einfach/spreadsheet-ui-core'
+import type { RustWorkbookDefinition } from '@einfach-excel/spreadsheet-ui-core'
 import { ASYNC_FORMULA_CELLS } from './data/async-seed'
 
 /** The separate demo keeps asynchronous HTTP examples outside the original Sales Orders seed. */

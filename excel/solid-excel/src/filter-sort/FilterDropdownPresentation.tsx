@@ -6,7 +6,7 @@ import type {
   FilterSortDraftState,
   FilterSortMutationIntent,
   SortDirection,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { FilterDropdownConditions } from './FilterDropdownConditions'
 
 export interface FilterDropdownPresentationProps {

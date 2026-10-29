@@ -78,7 +78,7 @@ export async function loadWasmModule(): Promise<WasmModuleShape> {
   if (WasmModule) return WasmModule
   if (!existsSync(WASM_PKG_JS) || !existsSync(WASM_PKG_BIN)) {
     throw new Error(
-      `scale-parity: wasm artifacts missing at ${WASM_PKG_JS} — run \`npm run build:wasm -w @einfach/excel-wasm\``,
+      `scale-parity: wasm artifacts missing at ${WASM_PKG_JS} — run \`npm run build:wasm -w @einfach-excel/excel-wasm\``,
     )
   }
   const mod = (await import(WASM_PKG_JS)) as WasmModuleShape

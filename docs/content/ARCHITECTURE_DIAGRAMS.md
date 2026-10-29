@@ -10,13 +10,13 @@ flowchart TB
     subgraph host["宿主应用(Solid / 任意框架)"]
         comp["Solid 组件<br/>SpreadsheetUiProvider · SpreadsheetGrid · 对话框族"]
     end
-    subgraph core["@einfach/spreadsheet-ui-core(无 DOM / 无 worker / 无 WASM)"]
+    subgraph core["@einfach-excel/spreadsheet-ui-core(无 DOM / 无 worker / 无 WASM)"]
         atoms["交互状态 atoms<br/>selection · editing · find/replace…"]
         port["SpreadsheetBackend 端口<br/>3 必需方法 + 可选端口族"]
     end
     subgraph engine["引擎(worker 内)"]
-        wasm["Rust/WASM 工作簿<br/>@einfach/excel-wasm"]
-        ts["TS 引擎(parity 参照)<br/>@einfach/excel-core-ts"]
+        wasm["Rust/WASM 工作簿<br/>@einfach-excel/excel-wasm"]
+        ts["TS 引擎(parity 参照)<br/>@einfach-excel/excel-core-ts"]
     end
     comp --> atoms
     comp --> port

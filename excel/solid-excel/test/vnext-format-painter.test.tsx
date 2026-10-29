@@ -9,7 +9,7 @@ import type {
   SpreadsheetBackend,
   VisibleProjectionRequest,
   VisibleProjectionResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   applyFormatPainterAtom,
   armFormatPainterAtom,
@@ -25,7 +25,7 @@ import {
   setSheetProtectionAtom,
   setWorkspaceActiveSheetAtom,
   type CapturedFormat,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetUiProvider } from '../src/provider'
 import { SpreadsheetToolbar } from '../src/toolbar'
 import { SpreadsheetFormatPainter } from '../src/format-painter'

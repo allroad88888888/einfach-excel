@@ -3,7 +3,7 @@ import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import {
   rustHistoryStateAtom, type RustWorkbookCommands, type RustWorkbookConnection,
   type VisibleProjectionRequest,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { createTestRustWorkbookConnection } from '../../support/rust-workbook-connection'
 import {
   deferredProjection, projectionResultFor, renderSalesOrdersProjectionWorksheet,

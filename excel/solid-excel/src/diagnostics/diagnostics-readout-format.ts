@@ -4,7 +4,7 @@ import type {
   MenuCommandIntent,
   ProjectionSnapshot,
   ToolbarIntent,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { useT } from '../i18n'
 
 /** Pure text formatting for the diagnostics readout — no Solid, no DOM, no atoms. */

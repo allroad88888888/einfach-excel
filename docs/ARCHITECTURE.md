@@ -17,7 +17,7 @@ rust-worker                   纯 Worker RPC 传输
         ↓
 rust-runtime.ts               Worker 入口
         ↓
-@einfach/excel-wasm → Rust excel-core
+@einfach-excel/excel-wasm → Rust excel-core
 ```
 
 当前完整产品是 `excel/react-excel`。它通过 `@einfach/react` 的
@@ -90,10 +90,10 @@ feature 缓存进入 UI。
 
 ## 构建入口
 
-- 包根 `@einfach/spreadsheet-ui-core`：atom、类型和无副作用的 connection factory。
-- `@einfach/spreadsheet-ui-core/rust-worker`：纯传输。
-- `@einfach/spreadsheet-ui-core/rust-runtime`：给 Vite `?worker` 使用的副作用入口。
-- `@einfach/excel-wasm`：wasm-pack 生成的 Rust/WASM 包。
+- 包根 `@einfach-excel/spreadsheet-ui-core`：atom、类型和无副作用的 connection factory。
+- `@einfach-excel/spreadsheet-ui-core/rust-worker`：纯传输。
+- `@einfach-excel/spreadsheet-ui-core/rust-runtime`：给 Vite `?worker` 使用的副作用入口。
+- `@einfach-excel/excel-wasm`：wasm-pack 生成的 Rust/WASM 包。
 
 `package-boundary.test.ts` 约束普通 UI Core 不引入视图框架和内联 WASM；
 `rust-worker-boundary.test.ts` 约束传输目录不认识表格业务。

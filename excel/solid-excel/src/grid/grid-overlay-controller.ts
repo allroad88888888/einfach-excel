@@ -1,4 +1,4 @@
-import { getSelectionRange, type SelectionState } from '@einfach/spreadsheet-ui-core'
+import { getSelectionRange, type SelectionState } from '@einfach-excel/spreadsheet-ui-core'
 import { installGridFeature, type GridRuntimeBase } from './grid-runtime'
 import type { GridSelectionApi } from './grid-selection'
 import type { GridViewStateApi } from './grid-view-state'

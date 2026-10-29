@@ -1,4 +1,4 @@
-# 直接使用 @einfach/spreadsheet-ui-core
+# 直接使用 @einfach-excel/spreadsheet-ui-core
 
 UI Core 现在直接围绕 Rust Worker connection 工作，不再提供“自己实现任意 backend”的聚合接口。
 框架层可以换成 React、Solid 或 Vue，但工作簿引擎固定走 Rust/WASM。
@@ -6,8 +6,8 @@ UI Core 现在直接围绕 Rust Worker connection 工作，不再提供“自己
 ## Vite 接入
 
 ```ts
-import { createSpreadsheetUi, createRustWorkbookConnection } from '@einfach/spreadsheet-ui-core'
-import RustWorkbookWorker from '@einfach/spreadsheet-ui-core/rust-runtime?worker'
+import { createSpreadsheetUi, createRustWorkbookConnection } from '@einfach-excel/spreadsheet-ui-core'
+import RustWorkbookWorker from '@einfach-excel/spreadsheet-ui-core/rust-runtime?worker'
 
 const connection = createRustWorkbookConnection(() => new RustWorkbookWorker())
 

@@ -1,7 +1,7 @@
 /** @jsxImportSource solid-js */
 
 import { For, Match, Show, Switch, type Accessor } from 'solid-js'
-import type { FormatCellsNumberCategory, FormatCellsTabId } from '@einfach/spreadsheet-ui-core'
+import type { FormatCellsNumberCategory, FormatCellsTabId } from '@einfach-excel/spreadsheet-ui-core'
 import { FormatCellsAlignmentPanel } from './FormatCellsAlignmentPanel'
 import { FormatCellsBorderPanel } from './FormatCellsBorderPanel'
 import { FormatCellsFillPanel } from './FormatCellsFillPanel'

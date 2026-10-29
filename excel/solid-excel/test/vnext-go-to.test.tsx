@@ -7,7 +7,7 @@ import type {
   RangeProjectionRequest,
   RangeProjectionResult,
   SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   goToOpenAtom,
   goToHistoryAtom,
@@ -23,7 +23,7 @@ import {
   setNameRegistryAtom,
   setViewportMetricsAtom,
   setWorkspaceActiveSheetAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetUiProvider } from '../src/provider'
 import { SpreadsheetGoToDialog } from '../src/go-to'
 

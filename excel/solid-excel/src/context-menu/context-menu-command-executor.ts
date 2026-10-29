@@ -15,7 +15,7 @@ import {
   type MenuCommandIntent,
   type SpreadsheetBackend,
   type ViewportHiddenContextMenuCommandKind,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 import {
   createHistoryEntryRecorder,

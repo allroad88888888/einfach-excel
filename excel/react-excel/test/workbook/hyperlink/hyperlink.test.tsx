@@ -1,6 +1,6 @@
 import { createStore } from '@einfach/core'
 import { initializeWorkbookDocumentAtom, beginProjectionAtom, resolveProjectionAtom,
-  setSelectionAtom, type RustWorkbookCommands, type RustWorkbookConnection } from '@einfach/spreadsheet-ui-core'
+  setSelectionAtom, type RustWorkbookCommands, type RustWorkbookConnection } from '@einfach-excel/spreadsheet-ui-core'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { expect, test, vi } from 'vitest'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'

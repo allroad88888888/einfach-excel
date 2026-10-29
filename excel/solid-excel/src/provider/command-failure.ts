@@ -1,5 +1,5 @@
 import type { Store } from '@einfach/core'
-import { reportProjectionErrorAtom, type SpreadsheetError } from '@einfach/spreadsheet-ui-core'
+import { reportProjectionErrorAtom, type SpreadsheetError } from '@einfach-excel/spreadsheet-ui-core'
 
 /** Used when the rejected value carries no readable message of its own. */
 export const COMMAND_FAILURE_FALLBACK_MESSAGE = 'Spreadsheet command failed.'

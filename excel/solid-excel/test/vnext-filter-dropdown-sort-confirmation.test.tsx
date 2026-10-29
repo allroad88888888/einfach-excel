@@ -8,13 +8,13 @@ import type {
   SortRangeRequest,
   SortRangeResult,
   SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   filterSortEntrypointStateAtom,
   openFilterDropdownAtom,
   selectionAtom,
   setWorkspaceActiveSheetAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetFilterDropdown } from '../src/filter-sort'
 import { SpreadsheetUiProvider } from '../src/provider'
 import { SpreadsheetToolbar } from '../src/toolbar'

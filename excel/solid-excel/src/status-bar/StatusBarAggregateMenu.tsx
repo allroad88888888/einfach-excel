@@ -13,7 +13,7 @@ import {
   statusBarAggregateConfigAtom,
   toggleStatusBarAggregateAtom,
   type StatusBarAggregateKey,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 import { useT } from '../i18n'
 import { AGGREGATE_LABEL_KEYS, AGGREGATE_ORDER } from './status-bar-format'

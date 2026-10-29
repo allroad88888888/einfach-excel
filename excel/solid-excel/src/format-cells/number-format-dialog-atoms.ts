@@ -13,7 +13,7 @@ export {
   patchNumberFormatDialogAtom,
   runNumberFormatDialogSaveAtom,
   saveNumberFormatDialogAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 export type {
   CurrencyFormatOption,
   NumberFormatDialogKind,
@@ -22,4 +22,4 @@ export type {
   OpenNumberFormatDialogInput,
   PatchNumberFormatDialogInput,
   PatternFormatOption,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'

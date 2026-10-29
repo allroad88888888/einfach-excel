@@ -2,7 +2,7 @@
  * 门禁：TS 参考引擎的内建函数名集合 == Rust 引擎的内建函数名集合。
  *
  * 为什么需要它：本仓的两个后端（`worker-runtime.ts` 走 wasm，`worker-runtime-ts.ts`
- * 走 `@einfach/excel-core-ts`）是**可以在运行期互换**的 —— `worker-factory.ts` 导出
+ * 走 `@einfach-excel/excel-core-ts`）是**可以在运行期互换**的 —— `worker-factory.ts` 导出
  * 两个 factory，`VNextWorkerDemo.tsx` 让用户当场切，`excel-site` 两个都用。一个只存在
  * 于其中一侧的函数名，意味着同一份工作簿换个后端就从「有值」变成 `#NAME?`。
  *
@@ -26,8 +26,8 @@
  */
 import { describe, expect, test } from 'vitest'
 
-import { BUILTIN_FUNCTIONS } from '@einfach/excel-core-ts'
-import { ENGINE_BUILTIN_FORMULA_NAMES } from '@einfach/spreadsheet-ui-core'
+import { BUILTIN_FUNCTIONS } from '@einfach-excel/excel-core-ts'
+import { ENGINE_BUILTIN_FORMULA_NAMES } from '@einfach-excel/spreadsheet-ui-core'
 
 /**
  * 刻意允许「TS 有、Rust 没有」的名字。**目标是空的。**

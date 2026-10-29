@@ -84,7 +84,7 @@ test('the removed React adapter demo stays outside the documentation site', () =
 
   const dependencies = { ...sitePackage.dependencies, ...sitePackage.devDependencies }
   for (const name of [
-    '@einfach/react-excel',
+    '@einfach-excel/react-excel',
     '@astrojs/react',
     'react',
     'react-dom',

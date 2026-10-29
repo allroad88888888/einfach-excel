@@ -1,4 +1,4 @@
-import type { RustImportCell, RustWorkbookSheetInput } from '@einfach/spreadsheet-ui-core'
+import type { RustImportCell, RustWorkbookSheetInput } from '@einfach-excel/spreadsheet-ui-core'
 
 /** A80:B83 导入为 Table，Rust 在第 84 行生成汇总；B5 使用结构化引用。 */
 export const SUMMARY_TABLES: RustWorkbookSheetInput['tables'] = [

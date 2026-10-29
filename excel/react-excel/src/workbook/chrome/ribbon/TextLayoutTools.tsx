@@ -4,7 +4,7 @@ import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   activeCellFormatAtom, editingSessionAtom, runTextLayoutAtom, textLayoutFeedbackAtom,
   type TextLayoutAction,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { preserveToolFocus } from './tool-focus'
 
 type Horizontal = Extract<TextLayoutAction, { type: 'horizontal-alignment' }>['value']

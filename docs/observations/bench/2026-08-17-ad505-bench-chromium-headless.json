@@ -7838,9 +7838,9 @@
         "sourceRevision": "986cd74+ad505-bench-uncommitted",
         "buildProfile": "vite-dev",
         "packageVersions": {
-          "@einfach/solid-excel": "source",
-          "@einfach/excel-wasm": "source",
-          "@einfach/spreadsheet-ui-core": "source"
+          "@einfach-excel/solid-excel": "source",
+          "@einfach-excel/excel-wasm": "source",
+          "@einfach-excel/spreadsheet-ui-core": "source"
         }
       },
       "machine": {
@@ -7950,9 +7950,9 @@
         "sourceRevision": "986cd74+ad505-bench-uncommitted",
         "buildProfile": "vite-dev",
         "packageVersions": {
-          "@einfach/solid-excel": "source",
-          "@einfach/excel-wasm": "source",
-          "@einfach/spreadsheet-ui-core": "source"
+          "@einfach-excel/solid-excel": "source",
+          "@einfach-excel/excel-wasm": "source",
+          "@einfach-excel/spreadsheet-ui-core": "source"
         }
       },
       "machine": {
@@ -8064,9 +8064,9 @@
         "sourceRevision": "986cd74+ad505-bench-uncommitted",
         "buildProfile": "vite-dev",
         "packageVersions": {
-          "@einfach/solid-excel": "source",
-          "@einfach/excel-wasm": "source",
-          "@einfach/spreadsheet-ui-core": "source"
+          "@einfach-excel/solid-excel": "source",
+          "@einfach-excel/excel-wasm": "source",
+          "@einfach-excel/spreadsheet-ui-core": "source"
         }
       },
       "machine": {

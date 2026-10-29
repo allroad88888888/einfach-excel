@@ -224,7 +224,7 @@ P1 搭的是新阵容的骨架，本期把每页做成完整叙事：
    custom-formulas 的 JS 侧 README。单一事实源留在代码旁，站点只是投影，
    与 CONTRIBUTING「契约贴码、同 PR 更新」不冲突。
 2. **生成式 reference**：TypeDoc（markdown 输出）覆盖公共入口
-   `@einfach/spreadsheet-ui-core`（`index.ts`）与 `@einfach/solid-excel/vnext`。
+   `@einfach-excel/spreadsheet-ui-core`（`index.ts`）与 `@einfach-excel/solid-excel/vnext`。
    前置工作是公共 API 的 TSDoc 补注，范围收敛为：backend port 全量、
    `createSpreadsheetUi`、各 feature README 里点名的 atoms。
 

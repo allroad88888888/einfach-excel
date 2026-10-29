@@ -1,4 +1,4 @@
-import type { RustImportCell } from '@einfach/spreadsheet-ui-core'
+import type { RustImportCell } from '@einfach-excel/spreadsheet-ui-core'
 
 /** 第二张表展示跨表引用：改名后数值应保持，修改订单后仍应重算。 */
 export const SALES_ORDER_SUMMARY_CELLS: readonly RustImportCell[] = [

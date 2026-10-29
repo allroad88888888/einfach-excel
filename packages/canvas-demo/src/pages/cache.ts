@@ -1,4 +1,4 @@
-import { onCleanup } from '@einfach/canvas'
+import { onCleanup } from '@einfach-excel/canvas'
 import { createGridRegion } from '../grid-region'
 import { action, element, find, listen, write } from '../ui'
 

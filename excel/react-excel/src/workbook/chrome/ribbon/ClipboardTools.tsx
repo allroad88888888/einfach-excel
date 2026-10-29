@@ -5,7 +5,7 @@ import {
   editingSessionAtom,
   runSystemClipboardAtom,
   systemClipboardFeedbackAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   readBrowserClipboard,
   writeBrowserClipboard,

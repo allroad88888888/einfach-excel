@@ -5,7 +5,7 @@ import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   configureSelectionStatisticsAtom, selectionStatisticsPreferencesAtom,
   selectionStatisticLabels, type SelectionStatistic,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { cycleDialogFocus } from '../ribbon/dialog-focus'
 
 /** 配置弹窗只处理原生对话框及焦点，勾选状态直接来自 UI Core。 */

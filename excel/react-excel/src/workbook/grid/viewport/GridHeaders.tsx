@@ -4,7 +4,7 @@ import {
   activeWorkbookSheetAtom,
   selectionSnapshotAtom,
   selectGridHeaderAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { CSSProperties } from 'react'
 import { GridHeading } from './GridHeading'
 

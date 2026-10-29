@@ -1,5 +1,5 @@
 import type { Accessor } from 'solid-js'
-import type { FormatCellsDraft } from '@einfach/spreadsheet-ui-core'
+import type { FormatCellsDraft } from '@einfach-excel/spreadsheet-ui-core'
 
 export interface FormatCellsPanelProps {
   readonly draft: Accessor<FormatCellsDraft | null>

@@ -1,6 +1,6 @@
 // 一句话：在单元格内容下绘制不可交互的 Data Bar 装饰。
 
-import type { DisplayCell } from '@einfach/spreadsheet-ui-core'
+import type { DisplayCell } from '@einfach-excel/spreadsheet-ui-core'
 import { Show } from 'solid-js'
 import { getDataBarProjection } from '../adapter/data-bar-projection'
 

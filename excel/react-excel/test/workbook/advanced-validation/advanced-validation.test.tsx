@@ -11,7 +11,7 @@ import {
   offerNativeValidationConfirmationAtom,
   editingSessionAtom,
   startEditingAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
 import { DataValidationTools } from '../../../src/workbook/chrome/ribbon/DataValidationTools'
 import { ValidationErrorAlert } from '../../../src/workbook/advanced-validation/ValidationErrorAlert'

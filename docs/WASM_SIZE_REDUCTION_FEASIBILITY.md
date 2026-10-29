@@ -10,7 +10,7 @@ strip，以及在功能允许时由宿主选择 lite 变体。这是对已有构
 
 ## 已有构建边界
 
-[`@einfach/solid-excel` 的构建脚本](../excel/solid-excel/package.json)把 lite 和
+[`@einfach-excel/solid-excel` 的构建脚本](../excel/solid-excel/package.json)把 lite 和
 full 分为独立路径：`build:wasm` 生成 lite，`build:wasm:full` 生成带
 `regex-formulas` feature 的 full；两条交付路径都会在保留名称的构建之后执行各自的
 strip 脚本。`build:wasm:both` 只是顺序执行这两条路径。

@@ -4,8 +4,8 @@ import type {
   DisplayCell,
   RangeProjectionResult,
   VisibleProjectionResult,
-} from '@einfach/spreadsheet-ui-core'
-import { DEFAULT_WORKBOOK_LOCALE, cloneFormat, keyFor } from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
+import { DEFAULT_WORKBOOK_LOCALE, cloneFormat, keyFor } from '@einfach-excel/spreadsheet-ui-core'
 import { collectColorScaleDomains } from '../color-scale-projection'
 import { collectDataBarDomains, withDataBarProjection } from '../data-bar-projection'
 import { collectTopBottomMatches } from '../top-bottom-projection'

@@ -1,5 +1,5 @@
-import { getAdjacentSheetId } from '@einfach/spreadsheet-ui-core'
-import type { SpreadsheetSheetMetadata } from '@einfach/spreadsheet-ui-core'
+import { getAdjacentSheetId } from '@einfach-excel/spreadsheet-ui-core'
+import type { SpreadsheetSheetMetadata } from '@einfach-excel/spreadsheet-ui-core'
 
 export type SheetTabKeyboardAction = 'previous' | 'next' | 'first' | 'last' | null
 

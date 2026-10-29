@@ -2,7 +2,7 @@ import { Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useId } from 'react'
 import { DEFAULT_NATIVE_TABLE_STYLE, NATIVE_TABLE_STYLE_PRESETS,
-  nativeTablePanelAtom, runNativeTablePanelAtom } from '@einfach/spreadsheet-ui-core'
+  nativeTablePanelAtom, runNativeTablePanelAtom } from '@einfach-excel/spreadsheet-ui-core'
 
 /** 显示 Rust 返回的样式配置；控件不保存第二份工作簿状态。 */
 export function TableAppearance() {

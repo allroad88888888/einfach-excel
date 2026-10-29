@@ -2,7 +2,7 @@ import type {
   GoToLocator,
   GoToLocatorKind,
   GoToValueKindFilter,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 export const LOCATOR_KIND_ORDER: readonly GoToLocatorKind[] = [
   'formulas',

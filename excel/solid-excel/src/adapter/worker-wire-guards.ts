@@ -1,1 +1,1 @@
-export * from '@einfach/spreadsheet-ui-core/rust-worker/adapter/worker-wire-guards'
+export * from '@einfach-excel/spreadsheet-ui-core/rust-worker/adapter/worker-wire-guards'

@@ -8,7 +8,7 @@ import type {
   SortRangeResult,
   SpreadsheetBackend,
   VisibleProjectionRequest,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   FILTER_SORT_OUTCOME_UNKNOWN_ERROR,
   createVisibleProjectionRequest,
@@ -17,7 +17,7 @@ import {
   physicalSortDiagnosticAtom,
   selectionAtom,
   setWorkspaceActiveSheetAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetMenuBar } from '../src/menu-bar'
 import { SpreadsheetToolbar } from '../src/toolbar'
 import { SpreadsheetUiProvider } from '../src/provider'

@@ -1,7 +1,7 @@
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { useId, useLayoutEffect, useRef } from 'react'
-import { nativeValidationConfirmationAtom, runNativeValidationConfirmationAtom } from '@einfach/spreadsheet-ui-core'
+import { nativeValidationConfirmationAtom, runNativeValidationConfirmationAtom } from '@einfach-excel/spreadsheet-ui-core'
 import { cycleDialogFocus } from '../chrome/ribbon/dialog-focus'
 import { translateFeedback } from '../../i18n/translate-feedback'
 import './advanced-validation.css'

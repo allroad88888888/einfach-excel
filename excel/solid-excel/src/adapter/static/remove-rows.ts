@@ -1,6 +1,6 @@
 // 一句话：按行号列表删除行的计划与施加。
 
-import type { CellRange, DisplayCell, ProjectionRevision } from '@einfach/spreadsheet-ui-core'
+import type { CellRange, DisplayCell, ProjectionRevision } from '@einfach-excel/spreadsheet-ui-core'
 import { isFiniteNumber, isObject, isSafeInteger } from './guards'
 import { shiftFilterHiddenRows, shiftHiddenIndexSet } from './hidden-rows'
 import { beginUndoableMutation, recordFullSheetBefore } from './history-record'

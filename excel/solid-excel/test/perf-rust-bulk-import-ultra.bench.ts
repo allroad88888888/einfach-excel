@@ -15,7 +15,7 @@
  *
  *   1. Raise `MAX_BULK_IMPORT_CELLS_PER_CALL` to e.g. 10_000_000.
  *   2. Run `npm --prefix excel/solid-excel run build:wasm`.
- *   3. pnpm --filter @einfach/solid-excel test:bench -- perf-rust-bulk-import-ultra.bench.ts \
+ *   3. pnpm --filter @einfach-excel/solid-excel test:bench -- perf-rust-bulk-import-ultra.bench.ts \
  *        --testTimeout 1800000
  *   4. Inspect `excel/solid-excel/test/perf-reports/perf-rust-bulk-import-ultra-report.md`.
  *

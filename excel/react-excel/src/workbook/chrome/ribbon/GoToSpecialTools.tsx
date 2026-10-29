@@ -2,7 +2,7 @@ import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useEffect, useId, useRef } from 'react'
-import { goToSpecialAvailableAtom, goToSpecialPanelAtom, runGoToSpecialAtom } from '@einfach/spreadsheet-ui-core'
+import { goToSpecialAvailableAtom, goToSpecialPanelAtom, runGoToSpecialAtom } from '@einfach-excel/spreadsheet-ui-core'
 import { cycleDialogFocus } from './dialog-focus'
 import './go-to.css'
 

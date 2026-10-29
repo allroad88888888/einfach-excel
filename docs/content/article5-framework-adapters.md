@@ -4,7 +4,7 @@
 > 2026-09-01，React public surface、adapter e2e 与站内 demo 已移除；`excel/react-excel` 现在是
 > 独立私有 Vite 产品，只接 Rust/WASM worker。Vue 仍保留 adapter 与站内受控投影 demo。
 
-我们的表格栈一直宣称「框架无关」：无头的 `@einfach/spreadsheet-ui-core` 管状态与命令，Solid 只是第一个渲染适配。但只有一个消费者的「框架无关」是主张，不是证据。仓库里给这项工作的 issue 组（AD-300）开篇就是这句话：「框架无关」从主张变成证据的地方。
+我们的表格栈一直宣称「框架无关」：无头的 `@einfach-excel/spreadsheet-ui-core` 管状态与命令，Solid 只是第一个渲染适配。但只有一个消费者的「框架无关」是主张，不是证据。仓库里给这项工作的 issue 组（AD-300）开篇就是这句话：「框架无关」从主张变成证据的地方。
 
 下文按 2026-08-14 的仓库状态记录补上 React 与 Vue 适配层的工序。先说结论：三分之二的工作发生在写第一行 React 代码之前。
 

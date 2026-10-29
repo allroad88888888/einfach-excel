@@ -1,5 +1,5 @@
 {
-  "name": "@einfach/vue-excel",
+  "name": "@einfach-excel/vue-excel",
   "version": "0.0.1",
   "private": true,
   "description": "Vue adapter package skeleton for Einfach Excel",
@@ -19,7 +19,7 @@
   "sideEffects": false,
   "dependencies": {
     "@einfach/core": "^0.4.0",
-    "@einfach/spreadsheet-ui-core": "workspace:*"
+    "@einfach-excel/spreadsheet-ui-core": "workspace:*"
   },
   "peerDependencies": {
     "vue": ">=3.3.0"

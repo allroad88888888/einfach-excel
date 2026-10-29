@@ -33,7 +33,7 @@ import type {
   ViewportSizeProjectionRequest,
   ViewportSizeProjectionResult,
   VisibleProjectionResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 export type StaticSeedValue = string | number | boolean | null | undefined
 

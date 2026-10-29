@@ -1,4 +1,4 @@
-import type { RustImportCell, RustWorkbookDefinition } from '@einfach/spreadsheet-ui-core'
+import type { RustImportCell, RustWorkbookDefinition } from '@einfach-excel/spreadsheet-ui-core'
 
 /** A dedicated native fixture makes cross-sheet history assertions independent of setup edits. */
 const CELLS: readonly RustImportCell[] = [

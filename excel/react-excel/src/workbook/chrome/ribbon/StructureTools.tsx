@@ -7,7 +7,7 @@ import {
   selectionStructureFeedbackAtom,
   rustHistoryPanelAtom,
   sheetTabsAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 /** 只收集插删方向；选区、画布边界与原生请求属于 UI Core command atom。 */
 export function StructureTools() {

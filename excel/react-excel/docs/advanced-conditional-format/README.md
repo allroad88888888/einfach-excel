@@ -33,8 +33,8 @@ Rule JSON adds optional threshold fields; existing files without those fields re
 
 Native integration: `cargo test --manifest-path excel/rust/excel-core/Cargo.toml --test advanced_conditional_format`.
 
-Core: `pnpm --filter @einfach/spreadsheet-ui-core test test/advanced-conditional-format`.
+Core: `pnpm --filter @einfach-excel/spreadsheet-ui-core test test/advanced-conditional-format`.
 
-React controls: `pnpm --filter @einfach/react-excel test test/workbook/advanced-conditional-format`.
+React controls: `pnpm --filter @einfach-excel/react-excel test test/workbook/advanced-conditional-format`.
 
 Persistent real Worker/WASM DOM scenarios live in `e2e/advanced-conditional-format/`. Each operation runs at 1280px and 390px; the shared integration owner executes them after rebuilding lite/full WASM and merging messages. The lifecycle suite captures English/Chinese desktop/narrow screenshots. Unit mock transport tests verify command shape only; they do not substitute for native or browser evidence.

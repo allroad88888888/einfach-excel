@@ -11,7 +11,7 @@ import {
   ungroupSelectionAtom,
   unprotectSheetAtom,
   type MenuItemDispatch,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { MenuBarCommandContext } from './menu-bar-command-context'
 
 /** Dispatches format-menu commands through Core's canonical view-state atoms. */

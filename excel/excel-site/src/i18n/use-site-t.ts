@@ -1,8 +1,8 @@
-import { useLocale, type Locale } from '@einfach/solid-excel/i18n'
+import { useLocale, type Locale } from '@einfach-excel/solid-excel/i18n'
 import { en } from './locales/en'
 import { zh } from './locales/zh'
 
-export { setLocale, useLocale } from '@einfach/solid-excel/i18n'
+export { setLocale, useLocale } from '@einfach-excel/solid-excel/i18n'
 
 const dictionaries: Record<Locale, Record<string, string>> = { en, zh }
 

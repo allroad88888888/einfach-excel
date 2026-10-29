@@ -6,7 +6,7 @@ import {
   keyFor,
   spillCellRoleAtom,
   type SpillCellRole,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { getCellBackgroundStyle, getDisplayCellFormat } from './cell-format'
 import { GRID_ROW_HEADER_WIDTH } from './grid-constants'
 import { createGridFreezeLayout } from './grid-freeze-layout'

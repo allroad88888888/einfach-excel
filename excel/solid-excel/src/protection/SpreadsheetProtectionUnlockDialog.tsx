@@ -11,14 +11,14 @@ import {
   submitProtectionUnlockAtom,
   type SubmitProtectionUnlockInput,
   type VerifySheetProtectionPort,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider/hooks'
 import {
   focusProtectionUnlockDialog,
   restoreProtectionUnlockFocus,
   trapProtectionUnlockDialogTab,
 } from './protection-unlock-dialog-focus'
-import '@einfach/spreadsheet-ui-styles/features/protection-unlock-dialog.css'
+import '@einfach-excel/spreadsheet-ui-styles/features/protection-unlock-dialog.css'
 
 export interface SpreadsheetProtectionUnlockDialogProps {
   class?: string

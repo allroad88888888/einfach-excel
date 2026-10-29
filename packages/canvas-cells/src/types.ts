@@ -1,6 +1,6 @@
 import type { Store } from '@einfach/core'
-import type { FrameStats, Rect } from '@einfach/canvas'
-import type { CellRange, DisplayCell, SpreadsheetBorderSpec } from '@einfach/spreadsheet-ui-core'
+import type { FrameStats, Rect } from '@einfach-excel/canvas'
+import type { CellRange, DisplayCell, SpreadsheetBorderSpec } from '@einfach-excel/spreadsheet-ui-core'
 
 export interface CanvasCellsInput {
   readonly window: CellRange

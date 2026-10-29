@@ -27,13 +27,13 @@ archive 路径，也不再把已不存在的 typecheck/e2e 命令列为可执行
 ### V-TC
 
 ```sh
-NO_PROXY=localhost,127.0.0.1 no_proxy=localhost,127.0.0.1 pnpm --filter @einfach/vue-excel typecheck:e2e
+NO_PROXY=localhost,127.0.0.1 no_proxy=localhost,127.0.0.1 pnpm --filter @einfach-excel/vue-excel typecheck:e2e
 ```
 
 ### V-E2E
 
 ```sh
-NO_PROXY=localhost,127.0.0.1 no_proxy=localhost,127.0.0.1 EINFACH_E2E_PORT=5193 pnpm --filter @einfach/vue-excel e2e
+NO_PROXY=localhost,127.0.0.1 no_proxy=localhost,127.0.0.1 EINFACH_E2E_PORT=5193 pnpm --filter @einfach-excel/vue-excel e2e
 ```
 
 结果：`vue-adapter.spec.ts` 的 1 个 Chromium 用例通过。
@@ -41,7 +41,7 @@ NO_PROXY=localhost,127.0.0.1 no_proxy=localhost,127.0.0.1 EINFACH_E2E_PORT=5193 
 ### S-WASM
 
 ```sh
-NO_PROXY=localhost,127.0.0.1 no_proxy=localhost,127.0.0.1 EINFACH_E2E_PORT=5195 pnpm --filter @einfach/solid-excel exec playwright test e2e/smoke/vnext-real-backend-smoke.spec.ts --project=wasm --reporter=line
+NO_PROXY=localhost,127.0.0.1 no_proxy=localhost,127.0.0.1 EINFACH_E2E_PORT=5195 pnpm --filter @einfach-excel/solid-excel exec playwright test e2e/smoke/vnext-real-backend-smoke.spec.ts --project=wasm --reporter=line
 ```
 
 结果：该 spec 在 `wasm` project 的 7 个 Chromium 用例通过。
@@ -49,7 +49,7 @@ NO_PROXY=localhost,127.0.0.1 no_proxy=localhost,127.0.0.1 EINFACH_E2E_PORT=5195 
 ### S-TS
 
 ```sh
-NO_PROXY=localhost,127.0.0.1 no_proxy=localhost,127.0.0.1 EINFACH_E2E_PORT=5196 pnpm --filter @einfach/solid-excel exec playwright test e2e/smoke/vnext-real-backend-smoke.spec.ts --project=ts --reporter=line
+NO_PROXY=localhost,127.0.0.1 no_proxy=localhost,127.0.0.1 EINFACH_E2E_PORT=5196 pnpm --filter @einfach-excel/solid-excel exec playwright test e2e/smoke/vnext-real-backend-smoke.spec.ts --project=ts --reporter=line
 ```
 
 结果：该 spec 在 `ts` project 的 7 个 Chromium 用例通过。

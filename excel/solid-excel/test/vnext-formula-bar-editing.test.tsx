@@ -9,8 +9,8 @@ import type {
   SpreadsheetBackend,
   VisibleProjectionRequest,
   VisibleProjectionResult,
-} from '@einfach/spreadsheet-ui-core'
-import { editingSessionAtom, selectCellAtom } from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
+import { editingSessionAtom, selectCellAtom } from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetFormulaBar } from '../src/formula-bar'
 import { SpreadsheetUiProvider } from '../src/provider'
 import { seedReadyVisibleProjection } from './projection-test-fixture'

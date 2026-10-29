@@ -2,7 +2,7 @@ import { Trans, useLingui } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useId } from 'react'
 import { configureFillSeriesAtom, directionalFillFeedbackAtom,
-  fillSeriesPanelAtom } from '@einfach/spreadsheet-ui-core'
+  fillSeriesPanelAtom } from '@einfach-excel/spreadsheet-ui-core'
 
 /** 仅渲染会话预设；配置命令直接读写 Core atom，不经 props 传控制器。 */
 export function CustomFillLists() {

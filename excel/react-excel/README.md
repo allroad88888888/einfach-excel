@@ -56,14 +56,14 @@ Sales Orders B2 是备注示例；Summary 原生示例：A71:A73 允许区（初
 ```text
 React 视图
   → @einfach/react（useAtomValue / useSetAtom）
-  → @einfach/spreadsheet-ui-core（状态 atom / command atom）
+  → @einfach-excel/spreadsheet-ui-core（状态 atom / command atom）
   → rustWorkbookConnectionAtom
-  → @einfach/spreadsheet-ui-core/rust-worker（纯传输）
+  → @einfach-excel/spreadsheet-ui-core/rust-worker（纯传输）
   → Rust/WASM workbook
 ```
 
 类型化工作簿命令与轻量 Rust/WASM runtime 均由 UI-core 所有。React 不依赖
-`@einfach/solid-excel`；生产路径没有 `SpreadsheetBackend`、TypeScript engine 或运行时 fallback。
+`@einfach-excel/solid-excel`；生产路径没有 `SpreadsheetBackend`、TypeScript engine 或运行时 fallback。
 
 - Rust/WASM 负责工作簿权威数据、计算和 mutation 结果。
 - `spreadsheet-ui-core` 负责创建连接、初始化工作簿、导入数据、运行状态、销毁连接、工作簿状态、
@@ -173,9 +173,9 @@ Vite 与 Vitest 共用官方 Lingui 插件的原生宏转换，直接编译 `.po
 不提交另一份编译后的 JS 词典，也不依赖 Babel 宏插件。
 
 ```bash
-pnpm --filter @einfach/react-excel i18n:extract # 从源码提取并清理词条
+pnpm --filter @einfach-excel/react-excel i18n:extract # 从源码提取并清理词条
 # 编辑 src/i18n/locales/zh/messages.po，再检查缺失／非法翻译
-pnpm --filter @einfach/react-excel i18n:check
+pnpm --filter @einfach-excel/react-excel i18n:check
 ```
 
 生产构建也会拒绝词典缺失和编译错误。新增文案必须用可静态提取的宏，
@@ -185,16 +185,16 @@ Core 的已知提示收在 `i18n/feedback-messages.ts`，带参数结果由 `tra
 `test/i18n/source-copy.test.ts` 阻止产品 JSX 和可访问标签重新出现未标记的英文常量。
 
 ```bash
-pnpm --filter @einfach/excel-wasm build:wasm # Rust 源码变化后重建本地 WASM
-pnpm --filter @einfach/react-excel dev
-pnpm --filter @einfach/react-excel typecheck
-pnpm --filter @einfach/react-excel test
+pnpm --filter @einfach-excel/excel-wasm build:wasm # Rust 源码变化后重建本地 WASM
+pnpm --filter @einfach-excel/react-excel dev
+pnpm --filter @einfach-excel/react-excel typecheck
+pnpm --filter @einfach-excel/react-excel test
 pnpm check:e2e-features # 功能点逐项对应可执行 E2E，不代表已运行通过
-pnpm --filter @einfach/react-excel e2e:install # 首次运行或 Playwright 升级后安装配套浏览器
-pnpm --filter @einfach/react-excel e2e
-pnpm --filter @einfach/react-excel e2e:serial # 长时间卡顿排查才使用单 worker 全量
-pnpm --filter @einfach/react-excel e2e:input-stall # 原两处卡顿场景专项，固定单 worker
-pnpm --filter @einfach/react-excel build
+pnpm --filter @einfach-excel/react-excel e2e:install # 首次运行或 Playwright 升级后安装配套浏览器
+pnpm --filter @einfach-excel/react-excel e2e
+pnpm --filter @einfach-excel/react-excel e2e:serial # 长时间卡顿排查才使用单 worker 全量
+pnpm --filter @einfach-excel/react-excel e2e:input-stall # 原两处卡顿场景专项，固定单 worker
+pnpm --filter @einfach-excel/react-excel build
 ```
 
 开发服务器地址为 `http://127.0.0.1:5183`。

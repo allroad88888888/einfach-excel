@@ -1,4 +1,4 @@
-import { createRoot, onCleanup } from '@einfach/canvas'
+import { createRoot, onCleanup } from '@einfach-excel/canvas'
 import { bindingsPage } from './pages/bindings'
 import { lifecyclePage } from './pages/lifecycle'
 import { cachePage } from './pages/cache'
@@ -23,7 +23,7 @@ function App() {
         <a href="#/lifecycle" data-page="lifecycle"><span class="nav-icon">◉</span>挂载与销毁</a>
         <a href="#/cache" data-page="cache"><span class="nav-icon">▦</span>区域缓存</a>
       </nav>
-      <div class="sidebar-note"><span class="status-dot"></span> @einfach/canvas<div>只绘制 Canvas cell</div></div>
+      <div class="sidebar-note"><span class="status-dot"></span> @einfach-excel/canvas<div>只绘制 Canvas cell</div></div>
     </aside>
     <main class="main">
       <header class="page-header"><div><div class="eyebrow">EINFACH / CANVAS DEMOS</div><h1></h1><p class="page-subtitle"></p></div><span class="runtime-tag">Canvas 2D</span></header>

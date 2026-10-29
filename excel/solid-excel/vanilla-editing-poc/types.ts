@@ -8,7 +8,7 @@ import type {
   EditingCommitOutcome,
   EditingSessionState,
   SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 export interface VanillaEditingPocOptions {
   readonly backend: SpreadsheetBackend

@@ -110,7 +110,7 @@ test.describe('deployed-artifact smoke — every demo shows real cells in budget
       install.getByRole('heading', { name: 'From npm to your first formula.' }),
     ).toBeVisible()
     await expect(
-      install.getByText('npm install @einfach/solid-excel', { exact: false }),
+      install.getByText('npm install @einfach-excel/solid-excel', { exact: false }),
     ).toBeVisible()
   })
 

@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import type { DisplayCell, VisibleProjectionResult } from '@einfach/spreadsheet-ui-core'
+import type { DisplayCell, VisibleProjectionResult } from '@einfach-excel/spreadsheet-ui-core'
 import { createGridBorderStyles, sharedBorder } from '../src/grid-border-style'
 
 const red = { style: 'thick', color: '#c00000' } as const

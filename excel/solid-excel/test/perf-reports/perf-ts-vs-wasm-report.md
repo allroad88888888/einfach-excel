@@ -11,7 +11,7 @@
 Run with:
 
 ```
-pnpm --filter @einfach/solid-excel test:bench -- test/perf-ts-vs-wasm.bench.ts
+pnpm --filter @einfach-excel/solid-excel test:bench -- test/perf-ts-vs-wasm.bench.ts
 ```
 
 The normal Vitest config excludes `.bench.ts`; `test:bench` switches
@@ -69,7 +69,7 @@ that engine on all LARGER tiers — but does NOT abort the suite.
 Run with very high `--testTimeout` for the heavy tiers, e.g.:
 
 ```
-pnpm --filter @einfach/solid-excel test:bench -- test/perf-ts-vs-wasm.bench.ts \
+pnpm --filter @einfach-excel/solid-excel test:bench -- test/perf-ts-vs-wasm.bench.ts \
   --testTimeout 1800000
 ```
 
@@ -79,7 +79,7 @@ default 4 GB ceiling early:
 
 ```
 NODE_OPTIONS='--expose-gc --max-old-space-size=8192' \
-  pnpm --filter @einfach/solid-excel test:bench -- test/perf-ts-vs-wasm.bench.ts \
+  pnpm --filter @einfach-excel/solid-excel test:bench -- test/perf-ts-vs-wasm.bench.ts \
   --testTimeout 1800000 --maxWorkers 1
 ```
 

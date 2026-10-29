@@ -1,4 +1,4 @@
-import { pointerSessionAtom, selectionSnapshotAtom } from '@einfach/spreadsheet-ui-core'
+import { pointerSessionAtom, selectionSnapshotAtom } from '@einfach-excel/spreadsheet-ui-core'
 import { act, fireEvent, screen } from '@testing-library/react'
 import { afterEach, expect, test, vi } from 'vitest'
 import {

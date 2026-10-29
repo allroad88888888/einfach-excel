@@ -2,7 +2,7 @@ import { setupI18n } from '@lingui/core'
 import { I18nProvider } from '@lingui/react'
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterEach, expect, test } from 'vitest'
-import type { FormulaFunctionSpec } from '@einfach/spreadsheet-ui-core'
+import type { FormulaFunctionSpec } from '@einfach-excel/spreadsheet-ui-core'
 import { FormulaParameterHelp } from '../../../src/workbook/formula-help/FormulaParameterHelp'
 
 afterEach(cleanup)

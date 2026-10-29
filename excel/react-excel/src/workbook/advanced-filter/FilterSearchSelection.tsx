@@ -1,6 +1,6 @@
 import { Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
-import { configureNativeFilterValuesAtom, nativeFilterValuesAtom } from '@einfach/spreadsheet-ui-core'
+import { configureNativeFilterValuesAtom, nativeFilterValuesAtom } from '@einfach-excel/spreadsheet-ui-core'
 
 /** A single Rust query verifies the entire search result before changing the draft. */
 export function FilterSearchSelection() {

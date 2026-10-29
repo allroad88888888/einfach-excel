@@ -4,7 +4,7 @@ import type {
   SpreadsheetBorders,
   SpreadsheetBorderSide,
   SpreadsheetBorderSpec,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { For } from 'solid-js'
 
 const BORDER_SIDES = ['top', 'right', 'bottom', 'left'] as const

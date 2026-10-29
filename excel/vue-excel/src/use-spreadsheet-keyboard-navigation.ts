@@ -3,7 +3,7 @@ import {
   lastKeyboardIntentAtom,
   type KeyboardMergeRangeResolver,
   type ScrollToCellIntent,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { useSpreadsheetUiCore } from './spreadsheet-ui-context'
 
 /** Configuration for translating a Vue grid surface's key events into UI-core navigation. */

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { act, fireEvent, screen, waitFor } from '@testing-library/react'
-import { runVisibleProjectionAtom, type VisibleProjectionRequest } from '@einfach/spreadsheet-ui-core'
+import { runVisibleProjectionAtom, type VisibleProjectionRequest } from '@einfach-excel/spreadsheet-ui-core'
 import { createTestRustWorkbookConnection } from '../../support/rust-workbook-connection'
 import { projectionResultFor, renderSalesOrdersProjectionWorksheet } from '../../support/projection-harness'
 

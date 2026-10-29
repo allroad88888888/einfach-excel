@@ -63,10 +63,10 @@ Run:
 ```bash
 pnpm check:presentation
 pnpm check:e2e-features
-pnpm --filter @einfach/spreadsheet-ui-core build
-pnpm --filter @einfach/react-excel typecheck
-pnpm --filter @einfach/react-excel test
-pnpm --filter @einfach/react-excel build
+pnpm --filter @einfach-excel/spreadsheet-ui-core build
+pnpm --filter @einfach-excel/react-excel typecheck
+pnpm --filter @einfach-excel/react-excel test
+pnpm --filter @einfach-excel/react-excel build
 git diff --check
 ```
 

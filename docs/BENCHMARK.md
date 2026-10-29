@@ -10,9 +10,9 @@
 ```bash
 pnpm install
 # 干净检出需要先产出 WASM 工件（需要 Rust 工具链；已有 excel/excel-wasm/lite/ 时跳过）
-npm run build:wasm -w @einfach/solid-excel
+npm run build:wasm -w @einfach-excel/solid-excel
 
-npm run dev -w @einfach/solid-excel
+npm run dev -w @einfach-excel/solid-excel
 # 浏览器打开（vite 默认端口 5173，改端口时替换）：
 #   http://127.0.0.1:5173/?bench=1
 ```

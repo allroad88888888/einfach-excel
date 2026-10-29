@@ -1,13 +1,13 @@
 // 一句话：把「变更前的值」记进当前在途增量的记录器族。
 
-import type { CellRange } from '@einfach/spreadsheet-ui-core'
+import type { CellRange } from '@einfach-excel/spreadsheet-ui-core'
 import {
   cloneCell,
   cloneConditionalFormatRuleEntry,
   cloneFormat,
   cloneNamedRange,
   isCoordInsideRange,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { isCellInsideRange, parseKey } from './cell-map'
 import type { SheetDelta, StateDelta } from './history-delta'
 import { STATIC_BACKEND_UNDO_CAP } from './history-delta'

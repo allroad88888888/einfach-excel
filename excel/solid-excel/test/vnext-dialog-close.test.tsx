@@ -17,7 +17,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { createStore } from '@einfach/core'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
 import type { JSX } from 'solid-js'
-import type { SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
+import type { SpreadsheetBackend } from '@einfach-excel/spreadsheet-ui-core'
 import {
   commentSessionAtom,
   conditionalFormatEditorAtom,
@@ -37,7 +37,7 @@ import {
   protectionUnlockStateAtom,
   togglePrintPreviewAtom,
   validationRuleEditorAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetUiProvider } from '../src/provider'
 import { SpreadsheetCommentThread } from '../src/comments'
 import { SpreadsheetConditionalFormatDialog } from '../src/conditional-formatting'

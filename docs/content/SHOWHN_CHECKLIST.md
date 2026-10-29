@@ -11,7 +11,7 @@
   - AD-139 webpack 仓外冒烟（通过，验证了预编译 ESM 路径，`docs/AD139_WEBPACK_SMOKE_OBSERVATION.md`）
   - AD-140 Next 仓外冒烟（通过，框架中立包 + client bundle，`docs/AD140_NEXT_SMOKE_OBSERVATION.md`）
   - AD-141 Nuxt 仓外冒烟（通过，注明 solid-excel 仅安装/解析，`docs/AD141_NUXT_SMOKE_OBSERVATION.md`）
-- [ ] **发布当日**在仓外干净目录复跑一次最小链路：`npm install @einfach/solid-excel solid-js`（Node ≥22.12.0）→ Vite 模板能构建、浏览器能渲染。HN 读者第一件事就是装包。
+- [ ] **发布当日**在仓外干净目录复跑一次最小链路：`npm install @einfach-excel/solid-excel solid-js`（Node ≥22.12.0）→ Vite 模板能构建、浏览器能渲染。HN 读者第一件事就是装包。
 - [ ] npm 五个包页面正常：README 渲染、版本 0.1.0、license MIT 字段、repo 链接可点。
 
 ## B. Demo 可点

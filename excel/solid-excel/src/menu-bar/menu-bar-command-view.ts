@@ -4,7 +4,7 @@ import {
   toggleGridlinesAtom,
   toggleHeadingsAtom,
   type MenuItemDispatch,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { MenuBarCommandContext } from './menu-bar-command-context'
 
 /** Dispatches view and help menu commands that only alter existing UI atoms. */

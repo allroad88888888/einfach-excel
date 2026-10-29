@@ -2,7 +2,7 @@ import {
   SELECTION_BORDER_COLOR,
   SELECTION_FILL_COLOR,
   SELECTION_TEXT_COLOR,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { describe, expect, test } from 'vitest'
 import { renderFormattingRibbon } from '../../support/formatting-ribbon-harness'

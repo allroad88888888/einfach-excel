@@ -3,7 +3,7 @@ import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   calculationAvailableAtom, calculationFeedbackAtom, recalculateAtom,
   formulaViewAvailableAtom, showFormulasAtom, toggleFormulaViewAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { Trans, useLingui } from '@lingui/react/macro'
 
 /** 计算范围由用户选择；显示公式是独立的当前表视图开关。 */

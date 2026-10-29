@@ -6,7 +6,7 @@ import {
   hydrateViewportSizeProjectionAtom,
   viewportMetricsAtom,
   type ViewportMetrics,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetFormatPainter } from '../format-painter'
 import { SpreadsheetLockedEditFeedback } from './SpreadsheetLockedEditFeedback'
 import { useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider'

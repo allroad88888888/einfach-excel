@@ -10,7 +10,7 @@ flowchart TB
     S --> PW["--project=wasm<br/>baseURL ?backend=wasm"]
     S --> PT["--project=ts<br/>baseURL ?backend=ts"]
     PW --> DW["VNextWorkerDemo<br/>→ Rust/WASM worker"]
-    PT --> DT["VNextWorkerDemo<br/>→ @einfach/excel-core-ts worker"]
+    PT --> DT["VNextWorkerDemo<br/>→ @einfach-excel/excel-core-ts worker"]
     PW -.-> DH["其余 demo:硬连后端<br/>两个 project 结果相同"]
     PT -.-> DH
     DW --> RW["失败清单 wasm"]

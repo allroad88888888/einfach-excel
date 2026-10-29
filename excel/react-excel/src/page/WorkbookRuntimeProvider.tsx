@@ -6,8 +6,8 @@ import {
   spreadsheetRuntimeAtom,
   startRustWorkbookRuntimeAtom,
   type RustWorkbookDefinition,
-} from '@einfach/spreadsheet-ui-core'
-import type { WorkerLike } from '@einfach/spreadsheet-ui-core/rust-worker'
+} from '@einfach-excel/spreadsheet-ui-core'
+import type { WorkerLike } from '@einfach-excel/spreadsheet-ui-core/rust-worker'
 import { useEffect, useMemo, type ReactNode } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { WorkbookPresentationProvider, type WorkbookPresentationProps } from './WorkbookPresentationProvider'

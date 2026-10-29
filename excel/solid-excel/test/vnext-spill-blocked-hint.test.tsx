@@ -24,7 +24,7 @@ import {
   clearSpillRegionAtom,
   type SpillRegionPort,
   type SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 import { SpreadsheetUiProvider } from '../src/provider'
 import { SpreadsheetSpillBlockedHint } from '../src/diagnostics'

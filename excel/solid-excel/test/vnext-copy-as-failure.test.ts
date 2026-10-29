@@ -6,7 +6,7 @@ import type {
   RangeProjectionResult,
   SpreadsheetBackend,
   VisibleProjectionResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   copyAsErrorAtom,
   lastCopyAsAtom,
@@ -14,7 +14,7 @@ import {
   selectionAtom,
   setSelectionBoundsAtom,
   setWorkspaceActiveSheetAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 import { dispatchCopyAs, dispatchCopyAsImage } from '../src/provider'
 

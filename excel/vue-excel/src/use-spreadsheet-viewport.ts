@@ -14,7 +14,7 @@ import {
   type SpreadsheetUiCore,
   type VisibleProjectionRequest,
   type VisibleProjectionResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { computed, toValue, watch, type ComputedRef, type MaybeRefOrGetter } from 'vue'
 import { useSpreadsheetUiCore } from './spreadsheet-ui-context'
 import { useSpreadsheetValue, type SpreadsheetValueSource } from './use-spreadsheet-value'

@@ -1,6 +1,6 @@
 // 一句话：提供 POC 的固定可见窗口，不读取或观察 DOM 尺寸。
 
-import type { CellRange } from '@einfach/spreadsheet-ui-core'
+import type { CellRange } from '@einfach-excel/spreadsheet-ui-core'
 
 const DEFAULT_VISIBLE_WINDOW: CellRange = {
   rowStart: 0,

@@ -3,7 +3,7 @@ import type {
   WorkerWorkbookBackendSheet,
   WorkerWorkbookBackendSheetInput,
   WorkerWorkbookClient,
-} from '@einfach/solid-excel'
+} from '@einfach-excel/solid-excel'
 
 export const demandDrivenSheets: WorkerWorkbookBackendSheetInput[] = [
   { id: 'summary', name: 'Summary' },

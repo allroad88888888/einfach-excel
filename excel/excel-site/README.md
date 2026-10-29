@@ -1,10 +1,10 @@
-# @einfach/excel-site
+# @einfach-excel/excel-site
 
 > **暂停维护。** 该站点依赖已暂停的 `solid-excel`，因此不再参与默认构建、测试或
 > GitHub Pages 部署。当前演示入口是 [`../react-excel`](../react-excel/README.md)。
 
 Static documentation and real-engine demo site for the Einfach spreadsheet stack. Astro renders readable HTML;
-Solid islands mount `@einfach/solid-excel` on the Rust/WASM Worker backend only where a live grid is needed.
+Solid islands mount `@einfach-excel/solid-excel` on the Rust/WASM Worker backend only where a live grid is needed.
 
 ## Local development
 

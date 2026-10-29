@@ -1,10 +1,10 @@
 // 一句话：序列填充请求所携证据的归一化。
 
-import type { FillSeriesRequest } from '@einfach/spreadsheet-ui-core'
+import type { FillSeriesRequest } from '@einfach-excel/spreadsheet-ui-core'
 import {
   FILL_SERIES_NUMBER_EPSILON,
   normalizeFillSeriesListWitness,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { invalidFillSeries } from './fill-series-geometry'
 import { isObject } from './guards'
 

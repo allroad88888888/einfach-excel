@@ -1,7 +1,7 @@
 // 一句话：剪贴板复制粘贴端口。
 
-import type { PasteRangeRequest, PasteRangeResult } from '@einfach/spreadsheet-ui-core'
-import { getEffectiveFormat, keyFor } from '@einfach/spreadsheet-ui-core'
+import type { PasteRangeRequest, PasteRangeResult } from '@einfach-excel/spreadsheet-ui-core'
+import { getEffectiveFormat, keyFor } from '@einfach-excel/spreadsheet-ui-core'
 import {
   applyPasteArithmetic,
   isPasteSourceBlank,

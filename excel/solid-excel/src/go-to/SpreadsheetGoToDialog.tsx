@@ -1,5 +1,5 @@
 import { For, Show } from 'solid-js'
-import type { GoToValueKindFilter } from '@einfach/spreadsheet-ui-core'
+import type { GoToValueKindFilter } from '@einfach-excel/spreadsheet-ui-core'
 import { useGoToDialogController } from './go-to-dialog-controller'
 import {
   isLocatorDisabled,
@@ -8,7 +8,7 @@ import {
   LOCATOR_KIND_ORDER,
   VALUE_KIND_FILTERS,
 } from './go-to-dialog-locators'
-import '@einfach/spreadsheet-ui-styles/features/go-to-dialog.css'
+import '@einfach-excel/spreadsheet-ui-styles/features/go-to-dialog.css'
 
 export interface SpreadsheetGoToDialogProps {
   class?: string

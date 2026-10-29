@@ -13,5 +13,5 @@
 重跑示例：
 
 ```bash
-pnpm --filter @einfach/solid-excel test:bench
+pnpm --filter @einfach-excel/solid-excel test:bench
 ```

@@ -6,7 +6,7 @@
 
 整个表格栈分三层：
 
-- `@einfach/spreadsheet-ui-core`——无头的 UI 状态与命令层，只有 atom、类型和投影契约，不碰 DOM、不碰 worker、不碰 WASM；
+- `@einfach-excel/spreadsheet-ui-core`——无头的 UI 状态与命令层，只有 atom、类型和投影契约，不碰 DOM、不碰 worker、不碰 WASM；
 - `solid-excel` 的适配层——Solid 组件、Provider、各种 adapter；
 - Rust/WASM 公式引擎——跑在 Web Worker 里，持有工作簿事实。
 

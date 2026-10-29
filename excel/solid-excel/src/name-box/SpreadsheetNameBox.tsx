@@ -20,7 +20,7 @@ import {
   updateNameBoxInputAtom,
   workspaceSessionAtom,
   type NameBoxCommitTarget,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { useSpreadsheetBackend, useSpreadsheetUiStore } from '../provider/hooks'
 
 export interface SpreadsheetNameBoxProps {

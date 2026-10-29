@@ -1,6 +1,6 @@
 # UI Core 开发约定
 
-`@einfach/spreadsheet-ui-core` 的硬约束、准入检查与测试门禁。
+`@einfach-excel/spreadsheet-ui-core` 的硬约束、准入检查与测试门禁。
 
 这些规则从 `AGENT_COLLABORATION.md` 抽出 —— 那份文档的多 agent 看板部分已随协作战役收尾归档，
 但下面这些工程约束仍然生效。
@@ -34,16 +34,16 @@ UI core 类型或 atom 改动：
 
 ```bash
 npx tsc -p excel/spreadsheet-ui-core/tsconfig.json --noEmit --pretty false
-pnpm --filter @einfach/spreadsheet-ui-core exec vitest run test/<feature>.test.ts
-pnpm --filter @einfach/spreadsheet-ui-core exec vitest run test/package-boundary.test.ts
+pnpm --filter @einfach-excel/spreadsheet-ui-core exec vitest run test/<feature>.test.ts
+pnpm --filter @einfach-excel/spreadsheet-ui-core exec vitest run test/package-boundary.test.ts
 ```
 
 影响 `excel/solid-excel/src` adapter 或 UI：
 
 ```bash
 npx tsc -p excel/solid-excel/tsconfig.json --noEmit --pretty false
-pnpm --filter @einfach/solid-excel exec vitest run test/vnext-*.test.tsx test/vnext-adapter.test.ts
-NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach/solid-excel -- e2e/smoke/vnext-smoke.spec.ts
+pnpm --filter @einfach-excel/solid-excel exec vitest run test/vnext-*.test.tsx test/vnext-adapter.test.ts
+NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach-excel/solid-excel -- e2e/smoke/vnext-smoke.spec.ts
 ```
 
 视觉、交互、clipboard、worker 或 viewport 相关改动，再做一次浏览器验证并记录：URL、操作路径、

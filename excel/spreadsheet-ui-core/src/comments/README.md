@@ -1,7 +1,7 @@
 # comments
 
 Cell-anchored notes and threaded-comment editor authority owned by
-`@einfach/spreadsheet-ui-core`.
+`@einfach-excel/spreadsheet-ui-core`.
 
 ## Authority and API
 

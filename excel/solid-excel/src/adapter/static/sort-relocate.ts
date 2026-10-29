@@ -1,7 +1,7 @@
 // 一句话：按行置换物理搬运单元格与其逐格格式。
 
-import type { CellRange, DisplayCell, SpreadsheetCellFormat } from '@einfach/spreadsheet-ui-core'
-import { keyFor } from '@einfach/spreadsheet-ui-core'
+import type { CellRange, DisplayCell, SpreadsheetCellFormat } from '@einfach-excel/spreadsheet-ui-core'
+import { keyFor } from '@einfach-excel/spreadsheet-ui-core'
 
 /**
  * Physically relocate cells and per-cell formats under the row permutation

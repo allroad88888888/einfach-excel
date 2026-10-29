@@ -11,7 +11,7 @@ import {
   viewportHiddenAtom,
   viewportMetricsAtom,
   viewportSizeOverridesAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { Store } from '@einfach/core'
 import { spreadsheetProjectionSnapshotAtom } from '../provider'
 import { drawOverlay } from './overlay-canvas-draw'

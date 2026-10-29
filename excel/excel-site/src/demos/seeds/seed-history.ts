@@ -13,7 +13,7 @@ import type {
   DisplayCell,
   StaticSeedMatrix,
   StaticSpreadsheetSeed,
-} from '@einfach/solid-excel'
+} from '@einfach-excel/solid-excel'
 
 const matrix: StaticSeedMatrix = [
   ['Item', 'Qty', 'Unit Price', 'Subtotal'],

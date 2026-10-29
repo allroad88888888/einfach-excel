@@ -4,14 +4,14 @@ import type {
   CellRange,
   RangeFormatLayer,
   SpreadsheetCellFormat,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   cloneFormat,
   getEffectiveFormat,
   keyFor,
   normalizeRange,
   rangesIntersect,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 /** Intersection of two normalized, intersecting rectangles. */
 function intersectSortRange(a: CellRange, b: CellRange): CellRange {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { DisplayCell } from '@einfach/spreadsheet-ui-core'
+import type { DisplayCell } from '@einfach-excel/spreadsheet-ui-core'
 import {
   evaluateFormula,
   type EvalCellLookup,

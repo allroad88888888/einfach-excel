@@ -1,4 +1,4 @@
-import type { ViewportMetrics } from '@einfach/spreadsheet-ui-core'
+import type { ViewportMetrics } from '@einfach-excel/spreadsheet-ui-core'
 
 export const workerDemoViewport: ViewportMetrics = {
   scrollTop: 0,

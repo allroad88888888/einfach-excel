@@ -1,5 +1,5 @@
 import { For, Show } from 'solid-js'
-import { type OutlineAxis } from '@einfach/spreadsheet-ui-core'
+import { type OutlineAxis } from '@einfach-excel/spreadsheet-ui-core'
 import { preserveOutlineScrollAnchor } from './grid-outline-scroll-anchor'
 import { type GridRuntime } from './grid-runtime'
 

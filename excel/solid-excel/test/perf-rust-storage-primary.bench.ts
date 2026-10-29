@@ -20,7 +20,7 @@
  * Output: `test/perf-reports/perf-rust-storage-primary-report.md`.
  *
  * Invocation:
- *   pnpm --filter @einfach/solid-excel test:bench -- test/perf-rust-storage-primary.bench.ts \
+ *   pnpm --filter @einfach-excel/solid-excel test:bench -- test/perf-rust-storage-primary.bench.ts \
  *     --testTimeout 1800000
  *
  * Gated on EINFACH_PERF=1 — without it the spec is skipped.

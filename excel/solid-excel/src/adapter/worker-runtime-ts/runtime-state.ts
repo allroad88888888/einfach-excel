@@ -1,4 +1,4 @@
-import { createWorkbook, type Workbook } from '@einfach/excel-core-ts'
+import { createWorkbook, type Workbook } from '@einfach-excel/excel-core-ts'
 
 import type { AsyncCustomCallable } from '../async-custom-pump'
 import type { ImportCellWire, SparseRangeWire, WorkbookSheetMeta } from '../worker-protocol'

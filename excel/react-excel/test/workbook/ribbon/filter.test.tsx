@@ -6,12 +6,12 @@ import {
   type RustWorkbookCommands,
   type RustWorkbookConnection,
   type VisibleProjectionRequest,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { expect, test, vi } from 'vitest'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
 import { FilterTools } from '../../../src/workbook/chrome/ribbon/FilterTools'
-import { CellFilterButton } from '@einfach/react-cells'
+import { CellFilterButton } from '@einfach-excel/react-cells'
 
 type Input = RustWorkbookCommands['sheet.filter']['payload']
 const result = (p: Input) => ({

@@ -1,6 +1,6 @@
 import { createStore } from '@einfach/core'
 import { initializeWorkbookDocumentAtom, beginProjectionAtom, resolveProjectionAtom,
-  setSelectionAtom, type NativeCommentThread, type RustWorkbookConnection } from '@einfach/spreadsheet-ui-core'
+  setSelectionAtom, type NativeCommentThread, type RustWorkbookConnection } from '@einfach-excel/spreadsheet-ui-core'
 import type { RustCommentCommands } from '../../../../spreadsheet-ui-core/src/rust-workbook/comments/command'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { vi, type Mock } from 'vitest'

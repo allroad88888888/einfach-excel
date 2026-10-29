@@ -1,6 +1,6 @@
 import { Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
-import { runTextColumnsPanelAtom, textColumnsPanelAtom } from '@einfach/spreadsheet-ui-core'
+import { runTextColumnsPanelAtom, textColumnsPanelAtom } from '@einfach-excel/spreadsheet-ui-core'
 
 /** 输入地区约定只传给 Rust；界面不做字符串替换或数值转换。 */
 export function TextColumnNumberOptions() {

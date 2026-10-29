@@ -11,7 +11,7 @@ import {
   type ClipboardState,
   type ClipboardTransferInput,
   type SpreadsheetUiCore,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { watch, type ComputedRef, type ShallowRef } from 'vue'
 import { useSpreadsheetUiCore } from './spreadsheet-ui-context'
 import { useSpreadsheetValue, type SpreadsheetValueSource } from './use-spreadsheet-value'

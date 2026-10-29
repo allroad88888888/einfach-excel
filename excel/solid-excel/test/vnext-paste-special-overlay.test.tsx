@@ -11,7 +11,7 @@ import {
   type PasteRangeRequest,
   type SpreadsheetBackend,
   type VisibleProjectionRequest,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetPasteSpecialDialog } from '../src/paste-special'
 import { SpreadsheetUiProvider } from '../src/provider'
 

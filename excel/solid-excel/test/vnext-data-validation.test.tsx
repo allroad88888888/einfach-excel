@@ -10,13 +10,13 @@ import type {
   SpreadsheetBackend,
   VisibleProjectionRequest,
   RangeProjectionRequest,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   dataValidationOperationAttemptLedgerAtom,
   openValidationRuleEditorAtom,
   validationRuleEditorAtom,
   validationRuleFormAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetDataValidationDialog } from '../src/data-validation'
 import { SpreadsheetUiProvider } from '../src/provider'
 import { setLocale } from '../src/i18n'

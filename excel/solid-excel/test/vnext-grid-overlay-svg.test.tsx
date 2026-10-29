@@ -3,7 +3,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { createStore } from '@einfach/core'
 import { cleanup, render, waitFor } from '@solidjs/testing-library'
-import type { DisplayCell, SpreadsheetBackend } from '@einfach/spreadsheet-ui-core'
+import type { DisplayCell, SpreadsheetBackend } from '@einfach-excel/spreadsheet-ui-core'
 import {
   addSelectionRegionAtom,
   copyClipboardAtom,
@@ -12,7 +12,7 @@ import {
   selectCellAtom,
   setSelectionAtom,
   startPointerAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   FILL_HANDLE_SIZE,
   OVERLAY_BORDER_WIDTH,

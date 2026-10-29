@@ -6,7 +6,7 @@ import {
   setSelectionBoundsAtom,
   type CellCoord,
   type SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { describe, expect, it } from 'vitest'
 import { createApp, defineComponent, h } from 'vue'
 import { SpreadsheetUiProvider } from '../src/spreadsheet-ui-provider'

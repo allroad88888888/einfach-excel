@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import type { CellRange } from '@einfach/spreadsheet-ui-core'
+import type { CellRange } from '@einfach-excel/spreadsheet-ui-core'
 import { DEFAULT_CELL_COLUMN_WIDTH, DEFAULT_CELL_ROW_HEIGHT } from './grid-defaults'
 
 /** 只绘制与窗口相交的选区；隐藏尺寸为零，冻结接缝不会凭空多出边框。 */

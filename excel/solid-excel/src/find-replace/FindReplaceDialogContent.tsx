@@ -5,7 +5,7 @@ import type {
   FindReplaceFormState,
   FindReplaceRefreshRecoveryState,
   ReplaceAllCapInfo,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { useT } from '../i18n'
 import { FindReplaceDialogFields } from './FindReplaceDialogFields'
 

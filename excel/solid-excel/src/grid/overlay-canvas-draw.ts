@@ -1,4 +1,4 @@
-import { getSelectionRange, type CellRange, type DisplayCell } from '@einfach/spreadsheet-ui-core'
+import { getSelectionRange, type CellRange, type DisplayCell } from '@einfach-excel/spreadsheet-ui-core'
 import { computeOverlayRectForRange } from './overlayGeometry'
 import {
   FILL_HANDLE_SIZE,

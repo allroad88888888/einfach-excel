@@ -1,7 +1,7 @@
 Einfach React Excel
 Copyright (c) dol. Licensed under the MIT license in LICENSE.
 
-The inlined @einfach/react-cells, @einfach/canvas-cells and @einfach/canvas
+The inlined @einfach-excel/react-cells, @einfach-excel/canvas-cells and @einfach-excel/canvas
 implementations belong to this repository and retain its MIT license.
 The precompiled Worker includes the Rust/WASM engine. Its third-party license
 texts and package attributions are included in dist/THIRD_PARTY_NOTICES.txt.

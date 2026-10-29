@@ -1,7 +1,7 @@
 # Frozen panes: canonical authority contract
 
 This document records the implemented freeze-panes state contract. The workbook backend is the
-canonical authority; `@einfach/spreadsheet-ui-core` owns the framework-neutral controller and a
+canonical authority; `@einfach-excel/spreadsheet-ui-core` owns the framework-neutral controller and a
 read-only projection, while `excel/solid-excel` renders and dispatches commands through that controller.
 
 ## Authority and state ownership
@@ -143,8 +143,8 @@ against the current backend revision. A rejected CAS neither writes freeze state
 Focused verification commands:
 
 ```sh
-pnpm --filter @einfach/spreadsheet-ui-core exec vitest run test/frozen-panes.test.ts
-pnpm --filter @einfach/solid-excel exec vitest run test/vnext-freeze-authority.test.ts test/vnext-grid.test.tsx test/vnext-grid-overlay.test.tsx test/vnext-grid-overlay-svg.test.tsx test/vnext-menu-bar.test.tsx test/vnext-context-menu.test.tsx
-npm run build -w @einfach/spreadsheet-ui-core
-npm exec -w @einfach/solid-excel -- vite build
+pnpm --filter @einfach-excel/spreadsheet-ui-core exec vitest run test/frozen-panes.test.ts
+pnpm --filter @einfach-excel/solid-excel exec vitest run test/vnext-freeze-authority.test.ts test/vnext-grid.test.tsx test/vnext-grid-overlay.test.tsx test/vnext-grid-overlay-svg.test.tsx test/vnext-menu-bar.test.tsx test/vnext-context-menu.test.tsx
+npm run build -w @einfach-excel/spreadsheet-ui-core
+npm exec -w @einfach-excel/solid-excel -- vite build
 ```

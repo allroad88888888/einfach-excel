@@ -1,7 +1,7 @@
 /** @jsxImportSource solid-js */
 
 import { For } from 'solid-js'
-import type { SpreadsheetBorderStyle } from '@einfach/spreadsheet-ui-core'
+import type { SpreadsheetBorderStyle } from '@einfach-excel/spreadsheet-ui-core'
 import { BORDER_STYLES } from './format-cells-config'
 import type { FormatCellsPanelProps } from './format-cells-panel-types'
 

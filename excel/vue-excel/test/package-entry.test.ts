@@ -15,9 +15,9 @@ const packageJson = JSON.parse(
   readFileSync(path.resolve(__dirname, '../package.json'), 'utf8'),
 ) as VueExcelPackageJson
 
-describe('@einfach/vue-excel package entry', () => {
+describe('@einfach-excel/vue-excel package entry', () => {
   it('keeps the package private while exposing the Vue bridges', () => {
-    expect(packageJson.name).toBe('@einfach/vue-excel')
+    expect(packageJson.name).toBe('@einfach-excel/vue-excel')
     expect(packageJson.private).toBe(true)
     expect(packageJson.peerDependencies).toEqual({ vue: '>=3.3.0' })
     expect(packageJson.exports['.']).toEqual({

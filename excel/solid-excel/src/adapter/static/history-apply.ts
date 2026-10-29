@@ -6,7 +6,7 @@ import {
   cloneFilterSortState,
   cloneFormat,
   cloneNamedRange,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { SheetDelta, StateDelta } from './history-delta'
 import { advanceConditionalFormatRevision } from './conditional-format-revision'
 import { captureFullSheet, cloneRangeFormatLayers, restoreFullSheet } from './sheet-snapshot'

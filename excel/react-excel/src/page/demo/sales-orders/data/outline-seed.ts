@@ -1,4 +1,4 @@
-import type { NativeOutline, RustImportCell } from '@einfach/spreadsheet-ui-core'
+import type { NativeOutline, RustImportCell } from '@einfach-excel/spreadsheet-ui-core'
 
 /** Summary 8–12 行含一个子组；E:G 列保留原有手动隐藏 G 列作为交叉示例。 */
 export const SUMMARY_OUTLINE: NativeOutline = {

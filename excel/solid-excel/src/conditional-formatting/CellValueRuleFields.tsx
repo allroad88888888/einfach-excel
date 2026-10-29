@@ -5,7 +5,7 @@ import type {
   CellValueRule,
   ConditionalFormatEditorDraft,
   ConditionalFormatEditorDraftUpdate,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 interface CellValueRuleFieldsProps {
   readonly draft: Accessor<ConditionalFormatEditorDraft | null>

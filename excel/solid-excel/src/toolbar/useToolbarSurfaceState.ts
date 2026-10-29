@@ -5,7 +5,7 @@ import {
   openToolbarPaletteAtom,
   type ToolbarDropdownKind,
   type ToolbarActiveSurface,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { useSpreadsheetUiStore } from '../provider'
 import type { HAlignValue } from './HAlignDropdown'
 import type { VAlignValue } from './VAlignDropdown'

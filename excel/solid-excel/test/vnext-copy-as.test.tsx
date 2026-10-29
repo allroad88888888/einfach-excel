@@ -10,14 +10,14 @@ import type {
   RangeProjectionResult,
   SpreadsheetBackend,
   VisibleProjectionResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   lastCopyAsAtom,
   publishCopyAsResultAtom,
   selectionAtom,
   setSelectionBoundsAtom,
   setWorkspaceActiveSheetAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetGrid } from '../src/grid'
 import { SpreadsheetMenuBar } from '../src/menu-bar'
 import {

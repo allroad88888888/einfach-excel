@@ -5,14 +5,14 @@ import type {
   DisplayCell,
   RangeTsvExportRequest,
   RangeTsvExportResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   estimateUtf8Bytes,
   isCoordInsideRange,
   keyFor,
   normalizeCopyAsHiddenRows,
   toA1,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { filterTsvBandRows } from '../filter-hidden-rows'
 import { compareCells, isCellInsideRange } from './cell-map'
 import type { StaticBackendState } from './state'

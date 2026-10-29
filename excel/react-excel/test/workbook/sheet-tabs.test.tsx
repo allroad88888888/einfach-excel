@@ -2,7 +2,7 @@ import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { describe, expect, test, vi } from 'vitest'
 import {
   activeWorkbookSheetAtom, rustHistoryPanelAtom, type RustWorkbookCommands,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   createControlledCellEditingConnection,
   firstEditingCell,

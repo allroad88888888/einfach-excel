@@ -11,12 +11,12 @@ import type {
   UndoTransactionRequest,
   VisibleProjectionRequest,
   VisibleProjectionResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   historyLifecycleAtom,
   historyStackAtom,
   pushHistoryAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetUiProvider } from '../src/provider'
 import { SpreadsheetHistoryTimeline } from '../src/history'
 import { seedReadyVisibleProjection } from './projection-test-fixture'

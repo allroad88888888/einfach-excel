@@ -5,7 +5,7 @@ import { useId, useLayoutEffect, useRef } from 'react'
 import { nativeConditionalFormatPanelAtom, nativeConditionalFormatsAtom,
   runNativeConditionalFormatAtom,
   editingSessionAtom, conditionalFormatScopeToA1, type CellValueRule, type ConditionalFormatRule,
-  type NativeConditionalFormatRule } from '@einfach/spreadsheet-ui-core'
+  type NativeConditionalFormatRule } from '@einfach-excel/spreadsheet-ui-core'
 import { cycleDialogFocus } from './dialog-focus'
 import { AdvancedConditionalFormatFields } from '../../advanced-conditional-format/AdvancedConditionalFormatFields'
 import { AdvancedFormattingFields } from '../../advanced-formatting/AdvancedFormattingFields'

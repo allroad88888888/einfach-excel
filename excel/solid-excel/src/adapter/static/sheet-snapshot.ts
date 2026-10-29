@@ -1,11 +1,11 @@
 // 一句话：一张 sheet 全部可撤销事实的深拷贝与整体还原。
 
-import type { RangeFormatLayer } from '@einfach/spreadsheet-ui-core'
+import type { RangeFormatLayer } from '@einfach-excel/spreadsheet-ui-core'
 import {
   cloneCell,
   cloneConditionalFormatRuleEntry,
   cloneFormat,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { FullSheetCapture } from './history-delta'
 import type { StaticBackendState } from './state'
 

@@ -30,7 +30,7 @@ Einfach Excel 是面向产品团队的开源电子表格基础设施。公式引
 ## 安装 Solid 绑定
 
 ```bash
-npm install @einfach/solid-excel @einfach/core @einfach/solid solid-js
+npm install @einfach-excel/solid-excel @einfach/core @einfach/solid solid-js
 ```
 
 跟着[五分钟上手](./docs/QUICKSTART.md)挂载 Worker 后端，并在真实单元格中验证 `=1+2`。当前版本为 `0.1.0`；项目仍处于 pre-1.0，需要稳定 API 面时请锁定 `~0.1.0`。
@@ -65,25 +65,25 @@ UI 核心负责交互状态和投影契约，后端负责工作簿数据和写�
 
 | 位置                         | 名称                           | 职责                                                      |
 | ---------------------------- | ------------------------------ | --------------------------------------------------------- |
-| `excel/spreadsheet-ui-core/` | `@einfach/spreadsheet-ui-core` | 框架无关 atoms、交互状态，以及 Rust Worker backend。      |
-| `excel/solid-excel/`         | `@einfach/solid-excel`         | Solid.js 表格组件与 TS/static 参考适配器。                 |
-| `excel/excel-core-ts/`       | `@einfach/excel-core-ts`       | TypeScript 公式引擎，用于一致性验证及另一种 worker 后端。 |
+| `excel/spreadsheet-ui-core/` | `@einfach-excel/spreadsheet-ui-core` | 框架无关 atoms、交互状态，以及 Rust Worker backend。      |
+| `excel/solid-excel/`         | `@einfach-excel/solid-excel`         | Solid.js 表格组件与 TS/static 参考适配器。                 |
+| `excel/excel-core-ts/`       | `@einfach-excel/excel-core-ts`       | TypeScript 公式引擎，用于一致性验证及另一种 worker 后端。 |
 | `excel/rust/core/`           | `einfach-core`                 | atom store 的 Rust 实现。                                 |
 | `excel/rust/excel-core/`     | `einfach-excel-core`           | Rust 工作簿与公式引擎。                                   |
 | `excel/rust/wasm/`           | `einfach-wasm`                 | 供 UI-core Rust Worker 集成使用的 WASM 绑定。              |
-| `excel/excel-site/`          | `@einfach/excel-site`          | 静态文档和交互式演示站。                                  |
+| `excel/excel-site/`          | `@einfach-excel/excel-site`          | 静态文档和交互式演示站。                                  |
 
 ### 框架集成
 
-`@einfach/solid-excel` 是当前唯一已发布的 UI 框架绑定。`excel/react-excel` 是独立的私有 Vite 产品，
+`@einfach-excel/solid-excel` 是当前唯一已发布的 UI 框架绑定。`excel/react-excel` 是独立的私有 Vite 产品，
 只接 Rust/WASM worker；它没有公开 adapter 入口，也不在文档站提供在线 demo。Vue 仍是私有受控投影
 adapter，并保留站内 demo。React 与 Vue 都未发布。
 
 ### 发布状态与稳定性
 
-五个包已于 **2026-08-17** 以 `0.1.0` 首发 npm：`@einfach/spreadsheet-ui-core`、
-`@einfach/spreadsheet-ui-styles`、`@einfach/excel-core-ts`、`@einfach/excel-wasm`、
-`@einfach/solid-excel`。五包按 fixed 组管理版本 —— 永远一起升。
+五个包已于 **2026-08-17** 以 `0.1.0` 首发 npm：`@einfach-excel/spreadsheet-ui-core`、
+`@einfach-excel/spreadsheet-ui-styles`、`@einfach-excel/excel-core-ts`、`@einfach-excel/excel-wasm`、
+`@einfach-excel/solid-excel`。五包按 fixed 组管理版本 —— 永远一起升。
 
 `0.x` 阶段的兼容性预期（[ADR 0017](./docs/decisions/0017-initial-release-version-0-1-0.md)）：
 
@@ -91,13 +91,13 @@ adapter，并保留站内 demo。React 与 Vue 都未发布。
   （`~0.1.0`）；每个包的 `CHANGELOG.md` 会显式列出移除项。
 - 补丁版本只含修复。
 - Node.js 支持基线：**`>=22.12.0`**（[ADR 0018](./docs/decisions/0018-node-baseline-22-12.md)）。
-- `@einfach/solid-excel` 是双形态交付
+- `@einfach-excel/solid-excel` 是双形态交付
   （[ADR 0019](./docs/decisions/0019-solid-excel-dual-form-artifacts.md)）：
   Vite + `vite-plugin-solid` 用户经 `solid` 导出条件走源码编译，其它打包器拿预编译
   ESM；它面向打包器环境，不支持裸 Node import。`solid-js`、`@einfach/core`、
   `@einfach/solid` 是 peer 依赖：应用里每个只能有一份物理副本
   （见 [ADR 0001](./docs/decisions/0001-solid-js-single-instance.md)）。
-- `@einfach/excel-wasm` 的 TS 消费者需要 `lib` ≥ ES2023 加 DOM（或 `skipLibCheck`）；
+- `@einfach-excel/excel-wasm` 的 TS 消费者需要 `lib` ≥ ES2023 加 DOM（或 `skipLibCheck`）；
   已验证的组合是 `moduleResolution: "bundler"`。
 
 ## 已核实的产品事实
@@ -158,7 +158,7 @@ npm run lint:check
 
 ### 最小内存后端示例
 
-已发布的 Solid 绑定与仓库共用 `@einfach/solid-excel` 接口。下面用内存后端展示
+已发布的 Solid 绑定与仓库共用 `@einfach-excel/solid-excel` 接口。下面用内存后端展示
 UI 边界；若要使用 Worker 中的 Rust/WASM 公式路径，请直接跟随[五分钟上手](./docs/QUICKSTART.md)：
 
 ```tsx
@@ -167,7 +167,7 @@ import {
   SpreadsheetUiProvider,
   SpreadsheetGrid,
   SpreadsheetToolbar,
-} from '@einfach/solid-excel'
+} from '@einfach-excel/solid-excel'
 
 const backend = createStaticSpreadsheetBackend({
   sheets: [{ id: 'sheet-1', name: 'Sheet1' }],
@@ -208,13 +208,13 @@ function Sheet() {
 npm test
 
 # 运行聚焦的包测试。
-pnpm --filter @einfach/spreadsheet-ui-core test
-pnpm --filter @einfach/solid-excel test
+pnpm --filter @einfach-excel/spreadsheet-ui-core test
+pnpm --filter @einfach-excel/solid-excel test
 
 # 运行浏览器端到端测试前安装 Chromium。
-npm run e2e:install -w @einfach/solid-excel
-NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach/solid-excel -- --project=wasm
-NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach/solid-excel -- --project=ts
+npm run e2e:install -w @einfach-excel/solid-excel
+NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach-excel/solid-excel -- --project=wasm
+NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach-excel/solid-excel -- --project=ts
 ```
 
 验证证据的范围、测量方法、非保证事项与环境记录分别见[决策 0008](./docs/decisions/0008-public-performance-evidence-scope.md)、[决策 0009](./docs/decisions/0009-public-performance-measurement-methodology.md)、[决策 0010](./docs/decisions/0010-public-performance-non-guarantees.md)与[决策 0011](./docs/decisions/0011-public-performance-environment-record.md)。两种后端的 E2E 覆盖范围与已记录例外见[后端一致性矩阵](./excel/solid-excel/e2e/BACKEND_PARITY.md)。

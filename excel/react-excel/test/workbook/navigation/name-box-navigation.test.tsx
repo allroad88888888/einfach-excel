@@ -4,7 +4,7 @@ import {
   viewportMetricsAtom,
   type VisibleProjectionRequest,
   type VisibleProjectionResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'

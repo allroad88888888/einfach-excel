@@ -9,7 +9,7 @@ import type {
   SearchRangeRequest,
   SearchRangeResult,
   SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   advanceFindCursorAtom,
   closeFindReplaceAtom,
@@ -28,7 +28,7 @@ import {
   setWorkspaceActiveSheetAtom,
   updateFindReplaceFormAtom,
   viewportMetricsAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetUiProvider } from '../src/provider'
 import { SpreadsheetFindReplaceDialog } from '../src/find-replace'
 import { setLocale } from '../src/i18n'

@@ -11,7 +11,7 @@ import {
   type ConditionalFormatRuleEntry,
   type SetConditionalFormatRuleRequest,
   type SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetConditionalFormatDialog } from '../src/conditional-formatting'
 import { SpreadsheetUiProvider } from '../src/provider'
 

@@ -8,7 +8,7 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@einfach/spreadsheet-ui-core': path.resolve(directory, '../../excel/spreadsheet-ui-core/src'),
+      '@einfach-excel/spreadsheet-ui-core': path.resolve(directory, '../../excel/spreadsheet-ui-core/src'),
     },
   },
   test: {

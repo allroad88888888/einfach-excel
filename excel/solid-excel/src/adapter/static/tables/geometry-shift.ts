@@ -1,6 +1,6 @@
 // 一句话：结构性编辑后 Table 几何的跟随。
 
-import type { CellRange } from '@einfach/spreadsheet-ui-core'
+import type { CellRange } from '@einfach-excel/spreadsheet-ui-core'
 import type { StaticBackendState } from '../state'
 import { nextAutoColumnName } from './name'
 

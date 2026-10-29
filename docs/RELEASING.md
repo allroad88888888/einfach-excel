@@ -1,8 +1,8 @@
 # 发布流程
 
 对外发布的包共五个（changeset fixed 组，版本永远同升）：
-`@einfach/spreadsheet-ui-core`、`@einfach/spreadsheet-ui-styles`、
-`@einfach/excel-core-ts`、`@einfach/excel-wasm`、`@einfach/solid-excel`。
+`@einfach-excel/spreadsheet-ui-core`、`@einfach-excel/spreadsheet-ui-styles`、
+`@einfach-excel/excel-core-ts`、`@einfach-excel/excel-wasm`、`@einfach-excel/solid-excel`。
 其余包（site、react-excel、vue-excel）为 `private`，不发布。
 
 ## 谁能发
@@ -39,7 +39,7 @@ registry.npmjs.org 可查且经仓外真实安装验证。ADR 0017 的顺序约�
 
 ## 发布前自检
 
-- `npm run build` 绿（含 WASM lite）；full 变体：`npm run build:wasm:full -w @einfach/excel-wasm`。
+- `npm run build` 绿（含 WASM lite）；full 变体：`npm run build:wasm:full -w @einfach-excel/excel-wasm`。
 - 想在真发布前彩排：按 [dry-run 观察记录](AD137_LOCAL_REGISTRY_DRYRUN_OBSERVATION.md)
   的步骤起 verdaccio 走一遍全链路。
 - Node 基线：发布环境钉在 `22.12.0`（[ADR 0018](decisions/0018-node-baseline-22-12.md)）。

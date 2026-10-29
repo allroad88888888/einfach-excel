@@ -1,5 +1,5 @@
 import type { Accessor } from 'solid-js'
-import type { MenuCloseReason, MenuIntent, MenuState } from '@einfach/spreadsheet-ui-core'
+import type { MenuCloseReason, MenuIntent, MenuState } from '@einfach-excel/spreadsheet-ui-core'
 
 const MENU_ITEM_SELECTOR = '[role="menuitem"]:not([hidden]):not([disabled])'
 

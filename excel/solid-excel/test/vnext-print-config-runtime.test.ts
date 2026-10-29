@@ -3,7 +3,7 @@ import {
   DEFAULT_PRINT_CONFIG,
   type PrintConfig,
   type ReadPrintConfigRequest,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { createStaticSpreadsheetBackend } from '../src/adapter/static/backend'
 import { createWorkerWorkbookSpreadsheetBackend } from '../src/adapter/worker/backend'
 import { createWorkerRuntimeTs } from '../src/adapter/worker-runtime-ts'

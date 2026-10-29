@@ -1,5 +1,5 @@
 {
-  "name": "@einfach/react-cells",
+  "name": "@einfach-excel/react-cells",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -28,13 +28,13 @@
   "peerDependencies": {
     "@einfach/core": "^0.4.0",
     "@einfach/react": "^0.4.0",
-    "@einfach/spreadsheet-ui-core": "workspace:*",
+    "@einfach-excel/spreadsheet-ui-core": "workspace:*",
     "react": "^18.3.1"
   },
   "devDependencies": {
     "@einfach/core": "^0.4.0",
     "@einfach/react": "^0.4.0",
-    "@einfach/spreadsheet-ui-core": "workspace:*",
+    "@einfach-excel/spreadsheet-ui-core": "workspace:*",
     "@testing-library/jest-dom": "^6.4.5",
     "@testing-library/react": "^16.3.0",
     "@types/node": "^22.19.0",

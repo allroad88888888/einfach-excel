@@ -10,7 +10,7 @@ import {
   type AxisScrollGeometry,
   type CellRange,
   type ViewportMetrics,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 /** The caller-owned logical offsets within the full spreadsheet surface. */
 export interface SpreadsheetGridScrollOffset {

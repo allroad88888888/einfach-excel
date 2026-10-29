@@ -4,7 +4,7 @@ import { Show, type Accessor } from 'solid-js'
 import type {
   ValidationRuleEditorState,
   ValidationRuleFormState,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { ValidationRuleFields } from './ValidationRuleFields'
 
 interface ValidationRuleDialogContentProps {

@@ -1,4 +1,4 @@
-import type { RustImportCell, RustWorkbookSheetInput } from '@einfach/spreadsheet-ui-core'
+import type { RustImportCell, RustWorkbookSheetInput } from '@einfach-excel/spreadsheet-ui-core'
 
 /** E85:F89 演示文本、重复值和 Stop；不覆盖原有查找、统计或尺寸样例。 */
 export const SUMMARY_CONDITIONAL_TEXT_CELLS: readonly RustImportCell[] = [

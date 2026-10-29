@@ -5,7 +5,7 @@ import {
   type FormatToggleField,
   type HistoryEntry,
   type SpreadsheetCellFormat,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { createHistoryEntryRecorder, reportCommandFailure } from '../provider'
 import type { GridProjectionControllerApi } from './grid-projection-controller'
 import { installGridFeature, type GridRuntimeBase } from './grid-runtime'

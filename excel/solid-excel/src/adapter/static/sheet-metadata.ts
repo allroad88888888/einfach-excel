@@ -1,6 +1,6 @@
 // 一句话：sheet 元数据列表的规范化与命名。
 
-import type { SpreadsheetSheetMetadata } from '@einfach/spreadsheet-ui-core'
+import type { SpreadsheetSheetMetadata } from '@einfach-excel/spreadsheet-ui-core'
 import type { StaticSpreadsheetSheetInput } from '../types'
 
 export function normalizeStaticSheets(

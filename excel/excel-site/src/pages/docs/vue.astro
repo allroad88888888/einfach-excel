@@ -14,7 +14,7 @@ import { sitePath } from '../../data/site-path'
     <section class="docs-guide-callout docs-guide-callout-warning" aria-label="Vue adapter status">
       <p class="docs-guide-label">STATUS: REPOSITORY SOURCE ONLY</p>
       <p>
-        <code>@einfach/vue-excel</code> is a private workspace package at version <code>0.0.0</code>. It is not published to
+        <code>@einfach-excel/vue-excel</code> is a private workspace package at version <code>0.0.0</code>. It is not published to
         npm, has no default Worker or WASM backend, and is not a complete spreadsheet application. Treat this as source to
         evaluate, not as a package to install.
       </p>
@@ -28,7 +28,7 @@ pnpm install`}</code></pre>
 
     <h2>2. Run the verified Vue fixture</h2>
     <pre><code>{`NO_PROXY=localhost,127.0.0.1 \
-pnpm --filter @einfach/vue-excel run e2e`}</code></pre>
+pnpm --filter @einfach-excel/vue-excel run e2e`}</code></pre>
     <p>
       This command starts the repository's Vite fixture, opens Chromium, drags across controlled cells, and verifies the
       projected selection. A successful run reports one passing Vue adapter test.
@@ -48,11 +48,11 @@ import type {
   CellRange,
   DisplayCell,
   SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   SpreadsheetGridView,
   SpreadsheetUiProvider,
-} from '@einfach/vue-excel'
+} from '@einfach-excel/vue-excel'
 
 defineProps<{
   backend: SpreadsheetBackend

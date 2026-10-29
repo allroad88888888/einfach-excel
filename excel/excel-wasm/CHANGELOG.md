@@ -1,4 +1,4 @@
-# @einfach/excel-wasm
+# @einfach-excel/excel-wasm
 
 ## 0.2.0
 

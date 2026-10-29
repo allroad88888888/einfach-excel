@@ -5,7 +5,7 @@ import {
   getColumnLabel,
   selectGridHeaderAtom,
   selectionSnapshotAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { CSSProperties } from 'react'
 import { GridResizeHandle } from './GridResizeHandle'
 

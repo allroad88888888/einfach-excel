@@ -19,7 +19,7 @@
 //   - Errors:       mutually equal (stability preserves pre-sort order).
 //   - Stability:    the slot permutation is a stable sort of the visible rows.
 
-import type { SortDirection } from '@einfach/spreadsheet-ui-core'
+import type { SortDirection } from '@einfach-excel/spreadsheet-ui-core'
 
 /**
  * Cap on the number of cells a sort source range may span before the adapter

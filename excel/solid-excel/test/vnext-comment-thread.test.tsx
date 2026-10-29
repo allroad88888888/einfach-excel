@@ -9,14 +9,14 @@ import type {
   SpreadsheetBackend,
   VisibleProjectionRequest,
   RangeProjectionRequest,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   commentEditorDraftAtom,
   commentMutationStateAtom,
   commentSessionAtom,
   openCommentSessionAtom,
   setCommentDraftAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetCommentThread } from '../src/comments'
 import { SpreadsheetUiProvider } from '../src/provider'
 

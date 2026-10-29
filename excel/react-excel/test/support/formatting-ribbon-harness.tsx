@@ -6,7 +6,7 @@ import {
   type RustClearRangeRequest,
   type SpreadsheetCellFormat,
   type VisibleProjectionRequest,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { act, render } from '@testing-library/react'
 import { WorkbookStoreProvider } from '../../src/page/WorkbookStoreProvider'
 import { WorkbookRibbon } from '../../src/workbook/chrome/ribbon/WorkbookRibbon'

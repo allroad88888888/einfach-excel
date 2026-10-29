@@ -1,7 +1,7 @@
 import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useLingui } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
-import { editingSessionAtom, formatPainterAtom, runFormatPainterAtom } from '@einfach/spreadsheet-ui-core'
+import { editingSessionAtom, formatPainterAtom, runFormatPainterAtom } from '@einfach-excel/spreadsheet-ui-core'
 
 /** 单击刷一次、双击连续刷；按钮不读取或传递任何单元格格式。 */
 export function FormatPainterTools() {

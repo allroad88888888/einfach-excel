@@ -26,7 +26,7 @@
  */
 import { useAtomValue } from '@einfach/solid'
 import { createMemo, Show } from 'solid-js'
-import { activeSpillBlockageAtom, type CellCoord } from '@einfach/spreadsheet-ui-core'
+import { activeSpillBlockageAtom, type CellCoord } from '@einfach-excel/spreadsheet-ui-core'
 
 import { useT } from '../i18n'
 

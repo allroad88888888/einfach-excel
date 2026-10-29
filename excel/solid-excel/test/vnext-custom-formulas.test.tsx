@@ -8,7 +8,7 @@ import {
   registerCustomFormulaAtom,
   unregisterCustomFormulaAtom,
   type SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { customFormulasSupportedAtom, SpreadsheetUiProvider } from '../src/provider'
 
 afterEach(() => {

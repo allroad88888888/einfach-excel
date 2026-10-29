@@ -19,7 +19,7 @@ import {
   type Value,
 } from '../src'
 
-describe('@einfach/excel-core-ts — Wave A contracts', () => {
+describe('@einfach-excel/excel-core-ts — Wave A contracts', () => {
   test('BLANK is the canonical empty value', () => {
     expect(BLANK).toEqual({ kind: 'blank' })
   })

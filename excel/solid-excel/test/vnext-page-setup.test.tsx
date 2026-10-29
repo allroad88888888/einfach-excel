@@ -8,7 +8,7 @@ import type {
   ReadPrintConfigResult,
   SetPrintConfigRequest,
   SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   DEFAULT_PRINT_CONFIG,
   pageSetupDialogOpenAtom,
@@ -17,7 +17,7 @@ import {
   printPreviewOpenAtom,
   setWorkspaceActiveSheetAtom,
   type PrintConfig,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetUiProvider } from '../src/provider'
 import { SpreadsheetPrintPreviewOverlay } from '../src/print'
 

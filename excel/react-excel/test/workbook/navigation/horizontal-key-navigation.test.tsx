@@ -1,4 +1,4 @@
-import { selectionSnapshotAtom, viewportMetricsAtom } from '@einfach/spreadsheet-ui-core'
+import { selectionSnapshotAtom, viewportMetricsAtom } from '@einfach-excel/spreadsheet-ui-core'
 import { describe, expect, it } from 'vitest'
 import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { SALES_ORDER_COLUMNS } from '../../../src/page/demo/sales-orders/data/sheet'

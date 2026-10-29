@@ -130,22 +130,22 @@ importers:
       '@einfach/core':
         specifier: ^0.4.0
         version: 0.4.0
-      '@einfach/excel-core-ts':
+      '@einfach-excel/excel-core-ts':
         specifier: workspace:*
         version: link:../excel-core-ts
       '@einfach/solid':
         specifier: ^0.4.0
         version: 0.4.0(solid-js@1.9.12)
-      '@einfach/solid-excel':
+      '@einfach-excel/solid-excel':
         specifier: workspace:*
         version: link:../solid-excel
-      '@einfach/spreadsheet-ui-core':
+      '@einfach-excel/spreadsheet-ui-core':
         specifier: workspace:*
         version: link:../spreadsheet-ui-core
-      '@einfach/spreadsheet-ui-styles':
+      '@einfach-excel/spreadsheet-ui-styles':
         specifier: workspace:*
         version: link:../spreadsheet-ui-styles
-      '@einfach/vue-excel':
+      '@einfach-excel/vue-excel':
         specifier: workspace:*
         version: link:../vue-excel
       solid-js:
@@ -203,7 +203,7 @@ importers:
         specifier: 6.9.1
         version: 6.9.1(@babel/core@7.29.7)(react@18.3.1)
     devDependencies:
-      '@einfach/canvas-cells':
+      '@einfach-excel/canvas-cells':
         specifier: workspace:*
         version: link:../../packages/canvas-cells
       '@einfach/core':
@@ -212,10 +212,10 @@ importers:
       '@einfach/react':
         specifier: ^0.4.0
         version: 0.4.0(react@18.3.1)
-      '@einfach/react-cells':
+      '@einfach-excel/react-cells':
         specifier: workspace:*
         version: link:../../packages/react-cells
-      '@einfach/spreadsheet-ui-core':
+      '@einfach-excel/spreadsheet-ui-core':
         specifier: workspace:*
         version: link:../spreadsheet-ui-core
       '@lingui/cli':
@@ -269,16 +269,16 @@ importers:
 
   excel/solid-excel:
     dependencies:
-      '@einfach/excel-core-ts':
+      '@einfach-excel/excel-core-ts':
         specifier: workspace:*
         version: link:../excel-core-ts
-      '@einfach/excel-wasm':
+      '@einfach-excel/excel-wasm':
         specifier: workspace:*
         version: link:../excel-wasm
-      '@einfach/spreadsheet-ui-core':
+      '@einfach-excel/spreadsheet-ui-core':
         specifier: workspace:*
         version: link:../spreadsheet-ui-core
-      '@einfach/spreadsheet-ui-styles':
+      '@einfach-excel/spreadsheet-ui-styles':
         specifier: workspace:*
         version: link:../spreadsheet-ui-styles
       '@lingui/core':
@@ -330,7 +330,7 @@ importers:
       '@einfach/core':
         specifier: ^0.4.0
         version: 0.4.0
-      '@einfach/excel-wasm':
+      '@einfach-excel/excel-wasm':
         specifier: workspace:*
         version: link:../excel-wasm
     devDependencies:
@@ -357,7 +357,7 @@ importers:
       '@einfach/core':
         specifier: ^0.4.0
         version: 0.4.0
-      '@einfach/spreadsheet-ui-core':
+      '@einfach-excel/spreadsheet-ui-core':
         specifier: workspace:*
         version: link:../spreadsheet-ui-core
     devDependencies:
@@ -403,13 +403,13 @@ importers:
 
   packages/canvas-cells:
     devDependencies:
-      '@einfach/canvas':
+      '@einfach-excel/canvas':
         specifier: workspace:*
         version: link:../canvas
       '@einfach/core':
         specifier: ^0.4.0
         version: 0.4.0
-      '@einfach/spreadsheet-ui-core':
+      '@einfach-excel/spreadsheet-ui-core':
         specifier: workspace:*
         version: link:../../excel/spreadsheet-ui-core
       '@types/node':
@@ -427,7 +427,7 @@ importers:
 
   packages/canvas-demo:
     dependencies:
-      '@einfach/canvas':
+      '@einfach-excel/canvas':
         specifier: workspace:*
         version: link:../canvas
       '@einfach/core':
@@ -455,7 +455,7 @@ importers:
       '@einfach/react':
         specifier: ^0.4.0
         version: 0.4.0(react@18.3.1)
-      '@einfach/spreadsheet-ui-core':
+      '@einfach-excel/spreadsheet-ui-core':
         specifier: workspace:*
         version: link:../../excel/spreadsheet-ui-core
       '@testing-library/jest-dom':

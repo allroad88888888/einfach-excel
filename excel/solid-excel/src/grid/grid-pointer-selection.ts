@@ -4,7 +4,7 @@ import {
   startPointerAtom,
   updatePointerAtom,
   type CellCoord,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { GridContextMenuApi } from './grid-context-menu'
 import { startGridDragSelectionPointerSession } from './grid-drag-selection-pointer-session'
 import {

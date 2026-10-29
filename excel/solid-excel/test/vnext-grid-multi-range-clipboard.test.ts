@@ -4,7 +4,7 @@ import {
   clipboardStateAtom,
   copyClipboardAtom,
   type SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 import { installGridClipboard } from '../src/grid/grid-clipboard'
 

@@ -7,7 +7,7 @@ import type {
   RangeProjectionRequest,
   RangeProjectionResult,
   SpreadsheetBackend,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   findReplaceOpenAtom,
   goToModeAtom,
@@ -17,7 +17,7 @@ import {
   setSelectionBoundsAtom,
   setSheetTabsSheetsAtom,
   setWorkspaceActiveSheetAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { setLocale } from '../src/i18n'
 import { SpreadsheetFindReplaceDialog } from '../src/find-replace'
 import { SpreadsheetGoToDialog } from '../src/go-to'

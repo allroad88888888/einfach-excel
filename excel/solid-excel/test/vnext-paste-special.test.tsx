@@ -26,7 +26,7 @@ import {
   type SpreadsheetBackend,
   type VisibleProjectionRequest,
   type VisibleProjectionResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { pasteSpecialSupportedAtom, SpreadsheetUiProvider } from '../src/provider'
 import { SpreadsheetPasteSpecialDialog } from '../src/paste-special'
 import { seedReadyVisibleProjection } from './projection-test-fixture'

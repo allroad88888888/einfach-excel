@@ -7,7 +7,7 @@ import {
   viewportGeometrySizesAtom,
   viewportMetricsAtom,
   type CellRange,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { CSSProperties } from 'react'
 import { CellRenderer } from './CellRenderer'
 import { GridHeading } from './GridHeading'

@@ -7,7 +7,7 @@ import {
   runToggleTableTotalsAtom,
   type HistoryEntryRecorder,
   type TablesControllerPort,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, render } from '@solidjs/testing-library'
 

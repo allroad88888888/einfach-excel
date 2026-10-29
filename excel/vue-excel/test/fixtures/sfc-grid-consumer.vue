@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { SpreadsheetGridView } from '@einfach/vue-excel'
+import { SpreadsheetGridView } from '@einfach-excel/vue-excel'
 
 const cells = [{ row: 1, col: 1, displayValue: 'A1' }]
 const range = { rowStart: 1, rowEnd: 1, colStart: 1, colEnd: 1 }

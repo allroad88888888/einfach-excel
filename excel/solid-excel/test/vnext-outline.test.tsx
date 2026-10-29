@@ -7,7 +7,7 @@ import type {
   DisplayCell,
   SpreadsheetBackend,
   VisibleProjectionRequest,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   addOutlineGroupAtom,
   getOutlineGroupsForSheet,
@@ -15,7 +15,7 @@ import {
   selectRowsAtom,
   selectColumnsAtom,
   viewportHiddenAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetGrid } from '../src/grid'
 import { SpreadsheetMenuBar } from '../src/menu-bar'
 import { SpreadsheetUiProvider } from '../src/provider'

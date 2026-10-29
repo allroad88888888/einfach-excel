@@ -1,1 +1,1 @@
-export * from '@einfach/spreadsheet-ui-core/rust-worker/adapter/wasm-workbook-surface'
+export * from '@einfach-excel/spreadsheet-ui-core/rust-worker/adapter/wasm-workbook-surface'

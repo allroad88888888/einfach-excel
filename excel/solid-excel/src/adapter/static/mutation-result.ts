@@ -14,8 +14,8 @@ import type {
   TableMutationRejectedResult,
   TableMutationRejectionCode,
   UnmergeRangeRequest,
-} from '@einfach/spreadsheet-ui-core'
-import { cloneRange, normalizeRange } from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
+import { cloneRange, normalizeRange } from '@einfach-excel/spreadsheet-ui-core'
 import { cloneSheets } from './sheet-metadata'
 import type { StaticBackendState } from './state'
 

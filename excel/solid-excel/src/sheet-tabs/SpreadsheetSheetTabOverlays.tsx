@@ -1,10 +1,10 @@
 import { createEffect, onCleanup, Show } from 'solid-js'
 import type { Accessor } from 'solid-js'
-import type { SpreadsheetSheetMetadata, SheetTabsState } from '@einfach/spreadsheet-ui-core'
+import type { SpreadsheetSheetMetadata, SheetTabsState } from '@einfach-excel/spreadsheet-ui-core'
 
 import { useOverlayInteraction } from '../overlay'
 import type { createSheetTabInteractionController } from './sheet-tab-controller'
-import '@einfach/spreadsheet-ui-styles/features/sheet-tab-delete-dialog.css'
+import '@einfach-excel/spreadsheet-ui-styles/features/sheet-tab-delete-dialog.css'
 
 interface SpreadsheetSheetTabOverlaysProps {
   readonly sheetTabs: Accessor<SheetTabsState>

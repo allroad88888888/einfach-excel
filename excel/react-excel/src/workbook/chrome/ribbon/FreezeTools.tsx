@@ -7,7 +7,7 @@ import {
   projectedFreezeAtom,
   projectionSnapshotAtom,
   runFreezeAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { msg } from '@lingui/core/macro'
 import { Trans, useLingui } from '@lingui/react/macro'
 

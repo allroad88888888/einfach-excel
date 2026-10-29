@@ -145,9 +145,9 @@ export async function collectEnvironmentRecord(
         revParam ?? `${UNKNOWN} (git revision is not browser-observable; pass &rev=<commit>)`,
       buildProfile: detectBuildProfile(),
       packageVersions: {
-        '@einfach/solid-excel': 'source',
-        '@einfach/excel-wasm': 'source',
-        '@einfach/spreadsheet-ui-core': 'source',
+        '@einfach-excel/solid-excel': 'source',
+        '@einfach-excel/excel-wasm': 'source',
+        '@einfach-excel/spreadsheet-ui-core': 'source',
       },
     },
     machine: {

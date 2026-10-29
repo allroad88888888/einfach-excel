@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { CellCoord } from '@einfach/spreadsheet-ui-core'
-import { SpreadsheetGridView, useSpreadsheetSelection } from '@einfach/vue-excel'
-import { useSpreadsheetPointerSelection } from '@einfach/vue-excel/pointer-selection'
+import type { CellCoord } from '@einfach-excel/spreadsheet-ui-core'
+import { SpreadsheetGridView, useSpreadsheetSelection } from '@einfach-excel/vue-excel'
+import { useSpreadsheetPointerSelection } from '@einfach-excel/vue-excel/pointer-selection'
 import { vueDemoCells, vueDemoRange, vueDemoSheetId } from './vue-adapter-demo-projection'
 import './vue-adapter-demo.css'
 

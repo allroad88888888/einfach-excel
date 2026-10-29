@@ -1,4 +1,4 @@
-import type * as CanvasApi from '@einfach/canvas'
+import type * as CanvasApi from '@einfach-excel/canvas'
 import { fileURLToPath } from 'node:url'
 import { expect, test } from '@playwright/test'
 

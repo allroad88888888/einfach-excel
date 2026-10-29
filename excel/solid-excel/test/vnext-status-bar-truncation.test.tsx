@@ -8,7 +8,7 @@ import {
   setSelectionAtom,
   setSelectionBoundsAtom,
   setStatusBarAggregateConfigAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { SpreadsheetUiProvider } from '../src/provider'
 import { SpreadsheetStatusBar } from '../src/status-bar'
 import { setLocale } from '../src/i18n'

@@ -28,7 +28,7 @@
 import { beforeAll, describe, expect, vi, test } from 'vitest'
 
 import { createStore } from '@einfach/core'
-import type { DisplayCell } from '@einfach/spreadsheet-ui-core'
+import type { DisplayCell } from '@einfach-excel/spreadsheet-ui-core'
 import {
   createInsertRowsOperation,
   getFilterHiddenRowsForSheet,
@@ -39,14 +39,14 @@ import {
   setViewportFilterHiddenRowsAtom,
   viewportFilterHiddenAtom,
   viewportHiddenAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type { WorkerLike, WorkerWorkbookSpreadsheetBackend } from '../src/adapter'
 
-vi.mock('@einfach/excel-wasm', async () => {
+vi.mock('@einfach-excel/excel-wasm', async () => {
   /* eslint-disable @typescript-eslint/no-var-requires */
   const { readFileSync } = await import('node:fs')
   const nodePath = await import('node:path')
-  const real = await vi.importActual('@einfach/excel-wasm') as {
+  const real = await vi.importActual('@einfach-excel/excel-wasm') as {
     initSync: (input: { module: ArrayBufferLike }) => unknown
     WasmWorkbook: unknown
   }

@@ -1,5 +1,5 @@
 import { For } from 'solid-js'
-import type { SpreadsheetRotation } from '@einfach/spreadsheet-ui-core'
+import type { SpreadsheetRotation } from '@einfach-excel/spreadsheet-ui-core'
 import { useT } from '../i18n'
 import { createLayoutFormatMenuInteraction } from './LayoutFormatMenuInteraction'
 import { ToolbarAnchoredMenu } from './ToolbarAnchoredMenu'

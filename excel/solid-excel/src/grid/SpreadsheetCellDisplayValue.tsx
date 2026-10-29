@@ -3,7 +3,7 @@ import {
   getRichValueText,
   type DisplayCell,
   type DisplayCellRichValue,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { getRichRunStyle } from './cell-format'
 
 function getSafeHyperlinkHref(url: string): string | undefined {

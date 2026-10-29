@@ -1,6 +1,6 @@
 // 一句话：把 DisplayCell 投到 Excel 的五个排序类。
 
-import type { DisplayCell, SortRangeKey } from '@einfach/spreadsheet-ui-core'
+import type { DisplayCell, SortRangeKey } from '@einfach-excel/spreadsheet-ui-core'
 import type { ResolvedSortKey, SortValue } from '../sort-order'
 import type { EvalCellLookup } from '../static-formula-eval'
 import { evaluateFormula } from '../static-formula-eval'

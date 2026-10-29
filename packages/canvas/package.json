@@ -1,5 +1,5 @@
 {
-  "name": "@einfach/canvas",
+  "name": "@einfach-excel/canvas",
   "version": "0.1.0",
   "description": "Canvas cells with owned atom subscriptions and region caches",
   "type": "module",

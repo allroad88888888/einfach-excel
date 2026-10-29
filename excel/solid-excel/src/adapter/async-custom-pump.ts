@@ -1,1 +1,1 @@
-export * from '@einfach/spreadsheet-ui-core/rust-worker/adapter/async-custom-pump'
+export * from '@einfach-excel/spreadsheet-ui-core/rust-worker/adapter/async-custom-pump'

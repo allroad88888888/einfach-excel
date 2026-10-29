@@ -11,8 +11,8 @@ import type {
   SpreadsheetCellFormat,
   SpreadsheetSheetMetadata,
   ViewportFreezeConfig,
-} from '@einfach/spreadsheet-ui-core'
-import type { PrintConfigRegistry } from '@einfach/excel-core-ts'
+} from '@einfach-excel/spreadsheet-ui-core'
+import type { PrintConfigRegistry } from '@einfach-excel/excel-core-ts'
 import type { StateDelta } from './history-delta'
 
 /**

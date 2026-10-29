@@ -4,7 +4,7 @@ import { useAtomValue, useSetAtom } from '@einfach/react'
 import {
   editingSessionAtom, numberFormatPanelAtom, runNumberFormatPanelAtom,
   NUMBER_FORMAT_TIME_PATTERNS, NUMBER_FORMAT_DATE_PATTERNS, NUMBER_FORMAT_FRACTIONS,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { useId, useLayoutEffect, useRef } from 'react'
 import { cycleDialogFocus } from './dialog-focus'
 import './number-format.css'

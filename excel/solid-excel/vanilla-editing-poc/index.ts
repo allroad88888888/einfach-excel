@@ -1,7 +1,7 @@
 // 一句话：组合 Vanilla POC 的 Core 会话、固定窗口与原生视图。
 
 import { createStore } from '@einfach/core'
-import { editingSessionAtom, projectionSnapshotAtom } from '@einfach/spreadsheet-ui-core'
+import { editingSessionAtom, projectionSnapshotAtom } from '@einfach-excel/spreadsheet-ui-core'
 
 import { createVanillaEditingSession } from './editing-session'
 import { createVanillaEditingProjectionSession } from './projection-session'

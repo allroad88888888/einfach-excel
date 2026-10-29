@@ -4,7 +4,7 @@ import {
   workbookDocumentAtom,
   type RustWorkbookDefinition,
   type StartRustWorkbookRuntimeInput,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, render, screen } from '@testing-library/react'
 import { WorkbookRuntimeProvider } from '../../src/page/WorkbookRuntimeProvider'

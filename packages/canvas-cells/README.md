@@ -1,11 +1,11 @@
-# @einfach/canvas-cells
+# @einfach-excel/canvas-cells
 
-工作簿的 Canvas cell 渲染包。依赖 `@einfach/canvas` 生命周期及 `@einfach/spreadsheet-ui-core` 的状态与显示协议，不依赖 React，也不创建 DOM cell。
+工作簿的 Canvas cell 渲染包。依赖 `@einfach-excel/canvas` 生命周期及 `@einfach-excel/spreadsheet-ui-core` 的状态与显示协议，不依赖 React，也不创建 DOM cell。
 
 真实工作簿入口：`http://127.0.0.1:5183/?renderer=canvas`。默认入口继续使用 React cells。React 宿主只挂载 Canvas、传入可见投影并负责卸载；普通区与冻结区均通过同一个 `CellRenderer` 选择后端。
 
 ```ts
-import { createCanvasCells, canvasCellAt } from '@einfach/canvas-cells'
+import { createCanvasCells, canvasCellAt } from '@einfach-excel/canvas-cells'
 
 const view = createCanvasCells(canvas, {
   window: projection.window,
@@ -35,13 +35,13 @@ view.dispose()
 第一版边界：文字始终裁剪在 cell 内，未实现跨空白格溢出；`fill/justify/distributed` 暂按左对齐显示。逐格屏幕阅读器语义、逐个筛选按钮 Tab 导航未实现，筛选仍可从现有工具栏键盘进入。编辑器、行列标题及工作簿外壳继续使用宿主现有实现。尚未做真实老机器性能验证。
 
 ```sh
-pnpm --filter @einfach/canvas build
+pnpm --filter @einfach-excel/canvas build
 pnpm exec tsc -b excel/spreadsheet-ui-core
 pnpm exec rollup -c rollup.config.mjs
-pnpm --filter @einfach/canvas-cells build
-pnpm --filter @einfach/canvas-cells test
-pnpm --filter @einfach/canvas-cells typecheck
-pnpm --filter @einfach/react-excel dev
+pnpm --filter @einfach-excel/canvas-cells build
+pnpm --filter @einfach-excel/canvas-cells test
+pnpm --filter @einfach-excel/canvas-cells typecheck
+pnpm --filter @einfach-excel/react-excel dev
 ```
 
 测试覆盖局部更新、订阅回收、隐藏尺寸、跨窗口合并与命中。真实工作簿浏览器测试覆盖绘制、hover、拖选、远距离导航、编辑撤销、冻结区和筛选入口。`onFrame.elapsed` 只统计同步 Canvas 绘制命令耗时，不包含浏览器合成。

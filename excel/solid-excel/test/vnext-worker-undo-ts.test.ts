@@ -35,7 +35,7 @@ import {
   viewportHiddenAtom,
   type CellRange,
   type DisplayCell,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 import {
   installWorkerRuntimeTs,

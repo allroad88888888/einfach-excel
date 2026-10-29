@@ -1,5 +1,5 @@
 import type { Store } from '@einfach/core'
-import { syncStatusBarProjectionAtom } from '@einfach/spreadsheet-ui-core'
+import { syncStatusBarProjectionAtom } from '@einfach-excel/spreadsheet-ui-core'
 import { spreadsheetProjectionSnapshotAtom } from './atoms'
 
 interface ProjectionBridgeOwner {

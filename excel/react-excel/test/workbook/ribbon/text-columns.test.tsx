@@ -4,7 +4,7 @@ import { createStore } from '@einfach/core'
 import {
   runVisibleProjectionAtom, setSelectionAtom, setSelectionBoundsAtom,
   type RustWorkbookConnection, type VisibleProjectionRequest,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { WorkbookStoreProvider } from '../../../src/page/WorkbookStoreProvider'
 import { TextColumnsTools } from '../../../src/workbook/chrome/ribbon/TextColumnsTools'
 

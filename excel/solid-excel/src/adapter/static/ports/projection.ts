@@ -1,6 +1,6 @@
 // 一句话：投影读取端口。
 
-import type { RangeProjectionResult, VisibleProjectionResult } from '@einfach/spreadsheet-ui-core'
+import type { RangeProjectionResult, VisibleProjectionResult } from '@einfach-excel/spreadsheet-ui-core'
 import type { StaticSpreadsheetBackend } from '../backend-contract'
 import { buildProjectionResult } from '../projection'
 import type { StaticBackendState } from '../state'

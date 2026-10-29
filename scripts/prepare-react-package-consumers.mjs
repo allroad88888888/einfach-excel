@@ -41,8 +41,16 @@ for (const relative of ['package.json', 'pnpm-workspace.yaml', 'pnpm-lock.yaml',
 for (const parent of ['excel', 'packages']) for (const entry of await readdir(path.join(root, parent))) {
   try { await copy(`${parent}/${entry}/package.json`) } catch (error) { if (error.code !== 'ENOENT') throw error }
 }
-await run(path.join(root, 'node_modules/.bin/changeset'), ['status', '--output', '../plan.json'], stage, 'release-plan')
-await run(path.join(root, 'node_modules/.bin/changeset'), ['version'], stage, 'release-version')
+// 发版后没有在途 changeset：no-checkout 副本里其余文件都算"已删除"，`changeset status`
+// 会因"有改动却无 changeset"失败；此时直接按当前版本打包。
+const pending = (await readdir(path.join(stage, '.changeset')))
+  .filter(file => file.endsWith('.md') && file !== 'README.md')
+if (pending.length > 0) {
+  await run(path.join(root, 'node_modules/.bin/changeset'), ['status', '--output', '../plan.json'], stage, 'release-plan')
+  await run(path.join(root, 'node_modules/.bin/changeset'), ['version'], stage, 'release-version')
+} else {
+  await writeFile(path.join(temporary, 'plan.json'), `${JSON.stringify({ changesets: [], releases: [] }, null, 2)}\n`)
+}
 await run('npm', ['exec', '--yes', '--package=pnpm@10.15.1', '--', 'pnpm', 'install', '--lockfile-only', '--ignore-scripts'],
   stage, 'release-lockfile')
 await run('npm', ['exec', '--yes', '--package=pnpm@10.15.1', '--', 'pnpm', 'install', '--frozen-lockfile', '--ignore-scripts'],
@@ -61,7 +69,7 @@ for (const name of packages) {
   const filename = `${manifest.name.replace('@', '').replaceAll('/', '-')}-${manifest.version}.tgz`
   packed[manifest.name] = { version: manifest.version, file: path.join(tarballs, filename) }
 }
-if (packed['@einfach/spreadsheet-ui-core'].version !== '0.2.0' || packed['@einfach/react-excel'].version !== '0.1.0')
+if (packed['@einfach-excel/spreadsheet-ui-core'].version !== '0.2.0' || packed['@einfach-excel/react-excel'].version !== '0.1.0')
   throw new Error('Release plan changed; review the React minimum peer before accepting a new plan.')
 const consumers = {}
 for (const bundler of ['vite', 'rspack']) {
@@ -71,7 +79,7 @@ for (const bundler of ['vite', 'rspack']) {
   await cp(path.join(root, `excel/react-excel/package-consumers/${bundler}`), directory, { recursive: true })
   const packageFile = path.join(directory, 'package.json')
   const manifest = await json(packageFile)
-  for (const name of ['@einfach/excel-wasm', '@einfach/spreadsheet-ui-core', '@einfach/react-excel'])
+  for (const name of ['@einfach-excel/excel-wasm', '@einfach-excel/spreadsheet-ui-core', '@einfach-excel/react-excel'])
     manifest.dependencies[name] = `file:${packed[name].file}`
   await writeFile(packageFile, `${JSON.stringify(manifest, null, 2)}\n`)
   // 严格 peer 安装，无 workspace link、源码 alias 或 Rust/宏插件。
@@ -82,7 +90,7 @@ for (const bundler of ['vite', 'rspack']) {
     installed.add(name); inspect(dependency)
   })
   inspect(tree)
-  for (const name of ['@einfach/excel-core-ts', '@einfach/react-cells', '@einfach/canvas-cells', '@einfach/canvas'])
+  for (const name of ['@einfach-excel/excel-core-ts', '@einfach-excel/react-cells', '@einfach-excel/canvas-cells', '@einfach-excel/canvas'])
     if (installed.has(name)) throw new Error(`Unexpected private/fallback dependency: ${name}`)
   await run('npm', ['run', 'typecheck'], directory, `typecheck-${bundler}`)
   await run('npm', ['run', 'build'], directory, `build-${bundler}`)

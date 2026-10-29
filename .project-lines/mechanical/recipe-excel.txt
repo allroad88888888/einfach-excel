@@ -1,7 +1,7 @@
 == recipe for excel/ (from 3 cleanest birth commits)
 -- a95b0b09 (4 files) excel/vue-excel: 2026-08-13 feat(vue-excel): add package skeleton
 -- db0637ce (4 files) excel/react-excel: 2026-08-13 feat(react-excel): add adapter package skeleton
--- 38d7d5b2 (53 files) excel/excel-wasm: 2026-08-17 feat(excel-wasm): distribute WASM via @einfach/excel-wasm package
+-- 38d7d5b2 (53 files) excel/excel-wasm: 2026-08-17 feat(excel-wasm): distribute WASM via @einfach-excel/excel-wasm package
      .github/workflows/ci.yml
      .github/workflows/e2e.yml
      .github/workflows/pages.yml

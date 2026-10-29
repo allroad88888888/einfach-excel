@@ -9,7 +9,7 @@ React 19 不在兼容范围内，需要先对齐版本。预期发行是 React 0
 发布后安装：
 
 ```sh
-npm install @einfach/react-excel@^0.1.0 @einfach/spreadsheet-ui-core@^0.2.0 \
+npm install @einfach-excel/react-excel@^0.1.0 @einfach-excel/spreadsheet-ui-core@^0.2.0 \
   @einfach/core@^0.4.0 @einfach/react@^0.4.0 react@^18.3.1 react-dom@^18.3.1
 ```
 
@@ -18,9 +18,9 @@ Changesets version、pnpm pack，由仓外 Vite/Rspack 严格安装 tarball 与 
 脚本不修改工作区版本和在途 changesets；消费者不安装 Rust 工具链。
 
 ```tsx
-import { Spreadsheet } from '@einfach/react-excel'
-import type { RustWorkbookDefinition } from '@einfach/spreadsheet-ui-core'
-import '@einfach/react-excel/style.css'
+import { Spreadsheet } from '@einfach-excel/react-excel'
+import type { RustWorkbookDefinition } from '@einfach-excel/spreadsheet-ui-core'
+import '@einfach-excel/react-excel/style.css'
 
 const definition: RustWorkbookDefinition = {
   title: 'My workbook',
@@ -40,7 +40,7 @@ export function App() {
 卸载和失败资源由 Core 统一清理，宿主无需再次终止 Worker。
 
 默认 Worker 通过模块 URL 加载包内编译产物。宿主无需 Lingui 宏插件、`.po` loader、
-源码 alias 或 Rust 工具链；`@einfach/spreadsheet-ui-core` 及其 `@einfach/excel-wasm`
+源码 alias 或 Rust 工具链；`@einfach-excel/spreadsheet-ui-core` 及其 `@einfach-excel/excel-wasm`
 必须提供已构建的匹配发行物。受 CSP、资源路径或特殊打包约束时，可明确传入
 `workerFactory={() => new Worker(/* 宿主自己的模块 URL */, { type: 'module' })}`。
 每次工厂调用必须返回一个全新的、实现 Core `WorkerLike` 协议的 Worker，不能共享活动实例。
@@ -49,7 +49,7 @@ export function App() {
 
 ```ts
 // workbook.worker.ts
-import '@einfach/spreadsheet-ui-core/rust-runtime'
+import '@einfach-excel/spreadsheet-ui-core/rust-runtime'
 // 宿主组件的稳定 factory：() => new Worker(
 //   new URL('./workbook.worker.ts', import.meta.url), { type: 'module' })
 ```
@@ -87,8 +87,8 @@ Core Store/connection。仅向 `WorkbookStoreProvider` 传入 connection 不会�
 先构建 Core 的发行版 JS/声明并准备预编译 WASM，然后在仓库执行：
 
 ```sh
-pnpm --filter @einfach/react-excel build:lib
-pnpm --filter @einfach/react-excel build:demo
+pnpm --filter @einfach-excel/react-excel build:lib
+pnpm --filter @einfach-excel/react-excel build:demo
 ```
 
 库位于 `dist/`，demo 位于 `dist-demo/`；`build` 依次构建两者。

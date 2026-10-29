@@ -1,7 +1,7 @@
 import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
-import { borderPanelAtom, runBorderPanelAtom, editingSessionAtom, BORDER_PRESETS, BORDER_STYLES } from '@einfach/spreadsheet-ui-core'
+import { borderPanelAtom, runBorderPanelAtom, editingSessionAtom, BORDER_PRESETS, BORDER_STYLES } from '@einfach-excel/spreadsheet-ui-core'
 import { useId, useLayoutEffect, useRef } from 'react'
 import { cycleDialogFocus } from './dialog-focus'
 import { COLORS } from './color-swatches'

@@ -1,7 +1,7 @@
 // 一句话：TS worker runtime 的引擎拥有条件格式配置与持久化映射。
 
-import type { ConditionalFormatRuleEntry } from '@einfach/spreadsheet-ui-core'
-import { cloneConditionalFormatRuleEntry } from '@einfach/spreadsheet-ui-core'
+import type { ConditionalFormatRuleEntry } from '@einfach-excel/spreadsheet-ui-core'
+import { cloneConditionalFormatRuleEntry } from '@einfach-excel/spreadsheet-ui-core'
 import type {
   ConditionalFormatConfigSnapshotWire,
   RemoveConditionalFormatRuleWire,

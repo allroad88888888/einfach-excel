@@ -13,7 +13,7 @@ import type {
   WorkerWorkbookBackendSheet,
   WorkerWorkbookBackendSheetInput,
   WorkerWorkbookClient,
-} from '@einfach/solid-excel'
+} from '@einfach-excel/solid-excel'
 
 /** Sheet list passed straight to `makeWasmWorkerBackend({ sheets: ... })`. */
 export const formulasSheets: WorkerWorkbookBackendSheetInput[] = [

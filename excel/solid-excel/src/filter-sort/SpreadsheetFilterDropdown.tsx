@@ -23,7 +23,7 @@ import {
   type FilterSortMutationIntent,
   type FilterSortState,
   type SortDirection,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import {
   createHistoryEntryRecorder,
   refreshVisibleProjection,
@@ -37,7 +37,7 @@ import { FilterDropdownPresentation } from './FilterDropdownPresentation'
 import { useFilterDropdownFocus } from './filter-dropdown-focus'
 
 if (typeof process === 'undefined' || process.env.VITEST !== 'true') {
-  void import('@einfach/spreadsheet-ui-styles/features/filter-dropdown.css')
+  void import('@einfach-excel/spreadsheet-ui-styles/features/filter-dropdown.css')
 }
 
 export interface SpreadsheetFilterDropdownProps {

@@ -1,5 +1,5 @@
 {
-  "name": "@einfach/react-excel",
+  "name": "@einfach-excel/react-excel",
   "version": "0.1.0",
   "private": false,
   "description": "React workbook product powered by the Einfach Rust/WASM engine",
@@ -42,7 +42,7 @@
   "peerDependencies": {
     "@einfach/core": "^0.4.0",
     "@einfach/react": "^0.4.0",
-    "@einfach/spreadsheet-ui-core": "^0.2.0",
+    "@einfach-excel/spreadsheet-ui-core": "^0.2.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
@@ -66,11 +66,11 @@
     "typecheck": "tsc -p tsconfig.json --noEmit --pretty false"
   },
   "devDependencies": {
-    "@einfach/canvas-cells": "workspace:*",
+    "@einfach-excel/canvas-cells": "workspace:*",
     "@einfach/core": "^0.4.0",
     "@einfach/react": "^0.4.0",
-    "@einfach/react-cells": "workspace:*",
-    "@einfach/spreadsheet-ui-core": "workspace:*",
+    "@einfach-excel/react-cells": "workspace:*",
+    "@einfach-excel/spreadsheet-ui-core": "workspace:*",
     "@lingui/cli": "6.9.1",
     "@lingui/format-po": "6.9.1",
     "@lingui/vite-plugin": "6.9.1",

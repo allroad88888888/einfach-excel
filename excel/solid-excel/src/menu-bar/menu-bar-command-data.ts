@@ -11,7 +11,7 @@ import {
   runToggleTableTotalsAtSelectionAtom,
   selectionSnapshotAtom,
   type MenuItemDispatch,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { createHistoryEntryRecorder, refreshVisibleProjection } from '../provider'
 import type { MenuBarCommandContext } from './menu-bar-command-context'
 

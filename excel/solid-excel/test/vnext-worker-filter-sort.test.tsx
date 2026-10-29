@@ -21,14 +21,14 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { createStore } from '@einfach/core'
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library'
-import type { VisibleProjectionResult } from '@einfach/spreadsheet-ui-core'
+import type { VisibleProjectionResult } from '@einfach-excel/spreadsheet-ui-core'
 import {
   filterDropdownAtom,
   filterSortLifecycleAtom,
   filterSortStateAtom,
   openFilterDropdownAtom,
   setWorkspaceActiveSheetAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import type {
   CellRefWire,
   CellSnapshotWire,

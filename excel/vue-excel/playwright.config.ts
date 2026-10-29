@@ -24,7 +24,7 @@ function createViteCommand(): string {
     "import { createServer } from 'vite'; " +
     `const server = await createServer({ root: ${JSON.stringify(fixtureDirectory)}, ` +
     `server: { host: '127.0.0.1', port: ${port}, strictPort: true }, ` +
-    `resolve: { alias: { '@einfach/spreadsheet-ui-core': ${JSON.stringify(spreadsheetUiCoreSource)} } } }); ` +
+    `resolve: { alias: { '@einfach-excel/spreadsheet-ui-core': ${JSON.stringify(spreadsheetUiCoreSource)} } } }); ` +
     'await server.listen()'
 
   return `node --input-type=module --eval ${JSON.stringify(source)}`

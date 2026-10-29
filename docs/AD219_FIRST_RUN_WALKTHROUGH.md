@@ -12,7 +12,7 @@
 
 ### 第 0 步：读 README，选路
 
-- **文档说**：README 顶部给了 Quickstart 链接；「Release status」节说五个包 2026-08-17 已发 npm `0.1.0`，给了 `npm install @einfach/solid-excel solid-js`；「Get started locally」节却写前提 **Node.js 18 or later (CI covers Node.js 18 and 20)** + pnpm 10 + Rust 工具链，走 clone 仓库；「Minimal repository-checkout example」节又说 *"the project is documented for use from a repository checkout … it is not an npm-installation path"*。
+- **文档说**：README 顶部给了 Quickstart 链接；「Release status」节说五个包 2026-08-17 已发 npm `0.1.0`，给了 `npm install @einfach-excel/solid-excel solid-js`；「Get started locally」节却写前提 **Node.js 18 or later (CI covers Node.js 18 and 20)** + pnpm 10 + Rust 工具链，走 clone 仓库；「Minimal repository-checkout example」节又说 *"the project is documented for use from a repository checkout … it is not an npm-installation path"*。
 - **实际发生**：三个小节口径互相打架——npm 已发布 vs "只文档化了 checkout 用法"；Node 18+ vs 同页下文的 baseline >=22.12.0。npm 包实测 `engines: { node: ">=22.12.0" }`，照 Prerequisites 装 Node 18 会直接撞 engines。新人在这一页要自行仲裁三种矛盾说法。
 - **定级**：摩擦（Node 版本矛盾，可把人送错方向）+ 瑕疵（checkout-only 陈旧段落）。
 
@@ -24,8 +24,8 @@
 
 ### 第 2 步：手工路——脚手架 + 装包（顺利）
 
-- **文档说**：`npm create vite@latest my-sheet -- --template solid-ts`；然后 `npm install @einfach/solid-excel @einfach/core @einfach/solid solid-js`。
-- **实际发生**：脚手架顺利（拿到 Vite **8.2.1** + vite-plugin-solid 2.11，注意与后文 recipe 钉的 ^5.4 不一致）。装包一次成功：`@einfach/solid-excel@0.1.0` 及 fixed group 全到位，`@einfach/core@0.4.0`、`@einfach/solid@0.4.0`、`solid-js@1.9.14` 且 npm ls 确认单实例。这一步体验良好。
+- **文档说**：`npm create vite@latest my-sheet -- --template solid-ts`；然后 `npm install @einfach-excel/solid-excel @einfach/core @einfach/solid solid-js`。
+- **实际发生**：脚手架顺利（拿到 Vite **8.2.1** + vite-plugin-solid 2.11，注意与后文 recipe 钉的 ^5.4 不一致）。装包一次成功：`@einfach-excel/solid-excel@0.1.0` 及 fixed group 全到位，`@einfach/core@0.4.0`、`@einfach/solid@0.4.0`、`solid-js@1.9.14` 且 npm ls 确认单实例。这一步体验良好。
 - **小字**：文档处处强调钉 `solid-js 1.9.12`（vite recipe、模板 package.json），照 Quickstart 命令实装的是 `1.9.14`（peer `^1.9.12` 放行）。没出问题，但"钉 1.9.12"的说法与实际到手版本不一致。定级：瑕疵。
 
 ### 第 3 步：20 行示例——写错了地方，静默失败
@@ -40,14 +40,14 @@
 - **文档说**：Quickstart 第 3 节 `npm run dev` → 双击 A1 输入 `=1+2` → 显示 3；并强调「**不需要任何 vite 配置改动**」。`docs/recipes/vite.md` 同样说「零特殊配置」。
 - **实际发生**：页面全白，pageerror：
   `The requested module '/node_modules/@messageformat/parser/lib/parser.js' does not provide an export named 'parse'`
-  依赖链：`@einfach/solid-excel → @lingui/core@6.6.0 → @lingui/message-utils → @messageformat/parser@5.1.1`（纯 CJS 包，dev 下被当 ESM 直出）。根因组合：包走 `solid` 导出条件从 node_modules 内源码编译（ADR 0019），其 CJS 传递依赖逃过了 Vite 预打包。
+  依赖链：`@einfach-excel/solid-excel → @lingui/core@6.6.0 → @lingui/message-utils → @messageformat/parser@5.1.1`（纯 CJS 包，dev 下被当 ESM 直出）。根因组合：包走 `solid` 导出条件从 node_modules 内源码编译（ADR 0019），其 CJS 传递依赖逃过了 Vite 预打包。
 - **文档自查**：`vite.md` 的「未验证」节其实自曝了——冒烟只走 `vite build` + `preview`，钉 vite ^5.4，**dev-server/HMR 未验证**。但 Quickstart 主流程教的恰恰是 `npm run dev`，且全文档无 troubleshooting、无此错误的只言片语。
 - **复现矩阵**（本次实测）：
   | 路径 | Vite 8.2.1 | Vite 5.4.21（recipe 钉的版本） |
   |---|---|---|
   | `dev`（零配置） | 白屏，@messageformat 报错 | 白屏，同样报错 |
   | `dev` + `optimizeDeps.include:['@lingui/core']` | **修好，验收 PASS** | 恶化为 `SpreadsheetUiProvider is required.`（ADR 0001 双实例症状） |
-  | `dev` + `exclude:['@einfach/solid-excel']` + 嵌套 include（含清缓存冷启动） | 未测（8 已有解） | 仍 `SpreadsheetUiProvider is required.` |
+  | `dev` + `exclude:['@einfach-excel/solid-excel']` + 嵌套 include（含清缓存冷启动） | 未测（8 已有解） | 仍 `SpreadsheetUiProvider is required.` |
   | `build` + `preview`（零配置） | **PASS** | **PASS** |
 - **定级**：**阻断**——Quickstart 的字面路径（scaffold → dev）在两个 Vite 大版本上都到不了"输入公式"这一步；Vite 5 下我没有找到任何简单配置能救活 dev。
 - **绕过**：a) `npm run build && npm run preview`（文档没教，但这才是它冒烟过的路）；b) Vite 8 上加一行 `optimizeDeps: { include: ['@lingui/core'] }`。
@@ -97,7 +97,7 @@
 | # | 修什么 | 修哪里 |
 |---|---|---|
 | 1 | 把 `templates/`（commit `158406c`）推送到 GitHub；推不了就先从 QUICKSTART 删掉「一键起步」节及两个在线链接——现状是给新人的第一条路 100% 失败 | 发布流程（git push）或 `docs/QUICKSTART.md` |
-| 2 | 治本：消除 `@einfach/solid-excel` 对 `@lingui/core`（携 CJS 的 `@messageformat/parser`）的运行时依赖，或改为打包进产物/ESM-safe 引入，使 `solid` 源码条件下无裸 CJS 传递依赖 | `excel/solid-excel` 包依赖（代码） |
+| 2 | 治本：消除 `@einfach-excel/solid-excel` 对 `@lingui/core`（携 CJS 的 `@messageformat/parser`）的运行时依赖，或改为打包进产物/ESM-safe 引入，使 `solid` 源码条件下无裸 CJS 传递依赖 | `excel/solid-excel` 包依赖（代码） |
 | 3 | 治标（在 #2 落地前）：Quickstart 与 vite recipe 明写「dev 需要 `optimizeDeps: { include: ['@lingui/core'] }`（Vite 8 实测）」，并把「不需要任何 vite 配置改动」「零特殊配置」的措辞降级为仅指 build 路径；同时把 `build`+`preview` 作为已验证路径写进 Quickstart 正文 | `docs/QUICKSTART.md`、`docs/recipes/vite.md` |
 | 4 | vite recipe 钉的 `vite ^5.4` 与该修复不兼容（实测触发 `SpreadsheetUiProvider is required` 双实例症状且无简单解）：要么验证并升级 recipe 到 Vite 8 口径，要么在 recipe 里明写「dev 在 ^5.4 上不可用」 | `docs/recipes/vite.md`（必要时补 ADR/observation） |
 | 5 | 「替换 `src/main.tsx`」改为「把 20 行写入脚手架入口文件（当前 solid-ts 模板为 `src/index.tsx`；以 `index.html` 的 `<script src>` 为准）」 | `docs/QUICKSTART.md`（`templates/vite-starter` 自身入口是 main.tsx，一致，不用改） |

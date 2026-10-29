@@ -5,7 +5,7 @@ import {
   editingSessionAtom,
   runSelectionSizeAtom,
   selectionSizePanelAtom,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { useEffect, useId, useRef } from 'react'
 import { cycleDialogFocus } from './dialog-focus'
 import './selection-size.css'

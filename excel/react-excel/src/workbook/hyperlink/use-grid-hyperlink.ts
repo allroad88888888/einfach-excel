@@ -1,5 +1,5 @@
 import { useAtomValue, useSetAtom } from '@einfach/react'
-import { externalHyperlink, hyperlinkPanelAtom, readCellHyperlinkAtom, runHyperlinkAtom } from '@einfach/spreadsheet-ui-core'
+import { externalHyperlink, hyperlinkPanelAtom, readCellHyperlinkAtom, runHyperlinkAtom } from '@einfach-excel/spreadsheet-ui-core'
 import type { KeyboardEvent, PointerEvent } from 'react'
 import { workbookCellAt } from '../grid/viewport/workbook-grid-hit-test'
 

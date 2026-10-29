@@ -3,7 +3,7 @@ import { useLingui, Trans } from '@lingui/react/macro'
 import { useAtomValue, useSetAtom } from '@einfach/react'
 import { useId, useLayoutEffect, useRef } from 'react'
 import { editingSessionAtom, nativeDataValidationPanelAtom, runNativeDataValidationAtom,
-  type NativeDataValidationOperator, type NativeDataValidationRule } from '@einfach/spreadsheet-ui-core'
+  type NativeDataValidationOperator, type NativeDataValidationRule } from '@einfach-excel/spreadsheet-ui-core'
 import { cycleDialogFocus } from './dialog-focus'
 import { AdvancedValidationFields } from '../../advanced-validation/AdvancedValidationFields'
 import './data-validation-panel.css'

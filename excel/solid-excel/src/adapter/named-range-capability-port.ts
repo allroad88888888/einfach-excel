@@ -2,7 +2,7 @@ import type {
   NamedRangeBackendCapabilities,
   NamedRangeControllerPort,
   NamedRangeRuntime,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 export type NamedRangeCapabilityReaderPort = Required<
   Pick<NamedRangeControllerPort, 'readNamedRangeCapabilities'>

@@ -9,8 +9,8 @@
 > 因此这组数字**不代表当前**。要当前的 parity 结论请自己跑：
 >
 > ```bash
-> NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach/solid-excel -- --project=wasm
-> NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach/solid-excel -- --project=ts
+> NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach-excel/solid-excel -- --project=wasm
+> NO_PROXY=localhost,127.0.0.1 npm run e2e -w @einfach-excel/solid-excel -- --project=ts
 > ```
 
 ## Summary（2026-06-05 快照，非当前）
@@ -72,7 +72,7 @@ running the same chromium device. They differ only in the baseURL query string:
 
 - `wasm` — baseURL `http://localhost:5174/?backend=wasm` (Rust workbook in a
   Web Worker, the default everywhere).
-- `ts`   — baseURL `http://localhost:5174/?backend=ts` (`@einfach/excel-core-ts`
+- `ts`   — baseURL `http://localhost:5174/?backend=ts` (`@einfach-excel/excel-core-ts`
   in a Web Worker, the F1/F2 TS port).
 
 The `?backend=` selector is only consulted by `VNextWorkerDemo`
@@ -303,7 +303,7 @@ specs listed under "Static `VNextWave5Demo`" above and include:
 
 ## 能力差异 ≠ 分歧：TS runtime 用能力证词把缺失的引擎能力**声明**出来
 
-查 parity 时最容易误判的一类：`@einfach/excel-core-ts` 有几项 Rust 引擎有、它没有的
+查 parity 时最容易误判的一类：`@einfach-excel/excel-core-ts` 有几项 Rust 引擎有、它没有的
 能力。这些**不是**会在运行时咬人的静默分歧 —— `worker-runtime-ts.ts` 顶上的能力
 证词把它们声明成 `false`，UI core 据此**撤下**对应的宿主端口，于是 provider 根本
 不会推；万一有不合规的 adapter 硬发，RPC 侧还会 `unsupported(...)` **fail closed**，
@@ -344,7 +344,7 @@ debug RPCs the WASM worker has:
   `formulaCount` / `formulaEvalCount`.
 
 The probe semantics differ between backends because of the underlying
-engine: Rust is purely lazy on mutation, TS-core (`@einfach/excel-core-ts`) is eager —
+engine: Rust is purely lazy on mutation, TS-core (`@einfach-excel/excel-core-ts`) is eager —
 a mutation immediately re-derives every cached formula. See the file-level
 comment in `excel/solid-excel/test/excel-core-ts-debug-probes.test.ts` for the
 exact divergence rules. The `observability.spec.ts` lazy-import test only

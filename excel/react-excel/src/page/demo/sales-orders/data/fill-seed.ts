@@ -1,4 +1,4 @@
-import type { RustImportCell } from '@einfach/spreadsheet-ui-core'
+import type { RustImportCell } from '@einfach-excel/spreadsheet-ui-core'
 
 /** 补到原 Summary 空位的独立序列样本；保留全部原有合并、公式与填充示例。 */
 export const SUMMARY_FILL_CELLS: readonly RustImportCell[] = [

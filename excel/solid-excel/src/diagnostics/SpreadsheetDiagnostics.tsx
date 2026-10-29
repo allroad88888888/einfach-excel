@@ -29,7 +29,7 @@ import {
   dismissDiagnosticAtom,
   type DiagnosticSeverity,
   type SpreadsheetDiagnostic,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 
 import { useT } from '../i18n'
 

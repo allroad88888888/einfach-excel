@@ -1,6 +1,6 @@
 // 一句话：序列填充请求的几何合法性判定。
 
-import type { CellRange, FillSeriesRequest } from '@einfach/spreadsheet-ui-core'
+import type { CellRange, FillSeriesRequest } from '@einfach-excel/spreadsheet-ui-core'
 
 export function invalidFillSeries(message: string): never {
   throw new Error(`invalid fill series: ${message}`)

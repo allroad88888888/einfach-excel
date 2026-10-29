@@ -1,6 +1,6 @@
-import type { CellRange, DisplayCell } from '@einfach/spreadsheet-ui-core'
+import type { CellRange, DisplayCell } from '@einfach-excel/spreadsheet-ui-core'
 import { mergeRangeAt, nativeFilterRangeAtom, nativeTableFiltersAtom, formulaReferenceSessionAtom,
-  projectionSnapshotAtom, viewportMetricsAtom, showFormulasAtom, formulaViewText, selectionRangesAtom } from '@einfach/spreadsheet-ui-core'
+  projectionSnapshotAtom, viewportMetricsAtom, showFormulasAtom, formulaViewText, selectionRangesAtom } from '@einfach-excel/spreadsheet-ui-core'
 import { useAtomValue } from '@einfach/react'
 import { CellFilterButton } from './CellFilterButton'
 import { CellDataBar } from './CellDataBar'

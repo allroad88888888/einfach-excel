@@ -1,6 +1,6 @@
 // 一句话：投影 revision 见证值的推进。
 
-import type { ProjectionRevision } from '@einfach/spreadsheet-ui-core'
+import type { ProjectionRevision } from '@einfach-excel/spreadsheet-ui-core'
 
 export function bumpRevision(revision: ProjectionRevision): ProjectionRevision {
   if (typeof revision === 'number' && Number.isFinite(revision)) {

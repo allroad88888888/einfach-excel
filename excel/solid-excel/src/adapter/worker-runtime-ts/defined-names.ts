@@ -1,4 +1,4 @@
-import { parseFormula, type NameBinding, type Value } from '@einfach/excel-core-ts'
+import { parseFormula, type NameBinding, type Value } from '@einfach-excel/excel-core-ts'
 
 import { rpcError } from './runtime-errors'
 import type { RuntimeState } from './runtime-state'

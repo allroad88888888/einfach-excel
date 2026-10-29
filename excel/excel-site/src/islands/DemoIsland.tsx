@@ -1,6 +1,6 @@
 import { createSignal, onCleanup } from 'solid-js'
 import { useSetAtom } from '@einfach/solid'
-import { setLocale } from '@einfach/solid-excel/i18n'
+import { setLocale } from '@einfach-excel/solid-excel/i18n'
 import { findDemo } from '../data/demo-catalog'
 import { basicsSeed } from '../demos/seeds/seed-basics'
 import { cleanMessyDataSeed } from '../demos/seeds/seed-clean-messy-data'
@@ -12,7 +12,7 @@ import {
 import { demandDrivenSheets, seedDemandDrivenWorkbook } from '../demos/seeds/seed-demand-driven'
 import { formulaEngineSheets, seedFormulaEngineWorkbook } from '../demos/seeds/seed-formula-engine'
 import { handOffFormSeed } from '../demos/seeds/seed-hand-off-form'
-import type { WorkerWorkbookBackendSheet, WorkerWorkbookClient } from '@einfach/solid-excel'
+import type { WorkerWorkbookBackendSheet, WorkerWorkbookClient } from '@einfach-excel/solid-excel'
 import {
   PERFORMANCE_COLS,
   PERFORMANCE_SHEET_ROWS,
@@ -29,7 +29,7 @@ import CustomFormulaRegistrations from './custom-formulas/CustomFormulaRegistrat
 import PerformanceHud from './performance-hud/PerformanceHud'
 import { makeMeasuredWasmWorkerBackend } from './performance-hud/measured-worker-backend'
 import { createPerformanceMetricsAtom } from './performance-hud/performance-metrics'
-import '@einfach/spreadsheet-ui-styles/styles.css'
+import '@einfach-excel/spreadsheet-ui-styles/styles.css'
 
 interface DemoIslandProps {
   demoId: string

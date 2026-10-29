@@ -5,7 +5,7 @@ import {
   type SpreadsheetBackend,
   type VisibleProjectionRequest,
   type VisibleProjectionResult,
-} from '@einfach/spreadsheet-ui-core'
+} from '@einfach-excel/spreadsheet-ui-core'
 import { createStaticSpreadsheetBackend } from '../../src/adapter/static-backend'
 import { mountVanillaReadonlyProjection } from '../vanilla-readonly-projection'
 

@@ -1,3 +1,3 @@
 /* Backwards-compatible Solid package subpath. New consumers import the
  * framework-neutral package directly. */
-@import '@einfach/spreadsheet-ui-styles/styles.css';
+@import '@einfach-excel/spreadsheet-ui-styles/styles.css';

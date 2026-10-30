@@ -87,3 +87,21 @@ async function save() {
 `source: 'import'` 事件（同一 connectionId），不代表用户修改。运行中要换成另一份快照用
 `openWorkbookSnapshotAtom(text)`：在候选 Worker 打开成功才替换，失败保留当前簿，撤销历史从空开始。
 演示站的「Local restore」页（`src/page/demo/local-restore/`）是一份完整的 IndexedDB 示例。
+
+## XLSX 打开与导出
+
+XLSX 转换在独立包 `@einfach-excel/xlsx`（Rust → WASM，约 570 KB），组件包不依赖它。宿主想让
+「文件」面板支持 .xlsx，就传一个懒加载器；转换器只在用户第一次打开或导出 .xlsx 时下载：
+
+```tsx
+const xlsx = async () => {
+  const module = await import('@einfach-excel/xlsx')
+  await module.default()
+  return module
+}
+<Spreadsheet definition={seed} xlsx={xlsx} />
+```
+
+转换范围见 `excel/xlsx-wasm/README.md`；批注、Table、规则、图表等原生内容导出到 XLSX 时会丢失，
+需要无损保存请用原生快照。宿主也可以直接调用 `xlsxToNative` 后经 `openWorkbookSnapshotAtom` 换簿，
+或把 `exportWorkbookSnapshotAtom` 的结果交给 `nativeToXlsx`。

@@ -74,6 +74,7 @@ check:docs、check:presentation、lint:check、typecheck:mainline、`vitest run 
 | `packages/react-cells` | 主线 | 从 react-excel 提取的 DOM 单元格渲染 |
 | `packages/canvas` / `canvas-cells` | 主线 | Canvas cell 生命周期 / 工作簿的 Canvas 单元格渲染器 |
 | `packages/canvas-demo` | 演示 | Canvas 基础包的独立 demo |
+| `excel/rust/xlsx` + `excel/xlsx-wasm` | 主线 | XLSX ⇄ 原生 `.einfach.json` 转换，独立 WASM 包 `@einfach-excel/xlsx`（未发布，宿主经 `xlsx` 属性按需注入） |
 | `excel/spreadsheet-ui-styles` | 维护中 | 跨框架表格视觉样式 |
 | `excel/excel-core-ts` | 参照实现 | TS parity 参照，**不接入** React 运行时 |
 | `excel/rust/core` | 维护中 | Rust atom store（TS core 的孪生实现） |

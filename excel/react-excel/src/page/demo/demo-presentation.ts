@@ -39,7 +39,14 @@ i18n.on('change', savePreference)
 
 export function activateUiLocale(locale: UiLocale): void { i18n.activate(locale) }
 
+/** 演示站按需加载 XLSX 转换器：只在用户第一次打开或导出 .xlsx 时下载 WASM。 */
+async function loadXlsx() {
+  const module = await import('@einfach-excel/xlsx')
+  await module.default()
+  return module
+}
+
 export function demoPresentation() {
-  return { i18n, renderer: new URLSearchParams(window.location.search).get('renderer') === 'canvas'
+  return { i18n, xlsx: loadXlsx, renderer: new URLSearchParams(window.location.search).get('renderer') === 'canvas'
     ? 'canvas' as const : 'dom' as const }
 }

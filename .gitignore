@@ -38,6 +38,7 @@ target/
 # are no longer generated; entries kept so stale checkouts stay clean.)
 excel/excel-wasm/lite/
 excel/excel-wasm/full/
+excel/xlsx-wasm/dist/
 excel/solid-excel/wasm-pkg/
 excel/solid-excel/wasm-pkg-full/
 

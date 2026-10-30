@@ -211,6 +211,9 @@ jobs:
       - name: cargo test (einfach-wasm, native)
         run: cargo test --locked --manifest-path excel/rust/wasm/Cargo.toml
 
+      - name: cargo test (einfach-xlsx)
+        run: cargo test --locked --manifest-path excel/rust/xlsx/Cargo.toml
+
       - name: Install wasm-pack
         run: |
           if ! command -v wasm-pack >/dev/null; then

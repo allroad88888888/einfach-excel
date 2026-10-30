@@ -1,0 +1,61 @@
+import { readFile } from 'node:fs/promises'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { expect, test, type Page } from '@playwright/test'
+
+const fixture = path.join(path.dirname(fileURLToPath(import.meta.url)), 'basic.xlsx')
+const XLSX = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+const cell = (page: Page, coord: string) => page.locator(`td[data-cell="${coord}"]`)
+const fileDialog = (page: Page) => page.getByRole('dialog', { name: 'Workbook files' })
+
+async function openXlsx(page: Page, name: string, buffer: Buffer) {
+  await page.getByRole('button', { name: 'File', exact: true }).click()
+  page.once('dialog', (dialog) => dialog.accept())
+  await page.getByLabel('Open workbook', { exact: true }).setInputFiles({ name, mimeType: XLSX, buffer })
+}
+
+async function expectOrders(page: Page) {
+  await expect(page.getByRole('tab', { name: 'Orders', exact: true })).toBeVisible()
+  await expect(page.getByRole('tab', { name: 'Summary', exact: true })).toBeVisible()
+  await expect(cell(page, '1:0')).toHaveText('Apple & Pear <x>')
+  await expect(cell(page, '1:3')).toHaveText('3.75')
+  await expect(cell(page, '4:0')).toHaveText('7.25')
+  await expect(cell(page, '4:1')).toHaveText('Done!')
+  await expect(cell(page, '1:5')).toHaveText('2026-10-30')
+  await expect(cell(page, '0:0')).toHaveCSS('font-weight', '700')
+  await expect(cell(page, '6:0')).toHaveText('Merged')
+}
+
+test.beforeEach(async ({ page }) => {
+  await page.goto('/')
+  await expect(cell(page, '1:0')).toHaveText('SO-10001')
+})
+
+test('opening an xlsx file replaces the workbook with its sheets, formulas and formatting', async ({ page }) => {
+  await openXlsx(page, 'basic.xlsx', await readFile(fixture))
+  await expectOrders(page)
+  await expect(page.locator('.workbook-name')).toHaveText('basic')
+  await expect(page.getByRole('button', { name: 'Undo', exact: true })).toBeDisabled()
+})
+
+test('download as Excel writes an xlsx that opens back to the same workbook', async ({ page }) => {
+  await openXlsx(page, 'basic.xlsx', await readFile(fixture))
+  await expectOrders(page)
+  await page.getByRole('button', { name: 'File', exact: true }).click()
+  const download = page.waitForEvent('download')
+  await fileDialog(page).getByRole('button', { name: 'Download as Excel (.xlsx)' }).click()
+  const saved = await download
+  expect(saved.suggestedFilename()).toBe('basic.xlsx')
+  const bytes = await readFile((await saved.path())!)
+  expect(bytes.subarray(0, 2).toString()).toBe('PK')
+  await fileDialog(page).getByRole('button', { name: 'Close', exact: true }).click()
+
+  await openXlsx(page, 'again.xlsx', bytes)
+  await expectOrders(page)
+})
+
+test('an unreadable xlsx file is rejected and keeps the current workbook', async ({ page }) => {
+  await openXlsx(page, 'broken.xlsx', Buffer.from('not really a zip'))
+  await expect(fileDialog(page).getByRole('alert')).toContainText('not an .xlsx file')
+  await expect(cell(page, '1:0')).toHaveText('SO-10001')
+})

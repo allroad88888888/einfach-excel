@@ -1071,3 +1071,6 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | RESTORE-001 | 宿主快照刷新后恢复编辑 | `local-restore/local-restore.spec.ts` | host snapshot restores edits after a page refresh |
 | RESTORE-002 | 放弃本地副本回到示例 | `local-restore/local-restore.spec.ts` | discarding the saved copy reloads the sample workbook |
 | RESTORE-003 | 快照损坏时退回定义并报错 | `local-restore/local-restore.spec.ts` | an unreadable saved snapshot falls back to the sample and reports the error |
+| XLSX-001 | 打开 .xlsx 换簿（多表、公式、格式、合并） | `xlsx/xlsx-file.spec.ts` | opening an xlsx file replaces the workbook with its sheets, formulas and formatting |
+| XLSX-002 | 下载为 Excel 并能原样打开回来 | `xlsx/xlsx-file.spec.ts` | download as Excel writes an xlsx that opens back to the same workbook |
+| XLSX-003 | 损坏的 .xlsx 被拒绝且保留当前簿 | `xlsx/xlsx-file.spec.ts` | an unreadable xlsx file is rejected and keeps the current workbook |

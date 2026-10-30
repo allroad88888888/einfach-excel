@@ -1672,6 +1672,10 @@ msgstr "Double quote (\")"
 msgid "Down"
 msgstr "Down"
 
+#: src/workbook/chrome/header/WorkbookFileTools.tsx
+msgid "Download as Excel (.xlsx)"
+msgstr "Download as Excel (.xlsx)"
+
 #: src/i18n/feedback-messages.ts
 msgid "Download requested. Keep the file to save your work."
 msgstr "Download requested. Keep the file to save your work."
@@ -3539,6 +3543,10 @@ msgstr "Open workbook"
 #: src/i18n/feedback-messages.ts
 msgid "Opening workbook…"
 msgstr "Opening workbook…"
+
+#: src/workbook/chrome/header/WorkbookFileTools.tsx
+msgid "Opens .einfach.json and .xlsx files up to 64 MiB. XLSX keeps values, formulas, formatting, merges, frozen panes and sizes; comments, tables, rules and charts are not converted. Opening or creating a workbook replaces this view and starts a fresh Undo history."
+msgstr "Opens .einfach.json and .xlsx files up to 64 MiB. XLSX keeps values, formulas, formatting, merges, frozen panes and sizes; comments, tables, rules and charts are not converted. Opening or creating a workbook replaces this view and starts a fresh Undo history."
 
 #: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
 msgid "Operation"

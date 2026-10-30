@@ -7,18 +7,6 @@ msgstr ""
 "X-Generator: @lingui/cli\n"
 "Language: zh\n"
 
-#: src/i18n/feedback-messages.ts
-msgid "This workbook is read-only."
-msgstr "此工作簿为只读。"
-
-#: src/i18n/feedback-messages.ts
-msgid "The workbook is busy. Try again when it is ready."
-msgstr "工作簿正忙，请在就绪后重试。"
-
-#: src/i18n/feedback-messages.ts
-msgid "Worksheet structure changes are disabled."
-msgstr "已禁用工作表结构修改。"
-
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid " · Disabled"
 msgstr " · 已禁用"
@@ -4112,6 +4100,10 @@ msgstr "重置选中行列尺寸"
 msgid "Reset sizes keeps cell values and formatting. It does not auto-fit text."
 msgstr "重置尺寸会保留单元格值和格式，不会根据文本自动调整。"
 
+#: src/workbook/zoom/ZoomControl.tsx
+msgid "Reset zoom to 100%"
+msgstr "恢复为 100%"
+
 #: src/workbook/grid/viewport/GridResizeHandle.tsx
 msgid "Resize {axisLabel} {label}"
 msgstr "调整{axisLabel} {label} 的尺寸"
@@ -5337,6 +5329,10 @@ msgid "The workbook file has no sheet canvases."
 msgstr "工作簿文件中没有工作表。"
 
 #: src/i18n/feedback-messages.ts
+msgid "The workbook is busy. Try again when it is ready."
+msgstr "工作簿正忙，请在就绪后重试。"
+
+#: src/i18n/feedback-messages.ts
 msgid "The workbook is unavailable."
 msgstr "工作簿不可用。"
 
@@ -5464,6 +5460,10 @@ msgstr "无法在此区域平移该验证公式。"
 #: src/i18n/feedback-messages.ts
 msgid "This value does not meet the cell’s data validation rule. Change it or press Escape."
 msgstr "此值不符合该单元格的数据验证规则。请修改，或按 Escape 取消。"
+
+#: src/i18n/feedback-messages.ts
+msgid "This workbook is read-only."
+msgstr "此工作簿为只读。"
 
 #: src/workbook/protection/ProtectionTools.tsx
 msgid "This worksheet is open for editing."
@@ -6024,6 +6024,10 @@ msgstr "已重新计算工作表（{count} 个公式）。"
 msgid "Worksheet rules"
 msgstr "工作表规则"
 
+#: src/i18n/feedback-messages.ts
+msgid "Worksheet structure changes are disabled."
+msgstr "已禁用工作表结构修改。"
+
 #: src/workbook/chrome/ribbon/TableTools.tsx
 msgid "Worksheet tables"
 msgstr "工作表表格"
@@ -6040,14 +6044,22 @@ msgstr "每个工作簿会话最多保存 32 个自定义列表。"
 msgid "Your workbook is in memory. Download a file to keep your changes."
 msgstr "工作簿保存在内存中，请下载文件以保留更改。"
 
-#: src/workbook/chrome/footer/WorkbookFooter.tsx
-msgid "Zoom 100 percent"
-msgstr "缩放 100%"
+#: src/workbook/zoom/ZoomControl.tsx
+msgid "Zoom"
+msgstr "缩放"
 
-#: src/workbook/chrome/footer/WorkbookFooter.tsx
+#: src/workbook/zoom/ZoomControl.tsx
+msgid "Zoom {zoom} percent, reset to 100%"
+msgstr "缩放 {zoom}%，点击恢复为 100%"
+
+#: src/workbook/zoom/ZoomControl.tsx
 msgid "Zoom in"
 msgstr "放大"
 
-#: src/workbook/chrome/footer/WorkbookFooter.tsx
+#: src/workbook/zoom/ZoomControl.tsx
+msgid "Zoom level"
+msgstr "缩放比例"
+
+#: src/workbook/zoom/ZoomControl.tsx
 msgid "Zoom out"
 msgstr "缩小"

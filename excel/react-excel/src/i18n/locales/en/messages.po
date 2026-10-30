@@ -7,18 +7,6 @@ msgstr ""
 "X-Generator: @lingui/cli\n"
 "Language: en\n"
 
-#: src/i18n/feedback-messages.ts
-msgid "This workbook is read-only."
-msgstr "This workbook is read-only."
-
-#: src/i18n/feedback-messages.ts
-msgid "The workbook is busy. Try again when it is ready."
-msgstr "The workbook is busy. Try again when it is ready."
-
-#: src/i18n/feedback-messages.ts
-msgid "Worksheet structure changes are disabled."
-msgstr "Worksheet structure changes are disabled."
-
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
 msgid " · Disabled"
 msgstr " · Disabled"
@@ -4112,6 +4100,10 @@ msgstr "Reset selected sizes"
 msgid "Reset sizes keeps cell values and formatting. It does not auto-fit text."
 msgstr "Reset sizes keeps cell values and formatting. It does not auto-fit text."
 
+#: src/workbook/zoom/ZoomControl.tsx
+msgid "Reset zoom to 100%"
+msgstr "Reset zoom to 100%"
+
 #: src/workbook/grid/viewport/GridResizeHandle.tsx
 msgid "Resize {axisLabel} {label}"
 msgstr "Resize {axisLabel} {label}"
@@ -5337,6 +5329,10 @@ msgid "The workbook file has no sheet canvases."
 msgstr "The workbook file has no sheet canvases."
 
 #: src/i18n/feedback-messages.ts
+msgid "The workbook is busy. Try again when it is ready."
+msgstr "The workbook is busy. Try again when it is ready."
+
+#: src/i18n/feedback-messages.ts
 msgid "The workbook is unavailable."
 msgstr "The workbook is unavailable."
 
@@ -5464,6 +5460,10 @@ msgstr "This validation formula cannot be translated across the range."
 #: src/i18n/feedback-messages.ts
 msgid "This value does not meet the cell’s data validation rule. Change it or press Escape."
 msgstr "This value does not meet the cell’s data validation rule. Change it or press Escape."
+
+#: src/i18n/feedback-messages.ts
+msgid "This workbook is read-only."
+msgstr "This workbook is read-only."
 
 #: src/workbook/protection/ProtectionTools.tsx
 msgid "This worksheet is open for editing."
@@ -6024,6 +6024,10 @@ msgstr "Worksheet recalculated ({count} formulas)."
 msgid "Worksheet rules"
 msgstr "Worksheet rules"
 
+#: src/i18n/feedback-messages.ts
+msgid "Worksheet structure changes are disabled."
+msgstr "Worksheet structure changes are disabled."
+
 #: src/workbook/chrome/ribbon/TableTools.tsx
 msgid "Worksheet tables"
 msgstr "Worksheet tables"
@@ -6040,14 +6044,22 @@ msgstr "You can save at most 32 custom lists per workbook session."
 msgid "Your workbook is in memory. Download a file to keep your changes."
 msgstr "Your workbook is in memory. Download a file to keep your changes."
 
-#: src/workbook/chrome/footer/WorkbookFooter.tsx
-msgid "Zoom 100 percent"
-msgstr "Zoom 100 percent"
+#: src/workbook/zoom/ZoomControl.tsx
+msgid "Zoom"
+msgstr "Zoom"
 
-#: src/workbook/chrome/footer/WorkbookFooter.tsx
+#: src/workbook/zoom/ZoomControl.tsx
+msgid "Zoom {zoom} percent, reset to 100%"
+msgstr "Zoom {zoom} percent, reset to 100%"
+
+#: src/workbook/zoom/ZoomControl.tsx
 msgid "Zoom in"
 msgstr "Zoom in"
 
-#: src/workbook/chrome/footer/WorkbookFooter.tsx
+#: src/workbook/zoom/ZoomControl.tsx
+msgid "Zoom level"
+msgstr "Zoom level"
+
+#: src/workbook/zoom/ZoomControl.tsx
 msgid "Zoom out"
 msgstr "Zoom out"

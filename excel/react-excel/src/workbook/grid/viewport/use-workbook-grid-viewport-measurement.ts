@@ -1,5 +1,9 @@
 import { useAtomValue, useSetAtom } from '@einfach/react'
-import { activeWorkbookSheetAtom, setViewportSizeAtom } from '@einfach-excel/spreadsheet-ui-core'
+import {
+  activeSheetZoomAtom,
+  activeWorkbookSheetAtom,
+  setViewportSizeAtom,
+} from '@einfach-excel/spreadsheet-ui-core'
 import { useLayoutEffect, type RefObject } from 'react'
 import {
   WORKBOOK_GRID_ROW_HEADER_WIDTH,
@@ -20,6 +24,8 @@ export function getWorkbookGridViewportWidth(clientWidth: number): number {
 export function useWorkbookGridViewportMeasurement(scrollRef: RefObject<HTMLDivElement>): void {
   const setViewportSize = useSetAtom(setViewportSizeAtom)
   const sheetId = useAtomValue(activeWorkbookSheetAtom)?.id
+  // 缩放改变容器内的逻辑尺寸；ResizeObserver 不一定为纯 zoom 变化触发，显式重测。
+  const zoom = useAtomValue(activeSheetZoomAtom)
 
   useLayoutEffect(() => {
     const scroll = scrollRef.current
@@ -37,5 +43,5 @@ export function useWorkbookGridViewportMeasurement(scrollRef: RefObject<HTMLDivE
     const observer = new ResizeObserver(() => publishViewportSize())
     observer.observe(scroll)
     return () => observer.disconnect()
-  }, [scrollRef, setViewportSize, sheetId])
+  }, [scrollRef, setViewportSize, sheetId, zoom])
 }

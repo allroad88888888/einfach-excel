@@ -14,6 +14,7 @@ import {
 } from '@einfach-excel/spreadsheet-ui-core'
 import { useEffect, useRef } from 'react'
 import { readAutoFitLayout } from './read-auto-fit-layout'
+import { gridZoomOf } from '../../zoom/grid-zoom'
 import './grid-resize.css'
 
 /** 手柄只处理 DOM 捕获与键盘；尺寸草稿及落库由公共 command atom 负责。 */
@@ -96,7 +97,7 @@ export function GridResizeHandle({
           axis,
           index,
           pointerId: event.pointerId,
-          position: axis === 'row' ? event.clientY : event.clientX,
+          position: (axis === 'row' ? event.clientY : event.clientX) / gridZoomOf(event.currentTarget),
         })
         if (started === true) {
           event.currentTarget.focus({ preventScroll: true })
@@ -108,7 +109,7 @@ export function GridResizeHandle({
         void run({
           phase: 'move',
           pointerId: event.pointerId,
-          position: axis === 'row' ? event.clientY : event.clientX,
+          position: (axis === 'row' ? event.clientY : event.clientX) / gridZoomOf(event.currentTarget),
         })
       }}
       onPointerUp={(event) => {

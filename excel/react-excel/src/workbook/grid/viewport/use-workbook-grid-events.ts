@@ -41,6 +41,7 @@ import {
 } from './workbook-grid-config'
 import { useWorkbookGridViewportMeasurement } from './use-workbook-grid-viewport-measurement'
 import { useGridHyperlink } from '../../hyperlink/use-grid-hyperlink'
+import { gridZoomOf } from '../../zoom/grid-zoom'
 
 /** Coordinates DOM events for the active workbook grid. */
 export function useWorkbookGridEvents(viewport: WorkbookViewport) {
@@ -80,6 +81,7 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
               clientX,
               clientY,
               bounds: scroll.getBoundingClientRect(),
+              zoom: gridZoomOf(scroll),
               scrollTop: scroll.scrollTop,
               scrollLeft: scroll.scrollLeft,
               rowHeight: WORKBOOK_GRID_ROW_HEIGHT,

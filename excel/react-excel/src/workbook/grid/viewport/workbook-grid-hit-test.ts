@@ -20,6 +20,8 @@ interface WorkbookViewportPoint {
   readonly rowHeights?: Record<string, number>
   readonly frozenHeight?: number
   readonly frozenWidth?: number
+  /** 网格缩放比例；指针坐标是屏幕像素，要先换回网格内的逻辑像素。 */
+  readonly zoom?: number
 }
 
 /** Resolves a pointer location to the workbook cell rendered beneath it. */
@@ -44,8 +46,9 @@ export function workbookCellAtPoint(clientX: number, clientY: number): CellCoord
 /** Captured drags clamp headings to the nearest cell while projection DOM is non-interactive. */
 export function workbookCellAtViewportPoint(input: WorkbookViewportPoint): CellCoord | null {
   // 指针可以停在表头内；仍按当前滚动位置扩选，不能把负值误判为冻结区而丢弃。
-  const x = Math.max(0, input.clientX - input.bounds.left - input.rowHeaderWidth)
-  const y = Math.max(0, input.clientY - input.bounds.top - input.rowHeight)
+  const zoom = input.zoom ?? 1
+  const x = Math.max(0, (input.clientX - input.bounds.left) / zoom - input.rowHeaderWidth)
+  const y = Math.max(0, (input.clientY - input.bounds.top) / zoom - input.rowHeight)
   const contentX = x + (x < (input.frozenWidth ?? 0) ? 0 : input.scrollLeft)
   const contentY = y + (y < (input.frozenHeight ?? 0) ? 0 : input.scrollTop)
   if (contentX < 0 || contentY < 0) return null

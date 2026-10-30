@@ -3,6 +3,7 @@ import type { I18n } from '@lingui/core'
 import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useAtomValue } from '@einfach/react'
 import {
+  activeSheetZoomAtom,
   activeWorkbookSheetAtom,
   formatPainterAtom,
   getAxisOffsetForIndex,
@@ -32,6 +33,7 @@ import { GridHeaders } from './GridHeaders'
 import { FrozenGrid } from './FrozenGrid'
 import { OutlineGutters } from './OutlineGutters'
 import { FillHandle } from '../fill/FillHandle'
+import { useGridZoomWheel } from '../../zoom/use-grid-zoom-wheel'
 import './grid.css'
 
 function rowNumbers(rowStart: number, rowEnd: number): readonly number[] {
@@ -72,6 +74,8 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
     colCount: activeSheet.colCount,
   })
   const events = useWorkbookGridEvents(viewport)
+  const zoom = useAtomValue(activeSheetZoomAtom)
+  useGridZoomWheel(events.scrollRef)
   const clipboard = useGridClipboard(viewport.retained)
   const frozenRows = freeze?.sheetId === activeSheet.id ? freeze.rows : 0
   const frozenCols = freeze?.sheetId === activeSheet.id ? freeze.cols : 0
@@ -160,6 +164,8 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
         ref={events.scrollRef}
         className="sheet-scroll"
         data-testid="sheet-scroll"
+        data-zoom={zoom}
+        style={zoom === 100 ? undefined : { zoom: zoom / 100 }}
         onScroll={events.onScroll}
       >
         <div

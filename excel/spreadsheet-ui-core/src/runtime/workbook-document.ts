@@ -13,6 +13,7 @@ import {
   viewportHiddenColsBackingAtom,
   viewportFilterHiddenBackingAtom,
 } from '../viewport/hidden-state'
+import { zoomBySheetAtom } from '../zoom/state'
 
 export interface WorkbookDocumentSheet {
   readonly id: string
@@ -69,6 +70,7 @@ export const initializeWorkbookDocumentAtom = atom(
     set(sheetHiddenRowsBackingAtom, {})
     set(viewportHiddenColsBackingAtom, {})
     set(viewportFilterHiddenBackingAtom, { rowsBySheet: {} })
+    set(zoomBySheetAtom, {})
     set(workbookDocumentBackingAtom, workbook)
     set(sheetTabsAtom, {
       ...DEFAULT_SHEET_TABS_STATE,

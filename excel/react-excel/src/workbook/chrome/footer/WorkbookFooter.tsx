@@ -12,6 +12,7 @@ import {
 import './footer.css'
 import { WorkbookSheetTabs } from './WorkbookSheetTabs'
 import { SelectionStatus } from './SelectionStatus'
+import { ZoomControl } from '../../zoom/ZoomControl'
 import { Trans, useLingui } from '@lingui/react/macro'
 
 /** Renders sheet tabs and selection status for the active UI-core workbook. */
@@ -54,18 +55,7 @@ export function WorkbookFooter() {
         )}
         <span><Trans>Selected: {selectedCellCount}</Trans></span>
         <SelectionStatus />
-        <div className="zoom-control" aria-label={t`Zoom 100 percent`}>
-          <button type="button" aria-label={t`Zoom out`}>
-            −
-          </button>
-          <span className="zoom-track" aria-hidden="true">
-            <span />
-          </span>
-          <span>100%</span>
-          <button type="button" aria-label={t`Zoom in`}>
-            ＋
-          </button>
-        </div>
+        <ZoomControl />
       </div>
     </footer>
   )

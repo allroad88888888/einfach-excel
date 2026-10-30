@@ -1062,3 +1062,9 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | COMMENT-026 | 旧文件无批注 | `comments/persistence.spec.ts` | legacy workbook without comments restores no thread and preserves ordinary data |
 | COMMENT-027 | 中英切换 | `comments/localization.spec.ts` | Chinese comments retain authored text when switching to English at 1280px |
 | COMMENT-028 | 原生种子例 | `comments/seed.spec.ts` | native comment example on Summary reads without adding history or altering the Orders demo |
+| ZOOM-001 | 状态栏 −/＋ 按 10% 缩放网格 | `zoom/zoom.spec.ts` | zoom in and out buttons step the grid by 10 percent |
+| ZOOM-002 | 缩放滑块设定比例 | `zoom/zoom.spec.ts` | zoom slider sets an exact zoom level |
+| ZOOM-003 | 点百分比恢复 100% | `zoom/zoom.spec.ts` | clicking the zoom percentage resets the sheet to 100 percent |
+| ZOOM-004 | Ctrl+滚轮缩放网格不缩放页面 | `zoom/zoom.spec.ts` | ctrl wheel over the grid zooms the sheet without zooming the page |
+| ZOOM-005 | 缩放下拖选、填充柄、列宽拖拽命中指针下的格 | `zoom/zoom.spec.ts` | pointer selection, fill drag and column resize hit the cells under the pointer at 150 percent |
+| ZOOM-006 | 每张表各自保留缩放比例 | `zoom/zoom.spec.ts` | each sheet keeps its own zoom level |

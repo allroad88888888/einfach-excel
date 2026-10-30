@@ -6,6 +6,7 @@ import { directionalFillFeedbackAtom, dragFillHandleAtom, editingSessionAtom, fi
 import { useCallback, useEffect, useRef, type PointerEvent, type RefObject } from 'react'
 import { useGridDragAutoscroll } from '../../selection/use-grid-drag-autoscroll'
 import { workbookCellAtViewportPoint } from '../viewport/workbook-grid-hit-test'
+import { gridZoomOf } from '../../zoom/grid-zoom'
 import { WORKBOOK_GRID_ROW_HEADER_WIDTH, WORKBOOK_GRID_ROW_HEIGHT } from '../viewport/workbook-grid-config'
 import { fillHandleGeometry } from './fill-handle-geometry'
 import './fill-handle.css'
@@ -36,12 +37,13 @@ export function FillHandle({ scrollRef, focusGrid }: {
     const scroll = scrollRef.current
     if (!scroll) return
     const bounds = scroll.getBoundingClientRect()
+    const zoom = gridZoomOf(scroll)
     const coord = workbookCellAtViewportPoint({
-      clientX: Math.max(bounds.left + WORKBOOK_GRID_ROW_HEADER_WIDTH + 1,
-        Math.min(bounds.left + scroll.clientWidth - 1, clientX)),
-      clientY: Math.max(bounds.top + WORKBOOK_GRID_ROW_HEIGHT + 1,
-        Math.min(bounds.top + scroll.clientHeight - 1, clientY)),
-      bounds, scrollTop: scroll.scrollTop, scrollLeft: scroll.scrollLeft,
+      clientX: Math.max(bounds.left + WORKBOOK_GRID_ROW_HEADER_WIDTH * zoom + 1,
+        Math.min(bounds.left + scroll.clientWidth * zoom - 1, clientX)),
+      clientY: Math.max(bounds.top + WORKBOOK_GRID_ROW_HEIGHT * zoom + 1,
+        Math.min(bounds.top + scroll.clientHeight * zoom - 1, clientY)),
+      bounds, zoom, scrollTop: scroll.scrollTop, scrollLeft: scroll.scrollLeft,
       rowHeaderWidth: WORKBOOK_GRID_ROW_HEADER_WIDTH,
       rowCount: metrics.rowCount, colCount: metrics.colCount,
       rowHeight: metrics.rowHeight, colWidth: metrics.colWidth,

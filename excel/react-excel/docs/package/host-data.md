@@ -59,3 +59,31 @@ readOnly 拒绝所有持久修改；busy 拒绝用户/历史、允许明确 api/
 增删改名移动与行列插删及相关历史回放。它们不是工作簿保存内容，不生成 dirty 事件。
 原生保护始终生效；宿主锁解除不会解除原生保护，允许区也不能越过宿主 readOnly。
 导出、typed 读取和查询在 readOnly 下仍可使用。
+
+## 整簿快照与刷新后恢复
+
+组件本身不写任何存储；持久化由宿主负责。`exportWorkbookSnapshotAtom` 返回整簿原生快照
+（与「文件 → 下载」的 `.einfach.json` 同格式，含格式、规则、表、名称等），宿主自行存到
+IndexedDB、服务器或任何地方。下次挂载时把它作为 `initialSnapshot` 传回：
+
+```tsx
+import { exportWorkbookSnapshotAtom, workbookChangeAtom } from '@einfach-excel/spreadsheet-ui-core'
+
+const saved = await myStorage.read()            // 宿主自己的存储
+<Spreadsheet store={store} definition={seed} initialSnapshot={saved ?? undefined} />
+
+store.sub(workbookChangeAtom, () => {
+  const change = store.getter(workbookChangeAtom)
+  if (change && change.source !== 'refresh') scheduleSave()   // 自行防抖
+})
+async function save() {
+  const result = await store.setter(exportWorkbookSnapshotAtom)
+  if (result.status === 'ok') await myStorage.write(result.snapshot)
+}
+```
+
+`initialSnapshot` 只在首次挂载时读取；之后换 `definition` 会按新定义启动。快照打不开时组件退回
+`definition` 启动，错误放在 `workbookReplacementErrorAtom`，宿主可提示并清掉坏副本。启动本身会发一次
+`source: 'import'` 事件（同一 connectionId），不代表用户修改。运行中要换成另一份快照用
+`openWorkbookSnapshotAtom(text)`：在候选 Worker 打开成功才替换，失败保留当前簿，撤销历史从空开始。
+演示站的「Local restore」页（`src/page/demo/local-restore/`）是一份完整的 IndexedDB 示例。

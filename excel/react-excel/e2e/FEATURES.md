@@ -1068,3 +1068,6 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | ZOOM-004 | Ctrl+滚轮缩放网格不缩放页面 | `zoom/zoom.spec.ts` | ctrl wheel over the grid zooms the sheet without zooming the page |
 | ZOOM-005 | 缩放下拖选、填充柄、列宽拖拽命中指针下的格 | `zoom/zoom.spec.ts` | pointer selection, fill drag and column resize hit the cells under the pointer at 150 percent |
 | ZOOM-006 | 每张表各自保留缩放比例 | `zoom/zoom.spec.ts` | each sheet keeps its own zoom level |
+| RESTORE-001 | 宿主快照刷新后恢复编辑 | `local-restore/local-restore.spec.ts` | host snapshot restores edits after a page refresh |
+| RESTORE-002 | 放弃本地副本回到示例 | `local-restore/local-restore.spec.ts` | discarding the saved copy reloads the sample workbook |
+| RESTORE-003 | 快照损坏时退回定义并报错 | `local-restore/local-restore.spec.ts` | an unreadable saved snapshot falls back to the sample and reports the error |

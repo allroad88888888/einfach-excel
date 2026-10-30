@@ -1602,6 +1602,10 @@ msgstr "禁用条件格式"
 msgid "Disable rule {0}"
 msgstr "禁用规则 {0}"
 
+#: src/page/demo/local-restore/LocalRestoreBar.tsx
+msgid "Discard saved copy"
+msgstr "丢弃本地副本"
+
 #: src/workbook/comments/CommentTools.tsx
 msgid "Discussion for cell {address}"
 msgstr "单元格 {address} 的讨论"
@@ -1796,6 +1800,10 @@ msgstr "可编辑区域"
 #: src/workbook/protection/ProtectionTools.tsx
 msgid "Editing protection prevents accidental changes. It does not encrypt the workbook or keep its contents confidential."
 msgstr "编辑保护用于防止意外修改。它不加密工作簿，也不保证内容保密。"
+
+#: src/page/demo/local-restore/LocalRestoreBar.tsx
+msgid "Edits are saved in this browser and restored after a refresh."
+msgstr "修改会保存在本浏览器，刷新后恢复。"
 
 #: src/workbook/chrome/ribbon/SortTools.tsx
 msgid "Empty cell position"
@@ -2989,6 +2997,14 @@ msgstr "正在加载值…"
 #: src/workbook/grid/viewport/WorkbookGrid.tsx
 msgid "Loading visible cells…"
 msgstr "正在加载可见单元格…"
+
+#: src/page/demo/local-restore/LocalRestoreBar.tsx
+msgid "Local restore"
+msgstr "本地恢复"
+
+#: src/page/demo/local-restore/LocalRestoreBar.tsx
+msgid "Local save status"
+msgstr "本地保存状态"
 
 #: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
 msgid "Locating cells…"
@@ -4361,6 +4377,11 @@ msgstr "保存规则"
 msgid "Saved formula"
 msgstr "已保存的公式"
 
+#. placeholder {0}: new Date(savedAt).toLocaleTimeString()
+#: src/page/demo/local-restore/LocalRestoreBar.tsx
+msgid "Saved in this browser at {0}."
+msgstr "已于 {0} 保存到本浏览器。"
+
 #: src/workbook/chrome/ribbon/fill-series/CustomFillLists.tsx
 msgid "Saved lists"
 msgstr "已保存列表"
@@ -5147,6 +5168,11 @@ msgstr "此次粘贴会隐藏单元格内容，请先取消目标区域的合并
 #: src/i18n/feedback-messages.ts
 msgid "The rule no longer exists."
 msgstr "此规则已不存在。"
+
+#. placeholder {0}: restoreError.message
+#: src/page/demo/local-restore/LocalRestoreBar.tsx
+msgid "The saved copy could not be opened and the sample was loaded instead: {0}"
+msgstr "本地副本无法打开，已改为加载示例：{0}"
 
 #: src/i18n/feedback-messages.ts
 msgid "The search worksheet no longer exists."

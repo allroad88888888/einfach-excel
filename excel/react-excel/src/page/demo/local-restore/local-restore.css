@@ -1,0 +1,24 @@
+.local-restore-page {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.local-restore-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 6px 12px;
+  border-bottom: 1px solid #dddddd;
+  font-size: 12px;
+}
+
+.local-restore-bar [role='alert'] {
+  color: #b42318;
+}
+
+.local-restore-bar button {
+  margin-left: auto;
+}

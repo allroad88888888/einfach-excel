@@ -25,6 +25,8 @@ export interface RustWorkbookDefinition {
 
 export interface StartRustWorkbookRuntimeInput {
   readonly definition: RustWorkbookDefinition
+  /** 宿主保存的原生快照；给出时优先从它启动，打不开则报错并退回 definition。 */
+  readonly snapshot?: string
   readonly workerFactory: () => WorkerLike
 }
 

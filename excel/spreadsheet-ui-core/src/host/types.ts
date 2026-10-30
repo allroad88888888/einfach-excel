@@ -86,3 +86,8 @@ export interface HostWasmCommands {
     { readonly sheet: number })[]) => boolean
   readonly host_mutation_state?: () => NativeMutationState
 }
+
+export type ExportWorkbookSnapshotResult =
+  | { readonly status: 'ok'; readonly snapshot: string; readonly title: string }
+  | HostCommandFailure
+export type OpenWorkbookSnapshotResult = { readonly status: 'ok' } | HostCommandFailure

@@ -15,6 +15,8 @@ import {
   resolveSpreadsheetRuntimeAtom,
 } from './workbook-lifecycle'
 import { clearWorkbookDocumentAtom, initializeWorkbookDocumentAtom } from './workbook-document'
+import { openedWorkbookSheets } from './opened-workbook-sheets'
+import { loadWorkbookDefinition, type LoadedWorkbook } from './load-workbook-definition'
 import {
   snapshotRustWorkbookDefinition,
   type StartRustWorkbookRuntimeInput,
@@ -63,6 +65,7 @@ export const startRustWorkbookRuntimeAtom = atom(
     set(resetWorkbookViewAtom)
     set(clearWorkbookDocumentAtom)
     set(beginSpreadsheetRuntimeAtom)
+    set(workbookReplacementErrorBackingAtom, null)
 
     let definition
     let connection: RustWorkbookConnection
@@ -76,71 +79,37 @@ export const startRustWorkbookRuntimeAtom = atom(
     set(runtimeOwnerAtom, Object.freeze({
       sessionId, connection, workerFactory: input.workerFactory,
     }))
+    const owned = () => ownsConnection(get, sessionId, connection)
+
+    let workbook: LoadedWorkbook | null = null
+    if (input.snapshot !== undefined) {
+      try {
+        const metadata = await connection.request('workbook.openFile', {
+          text: input.snapshot, idPrefix: `workbook-${sessionId}`,
+        })
+        if (!owned()) return
+        workbook = { title: metadata.title, sheets: openedWorkbookSheets(metadata.sheets) }
+      } catch (error) {
+        if (!owned()) return
+        // 宿主存的快照坏了不该让页面打不开：报给宿主，换一个干净 Worker 按定义启动。
+        set(workbookReplacementErrorBackingAtom, hostCommandError(error))
+        disposeConnection(connection)
+        connection = createRustWorkbookConnection(input.workerFactory)
+        set(runtimeOwnerAtom, Object.freeze({
+          sessionId, connection, workerFactory: input.workerFactory,
+        }))
+      }
+    }
 
     try {
-      const initializedSheets = await connection.request('workbook.initialize', {
-        // 定义已做完整快照与校验，直接传递，避免二次字段筛选遗漏初始元数据。
-        sheets: definition.sheets,
-        customFormulas: definition.customFormulas,
-      })
-      if (!ownsConnection(get, sessionId, connection)) return
-      if (initializedSheets.length !== definition.sheets.length) {
-        throw new Error(
-          `Rust initialized ${initializedSheets.length}/${definition.sheets.length} sheets`,
-        )
-      }
-      const sheetDefinitions = new Map(definition.sheets.map((sheet) => [sheet.id, sheet]))
-      const publishedSheetIds = new Set<string>()
-      const documentSheets = initializedSheets.map((sheet) => {
-        const source = sheetDefinitions.get(sheet.id)
-        if (source === undefined || publishedSheetIds.has(sheet.id)) {
-          throw new Error(`Rust initialized an unexpected sheet: ${sheet.id}`)
-        }
-        publishedSheetIds.add(sheet.id)
-        return {
-          id: sheet.id,
-          name: sheet.name,
-          index: sheet.index,
-          ...(sheet.key ? { key: sheet.key } : {}),
-          rowCount: source.rowCount,
-          colCount: source.colCount,
-        }
-      })
-
-      let expectedCells = 0
-      let acceptedCells = 0
-      let importErrors = 0
-      let rejectedFormulas = 0
-      for await (const chunk of definition.createImportChunks()) {
-        if (!ownsConnection(get, sessionId, connection)) return
-        if (chunk.length === 0) continue
-        expectedCells += chunk.length
-        const stats = await connection.request('workbook.importCells', { cells: chunk })
-        acceptedCells += stats.accepted
-        importErrors += stats.errors
-        rejectedFormulas += stats.rejectedFormulas
-      }
-      if (acceptedCells !== expectedCells || importErrors > 0 || rejectedFormulas > 0) {
-        throw new Error(`Rust import accepted ${acceptedCells}/${expectedCells} cells`)
-      }
-      if (!ownsConnection(get, sessionId, connection)) return
-
-      // 表头已全部导入，再用同一原生命令建立 Table；这仍属于启动，不加入用户历史。
-      const tables = definition.sheets.flatMap((sheet) =>
-        (sheet.tables ?? []).map((table) => ({ ...table, sheetId: sheet.id })))
-      if (tables.length) {
-        await connection.request('workbook.importCells', { cells: [], tables })
-        if (!ownsConnection(get, sessionId, connection)) return
-      }
+      workbook ??= await loadWorkbookDefinition(connection, definition, owned)
+      if (!workbook || !owned()) return
       const catalog = validateFunctionCatalog(await connection.request('formula.catalog', {}))
       if (!ownsConnection(get, sessionId, connection)) return
       await synchronizeHostControls(get, connection)
       if (!ownsConnection(get, sessionId, connection)) return
       set(publishNativeFunctionCatalogAtom, { connection, catalog })
-      set(initializeWorkbookDocumentAtom, {
-        title: definition.title,
-        sheets: documentSheets,
-      })
+      set(initializeWorkbookDocumentAtom, workbook)
       set(resolveSpreadsheetRuntimeAtom, { connection })
       set(watchAsyncFormulaSettlementsAtom, connection)
     } catch (error) {
@@ -176,16 +145,7 @@ export const replaceRustWorkbookRuntimeAtom = atom(
       } : await candidate.request('workbook.openFile', { text, idPrefix: `workbook-${sessionId}` })
       if (get(runtimeOwnerAtom) !== previous) return false
       if (get(editingSessionAtom).source) throw new Error('Finish editing the cell first.')
-      const sheets = metadata.sheets.map((sheet, index) => {
-        if (sheet.index !== index || !sheet.id || !Number.isSafeInteger(sheet.rowCount) ||
-          !Number.isSafeInteger(sheet.colCount) || (sheet.rowCount ?? 0) < 1 ||
-          (sheet.rowCount ?? 0) > 1_048_576 || (sheet.colCount ?? 0) < 1 ||
-          (sheet.colCount ?? 0) > 16_384)
-          throw new Error('Rust returned invalid workbook metadata.')
-        return { ...sheet, rowCount: sheet.rowCount!, colCount: sheet.colCount! }
-      })
-      if (!sheets.length || new Set(sheets.map((sheet) => sheet.id)).size !== sheets.length)
-        throw new Error('Rust returned invalid workbook sheets.')
+      const sheets = openedWorkbookSheets(metadata.sheets)
       const catalog = validateFunctionCatalog(await candidate.request('formula.catalog', {}))
       await synchronizeHostControls(get, candidate)
       if (get(runtimeOwnerAtom) !== previous) return false

@@ -1602,6 +1602,10 @@ msgstr "Disable conditional format"
 msgid "Disable rule {0}"
 msgstr "Disable rule {0}"
 
+#: src/page/demo/local-restore/LocalRestoreBar.tsx
+msgid "Discard saved copy"
+msgstr "Discard saved copy"
+
 #: src/workbook/comments/CommentTools.tsx
 msgid "Discussion for cell {address}"
 msgstr "Discussion for cell {address}"
@@ -1796,6 +1800,10 @@ msgstr "Editable ranges"
 #: src/workbook/protection/ProtectionTools.tsx
 msgid "Editing protection prevents accidental changes. It does not encrypt the workbook or keep its contents confidential."
 msgstr "Editing protection prevents accidental changes. It does not encrypt the workbook or keep its contents confidential."
+
+#: src/page/demo/local-restore/LocalRestoreBar.tsx
+msgid "Edits are saved in this browser and restored after a refresh."
+msgstr "Edits are saved in this browser and restored after a refresh."
 
 #: src/workbook/chrome/ribbon/SortTools.tsx
 msgid "Empty cell position"
@@ -2989,6 +2997,14 @@ msgstr "Loading values…"
 #: src/workbook/grid/viewport/WorkbookGrid.tsx
 msgid "Loading visible cells…"
 msgstr "Loading visible cells…"
+
+#: src/page/demo/local-restore/LocalRestoreBar.tsx
+msgid "Local restore"
+msgstr "Local restore"
+
+#: src/page/demo/local-restore/LocalRestoreBar.tsx
+msgid "Local save status"
+msgstr "Local save status"
 
 #: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
 msgid "Locating cells…"
@@ -4361,6 +4377,11 @@ msgstr "Save rule"
 msgid "Saved formula"
 msgstr "Saved formula"
 
+#. placeholder {0}: new Date(savedAt).toLocaleTimeString()
+#: src/page/demo/local-restore/LocalRestoreBar.tsx
+msgid "Saved in this browser at {0}."
+msgstr "Saved in this browser at {0}."
+
 #: src/workbook/chrome/ribbon/fill-series/CustomFillLists.tsx
 msgid "Saved lists"
 msgstr "Saved lists"
@@ -5147,6 +5168,11 @@ msgstr "The paste would hide cell content. Unmerge the destination or change the
 #: src/i18n/feedback-messages.ts
 msgid "The rule no longer exists."
 msgstr "The rule no longer exists."
+
+#. placeholder {0}: restoreError.message
+#: src/page/demo/local-restore/LocalRestoreBar.tsx
+msgid "The saved copy could not be opened and the sample was loaded instead: {0}"
+msgstr "The saved copy could not be opened and the sample was loaded instead: {0}"
 
 #: src/i18n/feedback-messages.ts
 msgid "The search worksheet no longer exists."

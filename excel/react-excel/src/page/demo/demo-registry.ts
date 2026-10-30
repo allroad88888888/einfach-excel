@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react'
 import { PageSalesOrders } from './sales-orders/PageSalesOrders'
 import { PageAsyncFormulas } from './async-formulas/PageAsyncFormulas'
+import { PageLocalRestore } from './local-restore/PageLocalRestore'
 
 export interface DemoPageRegistration {
   readonly id: string
@@ -22,6 +23,12 @@ export const DEMO_PAGES: readonly DemoPageRegistration[] = Object.freeze([
     marker: 'A',
     title: 'Async formulas',
     Page: PageAsyncFormulas,
+  },
+  {
+    id: 'local-restore',
+    marker: 'R',
+    title: 'Local restore',
+    Page: PageLocalRestore,
   },
 ])
 

@@ -49,6 +49,15 @@ pub fn parse_range(text: &str) -> Option<[u32; 4]> {
     Some([r1.min(r2), c1.min(c2), r1.max(r2), c1.max(c2)])
 }
 
+/// `[r1, c1, r2, c2]` → `"A1:C3"`；单格写成 `"B2"`。
+pub fn range_name([r1, c1, r2, c2]: [u32; 4]) -> String {
+    if (r1, c1) == (r2, c2) {
+        cell_name(r1, c1)
+    } else {
+        format!("{}:{}", cell_name(r1, c1), cell_name(r2, c2))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

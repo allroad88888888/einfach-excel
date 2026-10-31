@@ -30,6 +30,8 @@ pub struct SheetData {
     pub row_heights: Vec<(u32, u32)>,
     pub merges: Vec<[u32; 4]>,
     pub freeze: Option<(u32, u32)>,
+    pub hidden_rows: Vec<u32>,
+    pub hidden_cols: Vec<u32>,
 }
 
 #[derive(Default)]
@@ -89,12 +91,18 @@ fn finish(
 
 fn column_entries(e: &BytesStart, data: &mut SheetData) {
     let (Some(min), Some(max)) = (attr_u32(e, "min"), attr_u32(e, "max")) else { return };
-    let Some(width) = attr_f64(e, "width") else { return };
     let custom = attr_bool(e, "customWidth", false);
-    if attr_bool(e, "hidden", false) || min == 0 || max < min ||
-        (!custom && max - min >= MAX_STYLED_COLUMN_SPAN) {
+    if min == 0 || max < min {
         return;
     }
+    if attr_bool(e, "hidden", false) {
+        data.hidden_cols.extend((min - 1)..max.min(crate::native::MAX_COLS));
+        return;
+    }
+    if !custom && max - min >= MAX_STYLED_COLUMN_SPAN {
+        return;
+    }
+    let Some(width) = attr_f64(e, "width") else { return };
     let px = column_width_to_px(width);
     for col in (min - 1)..max.min(crate::native::MAX_COLS) {
         data.col_widths.push((col, px));
@@ -118,7 +126,9 @@ pub fn parse(xml: &str, strings: &[String]) -> Result<SheetData, XlsxError> {
                 b"row" => {
                     row = attr_u32(&e, "r").map_or(row.wrapping_add(1), |r| r.saturating_sub(1));
                     next_col = 0;
-                    if attr_bool(&e, "customHeight", false) && !attr_bool(&e, "hidden", false) {
+                    if attr_bool(&e, "hidden", false) {
+                        data.hidden_rows.push(row);
+                    } else if attr_bool(&e, "customHeight", false) {
                         if let Some(points) = attr_f64(&e, "ht") {
                             data.row_heights.push((row, row_height_to_px(points)));
                         }

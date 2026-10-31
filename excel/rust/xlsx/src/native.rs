@@ -1,7 +1,10 @@
 //! 原生工作簿文件（`.einfach.json`，format `einfach-workbook` v1）里本 crate 读写的子集。
-//! 未列出的字段（批注、表、规则等）导入时缺省，导出时忽略；完整校验仍由引擎 restore 负责。
+//! 未列出的字段（保护、筛选、打印等）导入时缺省，导出时忽略；完整校验仍由引擎 restore 负责。
 
 use serde::{Deserialize, Serialize};
+
+pub use crate::native_features::*;
+pub use crate::native_rules::*;
 
 pub const FORMAT: &str = "einfach-workbook";
 pub const MAX_ROWS: u32 = 1_048_576;
@@ -36,6 +39,24 @@ pub struct Persistence {
     pub formats: Vec<FormatRange>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub sizes: Vec<SizeRange>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub hyperlinks: Vec<Hyperlink>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub notes: Vec<Note>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub comments: Vec<CommentThread>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub tables: Vec<Table>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub hidden: Vec<SheetHiddenRows>,
+    #[serde(default, rename = "hiddenColumns", skip_serializing_if = "Vec::is_empty")]
+    pub hidden_columns: Vec<SheetHiddenColumns>,
+    #[serde(default, rename = "conditionalFormats", skip_serializing_if = "Vec::is_empty")]
+    pub conditional_formats: Vec<SheetConditional>,
+    #[serde(default, rename = "dataValidations", skip_serializing_if = "Vec::is_empty")]
+    pub data_validations: Vec<SheetValidation>,
+    #[serde(default, rename = "namedRanges", skip_serializing_if = "Vec::is_empty")]
+    pub named_ranges: Vec<NamedRange>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

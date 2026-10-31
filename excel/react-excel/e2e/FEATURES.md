@@ -1080,3 +1080,4 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | REPEAT-004 | F4 重复插入行 | `repeat/repeat.spec.ts` | F4 repeats Insert rows at the new selection |
 | REPEAT-005 | Ctrl+Y 先重做否则重复 | `repeat/repeat.spec.ts` | Ctrl+Y redoes when something can be redone and repeats otherwise |
 | REPEAT-006 | 每次重复一个撤销步 | `repeat/repeat.spec.ts` | Each repeat is one new undo step |
+| XLSX-004 | 打开 .xlsx 保留超链接、隐藏行等功能数据 | `xlsx/xlsx-file.spec.ts` | an xlsx file keeps hyperlinks, hidden rows and tables when opened |

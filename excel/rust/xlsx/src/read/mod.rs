@@ -1,13 +1,23 @@
 //! XLSX 字节 → 原生工作簿文件。
 
 mod archive;
+mod conditional;
+mod defined_names;
+mod dom;
+mod dxf;
+mod features;
+mod hyperlinks;
+mod notes;
+mod rels;
 mod shared_strings;
 mod styles;
+mod tables;
 mod theme;
+mod validation;
 mod worksheet;
 mod xml;
 
-use crate::address::cell_name;
+use crate::address::{cell_name, parse_range};
 use crate::native::*;
 use crate::XlsxError;
 
@@ -24,6 +34,23 @@ fn sheet_name(name: &str, index: usize, used: &mut Vec<String>) -> String {
     candidate
 }
 
+/// 表名在工作簿内唯一，同一张表里的 Table 不能重叠；违反的丢弃（引擎会整体拒绝这类文件）。
+fn keep_valid_tables(tables: &mut Vec<Table>) {
+    let mut kept: Vec<Table> = Vec::new();
+    for table in tables.drain(..) {
+        let area = parse_range(&table.range);
+        let clash = kept.iter().any(|other| {
+            other.name.eq_ignore_ascii_case(&table.name) || (other.sheet == table.sheet && matches!(
+                (area, parse_range(&other.range)),
+                (Some([r1, c1, r2, c2]), Some([a1, b1, a2, b2])) if r1 <= a2 && a1 <= r2 && c1 <= b2 && b1 <= c2))
+        });
+        if !clash {
+            kept.push(table);
+        }
+    }
+    *tables = kept;
+}
+
 pub fn read(bytes: Vec<u8>, title: &str) -> Result<NativeFile, XlsxError> {
     let mut archive = archive::Archive::open(bytes)?;
     let parts = archive.workbook_parts()?;
@@ -38,6 +65,8 @@ pub fn read(bytes: Vec<u8>, title: &str) -> Result<NativeFile, XlsxError> {
     let theme = theme::parse(theme_xml.as_deref());
     let styles_xml = match &parts.styles { Some(path) => archive.read(path)?, None => None };
     let xfs = styles::parse(styles_xml.as_deref(), &theme)?;
+    let dxfs = dxf::parse(styles_xml.as_deref(), &theme);
+    let shared = features::Shared { dxfs: &dxfs, theme: &theme };
 
     let mut workbook = Persistence { version: 1, ..Default::default() };
     let mut canvases = Vec::new();
@@ -46,7 +75,9 @@ pub fn read(bytes: Vec<u8>, title: &str) -> Result<NativeFile, XlsxError> {
         let xml = archive.read(&part.path)?
             .ok_or_else(|| XlsxError::new(format!("Worksheet {} is missing from the file.", part.name)))?;
         let data = worksheet::parse(&xml, &strings)?;
-        workbook.sheets.push(SheetMeta { idx: index as u32, name: sheet_name(&part.name, index, &mut used) });
+        let name = sheet_name(&part.name, index, &mut used);
+        let extras = features::read_sheet(&mut archive, &part.path, &xml, index, &name, &shared);
+        workbook.sheets.push(SheetMeta { idx: index as u32, name });
         canvases.push(Canvas { row_count: MAX_ROWS, col_count: MAX_COLS });
 
         let mut cell_styles = Vec::new();
@@ -82,6 +113,32 @@ pub fn read(bytes: Vec<u8>, title: &str) -> Result<NativeFile, XlsxError> {
         if let Some((rows, cols)) = data.freeze {
             workbook.freeze.push(SheetFreeze { sheet: index, rows, cols });
         }
+        if !data.hidden_rows.is_empty() {
+            workbook.hidden.push(SheetHiddenRows { sheet: index as u32, rows: data.hidden_rows });
+        }
+        if !data.hidden_cols.is_empty() {
+            workbook.hidden_columns.push(SheetHiddenColumns { sheet: index, columns: data.hidden_cols });
+        }
+        workbook.hyperlinks.extend(extras.hyperlinks);
+        workbook.notes.extend(extras.notes);
+        workbook.tables.extend(extras.tables);
+        if !extras.validations.is_empty() {
+            workbook.data_validations.push(SheetValidation { sheet: index, regions: extras.validations });
+        }
+        if !extras.conditional.is_empty() {
+            workbook.conditional_formats.push(SheetConditional {
+                sheet: index as u32, revision: 0, rules: extras.conditional,
+            });
+        }
+    }
+    keep_valid_tables(&mut workbook.tables);
+    let sheet_names: Vec<String> = parts.sheets.iter().map(|part| part.name.clone()).collect();
+    if let Some(root) = archive.read("xl/workbook.xml")?.and_then(|xml| dom::parse(&xml, &[])) {
+        workbook.named_ranges = defined_names::parse(&root, &sheet_names);
+        // 表名与定义名共用一个命名空间，冲突时保留表。
+        workbook.named_ranges.retain(|named| {
+            !workbook.tables.iter().any(|table| table.name.eq_ignore_ascii_case(&named.name))
+        });
     }
     Ok(NativeFile { format: FORMAT.into(), version: 1, title: title.into(), canvases, workbook })
 }

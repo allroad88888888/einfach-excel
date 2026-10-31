@@ -6,13 +6,31 @@ const MAIN: &str = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
 const REL: &str = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
 const HEADER: &str = r#"<?xml version="1.0" encoding="UTF-8" standalone="yes"?>"#;
 
-pub fn content_types(sheets: usize) -> String {
+/// 工作簿里除固定部件外的附加部件（批注、VML、Table）。
+pub struct Part {
+    pub path: String,
+    pub body: String,
+    /// None 表示靠扩展名的 Default 内容类型（如 `.vml`）。
+    pub content_type: Option<&'static str>,
+}
+
+pub fn content_types(sheets: usize, parts: &[Part]) -> String {
     let mut overrides = String::new();
+    for part in parts {
+        if let Some(kind) = part.content_type {
+            overrides.push_str(&format!(r#"<Override PartName="/{}" ContentType="{kind}"/>"#, part.path));
+        }
+    }
+    let vml = if parts.iter().any(|p| p.path.ends_with(".vml")) {
+        r#"<Default Extension="vml" ContentType="application/vnd.openxmlformats-officedocument.vmlDrawing"/>"#
+    } else {
+        ""
+    };
     for index in 1..=sheets {
         overrides.push_str(&format!(r#"<Override PartName="/xl/worksheets/sheet{index}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>"#));
     }
     format!(r#"{HEADER}
-<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>{overrides}<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/><Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/></Types>"#)
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/>{vml}<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>{overrides}<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/><Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/></Types>"#)
 }
 
 pub fn root_rels() -> String {
@@ -20,13 +38,13 @@ pub fn root_rels() -> String {
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="{REL}/officeDocument" Target="xl/workbook.xml"/></Relationships>"#)
 }
 
-pub fn workbook(names: &[String]) -> String {
+pub fn workbook(names: &[String], defined_names: &str) -> String {
     let sheets: String = names.iter().enumerate()
         .map(|(index, name)| format!(r#"<sheet name="{}" sheetId="{}" r:id="rId{}"/>"#, escape(name), index + 1, index + 1))
         .collect();
     // 公式只写源文本不写缓存值，让 Excel 打开时全量重算。
     format!(r#"{HEADER}
-<workbook xmlns="{MAIN}" xmlns:r="{REL}"><workbookPr/><bookViews><workbookView/></bookViews><sheets>{sheets}</sheets><calcPr calcId="191029" fullCalcOnLoad="1"/></workbook>"#)
+<workbook xmlns="{MAIN}" xmlns:r="{REL}"><workbookPr/><bookViews><workbookView/></bookViews><sheets>{sheets}</sheets>{defined_names}<calcPr calcId="191029" fullCalcOnLoad="1"/></workbook>"#)
 }
 
 pub fn workbook_rels(sheets: usize) -> String {

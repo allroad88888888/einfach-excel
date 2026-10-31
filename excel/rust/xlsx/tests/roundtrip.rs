@@ -16,6 +16,10 @@ fn comparable(file: &Value) -> Value {
     serde_json::json!({
         "sheets": workbook["sheets"], "cells": cells, "formats": formats,
         "merges": workbook["merges"], "freeze": workbook["freeze"], "sizes": workbook["sizes"],
+        "hyperlinks": workbook["hyperlinks"], "notes": workbook["notes"], "tables": workbook["tables"],
+        "hidden": workbook["hidden"], "hiddenColumns": workbook["hiddenColumns"],
+        "conditionalFormats": workbook["conditionalFormats"], "dataValidations": workbook["dataValidations"],
+        "namedRanges": workbook["namedRanges"],
     })
 }
 
@@ -25,6 +29,52 @@ fn xlsx_native_xlsx_round_trip_keeps_everything_it_converts() {
     let bytes = einfach_xlsx::native_to_xlsx(&first.to_string()).unwrap();
     let second = to_native(bytes);
     assert_eq!(comparable(&second), comparable(&first));
+}
+
+#[test]
+fn features_survive_xlsx_native_xlsx_round_trip() {
+    let first = to_native(std::fs::read("tests/fixtures/features.xlsx").unwrap());
+    // 先确认样本里这些字段都真的有内容，避免两边同为空时的假通过。
+    for key in ["hyperlinks", "notes", "tables", "hidden", "hiddenColumns", "conditionalFormats", "dataValidations", "namedRanges"] {
+        assert!(!first["workbook"][key].as_array().unwrap().is_empty(), "{key} should be converted");
+    }
+    let bytes = einfach_xlsx::native_to_xlsx(&first.to_string()).unwrap();
+    let second = to_native(bytes);
+    assert_eq!(comparable(&second), comparable(&first));
+}
+
+#[test]
+fn exports_notes_threads_and_skips_what_xlsx_cannot_hold() {
+    let native = serde_json::json!({
+        "format": "einfach-workbook", "version": 1, "title": "F",
+        "canvases": [{"rowCount": 1048576, "colCount": 16384}],
+        "workbook": {
+            "version": 1, "sheets": [{"idx": 0, "name": "S"}], "cells": [],
+            "notes": [{"sheet": 0, "row": 0, "col": 0, "text": "plain note"}],
+            "comments": [
+                {"sheet": 0, "row": 0, "col": 0, "thread": {"resolved": false, "entries": [{"kind": "message", "author": "Z", "body": "ignored", "createdAt": 1}]}},
+                {"sheet": 0, "row": 1, "col": 0, "thread": {"resolved": false, "entries": [
+                    {"kind": "message", "author": "Ann", "body": "hi", "createdAt": 1},
+                    {"kind": "message", "author": "Bob", "body": "yo", "createdAt": 2}]}}],
+            "dataValidations": [{"sheet": 0, "regions": [
+                {"range": [0, 0, 4, 0], "rule": {"kind": "list", "items": ["a,b", "c"], "ignoreBlank": true}},
+                {"range": [0, 1, 4, 1], "rule": {"kind": "list", "items": ["a", "b"], "ignoreBlank": true}}]}],
+            "conditionalFormats": [{"sheet": 0, "revision": 3, "rules": [
+                {"id": "x", "scope": {"range": {"rowStart": 0, "rowEnd": 3, "colStart": 0, "colEnd": 0}}, "priority": 0,
+                 "rule": {"kind": "icon-set", "iconSet": "3-arrows"}},
+                {"id": "y", "scope": {"range": {"rowStart": 0, "rowEnd": 3, "colStart": 0, "colEnd": 0}}, "priority": 1,
+                 "enabled": false, "rule": {"kind": "duplicate-values", "mode": "duplicate", "enabled": false, "format": {"bold": true}}}]}],
+            "namedRanges": [{"name": "Gone", "target": null}],
+        }
+    });
+    let back = to_native(einfach_xlsx::native_to_xlsx(&native.to_string()).unwrap());
+    let notes = &back["workbook"]["notes"];
+    assert_eq!(notes[0]["text"], "plain note");
+    assert_eq!(notes[1]["text"], "Ann: hi\nBob: yo");
+    assert_eq!(back["workbook"]["dataValidations"][0]["regions"].as_array().unwrap().len(), 1);
+    assert_eq!(back["workbook"]["dataValidations"][0]["regions"][0]["range"], serde_json::json!([0, 1, 4, 1]));
+    assert!(back["workbook"].get("conditionalFormats").is_none());
+    assert!(back["workbook"].get("namedRanges").is_none(), "a #REF! name has nothing to import");
 }
 
 #[test]

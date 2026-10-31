@@ -6,6 +6,7 @@ use quick_xml::events::Event;
 use quick_xml::Reader;
 use zip::ZipArchive;
 
+use super::rels;
 use super::xml::{attr, local_name};
 use crate::XlsxError;
 
@@ -51,11 +52,12 @@ impl Archive {
     pub fn workbook_parts(&mut self) -> Result<WorkbookParts, XlsxError> {
         let workbook = self.read("xl/workbook.xml")?
             .ok_or_else(|| XlsxError::new("The file has no xl/workbook.xml; it is not an Excel workbook."))?;
-        let rels = relationships(&self.read("xl/_rels/workbook.xml.rels")?.unwrap_or_default());
-        let target = |id: &str| rels.iter().find(|(rid, ..)| rid == id).map(|(_, _, t)| t.clone());
+        let rels: Vec<_> = rels::parse(&self.read("xl/_rels/workbook.xml.rels")?.unwrap_or_default(), "xl")
+            .into_iter().filter(|rel| !rel.external).collect();
+        let target = |id: &str| rels.iter().find(|rel| rel.id == id).map(|rel| rel.target.clone());
         let by_type = |suffix: &str| rels.iter()
-            .find(|(_, kind, _)| kind.ends_with(suffix))
-            .map(|(_, _, t)| t.clone());
+            .find(|rel| rel.kind.ends_with(suffix))
+            .map(|rel| rel.target.clone());
 
         let mut sheets = Vec::new();
         let mut date1904 = false;
@@ -88,42 +90,4 @@ impl Archive {
             date1904,
         })
     }
-}
-
-/// `(Id, Type, 解析到包内绝对路径的 Target)`；相对目标以 `xl/` 为基准。
-fn relationships(xml: &str) -> Vec<(String, String, String)> {
-    let mut out = Vec::new();
-    let mut reader = Reader::from_str(xml);
-    while let Ok(event) = reader.read_event() {
-        match event {
-            Event::Start(e) | Event::Empty(e) if local_name(&e) == b"Relationship" => {
-                if attr(&e, "TargetMode").as_deref() == Some("External") {
-                    continue;
-                }
-                let target = attr(&e, "Target").unwrap_or_default();
-                let path = match target.strip_prefix('/') {
-                    Some(absolute) => absolute.to_string(),
-                    None => normalize(&format!("xl/{target}")),
-                };
-                out.push((attr(&e, "Id").unwrap_or_default(), attr(&e, "Type").unwrap_or_default(), path));
-            }
-            Event::Eof => break,
-            _ => {}
-        }
-    }
-    out
-}
-
-fn normalize(path: &str) -> String {
-    let mut parts: Vec<&str> = Vec::new();
-    for part in path.split('/') {
-        match part {
-            ".." => {
-                parts.pop();
-            }
-            "." | "" => {}
-            _ => parts.push(part),
-        }
-    }
-    parts.join("/")
 }

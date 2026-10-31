@@ -2,8 +2,11 @@
 
 mod address;
 mod color;
+mod date_serial;
 mod formula;
 mod native;
+mod native_features;
+mod native_rules;
 mod number_format;
 mod read;
 mod units;
@@ -41,7 +44,7 @@ pub fn xlsx_to_native_js(bytes: Vec<u8>, title: &str) -> Result<String, JsError>
     xlsx_to_native(bytes, title).map_err(|error| JsError::new(&error.to_string()))
 }
 
-/// 原生工作簿文件文本 → XLSX 字节。不认识的原生字段（批注、表、规则等）不会写出。
+/// 原生工作簿文件文本 → XLSX 字节。不认识的原生字段（保护、筛选、打印设置等）不会写出。
 pub fn native_to_xlsx(text: &str) -> Result<Vec<u8>, XlsxError> {
     let file: native::NativeFile = serde_json::from_str(text)
         .map_err(|_| XlsxError::new("This is not a valid .einfach.json workbook file."))?;

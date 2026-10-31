@@ -17,6 +17,7 @@ pub struct StyleTable {
     borders: Vec<String>,
     num_fmts: Vec<(u32, String)>,
     seen: Vec<(CellFormat, u32)>,
+    dxfs: Vec<String>,
 }
 
 impl StyleTable {
@@ -31,6 +32,7 @@ impl StyleTable {
             borders: vec!["<border><left/><right/><top/><bottom/><diagonal/></border>".into()],
             num_fmts: Vec::new(),
             seen: Vec::new(),
+            dxfs: Vec::new(),
         }
     }
 
@@ -81,6 +83,12 @@ impl StyleTable {
         id
     }
 
+    /// 条件格式用的差异样式（`<dxfs>` 下标）；原生高亮没有任何可写属性时返回 None。
+    pub fn dxf(&mut self, highlight: &serde_json::Value) -> Option<u32> {
+        let xml = super::dxf::xml(highlight)?;
+        Some(intern(&mut self.dxfs, xml))
+    }
+
     pub fn into_xml(self) -> String {
         let section = |name: &str, items: &[String]| {
             format!(r#"<{name} count="{}">{}</{name}>"#, items.len(), items.concat())
@@ -95,9 +103,10 @@ impl StyleTable {
         };
         format!(
             r#"<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">{num_fmts}{}{}{}<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>{}<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>"#,
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">{num_fmts}{}{}{}<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>{}<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>{}</styleSheet>"#,
             section("fonts", &self.fonts), section("fills", &self.fills),
             section("borders", &self.borders), section("cellXfs", &self.xfs),
+            if self.dxfs.is_empty() { String::new() } else { section("dxfs", &self.dxfs) },
         )
     }
 }

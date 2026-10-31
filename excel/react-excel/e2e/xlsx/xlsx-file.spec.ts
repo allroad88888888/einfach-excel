@@ -59,3 +59,13 @@ test('an unreadable xlsx file is rejected and keeps the current workbook', async
   await expect(fileDialog(page).getByRole('alert')).toContainText('not an .xlsx file')
   await expect(cell(page, '1:0')).toHaveText('SO-10001')
 })
+
+test('an xlsx file keeps hyperlinks, hidden rows and tables when opened', async ({ page }) => {
+  await openXlsx(page, 'features.xlsx', await readFile(path.join(path.dirname(fixture), 'features.xlsx')))
+  await expect(page.getByRole('tab', { name: 'Other Sheet', exact: true })).toBeVisible()
+  await expect(cell(page, '9:0')).toContainText('Site')
+  await expect(cell(page, '9:0').locator('[data-cell-hyperlink]')).toHaveAttribute('href', 'https://example.com/a?b=1&c=2')
+  // 第 4 行（索引 3）被隐藏，其余可见。
+  await expect(cell(page, '3:0')).toHaveCount(0)
+  await expect(cell(page, '4:0')).toHaveText('item5')
+})

@@ -103,3 +103,113 @@ fn rejects_files_that_are_not_workbooks() {
     let error = einfach_xlsx::xlsx_to_native(zip(&[("hello.txt", "hi")]), "x").unwrap_err();
     assert!(error.to_string().contains("workbook.xml"));
 }
+
+fn feature_file() -> Value {
+    native(std::fs::read("tests/fixtures/features.xlsx").unwrap())
+}
+
+#[test]
+fn reads_hidden_rows_columns_links_notes_names_and_tables() {
+    let file = feature_file();
+    let book = &file["workbook"];
+    assert_eq!(book["hidden"], serde_json::json!([{"sheet": 0, "rows": [3]}]));
+    assert_eq!(book["hiddenColumns"], serde_json::json!([{"sheet": 0, "columns": [2]}]));
+    // 隐藏行/列之外的尺寸照常保留（第 5 行 30pt = 40px，B 列 14 字符 = 103px）。
+    assert_eq!(book["sizes"][0]["rowHeights"], serde_json::json!([{"rowIndex": 4, "heightPx": 40}]));
+    assert_eq!(book["sizes"][0]["colWidths"], serde_json::json!([{"colIndex": 1, "widthPx": 103}]));
+    // 内部跳转（#Data!A1）没有原生对应物，只留外部链接。
+    assert_eq!(book["hyperlinks"], serde_json::json!([{"sheet": 0, "row": 9, "col": 0, "url": "https://example.com/a?b=1&c=2"}]));
+    assert_eq!(book["notes"], serde_json::json!([{"sheet": 0, "row": 9, "col": 1, "text": "Check this <value>\nsecond line"}]));
+    // 公式型名字（Computed）被跳过。
+    assert_eq!(book["namedRanges"], serde_json::json!([
+        {"name": "Quantities", "target": {"sheet": 0, "range": [1, 1, 6, 1]}},
+        {"name": "Other", "target": {"sheet": 1, "range": [1, 1, 1, 1]}}]));
+    let table = &book["tables"][0];
+    assert_eq!((table["name"].clone(), table["range"].clone(), table["sheet"].clone()), ("Sales".into(), "A1:D7".into(), "Data".into()));
+    assert_eq!(table["columns"], serde_json::json!(["Name", "Qty", "Note", "Day"]));
+    assert_eq!(table["style"]["preset"], "blue");
+    assert_eq!(table["style"]["firstColumn"], true);
+}
+
+#[test]
+fn reads_data_validations() {
+    let file = feature_file();
+    let regions = file["workbook"]["dataValidations"][0]["regions"].as_array().unwrap();
+    let rule = |range: [u32; 4]| regions.iter().find(|r| r["range"] == serde_json::json!(range)).unwrap()["rule"].clone();
+    let list = rule([1, 5, 5, 5]);
+    assert_eq!(list["items"], serde_json::json!(["red", "green", "blue"]));
+    assert_eq!(list["inputMessage"]["title"], "Pick");
+    assert_eq!(list["errorAlert"]["style"], "warning");
+    let whole = rule([1, 6, 3, 6]);
+    assert_eq!((whole["operator"].clone(), whole["min"].clone(), whole["ignoreBlank"].clone()), ("greater-than".into(), 5.0.into(), false.into()));
+    assert_eq!(rule([1, 8, 1, 8])["min"], "2026-01-01");
+    assert_eq!(rule([1, 8, 1, 8])["max"], "2026-12-31");
+    assert_eq!(rule([1, 11, 1, 11])["min"], "08:30");
+    assert_eq!(rule([1, 10, 4, 10])["formula"], "=LEN(K2)>2");
+    assert_eq!(rule([1, 10, 4, 10])["anchor"], serde_json::json!({"row": 1, "col": 10}));
+    assert_eq!(rule([1, 9, 1, 9])["kind"], "text-length");
+}
+
+#[test]
+fn reads_conditional_formats_in_priority_order() {
+    let file = feature_file();
+    let rules = file["workbook"]["conditionalFormats"][0]["rules"].as_array().unwrap();
+    let find = |kind: &str, detail: &str| -> Value {
+        rules.iter().map(|r| &r["rule"]).find(|rule| {
+            rule["kind"] == kind && (detail.is_empty() || [&rule["operator"], &rule["condition"], &rule["mode"]].iter().any(|v| *v == detail))
+        }).unwrap_or_else(|| panic!("{kind} {detail}")).clone()
+    };
+    let gt = find("cell-value", "gt");
+    assert_eq!((gt["value"].clone(), gt["format"]["bgColor"].clone(), gt["format"]["fgColor"].clone(), gt["format"]["bold"].clone()),
+        ("30".into(), "#ffff00".into(), "#ff0000".into(), true.into()));
+    assert_eq!(find("cell-value", "between")["value2"], "40");
+    assert_eq!(find("formula", "")["formula"], "=$B2>40");
+    for condition in ["contains", "begins-with", "ends-with"] {
+        assert_eq!(find("text", condition)["format"]["bgColor"], "#ffc7ce");
+    }
+    find("duplicate-values", "duplicate");
+    find("duplicate-values", "unique");
+    let top = find("top-bottom", "");
+    assert_eq!((top["direction"].clone(), top["count"].clone(), top["percent"].clone()), ("bottom".into(), 2.into(), true.into()));
+    let scale = find("color-scale", "");
+    assert_eq!((scale["minColor"].clone(), scale["midColor"].clone(), scale["maxColor"].clone()), ("#f8696b".into(), "#ffeb84".into(), "#63be7b".into()));
+    assert_eq!(scale["midThreshold"], serde_json::json!({"type": "percentile", "value": "50"}));
+    assert_eq!(find("data-bar", "")["maxColor"], "#638ec6");
+    let priorities: Vec<i64> = rules.iter().map(|r| r["priority"].as_i64().unwrap()).collect();
+    assert_eq!(priorities, (0..rules.len() as i64).collect::<Vec<_>>());
+}
+
+#[test]
+fn reads_hand_written_feature_parts_and_skips_what_native_cannot_hold() {
+    let sheet = r#"<worksheet xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><cols><col min="2" max="3" width="9" hidden="1"/></cols><sheetData>
+        <row r="1" hidden="1" ht="30" customHeight="1"><c r="A1"><v>1</v></c></row></sheetData>
+        <conditionalFormatting sqref="A1:A3 C1"><cfRule type="iconSet" priority="1"><iconSet iconSet="3Arrows"><cfvo type="percent" val="0"/></iconSet></cfRule>
+          <cfRule type="aboveAverage" dxfId="0" priority="2"/><cfRule type="expression" dxfId="0" priority="3"><formula>MOD(ROW(),2)=0</formula></cfRule></conditionalFormatting>
+        <dataValidations count="2"><dataValidation type="list" sqref="B1"><formula1>$D$1:$D$3</formula1></dataValidation>
+          <dataValidation type="whole" operator="between" sqref="B2"><formula1>9</formula1><formula2>1</formula2></dataValidation></dataValidations>
+        <hyperlinks><hyperlink ref="A1" r:id="rId1"/><hyperlink ref="A2" r:id="rId2"/><hyperlink ref="A3" location="Sheet1!A1"/></hyperlinks>
+        <legacyDrawing r:id="rId3"/></worksheet>"#;
+    let bytes = zip(&[
+        ("xl/workbook.xml", r#"<workbook xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Sheet1" sheetId="1" r:id="rId1"/></sheets><definedNames><definedName name="_xlnm.Print_Area" localSheetId="0">Sheet1!$A$1:$B$2</definedName><definedName name="Local" localSheetId="0">Sheet1!$A$1</definedName><definedName name="Rows">Sheet1!$2:$3</definedName><definedName name="Cols">Sheet1!$B:$C</definedName></definedNames></workbook>"#),
+        ("xl/_rels/workbook.xml.rels", r#"<Relationships><Relationship Id="rId1" Type=".../worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type=".../styles" Target="styles.xml"/></Relationships>"#),
+        ("xl/styles.xml", r#"<styleSheet><fonts><font/></fonts><fills><fill/></fills><borders><border/></borders><cellXfs><xf/></cellXfs><dxfs><dxf><font><b/></font></dxf></dxfs></styleSheet>"#),
+        ("xl/worksheets/sheet1.xml", sheet),
+        ("xl/worksheets/_rels/sheet1.xml.rels", r#"<Relationships><Relationship Id="rId1" Type=".../hyperlink" Target="https://example.org/x" TargetMode="External"/><Relationship Id="rId2" Type=".../hyperlink" Target="mailto:a@b.c" TargetMode="External"/><Relationship Id="rId3" Type=".../comments" Target="../comments1.xml"/></Relationships>"#),
+        ("xl/comments1.xml", r#"<comments><authors><author>A</author></authors><commentList><comment ref="B2" authorId="0"><text><r><rPr><b/></rPr><t>A:</t></r><r><t xml:space="preserve">
+body</t></r><rPh><t>skip</t></rPh></text></comment><comment ref="C3" authorId="0"><text><t>[Threaded comment] placeholder</t></text></comment></commentList></comments>"#),
+    ]);
+    let file = native(bytes);
+    let book = &file["workbook"];
+    assert_eq!(book["hiddenColumns"][0]["columns"], serde_json::json!([1, 2]));
+    assert_eq!(book["hidden"][0]["rows"], serde_json::json!([0]));
+    assert!(book["sizes"].is_null(), "hidden row/column sizes are not kept");
+    let rules = book["conditionalFormats"][0]["rules"].as_array().unwrap();
+    assert_eq!(rules.len(), 1, "icon sets and above-average rules are skipped");
+    assert_eq!(rules[0]["rule"]["formula"], "=MOD(ROW(),2)=0");
+    assert_eq!(rules[0]["scope"]["additionalRanges"][0]["colStart"], 2);
+    assert!(book["dataValidations"].is_null(), "range lists and inverted bounds are skipped");
+    assert_eq!(book["hyperlinks"], serde_json::json!([{"sheet": 0, "row": 0, "col": 0, "url": "https://example.org/x"}]));
+    assert_eq!(book["notes"], serde_json::json!([{"sheet": 0, "row": 1, "col": 1, "text": "A:\nbody"}]));
+    let names: Vec<_> = book["namedRanges"].as_array().unwrap().iter().map(|n| (n["name"].clone(), n["target"]["range"].clone())).collect();
+    assert_eq!(names, [("Rows".into(), serde_json::json!([1, 0, 2, 16383])), ("Cols".into(), serde_json::json!([0, 1, 1048575, 2]))]);
+}

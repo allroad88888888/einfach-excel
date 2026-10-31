@@ -1,6 +1,6 @@
-//! 单张工作表 → `sheetN.xml`：冻结窗格、列宽、按行排序的单元格、行高、合并区。
+//! 单张工作表 → `sheetN.xml`：冻结窗格、列宽与隐藏列、按行排序的单元格、行高与隐藏行、合并区。
 
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use crate::address::{cell_name, column_name};
 use crate::formula;
@@ -18,6 +18,10 @@ pub struct SheetInput<'a> {
     pub col_widths: BTreeMap<u32, u32>,
     pub merges: Vec<[u32; 4]>,
     pub freeze: Option<(u32, u32)>,
+    pub hidden_rows: BTreeSet<u32>,
+    pub hidden_cols: BTreeSet<u32>,
+    /// `mergeCells` 之后的片段（条件格式、数据验证、超链接、批注与表引用），顺序须符合 schema。
+    pub tail: String,
 }
 
 /// 共享字符串表：同一文本只存一份。
@@ -86,7 +90,7 @@ pub fn write(sheet: &SheetInput, strings: &mut SharedStrings) -> String {
     for (&(row, col), &style) in &sheet.styles {
         rows.entry(row).or_default().entry(col).or_insert((None, 0)).1 = style;
     }
-    for &row in sheet.row_heights.keys() {
+    for &row in sheet.row_heights.keys().chain(&sheet.hidden_rows) {
         rows.entry(row).or_default();
     }
 
@@ -94,11 +98,17 @@ pub fn write(sheet: &SheetInput, strings: &mut SharedStrings) -> String {
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">"#);
     xml.push_str(&sheet_view(sheet.freeze));
     xml.push_str(r#"<sheetFormatPr defaultRowHeight="15"/>"#);
-    if !sheet.col_widths.is_empty() {
+    let columns: BTreeSet<u32> = sheet.col_widths.keys().chain(&sheet.hidden_cols).copied().collect();
+    if !columns.is_empty() {
         xml.push_str("<cols>");
-        for (&col, &px) in &sheet.col_widths {
+        for col in columns {
             let n = col + 1;
-            xml.push_str(&format!(r#"<col min="{n}" max="{n}" width="{}" customWidth="1"/>"#, px_to_column_width(px)));
+            let width = match sheet.col_widths.get(&col) {
+                Some(&px) => format!(r#" width="{}" customWidth="1""#, px_to_column_width(px)),
+                None => r#" width="9.140625""#.to_string(),
+            };
+            let hidden = if sheet.hidden_cols.contains(&col) { r#" hidden="1""# } else { "" };
+            xml.push_str(&format!(r#"<col min="{n}" max="{n}"{width}{hidden}/>"#));
         }
         xml.push_str("</cols>");
     }
@@ -107,7 +117,8 @@ pub fn write(sheet: &SheetInput, strings: &mut SharedStrings) -> String {
         let height = sheet.row_heights.get(&row)
             .map(|&px| format!(r#" ht="{}" customHeight="1""#, px_to_row_height(px)))
             .unwrap_or_default();
-        xml.push_str(&format!(r#"<row r="{}"{height}>"#, row + 1));
+        let hidden = if sheet.hidden_rows.contains(&row) { r#" hidden="1""# } else { "" };
+        xml.push_str(&format!(r#"<row r="{}"{height}{hidden}>"#, row + 1));
         for (col, (cell, style)) in cells {
             xml.push_str(&cell_xml(cell, row, col, style, strings));
         }
@@ -122,6 +133,7 @@ pub fn write(sheet: &SheetInput, strings: &mut SharedStrings) -> String {
         }
         xml.push_str("</mergeCells>");
     }
+    xml.push_str(&sheet.tail);
     xml.push_str("</worksheet>");
     xml
 }

@@ -71,9 +71,10 @@ export function WorkbookFileTools() {
       })}><Trans>New blank workbook</Trans></button>
       <p className="workbook-file-hint">{xlsx
         ? <Trans>Opens .einfach.json and .xlsx files up to 64 MiB. XLSX keeps values,
-          formulas, formatting, merges, frozen panes and sizes; comments, tables, rules and
-          charts are not converted. Opening or creating a workbook replaces this view and starts
-          a fresh Undo history.
+          formulas, formatting, merges, frozen panes, sizes, hidden rows and columns, links,
+          notes, names, data validation, conditional formatting and tables; images, charts and
+          other features are not converted. Opening or creating a workbook replaces this view
+          and starts a fresh Undo history.
         </Trans>
         : <Trans>Native .einfach.json files only, up to 64 MiB. Not XLSX.
           Opening or creating a workbook replaces this view and starts a fresh Undo history.

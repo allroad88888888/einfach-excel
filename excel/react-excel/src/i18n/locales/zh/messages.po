@@ -3579,8 +3579,8 @@ msgid "Opening workbook…"
 msgstr "正在打开工作簿…"
 
 #: src/workbook/chrome/header/WorkbookFileTools.tsx
-msgid "Opens .einfach.json and .xlsx files up to 64 MiB. XLSX keeps values, formulas, formatting, merges, frozen panes and sizes; comments, tables, rules and charts are not converted. Opening or creating a workbook replaces this view and starts a fresh Undo history."
-msgstr "可打开 64 MiB 以内的 .einfach.json 与 .xlsx 文件。XLSX 保留值、公式、格式、合并、冻结窗格和行高列宽；批注、表、规则与图表不转换。打开或新建工作簿会替换当前视图，并清空撤销历史。"
+msgid "Opens .einfach.json and .xlsx files up to 64 MiB. XLSX keeps values, formulas, formatting, merges, frozen panes, sizes, hidden rows and columns, links, notes, names, data validation, conditional formatting and tables; images, charts and other features are not converted. Opening or creating a workbook replaces this view and starts a fresh Undo history."
+msgstr "打开 .einfach.json 和 .xlsx 文件，最大 64 MiB。XLSX 会保留值、公式、格式、合并、冻结窗格、尺寸、隐藏行列、超链接、备注、名称、数据验证、条件格式和表格；图片、图表等其他功能不转换。打开或新建工作簿会替换当前视图并重新开始撤销历史。"
 
 #: src/workbook/chrome/ribbon/PasteSpecialTools.tsx
 msgid "Operation"

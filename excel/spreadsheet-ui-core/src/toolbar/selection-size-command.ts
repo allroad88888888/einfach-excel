@@ -14,6 +14,7 @@ import { selectionSnapshotAtom } from '../selection'
 import type { CellRange } from '../shared'
 import type { AutoFitLayout } from '../rust-workbook/auto-fit-measurement'
 import { viewportMetricsAtom } from '../viewport/metrics'
+import { recordRepeatIntentAtom } from '../repeat/state'
 import { selectionStructureFeedbackAtom } from './selection-structure-state'
 import { selectionMergeFeedbackAtom } from './selection-merge-state'
 import {
@@ -145,6 +146,9 @@ export const runSelectionSizeAtom = atom(
       })
       set(applyVisibleProjectionAtom, { witness, request: projection, result: result.projection })
       set(selectionSizePanelAtom, CLOSED)
+      // 只有弹窗里的“行高/列宽”可重复；拖拽、自动适应与重置不记录。
+      if (typeof action === 'string' && axis !== 'reset')
+        set(recordRepeatIntentAtom, { kind: 'size', axis, pixels })
       return true
     } catch (error) {
       if (get(rustWorkbookConnectionAtom) !== connection) return false

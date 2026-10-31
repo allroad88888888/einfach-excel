@@ -7,7 +7,8 @@ import { cancelEditingAtom } from './session-atoms'
 import { startCellEditingFromProjectionAtom } from './start-cell-editing'
 import type { EditingCommitOutcome } from './types'
 import { clearSelectionAtom } from '../toolbar/selection-mutation-command'
-import { runRustHistoryAtom } from '../history/rust-history-command'
+import { runRustHistoryAtom, rustHistoryStateAtom } from '../history/rust-history-command'
+import { repeatLastActionAtom } from '../repeat/command'
 import { fillSelectionAtom } from '../auto-fill/directional-command'
 import { exitFormulaReferenceAtom } from '../formula-reference'
 import { dispatchTableTabAtom } from '../tables/tab-navigation'
@@ -24,7 +25,7 @@ export type EditorKeyboardOutcome = EditingCommitOutcome | 'cancelled' | 'ignore
 /** Executes one grid key through the shared keyboard intent and editing state. */
 export const dispatchGridCellKeyboardInputAtom = atom(
   null,
-  (_get, set, input: GridCellKeyboardInput) => {
+  (get, set, input: GridCellKeyboardInput) => {
     const tableIntent = set(dispatchTableTabAtom, {
       ...input.keyboard, allowAppend: input.allowEditing,
     })
@@ -35,6 +36,18 @@ export const dispatchGridCellKeyboardInputAtom = atom(
       return intent
     }
     // 历史操作不读取旧画面的单元格；保留帧只禁止就地编辑，不吞撤销／重做。
+    if (intent.type === 'repeat.last' && input.allowEditing) {
+      void set(repeatLastActionAtom)
+      return intent
+    }
+    // Ctrl/⌘+Y：有可重做项就重做，否则等同 F4 重复上一个动作（Excel 行为）。
+    if (
+      intent.type === 'history.redo' && input.keyboard.key.toLowerCase() === 'y' &&
+      input.allowEditing && get(rustHistoryStateAtom).redoCount === 0
+    ) {
+      void set(repeatLastActionAtom)
+      return intent
+    }
     if (intent.type === 'history.undo' || intent.type === 'history.redo') {
       void set(runRustHistoryAtom, intent.type === 'history.undo' ? 'undo' : 'redo')
       return intent

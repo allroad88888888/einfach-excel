@@ -1074,3 +1074,9 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | XLSX-001 | 打开 .xlsx 换簿（多表、公式、格式、合并） | `xlsx/xlsx-file.spec.ts` | opening an xlsx file replaces the workbook with its sheets, formulas and formatting |
 | XLSX-002 | 下载为 Excel 并能原样打开回来 | `xlsx/xlsx-file.spec.ts` | download as Excel writes an xlsx that opens back to the same workbook |
 | XLSX-003 | 损坏的 .xlsx 被拒绝且保留当前簿 | `xlsx/xlsx-file.spec.ts` | an unreadable xlsx file is rejected and keeps the current workbook |
+| REPEAT-001 | 重复按钮可用性与提示 | `repeat/repeat.spec.ts` | Repeat button is disabled until a repeatable command ran and names it in the tooltip |
+| REPEAT-002 | F4 重复加粗 | `repeat/repeat.spec.ts` | F4 repeats Bold on another range |
+| REPEAT-003 | 重复按钮重复填充色 | `repeat/repeat.spec.ts` | The Repeat button repeats the last fill color on the current selection |
+| REPEAT-004 | F4 重复插入行 | `repeat/repeat.spec.ts` | F4 repeats Insert rows at the new selection |
+| REPEAT-005 | Ctrl+Y 先重做否则重复 | `repeat/repeat.spec.ts` | Ctrl+Y redoes when something can be redone and repeats otherwise |
+| REPEAT-006 | 每次重复一个撤销步 | `repeat/repeat.spec.ts` | Each repeat is one new undo step |

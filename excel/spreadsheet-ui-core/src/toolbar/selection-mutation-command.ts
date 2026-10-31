@@ -13,11 +13,12 @@ import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import { applyProjectionSizes } from '../projection/projection-sizes'
 import type { RustClearRangeMode, RustClearRangeRequest, RustWorkbookConnection } from '../rust-workbook/commands'
 import { selectionRegionsAtom, selectionRangesAtom, selectionSnapshotAtom } from '../selection'
+import { recordRepeatIntentAtom } from '../repeat/state'
 import { selectionStructureFeedbackAtom } from './selection-structure-state'
 import { selectionMergeFeedbackAtom } from './selection-merge-state'
 
 export type SelectionMutationOutcome = 'completed' | 'blocked' | 'superseded' | 'rejected'
-type SelectionMutation =
+export type SelectionMutation =
   | {
       readonly kind: 'format'
       readonly format: SpreadsheetCellFormat
@@ -139,7 +140,9 @@ export const runSelectionMutationAtom = atom(
         applyProjectionSizes(get, set, {
           ...result.projection, window: ack.affectedRange ?? base.range, ...result.sizes,
         })
-      return applied.status === 'applied' ? 'completed' : 'superseded'
+      if (applied.status !== 'applied') return 'superseded'
+      set(recordRepeatIntentAtom, { kind: 'mutation', mutation: input })
+      return 'completed'
     } catch (error) {
       if (get(rustWorkbookConnectionAtom) !== connection) return 'superseded'
       fail(error instanceof Error ? error.message : String(error))

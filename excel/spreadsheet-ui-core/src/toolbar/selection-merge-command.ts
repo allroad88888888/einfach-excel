@@ -14,6 +14,7 @@ import { rustWorkbookConnectionAtom } from '../runtime/workbook-connection'
 import { activeWorkbookSheetAtom } from '../runtime/workbook-document'
 import { selectionRegionsAtom, selectionSnapshotAtom } from '../selection'
 import { sheetTabsAtom } from '../sheet-tabs/state'
+import { recordRepeatIntentAtom } from '../repeat/state'
 import { selectionStructureFeedbackAtom } from './selection-structure-state'
 import { selectionVisibilityFeedbackAtom } from './selection-visibility-command'
 import { selectionSizePanelAtom } from './selection-size-command'
@@ -105,6 +106,7 @@ export const runSelectionMergeAtom = atom(
         throw new Error('Rust returned a mismatched merge result.')
       set(applyVisibleProjectionAtom, { witness, request: projection, result: result.projection })
       set(selectionMergeFeedbackAtom, { busy: false, error: null, pending: null })
+      set(recordRepeatIntentAtom, { kind: 'merge', action: operation })
       return true
     } catch (cause) {
       if (get(rustWorkbookConnectionAtom) !== connection) return false

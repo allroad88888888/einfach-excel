@@ -37,6 +37,7 @@ export { formulaArgumentsPanelAtom, runFormulaArgumentsAtom,
   type FormulaArgumentsAction } from './formula-arguments'
 export * from './comments'
 export * from './history'
+export * from './repeat'
 export * from './backend'
 export * from './clipboard'
 export * from './clipboard/system-clipboard-command'

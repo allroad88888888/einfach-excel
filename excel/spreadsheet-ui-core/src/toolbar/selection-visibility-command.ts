@@ -13,6 +13,7 @@ import { sheetProtectionAtom, getSheetProtection } from '../protection'
 import { revealVisibleSelection } from '../viewport/reveal-visible-selection'
 import { validSheetVisibility } from '../viewport/hidden-state'
 import { validateProjectionResult } from '../projection/contracts'
+import { recordRepeatIntentAtom } from '../repeat/state'
 import { selectionStructureFeedbackAtom } from './selection-structure-state'
 import { selectionMergeFeedbackAtom } from './selection-merge-state'
 
@@ -90,6 +91,7 @@ export const runSelectionVisibilityAtom = atom(
         revealVisibleSelection(get, set, sheet, selection.activeCell)
       }
       set(selectionVisibilityFeedbackAtom, { busy: false, error: null })
+      set(recordRepeatIntentAtom, { kind: 'visibility', action })
       return true
     } catch (error) {
       return fail(error instanceof Error ? error.message : String(error))

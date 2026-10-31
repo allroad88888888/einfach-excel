@@ -94,6 +94,11 @@ export interface HistoryIntent {
   type: 'history.undo' | 'history.redo'
 }
 
+/** F4：重复最近一次可重复的命令（编辑态的 F4 由公式引用切换处理）。 */
+export interface RepeatKeyboardIntent {
+  type: 'repeat.last'
+}
+
 export type FormatToggleField = 'bold' | 'italic' | 'underline'
 
 export interface FormatToggleIntent {
@@ -154,6 +159,7 @@ export type KeyboardCommandIntent =
   | KeyboardClipboardIntent
   | SheetNavigationIntent
   | HistoryIntent
+  | RepeatKeyboardIntent
   | { type: 'range.fill'; direction: 'down' | 'right' }
   | FormatToggleIntent
   | ClearCellsIntent

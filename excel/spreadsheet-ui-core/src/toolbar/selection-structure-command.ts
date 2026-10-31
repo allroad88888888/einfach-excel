@@ -27,6 +27,7 @@ import {
 import { selectionSnapshotAtom } from '../selection'
 import { sheetTabsAtom } from '../sheet-tabs/state'
 import { validSheetVisibility, applySheetVisibility } from '../viewport/hidden-state'
+import { recordRepeatIntentAtom } from '../repeat/state'
 import { selectionStructureFeedbackAtom } from './selection-structure-state'
 import { selectionMergeFeedbackAtom } from './selection-merge-state'
 import { selectionVisibilityFeedbackAtom } from './selection-visibility-command'
@@ -125,6 +126,7 @@ export const runSelectionStructureAtom = atom(
       set(applyVisibleProjectionAtom, { witness, request, result: result.projection })
       set(syncWorkbookCanvasAtom)
       set(selectionStructureFeedbackAtom, { busy: false, error: null })
+      set(recordRepeatIntentAtom, { kind: 'structure', action })
       return true
     } catch (error) {
       if (get(rustWorkbookConnectionAtom) !== connection) return false

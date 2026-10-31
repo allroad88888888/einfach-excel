@@ -35,6 +35,10 @@ export function getKeyboardCommandIntent(
     }
   }
 
+  if (input.key === 'F4' && !input.ctrlKey && !input.metaKey && !input.altKey && !input.shiftKey) {
+    return { type: 'repeat.last' }
+  }
+
   const commandIntent = getCommandShortcutIntent(input, state)
   if (commandIntent.type !== 'none') {
     return commandIntent

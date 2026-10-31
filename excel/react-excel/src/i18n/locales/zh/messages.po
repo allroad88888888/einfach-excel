@@ -280,6 +280,10 @@ msgstr "计算单元格区域内所有数字之和。"
 msgid "Advanced number parsing"
 msgstr "高级数字解析"
 
+#: src/workbook/repeat/repeat-labels.ts
+msgid "Alignment"
+msgstr "对齐方式"
+
 #: src/workbook/chrome/ribbon/BorderTools.tsx
 msgid "All borders"
 msgstr "所有框线"
@@ -544,6 +548,7 @@ msgid "Blue"
 msgstr "蓝色"
 
 #: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Bold"
 msgstr "粗体"
 
@@ -561,6 +566,7 @@ msgstr "边框设置"
 
 #: src/workbook/chrome/ribbon/BorderTools.tsx
 #: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Borders"
 msgstr "边框"
 
@@ -819,6 +825,7 @@ msgstr "清除 {table} 筛选"
 #: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/ClearTools.tsx
 #: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Clear all"
 msgstr "全部清除"
 
@@ -833,6 +840,7 @@ msgstr "清除 {0} 列筛选"
 
 #: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/ClearTools.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Clear contents"
 msgstr "清除内容"
 
@@ -850,6 +858,7 @@ msgstr "清除格式"
 
 #: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/ClearTools.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Clear formatting"
 msgstr "清除格式"
 
@@ -960,6 +969,7 @@ msgid "Column outline"
 msgstr "列分组"
 
 #: src/workbook/chrome/ribbon/SelectionSizeTools.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Column width"
 msgstr "列宽"
 
@@ -1504,6 +1514,7 @@ msgid "Delete “{0}” and all its data? Undo is available within session histo
 msgstr "删除“{0}”及其全部数据？在当前会话的历史记录保留范围内可以撤销。"
 
 #: src/i18n/feedback-messages.ts
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Delete columns"
 msgstr "删除列"
 
@@ -1528,6 +1539,7 @@ msgid "Delete note"
 msgstr "删除备注"
 
 #: src/i18n/feedback-messages.ts
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Delete rows"
 msgstr "删除行"
 
@@ -2082,6 +2094,7 @@ msgid "Fill arguments"
 msgstr "填写参数"
 
 #: src/workbook/chrome/ribbon/ColorTools.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Fill color"
 msgstr "填充颜色"
 
@@ -2361,11 +2374,16 @@ msgstr "固定：{0}"
 msgid "Fixed: {value}"
 msgstr "固定：{value}"
 
+#: src/workbook/repeat/repeat-labels.ts
+msgid "Font"
+msgstr "字体"
+
 #: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
 msgid "Font family"
 msgstr "字体"
 
 #: src/workbook/chrome/ribbon/FontSizeTools.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Font size"
 msgstr "字号"
 
@@ -2412,6 +2430,10 @@ msgstr "设置选区格式"
 #: src/i18n/feedback-messages.ts
 msgid "Format table"
 msgstr "设置表格格式"
+
+#: src/workbook/repeat/repeat-labels.ts
+msgid "Formatting"
+msgstr "格式"
 
 #: src/i18n/feedback-messages.ts
 msgid "Formatting applied."
@@ -2613,10 +2635,12 @@ msgid "Hide / Unhide"
 msgstr "隐藏／取消隐藏"
 
 #: src/i18n/feedback-messages.ts
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Hide columns"
 msgstr "隐藏列"
 
 #: src/i18n/feedback-messages.ts
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Hide rows"
 msgstr "隐藏行"
 
@@ -2729,6 +2753,10 @@ msgstr "增大字号"
 msgid "Increase indent"
 msgstr "增加缩进"
 
+#: src/workbook/repeat/repeat-labels.ts
+msgid "Indent"
+msgstr "缩进"
+
 #: src/i18n/feedback-messages.ts
 #: src/workbook/advanced-validation/AdvancedValidationFields.tsx
 msgid "Information"
@@ -2755,6 +2783,7 @@ msgid "Insert / Delete"
 msgstr "插入 / 删除"
 
 #: src/i18n/feedback-messages.ts
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Insert columns"
 msgstr "插入列"
 
@@ -2784,6 +2813,7 @@ msgid "Insert or delete rows and columns"
 msgstr "插入或删除行列"
 
 #: src/i18n/feedback-messages.ts
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Insert rows"
 msgstr "插入行"
 
@@ -2872,6 +2902,7 @@ msgid "Invalid protection projection request."
 msgstr "保护投影请求无效。"
 
 #: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Italic"
 msgstr "斜体"
 
@@ -3122,12 +3153,14 @@ msgstr "合并 / 取消合并"
 
 #: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/MergeTools.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Merge and center"
 msgstr "合并后居中"
 
 #: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/MergeConfirmation.tsx
 #: src/workbook/chrome/ribbon/MergeTools.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Merge cells"
 msgstr "合并单元格"
 
@@ -3469,6 +3502,7 @@ msgid "Number"
 msgstr "数字"
 
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Number format"
 msgstr "数字格式"
 
@@ -4054,6 +4088,18 @@ msgstr "已重新打开此讨论"
 msgid "Reorder conditional formats"
 msgstr "调整条件格式顺序"
 
+#: src/workbook/repeat/RepeatButton.tsx
+msgid "Repeat"
+msgstr "重复"
+
+#: src/workbook/repeat/RepeatButton.tsx
+msgid "Repeat (F4)"
+msgstr "重复 (F4)"
+
+#: src/workbook/repeat/RepeatButton.tsx
+msgid "Repeat {action} (F4)"
+msgstr "重复{action} (F4)"
+
 #: src/workbook/formula-help/FormulaParameterHelp.tsx
 msgid "Repeat the marked parameters together, in order."
 msgstr "按顺序一起重复标记的参数。"
@@ -4267,6 +4313,7 @@ msgid "Row and column visibility"
 msgstr "行列显隐"
 
 #: src/workbook/chrome/ribbon/SelectionSizeTools.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Row height"
 msgstr "行高"
 
@@ -4906,6 +4953,7 @@ msgid "Stop if true"
 msgstr "为真则停止"
 
 #: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Strikethrough"
 msgstr "删除线"
 
@@ -5005,6 +5053,7 @@ msgid "Text"
 msgstr "文本"
 
 #: src/workbook/chrome/ribbon/ColorTools.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Text color"
 msgstr "字体颜色"
 
@@ -5618,6 +5667,7 @@ msgid "Trim whitespace"
 msgstr "去除首尾空白"
 
 #: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Underline"
 msgstr "下划线"
 
@@ -5650,6 +5700,14 @@ msgstr "取消选中列分组"
 msgid "Ungroup selected rows"
 msgstr "取消选中行分组"
 
+#: src/workbook/repeat/repeat-labels.ts
+msgid "Unhide"
+msgstr "取消隐藏"
+
+#: src/workbook/repeat/repeat-labels.ts
+msgid "Unhide all"
+msgstr "全部取消隐藏"
+
 #: src/workbook/chrome/ribbon/VisibilityTools.tsx
 msgid "Unhide all rows and columns"
 msgstr "取消隐藏所有行列"
@@ -5676,6 +5734,7 @@ msgstr "唯一值"
 
 #: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/MergeTools.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Unmerge cells"
 msgstr "取消合并单元格"
 
@@ -6067,6 +6126,7 @@ msgid "Worksheet tables"
 msgstr "工作表表格"
 
 #: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Wrap text"
 msgstr "自动换行"
 

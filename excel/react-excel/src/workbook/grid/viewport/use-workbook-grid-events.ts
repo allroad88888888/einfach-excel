@@ -226,6 +226,7 @@ function getGridKeyboardInput(
     ctrlKey: event.ctrlKey,
     metaKey: event.metaKey,
   }
+  if (event.key === 'F4' && !event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey) return input
   if ((event.ctrlKey || event.metaKey) && !event.altKey && ['z', 'y'].includes(event.key.toLowerCase())) return input
   if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey &&
     ['d', 'r'].includes(event.key.toLowerCase())) return input

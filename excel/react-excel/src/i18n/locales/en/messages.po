@@ -280,6 +280,10 @@ msgstr "Adds all the numbers in a range of cells."
 msgid "Advanced number parsing"
 msgstr "Advanced number parsing"
 
+#: src/workbook/repeat/repeat-labels.ts
+msgid "Alignment"
+msgstr "Alignment"
+
 #: src/workbook/chrome/ribbon/BorderTools.tsx
 msgid "All borders"
 msgstr "All borders"
@@ -544,6 +548,7 @@ msgid "Blue"
 msgstr "Blue"
 
 #: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Bold"
 msgstr "Bold"
 
@@ -561,6 +566,7 @@ msgstr "Border settings"
 
 #: src/workbook/chrome/ribbon/BorderTools.tsx
 #: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Borders"
 msgstr "Borders"
 
@@ -819,6 +825,7 @@ msgstr "Clear {table} filter"
 #: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/ClearTools.tsx
 #: src/workbook/chrome/ribbon/RemoveDuplicatesTools.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Clear all"
 msgstr "Clear all"
 
@@ -833,6 +840,7 @@ msgstr "Clear column {0} filter"
 
 #: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/ClearTools.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Clear contents"
 msgstr "Clear contents"
 
@@ -850,6 +858,7 @@ msgstr "Clear formats"
 
 #: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/ClearTools.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Clear formatting"
 msgstr "Clear formatting"
 
@@ -960,6 +969,7 @@ msgid "Column outline"
 msgstr "Column outline"
 
 #: src/workbook/chrome/ribbon/SelectionSizeTools.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Column width"
 msgstr "Column width"
 
@@ -1504,6 +1514,7 @@ msgid "Delete “{0}” and all its data? Undo is available within session histo
 msgstr "Delete “{0}” and all its data? Undo is available within session history limits."
 
 #: src/i18n/feedback-messages.ts
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Delete columns"
 msgstr "Delete columns"
 
@@ -1528,6 +1539,7 @@ msgid "Delete note"
 msgstr "Delete note"
 
 #: src/i18n/feedback-messages.ts
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Delete rows"
 msgstr "Delete rows"
 
@@ -2082,6 +2094,7 @@ msgid "Fill arguments"
 msgstr "Fill arguments"
 
 #: src/workbook/chrome/ribbon/ColorTools.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Fill color"
 msgstr "Fill color"
 
@@ -2361,11 +2374,16 @@ msgstr "Fixed: {0}"
 msgid "Fixed: {value}"
 msgstr "Fixed: {value}"
 
+#: src/workbook/repeat/repeat-labels.ts
+msgid "Font"
+msgstr "Font"
+
 #: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
 msgid "Font family"
 msgstr "Font family"
 
 #: src/workbook/chrome/ribbon/FontSizeTools.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Font size"
 msgstr "Font size"
 
@@ -2412,6 +2430,10 @@ msgstr "Format selection"
 #: src/i18n/feedback-messages.ts
 msgid "Format table"
 msgstr "Format table"
+
+#: src/workbook/repeat/repeat-labels.ts
+msgid "Formatting"
+msgstr "Formatting"
 
 #: src/i18n/feedback-messages.ts
 msgid "Formatting applied."
@@ -2613,10 +2635,12 @@ msgid "Hide / Unhide"
 msgstr "Hide / Unhide"
 
 #: src/i18n/feedback-messages.ts
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Hide columns"
 msgstr "Hide columns"
 
 #: src/i18n/feedback-messages.ts
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Hide rows"
 msgstr "Hide rows"
 
@@ -2729,6 +2753,10 @@ msgstr "Increase font size"
 msgid "Increase indent"
 msgstr "Increase indent"
 
+#: src/workbook/repeat/repeat-labels.ts
+msgid "Indent"
+msgstr "Indent"
+
 #: src/i18n/feedback-messages.ts
 #: src/workbook/advanced-validation/AdvancedValidationFields.tsx
 msgid "Information"
@@ -2755,6 +2783,7 @@ msgid "Insert / Delete"
 msgstr "Insert / Delete"
 
 #: src/i18n/feedback-messages.ts
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Insert columns"
 msgstr "Insert columns"
 
@@ -2784,6 +2813,7 @@ msgid "Insert or delete rows and columns"
 msgstr "Insert or delete rows and columns"
 
 #: src/i18n/feedback-messages.ts
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Insert rows"
 msgstr "Insert rows"
 
@@ -2872,6 +2902,7 @@ msgid "Invalid protection projection request."
 msgstr "Invalid protection projection request."
 
 #: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Italic"
 msgstr "Italic"
 
@@ -3122,12 +3153,14 @@ msgstr "Merge / Unmerge"
 
 #: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/MergeTools.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Merge and center"
 msgstr "Merge and center"
 
 #: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/MergeConfirmation.tsx
 #: src/workbook/chrome/ribbon/MergeTools.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Merge cells"
 msgstr "Merge cells"
 
@@ -3469,6 +3502,7 @@ msgid "Number"
 msgstr "Number"
 
 #: src/workbook/chrome/ribbon/NumberFormatTools.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Number format"
 msgstr "Number format"
 
@@ -4054,6 +4088,18 @@ msgstr "Reopened this discussion"
 msgid "Reorder conditional formats"
 msgstr "Reorder conditional formats"
 
+#: src/workbook/repeat/RepeatButton.tsx
+msgid "Repeat"
+msgstr "Repeat"
+
+#: src/workbook/repeat/RepeatButton.tsx
+msgid "Repeat (F4)"
+msgstr "Repeat (F4)"
+
+#: src/workbook/repeat/RepeatButton.tsx
+msgid "Repeat {action} (F4)"
+msgstr "Repeat {action} (F4)"
+
 #: src/workbook/formula-help/FormulaParameterHelp.tsx
 msgid "Repeat the marked parameters together, in order."
 msgstr "Repeat the marked parameters together, in order."
@@ -4267,6 +4313,7 @@ msgid "Row and column visibility"
 msgstr "Row and column visibility"
 
 #: src/workbook/chrome/ribbon/SelectionSizeTools.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Row height"
 msgstr "Row height"
 
@@ -4906,6 +4953,7 @@ msgid "Stop if true"
 msgstr "Stop if true"
 
 #: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Strikethrough"
 msgstr "Strikethrough"
 
@@ -5005,6 +5053,7 @@ msgid "Text"
 msgstr "Text"
 
 #: src/workbook/chrome/ribbon/ColorTools.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Text color"
 msgstr "Text color"
 
@@ -5618,6 +5667,7 @@ msgid "Trim whitespace"
 msgstr "Trim whitespace"
 
 #: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Underline"
 msgstr "Underline"
 
@@ -5650,6 +5700,14 @@ msgstr "Ungroup selected columns"
 msgid "Ungroup selected rows"
 msgstr "Ungroup selected rows"
 
+#: src/workbook/repeat/repeat-labels.ts
+msgid "Unhide"
+msgstr "Unhide"
+
+#: src/workbook/repeat/repeat-labels.ts
+msgid "Unhide all"
+msgstr "Unhide all"
+
 #: src/workbook/chrome/ribbon/VisibilityTools.tsx
 msgid "Unhide all rows and columns"
 msgstr "Unhide all rows and columns"
@@ -5676,6 +5734,7 @@ msgstr "Unique values"
 
 #: src/i18n/feedback-messages.ts
 #: src/workbook/chrome/ribbon/MergeTools.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Unmerge cells"
 msgstr "Unmerge cells"
 
@@ -6067,6 +6126,7 @@ msgid "Worksheet tables"
 msgstr "Worksheet tables"
 
 #: src/workbook/chrome/ribbon/WorkbookRibbon.tsx
+#: src/workbook/repeat/repeat-labels.ts
 msgid "Wrap text"
 msgstr "Wrap text"
 

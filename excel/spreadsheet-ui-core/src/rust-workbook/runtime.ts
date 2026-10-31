@@ -42,6 +42,7 @@ import { exportWorkbookFile, openWorkbookFile } from './file-io'
 import { inspectSpill } from './spill-commands'
 import { changeHyperlink } from './hyperlink/command'
 import { readNote, changeNote } from './notes/command'
+import { transferDraggedRange } from './drag-move/command'
 import { readProtection, changeProtection } from './protection/commands'
 import { readCustomFormulas, changeCustomFormula } from './custom-formulas/command'
 import { createAsyncFormulaIo, type AsyncFormulaIo } from './async-formulas/io'
@@ -459,6 +460,12 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
       const result = editWorkbookSheet(current, sheetsById, input, revision + 1)
       painterToken = undefined
+      revision += 1
+      return result
+    }
+    if (command === 'range.dragTransfer') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      const result = transferDraggedRange(current, sheetsById, input, revision + 1)
       revision += 1
       return result
     }

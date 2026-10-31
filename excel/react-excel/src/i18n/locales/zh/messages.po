@@ -1718,6 +1718,10 @@ msgstr "拖动填充"
 msgid "Drag to fill. Double-click to fill down. Hold Ctrl/⌘ to copy; Escape to cancel."
 msgstr "拖动填充，双击向下填充。按住 Ctrl/⌘ 复制；Escape 取消。"
 
+#: src/workbook/drag-move/SelectionMoveBorder.tsx
+msgid "Drag to move cells. Hold Ctrl (Option on Mac) to copy; Escape to cancel."
+msgstr "拖动以移动单元格。按住 Ctrl（Mac 上为 Option）复制；Escape 取消。"
+
 #: src/workbook/grid/viewport/GridResizeHandle.tsx
 msgid "Drag to resize {axisLabel}; double-click or Enter to auto-fit; arrow keys adjust by 10 px"
 msgstr "拖动调整{axisLabel}尺寸；双击或按 Enter 自动适应；方向键每次调整 10 像素"
@@ -2897,6 +2901,10 @@ msgstr "自定义公式操作无效。"
 msgid "Invalid custom formula projection request."
 msgstr "自定义公式投影请求无效。"
 
+#: src/i18n/drag-move-feedback.ts
+msgid "Invalid drag move acknowledgement."
+msgstr "拖动移动的确认结果无效。"
+
 #: src/i18n/feedback-messages.ts
 msgid "Invalid hyperlink projection request."
 msgstr "超链接的可见区域请求无效。"
@@ -3267,6 +3275,10 @@ msgstr "月份名称"
 #: src/workbook/chrome/ribbon/ClipboardTools.tsx
 msgid "More paste options"
 msgstr "更多粘贴选项"
+
+#: src/workbook/chrome/footer/WorkbookFooter.tsx
+msgid "Move cells error"
+msgstr "移动单元格错误"
 
 #: src/i18n/next-version-feedback.ts
 msgid "Move cells outside Excel Tables before cutting between sheets. No cells were moved."
@@ -4399,6 +4411,10 @@ msgstr "原生批注编辑不可用。"
 msgid "Rust custom formula editing is unavailable."
 msgstr "Rust 自定义公式编辑暂不可用。"
 
+#: src/i18n/drag-move-feedback.ts
+msgid "Rust drag move is unavailable."
+msgstr "Rust 拖动移动不可用。"
+
 #: src/i18n/feedback-messages.ts
 msgid "Rust hyperlink editing is unavailable."
 msgstr "Rust 超链接编辑功能不可用。"
@@ -5411,6 +5427,10 @@ msgstr "工作簿已更改，请关闭并重新打开数据验证。"
 msgid "The workbook changed. Close and reopen Filter."
 msgstr "工作簿已更改，请关闭并重新打开筛选。"
 
+#: src/i18n/drag-move-feedback.ts
+msgid "The workbook changed. Drag the cells again."
+msgstr "工作簿已更改，请重新拖动单元格。"
+
 #: src/i18n/feedback-messages.ts
 msgid "The workbook changed. Find again."
 msgstr "工作簿已更改，请重新查找。"
@@ -5507,6 +5527,10 @@ msgstr "工作表已不存在。"
 #: src/workbook/chrome/ribbon/SortTools.tsx
 msgid "Then by ({0})"
 msgstr "次要关键字（{0}）"
+
+#: src/workbook/drag-move/use-selection-move-drag.ts
+msgid "There's already data here. Do you want to replace it?"
+msgstr "此处已有数据。是否替换它？"
 
 #: src/i18n/feedback-messages.ts
 msgid "These cells have already been moved. Copy or cut again to paste."

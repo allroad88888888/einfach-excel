@@ -33,6 +33,7 @@ import { GridHeaders } from './GridHeaders'
 import { FrozenGrid } from './FrozenGrid'
 import { OutlineGutters } from './OutlineGutters'
 import { FillHandle } from '../fill/FillHandle'
+import { SelectionMoveBorder } from '../../drag-move/SelectionMoveBorder'
 import { useGridZoomWheel } from '../../zoom/use-grid-zoom-wheel'
 import './grid.css'
 
@@ -217,6 +218,7 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
             )}
           </div>
           <FrozenGrid focusGrid={events.focusGrid} />
+          <SelectionMoveBorder scrollRef={events.scrollRef} focusGrid={events.focusGrid} />
           <FillHandle scrollRef={events.scrollRef} focusGrid={events.focusGrid} />
           <CellEditor focusGrid={events.focusGrid} />
           <CellValidationList focusGrid={events.focusGrid} />

@@ -1,0 +1,28 @@
+:where(.einfach-spreadsheet) .drag-move-viewport {
+  position: sticky;
+  grid-area: 1 / 1 / 3 / 3;
+  align-self: start;
+  justify-self: start;
+  top: 0;
+  left: 0;
+  /* 低于填充柄（7），右下角仍是填充柄。 */
+  z-index: 6;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+:where(.einfach-spreadsheet) .drag-move-edge {
+  position: absolute;
+  box-sizing: border-box;
+  cursor: move;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+:where(.einfach-spreadsheet) .drag-move-edge[data-mode='copy'] { cursor: copy; }
+
+:where(.einfach-spreadsheet) .drag-move-preview {
+  position: absolute;
+  box-sizing: border-box;
+  border: 2px dashed var(--primary);
+}

@@ -1093,3 +1093,13 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | SHEETMGMT-006 | 标签颜色设置与清除 | `sheet-management/sheet-management.spec.ts` | tab color can be set from the palette and cleared with No color, each undoable |
 | SHEETMGMT-007 | 下载打开保留隐藏与颜色 | `sheet-management/sheet-management.spec.ts` | download and open keep hidden sheets and tab colors |
 | SHEETMGMT-008 | Ctrl+PageUp/PageDown 跳过隐藏表 | `sheet-management/sheet-management.spec.ts` | Ctrl+PageUp and Ctrl+PageDown skip hidden sheets |
+| DRAGMOVE-001 | 悬停选区外框显示移动光标（填充柄仍为十字） | `drag-move/move.spec.ts` | hovering the selection border shows the move cursor but the fill handle keeps crosshair |
+| DRAGMOVE-002 | 拖动选区外框移动区域，公式引用跟随 | `drag-move/move.spec.ts` | dragging the selection border moves the range and formulas follow the moved cells |
+| DRAGMOVE-003 | 松手时按住 Ctrl（Mac 为 Option）改为复制 | `drag-move/move.spec.ts` | holding the copy modifier at release copies the range and shifts relative formulas |
+| DRAGMOVE-004 | 拖动移动一步撤销 | `drag-move/move.spec.ts` | undo restores a dragged move in one step |
+| DRAGMOVE-005 | 拖动中按 Escape 取消 | `drag-move/cancel-replace.spec.ts` | escape during a border drag cancels without moving cells |
+| DRAGMOVE-006 | 落到已有数据时拒绝替换提示 | `drag-move/cancel-replace.spec.ts` | declining the replace prompt keeps both the source and the existing data |
+| DRAGMOVE-007 | 落到已有数据时确认替换 | `drag-move/cancel-replace.spec.ts` | accepting the replace prompt overwrites the existing data |
+| DRAGMOVE-008 | 冻结窗格下从冻结区拖到滚动区 | `drag-move/viewport.spec.ts` | a border drag from the frozen pane drops into the scrolling pane |
+| DRAGMOVE-009 | 缩放 150% 下落点命中指针下的格 | `drag-move/viewport.spec.ts` | a border drag at 150 percent zoom drops on the cell under the pointer |
+| DRAGMOVE-010 | 拖到视口边缘自动滚动落点 | `drag-move/viewport.spec.ts` | holding a border drag near the bottom edge autoscrolls the drop target |

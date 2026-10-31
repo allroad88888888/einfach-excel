@@ -2,6 +2,7 @@ import { translateFeedback } from '../../../i18n/translate-feedback'
 import { useAtomValue } from '@einfach/react'
 import {
   activeWorkbookSheetAtom,
+  dragMoveFeedbackAtom,
   formatPainterAtom,
   multiRangeSelectionFeedbackAtom,
   selectionCellCountAtom,
@@ -25,6 +26,7 @@ export function WorkbookFooter() {
   const painting = useAtomValue(formatPainterAtom).mode !== 'idle'
   const mutation = useAtomValue(selectionMutationFeedbackAtom)
   const selectionError = useAtomValue(multiRangeSelectionFeedbackAtom)
+  const dragMove = useAtomValue(dragMoveFeedbackAtom)
 
   return (
     <footer className="workbook-footer">
@@ -32,6 +34,8 @@ export function WorkbookFooter() {
         role="alert" aria-label={t`Selection change error`}>{translateFeedback(i18n, selectionError)}</div>}
       {mutation.error && <div className="selection-limit-note sheet-command-error"
         role="alert" aria-label={t`Selection change error`}>{translateFeedback(i18n, mutation.error)}</div>}
+      {dragMove.error && <div className="selection-limit-note sheet-command-error"
+        role="alert" aria-label={t`Move cells error`}>{translateFeedback(i18n, dragMove.error)}</div>}
       {mutation.busy && <span className="visually-hidden" role="status"><Trans>Updating selection…</Trans></span>}
       {multiple && <div className="selection-limit-note" role="status" aria-label={t`Multi-area selection`}><Trans>
         {selectedCellCount} cells selected in multiple areas.

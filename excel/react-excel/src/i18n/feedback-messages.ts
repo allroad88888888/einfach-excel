@@ -2,11 +2,13 @@ import { msg } from '@lingui/core/macro'
 import type { MessageDescriptor } from '@lingui/core'
 import { sevenFeatureFeedback } from './seven-feature-feedback'
 import { nextVersionFeedback } from './next-version-feedback'
+import { dragMoveFeedback } from './drag-move-feedback'
 
 /** Core 提示的展现层词典：键保留原文以兼容现有结果；翻译由 Lingui 提取和切换。 */
 export const feedbackMessages: Readonly<Record<string, MessageDescriptor>> = {
   ...sevenFeatureFeedback,
   ...nextVersionFeedback,
+  ...dragMoveFeedback,
   HOST_READ_ONLY: msg`This workbook is read-only.`,
   HOST_BUSY: msg`The workbook is busy. Try again when it is ready.`,
   HOST_STRUCTURE_DISABLED: msg`Worksheet structure changes are disabled.`,

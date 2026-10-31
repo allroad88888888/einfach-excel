@@ -34,6 +34,7 @@ import type { RustWorkbookFileCommands } from './file-commands'
 import type { RustSpillCommands } from './spill-commands'
 import type { RustHyperlinkCommands } from './hyperlink/command'
 import type { RustNoteCommands } from './notes/command'
+import type { RustDragMoveCommands } from './drag-move/command'
 import type { RustCommentCommands } from './comments/command'
 import type { RustProtectionCommands } from './protection/commands'
 import type { RustCustomFormulaCommands } from './custom-formulas/command'
@@ -196,7 +197,8 @@ export interface RustWorkbookCommands
     RustCommentCommands,
     RustProtectionCommands,
     RustCustomFormulaCommands,
-    RustAsyncFormulaCommands {
+    RustAsyncFormulaCommands,
+    RustDragMoveCommands {
   readonly 'format.preview': WorkerCommand<
     {
       readonly sheetId: string

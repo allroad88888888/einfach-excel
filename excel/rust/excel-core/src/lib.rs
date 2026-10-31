@@ -9,6 +9,7 @@ pub mod cell_style;
 pub mod clipboard;
 pub mod csv;
 pub mod data_validation;
+pub mod drag_move;
 pub mod outline;
 mod date_serial;
 mod date_format;

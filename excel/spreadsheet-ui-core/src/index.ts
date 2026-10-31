@@ -96,6 +96,7 @@ export { textColumnsPanelAtom, runTextColumnsPanelAtom } from './text-to-columns
 export { nativeDuplicatesPanelAtom, runNativeDuplicatesPanelAtom } from './remove-duplicates/native-panel'
 export * from './toolbar'
 export * from './zoom'
+export * from './drag-move'
 export { WORKBOOK_RIBBON_TABS, workbookRibbonTabAtom, selectWorkbookRibbonTabAtom } from './toolbar/ribbon-tab'
 export type { WorkbookRibbonTab } from './toolbar/ribbon-tab'
 export * from './toolbar/selection-format-command'

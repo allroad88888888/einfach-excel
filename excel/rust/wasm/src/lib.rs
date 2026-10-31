@@ -112,6 +112,7 @@ pub struct WasmWorkbook {
 }
 
 include!("notes/mod.rs");
+include!("drag_move/mod.rs");
 include!("comments/mod.rs");
 include!("protection/mod.rs");
 include!("custom_formulas/mod.rs");

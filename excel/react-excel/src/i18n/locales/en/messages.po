@@ -1718,6 +1718,10 @@ msgstr "Drag to fill"
 msgid "Drag to fill. Double-click to fill down. Hold Ctrl/⌘ to copy; Escape to cancel."
 msgstr "Drag to fill. Double-click to fill down. Hold Ctrl/⌘ to copy; Escape to cancel."
 
+#: src/workbook/drag-move/SelectionMoveBorder.tsx
+msgid "Drag to move cells. Hold Ctrl (Option on Mac) to copy; Escape to cancel."
+msgstr "Drag to move cells. Hold Ctrl (Option on Mac) to copy; Escape to cancel."
+
 #: src/workbook/grid/viewport/GridResizeHandle.tsx
 msgid "Drag to resize {axisLabel}; double-click or Enter to auto-fit; arrow keys adjust by 10 px"
 msgstr "Drag to resize {axisLabel}; double-click or Enter to auto-fit; arrow keys adjust by 10 px"
@@ -2897,6 +2901,10 @@ msgstr "Invalid custom formula action."
 msgid "Invalid custom formula projection request."
 msgstr "Invalid custom formula projection request."
 
+#: src/i18n/drag-move-feedback.ts
+msgid "Invalid drag move acknowledgement."
+msgstr "Invalid drag move acknowledgement."
+
 #: src/i18n/feedback-messages.ts
 msgid "Invalid hyperlink projection request."
 msgstr "Invalid hyperlink projection request."
@@ -3267,6 +3275,10 @@ msgstr "Month names"
 #: src/workbook/chrome/ribbon/ClipboardTools.tsx
 msgid "More paste options"
 msgstr "More paste options"
+
+#: src/workbook/chrome/footer/WorkbookFooter.tsx
+msgid "Move cells error"
+msgstr "Move cells error"
 
 #: src/i18n/next-version-feedback.ts
 msgid "Move cells outside Excel Tables before cutting between sheets. No cells were moved."
@@ -4399,6 +4411,10 @@ msgstr "Rust comment editing is unavailable."
 msgid "Rust custom formula editing is unavailable."
 msgstr "Rust custom formula editing is unavailable."
 
+#: src/i18n/drag-move-feedback.ts
+msgid "Rust drag move is unavailable."
+msgstr "Rust drag move is unavailable."
+
 #: src/i18n/feedback-messages.ts
 msgid "Rust hyperlink editing is unavailable."
 msgstr "Rust hyperlink editing is unavailable."
@@ -5411,6 +5427,10 @@ msgstr "The workbook changed. Close and reopen Data validation."
 msgid "The workbook changed. Close and reopen Filter."
 msgstr "The workbook changed. Close and reopen Filter."
 
+#: src/i18n/drag-move-feedback.ts
+msgid "The workbook changed. Drag the cells again."
+msgstr "The workbook changed. Drag the cells again."
+
 #: src/i18n/feedback-messages.ts
 msgid "The workbook changed. Find again."
 msgstr "The workbook changed. Find again."
@@ -5507,6 +5527,10 @@ msgstr "The worksheet no longer exists."
 #: src/workbook/chrome/ribbon/SortTools.tsx
 msgid "Then by ({0})"
 msgstr "Then by ({0})"
+
+#: src/workbook/drag-move/use-selection-move-drag.ts
+msgid "There's already data here. Do you want to replace it?"
+msgstr "There's already data here. Do you want to replace it?"
 
 #: src/i18n/feedback-messages.ts
 msgid "These cells have already been moved. Copy or cut again to paste."

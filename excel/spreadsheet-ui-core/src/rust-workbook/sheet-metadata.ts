@@ -1,5 +1,6 @@
 import type { RustWorkbookSheet } from './commands'
 import type { WasmWorkbook } from './wasm-types'
+import { withSheetTabFacts } from './sheet-tab-facts'
 
 /** 仅保留身份/画布元数据；index=-1 表示原生归档，绝不在这里保存或回放单元格。 */
 export function retainSheetMetadata(
@@ -32,7 +33,11 @@ export function readSheetMetadata(
     const key = workbook.sheet_key!(index)
     const previous = byKey.get(key)
     if (!previous) throw new Error('Rust returned an unknown worksheet identity.')
-    return { ...previous, index, name: workbook.sheet_name(index) }
+    return withSheetTabFacts(
+      { ...previous, index, name: workbook.sheet_name(index) },
+      workbook,
+      index,
+    )
   })
   retainSheetMetadata(workbook, known, sheets)
   return sheets

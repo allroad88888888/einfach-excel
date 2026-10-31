@@ -14,7 +14,10 @@ const NON_PERSISTENT = new Set([
   'workbook.locate', 'workbook.find', 'clipboard.export', 'clipboard.capture',
   'clipboard.finishCapture', 'projection.readVisible',
 ])
-const STRUCTURAL = new Set(['sheet.editStructure', 'workbook.changeSheets', 'workbook.editSheet'])
+const STRUCTURAL = new Set([
+  'sheet.editStructure', 'workbook.changeSheets', 'workbook.editSheet',
+  'workbook.duplicateSheet', 'workbook.setSheetHidden', 'workbook.setSheetTabColor',
+])
 export const isPersistentHostCommand = (command: string): boolean => !NON_PERSISTENT.has(command)
 
 export function validateHostControls(input: HostControls): HostControls {

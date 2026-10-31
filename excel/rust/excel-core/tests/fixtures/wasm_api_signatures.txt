@@ -205,3 +205,8 @@ impl WasmWorkbook :: [] :: pub fn split_text_columns( &mut self, request: JsValu
 impl WasmWorkbook :: [] :: pub fn subscribe_cell(&mut self, sheet_name: &str, addr: &str, cb: js_sys::Function) -> u32
 impl WasmWorkbook :: [] :: pub fn suggest_quick_formula(&self, request: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn unsubscribe_cell(&mut self, token: u32)
+impl WasmWorkbook :: [] :: pub fn duplicate_sheet(&mut self, idx: u32) -> Result<u32, JsValue>
+impl WasmWorkbook :: [] :: pub fn set_sheet_hidden(&mut self, idx: u32, hidden: bool) -> Result<bool, JsValue>
+impl WasmWorkbook :: [] :: pub fn set_sheet_tab_color(&mut self, idx: u32, color: Option<String>) -> Result<bool, JsValue>
+impl WasmWorkbook :: [] :: pub fn sheet_hidden(&self, idx: u32) -> bool
+impl WasmWorkbook :: [] :: pub fn sheet_tab_color(&self, idx: u32) -> String

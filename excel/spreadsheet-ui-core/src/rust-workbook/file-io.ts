@@ -76,6 +76,8 @@ export function openWorkbookFile(
     const sheets = canvases.map((canvas, index) => ({
       ...canvas, id: `${idPrefix}-${index}`, index, name: workbook.sheet_name(index),
       ...(workbook.sheet_key ? { key: workbook.sheet_key(index) } : {}),
+      ...(workbook.sheet_hidden?.(index) ? { hidden: true } : {}),
+      ...(workbook.sheet_tab_color?.(index) ? { tabColor: workbook.sheet_tab_color(index) } : {}),
     }))
     return { workbook, metadata: { title, sheets } }
   } catch (error) {

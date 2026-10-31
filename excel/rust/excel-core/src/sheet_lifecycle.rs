@@ -63,6 +63,8 @@ impl Sheet {
             spill_target_anchor: HashMap::new(),
             spill_anchor_addr: HashMap::new(),
             spill_blocked: Default::default(),
+            tab_hidden: false,
+            tab_color: None,
             bulk_notify_probe_count: Cell::new(0),
         }
     }

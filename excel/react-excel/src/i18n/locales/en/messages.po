@@ -544,6 +544,7 @@ msgid "Blocked by {0}."
 msgstr "Blocked by {0}."
 
 #: src/workbook/chrome/ribbon/TableAppearance.tsx
+#: src/workbook/sheet-management/tab-colors.ts
 msgid "Blue"
 msgstr "Blue"
 
@@ -624,6 +625,7 @@ msgstr "Call only built-in functions or registered custom formulas in custom for
 #: src/workbook/formula-arguments/FormulaArgumentsDialog.tsx
 #: src/workbook/hyperlink/HyperlinkTools.tsx
 #: src/workbook/notes/NoteTools.tsx
+#: src/workbook/sheet-management/UnhideSheetDialog.tsx
 msgid "Cancel"
 msgstr "Cancel"
 
@@ -1410,6 +1412,14 @@ msgstr "Cut between sheets is not supported yet."
 msgid "cut…"
 msgstr "cut…"
 
+#: src/workbook/sheet-management/tab-colors.ts
+msgid "Dark blue"
+msgstr "Dark blue"
+
+#: src/workbook/sheet-management/tab-colors.ts
+msgid "Dark red"
+msgstr "Dark red"
+
 #: src/workbook/chrome/ribbon/BorderTools.tsx
 msgid "Dashed"
 msgstr "Dashed"
@@ -1713,6 +1723,7 @@ msgid "Drag to resize {axisLabel}; double-click or Enter to auto-fit; arrow keys
 msgstr "Drag to resize {axisLabel}; double-click or Enter to auto-fit; arrow keys adjust by 10 px"
 
 #: src/workbook/advanced-formatting/AdvancedFormattingFields.tsx
+#: src/workbook/sheet-management/SheetTabContextMenu.tsx
 msgid "Duplicate"
 msgstr "Duplicate"
 
@@ -2598,6 +2609,7 @@ msgid "Greater than or equal to"
 msgstr "Greater than or equal to"
 
 #: src/workbook/chrome/ribbon/TableAppearance.tsx
+#: src/workbook/sheet-management/tab-colors.ts
 msgid "Green"
 msgstr "Green"
 
@@ -2633,6 +2645,14 @@ msgstr "Hex color"
 #: src/workbook/chrome/ribbon/SpillTools.tsx
 msgid "Hidden rows and columns stay hidden. No cells are changed."
 msgstr "Hidden rows and columns stay hidden. No cells are changed."
+
+#: src/workbook/sheet-management/UnhideSheetDialog.tsx
+msgid "Hidden worksheets"
+msgstr "Hidden worksheets"
+
+#: src/workbook/sheet-management/SheetTabContextMenu.tsx
+msgid "Hide"
+msgstr "Hide"
 
 #: src/workbook/chrome/ribbon/VisibilityTools.tsx
 msgid "Hide / Unhide"
@@ -2923,6 +2943,10 @@ msgid "Joins several text strings into one."
 msgstr "Joins several text strings into one."
 
 #: src/i18n/feedback-messages.ts
+msgid "Keep at least one worksheet visible."
+msgstr "Keep at least one worksheet visible."
+
+#: src/i18n/feedback-messages.ts
 msgid "Keep at least one worksheet."
 msgstr "Keep at least one worksheet."
 
@@ -2962,6 +2986,14 @@ msgstr "Less than"
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
 msgid "Less than or equal to"
 msgstr "Less than or equal to"
+
+#: src/workbook/sheet-management/tab-colors.ts
+msgid "Light blue"
+msgstr "Light blue"
+
+#: src/workbook/sheet-management/tab-colors.ts
+msgid "Light green"
+msgstr "Light green"
 
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
 msgid "Limit new input in the selected range. Existing values are kept."
@@ -3398,6 +3430,10 @@ msgstr "No blocking cell can be identified. Check worksheet limits or the array 
 msgid "No borders"
 msgstr "No borders"
 
+#: src/workbook/sheet-management/SheetTabContextMenu.tsx
+msgid "No color"
+msgstr "No color"
+
 #: src/workbook/comments/CommentTimeline.tsx
 msgid "No comments yet. Start a discussion about this cell."
 msgstr "No comments yet. Start a discussion about this cell."
@@ -3538,6 +3574,10 @@ msgstr "Number sequence"
 msgid "Numerical count"
 msgstr "Numerical count"
 
+#: src/workbook/sheet-management/UnhideSheetDialog.tsx
+msgid "OK"
+msgstr "OK"
+
 #: src/i18n/feedback-messages.ts
 msgid "Older operations were dropped to keep history within its memory limit."
 msgstr "Older operations were dropped to keep history within its memory limit."
@@ -3598,6 +3638,10 @@ msgstr "Optional"
 #: src/workbook/advanced-filter/AdvancedFilterGroups.tsx
 msgid "Or"
 msgstr "Or"
+
+#: src/workbook/sheet-management/tab-colors.ts
+msgid "Orange"
+msgstr "Orange"
 
 #: src/workbook/chrome/ribbon/SortTools.tsx
 msgid "Order"
@@ -3851,6 +3895,10 @@ msgstr "Protect worksheet"
 msgid "Protection refers to a missing worksheet."
 msgstr "Protection refers to a missing worksheet."
 
+#: src/workbook/sheet-management/tab-colors.ts
+msgid "Purple"
+msgstr "Purple"
+
 #: src/workbook/chrome/ribbon/QuickFormulaTools.tsx
 msgid "Quick formula"
 msgstr "Quick formula"
@@ -3911,6 +3959,10 @@ msgstr "Recent operations"
 #: src/i18n/feedback-messages.ts
 msgid "Records were removed, but the view could not be updated. Check the sheet before retrying."
 msgstr "Records were removed, but the view could not be updated. Check the sheet before retrying."
+
+#: src/workbook/sheet-management/tab-colors.ts
+msgid "Red"
+msgstr "Red"
 
 #: src/workbook/chrome/ribbon/HistoryTools.tsx
 msgid "Redo"
@@ -4990,6 +5042,14 @@ msgstr "Sums the cells in a range that meet a given criterion."
 msgid "Tab"
 msgstr "Tab"
 
+#: src/workbook/sheet-management/SheetTabContextMenu.tsx
+msgid "Tab color"
+msgstr "Tab color"
+
+#: src/i18n/feedback-messages.ts
+msgid "Tab color must be #RRGGBB."
+msgstr "Tab color must be #RRGGBB."
+
 #. placeholder {0}: panel.table
 #: src/workbook/chrome/ribbon/FilterTools.tsx
 msgid "Table {0}. Only its data rows are checked; headers and totals are excluded."
@@ -5728,6 +5788,14 @@ msgstr "Unhide selected rows and columns"
 msgid "Unhide this row or column before locating the record."
 msgstr "Unhide this row or column before locating the record."
 
+#: src/workbook/sheet-management/UnhideSheetDialog.tsx
+msgid "Unhide worksheet"
+msgstr "Unhide worksheet"
+
+#: src/workbook/sheet-management/SheetTabContextMenu.tsx
+msgid "Unhide…"
+msgstr "Unhide…"
+
 #: src/workbook/advanced-formatting/AdvancedFormattingFields.tsx
 msgid "Unique"
 msgstr "Unique"
@@ -6125,6 +6193,10 @@ msgstr "Worksheet rules"
 msgid "Worksheet structure changes are disabled."
 msgstr "Worksheet structure changes are disabled."
 
+#: src/workbook/sheet-management/SheetTabContextMenu.tsx
+msgid "Worksheet tab"
+msgstr "Worksheet tab"
+
 #: src/workbook/chrome/ribbon/TableTools.tsx
 msgid "Worksheet tables"
 msgstr "Worksheet tables"
@@ -6133,6 +6205,10 @@ msgstr "Worksheet tables"
 #: src/workbook/repeat/repeat-labels.ts
 msgid "Wrap text"
 msgstr "Wrap text"
+
+#: src/workbook/sheet-management/tab-colors.ts
+msgid "Yellow"
+msgstr "Yellow"
 
 #: src/i18n/feedback-messages.ts
 msgid "You can save at most 32 custom lists per workbook session."

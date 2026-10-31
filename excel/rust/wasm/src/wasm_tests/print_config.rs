@@ -46,6 +46,7 @@ fn invalid_print_config_persistence_does_not_replace_the_live_workbook() {
         sheets: vec![WorkbookPersistenceSheetMetaJSON {
             idx: 0,
             name: "Loaded".into(),
+            ..Default::default()
         }],
         cells: vec![],
         formats: vec![],

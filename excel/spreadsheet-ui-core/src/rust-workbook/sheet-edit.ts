@@ -1,6 +1,7 @@
 import type { RustWorkbookCommands, RustWorkbookSheet } from './commands'
 import type { WasmWorkbook } from './wasm-types'
 import { readVisibleProjection } from './visible-projection'
+import { withSheetTabFacts } from './sheet-tab-facts'
 
 /** 新增或改名后发布 Rust 返回的工作表身份；不重建工作簿。 */
 export function editWorkbookSheet(
@@ -29,7 +30,9 @@ export function editWorkbookSheet(
     ...(input.rowCount ? { rowCount: input.rowCount, colCount: input.colCount } : {}),
   })
   sheets.set(id, identity)
-  const sheet = Object.freeze({ ...identity, name: workbook.sheet_name(index) })
+  const sheet = Object.freeze(
+    withSheetTabFacts({ ...identity, name: workbook.sheet_name(index) }, workbook, index),
+  )
   sheets.set(sheet.id, sheet)
   return {
     sheet,

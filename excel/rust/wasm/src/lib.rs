@@ -117,6 +117,7 @@ include!("protection/mod.rs");
 include!("custom_formulas/mod.rs");
 
 include!("wasm_workbook_topology.rs");
+include!("wasm_workbook_sheet_tab.rs");
 include!("wasm_workbook_tables.rs");
 include!("wasm_workbook_table_commands.rs");
 include!("wasm_workbook_visibility.rs");
@@ -195,6 +196,7 @@ mod tests {
     include!("wasm_tests/table_filter.rs");
     include!("wasm_tests/table_totals_commands.rs");
     include!("wasm_tests/hidden_rows.rs");
+    include!("wasm_tests/sheet_tab.rs");
     include!("wasm_tests/manual_visibility.rs");
     include!("wasm_tests/structure_history.rs");
     include!("wasm_tests/clipboard_recovery.rs");

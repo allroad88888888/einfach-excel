@@ -10,6 +10,8 @@ export const feedbackMessages: Readonly<Record<string, MessageDescriptor>> = {
   HOST_READ_ONLY: msg`This workbook is read-only.`,
   HOST_BUSY: msg`The workbook is busy. Try again when it is ready.`,
   HOST_STRUCTURE_DISABLED: msg`Worksheet structure changes are disabled.`,
+  'Keep at least one worksheet visible.': msg`Keep at least one worksheet visible.`,
+  'Tab color must be #RRGGBB.': msg`Tab color must be #RRGGBB.`,
   'Enter a valid http:// or https:// address.': msg`Enter a valid http:// or https:// address.`,
   'Select the anchor cell before changing its hyperlink.': msg`Select the anchor cell before changing its hyperlink.`,
   'The hyperlink display text is too long or invalid.': msg`The hyperlink display text is too long or invalid.`,

@@ -9,6 +9,7 @@ import {
   selectionSnapshotAtom,
   setViewportScrollAtom,
   startCellEditingFromProjectionAtom,
+  switchAdjacentSheetAtom,
   updatePointerSelectionAtom,
   viewportMetricsAtom,
   viewportGeometrySizesAtom,
@@ -57,6 +58,7 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
   const freeze = useAtomValue(projectedFreezeAtom)
   const dispatchGridKeyboard = useSetAtom(dispatchGridCellKeyboardInputAtom)
   const startCellEditing = useSetAtom(startCellEditingFromProjectionAtom)
+  const switchAdjacentSheet = useSetAtom(switchAdjacentSheetAtom)
   const setViewportScroll = useSetAtom(setViewportScrollAtom)
   const updatePointerSelection = useSetAtom(updatePointerSelectionAtom)
   const hyperlink = useGridHyperlink()
@@ -138,6 +140,13 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
         event.preventDefault()
         return
       }
+    }
+    // Ctrl+PageUp/PageDown 在可见工作表之间切换，隐藏的表被跳过。
+    if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey &&
+      (event.key === 'PageUp' || event.key === 'PageDown')) {
+      event.preventDefault()
+      void switchAdjacentSheet(event.key === 'PageUp' ? 'previous' : 'next')
+      return
     }
     const keyboard = getGridKeyboardInput(event, {
       ...viewportMetrics,

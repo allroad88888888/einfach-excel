@@ -265,6 +265,11 @@ export interface WasmWorkbook extends HostWasmCommands, WasmSpillQueries,
   sheet_count(): number
   sheet_name(index: number): string
   sheet_key?(index: number): string
+  sheet_hidden?(index: number): boolean
+  sheet_tab_color?(index: number): string
+  duplicate_sheet?(index: number): number
+  set_sheet_hidden?(index: number, hidden: boolean): boolean
+  set_sheet_tab_color?(index: number, color: string | undefined): boolean
   add_sheet(name: string): number
   edit_sheet(index: number | undefined, name: string): number
   remove_sheet(index: number): boolean

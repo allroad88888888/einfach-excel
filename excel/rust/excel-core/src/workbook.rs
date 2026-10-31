@@ -154,6 +154,11 @@ mod workbook_history_restore;
 mod workbook_history_restore_merged;
 #[path = "workbook_sheet_edit.rs"]
 mod workbook_sheet_edit;
+#[path = "workbook_sheet_tab.rs"]
+mod workbook_sheet_tab;
+#[path = "workbook_sheet_duplicate.rs"]
+mod workbook_sheet_duplicate;
+pub use workbook_sheet_tab::{normalize_tab_color, SHEET_TAB_LAST_VISIBLE};
 #[path = "workbook_sheet_refs.rs"]
 mod workbook_sheet_refs;
 #[path = "workbook_table_geometry.rs"]

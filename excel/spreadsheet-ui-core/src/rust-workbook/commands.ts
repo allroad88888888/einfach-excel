@@ -27,6 +27,7 @@ import type { RustQuickFormulaCommands } from './quick-formula-commands'
 import type { RustConditionalFormatCommands } from './conditional-format-commands'
 import type { RustDataValidationCommands } from './data-validation-commands'
 import type { RustOutlineCommands } from './outline-io'
+import type { RustSheetManagementCommands } from './sheet-management'
 import type { RustNamedRangeCommands } from './named-range-commands'
 import type { RustTableCommands } from './table-commands'
 import type { RustWorkbookFileCommands } from './file-commands'
@@ -105,6 +106,10 @@ export interface RustWorkbookSheet {
   readonly key?: string
   readonly rowCount?: number
   readonly colCount?: number
+  /** 页签隐藏；缺省为可见。 */
+  readonly hidden?: boolean
+  /** 页签颜色，大写 #RRGGBB；缺省为无颜色。 */
+  readonly tabColor?: string
 }
 
 /** 导入坐标为零基：row=0、col=0 表示 A1。 */
@@ -182,6 +187,7 @@ export interface RustWorkbookCommands
     RustDataValidationCommands,
     RustSpillCommands,
     RustOutlineCommands,
+    RustSheetManagementCommands,
     RustNamedRangeCommands,
     RustTableCommands,
     RustWorkbookFileCommands,

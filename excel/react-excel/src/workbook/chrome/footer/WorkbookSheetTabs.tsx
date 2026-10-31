@@ -11,9 +11,15 @@ import {
   editingSessionAtom,
   editingCommitLifecycleAtom,
   formulaReferenceActiveAtom,
+  openSheetTabMenuAtom,
+  switchAdjacentSheetAtom,
+  adjacentVisibleSheet,
+  visibleSheets,
 } from '@einfach-excel/spreadsheet-ui-core'
-import { useEffect, useId, useRef } from 'react'
+import { useEffect, useId, useRef, type CSSProperties } from 'react'
 import { SheetDeleteConfirmation } from './SheetDeleteConfirmation'
+import { SheetTabContextMenu } from '../../sheet-management/SheetTabContextMenu'
+import { UnhideSheetDialog } from '../../sheet-management/UnhideSheetDialog'
 
 /** 工作表标签交互；名称草稿、命令状态都由 UI Core 持有。 */
 export function WorkbookSheetTabs() {
@@ -28,6 +34,8 @@ export function WorkbookSheetTabs() {
   const lifecycle = useAtomValue(editingCommitLifecycleAtom)
   const picking = useAtomValue(formulaReferenceActiveAtom)
   const run = useSetAtom(runWorkbookSheetCommandAtom)
+  const openMenu = useSetAtom(openSheetTabMenuAtom)
+  const switchAdjacent = useSetAtom(switchAdjacentSheetAtom)
   const inputRef = useRef<HTMLInputElement>(null)
   const tabsRef = useRef<HTMLDivElement>(null)
   const busy = state.mutation !== null || clipboard.busy || history.busy ||
@@ -35,6 +43,9 @@ export function WorkbookSheetTabs() {
   const structureBusy = busy || picking ||
     (editing.source !== null && editing.source.sheetId !== active?.id)
   const index = document.sheets.findIndex((sheet) => sheet.id === active?.id)
+  const visible = visibleSheets(document.sheets)
+  const hasPrevious = adjacentVisibleSheet(document.sheets, active?.id ?? null, 'previous') !== null
+  const hasNext = adjacentVisibleSheet(document.sheets, active?.id ?? null, 'next') !== null
 
   useEffect(() => {
     inputRef.current?.focus()
@@ -57,9 +68,9 @@ export function WorkbookSheetTabs() {
           className="sheet-nav"
           type="button"
           aria-label={t`Previous sheet`}
-          disabled={busy || index <= 0}
+          disabled={busy || !hasPrevious}
           onPointerDown={(event) => event.preventDefault()}
-          onClick={() => void run({ operation: 'switch', sheetId: document.sheets[index - 1]!.id })}
+          onClick={() => void switchAdjacent('previous')}
         >
           ‹
         </button>
@@ -67,9 +78,9 @@ export function WorkbookSheetTabs() {
           className="sheet-nav"
           type="button"
           aria-label={t`Next sheet`}
-          disabled={busy || index >= document.sheets.length - 1}
+          disabled={busy || !hasNext}
           onPointerDown={(event) => event.preventDefault()}
-          onClick={() => void run({ operation: 'switch', sheetId: document.sheets[index + 1]!.id })}
+          onClick={() => void switchAdjacent('next')}
         >
           ›
         </button>
@@ -85,13 +96,19 @@ export function WorkbookSheetTabs() {
           ＋
         </button>
         <div className="sheet-tab-list" role="tablist" aria-label={t`Workbook sheets`} ref={tabsRef}>
-          {document.sheets.map((sheet) => (
+          {visible.map((sheet) => (
             <button
               className={sheet.id === active?.id ? 'sheet-tab active' : 'sheet-tab'}
               key={sheet.id}
               type="button"
               role="tab"
               aria-selected={sheet.id === active?.id}
+              data-tab-color={sheet.tabColor}
+              style={sheet.tabColor ? ({ '--tab-color': sheet.tabColor } as CSSProperties) : undefined}
+              onContextMenu={(event) => {
+                event.preventDefault()
+                void openMenu({ sheetId: sheet.id, x: event.clientX, y: event.clientY })
+              }}
               title={t`${sheet.name} — double-click or F2 to rename`}
               disabled={busy}
               onPointerDown={(event) => event.preventDefault()}
@@ -147,7 +164,7 @@ export function WorkbookSheetTabs() {
           type="button"
           aria-label={t`Delete sheet`}
           title={t`Delete sheet`}
-          disabled={structureBusy || document.sheets.length <= 1}
+          disabled={structureBusy || visible.length <= 1}
           onPointerDown={(event) => event.preventDefault()}
           onClick={() => void run({ operation: 'request-delete' })}
         >
@@ -197,6 +214,8 @@ export function WorkbookSheetTabs() {
         </p>
       )}
       <SheetDeleteConfirmation />
+      <SheetTabContextMenu />
+      <UnhideSheetDialog />
     </div>
   )
 }

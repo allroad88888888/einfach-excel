@@ -18,6 +18,11 @@ import { changeOutline } from './outline-io'
 import { changeNamedRange } from './named-range-commands'
 import { changeTable, importTables } from './table-commands'
 import { editWorkbookSheet } from './sheet-edit'
+import {
+  duplicateWorkbookSheet,
+  setWorkbookSheetHidden,
+  setWorkbookSheetTabColor,
+} from './sheet-management'
 import { changeStructure } from './structure-io'
 import type {
   RustWorkbookCommands,
@@ -428,6 +433,27 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
             }
           : {}),
       }
+    }
+    if (command === 'workbook.duplicateSheet') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      const result = duplicateWorkbookSheet(current, sheetsById, input, revision)
+      painterToken = undefined
+      revision = result.revision
+      return result
+    }
+    if (command === 'workbook.setSheetHidden') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      const result = setWorkbookSheetHidden(current, sheetsById, input, revision)
+      painterToken = undefined
+      revision = result.revision
+      return result
+    }
+    if (command === 'workbook.setSheetTabColor') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      const result = setWorkbookSheetTabColor(current, sheetsById, input, revision)
+      painterToken = undefined
+      revision = result.revision
+      return result
     }
     if (command === 'workbook.editSheet') {
       const input = payload as RustWorkbookCommands[typeof command]['payload']

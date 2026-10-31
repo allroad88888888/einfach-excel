@@ -180,10 +180,15 @@ fn native_number_display(workbook: &Workbook, sheet: usize, addr: &str, value: &
 ///
 /// 想加回类似字段前先回答：谁读它？读不到会怎样？答不上来就别加 —— 只写不读的
 /// 字段不会报错，只会静静腐坏。
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 struct WorkbookPersistenceSheetMetaJSON {
     idx: u32,
     name: String,
+    /// 页签隐藏与颜色是可选元数据；旧文件缺省为可见、无颜色。
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    hidden: bool,
+    #[serde(default, rename = "tabColor", skip_serializing_if = "Option::is_none")]
+    tab_color: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

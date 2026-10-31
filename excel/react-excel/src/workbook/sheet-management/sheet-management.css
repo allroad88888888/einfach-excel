@@ -1,0 +1,117 @@
+:where(.einfach-spreadsheet) .sheet-tab-menu {
+  position: fixed;
+  z-index: 40;
+  min-width: 168px;
+  display: flex;
+  flex-direction: column;
+  padding: 4px;
+  border: 1px solid var(--line, #d0d5dd);
+  border-radius: 8px;
+  background: var(--surface, #fff);
+  box-shadow: 0 8px 24px rgb(16 24 40 / 18%);
+}
+:where(.einfach-spreadsheet) .sheet-tab-menu > button {
+  padding: 7px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+:where(.einfach-spreadsheet) .sheet-tab-menu > button:hover:not(:disabled),
+:where(.einfach-spreadsheet) .sheet-tab-menu > button:focus-visible {
+  background: var(--control-hover, #eef2f6);
+}
+:where(.einfach-spreadsheet) .sheet-tab-menu > button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+:where(.einfach-spreadsheet) .sheet-tab-colors {
+  display: grid;
+  grid-template-columns: repeat(5, 22px);
+  gap: 6px;
+  padding: 8px 12px;
+}
+:where(.einfach-spreadsheet) .sheet-tab-swatch {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid rgb(0 0 0 / 25%);
+  border-radius: 4px;
+  cursor: pointer;
+}
+:where(.einfach-spreadsheet) .sheet-tab-swatch[aria-pressed='true'] {
+  outline: 2px solid var(--primary, #1a73e8);
+  outline-offset: 1px;
+}
+:where(.einfach-spreadsheet) .sheet-tab-no-color {
+  grid-column: 1 / -1;
+  padding: 4px 8px;
+  border: 1px solid var(--line, #d0d5dd);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+:where(.einfach-spreadsheet) .sheet-tab-no-color:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+:where(.einfach-spreadsheet) .sheet-tab[data-tab-color] {
+  box-shadow: inset 0 -3px 0 var(--tab-color);
+}
+:where(.einfach-spreadsheet) .sheet-tab[data-tab-color] > span {
+  background: var(--tab-color);
+}
+:where(.einfach-spreadsheet) .sheet-unhide-dialog {
+  width: min(320px, calc(100vw - 32px));
+  padding: 16px;
+  border: 1px solid var(--line, #d0d5dd);
+  border-radius: 10px;
+}
+:where(.einfach-spreadsheet) .sheet-unhide-dialog h2 {
+  margin: 0 0 10px;
+  font-size: 14px;
+}
+:where(.einfach-spreadsheet) .sheet-unhide-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--line, #d0d5dd);
+  border-radius: 6px;
+}
+:where(.einfach-spreadsheet) .sheet-unhide-list button {
+  padding: 6px 10px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+:where(.einfach-spreadsheet) .sheet-unhide-list button[aria-selected='true'] {
+  background: var(--primary-soft, #e8f0fe);
+  color: var(--primary-strong, #174ea6);
+}
+:where(.einfach-spreadsheet) .sheet-unhide-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+:where(.einfach-spreadsheet) .sheet-unhide-actions button {
+  padding: 6px 14px;
+  border: 1px solid var(--line, #d0d5dd);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+:where(.einfach-spreadsheet) .sheet-unhide-actions button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}

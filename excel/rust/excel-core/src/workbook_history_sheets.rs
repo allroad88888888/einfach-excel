@@ -39,6 +39,10 @@ impl WorkbookHistory {
         let key = workbook
             .sheet_key(index)
             .ok_or("The worksheet no longer exists.")?;
+        // 删掉最后一张可见表会让工作簿只剩隐藏表，用户无处可去。
+        if !workbook.sheet_hidden(index) && workbook.visible_sheet_count() <= 1 {
+            return Err(crate::workbook::SHEET_TAB_LAST_VISIBLE);
+        }
         let name = workbook.name(index).unwrap().to_owned();
         let change = SheetHistoryChange::remove(workbook, index)?;
         self.push_sheet(workbook, index, key, name, "Delete worksheet", change);
@@ -66,7 +70,7 @@ impl WorkbookHistory {
         Ok(())
     }
 
-    fn require_idle(&self) -> Result<(), &'static str> {
+    pub(super) fn require_idle(&self) -> Result<(), &'static str> {
         if self.pending.is_some() {
             Err("Another history command is pending.")
         } else {
@@ -74,7 +78,7 @@ impl WorkbookHistory {
         }
     }
 
-    fn push_sheet(
+    pub(super) fn push_sheet(
         &mut self,
         workbook: &Workbook,
         index: usize,

@@ -16,6 +16,11 @@ mod sheets;
 #[path = "workbook_history_visibility.rs"]
 mod visibility;
 use visibility::VisibilityChange;
+#[path = "workbook_history_sheet_duplicate.rs"]
+mod sheet_duplicate;
+#[path = "workbook_history_sheet_tab.rs"]
+mod sheet_tab;
+use sheet_tab::SheetTabChange;
 #[path = "workbook_history_freeze.rs"]
 mod freeze;
 use freeze::FreezeChange;
@@ -98,6 +103,7 @@ enum HistoryChange {
         dimensions: CellDimensionChanges,
     },
     Sheet(Box<SheetHistoryChange>),
+    SheetTab(SheetTabChange),
     Visibility(VisibilityChange),
     Freeze(FreezeChange),
     Outline(OutlineChange),

@@ -22,6 +22,8 @@ export interface WorkbookDocumentSheet {
   readonly rowCount: number
   readonly colCount: number
   readonly key?: string
+  readonly hidden?: boolean
+  readonly tabColor?: string
 }
 
 export interface WorkbookDocument {
@@ -63,7 +65,8 @@ export const initializeWorkbookDocumentAtom = atom(
       title: input.title,
       sheets: Object.freeze(sheets),
     })
-    const firstSheet = sheets[0]
+    // 隐藏的表不能作为首个活动表。
+    const firstSheet = sheets.find((sheet) => !sheet.hidden) ?? sheets[0]
     if (firstSheet === undefined) return
     set(sheetViewsBackingAtom, EMPTY_SHEET_VIEWS)
     set(nativeOutlineProjectionBackingAtom, {})
@@ -124,7 +127,8 @@ export const publishWorkbookSheetStructureAtom = atom(
           ? { rowCount: sheet.rowCount!, colCount: sheet.colCount! }
           : undefined)
       if (!shape) throw new Error('Rust returned an unknown worksheet.')
-      return Object.freeze({ ...shape, ...sheet })
+      // 隐藏与颜色以 Rust 返回的目录为准：缺省即可见／无色，不能残留旧值。
+      return Object.freeze({ ...shape, ...sheet, hidden: sheet.hidden, tabColor: sheet.tabColor })
     })
     set(workbookDocumentBackingAtom, Object.freeze({ ...current, sheets: Object.freeze(sheets) }))
     set(setSheetTabsSheetsAtom, { sheets })

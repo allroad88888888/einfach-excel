@@ -17,8 +17,10 @@ export function historyProjectionRequest(
   previousIndex: number,
 ): VisibleProjectionRequest {
   const current = sheets.find((sheet) => sheet.id === request.sheetId)
-  if (current) return structureProjectionRequest(request, current)
-  const next = sheets[Math.min(previousIndex, sheets.length - 1)]
+  if (current && !current.hidden) return structureProjectionRequest(request, current)
+  // 当前表被移除或被隐藏：落到最近的可见表（优先同位置之后）。
+  const visible = sheets.filter((sheet) => !sheet.hidden)
+  const next = visible.find((sheet) => sheet.index >= previousIndex) ?? visible[visible.length - 1]
   if (!next?.rowCount || !next.colCount)
     throw new Error('Restored worksheet bounds are unavailable.')
   return {

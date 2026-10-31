@@ -76,7 +76,7 @@ impl HistoryEntry {
                 for range in change.mutation_ranges() { add(self.sheet, Some(range)); }
             }
             HistoryChange::Visibility(_) | HistoryChange::Freeze(_) | HistoryChange::Outline(_)
-                | HistoryChange::Filter(_) => {},
+                | HistoryChange::Filter(_) | HistoryChange::SheetTab(_) => {},
             _ => add(self.sheet, Some(self.range)),
         }
         // 空范围数组明确表示目录/结构元数据变化，不把相同主范围虚构到每张表。

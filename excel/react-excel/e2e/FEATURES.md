@@ -1085,3 +1085,11 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | CENTERACROSS-002 | 跨列居中被内容截断 | `center-across/center-across.spec.ts` | typing into the middle cell ends the center across span |
 | CENTERACROSS-003 | 跨列居中撤销重做 | `center-across/center-across.spec.ts` | center across is one undo step and redo restores the span |
 | CENTERACROSS-004 | 跨列居中复制粘贴 | `center-across/center-across.spec.ts` | copy and paste keep center across on the pasted cells |
+| SHEETMGMT-001 | 复制工作表 | `sheet-management/sheet-management.spec.ts` | duplicate sheet copies data formulas and formatting into Sheet (2) and activates it |
+| SHEETMGMT-002 | 复制工作表撤销重做 | `sheet-management/sheet-management.spec.ts` | duplicate sheet is one undo step and redo restores the same copy |
+| SHEETMGMT-003 | 隐藏工作表 | `sheet-management/sheet-management.spec.ts` | hide sheet removes its tab while formulas that read it keep working, and undo shows it |
+| SHEETMGMT-004 | 取消隐藏工作表 | `sheet-management/sheet-management.spec.ts` | unhide dialog lists hidden sheets and restores the chosen one |
+| SHEETMGMT-005 | 最后一张可见表不可隐藏 | `sheet-management/sheet-management.spec.ts` | the last visible sheet cannot be hidden |
+| SHEETMGMT-006 | 标签颜色设置与清除 | `sheet-management/sheet-management.spec.ts` | tab color can be set from the palette and cleared with No color, each undoable |
+| SHEETMGMT-007 | 下载打开保留隐藏与颜色 | `sheet-management/sheet-management.spec.ts` | download and open keep hidden sheets and tab colors |
+| SHEETMGMT-008 | Ctrl+PageUp/PageDown 跳过隐藏表 | `sheet-management/sheet-management.spec.ts` | Ctrl+PageUp and Ctrl+PageDown skip hidden sheets |

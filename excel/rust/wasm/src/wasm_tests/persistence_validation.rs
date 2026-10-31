@@ -9,6 +9,7 @@ fn wasm_workbook_restore_persistence_v1_rejects_bad_size_without_mutating_workbo
         sheets: vec![WorkbookPersistenceSheetMetaJSON {
             idx: 0,
             name: "Loaded".into(),
+            ..Default::default()
         }],
         cells: vec![SparseCellJSON {
             sheet: 0,
@@ -62,6 +63,7 @@ fn wasm_workbook_restore_persistence_v1_rejects_unsupported_version() {
         sheets: vec![WorkbookPersistenceSheetMetaJSON {
             idx: 0,
             name: "Sheet1".into(),
+            ..Default::default()
         }],
         cells: vec![],
         formats: vec![],
@@ -96,6 +98,7 @@ fn wasm_workbook_restore_persistence_v1_accepts_default_sheet_name() {
         sheets: vec![WorkbookPersistenceSheetMetaJSON {
             idx: 0,
             name: "Sheet1".into(),
+            ..Default::default()
         }],
         cells: vec![SparseCellJSON {
             sheet: 0,
@@ -142,6 +145,7 @@ fn wasm_workbook_restore_persistence_v1_rejects_bad_format_without_mutating_work
         sheets: vec![WorkbookPersistenceSheetMetaJSON {
             idx: 0,
             name: "Loaded".into(),
+            ..Default::default()
         }],
         cells: vec![SparseCellJSON {
             sheet: 0,
@@ -196,6 +200,7 @@ fn wasm_workbook_restore_persistence_v1_resets_subscription_tokens() {
         sheets: vec![WorkbookPersistenceSheetMetaJSON {
             idx: 0,
             name: "Loaded".into(),
+            ..Default::default()
         }],
         cells: vec![],
         formats: vec![],
@@ -252,6 +257,7 @@ fn persistence_v1_workload(n: u32) -> WorkbookPersistenceV1JSON {
         sheets: vec![WorkbookPersistenceSheetMetaJSON {
             idx: 0,
             name: "Data".into(),
+            ..Default::default()
         }],
         cells,
         formats: vec![],

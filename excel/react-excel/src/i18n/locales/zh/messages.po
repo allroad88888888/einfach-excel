@@ -544,6 +544,7 @@ msgid "Blocked by {0}."
 msgstr "被 {0} 阻挡。"
 
 #: src/workbook/chrome/ribbon/TableAppearance.tsx
+#: src/workbook/sheet-management/tab-colors.ts
 msgid "Blue"
 msgstr "蓝色"
 
@@ -624,6 +625,7 @@ msgstr "自定义公式表达式只能调用内置函数或已注册的自定义
 #: src/workbook/formula-arguments/FormulaArgumentsDialog.tsx
 #: src/workbook/hyperlink/HyperlinkTools.tsx
 #: src/workbook/notes/NoteTools.tsx
+#: src/workbook/sheet-management/UnhideSheetDialog.tsx
 msgid "Cancel"
 msgstr "取消"
 
@@ -1410,6 +1412,14 @@ msgstr "暂不支持跨工作表剪切。"
 msgid "cut…"
 msgstr "正在剪切…"
 
+#: src/workbook/sheet-management/tab-colors.ts
+msgid "Dark blue"
+msgstr "深蓝"
+
+#: src/workbook/sheet-management/tab-colors.ts
+msgid "Dark red"
+msgstr "深红"
+
 #: src/workbook/chrome/ribbon/BorderTools.tsx
 msgid "Dashed"
 msgstr "虚线"
@@ -1713,6 +1723,7 @@ msgid "Drag to resize {axisLabel}; double-click or Enter to auto-fit; arrow keys
 msgstr "拖动调整{axisLabel}尺寸；双击或按 Enter 自动适应；方向键每次调整 10 像素"
 
 #: src/workbook/advanced-formatting/AdvancedFormattingFields.tsx
+#: src/workbook/sheet-management/SheetTabContextMenu.tsx
 msgid "Duplicate"
 msgstr "重复值"
 
@@ -2598,6 +2609,7 @@ msgid "Greater than or equal to"
 msgstr "大于或等于"
 
 #: src/workbook/chrome/ribbon/TableAppearance.tsx
+#: src/workbook/sheet-management/tab-colors.ts
 msgid "Green"
 msgstr "绿色"
 
@@ -2633,6 +2645,14 @@ msgstr "十六进制颜色"
 #: src/workbook/chrome/ribbon/SpillTools.tsx
 msgid "Hidden rows and columns stay hidden. No cells are changed."
 msgstr "隐藏的行列保持隐藏，不会修改任何单元格。"
+
+#: src/workbook/sheet-management/UnhideSheetDialog.tsx
+msgid "Hidden worksheets"
+msgstr "已隐藏的工作表"
+
+#: src/workbook/sheet-management/SheetTabContextMenu.tsx
+msgid "Hide"
+msgstr "隐藏"
 
 #: src/workbook/chrome/ribbon/VisibilityTools.tsx
 msgid "Hide / Unhide"
@@ -2923,6 +2943,10 @@ msgid "Joins several text strings into one."
 msgstr "将多个文本字符串连接为一个。"
 
 #: src/i18n/feedback-messages.ts
+msgid "Keep at least one worksheet visible."
+msgstr "至少保留一个可见的工作表。"
+
+#: src/i18n/feedback-messages.ts
 msgid "Keep at least one worksheet."
 msgstr "请至少保留一张工作表。"
 
@@ -2962,6 +2986,14 @@ msgstr "小于"
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
 msgid "Less than or equal to"
 msgstr "小于或等于"
+
+#: src/workbook/sheet-management/tab-colors.ts
+msgid "Light blue"
+msgstr "浅蓝"
+
+#: src/workbook/sheet-management/tab-colors.ts
+msgid "Light green"
+msgstr "浅绿"
 
 #: src/workbook/chrome/ribbon/DataValidationTools.tsx
 msgid "Limit new input in the selected range. Existing values are kept."
@@ -3398,6 +3430,10 @@ msgstr "未找到具体的阻挡单元格，请检查工作表边界或数组大
 msgid "No borders"
 msgstr "无框线"
 
+#: src/workbook/sheet-management/SheetTabContextMenu.tsx
+msgid "No color"
+msgstr "无颜色"
+
 #: src/workbook/comments/CommentTimeline.tsx
 msgid "No comments yet. Start a discussion about this cell."
 msgstr "暂无批注。开始讨论这个单元格。"
@@ -3538,6 +3574,10 @@ msgstr "等差数列"
 msgid "Numerical count"
 msgstr "数值计数"
 
+#: src/workbook/sheet-management/UnhideSheetDialog.tsx
+msgid "OK"
+msgstr "确定"
+
 #: src/i18n/feedback-messages.ts
 msgid "Older operations were dropped to keep history within its memory limit."
 msgstr "为控制历史记录的内存占用，已移除较早的操作。"
@@ -3598,6 +3638,10 @@ msgstr "可选"
 #: src/workbook/advanced-filter/AdvancedFilterGroups.tsx
 msgid "Or"
 msgstr "或"
+
+#: src/workbook/sheet-management/tab-colors.ts
+msgid "Orange"
+msgstr "橙色"
 
 #: src/workbook/chrome/ribbon/SortTools.tsx
 msgid "Order"
@@ -3851,6 +3895,10 @@ msgstr "保护工作表"
 msgid "Protection refers to a missing worksheet."
 msgstr "保护配置引用了不存在的工作表。"
 
+#: src/workbook/sheet-management/tab-colors.ts
+msgid "Purple"
+msgstr "紫色"
+
 #: src/workbook/chrome/ribbon/QuickFormulaTools.tsx
 msgid "Quick formula"
 msgstr "快捷公式"
@@ -3911,6 +3959,10 @@ msgstr "最近操作"
 #: src/i18n/feedback-messages.ts
 msgid "Records were removed, but the view could not be updated. Check the sheet before retrying."
 msgstr "记录已删除，但视图更新失败。请检查工作表后再重试。"
+
+#: src/workbook/sheet-management/tab-colors.ts
+msgid "Red"
+msgstr "红色"
 
 #: src/workbook/chrome/ribbon/HistoryTools.tsx
 msgid "Redo"
@@ -4990,6 +5042,14 @@ msgstr "对区域内满足指定条件的单元格求和。"
 msgid "Tab"
 msgstr "制表符"
 
+#: src/workbook/sheet-management/SheetTabContextMenu.tsx
+msgid "Tab color"
+msgstr "标签颜色"
+
+#: src/i18n/feedback-messages.ts
+msgid "Tab color must be #RRGGBB."
+msgstr "标签颜色必须是 #RRGGBB。"
+
 #. placeholder {0}: panel.table
 #: src/workbook/chrome/ribbon/FilterTools.tsx
 msgid "Table {0}. Only its data rows are checked; headers and totals are excluded."
@@ -5728,6 +5788,14 @@ msgstr "取消隐藏选中行列"
 msgid "Unhide this row or column before locating the record."
 msgstr "定位记录前，请先取消隐藏该行或列。"
 
+#: src/workbook/sheet-management/UnhideSheetDialog.tsx
+msgid "Unhide worksheet"
+msgstr "取消隐藏工作表"
+
+#: src/workbook/sheet-management/SheetTabContextMenu.tsx
+msgid "Unhide…"
+msgstr "取消隐藏…"
+
 #: src/workbook/advanced-formatting/AdvancedFormattingFields.tsx
 msgid "Unique"
 msgstr "唯一值"
@@ -6125,6 +6193,10 @@ msgstr "工作表规则"
 msgid "Worksheet structure changes are disabled."
 msgstr "已禁用工作表结构修改。"
 
+#: src/workbook/sheet-management/SheetTabContextMenu.tsx
+msgid "Worksheet tab"
+msgstr "工作表标签"
+
 #: src/workbook/chrome/ribbon/TableTools.tsx
 msgid "Worksheet tables"
 msgstr "工作表表格"
@@ -6133,6 +6205,10 @@ msgstr "工作表表格"
 #: src/workbook/repeat/repeat-labels.ts
 msgid "Wrap text"
 msgstr "自动换行"
+
+#: src/workbook/sheet-management/tab-colors.ts
+msgid "Yellow"
+msgstr "黄色"
 
 #: src/i18n/feedback-messages.ts
 msgid "You can save at most 32 custom lists per workbook session."

@@ -67,6 +67,8 @@ impl WasmWorkbook {
             sheets.push(WorkbookPersistenceSheetMetaJSON {
                 idx: sheet_idx as u32,
                 name,
+                hidden: self.workbook.sheet_hidden(sheet_idx),
+                tab_color: self.workbook.sheet_tab_color(sheet_idx).map(str::to_owned),
             });
 
             let snapshot = sheet.snapshot_format_range(Self::full_sheet_range());

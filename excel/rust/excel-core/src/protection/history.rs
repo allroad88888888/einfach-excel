@@ -25,6 +25,7 @@ impl HistoryEntry {
                 Ok(())
             }
             HistoryChange::Sheet(_)
+            | HistoryChange::SheetTab(_)
             | HistoryChange::NamedRange(_)
             | HistoryChange::CustomFormula(_)
             | HistoryChange::Structure(_)

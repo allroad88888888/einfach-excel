@@ -8,7 +8,7 @@ impl HistoryEntry {
     }
 
     pub fn is_sheet_change(&self) -> bool {
-        matches!(self.change, HistoryChange::Sheet(_))
+        matches!(self.change, HistoryChange::Sheet(_) | HistoryChange::SheetTab(_))
     }
 
     /// 宿主只据此调整画布/选区；数据与历史快照不跨出 Rust。
@@ -65,6 +65,9 @@ impl HistoryEntry {
                 workbook.restore_cell_history(&snapshots, table_rows, undo)
             }
             HistoryChange::Sheet(change) => change.apply(workbook, undo),
+            HistoryChange::SheetTab(change) => {
+                change.apply(workbook, self.sheet, self.sheet_key, undo)
+            }
             HistoryChange::Visibility(change) => {
                 change.apply(workbook, self.sheet, self.sheet_key, undo)
             }
@@ -113,6 +116,7 @@ pub(super) fn entry_bytes(entry: &HistoryEntry) -> usize {
                 + dimensions.retained_bytes()
         }
         HistoryChange::Sheet(change) => change.retained_bytes(),
+        HistoryChange::SheetTab(_) => std::mem::size_of::<SheetTabChange>(),
         HistoryChange::Visibility(change) => change.retained_bytes(),
         HistoryChange::Freeze(_) => std::mem::size_of::<FreezeChange>(),
         HistoryChange::Outline(change) => change.retained_bytes(),

@@ -133,6 +133,18 @@ impl SheetHistoryChange {
         }
     }
 
+    /// 已存在的新表（复制得到）作为“新增”记录：撤销时才归档，重做恢复。
+    pub(crate) fn created(workbook: &Workbook, index: usize) -> Self {
+        Self::Presence {
+            index,
+            key: workbook.sheet_key(index).unwrap(),
+            created: true,
+            archive: None,
+            mutation: Vec::new(),
+            bytes: 0,
+        }
+    }
+
     pub(crate) fn remove(workbook: &mut Workbook, index: usize) -> Result<Self, &'static str> {
         let archive = workbook
             .archive_sheet(index)

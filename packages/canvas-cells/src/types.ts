@@ -44,6 +44,8 @@ export interface LayoutCell {
   bounds: Rect
   merged: boolean
   borders: readonly BorderSegment[]
+  /** 跨列居中：整段区间的矩形与锚点格；锚点格与被吞并的空格各自只绘制自己那一截。 */
+  across?: { bounds: Rect; cell: DisplayCell }
   signature: string
 }
 export interface CellAppearance {

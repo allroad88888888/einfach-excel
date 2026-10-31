@@ -1,6 +1,9 @@
 import type { CellRange, DisplayCell } from '@einfach-excel/spreadsheet-ui-core'
-import { mergeRangeAt, nativeFilterRangeAtom, nativeTableFiltersAtom, formulaReferenceSessionAtom,
-  projectionSnapshotAtom, viewportMetricsAtom, showFormulasAtom, formulaViewText, selectionRangesAtom } from '@einfach-excel/spreadsheet-ui-core'
+import {
+  centerAcrossRun, mergeRangeAt, nativeFilterRangeAtom, nativeTableFiltersAtom,
+  formulaReferenceSessionAtom, projectionSnapshotAtom, viewportMetricsAtom, showFormulasAtom,
+  formulaViewText, selectionRangesAtom,
+} from '@einfach-excel/spreadsheet-ui-core'
 import { useAtomValue } from '@einfach/react'
 import { CellFilterButton } from './CellFilterButton'
 import { CellDataBar } from './CellDataBar'
@@ -9,6 +12,7 @@ import { CellMetadata, type CellMetadataLabels } from './cell-metadata/CellMetad
 import { SelectionOutlines } from './SelectionOutlines'
 import type { CSSProperties } from 'react'
 import { cellFormatStyle, cellTextRotationStyle } from './cell-format-style'
+import { centerAcrossSpanWidth, centerAcrossStyles } from './center-across-style'
 import { createGridBorderStyles } from './grid-border-style'
 import { DEFAULT_CELL_ROW_HEIGHT } from './grid-defaults'
 
@@ -74,11 +78,17 @@ export function SpreadsheetGrid({
       const merged = mergeRangeAt(mergedRanges ?? [], { row, col }) !== undefined
       const isSelected = selected.some((range) => isSelectedCell(range, row, col))
       const rotationStyle = cellTextRotationStyle(cell?.format)
+      const run = !merged && columnWidths
+        ? centerAcrossRun((r, c) => cellsByCoordinate.get(`${r}:${c}`), row, col, window.colEnd)
+        : null
+      const across = run && run.colEnd > run.colStart && columnWidths
+        ? centerAcrossStyles(centerAcrossSpanWidth(run, window.colStart, columnWidths)) : undefined
       const formatStyle = {
         ...cellFormatStyle(
           cell?.format ? { ...cell.format, borders: undefined } : undefined, cell?.valueKind,
         ),
         ...borderStyle(row, col, cell?.format),
+        ...across?.cell,
       }
       const height = rowHeights?.[row - window.rowStart] ?? DEFAULT_CELL_ROW_HEIGHT
       // table 的内容上限扣除真实边框；16px 行高也不能被大字或粗边框反向撑开。
@@ -100,6 +110,7 @@ export function SpreadsheetGrid({
           title={showFormulas ? cell?.formula : undefined}
           aria-hidden={merged || undefined}
           data-selected={isSelected ? 'true' : undefined}
+          data-center-across={run && across ? run.colEnd - run.colStart + 1 : undefined}
           style={formatStyle}
         >
           {!merged && <CellDataBar bar={cell?.dataBar} />}
@@ -111,6 +122,7 @@ export function SpreadsheetGrid({
             style={{
               maxHeight: Math.max(0, height - 6 - topBorder - bottomBorder),
               visibility: merged ? 'hidden' : undefined,
+              ...across?.content,
             }}
           >
             <CellHyperlink url={showFormulas ? undefined : cell?.hyperlink}

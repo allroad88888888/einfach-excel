@@ -229,4 +229,5 @@ mod tests {
     include!("wasm_tests/named_range_wire.rs");
     include!("wasm_tests/diagnostics.rs");
     include!("wasm_tests/history_topology.rs");
+    include!("wasm_tests/center_across.rs");
 }

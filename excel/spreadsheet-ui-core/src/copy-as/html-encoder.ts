@@ -168,6 +168,8 @@ function alignmentToCss(align: SpreadsheetCellFormat['align']): string | undefin
     case 'center':
     case 'justify':
       return align
+    case 'centerAcross':
+      return 'center'
     case 'fill':
     case 'distributed':
       // No exact CSS equivalent — drop silently rather than guess.

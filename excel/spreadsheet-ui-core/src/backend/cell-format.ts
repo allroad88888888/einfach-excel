@@ -4,6 +4,8 @@ export type SpreadsheetAlignment =
   | 'left'
   | 'center'
   | 'right'
+  /** Excel centerContinuous：文本在后续同对齐的空格上居中，不合并。 */
+  | 'centerAcross'
   | 'fill'
   | 'justify'
   | 'distributed'

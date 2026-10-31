@@ -676,6 +676,10 @@ msgstr "Cell value"
 msgid "Center"
 msgstr "Center"
 
+#: src/workbook/chrome/ribbon/TextLayoutTools.tsx
+msgid "Center across selection"
+msgstr "Center across selection"
+
 #: src/workbook/chrome/ribbon/TableTotals.tsx
 msgid "Changes apply immediately and can be undone."
 msgstr "Changes apply immediately and can be undone."

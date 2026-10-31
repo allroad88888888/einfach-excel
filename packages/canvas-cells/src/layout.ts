@@ -1,5 +1,5 @@
 import type { Rect } from '@einfach-excel/canvas'
-import { createCellBorderResolver, type CellRange, type VisibleProjectionResult } from '@einfach-excel/spreadsheet-ui-core'
+import { centerAcrossRun, createCellBorderResolver, type CellRange, type VisibleProjectionResult } from '@einfach-excel/spreadsheet-ui-core'
 import type { CanvasCellsInput, LayoutCell, BorderSegment } from './types'
 
 function axis(start: number, end: number, sizes: readonly number[] | undefined, fallback: number) {
@@ -54,7 +54,8 @@ export function createLayout(input: CanvasCellsInput, options: {
   const mergedRanges = input.mergedRanges ?? merges.map(item => item.range)
   const data = new Map(input.cells.map(cell => [`${cell.row}:${cell.col}`, cell]))
   const items: LayoutCell[] = []
-  function add(range: CellRange, merged: boolean, cell = data.get(`${range.rowStart}:${range.colStart}`)) {
+  function add(range: CellRange, merged: boolean, cell = data.get(`${range.rowStart}:${range.colStart}`),
+    across?: LayoutCell['across']) {
     const bounds = rectangle(range)
     if (bounds.width <= 0 || bounds.height <= 0
       || bounds.x >= origin.x + cols.size || bounds.y >= origin.y + rows.size
@@ -86,14 +87,24 @@ export function createLayout(input: CanvasCellsInput, options: {
       }
     }
     items.push({ key: `${merged ? 'm' : 'c'}:${range.rowStart}:${range.colStart}`,
-      bounds, range, cell, merged, borders, signature: JSON.stringify([bounds, cell, borders]) })
+      bounds, range, cell, merged, borders, across,
+      signature: JSON.stringify([bounds, cell, borders, across]) })
   }
+  const cellAt = (row: number, col: number) => data.get(`${row}:${col}`)
   for (let row = window.rowStart; row <= window.rowEnd; row++) {
     if (rows.offset(row + 1) === rows.offset(row)) continue
+    let across: (LayoutCell['across'] & { end: number }) | undefined
     for (let col = window.colStart; col <= window.colEnd; col++) {
       if (cols.offset(col + 1) === cols.offset(col)
         || mergedRanges.some(range => includes(range, row, col))) continue
-      add({ rowStart: row, rowEnd: row, colStart: col, colEnd: col }, false)
+      if (across && col > across.end) across = undefined
+      const run = centerAcrossRun(cellAt, row, col, window.colEnd)
+      if (run && run.colEnd > run.colStart) {
+        across = { end: run.colEnd, cell: cellAt(row, col)!, bounds: rectangle({
+          rowStart: row, rowEnd: row, colStart: col, colEnd: run.colEnd }) }
+      }
+      add({ rowStart: row, rowEnd: row, colStart: col, colEnd: col }, false, undefined,
+        across && { bounds: across.bounds, cell: across.cell })
     }
   }
   for (const { cell, range } of merges) add(range, true, cell)

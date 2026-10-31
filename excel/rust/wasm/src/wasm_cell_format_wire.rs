@@ -118,6 +118,7 @@ impl CellFormatJSON {
             Some("left") => Align::Left,
             Some("center") => Align::Center,
             Some("right") => Align::Right,
+            Some("centerAcross") => Align::CenterAcross,
             _ => Align::Default,
         };
         let vertical_align = match self.vertical_align.as_deref() {
@@ -166,6 +167,7 @@ impl CellFormatJSON {
                 "left" => Align::Left,
                 "center" => Align::Center,
                 "right" => Align::Right,
+                "centerAcross" => Align::CenterAcross,
                 _ => Align::Default,
             }),
             font_size: self.font_size,
@@ -205,6 +207,7 @@ impl CellFormatJSON {
                 Align::Left => "left".into(),
                 Align::Center => "center".into(),
                 Align::Right => "right".into(),
+                Align::CenterAcross => "centerAcross".into(),
             }),
             font_size: fmt.font_size.map(Some),
             fg_color: fmt.color.clone().map(Some),

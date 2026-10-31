@@ -143,6 +143,9 @@ export function cellFormatStyle(
     case 'justify':
       style.textAlign = format.align
       break
+    case 'centerAcross':
+      style.textAlign = 'center'
+      break
     case 'fill':
       style.textAlign = 'left'
       break

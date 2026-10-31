@@ -112,6 +112,9 @@ pub enum Align {
     Left,
     Center,
     Right,
+    /// Excel `centerContinuous`: text of the anchor cell is centered across the
+    /// following empty cells that share this alignment. Display-only, no merge.
+    CenterAcross,
 }
 
 impl CellFormat {

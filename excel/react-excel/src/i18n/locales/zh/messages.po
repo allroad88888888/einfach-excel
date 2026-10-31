@@ -676,6 +676,10 @@ msgstr "单元格值"
 msgid "Center"
 msgstr "居中"
 
+#: src/workbook/chrome/ribbon/TextLayoutTools.tsx
+msgid "Center across selection"
+msgstr "跨列居中"
+
 #: src/workbook/chrome/ribbon/TableTotals.tsx
 msgid "Changes apply immediately and can be undone."
 msgstr "更改立即生效，可以撤销。"

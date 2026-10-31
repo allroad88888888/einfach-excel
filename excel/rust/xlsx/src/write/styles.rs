@@ -162,8 +162,12 @@ fn border_xml(borders: &Borders) -> String {
 
 fn alignment_xml(format: &CellFormat) -> Option<String> {
     let mut attrs = String::new();
-    if let Some(align @ ("left" | "center" | "right")) = format.align.as_deref() {
-        attrs.push_str(&format!(r#" horizontal="{align}""#));
+    match format.align.as_deref() {
+        Some(align @ ("left" | "center" | "right")) => {
+            attrs.push_str(&format!(r#" horizontal="{align}""#))
+        }
+        Some("centerAcross") => attrs.push_str(r#" horizontal="centerContinuous""#),
+        _ => {}
     }
     if let Some(vertical @ ("top" | "center" | "bottom" | "justify" | "distributed")) = format.vertical_align.as_deref() {
         attrs.push_str(&format!(r#" vertical="{vertical}""#));

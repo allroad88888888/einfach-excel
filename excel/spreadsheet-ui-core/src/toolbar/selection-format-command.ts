@@ -34,7 +34,7 @@ const BORDER_SIDES = ['top', 'right', 'bottom', 'left'] as const
 
 /** 明确选择目标值，不依赖当前格循环推导下一档。 */
 export type TextLayoutAction =
-  | { readonly type: 'horizontal-alignment'; readonly value: 'default' | 'left' | 'center' | 'right' }
+  | { readonly type: 'horizontal-alignment'; readonly value: 'default' | 'left' | 'center' | 'right' | 'centerAcross' }
   | { readonly type: 'vertical-alignment'; readonly value: 'default' | 'top' | 'center' | 'bottom' }
   | { readonly type: 'text-rotation'; readonly value: number | 'vertical' }
 
@@ -69,7 +69,7 @@ function nextPatch(
 } | null {
   if (typeof action !== 'string') {
     if (action.type === 'horizontal-alignment') {
-      return ['default', 'left', 'center', 'right'].includes(action.value)
+      return ['default', 'left', 'center', 'right', 'centerAcross'].includes(action.value)
         ? { format: { align: action.value } } : null
     }
     if (action.type === 'vertical-alignment') {

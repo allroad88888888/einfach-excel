@@ -48,7 +48,11 @@ export function paintCell(
       ctx.fillRect(b.x + 2 + width * bar.axis / 100, b.y + 3, 1, Math.max(0, b.height - 6))
     }
   }
-  if (cell?.conditionalIcon?.showValue !== false) {
+  if (item.across) {
+    // 跨列居中：每一格只画整段文字落在自己范围内的那一截。
+    paintText(ctx, item.across.bounds, item.across.cell,
+      formulaViewText(item.across.cell, a.showFormulas), theme, false, a.showFormulas, b)
+  } else if (cell?.conditionalIcon?.showValue !== false) {
     const textBounds = cell?.conditionalIcon
       ? { ...b, x: b.x + 15, width: Math.max(0, b.width - 15) } : b
     paintText(ctx, textBounds, cell, formulaViewText(cell, a.showFormulas), theme,

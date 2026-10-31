@@ -1081,3 +1081,7 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | REPEAT-005 | Ctrl+Y 先重做否则重复 | `repeat/repeat.spec.ts` | Ctrl+Y redoes when something can be redone and repeats otherwise |
 | REPEAT-006 | 每次重复一个撤销步 | `repeat/repeat.spec.ts` | Each repeat is one new undo step |
 | XLSX-004 | 打开 .xlsx 保留超链接、隐藏行等功能数据 | `xlsx/xlsx-file.spec.ts` | an xlsx file keeps hyperlinks, hidden rows and tables when opened |
+| CENTERACROSS-001 | 跨列居中应用 | `center-across/center-across.spec.ts` | center across selection centers the text across empty neighbours without merging |
+| CENTERACROSS-002 | 跨列居中被内容截断 | `center-across/center-across.spec.ts` | typing into the middle cell ends the center across span |
+| CENTERACROSS-003 | 跨列居中撤销重做 | `center-across/center-across.spec.ts` | center across is one undo step and redo restores the span |
+| CENTERACROSS-004 | 跨列居中复制粘贴 | `center-across/center-across.spec.ts` | copy and paste keep center across on the pasted cells |

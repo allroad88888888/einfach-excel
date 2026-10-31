@@ -112,7 +112,8 @@ fn xf_format(e: &BytesStart, parsed: &Parsed) -> CellFormat {
 fn alignment(e: &BytesStart, format: &mut CellFormat) {
     format.align = match attr(e, "horizontal").as_deref() {
         Some("left") => Some("left".into()),
-        Some("center" | "centerContinuous") => Some("center".into()),
+        Some("center") => Some("center".into()),
+        Some("centerContinuous") => Some("centerAcross".into()),
         Some("right") => Some("right".into()),
         _ => None,
     };

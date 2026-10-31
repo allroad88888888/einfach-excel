@@ -46,6 +46,7 @@ export const ALIGNMENTS = [
   'left',
   'center',
   'right',
+  'centerAcross',
   'fill',
   'justify',
   'distributed',

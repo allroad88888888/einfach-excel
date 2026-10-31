@@ -242,3 +242,24 @@ fn row_and_column_styles_follow_structural_axis_edits() {
     assert_eq!(sheet.get_format("A2"), CellFormat::default());
     assert_eq!(sheet.get_format("B1"), CellFormat::default());
 }
+
+#[test]
+fn center_across_patches_over_a_range_and_clears_back_to_default() {
+    let mut sheet = Sheet::new();
+    let span = range(CellAddress::new(0, 0), CellAddress::new(0, 2));
+    sheet.patch_format_range(
+        span,
+        StyleScope::Cell,
+        CellStyle { align: Some(Align::CenterAcross), ..Default::default() },
+    );
+    for addr in ["A1", "B1", "C1"] {
+        assert_eq!(sheet.effective_format(addr).align, Align::CenterAcross);
+    }
+    assert_eq!(sheet.effective_format("D1").align, Align::Default);
+    sheet.patch_format_range(
+        span,
+        StyleScope::Cell,
+        CellStyle { align: Some(Align::Default), ..Default::default() },
+    );
+    assert_eq!(sheet.effective_format("B1").align, Align::Default);
+}

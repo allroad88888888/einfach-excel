@@ -33,7 +33,7 @@ function wrap(ctx: CanvasRenderingContext2D, text: string, width: number, maxLin
 /** Text layout stays inside the full cell rectangle, including offscreen merged anchors. */
 export function paintText(
   ctx: CanvasRenderingContext2D, bounds: Rect, cell: DisplayCell | undefined,
-  text: string, theme: CanvasCellsTheme, filter: boolean, showFormulas = false) {
+  text: string, theme: CanvasCellsTheme, filter: boolean, showFormulas = false, clip?: Rect) {
   if (!text) return
   const format = cell?.format
   const hyperlink = !showFormulas && Boolean(externalHyperlink(cell?.hyperlink))
@@ -48,6 +48,7 @@ export function paintText(
   if (!width || !height) return
   ctx.save()
   try {
+    if (clip) { ctx.beginPath(); ctx.rect(clip.x, clip.y, clip.width, clip.height); ctx.clip() }
     ctx.beginPath()
     ctx.rect(bounds.x + 7 + indent, bounds.y + 3, width, height)
     ctx.clip()
@@ -67,7 +68,7 @@ export function paintText(
       : wrapping ? wrap(ctx, text, width, maxLines)
         : [format?.overflow === 'ellipsis' || format?.overflow === 'clip'
           ? ellipsis(ctx, text.replace(/\n/g, ' '), width) : text.replace(/\n/g, ' ')]
-    const align = format?.align ?? (cell?.valueKind === 'number' ? 'right'
+    const align = format?.align === 'centerAcross' ? 'center' : format?.align ?? (cell?.valueKind === 'number' ? 'right'
       : cell?.valueKind === 'boolean' || cell?.valueKind === 'error' ? 'center' : 'left')
     const left = bounds.x + 7 + indent
     const x = align === 'right' ? left + width : align === 'center' || vertical ? left + width / 2 : left

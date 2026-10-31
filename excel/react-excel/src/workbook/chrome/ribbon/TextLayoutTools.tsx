@@ -28,6 +28,8 @@ export function TextLayoutTools() {
       }))}>
       <option value="default"><Trans>Auto</Trans></option><option value="left"><Trans>Left</Trans></option>
       <option value="center"><Trans>Center</Trans></option><option value="right"><Trans>Right</Trans></option>
+      <option value="centerAcross"><Trans>Center across selection</Trans></option>
+      <option value="centerAcross"><Trans>Center across selection</Trans></option>
     </select>
     <select className="tool-select text-layout-select" aria-label={t`Vertical alignment`}
       title={t`Vertical alignment`} value={format.verticalAlign ?? 'default'} disabled={disabled}

@@ -74,6 +74,8 @@ pub use replace::ReplaceReport;
 mod remove_duplicates;
 #[path = "workbook_history_structure.rs"]
 mod structure;
+#[path = "cell_shift/history.rs"]
+mod cell_shift;
 #[path = "workbook_history_text_columns.rs"]
 mod text_columns;
 use merge::MergeChange;
@@ -116,6 +118,7 @@ enum HistoryChange {
     TableCreate(Box<crate::workbook::TableCreation>),
     TableDefinition(Box<crate::workbook::TableDefinitionChange>),
     Merge(Box<MergeChange>),
+    CellShift(Box<crate::workbook::CellShiftChange>),
 }
 
 struct PendingEdit {

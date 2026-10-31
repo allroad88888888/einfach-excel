@@ -14,6 +14,7 @@ import { selectSpecialQuery } from './select-special-io'
 import { initializeWorkbook } from './initialize-workbook'
 import { readComment, changeComment } from './comments/command'
 import { changeMerge } from './merge-io'
+import { shiftCells } from './shift-cells-io'
 import { changeFreeze } from './freeze-io'
 import { changeOutline } from './outline-io'
 import { changeNamedRange } from './named-range-commands'
@@ -379,6 +380,15 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       const input = payload as RustWorkbookCommands[typeof command]['payload']
       const result = changeMerge(current, sheetIndex(input.sheetId), input, revision)
       if (result.changed) revision += 1
+      return result
+    }
+    if (command === 'range.shiftCells') {
+      const input = payload as RustWorkbookCommands[typeof command]['payload']
+      const result = shiftCells(current, sheetIndex(input.sheetId), input, revision)
+      if (result.changed) {
+        revision += 1
+        if (clipboard?.cut) clipboard.invalidated = true
+      }
       return result
     }
     if (command === 'sheet.editStructure') {

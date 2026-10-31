@@ -39,6 +39,25 @@ impl Workbook {
         Ok(changes)
     }
 
+    /// 插入/删除单元格：正交跨度完全落在带内的名称才随位移；删光变为 #REF!。
+    pub(super) fn named_ranges_for_cell_shift(
+        &self, sheet: usize, edit: ShiftEdit, band: (u32, u32),
+    ) -> Result<Vec<NamedRangeShift>, &'static str> {
+        let rows = !edit.is_row_edit();
+        let changes: Vec<_> = self.shifted_named_ranges(sheet, edit).into_iter()
+            .filter(|change| change.before.is_some_and(|range| {
+                let (a, b) = if rows { (range.start.row, range.end.row) }
+                    else { (range.start.col, range.end.col) };
+                band.0 <= a && b <= band.1
+            }))
+            .collect();
+        let insert = matches!(edit, ShiftEdit::RowInsert { .. } | ShiftEdit::ColInsert { .. });
+        if insert && changes.iter().any(|change| change.after.is_none()) {
+            return Err("The insertion would move a named range outside the worksheet.");
+        }
+        Ok(changes)
+    }
+
     pub(super) fn shifted_named_ranges(
         &self,
         sheet: usize,

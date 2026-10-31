@@ -1,0 +1,38 @@
+:where(.einfach-spreadsheet) .shift-cells-dialog {
+  box-sizing: border-box;
+  width: min(300px, calc(100vw - 32px));
+  padding: 20px;
+  border: 1px solid var(--border, #dce1e8);
+  border-radius: 8px;
+  background: var(--surface, #fff);
+  color: var(--text, #252b37);
+  font: 13px/1.5 Arial, sans-serif;
+}
+:where(.einfach-spreadsheet) .shift-cells-dialog::backdrop { background: rgb(25 32 48 / 26%); }
+:where(.einfach-spreadsheet) .shift-cells-dialog h2 { margin: 0 0 10px; font-size: 16px; }
+:where(.einfach-spreadsheet) .shift-cells-dialog fieldset { display: grid; gap: 6px; padding: 0; margin: 0; border: 0; }
+:where(.einfach-spreadsheet) .shift-cells-dialog legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+:where(.einfach-spreadsheet) .shift-cells-dialog label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+:where(.einfach-spreadsheet) .shift-cells-dialog button { min-height: 32px; padding: 4px 12px; border: 1px solid var(--border, #dce1e8);
+  border-radius: 4px; background: var(--surface, #fff); color: inherit; font: inherit; cursor: pointer; }
+:where(.einfach-spreadsheet) .shift-cells-dialog button[type="submit"] { background: var(--primary, #315cda); border-color: var(--primary, #315cda); color: #fff; }
+:where(.einfach-spreadsheet) .shift-cells-dialog button:disabled { opacity: .5; cursor: default; }
+:where(.einfach-spreadsheet) .shift-cells-dialog :focus-visible { outline: 2px solid var(--primary, #315cda); outline-offset: 2px; }
+:where(.einfach-spreadsheet) .shift-cells-error { margin: 10px 0 0; color: #b42318; }
+:where(.einfach-spreadsheet) .shift-cells-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+:where(.einfach-spreadsheet) .cell-context-menu {
+  position: fixed;
+  z-index: 40;
+  display: grid;
+  min-width: 140px;
+  padding: 4px 0;
+  border: 1px solid var(--border, #dce1e8);
+  border-radius: 6px;
+  background: var(--surface, #fff);
+  box-shadow: 0 6px 18px rgb(25 32 48 / 18%);
+  font: 13px/1.5 Arial, sans-serif;
+}
+:where(.einfach-spreadsheet) .cell-context-menu button { padding: 6px 14px; border: 0; background: none; color: var(--text, #252b37);
+  font: inherit; text-align: left; cursor: pointer; }
+:where(.einfach-spreadsheet) .cell-context-menu button:hover,
+:where(.einfach-spreadsheet) .cell-context-menu button:focus-visible { background: var(--hover, #eef2f8); outline: none; }

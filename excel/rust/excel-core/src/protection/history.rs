@@ -29,6 +29,7 @@ impl HistoryEntry {
             | HistoryChange::NamedRange(_)
             | HistoryChange::CustomFormula(_)
             | HistoryChange::Structure(_)
+            | HistoryChange::CellShift(_)
             | HistoryChange::TableDefinition(_)
             | HistoryChange::TableCreate(_) => workbook.ensure_workbook_unprotected(),
             _ => workbook.ensure_sheet_unprotected(self.sheet),

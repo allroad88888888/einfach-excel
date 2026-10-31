@@ -1,3 +1,5 @@
+import { CellContextMenu } from '../shift-cells/CellContextMenu'
+import { ShiftCellsDialog } from '../shift-cells/ShiftCellsDialog'
 import { FormulaBar } from '../chrome/formula-bar/FormulaBar'
 import { WorkbookFooter } from '../chrome/footer/WorkbookFooter'
 import { WorkbookHeader } from '../chrome/header/WorkbookHeader'
@@ -61,6 +63,8 @@ export function WorkbookView() {
       <WorkbookGrid />
       <SelectSpecialStatus />
       <WorkbookFooter />
+      <CellContextMenu />
+      <ShiftCellsDialog />
     </div>
   )
 }

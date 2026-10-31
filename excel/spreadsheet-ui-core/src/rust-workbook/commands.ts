@@ -23,6 +23,7 @@ import type { RustSortCommands } from './sort-commands'
 import type { RustFilterCommands } from './filter-commands'
 import type { ColumnFilterGroup, ColumnFilterRule } from '../filter-sort/types'
 import type { RustTextColumnsCommands } from './text-columns-commands'
+import type { RustShiftCellsCommands } from './shift-cells-commands'
 import type { RustRemoveDuplicatesCommands } from './remove-duplicates-commands'
 import type { RustQuickFormulaCommands } from './quick-formula-commands'
 import type { RustConditionalFormatCommands } from './conditional-format-commands'
@@ -183,6 +184,7 @@ export interface RustWorkbookCommands
     RustSortCommands,
     RustFilterCommands,
     RustTextColumnsCommands,
+    RustShiftCellsCommands,
     RustRemoveDuplicatesCommands,
     RustQuickFormulaCommands,
     RustConditionalFormatCommands,

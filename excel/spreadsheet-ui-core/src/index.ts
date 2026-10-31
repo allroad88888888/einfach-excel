@@ -149,6 +149,7 @@ export { spillAvailableAtom, spillPanelAtom, runSpillAtom } from './spill/comman
 export { createCellBorderResolver, sharedBorder } from './viewport/cell-border-resolver'
 export { hyperlinkPanelAtom, runHyperlinkAtom, readCellHyperlinkAtom } from './hyperlink/command'
 export { externalHyperlink } from './hyperlink/url'
+export * from './shift-cells'
 export { notePanelAtom, runNoteAtom } from './notes/command'
 export { nativeCommentPanelAtom, runNativeCommentAtom } from './comments/native/command'
 export { COMMENT_BODY_MAX, COMMENT_AUTHOR_MAX } from './comments/native/types'

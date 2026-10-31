@@ -43,6 +43,7 @@ import {
 import { useWorkbookGridViewportMeasurement } from './use-workbook-grid-viewport-measurement'
 import { useGridHyperlink } from '../../hyperlink/use-grid-hyperlink'
 import { gridZoomOf } from '../../zoom/grid-zoom'
+import { useGridShiftCells } from '../../shift-cells/use-grid-shift-cells'
 
 /** Coordinates DOM events for the active workbook grid. */
 export function useWorkbookGridEvents(viewport: WorkbookViewport) {
@@ -62,6 +63,7 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
   const setViewportScroll = useSetAtom(setViewportScrollAtom)
   const updatePointerSelection = useSetAtom(updatePointerSelectionAtom)
   const hyperlink = useGridHyperlink()
+  const shiftCells = useGridShiftCells()
   const gridRef = useRef<HTMLDivElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   useWorkbookGridViewportMeasurement(scrollRef)
@@ -130,6 +132,7 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
     if (event.target instanceof HTMLElement && event.target.closest('button, input, textarea')) return
     if (activeSheet === null || editingSession.source !== null) return
     if (painter.mode === 'idle' && hyperlink.onKeyDown(event)) return
+    if (painter.mode === 'idle' && !pickingReference && shiftCells.onKeyDown(event)) return
     if (painter.mode !== 'idle' && !event.nativeEvent.isComposing) {
       if (event.key === 'Enter') {
         event.preventDefault()
@@ -211,6 +214,7 @@ export function useWorkbookGridEvents(viewport: WorkbookViewport) {
   return {
     focusGrid,
     gridRef,
+    onContextMenu: shiftCells.onContextMenu,
     onDoubleClick,
     onKeyDown,
     onPointerCancel,

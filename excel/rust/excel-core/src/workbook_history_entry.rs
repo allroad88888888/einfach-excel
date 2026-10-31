@@ -42,6 +42,7 @@ impl HistoryEntry {
             HistoryChange::Cells { .. }
                 | HistoryChange::Structure(_)
                 | HistoryChange::Merge(_)
+                | HistoryChange::CellShift(_)
                 | HistoryChange::NamedRange(_)
                 | HistoryChange::CustomFormula(_)
                 | HistoryChange::TableCreate(_)
@@ -92,6 +93,7 @@ impl HistoryEntry {
             HistoryChange::TableCreate(change) => change.apply(workbook, undo),
             HistoryChange::TableDefinition(change) => change.apply(workbook, undo),
             HistoryChange::Merge(change) => change.apply(workbook, self.sheet, undo),
+            HistoryChange::CellShift(change) => change.apply(workbook, undo),
         }
     }
 }
@@ -129,6 +131,7 @@ pub(super) fn entry_bytes(entry: &HistoryEntry) -> usize {
         HistoryChange::TableCreate(change) => change.retained_bytes(),
         HistoryChange::TableDefinition(change) => change.retained_bytes(),
         HistoryChange::Merge(change) => change.retained_bytes(),
+        HistoryChange::CellShift(change) => change.retained_bytes(),
     };
     payload + entry.label.len() + entry.sheet_name.len() + entry.affected_keys.len() * 16 + 128
 }

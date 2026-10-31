@@ -178,6 +178,7 @@ function WorkbookGridProjection({ activeSheet }: { readonly activeSheet: Workboo
           onCopy={clipboard.onCopy}
           onCut={clipboard.onCut}
           onPaste={clipboard.onPaste}
+          onContextMenu={events.onContextMenu}
           onDoubleClick={events.onDoubleClick}
           onKeyDown={events.onKeyDown}
           onPointerDown={events.onPointerDown}

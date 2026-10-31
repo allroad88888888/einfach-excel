@@ -626,8 +626,29 @@ msgstr "自定义公式表达式只能调用内置函数或已注册的自定义
 #: src/workbook/hyperlink/HyperlinkTools.tsx
 #: src/workbook/notes/NoteTools.tsx
 #: src/workbook/sheet-management/UnhideSheetDialog.tsx
+#: src/workbook/shift-cells/ShiftCellsDialog.tsx
 msgid "Cancel"
 msgstr "取消"
+
+#: src/i18n/shift-cells-feedback.ts
+msgid "Cannot shift cells in a table. Insert or delete table rows or columns instead."
+msgstr "无法移动表格中的单元格。请改为插入或删除表格行或列。"
+
+#: src/i18n/shift-cells-feedback.ts
+msgid "Cannot shift cells inside a filtered range."
+msgstr "无法在筛选区域内移动单元格。"
+
+#: src/i18n/shift-cells-feedback.ts
+msgid "Cannot shift cells through part of a merged cell."
+msgstr "无法移动合并单元格的一部分。"
+
+#: src/i18n/shift-cells-feedback.ts
+msgid "Cannot shift nonblank cells off the worksheet. Clear the last cells first."
+msgstr "无法将非空单元格移出工作表。请先清除末尾的单元格。"
+
+#: src/i18n/shift-cells-feedback.ts
+msgid "Cannot shift part of a spilled array."
+msgstr "无法移动溢出数组的一部分。"
 
 #: src/workbook/grid/viewport/CanvasCells.tsx
 msgid "Canvas worksheet cells"
@@ -649,6 +670,10 @@ msgstr "类别"
 #: src/workbook/hyperlink/HyperlinkTools.tsx
 msgid "Cell {address}. Click to select; Ctrl/⌘+click to open the link."
 msgstr "单元格 {address}。单击选中；按住 Ctrl/⌘ 单击打开链接。"
+
+#: src/workbook/shift-cells/CellContextMenu.tsx
+msgid "Cell actions"
+msgstr "单元格操作"
 
 #: src/workbook/comments/CommentTools.tsx
 msgid "Cell comments"
@@ -782,6 +807,10 @@ msgstr "选择单元格值"
 #: src/workbook/chrome/ribbon/BorderTools.tsx
 msgid "Choose custom border color"
 msgstr "选择自定义边框颜色"
+
+#: src/i18n/shift-cells-feedback.ts
+msgid "Choose how to shift the cells."
+msgstr "请选择单元格的移动方式。"
 
 #: src/i18n/next-version-feedback.ts
 msgid "Choose nonempty groups with valid filter conditions."
@@ -1527,6 +1556,7 @@ msgid "Define a formula once, then call it in any sheet."
 msgstr "定义一次公式，即可在任意工作表中调用。"
 
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/shift-cells/ShiftCellsDialog.tsx
 msgid "Delete"
 msgstr "删除"
 
@@ -1534,6 +1564,10 @@ msgstr "删除"
 #: src/workbook/chrome/footer/SheetDeleteConfirmation.tsx
 msgid "Delete “{0}” and all its data? Undo is available within session history limits."
 msgstr "删除“{0}”及其全部数据？在当前会话的历史记录保留范围内可以撤销。"
+
+#: src/workbook/chrome/ribbon/StructureTools.tsx
+msgid "Delete cells…"
+msgstr "删除单元格…"
 
 #: src/i18n/feedback-messages.ts
 #: src/workbook/repeat/repeat-labels.ts
@@ -1594,6 +1628,10 @@ msgstr "删除工作表"
 #: src/workbook/chrome/footer/SheetDeleteConfirmation.tsx
 msgid "Delete worksheet?"
 msgstr "删除工作表？"
+
+#: src/workbook/shift-cells/CellContextMenu.tsx
+msgid "Delete…"
+msgstr "删除…"
 
 #: src/workbook/chrome/footer/SheetDeleteConfirmation.tsx
 msgid "Deleting…"
@@ -2025,6 +2063,14 @@ msgstr "请输入查找内容。"
 #: src/i18n/feedback-messages.ts
 msgid "Enter the comparison value."
 msgstr "请输入比较值。"
+
+#: src/workbook/shift-cells/ShiftCellsDialog.tsx
+msgid "Entire column"
+msgstr "整列"
+
+#: src/workbook/shift-cells/ShiftCellsDialog.tsx
+msgid "Entire row"
+msgstr "整行"
 
 #: src/workbook/chrome/ribbon/CalculationTools.tsx
 msgid "Entire workbook"
@@ -2811,12 +2857,17 @@ msgid "Input title"
 msgstr "输入提示标题"
 
 #: src/workbook/chrome/ribbon/RibbonTabs.tsx
+#: src/workbook/shift-cells/ShiftCellsDialog.tsx
 msgid "Insert"
 msgstr "插入"
 
 #: src/workbook/chrome/ribbon/StructureTools.tsx
 msgid "Insert / Delete"
 msgstr "插入 / 删除"
+
+#: src/workbook/chrome/ribbon/StructureTools.tsx
+msgid "Insert cells…"
+msgstr "插入单元格…"
 
 #: src/i18n/feedback-messages.ts
 #: src/workbook/repeat/repeat-labels.ts
@@ -2860,6 +2911,10 @@ msgstr "插入选中的列"
 #: src/workbook/chrome/ribbon/StructureTools.tsx
 msgid "Insert selected rows"
 msgstr "插入选中的行"
+
+#: src/workbook/shift-cells/CellContextMenu.tsx
+msgid "Insert…"
+msgstr "插入…"
 
 #: src/workbook/chrome/ribbon/BorderTools.tsx
 msgid "Inside borders"
@@ -3599,6 +3654,7 @@ msgid "Numerical count"
 msgstr "数值计数"
 
 #: src/workbook/sheet-management/UnhideSheetDialog.tsx
+#: src/workbook/shift-cells/ShiftCellsDialog.tsx
 msgid "OK"
 msgstr "确定"
 
@@ -4682,6 +4738,10 @@ msgstr "请选择一个包含表头的连续筛选区域。"
 msgid "Select one continuous range before using Go to special."
 msgstr "使用“定位条件”前，请先选择一个连续区域。"
 
+#: src/i18n/shift-cells-feedback.ts
+msgid "Select one continuous range to insert or delete cells."
+msgstr "请选择一个连续区域来插入或删除单元格。"
+
 #: src/i18n/feedback-messages.ts
 msgid "Select one continuous range to merge cells."
 msgstr "请先选择一个连续区域再合并单元格。"
@@ -4854,6 +4914,30 @@ msgstr "工作表名称"
 #: src/i18n/feedback-messages.ts
 msgid "Sheet name cannot be empty"
 msgstr "工作表名称不能为空。"
+
+#: src/workbook/shift-cells/ShiftCellsDialog.tsx
+msgid "Shift cells down"
+msgstr "活动单元格下移"
+
+#: src/workbook/shift-cells/ShiftCellsDialog.tsx
+msgid "Shift cells left"
+msgstr "右侧单元格左移"
+
+#: src/workbook/shift-cells/ShiftCellsDialog.tsx
+msgid "Shift cells right"
+msgstr "活动单元格右移"
+
+#: src/workbook/shift-cells/ShiftCellsDialog.tsx
+msgid "Shift cells up"
+msgstr "下方单元格上移"
+
+#: src/i18n/shift-cells-feedback.ts
+msgid "Shifting these cells exceeds the 32 MiB undo budget."
+msgstr "移动这些单元格超出 32 MiB 撤销预算。"
+
+#: src/i18n/shift-cells-feedback.ts
+msgid "Shifting these cells would remove or split conditional formatting beyond its limits."
+msgstr "移动这些单元格会删除条件格式区域，或使其拆分超出限制。"
 
 #. placeholder {0}: i + 1
 #: src/workbook/grid/viewport/OutlineGutters.tsx
@@ -5945,6 +6029,10 @@ msgstr "修改表格前，请先取消工作表保护。"
 #: src/i18n/feedback-messages.ts
 msgid "Unprotect the worksheets before changing workbook names."
 msgstr "修改工作簿名称前，请先取消工作表保护。"
+
+#: src/i18n/shift-cells-feedback.ts
+msgid "Unprotect the worksheets before inserting or deleting cells."
+msgstr "插入或删除单元格前，请先取消工作表保护。"
 
 #: src/i18n/feedback-messages.ts
 msgid "Unprotect the worksheets before inserting or deleting rows and columns."

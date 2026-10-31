@@ -153,6 +153,7 @@ include!("wasm_workbook_clear.rs");
 include!("wasm_workbook_format_selection.rs");
 include!("wasm_workbook_structure.rs");
 include!("wasm_workbook_merge.rs");
+include!("wasm_workbook_shift_cells.rs");
 include!("wasm_workbook_freeze.rs");
 include!("wasm_workbook_outline.rs");
 include!("wasm_workbook_print_config.rs");
@@ -201,6 +202,7 @@ mod tests {
     include!("wasm_tests/sheet_tab.rs");
     include!("wasm_tests/manual_visibility.rs");
     include!("wasm_tests/structure_history.rs");
+    include!("wasm_tests/shift_cells.rs");
     include!("wasm_tests/clipboard_recovery.rs");
     include!("wasm_tests/merge.rs");
     include!("wasm_tests/frozen_panes.rs");

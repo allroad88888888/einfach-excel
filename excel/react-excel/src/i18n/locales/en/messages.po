@@ -626,8 +626,29 @@ msgstr "Call only built-in functions or registered custom formulas in custom for
 #: src/workbook/hyperlink/HyperlinkTools.tsx
 #: src/workbook/notes/NoteTools.tsx
 #: src/workbook/sheet-management/UnhideSheetDialog.tsx
+#: src/workbook/shift-cells/ShiftCellsDialog.tsx
 msgid "Cancel"
 msgstr "Cancel"
+
+#: src/i18n/shift-cells-feedback.ts
+msgid "Cannot shift cells in a table. Insert or delete table rows or columns instead."
+msgstr "Cannot shift cells in a table. Insert or delete table rows or columns instead."
+
+#: src/i18n/shift-cells-feedback.ts
+msgid "Cannot shift cells inside a filtered range."
+msgstr "Cannot shift cells inside a filtered range."
+
+#: src/i18n/shift-cells-feedback.ts
+msgid "Cannot shift cells through part of a merged cell."
+msgstr "Cannot shift cells through part of a merged cell."
+
+#: src/i18n/shift-cells-feedback.ts
+msgid "Cannot shift nonblank cells off the worksheet. Clear the last cells first."
+msgstr "Cannot shift nonblank cells off the worksheet. Clear the last cells first."
+
+#: src/i18n/shift-cells-feedback.ts
+msgid "Cannot shift part of a spilled array."
+msgstr "Cannot shift part of a spilled array."
 
 #: src/workbook/grid/viewport/CanvasCells.tsx
 msgid "Canvas worksheet cells"
@@ -649,6 +670,10 @@ msgstr "Category"
 #: src/workbook/hyperlink/HyperlinkTools.tsx
 msgid "Cell {address}. Click to select; Ctrl/⌘+click to open the link."
 msgstr "Cell {address}. Click to select; Ctrl/⌘+click to open the link."
+
+#: src/workbook/shift-cells/CellContextMenu.tsx
+msgid "Cell actions"
+msgstr "Cell actions"
 
 #: src/workbook/comments/CommentTools.tsx
 msgid "Cell comments"
@@ -782,6 +807,10 @@ msgstr "Choose cell value"
 #: src/workbook/chrome/ribbon/BorderTools.tsx
 msgid "Choose custom border color"
 msgstr "Choose custom border color"
+
+#: src/i18n/shift-cells-feedback.ts
+msgid "Choose how to shift the cells."
+msgstr "Choose how to shift the cells."
 
 #: src/i18n/next-version-feedback.ts
 msgid "Choose nonempty groups with valid filter conditions."
@@ -1527,6 +1556,7 @@ msgid "Define a formula once, then call it in any sheet."
 msgstr "Define a formula once, then call it in any sheet."
 
 #: src/workbook/chrome/ribbon/ConditionalFormatTools.tsx
+#: src/workbook/shift-cells/ShiftCellsDialog.tsx
 msgid "Delete"
 msgstr "Delete"
 
@@ -1534,6 +1564,10 @@ msgstr "Delete"
 #: src/workbook/chrome/footer/SheetDeleteConfirmation.tsx
 msgid "Delete “{0}” and all its data? Undo is available within session history limits."
 msgstr "Delete “{0}” and all its data? Undo is available within session history limits."
+
+#: src/workbook/chrome/ribbon/StructureTools.tsx
+msgid "Delete cells…"
+msgstr "Delete cells…"
 
 #: src/i18n/feedback-messages.ts
 #: src/workbook/repeat/repeat-labels.ts
@@ -1594,6 +1628,10 @@ msgstr "Delete worksheet"
 #: src/workbook/chrome/footer/SheetDeleteConfirmation.tsx
 msgid "Delete worksheet?"
 msgstr "Delete worksheet?"
+
+#: src/workbook/shift-cells/CellContextMenu.tsx
+msgid "Delete…"
+msgstr "Delete…"
 
 #: src/workbook/chrome/footer/SheetDeleteConfirmation.tsx
 msgid "Deleting…"
@@ -2025,6 +2063,14 @@ msgstr "Enter text to find."
 #: src/i18n/feedback-messages.ts
 msgid "Enter the comparison value."
 msgstr "Enter the comparison value."
+
+#: src/workbook/shift-cells/ShiftCellsDialog.tsx
+msgid "Entire column"
+msgstr "Entire column"
+
+#: src/workbook/shift-cells/ShiftCellsDialog.tsx
+msgid "Entire row"
+msgstr "Entire row"
 
 #: src/workbook/chrome/ribbon/CalculationTools.tsx
 msgid "Entire workbook"
@@ -2811,12 +2857,17 @@ msgid "Input title"
 msgstr "Input title"
 
 #: src/workbook/chrome/ribbon/RibbonTabs.tsx
+#: src/workbook/shift-cells/ShiftCellsDialog.tsx
 msgid "Insert"
 msgstr "Insert"
 
 #: src/workbook/chrome/ribbon/StructureTools.tsx
 msgid "Insert / Delete"
 msgstr "Insert / Delete"
+
+#: src/workbook/chrome/ribbon/StructureTools.tsx
+msgid "Insert cells…"
+msgstr "Insert cells…"
 
 #: src/i18n/feedback-messages.ts
 #: src/workbook/repeat/repeat-labels.ts
@@ -2860,6 +2911,10 @@ msgstr "Insert selected columns"
 #: src/workbook/chrome/ribbon/StructureTools.tsx
 msgid "Insert selected rows"
 msgstr "Insert selected rows"
+
+#: src/workbook/shift-cells/CellContextMenu.tsx
+msgid "Insert…"
+msgstr "Insert…"
 
 #: src/workbook/chrome/ribbon/BorderTools.tsx
 msgid "Inside borders"
@@ -3599,6 +3654,7 @@ msgid "Numerical count"
 msgstr "Numerical count"
 
 #: src/workbook/sheet-management/UnhideSheetDialog.tsx
+#: src/workbook/shift-cells/ShiftCellsDialog.tsx
 msgid "OK"
 msgstr "OK"
 
@@ -4682,6 +4738,10 @@ msgstr "Select one continuous filter range, including its header."
 msgid "Select one continuous range before using Go to special."
 msgstr "Select one continuous range before using Go to special."
 
+#: src/i18n/shift-cells-feedback.ts
+msgid "Select one continuous range to insert or delete cells."
+msgstr "Select one continuous range to insert or delete cells."
+
 #: src/i18n/feedback-messages.ts
 msgid "Select one continuous range to merge cells."
 msgstr "Select one continuous range to merge cells."
@@ -4854,6 +4914,30 @@ msgstr "Sheet name"
 #: src/i18n/feedback-messages.ts
 msgid "Sheet name cannot be empty"
 msgstr "Sheet name cannot be empty"
+
+#: src/workbook/shift-cells/ShiftCellsDialog.tsx
+msgid "Shift cells down"
+msgstr "Shift cells down"
+
+#: src/workbook/shift-cells/ShiftCellsDialog.tsx
+msgid "Shift cells left"
+msgstr "Shift cells left"
+
+#: src/workbook/shift-cells/ShiftCellsDialog.tsx
+msgid "Shift cells right"
+msgstr "Shift cells right"
+
+#: src/workbook/shift-cells/ShiftCellsDialog.tsx
+msgid "Shift cells up"
+msgstr "Shift cells up"
+
+#: src/i18n/shift-cells-feedback.ts
+msgid "Shifting these cells exceeds the 32 MiB undo budget."
+msgstr "Shifting these cells exceeds the 32 MiB undo budget."
+
+#: src/i18n/shift-cells-feedback.ts
+msgid "Shifting these cells would remove or split conditional formatting beyond its limits."
+msgstr "Shifting these cells would remove or split conditional formatting beyond its limits."
 
 #. placeholder {0}: i + 1
 #: src/workbook/grid/viewport/OutlineGutters.tsx
@@ -5945,6 +6029,10 @@ msgstr "Unprotect the worksheets before changing tables."
 #: src/i18n/feedback-messages.ts
 msgid "Unprotect the worksheets before changing workbook names."
 msgstr "Unprotect the worksheets before changing workbook names."
+
+#: src/i18n/shift-cells-feedback.ts
+msgid "Unprotect the worksheets before inserting or deleting cells."
+msgstr "Unprotect the worksheets before inserting or deleting cells."
 
 #: src/i18n/feedback-messages.ts
 msgid "Unprotect the worksheets before inserting or deleting rows and columns."

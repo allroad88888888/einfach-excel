@@ -1110,3 +1110,10 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | SELSPECIAL-005 | Ctrl+Shift+* 当前区域 | `select-special/current-region.spec.ts` | Ctrl+Shift+8 selects the current region around the active cell at 1280px |
 | SELSPECIAL-006 | 定位条件当前区域 | `select-special/current-region.spec.ts` | Go to special Current region selects the region of the active cell at 1280px |
 | SELSPECIAL-007 | Ctrl+A 先区域后整表 | `select-special/current-region.spec.ts` | Ctrl+A selects the current region first and the whole sheet second at 1280px |
+| SHIFTCELLS-001 | 插入单元格·活动单元格右移 | `shift-cells/shift-cells.spec.ts` | insert cells shift right from the ribbon moves the row band, follows references and undoes once |
+| SHIFTCELLS-002 | 插入单元格·活动单元格下移（Ctrl+Shift+=） | `shift-cells/shift-cells.spec.ts` | Ctrl+Shift+= opens Insert and shift down moves only the selected column |
+| SHIFTCELLS-003 | 删除单元格·右侧单元格左移（右键菜单） | `shift-cells/shift-cells.spec.ts` | cell context menu Delete shift left closes the gap and keeps references to moved cells |
+| SHIFTCELLS-004 | 删除单元格·下方单元格上移（Ctrl+-） | `shift-cells/shift-cells.spec.ts` | Ctrl+- opens Delete and shift up pulls the column below into the selection |
+| SHIFTCELLS-005 | 删除被引用单元格产生 #REF! | `shift-cells/shift-cells.spec.ts` | deleting a referenced cell shows #REF! in the dependent sheet and undo restores the value |
+| SHIFTCELLS-006 | 拒绝切开合并单元格 | `shift-cells/shift-cells.spec.ts` | shifting through part of a merged cell is rejected without changing the sheet |
+| SHIFTCELLS-007 | 插入对话框整行选项 | `shift-cells/shift-cells.spec.ts` | Insert dialog Entire row inserts whole rows through the row command |

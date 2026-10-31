@@ -93,7 +93,7 @@ pub use sort::{
 };
 pub use undo::{CellSnapshot, Edit, UndoStack};
 pub use workbook::{
-    BulkInstallStats, ConditionalFormatConfigSnapshot, ConditionalFormatError,
+    BulkInstallStats, CellShiftDirection, ConditionalFormatConfigSnapshot, ConditionalFormatError,
     ConditionalIconDisplay, DataBarDisplay, DisplayFormatRangeSnapshot,
     ConditionalFormatRuleEntry, FilterSnapshot, HeaderFooterFields, HiddenRowsError,
     HiddenRowsSnapshot, InstallError, ManualPageBreak, ManualPageBreakAxis, MergeAction,

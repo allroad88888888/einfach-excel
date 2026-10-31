@@ -16,6 +16,7 @@
 //! | `render_ref` | 单元格地址 / 区域引用写成 A1 文本时的 `$` 与 `#REF!` 形状 |
 //! | `table_ref` | 表名 / 列名改掉之后重写结构化引用节点 |
 //! | `structural_refs` | 按工作表作用域重写结构引用节点，删除时缩小存活范围 |
+//! | `band_range` | 插入/删除单元格时矩形区域（条件格式、验证）的带内位移几何 |
 //! | `qualified_source` | 保持停泊公式原样，只重写指向被编辑表的静态引用片段 |
 //!
 //! 子模块一律私有，公开面由本文件逐项 `pub use` 出去 —— `crate::shift::X`
@@ -25,6 +26,8 @@ mod copy;
 mod delta;
 mod edit;
 mod row_band_range;
+mod band_range;
+pub(crate) use band_range::band_shift_range;
 pub(crate) use row_band_range::insert_row_band_range;
 pub(crate) use edit::shift_interval;
 mod parked;
@@ -57,6 +60,6 @@ pub use render::render_formula;
 pub use retarget::map_addrs;
 
 pub(crate) use qualified_source::rewrite_qualified_source;
-pub(crate) use structural_refs::{rewrite_structural_refs, rewrite_row_band_insert};
+pub(crate) use structural_refs::{rewrite_band_shift, rewrite_structural_refs, rewrite_row_band_insert};
 pub(crate) use structural_refs::shift_range as shift_structural_range;
 pub(crate) use table_ref::TableRefEditSpec;

@@ -168,6 +168,10 @@ mod workbook_table_registry;
 #[path = "workbook_table_create.rs"]
 mod workbook_table_create;
 pub(crate) use workbook_table_create::TableCreation;
+#[path = "cell_shift/mod.rs"]
+mod cell_shift;
+pub use cell_shift::CellShiftDirection;
+pub(crate) use cell_shift::CellShiftChange;
 #[path = "workbook_table_change.rs"]
 mod workbook_table_change;
 #[path = "workbook_table_insert_row_write.rs"]

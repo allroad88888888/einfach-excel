@@ -65,6 +65,9 @@ impl HistoryEntry {
                         .filter(|((_, before), (_, after))| before != after).map(|((key, _), _)| *key));
                 }
             }
+            HistoryChange::CellShift(change) => {
+                for (sheet, range) in change.mutation_ranges() { add(sheet, range); }
+            }
             HistoryChange::TableDefinition(change) => {
                 for (sheet, range) in change.mutation_ranges() { add(sheet, range); }
             }

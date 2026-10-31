@@ -7,6 +7,7 @@ import type { RustHistoryState } from '../history/rust-history-types'
 import type { SheetVisibilityProjection } from '../viewport/hidden-state'
 import type { AutoFitText } from './auto-fit-measurement'
 import type { WasmFindQueries } from './find-commands'
+import type { WasmSelectSpecialQueries } from './select-special-commands'
 import type { CellRange } from '../shared'
 import type { SelectionNumbers } from '../status-bar/types'
 import type { RustSortKey } from './sort-commands'
@@ -70,7 +71,7 @@ export interface RustFormatRangeSnapshot {
 }
 
 export interface WasmWorkbook extends HostWasmCommands, WasmSpillQueries,
-  WasmFindQueries, WasmCustomFormulaQueries,
+  WasmFindQueries, WasmSelectSpecialQueries, WasmCustomFormulaQueries,
   WasmNoteQueries, WasmCommentQueries, WasmProtectionQueries, WasmAsyncFormulaQueries,
   WasmDragMoveQueries {
   change_hyperlink?: (sheet: number, row: number, col: number,

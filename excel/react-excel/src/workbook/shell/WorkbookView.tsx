@@ -9,6 +9,8 @@ import { useAtomValue, useSetAtom } from '@einfach/react'
 import { runFindReplaceAtom, formatPainterAtom, runFormatPainterAtom,
   runGoToReferenceAtom } from '@einfach-excel/spreadsheet-ui-core'
 import { Trans, useLingui } from '@lingui/react/macro'
+import { SelectSpecialStatus } from '../select-special/SelectSpecialStatus'
+import { useSelectSpecialKeys } from '../select-special/use-select-special-keys'
 
 /** Composes the shared spreadsheet chrome around the active Rust workbook. */
 export function WorkbookView() {
@@ -17,6 +19,7 @@ export function WorkbookView() {
   const runGoTo = useSetAtom(runGoToReferenceAtom)
   const painter = useAtomValue(formatPainterAtom)
   const runPainter = useSetAtom(runFormatPainterAtom)
+  const selectSpecialKey = useSelectSpecialKeys()
   return (
     <div
       className="einfach-spreadsheet workbook"
@@ -29,13 +32,14 @@ export function WorkbookView() {
         }
       }}
       onKeyDown={(event) => {
-        if (event.nativeEvent.isComposing || event.altKey)
-          return
+        if (event.nativeEvent.isComposing) return
         if (
           event.target instanceof HTMLElement &&
           event.target.closest('input, textarea, [contenteditable="true"], dialog')
         )
           return
+        if (selectSpecialKey(event)) return
+        if (event.altKey) return
         const key = event.key.toLowerCase()
         if (!event.shiftKey && ((key === 'f5' && !event.ctrlKey && !event.metaKey) ||
           ((event.ctrlKey || event.metaKey) && key === 'g'))) {
@@ -55,6 +59,7 @@ export function WorkbookView() {
       <WorkbookRibbon />
       <FormulaBar />
       <WorkbookGrid />
+      <SelectSpecialStatus />
       <WorkbookFooter />
     </div>
   )

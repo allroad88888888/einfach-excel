@@ -14,6 +14,8 @@ mod paste;
 #[path = "clipboard_paste_target.rs"]
 mod paste_target;
 pub use arithmetic::ClipboardArithmetic;
+#[path = "clipboard_blocks.rs"]
+mod blocks;
 #[path = "clipboard_apply.rs"]
 mod apply;
 #[path = "clipboard_column_widths.rs"]
@@ -64,6 +66,8 @@ pub struct ClipboardSnapshot {
     source: CellRange,
     // 压紧后的每一行仍记住真实源行；相对公式不能按压紧坐标偏移。
     source_rows: Vec<u32>,
+    // 同理记住真实源列；多块复制时列可能不连续。
+    source_cols: Vec<u32>,
     cut: bool,
     cells: Vec<ClipboardCell>,
     text: String,
@@ -114,7 +118,7 @@ impl ClipboardSnapshot {
     }
 
     pub fn cols(&self) -> u32 {
-        self.source.cols()
+        self.source_cols.len() as u32
     }
 }
 
@@ -158,13 +162,26 @@ impl Workbook {
         range: CellRange,
         cut: bool,
     ) -> Result<ClipboardSnapshot, ClipboardError> {
+        self.capture_clipboard_blocks(sheet_idx, &[range], cut)
+    }
+
+    /// 多个不连续块只在同列或同行时可复制（与 Excel 一致）；块之间的空隙不进入快照。
+    pub fn capture_clipboard_blocks(
+        &self,
+        sheet_idx: usize,
+        blocks: &[CellRange],
+        cut: bool,
+    ) -> Result<ClipboardSnapshot, ClipboardError> {
+        let (range, mut source_rows, source_cols) = blocks::resolve(blocks)?;
         validate_range(range)?;
+        if cut && blocks.len() != 1 {
+            return Err("CLIPBOARD_MULTI_CUT");
+        }
         if cut { self.ensure_range_editable(sheet_idx, range)?; }
         let sheet = self.sheet(sheet_idx).ok_or("CLIPBOARD_INVALID_SHEET")?;
         let hidden = sheet.filter_hidden_set();
-        let source_rows: Vec<u32> = (range.start.row..=range.end.row)
-            .filter(|row| !hidden.as_ref().is_some_and(|rows| rows.contains(row)))
-            .collect();
+        let is_hidden = |row: &u32| hidden.as_ref().is_some_and(|rows| rows.contains(row));
+        source_rows.retain(|row| !is_hidden(row));
         if cut && source_rows.len() != range.rows() as usize {
             return Err("CLIPBOARD_FILTERED_CUT");
         }
@@ -172,54 +189,48 @@ impl Workbook {
             return Err("CLIPBOARD_NO_VISIBLE_ROWS");
         }
         let merges: Vec<_> = sheet.merges_in_range(range).into_iter().filter(|merge| {
-            source_rows.get(source_rows.partition_point(|row| *row < merge.start.row))
-                .is_some_and(|row| *row <= merge.end.row)
+            blocks::touches(&source_rows, merge.start.row, merge.end.row)
+                && blocks::touches(&source_cols, merge.start.col, merge.end.col)
         }).collect();
-        if merges
-            .iter()
-            .any(|merge| !range.contains(merge.start) || !range.contains(merge.end)
-                || (merge.start.row..=merge.end.row)
-                    .any(|row| hidden.as_ref().is_some_and(|rows| rows.contains(&row))))
+        if merges.iter().any(|merge| !range.contains(merge.start) || !range.contains(merge.end)
+            || !blocks::covers(&source_rows, merge.start.row, merge.end.row)
+            || !blocks::covers(&source_cols, merge.start.col, merge.end.col))
         {
             return Err("CLIPBOARD_PARTIAL_MERGE");
         }
-        let mut cells = Vec::with_capacity(source_rows.len() * range.cols() as usize);
+        let mut cells = Vec::with_capacity(source_rows.len() * source_cols.len());
         let mut text = String::new();
-        for addr in source_rows.iter().flat_map(|row| {
-            (range.start.col..=range.end.col).map(move |col| CellAddress::new(*row, col))
-        }) {
-            if cut && sheet.is_spill_region(addr) {
-                return Err("CLIPBOARD_SPILL_SOURCE");
+        for &row in &source_rows {
+            for &col in &source_cols {
+                let addr = CellAddress::new(row, col);
+                if cut && sheet.is_spill_region(addr) {
+                    return Err("CLIPBOARD_SPILL_SOURCE");
+                }
+                if !cells.is_empty() {
+                    text.push(if col == source_cols[0] { '\n' } else { '\t' });
+                }
+                tsv::push_field(&mut text, &sheet.formatted_display(&addr.to_string_repr()));
+                if text.len() > MAX_CLIPBOARD_TEXT_BYTES {
+                    return Err("CLIPBOARD_TOO_LARGE");
+                }
+                let mut cell = read_cell(sheet, addr);
+                if let Some(style) = self.table_base_style_at(sheet_idx, addr) {
+                    let mut format = CellFormat::default();
+                    style.apply_to(&mut format);
+                    cell.format = Some(format);
+                }
+                cells.push(cell);
             }
-            if !cells.is_empty() {
-                text.push(if addr.col == range.start.col {
-                    '\n'
-                } else {
-                    '\t'
-                });
-            }
-            tsv::push_field(&mut text, &sheet.formatted_display(&addr.to_string_repr()));
-            if text.len() > MAX_CLIPBOARD_TEXT_BYTES {
-                return Err("CLIPBOARD_TOO_LARGE");
-            }
-            let mut cell = read_cell(sheet, addr);
-            if let Some(style) = self.table_base_style_at(sheet_idx, addr) {
-                let mut format = CellFormat::default();
-                style.apply_to(&mut format);
-                cell.format = Some(format);
-            }
-            cells.push(cell);
         }
         Ok(ClipboardSnapshot {
             source_sheet: Some(sheet_idx),
             source: range,
             source_rows,
+            column_widths: source_cols.iter().map(|col| sheet.col_width(*col)).collect(),
+            source_cols,
             cut,
             cells,
             text,
-            column_widths: (range.start.col..=range.end.col)
-                .map(|col| sheet.col_width(col))
-                .collect(),
             merges,
         })
     }

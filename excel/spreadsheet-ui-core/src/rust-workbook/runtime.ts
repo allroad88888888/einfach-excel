@@ -10,6 +10,7 @@ import { changeSheetStructure } from './sheet-structure'
 import { readSizes } from './size-io'
 import { changeSize } from './resize-io'
 import { findWorkbook, replaceWorkbook } from './find-io'
+import { selectSpecialQuery } from './select-special-io'
 import { initializeWorkbook } from './initialize-workbook'
 import { readComment, changeComment } from './comments/command'
 import { changeMerge } from './merge-io'
@@ -330,6 +331,8 @@ export function installRustWorkbookRuntime(wasm: RustWasmModule): void {
       }))
       return { ...current.aggregate_selection(targets), revision }
     }
+    if (command === 'selection.visibleBlocks' || command === 'selection.currentRegion')
+      return selectSpecialQuery(current, command, payload, sheetIndex, revision)
     if (command === 'workbook.locate') {
       const { sheetId, ...input } = payload as RustWorkbookCommands[typeof command]['payload']
       if (!current.locate_cells) throw new Error('Rust locate command is unavailable.')

@@ -11,7 +11,7 @@ const NON_PERSISTENT = new Set([
   'customFormula.read', 'notes.read', 'comments.read', 'protection.read', 'formula.inspectSpill',
   'workbook.exportFile', 'validation.read', 'formula.suggest', 'duplicates.preview',
   'textColumns.preview', 'format.preview', 'sheet.filterValues', 'selection.aggregate',
-  'workbook.locate', 'workbook.find', 'clipboard.export', 'clipboard.capture',
+  'workbook.locate', 'workbook.find', 'selection.visibleBlocks', 'selection.currentRegion', 'clipboard.export', 'clipboard.capture',
   'clipboard.finishCapture', 'projection.readVisible',
 ])
 const STRUCTURAL = new Set([

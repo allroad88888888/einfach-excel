@@ -1315,6 +1315,10 @@ msgstr "货币格式"
 msgid "Currency symbol"
 msgstr "货币符号"
 
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Current region"
+msgstr "当前区域"
+
 #: src/workbook/chrome/ribbon/FindReplaceTools.tsx
 msgid "Current sheet"
 msgstr "当前工作表"
@@ -1407,6 +1411,10 @@ msgstr "剪切 (Ctrl/⌘+X)"
 #: src/i18n/feedback-messages.ts
 msgid "Cut between sheets is not supported yet."
 msgstr "暂不支持跨工作表剪切。"
+
+#: src/i18n/select-special-feedback.ts
+msgid "Cut cannot be used on multiple selections. Copy instead."
+msgstr "剪切不能用于多重选区，请改用复制。"
 
 #: src/i18n/feedback-messages.ts
 msgid "cut…"
@@ -3506,6 +3514,10 @@ msgstr "此工作簿中没有表格。"
 msgid "No tables yet. Choose a range below."
 msgstr "尚无表格，请在下方选择区域。"
 
+#: src/i18n/select-special-feedback.ts
+msgid "No visible cells in the selection."
+msgstr "所选区域中没有可见单元格。"
+
 #: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
 msgid "Nonbreaking space"
 msgstr "不换行空格"
@@ -4650,8 +4662,8 @@ msgid "Select column {label}"
 msgstr "选择列 {label}"
 
 #: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
-msgid "Select constants, formulas or blanks"
-msgstr "选择常量、公式或空白单元格"
+msgid "Select constants, formulas, blanks, visible cells or the current region"
+msgstr "选择常量、公式、空白、仅可见单元格或当前区域"
 
 #: src/i18n/feedback-messages.ts
 msgid "Select one continuous column of cells."
@@ -4702,6 +4714,14 @@ msgstr "选择行 {label}"
 msgid "Select samples and destinations in one row or column. Keep the first samples; extend their pattern into the remaining cells, including hidden cells."
 msgstr "在同一行或列中选择样本和目标。保留开头的样本，将其规律扩展到剩余单元格，包含隐藏单元格。"
 
+#: src/workbook/select-special/SelectSpecialStatus.tsx
+msgid "Select special"
+msgstr "选择助手"
+
+#: src/workbook/select-special/SelectSpecialStatus.tsx
+msgid "Select special error"
+msgstr "选择助手错误"
+
 #: src/workbook/chrome/ribbon/SpillTools.tsx
 msgid "Select spill range"
 msgstr "选中溢出区域"
@@ -4733,6 +4753,18 @@ msgstr "复制或粘贴前，请选中完整的合并单元格。"
 #: src/i18n/translate-feedback.ts
 msgid "Selected {cells} cells in {areas} areas. Searched {range}."
 msgstr "已选中 {areas} 个区域中的 {cells} 个单元格，搜索范围为 {range}。"
+
+#: src/i18n/translate-select-special.ts
+msgid "Selected {cells} visible cells in {areas} areas."
+msgstr "已选中 {areas} 个区域中的 {cells} 个可见单元格。"
+
+#: src/i18n/translate-select-special.ts
+msgid "Selected current region {range}."
+msgstr "已选中当前区域 {range}。"
+
+#: src/i18n/select-special-feedback.ts
+msgid "Selected current region."
+msgstr "已选中当前区域。"
 
 #: src/workbook/chrome/ribbon/FilterValueChoices.tsx
 msgid "Selected filter values"
@@ -5278,6 +5310,14 @@ msgstr "匹配单元格超出了当前工作表范围。"
 msgid "The named range no longer exists."
 msgstr "此命名区域已不存在。"
 
+#: src/i18n/select-special-feedback.ts
+msgid "The native result is inconsistent."
+msgstr "原生结果不一致。"
+
+#: src/i18n/select-special-feedback.ts
+msgid "The native result is outside the worksheet."
+msgstr "原生结果超出了工作表范围。"
+
 #: src/i18n/feedback-messages.ts
 msgid "The new column name is the same as the current name."
 msgstr "新列名与当前列名相同。"
@@ -5350,6 +5390,10 @@ msgstr "选区已更改，请关闭调色板并重新选择目标。"
 #: src/i18n/feedback-messages.ts
 msgid "The selection changed. Refresh spill details for the current cell."
 msgstr "选区已更改，请刷新当前单元格的溢出详情。"
+
+#: src/i18n/select-special-feedback.ts
+msgid "The selection changed. Try again."
+msgstr "选区已变化，请重试。"
 
 #: src/i18n/feedback-messages.ts
 msgid "The selection or workbook changed. Close this dialog and select the range again."
@@ -5475,6 +5519,10 @@ msgstr "工作簿已更改，请重新打开工作表保护。"
 msgid "The workbook changed. Submit the operation again."
 msgstr "工作簿已更改，请重新提交操作。"
 
+#: src/i18n/select-special-feedback.ts
+msgid "The workbook changed. Try again."
+msgstr "工作簿已变化，请重试。"
+
 #: src/i18n/feedback-messages.ts
 msgid "The workbook changed. Try locating cells again."
 msgstr "工作簿已更改，请重新定位。"
@@ -5514,6 +5562,10 @@ msgstr "工作表已更改，请关闭并重新打开筛选。"
 #: src/workbook/chrome/ribbon/SpillTools.tsx
 msgid "The worksheet changed. Refresh spill details before navigating."
 msgstr "工作表已更改，请刷新溢出详情后再定位。"
+
+#: src/i18n/select-special-feedback.ts
+msgid "The worksheet changed. Try again."
+msgstr "工作表已变化，请重试。"
 
 #: src/i18n/seven-feature-feedback.ts
 msgid "The worksheet dimensions changed outside history."
@@ -5571,6 +5623,10 @@ msgstr "剪贴板中没有工作簿格式，请先复制此工作簿中的单元
 #: src/i18n/feedback-messages.ts
 msgid "This clipboard range is too large. Select a smaller range."
 msgstr "剪贴板区域过大，请选择更小的区域。"
+
+#: src/i18n/select-special-feedback.ts
+msgid "This command cannot be used on multiple selections. Select areas with the same rows or columns."
+msgstr "此命令不能用于多重选区。请选择行或列相同的区域。"
 
 #: src/i18n/feedback-messages.ts
 msgid "This edit was not confirmed — it may or may not have been saved."
@@ -6106,6 +6162,10 @@ msgstr "垂直对齐"
 #: src/workbook/chrome/ribbon/RibbonTabs.tsx
 msgid "View"
 msgstr "视图"
+
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Visible cells only"
+msgstr "仅可见单元格"
 
 #: src/i18n/feedback-messages.ts
 msgid "Wait for the Rust worksheet to finish loading."

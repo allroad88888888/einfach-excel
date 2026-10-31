@@ -18,6 +18,7 @@ import type { SheetVisibilityProjection } from '../viewport/hidden-state'
 import type { StructuralEdit } from './structure-geometry'
 import type { AutoFitLayout } from './auto-fit-measurement'
 import type { RustFindCommands } from './find-commands'
+import type { RustSelectSpecialCommands } from './select-special-commands'
 import type { RustSortCommands } from './sort-commands'
 import type { RustFilterCommands } from './filter-commands'
 import type { ColumnFilterGroup, ColumnFilterRule } from '../filter-sort/types'
@@ -178,7 +179,7 @@ export interface RustClearRangeRequest {
 }
 
 export interface RustWorkbookCommands
-  extends HostCommands, RustFindCommands,
+  extends HostCommands, RustFindCommands, RustSelectSpecialCommands,
     RustSortCommands,
     RustFilterCommands,
     RustTextColumnsCommands,

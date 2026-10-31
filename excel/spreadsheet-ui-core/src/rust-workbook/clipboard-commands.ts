@@ -40,6 +40,8 @@ export interface RustClipboardCaptureRequest {
   readonly painter?: boolean
   readonly sheetId: string
   readonly range: CellRange
+  /** 同列或同行的多个不连续块；仅复制。省略时使用 `range`。 */
+  readonly blocks?: readonly CellRange[]
   readonly cut: boolean
 }
 

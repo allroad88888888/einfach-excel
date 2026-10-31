@@ -91,8 +91,8 @@ impl WasmWorkbook :: [#[wasm_bindgen(js_name = getPrintConfig)]] :: pub fn get_p
 impl WasmWorkbook :: [#[wasm_bindgen(js_name = listConditionalFormats)]] :: pub fn list_conditional_formats(&self, sheet: u32) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [#[wasm_bindgen(js_name = manageConditionalFormatRule)]] :: pub fn manage_conditional_format_rule(&mut self, sheet: u32, request: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [#[wasm_bindgen(js_name = removeConditionalFormatRule)]] :: pub fn remove_conditional_format_rule( &mut self, sheet: u32, request: JsValue, ) -> Result<JsValue, JsValue>
-impl WasmWorkbook :: [#[wasm_bindgen(js_name = setConditionalFormatRule)]] :: pub fn set_conditional_format_rule( &mut self, sheet: u32, request: JsValue, ) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [#[wasm_bindgen(js_name = setCellInputConfirmed)]] :: pub fn set_cell_input_confirmed(&mut self, sheet: usize, addr: &str, input: &str, expand_tables: bool) -> Result<(), JsValue>
+impl WasmWorkbook :: [#[wasm_bindgen(js_name = setConditionalFormatRule)]] :: pub fn set_conditional_format_rule( &mut self, sheet: u32, request: JsValue, ) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [#[wasm_bindgen(js_name = setDataValidation)]] :: pub fn set_data_validation( &mut self, sheet: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, rule: JsValue, ) -> Result<(), JsValue>
 impl WasmWorkbook :: [#[wasm_bindgen(js_name = setPrintConfig)]] :: pub fn set_print_config(&mut self, sheet: u32, config: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [#[wasm_bindgen]] :: pub fn function_catalog() -> Result<JsValue, JsValue>
@@ -104,13 +104,13 @@ impl WasmWorkbook :: [] :: pub fn bulk_import_cells(&mut self, cells: JsValue) -
 impl WasmWorkbook :: [] :: pub fn bulk_install_workbook(&mut self, payload: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn capture_clipboard( &mut self, sheet_idx: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, cut: bool, ) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn capture_format_painter( &mut self, sheet_idx: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, ) -> Result<JsValue, JsValue>
-impl WasmWorkbook :: [] :: pub fn change_hyperlink( &mut self, sheet: u32, row: u32, col: u32, url: Option<String>, text: Option<String>, ) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn change_comment(&mut self, sheet: u32, row: u32, col: u32, change_json: &str) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn change_custom_formula( &mut self, sheet: u32, action_json: &str, ) -> Result<bool, JsValue>
-impl WasmWorkbook :: [] :: pub fn change_note( &mut self, sheet: u32, row: u32, col: u32, text: Option<String>, ) -> Result<bool, JsValue>
-impl WasmWorkbook :: [] :: pub fn change_protection(&mut self, sheet: u32, change: JsValue) -> Result<bool, JsValue>
+impl WasmWorkbook :: [] :: pub fn change_hyperlink( &mut self, sheet: u32, row: u32, col: u32, url: Option<String>, text: Option<String>, ) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn change_named_range(&mut self, sheet: u32, action: JsValue) -> Result<bool, JsValue>
+impl WasmWorkbook :: [] :: pub fn change_note( &mut self, sheet: u32, row: u32, col: u32, text: Option<String>, ) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn change_outline(&mut self, sheet: u32, axis: &str, action: JsValue) -> Result<bool, JsValue>
+impl WasmWorkbook :: [] :: pub fn change_protection(&mut self, sheet: u32, change: JsValue) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn change_table(&mut self, sheet: u32, action: JsValue) -> Result<bool, JsValue>
 impl WasmWorkbook :: [] :: pub fn clear_cell(&mut self, sheet_idx: u32, addr: &str)
 impl WasmWorkbook :: [] :: pub fn clear_range( &mut self, sheet_idx: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, ) -> u32
@@ -158,14 +158,15 @@ impl WasmWorkbook :: [] :: pub fn patch_format_range( &mut self, sheet_idx: u32,
 impl WasmWorkbook :: [] :: pub fn patch_format_selection(&mut self, request: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn patch_range_borders( &mut self, sheet_idx: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, input: JsValue, ) -> Result<u32, JsValue>
 impl WasmWorkbook :: [] :: pub fn prepare_clipboard( &mut self, sheet_idx: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, cut: bool, ) -> Result<JsValue, JsValue>
+impl WasmWorkbook :: [] :: pub fn prepare_clipboard_blocks(&mut self, sheet_idx: u32, blocks: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn preview_number_format( &self, sheet_idx: u32, addr: &str, format: JsValue, ) -> Result<String, JsValue>
 impl WasmWorkbook :: [] :: pub fn preview_remove_duplicates(&self, request: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn preview_text_columns(&self, request: JsValue) -> Result<JsValue, JsValue>
-impl WasmWorkbook :: [] :: pub fn read_sparse_range( &self, sheet_idx: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, ) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn read_comment(&self, sheet: u32, row: u32, col: u32) -> Result<String, JsValue>
 impl WasmWorkbook :: [] :: pub fn read_custom_formulas(&self) -> Result<String, JsValue>
 impl WasmWorkbook :: [] :: pub fn read_note(&self, sheet: u32, row: u32, col: u32) -> Result<Option<String>, JsValue>
 impl WasmWorkbook :: [] :: pub fn read_protection(&self, sheet: u32) -> Result<JsValue, JsValue>
+impl WasmWorkbook :: [] :: pub fn read_sparse_range( &self, sheet_idx: u32, start_row: u32, start_col: u32, end_row: u32, end_col: u32, ) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn recalculate(&mut self, sheet: Option<u32>) -> Result<usize, JsValue>
 impl WasmWorkbook :: [] :: pub fn remove_duplicates(&mut self, request: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn remove_sheet(&mut self, idx: u32) -> bool
@@ -175,6 +176,8 @@ impl WasmWorkbook :: [] :: pub fn resize_range( &mut self, sheet_idx: u32, start
 impl WasmWorkbook :: [] :: pub fn restore_format_snapshot(&mut self, snapshot: JsValue) -> Result<u32, JsValue>
 impl WasmWorkbook :: [] :: pub fn restore_persistence_v1(&mut self, value: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn restore_sparse(&mut self, cells: JsValue) -> Result<u32, JsValue>
+impl WasmWorkbook :: [] :: pub fn select_current_region(&self, request: JsValue) -> Result<JsValue, JsValue>
+impl WasmWorkbook :: [] :: pub fn select_visible_cells(&self, request: JsValue) -> Result<JsValue, JsValue>
 impl WasmWorkbook :: [] :: pub fn set_boolean(&mut self, sheet_idx: u32, addr: &str, value: bool)
 impl WasmWorkbook :: [] :: pub fn set_cell_boolean(&mut self, sheet_idx: usize, addr: &str, value: bool)
 impl WasmWorkbook :: [] :: pub fn set_cell_error(&mut self, sheet_idx: usize, addr: &str, value: &str)

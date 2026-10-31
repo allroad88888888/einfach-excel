@@ -13,6 +13,9 @@ const ERROR_MESSAGES: Readonly<Record<string, string>> = {
     'The selected range must fit whole copies of the clipboard. Nothing was pasted.',
   CLIPBOARD_CUT_SPECIAL: 'Paste special requires Copy, not Cut. The cut cells are unchanged.',
   CLIPBOARD_FILTERED_CUT: 'Clear the filter before cutting this range. No cells were moved.',
+  CLIPBOARD_MULTI_SHAPE:
+    'This command cannot be used on multiple selections. Select areas with the same rows or columns.',
+  CLIPBOARD_MULTI_CUT: 'Cut cannot be used on multiple selections. Copy instead.',
   CLIPBOARD_NO_VISIBLE_ROWS: 'This selection has no unfiltered rows to copy.',
   CLIPBOARD_NO_FORMATS:
     'This clipboard has no workbook formatting. Copy cells in this workbook first.',

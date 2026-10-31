@@ -58,7 +58,8 @@ impl MergePastePlan {
                         // 完整合并块已在捕获时校验；跳过前面的筛掉行后再定位。
                         let r = snapshot.source_rows.binary_search(&source.start.row)
                             .expect("captured merge has a visible anchor") as u32;
-                        let c = source.start.col - snapshot.source.start.col;
+                        let c = snapshot.source_cols.binary_search(&source.start.col)
+                            .expect("captured merge has a visible anchor column") as u32;
                         if options.skip_blanks
                             && snapshot.cells[(r * snapshot.cols() + c) as usize].is_blank()
                         {

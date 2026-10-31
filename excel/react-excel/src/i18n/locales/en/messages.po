@@ -1315,6 +1315,10 @@ msgstr "Currency format"
 msgid "Currency symbol"
 msgstr "Currency symbol"
 
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Current region"
+msgstr "Current region"
+
 #: src/workbook/chrome/ribbon/FindReplaceTools.tsx
 msgid "Current sheet"
 msgstr "Current sheet"
@@ -1407,6 +1411,10 @@ msgstr "Cut (Ctrl/⌘+X)"
 #: src/i18n/feedback-messages.ts
 msgid "Cut between sheets is not supported yet."
 msgstr "Cut between sheets is not supported yet."
+
+#: src/i18n/select-special-feedback.ts
+msgid "Cut cannot be used on multiple selections. Copy instead."
+msgstr "Cut cannot be used on multiple selections. Copy instead."
 
 #: src/i18n/feedback-messages.ts
 msgid "cut…"
@@ -3506,6 +3514,10 @@ msgstr "No tables in this workbook."
 msgid "No tables yet. Choose a range below."
 msgstr "No tables yet. Choose a range below."
 
+#: src/i18n/select-special-feedback.ts
+msgid "No visible cells in the selection."
+msgstr "No visible cells in the selection."
+
 #: src/workbook/chrome/ribbon/TextColumnNumberOptions.tsx
 msgid "Nonbreaking space"
 msgstr "Nonbreaking space"
@@ -4650,8 +4662,8 @@ msgid "Select column {label}"
 msgstr "Select column {label}"
 
 #: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
-msgid "Select constants, formulas or blanks"
-msgstr "Select constants, formulas or blanks"
+msgid "Select constants, formulas, blanks, visible cells or the current region"
+msgstr "Select constants, formulas, blanks, visible cells or the current region"
 
 #: src/i18n/feedback-messages.ts
 msgid "Select one continuous column of cells."
@@ -4702,6 +4714,14 @@ msgstr "Select row {label}"
 msgid "Select samples and destinations in one row or column. Keep the first samples; extend their pattern into the remaining cells, including hidden cells."
 msgstr "Select samples and destinations in one row or column. Keep the first samples; extend their pattern into the remaining cells, including hidden cells."
 
+#: src/workbook/select-special/SelectSpecialStatus.tsx
+msgid "Select special"
+msgstr "Select special"
+
+#: src/workbook/select-special/SelectSpecialStatus.tsx
+msgid "Select special error"
+msgstr "Select special error"
+
 #: src/workbook/chrome/ribbon/SpillTools.tsx
 msgid "Select spill range"
 msgstr "Select spill range"
@@ -4733,6 +4753,18 @@ msgstr "Select whole merged cells before copying or pasting."
 #: src/i18n/translate-feedback.ts
 msgid "Selected {cells} cells in {areas} areas. Searched {range}."
 msgstr "Selected {cells} cells in {areas} areas. Searched {range}."
+
+#: src/i18n/translate-select-special.ts
+msgid "Selected {cells} visible cells in {areas} areas."
+msgstr "Selected {cells} visible cells in {areas} areas."
+
+#: src/i18n/translate-select-special.ts
+msgid "Selected current region {range}."
+msgstr "Selected current region {range}."
+
+#: src/i18n/select-special-feedback.ts
+msgid "Selected current region."
+msgstr "Selected current region."
 
 #: src/workbook/chrome/ribbon/FilterValueChoices.tsx
 msgid "Selected filter values"
@@ -5278,6 +5310,14 @@ msgstr "The matched cell is outside the current worksheet."
 msgid "The named range no longer exists."
 msgstr "The named range no longer exists."
 
+#: src/i18n/select-special-feedback.ts
+msgid "The native result is inconsistent."
+msgstr "The native result is inconsistent."
+
+#: src/i18n/select-special-feedback.ts
+msgid "The native result is outside the worksheet."
+msgstr "The native result is outside the worksheet."
+
 #: src/i18n/feedback-messages.ts
 msgid "The new column name is the same as the current name."
 msgstr "The new column name is the same as the current name."
@@ -5350,6 +5390,10 @@ msgstr "The selection changed. Close the palette and select the target again."
 #: src/i18n/feedback-messages.ts
 msgid "The selection changed. Refresh spill details for the current cell."
 msgstr "The selection changed. Refresh spill details for the current cell."
+
+#: src/i18n/select-special-feedback.ts
+msgid "The selection changed. Try again."
+msgstr "The selection changed. Try again."
 
 #: src/i18n/feedback-messages.ts
 msgid "The selection or workbook changed. Close this dialog and select the range again."
@@ -5475,6 +5519,10 @@ msgstr "The workbook changed. Reopen worksheet protection."
 msgid "The workbook changed. Submit the operation again."
 msgstr "The workbook changed. Submit the operation again."
 
+#: src/i18n/select-special-feedback.ts
+msgid "The workbook changed. Try again."
+msgstr "The workbook changed. Try again."
+
 #: src/i18n/feedback-messages.ts
 msgid "The workbook changed. Try locating cells again."
 msgstr "The workbook changed. Try locating cells again."
@@ -5514,6 +5562,10 @@ msgstr "The worksheet changed. Close and reopen Filter."
 #: src/workbook/chrome/ribbon/SpillTools.tsx
 msgid "The worksheet changed. Refresh spill details before navigating."
 msgstr "The worksheet changed. Refresh spill details before navigating."
+
+#: src/i18n/select-special-feedback.ts
+msgid "The worksheet changed. Try again."
+msgstr "The worksheet changed. Try again."
 
 #: src/i18n/seven-feature-feedback.ts
 msgid "The worksheet dimensions changed outside history."
@@ -5571,6 +5623,10 @@ msgstr "This clipboard has no workbook formatting. Copy cells in this workbook f
 #: src/i18n/feedback-messages.ts
 msgid "This clipboard range is too large. Select a smaller range."
 msgstr "This clipboard range is too large. Select a smaller range."
+
+#: src/i18n/select-special-feedback.ts
+msgid "This command cannot be used on multiple selections. Select areas with the same rows or columns."
+msgstr "This command cannot be used on multiple selections. Select areas with the same rows or columns."
 
 #: src/i18n/feedback-messages.ts
 msgid "This edit was not confirmed — it may or may not have been saved."
@@ -6106,6 +6162,10 @@ msgstr "Vertical alignment"
 #: src/workbook/chrome/ribbon/RibbonTabs.tsx
 msgid "View"
 msgstr "View"
+
+#: src/workbook/chrome/ribbon/GoToSpecialTools.tsx
+msgid "Visible cells only"
+msgstr "Visible cells only"
 
 #: src/i18n/feedback-messages.ts
 msgid "Wait for the Rust worksheet to finish loading."

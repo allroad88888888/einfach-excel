@@ -1103,3 +1103,10 @@ HELP-002主用例核对完整函数列表、自定义函数及布局；逐函数
 | DRAGMOVE-008 | 冻结窗格下从冻结区拖到滚动区 | `drag-move/viewport.spec.ts` | a border drag from the frozen pane drops into the scrolling pane |
 | DRAGMOVE-009 | 缩放 150% 下落点命中指针下的格 | `drag-move/viewport.spec.ts` | a border drag at 150 percent zoom drops on the cell under the pointer |
 | DRAGMOVE-010 | 拖到视口边缘自动滚动落点 | `drag-move/viewport.spec.ts` | holding a border drag near the bottom edge autoscrolls the drop target |
+| SELSPECIAL-001 | Alt+; 仅选可见块 | `select-special/visible-cells.spec.ts` | Alt+Semicolon selects only the visible filtered blocks at 1280px |
+| SELSPECIAL-002 | 仅可见后复制粘贴 | `select-special/visible-cells.spec.ts` | copying visible cells only pastes the visible values at 1280px |
+| SELSPECIAL-003 | 跳过隐藏列 | `select-special/visible-cells.spec.ts` | visible cells skips a hidden column and copy pastes the remaining columns at 1280px |
+| SELSPECIAL-004 | 定位条件仅可见单元格 | `select-special/visible-cells.spec.ts` | Go to special Visible cells only selects the visible blocks and closes the dialog at 1280px |
+| SELSPECIAL-005 | Ctrl+Shift+* 当前区域 | `select-special/current-region.spec.ts` | Ctrl+Shift+8 selects the current region around the active cell at 1280px |
+| SELSPECIAL-006 | 定位条件当前区域 | `select-special/current-region.spec.ts` | Go to special Current region selects the region of the active cell at 1280px |
+| SELSPECIAL-007 | Ctrl+A 先区域后整表 | `select-special/current-region.spec.ts` | Ctrl+A selects the current region first and the whole sheet second at 1280px |

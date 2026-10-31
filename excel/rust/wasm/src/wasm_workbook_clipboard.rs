@@ -51,6 +51,14 @@ impl WasmWorkbook {
         self.capture_clipboard_slot(sheet_idx, start_row, start_col, end_row, end_col, cut, ClipboardSlot::Pending)
     }
 
+    /// 多个不连续块（同列或同行）一次暂存；仅复制，不支持剪切。
+    pub fn prepare_clipboard_blocks(&mut self, sheet_idx: u32, blocks: JsValue) -> Result<JsValue, JsValue> {
+        let blocks: Vec<LocateRangeJSON> = serde_wasm_bindgen::from_value(blocks)
+            .map_err(|_| JsValue::from_str("CLIPBOARD_INVALID_RANGE"))?;
+        let ranges: Vec<CellRange> = blocks.iter().map(select_special_range).collect();
+        self.capture_blocks_slot(sheet_idx, &ranges, false, ClipboardSlot::Pending)
+    }
+
     /// 成功才提升临时快照；失败立即释放，不复制工作簿或新增历史。
     pub fn finish_clipboard_capture(&mut self, commit: bool) {
         let pending = self.pending_clipboard.take();
@@ -89,16 +97,19 @@ impl WasmWorkbook {
         &mut self, sheet_idx: u32, start_row: u32, start_col: u32,
         end_row: u32, end_col: u32, cut: bool, slot: ClipboardSlot,
     ) -> Result<JsValue, JsValue> {
+        let range = CellRange::new(
+            CellAddress::new(start_row, start_col),
+            CellAddress::new(end_row, end_col),
+        );
+        self.capture_blocks_slot(sheet_idx, &[range], cut, slot)
+    }
+
+    fn capture_blocks_slot(
+        &mut self, sheet_idx: u32, blocks: &[CellRange], cut: bool, slot: ClipboardSlot,
+    ) -> Result<JsValue, JsValue> {
         let snapshot = self
             .workbook
-            .capture_clipboard(
-                sheet_idx as usize,
-                CellRange::new(
-                    CellAddress::new(start_row, start_col),
-                    CellAddress::new(end_row, end_col),
-                ),
-                cut,
-            )
+            .capture_clipboard_blocks(sheet_idx as usize, blocks, cut)
             .map_err(JsValue::from_str)?;
         let result = serde_wasm_bindgen::to_value(&ClipboardCaptureJSON {
             text: snapshot.text().to_owned(),

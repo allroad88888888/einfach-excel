@@ -19,7 +19,7 @@ import type {
   RustClipboardExportFormat,
   RustClipboardPasteRequest,
 } from '../rust-workbook/clipboard-commands'
-import { selectionSnapshotAtom, selectionAuthorityWitnessAtom } from '../selection'
+import { selectionSnapshotAtom, selectionAuthorityWitnessAtom, selectionRangesAtom } from '../selection'
 import { validateProjectionResult } from '../projection/contracts'
 import { applyProjectionSizes } from '../projection/projection-sizes'
 import { offerNativeValidationConfirmationAtom } from '../data-validation/advanced/confirmation-state'
@@ -118,6 +118,8 @@ export const runSystemClipboardAtom = atom(
         const captured = connection.request('clipboard.capture', {
           sheetId: sheet.id,
           range: selection.range,
+          // 多块选区交给 Rust 判定同列/同行；剪切会被明确拒绝。
+          ...(get(selectionRangesAtom).length > 1 ? { blocks: get(selectionRangesAtom) } : {}),
           cut: input.operation === 'cut',
         })
         // 浏览器写入与 Rust 响应一起结算，即使权限同步失败也接住 RPC 拒绝。

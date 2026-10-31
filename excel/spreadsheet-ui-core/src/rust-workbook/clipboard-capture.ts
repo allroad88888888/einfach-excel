@@ -14,6 +14,10 @@ export function captureClipboard(
     if (input.cut) throw new Error('CLIPBOARD_INVALID_POLICY')
     if (!workbook.capture_format_painter) throw new Error('Rust clipboard export is unavailable')
     captured = workbook.capture_format_painter(...coordinates)
+  } else if (input.blocks && input.blocks.length > 1) {
+    if (input.cut || !workbook.prepare_clipboard_blocks || !workbook.finish_clipboard_capture)
+      throw new Error('CLIPBOARD_MULTI_CUT')
+    captured = workbook.prepare_clipboard_blocks(sheet, input.blocks)
   } else {
     if (!workbook.prepare_clipboard || !workbook.finish_clipboard_capture)
       throw new Error('Rust clipboard confirmation is unavailable')
